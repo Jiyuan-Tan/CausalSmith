@@ -1,0 +1,1317 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{eid\_\allowbreak{}ganm\_\allowbreak{}innovation\_\allowbreak{}atomic\_\allowbreak{}partition}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Acyclic grouped additive-noise mechanisms with mutually independent smooth positive block innovations induce a strictly positive \(C^3\) observed density. Innovation atomicity rules out internal directional additive-noise splits, but under the current assumptions it does not by itself construct such a split from every competing partition. The unconditional population result is therefore an identified set: for each admissible coordinate partition, the law determines one labelled block DAG. Three ambiguity configurations are excluded rigorously: unequal empty-DAG partitions, the relabelled three-coordinate crossed single-edge pair, and a strict refinement in which the coarse block is a root and its fine constituent blocks have no external parents. Arbitrary incomparable crossings and strict refinements with external fine parents remain open. The characteristic-function and covariance diagnostics remain sufficient falsification tools, and the open five-parameter vector family establishes a genuinely non-scalar frontier; no finite certificate, genericity, or unknown-partition uniqueness claim is made.
+
+\section{Project justification}
+
+\paragraph{Gap.} Göbler, Windisch, and Drton identify a grouped additive-noise DAG only for one supplied block tuple, while Peters et al. compare DAGs on one fixed scalar vertex set. Entner and Hoyer also assume known groups, Wahl, Ninad, and Runge call joint partition--graph learning future work, and the algorithms of Niu, Li, and Li and Rajpal et al. do not prove population uniqueness of their learned grouping. None of these sources controls conditioning that cuts through a correlated innovation of a competing partition or external fine-parent terms surviving coarse-mechanism subtraction.
+
+\paragraph{Niche.} The exact-law question can still be answered without overstating partition recovery: determine the labelled DAG conditional on each admissible partition and isolate concrete cross-partition configurations for which atomicity supplies a contradiction.
+
+\paragraph{Fill.} The project proves that the recovery relation is the graph of a partial function from admissible partitions to labelled block DAGs by composing atomic-fiber membership with the published fixed-partition theorem. It separately excludes unequal empty-DAG factorizations, the full-measure three-coordinate crossed single-edge configuration, and root/parent-closed strict refinements. It also supplies observable sufficient diagnostics for internal splits, a nonlinear merging witness showing why atomicity matters, and an open five-parameter genuinely vector family beyond the scalar restricted-ANM class. The remaining arbitrary crossing and external-parent refinement problems are stated as limitations rather than promoted to theorems.
+
+\section{Related work}
+
+HoyerEtAl2008 derives the scalar log-density obstruction and discusses the linear-Gaussian reversible boundary. PetersEtAl2014, Definition 27 and Theorem 28, identifies a causally minimal restricted additive-noise DAG on a fixed scalar vertex set. GoblerWindischDrton2025, Definition 2, Condition 1, and Corollary 1, identifies the graph for one supplied vector partition; the present result agrees with that conclusion on each atomic fixed-partition subfiber and does not use it to compare partitions. EntnerHoyer2012 assumes the grouping known and recovers an order in a linear non-Gaussian group model. WahlNinadRunge2024 fixes the partition and identifies joint partition--graph learning as future work. GutchTheis2012 concerns linear invertible independent-subspace factorizations and does not provide a nonlinear causal quotient for crossed or externally parented blocks. NiuLiLi2022 searches jointly using total correlation, mutual information, an MDL penalty, and greedy C-DAG updates, whereas RajpalEtAl2026 optimizes a variational posterior over categorical clusters and ordered Bernoulli edges under Gaussian vector-SCM likelihoods; neither supplies population uniqueness of the partition. The nonlinear merging witness makes the supplied-group inclusion strict, while the density \(p_{a,b,c_0,d_0,\lambda}(u,v)\propto\exp\{-(a u^4+b v^4+\lambda u^2v^2+c_0u^2+d_0v^2)\}\) gives an open five-parameter atomic family outside the scalar restricted-ANM class. The Bosch 19-process grouping in GoblerEtAl2024 is a supplied engineering partition with partial physical ground truth, not evidence that innovation-atomic groups are uniquely identified from the observational law.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\mathcal T(P)=\{(\pi,\Gamma_P(\pi)):\pi\in\mathcal D_P\}\), where \(\mathcal D_P=\{\pi_R:R\in\mathfrak A(P)\}\) and \(\Gamma_P\) is the uniquely identified labelled-DAG map on this domain; the domain is not claimed to be a singleton..
+Primary functional / estimator / diagnostic: \(\mathcal T(P)=\{(\pi_R,G_R):R\in\mathfrak A(P)\}\).
+\begin{itemize}
+  \item \texttt{d} --- \texttt{positive integer}; \(\{3,4,\ldots\}\); \texttt{ambient dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The number of observed scalar coordinates.}
+  \item \texttt{V} --- \texttt{finite index set}; \(\{1,\ldots,d\}\); \texttt{coordinate labels}
+  \par\smallskip\noindent\emph{Definition.} \(V=\{1,\ldots,d\}\).
+  \item \texttt{Part} --- \texttt{finite set of coordinate partitions}; \(\operatorname{Part}(V)\); \texttt{candidate causal-\allowbreak{}unit partitions}
+  \par\smallskip\noindent\emph{Definition.} The set of all partitions of \(V\) into nonempty blocks.
+  \item \texttt{P} --- \texttt{probability law}; \(\mathcal P(\mathbb R^d)\); \texttt{observable input}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The observational law of the coordinate vector.}
+  \item \texttt{X} --- \texttt{random vector}; \(\mathbb R^d\); \texttt{observed coordinates}
+  \par\smallskip\noindent\emph{Definition.} \(X=(X_v)_{v\in V}\) has law \(P\).
+  \item \texttt{pP} --- \texttt{derived density}; \(\mathbb R^d\to(0,\infty)\); \texttt{derived observable density}
+  \par\smallskip\noindent\emph{Definition.} \(p_P\) denotes the Lebesgue density of \(P\) on the admissible-model fiber; its existence, strict positivity, and formula are derived by the triangular observed-density lemma.
+  \item \texttt{ellP} --- \texttt{derived log-\allowbreak{}density}; \(\mathbb R^d\to\mathbb R\); \texttt{derived observable differential object}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_P=\log p_P\), where \(p_P\) is the density derived by the triangular observed-density lemma.
+  \item \texttt{pi} --- \texttt{coordinate partition}; \(\operatorname{Part}(V)\); \texttt{generic partition}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A candidate partition of the observed coordinate labels.}
+  \item \texttt{G} --- \texttt{directed graph}; Graphs with vertex set \(\pi\); \texttt{generic block graph}
+  \par\smallskip\noindent\emph{Definition.} A coordinate-labelled block graph whose vertices are the blocks of \(\pi\).
+  \item \texttt{paG} --- \texttt{set-\allowbreak{}valued map}; \(\operatorname{pa}_G:\pi\to2^{\pi}\); \texttt{parent map}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{pa}_G(B)\) is the parent-block set of \(B\) in \(G\).
+  \item \texttt{ndG} --- \texttt{set-\allowbreak{}valued map}; \(\operatorname{nd}_G:\pi\to2^{\pi}\); \texttt{conditioning domain}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{nd}_G(B)\) is the set of nondescendant blocks of \(B\) in \(G\).
+  \item \texttt{fBlock} --- \texttt{family of block mechanisms}; \(f_B:\mathbb R^{|\cup\operatorname{pa}_G(B)|}\to\mathbb R^{|B|}\); \texttt{additive mechanisms}
+  \par\smallskip\noindent\emph{Definition.} For each \(B\in\pi\), \(f_B\) maps the coordinates in its parent blocks to the coordinates in \(B\).
+  \item \texttt{epsBlock} --- \texttt{family of random vectors}; \(\varepsilon_B=X_B-f_B(X_{\cup\operatorname{pa}_G(B)})\); \texttt{block innovations}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The residual innovation attached to each block mechanism.}
+  \item \texttt{pEps} --- \texttt{family of densities}; \(p_{\varepsilon_B}:\mathbb R^{|B|}\to(0,\infty)\); \texttt{innovation densities}
+  \par\smallskip\noindent\emph{Definition.} \(p_{\varepsilon_B}\) is the Lebesgue density of the block innovation \(\varepsilon_B\).
+  \item \texttt{nuEps} --- \texttt{family of log-\allowbreak{}densities}; \(\nu_B=\log p_{\varepsilon_B}\); \texttt{innovation differential object}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The log-\allowbreak{}density of each block innovation.}
+  \item \texttt{mSlice} --- \texttt{slice-\allowbreak{}normalizer operator}; \(p\mapsto m_p,\quad m_p(v)=\int_{\mathbb R}p(t,v)\,dt\); \texttt{regular-\allowbreak{}conditional-\allowbreak{}density normalizer}
+  \par\smallskip\noindent\emph{Definition.} For a strictly positive bivariate Lebesgue density \(p\), \(m_p\) is its first-coordinate slice integral, defined as an extended nonnegative measurable function.
+  \item \texttt{ESlice} --- \texttt{regular-\allowbreak{}slice-\allowbreak{}set operator}; \(p\mapsto E_p=\{v:0<m_p(v)<\infty\}\); \texttt{domain of regular conditional densities}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The conull set of second-\allowbreak{}coordinate values on which the slice normalizer is positive and finite.}
+  \item \texttt{qSlice} --- \texttt{regular conditional-\allowbreak{}density operator}; \(q_p(t\mid v)=p(t,v)/m_p(v),\quad v\in E_p\); \texttt{almost-\allowbreak{}everywhere conditional density}
+  \par\smallskip\noindent\emph{Definition.} The normalized first-coordinate slice, defined only on the regular set \(E_p\).
+  \item \texttt{R} --- \texttt{candidate grouped additive-\allowbreak{}noise representation}; \texttt{generic representation}
+  \par\smallskip\noindent\emph{Definition.} \(R=(\pi,G,(f_B)_{B\in\pi},(\varepsilon_B)_{B\in\pi})\) with \(X_B=f_B(X_{\cup\operatorname{pa}_G(B)})+\varepsilon_B\) for every \(B\in\pi\).
+  \item \texttt{Rprime} --- \texttt{candidate grouped additive-\allowbreak{}noise representation}; \texttt{competing representation}
+  \par\smallskip\noindent\emph{Definition.} \(R'\) is a second representation of the same law \(P\), with its own partition, graph, mechanisms, and innovations.
+  \item \texttt{partOf} --- \texttt{projection map}; \(R\mapsto\pi_R\); \texttt{partition projection}
+  \par\smallskip\noindent\emph{Definition.} \(\pi_R\) is the coordinate partition carried by \(R\).
+  \item \texttt{graphOf} --- \texttt{projection map}; \(R\mapsto G_R\); \texttt{graph projection}
+  \par\smallskip\noindent\emph{Definition.} \(G_R\) is the block DAG carried by \(R\), with its blocks labelled by coordinate subsets.
+  \item \texttt{mechanismOf} --- \texttt{projection map}; \((R,B)\mapsto f_{R,B}\); \texttt{mechanism projection}
+  \par\smallskip\noindent\emph{Definition.} \(f_{R,B}\) is the mechanism of block \(B\in\pi_R\).
+  \item \texttt{innovationOf} --- \texttt{projection map}; \((R,B)\mapsto\varepsilon_{R,B}\); \texttt{innovation projection}
+  \par\smallskip\noindent\emph{Definition.} \(\varepsilon_{R,B}\) is the innovation of block \(B\in\pi_R\).
+  \item \texttt{ellCond} --- \texttt{conditional log-\allowbreak{}density family}; \(\ell_{A,B\mid S=s}=\log p_{X_A,X_B\mid X_{\cup S}=s}\); \texttt{local asymmetry input}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The conditional log-\allowbreak{}density of two disjoint coordinate blocks at a positive-\allowbreak{}density conditioning value.}
+  \item \texttt{AP} --- \texttt{class of representations}; \(\mathfrak A(P)\); \texttt{identified-\allowbreak{}model fiber}
+  \par\smallskip\noindent\emph{Definition.} The admissible innovation-atomic grouped additive-noise representations of \(P\), defined in \(\mathrm{def:admissible-class}\).
+  \item \texttt{preceq} --- \texttt{partial order on partitions}; \(\preceq\;\subseteq\operatorname{Part}(V)^2\); \texttt{refinement order}
+  \par\smallskip\noindent\emph{Definition.} \(\pi_1\preceq\pi_2\) means every block of \(\pi_1\) is contained in a block of \(\pi_2\).
+  \item \texttt{meet} --- \texttt{binary operation on partitions}; \(\wedge:\operatorname{Part}(V)^2\to\operatorname{Part}(V)\); \texttt{common-\allowbreak{}refinement operator}
+  \par\smallskip\noindent\emph{Definition.} \(\pi_1\wedge\pi_2=\{B_1\cap B_2:B_1\in\pi_1,\ B_2\in\pi_2,\ B_1\cap B_2\neq\varnothing\}\).
+  \item \texttt{TP} --- \texttt{set-\allowbreak{}valued recovery map}; \(\mathcal T(P)\subseteq\operatorname{Part}(V)\times\mathcal G(V)\); \texttt{structural identifying functional}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal T(P)=\{(\pi_R,G_R):R\in\mathfrak A(P)\}\), where graphs retain coordinate-subset labels.
+  \item \texttt{pi0} --- \texttt{coordinate partition}; \(\operatorname{Part}(V)\); \texttt{Göbler comparator input}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A partition supplied externally before graph identification.}
+  \item \texttt{piSing} --- \texttt{coordinate partition}; \(\operatorname{Part}(V)\); \texttt{scalar-\allowbreak{}ANM reduction}
+  \par\smallskip\noindent\emph{Definition.} \(\pi_{\mathrm{sing}}=\{\{1\},\ldots,\{d\}\}\).
+  \item \texttt{AGiven} --- \texttt{class of representations}; \(\mathfrak G_{\pi_0}(P)\); \texttt{fixed-\allowbreak{}group theorem comparator}
+  \par\smallskip\noindent\emph{Definition.} The supplied-partition GANM fiber of Göbler, Windisch, and Drton, defined in \(\mathrm{def:supplied-group-class}\).
+  \item \texttt{APeters} --- \texttt{class of representations}; \(\mathfrak S(P)\); \texttt{scalar theorem comparator}
+  \par\smallskip\noindent\emph{Definition.} The scalar restricted-ANM fiber of Peters et al., defined in \(\mathrm{def:scalar-restricted-class}\).
+  \item \texttt{Pmerge} --- \texttt{probability law}; \(\mathcal P(\mathbb R^3)\); \texttt{atomicity-\allowbreak{}removal witness}
+  \par\smallskip\noindent\emph{Definition.} The explicit nonlinear Gaussian merging witness defined in \(\mathrm{def:merge-witness}\).
+  \item \texttt{mDim} --- \texttt{positive integer}; \(\{1,2,\ldots\}\); \texttt{residual dimension}
+  \par\smallskip\noindent\emph{Definition.} \(m\) indexes Euclidean residual-law dimensions.
+  \item \texttt{SmoothPos} --- \texttt{indexed class of probability laws}; \(m\mapsto\operatorname{SmoothPos}(m)\); \texttt{fully quantified residual-\allowbreak{}law class}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{SmoothPos}(m)\) is the residual-law class defined in \(\mathrm{def:smooth-positive-laws}\).
+  \item \texttt{phiCond} --- \texttt{conditional characteristic-\allowbreak{}function family}; \(\varphi_{D\mid C=c}(t)=\mathbb E[\exp\{i\langle t,Z_D\rangle\}\mid Z_C=c]\); \texttt{observable directional-\allowbreak{}ANM diagnostic}
+  \par\smallskip\noindent\emph{Definition.} For a random vector \(Z\) with a positive joint density and a split \(C\mathbin{\dot\cup}D\), \(\varphi_{D\mid C=c}\) is any regular version of the conditional characteristic function, defined for marginal-almost-every \(c\).
+  \item \texttt{thetaVec} --- \texttt{positive parameter vector}; \((0,\infty)^5\); \texttt{vector-\allowbreak{}family parameters}
+  \par\smallskip\noindent\emph{Definition.} \(\theta=(a,b,c_0,d_0,\lambda)\) indexes the explicit open five-parameter vector-innovation family; the coefficient labels \(c_0,d_0\) are distinguished from the ambient dimension \(d\).
+  \item \texttt{Pvector} --- \texttt{family of probability laws}; \(\{P_{\mathrm{vec},\theta}:\theta\in(0,\infty)^5\}\subset\mathcal P(\mathbb R^3)\); \texttt{open finite-\allowbreak{}dimensional strict scalar-\allowbreak{}frontier witness family}
+  \par\smallskip\noindent\emph{Definition.} \(P_{\mathrm{vec},\theta}\) is the explicit genuinely vector innovation law defined in \(\mathrm{def:vector-atomic-witness}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:mechanisms-c3]\label{ass:mechanisms-c3}
+For every \(B\in\pi_R\), the mechanism \(f_{R,B}\) is three times continuously differentiable on its Euclidean domain.
+\par\smallskip\noindent\emph{Standard} (Göbler smooth block mechanisms, \cite{GoblerWindischDrton2025}).
+\end{assumption}
+
+\begin{assumption}[ass:innovation-positive-density]\label{ass:innovation-positive-density}
+For every \(B\in\pi_R\), the innovation \(\varepsilon_{R,B}\) has a Lebesgue density that is strictly positive on \(\mathbb R^{|B|}\).
+\par\smallskip\noindent\emph{Standard} (Positive block-noise density, \cite{GoblerWindischDrton2025}).
+\end{assumption}
+
+\begin{assumption}[ass:innovation-c3-density]\label{ass:innovation-c3-density}
+For every \(B\in\pi_R\), the innovation log-density \(\nu_{R,B}\) belongs to \(C^3(\mathbb R^{|B|})\).
+\par\smallskip\noindent\emph{Standard} (Smooth block-noise log-density for vector ANM Condition 1, \cite{GoblerWindischDrton2025}).
+\end{assumption}
+
+\begin{assumption}[ass:block-noise-independence]\label{ass:block-noise-independence}
+The family \((\varepsilon_{R,B})_{B\in\pi_R}\) is mutually independent.
+\par\smallskip\noindent\emph{Standard} (Mutually independent GANM block noises, \cite{GoblerWindischDrton2025}).
+\end{assumption}
+
+\begin{assumption}[ass:block-acyclicity]\label{ass:block-acyclicity}
+The coordinate-labelled block graph \(G_R\) is acyclic.
+\par\smallskip\noindent\emph{Standard} (GANM acyclicity, \cite{GoblerWindischDrton2025}).
+\end{assumption}
+
+\begin{assumption}[ass:causal-minimality]\label{ass:causal-minimality}
+For every edge \(A\to B\) in \(G_R\), the mechanism \(f_{R,B}\) is nonconstant in the input coordinates indexed by \(A\).
+\par\smallskip\noindent\emph{Standard} (Causal minimality for additive-noise models, \cite{PetersEtAl2014}).
+\end{assumption}
+
+\begin{assumption}[ass:edgewise-condition-one]\label{ass:edgewise-condition-one}
+For every \(B\in\pi_R\), every \(A\in\operatorname{pa}_{G_R}(B)\), and every block set \(S\) satisfying \(\operatorname{pa}_{G_R}(B)\setminus\{A\}\subseteq S\subseteq\operatorname{nd}_{G_R}(B)\setminus\{A,B\}\), there exists \(x_{\cup S}\in\mathbb R^{|\cup S|}\) with \(p_{X_{\cup S}}(x_{\cup S})>0\) such that the paper's conditional triple \(\bigl(F, P_{X_A,X_B\mid X_{\cup S}=x_{\cup S}},P_{X_A}\bigr)\), with \(F(x_A)=f_{R,B}(x_{\cup(\operatorname{pa}_{G_R}(B)\setminus\{A\})},x_A)\) and the other parent coordinates held fixed at \(x_{\cup S}\), does not satisfy Equation (3) of Göbler, Windisch, and Drton on the \(C^3\) domain where its displayed inverse is defined: \[D_{x_A}H_{\xi}(x_A)\!\left[(D_{x_Ax_A}\pi_1(x_A,x_B))^{-1}D_{x_Ax_B}\pi_1(x_A,x_B)\right]=D_{x_A}D_{x_Ax_B}\pi_1(x_A,x_B)-\left[D_{x_A}\!\left(H_F(x_A)[\nabla\nu(u)]\right)-D_{x_A}\!\left(J_F(x_A)^{\top}H_{\nu}(u)J_F(x_A)\right)\right]\!\left[(D_{x_Ax_A}\pi_1(x_A,x_B))^{-1}D_{x_Ax_B}\pi_1(x_A,x_B)\right],\] where \(u=x_B-F(x_A)\), \(\nu=\log p_{\varepsilon_{R,B}}\), \(\xi=\log p_{X_A}\), \(\pi_1(x_A,x_B)=\log p_{X_A,X_B\mid X_{\cup S}=x_{\cup S}}(x_A,x_B)\), \(D_{x_Ax_A}\pi_1=H_{\xi}(x_A)-H_F(x_A)[\nabla\nu(u)]+J_F(x_A)^{\top}H_{\nu}(u)J_F(x_A)\), and \(D_{x_Ax_B}\pi_1=-J_F(x_A)^{\top}H_{\nu}(u)\); \(J\) and \(H\) denote Jacobian and Hessian matrices or tensors.
+\par\smallskip\noindent\emph{Standard} (Göbler--Windisch--Drton Corollary 1 conditional Condition 1, \cite{GoblerWindischDrton2025}).
+\end{assumption}
+
+\begin{assumption}[ass:peters-restricted-condition]\label{ass:peters-restricted-condition}
+On \(\pi_{\mathrm{sing}}\), for every node \(j\in V\), every parent \(i\in\operatorname{pa}_{G_R}(j)\), and every set \(S\) with \(\operatorname{pa}_{G_R}(j)\setminus\{i\}\subseteq S\subseteq\operatorname{nd}_{G_R}(j)\setminus\{i,j\}\), there exists \(x_S\) with \(p_{X_S}(x_S)>0\) such that \(\bigl(f_{R,j}(x_{\operatorname{pa}_{G_R}(j)\setminus\{i\}},\,\cdot),\mathcal L(X_i\mid X_S=x_S),\mathcal L(\varepsilon_{R,j})\bigr)\) does not solve Equation (7) of Peters et al. for all \(x_i,x_j\) satisfying \(\nu''(x_j-f(x_i))f'(x_i)\neq0\), with \(\xi=\log p_{X_i\mid X_S=x_S}\), \(\nu=\log p_{\varepsilon_{R,j}}\), and \(f=f_{R,j}(x_{\operatorname{pa}_{G_R}(j)\setminus\{i\}},\,\cdot)\).
+\par\smallskip\noindent\emph{Standard} (Peters--Mooij--Janzing--Schölkopf restricted ANM condition, \cite{PetersEtAl2014}).
+\end{assumption}
+
+\begin{assumption}[ass:innovation-atomicity]\label{ass:innovation-atomicity}
+For every \(B\in\pi_R\) and every nontrivial split \(B=C\mathbin{\dot\cup}D\), for every \(C^3\) map \(h:\mathbb R^{|C|}\to\mathbb R^{|D|}\) and every random vector \(\eta_D\) with \(\mathcal L(\eta_D)\in\operatorname{SmoothPos}(|D|)\), the relation \(\varepsilon_{R,D}=h(\varepsilon_{R,C})+\eta_D\) almost surely with \(\eta_D\perp\!\!\!\perp\varepsilon_{R,C}\) does not hold and, symmetrically, for every \(C^3\) map \(k:\mathbb R^{|D|}\to\mathbb R^{|C|}\) and every random vector \(\eta_C\) with \(\mathcal L(\eta_C)\in\operatorname{SmoothPos}(|C|)\), the relation \(\varepsilon_{R,C}=k(\varepsilon_{R,D})+\eta_C\) almost surely with \(\eta_C\perp\!\!\!\perp\varepsilon_{R,D}\) does not hold.
+\par\smallskip\noindent\emph{Novel.} Coordinate-level ANM irreducibility is the nonlinear causal analogue of irreducible independent subspaces. It is satisfied by the open five-parameter family with density proportional to \(\exp\{-(a u^4+b v^4+\lambda u^2v^2+c_0u^2+d_0v^2)\}\) for \(a,b,c_0,d_0,\lambda>0\), as certified in both directions by strictly varying conditional variances.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:smooth-positive-laws]\label{def:smooth-positive-laws}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Smooth positive residual-\allowbreak{}law class}
+\par\smallskip\noindent\emph{Construction.} For every \(m\ge1\), \(\operatorname{SmoothPos}(m)=\{\mu\in\mathcal P(\mathbb R^m):\mu\text{ has a Lebesgue density }r,\ r(x)>0\text{ for every }x\in\mathbb R^m,\ \int_{\mathbb R^m}r(x)\,dx=1,\text{ and }\log r\in C^3(\mathbb R^m)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{mDim}.
+\end{definition}
+
+\begin{definition}[def:admissible-class]\label{def:admissible-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Admissible innovation-\allowbreak{}atomic GANM fiber}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak A(P)=\{R: R\text{ induces }P,\ f_{R,B}\in C^3,\ p_{\varepsilon_{R,B}}>0,\ \nu_{R,B}\in C^3,\ (\varepsilon_{R,B})_{B\in\pi_R}\text{ are mutually independent},\ G_R\text{ is acyclic and causally minimal, every parent--node--nondescendant triple satisfies the published Göbler--Windisch--Drton Equation (3)-failure condition, and every }\varepsilon_{R,B}\text{ is innovation-atomic}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}mechanisms-\allowbreak{}c3}; \texttt{ass:\allowbreak{}innovation-\allowbreak{}positive-\allowbreak{}density}; \texttt{ass:\allowbreak{}innovation-\allowbreak{}c3-\allowbreak{}density}; \texttt{ass:\allowbreak{}block-\allowbreak{}noise-\allowbreak{}independence}; \texttt{ass:\allowbreak{}block-\allowbreak{}acyclicity}; \texttt{ass:\allowbreak{}causal-\allowbreak{}minimality}; \texttt{ass:\allowbreak{}edgewise-\allowbreak{}condition-\allowbreak{}one}; \texttt{ass:\allowbreak{}innovation-\allowbreak{}atomicity}.
+\end{definition}
+
+\begin{definition}[def:refinement-order]\label{def:refinement-order}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Coordinate refinement order}
+\par\smallskip\noindent\emph{Construction.} For \(\pi_1,\pi_2\in\operatorname{Part}(V)\), set \(\pi_1\preceq\pi_2\iff(\forall C\in\pi_1)(\exists B\in\pi_2)\ C\subseteq B\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{pi}.
+\end{definition}
+
+\begin{definition}[def:common-refinement]\label{def:common-refinement}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Common-\allowbreak{}refinement partition}
+\par\smallskip\noindent\emph{Construction.} \(\pi_1\wedge\pi_2=\{B_1\cap B_2:B_1\in\pi_1,\ B_2\in\pi_2,\ B_1\cap B_2\neq\varnothing\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{pi}.
+\end{definition}
+
+\begin{definition}[def:recovery-map]\label{def:recovery-map}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Atomic partition-\allowbreak{}and-\allowbreak{}DAG recovery map}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal T(P)=\{(\pi_R,G_R):R\in\mathfrak A(P)\}\), with equality of graphs requiring equality of the coordinate-subset vertex labels and directed edge sets.
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}.
+\end{definition}
+
+\begin{definition}[def:supplied-group-class]\label{def:supplied-group-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Published supplied-\allowbreak{}partition GANM fiber}
+\par\smallskip\noindent\emph{Construction.} For \(\pi_0\in\operatorname{Part}(V)\), \(\mathfrak G_{\pi_0}(P)=\{R:R\text{ induces }P,\ \pi_R=\pi_0,\ R\text{ is a GANM in the sense of Definition 2 of Göbler, Windisch, and Drton, }P\text{ satisfies their Definition 3 causal minimality, the mechanisms have the }C^3\text{ regularity used in their Section 2.2, and every parent--node--nondescendant conditional triple satisfies their Corollary 1 requirement by failing their Equation (3)}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}mechanisms-\allowbreak{}c3}; \texttt{ass:\allowbreak{}innovation-\allowbreak{}positive-\allowbreak{}density}; \texttt{ass:\allowbreak{}innovation-\allowbreak{}c3-\allowbreak{}density}; \texttt{ass:\allowbreak{}block-\allowbreak{}noise-\allowbreak{}independence}; \texttt{ass:\allowbreak{}block-\allowbreak{}acyclicity}; \texttt{ass:\allowbreak{}causal-\allowbreak{}minimality}; \texttt{ass:\allowbreak{}edgewise-\allowbreak{}condition-\allowbreak{}one}.
+\end{definition}
+
+\begin{definition}[def:scalar-restricted-class]\label{def:scalar-restricted-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Published scalar restricted-\allowbreak{}ANM fiber}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak S(P)=\{R:R\text{ induces }P\text{ and is a restricted additive-noise model on }\pi_{\mathrm{sing}}\text{ in the exact sense of Definition 27 and Condition 19 of Peters et al., with the stated nonvanishing noise densities and }C^3\text{ mechanisms}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}mechanisms-\allowbreak{}c3}; \texttt{ass:\allowbreak{}innovation-\allowbreak{}positive-\allowbreak{}density}; \texttt{ass:\allowbreak{}innovation-\allowbreak{}c3-\allowbreak{}density}; \texttt{ass:\allowbreak{}block-\allowbreak{}noise-\allowbreak{}independence}; \texttt{ass:\allowbreak{}block-\allowbreak{}acyclicity}; \texttt{ass:\allowbreak{}causal-\allowbreak{}minimality}; \texttt{ass:\allowbreak{}peters-\allowbreak{}restricted-\allowbreak{}condition}.
+\end{definition}
+
+\begin{definition}[def:crossing-handle]\label{def:crossing-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Nondescendant overlap-\allowbreak{}cell handle}
+\par\smallskip\noindent\emph{Construction.} Starting from an incomparable pair \(R,R'\in\mathfrak A(P)\), choose a sink disagreement as in the nondescendant reduction of Peters et al., condition only on whole blocks that are nondescendants in both graphs, normalize the two conditional factorizations in a shared overlap coordinate, and differentiate their exact translation-family identity on the smallest nonempty cells of \(\pi_R\wedge\pi_{R'}\); propagate the local shifts across overlapping inversion charts and positive-density chart boundaries. Invoke the published Equation (3)-failure condition only for a conditional pair of whole supplied blocks.
+\par\smallskip\noindent\emph{Inputs.} \texttt{R}; \texttt{Rprime}.
+\end{definition}
+
+\begin{definition}[def:strict-refinement-handle]\label{def:strict-refinement-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Extremal finer-\allowbreak{}block quotient handle}
+\par\smallskip\noindent\emph{Construction.} For \(R,R'\in\mathfrak A(P)\) with \(\pi_R\preceq\pi_{R'}\) and \(\pi_R\neq\pi_{R'}\), choose a coarse block \(B\in\pi_{R'}\) containing at least two blocks of \(\pi_R\), select an extremal finer block \(C\subsetneq B\) in a topological order of the finer-block DAG induced inside \(B\), and compare the two triangular density factorizations after cancelling or conditioning only on whole blocks external to \(B\). Prove a coarse-noise factorization or density-quotient lemma that turns the induced internal finer-block DAG into a directional representation \(\varepsilon_{R',B\setminus C}=h(\varepsilon_{R',C})+\eta_{B\setminus C}\) with \(h\in C^3\), \(\eta_{B\setminus C}\perp\!\!\!\perp\varepsilon_{R',C}\), and \(\mathcal L(\eta_{B\setminus C})\in\operatorname{SmoothPos}(|B\setminus C|)\), or the symmetric direction with residual law in \(\operatorname{SmoothPos}(|C|)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{R}; \texttt{Rprime}.
+\end{definition}
+
+\begin{definition}[def:three-coordinate-crossing-handle]\label{def:three-coordinate-crossing-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Three-\allowbreak{}coordinate translation-\allowbreak{}family handle}
+\par\smallskip\noindent\emph{Construction.} For the crossing \(\{1,2\}\leftarrow\{3\}\) versus \(\{1,3\}\leftarrow\{2\}\), write \(f=(f_1,f_2)\) and \(g=(g_1,g_3)\), set \(v=x_2-f_2(x_3)\), \(z=x_3-g_3(x_2)\), and \(\delta=f_1(x_3)-g_1(x_2)\), and define conditional slices only on \(E_{p_\varepsilon}\) and \(E_{p_\eta}\). On each inverse chart of \(\Phi(x_2,x_3)=(v,z)\) inside \(\Omega=\{1-f_2'(x_3)g_3'(x_2)\neq0\}\), pull back these conull regular sets, divide the original positive factorization at \(t\) and a fixed \(t_0\), and differentiate only the resulting log-ratio identity. Derive overlap gluing and critical-set continuation from that identity, without differentiating a slice normalizer or conditional density, and analyze the identically singular Jacobian equation separately.
+\par\smallskip\noindent\emph{Inputs.} \texttt{R}; \texttt{Rprime}.
+\end{definition}
+
+\begin{definition}[def:merge-witness]\label{def:merge-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Nonlinear Gaussian block-\allowbreak{}merging witness}
+\par\smallskip\noindent\emph{Construction.} Let \(N_1,N_2,N_3\) be independent standard Gaussian variables and set \(X_1=N_1\), \(X_2=X_1+X_1^3+N_2\), and \(X_3=N_3\). The law \(P_{\mathrm{merge}}\) has the singleton representation with the edge \(\{1\}\to\{2\}\) and the coarser empty-DAG representation with blocks \(\{1,2\}\) and \(\{3\}\).
+\end{definition}
+
+\begin{definition}[def:vector-atomic-witness]\label{def:vector-atomic-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Genuinely vector atomic innovation witness}
+\par\smallskip\noindent\emph{Construction.} For \(\theta=(a,b,c_0,d_0,\lambda)\in(0,\infty)^5\), define \(p_{a,b,c_0,d_0,\lambda}(u,v)=Z_{a,b,c_0,d_0,\lambda}^{-1}\exp\{-(a u^4+b v^4+\lambda u^2v^2+c_0u^2+d_0v^2)\}\), where \(Z_{a,b,c_0,d_0,\lambda}=\int_{\mathbb R^2}\exp\{-(a u^4+b v^4+\lambda u^2v^2+c_0u^2+d_0v^2)\}\,du\,dv\). Let \(W\) be independent with density \(Z_W^{-1}\exp\{-(w^4+w^2)\}\), let \(P_{\mathrm{vec},\theta}\) be the law of \((U,V,W)\), and equip its empty DAG with blocks \(\{1,2\}\) and \(\{3\}\).
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:characteristic-modulus-atomicity]\label{prop:characteristic-modulus-atomicity}
+Let \(Z=(Z_j)_{j\in B}\) have a strictly positive joint Lebesgue density with \(\log p_Z\in C^3(\mathbb R^{|B|})\). For each nontrivial split \(B=C\mathbin{\dot\cup}D\), suppose there exist \(t_D\in\mathbb R^{|D|}\), measurable sets \(A_1,A_2\subseteq\mathbb R^{|C|}\) with \(P_{Z_C}(A_j)>0\), and constants \(0\le\alpha_D<\beta_D\le1\) such that \( |\varphi_{D\mid C=c}(t_D)|\le\alpha_D\) for \(P_{Z_C}\)-almost every \(c\in A_1\) and \( |\varphi_{D\mid C=c}(t_D)|\ge\beta_D\) for \(P_{Z_C}\)-almost every \(c\in A_2\). Suppose symmetrically that there exist \(t_C\), positive-\(P_{Z_D}\)-measure sets \(H_1,H_2\), and \(0\le\alpha_C<\beta_C\le1\) separating \( |\varphi_{C\mid D=d'}(t_C)|\) on \(H_1,H_2\). Then neither directional additive-noise representation is possible and \(Z\) is innovation-atomic. Indeed, \(Z_D=h(Z_C)+\eta_D\) with independent \(\eta_D\) would imply \( |\varphi_{D\mid C=c}(t)|=|\varphi_{\eta_D}(t)|\) for marginal-almost every \(c\), and the reverse direction gives the symmetric constant-modulus consequence.
+\end{proposition}
+\begin{proof}
+Fix a nontrivial split \(B=C\mathbin{\dot\cup}D\).  Suppose, contrary to the first conclusion, that
+\[
+ Z_D=h(Z_C)+\eta_D,
+ \qquad \eta_D\perp\!\!\!\perp Z_C.
+\]
+Because \(h\) is Borel measurable, independence gives, for every \(t\in\mathbb R^{|D|}\), a version of the conditional characteristic function satisfying
+\[
+ \begin{aligned}
+ \varphi_{D\mid C=c}(t)
+ &=\mathbb E\!\left[\exp\{i\langle t,h(c)+\eta_D\rangle\}\mid Z_C=c\right]\\
+ &=\exp\{i\langle t,h(c)\rangle\}\,\varphi_{\eta_D}(t)
+ \end{aligned}
+\]
+for \(P_{Z_C}\)-almost every \(c\).  Taking absolute values and using \(|\exp(iu)|=1\) yields
+\[
+ |\varphi_{D\mid C=c}(t)|=|\varphi_{\eta_D}(t)|
+ \quad\text{for }P_{Z_C}\text{-almost every }c.
+\]
+At the specified \(t_D\), the positive-probability sets \(A_1\) and \(A_2\) would therefore imply simultaneously
+\[
+ |\varphi_{\eta_D}(t_D)|\leq\alpha_D
+ \quad\text{and}\quad
+ |\varphi_{\eta_D}(t_D)|\geq\beta_D,
+\]
+contrary to \(\alpha_D<\beta_D\).  Thus no representation in the \(C\)-to-\(D\) direction exists.  Interchanging \(C\) and \(D\) and using \(H_1,H_2,t_C,\alpha_C,\beta_C\) gives the same contradiction for the reverse direction.  Since the argument applies to every nontrivial split and excludes all independent residuals, it in particular excludes the residual laws quantified by \(\operatorname{SmoothPos}\) in \(\mathrm{def:smooth-positive-laws}\).  This is exactly innovation atomicity.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This gives a directly observable sufficient criterion for the existential exclusion in innovation atomicity. \textit{Gap.} Scalar ANM diagnostics test directionality for a prescribed pair, whereas the criterion is organized split-by-split to certify irreducibility of a proposed multivariate causal unit. \textit{Consumer.} A multichannel block can be screened for internal directional ANMs using conditional distribution shape rather than fitting every possible mechanism.
+
+\begin{proposition}[prop:conditional-covariance-diagnostic]\label{prop:conditional-covariance-diagnostic}
+In the setting of Proposition 1, assume finite second moments. For a fixed split \(B=C\mathbin{\dot\cup}D\), if the matrix \(\operatorname{Cov}(Z_D\mid Z_C=c)\) is not essentially constant in \(c\), then no representation \(Z_D=h(Z_C)+\eta_D\) with an independent residual is possible; the symmetric statement holds with \(C\) and \(D\) interchanged. If both directional covariance-variation conclusions hold for every nontrivial split, they suffice for innovation atomicity. This covariance test is sufficient for directional falsification but not necessary: failure to detect variation, including an essentially constant conditional covariance, does not certify atomicity.
+\end{proposition}
+\begin{proof}
+Fix \(B=C\mathbin{\dot\cup}D\) and suppose
+\[
+ Z_D=h(Z_C)+\eta_D,
+ \qquad \eta_D\perp\!\!\!\perp Z_C.
+\]
+The assumed finite second moment of \(Z_D\) implies that the conditional second moment \(\mathbb E[\|Z_D\|^2\mid Z_C=c]\) is finite for \(P_{Z_C}\)-almost every \(c\).  Choose one such regular \(c\).  The conditional-law identity
+\[
+ \mathcal L(Z_D\mid Z_C=c)=\mathcal L(h(c)+\eta_D)
+\]
+then implies \(\mathbb E\|\eta_D\|^2<\infty\), because \(h(c)\) is a finite vector.  Consequently, for almost every regular \(c\),
+\[
+ \begin{aligned}
+ \operatorname{Cov}(Z_D\mid Z_C=c)
+ &=\operatorname{Cov}(h(c)+\eta_D\mid Z_C=c)\\
+ &=\operatorname{Cov}(\eta_D),
+ \end{aligned}
+\]
+where the second equality uses independence.  The right-hand side does not depend on \(c\).  Hence a conditional covariance that is not essentially constant contradicts the proposed additive-noise representation.  The same calculation with \(C\) and \(D\) interchanged proves the reverse-direction assertion.  Applying both conclusions to every nontrivial split gives the stated sufficient criterion for atomicity.
+
+For completeness, constant conditional covariance is not a converse.  Let \(r_0\) be the standard normal density and let
+\[
+ r_1(y)=\tfrac12\phi_{1/2}(y)+\tfrac12\phi_{3/2}(y),
+\]
+where \(\phi_{\sigma^2}\) is the centered normal density of variance \(\sigma^2\).  Both \(r_0\) and \(r_1\) have mean zero and variance one, but they are distinct.  With \(w(x)=(2+\tanh x)/4\), set
+\[
+ q_x(y)=w(x)r_0(y)+(1-w(x))r_1(y)
+\]
+and give \((Z_C,Z_D)\) the density \(\phi_1(x)q_x(y)\).  This density is everywhere positive with a smooth log-density, and \(\operatorname{Var}(Z_D\mid Z_C=x)=1\) for every \(x\).  If \(Z_D=h(Z_C)+\eta_D\) with an independent residual, finite first moments would give \(0=\mathbb E[Z_D\mid Z_C=x]=h(x)+\mathbb E\eta_D\), so \(h\) would be constant almost everywhere and, by continuity, everywhere.  The conditional densities would then be identical, contrary to the strict variation of \(w\) and \(r_0\neq r_1\).  Thus the covariance diagnostic can fail to vary even when the directional additive-noise model is false.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Conditional covariance is an easily checked finite-moment implication of the stronger location-family restriction. \textit{Gap.} Park2020 is a distinct scalar-node multivariate-DAG result based on conditional-variance orderings across nodes, whereas this elementary result is only a one-direction covariance-variation falsification diagnostic for a prescribed block split and is not an admissibility premise. \textit{Consumer.} The diagnostic supplies an interpretable first pass for process blocks while retaining the characteristic-function criterion when moments are unreliable.
+
+\begin{lemma}[lem:triangular-observed-density]\label{lem:triangular-observed-density}
+Let \(R\in\mathfrak A(P)\), and order its blocks topologically as \(B_1,\ldots,B_m\). The residual map \(\Psi_R:\mathbb R^d\to\mathbb R^d\) defined blockwise by \(\Psi_R(x)_{B_j}=x_{B_j}-f_{R,B_j}(x_{\cup\operatorname{pa}_{G_R}(B_j)})\) is a global \(C^3\) diffeomorphism: its inverse is obtained recursively along the topological order, its block Jacobian is triangular with identity diagonal blocks, and \(\det D\Psi_R(x)=1\) for every \(x\). Therefore the induced observational law has the density \[p_P(x)=\prod_{B\in\pi_R}p_{\varepsilon_{R,B}}\!\left(x_B-f_{R,B}(x_{\cup\operatorname{pa}_{G_R}(B)})\right)>0,\qquad \ell_P(x)=\sum_{B\in\pi_R}\nu_{R,B}\!\left(x_B-f_{R,B}(x_{\cup\operatorname{pa}_{G_R}(B)})\right)\in C^3(\mathbb R^d).\] Thus strict positivity and \(C^3\) regularity of the observed density are derived from acyclicity, the \(C^3\) mechanisms, and the mutually independent strictly positive \(C^3\) innovation log-densities.
+\end{lemma}
+\begin{proof}
+Let \(B_1,\ldots,B_m\) be a topological ordering of \(G_R\).  Define \(\Psi_R\) as in the statement.  Acyclicity in \(\mathrm{ass:block-acyclicity}\) implies that every parent of \(B_j\) occurs among \(B_1,\ldots,B_{j-1}\).  Hence, given \(e\in\mathbb R^d\), the equations
+\[
+ x_{B_j}=f_{R,B_j}\!\left(x_{\cup\operatorname{pa}_{G_R}(B_j)}\right)+e_{B_j},
+ \qquad j=1,\ldots,m,
+\]
+determine \(x_{B_1},\ldots,x_{B_m}\) successively and uniquely.  They define a global inverse \(T_R=\Psi_R^{-1}\).  The mechanisms are \(C^3\) by \(\mathrm{ass:mechanisms-c3}\); induction over \(j\) therefore shows that both \(\Psi_R\) and \(T_R\) are \(C^3\).
+
+In the same topological block order, \(D\Psi_R(x)\) is block lower triangular.  Indeed, the \(B_j\)-output depends only on \(x_{B_j}\) and parent blocks preceding it, and
+\[
+ D_{x_{B_j}}\Psi_R(x)_{B_j}=I_{|B_j|}.
+\]
+Thus
+\[
+ \det D\Psi_R(x)=\prod_{j=1}^m\det I_{|B_j|}=1.
+\]
+The density formula can also be verified without any local inversion qualification.  For every nonnegative Borel function \(a\), mutual innovation independence and the innovation densities give
+\[
+ \mathbb E[a(X)]
+ =\int_{\mathbb R^d}a(T_R(e))\prod_{j=1}^m p_{\varepsilon_{R,B_j}}(e_{B_j})\,de.
+\]
+Successively substitute \(x_{B_j}=f_{R,B_j}(x_{\cup\operatorname{pa}(B_j)})+e_{B_j}\) in topological order.  Conditional on the preceding blocks, each substitution is a Euclidean translation and hence preserves Lebesgue measure.  Tonelli's theorem justifies the successive substitutions for nonnegative \(a\).  Therefore
+\[
+ \mathbb E[a(X)]
+ =\int_{\mathbb R^d}a(x)
+ \prod_{B\in\pi_R}p_{\varepsilon_{R,B}}\!\left(x_B-f_{R,B}(x_{\cup\operatorname{pa}_{G_R}(B)})\right)dx.
+\]
+This proves the displayed density formula.  Every factor is strictly positive by \(\mathrm{ass:innovation-positive-density}\), so \(p_P>0\).  Taking logarithms gives the displayed sum.  Each summand is the composition of a \(C^3\) innovation log-density from \(\mathrm{ass:innovation-c3-density}\) with a \(C^3\) residual map, so \(\ell_P\in C^3(\mathbb R^d)\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The change-of-variables calculation removes observable density regularity from the admissible fiber and records it as a consequence of the structural model. \textit{Gap.} Grouped ANM work routinely writes the product factorization, but this lemma isolates the global triangular diffeomorphism and unit Jacobian needed to prevent observed smoothness and positivity from becoming circular premises here. \textit{Consumer.} Every density-intersection and conditional-factorization argument can invoke one derived observable-density result instead of assuming the regularity of \(P\).
+
+\begin{lemma}[lem:empty-dag-common-refinement]\label{lem:empty-dag-common-refinement}
+If \(R,R'\in\mathfrak A(P)\) and both \(G_R\) and \(G_{R'}\) are empty, then the positive density \(p_P\) factorizes over every cell of \(\pi_R\wedge\pi_{R'}\). Consequently, if \(\pi_R\neq\pi_{R'}\), at least one block innovation in \(R\) or \(R'\) admits a nontrivial coordinate split with a zero \(C^3\) mechanism and an independent residual whose law belongs to the appropriate \(\operatorname{SmoothPos}\) class; therefore \(\pi_R=\pi_{R'}\).
+\end{lemma}
+\begin{proof}
+Because both graphs are empty, \(\varepsilon_{R,B}=X_B\) and \(\varepsilon_{R',B'}=X_{B'}\).  The triangular density lemma and block-noise independence give
+\[
+ \ell_P(x)=\sum_{B\in\pi_R}\nu_{R,B}(x_B)
+ =\sum_{B'\in\pi_{R'}}\nu_{R',B'}(x_{B'}).
+\]
+Enumerate the cells of \(\rho:=\pi_R\wedge\pi_{R'}\) as \(C_1,\ldots,C_k\).  If \(i\in C_r\), \(j\in C_s\), and \(r\neq s\), then \(i,j\) are separated by at least one of \(\pi_R,\pi_{R'}\): otherwise their blocks in both partitions would have the same nonempty intersection cell.  Differentiating the factorization belonging to a separating partition yields
+\[
+ \partial_i\partial_j\ell_P(x)=0
+ \quad\text{for every }x\in\mathbb R^d.
+\]
+It follows that the gradient of \(\ell_P\) in the coordinates \(C_r\) is independent of all coordinates outside \(C_r\).  Integrating these block gradients successively along the axis-aligned path from \(0\) to \(x\) gives
+\[
+ \ell_P(x)=c+\sum_{r=1}^k g_r(x_{C_r}),
+ \qquad
+ g_r(u):=\ell_P(0_{C_1},\ldots,0_{C_{r-1}},u,0_{C_{r+1}},\ldots,0_{C_k})-\ell_P(0),
+\]
+after absorbing the resulting constant into \(c\).  Each \(g_r\) is \(C^3\).  Put
+\[
+ I_r=\int_{\mathbb R^{|C_r|}}e^{g_r(u)}\,du.
+\]
+Tonelli's theorem and \(\int p_P=1\) imply
+\[
+ 1=e^c\prod_{r=1}^k I_r.
+\]
+Every \(I_r\) is strictly positive, and the last finite product equality forces every \(I_r<\infty\).  Thus \(r_r=e^{g_r}/I_r\) is an everywhere positive unit-integral density with \(\log r_r\in C^3\), and
+\[
+ p_P(x)=\prod_{r=1}^k r_r(x_{C_r}).
+\]
+This proves mutual independence of the common-refinement cells and places every cell law, and every product of cell laws, in the appropriate \(\operatorname{SmoothPos}\) class.
+
+If \(\pi_R\neq\pi_{R'}\), at least one block \(B\) of one partition contains at least two cells of \(\rho\); otherwise both partitions would equal \(\rho\).  Choose one such cell \(C\subsetneq B\) and put \(D=B\setminus C\).  In the corresponding empty-DAG representation,
+\[
+ \varepsilon_{R,B,C}=X_C,
+ \qquad
+ \varepsilon_{R,B,D}=0(X_C)+X_D,
+ \qquad
+ X_D\perp\!\!\!\perp X_C,
+\]
+or the identical formula in \(R'\).  The zero map is \(C^3\), and the density just constructed shows \(\mathcal L(X_D)\in\operatorname{SmoothPos}(|D|)\).  This is a forbidden nontrivial directional split under \(\mathrm{ass:innovation-atomicity}\).  Hence \(\pi_R=\pi_{R'}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This isolates the part of partition uniqueness supplied by positive-density intersection and shows exactly where causal mechanisms create the new difficulty. \textit{Gap.} GutchTheis2012 proves uniqueness for linear independent-subspace factorizations, but it does not treat a fixed observed coordinate system with causal mechanisms between blocks. \textit{Consumer.} The lemma settles unknown atomic grouping for independent multivariate shocks and supplies the base case for induction over block-DAG sinks.
+
+\begin{theorem}[thm:three-coordinate-crossing]\label{thm:three-coordinate-crossing}
+Let \(d=3\). Suppose \(R,R'\in\mathfrak A(P)\), \(\pi_R=\{\{1,2\},\{3\}\}\), \(\pi_{R'}=\{\{1,3\},\{2\}\}\), \(G_R\) has the single edge \(\{3\}\to\{1,2\}\), and \(G_{R'}\) has the single edge \(\{2\}\to\{1,3\}\). Write \(f=(f_1,f_2)\), \(g=(g_1,g_3)\), \(\varepsilon=(\varepsilon_1,\varepsilon_2)\), and \(\eta=(\eta_1,\eta_3)\) for the two nonroot mechanisms and innovations, and let \(r\) and \(s\) denote the strictly positive \(C^3\) marginal densities of \(X_3\) and \(X_2\), respectively. The triangular density formula gives, for every \(x\in\mathbb R^3\), \[r(x_3)p_{\varepsilon}(x_1-f_1(x_3),x_2-f_2(x_3))=s(x_2)p_{\eta}(x_1-g_1(x_2),x_3-g_3(x_2)).\] Set \(v=x_2-f_2(x_3)\), \(z=x_3-g_3(x_2)\), and \(\delta(x_2,x_3)=f_1(x_3)-g_1(x_2)\). Define the extended slice normalizers and regular sets \[m_{\varepsilon}(v)=\int_{\mathbb R}p_{\varepsilon}(t,v)\,dt,\quad E_{\varepsilon}=\{v:0<m_{\varepsilon}(v)<\infty\},\qquad m_{\eta}(z)=\int_{\mathbb R}p_{\eta}(t,z)\,dt,\quad E_{\eta}=\{z:0<m_{\eta}(z)<\infty\}.\] Tonelli's theorem, \(\int p_{\varepsilon}=\int p_{\eta}=1\), and strict positivity imply that \(E_{\varepsilon}\) and \(E_{\eta}\) are conull. Define \(q_{\varepsilon}(t\mid v)=p_{\varepsilon}(t,v)/m_{\varepsilon}(v)\) only for \(v\in E_{\varepsilon}\), and define \(q_{\eta}(t\mid z)=p_{\eta}(t,z)/m_{\eta}(z)\) only for \(z\in E_{\eta}\). The normalized translation identity is \[q_{\varepsilon}(t\mid v)=q_{\eta}(t+\delta(x_2,x_3)\mid z),\qquad t\in\mathbb R,\quad (x_2,x_3)\in D:=\Phi^{-1}(E_{\varepsilon}\times E_{\eta}),\] where \(\Phi(x_2,x_3)=(v,z)\). Let \(\Omega=\{(x_2,x_3):1-f_2'(x_3)g_3'(x_2)\neq0\}\). It is open, and on every connected inverse chart \(U\subseteq\Omega\), \(\Phi|_U\) is a \(C^3\) diffeomorphism onto its open image and \(D_U=U\cap D\) is conull in \(U\), hence dense. Fix \(t_0\in\mathbb R\). Dividing the original positive factorization at \(t\) and \(t_0\), then taking logarithms, gives on \(D_U\) the identity \[\nu_{\varepsilon}(t,v)-\nu_{\varepsilon}(t_0,v)=\nu_{\eta}(t+\delta,z)-\nu_{\eta}(t_0+\delta,z).\] Continuity extends this log-ratio identity to every point of \(U\); only this extended identity, not \(m_{\varepsilon}\), \(m_{\eta}\), \(q_{\varepsilon}\), or \(q_{\eta}\), is differentiated. The extended identity implies the following chart and continuation conclusions. On each \(U\), there are \(C^3\) shift functions \(h_U\) and \(k_U\), normalized by \(h_U(v_U^0)=0\) at a regular base point, and a fixed smooth positive unit-integral profile chosen from one regular slice, such that the two regular conditional families are its translates and \(\delta=k_U(z)-h_U(v)\) on \(D_U\). On overlaps, the log-ratio identity forces any two normalized shift pairs to differ by one common additive constant; transport along every overlap chain is path independent. For any \(y\in\Omega^c\) approached by nonsingular charts, the same identity forces overlap-chain-independent limits of the shift differences and locally uniform limits of the translated log-density ratios and their first two \(t\)-derivatives, yielding a unique continuation through the critical set. These chart-gluing and critical-set statements are conclusions to be derived from the displayed log-ratio identity, not regularity assumptions on slice normalizers. They produce global \(C^3\) functions \(h,k\) and variables \(\zeta,\zeta'\) with \(\mathcal L(\zeta),\mathcal L(\zeta')\in\operatorname{SmoothPos}(1)\) such that \(\varepsilon_1=h(\varepsilon_2)+\zeta\), \(\zeta\perp\!\!\!\perp\varepsilon_2\), and \(\eta_1=k(\eta_3)+\zeta'\), \(\zeta'\perp\!\!\!\perp\eta_3\). If \(\Omega=\varnothing\), then \(f_2(x_3)=ax_3+c\) and \(g_3(x_2)=a^{-1}x_2+d_0\) for some \(a\neq0\), so \(\eta_3=-a^{-1}\varepsilon_2-a^{-1}c-d_0\); independence of \(X_2=aX_3+c+\varepsilon_2\) from \(\eta_3\), with \(X_3\perp\!\!\!\perp\varepsilon_2\), would make \(\varepsilon_2\), whose strictly positive density gives full support, independent of its sum with an independent variable, which is impossible. Thus either regime forces a nontrivial directional innovation split, and the two crossed representations cannot both be innovation-atomic.
+\end{theorem}
+\begin{proof}
+Write \(c_3=f_{R,\{3\}}(\varnothing)\) and \(c_2'=f_{R',\{2\}}(\varnothing)\) for the constant root mechanisms.  By the structural equations and \(\mathrm{ass:block-noise-independence}\),
+\[
+ X_3=c_3+\varepsilon_{R,\{3\}},\qquad
+ X_2=c_2'+\varepsilon_{R',\{2\}},
+\]
+and each displayed root variable is independent of the nonroot innovation in its own representation.  Define
+\[
+ r(y)=p_{\varepsilon_{R,\{3\}}}(y-c_3),
+ \qquad
+ s(x)=p_{\varepsilon_{R',\{2\}}}(x-c_2').
+\tag{1}
+\]
+By \(\mathrm{ass:innovation-positive-density}\) and \(\mathrm{ass:innovation-c3-density}\), \(r\) and \(s\) are strictly positive densities and \(\log r,\log s\in C^3(\mathbb R)\).  In particular, they are the marginal densities of \(X_3\) and \(X_2\), respectively.  Applying \(\mathrm{lem:triangular-observed-density}\) to the two representations of the same law gives, pointwise on \(\mathbb R^3\),
+\[
+ r(x_3)p_\varepsilon\bigl(x_1-f_1(x_3),x_2-f_2(x_3)\bigr)
+ =s(x_2)p_\eta\bigl(x_1-g_1(x_2),x_3-g_3(x_2)\bigr).
+\tag{2}
+\]
+This proves the corrected density factorization.  Notice that no zero normalization of a root mechanism has been assumed.
+
+Abbreviate \(x=x_2\), \(y=x_3\), and set
+\[
+ v=x-f_2(y),\qquad z=y-g_3(x),
+ \qquad \delta=f_1(y)-g_1(x).
+\tag{3}
+\]
+Substitution of \(x_1=f_1(y)+t\) into (2) gives
+\[
+ r(y)p_\varepsilon(t,v)=s(x)p_\eta(t+\delta,z)
+ \quad\text{for every }(t,x,y)\in\mathbb R^3.
+\tag{4}
+\]
+Apply \(\mathrm{lem:tonelli-nonnegative-product-integral}\) to each nonnegative bivariate innovation density.  Since each has total integral one,
+\[
+ \int_{\mathbb R}m_\varepsilon(v)\,dv=1,
+ \qquad
+ \int_{\mathbb R}m_\eta(z)\,dz=1.
+\tag{5}
+\]
+Strict positivity of the joint densities implies that each slice integral is positive, with \(+\infty\) allowed.  Equation (5) implies that the sets on which the slice integrals are finite are conull.  Thus \(E_\varepsilon\) and \(E_\eta\) are conull, as asserted.  For \((x,y)\in D\), integration of (4) in \(t\), using Tonelli and translation invariance of Lebesgue measure, gives
+\[
+ r(y)m_\varepsilon(v)=s(x)m_\eta(z).
+\tag{6}
+\]
+Every quantity in (6) is finite and strictly positive.  Dividing (4) by (6) proves
+\[
+ q_\varepsilon(t\mid v)=q_\eta(t+\delta\mid z),
+ \qquad t\in\mathbb R,\quad (x,y)\in D.
+\tag{7}
+\]
+
+Fix \(t_0\in\mathbb R\).  Because all factors in (4) are finite and strictly positive, division of (4) by its value at \(t_0\), followed by logarithms, is legitimate for every \((x,y)\), not only on \(D\).  It yields the global identity
+\[
+ \nu_\varepsilon(t,v)-\nu_\varepsilon(t_0,v)
+ =\nu_\eta(t+\delta,z)-\nu_\eta(t_0+\delta,z).
+\tag{8}
+\]
+Consequently the continuity extension requested in the statement is immediate; in what follows only (8), and never a slice normalizer or conditional density, is differentiated.
+
+Define
+\[
+ S(t,v)=\partial_t\nu_\varepsilon(t,v),
+ \qquad T(u,z)=\partial_u\nu_\eta(u,z),
+ \qquad J(x,y)=1-f_2'(y)g_3'(x).
+\tag{9}
+\]
+The innovation log-densities and mechanisms are \(C^3\) by \(\mathrm{ass:innovation-c3-density}\) and \(\mathrm{ass:mechanisms-c3}\), so the following differentiations are valid.  Differentiate (8) first in \(t\), and then differentiate the resulting equality in \(x\) and in \(y\).  The chain rule gives
+\[
+ \begin{aligned}
+ S_v(t,v)&=-g_1'(x)T_u(t+\delta,z)-g_3'(x)T_z(t+\delta,z),\\
+ -f_2'(y)S_v(t,v)&=f_1'(y)T_u(t+\delta,z)+T_z(t+\delta,z),\\
+ S_t(t,v)&=T_u(t+\delta,z).
+ \end{aligned}
+\tag{10}
+\]
+On \(\Omega=\{J\ne0\}\), elementary elimination in (10) gives
+\[
+ S_v(t,v)=a(x,y)S_t(t,v),
+ \qquad
+ a(x,y)=\frac{g_3'(x)f_1'(y)-g_1'(x)}{J(x,y)},
+\tag{11}
+\]
+and
+\[
+ T_z(u,z)=b(x,y)T_u(u,z),
+ \qquad
+ b(x,y)=\frac{f_2'(y)g_1'(x)-f_1'(y)}{J(x,y)}.
+\tag{12}
+\]
+Moreover,
+\[
+ D\Phi(x,y)=
+ \begin{pmatrix}1&-f_2'(y)\\-g_3'(x)&1\end{pmatrix},
+ \qquad \det D\Phi(x,y)=J(x,y).
+\tag{13}
+\]
+The set \(\Omega\) is open by continuity of \(J\).  At each point of \(\Omega\), \(\mathrm{lem:inverse-function-theorem-c1}\) applied to \(\Phi\) supplies an inverse chart with a \(C^1\) inverse \(\psi\).  Differentiating \(\Phi(\psi(w))=w\) and using (13) gives
+\[
+ D\psi(w)=\bigl[D\Phi(\psi(w))\bigr]^{-1}.
+\]
+Because \(D\Phi\in C^2\), the right side is first \(C^1\), which makes \(\psi\in C^2\); substituting this improved regularity into the same formula makes the right side \(C^2\), which makes \(\psi\in C^3\).  Thus \(\Phi\) is a \(C^3\) diffeomorphism on every sufficiently small inverse chart.
+
+We also verify the asserted conullness on charts.  A \(C^1\) map is Lipschitz on every compact ball on which its derivative is bounded.  A Lipschitz map from \(\mathbb R^2\) to \(\mathbb R^2\) sends Lebesgue-null sets to Lebesgue-null sets: cover a null set by squares having arbitrarily small total area and cover each image square by a square whose side is at most a fixed Lipschitz multiple of the original diameter.  Exhausting the open image of an inverse chart by countably many such compact balls shows that its \(C^1\) inverse sends null sets to null sets.  Since \(E_\varepsilon\times E_\eta\) is conull, it follows that
+\[
+ D_U=U\cap\Phi^{-1}(E_\varepsilon\times E_\eta)
+\]
+is conull in every inverse chart \(U\).  Every nonempty open subset of \(U\) has positive Lebesgue measure, so \(D_U\) is dense in \(U\).
+
+We next solve (11)--(12) locally.  Work first on the inverse image of an open rectangle \(I\times K\) contained in a chart image; such rectangular subcharts cover every inverse chart.  Express \(a\) in the \((v,z)\) coordinates.  If \(v\in E_\varepsilon\), then \(S_t(\mathord\cdot,v)\) cannot vanish identically.  Otherwise \(\nu_\varepsilon(\mathord\cdot,v)\) would be affine, and the exponential of an affine function has infinite integral on \(\mathbb R\), contrary to \(m_\varepsilon(v)<\infty\).  Choose \(t\) for which \(S_t(t,v)\ne0\).  Equation (11) then shows that \(a(v,z)=S_v(t,v)/S_t(t,v)\) is independent of \(z\in K\).  The regular values \(E_\varepsilon\cap I\) are dense in \(I\), and \(a\) is continuous; hence \(a(v,z)=A(v)\) throughout \(I\times K\), with \(A\in C^2(I)\).  Choose \(h\in C^3(I)\) satisfying \(h'=-A\).  Along the characteristics of (11),
+\[
+ \frac{d}{dv}S(w+h(v),v)=h'(v)S_t(w+h(v),v)+S_v(w+h(v),v)=0.
+\tag{14}
+\]
+It follows that, for suitable \(C^3\) functions \(\lambda\) and \(c\),
+\[
+ \nu_\varepsilon(t,v)=\lambda(t-h(v))+c(v).
+\tag{15}
+\]
+Choose a regular base value \(v^0\in E_\varepsilon\cap I\) and add a constant to \(h\) so that \(h(v^0)=0\).  The finiteness of the base slice shows that \(0<\int_{\mathbb R}e^{\lambda(u)}\,du<\infty\).  After absorbing this normalizing constant into \(c\), (15) becomes
+\[
+ p_\varepsilon(t,v)=c_\varepsilon(v)\rho(t-h(v)),
+ \qquad (t,v)\in\mathbb R\times I,
+\tag{16}
+\]
+where \(c_\varepsilon\) is positive and \(C^3\), and \(\rho\) is a strictly positive unit-integral density with \(\log\rho\in C^3(\mathbb R)\).  In particular, every slice with \(v\in I\), including an initially exceptional slice, is now finite and regular.  Applying the same argument to (12) gives
+\[
+ p_\eta(u,z)=c_\eta(z)\widetilde\rho(u-k(z)),
+ \qquad (u,z)\in\mathbb R\times K,
+\tag{17}
+\]
+with \(k\in C^3(K)\), a positive \(C^3\) coefficient, and a strictly positive unit-integral profile \(\widetilde\rho\) whose logarithm is \(C^3\).
+
+We shall repeatedly use the following elementary uniqueness fact.  A strictly positive integrable density has no nonzero period.  Indeed, if \(\rho(t+c)=\rho(t)\) for \(c\ne0\), some interval of length smaller than \(|c|\) has positive \(\rho\)-mass, whereas its translates by integer multiples of \(c\) are disjoint and have the same mass, contradicting \(\int\rho=1\).
+
+Equations (16)--(17) show that all slices over \(I\times K\) are regular, so (7) applies at every point of this rectangular chart.  At one point it shows that \(\widetilde\rho\) is a translate of \(\rho\); absorb that fixed translation into \(k\).  At an arbitrary point, (7) then gives
+\[
+ \rho(t-h(v))=\rho(t+\delta-k(z))\quad\text{for every }t.
+\]
+The no-period fact implies
+\[
+ \delta=k(z)-h(v).
+\tag{18}
+\]
+This proves all local assertions on a rectangular subchart.  On overlaps, two expressions of the same normalized conditional slice force the two \(h\)'s to differ by a constant.  Equation (18) forces the two \(k\)'s to differ by the same constant.  The sum of transition constants around a closed overlap chain would be a period of the initial unit profile and is therefore zero.  Hence transport is path independent.  Covering a connected inverse chart by rectangular subcharts and applying this argument proves the asserted chart conclusion on the whole chart.
+
+It remains to show that nonsingular charts collectively see every residual coordinate value.  Define
+\[
+ \Sigma_v=\left\{v_0:J(v_0+f_2(y),y)=0\text{ for every }y\in\mathbb R\right\}.
+\tag{19}
+\]
+Suppose \(v_0\in\Sigma_v\).  Then
+\[
+ f_2'(y)g_3'(v_0+f_2(y))=1\quad\text{for every }y.
+\tag{20}
+\]
+Thus \(f_2'\) never vanishes and has a constant sign.  Differentiating \(g_3(v_0+f_2(y))-y\) and using (20) shows that this function is constant, so for some \(z_0\),
+\[
+ g_3(v_0+f_2(y))=y-z_0.
+\tag{21}
+\]
+The range of the strictly monotone function \(f_2\) is an interval.  A finite endpoint of this interval would be approached as \(y\) tends to one of \(+\infty\) or \(-\infty\); continuity of \(g_3\) at the corresponding finite point would then contradict the divergence of the right side of (21).  Hence \(f_2(\mathbb R)=\mathbb R\), and
+\[
+ g_3(x)=f_2^{-1}(x-v_0)-z_0.
+\tag{22}
+\]
+
+Let \(Y=X_3\), \(E=\varepsilon_2\), \(X=X_2=f_2(Y)+E\), and \(Z=\eta_3=Y-g_3(X)\).  By \(\mathrm{ass:block-noise-independence}\), \(Y\perp\!\!\!\perp E\) and \(X\perp\!\!\!\perp Z\).  Put \(u=f_2^{-1}(X-v_0)\), and let \(\sigma\in\{-1,1\}\) be the sign of \(f_2'\).  Equations (22) and the two structural equations imply
+\[
+ E-v_0=f_2(u)-f_2(Y),
+ \qquad Z-z_0=Y-u,
+ \qquad \operatorname{sgn}(E-v_0)=-\sigma\operatorname{sgn}(Z-z_0).
+\tag{23}
+\]
+The joint density \(p_\varepsilon\) is strictly positive.  Integration over rectangles on either side of \(E=v_0\) gives
+\[
+ 0<\mathbb P(E>v_0)<1,
+ \qquad \mathbb P(E=v_0)=0.
+\tag{24}
+\]
+By (23), \(A=\{E>v_0\}\) agrees almost surely with one of \(\{Z<z_0\}\) and \(\{Z>z_0\}\).  Since \(X\perp\!\!\!\perp Z\), the event \(A\) is independent of \(X\).
+
+This is impossible.  Put \(W=f_2(Y)\), so \(W\perp\!\!\!\perp E\) and \(X=W+E\).  Let \(E_+\) and \(E_-\) have the conditional laws of \(E\) given \(A\) and \(A^c\), respectively, and couple them with one common independent copy of \(W\).  Independence of \(A\) and \(X\) would imply
+\[
+ \mathcal L(W+E_+)=\mathcal L(X\mid A)
+ =\mathcal L(X\mid A^c)=\mathcal L(W+E_-).
+\tag{25}
+\]
+But \(E_+>v_0>E_-\) almost surely, and hence \(W+E_+>W+E_-\) almost surely.  The bounded strictly increasing function \(q\mapsto\arctan q\) has strictly larger expectation under the first variable, contradicting (25).  Therefore \(\Sigma_v=\varnothing\).
+
+The corresponding singular set in the other coordinate is
+\[
+ \Sigma_z=\left\{z_0:J(x,z_0+g_3(x))=0\text{ for every }x\in\mathbb R\right\}.
+\tag{26}
+\]
+Suppose \(z_0\in\Sigma_z\).  The same differentiation argument, now with the roles reversed, shows that \(g_3'\) never vanishes, \(g_3(\mathbb R)=\mathbb R\), and for some \(v_0\),
+\[
+ f_2(z_0+g_3(x))=x-v_0.
+\tag{27}
+\]
+Let \(X=X_2\), \(Z=\eta_3\), \(Y=X_3=g_3(X)+Z\), and \(E=\varepsilon_2=X-f_2(Y)\).  Put \(u=g_3^{-1}(Y-z_0)\), and let \(\tau\) be the sign of \(g_3'\).  Equation (27) gives
+\[
+ Z-z_0=g_3(u)-g_3(X),
+ \qquad E-v_0=X-u,
+ \qquad \operatorname{sgn}(Z-z_0)=-\tau\operatorname{sgn}(E-v_0).
+\tag{28}
+\]
+Strict positivity of \(p_\eta\) gives \(0<\mathbb P(Z>z_0)<1\) and \(\mathbb P(Z=z_0)=0\).  The event \(A' =\{Z>z_0\}\) is, by (28), a threshold event of \(E\).  Since \(E\perp\!\!\!\perp Y\), it is independent of \(Y\).  On the other hand, \(W'=g_3(X)\) is independent of \(Z\) and \(Y=W'+Z\).  Coupling the conditional laws of \(Z\) above and below \(z_0\) with a common independent copy of \(W'\), exactly as in (25), produces two strictly ordered variables that would have the same law.  This contradiction proves \(\Sigma_z=\varnothing\).
+
+For every \(v\in\mathbb R\), the equality \(\Sigma_v=\varnothing\) supplies a point \((v+f_2(y),y)\in\Omega\).  Rectangular inverse charts about such points therefore have projected \(v\)-intervals forming an open cover of \(\mathbb R\).  Each chart gives (16).  If two projected intervals overlap, their formulas describe the same density \(p_\varepsilon(t,v)\).  Normalizing at one common \(v\) shows that their profiles differ by a translate; after aligning the profiles, the no-period fact shows that their shift functions differ by a single constant throughout the overlap.  Declare two projected intervals equivalent if they are connected by a finite overlap chain.  Every equivalence class and its complement are open in \(\mathbb R\); connectedness of \(\mathbb R\) leaves one class.  The closed-chain no-period argument makes the accumulated constants path independent.  Thus the local expressions glue to
+\[
+ p_\varepsilon(t,v)=c_\varepsilon(v)\rho(t-h(v))
+ \quad\text{for every }(t,v)\in\mathbb R^2,
+\tag{29}
+\]
+where \(h,c_\varepsilon\in C^3(\mathbb R)\), \(c_\varepsilon>0\), and \(\rho\) is a fixed strictly positive unit-integral density with \(\log\rho\in C^3\).  In particular, integration in \(t\) gives \(m_\varepsilon=c_\varepsilon\), so every slice is regular.  The equality \(\Sigma_z=\varnothing\) and the identical gluing argument give
+\[
+ p_\eta(u,z)=c_\eta(z)\widetilde\rho(u-k(z))
+ \quad\text{for every }(u,z)\in\mathbb R^2,
+\tag{30}
+\]
+with the analogous properties; again every \(\eta\)-slice is regular.
+
+The equality \(\Sigma_v=\varnothing\) also implies \(\Omega\ne\varnothing\).  Choose one point of \(\Omega\).  Substitution of (29)--(30) into (7) at that point shows that \(\widetilde\rho\) is a translate of \(\rho\); absorb the translation into \(k\).  Since every slice is now regular, (7) holds for every \((x,y)\).  Therefore
+\[
+ \rho(t-h(v))=\rho(t+\delta-k(z))
+ \quad\text{for all }(t,x,y),
+\]
+and the no-period fact gives the global identity
+\[
+ \delta=k(z)-h(v).
+\tag{31}
+\]
+This also proves the stated critical-set continuation.  Along any nonsingular-chart sequence approaching a point of \(\Omega^c\), the shifts converge to the unique values of the global \(C^3\) functions \(h\) and \(k\), independently of the overlap chain.  Since \(\log\rho\in C^3\), translation is continuous, locally uniformly in \(t\), together with its first two \(t\)-derivatives.  Hence the translated log-density ratios have precisely the asserted unique limits.  This conclusion was obtained from (8) and the unconditional density factorizations, without assigning any regularity to \(m_\varepsilon,m_\eta,q_\varepsilon\), or \(q_\eta\).
+
+Define
+\[
+ \zeta=\varepsilon_1-h(\varepsilon_2).
+\tag{32}
+\]
+For Borel sets \(A,C\subseteq\mathbb R\), (29), Tonelli, and the translation substitution \(u=t-h(v)\) give
+\[
+ \begin{aligned}
+ \mathbb P(\zeta\in A,\varepsilon_2\in C)
+ &=\int_C\int_{\mathbb R}{\mathbf 1}_A(t-h(v))
+ c_\varepsilon(v)\rho(t-h(v))\,dt\,dv\\
+ &=\left(\int_A\rho(u)\,du\right)
+   \left(\int_Cc_\varepsilon(v)\,dv\right).
+ \end{aligned}
+\tag{33}
+\]
+Thus \(\zeta\perp\!\!\!\perp\varepsilon_2\), and \(\zeta\) has density \(\rho\).  The density is strictly positive, integrates to one, and has a \(C^3\) log-density, so \(\mathcal L(\zeta)\in\operatorname{SmoothPos}(1)\) by \(\mathrm{def:smooth-positive-laws}\).  The same calculation using (30) gives
+\[
+ \eta_1=k(\eta_3)+\zeta',
+ \qquad \zeta'\perp\!\!\!\perp\eta_3,
+ \qquad \mathcal L(\zeta')\in\operatorname{SmoothPos}(1).
+\tag{34}
+\]
+Equations (32)--(34) contradict \(\mathrm{ass:innovation-atomicity}\) for the nontrivial coordinate splits of the two bivariate innovations.
+
+For completeness, consider separately the identically singular regime named in the statement.  If \(\Omega=\varnothing\), then
+\[
+ f_2'(y)g_3'(x)=1\quad\text{for all }(x,y).
+\tag{35}
+\]
+Fixing first \(x\) and then \(y\) shows that both derivatives are nonzero constants and reciprocal.  Hence, for some \(a\ne0,c,d_0\),
+\[
+ f_2(y)=ay+c,
+ \qquad g_3(x)=a^{-1}x+d_0.
+\tag{36}
+\]
+The structural equations then imply
+\[
+ X_2=aX_3+c+\varepsilon_2,
+ \qquad
+ \eta_3=-a^{-1}\varepsilon_2-a^{-1}c-d_0.
+\tag{37}
+\]
+Let \(E=\varepsilon_2\) and \(W=aX_3+c\).  Block-noise independence in the first representation gives \(E\perp\!\!\!\perp W\), while block-noise independence in the second representation and (37) give \(E\perp\!\!\!\perp E+W\).  If \(\varphi_E\) and \(\varphi_W\) are the characteristic functions, these two independence relations imply
+\[
+ \varphi_E(q+t)\varphi_W(t)
+ =\varphi_E(q)\varphi_E(t)\varphi_W(t)
+ \quad\text{for all }q,t\in\mathbb R.
+\tag{38}
+\]
+Continuity and \(\varphi_W(0)=1\) permit cancellation for all sufficiently small \(|t|\).  Taking \(q=-t\) yields \(|\varphi_E(t)|=1\) in a neighborhood of zero.  For arbitrary \(u\), choose an integer \(n\) such that \(|u/n|\) lies in that neighborhood and iterate (38), with increment \(u/n\), to obtain \(|\varphi_E(u)|=1\).
+
+Let \(E'\) be an independent copy of \(E\).  Then the characteristic function of \(E-E'\) is identically one.  In particular, equality in the triangle inequality gives \(e^{iq(E-E')}=1\) almost surely for every rational \(q\).  Intersecting these countably many probability-one events, and then taking \(q=1/n\) for every positive integer \(n\), forces \(E-E'\in\bigcap_{n\ge1}2\pi n\mathbb Z=\{0\}\) almost surely.  Thus \(E=E'\) almost surely.  Independence of the copies then implies that \(E\) is almost surely constant: for every real \(a\), independence and \(E=E'\) give \(\mathbb P(E\le a)\mathbb P(E>a)=0\), so the distribution function takes only the values zero and one and hence has a single jump from zero to one.  This contradicts the fact that the strictly positive bivariate density \(p_\varepsilon\) assigns positive probability to rectangles whose second coordinates lie in each of two disjoint open intervals.  Thus \(\Omega=\varnothing\) is impossible.
+
+In the nonsingular regime, (32)--(34) violate innovation atomicity; the identically singular regime contradicts block-noise independence and density positivity already.  Therefore the two crossed representations cannot both lie in \(\mathfrak A(P)\), proving every assertion of the corrected theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This closes the smallest crossed-partition configuration by exposing the exact conditional identity and both the nonsingular and identically singular Jacobian regimes. \textit{Gap.} HoyerEtAl2008 treats two scalar directions and GoblerWindischDrton2025 treats disjoint supplied blocks; neither derives this overlap-conditioned translation identity for crossed vector innovations. \textit{Consumer.} Failure of this theorem produces the prescribed early counterexample and stops the global identification kernel before any arbitrary-block induction is attempted.
+
+\begin{theorem}[thm:partition-uniqueness]\label{thm:partition-uniqueness}
+For every \(P\) and every \(R,R'\in\mathfrak A(P)\), the following partition-ambiguity frontier holds. First, \(\pi_R=\pi_{R'}\) implies \(G_R=G_{R'}\). Second, if \(G_R\) and \(G_{R'}\) are both empty, then \(\pi_R=\pi_{R'}\). Third, when \(d=3\), there are no distinct \(i,j,k\in V\) for which \(\pi_R=\{\{i,j\},\{k\}\}\), \(G_R\) has the single edge \(\{k\}\to\{i,j\}\), \(\pi_{R'}=\{\{i,k\},\{j\}\}\), and \(G_{R'}\) has the single edge \(\{j\}\to\{i,k\}\). Fourth, no such pair can satisfy \(\pi_R\preceq\pi_{R'}\), \(\pi_R\neq\pi_{R'}\), and possess a block \(B\in\pi_{R'}\) that is a root of \(G_{R'}\), contains at least two blocks of \(\pi_R\), and has the property that every \(G_R\)-parent of every block \(A\in\pi_R\) with \(A\subseteq B\) is itself contained in \(B\); the symmetric conclusion holds after interchanging \(R\) and \(R'\). These conclusions do not assert equality of arbitrary admissible partitions.
+\end{theorem}
+\begin{proof}
+Fix \(P\) and \(R,R'\in\mathfrak A(P)\).  Suppose first that
+\(\pi_R=\pi_{R'}=: \pi_0\).  By
+Definition~\ref{def:admissible-class}, each representation satisfies the
+mechanism regularity, positive smooth innovation density, mutually independent
+block-noise, acyclicity, causal minimality, and conditional Equation~(3)-failure
+requirements appearing in Definition~\ref{def:supplied-group-class}.
+Innovation atomicity is an additional restriction and is not needed for this
+membership implication.  Hence
+\[
+ R,R'\in\mathfrak G_{\pi_0}(P).
+\]
+Lemma~\ref{lem:gobler-fixed-partition-identifiability}, whose premise fixes the
+same supplied labelled blocks, gives \(G_R=G_{R'}\).  This proves the first
+claim without comparing unequal partitions.
+
+If both graphs are empty, Lemma~\ref{lem:empty-dag-common-refinement} gives
+\(\pi_R=\pi_{R'}\), proving the second claim.  The third claim is precisely the
+relabelling-invariant single-edge exclusion in
+Theorem~\ref{thm:crossing-frontier}.  The fourth claim is
+Theorem~\ref{thm:root-parent-closed-refinement-exclusion}; applying the same
+theorem after exchanging \(R\) and \(R'\) proves its symmetric form.  These
+four deductions exhaust exactly the asserted frontier.  None of the cited or
+proved premises applies to an arbitrary incomparable crossing or to a strict
+refinement with external fine parents, so no equality outside the displayed
+cases is inferred.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The corrected theorem states the exact partition-ambiguity frontier rather than an unsupported global uniqueness conclusion. \textit{Gap.} No located source or frozen lemma excludes arbitrary crossings or strict refinements with external fine parents. \textit{Consumer.} Joint-learning methods obtain necessary population compatibility checks, not a certified unique partition.
+
+\begin{theorem}[thm:atomic-partition-and-dag]\label{thm:atomic-partition-and-dag}
+For every \(P\), put \(\mathcal D_P=\{\pi_R:R\in\mathfrak A(P)\}\). There is a unique function \(\Gamma_P\) on \(\mathcal D_P\) such that \(G_R=\Gamma_P(\pi_R)\) for every \(R\in\mathfrak A(P)\), and hence \[\mathcal T(P)=\{(\pi,\Gamma_P(\pi)):\pi\in\mathcal D_P\}.\] Thus \(\mathcal T(P)\) is the graph of a partial function from coordinate partitions to coordinate-labelled block DAGs. Its domain obeys three proved exclusions: distinct domain points cannot both carry empty DAGs; when \(d=3\), it cannot contain the relabelled crossed single-edge pair \(\{\{i,j\},\{k\}\}\) and \(\{\{i,k\},\{j\}\}\); and it cannot contain a strict refinement pair satisfying the displayed coarse-root and fine-parent-closure conditions of the partition-ambiguity frontier. No claim is made that \(\mathcal D_P\) is a singleton.
+\end{theorem}
+\begin{proof}
+Fix \(P\) and define
+\[
+ \mathcal D_P=\{\pi_R:R\in\mathfrak A(P)\}.
+\]
+For any \(\pi\in\mathcal D_P\), existence in this definition supplies a
+representation \(R\in\mathfrak A(P)\) with \(\pi_R=\pi\).  If \(R'\) is a
+second such representation, the first conclusion of
+Theorem~\ref{thm:partition-uniqueness} gives \(G_R=G_{R'}\).  Therefore there
+is exactly one labelled block DAG associated with \(\pi\).  Define
+\(\Gamma_P(\pi)\) to be that DAG.  The preceding uniqueness makes this
+definition independent of the representing \(R\), and it also shows that any
+function satisfying \(G_R=\Gamma_P(\pi_R)\) for all admissible \(R\) must
+coincide with \(\Gamma_P\) at every \(\pi\in\mathcal D_P\).  Thus
+\(\Gamma_P\) exists and is unique.  If \(\mathfrak A(P)=\varnothing\), then
+\(\mathcal D_P=\varnothing\) and the same assertion is the uniqueness of the
+empty function.
+
+Using Definition~\ref{def:recovery-map} and the defining equality for
+\(\Gamma_P\), we obtain equation by equation
+\[
+ \mathcal T(P)
+ =\{(\pi_R,G_R):R\in\mathfrak A(P)\}
+ =\{(\pi_R,\Gamma_P(\pi_R)):R\in\mathfrak A(P)\}
+ =\{(\pi,\Gamma_P(\pi)):\pi\in\mathcal D_P\}.
+\]
+This proves that the observable recovery relation is the graph of a partial
+function; it does not prove that its domain has one element.
+
+For the three additional exclusions, choose representations of any proposed
+domain points.  If their graphs are both empty, the second conclusion of
+Theorem~\ref{thm:partition-uniqueness} makes their partitions equal.  The
+third conclusion of that theorem rules out the relabelled three-coordinate
+crossed single-edge pair.  Its fourth conclusion rules out a strict refinement
+having a coarse root whose constituent fine blocks have no external fine
+parents, as well as the symmetric configuration.  These are exactly the three
+asserted restrictions on the graph of \(\Gamma_P\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The headline theorem identifies one labelled DAG conditional on every admissible partition and exposes the remaining partition domain as an identified set. \textit{Gap.} The supplied-group theorem is sufficient for conditional graph uniqueness but not for singleton partition recovery. \textit{Consumer.} NiuLiLi2022 and RajpalEtAl2026 can be evaluated against the partial-function graph and its proved exclusion constraints.
+
+\begin{lemma}[lem:vector-family-atomicity]\label{lem:vector-family-atomicity}
+For every \(\theta=(a,b,c_0,d_0,\lambda)\in(0,\infty)^5\), the normalizer \(Z_{a,b,c_0,d_0,\lambda}\) is finite and strictly positive, so \(p_{a,b,c_0,d_0,\lambda}\) is a unit-integral, everywhere positive density with \(\log p_{a,b,c_0,d_0,\lambda}\in C^3(\mathbb R^2)\); hence its law belongs to \(\operatorname{SmoothPos}(2)\). The mixed derivative \(\partial_{uv}\log p_{a,b,c_0,d_0,\lambda}=-4\lambda uv\) is not identically zero, so \(U\) and \(V\) are dependent. Conditional on \(U=u\), the symmetric density of \(V\) is proportional to \(\exp\{-b v^4-rv^2\}\) with \(r=d_0+\lambda u^2\); writing expectation under this density as \(\mathbb E_r\), \[\frac{d}{dr}\operatorname{Var}(V\mid U=u)=\frac{d}{dr}\mathbb E_r[V^2]=-\operatorname{Var}_r(V^2)<0.\] Thus \(\operatorname{Var}(V\mid U=u)\) varies strictly with \(u^2\), excluding every \(V=h(U)+\eta_D\) with \(\eta_D\perp\!\!\!\perp U\). Symmetrically, the conditional density of \(U\) given \(V=v\) has quadratic coefficient \(c_0+\lambda v^2\), and \(d\mathbb E_s[U^2]/ds=-\operatorname{Var}_s(U^2)<0\), excluding every \(U=k(V)+\eta_C\) with \(\eta_C\perp\!\!\!\perp V\). The bivariate innovation is therefore atomic under the exact \(\operatorname{SmoothPos}\) residual-law definition. With the independent \(W\) specified in the vector-atomic witness definition, the empty-DAG representation with blocks \(\{1,2\}\) and \(\{3\}\) belongs to \(\mathfrak A(P_{\mathrm{vec},\theta})\) for every \(\theta\in(0,\infty)^5\). This is an open parameter family inside the displayed exponential-polynomial model, not an open set in the space of all densities and not a genericity assertion.
+\end{lemma}
+\begin{proof}
+Write
+\[
+ Q(u,v)=au^4+bv^4+\lambda u^2v^2+c_0u^2+d_0v^2.
+\]
+All five parameters are positive, so \(Q(u,v)\geq au^4+bv^4\).  Therefore
+\[
+ 0<Z_{a,b,c_0,d_0,\lambda}
+ \leq\left(\int_{\mathbb R}e^{-au^4}\,du\right)
+      \left(\int_{\mathbb R}e^{-bv^4}\,dv\right)<\infty.
+\]
+The normalized density is everywhere positive, and its log is the polynomial \(-Q\) minus a constant, hence belongs to \(C^3(\mathbb R^2)\).  This proves membership in \(\operatorname{SmoothPos}(2)\).  Moreover,
+\[
+ \partial_u\partial_v\log p_{a,b,c_0,d_0,\lambda}(u,v)=-4\lambda uv
+\]
+is not identically zero.  Were \(U,V\) independent, their positive density would satisfy the rectangular identity
+\[
+ p(u,v)p(u_0,v_0)=p(u,v_0)p(u_0,v)
+\]
+for every \(u,v\) after continuity extends the almost-everywhere product factorization.  Taking logarithms and differentiating in \(u,v\) would make the mixed derivative vanish, a contradiction.  Hence \(U,V\) are dependent.
+
+Conditional on \(U=u\), symmetry gives \(\mathbb E[V\mid U=u]=0\), and the conditional density is
+\[
+ r_{d_0+\lambda u^2}(v)
+ =K(d_0+\lambda u^2)^{-1}\exp\{-bv^4-(d_0+\lambda u^2)v^2\}.
+\]
+For \(r>0\), quartic domination permits differentiation under the integral on every compact \(r\)-interval.  Thus
+\[
+ \begin{aligned}
+ \frac{d}{dr}\mathbb E_r[V^2]
+ &=-\mathbb E_r[V^4]+\mathbb E_r[V^2]^2\\
+ &=-\operatorname{Var}_r(V^2)<0.
+ \end{aligned}
+\]
+Strictness holds because the everywhere positive density cannot concentrate \(V^2\) at one value.  Hence \(\operatorname{Var}(V\mid U=u)\) is a strictly decreasing function of \(u^2\) and is not essentially constant.  The conditional-covariance diagnostic excludes every \(V=h(U)+\eta_D\) with \(\eta_D\perp\!\!\!\perp U\).  Interchanging \(u,v\), \(a,b\), and \(c_0,d_0\) yields
+\[
+ \frac{d}{ds}\mathbb E_s[U^2]=-\operatorname{Var}_s(U^2)<0,
+\]
+so the reverse additive-noise representation is also impossible.  The bivariate law is therefore innovation-atomic.
+
+The density of \(W\) is normalized by the same quartic bound, is everywhere positive, and has a \(C^3\) log-density.  In the specified empty-DAG representation, \((U,V)\perp\!\!\!\perp W\); all mechanisms are zero; acyclicity holds; and causal minimality and the edgewise condition are vacuous because there are no edges.  The scalar \(W\)-block has no nontrivial coordinate split, while the \((U,V)\)-block was just proved atomic.  Thus this representation belongs to \(\mathfrak A(P_{\mathrm{vec},\theta})\) for every \(\theta\in(0,\infty)^5\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The open five-parameter family supplies direct normalization, dependence, smoothness, and two-direction atomicity calculations for genuinely vector shocks. \textit{Gap.} Conditional-variance ANM restrictions are used here to verify irreducibility of an explicit vector innovation family, not to replace the published Göbler Condition 1 or to assert genericity. \textit{Consumer.} It certifies the strict non-scalar witness in the Peters comparator frontier with a check valid at every point of an open Euclidean parameter set.
+
+\begin{theorem}[thm:published-comparator-frontier]\label{thm:published-comparator-frontier}
+The published comparator frontier consists of the following fixed-partition and representational statements. First, for every supplied \(\pi_0\), \(\{R\in\mathfrak A(P):\pi_R=\pi_0\}\subseteq\mathfrak G_{\pi_0}(P)\); consequently, if \(R,R'\in\mathfrak A(P)\) have \(\pi_R=\pi_{R'}=\pi_0\), then \(G_R=G_{R'}\) by the fixed-partition theorem of Göbler, Windisch, and Drton. This inclusion is strict over law--representation pairs because the \(\{1,2\}|\{3\}\) empty-DAG representation of \(P_{\mathrm{merge}}\) belongs to the supplied-group fiber and fails innovation atomicity. Second, if \(R,R'\in\mathfrak A(P)\cap\mathfrak S(P)\), then \(G_R=G_{R'}\), agreeing on this common singleton subfiber with Theorem 28 of Peters et al. Third, for every \(\theta\in(0,\infty)^5\), \(\mathfrak A(P_{\mathrm{vec},\theta})\neq\varnothing\) and \(\mathfrak S(P_{\mathrm{vec},\theta})=\varnothing\). Thus the atomic class contains genuinely vector laws outside the scalar restricted-ANM class. These comparisons neither identify the unknown partition nor equate the vector Equation (3) with the scalar Equation (7).
+\end{theorem}
+\begin{proof}
+Fix a supplied partition \(\pi_0\).  Comparing the member properties in
+Definitions~\ref{def:admissible-class} and
+\ref{def:supplied-group-class} shows that every
+\(R\in\mathfrak A(P)\) with \(\pi_R=\pi_0\) satisfies all requirements of
+\(\mathfrak G_{\pi_0}(P)\): both definitions impose the same \(C^3\)
+mechanism regularity, positive \(C^3\) innovation log-densities, mutually
+independent block noises, acyclicity, causal minimality, and the published
+conditional Equation~(3)-failure condition.  Atomicity is an additional
+condition in \(\mathfrak A(P)\).  Hence
+\[
+ \{R\in\mathfrak A(P):\pi_R=\pi_0\}
+ \subseteq\mathfrak G_{\pi_0}(P).
+\]
+If \(R,R'\) lie in the set on the left, then they lie in the same supplied-group
+fiber, so Lemma~\ref{lem:gobler-fixed-partition-identifiability} yields
+\(G_R=G_{R'}\).  This is only the published fixed-partition conclusion on a
+subfiber.  Proposition~\ref{prop:atomicity-removal-converse} supplies a strict
+witness: the merged empty-DAG representation of \(P_{\mathrm{merge}}\)
+satisfies every supplied-group condition but its bivariate innovation obeys
+the forbidden split
+\[
+ \varepsilon_{\{1,2\},2}
+ =\varepsilon_{\{1,2\},1}+\varepsilon_{\{1,2\},1}^{3}+N_2,
+ \qquad
+ N_2\perp\!\!\!\perp\varepsilon_{\{1,2\},1},
+ \qquad
+ \mathcal L(N_2)\in\operatorname{SmoothPos}(1).
+\]
+It therefore belongs to the supplied-group fiber and not to the atomic fiber.
+
+On the common singleton subfiber, take
+\(R,R'\in\mathfrak A(P)\cap\mathfrak S(P)\).  In particular
+\(R,R'\in\mathfrak S(P)\), and
+Lemma~\ref{lem:peters-scalar-dag-identifiability} gives \(G_R=G_{R'}\).
+This is exactly the asserted agreement with the Peters et al. fixed scalar
+vertex conclusion; it makes no comparison between their scalar differential
+condition and the vector Equation~(3).
+
+Finally let \(\theta\in(0,\infty)^5\).  By
+Lemma~\ref{lem:vector-family-atomicity}, the empty-DAG representation with
+blocks \(\{1,2\}\) and \(\{3\}\) belongs to
+\(\mathfrak A(P_{\mathrm{vec},\theta})\), so that fiber is nonempty.
+Lemma~\ref{lem:vector-law-no-scalar-representation} gives the separate
+conclusion \(\mathfrak S(P_{\mathrm{vec},\theta})=\varnothing\).  Combining
+the two equalities proves the stated genuinely vector representational
+frontier.  None of these three arguments asserts that the set of admissible
+partitions is a singleton.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The comparator theorem now separates exact fixed-partition agreement, strict atomic-subfiber inclusion, and the genuinely vector non-representability frontier. \textit{Gap.} The cited fixed-group and fixed-scalar results do not support unknown-partition identification. \textit{Consumer.} A referee can audit each comparator relation without relying on the unresolved partition cases.
+
+\begin{proposition}[prop:known-special-cases]\label{prop:known-special-cases}
+\texttt{When the unique partition is supplied in advance,\allowbreak{} the atomic partition-\allowbreak{}and-\allowbreak{}DAG theorem reduces to fixed-\allowbreak{}group GANM DAG identification under the exact Corollary 1 Equation (3)-\allowbreak{}failure condition. On the common singleton subfiber that also satisfies Definition 27 of PetersEtAl2014,\allowbreak{} its graph conclusion agrees with scalar restricted-\allowbreak{}ANM DAG identification. In the empty-\allowbreak{}DAG case it reduces to uniqueness of the finest independent coordinate partition under innovation atomicity.}
+\end{proposition}
+\begin{proof}
+Fix an observational law \(P\).  We verify the three reductions separately.
+
+First, let \(\pi_0\) be supplied and let \(R,R'\in\mathfrak A(P)\) satisfy
+\(\pi_R=\pi_{R'}=\pi_0\).  By Definition~\ref{def:admissible-class}, each
+representation is a grouped additive-noise model on the labelled blocks
+\(\pi_0\), its graph is acyclic and causally minimal, its mechanisms and
+innovation log-densities have the stated \(C^3\) regularity, its innovation
+densities are strictly positive, its block noises are mutually independent,
+and each parent--node--nondescendant conditional triple fails the displayed
+Göbler--Windisch--Drton Equation~(3).  These are precisely the membership
+conditions of Definition~\ref{def:supplied-group-class}; innovation atomicity
+is an additional restriction.  Hence
+\[
+ R,R'\in\mathfrak G_{\pi_0}(P).
+\]
+The cited fixed-partition identification result,
+Lemma~\ref{lem:gobler-fixed-partition-identifiability}, now gives
+\(G_R=G_{R'}\).  Therefore, whenever the restricted fiber is nonempty,
+\[
+ \bigl\{G_R:R\in\mathfrak A(P),\ \pi_R=\pi_0\bigr\}
+\]
+is a singleton.  This is exactly the graph-coordinate conclusion obtained
+when the partition coordinate is supplied rather than recovered.
+
+Second, suppose that \(R,R'\in\mathfrak A(P)\cap\mathfrak S(P)\).  Membership
+in \(\mathfrak S(P)\) fixes both partitions to
+\(\pi_{\mathrm{sing}}\) by Definition~\ref{def:scalar-restricted-class}.
+Lemma~\ref{lem:peters-scalar-dag-identifiability}, the cited form of
+Theorem~28 of Peters et al., yields \(G_R=G_{R'}\).  Thus on the common
+singleton subfiber the graph coordinate is the same unique labelled scalar
+DAG as in the published scalar restricted-ANM result.
+
+Third, suppose \(R,R'\in\mathfrak A(P)\) and both graphs are empty.  The
+structural equations then read \(X_B=\varepsilon_{R,B}\) for
+\(B\in\pi_R\), and Assumption~\ref{ass:block-noise-independence} makes the
+coordinate subvectors indexed by distinct blocks mutually independent.
+Lemma~\ref{lem:empty-dag-common-refinement} applies to the two empty-DAG
+representations and gives
+\[
+ \pi_R=\pi_{R'}.
+\]
+It also gives the advertised ``finest'' interpretation.  Indeed, if a
+strictly finer smooth-positive independent coordinate partition split some
+\(B\in\pi_R\) as \(B=C\mathbin{\dot\cup}D\), then
+\[
+ \varepsilon_{R,D}=0(\varepsilon_{R,C})+\varepsilon_{R,D},
+ \qquad
+ \varepsilon_{R,D}\perp\!\!\!\perp\varepsilon_{R,C}.
+\]
+The factor densities of the proposed smooth-positive factorization have
+everywhere positive \(C^3\) log-densities, so the residual law belongs to
+\(\operatorname{SmoothPos}(|D|)\) by
+Definition~\ref{def:smooth-positive-laws}.  The displayed zero-mechanism
+representation contradicts Assumption~\ref{ass:innovation-atomicity} for the
+block \(B\).  If two candidate independent partitions cross, the
+common-refinement conclusion in
+Lemma~\ref{lem:empty-dag-common-refinement} supplies the same forbidden split.
+Thus no strictly finer or incomparable smooth-positive independent
+factorization can replace the atomic empty-DAG partition, which proves the
+third reduction.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The reductions verify that fixing the partition removes only the new grouping layer and that the empty-DAG case agrees with independent-partition uniqueness. \textit{Gap.} PetersEtAl2014 and GoblerWindischDrton2025 cover the common singleton and supplied-block reductions but not the unknown-partition recovery. \textit{Consumer.} Existing fixed-group and scalar population guarantees remain recognizable as restrictions of the proposed recovery statement.
+
+\begin{proposition}[prop:atomicity-removal-converse]\label{prop:atomicity-removal-converse}
+For \(P_{\mathrm{merge}}\), the singleton representation and the representation with blocks \(\{1,2\}\) and \(\{3\}\) satisfy every admissibility condition except innovation atomicity and induce the same smooth positive law, but their partitions differ. In the coarser representation, \(\varepsilon_{\{1,2\},2}=\varepsilon_{\{1,2\},1}+\varepsilon_{\{1,2\},1}^3+N_2\) is a directional \(C^3\) additive-noise split and \(\mathcal L(N_2)\in\operatorname{SmoothPos}(1)\). The singleton nonlinear Gaussian edge satisfies the applicable scalar instance of the published Equation (3)-failure requirement. Removing \(\mathrm{ass:innovation-atomicity}\) therefore destroys partition identification without altering the exact edgewise comparator condition.
+\end{proposition}
+\begin{proof}
+Put \(\varphi(t)=(2\pi)^{-1/2}\exp(-t^2/2)\) and \(g(t)=t+t^3\).  Work on the probability space in \(\mathrm{def:merge-witness}\), on which \(N_1,N_2,N_3\) are mutually independent standard Gaussian random variables and
+\[
+ X_1=N_1,\qquad X_2=g(N_1)+N_2,\qquad X_3=N_3.
+\]
+Define the singleton representation \(R_{\mathrm{s}}\) by
+\[
+ \pi_{R_{\mathrm{s}}}=\bigl\{\{1\},\{2\},\{3\}\bigr\},
+ \qquad E(G_{R_{\mathrm{s}}})=\bigl\{\{1\}\to\{2\}\bigr\},
+\]
+with root mechanisms zero, \(f_{R_{\mathrm{s}},\{2\}}(x_1)=g(x_1)\), and innovations
+\(
+ (\varepsilon_{R_{\mathrm{s}},\{1\}},
+   \varepsilon_{R_{\mathrm{s}},\{2\}},
+   \varepsilon_{R_{\mathrm{s}},\{3\}})=(N_1,N_2,N_3).
+\)
+Define the merged representation \(R_{\mathrm{m}}\) by
+\[
+ \pi_{R_{\mathrm{m}}}=\bigl\{\{1,2\},\{3\}\bigr\},
+ \qquad E(G_{R_{\mathrm{m}}})=\varnothing,
+\]
+with both root mechanisms zero and innovations
+\[
+ \varepsilon_{R_{\mathrm{m}},\{1,2\}}
+   =(N_1,g(N_1)+N_2)=(X_1,X_2),
+ \qquad
+ \varepsilon_{R_{\mathrm{m}},\{3\}}=N_3=X_3.
+\]
+Thus both structural systems produce the same random vector \(X\), hence the same law \(P_{\mathrm{merge}}\).
+
+For completeness, the triangular map
+\[
+ T(n_1,n_2,n_3)=(n_1,g(n_1)+n_2,n_3)
+\]
+is a \(C^\infty\) bijection with inverse
+\(
+ T^{-1}(x_1,x_2,x_3)=(x_1,x_2-g(x_1),x_3)
+\)
+and Jacobian determinant one.  The change-of-variables formula therefore gives the observed density
+\[
+ p_{P_{\mathrm{merge}}}(x_1,x_2,x_3)
+   =\varphi(x_1)\varphi\bigl(x_2-g(x_1)\bigr)\varphi(x_3).
+\]
+It integrates to one, is strictly positive on \(\mathbb R^3\), and has a \(C^\infty\) log-density.  In particular, no support boundary or limiting argument is involved.
+
+We next verify the conditions defining the admissible fiber one at a time.  For \(R_{\mathrm{s}}\), all mechanisms are polynomials and hence satisfy \(\mathrm{ass:mechanisms-c3}\).  Each innovation has density \(\varphi>0\) and log-density
+\(
+ -t^2/2-\tfrac12\log(2\pi)\in C^\infty(\mathbb R),
+\)
+so \(\mathrm{ass:innovation-positive-density}\) and \(\mathrm{ass:innovation-c3-density}\) hold.  Their stipulated mutual independence gives \(\mathrm{ass:block-noise-independence}\).  The one-edge graph is acyclic, as required by \(\mathrm{ass:block-acyclicity}\), and \(g\) is nonconstant because \(g'(0)=1\), so its only edge satisfies \(\mathrm{ass:causal-minimality}\).  Since every block is a singleton, there is no nontrivial coordinate split of an innovation block; consequently \(\mathrm{ass:innovation-atomicity}\) holds vacuously for \(R_{\mathrm{s}}\).
+
+It remains to check rather than assume the exact edgewise Equation~(3)-failure condition for the edge \(A=\{1\}\to B=\{2\}\).  The admissible conditioning block sets in \(\mathrm{ass:edgewise-condition-one}\) are \(S=\varnothing\) and, if the nondescendant \(\{3\}\) is included, \(S=\{\{3\}\}\).  Because \(X_3=N_3\) is independent of \((X_1,X_2)\), for every \(s\in\mathbb R\), and in particular for \(s=0\) where \(p_{X_3}(0)>0\), the conditional density of \((X_1,X_2)\) given \(X_3=s\) equals its unconditional density.  Hence for either admissible \(S\), up to an irrelevant additive normalizing constant,
+\[
+ \xi(x)=\log\varphi(x),\qquad
+ \nu(u)=\log\varphi(u),\qquad
+ \pi_1(x,y)=\xi(x)+\nu(y-g(x)),
+ \qquad u=y-g(x).
+\]
+At \((x,y)=(0,1)\), one has
+\[
+ u=1,\quad g'(0)=1,\quad g''(0)=0,\quad g'''(0)=6,
+ \quad \xi''=-1,\quad \nu'=-u,\quad \nu''=-1.
+\]
+Using exactly the derivative objects displayed in \(\mathrm{ass:edgewise-condition-one}\), scalar differentiation gives
+\[
+ D_{xx}\pi_1
+   =\xi''-g''\nu'+(g')^2\nu''=-2,
+ \qquad
+ D_{xy}\pi_1=-g'\nu''=1,
+ \qquad
+ D_xD_{xy}\pi_1=g''=0
+\]
+at that point.  Thus the required inverse exists there.  Moreover,
+\[
+ D_xH_\xi=0,
+ \qquad
+ D_x\bigl(H_g[\nabla\nu]\bigr)
+   =D_x\bigl(g''(x)\nu'(y-g(x))\bigr)=-6,
+\]
+and
+\[
+ D_x\bigl(J_g^{\top}H_\nu J_g\bigr)
+   =D_x\bigl(-(g'(x))^2\bigr)=0.
+\]
+Consequently the left-hand side of the displayed Equation~(3) is
+\[
+ D_xH_\xi\bigl[(D_{xx}\pi_1)^{-1}D_{xy}\pi_1\bigr]=0,
+\]
+whereas its right-hand side is
+\[
+ 0-(-6-0)(-2)^{-1}\cdot 1=-3.
+\]
+The equality therefore fails on its nonsingular domain.  The same positive-density witness point works for each admissible \(S\), proving \(\mathrm{ass:edgewise-condition-one}\) for \(R_{\mathrm{s}}\).
+
+For \(R_{\mathrm{m}}\), the bivariate innovation has density
+\[
+ r_{12}(a,b)=\varphi(a)\varphi\bigl(b-g(a)\bigr).
+\]
+This density integrates to one by the substitution \(n_2=b-g(a)\), is strictly positive on \(\mathbb R^2\), and has \(C^\infty\) log-density.  The other innovation has density \(\varphi\).  Since \((N_1,N_2)\) is independent of \(N_3\), the two block innovations are independent.  Therefore \(R_{\mathrm{m}}\) satisfies \(\mathrm{ass:innovation-positive-density}\), \(\mathrm{ass:innovation-c3-density}\), and \(\mathrm{ass:block-noise-independence}\).  Its zero mechanisms satisfy \(\mathrm{ass:mechanisms-c3}\), and its empty graph satisfies \(\mathrm{ass:block-acyclicity}\); both \(\mathrm{ass:causal-minimality}\) and \(\mathrm{ass:edgewise-condition-one}\) are vacuous because there are no edges.
+
+The merged innovation is not atomic.  For the nontrivial split \(\{1,2\}=C\mathbin{\dot\cup}D\) with \(C=\{1\}\) and \(D=\{2\}\), its coordinates obey
+\[
+ \varepsilon_{R_{\mathrm{m}},D}
+   =g(\varepsilon_{R_{\mathrm{m}},C})+N_2
+   =\varepsilon_{R_{\mathrm{m}},C}
+      +\varepsilon_{R_{\mathrm{m}},C}^{,3}+N_2,
+ \qquad N_2\perp\!\!\!\perp\varepsilon_{R_{\mathrm{m}},C}.
+\]
+Here \(g\in C^3(\mathbb R)\), and \(\mathcal L(N_2)\in\operatorname{SmoothPos}(1)\) by \(\mathrm{def:smooth-positive-laws}\), because \(\varphi\) is normalized, everywhere positive, and has a \(C^3\) log-density.  This is precisely a forbidden directional split in \(\mathrm{ass:innovation-atomicity}\), so that assumption fails for \(R_{\mathrm{m}}\).
+
+Finally,
+\[
+ \pi_{R_{\mathrm{s}}}=\bigl\{\{1\},\{2\},\{3\}\bigr\}
+ \ne
+ \bigl\{\{1,2\},\{3\}\bigr\}=\pi_{R_{\mathrm{m}}}.
+\]
+After removing only \(\mathrm{ass:innovation-atomicity}\), both representations satisfy every remaining admissibility condition and induce the same smooth positive law, although their coordinate partitions differ.  The edgewise Equation~(3)-failure requirement has not been removed or weakened: it was verified above for the sole edge of \(R_{\mathrm{s}}\) and is vacuous for the empty graph of \(R_{\mathrm{m}}\).  Hence the partition is not identified without innovation atomicity.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This same-class witness shows that atomicity is identifying content rather than convenient terminology. \textit{Gap.} GutchTheis2012 gives the linear independent-subspace analogue, but no published grouped ANM result isolates coordinate innovation atomicity by a causal nonlinear witness. \textit{Consumer.} Practitioners can interpret a detected internal ANM as decisive evidence that a proposed process block is too coarse.
+
+\begin{lemma}[lem:gobler-fixed-partition-identifiability]\label{lem:gobler-fixed-partition-identifiability}
+Fix a supplied coordinate partition \(\pi_0\). For a causally minimal grouped additive-noise model on those labelled blocks satisfying the parent--child--nondescendant conditional Condition 1 restriction, the labelled block DAG is identifiable from the joint law. Equivalently, if \(R,R'\in\mathfrak G_{\pi_0}(P)\), then \(G_R=G_{R'}\).
+\end{lemma}
+
+\begin{lemma}[lem:peters-scalar-dag-identifiability]\label{lem:peters-scalar-dag-identifiability}
+If a joint law is generated by a causally minimal restricted scalar additive-noise model in the sense of Definition 27 and Condition 19 of Peters et al., then its labelled scalar DAG is identifiable from the joint law. Equivalently, if \(R,R'\in\mathfrak S(P)\), then \(G_R=G_{R'}\).
+\end{lemma}
+
+\begin{lemma}[lem:tonelli-nonnegative-product-integral]\label{lem:tonelli-nonnegative-product-integral}
+Let \((S,\mathcal S,\mu)\) and \((T,\mathcal T,\nu)\) be \(\sigma\)-finite measure spaces, and let \(F:S\times T\to[0,\infty]\) be \(\mathcal S\otimes\mathcal T\)-measurable. Then both section-integral maps are measurable and
+\[
+\int_{S\times T}F\,d(\mu\times\nu)
+=\int_S\!\left(\int_TF(s,t)\,d\nu(t)\right)d\mu(s)
+=\int_T\!\left(\int_SF(s,t)\,d\mu(s)\right)d\nu(t).
+\]
+\end{lemma}
+
+\begin{lemma}[lem:inverse-function-theorem-c1]\label{lem:inverse-function-theorem-c1}
+Let \(n\geq1\), let \(E\subseteq\mathbb R^n\) be open, and let \(F:E\to\mathbb R^n\) be continuously differentiable. If \(a\in E\) and \(DF(a)\) is invertible, then, with \(b=F(a)\), there exist open sets \(U,V\subseteq\mathbb R^n\) with \(a\in U\), \(b\in V\), such that \(F\) is one-to-one on \(U\), \(F(U)=V\), and the inverse map \(G:V\to U\) is continuously differentiable.
+\end{lemma}
+
+\begin{lemma}[lem:vector-law-no-scalar-representation]\label{lem:vector-law-no-scalar-representation}
+For every \(\theta\in(0,\infty)^5\), \(\mathfrak S(P_{\mathrm{vec},\theta})=\varnothing\).
+\end{lemma}
+\begin{proof}
+Fix \(\theta=(a,b,c_0,d_0,\lambda)\in(0,\infty)^5\), and abbreviate the coordinates from Definition~\ref{def:vector-atomic-witness} by \((U,V,W)\).  That definition gives the factorization
+\[
+ p_{U,V,W}(u,v,w)=p_{U,V}(u,v)p_W(w)>0,
+\]
+so \(W\perp\!\!\!\perp(U,V)\).  Lemma~\ref{lem:vector-family-atomicity} also gives that \(U\) and \(V\) are dependent and excludes both scalar additive-noise relations
+\[
+ V=h(U)+N_V,\quad N_V\perp\!\!\!\perp U,
+ \qquad\text{and}\qquad
+ U=k(V)+N_U,\quad N_U\perp\!\!\!\perp V,
+\]
+whenever the mechanism is \(C^3\) and the residual law belongs to \(\operatorname{SmoothPos}(1)\).
+
+Suppose for contradiction that \(R\in\mathfrak S(P_{\mathrm{vec},\theta})\).  We first prove that the singleton vertex \(\{3\}\), corresponding to \(W\), is isolated in \(G_R\).  If an edge incident to \(\{3\}\) existed, write it as \(i\to j\), let \(A=X_i\) be its parent, let \(Y=X_j\) be its child, and let \(S=X_{\cup(\operatorname{pa}_{G_R}(j)\setminus\{i\})}\) denote the other parents.  One of \(A,Y\) is \(W\), while every coordinate of the other variable and of \(S\) lies in \(\{U,V\}\).  The displayed density factorization therefore implies
+\[
+ A\perp\!\!\!\perp Y\mid S.
+\]
+This conditional independence also covers the case in which \(S\) is empty.
+
+Let \(r_j\) be the strictly positive innovation density at node \(j\), and write the structural equation, with the other parent coordinates displayed, as
+\[
+ Y=f_j(A,S)+N_j,
+ \qquad N_j\perp\!\!\!\perp(A,S).
+\]
+Definition~\ref{def:scalar-restricted-class} and its member assumptions give \(f_j\in C^3\), \(\int_{\mathbb R}r_j(y)\,dy=1\), and \(r_j(y)>0\) for every \(y\).  Thus, for Lebesgue-almost every \((a,s,y)\),
+\[
+ p_{Y\mid A=a,S=s}(y)=r_j\bigl(y-f_j(a,s)\bigr).
+\]
+The conditional independence makes the left side independent of \(a\).  Consequently, for Lebesgue-almost every \((a,a',s,y)\),
+\[
+ r_j\bigl(y-f_j(a,s)\bigr)
+ =r_j\bigl(y-f_j(a',s)\bigr).
+\]
+Here equivalence with Lebesgue null sets is justified by the everywhere positive joint density of \((U,V,W)\) and its marginals.
+
+By Fubini's theorem, for Lebesgue-almost every \((a,a',s)\), the last equality holds for Lebesgue-almost every \(y\).  Fix such a triple and put \(c=f_j(a,s)-f_j(a',s)\).  If \(c\ne0\), translation of \(y\) gives \(r_j(y)=r_j(y+c)\) for almost every \(y\).  Let \(I\) be a half-open interval of length \(|c|\).  Strict positivity gives \(q=\int_I r_j(y)\,dy>0\), while the almost-everywhere period relation gives
+\[
+ 1=\int_{\mathbb R}r_j(y)\,dy
+ \ge \sum_{n=-N}^{N}\int_{I+nc}r_j(y)\,dy
+ =(2N+1)q
+\]
+for every \(N\ge0\), an impossibility as \(N\to\infty\).  Thus \(c=0\) for each triple in the Fubini-conull set, and \(f_j(a,s)=f_j(a',s)\) for almost every \((a,a',s)\).  The complement of the equality set is open because \(f_j\) is continuous.  A nonempty open complement would have positive Lebesgue measure, contradicting the almost-everywhere equality.  Therefore
+\[
+ f_j(a,s)=f_j(a',s)\quad\text{for all }a,a',s.
+\]
+The child mechanism is constant in the input coordinates indexed by its parent \(i\), contrary to Assumption~\ref{ass:causal-minimality}.  This proves that \(\{3\}\) is isolated.
+
+After deleting this isolated vertex, acyclicity leaves only three possibilities on \(\{1\},\{2\}\): no edge, \(\{1\}\to\{2\}\), or \(\{2\}\to\{1\}\).  With no edge, mutual innovation independence would imply \(U\perp\!\!\!\perp V\), contradicting Lemma~\ref{lem:vector-family-atomicity}.  The edge \(\{1\}\to\{2\}\) yields
+\[
+ V=f_{R,\{2\}}(U)+\varepsilon_{R,\{2\}},
+ \qquad \varepsilon_{R,\{2\}}\perp\!\!\!\perp U,
+\]
+where \(f_{R,\{2\}}\in C^3\) and \(\mathcal L(\varepsilon_{R,\{2\}})\in\operatorname{SmoothPos}(1)\) by the smoothness, positivity, normalization, and \(C^3\) log-density clauses of Definition~\ref{def:scalar-restricted-class}.  This is the first relation excluded by Lemma~\ref{lem:vector-family-atomicity}.  The reverse edge analogously yields its excluded reverse relation.  All possible acyclic scalar graphs are impossible, so \(\mathfrak S(P_{\mathrm{vec},\theta})=\varnothing\).
+\end{proof}
+
+\begin{theorem}[thm:crossing-frontier]\label{thm:crossing-frontier}
+Let \(R,R'\in\mathfrak A(P)\). First, if \(G_R\) and \(G_{R'}\) are both empty, then \(\pi_R=\pi_{R'}\). Second, when \(d=3\), there are no distinct \(i,j,k\in V\) such that \(\pi_R=\{\{i,j\},\{k\}\}\), \(G_R\) has the single edge \(\{k\}\to\{i,j\}\), \(\pi_{R'}=\{\{i,k\},\{j\}\}\), and \(G_{R'}\) has the single edge \(\{j\}\to\{i,k\}\). Hence unequal incomparable partitions are excluded in the empty-DAG case and in the relabelled three-coordinate single-edge crossing, but no arbitrary-crossing conclusion is asserted.
+\end{theorem}
+\begin{proof}
+Assume first that \(G_R\) and \(G_{R'}\) are empty.  All premises of
+Lemma~\ref{lem:empty-dag-common-refinement} hold because
+\(R,R'\in\mathfrak A(P)\).  That lemma gives directly
+\(\pi_R=\pi_{R'}\).
+
+For the second claim, suppose for contradiction that \(d=3\) and that distinct
+\(i,j,k\in V\) realize the displayed configuration.  Let
+\(\sigma:\{1,2,3\}\to V\) be the bijection with
+\(\sigma(1)=i\), \(\sigma(2)=j\), and \(\sigma(3)=k\), and relabel the observed
+vector by \(\widetilde X_a=X_{\sigma(a)}\).  Relabel every block, mechanism
+input and output, innovation coordinate, and graph vertex by \(\sigma^{-1}\),
+obtaining representations \(\widetilde R,\widetilde R'\) of the law
+\(\widetilde P\) of \(\widetilde X\).
+
+We verify that this relabelling does not add an assumption.  Coordinate
+permutations are linear \(C^\infty\) bijections with determinant of absolute
+value one, so strict positivity and \(C^3\) log-density regularity are
+preserved.  Composition of a \(C^3\) mechanism with input and output
+permutations remains \(C^3\).  Mutual independence of the block innovations,
+acyclicity, and nonconstancy along an edge are invariant under bijective
+relabelling.  The parent and nondescendant sets correspond bijectively, and
+the displayed Equation~(3)-failure condition is the same coordinate-free
+Jacobian--Hessian equality after simultaneous row and column permutation.
+Finally, every nontrivial coordinate split before relabelling corresponds to
+one after relabelling, with the same independence and
+dimension-matched \(\operatorname{SmoothPos}\) properties.  Therefore
+\(\widetilde R,\widetilde R'\in\mathfrak A(\widetilde P)\).
+
+Their partitions are exactly
+\[
+ \pi_{\widetilde R}=\{\{1,2\},\{3\}\},\qquad
+ \pi_{\widetilde R'}=\{\{1,3\},\{2\}\},
+\]
+and their respective single edges are
+\(\{3\}\to\{1,2\}\) and \(\{2\}\to\{1,3\}\).
+Theorem~\ref{thm:three-coordinate-crossing} says that two such admissible
+innovation-atomic representations cannot coexist.  This contradiction proves
+the relabelled exclusion.  The proof used only the empty-DAG lemma and the
+three-coordinate theorem, so it yields no claim for a different incomparable
+configuration.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem preserves the two rigorously excluded crossing configurations and marks the boundary of the current translation-family method. \textit{Gap.} Published fixed-vertex theorems do not justify conditioning through coordinate slices of a competing dependent innovation. \textit{Consumer.} The identified-set result uses it to reject empty-DAG ambiguity and the exact three-coordinate crossed single-edge pair.
+
+\begin{theorem}[thm:root-parent-closed-refinement-exclusion]\label{thm:root-parent-closed-refinement-exclusion}
+Let \(R,R'\in\mathfrak A(P)\) satisfy \(\pi_R\preceq\pi_{R'}\) and \(\pi_R\neq\pi_{R'}\). Suppose there is a block \(B\in\pi_{R'}\) that is a root of \(G_{R'}\), contains at least two blocks of \(\pi_R\), and is fine-parent-closed: whenever \(A\in\pi_R\), \(A\subseteq B\), and \(Q\in\operatorname{pa}_{G_R}(A)\), one has \(Q\subseteq B\). Then these hypotheses are incompatible. More precisely, choosing a sink fine block \(D\subset B\) and setting \(C=B\setminus D\) yields a \(C^3\) map \(h:\mathbb R^{|C|}\to\mathbb R^{|D|}\) such that \(\varepsilon_{R',D}=h(\varepsilon_{R',C})+\varepsilon_{R,D}\), with \(\varepsilon_{R,D}\perp\!\!\!\perp\varepsilon_{R',C}\) and \(\mathcal L(\varepsilon_{R,D})\in\operatorname{SmoothPos}(|D|)\), contradicting innovation atomicity of \(\varepsilon_{R',B}\). No conclusion is asserted for a coarse nonroot block or when a fine block in \(B\) has an external parent.
+\end{theorem}
+\begin{proof}
+Assume all displayed hypotheses and let
+\[
+ \mathcal B=\{A\in\pi_R:A\subseteq B\}.
+\]
+Because \(\pi_R\preceq\pi_{R'}\), the blocks in \(\mathcal B\) partition
+\(B\).  By hypothesis \(|\mathcal B|\geq2\).  The subgraph of the finite
+acyclic graph \(G_R\) induced by \(\mathcal B\) is a finite DAG, hence has a
+sink; choose one and denote it by \(D\).  Put \(C=B\setminus D\).  Then
+\(B=C\mathbin{\dot\cup}D\) is a nontrivial coordinate split because \(D\) is
+a nonempty partition block and at least one other block lies in \(C\).
+
+Every parent of a fine block in \(B\) lies in \(B\) by fine-parent-closure.
+Moreover, \(D\) is not a parent of any block in \(\mathcal B\setminus\{D\}\),
+because \(D\) is a sink of the induced graph.  Consequently every parent of
+every fine block contained in \(C\) is itself contained in \(C\).  Recursing
+through a topological ordering of this induced parent-closed subgraph and using
+the structural equations shows that
+\[
+ X_C\quad\hbox{is measurable with respect to}\quad
+ \sigma\!\left(\varepsilon_{R,A}:A\in\mathcal B, A\subseteq C\right).
+\]
+The same parent-closure hypothesis gives
+\(\bigcup\operatorname{pa}_{G_R}(D)\subseteq C\).  By mutual independence of
+the \(R\)-block innovations,
+\(\varepsilon_{R,D}\) is independent of the sigma-field in the last display,
+and therefore
+\[
+ \varepsilon_{R,D}\perp\!\!\!\perp X_C. \tag{1}
+\]
+
+Since \(B\) is a root of \(G_{R'}\), its mechanism has a zero-dimensional
+domain and equals a constant vector \(c_B\in\mathbb R^{|B|}\).  Write
+\(c_C\) and \(c_D\) for its coordinate subvectors.  The coarse root equation
+is
+\[
+ X_B=c_B+\varepsilon_{R',B},
+\]
+so
+\[
+ \varepsilon_{R',C}=X_C-c_C,
+ \qquad
+ \varepsilon_{R',D}=X_D-c_D. \tag{2}
+\]
+The fine equation for \(D\) and the parent containment just proved give
+\[
+ X_D=f_{R,D}\!\left(X_{\cup\operatorname{pa}_{G_R}(D)}\right)
+       +\varepsilon_{R,D}. \tag{3}
+\]
+For \(u_C\in\mathbb R^{|C|}\), define
+\[
+ h(u_C)=
+ f_{R,D}\!\left((u_C+c_C)_{\cup\operatorname{pa}_{G_R}(D)}\right)-c_D.
+\]
+The coordinate projection and translation are smooth, and
+\(f_{R,D}\in C^3\) by the admissible-class mechanism assumption; hence
+\(h\in C^3(\mathbb R^{|C|},\mathbb R^{|D|})\).  Substituting (2) into (3)
+yields the asserted identity
+\[
+ \varepsilon_{R',D}
+ =h(\varepsilon_{R',C})+\varepsilon_{R,D}. \tag{4}
+\]
+Equation (1) and the first equality in (2) imply
+\[
+ \varepsilon_{R,D}\perp\!\!\!\perp\varepsilon_{R',C}. \tag{5}
+\]
+
+It remains to check the residual-law quantifier.  Since \(R\in\mathfrak A(P)\),
+the law of \(\varepsilon_{R,D}\) has a unit-integral Lebesgue density that is
+strictly positive on \(\mathbb R^{|D|}\), and its log-density belongs to
+\(C^3(\mathbb R^{|D|})\).  By
+Definition~\ref{def:smooth-positive-laws},
+\[
+ \mathcal L(\varepsilon_{R,D})\in\operatorname{SmoothPos}(|D|). \tag{6}
+\]
+Equations (4)--(6) form a directional additive-noise representation for the
+nontrivial split \(B=C\mathbin{\dot\cup}D\) of the coarse innovation
+\(\varepsilon_{R',B}\).  It is forbidden by innovation atomicity of \(R'\).
+The resulting contradiction proves the theorem.  The root equation was used
+in (2), and fine-parent-closure was used both before (1) and before (3); the
+argument therefore makes no assertion when either condition is absent.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem gives a computable structural condition under which a strict refinement necessarily violates coarse innovation atomicity. \textit{Gap.} The argument does not extend when external fine parents survive subtraction of a coarse mechanism. \textit{Consumer.} A candidate pair of groupings can be rejected whenever the coarse-root and fine-parent-closure conditions are visible in their labelled DAGs.
+
+\section{Interpretation}
+
+At the population level, a proposed partition that belongs to the admissible fiber has at most one compatible labelled DAG. This supports conditional graph interpretation, but it does not license treating the partition output of a joint-learning algorithm as a uniquely identified causal grouping. Competing outputs are ruled out when both DAGs are empty, when they form the exact three-coordinate crossed single-edge pattern, or when they form a root/parent-closed strict refinement. Conditional characteristic-function modulus variation, and conditional covariance variation when second moments exist, can falsify an internal additive-noise split; failure to detect variation does not certify atomicity.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The arbitrary crossing step remains open because conditioning on a whole nondescendant block in one representation may select only some coordinates of a dependent innovation block in the other, so block-noise independence does not produce the two translation families used in the three-coordinate proof. The general strict-refinement step also remains open: if a fine block inside a coarse block has external parents, subtracting the coarse mechanism can leave parent-dependent terms on both sides, and the resulting residual has not been shown independent. The proved strict-refinement theorem avoids this obstruction only when the coarse block is a root and all parents of its constituent fine blocks remain inside it. Slice normalizers in the three-coordinate result are defined only on conull regular sets and are never differentiated. Atomicity contradicts a directional split once obtained; it does not construct the split in the unresolved configurations. The quadratic Gaussian four-coordinate threat remains inadmissible because its middle-block innovations have explicit scalar ANM splits.
+
+\section{Honest scope}
+
+The exact population conclusion is that \(\mathcal T(P)\) is the graph of a partial function from admissible coordinate partitions to labelled block DAGs. The domain is not proved to be a singleton. Unequal empty-DAG partitions, the relabelled three-coordinate crossed single-edge pair, and root/parent-closed strict refinements are excluded. Arbitrary incomparable crossings and refinements with external fine parents remain open under the current assumptions. Fixed-partition graph identification is the cited Corollary 1 of GoblerWindischDrton2025, and singleton-fiber agreement is the cited Theorem 28 of PetersEtAl2014. The characteristic-function and covariance criteria are sufficient diagnostics only. The vector family is open only in its displayed five-dimensional parameter space. No hereditary or slice atomicity, parent alignment, common order, genericity, rank, finite certificate, estimation consistency, rate, or finite-sample guarantee is assumed or claimed.
+
+\begin{thebibliography}{99}
+
+  \bibitem{GoblerWindischDrton2025} Konstantin Göbler, Tobias Windisch, and Mathias Drton. Nonlinear Causal Discovery for Grouped Data. Proceedings of the Forty-first Conference on Uncertainty in Artificial Intelligence, PMLR 286:1453--1475, 2025. Definition 2, Condition 1 and Equation (3) on page 1455; Corollary 1 on page 1456 states: ``Then the graph \(\mathcal G_0\) is identifiable from the joint distribution \(P_{\mathbf X}\).''
+
+  \bibitem{WahlNinadRunge2024} Jonas Wahl, Urmi Ninad, and Jakob Runge. Foundations of Causal Discovery on Groups of Variables. Journal of Causal Inference 12:1--32, 2024.
+
+  \bibitem{EntnerHoyer2012} Doris Entner and Patrik O. Hoyer. Estimating a Causal Order among Groups of Variables in Linear Models. Artificial Neural Networks and Machine Learning--ICANN 2012, Lecture Notes in Computer Science, pages 84--91, 2012. doi:10.1007/978-3-642-33266-1\_11.
+
+  \bibitem{GutchTheis2012} Harold W. Gutch and Fabian J. Theis. Uniqueness of Linear Factorizations into Independent Subspaces. Journal of Multivariate Analysis 112:48--62, 2012.
+
+  \bibitem{HoyerEtAl2008} Patrik O. Hoyer, Dominik Janzing, Joris M. Mooij, Jonas Peters, and Bernhard Schölkopf. Nonlinear Causal Discovery with Additive Noise Models. Advances in Neural Information Processing Systems 21, 2008.
+
+  \bibitem{ZhangHyvarinen2009} Kun Zhang and Aapo Hyvärinen. On the Identifiability of the Post-Nonlinear Causal Model. Proceedings of the Twenty-Fifth Conference on Uncertainty in Artificial Intelligence, pages 647--655, 2009.
+
+  \bibitem{PetersEtAl2014} Jonas Peters, Joris M. Mooij, Dominik Janzing, and Bernhard Schölkopf. Causal Discovery with Continuous Additive Noise Models. Journal of Machine Learning Research 15:2009--2053, 2014. Condition 19 and Equation (7) on page 2022; Example 24 on page 2023 states: ``Since for jointly Gaussian variables uncorrelatedness implies independence, we obtain a backward additive noise model.'' Definition 27 and Theorem 28 are on page 2025.
+
+  \bibitem{Park2020} Gunwoong Park. Identifiability of Additive Noise Models Using Conditional Variances. Journal of Machine Learning Research 21(75):1--34, 2020. Section 3, Theorem 2 on page 7; scalar-node causal-order algorithms on pages 9--10.
+
+  \bibitem{NiuLiLi2022} Xueyan Niu, Xiaoyun Li, and Ping Li. Learning Cluster Causal Diagrams: An Information-Theoretic Approach. Proceedings of the Thirty-First International Joint Conference on Artificial Intelligence, pages 4871--4877, 2022.
+
+  \bibitem{RajpalEtAl2026} Avni Rajpal, Anubhav Kumar, Rishabh Karnad, Mohammad Emtiyaz Khan, and P. K. Srijith. Joint Causal Structure and Cluster Discovery Using Variational Inference. arXiv:2608.22212, 2026.
+
+  \bibitem{GoblerEtAl2024} Konstantin Göbler, Tobias Windisch, Mathias Drton, Tim Pychynski, Steffen Sonntag, and Martin Roth. causalAssembly: Generating Realistic Production Data for Benchmarking Causal Discovery. Proceedings of the Third Conference on Causal Learning and Reasoning, PMLR 236:609--642, 2024.
+
+  \bibitem{Rudin1976} Walter Rudin. Principles of Mathematical Analysis. Third edition, McGraw--Hill, New York, 1976. Theorem 9.24, page 221. ISBN 978-0-07-054235-8.
+
+  \bibitem{Axler2020} Axler2020
+
+\end{thebibliography}
+
+\end{document}

@@ -24,7 +24,7 @@ open scoped ENNReal NNReal
 
 namespace Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition
 
-/-- Mapping every point of a finite sample preserves its random count. -/
+/-- Given [a map from one observation space to another](hyp:f) and [a finite sample in the first space](hyp:s), the [mapped finite sample](goal) has the same size and applies the map to every observation. -/
 -- @node: finiteSampleMap
 def finiteSampleMap {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
     (f : X → Y) (s : FiniteSample X) : FiniteSample Y :=
@@ -129,8 +129,7 @@ lemma markedPoissonKL_le_two_mul_of_piKL
       rw [ENNReal.ofReal_mul (by norm_num : (0 : ℝ) ≤ 2)]
       norm_num
 
-/-- A marked finite sample supplies its first `n` observation coordinates when
-it is long enough, and otherwise supplies a fixed fallback tuple. -/
+/-- Given [a fallback observation](hyp:x₀), [a nonnegative integer prefix length](hyp:n), and [a finite sample of observation--real-mark pairs](hyp:s), the [canonical prefix observations](goal) are the first $n$ observations when the sample has at least $n$ pairs, and otherwise are the constant $n$-tuple of the fallback observation. -/
 -- @node: canonicalPrefixObservations
 def canonicalPrefixObservations {X : Type*} [MeasurableSpace X]
     (x₀ : X) (n : ℕ) (s : FiniteSample (X × ℝ)) : Fin n → X :=
@@ -257,8 +256,7 @@ lemma poisson_two_n_lower_tail (n : ℕ) :
         (poissonPMF n).property.tsum_eq
     _ = _ := mul_one _
 
-/-- A finite sample embeds into a count-and-stream representation by padding
-all coordinates beyond its count with a fixed fallback observation. -/
+/-- Given [a fallback observation](hyp:x0) and [a finite sample](hyp:s), the [padded stream representation](goal) is the pair consisting of its size and an infinite stream that agrees with the sample at positions below that size and equals the fallback observation thereafter. -/
 -- @node: finiteSamplePaddedStream
 def finiteSamplePaddedStream {X : Type*} [MeasurableSpace X]
     (x0 : X) (s : FiniteSample X) : ℕ × (ℕ → X) :=
@@ -316,9 +314,9 @@ lemma finiteSamplePaddedStream_range {X : Type*} [MeasurableSpace X]
       · simp [finiteSamplePaddedStream, FiniteSample.count,
           FiniteSample.points, streamToFiniteSample, hk, hz k (Nat.le_of_not_gt hk)]
 
-/-- Finite samples over a nonempty standard Borel space are standard Borel.
-The explicit padded-stream presentation supplies the compatible Polish
-topology missing from the generic dependent-sum instance. -/
+/-- For every [nonempty standard Borel observation space equipped with its measurable structure](hyp:X), [the space of finite samples from that observation space is a standard Borel space](goal).
+
+The explicit padded-stream presentation supplies the compatible Polish topology missing from the generic dependent-sum instance. -/
 -- @node: finiteSample_standardBorelSpace
 noncomputable instance finiteSample_standardBorelSpace
     {X : Type*} [MeasurableSpace X] [StandardBorelSpace X] [Nonempty X] :

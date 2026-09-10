@@ -43,7 +43,9 @@ open Matrix
 
 variable {Obs : Type*} [Fintype Obs]
 
-/-- This is the covariance quadratic form that gives the variance of a linear estimator.
+/-- For [a finite observation index set](hyp:Obs), [a real covariance matrix indexed by
+that set](hyp:S), and [a real weight assigned to each observation](hyp:w), the
+[quadratic variance form](goal) is $w^\mathsf{T} S w$.
 
 This is the deterministic algebraic object; the bridge to
 `ProbabilityTheory.variance` of an actual random linear combination is
@@ -63,7 +65,10 @@ lemma quadVar_nonneg {S : Matrix Obs Obs ℝ} (hS : S.PosSemidef) (w : Obs → �
 
 variable [DecidableEq Obs]
 
-/-- This condition says the covariance matrix has homoskedastic uncorrelated errors. -/
+/-- For [an observation index set in which equality can be decided](hyp:Obs), [a
+real square matrix indexed by those observations](hyp:S), and [a real scale
+parameter](hyp:σ), the [spherical-errors condition](goal) holds exactly when the
+matrix equals $σ^2$ times the identity matrix. -/
 def SphericalErrors (S : Matrix Obs Obs ℝ) (σ : ℝ) : Prop :=
   S = σ ^ 2 • (1 : Matrix Obs Obs ℝ)
 

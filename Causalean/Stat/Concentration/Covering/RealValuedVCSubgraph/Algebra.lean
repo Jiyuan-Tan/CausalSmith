@@ -683,8 +683,12 @@ theorem HasPolynomialL2CoverWith.tightenEnvelopeBy
     have hbase : A / (ε / c) = (c * A) / ε := by field_simp
     simpa only [hradius, hbase] using hF.entropy Q hQ (ε / c) hec hec1
 
-/-- A collection has polynomial-cover witnesses uniform over an auxiliary
-parameter type when the named base and exponent precede that parameter. -/
+/-- Given [an observation space](hyp:𝒳), [an auxiliary parameter set $S$](hyp:S),
+[an index set depending on the parameter](hyp:ι), [a parameter-indexed family of real-valued
+function classes](hyp:F), and [a parameter-indexed envelope](hyp:U), the [uniform polynomial
+$L^2$ covering property over $S$](goal) holds exactly when there are one real entropy base and
+one nonnegative-integer exponent such that every parameter's class has the corresponding
+polynomial $L^2$ covering certificate with its designated envelope. -/
 def HasUniformPolynomialL2CoverOver
     (S : Type*) {ι : S → Type v}
     (F : (s : S) → ι s → 𝒳 → ℝ) (U : S → ℝ) : Prop :=

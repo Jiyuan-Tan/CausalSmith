@@ -56,15 +56,17 @@ section CRDon
 
 variable {U : Type*} [Fintype U] [DecidableEq U] (K : ℕ) (hK : K ≤ Fintype.card U)
 
-/-- The treated-set-to-indicator map: a size-`K` treated set `S` becomes the Boolean assignment that
-flags unit `i` `true` exactly when `i ∈ S`. -/
+/-- For a [finite population of units](hyp:U) and [a target treated count $K$](hyp:K), the
+[treated-set indicator assignment](goal) maps [a treated subset containing exactly $K$ units](hyp:S)
+to the assignment that marks precisely its members as treated. -/
 def crdToBoolOn (S : {S : Finset U // S.card = K}) : U → Bool :=
   fun i => decide (i ∈ S.val)
 
-/-- **The completely randomized design on `U → Bool`.**  Exactly `K` of the `N = card U` units are
-treated, with every one of the `(N choose K)` treated sets equally likely.  Realized as the
-pushforward of `completeRandomization K` (on size-`K` treated sets) along the indicator-vector
-map `crdToBoolOn`. -/
+/-- For a [finite population of units](hyp:U), [a target treated count $K$](hyp:K) no greater than
+[the population size](hyp:hK), the [completely randomized assignment design](goal) assigns
+positive probability only to assignments with exactly $K$ treated units and makes every such
+treated subset equally likely.  It is realized as the pushforward of the uniform design on
+size-$K$ treated subsets along their indicator assignments. -/
 noncomputable def crdOn : FiniteDesign (U → Bool) :=
   (completeRandomization K hK).map (crdToBoolOn K)
 
@@ -137,12 +139,16 @@ section CRD
 
 variable {n : ℕ} (K : ℕ) (hK : K ≤ n)
 
-/-- The within-group treated-set-to-indicator map (specialization of `crdToBoolOn` to `Fin n`). -/
+/-- For [a group containing $n$ units](hyp:n) and [a target treated count $K$](hyp:K), the
+[within-group treated-set indicator assignment](goal) maps [a subset of exactly $K$ group
+members](hyp:S) to the assignment that marks precisely those members as treated. -/
 def crdToBool (S : {S : Finset (Fin n) // S.card = K}) : Fin n → Bool := crdToBoolOn K S
 
-/-- **The within-group completely randomized design on `Fin n → Bool`.**  Exactly `K` of the `n`
-units are treated, uniformly over the `(n choose K)` treated sets — the `U = Fin n` specialization
-of `crdOn`. -/
+/-- For [a group containing $n$ units](hyp:n), [a target treated count $K$](hyp:K) no greater than
+[the group size](hyp:hK), the [within-group completely randomized assignment design](goal) assigns
+positive probability only to assignments with exactly $K$ treated members and makes every such
+treated subset equally likely.  This is the finite-group specialization of the general completely
+randomized assignment design. -/
 noncomputable def crd : FiniteDesign (Fin n → Bool) :=
   crdOn K (hK.trans_eq (Fintype.card_fin n).symm)
 

@@ -28,8 +28,7 @@ namespace SWIGGraph
 
 variable (G : SWIGGraph N)
 
-/-- **Observed predecessors `Pa⁺_G(v)`.** The observed nodes appearing strictly
-before `v` in the topological order of `G.dag`.
+/-- For [a finite collection of distinguishable base-variable labels](hyp:N), [a SWIG graph](hyp:G), and [a graph node](hyp:v), the [observed-predecessor set](goal) consists exactly of the observed nodes that occur strictly before that node in the graph's topological order.
 
 This is Tian's full-history convention: it is not the direct-parent set. -/
 noncomputable def observedPredecessors (v : SWIGNode N) : Finset (SWIGNode N) :=
@@ -53,8 +52,7 @@ open scoped MeasureTheory ProbabilityTheory
 -- § 1. Prefix node sets
 -- ============================================================
 
-/-- The first `n` observed nodes in the canonical topological order. If
-`n ≥ M.observed.card`, this is all observed nodes. -/
+/-- For [a finite collection of distinguishable base-variable labels](hyp:N) with [a measurable value space attached to each label](hyp:Ω), [a structural causal model](hyp:M), and [a nonnegative integer](hyp:n), the [prefix node set](goal) consists of precisely the first $n$ observed nodes in its canonical topological order; if $n$ is at least the number of observed nodes, it is the full observed-node set. -/
 noncomputable def prefixNodes (M : Causalean.SCM N Ω) (n : ℕ) :
     Finset (SWIGNode N) :=
   M.observed.filter
@@ -200,13 +198,13 @@ lemma observedPredecessors_observedAt (M : Causalean.SCM N Ω) {n : ℕ}
 -- § 2. Single-node conditional step kernels
 -- ============================================================
 
-/-- Read the only coordinate of a singleton `ValuesOn` tuple. -/
+/-- For [an index population](hyp:ι), [a singleton index](hyp:v) in [a family of value spaces](hyp:α), and [an assignment on that singleton](hyp:x), the [singleton-coordinate value](goal) is the assignment's value at that index. -/
 noncomputable def singletonValue {ι : Type*} {α : ι → Type*}
     {v : ι} (x : ValuesOn ({v} : Finset ι) α) :
     α v :=
   x ⟨v, by simp⟩
 
-/-- Build a singleton `ValuesOn` tuple from a value. -/
+/-- For [an index population](hyp:ι), [a singleton index](hyp:v) in [a family of value spaces](hyp:α), and [a value at that index](hyp:x), the [singleton assignment](goal) is the assignment on the singleton set whose sole coordinate equals that value. -/
 noncomputable def singletonValues {ι : Type*} {α : ι → Type*}
     {v : ι} (x : α v) :
     ValuesOn ({v} : Finset ι) α :=
@@ -252,8 +250,7 @@ lemma measurable_singletonValues {ι : Type*} {α : ι → Type*}
   subst w
   rfl
 
-/-- The single-node observational conditional kernel for the `n`-th observed
-node given the first `n` observed nodes. -/
+/-- For [a structural causal model](hyp:M), [an index strictly below its number of observed nodes](hyp:hn), a standard Borel and nonempty value space for the observed node at that index, and a countably generated conditioning σ-algebra for the fixed values and preceding observed values, the [one-step observational conditional kernel](goal) gives the conditional distribution of that node's value given the fixed values and all earlier observed values. -/
 noncomputable def obsStepCondKernel
     (M : Causalean.SCM N Ω) {n : ℕ} (hn : n < M.observed.card)
     [StandardBorelSpace
@@ -274,7 +271,12 @@ noncomputable def obsStepCondKernel
       (M.prefixNodes_subset_observed n)).map
     (singletonValue (α := swigΩ Ω) (v := (M.observedAt ⟨n, hn⟩).val))
 
-/-- The one-node observational conditional kernel is Markov. -/
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω), [a structural causal
+model](hyp:M), [an index strictly below its number of observed nodes](hyp:n,hn), a standard Borel
+and nonempty value space for the observed node at that index, and a countably generated
+conditioning σ-algebra for the fixed values and preceding observed values, [the Markov-kernel
+structure for the one-step observational conditional kernel](goal) asserts that this conditional
+distribution is a Markov kernel. -/
 instance isMarkov_obsStepCondKernel
     (M : Causalean.SCM N Ω) {n : ℕ} (hn : n < M.observed.card)
     [StandardBorelSpace
@@ -387,7 +389,7 @@ lemma obsStepCondKernel_sectR_map_singletonValues
 -- § 3. Recursive observational chain kernel
 -- ============================================================
 
-/-- The unique value on the empty prefix. -/
+/-- For [a structural causal model](hyp:M), the [empty-prefix assignment](goal) is the unique assignment of values to its empty initial observed-node set. -/
 noncomputable def emptyPrefixValues (M : Causalean.SCM N Ω) :
     ValuesOn (M.prefixNodes 0) (swigΩ Ω) :=
   fun ⟨v, hv⟩ => by
@@ -395,18 +397,21 @@ noncomputable def emptyPrefixValues (M : Causalean.SCM N Ω) :
       simp [M.prefixNodes_zero] at hv
     simp at this
 
-/-- The base observational chain kernel: a Dirac mass on the empty prefix. -/
+/-- For [a structural causal model](hyp:M), the [zero-step observational chain kernel](goal) assigns, at every fixed-value setting, unit probability to the unique assignment on the empty observed prefix. -/
 noncomputable def obsChainKernelZero (M : Causalean.SCM N Ω) :
     ProbabilityTheory.Kernel M.FixedValues (ValuesOn (M.prefixNodes 0) (swigΩ Ω)) :=
   ProbabilityTheory.Kernel.const _ (MeasureTheory.Measure.dirac M.emptyPrefixValues)
 
-/-- The base observational chain kernel is Markov. -/
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω) and [a structural causal
+model](hyp:M), [the Markov-kernel structure for the zero-step observational chain kernel](goal)
+asserts that the kernel assigning unit probability to the unique empty-prefix assignment is a
+Markov kernel. -/
 instance isMarkov_obsChainKernelZero (M : Causalean.SCM N Ω) :
     ProbabilityTheory.IsMarkovKernel M.obsChainKernelZero := by
   unfold obsChainKernelZero
   infer_instance
 
-/-- Extend a prefix assignment by the next observed value. -/
+/-- For [a structural causal model](hyp:M) and [an index strictly below its number of observed nodes](hyp:hn), the [extended prefix assignment](goal) maps an assignment on the first $n$ observed nodes together with a value for the next node [to the assignment on the first $n+1$ observed nodes that retains the prefix values and appends that value](step:1). -/
 noncomputable def extendObsPrefix (M : Causalean.SCM N Ω) {n : ℕ}
     (hn : n < M.observed.card) :
     ValuesOn (M.prefixNodes n) (swigΩ Ω) ×
@@ -526,8 +531,7 @@ lemma obsCondPairKernel_apply_eq_compProd
         ProbabilityTheory.Kernel.map_apply _ hπCC]
   rw [hκ_def, ← hAt, hFst]
 
-/-- The recursive observational chain-rule kernel through the first `n`
-observed nodes. -/
+/-- For [a structural causal model](hyp:M), standard Borel and nonempty value spaces for every observed node, and countably generated conditioning σ-algebras for every observed prefix, the [observational chain kernel](goal) assigns to every nonnegative integer not exceeding the number of observed nodes the kernel obtained [at zero by the point mass on the empty prefix](step:1) and [at each positive index by composing the preceding chain kernel with the next one-node conditional kernel and extending the prefix](step:2). -/
 noncomputable def obsChainKernel (M : Causalean.SCM N Ω)
     [∀ (k : ℕ) (hk : k < M.observed.card),
       StandardBorelSpace
@@ -557,7 +561,12 @@ noncomputable def obsChainKernel (M : Causalean.SCM N Ω)
       exact ((M.obsChainKernel k (Nat.le_of_succ_le hn)) ⊗ₖ
         (M.obsStepCondKernel hk)).map (M.extendObsPrefix hk)
 
-/-- The recursive observational chain kernel is Markov. -/
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω), [a structural causal
+model](hyp:M), standard Borel and nonempty value spaces for every observed node, and countably
+generated conditioning σ-algebras for every observed prefix, [a nonnegative integer](hyp:n),
+and [proof that this integer does not exceed the number of observed nodes](hyp:hn), [the
+Markov-kernel structure for the corresponding observational chain kernel](goal) asserts that the
+sequential conditional distribution of the first specified observed values is a Markov kernel. -/
 instance isMarkov_obsChainKernel (M : Causalean.SCM N Ω)
     [∀ (k : ℕ) (hk : k < M.observed.card),
       StandardBorelSpace
@@ -595,7 +604,7 @@ instance isMarkov_obsChainKernel (M : Causalean.SCM N Ω)
 -- § 4. Full-length product and chain-rule theorem
 -- ============================================================
 
-/-- The full observational chain-rule product as a kernel on observed values. -/
+/-- For [a structural causal model](hyp:M), standard Borel and nonempty value spaces for every observed node, and countably generated conditioning σ-algebras for every observed prefix, the [full observational chain-rule product](goal) is the full-length observational chain kernel transported from the complete prefix to the observed-value space. -/
 noncomputable def qFactorProduct (M : Causalean.SCM N Ω)
     [∀ (k : ℕ) (hk : k < M.observed.card),
       StandardBorelSpace

@@ -1,0 +1,150 @@
+Let \(\mathcal X_{\mathrm m}\) denote the finite mover support under \(P^{\mathrm{fs}}\), and put \(\pi_{\mathrm m}=P^{\mathrm{fs}}(X\ne0)\).  The stipulated stayer mass gives \(0<\pi_{\mathrm m}<1\).  The repaired separation premise is
+\[
+Q(x)>0\qquad\text{for every }x\in\mathcal X_{\mathrm m}.
+\]
+Because \(Q(x)=\det(M(x)'M(x))\), this is equivalent to full column rank of \(M(x)\) at every mover-support point.  Hence the defining identities of the Moore--Penrose inverse give
+\[
+M(x)^+M(x)=I_p,
+\qquad
+e_k'M(x)^+M(x)=e_k',
+\qquad x\in\mathcal X_{\mathrm m}.
+\]
+Finiteness of \(\mathcal X_{\mathrm m}\) then gives the finite leverage bound
+\[
+\overline H_k^{\mathrm{fs}}
+:=\max_{x\in\mathcal X_{\mathrm m}}\lVert e_k'M(x)^+\rVert_2
+=\max_{x\in\mathcal X_{\mathrm m}}H_k(x)<\infty.
+\]
+Define the oracle mover score
+\[
+S_k=e_k'M(X)^+(\Delta Y-\Gamma).
+\]
+The distributed-lag equation in the first part of the proposition and its conditional-mean-zero restriction imply, at each \(x\in\mathcal X_{\mathrm m}\),
+\[
+\begin{aligned}
+E_{P^{\mathrm{fs}}}[S_k\mid X=x]
+&=E_{P^{\mathrm{fs}}}[e_k'M(x)^+\{M(x)B+\varepsilon\}\mid X=x]\\
+&=E_{P^{\mathrm{fs}}}[B_k\mid X=x]
++e_k'M(x)^+E_{P^{\mathrm{fs}}}[\varepsilon\mid X=x]\\
+&=E_{P^{\mathrm{fs}}}[B_k\mid X=x].
+\end{aligned}
+\]
+All terms are integrable by the assumed second-moment bound.  Averaging the last equality conditional on \(X\ne0\) yields
+\[
+E_{P^{\mathrm{fs}}}[S_k\mid X\ne0]
+=E_{P^{\mathrm{fs}}}[B_k\mid X\ne0]
+=\tau_k(P^{\mathrm{fs}}).
+\]
+Thus the observed-law score identifies the stated all-mover causal target; equality is derived from full rank and the model, rather than imposed as a definition.
+
+For feasibility, consider a training fold of size \(n\), let \(N_0\) be its number of stayers, and use the following total positive-stayer estimator: if \(N_0>0\), average \(\Delta Y_g\) over the stayers; if \(N_0=0\), use the fold mean of \(\Delta Y_g\).  This fallback is translation equivariant.  At \(X=0\), the definition of \(M\) gives \(M(0)=0\), so the model and conditional-mean-zero condition give
+\[
+E_{P^{\mathrm{fs}}}[\Delta Y\mid X=0]=\Gamma.
+\]
+Conditional on \(N_0=m>0\), the stayer average has mean \(\Gamma\) and mean squared error at most \(C/m\).  For \(N_0\sim\operatorname{Binomial}(n,1-\pi_{\mathrm m})\),
+\[
+E\!\left[\frac{\mathbf 1\{N_0>0\}}{N_0}\right]
+\le 2E\!\left[\frac1{N_0+1}\right]
+=\frac{2\{1-\pi_{\mathrm m}^{,n+1}\}}{(n+1)(1-\pi_{\mathrm m})}
+=O(n^{-1}).
+\]
+On \(\{N_0=0\}\), all training observations are movers.  Conditional on that event they remain independent draws from the mover law, and \(M(X)B+\varepsilon\) has a finite second moment because the mover support is finite and the stated second moments are finite.  Consequently the fallback contribution is \(O(\pi_{\mathrm m}^{,n})\).  Combining the two cases proves
+\[
+E_{P^{\mathrm{fs}}}\lVert\widehat\Gamma-\Gamma\rVert_2^2=O(n^{-1}).
+\]
+
+On an independent evaluation fold, let \(N_{\mathrm m}\) be the number of movers, average the feasible scores over those movers when \(N_{\mathrm m}>0\), and return zero otherwise.  The oracle score has a finite conditional second moment because
+\[
+|S_k|^2
+\le 2|B_k|^2+2(\overline H_k^{\mathrm{fs}})^2\lVert\varepsilon\rVert_2^2.
+\]
+The same inverse-binomial calculation, now with success probability \(\pi_{\mathrm m}\), shows that the oracle mover average has mean squared error \(O(n^{-1})\); its empty-mover contribution is \(\tau_k(P^{\mathrm{fs}})^2(1-\pi_{\mathrm m})^n=O(e^{-cn})\).  The score perturbation due to trend estimation is
+\[
+T_\Gamma=-\left\{N_{\mathrm m}^{-1}
+\sum_{g:X_g\ne0}e_k'M(X_g)^+\right\}(\widehat\Gamma-\Gamma)
+\]
+on \(\{N_{\mathrm m}>0\}\), and is zero otherwise.  Its bracketed row vector has norm at most \(\overline H_k^{\mathrm{fs}}\).  Training/evaluation independence therefore gives
+\[
+E_{P^{\mathrm{fs}}}[T_\Gamma^2]
+\le (\overline H_k^{\mathrm{fs}})^2
+E_{P^{\mathrm{fs}}}\lVert\widehat\Gamma-\Gamma\rVert_2^2
+=O(G^{-1}).
+\]
+Using a fixed number of cross-fitting rotations and the inequality \((a+b)^2\le2a^2+2b^2\) proves squared risk \(O(G^{-1})\) and root mean square \(O(G^{-1/2})\) for the generated-\(\Gamma\) term.  If \(C_{\mathrm{fs}}/G\) is a deterministic bound on this mean squared error for all sufficiently large \(G\), then
+\[
+\mathcal C_{G,k}^{\mathrm{fs}}
+=\left[
+\widehat\tau_k^{\mathrm{fs}}-\sqrt{C_{\mathrm{fs}}/(\eta G)},
+\widehat\tau_k^{\mathrm{fs}}+\sqrt{C_{\mathrm{fs}}/(\eta G)}
+\right]
+\]
+has coverage at least \(1-\eta\) by Markov's inequality applied to squared error and has deterministic, hence expected, length \(2\sqrt{C_{\mathrm{fs}}/(\eta G)}=O(G^{-1/2})\).  This establishes the finite-support reduction under the separate law \(P^{\mathrm{fs}}\), without placing that law in \(\mathcal P_\Sigma\).
+
+Now specialize to \(K=0\) and \(T=2\).  Then \(p=r=d=1\), \(M(x)=(x)\), \(\mathcal Z=\{0\}\), and the global convention for \(H_0\) gives
+\[
+H_0(x)=|x|^{-1}\quad(x\ne0),
+\qquad H_0(0)=0.
+\]
+For all sufficiently large \(C\), the frontier set is therefore \(0<|x|<C^{-1}\).  The two-sided mover-density bound near zero gives
+\[
+P\{H_0(X)>C\mid X\ne0\}
+=\int_{0<|x|<C^{-1}}f_X(x)\,dx
+\asymp C^{-1}.
+\]
+Because \(\operatorname{dist}(x,\mathcal Z)=|x|\), the definition of the frontier remainder gives
+\[
+\mathcal J_{\Sigma,0,s}(C)
+=\int_{S\cap\{0<|x|<C^{-1}\}}|x|^s\,dx
+\asymp C^{-(s+1)}.
+\]
+For the selector-distance integral, every retained anchor has absolute value at least \(C^{-1}\).  Hence, on \(0<|x|<(2C)^{-1}\), every selector distance is at least \((2C)^{-1}\), and the partition weights sum to one.  This gives the lower bound \(\mathcal D_{\Sigma,0,s}(C)\gtrsim C^{-(s+1)}\).  Conversely, the boundary-compatible scalar chart meeting either incident side contains a retained point at distance at most a signature-dependent multiple of \(C^{-1}\); the prescribed fallback has the same bound.  Thus every selector distance on the frontier is \(O(C^{-1})\), and its frontier has Lebesgue measure \(O(C^{-1})\).  Therefore
+\[
+\mathcal D_{\Sigma,0,s}(C)\asymp C^{-(s+1)}.
+\]
+There are no logarithmic ties in this one-dimensional integral.  The definitions of the invariant indices consequently give
+\[
+(\alpha_{\Sigma,0},m_{\Sigma,0},
+\zeta_{\Sigma,0,1},\ell_{\Sigma,0,1})=(1,0,2,0).
+\]
+
+On \(\{H_0\le C,X\ne0\}\), the oracle score is \(B_0+\varepsilon/x\).  The upper density, noise-variance, and moment envelopes imply
+\[
+\overline V_{\Sigma,0}(C)
+\lesssim 1+\int_{C^{-1}\le|x|\le\delta_0}x^{-2}\,dx
+\lesssim C.
+\]
+The boundary-extension and selector bounds give
+\(\overline{\mathfrak B}_{\Sigma,0,1}(C)\lesssim C^{-2}\).  Choosing a geometric-grid point within a fixed factor of \(G^{1/5}\) therefore yields
+\[
+R_{G,\Sigma,0}^{\star}
+\le G^{-1}\overline V_{\Sigma,0}(C)
++\overline{\mathfrak B}_{\Sigma,0,1}(C)^2
+\lesssim G^{-1}C+C^{-4}
+\lesssim G^{-4/5}.
+\]
+Without boundary correction, the omitted-tail bias is at most a constant times its probability, hence is \(O(C^{-1})\).  A cutoff within a fixed factor of \(G^{1/3}\) then gives
+\[
+G^{-1}\overline V_{\Sigma,0}(C)+O(C^{-2})
+\lesssim G^{-2/3}.
+\]
+For completeness, the variance order is also sharp for the worst-case scale.  Take an admissible scalar law with \(B_0=0\) and centered bounded noise independent of \(X\), with variance in \([\underline\sigma^2,\overline\sigma^2]\).  Such bounded noise respects the moment envelope whenever the scalar class is nonempty: Lyapunov's inequality already forces \(C_q\ge\underline\sigma^q\).  This law belongs to the scalar fixed-signature class and gives
+\[
+\overline V_{\Sigma,0}(C)
+\ge c\int_{C^{-1}\le|x|\le\delta_0}x^{-2}\,dx
+\gtrsim C.
+\]
+If the corrected uniform bias envelope is, as stipulated in the proposition's qualification, bounded below by \(cC^{-2}\) at every effective large cutoff, minimization of \(C/G+C^{-4}\) gives the reverse bound \(R_{G,\Sigma,0}^{\star}\gtrsim G^{-4/5}\).  If the corresponding uncorrected bias envelope is bounded below by \(cC^{-1}\), minimization of \(C/G+C^{-2}\) gives the reverse order \(G^{-2/3}\).  This proves exactly the two conditional two-sided assertions.
+
+Finally, Proposition \(\text{prop:k1t5-early-kill}\) gives \((\alpha_{\Sigma,k},m_{\Sigma,k})=(2,0)\) for both coordinates when \(K=1,T=5\) near \(x^\star\).  Substitution into the critical branch of Theorem \(\text{thm:matched-frontier}\) yields
+\[
+R_{G,\Sigma,k}^{\star}\lesssim G^{-1}(\log G)^{m_{\Sigma,k}+1}
+=G^{-1}\log G.
+\]
+The tail integration identity
+\[
+E[H_k(X)^2\mathbf 1\{1<H_k(X)\le C\}\mid X\ne0]
+=2\int_1^C uP\{H_k(X)>u\mid X\ne0\}\,du
+-C^2P\{H_k(X)>C\mid X\ne0\}
++P\{H_k(X)>1\mid X\ne0\}
+\]
+and the two-sided \(u^{-2}\) tail show that the critical truncated second moment is of order \(\log C\).  If the frontier bias modulus vanished at some finite cutoff \(C_0\), the oracle criterion at \(C_0\) would be \(O(G^{-1})\), excluding equality of order \(G^{-1}\log G\).  More generally, if that modulus is nonzero at every finite cutoff and tends to zero only as \(C\to\infty\), any oracle sequence whose criterion tends to zero must have \(C_{G,\Sigma,k}^{\star}\to\infty\).  Thus the displayed critical upper bound is unconditional, whereas equality requires precisely the stated nonvanishing frontier modulus forcing a diverging cutoff.

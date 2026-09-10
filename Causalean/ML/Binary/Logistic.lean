@@ -46,8 +46,10 @@ private lemma hasDerivAt_softplus (x : ℝ) : HasDerivAt softplus (Real.sigmoid 
 theorem continuous_softplus : Continuous softplus := by
   exact continuous_iff_continuousAt.2 fun x => (hasDerivAt_softplus x).continuousAt
 
-/-- The empirical logistic risk at coefficient `β`: average score-space log-loss
-over the sample `Z`. -/
+/-- For [a finite sample index set](hyp:ι), [a real inner-product feature space](hyp:E),
+[a sample of feature vectors paired with binary outcomes](hyp:Z), and [a coefficient vector](hyp:β),
+the [empirical logistic risk](goal) is the average, over the sample, of logistic
+score loss evaluated at the inner product of the coefficient vector and each feature vector. -/
 noncomputable def logisticEmpRisk (Z : ι → E × Bool) (β : E) : ℝ :=
   (Fintype.card ι : ℝ)⁻¹ * ∑ i, logisticScoreLoss (Z i).2 (inner ℝ β (Z i).1)
 

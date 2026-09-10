@@ -31,7 +31,7 @@ open scoped Real
 namespace Causalean
 namespace SteinMethod
 
-/-- Abbreviation for the Gaussian weight `φ(x) = e^{-x²/2}`. -/
+/-- For every [real argument](hyp:x), the [Gaussian weight](goal) is $e^{-x^2/2}$. -/
 noncomputable def phi (x : ℝ) : ℝ := Real.exp (-x ^ 2 / 2)
 
 private theorem phi_pos (x : ℝ) : 0 < phi x := Real.exp_pos _

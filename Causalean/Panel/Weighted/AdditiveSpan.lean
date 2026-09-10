@@ -55,9 +55,10 @@ open scoped BigOperators
 namespace Causalean
 namespace Panel.Weighted
 
-/-- The **additive span** of two projections `f₁ : R → A` and `f₂ : R → B`:
-the subspace of `R → ℝ` consisting of arrays
-`h r = a (f₁ r) + b (f₂ r)` for some `a : A → ℝ` and `b : B → ℝ`. -/
+/-- Given [an index set](hyp:R), [two feature sets](hyp:A,B), and [two maps from the index set
+to those feature sets](hyp:f₁,f₂), the [additive span](goal) is the real linear subspace of
+real-valued arrays on the index set consisting exactly of arrays that can be written as the sum
+of a real-valued function of the first feature and a real-valued function of the second feature. -/
 def AdditiveSpan {R A B : Type*} (f₁ : R → A) (f₂ : R → B) :
     Submodule ℝ (R → ℝ) where
   carrier := { h | ∃ a : A → ℝ, ∃ b : B → ℝ, ∀ r : R, h r = a (f₁ r) + b (f₂ r) }
@@ -102,12 +103,16 @@ instance finiteDimensional [Finite R] :
 
 end AdditiveSpan
 
-/-- The two-axis additive span for the product index `R = I × T`:
-specializes `AdditiveSpan` to `f₁ = Prod.fst`, `f₂ = Prod.snd`. -/
+/-- Given [a set of units](hyp:I) and [a set of periods](hyp:T), the [two-axis additive span](goal)
+is the real linear subspace of unit-period arrays that can be written as the sum of a
+unit-specific real-valued function and a period-specific real-valued function. -/
 def twoAxisAdditiveSpan (I T : Type*) : Submodule ℝ ((I × T) → ℝ) :=
   AdditiveSpan (Prod.fst : I × T → I) (Prod.snd : I × T → T)
 
-/-- Predicate for the unit/time additive class `h i t = a i + b t`. -/
+/-- Given [a set of units](hyp:Unit), [a set of periods](hyp:Time), and [a real-valued unit-period
+array](hyp:h), the [unit-time additive condition](goal) holds precisely when [there exist a
+real-valued unit function and a real-valued period function whose sum equals the array at every
+unit-period pair](step:1). -/
 def IsUnitTimeAdditive {Unit Time : Type*} (h : Unit → Time → ℝ) : Prop :=
   ∃ a : Unit → ℝ, ∃ b : Time → ℝ, ∀ i t, h i t = a i + b t
 

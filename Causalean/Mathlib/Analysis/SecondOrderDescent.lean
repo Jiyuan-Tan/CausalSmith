@@ -21,8 +21,7 @@ open Set
 
 namespace Causalean.Mathlib.Analysis
 
-/-- The quadratic-model step chooses the endpoint when curvature is zero and otherwise
-clips the unconstrained optimizer at the available interval length.
+/-- For [a real curvature bound](hyp:M), [a real slope margin](hyp:c), and [a real available interval length](hyp:T), the [quadratic-model step](goal) is the available interval length when the curvature bound is zero and otherwise the smaller of that length and the slope margin divided by the curvature bound.
 
 This is the step used by the descent-gap lemmas below: with curvature bound `M`, slope
 margin `c`, and interval length `T`, it is `T` if `M = 0` and `min T (c / M)` otherwise. -/

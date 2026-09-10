@@ -1,6 +1,7 @@
 import { STAGE_ORDER } from "../constants.js";
 import type { Core } from "../discovery/core/schema.js";
 import { statementHash } from "../graph/hash.js";
+import { parseAnnotatedDecls, type ExtractedDecl } from "../graph/extractor.js";
 import { isUndeliveredNode, type FormalizationGraph } from "../graph/types.js";
 import type { CitedReviewReceipt, DeliveryReviewReceipt } from "../types.js";
 import { runPlanGate } from "./plan/plan_gate.js";
@@ -9,20 +10,29 @@ import type { Plan } from "./plan/schema.js";
 const DEP_KINDS = new Set(["statement-uses", "proof-uses"]);
 
 export interface DeliveryAuditFinding {
-  code: "plan" | "plan-graph" | "dependency" | "lean-anchor" | "stage" | "review" | "cited-review";
+  code: "plan" | "plan-graph" | "dependency" | "lean-anchor" | "stage" | "review" | "cited-review" | "convergence-review";
   node_id?: string;
   message: string;
 }
 
-/** Hash the exact plan/graph/source interface a cited peer receipt certifies. */
-export function citedEvidenceHash(plan: Plan, graph: FormalizationGraph, nodeId: string): string {
+/** Hash the exact frozen-core/plan/graph/Lean interface a cited peer receipt certifies. */
+export function citedEvidenceHash(
+  core: Core,
+  plan: Plan,
+  graph: FormalizationGraph,
+  nodeId: string,
+  leanEvidence: string,
+): string {
   const planNode = plan.nodes[nodeId];
   const citation = plan.citations.find((candidate) => candidate.id === planNode?.source);
   const graphNode = graph.nodes.find((candidate) => candidate.id === nodeId);
+  const coreStatement = core.statements.find((candidate) => candidate.id === nodeId);
   return statementHash(JSON.stringify({
     node_id: nodeId,
+    core_statement: coreStatement ?? null,
     plan_node: planNode ? {
       lean_name: planNode.lean_name,
+      lean_kind: planNode.lean_kind,
       gate_class: planNode.gate_class ?? null,
       source: planNode.source ?? null,
       delivery_status: planNode.delivery_status,
@@ -35,21 +45,52 @@ export function citedEvidenceHash(plan: Plan, graph: FormalizationGraph, nodeId:
       review_hash: graphNode.review.passed_hash,
       delivery: graphNode.delivery ?? null,
     } : null,
+    lean_evidence: leanEvidence,
   }));
+}
+
+/**
+ * Bind a cited review to the current tagged declaration and its direct source body. The direct
+ * source starts at the declaration header, so F5 may add a preceding docstring without
+ * invalidating F4, while a later type/body/proof edit still forces a fresh review.
+ */
+export async function citedLeanEvidence(
+  leanDir: string,
+  plan: Plan,
+  graph: FormalizationGraph,
+): Promise<Record<string, string>> {
+  const evidence: Record<string, string> = {};
+  const decls = await parseAnnotatedDecls(leanDir);
+  for (const [nodeId, node] of Object.entries(plan.nodes)) {
+    if ((node.gate_class !== "cited" && node.citation_discharged !== true) || node.delivery_status === "undelivered") continue;
+    const owned = decls.filter((decl) => decl.nodeId === nodeId);
+    evidence[nodeId] = statementHash(JSON.stringify(owned.map((decl) => ({
+      file: decl.file,
+      declKind: decl.declKind,
+      declName: decl.declName,
+      statement: decl.statement,
+      hasSorry: decl.hasSorry,
+      sourceHash: decl.sourceHash ?? null,
+    }))));
+  }
+  return evidence;
 }
 
 const CITED_PASS = new Set(["cited-verified", "cited-verified-attested", "cited-source-unverifiable"]);
 
 /** Require one current source-bound receipt from each F4 peer for every delivered cited node. */
 export function auditCitedReview(args: {
+  core: Core;
   plan: Plan;
   graph: FormalizationGraph;
+  leanEvidence: Record<string, string>;
   receipts?: CitedReviewReceipt[];
 }): DeliveryAuditFinding[] {
   const findings: DeliveryAuditFinding[] = [];
   const receipts = args.receipts ?? [];
   const graphById = new Map(args.graph.nodes.map((node) => [node.id, node] as const));
   const citationById = new Map(args.plan.citations.map((citation) => [citation.id, citation] as const));
+  const frozenCitedIds = new Set(args.core.statements.filter((statement) => statement.status === "cited").map((statement) => statement.id));
 
   // Enforce the inverse inventory first. Otherwise a graph-only cited gate (or a graph relabel of
   // an ordinary plan node) is absent from the plan-driven loop below and needs no receipts at all.
@@ -73,10 +114,13 @@ export function auditCitedReview(args: {
     }
   }
   for (const [nodeId, planNode] of Object.entries(args.plan.nodes)) {
-    if (planNode.gate_class !== "cited" || planNode.delivery_status === "undelivered") continue;
+    if (!frozenCitedIds.has(nodeId) || planNode.delivery_status === "undelivered") continue;
     const citation = planNode.source ? citationById.get(planNode.source) : undefined;
     const graphNode = graphById.get(nodeId);
-    if (!citation || !graphNode || graphNode.gate?.gate_class !== "cited") {
+    const deferred = planNode.gate_class === "cited";
+    const discharged = planNode.citation_discharged === true &&
+      (planNode.lean_kind === "lemma" || planNode.lean_kind === "theorem") && planNode.disposition !== "reuse";
+    if (!citation || !graphNode || (!deferred && !discharged) || (deferred && graphNode.gate?.gate_class !== "cited")) {
       findings.push({
         code: "cited-review",
         node_id: nodeId,
@@ -84,15 +128,22 @@ export function auditCitedReview(args: {
           ? "delivered cited node has no resolvable plan citation"
           : !graphNode
             ? "delivered cited node is missing from graph"
-            : "plan cites a delivered node that graph does not classify as cited",
+            : !deferred && !discharged
+              ? "frozen cited node is neither a deferred cited carrier nor a locally discharged theorem"
+              : "deferred cited plan node is not classified as cited in graph",
       });
       continue;
     }
-    if (graphNode.gate.source !== planNode.source) {
+    if (deferred && graphNode.gate?.source !== planNode.source) {
       // Already an inventory failure; do not let receipts against either side make it pass.
       continue;
     }
-    const expectedHash = citedEvidenceHash(args.plan, args.graph, nodeId);
+    const leanEvidence = args.leanEvidence[nodeId];
+    if (!leanEvidence) {
+      findings.push({ code: "cited-review", node_id: nodeId, message: "current cited Lean evidence is missing" });
+      continue;
+    }
+    const expectedHash = citedEvidenceHash(args.core, args.plan, args.graph, nodeId, leanEvidence);
     for (const reviewer of ["codex", "claude"] as const) {
       const matches = receipts.filter((receipt) => receipt.node_id === nodeId && receipt.reviewer === reviewer);
       if (matches.length !== 1) {
@@ -176,14 +227,23 @@ export function auditDelivery(args: {
   plan: Plan;
   graph: FormalizationGraph;
   leanDeclNames?: Iterable<string>;
+  annotatedDecls?: ExtractedDecl[];
   stageCompleted?: string;
   requireFinalStage?: boolean;
   receipts?: DeliveryReviewReceipt[];
   requireReceipts?: boolean;
 }): DeliveryAuditFinding[] {
   const findings: DeliveryAuditFinding[] = [];
-  const gate = runPlanGate(args.plan, args.core);
-  for (const violation of gate.violations.filter((v) => v.code === "P1" || v.code === "P9" || v.code === "P10")) {
+  const gate = runPlanGate(args.plan, args.core, {
+    annotatedDecls: args.annotatedDecls,
+    // The checks below validate exactly one fresh codex and claude receipt for
+    // every omitted node. Without that required receipt mode, retain F1's
+    // fail-closed ban on planner-authored secondary omissions.
+    allowReviewedSecondaryUndelivered: args.requireReceipts === true,
+  });
+  // P5/P6 are advisory planning-quality checks. Every other plan invariant is structural and
+  // must still hold at F5/banking; otherwise a post-F2 edit can bypass the earlier gate.
+  for (const violation of gate.violations.filter((v) => v.code !== "P5" && v.code !== "P6")) {
     findings.push({ code: "plan", node_id: violation.where, message: `${violation.code}: ${violation.message}` });
   }
 

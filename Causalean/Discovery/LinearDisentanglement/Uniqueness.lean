@@ -102,11 +102,20 @@ theorem Bint_det_pos (S : Solution d p K) (k : Fin K) : 0 < (S.Bint k).det := by
   rw [Matrix.det_of_upperTriangular (Bint_blockTriangular S k)]
   exact Finset.prod_pos (fun i _ => Bint_diag_pos S k i)
 
-/-- `B0` is invertible. -/
+/-- For every [linear causal disentanglement solution, specified by natural numbers of latent
+variables, observed variables, and intervention contexts](hyp:d,p,K,S), [an invertibility certificate for its
+observational structural matrix](goal) is [constructed from that matrix's nonzero determinant](step:1).
+
+`B0` is invertible. -/
 noncomputable instance B0_invertible (S : Solution d p K) : Invertible S.B0 :=
   S.B0.invertibleOfIsUnitDet (isUnit_iff_ne_zero.mpr (B0_det_pos S).ne')
 
-/-- `Bint k` is invertible. -/
+/-- For every [linear causal disentanglement solution, specified by natural numbers of latent
+variables, observed variables, and intervention contexts](hyp:d,p,K,S) and [every intervention context in that
+solution](hyp:k), [an invertibility certificate for the corresponding interventional structural
+matrix](goal) is [constructed from that matrix's nonzero determinant](step:1).
+
+`Bint k` is invertible. -/
 noncomputable instance Bint_invertible (S : Solution d p K) (k : Fin K) :
     Invertible (S.Bint k) :=
   (S.Bint k).invertibleOfIsUnitDet (isUnit_iff_ne_zero.mpr (Bint_det_pos S k).ne')
@@ -123,13 +132,23 @@ theorem HHt_posDef (S : Solution d p K) : (S.H * S.H.transpose).PosDef := by
   have := Matrix.PosDef.mul_conjTranspose_self S.H (vecMul_H_injective S)
   rwa [Matrix.conjTranspose_eq_transpose_of_trivial] at this
 
-/-- `H Hᵀ` is invertible. -/
+/-- For every [linear causal disentanglement solution, specified by natural numbers of latent
+variables, observed variables, and intervention contexts](hyp:d,p,K,S), [an invertibility certificate for the Gram
+matrix of its mixing pseudoinverse](goal) is [constructed from that Gram matrix's positive
+definiteness](step:1).
+
+`H Hᵀ` is invertible. -/
 noncomputable instance HHt_invertible (S : Solution d p K) :
     Invertible (S.H * S.H.transpose) :=
   (S.H * S.H.transpose).invertibleOfIsUnitDet
     ((Matrix.isUnit_iff_isUnit_det _).mp (HHt_posDef S).isUnit)
 
-/-- The Gram matrix `(B₀H)(B₀H)ᵀ = B₀ (H Hᵀ) B₀ᵀ` is invertible (product of invertibles). -/
+/-- For every [linear causal disentanglement solution, specified by natural numbers of latent
+variables, observed variables, and intervention contexts](hyp:d,p,K,S), [an invertibility certificate for the Gram
+matrix of the product of its observational structural matrix and mixing pseudoinverse](goal) is
+[constructed as a product of invertible matrices](step:1).
+
+The Gram matrix `(B₀H)(B₀H)ᵀ = B₀ (H Hᵀ) B₀ᵀ` is invertible (product of invertibles). -/
 noncomputable instance B0H_gram_invertible (S : Solution d p K) :
     Invertible ((S.B0 * S.H) * (S.B0 * S.H).transpose) := by
   rw [Matrix.transpose_mul, ← Matrix.mul_assoc, Matrix.mul_assoc S.B0]
@@ -245,8 +264,7 @@ perturbation `Bₖ − B₀ = e_{iₖ} cₖᵀ`, the orthogonality of the transi
 `Oₖ = B'ₖ M Bₖ⁻¹`, and (the part that survives into the conclusion) the read-off of the
 permuted intervention targets `i'ₖ = σ(iₖ)`. -/
 
-/-- The perturbation row `cₖ : Fin d → ℝ` of a perfect intervention:
-`cₖ j = λₖ (eᵢₖ)ⱼ − (B₀)_{iₖ,j}`, so that `Bₖ = B₀ + e_{iₖ} cₖᵀ`. -/
+/-- For [a linear causal disentanglement solution with d latent variables, p observed variables, and K intervention contexts](hyp:d,p,K,S) and [an intervention context](hyp:k), the [perfect-intervention perturbation row](goal) assigns to each latent node the intervention scaling times the standard-basis indicator of the target node, minus the corresponding entry of the observational structural matrix. -/
 def cvec (S : Solution d p K) (k : Fin K) : Fin d → ℝ :=
   fun j => S.lam k * stdVec d (S.target k) j - S.B0 (S.target k) j
 

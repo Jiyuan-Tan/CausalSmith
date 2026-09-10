@@ -52,8 +52,9 @@ theorem mlPropensity_ae_eq
     (fun z => e z.1) =ᵐ[Pe] (Pe[fun z => z.2 | covarSigma (X := γ)]) :=
   condExp_of_isL2Projection Pe he hD heint hproj
 
-/-- Package ML-learned outcome arms `μ_fn` and propensity `e_fn` into the AIPW
-nuisance vector consumed by `Estimation.ATE`. -/
+/-- For [a measurable covariate space](hyp:γ), [two outcome-regression functions indexed by a Boolean treatment level](hyp:μ_fn), [a propensity function](hyp:e_fn), [the hypothesis that each outcome-regression function is measurable](hyp:hμ), and [the hypothesis that the propensity function is measurable](hyp:he), [the machine-learning nuisance vector](goal) consists of [the supplied outcome-regression functions](step:1), the supplied propensity function, their outcome-regression measurability certificates, and the propensity measurability certificate.
+
+This packages the nuisance functions consumed by the augmented inverse-probability-weighted estimator. -/
 noncomputable def mlNuisanceVec
     (μ_fn : Bool → γ → ℝ) (e_fn : γ → ℝ)
     (hμ : ∀ b, Measurable (μ_fn b)) (he : Measurable e_fn) :

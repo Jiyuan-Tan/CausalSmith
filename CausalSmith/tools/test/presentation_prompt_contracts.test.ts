@@ -35,11 +35,11 @@ describe("verdict-only contract digest wiring", () => {
     });
     expect(audit).toContain(digest.slice(0, 40));
     expect(audit).not.toContain("GLOBAL READER-FACING PROSE CONTRACT");
-    const author = await presentationPrompt("refine_proof", {
-      obj_id: "x", proof_tex: "p", lean_proof_source: "l", referenced_defs: "r",
-      audit_issues: "a", helper_lemma_envs: "h", informal_derivation: "i", notation_table: "n",
+    const author = await presentationPrompt("p2_proof", {
+      theorem_env: "t", lean_proof_source: "l", helper_lemma_envs: "h", cited_dependencies: "c",
+      informal_derivation: "i", notation_table: "n", revision_brief: "b", prior_and_defects: "(first render — none)",
     });
     expect(author).not.toContain(digest.slice(0, 40));
-    expect(promptContractFiles("refine_proof")).toEqual(["prose_style_contract", "cross_reference_contract"]);
+    expect(promptContractFiles("p2_proof")).toEqual(["prose_style_contract", "cross_reference_contract"]);
   });
 });

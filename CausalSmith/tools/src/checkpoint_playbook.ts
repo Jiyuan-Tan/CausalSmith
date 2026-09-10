@@ -126,7 +126,7 @@ function perStageGuidance(
       // to F1.5 — the consolidated CKPT 1).
       if (flags.substrate_build_required) {
         return (
-          "SUBSTRATE-BUILD: build every Defer item via --study or a background builder. Gate only the minimal irreducible theory absent from Mathlib; derive all surrounding support rather than laundering it into a hypothesis. " +
+          "SUBSTRATE-BUILD: build each paper-owned Defer item. A genuinely published, source-matched input may remain cited even when a headline invokes it, but every new adaptation, bridge, and theorem step must be formalized. Gate only irreducible theory absent from Mathlib. " +
           "Verify each build (0-sorry, axiom-clean, statement-match), clear the flag, and resume. At the next checkpoint replace each gate, rewind F2.5 (not F1), and re-pass F4 before banking; never hand-patch the plan. SKILL §'Cross-cutting actions'."
         );
       }
@@ -134,7 +134,7 @@ function perStageGuidance(
 
     case "1.5":
       return (
-        "CONSOLIDATED CKPT 1: audit plan depth, reuse, and statement fidelity. For missing infrastructure, dispatch builders, proceed minimally gated, and discharge gates next checkpoint; never hand-patch the plan. " +
+        "CONSOLIDATED CKPT 1: audit depth, reuse, fidelity, and contribution ownership. A genuinely published source-matched input may remain cited even when a headline invokes it; formalize every paper-owned/new step, including adaptations, embeddings, and splices. Never relabel difficult new work as cited or hand-patch the plan. " +
         "Then F2–F4 follows its route; reject laundering, and edit .tex only by upward, dischargeable strengthening. SKILL §'F2–F4 loop'."
       );
 

@@ -50,13 +50,17 @@ namespace PLRNuisance
 
 variable {γ : Type*} [MeasurableSpace γ]
 
-/-- The zero nuisance pair: both the outcome regression and the treatment
-regression are the constant function zero. -/
+/-- For every [covariate space](hyp:γ) equipped with a $\sigma$-algebra, [the zero operation on partially linear nuisance pairs](goal) assigns [the pair whose outcome and treatment regressions are both identically zero](step:1).
+
+The zero nuisance pair has both the outcome regression and the treatment
+regression equal to the constant zero function. -/
 instance : Zero (PLRNuisance γ) where
   zero := ⟨fun _ => 0, fun _ => 0, measurable_const, measurable_const⟩
 
-/-- Addition of two nuisance pairs, performed separately on the outcome
-regression and on the treatment regression. -/
+/-- For every [covariate space](hyp:γ) equipped with a $\sigma$-algebra, [the addition operation on partially linear nuisance pairs](goal) assigns [to each pair of nuisance pairs the pair obtained by adding their outcome regressions and their treatment regressions pointwise](step:1).
+
+Addition is performed separately on the outcome regression and on the treatment
+regression. -/
 instance : Add (PLRNuisance γ) where
   add η η' :=
     ⟨fun x => η.lFn x + η'.lFn x,
@@ -64,15 +68,18 @@ instance : Add (PLRNuisance γ) where
      η.lMeas.add η'.lMeas,
      η.mMeas.add η'.mMeas⟩
 
-/-- Negation of a nuisance pair, negating both the outcome regression and the
-treatment regression. -/
+/-- For every [covariate space](hyp:γ) equipped with a $\sigma$-algebra, [the negation operation on partially linear nuisance pairs](goal) assigns [to each nuisance pair the pair obtained by negating both regressions pointwise](step:1).
+
+Negation acts on both the outcome regression and the treatment regression. -/
 instance : Neg (PLRNuisance γ) where
   neg η :=
     ⟨fun x => -η.lFn x, fun x => -η.mFn x,
      η.lMeas.neg, η.mMeas.neg⟩
 
-/-- Subtraction of two nuisance pairs, performed separately on the outcome
-regression and on the treatment regression. -/
+/-- For every [covariate space](hyp:γ) equipped with a $\sigma$-algebra, [the subtraction operation on partially linear nuisance pairs](goal) assigns [to each ordered pair of nuisance pairs the pair obtained by subtracting their outcome regressions and their treatment regressions pointwise](step:1).
+
+Subtraction is performed separately on the outcome regression and on the treatment
+regression. -/
 instance : Sub (PLRNuisance γ) where
   sub η η' :=
     ⟨fun x => η.lFn x - η'.lFn x,
@@ -80,8 +87,10 @@ instance : Sub (PLRNuisance γ) where
      η.lMeas.sub η'.lMeas,
      η.mMeas.sub η'.mMeas⟩
 
-/-- Scaling a nuisance pair by a real number, multiplying both the outcome
-regression and the treatment regression pointwise by that scalar. -/
+/-- For every [covariate space](hyp:γ) equipped with a $\sigma$-algebra, [the real-scalar multiplication operation on partially linear nuisance pairs](goal) assigns [to every real scalar and nuisance pair the pair obtained by multiplying both regressions pointwise by that scalar](step:1).
+
+Scaling multiplies both the outcome regression and the treatment regression
+pointwise by the scalar. -/
 instance : SMul ℝ (PLRNuisance γ) where
   smul t η :=
     ⟨fun x => t * η.lFn x, fun x => t * η.mFn x,
@@ -105,9 +114,9 @@ theorem ext {η η' : PLRNuisance γ}
   · funext x
     exact hm x
 
-/-- The nuisance pairs form an additive commutative group under componentwise
-operations, inheriting all the group laws from the reals applied at each
-covariate value. -/
+/-- For every [covariate space](hyp:γ) equipped with a $\sigma$-algebra, [the additive commutative group structure on partially linear nuisance pairs](goal) supplies [the zero pair](step:1), [componentwise addition](step:2), [componentwise negation](step:3), [componentwise subtraction](step:4), [repeated addition by natural numbers](step:5), [repeated addition and negation by integers](step:6), [the zero-multiple law](step:7), [the successor-multiple law](step:8), [the zero integer-multiple law](step:9), [the positive successor integer-multiple law](step:10), [the negative successor integer-multiple law](step:11), [subtraction as addition of a negative](step:12), [associativity of addition](step:13), [the left zero law](step:14), [the right zero law](step:15), [cancellation of a pair with its negative](step:16), and [commutativity of addition](step:17).
+
+The group laws are inherited pointwise from the real numbers. -/
 instance : AddCommGroup (PLRNuisance γ) where
   zero := 0
   add := (· + ·)
@@ -150,8 +159,9 @@ instance : AddCommGroup (PLRNuisance γ) where
     · exact add_comm (η.lFn x) (η'.lFn x)
     · exact add_comm (η.mFn x) (η'.mFn x)
 
-/-- The nuisance pairs form a real vector space, with scalar multiplication
-acting pointwise on both the outcome regression and the treatment regression. -/
+/-- For every [covariate space](hyp:γ) equipped with a $\sigma$-algebra, [the real vector-space structure on partially linear nuisance pairs](goal) supplies [the scalar multiplication operation](step:1), [the unit-scalar law](step:2), [the successive-scalar law](step:3), [the scalar-times-zero law](step:4), [distributivity of scalar multiplication over addition of nuisance pairs](step:5), [distributivity over addition of scalars](step:6), and [the zero-scalar law](step:7).
+
+Scalar multiplication acts pointwise on both the outcome regression and the treatment regression. -/
 instance : Module ℝ (PLRNuisance γ) where
   smul := (· • ·)
   one_smul η := by

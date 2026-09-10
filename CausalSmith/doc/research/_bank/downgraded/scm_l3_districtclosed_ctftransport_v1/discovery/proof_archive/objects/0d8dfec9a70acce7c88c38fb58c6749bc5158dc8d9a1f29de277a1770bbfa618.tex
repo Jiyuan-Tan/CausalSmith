@@ -1,0 +1,51 @@
+Initialize a finite acyclic work DAG with roots \(\operatorname{Raw}(\mathrm{num},B_\rho\wedge E)\) and \(\operatorname{Raw}(\mathrm{den},E)\), denoting
+\[
+\bigl(P_{M^\star}(B_\rho\wedge E),P_{M^\star}(E)\bigr)
+\]
+for \(\mathbf M\in\mathcal C(\mathcal P)\).  The deterministic transition system \(\mathsf{DCTFTR}\) has the following eight rules, applied in the stated priority order and at the least applicable node.
+
+The \(\mathsf{NORM}\) rule replaces a raw event by its checked canonical disjoint normal form.  The \(\mathsf{ANCESTOR}\) rule performs only a checked finite ancestor restriction and marginalization.  The \(\mathsf{SPLIT}\) rule enumerates the complete response profiles of the original districts \(D\in\mathcal D(G)\), never districts newly created in \(G[H]\), and splices in the exact expansion
+\[
+\sum_{\omega\in\prod_D\Omega_D}
+\mathbf 1\{e(\omega)=1\}
+\prod_D e_{\omega_D}^{\mathsf T}q_D^\star.
+\]
+It creates one \(\operatorname{NeedRows}(\tau,D,e_{\omega_D})\) leaf per original-district factor of a satisfying tuple.  Undefined enumeration or typing returns \(\operatorname{SPLIT\_UNDEFINED}\).
+
+At a row-needed leaf, \(\mathsf{EXTRACT}\) enumerates all supplied cells.  After proving \(s=\star\) or \(D\cap\Delta_s=\varnothing\), it retains each raw complete cell whose recursive indicator depends only on \(D\).  From a successful conditional extraction it retains only a checked \(\operatorname{ROW\_ELIGIBLE}(h,c;u_{h,c},v_h,N_{h,c},H_h,\delta_N,\delta_H,\pi_H)\), and adds the two equalities
+\[
+u_{h,c}^{\mathsf T}q_D^\star=N_{h,c},
+\qquad
+v_h^{\mathsf T}q_D^\star=H_h.
+\]
+It never adds \(K_{s,a,D}(c\mid h)=N_{h,c}/H_h\) as a linear row.  Cross-district indicators, changed-district source cells, and ineligible contexts are recorded but rejected from the local stack.  With normalization prepended, the checker verifies every literal equality in
+\[
+A_Dq_D^\star=m_D.
+\]
+The node is replaced by \(\operatorname{NeedFace}(\tau,D,b,A_D,m_D,Z_D(m_D),\kappa_{\mathrm{all}})\).
+
+The \(\mathsf{FACE\_ID}\) rule computes the forced-zero set with exact certificates and tests
+\[
+b\in\operatorname{row}(A_D)+
+\operatorname{span}\{e_\omega:\omega\in Z_D(m_D)\}.
+\]
+On success, fixed-pivot row reduction supplies
+\[
+b=\lambda^{\mathsf T}A_D+
+\sum_{\omega\in Z_D(m_D)}\zeta_\omega e_\omega
+\]
+and resolves the node to \(\lambda^{\mathsf T}m_D\).  On failure it returns \(\operatorname{FACE\_NOT\_IDENTIFIED}\), whose witness is explicitly local; a normalization-only failure may instead be labelled \(\operatorname{NO\_ADMISSIBLE\_FACTOR}\).  The \(\mathsf{MARGINALIZE}\) and \(\mathsf{PRODUCT}\) rules resolve ready sums and products using finite additivity and the original-district product law.
+
+When both roots are resolved as \(F_B\) and \(F_E\), \(\mathsf{CONDITION}\) returns \(\operatorname{ZERO\_EVIDENCE}(F_E,z)\) if an independent certificate proves \(F_E=0\) throughout \(\mathcal C(\mathcal P)\); it returns
+\(\operatorname{ID}(\operatorname{Quot}(F_B,F_E,\pi),\delta)\) only if an independent certificate proves \(F_E>0\) throughout that fiber.  A checked compatible model with zero evidence gives \(\operatorname{DENOMINATOR\_MAY\_VANISH}\), and otherwise absence of a uniform certificate gives \(\operatorname{DENOMINATOR\_POSITIVITY\_UNCERTIFIED}\).  No failure branch divides.
+
+Rule priority is
+\[
+\mathsf{NORM}>\mathsf{ANCESTOR}>\mathsf{SPLIT}>\mathsf{EXTRACT}>
+\mathsf{FACE\_ID}>\mathsf{MARGINALIZE}>\mathsf{PRODUCT}>\mathsf{CONDITION}.
+\]
+Within a rule choose the least applicable node.  No rule creates an earlier-phase node.  For a nonterminal configuration,
+\[
+\operatorname{rank}_{\mathrm{lex}}=(r_N,r_A,r_S,r_X,r_F,r_\Sigma,r_\Pi,r_C)
+\]
+is decreased at the first coordinate belonging to the applied rule; later coordinates may increase.  If a partial operation fails, its typed failure is returned, and if no rule applies to a purported nonterminal, return \(\operatorname{STUCK}\).

@@ -5,76 +5,142 @@ description: Generate search-grounded, human-aligned topic anchors for CausalSmi
 
 # /causalsmith-topics — search-grounded topic generator
 
-Produce candidate `--propose <topic>` anchors that match the user's mathematical/econometric taste. A "topic" is exactly the coarse anchor string in `causalsmith research --propose "<topic>" <qid> <spec>`; D-1.1 (the scout) turns it into `gaps.json`. The deliverable is a small slate the user picks from, then a ready-to-run command.
+Produce candidate `--propose <topic>` anchors matching the user's taste. A "topic" is the anchor string
+in `causalsmith research --propose "<topic>" <qid> <spec>`; D-1.1 turns it into `gaps.json`. Deliverable:
+a small slate the user picks from, then a ready-to-run command. The 17 principles below are the rubric —
+apply every one.
 
-The taste this skill encodes was aligned with the user over a live loop; the 17 principles below ARE that taste. They are the rubric — apply every one. (New principles from future alignment sessions append to this list.)
+## Runtime
 
-## Platform note (Claude and Codex both run this skill)
+Three steps spawn helpers: the deep-read pass (step 3 / A3), the adversarial gate, and the presolve.
+- **Claude Code:** deep reads via the Agent tool (`general-purpose`, one batch per message). The gate
+  shells out to codex (cross-model adversary): `codex exec --sandbox read-only -C <cwd>
+  --skip-git-repo-check -c windows.sandbox=unelevated -c model=gpt-5.6-sol -c model_reasoning_effort=high`,
+  prompt on stdin, `timeout 1200`, run FOREGROUND in one call. Presolve the same way with `gpt-6-astra`,
+  `xhigh`.
+- **Codex:** spawn review/presolve agents natively (never `codex exec` yourself); instruct the reviewer
+  to actively refute to recover independence. Presolver: `gpt-6-astra`, `xhigh`.
 
-This skill speaks in ACTIONS, not one runtime's tool names. Three steps spawn helper agents — the deep-read pass (step 3 / A3 in Apply mode), the adversarial quality gate (post-selection), and the bounded presolve (post-acceptance). Resolve "dispatch a subagent" to your own runtime:
-
-- **Claude Code**: dispatch with the Agent tool (`general-purpose` subagents), all of one batch in a single message so they run in parallel. The adversarial gate is run by shelling out to **codex** via `codex exec` (per CLAUDE.md flags) — this buys a genuine *cross-model* adversary, which is the point of the gate. Run the presolve the same way with `gpt-5.6-sol` and `xhigh` reasoning.
-- **Codex**: spawn your own sub-agents / review agents NATIVELY — do NOT shell out to `codex exec` to review your own output (self-invocation through exec is wasteful and adds no independence). The adversarial gate is just an independent review agent you spawn directly; it returns the same JSON verdict. The cross-model benefit is lost when codex reviews codex, so when running under codex, lean harder on the adversarial framing (instruct the reviewer to actively refute) to recover independence. Spawn the presolver natively with model `gpt-5.6-sol` and reasoning effort `xhigh`.
-
-Everything else in the skill is runtime-agnostic.
-
-## When dispatched as a subagent (coordinator contract)
-
-If a coordinator (e.g. `causalsmith`) dispatches this skill as a subagent rather than running it directly: you OWN selection end-to-end and run the whole procedure — including the capped adversarial-gate loop and bounded presolve — autonomously, blocking on each codex gate verdict before you proceed. Run each codex gate FOREGROUND and block on its verdict, STAYING IN YOUR TURN — a plain foreground call returns inline, and if the harness auto-backgrounds a long foreground call it re-wakes THIS agent when the call returns. Do NOT start an EXPLICIT `run_in_background` task and then END YOUR TURN: a nested subagent's background-completion notification misroutes to the PARENT coordinator (not you), so you stall idle after codex has already exited (observed live 2026-07-10); a MANUAL detach (`nohup`/`&`/sleep-poll) fails the same way. If you must background a genuinely long child, stay in-turn and foreground-poll it (`pgrep`/file-poll) yourself instead of waiting for its notification. **Return to the coordinator only at the defined bounce point** (a terminal no-accept after the capped re-propose — § "Double rejection") or when genuinely blocked, handing back `{slate, verbatim gate verdicts, verbatim presolve verdicts, ranked options + recommendation}` tagged `ESCALATION` / `BLOCKED` / `DONE`. **On `ESCALATION`, also hand back a RANKED list of UNTRIED levers** — each a fresh cluster / sub-area / mode you have NOT yet mined, with a one-line headroom rationale (e.g. *"SCM cluster, ~0 bank entries, M19 new-identifying-functional — immune to the OT-EIF vaporware trap"*) — plus your single best **tier-honest fallback** candidate; an EMPTY untried-lever list is the signal that selection is structurally exhausted. The coordinator's half: it runs a **bounded re-steer loop** — up to 4 diversifying rounds, picking one of your untried levers each round and warm-continuing you — before ever escalating to the user; it answers each escalation with a decision/steer and lets you CONTINUE, and it must NOT re-run your deep-reads/gate/presolve in its own context, nor instruct "never ask / fully autonomous" (that fights the bounce point and forces thrash through mis-specified candidates).
+**When dispatched as a subagent:** you own selection end-to-end — the capped gate loop and the presolve
+run autonomously, blocking on each verdict in your turn. Never start an explicit `run_in_background`
+task and end your turn, and never detach manually (`nohup`/`&`); if a child is long, foreground-poll it.
+Return to the coordinator only at the bounce point (terminal no-accept after the capped re-propose) or
+when blocked, handing back `{slate, verbatim gate verdicts, verbatim presolve verdicts, ranked options +
+recommendation}` tagged `ESCALATION` / `BLOCKED` / `DONE`. On `ESCALATION` also hand back a ranked list
+of UNTRIED levers (fresh cluster / sub-area / mode, one-line headroom each) plus your best tier-honest
+fallback; an empty list signals structural exhaustion. The coordinator re-steers ≤4 rounds and never
+re-runs your deep reads/gate/presolve.
 
 ## Generation procedure
 
 
-1. **Scope.** Take the user's area/seed if given; otherwise pick directions spanning clusters (no cluster preference — #11). The clusters are panel / exactid / partialid / stat / experimentation / scm. Experimentation is inference for a causal estimand under interference, in EITHER of two randomness regimes — do not limit it to the design-based one: (i) *design-based* — potential outcomes FIXED, randomness in the assignment alone; CLT / Wald coverage from primitive design conditions (motifs M12 design-limit-law, M13 optimal design, M14 adaptive-experiment inference); anchors Aronow–Samii (2017), Hudgens–Halloran (2008). (ii) *super-population / model-based* — units, network, and potential outcomes DRAWN from a super-population (graphon / random-graph / spatial process), randomness in the population draw; limit law from a weak-dependence / network CLT paired with network-HAC coverage (motif M15); anchors Leung (2022), Kojevnikov–Marmer–Song (2021), Li–Wager. The **exactid** cluster admits two kinds of target: *effect identification* (an estimand given known structure — backdoor / frontdoor / IV / mediation) and *structure identification* (recover the causal graph / structural coefficients themselves up to sign·permutation or the Markov equivalence class via distributional asymmetry — LiNGAM, additive-noise, Markov-equivalence; motif M18). The **scm** cluster is graphical identification: a NEW identifying functional `Q = f(P_obs)` for a causal query over a DAG / ADMG / selection diagram under a stated (possibly novel) assumption — monotonicity / shape, proxies / negative controls, selection nodes, or extra interventional inputs (motif M19) — or a valid graphical / data-fusion partial-identification bound (motif M20); completeness (ID lane) and sharpness (pID lane) are preferred, not required. Read the flagship rubric (`CausalSmith/tools/src/discovery/prompts/_shared/stage_flagship_rubric.txt`) and motif library (`CausalSmith/tools/src/discovery/prompts/D-1/stage_neg1_2_motif_library.txt` — note the `D-1/` subdir, NOT `_shared/`) so each candidate maps to an axis (a)–(i) and a motif (M1–M20).
-2. **Search FIRST (#8, #2).** Websearch each area for recent (last 1–2 yr) work. Select 1–2 recent theorem-bearing *anchor papers*. For each anchor, inspect both the theorem's scope or proof boundary and what its load-bearing method could do for another target, model, or setting. In the same pass, scan accepted-bank READMEs and treat published and bank anchors alike.
-3. **Deep-read pass (parallel subagents — mandatory).** Every candidate must rest on a theorem actually read. Each digest (≤400 words) reports: (a) central theorems and load-bearing proof steps; (b) 1–2 unresolved questions at the theorem's scope or proof boundary, naming the blocking step; (c) 1–2 technique-derived directions for another target, model, or setting, naming the first changed proof step; and (d) follow-up searches for every question and target–method pair. Tag occupied directions `closed-by:<cite>`. For a bank anchor, read its `README.md` + `discovery/writeup.tex` and run the same external search.
-4. **Draft ~4 candidates (#12)** from both opportunity kinds, grounded in an anchor theorem and its proof structure. Rank them together by evidence, mathematical depth, novelty, feasibility, and consumer value. Each candidate also carries a named focal object, a concrete computation method if it is a bound (#3), and the estimation rung for ID/partial-ID (#9). Put the tier-justifying hard theorem itself in the kernel (#15). For an open characterization problem, make the kernel **problem-closed and answer-open**: fix the model, information regime, target, criterion, required deliverable, consumer, and scope, while leaving the exact rate, formula, threshold, geometry, or algorithm open unless it has been derived; record a conjectured answer as presolve evidence rather than a theorem commitment.
-   - **Stat-only slate diversity (required before ranking).** When the user scopes the whole slate to Stat, draft one grounded candidate in each lane before comparing scores: M11(a) rate/frontier, M11(b) efficiency/attainment, M11(c) limit-law/coverage, and M16/M17 policy-regret or finite-sample inference. No lane receives a scoring advantage from its result form alone. If a lane has no credible live opportunity, report the concrete obstruction instead of padding the slate.
-5. **Per-candidate P2 confirm (#2).** Run a focused search on the candidate's exact question or target–method pair to confirm it is not already taken, and state in one line how it differs from the closest recent paper. **Search citing/follow-up work ON THE ANCHOR** as part of this, not just keywords for the destination; the pre-empting result is often a later citation of the anchor paper. Hold the skill itself to this check before calling any direction available.
-6. **Saturation check (tier-aware).** Cross-check `CausalSmith/doc/research/active/<qid>/` (active runs) and `CausalSmith/doc/research/_bank/` (banked). Drop any candidate colliding with an in-flight run. For a `_bank/` collision, branch on the colliding entry's README frontmatter `reraise_status`: `true-negative` (kernel refuted, already-known, or target-less) → **drop** as a deterrent; `re-raise` (math was sound and it was parked only because novelty was framed too high or the headline drifted) → do **not** drop — re-anchor at the corrected tier / sharper framing rather than avoid the area; `retry` (sound area, one construction fell short) → keep, same framing on a stronger solver. Do NOT branch on `reusable` — `not_reusable` means "no liftable artifact," not "dead kernel," and many `re-raise` entries are `not_reusable`. If `reraise_status` is `unknown`, absent, or an unfilled `TODO`, skim the entry's `*_reviews.jsonl` before deciding.
-7. **17-principle gate.** Run every candidate through the rubric below; drop or repair failures before presenting. #13 (well-posed under its own assumptions) is a hard gate — a self-contradictory topic is dropped, not softened.
-8. **Present the slate** (format below) WITH an adversarial self-ranking and each candidate's most-likely D0.5 death. The user picks the best (#12).
-9. **Gate, presolve, then emit.** Run the post-selection adversarial gate below. After it accepts the winner, run the bounded presolve below; only a presolve `launch` verdict may produce the final command. Output a ready-to-run `causalsmith research --propose "<anchor>" <qid> <spec> --novelty <target>` with a suggested qid/spec, embedding the compact presolve capsule in `<anchor>`. The explicit `--novelty` is required: it holds the launched run to the tier the gate accepted, instead of letting it fall back to the silent `field` default (#14). The `--novelty` vocabulary IS the tier ladder, so map the accepted Target tier straight to the flag value: flagship → `flagship`, field → `field`, subfield → `subfield`, incremental → `incremental` (CLI enum: `incremental | subfield | field | flagship`; legacy `relative-to-repo` / `relative-to-literature` still accepted). Do not launch it.
+1. **Scope.** Take the user's area/seed, else span clusters (panel / exactid / partialid / stat /
+   experimentation / scm; no cluster preference, #11). Read the flagship rubric
+   (`CausalSmith/tools/src/discovery/prompts/_shared/stage_flagship_rubric.txt`) and the motif library
+   (`.../prompts/D-1/stage_neg1_2_motif_library.txt`) so each candidate maps to an axis (a)–(i) and a
+   motif (M1–M20); the library defines each cluster's admissible shapes — never narrow a cluster to its
+   default shape. **Choose a stance:** *exploit* (extend a banked result or a cluster with a high
+   accepted-to-attempted ratio in `_bank/`) or *explore* (a cluster/area with few acceptances); state it
+   in one line. The stance steers drafting only, not ranking or the gate.
+2. **Search FIRST** (#8, #2). Websearch each area for work from the last 1–5 years; select 1–2
+   theorem-bearing anchor papers, preferring highly-cited authors with a strong track record (search
+   steer only; never enters ranking). For each anchor inspect the theorem's scope/proof boundary and
+   what its load-bearing method could do for another target, model, or setting. Scan accepted-bank
+   READMEs in the same pass. Read the follow-up wave, not the date: thin-but-growing = open; thick =
+   worked (routes to step 5, not a higher score).
+3. **Deep-read pass (parallel subagents, mandatory).** Every candidate rests on a theorem actually read.
+   Each digest (≤400 words): (a) central theorems and load-bearing proof steps; (b) 1–2 unresolved
+   questions at the scope/proof boundary, naming the blocking step; (c) 1–2 technique-derived
+   directions for another target/model/setting, naming the first changed proof step; (d) follow-up
+   searches for each. Tag occupied directions `closed-by:<cite>`. For a bank anchor read its
+   `README.md` + `discovery/writeup.tex` and run the same external search.
+4. **Draft ~4 candidates** (#12) from both opportunity kinds. Rank by
+   evidence, mathematical depth, novelty, feasibility, and consumer value. Each carries a named focal object, a computation method if
+   it is a bound (#3), the estimation rung for ID/partial-ID (#9), and the tier-justifying hard theorem
+   in the kernel (#15). For an open characterization problem make the kernel problem-closed and
+   answer-open: fix model, information regime, target, criterion, deliverable, consumer, scope; leave
+   the exact rate/formula/threshold open unless derived; record a conjectured answer as presolve
+   evidence.
+5. **Per-candidate confirm** (#2). Focused search on the exact question or target–method pair; state in
+   one line how it differs from the closest recent paper. Search citing/follow-up work on the anchor,
+   not just destination keywords.
+6. **Saturation check.** Cross-check `CausalSmith/doc/research/active/<qid>/` and `_bank/`. Drop a
+   collision with an in-flight run. For a `_bank/` collision branch on the README `reraise_status`:
+   `true-negative` → drop; `re-raise` → keep, re-anchored at the corrected tier; `retry` → keep, same
+   framing. Never branch on `reusable`. If `reraise_status` is `unknown`/absent/`TODO`, skim the
+   entry's `*_reviews.jsonl`.
+7. **17-principle gate.** Drop or repair failures; #13 is a hard gate.
+8. **Present the slate** with an adversarial self-ranking and each candidate's most-likely D0.5 death.
+9. **Gate, presolve, emit.** Run the adversarial gate; after accept, run the presolve; only a `launch`
+   verdict produces the command: `causalsmith research --propose "<anchor>" <qid> <spec> --novelty
+   <target>` with the presolve capsule embedded in `<anchor>`. `--novelty` is required and maps the
+   accepted Target tier directly (`flagship | field | subfield | incremental`). Do not launch it.
 
-## Bank-sourced leads (all modes)
+## Venue reference (orientation, not a filter)
 
-Accepted bank entries (`_bank/accepted/`) are inspiration SOURCES, not just the step-6 collision filter. Two lead types:
+- Theory/method: Econometrica, QJE, AER, ReStud, JPE, J. Econometrics, Econometrics J., Econometric
+  Theory; Ann. Statist., JASA, Biometrika, JRSS-B, JMLR; NeurIPS / ICML / UAI.
+- Applied practice (DG1 scan, #17 consumers): AER, AEJ:Applied, AEJ:Policy, JHR, JPubE, ReStat,
+  Management Science, Marketing Science.
 
-- **Unresolved-question lead** — a question arising at the entry's theorem scope or proof boundary. Identify the blocking proof step and search subsequent work on the question.
-- **Technique-derived lead** — the entry's load-bearing method applied to another target, model, or setting. Identify the first non-verbatim proof step and search prior art on the new target–method pair; for a new application domain, also apply the Apply-mode gate A4.
+arXiv preprints are fully eligible; a listed venue is never evidence a direction is open.
 
-Boundaries: (i) #1 — the bank grounds the MATH (verified theorem, known load-bearing step); the formalized-substrate advantage that comes with a bank donor may be noted in the slate row but never enters ranking or selection. (ii) A bank-sourced lead does not count as a step-6 collision with its own parent entry — the collision check applies against other entries and in-flight runs — but the lead must differ from the parent's banked theorem (a re-proof or reparametrization of it is not a lead). (iii) Bank leads compete on the same slate under the same 17 principles; being internal earns no ranking bonus.
+## Bank-sourced leads
+
+Accepted bank entries are inspiration sources: an **unresolved-question lead** (a question at the
+entry's scope/proof boundary; identify the blocking step, search subsequent work) or a
+**technique-derived lead** (the entry's method on another target/model/setting; identify the first
+non-verbatim proof step, search prior art; for a new application domain also apply gate A4). The bank
+grounds the MATH only — the formalized-substrate advantage may be noted but never ranks. A lead does
+not collide with its own parent but must differ from the parent's banked theorem. Bank leads compete on
+the same slate with no bonus.
 
 ## Apply mode (--apply)
 
-Apply mode is the subset of technique-derived directions whose destination is a NEW external application domain, so it adds the domain read and A4 witness below. The deliverable is unchanged: a `--propose` anchor whose downstream output is still one banked theorem; only the search differs. An optional area seed scopes the scan; without one the domain scan is autonomous. Steps A1–A4 replace steps 1–3 of the generation procedure; steps 4–9 then run unchanged.
+Apply mode is the subset of technique-derived directions whose destination is a NEW external
+application domain. Steps A1–A4 replace steps 1–3; steps 4–9 run unchanged.
 
-- **A1 — Domain scan.** Websearch applied venues (e.g. OR, RL, LLM evaluation, ML systems, A/B-testing platforms, recommender systems, queueing/service ops — illustrative, not exhaustive) for settings where causal questions are debated in domain vocabulary without the formal machinery, or causal tools are visibly misapplied. Pick 2–3 promising domains.
-- **A2 — Donor matching.** For each domain setting, name the donor framework at the cluster granularity D-1.1 routes on (panel / exact_id / partial_id / stat / experimentation / scm). No new cluster: the cluster classifies the kernel's mathematical type, not the application domain. The donor may be an accepted bank entry (§ "Bank-sourced leads"); its deep-read then follows step 3's internal variant, and the application-specific prior-art search is mandatory.
-- **A3 — Deep-read pass.** Same parallel-subagent tex-reading machinery as step 3 (spawn per the Platform note), but each candidate needs TWO reads: the domain paper (extract the setting's formal structure — data regime, estimand, dependence) and the donor framework's anchor theorem (know which proof step is load-bearing).
-- **A4 — Non-verbatim witness gate (HARD).** Each candidate must show the classical theorem is NOT a verbatim instance in the new setting, witnessed concretely at one of four break points: (1) a load-bearing assumption fails for a reason native to the setting; (2) the domain-native estimand is a different functional with no classical counterpart, so identification/rate must be re-derived; (3) the data regime breaks the classical *proof* even though the statement looks unchanged; (4) the correspondence itself requires a theorem (setting is an instance of the framework only under conditions, with a counterexample outside them). The candidate names the break point AND the concrete witness — the failing assumption, the counterpart-less object, or the first broken proof step. "Every step transfers verbatim" → drop as relabeling.
+- **A1 — Domain scan.** Websearch applied venues (OR, RL, LLM evaluation, ML systems, A/B platforms,
+  recommenders, queueing/service ops, …) for settings where causal questions are debated without the
+  formal machinery or causal tools are visibly misapplied. Pick 2–3 domains.
+- **A2 — Donor matching.** Name the donor framework at cluster granularity (the cluster classifies the
+  kernel's mathematical type, not the domain). The donor may be a bank entry.
+- **A3 — Deep-read pass.** As step 3, but two reads per candidate: the domain paper (formal structure —
+  data regime, estimand, dependence) and the donor's anchor theorem.
+- **A4 — Non-verbatim witness gate (HARD).** Show the classical theorem is NOT a verbatim instance, at
+  one of: (1) a load-bearing assumption fails for a setting-native reason; (2) the domain estimand is a
+  different functional with no classical counterpart; (3) the data regime breaks the classical proof;
+  (4) the correspondence itself requires a theorem (with a counterexample outside its conditions). Name
+  the break point and the concrete witness. "Every step transfers verbatim" → drop.
 
-Apply-mode slate rows carry three extra lines (the witness line is what the adversarial gate adjudicates):
-
+Extra slate lines:
 ```
 Donor framework: <cluster / anchor theorem>
 New setting: <domain + data regime>
 Non-verbatim witness: <break point 1-4 + concrete witness>
 ```
-
-The emitted `--propose` topic anchor must encode setting + donor + witness, so D-1.1 anchors to the application-domain question instead of pulling the run back into method-venue refinement.
+The emitted anchor encodes setting + donor + witness.
 
 ## Diagnose mode (--diagnose)
 
-Generate anchors by auditing APPLIED PRACTICE for a load-bearing unproven belief. The deliverable is unchanged (a `--propose` anchor whose output is one banked theorem); only the search and the kernel shape differ. The headline kernel is ALWAYS a positive characterization theorem — a bare counterexample is unpublishable on its own; the comprehensive theory + remedy is the paper (the flagship rubric's diagnose-then-correct axis (e), with refutation-with-positive-result axis (d) as the fallback shape). Steps DG1–DG4 replace steps 1–3 of the generation procedure; steps 4–9 then run unchanged. An optional area seed scopes the scan.
+Audit APPLIED PRACTICE for a load-bearing unproven belief. The headline kernel is always a positive
+characterization theorem (axis (e); (d) as fallback) — a bare counterexample is not a paper. Steps
+DG1–DG4 replace steps 1–3.
 
-- **DG1 — Practice scan.** Websearch APPLIED sources — top-journal empirical papers, methodology surveys / practitioner guides, software package documentation and defaults — for a widespread practice P resting on an implicit belief B that is unproven, or proven only in a special case silently narrower than where P is actually used.
-- **DG2 — Belief formalization + strawman guard (HARD).** State B as a precise mathematical claim over a named class. B must be GENUINELY HELD: cite ≥2 published applications, or one software default, that rely on B. No such citation → strawman → drop (the flagship rubric's N-strawman cap, applied at selection time).
-- **DG3 — Numeric reconnaissance (before drafting).** Test B by hand / numerically on small legal instances FIRST — the "closed-form claims are auto-refutable in minutes" killer, used in our favor. When B concerns a software default, the recon must exercise the ACTUAL package's computation on the instance, not a mental model of its algorithm — the suspected mechanism may already be handled internally. Both branches stay live: B false on a legal instance → diagnose candidate (the instance becomes the sanity witness); B robustly true → the candidate becomes "first proof that P is valid on class C" (axes (c)/(f)). Kills: "true and already proven", and "true with only an efficiency/variance gap" — if no bias-type Δ = 0-iff characterization exists (the practice is valid, just not optimal), no diagnose kernel forms; kill the lead rather than reframing it as an efficiency result (that is a gap-mode candidate, judged by gap-mode standards).
-- **DG4 — Kernel shape (three rungs, all required).** (i) The characterization IS the kernel: estimand delivered by P = target + Δ with Δ = 0 iff condition C (or "P valid iff C"), stated as a precise conjecture; (ii) the verified counterexample is the sanity witness, NOT the headline; (iii) the corrected estimand / estimator targeting the clean object is the #9 estimation rung.
+- **DG1 — Practice scan.** Websearch applied sources (top-journal empirical papers, practitioner
+  guides, software defaults) for a widespread practice P resting on an unproven belief B, or one proven
+  only in a narrower special case.
+- **DG2 — Belief formalization + strawman guard (HARD).** State B precisely over a named class. B must
+  be genuinely held: ≥2 published applications or one software default rely on it, else drop.
+- **DG3 — Numeric reconnaissance.** Test B on small legal instances first; for a software default,
+  exercise the actual package. B false → diagnose candidate (the instance is the sanity witness); B
+  robustly true → "first proof that P is valid on class C" (axes (c)/(f)). Kill "true and already
+  proven" and "true with only an efficiency gap" (no Δ = 0-iff characterization → no diagnose kernel).
+- **DG4 — Kernel shape (all three).** (i) the characterization IS the kernel: estimand delivered by P =
+  target + Δ with Δ = 0 iff C, stated as a precise conjecture; (ii) the verified counterexample is the
+  sanity witness, not the headline; (iii) the corrected estimand/estimator is the #9 rung.
 
-Diagnose slate rows carry three extra lines:
-
+Extra slate lines:
 ```
 Practice: <P + ≥2 citing applications or software default>
 Belief + recon: <B stated precisely; instance tested + outcome>
@@ -83,147 +149,192 @@ Remedy: <corrected object / estimator>
 
 ## Bridge mode (--bridge)
 
-Generate anchors by finding a SAME-OBJECT bridge between a causal-inference framework and a framework from another field (OT, OR, control, information theory, risk, another statistics subfield) — the #6-welcome bridge, generated systematically instead of waiting for one to surface. Steps BR1–BR3 replace steps 1–3; steps 4–9 run unchanged. An optional area seed scopes the scan.
+Find a SAME-OBJECT bridge between a causal-inference framework and another field (OT, OR, control,
+information theory, risk, another statistics subfield). Steps BR1–BR3 replace steps 1–3.
 
-- **BR1 — Pair scan.** Websearch for framework pairs that answer the SAME inferential question about the same object (exemplar shape: MSM ≡ CVaR/DRO dual).
-- **BR2 — Same-object gate (HARD).** State the shared object formally on BOTH sides. The correspondence must itself require a THEOREM: conditions under which the two sides coincide, plus a concrete counterexample outside them. A dictionary ("their X is our Y", verbatim after renaming) → drop as relabeling (Apply gate A4's non-verbatim witness, specialized to bridges). Numerically hand-check the coincidence EQUALITY itself on a minimal instance before committing — a true one-way relation (guarantee/containment/sufficiency) dressed up as a two-way equivalence is the dominant bridge failure, and the inside direction, not the outside counterexample, is where it breaks.
-- **BR3 — Two-sided deep-read.** Step-3 subagent machinery with TWO reads per candidate (one anchor per side); each digest must report which proof step the coincidence conditions touch.
+- **BR1 — Pair scan.** Websearch for framework pairs answering the same inferential question about the
+  same object (exemplar: MSM ≡ CVaR/DRO dual).
+- **BR2 — Same-object gate (HARD).** State the shared object formally on both sides; the correspondence
+  must itself require a theorem (coincidence conditions + a counterexample outside them). A renaming
+  dictionary → drop. Numerically hand-check the coincidence equality on a minimal instance — a one-way
+  relation dressed as an equivalence is the dominant bridge failure.
+- **BR3 — Two-sided deep-read.** Two reads per candidate; each digest reports which proof step the
+  coincidence conditions touch.
 
-Kernel shape: the equivalence / sharp inequality / mutual characterization with the coincidence conditions as named hypotheses; sanity witness = a worked instance where the bridge computes something one side alone could not.
+Kernel: the equivalence / sharp inequality / mutual characterization with the coincidence conditions as
+hypotheses; witness = a worked instance where the bridge computes something one side alone could not.
 
-Bridge slate rows carry three extra lines:
-
+Extra slate lines:
 ```
 Sides: <F1 anchor / F2 anchor>
 Shared object + coincidence: <formal statement on both sides; conditions + outside counterexample>
 Bridge payoff: <what the bridge computes that one side alone could not>
 ```
 
-## The 17-principle taste rubric (apply ALL)
+## The 17-principle rubric (apply ALL)
 
-1. **Infra-agnostic.** Judge on math novelty/concreteness/distinction only — never on whether Causalean has the formalization infra (that is F1.5's job).
-2. **Live prior-art search is mandatory.** Websearch recent work and state explicitly how the topic differs from the closest paper. No differentiation ⇒ not a topic.
-3. **A bound is worthless without a concrete computation method** (closed form, algorithm, or finite-instance computation). Prefer the most explicit form the substrate admits — closed-form endpoints over an LP / inf-sup framing of the same set — and treat the closed-form reduction of a published LP/abstract bound as a creditable niche in its own right. Tie-break, not a filter: an optimization-form bound is eligible when no closed form exists.
-4. **Don't stack a sensitivity model on a non-identified parameter.** (Self-exempts identified ones, e.g. QTE.)
-5. **Prefer the estimation-nontrivial framing; reject trivial-iff extensions.** If a topic is just a routine identification iff over existing machinery, reframe toward the open estimation question or drop it.
-6. **No superficial cross-field bridges** — but a genuine *same-object* bridge (e.g. MSM ≡ CVaR/DRO dual) is welcome and may be the headline. The two sides must answer the same inferential question. Applying a framework in a new application domain is likewise welcome iff it carries a non-verbatim witness (the four break points of the Apply-mode gate, stated concretely); pure relabeling fails.
-7. **Require a nontrivial mathematical change.** Any extension of a named paper must create a new object, regime, target, or setting and change a load-bearing proof step rather than merely reparametrizing the original result.
-8. **Generate at the live-opportunity altitude.** Search first and do not re-propose an occupied headline. Rank by the criteria in step 4, not by opportunity origin.
-9. **ID/partial-ID topics must carry the estimation rung in the kernel** — a concrete estimator of the bound endpoints + inference over the identified set, not identification-only.
-10. **Default to positive constructive results.** Pursue a necessity/minimality/impossibility result only when the converse is *surprising* or quantitatively sharp — not the expected monotone direction ("drop a constraint → looser bound" is obvious and does not stand out).
-11. **No cluster preference; crowdedness never disqualifies.** All clusters equal; finding the niche inside a dense area is the point of the skill. Neither collision density nor a missing anchor is a legal drop reason — a dense area is harder to ground, so deep-read its anchor first (step 3), don't retreat.
-12. **Generate a slate of ~5 and pick the best** — do not commit to a single topic.
-13. **Well-posed under its OWN assumptions (no self-contradictory topic).** Reject when the framing mislabels what its target is — disclaiming the regularity the target needs, or calling an estimation problem an identification one. Ex 1 (definition): *structure-agnostic* (no-smoothness) pointwise `τ(x0)` — a conditional mean at a point needs a smoothness/Lebesgue-point condition just to be a functional of P, which "structure-agnostic" disclaims; adding it back collapses into smooth-model prior art (KBRW). Ex 2 (ID vs estimation): *partial ID* of ATE/CATE under **weak overlap** — point-identified whenever `0<e(X)<1` a.e., so there is no set to bound; weak overlap hurts estimation (irregular, non-√n rate; Khan–Tamer), not identification. Self-test: is the focal object a function of P alone, and does the advertised difficulty (definition / ID / estimation) actually bite? Repair: reframe to the difficulty that truly bites (e.g. the estimation-rate question), or drop the pitch.
-14. **Tier honesty — the achievable tier must reach the pitched tier.** Every candidate carries two tiers on the ladder `flagship > field > subfield > incremental`: a `Target tier` (what its framing promises) and an honest `Est. achievable tier` (the strongest result the math can actually deliver). What the tiers mean:
-    - **flagship** — an extraordinary, top-venue result: establishes a first sharp boundary, introduces a new estimand-defining object, or carries a method into a setting where it changes what can be learned.
-    - **field** — a solid, genuinely-new contribution: a new scalar / regime / threshold that nontrivially extends named prior art.
-    - **subfield** — a minor result: generic machinery applied to a new instance, or a single counterexample / reduction with no general theorem.
-    - **incremental** — a reparametrization or relabeling; no new content.
-
-    A topic must not be pitched above the tier its math can honestly reach. When `Est. achievable tier` < `Target tier`, the candidate fails this principle — repair it (strengthen the kernel toward the target, or honestly re-pitch at the achievable tier) or drop it. The adversarial gate makes this a hard check (below); the emitted command sets `--novelty <target>` (step 9) so the launched run is held to the accepted tier.
-15. **Put the hard theorem in the KERNEL (state it as a precise conjecture).** When a candidate's tier-justifying content is a hard theorem the downstream solve must prove, make THAT theorem the precisely-stated kernel — do not put the *routine half* in the kernel and merely gesture at the hard object in a follow-on "…and then we also show …". Diagnostic (this is the #1 cause of a sound, novel candidate landing subfield): if the stated kernel *reduces to a routine step* — a limit law that is a continuous-mapping image of a known scaling limit, a bound that collapses to a known optimization / shortest-path / delta-method, or a transfer that leaves every proof step unchanged — while the depth sits in an unstated follow-on, the gate will (correctly, #14) grade the *routine kernel* as subfield. Repair: PROMOTE the hard object to BE the kernel — for example the nuisance-robust inference theorem, the new target's characterization or optimal-value theorem, the sharp converse, or the completeness / no-domination proof — stated as a precise conjecture the solve settles; the routine half becomes a lemma. This is #8 applied to the kernel: aim the anchor at the hard object, not the easy corollary sitting under it. (Enforced operationally in the gate loop's *kernel-pivot* rule below.)
-16. **Specify the OBJECT; delegate the MECHANICS.** #15 sets the kernel's *altitude*; this sets its *granularity*, and candidates die on both sides. Under-specify the OBJECT — target, model, domain, quantifiers, comparison class, or finite-sample scope — and the gate returns `kernel_is_precise_conjecture:false` (a program, not a conjecture). Over-specify the MECHANICS — normalizations, closed-form constants, splitting schemes, or class-defining margins — and each is a free refutation target on a quantity D0 would derive anyway: `refutation_found:true` *even while `tier_if_true` clears the target*. So: pin the mathematical object and define any frontier or optimization criterion it uses; mark mechanics as explicitly delegated rather than stating them wrong; never commit an algebraic form or worked instance you have not hand- or numerically checked. A check discharges ONLY the instances checked: every remaining universally-quantified clause in the kernel (set sizes, class bounds, side-parentheticals, unqualified "strictly") must either carry its own checked instance or be explicitly delegated. Then make one scope-consistency pass: every term a clause uses must be defined on that clause's full domain, and every witness must lie inside its clause's committed domain. Diagnostic: `refutation_found` + `derivation_step` + `tier_if_true >= target` on *rotating* slips — a different mechanic each round, each fix replaced by a fresh one — means the DRAFTING, not the topic, is the bottleneck. Strip the volunteered scaffolding back to object + verified instance + tier argument and re-gate that, rather than repairing in place; if stripping still doesn't accept, it's a launch decision (D0 performs `derivation_step` work by definition), not another gate round.
-17. **Name the consumer.** Every candidate — every mode, gap included — names ≥1 specific published applied work (or a software default, or a named empirical literature with example papers) whose conclusions or practice would CHANGE if the kernel is true, plus one line on WHAT changes. "The theory literature on X" is not a consumer. This is the journal-vs-conference axis: a technically-strong kernel with no nameable consumer is the selector's historical failure mode, so the adversarial gate enforces it (`consumer_is_real`, below) and the slate ranking weights consumer strength equally with tier.
+1. **Infra-agnostic.** Judge math only, never Causalean infrastructure.
+2. **Live prior-art search is mandatory.** State how the topic differs from the closest paper.
+3. **A bound needs a concrete computation method.** Prefer closed form over an LP/inf-sup framing;
+   the closed-form reduction of a published abstract bound is a creditable niche. Tie-break, not a
+   filter.
+4. **No sensitivity model on a non-identified parameter.**
+5. **Prefer estimation-nontrivial framing; reject trivial-iff extensions.**
+6. **No superficial cross-field bridges** — a same-object bridge is welcome; a new application domain
+   is welcome iff it carries a non-verbatim witness (A4).
+7. **Require a nontrivial mathematical change** — a new object, regime, target, or setting that changes
+   a load-bearing proof step.
+8. **Generate at the live-opportunity altitude.** Search first; never re-propose an occupied headline;
+   rank by the step-4 criteria, not opportunity origin.
+9. **ID/partial-ID topics carry the estimation rung in the kernel.**
+10. **Default to positive constructive results.** A necessity/impossibility result only when surprising
+    or quantitatively sharp.
+11. **No cluster preference; crowdedness never disqualifies.** Neither collision density nor a missing
+    anchor is a drop reason — deep-read the anchor instead.
+12. **Slate of ~5, pick the best.**
+13. **Well-posed under its own assumptions.** Reject a framing that mislabels its difficulty
+    (disclaiming the regularity the target needs; calling an estimation problem identification, e.g.
+    "partial ID of ATE under weak overlap" — point-identified whenever `0<e(X)<1` a.e.). Self-test: is
+    the focal object a function of P alone, and does the advertised difficulty actually bite? Repair by
+    reframing to the difficulty that bites, or drop.
+14. **Tier honesty.** Ladder `flagship > field > subfield > incremental`: flagship = a first sharp
+    boundary, a new estimand-defining object, or a method carried into a setting where it changes what
+    can be learned; field = a genuinely new scalar/regime/threshold nontrivially extending named prior
+    art; subfield = generic machinery on a new instance, or a single counterexample/reduction;
+    incremental = reparametrization. Each candidate carries `Target tier` and `Est. achievable tier`;
+    achievable < target fails — strengthen the kernel or re-pitch honestly. The emitted command sets
+    `--novelty <target>`.
+15. **Put the hard theorem in the KERNEL** as a precise conjecture. If the stated kernel reduces to a
+    routine step (a continuous-mapping image of a known limit, a known optimization, a verbatim
+    transfer) while the depth sits in an unstated follow-on, the gate grades the routine kernel
+    subfield. Promote the hard object (nuisance-robust inference theorem, characterization / optimal
+    value, sharp converse, completeness proof) to be the kernel; the routine half becomes a lemma.
+16. **Specify the OBJECT; delegate the MECHANICS.** Under-specifying the object (target, model, domain,
+    quantifiers, comparison class, finite-sample scope) → `kernel_is_precise_conjecture:false`.
+    Over-specifying mechanics (normalizations, constants, splitting schemes, class margins) → free
+    refutation targets. Pin the object and any frontier/criterion; mark mechanics as delegated; never
+    commit an algebraic form or instance you have not checked. Every remaining universally-quantified
+    clause carries its own checked instance or is explicitly delegated; every term is defined on its
+    clause's full domain. `refutation_found` + `derivation_step` + `tier_if_true >= target` on rotating
+    slips means the drafting is the bottleneck: strip back to object + verified instance + tier argument
+    and re-gate; if that still fails, it is a launch decision, not another gate round.
+17. **Name the consumer.** ≥1 specific published applied work, software default, or named empirical
+    literature whose conclusions or practice would CHANGE if the kernel is true, plus what changes.
+    "The theory literature on X" is not a consumer. Consumer strength weighs equally with tier.
 
 ## Slate row format
-
-For each candidate:
 
 ```
 <anchor phrase>  ·  cluster  ·  axis (a)-(i)  ·  motif (M1-M20)
 Live opportunity: <unresolved question | technique-derived direction, and the occupied result it avoids>
-Grounding: <anchor paper> Thm <n> — <the proof-structure fact from the digest the niche rests on>
+Grounding: <anchor paper> Thm <n> — <the proof-structure fact the niche rests on>
 Closest recent work: <bibkey/arXiv> — differs by: <one line> (#2)
 Focal object: <named object>          Computation: <closed form | algorithm | finite instance>  (#3)
 Estimation rung: <estimator + inference over the set>  (#9)
 Consumer: <who (≥1 citation or software default) + what changes in their practice>  (#17)
-Target tier: <flagship | field | subfield>   Est. achievable tier: <flagship | field | subfield> — ceiling reason: <the strongest honest result a full D0 solve yields, and why it tops out there>  (#14)
+Target tier: <…>   Est. achievable tier: <…> — ceiling reason: <the strongest honest result a full D0 solve yields, and why>  (#14)
 Likely D0.5 death: <where it would collapse>
 ```
 
-Then: my adversarial ranking + one-line reason each (consumer strength weighs equally with tier — #17), and the emitted `--propose` command for the winner.
+Then the adversarial ranking with one-line reasons, and the emitted command for the winner.
 
 ## Adversarial quality gate (post-selection)
 
-Before treating the command in step 9 as final, the orchestrator runs an adversarial review by an INDEPENDENT reviewer agent. The goal is to catch token-expensive pipeline failures at the cheapest possible stage. How the reviewer is spawned depends on the runtime (see Platform note): under Claude it is a `codex exec` call (cross-model adversary); under Codex it is a natively-spawned review sub-agent (no `codex exec` self-invocation). Either way the reviewer returns the same JSON verdict and the loop below is identical.
+Build the reviewer prompt from `reviewer-prompt-template.md` (this directory) — fill its `{{SLOTS}}`
+and change nothing else; it carries the stance, tier ladder, rubric, decision rule
+(`worthy = kernel_is_precise_conjecture && !refutation_found && tier_if_true >= target_tier && consumer_is_real`),
+output schema, and consistency requirements. Send the whole prompt every round; on re-gates use a
+factual slot-level changelog, never an argument.
 
-**Build the reviewer prompt from `reviewer-prompt-template.md` (in this skill's directory) — fill its `{{SLOTS}}` and change nothing else.** The template is the fixed instrument: it carries the topic-gate stance, tier ladder, 17-principle rubric, decision rule, candidate context, and output schema. Send the whole prompt every round; on re-gates, use a factual slot-level changelog, never an argument.
+**A gate accept (`worthy:true`) is required before acting.** `worthy:false` is a repair-or-replace
+signal; you drive the gate to an accept yourself (repair, runner-up, re-propose) without handing the
+choice to the user, who is only the backstop after the capped loop.
 
-**Hard rule — a gate-accept (`worthy: true`) is required before acting.** Never launch the pipeline (or treat the emitted command as final) on a candidate the gate has not accepted. `worthy: false` is never a launch signal — it is a repair-or-replace signal. The orchestrator owns driving the gate to an accept: it picks the runner-up, repairs a fixable candidate, and re-selects after a re-propose **itself**, without handing the choice back to the user. The user is only the final backstop if the capped loop reaches no accept at all.
+**Reading the verdict.** `topic_death_or_derivation` routes the loop. `tier_if_true` drives the
+shortfall branch (`estimated_tier` does not). `consumer_is_real:false` is a `derivation_step` (name a
+real consumer or re-anchor) unless no consumer can exist. `expert_prior` / `contradicts_expert_prior`
+are advisory — log, never act. If the decision rule holds, the verdict is an accept even with a
+volunteered `derivation_step` note — do not grind a sound kernel through repairs.
 
-**What to send the reviewer.** Fill every template slot: mode (gap | diagnose | bridge | apply); academic field and cluster contract; model/data regime; full slate row including the consumer line; precise kernel; minimal sanity witness (mode-specific — see the template's witness rules); prior art and collisions; target/estimated tier; likely downstream death. The witness proves only that the class and mechanism are legal/nontrivial. Instruct the reviewer to actively refute, verify the consumer, and independently reassess the achievable tier.
+**Tier shortfall (`clears_target_tier:false`).** (a) the `reframe_suggestion` is a real available
+strengthening → repair and re-gate the same candidate; (b) no strengthening reaches the target →
+`topic_death`. Never auto-downgrade `target_tier`.
 
-**Topic-gate stance (do NOT demand D-1.2 or D0 work now).** Require a precise mathematical object, model/regime, quantifiers, concrete computation route, and a minimal sanity witness showing the class is legal and nontrivial. Do not require final estimator algebra, constants, or proof mechanics. Missing definitions or a missing witness are `derivation_step` imprecision (`refutation_found:false`), not topic death; reserve refutation for an actual counterexample, contradiction, vacuity, or verified prior-art collision.
+**Loop.** On a genuine `worthy:false`: `derivation_step` → repair (fully specify the model / state the
+missing theorem) and re-gate the SAME candidate, up to 3 re-gates; a #15 kernel-pivot is a NEW candidate
+with its own budget. After 3 failed re-gates: one #15 pivot if the gate named an adjacent hard kernel,
+else the candidate is subfield-terminal (hold as the tier-honest fallback). `topic_death` → drop and
+advance. Never surface a mid-loop `worthy:false` to the user.
 
-Ask it to return structured JSON:
-```json
-{"worthy": bool, "reason": "<2–3 sentences>", "weakest_principle": <number 1–17>,
- "target_tier": "flagship"|"field"|"subfield"|"incremental",
- "estimated_tier": "flagship"|"field"|"subfield"|"incremental",
- "kernel_is_precise_conjecture": bool, "refutation_found": bool,
- "tier_if_true": "flagship"|"field"|"subfield"|"incremental", "clears_target_tier": bool,
- "consumer_is_real": bool, "expert_prior": "<one line>", "contradicts_expert_prior": bool,
- "repairable_by_reframing": bool, "topic_death_or_derivation": "topic_death"|"derivation_step",
- "reframe_suggestion": "<one line>"}
-```
-**Decision rule:** `worthy = kernel_is_precise_conjecture && !refutation_found && tier_if_true >= target_tier && consumer_is_real`. `consumer_is_real` means the reviewer verified the named applications / software default actually rely on the kernel's object; a false value is a `derivation_step` (name a real consumer or re-anchor), not a `topic_death`, unless the reviewer shows no consumer can exist. `expert_prior` / `contradicts_expert_prior` are ADVISORY-ONLY (logged for calibration; no effect on `worthy`). `tier_if_true` is the tier ASSUMING the committed conjecture proven as stated (distinct from `estimated_tier`, the tier a full solve is *expected* to reach). Also ask: which principle it most violates; whether the flaw is a **topic_death** (kernel wrong/vacuous/taken, or refutable — replace it) or a **derivation_step** (kernel sound and unrefuted but under-specified — the missing spec/proof is what the pipeline itself performs); and the concrete reframe if repairable.
+**Kernel-pivot (#15).** A `derivation_step` verdict with `is_relabeling:false`, direction OPEN, and a
+named hard theorem as the missing content, yet `repairable_by_reframing:false`, means the field object
+is an ADJACENT kernel: promote that theorem to be the kernel as a fresh candidate and gate it before
+accepting a subfield ceiling. A pivot or estimand re-anchor invalidates the consumer line — re-verify
+#17. A direction is subfield-terminal only when no adjacent hard kernel exists or it is vacuous /
+ill-posed / already proven (verify which).
 
-**Tier shortfall is a `worthy: false` — but judge it on `tier_if_true`, not on whether the theorem is proven yet.** If the committed kernel lands below `target_tier` *even when proven exactly as stated* (`tier_if_true < target_tier`, `clears_target_tier: false`), return `worthy: false` — this catches the over-pitched topic at the cheapest stage. Do NOT return `worthy:false` merely because a kernel that WOULD clear the tier if true is still unproven (that is a `derivation_step` accept, not a shortfall). Require a concrete `reframe_suggestion`: the specific kernel-strengthening that would lift `tier_if_true` to the target (a new object/regime/sharpness theorem, not prose). Two outcomes feed the loop below: (a) the strengthening is a real, available path → treat as a **derivation_step**-style repair (apply it, re-gate the SAME candidate); (b) no strengthening reaches the target → **topic_death** (the kernel structurally tops out below the pitch; drop and advance). Do NOT auto-downgrade `target_tier` to manufacture an accept — the pitched tier is the deliverable.
-
-**Reviewer invocation.**
-- *Claude runtime* → shell out to codex (cross-model adversary). No Lean-LSP MCP needed — this is a pure JSON review, not a proof task. Minimal invocation: `codex exec --sandbox read-only -C <cwd> --skip-git-repo-check -c windows.sandbox=unelevated -c model=gpt-5.6-sol -c model_reasoning_effort=high` (the orchestrator consultation tier, env `CAUSALEAN_MODEL_CODEX_CONSULT`). Feed the prompt via stdin (never `-p` — on codex ≥0.146 that is `--profile`, not the prompt, and errors out), with a `timeout 1200` guard. **Run the gate FOREGROUND as ONE call and block on its verdict, staying in your turn.** A plain foreground `timeout … codex exec` returns the verdict inline; if the harness auto-backgrounds a long foreground call it re-wakes THIS agent when the call returns. Do NOT use an EXPLICIT `run_in_background` and then end your turn: a nested subagent's background-completion notification misroutes to the PARENT coordinator (not you), stalling you idle after codex has already exited (observed live 2026-07-10) — a MANUAL detach (`&`/`nohup`/sleep-poll) fails the same way. Whichever form, stay in-turn and block on the single verdict.
-- *Codex runtime* → spawn a native review sub-agent (do NOT `codex exec` yourself). Pass the same slate-row + rubric + refute instruction; require the same JSON shape back.
-
-**A precise, unrefuted, tier-if-true, consumer-real kernel is an ACCEPT — do not grind it into a repair loop.** Before entering any repair, check the decision rule: if `kernel_is_precise_conjecture && !refutation_found && tier_if_true >= target_tier && consumer_is_real`, the verdict should be `worthy:true` (the kernel being unproven is D0's job, not a defect); treat it as an accept even if the reviewer also volunteered a `derivation_step` note. The repair loop below is ONLY for a `worthy:false` whose cause is a real block: refutation, an imprecise/program kernel, `tier_if_true < target_tier`, or a failed consumer check.
-
-On every genuine `worthy: false`, first read `topic_death_or_derivation`: a **derivation_step** flaw here means the object is sound but under-specified in a way that changes its tier or well-posedness (imprecise kernel, or a strengthening needed to reach `tier_if_true >= target_tier`) — **repair it** (fully specify the model / state the missing theorem per `reframe_suggestion`) and re-gate the SAME candidate, up to **3 same-kernel re-gates**. (A #15 kernel-pivot is a NEW candidate with its own 3-re-gate budget — NOT counted here.) If 3 re-gates on one kernel don't reach `worthy: true`: do ONE #15 kernel-pivot if the gate named an adjacent hard kernel; else the candidate is subfield-terminal — advance / hold it as the tier-honest fallback. Don't grind a 4th same-kernel spec (the observed failure is a candidate converging to subfield and staying). Only a **topic_death** (or an unrepairable flaw) drops the candidate and advances to the next round. **This whole gate loop is autonomous** — do NOT surface a `worthy:false` / `derivation_step` / runner-up pivot to the user mid-loop; the orchestrator repairs, re-gates, and re-selects itself. Control returns to the user ONLY on a terminal no-accept after the capped re-propose.
-
-**Kernel-pivot (#15) — do NOT read `repairable_by_reframing:false` as topic-dead.** A `derivation_step` verdict that is `is_relabeling:false`, confirms the direction OPEN / machinery-immune, and *names a hard theorem as the missing field content*, yet marks the *current* framing `repairable_by_reframing:false`, is NOT a subfield-terminal signal — it means the field object is an **adjacent kernel, not a reframe of the routine one you pitched** (the canonical case: you put a limit law, a known-model bootstrap, or a bound-that-reduces-to-a-known-LP in the kernel; the gate says the depth is the *nuisance-robust boundary-inference theorem / the actually-constructed matched converse* underneath it). **PROMOTE the named hard theorem to BE the kernel** — a fresh candidate stated as a precise conjecture (#15) — and gate THAT, before you accept the subfield ceiling or drop the direction. Track it as its own gate round. A kernel-pivot or estimand re-anchor invalidates the consumer line — the named consumer must rely on the NEW object; re-verify #17 before re-gating. A direction is genuinely subfield-terminal only when NO such adjacent hard-kernel exists, or the hard kernel is itself vacuous / ill-posed / already-proven (verify which — do not assume). Iterating the *scaling / identification / specification* of a routine kernel (without ever pivoting to the hard kernel) is the classic under-iteration that banks a field-reachable direction at subfield.
-
-**Round 1 — top pick.** `worthy: true` → proceed, emit the command. Else repair-and-re-gate if `derivation_step`; if topic-death → Round 2.
-
-**Round 2 — runner-up (orchestrator selects).** The orchestrator itself picks the rank-#2 candidate and gates it (same repair-on-derivation rule) — do NOT pause for the user. `worthy: true` → emit the runner-up's command. Both top picks topic-dead → double rejection.
-
-**Double rejection — re-propose, orchestrator re-selects.** Do NOT try candidates #3–#5 as-is (they ranked lower for a reason). Instead:
-1. Re-run the generation procedure (steps 1–9), treating the rejected anchors and their failure modes as **anti-constraints** (steer away from those niches/motifs/framings).
-2. The orchestrator selects the best of the new slate **itself** and gates it (repairing derivation-step flaws), driving to `worthy: true` before acting.
-
-The re-propose is capped at one attempt. **Only** if that still reaches no accept does control return to the user — with the full picture (every rejection + flagged principle); the user may then override or redirect.
+- **Round 1 — top pick.** Accept → emit. `derivation_step` → repair loop. `topic_death` → Round 2.
+- **Round 2 — runner-up.** Gate rank #2 yourself. Accept → emit. Both dead → double rejection.
+- **Double rejection.** Do not try #3–#5 as-is. Re-run steps 1–9 with the rejected anchors and their
+  failure modes as anti-constraints; select and gate the best of the new slate yourself. Capped at one
+  re-propose; only then does control return to the user with the full picture.
 
 ## Bounded presolve (post-acceptance)
 
-After the adversarial gate accepts a candidate, dispatch ONE fresh presolver using `gpt-5.6-sol` with `xhigh` reasoning. The presolve is a bounded selection-time mathematical feasibility study. Its objective is to find constructive traction, isolate the exact remaining bottleneck, test the strongest failure modes, and decide whether the candidate merits a full D0 solve. Give it the accepted candidate, primary sources, and follow-up-search receipts. Withhold the preliminary numeric score so it calibrates independently. Treat unfinished hard lemmas as neutral evidence and assess whether the theorem spine remains credible.
+Dispatch ONE fresh presolver (`gpt-6-astra`, `xhigh`) with the accepted candidate, primary sources, and
+follow-up-search receipts; withhold the preliminary score. Aim at the paper, not a feasibility memo.
+Three passes in one call:
 
-The presolver performs both passes in one call, in this order:
+1. **Constructive attempt.** State the theorem spine; derive the central reduction or attack the
+   hardest lemma; solve a representative special case. Separate derivation from heuristics; name the
+   exact remaining bottleneck.
+2. **Destructive check.** Counterexamples and omitted boundary regimes; current and citing literature
+   for a collision; collapse to generic machinery; comparison with accepted-paper tier anchors.
+3. **Strongest-form draft.** The strongest supported result, paper-shaped: theorem statement(s) at full
+   precision, proof architecture, each load-bearing step in checkable detail. Routine steps may be
+   compressed to a named claim and hard steps left open, but every compression or gap is listed. Persist
+   the draft as a file and return its path.
 
-1. **Constructive attempt.** State the theorem spine; derive the central reduction or attack the hardest lemma; and solve a representative special case or finite instance when possible. Separate what was actually derived from heuristics and name the exact remaining bottleneck.
-2. **Destructive check.** Try counterexamples and omitted boundary regimes; check current and citing literature for a collision; test whether the headline collapses to generic machinery; and compare the surviving deliverable with the accepted-paper tier anchors.
-
-Require exactly this compact JSON:
+Require exactly:
 
 ```json
 {
   "verdict": "launch | pivot | drop",
   "reason": "<2-4 sentences>",
-  "constructive_traction": "<nontrivial reduction, lemma, or solved special case; distinguish derivation from heuristic>",
+  "constructive_traction": "<nontrivial reduction, lemma, or solved special case; derivation vs heuristic>",
   "remaining_bottleneck": "<one exact unresolved theorem step>",
   "failed_regimes_checked": "<counterexamples, boundaries, and collisions tested>",
   "early_kill_test": "<one bounded first test whose failure should pivot or stop>",
-  "launch_revision": "<material correction required before launch; empty when none>"
+  "launch_revision": "<material correction required before launch; empty when none>",
+  "strongest_form_headline": "<the strongest supported theorem statement, <=120 words>",
+  "strongest_form_path": "<absolute path to the paper-shaped draft>",
+  "strongest_form_gaps": "<every compressed or unproved step in that draft>"
 }
 ```
 
-Return `launch` when the constructive pass obtains either nontrivial derived traction OR a credible theorem spine with a precise unresolved bottleneck, the novelty survives, `launch_revision` is empty, and every destructive finding has a credible resolution path. Mathematically hard, likely-correct topics qualify for `launch`; record their hardness in `remaining_bottleneck` and `early_kill_test`. Treat an unfinished proof, limited short-call progress, and a partial construction as neutral when the theorem spine remains credible. Preserve a corrected answer under the same answer-open topic when its model, information regime, target, criterion, required deliverable, consumer, scope, and tier remain fixed; update the presolve evidence instead of returning `pivot`. Return `pivot` when affirmative evidence shows that the area remains live while one of those core problem coordinates or its achievable tier requires a material change. Return `drop` only with affirmative evidence of a collision, generic reduction, counterexample, contradiction, vacuity, or a specifically demonstrated obstruction to every credible route named in the theorem spine. Route `launch` to command emission. Route `pivot` and `drop` through the existing `ESCALATION` contract with the verbatim presolve receipt as an anti-constraint for the coordinator's next selection steer. Presolve exactly the single gate-accepted winner per selection round.
+**Verdicts.** `launch` — nontrivial derived traction OR a credible spine with a precise bottleneck,
+novelty survives, `launch_revision` empty, every destructive finding has a resolution path;
+hard-but-likely-correct qualifies. On an answer-open topic a corrected answer is not a pivot while the
+problem coordinates (model, regime, target, criterion, deliverable, consumer, scope, tier) are unchanged.
+`pivot` — the area is live but a coordinate or the achievable tier needs a material change. `drop` —
+affirmative evidence only: collision, generic reduction, counterexample, contradiction, vacuity, or an
+obstruction to every route in the spine.
 
-On `launch`, append a **150–250 word maximum** capsule to the topic anchor with only:
+**Routing.** `launch` → emit. `pivot`/`drop` → `ESCALATION` with the verbatim receipt as the
+coordinator's anti-constraint. One presolve per gate-accepted winner per round.
+
+On `launch`, append a 150–250 word capsule to the anchor with only:
 
 ```text
 PRESOLVE EVIDENCE REQUIRING VERIFICATION: <derived reduction/special case and failed checks>.
 UNRESOLVED BOTTLENECK: <exact remaining step>.
 EARLY KILL TEST: <bounded first test whose failure should pivot or stop the run>.
+STRONGEST-FORM DRAFT (unverified, gaps listed inside): <absolute path>.
 ```
 
-Keep the capsule within 150–250 words and include only the three fields above. Label every presolve result as evidence requiring verification, preserve the candidate's original assumptions, and reserve theorem status for results verified by D-1/D0. Embed the capsule in the topic anchor so D-1/D0 receives and reuses the traction through the existing launch interface. The TypeScript pipeline, state machine, and main-orchestrator contract remain unchanged.
+The draft stays in the file; D-1/D0 reads it from the path and must independently verify every listed
+gap. Preserve the candidate's original assumptions; theorem status is reserved for D-1/D0 verification.
+
 
 ## What this skill does NOT do
 

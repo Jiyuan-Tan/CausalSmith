@@ -74,7 +74,14 @@ theorem parent_unobserved_of_not_fixed_not_observed
 -- § 3. Parent-value lookup
 -- ============================================================
 
-/-- Assemble the full parent tuple of the next observed node
+/-- For [a finite collection of nodes with a measurable outcome space for each node](hyp:N,Ω),
+    [a structural causal model](hyp:M), [a nonnegative integer](hyp:n), and [proof that the next
+    position exists among the observed nodes](hyp:hn), the [map producing the values of all parents
+    of the next observed node](goal) takes fixed-node values, latent-node values, and a prefix of
+    the preceding observed-node values, and returns the corresponding value for every parent of
+    that next observed node.
+
+    Assemble the full parent tuple of the next observed node
     `v_n = M.observedAt ⟨n, hn⟩` from fixed values `s`, latent values `ℓ`,
     and the already-generated observed prefix `ξ`. -/
 noncomputable def parentValuesFromPrefix (M : Causalean.SCM N Ω) {n : ℕ}

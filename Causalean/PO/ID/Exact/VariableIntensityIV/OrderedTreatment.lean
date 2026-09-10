@@ -32,27 +32,27 @@ namespace OrderedTreatment
 
 open Finset
 
-/-- Treatment intensity level `j`, the lower endpoint of margin `j → j+1`. -/
+/-- For [a sequence of $J$ adjacent margins](hyp:J) and [a margin](hyp:j), the [lower treatment level](goal) is the lower endpoint of that margin in the ordered list of $J+1$ levels. -/
 def lowerLevel {J : ℕ} (j : Fin J) : Fin (J + 1) :=
   j.castSucc
 
-/-- Treatment intensity level `j+1`, the upper endpoint of margin `j → j+1`. -/
+/-- For [a sequence of $J$ adjacent margins](hyp:J) and [a margin](hyp:j), the [upper treatment level](goal) is the upper endpoint of that margin in the ordered list of $J+1$ levels. -/
 def upperLevel {J : ℕ} (j : Fin J) : Fin (J + 1) :=
   j.succ
 
-/-- Numeric value of an ordered treatment level. -/
+/-- For [a sequence of $J$ adjacent margins](hyp:J) and [an ordered treatment level](hyp:d), the [numeric intensity value](goal) is that level's position in the ordered list, expressed as a real number. -/
 def intensityValue {J : ℕ} (d : Fin (J + 1)) : ℝ :=
   d.val
 
-/-- The margin increment `f(j+1) - f(j)` for `j : Fin J`. -/
+/-- For [a sequence of $J$ adjacent margins](hyp:J), [a real-valued function on the $J+1$ ordered treatment levels](hyp:f), and [a margin](hyp:j), the [margin increment](goal) is the function value at that margin's upper endpoint minus its value at the lower endpoint. -/
 def marginIncrement {J : ℕ} (f : Fin (J + 1) → ℝ) (j : Fin J) : ℝ :=
   f (upperLevel j) - f (lowerLevel j)
 
-/-- A movement from `a` to `b` crosses margin `j → j+1`. -/
+/-- For [a sequence of $J$ adjacent margins](hyp:J), [an initial treatment level](hyp:a), [a final treatment level](hyp:b), and [a margin](hyp:j), the [crossing condition](goal) holds exactly when the movement starts below that margin's upper endpoint and ends at or above it. -/
 def Crossing {J : ℕ} (a b : Fin (J + 1)) (j : Fin J) : Prop :=
   upperLevel j ≤ b ∧ a < upperLevel j
 
-/-- Real-valued indicator of `Crossing a b j`. -/
+/-- For [a sequence of $J$ adjacent margins](hyp:J), [an initial treatment level](hyp:a), [a final treatment level](hyp:b), and [a margin](hyp:j), the [crossing indicator](goal) equals one when the movement crosses that margin and zero otherwise. -/
 noncomputable def crossingIndicator {J : ℕ} (a b : Fin (J + 1)) (j : Fin J) : ℝ := by
   classical
   exact if Crossing a b j then 1 else 0
@@ -114,7 +114,7 @@ lemma ordered_telescope_identity {J : ℕ} {a b : Fin (J + 1)} (hab : a ≤ b) :
   simpa [intensityValue, marginIncrement, lowerLevel, upperLevel] using
     (ordered_telescope_indicator (J := J) (fun d : Fin (J + 1) => intensityValue d) hab)
 
-/-- Generic normalized finite weight `a_i / Σ_k a_k`. -/
+/-- Given [a finite collection of indices](hyp:ι), [a real weight assigned to each index](hyp:a), and [one index](hyp:i), the [normalized finite weight](goal) is that index's weight divided by the sum of all weights. -/
 noncomputable abbrev normalizedWeight {ι : Type*} [Fintype ι] (a : ι → ℝ) (i : ι) : ℝ :=
   Causalean.Panel.Weighted.NormalizedWeights.normalizedWeight a i
 

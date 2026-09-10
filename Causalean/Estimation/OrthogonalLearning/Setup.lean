@@ -85,7 +85,9 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
          {Θ : Type*} [NormedAddCommGroup Θ] [InnerProductSpace ℝ Θ]
          {G : Type*} [AddCommGroup G] [Module ℝ G]
 
-/-- Population risk: `L(θ, g) := ∫ ℓ(z; θ, g) dP_Z`. -/
+/-- Given [an orthogonal statistical-learning system](hyp:S), [a target value](hyp:θ), and [a
+nuisance value](hyp:g), the [population risk](goal) is the integral, under the population
+observation law, of the system's loss at that target and nuisance. -/
 noncomputable def L (S : LearningSystem Ω μ Z P_Z Θ G) (θ : Θ) (g : G) : ℝ :=
   ∫ z, S.ℓ z θ g ∂P_Z
 
@@ -96,14 +98,18 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
          {Θ : Type*} [NormedAddCommGroup Θ] [InnerProductSpace ℝ Θ]
          {G : Type*} [AddCommGroup G] [Module ℝ G]
 
-/-- Closure-under-perturbation predicate for `Θ_set`: every line segment
-between `θ₀` and `θ ∈ Θ_set` stays in `Θ_set`.  Strictly weaker than
-convexity; useful for stating directional-derivative hypotheses without
-requiring the whole set to be convex. -/
+/-- For [an orthogonal statistical-learning system](hyp:S), the [target perturbation-closure
+condition](goal) holds exactly when every target in its target class and every scalar between zero
+and one produce a point on the line segment from the distinguished target to that target which
+also belongs to the target class. This condition is weaker than convexity and supports
+directional-derivative hypotheses without requiring the whole target class to be convex. -/
 def Θ_PerturbClosed (S : LearningSystem Ω μ Z P_Z Θ G) : Prop :=
   ∀ θ ∈ S.Θ_set, ∀ t ∈ Set.Icc (0 : ℝ) 1, S.θ₀ + t • (θ - S.θ₀) ∈ S.Θ_set
 
-/-- Closure-under-perturbation predicate for `G_set`. -/
+/-- For [an orthogonal statistical-learning system](hyp:S), the [nuisance perturbation-closure
+condition](goal) holds exactly when every nuisance function in its nuisance class and every scalar
+between zero and one produce a point on the line segment from the distinguished nuisance function
+to that nuisance function which also belongs to the nuisance class. -/
 def G_PerturbClosed (S : LearningSystem Ω μ Z P_Z Θ G) : Prop :=
   ∀ g ∈ S.G_set, ∀ t ∈ Set.Icc (0 : ℝ) 1, S.g₀ + t • (g - S.g₀) ∈ S.G_set
 

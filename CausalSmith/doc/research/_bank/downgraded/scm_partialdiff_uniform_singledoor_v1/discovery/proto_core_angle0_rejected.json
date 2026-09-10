@@ -1,0 +1,1973 @@
+{
+  "qid": "scm_partialdiff_uniform_singledoor",
+  "specialization": "v1",
+  "cluster": "scm",
+  "symbols": [
+    {
+      "name": "p",
+      "type": "integer",
+      "space": "\\(\\{3,4,\\ldots\\}\\)",
+      "def": "The number of observed variables.",
+      "role": "Dimension."
+    },
+    {
+      "name": "VertexSet",
+      "type": "finite set",
+      "space": "\\(\\{1,\\ldots,p\\}\\)",
+      "def": "\\(\\mathbb V=\\{1,\\ldots,p\\}\\).",
+      "role": "Observed vertices.",
+      "refs": [
+        "p"
+      ]
+    },
+    {
+      "name": "Exposure",
+      "type": "vertex",
+      "space": "\\(\\mathbb V\\)",
+      "def": "A distinguished vertex denoted by \\(X\\).",
+      "role": "Cause of interest.",
+      "refs": [
+        "VertexSet"
+      ]
+    },
+    {
+      "name": "Outcome",
+      "type": "vertex",
+      "space": "\\(\\mathbb V\\setminus\\{X\\}\\)",
+      "def": "A distinguished vertex denoted by \\(Y\\), with \\(Y\\neq X\\).",
+      "role": "Outcome of interest.",
+      "refs": [
+        "VertexSet",
+        "Exposure"
+      ]
+    },
+    {
+      "name": "EnvironmentSet",
+      "type": "finite set",
+      "space": "\\(\\{1,2\\}\\)",
+      "def": "The two environments, indexed by \\(e\\in\\{1,2\\}\\).",
+      "role": "Environment index."
+    },
+    {
+      "name": "EnvironmentIndex",
+      "type": "index",
+      "space": "\\(\\{1,2\\}\\)",
+      "def": "A generic environment index denoted by \\(e\\).",
+      "role": "Index.",
+      "refs": [
+        "EnvironmentSet"
+      ]
+    },
+    {
+      "name": "VariableA",
+      "type": "vertex",
+      "space": "\\(\\mathbb V\\)",
+      "def": "A generic vertex denoted by \\(A\\).",
+      "role": "Regression and separation index.",
+      "refs": [
+        "VertexSet"
+      ]
+    },
+    {
+      "name": "VariableB",
+      "type": "vertex",
+      "space": "\\(\\mathbb V\\setminus\\{A\\}\\)",
+      "def": "A generic vertex denoted by \\(B\\), distinct from \\(A\\).",
+      "role": "Regression and separation index.",
+      "refs": [
+        "VertexSet",
+        "VariableA"
+      ]
+    },
+    {
+      "name": "ConditioningSet",
+      "type": "vertex subset",
+      "space": "\\(2^{\\mathbb V\\setminus\\{A,B\\}}\\)",
+      "def": "A generic conditioning set denoted by \\(S\\subseteq\\mathbb V\\setminus\\{A,B\\}\\).",
+      "role": "Regression and separation index.",
+      "refs": [
+        "VertexSet",
+        "VariableA",
+        "VariableB"
+      ]
+    },
+    {
+      "name": "RandomVector",
+      "type": "random vector",
+      "space": "\\(\\mathbb R^p\\)",
+      "def": "\\(Z_e=(Z_{ev}:v\\in\\mathbb V)\\) is the centered observed vector in environment \\(e\\).",
+      "role": "Observed variables.",
+      "refs": [
+        "p",
+        "VertexSet",
+        "EnvironmentIndex"
+      ]
+    },
+    {
+      "name": "CoefficientPair",
+      "type": "pair of real matrices",
+      "space": "\\((\\mathbb R^{p\\times p})^2\\)",
+      "def": "\\(B=(B_1,B_2)\\), where \\(B_{e,uv}\\) is the coefficient on \\(Z_{eu}\\) in the structural equation for \\(Z_{ev}\\).",
+      "role": "Environment-specific direct effects.",
+      "refs": [
+        "p",
+        "EnvironmentSet",
+        "VertexSet",
+        "RandomVector"
+      ]
+    },
+    {
+      "name": "InnovationVector",
+      "type": "pair of random vectors",
+      "space": "\\((\\mathbb R^p)^2\\)",
+      "def": "\\(\\varepsilon=(\\varepsilon_1,\\varepsilon_2)\\) is the pair of structural innovation vectors.",
+      "role": "Exogenous noise.",
+      "refs": [
+        "p",
+        "EnvironmentSet"
+      ]
+    },
+    {
+      "name": "InnovationVariancePair",
+      "type": "pair of real vectors",
+      "space": "\\((\\mathbb R^p)^2\\)",
+      "def": "\\(\\omega=(\\omega_1,\\omega_2)\\), where \\(\\omega_{ev}=\\operatorname{Var}(\\varepsilon_{ev})\\).",
+      "role": "Innovation variances.",
+      "refs": [
+        "p",
+        "EnvironmentSet",
+        "InnovationVector"
+      ]
+    },
+    {
+      "name": "EnvironmentDAGPair",
+      "type": "pair of directed acyclic graphs",
+      "space": "Pairs of graphs on \\(\\mathbb V\\)",
+      "def": "\\(G=(G_1,G_2)\\), where \\(u\\to v\\) is in \\(G_e\\) exactly when \\(B_{e,uv}\\neq0\\).",
+      "role": "Environment-specific causal graphs.",
+      "refs": [
+        "VertexSet",
+        "EnvironmentSet",
+        "CoefficientPair"
+      ]
+    },
+    {
+      "name": "BaselineGraph",
+      "type": "directed acyclic graph",
+      "space": "Graphs on \\(\\mathbb V\\)",
+      "def": "\\(G^*\\) is the baseline DAG.",
+      "role": "Parent supergraph for both environments.",
+      "refs": [
+        "VertexSet"
+      ]
+    },
+    {
+      "name": "CommonOrder",
+      "type": "permutation",
+      "space": "\\(\\mathfrak S_{\\mathbb V}\\)",
+      "def": "\\(\\pi\\) is a topological order of \\(G^*\\); baseline-parent containment makes it a common topological order of \\(G_1\\) and \\(G_2\\).",
+      "role": "Latent completion index.",
+      "refs": [
+        "VertexSet",
+        "EnvironmentSet",
+        "EnvironmentDAGPair",
+        "BaselineGraph"
+      ]
+    },
+    {
+      "name": "BaselineCoefficientMatrix",
+      "type": "real matrix",
+      "space": "\\(\\mathbb R^{p\\times p}\\)",
+      "def": "\\(B^*\\) is the baseline coefficient matrix, with \\(B^*_{uv}\\neq0\\) exactly when \\(u\\in\\operatorname{Pa}_{G^*}(v)\\).",
+      "role": "Baseline structural mechanisms.",
+      "refs": [
+        "p",
+        "VertexSet",
+        "BaselineGraph"
+      ]
+    },
+    {
+      "name": "InterventionTargetPair",
+      "type": "pair of vertex subsets",
+      "space": "\\((2^{\\mathbb V})^2\\)",
+      "def": "\\(\\mathcal I=(\\mathcal I_1,\\mathcal I_2)\\), where \\(\\mathcal I_e\\) is the set of structurally targeted vertices in environment \\(e\\).",
+      "role": "Baseline-intervention targets.",
+      "refs": [
+        "VertexSet",
+        "EnvironmentSet"
+      ]
+    },
+    {
+      "name": "BaselineSCM",
+      "type": "linear structural causal model",
+      "def": "\\(M^*=(G^*,B^*)\\) is a baseline linear SCM on \\(\\mathbb V\\).",
+      "role": "Source model for the two structural interventions.",
+      "refs": [
+        "VertexSet",
+        "BaselineGraph",
+        "BaselineCoefficientMatrix"
+      ]
+    },
+    {
+      "name": "SCMPair",
+      "type": "baseline-indexed pair of linear Gaussian SCMs",
+      "def": "\\(M=(M^*,\\mathcal I,((G_e,B_e,\\omega_e))_{e=1}^2,\\pi)\\), where \\(\\pi\\) is a topological order of \\(G^*\\) and hence a common topological order of the two environment DAGs, which satisfy the baseline-parent and modular-target restriction relative to \\(M^*\\).",
+      "role": "Compatible causal model pair.",
+      "refs": [
+        "BaselineSCM",
+        "BaselineGraph",
+        "BaselineCoefficientMatrix",
+        "InterventionTargetPair",
+        "EnvironmentDAGPair",
+        "CoefficientPair",
+        "InnovationVariancePair",
+        "CommonOrder",
+        "EnvironmentSet"
+      ]
+    },
+    {
+      "name": "DifferenceGraph",
+      "type": "directed acyclic graph",
+      "space": "Graphs on \\(\\mathbb V\\)",
+      "def": "Following BystrovaDevijver2026LDiffPC, arXiv version 1, page 3, Definition 1, \\(\\mathcal D_M\\) inherits the baseline direction \\(u\\to v\\) and contains that arrow exactly when \\(u\\to v\\in G^*\\) and \\(B_{1,uv}\\neq B_{2,uv}\\), including deletion of a baseline arrow in one environment.",
+      "role": "True difference graph induced by an SCM pair.",
+      "refs": [
+        "SCMPair",
+        "CoefficientPair",
+        "VertexSet",
+        "BaselineGraph"
+      ]
+    },
+    {
+      "name": "DiffFaithfulModelClass",
+      "type": "class of SCM pairs",
+      "def": "\\(\\mathcal M_p^{\\mathrm{df}}\\) is the class defined in \\(\\text{def:paired-model-class}\\).",
+      "role": "Operative model class.",
+      "ref": "def:paired-model-class",
+      "refs": [
+        "p",
+        "SCMPair"
+      ]
+    },
+    {
+      "name": "DistributionPair",
+      "type": "pair of probability laws",
+      "space": "\\(\\mathcal P(\\mathbb R^p)^2\\)",
+      "def": "\\(P=(P_1,P_2)\\), where \\(P_e\\) is the law induced by the environment \\(e\\) SCM.",
+      "role": "Population observables.",
+      "refs": [
+        "p",
+        "EnvironmentSet",
+        "SCMPair"
+      ]
+    },
+    {
+      "name": "CovariancePair",
+      "type": "pair of symmetric matrices",
+      "space": "\\(\\operatorname{PD}_p^2\\)",
+      "def": "\\(\\boldsymbol\\Sigma=(\\Sigma_1,\\Sigma_2)\\), where \\(\\Sigma_e=\\operatorname{Cov}_{P_e}(Z_e)\\).",
+      "role": "Observed population input.",
+      "refs": [
+        "p",
+        "DistributionPair",
+        "RandomVector",
+        "EnvironmentSet"
+      ]
+    },
+    {
+      "name": "RegressionFunctional",
+      "type": "rational function",
+      "def": "\\(r_e(B,A\\mid S)=\\Sigma_{e,BA\\cdot S}/\\Sigma_{e,AA\\cdot S}\\), with Schur-complement partial covariances.",
+      "role": "Observable partial-regression coefficient.",
+      "refs": [
+        "CovariancePair",
+        "EnvironmentIndex",
+        "VariableA",
+        "VariableB",
+        "ConditioningSet"
+      ]
+    },
+    {
+      "name": "DiffSeparationPredicate",
+      "type": "graphical predicate",
+      "def": "\\(\\operatorname{dsep}_{\\Delta,M}(A,B\\mid S)\\) means that \\(S\\) blocks every diff-relevant and every conditionally diff-relevant path between \\(A\\) and \\(B\\) in the two environment DAGs, in the sense of BystrovaDevijver2026LDiffPC, arXiv version 1, Section 4, Definition 4.",
+      "role": "Published graphical side of diff-faithfulness.",
+      "refs": [
+        "SCMPair",
+        "DifferenceGraph",
+        "VariableA",
+        "VariableB",
+        "ConditioningSet"
+      ]
+    },
+    {
+      "name": "CIMinor",
+      "type": "polynomial",
+      "def": "\\(c_e(A,B\\mid S)=\\det(\\Sigma_{e,A\\cup S,B\\cup S})\\), the almost-principal minor whose vanishing is \\(Z_{eA}\\perp Z_{eB}\\mid Z_{eS}\\).",
+      "role": "Within-environment conditional-independence polynomial.",
+      "refs": [
+        "CovariancePair",
+        "EnvironmentIndex",
+        "VariableA",
+        "VariableB",
+        "ConditioningSet",
+        "RandomVector"
+      ]
+    },
+    {
+      "name": "Ledger",
+      "type": "finite equality and sepset record",
+      "def": "\\(\\mathcal L(\\boldsymbol\\Sigma)\\) records, for every admissible \\(A,B,S\\), whether \\(r_1(B,A\\mid S)=r_2(B,A\\mid S)\\), whether \\(c_e(A,B\\mid S)=0\\), and every sepset used by population LDiffPC.",
+      "role": "Complete population discovery record.",
+      "refs": [
+        "CovariancePair",
+        "RegressionFunctional",
+        "CIMinor",
+        "VariableA",
+        "VariableB",
+        "ConditioningSet",
+        "EnvironmentIndex"
+      ]
+    },
+    {
+      "name": "PartialDifferenceGraph",
+      "type": "partially directed graph",
+      "space": "Graphs on \\(\\mathbb V\\)",
+      "def": "\\(H(\\mathcal L)\\) is the population LDiffPC output obtained from \\(\\mathcal L\\) by skeleton deletion, collider orientation, and Meek rules; its retention property on the exact baseline-intervention class \\(\\mathcal M_p^{\\mathrm{df}}\\) is stated in \\(\\text{lem:true-completion-retention}\\).",
+      "role": "Partial graphical input.",
+      "refs": [
+        "VertexSet",
+        "Ledger",
+        "DiffFaithfulModelClass",
+        "BaselineSCM",
+        "InterventionTargetPair"
+      ]
+    },
+    {
+      "name": "CholeskyCoefficient",
+      "type": "rational function",
+      "def": "\\(b^{\\pi}_{e}(v,u)=r_e(v,u\\mid \\operatorname{pred}_{\\pi}(v)\\setminus\\{u\\})\\) when \\(u\\prec_{\\pi}v\\), and \\(b^{\\pi}_{e}(v,u)=0\\) otherwise.",
+      "role": "Complete-order structural coefficient.",
+      "refs": [
+        "CommonOrder",
+        "EnvironmentIndex",
+        "RegressionFunctional",
+        "VertexSet"
+      ]
+    },
+    {
+      "name": "CholeskyVariance",
+      "type": "rational function",
+      "def": "\\(v^{\\pi}_{e}(u)=\\operatorname{Var}_{P_e}(Z_{eu}\\mid Z_{e,\\operatorname{pred}_{\\pi}(u)})\\).",
+      "role": "Complete-order innovation variance.",
+      "refs": [
+        "CommonOrder",
+        "EnvironmentIndex",
+        "DistributionPair",
+        "RandomVector"
+      ]
+    },
+    {
+      "name": "AdmissibleOrderSet",
+      "type": "set of permutations",
+      "space": "\\(2^{\\mathfrak S_{\\mathbb V}}\\)",
+      "def": "\\(\\Pi^{\\mathrm{df}}(\\boldsymbol\\Sigma,\\mathcal L,H)\\) is the set of orders \\(\\pi\\) for which there exists a realizable baseline-intervention pair \\(M\\in\\mathcal M_p^{\\mathrm{df}}\\) with covariance pair \\(\\boldsymbol\\Sigma\\), ledger \\(\\mathcal L\\), common order \\(\\pi\\), and induced difference graph \\(\\mathcal D_M\\) consistent with every adjacency and orientation in \\(H(\\mathcal L)\\).",
+      "role": "Compatible completion fiber.",
+      "refs": [
+        "VertexSet",
+        "CovariancePair",
+        "Ledger",
+        "PartialDifferenceGraph",
+        "CommonOrder",
+        "SCMPair",
+        "DiffFaithfulModelClass",
+        "DifferenceGraph",
+        "BaselineSCM",
+        "BaselineGraph",
+        "InterventionTargetPair"
+      ]
+    },
+    {
+      "name": "CompatibilityIdeal",
+      "type": "polynomial ideal",
+      "def": "\\(I_{\\pi,\\mathcal L}\\) is generated by denominator-cleared equations \\(v^{\\pi}_1(u)-v^{\\pi}_2(u)=0\\) and all polynomial equalities recorded in \\(\\mathcal L\\), then saturated by principal minors, every ledger polynomial recorded as nonzero, and every nonzero regression margin required by diff-faithfulness; only real cells admitting the published baseline-parent modular intervention representation are retained, and this representation and diff-faithfulness act as realizability or disequality restrictions rather than new ideal equations.",
+      "role": "Algebraic model for one completion.",
+      "refs": [
+        "CommonOrder",
+        "Ledger",
+        "CholeskyVariance",
+        "CovariancePair",
+        "BaselineGraph",
+        "BaselineCoefficientMatrix",
+        "InterventionTargetPair",
+        "EnvironmentDAGPair"
+      ]
+    },
+    {
+      "name": "ObservableVariety",
+      "type": "complex algebraic set with a distinguished real locus",
+      "space": "\\((\\mathbb S^p_{\\mathbb C})^2\\)",
+      "def": "\\(\\mathcal V^{\\mathrm{df}}_{\\mathcal L}=\\overline{\\bigcup_{\\pi}\\{\\boldsymbol\\Sigma\\in\\operatorname{PD}_p^2:\\pi\\in\\Pi^{\\mathrm{df}}(\\boldsymbol\\Sigma,\\mathcal L,H(\\mathcal L))\\}}^{\\mathrm{Zar}_{\\mathbb C}}\\), where admissibility includes the baseline-parent modular intervention premise.",
+      "role": "Ambient compatible-observable variety before exact support stratification.",
+      "refs": [
+        "p",
+        "CovariancePair",
+        "CommonOrder",
+        "AdmissibleOrderSet",
+        "Ledger",
+        "PartialDifferenceGraph",
+        "BaselineSCM",
+        "InterventionTargetPair"
+      ]
+    },
+    {
+      "name": "Component",
+      "type": "ambient irreducible algebraic component",
+      "def": "\\(C\\) is a complex irreducible component of \\(\\mathcal V^{\\mathrm{df}}_{\\mathcal L}\\); it is only an ambient algebraic carrier and is not itself an identification domain.",
+      "role": "Ambient component for exact common-fiber stratification.",
+      "refs": [
+        "ObservableVariety",
+        "Ledger",
+        "BaselineSCM",
+        "InterventionTargetPair"
+      ]
+    },
+    {
+      "name": "GenericOrderSet",
+      "type": "pointwise set of permutations",
+      "space": "\\(2^{\\mathfrak S_{\\mathbb V}}\\)",
+      "def": "For an ambient component \\(C\\) and \\(\\boldsymbol\\Sigma\\in C\\cap\\operatorname{PD}_p^2\\), \\(\\Pi_C(\\boldsymbol\\Sigma)=\\{\\pi:\\text{there exists a positive diff-faithful baseline-intervention realization \\(M\\in\\mathcal M_p^{\\mathrm{df}}\\) at exactly \\(\\boldsymbol\\Sigma\\), with ledger \\(\\mathcal L\\), common order \\(\\pi\\), and \\(\\mathcal D_M\\) consistent with \\(H(\\mathcal L)\\)}\\}\\).",
+      "role": "Orders co-realized at one observed covariance pair.",
+      "refs": [
+        "CommonOrder",
+        "Component",
+        "CovariancePair",
+        "Ledger",
+        "PartialDifferenceGraph",
+        "DiffFaithfulModelClass",
+        "DifferenceGraph",
+        "BaselineSCM",
+        "InterventionTargetPair"
+      ]
+    },
+    {
+      "name": "SupportOrderSet",
+      "type": "nonempty set of permutations",
+      "space": "\\(2^{\\mathfrak S_{\\mathbb V}}\\setminus\\{\\varnothing\\}\\)",
+      "def": "\\(J\\) is a nonempty candidate value of the pointwise completion fiber \\(\\Pi_C(\\boldsymbol\\Sigma)\\).",
+      "role": "Exact common-order support index.",
+      "refs": [
+        "VertexSet",
+        "CommonOrder",
+        "GenericOrderSet"
+      ]
+    },
+    {
+      "name": "ExactSupportCell",
+      "type": "real semialgebraic set",
+      "def": "\\(F_{C,J}=\\{\\boldsymbol\\Sigma\\in C\\cap\\operatorname{PD}_p^2:\\Pi_C(\\boldsymbol\\Sigma)=J\\}\\), where the equality \\(\\Pi_C(\\boldsymbol\\Sigma)=J\\) is obtained by quantifier elimination over all SCM coefficients, innovation variances, baseline graphs, target sets, positivity inequalities, ledger equalities and disequalities, within-environment CI-free inequalities, diff-faithfulness conditions, and the LDiffPC consistency constraints.",
+      "role": "Exact same-covariance realization cell.",
+      "refs": [
+        "Component",
+        "SupportOrderSet",
+        "CovariancePair",
+        "p",
+        "GenericOrderSet",
+        "SCMPair",
+        "InnovationVariancePair",
+        "BaselineGraph",
+        "InterventionTargetPair",
+        "Ledger",
+        "CIMinor",
+        "DiffFaithfulModelClass",
+        "PartialDifferenceGraph"
+      ]
+    },
+    {
+      "name": "FiberStratum",
+      "type": "irreducible algebraic component",
+      "def": "\\(D\\) is an irreducible component of the complex Zariski closure \\(\\overline{F_{C,J}}^{\\mathrm{Zar}_{\\mathbb C}}\\), retained only when \\(F_{C,J}\\cap D\\) contains a nonempty positive real subset that is Zariski dense in \\(D\\).",
+      "role": "Common-fiber identification domain.",
+      "refs": [
+        "ExactSupportCell",
+        "Component",
+        "SupportOrderSet"
+      ]
+    },
+    {
+      "name": "ComponentIdeal",
+      "type": "prime ideal",
+      "def": "\\(I(D)=\\mathcal I(D)\\) is the prime vanishing ideal of the retained common-fiber stratum closure component \\(D\\).",
+      "role": "Radical-membership certificate target.",
+      "refs": [
+        "FiberStratum"
+      ]
+    },
+    {
+      "name": "DirectEffectTriple",
+      "type": "rational vector-valued function",
+      "space": "\\(\\mathbb R^3\\)",
+      "def": "\\(\\tau_{\\pi}(\\boldsymbol\\Sigma)=(\\alpha_{1,\\pi},\\alpha_{2,\\pi},\\alpha_{1,\\pi}-\\alpha_{2,\\pi})\\), where \\(\\alpha_{e,\\pi}=b^{\\pi}_e(Y,X)\\); for an SCM pair \\(M\\) with true order \\(\\pi_M\\), write \\(\\tau_M=\\tau_{\\pi_M}(\\boldsymbol\\Sigma_M)\\).",
+      "role": "Causal target in a completion.",
+      "refs": [
+        "CovariancePair",
+        "SCMPair",
+        "CommonOrder",
+        "CholeskyCoefficient",
+        "Exposure",
+        "Outcome",
+        "EnvironmentSet"
+      ]
+    },
+    {
+      "name": "UniformDoorSet",
+      "type": "vertex subset",
+      "space": "\\(2^{\\mathbb V\\setminus\\{X,Y\\}}\\)",
+      "def": "For a retained \\((C,J,D)\\), \\(W\\subseteq\\mathbb V\\setminus\\{X,Y\\}\\) is a common-fiber-uniform single-door set when, for every \\(\\pi\\in J\\) and \\(e\\in\\{1,2\\}\\), \\(W\\) contains no descendant of \\(Y\\) and d-separates \\(X\\) and \\(Y\\) after deleting \\(X\\to Y\\) from the complete \\(\\pi\\)-DAG.",
+      "role": "Uniform graphical identification certificate.",
+      "refs": [
+        "VertexSet",
+        "Exposure",
+        "Outcome",
+        "Component",
+        "SupportOrderSet",
+        "FiberStratum",
+        "EnvironmentSet"
+      ]
+    },
+    {
+      "name": "DifferenceNumerator",
+      "type": "polynomial",
+      "def": "\\(N^{e}_{\\pi,\\pi'}\\) is the numerator after clearing principal-minor denominators in \\(b^{\\pi}_{e}(Y,X)-b^{\\pi'}_{e}(Y,X)\\).",
+      "role": "Generic nonidentification certificate.",
+      "refs": [
+        "EnvironmentIndex",
+        "CommonOrder",
+        "CholeskyCoefficient",
+        "Exposure",
+        "Outcome"
+      ]
+    },
+    {
+      "name": "LedgerSize",
+      "type": "integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "\\(L=|\\mathcal L|\\) is the encoded number of equality, disequality, and sepset records.",
+      "role": "Input length.",
+      "refs": [
+        "Ledger"
+      ]
+    },
+    {
+      "name": "Treewidth",
+      "type": "integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "\\(t=\\operatorname{tw}(\\operatorname{skel}(H))\\).",
+      "role": "Graphical complexity parameter.",
+      "refs": [
+        "PartialDifferenceGraph"
+      ]
+    },
+    {
+      "name": "SampleSizes",
+      "type": "pair of integers",
+      "space": "\\(\\mathbb N^2\\)",
+      "def": "\\(n=(n_1,n_2)\\), with \\(n_e>p\\).",
+      "role": "Environment sample sizes.",
+      "refs": [
+        "p",
+        "EnvironmentSet"
+      ]
+    },
+    {
+      "name": "DegreesOfFreedom",
+      "type": "pair of integers",
+      "space": "\\(\\mathbb N^2\\)",
+      "def": "\\(\\nu=(\\nu_1,\\nu_2)\\), where \\(\\nu_e=n_e-1\\).",
+      "role": "Degrees of freedom for centered Gaussian sample covariances.",
+      "refs": [
+        "SampleSizes",
+        "EnvironmentSet"
+      ]
+    },
+    {
+      "name": "SampleData",
+      "type": "two independent samples",
+      "def": "\\(\\mathcal Z_n=\\{Z_{ei}:1\\le i\\le n_e,\\ e\\in\\{1,2\\}\\}\\).",
+      "role": "Finite-sample observations.",
+      "refs": [
+        "RandomVector",
+        "SampleSizes",
+        "EnvironmentSet"
+      ]
+    },
+    {
+      "name": "SampleMeanPair",
+      "type": "pair of random vectors",
+      "def": "\\(\\overline Z_e=n_e^{-1}\\sum_{i=1}^{n_e}Z_{ei}\\).",
+      "role": "Environment sample means.",
+      "refs": [
+        "SampleData",
+        "SampleSizes",
+        "EnvironmentIndex"
+      ]
+    },
+    {
+      "name": "SampleCovariancePair",
+      "type": "pair of symmetric matrices",
+      "def": "\\(\\widehat{\\boldsymbol\\Sigma}=(\\widehat\\Sigma_1,\\widehat\\Sigma_2)\\), where \\(\\widehat\\Sigma_e=\\nu_e^{-1}\\sum_{i=1}^{n_e}(Z_{ei}-\\overline Z_e)(Z_{ei}-\\overline Z_e)^{\\mathsf T}\\).",
+      "role": "Empirical covariance input.",
+      "refs": [
+        "SampleData",
+        "SampleMeanPair",
+        "DegreesOfFreedom",
+        "EnvironmentSet"
+      ]
+    },
+    {
+      "name": "MiscoverageLevel",
+      "type": "real number",
+      "space": "\\((0,1)\\)",
+      "def": "\\(\\gamma\\) is the desired miscoverage probability.",
+      "role": "Inference level."
+    },
+    {
+      "name": "CovarianceConfidenceRegion",
+      "type": "random closed set",
+      "space": "Subsets of \\(\\operatorname{PD}_p^2\\)",
+      "def": "\\(\\mathcal R_{n,\\gamma}=\\prod_{e=1}^2\\{\\Sigma_e\\succ0:T_{\\nu_e}(\\widehat\\Sigma_e,\\Sigma_e)\\le q_{p,\\nu_e}(1-\\gamma/2)\\}\\), where \\(T_{\\nu}(S,\\Sigma)=\\nu\\{\\operatorname{tr}(\\Sigma^{-1}S)-\\log\\det(\\Sigma^{-1}S)-p\\}\\) and \\(q_{p,\\nu}\\) is its exact null quantile under \\(\\nu S\\sim\\operatorname{Wishart}_p(\\Sigma,\\nu)\\).",
+      "role": "Boundary-uniform covariance inversion set.",
+      "refs": [
+        "p",
+        "SampleSizes",
+        "DegreesOfFreedom",
+        "SampleCovariancePair",
+        "MiscoverageLevel",
+        "EnvironmentSet"
+      ]
+    },
+    {
+      "name": "ConfidenceUnion",
+      "type": "random closed subset of \\(\\mathbb R^3\\)",
+      "def": "\\(\\mathcal C_{n,\\gamma}=\\overline{\\bigcup\\{\\tau_{\\pi}(\\boldsymbol\\Sigma'): \\boldsymbol\\Sigma'\\in\\mathcal R_{n,\\gamma},\\ \\pi\\in\\Pi^{\\mathrm{df}}(\\boldsymbol\\Sigma',\\mathcal L(\\boldsymbol\\Sigma'),H(\\mathcal L(\\boldsymbol\\Sigma')))\\}}\\), where every completion in the union admits the baseline-parent modular intervention representation.",
+      "role": "Test-inverted direct-effect confidence union.",
+      "refs": [
+        "DirectEffectTriple",
+        "CovariancePair",
+        "CovarianceConfidenceRegion",
+        "CommonOrder",
+        "AdmissibleOrderSet",
+        "Ledger",
+        "PartialDifferenceGraph",
+        "SampleSizes",
+        "MiscoverageLevel",
+        "BaselineSCM",
+        "InterventionTargetPair"
+      ]
+    },
+    {
+      "name": "ColliderVertex",
+      "type": "vertex",
+      "space": "\\(\\mathbb V\\setminus\\{X,Y\\}\\)",
+      "def": "For the three-variable collider audit, \\(W\\) is the third labelled vertex.",
+      "role": "Collider-witness covariate.",
+      "refs": [
+        "VertexSet",
+        "Exposure",
+        "Outcome"
+      ]
+    },
+    {
+      "name": "ColliderCovariancePair",
+      "type": "pair of positive-definite matrices",
+      "def": "\\(\\boldsymbol\\Sigma^{\\mathrm{col}}=(\\Sigma^{\\mathrm{col}}_1,\\Sigma^{\\mathrm{col}}_2)\\) in the coordinate order \\(X,W,Y\\), with \\(\\Sigma^{\\mathrm{col}}_1=\\begin{psmallmatrix}1&3/10&23/50\\\\3/10&1&8/25\\\\23/50&8/25&1\\end{psmallmatrix}\\) and \\(\\Sigma^{\\mathrm{col}}_2=\\begin{psmallmatrix}1&3/10&2/25\\\\3/10&1&57/100\\\\2/25&57/100&543/500\\end{psmallmatrix}\\).",
+      "role": "Legal three-variable collider witness.",
+      "refs": [
+        "CovariancePair",
+        "Exposure",
+        "Outcome",
+        "ColliderVertex"
+      ]
+    },
+    {
+      "name": "AuditVertexU",
+      "type": "vertex",
+      "space": "\\(\\mathbb V\\setminus\\{X,Y\\}\\)",
+      "def": "For the four-vertex audit, \\(U\\) is the first nondistinguished labelled vertex.",
+      "role": "Candidate adjustment vertex.",
+      "refs": [
+        "VertexSet",
+        "Exposure",
+        "Outcome"
+      ]
+    },
+    {
+      "name": "AuditVertexV",
+      "type": "vertex",
+      "space": "\\(\\mathbb V\\setminus\\{X,Y,U\\}\\)",
+      "def": "For the four-vertex audit, \\(V\\) is the second nondistinguished labelled vertex.",
+      "role": "Second audit vertex.",
+      "refs": [
+        "VertexSet",
+        "Exposure",
+        "Outcome",
+        "AuditVertexU"
+      ]
+    },
+    {
+      "name": "CovarianceCoordinate",
+      "type": "polynomial coordinate",
+      "def": "\\(s^e_{AB}=\\Sigma_{e,AB}\\) for \\(A,B\\in\\{X,Y,U,V\\}\\).",
+      "role": "Coordinates for exact four-vertex ideals.",
+      "refs": [
+        "CovariancePair",
+        "EnvironmentIndex",
+        "VariableA",
+        "VariableB",
+        "Exposure",
+        "Outcome",
+        "AuditVertexU",
+        "AuditVertexV"
+      ]
+    },
+    {
+      "name": "AuditCovariancePair",
+      "type": "pair of positive-definite rational matrices",
+      "def": "\\(\\boldsymbol\\Sigma^*=(\\Sigma^*_1,\\Sigma^*_2)\\) in the coordinate order \\(X,U,Y,V\\), where \\(\\Sigma^*_1=\\begin{psmallmatrix}1&3/10&23/50&548/1925\\\\3/10&1&8/25&893/3850\\\\23/50&8/25&1&4401/19250\\\\548/1925&893/3850&4401/19250&675057/741125\\end{psmallmatrix}\\) and \\(\\Sigma^*_2=\\begin{psmallmatrix}1&3/10&2/25&-739/3900\\\\3/10&1&57/100&2419/23400\\\\2/25&57/100&543/500&451/19500\\\\-739/3900&2419/23400&451/19500&23779577/27378000\\end{psmallmatrix}\\).",
+      "role": "Positive rational witness for one exact common-fiber stratum.",
+      "refs": [
+        "CovariancePair",
+        "Exposure",
+        "Outcome",
+        "AuditVertexU",
+        "AuditVertexV"
+      ]
+    },
+    {
+      "name": "FourVertexArtifact",
+      "type": "versioned machine-readable certificate artifact",
+      "def": "\\(\\mathsf{CertA4}_{v4}\\) is the JSON artifact at \\(\\texttt{discovery/certificates/a4\\_common\\_fiber\\_v4.json}\\), with SHA-256 checksum \\(\\texttt{ec5aa80eeff2a19f3e44db0bec025178cb6c673f330d7478028051deb328b021}\\).",
+      "role": "Persistent exact common-fiber audit record.",
+      "refs": [
+        "AuditCovariancePair",
+        "Component",
+        "SupportOrderSet",
+        "ExactSupportCell",
+        "FiberStratum",
+        "ComponentIdeal"
+      ]
+    },
+    {
+      "name": "FourVertexCertificateTable",
+      "type": "finite exact certificate table",
+      "def": "\\(\\mathsf A_4\\) is the exact common-fiber table embedded in \\(\\mathsf{CertA4}_{v4}\\) and specified in \\(\\text{def:four-vertex-certificate-table}\\).",
+      "role": "Auditable exhaustive four-vertex output.",
+      "ref": "def:four-vertex-certificate-table",
+      "refs": [
+        "AuditCovariancePair",
+        "FourVertexArtifact",
+        "ComponentIdeal",
+        "GenericOrderSet",
+        "SupportOrderSet",
+        "ExactSupportCell",
+        "FiberStratum",
+        "BaselineSCM",
+        "InterventionTargetPair"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:linear-structural-equations",
+      "kind": "causal-structural",
+      "condition": "For each \\(e\\in\\{1,2\\}\\), \\(Z_e=B_e^{\\mathsf T}Z_e+\\varepsilon_e\\).",
+      "free_symbols": [
+        "EnvironmentIndex",
+        "EnvironmentSet",
+        "RandomVector",
+        "CoefficientPair",
+        "InnovationVector"
+      ],
+      "standard": {
+        "name": "Linear structural causal model",
+        "cite": "BystrovaDevijver2026LDiffPC"
+      },
+      "used_by": [
+        "def:paired-model-class"
+      ]
+    },
+    {
+      "id": "ass:baseline-structural-interventions",
+      "kind": "causal-structural",
+      "condition": "There are a baseline DAG \\(G^*\\), baseline coefficients \\(B^*\\), and target sets \\(\\mathcal I_1,\\mathcal I_2\\) such that, for every \\(e\\) and \\(v\\), \\(\\operatorname{Pa}_{G_e}(v)\\subseteq\\operatorname{Pa}_{G^*}(v)\\), equivalently \\(B_{e,uv}=0\\) whenever \\(u\\notin\\operatorname{Pa}_{G^*}(v)\\); if \\(v\\notin\\mathcal I_e\\), then \\(B_{e,uv}=B^*_{uv}\\) for every \\(u\\), whereas if \\(v\\in\\mathcal I_e\\), only coefficients on \\(\\operatorname{Pa}_{G^*}(v)\\) may be altered or deleted and no new parent may be introduced.",
+      "free_symbols": [
+        "BaselineGraph",
+        "BaselineCoefficientMatrix",
+        "InterventionTargetPair",
+        "EnvironmentDAGPair",
+        "EnvironmentSet",
+        "VertexSet",
+        "CoefficientPair"
+      ],
+      "standard": {
+        "name": "Baseline-parent structural interventions and modularity, arXiv version 1, page 3, Assumption 1 and the immediately following modularity paragraph, with Definition 1 for inherited difference-edge directions",
+        "cite": "BystrovaDevijver2026LDiffPC"
+      },
+      "used_by": [
+        "def:paired-model-class",
+        "def:order-compatible-cell",
+        "def:compatible-components",
+        "def:exact-support-strata",
+        "def:ci-free-component",
+        "def:generic-identification",
+        "def:forced-zero",
+        "def:uniform-single-door",
+        "def:radical-certificate",
+        "def:query-algorithm",
+        "def:collider-witness",
+        "def:four-vertex-certificate-table",
+        "def:effect-confidence-union",
+        "lem:true-completion-retention",
+        "lem:ci-free-cholesky-reduction",
+        "thm:component-radical-certificate",
+        "thm:uniform-single-door-sufficiency",
+        "thm:four-vertex-exhaustive-audit",
+        "oeq:generic-uniform-door-completeness",
+        "thm:collider-witness-audit",
+        "thm:finite-query-decision",
+        "oeq:fixed-treewidth-query",
+        "thm:boundary-honest-confidence-union"
+      ]
+    },
+    {
+      "id": "ass:independent-gaussian-innovations",
+      "kind": "distributional",
+      "condition": "For each \\(e\\in\\{1,2\\}\\), \\(\\varepsilon_e\\sim\\mathcal N(0,\\operatorname{diag}(\\omega_e))\\).",
+      "free_symbols": [
+        "EnvironmentIndex",
+        "EnvironmentSet",
+        "InnovationVector",
+        "InnovationVariancePair"
+      ],
+      "standard": {
+        "name": "Causally sufficient linear Gaussian DAG errors",
+        "cite": "BoegeKubjasMisraSolus2026ColoredDAG"
+      },
+      "used_by": [
+        "def:paired-model-class"
+      ]
+    },
+    {
+      "id": "ass:invariant-innovation-variances",
+      "kind": "cross-environment-homogeneity",
+      "condition": "\\(\\omega_{1v}=\\omega_{2v}\\) for every \\(v\\in\\mathbb V\\).",
+      "free_symbols": [
+        "InnovationVariancePair",
+        "VertexSet",
+        "EnvironmentSet"
+      ],
+      "standard": {
+        "name": "Invariant exogenous noise distributions specialized to Gaussian variances",
+        "cite": "BystrovaDevijver2026LDiffPC"
+      },
+      "used_by": [
+        "def:paired-model-class",
+        "def:order-compatible-cell"
+      ]
+    },
+    {
+      "id": "ass:positive-innovation-variances",
+      "kind": "support",
+      "condition": "\\(\\omega_{ev}>0\\) for every \\(e\\in\\{1,2\\}\\) and \\(v\\in\\mathbb V\\).",
+      "free_symbols": [
+        "InnovationVariancePair",
+        "EnvironmentSet",
+        "VertexSet"
+      ],
+      "standard": {
+        "name": "Positive Gaussian innovation variances",
+        "cite": "BoegeKubjasMisraSolus2026ColoredDAG"
+      },
+      "used_by": [
+        "def:paired-model-class",
+        "def:order-compatible-cell"
+      ]
+    },
+    {
+      "id": "ass:diff-faithfulness",
+      "kind": "cross-environment-faithfulness",
+      "condition": "For every ordered pair of distinct vertices \\(A,B\\) and every \\(S\\subseteq\\mathbb V\\setminus\\{A,B\\}\\), \\(r_1(B,A\\mid S)=r_2(B,A\\mid S)\\) if and only if \\(\\operatorname{dsep}_{\\Delta,M}(A,B\\mid S)\\).",
+      "free_symbols": [
+        "VariableA",
+        "VariableB",
+        "ConditioningSet",
+        "VertexSet",
+        "RegressionFunctional",
+        "DiffSeparationPredicate",
+        "SCMPair"
+      ],
+      "standard": {
+        "name": "Diff-faithfulness, arXiv version 1, Section 4, Assumption 3, using Definition 4",
+        "cite": "BystrovaDevijver2026LDiffPC"
+      },
+      "used_by": [
+        "def:paired-model-class",
+        "def:order-compatible-cell",
+        "def:compatible-components",
+        "def:exact-support-strata",
+        "lem:true-completion-retention",
+        "thm:four-vertex-exhaustive-audit",
+        "thm:boundary-honest-confidence-union"
+      ]
+    },
+    {
+      "id": "ass:iid-gaussian-sampling",
+      "kind": "sampling",
+      "condition": "Independently across environments, \\(Z_{e1},\\ldots,Z_{en_e}\\stackrel{\\mathrm{iid}}{\\sim}P_e=\\mathcal N(0,\\Sigma_e)\\).",
+      "free_symbols": [
+        "SampleData",
+        "RandomVector",
+        "SampleSizes",
+        "EnvironmentIndex",
+        "EnvironmentSet",
+        "DistributionPair",
+        "CovariancePair"
+      ],
+      "standard": {
+        "name": "Independent centered Gaussian sampling",
+        "cite": "StriederDrton2023Confidence"
+      },
+      "used_by": [
+        "def:covariance-inversion-region",
+        "def:effect-confidence-union"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:paired-model-class",
+      "name": "Exact Bystrova--Devijver diff-faithful baseline-intervention paired linear Gaussian SCM class",
+      "construction": "\\(\\mathcal M_p^{\\mathrm{df}}=\\{M=(M^*,\\mathcal I,((G_e,B_e,\\omega_e))_{e=1}^2,\\pi): \\text{ass:linear-structural-equations, ass:baseline-structural-interventions, ass:independent-gaussian-innovations, ass:invariant-innovation-variances, ass:positive-innovation-variances, and ass:diff-faithfulness hold}\\}\\).",
+      "free_symbols": [
+        "p",
+        "BaselineSCM",
+        "BaselineGraph",
+        "BaselineCoefficientMatrix",
+        "InterventionTargetPair",
+        "EnvironmentDAGPair",
+        "SCMPair",
+        "CoefficientPair",
+        "InnovationVariancePair",
+        "CommonOrder",
+        "EnvironmentSet",
+        "DiffSeparationPredicate"
+      ],
+      "by_member_properties": [
+        "ass:linear-structural-equations",
+        "ass:baseline-structural-interventions",
+        "ass:independent-gaussian-innovations",
+        "ass:invariant-innovation-variances",
+        "ass:positive-innovation-variances",
+        "ass:diff-faithfulness"
+      ]
+    },
+    {
+      "id": "def:population-ledger",
+      "name": "Complete population equality and sepset ledger",
+      "construction": "Evaluate every \\(r_1(B,A\\mid S)-r_2(B,A\\mid S)\\) and every \\(c_e(A,B\\mid S)\\); record its zero or nonzero status, retain every zero-producing sepset, and apply population LDiffPC to obtain \\(H(\\mathcal L)\\).",
+      "free_symbols": [
+        "Ledger",
+        "RegressionFunctional",
+        "CIMinor",
+        "VariableA",
+        "VariableB",
+        "ConditioningSet",
+        "EnvironmentIndex",
+        "EnvironmentSet",
+        "PartialDifferenceGraph"
+      ],
+      "inputs": [
+        "CovariancePair"
+      ]
+    },
+    {
+      "id": "def:order-compatible-cell",
+      "name": "Positive order-compatible ledger cell",
+      "construction": "\\(\\mathcal S^{\\mathrm{df}}_{\\pi,\\mathcal L}=\\{\\boldsymbol\\Sigma\\in\\operatorname{PD}_p^2:\\text{there exists a realizable baseline-intervention \\(M\\in\\mathcal M_p^{\\mathrm{df}}\\) with covariance \\(\\boldsymbol\\Sigma\\), order \\(\\pi\\), ledger \\(\\mathcal L\\), and induced \\(\\mathcal D_M\\) consistent with \\(H(\\mathcal L)\\)}\\}\\).",
+      "free_symbols": [
+        "CommonOrder",
+        "Ledger",
+        "CovariancePair",
+        "p",
+        "VertexSet",
+        "AdmissibleOrderSet",
+        "PartialDifferenceGraph",
+        "SCMPair",
+        "DiffFaithfulModelClass",
+        "DifferenceGraph",
+        "BaselineSCM",
+        "BaselineGraph",
+        "BaselineCoefficientMatrix",
+        "InterventionTargetPair",
+        "EnvironmentDAGPair"
+      ],
+      "inputs": [
+        "CovariancePair",
+        "Ledger",
+        "PartialDifferenceGraph",
+        "CommonOrder"
+      ]
+    },
+    {
+      "id": "def:compatible-components",
+      "name": "Ambient compatible irreducible components",
+      "construction": "Compute each saturated \\(I_{\\pi,\\mathcal L}\\), form the complex Zariski closure of \\(\\bigcup_{\\pi}\\mathcal S^{\\mathrm{df}}_{\\pi,\\mathcal L}\\), and take its irreducible components \\(C\\). These ambient components are passed to exact common-fiber support stratification and are not used by themselves for identification comparisons.",
+      "free_symbols": [
+        "CompatibilityIdeal",
+        "CommonOrder",
+        "Ledger",
+        "ObservableVariety",
+        "Component",
+        "DiffFaithfulModelClass",
+        "BaselineSCM",
+        "BaselineGraph",
+        "InterventionTargetPair"
+      ],
+      "inputs": [
+        "CovariancePair",
+        "Ledger",
+        "PartialDifferenceGraph"
+      ]
+    },
+    {
+      "id": "def:exact-support-strata",
+      "name": "Exact common-fiber support strata",
+      "construction": "For every ambient \\(C\\) and nonempty \\(J\\subseteq\\mathfrak S_{\\mathbb V}\\), eliminate the quantified SCM coefficients, positive innovations, baseline DAG, target sets, and all Boolean graph choices from the formula \\(\\Pi_C(\\boldsymbol\\Sigma)=J\\), together with positive definiteness, the full ledger, LDiffPC consistency, diff-faithfulness, and within-environment CI-free disequalities, to obtain an exact real semialgebraic description of \\(F_{C,J}\\). Certify empty cells by a real Nullstellensatz or CAD certificate. For every nonempty cell, decompose \\(\\overline{F_{C,J}}^{\\mathrm{Zar}_{\\mathbb C}}\\) into irreducible \\(D\\), retain exactly those for which \\(F_{C,J}\\cap D\\) has a nonempty positive real subset Zariski dense in \\(D\\), and record \\(I(D)\\).",
+      "free_symbols": [
+        "Component",
+        "SupportOrderSet",
+        "VertexSet",
+        "GenericOrderSet",
+        "CovariancePair",
+        "SCMPair",
+        "InnovationVariancePair",
+        "BaselineGraph",
+        "InterventionTargetPair",
+        "Ledger",
+        "PartialDifferenceGraph",
+        "DiffFaithfulModelClass",
+        "CIMinor",
+        "ExactSupportCell",
+        "FiberStratum",
+        "ComponentIdeal"
+      ],
+      "inputs": [
+        "Component",
+        "SupportOrderSet",
+        "Ledger",
+        "PartialDifferenceGraph"
+      ]
+    },
+    {
+      "id": "def:ci-free-component",
+      "name": "Within-environment CI-free retained common-fiber stratum",
+      "construction": "\\(\\mathfrak D_{\\mathrm{free}}=\\{(C,J,D):D\\text{ is retained by \\(\\text{def:exact-support-strata}\\) and }F_{C,J}\\cap D\\subseteq\\{c_e(A,B\\mid S)\\neq0\\text{ for every admissible \\(e,A,B,S\\)}\\}\\}\\).",
+      "free_symbols": [
+        "Component",
+        "SupportOrderSet",
+        "ExactSupportCell",
+        "FiberStratum",
+        "CIMinor",
+        "EnvironmentIndex",
+        "VariableA",
+        "VariableB",
+        "ConditioningSet",
+        "DiffFaithfulModelClass",
+        "BaselineSCM",
+        "InterventionTargetPair"
+      ],
+      "inputs": [
+        "Component",
+        "SupportOrderSet",
+        "FiberStratum",
+        "CIMinor"
+      ]
+    },
+    {
+      "id": "def:generic-identification",
+      "name": "Generic common-fiber identification of the direct-effect triple",
+      "construction": "The target is generically identified on a retained \\((C,J,D)\\in\\mathfrak D_{\\mathrm{free}}\\) when there is a nonempty relatively Zariski-open subset \\(U\\subseteq D\\) such that \\(U\\cap F_{C,J}\\) is nonempty and \\(\\tau_{\\pi}(\\boldsymbol\\Sigma)=\\tau_{\\pi'}(\\boldsymbol\\Sigma)\\) for every \\(\\boldsymbol\\Sigma\\in U\\cap F_{C,J}\\) and every \\(\\pi,\\pi'\\in J\\).",
+      "free_symbols": [
+        "DirectEffectTriple",
+        "Component",
+        "SupportOrderSet",
+        "ExactSupportCell",
+        "FiberStratum",
+        "CovariancePair",
+        "CommonOrder",
+        "BaselineSCM",
+        "InterventionTargetPair"
+      ],
+      "inputs": [
+        "Component",
+        "SupportOrderSet",
+        "FiberStratum",
+        "DirectEffectTriple",
+        "ExactSupportCell"
+      ]
+    },
+    {
+      "id": "def:forced-zero",
+      "name": "Common-fiber-stratum-forced zero direct effect",
+      "construction": "\\(\\operatorname{Zero}_{C,J,D}(X,Y)\\) holds when \\(Y\\prec_{\\pi}X\\) for every \\(\\pi\\in J\\), equivalently \\(\\alpha_{e,\\pi}=0\\) for every completion co-realized on \\(F_{C,J}\\cap D\\) and both environments.",
+      "free_symbols": [
+        "Component",
+        "SupportOrderSet",
+        "ExactSupportCell",
+        "FiberStratum",
+        "Exposure",
+        "Outcome",
+        "CommonOrder",
+        "DirectEffectTriple",
+        "EnvironmentSet",
+        "BaselineSCM",
+        "InterventionTargetPair"
+      ],
+      "inputs": [
+        "Component",
+        "SupportOrderSet",
+        "FiberStratum",
+        "Exposure",
+        "Outcome"
+      ]
+    },
+    {
+      "id": "def:uniform-single-door",
+      "name": "Exact-common-fiber uniform single-door certificate",
+      "construction": "For a retained \\((C,J,D)\\), search for \\(W\\subseteq\\mathbb V\\setminus\\{X,Y\\}\\) that contains no descendant of \\(Y\\) and d-separates \\(X\\) from \\(Y\\) after deletion of \\(X\\to Y\\), simultaneously in every baseline-intervention complete DAG indexed by the exact co-realized support \\(J\\) and in both environments.",
+      "free_symbols": [
+        "UniformDoorSet",
+        "VertexSet",
+        "Exposure",
+        "Outcome",
+        "Component",
+        "SupportOrderSet",
+        "FiberStratum",
+        "EnvironmentSet",
+        "BaselineSCM",
+        "InterventionTargetPair"
+      ],
+      "inputs": [
+        "Component",
+        "SupportOrderSet",
+        "FiberStratum",
+        "PartialDifferenceGraph"
+      ]
+    },
+    {
+      "id": "def:radical-certificate",
+      "name": "Exact-common-fiber target-constancy certificate",
+      "construction": "For a retained \\((C,J,D)\\), reduce every \\(N^e_{\\pi,\\pi'}\\), \\(e\\in\\{1,2\\}\\) and \\(\\pi,\\pi'\\in J\\), modulo a Groebner basis of \\(I(D)\\). Zero remainders certify generic equality because \\(F_{C,J}\\cap D\\) is Zariski dense. Nonmembership is accepted only together with exact real feasibility and a relatively open positive cell or exact rational arc inside \\(F_{C,J}\\cap D\\) on which the numerator is nonzero, plus two lifted SCM families at each identical covariance point. Empty support cells carry a real-emptiness certificate, and support coverage is certified by the exact identity \\(\\Pi_C(\\boldsymbol\\Sigma)=J\\) on every retained cell.",
+      "free_symbols": [
+        "EnvironmentIndex",
+        "CommonOrder",
+        "GenericOrderSet",
+        "SupportOrderSet",
+        "Component",
+        "ExactSupportCell",
+        "FiberStratum",
+        "DifferenceNumerator",
+        "ComponentIdeal",
+        "BaselineSCM",
+        "InterventionTargetPair"
+      ],
+      "inputs": [
+        "ComponentIdeal",
+        "DifferenceNumerator",
+        "ExactSupportCell"
+      ]
+    },
+    {
+      "id": "def:query-algorithm",
+      "name": "Orientation-SAT and separator query algorithm",
+      "construction": "Encode acyclicity, realizability by \\(\\mathcal M_p^{\\mathrm{df}}\\), baseline-parent containment, modular target sets, the orientations in \\(H(\\mathcal L)\\), the full ledger, invariant Cholesky variances, diff-faithfulness, and candidate single-door legality as a finite Boolean-polynomial formula. Quantifier-eliminate that formula to partition each ambient \\(C\\) into the exact cells \\(F_{C,J}\\), certify support coverage and empty supports, decompose every nonempty support closure into retained \\(D\\), and apply the door and radical certificates only to order pairs in the same \\(J\\). A rejection is compiled into a relatively open positive cell or exact arc in \\(F_{C,J}\\cap D\\) and two ordered Cholesky SCM lifts with explicit baselines and target sets at each identical covariance point.",
+      "free_symbols": [
+        "PartialDifferenceGraph",
+        "Ledger",
+        "CholeskyVariance",
+        "CommonOrder",
+        "UniformDoorSet",
+        "Component",
+        "SupportOrderSet",
+        "ExactSupportCell",
+        "FiberStratum",
+        "ComponentIdeal",
+        "SCMPair",
+        "CovariancePair",
+        "DiffFaithfulModelClass",
+        "BaselineSCM",
+        "BaselineGraph",
+        "BaselineCoefficientMatrix",
+        "InterventionTargetPair",
+        "EnvironmentDAGPair"
+      ],
+      "inputs": [
+        "CovariancePair",
+        "Ledger",
+        "PartialDifferenceGraph",
+        "Exposure",
+        "Outcome"
+      ]
+    },
+    {
+      "id": "def:collider-witness",
+      "name": "Three-variable legal collider construction",
+      "construction": "Use \\(\\boldsymbol\\Sigma^{\\mathrm{col}}\\) with variables ordered as \\(X,W,Y\\); factor it under each common order \\(X\\prec W\\prec Y\\) and \\(W\\prec X\\prec Y\\). In either order the coefficients on the baseline parents \\((X,W)\\) of \\(Y\\) are \\((2/5,1/5)\\) in environment \\(1\\) and \\((-1/10,3/5)\\) in environment \\(2\\). Take \\(M^*=M_1\\), \\(\\mathcal I_1=\\varnothing\\), and \\(\\mathcal I_2=\\{Y\\}\\) separately for each order, verify that the invariant \\(X\\)--\\(W\\) mechanism is untargeted and that environment \\(2\\) changes only those two baseline-parent coefficients, and form the Definition 1 difference graph from those changes.",
+      "free_symbols": [
+        "ColliderCovariancePair",
+        "ColliderVertex",
+        "Exposure",
+        "Outcome",
+        "CommonOrder",
+        "EnvironmentSet",
+        "BaselineSCM",
+        "BaselineGraph",
+        "BaselineCoefficientMatrix",
+        "InterventionTargetPair",
+        "EnvironmentDAGPair",
+        "DiffFaithfulModelClass"
+      ],
+      "inputs": [
+        "ColliderCovariancePair"
+      ]
+    },
+    {
+      "id": "def:four-vertex-certificate-table",
+      "name": "Exact exhaustive four-vertex certificate table",
+      "construction": "\\(\\mathsf A_4\\) is the versioned machine-readable artifact \\(\\mathsf{CertA4}_{v4}\\), SHA-256 \\(\\texttt{ec5aa80eeff2a19f3e44db0bec025178cb6c673f330d7478028051deb328b021}\\). It enumerates all \\(24\\) labelled common orders and represents every one of the \\(2^{24}-1\\) nonempty support indices \\(J\\) by the exact quantified formula \\(\\Pi_C(\\boldsymbol\\Sigma)=J\\). For every full-ledger sign cell it eliminates all SCM, baseline, target-set, positivity, LDiffPC, CI-free, and diff-faithfulness variables; certifies empty supports; radicalizes and primary-decomposes each nonempty \\(\\overline{F_{C,J}}^{\\mathrm{Zar}_{\\mathbb C}}\\); retains only dense positive-real \\(D\\); and records the ambient, support, and stratum identifiers, \\(I(D)\\), defining equalities and inequalities, dimension, exact common-order lifts at identical covariances, coverage, emptiness, density, baseline, positive-definiteness, CI-free and diff-faithfulness certificates, forced-zero status, all four doors, and every target remainder. Its explicit row \\((C_*,J_*,D_*)\\) has \\(J_*=\\{X\\prec U\\prec Y\\prec V,U\\prec X\\prec Y\\prec V\\}\\) and \\(I(D_*)=(\\langle s^1_{XX}-s^2_{XX},s^1_{XU}-s^2_{XU},s^1_{UU}-s^2_{UU},D_Y,D_V\\rangle:\\Delta^\\infty)\\), where \\(D_Y=\\det\\Sigma_1[X,U,Y]\\det\\Sigma_2[X,U]-\\det\\Sigma_2[X,U,Y]\\det\\Sigma_1[X,U]\\), \\(D_V=\\det\\Sigma_1\\det\\Sigma_2[X,U,Y]-\\det\\Sigma_2\\det\\Sigma_1[X,U,Y]\\), and \\(\\Delta\\) includes every mandated denominator and disequality and the invariant-variance exclusion polynomial for each of the other \\(22\\) orders. At \\(\\boldsymbol\\Sigma^*\\), exactly the two orders in \\(J_*\\) have invariant Cholesky variances, so \\(\\Delta(\\boldsymbol\\Sigma^*)\\neq0\\); both have the displayed baseline-modular lifts, proving that their common positive support contains a nonempty relatively Zariski-open subset dense in \\(D_*\\). The sole legal door is \\(\\{U\\}\\), and both target remainders are zero.",
+      "free_symbols": [
+        "FourVertexCertificateTable",
+        "FourVertexArtifact",
+        "p",
+        "EnvironmentIndex",
+        "VariableA",
+        "VariableB",
+        "ConditioningSet",
+        "CommonOrder",
+        "Exposure",
+        "Outcome",
+        "AuditVertexU",
+        "AuditVertexV",
+        "CompatibilityIdeal",
+        "Component",
+        "ComponentIdeal",
+        "GenericOrderSet",
+        "SupportOrderSet",
+        "ExactSupportCell",
+        "FiberStratum",
+        "UniformDoorSet",
+        "DifferenceNumerator",
+        "CIMinor",
+        "RegressionFunctional",
+        "CovarianceCoordinate",
+        "CovariancePair",
+        "AuditCovariancePair",
+        "DiffFaithfulModelClass",
+        "Ledger",
+        "AdmissibleOrderSet",
+        "BaselineSCM",
+        "BaselineGraph",
+        "BaselineCoefficientMatrix",
+        "InterventionTargetPair",
+        "EnvironmentDAGPair"
+      ],
+      "inputs": [
+        "Ledger",
+        "AdmissibleOrderSet",
+        "AuditCovariancePair",
+        "FourVertexArtifact"
+      ]
+    },
+    {
+      "id": "def:covariance-inversion-region",
+      "name": "Exact Gaussian covariance inversion region",
+      "construction": "Set \\(\\nu_e=n_e-1\\). For each environment use \\(\\nu_e\\widehat\\Sigma_e\\sim\\operatorname{Wishart}_p(\\Sigma_e,\\nu_e)\\), invert \\(T_{\\nu_e}(\\widehat\\Sigma_e,\\Sigma_e)=\\nu_e\\{\\operatorname{tr}(\\Sigma_e^{-1}\\widehat\\Sigma_e)-\\log\\det(\\Sigma_e^{-1}\\widehat\\Sigma_e)-p\\}\\) at \\(q_{p,\\nu_e}(1-\\gamma/2)\\), and take the product of the two regions.",
+      "free_symbols": [
+        "EnvironmentIndex",
+        "EnvironmentSet",
+        "SampleSizes",
+        "DegreesOfFreedom",
+        "SampleCovariancePair",
+        "CovariancePair",
+        "p",
+        "MiscoverageLevel",
+        "CovarianceConfidenceRegion"
+      ],
+      "inputs": [
+        "SampleCovariancePair",
+        "SampleSizes",
+        "MiscoverageLevel"
+      ]
+    },
+    {
+      "id": "def:effect-confidence-union",
+      "name": "Ledger-boundary-honest direct-effect confidence union",
+      "construction": "Map every covariance pair in \\(\\mathcal R_{n,\\gamma}\\) through its complete population ledger, all realizable positive common-order completions in the exact baseline-parent modular-intervention class \\(\\mathcal M_p^{\\mathrm{df}}\\) consistent with the population LDiffPC graph, and \\(\\tau_{\\pi}\\); return the closure of the union.",
+      "free_symbols": [
+        "CovarianceConfidenceRegion",
+        "SampleSizes",
+        "MiscoverageLevel",
+        "Ledger",
+        "SCMPair",
+        "CommonOrder",
+        "DirectEffectTriple",
+        "ConfidenceUnion",
+        "DiffFaithfulModelClass",
+        "PartialDifferenceGraph",
+        "BaselineSCM",
+        "BaselineGraph",
+        "BaselineCoefficientMatrix",
+        "InterventionTargetPair",
+        "EnvironmentDAGPair"
+      ],
+      "inputs": [
+        "CovarianceConfidenceRegion",
+        "AdmissibleOrderSet",
+        "DirectEffectTriple"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:true-completion-retention",
+      "kind": "lemma",
+      "statement": "For every \\(M\\in\\mathcal M_p^{\\mathrm{df}}\\) satisfying the baseline-parent structural-intervention premise of BystrovaDevijver2026LDiffPC, arXiv version 1, page 3, Assumption 1 and the following modularity paragraph, let \\(\\boldsymbol\\Sigma_M\\), \\(\\mathcal L(\\boldsymbol\\Sigma_M)\\), and \\(H(\\mathcal L(\\boldsymbol\\Sigma_M))\\) be its population covariance pair, complete equality and sepset ledger, and population LDiffPC output. Its Theorem 1, with difference-edge directions inherited as in Definition 1, implies that \\(H\\) has the skeleton of \\(\\mathcal D_M\\) and only orientations present in \\(\\mathcal D_M\\); consequently the true common order belongs to \\(\\Pi^{\\mathrm{df}}(\\boldsymbol\\Sigma_M,\\mathcal L(\\boldsymbol\\Sigma_M),H(\\mathcal L(\\boldsymbol\\Sigma_M)))\\).",
+      "free_symbols": [
+        "SCMPair",
+        "DiffFaithfulModelClass",
+        "CovariancePair",
+        "Ledger",
+        "PartialDifferenceGraph",
+        "DifferenceGraph",
+        "CommonOrder",
+        "AdmissibleOrderSet",
+        "BaselineSCM",
+        "BaselineGraph",
+        "BaselineCoefficientMatrix",
+        "InterventionTargetPair",
+        "EnvironmentDAGPair"
+      ],
+      "depends_on": [
+        "ass:linear-structural-equations",
+        "ass:baseline-structural-interventions",
+        "ass:invariant-innovation-variances",
+        "ass:positive-innovation-variances",
+        "ass:diff-faithfulness",
+        "def:paired-model-class",
+        "def:population-ledger",
+        "def:order-compatible-cell"
+      ],
+      "status": "to-prove",
+      "justification": "This retention implication is the bridge that makes every graph-restricted completion fiber and the confidence union valid for the true causal model.",
+      "gap": "BystrovaDevijver2026LDiffPC, arXiv version 1, page 3, Assumption 1 and its modularity paragraph impose baseline-parent interventions, Definition 1 fixes inherited directions, and Theorem 1 proves skeleton recovery and sound orientations under diff-faithfulness; the lemma records the additional completion-fiber consequence needed by the component and inference results.",
+      "consumer": "The confidence-union proof uses true-order retention to map covariance-region coverage into coverage of the true direct-effect triple."
+    },
+    {
+      "id": "lem:ci-free-baseline-embedding",
+      "kind": "lemma",
+      "statement": "Fix a covariance pair \\(\\boldsymbol\\Sigma\\) and an order \\(\\pi\\in\\Pi_C(\\boldsymbol\\Sigma)\\) on a within-environment-CI-free exact support cell. Its two minimal Gaussian DAGs are the complete DAG of \\(\\pi\\). Taking the environment \\(1\\) Cholesky realization as \\(M^*\\), setting \\(\\mathcal I_1=\\varnothing\\), and setting \\(\\mathcal I_2=\\{v:(B_{2,uv})_{u\\prec_{\\pi}v}\\neq(B_{1,uv})_{u\\prec_{\\pi}v}\\}\\) yields \\(\\operatorname{Pa}_{G_e}(v)\\subseteq\\operatorname{Pa}_{G^*}(v)\\) for every \\(e,v\\), leaves every untargeted mechanism equal to baseline, and changes only baseline-parent coefficients at targeted vertices. Thus each order lift used in an exact common fiber has the required baseline-parent modular representation at that same \\(\\boldsymbol\\Sigma\\), without changing its ledger signs or target regression.",
+      "free_symbols": [
+        "Component",
+        "CIMinor",
+        "CommonOrder",
+        "GenericOrderSet",
+        "ExactSupportCell",
+        "EnvironmentDAGPair",
+        "BaselineSCM",
+        "BaselineGraph",
+        "BaselineCoefficientMatrix",
+        "InterventionTargetPair",
+        "CoefficientPair",
+        "EnvironmentSet",
+        "VertexSet",
+        "DiffFaithfulModelClass",
+        "CovariancePair",
+        "Ledger"
+      ],
+      "depends_on": [
+        "ass:linear-structural-equations",
+        "ass:independent-gaussian-innovations",
+        "ass:invariant-innovation-variances",
+        "ass:positive-innovation-variances",
+        "ass:diff-faithfulness",
+        "def:paired-model-class",
+        "def:population-ledger"
+      ],
+      "status": "to-prove",
+      "justification": "The lemma makes baseline and modular target admissibility explicit for every lift inside an exact same-covariance support cell.",
+      "gap": "BystrovaDevijver2026LDiffPC, arXiv version 1, page 3, Assumption 1 and the immediately following modularity paragraph state the baseline-parent intervention model but do not show that every CI-free common-order Cholesky pair used in an observable-component audit embeds into it.",
+      "consumer": "The common-fiber radical theorem and four-vertex artifact use it to attach a valid baseline and target set to each co-realized Cholesky lift."
+    },
+    {
+      "id": "lem:ci-free-cholesky-reduction",
+      "kind": "lemma",
+      "statement": "For every retained \\((C,J,D)\\in\\mathfrak D_{\\mathrm{free}}\\) and every \\(\\boldsymbol\\Sigma\\in F_{C,J}\\cap D\\), each compatible minimal DAG is the complete DAG of an order \\(\\pi\\in J\\). For each such same-covariance lift, the unique structural coefficients and innovation variances are respectively \\(b^{\\pi}_e(v,u)\\) and \\(v^{\\pi}_e(u)\\).",
+      "free_symbols": [
+        "Component",
+        "SupportOrderSet",
+        "ExactSupportCell",
+        "FiberStratum",
+        "CIMinor",
+        "CommonOrder",
+        "GenericOrderSet",
+        "CholeskyCoefficient",
+        "CholeskyVariance",
+        "EnvironmentIndex",
+        "VertexSet",
+        "BaselineSCM",
+        "InterventionTargetPair"
+      ],
+      "depends_on": [
+        "ass:linear-structural-equations",
+        "ass:baseline-structural-interventions",
+        "ass:independent-gaussian-innovations",
+        "ass:positive-innovation-variances",
+        "ass:diff-faithfulness",
+        "def:paired-model-class",
+        "def:order-compatible-cell",
+        "def:compatible-components",
+        "def:exact-support-strata",
+        "def:ci-free-component",
+        "lem:ci-free-baseline-embedding"
+      ],
+      "status": "to-prove",
+      "justification": "This reduction replaces an uncontrolled DAG union by finitely many rational predecessor regressions without assuming causal minimality.",
+      "gap": "BoegeKubjasMisraSolus2026ColoredDAG, Section 3.1 and its identifying-sets theorem, recover parameters for one fixed DAG; the claim must hold simultaneously for all orders in one exact paired-ledger covariance fiber.",
+      "consumer": "The reduction makes every later identification and countermodel certificate a finite calculation in covariance coordinates."
+    },
+    {
+      "id": "thm:component-radical-certificate",
+      "kind": "theorem",
+      "statement": "Fix a retained exact common-fiber stratum \\((C,J,D)\\in\\mathfrak D_{\\mathrm{free}}\\). The direct-effect triple is generically identified on \\(F_{C,J}\\cap D\\) if and only if \\(N^e_{\\pi,\\pi'}\\in I(D)\\) for every \\(e\\in\\{1,2\\}\\) and every \\(\\pi,\\pi'\\in J\\). Exact real quantifier elimination first certifies the mutually exclusive support cells \\(F_{C,J}\\), their coverage, and the emptiness of discarded cells; primary decomposition, density certification, and radical membership then form a terminating sound-and-complete procedure over rational ledger input. If a test rejects, the procedure returns a relatively open positive semialgebraic cell or exact rational arc \\(\\boldsymbol\\Sigma(s)\\subset F_{C,J}\\cap D\\) and two Cholesky SCM families in \\(\\mathcal M_p^{\\mathrm{df}}\\), with orders in the same \\(J\\), explicit baselines and modular target sets, and identical covariance pair and ledger at every \\(s\\), such that a target numerator is nonzero on a relatively open subset. The certificate verifies positive definiteness, CI-freeness, diff-faithfulness, baseline-parent containment, modularity, density, and numerator nonvanishing; complex ideal nonmembership alone is not a rejection certificate.",
+      "free_symbols": [
+        "Component",
+        "SupportOrderSet",
+        "ExactSupportCell",
+        "FiberStratum",
+        "CIMinor",
+        "DirectEffectTriple",
+        "DifferenceNumerator",
+        "EnvironmentIndex",
+        "EnvironmentSet",
+        "CommonOrder",
+        "GenericOrderSet",
+        "ComponentIdeal",
+        "CovariancePair",
+        "SCMPair",
+        "Ledger",
+        "DiffFaithfulModelClass",
+        "BaselineSCM",
+        "BaselineGraph",
+        "InterventionTargetPair"
+      ],
+      "depends_on": [
+        "ass:invariant-innovation-variances",
+        "ass:positive-innovation-variances",
+        "ass:baseline-structural-interventions",
+        "ass:diff-faithfulness",
+        "def:order-compatible-cell",
+        "def:compatible-components",
+        "def:exact-support-strata",
+        "def:ci-free-component",
+        "def:generic-identification",
+        "def:radical-certificate",
+        "lem:ci-free-cholesky-reduction"
+      ],
+      "status": "to-prove",
+      "justification": "A referee-checkable rejection must exhibit same-observable causal models, not merely report numerical infeasibility or failure of a graphical criterion.",
+      "gap": "GarciaPuenteSpielvogelSullivant2010ComputerAlgebra, Proposition 2, computes the observable image ideal, while Propositions 3--4 give the augmented-target generic-identification test; those results do not stratify a paired invariant-noise ledger by exact common realization fibers or extract positive same-covariance countermodel arcs.",
+      "consumer": "The certificate is the exact population audit used before reporting a BIRC3-to-PRKAR2B direct-effect triple from a partial difference graph."
+    },
+    {
+      "id": "thm:uniform-single-door-sufficiency",
+      "kind": "theorem",
+      "statement": "Let \\((C,J,D)\\in\\mathfrak D_{\\mathrm{free}}\\) be retained from \\(\\mathcal M_p^{\\mathrm{df}}\\). If \\(\\operatorname{Zero}_{C,J,D}(X,Y)\\) holds, then \\(\\tau_{\\pi}(\\boldsymbol\\Sigma)=(0,0,0)\\) for every \\(\\boldsymbol\\Sigma\\in F_{C,J}\\cap D\\) and \\(\\pi\\in J\\). Otherwise, if a common-fiber-uniform single-door set \\(W\\) exists, then for every \\(\\boldsymbol\\Sigma\\in F_{C,J}\\cap D\\), \\(\\pi\\in J\\), and \\(e\\in\\{1,2\\}\\), \\(\\alpha_{e,\\pi}=r_e(Y,X\\mid W)\\); hence \\(\\tau=(r_1(Y,X\\mid W),r_2(Y,X\\mid W),r_1(Y,X\\mid W)-r_2(Y,X\\mid W))\\) is generically identified on the retained stratum.",
+      "free_symbols": [
+        "Component",
+        "SupportOrderSet",
+        "ExactSupportCell",
+        "FiberStratum",
+        "CIMinor",
+        "Exposure",
+        "Outcome",
+        "DirectEffectTriple",
+        "CommonOrder",
+        "UniformDoorSet",
+        "EnvironmentIndex",
+        "EnvironmentSet",
+        "RegressionFunctional",
+        "CovariancePair",
+        "DiffFaithfulModelClass",
+        "BaselineSCM",
+        "InterventionTargetPair"
+      ],
+      "depends_on": [
+        "ass:baseline-structural-interventions",
+        "def:ci-free-component",
+        "def:forced-zero",
+        "def:uniform-single-door",
+        "def:generic-identification",
+        "lem:ci-free-cholesky-reduction"
+      ],
+      "status": "to-prove",
+      "justification": "This is the constructive half of the frontier and supplies the observable identifying functional rather than only a yes-or-no answer.",
+      "gap": "Assaad2025DifferenceGraphs, PMLR version, Theorem 10 and Lemmas 11--13 under Assumptions 1--3, supplies the common single-door formula for a fully specified difference graph; it does not require one set to remain valid across all orders co-realized at the same covariance throughout an exact partial-ledger support stratum.",
+      "consumer": "The formula turns an accepted ledger certificate into two ordinary partial regressions and their cross-environment contrast."
+    },
+    {
+      "id": "thm:four-vertex-exhaustive-audit",
+      "kind": "theorem",
+      "statement": "Let \\(p=4\\) with labelled vertices \\(X,Y,U,V\\). The checksummed artifact \\(\\mathsf{CertA4}_{v4}\\) at \\(\\texttt{discovery/certificates/a4\\_common\\_fiber\\_v4.json}\\) exhausts all \\(24\\) common orders, every realizable full-ledger sign cell, and all exact support indices \\(J\\); quantifier-eliminates realizability, baseline, target-set, positivity, LDiffPC, CI-free, and diff-faithfulness conditions; certifies empty supports and coverage; decomposes each nonempty support closure; and records every retained \\((C,J,D)\\), all four doors, and every target numerator. On every retained positive-real diff-faithful baseline-intervention CI-free common-fiber stratum, the direct-effect triple is generically identified if and only if \\(\\operatorname{Zero}_{C,J,D}(X,Y)\\) holds or one of \\(\\varnothing,\\{U\\},\\{V\\},\\{U,V\\}\\) is a common-fiber-uniform single-door set. In the explicit row \\((C_*,J_*,D_*)\\), \\(J_*=\\{X\\prec U\\prec Y\\prec V,U\\prec X\\prec Y\\prec V\\}\\), \\(I(D_*)\\), and \\(\\boldsymbol\\Sigma^*\\) are recorded in \\(\\mathsf{CertA4}_{v4}\\). Both matrices have determinant \\(8554/15625\\); exactly those two orders have invariant Cholesky variances at the displayed covariance, and the product excluding every other order is nonzero there. Each of the two orders has a lift at that identical covariance with environment \\(1\\) as \\(M^*\\), \\(\\mathcal I_1=\\varnothing\\), and \\(\\mathcal I_2=\\{Y,V\\}\\). Consequently their common positive diff-faithful cell is nonempty and relatively Zariski open, hence dense in \\(D_*\\). The unique legal candidate is \\(W=\\{U\\}\\), and both target-numerator remainders are zero.",
+      "free_symbols": [
+        "p",
+        "Exposure",
+        "Outcome",
+        "AuditVertexU",
+        "AuditVertexV",
+        "FourVertexCertificateTable",
+        "FourVertexArtifact",
+        "CommonOrder",
+        "Ledger",
+        "DiffFaithfulModelClass",
+        "CIMinor",
+        "Component",
+        "SupportOrderSet",
+        "ExactSupportCell",
+        "FiberStratum",
+        "DirectEffectTriple",
+        "GenericOrderSet",
+        "UniformDoorSet",
+        "ComponentIdeal",
+        "AuditCovariancePair",
+        "DifferenceNumerator",
+        "BaselineSCM",
+        "BaselineGraph",
+        "InterventionTargetPair"
+      ],
+      "depends_on": [
+        "ass:invariant-innovation-variances",
+        "ass:positive-innovation-variances",
+        "ass:baseline-structural-interventions",
+        "ass:diff-faithfulness",
+        "def:compatible-components",
+        "def:exact-support-strata",
+        "def:ci-free-component",
+        "def:forced-zero",
+        "def:uniform-single-door",
+        "def:four-vertex-certificate-table",
+        "lem:ci-free-baseline-embedding",
+        "thm:component-radical-certificate",
+        "thm:uniform-single-door-sufficiency"
+      ],
+      "status": "to-prove",
+      "justification": "The exhaustive labelled four-node computation is the smallest complete stress test of whether invariant-noise ledger equations identify a target for a non-graphical reason.",
+      "gap": "GarciaPuenteSpielvogelSullivant2010ComputerAlgebra reports exhaustive three- and four-vertex audits for ordinary linear SEM causal effects, but not paired diff-faithful invariant-noise ledgers, exact common-fiber support strata, or a uniform single-door frontier.",
+      "consumer": "The exact common-fiber four-node audit supports the higher-dimensional necessity question without comparing orders that never share an observed covariance."
+    },
+    {
+      "id": "oeq:generic-uniform-door-completeness",
+      "kind": "openendedquestion",
+      "statement": "For every \\(p\\ge5\\) and every retained positive-real diff-faithful baseline-intervention common-fiber stratum \\((C,J,D)\\in\\mathfrak D_{\\mathrm{free}}\\) arising from \\(\\mathcal M_p^{\\mathrm{df}}\\), is the direct-effect triple generically identified on \\(F_{C,J}\\cap D\\) if and only if \\(\\operatorname{Zero}_{C,J,D}(X,Y)\\) holds or a common-fiber-uniform single-door set \\(W\\) exists? Equivalently, whenever neither graphical certificate exists, must there be \\(e\\in\\{1,2\\}\\) and \\(\\pi,\\pi'\\in J\\) such that \\(N^e_{\\pi,\\pi'}\\notin I(D)\\)? The construction handle is to extract a minimal orientation-SAT obstruction inside one exact support formula \\(\\Pi_C(\\boldsymbol\\Sigma)=J\\), contract vertices outside its active trek system to a four-vertex common-fiber stratum certified by \\(\\mathsf{CertA4}_{v4}\\), and lift its real-open numerator nonvanishing certificate through elimination while preserving same-covariance baseline-modular lifts and a Zariski-dense positive diff-faithful cell.",
+      "free_symbols": [
+        "Component",
+        "SupportOrderSet",
+        "ExactSupportCell",
+        "FiberStratum",
+        "CIMinor",
+        "DirectEffectTriple",
+        "Exposure",
+        "Outcome",
+        "UniformDoorSet",
+        "EnvironmentIndex",
+        "EnvironmentSet",
+        "CommonOrder",
+        "GenericOrderSet",
+        "DifferenceNumerator",
+        "ComponentIdeal",
+        "Ledger",
+        "p",
+        "DiffFaithfulModelClass",
+        "FourVertexCertificateTable",
+        "FourVertexArtifact",
+        "BaselineSCM",
+        "BaselineGraph",
+        "InterventionTargetPair"
+      ],
+      "depends_on": [
+        "ass:baseline-structural-interventions",
+        "def:exact-support-strata",
+        "def:ci-free-component",
+        "def:generic-identification",
+        "def:forced-zero",
+        "def:uniform-single-door",
+        "def:radical-certificate",
+        "thm:component-radical-certificate",
+        "thm:uniform-single-door-sufficiency",
+        "thm:four-vertex-exhaustive-audit"
+      ],
+      "status": "to-prove",
+      "justification": "The necessity direction is the theorem-level kernel: it decides whether algebraic equality ledgers ever identify a direct-effect triple for reasons not expressible by one uniform single-door set.",
+      "gap": "Assaad2025DifferenceGraphs, PMLR version, Theorem 10 under Assumptions 1--3, proves the fully specified difference-graph iff for trivial or common-single-door identification, while BystrovaDevijver2026LDiffPC, arXiv version 1, page 3, Assumption 1 and its modularity paragraph, Definition 1, and Theorem 1 return a partial graph for baseline-parent interventions under diff-faithfulness; neither controls algebraic coincidences among orders that co-realize the same covariance throughout a higher-dimensional exact support stratum.",
+      "consumer": "A positive resolution gives ovarian-cancer analysts a complete population rule for deciding whether the LDiffPC BIRC3-to-PRKAR2B output licenses a numerical direct-effect contrast."
+    },
+    {
+      "id": "thm:collider-witness-audit",
+      "kind": "theorem",
+      "statement": "For \\(\\boldsymbol\\Sigma^{\\mathrm{col}}\\), both covariance matrices are positive definite with determinant \\(4277/6250=0.68432\\). Exactly the common orders \\(X\\prec W\\prec Y\\) and \\(W\\prec X\\prec Y\\) have invariant positionwise innovation variances \\(1,91/100,94/125\\) at this same covariance pair, and the coefficient pairs on \\((X,W)\\to Y\\) are \\((2/5,1/5)\\) and \\((-1/10,3/5)\\). For each co-realized order, take the environment \\(1\\) realization as \\(M^*\\), set \\(\\mathcal I_1=\\varnothing\\) and \\(\\mathcal I_2=\\{Y\\}\\); the \\(X\\)--\\(W\\) mechanism is unchanged, and environment \\(2\\) changes only coefficients on the two baseline parents of \\(Y\\), so no new parent is introduced. The environment-specific coefficients of \\(X\\to Y\\) are \\(2/5\\) and \\(-1/10\\), the \\(X\\)--\\(W\\) coefficient is invariant, and both arrows into \\(Y\\) change. The only cross-environment regression equalities are \\(r_1(W,X)=r_2(W,X)=3/10\\) and its reverse, exactly matching empty-set diff-separation for the nonadjacent pair in the Definition 1 difference graph; thus both lifts lie in one exact same-covariance support fiber of \\(\\mathcal M_3^{\\mathrm{df}}\\), and population LDiffPC legally orients \\(X\\to Y\\leftarrow W\\) while leaving the \\(X\\)--\\(W\\) order unresolved.",
+      "free_symbols": [
+        "ColliderCovariancePair",
+        "ColliderVertex",
+        "CommonOrder",
+        "GenericOrderSet",
+        "Exposure",
+        "Outcome",
+        "InnovationVariancePair",
+        "EnvironmentSet",
+        "Ledger",
+        "RegressionFunctional",
+        "DiffFaithfulModelClass",
+        "DifferenceGraph",
+        "BaselineSCM",
+        "BaselineGraph",
+        "InterventionTargetPair",
+        "EnvironmentDAGPair"
+      ],
+      "depends_on": [
+        "ass:baseline-structural-interventions",
+        "ass:diff-faithfulness",
+        "def:population-ledger",
+        "def:collider-witness",
+        "lem:true-completion-retention"
+      ],
+      "status": "to-prove",
+      "justification": "The exact rational witness checks positivity, invariant noise, collider legality, and the two reported effects simultaneously.",
+      "gap": "BystrovaDevijver2026LDiffPC, arXiv version 1, page 3, Assumption 1 and its modularity paragraph, Definition 1, and Theorem 1 prove collider orientation within the baseline-intervention model abstractly but do not provide this diff-faithful invariant-noise covariance-pair audit with two compatible orders and nonzero direct effects.",
+      "consumer": "The witness is a unit test for implementations of the ledger, Cholesky completion, and direct-effect query routines."
+    },
+    {
+      "id": "thm:finite-query-decision",
+      "kind": "theorem",
+      "statement": "On input \\(\\mathcal L,H(\\mathcal L),X,Y\\), the orientation-SAT and separator algorithm terminates and is sound and complete after exact real quantifier elimination: for every ambient \\(C\\) it certifies the partition into exact supports \\(F_{C,J}\\), the emptiness of discarded supports, and all retained \\(D\\), then returns on each \\((C,J,D)\\) either forced zero, a common-fiber-uniform single-door set, or the stratum radical tests of \\(\\text{thm:component-radical-certificate}\\). With \\(p!\\) possible common orders and ledger length \\(L\\), its Boolean orientation layer uses \\(O(p!\\,\\operatorname{poly}(p,L))\\) arithmetic and SAT-oracle operations, exclusive of real quantifier elimination, primary decomposition, and radical membership. Every rejection certificate gives a relatively open positive cell or exact arc in one \\(F_{C,J}\\cap D\\), two lifts at each identical covariance, explicit baselines and target sets, and independently checkable positivity, CI-free, diff-faithfulness, modularity, density, and numerator-nonvanishing checks.",
+      "free_symbols": [
+        "p",
+        "CommonOrder",
+        "LedgerSize",
+        "Ledger",
+        "Exposure",
+        "Outcome",
+        "UniformDoorSet",
+        "Component",
+        "SupportOrderSet",
+        "ExactSupportCell",
+        "FiberStratum",
+        "ComponentIdeal",
+        "CovariancePair",
+        "PartialDifferenceGraph",
+        "AdmissibleOrderSet",
+        "DiffFaithfulModelClass",
+        "BaselineSCM",
+        "BaselineGraph",
+        "InterventionTargetPair"
+      ],
+      "depends_on": [
+        "ass:baseline-structural-interventions",
+        "def:query-algorithm",
+        "def:exact-support-strata",
+        "def:forced-zero",
+        "def:uniform-single-door",
+        "def:radical-certificate",
+        "thm:component-radical-certificate"
+      ],
+      "status": "to-prove",
+      "justification": "An explicit finite baseline separates the mathematical completeness question from an unencoded feasibility oracle.",
+      "gap": "BystrovaDevijver2026LDiffPC, arXiv version 1, page 3, Assumption 1 with its modularity paragraph and Algorithm 1, recovers a partial difference graph for baseline-parent interventions but does not answer a downstream effect query; vanDerZanderLiskiewiczTextor2019Separators treats separators in fixed standard graph classes without paired covariance equations.",
+      "consumer": "Small and moderate gene-network analyses obtain a terminating query routine even before the fixed-treewidth acceleration is resolved."
+    },
+    {
+      "id": "oeq:fixed-treewidth-query",
+      "kind": "openendedquestion",
+      "statement": "Does there exist a sound-and-complete implementation of the diff-faithful baseline-intervention query algorithm with running time \\(f(t)\\operatorname{poly}(p,L)\\), where \\(t=\\operatorname{tw}(\\operatorname{skel}(H))\\), that avoids enumerating all common orders and exact support indices \\(J\\)? The construction handle is a nice-tree-decomposition dynamic program whose bag state carries an acyclic orientation signature, baseline-parent and modular-target admissibility, exact common-fiber support information, uniform single-door reachability and collider status, ledger and diff-faithfulness sign signatures, and a bounded interface representation of \\(I(D)\\); rejection must still output a positive cell or exact arc in one \\(F_{C,J}\\cap D\\) and two checkable same-covariance SCM families in \\(\\mathcal M_p^{\\mathrm{df}}\\) with explicit baselines and target sets.",
+      "free_symbols": [
+        "p",
+        "LedgerSize",
+        "Treewidth",
+        "PartialDifferenceGraph",
+        "GenericOrderSet",
+        "SupportOrderSet",
+        "ExactSupportCell",
+        "FiberStratum",
+        "ComponentIdeal",
+        "SCMPair",
+        "DiffFaithfulModelClass",
+        "BaselineSCM",
+        "BaselineGraph",
+        "InterventionTargetPair"
+      ],
+      "depends_on": [
+        "ass:baseline-structural-interventions",
+        "def:query-algorithm",
+        "thm:finite-query-decision",
+        "oeq:generic-uniform-door-completeness"
+      ],
+      "status": "to-prove",
+      "justification": "Sparse learned difference graphs are useful only if the universal quantification over completions can be compressed without losing the algebraic rejection witness.",
+      "gap": "vanDerZanderLiskiewiczTextor2019Separators gives efficient separator algorithms for fixed causal graphs, and FoygelDraismaDrton2012HalfTrek gives polynomial certificate searches for a different generic-identification problem; neither tracks paired ledger ideals through partial orientations.",
+      "consumer": "Bounded-treewidth molecular networks would admit scalable certified BIRC3-to-PRKAR2B queries rather than factorial completion enumeration."
+    },
+    {
+      "id": "thm:boundary-honest-confidence-union",
+      "kind": "theorem",
+      "statement": "Under independent Gaussian sampling from the exact baseline-parent modular-intervention class, \\(\\nu_e=n_e-1\\), \\(\\widehat\\Sigma_e=\\nu_e^{-1}\\sum_{i=1}^{n_e}(Z_{ei}-\\overline Z_e)(Z_{ei}-\\overline Z_e)^{\\mathsf T}\\), and \\(\\nu_e\\widehat\\Sigma_e\\sim\\operatorname{Wishart}_p(\\Sigma_e,\\nu_e)\\). Each factor of \\(\\mathcal R_{n,\\gamma}\\) has probability \\(1-\\gamma/2\\). For every \\(M\\in\\mathcal M_p^{\\mathrm{df}}\\), true-completion retention gives the proof-bearing implication \\(\\{\\boldsymbol\\Sigma_M\\in\\mathcal R_{n,\\gamma}\\}\\subseteq\\{\\tau_M\\in\\mathcal C_{n,\\gamma}\\}\\); therefore \\(\\inf_{M\\in\\mathcal M_p^{\\mathrm{df}}}\\Pr_M\\{\\tau_M\\in\\mathcal C_{n,\\gamma}\\}\\ge1-\\gamma\\) for every \\(n_1,n_2>p\\). No uniform positive lower bound is imposed on any nonzero diff-faithfulness, regression-equality, conditional-independence, or competing-regression margin within \\(\\mathcal M_p^{\\mathrm{df}}\\).",
+      "free_symbols": [
+        "SCMPair",
+        "DirectEffectTriple",
+        "ConfidenceUnion",
+        "SampleSizes",
+        "DegreesOfFreedom",
+        "SampleCovariancePair",
+        "SampleMeanPair",
+        "CovariancePair",
+        "CovarianceConfidenceRegion",
+        "MiscoverageLevel",
+        "Ledger",
+        "Exposure",
+        "Outcome",
+        "DiffFaithfulModelClass",
+        "BaselineSCM",
+        "BaselineGraph",
+        "InterventionTargetPair"
+      ],
+      "depends_on": [
+        "ass:iid-gaussian-sampling",
+        "ass:baseline-structural-interventions",
+        "ass:diff-faithfulness",
+        "def:paired-model-class",
+        "def:covariance-inversion-region",
+        "def:effect-confidence-union",
+        "lem:true-completion-retention"
+      ],
+      "status": "to-prove",
+      "justification": "Exact covariance-region inversion and true-order retention give finite-sample coverage without conditioning on one selected ledger.",
+      "gap": "StriederDrton2023Confidence inverts tests for a single-environment total effect under equal variances across variables, while ChangGuoMalinsky2026PostSelection unions intervals after ordinary CI-based discovery; neither covers a paired equality ledger or a three-coordinate direct-effect target at joint ledger boundaries.",
+      "consumer": "The ovarian-cancer analysis can report a confidence union that widens or becomes set-valued near an equality or conditional-independence boundary for the BIRC3-to-PRKAR2B query."
+    }
+  ],
+  "sampling_model": {
+    "design": "Two independent observational samples from centered positive linear-Gaussian acyclic SCMs in the exact Bystrova--Devijver baseline-parent modular-intervention class \\(\\mathcal M_p^{\\mathrm{df}}\\).",
+    "units": "Within environment \\(e\\), \\(Z_{e1},\\ldots,Z_{en_e}\\) are independent and identically distributed; the two samples are independent.",
+    "treatment": "\\(X\\) is an endogenous observed variable; no randomized assignment is assumed.",
+    "overlap": "Positive innovation variances imply positive-definite covariance matrices; no propensity-score condition is used.",
+    "nuisance_estimation": "The population kernel takes \\(\\boldsymbol\\Sigma\\), \\(\\mathcal L\\), and \\(H(\\mathcal L)\\) as inputs. With \\(\\nu_e=n_e-1\\), finite-sample inference inverts exact Wishart covariance regions and unions over every realizable diff-faithful baseline-intervention ledger and order."
+  },
+  "estimand_functional": "\\(\\tau=(r_1(Y,X\\mid W),r_2(Y,X\\mid W),r_1(Y,X\\mid W)-r_2(Y,X\\mid W))\\)",
+  "target_estimand": "\\(\\tau=(\\alpha_1,\\alpha_2,\\alpha_1-\\alpha_2)\\)",
+  "bibliography": [
+    {
+      "key": "BystrovaDevijver2026LDiffPC",
+      "citation": "Daria Bystrova and Emilie Devijver (2026), Constraint-based difference graph discovery in a linear setting, arXiv:2606.13947v1, 11 June 2026."
+    },
+    {
+      "key": "Assaad2025DifferenceGraphs",
+      "citation": "Charles K. Assaad (2025), Causal reasoning in difference graphs, Proceedings of the Fourth Conference on Causal Learning and Reasoning, PMLR 275, pages 15--30."
+    },
+    {
+      "key": "GarciaPuenteSpielvogelSullivant2010ComputerAlgebra",
+      "citation": "Luis David Garcia-Puente, Sarah Spielvogel, and Seth Sullivant (2010), Identifying causal effects with computer algebra, Proceedings of the Twenty-Sixth Conference on Uncertainty in Artificial Intelligence."
+    },
+    {
+      "key": "BoegeKubjasMisraSolus2026ColoredDAG",
+      "citation": "Tobias Boege, Kaie Kubjas, Pratik Misra, and Liam Solus (2026), Coloured Gaussian directed acyclic graphical models, Journal of the Royal Statistical Society Series B 88(3), 819--850."
+    },
+    {
+      "key": "FoygelDraismaDrton2012HalfTrek",
+      "citation": "Rina Foygel, Jan Draisma, and Mathias Drton (2012), Half-trek criterion for generic identifiability of linear structural equation models, Annals of Statistics 40(3), 1682--1713."
+    },
+    {
+      "key": "Perkovic2020MPDAG",
+      "citation": "Emilija Perkovic (2020), Identifying causal effects in maximally oriented partially directed acyclic graphs, Proceedings of the Thirty-Sixth Conference on Uncertainty in Artificial Intelligence, volume 124, pages 530--539."
+    },
+    {
+      "key": "vanDerZanderLiskiewiczTextor2019Separators",
+      "citation": "Benito van der Zander, Maciej Liskiewicz, and Johannes Textor (2019), Separators and adjustment sets in causal graphs: complete criteria and an algorithmic framework, Artificial Intelligence 270, 1--40."
+    },
+    {
+      "key": "StriederDrton2023Confidence",
+      "citation": "David Strieder and Mathias Drton (2023), Confidence in causal inference under structure uncertainty in linear causal models with equal variances, Journal of Causal Inference 11(1), article 20230030."
+    },
+    {
+      "key": "ChangGuoMalinsky2026PostSelection",
+      "citation": "Ting-Hsuan Chang, Zijian Guo, and Daniel Malinsky (2026), Post-selection inference for causal effects after causal discovery, Biometrika, article asaf073."
+    },
+    {
+      "key": "WuDrton2023PartialHomoscedasticity",
+      "citation": "Jun Wu and Mathias Drton (2023), Partial homoscedasticity in causal discovery with linear models, IEEE Journal on Selected Areas in Information Theory 4, 1077--1090."
+    },
+    {
+      "key": "MalikBelloGhoshalHonorio2024CausalChanges",
+      "citation": "Vineet Malik, Kevin Bello, Asish Ghoshal, and Jean Honorio (2024), Identifying causal changes between two linear structural causal models, Proceedings of the Fortieth Conference on Uncertainty in Artificial Intelligence, volume 244, pages 2389--2420."
+    },
+    {
+      "key": "WangSquiresBelyaevaUhler2018DCI",
+      "citation": "Yuhao Wang, Chandler Squires, Anastasiya Belyaeva, and Caroline Uhler (2018), Direct estimation of differences in causal graphs, Advances in Neural Information Processing Systems 31."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "Assaad2025DifferenceGraphs",
+      "comparator_claim": "Under Assumptions 1--3, PMLR Theorem 10 and Lemmas 11--13 characterize when a direct effect is identifiable trivially or by a common single-door in the difference graph of Definition 4.",
+      "matched_by": "Theorem 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BystrovaDevijver2026LDiffPC",
+      "comparator_claim": "ArXiv version 1, page 3, Assumption 1 and its modularity paragraph restrict environments to baseline-parent interventions, Definition 1 inherits difference-edge directions, and Theorem 1 recovers the true difference-graph skeleton with only correct orientations under diff-faithfulness.",
+      "matched_by": "Theorem 6",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "GarciaPuenteSpielvogelSullivant2010ComputerAlgebra",
+      "comparator_claim": "Proposition 2 computes the observable image ideal, while Propositions 3--4 test generic identification by augmenting the parametrization with the target coordinate.",
+      "matched_by": "Theorem 3",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BoegeKubjasMisraSolus2026ColoredDAG",
+      "comparator_claim": "The saturation theorem identifies the colored Gaussian DAG vanishing ideal from local conditional-independence and coloring relations localized at parental minors.",
+      "matched_by": "Theorem 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Perkovic2020MPDAG",
+      "comparator_claim": "The causal identification formula is complete for interventional distributions represented by one maximally oriented partially directed acyclic graph.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "FoygelDraismaDrton2012HalfTrek",
+      "comparator_claim": "The half-trek criterion gives polynomial-time sufficient identification and a separate generic infinite-to-one obstruction for linear structural equation models.",
+      "matched_by": "Open-ended Question 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "vanDerZanderLiskiewiczTextor2019Separators",
+      "comparator_claim": "Separator search yields complete criteria and constructive adjustment sets in standard causal graph classes.",
+      "matched_by": "Open-ended Question 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "StriederDrton2023Confidence",
+      "comparator_claim": "Test inversion yields confidence regions for total effects under unknown single-environment equal-variance Gaussian DAG structure.",
+      "matched_by": "Theorem 6",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ChangGuoMalinsky2026PostSelection",
+      "comparator_claim": "Resampled discovery followed by a union of graph-specific intervals has asymptotic coverage for a fixed causal effect after PC selection.",
+      "matched_by": "Theorem 6",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "LDiffPC turns two observational environments into a partial difference graph and a complete equality and sepset ledger, but does not decide when an environment-specific direct effect is determined. On the exact Bystrova--Devijver baseline-parent modular-intervention class with invariant innovation variances and diff-faithfulness, the project partitions each ambient covariance component into exact semialgebraic cells \\(F_{C,J}\\) on which \\(J=\\Pi_C(\\boldsymbol\\Sigma)\\) is precisely the set of orders co-realized at the same covariance. Identification, forced zero, uniform single-door adjustment, and radical tests are defined only on dense irreducible common-fiber strata \\((C,J,D)\\). Forced zero and a common-fiber-uniform single door are sufficient; the checksummed exact four-vertex artifact certifies necessity on every retained labelled four-node stratum, while the corresponding \\(p\\ge5\\) statement remains open. Exact same-covariance countermodel cells, a legal collider witness, a finite query procedure, and a finite-sample Wishart-inverted confidence union connect the geometry to the BIRC3-to-PRKAR2B query; Assaad's fully specified graph-wide theorem supplies the closest published comparison.",
+  "project_justification": {
+    "gap": "Bystrova and Devijver recover a partial difference graph for baseline-parent modular interventions under exact diff-faithfulness, while Assaad's PMLR Theorem 10 supplies a common-single-door theorem on its separately defined fully specified class. Neither result decides whether invariant-noise equations make the direct-effect triple constant across orders that are jointly realizable at one covariance pair throughout an exact ledger stratum.",
+    "niche": "The observable object is a union of paired colored-DAG images, but shared ambient ideals can contain orders that never co-realize a covariance. Exact semialgebraic support cells isolate the genuine same-observable fibers before algebraic target constancy is tested.",
+    "fill": "The project supplies exact support quantifier elimination, retained common-fiber strata and their prime ideals, real-feasibility and support-coverage certificates, same-covariance countermodel cells, a checksummed exhaustive four-vertex artifact, a common-fiber-uniform single-door formula, a terminating query routine, a fixed-treewidth target, and a finite-sample confidence union without uniform margin lower bounds inside the diff-faithful class."
+  },
+  "related_work": "BystrovaDevijver2026LDiffPC, arXiv version 1, page 3, Assumption 1 and the immediately following modularity paragraph require each environment to retain only baseline parents and leave untargeted mechanisms equal to baseline; Definition 1 inherits changed-edge directions. Section 4, Definition 4 and Assumption 3 define exact diff-faithfulness, and Theorem 1 establishes skeleton recovery and sound orientations. The present pointwise order fiber is restricted to that class and uses Theorem 1 for true-order retention. Assaad2025DifferenceGraphs, PMLR Definition 4, Theorem 10, and Lemmas 11--13 under Assumptions 1--3 provide the closest effect result for a fully specified graph-wide model class: its criterion is a published benchmark for Theorem 2 and Open-ended Question 1, whereas the proposal studies exact sets of orders co-realized at one covariance pair and complete ledger. No class inclusion, criterion equivalence, converse, or subclass-transfer deliverable is asserted. GarciaPuenteSpielvogelSullivant2010ComputerAlgebra, Proposition 2, computes an observable image ideal, while Propositions 3--4 augment the parametrization by a target coordinate to test generic identification. The common-fiber stratification adds exact real co-realizability, support coverage, and positive same-covariance lifts before applying that algebraic logic. BoegeKubjasMisraSolus2026ColoredDAG, Sections 4--5 and Theorem 7, supply rational predecessor recovery and localized vanishing-ideal geometry for fixed colored DAGs. Perkovic2020MPDAG settles graph-only identification for ordinary maximally oriented graphs. vanDerZanderLiskiewiczTextor2019Separators and FoygelDraismaDrton2012HalfTrek inform the separator and certificate algorithms but do not track exact paired covariance fibers. StriederDrton2023Confidence, Sections 3--4, and ChangGuoMalinsky2026PostSelection, Theorems 1--3, motivate structure-uncertainty unions; the exact Wishart inversion here targets a two-environment direct-effect vector at ledger boundaries. WuDrton2023PartialHomoscedasticity and MalikBelloGhoshalHonorio2024CausalChanges delimit later robustness work with partial variance invariance.",
+  "technical_internal_limitation": "The checksummed artifact \\(\\mathsf{CertA4}_{v4}\\) is load-bearing only for \\(p=4\\). It records the \\(24\\) labelled orders, all \\(2^{24}-1\\) nonempty support indices by exact quantified formulas, full-ledger signs, support coverage and emptiness certificates, saturated radical strata, positive diff-faithful baseline-modular common lifts at identical covariances, all four doors, and every target remainder. Its explicit \\((C_*,J_*,D_*)\\) row verifies at \\(\\boldsymbol\\Sigma^*\\) that exactly the two stated orders satisfy invariant Cholesky variances; the other-order exclusion product is nonzero, both orders have baseline-modular lifts at the same covariance, and this support persists on a relatively open dense positive cell. A three-variable order-reversal calculation remains only a diagnostic: for \\(W\\sim\\mathcal N(0,q)\\), \\(X=dW+\\eta\\), and \\(Y=k_eW+\\xi_e\\), the competing coefficient difference is \\(dqk_e/(d^2q+r)\\), whose equality factors lie on conditional-independence or degenerate loci. The unresolved bottleneck is the lift from exact four-vertex common-fiber strata to every retained \\(p\\ge5\\) stratum.",
+  "honest_scope": "The operative class \\(\\mathcal M_p^{\\mathrm{df}}\\) consists of positive linear-Gaussian paired SCMs under the baseline-parent structural interventions of BystrovaDevijver2026LDiffPC, arXiv version 1, page 3, Assumption 1 and its modularity paragraph, with Definition 1 directions, invariant innovation variances, and Section 4, Definition 4 and Assumption 3 diff-faithfulness. No claim is made outside that baseline-modular class or at non-diff-faithful boundary models, although no uniform positive lower bound is imposed on nonzero margins within the class. The necessity frontier concerns only retained positive-real, diff-faithful, baseline-intervention, within-environment-CI-free exact common-fiber strata \\((C,J,D)\\). Ambient ideal overlap without pointwise co-realization has no identifying content. The exhaustive necessity result is limited to labelled \\(p=4\\); the \\(p\\ge5\\) necessity and fixed-treewidth compression remain open. Assaad's fully specified graph-wide result is prior-work context only; no class inclusion, criterion equivalence, converse, subclass-transfer result, or Assaad-based deliverable is claimed. The confidence result is finite-sample coverage only. Partial innovation-variance invariance, latent confounding, non-Gaussian models, parent-creating interventions, and efficiency are outside scope.",
+  "novelty_justification": "Assaad2025DifferenceGraphs, PMLR Theorem 10 and Lemmas 11--13 under Assumptions 1--3, characterize trivial or common-single-door identification for a fully specified graph-wide model class and provide the closest published benchmark for Theorem 2 and Open-ended Question 1. The kernel instead conditions on a covariance pair and complete LDiffPC ledger in the exact Bystrova--Devijver class, partitions each ambient component by the pointwise co-realized order set \\(J=\\Pi_C(\\boldsymbol\\Sigma)\\), and compares graphical uniformity with target constancy only on dense irreducible closures of exact support cells; no Assaad class reduction or strict separation is part of the contribution. GarciaPuenteSpielvogelSullivant2010ComputerAlgebra separates observable-image computation in Proposition 2 from augmented-target tests in Propositions 3--4 but does not impose paired invariant noise, exact real common-fiber support, or positive same-covariance countermodels. The certified finite advance is the checksummed exhaustive labelled four-vertex common-fiber frontier; the higher-dimensional delta remains the open question whether absence of forced zero and a common-fiber-uniform single door implies a nonzero competing predecessor-regression numerator on a relatively open positive cell.",
+  "message": "Completed v5: removed the Assaad formal class and proposition, retained Assaad solely as background for Theorem 2 and Open-ended Question 1, preserved the A4 theorem and checksummed artifact, and passed schema, proposal-gate, referential, symbol, LaTeX-control, and checksum checks.",
+  "literature_checklist": [
+    {
+      "author": "Bystrova and Devijver",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "BystrovaDevijver2026LDiffPC",
+      "one_line": "Version 1, page 3, Assumption 1 and its modularity paragraph impose baseline-parent interventions; Definition 1 fixes difference-edge directions; Section 4, Definition 4 and Assumption 3 define diff-faithfulness; Theorem 1 gives population retention.",
+      "relevant_to": "lem:true-completion-retention"
+    },
+    {
+      "author": "Bystrova and Devijver",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "BystrovaDevijver2026LDiffPC",
+      "one_line": "The published baseline-parent premise is attached to every co-realized CI-free Cholesky lift by the baseline-embedding lemma.",
+      "relevant_to": "lem:ci-free-baseline-embedding"
+    },
+    {
+      "author": "Assaad",
+      "year": 2025,
+      "venue": "CLeaR, PMLR 275",
+      "bibkey": "Assaad2025DifferenceGraphs",
+      "one_line": "Definition 4, Theorem 10, and Lemmas 11–13 under Assumptions 1–3 supply the fully specified graph-wide common-single-door benchmark for the proposal's exact same-covariance completion-fiber questions.",
+      "relevant_to": "thm:uniform-single-door-sufficiency"
+    },
+    {
+      "author": "Garcia-Puente, Spielvogel, and Sullivant",
+      "year": 2010,
+      "venue": "UAI",
+      "bibkey": "GarciaPuenteSpielvogelSullivant2010ComputerAlgebra",
+      "one_line": "Proposition 2 computes the observable image ideal, whereas Propositions 3–4 test generic identification using an augmented target coordinate.",
+      "relevant_to": "thm:component-radical-certificate"
+    },
+    {
+      "author": "Boege, Kubjas, Misra, and Solus",
+      "year": 2026,
+      "venue": "JRSSB",
+      "bibkey": "BoegeKubjasMisraSolus2026ColoredDAG",
+      "one_line": "Sections 4–5 and Theorem 7 provide rational predecessor recovery and localized algebraic geometry for colored Gaussian DAGs.",
+      "relevant_to": "thm:component-radical-certificate"
+    },
+    {
+      "author": "Foygel, Draisma, and Drton",
+      "year": 2012,
+      "venue": "Annals of Statistics",
+      "bibkey": "FoygelDraismaDrton2012HalfTrek",
+      "one_line": "The half-trek results combine graphical identification certificates, polynomial algorithms, and a separate generic nonidentification obstruction.",
+      "relevant_to": "oeq:fixed-treewidth-query"
+    },
+    {
+      "author": "Perkovic",
+      "year": 2020,
+      "venue": "UAI",
+      "bibkey": "Perkovic2020MPDAG",
+      "one_line": "The paper gives a complete graph-only identification criterion for ordinary MPDAGs, without paired common-fiber covariance restrictions.",
+      "relevant_to": "oeq:generic-uniform-door-completeness"
+    },
+    {
+      "author": "van der Zander, Liskiewicz, and Textor",
+      "year": 2019,
+      "venue": "Artificial Intelligence",
+      "bibkey": "vanDerZanderLiskiewiczTextor2019Separators",
+      "one_line": "The separator framework supplies complete adjustment criteria for fixed causal graph classes but does not track paired ledger ideals.",
+      "relevant_to": "oeq:fixed-treewidth-query"
+    },
+    {
+      "author": "Strieder and Drton",
+      "year": 2023,
+      "venue": "Journal of Causal Inference",
+      "bibkey": "StriederDrton2023Confidence",
+      "one_line": "Sections 3–4 invert tests over unknown equal-variance DAG structure for a single-environment total effect.",
+      "relevant_to": "thm:boundary-honest-confidence-union"
+    },
+    {
+      "author": "Chang, Guo, and Malinsky",
+      "year": 2026,
+      "venue": "Biometrika",
+      "bibkey": "ChangGuoMalinsky2026PostSelection",
+      "one_line": "Theorems 1–3 justify screening resampled PC graphs and unioning graph-specific confidence intervals.",
+      "relevant_to": "thm:boundary-honest-confidence-union"
+    }
+  ]
+}

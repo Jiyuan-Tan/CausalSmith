@@ -43,6 +43,20 @@ export const MODELS = {
   /** codex, presentation authoring/revision tier. Kept on 5.5 for stronger
    *  literature breadth and more readable long-form paper prose. */
   codexPresentation: envModel("CAUSALEAN_MODEL_CODEX_PRESENT", "gpt-5.5"),
+  /** codex, P4 NL↔Lean crosswalk ASSIGNMENT tier: a closed-world, id-only matching
+   *  task under a total contract (wrong-shaped replies are refused and re-asked), so
+   *  the mechanical model suffices and carries most of P4's token spend. */
+  codexCrosswalkAssign: envModel("CAUSALEAN_MODEL_CODEX_CROSSWALK_ASSIGN", "gpt-5.6-terra"),
+  /** codex, P4 crosswalk VERIFY tier — the rigor backstop that judges every claim
+   *  and forces corrections; kept on the presentation model. */
+  codexCrosswalkVerify: envModel("CAUSALEAN_MODEL_CODEX_CROSSWALK_VERIFY", "gpt-5.5"),
+  /** codex, P4 formula→declaration component mapping (closed vocabulary; the
+   *  closure walk and artifact validator catch misses). */
+  codexComponents: envModel("CAUSALEAN_MODEL_CODEX_COMPONENTS", "gpt-5.6-terra"),
+  /** codex, P1 notation-table consistency check (bounded, cheap to re-ask). */
+  codexNotationCheck: envModel("CAUSALEAN_MODEL_CODEX_NOTATION", "gpt-5.6-terra"),
+  /** codex, P3 citation-support check against the verified pool (batched yes/no). */
+  codexCitationSupport: envModel("CAUSALEAN_MODEL_CODEX_CITATION_SUPPORT", "gpt-5.6-terra"),
   /** codex, terminal P5 journal-referee review tier. */
   codexPresentationReview: envModel("CAUSALEAN_MODEL_CODEX_PRESENT_REVIEW", "gpt-5.6-sol"),
   /** codex, orchestrator D-stage halt-consultation tier. The orchestrator (causalsmith-d /

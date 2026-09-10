@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { graphComponentSpecs } from "../src/presentation/graph_components.js";
-import type { FormalizationGraph } from "../src/graph/types.js";
+import { GraphSchema, type FormalizationGraph } from "../src/graph/types.js";
 
 const node = (
   id: string,
@@ -49,5 +49,20 @@ describe("graphComponentSpecs", () => {
   });
   it("returns [] for an unknown obj_id", () => {
     expect(graphComponentSpecs(g, "Z-9")).toEqual([]);
+  });
+});
+
+
+describe("explicit supporting declarations", () => {
+  it("preserves property mappings through graph parsing without adding dependency edges", () => {
+    const input = structuredClone(g);
+    input.nodes[0].lean.supporting_decls = ["declA", "estimator_measurable", "declHelper", "estimator_measurable"];
+    const parsed = GraphSchema.parse(input);
+    expect(graphComponentSpecs(parsed, "P-1")).toEqual([
+      { type: "decl", decl: "declA" },
+      { type: "decl", decl: "estimator_measurable" },
+      { type: "decl", decl: "declHelper" },
+    ]);
+    expect(parsed.edges).toEqual(g.edges);
   });
 });

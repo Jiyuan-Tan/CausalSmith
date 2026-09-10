@@ -1,0 +1,1571 @@
+{
+  "qid": "scm_propensity_lv_sharpness_frontier",
+  "specialization": "v1",
+  "cluster": "scm",
+  "lean_root": "CausalSmith/SCM/SCM_PropensityLvSharpnessFrontier_Research",
+  "lean_namespace": "CausalSmith.SCM.PropensityLvSharpnessFrontier",
+  "feasibility": "needs-new-infrastructure",
+  "decisions": [
+    {
+      "id": "F1-D1",
+      "decision": "The bow-ADMG nonparametric latent-variable SCM is encoded as a `BowWitness`: a joint probability law on `Bool x Y x Y` for `(A, Y 0, Y 1)` together with an observed-outcome coordinate, with the assumption `POConsistency` imposing `Y = Y(A)` almost surely.",
+      "why": "For the bow ADMG `A -> Y`, `A <-> Y` with an unrestricted latent `U` parenting both, the achievable joint laws of `(A, Y(0), Y(1))` are exactly ALL joint laws on `Bool x Y^2` (take `U` to be the triple, `A = f_A(U)`, `Y = f_Y(A,U)`). The encoding is therefore complete and faithful, and it is literally the construction the note's own proofs use (`U = (A, Y(0), Y(1))`, `Y = Y(A)`). Encoding the same class through `Causalean.SCM.Model.SCM` / `Causalean.PO.Core.POSystem` would add a dependent SWIG-node / regime layer that the note never exercises, at a large proof cost and no gain in faithfulness."
+    },
+    {
+      "id": "F1-D2",
+      "decision": "Each set-valued CLASS definition node must unfold to its FULL set-membership predicate, never to a member-only bundle. (Superseded in mechanism by F1-D9: the anchor is now the class `structure`, which carries the member properties as member fields and every remaining defining clause as non-member fields, with the set form as a derived companion `def`; the fidelity requirement itself is unchanged.)",
+      "why": "Stage-3 review found that tagging the member-only bundles dropped the probability-law, witness-equality, mixture, divergence, common-conull-set, Markov-kernel, and e=1 clauses. Anchoring the full set predicates makes the canonical declaration unfold to the core construction."
+    },
+    {
+      "id": "F1-D3",
+      "decision": "`def:directional-handle` is anchored at the closed descriptive `String` payload `directionalHandleRecipe`, which records the complete linearization / Hadamard-derivative / Fang--Santos multiplier recipe.",
+      "why": "The prior `DirectionalHandle := IsRectangularBand` anchor omitted every procedural clause in the frozen construction. Rectangularity remains an untagged theorem helper, while the canonical node is the complete nonasserting recipe payload."
+    },
+    {
+      "id": "F1-D4",
+      "decision": "`D_f(P || Q)` is defined locally as an EXTENDED-VALUED, integrability-total divergence: `noncomputable def fDiv (f : Real -> Real) (P Q : Measure Y) : EReal := if Integrable (fun x => f ((P.rnDeriv Q x).toReal)) Q then ((integral (fun x => f ((P.rnDeriv Q x).toReal)) Q : Real) : EReal) else (TOP : EReal)`, over Mathlib's `MeasureTheory.Measure.rnDeriv`. Every divergence constraint in the plan is the EReal inequality `fDiv f P Q <= ((divRadius f e : Real) : EReal)`, so membership in any ball ENTAILS integrability rather than silently defaulting on it. Three small build-inline companion lemmas make the convention faithful and are listed in `Helpers/Divergence.lean`: (i) `fDiv_measurable` -- `x |-> f ((P.rnDeriv Q x).toReal)` is measurable, from continuity of an `AdmissibleGenerator` on `Set.Ici 0` and measurability of `rnDeriv`; (ii) `integrable_negPart_of_ac` -- for an `AdmissibleGenerator f` and probability laws with `P << Q`, convexity gives a subgradient `b` at 1 with `f t >= b * (t - 1)`, and `r = dP/dQ` is Q-integrable with `integral r Q = 1`, so the NEGATIVE part of `f r` is dominated by `|b| * (r + 1)` and is always Q-integrable; hence the honest extended Lebesgue integral of `f r` is well defined in `[0, TOP]` and equals `TOP` exactly in the `else` branch, i.e. `fDiv` never lands in `BOT` and the `if`-convention is not a silent default but the true value; (iii) `fDiv_lt_top_iff` / `integrable_of_fDiv_le_real` -- `fDiv f P Q <= (B : EReal)` for a real `B` gives back the `Integrable` hypothesis. Consequently the Jensen reuse `MeasureTheory.le_integral_rnDeriv_of_ac` (whose signature, verified by `lean_loogle`, is `ConvexOn R (Set.Ici 0) f -> ContinuousWithinAt f (Set.Ici 0) 0 -> Integrable (fun x => f ((mu.rnDeriv nu x).toReal)) nu -> mu.AbsolutelyContinuous nu -> f (mu.real univ) <= integral ...`) is invoked ONLY where its `Integrable` premise is discharged from a hypothesis actually in hand -- either from ball membership via (iii), or, in the chord/upper-bound direction, from `dP/dQ <= c` making `f o r` bounded (f continuous on the compact `[0, c]`) hence integrable on a probability space. It is NOT claimed to follow from the `AdmissibleGenerator` assumptions alone.",
+      "why": "Neither Mathlib nor Causalean carries a general f-divergence: re-checked at round 3 with `lean_leansearch 'f-divergence of measures defined as integral of convex function of Radon-Nikodym derivative, extended real valued'` -> only `InformationTheory.klDiv` / `klFun` / `toReal_klDiv_eq_integral_klFun`, plus `Measure.rnDeriv` and `setIntegral_rnDeriv_smul'`; `lean_local_search 'fDiv'` -> only this project's own local declaration; Causalean has only `Stat.chiSqDiv` and `Stat.tvDist` (no EReal anywhere in the tree). The generic convex-generator layer therefore has to be introduced here. Round-2 review correctly flagged the previous real Bochner-integral encoding: `MeasureTheory.integral` returns 0 on a nonintegrable integrand, so a generator whose divergence is genuinely `+infinity` would have been silently recorded as `0 <= B_f(e)` and admitted into every ball -- an unsound over-large class, and a reuse of `le_integral_rnDeriv_of_ac` whose `Integrable` premise no arbitrary finite continuous convex generator supplies. The EReal `if Integrable then . else TOP` encoding is the same convention Mathlib itself uses for `klDiv` (`klDiv_def`, `klDiv_eq_integral_klFun`); `EReal` rather than `ENNReal` because an admissible `f` may be negative on `[0,1)` (e.g. `f_KL t = t log t`), so nonnegativity of the divergence is a THEOREM (extended Jensen, via (ii)) rather than something pre-baked into the value type."
+    },
+    {
+      "id": "F1-D5",
+      "decision": "The two `status: cited` lemmas (`lem:hoeffding-bounded-mean`, `lem:dkw-massart-cdf-band`) are frozen `carrier: logical-claim` substrate gates: canonical named `Sort 0` propositions, `gate: true`, `gate_class: cited`, excluded from the delivered manifest, listed in `infrastructure_needed[]`, and THREADED as explicit hypotheses `(hHoeffding : HoeffdingBoundedMean)` and `(hDkw : DkwMassartCdfBand)` into their one logical consumer `thm:finite-sample-simultaneous-band`, which is therefore proved CONDITIONAL on them. They appear in that node's `hyps` (both are in its core `depends_on`), not in its `uses`. Rewritten at round 5: the previous 'scaffold redirect' formulation of this decision -- dropping the binders and discharging the two propositions through untagged companion lemmas inside the proof -- is WITHDRAWN.",
+      "why": "The redirect violated the cited-gate rule and was bounced by the deterministic gate (P4: `logical cited dep must be an explicit hyp`) on both lemmas. A `status: cited`, `carrier: logical-claim` node is an unproved external fact whose provenance is frozen before F1; F1 may not turn it into a non-gate assumption, and may not have its consumer silently re-derive it, because that would either smuggle in an unproved step or launder a large external proof obligation (Massart's sharp DKW constant) as in-scope paper work. Threading is the supported encoding: the consumer's own ungated content is still proved, the dependence on the citation is visible in the signature, and a later `bin/gate.ts --discharge` run can replace either gate with an exact proved lemma and re-review the consumer. Consistent with F1-D7 (the frozen `source.{cite, locator, carrier}` travels as sibling scalars, `carrier: logical-claim` in both cases) and with the exclusion of both nodes from `local_id`s and the manifest (F1-D6)."
+    },
+    {
+      "id": "F1-D6",
+      "decision": "Every statement node mapped to a Lean `theorem` carries a string `local_id` `t1`..`t18`, minted in the core's own statement order (thm:bow-mixture-completeness = t1, ..., thm:conditional-adaptive-hinge-exactness = t18). The two frozen cited gates (`lem:hoeffding-bounded-mean`, `lem:dkw-massart-cdf-band`) carry no `local_id` and stay out of the `theorems` manifest, which remains empty.",
+      "why": "This run carries no paper manifest (`state.theorems` is empty), so there are no upstream `theorem_local_id`s to match; the schema nevertheless requires `local_id` to be a string on every statement node. Minting them in core order keeps the mapping stable and one-to-one for any later paper-scoped re-dispatch. Gates are `lean_kind: assumption`, are not proof obligations, and are therefore excluded from both the ids and the manifest."
+    },
+    {
+      "id": "F1-D7",
+      "decision": "A cited gate's `source` field is the string id of its minted `citations[]` entry (e.g. `cite:vandervaart-wellner-1996-hoeffding`); the frozen bibliographic detail travels in sibling scalars `source_cite`, `source_locator`, and `carrier` on the same node, and the `citations[]` entry carries `title` / `authors` / `year` alongside its `bibkey`, `locator`, `carrier` and `gates`.",
+      "why": "The schema types `source` as a string and requires structured bibliographic metadata on each citation. Splitting the frozen `source.{cite, locator, carrier}` into sibling scalars preserves every upstream-frozen field verbatim -- in particular `carrier: logical-claim`, which keeps both gates encoded as named `Sort 0` propositions threaded into thm:finite-sample-simultaneous-band (F1-D5) rather than as non-Prop metadata payloads."
+    },
+    {
+      "id": "F1-D8",
+      "decision": "A statement's `hyps` lists only assumption atoms and class definitions (`by_member_properties`). Construction definitions (`inputs`: def:cdf-maps, def:cdf-maps-one-sided, def:honest-band, def:directional-handle) are USED by their consumers and are recorded in a sibling `uses` array instead: thm:cdf-endpoints-sharp (def:cdf-maps), thm:support-regime-cdf-endpoints-sharp (def:cdf-maps, def:cdf-maps-one-sided), thm:finite-sample-simultaneous-band (def:cdf-maps, def:honest-band), thm:tie-inclusive-band-impossibility (def:cdf-maps, def:directional-handle). Statement dependencies that ARE propositions -- assumption atoms, class definitions, and cited logical-claim gates -- stay in `hyps`; accordingly thm:finite-sample-simultaneous-band lists `ass:iid-sampling`, `lem:hoeffding-bounded-mean` and `lem:dkw-massart-cdf-band` in `hyps` and only `def:cdf-maps`, `def:honest-band` in `uses`.",
+      "why": "A construction is a Lean `def`, not a `Prop`, so it cannot be a hypothesis binder; the `uses` array records the real dependency without corrupting `hyps`. The converse also holds and was the round-4 defect: a cited logical-claim gate IS a `Prop`, so parking it in `uses` (or discharging it in-proof) hides a load-bearing premise. Both gates are back in `hyps` per the rewritten F1-D5."
+    },
+    {
+      "id": "F1-D9",
+      "decision": "Every core definition node carrying `by_member_properties` (the fifteen class nodes) is mapped to `lean_kind: structure`, its `members` array is exactly that core `by_member_properties` list, and its `lean_name` is the structure's name (`BowCompatible`, `MixtureClass`, `JKBall`, `HingeClass`, `LawfulCorrection`, their `OneSided` variants, and the six `Cond*` variants). The set-valued form (`bowCompatibleSet`, ...) is retained verbatim as a derived companion `def` and continues to be what every statement about the class unfolds to.",
+      "why": "Round-1 review flagged all fifteen class nodes as `lean_kind: def`, which is invalid for a definition-class node, and reported the member lists as omitted. Both defects have one cause: the node was anchored at the companion set rather than at the member bundle. F1-D2's fidelity requirement is preserved rather than reverted -- the fix is not to shrink the anchor to the member fields, but to make the `structure` itself total: each structure carries its `by_member_properties` as member fields AND every remaining defining clause (witness identities, mixture representation, divergence bound, common muX-conull set, Markov-kernel conditions, boundary convention at e = 1) as non-member fields, so unfolding the canonical declaration still reaches the full core construction. No hypothesis threading moves: statement `hyps` continue to list assumption atoms and class ids exactly as before, and every assumption dependency stays covered directly or through a bundling class."
+    },
+    {
+      "id": "F1-D10",
+      "decision": "`ass:iid-sampling` is a predicate on the actual first-`n` sample coordinates, not an existence claim: `def IidObservationalSampling (n : Nat) (Z : Nat -> Omega -> Bool x Y) (mu : Measure Omega) (nu : Measure (Bool x Y)) : Prop := IsProbabilityMeasure mu and IsProbabilityMeasure nu and (forall i : Fin n, Measurable (Z i)) and iIndepFun (fun i : Fin n => Z i) mu and (forall i : Fin n, mu.map (Z i) = nu)`. The same `Z` is the first explicit argument of `honestBand`, and both consumers constrain exactly the coordinates they use.",
+      "why": "The persistent root-earned cap repair requires the finite first-`n` measurability, independence, and common-pushforward clauses, with both ambient and observational laws explicitly required to be probability measures. This finite predicate does not imply the whole-sequence fields of `Causalean.Stat.IIDSample`, so no `toIIDSample`/`ofIIDSample` bridge is claimed; `IIDSample` remains only an analogous substrate bundle."
+    },
+    {
+      "id": "F1-D11",
+      "decision": "This round is a revise against an UPSTREAM CORE REVISION (the D0 dependency rewind, positioning repair and honest-scope sync), not against a reviewer defect list. The only STRUCTURAL core change is that `thm:cdf-endpoints-sharp` and `thm:support-regime-cdf-endpoints-sharp` dropped `ass:bow-structure` and `ass:mutual-ac` from `depends_on` and gained `ass:positivity`; every other node's kind, `by_member_properties` and `depends_on` list is unchanged from the core this plan was written against. The plan is therefore PATCHED, not regenerated: the two CDF-endpoint theorem nodes keep `hyps: [ass:positivity]` with their construction dependencies in `uses` (F1-D8), and the dependency closure of the change -- ass:bow-structure, ass:mutual-ac, def:cdf-maps, def:cdf-maps-one-sided -- has its surfacing record corrected. No disposition, reuse, defer_tier, gate, member list, target_file, file_plan entry or local_id moves.",
+      "why": "Re-checked every gate obligation against the revised core rather than assuming the previous pass carried over. (P1) the 9 assumptions, 19 definitions and 20 statements are each mapped exactly once, and every core symbol -- including the whole covariate layer \\(\\mathcal X, X, \\mu_X, \\kappa, \\boldsymbol e, \\boldsymbol P, \\boldsymbol Q, \\boldsymbol R, U, f_{a,x}\\) and the six conditional classes -- is bound by S1--S4. (P2) each class's `members` still equals its core `by_member_properties`. (P3) kinds unchanged: 9 `assumption`, 15 `structure`, 4 `def`, 18 `theorem`, plus the two frozen cited gates as `assumption`. (P4) every statement's `hyps` is a subset of its CURRENT `depends_on` and every assumption dependency is covered directly or by a bundling class -- in particular ass:bow-structure and ass:mutual-ac now reach their remaining consumers (thm:bow-mixture-completeness, thm:one-sided-bow-mixture-completeness, prop:mutual-support-intersection) ONLY through def:bow-compatible / def:bow-compatible-one-sided, which is exactly why the stale 'also listed directly in the hyps of the two CDF-endpoint theorems' claim on ass:bow-structure had to be corrected. (P5)/(P6) no `reuse`, `reuse_support` decl or module path changed, so the round-3 signature verifications stand and no node was re-surveyed. The remaining core edits are prose-level -- the Huber1964Robust `strict_tightening` framing of thm:cdf-endpoints-sharp, the Jung--Kang `non_representability` framing of thm:open-illegal-dichotomy, and the removal of the stale `oeq:tie-adaptive-exact-band` reference from honest_scope -- and change no Lean object; the two statement-fidelity consequences that DO bind F2 (deliver interval equality AND endpoint attainment, and keep the boundary collapse in the support-regime node's own statement) are recorded on the two CDF nodes."
+    },
+    {
+      "id": "F1-D12",
+      "decision": "`thm:tie-inclusive-band-impossibility` carries the direct explicit regularity premise `hBandMeas : forall (n : Nat) (y : Real) (z : Real x Real), MeasurableSet {omega | z IN band n omega y}` on the GENERIC competitor band it quantifies over, recorded on that node in a sibling `regularity_premises` array (never in `hyps`, which stays a subset of the core `depends_on`). No separate predicate definition or filler-node tag is emitted. The F2.5 delta reviewer's classification of the premise as regularity-bookkeeping is accepted as a CLASSIFICATION and rejected as a licence to drop it: the premise is load-bearing.",
+      "why": "The proof's data events `C_{0n} = {1 IN I_n^L(y_0)}` and `C_{1n} = {e(1 - delta_n) IN I_n^L(y_0)}` (and their upper-projection analogues) are used in two steps that both require measurability of the event, not merely of the band's values. (i) TV transfer: step (3) bounds `Pr_{nu_0^n}(C_{1n}) >= Pr_{nu_n^n}(C_{1n}) - d_n`, which in Lean is `Causalean.Stat.measureReal_sub_le_tvDist` / `abs_measureReal_sub_le_tvDist` -- verified by reading `Causalean/Stat/Minimax/TotalVariation.lean:50-84`, where `tvDist` is the supremum over the SUBTYPE `{A // MeasurableSet A}` and both transfer lemmas take an explicit `(hA : MeasurableSet A)` argument. Without `hBandMeas` the transfer inequality is simply unavailable (an outer-measure reading is not monotone in the required direction). (ii) The union bound at step (4), `Pr(C_{0n} INTER C_{1n}) >= Pr(C_{0n}) + Pr(C_{1n}) - 1`, needs the same events to be measurable for the complement/additivity arithmetic. A generic band is an arbitrary `Nat -> Omega -> Real -> Set (Real x Real)` supplied by the adversary, so nothing in the statement makes these events measurable; assuming it is a restriction on the competitor class and it is stated as such, not smuggled in. This adds no premise to `thm:finite-sample-simultaneous-band`: there the band is the CONSTRUCTED `honestBand Z a n alpha`, its coverage set is proved by INCLUSION from the measurable events `E_e INTER E_F`, and Lean measures are outer measures, so monotonicity alone gives the lower bound with no measurability side condition."
+    },
+    {
+      "id": "F1-D13",
+      "decision": "Round-5 revise scope. The correction is a single deterministic-gate P4 violation on `thm:finite-sample-simultaneous-band` (both cited logical deps missing from `hyps`). Patched set = the two flagged edges plus their dependency closure: `thm:finite-sample-simultaneous-band` (hyps gain lem:hoeffding-bounded-mean and lem:dkw-massart-cdf-band, uses loses them, reuse_support and notes updated), the two gate nodes (notes rewritten, `consumers` recorded), `thm:tie-inclusive-band-impossibility` (gate-propagation closure note only -- no field moves), decisions F1-D5 and F1-D8 (rewritten), and the `Helpers/CitedGates.lean` file-plan line plus one new `substrate_survey` row. Nothing else was regenerated or re-surveyed.",
+      "why": "REVISE MODE: minimal diff. Every other node's kind, disposition, reuse, members, defer_tier, gate, target_file and local_id is untouched, so the round-3 signature verifications and the round-4 F1-D11 / F1-D12 findings stand. Gate re-check after the patch: (P1) 9 assumptions + 19 definitions + 20 statements each mapped exactly once, all symbols bound by S1--S4 -- unchanged. (P2) member lists unchanged. (P3) kinds unchanged; in particular the two gates stay `lean_kind: assumption`, which is the required form for a `carrier: logical-claim` cited node. (P4) the flagged node's `hyps` is now [ass:iid-sampling, lem:hoeffding-bounded-mean, lem:dkw-massart-cdf-band], a subset of its core `depends_on` [ass:iid-sampling, def:cdf-maps, def:honest-band, thm:cdf-endpoints-sharp, lem:hoeffding-bounded-mean, lem:dkw-massart-cdf-band]; its only assumption dependency, ass:iid-sampling, is still covered directly; no other statement's `hyps` changed, and no other statement lists either gate in its `depends_on`, so no further threading is due. (P5) the four newly cited decls were confirmed to exist by reading their declaration sites (Causalean/Stat/Quantile/ConditionalMarkedSubsampleDkw/ConditionalLaw.lean:20 and :225, TailLift.lean:58, :107, :112). (P6) the two new module paths resolve to files in that directory. Feasibility is unchanged at `needs-new-infrastructure`, carried by the same two frozen cited gates and no others."
+    }
+  ],
+  "env": [
+    {
+      "id": "S1",
+      "world": "A fixed covariate stratum of a binary-treatment potential-outcome system on a standard Borel outcome space \\(\\mathcal Y\\). A nonparametric latent-variable structural causal model has observed vertices \\(A\\in\\{0,1\\}\\) and \\(Y\\in\\mathcal Y\\) carrying the bow ADMG \\(A\\to Y\\), \\(A\\leftrightarrow Y\\); it is realized by the joint law of \\((A,Y(0),Y(1))\\) on \\(\\{0,1\\}\\times\\mathcal Y^2\\) with latent \\(U=(A,Y(0),Y(1))\\) and \\(Y=Y(A)\\). The arm index is \\(a\\), the arm propensity is \\(e=\\Pr(A=a)\\in(0,1)\\), and the observed arm law is \\(P=\\mathcal L(Y\\mid A=a)\\). Candidate interventional laws \\(Q=\\mathcal L(Y(a))\\) and residual laws \\(R=\\mathcal L(Y(a)\\mid A\\ne a)\\) range over \\(\\mathcal P(\\mathcal Y)\\); the compatible classes \\(\\mathfrak M_e(P)\\), \\(\\mathfrak M^{\\to}_e(P)\\) and the mixture classes \\(\\mathfrak L_e(P)\\), \\(\\mathfrak L^{\\to}_e(P)\\) are subsets of \\(\\mathcal P(\\mathcal Y)\\). When \\(\\mathcal Y=\\mathbb R\\) the threshold \\(y\\), the distribution functions \\(F_P,F_Q\\), the event probability \\(p=F_P(y)\\), the binary coordinates \\(q,q_0,\\varepsilon\\), the endpoint maps \\(L_e,U_e,L^{\\to}_e,U^{\\to}_e\\), the bounded query \\(h\\in L^\\infty(P)\\) and its endpoints \\(\\underline\\theta_h,\\overline\\theta_h\\) live in this same stratum.",
+      "binds_symbols": [
+        "\\(\\mathcal Y\\)",
+        "\\(a\\)",
+        "\\(A\\)",
+        "\\(Y(0),Y(1)\\)",
+        "\\(Y\\)",
+        "\\(e\\)",
+        "\\(P\\)",
+        "\\(Q\\)",
+        "\\(R\\)",
+        "\\(\\mathfrak M_e(P)\\)",
+        "\\(\\mathfrak L_e(P)\\)",
+        "\\(\\mathfrak M^{\\to}_e(P)\\)",
+        "\\(\\mathfrak L^{\\to}_e(P)\\)",
+        "\\(p\\)",
+        "\\(q\\)",
+        "\\(q_0\\)",
+        "\\(\\varepsilon\\)",
+        "\\(y\\)",
+        "\\(L_e(p),U_e(p)\\)",
+        "\\(L^{\\to}_e(p),U^{\\to}_e(p)\\)",
+        "\\(F_P,F_Q\\)",
+        "\\(h\\)",
+        "\\(\\underline\\theta_h,\\overline\\theta_h\\)"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Constructions.Polish.Basic",
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym",
+        "Mathlib.Probability.CDF",
+        "Causalean.Mathlib.Probability.BernoulliMeasure",
+        "Causalean.PO.ID.Partial.Basic"
+      ],
+      "reuse_support": [
+        "Causalean.Mathlib.Probability.bernoulliBool",
+        "Causalean.Mathlib.Probability.bernoulliBool_bind",
+        "Causalean.Mathlib.Probability.bernoulliLaw",
+        "Causalean.PartialID.IdentifiedInterval",
+        "MeasureTheory.Measure.rnDeriv",
+        "MeasureTheory.Measure.rnDeriv_le_one_iff_le"
+      ],
+      "notes": "Search trace: grep '^## ' + 'bow|Bow|CanonicalModel|SharpnessCertificate' on ../doc/API.md (no hit -- Causalean has no bow-ADMG / latent-confounder world); Glob Causalean/SCM/{Model,Do,ID,PartialID}, Causalean/Graph, Causalean/PO/ID/Partial (BalkePearl, Lee, Manski, Proxy, Frechet, Basic) read via API.md sections 6, 8h, 9j2, 9j2sg, 9j2msm; lean_leansearch 'measure inequality mu le nu iff radon nikodym derivative le one almost everywhere'. Result: no existing world at this abstraction. Decision F1-D1: `BowWitness Y := {nu : Measure (Bool x Y x Y) // IsProbabilityMeasure nu}` with `obsOutcome (b, y0, y1) := if b then y1 else y0`, arm propensity `nu (A = a)`, arm law `nu[Y(a) | A = a]`, interventional law `nu.map (Y a)`. bypass-justified vs `Causalean.SCM.Model.SCM` / `Causalean.PO.Core.POSystem`: those are SWIG-node/regime-indexed dependent structures for graphical identification, whereas every proof in this note works with the joint law of `(A, Y(0), Y(1))` alone and the class of laws achievable by a bow ADMG with unrestricted latent U is exactly all such joint laws (see F1-D1). REUSED INSIDE the world: `bernoulliBool_bind` gives `Q = e*P + (1-e)*R` for the latent draw verbatim; `rnDeriv_le_one_iff_le` is the cap-vs-measure-inequality bridge; `Causalean.PartialID.IdentifiedInterval` is the vocabulary for the two sharp-CDF-interval theorems."
+    },
+    {
+      "id": "S2",
+      "world": "The \\(f\\)-divergence geometry over \\(\\mathcal P(\\mathcal Y)\\) attached to a fixed propensity \\(e\\in(0,1)\\) with likelihood-ratio cap \\(c=1/e\\). Generators \\(f\\) range over the finite continuous convex functions \\(f:[0,\\infty)\\to\\mathbb R\\) with \\(f(1)=0\\); the divergence is \\(D_f(P\\|Q)=\\int_{\\mathcal Y}f(dP/dQ)\\,dQ\\), taken as an extended-real quantity in \\([0,+\\infty]\\), and the calibrated radius is \\(B_f(e)=ef(1/e)+(1-e)f(0)\\). The extended reading is forced and harmless: when \\(P\\ll Q\\) the likelihood ratio \\(r=dP/dQ\\) satisfies \\(\\int r\\,dQ=1\\), and convexity gives a subgradient \\(b\\) at \\(1\\) with \\(f(t)\\ge b(t-1)\\), so the negative part of \\(f(r)\\) is dominated by \\(|b|(r+1)\\) and is always \\(Q\\)-integrable; the integral is therefore always well defined, is nonnegative by Jensen, and equals \\(+\\infty\\) exactly when \\(f(r)\\) fails to be \\(Q\\)-integrable. A divergence constraint \\(D_f(P\\|Q)\\le B_f(e)\\) is thus in particular an integrability requirement on the pair \\((P,Q)\\), and an arbitrary admissible generator supplies no integrability by itself. Distinguished generators are the Kullback--Leibler generator \\(f_{\\mathrm{KL}}(t)=t\\log t\\), the propensity hinge \\(f_c(t)=(t-c)_+\\), and the propensity-adaptive family \\(f_e(t)=(t-1/e)_+\\); the exactness frontier is the affine-equivalence class \\(\\mathfrak H_c\\). The induced ambiguity classes are \\(\\mathfrak B_{f,e}(P)\\), \\(\\mathfrak B^{\\to}_{f,e}(P)\\) and their legality-corrected intersections \\(\\mathfrak B^{\\mathrm{law}}_{f,e}(P)\\), \\(\\mathfrak B^{\\mathrm{law},\\to}_{f,e}(P)\\); \\(\\mathcal O_f\\subset(0,1)^2\\) is an open region of binary pairs, coordinatized on a finite alphabet by the cellwise weights \\(p_j,q_j\\), and \\(e_1,e_2\\in(0,1)\\) are two distinct propensities.",
+      "binds_symbols": [
+        "\\(c\\)",
+        "\\(f\\)",
+        "\\(f_{\\mathrm{KL}}\\)",
+        "\\(f_c\\)",
+        "\\(D_f(P\\|Q)\\)",
+        "\\(B_f(e)\\)",
+        "\\(\\mathfrak B_{f,e}(P)\\)",
+        "\\(\\mathfrak B^{\\to}_{f,e}(P)\\)",
+        "\\(\\mathfrak B^{\\mathrm{law}}_{f,e}(P)\\)",
+        "\\(\\mathfrak B^{\\mathrm{law},\\to}_{f,e}(P)\\)",
+        "\\(\\mathfrak H_c\\)",
+        "\\(\\mathcal O_f\\)",
+        "\\(e_1,e_2\\)",
+        "\\(f_e\\)",
+        "\\(p_j,q_j\\)"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym",
+        "Mathlib.MeasureTheory.Measure.Decomposition.IntegralRNDeriv",
+        "Mathlib.Analysis.Convex.Function",
+        "Mathlib.Data.EReal.Basic",
+        "Causalean.Mathlib.Probability.BernoulliMeasure"
+      ],
+      "reuse_support": [
+        "MeasureTheory.le_integral_rnDeriv_of_ac",
+        "MeasureTheory.setIntegral_rnDeriv_smul'",
+        "MeasureTheory.Measure.rnDeriv",
+        "MeasureTheory.Measure.integrable_toReal_rnDeriv",
+        "Causalean.Mathlib.Probability.bernoulliLaw"
+      ],
+      "notes": "Search trace: grep 'divergence|fDiv|KullbackLeibler|klDiv' on ../doc/API.md (hits only Stat/Minimax `chiSqDiv`, `tvDist`, Pinsker/klDiv bridges -- no general generator layer); grep 'fDiv|f-divergence|convex generator|hinge' on CausalSmith/doc/API.md (no matches); lean_leansearch 'f-divergence of two measures defined by integrating a convex function of the Radon-Nikodym derivative' -> only `InformationTheory.klDiv`, `klFun`, and the two Jensen lemmas `le_integral_rnDeriv_of_ac` / `mul_le_integral_rnDeriv_of_ac`. Round-3 re-search on the flagged integrability point: lean_leansearch 'f-divergence of measures defined as integral of convex function of Radon-Nikodym derivative, extended real valued' -> `Measure.rnDeriv`, `InformationTheory.klDiv` (ENNReal) with `klDiv_def` / `klDiv_eq_integral_klFun` / `klDiv_eq_lintegral_klFun` / `toReal_klDiv_eq_integral_klFun`, `setIntegral_rnDeriv_smul'`, and `le_integral_rnDeriv_of_ac`; lean_loogle 'MeasureTheory.le_integral_rnDeriv_of_ac' -> `(hf_cvx : ConvexOn R (Set.Ici 0) f) (hf_cont : ContinuousWithinAt f (Set.Ici 0) 0) (hf_int : Integrable (fun x => f ((mu.rnDeriv nu x).toReal)) nu) (hmunu : mu.AbsolutelyContinuous nu)`, confirming the explicit `Integrable` premise; lean_local_search 'fDiv' -> only this project's own declaration; grep 'EReal' over Causalean -> no files. Result: no general `fDiv` in Mathlib or Causalean; define locally as the EReal `if Integrable then . else TOP` divergence of F1-D4, mirroring Mathlib's own `klDiv_eq_integral_klFun` convention (recorded here as the ENCODING TEMPLATE, not as a reusable value: `klDiv` is the single KL generator and is ENNReal-valued because `klFun >= 0`, whereas an admissible `f` may be negative on `[0,1)`). bypass-justified vs `Causalean.Stat.chiSqDiv` and `InformationTheory.klDiv`: both are single fixed generators, and the entire content of this note is a quantification over ALL admissible generators, so a single-generator API cannot carry it. REUSED INSIDE: `Measure.integrable_toReal_rnDeriv` gives Q-integrability of `r = (dP/dQ).toReal` for finite P, which is what makes the negative-part domination `f(r)^- <= |b| (r + 1)` integrable (F1-D4 lemma (ii)) and hence the `TOP` branch honest rather than a silent default; `le_integral_rnDeriv_of_ac` is the Jensen half `f(1) <= D_f`, invoked ONLY with its `Integrable` premise already in hand (from ball membership, or from a bounded likelihood ratio `r <= c` in the chord direction) -- it is NOT available from the generator assumptions alone; `bernoulliLaw` supplies the full-support binary witnesses of the two dichotomy theorems, on which the two-cell integrand is a finite sum and integrability is automatic."
+    },
+    {
+      "id": "S3",
+      "world": "Observational i.i.d. sampling of \\(n\\) pairs \\((A_i,Y_i)_{i=1}^n\\) from the fixed-stratum observed law, at miscoverage level \\(\\alpha\\in(0,1)\\). The data are one fixed measurable sequence \\((A_i,Y_i)_{i\\ge1}\\) of maps from the underlying probability space to \\(\\{0,1\\}\\times\\mathcal Y\\); independence and the identical observed law are properties asserted of that same sequence, and every estimator, band and coverage statement below is computed from it. With \\(n_a=\\sum_i\\mathbf 1\\{A_i=a\\}\\), the observable estimators are the empirical propensity \\(\\widehat e_n=n^{-1}\\sum_i\\mathbf 1\\{A_i=a\\}\\) and the arm-conditional empirical distribution function \\(\\widehat F_{P,n}(y)=n_a^{-1}\\sum_{i:A_i=a}\\mathbf 1\\{Y_i\\le y\\}\\) when \\(n_a>0\\). The inference objects are the threshold-indexed set-valued band \\(\\widehat{\\mathcal C}_{n,\\alpha}:\\mathbb R\\to\\mathcal P([0,1]^2)\\) and the directional-inference handle \\(\\mathsf H_{\\mathrm{dir}}\\).",
+      "binds_symbols": [
+        "\\(n\\)",
+        "\\(\\alpha\\)",
+        "\\(\\widehat e_n,\\widehat F_{P,n}\\)",
+        "\\(\\widehat{\\mathcal C}_{n,\\alpha}\\)",
+        "\\(\\mathsf H_{\\mathrm{dir}}\\)"
+      ],
+      "binds_sampling_model": true,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Sample",
+        "Causalean.Stat.Quantile.EmpiricalCDF",
+        "Causalean.Stat.Concentration.TailBounds.Hoeffding",
+        "Mathlib.Probability.CDF"
+      ],
+      "reuse_support": [
+        "Causalean.Stat.IIDSample",
+        "Causalean.Stat.cdfStat",
+        "Causalean.Stat.IIDSample.empiricalCDF",
+        "Causalean.Stat.Concentration.hoeffding_abs_ge",
+        "Causalean.PartialID.honest_ci_set_cover"
+      ],
+      "notes": "Search trace: inspected `Causalean.Stat.IIDSample` and the empirical-CDF/Hoeffding modules. `IIDSample` is Nat-indexed, while the frozen assumption intentionally constrains only the first `n` coordinates, so it is an analogous bundle rather than a definitional reuse and no whole-sequence bridge is emitted. The local arm-conditional empirical CDF still uses the same `Z` and random arm count. No DKW/Massart result exists in the surveyed substrate. Round-4 (F1-D12): the world is unchanged -- the competitor bands quantified over by the impossibility theorem carry the direct explicit regularity premise `hBandMeas`, not an ambient property or separate predicate definition, and the constructed `honestBand` needs no such condition."
+    },
+    {
+      "id": "S4",
+      "world": "One global covariate-augmented nonparametric latent-variable structural causal model on standard Borel spaces \\(\\mathcal X,\\mathcal Y\\), with observed vertices \\(X,A,Y\\), observed arrows \\(X\\to A\\), \\(X\\to Y\\), \\(A\\to Y\\), and a latent variable \\(U\\) that may be a parent of each of \\(X,A,Y\\). The covariate law is \\(\\mu_X\\in\\mathcal P(\\mathcal X)\\); the propensity system \\(\\boldsymbol e=(e_0,e_1)\\) consists of measurable maps \\(\\mathcal X\\to[0,1]\\) with \\(e_0(x)+e_1(x)=1\\) and \\(e_a(x)\\in[\\kappa,1-\\kappa]\\) for a uniform overlap constant \\(\\kappa\\in(0,1/2]\\). The observational, interventional and residual objects are pairs of Markov kernels \\(\\boldsymbol P=(P_0,P_1)\\), \\(\\boldsymbol Q=(Q_0,Q_1)\\), \\(\\boldsymbol R=(R_0,R_1)\\) from \\(\\mathcal X\\) to \\(\\mathcal Y\\), understood as conditional-law versions; every class membership -- \\(\\mathfrak M^{\\to}_{\\mu_X,\\boldsymbol e}(\\boldsymbol P)\\), \\(\\mathfrak L^{\\to}_{\\mu_X,\\boldsymbol e}(\\boldsymbol P)\\), \\(\\mathfrak M_{\\mu_X,\\boldsymbol e}(\\boldsymbol P)\\), \\(\\mathfrak L_{\\mu_X,\\boldsymbol e}(\\boldsymbol P)\\), and the fiberwise adaptive-hinge classes \\(\\mathfrak B^{\\mathrm{ad},\\to}_{\\mu_X,\\boldsymbol e}(\\boldsymbol P)\\), \\(\\mathfrak B^{\\mathrm{ad}}_{\\mu_X,\\boldsymbol e}(\\boldsymbol P)\\) built from \\(f_{a,x}(t)=(t-1/e_a(x))_+\\) -- is asserted on one common measurable \\(\\mu_X\\)-conull set, with no claim at any prescribed null stratum.",
+      "binds_symbols": [
+        "\\(\\mathcal X\\)",
+        "\\(X\\)",
+        "\\(\\mu_X\\)",
+        "\\(\\kappa\\)",
+        "\\(\\boldsymbol e\\)",
+        "\\(\\boldsymbol P\\)",
+        "\\(\\boldsymbol Q\\)",
+        "\\(\\boldsymbol R\\)",
+        "\\(U\\)",
+        "\\(\\mathfrak M^{\\to}_{\\mu_X,\\boldsymbol e}(\\boldsymbol P)\\)",
+        "\\(\\mathfrak L^{\\to}_{\\mu_X,\\boldsymbol e}(\\boldsymbol P)\\)",
+        "\\(\\mathfrak M_{\\mu_X,\\boldsymbol e}(\\boldsymbol P)\\)",
+        "\\(\\mathfrak L_{\\mu_X,\\boldsymbol e}(\\boldsymbol P)\\)",
+        "\\(f_{a,x}\\)",
+        "\\(\\mathfrak B^{\\mathrm{ad},\\to}_{\\mu_X,\\boldsymbol e}(\\boldsymbol P)\\)",
+        "\\(\\mathfrak B^{\\mathrm{ad}}_{\\mu_X,\\boldsymbol e}(\\boldsymbol P)\\)"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Kernel.CondDistrib",
+        "Mathlib.Probability.Kernel.Composition.MeasureCompProd",
+        "Mathlib.MeasureTheory.Measure.GiryMonad",
+        "Mathlib.MeasureTheory.Measure.SeparableMeasure",
+        "Mathlib.MeasureTheory.Constructions.Polish.Basic",
+        "Causalean.Mathlib.CondDistrib",
+        "Causalean.Mathlib.Probability.Kernel.GraphMapProd"
+      ],
+      "reuse_support": [
+        "MeasureTheory.Measure.measurable_of_measurable_coe",
+        "MeasureTheory.Measure.MeasureDense.of_generateFrom_isSetAlgebra_finite",
+        "MeasureTheory.Measure.MeasureDense.approx",
+        "Causalean.measure_eq_bind_marginal_condDistrib",
+        "Causalean.Mathlib.GraphMapProd.mechanismKernel",
+        "Causalean.Mathlib.GraphMapProd.map_graph_prod_eq_compProd"
+      ],
+      "notes": "Search trace: grep 'ProbabilityTheory.Kernel|IsMarkovKernel|StandardBorelSpace' over Causalean (hits Graph/SWIG.lean, Mathlib/CondDistribWitness.lean); read API.md sections 10a (Mathlib/CondDistrib), 10a' (CondDistribWitness), 10a'' (Kernel/GraphMapProd); lean_loogle 'MeasureTheory.Measure.measurable_of_measurable_coe'; lean_leansearch 'every measurable set can be approximated in measure by a set from a generating algebra symmetric difference small' -> `Measure.MeasureDense.of_generateFrom_isSetAlgebra_finite` + `Measure.MeasureDense.approx`. Result: no covariate-conditioned bow world exists; define locally as a `CondBowWitness` (a probability measure on `X x Bool x Y x Y` with `Y = Y(A)`), the exact kernel analogue of F1-D1. REUSED INSIDE and load-bearing for the hardest step of the note: `Measure.measurable_of_measurable_coe` builds the residual Markov kernel `R_a` from its measurable set-values; `MeasureDense.of_generateFrom_isSetAlgebra_finite` + `MeasureDense.approx` are exactly the note's 'approximation in the finite measure Q_a + e_a P_a extends the inequality from the countable algebra C to every Borel set' step; `GraphMapProd.mechanismKernel` / `map_graph_prod_eq_compProd` are the analogous-module reference for 'exogenous noise + structural mechanism = composition product', i.e. the product-kernel SCM of equation (3); `Causalean.measure_eq_bind_marginal_condDistrib` is the disintegration chain rule for integrating K_x against mu_X. bypass-justified vs `Causalean.SCM.Model.SCM`: same reason as F1-D1, and the note's own architecture assumption is stated as a kernel-level condition on one conull set, not as a graph-search object."
+    }
+  ],
+  "nodes": {
+    "ass:bow-structure": {
+      "lean_kind": "assumption",
+      "lean_name": "BowStructure",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Constructions.Polish.Basic"
+      ],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "statement": "The witness law is a nonparametric latent-variable SCM Markov to the bow ADMG on the observed vertices A, Y: `def BowStructure (w : BowWitness Y) : Prop`, unfolding to the requirement that w is a probability law on `Bool x Y x Y` whose latent `U = (A, Y 0, Y 1)` parents both A and Y and whose observed outcome is the selector `Y = Y A`.",
+      "notes": "Search trace: grep 'bow|Bow|CanonicalModel|SharpnessCertificate' on ../doc/API.md -> no matches; API.md sections 5 (SCM/Model/EdgeType), 6 (SCM/Model/SCM), 8h (PO/) scanned for a bidirected-edge / latent-confounder predicate; lean_leansearch not applicable (this is a project-specific structural assumption, not a Mathlib fact). Result: absent, define locally. Modeling assumption (a restriction on the causal architecture), so it is threaded, never discharged. SURFACING (corrected for the revised core, F1-D11): it is bundled as a member of def:bow-compatible and def:bow-compatible-one-sided, and that is now its ONLY route into a statement -- the upstream dependency rewind removed it from `depends_on` of thm:cdf-endpoints-sharp and thm:support-regime-cdf-endpoints-sharp, so it is no longer listed directly in any statement's `hyps`; its two remaining consumers, thm:bow-mixture-completeness and thm:one-sided-bow-mixture-completeness, cover it through those bundling classes."
+    },
+    "ass:consistency": {
+      "lean_kind": "assumption",
+      "lean_name": "POConsistency",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Constructions.Polish.Basic"
+      ],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "statement": "`def POConsistency (w : BowWitness Y) : Prop` -- the realized outcome equals the potential outcome at the realized arm, `Y = Y(A)` almost surely.",
+      "notes": "Search trace: grep 'consistency|Consistency' on ../doc/API.md -> `Causalean.PO.POSystem.Consistency` (PO/Assumptions/Consistency.lean, a two-clause `structure` over regime-indexed `POSystem.eval`) and `PO/Bridge/FromSCM`; read API.md section 8h. Result: the Causalean predicate is at the regime/SWIG-node abstraction (F1-D1 bypass-justified), so this is a define-local Prop; in the `BowWitness` encoding it is definitionally true of the selector and is carried as an explicit Prop so the note's assumption table stays visible. Modeling assumption -> threaded, never discharged."
+    },
+    "ass:positivity": {
+      "lean_kind": "assumption",
+      "lean_name": "StrictPositivity",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "statement": "`def StrictPositivity (e : Real) : Prop := 0 < e && e < 1` (strict treatment positivity at the fixed stratum).",
+      "notes": "Search trace: grep 'Overlap|positivity' on ../doc/API.md -> `Causalean.SCM.ID.Overlap` (section 9a, a Rule-2 / backdoor overlap predicate over conditional propensity functions) and the MSM overlap side conditions (section 9j2msm). Result: no scalar `0 < e < 1` named predicate; a one-line define-local Prop, which is also the right abstraction (the note's e is a scalar, not a covariate function). Modeling (support) assumption -> threaded. Bundled by nine class definitions."
+    },
+    "ass:mutual-ac": {
+      "lean_kind": "assumption",
+      "lean_name": "MutualAbsCont",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym"
+      ],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "statement": "`def MutualAbsCont (w : BowWitness Y) (a : Bool) : Prop` -- the observational and interventional arm laws are mutually absolutely continuous, `L(Y(a) | A = a) ~ L(Y(a))`, i.e. each is `AbsolutelyContinuous` with respect to the other.",
+      "notes": "Search trace: grep 'AbsolutelyContinuous|mutually absolutely continuous|equivalent measures' -> Mathlib `MeasureTheory.Measure.AbsolutelyContinuous` is the primitive; there is no named `~` (mutual equivalence) predicate in Mathlib or Causalean (lean_leansearch 'measure inequality mu le nu iff radon nikodym derivative le one almost everywhere' returned the RadonNikodym family, no equivalence relation). Result: define locally as the conjunction of two `AbsolutelyContinuous` facts. Modeling (support) assumption -> threaded, never discharged; it is exactly the note's Assumption-4 boundary between the one-sided and reverse-support regimes. SURFACING (corrected for the revised core, F1-D11): after the upstream dependency rewind it reaches its consumers -- thm:bow-mixture-completeness and prop:mutual-support-intersection -- only through the bundling class def:bow-compatible, and it is no longer named by either CDF-endpoint theorem; def:bow-compatible-one-sided deliberately omits it, which is what makes the one-sided/mutual split a single dropped field."
+    },
+    "ass:iid-sampling": {
+      "lean_kind": "assumption",
+      "lean_name": "IidObservationalSampling",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Sample",
+        "Mathlib.Probability.Independence.Basic"
+      ],
+      "reuse_support": [
+        "Causalean.Stat.IIDSample",
+        "ProbabilityTheory.iIndepFun"
+      ],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "statement": "`def IidObservationalSampling (n : Nat) (Z : Nat -> Omega -> Bool x Y) (mu : Measure Omega) (nu : Measure (Bool x Y)) : Prop := IsProbabilityMeasure mu and IsProbabilityMeasure nu and (forall i : Fin n, Measurable (Z i)) and iIndepFun (fun i : Fin n => Z i) mu and (forall i : Fin n, mu.map (Z i) = nu)` -- the first `n` coordinates of the given observed sequence are measurable, mutually independent, and have common pushforward law `nu`; both `mu` and `nu` are probability laws.",
+      "notes": "Root-earned cap repair applied independently: the probability-law conjuncts prevent vacuous sampling over nonprobability measures while preserving the exact first-`n` measurability, `iIndepFun`, and common-pushforward clauses. A finite-index hypothesis cannot construct the Nat-indexed `Causalean.Stat.IIDSample`, so the stale bridge claim is removed rather than strengthened to all coordinates."
+    },
+    "ass:conditional-bow-architecture": {
+      "lean_kind": "assumption",
+      "lean_name": "CondBowArchitecture",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Constructions.Polish.Basic"
+      ],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "statement": "`def CondBowArchitecture (w : CondBowWitness X Y) : Prop` -- one global nonparametric latent-variable SCM with observed vertices X, A, Y, observed arrows X -> A, X -> Y, A -> Y, and a latent U that may parent each of X, A, Y (pmlr-v323-jung26a equation (1)).",
+      "notes": "Search trace: same survey as ass:bow-structure plus grep 'SelectionDiagram|Markov to|latent' on ../doc/API.md (API.md sections 6a'' EvalLatent, 6a'''' CutsetLatent are latent-restriction factorization lemmas over SWIG nodes, not a covariate-augmented bow architecture predicate). Result: absent, define locally over `CondBowWitness X Y` = a probability law on `X x Bool x Y x Y` with `Y = Y(A)` (F1-D1 kernel analogue). Modeling assumption -> threaded; bundled by def:conditional-bow-compatible and def:conditional-bow-compatible-one-sided."
+    },
+    "ass:conditional-overlap": {
+      "lean_kind": "assumption",
+      "lean_name": "CondOverlap",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Constructions.Polish.Basic"
+      ],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "statement": "`def CondOverlap (kappa : Real) (e : Bool -> X -> Real) : Prop` -- `0 < kappa`, `kappa <= 1/2`, each `e a` is measurable, `e a x` lies in `[kappa, 1 - kappa]` and `e false x + e true x = 1` for every x (pmlr-v323-jung26a Assumption 4).",
+      "notes": "Search trace: grep 'Overlap' on ../doc/API.md -> `Causalean.SCM.ID.Overlap` (section 9a: a Rule-2 / backdoor overlap predicate, a.e. positivity of a conditional density, without the two-sided kappa envelope or the summation-to-one clause) and MSM overlap side conditions (section 9j2msm). Result: PARTIAL fit only, so define locally; a partial fit is not a discharge. Modeling (support) assumption -> threaded; bundled by all six conditional class definitions."
+    },
+    "ass:conditional-consistency": {
+      "lean_kind": "assumption",
+      "lean_name": "CondConsistency",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Constructions.Polish.Basic"
+      ],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "statement": "`def CondConsistency (w : CondBowWitness X Y) : Prop` -- the global SCM satisfies `Y = Y(A)` almost surely.",
+      "notes": "Search trace: as for ass:consistency (`Causalean.PO.POSystem.Consistency`, API.md section 8h) -- regime/SWIG abstraction, bypass-justified per F1-D1. Result: define-local Prop over `CondBowWitness`. Modeling assumption -> threaded; bundled by def:conditional-bow-compatible and def:conditional-bow-compatible-one-sided."
+    },
+    "ass:conditional-reverse-support": {
+      "lean_kind": "assumption",
+      "lean_name": "CondReverseSupport",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym",
+        "Mathlib.Probability.Kernel.CondDistrib"
+      ],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "statement": "`def CondReverseSupport (muX) (P Q : Bool -> Kernel X Y) : Prop` -- there is one measurable muX-conull set S with `(Q a x).AbsolutelyContinuous (P a x)` for both arms and every x in S (pmlr-v323-jung26a Assumption 4).",
+      "notes": "Search trace: grep 'AbsolutelyContinuous' over Causalean + lean_leansearch on the RadonNikodym family; Mathlib has `ProbabilityTheory.Kernel.AbsolutelyContinuous` only as a GLOBAL kernel-order notion, not a fiberwise-on-a-conull-set version, and no Causalean predicate matches (API.md sections 10a, 10a', 10a''). Result: PARTIAL fit only -> define locally, quantified over one common conull set exactly as the note states it. Modeling (support) assumption -> threaded; bundled by def:conditional-bow-compatible and def:conditional-adaptive-hinge-ball."
+    },
+    "def:bow-compatible": {
+      "lean_kind": "structure",
+      "lean_name": "BowCompatible",
+      "members": [
+        "ass:bow-structure",
+        "ass:consistency",
+        "ass:positivity",
+        "ass:mutual-ac"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Constructions.Polish.Basic",
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym"
+      ],
+      "target_file": "Helpers/Classes.lean",
+      "defer_tier": false,
+      "gate": false,
+      "construction": "`structure BowCompatible (a : Bool) (e : Real) (P Q : Measure Y) (w : BowWitness Y) : Prop` with the four member fields `bow_structure : BowStructure w`, `consistency : POConsistency w`, `positivity : StrictPositivity e`, `mutual_ac : MutualAbsCont w a`. Set form `bowCompatibleSet a e P : Set (Measure Y) := {Q | exists w, BowCompatible a e P Q w and armPropensity w a = e and armLaw w a = P and interventionalLaw w a = Q}`, with the boundary convention `bowCompatibleSet a 1 P = {P}`. Canonical declaration for this node is the `structure`: alongside its four member fields it carries the defining clauses (`armPropensity w a = e`, `armLaw w a = P`, `interventionalLaw w a = Q`, and the `e = 1` boundary convention) as non-member fields, and `bowCompatibleSet` is the derived companion `def` (F1-D9).",
+      "notes": "Search trace: grep 'bow|CanonicalModel|SharpnessCertificate' on ../doc/API.md (no matches); API.md sections 9j (Manski), 9j3 (BalkePearl), 9j4 (Proxy), 9j5 (Lee) read for an SCM-realizable-law class -- all are LP/response-function or trimming classes over discrete or selection models, none is a set of interventional laws realizable by a latent SCM at a fixed propensity. Result: absent, define locally per F1-D1/F1-D2. Build-inline: this is a class the note itself introduces and its statements are stated over it."
+    },
+    "def:mixture-class": {
+      "lean_kind": "structure",
+      "lean_name": "MixtureClass",
+      "members": [
+        "ass:positivity"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym"
+      ],
+      "target_file": "Helpers/Classes.lean",
+      "defer_tier": false,
+      "gate": false,
+      "construction": "`structure MixtureClass (e : Real) (P Q : Measure Y) : Prop` with the single member field `positivity : StrictPositivity e`, together with the defining representation carried by the set form `mixtureClassSet e P : Set (Measure Y) := {Q | exists R : Measure Y, IsProbabilityMeasure R and R.AbsolutelyContinuous P and Q = ENNReal.ofReal e * P + ENNReal.ofReal (1 - e) * R}`, with `mixtureClassSet 1 P = {P}`. Canonical declaration for this node is the `structure`: alongside the `positivity` member field it carries the residual witness `R`, its probability-law and `R.AbsolutelyContinuous P` clauses, the mixture identity and the `e = 1` boundary convention as non-member fields, and `mixtureClassSet` is the derived companion `def` (F1-D9).",
+      "notes": "Search trace: grep 'contamination|mixture|Huber' on ../doc/API.md -> `Causalean.PO.ID.Partial.Lee.MixtureIdentity` (a sample-selection principal-strata mixture identity over Omega-level condExp, not a set of laws) and `Causalean.PartialID.l2Ball` (a chi-square/L2 reweighting ball in a Hilbert space); lean_leansearch 'Huber gross error contamination class of probability measures' not indexed in Mathlib. Result: no gross-error / linear-vacuous contamination class of MEASURES anywhere; define locally. bypass-justified vs `PartialID.l2Ball` and the MSM `MSMSet`: those are Omega-level reweighting sets in an inner-product / condExp framework, whereas this is a subset of `Measure Y` defined by a measure identity. Build-inline."
+    },
+    "def:jk-ball": {
+      "lean_kind": "structure",
+      "lean_name": "JKBall",
+      "members": [
+        "ass:positivity"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym",
+        "Mathlib.MeasureTheory.Measure.Decomposition.IntegralRNDeriv",
+        "Mathlib.Analysis.Convex.Function",
+        "Mathlib.Data.EReal.Basic"
+      ],
+      "reuse_support": [
+        "MeasureTheory.Measure.integrable_toReal_rnDeriv"
+      ],
+      "target_file": "Helpers/Divergence.lean",
+      "defer_tier": false,
+      "gate": false,
+      "construction": "`structure JKBall (f : Real -> Real) (e : Real) (P Q : Measure Y) : Prop` with the single member field `positivity : StrictPositivity e`; set form `jkBallSet f e P : Set (Measure Y) := {Q | MutuallyAC Q P and fDiv f P Q <= ((divRadius f e : Real) : EReal)}` (generator admissibility stays a hypothesis of the consuming statements, exactly as in the core, and is not smuggled into the set), where `fDiv f P Q : EReal = if Integrable (fun x => f ((P.rnDeriv Q x).toReal)) Q then ((integral (fun x => f ((P.rnDeriv Q x).toReal)) Q : Real) : EReal) else TOP` (F1-D4) and `divRadius f e = e * f (1/e) + (1 - e) * f 0`. Canonical declaration for this node is the `structure`: alongside the `positivity` member field it carries the mutual-absolute-continuity clause `MutuallyAC Q P` and the extended-valued divergence bound `fDiv f P Q <= (divRadius f e : EReal)` as non-member fields, and `jkBallSet` is the derived companion `def` (F1-D9).",
+      "notes": "Search trace: see S2, including the round-3 re-search (`lean_leansearch` on the extended-valued f-divergence, `lean_loogle` on `le_integral_rnDeriv_of_ac`, `lean_local_search 'fDiv'`, `grep EReal` over Causalean). Also grep 'divergence ball|ambiguity set|density band' on ../doc/API.md -> `PartialID.l2Ball` (chi-square/L2 only) and `Stat.chiSqDiv` / `InformationTheory.klDiv` (single generators). Result: no general fDiv anywhere; define locally (F1-D4). INTEGRABILITY IS PART OF MEMBERSHIP (round-3 fix): because `fDiv` takes the value `TOP` exactly when `f (dP/dQ)` is not Q-integrable, and `divRadius f e` is a real number, the bound `fDiv f P Q <= (divRadius f e : EReal)` is FALSE for a nonintegrable pair instead of silently reading off the Bochner default `0`. The ball is therefore never larger than the note's class, and membership hands back `Integrable (fun x => f ((P.rnDeriv Q x).toReal)) Q`, which is the premise `MeasureTheory.le_integral_rnDeriv_of_ac` requires and which an arbitrary finite continuous convex generator does NOT supply on its own. Build-inline."
+    },
+    "def:hinge-class": {
+      "lean_kind": "structure",
+      "lean_name": "HingeClass",
+      "members": [
+        "ass:positivity"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.Function"
+      ],
+      "target_file": "Helpers/Divergence.lean",
+      "defer_tier": false,
+      "gate": false,
+      "construction": "`structure HingeClass (c : Real) (f : Real -> Real) : Prop` with the single member field `positivity : StrictPositivity (1/c)`; set form `hingeClassSet c : Set (Real -> Real) := {f | AdmissibleGenerator f and exists b : Real, (forall t, 0 <= t -> t <= c -> f t - b * (t - 1) = 0) and (forall t, c < t -> 0 < f t - b * (t - 1))}`, where `AdmissibleGenerator f` packages finiteness, continuity, convexity on `Set.Ici 0` and `f 1 = 0`. Canonical declaration for this node is the `structure`: alongside the `positivity` member field it carries `AdmissibleGenerator f` and the affine-shift witness `b` with its vanishing-on-`[0,c]` / strictly-positive-above-`c` clauses as non-member fields, and `hingeClassSet` is the derived companion `def` (F1-D9).",
+      "notes": "Search trace: grep 'hinge' on ../doc/API.md -> only `Stat/Coupling/.../Hoeffding*` (Frechet-Hoeffding, unrelated) and the Sason-Verdu comparator in the note's own bibliography; grep 'convex generator' on CausalSmith/doc/API.md -> no matches; lean_leansearch for f-divergence generators -> nothing. Result: absent, define locally. Build-inline; this affine-equivalence class is the paper's own frontier object."
+    },
+    "def:cdf-maps": {
+      "lean_kind": "def",
+      "lean_name": "cdfEndpoints",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "target_file": "Helpers/CdfMaps.lean",
+      "defer_tier": false,
+      "gate": false,
+      "inputs": [
+        "\\(e\\)",
+        "\\(p\\)"
+      ],
+      "construction": "`def cdfEndpoints (e p : Real) : Real x Real := (if p < 1 then e * p else 1, if p = 0 then 0 else e * p + 1 - e)`, i.e. the atom-aware pair `(L_e p, U_e p)`; at `e = 1` both coordinates reduce to `p`.",
+      "notes": "Search trace: grep 'Manski|contamination envelope|cdf bound' on ../doc/API.md -> `Causalean.PO.ID.Partial.Manski` (ATE bounds under a discrete IV, scalar means not cdf envelopes), `PartialID.Frechet` (Frechet-Hoeffding joint-cdf bounds, a different envelope) and `Stat.frechet_hoeffding_upper/lower`; lean_leansearch not applicable (a two-line piecewise real map). Result: absent; a small define-local `def`. Build-inline. One node -> one Lean object: the pair-valued `def` (rather than two separate defs) keeps the mapping one-to-one and matches the node name `L_e, U_e`. Closure of the D0 revision (F1-D11): this construction is `uses` (never `hyps`, F1-D8) of thm:cdf-endpoints-sharp, thm:support-regime-cdf-endpoints-sharp, thm:finite-sample-simultaneous-band and thm:tie-inclusive-band-impossibility, and none of those edges moved. Under the revised comparator framing the PIECEWISE atom-aware boundary (`L_e 1 = 1`, `U_e 0 = 0`) is the load-bearing content -- it is what separates this map from the continuous def:cdf-maps-one-sided and from Huber's interval -- so it must not be smoothed to `e * p` / `e * p + 1 - e`. The `e = 0` values are algebraic only and are consumed solely by `honestBand`'s clipped hull, never by an identification claim."
+    },
+    "def:lawful-correction": {
+      "lean_kind": "structure",
+      "lean_name": "LawfulCorrection",
+      "members": [
+        "ass:positivity"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym"
+      ],
+      "target_file": "Helpers/Divergence.lean",
+      "defer_tier": false,
+      "gate": false,
+      "construction": "`structure LawfulCorrection (f : Real -> Real) (e : Real) (P Q : Measure Y) : Prop` with the single member field `positivity : StrictPositivity e`; set form `lawfulCorrectionSet f e P := jkBallSet f e P INTER mixtureClassSet e P`. Canonical declaration for this node is the `structure`: alongside the `positivity` member field it carries the two intersection clauses `JKBall f e P Q` and `MixtureClass e P Q` as non-member fields, and `lawfulCorrectionSet` is the derived companion `def` (F1-D9).",
+      "notes": "Search trace: grep 'calibration|feasible set intersection|legality' on ../doc/API.md -> `PartialID.Sensitivity.MSM.MSMSetCalib` (the Dorn-Guo calibrated MSM set, an Omega-level reweighting intersection) is the closest ANALOGOUS module and is recorded here as the technique reference for 'intersect an over-wide ambiguity set with the data-compatibility constraint and show the tightening is strict'; the gap to bridge is that MSMSetCalib is a set of propensity candidates on Omega, this is an intersection of two subsets of `Measure Y`. Result: define locally. Build-inline. Round-3 consequence of the EReal `fDiv` (F1-D4): the ball factor now carries integrability, so the inclusion `mixtureClassSet e P SUBSET jkBallSet f e P` used by thm:query-legality-correction is real work rather than a formality -- it needs `f (dP/dQ)` Q-INTEGRABLE for every mixture `Q = eP + (1-e)R`, which follows because the mixture forces `dP/dQ <= c = 1/e` Q-a.e., so `f o (dP/dQ)` is bounded (f continuous on the compact `[0, c]`) on a probability space. That integrability step is recorded here so it is scaffolded, not assumed."
+    },
+    "def:honest-band": {
+      "lean_kind": "def",
+      "lean_name": "honestBand",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Sample",
+        "Causalean.Stat.Quantile.EmpiricalCDF",
+        "Mathlib.Probability.CDF"
+      ],
+      "reuse_support": [
+        "Causalean.Stat.cdfStat",
+        "Causalean.Stat.IIDSample"
+      ],
+      "target_file": "Helpers/Sampling.lean",
+      "defer_tier": false,
+      "gate": false,
+      "inputs": [
+        "\\(A\\)",
+        "\\(Y\\)",
+        "\\(n\\)",
+        "\\(\\alpha\\)"
+      ],
+      "construction": "`def honestBand (Z : Nat -> Omega -> Bool x Y) (a : Bool) (n : Nat) (alpha : Real) (omega : Omega) (y : Real) : Set (Real x Real)` -- built from the SAME sample sequence `Z` that `ass:iid-sampling` constrains (F1-D10), with `n_a omega = card {i in Finset.range n | (Z i omega).1 = a}`, the arm fraction `armFrac Z a n omega = n_a omega / n`, the arm-conditional empirical cdf `armCdf Z a n omega y = (card {i in Finset.range n | (Z i omega).1 = a and (Z i omega).2 <= y}) / n_a omega`, `deltaE = sqrt (log (4/alpha) / (2*n))`, `deltaF omega = sqrt (log (4/alpha) / (2 * n_a omega))`, `I_e = Icc (armFrac - deltaE) (armFrac + deltaE) INTER Icc 0 1`, `I_F y = Icc (armCdf y - deltaF) (armCdf y + deltaF) INTER Icc 0 1`; the value is the coordinatewise rectangular hull of `cdfEndpoints '' (I_e x I_F y)`, and `Icc 0 1 x Icc 0 1` when `n_a omega = 0`.",
+      "notes": "Search trace: grep 'empiricalCDF|confidence band|RandomCovers' on ../doc/API.md -> `Causalean.Stat.IIDSample.empiricalCDF` (unconditional, denominator n), `Causalean.PartialID.RandomCoversIcc` / `honest_ci_set_cover` / `hoeffding_honest_ci_set_cover` (API.md section 9j2inf: scalar interval coverage, not a threshold-indexed rectangular hull in R^2); lean_leansearch 'simultaneous confidence band for a distribution function' -> nothing beyond the empirical-cdf CLT. Result: the arm-conditional empirical cdf (random denominator n_a) and rectangular-hull propagation are absent and are defined locally. The band takes the same raw sequence `Z` as the first-`n` predicate `IidObservationalSampling n Z mu nu`; no whole-sequence `IIDSample` bridge is claimed. `Causalean.Stat.cdfStat` and `PartialID.honest_ci_set_cover` remain analogous/reusable ingredients. Build-inline."
+    },
+    "def:directional-handle": {
+      "lean_kind": "def",
+      "lean_name": "directionalHandleRecipe",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "target_file": "Helpers/Sampling.lean",
+      "defer_tier": false,
+      "gate": false,
+      "inputs": [
+        "\\(\\widehat e_n,\\widehat F_{P,n}\\)",
+        "\\(L_e(p),U_e(p)\\)"
+      ],
+      "construction": "`def DirectionalHandle (band : Nat -> Omega -> Real -> Set (Real x Real)) : Prop := IsRectangularBand band`, i.e. every band value factorizes as a product of two random intervals; the procedural recipe (linearize the joint pre-endpoint empirical process, take the Hadamard directional derivative of `(e, F_P) |-> (L_e o F_P, U_e o F_P)`, estimate it inside a Fang--Santos multiplier or numerical-delta bootstrap, then take the supremum over thresholds and arms) is carried alongside as the descriptive `String` payload `directionalHandleRecipe`. The regularity side condition is not part of this node: thm:tie-inclusive-band-impossibility binds its full measurable-membership formula directly as `hBandMeas`.",
+      "notes": "See decisions F1-D3 and F1-D12. Search trace: grep 'Fang|Santos|directional|Hadamard|bootstrap' on ../doc/API.md -> no Hadamard-directional-differentiability or multiplier-bootstrap layer anywhere in Causalean (API.md sections 12ep, 12x, 12' cover Glivenko-Cantelli, U-statistics and concentration only); lean_leansearch 'Hadamard directional derivative bootstrap' -> not in Mathlib. Round-4 re-search for the added regularity premise: grep 'MeasurableSet|measurable' over the surveyed Stat/PartialID band modules and read `Causalean/Stat/Minimax/TotalVariation.lean:50-84` -> Causalean has no matching random-set predicate, and Mathlib's `MeasurableSet` is the primitive. The theorem therefore carries the primitive formula directly; no separate `BandMembershipMeasurable`/`BandEventsMeasurable` definition and no filler-node tag is emitted. Result: no formalizable derivative layer exists, and the note does not need one: the impossibility theorem consumes the handle only through rectangularity plus its direct `hBandMeas` binder. Build-inline; NOT deferred, because nothing the note asserts about the handle is being assumed away."
+    },
+    "def:bow-compatible-one-sided": {
+      "lean_kind": "structure",
+      "lean_name": "BowCompatibleOneSided",
+      "members": [
+        "ass:bow-structure",
+        "ass:consistency",
+        "ass:positivity"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Constructions.Polish.Basic"
+      ],
+      "target_file": "Helpers/Classes.lean",
+      "defer_tier": false,
+      "gate": false,
+      "construction": "`structure BowCompatibleOneSided (a : Bool) (e : Real) (P Q : Measure Y) (w : BowWitness Y) : Prop` with the three member fields `bow_structure`, `consistency`, `positivity`; set form `bowCompatibleOneSidedSet a e P := {Q | exists w, BowCompatibleOneSided a e P Q w and armPropensity w a = e and armLaw w a = P and interventionalLaw w a = Q}`, with boundary `bowCompatibleOneSidedSet a 1 P = {P}`. No mutual-absolute-continuity member. Canonical declaration for this node is the `structure`: alongside its three member fields it carries the defining clauses (`armPropensity w a = e`, `armLaw w a = P`, `interventionalLaw w a = Q`, and the `e = 1` boundary convention) as non-member fields, and `bowCompatibleOneSidedSet` is the derived companion `def` (F1-D9).",
+      "notes": "Same survey as def:bow-compatible (no bow / latent-SCM law class in Causalean). Build-inline; the one-sided/mutual split is the note's own contribution and is realized as two structures differing exactly by the `mutual_ac` field, which is what makes prop:mutual-support-intersection a field-drop argument."
+    },
+    "def:mixture-class-one-sided": {
+      "lean_kind": "structure",
+      "lean_name": "MixtureClassOneSided",
+      "members": [
+        "ass:positivity"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym"
+      ],
+      "target_file": "Helpers/Classes.lean",
+      "defer_tier": false,
+      "gate": false,
+      "construction": "`structure MixtureClassOneSided (e : Real) (P Q : Measure Y) : Prop` with the single member field `positivity`; set form `mixtureClassOneSidedSet e P := {Q | exists R, IsProbabilityMeasure R and Q = ENNReal.ofReal e * P + ENNReal.ofReal (1 - e) * R}` (arbitrary residual), with `mixtureClassOneSidedSet 1 P = {P}`. Canonical declaration for this node is the `structure`: alongside the `positivity` member field it carries the arbitrary residual witness `R`, its probability-law clause, the mixture identity and the `e = 1` boundary convention as non-member fields, and `mixtureClassOneSidedSet` is the derived companion `def` (F1-D9).",
+      "notes": "Same survey as def:mixture-class (no gross-error contamination class of measures in Mathlib or Causalean). Build-inline. `Causalean.Mathlib.Probability.bernoulliBool_bind` is REUSED INSIDE the realization direction: it delivers `(bernoulliBool e).bind K = ofReal e * K true + ofReal (1-e) * K false`, which is literally the mixture identity of equation (1)."
+    },
+    "def:jk-ball-one-sided": {
+      "lean_kind": "structure",
+      "lean_name": "JKBallOneSided",
+      "members": [
+        "ass:positivity"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym",
+        "Mathlib.MeasureTheory.Measure.Decomposition.IntegralRNDeriv",
+        "Mathlib.Analysis.Convex.Function",
+        "Mathlib.Data.EReal.Basic"
+      ],
+      "reuse_support": [
+        "MeasureTheory.Measure.integrable_toReal_rnDeriv"
+      ],
+      "target_file": "Helpers/Divergence.lean",
+      "defer_tier": false,
+      "gate": false,
+      "construction": "`structure JKBallOneSided (f : Real -> Real) (e : Real) (P Q : Measure Y) : Prop` with the single member field `positivity`; set form `jkBallOneSidedSet f e P := {Q | P.AbsolutelyContinuous Q and fDiv f P Q <= ((divRadius f e : Real) : EReal)}` (only forward support required), with `fDiv` the EReal integrability-total divergence of F1-D4. Canonical declaration for this node is the `structure`: alongside the `positivity` member field it carries the forward-support clause `P.AbsolutelyContinuous Q` and the extended-valued divergence bound as non-member fields, and `jkBallOneSidedSet` is the derived companion `def` (F1-D9).",
+      "notes": "Same survey as def:jk-ball, including the round-3 re-search recorded in S2; define locally (F1-D4). Same integrability treatment as def:jk-ball: `fDiv = TOP` on a nonintegrable pair, so the real bound `<= (divRadius f e : EReal)` excludes it rather than admitting it through the Bochner default, and membership yields the `Integrable` premise that `le_integral_rnDeriv_of_ac` needs. Note the forward-support clause `P << Q` alone already makes the NEGATIVE part of `f (dP/dQ)` Q-integrable for an admissible `f` (subgradient bound at 1 plus `Measure.integrable_toReal_rnDeriv`), so `fDiv` never takes the value `BOT` here and the `TOP` branch is the honest `+infinity`, not an artefact. Build-inline."
+    },
+    "def:cdf-maps-one-sided": {
+      "lean_kind": "def",
+      "lean_name": "cdfEndpointsOneSided",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "target_file": "Helpers/CdfMaps.lean",
+      "defer_tier": false,
+      "gate": false,
+      "inputs": [
+        "\\(e\\)",
+        "\\(p\\)"
+      ],
+      "construction": "`def cdfEndpointsOneSided (e p : Real) : Real x Real := (e * p, e * p + 1 - e)` -- the continuous (non-piecewise) endpoint pair.",
+      "notes": "Same survey as def:cdf-maps. Build-inline; a two-line define-local `def`. Closure of the D0 revision (F1-D11): its single consumer edge -- `uses` of thm:support-regime-cdf-endpoints-sharp -- is unchanged; the deliberate contrast with the piecewise def:cdf-maps at p in {0,1} is the whole content of the support-regime split and must survive into the Lean statements."
+    },
+    "def:lawful-correction-one-sided": {
+      "lean_kind": "structure",
+      "lean_name": "LawfulCorrectionOneSided",
+      "members": [
+        "ass:positivity"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym"
+      ],
+      "target_file": "Helpers/Divergence.lean",
+      "defer_tier": false,
+      "gate": false,
+      "construction": "`structure LawfulCorrectionOneSided (f : Real -> Real) (e : Real) (P Q : Measure Y) : Prop` with the single member field `positivity`; set form `lawfulCorrectionOneSidedSet f e P := jkBallOneSidedSet f e P INTER mixtureClassOneSidedSet e P`. Canonical declaration for this node is the `structure`: alongside the `positivity` member field it carries the two intersection clauses `JKBallOneSided f e P Q` and `MixtureClassOneSided e P Q` as non-member fields, and `lawfulCorrectionOneSidedSet` is the derived companion `def` (F1-D9).",
+      "notes": "Same survey as def:lawful-correction (`PartialID.Sensitivity.MSM.MSMSetCalib` is the analogous-module technique reference). Build-inline. Same round-3 consequence of the EReal `fDiv` (F1-D4): `mixtureClassOneSidedSet e P SUBSET jkBallOneSidedSet f e P` now additionally requires the boundedness-of-the-ratio integrability step (`dP/dQ <= 1/e` Q-a.e. makes `f o (dP/dQ)` bounded, hence Q-integrable), which is scaffolded in `Helpers/Divergence.lean` rather than assumed."
+    },
+    "def:conditional-bow-compatible-one-sided": {
+      "lean_kind": "structure",
+      "lean_name": "CondBowCompatibleOneSided",
+      "members": [
+        "ass:conditional-bow-architecture",
+        "ass:conditional-overlap",
+        "ass:conditional-consistency"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Kernel.CondDistrib",
+        "Mathlib.MeasureTheory.Constructions.Polish.Basic",
+        "Causalean.Mathlib.CondDistrib"
+      ],
+      "reuse_support": [
+        "Causalean.measure_eq_bind_marginal_condDistrib"
+      ],
+      "target_file": "Helpers/CondClasses.lean",
+      "defer_tier": false,
+      "gate": false,
+      "construction": "`structure CondBowCompatibleOneSided (kappa) (muX) (e : Bool -> X -> Real) (P Q : Bool -> Kernel X Y) (w : CondBowWitness X Y) : Prop` with the three member fields `architecture : CondBowArchitecture w`, `overlap : CondOverlap kappa e`, `consistency : CondConsistency w`; set form `condBowCompatibleOneSidedSet kappa muX e P := {Q | exists w, CondBowCompatibleOneSided ... w and covariateLaw w = muX and exists S, MeasurableSet S and muX S^c = 0 and forall x in S, forall a, condProp w a x = e a x and condArmLaw w a x = P a x and condIntervLaw w a x = Q a x}`. No reverse-support condition; no restriction on S^c. Canonical declaration for this node is the `structure`: alongside its three member fields it carries the defining clauses (`covariateLaw w = muX`, the common measurable muX-conull set `S`, and the simultaneous fiberwise propensity / arm-law / interventional-law identities on `S`) as non-member fields, and `condBowCompatibleOneSidedSet` is the derived companion `def` (F1-D9).",
+      "notes": "Search trace: grep 'ProbabilityTheory.Kernel|IsMarkovKernel|condDistrib' over Causalean; API.md sections 10a, 10a', 10a'', 6b (SCM/Model/Kernel), 6b0 (SCM/Factored) read. Result: Causalean has kernel factorization machinery for SWIG-node SCMs and `condDistrib` helper lemmas, but no covariate-conditioned bow class -> define locally per S4. `Causalean.measure_eq_bind_marginal_condDistrib` is REUSED INSIDE for the disintegration step. Build-inline (this is the note's headline object)."
+    },
+    "def:conditional-mixture-class-one-sided": {
+      "lean_kind": "structure",
+      "lean_name": "CondMixtureClassOneSided",
+      "members": [
+        "ass:conditional-overlap"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Kernel.CondDistrib",
+        "Mathlib.MeasureTheory.Measure.GiryMonad"
+      ],
+      "reuse_support": [
+        "MeasureTheory.Measure.measurable_of_measurable_coe"
+      ],
+      "target_file": "Helpers/CondClasses.lean",
+      "defer_tier": false,
+      "gate": false,
+      "construction": "`structure CondMixtureClassOneSided (kappa) (muX) (e) (P Q) : Prop` with the single member field `overlap : CondOverlap kappa e`; set form `condMixtureClassOneSidedSet kappa muX e P := {Q | exists R : Bool -> Kernel X Y, (forall a, IsMarkovKernel (R a)) and exists S, MeasurableSet S and muX S^c = 0 and forall x in S, forall a, Q a x = ENNReal.ofReal (e a x) * P a x + ENNReal.ofReal (1 - e a x) * R a x}`. No restriction on the versions over S^c. Canonical declaration for this node is the `structure`: alongside the `overlap` member field it carries the residual kernel pair `R` with its `IsMarkovKernel` clauses, the common measurable muX-conull set `S`, and the fiberwise two-arm mixture identities on `S` as non-member fields, and `condMixtureClassOneSidedSet` is the derived companion `def` (F1-D9).",
+      "notes": "Same survey as def:conditional-bow-compatible-one-sided. `Measure.measurable_of_measurable_coe` is REUSED INSIDE to certify that the constructed residual is a Markov kernel. Build-inline."
+    },
+    "def:conditional-bow-compatible": {
+      "lean_kind": "structure",
+      "lean_name": "CondBowCompatible",
+      "members": [
+        "ass:conditional-bow-architecture",
+        "ass:conditional-overlap",
+        "ass:conditional-consistency",
+        "ass:conditional-reverse-support"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Kernel.CondDistrib",
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym",
+        "Causalean.Mathlib.CondDistrib"
+      ],
+      "target_file": "Helpers/CondClasses.lean",
+      "defer_tier": false,
+      "gate": false,
+      "construction": "`structure CondBowCompatible (kappa) (muX) (e) (P Q) (w : CondBowWitness X Y) : Prop` with the four member fields `architecture`, `overlap`, `consistency`, `reverse_support : CondReverseSupport muX P Q`; set form as for the one-sided class but with `(Q a x).AbsolutelyContinuous (P a x)` additionally required on the same common conull set S. Canonical declaration for this node is the `structure`: alongside its four member fields it carries the same defining clauses as `CondBowCompatibleOneSided` (covariate law, common conull set `S`, and the simultaneous fiberwise identities) as non-member fields, and `condBowCompatibleSet` is the derived companion `def` (F1-D9).",
+      "notes": "Same survey as def:conditional-bow-compatible-one-sided. Build-inline."
+    },
+    "def:conditional-mixture-class": {
+      "lean_kind": "structure",
+      "lean_name": "CondMixtureClass",
+      "members": [
+        "ass:conditional-overlap"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Kernel.CondDistrib",
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym",
+        "Mathlib.MeasureTheory.Measure.GiryMonad"
+      ],
+      "reuse_support": [
+        "MeasureTheory.Measure.measurable_of_measurable_coe"
+      ],
+      "target_file": "Helpers/CondClasses.lean",
+      "defer_tier": false,
+      "gate": false,
+      "construction": "`structure CondMixtureClass (kappa) (muX) (e) (P Q) : Prop` with the single member field `overlap`; set form as for `condMixtureClassOneSidedSet` but additionally requiring `(R a x).AbsolutelyContinuous (P a x)` for both arms and every x in the common conull set S. Canonical declaration for this node is the `structure`: alongside the `overlap` member field it carries the residual kernel pair with its `IsMarkovKernel` and fiberwise domination clauses, the common conull set `S`, and the two-arm mixture identities as non-member fields, and `condMixtureClassSet` is the derived companion `def` (F1-D9).",
+      "notes": "Same survey as def:conditional-mixture-class-one-sided. Build-inline."
+    },
+    "def:conditional-adaptive-hinge-ball-one-sided": {
+      "lean_kind": "structure",
+      "lean_name": "CondAdaptiveHingeBallOneSided",
+      "members": [
+        "ass:conditional-overlap"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Kernel.CondDistrib",
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym",
+        "Mathlib.MeasureTheory.Measure.Decomposition.IntegralRNDeriv",
+        "Mathlib.Analysis.Convex.Function",
+        "Mathlib.Data.EReal.Basic"
+      ],
+      "reuse_support": [
+        "MeasureTheory.Measure.integrable_toReal_rnDeriv"
+      ],
+      "target_file": "Helpers/CondClasses.lean",
+      "defer_tier": false,
+      "gate": false,
+      "construction": "`structure CondAdaptiveHingeBallOneSided (kappa) (muX) (e) (P Q) : Prop` with the single member field `overlap`; with `adaptiveHinge (ea : Real) (t : Real) := max (t - 1/ea) 0`, the set form is `{Q | exists S, MeasurableSet S and muX S^c = 0 and forall x in S, forall a, (P a x).AbsolutelyContinuous (Q a x) and fDiv (adaptiveHinge (e a x)) (P a x) (Q a x) <= ((divRadius (adaptiveHinge (e a x)) (e a x) : Real) : EReal)}`, with `fDiv` the EReal integrability-total divergence of F1-D4. Fiberwise, never integrated over x, and no assertion at any prescribed point of S^c. Canonical declaration for this node is the `structure`: alongside the `overlap` member field it carries the common measurable muX-conull set `S` and, on `S`, the fiberwise two-arm forward-support and adaptive-hinge divergence-bound clauses as non-member fields, and `condAdaptiveHingeBallOneSidedSet` is the derived companion `def` (F1-D9).",
+      "notes": "Same survey as S2 + S4, including the round-3 EReal re-search: no general fDiv (F1-D4) and no covariate-indexed generator family anywhere. Build-inline. The joint Borel measurability of `(a, x, t) |-> adaptiveHinge (e a x) t` is immediate from `Bool` being finite and `e a` measurable with `e a x >= kappa > 0`. INTEGRABILITY under the EReal encoding is not an obstruction for THIS class and is discharged fiberwise rather than assumed: the hinge integrand `(r - 1/e_a(x))_+` is nonnegative and dominated by `r = d(P a x)/d(Q a x)`, which is `(Q a x)`-integrable by `Measure.integrable_toReal_rnDeriv` since `P a x` is a probability measure; hence the fiberwise `fDiv` is always real (never `TOP`) here, the constraint reduces to the note's `integral (r - c_ax)_+ <= 0`, and no Jensen/`le_integral_rnDeriv_of_ac` premise is needed for this class at all."
+    },
+    "def:conditional-adaptive-hinge-ball": {
+      "lean_kind": "structure",
+      "lean_name": "CondAdaptiveHingeBall",
+      "members": [
+        "ass:conditional-overlap",
+        "ass:conditional-reverse-support"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Kernel.CondDistrib",
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym",
+        "Mathlib.MeasureTheory.Measure.Decomposition.IntegralRNDeriv",
+        "Mathlib.Analysis.Convex.Function",
+        "Mathlib.Data.EReal.Basic"
+      ],
+      "reuse_support": [
+        "MeasureTheory.Measure.integrable_toReal_rnDeriv"
+      ],
+      "target_file": "Helpers/CondClasses.lean",
+      "defer_tier": false,
+      "gate": false,
+      "construction": "`structure CondAdaptiveHingeBall (kappa) (muX) (e) (P Q) : Prop` with the two member fields `overlap` and `reverse_support`; set form as for the one-sided adaptive class but with `P a x` and `Q a x` mutually absolutely continuous on the common conull set S. Canonical declaration for this node is the `structure`: alongside its two member fields it carries the common conull set `S` and the fiberwise two-arm mutual-support and adaptive-hinge divergence-bound clauses as non-member fields, and `condAdaptiveHingeBallSet` is the derived companion `def` (F1-D9).",
+      "notes": "Same survey as def:conditional-adaptive-hinge-ball-one-sided, and the same fiberwise integrability discharge (the hinge integrand is dominated by the Radon-Nikodym derivative, so the EReal `fDiv` of F1-D4 is real on every fiber of this class). Build-inline."
+    },
+    "thm:bow-mixture-completeness": {
+      "lean_kind": "theorem",
+      "lean_name": "bowCompatible_eq_mixtureClass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym",
+        "Causalean.Mathlib.Probability.BernoulliMeasure"
+      ],
+      "reuse_support": [
+        "Causalean.Mathlib.Probability.bernoulliBool_bind",
+        "MeasureTheory.Measure.rnDeriv_le_one_iff_le"
+      ],
+      "target_file": "TBowMixtureCompleteness.lean",
+      "hyps": [
+        "ass:positivity",
+        "def:bow-compatible",
+        "def:mixture-class"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t1",
+      "notes": "Paper-owned `status: proved` result -> stays defer_tier false, gate false. Search trace: grep 'bow|contamination|mixture' on ../doc/API.md, sections 9j/9j3/9j4/9j5 read; lean_leansearch 'measure inequality mu le nu iff radon nikodym derivative le one almost everywhere' -> `Measure.rnDeriv_le_one_iff_le` (REUSED: applied to `ofReal e * P <= Q` it gives the cap `dP/dQ <= 1/e` and its converse in one step). `bernoulliBool_bind` (REUSED) discharges the realization half verbatim. Build-inline; the remaining work is the total-probability decomposition and the `R = (Q - eP)/(1-e)` nonnegativity check, both routine over `Measure.withDensity`."
+    },
+    "thm:generator-iff-frontier": {
+      "lean_kind": "theorem",
+      "lean_name": "generator_exactness_iff_hinge",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.Function",
+        "Mathlib.MeasureTheory.Measure.Decomposition.IntegralRNDeriv",
+        "Mathlib.Data.EReal.Basic",
+        "Causalean.Mathlib.Probability.BernoulliMeasure"
+      ],
+      "reuse_support": [
+        "MeasureTheory.le_integral_rnDeriv_of_ac",
+        "MeasureTheory.Measure.integrable_toReal_rnDeriv",
+        "Causalean.Mathlib.Probability.bernoulliLaw"
+      ],
+      "target_file": "TGeneratorIffFrontier.lean",
+      "hyps": [
+        "ass:positivity",
+        "def:mixture-class",
+        "def:jk-ball",
+        "def:hinge-class"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t2",
+      "notes": "Paper-owned. Search trace: grep 'divergence ball|density band|Fauss' on ../doc/API.md -> nothing; lean_leansearch 'f-divergence ...' -> only klDiv/klFun. Build-inline. Analogous module for the necessity half: the two-ratio full-support binary construction is the same technique as `Causalean.Stat.chiSqDiv_bernoulliLaw_centerHalf` (Stat/Minimax/ChiSquared) -- explicit two-point laws with computed divergence; the gap is that the generator is arbitrary rather than the chi-square one, so the closed form is replaced by the chord inequality `f(t) <= (1 - t/c) f 0 + (t/c) f c`. REUSED: `le_integral_rnDeriv_of_ac` for the Jensen side, `bernoulliLaw` for the witnesses. INTEGRABILITY BOOKKEEPING under the EReal `fDiv` of F1-D4 (round-3 fix): the sufficiency half (`L_e SUBSET B_f`) supplies its own integrability from the cap `dP/dQ <= c` (f continuous on the compact `[0, c]` gives a bounded integrand on a probability space), so the chord integration is legitimate and `fDiv` is real there; the exactness half (`B_f SUBSET L_e`) takes integrability FROM ball membership, since `fDiv f P Q <= (B_f(e) : EReal)` with a real bound rules out the `TOP` branch -- that is the only route by which the `Integrable` premise of `le_integral_rnDeriv_of_ac` is discharged, and it is NOT claimed to follow from `AdmissibleGenerator f` alone; the necessity half runs entirely on two-cell full-support binary laws, where the integrand is a finite sum and integrability is automatic (`Integrable` of any function on a finite measurable partition)."
+    },
+    "thm:open-illegal-dichotomy": {
+      "lean_kind": "theorem",
+      "lean_name": "open_illegal_dichotomy",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.Function",
+        "Causalean.Mathlib.Probability.BernoulliMeasure"
+      ],
+      "reuse_support": [
+        "Causalean.Mathlib.Probability.bernoulliLaw"
+      ],
+      "target_file": "TOpenIllegalDichotomy.lean",
+      "hyps": [
+        "ass:positivity",
+        "def:mixture-class",
+        "def:jk-ball",
+        "def:hinge-class"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t3",
+      "notes": "Paper-owned. Search trace: grep 'strict convexity|chord|concave nonneg vanishing at endpoints' on ../doc/API.md -> `Causalean.Mathlib.Analysis.Convex.ReciprocalProduct` is the only bespoke convexity file (a different inequality); lean_leansearch / Mathlib `Analysis.Convex.Function` supplies `ConvexOn.smul_le_sum`, `inner_le_nnorm`-style chord lemmas and `StrictConvexOn`. Build-inline: the only genuinely new analytic step is 'a nonnegative concave function vanishing at both endpoints of an interval and at one interior point is identically zero', a short `ConcaveOn` argument. `bernoulliLaw` supplies the witnesses; openness follows from continuity of the two-cell divergence in (p,q) on (0,1)^2. The EReal `fDiv` of F1-D4 costs this theorem nothing: every witness is a full-support binary pair, on which the integrand is a two-term finite sum, so `Integrable` holds outright, `fDiv` is real, and the two-cell closed form `q f(p/q) + (1-q) f((1-p)/(1-q))` is available as a `fDiv_bernoulli` rewrite (small, listed in `Helpers/BinaryWitness.lean`); no Jensen premise is needed here."
+    },
+    "thm:cdf-endpoints-sharp": {
+      "lean_kind": "theorem",
+      "lean_name": "cdf_endpoints_sharp",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.CDF",
+        "Causalean.PO.ID.Partial.Basic"
+      ],
+      "reuse_support": [
+        "Causalean.PartialID.IdentifiedInterval",
+        "Causalean.PartialID.identifiedInterval_eq_Icc"
+      ],
+      "target_file": "TCdfEndpointsSharp.lean",
+      "hyps": [
+        "ass:positivity"
+      ],
+      "uses": [
+        "def:cdf-maps"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t4",
+      "notes": "Paper-owned; a corollary of thm:support-regime-cdf-endpoints-sharp, so short. Search trace: grep 'IdentifiedInterval|identified set|Icc' on ../doc/API.md, section 9j2 read; `Causalean.PartialID.IdentifiedInterval obj feasible` and `identifiedInterval_eq_Icc` are an exact vocabulary fit. Root-earned cap repair, RE-VERIFIED against the revised core (F1-D11): the node's current `depends_on` is exactly [ass:positivity, def:cdf-maps, thm:bow-mixture-completeness, thm:support-regime-cdf-endpoints-sharp] -- ass:bow-structure and ass:mutual-ac were removed upstream -- so `hyps` is [ass:positivity] and `uses` is [def:cdf-maps]; `bowCompatibleSet` quantifies candidate realizations and already enforces their bow-structure and mutual-support conditions, so no outer bow witness or mutual-AC premise is threaded. STATEMENT FIDELITY under the revised comparator framing (Huber1964Robust, match_kind strict_tightening): the interval formula ep .. ep+1-e is Huber's, so the Lean statement must deliver BOTH the set equality `{F_Q y | Q in bowCompatibleSet a e P} = Icc (L_e p) (U_e p)` AND endpoint ATTAINMENT inside the class -- including the collapse to the unique value 0 at p = 0 and 1 at p = 1, and the atom-at-y case -- because the collapse and the attainment, not the interval, are the delivered contribution."
+    },
+    "thm:query-legality-correction": {
+      "lean_kind": "theorem",
+      "lean_name": "query_legality_correction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym",
+        "Mathlib.Analysis.Convex.Function"
+      ],
+      "reuse_support": [
+        "MeasureTheory.setIntegral_rnDeriv_smul'"
+      ],
+      "target_file": "TQueryLegalityCorrection.lean",
+      "hyps": [
+        "def:lawful-correction"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t5",
+      "notes": "Paper-owned. Search trace: grep 'essInf|essSup|support function|robustUpper' on ../doc/API.md -> `Causalean.PartialID.supportFn` / `robustUpper` / `robustLower` / `robustInterval_eq_image` (section 9j2sf, 9j2sg) are the ANALOGOUS module for 'sharp endpoints of a linear functional over a convex ambiguity set'; the gap is that they live in a real inner-product space with `inner d x`, whereas here the functional is `Q |-> integral h dQ` over `Measure Y`, so the note's direct essInf/essSup argument is shorter than a Hilbert embedding. Mathlib side: `essInf`/`essSup` and `MeasureTheory.Measure.restrict` conditioning supply the `R = P(. | {h < m + eta})` witnesses. Build-inline. Under the EReal `fDiv` of F1-D4 the identity `B^law = L_e` is proved in the direction that actually needs work: `L_e SUBSET B_f` requires the mixture's likelihood-ratio cap `dP/dQ <= 1/e` to make `f o (dP/dQ)` bounded and hence Q-integrable BEFORE the chord bound is integrated, so the divergence is real and the inequality `fDiv f P Q <= (B_f(e) : EReal)` is a genuine claim; the reverse inclusion is set-theoretic. That integrability step is a `Helpers/Divergence.lean` L-lemma, not an assumption."
+    },
+    "thm:finite-sample-simultaneous-band": {
+      "lean_kind": "theorem",
+      "lean_name": "honestBand_simultaneous_coverage",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Sample",
+        "Causalean.Stat.Quantile.EmpiricalCDF",
+        "Causalean.Stat.Quantile.ConditionalMarkedSubsampleDkw.TailLift",
+        "Causalean.Stat.Quantile.ConditionalMarkedSubsampleDkw.ConditionalLaw",
+        "Causalean.PO.ID.Partial.Basic"
+      ],
+      "reuse_support": [
+        "Causalean.PartialID.honest_ci_set_cover",
+        "Causalean.Stat.IIDSample",
+        "Causalean.Stat.Quantile.ConditionalMarkedSubsampleDkw.MarkedIID",
+        "Causalean.Stat.Quantile.ConditionalMarkedSubsampleDkw.dkwRadius",
+        "Causalean.Stat.Quantile.ConditionalMarkedSubsampleDkw.conditionalMarkedSubsample_dkwRadius",
+        "Causalean.Stat.Quantile.ConditionalMarkedSubsampleDkw.conditionalMarkedSubsample_empiricalCDF_tail"
+      ],
+      "target_file": "TFiniteSampleSimultaneousBand.lean",
+      "hyps": [
+        "ass:iid-sampling",
+        "lem:hoeffding-bounded-mean",
+        "lem:dkw-massart-cdf-band"
+      ],
+      "uses": [
+        "def:cdf-maps",
+        "def:honest-band"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t6",
+      "notes": "Paper-owned coverage theorem, CONDITIONAL on its two frozen cited logical-claim gates. ROUND-5 GATE-THREADING REPAIR (F1-D5, rewritten): the prior scaffold redirect -- which dropped the two gate binders and discharged them through untagged companion lemmas inside the proof -- is REVERTED. `lem:hoeffding-bounded-mean` and `lem:dkw-massart-cdf-band` are `status: cited`, `carrier: logical-claim`, so they are substrate gates that must be threaded as explicit hypotheses of every logical consumer and may not be silently re-derived here; F2 binds them as the public binders `(hHoeffding : HoeffdingBoundedMean)` and `(hDkw : DkwMassartCdfBand)`, and the proof uses those binders exactly where the frozen proof invokes lem:hoeffding-bounded-mean (step (1), the propensity interval) and lem:dkw-massart-cdf-band (step (2), the conditional CDF band). They move from `uses` to `hyps` accordingly; both are in this node's core `depends_on`, so `hyps` stays a subset of it. Everything else is unchanged: the statement binds one raw sequence `Z`, assumes `IidObservationalSampling n Z mu nu` for exactly its first `n` coordinates, and states coverage for `honestBand Z a n alpha`; both `mu` and `nu` are probability laws through that assumption. NEW REUSE FOUND while re-searching this flagged node (round 5), and it is exactly the conditioning step the frozen proof spends equations (2)--(3) on: `Causalean/Stat/Quantile/ConditionalMarkedSubsampleDkw/` conditions on the complete Boolean mark word, reindexes the retained arm-`a` outcome coordinates, proves they are conditionally iid with the arm-conditional law (`MarkedIID.selectedOutcomes_conditionalLaw`, ConditionalLaw.lean:225), and averages a SUPPLIED fixed-size empirical-CDF tail bound over the finite word partition (`conditionalMarkedSubsample_empiricalCDF_tail`, TailLift.lean:58; `conditionalMarkedSubsample_dkwRadius`, TailLift.lean:112, with `dkwRadius alpha m = sqrt (log (4/alpha) / (2*m))` at TailLift.lean:107 -- literally this note's `delta_F`). It takes the fixed-size DKW--Massart bound as a HYPOTHESIS and lifts it to the random arm count, which is why it is a reuse for the lifting and NOT a discharge of lem:dkw-massart-cdf-band: the cited inequality itself is still what the gate binder supplies. Bridge to build inline: this node's `IidObservationalSampling n Z mu nu` (F1-D10) has exactly the fields of `MarkedIID` (first-`n` measurability, `iIndepFun`, common pushforward) plus the two probability-measure conjuncts, so a small `toMarkedIID` constructor is a `Helpers/Sampling.lean` L-lemma; the arm mass `e` and arm law `P` supply `BooleanMarkFactorization`. ROUND-4 CLOSURE CHECK (F1-D12) still stands: this node is the other band consumer reached from thm:tie-inclusive-band-impossibility, and it deliberately takes NO analogue of `hBandMeas`. Its band is the constructed `honestBand`, not an adversary's; the coverage bound is obtained by the INCLUSION `E_e INTER (n_a = 0 UNION E_F) SUBSET {omega | forall y, ...}` between the measurable concentration events and the coverage set, and a Lean `Measure` is an outer measure, so `mu` is monotone on arbitrary sets and the `>= 1 - alpha` bound needs no measurability side condition."
+    },
+    "lem:hoeffding-bounded-mean": {
+      "lean_kind": "assumption",
+      "lean_name": "HoeffdingBoundedMean",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Concentration.TailBounds.Hoeffding"
+      ],
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "citation": "cite:vandervaart-wellner-1996-hoeffding",
+      "source": "cite:vandervaart-wellner-1996-hoeffding",
+      "source_cite": "vanDerVaartWellner1996",
+      "source_locator": "Lemma 2.2.9 (Hoeffding's inequality)",
+      "carrier": "logical-claim",
+      "consumers": [
+        "thm:finite-sample-simultaneous-band"
+      ],
+      "notes": "Frozen cited logical-claim carrier, encoded as the canonical named proposition `HoeffdingBoundedMean : Sort 0` (unshadowable proposition-universe syntax, never a `Prop` identifier). ROUND-5 REPAIR: the earlier scaffold redirect that discharged this gate through an untagged companion lemma is withdrawn. Per the cited-gate rule the proposition is THREADED as an explicit hypothesis `(hHoeffding : HoeffdingBoundedMean)` into its single logical consumer thm:finite-sample-simultaneous-band, which is therefore proved conditional on it; it stays out of the `theorems` manifest and remains listed in `infrastructure_needed[]` as SUBSTRATE_DEBT until a `bin/gate.ts --discharge` run replaces it with an exact proved lemma. Near-fit recorded for that future discharge: `Causalean.Stat.Concentration.hoeffding_abs_ge` (Causalean/Stat/Concentration/TailBounds/Hoeffding.lean) -- re-read at Hoeffding.lean:167-181: it is stated over a whole-sequence `IIDSample Ω X mu P` with one common mean `integral f dP` and a common `[a,b]` envelope, whereas this node is the heterogeneous-mean form (`mu = m^{-1} sum E[Z_i]`) for merely independent [0,1] variables, and F1-D10 already records that the finite first-`n` sampling predicate cannot construct an `IIDSample`. Partial fit on two counts, therefore not a discharge; a full discharge would need the heterogeneous-mean restatement upstream."
+    },
+    "lem:dkw-massart-cdf-band": {
+      "lean_kind": "assumption",
+      "lean_name": "DkwMassartCdfBand",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Quantile.EmpiricalCDF"
+      ],
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "citation": "cite:vandervaart-wellner-1996-dkw-massart",
+      "source": "cite:vandervaart-wellner-1996-dkw-massart",
+      "source_cite": "vanDerVaartWellner1996",
+      "source_locator": "Section 2.14, Dvoretzky--Kiefer--Wolfowitz inequality with Massart's sharp constant",
+      "carrier": "logical-claim",
+      "consumers": [
+        "thm:finite-sample-simultaneous-band"
+      ],
+      "notes": "Frozen cited logical-claim carrier, encoded as the canonical named proposition `DkwMassartCdfBand : Sort 0` (unshadowable proposition-universe syntax, never a `Prop` identifier). ROUND-5 REPAIR: the earlier scaffold redirect that discharged this gate through an untagged companion lemma is withdrawn. Per the cited-gate rule the proposition is THREADED as an explicit hypothesis `(hDkw : DkwMassartCdfBand)` into its single logical consumer thm:finite-sample-simultaneous-band, which is therefore proved conditional on it; it stays out of the `theorems` manifest and remains listed in `infrastructure_needed[]` as SUBSTRATE_DEBT. Search trace re-run for this node only: grep 'DKW|Dvoretzky|Kiefer|Massart|empiricalCDF' on ../doc/API.md and CausalSmith/doc/API.md -> only `Causalean.Stat.cdfStat` / `IIDSample.empiricalCDF` (definitions of the empirical CDF, no uniform deviation bound); Mathlib side `lean_leansearch 'Dvoretzky Kiefer Wolfowitz inequality uniform deviation of empirical distribution function'` -> no DKW/Massart declaration at all (returns are unrelated: `Martingale.Upcrossing` lemmas, `meas_ge_le_variance_div_sq`, `ProbabilityTheory.cdf_le_one`). Absent from both libraries and a genuinely large upstream contribution (Massart's sharp constant), hence `effort: large` and a gate rather than build-inline."
+    },
+    "thm:one-sided-bow-mixture-completeness": {
+      "lean_kind": "theorem",
+      "lean_name": "bowCompatibleOneSided_eq_mixtureClassOneSided",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym",
+        "Causalean.Mathlib.Probability.BernoulliMeasure"
+      ],
+      "reuse_support": [
+        "Causalean.Mathlib.Probability.bernoulliBool_bind",
+        "MeasureTheory.Measure.rnDeriv_le_one_iff_le"
+      ],
+      "target_file": "TOneSidedBowMixtureCompleteness.lean",
+      "hyps": [
+        "ass:positivity",
+        "def:bow-compatible-one-sided",
+        "def:mixture-class-one-sided"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t7",
+      "notes": "Paper-owned; the base theorem of the whole note. Same search trace and reuse as thm:bow-mixture-completeness. Build-inline."
+    },
+    "thm:support-regime-cdf-endpoints-sharp": {
+      "lean_kind": "theorem",
+      "lean_name": "support_regime_cdf_endpoints_sharp",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.CDF",
+        "Causalean.PO.ID.Partial.Basic"
+      ],
+      "reuse_support": [
+        "Causalean.PartialID.IdentifiedInterval",
+        "Causalean.PartialID.identifiedInterval_eq_Icc",
+        "Causalean.PartialID.identifiedInterval_param_Icc"
+      ],
+      "target_file": "TSupportRegimeCdfEndpointsSharp.lean",
+      "hyps": [
+        "ass:positivity"
+      ],
+      "uses": [
+        "def:cdf-maps-one-sided",
+        "def:cdf-maps"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t8",
+      "notes": "Paper-owned; carries the real construction that thm:cdf-endpoints-sharp then quotes. Search trace: section 9j2 of ../doc/API.md; `identifiedInterval_param_Icc` is an exact fit for the convex-mixture path. Root-earned cap repair, RE-VERIFIED against the revised core (F1-D11): the node's current `depends_on` is exactly [ass:positivity, def:cdf-maps-one-sided, def:cdf-maps, thm:one-sided-bow-mixture-completeness, thm:bow-mixture-completeness] -- ass:bow-structure and ass:mutual-ac were removed upstream -- so `hyps` is [ass:positivity] and `uses` is [def:cdf-maps-one-sided, def:cdf-maps]; both compatible-law sets encode their own realization and support regimes, so no outer bow witness or mutual-AC premise is threaded. This node, not its corollary, carries the two-regime construction (the unrestricted interval [ep, ep+1-e] for EVERY p, versus the mutual-AC collapse at p in {0,1}), so the singular-residual attainment at the boundary must appear in ITS statement."
+    },
+    "thm:tie-inclusive-band-impossibility": {
+      "lean_kind": "theorem",
+      "lean_name": "tie_inclusive_band_impossibility",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.CDF",
+        "Causalean.Stat.Sample",
+        "Causalean.Mathlib.Probability.BernoulliMeasure"
+      ],
+      "reuse_support": [
+        "Causalean.Stat.tvDist",
+        "Causalean.Stat.abs_measureReal_sub_le_tvDist",
+        "Causalean.Stat.measureReal_sub_le_tvDist",
+        "Causalean.Mathlib.Probability.bernoulliBool_bind"
+      ],
+      "target_file": "TTieInclusiveBandImpossibility.lean",
+      "hyps": [
+        "ass:iid-sampling",
+        "ass:positivity"
+      ],
+      "uses": [
+        "def:cdf-maps",
+        "def:directional-handle"
+      ],
+      "regularity_premises": [
+        {
+          "label": "hBandMeas",
+          "binder": "hBandMeas : forall (n : Nat) (y : Real) (z : Real x Real), MeasurableSet {omega | z IN band n omega y}",
+          "statement": "forall (n : Nat) (y : Real) (z : Real x Real), MeasurableSet {omega | z IN band n omega y}",
+          "classification": "regularity-bookkeeping",
+          "load_bearing": true,
+          "source": "thm:tie-inclusive-band-impossibility proof events C_{0n} / C_{1n}",
+          "why": "Required, not cosmetic: the TV-transfer step Pr_{nu_0^n}(C_{1n}) >= Pr_{nu_n^n}(C_{1n}) - d_n instantiates `Causalean.Stat.measureReal_sub_le_tvDist`, whose `(hA : MeasurableSet A)` argument is explicit because `tvDist` is a supremum over the subtype `{A // MeasurableSet A}` (`Causalean/Stat/Minimax/TotalVariation.lean:50-84`), and the subsequent union bound on `C_{0n} INTER C_{1n}` needs the same events measurable for the complement arithmetic. The band is universally quantified (an arbitrary adversary-supplied `Nat -> Omega -> Real -> Set (Real x Real)`), so no other hypothesis supplies it.",
+          "declared_in": "TTieInclusiveBandImpossibility.lean (direct theorem binder, F1-D12)"
+        }
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t9",
+      "notes": "Paper-owned negative result. SAMPLE THREADING (F1-D10): every product-law sampling premise constrains the SAME sample coordinates used by the band. Post-D-rewind fidelity: `TieContactScenario` requires each displayed alternative-CDF identity only eventually (`forall eventually n in atTop`), matching the asymptotic frozen statement; arbitrary valid same-propensity bow-SCM laws may fill the finite prefix, and the proof forwards the eventual `hcdfn` fact together with the other eventual hypotheses. `def:directional-handle` enters through rectangularity. ROUND-4 REGULARITY PREMISE (F1-D12): the theorem additionally binds the full formula `hBandMeas : forall n y z, MeasurableSet {S | z IN band n S y}` directly, recorded in `regularity_premises` above rather than in `hyps`; no separate definition and no filler-node tag is emitted. The premise is load-bearing for the TV transfer and union bound. ROUND-5 GATE CLOSURE: the cited concentration gates remain explicit public hypotheses of thm:finite-sample-simultaneous-band and are not propagated here, because they are absent from this node's core dependencies."
+    },
+    "thm:one-sided-generator-iff-frontier": {
+      "lean_kind": "theorem",
+      "lean_name": "oneSided_generator_exactness_iff_hinge",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.Function",
+        "Mathlib.MeasureTheory.Measure.Decomposition.IntegralRNDeriv",
+        "Mathlib.Data.EReal.Basic",
+        "Causalean.Mathlib.Probability.BernoulliMeasure"
+      ],
+      "reuse_support": [
+        "MeasureTheory.le_integral_rnDeriv_of_ac",
+        "MeasureTheory.Measure.integrable_toReal_rnDeriv",
+        "Causalean.Mathlib.Probability.bernoulliLaw"
+      ],
+      "target_file": "TOneSidedGeneratorIffFrontier.lean",
+      "hyps": [
+        "ass:positivity",
+        "def:mixture-class-one-sided",
+        "def:jk-ball-one-sided",
+        "def:hinge-class"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t10",
+      "notes": "Paper-owned; the load-bearing fixed-propensity classification. Same search trace, reuse and INTEGRABILITY BOOKKEEPING as thm:generator-iff-frontier (sufficiency: bounded ratio `dP/dQ <= c` gives a bounded integrand hence integrability; exactness: integrability comes from ball membership, since the real bound excludes the `TOP` branch of the EReal `fDiv` of F1-D4; necessity: two-cell binary laws, integrability automatic). The Jensen lemma `le_integral_rnDeriv_of_ac` is invoked only with that premise in hand. Build-inline; the heaviest single step is the boundary continuity of `q |-> q f(p/q) + (1-q) f((1-p)/(1-q))` at `q = e p`, which follows from continuity of f on `Set.Ici 0` plus `Continuous.div` away from 0."
+    },
+    "thm:support-regime-open-illegal-dichotomy": {
+      "lean_kind": "theorem",
+      "lean_name": "support_regime_open_illegal_dichotomy",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.Function",
+        "Causalean.Mathlib.Probability.BernoulliMeasure"
+      ],
+      "reuse_support": [
+        "Causalean.Mathlib.Probability.bernoulliLaw"
+      ],
+      "target_file": "TSupportRegimeOpenIllegalDichotomy.lean",
+      "hyps": [
+        "ass:positivity",
+        "def:mixture-class-one-sided",
+        "def:jk-ball-one-sided",
+        "def:mixture-class",
+        "def:jk-ball",
+        "def:hinge-class"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t11",
+      "notes": "Paper-owned; carries the construction that thm:open-illegal-dichotomy then quotes. Same search trace and reuse as thm:open-illegal-dichotomy, including the fact that all witnesses are full-support binary pairs, so under the EReal `fDiv` of F1-D4 the divergence is real and given by the two-cell `fDiv_bernoulli` formula with no integrability side condition. Build-inline."
+    },
+    "thm:one-sided-query-legality-correction": {
+      "lean_kind": "theorem",
+      "lean_name": "oneSided_query_legality_correction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym",
+        "Mathlib.Analysis.Convex.Function",
+        "Causalean.PO.ID.Partial.Basic"
+      ],
+      "reuse_support": [
+        "Causalean.PartialID.robustUpper",
+        "Causalean.PartialID.robustLower"
+      ],
+      "target_file": "TOneSidedQueryLegalityCorrection.lean",
+      "hyps": [
+        "ass:positivity",
+        "def:jk-ball-one-sided",
+        "def:mixture-class-one-sided",
+        "def:lawful-correction-one-sided"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t12",
+      "notes": "Paper-owned. Same survey as thm:query-legality-correction (`PartialID.robustUpper` / `robustLower` / `robustUpper_mono` in section 9j2sg are the analogous budget-monotonicity module; the gap is the ambient space). Build-inline; the finite-alphabet half needs only `Finset` simplex compactness (`IsCompact` of a closed subset of the standard simplex) and the uniqueness-of-optimizer contradiction. Same EReal-`fDiv` bookkeeping as thm:query-legality-correction: the inclusion `L^to_e SUBSET B^to_f` is where integrability is produced (bounded likelihood ratio `dP/dQ <= 1/e` on a probability space), and on the finite alphabet of the second half every integrand is a finite sum, so `fDiv` is real there by construction."
+    },
+    "thm:heterogeneous-propensity-elbow": {
+      "lean_kind": "theorem",
+      "lean_name": "heterogeneous_propensity_elbow",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.Function"
+      ],
+      "target_file": "THeterogeneousPropensityElbow.lean",
+      "hyps": [
+        "ass:positivity",
+        "def:hinge-class",
+        "def:jk-ball-one-sided",
+        "def:mixture-class-one-sided"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t13",
+      "notes": "Paper-owned. Search trace: grep 'hinge|affine on an interval|generator class' on ../doc/API.md -> nothing; lean_leansearch 'a convex function affine on two nested intervals' -> Mathlib `Analysis.Convex.Function` supplies `ConvexOn` and `StrictConvexOn` but no named 'affine on an interval' predicate. Result: build-inline and SHORT -- the whole proof is: two affine representatives agreeing on a nondegenerate interval have equal slopes, hence the normalized g vanishes on [0, c_2], contradicting strict positivity on (c_1, c_2]. The adaptive half is a direct `HingeClass` membership check for `f_e t = max (t - 1/e) 0`."
+    },
+    "prop:mutual-support-intersection": {
+      "lean_kind": "theorem",
+      "lean_name": "mutual_support_intersection",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym"
+      ],
+      "target_file": "TMutualSupportIntersection.lean",
+      "hyps": [
+        "ass:positivity",
+        "def:bow-compatible",
+        "def:bow-compatible-one-sided",
+        "def:mixture-class",
+        "def:mixture-class-one-sided",
+        "def:jk-ball",
+        "def:jk-ball-one-sided"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t14",
+      "notes": "Paper-owned proposition (core kind `proposition`; mapped to a Lean `theorem` because it is a delivered result, not a shared helper lemma). Search trace: as for ass:mutual-ac -- Mathlib has `AbsolutelyContinuous` but no mutual-equivalence relation, so the three intersection identities are elementary unfoldings. Build-inline and short; the only content is `Q <<-> P iff R <<-> P` under the mixture identity, which uses `(1-e) * R <= Q` and `1 - e > 0`. The move to the EReal `fDiv` (F1-D4) leaves this proposition unchanged: the divergence identity `B_{f,e}(P) = B^to_{f,e}(P) INTER {Q | Q << P}` compares the two balls through the SAME `fDiv` value, so the shared divergence-bound clause (integrability included) cancels and only the support clauses differ -- exactly the note's argument."
+    },
+    "thm:conditional-one-sided-bow-mixture-completeness": {
+      "lean_kind": "theorem",
+      "lean_name": "condBowCompatibleOneSided_eq_condMixtureClassOneSided",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Kernel.CondDistrib",
+        "Mathlib.Probability.Kernel.Composition.MeasureCompProd",
+        "Mathlib.MeasureTheory.Measure.GiryMonad",
+        "Mathlib.MeasureTheory.Measure.SeparableMeasure",
+        "Causalean.Mathlib.CondDistrib",
+        "Causalean.Mathlib.Probability.Kernel.GraphMapProd"
+      ],
+      "reuse_support": [
+        "MeasureTheory.Measure.measurable_of_measurable_coe",
+        "MeasureTheory.Measure.MeasureDense.of_generateFrom_isSetAlgebra_finite",
+        "MeasureTheory.Measure.MeasureDense.approx",
+        "Causalean.measure_eq_bind_marginal_condDistrib",
+        "Causalean.Mathlib.GraphMapProd.mechanismKernel",
+        "Causalean.Mathlib.GraphMapProd.map_graph_prod_eq_compProd"
+      ],
+      "target_file": "TConditionalOneSidedBowMixtureCompleteness.lean",
+      "hyps": [
+        "ass:conditional-overlap",
+        "def:conditional-bow-compatible-one-sided",
+        "def:conditional-mixture-class-one-sided"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t15",
+      "notes": "Paper-owned and the note's headline theorem; the hardest single proof in the plan, and therefore explicitly NOT deferred (difficulty is never a deferral reason for paper-owned content). Search trace: lean_leansearch 'every measurable set can be approximated in measure by a set from a generating algebra symmetric difference small' -> `Measure.MeasureDense.of_generateFrom_isSetAlgebra_finite` + `Measure.MeasureDense.approx` (Mathlib.MeasureTheory.Measure.SeparableMeasure), which is EXACTLY the note's 'approximation in the finite measure Q_a + e_a P_a extends the countable-algebra inequalities to every Borel set' step; lean_loogle 'MeasureTheory.Measure.measurable_of_measurable_coe' for the residual-kernel construction (2); API.md section 10a'' for `GraphMapProd.map_graph_prod_eq_compProd`, the analogous module for 'exogenous noise + structural mechanism = composition product' that equation (3) instantiates. Remaining build-inline work: the countable generating algebra of a standard Borel Y (`MeasurableSpace.CountablyGenerated` via second countability), uniting the exceptional sets across two arms and countably many cells, and the `Y = Y(A)` selector measurability."
+    },
+    "prop:conditional-mutual-support-intersection": {
+      "lean_kind": "theorem",
+      "lean_name": "cond_mutual_support_intersection",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Kernel.CondDistrib",
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym"
+      ],
+      "target_file": "TConditionalMutualSupportIntersection.lean",
+      "hyps": [
+        "ass:conditional-overlap",
+        "def:conditional-bow-compatible-one-sided",
+        "def:conditional-mixture-class-one-sided",
+        "def:conditional-bow-compatible",
+        "def:conditional-mixture-class",
+        "def:conditional-adaptive-hinge-ball-one-sided",
+        "def:conditional-adaptive-hinge-ball"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t16",
+      "notes": "Paper-owned proposition -> Lean `theorem`. Search trace: as for ass:conditional-reverse-support (no fiberwise-on-a-conull-set absolute-continuity predicate in Mathlib or Causalean). Build-inline and short: the adaptive-ball identity is definitional, the mixture identity is the kernel analogue of prop:mutual-support-intersection, and the only bookkeeping is replacing two armwise conull sets by their finite intersection."
+    },
+    "thm:conditional-bow-mixture-completeness": {
+      "lean_kind": "theorem",
+      "lean_name": "condBowCompatible_eq_condMixtureClass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Kernel.CondDistrib",
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym",
+        "Mathlib.MeasureTheory.Measure.GiryMonad"
+      ],
+      "reuse_support": [
+        "MeasureTheory.Measure.measurable_of_measurable_coe"
+      ],
+      "target_file": "TConditionalBowMixtureCompleteness.lean",
+      "hyps": [
+        "ass:conditional-overlap",
+        "def:conditional-bow-compatible-one-sided",
+        "def:conditional-mixture-class-one-sided",
+        "def:conditional-bow-compatible",
+        "def:conditional-mixture-class"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t17",
+      "notes": "Paper-owned; a short assembly of the conditional one-sided completeness theorem with the conditional support-intersection proposition (the note's own proof is four displayed lines). Build-inline. Search trace inherited from thm:conditional-one-sided-bow-mixture-completeness; no additional substrate is needed beyond `measurable_of_measurable_coe` for re-reading `R_a = (Q_a - e_a P_a)/(1 - e_a)` as a Markov kernel."
+    },
+    "thm:conditional-adaptive-hinge-exactness": {
+      "lean_kind": "theorem",
+      "lean_name": "cond_adaptiveHinge_exactness",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Kernel.CondDistrib",
+        "Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym",
+        "Mathlib.MeasureTheory.Measure.Decomposition.IntegralRNDeriv",
+        "Mathlib.MeasureTheory.Measure.SeparableMeasure",
+        "Mathlib.Analysis.Convex.Function",
+        "Mathlib.Data.EReal.Basic"
+      ],
+      "reuse_support": [
+        "MeasureTheory.Measure.MeasureDense.approx",
+        "MeasureTheory.Measure.rnDeriv_le_one_iff_le",
+        "MeasureTheory.Measure.integrable_toReal_rnDeriv"
+      ],
+      "target_file": "TConditionalAdaptiveHingeExactness.lean",
+      "hyps": [
+        "ass:conditional-overlap",
+        "def:conditional-bow-compatible-one-sided",
+        "def:conditional-mixture-class-one-sided",
+        "def:conditional-bow-compatible",
+        "def:conditional-mixture-class",
+        "def:conditional-adaptive-hinge-ball-one-sided",
+        "def:conditional-adaptive-hinge-ball"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "local_id": "t18",
+      "notes": "Paper-owned; the combined field-tier frontier. Build-inline. Search trace: as for S2 + S4. Key REUSE: `Measure.rnDeriv_le_one_iff_le` turns the vanishing hinge integral into the measure cap `e_a P_a <= Q_a` fiberwise; `Measure.MeasureDense.approx` carries the measurable-carrier set S_C of equation (4) from the countable algebra to all Borel sets. Remaining build-inline work: 'a nonnegative integrand with zero integral vanishes a.e.' (Mathlib `MeasureTheory.integral_eq_zero_iff_of_nonneg`) and the joint Borel measurability of `(a, x, t) |-> (t - 1/e_a x)_+`. Under the EReal `fDiv` of F1-D4 this theorem needs no extra hypothesis: the hinge integrand `(r_x - c_ax)_+` is nonnegative and dominated by `r_x`, which is `Q_a(x, .)`-integrable by `Measure.integrable_toReal_rnDeriv`, so each fiberwise `fDiv` is real (never `TOP`), the constraint `fDiv <= (0 : EReal)` is equivalent to the note's `integral (r_x - c_ax)_+ dQ_x <= 0`, and the vanishing-a.e. step then gives the cap. No Jensen/`le_integral_rnDeriv_of_ac` premise is required anywhere in this proof."
+    }
+  },
+  "file_plan": [
+    {
+      "file": "Helpers.lean",
+      "contents": "Thin barrel importing every shared helper subsystem.",
+      "projected_lines": 20
+    },
+    {
+      "file": "Helpers/Statements.lean",
+      "contents": "Shared substantive predicates used to state universal exactness, open binary illegality, query endpoints, total-variation locality, and conditional likelihood-ratio cap classes without duplicating them across theorem files.",
+      "projected_lines": 130
+    },
+    {
+      "file": "Basic.lean",
+      "contents": "The nine assumption Props (BowStructure, POConsistency, StrictPositivity, MutualAbsCont, IidObservationalSampling, CondBowArchitecture, CondOverlap, CondConsistency, CondReverseSupport) plus the two witness carriers `BowWitness Y` and `CondBowWitness X Y`; IidObservationalSampling is the finite first-`n` predicate required by F1-D10 and does not claim a whole-sequence IIDSample bridge.",
+      "projected_lines": 360
+    },
+    {
+      "file": "Helpers/Classes.lean",
+      "contents": "def:bow-compatible, def:bow-compatible-one-sided, def:mixture-class, def:mixture-class-one-sided (structures + set forms).",
+      "projected_lines": 260
+    },
+    {
+      "file": "Helpers/Divergence.lean",
+      "contents": "The EReal integrability-total `fDiv` (F1-D4), divRadius, AdmissibleGenerator, def:jk-ball, def:jk-ball-one-sided, def:hinge-class, def:lawful-correction, def:lawful-correction-one-sided, plus the affine-invariance and chord L-lemmas and the four integrability L-lemmas the extended encoding requires: `fDiv_measurable`, `integrable_negPart_of_ac` (subgradient domination `f t >= b (t - 1)` plus `Measure.integrable_toReal_rnDeriv`, giving `fDiv <> BOT` and making the `TOP` branch the honest `+infinity`), `integrable_of_fDiv_le_real` (a real bound excludes `TOP` and returns the `Integrable` premise of `le_integral_rnDeriv_of_ac`), and `integrable_of_rnDeriv_le` (a bounded likelihood ratio `dP/dQ <= c` makes `f o (dP/dQ)` bounded, hence integrable, which is what licenses integrating the chord bound on the mixture class).",
+      "projected_lines": 620
+    },
+    {
+      "file": "Helpers/CapBridge.lean",
+      "contents": "L-lemmas: mixture identity <-> measure inequality e*P <= Q <-> likelihood-ratio cap dP/dQ <= 1/e; the residual-law construction R = (Q - eP)/(1-e); the R << P <-> Q << P equivalence.",
+      "projected_lines": 400
+    },
+    {
+      "file": "Helpers/BinaryWitness.lean",
+      "contents": "L-lemmas: full-support binary laws from `bernoulliLaw`, the two-cell divergence formula `fDiv_bernoulli` (including the `Integrable`-is-automatic step that makes the EReal `fDiv` real and equal to `q f(p/q) + (1-q) f((1-p)/(1-q))` on a two-cell alphabet), its continuity on (0,1)^2, and the two-ratio (lambda, y, x) witness constructor.",
+      "projected_lines": 420
+    },
+    {
+      "file": "Helpers/CdfMaps.lean",
+      "contents": "def:cdf-maps, def:cdf-maps-one-sided and their algebra (range, monotonicity in e and p, boundary values).",
+      "projected_lines": 200
+    },
+    {
+      "file": "Helpers/CondClasses.lean",
+      "contents": "The six conditional class definitions (bow-compatible one-sided / mutual, mixture one-sided / mutual, adaptive-hinge ball one-sided / mutual).",
+      "projected_lines": 420
+    },
+    {
+      "file": "Helpers/KernelPasting.lean",
+      "contents": "L-lemmas: the measurable residual-kernel construction via `Measure.measurable_of_measurable_coe`; the countable-algebra -> all-Borel extension of a fiberwise measure inequality via `Measure.MeasureDense.approx`; uniting armwise/cellwise exceptional sets into one conull set; the product-kernel SCM assembly.",
+      "projected_lines": 560
+    },
+    {
+      "file": "Helpers/CitedGates.lean",
+      "contents": "The two frozen cited-gate propositions HoeffdingBoundedMean and DkwMassartCdfBand, each a named `Sort 0` declaration with no proof, threaded as explicit hypotheses into TFiniteSampleSimultaneousBand.lean (F1-D5).",
+      "projected_lines": 90
+    },
+    {
+      "file": "Helpers/Sampling.lean",
+      "contents": "def:honest-band, def:directional-handle (+ directionalHandleRecipe and IsRectangularBand), the arm-conditional empirical propensity and cdf -- all indexed by the same sample sequence `Z` that `IidObservationalSampling` constrains (F1-D10) -- and the rectangular-hull propagation L-lemmas. The tie theorem carries `hBandMeas` directly; no separate measurability predicate is declared here.",
+      "projected_lines": 400
+    },
+    {
+      "file": "TOneSidedBowMixtureCompleteness.lean",
+      "contents": "thm:one-sided-bow-mixture-completeness",
+      "projected_lines": 300
+    },
+    {
+      "file": "TBowMixtureCompleteness.lean",
+      "contents": "thm:bow-mixture-completeness",
+      "projected_lines": 240
+    },
+    {
+      "file": "TMutualSupportIntersection.lean",
+      "contents": "prop:mutual-support-intersection",
+      "projected_lines": 220
+    },
+    {
+      "file": "TOneSidedGeneratorIffFrontier.lean",
+      "contents": "thm:one-sided-generator-iff-frontier",
+      "projected_lines": 520
+    },
+    {
+      "file": "TGeneratorIffFrontier.lean",
+      "contents": "thm:generator-iff-frontier",
+      "projected_lines": 340
+    },
+    {
+      "file": "TSupportRegimeOpenIllegalDichotomy.lean",
+      "contents": "thm:support-regime-open-illegal-dichotomy",
+      "projected_lines": 460
+    },
+    {
+      "file": "TOpenIllegalDichotomy.lean",
+      "contents": "thm:open-illegal-dichotomy",
+      "projected_lines": 260
+    },
+    {
+      "file": "THeterogeneousPropensityElbow.lean",
+      "contents": "thm:heterogeneous-propensity-elbow",
+      "projected_lines": 200
+    },
+    {
+      "file": "TSupportRegimeCdfEndpointsSharp.lean",
+      "contents": "thm:support-regime-cdf-endpoints-sharp",
+      "projected_lines": 380
+    },
+    {
+      "file": "TCdfEndpointsSharp.lean",
+      "contents": "thm:cdf-endpoints-sharp",
+      "projected_lines": 160
+    },
+    {
+      "file": "TOneSidedQueryLegalityCorrection.lean",
+      "contents": "thm:one-sided-query-legality-correction",
+      "projected_lines": 400
+    },
+    {
+      "file": "TQueryLegalityCorrection.lean",
+      "contents": "thm:query-legality-correction",
+      "projected_lines": 420
+    },
+    {
+      "file": "TFiniteSampleSimultaneousBand.lean",
+      "contents": "thm:finite-sample-simultaneous-band",
+      "projected_lines": 420
+    },
+    {
+      "file": "TTieInclusiveBandImpossibility.lean",
+      "contents": "thm:tie-inclusive-band-impossibility",
+      "projected_lines": 480
+    },
+    {
+      "file": "TConditionalOneSidedBowMixtureCompleteness.lean",
+      "contents": "thm:conditional-one-sided-bow-mixture-completeness",
+      "projected_lines": 560
+    },
+    {
+      "file": "TConditionalMutualSupportIntersection.lean",
+      "contents": "prop:conditional-mutual-support-intersection",
+      "projected_lines": 240
+    },
+    {
+      "file": "TConditionalBowMixtureCompleteness.lean",
+      "contents": "thm:conditional-bow-mixture-completeness",
+      "projected_lines": 200
+    },
+    {
+      "file": "TConditionalAdaptiveHingeExactness.lean",
+      "contents": "thm:conditional-adaptive-hinge-exactness",
+      "projected_lines": 420
+    }
+  ],
+  "substrate_survey": [
+    {
+      "module": "Causalean/SCM/Model/, Causalean/SCM/Do/, Causalean/SCM/ID/",
+      "verdict": "bypass-justified",
+      "reason": "The SCM/do-calculus stack is a SWIG-node, regime-indexed graphical-identification layer; this note never runs a graphical algorithm and works entirely with the joint law of (A, Y(0), Y(1)) (resp. (X, A, Y(0), Y(1))), for which the bow ADMG with unrestricted latent U imposes no restriction at all (F1-D1)."
+    },
+    {
+      "module": "Causalean/Graph/ (DAG, DSep, CComponents, MarkovEquiv, SWIG)",
+      "verdict": "bypass-justified",
+      "reason": "No d-separation, c-component or Markov-equivalence question arises: the single graph in the note is the fixed two-vertex bow, used only to license an unrestricted latent common parent."
+    },
+    {
+      "module": "Causalean/SCM/PartialID/",
+      "verdict": "bypass-justified",
+      "reason": "Surveyed via API.md; the partial-ID content lives under Causalean/PO/ID/Partial/ and is scalar-interval / LP / support-function shaped. The interval vocabulary IS reused (see below); the LP and response-function machinery is not applicable to a set of laws on a standard Borel space."
+    },
+    {
+      "module": "Causalean/PO/ID/Partial/Basic.lean",
+      "verdict": "reused",
+      "reason": "`IdentifiedInterval`, `identifiedInterval_eq_Icc`, `identifiedInterval_param_Icc` are the exact vocabulary for the two sharp CDF-endpoint theorems (sharp interval as the range of an objective over a feasible set, with the convex-mixture path giving order-connectedness for free)."
+    },
+    {
+      "module": "Causalean/PO/ID/Partial/Sensitivity/MSM/, SupportFunction/Sensitivity.lean",
+      "verdict": "bypass-justified (analogous-module reference recorded)",
+      "reason": "The MSM / Dorn-Guo calibrated stack and the chi-square l2Ball are Omega-level reweighting ambiguity sets built on condExp and Hilbert-space support functions; this note's classes are subsets of `Measure Y`. Recorded on def:lawful-correction and thm:query-legality-correction as the technique reference for 'intersect an over-wide ambiguity set with the data-compatibility constraint and show strict tightening'."
+    },
+    {
+      "module": "Causalean/PO/Core/, PO/Assumptions/",
+      "verdict": "bypass-justified",
+      "reason": "`POSystem` / `Consistency` are dependent regime-indexed structures over `Regime V X`; the note's consistency is the one-line selector identity `Y = Y(A)` on a concrete product space."
+    },
+    {
+      "module": "Causalean/Mathlib/Probability/BernoulliMeasure.lean",
+      "verdict": "reused",
+      "reason": "`bernoulliBool_bind` is literally the mixture identity Q = eP + (1-e)R produced by the latent draw; `bernoulliLaw` supplies every full-support binary witness in the two dichotomy theorems and both generator-frontier necessity proofs."
+    },
+    {
+      "module": "Causalean/Stat/Sample.lean, Stat/Quantile/EmpiricalCDF.lean, Stat/Concentration/TailBounds/Hoeffding.lean",
+      "verdict": "reused (partially)",
+      "reason": "`IIDSample` is the analogous whole-sequence sampling bundle, but the frozen assumption is deliberately first-`n` and therefore does not definitionally bridge to it. The same raw sequence `Z` is retained and shared with `honestBand` and both consumers; `cdfStat` remains reusable, while the random-denominator arm-conditional empirical CDF is build-inline. `hoeffding_abs_ge` is the near-fit recorded against the cited Hoeffding gate."
+    },
+    {
+      "module": "Causalean/Stat/Quantile/ConditionalMarkedSubsampleDkw/ (Basic, ConditionalLaw, FiniteAggregation, Measurability, TailLift)",
+      "verdict": "reused",
+      "reason": "Found at round 5 while re-searching the flagged cited-gate closure. This module does the whole arm-conditioning step of thm:finite-sample-simultaneous-band: `MarkedIID` is the finite marked-iid bundle matching this note's `IidObservationalSampling`, `MarkedIID.selectedOutcomes_conditionalLaw` proves the retained arm-`a` outcomes are conditionally iid with the arm law given the complete mark word, `measure_le_of_cond_le_on_finite_partition` averages over the word partition, and `conditionalMarkedSubsample_dkwRadius` / `conditionalMarkedSubsample_empiricalCDF_tail` turn a SUPPLIED fixed-size empirical-CDF tail bound into the random-arm-count guarantee at exactly this note's radius `dkwRadius alpha m = sqrt (log (4/alpha) / (2*m))`. It deliberately does NOT prove DKW--Massart -- the fixed-size bound is its hypothesis -- so it is a reuse for the conditioning/lifting and leaves lem:dkw-massart-cdf-band a genuine cited gate."
+    },
+    {
+      "module": "Causalean/Stat/Minimax/ (tvDist, chiSqDiv, klDiv bridges)",
+      "verdict": "bypass-justified (analogous-module reference recorded)",
+      "reason": "Single-generator divergences only; the note quantifies over all admissible convex generators, so a general `fDiv` is introduced locally (F1-D4), EReal-valued with the `if Integrable then . else TOP` convention that Mathlib itself uses for `klDiv` -- `Causalean` carries no `EReal` code at all (grep confirms), so nothing here is displaced. `tvDist` and its tensorization are recorded on thm:tie-inclusive-band-impossibility as the technique reference for the n-fold product total-variation bound."
+    },
+    {
+      "module": "Causalean/Mathlib/CondDistrib.lean, Mathlib/CondDistribWitness.lean, Mathlib/Probability/Kernel/GraphMapProd.lean",
+      "verdict": "reused",
+      "reason": "`measure_eq_bind_marginal_condDistrib` is the disintegration chain rule for integrating the product kernel against mu_X; `GraphMapProd.mechanismKernel` / `map_graph_prod_eq_compProd` are the 'exogenous noise + structural mechanism = composition product' pattern that the conditional completeness proof's equation (3) instantiates."
+    },
+    {
+      "module": "Mathlib.MeasureTheory.Measure.SeparableMeasure",
+      "verdict": "reused",
+      "reason": "`Measure.MeasureDense.of_generateFrom_isSetAlgebra_finite` + `Measure.MeasureDense.approx` are exactly the countable-algebra-to-all-Borel approximation the two conditional theorems need; without this the plan would have had to rebuild a monotone-class argument."
+    },
+    {
+      "module": "Mathlib.MeasureTheory.Measure.Decomposition.{RadonNikodym, IntegralRNDeriv}",
+      "verdict": "reused",
+      "reason": "`rnDeriv_le_one_iff_le` is the cap-vs-measure-inequality bridge used by every completeness theorem; `Measure.integrable_toReal_rnDeriv` gives Q-integrability of the likelihood ratio, which underwrites both the negative-part domination that makes the EReal `fDiv` honest and the hinge-class integrability; `le_integral_rnDeriv_of_ac` is the Jensen half of the divergence lower bound, usable ONLY where its explicit `Integrable` premise (verified by lean_loogle at round 3) is already discharged -- from ball membership or from a bounded likelihood ratio -- never from the generator assumptions alone."
+    }
+  ],
+  "citations": [
+    {
+      "id": "cite:vandervaart-wellner-1996-hoeffding",
+      "bibkey": "vanDerVaartWellner1996",
+      "title": "Weak Convergence and Empirical Processes: With Applications to Statistics",
+      "authors": "Aad W. van der Vaart and Jon A. Wellner",
+      "year": 1996,
+      "venue": "Springer Series in Statistics, Springer, New York",
+      "doi": "10.1007/978-1-4757-2545-2",
+      "citation": "Aad van der Vaart and Jon Wellner. Weak Convergence and Empirical Processes. Springer, 1996.",
+      "locator": "Lemma 2.2.9 (Hoeffding's inequality)",
+      "carrier": "logical-claim",
+      "gates": [
+        "lem:hoeffding-bounded-mean"
+      ],
+      "verbatim_statement": "If X1,...,Xn are independent random variables with ai <= Xi <= bi for all i, then for any epsilon > 0, Pr(|Xbar-E[Xbar]| >= epsilon) <= 2 exp(-2 n^2 epsilon^2 / sum_i (bi-ai)^2).",
+      "attestation": {
+        "by": "main",
+        "note": "Exact theorem statement checked in the publicly accessible UC Berkeley repository author copy of Ben-David et al., Machine Learning 79 (2010), Proposition 1, which explicitly identifies it as Hoeffding's inequality; setting ai=0, bi=1 yields the cited node (strict > follows from >=). Primary source is Hoeffding 1963 Theorem 2.",
+        "at": "2026-09-05T09:07:34.050Z"
+      }
+    },
+    {
+      "id": "cite:vandervaart-wellner-1996-dkw-massart",
+      "bibkey": "vanDerVaartWellner1996",
+      "title": "Weak Convergence and Empirical Processes: With Applications to Statistics",
+      "authors": "Aad W. van der Vaart and Jon A. Wellner",
+      "year": 1996,
+      "venue": "Springer Series in Statistics, Springer, New York",
+      "doi": "10.1007/978-1-4757-2545-2",
+      "citation": "Aad van der Vaart and Jon Wellner. Weak Convergence and Empirical Processes. Springer, 1996.",
+      "locator": "Section 2.14, Dvoretzky--Kiefer--Wolfowitz inequality with Massart's sharp constant",
+      "carrier": "logical-claim",
+      "gates": [
+        "lem:dkw-massart-cdf-band"
+      ],
+      "verbatim_statement": "Let Fhat_n denote the empirical distribution function for n iid observations with distribution function F. Then Pr(sqrt(n) sup_x |Fhat_n(x)-F(x)| > lambda) <= 2 exp(-2 lambda^2), without restriction on lambda.",
+      "attestation": {
+        "by": "main",
+        "note": "Exact two-sided statement checked against Pascal Massart's publicly available article abstract/full-text record; substituting lambda=sqrt(m)t yields the cited node.",
+        "at": "2026-09-05T09:07:36.340Z"
+      }
+    }
+  ],
+  "infrastructure_needed": [
+    {
+      "id": "lem:hoeffding-bounded-mean",
+      "kind": "mathlib-lemma",
+      "description": "Hoeffding's inequality for the mean of independent [0,1]-valued variables with heterogeneous means: P(|m^{-1} sum Z_i - mu| > t) <= 2 exp(-2 m t^2).",
+      "effort": "small"
+    },
+    {
+      "id": "lem:dkw-massart-cdf-band",
+      "kind": "mathlib-lemma",
+      "description": "Dvoretzky--Kiefer--Wolfowitz inequality with Massart's sharp constant: P(sup_y |Fhat_m(y) - F(y)| > t) <= 2 exp(-2 m t^2).",
+      "effort": "large"
+    }
+  ],
+  "theorems": []
+}

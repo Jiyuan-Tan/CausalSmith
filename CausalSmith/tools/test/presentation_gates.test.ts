@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   runHardGates,
+  mapLimit,
   gateLoop,
   parseRubricReview,
   parseJsonArrayLoose,
@@ -31,7 +32,7 @@ function makeInput(over: Partial<HardGateInput> = {}): HardGateInput {
   const frozen = new Map(parseAnchoredEnvs(PAPER).map((e) => [e.obj_id, e.body]));
   return {
     paperTex: PAPER,
-    notation: "",
+    layerOrder: [],
     knownObjIds: new Set(["T-1"]),
     frozenBodies: frozen,
     frontMatter: "We prove a bound.",
@@ -103,15 +104,15 @@ Let \(u_j\) be the forward loading vector.
     const problems = await runHardGates(
       makeInput({
         paperTex: orderPaper,
-        notation: String.raw`| forward loadings | \(u_j\) | source loading vectors | def:forward-cumulant-map |`,
+        layerOrder: ["def:forward-cumulant-map", "ass:forward-axis-model"],
         knownObjIds: new Set(["T-1", "ass:forward-axis-model", "def:forward-cumulant-map"]),
         frozenBodies: frozen,
       }),
       passingRunners,
     );
     expect(problems).toContainEqual(expect.objectContaining({
-      gate: "notation-defined-after-use",
-      objId: "ass:forward-axis-model",
+      gate: "frozen-layer-order",
+      objId: "def:forward-cumulant-map",
     }));
   });
 });
@@ -244,5 +245,31 @@ describe("parseJsonLoose escape defense (shared with the D-stage normalizer)", (
     expect(parseJsonLoose(reply)).toEqual({
       detail: String.raw`Theorem \ref{a} vs \theta`,
     });
+  });
+});
+
+
+describe("mapLimit failure recovery", () => {
+  it("stops scheduling after failure and drains in-flight work before rejecting", async () => {
+    const started: number[] = [];
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => { release = resolve; });
+    let drained = false;
+    const run = mapLimit([0, 1, 2, 3], 2, async (i) => {
+      started.push(i);
+      if (i === 0) throw new Error("failed");
+      await pending;
+      drained = true;
+      return i;
+    });
+    let settled = false;
+    const checked = expect(run).rejects.toThrow("failed").then(() => { settled = true; });
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    expect(started).toEqual([0, 1]);
+    expect(settled).toBe(false);
+    release();
+    await checked;
+    expect(drained).toBe(true);
+    expect(started).toEqual([0, 1]);
   });
 });

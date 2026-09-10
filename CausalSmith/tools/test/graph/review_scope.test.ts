@@ -102,7 +102,7 @@ describe("incrementalSymbolRows — symbol-tier incremental review", () => {
   ];
 
   it("first pass (no prior state) reviews every symbol", () => {
-    expect(incrementalSymbolRows(built, undefined, "delta", isPass).map((s) => s.id)).toEqual([
+    expect(incrementalSymbolRows(built, undefined, isPass).map((s) => s.id)).toEqual([
       "sym:Y", "sym:Z", "sym:P",
     ]);
   });
@@ -112,27 +112,25 @@ describe("incrementalSymbolRows — symbol-tier incremental review", () => {
       "sym:Y": { verdict: "matched", hash: "hY" }, // pass + same hash → skip
       "sym:Z": { verdict: "untagged", hash: "hZ" }, // untagged counts as pass → skip
     };
-    expect(incrementalSymbolRows(built, prior, "delta", isPass).map((s) => s.id)).toEqual(["sym:P"]);
+    expect(incrementalSymbolRows(built, prior, isPass).map((s) => s.id)).toEqual(["sym:P"]);
   });
 
   it("delta RE-REVIEWS a previously-passed symbol whose cluster hash CHANGED (e.g. a new @realizes tag)", () => {
     const prior = { "sym:Y": { verdict: "matched", hash: "OLD" } }; // hash differs from built hY
-    expect(incrementalSymbolRows(built, prior, "delta", isPass).map((s) => s.id)).toContain("sym:Y");
+    expect(incrementalSymbolRows(built, prior, isPass).map((s) => s.id)).toContain("sym:Y");
   });
 
   it("delta always RE-REVIEWS a previously-DRIFTED symbol even if unchanged", () => {
     const prior = { "sym:Y": { verdict: "drift", hash: "hY" } }; // same hash but not a pass → review
-    expect(incrementalSymbolRows(built, prior, "delta", isPass).map((s) => s.id)).toContain("sym:Y");
+    expect(incrementalSymbolRows(built, prior, isPass).map((s) => s.id)).toContain("sym:Y");
   });
 
-  it("convergence reviews EVERY symbol regardless of prior matched state", () => {
+  it("skips only symbols that are matched at an unchanged cluster hash", () => {
     const prior = {
       "sym:Y": { verdict: "matched", hash: "hY" },
-      "sym:Z": { verdict: "matched", hash: "hZ" },
+      "sym:Z": { verdict: "matched", hash: "stale" },
       "sym:P": { verdict: "matched", hash: "hP" },
     };
-    expect(incrementalSymbolRows(built, prior, "convergence", isPass).map((s) => s.id)).toEqual([
-      "sym:Y", "sym:Z", "sym:P",
-    ]);
+    expect(incrementalSymbolRows(built, prior, isPass).map((s) => s.id)).toEqual(["sym:Z"]);
   });
 });

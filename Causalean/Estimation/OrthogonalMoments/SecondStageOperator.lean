@@ -78,24 +78,32 @@ namespace SecondStageOperator
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
 variable {γ : Type*} [MeasurableSpace γ]
 
-/-- Linearity of the operator in its pseudo-outcome input. A second-stage
-operator is *linear in input* iff
-`evalAt n ω (f + g) x = evalAt n ω f x + evalAt n ω g x` for all sample sizes,
-randomness, pseudo-outcomes, and query points. Linear smoothers satisfy this
-predicate; kernel-or-tree mean estimators with random splits need not satisfy
-it. -/
+/-- For [a second-stage regression operator](hyp:op), [linearity in the
+pseudo-outcome input](goal) means that, for every sample size, randomness
+realization, pair of real-valued pseudo-outcome functions, and query point,
+the estimate for their pointwise sum equals the sum of their separate estimates.
+Linear smoothers satisfy this predicate; kernel-or-tree mean estimators with
+random splits need not satisfy it. -/
 def IsLinearInInput (op : SecondStageOperator Ω μ γ) : Prop :=
   ∀ (n : ℕ) (ω : Ω) (f g : γ × Bool × ℝ → ℝ) (x : γ),
     op.evalAt n ω (fun z => f z + g z) x =
       op.evalAt n ω f x + op.evalAt n ω g x
 
-/-- Oracle estimator: the operator applied to a fixed "true" pseudo-outcome
-`f` (Def `def:est-cate-dr-learner`, `\tilde\tau_n`). -/
+/-- Given [a second-stage regression operator](hyp:op) and [a fixed
+real-valued pseudo-outcome function](hyp:f), the [oracle estimator](goal) maps
+each sample size, randomness realization, and query point to the operator's
+estimate using that fixed pseudo-outcome. -/
 def oracleEstimator (op : SecondStageOperator Ω μ γ)
     (f : γ × Bool × ℝ → ℝ) : ℕ → Ω → γ → ℝ :=
   fun n ω x => op.evalAt n ω f x
 
-/-- Oracle pointwise risk scale `R^*_n(x)` from `def:est-cate-dr-learner`:
+/-- Given [a second-stage regression operator](hyp:op), [a fixed real-valued
+pseudo-outcome function](hyp:f), [a target function](hyp:target), [a query
+point](hyp:x), and [a sample size](hyp:n), the [oracle pointwise risk scale](goal)
+is the square root of the expected squared difference, over the operator's
+randomness, between the oracle estimator and the target at that query point.
+
+Oracle pointwise risk scale `R^*_n(x)` from `def:est-cate-dr-learner`:
 
   `R^*_n(x) := sqrt( ∫ (op.evalAt n ω f x - target x)^2 ∂μ )`.
 
@@ -111,9 +119,13 @@ end SecondStageOperator
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
 variable {γ : Type*} [MeasurableSpace γ]
 
-/-- Stability of a second-stage regression operator at a query point `x` with
-respect to a distance `d_n` between pseudo-outcomes
-(Def `def:est-cate-stability`).
+/-- Given [a second-stage regression operator](hyp:op), [a target function](hyp:target),
+[a sequence of distances between pseudo-outcomes](hyp:d_n), [a query point](hyp:x), and
+[a conditional-bias identification criterion](hyp:BiasIdent), [stability](goal) means
+that for every estimated pseudo-outcome sequence, true pseudo-outcome, and claimed
+conditional-bias sequence satisfying the criterion, convergence of the distance to zero
+in probability implies that the operator discrepancy after subtracting the smoothed bias
+is negligible in probability relative to the oracle pointwise risk scale.
 
 For every sequence of estimated pseudo-outcomes `fHat_n` and every true
 pseudo-outcome `f`, with claimed conditional bias `bHat_n`, if `d_n →_p 0` and

@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import {
   applyVerdicts,
+  assignChunk,
   assignSection,
   assignmentProblems,
   buildBlockInput,
@@ -428,8 +429,8 @@ describe("Lean rows (ported structurer)", () => {
     ]);
   });
 
-  it("ships a block without rows when the statement is not theorem-like", () => {
-    const input = inputFor({ snippet: { ...SNIPPET, statement: "def notATheorem := 1" } });
+  it("ships a block without rows when the statement is neither theorem- nor definition-shaped", () => {
+    const input = inputFor({ snippet: { ...SNIPPET, statement: "syntax \"foo\" : tactic" } });
     expect(input.structured).toBeNull();
     expect(input.rows).toEqual([]);
     expect(input.segments.length).toBeGreaterThan(0); // segments still ship
@@ -487,6 +488,7 @@ describe("block inputs and cache keys", () => {
     expect(input.rows.map((r) => r.code)).toEqual([
       "(P : Law)",
       "(α : ℝ)",
+      "VCLocalizedEnvelope P α : Prop",
       "∃ C p : ℝ,",
       "0 < C",
       "0 ≤ p",
@@ -494,6 +496,100 @@ describe("block inputs and cache keys", () => {
       "0 < m",
       "EnvelopeBound P α C p m",
     ]);
+  });
+
+  it("gives an object-valued definition parameters · def · given-by rows", () => {
+    const statement = `noncomputable def ipwLaw (d : Bool) (μ : Measure Ω) : Measure ℝ :=
+  let w := fun ω => ENNReal.ofReal (dens d ω)
+  (μ.withDensity w).map Y`;
+    const input = inputFor({ snippet: { ...SNIPPET, statement } });
+    expect(input.rowless).toBe(false);
+    expect(input.structured?.defRow?.code).toBe("ipwLaw d μ : Measure ℝ");
+    expect(input.rows.map((r) => `${r.id} [${r.kind}] ${r.code.replace(/\s+/g, " ")}`)).toEqual([
+      "r1 [param] (d : Bool)",
+      "r2 [param] (μ : Measure Ω)",
+      "r3 [def] ipwLaw d μ : Measure ℝ",
+      "r4 [param] let w := fun ω => ENNReal.ofReal (dens d ω)",
+      "r5 [value] (μ.withDensity w).map Y",
+    ]);
+  });
+
+  it("gives an equation-style definition one value row per alternative", () => {
+    const statement = `def refinesBool : EdgeType → EdgeType → Bool
+  | _, .nonparametric => true
+  | .linear, .linear => true
+  | _, _ => false`;
+    const input = inputFor({ snippet: { ...SNIPPET, statement } });
+    expect(input.structured?.defRow?.code).toBe("refinesBool : EdgeType → EdgeType → Bool");
+    expect(input.rows.filter((r) => r.kind === "value").map((r) => r.code)).toEqual([
+      "| _, .nonparametric => true",
+      "| .linear, .linear => true",
+      "| _, _ => false",
+    ]);
+  });
+
+  it("structures a data record as parameters · def · fields", () => {
+    const statement = `structure Parameters (n : ℕ) where
+  /-- smoothness -/
+  beta : ℝ
+  gamma : ℝ`;
+    const input = inputFor({ snippet: { ...SNIPPET, statement } });
+    expect(input.rowless).toBe(false);
+    expect(input.structured?.defRow?.code).toBe("Parameters n : Type");
+    expect(input.rows.map((r) => `${r.kind} ${r.code}`)).toEqual([
+      "param (n : ℕ)",
+      "def Parameters n : Type",
+      "value beta : ℝ",
+      "value gamma : ℝ",
+    ]);
+  });
+
+  it("recognises a record head behind `-- @realizes` line comments", () => {
+    const statement = `-- @realizes B(nonnegative bound)\n\nstructure CoeffClass (G : V → V → Prop) (β : ℕ) where\n  bound : ℝ`;
+    const input = inputFor({ snippet: { ...SNIPPET, statement } });
+    expect(input.rowless).toBe(false);
+    expect(input.structured?.defRow?.code).toBe("CoeffClass G β : Type");
+  });
+
+  it("structures an instance as parameters · instance · given by (where fields)", () => {
+    const statement = `instance : SMul ℝ (NuisanceVec γ) where
+  smul t η := ⟨fun b x => t * η.μ_fn b x⟩
+  foo := 1`;
+    const input = inputFor({ snippet: { ...SNIPPET, statement, decl: "Demo.instSMulReal" } });
+    expect(input.rowless).toBe(false);
+    expect(input.structured?.role).toBe("instance");
+    expect(input.structured?.defRow?.code).toBe("instSMulReal : SMul ℝ (NuisanceVec γ)");
+    expect(input.rows.filter((r) => r.kind === "value").map((r) => r.code)).toEqual([
+      "smul t η := ⟨fun b x => t * η.μ_fn b x⟩",
+      "foo := 1",
+    ]);
+  });
+
+  it("structures an inductive as parameters · inductive · constructors", () => {
+    const statement = `inductive SWIGNode (N : Type*)
+  | random : N → SWIGNode N
+  | fixed : N → SWIGNode N
+  deriving DecidableEq`;
+    const input = inputFor({ snippet: { ...SNIPPET, statement } });
+    expect(input.structured?.role).toBe("inductive");
+    expect(input.rows.map((r) => `${r.kind} ${r.code}`)).toEqual([
+      "param (N : Type*)",
+      "def SWIGNode N : Type",
+      "value random : N → SWIGNode N",
+      "value fixed : N → SWIGNode N",
+    ]);
+  });
+
+  it("takes a composite definition block's first component as its statement", () => {
+    const first = "def forwardMap (m : ℕ) (θ : ℝ) : ℝ := θ + m";
+    const input = inputFor({
+      snippet: { ...SNIPPET, statement: "", components: [
+        { label: "forwardMap", statement: first },
+        { label: "helper", statement: "def helper (x : ℝ) : ℝ := x" },
+      ] },
+    });
+    expect(input.rowless).toBe(false);
+    expect(input.structured?.defRow?.code).toBe("forwardMap m θ : ℝ");
   });
 
   it("structures the unique Prop declaration inside a composite assumption", () => {
@@ -816,9 +912,12 @@ describe("display vocabulary is the whole development, not the block's window", 
     const { presentationPrompt } = await import("../src/presentation/prompt_io.js");
     const i = input();
     const appendix = declVocabularyAppendix(i.index);
-    // every name, deduped and sorted, one per line
-    expect(appendix.split("\n").slice(2)).toEqual([...new Set(i.index.names)].sort());
-    expect(appendix).toContain("Ns.farAway");
+    // Every declaration remains represented, and each listed name resolves exactly.
+    const listed = appendix.split("\n").slice(2);
+    expect(listed.map(name => resolveDeclName(i.index, name))).toEqual(i.index.names);
+    expect(listed).toContain("farAway");
+    expect(listed).toContain("A.shared");
+    expect(listed).toContain("B.shared");
     expect(appendix).toMatch(/A name that is not on this list does not exist/);
     // the rule travels in both prompts
     const assign = await presentationPrompt("p4_nl_links", {
@@ -831,6 +930,48 @@ describe("display vocabulary is the whole development, not the block's window", 
     const verify = await presentationPrompt("p4_nl_links_verify", { claims_payload: appendix });
     expect(verify).toMatch(/COPY any declaration name from the NAMEABLE DECLARATIONS list/);
     expect(verify).toMatch(/never an invented name/);
+  });
+
+  it("roundtrips compact aliases and keeps ambiguous or quoted-dot names fully qualified", () => {
+    const index = buildDeclIndex([
+      { name: "A.unique", kind: "def", file: "A.lean", line: 1, source: "def unique := 1" },
+      { name: "A.shared", kind: "def", file: "A.lean", line: 2, source: "def shared := 1" },
+      { name: "B.shared", kind: "def", file: "B.lean", line: 1, source: "def shared := 2" },
+      { name: "Outer.«inner.with.dot»", kind: "def", file: "Q.lean", line: 1,
+        source: "def «inner.with.dot» := 3" },
+    ] as IndexedLeanDecl[]);
+    const listed = declVocabularyAppendix(index).split("\n").slice(2);
+    expect(listed).toContain("unique");
+    expect(listed).toContain("A.shared");
+    expect(listed).toContain("B.shared");
+    expect(listed).toContain("Outer.«inner.with.dot»");
+    expect(listed.map(name => resolveDeclName(index, name))).toEqual(index.names);
+  });
+
+  it("loads source-backed imported snippet names into the same closed vocabulary as indexed names", async () => {
+    const dir = await mkdtemp(path.join(os.tmpdir(), "nl-source-vocabulary-"));
+    try {
+      await writeFile(path.join(dir, "paper_library_index.json"), JSON.stringify({ entries: [
+        { name: "Local.main", kind: "theorem", file: "Main.lean", line: 1, source: "theorem main : True := trivial" },
+      ] }));
+      await writeFile(path.join(dir, "lean_snippets.json"), JSON.stringify({ snippets: {
+        imported: { decl: "Upstream.bound", statement: "theorem bound : True := trivial",
+          components: [{ label: "Upstream.support", statement: "def support := 1" }] },
+        invalid: { decl: "Invented.wrong", statement: "theorem other : True := trivial" },
+        private: { decl: "Local.hidden", statement: "private def hidden := 1" },
+        alias: { decl: "main", statement: "theorem main : True := trivial" },
+      } }));
+      const index = await loadDeclIndex(dir);
+      expect(resolveDeclName(index, "Upstream.bound")).toBe("Upstream.bound");
+      expect(resolveDeclName(index, "Upstream.support")).toBe("Upstream.support");
+      expect(resolveDeclName(index, "Local.main")).toBe("Local.main");
+      expect(resolveDeclName(index, "main")).toBe("Local.main");
+      expect(index.byName.has("main")).toBe(false);
+      expect(declVocabularyAppendix(index)).toContain("bound");
+      expect(resolveDeclName(index, "Invented.wrong")).toBeNull();
+      expect(resolveDeclName(index, "Local.hidden")).toBeNull();
+      expect(resolveDeclName(index, "Invented.bound")).toBeNull();
+    } finally { await rm(dir, { recursive: true, force: true }); }
   });
 
   it("still refuses a fabricated name, now with the list in front of the model", () => {
@@ -1244,6 +1385,82 @@ describe("ensureNlLinks", () => {
     });
   });
 
+  it("persists a total sibling, retries only the incomplete object, and resumes without repaying", async () => {
+    await withDir(async (dir) => {
+      await writeIndex(dir, UNRELATED_INDEX);
+      const body = [
+        `<div class="formal-block kind-assumption" id="obj-a1" data-objid="a1" tabindex="0">${BLOCK_HTML}</div>`,
+        `<div class="formal-block kind-assumption" id="obj-a2" data-objid="a2" tabindex="0">${BLOCK_HTML}</div>`,
+      ].join("\n");
+      const call = (deps: ReturnType<typeof stubCodex>["deps"]) => ensureNlLinks({
+        outDir: dir, repoRoot: dir, commit: "c", qid: "q", spec: "s",
+        entries: [entry("a1"), entry("a2")], snippets: { a1: SNIPPET, a2: SNIPPET },
+        paperBodyHtml: body, deps,
+      });
+      const failing = stubCodex({ assign: ({ prompt }) => {
+        const blocks = allUnstatedFromPrompt(prompt) as Record<string, { assignments: unknown[] }>;
+        if (blocks.a2) blocks.a2.assignments = blocks.a2.assignments.slice(1);
+        return { blocks };
+      } });
+      await expect(call(failing.deps)).rejects.toThrow(/a2.*not total/);
+      expect(failing.state.asked).toEqual([["a1", "a2"], ["a2"]]);
+      expect(Object.keys(JSON.parse(await readFile(path.join(dir, "nl_links_cache.json"), "utf8"))))
+        .toEqual(["a1"]);
+
+      const resumed = stubCodex({});
+      await expect(call(resumed.deps)).resolves.toBeDefined();
+      expect(resumed.state.asked).toEqual([["a2"]]);
+      expect(Object.keys(JSON.parse(await readFile(path.join(dir, "nl_links_cache.json"), "utf8"))).sort())
+        .toEqual(["a1", "a2"]);
+    });
+  });
+
+  it("propagates receipt-write failure without making a second paid assignment", async () => {
+    const codex = stubCodex({});
+    await expect(assignChunk({
+      chunk: [inputFor()], deps: codex.deps, repoRoot: ".",
+      onAssigned: async () => { throw new Error("receipt write failed"); },
+    })).rejects.toThrow(/receipt write failed/);
+    expect(codex.state.assign).toBe(1);
+  });
+
+  it.each([
+    ["malformed JSON", () => "{\\\"blocks\\\":", 2],
+    ["an extra object", (prompt: string) => ({
+      blocks: { ...allUnstatedFromPrompt(prompt), ghost: { assignments: [], displayLinks: [] } },
+    }), 2],
+  ])("does not preserve any sibling from a multi-object reply with %s", async (_label, reply, dispatches) => {
+    const first = { ...inputFor(), objId: "a1" };
+    const second = { ...inputFor(), objId: "a2" };
+    const persisted: string[] = [];
+    const codex = stubCodex({ assign: ({ prompt }) => reply(prompt) });
+    await expect(assignChunk({
+      chunk: [first, second], deps: codex.deps, repoRoot: ".",
+      onAssigned: async (input) => { persisted.push(input.objId); },
+    })).rejects.toThrow(/invalid JSON|exactly the objects asked about/);
+    expect(codex.state.assign).toBe(dispatches);
+    expect(persisted).toEqual([]);
+  });
+
+  it("preserves a valid sibling when the narrowed semantic retry is malformed", async () => {
+    const first = { ...inputFor(), objId: "a1" };
+    const second = { ...inputFor(), objId: "a2" };
+    const persisted: string[] = [];
+    let attempt = 0;
+    const codex = stubCodex({ assign: ({ prompt }) => {
+      if (attempt++ > 0) return "not json";
+      const blocks = allUnstatedFromPrompt(prompt) as Record<string, { assignments: unknown[] }>;
+      blocks.a2.assignments = blocks.a2.assignments.slice(1);
+      return { blocks };
+    } });
+    await expect(assignChunk({
+      chunk: [first, second], deps: codex.deps, repoRoot: ".",
+      onAssigned: async (input) => { persisted.push(input.objId); },
+    })).rejects.toThrow(/invalid JSON twice/);
+    expect(codex.state.asked).toEqual([["a1", "a2"], ["a2"]]);
+    expect(persisted).toEqual(["a1"]);
+  });
+
   it("throws uncached when the verification skips a claim", async () => {
     await withDir(async (dir) => {
       const codex = stubCodex({ verify: ({ prompt }) => ({ verdicts: verdictsFromPrompt(prompt).slice(1) }) });
@@ -1252,6 +1469,19 @@ describe("ensureNlLinks", () => {
       // the assignment receipt survives: the failure is downstream of it
       expect(Object.keys(JSON.parse(await readFile(path.join(dir, "nl_links_cache.json"), "utf8")))).toEqual(["a1"]);
     });
+  });
+
+  it("retries a malformed assignment reply once and accepts the valid second reply", async () => {
+    const input = inputFor();
+    let attempt = 0;
+    const codex = stubCodex({ assign: ({ prompt }) => {
+      if (attempt++ === 0) return "{ truncated";
+      expect(prompt).toContain("not a JSON object");
+      return { blocks: allUnstatedFromPrompt(prompt) };
+    } });
+    const out = await assignChunk({ chunk: [input], deps: codex.deps, repoRoot: "." });
+    expect(out.has(input.objId)).toBe(true);
+    expect(codex.state.asked).toEqual([[input.objId], [input.objId]]);
   });
 
   it("throws on unparseable replies from either pass", async () => {
@@ -1271,7 +1501,7 @@ describe("ensureNlLinks", () => {
       const codex = stubCodex({});
       const res = await ensureNlLinks({
         outDir: dir, repoRoot: dir, commit: "c", qid: "q", spec: "s", entries: [entry("a1")],
-        snippets: { a1: { ...SNIPPET, statement: "def notATheorem := 1" } },
+        snippets: { a1: { ...SNIPPET, statement: "def broken (x := 1" } },
         paperBodyHtml: PAPER_BODY, deps: codex.deps, log: (m) => notes.push(m),
       });
       expect(res.unstructured).toEqual(["a1"]);
@@ -1293,7 +1523,7 @@ describe("ensureNlLinks", () => {
       const codex = stubCodex({});
       const res = await ensureNlLinks({
         outDir: dir, repoRoot: dir, commit: "c", qid: "q", spec: "s", entries: [entry("a1")],
-        snippets: { a1: { ...SNIPPET, statement: "def notATheorem := 1" } },
+        snippets: { a1: { ...SNIPPET, statement: "syntax \"foo\" : tactic" } },
         paperBodyHtml: html, deps: codex.deps,
       });
       expect(codex.state).toMatchObject({ assign: 0, verify: 0 });

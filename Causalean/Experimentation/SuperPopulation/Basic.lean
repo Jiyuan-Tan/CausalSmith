@@ -69,8 +69,12 @@ namespace NetworkDependence
 
 variable (F : NetworkDependence V Ω μ)
 
-/-- The network field, viewed as a Stein dependency graph for its summands — a pure field rename,
-so the proved dependency-graph CLT applies verbatim. -/
+/-- Given [a finite population of units](hyp:V), [a measurable sample space](hyp:Ω), [a measure on
+that space](hyp:μ), and [a super-population locally dependent network field](hyp:F), its [dependency graph
+representation](goal) is the graph with the same random summands, unit relation, reflexivity,
+symmetry, measurability, and finite-set independence condition.
+
+This is a pure field rename, so the proved dependency-graph CLT applies verbatim. -/
 def toDepGraph : Causalean.SteinMethod.DepGraph F.X μ where
   G := F.adj
   decG := F.decAdj
@@ -79,7 +83,10 @@ def toDepGraph : Causalean.SteinMethod.DepGraph F.X μ where
   meas := F.meas
   indep := F.indep
 
-/-- The closed network neighborhood `N i = {j | adj i j}` of a unit. -/
+/-- Given [a finite population of units](hyp:V), [a measurable sample space](hyp:Ω), [a measure on
+that space](hyp:μ), [a super-population locally dependent network field](hyp:F), and [a unit](hyp:i), the
+[closed network neighborhood of that unit](goal) is the finite set of all units related to it,
+including the unit itself by reflexivity. -/
 noncomputable def nbhd (i : V) : Finset V := F.toDepGraph.nbhd i
 
 omit [IsProbabilityMeasure μ] in

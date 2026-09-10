@@ -50,20 +50,24 @@ namespace Causalean.Mathlib.MeasureTheory
 
 noncomputable section
 
-/-- The discrete probability-measure builder: `∑_{x ∈ T} w x · δ_x`, the weighted sum of
-Dirac masses at the points of `T`. -/
+/-- Given [a measurable sample space](hyp:α), [a finite set \(T\) of points in that space](hyp:T),
+and [a real-valued weight function](hyp:w), the [discrete measure](goal) is the sum of the
+Dirac measures at the points of \(T\), each multiplied by the nonnegative part of its weight. -/
 noncomputable def discreteMeasure {α : Type*} [MeasurableSpace α]
     (T : Finset α) (w : α → ℝ) : Measure α :=
   ∑ x ∈ T, ENNReal.ofReal (w x) • Measure.dirac x
 
-/-- The moment slice: probability measures supported on `[a,b]` with mean `0` and second
-moment `s`. -/
+/-- Given [real numbers \(a\), \(b\), and \(s\)](hyp:a,b,s), the [moment slice](goal) is the set
+of probability measures on the real line that [are supported on the closed interval from \(a\) to
+\(b\)](step:1,step:2), have mean zero, and have second moment \(s\). -/
 def MomentSlice (a b s : ℝ) : Set (Measure ℝ) :=
   {μ | IsProbabilityMeasure μ ∧ μ (Set.Icc a b)ᶜ = 0 ∧
         (∫ x, x ∂μ = 0) ∧ (∫ x, x ^ 2 ∂μ = s)}
 
-/-- `μ` is an extreme point of a set `C` of measures: it lies in `C` and is not an interior
-point of any nondegenerate segment inside `C`. -/
+/-- Given [a set \(C\) of measures on the real line](hyp:C) and [a measure \(\mu\) on the real line](hyp:μ),
+the [extreme-point property](goal) holds when [\(\mu\) belongs to \(C\)](step:1) and, for every
+pair of measures in \(C\) and every mixing weight strictly between zero and one, equality of
+\(\mu\) to their weighted mixture [implies that the two measures are equal](step:2). -/
 def IsExtremePoint (C : Set (Measure ℝ)) (μ : Measure ℝ) : Prop :=
   μ ∈ C ∧ ∀ μ₁ ∈ C, ∀ μ₂ ∈ C, ∀ t : ℝ≥0∞, 0 < t → t < 1 →
     μ = t • μ₁ + (1 - t) • μ₂ → μ₁ = μ₂

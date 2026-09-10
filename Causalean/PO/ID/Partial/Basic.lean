@@ -22,7 +22,11 @@ by concrete bound constructions such as Balke-Pearl intervals. -/
 namespace Causalean
 namespace PartialID
 
-/-- Sharp identified interval: the set of all objective values attainable by
+/-- For [a parameter space](hyp:α), [an objective function](hyp:obj), and [a feasibility condition on its parameter
+values](hyp:feasible), the [sharp identified interval](goal) is the set of all objective
+values attained by feasible parameters.
+
+Sharp identified interval: the set of all objective values attainable by
 a feasible parameter. -/
 noncomputable def IdentifiedInterval {α : Type*} (obj : α → ℝ) (feasible : α → Prop) : Set ℝ :=
   Set.range (fun x : {x // feasible x} => obj x)

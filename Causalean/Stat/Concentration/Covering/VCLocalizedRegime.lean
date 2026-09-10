@@ -243,7 +243,9 @@ theorem localizedVCDudleyHypotheses_of_empiricalRadius
   totallyBounded := fun {_} S {_} _ =>
     starHullZeroOut_totallyBounded_of_bounded hbound S
 
-/-- The finite-VC localized slope is the sample-size dependent coefficient in
+/-- Given [a tuning constant](hyp:K), [a VC-dimension bound](hyp:d), and [a sample size](hyp:n), [the finite-VC localized slope](goal) is $6\sqrt{(K d\log(n+1)+1)/n}$.
+
+The finite-VC localized slope is the sample-size dependent coefficient in
 the linear localized Rademacher envelope.
 
 It has the displayed order given by the VC dimension, logarithmic sample-size
@@ -251,7 +253,9 @@ term, and tuning constant. -/
 noncomputable def vcLocalizedSlope (K : ℝ) (d n : ℕ) : ℝ :=
   6 * Real.sqrt ((K * (d : ℝ) * Real.log ((n : ℝ) + 1) + 1) / (n : ℝ))
 
-/-- The finite-VC localized envelope maps a radius to the slope times that
+/-- Given [a tuning constant](hyp:K), [a VC-dimension bound](hyp:d), and [a sample size](hyp:n), [the finite-VC localized envelope](goal) maps every radius $r$ to the finite-VC localized slope times $r$.
+
+The finite-VC localized envelope maps a radius to the slope times that
 radius. -/
 noncomputable def vcLocalizedPsi (K : ℝ) (d n : ℕ) : ℝ → ℝ :=
   fun r => vcLocalizedSlope K d n * r
@@ -385,7 +389,9 @@ variable {Ω : Type*} {ι : Type u} {𝒳 : Type v} [MeasurableSpace Ω]
 variable [Nonempty ι] [Countable ι]
 
 omit [Nonempty ι] [Countable ι] in
-/-- Binary trace entropy evidence used by the shared localized star-hull
+/-- Given [a Boolean classifier family](hyp:π) and [a natural-number bound](hyp:d), [binary trace-entropy control](goal) holds exactly when either every finite sample has trace-family VC dimension at most $d$, or every sample of size $m$ has at most $(m+1)^d$ realized label patterns.
+
+Binary trace entropy evidence used by the shared localized star-hull
 Dudley residual.
 
 The first branch is the VC-dimension route used with
@@ -640,8 +646,7 @@ lemma empiricalNorm_const_mul
     _ = |c| * Real.sqrt ((1 / (n : ℝ)) * ∑ i : Fin n, (f (S i)) ^ 2) := by
           rw [Real.sqrt_sq_eq_abs]
 
-/-- A representative classifier index is chosen for each realized Boolean
-growth-family pattern. -/
+/-- Given [a Boolean classifier family](hyp:π), [a finite sample](hyp:S), and [a realized label pattern on that sample](hyp:A), [a representative classifier index](goal) is chosen whose labels realize that pattern. -/
 noncomputable def growthFamilyRep
     {ι 𝒳 : Type*} {n : ℕ} (π : ι → 𝒳 → Bool) (S : Fin n → 𝒳)
     (A : {A // A ∈ growthFamily π S}) : ι :=
@@ -654,8 +659,7 @@ lemma growthFamilyRep_spec
     restrictionPattern (π (growthFamilyRep π S A)) S = A.1 :=
   Classical.choose_spec ((mem_growthFamily_iff (π := π) (S := S) (A := A.1)).mp A.2)
 
-/-- The star-hull pattern coefficient is the largest active scale among
-functions with the same realized Boolean pattern. -/
+/-- Given [a real-valued function family](hyp:F), [a localization norm](hyp:norm), [a Boolean factorization family](hyp:π), [a finite sample](hyp:S), [a localization radius](hyp:r), and [a realized label pattern](hyp:A), [the star-hull pattern coefficient](goal) is the supremum of the active zeroed-star-hull scale coefficients among functions realizing that pattern on the sample. -/
 noncomputable def starHullPatternCoeff
     {ι 𝒳 : Type*} {n : ℕ} (F : ι → 𝒳 → ℝ) (norm : (𝒳 → ℝ) → ℝ)
     (π : ι → 𝒳 → Bool) (S : Fin n → 𝒳) (r : ℝ)
@@ -663,8 +667,7 @@ noncomputable def starHullPatternCoeff
   ⨆ i : {i : ι // restrictionPattern (π i) S = A.1},
     starHullZeroOutScaleCoeff F norm r i.1
 
-/-- The star-hull pattern class assigns each realized Boolean pattern its
-representative function multiplied by the pattern coefficient. -/
+/-- Given [a real-valued function family](hyp:F), [a localization norm](hyp:norm), [a Boolean factorization family](hyp:π), [a finite sample](hyp:S), and [a localization radius](hyp:r), [the star-hull pattern class](goal) assigns to each realized label pattern the representative function for that pattern, multiplied by its star-hull pattern coefficient. -/
 noncomputable def starHullPatternClass
     {ι 𝒳 : Type*} {n : ℕ} (F : ι → 𝒳 → ℝ) (norm : (𝒳 → ℝ) → ℝ)
     (π : ι → 𝒳 → Bool) (S : Fin n → 𝒳) (r : ℝ) :
@@ -1468,7 +1471,9 @@ theorem vcLocalizedEnvelope
   · exact criticalRadius_vcLocalizedPsi_sq_le_rate (le_trans zero_le_one hK) hn
 
 omit [Nonempty ι] [Countable ι] in
-/-- Build the `LocalizedRegime` bundle for the localized-deviation theorems
+/-- Given [a real-valued function class](hyp:F), [a function norm](hyp:norm), [a probability measure](hyp:μ), [an observation map](hyp:X), [a uniform bound](hyp:b) that is [nonnegative](hyp:hb) and [bounds every function value at every observed point](hyp:hbound), [a tuning constant](hyp:K), [a VC-dimension bound](hyp:d), [a tuning constant at least one](hyp:hK), [a binary factorization with VC dimension at most the stated bound](hyp:Hvc), and [localized Dudley hypotheses](hyp:Hloc), [the localized-regime package](goal) consists of this bound and the finite-VC localized envelope with its sub-root and Rademacher upper-bound guarantees.
+
+Build the `LocalizedRegime` bundle for the localized-deviation theorems
 from a bounded finite-VC class and the finite-VC localized envelope. -/
 noncomputable def vcLocalizedRegime
     (F : ι → 𝒳 → ℝ) (norm : (𝒳 → ℝ) → ℝ)
@@ -1487,7 +1492,9 @@ noncomputable def vcLocalizedRegime
   ψ_ub := fun n => vcLocalizedRademacherUpperBound F norm μ X K d n hK Hvc Hloc
 
 omit [Nonempty ι] [Countable ι] in
-/-- Build the `LocalizedRegime` bundle from a direct growth-cardinality bound
+/-- Given [a real-valued function class](hyp:F), [a function norm](hyp:norm), [a Boolean factorization family](hyp:π), [a probability measure](hyp:μ), [an observation map](hyp:X), [a uniform bound](hyp:b) that is [nonnegative](hyp:hb) and [bounds every function value at every observed point](hyp:hbound), [a factorization of each finite-sample function value through its Boolean label](hyp:hfactor), [a tuning constant](hyp:K), [a trace-growth exponent](hyp:dPi), [a tuning constant at least one](hyp:hK), [a polynomial bound on every finite-sample trace-family cardinality](hyp:hcard), and [localized Dudley hypotheses](hyp:Hloc), [the localized-regime package](goal) consists of this bound and the localized envelope obtained from the direct trace-cardinality bound.
+
+Build the `LocalizedRegime` bundle from a direct growth-cardinality bound
 on the binary trace family. -/
 noncomputable def vcLocalizedRegime_of_card
     (F : ι → 𝒳 → ℝ) (norm : (𝒳 → ℝ) → ℝ)

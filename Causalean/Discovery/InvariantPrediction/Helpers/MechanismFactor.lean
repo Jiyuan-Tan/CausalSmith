@@ -44,7 +44,10 @@ namespace EnvFamily
 
 variable {ι : Type*} [Fintype ι]
 
-/-- The latent parents of the target in environment `i`. -/
+/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
+environment index set](hyp:ι), [an invariant-prediction environment family](hyp:F), and [an
+environment](hyp:i), [the latent-parent set of the target](goal) is the set of target parents that
+are unobserved in that environment. -/
 def paLat (F : EnvFamily N Ω ι) (i : ι) : Finset (SWIGNode N) :=
   (F.M i).dag.parents F.yNode ∩ (F.M i).unobserved
 
@@ -77,7 +80,12 @@ theorem obsKernel_map_valuesProjection_eq_jointKernel_map
     (measurable_valuesProjection hSobs) M.measurable_randomToObserved]
   rw [hcomp]
 
-/-- The target mechanism as a measurable map of observed and latent parents. -/
+/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
+environment index set](hyp:ι), [an invariant-prediction environment family](hyp:F), [a reference
+environment selecting the observed parents](hyp:i₀), and [an environment supplying the structural
+mechanism and latent parents](hyp:i), [the target mechanism function](goal) maps values of those
+observed parents and that environment's latent parents to the target's value, using the
+environment's intervention assignment for any fixed parents. -/
 noncomputable def mechanismFun (F : EnvFamily N Ω ι) (i₀ i : ι) :
     ValuesOn (F.paObs i₀) (swigΩ Ω) × ValuesOn (F.paLat i) (swigΩ Ω) →
       ValuesOn ({F.yNode} : Finset (SWIGNode N)) (swigΩ Ω) :=
@@ -104,7 +112,14 @@ noncomputable def mechanismFun (F : EnvFamily N Ω ι) (i₀ i : ι) :
               exact Finset.mem_inter.mpr ⟨d.property, hobs⟩⟩)
     cast (congrArg (swigΩ Ω) (Finset.mem_singleton.mp w.property).symm) val
 
-/-- The target mechanism as a measurable map of observed and latent parents,
+/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
+environment index set](hyp:ι), [an invariant-prediction environment family](hyp:F), [a reference
+environment selecting the observed parents](hyp:i₀), [an environment supplying the structural
+mechanism and latent parents](hyp:i), and [values for that environment's fixed target parents](hyp:cf),
+[the fixed-parent-parameterized target mechanism function](goal) maps values of the selected
+observed and latent parents to the target's value, using the supplied fixed-parent values.
+
+The target mechanism as a measurable map of observed and latent parents,
 **parameterized by an explicit fixed-parent value argument** `cf`.  Identical to
 `mechanismFun i₀ i` except that the fixed-parent branch reads its value from `cf`
 instead of from the environment's intervention assignment `s i`.  This lets the

@@ -1,6 +1,6 @@
 // Stage -1.2 (proposal producer) orchestrator directive channel — mirrors D0's
-// escalation-log directive (`stage0_working.ts` `EscalationLogEntry`/
-// `appendEscalationLog`/`formatEscalationContext`). A standalone, durable,
+// escalation-log directive (`escalation_log.ts`: `EscalationLogEntry`/
+// `pendingDirectives`/`formatDirectiveContext`). A standalone, durable,
 // orchestrator-injectable steer for the proposal author: no applied change, just
 // a concrete direction (e.g. a literature-grounded reframe, or a recurring
 // drift the reviewer keeps flagging) fed into every subsequent draft.

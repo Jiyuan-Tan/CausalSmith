@@ -29,7 +29,10 @@ open Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge
 open MeasureTheory Set
 open scoped Real
 
-/-- The envelope maximizer `μᵥ`: the unique root of `envelopeQuartic · (v²)` in `(v², v)`,
+/-- For [a real number $v$](hyp:v), the [selected maximizing root](goal) is the unique root in
+$(v^2,v)$ of the envelope first-order quartic when $0<v<1$, and is $0$ otherwise.
+
+The envelope maximizer `μᵥ`: the unique root of `envelopeQuartic · (v²)` in `(v², v)`,
 extracted by classical choice from `interior_quartic_exists`. Outside the admissible range
 `v ∈ (0,1)` it is set to `0` (junk value). -/
 noncomputable def maximizingRoot (v : ℝ) : ℝ :=
@@ -47,7 +50,11 @@ theorem maximizingRoot_quartic (v : ℝ) (hv0 : 0 < v) (hv1 : v < 1) :
   rw [maximizingRoot, dif_pos ⟨hv0, hv1⟩]
   exact (interior_quartic_exists v hv0 hv1).choose_spec.2
 
-/-- The **measure-level residual envelope** `ρ(v) = momentEnvelope μᵥ (v²)`, evaluated at the
+/-- For [a real number $v$](hyp:v), the [measure-level residual envelope](goal) is
+$(\mu_v-v^2)(v^2-\mu_v^2)/(4\mu_v(1-\mu_v))$, where $\mu_v$ is the selected maximizing root at
+second moment $v^2$.
+
+The **measure-level residual envelope** `ρ(v) = momentEnvelope μᵥ (v²)`, evaluated at the
 maximizing support parameter `μᵥ = maximizingRoot v`. -/
 noncomputable def rhoEnvelope (v : ℝ) : ℝ := momentEnvelope (maximizingRoot v) (v ^ 2)
 
@@ -78,7 +85,11 @@ structure Admissible (v : ℝ) (μ : Measure ℝ) : Prop where
   /-- `μ` has second moment `v²`. -/
   moment2 : ∫ y, y ^ 2 ∂μ = v ^ 2
 
-/-- The set of residual values realized by admissible laws:
+/-- For [a real number $v$](hyp:v), the [set of residual values realized by admissible laws](goal)
+contains exactly the quadratic least-squares residuals of probability measures that are almost surely
+supported on $[0,1]$ and have second moment $v^2$.
+
+The set of residual values realized by admissible laws:
 `{ r | ∃ μ, Admissible v μ ∧ r = l2ResidualQuadratic μ }`. The main theorem is
 `IsLUB (residualSet v) (rhoEnvelope v)`. -/
 def residualSet (v : ℝ) : Set ℝ :=

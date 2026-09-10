@@ -38,12 +38,14 @@ namespace DesignBased
 
 variable {Ω : Type*} [Fintype Ω]
 
-/-- A **design family**: a set of candidate randomization designs on a common assignment
-space `Ω`, among which the experimenter chooses. -/
+/-- For [a finite assignment space](hyp:Ω), the [design family](goal) is a set of candidate
+randomization designs defined on that common assignment space. -/
 abbrev DesignFamily (Ω : Type*) [Fintype Ω] : Type _ := Set (FiniteDesign Ω)
 
-/-- `D₁` weakly **dominates** `D₂` under the risk criterion `R` when it carries no larger
-risk: `R D₁ ≤ R D₂`. -/
+/-- For [a finite assignment space](hyp:Ω), [an ordered risk scale](hyp:α), [a risk criterion for
+randomization designs](hyp:R), and [two randomization designs](hyp:D₁,D₂), the [assertion that
+the first design weakly dominates the second](goal) means that its risk is no greater than the
+second design's risk. -/
 def Dominates {α : Type*} [Preorder α] (R : FiniteDesign Ω → α) (D₁ D₂ : FiniteDesign Ω) : Prop :=
   R D₁ ≤ R D₂
 
@@ -57,8 +59,10 @@ lemma Dominates.trans {α : Type*} [Preorder α] {R : FiniteDesign Ω → α} {D
     (h₁ : Dominates R D₁ D₂) (h₂ : Dominates R D₂ D₃) : Dominates R D₁ D₃ :=
   le_trans h₁ h₂
 
-/-- A design `D₀` is **optimal** in the family `𝒟` under risk `R` when it belongs to `𝒟`
-and carries the least risk among all members. -/
+/-- For [a finite assignment space](hyp:Ω), [an ordered risk scale](hyp:α), [a family of candidate
+randomization designs](hyp:𝒟), [a risk criterion](hyp:R), and [a randomization design](hyp:D₀),
+the [assertion that the design is optimal in the family](goal) means both that it belongs to the
+family and that its risk is no greater than the risk of every design in the family. -/
 def IsOptimalOn {α : Type*} [Preorder α] (𝒟 : DesignFamily Ω) (R : FiniteDesign Ω → α)
     (D₀ : FiniteDesign Ω) : Prop :=
   D₀ ∈ 𝒟 ∧ ∀ D ∈ 𝒟, R D₀ ≤ R D
@@ -88,8 +92,10 @@ The canonical risk: fix an estimator that may use each design's known probabilit
 (`est D : Ω → ℝ`, e.g. Horvitz–Thompson) and a design-independent target `μ`; the risk of a
 design is the estimator's mean squared error under it. -/
 
-/-- The **mean-squared-error risk** of a design-indexed estimator `est` for target `μ`:
-the risk assigned to a design `D` is `est D`'s mean squared error under `D`. -/
+/-- For [a finite assignment space](hyp:Ω), [an estimator specified separately for each
+randomization design](hyp:est), and [a real-valued target](hyp:μ), the [mean-squared-error risk
+function](goal) assigns to each design the mean squared error of that design's estimator about the
+target, evaluated under that design. -/
 def mseRisk (est : FiniteDesign Ω → Ω → ℝ) (μ : ℝ) : FiniteDesign Ω → ℝ :=
   fun D => D.mse (est D) μ
 

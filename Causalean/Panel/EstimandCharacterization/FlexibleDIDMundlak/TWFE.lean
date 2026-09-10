@@ -42,20 +42,31 @@ structure ScalarTWFEProblem (Unit Time : Type*) [Fintype Unit] [Fintype Time] wh
 
 namespace ScalarTWFEProblem
 
-/-- Residualized-design denominator for scalar TWFE. -/
+/-- For [finite sets of units and periods](hyp:Unit,Time) and [a scalar
+two-way-fixed-effects regression problem](hyp:P), the [residualized-design
+denominator](goal) is the sum of squared doubly demeaned regressor values over
+all unit--period observations. -/
 noncomputable def twfeDenominator (P : ScalarTWFEProblem Unit Time) : ℝ :=
   ∑ i, ∑ t, (ddot P.X i t)^2
 
-/-- Residualized numerator using double-demeaned outcome and regressor. -/
+/-- For [finite sets of units and periods](hyp:Unit,Time) and [a scalar
+two-way-fixed-effects regression problem](hyp:P), the [residualized numerator](goal)
+is the sum, over all unit--period observations, of the doubly demeaned
+regressor times the doubly demeaned outcome. -/
 noncomputable def twfeNumerator (P : ScalarTWFEProblem Unit Time) : ℝ :=
   ∑ i, ∑ t, ddot P.X i t * ddot P.Y i t
 
-/-- Population scalar TWFE coefficient from the double-demeaned normal
-equation. -/
+/-- For [finite sets of units and periods](hyp:Unit,Time) and [a scalar
+two-way-fixed-effects regression problem](hyp:P), the [scalar two-way-fixed-
+effects coefficient](goal) is the residualized numerator divided by the
+residualized-design denominator. -/
 noncomputable def betaTWFE (P : ScalarTWFEProblem Unit Time) : ℝ :=
   P.twfeNumerator / P.twfeDenominator
 
-/-- Scalar TWFE normal equation after double demeaning. -/
+/-- For [finite sets of units and periods](hyp:Unit,Time), [a scalar two-way-
+fixed-effects regression problem](hyp:P), and [a proposed coefficient](hyp:β),
+the [scalar two-way-fixed-effects normal equation](goal) states that the sum
+of the doubly demeaned regressor times the corresponding residual is zero. -/
 def twfeNormalEq (P : ScalarTWFEProblem Unit Time) (β : ℝ) : Prop :=
   ∑ i, ∑ t, ddot P.X i t * (ddot P.Y i t - ddot P.X i t * β) = 0
 
@@ -134,9 +145,13 @@ end ScalarTWFEProblem
 
 variable {Z M : Type*} [Fintype Z] [Fintype M]
 
-/-- Two-way Mundlak nuisance span for a scalar regressor: constants, unit
-means of `X`, time means of `X`, optional time-constant controls `Z_i`, and
-optional time-only controls `M_t`. -/
+/-- For [finite sets of units, periods, unit-level controls, and period-level
+controls](hyp:Unit,Time,Z,M), [a scalar regressor](hyp:X), [unit-level control
+functions](hyp:Zvar), [period-level control functions](hyp:Mvar), and [a
+candidate nuisance function](hyp:h), the [two-way Mundlak nuisance condition](goal)
+holds exactly when the candidate is a constant plus arbitrary multiples of the
+regressor's unit means and period means and linear combinations of the supplied
+unit-level and period-level controls. -/
 def IsTwoWayMundlakNuisance (X : Unit → Time → ℝ)
     (Zvar : Z → Unit → ℝ) (Mvar : M → Time → ℝ)
     (h : Unit → Time → ℝ) : Prop :=

@@ -23,8 +23,13 @@ open scoped BigOperators
 variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
   {μ : Measure Ω} {P : Measure X}
 
-/-- The merged product kernel evaluates matched left and right factors on the
-same observation and unmatched factors on separate observations. -/
+/-- For [two nonnegative orders](hyp:r,s), [a family of real-valued left
+factors indexed by the first order](hyp:f), [a family of real-valued right
+factors indexed by the second order](hyp:g), and [a partial matching between
+their indices](hyp:M), the [merged product kernel](goal) assigns to each
+collection of observations indexed by the merged coordinates the product of all
+left and right factors, evaluating matched factors at their common observation
+and unmatched factors at separate observations. -/
 noncomputable def mergedProductKernel {r s : ℕ} (f : Fin r → X → ℝ)
     (g : Fin s → X → ℝ) (M : PartialMatching r s) :
     (M.MergedIndex → X) → ℝ :=
@@ -32,14 +37,20 @@ noncomputable def mergedProductKernel {r s : ℕ} (f : Fin r → X → ℝ)
     (∏ i : Fin r, f i (z (M.leftInjection i))) *
       ∏ j : Fin s, g j (z (M.rightInjection j))
 
-/-- The merged product moment is the expectation of a merged product kernel
-under independent copies indexed by its merged coordinates. -/
+/-- For [two nonnegative orders](hyp:r,s), [a measure on a measurable observation
+space](hyp:P), [families of real-valued left and right factors](hyp:f,g), and
+[a partial matching between their indices](hyp:M), the [merged product
+moment](goal) is the integral of the associated merged product kernel under
+independent draws from that measure, one draw for each merged coordinate. -/
 noncomputable def mergedProductMoment {r s : ℕ} (P : Measure X)
     (f : Fin r → X → ℝ) (g : Fin s → X → ℝ) (M : PartialMatching r s) : ℝ :=
   ∫ z, mergedProductKernel f g M z ∂(Measure.pi fun _ : M.MergedIndex => P)
 
-/-- The normalization of a partial matching is the falling factorial for its
-number of distinct observations divided by the two marginal falling factorials. -/
+/-- For [a nonnegative sample size](hyp:n), [two nonnegative factor
+orders](hyp:r,s), and [a partial matching between their indices](hyp:M), the
+[matching normalization](goal) is the falling factorial of the sample size at
+the number of distinct observations induced by the matching, divided by the
+product of the two marginal falling factorials. -/
 noncomputable def matchingNormalization (n : ℕ) {r s : ℕ}
     (M : PartialMatching r s) : ℝ :=
   (n.descFactorial (r + s - M.size) : ℝ) /
@@ -522,14 +533,17 @@ theorem integral_normalizedOrderedProductStatistic_mul
   · rw [matchingNormalization_eq_zero_of_card_gt M hc]
     simp
 
-/-- The ordered-product mean is the expectation of a coordinatewise product
-under independent draws from the population law. -/
+/-- For [a nonnegative order](hyp:r), [a measure on a measurable observation
+space](hyp:P), and [a family of real-valued coordinate factors](hyp:f), the
+[ordered-product mean](goal) is the integral of their coordinatewise product
+under independent draws from that measure, one draw for every coordinate. -/
 noncomputable def orderedProductMean {r : ℕ} (P : Measure X)
     (f : Fin r → X → ℝ) : ℝ :=
   ∫ z, orderedProductKernel f z ∂(Measure.pi fun _ : Fin r => P)
 
-/-- The centered cross moment subtracts the product of two means from the mean
-of their product. -/
+/-- For [a measure on a measurable sample space](hyp:μ) and [two real-valued random
+variables on that sample space](hyp:A,B), the [centered cross moment](goal) is
+the integral of their product minus the product of their separate integrals. -/
 noncomputable def centeredCrossMoment (μ : Measure Ω) (A B : Ω → ℝ) : ℝ :=
   (∫ ω, A ω * B ω ∂μ) - (∫ ω, A ω ∂μ) * (∫ ω, B ω ∂μ)
 

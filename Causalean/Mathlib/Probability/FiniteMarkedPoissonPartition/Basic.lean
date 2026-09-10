@@ -31,8 +31,7 @@ lemma poissonMeasure_singleton_eq_poissonPMF (r : ℝ≥0) (n : ℕ) :
 
 variable {X : Type*} [MeasurableSpace X]
 
-/-- A finite sequence is a length together with coordinates indexed by that
-length. -/
+/-- For [an observation space](hyp:X), a [finite sample](goal) is a nonnegative integer sample size together with one observation for each position below that size. -/
 abbrev FiniteSample (X : Type*) [MeasurableSpace X] := Σ n : ℕ, Fin n → X
 
 /-- The number of observations in a finite sequence. -/
@@ -41,10 +40,10 @@ def FiniteSample.count (s : FiniteSample X) : ℕ := s.1
 /-- The coordinates of a finite sequence at its dependent finite index type. -/
 def FiniteSample.points (s : FiniteSample X) : Fin s.count → X := s.2
 
-/-- Embed a fixed-length tuple into the space of all finite sequences. -/
+/-- Given [a nonnegative integer sample size](hyp:n) and [a tuple of observations indexed by its positions](hyp:x), the [fixed-size embedding](goal) is the finite sample having that size and those observations. -/
 def fixedSizeEmbed (n : ℕ) (x : Fin n → X) : FiniteSample X := ⟨n, x⟩
 
-/-- Truncate a count-and-stream outcome to the prefix selected by its count. -/
+/-- Given [a pair consisting of a nonnegative integer and an infinite observation stream](hyp:z), the [associated finite sample](goal) has that integer as its size and retains exactly the corresponding initial segment of the stream. -/
 def streamToFiniteSample (z : ℕ × (ℕ → X)) : FiniteSample X :=
   ⟨z.1, fun i => z.2 i⟩
 
@@ -96,13 +95,12 @@ lemma measurable_streamToFiniteSample :
   · have hsn : MeasurableSet (fixedSizeEmbed n ⁻¹' s) := hs n
     exact hsn.preimage (by fun_prop)
 
-/-- The finite Poisson sample law is obtained by drawing an independent scalar
-Poisson count and i.i.d. stream and retaining exactly the selected prefix. -/
+/-- Given [a probability measure on the observation space](hyp:P) and [a nonnegative Poisson mean](hyp:lam), the [finite Poisson sample law](goal) is the distribution obtained by drawing a Poisson count with that mean and an independent infinite sequence of independent observations from that probability measure, then retaining the initial segment selected by the count. -/
 noncomputable def finitePoissonSampleLaw (P : Measure X) [IsProbabilityMeasure P]
     (lam : ℝ≥0) : Measure (FiniteSample X) :=
   Measure.map streamToFiniteSample (poissonIIDStreamLaw P lam)
 
-/-- The finite Poisson sample law is a probability measure. -/
+/-- Let the observation space be equipped with a $\sigma$-algebra.  For [a probability measure on that space](hyp:P) and [a nonnegative Poisson mean](hyp:lam), [the assertion that the finite Poisson sample law is a probability measure](goal) holds. -/
 instance finitePoissonSampleLaw_isProbabilityMeasure (P : Measure X) [IsProbabilityMeasure P]
     (lam : ℝ≥0) : IsProbabilityMeasure (finitePoissonSampleLaw P lam) := by
   unfold finitePoissonSampleLaw
@@ -143,14 +141,13 @@ lemma finitePoissonSampleLaw_restrict_count_eq (P : Measure X) [IsProbabilityMea
   rw [← Measure.map_map (measurable_fixedSizeEmbed n) (by fun_prop),
     iidStreamLaw_map_finPrefix]
 
-/-- A finite marked Poisson sample has i.i.d. observation-mark pairs, with
-observation law `P`, independent mark law `R`, and Poisson mean `lam`. -/
+/-- Given [a probability measure for observations](hyp:P), [a probability measure for real-valued marks](hyp:R), and [a nonnegative Poisson mean](hyp:lam), the [finite marked Poisson sample law](goal) is the finite Poisson sample law whose independent observation--mark pairs have the product of those two measures as their common distribution. -/
 noncomputable def finiteMarkedPoissonSampleLaw (P : Measure X) [IsProbabilityMeasure P]
     (R : Measure ℝ) [IsProbabilityMeasure R] (lam : ℝ≥0) :
     Measure (FiniteSample (X × ℝ)) :=
   finitePoissonSampleLaw (P.prod R) lam
 
-/-- The finite marked Poisson sample law is a probability measure. -/
+/-- Let the observation space be equipped with a $\sigma$-algebra.  For [a probability measure on the observation space](hyp:P), [a probability measure on real-valued marks](hyp:R), and [a nonnegative Poisson mean](hyp:lam), [the assertion that the finite marked Poisson sample law is a probability measure](goal) holds. -/
 instance finiteMarkedPoissonSampleLaw_isProbabilityMeasure
     (P : Measure X) [IsProbabilityMeasure P]
     (R : Measure ℝ) [IsProbabilityMeasure R] (lam : ℝ≥0) :

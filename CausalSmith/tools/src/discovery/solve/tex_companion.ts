@@ -3,7 +3,7 @@
 // Model-authored LaTeX inside JSON strings kept producing escaping corruption
 // (under-escaped `\theta` → control chars; whole-string over-escapes; math-mode
 // breaks), and every defense was a heuristic dictionary that grew per incident.
-// The proof-archive channel (`proof_archive/objects/<sha>.tex`) has NEVER had an
+// (Historical note: the retired proof-archive channel never had an
 // escaping incident — raw file bytes are never JSON-decoded. This module extends
 // that pattern to solver output: the solver writes ONE companion file next to
 // its JSON (`solve_<unit>.json` → `solve_<unit>.tex`) containing raw TeX blocks

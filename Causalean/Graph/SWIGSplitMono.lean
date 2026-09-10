@@ -72,7 +72,14 @@ variable {N : Type*} [DecidableEq N] [Fintype N]
 -- Monolithic split edge relation
 -- ============================================================
 
-/-- Edge relation after monolithically splitting every node `D ∈ X`.
+/-- For [a finite vertex set with decidable equality](hyp:N), [a directed-edge relation on its random and fixed
+copies](hyp:dagEdge), and [a finite set of vertices selected for splitting](hyp:X), the
+[monolithic split edge relation](goal) [removes every edge leaving the random copy of a selected
+vertex and otherwise retains the corresponding original edge](step:1), while [each fixed copy of
+a selected vertex inherits the outgoing edges of its random copy and every other fixed copy retains
+its original outgoing edges](step:2).
+
+    Edge relation after monolithically splitting every node `D ∈ X`.
 
     From Definition 8 (multi-target generalized intervention):
     For every `D ∈ X`, each outgoing edge `(random D, w)` is replaced by
@@ -87,8 +94,7 @@ def splitMonoEdgeRel (dagEdge : SWIGNode N → SWIGNode N → Prop) (X : Finset 
   | .random u, b => if u ∈ X then False else dagEdge (.random u) b
   | .fixed d, b => if d ∈ X then dagEdge (.random d) b else dagEdge (.fixed d) b
 
-/-- The monolithic split edge relation is decidable whenever the original edge relation is
-decidable. -/
+/-- For [a collection of base variables with decidable equality](hyp:N), [a directed-edge relation on split nodes for which every proposed edge can be decided](hyp:dagEdge), and [a finite set of vertices selected for splitting](hyp:X), the [decision procedure for the monolithic split edge relation](goal) determines, for every ordered pair of split nodes, whether that pair is joined after the split. -/
 instance splitMonoEdgeRel_decidable (dagEdge : SWIGNode N → SWIGNode N → Prop)
     [DecidableRel dagEdge] (X : Finset N) :
     DecidableRel (splitMonoEdgeRel dagEdge X) := by
@@ -113,7 +119,13 @@ instance splitMonoEdgeRel_decidable (dagEdge : SWIGNode N → SWIGNode N → Pro
 -- Monolithic split topological order
 -- ============================================================
 
-/-- Topological order for the monolithically-split DAG.
+/-- For [a finite vertex set with decidable equality](hyp:N), [a SWIG graph](hyp:G), and [a finite set of vertices
+selected for splitting](hyp:X), the [topological-order assignment for the monolithically split
+graph](goal) [assigns each random copy twice its original topological rank plus one](step:1), and
+[assigns each selected fixed copy twice the original rank of its random copy, while assigning each
+unselected fixed copy twice its own original rank plus one](step:2).
+
+    Topological order for the monolithically-split DAG.
 
     - Every `.random u` gets odd value `2 * topoOrder (.random u) + 1`.
     - For `d ∈ X`: `.fixed d` gets even value `2 * topoOrder (.random d)`
@@ -130,7 +142,12 @@ noncomputable def splitMonoTopo (G : SWIGGraph N) (X : Finset N) : SWIGNode N �
 -- Monolithic split DAG
 -- ============================================================
 
-/-- The monolithically-split DAG: the DAG on `SWIGNode N` obtained by
+/-- For [a finite vertex set with decidable equality](hyp:N), [a SWIG graph](hyp:G), and [a finite set of vertices
+selected for splitting](hyp:X), the [monolithically split directed acyclic graph](goal) is the
+directed acyclic graph obtained by rerouting, in one operation, every edge from the random copy of
+a selected vertex to instead leave that vertex's fixed copy.
+
+    The monolithically-split DAG: the DAG on `SWIGNode N` obtained by
     rerouting all `.random D → w` edges (for `D ∈ X`) to `.fixed D → w`
     in a single pass. -/
 def splitMonoDAG (G : SWIGGraph N) (X : Finset N) :
@@ -211,7 +228,15 @@ def splitMonoDAG (G : SWIGGraph N) (X : Finset N) :
 -- The monolithic multi-target split operation
 -- ============================================================
 
-/-- **Monolithic multi-target split.** (Definition 8, one-shot form.)
+/-- For [a finite vertex set with decidable equality](hyp:N), [a SWIG graph](hyp:G), and [a finite set of vertices
+selected for splitting](hyp:X), provided that [the random copy of every selected vertex is an
+observed vertex of the graph](hyp:hObs) and [the fixed copy of every selected vertex is not already
+among the graph's fixed vertices](hyp:hFix), the [monolithic multi-target split SWIG graph](goal)
+is obtained by rerouting every outgoing edge of each selected random copy to leave the corresponding
+fixed copy, while adding those fixed copies to the fixed vertices and retaining the observed and
+unobserved vertices.
+
+    **Monolithic multi-target split.** (Definition 8, one-shot form.)
 
     Given `G : SWIGGraph N` and `X : Finset N` with
     - `hObs : ∀ D ∈ X, .random D ∈ G.observed`

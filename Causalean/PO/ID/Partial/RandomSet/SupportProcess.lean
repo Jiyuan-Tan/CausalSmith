@@ -57,8 +57,9 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
   {μ : Measure Ω} {P : Measure X} [IsProbabilityMeasure μ] [IsProbabilityMeasure P]
   {k : ℕ} [NeZero k]
 
-/-- The grid supremum statistic returns the largest absolute support-process
-deviation across the chosen directions.
+/-- For [a nonempty grid containing $k$ directions](hyp:k) and [a vector of support-process
+deviations over that grid](hyp:w), the [grid supremum statistic](goal) is the largest absolute
+coordinate of the vector.
 
 The **`ℓ^∞` / Hausdorff-over-grid functional** `w ↦ supⱼ |wⱼ|` on
 `EuclideanSpace ℝ (Fin k)`.  This is the sup of the `|coordinate|` over the `k`
@@ -84,8 +85,7 @@ section CLT
 variable {ψ : X → EuclideanSpace ℝ (Fin k)} (hψ : Measurable ψ)
   (hvar : Integrable (fun x => ‖ψ x‖ ^ 2) P)
 
-/-- The finite-grid support statistic has a probability measure as its Gaussian
-pushforward limit law.
+/-- For [a measurable sample space equipped with a measure](hyp:X,P), [a positive number of grid directions](hyp:k), and [a vector-valued process on that space](hyp:ψ) that is [measurable](hyp:hψ) and has [an integrable squared norm under the measure](hyp:hvar), the [law obtained by applying the grid supremum statistic to its Gaussian limit is a probability measure](goal). [This follows from taking the measurable pushforward of that Gaussian limit](step:1).
 
 The limit law of the finite-grid support statistic is a probability measure
 (pushforward of the Gaussian limit by the continuous `maxAbsK`). -/
@@ -134,8 +134,11 @@ section SetValued
 
 variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V]
 
-/-- The centered support process records each random set's support deviation
-from its center on a finite grid of directions.
+/-- For [an observation space](hyp:X), [a nonempty grid containing $k$ directions](hyp:k), [an
+inner-product outcome space](hyp:V), [a set-valued outcome function](hyp:F), [a proposed center
+set](hyp:EF), and [a grid of directions](hyp:p), the [centered support process](goal) maps each
+observation to the vector whose coordinate in each direction is the support value of its realized
+set minus the support value of the proposed center set.
 
 The **centered support process** of a set-valued random variable `F` on a
 finite grid of directions `p : Fin k → V`:

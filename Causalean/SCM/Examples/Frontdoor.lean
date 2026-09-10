@@ -31,7 +31,7 @@ namespace Causalean.SCM.Examples.Frontdoor
 -- Vertex type
 -- ============================================================
 
-/-- The frontdoor example has latent confounder, treatment, mediator, and outcome vertices. -/
+/-- [The frontdoor-example node type](goal) consists of [the latent-confounder vertex](hyp:fdU), [the treatment vertex](hyp:fdX), [the mediator vertex](hyp:fdM), and [the outcome vertex](hyp:fdY). -/
 inductive FDNode
   | fdU  -- latent confounder of X and Y
   | fdX  -- treatment
@@ -41,7 +41,7 @@ inductive FDNode
 
 open FDNode
 
-/-- The frontdoor-example vertex set is finite, with four named vertices. -/
+/-- [A finite enumeration of the frontdoor-example node type](goal) is provided by [the collection of its four named vertices](step:1) together with [the assertion that every frontdoor-example vertex belongs to that collection](step:2). -/
 instance : Fintype FDNode where
   elems := {fdU, fdX, fdM, fdY}
   complete := by intro x; cases x <;> simp
@@ -50,7 +50,7 @@ instance : Fintype FDNode where
 -- Edge relation
 -- ============================================================
 
-/-- The frontdoor graph has latent confounding of X and Y, and the directed path X → M → Y. -/
+/-- [The frontdoor-edge relation](goal) contains exactly [the arrow from the latent confounder to treatment](step:1), [the arrow from the latent confounder to outcome](step:2), [the arrow from treatment to the mediator](step:3), and [the arrow from the mediator to outcome](step:4); [all other ordered pairs have no edge](step:5). -/
 def fdEdge : FDNode → FDNode → Prop
   | fdU, fdX => True
   | fdU, fdY => True
@@ -58,7 +58,7 @@ def fdEdge : FDNode → FDNode → Prop
   | fdM, fdY => True
   | _,   _   => False
 
-/-- Whether a proposed frontdoor-example edge is present is decidable by endpoint cases. -/
+/-- For every ordered pair of frontdoor-example vertices, [a decision procedure for whether the pair is a directed edge](goal) is provided. -/
 instance : DecidableRel fdEdge := by
   intro a b; cases a <;> cases b <;> simp [fdEdge] <;> infer_instance
 
@@ -66,7 +66,7 @@ instance : DecidableRel fdEdge := by
 -- Topological order
 -- ============================================================
 
-/-- The frontdoor graph orders latent confounder, treatment, mediator, then outcome. -/
+/-- [The topological-order label for the frontdoor graph](goal) [assigns label 0 to the latent confounder](step:1), [label 1 to treatment](step:2), [label 2 to the mediator](step:3), and [label 3 to outcome](step:4). -/
 def fdTopo : FDNode → ℕ
   | fdU => 0
   | fdX => 1
@@ -82,7 +82,7 @@ theorem fdTopo_lt : ∀ u v, fdEdge u v → fdTopo u < fdTopo v := by
 -- The DAG
 -- ============================================================
 
-/-- This directed acyclic graph formalizes the canonical frontdoor example. -/
+/-- [The frontdoor directed acyclic graph](goal) has the specified frontdoor edge relation and topological ordering, and is acyclic. -/
 def fdDAG : DAG FDNode where
   edge := fdEdge
   decEdge := inferInstance
@@ -92,7 +92,7 @@ def fdDAG : DAG FDNode where
 -- SWIG graph (standard model, no intervention)
 -- ============================================================
 
-/-- This SWIG graph represents the frontdoor example before any intervention. -/
+/-- [The pre-intervention SWIG graph for the frontdoor example](goal) has the frontdoor directed acyclic graph, no fixed nodes, treatment, mediator, and outcome as observed random nodes, and the latent confounder as an unobserved random node. -/
 def fdSWIG : SWIGGraph FDNode where
   dag := initialSWIG fdDAG
   fixed := ∅

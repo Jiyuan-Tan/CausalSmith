@@ -90,7 +90,8 @@ structure SCM (N : Type*) [DecidableEq N] [Fintype N]
 
 namespace SWIGGraph
 
-/-- The random variables of a SWIG graph are its observed and latent nodes. -/
+/-- For [a single-world intervention graph](hyp:G), [its random-node set](goal) is the union of
+its observed nodes and its unobserved latent nodes. -/
 def randomVars (G : SWIGGraph N) : Finset (SWIGNode N) :=
   G.observed ∪ G.unobserved
 
@@ -111,32 +112,45 @@ variable {Ω : N → Type uΩ} [∀ n, MeasurableSpace (Ω n)]
 -- § 2. Type aliases and basic definitions
 -- ============================================================
 
-/-- Fixed values assign intervention or fixed-node values in a structural causal model. -/
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω) and [a structural causal
+model](hyp:M), [the fixed-value assignments](goal) assign one value to every fixed intervention
+node of the model. -/
 abbrev FixedValues (M : Causalean.SCM N Ω) :=
   ValuesOn M.fixed (swigΩ Ω)
 
-/-- Observed values assign values to the observed nodes of a structural causal model. -/
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω) and [a structural causal
+model](hyp:M), [the observed-value assignments](goal) assign one value to every observed node of
+the model. -/
 abbrev ObservedValues (M : Causalean.SCM N Ω) :=
   ValuesOn M.observed (swigΩ Ω)
 
-/-- Latent values assign values to the unobserved root nodes of a structural causal model. -/
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω) and [a structural causal
+model](hyp:M), [the latent-value assignments](goal) assign one value to every unobserved latent
+root node of the model. -/
 abbrev LatentValues (M : Causalean.SCM N Ω) :=
   ValuesOn M.unobserved (swigΩ Ω)
 
-/-- Unobserved values are the same object as latent values and are kept as a compatibility alias.
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω) and [a structural causal
+model](hyp:M), [the unobserved-value assignments](goal) are exactly the model's latent-value
+assignments.
 
     Deprecated alias preserving the old `UnobservedValues` name; identical to
     `LatentValues`. -/
 abbrev UnobservedValues (M : Causalean.SCM N Ω) := LatentValues M
 
-/-- A standard structural causal model has no fixed intervention variables. -/
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω) and [a structural causal
+model](hyp:M), [standardness](goal) holds exactly when the model has no fixed intervention nodes. -/
 def isStandard (M : Causalean.SCM N Ω) : Prop := M.toSWIGGraph.isStandard
 
-/-- The random variables of a structural causal model are its observed and latent nodes. -/
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω) and [a structural causal
+model](hyp:M), [its random-node set](goal) is the union of its observed nodes and its unobserved
+latent nodes. -/
 def randomVars (M : Causalean.SCM N Ω) : Finset (SWIGNode N) :=
   M.toSWIGGraph.randomVars
 
-/-- Random values assign values to every observed or latent node in a structural causal model. -/
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω) and [a structural causal
+model](hyp:M), [the random-value assignments](goal) assign one value to every observed or
+unobserved latent node of the model. -/
 abbrev RandomValues (M : Causalean.SCM N Ω) :=
   ValuesOn M.randomVars (swigΩ Ω)
 
@@ -166,8 +180,9 @@ theorem not_fixed_of_obs (G : SWIGGraph N) {n : SWIGNode N} (h : n ∈ G.observe
 -- § 3. Latent product measure (derived)
 -- ============================================================
 
-/-- The latent product is the joint distribution over all latent roots formed from their
-individual laws.
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω) and [a structural causal
+model](hyp:M), [the latent product measure](goal) is the product of the model's probability laws
+over all unobserved latent root nodes.
 
     The joint distribution over all latent roots, built as the product of the per-latent
     measures.  Mutual independence of the family `{L}_{L ∈ 𝐋}` is automatic from the
@@ -179,7 +194,9 @@ noncomputable def latentProduct (M : Causalean.SCM N Ω) :
   letI := M.isProbability_latent
   MeasureTheory.Measure.pi (fun u => M.latentDist u)
 
-/-- The latent product measure has total mass one. -/
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω) and [a structural causal
+model](hyp:M), [the probability-measure structure for the model's latent product measure](goal)
+asserts that this measure assigns total mass one to the joint space of latent-root values. -/
 instance instProbabilityLatentProduct (M : Causalean.SCM N Ω) :
     MeasureTheory.IsProbabilityMeasure (M.latentProduct) := by
   letI := M.isProbability_latent
@@ -191,19 +208,24 @@ instance instProbabilityLatentProduct (M : Causalean.SCM N Ω) :
 -- § 4. Topological ordering of observed nodes
 -- ============================================================
 
-/-- The graph's topological order gives a canonical linear order on SWIG nodes. -/
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω) and [a structural causal
+model](hyp:M), [the canonical linear order on graph nodes](goal) ranks nodes by the model graph's
+topological ordering. -/
 noncomputable def topoLinearOrder (M : Causalean.SCM N Ω) : LinearOrder (SWIGNode N) :=
   LinearOrder.lift' M.dag.topoOrder M.dag.topoOrder_injective
 
-/-- The observed-node enumeration returns the node at a given position in canonical topological
-order. -/
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω), [a structural causal
+model](hyp:M), and [a valid position among its observed nodes](hyp:i), [the observed-node
+enumeration](goal) returns the observed node at that position in canonical topological order. -/
 noncomputable def observedAt (M : Causalean.SCM N Ω) (i : Fin M.observed.card) :
     {v // v ∈ M.observed} := by
   classical
   letI := M.topoLinearOrder
   exact M.observed.orderIsoOfFin rfl i
 
-/-- The observed-node index returns the canonical topological position of an observed node. -/
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω), [a structural causal
+model](hyp:M), and [an observed node](hyp:v), [the observed-node index](goal) is that node's
+position in canonical topological order. -/
 noncomputable def observedIndex (M : Causalean.SCM N Ω) (v : {v // v ∈ M.observed}) :
     Fin M.observed.card := by
   classical
@@ -254,8 +276,10 @@ theorem observed_parent_index_lt (M : Causalean.SCM N Ω) {n : ℕ}
 -- § 5. Structural equivalence of structural causal models
 -- ============================================================
 
-/-- Two structural causal models are structurally equivalent when their graph, edge labels,
-structural functions, and latent laws agree.
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω) and [two structural
+causal models](hyp:M₁,M₂), [structural equivalence](goal) holds exactly when their single-world
+intervention graphs are equivalent, their edge-type labels agree on every directed edge, and their
+structural functions and latent-root probability laws agree.
 
     Two structural causal models are structurally equivalent if they share the same SWIG graph
     (in the `SWIGGraph.Equivalent` sense), agree on edge types for corresponding edges, and have
@@ -300,7 +324,9 @@ lemma Equiv.trans {M₁ M₂ M₃ : Causalean.SCM N Ω}
     exact (hE₁ u v hu).trans (hE₂ u v hM₂_edge)
   · exact And.intro (hF₁.trans hF₂) (hL₁.trans hL₂)
 
-/-- Structural causal models form a setoid under structural equivalence. -/
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω), [the setoid structure
+on structural causal models](goal) [uses structural equivalence as its equivalence relation](step:1)
+and [certifies that this relation is reflexive, symmetric, and transitive](step:2). -/
 instance instSetoidSCM :
     Setoid (Causalean.SCM N Ω) where
   r := Equiv

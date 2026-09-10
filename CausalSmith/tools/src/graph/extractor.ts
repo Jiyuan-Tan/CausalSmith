@@ -29,6 +29,10 @@ export interface ExtractedDecl {
   file: string;
   statement: string;
   hasSorry: boolean;
+  /** Hash of this Lean declaration from its header to the next declaration/@node boundary. */
+  sourceHash?: string;
+  /** Owned Lean source used by closed-carrier checks; starts at the declaration header. */
+  sourceText?: string;
 }
 
 /** Identifiers appearing in a statement (alnum/underscore/dot runs), de-duplicated. */
@@ -253,7 +257,10 @@ export function extractLeanCommentText(s: string): string {
 
 /** True iff `s` contains a real `sorry` proof token (ignoring any `sorry` inside comments). */
 export function hasRealSorry(s: string): boolean {
-  return /\bsorry\b/.test(stripLeanComments(s));
+  // All three forms insert an unchecked proof into the kernel environment. Keep
+  // this shared predicate aligned with the F5 cheat-token scan so extraction cannot
+  // mark `admit` or a direct `sorryAx` application complete while banking rejects it.
+  return /\b(?:sorry|admit|sorryAx)\b/.test(stripLeanComments(s));
 }
 
 async function leanFiles(dir: string): Promise<string[]> {
@@ -355,6 +362,8 @@ export async function parseAnnotatedDecls(dir: string): Promise<ExtractedDecl[]>
       let end = j + 1;
       while (end < lines.length && !NODE_TAG_RE.test(lines[end]) && !DECL_RE.test(lines[end])) end++;
       const declText = lines.slice(j, end).join("\n");
+      const nextDoc = declText.search(/\n\s*\/--/);
+      const directSource = (nextDoc >= 0 ? declText.slice(0, nextDoc) : declText).trimEnd();
       const cut = topLevelAssignIndex(declText);
       const body = cut >= 0 ? declText.slice(cut) : "";
       out.push({
@@ -365,6 +374,10 @@ export async function parseAnnotatedDecls(dir: string): Promise<ExtractedDecl[]>
         file: rel,
         statement: (cut >= 0 ? declText.slice(0, cut) : declText).trim(),
         hasSorry: hasRealSorry(cut >= 0 ? body : declText),
+        // Begins at the declaration header and ends at the next declaration/tag boundary,
+        // so preceding docstrings do not invalidate F4 while direct type/body/proof edits do.
+        sourceHash: statementHash(directSource),
+        sourceText: directSource,
       });
     }
   }

@@ -21,16 +21,17 @@ namespace Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension
 
 noncomputable section
 
-/-- An irreducible affine component is a maximal irreducible affine-closed
-subset of a prescribed locus. -/
+/-- For [a coordinate index set](hyp:ι), [a candidate subset $C$ of the corresponding complex affine space](hyp:C), and [a prescribed locus $Z$ in that space](hyp:Z), an [irreducible affine component of $Z$](goal) is [an irreducible affine-closed subset $C$](step:1) that is [contained in $Z$](step:2) and [maximal under inclusion among irreducible affine-closed subsets of $Z$: every such subset that contains $C$ equals $C$](step:3).
+
+An irreducible affine component is a maximal irreducible affine-closed subset of a prescribed locus. -/
 def IsIrreducibleAffineComponent {ι : Type*}
     (C Z : Set (ι → ℂ)) : Prop :=
   IsIrreducibleAffineClosed C ∧ C ⊆ Z ∧
     ∀ C', IsIrreducibleAffineClosed C' → C ⊆ C' → C' ⊆ Z → C' = C
 
-/-- A locus has affine codimension `d` in an ambient set when every
-irreducible component admits an endpoint-fixed chain of length `d`, and one
-component admits no such chain of length `d + 1`. -/
+/-- For [a coordinate index set](hyp:ι), [a nonnegative integer $d$](hyp:d), [a locus $Z$](hyp:Z), and [an ambient subset $X$ of the same complex affine space](hyp:X), [the statement that $Z$ has affine codimension $d$ in $X$](goal) means that [every irreducible affine component of $Z$ is the initial member of a strictly increasing chain of $d+1$ irreducible affine-closed subsets whose final member is $X$](step:1), while [at least one irreducible affine component of $Z$ is not the initial member of any strictly increasing chain of $d+2$ irreducible affine-closed subsets ending at $X$](step:2).
+
+A locus has affine codimension `d` in an ambient set when every irreducible component admits an endpoint-fixed chain of length `d`, and one component admits no such chain of length `d + 1`. -/
 def HasAffineCodimensionIn {ι : Type*} (d : ℕ)
     (Z X : Set (ι → ℂ)) : Prop :=
   (∀ C, IsIrreducibleAffineComponent C Z →

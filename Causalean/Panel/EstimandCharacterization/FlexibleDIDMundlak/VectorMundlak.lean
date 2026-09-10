@@ -34,11 +34,17 @@ open UniformTwoWayPanel
 variable {Unit Time : Type*} [Fintype Unit] [Fintype Time]
 variable {K : Type*} [Fintype K] [DecidableEq K]
 
-/-- Generic residualized Gram matrix of a supplied residualized regressor. -/
+/-- For [finite sets of units, periods, and regressor coordinates](hyp:Unit,Time,K)
+and [a residualized vector regressor](hyp:Dt), the [residualized Gram matrix](goal)
+has as its coordinate pair entry the sum over unit--period observations of the
+product of the corresponding two regressor coordinates. -/
 noncomputable def gramOf (Dt : Unit → Time → K → ℝ) : Matrix K K ℝ :=
   fun j k => ∑ i, ∑ t, Dt i t j * Dt i t k
 
-/-- Generic residualized numerator vector. -/
+/-- For [finite sets of units, periods, and regressor coordinates](hyp:Unit,Time,K),
+[a residualized vector regressor](hyp:Dt), and [a residualized outcome](hyp:Yt),
+the [residualized numerator vector](goal) has as each coordinate the sum over
+unit--period observations of that regressor coordinate times the outcome. -/
 noncomputable def numerOf (Dt : Unit → Time → K → ℝ) (Yt : Unit → Time → ℝ) : K → ℝ :=
   fun k => ∑ i, ∑ t, Dt i t k * Yt i t
 
@@ -173,9 +179,14 @@ theorem matrix_fwl_eq_of_normalEqs
 
 variable {Z M : Type*} [Fintype Z] [Fintype M]
 
-/-- Two-way Mundlak nuisance span for a K-vector regressor: constants, the unit
-means and time means of every coordinate of `X`, optional time-constant controls
-`Z_i`, and optional time-only controls `M_t`. -/
+/-- For [finite sets of units, periods, regressor coordinates, unit-level
+controls, and period-level controls](hyp:Unit,Time,K,Z,M), [a vector
+regressor](hyp:X), [unit-level control functions](hyp:Zvar), [period-level
+control functions](hyp:Mvar), and [a candidate nuisance function](hyp:h), the
+[vector two-way Mundlak nuisance condition](goal) holds exactly when the
+candidate is a constant plus linear combinations of every regressor
+coordinate's unit and period means and of the supplied unit-level and
+period-level controls. -/
 def IsVectorTwoWayMundlakNuisance (X : Unit → Time → K → ℝ)
     (Zvar : Z → Unit → ℝ) (Mvar : M → Time → ℝ) (h : Unit → Time → ℝ) : Prop :=
   ∃ c : ℝ, ∃ γu γt : K → ℝ, ∃ ζ : Z → ℝ, ∃ μ : M → ℝ,

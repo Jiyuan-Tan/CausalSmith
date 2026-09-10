@@ -147,7 +147,10 @@ export function renderLabel(s: string): string {
 //   [phrase](hyp:name[,name…])  links the phrase to the statement row(s)
 //                               binding those names;
 //   [phrase](goal)              links the phrase to the conclusion block
-//                               (canonical link token "⊢").
+//                               (canonical link token "⊢") — for a definition,
+//                               its `def` row and given-by clause(s);
+//   [phrase](step:N)            links the phrase to the N-th top-level clause
+//                               of the conclusion / given-by (token "⊢N").
 // The decl card renders these as dash-underlined spans that cross-highlight
 // with the structured statement rows; every other consumer strips them.
 // Mirrors: CausalSmith/tools/src/shared/nl_crosslinks.ts, tools/scripts/
@@ -161,7 +164,7 @@ export interface CrosslinkSeg {
 
 /**
  * Splits NL text into plain / linked segments. Scans for a `](hyp:…)` /
- * `](goal)` closer and walks BACK to its matching `[` counting nesting, so a
+ * `](goal)` / `](step:N)` closer and walks BACK to its matching `[` counting nesting, so a
  * phrase may itself contain balanced brackets (`E[A·Y·(…)]`) — a single
  * regex cannot do this. A closer with no matching opener stays plain text.
  */
@@ -171,7 +174,7 @@ export function parseCrosslinks(s: string): CrosslinkSeg[] {
   // masked copy (span brackets neutralized, same length) and slice the original.
   const masked = s.replace(/`[^`\n]+`|\$[^$\n]+\$/g, (t) => t.replace(/[[\]]/g, "•"));
   const segs: CrosslinkSeg[] = [];
-  const closer = /\]\((?:hyp:([^()\s]+)|goal)\)/g;
+  const closer = /\]\((?:hyp:([^()\s]+)|goal|step:(\d+))\)/g;
   let plainStart = 0;
   let m: RegExpExecArray | null;
   while ((m = closer.exec(masked))) {
@@ -190,7 +193,11 @@ export function parseCrosslinks(s: string): CrosslinkSeg[] {
     }
     if (open < 0) continue;
     if (open > plainStart) segs.push({ text: s.slice(plainStart, open), links: null });
-    const names = m[1] ? m[1].split(",").map((t) => t.trim()).filter(Boolean) : ["⊢"];
+    const names = m[1]
+      ? m[1].split(",").map((t) => t.trim()).filter(Boolean)
+      : m[2]
+        ? [`⊢${Number(m[2])}`]
+        : ["⊢"];
     segs.push({ text: s.slice(open + 1, m.index), links: names.length ? names : null });
     plainStart = closer.lastIndex;
   }

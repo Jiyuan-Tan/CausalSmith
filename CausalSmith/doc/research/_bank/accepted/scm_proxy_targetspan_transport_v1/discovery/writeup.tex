@@ -1,0 +1,1260 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{scm\_\allowbreak{}proxy\_\allowbreak{}targetspan\_\allowbreak{}transport}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} A target intervention law can remain identified even when source environments do not span the latent state space. In the strictly positive finite latent-shift SCM, injectivity of the unknown proxy channel turns the observable condition \(b=Q(W)\in\operatorname{col}(B_x)\), with \(B_x=P_O(W\mid E,x)\), into the exact identification frontier. Every solution of \(B_x\lambda=b\) gives the same functional \(c_{x,y}\lambda\). Off the span, an observed separator lifts to a proxy-stratum outcome perturbation that preserves the full source and target proxy laws while moving the causal effect through an interval. A concentration-calibrated Anderson--Rubin-style projection set has finite-sample coverage without rank or weight bounds. The note additionally records a limitation of its deliberately unrestricted changing-rank array class: uniform coverage cannot also be required to localize to a regular Wald interval without further restrictions.
+
+\section{Project justification}
+
+\paragraph{Gap.} Iglesias-Alonso et al. require full source rank and lose identification in their counterexample by making the proxy channel noninjective. Zhang et al. settle constancy of abstract bridge functionals, and Rahiminasab et al. use full source rank over proxy-equivalence classes for prediction. None gives the target-specific causal if-and-only-if result over the full observed-law SCM fiber with an injective proxy channel.
+
+\paragraph{Niche.} The target proxy mixture may lie in the span of deficient source proxy mixtures. That observable, target-specific geometry is enough for the causal functional even though neither the latent source mixture nor the balancing vector is unique.
+
+\paragraph{Fill.} The project proves sufficiency, solution independence, and an input-specific positive full-law converse; supplies an exact rational rank-deficient success witness; and gives finite-sample projection coverage. It also records, as a limitation of the deliberately unrestricted array class rather than a literature-directed negative contribution, that unrestricted changing-rank uniform coverage cannot coexist with even unscaled localization to the regular-submodel Wald interval.
+
+\section{Related work}
+
+Iglesias-Alonso et al. (2025, Assumption 1, Theorem 1, Appendix A.1, and Appendix B.2) define the same graph, observed-data pattern, target intervention law, reduced estimator, and Expedia application. Their theorem uses full latent source rank, while their failure construction makes \(P(W\mid U)\) rank deficient. Zhang et al. (2023, Proposition 2.3 and Lemma 2.4) show that a linear functional is unique on a nonunique bridge fiber exactly under null-space annihilation and distinguish identification from root-\(n\) estimability. The present result takes that algebra as an input and adds the causal realizability converse preserving every supplied joint cell. Rahiminasab et al. (2026, Definition 3 and Theorems 2--3) span latent-equivalence-class operators to identify a target predictor; their condition is global source rank at the quotient level and their target is predictive rather than interventional. Miao, Geng, and Tchetgen Tchetgen (2018, Theorem 1 and Examples 1--2) establish the foundational finite proxy-rank identification argument, while Shpitser, Wood-Doughty, and Tchetgen Tchetgen (2023, Assumption 2.5 and Theorems 1 and 5) extend bridge identification graphically under sequential completeness. Tsai et al. (2024, Proposition 4.3 and Appendix B.3) use multi-domain proxy bridges for target prediction under full latent posterior rank. Dufour and Taamouti (2005, Theorems 4.1 and 5.1--5.3) motivate full-region inversion followed by scalar projection. Andrews and Guggenberger (2019, Equations 4.5--4.9 and Theorems 6.1 and 9.1) provide contextual background for robust inversion: their stated guarantees are asymptotic size and uniform similarity for robust tests, and their subvector AR/CQLR theorem assumes strongly identified nuisance parameters. The final theorem neither targets nor contradicts that workflow, because it studies an additional localization demand absent from those guarantees. It is retained as a model-specific limitation of the present unbounded, changing-rank balancing class. Bennett et al. (2023, Theorem 1 and the functional strong-identification theorem) describe regularity frontiers for target functionals of weak inverse nuisances. Ghassami, Shpitser, and Tchetgen Tchetgen (2023, Theorems 1--2 and the LogSumExp inference section) and Duarte et al. (2024, the polynomialization theorem and anytime algorithm) bound different incomplete-proxy or general finite-SCM classes; they do not characterize this shared-channel transport fiber.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta_{x,y}=Q_{\mathcal M}(Y=y\mid\operatorname{do}(X=x))\).
+Primary functional / estimator / diagnostic: \(\theta_{x,y}=c_{x,y}\lambda,\qquad B_x\lambda=b\).
+\begin{itemize}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal E} --- \texttt{finite nonempty set}; \texttt{The source-\allowbreak{}environment state space.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal U} --- \texttt{finite set}; The latent state space with \(2\le r=\lvert\mathcal U\rvert\).
+  \item \texttt{r} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} \(r=\lvert\mathcal U\rvert\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal W} --- \texttt{finite set}; The proxy state space with \(m=\lvert\mathcal W\rvert\ge r\).
+  \item \texttt{m} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} \(m=\lvert\mathcal W\rvert\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal X} --- \texttt{finite nonempty set}; \texttt{The treatment state space.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal Y} --- \texttt{finite set}; The outcome state space with \(\lvert\mathcal Y\rvert\ge2\).
+  \item \texttt{E} --- \texttt{source-\allowbreak{}environment random variable}; \(E\in\mathcal E\).
+  \item \texttt{U} --- \texttt{latent random variable}; \(U\in\mathcal U\).
+  \item \texttt{W} --- \texttt{proxy random variable}; \(W\in\mathcal W\).
+  \item \texttt{X} --- \texttt{treatment random variable}; \(X\in\mathcal X\).
+  \item \texttt{Y} --- \texttt{outcome random variable}; \(Y\in\mathcal Y\).
+  \item \texttt{e} --- \texttt{source-\allowbreak{}environment value}; \(e\in\mathcal E\).
+  \item \texttt{u} --- \texttt{latent value}; \(u\in\mathcal U\).
+  \item \texttt{w} --- \texttt{proxy value}; \(w\in\mathcal W\).
+  \item \texttt{x} --- \texttt{treatment value}; \(x\in\mathcal X\).
+  \item \texttt{y} --- \texttt{outcome value}; \(y\in\mathcal Y\).
+  \item \texttt{y\textasciicircum{}\{\textbackslash{}\allowbreak{}circ\}\allowbreak{}} --- \texttt{outcome value}; \(y^{\circ}\in\mathcal Y\setminus\{y\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal G} --- \texttt{finite DAG}; \texttt{known latent-\allowbreak{}shift causal graph}
+  \par\smallskip\noindent\emph{Definition.} The graph has arrows \(E\to U\), \(U\to W\), \(U\to X\), \(U\to Y\), \(W\to Y\), and \(X\to Y\).
+  \item \texttt{\textbackslash{}\allowbreak{}pi} --- \texttt{strictly positive probability vector}; \(\Delta^{\circ}(\mathcal E)\); \texttt{source-\allowbreak{}environment distribution}
+  \item \texttt{S} --- \texttt{strictly positive column-\allowbreak{}stochastic matrix}; \(\mathbb R^{r\times\lvert\mathcal E\rvert}\)
+  \par\smallskip\noindent\emph{Definition.} \(S_{ue}=P(U=u\mid E=e)\).
+  \item \texttt{M} --- \texttt{strictly positive column-\allowbreak{}stochastic matrix}; \(\mathbb R^{m\times r}\); \texttt{unknown proxy channel}
+  \par\smallskip\noindent\emph{Definition.} \(M_{wu}=P(W=w\mid U=u)\).
+  \item \texttt{a} --- \texttt{strictly positive treatment kernel}
+  \par\smallskip\noindent\emph{Definition.} \(a_x(u)=P(X=x\mid U=u)\).
+  \item \texttt{f} --- \texttt{strictly positive outcome kernel}
+  \par\smallskip\noindent\emph{Definition.} \(f_{x,y}(u,w)=P(Y=y\mid U=u,W=w,X=x)\).
+  \item \texttt{q} --- \texttt{strictly positive probability vector}; \(\Delta^{\circ}(\mathcal U)\); \texttt{target latent mixture}
+  \par\smallskip\noindent\emph{Definition.} \(q_u=Q(U=u)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M} --- \texttt{finite latent-\allowbreak{}shift SCM}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M=(\pi,S,M,a,f,q)\) is Markov relative to \(\mathcal G\).
+  \item \texttt{P\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathcal M\}\allowbreak{}} --- \texttt{source full-\allowbreak{}data law induced by the SCM}; \(\Delta(\mathcal E\times\mathcal U\times\mathcal W\times\mathcal X\times\mathcal Y)\)
+  \item \texttt{Q\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathcal M\}\allowbreak{}} --- \texttt{target law induced by the SCM}; \(\Delta(\mathcal U\times\mathcal W\times\mathcal X\times\mathcal Y)\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak M\_\allowbreak{}\{+\allowbreak{}\}\allowbreak{}} --- \texttt{class of finite latent-\allowbreak{}shift SCMs}
+  \item \texttt{P\_\allowbreak{}O} --- \texttt{source observed probability law}; \(\Delta(\mathcal E\times\mathcal W\times\mathcal X\times\mathcal Y)\)
+  \par\smallskip\noindent\emph{Definition.} \(P_O(e,w,x,y)=\sum_{u\in\mathcal U}P_{\mathcal M}(e,u,w,x,y)\).
+  \item \texttt{b} --- \texttt{target proxy probability vector}; \(\Delta(\mathcal W)\)
+  \par\smallskip\noindent\emph{Definition.} \(b_w=Q_{\mathcal M}(W=w)=\sum_{u\in\mathcal U}M_{wu}q_u\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal D} --- \texttt{observed-\allowbreak{}data pair}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal D=(P_O,b)\).
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}x} --- \texttt{positive source treatment-\allowbreak{}probability vector}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_x(e)=P_O(X=x\mid E=e)=\sum_{u\in\mathcal U}a_x(u)S_{ue}\).
+  \item \texttt{R\_\allowbreak{}x} --- \texttt{latent posterior matrix}; \(\mathbb R^{r\times\lvert\mathcal E\rvert}\)
+  \par\smallskip\noindent\emph{Definition.} \(R_x(u,e)=P(U=u\mid E=e,X=x)=a_x(u)S_{ue}/\rho_x(e)\).
+  \item \texttt{B\_\allowbreak{}x} --- \texttt{observed proxy-\allowbreak{}by-\allowbreak{}environment matrix}; \(\mathbb R^{m\times\lvert\mathcal E\rvert}\)
+  \par\smallskip\noindent\emph{Definition.} \(B_x(w,e)=P_O(W=w\mid E=e,X=x)\).
+  \item \texttt{c\_\allowbreak{}\{x,\allowbreak{}y\}\allowbreak{}} --- \texttt{observed outcome-\allowbreak{}by-\allowbreak{}environment row vector}; \(\mathbb R^{1\times\lvert\mathcal E\rvert}\)
+  \par\smallskip\noindent\emph{Definition.} \(c_{x,y}(e)=P_O(Y=y\mid E=e,X=x)\).
+  \item \texttt{g\_\allowbreak{}\{x,\allowbreak{}y\}\allowbreak{}} --- \texttt{latent interventional-\allowbreak{}response vector}; \(\mathbb R^r\)
+  \par\smallskip\noindent\emph{Definition.} \(g_{x,y}(u)=\sum_{w\in\mathcal W}M_{wu}f_{x,y}(u,w)\).
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}\{x,\allowbreak{}y\}\allowbreak{}} --- \texttt{target interventional probability}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\theta_{x,y}=Q_{\mathcal M}(Y=y\mid\operatorname{do}(X=x))\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak F(\textbackslash{}\allowbreak{}mathcal D)} --- \texttt{compatible-\allowbreak{}SCM fiber}
+  \item \texttt{\textbackslash{}\allowbreak{}lambda} --- \texttt{balancing vector}; \(\mathbb R^{\lvert\mathcal E\rvert}\)
+  \item \texttt{\textbackslash{}\allowbreak{}Lambda\_\allowbreak{}x(\textbackslash{}\allowbreak{}mathcal D)} --- \texttt{affine balancing fiber}
+  \item \texttt{h} --- \texttt{observed separating vector}; \(\mathbb R^m\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal H\_\allowbreak{}x(\textbackslash{}\allowbreak{}mathcal D)} --- \texttt{separator set}
+  \item \texttt{v} --- \texttt{latent separating vector}; \(\mathbb R^r\)
+  \par\smallskip\noindent\emph{Definition.} \(v=M^{\top}h\).
+  \item \texttt{w\_\allowbreak{}\{\textbackslash{}\allowbreak{}star\}\allowbreak{}} --- \texttt{proxy value}; \(w_{\star}\in\mathcal W\).
+  \item \texttt{t} --- \texttt{real perturbation index}; \(t\in\mathbb R\).
+  \item \texttt{\textbackslash{}\allowbreak{}varepsilon} --- \texttt{positive perturbation radius}; \(\varepsilon>0\).
+  \item \texttt{f\textasciicircum{}\{(t)\}\allowbreak{}} --- \texttt{perturbed outcome kernel}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}t} --- \texttt{perturbed finite latent-\allowbreak{}shift SCM}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_t=(\pi,S,M,a,f^{(t)},q)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M\textasciicircum{}\{\textbackslash{}\allowbreak{}star\}\allowbreak{}} --- \texttt{explicit rational SCM}
+  \item \texttt{H\_\allowbreak{}x} --- \texttt{unconditional source proxy-\allowbreak{}moment matrix}; \(\mathbb R^{m\times\lvert\mathcal E\rvert}\)
+  \par\smallskip\noindent\emph{Definition.} \(H_x(w,e)=P_O(E=e,W=w,X=x)\).
+  \item \texttt{z\_\allowbreak{}\{x,\allowbreak{}y\}\allowbreak{}} --- \texttt{unconditional source outcome-\allowbreak{}moment vector}; \(\mathbb R^{\lvert\mathcal E\rvert}\)
+  \par\smallskip\noindent\emph{Definition.} \(z_{x,y}(e)=P_O(E=e,X=x,Y=y)\).
+  \item \texttt{\textbackslash{}\allowbreak{}kappa} --- \texttt{unconditional balancing vector}; \(\mathbb R^{\lvert\mathcal E\rvert}\)
+  \item \texttt{n\_\allowbreak{}s} --- \texttt{positive integer}; \texttt{source sample size}
+  \item \texttt{n\_\allowbreak{}t} --- \texttt{positive integer}; \texttt{target sample size}
+  \item \texttt{O\_\allowbreak{}i\textasciicircum{}s} --- \texttt{source observation}; \(O_i^s=(E_i,W_i,X_i,Y_i)\sim P_O\).
+  \item \texttt{W\_\allowbreak{}j\textasciicircum{}t} --- \texttt{target proxy observation}; \(W_j^t\sim b\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat H\_\allowbreak{}x} --- \texttt{empirical source proxy-\allowbreak{}moment matrix}
+  \par\smallskip\noindent\emph{Definition.} The empirical-frequency estimator of \(H_x\) from \(O_1^s,\ldots,O_{n_s}^s\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat z\_\allowbreak{}\{x,\allowbreak{}y\}\allowbreak{}} --- \texttt{empirical source outcome-\allowbreak{}moment vector}
+  \par\smallskip\noindent\emph{Definition.} The empirical-frequency estimator of \(z_{x,y}\) from \(O_1^s,\ldots,O_{n_s}^s\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat b} --- \texttt{empirical target proxy vector}
+  \par\smallskip\noindent\emph{Definition.} The empirical-frequency estimator of \(b\) from \(W_1^t,\ldots,W_{n_t}^t\).
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{confidence error probability}; \(0<\alpha<1\).
+  \item \texttt{L} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} \(L=m\lvert\mathcal E\rvert+\lvert\mathcal E\rvert+m\).
+  \item \texttt{r\_\allowbreak{}s} --- \texttt{source concentration radius}
+  \par\smallskip\noindent\emph{Definition.} \(r_s=\sqrt{\log(2L/\alpha)/(2n_s)}\).
+  \item \texttt{r\_\allowbreak{}t} --- \texttt{target concentration radius}
+  \par\smallskip\noindent\emph{Definition.} \(r_t=\sqrt{\log(2L/\alpha)/(2n_t)}\).
+  \item \texttt{\textbackslash{}\allowbreak{}vartheta} --- \texttt{candidate target interventional probability}; \(\vartheta\in[0,1]\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat C\_\allowbreak{}\{x,\allowbreak{}y,\allowbreak{}1-\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- confidence subset of \([0,1]\)
+  \item \texttt{n} --- integer with \(n\ge2\); \texttt{triangular-\allowbreak{}array index}
+  \item \texttt{\textbackslash{}\allowbreak{}mathbb M} --- \texttt{triangular array of finite latent-\allowbreak{}shift SCMs}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbb M=(\mathcal M_n)_{n\ge2}\) with \(\mathcal M_n\in\mathfrak M_{+}\) for every \(n\ge2\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}n} --- row-\(n\) finite latent-shift SCM
+  \par\smallskip\noindent\emph{Definition.} The \(n\)-th member of \(\mathbb M=(\mathcal M_n)_{n\ge2}\).
+  \item \texttt{p} --- \texttt{fixed source-\allowbreak{}allocation limit}; \(p\in(0,1)\).
+  \item \texttt{n\_\allowbreak{}s(n)} --- \texttt{deterministic positive-\allowbreak{}integer sequence}; source sample size in triangular-array row \(n\)
+  \item \texttt{n\_\allowbreak{}t(n)} --- \texttt{deterministic positive-\allowbreak{}integer sequence}; target sample size in triangular-array row \(n\)
+  \item \texttt{P\_\allowbreak{}\{O,\allowbreak{}n\}\allowbreak{}} --- row-\(n\) source observed probability law; \(\Delta(\mathcal E\times\mathcal W\times\mathcal X\times\mathcal Y)\)
+  \par\smallskip\noindent\emph{Definition.} The observed law of \((E,W,X,Y)\) induced by \(\mathcal M_n\).
+  \item \texttt{b\_\allowbreak{}n} --- row-\(n\) target proxy probability vector; \(\Delta(\mathcal W)\)
+  \par\smallskip\noindent\emph{Definition.} \(b_n(w)=Q_{\mathcal M_n}(W=w)\).
+  \item \texttt{B\_\allowbreak{}\{x,\allowbreak{}n\}\allowbreak{}} --- row-\(n\) observed proxy-by-environment matrix; \(\mathbb R^{m\times\lvert\mathcal E\rvert}\)
+  \par\smallskip\noindent\emph{Definition.} \(B_{x,n}(w,e)=P_{O,n}(W=w\mid E=e,X=x)\).
+  \item \texttt{H\_\allowbreak{}\{x,\allowbreak{}n\}\allowbreak{}} --- row-\(n\) unconditional source proxy-moment matrix; \(\mathbb R^{m\times\lvert\mathcal E\rvert}\)
+  \par\smallskip\noindent\emph{Definition.} \(H_{x,n}(w,e)=P_{O,n}(E=e,W=w,X=x)\).
+  \item \texttt{z\_\allowbreak{}\{x,\allowbreak{}y,\allowbreak{}n\}\allowbreak{}} --- row-\(n\) unconditional source outcome-moment vector; \(\mathbb R^{\lvert\mathcal E\rvert}\)
+  \par\smallskip\noindent\emph{Definition.} \(z_{x,y,n}(e)=P_{O,n}(E=e,X=x,Y=y)\).
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}\{x,\allowbreak{}y,\allowbreak{}n\}\allowbreak{}} --- row-\(n\) target interventional probability; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\theta_{x,y,n}=Q_{\mathcal M_n}(Y=y\mid\operatorname{do}(X=x))\).
+  \item \texttt{O\textasciicircum{}s\_\allowbreak{}\{i,\allowbreak{}n\}\allowbreak{}} --- row-\(n\) source observation; \(O^s_{i,n}=(E_{i,n},W_{i,n},X_{i,n},Y_{i,n})\sim P_{O,n}\), \(1\le i\le n_s(n)\).
+  \item \texttt{W\textasciicircum{}t\_\allowbreak{}\{j,\allowbreak{}n\}\allowbreak{}} --- row-\(n\) target proxy observation; \(W^t_{j,n}\sim b_n\), \(1\le j\le n_t(n)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat H\_\allowbreak{}\{x,\allowbreak{}n\}\allowbreak{}} --- row-\(n\) empirical source proxy-moment matrix
+  \par\smallskip\noindent\emph{Definition.} \(\widehat H_{x,n}(w,e)=n_s(n)^{-1}\sum_{i=1}^{n_s(n)}\mathbf 1\{E_{i,n}=e,W_{i,n}=w,X_{i,n}=x\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat z\_\allowbreak{}\{x,\allowbreak{}y,\allowbreak{}n\}\allowbreak{}} --- row-\(n\) empirical source outcome-moment vector
+  \par\smallskip\noindent\emph{Definition.} \(\widehat z_{x,y,n}(e)=n_s(n)^{-1}\sum_{i=1}^{n_s(n)}\mathbf 1\{E_{i,n}=e,X_{i,n}=x,Y_{i,n}=y\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat b\_\allowbreak{}n} --- row-\(n\) empirical target proxy vector
+  \par\smallskip\noindent\emph{Definition.} \(\widehat b_n(w)=n_t(n)^{-1}\sum_{j=1}^{n_t(n)}\mathbf 1\{W^t_{j,n}=w\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathbb P\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathcal M\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{},\allowbreak{}n\_\allowbreak{}s,\allowbreak{}n\_\allowbreak{}t\}\allowbreak{}} --- \texttt{joint two-\allowbreak{}sample law}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbb P_{\mathcal M}^{\,n_s,n_t}:=P_O^{\otimes n_s}\otimes b^{\otimes n_t}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathbb P\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}n\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{},\allowbreak{}n\_\allowbreak{}s(n),\allowbreak{}n\_\allowbreak{}t(n)\}\allowbreak{}} --- joint row-\(n\) two-sample law
+  \par\smallskip\noindent\emph{Definition.} \(\mathbb P_{\mathcal M_n}^{\,n_s(n),n_t(n)}:=P_{O,n}^{\otimes n_s(n)}\otimes b_n^{\otimes n_t(n)}\).
+  \item \texttt{d\_\allowbreak{}\{x,\allowbreak{}n\}\allowbreak{}} --- row-\(n\) minimum balancing-weight norm; \([0,\infty]\)
+  \par\smallskip\noindent\emph{Definition.} \(d_{x,n}=\inf\{\lVert\kappa\rVert_2:H_{x,n}\kappa=b_n\}\).
+  \item \texttt{r\_\allowbreak{}0} --- \texttt{positive integer}; \(1\le r_0\le\min(m,\lvert\mathcal E\rvert)\).
+  \item \texttt{c} --- \texttt{positive regularity constant}; \(c>0\).
+  \item \texttt{\textbackslash{}\allowbreak{}eta} --- \texttt{positive regularity constant}; \(\eta>0\).
+  \item \texttt{H} --- \texttt{generic proxy-\allowbreak{}moment matrix}; \(H\in\mathbb R^{m\times\lvert\mathcal E\rvert}\).
+  \item \texttt{z} --- \texttt{generic outcome-\allowbreak{}moment vector}; \(z\in\mathbb R^{\lvert\mathcal E\rvert}\).
+  \item \texttt{\textbackslash{}\allowbreak{}sigma\_\allowbreak{}\{r\_\allowbreak{}0\}\allowbreak{}} --- \texttt{ordered singular-\allowbreak{}value functional}
+  \par\smallskip\noindent\emph{Definition.} \(\sigma_{r_0}(H)\) is the \(r_0\)-th largest singular value of \(H\).
+  \item \texttt{H\_\allowbreak{}\{r\_\allowbreak{}0\}\allowbreak{}} --- selector-based at-most-\(r_0\) Gram-spectral truncation
+  \par\smallskip\noindent\emph{Definition.} Because \(q\) already denotes the target latent mixture, write \(\bar q=\min(m,\lvert\mathcal E\rvert)\) and adopt \(\sigma_{\bar q+1}(H)=0\). Fix once and for all, for every \(H\), a possibly noncomputable selector of an orthonormal eigenbasis \(u_1^{\star}(H),\ldots,u_m^{\star}(H)\) of \(HH^{\top}\), ordered by nonincreasing eigenvalue, with one fixed choice inside every tied eigenspace. Put \(P_{r_0}^{\star}(H)=\sum_{j=1}^{r_0}u_j^{\star}(H)u_j^{\star}(H)^{\top}\), \(H_{r_0}^{\star}=P_{r_0}^{\star}(H)H\), and \(H_{r_0}=H_{r_0}^{\star}\). If \(\sigma_{r_0}(H)>\sigma_{r_0+1}(H)\), the retained subspace, \(P_{r_0}^{\star}(H)\), and \(H_{r_0}\) are independent of the fixed within-tie selector.
+  \item \texttt{\textbackslash{}\allowbreak{}phi\_\allowbreak{}\{r\_\allowbreak{}0\}\allowbreak{}} --- rank-\(r_0\) Wald functional
+  \item \texttt{V\_\allowbreak{}\{r\_\allowbreak{}0,\allowbreak{}x,\allowbreak{}y\}\allowbreak{}(\textbackslash{}\allowbreak{}mathcal M;\allowbreak{}p)} --- \texttt{nonnegative population delta-\allowbreak{}method variance on the strict-\allowbreak{}cutoff-\allowbreak{}gap region}
+  \par\smallskip\noindent\emph{Definition.} When \(\sigma_{r_0}(H_x)>\sigma_{r_0+1}(H_x)\), let \(\Gamma_{x,y}(\mathcal M;p)\) be the covariance matrix of the joint source-and-target multinomial limit for \((H_x,z_{x,y},b)\), with allocation factors \(p^{-1}\) and \((1-p)^{-1}\), and define \(V_{r_0,x,y}(\mathcal M;p)=D\phi_{r_0}(H_x,z_{x,y},b)\,\Gamma_{x,y}(\mathcal M;p)\,D\phi_{r_0}(H_x,z_{x,y},b)^{\top}\), where \(D\phi_{r_0}\) is the ordinary derivative on this selector-independent region. The population variance is not defined outside this region.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal R\_\allowbreak{}\{r\_\allowbreak{}0,\allowbreak{}c,\allowbreak{}\textbackslash{}\allowbreak{}eta\}\allowbreak{}} --- \texttt{fixed strongly identified submodel}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}theta\textasciicircum{}\{\textbackslash{}\allowbreak{},\allowbreak{}W\}\allowbreak{}\_\allowbreak{}\{x,\allowbreak{}y,\allowbreak{}n\}\allowbreak{}} --- rank-\(r_0\) truncated-SVD Wald estimator
+  \item \texttt{\textbackslash{}\allowbreak{}widehat V\_\allowbreak{}n} --- \texttt{plug-\allowbreak{}in delta-\allowbreak{}method variance}
+  \item \texttt{\textbackslash{}\allowbreak{}Phi} --- \texttt{standard-\allowbreak{}normal distribution function}
+  \item \texttt{z\_\allowbreak{}\{1-\allowbreak{}\textbackslash{}\allowbreak{}alpha/\allowbreak{}2\}\allowbreak{}} --- \texttt{standard-\allowbreak{}normal quantile}
+  \par\smallskip\noindent\emph{Definition.} \(z_{1-\alpha/2}=\Phi^{-1}(1-\alpha/2)\).
+  \item \texttt{I\textasciicircum{}W\_\allowbreak{}\{n,\allowbreak{}1-\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{regular Wald confidence interval}
+  \item \texttt{C} --- generic subset of \([0,1]\); \(C\subseteq[0,1]\).
+  \item \texttt{D} --- generic subset of \([0,1]\); \(D\subseteq[0,1]\).
+  \item \texttt{\textbackslash{}\allowbreak{}xi} --- \texttt{generic real number}; \(\xi\in\mathbb R\).
+  \item \texttt{\textbackslash{}\allowbreak{}zeta} --- \texttt{generic real number}; \(\zeta\in\mathbb R\).
+  \item \texttt{\textbackslash{}\allowbreak{}operatorname\{diam\}\allowbreak{}\_\allowbreak{}2} --- \texttt{Euclidean diameter functional}
+  \item \texttt{d\_\allowbreak{}H} --- \texttt{Euclidean Hausdorff distance}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal A\_\allowbreak{}p} --- \texttt{admissible class of two-\allowbreak{}sample triangular arrays}
+  \item \texttt{\textbackslash{}\allowbreak{}Omega(n\_\allowbreak{}s,\allowbreak{}n\_\allowbreak{}t)} --- \texttt{finite two-\allowbreak{}sample product space}
+  \par\smallskip\noindent\emph{Definition.} \(\Omega(n_s,n_t)=(\mathcal E\times\mathcal W\times\mathcal X\times\mathcal Y)^{n_s}\times\mathcal W^{n_t}\), equipped with its full power-set sigma-field.
+  \item \texttt{\textbackslash{}\allowbreak{}Omega\_\allowbreak{}n} --- row-\(n\) finite two-sample product space
+  \par\smallskip\noindent\emph{Definition.} \(\Omega_n=\Omega(n_s(n),n_t(n))\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}n} --- row-\(n\) set-valued confidence rule; \(\mathcal C_n:\Omega_n\to\{C\subseteq[0,1]:C\ne\varnothing\}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:latent-shift-factorization]\label{ass:latent-shift-factorization}
+For every source cell, \(P_{\mathcal M}(e,u,w,x,y)=\pi_eS_{ue}M_{wu}a_x(u)f_{x,y}(u,w)\).
+\par\smallskip\noindent\emph{Standard} (Finite latent-shift SCM factorization, \cite{IglesiasAlonsoEtAl2025}).
+\end{assumption}
+
+\begin{assumption}[ass:target-mechanism-invariance]\label{ass:target-mechanism-invariance}
+For every target cell, \(Q_{\mathcal M}(u,w,x,y)=q_uM_{wu}a_x(u)f_{x,y}(u,w)\).
+\par\smallskip\noindent\emph{Standard} (Invariant mechanisms under latent distribution shift, \cite{IglesiasAlonsoEtAl2025}).
+\end{assumption}
+
+\begin{assumption}[ass:strict-primitive-positivity]\label{ass:strict-primitive-positivity}
+Every entry of \(\pi\), \(S\), \(M\), \(a\), \(f\), and \(q\) is strictly positive.
+\par\smallskip\noindent\emph{Standard} (Strict finite-cell positivity, \cite{IglesiasAlonsoEtAl2025}).
+\end{assumption}
+
+\begin{assumption}[ass:proxy-channel-injectivity]\label{ass:proxy-channel-injectivity}
+The unknown proxy channel satisfies \(\operatorname{rank}(M)=r\).
+\par\smallskip\noindent\emph{Standard} (Finite proxy completeness through full column rank, \cite{MiaoGengTchetgen2018}).
+\end{assumption}
+
+\begin{assumption}[ass:source-iid-sampling]\label{ass:source-iid-sampling}
+The observations \(O_1^s,\ldots,O_{n_s}^s\) are independent and identically distributed according to \(P_O\).
+\par\smallskip\noindent\emph{Standard} (Independent source sampling, \cite{IglesiasAlonsoEtAl2025}).
+\end{assumption}
+
+\begin{assumption}[ass:target-iid-sampling]\label{ass:target-iid-sampling}
+The observations \(W_1^t,\ldots,W_{n_t}^t\) are independent and identically distributed according to \(b\).
+\par\smallskip\noindent\emph{Standard} (Independent target sampling, \cite{IglesiasAlonsoEtAl2025}).
+\end{assumption}
+
+\begin{assumption}[ass:triangular-allocation]\label{ass:triangular-allocation}
+\(\{(n_s(n),n_t(n))\}_{n\ge2}\) is an arbitrary fixed deterministic sequence satisfying \((n_s(n),n_t(n))\in\mathbb N_{\ge1}^{2}\), \(n_s(n)+n_t(n)=n\) for every \(n\ge2\), and \(n_s(n)/n\to p\in(0,1)\) as \(n\to\infty\).
+\par\smallskip\noindent\emph{Standard} (Fixed-proportion two-sample triangular-array allocation, \cite{IglesiasAlonsoEtAl2025}).
+\end{assumption}
+
+\begin{assumption}[ass:triangular-source-iid-sampling]\label{ass:triangular-source-iid-sampling}
+For every \(n\ge2\), \((O^s_{1,n},\ldots,O^s_{n_s(n),n})\) is the source coordinate block of the finite row law \(\mathbb P_{\mathcal M_n}^{\,n_s(n),n_t(n)}=P_{O,n}^{\otimes n_s(n)}\otimes b_n^{\otimes n_t(n)}\) on \(\Omega_n\).
+\par\smallskip\noindent\emph{Standard} (Row-wise independent source sampling, \cite{IglesiasAlonsoEtAl2025}).
+\end{assumption}
+
+\begin{assumption}[ass:triangular-target-iid-sampling]\label{ass:triangular-target-iid-sampling}
+For every \(n\ge2\), \((W^t_{1,n},\ldots,W^t_{n_t(n),n})\) is the target coordinate block of the finite row law \(\mathbb P_{\mathcal M_n}^{\,n_s(n),n_t(n)}=P_{O,n}^{\otimes n_s(n)}\otimes b_n^{\otimes n_t(n)}\) on \(\Omega_n\).
+\par\smallskip\noindent\emph{Standard} (Row-wise independent target sampling, \cite{IglesiasAlonsoEtAl2025}).
+\end{assumption}
+
+\begin{assumption}[ass:array-target-span]\label{ass:array-target-span}
+For every \(n\), the row-\(n\) target proxy law satisfies \(b_n\in\operatorname{col}(B_{x,n})\).
+\par\smallskip\noindent\emph{Novel.} The condition is observable and holds when the target proxy distribution is a linear mixture of the treatment-specific source proxy distributions, including applications with deficient global source rank.
+\end{assumption}
+
+\begin{assumption}[ass:regular-fixed-rank]\label{ass:regular-fixed-rank}
+The fixed source moment matrix satisfies \(\operatorname{rank}(H_x)=r_0\).
+\par\smallskip\noindent\emph{Standard} (Fixed-rank regular submodel, \cite{AndrewsGuggenberger2019}).
+\end{assumption}
+
+\begin{assumption}[ass:regular-singular-gap]\label{ass:regular-singular-gap}
+The smallest retained singular value satisfies \(\sigma_{r_0}(H_x)\ge c\).
+\par\smallskip\noindent\emph{Standard} (Singular-value separation on a fixed-rank submodel, \cite{AndrewsGuggenberger2019}).
+\end{assumption}
+
+\begin{assumption}[ass:regular-target-span]\label{ass:regular-target-span}
+The fixed target proxy vector satisfies \(b\in\operatorname{col}(H_x)\).
+\par\smallskip\noindent\emph{Standard} (Identified loading in the moment column space, \cite{ZhangLiMiaoTchetgen2023}).
+\end{assumption}
+
+\begin{assumption}[ass:regular-cell-floor]\label{ass:regular-cell-floor}
+The minimum over all source observed cells and target proxy cells satisfies \(\min\bigl(\{P_O(e,w,x,y):e\in\mathcal E,w\in\mathcal W,x\in\mathcal X,y\in\mathcal Y\}\cup\{b_w:w\in\mathcal W\}\bigr)\ge\eta\).
+\par\smallskip\noindent\emph{Standard} (Uniform finite-cell interiority, \cite{AndrewsGuggenberger2019}).
+\end{assumption}
+
+\begin{assumption}[ass:regular-positive-variance]\label{ass:regular-positive-variance}
+The population delta-method variance satisfies \(V_{r_0,x,y}(\mathcal M;p)\ge\eta\).
+\par\smallskip\noindent\emph{Standard} (Nondegenerate delta-method variance, \cite{IglesiasAlonsoEtAl2025}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:positive-latent-shift-class]\label{def:positive-latent-shift-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathfrak M\_\allowbreak{}\{+\allowbreak{}\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak M_{+}=\{\mathcal M=(\pi,S,M,a,f,q):\mathcal M\text{ satisfies the latent-shift factorization, strict primitive positivity, and }\operatorname{rank}(M)=r\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}latent-\allowbreak{}shift-\allowbreak{}factorization}; \texttt{ass:\allowbreak{}target-\allowbreak{}mechanism-\allowbreak{}invariance}; \texttt{ass:\allowbreak{}strict-\allowbreak{}primitive-\allowbreak{}positivity}; \texttt{ass:\allowbreak{}proxy-\allowbreak{}channel-\allowbreak{}injectivity}.
+\end{definition}
+
+\begin{definition}[def:compatible-fiber]\label{def:compatible-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathfrak F(\textbackslash{}\allowbreak{}mathcal D)}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak F(\mathcal D)=\{\mathcal M\in\mathfrak M_{+}:\mathcal M\text{ induces exactly the supplied }P_O\text{ and }b\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal D}.
+\end{definition}
+
+\begin{definition}[def:balancing-fiber]\label{def:balancing-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}Lambda\_\allowbreak{}x(\textbackslash{}\allowbreak{}mathcal D)}
+\par\smallskip\noindent\emph{Construction.} \(\Lambda_x(\mathcal D)=\{\lambda\in\mathbb R^{\lvert\mathcal E\rvert}:B_x\lambda=b\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{B\_\allowbreak{}x}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:failure-separator]\label{def:failure-separator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal H\_\allowbreak{}x(\textbackslash{}\allowbreak{}mathcal D)}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal H_x(\mathcal D)=\{h\in\mathbb R^m:h^{\top}B_x=0,\ h^{\top}b\ne0\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{B\_\allowbreak{}x}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:outcome-null-perturbation]\label{def:outcome-null-perturbation}
+\par\smallskip\noindent\emph{Defined object.} \texttt{f\textasciicircum{}\{(t)\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} Fix \(h\in\mathcal H_x(\mathcal D)\), put \(v=M^{\top}h\), choose \(w_{\star}\in\mathcal W\) and \(y^{\circ}\ne y\), and set \(f^{(t)}_{x,y}(u,w_{\star})=f_{x,y}(u,w_{\star})+t v_u/M_{w_{\star}u}\), \(f^{(t)}_{x,y^{\circ}}(u,w_{\star})=f_{x,y^{\circ}}(u,w_{\star})-t v_u/M_{w_{\star}u}\); every other cell equals \(f\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal M}; \texttt{h}; \texttt{w\_\allowbreak{}\{\textbackslash{}\allowbreak{}star\}\allowbreak{}}; \texttt{y\textasciicircum{}\{\textbackslash{}\allowbreak{}circ\}\allowbreak{}}; \texttt{t}.
+\end{definition}
+
+\begin{definition}[def:rank-deficient-success-witness]\label{def:rank-deficient-success-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal M\textasciicircum{}\{\textbackslash{}\allowbreak{}star\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} Take \(\mathcal E=\{e_1,e_2\}\), \(\mathcal U=\mathcal W=\{0,1,2\}\), \(\mathcal X=\mathcal Y=\{0,1\}\), \(\pi=(1/2,1/2)\), \(S=((9/19,1/12),(2/19,2/3),(8/19,1/4))\), \(a_1=(1/10,3/5,1/5)^{\top}\), \(a_0=\mathbf 1-a_1\), \(M\) with diagonal \(4/5\) and off-diagonal \(1/10\), \(q=(1197,2436,2204)^{\top}/5837\), and \(f_{x,1}(u_i,w_j)=1/5+x/5+i/20+j/100\) with \(f_{x,0}=1-f_{x,1}\).
+\end{definition}
+
+\begin{definition}[def:unconditional-balancing-moments]\label{def:unconditional-balancing-moments}
+\par\smallskip\noindent\emph{Defined object.} \texttt{(H\_\allowbreak{}x,\allowbreak{}z\_\allowbreak{}\{x,\allowbreak{}y\}\allowbreak{})}
+\par\smallskip\noindent\emph{Construction.} \(H_x(w,e)=P_O(E=e,W=w,X=x)\) and \(z_{x,y}(e)=P_O(E=e,X=x,Y=y)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P\_\allowbreak{}O}; \texttt{b}; \texttt{x}; \texttt{y}.
+\end{definition}
+
+\begin{definition}[def:unconditional-weight-map]\label{def:unconditional-weight-map}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}kappa}
+\par\smallskip\noindent\emph{Construction.} For \(\lambda\in\Lambda_x(\mathcal D)\), define \(\kappa(e)=\lambda(e)/P_O(E=e,X=x)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}lambda}; \texttt{P\_\allowbreak{}O}; \texttt{x}.
+\end{definition}
+
+\begin{definition}[def:concentration-projection-set]\label{def:concentration-projection-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}widehat C\_\allowbreak{}\{x,\allowbreak{}y,\allowbreak{}1-\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} Let \(L=m\lvert\mathcal E\rvert+\lvert\mathcal E\rvert+m\), \(r_s=\sqrt{\log(2L/\alpha)/(2n_s)}\), and \(r_t=\sqrt{\log(2L/\alpha)/(2n_t)}\). Define \(\widehat C_{x,y,1-\alpha}=\{\vartheta\in[0,1]:\exists\kappa\in\mathbb R^{\lvert\mathcal E\rvert},\ \lVert\widehat H_x\kappa-\widehat b\rVert_{\infty}\le r_s\lVert\kappa\rVert_1+r_t,\ |\widehat z_{x,y}^{\top}\kappa-\vartheta|\le r_s\lVert\kappa\rVert_1\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat H\_\allowbreak{}x}; \texttt{\textbackslash{}\allowbreak{}widehat z\_\allowbreak{}\{x,\allowbreak{}y\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}widehat b}; \texttt{n\_\allowbreak{}s}; \texttt{n\_\allowbreak{}t}; \texttt{\textbackslash{}\allowbreak{}alpha}.
+\end{definition}
+
+\begin{definition}[def:studentized-array-class]\label{def:studentized-array-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal A\_\allowbreak{}p}
+\par\smallskip\noindent\emph{Construction.} Fix \(p\in(0,1)\) and one deterministic allocation sequence \((n_s(n),n_t(n))_{n\ge2}\) satisfying the fixed-proportion triangular-allocation condition. Relative to that one sequence,
+\[
+\mathcal A_p=\left\{\mathbb M=(\mathcal M_n)_{n\ge2}:\begin{array}{l}
+\text{for every \(n\ge2\), the row data have the finite product law }\\
+\mathbb P_{\mathcal M_n}^{\,n_s(n),n_t(n)}=P_{O,n}^{\otimes n_s(n)}\otimes b_n^{\otimes n_t(n)}
+\text{ on }\Omega_n=\Omega(n_s(n),n_t(n)),\\
+\text{and }b_n\in\operatorname{col}(B_{x,n})
+\end{array}\right\}.
+\]
+No restriction is imposed on changes in \(\operatorname{rank}(B_{x,n})\), singularity of the joint multinomial covariance, or divergence of \(d_{x,n}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}triangular-\allowbreak{}allocation}; \texttt{ass:\allowbreak{}triangular-\allowbreak{}source-\allowbreak{}iid-\allowbreak{}sampling}; \texttt{ass:\allowbreak{}triangular-\allowbreak{}target-\allowbreak{}iid-\allowbreak{}sampling}; \texttt{ass:\allowbreak{}array-\allowbreak{}target-\allowbreak{}span}.
+\end{definition}
+
+\begin{definition}[def:strongly-identified-submodel]\label{def:strongly-identified-submodel}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal R\_\allowbreak{}\{r\_\allowbreak{}0,\allowbreak{}c,\allowbreak{}\textbackslash{}\allowbreak{}eta\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} For \(1\le r_0\le\min(m,\lvert\mathcal E\rvert)\) and fixed \(c,\eta>0\), \(\mathcal R_{r_0,c,\eta}=\{\mathcal M\in\mathfrak M_{+}:\operatorname{rank}(H_x)=r_0,\ \sigma_{r_0}(H_x)\ge c,\ b\in\operatorname{col}(H_x),\text{ every source and target cell is at least }\eta,\text{ and }V_{r_0,x,y}(\mathcal M;p)\ge\eta\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}regular-\allowbreak{}fixed-\allowbreak{}rank}; \texttt{ass:\allowbreak{}regular-\allowbreak{}singular-\allowbreak{}gap}; \texttt{ass:\allowbreak{}regular-\allowbreak{}target-\allowbreak{}span}; \texttt{ass:\allowbreak{}regular-\allowbreak{}cell-\allowbreak{}floor}; \texttt{ass:\allowbreak{}regular-\allowbreak{}positive-\allowbreak{}variance}.
+\end{definition}
+
+\begin{definition}[def:regular-wald-functional]\label{def:regular-wald-functional}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}phi\_\allowbreak{}\{r\_\allowbreak{}0\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} For \(H\in\mathbb R^{m\times\lvert\mathcal E\rvert}\), \(z\in\mathbb R^{\lvert\mathcal E\rvert}\), and \(b\in\mathbb R^m\), define the scalar function \(\phi_{r_0}(H,z,b)=z^{\top}H_{r_0}^{\dagger}b\), where \(H_{r_0}=H^{\star}_{r_0}\) is the selector-based Gram-spectral truncation fixed in the definition of \(H_{r_0}\). Thus \(\phi_{r_0}\) is single valued at tied cutoffs. If \(\sigma_{r_0}(H)>\sigma_{r_0+1}(H)\), the retained subspace is unique, so both \(H_{r_0}\) and \(\phi_{r_0}(H,z,b)\) are independent of the fixed within-tie selector.
+\par\smallskip\noindent\emph{Inputs.} \texttt{H}; \texttt{z}; \texttt{b}; \texttt{r\_\allowbreak{}0}.
+\end{definition}
+
+\begin{definition}[def:regular-wald-estimator]\label{def:regular-wald-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}theta\textasciicircum{}\{\textbackslash{}\allowbreak{},\allowbreak{}W\}\allowbreak{}\_\allowbreak{}\{x,\allowbreak{}y,\allowbreak{}n\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} \(\widehat\theta^{\,W}_{x,y,n}=\phi_{r_0}(\widehat H_{x,n},\widehat z_{x,y,n},\widehat b_n)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat H\_\allowbreak{}\{x,\allowbreak{}n\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}widehat z\_\allowbreak{}\{x,\allowbreak{}y,\allowbreak{}n\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}widehat b\_\allowbreak{}n}; \texttt{r\_\allowbreak{}0}.
+\end{definition}
+
+\begin{definition}[def:regular-wald-variance]\label{def:regular-wald-variance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}widehat V\_\allowbreak{}n}
+\par\smallskip\noindent\emph{Construction.} Put \(\widehat T_n=(\widehat H_{x,n},\widehat z_{x,y,n},\widehat b_n)\), and let \(\widehat\Gamma_n\) be the plug-in covariance matrix of \(\sqrt n\,\widehat T_n\), formed from the joint source multinomial covariance and the target multinomial covariance with allocation factors \(p^{-1}\) and \((1-p)^{-1}\). The totalized plug-in variance is
+\[
+\widehat V_n=
+\begin{cases}
+D\phi_{r_0}(\widehat T_n)\,\widehat\Gamma_n\,D\phi_{r_0}(\widehat T_n)^{\top},
+&\sigma_{r_0}(\widehat H_{x,n})>\sigma_{r_0+1}(\widehat H_{x,n}),\\
+0,&\sigma_{r_0}(\widehat H_{x,n})\le\sigma_{r_0+1}(\widehat H_{x,n}),
+\end{cases}
+\]
+where \(D\phi_{r_0}\) is the ordinary derivative of the selector-independent functional on the strict-cutoff-gap region and \(\sigma_{\bar q+1}=0\) for \(\bar q=\min(m,\lvert\mathcal E\rvert)\). The second line is the fixed nonnegative fallback.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat H\_\allowbreak{}\{x,\allowbreak{}n\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}widehat z\_\allowbreak{}\{x,\allowbreak{}y,\allowbreak{}n\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}widehat b\_\allowbreak{}n}; \texttt{p}; \texttt{r\_\allowbreak{}0}.
+\end{definition}
+
+\begin{definition}[def:regular-wald-interval]\label{def:regular-wald-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{I\textasciicircum{}W\_\allowbreak{}\{n,\allowbreak{}1-\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} \(I^W_{n,1-\alpha}=[\widehat\theta^{\,W}_{x,y,n}\pm z_{1-\alpha/2}\sqrt{\widehat V_n/n}]\cap[0,1]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}theta\textasciicircum{}\{\textbackslash{}\allowbreak{},\allowbreak{}W\}\allowbreak{}\_\allowbreak{}\{x,\allowbreak{}y,\allowbreak{}n\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}widehat V\_\allowbreak{}n}; \texttt{n}; \texttt{\textbackslash{}\allowbreak{}alpha}.
+\end{definition}
+
+\begin{definition}[def:euclidean-diameter]\label{def:euclidean-diameter}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}operatorname\{diam\}\allowbreak{}\_\allowbreak{}2}
+\par\smallskip\noindent\emph{Construction.} For \(C\subseteq[0,1]\), define \(\operatorname{diam}_2(C)=\sup_{\xi,\zeta\in C}|\xi-\zeta|\), with \(\operatorname{diam}_2(\varnothing)=0\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{C}.
+\end{definition}
+
+\begin{definition}[def:euclidean-hausdorff-distance]\label{def:euclidean-hausdorff-distance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{d\_\allowbreak{}H}
+\par\smallskip\noindent\emph{Construction.} For nonempty \(C,D\subseteq[0,1]\), \(d_H(C,D)=\max\{\sup_{\xi\in C}\inf_{\zeta\in D}|\xi-\zeta|,\sup_{\zeta\in D}\inf_{\xi\in C}|\xi-\zeta|\}\), the Euclidean Hausdorff distance.
+\par\smallskip\noindent\emph{Inputs.} \texttt{C}; \texttt{D}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:observable-factorization]\label{lem:observable-factorization}
+For every \(\mathcal M\in\mathfrak M_{+}\), \(B_x=MR_x\), \(b=Mq\), \(c_{x,y}=g_{x,y}^{\top}R_x\), and \(\theta_{x,y}=g_{x,y}^{\top}q\) for every \(x\in\mathcal X\) and \(y\in\mathcal Y\). Moreover, every \(\lambda\in\Lambda_x(\mathcal D)\) and its unconditional weight map \(\kappa\) satisfy \(H_x\kappa=b\) and \(z_{x,y}^{\top}\kappa=\theta_{x,y}\).
+\end{lemma}
+\begin{proof}
+Fix \(\mathcal M\in\mathfrak M_{+}\), \(x\in\mathcal X\), and \(y\in\mathcal Y\).  By Assumption~\ref{ass:strict-primitive-positivity}, for every \(e\in\mathcal E\),
+\[
+\rho_x(e)=\sum_{u\in\mathcal U}a_x(u)S_{ue}>0.
+\]
+Thus all conditionals below are well defined.  Summing the source factorization in Assumption~\ref{ass:latent-shift-factorization} over \(y\), and using that \(f_{x,\cdot}(u,w)\) is a probability kernel, gives
+\[
+P_O(E=e,W=w,X=x)
+=\pi_e\sum_{u\in\mathcal U}S_{ue}M_{wu}a_x(u).
+\]
+Summing this identity over \(w\), and using that each column of \(M\) sums to one, gives
+\[
+P_O(E=e,X=x)=\pi_e\sum_{u\in\mathcal U}S_{ue}a_x(u)
+=\pi_e\rho_x(e)>0.
+\]
+Consequently, by the definitions of \(B_x\) and \(R_x\),
+\[
+\begin{aligned}
+B_x(w,e)
+&=\frac{\pi_e\sum_{u\in\mathcal U}S_{ue}M_{wu}a_x(u)}
+        {\pi_e\rho_x(e)}\\
+&=\sum_{u\in\mathcal U}M_{wu}
+  \frac{a_x(u)S_{ue}}{\rho_x(e)}
+=\sum_{u\in\mathcal U}M_{wu}R_x(u,e).
+\end{aligned}
+\]
+This proves \(B_x=MR_x\).
+
+Likewise, summing the target factorization in Assumption~\ref{ass:target-mechanism-invariance} over \(x\) and \(y\), and using normalization of the treatment and outcome kernels, yields
+\[
+b_w=Q_{\mathcal M}(W=w)
+=\sum_{u\in\mathcal U}q_uM_{wu},
+\]
+so \(b=Mq\).  If instead the outcome factor is retained in the source calculation, then
+\[
+\begin{aligned}
+c_{x,y}(e)
+&=\frac{\pi_e\sum_{u\in\mathcal U}\sum_{w\in\mathcal W}
+ S_{ue}a_x(u)M_{wu}f_{x,y}(u,w)}
+ {\pi_e\rho_x(e)}\\
+&=\sum_{u\in\mathcal U}R_x(u,e)
+  \sum_{w\in\mathcal W}M_{wu}f_{x,y}(u,w)\\
+&=\sum_{u\in\mathcal U}g_{x,y}(u)R_x(u,e).
+\end{aligned}
+\]
+Hence \(c_{x,y}=g_{x,y}^{\top}R_x\).
+
+Under \(\operatorname{do}(X=x)\), the SCM intervention replaces the treatment kernel by a point mass at \(x\) and leaves the target latent law and the invariant \(W\)- and \(Y\)-mechanisms unchanged.  Therefore Assumption~\ref{ass:target-mechanism-invariance} and the truncated target factorization give
+\[
+\begin{aligned}
+\theta_{x,y}
+&=\sum_{u\in\mathcal U}\sum_{w\in\mathcal W}
+  q_uM_{wu}f_{x,y}(u,w)\\
+&=\sum_{u\in\mathcal U}q_ug_{x,y}(u)
+=g_{x,y}^{\top}q.
+\end{aligned}
+\]
+This is an SCM intervention identity, not a definition of the causal target in terms of the observed law.
+
+Now let \(\lambda\in\Lambda_x(\mathcal D)\).  Definition~\ref{def:balancing-fiber} gives \(B_x\lambda=b\).  Combining this equality with \(B_x=MR_x\) and \(b=Mq\) yields
+\[
+M(R_x\lambda-q)=0.
+\]
+By Definition~\ref{def:positive-latent-shift-class} and Assumption~\ref{ass:proxy-channel-injectivity}, \(\operatorname{rank}(M)=r\); hence the linear map \(v\mapsto Mv\) on \(\mathbb R^r\) is injective.  It follows that
+\[
+R_x\lambda=q.
+\]
+
+For the unconditional identities, define
+\[
+p_x(e)=P_O(E=e,X=x)=\pi_e\rho_x(e)>0,
+\qquad
+D_x=\operatorname{diag}\bigl(p_x(e):e\in\mathcal E\bigr).
+\]
+The definitions of \(H_x\) and \(z_{x,y}\) in Definition~\ref{def:unconditional-balancing-moments}, together with the conditional identities already proved, imply
+\[
+H_x(w,e)=p_x(e)B_x(w,e),
+\qquad
+z_{x,y}(e)=p_x(e)c_{x,y}(e).
+\]
+Equivalently,
+\[
+H_x=B_xD_x=MR_xD_x,
+\qquad
+z_{x,y}=D_xR_x^{\top}g_{x,y}.
+\]
+Definition~\ref{def:unconditional-weight-map} is applicable because \(p_x(e)>0\), and it gives \(D_x\kappa=\lambda\).  Therefore
+\[
+H_x\kappa
+=MR_xD_x\kappa
+=MR_x\lambda
+=B_x\lambda
+=b,
+\]
+and
+\[
+\begin{aligned}
+z_{x,y}^{\top}\kappa
+&=g_{x,y}^{\top}R_xD_x\kappa\\
+&=g_{x,y}^{\top}R_x\lambda\\
+&=g_{x,y}^{\top}q
+=\theta_{x,y}.
+\end{aligned}
+\]
+
+Finally, the same factorization proves the automatic outcome-row property required by the regular branch.  Since \(\operatorname{rank}(M)=r\), one has \(\operatorname{rank}(M^{\top})=r\), so \(M^{\top}:\mathbb R^m\to\mathbb R^r\) is surjective.  Thus there exists \(h\in\mathbb R^m\) satisfying \(M^{\top}h=g_{x,y}\).  Using the two unconditional factorizations above,
+\[
+H_x^{\top}h
+=D_xR_x^{\top}M^{\top}h
+=D_xR_x^{\top}g_{x,y}
+=z_{x,y}.
+\]
+Hence \(z_{x,y}\in\operatorname{col}(H_x^{\top})=\operatorname{row}(H_x)\).  In particular, outcome-row membership follows from the model class and is not an additional assumption.  All asserted identities have now been established.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Besides the four causal and observed factorization identities, this reduction shows that \(z_{x,y}\in\operatorname{row}(H_x)\) follows automatically from proxy-channel injectivity. \textit{Gap.} Iglesias-Alonso et al. use the same basic factorization under full source rank; the automatic row-membership consequence is supporting algebra and carries no standalone novelty claim. \textit{Consumer.} The exact identification theorem, both inference constructions, and the regular Wald centering argument use these identities.
+
+\begin{theorem}[thm:positive-full-law-converse]\label{thm:positive-full-law-converse}
+Suppose \(\mathfrak F(\mathcal D)\ne\varnothing\) and \(b\notin\operatorname{col}(B_x)\). For every baseline \(\mathcal M\in\mathfrak F(\mathcal D)\), every \(y\in\mathcal Y\), and every \(h\in\mathcal H_x(\mathcal D)\), there is \(\varepsilon>0\) such that replacing \(f\) by \(f^{(t)}\) yields \(\mathcal M_t\in\mathfrak F(\mathcal D)\) for all \(|t|<\varepsilon\), while \(\theta_{x,y}(\mathcal M_t)-\theta_{x,y}(\mathcal M)=t h^{\top}b\). Hence the compatible values of \(\theta_{x,y}\) contain a nondegenerate open interval around the baseline value.
+\end{theorem}
+\begin{proof}
+Fix a baseline \(\mathcal M=(\pi,S,M,a,f,q)\in\mathfrak F(\mathcal D)\), an outcome value \(y\in\mathcal Y\), and \(h\in\mathcal H_x(\mathcal D)\). By Definition~\ref{def:failure-separator},
+\[
+h^{\top}B_x=0,
+\qquad
+h^{\top}b\ne0.
+\tag{1}
+\]
+Let \(v=M^{\top}h\), as in Definition~\ref{def:outcome-null-perturbation}. Lemma~\ref{lem:observable-factorization} and (1) give
+\[
+v^{\top}R_x=h^{\top}MR_x=h^{\top}B_x=0,
+\qquad
+v^{\top}q=h^{\top}Mq=h^{\top}b\ne0.
+\tag{2}
+\]
+In particular, \(v\ne0\).
+
+Fix any \(w_{\star}\in\mathcal W\) and any \(y^{\circ}\in\mathcal Y\setminus\{y\}\). These choices exist because \(\mathcal W\) is nonempty and \(\lvert\mathcal Y\rvert\ge2\). Assumption~\ref{ass:strict-primitive-positivity} gives \(M_{w_{\star}u}>0\), \(f_{x,y}(u,w_{\star})>0\), and \(f_{x,y^{\circ}}(u,w_{\star})>0\) for every \(u\in\mathcal U\). Since \(\mathcal U\) is finite and \(v\ne0\), the number
+\[
+\varepsilon
+=\frac12\min_{u:v_u\ne0}
+\frac{M_{w_{\star}u}\min\{f_{x,y}(u,w_{\star}),
+f_{x,y^{\circ}}(u,w_{\star})\}}{|v_u|}
+\tag{3}
+\]
+is well defined and strictly positive. For \(|t|<\varepsilon\), Definition~\ref{def:outcome-null-perturbation} changes the two displayed outcome probabilities by opposite amounts whose absolute values are strictly smaller than half of the corresponding original probabilities. Thus the changed probabilities remain strictly positive. Every other outcome probability is unchanged, and the opposite changes preserve the sum over \(\mathcal Y\). Hence \(f^{(t)}\) is a strictly positive stochastic kernel. All other primitive kernels and the full-column rank of \(M\) are unchanged, so Definition~\ref{def:positive-latent-shift-class} implies \(\mathcal M_t\in\mathfrak M_{+}\).
+
+It remains to verify compatibility with the entire supplied law, rather than only with its balancing moments. For the only possibly changed source cell with outcome \(y\), Assumption~\ref{ass:latent-shift-factorization} and Definition~\ref{def:outcome-null-perturbation} give, for each \(e\in\mathcal E\),
+\[
+\begin{aligned}
+&P_{O,t}(e,w_{\star},x,y)-P_O(e,w_{\star},x,y)\\
+&\quad=\sum_{u\in\mathcal U}\pi_eS_{ue}M_{w_{\star}u}a_x(u)
+\left(t\frac{v_u}{M_{w_{\star}u}}\right)\\
+&\quad=t\pi_e\sum_{u\in\mathcal U}S_{ue}a_x(u)v_u\\
+&\quad=t\pi_e\rho_x(e)\sum_{u\in\mathcal U}R_x(u,e)v_u
+=0,
+\end{aligned}
+\tag{4}
+\]
+where division by \(M_{w_{\star}u}\) is valid by Assumption~\ref{ass:strict-primitive-positivity}. The same assumption and the definition of \(\rho_x\) imply \(\rho_x(e)=\sum_u a_x(u)S_{ue}>0\), so the definition of \(R_x\) justifies the penultimate equality; the last equality is (2). The change for outcome \(y^{\circ}\) is the negative of (4), hence is also zero. Cells with another outcome, another proxy value, or another treatment value are unchanged by Definition~\ref{def:outcome-null-perturbation}. Therefore every cell of \(P_O\) is preserved. Moreover, \(M\) and \(q\) are fixed, so Lemma~\ref{lem:observable-factorization} gives \(b_t=Mq=b\). Definition~\ref{def:compatible-fiber} now yields
+\[
+\mathcal M_t\in\mathfrak F(\mathcal D)
+\qquad (|t|<\varepsilon).
+\tag{5}
+\]
+
+For the causal query, the perturbation changes \(g_{x,y}(u)\) by
+\[
+M_{w_{\star}u}\left(t\frac{v_u}{M_{w_{\star}u}}\right)=tv_u.
+\tag{6}
+\]
+The interventional identity in Lemma~\ref{lem:observable-factorization}, followed by (2), therefore yields
+\[
+\theta_{x,y}(\mathcal M_t)-\theta_{x,y}(\mathcal M)
+=tq^{\top}v
+=t h^{\top}Mq
+=t h^{\top}b.
+\tag{7}
+\]
+The slope in (7) is nonzero by (1).
+
+For completeness, the off-span hypothesis also guarantees that separators exist. Every column of \(B_x\) is orthogonal to \(\ker(B_x^{\top})\), so \(\operatorname{col}(B_x)\subseteq(\ker(B_x^{\top}))^{\perp}\). Rank--nullity gives
+\[
+\dim (\ker(B_x^{\top}))^{\perp}
+=m-\dim\ker(B_x^{\top})
+=\operatorname{rank}(B_x^{\top})
+=\operatorname{rank}(B_x)
+=\dim\operatorname{col}(B_x),
+\]
+and hence the inclusion is equality. If every \(h\in\ker(B_x^{\top})\) obeyed \(h^{\top}b=0\), then \(b\) would lie in \((\ker(B_x^{\top}))^{\perp}=\operatorname{col}(B_x)\), contrary to the hypothesis. Thus \(\mathcal H_x(\mathcal D)\ne\varnothing\). For every specified \(h\in\mathcal H_x(\mathcal D)\), equations (5)--(7) show that the compatible values contain
+\[
+\bigl(\theta_{x,y}(\mathcal M)-\varepsilon|h^{\top}b|,
+      \theta_{x,y}(\mathcal M)+\varepsilon|h^{\top}b|\bigr),
+\tag{8}
+\]
+which is a nondegenerate open interval around the baseline value.
+
+Here is an exact finite certificate of the obstruction. Take
+\[
+\mathcal E=\{e_0,e_1\},
+\qquad
+\mathcal U=\mathcal W=\mathcal X=\mathcal Y=\{0,1\},
+\]
+and set
+\[
+\pi=(1/2,1/2),
+\qquad
+S_{ue}=1/2,
+\qquad
+a_0(u)=a_1(u)=1/2,
+\qquad
+M=\begin{pmatrix}4/5&1/5\\[2pt]1/5&4/5\end{pmatrix},
+\qquad
+q=\begin{pmatrix}3/5\\[2pt]2/5\end{pmatrix}.
+\tag{9}
+\]
+Let the baseline outcome kernel satisfy \(f_{x,0}(u,w)=f_{x,1}(u,w)=1/2\) in every cell. Define an alternative kernel \(\widetilde f\) to equal \(f\) except when \((x,w)=(1,0)\), where
+\[
+\widetilde f_{1,1}(0,0)=\frac9{16},
+\qquad
+\widetilde f_{1,0}(0,0)=\frac7{16},
+\qquad
+\widetilde f_{1,1}(1,0)=\frac14,
+\qquad
+\widetilde f_{1,0}(1,0)=\frac34.
+\tag{10}
+\]
+Define the source and target laws of the baseline and alternative SCMs by Assumptions~\ref{ass:latent-shift-factorization} and~\ref{ass:target-mechanism-invariance}, respectively. All primitive probabilities in (9)--(10) are strictly positive, every displayed kernel is stochastic, and
+\[
+\det(M)=\frac{16}{25}-\frac1{25}=\frac35\ne0.
+\tag{11}
+\]
+Thus both constructions belong to \(\mathfrak M_{+}\) by the two factorization assumptions, Assumption~\ref{ass:strict-primitive-positivity}, Assumption~\ref{ass:proxy-channel-injectivity}, and Definition~\ref{def:positive-latent-shift-class}.
+
+Because \(S_{ue}\) and \(a_1(u)\) do not depend on \(u\), the latent posterior at treatment value one is uniform. Hence, for both \(e_0\) and \(e_1\),
+\[
+B_1(\,cdot\,,e)
+=M\begin{pmatrix}1/2\\[2pt]1/2\end{pmatrix}
+=\begin{pmatrix}1/2\\[2pt]1/2\end{pmatrix}.
+\tag{12}
+\]
+On the other hand,
+\[
+b=Mq
+=\begin{pmatrix}
+(4/5)(3/5)+(1/5)(2/5)\\[2pt]
+(1/5)(3/5)+(4/5)(2/5)
+\end{pmatrix}
+=\begin{pmatrix}14/25\\[2pt]11/25\end{pmatrix}.
+\tag{13}
+\]
+The column space in (12) consists of vectors with equal coordinates, whereas the coordinates in (13) differ. Therefore \(b\notin\operatorname{col}(B_1)\).
+
+We next check the complete observed source law. By Assumption~\ref{ass:latent-shift-factorization}, under either kernel,
+\[
+P_O(e,w,x,y)=\frac18\sum_{u=0}^1 M_{wu}f_{x,y}(u,w),
+\tag{14}
+\]
+with \(f\) replaced by \(\widetilde f\) for the alternative model. Every cell not listed in (10) agrees immediately. For the only potentially changed cells, direct calculation gives
+\[
+\frac45\frac9{16}+\frac15\frac14=\frac12,
+\qquad
+\frac45\frac7{16}+\frac15\frac34=\frac12.
+\tag{15}
+\]
+The corresponding baseline sums are also \((4/5)(1/2)+(1/5)(1/2)=1/2\). Thus (14)--(15) show equality for both environments and both outcome values at \((w,x)=(0,1)\); all remaining cells were unchanged. Since each row of the matrix in (9) sums to one, (14) also shows that every one of the sixteen source observed cells equals \(1/16\) in each model. Equation (13) shows separately that their supplied target proxy vectors agree. The two SCMs therefore induce exactly the same pair \(\mathcal D=(P_O,b)\).
+
+Finally, Lemma~\ref{lem:observable-factorization} gives baseline target effect \(\theta_{1,1}=1/2\), whereas the alternative has
+\[
+\begin{aligned}
+\widetilde\theta_{1,1}
+&=\frac35\left(\frac45\frac9{16}+\frac15\frac12\right)
+ +\frac25\left(\frac15\frac14+\frac45\frac12\right)\\
+&=\frac35\frac{11}{20}+\frac25\frac9{20}
+=\frac{51}{100}.
+\end{aligned}
+\tag{16}
+\]
+Thus this strictly positive, full-column-rank pair agrees on the entire supplied source law and the supplied target proxy law but differs on the intervention law, exactly as asserted.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The observable separator is lifted to a positive SCM perturbation that preserves every supplied source joint cell, not merely the balancing equations. \textit{Gap.} Zhang et al. characterize constancy on an abstract bridge fiber, and Iglesias-Alonso et al. give a single counterexample with a rank-deficient proxy channel; neither proves this input-specific full-law converse while retaining an injective proxy channel. \textit{Consumer.} A failed target-span audit for an Expedia hotel becomes a causal nonidentification certificate rather than a numerical-rank warning.
+
+\begin{theorem}[thm:target-span-iff]\label{thm:target-span-iff}
+For every supplied \(\mathcal D=(P_O,b)\) with \(\mathfrak F(\mathcal D)\ne\varnothing\), every \(x\in\mathcal X\), and every \(y\in\mathcal Y\), the target interventional probability \(\theta_{x,y}\) is constant on \(\mathfrak F(\mathcal D)\) if and only if \(b\in\operatorname{col}(B_x)\). On the identified branch, \(\Lambda_x(\mathcal D)\ne\varnothing\) and every \(\lambda\in\Lambda_x(\mathcal D)\) satisfies \(\theta_{x,y}=c_{x,y}\lambda\); in particular, \(c_{x,y}\lambda=c_{x,y}\lambda'\) for all \(\lambda,\lambda'\in\Lambda_x(\mathcal D)\).
+\end{theorem}
+\begin{proof}
+Assume first that \(b\in\operatorname{col}(B_x)\). By the definition of a column space, there exists \(\lambda\in\mathbb R^{\lvert\mathcal E\rvert}\) with \(B_x\lambda=b\); equivalently, Definition~\ref{def:balancing-fiber} gives \(\Lambda_x(\mathcal D)\ne\varnothing\). Fix any such \(\lambda\). Every \(\mathcal M\in\mathfrak F(\mathcal D)\) induces the same observed \(B_x\), \(b\), and \(c_{x,y}\) by Definition~\ref{def:compatible-fiber}. Lemma~\ref{lem:observable-factorization}, applied within each compatible SCM, gives
+\[
+\theta_{x,y}(\mathcal M)=c_{x,y}\lambda.
+\tag{1}
+\]
+The right-hand side is a function only of the supplied observed law and the displayed solution of its observed linear system. Thus (1) is constant over \(\mathfrak F(\mathcal D)\), proving identification.
+
+The same lemma applies to every \(\lambda'\in\Lambda_x(\mathcal D)\), and hence
+\[
+c_{x,y}\lambda=\theta_{x,y}=c_{x,y}\lambda'.
+\tag{2}
+\]
+For completeness, solution independence also follows directly from the injectivity condition contained in \(\mathfrak M_{+}\):
+\[
+M R_x(\lambda-\lambda')=B_x(\lambda-\lambda')=0
+\quad\Longrightarrow\quad
+R_x(\lambda-\lambda')=0
+\quad\Longrightarrow\quad
+c_{x,y}(\lambda-\lambda')=g_{x,y}^{\top}R_x(\lambda-\lambda')=0.
+\tag{3}
+\]
+
+Conversely, suppose \(b\notin\operatorname{col}(B_x)\). The fiber is nonempty by hypothesis, so choose a baseline \(\mathcal M\in\mathfrak F(\mathcal D)\). Theorem~\ref{thm:positive-full-law-converse} supplies strictly positive SCMs \(\mathcal M_t\in\mathfrak F(\mathcal D)\) for all sufficiently small positive and negative \(t\), with
+\[
+\theta_{x,y}(\mathcal M_t)-\theta_{x,y}(\mathcal M)=t h^{\top}b
+\tag{4}
+\]
+for a separator satisfying \(h^{\top}b\ne0\). Thus two compatible SCMs have different target interventional probabilities, so \(\theta_{x,y}\) is not constant on the fiber. This proves the reverse implication and completes the equivalence.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the exact target-specific frontier: deficient source rank is harmless precisely for target proxy mixtures already spanned by the observed source mixtures. \textit{Gap.} Iglesias-Alonso et al. prove sufficiency under full latent source rank, Zhang et al. prove abstract null-space annihilation, and Rahiminasab et al. require full rank over latent-equivalence-class mixtures for prediction; none states this causal full-observed-law if-and-only-if frontier. \textit{Consumer.} Ursu (2018) supplies the Expedia hotel-ranking consumer antecedent by quantifying how rankings affect consumer search and purchase. The target-span audit can retain target hotels whose price distributions are balanceable even when the global source-diversity rank condition fails.
+
+\begin{proposition}[prop:strict-fullrank-extension]\label{prop:strict-fullrank-extension}
+The target-span condition strictly weakens the source-rank condition of Iglesias-Alonso et al. Under \(\operatorname{rank}(B_x)=r\), one has \(\operatorname{col}(B_x)=\operatorname{col}(M)\) and therefore \(b\in\operatorname{col}(B_x)\). The explicit construction \(\mathcal M^{\star}\) belongs to \(\mathfrak M_{+}\), has \(\operatorname{rank}(B_x)=2<3=r\) for both treatments, and satisfies \(b\in\operatorname{col}(B_x)\), so the intervention law remains identified outside the published full-rank regime.
+\end{proposition}
+\begin{proof}
+Fix \(x\). Lemma~\ref{lem:observable-factorization} gives \(B_x=MR_x\), and therefore
+\[
+\operatorname{col}(B_x)\subseteq\operatorname{col}(M).
+\tag{1}
+\]
+Assumption~\ref{ass:proxy-channel-injectivity} gives \(\operatorname{rank}(M)=r\). If also \(\operatorname{rank}(B_x)=r\), then both subspaces in (1) have dimension \(r\); hence they are equal. Since \(b=Mq\) by the same lemma, \(b\in\operatorname{col}(M)=\operatorname{col}(B_x)\). Theorem~\ref{thm:target-span-iff} then identifies the intervention law. This proves that the published rank condition implies the target-span condition.
+
+We next verify that the inclusion of identifiable regimes is strict using Definition~\ref{def:rank-deficient-success-witness}. The columns of \(S\) sum respectively to
+\[
+\frac9{19}+\frac2{19}+\frac8{19}=1,
+\qquad
+\frac1{12}+\frac23+\frac14=1,
+\tag{2}
+\]
+and all their entries are positive. Likewise, \(\pi=(1/2,1/2)\), each column of \(M\), and each of \(a_0=\mathbf 1-a_1\) and \(a_1\) are strictly positive probability vectors. The target vector is strictly positive and normalized because
+\[
+1197+2436+2204=5837.
+\tag{3}
+\]
+For \(i,j\in\{0,1,2\}\) and \(x\in\{0,1\}\),
+\[
+\frac15\le f_{x,1}(u_i,w_j)\le\frac{13}{25},
+\qquad
+\frac{12}{25}\le f_{x,0}(u_i,w_j)\le\frac45,
+\tag{4}
+\]
+so the outcome kernel is strictly positive. Finally, direct expansion gives
+\[
+\det(M)=\frac{49}{100}\ne0.
+\tag{5}
+\]
+Thus \(M\) has rank \(3=r\), and all defining conditions of \(\mathfrak M_{+}\) hold for \(\mathcal M^{\star}\).
+
+For treatment zero, the definitions of \(\rho_x\) and \(R_x\) give
+\[
+\rho_0=\left(\frac{153}{190},\frac{13}{24}\right),\qquad
+R_0=
+\begin{pmatrix}
+9/17&9/65\\
+8/153&32/65\\
+64/153&24/65
+\end{pmatrix},
+\tag{6}
+\]
+and multiplication by \(M\) gives
+\[
+B_0=
+\begin{pmatrix}
+8/17&64/325\\
+209/1530&289/650\\
+601/1530&233/650
+\end{pmatrix}.
+\tag{7}
+\]
+For treatment one, the analogous calculation gives
+\[
+\rho_1=\left(\frac{37}{190},\frac{11}{24}\right),\qquad
+R_1=
+\begin{pmatrix}
+9/37&1/55\\
+12/37&48/55\\
+16/37&6/55
+\end{pmatrix},
+\tag{8}
+\]
+and
+\[
+B_1=
+\begin{pmatrix}
+10/37&31/275\\
+121/370&391/550\\
+149/370&97/550
+\end{pmatrix}.
+\tag{9}
+\]
+In each of (7) and (9), the two columns are distinct probability vectors. Two linearly dependent vectors whose coordinates each sum to one must be equal; hence each displayed matrix has rank two. Therefore
+\[
+\operatorname{rank}(B_0)=\operatorname{rank}(B_1)=2<3=r.
+\tag{10}
+\]
+
+It remains to verify target-span membership. Exact multiplication in (6) and (8) gives
+\[
+R_0
+\begin{pmatrix}153/898\\745/898\end{pmatrix}
+=q,
+\qquad
+R_1
+\begin{pmatrix}4847/5837\\990/5837\end{pmatrix}
+=q.
+\tag{11}
+\]
+Multiplying (11) by \(M\), and using \(B_x=MR_x\) and \(b=Mq\), proves \(b\in\operatorname{col}(B_x)\) for both treatments. Theorem~\ref{thm:target-span-iff} therefore identifies both intervention laws despite (10), which proves strictness.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact rational witness establishes a nonempty identifiable region excluded by the anchor's global rank requirement. \textit{Gap.} Iglesias-Alonso et al., Assumption 1 and Theorem 1, require rank at least the latent cardinality; their Appendix B.2 weakens the proxy channel rather than exhibiting this complete-proxy, deficient-source-rank success regime. \textit{Consumer.} The result licenses target-specific balancing in applications with fewer informative source contrasts than latent strata.
+
+\begin{theorem}[thm:finite-sample-projection-coverage]\label{thm:finite-sample-projection-coverage}
+If \(b\in\operatorname{col}(B_x)\), then for every \(\mathcal M\in\mathfrak F(\mathcal D)\), every sample size pair \((n_s,n_t)\), and every \(0<\alpha<1\), \(\mathbb P_{\mathcal M}^{\,n_s,n_t}\{\theta_{x,y}\in\widehat C_{x,y,1-\alpha}\}\ge1-\alpha\). The bound is uniform over all positive cell probabilities, all ranks and nonzero singular values of \(B_x\), and all magnitudes of balancing vectors; the set may be empty for incompatible samples and may equal \([0,1]\).
+\end{theorem}
+\begin{proof}
+Fix \(\mathcal M\in\mathfrak F(\mathcal D)\) and suppose \(b\in\operatorname{col}(B_x)\). By the definition of a column space there is \(\lambda\in\mathbb R^{\lvert\mathcal E\rvert}\) with \(B_x\lambda=b\). Theorem~\ref{thm:target-span-iff}, Definition~\ref{def:unconditional-weight-map}, and Lemma~\ref{lem:observable-factorization} then give a fixed vector \(\kappa\in\mathbb R^{\lvert\mathcal E\rvert}\) satisfying
+\[
+H_x\kappa=b,
+\qquad
+z_{x,y}^{\top}\kappa=\theta_{x,y}.
+\tag{1}
+\]
+The denominator in the unconditional weight map is positive: the latent-shift factorization and strict primitive positivity give
+\[
+P_O(E=e,X=x)=\pi_e\sum_{u\in\mathcal U}S_{ue}a_x(u)>0
+\qquad(e\in\mathcal E).
+\tag{2}
+\]
+Thus \(\kappa\) is well defined. No bound on \(\lVert\kappa\rVert_1\) is assumed.
+
+We first prove the concentration inequality used below. Let \(Z\) be Bernoulli with mean \(p_Z\), and put
+\[
+\psi(s)=\log\mathbb E\!\left[\exp\{s(Z-p_Z)\}\right].
+\]
+Under exponential tilting, \(\psi''(s)=p_s(1-p_s)\) for a tilted success probability \(p_s\in[0,1]\), so \(\psi''(s)\le1/4\). Since \(\psi(0)=\psi'(0)=0\), two integrations give
+\[
+\psi(s)\le \frac{s^2}{8}
+\qquad(s\in\mathbb R).
+\tag{3}
+\]
+For independent Bernoulli variables \(Z_1,\ldots,Z_N\) with common mean \(p_Z\), Markov's inequality and (3) imply, for \(a>0\) and \(s>0\),
+\[
+\begin{aligned}
+\Pr\!\left\{N^{-1}\sum_{i=1}^N Z_i-p_Z\ge a\right\}
+&\le \exp(-sNa)\prod_{i=1}^N
+ \mathbb E\!\left[\exp\{s(Z_i-p_Z)\}\right]\\
+&\le \exp\!\left(-sNa+\frac{Ns^2}{8}\right).
+\end{aligned}
+\tag{4}
+\]
+Taking \(s=4a\) and applying the same calculation to \(-Z_i\) yields
+\[
+\Pr\!\left\{\left|N^{-1}\sum_{i=1}^N Z_i-p_Z\right|>a\right\}
+\le 2e^{-2Na^2}.
+\tag{5}
+\]
+
+By Assumption~\ref{ass:source-iid-sampling}, each coordinate of \(\widehat H_x\) and \(\widehat z_{x,y}\) is an average of independent Bernoulli indicators with respective means \(H_x(w,e)\) and \(z_{x,y}(e)\). By Assumption~\ref{ass:target-iid-sampling}, each coordinate of \(\widehat b\) is an average of independent Bernoulli indicators with mean \(b_w\). Define
+\[
+\begin{aligned}
+\mathcal A=\{&\max_{w,e}|\widehat H_x(w,e)-H_x(w,e)|\le r_s,\\
+&\max_e|\widehat z_{x,y}(e)-z_{x,y}(e)|\le r_s,\\
+&\max_w|\widehat b_w-b_w|\le r_t\}.
+\end{aligned}
+\tag{6}
+\]
+There are \(L=m\lvert\mathcal E\rvert+\lvert\mathcal E\rvert+m\) coordinates in (6). The definitions of \(r_s\) and \(r_t\), together with (5), give failure probability at most
+\[
+2e^{-2n_s r_s^2}=\frac{\alpha}{L}
+\quad\text{or}\quad
+2e^{-2n_t r_t^2}=\frac{\alpha}{L}
+\tag{7}
+\]
+for each coordinate, as appropriate. A union bound, which requires no independence between the source and target coordinate families, therefore gives under the displayed two-sample law
+\[
+\mathbb P_{\mathcal M}^{\,n_s,n_t}(\mathcal A)\ge1-\alpha.
+\tag{8}
+\]
+
+On \(\mathcal A\), use the population vector \(\kappa\) from (1). For every \(w\in\mathcal W\),
+\[
+\begin{aligned}
+| (\widehat H_x\kappa-\widehat b)_w |
+&\le |((\widehat H_x-H_x)\kappa)_w|+|b_w-\widehat b_w|\\
+&\le r_s\sum_{e\in\mathcal E}|\kappa(e)|+r_t
+=r_s\lVert\kappa\rVert_1+r_t,
+\end{aligned}
+\tag{9}
+\]
+where \(H_x\kappa=b\) from (1) was used in the first line. Similarly, the second identity in (1) gives
+\[
+|\widehat z_{x,y}^{\top}\kappa-\theta_{x,y}|
+=| (\widehat z_{x,y}-z_{x,y})^{\top}\kappa |
+\le r_s\lVert\kappa\rVert_1.
+\tag{10}
+\]
+Equations (9)--(10) are exactly the feasibility inequalities in Definition~\ref{def:concentration-projection-set} for the candidate \(\vartheta=\theta_{x,y}\). Because \(\theta_{x,y}\in[0,1]\),
+\[
+\mathcal A\subseteq
+\{\theta_{x,y}\in\widehat C_{x,y,1-\alpha}\}.
+\tag{11}
+\]
+Combining (8) and (11) proves the stated coverage bound.
+
+The right side of (8) is numerical and independent of the cell probabilities, the rank and nonzero singular values of \(B_x\), and \(\lVert\kappa\rVert_1\); the actual norm is retained in (9)--(10). Hence taking an infimum over any collection of compatible positive laws satisfying the span condition leaves the same lower bound. No rank estimate, matrix inverse, covariance inverse, singular-value floor, or balancing-norm bound entered the proof. Definition~\ref{def:concentration-projection-set} permits the realized set to be empty on \(\mathcal A^c\) or to equal \([0,1]\), neither of which affects (11).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Simultaneous marginal concentration and projection give honest causal coverage without estimating rank, dividing by a weak singular value, or requiring a separate cross-sample premise. \textit{Gap.} Iglesias-Alonso et al. use pointwise Wald calibration under full rank, while Dufour and Taamouti project AR regions in linear IV; this theorem gives a finite-sample two-multinomial transport analogue with unrestricted balancing weights. \textit{Consumer.} The Expedia analysis can report a valid, possibly nonshrinking set when hotel-source balance is weak instead of a misleading short Wald interval.
+
+\begin{theorem}[thm:no-uniform-studentized-wald-adaptation]\label{thm:no-uniform-studentized-wald-adaptation}
+The simultaneous requirement of unrestricted uniform coverage and regular-submodel Wald localization is false on the stated array class. More precisely, fix \(p\in(0,1)\), \(\alpha\in(0,1)\), and one deterministic allocation sequence \((n_s(n),n_t(n))_{n\ge2}\) obeying the triangular-allocation condition. For each \(n\ge2\), let \(\Omega_n=\Omega(n_s(n),n_t(n))\) be the corresponding finite product sample space. There is an admissible instance with binary \(E,U,W,Y\), singleton \(\mathcal X=\{x\}\), a fixed model \(\mathcal M^{(0)}\in\mathcal R_{1,1/4,1/16}\), and an array \(\mathbb M^{(1)}=(\mathcal M^{(1)}_n)_{n\ge2}\in\mathcal A_p\), relative to that same allocation sequence, such that \(\theta_{x,1}(\mathcal M^{(0)})=1/2\), \(\theta_{x,1,n}(\mathcal M^{(1)}_n)=5/8\) for every \(n\), and the two induced two-sample laws on the common row space \(\Omega_n\) converge to one another in total variation. Consequently, for every sequence of set-valued rules \(\mathcal C_n:\Omega_n\to\{C\subseteq[0,1]:C\ne\varnothing\}\), which are measurable because \(\Omega_n\) carries its full finite power-set sigma-field, satisfying
+\[
+\liminf_{n\to\infty}\inf_{\mathbb M\in\mathcal A_p}
+\mathbb P_{\mathcal M_n}^{\,n_s(n),n_t(n)}
+\{\theta_{x,1,n}\in\mathcal C_n\}
+\ge 1-\alpha,
+\]
+and every fixed \(\varepsilon\in(0,1/8)\), the constructed fixed regular baseline satisfies
+\[
+\liminf_{n\to\infty}
+\mathbb P_{\mathcal M^{(0)}}^{\,n_s(n),n_t(n)}
+\left\{I^W_{n,1-\alpha}\ne\varnothing,\ 
+d_H\!\left(\mathcal C_n,I^W_{n,1-\alpha}\right)
+\ge\frac18-\varepsilon\right\}
+\ge1-\alpha.
+\]
+In particular, since the Wald interval is nonempty with probability tending to one, the same lower bound holds for \(\{d_H(\mathcal C_n,I^W_{n,1-\alpha})\ge1/8-\varepsilon\}\) under any totalization on empty-interval samples. Thus \(d_H(\mathcal C_n,I^W_{n,1-\alpha})\) does not converge to zero in probability, and the stronger requirement \(\sqrt n\,d_H(\mathcal C_n,I^W_{n,1-\alpha})\longrightarrow_P0\) is impossible a fortiori. Hence no measurable nonempty confidence-set sequence can combine unrestricted uniform coverage with even unscaled Wald localization on \(\mathcal A_p\). The uniform-coverage half alone remains attainable: the row-indexed version of \(\widehat C_{x,y,1-\alpha}\) from the concentration projection theorem has the displayed uniform coverage, including along changing-rank arrays.
+\end{theorem}
+\begin{proof}
+Fix \(p\in(0,1)\), \(\alpha\in(0,1)\), and one deterministic allocation sequence \((n_s(n),n_t(n))_{n\ge2}\) satisfying Assumption~\ref{ass:triangular-allocation}. Thus \(n_s(n),n_t(n)\ge1\), \(n_s(n)+n_t(n)=n\) for every \(n\ge2\), and \(n_s(n)/n\to p\). Every model and array below is sampled using this same sequence. For each row, the sample space is the common finite product
+\[
+\Omega_n=\Omega(n_s(n),n_t(n))
+=\bigl(\mathcal E\times\mathcal W\times\mathcal X\times\mathcal Y\bigr)^{n_s(n)}
+\times\mathcal W^{n_t(n)},
+\tag{1}
+\]
+equipped with its power-set sigma-field. The row-wise sampling assumptions identify the row law on (1) with the finite product measure \(P_{O,n}^{\otimes n_s(n)}\otimes b_n^{\otimes n_t(n)}\); no infinite i.i.d. sequence is used. Every row belongs to \(\mathfrak M_{+}\), so strict primitive positivity makes every one-observation source and target cell positive. Thus (1) is also the common full support of every row law in the class.
+
+\paragraph{Fixed regular baseline.}
+Let
+\[
+\mathcal E=\{-1,+1\},\qquad
+\mathcal U=\mathcal W=\mathcal Y=\{0,1\},\qquad
+\mathcal X=\{x\}.
+\]
+Order binary vectors as \((1,0)\), environment columns as \((+1,-1)\), and latent columns of the proxy channel as \((1,0)\). Define \(\mathcal M^{(0)}\) by
+\[
+\pi=(1/2,1/2),\qquad
+S^{(0)}=\begin{pmatrix}1/2&1/2\\1/2&1/2\end{pmatrix},\qquad
+M^{(0)}=\begin{pmatrix}3/4&1/4\\1/4&3/4\end{pmatrix},
+\]
+\[
+a_x(u)=1,\qquad q^{(0)}=(1/2,1/2)^{\top},\qquad
+f^{(0)}_{x,1}(u,w)=f^{(0)}_{x,0}(u,w)=1/2.
+\tag{2}
+\]
+Every primitive entry is positive and stochastic, and \(\det(M^{(0)})=1/2\ne0\). The factorization, invariance, positivity, and proxy-injectivity assumptions imply \(\mathcal M^{(0)}\in\mathfrak M_{+}\).
+
+Summing the source factorization over \(u\) gives
+\[
+P_{O,0}(e,w,x,y)=\frac18
+\tag{3}
+\]
+for every \(e,w,y\). Target invariance gives \(b_0=(1/2,1/2)^{\top}\) and \(\theta_{x,1}(\mathcal M^{(0)})=1/2\). Therefore
+\[
+H_{x,0}=\begin{pmatrix}1/4&1/4\\1/4&1/4\end{pmatrix},
+\qquad z_{x,1,0}=(1/4,1/4)^{\top}.
+\tag{4}
+\]
+The singular values of \(H_{x,0}\) are \(1/2\) and \(0\), so
+\[
+\operatorname{rank}(H_{x,0})=1,
+\quad \sigma_1(H_{x,0})=1/2\ge1/4,
+\quad b_0=H_{x,0}(1,1)^{\top}.
+\tag{5}
+\]
+All source observed cells are \(1/8\), and all target proxy cells are \(1/2\), so the cell floor is at least \(1/16\).
+
+For the variance condition, rank one in (4) gives
+\[
+H_{x,0}^{\dagger}=\begin{pmatrix}1&1\\1&1\end{pmatrix},
+\qquad
+D_z\phi_1(H_{x,0},z_{x,1,0},b_0)
+=\bigl(H_{x,0}^{\dagger}b_0\bigr)^{\top}=(1,1).
+\tag{6}
+\]
+The source part of the scalar influence variable is therefore \(\mathbf 1\{Y=1\}+\psi(E,W)\), up to an additive constant, for a deterministic \(\psi\) contributed by the \(H\)-coordinates. Under (2), \(Y\) is conditionally fair given \((E,W)\). For any finite random variable \(T\), expanding \(\mathbb E[T^2]-\mathbb E[T]^2\) and adding and subtracting \(\mathbb E[\mathbb E(T\mid E,W)^2]\) proves the conditional variance identity. Applying that algebra here yields
+\[
+\begin{aligned}
+\operatorname{Var}_{P_{O,0}}\!\left(\mathbf 1\{Y=1\}+\psi(E,W)\right)
+&=\mathbb E\!\left[\operatorname{Var}(\mathbf 1\{Y=1\}\mid E,W)\right]\\
+&\quad+\operatorname{Var}\!\left(\mathbb E[\mathbf 1\{Y=1\}+\psi(E,W)\mid E,W]\right)\\
+&\ge\frac14.
+\end{aligned}
+\tag{7}
+\]
+The source allocation factor is \(p^{-1}\), and the independent target contribution is nonnegative. Hence
+\[
+V_{1,x,1}(\mathcal M^{(0)};p)\ge\frac1{4p}>\frac1{16}.
+\tag{8}
+\]
+Equations (3)--(8) verify all five conditions of Definition~\ref{def:strongly-identified-submodel}; thus \(\mathcal M^{(0)}\in\mathcal R_{1,1/4,1/16}\).
+
+\paragraph{Admissible weak-rank array.}
+For \(n\ge2\), put \(\gamma_n=\delta_n=n^{-2}\) and define \(\mathcal M^{(1)}_n\) with the same \(\pi,a_x\) and
+\[
+S^{(1)}_n=\begin{pmatrix}1/2+\gamma_n&1/2-\gamma_n\\1/2-\gamma_n&1/2+\gamma_n\end{pmatrix},
+\qquad
+M^{(1)}_n=\begin{pmatrix}1/2+\delta_n&1/2-\delta_n\\1/2-\delta_n&1/2+\delta_n\end{pmatrix},
+\]
+\[
+q^{(1)}=(3/4,1/4)^{\top},\qquad
+f^{(1)}_{x,1}(1,w)=3/4,\qquad
+f^{(1)}_{x,1}(0,w)=1/4,\qquad
+f^{(1)}_{x,0}=1-f^{(1)}_{x,1}.
+\tag{9}
+\]
+For \(n\ge2\), all entries are positive, and
+\[
+\det M^{(1)}_n=2\delta_n>0,
+\qquad
+\det S^{(1)}_n=2\gamma_n>0.
+\tag{10}
+\]
+Thus \(\mathcal M^{(1)}_n\in\mathfrak M_{+}\) in every row.
+
+Because \(x\) is the sole treatment value,
+\[
+B^{(1)}_{x,n}=M^{(1)}_nS^{(1)}_n
+=\begin{pmatrix}
+1/2+2\delta_n\gamma_n&1/2-2\delta_n\gamma_n\\
+1/2-2\delta_n\gamma_n&1/2+2\delta_n\gamma_n
+\end{pmatrix},
+\tag{11}
+\]
+\[
+H^{(1)}_{x,n}=\frac12B^{(1)}_{x,n},
+\qquad
+\det B^{(1)}_{x,n}=4\delta_n\gamma_n>0.
+\tag{12}
+\]
+Target invariance gives
+\[
+b^{(1)}_n=M^{(1)}_nq^{(1)}
+=\begin{pmatrix}1/2+\delta_n/2\\1/2-\delta_n/2\end{pmatrix}.
+\tag{13}
+\]
+By (12), \(b^{(1)}_n\in\operatorname{col}(B^{(1)}_{x,n})\) for every \(n\). The array is assigned the one fixed allocation sequence chosen before (1), and the two finite coordinate blocks have the stipulated product law on \(\Omega_n\) by the row-wise sampling assumptions. Hence Definition~\ref{def:studentized-array-class} gives
+\[
+\mathbb M^{(1)}=(\mathcal M^{(1)}_n)_{n\ge2}\in\mathcal A_p.
+\tag{14}
+\]
+If \(\lambda_n\) is the unique solution of \(B^{(1)}_{x,n}\lambda_n=b^{(1)}_n\), addition and subtraction of its two row equations give
+\[
+\lambda_{1,n}+\lambda_{2,n}=1,
+\qquad
+\lambda_{1,n}-\lambda_{2,n}=\frac1{4\gamma_n}.
+\tag{15}
+\]
+Thus the balancing norm diverges, including after conversion to unconditional weights because \(P_{O,n}(E=e,X=x)=1/2\).
+
+The causal value is separated from the baseline:
+\[
+\theta_{x,1,n}(\mathcal M^{(1)}_n)
+=\sum_{u,w}q^{(1)}_uM^{(1)}_n(w,u)f^{(1)}_{x,1}(u,w)
+=\frac34\frac34+\frac14\frac14
+=\frac58.
+\tag{16}
+\]
+
+\paragraph{Indistinguishability on the common row spaces.}
+For finite probability vectors on a common space, write \(\lVert P-Q\rVert_{\mathrm{TV}}=\frac12\sum_a|P(a)-Q(a)|\). Retain \(f^{(1)}\), but replace \(S^{(1)}_n,M^{(1)}_n\) by the all-\(1/2\) binary kernels \(S^{\star},M^{\star}\). The resulting observed law equals \(P_{O,0}\): \(E,W\) are independent and fair, and averaging response probabilities \(3/4,1/4\) over fair \(U\) makes \(Y\) fair independently of \((E,W)\).
+
+At a full-data cell, adding and subtracting the density with \(S^{\star}\) and \(M^{(1)}_n\) gives
+\[
+\begin{aligned}
+&\pi_eS^{(1)}_n(u,e)M^{(1)}_n(w,u)f^{(1)}_{x,y}(u,w)
+-\pi_eS^{\star}(u,e)M^{\star}(w,u)f^{(1)}_{x,y}(u,w)\\
+&=\pi_e\bigl(S^{(1)}_n(u,e)-S^{\star}(u,e)\bigr)
+M^{(1)}_n(w,u)f^{(1)}_{x,y}(u,w)\\
+&\quad+\pi_eS^{\star}(u,e)
+\bigl(M^{(1)}_n(w,u)-M^{\star}(w,u)\bigr)
+f^{(1)}_{x,y}(u,w).
+\end{aligned}
+\]
+After summing absolute values over all cells, normalization of the unchanged kernels reduces the two terms to the conditional binary-kernel total variations \(\gamma_n\) and \(\delta_n\). Marginalization groups signed summands before taking absolute values and hence cannot increase total variation. Therefore
+\[
+\lVert P^{(1)}_{O,n}-P_{O,0}\rVert_{\mathrm{TV}}
+\le\gamma_n+\delta_n=2n^{-2},
+\qquad
+\lVert b^{(1)}_n-b_0\rVert_{\mathrm{TV}}=\delta_n/2.
+\tag{17}
+\]
+For completeness, the product-measure inequality follows from the telescoping identity
+\[
+\bigotimes_{i=1}^N P_i-\bigotimes_{i=1}^N Q_i
+=\sum_{j=1}^N
+\left(\bigotimes_{i<j}P_i\right)\otimes(P_j-Q_j)\otimes
+\left(\bigotimes_{i>j}Q_i\right)
+\tag{18}
+\]
+and the triangle inequality, because probability vectors have \(\ell_1\)-norm one. Both product laws below are measures on the same \(\Omega_n\) from (1), and (17)--(18) give
+\[
+\begin{aligned}
+&\left\lVert
+(P^{(1)}_{O,n})^{\otimes n_s(n)}\otimes(b^{(1)}_n)^{\otimes n_t(n)}
+-P_{O,0}^{\otimes n_s(n)}\otimes b_0^{\otimes n_t(n)}
+\right\rVert_{\mathrm{TV}}\\
+&\qquad\le n_s(n)(\gamma_n+\delta_n)+n_t(n)\delta_n/2
+\le2n^{-1}\longrightarrow0.
+\end{aligned}
+\tag{19}
+\]
+
+\paragraph{Transferred coverage.}
+Let \(\mathcal C_n:\Omega_n\to\{C\subseteq[0,1]:C\ne\varnothing\}\) be any sequence satisfying the theorem's uniform-coverage premise, and put \(A_n=\{5/8\in\mathcal C_n\}\). Since \(\Omega_n\) is finite with its power-set sigma-field, \(A_n\) is measurable. Because every law in the infimum over \(\mathcal A_p\) is a law on this same \(\Omega_n\), the premise and (14) imply
+\[
+\liminf_{n\to\infty}
+\mathbb P_{\mathcal M^{(1)}_n}^{\,n_s(n),n_t(n)}(A_n)
+\ge1-\alpha.
+\tag{20}
+\]
+For any event, the difference of its probabilities under two finite laws is bounded by their total variation distance. Equations (19)--(20) therefore give
+\[
+\liminf_{n\to\infty}
+\mathbb P_{\mathcal M^{(0)}}^{\,n_s(n),n_t(n)}(A_n)
+\ge1-\alpha.
+\tag{21}
+\]
+
+\paragraph{Localization of the fixed-model Wald interval.}
+Under \(\mathcal M^{(0)}\), each coordinate of \(\widehat H_{x,n},\widehat z_{x,1,n},\widehat b_n\) is an average of independent indicators. If \(\widehat\mu\) averages \(N\) indicators, then
+\[
+\mathbb E[(\widehat\mu-\mu)^2]\le\frac1{4N},
+\qquad
+\Pr\{|\widehat\mu-\mu|>t\}\le\frac1{4Nt^2}.
+\tag{22}
+\]
+There are finitely many coordinates; the fixed allocation assumption gives \(n_s(n)/n\to p\) and \(n_t(n)/n\to1-p\), both positive. A finite union bound yields
+\[
+(\widehat H_{x,n},\widehat z_{x,1,n},\widehat b_n)
+-(H_{x,0},z_{x,1,0},b_0)=O_P(n^{-1/2}).
+\tag{23}
+\]
+
+At \(H_{x,0}\), the eigenvalues of \(H_{x,0}H_{x,0}^{\top}\) are \(1/4\) and \(0\). In a neighborhood of \(H_{x,0}\), the roots of the quadratic characteristic polynomial remain separated, and the leading projector is
+\[
+P_1(H)=\frac{HH^{\top}-\lambda_2(H)I}{\lambda_1(H)-\lambda_2(H)}.
+\tag{24}
+\]
+Thus the roots, \(P_1(H)\), the rank-one truncation, its pseudoinverse, \(\phi_1\), and \(D\phi_1\) are continuously differentiable with bounded derivatives on a smaller neighborhood. The plug-in multinomial covariance is polynomial in empirical cell frequencies and bounded on the finite simplex. The mean-value inequality, (23), and the definitions of the Wald estimator and totalized variance give
+\[
+\widehat\theta^{\,W}_{x,1,n}=\frac12+O_P(n^{-1/2}),
+\qquad
+\widehat V_n=O_P(1).
+\tag{25}
+\]
+Since the normal quantile is finite, the untruncated Wald radius is \(O_P(n^{-1/2})\), and the clipped interval is nonempty with probability tending to one. Put
+\[
+\Delta_n=
+\begin{cases}
+\sup_{\zeta\in I^W_{n,1-\alpha}}|\zeta-1/2|,
+&I^W_{n,1-\alpha}\ne\varnothing,\\
+1,&I^W_{n,1-\alpha}=\varnothing.
+\end{cases}
+\]
+Clipping cannot increase distance from \(1/2\), so
+\[
+\Delta_n=O_P(n^{-1/2})=o_P(1).
+\tag{26}
+\]
+
+\paragraph{Quantitative impossibility.}
+Fix \(\varepsilon\in(0,1/8)\) and let \(G_n=\{\Delta_n\le\varepsilon\}\). Equation (26) gives \(\mathbb P_{\mathcal M^{(0)}}(G_n^c)\to0\). On \(A_n\cap G_n\), the Wald interval is nonempty and \(5/8\in\mathcal C_n\), whence the first directed Hausdorff term gives
+\[
+\begin{aligned}
+d_H(\mathcal C_n,I^W_{n,1-\alpha})
+&\ge\inf_{\zeta\in I^W_{n,1-\alpha}}|5/8-\zeta|\\
+&\ge\frac18-\sup_{\zeta\in I^W_{n,1-\alpha}}|\zeta-1/2|\\
+&\ge\frac18-\varepsilon.
+\end{aligned}
+\tag{27}
+\]
+Therefore (21), (26), and the union bound imply
+\[
+\liminf_{n\to\infty}
+\mathbb P_{\mathcal M^{(0)}}^{\,n_s(n),n_t(n)}
+\left\{I^W_{n,1-\alpha}\ne\varnothing,\ 
+d_H(\mathcal C_n,I^W_{n,1-\alpha})\ge\frac18-\varepsilon\right\}
+\ge1-\alpha.
+\tag{28}
+\]
+Because the Wald interval is empty with probability tending to zero, the same bound holds after any totalization on empty samples. Since \(1/8-\varepsilon>0\), (28) rules out unscaled Hausdorff localization and therefore also \(\sqrt n\)-scaled localization.
+
+Finally, uniform coverage alone remains attainable. For every \(\mathbb M\in\mathcal A_p\) and every \(n\ge2\), the span condition gives \(b_n\in\operatorname{col}(B_{x,n})\), while the fixed allocation assumption gives positive finite \(n_s(n),n_t(n)\). Applying Theorem~\ref{thm:finite-sample-projection-coverage} to the row-\(n\) product law on \(\Omega_n\) gives coverage at least \(1-\alpha\) in every row. Taking the infimum over the common-space class \(\mathcal A_p\), then the lower limit, preserves this bound even along changing-rank arrays.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is a diagnostic for the deliberately unrestricted array class \(\mathcal A_p\): it records the cost of adding regular-Wald localization to uniform coverage when ranks, covariances, and balancing norms are unrestricted. It does not refute a named published estimator or test-inversion workflow. \textit{Gap.} Andrews and Guggenberger (2019, Theorems 6.1 and 9.1; bibkey AndrewsGuggenberger2019) are contextual background, not a target of this theorem: their stated SR-AR/SR-CQLR guarantees concern robust-test size and similarity, and their subvector result adds strong nuisance identification. No claim is made that their procedure, or any other published workflow, demands that an unrestricted uniformly covering set localize to a regular Wald interval. The explicit latent-shift construction instead marks a model-specific limitation of imposing that extra demand on \(\mathcal A_p\). \textit{Consumer.} For the Expedia application, this is a guardrail: honest projection reporting should not additionally promise regular-Wald localization unless rank, covariance, or balancing-weight restrictions are imposed.
+
+\section{Interpretation}
+
+This is a model-specific limitation of an added adaptation demand, not a negative result about a published projection or test-inversion procedure. The finite-sample concentration set remains uniformly valid at arbitrary rank and with arbitrarily large balancing weights, and nothing here negates the asymptotic-size or uniform-similarity guarantees of the Andrews--Guggenberger SR-AR/SR-CQLR workflow. On the unrestricted array class, requiring every uniformly covering set also to collapse onto the regular Wald interval fails because a weak-rank sequence can be statistically indistinguishable from a fixed regular model while its causal value stays \(1/8\) away.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+Strict positivity of the primitive outcome kernel is load-bearing for the necessity theorem: at the boundary, an observed all-zero response slice can identify \(\theta_{x,y}=0\) even off the target span. Proxy-channel injectivity is load-bearing for sufficiency: identical proxy columns can hide changes in the target latent mixture and causal effect. The population span condition is not consistently decidable by a hard sample-rank threshold on deficient-rank manifolds. The finite-sample concentration set is honest but may be nonshrinking. As an internal diagnostic of the fixed-allocation, unrestricted changing-rank class, the final theorem shows that adding even unscaled regular-Wald localization to uniform coverage is infeasible without further restrictions; it is not a claim about a published estimator's requirement.
+
+\section{Honest scope}
+
+The headline identification theorem concerns finite state spaces, an unknown full-column-rank proxy channel, unrestricted strictly positive response kernels with the displayed \(W\to Y\) edge, source observations of \((E,W,X,Y)\), and target observations of \(W\) only. It does not identify the latent factorization or require nonnegative balancing weights. Under full source rank it reduces to the Iglesias-Alonso et al. functional. When \(b\notin\operatorname{col}(B_x)\), the result proves non-singleton identification but not sharp endpoints. The concentration projection set is honest but can be nonshrinking. The final theorem is a limitation of this particular fixed-allocation, unrestricted changing-rank class: its incompatibility of uniform coverage and unscaled Wald localization does not rule out localization on smaller singular-value-separated subclasses or describe a demand made by a published procedure. Off-span sharp bounds, continuous proxies, and incomplete proxy channels remain separate questions.
+
+\begin{thebibliography}{99}
+
+  \bibitem{IglesiasAlonsoEtAl2025} Manuel Iglesias-Alonso, Felix Schur, Julius von Kügelgen, and Jonas Peters (2025), Transferring Causal Effects Using Proxies, Advances in Neural Information Processing Systems 38.
+
+  \bibitem{ZhangLiMiaoTchetgen2023} Jeffrey Zhang, Wei Li, Wang Miao, and Eric Tchetgen Tchetgen (2023), Proximal Causal Inference without Uniqueness Assumptions, Statistics and Probability Letters 198, 109836.
+
+  \bibitem{RahiminasabEtAl2026} Zahra Rahiminasab, Reza Soumi, Arto Klami, and Samuel Kaski (2026), Point-Identification of a Robust Predictor Under Latent Shift with Imperfect Proxies, arXiv preprint and Transactions on Machine Learning Research submission.
+
+  \bibitem{MiaoGengTchetgen2018} Wang Miao, Zhi Geng, and Eric Tchetgen Tchetgen (2018), Identifying Causal Effects with Proxy Variables of an Unmeasured Confounder, Biometrika 105, 987--993.
+
+  \bibitem{ShpitserWoodDoughtyTchetgen2023} Ilya Shpitser, Zach Wood-Doughty, and Eric Tchetgen Tchetgen (2023), The Proximal ID Algorithm, Journal of Machine Learning Research 24, 1--46.
+
+  \bibitem{TsaiEtAl2024} Katherine Tsai, Stephen Pfohl, Olawale Salaudeen, Nicole Chiou, Matt Kusner, Alexander D'Amour, Sanmi Koyejo, and Arthur Gretton (2024), Proxy Methods for Domain Adaptation, Proceedings of AISTATS 238.
+
+  \bibitem{BennettEtAl2023} Andrew Bennett, Nathan Kallus, Xiaojie Mao, Whitney Newey, Vasilis Syrgkanis, and Masatoshi Uehara (2023), Inference on Strongly Identified Functionals of Weakly Identified Functions, Proceedings of COLT 195.
+
+  \bibitem{DufourTaamouti2005} Jean-Marie Dufour and Mohamed Taamouti (2005), Projection-Based Statistical Inference in Linear Structural Models with Possibly Weak Instruments, Econometrica 73, 1351--1365.
+
+  \bibitem{AndrewsGuggenberger2019} Donald W. K. Andrews and Patrik Guggenberger (2019), Identification- and Singularity-Robust Inference for Moment Condition Models, Quantitative Economics 10, 1703--1746.
+
+  \bibitem{AndrewsCheng2014} Donald W. K. Andrews and Xu Cheng (2014), GMM Estimation and Uniform Subvector Inference with Possible Identification Failure, Econometric Theory 30, 287--333.
+
+  \bibitem{GhassamiShpitserTchetgen2023} AmirEmad Ghassami, Ilya Shpitser, and Eric Tchetgen Tchetgen (2023), Partial Identification of Causal Effects Using Proxy Variables, arXiv:2304.04374.
+
+  \bibitem{DuarteEtAl2024} Guilherme Duarte, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser (2024), An Automated Approach to Causal Inference in Discrete Settings, Journal of the American Statistical Association 119, 1778--1793.
+
+  \bibitem{Ursu2018} Radu M. Ursu (2018), The Power of Rankings: Quantifying the Effect of Rankings on Online Consumer Search and Purchase Decisions, Marketing Science 37, 530--552.
+
+\end{thebibliography}
+
+\end{document}

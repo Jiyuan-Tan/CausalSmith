@@ -53,19 +53,21 @@ variable {H F : Type*}
   [NormedAddCommGroup H] [InnerProductSpace ℝ H] [CompleteSpace H]
   [NormedAddCommGroup F] [InnerProductSpace ℝ F]
 
-/-- The **free-direction subspace** of a continuous operator: perturbations in `ker A` do not change
-the linear constraint `A h = b`. -/
+/-- For [a real inner-product space serving as the domain](hyp:H), [a real inner-product space
+serving as the codomain](hyp:F), and [a continuous linear map between them](hyp:A), [the
+free-direction subspace](goal) is the kernel of that map: the vectors whose image is zero. -/
 abbrev opKer (A : H →L[ℝ] F) : Submodule ℝ H := LinearMap.ker (A : H →ₗ[ℝ] F)
 
-/-- The free-direction subspace of a continuous linear map admits an orthogonal projection because
-the kernel is closed in a complete Hilbert space. -/
+/-- For [a complete real inner-product space serving as the domain](hyp:H), [a real inner-product space serving as the codomain](hyp:F), and [a continuous linear map from the domain to the codomain](hyp:A), [the map's kernel has an orthogonal projection](goal). [This follows because the kernel is closed and hence complete](step:1). -/
 instance kerHasOrthogonalProjection (A : H →L[ℝ] F) :
     (opKer A).HasOrthogonalProjection := by
   haveI := (ContinuousLinearMap.isClosed_ker A).completeSpace_coe
   infer_instance
 
-/-- The affine-ball fiber contains the solutions to a linear equation that also satisfy a norm
-bound. -/
+/-- For [a real inner-product-space domain](hyp:H), [a real inner-product-space codomain](hyp:F),
+[a continuous linear map from the domain to the codomain](hyp:A), [a target vector in the
+codomain](hyp:b), and [a real bound](hyp:B), [the affine-ball feasible set](goal) consists exactly
+of the domain vectors whose image equals the target vector and whose norm is at most the bound. -/
 def affineBall (A : H →L[ℝ] F) (b : F) (B : ℝ) : Set H := {h | A h = b ∧ ‖h‖ ≤ B}
 
 omit [CompleteSpace H] in

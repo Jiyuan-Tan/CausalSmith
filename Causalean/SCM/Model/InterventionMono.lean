@@ -41,7 +41,9 @@ namespace SCM
 -- Monolithic parent reindex
 -- ============================================================
 
-/-- The monolithic parent reindexer converts split-graph parent values into the parent values
+/-- For [a finite node population](hyp:N) with [node-value spaces](hyp:Ω), [a SWIG graph](hyp:G), [a finite set of intervention targets](hyp:X) whose [random copies are observed](hyp:hObs) and whose [fixed copies are not already fixed](hyp:hFix), [a node](hyp:v), and [an assignment of values to that node's parents after the simultaneous split](hyp:ξ), the [monolithic parent reindexing map](goal) returns the corresponding assignment on the node's parents before the split. It reads a targeted random parent from its new fixed-copy coordinate and otherwise preserves the parent coordinate; these are respectively [the random-parent clause](step:1) and [the fixed-parent clause](step:2).
+
+    The monolithic parent reindexer converts split-graph parent values into the parent values
 expected by the original structural function.
 
     Parent reindexing used by `fixMono`: takes a parent-value tuple over the
@@ -201,7 +203,9 @@ lemma measurable_fixMonoParentMap
 -- The monolithic do operation
 -- ============================================================
 
-/-- The monolithic generalized intervention applies all target splits at once while inheriting
+/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), and [a finite set of intervention targets](hyp:X) whose [random copies are observed](hyp:hObs) and whose [fixed copies are not already fixed](hyp:hFix), the [monolithic intervened structural causal model](goal) simultaneously splits every target, [first forming the split graph](step:1) and then assigning each split edge the corresponding original edge type. It retains the original latent laws and structural mechanisms after reindexing their parent-value inputs.
+
+    The monolithic generalized intervention applies all target splits at once while inheriting
 latent laws and reindexing structural parents.
 
     **Monolithic multi-target generalized do.** (Definition 8, one-shot form.)

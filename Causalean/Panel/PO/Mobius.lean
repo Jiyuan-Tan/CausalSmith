@@ -45,7 +45,9 @@ namespace Causalean.Panel.PO.Mobius
 
 variable {ι : Type*} [DecidableEq ι]
 
-/-- Indicator history `𝟙_A : ι → Fin 2`, equal to `1` on `A` and `0`
+/-- For [a coordinate label space whose elements can be compared for equality](hyp:ι) and [a finite subset of coordinate labels](hyp:A), [the subset-indicator treatment history](goal) assigns treatment status one to labels in the subset and zero to all other labels.
+
+Indicator history `𝟙_A : ι → Fin 2`, equal to `1` on `A` and `0`
 elsewhere. -/
 def indicator (A : Finset ι) : ι → Fin 2 :=
   fun k => if k ∈ A then 1 else 0
@@ -56,7 +58,9 @@ history. -/
     indicator (∅ : Finset ι) = fun _ => 0 := by
   funext k; simp [indicator]
 
-/-- The interaction effect at a subset `S`. The main lemma uses this only for
+/-- For [a coordinate label space whose elements can be compared for equality](hyp:ι), [a real-valued response defined for every binary treatment history](hyp:τ), and [a finite subset of coordinate labels](hyp:S), [the subset interaction coefficient](goal) is the alternating sum of the response evaluated at every sub-subset's indicator history, with sign determined by the difference in subset sizes.
+
+The interaction effect at a subset `S`. The main lemma uses this only for
 non-empty `S`, but the definition is total. -/
 noncomputable def delta (τ : (ι → Fin 2) → ℝ)
     (S : Finset ι) : ℝ :=

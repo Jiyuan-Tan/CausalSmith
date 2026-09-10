@@ -135,10 +135,14 @@ export async function runSubstratePipeline(
     const changed = state.terminalRequirementHash != null && state.terminalRequirementHash !== requirementHash;
     const legacyAuthorized = state.terminalRequirementHash == null && opts.acceptRequirementChange === true;
     if (scaffolderEscalation && (changed || legacyAuthorized)) {
-      // Preserve useful staged Lean, reports, plan, and all spent counters. Invalidate only
-      // requirement-dependent in-flight/review state, then let the scaffolder re-read the new bytes.
+      // Preserve useful staged Lean and the on-disk audit history, but reset budgets whose
+      // meaning is scoped to the requirement bytes. Carrying a nearly exhausted build/review
+      // budget into a materially corrected contract makes this recovery lane unusable.
       state.phase = "build";
+      state.buildRounds = 0;
+      state.reviewRounds = 0;
       state.pendingPrompts = [];
+      state.lastReport = null;
       state.lastReview = null;
       state.terminalMessage = null;
       state.terminalRequirementHash = null;
@@ -208,8 +212,14 @@ export async function runSubstratePipeline(
       state.buildRounds += 1;
       state.moduleFiles = files;
       state.pendingPrompts = []; // consumed
-      await saveRound(runDir, report);
-      if (state.buildRounds >= BUILD_CAP) {
+      await saveRound(runDir, report, state.requirementVersion);
+      if (build.ok && build.sorryCount === 0) {
+        // Deterministic proof closure is sufficient to enter the semantic
+        // reviewer. In particular, do not strand a clean result when the last
+        // filler happens to consume BUILD_CAP.
+        state.phase = "review";
+        state.terminalMessage = null;
+      } else if (state.buildRounds >= BUILD_CAP) {
         state.phase = "halted";
         state.terminalMessage = `Reached BUILD_CAP (${BUILD_CAP}) without the scaffolder requesting review.`;
       } else {
@@ -301,7 +311,12 @@ export async function runSubstratePipeline(
   }
 }
 
-async function saveRound(runDir: string, report: RoundReport): Promise<void> {
+async function saveRound(runDir: string, report: RoundReport, requirementVersion: number): Promise<void> {
   await mkdir(runDir, { recursive: true });
-  await writeFile(path.join(runDir, `round_${report.round}.json`), `${JSON.stringify(report, null, 2)}\n`, "utf8");
+  // Corrected requirements receive a versioned ledger so their fresh round numbers do not
+  // overwrite the evidence that motivated the correction.
+  const name = requirementVersion === 0
+    ? `round_${report.round}.json`
+    : `round_v${requirementVersion}_${report.round}.json`;
+  await writeFile(path.join(runDir, name), `${JSON.stringify(report, null, 2)}\n`, "utf8");
 }

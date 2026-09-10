@@ -42,9 +42,13 @@ namespace Sequential
 
 variable {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω} {ℱ : Filtration ℕ m0}
 
-/-- A **test supermartingale** for a null hypothesis: a nonnegative supermartingale adapted to the
-data filtration whose initial expected value is at most one.  It is the wealth process of a bet
-against the null that cannot grow in expectation under it. -/
+/-- Given [a sample space](hyp:Ω), [a σ-algebra on that space](hyp:m0), [a real-valued process
+indexed by nonnegative integer times](hyp:M), [a filtration on that σ-algebra](hyp:ℱ), and [a
+measure on that measurable space](hyp:μ), a [test supermartingale](goal) is a
+supermartingale adapted to that filtration whose value is nonnegative at every time and sample
+point and whose expected initial value is at most one.
+
+It is the wealth process of a bet against the null that cannot grow in expectation under it. -/
 def IsTestSupermartingale (M : ℕ → Ω → ℝ) (ℱ : Filtration ℕ m0) (μ : Measure Ω) : Prop :=
   Supermartingale M ℱ μ ∧ (∀ n, 0 ≤ M n) ∧ μ[M 0] ≤ 1
 

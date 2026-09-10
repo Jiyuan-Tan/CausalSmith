@@ -81,12 +81,9 @@ private theorem stdVec_perm_symm (σ : Equiv.Perm (Fin d)) (t i : Fin d) :
 
 namespace Solution
 
-/-- Relabeling a solution by an order-preserving permutation gives another valid solution.
+/-- For [a linear causal disentanglement solution with d latent variables, p observed variables, and K intervention contexts](hyp:d,p,K,S), [a permutation of its latent-node indices](hyp:σ), and [the condition that this permutation preserves the directed node order](hyp:hσ), the [permuted solution](goal) is a linear causal disentanglement solution obtained by relabeling every latent coordinate with that permutation.  Its mixing pseudoinverse is the row-permuted original, its observational structural matrix is the original conjugated by the permutation matrix, its interventional structural matrices are conjugated in the same way, and its intervention targets are relabeled by the permutation.
 
-The transformed model has mixing pseudoinverse `Pσ H`, observational matrix
-`Pσ B₀ Pσᵀ`, interventional matrices `Pσ Bₖ Pσᵀ`, and targets `σ(iₖ)`.  The
-order-preservation assumption `σ ∈ S(𝒢)` is essential: it is what keeps the conjugated
-observational matrix upper triangular in the ambient node order. -/
+The order-preservation assumption is what keeps the transformed observational structural matrix upper triangular in the ambient node order. -/
 def permute (S : Solution d p K) (σ : Equiv.Perm (Fin d)) (hσ : S.InSG σ) :
     Solution d p K where
   H := permMat σ * S.H

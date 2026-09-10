@@ -44,20 +44,17 @@ open Causalean.Mathlib.InformationTheory
 
 variable {α β : Type*} [Fintype α] [Fintype β] [DecidableEq α]
 
-/-- The `β`-marginal of a joint mass function `p : α × β → ℝ`:
-`yMarginal p y = ∑ x, p (x, y)`. This is the mass of the conditioning variable `Y`. -/
+/-- For [a finite outcome alphabet and an arbitrary conditioning-value space](hyp:α,β), [a joint real-valued mass function on their product](hyp:p), and [a chosen conditioning value](hyp:y), the [marginal mass at that conditioning value](goal) is the finite sum of the joint masses over all outcome values. -/
 noncomputable def yMarginal (p : α × β → ℝ) (y : β) : ℝ := ∑ x, p (x, y)
 
-/-- Conditional Shannon entropy `H(X ∣ Y)` of a joint mass function `p : α × β → ℝ`,
-defined via the chain rule `H(X ∣ Y) = H(X,Y) − H(Y)`, i.e.
-`entropy p − entropy (yMarginal p)`. -/
+/-- For [finite outcome and conditioning alphabets](hyp:α,β) and [a joint real-valued mass function on their product](hyp:p), the [conditional Shannon entropy](goal) is the Shannon entropy of the joint mass function minus the Shannon entropy of its conditioning-variable marginal. -/
 noncomputable def condEntropy (p : α × β → ℝ) : ℝ :=
   entropy p - entropy (yMarginal p)
 
 omit [DecidableEq α] in
-/-- Error probability of a deterministic decoder `decode : β → α` under the joint mass
-function `p`: the total mass on cells where the decoder is wrong,
-`∑_{x ≠ decode y} p (x, y)`. Encoded with an `if` so the correct cells contribute `0`. -/
+/-- For [finite outcome and observation alphabets, with equality decidable for outcomes](hyp:α,β), [a joint real-valued mass function on their product](hyp:p), and [a deterministic decoder from observations to outcomes](hyp:decode), the [decoder's error mass](goal) is the sum of the joint masses of all outcome--observation pairs for which the decoder's output differs from the outcome.
+
+The implementation gives correct-decision cells zero contribution to this sum. -/
 noncomputable def errorProb (p : α × β → ℝ) (decode : β → α) : ℝ := by
   classical
   exact ∑ xy : α × β, (if xy.1 = decode xy.2 then 0 else p xy)

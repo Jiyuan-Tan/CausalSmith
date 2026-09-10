@@ -20,9 +20,12 @@ universe u v w
 
 variable {𝒳 : Type u} [MeasurableSpace 𝒳] {ι : Type v}
 
-/-- A class has empirical polynomial `L²` covering numbers with constants
-`A` and `v` when every positive-size finite empirical law admits a cover of
-relative radius `ε` with cardinality at most the real power `(A / ε) ^ v`. -/
+/-- Given [a real-valued function class on an observation space](hyp:F,𝒳,ι),
+[an envelope $U$](hyp:U), [an entropy base $A$](hyp:A), and [an exponent $v$](hyp:v), the
+[polynomial empirical $L^2$ covering property](goal) holds exactly when, for every positive
+sample size and every sample of that size, and for every radius $\varepsilon$ with
+$0<\varepsilon\le 1$, [there is a finite index set forming an $L^2$ cover under the empirical
+measure at radius $\varepsilon U$](step:1) and [its cardinality is at most $(A/\varepsilon)^v$](step:2). -/
 def HasPolynomialEmpiricalL2Cover
     (F : ι → 𝒳 → ℝ) (U A v : ℝ) : Prop :=
   ∀ {m : ℕ} (S : Fin m → 𝒳), 0 < m →
@@ -126,26 +129,31 @@ theorem HasPolynomialEmpiricalL2Cover.monoEnvelope
   obtain ⟨j, hjC, hij⟩ := hCcover i
   exact ⟨j, hjC, hij.trans_le (mul_le_mul_of_nonneg_left hUV hε.le)⟩
 
-/-- The logarithmic complexity used by the maximal inequality is the log of
-the larger of Euler's number and the envelope-to-radius ratio `A U / σ`.
-This normalization keeps the logarithm at least one. -/
+/-- Given [an entropy base $A$](hyp:A), [an envelope $U$](hyp:U), and [a variance scale
+$\sigma$](hyp:σ), the [normalized logarithmic complexity](goal) is
+$\log(\max\{e,AU/\sigma\})$.  This normalization makes the logarithm at least one. -/
 noncomputable def vcMaximalLog (A U σ : ℝ) : ℝ :=
   Real.log (max (Real.exp 1) (A * U / σ))
 
-/-- The variance-adaptive VC-type rate is the sum of a leading
-`σ √(v log(AU/σ)/n)` term and a second-order `v U log(AU/σ)/n` term, with a
-logarithm normalized to be at least one. -/
+/-- Given [an envelope $U$](hyp:U), [a variance scale $\sigma$](hyp:σ), [an entropy base
+$A$](hyp:A), [an exponent $v$](hyp:v), and [a sample size $n$](hyp:n), the
+[variance-adaptive VC-type rate](goal) is $\sigma\sqrt{vL/n}+vUL/n$, where
+$L=\log(\max\{e,AU/\sigma\})$. -/
 noncomputable def vcExpectedMaximalRate
     (U σ A v : ℝ) (n : ℕ) : ℝ :=
   σ * Real.sqrt (v * vcMaximalLog A U σ / (n : ℝ)) +
     v * U * vcMaximalLog A U σ / (n : ℝ)
 
-/-- The fixed numerical constant used by the variance-adaptive VC-type
-expected maximal inequality.  Its value is deliberately non-optimized. -/
+/-- The [fixed numerical constant for the variance-adaptive VC-type expected maximal
+inequality](goal) is $16384$.
+
+Its value is deliberately non-optimized. -/
 def varianceAdaptiveVCConstant : ℝ := 16384
 
-/-- The empirical supremum of a countable real-valued class is the largest
-absolute difference between its sample average and population mean. -/
+/-- Given [a measure $P$ on an observation space](hyp:P,𝒳), [a real-valued function
+class indexed by a set $\iota$](hyp:F,ι), and [a sample of $n$ observations](hyp:S,n),
+the [countable empirical supremum](goal) is the supremum, over the class, of the absolute
+difference between the sample average and the population mean. -/
 noncomputable def countableEmpiricalSup
     (P : Measure 𝒳) (F : ι → 𝒳 → ℝ) {n : ℕ} (S : Fin n → 𝒳) : ℝ :=
   uniformDeviation n F P id S

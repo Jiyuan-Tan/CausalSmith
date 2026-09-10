@@ -49,7 +49,9 @@ open scoped ENNReal BigOperators
 
 namespace VarConstr
 
-/-- The paired-cell covariate is nonempty whenever `K ≠ 0`. -/
+/-- For every [positive number $K$ of paired cells](hyp:K), [the paired-cell covariate space](goal) contains [the first cell paired with the true binary position](step:1).
+
+The paired-cell covariate is nonempty whenever $K \ne 0$. -/
 instance instNonemptyFinBoolProd {K : ℕ} [NeZero K] : Nonempty (Fin K × Bool) :=
   ⟨(⟨0, Nat.pos_of_ne_zero (NeZero.ne K)⟩, true)⟩
 
@@ -62,17 +64,26 @@ theorem inClass_nullV (P : VarConstr K) {εg εm : ℝ} (hεg : 0 ≤ εg) (hεm
   err_g d := by rw [l2sq_self]; exact hεg
   err_m := by rw [l2sq_self]; exact hεm
 
-/-- The null `n`-sample law `P̂^⊗n`. -/
+/-- For every [positive number $K$ of paired cells](hyp:K), [cell-varying construction data](hyp:P),
+[sample size $n$](hyp:n), the [null
+$n$-sample law](goal) is the independent-product distribution of $n$ observations from the
+null cell-varying-center data-generating process. -/
 noncomputable def QfalseV (P : VarConstr K) (n : ℕ) [NeZero K] :
     Measure (Fin n → Obs (Fin K × Bool)) :=
   productLaw (P.validDGP_hatV (K := K)) n
 
-/-- The perturbed `n`-sample law `Qλ^⊗n`. -/
+/-- For every [positive number $K$ of paired cells](hyp:K), [cell-varying construction data](hyp:P),
+[sample size $n$](hyp:n), and [binary sign vector
+over the pairs](hyp:lam), the [sign-indexed perturbed $n$-sample law](goal) is the
+independent-product distribution of $n$ observations from the corresponding perturbed
+cell-varying-center data-generating process. -/
 noncomputable def QpertV (P : VarConstr K) (n : ℕ) [NeZero K] (lam : Fin K → Bool) :
     Measure (Fin n → Obs (Fin K × Bool)) :=
   productLaw (P.validDGP_pertV lam) n
 
-/-- The alternative `n`-sample law: the uniform Rademacher mixture of the perturbed laws. -/
+/-- For every [positive number $K$ of paired cells](hyp:K), [cell-varying construction data](hyp:P),
+[sample size $n$](hyp:n), the [alternative
+$n$-sample law](goal) is the uniform mixture of the sign-indexed perturbed $n$-sample laws. -/
 noncomputable def QtrueV (P : VarConstr K) (n : ℕ) [NeZero K] :
     Measure (Fin n → Obs (Fin K × Bool)) :=
   mixture (signWeight K) (fun lam => QpertV P n lam)

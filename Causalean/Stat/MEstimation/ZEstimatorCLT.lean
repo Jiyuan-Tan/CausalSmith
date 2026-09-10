@@ -41,14 +41,9 @@ import Causalean.Stat.MEstimation.ZEstimator
 import Mathlib.Analysis.Calculus.FDeriv.Basic
 import Mathlib.Analysis.InnerProductSpace.EuclideanDist
 
-/-! # Z-estimator asymptotic linearity
+/-! # Z-estimator Asymptotic Linearity
 
-This module proves `zEstimator_clt`, the theorem layer for parametric estimators
-that solve empirical estimating equations.  It connects the local stochastic
-expansion from `EmpiricalExpansion.lean` to an `IsAsymLinearVec`
-influence-function representation with influence function
-`fun z => -(reg.J₀_inv (ψ θ₀ z))`; a separate vector CLT can then turn this
-asymptotic-linear representation into a normal limit.
+This file establishes asymptotic linearity for parametric estimators defined by empirical estimating equations.  It turns a local stochastic expansion into an influence-function representation, which a separate multivariate central limit theorem can convert into a normal limit.  It is the parametric-inference theorem layer built on the library's estimating-equation and empirical-expansion results.
 -/
 
 namespace Causalean.Stat

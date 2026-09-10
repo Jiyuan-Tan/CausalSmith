@@ -16,23 +16,29 @@ causal-free real analysis; no probability or causal layer is imported.
 
 namespace Causalean.ML
 
-/-- Squared loss measures prediction error by squaring the difference between the
-observed label and the prediction. -/
+/-- For [a real-valued prediction $\hat y$](hyp:ŷ) and [a real-valued observed outcome $y$](hyp:y), the [squared loss](goal) is $(y-\hat y)^2$.
+
+It measures prediction error by its square. -/
 def squaredLoss (ŷ y : ℝ) : ℝ := (y - ŷ) ^ 2
 
-/-- Boolean labels are encoded as real zero-one outcomes. -/
+/-- For [a binary label](hyp:b), the [zero--one real-valued encoding of that label](goal) is one when the label is true and zero when it is false.
+
+This lets real-valued loss formulas use binary labels. -/
 def bool01 (b : Bool) : ℝ := if b then 1 else 0
 
-/-- The logistic sigmoid maps any real score to a probability-like number between
-zero and one. -/
+/-- For [a real-valued score $t$](hyp:t), the [logistic sigmoid](goal) is $(1+\exp(-t))^{-1}$.
+
+It maps scores to values strictly between zero and one. -/
 noncomputable def sigmoid (t : ℝ) : ℝ := (1 + Real.exp (-t))⁻¹
 
-/-- Softplus is a smooth positive transformation used to write logistic losses in
-score space. -/
+/-- For [a real-valued score $t$](hyp:t), the [softplus transformation](goal) is $\log(1+\exp t)$.
+
+It is a smooth positive transformation used to express logistic losses in score space. -/
 noncomputable def softplus (t : ℝ) : ℝ := Real.log (1 + Real.exp t)
 
-/-- Logistic score loss is the binary cross-entropy loss written as a function of
-the raw prediction score. -/
+/-- For [a binary outcome $y$](hyp:y) and [a real-valued prediction score $t$](hyp:t), the [logistic score loss](goal) is $\log(1+\exp t)-y_0t$, where $y_0$ is one when $y$ is true and zero when $y$ is false.
+
+This is binary cross-entropy written as a function of an unrestricted prediction score. -/
 noncomputable def logisticScoreLoss (y : Bool) (t : ℝ) : ℝ :=
   softplus t - bool01 y * t
 

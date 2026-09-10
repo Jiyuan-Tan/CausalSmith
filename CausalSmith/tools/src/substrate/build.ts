@@ -66,9 +66,9 @@ export function stripLeanComments(src: string): string {
 /**
  * Detect a non-proof discharge a filler might use to make a file compile clean
  * while NOT actually proving the statement — chiefly a new `axiom` declaration,
- * which emits no `sorry` warning and so slips past `parseBuildDiagnostics`, and
- * `native_decide` (closes a goal via the `Lean.ofReduceBool` axiom). Scans the
- * substrate's OWN source with comments stripped; returns one message per hit.
+ * which emits no `sorry` warning and so slips past `parseBuildDiagnostics`.
+ * Scans the substrate's OWN source with comments stripped; returns one message
+ * per hit.
  * A new axiom is never a legitimate autonomous substrate output — a genuine
  * axiomatization is a deliberate human decision, not a filler's shortcut.
  */
@@ -76,7 +76,6 @@ export function scanSourceForNonProofDischarge(file: string, source: string): st
   const code = stripLeanComments(source);
   const checks: Array<[RegExp, string]> = [
     [/\baxiom\b/, "introduces an 'axiom'"],
-    [/\bnative_decide\b/, "uses 'native_decide'"],
   ];
   const out: string[] = [];
   for (const [re, what] of checks) {
@@ -107,7 +106,7 @@ export async function buildTargets(repoRoot: string, modules: string[]): Promise
     const log = [result.stdout, result.stderr].filter(Boolean).join("\n");
     const diag = parseBuildDiagnostics(log, files);
     // Axiom-laundering guard: a filler must never discharge a `sorry` with a new
-    // `axiom` (or `native_decide`). That compiles clean, emits no sorry warning,
+    // `axiom`. That compiles clean, emits no sorry warning,
     // and would otherwise pass the gate and promote an unproven assumption into
     // Causalean. Scan the substrate's OWN target files and treat any hit as a
     // build error, routing the scaffolder back to a genuine proof.

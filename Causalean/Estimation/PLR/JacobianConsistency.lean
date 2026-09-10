@@ -47,14 +47,12 @@ import Causalean.Stat.SampleSplit.FoldBWLLN
 import Causalean.Stat.SampleSplit.FoldBEmpiricalProcess
 import Causalean.Stat.Limit.Convergence
 
-/-! # Fold-B Jacobian consistency
+/-! # Fold-B partialling-out Jacobian consistency
 
-This file proves `plr_jacobian_consistency`, which discharges the `hJ_consist`
-hypothesis of `plr_dml_feasible_tendstoNormal`: the empirical partialling-out
-Jacobian, averaged over the estimation fold, converges in probability to its
-population value. It also records the population identity
-`integral_plrMomentA_η₀_eq_J₀`, the probability-measure instance for `P_Z`, and
-the bias identity `integral_plrMomentA_diff_eq` used in the proof. -/
+This file proves that the empirical Jacobian of the partially linear
+partialling-out score, averaged over the estimation fold, converges in probability
+to its population value. It supplies the Jacobian-consistency condition needed by
+the feasible partially linear double-machine-learning asymptotic-normality result. -/
 
 namespace Causalean
 namespace Estimation
@@ -84,8 +82,12 @@ lemma integral_plrMomentA_η₀_eq_J₀ (S : PLRSystem P γ) :
   filter_upwards with ω
   simp only [plrMomentA, plrResidual, η₀, factualZ]
 
-/-- The joint observed-data law `P_Z` is a probability measure: it is the pushforward
-of the probability measure `P.μ` along the measurable observation map `(X, D, Y)`. -/
+/-- For [a potential-outcome system equipped with a finite probability measure](hyp:P),
+[a measurable covariate space](hyp:γ), and [a partially linear regression system based on
+them](hyp:S), [the system's joint observed-data law is a probability measure](goal).
+
+It is the pushforward of the potential-outcome system's probability measure along the measurable
+map recording covariates, treatment, and outcome. -/
 instance instIsProbabilityMeasureP_Z (S : PLRSystem P γ) :
     IsProbabilityMeasure S.P_Z :=
   Measure.isProbabilityMeasure_map S.measurable_factualZ.aemeasurable

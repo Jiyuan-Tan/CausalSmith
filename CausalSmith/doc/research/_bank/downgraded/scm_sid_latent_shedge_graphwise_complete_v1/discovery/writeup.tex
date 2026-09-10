@@ -1,0 +1,1285 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{scm\_\allowbreak{}sid\_\allowbreak{}latent\_\allowbreak{}shedge\_\allowbreak{}graphwise\_\allowbreak{}complete}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For graphs satisfying \(\operatorname{NativeForestTrace}(G^S;X,Y)\), published latent S-ID Algorithm 1 succeeds if and only if the selected causal query is graphwise identifiable over the full positive exact-graph augmented-SCM class, with models compared only within one finite signature. Success returns Abouei et al.'s Eq. 23 functional. A terminal recursive failure contains an ordinary hedge whose edges are actual edges of \(G^S[N_S]\); Shpitser--Pearl's hedge criterion and KivvaEtAl2022's positive finite-state construction give a full-support multistate separator, and a common randomized-response routing plus finite exactification yields two exact-graph models with the same strictly positive selected law and unequal intervention-before-conditioning targets. Separate finite rank bounds certify graph recursion, and the rational checker is sound for any supplied certificate. The result does not construct binary or rational failure witnesses. Universal virtual-edge completeness, the positive-binary two-virtual-edge separator, initial selected-d-separation failure construction, exact-rational inverse lifting, and total success-or-certificate compilation remain open. The UK Biobank component remains only a conditional two-selector feasibility audit.
+
+\section{Project justification}
+
+\paragraph{Gap.} AboueiEtAl2024LatentSID proves Algorithm 1 sound and leaves completeness open. Ordinary hedge completeness alone does not solve terminal failures whose projected bidirected edges must be realized through shared or branching ancestors of \(S\), because such realizations can change every selected atom and its normalizer. KivvaEtAl2022 supplies a positive finite-state construction for ordinary identification failures, but not a selected-law inverse lift through those virtual edges.
+
+\paragraph{Niche.} The predicate \(\operatorname{NativeForestTrace}(G^S;X,Y)\) isolates the terminal traces for which the nested common-root forests can be chosen using actual directed and bidirected edges of \(G^S[N_S]\). On this class the ordinary positive-forest construction can be used before adding a common selection mechanism and actual-edge root-to-outcome channels.
+
+\paragraph{Fill.} The paper proves the missing converse on \(\operatorname{NativeForestTrace}(G^S;X,Y)\). It verifies the Shpitser--Pearl hedge clauses for each terminal native forest, invokes KivvaEtAl2022 for finite full-support ordinary countermodels, extracts a nonzero root-atom contrast, routes it to \(Y_N\) through common full-support randomized-response channels on treatment-avoiding actual paths, and exactifies inert interfaces without changing the equal selected law or target contrast. Combined with published soundness, this gives the success-if-and-only-if theorem and Eq. 23 on success. Independent results bound the graph recursion and verify any supplied rational certificate, without claiming a binary, rational, or executable failure constructor.
+
+\section{Related work}
+
+AboueiEtAl2024LatentSID defines latent subpopulation S-ID, Algorithm 1, S-components, S-Hedges, and Eq. 23, proves soundness, and leaves completeness open. This paper advances that frontier only on \(\operatorname{NativeForestTrace}(G^S;X,Y)\): it does not settle unrestricted terminal traces or initial selected-d-separation failure. ShpitserPearl2006 provides Definition 7's ordinary hedge criterion and Theorem 4's nonidentifiability implication. KivvaEtAl2022, not KivvaEtAl2023 Appendix A.1.1, provides the positive finite-state ordinary-ID substrate used here; the new work is the reduction from an actual-edge terminal S-Hedge to that substrate, followed by selected-law extension, actual-edge root-to-outcome routing, and inert exactification. KivvaEtAl2023 concerns conditional generalized identification and does not directly state this ordinary-forest specialization. HuangValtorta2008 and TianPearl2002 provide the ordinary recursive-identification and district-factorization background. AboueiEtAl2024SID is used only for the known no-latent DAG regression check. ChenZoeterMooij2024 explains selection conditioning as an SCM transformation but does not supply a common-selected-law inverse countermodel lift. RichardsonEtAl2017 supplies nested Markov and district-kernel language useful for describing recursive kernels and full-graph extension; it does not prove the selected-law converse. BhattacharyaNabiShpitser2022 studies semiparametric inference after hidden-variable identification and is relevant only to separating this population identification result from downstream estimation; it supplies no completeness claim. LeeGhassamiShpitser2024 uses multiple systematic-selection inputs rather than one full selected law. DuarteEtAl2024AutoBounds addresses optimization-based discrete partial identification, not singleton collapse at S-ID success. The UK Biobank citations motivate a conditional two-selector feasibility audit only; no empirical effect or unconditional fusion claim is made.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\Theta_{x,\sigma}(M)=P_M(Y\mid\operatorname{do}(X=x),S=1)\).
+Primary functional / estimator / diagnostic: \(\Phi_{23,x}^{\sigma}(P_\sigma^S)(y)=\sum_{w\in\mathcal X_W} P_\sigma^S(Y_S=y_S,W=w\mid X_S=x_S)\sum_{d_{D\setminus Y_N}\in\mathcal X_{D\setminus Y_N}}\prod_{D_i\in\mathcal D_S(D)}Q_{P_\sigma,x_N}^S[D_i](d_i\mid y_S,w,x_S,d_{D\setminus D_i})\).
+\begin{itemize}
+  \item \texttt{V} --- \texttt{finite substantive vertex set}; \texttt{finite sets}; \texttt{graph carrier}
+  \par\smallskip\noindent\emph{Definition.} \(V\) is the set of observed substantive variables.
+  \item \texttt{S} --- \texttt{binary selection vertex}; \(\{0,1\}\); \texttt{selection indicator}
+  \par\smallskip\noindent\emph{Definition.} \(S=1\) denotes membership in the observed subpopulation.
+  \item \texttt{sigma} --- \texttt{finite observed signature}; families of finite state spaces on \(V\cup\{S\}\); \texttt{finite-\allowbreak{}state signature}
+  \par\smallskip\noindent\emph{Definition.} \(\sigma=(\mathcal X_v)_{v\in V\cup\{S\}}\) satisfies \(2\le |\mathcal X_v|<\infty\) for every \(v\in V\) and \(\mathcal X_S=\{0,1\}\).
+  \item \texttt{sigmabin} --- \texttt{binary observed signature}; \texttt{finite observed signatures}; \texttt{failure-\allowbreak{}certificate signature}
+  \par\smallskip\noindent\emph{Definition.} \(\sigma_{\mathrm{bin}}\) is the signature with \(\mathcal X_v=\{0,1\}\) for every \(v\in V\cup\{S\}\).
+  \item \texttt{G} --- \texttt{finite augmented acyclic directed mixed graph}; ADMGs on \(V\cup\{S\}\) in which \(S\) has no children; \texttt{causal graph}
+  \par\smallskip\noindent\emph{Definition.} \(G^S\) has an acyclic directed part and \(S\) has no children. It is the exact graph induced by the augmented SCM: \(u\to v\) holds exactly when \(u\) belongs to the declared observed-parent set of \(v\), and \(v\leftrightarrow w\) holds exactly when the mechanisms for \(v\) and \(w\) share an exogenous input.
+  \item \texttt{X} --- \texttt{intervention vertex set}; subsets of \(V\); \texttt{treatment set}
+  \par\smallskip\noindent\emph{Definition.} \(X\subseteq V\) is the set intervened upon.
+  \item \texttt{Y} --- \texttt{nonempty outcome vertex set}; nonempty subsets of \(V\setminus X\); \texttt{outcome set}
+  \par\smallskip\noindent\emph{Definition.} \(\varnothing\ne Y\subseteq V\setminus X\) is the queried outcome set.
+  \item \texttt{x} --- \texttt{intervention value}; \(\mathcal X_X=\prod_{v\in X}\mathcal X_v\) under \(\sigma\); \texttt{treatment value}
+  \par\smallskip\noindent\emph{Definition.} \(x\in\mathcal X_X\) is a fixed value assigned to \(X\) within signature \(\sigma\).
+  \item \texttt{xbin} --- \texttt{binary certificate intervention value}; \(\{0,1\}^{X}\); \texttt{failure-\allowbreak{}certificate treatment value}
+  \par\smallskip\noindent\emph{Definition.} \(x_{\mathrm{bin}}\in\{0,1\}^{X}\) is an intervention value returned with a binary nonidentification certificate.
+  \item \texttt{AS} --- \texttt{selection-\allowbreak{}ancestor vertex set}; subsets of \(V\); \texttt{selection-\allowbreak{}ancestor block}
+  \par\smallskip\noindent\emph{Definition.} \(A_S=V\cap\operatorname{An}_{G^S}(S)\).
+  \item \texttt{NS} --- \texttt{selection-\allowbreak{}nonancestor vertex set}; subsets of \(V\); \texttt{recursive S-\allowbreak{}ID carrier}
+  \par\smallskip\noindent\emph{Definition.} \(N_S=V\setminus A_S\).
+  \item \texttt{XS} --- \texttt{selection-\allowbreak{}ancestor treatment set}; subsets of \(X\); \texttt{ancestor treatment block}
+  \par\smallskip\noindent\emph{Definition.} \(X_S=X\cap A_S\).
+  \item \texttt{XN} --- \texttt{selection-\allowbreak{}nonancestor treatment set}; subsets of \(X\); \texttt{recursive treatment block}
+  \par\smallskip\noindent\emph{Definition.} \(X_N=X\cap N_S\).
+  \item \texttt{xS} --- \texttt{selection-\allowbreak{}ancestor intervention value}; the state space of \(X_S\); \texttt{outer-\allowbreak{}conditional evaluation value}
+  \par\smallskip\noindent\emph{Definition.} \(x_S=x|_{X_S}\) is the restriction of the intervention value to \(X_S\).
+  \item \texttt{xN} --- \texttt{selection-\allowbreak{}nonancestor intervention value}; the state space of \(X_N\); \texttt{recursive-\allowbreak{}kernel evaluation value}
+  \par\smallskip\noindent\emph{Definition.} \(x_N=x|_{X_N}\) is the restriction of the intervention value to \(X_N\).
+  \item \texttt{YS} --- \texttt{selection-\allowbreak{}ancestor outcome set}; subsets of \(Y\); \texttt{ancestor outcome block}
+  \par\smallskip\noindent\emph{Definition.} \(Y_S=Y\cap A_S\).
+  \item \texttt{YN} --- \texttt{selection-\allowbreak{}nonancestor outcome set}; subsets of \(Y\); \texttt{recursive outcome block}
+  \par\smallskip\noindent\emph{Definition.} \(Y_N=Y\cap N_S\).
+  \item \texttt{W} --- \texttt{unqueried selection-\allowbreak{}ancestor set}; subsets of \(A_S\); \texttt{outer marginalization set}
+  \par\smallskip\noindent\emph{Definition.} \(W=A_S\setminus(X_S\cup Y_S)\).
+  \item \texttt{D} --- \texttt{recursive ancestral set}; subsets of \(N_S\); \texttt{Eq. 23 ancestral carrier}
+  \par\smallskip\noindent\emph{Definition.} \(D=\operatorname{An}_{G^S[N_S\setminus X_N]}(Y_N)\).
+  \item \texttt{DS} --- \texttt{S-\allowbreak{}component partition}; finite partitions of \(D\); \texttt{district-\allowbreak{}factor index}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal D_S(D)=\{D_1,\ldots,D_k\}\) is the S-component partition of \(D\) in \(G^S[D\cup A_S\cup\{S\}]\).
+  \item \texttt{H} --- \texttt{generic recursive vertex set}; subsets of \(N_S\); \texttt{generic recursive carrier}
+  \par\smallskip\noindent\emph{Definition.} \(H\subseteq N_S\) is a generic set used in S-component and selected-kernel operations.
+  \item \texttt{C} --- \texttt{failed target S-\allowbreak{}component}; nonempty subsets of \(N_S\); \texttt{inner hedge set}
+  \par\smallskip\noindent\emph{Definition.} \(C=D_i\) is the fixed target S-component from \(\mathcal D_S(D)\) in a terminal call descended from Algorithm 1's initial call for \(D_i\).
+  \item \texttt{T} --- \texttt{enclosing failed S-\allowbreak{}component}; subsets of \(N_S\); \texttt{S-\allowbreak{}Hedge set}
+  \par\smallskip\noindent\emph{Definition.} \(T\) is the enclosing single S-component in a terminal failed call descended from \(\operatorname{sID\text{-}Single}(D_i,T_i^{(0)},Q_{P_\sigma}^S[T_i^{(0)}])\), with \(C=D_i\subsetneq T\subseteq T_i^{(0)}\).
+  \item \texttt{M} --- \texttt{signature-\allowbreak{}indexed recursive augmented structural causal model}; augmented SCMs on \(V\cup\{S\}\) with endogenous signature \(\sigma\) and mutually independent exogenous variables that may be shared across multiple endogenous mechanisms; \texttt{model variable}
+  \par\smallskip\noindent\emph{Definition.} \(M\) is a generic recursive augmented SCM with endogenous state spaces \(\sigma\) whose induced augmented graph equals \(G^S\); each exogenous variable may enter several endogenous mechanisms.
+  \item \texttt{Mplus} --- \texttt{positive exact-\allowbreak{}graph augmented-\allowbreak{}SCM class}; \texttt{sets of recursive augmented SCMs whose induced graph equals the fixed augmented ADMG}; \texttt{identification class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak M_+(G^S,\sigma)\) is defined in \(\mathrm{def:model\text{-}class}\).
+  \item \texttt{M0} --- \texttt{first compatible SCM}; \(\mathfrak M_+(G^S,\sigma)\); \texttt{countermodel}
+  \par\smallskip\noindent\emph{Definition.} \(M_0\) is the first model in a within-signature observational-equivalence comparison.
+  \item \texttt{M1} --- \texttt{second compatible SCM}; \(\mathfrak M_+(G^S,\sigma)\); \texttt{countermodel}
+  \par\smallskip\noindent\emph{Definition.} \(M_1\) is the second model in a within-signature observational-equivalence comparison.
+  \item \texttt{CertSCM} --- \texttt{exact finite augmented-\allowbreak{}SCM certificate type}; \texttt{finite rational table encodings for the binary signature}; \texttt{failure-\allowbreak{}witness encoding}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})\) is the exact certificate type defined in \(\mathrm{def:certscm\text{-}encoding}\); its declared parent interfaces and shared-latent scopes induce exactly \(G^S\), and a latent factor may enter any finite number of mechanisms.
+  \item \texttt{RawCertSCM} --- \texttt{finite subgraph-\allowbreak{}compatible augmented-\allowbreak{}SCM certificate type}; \texttt{finite rational table encodings for the binary signature}; \texttt{input type for exactification}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{RawCertSCM}(G^S,\sigma_{\mathrm{bin}})\) has the same normalized rational latent tables, deterministic structural tables, and strict selected-cell positivity as \(\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})\), except that its declared parent interfaces and shared-latent incidences may induce any augmented ADMG contained in \(G^S\).
+  \item \texttt{Exactify} --- \texttt{exact-\allowbreak{}graph certificate completion map}; \(E\mapsto\operatorname{Exactify}_{G^S}(E)\); \texttt{exact induced-\allowbreak{}graph repair}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Exactify}_{G^S}\) is the coordinate-constant parent and latent-incidence completion defined in \(\mathrm{def:exactification\text{-}map}\).
+  \item \texttt{RealizeCert} --- \texttt{certificate realization map}; \(E\mapsto\llbracket E\rrbracket\); \texttt{bridge from finite encoding to the ambient model class}
+  \par\smallskip\noindent\emph{Definition.} \(\llbracket E\rrbracket\) is the augmented SCM obtained by interpreting the finite latent and structural tables in \(E\in\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})\).
+  \item \texttt{E0} --- \texttt{first exact finite SCM certificate}; \(\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})\); \texttt{encoded countermodel}
+  \par\smallskip\noindent\emph{Definition.} \(E_0\) is the first finitely encoded rational failure witness, with realized model \(\llbracket E_0\rrbracket\).
+  \item \texttt{E1} --- \texttt{second exact finite SCM certificate}; \(\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})\); \texttt{encoded countermodel}
+  \par\smallskip\noindent\emph{Definition.} \(E_1\) is the second finitely encoded rational failure witness, with realized model \(\llbracket E_1\rrbracket\).
+  \item \texttt{CertCheck} --- \texttt{exact nonidentification-\allowbreak{}certificate checker}; \((G^S,X,Y,x_{\mathrm{bin}},E_0,E_1)\mapsto\{\mathrm{accept},\mathrm{reject}\}\); \texttt{certificate verifier}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{Check}_{\mathrm{NONID}}\) is the exhaustive rational-arithmetic checker defined in \(\mathrm{def:certificate\text{-}checker\).
+  \item \texttt{EncLen} --- \texttt{certificate encoded table length}; \texttt{positive integers}; \texttt{checker operation-\allowbreak{}bound parameter}
+  \par\smallskip\noindent\emph{Definition.} \(L(E)\) is the total encoded length of \(E\), including exact rational entries, structural table cells, declared parent incidences, latent-scope incidences, and the unordered vertex pairs represented by every latent scope.
+  \item \texttt{LatProd} --- \texttt{latent-\allowbreak{}support product size}; \texttt{positive integers}; \texttt{checker operation-\allowbreak{}bound parameter}
+  \par\smallskip\noindent\emph{Definition.} \(R(E)=\prod_{j=1}^{m(E)}|\mathcal U_j|\) is the number of joint latent assignments enumerated for certificate \(E\).
+  \item \texttt{PS} --- \texttt{selected observational-\allowbreak{}law map}; \((M,\sigma)\mapsto\Delta(\prod_{v\in V}\mathcal X_v)\); \texttt{observed input}
+  \par\smallskip\noindent\emph{Definition.} \(P_{M,\sigma}^S(v)=P_M(V=v\mid S=1)\) for \(v\in\prod_{j\in V}\mathcal X_j\).
+  \item \texttt{Theta} --- \texttt{selected interventional target map}; \((M,\sigma,x)\mapsto\Delta(\prod_{v\in Y}\mathcal X_v)\); \texttt{causal estimand}
+  \par\smallskip\noindent\emph{Definition.} \(\Theta_{x,\sigma}(M)=P_M(Y\mid\operatorname{do}(X=x),S=1)\), with intervention applied before conditioning within signature \(\sigma\).
+  \item \texttt{SComp} --- \texttt{S-\allowbreak{}component map}; \(H\mapsto\operatorname{SComp}_{G^S}(H)\); \texttt{recursive decomposition}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{SComp}_{G^S}(H)\) is the partition induced on \(H\) by the districts of \(G^S[H\cup A_S\cup\{S\}]\).
+  \item \texttt{I0} --- \texttt{initial single-\allowbreak{}component call family}; \texttt{finite sets of nested S-\allowbreak{}component pairs}; \texttt{recursion roots}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal I_0=\{(D_i,T_i^{(0)}):D_i\in\mathcal D_S(D),\ T_i^{(0)}\in\operatorname{SComp}_{G^S}(N_S),\ D_i\subseteq T_i^{(0)}\}\) is the family of calls made by Algorithm 1 before any recursion.
+  \item \texttt{CallBudget} --- \texttt{initial size-\allowbreak{}sum call budget}; \texttt{nonnegative integers}; \texttt{global termination bound}
+  \par\smallskip\noindent\emph{Definition.} \(B_0=\sum_{(D_i,T_i^{(0)})\in\mathcal I_0}|T_i^{(0)}|\).
+  \item \texttt{SHedge} --- \texttt{S-\allowbreak{}Hedge predicate}; \((C,T)\mapsto\{\mathrm{true},\mathrm{false}\}\); \texttt{failure obstruction}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{SHedge}_{G^S}(C,T)\) is defined in \(\mathrm{def:s-hedge}\).
+  \item \texttt{Ident} --- \texttt{graphwise selected-\allowbreak{}effect identification predicate}; \((G^S,X,Y)\mapsto\{\mathrm{true},\mathrm{false}\}\); \texttt{headline property}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Ident}^{\mathrm{fin}}_S(G^S;X,Y)\) is defined in \(\mathrm{def:graphwise\text{-}sid}\) by quantifying over all finite signatures and all intervention values in each signature.
+  \item \texttt{KSH} --- \texttt{intervention-\allowbreak{}indexed selected kernel}; \((H,\sigma,x_N)\mapsto Q_{P_\sigma,x_N}^S[H]\); \texttt{Eq. 23 factor}
+  \par\smallskip\noindent\emph{Definition.} \(Q_{P_\sigma,x_N}^S[H]\) is the selected kernel generated from \(P_\sigma^S\) by the S-component decomposition and evaluated at \(X_N=x_N\) in every recursive factor.
+  \item \texttt{Phi23} --- \texttt{published S-\allowbreak{}ID functional}; \((P_\sigma^S,\sigma,x)\mapsto\Delta(\prod_{v\in Y}\mathcal X_v)\); \texttt{success output}
+  \par\smallskip\noindent\emph{Definition.} \(\Phi_{23,x}^{\sigma}(P_\sigma^S)\) is the signature- and intervention-indexed functional in Eq. 23 of AboueiEtAl2024LatentSID, with the outer conditional evaluated at \(X_S=x_S\) and every recursive selected kernel evaluated at \(X_N=x_N\).
+  \item \texttt{PiS} --- \texttt{selection-\allowbreak{}ancestor suppression graph}; \(G^S\mapsto\Pi_S(G^S)\); \texttt{ordinary-\allowbreak{}hedge projection}
+  \par\smallskip\noindent\emph{Definition.} \(\Pi_S(G^S)\) is the mixed graph on \(N_S\) defined in \(\mathrm{def:suppression\text{-}projection}\), with \(S\) included among the vertices permitted inside a suppressed path.
+  \item \texttt{Rroot} --- \texttt{common projected hedge root set}; nonempty subsets of \(C\); \texttt{ordinary hedge root set}
+  \par\smallskip\noindent\emph{Definition.} \(R\subseteq C\) is the nonempty common root set of the nested projected \(C\)-forests.
+  \item \texttt{F0} --- inner projected rooted \(C\)-forest; subgraphs of \(\Pi_S(G^S)[C]\); \texttt{inner ordinary hedge forest}
+  \par\smallskip\noindent\emph{Definition.} \(F_0\) is an \(R\)-rooted \(C\)-forest with vertex set \(C\), one bidirected district, and exactly the vertices in \(R\) having no children in the forest.
+  \item \texttt{F1} --- outer projected rooted \(C\)-forest; subgraphs of \(\Pi_S(G^S)[T]\); \texttt{outer ordinary hedge forest}
+  \par\smallskip\noindent\emph{Definition.} \(F_1\) is an \(R\)-rooted \(C\)-forest with vertex set \(T\), one bidirected district, the same root set \(R\), and \(F_0\) as an induced subgraph.
+  \item \texttt{Mbar0} --- \texttt{first rational projected hedge SCM}; finite rational semi-Markovian SCMs on \(\Pi_S(G^S)[T]\) under \(\sigma_{\mathrm{bin}}\); \texttt{projected countermodel}
+  \par\smallskip\noindent\emph{Definition.} \(\overline M_0\) is the first projected model carried by \(\mathrm{def:projected\text{-}ordinary\text{-}hedge\text{-}input\).
+  \item \texttt{Mbar1} --- \texttt{second rational projected hedge SCM}; finite rational semi-Markovian SCMs on \(\Pi_S(G^S)[T]\) under \(\sigma_{\mathrm{bin}}\); \texttt{projected countermodel}
+  \par\smallskip\noindent\emph{Definition.} \(\overline M_1\) is the second projected model carried by \(\mathrm{def:projected\text{-}ordinary\text{-}hedge\text{-}input\).
+  \item \texttt{QbarC} --- \texttt{projected local intervention-\allowbreak{}kernel map}; \((\overline M_j,C,x_N)\mapsto\overline Q^{(j)}_{C,x_N}\); \texttt{projected separating functional}
+  \par\smallskip\noindent\emph{Definition.} \(\overline Q^{(j)}_{C,x_N}\) is the intervention kernel for the failed local factor \(D_i=C\) induced by \(\overline M_j\) at \(X_N=x_N\), for \(j\in\{0,1\}\).
+  \item \texttt{ProjectedHedgeInput} --- \texttt{projected ordinary-\allowbreak{}hedge input record}; \((G^S,X,Y,C,T)\mapsto(F_0,F_1,R,\overline M_0,\overline M_1,x_{\mathrm{bin}})\); \texttt{typed donor object for inverse lifting}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{ProjHedgeInput}(G^S;X,Y;C,T)\) is the explicit record defined in \(\mathrm{def:projected\text{-}ordinary\text{-}hedge\text{-}input\).
+  \item \texttt{LiftHandle} --- \texttt{joint inverse-\allowbreak{}lift handle}; \((G^S,X,Y,C,T,\mathsf{ProjHedgeInput})\mapsto(E_0,E_1,\mathsf{Check}_{\mathrm{NONID}}=\mathrm{accept})\); \texttt{open-\allowbreak{}question handle}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf H_{\mathrm{lift}}\) is the joint fiber-coupling route defined in \(\mathrm{def:inverse\text{-}lift\text{-}handle}\).
+  \item \texttt{SHedgePair} --- \texttt{exactly encoded finite-\allowbreak{}binary countermodel pair}; \((G^S,C,T,x_{\mathrm{bin}},\sigma_{\mathrm{bin}})\mapsto(E_0,E_1)\); \texttt{recursive-\allowbreak{}failure certificate}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{SHedgePair}(G^S,C,T,x_{\mathrm{bin}};\sigma_{\mathrm{bin}})\) is the pair in \(\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})^2\) returned after the effective inverse lift and full-graph district extension.
+  \item \texttt{AncestorPair} --- \texttt{exactly encoded finite-\allowbreak{}binary countermodel pair}; \((G^S,X,Y,x_{\mathrm{bin}},\sigma_{\mathrm{bin}})\mapsto(E_0,E_1)\); \texttt{initial-\allowbreak{}failure certificate}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{AncestorPair}(G^S,X,Y,x_{\mathrm{bin}};\sigma_{\mathrm{bin}})\) is the pair in \(\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})^2\) returned when the initial selected d-separation condition fails.
+  \item \texttt{Rank} --- \texttt{well-\allowbreak{}founded recursion rank}; \texttt{finite multisets of positive integers}; \texttt{termination certificate}
+  \par\smallskip\noindent\emph{Definition.} \(\rho\) records the cardinalities of the current enclosing S-components along the call chains rooted at \(\mathcal I_0\).
+  \item \texttt{sIDplus} --- \texttt{success-\allowbreak{}or-\allowbreak{}certificate algorithm}; \((G^S,X,Y,\sigma,x,P_\sigma^S)\mapsto\operatorname{ID}(\Phi_{23,x}^{\sigma})\cup\operatorname{NONID}(x_{\mathrm{bin}},E_0,E_1,\mathsf{Check}_{\mathrm{NONID}}=\mathrm{accept};\sigma_{\mathrm{bin}})\); \texttt{executable deliverable}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{sID}^{\pm}\) augments the published Algorithm 1 with symbolic failure certificates.
+  \item \texttt{Vstar} --- \texttt{fixed early-\allowbreak{}kill substantive vertex set}; \texttt{finite sets}; \texttt{early-\allowbreak{}kill carrier}
+  \par\smallskip\noindent\emph{Definition.} \(V_\star=\{B,D,Y,Z_1,Z_2\}\) is the substantive carrier of the two-virtual-edge instance.
+  \item \texttt{Xstar} --- \texttt{fixed early-\allowbreak{}kill intervention vertex set}; subsets of \(V_\star\); \texttt{early-\allowbreak{}kill treatment set}
+  \par\smallskip\noindent\emph{Definition.} \(X_\star=\{B,D\}\) is the intervention set in the two-virtual-edge instance.
+  \item \texttt{Ystar} --- \texttt{fixed early-\allowbreak{}kill outcome vertex set}; nonempty subsets of \(V_\star\setminus X_\star\); \texttt{early-\allowbreak{}kill outcome set}
+  \par\smallskip\noindent\emph{Definition.} \(Y_\star=\{Y\}\) is the outcome set in the two-virtual-edge instance.
+  \item \texttt{sigmabinstar} --- \texttt{fixed early-\allowbreak{}kill binary signature}; finite observed signatures on \(V_\star\cup\{S\}\); \texttt{early-\allowbreak{}kill signature}
+  \par\smallskip\noindent\emph{Definition.} \(\sigma_{\mathrm{bin},\star}=(\{0,1\})_{v\in V_\star\cup\{S\}}\) is the binary signature on the local carrier and selector.
+  \item \texttt{xstar} --- \texttt{early-\allowbreak{}kill intervention value}; \(\{0,1\}^{X_\star}\); \texttt{early-\allowbreak{}kill treatment value}
+  \par\smallskip\noindent\emph{Definition.} \(x_\star\in\{0,1\}^{X_\star}\) is a local value assigned to \(X_\star\).
+  \item \texttt{Gstar} --- \texttt{fixed two-\allowbreak{}virtual-\allowbreak{}edge augmented ADMG}; finite augmented ADMGs on \(V_\star\cup\{S\}\); \texttt{early-\allowbreak{}kill graph}
+  \par\smallskip\noindent\emph{Definition.} \(G_\star^S\) has substantive carrier \(V_\star=\{B,D,Y,Z_1,Z_2\}\), directed edges \(B\to D\to Y\), \(Z_1\to S\), and \(Z_2\to S\), and bidirected edges \(D\leftrightarrow Z_1\leftrightarrow B\leftrightarrow Z_2\leftrightarrow Y\). The selector \(S\) is childless.
+  \item \texttt{Mstarplus} --- \texttt{early-\allowbreak{}kill positive exact-\allowbreak{}graph augmented-\allowbreak{}SCM class}; \texttt{sets of recursive augmented SCMs with arbitrary shared exogenous incidence}; \texttt{early-\allowbreak{}kill model class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak M_{\star,+}=\mathfrak M_+(G_\star^S,\sigma_{\mathrm{bin},\star})\) is the positive class whose SCM parent interfaces and shared-exogenous incidences induce exactly \(G_\star^S\).
+  \item \texttt{Mstar0} --- \texttt{first early-\allowbreak{}kill augmented SCM}; \(\mathfrak M_{\star,+}\); \texttt{early-\allowbreak{}kill countermodel}
+  \par\smallskip\noindent\emph{Definition.} \(M_{\star,0}\) is the first local model in the selected-law fiber comparison.
+  \item \texttt{Mstar1} --- \texttt{second early-\allowbreak{}kill augmented SCM}; \(\mathfrak M_{\star,+}\); \texttt{early-\allowbreak{}kill countermodel}
+  \par\smallskip\noindent\emph{Definition.} \(M_{\star,1}\) is the second local model in the selected-law fiber comparison.
+  \item \texttt{Estar0} --- \texttt{first exact early-\allowbreak{}kill SCM certificate}; \(\operatorname{CertSCM}(G_\star^S,\sigma_{\mathrm{bin},\star})\); \texttt{early-\allowbreak{}kill encoded countermodel}
+  \par\smallskip\noindent\emph{Definition.} \(E_{\star,0}\) is the finite rational encoding whose realized model is \(M_{\star,0}=\llbracket E_{\star,0}\rrbracket\).
+  \item \texttt{Estar1} --- \texttt{second exact early-\allowbreak{}kill SCM certificate}; \(\operatorname{CertSCM}(G_\star^S,\sigma_{\mathrm{bin},\star})\); \texttt{early-\allowbreak{}kill encoded countermodel}
+  \par\smallskip\noindent\emph{Definition.} \(E_{\star,1}\) is the finite rational encoding whose realized model is \(M_{\star,1}=\llbracket E_{\star,1}\rrbracket\).
+  \item \texttt{Qstar} --- \texttt{selected intervention on the early-\allowbreak{}kill graph}; \((M,x_\star)\mapsto\Delta(\{0,1\}^{Y_\star})\); \texttt{early-\allowbreak{}kill target}
+  \par\smallskip\noindent\emph{Definition.} \(Q_{\star,x_\star}(M)=P_M(Y_\star\mid\operatorname{do}(X_\star=x_\star),S=1)\) for \(M\in\mathfrak M_{\star,+}\), with intervention applied before conditioning.
+  \item \texttt{ZEI} --- \texttt{UK Biobank genetic instrument variable}; a finite state space \(\mathcal X_Z\); \texttt{application instrument}
+  \par\smallskip\noindent\emph{Definition.} \(Z\) is the reported genetic instrument in the exposure and imaging samples.
+  \item \texttt{AEI} --- \texttt{UK Biobank HbA1c exposure variable}; a finite state space \(\mathcal X_A\); \texttt{application treatment}
+  \par\smallskip\noindent\emph{Definition.} \(A\) is the discretized HbA1c exposure.
+  \item \texttt{YEI} --- \texttt{UK Biobank brain-\allowbreak{}aging outcome variable}; a finite state space \(\mathcal X_Y\); \texttt{application outcome}
+  \par\smallskip\noindent\emph{Definition.} \(Y\) is the discretized white-matter brain-age-gap outcome.
+  \item \texttt{LEI} --- \texttt{UK Biobank reported covariate vector}; a finite product state space \(\mathcal X_L\); \texttt{application covariates}
+  \par\smallskip\noindent\emph{Definition.} \(L\) collects the reported baseline covariates shared across the two margins.
+  \item \texttt{VEI} --- \texttt{two-\allowbreak{}selector substantive vertex set}; \texttt{finite sets}; \texttt{application graph carrier}
+  \par\smallskip\noindent\emph{Definition.} \(V_{EI}=\{Z,A,Y\}\cup L\) is the substantive carrier for the exposure--imaging feasibility audit.
+  \item \texttt{SE} --- \texttt{binary exposure-\allowbreak{}sample selector}; \(\{0,1\}\); \texttt{exposure selector}
+  \par\smallskip\noindent\emph{Definition.} \(S_E=1\) denotes exposure-sample eligibility.
+  \item \texttt{SI} --- \texttt{binary imaging-\allowbreak{}sample selector}; \(\{0,1\}\); \texttt{imaging selector}
+  \par\smallskip\noindent\emph{Definition.} \(S_I=1\) denotes imaging-sample eligibility.
+  \item \texttt{sigmaEI} --- \texttt{finite two-\allowbreak{}selector observed signature}; families of finite state spaces on \(V_{EI}\cup\{S_E,S_I\}\); \texttt{application signature}
+  \par\smallskip\noindent\emph{Definition.} \(\sigma_{EI}=(\mathcal X_v)_{v\in V_{EI}\cup\{S_E,S_I\}}\) has at least two states for every substantive variable and binary selectors \(S_E,S_I\).
+  \item \texttt{GEI} --- \texttt{finite two-\allowbreak{}selector augmented ADMG}; ADMGs on \(V_{EI}\cup\{S_E,S_I\}\) with childless selectors; \texttt{application causal graph}
+  \par\smallskip\noindent\emph{Definition.} \(G^{EI}\) is induced exactly by the two-selector SCM: every declared observed-parent interface equals the corresponding graph parent set, and a bidirected edge occurs exactly when its endpoint mechanisms share an exogenous input.
+  \item \texttt{aEI} --- \texttt{HbA1c intervention value}; \(\mathcal X_A\) under \(\sigma_{EI}\); \texttt{application treatment value}
+  \par\smallskip\noindent\emph{Definition.} \(a\in\mathcal X_A\) is the HbA1c value used in the imaging-selected intervention target.
+  \item \texttt{MEI} --- \texttt{generic two-\allowbreak{}selector recursive augmented SCM}; augmented SCMs on \(V_{EI}\cup\{S_E,S_I\}\) with signature \(\sigma_{EI}\); \texttt{application model variable}
+  \par\smallskip\noindent\emph{Definition.} \(M_{EI}\) is a generic two-selector model whose mutually independent exogenous variables may enter multiple mechanisms and whose induced augmented graph equals \(G^{EI}\).
+  \item \texttt{MEIplus} --- \texttt{positive exact-\allowbreak{}graph two-\allowbreak{}selector augmented-\allowbreak{}SCM class}; \texttt{sets of recursive augmented SCMs}; \texttt{application feasibility class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak M_{EI,+}(G^{EI},\sigma_{EI})\) is defined in \(\mathrm{def:two\text{-}selector\text{-}model\text{-}class}\).
+  \item \texttt{MEI0} --- \texttt{first two-\allowbreak{}selector exact-\allowbreak{}graph SCM}; \(\mathfrak M_{EI,+}(G^{EI},\sigma_{EI})\); \texttt{application countermodel}
+  \par\smallskip\noindent\emph{Definition.} \(M_{EI,0}\) is the first model in a same-observed-margin feasibility comparison.
+  \item \texttt{MEI1} --- \texttt{second two-\allowbreak{}selector exact-\allowbreak{}graph SCM}; \(\mathfrak M_{EI,+}(G^{EI},\sigma_{EI})\); \texttt{application countermodel}
+  \par\smallskip\noindent\emph{Definition.} \(M_{EI,1}\) is the second model in a same-observed-margin feasibility comparison.
+  \item \texttt{OEI} --- \texttt{two-\allowbreak{}sample observed-\allowbreak{}margin pair}; \texttt{pairs of strictly positive finite probability laws}; \texttt{application observed input}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal O\) denotes a pair with exposure margin on \(Z,A,L\) given \(S_E=1\) and imaging margin on \(Z,Y,L\) given \(S_I=1\).
+  \item \texttt{ObsEI} --- \texttt{two-\allowbreak{}selector observation map}; \(M_{EI}\mapsto(P_{M_{EI}}(Z,A,L\mid S_E=1),P_{M_{EI}}(Z,Y,L\mid S_I=1))\); \texttt{application data map}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Obs}_{EI}(M_{EI})=(P_{M_{EI}}(Z,A,L\mid S_E=1),P_{M_{EI}}(Z,Y,L\mid S_I=1))\).
+  \item \texttt{FEI} --- \texttt{two-\allowbreak{}selector feasibility fiber}; \((\mathcal O,G^{EI},\sigma_{EI})\mapsto\mathcal F_{EI}(\mathcal O;G^{EI})\); \texttt{application compatibility fiber}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal F_{EI}(\mathcal O;G^{EI})\) is the exact-graph model fiber defined in \(\mathrm{def:tian\text{-}feasibility\text{-}fiber}\).
+  \item \texttt{GammaI} --- \texttt{imaging-\allowbreak{}selected full-\allowbreak{}law identified set}; \((\mathcal O,G^{EI},\sigma_{EI})\mapsto\Gamma_I(\mathcal O;G^{EI})\); \texttt{application fusion diagnostic}
+  \par\smallskip\noindent\emph{Definition.} \(\Gamma_I(\mathcal O;G^{EI})\) is the set of full imaging-selected laws defined in \(\mathrm{def:tian\text{-}imaging\text{-}law\text{-}set}\).
+  \item \texttt{ThetaEI} --- \texttt{imaging-\allowbreak{}selected HbA1c intervention target}; \((M_{EI},a)\mapsto\Delta(\mathcal X_Y)\); \texttt{application causal target}
+  \par\smallskip\noindent\emph{Definition.} \(\Theta^I_a(M_{EI})=P_{M_{EI}}(Y\mid\operatorname{do}(A=a),S_I=1)\), with intervention applied before conditioning on imaging selection.
+  \item \texttt{AuditEI} --- \texttt{conditional two-\allowbreak{}selector feasibility audit}; \((\mathcal O,G^{EI},\sigma_{EI},a)\mapsto\) certified feasibility conclusions; \texttt{application diagnostic}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{Audit}_{EI}\) is the conditional output rule defined in \(\mathrm{def:tian\text{-}feasibility\text{-}audit}\).
+  \item \texttt{NativeTrace} --- \texttt{native-\allowbreak{}forest trace predicate}; \texttt{predicates on finite augmented ADMG queries}; \texttt{restricted completeness class}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{NativeForestTrace}(G^S;X,Y)\) is the actual-incidence terminal-trace class defined in \(\mathrm{def:native\text{-}forest\text{-}trace}\).
+  \item \texttt{ExactifyFin} --- \texttt{finite-\allowbreak{}signature exact-\allowbreak{}graph SCM completion map}; \texttt{maps finite subgraph-\allowbreak{}compatible augmented SCMs to exact-\allowbreak{}graph augmented SCMs}; \texttt{multistate exact induced-\allowbreak{}graph repair}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Exactify}^{\mathrm{fin}}_{G^S}\) is the multistate inert completion in \(\mathrm{def:finite\text{-}exactification\text{-}map}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:augmented-scm-compatibility]\label{ass:augmented-scm-compatibility}
+For the fixed finite signature \(\sigma\), the generic model \(M\) is a recursive augmented SCM whose exogenous variables are mutually independent and whose induced augmented graph is exactly \(G^S\): for every endogenous vertex \(v\), its declared observed-parent set equals \(\operatorname{Pa}_{G^S}(v)\), and for distinct \(v,w\), \(v\leftrightarrow w\) belongs to \(G^S\) if and only if their mechanisms share an exogenous input.
+\par\smallskip\noindent\emph{Standard} (recursive augmented-SCM compatibility with exact induced graph and shared exogenous variables, \cite{AboueiEtAl2024LatentSID}).
+\end{assumption}
+
+\begin{assumption}[ass:selected-cell-positivity]\label{ass:selected-cell-positivity}
+Within the fixed signature \(\sigma\), the generic model \(M\) satisfies \(P_M(V=v,S=1)>0\) for every \(v\in\prod_{j\in V}\mathcal X_j\).
+\par\smallskip\noindent\emph{Standard} (strict selected observational-law positivity, \cite{AboueiEtAl2024LatentSID}).
+\end{assumption}
+
+\begin{assumption}[ass:two-selector-exact-compatibility]\label{ass:two-selector-exact-compatibility}
+The generic two-selector model \(M_{EI}\) is recursive, its exogenous variables are mutually independent, both \(S_E\) and \(S_I\) are childless, every declared observed-parent interface equals the corresponding parent set in \(G^{EI}\), and two distinct mechanisms share an exogenous input if and only if their vertices are joined by a bidirected edge in \(G^{EI}\).
+\par\smallskip\noindent\emph{Novel.} This is an analyst-imposed two-selector exact-graph feasibility regime for combining exposure and imaging margins. AboueiEtAl2024LatentSID defines the exact induced-graph convention only for one selector, while two childless selectors with a common substantive system are realistic for nonoverlapping exposure and imaging cohorts.
+\end{assumption}
+
+\begin{assumption}[ass:exposure-selector-positivity]\label{ass:exposure-selector-positivity}
+The generic two-selector model \(M_{EI}\) satisfies \(P_{M_{EI}}(V_{EI}=v,S_E=1)>0\) for every \(v\in\prod_{j\in V_{EI}}\mathcal X_j\).
+\par\smallskip\noindent\emph{Novel.} This is an analyst-imposed full-support feasibility condition for the exposure-selected cohort, appropriate after finite coarsening to cells retained in a positivity audit. AboueiEtAl2024LatentSID supplies only the one-selector analogue.
+\end{assumption}
+
+\begin{assumption}[ass:imaging-selector-positivity]\label{ass:imaging-selector-positivity}
+The generic two-selector model \(M_{EI}\) satisfies \(P_{M_{EI}}(V_{EI}=v,S_I=1)>0\) for every \(v\in\prod_{j\in V_{EI}}\mathcal X_j\).
+\par\smallskip\noindent\emph{Novel.} This is an analyst-imposed full-support feasibility condition for the imaging-selected cohort, appropriate after finite coarsening to cells retained in a positivity audit. AboueiEtAl2024LatentSID supplies only the one-selector analogue.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{positive compatible augmented-\allowbreak{}SCM class}
+\par\smallskip\noindent\emph{Construction.} For every finite signature \(\sigma=(\mathcal X_v)_{v\in V\cup\{S\}}\) with \(2\le|\mathcal X_v|<\infty\) for \(v\in V\) and \(\mathcal X_S=\{0,1\}\), \(\mathfrak M_+(G^S,\sigma)=\{M:M\text{ has endogenous signature }\sigma,\ M\text{ is a recursive augmented SCM with mutually independent exogenous variables, }\operatorname{Pa}_M(v)=\operatorname{Pa}_{G^S}(v)\text{ for every }v,\ v\leftrightarrow w\in G^S\Longleftrightarrow\mathcal U_M^v\cap\mathcal U_M^w\ne\varnothing\text{ for every distinct }v,w,\text{ and }P_M(V=z,S=1)>0\text{ for every }z\in\prod_{j\in V}\mathcal X_j\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}augmented-\allowbreak{}scm-\allowbreak{}compatibility}; \texttt{ass:\allowbreak{}selected-\allowbreak{}cell-\allowbreak{}positivity}.
+\end{definition}
+
+\begin{definition}[def:certscm-encoding]\label{def:certscm-encoding}
+\par\smallskip\noindent\emph{Defined object.} \texttt{exact finite augmented-\allowbreak{}SCM certificate type}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})\) consists of finite strings \(E=((\mathcal U_j,p_j,I_j)_{j=1}^m,(P_v,f_v)_{v\in V\cup\{S\}})\). Each \(\mathcal U_j\) is a nonempty finite latent support, \(p_j:\mathcal U_j\to\mathbb Q\cap[0,1]\) is a complete normalized rational probability table, and \(I_j\subseteq V\cup\{S\}\) declares every endogenous mechanism receiving latent factor \(U_j\); distinct factors are interpreted independently with joint mass \(\prod_jp_j(u_j)\). Each \(P_v\) is the declared observed-parent interface and each \(f_v\) is a complete deterministic table from the states of \(P_v\) and the incident latent factors to \(\{0,1\}\). Exact graph compatibility requires \(P_v=\operatorname{Pa}_{G^S}(v)\) for every \(v\), and for every distinct \(v,w\), \(v\leftrightarrow w\in G^S\) if and only if \(\{v,w\}\subseteq I_j\) for at least one \(j\). Thus every listed directed parent occurs in the declared interface, no unlisted directed parent occurs, every listed bidirected edge has a declared shared factor, and no unlisted vertex pair shares a factor. The induced selected atom \(P_{\llbracket E\rrbracket}(V=z,S=1)\) must be positive for every \(z\in\{0,1\}^V\), and a scope \(I_j\) may contain arbitrarily many mechanisms.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{sigmabin}.
+\end{definition}
+
+\begin{definition}[def:exactification-map]\label{def:exactification-map}
+\par\smallskip\noindent\emph{Defined object.} \texttt{coordinate-\allowbreak{}constant exact-\allowbreak{}graph completion}
+\par\smallskip\noindent\emph{Construction.} For \(E\in\operatorname{RawCertSCM}(G^S,\sigma_{\mathrm{bin}})\), \(\operatorname{Exactify}_{G^S}(E)\) adds each missing graph parent \(u\in\operatorname{Pa}_{G^S}(v)\) to the declared interface \(P_v\) and extends \(f_v\) constantly in that coordinate. For each listed bidirected edge \(v\leftrightarrow w\) not already witnessed by a shared factor, it adds a fresh independent fair binary factor with scope \(\{v,w\}\) and extends both incident structural tables constantly in that factor. It adds no other parent or shared scope and retains every original probability and structural table entry.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{RawCertSCM}.
+\end{definition}
+
+\begin{definition}[def:certificate-checker]\label{def:certificate-checker}
+\par\smallskip\noindent\emph{Defined object.} \texttt{exact exhaustive NONID checker}
+\par\smallskip\noindent\emph{Construction.} Given \(E_0,E_1\in\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})\) and \(x_{\mathrm{bin}}\), \(\mathsf{Check}_{\mathrm{NONID}}\) first validates finite-table completeness, rational probability normalization and nonnegativity, the product-factor interpretation of mutual independence, and exact induced-graph equality: \(P_v=\operatorname{Pa}_{G^S}(v)\) for every vertex, and \(v\leftrightarrow w\in G^S\) exactly when some declared latent scope contains both endpoints. For each \(i\in\{0,1\}\), exhaustive enumeration of the \(R(E_i)\) joint latent assignments computes exact unnormalized selected atoms \(a_i(v)=P_{\llbracket E_i\rrbracket}(V=v,S=1)\) and \(z_i=\sum_{v\in\{0,1\}^V}a_i(v)\). The checker requires \(a_i(v)>0\) and \(a_0(v)z_1=a_1(v)z_0\) for every \(v\in\{0,1\}^V\). It then replaces the structural tables for \(X\) by \(x_{\mathrm{bin}}\), enumerates again to obtain exact postintervention selected masses \(b_i(y)=P_{\llbracket E_i\rrbracket}(Y=y,S=1\mid\operatorname{do}(X=x_{\mathrm{bin}}))\) and \(q_i=\sum_{y\in\{0,1\}^Y}b_i(y)\), and accepts exactly when \(q_0q_1>0\) and \(b_0(y)q_1\ne b_1(y)q_0\) for some \(y\in\{0,1\}^Y\). For a universal implementation constant \(c\), this procedure uses at most \(c\{|V|^2+L(E_0)+L(E_1)+2^{|V|}(R(E_0)+R(E_1))(|V|+|Y|+1)\}\) exact rational arithmetic and table-lookup operations.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{X}; \texttt{Y}; \texttt{xbin}; \texttt{E0}; \texttt{E1}.
+\end{definition}
+
+\begin{definition}[def:s-component]\label{def:s-component}
+\par\smallskip\noindent\emph{Defined object.} \texttt{S-\allowbreak{}component partition}
+\par\smallskip\noindent\emph{Construction.} For every \(H\subseteq N_S\), \(\operatorname{SComp}_{G^S}(H)=\{K\cap H:K\in\mathcal D(G^S[H\cup A_S\cup\{S\}]),\ K\cap H\ne\varnothing\}\), where \(\mathcal D\) denotes the district partition.
+\par\smallskip\noindent\emph{Inputs.} \texttt{H}; \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:s-hedge]\label{def:s-hedge}
+\par\smallskip\noindent\emph{Defined object.} \texttt{S-\allowbreak{}Hedge predicate}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{SHedge}_{G^S}(C,T)\iff C\subsetneq T\subseteq N_S,\ \operatorname{SComp}_{G^S}(C)=\{C\},\ \operatorname{SComp}_{G^S}(T)=\{T\},\text{ and }\operatorname{An}_{G^S[T]}(C)=T\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{C}; \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:graphwise-sid]\label{def:graphwise-sid}
+\par\smallskip\noindent\emph{Defined object.} \texttt{graphwise latent S-\allowbreak{}identification}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{Ident}^{\mathrm{fin}}_S(G^S;X,Y)\iff\forall\sigma\ \forall x\in\prod_{v\in X}\mathcal X_v\ \forall M_0,M_1\in\mathfrak M_+(G^S,\sigma),\ P_{M_0,\sigma}^S=P_{M_1,\sigma}^S\Longrightarrow\Theta_{x,\sigma}(M_0)=\Theta_{x,\sigma}(M_1)\), where \(\sigma\) ranges over all finite signatures with at least two states for each substantive variable and binary \(S\). Models are compared only within one signature, and every quantified model has declared parent sets and shared-exogenous incidences inducing exactly \(G^S\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{X}; \texttt{Y}.
+\end{definition}
+
+\begin{definition}[def:selected-kernel]\label{def:selected-kernel}
+\par\smallskip\noindent\emph{Defined object.} \texttt{selected S-\allowbreak{}component kernel}
+\par\smallskip\noindent\emph{Construction.} For a finite signature \(\sigma\) and \(H\subseteq N_S\), \(Q_{P_\sigma}^S[H]=(P_\sigma^S)_{N_S\setminus H}(H\mid A_S,S=1)\). The object \(Q_{P_\sigma,x_N}^S[H]\) denotes this kernel, and every kernel obtained from it by the published topological decomposition and recursive S-component marginalization, evaluated at the coordinates \(X_N=x_N\); all nonintervened arguments retain their displayed or summed values in \(\sigma\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{H}; \texttt{PS}; \texttt{sigma}.
+\end{definition}
+
+\begin{definition}[def:eq23-functional]\label{def:eq23-functional}
+\par\smallskip\noindent\emph{Defined object.} \texttt{published Eq. 23 functional}
+\par\smallskip\noindent\emph{Construction.} For every finite signature \(\sigma\) and every outcome value \(y=(y_S,y_N)\in\prod_{v\in Y}\mathcal X_v\), Eq. 23 is the pointwise functional \[\Phi_{23,x}^{\sigma}(P_\sigma^S)(y)=\sum_{w\in\mathcal X_W} P_\sigma^S(Y_S=y_S,W=w\mid X_S=x_S)\sum_{d_{D\setminus Y_N}\in\mathcal X_{D\setminus Y_N}}\prod_{D_i\in\mathcal D_S(D)}Q_{P_\sigma,x_N}^S[D_i]\bigl(d_i\mid y_S,w,x_S,d_{D\setminus D_i}\bigr).\] Every factor is produced by a successful single-component recursion and, at every recursion level, is evaluated at \(X_N=x_N\); the outer conditional is evaluated at \(X_S=x_S\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{PS}; \texttt{G}; \texttt{X}; \texttt{Y}; \texttt{x}; \texttt{sigma}.
+\end{definition}
+
+\begin{definition}[def:suppression-projection]\label{def:suppression-projection}
+\par\smallskip\noindent\emph{Defined object.} \texttt{selection-\allowbreak{}ancestor suppression projection}
+\par\smallskip\noindent\emph{Construction.} For the exact augmented graph \(G^S\) induced by the SCM parent interfaces and shared-exogenous incidences, \(\Pi_S(G^S)\) has vertex set \(N_S\), inherits every directed edge of \(G^S[N_S]\), and has \(u\leftrightarrow v\) exactly when \(G^S\) contains a bidirected path from \(u\) to \(v\) whose internal vertices all lie in \(A_S\cup\{S\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}.
+\end{definition}
+
+\begin{definition}[def:projected-ordinary-hedge-input]\label{def:projected-ordinary-hedge-input}
+\par\smallskip\noindent\emph{Defined object.} \texttt{projected ordinary-\allowbreak{}hedge input record}
+\par\smallskip\noindent\emph{Construction.} For a terminal Algorithm 1 failure at \((C,T)\), \(\mathsf{ProjHedgeInput}(G^S;X,Y;C,T)\) is the set of records \((F_0,F_1,R,\overline M_0,\overline M_1,x_{\mathrm{bin}})\) satisfying all of the following conditions. The graphs \(F_0\subset F_1\subseteq\Pi_S(G^S)[T]\) are nested common-\(R\)-rooted \(C\)-forests with vertex sets \(C\) and \(T\), respectively, each has one bidirected district, and exactly the vertices in the nonempty set \(R\subseteq C\) have no children. The Shpitser--Pearl incidence conditions for the originating query hold: \(C\cap X_N=\varnothing\), \(T\cap X_N\ne\varnothing\), and \(R\subseteq\operatorname{An}_{\Pi_S(G^S)[N_S\setminus X_N]}(Y_N)\). The value \(x_{\mathrm{bin}}\in\{0,1\}^{X}\) fixes \(x_N=x_{\mathrm{bin}}|_{X_N}\). The models \(\overline M_0,\overline M_1\) are finite-binary semi-Markovian SCMs on the projected graph with finite rational latent tables; they induce the same strictly positive projected observational kernel on \(T\), and their named local intervention kernels for the failed factor \(D_i=C\) satisfy \(\overline Q^{(0)}_{C,x_N}\ne\overline Q^{(1)}_{C,x_N}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{X}; \texttt{Y}; \texttt{C}; \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:inverse-lift-handle]\label{def:inverse-lift-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{joint fiber-\allowbreak{}coupling inverse-\allowbreak{}lift handle}
+\par\smallskip\noindent\emph{Construction.} For a terminal call descended from \(\operatorname{sID\text{-}Single}(D_i,T_i^{(0)},Q_{P_{\sigma_{\mathrm{bin}}}}^S[T_i^{(0)}])\) on the exact induced graph \(G^S\), with \(C=D_i\subsetneq T\subseteq T_i^{(0)}\) and \(\operatorname{SHedge}_{G^S}(C,T)\), \(\mathsf H_{\mathrm{lift}}\) takes a record \((F_0,F_1,R,\overline M_0,\overline M_1,x_{\mathrm{bin}})\in\mathsf{ProjHedgeInput}(G^S;X,Y;C,T)\). It collects in one incidence hypergraph every original bidirected path through \(A_S\cup\{S\}\) that realizes an edge of \(F_1\), introduces jointly rational parameters of mutually independent finite latent factors that may each enter several endogenous mechanisms and all ancestor mechanisms, imposes equality of every binary-signature selected atom before normalization together with preservation of the common projected observational kernel and the nonzero contrast \(\overline Q^{(0)}_{C,x_N}-\overline Q^{(1)}_{C,x_N}\), eliminates shared or branching ancestor mechanisms in a topological order, and searches the remaining rational nullspace for a lift retaining that local contrast. It then applies \(\operatorname{Exactify}_{G^S}\) to complete every declared parent interface and bidirected latent incidence. Its target object is an effective inverse-lift constructor producing \(E_0,E_1\in\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})\), with accepted exact checker evidence and realized models whose induced graph equals \(G^S\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{X}; \texttt{Y}; \texttt{C}; \texttt{T}; \texttt{ProjectedHedgeInput}.
+\end{definition}
+
+\begin{definition}[def:shedge-pair]\label{def:shedge-pair}
+\par\smallskip\noindent\emph{Defined object.} \texttt{S-\allowbreak{}Hedge countermodel certificate}
+\par\smallskip\noindent\emph{Construction.} For a terminal Algorithm 1 trace on the exact induced graph \(G^S\), rooted at \(D_i\in\mathcal D_S(D)\), with initial enclosure \(T_i^{(0)}\), fixed target \(C=D_i\), terminal enclosure \(C\subsetneq T\subseteq T_i^{(0)}\), and \(\operatorname{SHedge}_{G^S}(C,T)\), \(\mathsf{SHedgePair}(G^S,C,T,x_{\mathrm{bin}};\sigma_{\mathrm{bin}})=(E_0,E_1)\) is the exact rational pair in \(\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})^2\) obtained by constructing \((F_0,F_1,R,\overline M_0,\overline M_1,x_{\mathrm{bin}})\in\mathsf{ProjHedgeInput}(G^S;X,Y;C,T)\), applying the effective joint fiber-coupling inverse lift to that record, extending its surviving local \(D_i=C\) contrast through every outside district, and applying \(\operatorname{Exactify}_{G^S}\). The returned object includes evidence that both realizations induce exactly \(G^S\) and that \(\mathsf{Check}_{\mathrm{NONID}}(G^S,X,Y,x_{\mathrm{bin}},E_0,E_1)=\mathrm{accept}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{C}; \texttt{T}; \texttt{X}; \texttt{Y}; \texttt{xbin}; \texttt{sigmabin}.
+\end{definition}
+
+\begin{definition}[def:initial-call-budget]\label{def:initial-call-budget}
+\par\smallskip\noindent\emph{Defined object.} \texttt{initial-\allowbreak{}call family and size-\allowbreak{}sum budget}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal I_0=\{(D_i,T_i^{(0)}):D_i\in\mathcal D_S(D),\ T_i^{(0)}\in\operatorname{SComp}_{G^S}(N_S),\ D_i\subseteq T_i^{(0)}\}\), where \(T_i^{(0)}\) is the unique S-component of \(N_S\) containing \(D_i\), and \(B_0=\sum_{(D_i,T_i^{(0)})\in\mathcal I_0}|T_i^{(0)}|\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{DS}; \texttt{SComp}.
+\end{definition}
+
+\begin{definition}[def:ancestor-pair]\label{def:ancestor-pair}
+\par\smallskip\noindent\emph{Defined object.} \texttt{initial d-\allowbreak{}separation failure certificate}
+\par\smallskip\noindent\emph{Construction.} \(\mathsf{AncestorPair}(G^S,X,Y,x_{\mathrm{bin}};\sigma_{\mathrm{bin}})=(E_0,E_1)\) applies the positive rational binary countermodel construction from the complete fully observed S-ID necessity proof on \(A_S\cup\{S\}\), extends the same rational mechanisms to every nonancestor vertex, records the result as a pair in \(\operatorname{RawCertSCM}(G^S,\sigma_{\mathrm{bin}})\), and applies \(\operatorname{Exactify}_{G^S}\) to both members. The returned certificates have every declared parent interface and shared-latent incidence required for their induced graph to equal \(G^S\), and include evidence that \(\mathsf{Check}_{\mathrm{NONID}}(G^S,X,Y,x_{\mathrm{bin}},E_0,E_1)=\mathrm{accept}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{X}; \texttt{Y}; \texttt{xbin}; \texttt{sigmabin}.
+\end{definition}
+
+\begin{definition}[def:termination-rank]\label{def:termination-rank}
+\par\smallskip\noindent\emph{Defined object.} \texttt{multiset recursion rank}
+\par\smallskip\noindent\emph{Construction.} For the call chains rooted at \(\mathcal I_0\), let \(T_i^{(r)}\) be the current enclosure on root \(i\), with fixed target \(C=D_i\). The rank is \(\rho=\{\!\{|T_i^{(r)}|:i\text{ active}\}\!\}\), ordered by the well-founded multiset extension of \(<\) on \(\mathbb N\). A recursive step replaces \(T_i^{(r)}\) by the S-component \(T_i^{(r+1)}\subseteq\operatorname{An}_{G^S[T_i^{(r)}]}(D_i)\subsetneq T_i^{(r)}\) containing \(D_i\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{C}; \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:success-or-certificate-algorithm]\label{def:success-or-certificate-algorithm}
+\par\smallskip\noindent\emph{Defined object.} \texttt{executable S-\allowbreak{}ID success-\allowbreak{}or-\allowbreak{}certificate algorithm}
+\par\smallskip\noindent\emph{Construction.} \(\mathsf{sID}^{\pm}\) runs published Algorithm 1 on a finite augmented ADMG \(G^S\) with childless \(S\), interpreted as the exact graph induced by the SCM parent interfaces and shared-exogenous incidences, and records \(\mathcal I_0\). Given any finite signature \(\sigma\), on success at intervention value \(x\in\mathcal X_X\) it returns \(\operatorname{ID}(\Phi_{23,x}^{\sigma})\). If the initial d-separation check fails it chooses \(x_{\mathrm{bin}}\in\{0,1\}^{X}\) and returns \(\operatorname{NONID}(x_{\mathrm{bin}},E_0,E_1,\mathsf{Check}_{\mathrm{NONID}}=\mathrm{accept};\sigma_{\mathrm{bin}})\), where \((E_0,E_1)=\mathsf{AncestorPair}(G^S,X,Y,x_{\mathrm{bin}};\sigma_{\mathrm{bin}})\) and both certificates induce exactly \(G^S\). If the call rooted at \(D_i\in\mathcal D_S(D)\) reaches a terminal failure \(\operatorname{sID\text{-}Single}(C,T,Q_{P_\sigma}^S[T])\), then \(C=D_i\), \(C\subsetneq T\subseteq T_i^{(0)}\), both \(C\) and \(T\) are single S-components, and \(\operatorname{An}_{G^S[T]}(C)=T\); the algorithm chooses \(x_{\mathrm{bin}}\) and returns the same encoded \(\operatorname{NONID}\) object with \((E_0,E_1)=\mathsf{SHedgePair}(G^S,C,T,x_{\mathrm{bin}};\sigma_{\mathrm{bin}})\). This total failure branch is enabled only by a proved effective inverse-lift constructor returning rational exact-graph \(\operatorname{CertSCM}\) objects; an existential arbitrary-SCM lift does not implement \(\mathsf{sID}^{\pm}\). The trace stores the multiset rank before and after every recursive call.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{X}; \texttt{Y}; \texttt{x}; \texttt{sigma}; \texttt{PS}.
+\end{definition}
+
+\begin{definition}[def:early-kill-instance]\label{def:early-kill-instance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{two-\allowbreak{}virtual-\allowbreak{}edge early-\allowbreak{}kill instance}
+\par\smallskip\noindent\emph{Construction.} On \(V_\star=\{B,D,Y,Z_1,Z_2\}\), set \(X_\star=\{B,D\}\), \(Y_\star=\{Y\}\), and \(\sigma_{\mathrm{bin},\star}=(\{0,1\})_{v\in V_\star\cup\{S\}}\). For \(x_\star\in\{0,1\}^{X_\star}\), the early-kill calculation eliminates exact rational response-type parameters over \(E_{\star,0},E_{\star,1}\in\operatorname{CertSCM}(G_\star^S,\sigma_{\mathrm{bin},\star})\), with \(M_{\star,i}=\llbracket E_{\star,i}\rrbracket\in\mathfrak M_{\star,+}\), subject to exact induced-graph equality with \(G_\star^S\), \(P_{M_{\star,0}}(V_\star=v\mid S=1)=P_{M_{\star,1}}(V_\star=v\mid S=1)>0\) for every \(v\in\{0,1\}^{V_\star}\), and \(Q_{\star,x_\star}(M_{\star,0})\ne Q_{\star,x_\star}(M_{\star,1})\). A separating pair must also satisfy the local instance of \(\mathsf{Check}_{\mathrm{NONID}}=\mathrm{accept}\), including exact parent-interface and shared-latent incidence validation. The local instance is embedded in the generic notation by substituting \(V_\star,G_\star^S,X_\star,Y_\star,\sigma_{\mathrm{bin},\star},x_\star,E_{\star,0},E_{\star,1},M_{\star,0},M_{\star,1}\) for \(V,G^S,X,Y,\sigma_{\mathrm{bin}},x_{\mathrm{bin}},E_0,E_1,M_0,M_1\), respectively.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Gstar}; \texttt{Qstar}; \texttt{xstar}.
+\end{definition}
+
+\begin{definition}[def:two-selector-model-class]\label{def:two-selector-model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{positive exact-\allowbreak{}graph two-\allowbreak{}selector augmented-\allowbreak{}SCM class}
+\par\smallskip\noindent\emph{Construction.} For every finite two-selector signature \(\sigma_{EI}\), \(\mathfrak M_{EI,+}(G^{EI},\sigma_{EI})=\{M_{EI}:M_{EI}\text{ is recursive with mutually independent exogenous variables, }S_E\text{ and }S_I\text{ are childless, }\operatorname{Pa}_{M_{EI}}(v)=\operatorname{Pa}_{G^{EI}}(v)\text{ for every }v,\ v\leftrightarrow w\in G^{EI}\Longleftrightarrow\mathcal U_{M_{EI}}^v\cap\mathcal U_{M_{EI}}^w\ne\varnothing\text{ for every distinct }v,w,\text{ and }P_{M_{EI}}(V_{EI}=z,S_r=1)>0\text{ for every }z\text{ and }r\in\{E,I\}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}two-\allowbreak{}selector-\allowbreak{}exact-\allowbreak{}compatibility}; \texttt{ass:\allowbreak{}exposure-\allowbreak{}selector-\allowbreak{}positivity}; \texttt{ass:\allowbreak{}imaging-\allowbreak{}selector-\allowbreak{}positivity}.
+\end{definition}
+
+\begin{definition}[def:tian-observation-map]\label{def:tian-observation-map}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Tian exposure-\allowbreak{}-\allowbreak{}imaging observation map}
+\par\smallskip\noindent\emph{Construction.} For \(M_{EI}\in\mathfrak M_{EI,+}(G^{EI},\sigma_{EI})\), \(\operatorname{Obs}_{EI}(M_{EI})=(P_{M_{EI}}(Z,A,L\mid S_E=1),P_{M_{EI}}(Z,Y,L\mid S_I=1))\). The two selectors and the two observed margins remain distinct.
+\par\smallskip\noindent\emph{Inputs.} \texttt{MEI}.
+\end{definition}
+
+\begin{definition}[def:tian-feasibility-fiber]\label{def:tian-feasibility-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Tian exact-\allowbreak{}graph feasibility fiber}
+\par\smallskip\noindent\emph{Construction.} For an observed pair \(\mathcal O\), \(\mathcal F_{EI}(\mathcal O;G^{EI})=\{M_{EI}\in\mathfrak M_{EI,+}(G^{EI},\sigma_{EI}):\operatorname{Obs}_{EI}(M_{EI})=\mathcal O\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{OEI}; \texttt{GEI}; \texttt{sigmaEI}.
+\end{definition}
+
+\begin{definition}[def:tian-imaging-law-set]\label{def:tian-imaging-law-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{imaging-\allowbreak{}selected full-\allowbreak{}law set induced by the feasibility fiber}
+\par\smallskip\noindent\emph{Construction.} \(\Gamma_I(\mathcal O;G^{EI})=\{P_{M_{EI}}(V_{EI}\mid S_I=1):M_{EI}\in\mathcal F_{EI}(\mathcal O;G^{EI})\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{OEI}; \texttt{GEI}; \texttt{sigmaEI}.
+\end{definition}
+
+\begin{definition}[def:tian-feasibility-audit]\label{def:tian-feasibility-audit}
+\par\smallskip\noindent\emph{Defined object.} \texttt{conditional UK Biobank feasibility audit}
+\par\smallskip\noindent\emph{Construction.} Given \(\mathcal O,G^{EI},\sigma_{EI},a\), \(\mathsf{Audit}_{EI}\) first tests whether \(\mathcal F_{EI}(\mathcal O;G^{EI})\) is nonempty and records \(\Gamma_I(\mathcal O;G^{EI})\). It returns a data-compatible nonidentification record displaying \(M_{EI,0},M_{EI,1}\) only with two displayed models in that same fiber satisfying \(\Theta^I_a(M_{EI,0})\ne\Theta^I_a(M_{EI,1})\). Without such a pair it returns only an unmet-assumptions report listing the additional fusion or selected-instrument assumptions needed to reduce the fiber, or an inconclusive result.
+\par\smallskip\noindent\emph{Inputs.} \texttt{OEI}; \texttt{GEI}; \texttt{sigmaEI}; \texttt{aEI}.
+\end{definition}
+
+\begin{definition}[def:native-forest-trace]\label{def:native-forest-trace}
+\par\smallskip\noindent\emph{Defined object.} \texttt{native actual-\allowbreak{}incidence terminal trace}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{NativeForestTrace}(G^S;X,Y)\) holds when: (i) \(G^S\) is a finite acyclic directed mixed graph on \(V\cup\{S\}\), \(S\) has no children, \(X\cap Y=\varnothing\), and \(Y\ne\varnothing\); (ii) the initial selected d-separation check of published Algorithm 1 passes; and (iii) for every \(D_i\in\mathcal D_S(D)\) and every reachable terminal failed call \((C,T)\) on the chain rooted at the unique \(T_i^{(0)}\in\operatorname{SComp}_{G^S}(N_S)\) containing \(D_i\), one has \(C=D_i\subsetneq T\subseteq T_i^{(0)}\), both \(G^S[C]\) and \(G^S[T]\) are bidirected-connected, and there exist \(R=C\) and nested common-\(R\)-rooted \(C\)-forests \(F_0\subset F_1\) with vertex sets \(C\) and \(T\), respectively, such that every directed and bidirected edge of both forests is an actual edge of \(G^S[N_S]\), \(C\cap X_N=\varnothing\), \(T\cap X_N\ne\varnothing\), and \(R\subseteq\operatorname{An}_{G^S[N_S\setminus X_N]}(Y_N)\). Compatibility on such an input remains the exact induced-graph compatibility of \(\mathrm{def:model\text{-}class}\); the predicate restricts graph traces, not mechanisms on a fixed graph.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{X}; \texttt{Y}.
+\end{definition}
+
+\begin{definition}[def:finite-exactification-map]\label{def:finite-exactification-map}
+\par\smallskip\noindent\emph{Defined object.} \texttt{finite-\allowbreak{}signature inert exact-\allowbreak{}graph completion}
+\par\smallskip\noindent\emph{Construction.} Let \(\widetilde M\) be a recursive augmented SCM with finite endogenous signature \(\widetilde\sigma\) on \(V\cup\{S\}\), whose declared parent interfaces and shared-exogenous incidences induce an augmented ADMG contained in \(G^S\). The completion \(\operatorname{Exactify}^{\mathrm{fin}}_{G^S}(\widetilde M)\) adds each missing parent in \(\operatorname{Pa}_{G^S}(v)\) to the declared interface of \(v\) and makes the structural function constant in that coordinate. For every listed bidirected edge not already witnessed by shared exogenous incidence, it adds a fresh independent nondegenerate finite latent factor incident to its endpoints and makes both structural functions constant in that factor. It introduces no other interface or shared incidence and leaves all original state spaces, exogenous laws, and structural values unchanged.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{M}; \texttt{sigma}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:target-support]\label{lem:target-support}
+For every finite signature \(\sigma\), every \(M\in\mathfrak M_+(G^S,\sigma)\), and every \(x\in\prod_{v\in X}\mathcal X_v\), strict selected-cell positivity on \(\prod_{v\in V}\mathcal X_v\) and SCM consistency imply \(P_M(S=1\mid\operatorname{do}(X=x))>0\). Hence \(\Theta_{x,\sigma}(M)\) is defined without an additional postintervention support assumption.
+\end{lemma}
+\begin{proof}
+Fix \(\sigma\), \(M\in\mathfrak M_+(G^S,\sigma)\), and \(x\in\mathcal X_X\).  Because every substantive state space is nonempty, choose \(z\in\mathcal X_{V\setminus X}\), and put \(v=(x,z)\).  By \(\mathrm{ass:selected\text{-}cell\text{-}positivity}\),
+\[
+  P_M(V=v,S=1)>0. \tag{1}
+\]
+Let \(U\) denote the complete exogenous input and let
+\[
+  A_v=\{u:V_M(u)=v,\ S_M(u)=1\}.
+\]
+Equation (1) says \(P_U(A_v)>0\).  We claim that every \(u\in A_v\) also gives \(S=1\) after \(\operatorname{do}(X=x)\).  Indeed, order the endogenous vertices topologically, which is possible by the recursiveness clause of \(\mathrm{ass:augmented\text{-}scm\text{-}compatibility}\).  At a vertex in \(X\), the intervention assigns the value \(x\), which is its already realized value on \(A_v\).  At a vertex outside \(X\), if all preceding parents retain their observational values, its unchanged structural function, evaluated at the same exogenous input, retains its observational value.  Induction over the topological order therefore leaves every nonintervened endogenous variable, in particular \(S\), unchanged.  Thus
+\[
+  A_v\subseteq\{u:S_{M,x}(u)=1\}.
+\]
+The intervention does not alter the law of \(U\), so
+\[
+  P_M(S=1\mid\operatorname{do}(X=x))
+  =P_U\{S_{M,x}(U)=1\}
+  \ge P_U(A_v)>0. \tag{2}
+\]
+The denominator in the intervention-before-conditioning definition of \(\Theta_{x,\sigma}(M)\) is therefore positive by (2), proving the claim.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This removes a redundant support premise while keeping intervention-before-conditioning mathematically defined. \textit{Gap.} AboueiEtAl2024LatentSID assumes a strictly positive selected observational law but does not isolate this consistency consequence as a separate lemma. \textit{Consumer.} Every graphwise comparison and every finite-binary failure certificate can use the selected intervention target without strengthening the published model class.
+
+\begin{lemma}[lem:exactification-preserves-laws]\label{lem:exactification-preserves-laws}
+For every finite binary table encoding \(E\in\operatorname{RawCertSCM}(G^S,\sigma_{\mathrm{bin}})\), \(\operatorname{Exactify}_{G^S}(E)\in\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})\). Its realized SCM has declared observed-parent set exactly \(\operatorname{Pa}_{G^S}(v)\) at every \(v\), and two distinct mechanisms share an exogenous input if and only if their vertices are joined by a bidirected edge in \(G^S\). Moreover, \(\llbracket E\rrbracket\) and \(\llbracket\operatorname{Exactify}_{G^S}(E)\rrbracket\) induce the same observational law on \(V\cup\{S\}\), the same postintervention law under \(\operatorname{do}(X=x_{\mathrm{bin}})\), and \(\Theta_{x_{\mathrm{bin}},\sigma_{\mathrm{bin}}}(\llbracket E\rrbracket)=\Theta_{x_{\mathrm{bin}},\sigma_{\mathrm{bin}}}(\llbracket\operatorname{Exactify}_{G^S}(E)\rrbracket)\).
+\end{lemma}
+\begin{proof}
+Let \(E\in\operatorname{RawCertSCM}(G^S,\sigma_{\mathrm{bin}})\).  Write its original mutually independent latent factors as \(U_1,\ldots,U_m\).  The map \(\operatorname{Exactify}_{G^S}\) makes two kinds of additions, as specified in \(\mathrm{def:exactification\text{-}map}\).
+
+First, every missing observed parent \(u\in\operatorname{Pa}_{G^S}(v)\) is added to the declared interface of \(v\), but the extended table is constant in that new coordinate.  Second, for every still-unwitnessed edge \(v\leftrightarrow w\), a fresh fair factor \(F_{vw}\) with scope \(\{v,w\}\) is added, and both incident tables are constant in \(F_{vw}\).  No other interface or scope is added.  Since the raw incidence graph is contained in \(G^S\), every old parent and every pair in an old latent scope is allowed by \(G^S\).  Consequently the completed parent interfaces are exactly \(\operatorname{Pa}_{G^S}(v)\), every listed bidirected edge is witnessed, and no unlisted pair shares a factor.  All new factors are independent of one another and of \((U_1,\ldots,U_m)\).  The rational normalization, deterministic-table completeness, and strict selected-cell positivity requirements of \(\mathrm{def:certscm\text{-}encoding}\) are therefore satisfied once law preservation below is established.  Hence the completed string belongs to \(\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})\).
+
+For law preservation, fix an old joint latent assignment \(u=(u_1,\ldots,u_m)\), a joint assignment \(f\) of all fresh factors, and a topological order of the directed part of \(G^S\).  Induction in that order shows
+\[
+  (V,S)_{\operatorname{Exactify}_{G^S}(E)}(u,f)=(V,S)_E(u), \tag{3}
+\]
+because each added coordinate is ignored by the extended structural table.  Therefore, for every event \(A\) in the finite state space,
+\[
+\begin{aligned}
+ P_{\llbracket\operatorname{Exactify}_{G^S}(E)\rrbracket}(A)
+ &=\sum_u\sum_f
+   \left\{\prod_{j=1}^m p_j(u_j)\right\}
+   \left\{\prod_{e}2^{-1}\right\}
+   \mathbf 1\{(V,S)_E(u)\in A\}\\
+ &=\sum_u\left\{\prod_{j=1}^m p_j(u_j)\right\}
+   \mathbf 1\{(V,S)_E(u)\in A\}
+ =P_{\llbracket E\rrbracket}(A), \tag{4}
+\end{aligned}
+\]
+where the middle equality uses \(\sum_f\prod_e2^{-1}=1\).  In particular, (4) preserves every selected atom and hence its strict positivity.
+
+Replace the structural tables at vertices in \(X\) by the constants \(x_{\mathrm{bin}}\).  The same topological induction gives the analogue of (3) under this intervention, because the only additional coordinates at nonintervened vertices are still ignored and both models use the same intervention at vertices in \(X\).  Repeating (4) yields equality of the complete postintervention laws.  The raw type has strictly positive selected observational cells.  Applying the same topological consistency argument to any observational cell with \(X=x_{\mathrm{bin}}\) shows directly that its postintervention probability of \(S=1\) is positive; equality of the postintervention laws gives the same conclusion for the exactified encoding.  Division of the equal joint masses by the equal positive normalizer gives
+\[
+ \Theta_{x_{\mathrm{bin}},\sigma_{\mathrm{bin}}}(\llbracket E\rrbracket)
+ =\Theta_{x_{\mathrm{bin}},\sigma_{\mathrm{bin}}}
+   (\llbracket\operatorname{Exactify}_{G^S}(E)\rrbracket).
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The published graph is induced syntactically by declared parent sets and shared exogenous inputs, so every certificate must meet graph equality rather than adjacency containment. \textit{Gap.} AboueiEtAl2024LatentSID defines exact graph induction but does not give a finite-certificate exactification lemma preserving selected observational and interventional laws. \textit{Consumer.} Ordinary hedge and fully observed necessity witnesses can be embedded into the exact published augmented graph without changing their observable equality or target separation.
+
+\begin{lemma}[lem:certscm-ambient-inclusion]\label{lem:certscm-ambient-inclusion}
+Every encoding \(E\in\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})\) realizes a recursive augmented SCM \(\llbracket E\rrbracket\in\mathfrak M_+(G^S,\sigma_{\mathrm{bin}})\). Its finite latent factors are mutually independent by their product law, a factor may feed any number of mechanisms, every declared parent set equals the corresponding parent set in \(G^S\), shared exogenous incidence induces exactly the bidirected edges of \(G^S\), and every selected atom is positive. Hence \(\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})\subseteq\mathfrak M_+(G^S,\sigma_{\mathrm{bin}})\) under the realization map, without restricting the ambient graphwise identification quantifier.
+\end{lemma}
+\begin{proof}
+Take \(E\in\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})\).  Its directed structural tables can be evaluated in a topological order because the directed part of \(G^S\) is acyclic.  Thus their interpretation \(\llbracket E\rrbracket\) is a recursive augmented SCM.  By \(\mathrm{def:certscm\text{-}encoding}\), the joint latent mass is
+\[
+  p(u_1,\ldots,u_m)=\prod_{j=1}^m p_j(u_j),
+\]
+so the latent factors are mutually independent; the definition imposes no two-mechanism restriction on a scope \(I_j\).  The same definition gives, for every endogenous vertex \(v\),
+\[
+  P_v=\operatorname{Pa}_{G^S}(v), \tag{5}
+\]
+and, for every pair of distinct vertices \(v,w\),
+\[
+ v\leftrightarrow w\in G^S
+ \quad\Longleftrightarrow\quad
+ \exists j\;\{v,w\}\subseteq I_j. \tag{6}
+\]
+Equations (5) and (6) are exactly the parent-interface and shared-exogenous clauses of \(\mathrm{ass:augmented\text{-}scm\text{-}compatibility}\).  Finally, membership in the certificate type requires
+\[
+ P_{\llbracket E\rrbracket}(V=z,S=1)>0
+ \quad\text{for every }z\in\{0,1\}^{V}, \tag{7}
+\]
+which is \(\mathrm{ass:selected\text{-}cell\text{-}positivity}\) for the binary signature.  Recursiveness, (5), (6), and (7) are precisely the membership clauses of \(\mathrm{def:model\text{-}class}\).  Hence \(\llbracket E\rrbracket\in\mathfrak M_+(G^S,\sigma_{\mathrm{bin}})\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This separates a finitely checkable witness language from the unrestricted model class over which identification is defined. \textit{Gap.} AboueiEtAl2024LatentSID permits shared exogenous variables but does not define a finite exact syntax for countermodels or prove its interpretation compatible with that class. \textit{Consumer.} Every accepted encoded NONID object becomes a valid counterexample to graphwise identification in the exact induced-graph class of AboueiEtAl2024LatentSID.
+
+\begin{lemma}[lem:certificate-checker-soundness]\label{lem:certificate-checker-soundness}
+For \(E_0,E_1\in\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})\), if \(\mathsf{Check}_{\mathrm{NONID}}(G^S,X,Y,x_{\mathrm{bin}},E_0,E_1)=\mathrm{accept}\), then the realized models lie in \(\mathfrak M_+(G^S,\sigma_{\mathrm{bin}})\), satisfy \(P_{\llbracket E_0\rrbracket,\sigma_{\mathrm{bin}}}^S=P_{\llbracket E_1\rrbracket,\sigma_{\mathrm{bin}}}^S>0\) on every binary cell, and satisfy \(\Theta_{x_{\mathrm{bin}},\sigma_{\mathrm{bin}}}(\llbracket E_0\rrbracket)\ne\Theta_{x_{\mathrm{bin}},\sigma_{\mathrm{bin}}}(\llbracket E_1\rrbracket)\). The checker terminates after at most \(c\{|V|^2+L(E_0)+L(E_1)+2^{|V|}(R(E_0)+R(E_1))(|V|+|Y|+1)\}\) exact rational arithmetic and table-lookup operations for a universal implementation constant \(c\).
+\end{lemma}
+\begin{proof}
+Assume that the checker accepts \((E_0,E_1)\).  Its initial validation, by \(\mathrm{def:certificate\text{-}checker}\), verifies the complete rational latent tables, their product-factor interpretation, all structural tables, and exact equality of the induced graph with \(G^S\).  Therefore \(\mathrm{lem:certscm\text{-}ambient\text{-}inclusion}\) gives
+\[
+  \llbracket E_i\rrbracket\in\mathfrak M_+(G^S,\sigma_{\mathrm{bin}}),
+  \qquad i=0,1. \tag{8}
+\]
+For a binary substantive atom \(v\), let
+\[
+ a_i(v)=P_{\llbracket E_i\rrbracket}(V=v,S=1),
+ \qquad z_i=\sum_v a_i(v).
+\]
+Acceptance requires \(a_i(v)>0\) for every \(v\).  Hence \(z_i>0\), and it also requires
+\[
+ a_0(v)z_1=a_1(v)z_0\qquad\text{for every }v. \tag{9}
+\]
+Dividing (9) by the positive number \(z_0z_1\) yields
+\[
+ P^S_{\llbracket E_0\rrbracket,\sigma_{\mathrm{bin}}}(v)
+ =\frac{a_0(v)}{z_0}
+ =\frac{a_1(v)}{z_1}
+ =P^S_{\llbracket E_1\rrbracket,\sigma_{\mathrm{bin}}}(v)>0. \tag{10}
+\]
+After replacing the tables at \(X\) by \(x_{\mathrm{bin}}\), the checker computes
+\[
+ b_i(y)=P_{\llbracket E_i\rrbracket}
+   (Y=y,S=1\mid\operatorname{do}(X=x_{\mathrm{bin}})),
+ \qquad q_i=\sum_y b_i(y).
+\]
+Acceptance requires \(q_0q_1>0\) and, for some \(y\),
+\[
+ b_0(y)q_1\ne b_1(y)q_0. \tag{11}
+\]
+Thus both intervention-before-conditioning distributions are defined, and division of (11) by \(q_0q_1\) gives
+\[
+ \Theta_{x_{\mathrm{bin}},\sigma_{\mathrm{bin}}}(\llbracket E_0\rrbracket)(y)
+ =\frac{b_0(y)}{q_0}
+ \ne\frac{b_1(y)}{q_1}
+ =\Theta_{x_{\mathrm{bin}},\sigma_{\mathrm{bin}}}(\llbracket E_1\rrbracket)(y). \tag{12}
+\]
+
+It remains to justify the stated operation bound.  Table and normalization validation costs at most a constant multiple of \(L(E_0)+L(E_1)\); checking all vertex pairs costs \(O(|V|^2)\).  For model \(i\), each observational or postintervention pass enumerates \(R(E_i)\) latent assignments, evaluates at most \(|V|+1\) endogenous tables in topological order, and updates an atom table.  Inspecting all substantive atoms costs \(O(2^{|V|})\), and inspecting all outcome atoms costs \(O(2^{|Y|})\le O(2^{|V|})\).  Since \(R(E_i)\ge1\), all these terms are bounded, after increasing one universal implementation constant \(c\), by
+\[
+ c\left\{|V|^2+L(E_0)+L(E_1)
+ +2^{|V|}\bigl(R(E_0)+R(E_1)\bigr)(|V|+|Y|+1)\right\}.
+\]
+Every loop has a finite explicitly encoded range, so the checker terminates.  Equations (8), (10), and (12) prove its semantic soundness.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The failure branch is reproducible only when finite syntax, exact equality, target separation, and an explicit enumeration bound are certified together. \textit{Gap.} Neither latent S-ID nor ordinary hedge completeness supplies an exact certificate checker for normalized selected-law equality under shared exogenous incidence. \textit{Consumer.} Independent software can validate a returned failure witness without trusting the inverse-lift implementation.
+
+\begin{lemma}[lem:projection-components]\label{lem:projection-components}
+Let \(G^S\) be the exact augmented graph induced by any \(M\in\mathfrak M_+(G^S,\sigma)\). For every \(H\subseteq N_S\), the districts of \(\Pi_S(G^S)[H]\) are exactly \(\operatorname{SComp}_{G^S}(H)\). More precisely, two vertices of \(H\) are bidirected-connected in \(G^S[H\cup A_S\cup\{S\}]\) if and only if they are bidirected-connected in \(\Pi_S(G^S)[H]\).
+\end{lemma}
+\begin{proof}
+Fix \(H\subseteq N_S\).  Suppose first that \(u,v\in H\) are joined by a bidirected path \(\gamma\) in \(G^S[H\cup A_S\cup\{S\}]\).  List, in their order along \(\gamma\), the vertices of \(\gamma\) that lie in \(H\):
+\[
+  h_0=u,h_1,\ldots,h_r=v.
+\]
+The internal vertices of the subpath from \(h_{j-1}\) to \(h_j\) lie outside \(H\), and every vertex of \(\gamma\) lies in \(H\cup A_S\cup\{S\}\).  Since \(H\subseteq N_S\) and \(A_S\cap N_S=\varnothing\), those internal vertices lie in \(A_S\cup\{S\}\).  By \(\mathrm{def:suppression\text{-}projection}\), \(h_{j-1}\leftrightarrow h_j\) is therefore an edge of \(\Pi_S(G^S)[H]\).  Hence \(u\) and \(v\) are bidirected-connected in the projection.
+
+Conversely, suppose \(u=h_0,\ldots,h_r=v\) is a bidirected path in \(\Pi_S(G^S)[H]\).  For each projected edge \(h_{j-1}\leftrightarrow h_j\), \(\mathrm{def:suppression\text{-}projection}\) supplies a bidirected path in \(G^S\) whose internal vertices lie in \(A_S\cup\{S\}\).  Concatenating these finitely many paths gives a bidirected walk from \(u\) to \(v\) contained in \(H\cup A_S\cup\{S\}\).  Deleting closed subwalks gives a bidirected path in the same induced graph.  Thus the two bidirected-connectivity relations on \(H\) coincide.  Districts are the equivalence classes of bidirected connectivity, while \(\operatorname{SComp}_{G^S}(H)\) is defined in \(\mathrm{def:s\text{-}component}\) by intersecting the original districts with \(H\).  The asserted equality of partitions follows.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This establishes that S-components are ordinary districts after the precise suppression operation. \textit{Gap.} AboueiEtAl2024LatentSID defines S-components through ancestors of selection but does not state this projection equivalence. \textit{Consumer.} The ordinary hedge countermodel theorem of ShpitserPearl2006 can be invoked only after this graph-level correspondence is certified.
+
+\begin{lemma}[lem:shedge-projects-to-hedge]\label{lem:shedge-projects-to-hedge}
+For every finite signature \(\sigma\), fix \(D_i\in\mathcal D_S(D)\), let \(T_i^{(0)}\) be the unique member of \(\operatorname{SComp}_{G^S}(N_S)\) containing \(D_i\), and consider the call chain of \(\operatorname{sID\text{-}Single}(D_i,T_i^{(0)},Q_{P_\sigma}^S[T_i^{(0)}])\). If this chain fails at \((C,T)\), then \(C=D_i\), \(C\subsetneq T\subseteq T_i^{(0)}\), \(\operatorname{SComp}_{G^S}(C)=\{C\}\), \(\operatorname{SComp}_{G^S}(T)=\{T\}\), and \(\operatorname{An}_{G^S[T]}(C)=T\), so \(\operatorname{SHedge}_{G^S}(C,T)\). Moreover, \(\Pi_S(G^S)[C]\) and \(\Pi_S(G^S)[T]\) are single districts, \(\operatorname{An}_{\Pi_S(G^S)[T]}(C)=T\), and there are nested common-\(R\)-rooted \(C\)-forests \(F_0\subset F_1\) in the projection, with \(R=C\), vertex sets \(C\) and \(T\), and \(C\cap X_N=\varnothing\), \(T\cap X_N\ne\varnothing\), and \(R\subseteq\operatorname{An}_{\Pi_S(G^S)[N_S\setminus X_N]}(Y_N)\). If \(\operatorname{NativeForestTrace}(G^S;X,Y)\) also holds, the forests can instead be chosen as subgraphs of \(G^S[N_S]\), so every directed and bidirected forest edge is an actual edge of the original nonancestor graph and \(R\subseteq\operatorname{An}_{G^S[N_S\setminus X_N]}(Y_N)\). These are graph-theoretic conclusions only; they assert no binary, rational, or positive countermodel construction.
+\end{lemma}
+\begin{proof}
+The target of every call on the chain is fixed at \(C=D_i\) by \(\mathrm{def:success\text{-}or\text{-}certificate\text{-}algorithm}\). At a terminal failure,
+\[
+ C\subsetneq T\subseteq T_i^{(0)},\qquad
+ \operatorname{SComp}_{G^S}(C)=\{C\},\qquad
+ \operatorname{SComp}_{G^S}(T)=\{T\},\qquad
+ \operatorname{An}_{G^S[T]}(C)=T.
+\]
+These are exactly the clauses of \(\operatorname{SHedge}_{G^S}(C,T)\) in \(\mathrm{def:s\text{-}hedge}\).
+
+Apply \(\mathrm{lem:projection\text{-}components}\) with \(H=C\) and \(H=T\). The two singleton S-component identities imply that \(\Pi_S(G^S)[C]\) and \(\Pi_S(G^S)[T]\) each have one district. Projection preserves all and only directed edges with endpoints in \(N_S\), so
+\[
+ \operatorname{An}_{\Pi_S(G^S)[T]}(C)
+ =\operatorname{An}_{G^S[T]}(C)=T.
+\]
+Choose a bidirected spanning tree \(K_0\) of \(\Pi_S(G^S)[C]\). Starting from \(K_0\), repeatedly attach a vertex outside the current set by the first edge on a bidirected path to that set; this gives a spanning tree \(K_1\) of \(\Pi_S(G^S)[T]\) with \(K_1[C]=K_0\). Put \(R=C\). Give \(F_0\) vertex set \(C\), bidirected tree \(K_0\), and no directed edges. For \(t\in T\setminus C\), define
+\[
+ d(t)=\min\{\ell:\text{a directed path of length }\ell
+ \text{ runs from }t\text{ to }C\text{ in }G^S[T]\}.
+\]
+The ancestral equality makes \(d(t)\) finite. Choose a next vertex \(c(t)\) on a shortest path and put \(t\to c(t)\) in \(F_1\). Since \(d(c(t))=d(t)-1\), there is no directed cycle; vertices outside \(C\) have one child and vertices in \(C\) have none. With bidirected tree \(K_1\), \(F_1\) is an \(R\)-rooted \(C\)-forest and \(F_1[C]=F_0\).
+
+From \(D=\operatorname{An}_{G^S[N_S\setminus X_N]}(Y_N)\) and \(C=D_i\subseteq D\),
+\[
+ C\cap X_N=\varnothing,\qquad
+ R=C\subseteq\operatorname{An}_{G^S[N_S\setminus X_N]}(Y_N)
+ =\operatorname{An}_{\Pi_S(G^S)[N_S\setminus X_N]}(Y_N).
+\]
+If \(T\cap X_N=\varnothing\), every \(t\in T\) reaches \(C\), and every vertex of \(C\) reaches \(Y_N\), inside \(N_S\setminus X_N\). Thus \(T\subseteq D\). Since \(T\) is one S-component containing the S-component \(D_i=C\) of \(D\), maximality of \(D_i\) gives \(T\subseteq C\), contrary to \(C\subsetneq T\). Hence \(T\cap X_N\ne\varnothing\).
+
+If \(\operatorname{NativeForestTrace}(G^S;X,Y)\) holds, its terminal-trace clause supplies forests with the same vertex, root, and incidence properties whose edges all belong to \(G^S[N_S]\). This proves the native conclusion. No step constructs a causal model.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proves terminal S-Hedge geometry and projected/native forest extraction only. \textit{Gap.} Countermodels require separate positive finite constructions. \textit{Consumer.} Both the native separator and universal inverse-lift OEQ use the forest skeleton.
+
+\begin{lemma}[lem:local-contrast-survives-eq23]\label{lem:local-contrast-survives-eq23}
+Fix an actual terminal call for \(D_i=C\) and two candidate full-graph extensions that use kernels \(q_C^{(0)}\) and \(q_C^{(1)}\) in the \(C\)-position, the same kernels \(q_j\) for every \(D_j\ne C\), and the same outer selected conditional \(p^S\). Their pointwise Eq. 23 product contrast is
+\[
+ \Delta(y)=\sum_{w,d_{D\setminus Y_N}}
+ p^S(y_S,w\mid x_S)
+ \bigl(q_C^{(0)}-q_C^{(1)}\bigr)
+ \prod_{D_j\ne C}q_j.
+\]
+The two constructed full targets differ if and only if \(\Delta(y)\ne0\) for at least one outcome value \(y\). Strict positivity of \(p^S\) and of the common factors, together with \(q_C^{(0)}\ne q_C^{(1)}\), does not by itself imply this nonvanishing condition.
+\end{lemma}
+\begin{proof}
+For \(r\in\{0,1\}\), substitute \(q_C^{(r)}\), the common \(q_j\) for \(D_j\ne C\), and the common \(p^S\) into \(\mathrm{def:eq23\text{-}functional}\). Finiteness permits termwise subtraction, and distributivity gives
+\[
+ \Phi^{(0)}(y)-\Phi^{(1)}(y)
+ =\sum_{w,d_{D\setminus Y_N}}
+ p^S(y_S,w\mid x_S)
+ \bigl(q_C^{(0)}-q_C^{(1)}\bigr)
+ \prod_{D_j\ne C}q_j
+ =\Delta(y).
+\]
+Two measures on finite \(Y\) are unequal exactly when one point mass is unequal, proving the equivalence.
+
+Positivity does not make this contraction injective. For binary \((A,R)\), take
+\[
+ q_C^{(0)}(0,0)=q_C^{(0)}(1,1)=\frac38,\quad
+ q_C^{(0)}(1,0)=q_C^{(0)}(0,1)=\frac18,\quad
+ q_C^{(1)}(a,r)=\frac14.
+\]
+Both kernels are positive and unequal, but for each \(r\),
+\[
+ \sum_a\bigl(q_C^{(0)}(a,r)-q_C^{(1)}(a,r)\bigr)=0.
+\]
+If \(A\subseteq D\setminus Y_N\) is marginalized and all common factors are independent of \(A\), the contraction contains this zero sum, so \(\Delta(y)=0\) for every \(y\). This is the claimed obstruction.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This gives the exact contraction test and an explicit positive cancellation witness. \textit{Gap.} Local inequality alone does not imply target inequality. \textit{Consumer.} Any future universal extension must certify a nonzero outcome contrast.
+
+\begin{openendedquestion}[oeq:compositional-inverse-lift]\label{oeq:compositional-inverse-lift}
+Can the joint fiber-coupling handle \(\mathsf H_{\mathrm{lift}}\) be completed as an effective exact-rational constructor for every terminal Algorithm 1 S-Hedge whose projected forest uses virtual bidirected edges through shared or branching vertices of \(A_S\cup\{S\}\)? It must output \(E_0,E_1\in\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})\), preserve one common strictly positive normalized selected law, and certify a named nonzero event contrast in \(\Theta_{x_{\mathrm{bin}},\sigma_{\mathrm{bin}}}\), not merely an unequal local kernel. It must jointly realize all virtual edges, terminate with finite rational tables, induce exactly \(G^S\), and use \(\operatorname{Exactify}_{G^S}\) only through \(\mathrm{lem:exactification\text{-}preserves\text{-}laws}\). The positive-binary two-virtual-edge instance is separately unresolved; only a support-deficient separator and two no-go subclasses are established.
+\end{openendedquestion}
+Fix a terminal call \((C,T)\). By \(\mathrm{lem:shedge\text{-}projects\text{-}to\text{-}hedge}\), the suppression graph supplies nested ordinary hedge forests in \(\Pi_S(G^S)\). This conclusion is purely graph-theoretic: when a forest edge \(u\leftrightarrow v\) is virtual, it gives only a bidirected path from \(u\) to \(v\) with internal vertices in \(A_S\cup\{S\}\), not a compatible structural realization of the projected shared latent.
+
+There is nevertheless a complete computable reduction of the remaining task. For a proposed certificate \(E_j\), let \(\mathcal U_j\) be its finite joint latent support, let
+\[
+ \lambda_j(u)=\prod_{\ell=1}^{m(E_j)}p_{j\ell}(u_\ell),
+\]
+and let \(F_j(u)\) and \(F^{x}_{j}(u)\) be, respectively, the deterministic observed vector before intervention and after replacing the equations for \(X\) by \(x_{\mathrm{bin}}\). Define
+\[
+ a_j(v)=\sum_{u\in\mathcal U_j}\lambda_j(u)
+ \mathbf 1\{F_j(u)|_V=v,\ F_j(u)|_S=1\},
+ \qquad z_j=\sum_v a_j(v),
+\]
+and
+\[
+ b_j(y)=\sum_{u\in\mathcal U_j}\lambda_j(u)
+ \mathbf 1\{F^x_j(u)|_Y=y,\ F^x_j(u)|_S=1\},
+ \qquad q_j=\sum_y b_j(y).
+\]
+By \(\mathrm{def:certificate\text{-}checker}\), after its syntax and exact-incidence tests the checker accepts exactly when
+\[
+ a_j(v)>0\quad(j=0,1;\ v\in\{0,1\}^V),
+ \qquad a_0(v)z_1=a_1(v)z_0\quad(v\in\{0,1\}^V),
+\]
+\[
+ q_0q_1>0,
+ \qquad b_0(y)q_1\ne b_1(y)q_0
+ \quad\hbox{for some }y\in\{0,1\}^Y.
+\]
+The first line is precisely strict selected-cell positivity and equality of the two normalized selected laws, because \(z_0,z_1>0\). The second line is precisely a named atomic-event contrast between the intervention-before-conditioning targets. These are exactly the checker-visible constraints. The inverse-lift handle must additionally impose the finite rational equalities that identify the appropriate restrictions of these tables with the common projected observational kernel and the two carried local kernels \(\overline Q^{(j)}_{C,x_N}\). Thus the desired inverse lift is equivalent to producing finite rational tables satisfying the displayed constraints, those record-preservation equalities, and the original latent-scope and parent-interface restrictions. Once a raw pair satisfies them, \(\mathrm{lem:exactification\text{-}preserves\text{-}laws}\) permits completion of missing allowed incidences without changing any displayed quantity.
+
+For fixed \((G^S,X,Y)\), existence of such a rational certificate is semidecidable. Enumerate \(x_{\mathrm{bin}}\) and all pairs of finite rational table strings in increasing total encoded length, and run \(\mathsf{Check}_{\mathrm{NONID}}\) on each pair. Every individual run terminates by the explicit operation bound in \(\mathrm{def:certificate\text{-}checker}\), and the enumeration reaches every member of \(\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})^2\). Hence it halts with an accepted pair if and only if such a pair exists. What is missing is the mathematical existence theorem, not a checker or a search procedure conditional on existence.
+
+The frozen results do not provide that existence theorem. In particular, \(\overline Q^{(0)}_{C,x_N}\ne\overline Q^{(1)}_{C,x_N}\) cannot replace the final inequality above: by \(\mathrm{lem:local\text{-}contrast\text{-}survives\text{-}eq23}\), summation over \(w\) and \(D\setminus Y_N\) can cancel the local contrast. Independent construction along each suppressed path also does not compose at a shared or branching internal ancestor, because the same observed mechanism then occurs in several path constraints while the exogenous factors must remain mutually independent. The smallest unresolved specialization is \(G_\star^S\): a universal constructor would in particular produce the accepted positive binary pair asked for by \(\mathrm{oeq:positive\text{-}binary\text{-}two\text{-}virtual\text{-}edge\text{-}separation}\). The available support-deficient pair fails the inequalities \(a_j(v)>0\), while \(\mathrm{lem:independent\text{-}smoothing\text{-}kills\text{-}early\text{-}contrast}\) and \(\mathrm{lem:affine\text{-}fair\text{-}bit\text{-}early\text{-}target\text{-}half}\) exclude only two restricted response families. Therefore neither a positive universal construction nor a negative impossibility certificate follows from the frozen core.
+\par\smallskip\noindent \textit{Justification.} This retains the genuinely virtual-edge realization problem as open. \textit{Gap.} No positive rational common-selected-law construction is known for shared or branching ancestor paths. \textit{Consumer.} Universal completeness and total terminal compilation require it.
+
+\begin{theorem}[thm:executable-success-or-certificate]\label{thm:executable-success-or-certificate}
+For every finite augmented ADMG \(G^S\) with childless \(S\), whenever published Algorithm 1 reaches its single-component recursion, every call chain terminates. Its chain rooted at \(T_i^{(0)}\) has at most \(|T_i^{(0)}|\) invocations, the recursion depth is at most \(\max_i|T_i^{(0)}|\le|N_S|\), and the total number of single-component invocations is at most \(B_0\). Independently, for any supplied \(E_0,E_1\in\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})\), the exact NONID checker terminates within
+\[
+ c\{|V|^2+L(E_0)+L(E_1)+2^{|V|}(R(E_0)+R(E_1))(|V|+|Y|+1)\}
+\]
+exact rational arithmetic and table-lookup operations. If it accepts, the realized models induce exactly \(G^S\), have the same strictly positive selected law, and have unequal intervention-before-conditioning targets. This theorem proves graph-recursion termination and certificate-verification soundness only; it does not assert that either failure branch can always compile such a certificate or that \(\mathsf{sID}^{\pm}\) is total.
+\end{theorem}
+\begin{proof}
+The recursion assertions are \(\mathrm{lem:sid\text{-}graph\text{-}recursion\text{-}termination}\). For supplied \(E_0,E_1\), \(\mathrm{def:certificate\text{-}checker}\) exhaustively enumerates finite latent, observational, and outcome cells and has the displayed operation bound. By \(\mathrm{lem:certificate\text{-}checker\text{-}soundness}\), acceptance places both realizations in \(\mathfrak M_+(G^S,\sigma_{\mathrm{bin}})\), proves equality and positivity of their selected laws, and proves target inequality at \(x_{\mathrm{bin}}\). Neither premise constructs a certificate, so no totality conclusion follows.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proves recursion and supplied-certificate checking bounds without false totality. \textit{Gap.} The checker verifies but does not generate certificates. \textit{Consumer.} Implementations obtain certified finite control flow and verification cost.
+
+\begin{proposition}[prop:latent-free-regression]\label{prop:latent-free-regression}
+Known-case regression corollary. If \(G^S\) has no bidirected edges and \(S\) has no children, then for every \(H\subseteq N_S\), \(\operatorname{SComp}_{G^S}(H)\) is the singleton partition of \(H\), and no recursive S-Hedge exists. Consequently the recursive S-Hedge failure branch of \(\mathsf{sID}^{\pm}\) cannot occur. The latent-paper criterion reduces to its initial selected d-separation condition, which the published paper states is consistent with the fully observed S-ID criterion. Whenever the latent Algorithm 1 succeeds, its returned \(\Phi_{23,x}^{\sigma}\) identifies \(\Theta_{x,\sigma}\) by published soundness. This corollary does not assert byte-for-byte equality of the two papers' displayed formulas.
+\end{proposition}
+\begin{proof}
+Assume that \(G^S\) has no bidirected edges and that \(S\) has no children.  Fix \(H\subseteq N_S\), and write
+\[
+  J_H=G^S[H\cup A_S\cup\{S\}].
+\]
+Taking an induced subgraph cannot create an edge, so \(J_H\) has no bidirected edges.  A district is a maximal set joined by bidirected paths.  A bidirected path between two distinct vertices contains a bidirected edge; hence every district of \(J_H\) is a singleton.  Definition \(\mathrm{def:s\text{-}component}\) therefore gives
+\[
+\begin{aligned}
+ \operatorname{SComp}_{G^S}(H)
+ &=\bigl\{K\cap H:K\in\mathcal D(J_H),\ K\cap H\ne\varnothing\bigr\}\\
+ &=\bigl\{\{h\}:h\in H\bigr\}. \tag{1}
+\end{aligned}
+\]
+When \(H=\varnothing\), both sides of (1) are the empty partition, so (1) covers every \(H\subseteq N_S\).
+
+We next exclude an S-Hedge directly from the definitions.  Suppose for contradiction that \(\operatorname{SHedge}_{G^S}(C,T)\) holds.  By Definition \(\mathrm{def:s\text{-}hedge}\),
+\[
+ C\subsetneq T\subseteq N_S,
+ \qquad
+ \operatorname{SComp}_{G^S}(T)=\{T\}. \tag{2}
+\]
+The declared type of \(C\) makes \(C\) nonempty, so choose \(t\in C\).  Since \(t\in T\), (1) applied with \(H=T\) says that \(\{t\}\) is a block of \(\operatorname{SComp}_{G^S}(T)\).  Combining this fact with (2) yields \(\{t\}=T\).  The inclusions \(\varnothing\ne C\subseteq T=\{t\}\) then force \(C=T\), contradicting \(C\subsetneq T\).  Thus
+\[
+  \neg\operatorname{SHedge}_{G^S}(C,T)
+  \quad\text{for every admissible pair }(C,T). \tag{3}
+\]
+
+Definition \(\mathrm{def:success\text{-}or\text{-}certificate\text{-}algorithm}\) states that a terminal recursive failure supplies sets \(C\subsetneq T\subseteq N_S\) such that both are single S-components and \(\operatorname{An}_{G^S[T]}(C)=T\).  By Definition \(\mathrm{def:s\text{-}hedge}\), those conditions are exactly \(\operatorname{SHedge}_{G^S}(C,T)\).  This contradicts (3), so the recursive S-Hedge failure branch of \(\mathsf{sID}^{\pm}\) cannot occur.  This argument proves the singleton-component and no-failure conclusions internally; it does not borrow them from the citation.
+
+For the remaining graphical comparison, \(\mathrm{lem:published\text{-}dag\text{-}sid\text{-}consistency}\) records the precise DAG specialization of AboueiEtAl2024LatentSID Theorem 5.1 and the paragraph immediately following Remark 5.2: the auxiliary effect is always s-ID, while the original selected causal effect is s-ID exactly when the paper's Equation (5), its initial selected d-separation condition, holds; the authors call this consistent with AboueiEtAl2024SID Theorem 2.  This is a comparison of graphical criteria and does not assert literal equality of the two papers' displayed formulas.
+
+It remains to verify the identifying claim as an equality between the observed-law functional and the causal target.  Fix a finite signature \(\sigma\), an intervention value \(x\in\mathcal X_X\), and a model \(M\in\mathfrak M_+(G^S,\sigma)\).  By \(\mathrm{lem:target\text{-}support}\),
+\[
+  P_M\bigl(S=1\mid\operatorname{do}(X=x)\bigr)>0, \tag{4}
+\]
+so the intervention-before-conditioning law \(\Theta_{x,\sigma}(M)\) is defined.  By Definition \(\mathrm{def:model\text{-}class}\),
+\[
+  P_M(V=v,S=1)>0
+  \quad\text{for every }v\in\prod_{j\in V}\mathcal X_j. \tag{5}
+\]
+Summing (5) over the nonempty finite state space of \(V\) gives \(P_M(S=1)>0\), and hence
+\[
+  P_{M,\sigma}^S(v)
+  =\frac{P_M(V=v,S=1)}{P_M(S=1)}>0. \tag{6}
+\]
+More generally, for any \(Z\subseteq V\) and \(z\in\mathcal X_Z\), finiteness of the signature and (6) give
+\[
+  P_{M,\sigma}^S(Z=z)
+  =\sum_{v\in\mathcal X_V:\,v|_Z=z}P_{M,\sigma}^S(v)>0, \tag{7}
+\]
+because the set of completions of \(z\) is nonempty and every summand is positive.  Thus every observed-coordinate conditioning denominator used in the outer conditional and in the successful finite recursive selected-kernel construction is positive.
+
+Now suppose published Algorithm 1 succeeds.  Its soundness theorem, recorded as \(\mathrm{lem:published\text{-}latent\text{-}sid\text{-}soundness}\), applies because of (4)--(7).  Using Definition \(\mathrm{def:eq23\text{-}functional}\), it yields, for every \(y\in\mathcal X_Y\),
+\[
+ \Phi_{23,x}^{\sigma}(P_{M,\sigma}^S)(y)
+ =P_M\bigl(Y=y\mid\operatorname{do}(X=x),S=1\bigr)
+ =\Theta_{x,\sigma}(M)(y). \tag{8}
+\]
+Since \(\mathcal X_Y\) is finite, the pointwise equalities in (8) imply equality of probability laws.
+
+Finally, let \(M_0,M_1\in\mathfrak M_+(G^S,\sigma)\) have the same selected observational law \(P_{M_0,\sigma}^S=P_{M_1,\sigma}^S=p\).  Applying (8) to each model gives
+\[
+  \Theta_{x,\sigma}(M_0)
+  =\Phi_{23,x}^{\sigma}(p)
+  =\Theta_{x,\sigma}(M_1). \tag{9}
+\]
+Therefore the explicit observed-law map \(p\mapsto\Phi_{23,x}^{\sigma}(p)\) identifies \(\Theta_{x,\sigma}\) whenever Algorithm 1 succeeds, as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The narrowed corollary matches the exact published comparison. \textit{Gap.} Literal term-by-term equality of the two papers' formulas was not sourced or derived. \textit{Consumer.} The DAG case remains a graphical and semantic regression test.
+
+\begin{proposition}[prop:ukb-conditional-feasibility-audit]\label{prop:ukb-conditional-feasibility-audit}
+Fix a finite two-selector signature \(\sigma_{EI}\), an exact induced graph \(G^{EI}\), an observed pair \(\mathcal O=(P(Z,A,L\mid S_E=1),P(Z,Y,L\mid S_I=1))\), and \(a\in\mathcal X_A\). If \(\mathsf{Audit}_{EI}\) exhibits \(M_{EI,0},M_{EI,1}\in\mathcal F_{EI}(\mathcal O;G^{EI})\) with \(\Theta^I_a(M_{EI,0})\ne\Theta^I_a(M_{EI,1})\), then the imaging-selected HbA1c intervention target is not identified from those two observed Tian margins over the positive exact-graph two-selector class. Such membership establishes that the fiber is nonempty and that both models have exactly the declared parent interfaces and shared-latent incidences. The audit may return a UK Biobank data-compatible nonidentification conclusion only with this same-fiber pair. Otherwise it returns only unmet fusion or selected-instrument assumptions, or an inconclusive result. In particular, a generic one-selector \(\operatorname{CertSCM}\) pair with one common full selected law is not a certificate for the two Tian margins unless both realized models are separately verified to belong to the same \(\mathcal F_{EI}(\mathcal O;G^{EI})\) fiber.
+\end{proposition}
+\begin{proof}
+Fix \(\sigma_{EI}\), \(G^{EI}\), \(\mathcal O\), and \(a\) as in the statement, and abbreviate
+\[
+ \mathfrak M=\mathfrak M_{EI,+}(G^{EI},\sigma_{EI}),
+ \qquad
+ \mathcal F=\mathcal F_{EI}(\mathcal O;G^{EI}).
+\]
+We first verify that every conditional law used below is well defined.  If \(N\in\mathfrak M\), then, by \(\mathrm{ass:exposure\text{-}selector\text{-}positivity}\), \(\mathrm{ass:imaging\text{-}selector\text{-}positivity}\), and \(\mathrm{def:two\text{-}selector\text{-}model\text{-}class}\), for each \(r\in\{E,I\}\) and each substantive cell \(v\),
+\[
+ P_N(V_{EI}=v,S_r=1)>0.
+\]
+Because the signature is finite and its product state space is nonempty, summation over all substantive cells gives
+\[
+ P_N(S_r=1)
+ =\sum_{v\in\prod_{k\in V_{EI}}\mathcal X_k}
+   P_N(V_{EI}=v,S_r=1)>0.
+\]
+Thus both components of \(\operatorname{Obs}_{EI}(N)\), as defined in \(\mathrm{def:tian\text{-}observation\text{-}map}\), exist.  Moreover,
+\[
+ P_N(A=a,S_I=1)
+ =\sum_{v:v_A=a}P_N(V_{EI}=v,S_I=1)>0.
+\]
+The model is recursive by \(\mathrm{ass:two\text{-}selector\text{-}exact\text{-}compatibility}\) and \(\mathrm{def:two\text{-}selector\text{-}model\text{-}class}\).  For any exogenous realization at which the observational solution has \(A=a\), replacing the structural equation for \(A\) by the constant \(a\) leaves the entire solution unchanged: this follows by induction along a topological ordering, since the replacement agrees with the observational value at \(A\), and every later structural function receives the same parent values and the same exogenous inputs.  Consequently
+\[
+ \{A=a,S_I=1\}_{\mathrm{obs}}
+ \subseteq
+ \{S_I=1\}_{\operatorname{do}(A=a)},
+\]
+and hence
+\[
+ P_N(S_I=1\mid\operatorname{do}(A=a))
+ \ge P_N(A=a,S_I=1)>0.
+\]
+Therefore \(\Theta^I_a(N)=P_N(Y\mid\operatorname{do}(A=a),S_I=1)\), with intervention performed before conditioning as specified by the symbol \(\Theta^I_a\), is also well defined.
+
+We now separate the causal target from the observation map.  Point identification of \(\Theta^I_a\) from the two Tian margins over \(\mathfrak M\) means the following property:
+\[
+ \mathsf{Id}_{EI}(a)
+ \quad\Longleftrightarrow\quad
+ \text{for all }N_0,N_1\in\mathfrak M,
+ \quad
+ \operatorname{Obs}_{EI}(N_0)=\operatorname{Obs}_{EI}(N_1)
+ \Longrightarrow
+ \Theta^I_a(N_0)=\Theta^I_a(N_1).
+\]
+This line is the definition of identification relative to the stated observation map; it does not define the causal target, which was defined independently by intervention followed by conditioning.
+
+Suppose that the audit exhibits \(M_{EI,0},M_{EI,1}\in\mathcal F\) with
+\[
+ \Theta^I_a(M_{EI,0})\ne\Theta^I_a(M_{EI,1}).
+\]
+Unfolding \(\mathrm{def:tian\text{-}feasibility\text{-}fiber}\) separately for \(j=0,1\) yields
+\[
+ M_{EI,j}\in\mathfrak M
+ \quad\text{and}\quad
+ \operatorname{Obs}_{EI}(M_{EI,j})=\mathcal O.
+\]
+In particular,
+\[
+ \operatorname{Obs}_{EI}(M_{EI,0})
+ =\mathcal O
+ =\operatorname{Obs}_{EI}(M_{EI,1}),
+\]
+whereas their causal targets differ.  The pair therefore falsifies the universal implication defining \(\mathsf{Id}_{EI}(a)\), so
+\[
+ \neg\mathsf{Id}_{EI}(a).
+\]
+This proves nonidentification from the two observed margins over the positive exact-graph two-selector class.
+
+The same membership statements also prove \(\mathcal F\ne\varnothing\).  Furthermore, by \(\mathrm{ass:two\text{-}selector\text{-}exact\text{-}compatibility}\) and \(\mathrm{def:two\text{-}selector\text{-}model\text{-}class}\), each displayed model has exactly the parent interfaces of \(G^{EI}\), and two distinct endogenous mechanisms share an exogenous input if and only if their vertices are joined by a bidirected edge of \(G^{EI}\).  Thus permitted edges are not being silently deleted or added.  By \(\mathrm{def:tian\text{-}imaging\text{-}law\text{-}set}\), the full imaging-selected laws compatible with the two margins are exactly
+\[
+ \Gamma_I(\mathcal O;G^{EI})
+ =\{P_N(V_{EI}\mid S_I=1):N\in\mathcal F\},
+\]
+which is the set recorded by the audit.
+
+Finally, unfold \(\mathrm{def:tian\text{-}feasibility\text{-}audit}\).  Its nonidentification branch is enabled only by two displayed models in the same fiber whose \(\Theta^I_a\)-values differ.  If no such pair is displayed, that definition permits only an unmet-assumptions report identifying additional fusion or selected-instrument assumptions, or an inconclusive output.  A one-selector \(\operatorname{CertSCM}\) pair with a common law \(P(V\mid S=1)\) does not, merely from that fact, instantiate the two quantifiers in \(\mathsf{Id}_{EI}(a)\): its members have not thereby been shown to lie in \(\mathfrak M\), and equality of one common selected law has not thereby been shown to equal the ordered two-selector observation \(\mathcal O\).  Separate verification that both realized models belong to the same \(\mathcal F_{EI}(\mathcal O;G^{EI})\) is therefore a necessary condition for that pair to serve as a certificate for the Tian margins.  This proves every asserted branch of the proposition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The two UK Biobank samples expose different margins under different selectors, so nonidentification must be witnessed inside their joint exact-graph feasibility fiber. \textit{Gap.} TianEtAl2024HbA1c reports standard Mendelian-randomization checks but neither a two-selector exact-graph feasibility model nor a same-margin countermodel pair; TyrrellEtAl2021, LyallEtAl2022, and SchoelerEtAl2023 document why that distinction can matter. \textit{Consumer.} Researchers reanalyzing HbA1c and brain aging receive a disciplined decision rule: a data-compatible countermodel pair, a list of unmet fusion or selected-IV assumptions, or an explicitly inconclusive audit.
+
+\begin{lemma}[lem:published-latent-sid-soundness]\label{lem:published-latent-sid-soundness}
+Whenever published Algorithm 1 of AboueiEtAl2024LatentSID succeeds, its returned Eq. 23 functional is sound: for every compatible model for which the displayed conditionals are defined, \(\Phi_{23,x}^{\sigma}(P_{M,\sigma}^S)=\Theta_{x,\sigma}(M)\).
+\end{lemma}
+
+\begin{lemma}[lem:published-dag-sid-consistency]\label{lem:published-dag-sid-consistency}
+\texttt{In the absence of bidirected edges,\allowbreak{} AboueiEtAl2024LatentSID states that there are no S-\allowbreak{}Hedges,\allowbreak{} that its graphical criterion reduces to the initial selected d-\allowbreak{}separation condition,\allowbreak{} and that this condition is consistent with Theorem 2 of AboueiEtAl2024SID.}
+\end{lemma}
+
+\begin{lemma}[lem:independent-smoothing-kills-early-contrast]\label{lem:independent-smoothing-kills-early-contrast}
+In the following legal raw response family for the early-kill graph, independent smoothing cannot preserve a target contrast. Let \(U,W,Z_1\) be independent fair bits, let \(E\) be an independent bit with \(0<P(E=1)<1\), and use the same strictly positive selection probabilities given \((Z_1,Z_2)\) in two models. Both models set \(B=U\) and \(D=B\oplus E\). Model zero sets \(Z_2=U\oplus W\), model one sets \(Z_2=W\), and model \(j\) uses a Bernoulli outcome kernel \(P_j(Y=1\mid D=d,W=w)=\kappa_j(d,w)\). If their selected observational laws agree, then for each \(d\), \(\kappa_0(d,0)=\kappa_0(d,1)=\kappa_1(d,0)=\kappa_1(d,1)\); consequently their selected targets under \(\operatorname{do}(B=0,D=d)\) are equal. Coordinate-constant exactification cannot change this conclusion.
+\end{lemma}
+\begin{proof}
+Because \(U\) and \(W\) are fair and independent, \((B,Z_2)\) is uniform in both models. The variable \(Z_1\), the conditional law of \(D\) given \(B\), and the positive selection kernel are also common. In particular every stratum \((b,d,z_1,z_2,S=1)\) has positive probability because \(0<P(E=1)<1\) and the selection probabilities are positive. Equality of the selected laws therefore implies equality of the conditional probabilities of \(Y=1\) in each such stratum.
+
+In model zero, \(B=b\) and \(Z_2=z\) determine \(W=b\oplus z\); in model one, \(Z_2=z\) determines \(W=z\). Thus, for every \(b,d,z\in\{0,1\}\),
+\[
+ \kappa_0(d,b\oplus z)=\kappa_1(d,z).
+\]
+Taking \(b=0\) gives \(\kappa_0(d,z)=\kappa_1(d,z)\), while taking \(b=1\) gives \(\kappa_0(d,1\oplus z)=\kappa_1(d,z)\). Hence all four values at fixed \(d\) are one number, say \(\kappa_d\).
+
+After \(\operatorname{do}(B=0,D=d)\), selection may change the posterior law of \(W\), but the outcome probability in either model is the constant \(\kappa_d\) for both values of \(W\). Since the selection denominator is positive,
+\[
+ P_j(Y=1\mid\operatorname{do}(B=0,D=d),S=1)=\kappa_d,
+ \qquad j\in\{0,1\}.
+\]
+The targets are equal. The law-preservation conclusion of \(\mathrm{lem:exactification\text{-}preserves\text{-}laws}\) shows that adding inactive declared coordinates cannot restore a contrast.
+\end{proof}
+
+\begin{lemma}[lem:affine-fair-bit-early-target-half]\label{lem:affine-fair-bit-early-target-half}
+For the early-kill target, any affine fair-bit coding whose postintervention map from three independent fair latent bits to \((Y,Z_1,Z_2)\) is bijective over \(\mathbb F_2^3\) has selected target \(P(Y=1\mid\operatorname{do}(X_\star=x_\star),S=1)=1/2\), provided the selector is generated from \((Z_1,Z_2)\) and an independent selector latent and the selection denominator is positive. Thus a pair of such full-rank affine codings cannot separate \(Q_{\star,x_\star}\).
+\end{lemma}
+\begin{proof}
+Let \(L\) be the vector of the three independent fair latent bits. A bijective affine map \(l\mapsto Al+c\) on \(\mathbb F_2^3\) sends the uniform law on \(\mathbb F_2^3\) to the uniform law. Therefore, under the intervention,
+\[
+ P(Y=y,Z_1=z_1,Z_2=z_2)=\frac18
+\]
+for every \((y,z_1,z_2)\). In particular, \(Y\) is fair and independent of \((Z_1,Z_2)\). If the selector is a function of \((Z_1,Z_2)\) and an exogenous input independent of \(L\), then \(Y\) is also independent of \(S\). Positivity of the selection denominator permits conditioning, and hence
+\[
+ P(Y=1\mid\operatorname{do}(X_\star=x_\star),S=1)
+ =P(Y=1\mid\operatorname{do}(X_\star=x_\star))=\frac12.
+\]
+The conclusion applies to each member of any proposed pair in this affine class, so their targets cannot differ.
+\end{proof}
+
+\begin{lemma}[lem:kivva-positive-finite-forest-countermodels]\label{lem:kivva-positive-finite-forest-countermodels}
+Let \(F_0\subset F_1\) be finite nested common-\(R\)-rooted \(C\)-forests in a semi-Markovian ADMG, with \(C\cap X_N=\varnothing\), \(V(F_1)\cap X_N\ne\varnothing\), and \(R\subseteq\operatorname{An}_{G[N_S\setminus X_N]}(Y_N)\). The positive finite-state completeness construction of Kivva et al. supplies an odd integer \(\kappa>4\), finite state spaces, and two semi-Markovian SCMs using the forest incidence that have the same strictly positive observational distribution but, at a common treatment value, have different postintervention distributions on \(R\).
+\end{lemma}
+\begin{proof}
+Put \(H=F_1\), regarded as the semi-Markovian graph whose observed vertex set is \(V(F_1)\), and put
+\[
+ Z=X_N\cap V(F_1),\qquad O=R.
+\]
+The sets \(Z\) and \(O\) are disjoint: indeed, \(R\subseteq C=V(F_0)\) because \(F_0\) is \(R\)-rooted, while the hypothesis \(C\cap X_N=\varnothing\) gives \(R\cap Z=\varnothing\). The hypothesis \(V(F_1)\cap X_N\ne\varnothing\) gives \(V(F_1)\cap Z=Z\ne\varnothing\), and
+\[
+ V(F_0)\cap Z=C\cap X_N\cap V(F_1)=\varnothing.
+\]
+By hypothesis, \(F_1\) and \(F_0\) are both \(R\)-rooted C-forests, and \(F_0\subset F_1\). Every vertex is its own ancestor via the length-zero directed path. Since \(R\cap Z=\varnothing\), those paths remain in \(H_{\overline Z}\), whence
+\[
+ R\subseteq\operatorname{An}_{H_{\overline Z}}(R).
+\]
+This inclusion is proper if the source's symbol \(\subset\) is read strictly. Indeed, \(Z\ne\varnothing\), and every nonroot vertex of the finite directed forest has a unique directed path ending in \(R\). On such a path starting from any element of \(Z\), choose the last vertex \(z_*\) that belongs to \(Z\). The remaining path from \(z_*\) to \(R\) has no arrow whose head lies in \(Z\), so it survives removal of arrows into \(Z\). Thus \(z_*\in\operatorname{An}_{H_{\overline Z}}(R)\setminus R\).
+Thus \(\langle F_1,F_0\rangle\) satisfies every clause of Shpitser--Pearl's Definition 7 for a hedge for \(P_z(R)\): the outer forest meets \(Z\), the inner forest avoids \(Z\), the forests are nested and have the same root set, and the root-ancestor condition holds. By \(\mathrm{lem:shpitser\text{-}pearl\text{-}ordinary\text{-}hedge\text{-}criterion}\), the ordinary causal effect \(P_z(R)\) is not identifiable in \(H\).
+
+To instantiate the positive construction without changing its information regime, take Kivva et al.'s collection of known distributions to be the singleton \(\mathcal A=\{V(F_1)\}\). Its only known kernel is then
+\[
+ Q[V(F_1)]=P(V(F_1)).
+\]
+Kivva et al.'s Definition 3 quantifies identifiability over models having full-support observational laws. Their complete ordinary Algorithm 1 therefore reports failure for the hedge above. Equivalently, with
+\[
+ W=\operatorname{An}_{H[V(F_1)\setminus Z]}(R),
+\]
+the reduction used by that algorithm contains a single-C-component kernel \(Q[B]\), for some district \(B\subseteq W\), on which its \(\operatorname{ID\text{-}Single}\) call fails. In the proof of Kivva et al.'s Theorem 1, the choice \(\mathcal A=\{V(F_1)\}\) makes equation (4) precisely equality of the full observational law, whereas equation (5) is disagreement on this failed kernel. That proof chooses an arbitrary odd \(\kappa>4\), uses only finite alphabets, and solves its linear system with strictly positive latent weights. Kivva et al.'s Proposition 4 combines the component kernels into \(Q[W]\), and the supplementary proof of Proposition 3 transports the resulting nonidentifiability back to the causal target \(P_z(R)\) while preserving equality of the known distribution. These cited facts are recorded in \(\mathrm{lem:kivva\text{-}positive\text{-}finite\text{-}id\text{-}witness}\).
+
+Consequently there are common finite state spaces and two semi-Markovian models \(\overline M_0,\overline M_1\) inducing \(H\), together with a common \(z^\dagger\in\mathcal X_Z\), such that
+\[
+ P_{\overline M_0}(V(F_1)=h)
+ =P_{\overline M_1}(V(F_1)=h)>0
+ \quad\text{for every }h\in\mathcal X_{V(F_1)},
+\]
+but
+\[
+ P_{\overline M_0}(R\mid\operatorname{do}(Z=z^\dagger))
+ \ne
+ P_{\overline M_1}(R\mid\operatorname{do}(Z=z^\dagger)).
+\]
+Because \(H=F_1\), these models use precisely the forest incidence. The cited construction uses \(\{0,\ldots,\kappa\}\)-valued forest coordinates and finite product alphabets for the remaining coordinates. This proves the claim. The additional hypothesis \(R\subseteq\operatorname{An}_{G[N_S\setminus X_N]}(Y_N)\) is not needed to separate the local root distribution; it is the load-bearing condition for routing that contrast to \(Y_N\) in the selected-law extension.
+
+For an exact smallest-instance check, take the two-observed-node bow graph \(Z\to R\) and \(Z\leftrightarrow R\), with \(F_1=H\), \(F_0=\{R\}\), and a fair binary latent variable \(U\) shared by the two mechanisms. In both models let
+\[
+ P(Z=1\mid U=0)=\frac15,
+ \qquad
+ P(Z=1\mid U=1)=\frac45.
+\]
+For \(j=0\), set the four probabilities \(P_j(R=1\mid Z=z,U=u)\), ordered as \((z,u)=(0,0),(0,1),(1,0),(1,1)\), equal to
+\[
+ \left(\frac25,\frac9{10},\frac9{10},\frac25\right),
+\]
+and for \(j=1\) set them equal to
+\[
+ \left(\frac35,\frac1{10},\frac1{10},\frac35\right).
+\]
+Independent finite private randomizers realize these kernels as recursive SCMs. Every displayed probability lies strictly between zero and one; both \(U\to Z\) and \(U\to R\) are active and the response of \(R\) changes with \(Z\), so both models induce the bow graph. Bayes' rule gives
+\[
+ P(U=0\mid Z=1)=\frac15,
+ \qquad
+ P(U=0\mid Z=0)=\frac45.
+\]
+Substitution in the two response tables yields
+\[
+ P_0(R=1\mid Z=z)=P_1(R=1\mid Z=z)=\frac12
+ \quad (z=0,1),
+\]
+and \(P_j(Z=z)=1/2\); hence both observational laws assign probability \(1/4\) to every \((z,r)\). On the other hand,
+\[
+ P_0(R=1\mid\operatorname{do}(Z=1))=\frac{13}{20},
+ \qquad
+ P_1(R=1\mid\operatorname{do}(Z=1))=\frac7{20}.
+\]
+This verifies the mechanism on the smallest hedge. It is not a binary construction for arbitrary forests. The outer-treatment condition is load-bearing: if \(V(F_1)\cap X_N=\varnothing\), then \(Z=\varnothing\) in the specialization above and the target is the observed marginal \(P(R)\), which cannot differ between models sharing the full observational law.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proved reduction maps each actual-edge nested forest to the ordinary hedge criterion and then invokes KivvaEtAl2022's positive finite-state completeness construction. \textit{Gap.} The reduction is confined to ordinary actual-edge forests; it does not lift virtual edges through selection ancestors or provide binary, rational, or executable certificates. \textit{Consumer.} The native separator specializes the resulting full-support ordinary countermodels to an actual terminal native forest.
+
+\begin{lemma}[lem:sid-graph-recursion-termination]\label{lem:sid-graph-recursion-termination}
+Whenever published Algorithm 1 reaches its single-component recursion, every call chain terminates. A recursive step with fixed target \(C=D_i\) replaces \(T\) by the S-component \(T'\) containing \(D_i\) inside \(A=\operatorname{An}_{G^S[T]}(D_i)\), where \(T'\subseteq A\subsetneq T\). Hence \(\rho\) decreases strictly. The chain rooted at \(T_i^{(0)}\) has at most \(|T_i^{(0)}|\) invocations, its depth is at most \(|N_S|\), and the total number of single-component invocations is at most \(B_0\).
+\end{lemma}
+\begin{proof}
+Fix \((D_i,T_i^{(0)})\). Every call keeps \(C=D_i\). Recursion occurs only when
+\[
+ C\subsetneq A:=\operatorname{An}_{G^S[T]}(C)\subsetneq T.
+\]
+The next enclosure is the S-component \(T'\) of \(A\) containing \(C\), whence
+\[
+ \varnothing\ne C\subseteq T'\subseteq A\subsetneq T,\qquad |T'|\le|T|-1.
+\]
+Thus each step replaces a positive entry \(|T|\) of \(\rho\) by a strictly smaller one. Equivalently, \(|T|\) decreases strictly on each chain, excluding an infinite chain. If \(|T_i^{(0)}|=m\), there are at most \(m-1\) decreases and at most \(m\) invocations. Since \(T_i^{(0)}\subseteq N_S\), depth is at most \(|N_S|\). Summing and using \(\mathrm{def:initial\text{-}call\text{-}budget}\),
+\[
+ \#\{\text{single-component invocations}\}
+ \le\sum_{(D_i,T_i^{(0)})\in\mathcal I_0}|T_i^{(0)}|=B_0.
+\]
+Finiteness of \(G^S\) makes all bounds finite.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This isolates strict graph shrinkage from certificate generation. \textit{Gap.} It does not bound an unproved compiler. \textit{Consumer.} The native equivalence and executable verification theorem use it.
+
+\begin{lemma}[lem:positive-multistate-native-forest-separator]\label{lem:positive-multistate-native-forest-separator}
+Assume \(\operatorname{NativeForestTrace}(G^S;X,Y)\), and let \((C,T)\) be an actual terminal Algorithm 1 failure. There exist an odd integer \(\kappa>4\), a finite multistate signature \(\widetilde\sigma_T\) on \(T\), two finite semi-Markovian SCMs \(\overline M_0,\overline M_1\) whose incidences are contained in \(G^S[T]\), the concrete local intervention \(x_{N,T}^\dagger=0_{X_N\cap T}\), and an assignment \(r^\dagger\in\mathcal X_R\) such that
+\[
+ P_{\overline M_0}(T=t)=P_{\overline M_1}(T=t)>0
+ \quad\text{for every }t\in\mathcal X_T,
+\]
+and
+\[
+ \delta:=P_{\overline M_0}(R=r^\dagger\mid\operatorname{do}(X_N\cap T=0))
+ -P_{\overline M_1}(R=r^\dagger\mid\operatorname{do}(X_N\cap T=0))\ne0.
+\]
+The signature is the finite Kivva construction, with forest-coordinate alphabets based on \(\{0,\ldots,\kappa\}\) and finite product alphabets elsewhere. No binary, rational, or effective-encoding conclusion is asserted.
+\end{lemma}
+\begin{proof}
+Assume \(\operatorname{NativeForestTrace}(G^S;X,Y)\) and let \((C,T)\) be a reachable terminal failure. By \(\mathrm{lem:shedge\text{-}projects\text{-}to\text{-}hedge}\), together with the actual-incidence clause of \(\mathrm{def:native\text{-}forest\text{-}trace}\), there are nested common-\(R\)-rooted C-forests \(F_0\subset F_1\) with
+\[
+ V(F_0)=C,\qquad V(F_1)=T,
+\]
+all their directed and bidirected edges belonging to \(G^S[N_S]\), and
+\[
+ C\cap X_N=\varnothing,\qquad
+ T\cap X_N\ne\varnothing,\qquad
+ R\subseteq\operatorname{An}_{G^S[N_S\setminus X_N]}(Y_N).
+\]
+These are exactly the hypotheses of \(\mathrm{lem:kivva\text{-}positive\text{-}finite\text{-}forest\text{-}countermodels}\), applied to the semi-Markovian graph \(F_1\). Hence there are an odd \(\kappa>4\), a finite signature \(\widetilde\sigma_T\), two finite semi-Markovian models \(\overline M_0,\overline M_1\) using only the edges of \(F_1\subseteq G^S[T]\), and a common treatment value \(z^\dagger\in\mathcal X_{X_N\cap T}\), such that
+\[
+ P_{\overline M_0}(T=t)=P_{\overline M_1}(T=t)>0
+ \quad\text{for every }t\in\mathcal X_T,
+\]
+while their postintervention laws on \(R\) at \(z^\dagger\) differ.
+
+For each \(q\in X_N\cap T\), choose a permutation of its finite alphabet that maps \(z_q^\dagger\) to a distinguished symbol \(0\), and conjugate the structural table for \(q\) and every table receiving \(q\) by that permutation, in both models. This is a common bijective relabeling of endogenous states. Therefore it preserves equality of corresponding observational atoms, strict positivity of every atom, and inequality of the corresponding postintervention distributions. After relabeling the common intervention is
+\[
+ x_{N,T}^\dagger=0_{X_N\cap T}.
+\]
+The two resulting probability measures on the finite set \(\mathcal X_R\) are unequal. Therefore there exists \(r^\dagger\in\mathcal X_R\) for which their point masses differ. Defining
+\[
+ \delta=
+ P_{\overline M_0}(R=r^\dagger\mid\operatorname{do}(X_N\cap T=0))
+ -P_{\overline M_1}(R=r^\dagger\mid\operatorname{do}(X_N\cap T=0))
+\]
+gives \(\delta\ne0\). The alphabet description is inherited from the cited Kivva construction: the forest coordinates are based on \(\{0,\ldots,\kappa\}\), and all other coordinates are finite products. No step performs a binary reduction, chooses rational tables, or constructs an effective encoding.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This revalidated lemma extracts a named root-atom contrast from the repaired ordinary positive-forest carrier on an actual terminal trace. \textit{Gap.} Its state spaces are finite but multistate, and it makes no rational or effective-encoding claim. \textit{Consumer.} The selected extension carries this root contrast to the original outcome along actual treatment-avoiding paths.
+
+\begin{lemma}[lem:finite-exactification-preserves-laws]\label{lem:finite-exactification-preserves-laws}
+For every finite-signature recursive augmented SCM \(\widetilde M\) whose declared parent interfaces and shared-exogenous incidences induce a subgraph of \(G^S\), \(\operatorname{Exactify}^{\mathrm{fin}}_{G^S}(\widetilde M)\) induces exactly \(G^S\). It has the same observational law and the same postintervention law under every intervention on observed vertices. In particular, strict selected-cell positivity and every intervention-before-conditioning target with positive selection denominator are preserved.
+\end{lemma}
+\begin{proof}
+Order the endogenous vertices topologically. Fix every original and fresh exogenous assignment. At the first vertex, the completed function ignores all new parent and latent coordinates, so its output equals the old output. If equality holds at all earlier vertices, coordinate-constancy gives equality at the next vertex. Induction proves pointwise equality of the full endogenous vector.
+
+The fresh factors are independent and normalized, so summing them multiplies every original atom by
+\[
+ \prod_{U\ \mathrm{fresh}}\sum_uP(U=u)=1.
+\]
+The observational laws coincide. Under an intervention, the same equations are replaced by the same constants, and the induction applies to the remaining equations; all postintervention laws coincide. Thus selected atoms, selection denominators, and defined conditional targets are preserved.
+
+Every missing directed edge is now in a declared parent interface and every missing bidirected edge has a fresh shared factor. No unlisted incidence was added. The completed induced graph is exactly \(G^S\), and equality of laws preserves positivity.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This restores unused exact-graph incidences for finite multistate models without changing laws. \textit{Gap.} It is a representation lemma, not a separator. \textit{Consumer.} The native extension applies it after constructing the contrast.
+
+\begin{lemma}[lem:native-forest-trace-subclass]\label{lem:native-forest-trace-subclass}
+If \(\operatorname{NativeForestTrace}(G^S;X,Y)\) holds, then \(G^S\) is an admissible finite childless-selector augmented ADMG for the published latent S-ID problem. For every finite signature \(\sigma\), the class \(\mathfrak M_+(G^S,\sigma)\) on this restricted trace is exactly the exact-induced-graph positive compatibility class of \(\mathrm{def:model\text{-}class}\). Hence native-forest traces form a subclass of the published graph instances, without restricting the SCM class on a fixed member graph.
+\end{lemma}
+\begin{proof}
+Clause (i) of \(\mathrm{def:native\text{-}forest\text{-}trace}\) gives finiteness, acyclicity, childlessness of \(S\), and the query's disjointness and nonemptiness. These are the published graph and query premises. The definition's final sentence leaves compatibility unchanged. Unfolding \(\mathrm{def:model\text{-}class}\), every \(M\in\mathfrak M_+(G^S,\sigma)\) has exactly the graph parent interfaces, exactly the graph shared-exogenous incidences, mutually independent exogenous variables, and positive selected cells. Thus the native condition restricts only graph traces and selects a subclass of published instances. No strict-inclusion claim is made.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proves that native traces remain inside the published graph setting. \textit{Gap.} No strict-inclusion claim is made. \textit{Consumer.} The native headline can reuse published soundness without changing the model class.
+
+\begin{lemma}[lem:native-forest-selected-extension]\label{lem:native-forest-selected-extension}
+Assume \(\operatorname{NativeForestTrace}(G^S;X,Y)\), and let \((C,T)\) be an actual terminal Algorithm 1 failure. Then there exist a finite multistate signature \(\widetilde\sigma\), an intervention value \(x^\dagger\in\mathcal X_X\), two models \(M_0,M_1\in\mathfrak M_+(G^S,\widetilde\sigma)\), and an event \(A_Y\subseteq\mathcal X_Y\) such that
+\[
+ P_{M_0,\widetilde\sigma}^S(v)=P_{M_1,\widetilde\sigma}^S(v)>0
+ \quad\text{for every }v\in\mathcal X_V,
+\]
+but
+\[
+ P_{M_0}(A_Y\mid\operatorname{do}(X=x^\dagger),S=1)
+ \ne P_{M_1}(A_Y\mid\operatorname{do}(X=x^\dagger),S=1).
+\]
+Consequently \(\operatorname{Ident}^{\mathrm{fin}}_S(G^S;X,Y)\) is false. The construction is finite and positive but is not claimed binary, rational, or executable.
+\end{lemma}
+\begin{proof}
+Use \(\mathrm{lem:positive\text{-}multistate\text{-}native\text{-}forest\text{-}separator}\) and put
+\[
+ h(a)=P_{\overline M_0}(R=a\mid\operatorname{do}(X_N\cap T=0))
+ -P_{\overline M_1}(R=a\mid\operatorname{do}(X_N\cap T=0)),
+\]
+with \(\delta=h(r^\dagger)\ne0\). For each \(r\in R\), native incidence supplies a path
+\[
+ \gamma_r:r=v_{r,0}\to\cdots\to v_{r,\ell_r}=y(r),
+ \qquad y(r)\in Y_N,
+\]
+inside \(G^S[N_S\setminus X_N]\). Paths may share vertices or branches.
+
+Augment each path vertex by one signal coordinate for every path through it. The \(r\)-signal has alphabet \(\mathcal X_r\). At its source and each later path vertex use the same randomized-response channel
+\[
+ K_{\epsilon,r}(z\mid u)
+ =(1-\epsilon)\mathbf 1\{z=u\}+\frac{\epsilon}{|\mathcal X_r|},
+ \qquad 0<\epsilon<1.
+\]
+Use independent finite private noises, and product channels at shared vertices. Retain the Kivva base coordinates on \(T\), and give all other base coordinates independent full-support laws. Conditional on the base vector on \(T\), all new coordinates have one common strictly positive conditional kernel. Equality and positivity of the base laws therefore imply
+\[
+ P_0(V=v)=P_1(V=v)>0
+\]
+for every augmented state \(v\).
+
+Give all vertices in \(A_S\) identical independent full-support mechanisms, and make \(S\) an independent fair bit while ignoring its declared parents. Then
+\[
+ P_j(V=v,S=1)=\frac12P_j(V=v)>0,\qquad
+ P_j(V=v\mid S=1)=P_j(V=v),
+\]
+so the selected laws agree.
+
+Let \(L=\sum_{r\in R}(\ell_r+1)\). Couple every channel as exact copying with probability \(1-\epsilon\) and uniform redrawing with probability \(\epsilon\). All terminal signals equal their root inputs with probability at least \((1-\epsilon)^L\). If \(A_Y\) is the event that the terminal signal tuple equals \(r^\dagger\), then for \(j=0,1\),
+\[
+ \left|P_j(A_Y\mid\operatorname{do}(X=x^\dagger))
+ -P_{\overline M_j}(R=r^\dagger\mid\operatorname{do}(X_N\cap T=0))\right|
+ \le1-(1-\epsilon)^L.
+\]
+Here \(x^\dagger\) uses Kivva's zero levels on \(X_N\cap T\) and fixed values elsewhere. The paths avoid \(X_N\), so intervention cuts no signal channel. Choose \(\epsilon\) with
+\[
+ 2\{1-(1-\epsilon)^L\}<|\delta|.
+\]
+The triangle inequality yields
+\[
+ |P_0(A_Y\mid\operatorname{do}(X=x^\dagger))
+ -P_1(A_Y\mid\operatorname{do}(X=x^\dagger))|
+ \ge|\delta|-2\{1-(1-\epsilon)^L\}>0.
+\]
+Independence of \(S\) persists after intervention, so conditioning on \(S=1\) changes neither target.
+
+All used forest and routing edges are actual edges of \(G^S\); the premodels induce subgraphs of \(G^S\). Apply \(\operatorname{Exactify}^{\mathrm{fin}}_{G^S}\). By \(\mathrm{lem:finite\text{-}exactification\text{-}preserves\text{-}laws}\), the completed models induce exactly \(G^S\) and preserve the equal positive selected law and target contrast. They lie in \(\mathfrak M_+(G^S,\widetilde\sigma)\). This one finite-signature pair falsifies \(\mathrm{def:graphwise\text{-}sid}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This constructs equal positive selected laws and a nonzero original-outcome event contrast. \textit{Gap.} Its channel construction requires native actual edges. \textit{Consumer.} It proves the failure direction of the native headline.
+
+\begin{theorem}[thm:native-forest-graphwise-sid-completeness]\label{thm:native-forest-graphwise-sid-completeness}
+Let \(\operatorname{NativeForestTrace}(G^S;X,Y)\) hold. Then published Algorithm 1 succeeds on \((G^S,X,Y)\) if and only if \(\operatorname{Ident}^{\mathrm{fin}}_S(G^S;X,Y)\) holds. On success, for every finite signature \(\sigma\), every \(x\in\prod_{v\in X}\mathcal X_v\), and every \(M\in\mathfrak M_+(G^S,\sigma)\),
+\[
+ \Phi_{23,x}^{\sigma}(P_{M,\sigma}^S)=\Theta_{x,\sigma}(M),
+\]
+with the outer conditional evaluated at \(x_S\) and every recursive kernel at \(x_N\). On terminal failure, \(\mathrm{lem:native\text{-}forest\text{-}selected\text{-}extension}\) supplies one finite multistate signature and two exact-graph models with one common strictly positive selected law and unequal intervention-before-conditioning targets. No binary, rational, or executable failure certificate is claimed.
+\end{theorem}
+\begin{proof}
+Assume throughout that \(\operatorname{NativeForestTrace}(G^S;X,Y)\) holds.  By \(\mathrm{lem:native\text{-}forest\text{-}trace\text{-}subclass}\), \(G^S\) is an admissible finite childless-selector augmented ADMG for published Algorithm~1, and, for each finite signature \(\sigma\), its compatible models are exactly the members of \(\mathfrak M_+(G^S,\sigma)\).
+
+First suppose that Algorithm~1 succeeds.  Fix a finite signature \(\sigma\), an intervention value \(x\in\prod_{v\in X}\mathcal X_v\), and a model \(M\in\mathfrak M_+(G^S,\sigma)\).  By \(\mathrm{def:model\text{-}class}\) and \(\mathrm{ass:selected\text{-}cell\text{-}positivity}\),
+\[
+ P_M(V=v,S=1)>0
+ \qquad\text{for every }v\in\prod_{j\in V}\mathcal X_j.
+\]
+Consequently, every marginal cell of the selected law that occurs as a denominator in the outer conditional or in a recursively extracted selected kernel is a finite sum of positive cells and is therefore positive.  In particular,
+\[
+ P_M(X_S=x_S,S=1)
+ =\sum_{v:\,v|_{X_S}=x_S}P_M(V=v,S=1)>0,
+\]
+so the outer conditional at \(X_S=x_S\) is defined.  The same summation argument applies to every conditioning configuration used by the successful recursive factors evaluated at \(X_N=x_N\).  Moreover, \(\mathrm{lem:target\text{-}support}\) gives
+\[
+ P_M(S=1\mid\operatorname{do}(X=x))>0,
+\]
+so the intervention-before-conditioning target is defined.  The hypotheses of \(\mathrm{lem:published\text{-}latent\text{-}sid\text{-}soundness}\) therefore apply, and, pointwise for every \(y\in\prod_{v\in Y}\mathcal X_v\),
+\[
+ \Phi_{23,x}^{\sigma}(P_{M,\sigma}^S)(y)
+ =\Theta_{x,\sigma}(M)(y).
+\]
+This is precisely the displayed success conclusion, with the evaluation conventions fixed by \(\mathrm{def:eq23\text{-}functional}\).
+
+To deduce graphwise identification, take arbitrary \(M_0,M_1\in\mathfrak M_+(G^S,\sigma)\) satisfying
+\[
+ P_{M_0,\sigma}^S=P_{M_1,\sigma}^S.
+\]
+Applying the preceding equality first to \(M_0\) and then to \(M_1\) yields
+\[
+ \Theta_{x,\sigma}(M_0)
+ =\Phi_{23,x}^{\sigma}(P_{M_0,\sigma}^S)
+ =\Phi_{23,x}^{\sigma}(P_{M_1,\sigma}^S)
+ =\Theta_{x,\sigma}(M_1).
+\]
+Because \(\sigma\), \(x\), \(M_0\), and \(M_1\) were arbitrary within one common signature, \(\mathrm{def:graphwise\text{-}sid}\) implies \(\operatorname{Ident}^{\mathrm{fin}}_S(G^S;X,Y)\).
+
+Conversely, suppose that Algorithm~1 does not succeed.  Clause~(ii) of \(\mathrm{def:native\text{-}forest\text{-}trace}\) says that its initial selected d-separation check passes.  Hence nonsuccess occurs, if at all, in a single-component recursive chain.  By \(\mathrm{lem:sid\text{-}graph\text{-}recursion\text{-}termination}\), the chain rooted at each \(T_i^{(0)}\) has at most \(|T_i^{(0)}|\) invocations, every chain has depth at most \(|N_S|\), and the total number of single-component invocations is at most
+\[
+ B_0=\sum_{(D_i,T_i^{(0)})\in\mathcal I_0}|T_i^{(0)}|<\infty.
+\]
+Therefore a finite execution that does not return the success branch reaches an actual terminal failed call \((C,T)\).  The hypotheses of \(\mathrm{lem:native\text{-}forest\text{-}selected\text{-}extension}\) now hold.  That lemma supplies one finite multistate signature \(\widetilde\sigma\), one value \(x^\dagger\in\mathcal X_X\), models
+\[
+ M_0,M_1\in\mathfrak M_+(G^S,\widetilde\sigma),
+\]
+and an event \(A_Y\subseteq\mathcal X_Y\) such that, pointwise on \(\mathcal X_V\),
+\[
+ P_{M_0,\widetilde\sigma}^S(v)
+ =P_{M_1,\widetilde\sigma}^S(v)>0,
+\]
+whereas
+\[
+ \Theta_{x^\dagger,\widetilde\sigma}(M_0)(A_Y)
+ \ne
+ \Theta_{x^\dagger,\widetilde\sigma}(M_1)(A_Y).
+\]
+The latter inequality implies that the two finite probability distributions \(\Theta_{x^\dagger,\widetilde\sigma}(M_0)\) and \(\Theta_{x^\dagger,\widetilde\sigma}(M_1)\) are unequal, while the preceding pointwise equality says that their selected observational laws coincide.  Thus this single within-\(\widetilde\sigma\) pair violates the implication quantified in \(\mathrm{def:graphwise\text{-}sid}\), and
+\[
+ \neg\operatorname{Ident}^{\mathrm{fin}}_S(G^S;X,Y).
+\]
+We have proved that success implies identification and that failure implies nonidentification; equivalently, Algorithm~1 succeeds if and only if \(\operatorname{Ident}^{\mathrm{fin}}_S(G^S;X,Y)\) holds.  The converse used the terminal selected extension only under \(\operatorname{NativeForestTrace}(G^S;X,Y)\); it makes no assertion about virtual-edge traces, initial-check failures, binary or rational witnesses, or an executable failure compiler.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The advance over AboueiEtAl2024LatentSID is a converse only on \(\operatorname{NativeForestTrace}(G^S;X,Y)\); published soundness supplies the success direction, while the note's selected-law extension supplies the failure direction. \textit{Gap.} KivvaEtAl2022 supplies only the ordinary positive-forest substrate. Virtual-edge lifting, initial-check failure, binary and rational construction, and total certificate compilation remain open. \textit{Consumer.} On native traces, graphical analysts obtain the exact success criterion and Eq. 23 on success, together with an existential finite multistate exact-graph counterpair on terminal failure.
+
+\begin{lemma}[lem:shpitser-pearl-ordinary-hedge-criterion]\label{lem:shpitser-pearl-ordinary-hedge-criterion}
+Let \(H\) be a finite semi-Markovian graph, let \(Z\) and \(O\) be sets of observed vertices, and let \(F\) and \(F'\) be \(R\)-rooted C-forests. If \(V(F)\cap Z\ne\varnothing\), \(V(F')\cap Z=\varnothing\), \(F'\subseteq F\), and \(R\subset\operatorname{An}_{H_{\overline Z}}(O)\), then \(F,F'\) form a hedge for \(P_z(O)\), and \(P_z(O)\) is not identifiable from the observational law in \(H\).
+\end{lemma}
+
+\begin{lemma}[lem:kivva-positive-finite-id-witness]\label{lem:kivva-positive-finite-id-witness}
+Let \(H\) be a finite semi-Markovian causal graph and let \(Z,O\) be disjoint observed vertex sets. Under the positive-model definition \(P_M(h)>0\) for every observed assignment \(h\), ordinary Algorithm 1 is sound and complete. When it returns failure for \(P_z(O)\), the constructive necessity argument may be carried out with an odd integer \(\kappa>4\) and common finite state spaces, and it gives two semi-Markovian structural equation models inducing \(H\), with the same full-support observational law, but with different distributions \(P_z(O)\) at some common value \(z\). The construction uses \(\{0,\ldots,\kappa\}\)-valued forest coordinates and finite product coordinates; Proposition 4 combines the failed component kernels, and the supplementary proof of Proposition 3 transfers the resulting kernel disagreement to the stated causal effect.
+\end{lemma}
+
+\begin{openendedquestion}[oeq:universal-graphwise-sid-completeness]\label{oeq:universal-graphwise-sid-completeness}
+For every finite childless-selector augmented ADMG \(G^S\), including graphs whose terminal S-Hedges require virtual bidirected edges through shared or branching selection ancestors and instances failing the initial d-separation check, does published Algorithm 1 succeed if and only if \(\operatorname{Ident}^{\mathrm{fin}}_S(G^S;X,Y)\) holds? Equivalently, can every failure be converted into a finite-signature exact-graph pair with one common strictly positive selected law and unequal intervention-before-conditioning targets? The native-forest theorem answers this only on \(\operatorname{NativeForestTrace}(G^S;X,Y)\).
+\end{openendedquestion}
+The equivalence is proved when the initial d-separation check passes and every terminal forest is native in \(G^S[N_S]\). Projection geometry holds for arbitrary terminal S-Hedges, but a common-positive-law inverse realization for virtual edges and an independent initial-failure compiler are absent.
+\par\smallskip\noindent \textit{Justification.} This faithfully preserves the unrestricted conjecture. \textit{Gap.} Virtual-edge and initial-failure countermodel construction remain open. \textit{Consumer.} It is the frontier beyond the restricted theorem.
+
+\begin{openendedquestion}[oeq:initial-dsep-failure-compiler]\label{oeq:initial-dsep-failure-compiler}
+Whenever the initial selected d-separation check of published Algorithm 1 fails, can one effectively choose \(x_{\mathrm{bin}}\) and construct \(E_0,E_1\in\operatorname{CertSCM}(G^S,\sigma_{\mathrm{bin}})\) with rational finite tables such that \(\mathsf{Check}_{\mathrm{NONID}}(G^S,X,Y,x_{\mathrm{bin}},E_0,E_1)=\mathrm{accept}\)? The definition of \(\mathsf{AncestorPair}\) names this desired output but does not prove that the compiler exists.
+\end{openendedquestion}
+Coordinate-constant exactification preserves any raw separating pair once supplied, and checker acceptance would certify the required same-law target separation. The frozen \(\mathsf{AncestorPair}\) construction, however, cites an intended fully observed necessity construction without deriving finite rational tables or accepted evidence.
+\par\smallskip\noindent \textit{Justification.} This preserves the independent initial-failure compiler as open. \textit{Gap.} No finite rational accepted pair has been constructed. \textit{Consumer.} Both unrestricted completeness and total compilation require it.
+
+\begin{openendedquestion}[oeq:total-success-or-certificate-compilation]\label{oeq:total-success-or-certificate-compilation}
+Can \(\mathsf{sID}^{\pm}\) be made total by two effective finite-rational compilers: one for failure of the initial selected d-separation check and one for every terminal recursive S-Hedge, each returning an accepted exact-graph \(\operatorname{CertSCM}\) pair? A positive answer requires both the independent \(\mathsf{AncestorPair}\) compiler and the compositional inverse lift with noncancelling outcome contrast; graph-recursion termination and checker verification alone do not construct either pair.
+\end{openendedquestion}
+The graph recursion has a strict cardinality-decrease bound and every supplied rational certificate has a sound finite checker. Total compilation remains open because neither the initial-failure compiler nor the arbitrary virtual-edge terminal compiler is proved.
+\par\smallskip\noindent \textit{Justification.} This records the missing operational endpoint. \textit{Gap.} Both failure compilers are required. \textit{Consumer.} A total implementation depends on resolving it.
+
+\begin{openendedquestion}[oeq:positive-binary-two-virtual-edge-separation]\label{oeq:positive-binary-two-virtual-edge-separation}
+Does there exist \(x_\star\in\{0,1\}^{X_\star}\) and \(E_{\star,0},E_{\star,1}\in\operatorname{CertSCM}(G_\star^S,\sigma_{\mathrm{bin},\star})\) such that the exact checker accepts, their realized models have the same strictly positive selected law on every cell of \(\{0,1\}^{V_\star}\), and \(Q_{\star,x_\star}(\llbracket E_{\star,0}\rrbracket)\ne Q_{\star,x_\star}(\llbracket E_{\star,1}\rrbracket)\)? The known support-deficient pair has targets \(1/2\) and \(5/8\), but does not answer this positive-binary question.
+\end{openendedquestion}
+An exact rational support-deficient pair is known: both models have \(D=B\), \(Y=B\oplus Z_2\), and the same selected law on their common support, while at \(\operatorname{do}(B=0,D=0)\) their selected targets are \(1/2\) and \(5/8\). It fails strict selected-cell positivity. Independent smoothing forces equality of the relevant outcome kernels, and full-rank affine fair-bit codings force both targets to \(1/2\).
+\par\smallskip\noindent \textit{Justification.} This is the smallest unresolved positive-binary virtual-edge stress test. \textit{Gap.} The exact separating pair is support deficient and two natural smoothing classes erase the contrast. \textit{Consumer.} It is a necessary base case for any binary rational universal lift.
+
+\section{Interpretation}
+
+The native theorem marks the boundary at which terminal latent S-ID failure already contains an ordinary hedge inside the selection-nonancestor graph. At that boundary, an ordinary positive separator can be passed through a common independent selector and sufficiently accurate full-support channels without canceling its root contrast. When a terminal forest uses virtual edges through ancestors of \(S\), this argument no longer controls the selected-law normalizer, so the universal converse remains unresolved.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The proof requires actual-edge nested forests on every reachable terminal failure. It does not realize projected virtual bidirected edges through shared or branching ancestors of \(S\). Accordingly, unrestricted graphwise completeness, the positive-binary two-virtual-edge separation problem, the initial selected-d-separation failure constructor, exact-rational inverse lifting, and total success-or-certificate compilation all remain open. The proved Kivva reduction is finite and full-support but multistate; no binary reduction, rational parameter choice, or executable constructor follows from it. The rational checker theorem is only a sound verification result conditional on a certificate being supplied.
+
+\section{Honest scope}
+
+The headline theorem is an if-and-only-if result only for finite childless-selector queries satisfying \(\operatorname{NativeForestTrace}(G^S;X,Y)\). The compatible class is the full positive recursive augmented-SCM class whose declared observed-parent interfaces and shared-exogenous incidences induce exactly \(G^S\), and observational equivalence compares models only within one finite signature. On success, Eq. 23 is evaluated at \(X_S=x_S\) in the outer conditional and at \(X_N=x_N\) in every recursive selected kernel. On a terminal native failure, the proof supplies one finite multistate exact-graph pair with a common strictly positive selected law and unequal intervention-before-conditioning targets. It does not supply a binary or rational pair. Coordinate-constant exactification preserves the relevant laws under the declared-interface graph convention. Graph-recursion bounds and sound finite checking of a supplied rational certificate are separate proved properties; they do not make the failure branch executable. Universal virtual-edge completeness, the positive-binary two-virtual-edge separator, initial-check failure construction, exact-rational inverse lifting, and total compilation remain open. The no-bidirected-edge result is only a published-case regression check. The UK Biobank component is conditional on a specified two-selector graph and a nonempty feasibility fiber; absent two exact-graph models in that same fiber with unequal targets, it reports only unmet assumptions or an inconclusive audit, not data-compatible nonidentification.
+
+\begin{thebibliography}{99}
+
+  \bibitem{AboueiEtAl2024LatentSID} Amir Mohammad Abouei, Ehsan Mokhtarian, Negar Kiyavash, and Matthias Grossglauser. Causal Effect Identification in a Sub-Population with Latent Variables. Advances in Neural Information Processing Systems 37, 2024. arXiv:2405.14547.
+
+  \bibitem{AboueiEtAl2024SID} Amir Mohammad Abouei, Ehsan Mokhtarian, and Negar Kiyavash. s-ID: Causal Effect Identification in a Sub-Population. Proceedings of the AAAI Conference on Artificial Intelligence, 2024. arXiv:2309.02281.
+
+  \bibitem{ShpitserPearl2006} Ilya Shpitser and Judea Pearl. Identification of Joint Interventional Distributions in Recursive Semi-Markovian Causal Models. Proceedings of AAAI, pages 1219--1226, 2006. UCLA Technical Report R-327.
+
+  \bibitem{HuangValtorta2008} Yimin Huang and Marco Valtorta. On the Completeness of an Identifiability Algorithm for Semi-Markovian Models. Annals of Mathematics and Artificial Intelligence 54, pages 363--408, 2008. DOI: 10.1007/s10472-008-9101-x.
+
+  \bibitem{TianPearl2002} Jin Tian and Judea Pearl. A General Identification Condition for Causal Effects. Proceedings of AAAI, 2002.
+
+  \bibitem{ChenZoeterMooij2024} Leihao Chen, Onno Zoeter, and Joris M. Mooij. Modeling Latent Selection with Structural Causal Models. arXiv:2401.06925, 2024.
+
+  \bibitem{KivvaEtAl2023} Yaroslav Kivva, Jalal Etesami, and Negar Kiyavash. On Identifiability of Conditional Causal Effects. Proceedings of the Thirty-Ninth Conference on Uncertainty in Artificial Intelligence, 2023. arXiv:2306.11755.
+
+  \bibitem{RichardsonEtAl2017} Thomas S. Richardson, Robin J. Evans, James M. Robins, and Ilya Shpitser. Nested Markov Properties for Acyclic Directed Mixed Graphs. arXiv:1701.06686, 2017.
+
+  \bibitem{DuarteEtAl2024AutoBounds} Guilherme Duarte, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser. An Automated Approach to Causal Inference in Discrete Settings. Journal of the American Statistical Association, 2024. DOI: 10.1080/01621459.2023.2216909.
+
+  \bibitem{BhattacharyaNabiShpitser2022} Rohit Bhattacharya, Razieh Nabi, and Ilya Shpitser. Semiparametric Inference for Causal Effects in Graphical Models with Hidden Variables. Journal of Machine Learning Research 23, 2022. arXiv:2003.12659.
+
+  \bibitem{LeeGhassamiShpitser2024} Jaron J. R. Lee, AmirEmad Ghassami, and Ilya Shpitser. A General Identification Algorithm for Data Fusion Problems Under Systematic Selection. Proceedings of the Fortieth Conference on Uncertainty in Artificial Intelligence, 2024. arXiv:2404.06602.
+
+  \bibitem{QiuEtAl2026} Yiwen Qiu, Filip Kovacevic, Shimeng Huang, Peter Spirtes, and Francesco Locatello. Towards a Holistic Understanding of Selection Bias for Causal Effect Identification. Proceedings of ICML, 2026. arXiv:2605.13430.
+
+  \bibitem{TianEtAl2024HbA1c} Cheng Tian and coauthors. The Causal Effect of HbA1c on White Matter Brain Aging by Two-Sample Mendelian Randomization Analysis. Frontiers in Neuroscience 17:1335500, 2024. DOI: 10.3389/fnins.2023.1335500.
+
+  \bibitem{TyrrellEtAl2021} Jessica Tyrrell and coauthors. Genetic Predictors of Participation in Optional Components of UK Biobank. Nature Communications 12:886, 2021. DOI: 10.1038/s41467-021-21073-y.
+
+  \bibitem{LyallEtAl2022} Donald M. Lyall and coauthors. Quantifying Bias in Psychological and Physical Health in the UK Biobank Imaging Sub-Sample. Brain Communications 4:fcac119, 2022. DOI: 10.1093/braincomms/fcac119.
+
+  \bibitem{SchoelerEtAl2023} Tabea Schoeler and coauthors. Participation Bias in the UK Biobank Distorts Genetic Associations and Downstream Analyses. Nature Human Behaviour 7, pages 1216--1227, 2023. DOI: 10.1038/s41562-023-01579-9.
+
+  \bibitem{KivvaEtAl2022} Yaroslav Kivva, Ehsan Mokhtarian, Jalal Etesami, and Negar Kiyavash. Revisiting the General Identifiability Problem. Proceedings of the Thirty-Eighth Conference on Uncertainty in Artificial Intelligence, Proceedings of Machine Learning Research 180:1022--1030, 2022. arXiv:2206.01081.
+
+\end{thebibliography}
+
+\end{document}

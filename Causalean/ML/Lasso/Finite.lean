@@ -23,16 +23,24 @@ open Matrix BigOperators
 
 variable {Obs Param : Type*} [Fintype Obs] [Fintype Param]
 
-/-- The L1 penalty `‖β‖₁ = ∑ₖ |βₖ|`. -/
+/-- For [a finite coefficient index set](hyp:Param) and [a coefficient vector](hyp:β), the
+[L1 penalty](goal) is the sum, over all coefficient indices, of the absolute values of its
+coordinates. -/
 noncomputable def l1penalty (β : Param → ℝ) : ℝ := ∑ k, |β k|
 
-/-- The lasso objective: least-squares error plus the L1 penalty `λ‖β‖₁`. -/
+/-- For [a finite set of observations](hyp:Obs), [a finite coefficient index set](hyp:Param),
+[a design matrix](hyp:X), [an outcome vector](hyp:y), [a penalty weight](hyp:lam), and
+[a coefficient vector](hyp:β), the [lasso objective](goal) is the sum of squared residuals
+plus the penalty weight times the L1 penalty of the coefficient vector. -/
 noncomputable def lassoObjective
     (X : Matrix Obs Param ℝ) (y : Obs → ℝ) (lam : ℝ) (β : Param → ℝ) : ℝ :=
   olsObjective X y β + lam * l1penalty β
 
-/-- The soft-thresholding operator, in the sign-free form
-`S_λ(z) = max(z − λ, 0) − max(−z − λ, 0)` (equal to `sign z · max(|z| − λ, 0)`). -/
+/-- For [a threshold level](hyp:lam) and [a real-valued input](hyp:z), the
+[soft-thresholded value](goal) is $\max(z-\lambda,0)-\max(-z-\lambda,0)$.
+
+For a nonnegative threshold, this is equivalently
+$\operatorname{sign}(z)\max(|z|-\lambda,0)$. -/
 noncomputable def softThreshold (lam z : ℝ) : ℝ := max (z - lam) 0 - max (-z - lam) 0
 
 /-- The L1 penalty is nonnegative. -/

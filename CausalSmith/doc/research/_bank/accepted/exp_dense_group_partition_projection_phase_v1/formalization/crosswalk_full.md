@@ -1,0 +1,245 @@
+# tex↔Lean crosswalk
+
+Definition/assumption/theorem (and, in the F5 complete table, lemma)
+correspondence. Durable anchors: `obj_id` (.md/.tex side) and `(file, decl)`
+(Lean side). Line numbers are convenience and re-derivable.
+
+**Guarantee boundary (read this).** The Lean column is machine-verified at the
+STATEMENT level: a sorry-free theorem/lemma certifies its *statement* is true.
+The `.tex` PROOFS are NOT Lean-verified at the proof level — they are human
+narratives refereed once at D0.5 and reconciled to the Lean *statements* by
+the proof-review loop. A `.tex` proof step can therefore be wrong while the (true) statement
+is Lean-certified; where the two disagree, the Lean proof is the ground truth.
+
+| obj_id | kind | Lean (file:decl) | .tex anchor | verdict | note |
+|---|---|---|---|---|---|
+| P-1 | definition | `Helpers/PartitionDesign.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.randomPartitionDesign (L95)` | P-1 | equivalent |  |
+| P-2 | definition | `Basic.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armTable (L60)` | P-2 | equivalent |  |
+| P-3 | definition | `Helpers/Estimator.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.pameAndEstimator (L49)` | P-3 | equivalent |  |
+| P-4 | definition | `Helpers/Kneser.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.johnsonComponents (L95)` | P-4 | equivalent |  |
+| P-5 | definition | `Helpers/Kneser.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.crossCov (L151)` | P-5 | equivalent |  |
+| P-6 | definition | `Helpers/Estimator.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.denseCorrection (L84)` | P-6 | equivalent |  |
+| P-7 | definition | `Helpers/Estimator.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.cr2Var (L115)` | P-7 | equivalent |  |
+| P-8 | definition | `Helpers/Asymptotics.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.DenseScheduleClass (L148)` | P-8 | equivalent |  |
+| P-9 | definition | `Helpers/Witness.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8Bundle (L33)` | P-9 | equivalent |  |
+| T-1 | theorem | `TExactKneserIdentity.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.exact_kneser_identity (L204)` | T-1 | equivalent |  |
+| T-2 | theorem | `TExactPameVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.exact_pame_variance (L14)` | T-2 | equivalent |  |
+| T-3 | theorem | `TDenseProjectionLimit.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.dense_projection_limit (L450)` | T-3 | equivalent |  |
+| T-4 | theorem | `TCr2PhaseFrontier.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.cr2_phase_frontier (L16)` | T-4 | equivalent |  |
+| T-5 | theorem | `TSparseBeyondBirthday.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sparse_beyond_birthday (L180)` | T-5 | equivalent |  |
+| T-6 | theorem | `TClubsandwichConsumer.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.clubsandwich_cr2_consumer_identity (L142)` | T-6 | equivalent |  |
+| T-7 | theorem | `TEightUnitWitness.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.eight_unit_witness_moments (L203)` | T-7 | equivalent |  |
+| T-8 | theorem | `TRademacherMixtureSeparation.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.rademacher_mixture_separation (L78)` | T-8 | equivalent |  |
+| T-9 | theorem | `TQvDiagonalImpossibility.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.qv_diagonal_impossibility (L289)` | T-9 | equivalent |  |
+| A-1 | assumption | `Helpers/Asymptotics.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.GroupCountGrowth (L99)` | A-1 | equivalent |  |
+| A-2 | assumption | `Helpers/Asymptotics.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.StableTreatmentFraction (L117)` | A-2 | equivalent |  |
+| A-3 | assumption | `Helpers/Asymptotics.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.SamplingFractionLimit (L124)` | A-3 | equivalent |  |
+| A-4 | assumption | `Helpers/Asymptotics.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.BoundedSchedule (L132)` | A-4 | equivalent |  |
+| A-5 | assumption | `Helpers/Asymptotics.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.ScaledVarianceNondegenerate (L139)` | A-5 | equivalent |  |
+| lem:classical-kneser-spectrum | lemma | `Helpers/Kneser.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.canonicalKneserAdjacencySpectrum (L395)` | lem:classical-kneser-spectrum | equivalent |  |
+| lem:classical-johnson-decomposition | lemma | `Helpers/Kneser.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.canonicalJohnsonOrthogonalDecomposition (L361)` | lem:classical-johnson-decomposition | equivalent |  |
+| aux_armVar | definition | `Basic.lean:armVar (L71)` | aux_armVar | unmatched |  |
+| aux_birthdayGroupedUnits | definition | `TSparseBeyondBirthday.lean:birthdayGroupedUnits (L20)` | aux_birthdayGroupedUnits | unmatched |  |
+| aux_crossCov | definition | `Helpers/Kneser.lean:crossCov (L151)` | aux_crossCov | unmatched |  |
+| aux_crossCovContrast | definition | `Helpers/Kneser.lean:crossCovContrast (L158)` | aux_crossCovContrast | unmatched |  |
+| aux_higherDegreeContribution | definition | `TDenseProjectionLimit.lean:higherDegreeContribution (L19)` | aux_higherDegreeContribution | unmatched |  |
+| aux_indepGroupVar | definition | `Helpers/Estimator.lean:indepGroupVar (L63)` | aux_indepGroupVar | unmatched |  |
+| aux_JohnsonProjections | definition | `Helpers/Kneser.lean:JohnsonProjections (L35)` | aux_JohnsonProjections | unmatched |  |
+| aux_kneserEigenvalue | definition | `Helpers/Kneser.lean:kneserEigenvalue (L144)` | aux_kneserEigenvalue | unmatched |  |
+| aux_ObservedData | definition | `Helpers/RademacherPriors.lean:ObservedData (L48)` | aux_ObservedData | unmatched |  |
+| aux_Omega | definition | `Basic.lean:Omega (L28)` | aux_Omega | unmatched |  |
+| aux_orderedDisjointPairDesign | definition | `Helpers/Kneser.lean:orderedDisjointPairDesign (L198)` | aux_orderedDisjointPairDesign | unmatched |  |
+| aux_pame | definition | `Helpers/Estimator.lean:pame (L32)` | aux_pame | unmatched |  |
+| aux_QVDiagonalCertificate | definition | `TQvDiagonalImpossibility.lean:QVDiagonalCertificate (L48)` | aux_QVDiagonalCertificate | unmatched |  |
+| aux_ScheduleArray | definition | `Helpers/Asymptotics.lean:ScheduleArray (L21)` | aux_ScheduleArray | unmatched |  |
+| aux_sigmaSq | definition | `Helpers/Estimator.lean:sigmaSq (L56)` | aux_sigmaSq | unmatched |  |
+| aux_slice | definition | `Basic.lean:slice (L40)` | aux_slice | unmatched |  |
+| aux_sliceInner | definition | `Basic.lean:sliceInner (L45)` | aux_sliceInner | unmatched |  |
+| aux_sliceNorm | definition | `Basic.lean:sliceNorm (L55)` | aux_sliceNorm | unmatched |  |
+| aux_worstCaseRatioError | definition | `TQvDiagonalImpossibility.lean:worstCaseRatioError (L74)` | aux_worstCaseRatioError | unmatched |  |
+| a8 | definition | `Helpers/Witness.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.a8 (L17)` | a8 | unmatched |  |
+| aux_JohnsonOrthogonalDecomposition | definition | `Helpers/Kneser.lean:JohnsonOrthogonalDecomposition (L339)` | aux_JohnsonOrthogonalDecomposition | unmatched |  |
+| aux_KneserAdjacencySpectrum | definition | `Helpers/Kneser.lean:KneserAdjacencySpectrum (L352)` | aux_KneserAdjacencySpectrum | unmatched |  |
+| aux_kneserOp | definition | `Helpers/Kneser.lean:kneserOp (L139)` | aux_kneserOp | unmatched |  |
+| aux_pameHat | definition | `Helpers/Estimator.lean:pameHat (L38)` | aux_pameHat | unmatched |  |
+| aux_BirthdayBenchmark | definition | `TSparseBeyondBirthday.lean:BirthdayBenchmark (L24)` | aux_BirthdayBenchmark | unmatched |  |
+| aux_CountAlignment | definition | `TSparseBeyondBirthday.lean:CountAlignment (L30)` | aux_CountAlignment | unmatched |  |
+| orderedPairSigmaEquiv | definition | `Helpers/Kneser.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedPairSigmaEquiv (L206)` | orderedPairSigmaEquiv | unmatched |  |
+| orderedDisjointFiber_card | lemma | `Helpers/Kneser.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointFiber_card (L215)` | orderedDisjointFiber_card | unmatched |  |
+| orderedDisjointPair_card | lemma | `Helpers/Kneser.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointPair_card (L228)` | orderedDisjointPair_card | unmatched |  |
+| orderedDisjointPair_sum | lemma | `Helpers/Kneser.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointPair_sum (L236)` | orderedDisjointPair_sum | unmatched |  |
+| orderedDisjointPair_E_eq | lemma | `Helpers/Kneser.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointPair_E_eq (L273)` | orderedDisjointPair_E_eq | unmatched |  |
+| kneserChooseRatio_eq_descFactorialRatio | lemma | `Helpers/Kneser.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.kneserChooseRatio_eq_descFactorialRatio (L303)` | kneserChooseRatio_eq_descFactorialRatio | unmatched |  |
+| sliceInner_sum_left | lemma | `TExactKneserIdentity.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sliceInner_sum_left (L19)` | sliceInner_sum_left | unmatched |  |
+| sliceInner_sum_right | lemma | `TExactKneserIdentity.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sliceInner_sum_right (L31)` | sliceInner_sum_right | unmatched |  |
+| sliceInner_const_mul_right | lemma | `TExactKneserIdentity.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sliceInner_const_mul_right (L43)` | sliceInner_const_mul_right | unmatched |  |
+| sliceInner_self_eq_zero | lemma | `TExactKneserIdentity.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sliceInner_self_eq_zero (L54)` | sliceInner_self_eq_zero | unmatched |  |
+| sliceInner_self_nonneg | lemma | `TExactKneserIdentity.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sliceInner_self_nonneg (L79)` | sliceInner_self_nonneg | unmatched |  |
+| sliceInner_sub_self | lemma | `TExactKneserIdentity.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sliceInner_sub_self (L87)` | sliceInner_sub_self | unmatched |  |
+| kneserOp_sum | lemma | `TExactKneserIdentity.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.kneserOp_sum (L100)` | kneserOp_sum | unmatched |  |
+| orderedDisjointPair_first_E_eq_slice | lemma | `TExactKneserIdentity.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointPair_first_E_eq_slice (L112)` | orderedDisjointPair_first_E_eq_slice | unmatched |  |
+| orderedDisjointPair_swap | definition | `TExactKneserIdentity.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointPairSwap (L134)` | orderedDisjointPair_swap | unmatched |  |
+| orderedDisjointPair_second_E_eq_slice | lemma | `TExactKneserIdentity.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointPair_second_E_eq_slice (L142)` | orderedDisjointPair_second_E_eq_slice | unmatched |  |
+| johnson_proj_const_eq_zero | lemma | `TExactKneserIdentity.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.johnson_proj_const_eq_zero (L157)` | johnson_proj_const_eq_zero | unmatched |  |
+| johnson_proj_centered_eq | lemma | `TExactKneserIdentity.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.johnson_proj_centered_eq (L182)` | johnson_proj_centered_eq | unmatched |  |
+| partitionTuplePermEquiv | definition | `Helpers/PartitionDesign.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.partitionTuplePermEquiv (L102)` | partitionTuplePermEquiv | unmatched |  |
+| orderedDisjointPairPermEquiv | definition | `Helpers/PartitionDesign.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointPairPermEquiv (L137)` | orderedDisjointPairPermEquiv | unmatched |  |
+| orderedDisjointPair_perm_exists | lemma | `Helpers/PartitionDesign.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointPair_perm_exists (L164)` | orderedDisjointPair_perm_exists | unmatched |  |
+| finiteDesign_ext_p | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.finiteDesign_ext_p (L18)` | finiteDesign_ext_p | unmatched |  |
+| randomPartitionDesign_eq_compoundCore | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.randomPartitionDesign_eq_compoundCore (L30)` | randomPartitionDesign_eq_compoundCore | unmatched |  |
+| finiteDesign_E_compoundCore_tower | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.finiteDesign_E_compoundCore_tower (L62)` | finiteDesign_E_compoundCore_tower | unmatched |  |
+| finiteDesign_Var_compoundCore_tower | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.finiteDesign_Var_compoundCore_tower (L76)` | finiteDesign_Var_compoundCore_tower | unmatched |  |
+| finiteDesign_Var_map | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.finiteDesign_Var_map (L94)` | finiteDesign_Var_map | unmatched |  |
+| randomPartition_E_partition | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.randomPartition_E_partition (L102)` | randomPartition_E_partition | unmatched |  |
+| expectedSampleVariance_exchangeable | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.expectedSampleVariance_exchangeable (L111)` | expectedSampleVariance_exchangeable | unmatched |  |
+| partition_expected_sample_variance | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.partition_expected_sample_variance (L159)` | partition_expected_sample_variance | unmatched |  |
+| pameHat_eq_diffInMeans | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.pameHat_eq_diffInMeans (L220)` | pameHat_eq_diffInMeans | unmatched |  |
+| cr2Var_eq_varHat | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.cr2Var_eq_varHat (L231)` | cr2Var_eq_varHat | unmatched |  |
+| conditional_E_pameHat | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.conditional_E_pameHat (L289)` | conditional_E_pameHat | unmatched |  |
+| conditional_Var_pameHat | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.conditional_Var_pameHat (L302)` | conditional_Var_pameHat | unmatched |  |
+| conditional_E_cr2Var | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.conditional_E_cr2Var (L348)` | conditional_E_cr2Var | unmatched |  |
+| partition_E_mean | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.partition_E_mean (L385)` | partition_E_mean | unmatched |  |
+| Stau_eq_S1_sub | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.Stau_eq_S1_sub (L407)` | Stau_eq_S1_sub | unmatched |  |
+| orderedDisjointPair_E_mul_comm | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointPair_E_mul_comm (L419)` | orderedDisjointPair_E_mul_comm | unmatched |  |
+| disjointCov_sub_self | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.disjointCov_sub_self (L439)` | disjointCov_sub_self | unmatched |  |
+| varianceMean_exchangeable | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.varianceMean_exchangeable (L487)` | varianceMean_exchangeable | unmatched |  |
+| partition_mean_variance | lemma | `Helpers/ExactVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.partition_mean_variance (L521)` | partition_mean_variance | unmatched |  |
+| twoStagePairEquiv | definition | `Helpers/PartitionDesign.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.twoStagePairEquiv (L84)` | twoStagePairEquiv | unmatched |  |
+| witness8_armTable_eq_sampleMean | lemma | `TEightUnitWitness.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_armTable_eq_sampleMean (L17)` | witness8_armTable_eq_sampleMean | unmatched |  |
+| witness8_sampleMean_eq_signSum | lemma | `TEightUnitWitness.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_sampleMean_eq_signSum (L25)` | witness8_sampleMean_eq_signSum | unmatched |  |
+| witness8_armTable_mean | lemma | `TEightUnitWitness.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_armTable_mean (L34)` | witness8_armTable_mean | unmatched |  |
+| witness8_armVar_treated | lemma | `TEightUnitWitness.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_armVar_treated (L46)` | witness8_armVar_treated | unmatched |  |
+| witness8_armTable_control | lemma | `TEightUnitWitness.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_armTable_control (L60)` | witness8_armTable_control | unmatched |  |
+| witness8_armVar_control | lemma | `TEightUnitWitness.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_armVar_control (L66)` | witness8_armVar_control | unmatched |  |
+| witness8_crossCov_control_right | lemma | `TEightUnitWitness.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_crossCov_control_right (L77)` | witness8_crossCov_control_right | unmatched |  |
+| witness8_crossCov_control_left | lemma | `TEightUnitWitness.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_crossCov_control_left (L89)` | witness8_crossCov_control_left | unmatched |  |
+| witness8_orderedDisjoint_signSum | lemma | `TEightUnitWitness.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_orderedDisjoint_signSum (L101)` | witness8_orderedDisjoint_signSum | unmatched |  |
+| witness8_orderedDisjoint_signSum_real | lemma | `TEightUnitWitness.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_orderedDisjoint_signSum_real (L109)` | witness8_orderedDisjoint_signSum_real | unmatched |  |
+| witness8_crossCov_treated | lemma | `TEightUnitWitness.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_crossCov_treated (L117)` | witness8_crossCov_treated | unmatched |  |
+| sum_positive_fin_three | lemma | `TEightUnitWitness.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sum_positive_fin_three (L148)` | sum_positive_fin_three | unmatched |  |
+| witness8_degreeOne_from_spectrum | lemma | `TEightUnitWitness.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_degreeOne_from_spectrum (L155)` | witness8_degreeOne_from_spectrum | unmatched |  |
+| matrix_sandwich_rank_one | lemma | `TClubsandwichConsumer.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.matrix_sandwich_rank_one (L40)` | matrix_sandwich_rank_one | unmatched |  |
+| posDef_rankOne_inverse_sqrt | lemma | `TClubsandwichConsumer.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.posDef_rankOne_inverse_sqrt (L59)` | posDef_rankOne_inverse_sqrt | unmatched |  |
+| birthdayGroupedUnits_ratio_identity | lemma | `TSparseBeyondBirthday.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.birthdayGroupedUnits_ratio_identity (L35)` | birthdayGroupedUnits_ratio_identity | unmatched |  |
+| birthdayGroupedUnits_feasible | lemma | `TSparseBeyondBirthday.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.birthdayGroupedUnits_feasible (L59)` | birthdayGroupedUnits_feasible | unmatched |  |
+| birthdayGroupedUnits_lower_bound | lemma | `TSparseBeyondBirthday.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.birthdayGroupedUnits_lower_bound (L77)` | birthdayGroupedUnits_lower_bound | unmatched |  |
+| birthdayGroupedUnits_power_identity | lemma | `TSparseBeyondBirthday.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.birthdayGroupedUnits_power_identity (L90)` | birthdayGroupedUnits_power_identity | unmatched |  |
+| birthdayBenchmark_proof | lemma | `TSparseBeyondBirthday.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.birthdayBenchmark_proof (L119)` | birthdayBenchmark_proof | unmatched |  |
+| sparse_dense_ratio_consistency | lemma | `TSparseBeyondBirthday.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sparse_dense_ratio_consistency (L166)` | sparse_dense_ratio_consistency | unmatched |  |
+| armTable_abs_le_of_boundedSchedule | lemma | `TDenseProjectionLimit.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armTable_abs_le_of_boundedSchedule (L31)` | armTable_abs_le_of_boundedSchedule | unmatched |  |
+| sliceInner_self_le_sq_of_abs_le | lemma | `TDenseProjectionLimit.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sliceInner_self_le_sq_of_abs_le (L48)` | sliceInner_self_le_sq_of_abs_le | unmatched |  |
+| johnsonProjection_energy_le_of_abs_le | lemma | `TDenseProjectionLimit.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.johnsonProjection_energy_le_of_abs_le (L66)` | johnsonProjection_energy_le_of_abs_le | unmatched |  |
+| kneserEigenvalue_abs_le_one | lemma | `TDenseProjectionLimit.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.kneserEigenvalue_abs_le_one (L102)` | kneserEigenvalue_abs_le_one | unmatched |  |
+| kneserEigenvalue_abs_le_ge_four | lemma | `TDenseProjectionLimit.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.kneserEigenvalue_abs_le_ge_four (L118)` | kneserEigenvalue_abs_le_ge_four | unmatched |  |
+| johnsonSpectralSum_abs_le | lemma | `TDenseProjectionLimit.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.johnsonSpectralSum_abs_le (L157)` | johnsonSpectralSum_abs_le | unmatched |  |
+| higherDegreeContribution_uniform_bound | lemma | `TDenseProjectionLimit.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.higherDegreeContribution_uniform_bound (L200)` | higherDegreeContribution_uniform_bound | unmatched |  |
+| scaledContrastCrossCov_decomposition | lemma | `TDenseProjectionLimit.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scaledContrastCrossCov_decomposition (L310)` | scaledContrastCrossCov_decomposition | unmatched |  |
+| sliceExpectation_abs_le_of_abs_le | lemma | `TDenseProjectionLimit.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sliceExpectation_abs_le_of_abs_le (L362)` | sliceExpectation_abs_le_of_abs_le | unmatched |  |
+| armCrossCov_abs_le_ge_four | lemma | `TDenseProjectionLimit.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armCrossCov_abs_le_ge_four (L384)` | armCrossCov_abs_le_ge_four | unmatched |  |
+| tableSchedule | definition | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.tableSchedule (L12)` | tableSchedule | unmatched |  |
+| armTable_tableSchedule_same | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armTable_tableSchedule_same (L17)` | armTable_tableSchedule_same | unmatched |  |
+| armTable_tableSchedule_ne | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armTable_tableSchedule_ne (L25)` | armTable_tableSchedule_ne | unmatched |  |
+| selectedMean | definition | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.selectedMean (L33)` | selectedMean | unmatched |  |
+| pameHat_tableSchedule_true | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.pameHat_tableSchedule_true (L41)` | pameHat_tableSchedule_true | unmatched |  |
+| pameHat_tableSchedule_false | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.pameHat_tableSchedule_false (L50)` | pameHat_tableSchedule_false | unmatched |  |
+| pame_tableSchedule_true | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.pame_tableSchedule_true (L59)` | pame_tableSchedule_true | unmatched |  |
+| pame_tableSchedule_false | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.pame_tableSchedule_false (L71)` | pame_tableSchedule_false | unmatched |  |
+| armVar_tableSchedule_same | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armVar_tableSchedule_same (L83)` | armVar_tableSchedule_same | unmatched |  |
+| armVar_tableSchedule_ne | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armVar_tableSchedule_ne (L92)` | armVar_tableSchedule_ne | unmatched |  |
+| crossCov_tableSchedule_same | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.crossCov_tableSchedule_same (L102)` | crossCov_tableSchedule_same | unmatched |  |
+| crossCov_tableSchedule_left_ne | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.crossCov_tableSchedule_left_ne (L113)` | crossCov_tableSchedule_left_ne | unmatched |  |
+| crossCov_tableSchedule_right_ne | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.crossCov_tableSchedule_right_ne (L123)` | crossCov_tableSchedule_right_ne | unmatched |  |
+| selectedMean_variance_true | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.selectedMean_variance_true (L133)` | selectedMean_variance_true | unmatched |  |
+| selectedMean_variance_false | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.selectedMean_variance_false (L180)` | selectedMean_variance_false | unmatched |  |
+| treated_tendsto_atTop | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.treated_tendsto_atTop (L235)` | treated_tendsto_atTop | unmatched |  |
+| controls_tendsto_atTop | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.controls_tendsto_atTop (L250)` | controls_tendsto_atTop | unmatched |  |
+| ScheduleArray.withTable | definition | `(none)` | ScheduleArray.withTable | unmatched |  |
+| withTable_bounded | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.withTable_bounded (L284)` | withTable_bounded | unmatched |  |
+| sliceVar_le_sq_of_abs_le | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sliceVar_le_sq_of_abs_le (L296)` | sliceVar_le_sq_of_abs_le | unmatched |  |
+| selectedMean_expectation_true | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.selectedMean_expectation_true (L312)` | selectedMean_expectation_true | unmatched |  |
+| selectedMean_expectation_false | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.selectedMean_expectation_false (L331)` | selectedMean_expectation_false | unmatched |  |
+| selectedMean_tendstoInProb | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.selectedMean_tendstoInProb (L352)` | selectedMean_tendstoInProb | unmatched |  |
+| sampleVariance_finset_eq | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sampleVariance_finset_eq (L478)` | sampleVariance_finset_eq | unmatched |  |
+| realizedArmSet_card | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.realizedArmSet_card (L497)` | realizedArmSet_card | unmatched |  |
+| selectedMean_eq_realized | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.selectedMean_eq_realized (L508)` | selectedMean_eq_realized | unmatched |  |
+| selectedMean_abs_le | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.selectedMean_abs_le (L525)` | selectedMean_abs_le | unmatched |  |
+| armSampleVar_eq_selectedMoments | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armSampleVar_eq_selectedMoments (L544)` | armSampleVar_eq_selectedMoments | unmatched |  |
+| boundedInProb_of_pointwise_bound | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.boundedInProb_of_pointwise_bound (L587)` | boundedInProb_of_pointwise_bound | unmatched |  |
+| FiniteDesign.TendstoInProb.square_of_bounded | lemma | `(none)` | FiniteDesign.TendstoInProb.square_of_bounded | unmatched |  |
+| FiniteDesign.TendstoInProb.scale_tendsto_one_of_bounded | lemma | `(none)` | FiniteDesign.TendstoInProb.scale_tendsto_one_of_bounded | unmatched |  |
+| armSampleVar_tendstoInProb | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armSampleVar_tendstoInProb (L665)` | armSampleVar_tendstoInProb | unmatched |  |
+| boundedInProb_deterministic_of_tendsto | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.boundedInProb_deterministic_of_tendsto (L767)` | boundedInProb_deterministic_of_tendsto | unmatched |  |
+| cr2_centered_tendstoInProb | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.cr2_centered_tendstoInProb (L788)` | cr2_centered_tendstoInProb | unmatched |  |
+| cr2_variance_gap_tendstoInProb | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.cr2_variance_gap_tendstoInProb (L872)` | cr2_variance_gap_tendstoInProb | unmatched |  |
+| scaledVariance_eventually_lower | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scaledVariance_eventually_lower (L901)` | scaledVariance_eventually_lower | unmatched |  |
+| exists_global_abs_bound_of_eventually | lemma | `Helpers/Cr2Concentration.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.exists_global_abs_bound_of_eventually (L914)` | exists_global_abs_bound_of_eventually | unmatched |  |
+| cr2_ratio_leading_tendstoInProb | lemma | `Helpers/Cr2Ratio.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.cr2_ratio_leading_tendstoInProb (L16)` | cr2_ratio_leading_tendstoInProb | unmatched |  |
+| FiniteDesign.TendstoInProb.retarget | lemma | `(none)` | FiniteDesign.TendstoInProb.retarget | unmatched |  |
+| tendsto_of_deterministic_tendstoInProb | lemma | `Helpers/Cr2Ratio.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.tendsto_of_deterministic_tendstoInProb (L178)` | tendsto_of_deterministic_tendstoInProb | unmatched |  |
+| tendstoInProb_target_unique | lemma | `Helpers/Cr2Ratio.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.tendstoInProb_target_unique (L203)` | tendstoInProb_target_unique | unmatched |  |
+| lower_tail_vanishes_of_tendstoInProb | lemma | `Helpers/Cr2Ratio.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.lower_tail_vanishes_of_tendstoInProb (L226)` | lower_tail_vanishes_of_tendstoInProb | unmatched |  |
+| radMean | definition | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radMean (L21)` | radMean | unmatched |  |
+| radMean_E | lemma | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radMean_E (L26)` | radMean_E | unmatched |  |
+| radMean_var | lemma | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radMean_var (L43)` | radMean_var | unmatched |  |
+| popVar_rademacher | lemma | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.popVar_rademacher (L57)` | popVar_rademacher | unmatched |  |
+| radMean_tendstoInProb | lemma | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radMean_tendstoInProb (L79)` | radMean_tendstoInProb | unmatched |  |
+| armTable_samePrior_eq_sampleMean | lemma | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armTable_samePrior_eq_sampleMean (L199)` | armTable_samePrior_eq_sampleMean | unmatched |  |
+| armTable_independentPrior_eq_sampleMean | lemma | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armTable_independentPrior_eq_sampleMean (L211)` | armTable_independentPrior_eq_sampleMean | unmatched |  |
+| armVar_samePrior_eq_popVar | lemma | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armVar_samePrior_eq_popVar (L224)` | armVar_samePrior_eq_popVar | unmatched |  |
+| armVar_independentPrior_eq_popVar | lemma | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armVar_independentPrior_eq_popVar (L236)` | armVar_independentPrior_eq_popVar | unmatched |  |
+| degreeOneEnergy_samePrior | lemma | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.degreeOneEnergy_samePrior (L409)` | degreeOneEnergy_samePrior | unmatched |  |
+| ScheduleArray.popSize_tendsto_atTop | lemma | `(none)` | ScheduleArray.popSize_tendsto_atTop | unmatched |  |
+| radArmMean | definition | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radArmMean (L100)` | radArmMean | unmatched |  |
+| radArmMean_E | lemma | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radArmMean_E (L106)` | radArmMean_E | unmatched |  |
+| radArmMean_var | lemma | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radArmMean_var (L126)` | radArmMean_var | unmatched |  |
+| radArmMean_tendstoInProb | lemma | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radArmMean_tendstoInProb (L145)` | radArmMean_tendstoInProb | unmatched |  |
+| rademacherSliceCoefficient_tendsto | lemma | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.rademacherSliceCoefficient_tendsto (L168)` | rademacherSliceCoefficient_tendsto | unmatched |  |
+| armVar_samePrior_tendstoInProb | lemma | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armVar_samePrior_tendstoInProb (L249)` | armVar_samePrior_tendstoInProb | unmatched |  |
+| armVar_independentPrior_tendstoInProb | lemma | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armVar_independentPrior_tendstoInProb (L314)` | armVar_independentPrior_tendstoInProb | unmatched |  |
+| scheduleArray_same_armVar_tendstoInProb | lemma | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scheduleArray_same_armVar_tendstoInProb (L383)` | scheduleArray_same_armVar_tendstoInProb | unmatched |  |
+| scheduleArray_independent_armVar_tendstoInProb | lemma | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scheduleArray_independent_armVar_tendstoInProb (L396)` | scheduleArray_independent_armVar_tendstoInProb | unmatched |  |
+| scheduleArray_same_degreeOne_tendstoInProb | lemma | `Helpers/RademacherMoments.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scheduleArray_same_degreeOne_tendstoInProb (L428)` | scheduleArray_same_degreeOne_tendstoInProb | unmatched |  |
+| mem_johnsonHarmonic_one_of_degreeOne_mean_zero | lemma | `Helpers/RademacherDegreeOne.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.mem_johnsonHarmonic_one_of_degreeOne_mean_zero (L25)` | mem_johnsonHarmonic_one_of_degreeOne_mean_zero | unmatched |  |
+| johnsonMean_sampleMean_eq_sliceExpectation | lemma | `Helpers/RademacherDegreeOne.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.johnsonMean_sampleMean_eq_sliceExpectation (L47)` | johnsonMean_sampleMean_eq_sliceExpectation | unmatched |  |
+| sampleMean_mem_degreeAtMost_one | lemma | `Helpers/RademacherDegreeOne.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sampleMean_mem_degreeAtMost_one (L83)` | sampleMean_mem_degreeAtMost_one | unmatched |  |
+| centeredSampleMean_mem_johnsonHarmonic_one | lemma | `Helpers/RademacherDegreeOne.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.centeredSampleMean_mem_johnsonHarmonic_one (L99)` | centeredSampleMean_mem_johnsonHarmonic_one | unmatched |  |
+| johnsonProj_sampleMean_eq_centered | lemma | `Helpers/RademacherDegreeOne.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.johnsonProj_sampleMean_eq_centered (L143)` | johnsonProj_sampleMean_eq_centered | unmatched |  |
+| degreeOneEnergy_independentPrior_eq_popVar | lemma | `Helpers/RademacherDegreeOne.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.degreeOneEnergy_independentPrior_eq_popVar (L164)` | degreeOneEnergy_independentPrior_eq_popVar | unmatched |  |
+| radCrossMean | definition | `Helpers/RademacherDegreeOne.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radCrossMean (L210)` | radCrossMean | unmatched |  |
+| radPair_E | lemma | `Helpers/RademacherDegreeOne.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radPair_E (L215)` | radPair_E | unmatched |  |
+| radPair_var | lemma | `Helpers/RademacherDegreeOne.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radPair_var (L224)` | radPair_var | unmatched |  |
+| radPair_cov_ne | lemma | `Helpers/RademacherDegreeOne.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radPair_cov_ne (L238)` | radPair_cov_ne | unmatched |  |
+| radCrossMean_E | lemma | `Helpers/RademacherDegreeOne.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radCrossMean_E (L254)` | radCrossMean_E | unmatched |  |
+| radCrossMean_var | lemma | `Helpers/RademacherDegreeOne.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radCrossMean_var (L273)` | radCrossMean_var | unmatched |  |
+| radCrossMean_tendstoInProb | lemma | `Helpers/RademacherDegreeOne.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radCrossMean_tendstoInProb (L305)` | radCrossMean_tendstoInProb | unmatched |  |
+| popVar_independentDifference_eq | lemma | `Helpers/RademacherDegreeOne.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.popVar_independentDifference_eq (L326)` | popVar_independentDifference_eq | unmatched |  |
+| FiniteDesign.TendstoInProb.deterministic_mul | lemma | `(none)` | FiniteDesign.TendstoInProb.deterministic_mul | unmatched |  |
+| natCast_ratio_sub_one_tendsto | lemma | `Helpers/RademacherDegreeOne.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.natCast_ratio_sub_one_tendsto (L415)` | natCast_ratio_sub_one_tendsto | unmatched |  |
+| independentDifferencePopVar_tendstoInProb | lemma | `Helpers/RademacherDegreeOne.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.independentDifferencePopVar_tendstoInProb (L432)` | independentDifferencePopVar_tendstoInProb | unmatched |  |
+| scheduleArray_independent_degreeOne_tendstoInProb | lemma | `Helpers/RademacherDegreeOne.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scheduleArray_independent_degreeOne_tendstoInProb (L463)` | scheduleArray_independent_degreeOne_tendstoInProb | unmatched |  |
+| selectSwapEquiv | definition | `Helpers/RademacherPriors.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.selectSwapEquiv (L67)` | selectSwapEquiv | unmatched |  |
+| fairCoinWeight | lemma | `Helpers/RademacherPriors.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.fairCoinWeight (L84)` | fairCoinWeight | unmatched |  |
+| priorIndependent_E_select | lemma | `Helpers/RademacherPriors.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.priorIndependent_E_select (L97)` | priorIndependent_E_select | unmatched |  |
+| observedArmSelector | definition | `Helpers/RademacherPriors.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.observedArmSelector (L135)` | observedArmSelector | unmatched |  |
+| observedArmSelector_of_mem | lemma | `Helpers/RademacherPriors.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.observedArmSelector_of_mem (L141)` | observedArmSelector_of_mem | unmatched |  |
+| observe_independent_eq_same_selected | lemma | `Helpers/RademacherPriors.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.observe_independent_eq_same_selected (L157)` | observe_independent_eq_same_selected | unmatched |  |
+| finiteDesign_E_swap | lemma | `Helpers/RademacherPriors.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.finiteDesign_E_swap (L173)` | finiteDesign_E_swap | unmatched |  |
+| sameObservedExpectation_eq_independent | lemma | `TRademacherMixtureSeparation.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sameObservedExpectation_eq_independent (L50)` | sameObservedExpectation_eq_independent | unmatched |  |
+| FiniteDesign.TendstoInProb.congr_eventually | lemma | `(none)` | FiniteDesign.TendstoInProb.congr_eventually | unmatched |  |
+| probability_ge_tendsto_one_of_tendstoInProb | lemma | `Helpers/RademacherScaledVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.probability_ge_tendsto_one_of_tendstoInProb (L36)` | probability_ge_tendsto_one_of_tendstoInProb | unmatched |  |
+| kneserEigenvalue_one | lemma | `Helpers/RademacherScaledVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.kneserEigenvalue_one (L71)` | kneserEigenvalue_one | unmatched |  |
+| crossCov_eq_kneserEigenvalue_mul_armVar_of_sampleMean | lemma | `Helpers/RademacherScaledVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.crossCov_eq_kneserEigenvalue_mul_armVar_of_sampleMean (L81)` | crossCov_eq_kneserEigenvalue_mul_armVar_of_sampleMean | unmatched |  |
+| crossCovContrast_eq_kneserEigenvalue_mul_degreeOne_of_sampleMean | lemma | `Helpers/RademacherScaledVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.crossCovContrast_eq_kneserEigenvalue_mul_degreeOne_of_sampleMean (L115)` | crossCovContrast_eq_kneserEigenvalue_mul_degreeOne_of_sampleMean | unmatched |  |
+| scaledSigmaSq_eq_of_additive_armTables | lemma | `Helpers/RademacherScaledVariance.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scaledSigmaSq_eq_of_additive_armTables (L152)` | scaledSigmaSq_eq_of_additive_armTables | unmatched |  |
+| FiniteDesign.TendstoInProb.exists_uniform_support | lemma | `(none)` | FiniteDesign.TendstoInProb.exists_uniform_support | unmatched |  |
+| ScheduleArray.withSchedule | definition | `(none)` | ScheduleArray.withSchedule | unmatched |  |
+| abs_conditionedExpectation_sub_le_two_compl | lemma | `Helpers/QVDiagonalAssembly.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.abs_conditionedExpectation_sub_le_two_compl (L34)` | abs_conditionedExpectation_sub_le_two_compl | unmatched |  |
+| denseClass_withSchedule_of_scaled_tendsto | lemma | `Helpers/QVDiagonalAssembly.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.denseClass_withSchedule_of_scaled_tendsto (L98)` | denseClass_withSchedule_of_scaled_tendsto | unmatched |  |
+| tendsto_of_uniform_support_error | lemma | `Helpers/QVDiagonalAssembly.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.tendsto_of_uniform_support_error (L118)` | tendsto_of_uniform_support_error | unmatched |  |
+| conditionedMixtureTV_le_complements | lemma | `TQvDiagonalImpossibility.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.conditionedMixtureTV_le_complements (L224)` | conditionedMixtureTV_le_complements | unmatched |  |
+| conditionedFiniteExpectation_nonneg | lemma | `TQvDiagonalImpossibility.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.conditionedFiniteExpectation_nonneg (L86)` | conditionedFiniteExpectation_nonneg | unmatched |  |
+| conditionedFiniteExpectation_le | lemma | `TQvDiagonalImpossibility.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.conditionedFiniteExpectation_le (L95)` | conditionedFiniteExpectation_le | unmatched |  |
+| conditionedFiniteExpectation_compl | lemma | `TQvDiagonalImpossibility.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.conditionedFiniteExpectation_compl (L118)` | conditionedFiniteExpectation_compl | unmatched |  |
+| tendsto_of_eventually_uniform_support_error | lemma | `TQvDiagonalImpossibility.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.tendsto_of_eventually_uniform_support_error (L139)` | tendsto_of_eventually_uniform_support_error | unmatched |  |
+| ratio_good_implies_same_decision | lemma | `TQvDiagonalImpossibility.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.ratio_good_implies_same_decision (L154)` | ratio_good_implies_same_decision | unmatched |  |
+| ratio_good_implies_independent_decision | lemma | `TQvDiagonalImpossibility.lean:CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.ratio_good_implies_independent_decision (L187)` | ratio_good_implies_independent_decision | unmatched |  |

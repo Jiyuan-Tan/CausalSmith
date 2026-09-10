@@ -130,33 +130,6 @@ export const substrateStateSchema = z.object({
 });
 export type SubstrateState = z.infer<typeof substrateStateSchema>;
 
-// JSON Schemas for runClaude({ jsonSchema }).
-export const SCAFFOLDER_JSON_SCHEMA = {
-  type: "object",
-  required: ["decision", "plan_markdown"],
-  properties: {
-    decision: { type: "string", enum: ["build", "review", "escalate"] },
-    plan_markdown: { type: "string" },
-    codex_prompts: {
-      type: "array",
-      items: {
-        type: "object",
-        required: ["id", "prompt"],
-        properties: {
-          id: { type: "string" },
-          target_decls: { type: "array", items: { type: "string" } },
-          prompt: { type: "string" },
-        },
-      },
-    },
-    escalation: {
-      type: "object",
-      required: ["reason"],
-      properties: { reason: { type: "string" } },
-    },
-  },
-} as const;
-
 // --- Coordinator manifest (the codex coordinator's structured output) ---------
 //
 // PARSE-SAFETY BY DESIGN: the manifest carries NO file contents. Large,
@@ -212,25 +185,3 @@ export type CoordinationManifest = z.infer<typeof coordinationManifestSchema>;
 export function parseCoordinationManifest(value: unknown): CoordinationManifest {
   return coordinationManifestSchema.parse(value);
 }
-
-export const REVIEW_JSON_SCHEMA = {
-  type: "object",
-  required: ["pass", "findings", "checks"],
-  properties: {
-    pass: { type: "boolean" },
-    findings: { type: "string" },
-    checks: {
-      type: "object",
-      required: ["generic", "reusable", "standard", "not_vacuous", "fulfills_goal", "sorry_free", "layered"],
-      properties: {
-        generic: { type: "boolean" },
-        reusable: { type: "boolean" },
-        standard: { type: "boolean" },
-        not_vacuous: { type: "boolean" },
-        fulfills_goal: { type: "boolean" },
-        sorry_free: { type: "boolean" },
-        layered: { type: "boolean" },
-      },
-    },
-  },
-} as const;

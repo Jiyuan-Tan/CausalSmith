@@ -57,18 +57,12 @@ import Causalean.Stat.Concentration.UniformDeviation.UniformDeviationLocalized
 import Causalean.Stat.Concentration.UniformDeviation.CriticalRadius
 import Causalean.Stat.SampleSplit.FoldBEmpiricalProcess
 
-/-! # Localized Rademacher Modulus
+/-! # Localized Rademacher Moduli
 
-This file derives `LocalEmpProcessModulus` from localized Rademacher regimes for
-orthogonal statistical learning. `LocalizedRademacherRegime` and
-`LocalizedRademacherRegimeAE` package pointwise and a.e. centred-loss envelopes,
-sub-root complexity envelopes, and population Rademacher bounds.
-`localEmpProcessModulus_of_localized_bounded` provides a constant-rate fallback,
-`localEmpProcessModulus_of_localized_sharp` provides the countable-class
-critical-radius bridge, `localEmpProcessModulus_of_localized_sharp_ae` transfers
-that bridge through an a.e. clamping argument, and
-`localEmpProcessModulus_of_localized_singleton` covers the degenerate singleton
-target class.
+This file derives local empirical-process moduli for orthogonal statistical
+learning from localized Rademacher-complexity conditions. It supplies both a
+bounded-loss fallback and a sharp critical-radius result, including an
+almost-everywhere version obtained by clamping the centered loss.
 -/
 
 namespace Causalean
@@ -89,7 +83,9 @@ private lemma foldB_pi_law_localized [IsProbabilityMeasure μ] [IsProbabilityMea
       Measure.pi (fun _ : split.foldB n => P_Z) :=
   Causalean.Stat.oneShot_iid S_iid split n
 
-/-- **Localized regime predicate for a `LearningSystem`.**
+/-- For [an orthogonal statistical-learning system](hyp:S), [an independent and identically distributed sample from its observation law](hyp:_S_iid), [a one-shot sample split](hyp:_split), [a nuisance function](hyp:g), [a sequence indexing candidate targets](hyp:idx), [a norm on real-valued observation functions](hyp:norm), [a family of real complexity envelopes](hyp:ψ), and [a real bound](hyp:b), the [localized Rademacher regime](goal) requires: [the bound is nonnegative](step:1); [the centered loss is bounded in absolute value by that bound for every observation and candidate target](step:2); [each complexity envelope is sub-root](step:3); and [at every sample size, the envelope upper-bounds the population Rademacher complexity of the indexed centered-loss class on the split's validation fold](step:4).
+
+**Localized regime predicate for a `LearningSystem`.**
 
 For a fixed nuisance `g`, viewed as a centred loss class on `Z` indexed
 by a countable dense sequence `idx : ℕ → S.Θ_set`:
@@ -132,7 +128,9 @@ def LocalizedRademacherRegime
         (fun (k : ℕ) (z : Z) => S.ℓ z (idx k).val g - S.ℓ z S.θ₀ g)
         norm P_Z (id : Z → Z) (_split.foldB n).card (ψ (_split.foldB n).card)
 
-/-- **Almost-everywhere localized regime predicate for a `LearningSystem`.**
+/-- For [an orthogonal statistical-learning system](hyp:S), [an independent and identically distributed sample from its observation law](hyp:_S_iid), [a one-shot sample split](hyp:_split), [a nuisance function](hyp:g), [a sequence indexing candidate targets](hyp:idx), [a norm on real-valued observation functions](hyp:norm), [a family of real complexity envelopes](hyp:ψ), and [a real bound](hyp:b), the [almost-everywhere localized Rademacher regime](goal) requires: [the bound is nonnegative](step:1); [for almost every observation under the observation law, the centered loss is bounded in absolute value by that bound for every candidate target](step:2); [each complexity envelope is sub-root](step:3); and [at every sample size, the envelope upper-bounds the population Rademacher complexity of the indexed centered-loss class on the split's validation fold](step:4).
+
+**Almost-everywhere localized regime predicate for a `LearningSystem`.**
 
 This is the satisfiable analogue of `LocalizedRademacherRegime`: the centred-loss
 envelope is required only under the population law. The sub-root and
@@ -408,7 +406,9 @@ theorem localEmpProcessModulus_of_localized_bounded_ae
       _ ≤ Real.sqrt (2 * b) * ‖θ - S.θ₀‖ + (Real.sqrt (2 * b)) ^ 2 := by
         nlinarith [mul_nonneg hρ_nonneg hnorm_nonneg]
 
-/-- The target minimizes the auxiliary population risk whose centered excess
+/-- For [an orthogonal statistical-learning system](hyp:S) and [a real clamp radius](hyp:b), the [centered clamped target-minimization condition](goal) states that every candidate target has auxiliary population risk at least that of the designated target, where its excess loss relative to the designated target is clamped to $[-b,b]$.
+
+The target minimizes the auxiliary population risk whose centered excess
 loss has been clamped to radius `b`.
 
 This is the minimizer condition needed when an a.e.-bounded empirical-process

@@ -42,24 +42,42 @@ namespace DesignBased
 variable {Ω : Type*} [Fintype Ω]
 variable {ι Θ Δ : Type*}
 
-/-- The exposure unit `i` receives under assignment `z`: `f z (θ i)`. -/
+/-- For [an assignment-to-exposure rule](hyp:f), [a map assigning each unit its traits](hyp:θ),
+[a unit](hyp:i), and [an assignment](hyp:z), [the unit's exposure](goal) is the exposure assigned
+by that rule to the assignment and the unit's traits. -/
 def expo (f : Ω → Θ → Δ) (θ : ι → Θ) (i : ι) (z : Ω) : Δ := f z (θ i)
 
 variable [DecidableEq Δ]
 
-/-- Indicator that unit `i` is in exposure condition `d` under assignment `z`. -/
+/-- For [an assignment-to-exposure rule](hyp:f), [a map assigning each unit its traits](hyp:θ),
+[a unit](hyp:i), and [an exposure condition from a set whose elements can be compared for
+equality](hyp:d), [the exposure indicator](goal) maps each assignment to one when that unit
+receives that condition and to zero otherwise. -/
 def expoInd (f : Ω → Θ → Δ) (θ : ι → Θ) (i : ι) (d : Δ) : Ω → ℝ :=
   FiniteDesign.ind (fun z => expo f θ i z = d)
 
-/-- Generalized probability of exposure: `π_i(d) = Pr[expo i = d]`. -/
+/-- On a finite assignment space, for [a finite randomization design](hyp:D), [an
+assignment-to-exposure rule](hyp:f), [a map assigning each unit its traits](hyp:θ), [a
+unit](hyp:i), and [an exposure condition from a set whose elements can be compared for
+equality](hyp:d), [the generalized probability of exposure](goal) is the design probability that
+the unit receives that condition. -/
 def prop (D : FiniteDesign Ω) (f : Ω → Θ → Δ) (θ : ι → Θ) (i : ι) (d : Δ) : ℝ :=
   D.Pr (fun z => expo f θ i z = d)
 
-/-- Joint exposure probability `π_{ij}(d) = E[1(expo i = d)·1(expo j = d)]`. -/
+/-- On a finite assignment space, for [a finite randomization design](hyp:D), [an
+assignment-to-exposure rule](hyp:f), [a map assigning each unit its traits](hyp:θ), [two
+units](hyp:i,j), and [an exposure condition from a set whose elements can be compared for
+equality](hyp:d), [the same-condition joint exposure probability](goal) is the design expectation
+of the product of the two units' indicators for that condition. -/
 def propPairSame (D : FiniteDesign Ω) (f : Ω → Θ → Δ) (θ : ι → Θ) (i j : ι) (d : Δ) : ℝ :=
   D.E (fun z => expoInd f θ i d z * expoInd f θ j d z)
 
-/-- Cross joint exposure probability `π_{ij}(d,d') = E[1(expo i = d)·1(expo j = d')]`. -/
+/-- On a finite assignment space, for [a finite randomization design](hyp:D), [an
+assignment-to-exposure rule](hyp:f), [a map assigning each unit its traits](hyp:θ), [two
+units](hyp:i,j), and [two exposure conditions from a set whose elements can be compared for
+equality](hyp:d,d'), [the cross-condition joint exposure probability](goal) is the design
+expectation of the product of the first unit's indicator for the first condition and the second
+unit's indicator for the second condition. -/
 def propPairCross (D : FiniteDesign Ω) (f : Ω → Θ → Δ) (θ : ι → Θ) (i j : ι) (d d' : Δ) : ℝ :=
   D.E (fun z => expoInd f θ i d z * expoInd f θ j d' z)
 

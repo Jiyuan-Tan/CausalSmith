@@ -44,7 +44,10 @@ namespace VarConstr2
 
 variable {K : ℕ} (P : VarConstr2 K)
 
-/-- The per-pair χ²-overlap coefficient (second construction). -/
+/-- For [a propensity-dominant construction with a specified number of paired covariate
+cells](hyp:K,P) and [one pair of cells](hyp:j), [the pair's chi-squared-overlap
+coefficient](goal) is
+$m_{0j}\alpha^2g_{1j}^3 + m_{0j}(\beta/g_{1j}+\alpha g_{1j}(1-g_{1j})-\alpha^2\beta g_{1j})^2/(1-g_{1j}) + m_{0j}^2\kappa_j^2/(1-m_{0j})$. -/
 noncomputable def ΓV2 (j : Fin K) : ℝ :=
   P.m₀ j * P.α ^ 2 * P.g₁ j ^ 3
     + P.m₀ j * (P.β / P.g₁ j + P.α * P.g₁ j * (1 - P.g₁ j) - P.α ^ 2 * P.β * P.g₁ j) ^ 2
@@ -63,7 +66,12 @@ theorem ΓV2_nonneg (j : Fin K) : 0 ≤ P.ΓV2 j := by
     apply div_nonneg (by positivity); linarith
   linarith
 
-/-- The single-observation χ² second-moment overlap of two perturbed laws relative to the null. -/
+/-- For [a propensity-dominant construction with a specified number of paired covariate
+cells](hyp:K,P) and [two binary sign vectors indexing perturbations](hyp:lam,lam'), [the
+single-observation chi-squared second-moment overlap](goal) is the sum, over every possible
+observed record $z$, of $q_{\lambda}(z)q_{\lambda'}(z)/p_0(z)$, where $q_{\lambda}$ and
+$q_{\lambda'}$ are the two perturbed record probabilities and $p_0$ is the unperturbed record
+probability. -/
 noncomputable def chiSqOverlapV2 (lam lam' : Fin K → Bool) : ℝ :=
   ∑ z : Obs (Fin K × Bool),
     obsReal (P.mPert2 lam) (P.gPert2 lam) z

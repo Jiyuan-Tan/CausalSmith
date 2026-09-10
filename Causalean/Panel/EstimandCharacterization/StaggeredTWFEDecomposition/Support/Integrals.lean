@@ -201,7 +201,9 @@ mean-regression evaluate to a single closed-form constant. These are the
 `propensity_eq_cellShare_of_mem` / `meanReg_eq_cellMean_of_mem` analogues
 for the two-axis case. -/
 
-/-- The "panel-propensity hat" `pHat g t = cohortBarD g + cT t` where
+/-- For [a measurable sample space](hyp:Ω), [a finite cohort label space whose members can be compared for equality and whose singleton sets are measurable](hyp:𝒢), [a natural-number panel length](hyp:T), [a measure](hyp:μ), [a treatment variable](hyp:D), [a cohort variable](hyp:G), [a period variable](hyp:T_rv), [a cohort label](hyp:g), and [a period](hyp:t), [the cell-specific additive treatment fit](goal) is the cohort-specific mean treatment plus the period-specific mean treatment minus the overall mean treatment.
+
+The "panel-propensity hat" `pHat g t = cohortBarD g + cT t` where
 `cT t := (∫ D · 𝟙{T_rv=t} dμ) / periodMass t - ∫ D dμ`. -/
 noncomputable def panelPropensityHat
     (μ : Measure Ω) (D : Ω → ℝ) (G : Ω → 𝒢) (T_rv : Ω → Fin T)
@@ -212,7 +214,9 @@ noncomputable def panelPropensityHat
         / periodMass μ T_rv t
         - ∫ ω', D ω' ∂μ)
 
-/-- "panel-meanReg hat" analogue for `Y`. -/
+/-- For [a measurable sample space](hyp:Ω), [a finite cohort label space whose members can be compared for equality and whose singleton sets are measurable](hyp:𝒢), [a natural-number panel length](hyp:T), [a measure](hyp:μ), [an outcome variable](hyp:Y), [a cohort variable](hyp:G), [a period variable](hyp:T_rv), [a cohort label](hyp:g), and [a period](hyp:t), [the cell-specific additive outcome fit](goal) is the cohort-specific mean outcome plus the period-specific mean outcome minus the overall mean outcome.
+
+"panel-meanReg hat" analogue for `Y`. -/
 noncomputable def panelMeanRegHat
     (μ : Measure Ω) (Y : Ω → ℝ) (G : Ω → 𝒢) (T_rv : Ω → Fin T)
     (g : 𝒢) (t : Fin T) : ℝ :=

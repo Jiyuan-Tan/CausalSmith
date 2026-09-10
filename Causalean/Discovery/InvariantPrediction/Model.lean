@@ -113,10 +113,17 @@ namespace EnvFamily
 
 variable {ι : Type*} [Fintype ι] (F : EnvFamily N Ω ι)
 
-/-- The target node `SWIGNode.random Y`. -/
+/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
+environment index set](hyp:ι), and [an invariant-prediction environment family](hyp:F), [the
+target node](goal) is the random-form node associated with the family's target variable. -/
 abbrev yNode : SWIGNode N := SWIGNode.random F.Y
 
-/-- The observed parents of the target in environment `i` — the conditioning
+/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
+environment index set](hyp:ι), [an invariant-prediction environment family](hyp:F), and [an
+environment](hyp:i), [the observed-parent set of the target](goal) is the set of target parents
+that are observed in that environment.
+
+The observed parents of the target in environment `i` — the conditioning
 candidates ICP ranges over. Index-independent by `hParents` and `hObs`
 (see `paObs_eq`). -/
 def paObs (i : ι) : Finset (SWIGNode N) :=
@@ -127,7 +134,12 @@ theorem paObs_eq (i j : ι) : F.paObs i = F.paObs j := by
   unfold paObs
   rw [F.hParents i j, F.hObs i j]
 
-/-- The **fixed parents** of the target in environment `i` — the parents of `Y`
+/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
+environment index set](hyp:ι), [an invariant-prediction environment family](hyp:F), and [an
+environment](hyp:i), [the fixed-parent set of the target](goal) is the set of target parents that
+are fixed by intervention in that environment.
+
+The **fixed parents** of the target in environment `i` — the parents of `Y`
 that are intervened on (fixed) in that environment.  These are the coordinates of
 `Y`'s mechanism whose values live in `s i` and may *legitimately differ* across
 environments; the redesigned `Invariant` predicate conditions on them. -/
@@ -185,7 +197,12 @@ off the environment's intervention assignment `s i`. -/
 theorem paFix_subset_fixed (i : ι) : F.paFix i ⊆ (F.M i).fixed :=
   Finset.inter_subset_right
 
-/-- The fixed-parent values assigned by environment `i`'s intervention,
+/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
+environment index set](hyp:ι), [an invariant-prediction environment family](hyp:F), and [an
+environment](hyp:i), [the fixed-parent values](goal) are the values assigned by that environment's
+intervention, restricted to the target's fixed parents.
+
+The fixed-parent values assigned by environment `i`'s intervention,
 projected from `s i`. -/
 noncomputable def fixedParentVals (i : ι) : ValuesOn (F.paFix i) (swigΩ Ω) :=
   valuesProjection (F.paFix_subset_fixed i) (F.s i)

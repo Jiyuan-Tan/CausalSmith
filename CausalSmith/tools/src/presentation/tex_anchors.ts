@@ -60,6 +60,10 @@ function scanAnchoredEnvs(tex: string): EnvMatch[] {
   ENV_BEGIN_RE.lastIndex = 0;
   let m: RegExpExecArray | null;
   while ((m = ENV_BEGIN_RE.exec(tex))) {
+    // A commented-out `% \begin{…}` is not an environment: scanning it swallows the text up to
+    // the next real `\end`, and every consumer (normalize, reorder, lint) then corrupts the section.
+    const lineStart = tex.lastIndexOf("\n", m.index) + 1;
+    if (/(?<!\\)(?:\\\\)*%/.test(tex.slice(lineStart, m.index))) continue; // an unescaped % earlier on the line
     const env = m[1] as AnchoredEnv["env"];
     const afterId = ENV_BEGIN_RE.lastIndex;
     const title = readOptionalTitle(tex, afterId);
@@ -159,6 +163,36 @@ const NEGATIVE_CONTRIBUTION_RE = [
   /\b(?:open|unresolved)\s+(?:design\s+|research\s+)?(?:question|problem|issue|frontier)\b/gi,
 ];
 
+const OPEN_QUESTION_OBJECT_RE = /(?:\\(?:[cC]ref|ref)\{obj:oeq:[^}]+\}|\\label\{obj:oeq:[^}]+\}|\bobj:oeq:[A-Za-z0-9:_-]+)/gi;
+const OPEN_QUESTION_DISCLOSURE_RE = /\b(?:open|unresolved)\s+(?:design\s+|research\s+)?(?:question|problem|issue|frontier)\b/i;
+
+function isLinkedOpenQuestionDisclosure(prose: string, matchIndex: number, matchText: string): boolean {
+  if (!OPEN_QUESTION_DISCLOSURE_RE.test(matchText)) return false;
+  const boundary = Math.max(
+    prose.lastIndexOf("\n", matchIndex),
+    prose.lastIndexOf(".", matchIndex),
+    prose.lastIndexOf(";", matchIndex),
+    prose.lastIndexOf("!", matchIndex),
+    prose.lastIndexOf("?", matchIndex),
+  );
+  const prefix = prose.slice(boundary + 1, matchIndex);
+  const refs = [...prefix.matchAll(OPEN_QUESTION_OBJECT_RE)];
+  const ref = refs.at(-1);
+  if (!ref || ref.index === undefined) return false;
+  const subject = prefix.slice(0, ref.index);
+  const subjectParts = /^\s*(?:the|an?)\s+(?:(.*?)\s+)?(?:item|object|question|problem|frontier)\s+(?:in|at)\s*$/i.exec(subject);
+  const refId = /obj:oeq:([^}]+)/i.exec(ref[0])?.[1] ?? "";
+  const normalizeName = (value: string): string => value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const descriptor = subjectParts?.[1];
+  const linkedSubject = /^\s*$/.test(subject)
+    || (subjectParts !== null && (descriptor === undefined || normalizeName(descriptor) === normalizeName(refId)));
+  if (!linkedSubject) return false;
+  const bridge = prefix.slice(ref.index + ref[0].length);
+  const disclosureAt = matchText.search(OPEN_QUESTION_DISCLOSURE_RE);
+  const relation = bridge + matchText.slice(0, Math.max(0, disclosureAt));
+  return /^\s*(?:(?:is|are|was|were)\s+(?:recorded|described|stated|posed|identified|listed|marked|treated|left)\s+as|(?:recorded|described|stated|posed|identified|listed|marked|treated|left)\s+as|remains?|stays?|is|are|was|were)\s+(?:an?\s+)?$/i.test(relation);
+}
+
 /**
  * Reader-facing contribution prose should lead with delivered results. Negative scope framing is
  * allowed only in explicitly labelled limitations/future-work sections. Frozen statements, proofs,
@@ -186,6 +220,9 @@ export function lintNegativeContributionFraming(tex: string): LintProblem[] {
       const candidates = [period < 0 ? prose.length : period + 1, newline < 0 ? prose.length : newline];
       const right = Math.min(...candidates.filter((x) => x >= m.index));
       const excerpt = prose.slice(left, right).replace(/\s+/g, " ").trim().slice(0, 320);
+      // An explicitly linked OEQ is a delivered disclosure, not contribution-minimizing prose.
+      // Require a direct disclosure relation so a nearby OEQ reference cannot hide a different claim.
+      if (isLinkedOpenQuestionDisclosure(prose, m.index, m[0])) continue;
       const line = prose.slice(0, m.index).split("\n").length;
       hits.set(left, {
         gate: "negative-contribution-framing",
@@ -216,6 +253,10 @@ export function normalizeCrefs(tex: string): string {
   );
   out = out.replace(/\\(?:auto|eq)?ref\{([^}]+)\}/g, (_whole, label: string, offset: number, source: string) =>
     `\\${atSentenceStart(source, offset) ? "Cref" : "cref"}{${label}}`);
+  // cleveref reads `\cref{a, b}` as the labels `a` and ` b` (the second prints as ??): one label
+  // list separator, no whitespace.
+  out = out.replace(/\\(Cref|cref)\{([^}]*,[^}]*)\}/g, (_whole, command: string, labels: string) =>
+    `\\${command}{${labels.split(",").map((x) => x.trim()).join(",")}}`);
   return unwrapReferenceOnlyInlineMath(out);
 }
 
@@ -261,13 +302,14 @@ export function repairObjRefs(tex: string, definedIds: Set<string>): { tex: stri
   const out = tex.replace(/\\(Cref|cref|ref)\{([^}]+)\}/g, (whole, command: string, rawLabels: string) => {
     const labels = rawLabels.split(",").map((x) => x.trim());
     if (!labels.some((x) => x.startsWith("obj:"))) return whole;
+    let changed = false; // byte-preserving unless a label is actually repaired (this runs on frozen bodies)
     const repaired = labels.map((label) => {
       if (!label.startsWith("obj:")) return label;
       const id = label.slice(4);
       if (definedIds.has(id)) return label;
       // A unique env whose id is `<kind>:<id>` (the drafter dropped the kind prefix) → repair.
       const matches = [...definedIds].filter((d) => d.endsWith(`:${id}`));
-      if (matches.length === 1) return `obj:${matches[0]}`;
+      if (matches.length === 1) { changed = true; return `obj:${matches[0]}`; }
       problems.push({
         gate: "undefined-ref",
         detail:
@@ -277,7 +319,7 @@ export function repairObjRefs(tex: string, definedIds: Set<string>): { tex: stri
       });
       return label;
     });
-    return `\\${command}{${repaired.join(",")}}`;
+    return changed ? `\\${command}{${repaired.join(",")}}` : whole;
   });
   return { tex: out, problems };
 }
@@ -377,6 +419,81 @@ export function lintNestedMathDelimiters(tex: string): LintProblem[] {
     }
   }
   return problems;
+}
+
+/** Re-sequence the anchored environments of one section so they appear in `order` (the outline's
+ *  `objs` for that section, restricted to the envs the text contains). The i-th env slot receives
+ *  the i-th env of the target order; prose between slots is untouched. Returns `tex` unchanged
+ *  when the sequence already agrees or the env sets differ (that is `validatePlacement`'s job).
+ *  Rationale: P1 computed the paper order so that every definition precedes its first use; a
+ *  drafter that emits the envs of a section in another order would make P3's frozen-layer order
+ *  gate fail with a P1 repair instruction for an order P1 never produced. */
+export function reorderAnchoredEnvs(tex: string, order: readonly string[]): string {
+  const blocks = scanAnchoredEnvs(tex);
+  const present = new Set(blocks.map((b) => b.obj_id));
+  const target = order.filter((id) => present.has(id));
+  const current = blocks.map((b) => b.obj_id);
+  if (target.length !== current.length || current.every((id, i) => id === target[i])) return tex;
+  if ([...target].sort().join("\n") !== [...current].sort().join("\n")) return tex;
+  const rawById = new Map(blocks.map((b) => [b.obj_id, b.raw] as const));
+  let out = "";
+  let at = 0;
+  blocks.forEach((b, i) => {
+    out += tex.slice(at, b.start) + rawById.get(target[i])!;
+    at = b.end;
+  });
+  return out + tex.slice(at);
+}
+
+/**
+ * Place a section's frozen environments mechanically. P1's order is total and the frozen text is
+ * identical wherever it is printed, so every repair here has exactly one outcome: a duplicate
+ * keeps its first copy; an environment the outline places in another section is removed; the
+ * remaining blocks are permuted into `order` (prose stays where the drafter put it); a missing
+ * environment is inserted right after its nearest present P1 predecessor (before the first present
+ * successor when nothing precedes it; at the end of the section when the section prints none).
+ * Returns the repaired tex and one line per repair, for the stage's notes. Nothing else changes.
+ */
+export function placeFrozenEnvs(
+  tex: string, order: readonly string[], canonical: ReadonlyMap<string, string>,
+): { tex: string; repairs: string[] } {
+  const repairs: string[] = [];
+  const wanted = new Set(order);
+  const firstCopy = new Map<string, number>();
+  for (const e of scanAnchoredEnvs(tex)) if (!firstCopy.has(e.obj_id)) firstCopy.set(e.obj_id, e.order);
+  const seen = new Set<string>();
+  let out = replaceAnchoredEnvs(tex, (e) => { // visits blocks last-to-first; decisions are by first copy
+    if (!wanted.has(e.obj_id)) {
+      repairs.unshift(`${e.obj_id}: removed — ${canonical.has(e.obj_id) ? "the outline places it in another section" : "it is not a frozen environment of this paper"}`);
+      return "";
+    }
+    if (firstCopy.get(e.obj_id) !== e.order) {
+      repairs.unshift(`${e.obj_id}: duplicate copy removed`);
+      return "";
+    }
+    seen.add(e.obj_id);
+    return e.raw;
+  });
+  const reordered = reorderAnchoredEnvs(out, order);
+  if (reordered !== out) {
+    repairs.push(`re-sequenced ${[...seen].length} environment(s) into the P1 order`);
+    out = reordered;
+  }
+  for (const id of order) {
+    if (seen.has(id)) continue;
+    const block = canonical.get(id);
+    if (block === undefined) continue; // not a frozen environment (prose-only object) — nothing to place
+    const present = scanAnchoredEnvs(out);
+    const rank = new Map(order.map((x, i) => [x, i] as const));
+    const predecessor = [...present].reverse().find((e) => rank.get(e.obj_id)! < rank.get(id)!);
+    const successor = present.find((e) => rank.get(e.obj_id)! > rank.get(id)!);
+    if (predecessor) out = `${out.slice(0, predecessor.end)}\n\n${block}${out.slice(predecessor.end)}`;
+    else if (successor) out = `${out.slice(0, successor.start)}${block}\n\n${out.slice(successor.start)}`;
+    else out = `${out.replace(/\n+$/, "")}\n\n${block}\n`;
+    seen.add(id);
+    repairs.push(`${id}: inserted at its P1 position (the draft omitted it)`);
+  }
+  return { tex: out, repairs };
 }
 
 /**
@@ -598,7 +715,7 @@ export function notationHomes(notation: string): NotationHome[] {
     // Split on UNESCAPED pipes only: a math cell containing `\|` (a TeX norm,
     // doubling as the markdown escape for a literal pipe) must not add columns —
     // `| $\|\beta\|_1$ | … |` used to shatter into six bogus cells and the row
-    // was silently dropped from the definition-order gate.
+    // was silently dropped from the definition-order check.
     const parts = line.split(/(?<!\\)\|/);
     const edged = /^\s*\|/.test(line) && /(?<!\\)\|\s*$/.test(line);
     const cells = (edged ? parts.slice(1, -1) : parts).map((x) => x.trim());
@@ -675,7 +792,7 @@ export function containsNotation(tex: string, symbol: string): boolean {
 
 /** TRUE iff `text` uses `symbol` AS ITSELF, not merely as the base of a LABELLED variant.
  *  `containsNotation` is substring-based for multi-character needles, so a bare `N_k` matches
- *  inside `N_k^{(1)}`. For placement and for the definition-order gate that is wrong: the
+ *  inside `N_k^{(1)}`. For placement and for the definition-order check that is wrong: the
  *  split count `N_k^{(1)}` is a different object owned by a different definition, so counting
  *  it as a use drags the bare symbol's definition into the wrong section (or hard-fails the
  *  paper for a move placement just made).
@@ -791,73 +908,6 @@ export function displaysDefiningEqualityFamily(tex: string, symbol: string): boo
 }
 
 
-function splitTopLevel(text: string): string[] | null {
-  const args: string[] = [];
-  let start = 0, round = 0, square = 0, curly = 0;
-  for (let i = 0; i <= text.length; i++) {
-    const c = text[i];
-    if (c === "(") round++; else if (c === ")") round--;
-    else if (c === "[") square++; else if (c === "]") square--;
-    else if (c === "{") curly++; else if (c === "}") curly--;
-    if (round < 0 || square < 0 || curly < 0) return null;
-    if ((c === "," && round === 0 && square === 0 && curly === 0) || i === text.length) {
-      args.push(text.slice(start, i).trim());
-      start = i + 1;
-    }
-  }
-  return round || square || curly || args.some((x) => !x) ? null : args;
-}
-
-function terminalApplication(text: string): { base: string; args: string[]; open: string; close: string } | null {
-  const delimiters = [["(", ")"], ["[", "]"], ["{", "}"], ["\\{", "\\}"]] as const;
-  const pair = delimiters.find(([, close]) => text.endsWith(close));
-  if (!pair) return null;
-  const [openToken, closeToken] = pair;
-  let depth = 0;
-  let open = -1;
-  for (let i = text.length - closeToken.length; i >= 0; i--) {
-    if (text.startsWith(closeToken, i)) { depth++; i -= closeToken.length - 1; }
-    else if (text.startsWith(openToken, i) && --depth === 0) { open = i; break; }
-  }
-  if (open <= 0 || depth !== 0) return null;
-  const base = text.slice(0, open).trim();
-  if (!base) return null;
-  const args = splitTopLevel(text.slice(open + openToken.length, -closeToken.length));
-  return args ? { base, args, open: openToken, close: closeToken } : null;
-}
-
-function applicationShape(text: string): string {
-  const value = text.trim();
-  const call = terminalApplication(value);
-  if (call) return `${call.open}${call.args.map(applicationShape).join(",")}${call.close}`;
-  // TeX set braces are escaped and therefore two-character delimiters.
-  if (value.startsWith("\\{") && value.endsWith("\\}")) {
-    const parts = splitTopLevel(value.slice(2, -2));
-    if (parts) return `\\{${parts.map(applicationShape).join(",")}\\}`;
-  }
-  const pairs = [["(", ")"], ["[", "]"], ["{", "}"]] as const;
-  for (const [open, close] of pairs) {
-    if (!value.startsWith(open) || !value.endsWith(close)) continue;
-    const parts = splitTopLevel(value.slice(1, -1));
-    if (parts) return `${open}${parts.map(applicationShape).join(",")}${close}`;
-  }
-  return "•";
-}
-
-/** Canonical identity of notation owned by a defining LHS. Bound argument NAMES
- * are ignored, but application structure is retained: `Ψ(h)` matches `Ψ(h_n)`,
- * not scalar `Ψ` or binary `Ψ(h,z)`; nested calls retain their shape. */
-export function definingNotationKey(symbol: string): string {
-  const normalized = notationSearchText(symbol)
-    .replace(/\\[,;!:]/g, "")
-    .replace(/([_^])\{([^{}])\}/g, "$1$2");
-  const call = terminalApplication(normalized);
-  // A braced super/subscript is a semantic decorator, not a function
-  // application. Collapsing `^{NP}` and `^{PI}` to the same argument-shape key
-  // creates false duplicate owners between distinct decision classes/risks.
-  return call && !(call.open === "{" && /[_^]$/.test(call.base))
-    ? `${call.base}${applicationShape(normalized)}` : normalized;
-}
 
 /** Parse atomic left-hand sides of top-level defining equalities in displayed/inline
  * mathematics. Equality signs inside binders (`i=1`) are ignored by bracket depth. */
@@ -895,6 +945,32 @@ export function definingNotationLhses(tex: string): string[] {
   return [...out];
 }
 
+/** TRUE iff `body` INTRODUCES `symbol` with an introducing clause: the symbol is the WHOLE math
+ *  atom between an introducing verb and its complement ("let \\(b\\) denote …", "write \\(u\\) for …",
+ *  "denote … by \\(b\\)"), or it is the left-hand side of a defining equality inside such a clause
+ *  ("define \\(A(x) := …\\)"). Stricter than `proseDefinesNotation` (any defining word or `=` within
+ *  100 characters), which is the right looseness for a table-designated home but reads
+ *  "we define \\(B:=A\\)" as introducing `A`, and "let \\(x\\in\\mathcal X\\)" as introducing `\\mathcal X`.
+ *  Whitespace inside the symbol is ignored; a spelling the regexes miss is the conservative
+ *  direction (the use stays flagged). */
+export function introducesNotation(body: string, symbol: string): boolean {
+  const sym = symbol.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s*");
+  const flat = body.replace(/\s+/g, " ");
+  const open = String.raw`(?:\\\(|\$)\s*`;
+  const close = String.raw`\s*(?:\\\)|\$)`;
+  const verb = String.raw`\b(?:let|denote|define|defining|write|put|set|call|introduce)\b`;
+  // A clause whose complement is a cross-reference ("let \\(C\\) be the constant of \\cref{…}") is a
+  // forward reference to a definition elsewhere, not an introduction.
+  const notRef = String.raw`(?![^.;:]{0,40}\\[cC]?ref\{)`;
+  const wholeAtom = new RegExp(
+    `${verb}[^.;:]{0,40}?${open}${sym}${close}\\s*(?:denote|denotes|be|as|by|for|the|is)\\b${notRef}`, "i");
+  const definingLhs = new RegExp(
+    `${verb}[^;]{0,60}?${open}${sym}\\s*(?::=|=|\\\\coloneqq|\\\\equiv)`, "i"); // `[^;]`: "…, i.e. \\(C := 2L\\)" crosses a period
+  const denotedBy = new RegExp(
+    String.raw`\b(?:denote|write)\b[^.;:]{0,60}?\bby\s*` + open + sym + close + notRef, "i");
+  return wholeAtom.test(flat) || definingLhs.test(flat) || denotedBy.test(flat);
+}
+
 export function proseDefinesNotation(prose: string, symbol: string): boolean {
   const flat = prose.replace(/\s+/g, " ");
   for (let i = 0; i < flat.length; i++) {
@@ -912,77 +988,112 @@ export function proseDefinesNotation(prose: string, symbol: string): boolean {
   return false;
 }
 
+/** One reader-order violation: `symbol`'s notation-table `home` introduces it, but `firstUse`
+ *  displays it earlier in the text. */
+export interface DefinitionOrderViolation {
+  symbol: string;
+  home: string;
+  firstUse: string;
+}
+
 /**
- * Hard reader-scope gate: a notation-table symbol may not occur in a formal environment before
- * the anchored environment recorded as its home, unless preceding prose explicitly introduces it.
- * Complements the codex notation reviewer: it sees ordinary vectors/functions such as
- * `u_j` positionally, without needing semantic judgment about what defines them.
+ * The paper's frozen environments must appear in the ORDER P1 settled (`formal_layer.json` block
+ * order): P1 is the one judge of definition order (it repairs what can be repaired and records
+ * what cannot), P2 lays the sections out in that order, and P3/P4 only assert that nothing has
+ * omitted or reordered the layer since. Pass only environment-bearing IDs, excluding prose-only blocks.
+ * Environments outside the layer (proofs) are ignored.
  */
-export function lintDefinitionOrder(tex: string, notation: string): LintProblem[] {
-  const envs = scanAnchoredEnvs(tex);
-  const byId = new Map(envs.map((e) => [e.obj_id, e]));
+export function lintEnvOrder(tex: string, layerOrder: readonly string[]): LintProblem[] {
+  const rank = new Map(layerOrder.map((id, i) => [id, i] as const));
   const problems: LintProblem[] = [];
   const seen = new Set<string>();
-  const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  // Displayed-LHS defines→uses graph, for cycle detection only: X→Y iff some equality
-  // LHS displayed in X appears in Y. Mutually reachable envs form a definition cycle —
-  // no linear layout satisfies both, so order is not enforced within one.
-  const lhsById = new Map(envs.map((e) => [e.obj_id, definingNotationLhses(e.body)]));
-  const outEdges = new Map(envs.map((x) => [x.obj_id, envs
-    .filter((y) => y.obj_id !== x.obj_id &&
-      (lhsById.get(x.obj_id) ?? []).some((lhs) => containsNotation(y.body, lhs)))
-    .map((y) => y.obj_id)] as const));
-  const reaches = (from: string, to: string): boolean => {
-    const queue = [from], visited = new Set([from]);
-    while (queue.length > 0) {
-      const at = queue.shift()!;
-      if (at === to) return true;
-      for (const next of outEdges.get(at) ?? []) if (!visited.has(next)) { visited.add(next); queue.push(next); }
+  let maxRank = -1;
+  let maxId = "";
+  for (const e of scanAnchoredEnvs(tex)) {
+    const r = rank.get(e.obj_id);
+    if (r === undefined) continue;
+    if (seen.has(e.obj_id)) {
+      problems.push({ gate: "frozen-layer-order", objId: e.obj_id, detail: `${e.obj_id} appears twice in the paper; a frozen environment is printed once, at its P1 position` });
+      continue;
     }
-    return false;
-  };
-  const mutuallyDependent = (a: string, b: string): boolean => reaches(a, b) && reaches(b, a);
-  for (const { symbol, home } of notationHomes(notation)) {
-    const homeEnv = byId.get(home);
-    // Same notion of "use" as the first-use scan below: a home that carries only a labelled
-    // variant does not introduce the bare symbol, so it must not anchor the ordering check.
-    if (!homeEnv || !usesSymbolUndecorated(`${homeEnv.title ?? ""} ${homeEnv.body}`, symbol)) continue;
-    // Enforce only for a home that visibly INTRODUCES the symbol (a definition env, a
-    // displayed defining equality, defining prose, or an existential binder). A table row
-    // whose claimed home merely mentions the symbol is metadata drift, not a reader-order
-    // constraint.
-    const flatHome = homeEnv.body.replace(/\s+/g, " ");
-    const existentially = (body: string) =>
-      new RegExp(String.raw`there\s+(?:exists?|is|are)\b[^.;]{0,80}?` + escapeRe(symbol)).test(body);
-    const witnessed = homeEnv.env === "definitionv" || homeEnv.env === "algorithmv" ||
-      displaysDefiningEqualityFamily(homeEnv.body, symbol) ||
-      proseDefinesNotation(homeEnv.body, symbol) ||
-      existentially(flatHome);
-    if (!witnessed) continue;
-    const firstUse = envs.find((e) =>
-      e.order < homeEnv.order &&
-      // Must agree with the PLACEMENT scan (p1_plan `preferredSectionsForSynths`): if a
-      // decorated variant (`N_k^{(1)}`) does not count as a user for placement, it must not
-      // count as a first USE here either — otherwise placement moves a definition later and
-      // this gate hard-fails the paper for the move it just made.
-      usesSymbolUndecorated(`${e.title ?? ""} ${e.body}`, symbol) &&
-      // An existential local binder introduces the symbol in scope ("there exists an
-      // integer M_n such that …") — a bound occurrence, not a free premature use.
-      !existentially(e.body.replace(/\s+/g, " ")) &&
-      !mutuallyDependent(e.obj_id, homeEnv.obj_id));
-    if (!firstUse) continue;
-    const proseBeforeUse = stripAnchoredEnvBlocks(tex.slice(0, firstUse.start));
-    if (proseDefinesNotation(proseBeforeUse, symbol)) continue;
-    const key = `${symbol}|${home}|${firstUse.obj_id}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    problems.push({
-      gate: "notation-defined-after-use",
-      objId: firstUse.obj_id,
-      detail: `${symbol} is first used in ${firstUse.obj_id} before its notation-table home ${home}; move/introduce its definition before that use`,
+    seen.add(e.obj_id);
+    if (r < maxRank) {
+      problems.push({
+        gate: "frozen-layer-order",
+        objId: e.obj_id,
+        detail: `${e.obj_id} appears after ${maxId} in the paper but before it in the frozen layer (P1 order); restore the P1 order`,
+      });
+      continue;
+    }
+    maxRank = r;
+    maxId = e.obj_id;
+  }
+  for (const objId of layerOrder) {
+    if (!seen.has(objId)) problems.push({
+      gate: "frozen-layer-order", objId,
+      detail: `${objId} is missing from the paper; every frozen environment must appear at its P1 position`,
     });
   }
   return problems;
+}
+
+/** One reader-order constraint: some environment in `homes` must precede `user`, an environment
+ *  that uses `symbol` freely. `homes[0]` is the notation table's witnessed home; the rest are
+ *  definition-kind environments that visibly introduce the symbol themselves (a displayed
+ *  defining equality or an introducing clause) — for the reader either resolves the symbol. */
+export interface DefinitionOrderEdge { symbol: string; homes: string[]; user: string }
+
+const INTRODUCER_ENVS = new Set(["definitionv", "algorithmv", "assumptionv", "lemmav"]);
+
+/**
+ * The definition-order constraints the notation table imposes on the anchored environments of
+ * `tex`: for every row whose home visibly INTRODUCES its symbol (a definition env, a displayed
+ * defining equality, defining prose, or an existential binder — a home that merely mentions the
+ * symbol is metadata drift, not a constraint), one edge per environment that uses the symbol
+ * freely (a decorated variant, a local existential binder, or an introducing clause is not a
+ * use). Order-independent: P1's repair solves these (`repairDefinitionOrder`); the same table
+ * yields the same constraints whatever order the environments are in.
+ */
+export function definitionOrderConstraints(tex: string, notation: string): DefinitionOrderEdge[] {
+  const envs = scanAnchoredEnvs(tex);
+  const byId = new Map(envs.map((e) => [e.obj_id, e]));
+  const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const existentiallyIn = (body: string, symbol: string) =>
+    new RegExp(String.raw`there\s+(?:exists?|is|are)\b[^.;]{0,80}?` + escapeRe(symbol), "i").test(body);
+  const text = (e: AnchoredEnv) => `${e.title ?? ""} ${e.body}`;
+  const edges: DefinitionOrderEdge[] = [];
+  const seen = new Set<string>();
+  for (const { symbol, home } of notationHomes(notation)) {
+    const homeEnv = byId.get(home);
+    if (!homeEnv || !usesSymbolUndecorated(text(homeEnv), symbol)) continue;
+    const witnessed = homeEnv.env === "definitionv" || homeEnv.env === "algorithmv" ||
+      displaysDefiningEqualityFamily(homeEnv.body, symbol) ||
+      proseDefinesNotation(homeEnv.body, symbol) ||
+      existentiallyIn(homeEnv.body.replace(/\s+/g, " "), symbol);
+    if (!witnessed) continue;
+    const introducers = envs
+      .filter((e) => e.obj_id !== home && INTRODUCER_ENVS.has(e.env) &&
+        (displaysDefiningEqualityFamily(e.body, symbol) || introducesNotation(e.body, symbol)))
+      .map((e) => e.obj_id);
+    for (const e of envs) {
+      if (e.obj_id === home || introducers.includes(e.obj_id) || !usesSymbolUndecorated(text(e), symbol)) continue;
+      if (existentiallyIn(e.body.replace(/\s+/g, " "), symbol) || introducesNotation(e.body, symbol)) continue;
+      const key = `${symbol}|${home}|${e.obj_id}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      edges.push({ symbol, homes: [home, ...introducers], user: e.obj_id });
+    }
+  }
+  return edges;
+}
+
+/** The constraints the current order of `tex` violates (no home precedes the user). Reported
+ *  against the table home. */
+export function definitionOrderViolations(tex: string, notation: string): DefinitionOrderViolation[] {
+  const order = new Map(scanAnchoredEnvs(tex).map((e) => [e.obj_id, e.order] as const));
+  return definitionOrderConstraints(tex, notation)
+    .filter((e) => e.homes.every((h) => order.get(e.user)! < order.get(h)!))
+    .map(({ symbol, homes, user }) => ({ symbol, home: homes[0], firstUse: user }));
 }
 
 /** Presentation floor for theorem/lemma STATEMENTS — enforces the two `p1_touchup` formatting rules
@@ -1078,25 +1189,16 @@ export function lintReferences(tex: string): LintProblem[] {
   return problems;
 }
 
-/**
- * Cross-reference faithfulness (P1 §4.6.3, deterministic). The graph's
- * `statement-uses` edges say exactly which other paper envs an env's statement
- * depends on. `allowed` maps each env's obj_id → the set of paper-env target
- * obj_ids it may / must `\cref`. A `\cref{obj:X}` to an X outside that set is a
- * dangling reference (`xref-dangling`, enforced); a declared target the body never
- * references is a missing one (`xref-missing`, ADVISORY — natural prose may name a
- * dependency instead of `\ref`-ing it, so the stage treats it as a warning, not a
- * halt). Envs absent from `allowed` are unconstrained (skipped).
- *
- * NOTE: presumes a RENDERED (touched-up) body — the mechanical layer (raw
- * `nl.statement`) carries no cross-references, so running this before the touch-up would
- * flag every dependency. The P1 loop runs it only after a render pass (§4.6).
- */
-export function lintCrossRefs(tex: string, allowed: Map<string, Set<string>>): LintProblem[] {
+/** Check references against the current paper inventory and expected graph dependencies.
+ * A present environment is a valid citation target even without a statement-uses edge:
+ * exposition repairs can add references. Missing graph assumptions remain blocking;
+ * other omitted graph references are advisory. Semantic judges check citation meaning. */
+export function lintCrossRefs(
+  tex: string, expected: Map<string, Set<string>>, available: ReadonlySet<string>,
+): LintProblem[] {
   const problems: LintProblem[] = [];
   for (const e of parseAnchoredEnvs(tex)) {
-    const want = allowed.get(e.obj_id);
-    if (!want) continue;
+    const want = expected.get(e.obj_id) ?? new Set<string>();
     const refs = new Set<string>();
     for (const m of e.body.matchAll(/\\(?:Cref|cref|ref)\{([^}]+)\}/g)) {
       for (const label of m[1].split(",").map((x) => x.trim())) {
@@ -1104,11 +1206,11 @@ export function lintCrossRefs(tex: string, allowed: Map<string, Set<string>>): L
       }
     }
     for (const r of refs) {
-      if (!want.has(r)) {
+      if (!available.has(r)) {
         problems.push({
           gate: "xref-dangling",
           objId: e.obj_id,
-          detail: `${e.obj_id}: \\cref{obj:${r}} is not a statement-uses dependency of ${e.obj_id}`,
+          detail: `${e.obj_id}: \\cref{obj:${r}} has no environment in the current paper`,
         });
       }
     }
@@ -1135,7 +1237,16 @@ export function lintAnchors(
   knownObjIds: Set<string>,
   frozenBodies: Map<string, string> | null, // obj_id → canonical body; null before the P1 freeze
 ): LintProblem[] {
-  const problems: LintProblem[] = [];
+  // An anchored environment whose `\end{…v}` is missing is skipped by the scanner, so every
+  // consumer would otherwise ignore it while LaTeX runs the environment to the end of the file.
+  const opened = [...tex.matchAll(/\\begin\{(theoremv|assumptionv|lemmav|definitionv|citedv|propositionv|remarkv|algorithmv)\}\{([^}]+)\}/g)]
+    .filter((m) => !/(?<!\\)(?:\\\\)*%/.test(tex.slice(tex.lastIndexOf("\n", m.index) + 1, m.index)));
+  const scanned = scanAnchoredEnvs(tex);
+  const unterminated: LintProblem[] = opened.length === scanned.length ? [] : opened
+    .filter((m) => !scanned.some((e) => e.start === m.index))
+    .map((m) => ({ gate: "unterminated-env", objId: m[2], detail: `${m[2]}: \\begin{${m[1]}} has no matching \\end{${m[1]}}` }));
+
+  const problems: LintProblem[] = [...unterminated];
   BARE_RE.lastIndex = 0;
   let b: RegExpExecArray | null;
   while ((b = BARE_RE.exec(tex))) {

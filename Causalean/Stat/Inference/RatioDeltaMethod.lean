@@ -47,7 +47,11 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasu
 
 /-! ## Fréchet derivative of the ratio map -/
 
-/-- The Fréchet derivative of `v ↦ v 0 / v 1` at `t₀`, in closed form via
+/-- For [a two-dimensional real vector with coordinates $(a,b)$](hyp:t₀), [the
+ratio derivative](goal) is the linear map sending an increment $(u,v)$ to
+$u/b-av/b^2$, namely the derivative of the ratio $a/b$ whenever $b$ is nonzero.
+
+The Fréchet derivative of `v ↦ v 0 / v 1` at `t₀`, in closed form via
 `smulRight` on the coordinate projections `EuclideanSpace.proj 0`,
 `EuclideanSpace.proj 1`:
 `ratioDeriv t₀ = (1/b) • proj₀ − (a / b²) • proj₁` with `(a, b) = (t₀ 0, t₀ 1)`.

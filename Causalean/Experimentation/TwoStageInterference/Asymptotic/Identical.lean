@@ -165,10 +165,12 @@ namespace IdenticalRef
 
 variable (R : IdenticalRef)
 
-/-- The constant `LHExperiment` assembled from identical-groups reference data: every group has
-`gsize := K`, strategies `ψ₀`/`φ₀`, outcomes `Y₀`, and counts `m0₀`/`m1₀`.  Because `gsize` is the
-literal constant `fun _ => K`, the within-group assignment space is the non-dependent space
-`Fin K → Bool` and the conditional design is a genuine product over `ι → (Fin K → Bool)`. -/
+/-- Given [reference data for one identical-groups experiment](hyp:R), the [constant
+Liu--Hudgens experiment](goal) assigns every group the common size, two common within-group
+randomization designs, common potential outcomes, and common treated and control counts in that
+reference data.  Thus its conditional within-group randomization is a product across groups.
+
+The within-group assignment space is non-dependent because every group has the same size. -/
 noncomputable def toExp : LHExperiment where
   ι := R.ι
   gsize := fun _ => R.K
@@ -190,8 +192,10 @@ noncomputable def toExp : LHExperiment where
   hstage1 := R.hstage1
   hstage1pair := R.hstage1pair
 
-/-- The common per-group treatment-minus-control contrast estimator of the identical groups; it
-does not depend on the group index. -/
+/-- Given [reference data for one identical-groups experiment](hyp:R) and [a realized assignment
+within its common-size group](hyp:w), the [common per-group treatment-minus-control contrast
+estimator](goal) is the sum of potential outcomes for treated units divided by the common treated
+count minus the analogous sum for control units divided by the common control count. -/
 noncomputable def groupDiff₀ (w : Fin R.K → Bool) : ℝ :=
   (∑ j, if w j = true then R.Y₀ j w else 0) / R.m1₀
     - (∑ j, if w j = false then R.Y₀ j w else 0) / R.m0₀
@@ -205,8 +209,11 @@ non-dependent space `R.ι → (Fin K → Bool)`, of the per-group strategy desig
 lemma condDesign_toExp (s : StratAssign R.ι) :
     condDesign R.toExp s = prodDesign (fun i => if s i then R.ψ₀ else R.φ₀) := rfl
 
-/-- The concrete studentized treatment-minus-control contrast statistic of the constant
-experiment. -/
+/-- Given [reference data for one identical-groups experiment](hyp:R) and [a realized first-stage
+strategy assignment together with a realized within-group assignment for every group](hyp:sw), the
+[studentized treatment-minus-control contrast statistic](goal) is the aggregate direct-effect
+estimator minus its population direct effect, divided by the square root of its direct-effect
+variance. -/
 noncomputable def studId (sw : StratAssign R.ι × (R.ι → (Fin R.K → Bool))) : ℝ :=
   (R.toExp.estD sw - R.toExp.DEbar) / Real.sqrt (R.toExp.directVar)
 
@@ -278,17 +285,22 @@ lemma hhom_of_identical (t : ℝ) (s s' : StratAssign R.ι)
 
 /-! ### Reference group effect and variance -/
 
-/-- The common group-average potential outcome `ȳ(z)` of the identical groups under treatment
-status `z`, computed from the reference allocation strategy and outcomes — index-free. -/
+/-- Given [reference data for one identical-groups experiment](hyp:R) and [a treatment status](hyp:z),
+the [common group-average potential outcome](goal) is the arithmetic mean over units in
+the common group of their expected potential outcomes under the reference allocation strategy,
+conditional on their own treatment having that status. -/
 noncomputable def refGroupMean (z : Bool) : ℝ :=
   (∑ j : Fin R.K,
     R.ψ₀.E (fun w => if w j = z then R.Y₀ j w else 0) / R.ψ₀.Pr (fun w => w j = z)) / (R.K : ℝ)
 
-/-- The common group-level treatment-minus-control direct-effect contrast `δ` of the identical
-groups; it does not depend on any group index. -/
+/-- Given [reference data for one identical-groups experiment](hyp:R), the [common group-level
+direct-effect contrast](goal) is its common group-average potential outcome under treatment minus
+that under control. -/
 noncomputable def refDelta : ℝ := R.refGroupMean true - R.refGroupMean false
 
-/-- The common within-group contrast-estimator variance `v` of the identical groups. -/
+/-- Given [reference data for one identical-groups experiment](hyp:R), the [common within-group
+contrast-estimator variance](goal) is the variance, under the reference first allocation strategy,
+of the common per-group treatment-minus-control contrast estimator. -/
 noncomputable def refVar : ℝ := R.ψ₀.Var R.groupDiff₀
 
 /-- In the constant experiment every group's level contrast equals the common `refDelta`. -/
@@ -305,11 +317,22 @@ end IdenticalRef
 
 open DesignBased in
 open scoped Classical in
-/-- **Homogeneity bundle from identical groups.** From a sequence of identical-groups experiments
-sharing one group-level treatment-minus-control direct-effect contrast `δ`, with a uniform bound
-`M` on the centered per-group estimator, the many-groups rate, and the exact-`C` selection support,
-the full `Homogeneous` bundle is assembled — with its `hhom` field discharged by
-`hhom_of_identical`.  The within-group variances `v n := refVar (R n)` may vary across `n`. -/
+/-- Given [a sequence of identical-groups reference experiments](hyp:R), [a real evaluation
+threshold](hyp:t), [a real common direct-effect contrast](hyp:δ), [a real uniform bound](hyp:M),
+[the assumption that every reference direct-effect contrast equals that common contrast](hyp:hδ),
+[the assumption that every reference within-group contrast variance is positive](hyp:hvpos), [the
+assumption that, for every experiment, group, and within-group assignment, the absolute difference
+between the realized group contrast and the common contrast is at most the uniform bound](hyp:hMbound),
+[the assumption that every first-stage assignment with positive probability selects exactly its
+prescribed number of groups](hyp:hcount), [the assumption that, as the sequence index grows,
+$M/\sqrt{C_n v_n}$ converges to zero, where $C_n$ is the prescribed selected-group count and $v_n$
+the reference within-group variance](hyp:hB0), and [the assumption that the number of groups times
+$(M/\sqrt{C_n v_n})^3$ converges to zero](hyp:hNB3), the [homogeneity bundle for this sequence](goal)
+has the stated threshold, studentized statistics, common contrast, bound, and reference
+within-group variances.  Its conditional-distribution homogeneity follows from literal identity of
+the groups.
+
+The within-group variances may vary across the sequence. -/
 noncomputable def homogeneous_of_identical (R : ℕ → IdenticalRef) (t δ M : ℝ)
     (hδ : ∀ n, (R n).refDelta = δ)
     (hvpos : ∀ n, 0 < (R n).refVar)

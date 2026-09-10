@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createEmptyGraph } from "../../src/graph/store.js";
-import { addNode, setProof, setNodeReview } from "../../src/graph/mutate.js";
-import { runProofReviewLoop } from "../../src/formalization/proof_review_loop.js";
+import { addAssumption, addEdge, addNode, setProof, setNodeReview } from "../../src/graph/mutate.js";
+import { discardReroutedAgentAssumptions, runProofReviewLoop } from "../../src/formalization/proof_review_loop.js";
 import type { ReviewerResult } from "../../src/formalization/proof_reviewer.js";
 import type { FillerResult } from "../../src/formalization/proof_filler.js";
 import type { FormalizationGraph } from "../../src/graph/types.js";
@@ -20,6 +20,41 @@ const okReview = (g: FormalizationGraph): ReviewerResult => ({ graph: g, ok: tru
 const throwingDeps = { runCodex: (async () => { throw new Error("seam should be stubbed"); }) as never };
 
 describe("proof-review loop — Phase A statement/scaffold gate", () => {
+  it("retires stale filler assumptions after their target is successfully re-scaffolded", () => {
+    let g = settledGraph();
+    g = addAssumption(g, {
+      node: "t1",
+      id: "ass:filler:2:t1:10:a_derived",
+      statement: "a conclusion the filler temporarily assumed",
+      tier: 2,
+      classification: "faithful-refinement",
+      anchor: "equation (2)",
+      provenance: "agent-introduced",
+    });
+    const byAssumption = discardReroutedAgentAssumptions(g, ["ass:filler:2:t1:10:a_derived"]);
+    expect(byAssumption.nodes.some((n) => n.id === "ass:filler:2:t1:10:a_derived")).toBe(false);
+    expect(byAssumption.edges.some((e) => e.to === "ass:filler:2:t1:10:a_derived")).toBe(false);
+    expect(byAssumption.nodes.find((n) => n.id === "t1")?.review).toEqual({
+      status: "unreviewed",
+      passed_hash: null,
+    });
+
+    const byParent = discardReroutedAgentAssumptions(g, ["t1"]);
+    expect(byParent.nodes.some((n) => n.id === "ass:filler:2:t1:10:a_derived")).toBe(false);
+    expect(byParent.nodes.some((n) => n.id === "t1")).toBe(true);
+
+    let shared = addNode(g, {
+      id: "t2", kind: "theorem", provenance: "from-note", nl_statement: "other", tex_anchor: "",
+    });
+    shared = addEdge(shared, {
+      kind: "proof-uses", from: "t2", to: "ass:filler:2:t1:10:a_derived", source: "declared",
+    });
+    const localized = discardReroutedAgentAssumptions(shared, ["t1"]);
+    expect(localized.nodes.some((n) => n.id === "ass:filler:2:t1:10:a_derived")).toBe(true);
+    expect(localized.edges.some((e) => e.from === "t1" && e.to === "ass:filler:2:t1:10:a_derived")).toBe(false);
+    expect(localized.edges.some((e) => e.from === "t2" && e.to === "ass:filler:2:t1:10:a_derived")).toBe(true);
+  });
+
   it("a scaffold-mismatch reroutes to F2 (scaffold seam), then proceeds once the re-review clears", async () => {
     let reviewCalls = 0;
     const scaffoldCalls: { redirect: string; targets: string[] }[] = [];

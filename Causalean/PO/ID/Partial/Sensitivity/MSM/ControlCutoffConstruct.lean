@@ -38,11 +38,15 @@ private lemma exists_measurableSet_through_factualX0 {s : Set P.Ω}
   rw [POBackdoorSystem.sigmaX] at hs
   exact MeasurableSpace.measurableSet_comap.mp hs
 
-/-- The **control set** `{ω | D(ω) = 0}`. -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ), and
+[a back-door system on them](hyp:S), [the control set](goal) is the set of all units whose factual
+treatment status is control. -/
 def controlSet : Set P.Ω := S.factualD ⁻¹' {false}
 
-/-- The **control push-forward law** of `(X, Y)`: the law of the factual covariate and
-outcome on the sub-population of control units, `(μ restricted to {D=0}) ∘ (X, Y)⁻¹`. -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ), and
+[a back-door system on them](hyp:S), [the control covariate--outcome law](goal) is the image law
+of the factual covariate and factual outcome under the population measure restricted to control
+units. -/
 noncomputable def controlXYLaw : Measure (γ × ℝ) :=
   (P.μ.restrict S.controlSet).map (fun ω => (S.factualX ω, S.factualY ω))
 
@@ -55,8 +59,10 @@ lemma controlXYLaw_eq :
       (P.μ.restrict S.controlSet).map (fun ω => (S.factualX ω, S.factualY ω)) :=
   rfl
 
-/-- The **control conditional CDF** of `Y` given `X`, evaluated along the factual covariate:
-`F(t | X(ω)) = P(Y ≤ t | X = X(ω), D = 0)`. -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ),
+[a back-door system on them](hyp:S), [a unit](hyp:ω), and [a real threshold](hyp:t), [the control
+conditional distribution-function value](goal) is the probability that a control unit's factual
+outcome does not exceed the threshold, conditional on having that unit's factual covariate value. -/
 noncomputable def controlCondCDF (ω : P.Ω) (t : ℝ) : ℝ :=
   condCDF S.controlXYLaw (S.factualX ω) t
 
@@ -291,8 +297,11 @@ private lemma controlLe_const_eq (t : ℝ) :
     hle hf hg_int hg_eq hg_sm.aestronglyMeasurable
   exact h.symm
 
-/-- The **calibration quantile level** `τ(ω) = 1 − survTarget0(ω)/e(ω)`: the control-conditional-CDF
-level whose quantile is the calibrating cutoff. -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ),
+[a back-door system on them](hyp:S), [a sensitivity level](hyp:Λ), and [a unit](hyp:ω), [the
+control calibration quantile level](goal) is one minus the target control-survival probability
+divided by that unit's propensity for control. It is the control conditional-distribution-function
+level whose quantile supplies the calibrating cutoff. -/
 noncomputable def calibLevel0 (Λ : ℝ) (ω : P.Ω) : ℝ :=
   1 - S.survTarget0 Λ ω / S.propScore false ω
 

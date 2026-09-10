@@ -44,7 +44,9 @@ open MeasureTheory ProbabilityTheory Filter Topology
 
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 
-/-- **Critical-radius hypothesis for the DR-Learner.**
+/-- For [a CATE estimation system with a standard Borel unit space and finite population measure](hyp:S), [a candidate target set](hyp:Θ_set), [an evaluation map from candidate targets to functions of the covariates](hyp:eval), [a sequence indexing targets in the candidate set](hyp:idx), [a nuisance-function vector](hyp:h), [a norm on real-valued observed-data functions](hyp:norm), and [a family of real complexity envelopes](hyp:ψ), the [DR-Learner critical-radius condition](goal) requires that [each envelope is sub-root](step:1) and that [at every sample size it upper-bounds the population Rademacher complexity of the indexed centered quadratic augmented inverse-probability-weighted loss class](step:2).
+
+**Critical-radius hypothesis for the DR-Learner.**
 
 Packages "the centred DR-loss class has population Rademacher complexity
 bounded by a sub-root function `ψ`" as a deterministic hypothesis.

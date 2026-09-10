@@ -59,8 +59,7 @@ structure CertifiedComplexMap where
 
 namespace CertifiedComplexMap
 
-/-- The identity interval program performs no primitive arithmetic and has
-unit input amplification with zero algorithmic error. -/
+/-- [The identity certified complex map](goal) denotes every complex input itself, returns the input rectangle at every fuel level, has no primitive operations or algorithmic error, and has unit input-width amplification. -/
 def identity : CertifiedComplexMap where
   value := id
   eval := fun I _ => I
@@ -79,8 +78,7 @@ def identity : CertifiedComplexMap where
   errorModulus := fun _ => 0
   error_at_modulus := by intro ε; exact ε.2.le
 
-/-- A rational complex constant is a zero-operation certified program returning
-the same point rectangle for every input and fuel. -/
+/-- For [a rational real coordinate](hyp:x) and [a rational imaginary coordinate](hyp:y), [the constant certified complex map](goal) denotes the corresponding complex constant and returns its singleton rational rectangle for every input rectangle and fuel level. -/
 def constant (x y : ℚ) : CertifiedComplexMap where
   value := fun _ => (x : ℝ) + (y : ℝ) * Complex.I
   eval := fun _ _ => ComplexRatInterval.point x y
@@ -104,8 +102,7 @@ def constant (x y : ℚ) : CertifiedComplexMap where
   errorModulus := fun _ => 0
   error_at_modulus := by intro ε; exact ε.2.le
 
-/-- Pointwise addition composes two certified interval programs, adds their
-width amplifications and algorithmic errors, and records one new operation. -/
+/-- For [two certified complex maps](hyp:f,g), [their certified pointwise sum](goal) denotes the sum of their exact values, evaluates by adding their output rectangles at a common fuel level, and adds their operation counts, width amplifications, and algorithmic errors. -/
 def add (f g : CertifiedComplexMap) : CertifiedComplexMap := by
   let δ : PosRat → PosRat := fun ε => ⟨ε.1 / 2, div_pos ε.2 (by norm_num)⟩
   exact {
@@ -158,8 +155,7 @@ def add (f g : CertifiedComplexMap) : CertifiedComplexMap := by
       dsimp [δ] at hf hg ⊢
       linarith }
 
-/-- Pointwise subtraction is a certified operation combinator with the same
-width accounting as addition and one newly counted primitive operation. -/
+/-- For [two certified complex maps](hyp:f,g), [their certified pointwise difference](goal) denotes the difference of their exact values, evaluates by subtracting their output rectangles at a common fuel level, and adds their operation counts, width amplifications, and algorithmic errors. -/
 def sub (f g : CertifiedComplexMap) : CertifiedComplexMap := by
   let δ : PosRat → PosRat := fun ε => ⟨ε.1 / 2, div_pos ε.2 (by norm_num)⟩
   exact {
@@ -214,9 +210,7 @@ def sub (f g : CertifiedComplexMap) : CertifiedComplexMap := by
       dsimp [δ] at hf hg ⊢
       linarith }
 
-/-- Multiplication composes two certified programs when uniform executable
-magnitude bounds are supplied; its error and amplification use the standard
-product-width propagation formula and its operation count is structural. -/
+/-- Given [two certified complex maps](hyp:f,g), [rational magnitude bounds for their executable output rectangles](hyp:Bf,Bg), [the condition that both bounds are nonnegative](hyp:hBf,hBg), [the condition that every output rectangle of the first map has maximum coordinate magnitude at most its bound](hyp:hf), and [the analogous condition for the second map](hyp:hg), [the certified pointwise product](goal) denotes the product of their exact values and uses the product-width propagation formula for its error and width amplification. -/
 def mulWithBounds (f g : CertifiedComplexMap) (Bf Bg : ℚ)
     (hBf : 0 ≤ Bf) (hBg : 0 ≤ Bg)
     (hf : ∀ I fuel, (f.eval I fuel).maxAbs ≤ Bf)

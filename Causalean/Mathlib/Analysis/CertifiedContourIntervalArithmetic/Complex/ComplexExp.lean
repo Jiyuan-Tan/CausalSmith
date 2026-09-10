@@ -18,14 +18,12 @@ open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
 
 namespace Transcendental
 
-/-- Raw complex exponential evaluation composes certified real exponential,
-cosine, and sine interval extensions coordinatewise. -/
+/-- Given [a rational complex input rectangle](hyp:I) and [a natural-number fuel level](hyp:fuel), the [raw complex-exponential rectangle](goal) multiplies the real-exponential interval of the real coordinate by the cosine and sine intervals of the imaginary coordinate to form its real and imaginary coordinates. -/
 def complexExpRaw (I : ComplexRatInterval) (fuel : ℕ) : ComplexRatInterval :=
   ⟨(expInterval I.re fuel).mul (cosInterval I.im fuel),
     (expInterval I.re fuel).mul (sinInterval I.im fuel)⟩
 
-/-- Complex exponential outputs recursively intersect raw compositional bounds
-for one fixed input rectangle. -/
+/-- For [a rational complex input rectangle](hyp:I) and a natural-number fuel level, the [complex-exponential rectangle at that level](goal) is [the raw complex-exponential rectangle at level zero](step:1), and at every successor level is [the intersection of the preceding rectangle and the new raw complex-exponential rectangle](step:2). -/
 def complexExp (I : ComplexRatInterval) : ℕ → ComplexRatInterval
   | 0 => complexExpRaw I 0
   | fuel + 1 => (complexExp I fuel).tighten (complexExpRaw I (fuel + 1))
@@ -117,40 +115,34 @@ theorem complexExp_width (I : ComplexRatInterval) (fuel : ℕ) :
   simp only [RatInterval.point, RatInterval.maxAbs, RatInterval.width,
     abs_zero, max_self, sub_self]
 
-/-- The initial real-part enclosure gives a positive rational amplification
-scale for all later exponential stages. -/
+/-- Given [a certified complex number](hyp:z), its [complex-exponential magnitude scale](goal) is two plus the absolute upper endpoint of the level-zero scalar-exponential interval evaluated at the maximum absolute real-coordinate endpoint of its level-zero enclosure. -/
 def complexExpMagnitude (z : CertifiedComplex) : ℚ :=
   |(Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Transcendental.expScalar
       (z.approx 0).re.maxAbs 0).hi| + 2
 
-/-- The canonical error target at name stage `n` is the reciprocal of `n + 1`. -/
+/-- Given [a natural-number stage index](hyp:n), the [complex-exponential stage tolerance](goal) is the positive rational number $1/(n+1)$. -/
 def complexExpStageTolerance (n : ℕ) : PosRat :=
   ⟨1 / (n + 1 : ℚ), by positivity⟩
 
-/-- The inner scalar-operation tolerance spends the stage budget after dividing
-by the certified magnitude amplification scale. -/
+/-- Given [a certified complex number](hyp:z) and [a natural-number stage index](hyp:n), the [inner complex-exponential tolerance](goal) is the stage tolerance divided by sixteen times the complex-exponential magnitude scale. -/
 def complexExpInnerTolerance (z : CertifiedComplex) (n : ℕ) : PosRat :=
   ⟨(complexExpStageTolerance n).1 / (16 * complexExpMagnitude z), by
     apply div_pos (complexExpStageTolerance n).2
     dsimp [complexExpMagnitude]
     positivity⟩
 
-/-- The input-name tolerance also pays for exponential Lipschitz amplification,
-so a large positive real part requests a proportionally narrower input box. -/
+/-- Given [a certified complex number](hyp:z) and [a natural-number stage index](hyp:n), the [complex-exponential input tolerance](goal) is the inner tolerance divided by four times the complex-exponential magnitude scale. -/
 def complexExpInputTolerance (z : CertifiedComplex) (n : ℕ) : PosRat :=
   ⟨(complexExpInnerTolerance z n).1 / (4 * complexExpMagnitude z), by
     apply div_pos (complexExpInnerTolerance z n).2
     dsimp [complexExpMagnitude]
     positivity⟩
 
-/-- A complex exponential stage refines its input using the magnitude-sensitive
-tolerance selected for that stage. -/
+/-- Given [a certified complex number](hyp:z) and [a natural-number stage index](hyp:n), the [complex-exponential stage input rectangle](goal) is the input's approximation at the precision required by that stage's input tolerance. -/
 def complexExpStageInput (z : CertifiedComplex) (n : ℕ) : ComplexRatInterval :=
   z.approx (z.modulus (complexExpInputTolerance z n))
 
-/-- Taylor fuel for a stage is computed from the rational midpoint and
-magnitude of the input rectangle actually returned, not from a denominator
-ordering heuristic. -/
+/-- Given [a certified complex number](hyp:z) and [a natural-number stage index](hyp:n), the [complex-exponential stage fuel](goal) is [the stage input rectangle](step:1), the inner tolerance divided by eight, the resulting trigonometric Taylor-fuel bound, and the larger of that bound and the two scalar-exponential precision bounds. -/
 def complexExpStageFuel (z : CertifiedComplex) (n : ℕ) : ℕ :=
   let I := complexExpStageInput z n
   let α : PosRat :=
@@ -165,13 +157,11 @@ def complexExpStageFuel (z : CertifiedComplex) (n : ℕ) : ℕ :=
       (Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Transcendental.expPrecision
         I.re.maxAbs α))
 
-/-- One executable complex exponential name stage uses its scheduled input
-rectangle and the Taylor fuel computed from that same rectangle. -/
+/-- Given [a certified complex number](hyp:z) and [a natural-number stage index](hyp:n), the [complex-exponential stage rectangle](goal) evaluates the complex exponential on that stage's input rectangle using that stage's fuel. -/
 def complexExpStage (z : CertifiedComplex) (n : ℕ) : ComplexRatInterval :=
   complexExp (complexExpStageInput z n) (complexExpStageFuel z n)
 
-/-- Certified complex-exponential name approximations recursively intersect
-every scheduled stage output seen so far. -/
+/-- For [a certified complex number](hyp:z) and a natural-number stage index, the [complex-exponential name approximation at that level](goal) is [the stage-zero rectangle](step:1), and at every successor level is [the intersection of the preceding name approximation and the new stage rectangle](step:2). -/
 def complexExpNameApprox (z : CertifiedComplex) : ℕ → ComplexRatInterval
   | 0 => complexExpStage z 0
   | n + 1 => (complexExpNameApprox z n).tighten (complexExpStage z (n + 1))
@@ -543,8 +533,7 @@ theorem complexExpStage_width (z : CertifiedComplex) (n : ℕ) :
       mul_le_mul_of_nonneg_right hB hτpos.le
     nlinarith [mul_nonneg hBpos.le hτpos.le]))
 
-/-- The denominator of a requested rational tolerance selects a stage whose
-canonical reciprocal target is no larger than that tolerance. -/
+/-- Given [a certified complex number](hyp:_z) and [a positive rational target width](hyp:ε), the [complex-exponential precision](goal) is the denominator of that target. -/
 def complexExpPrecision (_z : CertifiedComplex) (ε : PosRat) : ℕ := ε.1.den
 
 /-- For [a certified complex input](hyp:z) and [a requested positive rational tolerance
@@ -570,8 +559,7 @@ theorem complexExp_width_at_precision (z : CertifiedComplex) (ε : PosRat) :
     (Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Transcendental.inv_den_le_of_pos
       ε.1 ε.2)))
 
-/-- Complex exponential lifts a certified complex input to a certified complex
-output without storing exact values in any returned rectangle. -/
+/-- Given [a certified complex number](hyp:z), the [certified complex-exponential name](goal) has exact value the complex exponential of the input value, uses the recursively refined complex-exponential rectangles as approximations, and uses the stated precision rule for requested positive rational widths. -/
 noncomputable def complexExpName (z : CertifiedComplex) : CertifiedComplex where
   value := Complex.exp z.value
   approx := complexExpNameApprox z

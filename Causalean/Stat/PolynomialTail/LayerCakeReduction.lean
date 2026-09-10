@@ -47,7 +47,11 @@ open scoped ENNReal
 
 variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} {U : Ω → ℝ} {lam : ℝ}
 
-/-- The threshold ("tail") integral `∫ t in (1, λ⁻¹], P{U ≤ t⁻¹} dt`. -/
+/-- For [a measurable sample space](hyp:Ω), [a measure on that sample space](hyp:P), [a
+real-valued random variable on that sample space](hyp:U), and [a real threshold](hyp:lam), the
+[threshold tail integral](goal) is
+the integral over $1<t\leq\lambda^{-1}$ of the probability that the random variable is at most
+$t^{-1}$. -/
 noncomputable def tailIntegral (P : Measure Ω) (U : Ω → ℝ) (lam : ℝ) : ℝ :=
   ∫ t in Ioc 1 lam⁻¹, P.real {ω | U ω ≤ t⁻¹}
 

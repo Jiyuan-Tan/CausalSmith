@@ -73,8 +73,13 @@ variable {γ : Type*} [MeasurableSpace γ]
 
 /-! ## Closed-form directional derivative -/
 
-/-- Closed-form directional derivative of `phi_eta z η` in `η` at `g₀`
-along the direction `v : NuisanceVec γ`.
+/-- For [a covariate space](hyp:γ), given [a baseline nuisance vector](hyp:g₀), [a nuisance-vector direction](hyp:v), and
+[an observed covariate, binary treatment, and outcome triple](hyp:z), the [directional derivative
+of the uncentered augmented inverse-probability-weighted pseudo-outcome](goal) is the displayed
+closed-form first-order change at the baseline nuisance vector in the stated direction.
+
+Closed-form directional derivative of `phi_eta z η` in `η` at `g₀` along the direction
+`v : NuisanceVec γ`.
 
 See the file docstring for the formula.  At the truth (`g₀ = η₀`) and
 under strict overlap, the σ(X)-conditional of this is zero a.e. — the

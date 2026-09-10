@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, writeFileSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { ensureComponentsForEnvs } from "../src/presentation/components.js";
+import { ensureComponentsForEnvs, assembleComponentText } from "../src/presentation/components.js";
 import type { AnchoredEnv } from "../src/presentation/tex_anchors.js";
 import type { CrosswalkEntry } from "../src/presentation/types.js";
 import type { FormalizationGraph } from "../src/graph/types.js";
@@ -85,5 +85,43 @@ describe("ensureComponentsForEnvs graph-first", () => {
     });
     expect(called).toBe(1);
     expect(components["X-9"]).toEqual([{ type: "decl", decl: "discovered" }]);
+  });
+});
+
+
+describe("supporting property source mapping", () => {
+  it("resolves explicit sibling theorems and invalidates their source receipt without paid discovery", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "comp-support-"));
+    try {
+      mkdirSync(join(dir, "Lean"));
+      writeFileSync(join(dir, "Lean", "Basic.lean"), "def declA : Nat := 1\n");
+      const helper = join(dir, "Lean", "Property.lean");
+      writeFileSync(helper, "theorem propertyA : declA = 1 := rfl\n");
+      const g = structuredClone(graph);
+      g.nodes = [g.nodes[0]];
+      g.edges = [];
+      const cachePath = join(dir, "components_cache.json");
+      const args = {
+        envs: [env("P-1", "definitionv", 0)], crosswalk: [cw("P-1", "definition", "declA")],
+        repoRoot: dir, leanSubdir: "Lean", cachePath, graph: g,
+        deps: { runCodex: async () => { throw new Error("unexpected paid discovery"); } },
+      };
+      await ensureComponentsForEnvs(args);
+      const originalKey = JSON.parse(readFileSync(cachePath, "utf8"))["P-1"].key;
+      g.nodes[0].lean.supporting_decls = ["propertyA"];
+      const mapped = await ensureComponentsForEnvs(args);
+      const mappedKey = JSON.parse(readFileSync(cachePath, "utf8"))["P-1"].key;
+      expect(mappedKey).not.toBe(originalKey);
+      const assembled = await assembleComponentText({ specs: mapped.components["P-1"],
+        crosswalk: args.crosswalk, moduleDecls: mapped.moduleDecls, repoRoot: dir, leanSubdir: "Lean" });
+      expect(assembled.text).toContain("theorem propertyA");
+      expect(assembled.resolved).toHaveLength(2);
+      writeFileSync(helper, "theorem propertyA : declA + 1 = 2 := rfl\n");
+      await ensureComponentsForEnvs(args);
+      expect(JSON.parse(readFileSync(cachePath, "utf8"))["P-1"].key).not.toBe(mappedKey);
+      await expect(assembleComponentText({ specs: [{ type: "decl", decl: "missing_property" }],
+        crosswalk: args.crosswalk, moduleDecls: mapped.moduleDecls, repoRoot: dir, leanSubdir: "Lean" }))
+        .rejects.toThrow();
+    } finally { rmSync(dir, { recursive: true, force: true }); }
   });
 });

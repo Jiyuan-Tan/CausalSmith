@@ -34,23 +34,22 @@ variable {Treated Untreated Regressor : Type*}
 
 namespace BJSPanel
 
-/-- The event-study design matrix: rows are observed cells (`Treated ⊕ Untreated`),
-columns are treated-cell fixed effects (`Treated`, the τ part) stacked with
-covariates (`Regressor`, the β part).  Treated rows carry the cell-indicator in the
-τ block and `qT` in the covariate block; untreated rows carry zeros in the τ block
-and `qU` in the covariate block. -/
+/-- For [a BJS event-study panel with finite treated cells, untreated cells, and regressors](hyp:P), the [full event-study design matrix](goal) has one row for each treated or untreated observed cell and one column for each treated-cell effect or regressor. A treated-cell row has its own effect indicator and its treated-cell regressor row, whereas an untreated-cell row has zero effect indicators and its untreated-cell regressor row.
+
+Rows are observed cells, and columns stack treated-cell effects with covariates. -/
 def designFull (P : BJSPanel Treated Untreated Regressor) :
     Matrix (Treated ⊕ Untreated) (Treated ⊕ Regressor) ℝ :=
   Matrix.of (Sum.elim
     (fun c => Sum.elim (fun d => if c = d then (1 : ℝ) else 0) (fun r => P.qT c r))
     (fun u => Sum.elim (fun _ => (0 : ℝ)) (fun r => P.qU u r)))
 
-/-- Target functional in design coordinates: target weights `a` on the τ block,
-zero on the covariate block. -/
+/-- For [a BJS event-study panel with finite treated cells, untreated cells, and regressors](hyp:P), the [target functional in full-design coordinates](goal) assigns the panel's target weight to each treated-cell-effect coordinate and zero to every regressor coordinate.
+
+This is the target vector used with the full design matrix. -/
 def cFull (P : BJSPanel Treated Untreated Regressor) : Treated ⊕ Regressor → ℝ :=
   Sum.elim P.a (fun _ => 0)
 
-/-- A linear estimator's weight vector over all observed cells. -/
+/-- For [a linear estimator of a BJS event-study panel with finite cell sets](hyp:L), the [weight vector over all observed cells](goal) equals its treated-cell weights on treated cells and its untreated-cell weights on untreated cells. -/
 def weightOf {P : BJSPanel Treated Untreated Regressor} (L : P.LinearEstimator) :
     Treated ⊕ Untreated → ℝ :=
   Sum.elim L.vT L.vU
@@ -117,9 +116,9 @@ additive — the BLUE result above stays on the finite Gauss-Markov substrate
 (§13gm), the correct home for the variance argument. -/
 
 open Causalean.Panel.Weighted in
-/-- Classifier on observed cells sending each treated cell to its own label and
-every untreated cell to `none`.  Its `Some`-indicators are the τ-columns of
-`designFull`. -/
+/-- The [treated-cell classifier](goal) maps each treated observed cell to its own treated-cell label and maps every untreated observed cell to no label.
+
+Its nonempty-label indicators are the treated-cell-effect columns of the full design matrix. -/
 def treatedClassifier : (Treated ⊕ Untreated) → Option Treated :=
   Sum.elim (fun c => some c) (fun _ => none)
 

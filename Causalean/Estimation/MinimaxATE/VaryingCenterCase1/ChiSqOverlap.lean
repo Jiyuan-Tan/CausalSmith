@@ -45,7 +45,10 @@ namespace VarConstr
 
 variable {K : ℕ} (P : VarConstr K)
 
-/-- The per-pair χ²-overlap coefficient. -/
+/-- For every [number $K$ of paired cells](hyp:K), [cell-varying construction data](hyp:P), and
+[pair $j$](hyp:j), the [per-pair chi-squared-overlap coefficient](goal) is the sum of the three
+nonnegative terms determined by that pair's propensity center, treated-arm outcome center, and
+the two bump magnitudes. -/
 noncomputable def ΓV (j : Fin K) : ℝ :=
   P.m₀ j * P.α ^ 2 / P.g₁ j
     + P.m₀ j * (P.α + P.β / P.g₁ j) ^ 2 / (1 - P.g₁ j)
@@ -64,7 +67,11 @@ theorem ΓV_nonneg (j : Fin K) : 0 ≤ P.ΓV j := by
     positivity
   linarith
 
-/-- The single-observation χ² second-moment overlap of two perturbed laws relative to the null. -/
+/-- For every [number $K$ of paired cells](hyp:K), [cell-varying construction data](hyp:P), and
+[two binary sign vectors over the pairs](hyp:lam,lam'), the [single-observation
+chi-squared second-moment overlap](goal) is the sum, over all observed covariate, treatment,
+and outcome values, of the product of the two perturbed observed-data probabilities divided by
+the null observed-data probability. -/
 noncomputable def chiSqOverlapV (lam lam' : Fin K → Bool) : ℝ :=
   ∑ z : Obs (Fin K × Bool),
     obsReal (P.mPertV lam) (P.gPertV lam) z

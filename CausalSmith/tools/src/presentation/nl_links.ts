@@ -32,13 +32,23 @@ import { presentationPrompt } from "./prompt_io.js";
 import { hashEnvBody } from "./tex_anchors.js";
 import {
   assignRowIds,
+  isDefinitionLike,
+  isInductiveLike,
+  isInstanceLike,
   isPropRecord,
+  isRecordLike,
+  structureDataRecordView,
+  structureDefinitionView,
+  structureInductiveView,
+  structureInstanceView,
   structurePropRecordView,
   structureStatementView,
+  type RowKind,
   type StructuredView,
 } from "./lean_structure.js";
 import { scanPropDefinitionSignature } from "./lean_statement.js";
 import { segmentBlock, segmentText, segmentationProblems, type NlSegment } from "./nl_segments.js";
+import { isCanonicalSourceDeclaration, leanNameLeaf } from "./lean_decl_name.js";
 import { MODELS } from "../models.js";
 import type { LeanSnippet } from "./types.js";
 
@@ -268,7 +278,7 @@ export interface DeclIndex {
  * Own entries win a short name outright: an external is only reachable by its
  * short name when no entry of the paper's own code shares it.
  */
-export function buildDeclIndex(entries: IndexedLeanDecl[]): DeclIndex {
+export function buildDeclIndex(entries: IndexedLeanDecl[], snippets: LeanSnippet[] = []): DeclIndex {
   const byName = new Map<string, IndexedLeanDecl>();
   const shortHits = new Map<string, IndexedLeanDecl[]>();
   const extByName = new Map<string, IndexedLeanDecl>();
@@ -279,15 +289,22 @@ export function buildDeclIndex(entries: IndexedLeanDecl[]): DeclIndex {
     byName.set(e.name, e);
     shortHits.set(shortOf(e.name), [...(shortHits.get(shortOf(e.name)) ?? []), e]);
   }
-  for (const e of entries) {
-    for (const ref of e?.extRefs ?? []) {
-      if (typeof ref?.n !== "string" || ref.n.length === 0 || byName.has(ref.n) || extByName.has(ref.n)) continue;
-      // `kind: "external"` keeps these out of the closure walk (def-kinds only)
-      // and out of the piece text, which they have none of.
-      const decl: IndexedLeanDecl = { name: ref.n, kind: "external", file: ref.m ?? "", line: 0 };
-      extByName.set(ref.n, decl);
-      extShortHits.set(shortOf(ref.n), [...(extShortHits.get(shortOf(ref.n)) ?? []), decl]);
-    }
+  // Emission has already resolved these source-backed declarations. Imported proof
+  // helpers can be explicit snippet targets without occurring in indexed signatures.
+  // The labelled source shown to the reviewer and its name vocabulary must agree.
+  // Bare component labels are aliases, not additional canonical declarations.
+  const snippetRefs = snippets.flatMap(leanPieces).filter(piece =>
+    isCanonicalSourceDeclaration(piece.label, piece.text),
+  ).map(piece => ({ n: piece.label }));
+  const externalRefs: Array<{ n: string; m?: string }> = [
+    ...entries.flatMap(e => e.extRefs ?? []), ...snippetRefs,
+  ];
+  for (const ref of externalRefs) {
+    if (typeof ref?.n !== "string" || ref.n.length === 0 || byName.has(ref.n) || extByName.has(ref.n)) continue;
+    // Name-only external entries do not expand the Lean closure or change block keys.
+    const decl: IndexedLeanDecl = { name: ref.n, kind: "external", file: ref.m ?? "", line: 0 };
+    extByName.set(ref.n, decl);
+    extShortHits.set(shortOf(ref.n), [...(extShortHits.get(shortOf(ref.n)) ?? []), decl]);
   }
   const byShort = new Map<string, IndexedLeanDecl>();
   for (const [short, hits] of shortHits) if (hits.length === 1) byShort.set(short, hits[0]);
@@ -309,10 +326,14 @@ export function buildDeclIndex(entries: IndexedLeanDecl[]): DeclIndex {
  * inside a block's section, so it cannot move a per-block cache key.
  */
 export function declVocabularyAppendix(index: DeclIndex): string {
+  const listedNames = index.names.map((name) => {
+    const alias = leanNameLeaf(name);
+    return index.byShort.get(alias)?.name === name ? alias : name;
+  });
   return [
-    "NAMEABLE DECLARATIONS — every declaration of this development. A `decl` must be one of these,",
-    "copied exactly. A name that is not on this list does not exist.",
-    ...index.names,
+    "NAMEABLE DECLARATIONS — every declaration of this development, listed by its full name or an accepted unique short alias.",
+    "A `decl` must be one of these, copied exactly. A name that is not on this list does not exist.",
+    ...listedNames,
   ].join("\n");
 }
 
@@ -426,7 +447,12 @@ export async function loadDeclIndex(outDir: string): Promise<DeclIndex> {
   if (!Array.isArray(entries) || entries.length === 0) {
     throw new Error(`P4 nl-links: ${path} lists no declarations; the Lean reference closure cannot be computed.`);
   }
-  return buildDeclIndex(entries);
+  const snippetsRaw = await readFile(join(outDir, "lean_snippets.json"), "utf8").catch(error => {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return "{}";
+    throw error;
+  });
+  const snippets = (JSON.parse(snippetsRaw) as { snippets?: Record<string, LeanSnippet> }).snippets ?? {};
+  return buildDeclIndex(entries, Object.values(snippets));
 }
 
 /** Everything the author call sees for one object: the snippet's own pieces
@@ -475,7 +501,7 @@ const BlockView = z.object({
   byteLength: z.number().int().nonnegative(),
   /** Absent for a block with no statement telescope to structure. */
   structured: z.unknown().optional(),
-  /** True when rowlessness is BY DESIGN (a non-Prop definition or a composite
+  /** True when rowlessness is BY DESIGN (a definition the scanner declines or a composite
    *  with no unique proposition): the site can say so rather than treating it
    *  as a gap. */
   rowless: z.literal(true).optional(),
@@ -510,9 +536,9 @@ export interface BlockInput {
   pieces: LeanPiece[];
   segments: NlSegment[];
   structured: StructuredView | null;
-  /** No statement telescope BY DESIGN (non-Prop definition or ambiguous composite). */
+  /** No statement telescope BY DESIGN (unscannable definition or ambiguous composite). */
   rowless: boolean;
-  rows: Array<{ id: string; kind: "hyp" | "conclusion"; code: string }>;
+  rows: Array<{ id: string; kind: RowKind; code: string }>;
   /** The block's own labelled pieces — the candidates the prompt shows. NOT the
    *  validity test for a display link: a display may realize any declaration of
    *  the development, and the closure is only a 32-piece window onto it. */
@@ -591,6 +617,9 @@ export function blockCacheKey(input: Omit<BlockInput, "key">): string {
 export function isTheoremLike(statement: string): boolean {
   const head = statement
     .replace(/\/--[\s\S]*?-\/|\/-[\s\S]*?-\//g, " ")
+    // leading `-- …` line comments (`-- @realizes …` markers) precede many
+    // composite components' declarations
+    .replace(/^(?:\s*--[^\n]*\n)+/, "")
     .replace(/@\[[^\]]*\]/g, " ")
     .trimStart();
   return /^(private\s+|protected\s+|nonrec\s+|noncomputable\s+)*(theorem|lemma)\b/.test(head);
@@ -621,7 +650,12 @@ function propositionStatement(snippet: LeanSnippet): string {
   const candidates = components
     .map((component) => component.statement ?? "")
     .filter(propositionLike);
-  return candidates.length === 1 ? candidates[0] : "";
+  if (candidates.length === 1) return candidates[0];
+  // A composite DEFINITION block (a definition plus its helpers) is stated by
+  // its principal declaration — the first component, when that is a
+  // definition or a data record. Supporting components stay pieces.
+  if (candidates.length === 0 && (isDefinitionLike(first) || isRecordLike(first) || isInstanceLike(first) || isInductiveLike(first))) return first;
+  return "";
 }
 
 /** Build one block's closed world. Returns null when the block has no Lean
@@ -646,10 +680,25 @@ export function buildBlockInput(args: {
   // an opaque block.
   const statement = propositionStatement(args.snippet);
   const theoremLike = statement.trim().length > 0 && isTheoremLike(statement);
-  const propositionLike = theoremLike || isPropDefinition(statement) || isPropRecord(statement);
-  const structured = propositionLike
-    ? structureStatementView(statement) ?? structurePropRecordView(statement)
-    : null;
+  const propDefinition = isPropDefinition(statement);
+  const propositionLike = theoremLike || propDefinition || isPropRecord(statement);
+  // A definition — Prop-valued or not — structures as parameters · def · given
+  // by; a Prop-valued one additionally splits its proposition like a goal.
+  const definitionLike = !theoremLike && statement.trim().length > 0 && isDefinitionLike(statement);
+  const recordLike = !propositionLike && statement.trim().length > 0 && isRecordLike(statement);
+  const instanceLike = !propositionLike && statement.trim().length > 0 && isInstanceLike(statement);
+  const inductiveLike = !propositionLike && statement.trim().length > 0 && isInductiveLike(statement);
+  const structured = definitionLike
+    ? structureDefinitionView(statement)
+    : recordLike
+      ? structureDataRecordView(statement)
+      : instanceLike
+        ? structureInstanceView(statement, args.snippet.decl?.split(".").pop() ?? "instance")
+        : inductiveLike
+          ? structureInductiveView(statement)
+          : propositionLike
+            ? structureStatementView(statement) ?? structurePropRecordView(statement)
+            : null;
   if (propositionLike && structured === null) {
     throw new Error(
       `P4 nl-links: ${args.objId} is a theorem/lemma or Prop-valued declaration whose statement ` +
@@ -667,7 +716,7 @@ export function buildBlockInput(args: {
     pieces,
     segments,
     structured,
-    rowless: !propositionLike,
+    rowless: structured === null,
     rows,
     vocabulary: pieces.map((p) => p.label),
     index: args.index,
@@ -860,40 +909,58 @@ const CachedBlock = z.object({
   displayLinks: z.array(DisplayLink),
 });
 
-/** One batched assignment call. A reply that does not answer exactly this
- *  chunk's blocks, rows and displays throws; nothing from it is cached. */
+type AssignedBlock = { assignments: RowAssignment[]; displayLinks: DisplayLink[]; coerced: string[] };
+
+/** Assign independent blocks, retaining total answers before retrying only the
+ * unresolved blocks. Malformed replies and incomplete blocks never get receipts. */
 export async function assignChunk(args: {
   chunk: BlockInput[];
   deps: CodexRunner;
   repoRoot: string;
-}): Promise<Map<string, { assignments: RowAssignment[]; displayLinks: DisplayLink[]; coerced: string[] }>> {
-  const ids = args.chunk.map((c) => c.objId);
-  // One appendix per REQUEST, not per block: it is identical for every block of
-  // a bundle, and keeping it out of the sections keeps it out of the cache keys.
-  const appendix = declVocabularyAppendix(args.chunk[0].index);
-  const payload = `${args.chunk.map(assignSection).join("\n\n")}\n\n${appendix}`;
-  if (payload.length > MAX_PROMPT_BYTES) {
-    throw new Error(
-      `P4 nl-links: a request for ${ids.join(", ")} would send ${payload.length} bytes, over the ` +
-        `${MAX_PROMPT_BYTES}-byte prompt ceiling. Split the block or shrink its Lean closure.`,
-    );
-  }
-  const basePrompt = await presentationPrompt("p4_nl_links", { objects_payload: payload });
+  onAssigned?: (input: BlockInput, block: AssignedBlock) => Promise<void>;
+}): Promise<Map<string, AssignedBlock>> {
+  const out = new Map<string, AssignedBlock>();
   let priorProblem = "";
   for (let attempt = 0; attempt < 2; attempt++) {
+    const pending = args.chunk.filter((input) => !out.has(input.objId));
+    if (pending.length === 0) return out;
+    const ids = pending.map((input) => input.objId);
+    // One appendix per request, shared by all blocks and outside their cache keys.
+    const payload = `${pending.map(assignSection).join("\n\n")}\n\n${declVocabularyAppendix(pending[0].index)}`;
+    if (payload.length > MAX_PROMPT_BYTES) {
+      throw new Error(
+        `P4 nl-links: a request for ${ids.join(", ")} would send ${payload.length} bytes, over the ` +
+          `${MAX_PROMPT_BYTES}-byte prompt ceiling. Split the block or shrink its Lean closure.`,
+      );
+    }
+    const basePrompt = await presentationPrompt("p4_nl_links", { objects_payload: payload });
     const prompt = priorProblem === "" ? basePrompt :
       `${basePrompt}\n\nCORRECTION REQUIRED\n` +
-      `Your previous JSON was rejected by the deterministic totality validator:\n${priorProblem}\n` +
-      `Return the COMPLETE JSON answer again. Use only ids listed above; in particular, ` +
+      `Your previous reply was rejected:\n${priorProblem}\n` +
+      `Return the COMPLETE JSON answer for the objects listed above. Use only ids listed above; in particular, ` +
       `displayLinks may name only segments explicitly labeled [display].`;
     const res = await args.deps.runCodex({
+      model: MODELS.codexCrosswalkAssign,
       prompt,
       cwd: args.repoRoot,
       reasoningEffort: "medium",
       leanLsp: false,
     });
+    // A malformed reply gets the same single retry as a semantically incomplete one: there is no
+    // channel for a hand-repaired reply, so the only recovery is another call, and one made here
+    // costs the batch, not a P4 re-entry. The second malformed reply halts, uncached.
+    const reply = parseJsonLoose(res.stdout);
+    if (reply === null) {
+      if (attempt === 0) {
+        priorProblem = "the reply was not a JSON object (malformed or truncated); return the complete JSON object only";
+        continue;
+      }
+      throw new Error(`P4 nl-links: the request for ${ids.join(", ")} returned invalid JSON twice; not cached.`);
+    }
+    const accepted = new Map<string, AssignedBlock>();
+    const problems: string[] = [];
     try {
-      const parsed = AssignReply.safeParse(parseJsonLoose(res.stdout));
+      const parsed = AssignReply.safeParse(reply);
       if (!parsed.success) {
         throw new Error(`P4 nl-links: the request for ${ids.join(", ")} returned invalid JSON: ${parsed.error.message}`);
       }
@@ -908,30 +975,36 @@ export async function assignChunk(args: {
             ". Not cached.",
         );
       }
-      const out = new Map<string, { assignments: RowAssignment[]; displayLinks: DisplayLink[]; coerced: string[] }>();
-      for (const input of args.chunk) {
+      for (const input of pending) {
         const raw = parsed.data.blocks[input.objId];
         const { links: displayLinks, coerced } = coerceDisplayLinks(raw.displayLinks);
         const block = { assignments: raw.assignments, displayLinks };
-        const problems = assignmentProblems(input, block);
-        if (problems.length > 0) {
-          throw new Error(
-            `P4 nl-links: ${input.objId}'s assignment is not total: ${problems.slice(0, 6).join("; ")}. Not cached.`,
-          );
+        const defects = assignmentProblems(input, block);
+        if (defects.length > 0) {
+          problems.push(`P4 nl-links: ${input.objId}'s assignment is not total: ${defects.slice(0, 6).join("; ")}. Not cached.`);
+          continue;
         }
-        out.set(input.objId, {
+        accepted.set(input.objId, {
           assignments: block.assignments,
           displayLinks: normalizeDisplayLinks(input.index, block.displayLinks),
           coerced,
         });
       }
-      return out;
     } catch (error) {
-      if (attempt === 1) throw error;
-      priorProblem = error instanceof Error ? error.message : String(error);
+      problems.push(error instanceof Error ? error.message : String(error));
     }
+    // Persistence errors must propagate immediately, never trigger another paid call.
+    for (const input of pending) {
+      const block = accepted.get(input.objId);
+      if (!block) continue;
+      await args.onAssigned?.(input, block);
+      out.set(input.objId, block);
+    }
+    if (problems.length === 0) return out;
+    priorProblem = problems.join("\n");
+    if (attempt === 1) throw new Error(priorProblem);
   }
-  throw new Error(`P4 nl-links: assignment retry for ${ids.join(", ")} ended unexpectedly`);
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -1240,7 +1313,7 @@ export async function verifyChunks(args: {
       cwd: args.repoRoot,
       reasoningEffort: "medium",
       leanLsp: false,
-      model: MODELS.codexPresentation,
+      model: MODELS.codexCrosswalkVerify,
     });
     calls++;
     const parsed = VerifyReply.safeParse(parseJsonLoose(res.stdout));
@@ -1401,9 +1474,7 @@ export async function ensureNlLinks(args: {
 
   // Pass 1 — paid: one assignment request per chunk of missing blocks.
   for (const chunk of chunkBySize(misses, assignSection)) {
-    const assigned = await assignChunk({ chunk, deps: args.deps, repoRoot: args.repoRoot });
-    for (const input of chunk) {
-      const block = assigned.get(input.objId)!;
+    await assignChunk({ chunk, deps: args.deps, repoRoot: args.repoRoot, onAssigned: async (input, block) => {
       for (const segment of block.coerced) {
         coercions++;
         const line =
@@ -1418,8 +1489,8 @@ export async function ensureNlLinks(args: {
         policy: NL_LINKS_POLICY, key: input.key, complete: true,
         assignments: block.assignments, displayLinks: block.displayLinks,
       };
-    }
-    await writeJsonAtomic(cachePath, cache);
+      await writeJsonAtomic(cachePath, cache);
+    } });
   }
 
   // Pass 2 — paid: audit every claim, correcting in place.
@@ -1476,7 +1547,7 @@ export async function ensureNlLinks(args: {
   if (unstructured.length > 0) {
     args.log?.(
       `P4 nl-links: ${unstructured.length} block(s) are rowless by design ` +
-        `(non-Prop definition or composite with no unique proposition): ${unstructured.slice(0, 8).join(", ")}`,
+        `(unscannable definition or composite with no unique proposition): ${unstructured.slice(0, 8).join(", ")}`,
     );
   }
   return {

@@ -46,9 +46,9 @@ namespace WeightedSupport
 variable {R : Type*} [Fintype R] [DecidableEq R]
   [MeasurableSpace R] [MeasurableSingletonClass R]
 
-/-- A probability measure on a finite measurable space induces a weighted
-support whose weights are point masses and whose observed records have positive
-mass.
+/-- For [a finite measurable record space in which every singleton is measurable](hyp:R) and [a probability measure](hyp:μ), the [weighted support induced by that probability measure](goal) has as observed records exactly those with strictly positive point mass and assigns each record its point mass as weight.
+
+A probability measure on a finite measurable space induces a weighted support whose weights are point masses and whose observed records have positive mass.
 
 The observed set is the positive-mass support. -/
 noncomputable def ofProbabilityMeasure (μ : Measure R) [IsProbabilityMeasure μ] :

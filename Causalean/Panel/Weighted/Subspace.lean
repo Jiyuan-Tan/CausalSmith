@@ -97,8 +97,9 @@ lemma weighted_orthogonal_projection_exists
   change B (X - P X) h = 0
   exact horth X h hH
 
-/-- The `c.ip`-orthogonal projection onto `H`, chosen via classical choice
-from `weighted_orthogonal_projection_exists`. -/
+/-- For [a finite record set](hyp:R), [a weighted support](hyp:c), and [a nuisance subspace of real-valued arrays](hyp:H), the [weighted orthogonal projection onto that subspace](goal) maps every array to an array in the nuisance subspace whose residual is weighted-orthogonal to every array in that subspace.
+
+The `c.ip`-orthogonal projection onto `H`, chosen via classical choice from `weighted_orthogonal_projection_exists`. -/
 noncomputable def proj (c : WeightedSupport R) (H : Submodule ℝ (R → ℝ)) :
     (R → ℝ) →ₗ[ℝ] (R → ℝ) :=
   (c.weighted_orthogonal_projection_exists H).choose
@@ -169,7 +170,9 @@ lemma proj_idem_apply (c : WeightedSupport R) (H : Submodule ℝ (R → ℝ))
 
 /-! ### Residual maker -/
 
-/-- The residual maker `M_H = id - P_H`. -/
+/-- For [a finite record set](hyp:R), [a weighted support](hyp:c), and [a nuisance subspace of real-valued arrays](hyp:H), the [residual-maker linear map](goal) subtracts the weighted orthogonal projection onto the nuisance subspace from each array.
+
+The residual maker `M_H = id - P_H`. -/
 noncomputable def residualize (c : WeightedSupport R) (H : Submodule ℝ (R → ℝ)) :
     (R → ℝ) →ₗ[ℝ] (R → ℝ) :=
   LinearMap.id - c.proj H
@@ -181,7 +184,9 @@ original array. -/
     c.residualize H X = X - c.proj H X := by
   simp [residualize]
 
-/-- The residualized scalar array `X̃ := M_H X`. -/
+/-- For [a finite record set](hyp:R), [a weighted support](hyp:c), [a nuisance subspace of real-valued arrays](hyp:H), and [a real-valued array](hyp:X), the [residualized array](goal) is the result of applying the residual maker associated with that nuisance subspace to the array.
+
+The residualized scalar array `X̃ := M_H X`. -/
 noncomputable def tildeX (c : WeightedSupport R) (H : Submodule ℝ (R → ℝ))
     (X : R → ℝ) : R → ℝ :=
   c.residualize H X
@@ -245,7 +250,9 @@ lemma residualize_idem_apply (c : WeightedSupport R)
 
 /-! ### Vector-form residualization -/
 
-/-- Column-by-column residualization for vector arrays `X : J → (R → ℝ)`. -/
+/-- For [a finite record set](hyp:R), [an index set](hyp:J), [a weighted support](hyp:c), [a nuisance subspace of real-valued arrays](hyp:H), and [a family of real-valued arrays](hyp:X), the [residualized array family](goal) assigns to each member of the family its residual after projection onto the nuisance subspace.
+
+Column-by-column residualization for vector arrays `X : J → (R → ℝ)`. -/
 noncomputable def tildeXVec {J : Type*} (c : WeightedSupport R) (H : Submodule ℝ (R → ℝ))
     (X : J → R → ℝ) : J → R → ℝ :=
   fun k => c.tildeX H (X k)

@@ -52,28 +52,30 @@ open MeasureTheory ProbabilityTheory Filter Topology Causalean.PO
 variable {δ : Type} [MeasurableSpace δ] [MeasurableSingletonClass δ]
 variable {γ : Fin 2 → Type} [∀ k, MeasurableSpace (γ k)]
 
-/-- This projection returns the initial state from the observed two-stage data tuple. -/
+/-- For [a treatment space](hyp:δ) and [the pair of first- and second-period state spaces](hyp:γ), the [initial-state projection](goal) maps every observed two-stage data tuple to its first-period state. -/
 def projS₀ : γ 0 × δ × γ 1 × δ × ℝ → γ 0 := fun z => z.1
 
-/-- This projection returns the first treatment from the observed two-stage data tuple. -/
+/-- For [a treatment space](hyp:δ) and [the pair of first- and second-period state spaces](hyp:γ), the [first-treatment projection](goal) maps every observed two-stage data tuple to its first-period treatment. -/
 def projD₀ : γ 0 × δ × γ 1 × δ × ℝ → δ := fun z => z.2.1
 
-/-- This projection returns the second state from the observed two-stage data tuple. -/
+/-- For [a treatment space](hyp:δ) and [the pair of first- and second-period state spaces](hyp:γ), the [second-state projection](goal) maps every observed two-stage data tuple to its second-period state. -/
 def projS₁ : γ 0 × δ × γ 1 × δ × ℝ → γ 1 := fun z => z.2.2.1
 
-/-- This projection returns the second treatment from the observed two-stage data tuple. -/
+/-- For [a treatment space](hyp:δ) and [the pair of first- and second-period state spaces](hyp:γ), the [second-treatment projection](goal) maps every observed two-stage data tuple to its second-period treatment. -/
 def projD₁ : γ 0 × δ × γ 1 × δ × ℝ → δ := fun z => z.2.2.2.1
 
-/-- This projection returns the outcome from the observed two-stage data tuple. -/
+/-- For [a treatment space](hyp:δ) and [the pair of first- and second-period state spaces](hyp:γ), the [outcome projection](goal) maps every observed two-stage data tuple to its observed outcome. -/
 def projY : γ 0 × δ × γ 1 × δ × ℝ → ℝ := fun z => z.2.2.2.2
 
-/-- This projection returns the stage-1 history in the order used by the DTR history bundle.
+/-- For [a treatment space](hyp:δ) and [the pair of first- and second-period state spaces](hyp:γ), given [an observed two-stage data tuple](hyp:z), the [stage-1 history](goal) is its
+second-period state, first-period treatment, and first-period state, in that order.
 
-It records the current state, the previous treatment, and the previous state. -/
+This is the order used by the DTR history bundle. -/
 def histH₁ (z : γ 0 × δ × γ 1 × δ × ℝ) : γ 1 × δ × γ 0 :=
   (projS₁ z, projD₀ z, projS₀ z)
 
-/-- This function is the real-valued indicator that two discrete treatments are equal. -/
+/-- For [a treatment space](hyp:δ), given [two treatment values](hyp:d,d'), the [real-valued equality indicator](goal) is one
+when they are equal and zero otherwise. -/
 noncomputable def indEq (d d' : δ) : ℝ :=
   haveI : Decidable (d = d') := Classical.dec _
   if d = d' then 1 else 0
@@ -142,13 +144,13 @@ variable {γ : Fin 2 → Type} [∀ k, MeasurableSpace (γ k)]
 attribute [fun_prop] DTRNuisanceVec₂.μ₀_meas DTRNuisanceVec₂.e₀_meas
   DTRNuisanceVec₂.μ₁_meas DTRNuisanceVec₂.e₁_meas
 
-/-- The zero nuisance vector sets every stagewise regression and propensity component to zero. -/
+/-- For [a measurable treatment-history space with measurable singletons and two measurable stage-specific covariate spaces](hyp:δ,γ), the [zero operation on two-stage dynamic-treatment-regime nuisance vectors](goal) [sets every stage-specific regression and propensity component to zero](step:1). -/
 instance : Zero (DTRNuisanceVec₂ δ γ) where
   zero :=
     ⟨fun _ => 0, fun _ => 0, fun _ => 0, fun _ => 0,
      measurable_const, measurable_const, measurable_const, measurable_const⟩
 
-/-- Addition of nuisance vectors is performed component by component. -/
+/-- For [a measurable treatment-history space with measurable singletons and two measurable stage-specific covariate spaces](hyp:δ,γ), the [addition operation on two-stage dynamic-treatment-regime nuisance vectors](goal) is [performed componentwise](step:1). -/
 instance : Add (DTRNuisanceVec₂ δ γ) where
   add η η' :=
     ⟨fun s => η.μ₀_fn s + η'.μ₀_fn s,
@@ -160,14 +162,14 @@ instance : Add (DTRNuisanceVec₂ δ γ) where
      η.μ₁_meas.add η'.μ₁_meas,
      η.e₁_meas.add η'.e₁_meas⟩
 
-/-- Negation of a nuisance vector is performed component by component. -/
+/-- For [a measurable treatment-history space with measurable singletons and two measurable stage-specific covariate spaces](hyp:δ,γ), the [negation operation on two-stage dynamic-treatment-regime nuisance vectors](goal) is [performed componentwise](step:1). -/
 instance : Neg (DTRNuisanceVec₂ δ γ) where
   neg η :=
     ⟨fun s => -η.μ₀_fn s, fun s => -η.e₀_fn s,
      fun h => -η.μ₁_fn h, fun h => -η.e₁_fn h,
      η.μ₀_meas.neg, η.e₀_meas.neg, η.μ₁_meas.neg, η.e₁_meas.neg⟩
 
-/-- Subtraction of nuisance vectors is performed component by component. -/
+/-- For [a measurable treatment-history space with measurable singletons and two measurable stage-specific covariate spaces](hyp:δ,γ), the [subtraction operation on two-stage dynamic-treatment-regime nuisance vectors](goal) is [performed componentwise](step:1). -/
 instance : Sub (DTRNuisanceVec₂ δ γ) where
   sub η η' :=
     ⟨fun s => η.μ₀_fn s - η'.μ₀_fn s,
@@ -179,7 +181,7 @@ instance : Sub (DTRNuisanceVec₂ δ γ) where
      η.μ₁_meas.sub η'.μ₁_meas,
      η.e₁_meas.sub η'.e₁_meas⟩
 
-/-- Real scalar multiplication of a nuisance vector is performed component by component. -/
+/-- For [a measurable treatment-history space with measurable singletons and two measurable stage-specific covariate spaces](hyp:δ,γ), the [real scalar-multiplication operation on two-stage dynamic-treatment-regime nuisance vectors](goal) is [performed componentwise](step:1). -/
 instance : SMul ℝ (DTRNuisanceVec₂ δ γ) where
   smul t η :=
     ⟨fun s => t * η.μ₀_fn s, fun s => t * η.e₀_fn s,
@@ -205,7 +207,7 @@ theorem ext {η η' : DTRNuisanceVec₂ δ γ}
   · funext h; exact h1μ h
   · funext h; exact h1e h
 
-/-- The nuisance vectors form an additive commutative group under componentwise operations. -/
+/-- For [a measurable treatment-history space with measurable singletons and two measurable stage-specific covariate spaces](hyp:δ,γ), the [additive commutative group structure on two-stage dynamic-treatment-regime nuisance vectors](goal) uses [the zero vector](step:1), [componentwise addition](step:2), [componentwise negation](step:3), [componentwise subtraction](step:4), [natural-number scalar multiplication](step:5), and [integer scalar multiplication](step:6), and satisfies [the natural-zero rule](step:7), [the natural-successor rule](step:8), [the integer-zero rule](step:9), [the positive-integer-successor rule](step:10), [the negative-integer-successor rule](step:11), [subtraction as addition of an inverse](step:12), [associativity](step:13), [the left-zero law](step:14), [the right-zero law](step:15), [inverse cancellation](step:16), and [commutativity](step:17). -/
 instance : AddCommGroup (DTRNuisanceVec₂ δ γ) where
   zero := 0
   add := (· + ·)
@@ -255,7 +257,7 @@ instance : AddCommGroup (DTRNuisanceVec₂ δ γ) where
     · intro h; exact add_comm (η.μ₁_fn h) (η'.μ₁_fn h)
     · intro h; exact add_comm (η.e₁_fn h) (η'.e₁_fn h)
 
-/-- The nuisance vectors form a real module under componentwise scalar multiplication. -/
+/-- For [a measurable treatment-history space with measurable singletons and two measurable stage-specific covariate spaces](hyp:δ,γ), the [real vector-space structure on two-stage dynamic-treatment-regime nuisance vectors](goal) uses [componentwise scalar multiplication](step:1) and satisfies [multiplication by one](step:2), [compatibility of successive scalar multiplications](step:3), [multiplication of zero vectors](step:4), [distribution over vector addition](step:5), [distribution over scalar addition](step:6), and [multiplication by the zero scalar](step:7). -/
 instance : Module ℝ (DTRNuisanceVec₂ δ γ) where
   smul := (· • ·)
   one_smul η := by
@@ -328,7 +330,12 @@ open MeasureTheory ProbabilityTheory Filter Topology Causalean.PO
 variable {δ : Type} [MeasurableSpace δ] [MeasurableSingletonClass δ]
 variable {γ : Fin 2 → Type} [∀ k, MeasurableSpace (γ k)]
 
-/-- This is the explicit two-stage sequential doubly robust moment for a fixed treatment regime.
+/-- For [a treatment space](hyp:δ) and [the pair of first- and second-period state spaces](hyp:γ), given [a two-period target treatment regime](hyp:dbar), [an observed two-stage data tuple](hyp:z),
+[a stagewise nuisance vector](hyp:η), and [a candidate regime mean](hyp:θ), the [two-stage
+sequential doubly robust moment](goal) is the baseline regression plus its first-stage and
+second-stage inverse-propensity-weighted residual corrections, minus the candidate mean.
+
+This is the explicit two-stage sequential doubly robust moment for a fixed treatment regime.
 
 It combines the stage-0 regression, the stage-1 regression correction, and the final outcome
 residual correction with stagewise inverse-propensity weights, then centers by the candidate
@@ -362,30 +369,48 @@ namespace DTREstimationSystem
 variable {P : POSystem}
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- This is the true nuisance vector extracted from a two-stage DTR estimation system. -/
+/-- For [a population outcome system](hyp:P), [a treatment space](hyp:δ), and [the pair of first- and second-period state spaces](hyp:γ), given [a two-stage dynamic treatment-regime estimation system](hyp:S), the [true stagewise
+nuisance vector](goal) consists of that system's two outcome regressions and two treatment propensities.
+
+This is the true nuisance vector extracted from a two-stage DTR estimation system. -/
 noncomputable def η₀ (S : DTREstimationSystem P δ γ) :
     DTRNuisanceVec₂ δ γ :=
   ⟨S.μ₀_val, S.e₀_val, S.μ₁_val, S.e₁_val,
    S.μ₀_meas, S.e₀_meas, S.μ₁_meas, S.e₁_meas⟩
 
-/-- This is the sequential doubly robust moment specialized to the system's target regime. -/
+/-- For [a population outcome system](hyp:P), [a treatment space](hyp:δ), and [the pair of first- and second-period state spaces](hyp:γ), given [a two-stage dynamic treatment-regime estimation system](hyp:S), [an observed two-stage
+data tuple](hyp:z), [a stagewise nuisance vector](hyp:η), and [a candidate regime mean](hyp:θ),
+the [system-specific sequential doubly robust moment](goal) is the sequential doubly robust moment
+for the treatment regime selected by the system.
+
+This is the sequential doubly robust moment specialized to the system's target regime. -/
 noncomputable def seqDRMoment (S : DTREstimationSystem P δ γ)
     (z : γ 0 × δ × γ 1 × δ × ℝ) (η : DTRNuisanceVec₂ δ γ) (θ : ℝ) : ℝ :=
   Causalean.Estimation.DTR.seqDRMoment S.dbar z η θ
 
-/-- This is the sequential doubly robust influence function evaluated at the true nuisances and target. -/
+/-- For [a population outcome system](hyp:P), [a treatment space](hyp:δ), and [the pair of first- and second-period state spaces](hyp:γ), given [a two-stage dynamic treatment-regime estimation system](hyp:S) and [an observed two-stage
+data tuple](hyp:z), the [sequential doubly robust influence function](goal) is the system-specific
+sequential doubly robust moment evaluated at the system's true nuisance vector and target regime mean.
+
+This is the sequential doubly robust influence function evaluated at the true nuisances and target. -/
 noncomputable def ψ_seqDR (S : DTREstimationSystem P δ γ)
     (z : γ 0 × δ × γ 1 × δ × ℝ) : ℝ :=
   S.seqDRMoment z S.η₀ S.θ₀
 
-/-- This set contains nuisance candidates whose two propensity components are uniformly overlap-bounded.
+/-- For [a treatment space](hyp:δ) and [the pair of first- and second-period state spaces](hyp:γ), given [a real number](hyp:ε), the [overlap-bounded nuisance set](goal) consists exactly of
+stagewise nuisance vectors for which, at every first-period state and every second-period history,
+each respective treatment propensity lies between ε and $1-ε$, inclusively.
 
 The bounds are pointwise on the stage-0 and stage-1 history spaces. -/
 def H_ε (ε : ℝ) : Set (DTRNuisanceVec₂ δ γ) :=
   { η | (∀ s, ε ≤ η.e₀_fn s ∧ η.e₀_fn s ≤ 1 - ε)
         ∧ (∀ h, ε ≤ η.e₁_fn h ∧ η.e₁_fn h ≤ 1 - ε) }
 
-/-- This is the sequential doubly robust moment packaged as a functional of nuisance, data, and target value. -/
+/-- For [a population outcome system](hyp:P), [a treatment space](hyp:δ), and [the pair of first- and second-period state spaces](hyp:γ), given [a two-stage dynamic treatment-regime estimation system](hyp:S), the [sequential doubly
+robust moment functional](goal) maps every stagewise nuisance vector, observed two-stage data tuple,
+and candidate regime mean to the sequential doubly robust moment for the system's target regime.
+
+This is the sequential doubly robust moment packaged as a functional of nuisance, data, and target value. -/
 noncomputable def seqDRMomentFunctional (S : DTREstimationSystem P δ γ) :
     DTRNuisanceVec₂ δ γ → (γ 0 × δ × γ 1 × δ × ℝ) → ℝ → ℝ :=
   fun η z θ => Causalean.Estimation.DTR.seqDRMoment S.dbar z η θ

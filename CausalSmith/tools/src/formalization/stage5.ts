@@ -18,7 +18,10 @@ import { bankSoundnessIssues } from "./bank_soundness.js";
 import { readTypedCore } from "../discovery/core/core_io.js";
 import { coreJsonPath } from "../discovery/stages/d0_core.js";
 import { PlanSchema } from "./plan/schema.js";
-import { auditCitedReview, auditDelivery } from "./delivery_audit.js";
+import { auditCitedReview, auditDelivery, citedLeanEvidence } from "./delivery_audit.js";
+import { auditConvergenceReview } from "./convergence_evidence.js";
+import { promptPath } from "../paths.js";
+import { parseAnnotatedDecls } from "../graph/extractor.js";
 import { dispatchAgent } from "../framework/agent_dispatch.js";
 import { parseJsonWithEscapeRepair } from "../shared/codex_json.js";
 import { ensureDocstringCoverage } from "./stage5_docstrings.js";
@@ -118,18 +121,29 @@ export async function runStage5(args: {
       const gp = graphPath(paths.formalizationDir, args.ctx.qid, args.ctx.specialization);
       const graph = await loadGraph(gp);
       const declNames = (await parseLeanDecls(paths.leanDir, { includeLemmas: true })).map((decl) => decl.name);
+      const annotatedDecls = await parseAnnotatedDecls(paths.leanDir);
+      const leanEvidence = await citedLeanEvidence(paths.leanDir, plan, graph);
       const findings = auditDelivery({
         core,
         plan,
         graph,
         leanDeclNames: declNames,
+        annotatedDecls,
         receipts: args.state.delivery_review_receipts ?? [],
         requireReceipts: true,
       });
       findings.push(...auditCitedReview({
+        core,
         plan,
         graph,
+        leanEvidence,
         receipts: args.state.cited_review_receipts ?? [],
+      }));
+      findings.push(...await auditConvergenceReview({
+        graph,
+        leanDir: paths.leanDir,
+        core,
+        promptFile: promptPath(args.ctx.repoRoot, "proof_reviewer.txt"),
       }));
       if (findings.length > 0) {
         return {
@@ -164,7 +178,7 @@ export async function runStage5(args: {
   }
   // Bank-soundness gate: refuse to reach CKPT 2 while the artifact (or any
   // reachable CausalSmith/Mathlib file) still contains a real `sorry` or a
-  // cheat token (`axiom`/`opaque`/`native_decide`/`unsafe`). Text-based scan;
+  // cheat token (`axiom`/`opaque`/`unsafe`/`admit`). Text-based scan;
   // catches the false-completion class where F3's in-subdir count was clean
   // but a dependency stub was not. Runs AFTER the docstring pass so an edit
   // that pass made cannot introduce a token behind the scan's back.

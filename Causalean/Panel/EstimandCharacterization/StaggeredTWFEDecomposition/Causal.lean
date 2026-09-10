@@ -93,15 +93,11 @@ open Finset
 
 variable {𝒢 : Type*} [Fintype 𝒢] [DecidableEq 𝒢] {T : ℕ}
 
-/-- Window mean of a potential-outcome map `Y* : 𝒢 → Fin T → ℝ`,
-`Ȳ_{g(*),S} := |S|⁻¹ ∑_{t ∈ S} Y*_{gt}`. Defined unconditionally; nonemptiness
-of `S` is supplied at theorem-use time. -/
+/-- For [a never-treated potential-outcome schedule](hyp:Y0), [a cohort](hyp:g), and [a set of periods](hyp:S), [the never-treated potential-outcome window mean](goal) is the average of that cohort's never-treated potential outcomes over the specified periods; it is defined as zero when the set is empty. -/
 noncomputable def Ybar0 (Y0 : 𝒢 → Fin T → ℝ) (g : 𝒢) (S : Finset (Fin T)) : ℝ :=
   (S.card : ℝ)⁻¹ * ∑ t ∈ S, Y0 g t
 
-/-- Window-specific ATT in the two-state Goodman-Bacon causal layer:
-`ATT_{g,S} := |S|⁻¹ ∑_{t ∈ S} (Y_{gt}(A_g) − Y_{gt}(∞))`,
-parameterized by potential-outcome maps `Y0 = Y(∞)` and `Y1 = Y(A_g)`. -/
+/-- For [the never-treated potential-outcome schedule](hyp:Y0), [the own-adoption potential-outcome schedule](hyp:Y1), [a cohort](hyp:g), and [a set of periods](hyp:S), [the window-specific average treatment effect on the treated](goal) is the average over the specified periods of the own-adoption potential outcome minus the never-treated potential outcome for that cohort; it is defined as zero when the set is empty. -/
 noncomputable def ATT_window (Y0 Y1 : 𝒢 → Fin T → ℝ) (g : 𝒢)
     (S : Finset (Fin T)) : ℝ :=
   (S.card : ℝ)⁻¹ * ∑ t ∈ S, (Y1 g t - Y0 g t)

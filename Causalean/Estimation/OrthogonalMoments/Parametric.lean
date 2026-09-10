@@ -37,7 +37,13 @@ open MeasureTheory Filter Topology Causalean.Stat
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
          {Z : Type*} [MeasurableSpace Z] {P_Z : MeasureTheory.Measure Z}
 
-/-- Parametric moment: the moment depends only on `θ` (no nuisance).
+/-- For [a measurable population space with a population measure and a measurable observed-data
+space with its observed-data law](hyp:Ω,μ,Z,P_Z), [a real-valued parametric moment function](hyp:m_par),
+[a target parameter](hyp:θ₀), [a nonzero scalar Jacobian](hyp:J₀,hJ), and [the condition that the
+moment is measurable at every parameter value](hyp:m_meas), the [no-nuisance parametric moment system](goal)
+is the general moment system whose score is the supplied parametric moment and whose nuisance space contains only a single element.
+
+Parametric moment: the moment depends only on `θ` (no nuisance).
 `m_par θ z` is the user-supplied moment; `J₀ : ℝ` is its scalar Jacobian
 at `θ₀`. -/
 noncomputable def parametricMoment

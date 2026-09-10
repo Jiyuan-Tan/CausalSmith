@@ -47,58 +47,74 @@ variable {U : Type*} [Fintype U] [DecidableEq U]
 
 /-! ### Interference structure -/
 
-/-- **Interference indicator.** Unit `ℓ` *interferes with* unit `i` if changing `ℓ`'s treatment
-changes `i`'s outcome under some assignment, or if `ℓ = i` (a unit always interferes with itself).
-`y i z` is unit `i`'s outcome under the full assignment `z`. -/
+/-- For [a population of units](hyp:U), [a potential-outcome schedule](hyp:y), and [two units,
+the potential source unit and the affected unit](hyp:ℓ,i), the [interference indicator](goal)
+holds exactly when the units are identical or there is an assignment under which reversing the
+source unit's treatment changes the affected unit's outcome. -/
 def Interferes (y : U → (U → Bool) → ℝ) (ℓ i : U) : Prop :=
   ℓ = i ∨ ∃ z : U → Bool, y i z ≠ y i (Function.update z ℓ (! z ℓ))
 
-/-- **Interference dependence.** Units `i` and `j` are interference dependent if some unit `ℓ`
-interferes with both — i.e. they may be affected by a common treatment. The paper's `d̄_{ij}`. -/
+/-- For [a population of units](hyp:U), [a potential-outcome schedule](hyp:y), and [two
+units](hyp:i,j), the [interference-dependence relation](goal) holds exactly when some unit's
+treatment interferes with both units' outcomes; equivalently, the two outcomes may be affected by
+a common treatment. -/
 def InterfDep (y : U → (U → Bool) → ℝ) (i j : U) : Prop :=
   ∃ ℓ : U, Interferes y ℓ i ∧ Interferes y ℓ j
 
 open Classical in
-/-- The (unnormalized) count `∑ᵢ ∑ⱼ 1[InterfDep i j]` of interference-dependent ordered pairs. -/
+/-- For [a finite population of units](hyp:U) and [a potential-outcome schedule](hyp:y), the
+[unnormalized interference-dependence count](goal) is the number of ordered pairs of units that
+are interference dependent. -/
 noncomputable def dbarCount (y : U → (U → Bool) → ℝ) : ℝ :=
   ∑ i : U, ∑ j : U, if InterfDep y i j then (1 : ℝ) else 0
 
-/-- **Average interference dependence** `d̄ = n⁻¹ ∑ᵢ ∑ⱼ 1[InterfDep i j]` — the paper's basic
-measure of the amount of interference. For a nonempty population, `d̄ = 1` under no interference;
-`d̄ = n` when every pair is interference dependent. "Restricted interference" is the assumption
-`d̄ = o(n)`. -/
+/-- For [a finite population of units](hyp:U) and [a potential-outcome schedule](hyp:y), the
+[average interference dependence](goal) is the unnormalized count of interference-dependent
+ordered pairs divided by the population size.  For a nonempty population it equals one under no
+interference and the population size when every ordered pair is interference dependent; restricted
+interference is the condition that it is of smaller order than the population size. -/
 noncomputable def dbar (y : U → (U → Bool) → ℝ) : ℝ :=
   dbarCount y / (Fintype.card U : ℝ)
 
 /-! ### Estimand: EATE -/
 
-/-- **Assignment-conditional unit-level treatment effect.** `τ_i(z_{-i}) = y_i(1; z_{-i}) −
-y_i(0; z_{-i})`, the effect of changing unit `i`'s own treatment with all others held at `z`.
-Encoded on the full assignment via `Function.update`; it does not depend on `z i`. -/
+/-- For [a population of units](hyp:U), [a potential-outcome schedule](hyp:y), [a unit](hyp:i),
+and [an assignment of treatments to all units](hyp:z), the [assignment-conditional unit-level
+treatment effect](goal) is that unit's outcome when its own treatment is set to treated minus its
+outcome when its own treatment is set to control, with every other unit's assignment held fixed. -/
 def tau (y : U → (U → Bool) → ℝ) (i : U) (z : U → Bool) : ℝ :=
   y i (Function.update z i true) - y i (Function.update z i false)
 
-/-- **Assignment-conditional average treatment effect** `ACATE(z) = n⁻¹ ∑ᵢ τ_i(z_{-i})`. -/
+/-- For [a finite population of units](hyp:U), [a potential-outcome schedule](hyp:y), and [an
+assignment of treatments to all units](hyp:z), the [assignment-conditional average treatment
+effect](goal) is the average, over all units, of their own-treatment effects with the remaining
+assignments held fixed. -/
 noncomputable def ACATE (y : U → (U → Bool) → ℝ) (z : U → Bool) : ℝ :=
   (∑ i : U, tau y i z) / (Fintype.card U : ℝ)
 
-/-- **Expected average treatment effect** (Definition, Sävje–Aronow–Hudgens 2021):
-`EATE = E[ACATE(Z)]`, the design average of the assignment-conditional ATE.  It generalizes the
-conventional ATE — under no interference `ACATE(z)` is constant in `z`, so the marginalization is
-inconsequential and `EATE = ATE`. -/
+/-- For [a finite population of units](hyp:U), [a randomization design over treatment
+assignments](hyp:D), and [a potential-outcome schedule](hyp:y), the [expected average treatment
+effect](goal) is the design expectation of the assignment-conditional average treatment effect.
+Under no interference this quantity equals the conventional average treatment effect because the
+assignment-conditional effect is then constant across assignments. -/
 noncomputable def EATE (D : FiniteDesign (U → Bool)) (y : U → (U → Bool) → ℝ) : ℝ :=
   D.E (ACATE y)
 
 /-! ### The Horvitz–Thompson estimator -/
 
-/-- The `i`ᵗʰ Horvitz–Thompson summand `Z_i Y_i / p_i − (1 − Z_i) Y_i / (1 − p_i)`, with
-`Z_i = 1[z i]` and `Y_i = y i z`. -/
+/-- For [a population of units](hyp:U), [marginal treatment probabilities](hyp:p), [a
+potential-outcome schedule](hyp:y), [a unit](hyp:i), and [a realized treatment assignment](hyp:z),
+the [unit-level Horvitz--Thompson summand](goal) is its observed outcome weighted by the reciprocal
+of its treatment probability if treated, minus the same outcome weighted by the reciprocal of its
+control probability if untreated. -/
 noncomputable def htSummand (p : U → ℝ) (y : U → (U → Bool) → ℝ) (i : U) (z : U → Bool) : ℝ :=
   (if z i then (1 : ℝ) else 0) * y i z / p i
     - (if z i then (0 : ℝ) else 1) * y i z / (1 - p i)
 
-/-- **Horvitz–Thompson estimator** `htEst = n⁻¹ ∑ᵢ [Z_i Y_i / p_i − (1 − Z_i) Y_i / (1 − p_i)]`,
-with `p i` the marginal treatment probability of unit `i`. -/
+/-- For [a finite population of units](hyp:U), [marginal treatment probabilities](hyp:p), [a
+potential-outcome schedule](hyp:y), and [a realized treatment assignment](hyp:z), the
+[Horvitz--Thompson estimator](goal) is the average of the units' treated-minus-control
+inverse-probability-weighted outcome summands. -/
 noncomputable def htEst (p : U → ℝ) (y : U → (U → Bool) → ℝ) (z : U → Bool) : ℝ :=
   (∑ i : U, htSummand p y i z) / (Fintype.card U : ℝ)
 

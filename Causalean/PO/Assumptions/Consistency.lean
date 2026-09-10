@@ -22,7 +22,9 @@ namespace POSystem
 
 variable (P : POSystem)
 
-/-- For a potential-outcome system, an intervention regime, and a unit in the
+/-- For [a potential-outcome system](hyp:P), [an intervention regime](hyp:r), and [a unit in its sample space](hyp:ω), [factual agreement](goal) means that every variable targeted by the regime has, for that unit under the factual regime, exactly the value assigned by the intervention.
+
+For a potential-outcome system, an intervention regime, and a unit in the
 sample space, factual agreement means that for every variable targeted by the
 regime, the factual value of that variable for the unit equals the value assigned
 by the regime.
@@ -31,7 +33,9 @@ Pathwise predicate: factual value of `r.target` equals `r.assign` at `ω`. -/
 def FactualAgrees (r : Regime P.V P.X) (ω : P.Ω) : Prop :=
   ∀ v (hv : v ∈ r.target), P.eval Regime.empty ω v = r.assign v hv
 
-/-- For a potential-outcome system, two intervention regimes, and a unit in the
+/-- For [a potential-outcome system](hyp:P), [a first intervention regime](hyp:r₁), [a second intervention regime](hyp:r₂), and [a unit in its sample space](hyp:ω), [intermediate agreement](goal) means that, after the first intervention, every variable targeted by the second has exactly the value assigned by the second.
+
+For a potential-outcome system, two intervention regimes, and a unit in the
 sample space, intermediate agreement means that after applying the first regime,
 every variable targeted by the second regime has the value assigned to it by the
 second regime.

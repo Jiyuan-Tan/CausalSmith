@@ -31,14 +31,25 @@ open scoped ENNReal NNReal BigOperators
 
 variable {Ω : Type*} [MeasurableSpace Ω]
 
-/-- A probability law on the real line is a **Gaussian law** when it is a normal distribution:
+/-- For [a measure on the real line](hyp:ν), the [Gaussian-law property](goal) holds exactly when
+there exist a real mean and a nonnegative variance parameter such that the measure is the associated
+normal distribution. The variance parameter may be zero, so point masses count as degenerate Gaussian laws.
+
+A probability law on the real line is a **Gaussian law** when it is a normal distribution:
 there is a mean and a (possibly zero) variance whose normal distribution is exactly this law.
 Allowing zero variance means the point masses (Diracs) count as degenerate Gaussians, so the
 negation "not a Gaussian law" is the strongest possible non-Gaussianity requirement. -/
 def IsGaussianLaw (ν : Measure ℝ) : Prop :=
   ∃ (mean : ℝ) (v : ℝ≥0), ν = gaussianReal mean v
 
-/-- The **joint cumulant** of two real random variables at bidegree `(p, q)`: the cumulant of the
+/-- Given [a sample space equipped with a σ-algebra](hyp:Ω), [a measure on that space](hyp:μ),
+[two real-valued random variables](hyp:X,Y), and [two nonnegative integer orders](hyp:p,q), the
+[joint cumulant at the specified bidegree](goal) is the sum over every partition of the combined
+slots, with the first $p$ slots assigned to the first variable and the remaining $q$ slots assigned
+to the second, of a signed factorial weight times the product, across its blocks, of the mixed moment whose
+exponents equal that block's counts of first- and second-variable slots.
+
+The **joint cumulant** of two real random variables at bidegree `(p, q)`: the cumulant of the
 first variable taken `p` times together with the second taken `q` times.  It is obtained from the
 mixed moments by the classical set-partition (Möbius) inversion — sum over all partitions of the
 `p + q` slots of a signed factorial weight times the product, over the blocks of the partition, of
@@ -53,7 +64,11 @@ noncomputable def jointCumulant (μ : Measure Ω) (X Y : Ω → ℝ) (p q : ℕ)
         ∫ ω, (X ω) ^ (B.filter (fun i => i.val < p)).card
               * (Y ω) ^ (B.filter (fun i => p ≤ i.val)).card ∂μ
 
-/-- The **cumulant of order `r`** of a single real random variable: the joint cumulant of the
+/-- Given [a sample space equipped with a σ-algebra](hyp:Ω), [a measure on that space](hyp:μ),
+[a real-valued random variable](hyp:S), and [a nonnegative integer order](hyp:r), the [cumulant of
+that order](goal) is the joint cumulant obtained by placing that same variable in every slot.
+
+The **cumulant of order `r`** of a single real random variable: the joint cumulant of the
 variable with itself in which every slot is filled by that one variable.  Order two is the
 variance, order three the centered third moment, order four the excess kurtosis. -/
 noncomputable def sourceCumulant (μ : Measure Ω) (S : Ω → ℝ) (r : ℕ) : ℝ :=

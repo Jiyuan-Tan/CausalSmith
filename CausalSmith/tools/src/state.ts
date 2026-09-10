@@ -234,6 +234,7 @@ export const stateSchema = z
         })
         .optional(),
       d0_loop_cap_hit: z.string().optional(),
+      d0_directives_consumed: z.number().int().nonnegative().optional(),
       // Typed cross-boundary D0 rewind receipt.  It distinguishes a local
       // re-solve from an additive proposal extension and an explicit paper
       // replacement; D0 consumes the first two fail-closed.
@@ -369,7 +370,7 @@ export const stateSchema = z
         // version marker and removes it before returning runtime state.
         last_draft_handoff: z.string().optional(),
         last_draft_status: z
-          .enum(["completed", "needs-pivot", "invalid-draft", "env-failure"])
+          .enum(["completed", "producer-queued", "needs-pivot", "invalid-draft", "env-failure"])
           .optional(),
         exhausted_angles: z.array(z.number().int().nonnegative()).optional(),
         last_reviewer_verdict: z.string().optional(),
@@ -400,6 +401,31 @@ export const stateSchema = z
           .optional(),
       })
       .passthrough()
+      .optional(),
+    pre_d0_intent: z
+      .object({
+        cursor_version: z.literal(1),
+        topic: z.string().min(1),
+        novelty_target: z
+          .enum([
+            "incremental",
+            "subfield",
+            "field",
+            "flagship",
+            "relative-to-repo",
+            "relative-to-literature",
+          ])
+          .transform((v) => normalizeNoveltyTarget(v)!),
+        upgrade_from: z
+          .object({
+            parent_qid: z.string(),
+            parent_spec: z.string(),
+            parent_tier: z.enum(UPGRADE_PARENT_TIERS),
+            upgrade_axis: z.enum(UPGRADE_AXES),
+          })
+          .optional(),
+        scout_refresh: z.boolean().optional(),
+      })
       .optional(),
     theorems: z.array(theoremEntrySchema).optional(),
     current_theorem_index: z.number().int().min(0).optional(),
@@ -445,6 +471,24 @@ export function createInitialState(qid: string): StateJson {
 
 export function assertLeanSubdirInvariant(qid: string, state: StateJson): void {
   const allowed = allowedLeanSubdirs(qid);
+  // Indexed by a free-form cluster string, so the map needs an index signature:
+  // an unrecognised or absent cluster must yield undefined and fall through to
+  // the unwidened invariant rather than fail to compile.
+  const clusterSubstrates: Record<string, string | undefined> = {
+    panel: "Panel",
+    exactid: "ExactID",
+    partialid: "PartialID",
+    stat: "Stat",
+    experimentation: "Experimentation",
+    scm: "SCM",
+  };
+  const reanchoredSubstrate = clusterSubstrates[state.proposed_from?.cluster ?? ""];
+  if (reanchoredSubstrate) {
+    for (const candidate of allowedLeanSubdirs(qid)) {
+      const name = candidate.split("/").at(-1);
+      if (name) allowed.push(path.posix.join("CausalSmith", reanchoredSubstrate, name));
+    }
+  }
   const normalized = state.lean_subdir.split(path.sep).join(path.posix.sep);
   if (!allowed.includes(normalized)) {
     const expectedDesc = allowed.length === 1 ? allowed[0] : `one of {${allowed.join(", ")}}`;
@@ -474,6 +518,12 @@ export async function loadState(
       proposal.last_draft_version = proposal.current_version ?? 0;
     }
     delete proposal.last_draft_handoff;
+    // Transitional receipt written by the 2026-09-08..10 boundary: "the producer
+    // must run next". Its meaning is exactly "completed" with no fresh draft.
+    if (proposal.last_draft_status === "producer-queued") {
+      proposal.last_draft_status = "completed";
+      proposal.last_draft_version = undefined;
+    }
   }
   assertLeanSubdirInvariant(qid, parsed);
   return parsed;

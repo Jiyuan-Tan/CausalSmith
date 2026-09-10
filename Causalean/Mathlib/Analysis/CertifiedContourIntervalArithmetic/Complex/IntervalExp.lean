@@ -12,8 +12,7 @@ open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
 
 namespace Transcendental
 
-/-- The exponential midpoint extension uses the promoted scalar exponential
-and a magnitude-dependent Lipschitz expansion for the input radius. -/
+/-- Given [a rational input interval](hyp:I) and [a natural-number fuel level](hyp:fuel), the [raw exponential image interval](goal) is [the input midpoint](step:1), the scalar exponential interval at that midpoint, the upper endpoint of the scalar exponential interval at the input's maximum absolute endpoint magnitude, and the midpoint exponential interval expanded by that upper bound times the input radius. -/
 def expIntervalRaw (I : RatInterval) (fuel : ℕ) : RatInterval :=
   let center := intervalMid I
   let ecenter :=
@@ -31,7 +30,7 @@ def expIntervalRaw (I : RatInterval) (fuel : ℕ) : RatInterval :=
       exact_mod_cast (Real.exp_pos (I.maxAbs : ℝ)).le.trans hs.2
     exact mul_nonneg hu (div_nonneg (RatInterval.width_nonneg I) (by norm_num)))
 
-/-- Exponential interval outputs recursively intersect all midpoint bounds seen so far. -/
+/-- For [a rational input interval](hyp:I) and a natural-number fuel level, the [exponential image interval at that level](goal) is [the raw exponential image interval at level zero](step:1), and at every successor level is [the intersection of the preceding exponential image interval and the new raw exponential image interval](step:2). -/
 def expInterval (I : RatInterval) : ℕ → RatInterval
   | 0 => expIntervalRaw I 0
   | fuel + 1 => (expInterval I fuel).tighten (expIntervalRaw I (fuel + 1))

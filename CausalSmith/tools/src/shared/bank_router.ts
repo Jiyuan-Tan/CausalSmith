@@ -1,14 +1,10 @@
 /**
  * Shared primitive for failure-bank routing.
  *
- * Two callers today:
- *   - `bin/study_bank.ts`         — study-pipeline run-level quarantine
- *                                   (granularity = `run_id`).
- *   - `bin/bank_entry.ts`         — causalsmith theorem-level banking, including
- *                                   the study-mode `--tier failed` branch
- *                                   (granularity = `bt_id = <qid>_<spec>`).
+ * Caller: `bin/bank_entry.ts` — causalsmith theorem-level banking, including the
+ * study-mode `--tier failed` branch (granularity = `bt_id = <qid>_<spec>`).
  *
- * Both perform the same mechanical move + reason-file write: rename a source
+ * The move is mechanical + a reason-file write: rename a source
  * directory to a destination under a reason-bucketed parent, then drop a
  * `BANK_REASON.md` alongside the moved content. `routeToBank` captures that
  * shape generically; the caller owns reason validation and policy.

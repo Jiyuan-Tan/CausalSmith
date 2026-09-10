@@ -58,7 +58,9 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { externallyConsumedModules, findOrphanPaperModules, SYNTHETIC_COMPANION_RE } from "../src/presentation/paper_index_orphans.js";
+import { firstDeclaredLeaf, leanNameLeaf } from "../src/presentation/lean_decl_name.js";
 import { findCausalSmithRoot } from "../src/shared/repo_root.js";
+import { resolvedLeanAbsolutePath } from "../src/presentation/declaration_resolver.js";
 
 /** Severities that fail `--strict`. Everything else is informational. */
 const HARD = new Set([
@@ -160,29 +162,6 @@ function leadingDocComment(source: string): string | null {
 
 function normalizeDocText(text: string): string {
   return text.replace(/\s+/g, " ").trim();
-}
-
-const DECL_HEAD =
-  /^(?:@\[[^\]]*\]\s*)?(?:private |protected |noncomputable |unsafe |partial |scoped |local )*(?:theorem|lemma|def|abbrev|structure|inductive|class|instance|opaque)\s+([A-Za-z_][A-Za-z0-9_'!?.«»]*)/;
-
-/**
- * Leaf name of the first column-0 declaration inside a cached source slice,
- * skipping block comments. `null` when the slice declares nothing recognisable.
- */
-function firstDeclaredLeaf(source: string): string | null {
-  let depth = 0;
-  for (const line of source.split("\n")) {
-    const t = line.trim();
-    if (depth > 0 || t.startsWith("/-")) {
-      depth += (t.match(/\/-/g)?.length ?? 0) - (t.match(/-\//g)?.length ?? 0);
-      if (depth < 0) depth = 0;
-      continue;
-    }
-    if (line.length === 0 || line[0] === " " || line[0] === "\t") continue;
-    const m = DECL_HEAD.exec(line);
-    if (m) return m[1].split(".").pop()!;
-  }
-  return null;
 }
 
 function gitShow(repoRoot: string, ref: string, relPath: string): string | null {
@@ -310,7 +289,7 @@ async function lintBundle(
       if (sourceDoc !== null && normalizeDocText(sourceDoc) !== normalizeDocText(e.doc ?? ""))
         add("doc-source-mismatch", e.name, "cached doc differs from the leading source doc-comment");
       const declared = firstDeclaredLeaf(e.source);
-      const leaf = e.name.split(".").pop()!;
+      const leaf = leanNameLeaf(e.name);
       if (declared !== null && declared !== leaf && !e.name.endsWith(`.${declared}`))
         add(
           "misattributed-source",
@@ -363,7 +342,7 @@ async function lintBundle(
   const byName = new Map(idx.entries.map((e) => [e.name, e]));
   const byLeaf = new Map<string, DeclEntry[]>();
   for (const e of idx.entries) {
-    const leaf = e.name.split(".").pop()!;
+    const leaf = leanNameLeaf(e.name);
     byLeaf.set(leaf, [...(byLeaf.get(leaf) ?? []), e]);
   }
   for (const ce of crosswalk?.entries ?? []) {
@@ -371,7 +350,7 @@ async function lintBundle(
     if (!decl) continue;
     if (byName.has(decl)) continue;
     // aux_* anchors record a short (leaf) name rather than the full one
-    if ((byLeaf.get(decl.split(".").pop()!) ?? []).length > 0) continue;
+    if ((byLeaf.get(leanNameLeaf(decl)) ?? []).length > 0) continue;
     add("dangling-crosswalk-decl", `${ce.obj_id ?? "?"} → ${decl}`, "resolves to no indexed declaration");
   }
 
@@ -384,8 +363,17 @@ async function lintBundle(
       };
       for (const [oid, s] of Object.entries(sn.snippets ?? {})) {
         if (!s.statement || !s.file) continue;
-        const rel = path.posix.join(subdir, s.file);
-        const text = textOf(rel);
+        let rel = path.posix.join(subdir, s.file);
+        let text = textOf(rel);
+        if (text === null) {
+          // Relocated snippets carry the resolver's workspace-canonical file;
+          // ordinary snippets retain their run-relative file for compatibility.
+          try {
+            const absolute = await resolvedLeanAbsolutePath(csRoot, s.file);
+            text = await readFile(absolute, "utf8");
+            rel = path.relative(csRoot, absolute);
+          } catch { /* Report an absent or invalid pointer below. */ }
+        }
         if (text === null) {
           add("missing-file", `lean_snippets:${oid}`, `cites ${rel}, which does not exist`);
           continue;
@@ -450,7 +438,7 @@ async function lintBundle(
               !!p.source &&
               (() => {
                 const declared = firstDeclaredLeaf(p.source!);
-                const leaf = p.name.split(".").pop()!;
+                const leaf = leanNameLeaf(p.name);
                 const syntheticDocTarget =
                   /\badd_decl_doc\s+(\S+\.(?:congr_simp|eq_def|eq_unfold|eq_\d+))\b/.exec(p.source!)?.[1] ?? null;
                 const precedingDecl =
@@ -464,7 +452,7 @@ async function lintBundle(
                 // suspicious range is not enough to waive a regression.
                 return prev.entries.some((neighbour) =>
                   neighbour.name !== p.name &&
-                  (neighbour.name.split(".").pop() === precedingDecl ||
+                  (leanNameLeaf(neighbour.name) === precedingDecl ||
                     neighbour.name === syntheticDocTarget ||
                     neighbour.name.endsWith(`.${syntheticDocTarget}`)) &&
                   neighbour.doc === was,

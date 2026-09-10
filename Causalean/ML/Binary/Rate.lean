@@ -32,22 +32,31 @@ open MeasureTheory BigOperators Causalean.Stat
 variable {Ω γ K : Type*} [MeasurableSpace Ω] [MeasurableSpace γ]
   [Fintype K] [DecidableEq K] {μ : Measure Ω}
 
-/-- Empirical penalized-logistic gradient at `β` (coordinate form):
-`∇ₙ(β)ₖ = n⁻¹ Σ_{i<n} (σ⟨β,φᵢ⟩ − yᵢ) φᵢₖ + 2λ βₖ`. -/
+/-- For [an underlying sample-state space](hyp:Ω), [a covariate space](hyp:γ), [a finite feature
+index set](hyp:K), [a feature map](hyp:φ), [a sequence of observed covariate–response pairs
+indexed by sample state](hyp:Z), [a penalty level](hyp:lam), [a sample size](hyp:n), [a sample
+state](hyp:ω), and [a coefficient vector](hyp:β), the [empirical penalized-logistic gradient](goal)
+is the vector whose each coordinate equals the sample-average logistic score times that feature,
+plus twice the penalty level times the corresponding coefficient. -/
 noncomputable def regLogisticGrad (φ : FeatureMap γ K) (Z : ℕ → Ω → γ × ℝ)
     (lam : ℝ) (n : ℕ) (ω : Ω) (β : K → ℝ) : K → ℝ :=
   fun k => (n : ℝ)⁻¹ * (∑ i ∈ Finset.range n,
       (Real.sigmoid (∑ j, β j * φ.φ (Z i ω).1 j) - (Z i ω).2) * φ.φ (Z i ω).1 k)
     + 2 * lam * β k
 
-/-- The penalized population first-order condition at `β⋆`:
-`E[(σ⟨β⋆,φ⟩ − Y) φₖ] + 2λ β⋆ₖ = 0` for every feature `k`. -/
+/-- For [a measurable covariate space](hyp:γ), [a finite feature index set](hyp:K),
+[a joint covariate–response measure](hyp:P), [a feature map](hyp:φ), [a penalty level](hyp:lam), and
+[a coefficient vector](hyp:βstar), the [penalized population logistic first-order condition](goal)
+holds exactly when, for every feature coordinate, the integral of the logistic score times that coordinate
+plus twice the penalty level times its coefficient is zero. -/
 def IsPopulationRegLogistic (P : Measure (γ × ℝ)) (φ : FeatureMap γ K)
     (lam : ℝ) (βstar : K → ℝ) : Prop :=
   ∀ k, (∫ z, (Real.sigmoid (∑ j, βstar j * φ.φ z.1 j) - z.2) * φ.φ z.1 k ∂P)
     + 2 * lam * βstar k = 0
 
-/-- The logistic predictor `x ↦ σ(⟨β, φ(x)⟩)` (the fitted conditional probability). -/
+/-- For [a covariate space](hyp:γ), [a finite feature index set](hyp:K), [a feature map](hyp:φ),
+and [a coefficient vector](hyp:β), the [logistic predictor](goal) maps each covariate value to the
+logistic transform of its linear feature score. -/
 noncomputable def logisticPredictor (φ : FeatureMap γ K) (β : K → ℝ) : γ → ℝ :=
   fun x => Real.sigmoid (∑ k, β k * φ.φ x k)
 

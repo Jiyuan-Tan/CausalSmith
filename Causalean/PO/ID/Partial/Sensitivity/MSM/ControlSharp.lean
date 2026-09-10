@@ -36,21 +36,32 @@ namespace POBackdoorSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 variable (S : POBackdoorSystem P γ)
 
-/-- **Calibration (control arm).** A candidate complete control propensity `ẽ` is
-*calibrated* if `E[ (1−Z) / ẽ | σ(X) ] = 1` a.e., where `1−Z = 1_{D=0}`. -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ),
+[a back-door system on them](hyp:S), and [a candidate complete control propensity](hyp:etilde),
+[the control-arm calibration condition](goal) holds when the conditional expectation, given the
+factual covariate, of the untreated indicator divided by that candidate propensity equals one
+almost surely. -/
 def Calibrated0 (etilde : P.Ω → ℝ) : Prop :=
   P.μ[fun ω => S.dVar.indicator false ω / etilde ω | S.sigmaX] =ᵐ[P.μ] (fun _ => 1)
 
-/-- **The calibrated (sharp) control MSM ambiguity set.** -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ),
+[a back-door system on them](hyp:S), and [a sensitivity level](hyp:Λ), [the calibrated control
+marginal-sensitivity-model ambiguity set](goal) consists of candidate complete control
+propensities that [belong to the control ambiguity set](step:1) and satisfy the control-arm
+calibration condition. -/
 def MSMSetCalib0 (Λ : ℝ) : Set (P.Ω → ℝ) :=
   { etilde | etilde ∈ S.MSMSet0 Λ ∧ S.Calibrated0 etilde }
 
-/-- The **sharp control upper bound:** the supremum of the candidate mean over the
-calibrated set. -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ),
+[a back-door system on them](hyp:S), and [a sensitivity level](hyp:Λ), [the sharp control upper
+bound](goal) is the supremum of the candidate inverse-probability-weighted control means over the
+calibrated control ambiguity set. -/
 noncomputable def msmUpperCalib0 (Λ : ℝ) : ℝ := sSup (S.candMean0 '' S.MSMSetCalib0 Λ)
 
-/-- The **sharp control lower bound:** the infimum of the candidate mean over the
-calibrated set. -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ),
+[a back-door system on them](hyp:S), and [a sensitivity level](hyp:Λ), [the sharp control lower
+bound](goal) is the infimum of the candidate inverse-probability-weighted control means over the
+calibrated control ambiguity set. -/
 noncomputable def msmLowerCalib0 (Λ : ℝ) : ℝ := sInf (S.candMean0 '' S.MSMSetCalib0 Λ)
 
 /-- **The true complete control propensity is calibrated.** `E[(1−Z) / e₀ | σ(X)] = 1`

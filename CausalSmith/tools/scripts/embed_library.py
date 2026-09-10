@@ -40,7 +40,7 @@ def humanize(name: str) -> str:
 
 
 def strip_nl_crosslinks(s):
-    # NL↔Lean crosslink markup — `[phrase](hyp:name[,name…])` / `[phrase](goal)`
+    # NL↔Lean crosslink markup — `[phrase](hyp:name[,name…])` / `[phrase](goal)` / `[phrase](step:N)`
     # — is a site-only rendering concern; embed the phrase text alone so
     # annotating a docstring does not perturb its embedding. Walks BACK from
     # each closer to the matching `[` counting nesting, so a phrase may itself
@@ -53,7 +53,7 @@ def strip_nl_crosslinks(s):
         s,
     )
     out, plain_start = [], 0
-    for m in re.finditer(r"\]\((?:hyp:[^()\s]+|goal)\)", masked):
+    for m in re.finditer(r"\]\((?:hyp:[^()\s]+|goal|step:\d+)\)", masked):
         depth, opener = 0, -1
         for i in range(m.start() - 1, plain_start - 1, -1):
             c = masked[i]

@@ -15,19 +15,17 @@ open MeasureTheory Set intervalIntegral
 namespace Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
 namespace CircleMesh
 
-/-- The unscaled trapezoidal rectangle sum is computed by primitive recursion over mesh cells. -/
+/-- Given [a sequence of complex rational rectangles](hyp:nodes), [the unscaled trapezoidal rectangle sum at a nonnegative index](goal) is computed recursively: [at zero it is the zero rectangle](step:1), and [at each successor it adds the two rectangles at the new cell's endpoints to the preceding sum](step:2). -/
 def trapezoidSum (nodes : ℕ → ComplexRatInterval) : ℕ → ComplexRatInterval
   | 0 => ComplexRatInterval.zero
   | n + 1 => ComplexRatInterval.add (trapezoidSum nodes n)
       (ComplexRatInterval.add (nodes n) (nodes (n + 1)))
 
-/-- The rational complex trapezoidal enclosure applies the usual half-cell
-average and mesh scaling to the recursive endpoint sum. -/
+/-- For [a sequence of complex rational rectangles](hyp:nodes) and [a mesh size](hyp:n), [the trapezoidal enclosure](goal) is the unscaled trapezoidal rectangle sum multiplied by $1/(2n)$. -/
 def trapezoidEnclosure (nodes : ℕ → ComplexRatInterval) (n : ℕ) : ComplexRatInterval :=
   ComplexRatInterval.smulRat (1 / (2 * n : ℚ)) (trapezoidSum nodes n)
 
-/-- The certified contour enclosure widens the rational trapezoidal enclosure
-by its Lipschitz discretization error. -/
+/-- Given [a sequence of complex rational node rectangles](hyp:nodes), [a rational Lipschitz constant](hyp:L), [the condition that this constant is nonnegative](hyp:hL), [a mesh size](hyp:n), and [the condition that the mesh size is positive](hyp:hn), [the integral enclosure](goal) widens the trapezoidal enclosure by $L/(2n)$ in both coordinates. -/
 def integralEnclosure (nodes : ℕ → ComplexRatInterval) (L : ℚ) (hL : 0 ≤ L)
     (n : ℕ) (hn : 0 < n) : ComplexRatInterval :=
   (trapezoidEnclosure nodes n).expand (L / (2 * n)) (by positivity)

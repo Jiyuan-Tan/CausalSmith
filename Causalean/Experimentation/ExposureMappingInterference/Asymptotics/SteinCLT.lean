@@ -33,8 +33,10 @@ namespace Experiment
 
 variable (E : Experiment)
 
-/-- The studentized HT effect statistic: centered at `τ`, scaled by the true standard error
-`√Var[τ̂]`. -/
+/-- Given [an experiment](hyp:E), [two target exposure levels](hyp:dk,dl), and [a realized
+assignment](hyp:z), the [studentized Horvitz--Thompson effect statistic](goal) is the estimated
+effect minus the corresponding finite-population effect, divided by the true standard deviation
+of the estimator under the randomization design. -/
 noncomputable def studentizedEffect (dk dl : E.Δ) (z : E.Ω) : ℝ :=
   (htEffect E.D E.y E.f E.θ dk dl z - tauTrue E.y dk dl)
     / Real.sqrt (E.D.Var (htEffect E.D E.y E.f E.θ dk dl))

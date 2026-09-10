@@ -45,9 +45,7 @@ variable {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 𝒢] [DecidableEq 𝒢
 
 /-! ### B1. Saturated cohort + period class -/
 
-/-- **B1. Saturated cohort + period class.** Linear `L²` class spanned (a.e.)
-by the family of cohort indicators `𝟙{G = g}` (for `g : 𝒢`) and period
-indicators `𝟙{T_rv = t}` (for `t : Fin T`).
+/-- Given [a finite measure](hyp:μ), [a cohort classifier](hyp:G), [a period classifier](hyp:T_rv), [a measurable cohort classifier](hyp:G_meas), and [a measurable period classifier](hyp:T_meas), [the saturated cohort-and-period function class](goal) consists of functions that agree almost everywhere with a linear combination of cohort and period indicator functions.
 
 Membership predicate (predicate-style, residualization_core D1 option (b)):
 
@@ -62,27 +60,20 @@ noncomputable def panelClass
 
 /-! ### B2. Cell statistics -/
 
-/-- **B2. Cell mass.** `cellMass μ G T_rv g t = (μ {G = g ∧ T_rv = t}).toReal`.
-Plays the role of `ℙ(G = g, T = t) = p_g / |𝒯|` in
-`def:po-estimand-goodman-bacon-panel`. -/
+/-- For [a measure](hyp:μ), [a cohort classifier](hyp:G), [a period classifier](hyp:T_rv), [a cohort](hyp:g), and [a period](hyp:t), [the cohort-period cell mass](goal) is the real-valued mass of observations classified in that cohort-period cell. -/
 def cellMass (μ : Measure Ω) (G : Ω → 𝒢) (T_rv : Ω → Fin T)
     (g : 𝒢) (t : Fin T) : ℝ :=
   CellBridge.jointCellMass μ G T_rv g t
 
-/-- **B2. Cohort mass.** `cohortMass μ G g = (μ {G = g}).toReal`. Plays the
-role of `p_g`. Equals `∑ t, cellMass μ G T_rv g t` under the balanced-law
-hypothesis. -/
+/-- For [a measure](hyp:μ), [a cohort classifier](hyp:G), and [a cohort](hyp:g), [the cohort mass](goal) is the real-valued mass of observations classified in that cohort. -/
 def cohortMass (μ : Measure Ω) (G : Ω → 𝒢) (g : 𝒢) : ℝ :=
   CellBridge.cellMass μ G g
 
-/-- **B2. Period mass.** `periodMass μ T_rv t = (μ {T_rv = t}).toReal`.
-Plays the role of `1/|𝒯|` under the balanced-law hypothesis. -/
+/-- For [a measure](hyp:μ), [a period classifier](hyp:T_rv), and [a period](hyp:t), [the period mass](goal) is the real-valued mass of observations classified in that period. -/
 def periodMass (μ : Measure Ω) (T_rv : Ω → Fin T) (t : Fin T) : ℝ :=
   CellBridge.cellMass μ T_rv t
 
-/-- **B2. Cell mean.** `cellMean μ Y G T_rv g t` plays the role of
-`Y_{gt} = E[Y | G = g, T = t]` from the LaTeX panel definition.
-On zero-mass cells the value is `0` by Mathlib's `0/0 = 0` convention. -/
+/-- For [a measure](hyp:μ), [an outcome variable](hyp:Y), [a cohort classifier](hyp:G), [a period classifier](hyp:T_rv), [a cohort](hyp:g), and [a period](hyp:t), [the cohort-period cell mean](goal) is the outcome integral over that cell divided by its mass, and is zero when the cell has zero mass. -/
 noncomputable def cellMean (μ : Measure Ω) (Y : Ω → ℝ) (G : Ω → 𝒢)
     (T_rv : Ω → Fin T) (g : 𝒢) (t : Fin T) : ℝ :=
   (∫ ω, Y ω
@@ -105,8 +96,7 @@ theorem cellMean_eq_cellBridge (μ : Measure Ω) (Y : Ω → ℝ) (G : Ω → �
     ext ω
     simp
 
-/-- **B2. Cohort mean treatment share.** `cohortBarD μ D G g` plays the role
-of `\overline{D}_g = E[D | G = g]`. -/
+/-- For [a measure](hyp:μ), [a treatment variable](hyp:D), [a cohort classifier](hyp:G), and [a cohort](hyp:g), [the cohort mean treatment share](goal) is the treatment integral over that cohort's cell divided by its mass, and is zero when the cell has zero mass. -/
 noncomputable def cohortBarD (μ : Measure Ω) (D : Ω → ℝ) (G : Ω → 𝒢)
     (g : 𝒢) : ℝ :=
   (∫ ω, D ω * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω ∂μ)
@@ -114,9 +104,7 @@ noncomputable def cohortBarD (μ : Measure Ω) (D : Ω → ℝ) (G : Ω → 𝒢
 
 /-! ### B2. `panelOf` — Layer A panel built from the law -/
 
-/-- **B2. Bridge to Layer A.** Constructs a `CohortPanel 𝒢 T` from a
-measure carrying the cell-level data plus an explicit adoption
-date `A : 𝒢 → WithTop (Fin T)`. -/
+/-- Given [a measure](hyp:μ), [an outcome variable](hyp:Y), [a cohort classifier](hyp:G), [a period classifier](hyp:T_rv), [an adoption-date schedule](hyp:A), [a positive number of periods](hyp:hT_pos), [strictly positive cohort masses](hyp:hp_pos), and [cohort masses summing to one](hyp:hp_sum), [the cohort panel constructed from the law](goal) has those cohort masses as shares, the supplied adoption dates, and cohort-period outcome means. -/
 noncomputable def panelOf
     (μ : Measure Ω)
     (Y : Ω → ℝ) (G : Ω → 𝒢) (T_rv : Ω → Fin T)
@@ -134,8 +122,9 @@ noncomputable def panelOf
 
 /-! ### B3. In-class projections for `D` and `Y` -/
 
-/-- **B3. Saturated cohort+period propensity for `D`.** The pointwise
-representative
+/-- For [a measure](hyp:μ), [a treatment variable](hyp:D), [a cohort classifier](hyp:G), and [a period classifier](hyp:T_rv), [the saturated cohort-and-period propensity regression](goal) assigns each observation its cohort mean treatment plus its period mean treatment minus the overall mean treatment.
+
+The pointwise representative
 
     panelPropensity μ D G T_rv ω
       := \overline{D}_{G ω} + (E[D | T = T_rv ω] - E[D])
@@ -154,8 +143,7 @@ noncomputable def panelPropensity
         - ∫ ω', D ω' ∂μ)
       * Set.indicator {ω' | T_rv ω' = t} (fun _ => (1 : ℝ)) ω)
 
-/-- **B3. Saturated cohort+period mean regression for `Y`.** Analogous to
-`panelPropensity`, with `Y` in place of `D`. -/
+/-- For [a measure](hyp:μ), [an outcome variable](hyp:Y), [a cohort classifier](hyp:G), and [a period classifier](hyp:T_rv), [the saturated cohort-and-period outcome regression](goal) assigns each observation its cohort mean outcome plus its period mean outcome minus the overall mean outcome. -/
 noncomputable def panelMeanReg
     (μ : Measure Ω) (Y : Ω → ℝ) (G : Ω → 𝒢) (T_rv : Ω → Fin T) : Ω → ℝ :=
   fun ω =>

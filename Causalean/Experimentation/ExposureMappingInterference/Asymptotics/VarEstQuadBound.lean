@@ -44,19 +44,36 @@ variable {ι Θ Δ : Type*} [Fintype ι] [DecidableEq ι] [DecidableEq Δ]
 
 /-! ### Edge-function decomposition of `V̂_raw` -/
 
-/-- Diagonal (variance) summand of `ŷVar(d)`: `1ᵢ(d)·(1−πᵢ)·(Yᵢ/πᵢ)²`. -/
+/-- For a [finite assignment space](hyp:Ω), [a finite unit population](hyp:ι), [a unit-trait
+space](hyp:Θ), [an exposure space](hyp:Δ), [a randomization design](hyp:D),
+[exposure-indexed potential outcomes](hyp:y), [an exposure mapping](hyp:f), [unit traits](hyp:θ),
+[an exposure level](hyp:d), [a unit](hyp:i), and [an assignment](hyp:z), the [diagonal variance
+summand](goal) is the observed exposure indicator times one minus that unit's exposure probability
+times the square of its inverse-propensity-weighted observed outcome. -/
 noncomputable def diagVar (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (d : Δ) (i : ι) (z : Ω) : ℝ :=
   expoInd f θ i d z * (1 - prop D f θ i d) * (Yobs y f θ i z / prop D f θ i d) ^ 2
 
-/-- Off-diagonal (variance) summand of `ŷVar(d)`. -/
+/-- For a [finite assignment space](hyp:Ω), [a finite unit population](hyp:ι), [a unit-trait
+space](hyp:Θ), [an exposure space](hyp:Δ), [a randomization design](hyp:D),
+[exposure-indexed potential outcomes](hyp:y), [an exposure mapping](hyp:f), [unit traits](hyp:θ),
+[an exposure level](hyp:d), [two units](hyp:i,j), and [an assignment](hyp:z), the [off-diagonal
+variance summand](goal) is the product of their observed exposure indicators, their centered
+joint-exposure probability divided by their joint-exposure probability, and their two
+inverse-propensity-weighted observed outcomes. -/
 noncomputable def offVar (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (d : Δ) (i j : ι) (z : Ω) : ℝ :=
   expoInd f θ i d z * expoInd f θ j d z
     * ((propPairSame D f θ i j d - prop D f θ i d * prop D f θ j d) / propPairSame D f θ i j d)
     * (Yobs y f θ i z / prop D f θ i d * (Yobs y f θ j z / prop D f θ j d))
 
-/-- Off-diagonal summand of the covariance estimator `Ĉov`. -/
+/-- For a [finite assignment space](hyp:Ω), [a finite unit population](hyp:ι), [a unit-trait
+space](hyp:Θ), [an exposure space](hyp:Δ), [a randomization design](hyp:D),
+[exposure-indexed potential outcomes](hyp:y), [an exposure mapping](hyp:f), [unit traits](hyp:θ),
+[two exposure levels](hyp:dk,dl), [two units](hyp:i,j), and [an assignment](hyp:z), the
+[off-diagonal covariance summand](goal) is the product of the corresponding two exposure
+indicators, their centered cross-exposure probability divided by their cross-exposure probability,
+and their two inverse-propensity-weighted observed outcomes. -/
 noncomputable def offCov (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (dk dl : Δ) (i j : ι) (z : Ω) : ℝ :=
   expoInd f θ i dk z * expoInd f θ j dl z
@@ -64,30 +81,52 @@ noncomputable def offCov (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω �
         / propPairCross D f θ i j dk dl)
     * (Yobs y f θ i z / prop D f θ i dk * (Yobs y f θ j z / prop D f θ j dl))
 
-/-- Diagonal (Young) correction summand of `Ĉov`. -/
+/-- For a [finite assignment space](hyp:Ω), [a finite unit population](hyp:ι), [a unit-trait
+space](hyp:Θ), [an exposure space](hyp:Δ), [a randomization design](hyp:D),
+[exposure-indexed potential outcomes](hyp:y), [an exposure mapping](hyp:f), [unit traits](hyp:θ),
+[two exposure levels](hyp:dk,dl), [a unit](hyp:i), and [an assignment](hyp:z), the [diagonal
+covariance correction summand](goal) is one half of the inverse-propensity-weighted squared
+observed outcome for each target exposure, added together. -/
 noncomputable def diagCov (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (dk dl : Δ) (i : ι) (z : Ω) : ℝ :=
   expoInd f θ i dk z * (Yobs y f θ i z) ^ 2 / (2 * prop D f θ i dk)
     + expoInd f θ i dl z * (Yobs y f θ i z) ^ 2 / (2 * prop D f θ i dl)
 
-/-- Diagonal edge term: `diagVar(dk) + diagVar(dl) + 2·diagCov`. -/
+/-- For a [finite assignment space](hyp:Ω), [a finite unit population](hyp:ι), [a unit-trait
+space](hyp:Θ), [an exposure space](hyp:Δ), [a randomization design](hyp:D),
+[exposure-indexed potential outcomes](hyp:y), [an exposure mapping](hyp:f), [unit traits](hyp:θ),
+[two exposure levels](hyp:dk,dl), [a unit](hyp:i), and [an assignment](hyp:z), the [diagonal
+edge term](goal) is the sum of the two diagonal variance summands plus twice the diagonal
+covariance correction. -/
 noncomputable def vbDiag (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (dk dl : Δ) (i : ι) (z : Ω) : ℝ :=
   diagVar D y f θ dk i z + diagVar D y f θ dl i z + 2 * diagCov D y f θ dk dl i z
 
-/-- Off-diagonal edge term: `offVar(dk) + offVar(dl) − 2·offCov`. -/
+/-- For a [finite assignment space](hyp:Ω), [a finite unit population](hyp:ι), [a unit-trait
+space](hyp:Θ), [an exposure space](hyp:Δ), [a randomization design](hyp:D),
+[exposure-indexed potential outcomes](hyp:y), [an exposure mapping](hyp:f), [unit traits](hyp:θ),
+[two exposure levels](hyp:dk,dl), [two units](hyp:i,j), and [an assignment](hyp:z), the
+[off-diagonal edge term](goal) is the sum of the two off-diagonal variance summands minus twice
+the off-diagonal covariance summand. -/
 noncomputable def vbOff (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (dk dl : Δ) (i j : ι) (z : Ω) : ℝ :=
   offVar D y f θ dk i j z + offVar D y f θ dl i j z - 2 * offCov D y f θ dk dl i j z
 
-/-- The edge-function for `V̂_raw`: diagonal term on `i = j`, off-diagonal term otherwise. -/
+/-- For a [finite assignment space](hyp:Ω), [a finite unit population](hyp:ι), [a unit-trait
+space](hyp:Θ), [an exposure space](hyp:Δ), [a randomization design](hyp:D),
+[exposure-indexed potential outcomes](hyp:y), [an exposure mapping](hyp:f), [unit traits](hyp:θ),
+[two exposure levels](hyp:dk,dl), [two units](hyp:i,j), and [an assignment](hyp:z), the [edge
+function for the unscaled effect-variance estimator](goal) equals the diagonal edge term when
+the two units coincide and the off-diagonal edge term otherwise. -/
 noncomputable def vb (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (dk dl : Δ) (i j : ι) (z : Ω) : ℝ :=
   if i = j then vbDiag D y f θ dk dl i z else vbOff D y f θ dk dl i j z
 
-/-- Uniform pointwise bound on the edge-function, from Conditions 1 and 1'.  Chosen large enough
-to dominate both the squared inverse-propensity terms (`∝ c₂²`) and the Young-correction terms
-(`∝ c₂`), uniformly in the joint-overlap constant `c₃`. -/
+/-- For [three real constants](hyp:c₁,c₂,c₃), the [edge-function bound](goal) is
+$4(1+c_3)c_1^2(c_2^2+c_2)$.
+
+It is chosen large enough to dominate both the squared inverse-propensity terms (`∝ c₂²`) and the
+Young-correction terms (`∝ c₂`), uniformly in the joint-overlap constant `c₃`. -/
 noncomputable def vbBound (c₁ c₂ c₃ : ℝ) : ℝ :=
   4 * (1 + c₃) * c₁ ^ 2 * (c₂ ^ 2 + c₂)
 

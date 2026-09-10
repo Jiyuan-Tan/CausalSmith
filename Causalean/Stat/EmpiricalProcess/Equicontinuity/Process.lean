@@ -47,7 +47,13 @@ variable {Ω X E : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
 
 namespace IIDSample
 
-/-- **Vector-valued centered empirical process.**
+/-- For [an independent and identically distributed sample](hyp:S), [a function from one
+observation to a real normed vector space](hyp:f), [a nonnegative integer sample size](hyp:n),
+and [the vector-valued centered empirical process](goal) is the function that assigns to each
+sample-space outcome the sum of the function over the first $n$ observations divided by
+$\sqrt n$, minus $\sqrt n$ times its population integral.
+
+**Vector-valued centered empirical process.**
 
 `Gₙ(f)(ω) = (√n)⁻¹ • Σ_{i<n} f(Zᵢ ω) − √n • ∫ f dP`, the `E`-valued analogue of
 `IIDSample.empiricalProcess` (which is the `ℝ`-valued version in

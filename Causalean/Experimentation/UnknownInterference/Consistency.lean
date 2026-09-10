@@ -89,10 +89,14 @@ namespace SAHExperiment
 
 variable (E : SAHExperiment)
 
-/-- The Bernoulli design of the experiment. -/
+/-- For [a packaged Sävje--Aronow--Hudgens experiment](hyp:E), the [experiment's Bernoulli
+randomization design](goal) independently assigns each unit treatment according to that
+experiment's stated marginal treatment probabilities. -/
 noncomputable def D : FiniteDesign (E.U → Bool) := bernoulliDesign E.p E.hp0 E.hp1
 
-/-- The EATE estimand of the experiment. -/
+/-- For [a packaged Sävje--Aronow--Hudgens experiment](hyp:E), the [experiment's expected average
+treatment-effect estimand](goal) is the expectation, under its Bernoulli randomization design, of
+the assignment-conditional average treatment effect determined by its potential outcomes. -/
 noncomputable def eate : ℝ := EATE E.D E.y
 
 /-- The treatment probabilities are nonzero (from lower overlap). -/

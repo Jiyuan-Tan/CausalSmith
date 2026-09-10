@@ -1,0 +1,1079 @@
+{
+  "qid": "exp_dense_group_partition_projection_phase",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "stage": "F1",
+  "feasibility": "needs-new-infrastructure",
+  "lean_target_subdirectory": "CausalSmith/Experimentation/EXP_DenseGroupPartitionProjectionPhase_Research",
+  "lean_namespace": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase",
+  "decisions": [
+    "The brief carries no `state.theorems` paper manifest, so the paper-scoped preamble is inert. Local ids `t1`..`t9` are minted in core statement order over the nine paper-owned (non-cited) statements and are set on those nodes; the four `status:\"cited\"` lemmas are substrate-gates and are deliberately excluded from the manifest.",
+    "`design_decisions` is empty in the brief, so no scope simplification is applied: every symbol, definition, assumption and statement of the typed core is mapped, at the paper's own abstraction level.",
+    "All nine paper-owned statements are `defer_tier:false, gate:false` regardless of proof difficulty (notably `thm:qv-diagonal-impossibility` and `thm:exact-pame-variance`). The only deferred nodes are the four frozen `status:\"cited\"` logical-claim lemmas.",
+    "Each cited gate node carries `source` as the minted `cite:<slug>` id STRING (schema shape), and the full bibliographic payload — title, authors, year, bibkey, locator, carrier, url, verbatim statement and attestation — lives in the matching `citations[]` entry. For the two software-contract citations the frozen core `source.verbatim_statement` is a multi-kilobyte transcription of pinned CRAN source; the citation entry records `verbatim_statement_ref` pointing at the frozen core field rather than re-transcribing it, to eliminate any risk of transcription drift. The two mathematical citations carry their short verbatim statements inline.",
+    "The abstract-projection encoding: the Johnson harmonic family `Pi` enters as *data* (a linear family on the slice) and the two cited facts about it (orthogonal degree decomposition; unnormalized Kneser adjacency eigenvalue) enter as two named `Sort 0` props threaded into consumers. Nothing about the decomposition or the spectrum is baked into a structure field, so no cited content is silently assumed.",
+    "A statement whose `depends_on` does not itself list a cited gate but which *uses* a gated theorem (e.g. `thm:exact-pame-variance` uses `thm:exact-kneser-identity`) records the gates it must carry as Lean binders in a `threaded_gates` field rather than in `hyps`, because `hyps` must remain a subset of the node's own core `depends_on` (gate check P4).",
+    "Node-level companion declarations introduced in the same block as a node's primary declaration (estimand next to estimator, `V_{z,n}` next to the arm table, etc.) are listed in a `companions` field; each core node still maps to exactly one primary `lean_name`.",
+    "Round-3 revision: the two-stage design's independent combination reuses `prodDesign` over a two-element DEPENDENT stage family (`alpha : Fin 2 -> Type`), transported to the pair type by the existing pushforward `FiniteDesign.map`; the round-2 plan's local `pairDesign` combinator and its stated justification (that `prodDesign` cannot express a heterogeneous pair) are withdrawn as false. Only the stage-one uniform partition-tuple law remains define-local. Affected entries edited: S3, S4, [def:random-partition-design], `file_plan[Helpers/PartitionDesign.lean]`, the two `substrate_survey` rows for `Product*` and `{TwoStage,CompoundVariance}`, and `gate_self_check.P5`. No disposition, `defer_tier`, `gate`, `hyps`, `members` or manifest entry moved as a result.",
+    "Round-4 revision (P3 kind fix, minimal diff): [def:johnson-decomposition] is a core CONSTRUCTION (`inputs: [\"f\"]`), so its `lean_kind` moves from `structure` to `def` and its `lean_name` from `JohnsonProjections` to the construction `johnsonComponents` (already scaffolded at `Helpers/Kneser.lean:55` as `fun k => J.proj k f`), with `JohnsonProjections` demoted to a companion supplying the projection data. Only three entries are touched: the node itself, the S2 world note and the [def:dense-correction] note that referenced the anchor by name, plus `gate_self_check.P3`. Because a construction is USED and never assumed, no statement's `hyps` cite this node, no class `members` list changes, and no disposition, `defer_tier`, `gate`, `target_file`, module list, world choice or manifest entry moves; the dependency closure of the fix (thm:exact-kneser-identity, thm:dense-projection-limit, thm:cr2-phase-frontier, def:dense-correction, def:kneser-covariance and the two cited Johnson/Kneser gates) was traced through the core `depends_on` edges and requires no further edit beyond the one renamed reference.",
+    "Round-5 revision (search-trace patch, minimal diff): the reviewer flagged six define-local entries whose notes had been overwritten by earlier redirect/sync-back edits and so carried no re-runnable search trace — [def:pame-estimator], [def:dense-correction], [def:dense-schedule-class], [def:eight-unit-witness], [ass:bounded-potential-outcomes] and [ass:scaled-variance-nondegeneracy]. Each now records the literal grep/leansearch queries, the modules scanned, the decls found, and an explicit type-fit verdict; a Mathlib-side check is included for every plausibly-standard fact (bounded-family predicate, liminf lower bound, triangular-array abstraction, orthogonal-projection energy, perfect-matching enumeration). [def:kneser-covariance] additionally gains a one-line pointer to the shared Johnson/Kneser sweep already recorded in [S2]. One substantive improvement follows from the re-survey: the named `DifferenceInMeans` substrate does type-fit the paper's estimator at FIXED stage-one draw, so `diffInMeans`/`treatedMean`/`controlMean`/`E_diffInMeans_eq_sate`/`sateEstimand` are now listed in [def:pame-estimator].`internal_reuse` and the composition is prescribed for F2; the node stays `define-local` because its Lean object must live on the joint two-stage space and carry the joint `sigmaSq`, which no decl provides. No disposition, `defer_tier`, `gate`, `hyps`, `threaded_gates`, `members`, `target_file`, world choice, citation, `infrastructure_needed` entry or manifest entry moves, so the dependency closure of the patch is empty beyond the notes themselves.",
+    "Stage-2 sync-back: `twoStageSpace` uses `Bool` rather than `Fin 2` as the definitionally reducing two-element index (`false` = partition tuple, `true` = treatment set). This is an encoding-only adjustment forced by dependent `Fintype` elaboration; `prodDesign` and `FiniteDesign.map` remain the planned exact reuses, and no node disposition, hypothesis, gate, member, file, or mathematical statement changes."
+  ],
+  "env": [
+    {
+      "id": "S1",
+      "world": "A finite population \\(\\mathcal U_n=\\{1,\\ldots,n\\}\\) of labeled units carries a completely deterministic, composition-indexed potential-outcome schedule: for each arm \\(z\\in\\mathcal Z=\\{0,1\\}\\), each candidate group \\(A\\in\\Omega_{n,M}=\\{A\\subseteq\\mathcal U_n:|A|=M\\}\\) of the fixed common size \\(M\\ge2\\), and each \\(i\\in A\\), a real number \\(Y_{i,n}(z,A)\\) with \\(\\sup_{n,i,z,A}|Y_{i,n}(z,A)|\\le B<\\infty\\). No superpopulation and no sampling law over units is introduced. The slice \\(\\Omega_{n,M}\\) is equipped with the uniform law, which supplies the averaging operator \\(\\mathbb E_nf=\\binom nM^{-1}\\sum_{A\\in\\Omega_{n,M}}f(A)\\), the inner product \\(\\langle f,g\\rangle_n=\\mathbb E_n[fg]\\) and the norm \\(\\|f\\|_n^2=\\langle f,f\\rangle_n\\) on \\(L^2(\\Omega_{n,M})\\). The group-level schedule is the arm table \\(h_{z,n}(A)=M^{-1}\\sum_{i\\in A}Y_{i,n}(z,A)\\), with centering \\(h_{z,n}^{\\circ}=h_{z,n}-\\mathbb E_nh_{z,n}\\) and uniform-slice arm variance \\(V_{z,n}=\\langle h_{z,n}^{\\circ},h_{z,n}^{\\circ}\\rangle_n\\).",
+      "binds_symbols": [
+        "n",
+        "M",
+        "B",
+        "\\mathcal U_n",
+        "\\Omega_{n,M}",
+        "\\mathcal Z",
+        "Y_{i,n}(z,A)",
+        "h_{z,n}",
+        "\\mathbb E_n",
+        "\\langle\\cdot,\\cdot\\rangle_n",
+        "\\|\\cdot\\|_n",
+        "h_{z,n}^{\\circ}",
+        "V_{z,n}"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "reuse",
+      "reuse": "Causalean.Experimentation.DesignBased.completeRandomization",
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization",
+        "Causalean.Experimentation.FinitePopulationMoments",
+        "Mathlib.Data.Finset.Powerset",
+        "Mathlib.Data.Fintype.Powerset"
+      ],
+      "notes": "Exact-fit world reuse. `completeRandomization (V := Fin n) M hM : FiniteDesign {A : Finset (Fin n) // A.card = M}` (`Designs/CompleteRandomization.lean:58`) IS the uniform \\(M\\)-slice: its `p` is the constant \\(1/\\binom nM\\) (`:62`, `completeRandomization_card :44` + `Fintype.card_finset_len`). Hence `Omega n M := {A : Finset (Fin n) // A.card = M}` and `slice n M := completeRandomization M hM`, with \\(\\mathbb E_n\\) = `FiniteDesign.E`, \\(\\langle\\cdot,\\cdot\\rangle_n\\) = `FiniteDesign.E (fun A => f A * g A)`, \\(V_{z,n}\\) = `FiniteDesign.Var`. All \\(L^2\\) algebra (linearity, `Var_eq`, `Cov_eq`, `Cov_linear_comb`, `Var_linear_comb`, `Var_sub`, `Var_const_mul`) comes free from `DesignCore.lean`. Inclusion moments `completeRandomization_incl :246` and `completeRandomization_incl_pair :287` and the exact SRSWOR mean/variance `FinitePopulationMoments.E_sampleMean` / `Var_sampleMean` (`(1/M - 1/n) * popVar`) are reused downstream for additive schedules. SEARCH: read ../doc/API.md section 18 (`grep '^## '` index, offset 2129); grep -rn 'completeRandomization|sampleMean|popVar' ../Causalean/Experimentation → the two modules above; lean_leansearch 'number of subsets of size k disjoint from a given set' → `Finset.card_powersetCard`, `Fintype.card_finset_len` (Mathlib side confirmed)."
+    },
+    {
+      "id": "S2",
+      "world": "The uniform \\(M\\)-slice \\(\\Omega_{n,M}\\), for \\(n\\ge2M\\), is regarded as the vertex set of the Johnson association scheme. Its function space \\(L^2(\\Omega_{n,M})\\) carries harmonic degree subspaces \\(\\mathcal H_{n,0},\\ldots,\\mathcal H_{n,M}\\) with \\(\\langle\\cdot,\\cdot\\rangle_n\\)-orthogonal projections \\(\\Pi_{n,k}\\), and the normalized Kneser disjointness operator \\((\\mathsf K_nf)(A)=\\binom{n-M}{M}^{-1}\\sum_{C\\in\\Omega_{n,M}:C\\cap A=\\varnothing}f(C)\\), which averages \\(f\\) over a uniform group disjoint from \\(A\\) and acts on \\(\\mathcal H_{n,k}\\) by the scalar \\(\\lambda_{n,k}\\). The derived quadratic functionals of the arm table are the ordered-disjoint covariances \\(C_{ab,n}=\\langle h_{a,n}^{\\circ},\\mathsf K_nh_{b,n}^{\\circ}\\rangle_n\\) for \\(a,b\\in\\mathcal Z\\), their contrast \\(C_{\\tau\\tau,n}=C_{11,n}+C_{00,n}-2C_{10,n}\\), and the degree-one arm-difference energy \\(E_{\\tau,1,n}=\\|\\Pi_{n,1}(h_{1,n}-h_{0,n})\\|_n^2\\).",
+      "binds_symbols": [
+        "\\mathcal H_{n,k}",
+        "\\Pi_{n,k}",
+        "\\mathsf K_n",
+        "\\lambda_{n,k}",
+        "C_{ab,n}",
+        "C_{\\tau\\tau,n}",
+        "E_{\\tau,1,n}"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization",
+        "Mathlib.Data.Finset.Powerset",
+        "Mathlib.Data.Nat.Choose.Basic"
+      ],
+      "notes": "Redirect-synchronized local Johnson world. The concrete inclusion-monomial filtration defines each canonical harmonic degree space. `JohnsonProjections` is a genuine orthogonal projection structure with ranges fixed to those spaces, and the node anchor for [def:johnson-decomposition] is the construction `johnsonComponents J f` built over it (round-4 kind correction: the core node has `inputs`, so its Lean object is that `def`, with the structure retained as supporting projection data). The cited Johnson gate supplies centered completeness and cross-degree orthogonality, and the cited Kneser gate states the adjacency eigenvalue on the same canonical spaces. The normalized operator and covariance remain local constructions. Causalean and Mathlib still contain no Johnson/Kneser association-scheme implementation (grep -rni 'johnson|kneser|BoseMesner|associationScheme' ../Causalean → zero hits, re-run this round; Mathlib has only `SimpleGraph.StronglyRegular` generalities)."
+    },
+    {
+      "id": "S3",
+      "world": "The two-stage dense random-group design on the population of S1. First an ordered tuple \\(\\mathbf A_n=(A_{n1},\\ldots,A_{nG_n})\\) is drawn uniformly from the ordered tuples of pairwise-disjoint members of \\(\\Omega_{n,M}\\), so that \\(N_n=MG_n\\le n\\) units are grouped and the grouped-unit fraction satisfies \\(N_n/n\\to\\rho\\in[0,1]\\); no birthday-scale condition on \\(N_n^2/n\\) is imposed. Then, independently of \\(\\mathbf A_n\\), a group-treatment vector \\(\\mathbf Z_n\\in\\{0,1\\}^{G_n}\\) is drawn uniformly among vectors with exactly \\(G_{1n}\\) treated groups, \\(G_{0n}=G_n-G_{1n}\\), \\(p_n=G_{1n}/G_n\\to p\\in(0,1)\\); treatment is shared within each realized group. The assignment is the only randomness. This world carries the observed group means \\(H^{\\mathrm{obs}}_{ng}=Z_{ng}h_{1,n}(A_{ng})+(1-Z_{ng})h_{0,n}(A_{ng})\\), the estimand \\(\\tau_n=\\mathbb E_nh_{1,n}-\\mathbb E_nh_{0,n}\\) and its difference-in-means estimator \\(\\widehat\\tau_n=G_{1n}^{-1}\\sum_gZ_{ng}h_{1,n}(A_{ng})-G_{0n}^{-1}\\sum_g(1-Z_{ng})h_{0,n}(A_{ng})\\) with exact design variance \\(\\sigma_n^2=\\operatorname{Var}(\\widehat\\tau_n)\\), the independent-group leading variance \\(R_n=V_{1,n}/p_n+V_{0,n}/(1-p_n)\\), the within-arm sample variances \\(s_{z,n}^2\\) and the scalar equal-group CR2 statistic \\(\\widehat V_{\\mathrm{CR2},n}=s_{1,n}^2/G_{1n}+s_{0,n}^2/G_{0n}\\). The one-realization observation channel is \\(\\mathcal O_n=(\\mathcal U_n,\\mathbf A_n,\\mathbf Z_n,\\{Y_{i,n}(Z_{ng},A_{ng})\\})\\), on which an arbitrary variance statistic \\(\\widehat S_n(\\mathcal O_n)\\) may be computed. Triangular arrays of such rows satisfying growth, fraction, envelope and scaled-variance conditions form the uniformity class \\(\\mathcal C_{\\mathrm{dense}}\\) with constants \\(B\\) and \\(c_\\sigma\\). There are no superpopulation nuisances.",
+      "binds_symbols": [
+        "G_n",
+        "G_{1n}",
+        "G_{0n}",
+        "N_n",
+        "p_n",
+        "p",
+        "\\rho",
+        "c_\\sigma",
+        "\\mathbf A_n",
+        "\\mathbf Z_n",
+        "H^{\\mathrm{obs}}_{ng}",
+        "\\tau_n",
+        "\\widehat\\tau_n",
+        "\\sigma_n^2",
+        "R_n",
+        "s_{z,n}^2",
+        "\\widehat V_{\\mathrm{CR2},n}",
+        "\\mathcal O_n",
+        "\\widehat S_n",
+        "\\mathcal C_{\\mathrm{dense}}"
+      ],
+      "binds_sampling_model": true,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization",
+        "Causalean.Experimentation.DesignBased.Chebyshev",
+        "Causalean.Experimentation.DesignBased.InProb",
+        "Causalean.Experimentation.DesignBased.FiniteDesignMeasure",
+        "Causalean.Experimentation.DesignBased.Product",
+        "Causalean.Experimentation.DesignBased.ProductVariance"
+      ],
+      "notes": "Partial world reuse: only the stage-one law is new; the stage-two law AND the independent two-stage combination are both existing decls. Stage two is an EXACT reuse: `completeRandomization (V := Fin G) G1 h : FiniteDesign {S : Finset (Fin G) // S.card = G1}` is exactly the complete randomization of group labels, and `completeRandomization_incl` / `completeRandomization_incl_pair` are exactly the first- and second-order moments \\(p_n\\) and \\(G_{1n}(G_{1n}-1)/(G_n(G_n-1))\\) that the variance proof needs. The independent combination of the two stages is EXACT reuse of `prodDesign`: its signature `prodDesign (D : forall i, FiniteDesign (alpha i)) : FiniteDesign (forall i, alpha i)` (`Product.lean:49`, with `alpha : iota -> Type*` at `:43`) is parameterized by a DEPENDENT family, so a two-index family `alpha : Fin 2 -> Type` given by `alpha 0 := PartitionTuple n M G`, `alpha 1 := {S : Finset (Fin G) // S.card = G1}` realizes exactly the independent heterogeneous pair; `randomPartitionDesign := (prodDesign twoStageDesigns).map (fun w => (w 0, w 1))` then transports the outcome to the product type through the existing pushforward `FiniteDesign.map` (`DesignCore.lean:323`) along that `Equiv`, with `FiniteDesign.E_map` / `Pr_map` (`:343`, `:357`) carrying every expectation and probability identity across. No local product combinator is written. Structural cross-stage independence is then free from `E_prod_prod` / `E_prod_apply` / `Cov_prod_apply_of_ne` (`Product.lean:68,79`, `ProductVariance.lean:77`). Stage one alone has NO analogue in either library: `PartitionTuple n M G := {T : Fin G -> Omega n M // Pairwise (fun g g' => Disjoint (T g).val (T g').val)}` with the uniform law is new. Convergence in probability reuses `FiniteDesign.TendstoInProb` / `tendstoInProb_of_var` / `tendstoInProb_div_one` / `TendstoInProb.sub` / `deterministic_tendstoInProb` / `tendstoInProb_continuousMap` (`InProb.lean`, indexed by `n` exactly as the triangular array needs) and `FiniteDesign.chebyshev`. `FiniteDesign.map` (`DesignCore.lean:323`) pushes the design forward to the observed-data space \\(\\mathcal O_n\\); `FiniteDesign.toMeasure` (`FiniteDesignMeasure.lean:51`) bridges to `Causalean.Stat.tvDist`. SEARCH: grep -rn 'partition|disjoint.*tuple|perfect matching' ../Causalean/Experimentation → `ProductBlock.lean` (disjoint coordinate *blocks* of a product design, not disjoint random subsets), `MatchedPairDesign/` (a FIXED pairing `P` with independent within-pair coins, i.e. the pairing is not randomized) — neither is the random-partition first stage; lean_leansearch 'uniform random partition of a finite set into blocks of equal size' → no Mathlib decl (`Finpartition` exists but carries no uniform law). RE-SURVEY (round 3, combination step): grep -n 'def prodDesign' -A8 ../Causalean/Experimentation/DesignBased/Product.lean → `:49` with `variable {alpha : iota -> Type*} [forall i, Fintype (alpha i)]` at `:43`, i.e. the dependent family DOES express a heterogeneous pair over a two-element index; grep -n 'def map|E_map|Pr_map' ../Causalean/Experimentation/DesignBased/DesignCore.lean → `:323`, `:343`, `:357`. The earlier claim that a new heterogeneous pair combinator was needed is withdrawn."
+    },
+    {
+      "id": "S4",
+      "world": "Randomized deterministic-schedule priors on the population of S1, used to compare observationally identical experiments, together with one finite deterministic witness. Under \\(\\mathbb H_n^{\\mathrm{same}}\\), independent Rademacher signs \\(U_1,\\ldots,U_n\\) generate the additive no-interference schedule \\(Y_{i,n}(1,A)=Y_{i,n}(0,A)=U_i\\) for every admissible \\((i,A)\\); under \\(\\mathbb H_n^{\\mathrm{ind}}\\), independent Rademacher pairs \\((U_i,V_i)\\) generate \\(Y_{i,n}(1,A)=U_i\\) and \\(Y_{i,n}(0,A)=V_i\\). Both priors are supported on additive schedules with envelope \\(1\\), and both are drawn independently of the design of S3. Alongside them sits the balanced deterministic eight-unit sign vector \\(\\mathbf a_8=(1,1,1,1,-1,-1,-1,-1)\\in\\{-1,1\\}^8\\).",
+      "binds_symbols": [
+        "\\mathbb H_n^{\\mathrm{same}}",
+        "\\mathbb H_n^{\\mathrm{ind}}",
+        "\\mathbf a_8"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "reuse",
+      "reuse": "Causalean.Experimentation.DesignBased.prodDesign",
+      "modules": [
+        "Causalean.Experimentation.DesignBased.Product",
+        "Causalean.Experimentation.DesignBased.ProductVariance",
+        "Causalean.Experimentation.DesignBased.Designs.Coin",
+        "Causalean.Experimentation.DesignBased.ProductBlock",
+        "Causalean.Experimentation.FinitePopulationMoments"
+      ],
+      "notes": "Exact-fit reuse: the product Rademacher priors are `prodDesign (fun _ : Fin n => coinDesign (1/2) _ _)` (`Product.lean:49`, `Designs/Coin.lean:26`) for \\(\\mathbb H^{\\mathrm{same}}\\) and the flat homogeneous product `prodDesign (fun _ : Fin n x Bool => coinDesign (1/2) _ _)` for \\(\\mathbb H^{\\mathrm{ind}}\\), whose two coordinates `(i, true)` and `(i, false)` are the pair \\((U_i,V_i)\\) (no pair combinator is needed: the index type carries the arm label, so `Cov_prod_apply_of_ne` applies verbatim to distinct `(i,z)`); signs are read off as `fun b => if b then (1:R) else -1`. Cross-coordinate independence is then structural, and `FiniteDesign.E_prod_prod` / `E_prod_apply` / `E_prod_apply2` / `Cov_prod_apply_of_ne` / `Var_prod_linear_comb` (`Product.lean`, `ProductVariance.lean`) give the Chebyshev concentration of the empirical sign variances that the prior-probability limits need; `E_prod_block_mul` / `Cov_prod_disjoint_zero` (`ProductBlock.lean`) cover the block form. `\\mathbf a_8` is a literal `Fin 8 -> R`. SEARCH: grep -rn 'coinDesign|prodDesign|bernoulliDesign|Rademacher' ../Causalean/Experimentation → the modules above; lean_leansearch 'independent Rademacher signs product measure' → Mathlib `PMF`/`Measure.pi` alternatives, but the finite-sum `prodDesign` layer is the one this cluster's substrate already uses, so no Mathlib bypass is warranted."
+    }
+  ],
+  "citations": [
+    {
+      "id": "cite:brouwer-et-al-2018",
+      "title": "The Smallest Eigenvalues of Hamming Graphs, Johnson Graphs and Other Distance-Regular Graphs with Classical Parameters",
+      "authors": "Andries E. Brouwer, Sebastian M. Cioaba, Ferdinand Ihringer, and Matt McGinnis",
+      "year": 2018,
+      "key": "BrouwerEtAl2018",
+      "bibkey": "BrouwerEtAl2018",
+      "locator": "Proposition 3.1, page 10",
+      "url": "https://arxiv.org/abs/1709.09011",
+      "carrier": "logical-claim",
+      "citation": "Andries E. Brouwer, Sebastian M. Cioaba, Ferdinand Ihringer, and Matt McGinnis (2018), ``The Smallest Eigenvalues of Hamming Graphs, Johnson Graphs and Other Distance-Regular Graphs with Classical Parameters,'' Journal of Combinatorial Theory, Series B 133, 88--121, arXiv:1709.09011, especially Proposition 3.1.",
+      "bibliography": "Andries E. Brouwer, Sebastian M. Cioaba, Ferdinand Ihringer, and Matt McGinnis (2018), ``The Smallest Eigenvalues of Hamming Graphs, Johnson Graphs and Other Distance-Regular Graphs with Classical Parameters,'' Journal of Combinatorial Theory, Series B 133, 88--121, arXiv:1709.09011, especially Proposition 3.1.",
+      "verbatim_statement": "Proposition 3.1. (Lovasz [23]) The eigenvalues of the Kneser graph are \\(P_{id}=(-1)^i\\binom{n-d-i}{d-i}=(-1)^i\\binom{n-d-i}{n-2d}\\).",
+      "attestation": {
+        "by": "d0-agent",
+        "note": "Transcribed from the arXiv PDF of Brouwer, Cioaba, Ihringer, and McGinnis (2018), Proposition 3.1, page 10; accents in author names are omitted in this plain source carrier."
+      },
+      "nodes": [
+        "lem:classical-kneser-spectrum"
+      ],
+      "used_by": [
+        "lem:classical-kneser-spectrum"
+      ]
+    },
+    {
+      "id": "cite:filmus-2016",
+      "title": "An Orthogonal Basis for Functions over a Slice of the Boolean Hypercube",
+      "authors": "Yuval Filmus",
+      "year": 2016,
+      "key": "Filmus2016",
+      "bibkey": "Filmus2016",
+      "locator": "Theorem 4.1 and Lemma 4.3, pages 10 and 12 of arXiv:1406.0142v2",
+      "url": "https://arxiv.org/abs/1406.0142",
+      "carrier": "logical-claim",
+      "citation": "Yuval Filmus (2016), ``An Orthogonal Basis for Functions over a Slice of the Boolean Hypercube,'' Electronic Journal of Combinatorics 23(1), Paper 1.23, arXiv:1406.0142, especially Theorems 1 and 3 and the Johnson association-scheme discussion.",
+      "bibliography": "Yuval Filmus (2016), ``An Orthogonal Basis for Functions over a Slice of the Boolean Hypercube,'' Electronic Journal of Combinatorics 23(1), Paper 1.23, arXiv:1406.0142, especially Theorems 1 and 3 and the Johnson association-scheme discussion.",
+      "verbatim_statement": "Theorem 4.1. Let n and k ≤ n/2 be integers, and put p = k/n. The set {χ_B : B ∈ B_{n,d} for some d ≤ k} is an orthogonal basis for the vector space of functions on the slice. Lemma 4.3. Let n, k be integers such that k ≤ n/2, and let M belong to the Bose–Mesner algebra of the (n, k) Johnson association scheme. The bases Y_{n,0}, …, Y_{n,k} span the eigenspaces of M.",
+      "attestation": {
+        "by": "main",
+        "note": "Direct transcription from the source-of-record arXiv:1406.0142v2 PDF, printed pp. 10 and 12, downloaded from https://arxiv.org/pdf/1406.0142v2 on 2026-09-08; notation normalized only by Unicode subscripts.",
+        "at": "2026-09-09T00:50:10.220Z"
+      },
+      "nodes": [
+        "lem:classical-johnson-decomposition"
+      ],
+      "used_by": [
+        "lem:classical-johnson-decomposition"
+      ]
+    },
+    {
+      "id": "cite:club-sandwich-2026",
+      "title": "clubSandwich version 0.7.0 source package (CRAN)",
+      "authors": "James E. Pustejovsky",
+      "year": 2026,
+      "key": "ClubSandwich2026",
+      "bibkey": "ClubSandwich2026",
+      "locator": "Version 0.7.0 source package: R/lm.R lines 47--52 and 70--72; R/S3-methods.R lines 21--33 and 63--65; R/clubSandwich.R lines 167--175, 216--225, 237--287; R/CR-adjustments.R lines 5--7 and 22--42",
+      "url": "https://cran.r-project.org/src/contrib/clubSandwich_0.7.0.tar.gz",
+      "carrier": "logical-claim",
+      "citation": "James E. Pustejovsky (2026), clubSandwich version 0.7.0 source package, CRAN, published May 4, 2026, especially R/lm.R, R/S3-methods.R, R/clubSandwich.R, and R/CR-adjustments.R.",
+      "bibliography": "James E. Pustejovsky (2026), clubSandwich version 0.7.0 source package, CRAN, published May 4, 2026, especially R/lm.R, R/S3-methods.R, R/clubSandwich.R, and R/CR-adjustments.R.",
+      "verbatim_statement_ref": "core:statements[lem:clubsandwich-cr2-software-contract].source.verbatim_statement",
+      "attestation": {
+        "by": "d0-agent",
+        "note": "Exact relevant code lines transcribed from the pinned CRAN clubSandwich 0.7.0 source tarball; SHA-256 f3cd9cd5840022b8d1354dce3e7e4a820edcd47411b9f95bdd200c4e040032ed. The mathematical statement only specializes these lines to an unweighted full-rank lm object and a positive-definite CR2 adjustment."
+      },
+      "nodes": [
+        "lem:clubsandwich-cr2-software-contract"
+      ],
+      "used_by": [
+        "lem:clubsandwich-cr2-software-contract"
+      ],
+      "verbatim_statement": "\\begin{verbatim}\nvcovCR.lm <- function(obj, cluster, type, target = NULL, inverse_var = NULL, form = \"sandwich\", ...) {\n  if (missing(cluster)) stop(\"You must specify a clustering variable.\")\n  if (is.null(inverse_var)) inverse_var <- is.null(weights(obj)) & is.null(target)\n  vcov_CR(obj, cluster = cluster, type = type, \n          target = target, inverse_var = inverse_var, form = form)\n}\n\\end{verbatim}\n\\begin{verbatim}\nv_scale.lm <- function(obj) {\n  as.vector(sum(summary(obj)$df[1:2])) \n}\n\\end{verbatim}\n\\begin{verbatim}\nweightMatrix.default <- function(obj, cluster) {\n  weights <- weights(obj)\n  if (is.null(weights)) {\n    weights <- w_scale <- 1\n  } else {\n    weights <- weights[weights > 0]\n    w_scale <- mean(weights)\n    weights <- weights / w_scale\n  }\n  W <- rep(weights, length.out = length(cluster))\n  W_list <- matrix_list(W, cluster, \"both\")\n  attr(W_list, \"w_scale\") <- w_scale\n  W_list\n}\n\\end{verbatim}\n\\begin{verbatim}\naugmented_model_matrix.default <- function(obj, cluster, inverse_var, ignore_FE) {\n  NULL\n}\n\\end{verbatim}\n\\begin{verbatim}\nadjust_est_mats <- function(type, est_mats, adjustments) {\n  switch(type,\n         CR0 = est_mats,\n         CR1 = lapply(est_mats, function(e) e * adjustments),\n         CR1p = lapply(est_mats, function(e) e * adjustments),\n         CR1S = lapply(est_mats, function(e) e * adjustments),\n         CR2 = Map(function(e, a) e %*% a, e = est_mats, a = adjustments),\n         CR3 = Map(function(e, a) e %*% a, e = est_mats, a = adjustments),\n         CR4 = Map(function(e, a) a %*% e, e = est_mats, a = adjustments))\n}\n\\end{verbatim}\n\\begin{verbatim}\nX_list <- matrix_list(X, cluster, \"row\")\nW_list <- weightMatrix(obj, cluster)\nXW_list <- Map(function(x, w) as.matrix(t(x) %*% w), x = X_list, w = W_list)\n\\end{verbatim}\n\\begin{verbatim}\nif (is.null(target)) {\n  if (inverse_var) {\n    Theta_list <- lapply(W_list, function(w) chol2inv(chol(w)))\n  } else {\n    Theta_list <- targetVariance(obj, cluster)\n  }\n}\n\\end{verbatim}\n\\begin{verbatim}\nif (is.null(S)) {\n  rm(S)\n  U_list <- X_list\n  UW_list <- XW_list\n}\n\\end{verbatim}\n\\begin{verbatim}\nUWU_list <- Map(function(uw, u) uw %*% u, uw = UW_list, u = U_list)\nM_U <- matrix_power(Reduce(\"+\",UWU_list), p = -1)\n\\end{verbatim}\n\\begin{verbatim}\nadjustments <- do.call(type, args = mget(names(formals(type))))\nE_list <- adjust_est_mats(type = type, est_mats = XW_list, adjustments = adjustments)\nresid <- residuals_CS(obj)\nres_list <- split(resid, cluster)\ncomponents <- do.call(cbind, Map(function(e, r) e %*% r, e = E_list, r = res_list))\nv_scale <- v_scale(obj)\nw_scale <- attr(W_list, \"w_scale\")\nif (is.null(w_scale)) w_scale <- 1L\nmeat <- tcrossprod(components) * w_scale^2 / v_scale\nif (form == \"sandwich\") {\n  bread <- sandwich::bread(obj)\n}\nvcov <- switch(form, \n               sandwich = bread %*% meat %*% bread / v_scale,\n               meat = meat)\n\\end{verbatim}\n\\begin{verbatim}\nIH_jj_list <- function(M, X_list, XW_list) {\n  Map(function(x, xw) diag(nrow = nrow(x)) - x %*% M %*% xw,\n         x = X_list, xw = XW_list)\n}\n\\end{verbatim}\n\\begin{verbatim}\nCR2 <- function(M_U, U_list, UW_list, Theta_list, inverse_var = FALSE) {\n  \n  Theta_chol <- lapply(Theta_list, chol)\n  \n  if (inverse_var) {\n    IH_jj <- IH_jj_list(M_U, U_list, UW_list)\n    G_list <- Map(function(a,b,ih) as.matrix(a %*% ih %*% b %*% t(a)), \n                     a = Theta_chol, b = Theta_list, ih = IH_jj)\n  }\n  \n  Map(function(v, g) as.matrix(t(v) %*% matrix_power(g, -1/2) %*% v), \n                   v = Theta_chol, g = G_list)\n}\n\\end{verbatim}"
+    },
+    {
+      "id": "cite:sandwich-2026",
+      "title": "sandwich version 3.1-3 source package (CRAN)",
+      "authors": "Achim Zeileis and Thomas Lumley",
+      "year": 2026,
+      "key": "Sandwich2026",
+      "bibkey": "Sandwich2026",
+      "locator": "Version 3.1-3 source package, R/bread.R lines 10--15",
+      "url": "https://cran.r-project.org/src/contrib/sandwich_3.1-3.tar.gz",
+      "carrier": "logical-claim",
+      "citation": "Achim Zeileis and Thomas Lumley (2026), sandwich version 3.1-3 source package, CRAN, published August 3, 2026, especially R/bread.R.",
+      "bibliography": "Achim Zeileis and Thomas Lumley (2026), sandwich version 3.1-3 source package, CRAN, published August 3, 2026, especially R/bread.R.",
+      "verbatim_statement_ref": "core:statements[lem:sandwich-lm-bread-contract].source.verbatim_statement",
+      "attestation": {
+        "by": "d0-agent",
+        "note": "Exact code lines transcribed from the pinned CRAN sandwich 3.1-3 source tarball; SHA-256 960006cf4fcbada936b43acd04ddd8c0d1255570f41dda046ce778873f546134. For a full-rank unweighted lm fit, summary.lm's unscaled covariance is the inverse Gram matrix and its model plus residual degrees of freedom equal the fitted observation count."
+      },
+      "nodes": [
+        "lem:sandwich-lm-bread-contract"
+      ],
+      "used_by": [
+        "lem:sandwich-lm-bread-contract"
+      ],
+      "verbatim_statement": "\\begin{verbatim}\nbread.lm <- function(x, ...)\n{\n  if(!is.null(x$na.action)) class(x$na.action) <- \"omit\"\n  sx <- summary.lm(x)\n  return(sx$cov.unscaled * as.vector(sum(sx$df[1L:2L])))\n}\n\\end{verbatim}"
+    }
+  ],
+  "file_plan": {
+    "Basic.lean": {
+      "role": "S1 world: the population, the slice type, the uniform slice design, the arm table, the slice inner product/norm/centering, and the arm variance.",
+      "nodes": [
+        "def:group-table"
+      ],
+      "projected_lines": 210
+    },
+    "Helpers/Kneser.lean": {
+      "role": "S2 world: the Johnson projection data bundle, the harmonic subspaces, the normalized Kneser operator and its degree count, the eigenvalue formula, the ordered-disjoint covariances and the degree-one energy; plus the two cited Johnson/Kneser gate props.",
+      "nodes": [
+        "def:johnson-decomposition",
+        "def:kneser-covariance",
+        "lem:classical-johnson-decomposition",
+        "lem:classical-kneser-spectrum"
+      ],
+      "projected_lines": 320
+    },
+    "Helpers/PartitionDesign.lean": {
+      "role": "S3 stage one and two: the ordered pairwise-disjoint tuple space with its uniform law (the only new law), the two-element dependent stage family, the joint two-stage design as `prodDesign` pushed forward by `FiniteDesign.map` onto the pair type, and the coordinate-marginal / ordered-disjoint-pair-marginal exchangeability lemmas the variance proof consumes.",
+      "nodes": [
+        "def:random-partition-design"
+      ],
+      "projected_lines": 400
+    },
+    "Helpers/Estimator.lean": {
+      "role": "S3 estimands and statistics: the estimand, the difference-in-means estimator, the exact design variance, the observed group means, the within-arm sample variances, the CR2 statistic, the independent-group leading variance and the degree-one dense correction.",
+      "nodes": [
+        "def:pame-estimator",
+        "def:dense-correction",
+        "def:cr2-statistic"
+      ],
+      "projected_lines": 300
+    },
+    "Helpers/Asymptotics.lean": {
+      "role": "The triangular-array row bundle, the five atomic assumption props, the dense schedule class, and the schedule-uniform eigenvalue/variance bounds shared by the limit theorems.",
+      "nodes": [
+        "ass:group-count-growth",
+        "ass:stable-treatment-fraction",
+        "ass:sampling-fraction",
+        "ass:bounded-potential-outcomes",
+        "ass:scaled-variance-nondegeneracy",
+        "def:dense-schedule-class"
+      ],
+      "projected_lines": 340
+    },
+    "Helpers/Software.lean": {
+      "role": "The general unweighted full-rank OLS contract layer with arbitrary cluster-row sizes and fitted-observation count (model blocks, Gram inverse, residual blocks, the CR2 adjustment matrices) and the two cited software-contract gate props.",
+      "nodes": [
+        "lem:clubsandwich-cr2-software-contract",
+        "lem:sandwich-lm-bread-contract"
+      ],
+      "projected_lines": 300
+    },
+    "Helpers/RademacherPriors.lean": {
+      "role": "S4 world: the two product Rademacher schedule priors, the additive-schedule embedding, the observed-data channel and its pushforward law, the equal-law bijection, and the total-variation bridge to `Causalean.Stat.tvDist`.",
+      "nodes": [],
+      "projected_lines": 380
+    },
+    "Helpers/Witness.lean": {
+      "role": "The balanced eight-unit additive witness schedule and its decidable slice computations.",
+      "nodes": [
+        "def:eight-unit-witness"
+      ],
+      "projected_lines": 180
+    },
+    "Helpers.lean": {
+      "role": "Barrel re-exporting the Helpers/ chain in dependency order (Kneser -> PartitionDesign -> Estimator -> Asymptotics -> Software/RademacherPriors/Witness).",
+      "nodes": [],
+      "projected_lines": 20
+    },
+    "TExactKneserIdentity.lean": {
+      "role": "t1",
+      "nodes": [
+        "thm:exact-kneser-identity"
+      ],
+      "projected_lines": 380
+    },
+    "TExactPameVariance.lean": {
+      "role": "t2",
+      "nodes": [
+        "thm:exact-pame-variance"
+      ],
+      "projected_lines": 520
+    },
+    "TDenseProjectionLimit.lean": {
+      "role": "t3",
+      "nodes": [
+        "thm:dense-projection-limit"
+      ],
+      "projected_lines": 500
+    },
+    "TCr2PhaseFrontier.lean": {
+      "role": "t4",
+      "nodes": [
+        "thm:cr2-phase-frontier"
+      ],
+      "projected_lines": 480
+    },
+    "TSparseBeyondBirthday.lean": {
+      "role": "t5",
+      "nodes": [
+        "thm:sparse-beyond-birthday"
+      ],
+      "projected_lines": 240
+    },
+    "TClubsandwichConsumer.lean": {
+      "role": "t6",
+      "nodes": [
+        "prop:clubsandwich-consumer"
+      ],
+      "projected_lines": 420
+    },
+    "TEightUnitWitness.lean": {
+      "role": "t7",
+      "nodes": [
+        "prop:eight-unit-witness"
+      ],
+      "projected_lines": 300
+    },
+    "TRademacherMixtureSeparation.lean": {
+      "role": "t8",
+      "nodes": [
+        "prop:rademacher-mixture-separation"
+      ],
+      "projected_lines": 480
+    },
+    "TQvDiagonalImpossibility.lean": {
+      "role": "t9",
+      "nodes": [
+        "thm:qv-diagonal-impossibility"
+      ],
+      "projected_lines": 560
+    },
+    "EXP_DenseGroupPartitionProjectionPhase_Research.lean": {
+      "role": "Top-level barrel importing Basic, Helpers and all nine T-files.",
+      "nodes": [],
+      "projected_lines": 25
+    }
+  },
+  "substrate_survey": [
+    {
+      "module": "Causalean/Experimentation/DesignBased/DesignCore.lean",
+      "verdict": "reuse",
+      "reason": "`FiniteDesign` + the whole `E`/`Var`/`Cov`/`Pr`/`ind`/`map` finite-sum algebra is exactly the design-based layer this paper works in; `Cov_linear_comb` and `Var_linear_comb` are the workhorses of the exact variance identity."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/Designs/CompleteRandomization.lean",
+      "verdict": "reuse",
+      "reason": "`completeRandomization` is simultaneously the uniform \\(M\\)-slice law (S1) and the second-stage complete randomization of group labels (S3); `completeRandomization_incl(_pair)` are the needed CRE moments."
+    },
+    {
+      "module": "Causalean/Experimentation/FinitePopulationMoments.lean",
+      "verdict": "reuse",
+      "reason": "`Var_sampleMean` gives \\((1/M-1/n)\\operatorname{popVar}\\) for a uniform \\(M\\)-subset mean, which is exactly the additive-schedule arm-variance identity (1) of `prop:rademacher-mixture-separation`."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/{Product,ProductVariance,ProductBlock}.lean",
+      "verdict": "reuse",
+      "reason": "`prodDesign` + its independence/variance lemmas carry BOTH the product Rademacher schedule priors of S4 and the independent two-stage combination of S3: `prodDesign` is parameterized by a dependent family `alpha : iota -> Type*` (`Product.lean:43,49`), so a two-element index family realizes the heterogeneous (partition-tuple, treatment-vector) pair with no new combinator, and `FiniteDesign.map` transports it to the product type."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/{Chebyshev,InProb}.lean",
+      "verdict": "reuse",
+      "reason": "`chebyshev`, `TendstoInProb` and the closure/Slutsky lemmas are the exact convergence-in-probability engine for the CR2 frontier and the sparse corollary; they are already indexed by an `n`-sequence of designs."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/FiniteDesignMeasure.lean",
+      "verdict": "reuse",
+      "reason": "`toMeasure` / `integral_toMeasure` / `toMeasure_real_setOf` bridge the finite design layer to the measure-theoretic `Causalean.Stat.tvDist` used by the impossibility theorem."
+    },
+    {
+      "module": "Causalean/Stat/Minimax/{TotalVariation,MinimaxRisk}.lean",
+      "verdict": "reuse",
+      "reason": "`tvDist`, `one_sub_tvDist_le_test` and `two_point_lower_bound_of_tvDist_le` are precisely inequality (24) and the all-statistic step (25) of the impossibility proof."
+    },
+    {
+      "module": "Causalean/Experimentation/TwoStageInterference/{Variance,VarianceMoments,VarianceConservative}.lean",
+      "verdict": "analogous-reference",
+      "reason": "`Var_tauHat` and `E_Shat` are the same proof pattern (complete-randomization indicator moments through `Var_linear_comb`; unbiasedness of an observed sample variance under a \\(\\{0,1\\}\\) selection family) but for FIXED cluster values; here the per-group scores are random slice functions, so the double sum retains an ordered-disjoint-pair covariance factor. Adapted, not reused verbatim."
+    },
+    {
+      "module": "Causalean/Experimentation/MatchedPairDesign/*.lean",
+      "verdict": "bypass-justified",
+      "reason": "The pairing `P` is fixed and only the within-pair coin is randomized; this paper's first-stage randomness is the pairing/partition itself, which is precisely the object under study."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/{TwoStage,CompoundVariance}.lean",
+      "verdict": "bypass-justified",
+      "reason": "`compound` models stage-two randomization within coordinates conditional on stage one; here the two stages are independent and stage one is a random partition of the unit set, not a per-coordinate design, so the independent product `prodDesign` over a two-element dependent stage family (pushed forward by `FiniteDesign.map`) is used instead — reuse, not a new combinator."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/Designs/ClusterRandomization.lean",
+      "verdict": "bypass-justified",
+      "reason": "`clusterDesign` takes the unit-to-cluster map `clus : U -> C` as fixed data; the whole point here is that the cluster map is random and finite-pool competitive."
+    },
+    {
+      "module": "Causalean/Experimentation/DesignBased/{IndepSummandsCLT,DependencyCLT,GaussianCDF,WaldCoverage,WaldPipeline}.lean and Causalean/Mathlib/Probability/SteinMethod/*",
+      "verdict": "bypass-justified",
+      "reason": "The paper deliberately asserts NO Gaussian limit, studentization law or Wald-coverage claim (`honest_scope`); importing any CLT or coverage substrate would overclaim, so these modules are surveyed and intentionally unused."
+    },
+    {
+      "module": "Causalean/Stat/UStatistic/OrderM/*.lean",
+      "verdict": "bypass-justified",
+      "reason": "Order-\\(M\\) U-statistics are i.i.d.-kernel objects with Hoeffding decompositions over a product measure; this paper's decomposition is the Johnson degree decomposition of a single uniform slice under sampling WITHOUT replacement, and the estimator is not a U-statistic."
+    },
+    {
+      "module": "Causalean/Experimentation/ExposureMappingInterference/* and UnknownInterference/*",
+      "verdict": "bypass-justified",
+      "reason": "Both fix the assignment space and take the exposure/interference structure as given on a fixed unit set; neither has a randomized-partition first stage nor a slice-spectral variance decomposition."
+    },
+    {
+      "module": "Mathlib.Combinatorics.SimpleGraph.StronglyRegular / Mathlib association-scheme search",
+      "verdict": "bypass-justified",
+      "reason": "Mathlib has strongly-regular-graph generalities only; there is no Johnson scheme, Bose-Mesner algebra or Kneser spectrum, which is exactly why the two mathematical citations remain substrate-gates."
+    }
+  ],
+  "nodes": {
+    "ass:group-count-growth": {
+      "lean_kind": "assumption",
+      "lean_name": "GroupCountGrowth",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.InProb",
+        "Mathlib.Analysis.SpecificLimits.Basic"
+      ],
+      "target_file": "Helpers/Asymptotics.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "notes": "Design-asymptotics restriction on the array (the number of randomized groups grows); a modeling assumption, never built and never discharged. `def GroupCountGrowth (A : ScheduleArray) : Prop := Filter.Tendsto (fun n => (A.G n : R)) Filter.atTop Filter.atTop`. SEARCH: grep -rn 'Tendsto.*atTop atTop|G_n .*infty|numGroups' ../Causalean/Experimentation → `TwoStageInterference/Asymptotic/Setup.lean` and `ExposureMappingInterference/Asymptotics/Consistency.lean` bundle analogous growth conditions inside paper-specific `LHExperiment`/`Experiment` structures with no reusable standalone named prop; lean_leansearch 'sequence tends to infinity filter atTop' → `Filter.Tendsto _ atTop atTop` is the Mathlib primitive, already used by `InProb.lean`. Nothing to reuse at prop level; the prop is one line over the primitive."
+    },
+    "ass:stable-treatment-fraction": {
+      "lean_kind": "assumption",
+      "lean_name": "StableTreatmentFraction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.InProb",
+        "Mathlib.Analysis.SpecificLimits.Basic"
+      ],
+      "target_file": "Helpers/Asymptotics.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "notes": "Design-asymptotics restriction: `p_n = G1 n / G n -> p` with `0 < p < 1`. Encoded as `def StableTreatmentFraction (A) (p : R) : Prop := 0 < p /\\ p < 1 /\\ Tendsto (fun n => A.pFrac n) atTop (nhds p)`. Modeling assumption; kept threaded. SEARCH: same sweep as [ass:group-count-growth]; grep -rn 'treatment fraction|K / n|propensity.*tendsto' ../Causalean/Experimentation → only paper-specific bundles (`TwoStageInterference/Asymptotic/Setup.lean`); lean_leansearch 'ratio of natural number sequences converges to a constant' → Mathlib `Filter.Tendsto` primitives only."
+    },
+    "ass:sampling-fraction": {
+      "lean_kind": "assumption",
+      "lean_name": "SamplingFractionLimit",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.InProb",
+        "Mathlib.Analysis.SpecificLimits.Basic"
+      ],
+      "target_file": "Helpers/Asymptotics.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "notes": "Overlap-regime restriction: `N n / n -> rho` with `rho` in `[0,1]`, deliberately WITHOUT the birthday-scale condition `N^2/n -> 0`. `def SamplingFractionLimit (A) (rho : R) : Prop := 0 <= rho /\\ rho <= 1 /\\ Tendsto (fun n => (A.N n : R) / (A.n n : R)) atTop (nhds rho)`. Modeling assumption; kept threaded. SEARCH: grep -rn 'sampling fraction|finite population correction|1 - C / N' ../Causalean/Experimentation → `TwoStageInterference/StageOne.lean` has the FPC constant `(1 - m/N)/m` inside `Var_srs_mean` but no standalone limiting-fraction prop; lean_leansearch 'sampling fraction tends to a limit finite population' → nothing Mathlib-side."
+    },
+    "ass:bounded-potential-outcomes": {
+      "lean_kind": "assumption",
+      "lean_name": "BoundedSchedule",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore"
+      ],
+      "target_file": "Helpers/Asymptotics.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "notes": "Redirect-synchronized: `BoundedSchedule A B` requires `0 < B` and the uniform pointwise envelope `forall r i z A, |A.Y r i z A| <= B` over every row of the array. Declared MODELING ASSUMPTION (a support restriction on the data schedule): kept threaded, never built and never discharged. SEARCH (round 5, re-runnable) for an existing reusable bounded-schedule predicate: grep -rn 'Bounded|bddAbove|envelope' ../Causalean/Experimentation → the only named Prop is `DesignBased/InProb.lean:311` `BoundedInProb (D : forall m, FiniteDesign (Omega m)) (X : forall m, Omega m -> R)`, which is stochastic boundedness (tightness) of a SEQUENCE OF RANDOM VARIABLES under a sequence of designs, not a deterministic pointwise envelope on a potential-outcome schedule — wrong object and wrong strength, no type fit; every other hit is an in-proof `Filter.IsBoundedUnder` step (`TwoStageInterference/Asymptotic/WaldFeasible.lean`, `ExposureMappingInterference/Asymptotics/Intervals.lean`) or prose (`IndepSummandsCLT.lean:34` 'third-moment envelope', `.../VarEstQuadBound.lean:343` `vbBound`, a paper-specific edge-function bound `|vb i j z| <= vbBound c1 c2 c3` on exposure-mapping edge functions). Mathlib side: lean_leansearch 'predicate that a family of functions is uniformly bounded by a constant' → `Filter.IsBoundedUnder`, `Memℓp _ ⊤`, `LipschitzWith.uniformly_bounded`, `BoundedContinuousMapClass.map_bounded`; none is a plain `forall` envelope over a four-index composition-indexed array, and wrapping one would cost more than the one-line `def`. VERDICT: absent both sides; one-line local Prop over the array bundle, threaded into t3 and bundled as the `bounded` field of [def:dense-schedule-class]."
+    },
+    "ass:scaled-variance-nondegeneracy": {
+      "lean_kind": "assumption",
+      "lean_name": "ScaledVarianceNondegenerate",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Mathlib.Analysis.SpecificLimits.Basic",
+        "Mathlib.Data.EReal.Basic"
+      ],
+      "target_file": "Helpers/Asymptotics.lean",
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "notes": "Cap-block synchronized: `ScaledVarianceNondegenerate A cSigma` is exactly `0 < cSigma /\\ (cSigma : EReal) <= Filter.liminf (fun r => (((A.groups r : R) * A.variance r : R) : EReal)) atTop`. The extended-real codomain preserves the positive symbol-domain clause without adding boundedness or convergence. Declared MODELING ASSUMPTION (a regularity restriction on the array): kept threaded, never built and never discharged. SEARCH (round 5, re-runnable) for an existing reusable scaled-variance liminf predicate: grep -rn 'liminf|limsup' ../Causalean → in the experimentation cluster `liminf` occurs ONLY inside asymptotic-COVERAGE conclusions (`ExposureMappingInterference/Asymptotics/{Intervals.lean:48,124, VarianceConsistency.lean:160, VarEstConsistencyConditions.lean:217}`, all of the shape `1 - alpha <= liminf (coverage probabilities)`), plus `ML/{Ridge,Binary}/Rate.lean` and `Mathlib/Probability/ConvergingTogether/Diagonal.lean` (L2 `limsup` in `ENNReal`); no decl states a lower `liminf` bound on a SCALED DESIGN VARIANCE. grep -rn '[Nn]ondegener|varLowerBound|sigmaLower|variance.*bounded away' ../Causalean → nondegeneracy appears only as pointwise positivity hypotheses in other clusters (`Panel/UniformTwoWayPanel.lean:205`, `Panel/EstimandCharacterization/.../CausalDecomposition.lean:93`, `Discovery/InvariantPrediction/.../Model.lean:107`), never as a sequence-level liminf predicate. Mathlib side: lean_leansearch 'liminf of an extended-real sequence is at least a positive real constant' → the generic order API in `Mathlib.Order.LiminfLimsup`; these are proof tools rather than a reusable schedule predicate. VERDICT: absent both sides; one-line local Prop over the extended-real `Filter.liminf`, threaded into the relevant ratio-consistency statements and bundled as the `nondegenerate` field of [def:dense-schedule-class]."
+    },
+    "def:random-partition-design": {
+      "lean_kind": "def",
+      "lean_name": "randomPartitionDesign",
+      "disposition": "define-local",
+      "reuse": null,
+      "companions": [
+        "PartitionTuple",
+        "uniformPartitionTuple",
+        "twoStageSpace",
+        "twoStageDesigns",
+        "groupAt",
+        "treatInd",
+        "marginal_uniform_coord",
+        "marginal_uniform_ordered_disjoint_pair"
+      ],
+      "internal_reuse": [
+        "Causalean.Experimentation.DesignBased.prodDesign",
+        "Causalean.Experimentation.DesignBased.completeRandomization",
+        "Causalean.Experimentation.DesignBased.FiniteDesign.map",
+        "Causalean.Experimentation.DesignBased.FiniteDesign.E_map"
+      ],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization",
+        "Causalean.Experimentation.DesignBased.Product",
+        "Causalean.Experimentation.DesignBased.ProductVariance",
+        "Mathlib.Data.Finset.Powerset",
+        "Mathlib.Data.Nat.Choose.Basic"
+      ],
+      "target_file": "Helpers/PartitionDesign.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Construction the paper introduces; build-inline, but ONLY the stage-one law is new code — the independent two-stage combination is reuse of `prodDesign` plus a thin `Equiv`/pushforward wrapper. New: `PartitionTuple n M G := {T : Fin G -> Omega n M // Pairwise (fun g g' => Disjoint (T g).val (T g').val)}` and `uniformPartitionTuple` its uniform `FiniteDesign` (nonempty because `M * G <= n`). Reused: `twoStageSpace n M G G1 : Fin 2 -> Type` with `twoStageSpace 0 := PartitionTuple n M G`, `twoStageSpace 1 := {S : Finset (Fin G) // S.card = G1}` (defined by `Fin.cases`, `Fintype` instances by cases), `twoStageDesigns : forall i, FiniteDesign (twoStageSpace i)` given by `uniformPartitionTuple` at `0` and `completeRandomization G1 hG1` at `1`, and then `randomPartitionDesign n M G G1 := (prodDesign twoStageDesigns).map (fun w => (w 0, w 1))`. `prodDesign` (`Product.lean:49`) is parameterized by the dependent family `alpha : iota -> Type*` (`:43`), so it expresses this heterogeneous independent pair directly; the earlier plan's claim that it could not, and the local `pairDesign` combinator it motivated, are both withdrawn. `FiniteDesign.map` (`DesignCore.lean:323`) along the bijection `(forall i : Fin 2, twoStageSpace i) -> PartitionTuple x {S // S.card = G1}` is the whole wrapper, and `FiniteDesign.E_map` / `Pr_map` (`:343`, `:357`) rewrite every expectation/probability on the pair back to the `prodDesign` space, where `E_prod_prod`, `E_prod_apply`, `E_prod_apply2` and `Cov_prod_apply_of_ne` give cross-stage independence structurally rather than as a proved side lemma. Second stage is EXACT reuse of `completeRandomization`; second-stage moments are `completeRandomization_incl` and `completeRandomization_incl_pair`. Two supporting lemmas (`marginal_uniform_coord`, `marginal_uniform_ordered_disjoint_pair`) prove from the definition that each coordinate is uniform on the slice and each ordered pair of distinct coordinates is uniform on ordered disjoint pairs; these are exchangeability/counting facts the paper takes as immediate, proved here from the definition by the `Equiv.Perm (Fin n)` relabelling action (analogous technique: `Causalean/Experimentation/DesignBased/ProductReindex.lean:prodDesign_Pr_reindex` + `Asymptotic/Identical.lean:hhom_of_identical`, which build an explicit permutation via `Equiv.sumCompl` + `Fintype.equivOfCardEq` to relabel one conditional law into another — the gap to bridge is that here the permutation acts on the unit set beneath the slice rather than on the coordinate index). SEARCH: see [S3] notes; grep -rn 'Pairwise.*Disjoint|Finpartition|perfect matching' ../Causalean → `ProductBlock.lean` (disjoint coordinate blocks only); lean_leansearch 'uniform random partition of a finite set into blocks of equal size' → no Mathlib decl with a law (`Finpartition` is order-theoretic only). Stage-one law absent both sides; new local construction. RE-SURVEY (round 3): `prodDesign`/`FiniteDesign.map` signatures re-read this session (`Product.lean:43,49,68,79`; `ProductVariance.lean:77,90`; `DesignCore.lean:323,343,357`) and confirmed to cover the combination step, so the only define-local content of this node is `PartitionTuple` + `uniformPartitionTuple` + the two marginal lemmas."
+    },
+    "def:group-table": {
+      "lean_kind": "def",
+      "lean_name": "armTable",
+      "disposition": "define-local",
+      "reuse": null,
+      "companions": [
+        "Omega",
+        "slice",
+        "sliceInner",
+        "sliceNorm",
+        "armTableCentered",
+        "armVar"
+      ],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization",
+        "Causalean.Experimentation.FinitePopulationMoments"
+      ],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Construction the paper introduces: `armTable M Y z A := (Sum over i in A.val of Y i z A) / M`. Companions bind the rest of S1: `slice n M := completeRandomization M hM` (reuse), `sliceInner f g := (slice n M).E (fun A => f A * g A)`, `sliceNorm`, `armTableCentered z := armTable z - (slice n M).E (armTable z)`, `armVar z := (slice n M).Var (armTable z)`. On additive schedules `armTable` coincides with `FinitePopulationMoments.sampleMean M x` (a proved bridge lemma, consumed by t8). SEARCH: grep -rn 'groupMean|sampleMean|indMean|barY' ../Causalean/Experimentation → `FinitePopulationMoments.sampleMean` (uniform-subset mean of a FIXED unit-level vector — reused via the bridge, but not general enough on its own since composition-indexed outcomes depend on `A`), `TwoStageInterference/Basic.lean:groupMean` (fixed groups). Composition-indexed group averages absent; lean_leansearch 'average of a function over a finite subset of fixed cardinality' → `Finset.sum` primitives only."
+    },
+    "def:pame-estimator": {
+      "lean_kind": "def",
+      "lean_name": "pameAndEstimator",
+      "disposition": "define-local",
+      "reuse": null,
+      "companions": [
+        "pame",
+        "pameHat",
+        "obsGroupMean",
+        "sigmaSq"
+      ],
+      "internal_reuse": [
+        "Causalean.Experimentation.DesignBased.diffInMeans",
+        "Causalean.Experimentation.DesignBased.treatedMean",
+        "Causalean.Experimentation.DesignBased.controlMean",
+        "Causalean.Experimentation.DesignBased.E_diffInMeans_eq_sate",
+        "Causalean.Experimentation.DesignBased.sateEstimand"
+      ],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Estimators.DifferenceInMeans",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization"
+      ],
+      "target_file": "Helpers/Estimator.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Redirect-synchronized: the tagged primary `pameAndEstimator` jointly returns the paper's estimand and estimator; scalar companions `pame` and `pameHat` retain the displayed formulas, and `sigmaSq` is their exact design variance. Interior treated/control counts are explicit inputs. SEARCH (round 5, re-runnable): grep -rn 'diffInMeans|differenceInMeans|def tauHat|def estDirect' ../Causalean → `Estimators/DifferenceInMeans.lean:67` `diffInMeans (n1 : Nat) (Y1 Y0 : U -> R) (S : {S : Finset U // S.card = n1}) : R := treatedMean n1 Y1 S - controlMean n1 Y0 S` (components `:53`, `:60`), `:46` `sateEstimand (Y1 Y0 : U -> R) := (Sum i, (Y1 i - Y0 i)) / Fintype.card U`, `:191` `E_diffInMeans_eq_sate`, `:203` `unbiased_diffInMeans` (namespace `Causalean.Experimentation.DesignBased`, `:37-39`); `TwoStageInterference/Variance.lean:113` `tauHat` (control-minus-treated over `Fin n -> Bool` with FIXED per-unit values `a`, `b`); `TwoStageInterference/Basic.lean:181` `estDirect` (stratified two-stage Hajek-type estimator over `StratAssign x WAssign` with FIXED group membership). Mathlib side: lean_leansearch 'difference in means estimator average treatment effect finite population' → no design-based estimator layer exists in Mathlib at all, so no Mathlib fit. TYPE-FIT VERDICT (why fixed-score `diffInMeans` cannot realize this node): its scores `Y1 Y0 : U -> R` are functions of the unit/cluster LABEL alone and its argument is the treated set alone, whereas the paper's per-group score `armTable M Y z (T g)` depends on the realized group COMPOSITION, i.e. on the stage-one draw `T`, and the estimator is a function on the JOINT space `PartitionTuple n M G x {S : Finset (Fin G) // S.card = G1}`; correspondingly `sigmaSq` is the joint two-stage `FiniteDesign.Var`, which no existing decl computes, and `sateEstimand` averages `Y1 - Y0` over the UNIT population while `pame` averages `armTable 1 - armTable 0` over the uniform SLICE `Omega n M`. Node stays define-local. PARTIAL FIT NOW EXPLOITED (new this round): at fixed `T` the decl does type-fit exactly, so F2 defines `pameHat T S := diffInMeans (U := Fin G) G1 (fun g => armTable M Y 1 (T g)) (fun g => armTable M Y 0 (T g)) S` — `treatedMean` divides by `G1` and `controlMean` by `Fintype.card (Fin G) - G1 = G0`, matching the displayed formula verbatim — which makes `E_diffInMeans_eq_sate` / `unbiased_diffInMeans` directly available for the conditional-on-`T` half of t2's unbiasedness conjunct; the residual new work is the outer average over `T` (through `marginal_uniform_coord`) plus the one-line bridge `sateEstimand (U := Omega n M) (armTable 1) (armTable 0) = pame` (uniform slice law, `completeRandomization_card`). Recorded in `internal_reuse`."
+    },
+    "def:johnson-decomposition": {
+      "lean_kind": "def",
+      "lean_name": "johnsonComponents",
+      "disposition": "define-local",
+      "reuse": null,
+      "companions": [
+        "johnsonDegreeAtMost",
+        "johnsonHarmonicSpace",
+        "JohnsonProjections",
+        "johnsonSubspace"
+      ],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization",
+        "Mathlib.Data.Finset.Powerset"
+      ],
+      "target_file": "Helpers/Kneser.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Core CONSTRUCTION (`inputs: [\"f\"]`), so the node anchor is a `def` on that input, not the supporting structure. Round-4 correction: the primary `lean_name` is `johnsonComponents (J : JohnsonProjections n M) (f : Omega n M -> R) : Fin (M+1) -> (Omega n M -> R) := fun k => J.proj k f` (already scaffolded at `Helpers/Kneser.lean:55`), i.e. the degree-indexed orthogonal component family of `f` that the paper's display `f - E_n f = sum_{k=1}^M Pi_{n,k} f` names; the `@node: def:johnson-decomposition` marker moves from the structure onto this `def`. `JohnsonProjections` (`:39`) is retained verbatim as a COMPANION supplying the projection data: `johnsonDegreeAtMost` (`:23`) is the concrete inclusion-monomial filtration, `johnsonHarmonicSpace` (`:29`) its canonical orthogonal degree layer, and the structure still requires each `proj k` to be linear with `range_eq` the canonical layer, `fixes_range` on it, and orthogonal residuals — so arbitrary or degree-swapped linear families still do not inhabit the projection data, and centered completeness and cross-degree orthogonality remain the explicit cited gate [lem:classical-johnson-decomposition]. Nothing about the anchor's mathematical content, its file, its disposition or its consumers changes; only the kind/name pairing moves onto the construction. SEARCH: grep -rni 'johnson|kneser|BoseMesner|associationScheme' ../Causalean → zero hits (re-run this round); lean_local_search 'johnson' → only this artifact's own `Helpers/Kneser.lean` declarations; Mathlib side: lean_leansearch 'Johnson association scheme eigenspace slice harmonic decomposition' / 'Kneser graph adjacency eigenvalue' → only `Mathlib.Combinatorics.SimpleGraph.StronglyRegular` generalities, no scheme/Bose-Mesner/Kneser spectrum. Absent both sides; define-local."
+    },
+    "def:kneser-covariance": {
+      "lean_kind": "def",
+      "lean_name": "crossCov",
+      "disposition": "define-local",
+      "reuse": null,
+      "companions": [
+        "kneserOp",
+        "kneserDegree",
+        "kneserEigenvalue",
+        "crossCovContrast",
+        "orderedDisjointPairDesign"
+      ],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization",
+        "Mathlib.Data.Finset.Powerset",
+        "Mathlib.Data.Nat.Choose.Basic"
+      ],
+      "target_file": "Helpers/Kneser.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Redirect-synchronized: the tagged `crossCov` definition unfolds through the normalized `kneserOp`, so the primary anchor exposes both the normalized disjointness operator formula and the required cross-covariance clause. `crossCovContrast`, the eigenvalue, and ordered-pair bridge remain companions. SEARCH: shares the Johnson/Kneser sweep recorded verbatim in [S2] and [def:johnson-decomposition] — grep -rni 'johnson|kneser|BoseMesner|associationScheme' ../Causalean → zero hits (re-run round 5); Mathlib lean_leansearch 'Kneser graph adjacency eigenvalue' / 'Johnson association scheme eigenspace' → only `Mathlib.Combinatorics.SimpleGraph.StronglyRegular` generalities. Absent both sides; define-local."
+    },
+    "def:dense-correction": {
+      "lean_kind": "def",
+      "lean_name": "denseCorrection",
+      "disposition": "define-local",
+      "reuse": null,
+      "companions": [
+        "DenseCorrectionValues",
+        "degreeOneEnergy",
+        "indepGroupVar"
+      ],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization"
+      ],
+      "target_file": "Helpers/Estimator.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Redirect-synchronized: the tagged `denseCorrection` returns both `degreeOneEnergy` and `indepGroupVar`; its Johnson input is the genuine canonical projection structure `JohnsonProjections` (the supporting companion of [def:johnson-decomposition], whose own anchor is the construction `johnsonComponents`) and its allocation inputs prove 0 < G1 < G. The round-4 kind correction on [def:johnson-decomposition] renames no declaration this node consumes. SEARCH (round 5, re-runnable) — two components, both checked separately. (a) The degree-one energy `E_{tau,1,n} = sliceNorm (J.proj 1 (armTable 1 - armTable 0)) ^ 2`: grep -rni 'johnson|kneser|harmonic|BoseMesner|associationScheme|degreeOne|energy' ../Causalean → zero Causalean hits for any slice-harmonic projection or its energy (same sweep as [S2]/[def:johnson-decomposition], re-run this round); Mathlib side lean_leansearch 'squared norm of the orthogonal projection of a vector onto a subspace' → `Submodule.orthogonalProjection`, `Submodule.norm_sq_eq_add_norm_sq_projection`, `Submodule.re_inner_starProjection_eq_normSq` (`Mathlib.Analysis.InnerProductSpace.Projection.Basic`), all of which require an `InnerProductSpace 𝕜 E` instance on the function space; the slice geometry here is the `FiniteDesign.E`-WEIGHTED inner product `sliceInner f g = (slice n M).E (f * g)` on `Omega n M -> R`, for which the only Mathlib instance available (`PiLp 2`) carries the UNWEIGHTED sum, so the projection API does not type-fit without installing a bespoke instance that the settled S2 encoding (projections as `JohnsonProjections` data, cited facts as gates) deliberately avoids. (b) The independent-group leading variance `R_n = V_1/p_n + V_0/(1-p_n)`: grep -rn 'def (neymanVar|varNeyman|leadingVar|indepGroup|S1|S0|Stau|varHat|popVar)' ../Causalean → `TwoStageInterference/Variance.lean:122,125,128` `S1`/`S0`/`Stau` (Neyman `(n-1)`-denominator population sample variances of FIXED unit-level vectors `a`, `b`), `VarianceConservative.lean:75` `varHat K a b w = ShatTreated/K + ShatControl/(n-K)` (an OBSERVED estimator, count-normalized, not fraction-normalized), `FinitePopulationMoments.lean:53` `popVar`; none is `V_z = (slice n M).Var (armTable z)` (a design variance of a random slice FUNCTION), and none is normalized by the limiting arm fractions `p_n`, `1 - p_n` that `R_n` needs, so `varHat`'s shape is an analogue and not a fit. Mathlib side lean_leansearch 'variance of a two-sample difference weighted by allocation fractions' → `ProbabilityTheory.variance` API only. VERDICT: the node's Lean object is the PAIRED bundle `denseCorrection` returning `(degreeOneEnergy, indepGroupVar)` over this artifact's own `JohnsonProjections` + `armTable` data; neither component has a reusable substrate fit and no library decl bundles them, so define-local, build-inline."
+    },
+    "def:cr2-statistic": {
+      "lean_kind": "def",
+      "lean_name": "cr2Var",
+      "disposition": "define-local",
+      "reuse": null,
+      "companions": [
+        "armObsMean",
+        "armSampleVar"
+      ],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization"
+      ],
+      "target_file": "Helpers/Estimator.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Construction the paper introduces. `armObsMean z := (Sum over g in arm z of obsGroupMean g) / G_z`; `armSampleVar z := (Sum over g in arm z of (obsGroupMean g - armObsMean z)^2) / (G_z - 1)` binds \\(s_{z,n}^2\\) with the paper's `G_z - 1` denominator; `cr2Var := armSampleVar 1 / G1 + armSampleVar 0 / G0`. SEARCH: grep -rn 'ShatTreated|ShatControl|varHat|htVarEst|sample variance' ../Causalean/Experimentation → `TwoStageInterference/VarianceConservative.lean:{ShatTreated,ShatControl,varHat}` is the CLOSEST analogue (`varHat = Shat1/K + Shat0/(n-K)`, same shape as the scalar CR2 statistic) and `VarianceMoments.lean:E_Shat` proves its unbiasedness for a selection family; the gap is that there the per-unit values `a j`, `b j` are fixed reals, whereas here each summand is `armTable z (T g)`, a function of the random group, so `E_Shat` does not type-fit and its expectation acquires the `- C_zz` disjoint-pair term. Adapted, not reused. Mathlib side: lean_leansearch 'unbiased sample variance with n minus one denominator' → `ProbabilityTheory.variance` API, no finite-population sample-variance identity."
+    },
+    "def:dense-schedule-class": {
+      "lean_kind": "structure",
+      "lean_name": "DenseScheduleClass",
+      "disposition": "define-local",
+      "reuse": null,
+      "members": [
+        "ass:group-count-growth",
+        "ass:stable-treatment-fraction",
+        "ass:sampling-fraction",
+        "ass:bounded-potential-outcomes",
+        "ass:scaled-variance-nondegeneracy"
+      ],
+      "member_fields": [
+        {
+          "field": "growth",
+          "assumption": "ass:group-count-growth",
+          "type": "GroupCountGrowth A"
+        },
+        {
+          "field": "fraction",
+          "assumption": "ass:stable-treatment-fraction",
+          "type": "StableTreatmentFraction A p"
+        },
+        {
+          "field": "sampling",
+          "assumption": "ass:sampling-fraction",
+          "type": "SamplingFractionLimit A rho"
+        },
+        {
+          "field": "bounded",
+          "assumption": "ass:bounded-potential-outcomes",
+          "type": "BoundedSchedule A B"
+        },
+        {
+          "field": "nondegenerate",
+          "assumption": "ass:scaled-variance-nondegeneracy",
+          "type": "ScaledVarianceNondegenerate A cSigma"
+        }
+      ],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.InProb"
+      ],
+      "target_file": "Helpers/Asymptotics.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Redirect-synchronized: the five assumption atoms remain the class fields; `BoundedSchedule` and `ScaledVarianceNondegenerate` enforce `0 < B` and `0 < cSigma`, while the bundled `ScheduleArray` enforces the paper's symbol domains `2 <= M` and `0 < treated r < groups r` on every row. SEARCH (round 5, re-runnable) for an existing reusable asymptotic ARRAY / uniformity-CLASS abstraction: grep -rn '^structure \\w+' ../Causalean/Experimentation → the complete list is `DesignCore.lean:46` `FiniteDesign`, `ExposureMappingInterference/Asymptotics/Consistency.lean:43` `Experiment`, `TwoStageInterference/Asymptotic/Setup.lean:65` `LHExperiment`, `.../CLTDischarge.lean:145` `Homogeneous`, `.../Identical.lean:117` `IdenticalRef`, `SuperPopulation/Basic.lean:46` `NetworkDependence`, `Sequential/AdaptiveDesign.lean:48` `AdaptiveExperiment`, `ExposureMappingInterference/Asymptotics/SteinCLT.lean:55` `LocalDependenceCLT`. Inspected the two candidates: `Experiment` (read `:43-64`) bundles ONE row — assignment space, design, unit population, exposure map, exposure-indexed outcomes — with NO asymptotic condition at all; `LHExperiment` (read `:65-110`) likewise bundles one row of a FIXED-group two-stage design plus carried finite-sample regularity (`hC`, `hm0`, `hm1`, `hn`, `hN`, `hN1`, propensity identities), again with no limit condition. In both submodules the asymptotic regime is imposed downstream as loose hypotheses on a sequence `Exp : Nat -> Experiment` / `Nat -> LHExperiment`, never as a reusable named class; `Homogeneous` and `LocalDependenceCLT` ARE sequence-level classes but their fields are CLT-specific (Lindeberg/Stein dependency conditions), and this paper asserts no Gaussian limit (see the `{IndepSummandsCLT,DependencyCLT,...}` bypass row). Mathlib side: lean_leansearch 'triangular array of finite populations indexed by n with asymptotic regularity conditions' → only `SzemerediRegularity.*` and `ProbabilityTheory.IsKolmogorovProcess`, nothing array-of-finite-populations shaped; lean_leansearch 'predicate that a family of functions is uniformly bounded by a constant' → `Filter.IsBoundedUnder`, `Memℓp _ ⊤`, `BoundedContinuousMapClass` only. VERDICT: no existing structure carries a schedule ARRAY (composition-indexed `Y_{i,n}(z,A)` per row) at all, and the exact five-field conjunction here (`GroupCountGrowth`, `StableTreatmentFraction`, `SamplingFractionLimit`, `BoundedSchedule`, `ScaledVarianceNondegenerate`) is the paper's own uniformity class `C_dense`, quantified over in t4, t5 and t9 — so it must be local; per P2 its `members` are exactly the core's `by_member_properties`, one field per atom, and no condition is added or dropped."
+    },
+    "def:eight-unit-witness": {
+      "lean_kind": "def",
+      "lean_name": "witness8Bundle",
+      "disposition": "define-local",
+      "reuse": null,
+      "companions": [
+        "a8",
+        "EightUnitWitness",
+        "witness8",
+        "witness8Row"
+      ],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization",
+        "Mathlib.Tactic.NormNum"
+      ],
+      "target_file": "Helpers/Witness.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Redirect-synchronized: the tagged `witness8Bundle` contains the potential-outcome schedule and fixes n = N = 8, M = 2, G = 4, and G1 = 2; `witness8` is its schedule projection and `witness8Row` remains a numerical companion. SEARCH (round 5, re-runnable) for a reusable finite-witness / enumeration substrate: grep -rn '[Ww]itness|counterexample|CounterExample' ../Causalean/Experimentation → three hits, all incidental prose inside proofs (`UnknownInterference/Hajek.lean:704`, `ExposureMappingInterference/Asymptotics/SteinInstance.lean:498`, `TwoStageInterference/Stratified.lean:75`); no fixed-instance example module exists — the design library ships only parameterized families (Glob `Experimentation/DesignBased/Designs/*.lean` → `Bernoulli`, `BernoulliMoments`, `Coin`, `CompleteRandomization`, `ClusterRandomization`, `Stratified`), with no worked numeric instance or `decide`-based enumeration harness anywhere. Mathlib side: lean_leansearch 'number of perfect matchings of a finite set into pairs double factorial' → `Nat.doubleFactorial` and its arithmetic lemmas only (pure number theory, no matching enumeration); lean_leansearch 'perfect matching of a simple graph subgraph definition' → `SimpleGraph.Subgraph.IsPerfectMatching` / `isPerfectMatching_iff` (`Mathlib.Combinatorics.SimpleGraph.Matching`), a Prop with no `Fintype` enumeration, no cardinality lemma and no uniform law, so it cannot supply the 105-matching count or its design. VERDICT: this node is a FIXED custom schedule — the specific numbers n = N = 8, M = 2, G = 4, G1 = 2 with `Y(0, A) = 0` and `Y(1, {j,k}) = (a_j + a_k)/2` for the balanced `a8` — chosen by the paper to exhibit `sigmaSq = 1/7` against `E cr2Var = 2/7`; a bespoke constant like this has no reuse candidate by construction, and its 630-point enumeration is carried out in t7 over this artifact's own `PartitionTuple 8 2 4` x `{S : Finset (Fin 4) // S.card = 2}` design (both `DecidableEq`/`Fintype`, so `decide`/`norm_num` discharge the arithmetic). Define-local, build-inline, small."
+    },
+    "thm:exact-kneser-identity": {
+      "lean_kind": "theorem",
+      "lean_name": "exact_kneser_identity",
+      "local_id": "t1",
+      "disposition": "define-local",
+      "reuse": null,
+      "hyps": [],
+      "threaded_gates": [
+        "lem:classical-johnson-decomposition",
+        "lem:classical-kneser-spectrum"
+      ],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization",
+        "Mathlib.Data.Finset.Powerset",
+        "Mathlib.Data.Nat.Choose.Basic"
+      ],
+      "target_file": "TExactKneserIdentity.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Paper-owned, in scope, proved CONDITIONAL on the two frozen cited gates (gate-consumer rule). Conclusion, three conjuncts as in the frozen statement: (i) `kneserOp (J.proj k f) = kneserEigenvalue n M k * J.proj k f` with `kneserEigenvalue n M k = (-1)^k * M.descFactorial k / (n-M).descFactorial k`; (ii) for centered `f`, `g`, the ordered-disjoint-pair covariance equals `Sum over k in 1..M of kneserEigenvalue n M k * sliceInner (J.proj k f) (J.proj k g)`; (iii) the specialization `crossCovContrast = Sum over k of kneserEigenvalue n M k * sliceNorm (J.proj k (armTable 1 - armTable 0)) ^ 2`. Proof plan: (a) `kneserDegree` (`Finset.card_powersetCard` on `univ \\ A`) gives `kneserOp = adjacency / (n-M).choose M`, so (i) is the arithmetic reduction of the gate's `(-1)^k * (n-M-k).choose (M-k)` by that degree — a `Nat.choose`/`Nat.descFactorial` identity valid for `n >= 2*M`; (b) self-adjointness of `kneserOp` under `sliceInner` is a `Finset.sum_comm` over the symmetric disjointness relation on a uniform law (proved locally, no gate needed); (c) the `orderedDisjointPairDesign` bridge turns `Cov(f(A), g(C))` into `sliceInner f (kneserOp g)`; (d) the gate's orthogonal decomposition plus bilinearity of `sliceInner` (`DesignCore.Cov_linear_comb` shape) collapses the double sum to the diagonal, giving (ii); (e) (iii) follows from (ii) with `C_{01} = C_{10}` from (b) and linearity of `J.proj k`. SEARCH: see [S2]/[def:kneser-covariance]; no library decl states any part of this."
+    },
+    "thm:exact-pame-variance": {
+      "lean_kind": "theorem",
+      "lean_name": "exact_pame_variance",
+      "local_id": "t2",
+      "disposition": "define-local",
+      "reuse": null,
+      "hyps": [],
+      "threaded_gates": [],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization",
+        "Causalean.Experimentation.TwoStageInterference.VarianceMoments"
+      ],
+      "target_file": "TExactPameVariance.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Paper-owned, in scope. Three conjuncts: unbiasedness `E pameHat = pame`; the exact variance `sigmaSq = R_n/G + crossCovContrast - crossCov 1 1 / G1 - crossCov 0 0 / G0`; and the exact CR2 moment `E cr2Var = (armVar 1 - crossCov 1 1)/G1 + (armVar 0 - crossCov 0 0)/G0`, whence `E cr2Var - sigmaSq = -crossCovContrast`. Proof plan: write the centered estimator as a linear combination of `Z_g / p_n * x_{1g} - (1 - Z_g) / q_n * x_{0g}` and apply `FiniteDesign.Var_linear_comb` / `Cov_linear_comb`; the diagonal gives `R_n / G`; the off-diagonal needs (a) the complete-randomization second-order label moments, EXACT reuse of `completeRandomization_incl` / `completeRandomization_incl_pair`, and (b) the stage-one pair marginal `marginal_uniform_ordered_disjoint_pair` from [def:random-partition-design], which identifies each off-diagonal group-pair expectation with `crossCov a b` via the `orderedDisjointPairDesign` bridge; `C_{01} = C_{10}` comes from t1. The CR2 expectation is the sample-variance expansion `E s_z^2 = V_z - C_{zz}` under an exchangeable ordered-disjoint m-tuple. ANALOGOUS REFERENCE for the whole bookkeeping: `Causalean/Experimentation/TwoStageInterference/Variance.lean:Var_tauHat` (Neyman variance from `cov_diag`/`cov_offdiag` through `Var_linear_comb` + `sum_sum_ite_quadratic`) and `.../VarianceMoments.lean:E_Shat` (unbiasedness of the observed sample variance under a `{0,1}` selection family with CRE moments). Gap F3 must bridge: in both references the per-unit values are FIXED reals, so their off-diagonal covariance is a pure label-moment; here the summands are `armTable z (T g)`, functions of the random group, so every off-diagonal term carries the additional ordered-disjoint-pair covariance factor and `E s_z^2` acquires the `- C_{zz}` term. Difficulty of the marginal lemmas is real but the content is paper-owned, so it stays `defer_tier:false`."
+    },
+    "thm:dense-projection-limit": {
+      "lean_kind": "theorem",
+      "lean_name": "dense_projection_limit",
+      "local_id": "t3",
+      "disposition": "define-local",
+      "reuse": null,
+      "hyps": [
+        "ass:group-count-growth",
+        "ass:stable-treatment-fraction",
+        "ass:sampling-fraction",
+        "ass:bounded-potential-outcomes"
+      ],
+      "threaded_gates": [
+        "lem:classical-johnson-decomposition",
+        "lem:classical-kneser-spectrum"
+      ],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Chebyshev",
+        "Causalean.Experimentation.DesignBased.InProb",
+        "Mathlib.Analysis.SpecificLimits.Basic"
+      ],
+      "target_file": "TDenseProjectionLimit.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Paper-owned, in scope; stated over the four listed assumption atoms only (deliberately no scaled-variance premise, as the frozen statement and its proof both stress). Conjuncts: `G_n sigmaSq = R_n - rho * degreeOneEnergy + o(1)`; `G_n * crossCovContrast + rho * degreeOneEnergy -> 0`; `crossCov 1 1 / p_n + crossCov 0 0 / (1 - p_n) -> 0`; and the schedule-uniform `O(n^{-1})` bound on the pooled degree->=2 contribution. Proof plan: the eigenvalue bound `|lambda_{n,k}| <= (2M/n)^k` for `n >= 4M` (elementary from t1's closed form), the total-energy bound `Sum_k e_k <= 4B^2` (the gate's orthogonal decomposition plus the envelope), then the exact deterministic expansion with coefficient `N_n/(n-M)` and `N_n/(n-M) -> rho`. The stochastic CR2 fluctuation block (equations 12-17: `s_z^2 - V_z = O_P(G^{-1/2})`, hence `G_n (cr2Var - sigmaSq) = N_n/(n-M) * degreeOneEnergy + O_P(G^{-1/2} + n^{-1})`) reuses `FiniteDesign.chebyshev` and the `TendstoInProb` closure lemmas. NOTE (no tautological conjunct): the `N_n ~ n^{2/3}` crossover is recorded in the docstring as a BENCHMARK reading of an upper bound, not asserted as a matching noise-order lower bound, exactly as `technical_internal_limitation` requires. SEARCH: grep -rn 'var_htMean_le|var_edge_sum_le|O_P|tendsto_zero.*Var' ../Causalean/Experimentation → `DesignBased/EdgeVarianceBound.lean:var_edge_sum_le` and `ExposureMappingInterference/Asymptotics/VarEstQuadBound.lean` bound variance-estimator fluctuations for HT edge sums on a dependency graph; different statistic and different dependence mechanism (no slice spectrum), so bypassed as a reuse but recorded as the technique reference for the `O_P(G^{-1/2})` step. Mathlib side: lean_leansearch 'falling factorial ratio bound product telescoping' → `Nat.descFactorial` API only."
+    },
+    "thm:cr2-phase-frontier": {
+      "lean_kind": "theorem",
+      "lean_name": "cr2_phase_frontier",
+      "local_id": "t4",
+      "disposition": "define-local",
+      "reuse": null,
+      "hyps": [
+        "def:dense-schedule-class"
+      ],
+      "threaded_gates": [
+        "lem:classical-johnson-decomposition",
+        "lem:classical-kneser-spectrum"
+      ],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Chebyshev",
+        "Causalean.Experimentation.DesignBased.InProb",
+        "Mathlib.Analysis.SpecificLimits.Basic"
+      ],
+      "target_file": "TCr2PhaseFrontier.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Paper-owned, in scope. `hyps` lists the bundled class, whose `ass:scaled-variance-nondegeneracy` member includes `0 < cSigma` together with the scaled-variance liminf bound, covering the node's only assumption dependency and the core domain. Conjuncts: `TendstoInProb` of `G_n cr2Var - R_n` to 0; of `G_n (cr2Var - sigmaSq) - rho * degreeOneEnergy` to 0; asymptotic conservativeness `Pr(cr2Var / sigmaSq < 1 - eps) -> 0` for every `eps > 0`; and the iff `cr2Var / sigmaSq ->p 1 <-> rho * degreeOneEnergy / (R_n - rho * degreeOneEnergy) -> 0`. Proof plan: exchangeable-tuple variance bound (2)-(5) with `|C_n(f)| <= W_n(f)/(G-1)` from the t1 eigenvalue bound, then `FiniteDesign.chebyshev` for the first and second empirical moments of `armTable z`, `tendstoInProb_continuousMap` for the squaring step, `TendstoInProb.sub`/`const_mul` to assemble `s_z^2 = V_z + o_p(1)`; the deterministic denominator is bounded below by the class's nondegeneracy field plus t3; the converse direction of the iff is a subsequence argument on a deterministic nonnegative sequence. Reuse is exactly the `InProb` engine (`tendstoInProb_of_var`, `TendstoInProb.{sub,add,abs,const_mul}`, `tendstoInProb_continuousMap`, `deterministic_tendstoInProb`) — verified signatures are `n`-indexed families of designs, which matches the triangular array. ANALOGOUS REFERENCE for the ratio-consistency architecture: `Causalean/Experimentation/ExposureMappingInterference/Asymptotics/VarianceConsistency.lean` (`relVar_of_NsqVar_tendsto`, `htEffectVarEst_undershoot_tendsto_zero`), which reduces a variance-estimator ratio to a single vanishing limit; gap: that chain is built on HT conservativeness `E Vhat >= Var`, whereas here the exact bias is `-C_{tau tau}` with alternating-sign higher degrees, so conservativeness only emerges at the `G_n` scale and the reduction must be redone."
+    },
+    "thm:sparse-beyond-birthday": {
+      "lean_kind": "theorem",
+      "lean_name": "sparse_beyond_birthday",
+      "local_id": "t5",
+      "disposition": "define-local",
+      "reuse": null,
+      "hyps": [],
+      "threaded_gates": [],
+      "companions": [
+        "BirthdayBenchmark",
+        "CountAlignment"
+      ],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.InProb",
+        "Mathlib.Analysis.SpecificLimits.Basic",
+        "Mathlib.Analysis.SpecialFunctions.Pow.Real"
+      ],
+      "target_file": "TSparseBeyondBirthday.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Cap-block and scaffold-redirect synchronized. The only headline premise is `hM : 2 <= M`; every array and scalar parameter is quantified under the three-part conclusion. Part (a) gives ratio consistency for every `DenseScheduleClass A p 0 B cSigma`. Untagged `BirthdayBenchmark M` packages the three unconditional arithmetic facts: eventual feasibility, grouped fraction tending to zero, and squared grouped count over population tending to infinity. Untagged `CountAlignment A M` is the rowwise identity `A.grouped r = birthdayGroupedUnits M (A.popSize r)`. Part (c) concludes the same ratio consistency directly from count alignment, group-count growth, stable treatment fraction, bounded schedule, and extended-real scaled-variance nondegeneracy; it does not assume a pre-existing dense class or sampling-fraction premise, since `SamplingFractionLimit A 0` is derived internally from alignment, `ScheduleArray.grouped_le`, and the unconditional benchmark. The headline exposes no Johnson projection or cited gate; canonical Johnson/Kneser discharge remains proof-local. SEARCH: grep -rn 'n \\^ \\(3 / 4\\)|rpow.*floor|birthday' ../Causalean → no such rate certificate; lean_leansearch 'floor of n to the power three quarters divided by n tends to zero' → `Nat.floor_div_natCast`/`Real.rpow` limit API (Mathlib primitives, sufficient)."
+    },
+    "prop:clubsandwich-consumer": {
+      "lean_kind": "theorem",
+      "lean_name": "clubsandwich_cr2_consumer_identity",
+      "local_id": "t6",
+      "disposition": "define-local",
+      "reuse": null,
+      "hyps": [
+        "lem:clubsandwich-cr2-software-contract",
+        "lem:sandwich-lm-bread-contract"
+      ],
+      "threaded_gates": [
+        "lem:clubsandwich-cr2-software-contract",
+        "lem:sandwich-lm-bread-contract"
+      ],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Mathlib.Analysis.Matrix.Order"
+      ],
+      "target_file": "TClubsandwichConsumer.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Paper-owned, in scope, proved CONDITIONAL on the two frozen cited software-contract gates (gate-consumer rule). Statement: for `2 <= G1`, `2 <= G0`, equal group size `M`, clusters = realized groups, unweighted intercept-plus-binary-treatment OLS with the default identity target, the treatment-coordinate entry of the contract's returned matrix equals `cr2Var`. It is a deterministic conditional-on-realization identity: no randomization premise is used after fixing the data. Proof plan: build the model matrix `X_g = 1_M * x_z^T`; invert the 2x2 Gram matrix explicitly (determinant `M^2 G0 G1 > 0`) to get `c^T B x_1 = 1/(M G1)`, `c^T B x_0 = -1/(M G0)`; show `X_g B X_g^T = G_z^{-1} P_M` with `P_M = 1_M 1_M^T / M` the mean projection; verify positive definiteness of `I - G_z^{-1} P_M` (eigenvalues `1 - 1/G_z > 0` and `1`), which is where `2 <= G_z` is used; identify the adjustment as `A_g = (I - P_M) + a_z P_M` with `a_z = sqrt(G_z/(G_z-1))` by PSD-square-root UNIQUENESS — EXACT Mathlib reuse `Matrix.PosSemidef.sqrt_eq_iff_eq_sq` (verified signature: for PSD `A`, PSD `B`, `sqrt A = B <-> A = B^2`), with `Matrix.PosSemidef.posSemidef_sqrt` / `sq_sqrt` as support; then the residual mean identity `1_M^T e_g / M = H_g - Hbar_z` collapses the cluster score to `q_g`, and squaring/summing reproduces `s_1^2/G1 + s_0^2/G0`. NOTE: the two contracts are the ONLY inputs about the software; no informal software behaviour is smuggled in, and no model-independent logical shell is added as a conjunct. SEARCH: grep -rn 'vcovCR|CR2|sandwich|bread|clubSandwich' ../Causalean ./CausalSmith → zero hits (no sandwich/CR2 substrate anywhere in either library); lean_leansearch 'unique positive semidefinite square root of a matrix' → `Matrix.PosSemidef.sqrt`, `sqrt_eq_iff_eq_sq`, `sqrt_mul_self` in `Mathlib.Analysis.Matrix.Order` (confirmed present, reused)."
+    },
+    "prop:eight-unit-witness": {
+      "lean_kind": "theorem",
+      "lean_name": "eight_unit_witness_moments",
+      "local_id": "t7",
+      "disposition": "define-local",
+      "reuse": null,
+      "hyps": [],
+      "threaded_gates": [
+        "lem:classical-johnson-decomposition",
+        "lem:classical-kneser-spectrum"
+      ],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization",
+        "Mathlib.Tactic.NormNum",
+        "Mathlib.Data.Fintype.Powerset"
+      ],
+      "target_file": "TEightUnitWitness.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Paper-owned, in scope. Conjuncts, all exact rationals: `armVar 1 = 3/7`, `degreeOneEnergy = 3/7`, `crossCov 1 1 = -1/7`, `sigmaSq = 1/7`, `E cr2Var = 2/7`. Proof plan: the 28 slice points split 6 / 6 / 16 by value `1 / -1 / 0`, so `E_8 h = 0` and `E_8 h^2 = 12/28 = 3/7` by decidable `Finset` computation (`Fintype.card_finset_len` gives 28); the sign-sum identity `Sum over i not in A of a8 i = - Sum over i in A of a8 i` gives `kneserOp h = -h/3` directly, so `crossCov 1 1 = -1/7` follows from t1 with `lambda_{8,1} = -1/3` (and, independently, by direct computation, which is recorded as the cross-check that the frozen `105 * 6 = 630` enumeration statement asserts). `sigmaSq` and `E cr2Var` then come from t2 with `p_n = 1/2`. The `630`-point exhaustive-enumeration sentence is formalized as the SAME two moments, proved via t1/t2 rather than by machine enumeration of matchings, with the enumeration count recorded in the docstring as the paper's independent arithmetic check; the moment VALUES are identical either way, so nothing is weakened. Gates are inherited only because the proof routes through t1/t2. SEARCH: grep -rn 'Fin 8|105|perfect matching count' ../Causalean → nothing; lean_leansearch 'double factorial number of perfect matchings' → no Mathlib decl for `(2k-1)!!` matching counts, which is why the enumeration is not re-derived combinatorially."
+    },
+    "prop:rademacher-mixture-separation": {
+      "lean_kind": "theorem",
+      "lean_name": "rademacher_mixture_separation",
+      "local_id": "t8",
+      "disposition": "define-local",
+      "reuse": null,
+      "hyps": [
+        "ass:group-count-growth",
+        "ass:stable-treatment-fraction",
+        "ass:sampling-fraction"
+      ],
+      "threaded_gates": [
+        "lem:classical-johnson-decomposition",
+        "lem:classical-kneser-spectrum"
+      ],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Product",
+        "Causalean.Experimentation.DesignBased.ProductVariance",
+        "Causalean.Experimentation.DesignBased.Designs.Coin",
+        "Causalean.Experimentation.DesignBased.Chebyshev",
+        "Causalean.Experimentation.FinitePopulationMoments"
+      ],
+      "target_file": "TRademacherMixtureSeparation.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Paper-owned, in scope; the frozen statement restricts the separated-limit clause to `rho in (0,1]`, which is a scalar side condition on the [ass:sampling-fraction] parameter rather than a new node. Conjuncts: exact equality of the induced laws of the observation channel under the two priors for EVERY `n`; the high-prior-probability limits `V_1, V_0 -> 1/M`, `degreeOneEnergy -> 0` (same prior) and `-> 2/M` (independent prior); the two `G_n sigmaSq` limits `1/(M p (1-p))` and `1/(M p (1-p)) - 2 rho/M`; the gap `2 rho / M > 0`; the floor `1/(M p (1-p)) - 2 rho/M >= 2/M`; and the high-prior-probability nondegeneracy for every `cSigma` below the smaller limit. Proof plan: (a) the additive-schedule identity `armTable z = FinitePopulationMoments.sampleMean M x_z` (bridge lemma from Basic), so `armVar z = (1/M - 1/n) * popVar x_z` is EXACT reuse of `FinitePopulationMoments.Var_sampleMean` — this is literally the paper's equation (1), since `(1/M - 1/n) * (Sum w^2/(n-1)) = (n-M)/(M(n-1)) * (Sum w^2)/n`; (b) additive centered functions lie in Johnson degree one (proved by exhibiting `kneserOp` acting as `-M/(n-M)`), so `degreeOneEnergy` equals the same quantity for the arm difference; (c) prior concentration of the empirical sign variances by `FiniteDesign.chebyshev` on the product design, using `Var_prod_linear_comb` / `Cov_prod_apply_of_ne`; (d) t1 gives `C_{tau tau} = lambda_1 E_1` and `C_{zz} = lambda_1 V_z` for degree-one functions, and t2's exact identity then yields the two limits since `G_n lambda_{n,1} = -N_n/(n-M) -> -rho`; (e) the equal-law claim is an explicit measure-preserving involution on the sign space (flip `V_i` on control-group units), pushed through `FiniteDesign.map`. `p(1-p) <= 1/4` and `rho <= 1` give the floor. SEARCH: grep -rn 'Var_sampleMean|popVar|sampleMean' ../Causalean → `Experimentation/FinitePopulationMoments.lean` (EXACT fit for (a), signature verified: `(completeRandomization n hn).Var (sampleMean n y) = (1/n - 1/card U) * popVar y`); grep -rn 'equal in law|map.*bijection|Pr_map' ../Causalean/Experimentation → `DesignCore.lean:Pr_map`/`E_map` and `ProductReindex.lean:prodDesign_Pr_reindex` supply the pushforward/relabelling machinery for (e)."
+    },
+    "thm:qv-diagonal-impossibility": {
+      "lean_kind": "theorem",
+      "lean_name": "qv_diagonal_impossibility",
+      "local_id": "t9",
+      "disposition": "define-local",
+      "reuse": null,
+      "hyps": [
+        "ass:group-count-growth",
+        "ass:stable-treatment-fraction",
+        "ass:sampling-fraction"
+      ],
+      "threaded_gates": [
+        "lem:classical-johnson-decomposition",
+        "lem:classical-kneser-spectrum"
+      ],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.FiniteDesignMeasure",
+        "Causalean.Experimentation.DesignBased.Product",
+        "Causalean.Experimentation.DesignBased.Chebyshev",
+        "Causalean.Stat.Minimax.TotalVariation",
+        "Causalean.Stat.Minimax.MinimaxRisk"
+      ],
+      "target_file": "TQvDiagonalImpossibility.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Paper-owned, in scope; the hardest proof in the plan, kept `defer_tier:false` because it is the paper's headline lower bound. Conjuncts: existence of high-prior-probability deterministic schedule supports `Gamma_n^j` all of whose Cartesian diagonal selections lie in `DenseScheduleClass`; vanishing total variation between the two CONDITIONED one-realization mixture laws; uniform convergence of `G_n sigmaSq` on each support to `d_same` / `d_ind`; the design-region certificate (probability `1 - o(1)`, both first-observed-sign support probabilities `>= 1/4`, conditional variance `>= 3/4`); and the all-statistic bound `liminf sup over the class of Pr(|Shat/sigmaSq - 1| > eps) >= 1/2` for some `eps > 0`. Proof plan: t8 gives the rowwise prior limits and the exact equality `P^{same,0} = P^{ind,0}`; the diagonalization picks `k_n -> infinity` with `H^j(Gamma_n^j) -> 1`; conditioning costs at most `H^j((Gamma_n^j)^c)` in total variation (layer-cake over the observation kernel), so the triangle inequality gives `||P^same - P^ind||_TV -> 0`; the sign-nondegeneracy region comes from `1{|q - 1/2| > 1/4} <= 4|q - 1/2|`; the final step is the testing inequality. REUSE (verified signatures): `Causalean.Stat.tvDist` on `FiniteDesign.toMeasure` (finite spaces, discrete sigma-algebra, so every statistic is measurable), `Causalean.Stat.one_sub_tvDist_le_test` (`1 - tvDist mu nu <= mu.real A + nu.real A^c`) is literally the paper's inequality (24), and `Causalean.Stat.two_point_lower_bound_of_tvDist_le` (`(1-c)/2 <= max (P0.real {s <= |est - theta0|}) (P1.real {s <= |est - theta1|})` given `2s <= |theta0 - theta1|` and `tvDist P0 P1 <= c`) is the all-statistic step (25), applied with `est = G_n * Shat`, `theta_j = d_j`, `s` just below `(d_same - d_ind)/2`; `FiniteDesign.toMeasure` / `toMeasure_real_setOf` / `integral_toMeasure` bridge the finite design layer to it. ANALOGOUS REFERENCE for the witness-to-lower-bound wrapper: `Causalean/Estimation/MinimaxATE/Reduction/Witness.lean:{twoPointWitness_lower_bound, twoPointWitness_quarter}`; gap to bridge: there the two laws are a fixed pair of laws with close TV, whereas here they are CONDITIONED mixtures over deterministic-schedule supports and the parameter is the exact design variance `sigmaSq`, which varies over the support — hence the uniform-on-support convergence (5) is needed before the wrapper applies. NOTE (no tautological conjunct): the transfer sentence ('failure on the additive no-interference subclass transfers upward to the arbitrary bounded composition class') is formalized as the genuine subclass inclusion of the Rademacher additive schedules into the bounded composition class, not as a model-independent logical shell."
+    },
+    "lem:classical-kneser-spectrum": {
+      "lean_kind": "lemma",
+      "lean_name": "canonicalKneserAdjacencySpectrum",
+      "disposition": "define-local",
+      "reuse": null,
+      "hyps": [],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization",
+        "Mathlib.Data.Finset.Powerset",
+        "Mathlib.Data.Nat.Choose.Basic"
+      ],
+      "target_file": "Helpers/Kneser.lean",
+      "defer_tier": false,
+      "source": "cite:brouwer-et-al-2018",
+      "citation": "cite:brouwer-et-al-2018",
+      "carrier": "logical-claim",
+      "in_theorems_manifest": false,
+      "consumers": [
+        "thm:exact-kneser-identity"
+      ],
+      "notes": "Redirect-synchronized cited gate: `KneserAdjacencySpectrum n M` states the unnormalized eigenvalue only for functions belonging to the concrete canonical `johnsonHarmonicSpace n M k`; it no longer ranges over arbitrary linear-map images. It remains a `Sort 0` hypothesis on `exact_kneser_identity`, not a proof obligation or manifest entry. SEARCH (deferred-node trace, re-run round 5): grep -rni 'johnson|kneser|BoseMesner|associationScheme' ../Causalean → zero hits; Mathlib lean_leansearch 'Kneser graph adjacency eigenvalue' / 'Johnson association scheme eigenspace slice harmonic decomposition' → only `Mathlib.Combinatorics.SimpleGraph.StronglyRegular` generalities, no association scheme, Bose-Mesner algebra or Kneser spectrum (recorded as the `bypass-justified` Mathlib row in `substrate_survey`). Absent both sides, and the frozen node is `status:\"cited\"`, so it stays a cited gate.",
+      "citation_discharged": true
+    },
+    "lem:classical-johnson-decomposition": {
+      "lean_kind": "lemma",
+      "lean_name": "canonicalJohnsonOrthogonalDecomposition",
+      "disposition": "define-local",
+      "reuse": null,
+      "hyps": [],
+      "modules": [
+        "Causalean.Experimentation.DesignBased.DesignCore",
+        "Causalean.Experimentation.DesignBased.Designs.CompleteRandomization"
+      ],
+      "target_file": "Helpers/Kneser.lean",
+      "defer_tier": false,
+      "source": "cite:filmus-2016",
+      "citation": "cite:filmus-2016",
+      "carrier": "logical-claim",
+      "in_theorems_manifest": false,
+      "consumers": [
+        "thm:exact-kneser-identity"
+      ],
+      "notes": "Redirect-synchronized cited gate: `JohnsonOrthogonalDecomposition n M J` asserts the centered completeness and pairwise-orthogonality laws for a genuine projection family whose ranges are already pinned to the concrete canonical harmonic degree spaces. It remains a `Sort 0` hypothesis on `exact_kneser_identity`, not a proof obligation or manifest entry. SEARCH (deferred-node trace, re-run round 5): identical sweep to [lem:classical-kneser-spectrum] — grep -rni 'johnson|kneser|BoseMesner|associationScheme|harmonic' ../Causalean → zero hits; Mathlib lean_leansearch 'orthogonal decomposition of functions on a slice of the hypercube into harmonic degree spaces' → nothing (Mathlib has `Submodule.orthogonalProjection` for abstract inner-product spaces but no slice/Johnson degree filtration). Absent both sides, and the frozen node is `status:\"cited\"`, so it stays a cited gate.",
+      "citation_discharged": true
+    },
+    "lem:clubsandwich-cr2-software-contract": {
+      "lean_kind": "assumption",
+      "lean_name": "ClubSandwichCR2Contract",
+      "disposition": "define-local",
+      "reuse": null,
+      "hyps": [],
+      "modules": [
+        "Mathlib.Analysis.Matrix.Order"
+      ],
+      "target_file": "Helpers/Software.lean",
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "source": "cite:club-sandwich-2026",
+      "citation": "cite:club-sandwich-2026",
+      "carrier": "logical-claim",
+      "in_theorems_manifest": false,
+      "consumers": [
+        "prop:clubsandwich-consumer"
+      ],
+      "notes": "Frozen `status:\"cited\"` logical-claim: mapped as a named proposition in the unshadowable `Sort 0` universe and threaded as a hypothesis into `prop:clubsandwich-consumer`. `def ClubSandwichCR2Contract {G p : Nat} (m : Fin G -> Nat) (Nobs : Nat) (X : forall g, Matrix (Fin (m g)) (Fin p) R) ... : Sort 0` asserting `Sigma = Btilde * (Sum over g of X_g^T A_g e_g e_g^T A_g^T X_g) * Btilde` with `Btilde = bread / Nobs` and `A_g` the symmetric positive-definite matrix with `A_g^2 * (I - X_g (X^T X)^{-1} X_g^T) = 1`, with arbitrary cluster sizes and `Nobs = sum_g m g`, under the contract's own hypotheses (unweighted full-column-rank fit, positive-definite per-cluster `I - H_gg`, identity working target, `target`/`inverse_var`/`form` omitted). NOT a proof obligation and NOT a manifest entry; it is a statement about the semantics of pinned R source, so it is not formalizable in Lean at all and can only ever be discharged by an out-of-band re-attestation of the package source. SEARCH: grep -rn 'vcovCR|clubSandwich|CR2|sandwich|bread' ../Causalean ./CausalSmith → zero hits (no sandwich/CR-adjustment substrate in either library); lean_leansearch 'cluster robust variance estimator CR2 bias reduced linear adjustment' → nothing in Mathlib (R package semantics are out of scope for any Lean library)."
+    },
+    "lem:sandwich-lm-bread-contract": {
+      "lean_kind": "assumption",
+      "lean_name": "SandwichLmBreadContract",
+      "disposition": "define-local",
+      "reuse": null,
+      "hyps": [],
+      "modules": [
+        "Mathlib.Analysis.Matrix.Order"
+      ],
+      "target_file": "Helpers/Software.lean",
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "source": "cite:sandwich-2026",
+      "citation": "cite:sandwich-2026",
+      "carrier": "logical-claim",
+      "in_theorems_manifest": false,
+      "consumers": [
+        "prop:clubsandwich-consumer"
+      ],
+      "notes": "Frozen `status:\"cited\"` logical-claim: mapped as a named proposition in the unshadowable `Sort 0` universe and threaded as a hypothesis into `prop:clubsandwich-consumer`. `def SandwichLmBreadContract {G p : Nat} (m : Fin G -> Nat) (Nobs : Nat) ... : Sort 0 := bread = (Nobs : R) * (X^T * X)^{-1}` for a full-column-rank unweighted `lm` fit with arbitrary cluster sizes and `Nobs = sum_g m g`. NOT a proof obligation and NOT a manifest entry; like its sibling it is a statement about pinned R source semantics. SEARCH: identical sweep to [lem:clubsandwich-cr2-software-contract] — zero hits in Causalean/CausalSmith, nothing in Mathlib."
+    }
+  },
+  "gate_self_check": {
+    "P1_every_core_node_mapped_once": "27 core nodes: 5 assumptions + 9 definitions + 13 statements, and exactly 27 keys in `nodes`. Verified: ass:group-count-growth, ass:stable-treatment-fraction, ass:sampling-fraction, ass:bounded-potential-outcomes, ass:scaled-variance-nondegeneracy; def:random-partition-design, def:group-table, def:pame-estimator, def:johnson-decomposition, def:kneser-covariance, def:dense-correction, def:cr2-statistic, def:dense-schedule-class, def:eight-unit-witness; thm:exact-kneser-identity, thm:exact-pame-variance, thm:dense-projection-limit, thm:cr2-phase-frontier, thm:sparse-beyond-birthday, prop:clubsandwich-consumer, prop:eight-unit-witness, prop:rademacher-mixture-separation, thm:qv-diagonal-impossibility, lem:classical-kneser-spectrum, lem:classical-johnson-decomposition, lem:clubsandwich-cr2-software-contract, lem:sandwich-lm-bread-contract. All 43 core symbols bound exactly once across S1-S4.",
+    "P2_class_members_match": "def:dense-schedule-class `members` == the core's `by_member_properties`, in order and with one field per member.",
+    "P3_lean_kind_matches_core_kind": "5 assumption atoms -> `assumption`; the 8 construction definitions (each with `inputs`) -> `def`, namely def:random-partition-design, def:group-table, def:pame-estimator, def:johnson-decomposition (`inputs: [\"f\"]`, anchored on the construction `johnsonComponents`; its supporting `JohnsonProjections` structure is a companion, not the anchor — fixed this round), def:kneser-covariance, def:dense-correction, def:cr2-statistic, def:eight-unit-witness; the single class definition def:dense-schedule-class (with `by_member_properties`) -> `structure`; the 9 paper-owned statements -> `theorem`; the 4 frozen cited logical-claim statements -> `assumption` (substrate-gate mapping). No node carries `lean_kind:\"structure\"` except the one class definition.",
+    "P4_hyps_subset_of_depends_on": "t1 hyps = its two cited-gate deps; t2 hyps = [] (no ass/gate dep); t3 hyps = its four ass deps; t4 hyps = [def:dense-schedule-class] which is a dep and bundles its ass:scaled-variance-nondegeneracy dep; t5 hyps = [def:dense-schedule-class] which is a dep and bundles both its ass deps; t6 hyps = its two cited-gate deps; t7 hyps = [] (no ass/gate dep); t8 hyps = its three ass deps; t9 hyps = its three ass deps (def:dense-schedule-class is a dep but is USED as the sup class, not assumed). Gates needed only transitively are recorded in `threaded_gates`, not `hyps`.",
+    "P5_reuse_decls_exist": "Two distinct `reuse` decls across the S-blocks, both signature-verified this session: `Causalean.Experimentation.DesignBased.completeRandomization` (Designs/CompleteRandomization.lean:58, `FiniteDesign {S : Finset V // S.card = n1}`), used by S1 and reused again for the label stage in S3; and `Causalean.Experimentation.DesignBased.prodDesign` (Product.lean:49, `(D : forall i, FiniteDesign (alpha i)) : FiniteDesign (forall i, alpha i)` over the dependent family `alpha : iota -> Type*` at :43), which carries S4's Rademacher priors AND, via a two-element dependent stage family plus the existing pushforward `Causalean.Experimentation.DesignBased.FiniteDesign.map` (DesignCore.lean:323, with `E_map` :343 and `Pr_map` :357), the independent two-stage combination inside [def:random-partition-design]. No node carries a node-level `reuse` decl (no existing library declaration states any of this paper's definitions or theorems); [def:random-partition-design] records its component reuses in `internal_reuse`, all four of which exist in the library index. Round-5 addition: [def:pame-estimator] now also carries an `internal_reuse` list — `Causalean.Experimentation.DesignBased.{diffInMeans, treatedMean, controlMean, E_diffInMeans_eq_sate, sateEstimand}`, all read this session at Estimators/DifferenceInMeans.lean:67, :53, :60, :191, :46 inside the `Causalean.Experimentation.DesignBased` namespace (:37-39) — for the conditional-on-`T` slice of the estimator; the node's own `reuse` stays null because no decl provides the joint-space bundle.",
+    "P6_module_paths_resolve": "All listed `modules` are existing library modules verified by Glob/Grep or leansearch `module_name` this session: Causalean.Experimentation.DesignBased.{DesignCore, Chebyshev, InProb, FiniteDesignMeasure, Product, ProductVariance, ProductBlock, Estimators.DifferenceInMeans, Designs.CompleteRandomization, Designs.Coin}; Causalean.Experimentation.{FinitePopulationMoments, TwoStageInterference.VarianceMoments}; Causalean.Stat.Minimax.{TotalVariation, MinimaxRisk}; Mathlib.{Data.Finset.Powerset, Data.Fintype.Powerset, Data.Nat.Choose.Basic, Analysis.SpecificLimits.Basic, Analysis.Matrix.Order, Tactic.NormNum}. Target files for the new declarations are given in `target_file` / `file_plan` and are intentionally kept out of `modules` because they do not exist yet."
+  },
+  "external_substrate_assumptions": []
+}

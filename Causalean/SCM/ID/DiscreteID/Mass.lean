@@ -33,25 +33,37 @@ namespace Causalean.SCM.ID.DiscreteID
 
 open scoped MeasureTheory ProbabilityTheory ENNReal
 
-/-- The mass that a measure assigns to a single point. -/
+/-- For [a measure on a measurable space](hyp:μ) and [a point in that space](hyp:x),
+    [the singleton mass](goal) is the mass that the measure assigns to the set
+    containing that point alone. -/
 noncomputable def singletonMass {α : Type*} [MeasurableSpace α]
     (μ : MeasureTheory.Measure α) (x : α) : ENNReal :=
   μ ({x} : Set α)
 
-/-- The marginal mass of a selected coordinate value. -/
+/-- For [a measure](hyp:μ), [a map to a second measurable space](hyp:f), [proof
+    that the map is measurable](hyp:_hf), and [a value in that second space](hyp:y),
+    [the marginal mass](goal) is the singleton mass of that value under the
+    pushforward of the measure by the map. -/
 noncomputable def marginalMass {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
     (μ : MeasureTheory.Measure α) (f : α → β) (_hf : Measurable f) (y : β) : ENNReal :=
   singletonMass (μ.map f) y
 
-/-- A discrete conditional mass, written as a ratio of a joint point mass to a
-marginal point mass.  A sound ID formula must separately carry positivity for
-the denominator when it uses this value. -/
+/-- For [a measure on a product of two measurable spaces](hyp:μ), [a value of
+    the first coordinate](hyp:a), and [a value of the second coordinate](hyp:b),
+    [the conditional mass](goal) is the joint singleton mass at the two values
+    divided by the singleton mass of the second value under the second-coordinate
+    marginal.
+
+    A sound ID formula must separately carry positivity for the denominator when
+    it uses this value. -/
 noncomputable def conditionalMass {α β : Type*}
     [MeasurableSpace α] [MeasurableSpace β]
     (μ : MeasureTheory.Measure (α × β)) (a : α) (b : β) : ENNReal :=
   singletonMass μ (a, b) / singletonMass (μ.map Prod.snd) b
 
-/-- The denominator used by `conditionalMass`. -/
+/-- For [a measure on a product of two measurable spaces](hyp:μ) and [a value
+    of the second coordinate](hyp:b), [the conditional denominator](goal) is the
+    singleton mass of that value under the measure's second-coordinate marginal. -/
 noncomputable def conditionalDenominator {α β : Type*}
     [MeasurableSpace α] [MeasurableSpace β]
     (μ : MeasureTheory.Measure (α × β)) (b : β) : ENNReal :=

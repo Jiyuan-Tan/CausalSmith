@@ -51,14 +51,16 @@ function reachableFileClosure(researchFiles: string[], repoRoot: string): string
   return all;
 }
 
-/** Scan the artifact + its reachable closure for cheat tokens (axiom/opaque/native_decide/unsafe/admit/sorry). */
+/** Scan the artifact + its reachable closure for cheat tokens (axiom/opaque/unsafe/admit/sorry).
+ *  `native_decide` was removed from this list on 2026-09-04 (operator call) — do not re-add;
+ *  keep aligned with `scanResearchCheatTokens` in `proof_review_loop.ts`. */
 async function scanCheatTokens(
   researchFiles: string[],
   repoRoot: string,
 ): Promise<Array<{ file: string; line: number; token: string }>> {
   const all = reachableFileClosure(researchFiles, repoRoot);
   // Reject admitted proof tokens here too, so closure banking cannot launder them as non-cheats.
-  const TOKEN = /\b(axiom|opaque|native_decide|unsafe|admit|sorry)\b/;
+  const TOKEN = /\b(axiom|opaque|unsafe|admit|sorry|sorryAx)\b/;
   const found: Array<{ file: string; line: number; token: string }> = [];
   for (const abs of all) {
     let text: string;

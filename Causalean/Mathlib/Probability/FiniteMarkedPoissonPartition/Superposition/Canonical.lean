@@ -20,8 +20,7 @@ namespace Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition
 variable {X : Type*} [MeasurableSpace X]
 variable {ι : Type*} [Fintype ι] [MeasurableSpace ι] [MeasurableSingletonClass ι]
 
-/-- Superpose finitely many finite sequences by enumerating their dependent
-disjoint union of coordinates. -/
+/-- Given [one finite sample of observation--real-mark pairs for every member of a finite index set](hyp:q), the [superposed finite sample](goal) contains all of their pairs, enumerated through the disjoint union of their coordinate positions. -/
 noncomputable def superpose (q : ι → FiniteSample (X × ℝ)) :
     FiniteSample (X × ℝ) := by
   classical
@@ -52,8 +51,7 @@ private lemma measurableSet_countFiber {Y : Type*} [MeasurableSpace Y]
     (measurable_finiteSample_count.comp (measurable_pi_apply j))
       (measurableSet_singleton (c j))
 
-/-- The `n` points of a finite sample that is known to have exactly `n` of them, read off as
-an `n`-tuple. -/
+/-- Given [a nonnegative integer](hyp:n) and [a finite sample known to have exactly that many points](hyp:s), the [points at the specified count](goal) are the resulting tuple of its $n$ points. -/
 noncomputable def pointsOfCount {Y : Type*} [MeasurableSpace Y]
     (n : ℕ) (s : {s : FiniteSample Y // s.count = n}) : Fin n → Y :=
   fun k => s.1.points (Fin.cast s.2.symm k)
@@ -104,8 +102,7 @@ lemma measurable_pointsOfCount {Y : Type*} [MeasurableSpace Y] (n : ℕ) :
   rw [hpre]
   exact hA.preimage measurable_subtype_coe
 
-/-- Concatenate one tuple of points per index into a single finite sample, given the per-index
-point counts `c`. -/
+/-- Given [a nonnegative integer count for every member of a finite index set](hyp:c) and [a tuple of points of the specified count for each member](hyp:x), the [fixed-count superposition](goal) is the finite sample obtained by concatenating all those tuples. -/
 noncomputable def fixedCountSuperpose {Y : Type*} [MeasurableSpace Y]
     (c : ι → ℕ) (x : ∀ j, Fin (c j) → Y) : FiniteSample Y := by
   classical
@@ -126,8 +123,7 @@ lemma measurable_fixedCountSuperpose {Y : Type*} [MeasurableSpace Y]
   let u := (Fintype.equivFin (Σ j : ι, Fin (c j))).symm k
   exact (measurable_pi_apply u.2).comp (measurable_pi_apply u.1)
 
-/-- On the event that each component sample has exactly `c j` points, read off the points of
-every component as a family of tuples. -/
+/-- Given [a nonnegative integer count for every index](hyp:c) and [a family of finite samples whose member at each index has exactly the specified count](hyp:q), the [fixed-count component points](goal) are the corresponding family of point tuples. -/
 noncomputable def fiberPoints {Y : Type*} [MeasurableSpace Y]
     (c : ι → ℕ) (q : countFiber (Y := Y) c) : ∀ j, Fin (c j) → Y :=
   fun j => pointsOfCount (c j) ⟨q.1 j, q.2 j⟩
@@ -184,8 +180,7 @@ lemma measurable_superpose :
   exact hs.preimage
     ((measurable_fixedCountSuperpose c).comp (measurable_fiberPoints c))
 
-/-- The finite set of `(mark, originalIndex)` keys used to order a marked
-sample; the index makes all keys distinct even on the tie event. -/
+/-- Given [a finite sample of observation--real-mark pairs](hyp:s), the [mark-ordering keys](goal) are the finite set of lexicographically ordered pairs consisting of each real mark and its original sample position; the position distinguishes pairs with equal marks. -/
 noncomputable def markedKeys (s : FiniteSample (X × ℝ)) :
     Finset (ℝ ×ₗ Fin s.count) := by
   classical
@@ -213,8 +208,7 @@ lemma markedKey_decode (s : FiniteSample (X × ℝ))
   rw [← hi]
   rfl
 
-/-- Order a finite marked sequence increasingly by mark, breaking mark ties by
-the original coordinate index. -/
+/-- Given [a finite sample of observation--real-mark pairs](hyp:s), the [mark-ordered sample](goal) contains the same pairs arranged in increasing order of their real marks, with equal marks ordered by original sample position. -/
 noncomputable def orderByMarks (s : FiniteSample (X × ℝ)) :
     FiniteSample (X × ℝ) := by
   classical
@@ -311,16 +305,14 @@ lemma measurable_orderByMarks :
     have hsn : MeasurableSet (fixedSizeEmbed n ⁻¹' s) := hs n
     exact hsn.preimage hg
 
-/-- The canonical finite marked Poisson configuration law stores the atoms in
-increasing mark order.  It is the measurable image of the raw conditionally
-i.i.d. marked sequence law. -/
+/-- Given [a probability measure for observations](hyp:P), [a probability measure for real-valued marks](hyp:R), and [a nonnegative Poisson mean](hyp:lam), the [canonical marked Poisson sample law](goal) is the distribution obtained from the finite marked Poisson sample law by arranging each realized sample in increasing order of its marks, breaking ties by original position. -/
 noncomputable def canonicalMarkedPoissonSampleLaw
     (P : Measure X) [IsProbabilityMeasure P]
     (R : Measure ℝ) [IsProbabilityMeasure R] (lam : ℝ≥0) :
     Measure (FiniteSample (X × ℝ)) :=
   Measure.map orderByMarks (finiteMarkedPoissonSampleLaw P R lam)
 
-/-- The canonical mark-ordered configuration law is a probability measure. -/
+/-- Let the observation space be equipped with a $\sigma$-algebra.  For [a probability measure on the observation space](hyp:P), [a probability measure on real-valued marks](hyp:R), and [a nonnegative Poisson mean](hyp:lam), [the assertion that the canonical mark-ordered Poisson sample law is a probability measure](goal) holds. -/
 instance canonicalMarkedPoissonSampleLaw_isProbabilityMeasure
     (P : Measure X) [IsProbabilityMeasure P]
     (R : Measure ℝ) [IsProbabilityMeasure R] (lam : ℝ≥0) :
@@ -328,8 +320,7 @@ instance canonicalMarkedPoissonSampleLaw_isProbabilityMeasure
   unfold canonicalMarkedPoissonSampleLaw
   exact Measure.isProbabilityMeasure_map measurable_orderByMarks.aemeasurable
 
-/-- Superpose finitely many cell configurations and put the resulting atoms in
-their canonical increasing-mark order. -/
+/-- Given [one finite sample of observation--real-mark pairs for every member of a finite index set](hyp:q), the [mark-ordered superposition](goal) is the superposition of those samples arranged in increasing order of real mark, with ties broken by original position. -/
 noncomputable def superposeByMarks
     (q : ι → FiniteSample (X × ℝ)) : FiniteSample (X × ℝ) :=
   orderByMarks (superpose q)

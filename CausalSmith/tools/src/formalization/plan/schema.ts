@@ -21,7 +21,7 @@ export const DispositionSchema = z.enum(["reuse", "define-local"]);
 export const LeanKindSchema = z.enum([
   "assumption", // assumption atom → named `def … : Prop` (referenced by hyps/fields)
   "structure", // class definition (by_member_properties) → structure / typeclass
-  "def", // construction definition, unresolved OEQ, or cited non-Prop metadata carrier
+  "def", // construction definition, unresolved OEQ, or cited canonical text metadata carrier
   "theorem", // statement (T-block)
   "lemma", // statement (L-block)
 ]);
@@ -70,14 +70,14 @@ export const NodeEntrySchema = z.object({
   //    is its verification, and it is recorded in SUBSTRATE_DEBT.md until discharged.
   //    This is the existing substrate-gate behavior (the `substrate_build_required`
   //    channel), unchanged — so pre-split plans (no `gate_class`) keep working.
-  //  - "cited": the node will NOT be discharged this run — either a deferred Prop
-  //    assumption or a non-Prop bibliographic metadata def, always MATCHED against
-  //    `source` (a cite: entry), and recorded in CITED_DEPENDENCIES.md. It is never
-  //    proven this run; a metadata carrier is not threaded as a hypothesis.
+  //  - "cited": the node is currently deferred — either a logical proposition
+  //    assumption or a bibliographic metadata def, always MATCHED against `source`
+  //    and recorded in CITED_DEPENDENCIES.md. A logical carrier may later take the
+  //    supported local citation-discharge path; metadata is never discharged or threaded.
   gate_class: z.enum(["gated", "cited"]).optional(),
   // The id of the `cite:` entry (in the plan's `citations`) this node is matched
-  // against. REQUIRED for `gate_class:"cited"` (a never-proven assumption needs
-  // something exact to check against). A proved lemma/theorem produced by the supported
+  // against. REQUIRED for `gate_class:"cited"` (a deferred logical assumption or
+  // metadata carrier needs something exact to check against). A proved lemma/theorem produced by the supported
   // citation-discharge path retains this field as provenance after the gate keys are
   // removed; P9 checks both representations and source resolution.
   source: z.string().optional(),
@@ -102,8 +102,9 @@ export const NodeEntrySchema = z.object({
 });
 
 /** One external citation a `cited` node is matched against — a first-class graph
- * dependency, id `cite:<slug>`. The `cited` node's Lean `def … : Prop` must
- * faithfully encode the lemma at `locator`; F2.5 verifies it against the fetched
+ * dependency, id `cite:<slug>`. A logical cited assumption must faithfully encode
+ * the source claim in unshadowable `Sort 0` syntax (semantically Prop); a cited metadata def must record its scope/provenance
+ * clauses in a direct literal root-qualified String/List String/Array String payload. F2.5 verifies either carrier against the fetched
  * source (preferred), or against `verbatim_statement` when no fetchable handle
  * (arxiv | doi | url) resolves. */
 export const CitationSchema = z.object({

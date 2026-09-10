@@ -64,14 +64,14 @@ structure BPFeasible (S : POBalkePearlSystem P) (hA : S.BaseAssumptions)
 
 /-! ### LP objective -/
 
-/-- The LP objective: ∑ (y1-y0) * π = ATE in the latent model. -/
+/-- For [a table of real weights indexed by the four binary latent response values](hyp:π), the [Balke--Pearl linear-program objective](goal) is the sum, over all latent response types, of that type's weight times its binary outcome response under treatment minus its binary outcome response under control. -/
 noncomputable def BPObjective (π : Bool → Bool → Bool → Bool → ℝ) : ℝ :=
   ∑ d0 : Bool, ∑ d1 : Bool, ∑ y0 : Bool, ∑ y1 : Bool,
     (boolToReal y1 - boolToReal y0) * π d0 d1 y0 y1
 
 /-! ### Identified interval -/
 
-/-- The Balke-Pearl sharp identified interval for ATE. -/
+/-- For [a potential-outcomes system](hyp:P), [a binary Balke--Pearl system on it](hyp:S), and [proof that the system satisfies the Balke--Pearl base assumptions](hyp:hA), the [sharp identified interval for the average treatment effect](goal) is the set of values of the Balke--Pearl linear-program objective over all feasible latent response-type tables. -/
 noncomputable def BPIdentifiedInterval (S : POBalkePearlSystem P) (hA : S.BaseAssumptions) :
     Set ℝ :=
   PartialID.IdentifiedInterval BPObjective (BPFeasible S hA)

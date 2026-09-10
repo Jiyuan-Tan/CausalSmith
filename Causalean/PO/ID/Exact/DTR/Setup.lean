@@ -106,17 +106,21 @@ variable [∀ k, MeasurableSpace (γ k)]
 
 /-! ### POVar accessors -/
 
-/-- The treatment at a stage is packaged as a potential-outcome variable with the
-common treatment value space. -/
+/-- For [a dynamic treatment-regime system](hyp:S) and [a stage](hyp:k), the [treatment
+potential-outcome variable](goal) is that stage's treatment node with the common treatment
+value space. -/
 def dVar (S : PODTRSystem P n δ γ) (k : Fin n) : POVar P δ :=
   ⟨S.D k, S.hDmeas k⟩
 
-/-- The terminal outcome is packaged as a real-valued potential-outcome variable. -/
+/-- For [a dynamic treatment-regime system](hyp:S), the [terminal-outcome potential-outcome
+variable](goal) is its terminal outcome node represented on the real line. -/
 def yVar (S : PODTRSystem P n δ γ) : POVar P ℝ := ⟨S.Y, S.hYreal⟩
 
 /-! ### Regimes -/
 
-/-- The regime target set contains the treatment nodes before the stage cutoff.
+/-- For [a dynamic treatment-regime system](hyp:S), the [regime-target-set function](goal)
+maps each nonnegative cutoff to [the empty set at cutoff zero](step:1) and [the treatment nodes
+at stages strictly before the cutoff at every positive cutoff](step:2).
 
 It is defined independently of regimes so later regime construction can prove
 the required disjointness facts. -/
@@ -152,8 +156,10 @@ lemma regimeTarget_mem_iff (S : PODTRSystem P n δ γ) :
             apply Fin.ext; simp [hi']
           rw [this]
 
-/-- Mutual-recursive definition of the regime together with a proof that
-its target equals `regimeTarget`.
+/-- For [a dynamic treatment-regime system](hyp:S), [a treatment sequence](hyp:dbar), [a
+cutoff](hyp:k), and proof that the cutoff does not exceed the horizon, the [partial
+regime together with its target-set identity](goal) fixes the earlier treatments to that
+sequence and records that its target contains exactly those earlier treatment nodes.
 
 The pair `(regime, target-proof)` is built by structural recursion on `k`;
 the target-proof at level `k` is needed to discharge the disjointness
@@ -189,7 +195,9 @@ noncomputable def regimeUpToAux (S : PODTRSystem P n δ γ) (dbar : Fin n → δ
         ext w
         simp [Finset.mem_insert, v]⟩
 
-/-- The partial regime fixes treatments before the stage cutoff to a chosen treatment sequence. -/
+/-- For [a dynamic treatment-regime system](hyp:S), [a treatment sequence](hyp:dbar), [a
+cutoff](hyp:k), and [proof that the cutoff does not exceed the horizon](hyp:h), the [partial
+treatment regime](goal) fixes exactly the treatments before the cutoff to that sequence. -/
 noncomputable def regimeUpTo (S : PODTRSystem P n δ γ) (dbar : Fin n → δ)
     (k : ℕ) (h : k ≤ n) : Regime P.V P.X :=
   (S.regimeUpToAux dbar k h).1
@@ -200,31 +208,39 @@ lemma regimeUpTo_target_eq (S : PODTRSystem P n δ γ) (dbar : Fin n → δ)
     (S.regimeUpTo dbar k h).target = S.regimeTarget k :=
   (S.regimeUpToAux dbar k h).2
 
-/-- The full treatment regime fixes every stage's treatment to the chosen treatment sequence. -/
+/-- For [a dynamic treatment-regime system](hyp:S) and [a treatment sequence](hyp:dbar), the
+[full treatment regime](goal) fixes every stage's treatment to the corresponding sequence value. -/
 noncomputable def regime (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) :
     Regime P.V P.X :=
   S.regimeUpTo dbar n (le_refl n)
 
 /-! ### Counterfactuals and factuals -/
 
-/-- The terminal counterfactual outcome evaluates the outcome under the full treatment regime. -/
+/-- For [a dynamic treatment-regime system](hyp:S) and [a treatment sequence](hyp:dbar), the
+[terminal counterfactual-outcome function](goal) assigns each unit its terminal outcome under
+the full regime fixing treatments to that sequence. -/
 noncomputable def Y_of (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) :
     P.Ω → ℝ := S.yVar.cf (S.regime dbar)
 
-/-- The stage counterfactual state evaluates the state under the earlier treatment interventions. -/
+/-- For [a dynamic treatment-regime system](hyp:S), [a treatment sequence](hyp:dbar), and [a
+stage](hyp:k), the [stage counterfactual-state function](goal) assigns each unit its state at
+that stage under interventions fixing the preceding treatments to the sequence. -/
 noncomputable def S_of (S : PODTRSystem P n δ γ) (dbar : Fin n → δ)
     (k : Fin n) : P.Ω → γ k :=
   (S.S k).cf (S.regimeUpTo dbar k.val (Nat.le_of_lt k.isLt))
 
-/-- The factual treatment at a stage is the observed treatment value at that stage. -/
+/-- For [a dynamic treatment-regime system](hyp:S) and [a stage](hyp:k), the [factual
+treatment function](goal) assigns each unit its observed treatment at that stage. -/
 noncomputable def factualD (S : PODTRSystem P n δ γ) (k : Fin n) : P.Ω → δ :=
   (S.dVar k).factual
 
-/-- The factual outcome is the observed terminal outcome. -/
+/-- For [a dynamic treatment-regime system](hyp:S), the [factual terminal-outcome function](goal)
+assigns each unit its observed terminal outcome. -/
 noncomputable def factualY (S : PODTRSystem P n δ γ) : P.Ω → ℝ :=
   S.yVar.factual
 
-/-- The factual state at a stage is the observed state value at that stage. -/
+/-- For [a dynamic treatment-regime system](hyp:S) and [a stage](hyp:k), the [factual state
+function](goal) assigns each unit its observed state at that stage. -/
 noncomputable def factualS (S : PODTRSystem P n δ γ) (k : Fin n) : P.Ω → γ k :=
   (S.S k).factual
 
@@ -254,7 +270,10 @@ lemma measurable_factualS (S : PODTRSystem P n δ γ) (k : Fin n) :
 
 /-! ### Indicators -/
 
-/-- Joint indicator `1_{D 0 = dbar 0 ∧ … ∧ D (k-1) = dbar (k-1)}`.
+/-- For [a dynamic treatment-regime system](hyp:S) and [a treatment sequence](hyp:dbar), the
+[joint treatment-agreement indicator function](goal) maps each cutoff to [one at cutoff
+zero](step:1) and [the preceding indicator times the next treatment-agreement indicator at a
+positive cutoff, provided that stage exists, otherwise the preceding indicator](step:2).
 
 Defined by recursion on the stage cutoff `k`.  For `k > n` the extra factors
 are dropped — callers should only use this with `k ≤ n`. -/
@@ -283,8 +302,9 @@ lemma measurable_indD (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) :
         exact S.measurable_indD dbar k
 
 /-! ### History bundles -/
-/-- A history bundle collects the observed state and treatment history available
-just before a selected stage, ending with the current state.
+/-- For [a dynamic treatment-regime system](hyp:S), [a stage cutoff](hyp:k), and proof that
+the cutoff is below the horizon, the [history bundle](goal) collects the factual states
+and treatments observed before that stage together with the factual state at the stage.
 
 The history bundle at stage cutoff `k` is the factual tuple
 `(S 0, D 0, S 1, D 1, ..., S (k-1), D (k-1), S k)`. At `k = 0` it is the
@@ -304,8 +324,9 @@ noncomputable def historyBundle (S : PODTRSystem P n δ γ) :
 
 /-! ### Counterfactual bundle wrapper (for exchangeability) -/
 
-/-- Singleton CF bundle containing just `Y(dbar)` — used for the per-sequence
-exchangeability statement. -/
+/-- For [a dynamic treatment-regime system](hyp:S) and [a treatment sequence](hyp:dbar), the
+[counterfactual-outcome bundle](goal) is the singleton bundle containing the terminal potential
+outcome under that sequence. -/
 noncomputable def cfYBundle (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) :
     POCFBundle P :=
   POCFBundle.cons (⟨S.yVar, S.regime dbar⟩ : RegimedVar P ℝ) (POCFBundle.nil P)
@@ -347,9 +368,11 @@ structure Assumptions (S : PODTRSystem P n δ γ)
   integrable_factualY : Integrable S.factualY P.μ
 
 /-! ### Observable (adjusted) functionals -/
-/-- The adjusted dynamic-treatment-regime regression is computed by backward
-recursion through the observed treatment and state history, with the
-zero-horizon case defined to be zero.
+/-- For [a dynamic treatment-regime system](hyp:S) and [a treatment sequence](hyp:dbar), the
+[backward adjusted-regression function](goal) maps its recursion index to [the final-history
+conditional-expectation ratio when the horizon is positive, and zero otherwise](step:1), then
+[the analogous recursively defined earlier-history ratio when the indicated stage exists, and
+the preceding value otherwise](step:2).
 
 Backward-recursive definition of the adjusted DTR functional.
 
@@ -392,11 +415,17 @@ noncomputable def innerReg (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) :
           ((S.dVar stage).indicator (dbar stage)) P.μ ω
       else S.innerReg dbar j ω
 
-/-- Mean potential outcome `E[Y(dbar)]`.  Single counterfactual mean. -/
+/-- For [a dynamic treatment-regime system](hyp:S) and [a treatment sequence](hyp:dbar), the
+[dynamic-regime mean potential outcome](goal) is the probability-measure expectation of the
+terminal potential outcome under that sequence. -/
 noncomputable def dtrEffect (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) :
     ℝ := ∫ ω, S.Y_of dbar ω ∂P.μ
 
-/-- Adjusted DTR functional (observable side).  Integrates the outermost
+/-- For [a dynamic treatment-regime system](hyp:S) and [a treatment sequence](hyp:dbar), the
+[observable adjusted dynamic-regime functional](goal) is the probability-measure integral of
+the outermost backward regression when at least one stage exists, and is zero at a zero horizon.
+
+Integrates the outermost
 ratio `innerReg dbar (n - 1)` — which conditions on `historyBundle 0 = (S 0,)` —
 against `P.μ`.  For `n = 0` this is `0`. -/
 noncomputable def adjustedDtr (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) :

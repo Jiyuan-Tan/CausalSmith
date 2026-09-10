@@ -1,114 +1,232 @@
 ---
 name: causalsmith-present
-description: CausalSmith P-stage (presentation) sub-orchestrator — drives P0–P5 for an accepted bank entry, producing an arXiv-grade paper bundle and interactive web artifacts. Dispatched by causalsmith/main on `/causalsmith present`; the pipeline owns P0–P5, the orchestrator reviews checkpoints and manually adjudicates any frozen-layer versus Lean disagreement.
+description: CausalSmith P-stage (presentation) sub-orchestrator — drives P0–P6 for an accepted bank entry, producing an arXiv-grade paper bundle, interactive web artifacts, and optional slides. Dispatched by causalsmith/main on `/causalsmith present`; the pipeline owns P0–P6, the orchestrator reviews checkpoints, revises the paper by hand from the referee's findings, and adjudicates any frozen-layer versus Lean disagreement.
 ---
 
 # causalsmith-present — presentation sub-orchestrator
 
-Input: an **accepted** bank entry (`CausalSmith/doc/research/_bank/accepted/<qid>_<spec>/`). Output: a working-paper bundle in `CausalSmith/doc/presentation/<qid>_<spec>/` (paper.tex/pdf, presentation_crosswalk.json, lean_snippets.json, paper_body.html, assumption_table.md, meta.json) rendered by `CausalSmith/site/` as an interactive verified paper.
+Input: an **accepted** bank entry `CausalSmith/doc/research/_bank/accepted/<qid>_<spec>/`. Output: the
+bundle `CausalSmith/doc/presentation/<qid>_<spec>/` (paper.tex/pdf, presentation_crosswalk.json,
+lean_snippets.json, paper_body.html, assumption_table.md, meta.json), rendered by `CausalSmith/site/`.
 
-## Dispatch and lease (mirrors the D-/F-orch pattern)
+## Lease
 
-Main dispatches one P-orchestrator per bundle with the template (fill `<qid>`/`<spec>`/`<bool>`; keep the payload to the non-derivable — the sub loads the rest from this skill):
+Main dispatches one P-orchestrator per bundle; you hold the resume-lease. You own launches/resumes,
+checkpoint reviews (auto_mode → `--auto`: self-approves both checkpoints, keeps every hard halt;
+record what you checked), every content
+adjudication (frozen layer vs Lean, crosswalk repairs, promotion decisions, cache verdict flips,
+authored-source edits, P5 triage), and the referee budget. Self-resume freely.
 
-> **P-orch:** You are the CausalSmith **P-stage orchestrator** for bundle `<qid>`/`<spec>` and you HOLD THE
-> RESUME-LEASE for presentation. Invoke skill `causalsmith-present` and follow it exactly, including its
-> stop rule and lease-return conditions. auto_mode=`<bool>`.
+You never edit pipeline code or prompts, commit/push, run the public export, or edit bank D/F content
+outside the documented channels (crosswalk patch, promotion review, frozen-body amendment). Return
+the lease with verbatim receipts only for:
 
-You own P0–P5 for the bundle: launches/resumes (always detached — see sharp edges), checkpoint reviews (auto_mode=`true` grants self-approval; record what you checked), every content adjudication (frozen-layer vs Lean, crosswalk repairs, promotion decisions, cache verdict flips, authored-source edits, P5 finding triage), and referee-cycle economy within the pass cap. Self-resume freely within P; never message main for a `--from`/`--reassemble` re-entry you can run yourself.
+- `paper-done` — score trajectory, kept version, adjudications (fixed vs dismissed), files awaiting
+  commit, your own clarity verdict.
+- `pipeline-bug` — file:line suspicion, exact error, minimal repro.
+- `cap-block` — a cap reached with unresolved findings; never grant yourself more (exception: the P2
+  `--promote-again` decision is yours).
+- `user-scope` — a finding needing new mathematics (corollaries, renames, simulation studies).
+- `dispatch-request` — you need a subagent. `commit-request` — bundle ready; main owns git.
 
-You never: edit pipeline code or prompts (bug-fix contract, Self-improving loop), commit or push anything in the shared tree, run the public export, or edit bank D-/F-phase content beyond the documented channels (crosswalk patch, promotion review, frozen-body amendment). **Return the lease with verbatim receipts only for:**
-
-- `paper-done` — P5 addressed or at cap; final report: score trajectory, kept version, adjudications (fixed vs dismissed), files awaiting commit, your independent clarity verdict.
-- `pipeline-bug` — per the stop rule: file:line suspicion, exact error, minimal repro; pause or continue as main directs.
-- `cap-block` — a pass/round cap reached with unresolved findings (P5 passes, revision rounds); main (or the user) decides further rounds — never grant yourself more. Exception: the P2 promotion `--promote-again` decision is explicitly YOURS (see Promotion round).
-- `user-scope` — a finding needing new mathematics (corollaries, renames, simulation studies) per Mechanics item 4.
-- `dispatch-request` — you need another Claude subagent main must spawn.
-- `commit-request` — bundle artifacts ready; main owns git and the export.
-
-**Authorship standard:** write a natural, conventional paper for the field, not a prose translation of Lean. Lead with the scientific question, ordinary mathematical formulation, intuition, results, and literature; treat Lean as the verification backend. Keep declaration names, proof-engineering structure, and formalization machinery out of the main exposition unless scientifically essential — implementation detail goes to a motivated technical appendix or the interactive verification layer. Do not author figures or diagrams (no gate audits a figure for faithfulness, and `picture` environments render as a placeholder on the web); tables and prose carry regime summaries until figures have an audit path.
+**Authorship standard:** a conventional paper for the field, not a prose translation of Lean. Lead
+with the question, ordinary formulation, intuition, results, literature; Lean is the verification
+backend — declaration names and proof engineering belong in the appendix or the interactive layer.
+No figures in the paper (no gate audits them); tables and prose carry regime summaries.
 
 ## Mechanics
 
-1. Launch from `CausalSmith/tools/` (cwd matters):
-   `npx tsx bin/causalsmith.ts present <qid> <spec> [--resume] [--dry-run] [--stop-after P0..P5] [--from P0..P5]`
-   Long stages go in background; pre-warm the Lean build (`lake -d CausalSmith build <research modules>`; fetch the Mathlib cache first if oleans are missing) before P2/P3 so codex's lean-lsp calls don't cold-start.
-2. Two checkpoints; review the named artifacts, then `--resume`. Under auto_mode (granted in your dispatch) approve them yourself; record what you checked. Otherwise return the lease for the checkpoint decision.
-   - **P1 (outline + frozen layer + bibliography):** read `notation_review.json` — the codex notation reviewer is the ONE semantic notation authority; its `advisories` (`notation-unresolved` = the one allowed synthesis attempt failed or was re-flagged, OR the symbol is used by no paper env — then there is nothing to define; acknowledge with a reason) each need resolving yourself — edit the note/outline/graph statement or accept with a recorded reason — before approving. An unresolvable symbol is a self-containedness defect (PolyTail incident, 2026-06-11). Also scan the outline's object list for note objects that are standard-literature material serving only motivation (a textbook identification example, a folklore special case). This is MECHANICALLY enforced at P2: the ballast gate (`unconsumedStatementNodes`) fails closed on any frozen theorem/lemma nothing consumes unless it carries an entry in the bundle's `ballast_review.json` (`{"acknowledged": {"<id>": "<why it belongs — a delivered headline/benchmark>"}}`); ballast is excised instead of acknowledged — do it NOW, before the layer freezes — every frozen object is mandatorily placed (P2 placement gate), and post-P5 removal is bundle surgery (sources + front matter + outline + proofs store + formal_layer.json + slides.md + reassembly, PLUS clearing `nl.frozen` on the bank nodes — otherwise a future `--from P1` resurrects them into the layer; two-category incident, 2026-08-27).
-   - **P2 (full draft):** verify journal-paper shape, not only correctness — contributions stated clearly + intro roadmap paragraph in front matter; related work as a dedicated early section or intro subsection; every proof opens `\begin{proof}[Proof of \cref{obj:<obj-id>}]`; spot-read one main-theorem proof for derive-or-cite completeness (no step waved through as "standard arguments"); review any promoted nodes (see "Promotion round").
-3. State machine: `<qid>_<spec>_paper_state.json` (`stage_completed`, `checkpoint_pending`, `revision_round`, `notes`). `--from` re-enters the stage that owes work; never hand-edit the pointer to retry. Semantic rewinds are reserved for authorship / mathematical / frozen-layer / presentation-plan changes; for mechanical failures, inspect emitted versus persisted I/O, repair/replay in place, and re-run the stage. Delete stale stage outputs only when you intend regeneration.
-4. P5 (terminal) sends the FINAL `paper.tex` to a codex referee and writes `p5_review.{json,md}` — findings are RETURNED, never auto-applied. On `halt: done`: address every finding in the AUTHORED SOURCES yourself (`front_matter.tex`, `sections/*.tex`, `proofs/*.tex`). `paper.tex` is DERIVED — never hand-edit it; every re-entry reassembles it from sources, discarding paper.tex-only edits. Then `--from P2 --reassemble` (REQUIRED: plain `--from P2` runs draft mode and silently re-drafts over your hand edits; `--reassemble` also skips the draft checkpoint). Max three P5 passes total, counting the two automatic revisions; at the cap, record unresolved findings. A claim-fidelity finding tracing to the frozen layer / Lean is an adjudication item, not a prose patch. Adding missing citations a referee identifies is ALWAYS your remit (standing user grant, 2026-08-20 — no per-run approval): verified entries in `references.bib` (exact titles/DOIs; P4 hard-fails fabricated ids) + related-work prose. New corollaries, theorem renames, and simulation studies stay user-scope.
-5. On completion with a clean/addressed review: strip latexmk aux files, verify with a site build (`cd CausalSmith/site && npx astro build` — its loadBundle integrity gate must pass), then return `paper-done` + `commit-request`: main commits the bundle dir (and runs any export). The orchestrator never commits.
-6. **P6 (slides, optional, strictly post-settlement):** `present <qid> <spec> --slides` (alias `--from P6`) — refused until P5 is settled (`p5_review.json` present, `stage_completed` P4/P5, no pending checkpoint). ONE codex call emits `slides.md`, a seminar pitch deck (prompt targets 11–17 slides; the mechanical lint accepts 8–18); formal statements are injected verbatim from `formal_layer.json` at render time (`@formal <obj_id>` directives), so NO equivalence/proof re-audit runs and none should be added. A mechanical lint (theorem coverage, displayed math only as verbatim copies from the paper, authors' voice — never "the paper", no bare `@formal` slide, framing) gets one retry, then halts. Checkpoint: read `slides.md` yourself — the MAIN measure is clarity and easy first-read comprehension (it is a pitch talk, not the paper). Check specifically: (a) every figure's edges/branches against the FROZEN definitions in `formal_layer.json` — an arrow asserts a real dependency, and the mechanical lint cannot catch a false one (read the `.dsl` beside the `.svg`; e.g. is clipping inside each branch or after the selector, are alternatives parallel rather than chained); (b) figure captions and `@informal` headlines do not claim more than the audited bodies; (c) every coined term is defined before first use — list each paper-coined dichotomy/construct the deck relies on and confirm its one-line criterion appears first; (d) the deck reads as a talk, not a compressed paper (one idea per slide, mechanism vs. intuition registers); (e) every symbolic rate/scale in prose appears VERBATIM in a catalog body or the outline's notation (models truncate scales from memory — e.g. dropping a log factor); (f) each @informal preserves its @formal's strength ("at most"/"at least" where the body proves a bound, hedges kept); (g) every Author (Year) attribution matches an entry in the bundle's `references.bib` and credits the right result — the lint cannot check attribution, only the prompt restricts it. Fix defects by HAND-EDITING `slides.md` and `slides_assets/*.dsl` (authored sources; hand edits survive re-runs; `--refresh-slides` discards `slides.md` edits). After editing a `.dsl`, re-render its `.svg` deterministically with `parseFigureDsl`+`renderFigureSvg` (one-liner via `npx tsx`, no model call) — do NOT delete the `.svg`, which triggers model re-authoring that ignores your `.dsl`. Recurring taste defects go into `prompts/p6_slides.txt` as general rules, never instance patches. The site renders the deck at `/papers/<id>/slides` (link appears automatically when `slides.md` exists). **Figures:** `@figure <kebab-name>: <caption>` (≤3/deck) shows `slides_assets/<name>.svg` labeled "illustrative" — SCHEMATICS only (DAG, regime diagram, pipeline sketch), never data plots or numeric curves; the stage authors a MISSING asset with one extra codex call (existing/hand-drawn files are never overwritten — delete to re-author; note that deleting triggers MODEL re-authoring, so a hand-fixed `.dsl` is re-rendered via `renderFigureSvg` instead). SVG safety: the stage's own renderer emits safe SVG by construction, and the SITE's `safeFigureSvg` rejects unsafe markup (scripts, external refs, foreignObject) — a hand-dropped SVG is checked only by the site. Figure caps: prompt guidance ≤2, lint hard cap ≤3. Judge figures at the same clarity checkpoint; the paper-side figure ban is unchanged.
+1. From `CausalSmith/tools/` (`source scripts/node_env.sh` first):
+   `npx tsx bin/causalsmith.ts present <qid> <spec> [--resume] [--auto] [--dry-run] [--stop-after P0..P5]
+   [--from P0..P6] [--promote-again] [--refresh-frozen-bodies]`. `--from P2` reassembles the authored
+   sources whenever `front_matter.tex` exists (only a missing file is drafted; delete
+   `front_matter.tex` to draft afresh). Run long stages detached; pre-warm the Lean build before P2/P3 (`lake -d CausalSmith build
+   <research modules>`; fetch the Mathlib cache first if oleans are missing).
+2. Checkpoints (then `--resume`):
+   - **P1** (outline + frozen layer + bibliography): resolve every `notation_review.json` advisory
+     (edit the note/outline/statement, or accept with a recorded reason; `notation-unresolved` with no
+     consuming env needs only an acknowledgement; a dependency-cycle advisory is not a halt). Excise
+     note objects that are literature motivation only NOW — P2's ballast gate fails on any frozen
+     theorem/lemma nothing consumes unless `ballast_review.json` acknowledges it
+     (`{"acknowledged": {"<id>": "<why>"}}`), and post-P5 removal is bundle surgery plus clearing
+     `nl.frozen` on the bank nodes.
+   - **P2** (full draft): journal shape (contributions + roadmap in front matter, early related work,
+     every proof opens `\begin{proof}[Proof of \cref{obj:<id>}]`); spot-read one main-theorem proof;
+     review promoted nodes.
+3. State `<qid>_<spec>_paper_state.json`: `stage_completed`, `checkpoint_pending`, `revision_round`,
+   `hard_gate_failures`, `notes`. Never hand-edit the
+   pointer; `--from` re-enters the stage that owes work. Rewind only for authorship / mathematical /
+   frozen-layer / plan changes; mechanical failures are repaired in place and the stage re-run.
+4. **Revision protocol (fixed).** P5 writes `p5_review.{json,md}` and `p5_revision_routing.md`
+   (each finding: fix by hand / escalate / your call) and halts `p5:hand-revision`; nothing revises
+   unattended. (1) You root-fix every finding by hand at the level that owns it, before paying any
+   downstream stage: outline order or duplicate blocks → `outline.md` (`home_objs:`) and `--from P1`;
+   a synthesized definition's rendering → P1; prose → `front_matter.tex`, `sections/*.tex`,
+   `proofs/*.tex` and `--from P2` (`paper.tex` is derived, never hand-edit it). A referee finding
+   NEVER changes a Lean-backed environment: if you believe the body misrenders its Lean, record an
+   adjudication item naming the declaration — the amendment is the user's decision. (2) Rescore:
+   the re-entry runs through P5 and halts again with the new score. (3) A second hand round and
+   rescore only if the new review still carries findings you can fix; then stop: record what
+   remains as unresolved, run P6 (Mechanics 6), and return `paper-done`. Three referee passes
+   total (the first review and two rescores), yours to enforce — no code cap. Adding
+   referee-identified citations is your remit (verified entries, exact titles/DOIs).
+5. Done: strip latexmk aux files, `cd CausalSmith/site && npx astro build` (bundle integrity gate),
+   run P6, then return `paper-done` + `commit-request`.
+6. **P6 slides** (after the final score): `present <qid> <spec> --from P6`. One codex call emits
+   `slides.md` (11–17 slides targeted, lint 8–18); formal statements are injected verbatim via
+   `@formal <obj_id>`; the lint (theorem coverage, displayed math only as verbatim copies, authors'
+   voice, no bare `@formal` slide) gets one retry, then halts. At the checkpoint judge clarity and
+   check: figure edges against frozen definitions (read the `.dsl` beside the `.svg`), captions and
+   `@informal` headlines claim no more than the audited bodies, every coined term defined before use,
+   one idea per slide, every rate/scale verbatim from a catalog body or the notation, every
+   Author (Year) matches `references.bib`. Fix by editing `slides.md` / `slides_assets/*.dsl`
+   (hand edits are kept; delete `slides.md` to regenerate and discard them); after a `.dsl` edit
+   re-render its `.svg` with
+   `parseFigureDsl`+`renderFigureSvg` via `npx tsx` — never delete the `.svg`. Figures `@figure
+   <kebab-name>: <caption>` (≤2 target, ≤3 lint; schematics only); a missing asset is authored once;
+   existing files are never overwritten. Escalate recurring taste defects to main as a general
+   `p6_slides.txt` rule.
 
-## Caches, cost, and re-entry (user directive: the audits are the bottleneck — never rerun without a material change)
+## Caches and re-entry
 
-- Cost profile: P1 ≈ 30 codex statement-equivalence audits (T-/L- high, P-* medium); P2 ≈ one codex-high proof audit per proof; P3 ≈ ~60–80 citation checks (low) + codex overclaim + opus×1+codex×1 rubric.
-- All verdicts are content-keyed cached: `equivalence_cache.json` (P1), `proof_audit_cache.json` (P2), `gate_cache.json` (P3). Reruns re-pay only for changed inputs; delete a cache file to force a fresh audit. P2 artifacts are file-cached (sections/, proofs/, front_matter.tex) — delete a file to regenerate it. After amending the frozen layer, sync the env copies inside cached sections (each block's `body` in `formal_layer.json` IS the freeze; whitespace-insensitive; titles not frozen).
-- Never hand-compute a cache key. To reseed an adjudicated FALSE POSITIVE: flip that obj_id's `verdict` to `"faithful"`, leave the stored `key` untouched (valid while content is unchanged; any content change re-audits automatically). One explicit edit per entry — never a scripted rewrite.
-- **Stop rule (token protection).** A re-entry reproducing the SAME failure after your fix was applied is what a pipeline bug looks like — stop and escalate instead of spending a third cycle. A cache edit the next run does not honor is a pipeline bug after ONE known exception: when the last cycle DISCARDED a refinement, the proof-audit entry may be keyed to the discarded candidate body, so one flip can miss once — the clean re-run re-keys to the on-disk body; flip again and it sticks. Two consecutive unhonored edits = pipeline bug. Escalate per the bug-fix contract (Self-improving loop).
-- P1 recovery is CACHE-based (`p1_cache.json`: renders, notation reviews, accepted synthesized definitions; reviewer-flagged wording re-renders are deliberately uncached). No adjudication side-channel: on failure/advisories, fix the blocking input (note/outline/graph) and re-run `--from P1`. The synthesis LEDGER (`synth` in `p1_cache.json`) grants each symbol ONE attempt ever; accepted entries persist across runs; delete a symbol's ledger entry to re-arm after fixing its input. Cache keys embed per-purpose prompt fingerprints — editing a prompt auto-invalidates its consumers (never bump versions by hand); the ledger alone is prompt-independent.
-- A legacy bundle whose proof cache predates the current key format re-renders proofs on the next P2; `--reuse-existing-proofs-for-audit` keeps existing rendered proofs (each still gets a fresh mandatory audit).
-- Never synthesize a presentation-only definition for Lean-backed notation (router-enforced: a Lean-realized symbol's missing definition re-renders its designated home env, or halts if that home is locked/missing). Synthesis is the last resort for symbols with no Lean realization.
-- `citation-unverifiable` is advisory; only `unsupported` blocks. P4 re-verifies cited entries against Crossref/arXiv with a per-process throttle — concurrent `--from P4` re-emits can rate-limit; transient registry unreachability on an entry with a DOI/arXiv id is kept as a non-blocking caveat, but a fabricated/absent id (reachable 4xx / empty feed) still hard-fails. Prefer sequential P4s.
+Never rerun an audit without a material change. Verdicts are content-keyed: `equivalence_cache.json`
+(P1), `proof_audit_cache.json` (P2), `gate_cache.json` (P3), `p1_cache.json` (renders, notation
+reviews, synthesis, `synthEnvs`). Reruns re-pay only changed inputs; delete a cache file to force a
+fresh audit. Never hand-compute a key; to reseed an adjudicated false positive, flip that obj_id's
+`verdict` to `"faithful"` and leave `key` untouched, one explicit edit per entry.
 
-## Promotion round (automatic, inside P2)
+- A proof approval keys on the proof text, its Lean source, the statement it proves, the statements
+  it cites by `\cref`, and the notation rows it meets — nothing else. Changing a statement re-judges
+  the proofs that cite it; a promoted lemma, an order repair, or a re-rendered uncited statement
+  re-judges nothing. Statement approvals key on the declaration's source text, not its line. Rows
+  stamped under an older key formula are honoured once and re-stamped (a one-time "render cache
+  remains missed" note per proof is that re-stamp).
+- P2 artifacts (`sections/`, `proofs/`, `front_matter.tex`) are file-cached — delete a file to
+  regenerate it. After amending the frozen layer, sync the env copies inside cached sections (the
+  freeze is each block's `body` in `formal_layer.json`, whitespace-insensitive; titles not frozen).
+- P1: `outline.md` `home_objs:` is the planned placement (edit it to move objects); `objs:` is the
+  resolved layout. A valid outline is reused across re-entries; delete it only to request a fresh
+  plan. Promotions must add their nodes to `home_objs` (and `objs`) without disturbing existing
+  homes; recover lost homes from the recorded planner output, never by deleting caches or guessing
+  from symbol spellings. P1 places definitions/algorithms/assumptions before consumers by graph
+  `statement-uses` edges and actual references (ordinary forward result citations are allowed);
+  P3/P4 assert the order (`frozen-layer-order`). Render, notation and
+  synthesis keys embed prompt fingerprints — never bump versions by hand. A `lean-coverage` halt:
+  map the missing certifying declarations in the bank node's `lean.supporting_decls`, keep the
+  authored body, `--from P1`; never weaken a statement to fit a partial mapping.
+- Synthesis renders a symbol no environment defines: from the Lean declaration when an `@realizes`
+  tag or a same-named def-like declaration exists (judged and linked like any Lean-backed env),
+  otherwise by the definition writer; a cached prose definition whose symbol the Lean defines is
+  re-rendered from the Lean on the next P1.
+- P2 keeps existing proof files as candidates; a terminal audit failure keeps its stop receipt until
+  a relevant input changes. Repairs are ordered exact text replacements audited in full; an invalid
+  patch leaves the candidate untouched.
+- P3: exact patches only, checked by the frozen/proof guard; protected edits are skipped, structural
+  changes halt. The rubric is advisory; a hard-gate loop that gives up after 2 rounds halts with its
+  last patch ON DISK. Do not reassemble an unchanged paper to escape a rubric score.
+- Bibliography. P4 re-verifies every CITED entry (Crossref/arXiv/OpenAlex, throttled — run P4s
+  sequentially): title, an author family, and year must corroborate; a fabricated/absent id
+  hard-fails; a same-title hit by another author halts naming both records. Before paying a P4
+  after any bib change, sweep the cited entries offline (`verifyEntry(entry, defaultLookup)` over
+  `citedKeys(paper.tex)`). A correct entry no registry indexes under its own identity is confirmed
+  BY HAND: check a primary source, add `verifiedby = {<what confirmed it>}` in `references.bib` AND
+  `references_raw.bib` (P0 rebuilds the former from the latter and strips the field from model
+  output). Never "fix" fields from another work's record; a correct indexed entry that fails is a
+  lookup defect → `pipeline-bug`.
+- **Stop rule.** A re-entry reproducing the SAME failure after your fix, or two consecutive
+  unhonoured edits, is a pipeline bug — stop and escalate.
 
-A residual P2 proof-audit failure (a step underivable from citable material) fires ONE promotion round per invocation: a write-enabled agent authors the missing Lean-backed helper lemmas as bank graph nodes, the bank reloads, P1 runs a delta pass, P2 retries once. Promoted lemmas become citable helper envs with Lean drawers. A firing shows as a `promotion` note in the paper state and a bank graph node-count increase. Your part: review added nodes at the next checkpoint like any bank edit (statement faithful to its Lean decl, sensible placement). If the retry fails again, recover with `--from P1` — never plain `--resume` (state sits mid-P2 over a half-integrated bank). A SECOND firing against the SAME proofs is a stop signal: re-read the paper's claim against the Lean before letting more nodes land — repeated failure with the gap closed usually means the claim is wrong, not under-supported. Reassemble re-entries never fire promotion.
+## Mechanical recovery before paid retries
 
-**A SECOND round is your decision, not the pipeline's.** After one round has run, a further proof-audit
-failure halts with `P2 promotion decision required` and hands you the audit findings. Read them: another
-round helps only when a proof lacks a CITABLE STEP, and cannot fix a rendering defect — leaked
-totalization conventions, a mis-attributed step, an omitted conjunct, symbol shadowing — which needs the
-proof, or the theorem STATEMENT, adjudicated instead. Grant a round with `--promote-again`; passing it
-blindly on every re-entry recreates the cascade the halt exists to stop (2026-08-22: four rounds, eleven
-lemmas, none converging, because each promoted lemma needed its own prose proof against the same bar).
-When the findings are fidelity-only, fix the prose — and check the theorem statement first: a proof that
-keeps failing for an "omitted conclusion" is often being asked to prove something its statement never
-claims.
+Fix mechanical errors (JSON punctuation, a known path, a LaTeX/package error) in place from the
+worker's own raw output, change only what the syntax needs, re-run the existing checks, record the
+original and the repair. A syntax repair never approves mathematical content or link assignments —
+their semantic checks still apply. Never invent missing answers, merge conflicting ones, or weaken a
+validator; an ambiguous intended content is an unresolved judgment, not a repair. Resume at the
+earliest stage that still owes work.
 
-## Stages and where to look
+## Promotion round (inside P2)
 
-| Stage | Output to inspect | Failure modes seen live |
+A residual `[missing-step]` proof-audit failure fires ONE promotion round per invocation: an agent
+authors the missing Lean-backed helper lemmas as bank nodes, the bank reloads, P1 runs a delta pass,
+P2 retries once. Rendering-only residuals never promote (halt for adjudication; delete
+`proofs/<id>.tex` to re-render). If the retry fails, recover with `--from P1`, never plain
+`--resume`; reassemble re-entries never promote. The halt `P2 promotion decision required` hands
+you a second round: grant `--promote-again` only when a proof lacks a CITABLE STEP; a rendering
+defect (leaked totalization conventions, mis-attributed step, omitted conjunct, symbol shadowing)
+needs the proof or the STATEMENT adjudicated — check the statement first.
+
+## Stages
+
+| Stage | Inspect | Failure modes |
 |---|---|---|
-| P0 literature | `references.bib`, `references_raw.bib`, `p0_verification.json`, `related_work_brief.md` | verification drops: check raw vs kept; a high drop rate is a lookup defect, not hallucination (stage throws >40%) |
-| P1 plan | `outline.md`, `formal_layer.{json,tex}` (each block's `body` IS the freeze), `equivalence_cache.json` | outline/env validation throws with reasons; the statement audit refines frozen bodies toward Lean and halts on residual drift (see adjudication) |
-| P2 draft | `sections/*.tex`, `proofs/<T-id>.tex`, `front_matter.tex`, `paper.tex`, `proof_audit_cache.json` | lint throws on frozen-drift / objid-in-prose (fix the cached artifact, not paper.tex); `isolated-lemma` throws naming each lemma no proof cites (see below); the proof audit refines prose proofs toward Lean, halts on residual unfaithfulness |
-| P3 gates | `logs/reviews.jsonl`, `gate_cache.json` | prose-quality gates only (overclaim, citation support, rubric); auto-revise, max 2 rounds |
-| P4 emit | bundle files, `paper.pdf` | compile loop (codex fixes); `lean_snippets.json` badges; entry lint; undocumented Lean decls block the emit (docstrings are authored at F5 — add them to the sources, then `--from P4`) |
-| P5 review | `p5_review.json`, `p5_review.md` | codex referee on the final paper; handle per Mechanics item 4 |
-| P6 slides | `slides.md`, `slides_cache.json` | mechanical lint after one retry (unknown obj_id, dropped theorem, displayed math in prose); "P5 not settled" refusal; judge CLARITY at the checkpoint and hand-edit — see Mechanics item 6 |
+| P0 | `references.bib`, `references_raw.bib`, `p0_verification.json`, `related_work_brief.md` | drops >40% throw (lookup defect). A re-entry that finds the raw pool and brief re-verifies without re-searching — delete both to refresh |
+| P1 | `outline.md`, `formal_layer.{json,tex}`, `notation_review.json`, `equivalence_cache.json` | outline/env validation throws; residual statement drift halts |
+| P2 | `sections/*.tex`, `proofs/*.tex`, `front_matter.tex`, `paper.tex`, `proof_audit_cache.json` | frozen-drift / `objid-in-prose` lint (fix the cached artifact); `isolated-lemma`; residual proof unfaithfulness; unrenderable proofs listed in one halt. Frozen-block placement slips are repaired mechanically at P1's position and noted (`P2: section …`); a dangling proof `\cref{obj:…}` is repaired or sent to the writer, still dangling ⇒ halt. The affirmative-prose contract is gated at P3, not P2 |
+| P3 | `logs/reviews.jsonl`, `gate_cache.json` | overclaim, citation support (`citation-unverifiable` advisory, `unsupported` blocks), rubric; ≤2 repair rounds |
+| P4 | bundle files, `paper.pdf`, `lean_snippets.json` | compile errors halt for hand repair (no model retry); bib re-verification; undocumented Lean decls block the emit (docstrings are authored at F5 — add them, then `--from P4`) |
+| P5 | `p5_review.{json,md}` | Mechanics 4 |
+| P6 | `slides.md`, `slides_cache.json` | lint after one retry; refused until P5 is settled |
 
-## Isolated-lemma halt — how to adjudicate
+## Isolated-lemma halt
 
-P2 assembly and P4 hard-fail on any `lemmav` no proof body cites (`isolated-lemma: <label> (<obj_id>)`); theorems/propositions may stand alone, lemmas may not, and there is no exemption flag. The gate is a symptom detector — diagnose against the Lean before touching prose: find the lemma's decl in `presentation_crosswalk.json` and grep the run's Lean tree for consumers. (a) Consumers exist behind other paper items → the paper proof forgot the citation: add `\cref{obj:<lemma>}` in each consuming proof SOURCE (`proofs/<obj>.tex`) at the mathematically correct step — the sentence must read as mathematics, not just contain the cref. (b) Zero consumers anywhere → dead weight: remove the lemma (sections block, `outline.md` objs list, `formal_layer.json` block, its `proofs/*.tex` + cache key), and flag the bank node for removal so `--from P1` cannot resurrect it. (c) It is genuinely a standalone result → reclassify to a proposition (rare; justify from the mathematics, never to dodge the gate). Then re-enter `--from P2 --reassemble`.
+P2 assembly and P4 hard-fail on any `lemmav` no proof body cites. Find the decl in
+`presentation_crosswalk.json`, grep the run's Lean tree for consumers: (a) consumers exist → add
+`\cref{obj:<lemma>}` in each consuming proof source at the right step; (b) none → remove the lemma
+(section block, `outline.md`, `formal_layer.json`, `proofs/*.tex` + cache entry) and flag the bank
+node; (c) genuinely standalone → reclassify to a proposition (rare, justify). Then `--from P2`.
 
-## Equivalence adjudication — the orchestrator's MANUAL job
+## Equivalence adjudication
 
-Equivalence is audited where the artifact is produced: the P1 STATEMENT audit checks each frozen env body against its crosswalk-named Lean decl at render time (codex + lean-lsp; conclusions must match, the paper may not omit a load-bearing Lean hypothesis nor carry one the Lean doesn't require — equivalent up to packaging and incidental implicit regularity); the P2 PROOF audit does the same for prose proofs. Both auto-refine drift TOWARD Lean (≤2 rounds, safe — Lean type-checks) and persist; residual drift HALTS for you. **The pipeline never repairs a mapping** — an automated re-point at a wrong decl would make the audit pass against the wrong target silently; wrong mappings must fail loudly, only the orchestrator mutates them. Diagnose each flag as one of:
+The P1 judge checks each env body against its crosswalk-named Lean decl (conclusions match; no
+load-bearing Lean hypothesis omitted or invented, up to packaging and incidental regularity); drift
+goes back to the renderer inside the render loop. The P2 proof judge does the same for proofs, with
+tagged defects `[missing-step]`, `[citation]`, `[rendering]` re-rendered for ≤2 rounds. The pipeline never repairs a mapping; on a
+residual, diagnose: (1) wrong crosswalk mapping — find the real decl (name-affine `private lemma`s
+inside T-blocks are common), patch the bank's `*_crosswalk_full.json` (keep a `.bak`); (2) note
+overstates Lean — amend the frozen body to the Lean-true form, sync cached sections, `--from P1`,
+never edit the accepted note; (3) auditor miscalibration — a general prompt rule, via main.
 
-1. **Wrong crosswalk mapping** ("the decl only proves something generic/unrelated"): find the real decl — grep the research Lean for name-affine lemmas (`l14_*` for L-14, often `private lemma`s inside T-blocks) — confirm by reading it, patch the bank's `*_crosswalk_full.json` (keep a `.bak`).
-2. **Note overstates Lean** (claims component facts / identities / dependency sets the decl doesn't expose): amend the frozen body to the Lean-true form, sync cached sections, re-run `--from P1` (unchanged entries cache-hit). Do NOT edit the accepted note — flag for a future note revision.
-3. **Auditor miscalibration** (packaging reported as drift): fix the gate prompt with a general rule, never an instance hack.
+Frozen bodies (`nl.frozen_body`) enter verbatim and stay under the current judge; `--from P1
+--refresh-frozen-bodies` requests refreshed wording. Hand-authoring a frozen body: never assert a
+named conclusion by bare name (unfold it or `\cref` the env), never display pure logical packaging,
+check occurrence counts around every replacement. An env bundling several adjacent Lean decls is a
+recurring false positive — verify decl-by-decl, then reseed. Record every adjudication in
+`_causalsmith_present_adjudication_<date>.md` in the bank entry dir plus a state note; list bank
+edits separately from pipeline edits in `commit-request`; sweep the prose around amended envs.
 
-Frozen envs (`nl.frozen_body`) render verbatim, are still audited each run, never auto-refined; residual drift halts as `locked-env-drift`. The statement audit freezes EVERY body it finds faithful (not only operator-frozen or refined ones, since 2026-08-21), so a render-prompt / contract edit no longer re-rolls validated bodies and cascades into proof re-audits and section re-drafts; to push a prompt improvement into a paper whose bodies are frozen, re-enter with `--from P1 --refresh-frozen-bodies` (releases all locks; everything re-renders and re-audits). Section prose is keyed on objs/brief/cites/notes only — a re-rendered env body swaps into the cached section mechanically, never re-drafts it. When hand-authoring a frozen body, hold it to the render rules a model would face: never assert a named conclusion by bare name (unfold it or `\cref` the env displaying it), never display pure logical packaging as content, and assert occurrence counts around every text replacement — the audits check math faithfulness, not readability, so these defects ship silently to the P5 referee (three instances, one theorem, 2026-08-20). Recurring false positive: an env deliberately BUNDLING several adjacent Lean decls — the auditor sees only the single mapped decl. Verify the body decl-by-decl against the node's `review.note`, then reseed that entry per the cache rule above.
+## Bug-fix contract
 
-Every adjudication gets a record: `_causalsmith_present_adjudication_<date>.md` in the bank entry dir (flags, per-statement verdicts, edits, backups) plus a paper-state note. Main commits bank edits separately from pipeline-code commits (list both in your `commit-request`). After adjudication, sweep the prose of sections containing amended envs — no gate checks body-prose-vs-definition consistency.
+A pipeline fix is for a GENUINE, BLOCKING, reproduced bug — wrong output, corrupted content, a gate
+passing what it should catch. An audit finding or a latent hazard is a backlog note. You escalate
+(`pipeline-bug`); the escalation names the exact error, a minimal repro, (a) the INPUT that was wrong
+(a model verdict, a heuristic match, planner metadata) and (b) the code that trusted it. Main's fix
+REMOVES or DETERMINIZES a mechanism, never adds one: stop trusting that input — compute the fact
+deterministically or turn it into a defect the artifact's single writer repairs; a counter, ledger,
+hint, suppression branch or `throw` on the same untrusted input is the next incident. A fix is proven
+by replay on the failing bundle AND one that passed; three fixes in one function in a week ⇒ stop and
+redesign under `internal/plans/`. Main verifies with `npx vitest run test/presentation_` + `npx tsc
+--noEmit`, lands prompt lessons only on a failure class's second occurrence, one commit per fix, each
+with an independent audit PASS before commit or live use.
 
-## Self-improving loop
+## Sharp edges
 
-Restraint (user directive, refined 2026-08-20): the pipeline gets fixed when there is a GENUINE BUG (wrong output, corrupted content, a gate passing what it should catch) — even on first occurrence; IMPROVEMENTS only for clear, demonstrated benefit. Non-bug annoyances take the manual workaround plus a backlog note.
-
-**Bug-fix contract (who fixes).** A SUBAGENT orchestrator never edits pipeline code or prompts (`tools/src/**`, prompt `*.txt`) — content, caches, and authored sources are its remit; it escalates pipeline bugs to main with file:line evidence and a minimal repro (see the stop rule). Main — or the operator running the pipeline directly, who then holds both roles — makes the fix: root-cause-minimal, the tool in general (never the instance), verified with `npx vitest run test/presentation_` + `npx tsc --noEmit`; tests never touch live run dirs (pass `outDir` overrides); recurring lessons go into prompts only on a failure class's second occurrence; each fix commits separately.
-
-Every presentation-pipeline change, including prompts, requires a PASS from an independent agent audit before commit or live use — the auditor inspects the exact diff for necessity, generality, minimal wording, and adequate verification; the author may not self-certify. Remove instance-specific or redundant prompt text before approval. Record the audit result.
-
-Known sharp edges (each cost a live run once):
-
-- Open every pipeline shell with `cd <repo>/CausalSmith/tools && source scripts/node_env.sh` — sourcing from the wrong cwd aborts the `&&` chain before your log redirect (phantom EXIT=1, no log). Run all commands with explicit cwd; background shells reset it.
-- Run logs go to durable NFS (`<workspace>/_orch_logs/`), never /tmp (recycled mid-run).
-- Long stages: detach with `setsid nohup … >log 2>&1 & echo $! > log.pid`, then a SEPARATE waiter on that PID (CLAUDE.md rule). A background Bash waiter still honors its `timeout` (10-min max) and gets reaped mid-stage looking "killed" — use a persistent Monitor for multi-hour stages, or expect to re-arm. Check liveness via the interpreter process (`ps aux | grep '[n]ode.*causalsmith'`), never a self-matching `pgrep -f`; note `setsid` re-forks, so the shell's `$!` is NOT the run's session — resolve the real sid from `ps -eo pid,sid` and key liveness/kill on `pgrep -s <sid>`. The same on the KILL path: `pkill -f` on a pattern your own command line contains kills your own shell and its monitors; key every kill and every liveness check on a captured PID.
-- P2 emits no per-item progress lines (unlike P1); its per-call transcript in the bundle's logs updates when each batched codex call returns — an empty P2 run log with a live node process and accumulating CPU is normal.
-- A run killed externally (Slurm expiry, OOM) leaves its run lock behind: `<bundle>/logs/.run.active.lock` is a DIRECTORY (mkdir-atomic), so `rm -f` cannot clear it — it self-clears as stale after 30 minutes; to re-enter sooner, verify the recorded PID is dead (`kill -0`), then `rmdir`. **A lock's EXISTENCE is never evidence of staleness — establish ownership or leave it alone.** 2026-08-21: an orchestrator ran its usual "clear stale lock" step against its OWN live run; the run detected the vanished lock and aborted `ECOMPROMISED` mid-revision (the check working as designed — the clearer was the concurrent writer it guards against). **And never kill by `pgrep -f <pattern>` in this shared tree**: the same incident's cleanup loop matched another agent's live render batch (four codex children of a different bundle's run) plus its own shell. Kill only PIDs recorded at launch or your own session id (`pgrep -s <sid>`), always excluding `$$`; a stray `codex exec` here is far more likely to be another agent's worker than your orphan. Before a stage that rewrites authored sources (any P5 revision pass), snapshot the SOURCES (`sections/`, `front_matter.tex`, `formal_layer.*`, state JSON), not just the emitted PDF — a PDF cannot roll back a source-level revision. After ANY Lean or statement edit, re-enter at P2 (reassemble) so the affected proof re-audits — a bare `--from P4` emits with whatever verdict is cached, stale or not; and if the edit is OUTSIDE the mapped declaration's own source (a cited helper lemma, a definition it unfolds), the proof-audit key does not move — delete that obj's `proof_audit_cache.json` entry before re-entering.
-- NEVER commit or edit a prompt file while any `present` run is live in the shared tree: prompt fingerprints key the caches, so the edit silently converts every in-flight bundle's cached renders/audits into unplanned codex spend (2026-08-20: one render-prompt commit would have cost a live run ~27 re-renders + ~27 statement audits + ~20 proof audits; caught by the operator's bill tripwire). Land prompt changes only when `ps aux | grep '[n]ode.*causalsmith'` is empty, or pin the old file content until the live run's consuming stage completes. **A pin protects only what you pinned.** 2026-08-21, discrete-ATE: statement renders were pinned, but the same commit moved the PROOF render keys — 5 proofs re-drafted, 1 came back unfaithful through 2 refinement rounds, which fired a promotion round (graph 41→43 envs), which invalidated the outline and forced a full P1 delta. A prompt commit between a bundle's stages is not free: price the WHOLE fingerprint fan-out (statement renders, proof renders, statement audits, proof audits, gate caches) before landing, and prefer landing after a bundle reaches P4 rather than between P1 and P2.
-- CausalSmith present deliberately does not import `src/cli.ts` — keep it that way so in-flight CausalSmith research edits can't crash a paper run.
+- Every pipeline shell: `cd <repo>/CausalSmith/tools && source scripts/node_env.sh`; explicit cwd.
+- Run logs to durable NFS (`<workspace>/_orch_logs/`), never /tmp. Detach
+  long stages (`setsid nohup … >log 2>&1 & echo $! > log.pid`) with a separate waiter on that PID.
+  `setsid` re-forks: resolve the real sid from `ps -eo pid,sid` and key liveness/kill on
+  `pgrep -s <sid>` or recorded PIDs, always excluding `$$`; never `pkill -f`/`pgrep -f` a pattern
+  your own command line contains (a stray `codex exec` is usually another agent's worker).
+- P2 emits no per-item progress; a live node with accumulating CPU and an empty log is normal.
+- The run lock is a DIRECTORY beside the heartbeat in the bundle's `logs/`; it self-clears as stale
+  after 30 min. Re-enter sooner only after `kill -0` proves the recorded PID dead, then `rmdir`.
+- Before a reassembly (P3's hard-gate repair patches sources in place), snapshot `sections/`,
+  `front_matter.tex`, `formal_layer.*`, the state JSON.
+- After ANY Lean or statement edit, `--from P2`; if the edit is outside the mapped
+  declaration's own source (a cited helper, an unfolded definition), delete that obj's
+  `proof_audit_cache.json` entry first.
+- Prompt fingerprints key only P1 (`p1_touchup`, `p1_render_from_lean`, `p1_notation_check`,
+  `p1_synthesize_definition`), P2 (`p2_proof`, `proof_audit`), P3 (`p3_rubric`), P6 (`p6_slides`).
+  Editing one of those while a run is live re-keys every in-flight bundle; other prompts take effect
+  on the next call.
+- `present` deliberately does not import `src/cli.ts`; keep it that way.

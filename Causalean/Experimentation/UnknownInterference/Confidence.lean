@@ -60,15 +60,18 @@ open DesignBased
 
 variable {U : Type*} [Fintype U] [DecidableEq U]
 
-/-- **The conventional Horvitz–Thompson variance estimator** `V̂_Ber = n⁻² ∑ᵢ ĤTᵢ²`.  Pointwise this
-equals the paper's `n⁻²[∑ᵢ ZᵢYᵢ²/pᵢ² + ∑ᵢ(1−Zᵢ)Yᵢ²/(1−pᵢ)²]` (the cross term vanishes since
-`Zᵢ(1−Zᵢ)=0`). -/
+/-- For [a finite population of units](hyp:U), [marginal treatment probabilities](hyp:p), [a
+potential-outcome schedule](hyp:y), and [a realized treatment assignment](hyp:z), the
+[conventional Horvitz--Thompson variance estimator](goal) is the population-size-squared-normalized
+sum of squared unit-level Horvitz--Thompson summands.  Pointwise it equals the sum of the treated
+and control squared inverse-probability-weighted outcome terms because their cross product is zero. -/
 noncomputable def VhatBer (p : U → ℝ) (y : U → (U → Bool) → ℝ) (z : U → Bool) : ℝ :=
   (∑ i, (htSummand p y i z) ^ 2) / (Fintype.card U : ℝ) ^ 2
 
 open Classical in
-/-- The interference **degree** of unit `i`: the number of units interference-dependent with `i`
-(`d̄ᵢ = ∑ⱼ 1[InterfDep i j]`). -/
+/-- For [a finite population of units](hyp:U), [a potential-outcome schedule](hyp:y), and [a
+unit](hyp:i), the [interference degree](goal) is the number of units that are
+interference dependent with that unit. -/
 noncomputable def degDep (y : U → (U → Bool) → ℝ) (i : U) : ℝ :=
   ∑ j, if InterfDep y i j then (1 : ℝ) else 0
 

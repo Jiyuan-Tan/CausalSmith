@@ -20,12 +20,8 @@ import {
 } from "../src/discovery/stages/d0_acceptance.js";
 import { coreJsonPath } from "../src/discovery/stages/d0_core.js";
 import { protoCoreJsonPath } from "../src/discovery/stages/neg1_2_author.js";
-import {
-  appendEscalationLog,
-  saveWorkingState,
-  WORKING_STORE_FORMAT,
-  workingPath,
-} from "../src/discovery/stages/d0_working.js";
+import { appendEscalationLog } from "../src/discovery/escalation_log.js";
+import { ensureStore } from "../src/discovery/vcs/round.js";
 
 describe("pipeline", () => {
   it("orders half-stages explicitly", () => {
@@ -145,8 +141,6 @@ describe("pipeline", () => {
     const state = createInitialState(qid);
     state.stage_completed = "0";
     await saveState(repoRoot, qid, spec, state);
-    await mkdir(path.dirname(workingPath(ctx)), { recursive: true });
-    await saveWorkingState(ctx, { round: 4, escalation_entries_consumed: 0, solved: {} });
     await appendEscalationLog(ctx, { round: 4, changed: [], directive: "repair stale theorem positioning" });
 
     const seen: string[] = [];
@@ -182,8 +176,6 @@ describe("pipeline", () => {
     const state = createInitialState(qid);
     state.stage_completed = "0.5";
     await saveState(repoRoot, qid, spec, state);
-    await mkdir(path.dirname(workingPath(ctx)), { recursive: true });
-    await saveWorkingState(ctx, { round: 5, escalation_entries_consumed: 0, solved: {} });
     await appendEscalationLog(ctx, { round: 5, changed: [], directive: "repair before formalization" });
 
     const seen: string[] = [];
@@ -202,8 +194,6 @@ describe("pipeline", () => {
     const state = createInitialState(qid);
     state.stage_completed = "0";
     await saveState(repoRoot, qid, spec, state);
-    await mkdir(path.dirname(workingPath(ctx)), { recursive: true });
-    await saveWorkingState(ctx, { round: 6, escalation_entries_consumed: 0, solved: {} });
     await appendEscalationLog(ctx, { round: 6, changed: [], directive: "must run in D0" });
 
     await expect(runPipeline(ctx, undefined, { startStage: "0.5" })).rejects.toThrow(
@@ -211,74 +201,39 @@ describe("pipeline", () => {
     );
   });
 
-  it("refuses forced F1 on the Aug-10 split store (state/proto v8, working/core v7) without dispatch or state mutation", async () => {
-    const repoRoot = await mkdtemp(path.join(os.tmpdir(), "causalsmith-f-boundary-split-"));
+  it("refuses forced F1 while core.json differs from the rendering of main, without dispatch or state mutation", async () => {
+    const repoRoot = await mkdtemp(path.join(os.tmpdir(), "causalsmith-f-boundary-dirty-"));
     const qid = "stat_bdd_uniform_log_penalty";
     const spec = "v1";
     const ctx: PipelineContext = { repoRoot, qid, specialization: spec, resume: true, dryRun: true };
-    const makeCore = (claimVersion: number) => CoreSchema.parse({
-      qid,
-      specialization: spec,
-      cluster: "stat",
-      symbols: [],
-      assumptions: [],
-      definitions: [],
-      statements: [{
-        id: `thm:claim-v${claimVersion}`,
-        kind: "theorem",
-        statement: `claim authored in proposal v${claimVersion}`,
-        depends_on: [],
-        status: "to-prove",
-      }],
-      target_estimand: "boundary regression",
-      bibliography: [],
+    const core = CoreSchema.parse({
+      qid, specialization: spec, cluster: "stat", symbols: [], assumptions: [], definitions: [],
+      statements: [{ id: "thm:claim", kind: "theorem", statement: "claim authored in proposal v8", depends_on: [], status: "to-prove" }],
+      target_estimand: "boundary regression", bibliography: [],
     });
     const state = createInitialState(qid);
     state.stage_completed = "0.5";
     state.proposed_from = {
-      topic: "uniform boundary log penalty",
-      novelty_target: "flagship",
-      pivot_budget_used: 0,
-      final_verdict: "ACCEPT",
-      proposal_path: protoCoreJsonPath(ctx),
-      novelty_justification: "fixture",
-      chosen_qid: qid,
-      chosen_specialization: spec,
-      current_angle_index: 0,
-      current_version: 8,
-      last_draft_version: 8,
-      last_draft_status: "completed",
+      topic: "uniform boundary log penalty", novelty_target: "flagship", pivot_budget_used: 0, final_verdict: "ACCEPT",
+      proposal_path: protoCoreJsonPath(ctx), novelty_justification: "fixture", chosen_qid: qid, chosen_specialization: spec,
+      current_angle_index: 0, current_version: 8, last_draft_version: 8, last_draft_status: "completed",
       iterations: [{ angle: 0, version: 8, mode: "revise", verdict: "ACCEPT" }],
     };
-    await saveState(repoRoot, qid, spec, state);
     await mkdir(path.dirname(protoCoreJsonPath(ctx)), { recursive: true });
-    await writeFile(protoCoreJsonPath(ctx), JSON.stringify(makeCore(8)), "utf8");
-    await writeFile(coreJsonPath(ctx), JSON.stringify(makeCore(7)), "utf8");
-    await saveWorkingState(ctx, {
-      round: 39,
-      proposal_revision: "angle:0/version:7",
-      solved: {},
-      proposals: { statements: [], definitions: [], assumptions: [], coreEdits: [], proofs: [] },
-      required_core_edit_mandates: [],
-      store_format: WORKING_STORE_FORMAT,
-    });
+    await writeFile(protoCoreJsonPath(ctx), JSON.stringify(core), "utf8");
+    await writeFile(coreJsonPath(ctx), JSON.stringify(core), "utf8");
+    await ensureStore(ctx, state);
+    await saveState(repoRoot, qid, spec, state);
+    // An orchestrator edit left uncommitted in the working copy.
+    await writeFile(coreJsonPath(ctx), JSON.stringify({ ...core, tldr: "edited but not committed" }), "utf8");
     const before = await readFile(statePath(repoRoot, qid, spec), "utf8");
     let dispatches = 0;
 
     await expect(runPipeline(ctx, async ({ stage }) => {
       dispatches += 1;
       return { stage, status: "checkpoint", message: "must not run" };
-    }, { startStage: "1" })).rejects.toThrow(
-      /split D revision \(state\/proto=angle:0\/version:8, d0_working=angle:0\/version:7\)/,
-    );
+    }, { startStage: "1" })).rejects.toThrow(/core\.json differs from the rendering of main/);
 
-    expect(dispatches).toBe(0);
-    expect(await readFile(statePath(repoRoot, qid, spec), "utf8")).toBe(before);
-
-    await expect(runPipeline(ctx, async ({ stage }) => {
-      dispatches += 1;
-      return { stage, status: "checkpoint", message: "must not run" };
-    })).rejects.toThrow(/split D revision/);
     expect(dispatches).toBe(0);
     expect(await readFile(statePath(repoRoot, qid, spec), "utf8")).toBe(before);
   });
@@ -309,10 +264,13 @@ describe("pipeline", () => {
       last_draft_status: "completed",
       iterations: [],
     };
+    await mkdir(path.dirname(coreJsonPath(ctx)), { recursive: true });
+    await writeFile(coreJsonPath(ctx), JSON.stringify({
+      qid, specialization: "v1", cluster: "stat", symbols: [], assumptions: [], definitions: [], statements: [],
+      target_estimand: "fixture", bibliography: [],
+    }), "utf8");
 
-    await expect(assertFStageDStoreCoherence(ctx, state, "1")).rejects.toThrow(
-      /no accepted d0_working store exists/,
-    );
+    await expect(assertFStageDStoreCoherence(ctx, state, "1")).rejects.toThrow(/neither a current accepted/);
   });
 
   it("lets a sanctioned rebase enter F after typed D0.5 passes without manufacturing a D-0.5 iteration", async () => {
@@ -354,15 +312,8 @@ describe("pipeline", () => {
     };
     await mkdir(path.dirname(protoCoreJsonPath(ctx)), { recursive: true });
     await writeFile(protoCoreJsonPath(ctx), JSON.stringify(core), "utf8");
-    await saveWorkingState(ctx, {
-      round: 40,
-      proposal_revision: "angle:0/version:8",
-      solved: {},
-      proposals: { statements: [], definitions: [], assumptions: [], coreEdits: [], proofs: [] },
-      required_core_edit_mandates: [],
-      store_format: WORKING_STORE_FORMAT,
-    });
     await writeFile(coreJsonPath(ctx), JSON.stringify(core), "utf8");
+    await ensureStore(ctx, state);
 
     await writeD05AcceptanceReceipt(ctx, state);
     expect(await hasValidD05AcceptanceReceipt(ctx, state)).toBe(true);
@@ -378,40 +329,33 @@ describe("pipeline", () => {
       resume: true,
       dryRun: true,
     };
+    const core = {
+      qid, specialization: "v1", cluster: "stat", symbols: [], assumptions: [], definitions: [], statements: [],
+      target_estimand: "fixture", bibliography: [],
+    };
     const state = createInitialState(qid);
     state.stage_completed = "0.5";
     state.proposed_from = {
-      topic: "fixture",
-      novelty_target: "field",
-      pivot_budget_used: 0,
-      final_verdict: null,
-      proposal_path: protoCoreJsonPath(ctx),
-      novelty_justification: "fixture",
-      chosen_qid: qid,
-      chosen_specialization: "v1",
-      current_angle_index: 0,
-      current_version: 8,
+      topic: "fixture", novelty_target: "field", pivot_budget_used: 0, final_verdict: null,
+      proposal_path: protoCoreJsonPath(ctx), novelty_justification: "fixture", chosen_qid: qid, chosen_specialization: "v1",
+      current_angle_index: 0, current_version: 8,
     };
     await mkdir(path.dirname(protoCoreJsonPath(ctx)), { recursive: true });
-    await writeFile(protoCoreJsonPath(ctx), "proto-v8", "utf8");
-    await saveWorkingState(ctx, {
-      round: 40,
-      proposal_revision: "angle:0/version:8",
-      solved: {},
-    });
-    await writeFile(coreJsonPath(ctx), "accepted-core", "utf8");
+    await writeFile(protoCoreJsonPath(ctx), JSON.stringify(core), "utf8");
+    await writeFile(coreJsonPath(ctx), JSON.stringify(core), "utf8");
+    await ensureStore(ctx, state);
 
     await writeD05AcceptanceReceipt(ctx, state);
     expect(await hasValidD05AcceptanceReceipt(ctx, state)).toBe(true);
 
-    await writeFile(coreJsonPath(ctx), "tampered-after-acceptance", "utf8");
+    await writeFile(coreJsonPath(ctx), JSON.stringify({ ...core, tldr: "tampered-after-acceptance" }), "utf8");
     expect(await hasValidD05AcceptanceReceipt(ctx, state)).toBe(false);
 
     await writeD05AcceptanceReceipt(ctx, state);
     const staleState = structuredClone(state);
     staleState.proposed_from!.current_version = 9;
     expect(await hasValidD05AcceptanceReceipt(ctx, staleState)).toBe(false);
-    await expect(assertFStageDStoreCoherence(ctx, staleState, "1")).rejects.toThrow(/split D revision/);
+    await expect(assertFStageDStoreCoherence(ctx, staleState, "1")).rejects.toThrow(/neither a current accepted/);
 
     const forged = JSON.parse(await readFile(d05AcceptanceReceiptPath(ctx), "utf8"));
     forged.core_sha256 = "0".repeat(64);
@@ -428,8 +372,6 @@ describe("pipeline", () => {
     const state = createInitialState(qid);
     state.stage_completed = "-0.5";
     await saveState(repoRoot, qid, spec, state);
-    await mkdir(path.dirname(workingPath(ctx)), { recursive: true });
-    await saveWorkingState(ctx, { round: 7, escalation_entries_consumed: 0, solved: {} });
 
     const seen: string[] = [];
     await runPipeline(ctx, async ({ stage }) => {
@@ -477,7 +419,7 @@ describe("pipeline", () => {
     expect(resumed.stage_completed).toBe("5");
   });
 
-  it("invalidates cached discovery artifacts on explicit D-1.1 re-entry", async () => {
+  it("marks an explicit D-1.1 refresh while preserving cached artifacts until promotion", async () => {
     const repoRoot = await mkdtemp(path.join(os.tmpdir(), "causalsmith-dneg11-reentry-"));
     const base: PipelineContext = {
       repoRoot,
@@ -519,8 +461,9 @@ describe("pipeline", () => {
       { ...base, resume: true },
       async ({ stage, state }) => {
         expect(stage).toBe("-1.1");
-        expect(state.gaps).toBeUndefined();
-        expect(state.proposed_from).toBeUndefined();
+        expect(state.gaps?.gaps_path).toContain("stale-gaps.json");
+        expect(state.proposed_from?.topic).toBe(base.proposeTopic);
+        expect(state.pre_d0_intent?.scout_refresh).toBe(true);
         observedFreshState = true;
         return { stage, status: "checkpoint", advance: false, message: "fresh scout reran" };
       },
@@ -553,8 +496,9 @@ describe("pipeline", () => {
       async ({ ctx, state: loaded, stage }) => {
         expect(stage).toBe("-1.1");
         expect(ctx.proposeTopic).toBe("persisted causal topic");
-        expect(loaded.gaps).toBeUndefined();
-        expect(loaded.proposed_from).toBeUndefined();
+        expect(loaded.gaps?.gaps_path).toBe("stale");
+        expect(loaded.proposed_from?.topic).toBe("persisted causal topic");
+        expect(loaded.pre_d0_intent?.scout_refresh).toBe(true);
         observed = true;
         return { stage, status: "checkpoint", advance: false, message: "scout reran" };
       },
@@ -590,6 +534,7 @@ describe("pipeline", () => {
     const onDisk = await loadState(repoRoot, qid, spec);
     expect(onDisk.gaps?.gaps_path).toBe("prior-gaps");
     expect(onDisk.proposed_from?.topic).toBe("recoverable topic");
+    expect(onDisk.pre_d0_intent?.scout_refresh).toBe(true);
   });
 
   it("refuses to overwrite an authored but unreviewed D-1.2 draft", async () => {

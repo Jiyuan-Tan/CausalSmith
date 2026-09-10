@@ -107,7 +107,7 @@ export const STATEMENT_ID_KINDS = ["thm", "lem", "prop", "oeq", "conj"] as const
  *
  * This is the auto-heal for the solver's habit of naming an added lemma after a
  * capital-letter symbol (`lem:Ghat-envelope-valid` for an estimator Ĝ_n). It was a
- * FIFTH divergent copy of the prefix list living in `stage0_solve.ts`, and it had
+ * FIFTH divergent copy of the prefix list (in the since-deleted solve monolith), and it had
  * drifted the same way the four copies above did: it omitted `oeq`. The consequence
  * was worse than a missed heal — `StatementSchema` ACCEPTS `oeq:`, so a bad-cased
  * `oeq:` id was the one case that could reach the schema unhealed and abort an

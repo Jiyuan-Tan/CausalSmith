@@ -37,8 +37,12 @@ open MeasureTheory ProbabilityTheory
 variable {N : Type*} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-/-- The latent-product mass of satisfying local consistency on an observed
-subset. -/
+/-- For [a structural causal model](hyp:M), [a fixed-value assignment](hyp:s),
+    [a finite set of observed SWIG vertices](hyp:T), [contained in the model's observed-node set](hyp:hT), and [an assignment
+    of values to all observed SWIG vertices](hyp:x), the [local q-mass](goal)
+    is the latent-product mass of latent-variable assignments for which every
+    vertex in the specified set satisfies its local structural consistency
+    condition at those fixed and observed values. -/
 noncomputable def qLocalMass
     (M : Causalean.SCM N Ω) (s : M.FixedValues)
     (T : Finset (SWIGNode N)) (hT : T ⊆ M.observed)

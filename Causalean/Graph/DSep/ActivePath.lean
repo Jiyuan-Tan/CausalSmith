@@ -54,22 +54,23 @@ variable (G : DAG V)
 -- Active trail (path-based d-separation)
 -- ============================================================
 
-/-- An undirected edge in the DAG: either `G.edge u v` or `G.edge v u`. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [two vertices](hyp:u,v), [undirected adjacency](goal) holds exactly when a directed edge joins the two vertices in either direction. -/
 def UAdj (u v : V) : Prop := G.edge u v ∨ G.edge v u
 
-/-- Undirected adjacency is decidable whenever the directed edge relation is decidable. -/
+/-- For [a finite vertex population with decidable equality](hyp:V), [a directed acyclic graph on that population](hyp:G), and [two vertices](hyp:u,v), the [decision procedure for undirected adjacency](goal) determines whether a directed edge joins the vertices in either direction. -/
 instance decUAdj (u v : V) : Decidable (G.UAdj u v) :=
   inferInstanceAs (Decidable (_ ∨ _))
 
-/-- Whether vertex `m` is a collider on the triple `(l, m, r)`:
-    both edges point toward `m`, i.e., `G.edge l m ∧ G.edge r m`. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [three ordered vertices](hyp:l,m,r), [the collider condition](goal) holds exactly when both outer vertices have directed edges into the middle vertex. -/
 def IsCollider (l m r : V) : Prop := G.edge l m ∧ G.edge r m
 
-/-- Collider status of a triple is decidable whenever the directed edge relation is decidable. -/
+/-- For [a finite vertex population with decidable equality](hyp:V), [a directed acyclic graph on that population](hyp:G), and [three ordered vertices](hyp:l,m,r), the [decision procedure for the collider condition](goal) determines whether each outer vertex has a directed edge into the middle vertex. -/
 instance decIsCollider (l m r : V) : Decidable (G.IsCollider l m r) :=
   inferInstanceAs (Decidable (_ ∧ _))
 
-/-- A path (list of vertices) is **active** (unblocked) given conditioning set `Z` if:
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G), [a conditioning set](hyp:Z), and [a finite vertex sequence](hyp:p), [the active-path condition](goal) holds exactly when [each consecutive pair is joined by a directed edge in one direction or the other](step:1), and [at every consecutive triple, its middle vertex is a collider that is either conditioned on or has a conditioned descendant, or else is a non-collider outside the conditioning set](step:2).
+
+    A path (list of vertices) is **active** (unblocked) given conditioning set `Z` if:
     - consecutive vertices are undirected-adjacent
     - for every intermediate triple `(pᵢ, pᵢ₊₁, pᵢ₊₂)`:
       - if `pᵢ₊₁` is a collider: `pᵢ₊₁ ∈ G.bbZAncestors Z`
@@ -87,7 +88,9 @@ def IsActivePath (Z : Finset V) (p : List V) : Prop :=
     let r := p.get ⟨i + 2, hi⟩
     if G.IsCollider l m r then m ∈ G.bbZAncestors Z else m ∉ Z)
 
-/-- There exists an active path from some vertex in `X` to some vertex in `Y`. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G), [a source set](hyp:X), [a target set](hyp:Y), and [a conditioning set](hyp:Z), [the active-path existence condition](goal) holds exactly when there is a [vertex sequence with at least two vertices](step:1)
+    that is [active relative to the conditioning set](step:2), whose [first vertex belongs to the
+    source set](step:3), and whose [last vertex belongs to the target set](step:4). -/
 def HasActivePath (X Y Z : Finset V) : Prop :=
   ∃ (p : List V), p.length ≥ 2 ∧
     G.IsActivePath Z p ∧
@@ -200,7 +203,9 @@ theorem isActivePath_of_reversed_directed
 
 section SurgeryHelpers
 
-/-- Largest `i < n` satisfying a decidable predicate `P`, if any. -/
+/-- For [a nonnegative integer bound](hyp:n) and [a predicate on nonnegative integers whose truth can be checked at every index](hyp:P), the [optional last qualifying index](goal) is the
+    largest index strictly below the bound that satisfies the predicate, if such an index exists,
+    and is absent otherwise. -/
 noncomputable def lastIdxLt (n : ℕ) (P : ℕ → Prop) [DecidablePred P] :
     Option ℕ :=
   if h : ((Finset.range n).filter P).Nonempty then

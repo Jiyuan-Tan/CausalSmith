@@ -1,6 +1,9 @@
+import { execFile } from "node:child_process";
+import { existsSync } from "node:fs";
 import { readFile, realpath } from "node:fs/promises";
+import { promisify } from "node:util";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
-import { maskLeanCommentsAndStrings } from "../graph/extractor.js";
+import { leanNameLeaf, maskLeanCommandQuotations } from "./lean_decl_name.js";
 import { extractDeclSnippet, parseSourceDecls } from "./lean_extract.js";
 
 export interface ResolvedLeanDeclaration {
@@ -13,7 +16,7 @@ export interface ResolvedLeanDeclaration {
   resolution: "crosswalk" | "library-index" | "export-import" | "run-name-search";
 }
 
-const leafOf = (name: string) => name.slice(name.lastIndexOf(".") + 1);
+const leafOf = leanNameLeaf;
 const within = (root: string, target: string) => target === root || !relative(root, target).startsWith(`..${sep}`) && relative(root, target) !== ".." && !isAbsolute(relative(root, target));
 
 async function rootsFor(repoRoot: string): Promise<{ packageRoot: string; workspaceRoot: string; runRoot: string }> {
@@ -46,27 +49,46 @@ function canonicalFile(workspaceRoot: string, abs: string): string {
   return rel.split(sep).join("/");
 }
 
-function namespaceAtOffset(maskedSource: string, offset: number): string {
-  const frames: { kind: "namespace" | "section"; name?: string }[] = [];
+const NAME = /^(?:«[^»]+»|[\p{L}_][\p{L}\p{N}\p{M}_']*)(?:\.(?:«[^»]+»|[\p{L}_][\p{L}\p{N}\p{M}_']*))*/u;
+const SCOPE_WORDS = new Set(["namespace", "section", "mutual", "end"]);
+
+function namespaceAtOffset(maskedSource: string, offset: number, declaredNamespaces?: Set<string>): string {
+  const frames: string[] = [];
   for (const line of maskedSource.slice(0, offset).split(/\r?\n/)) {
-    const text = line.trim();
-    const ns = /^namespace\s+([A-Za-z_][A-Za-z0-9_.']*)\b/.exec(text);
-    if (ns) frames.push({ kind: "namespace", name: ns[1] });
-    else if (/^section(?:\s|$)/.test(text)) frames.push({ kind: "section" });
-    else if (/^end(?:\s|$)/.test(text)) frames.pop();
+    let rest = line.trim().replace(/^noncomputable\s+(?=section\b)/, "");
+    for (;;) {
+      const command = /^(namespace|section|mutual|end)\b/.exec(rest);
+      if (!command) break;
+      rest = rest.slice(command[0].length).trimStart();
+      const name = NAME.exec(rest)?.[0];
+      const named = command[1] !== "mutual" && name && !SCOPE_WORDS.has(name);
+      if (named) rest = rest.slice(name.length).trimStart();
+      if (command[1] === "end") frames.pop();
+      else {
+        frames.push(command[1] === "namespace" && named ? name : "");
+        if (command[1] === "namespace") declaredNamespaces?.add(frames.filter(Boolean).join("."));
+      }
+    }
   }
-  return frames.filter((f) => f.kind === "namespace").map((f) => f.name!).join(".");
+  return frames.filter(Boolean).join(".");
 }
 
-function explicitExports(source: string, leaf: string): { aliasFq: string; targetFq: string }[] {
-  const masked = maskLeanCommentsAndStrings(source);
-  const out = new Map<string, { aliasFq: string; targetFq: string }>();
-  for (const m of masked.matchAll(/\bexport\s+([A-Za-z_][A-Za-z0-9_.']*)\s*\(([\s\S]*?)\)/g)) {
-    if (m[2].match(/[A-Za-z_][A-Za-z0-9_']*/g)?.some((name) => name === leaf) === true) {
+const qualify = (namespace: string, name: string): string =>
+  name.startsWith("_root_.") ? name.slice(7) : namespace ? `${namespace}.${name}` : name;
+
+function explicitExports(source: string, leaf: string): { aliasFq: string; targetFq: string; enclosing: string; offset: number }[] {
+  const masked = maskLeanCommandQuotations(source);
+  const out = new Map<string, { aliasFq: string; targetFq: string; enclosing: string; offset: number }>();
+  const exportCommand = new RegExp(`^[ \t]*export\\s+(${NAME.source.slice(1)})\\s*\\(([^)]*)\\)`, "gmu");
+  const names = new RegExp(NAME.source.slice(1), "gu");
+  for (const m of masked.matchAll(exportCommand)) {
+    if ([...m[2].matchAll(names)].some(([name]) => name === leaf)) {
       const enclosing = namespaceAtOffset(masked, m.index ?? 0);
       const entry = {
         aliasFq: enclosing ? `${enclosing}.${leaf}` : leaf,
         targetFq: `${m[1]}.${leaf}`,
+        enclosing,
+        offset: m.index ?? 0,
       };
       out.set(`${entry.aliasFq}\0${entry.targetFq}`, entry);
     }
@@ -74,35 +96,41 @@ function explicitExports(source: string, leaf: string): { aliasFq: string; targe
   return [...out.values()];
 }
 
-function declaredFqAt(source: string, line: number, short: string): string | null {
-  const masked = maskLeanCommentsAndStrings(source).split(/\r?\n/);
-  const frames: { kind: "namespace" | "section"; name?: string }[] = [];
-  for (let i = 0; i < Math.min(line, masked.length); i++) {
-    const text = masked[i].trim();
-    const ns = /^namespace\s+([A-Za-z_][A-Za-z0-9_.']*)\b/.exec(text);
-    if (ns) frames.push({ kind: "namespace", name: ns[1] });
-    else if (/^section(?:\s|$)/.test(text)) frames.push({ kind: "section" });
-    else if (/^end(?:\s|$)/.test(text)) frames.pop();
-  }
-  if (!parseSourceDecls(source).some((d) => d.line === line && leafOf(d.name) === short)) return null;
-  const ns = frames.filter((f) => f.kind === "namespace").map((f) => f.name!).join(".");
-  return ns ? `${ns}.${short}` : short;
-}
-
 export function fullyQualifiedSourceDecls(source: string): { name: string; line: number; kind: string }[] {
-  return parseSourceDecls(source).flatMap((d) => {
-    const name = d.name.includes(".") ? d.name : declaredFqAt(source, d.line, d.name);
-    return name ? [{ name, line: d.line, kind: d.kind }] : [];
-  });
+  const masked = maskLeanCommandQuotations(source);
+  const offsets = [0];
+  for (let i = 0; i < masked.length; i++) if (masked[i] === "\n") offsets.push(i + 1);
+  return parseSourceDecls(source).map((d) => ({ ...d,
+    name: qualify(namespaceAtOffset(masked, offsets[d.line - 1]), d.name),
+  }));
 }
 
 type Candidate = { abs: string; file: string; decl: string; line: number; resolution: ResolvedLeanDeclaration["resolution"] };
+
+const execFileAsync = promisify(execFile);
+
+/** Files in the Mathlib package that declare a top-level `leaf` (by `git grep`, which the
+ *  lake checkout supports; an absent package or a grep failure yields no candidates). */
+async function mathlibDeclarationFiles(mathlibDir: string, leaf: string): Promise<string[]> {
+  if (!existsSync(join(mathlibDir, "Mathlib"))) return [];
+  const escaped = leaf.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = `^(@\\[[^\\]]*\\] *)?(private |protected |noncomputable |nonrec |unsafe )*(theorem|lemma|def|abbrev|structure|class|instance|inductive|irreducible_def|opaque) ${escaped}\\b`;
+  try {
+    const { stdout } = await execFileAsync("git", ["-C", mathlibDir, "grep", "-lE", pattern, "--", "Mathlib/*.lean"], { maxBuffer: 1 << 20 });
+    return stdout.split("\n").filter((f) => f.length > 0).map((f) => join(mathlibDir, f));
+  } catch (e) {
+    // exit 1 = no match; anything else (no git, not a repo) also means no candidates
+    void e;
+    return [];
+  }
+}
 
 async function validateUnique(
   workspaceRoot: string,
   requestedFq: string,
   candidates: Candidate[],
   label: string,
+  visibleBefore?: { abs: string; line: number },
 ): Promise<ResolvedLeanDeclaration | null> {
   const valid: (Candidate & { snippet: string })[] = [];
   const seen = new Set<string>();
@@ -117,9 +145,10 @@ async function validateUnique(
     seen.add(key);
     const source = await readFile(abs, "utf8");
     const short = leafOf(c.decl);
-    const matches = parseSourceDecls(source).filter((d) => leafOf(d.name) === short);
+    const matches = fullyQualifiedSourceDecls(source).filter((d) => leafOf(d.name) === short);
     for (const d of matches) {
-      const actualFq = d.name.includes(".") ? d.name : declaredFqAt(source, d.line, short);
+      if (visibleBefore?.abs === abs && d.line >= visibleBefore.line) continue;
+      const actualFq = d.name;
       if (actualFq !== c.decl) continue;
       valid.push({ ...c, abs, file: canonicalFile(workspaceRoot, abs), line: d.line, snippet: extractDeclSnippet(source, c.decl, d.line) });
     }
@@ -140,6 +169,52 @@ export async function resolvedLeanAbsolutePath(repoRoot: string, canonicalFile: 
 
 /** Resolve and validate the exact fully-qualified declaration behind a crosswalk pointer.
  * The recorded file may be a thin re-export; leaf-name uniqueness is never authority. */
+/** A declaration the run does not own: the Causalean library (by `doc/library_index.json`) or
+ *  the pinned Mathlib checkout. Unique, authenticated body or null. */
+type LibraryIndexRow = { name?: string; file?: string; line?: number };
+const libraryIndexCache = new Map<string, Promise<Map<string, LibraryIndexRow[]>>>();
+/** The workspace `doc/library_index.json` rows by exact name, read once per workspace. */
+export function loadLibraryIndex(workspaceRoot: string): Promise<Map<string, LibraryIndexRow[]>> {
+  let p = libraryIndexCache.get(workspaceRoot);
+  if (!p) {
+    p = (async () => {
+      const byName = new Map<string, LibraryIndexRow[]>();
+      let rows: LibraryIndexRow[] = [];
+      try {
+        rows = (JSON.parse(await readFile(join(workspaceRoot, "doc", "library_index.json"), "utf8")) as { entries?: LibraryIndexRow[] }).entries ?? [];
+      } catch (e) {
+        if (!(e instanceof SyntaxError) && (e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
+      }
+      for (const r of rows) {
+        if (typeof r.name !== "string" || typeof r.file !== "string" || !Number.isFinite(r.line)) continue;
+        byName.set(r.name, [...(byName.get(r.name) ?? []), r]);
+      }
+      return byName;
+    })();
+    libraryIndexCache.set(workspaceRoot, p);
+  }
+  return p;
+}
+
+export async function resolveLibraryDeclaration(
+  repoRoot: string,
+  decl: string,
+  opts: { mathlib?: boolean } = {},
+): Promise<ResolvedLeanDeclaration | null> {
+  const { packageRoot, workspaceRoot } = await rootsFor(repoRoot);
+  const rows = (await loadLibraryIndex(workspaceRoot)).get(decl) ?? [];
+  const indexed = await validateUnique(workspaceRoot, decl, rows.map((e) => ({
+    abs: resolve(workspaceRoot, e.file!), file: "", decl, line: e.line!, resolution: "library-index" as const,
+  })), "library index");
+  if (indexed || opts.mathlib === false) return indexed;
+  // A Mathlib lookup is a `git grep` over the checkout — seconds per name; only callers that
+  // must resolve every component ask for it.
+  const mathlibFiles = await mathlibDeclarationFiles(join(packageRoot, ".lake", "packages", "mathlib"), leafOf(decl));
+  return validateUnique(workspaceRoot, decl, mathlibFiles.map((abs) => ({
+    abs, file: "", decl, line: 1, resolution: "library-index" as const,
+  })), "Mathlib package");
+}
+
 export async function resolveLeanDeclaration(
   repoRoot: string,
   leanSubdir: string,
@@ -186,38 +261,85 @@ export async function resolveLeanDeclaration(
     if (local) return { ...local, relocated: false, resolution: "crosswalk" };
   }
 
-  const targetFq = authenticatedExports[0]?.targetFq ?? requested.decl;
-  const indexPath = join(workspaceRoot, "doc", "library_index.json");
-  try {
-    const index = JSON.parse(await readFile(indexPath, "utf8")) as { entries?: { name?: string; file?: string; line?: number }[] };
-    const rows = (index.entries ?? []).filter((e) => e.name === targetFq && typeof e.file === "string" && Number.isFinite(e.line));
-    const hit = await validateUnique(workspaceRoot, targetFq, rows.map((e) => ({
-      abs: resolve(workspaceRoot, e.file!), file: "", decl: targetFq, line: e.line!, resolution: "library-index",
-    })), "library index");
-    if (hit) return hit;
-  } catch (e) {
-    if (e instanceof SyntaxError || (e as NodeJS.ErrnoException).code === "ENOENT") { /* fallback below */ }
-    else throw e;
+  const exported = authenticatedExports[0];
+  const recordedVisibleSource = exported ? recordedSource.slice(0, exported.offset) : recordedSource;
+  const visibleBefore = exported ? {
+    abs: await realpath(recordedAbs), line: recordedVisibleSource.split("\n").length,
+  } : undefined;
+  const targetNames: string[] = [];
+  if (exported && !exported.targetFq.startsWith("_root_.")) {
+    let namespace = exported.enclosing;
+    while (namespace) {
+      targetNames.push(qualify(namespace, exported.targetFq));
+      const leaf = leanNameLeaf(namespace);
+      namespace = namespace.slice(0, Math.max(0, namespace.length - leaf.length - 1));
+    }
   }
-
-  if (recordedSource && authenticatedExports.length === 1) {
-    const imports = [...maskLeanCommentsAndStrings(recordedSource).matchAll(/^\s*import\s+([A-Za-z0-9_.']+)/gm)].map((m) => m[1]);
-    const candidates: Candidate[] = [];
-    for (const moduleName of imports) {
-      for (const root of [packageRoot, workspaceRoot]) {
-        candidates.push({ abs: join(root, ...moduleName.split(".")) + ".lean", file: "", decl: targetFq, line: 1, resolution: "export-import" });
+  targetNames.push((exported?.targetFq ?? requested.decl).replace(/^_root_\./, ""));
+  const imports = [...maskLeanCommandQuotations(recordedSource).matchAll(/^\s*import\s+([A-Za-z0-9_.']+)/gm)].map((m) => m[1]);
+  const importFiles = imports.flatMap((name) => [packageRoot, workspaceRoot].map((root) => join(root, ...name.split(".")) + ".lean"));
+  // Read fallback metadata once per resolution, not once for every enclosing namespace.
+  let indexRows: { name?: string; file?: string; line?: number }[] = [];
+  try {
+    indexRows = (JSON.parse(await readFile(join(workspaceRoot, "doc", "library_index.json"), "utf8")) as { entries?: typeof indexRows }).entries ?? [];
+  } catch (e) {
+    if (!(e instanceof SyntaxError) && (e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
+  }
+  const importedAliases = explicitExports(recordedVisibleSource, leaf);
+  const declaredNamespaces = new Set<string>();
+  const rememberNamespaces = (source: string) => {
+    const masked = maskLeanCommandQuotations(source);
+    namespaceAtOffset(masked, masked.length, declaredNamespaces);
+    for (const d of fullyQualifiedSourceDecls(source)) {
+      const parent = d.name.slice(0, Math.max(0, d.name.length - leafOf(d.name).length - 1));
+      if (parent) declaredNamespaces.add(parent);
+    }
+  };
+  if (exported) {
+    rememberNamespaces(recordedVisibleSource);
+    for (const file of new Set(importFiles)) {
+      try {
+        const source = await readFile(await safeRealFile(workspaceRoot, file), "utf8");
+        importedAliases.push(...explicitExports(source, leaf));
+        rememberNamespaces(source);
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
       }
     }
-    const hit = await validateUnique(workspaceRoot, targetFq, candidates, "explicit export/import graph");
-    if (hit) return hit;
   }
+  let mathlibFiles: string[] | undefined;
+  for (const targetFq of [...new Set(targetNames)]) {
+    const rows = indexRows.filter((e) => e.name === targetFq && typeof e.file === "string" && Number.isFinite(e.line));
+    const indexed = await validateUnique(workspaceRoot, targetFq, rows.map((e) => ({
+      abs: resolve(workspaceRoot, e.file!), file: "", decl: targetFq, line: e.line!, resolution: "library-index",
+    })), "library index", visibleBefore);
+    if (indexed) return indexed;
 
-  // Run-local fallback still requires exact FQ identity, never a globally unique leaf.
-  const runFiles = new Set<string>();
-  for (const pointer of [requested.file]) runFiles.add(resolve(runDir, pointer));
-  const hit = await validateUnique(workspaceRoot, requested.decl, [...runFiles].map((abs) => ({
-    abs, file: "", decl: requested.decl, line: requested.line, resolution: "run-name-search",
-  })), "run declaration search");
-  if (hit) return hit;
+    if (exported) {
+      const local = await validateUnique(workspaceRoot, targetFq, [recordedAbs, ...importFiles].map((abs) => ({
+        abs, file: "", decl: targetFq, line: 0, resolution: "export-import" as const,
+      })), "explicit export/import graph", visibleBefore);
+      if (local) return local;
+
+    }
+
+    // Locate a reused declaration in the pinned Mathlib checkout, then authenticate its FQ name.
+    mathlibFiles ??= await mathlibDeclarationFiles(join(packageRoot, ".lake", "packages", "mathlib"), leaf);
+    const library = await validateUnique(workspaceRoot, targetFq, mathlibFiles.map((abs) => ({
+      abs, file: "", decl: targetFq, line: 1, resolution: "library-index" as const,
+    })), "Mathlib package", visibleBefore);
+    if (library) return library;
+    if (exported) {
+      // A nearer alias shadows an outer declaration of the same name. Unsupported alias
+      // chains must halt, never silently authenticate the outer declaration as its body.
+      if (importedAliases.some((alias) => alias.aliasFq === targetFq)) {
+        throw new Error(`P1 cannot resolve nested export ${targetFq} behind ${requested.decl}; refusing outer-namespace fallback`);
+      }
+      const targetNamespace = targetFq.slice(0, Math.max(0, targetFq.length - leaf.length - 1));
+      if (declaredNamespaces.has(targetNamespace)) {
+        throw new Error(`P1 export namespace ${targetNamespace} contains no authenticated body for ${targetFq}; refusing outer-namespace fallback`);
+      }
+    }
+  }
   throw new Error(`P1 cannot audit ${requested.decl}: ${requested.file}:${requested.line} contains no exact declaration body and no unique authoritative source was resolved`);
 }

@@ -28,8 +28,13 @@ namespace Causalean.ML
 
 open Causalean.Stat.Concentration Causalean.Mathlib.Analysis
 
-/-- The square of the projection of `t` onto `[-c, c]`: a globally Lipschitz surrogate that
-agrees with `t ↦ t²` on `[-c, c]`. -/
+/-- For [a real clipping bound](hyp:c) and [a real input](hyp:t), the [clamped-square
+surrogate](goal) is the square of the input after applying the interval-clipping rule with
+endpoints $-c$ and $c$. This definition applies to every pair of real numbers, including when
+the two endpoints are not ordered.
+
+The clamped square is a globally Lipschitz surrogate that agrees with the squared map on a
+bounded prediction range. -/
 noncomputable def clampedSq (c t : ℝ) : ℝ := (clipIcc (-c) c t) ^ 2
 
 /-- The clamped square is continuous. -/

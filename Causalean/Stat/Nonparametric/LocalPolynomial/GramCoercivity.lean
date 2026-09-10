@@ -19,7 +19,9 @@ open MeasureTheory Set
 open scoped BigOperators Interval Polynomial
 
 namespace Causalean.Stat.Nonparametric.LocalPolynomial
-/-- The polynomial represented by the local-polynomial coefficient vector. -/
+/-- For [a nonnegative polynomial degree](hyp:p) and [real coefficients indexed from zero through
+that degree](hyp:v), the [local-polynomial coefficient polynomial](goal) is
+$\sum_i v_i u^i$. -/
 -- @node: localPolynomial
 noncomputable def localPolynomial (p : ℕ) (v : Fin (p + 1) → ℝ) : ℝ[X] :=
   ∑ i, Polynomial.C (v i) * Polynomial.X ^ (i : ℕ)
@@ -53,7 +55,9 @@ lemma localPolynomial_eq_zero_iff (p : ℕ) (v : Fin (p + 1) → ℝ) :
   · rintro rfl
     simp [localPolynomial]
 
-/-- The fixed radial energy used in the polar-sector lower bound. -/
+/-- For [a nonnegative polynomial degree](hyp:p) and [real coefficients indexed from zero through
+that degree](hyp:v), the [radial polynomial energy](goal) is the double sum of $v_i v_j$ divided
+by $i+j+2$, over all coefficient indices $i,j$ from zero through that degree. -/
 -- @node: radialPolynomialEnergy
 noncomputable def radialPolynomialEnergy (p : ℕ)
     (v : Fin (p + 1) → ℝ) : ℝ :=

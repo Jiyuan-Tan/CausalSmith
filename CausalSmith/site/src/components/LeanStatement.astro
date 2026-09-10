@@ -1,59 +1,102 @@
 ---
-// One row per top-level binder instead of a single shared-scroll block: the
-// binder name sits outside the scrolling area (so it can't scroll out of
-// view), and a hypothesis shaped `∀ …, P → Q → R` gets a premises-above-a-rule
-// treatment instead of a stair-stepped indent. See StmtBodyView for the line-
-// and chain-level rendering.
+// One row per top-level binder instead of a single shared-scroll block, for
+// EVERY declaration kind — the section labels follow the role:
 //
-// A structure/class additionally separates its PARAMETERS (what you supply
-// to construct one, `structured.rows`) from its FIELDS (what it actually
-// bundles, `structured.fields`) — `Regime (V : Type*) (X : V → Type*) where
-// target : Finset V; assign : …` reads very differently once `target`/
-// `assign` aren't sitting in the same flat list as `V`/`X`.
-import { isChain, type StructuredStatement, type StmtBody } from "../lib/leanStatement.js";
+//   theorem      hypotheses · conclusion
+//   definition   parameters · def · given by
+//   propdef      parameters · def · given by      (a `def … : Prop`)
+//   assumption   parameters · assumes            (a Prop-valued structure)
+//   record       parameters · fields
+//
+// The binder name sits outside the scrolling area (so it can't scroll out of
+// view); the clause side (conclusion / given by) renders as nested cards when
+// it splits, else as plain lines. See StmtBodyView / ClauseCards.
+import { isChain } from "../lib/leanStatement.js";
+import { hasClause, type DeclView } from "../lib/leanDeclView.js";
 import StmtBodyView from "./StmtBodyView.astro";
 import StmtRowList from "./StmtRowList.astro";
+import ClauseCards from "./ClauseCards.astro";
 
 interface Props {
-  structured: StructuredStatement;
+  view: DeclView;
   /** Original authored signature (docstring/proof stripped), for the copy button. */
   copyText: string;
-  /** Label for `structured.rows` when it's NOT a structure/class (those get
-   * "parameters" automatically) — "hypotheses" for a theorem. */
-  sectionLabel?: string;
 }
-const { structured, copyText, sectionLabel = "hypotheses" } = Astro.props as Props;
+const { view, copyText } = Astro.props as Props;
 
-const isRecord = structured.fields !== null;
-const hasParams = structured.rows.length > 0;
-
-// A structure/class has no trailing conclusion (`structureRecordSource`
-// returns `conclusion: []`) — a ChainBlock is never empty, only a plain
-// StmtLine[] can be, so this is the one case worth hiding the section for.
-const hasConclusion = (b: StmtBody) => isChain(b) || b.length > 0;
+const LABELS: Record<DeclView["role"], { rows: string; fields: string; clause: string; word: string }> = {
+  theorem: { rows: "hypotheses", fields: "", clause: "conclusion", word: "conclusion" },
+  definition: { rows: "parameters", fields: "", clause: "given by", word: "clause" },
+  propdef: { rows: "parameters", fields: "", clause: "given by", word: "clause" },
+  assumption: { rows: "parameters", fields: "assumes", clause: "", word: "" },
+  record: { rows: "parameters", fields: "fields", clause: "", word: "" },
+  instance: { rows: "parameters", fields: "", clause: "given by", word: "clause" },
+  inductive: { rows: "parameters", fields: "constructors", clause: "", word: "" },
+};
+const NAME_ROW: Partial<Record<DeclView["role"], string>> = { instance: "instance", inductive: "inductive" };
+const nameLabel = NAME_ROW[view.role] ?? "def";
+// constructor rows are addressable by number as well as by name
+const fieldTokens = view.role === "inductive";
+const L = LABELS[view.role];
+const hasRows = view.rows.length > 0;
+const hasFields = !!view.fields && view.fields.length > 0;
+const showClause = hasClause(view);
+const hasType = view.defRow ? isChain(view.defRow.type) || view.defRow.type.length > 0 : false;
 ---
 
-<div class="decl-stmt stmt-structured" data-copy-text={copyText}>
-  {hasParams && (
+<div class={`decl-stmt stmt-structured role-${view.role}`} data-copy-text={copyText}>
+  {hasRows && (
     <>
-      <div class="stmt-section-label">{isRecord ? "parameters" : sectionLabel}</div>
-      <StmtRowList items={structured.rows} />
+      <div class="stmt-section-label">{L.rows}</div>
+      <StmtRowList items={view.rows} />
     </>
   )}
-  {structured.fields && structured.fields.length > 0 && (
-    <div class:list={["stmt-fields", hasParams && "bordered"]}>
-      <div class="stmt-section-label">fields</div>
-      <StmtRowList items={structured.fields} />
+  {view.defRow && view.role === "inductive" && (
+    <div class:list={["stmt-def", hasRows && "bordered"]}>
+      <div class="stmt-section-label">{nameLabel}</div>
+      <div class="stmt-def-row" data-binder="⊢">
+        <span class="stmt-def-head">{view.defRow.head}</span>
+        {hasType && (
+          <>
+            <span class="stmt-row-colon">:</span>
+            <StmtBodyView body={view.defRow.type} />
+          </>
+        )}
+      </div>
     </div>
   )}
-  {hasConclusion(structured.conclusion) && (
-    <div class="stmt-concl">
-      <div class="stmt-section-label">conclusion</div>
-      {/* "⊢" is the canonical link token an NL `[phrase](goal)` crosslink
-          targets — see renderNl in docmd.ts. */}
-      <div class="stmt-concl-body" data-binder="⊢">
-        <StmtBodyView body={structured.conclusion} />
+  {hasFields && (
+    <div class:list={["stmt-fields", (hasRows || view.role === "inductive") && "bordered"]}>
+      <div class="stmt-section-label">{L.fields}</div>
+      <StmtRowList items={view.fields!} numbered={fieldTokens} />
+      {view.note && <div class="stmt-deriving">{view.note}</div>}
+    </div>
+  )}
+  {view.defRow && view.role !== "inductive" && (
+    <div class:list={["stmt-def", hasRows && "bordered"]}>
+      <div class="stmt-section-label">{nameLabel}</div>
+      {/* "⊢" is the token a docstring's `[phrase](goal)` targets (renderNl). */}
+      <div class="stmt-def-row" data-binder="⊢">
+        <span class="stmt-def-head">{view.defRow.head}</span>
+        {hasType && (
+          <>
+            <span class="stmt-row-colon">:</span>
+            <StmtBodyView body={view.defRow.type} />
+          </>
+        )}
       </div>
+    </div>
+  )}
+  {showClause && (
+    <div class="stmt-concl">
+      <div class="stmt-section-label">{L.clause}</div>
+      {view.cards ? (
+        <ClauseCards cards={view.cards} clauseWord={L.word} />
+      ) : (
+        <div class="stmt-concl-body" data-binder="⊢ ⊢1">
+          <StmtBodyView body={view.flat} />
+        </div>
+      )}
     </div>
   )}
 </div>

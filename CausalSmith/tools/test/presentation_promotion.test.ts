@@ -45,6 +45,9 @@ describe("runPromotionRound", () => {
     expect(added).toBe("lem:promoted-bound");
     expect(call!.prompt).toContain("lem:x Step 4 underived");
     expect(call!.prompt).toContain("statement-uses");
+    expect(call!.prompt).toContain("home_objs");
+    expect(call!.prompt).toContain("preserve every existing section and authored home");
+    expect(call!.prompt).toContain("shared bound-variable spelling alone does not establish a dependency");
     // Deliberate, call-site-visible trust escalation: without Edit/Write/Bash the agent
     // is read-only and the whole round is inert (audit finding F1(i)).
     expect(call!.allowedTools).toEqual(expect.arrayContaining(["Edit", "Write", "Bash"]));
@@ -58,21 +61,20 @@ describe("runPromotionRound", () => {
   });
 });
 
-// Audit-first reuse: a prior-faithful proof survives a statement change as an audit
-// candidate; failing/never-audited proofs must NOT (their redraft path is load-bearing
-// for the promotion round).
-import { priorFaithfulProofVerdicts } from "../src/presentation/stages/p2_draft.js";
-describe("priorFaithfulProofVerdicts", () => {
-  it("returns only faithful obj ids; tolerates a missing cache file", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "pfv-"));
+// Promotion changes the audit context; it must retain authored proofs as repair candidates.
+import { existingProofForP2 } from "../src/presentation/stages/p2_draft.js";
+describe("proof candidates after promotion", () => {
+  it("retains a candidate even when the last verdict is unfaithful and the render context changed", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "proof-candidate-"));
     dirs.push(dir);
+    const proofPath = join(dir, "proof.tex");
+    await writeFile(proofPath, "A repaired proof awaiting its next audit.");
     await writeFile(join(dir, "proof_audit_cache.json"), JSON.stringify({
-      "thm:good": { key: "k1", verdict: "faithful", issues: [] },
-      "lem:bad": { key: "k2", verdict: "unfaithful", issues: ["x"] },
-      "lem:odd": { key: "k3" },
-    }), "utf8");
-    const set = await priorFaithfulProofVerdicts(dir);
-    expect([...set].sort()).toEqual(["thm:good"]);
-    expect((await priorFaithfulProofVerdicts(join(dir, "nope"))).size).toBe(0);
+      target: { key: "old-audit", verdict: "unfaithful", issues: ["missing helper"] },
+    }));
+    expect(await existingProofForP2(proofPath, "old-render", "new-render")).toEqual({
+      text: "A repaired proof awaiting its next audit.", cacheHit: false,
+    });
+    expect(await existingProofForP2(join(dir, "missing.tex"), undefined, "new-render")).toBeNull();
   });
 });

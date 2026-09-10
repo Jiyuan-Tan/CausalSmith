@@ -35,13 +35,12 @@ namespace Causalean.Stat.Nonparametric
 
 open scoped BigOperators
 
-/-- The weighted residual at coefficient vector `c` against design matrix `Φ`:
-`rᵢ(c) = Yᵢ − ∑ⱼ cⱼ Φᵢⱼ`. -/
+/-- Given a [sample indexed by a nonnegative number of observations](hyp:N) and [a finite collection of basis indices](hyp:ι), a [real-valued design array](hyp:Φ), [real-valued outcomes](hyp:Y), [real-valued coefficients indexed by the basis](hyp:c), and [an observation in the sample](hyp:i), the [least-squares residual for that observation](goal) is its outcome minus the fitted value $\sum_j c_j\Phi_{ij}$. -/
 noncomputable def lstsqResidual {N : ℕ} {ι : Type*} [Fintype ι]
     (Φ : Fin N → ι → ℝ) (Y : Fin N → ℝ) (c : ι → ℝ) (i : Fin N) : ℝ :=
   Y i - ∑ j, c j * Φ i j
 
-/-- The weighted sum of squares `∑ᵢ wᵢ rᵢ(c)²`. -/
+/-- Given a [sample indexed by a nonnegative number of observations](hyp:N) and [a finite collection of basis indices](hyp:ι), a [real-valued design array](hyp:Φ), [real-valued observation weights](hyp:w), [real-valued outcomes](hyp:Y), and [real-valued coefficients indexed by the basis](hyp:c), the [weighted least-squares objective](goal) is $\sum_i w_i r_i(c)^2$, where $r_i(c)$ is the residual of observation $i$ under those coefficients. -/
 noncomputable def lstsqObjective {N : ℕ} {ι : Type*} [Fintype ι]
     (Φ : Fin N → ι → ℝ) (w Y : Fin N → ℝ) (c : ι → ℝ) : ℝ :=
   ∑ i, w i * lstsqResidual Φ Y c i ^ 2

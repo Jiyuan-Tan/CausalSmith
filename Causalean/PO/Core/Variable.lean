@@ -42,9 +42,7 @@ namespace POVar
 
 variable {P : POSystem} {α : Type*} [MeasurableSpace α]
 
-/-- A counterfactual value function assigns each unit the value that a selected
-variable would have under a selected intervention regime, reported on its
-chosen analysis scale.
+/-- For [a potential-outcome system](hyp:P), [a measurable analysis scale](hyp:α), [a potential-outcome variable](hyp:a), and [an intervention regime](hyp:r), [the counterfactual value function](goal) maps every sample-space unit to that variable's potential outcome under the regime, expressed on the analysis scale.
 
 Counterfactual value of the variable under regime `r`. -/
 def cf (a : POVar P α) (r : Regime P.V P.X) : P.Ω → α :=
@@ -62,8 +60,7 @@ lemma cf_apply (a : POVar P α) (r : Regime P.V P.X) (ω : P.Ω) :
     a.cf r ω = a.equiv (P.eval r ω a.v) :=
   rfl
 
-/-- A factual value function assigns each unit the observed no-intervention
-value of a selected variable, reported on its chosen analysis scale.
+/-- For [a potential-outcome system](hyp:P), [a measurable analysis scale](hyp:α), and [a potential-outcome variable](hyp:a), [the factual value function](goal) maps every sample-space unit to the variable's potential outcome under the empty intervention regime, expressed on the analysis scale.
 
 Factual (empty-regime) value of the variable. -/
 def factual (a : POVar P α) : P.Ω → α := a.cf Regime.empty
@@ -89,8 +86,7 @@ lemma measurable_cf (a : POVar P α) (r : Regime P.V P.X) : Measurable (a.cf r) 
 lemma measurable_factual (a : POVar P α) : Measurable a.factual :=
   a.measurable_cf _
 
-/-- A factual-value event is the set of units whose observed value of a selected
-variable equals a selected analysis-scale value.
+/-- For [a potential-outcome system](hyp:P), [a measurable analysis scale](hyp:α), [a potential-outcome variable](hyp:a), and [a value on that scale](hyp:x), [the factual-value event](goal) is the set of all sample-space units whose factual value of the variable equals that value.
 
 The event `{factual a = x}` as a measurable set. -/
 def event (a : POVar P α) (x : α) : Set P.Ω := a.factual ⁻¹' {x}
@@ -112,10 +108,7 @@ lemma measurableSet_event (a : POVar P α) (x : α) (hx : MeasurableSet ({x} : S
     MeasurableSet (a.event x) :=
   a.measurable_factual hx
 
-/-- The potential outcome of variable `y` when the intervention variable `w` is
-set to the value `d`: the single-variable counterfactual `y(w := d)`. (Binders
-follow the usual econometric convention — `y` is the outcome variable and `d` is
-the treatment/intervention value; `w` is the variable being intervened on.)
+/-- For [a potential-outcome system](hyp:P), [a measurable outcome scale](hyp:α), [a measurable intervention-variable scale](hyp:β), [an outcome variable](hyp:y), [an intervention variable](hyp:w), and [a value of that intervention variable](hyp:d), [the single-intervention counterfactual value function](goal) maps every sample-space unit to the outcome variable's potential outcome when the intervention variable is set to that value.
 
 This is the common single-intervention specialization used by identification
 files to write objects such as `Y(d)` without manually constructing a
@@ -149,8 +142,7 @@ Packages the `fun ω => if a.factual ω = x then 1 else 0` pattern used by every
 identification theorem, together with the boilerplate measurability /
 integrability / set-indicator lemmas. -/
 
-/-- A factual-value indicator is the zero-one function that marks units whose
-observed value of a selected variable equals a selected analysis-scale value.
+/-- For [a potential-outcome system](hyp:P), [a measurable analysis scale](hyp:α), [a potential-outcome variable](hyp:a), and [a value on that scale](hyp:x), [the factual-value indicator](goal) maps each sample-space unit to one when the variable's factual value equals that value and to zero otherwise.
 
 The real-valued indicator of the factual event `{a = x}`, defined as
 `(a.event x).indicator 1`. -/
@@ -308,8 +300,7 @@ namespace RegimedVar
 
 variable {P : POSystem} {α : Type*} [MeasurableSpace α]
 
-/-- A regimed variable's value function assigns each unit the counterfactual
-value implied by the variable-regime pair.
+/-- For [a potential-outcome system](hyp:P), [a measurable analysis scale](hyp:α), and [a variable paired with an intervention regime](hyp:rv), [the regimed-variable value function](goal) maps every sample-space unit to the paired variable's potential outcome under its paired regime.
 
 Evaluate the regimed variable as a `P.Ω → α` map. -/
 def value (rv : RegimedVar P α) : P.Ω → α := rv.var.cf rv.regime
@@ -328,14 +319,12 @@ lemma value_eq (rv : RegimedVar P α) : rv.value = rv.var.cf rv.regime :=
 lemma measurable_value (rv : RegimedVar P α) : Measurable rv.value :=
   rv.var.measurable_cf _
 
-/-- Factual bundling views a potential-outcome variable as evaluated under the
-no-intervention regime.
+/-- For [a potential-outcome system](hyp:P), [a measurable analysis scale](hyp:α), and [a potential-outcome variable](hyp:a), [the factual bundle](goal) pairs that variable with the empty intervention regime.
 
 Factual bundling: the empty regime. -/
 def ofFactual (a : POVar P α) : RegimedVar P α := ⟨a, Regime.empty⟩
 
-/-- Single-intervention bundling views a potential-outcome variable as evaluated
-after fixing one system variable to a chosen native value.
+/-- For [a potential-outcome system](hyp:P), [a measurable analysis scale](hyp:α), [a potential-outcome variable](hyp:a), [a system variable](hyp:w), and [a value in that variable's native value space](hyp:x), [the single-intervention bundle](goal) pairs the potential-outcome variable with the regime that fixes the system variable to that value.
 
 Bundling under a single-node intervention. -/
 def ofSingle (a : POVar P α) (w : P.V) (x : P.X w) : RegimedVar P α :=

@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { parseAnchoredEnvs, lintAnchors, lintCrossRefs, lintSelfContainment, lintClarity, lintDefinitionOrder, lintNegativeContributionFraming, lintNestedMathDelimiters, lintReferences, lintHypothesisPresentation, repairObjRefs, normalizeCrefs, displaysDefiningEquality, notationHomes, usesSymbolUndecorated } from "../src/presentation/tex_anchors.js";
+import { parseAnchoredEnvs, lintAnchors, lintCrossRefs, lintSelfContainment, lintClarity, definitionOrderViolations, lintNegativeContributionFraming, lintNestedMathDelimiters, lintReferences, lintHypothesisPresentation, repairObjRefs, normalizeCrefs, displaysDefiningEquality, notationHomes, usesSymbolUndecorated, placeFrozenEnvs, lintEnvOrder } from "../src/presentation/tex_anchors.js";
+
+// The semantic definition-order check as P1's repair reads it (P3/P4 no longer re-judge it).
+const lintDefinitionOrder = (tex: string, notation: string) =>
+  definitionOrderViolations(tex, notation).map((v) => ({
+    gate: "notation-defined-after-use",
+    objId: v.firstUse,
+    detail: `${v.symbol} is first used in ${v.firstUse} before its notation-table home ${v.home}`,
+  }));
 
 const TEX = `
 \\section{Main results}
@@ -355,6 +363,64 @@ This paper does not characterize the adaptive frontier.`;
     ).toEqual([]);
   });
 
+  it("allows explicit open-question object disclosures without hiding other negative framing", () => {
+    const disclosure = "The sharp-constant item in \\cref{obj:oeq:sharp-constant} is recorded as an open question.";
+    expect(lintNegativeContributionFraming(disclosure)).toEqual([]);
+    expect(
+      lintNegativeContributionFraming(
+        "This paper does not provide finite-sample inference, and \\cref{obj:oeq:sharp-constant} remains an open question.",
+      ).some((p) => p.detail.includes("finite-sample inference")),
+    ).toBe(true);
+    expect(
+      lintNegativeContributionFraming(
+        "See \\cref{obj:oeq:sharp-constant}; exact schedule optimality remains an open design question.",
+      ),
+    ).toHaveLength(1);
+    expect(
+      lintNegativeContributionFraming(
+        "The appendix catalogs \\cref{obj:oeq:sharp-constant}, while the broader identification frontier remains an open question.",
+      ),
+    ).toHaveLength(1);
+    expect(
+      lintNegativeContributionFraming(
+        "The item in \\cref{obj:oeq:sharp-constant} remains an open question; exact schedule optimality remains an open design question.",
+      ),
+    ).toHaveLength(1);
+    expect(
+      lintNegativeContributionFraming(
+        "The item in \\cref{obj:oeq:sharp-constant} remains an open question and exact schedule optimality remains an open design question.",
+      ),
+    ).toHaveLength(1);
+    expect(
+      lintNegativeContributionFraming(
+        "The appendix catalogs \\cref{obj:oeq:sharp-constant} while exact schedule optimality remains an open design question.",
+      ),
+    ).toHaveLength(1);
+    expect(
+      lintNegativeContributionFraming(
+        "The item in \\cref{obj:oeq:sharp-constant} is described as an open question.",
+      ),
+    ).toEqual([]);
+    expect(lintNegativeContributionFraming("\\cref{obj:oeq:sharp-constant} remains an open question.")).toEqual([]);
+    for (const separator of ["yet", "or", "—"]) {
+      expect(
+        lintNegativeContributionFraming(
+          `The appendix catalogs \\cref{obj:oeq:sharp-constant} ${separator} exact schedule optimality remains an open design question.`,
+        ),
+      ).toHaveLength(1);
+    }
+    for (const unrelated of [
+      "A separate issue from \\cref{obj:oeq:sharp-constant} remains an open question.",
+      "Exact schedule optimality unlike \\cref{obj:oeq:sharp-constant} remains an open design question.",
+      "The item contrasted with \\cref{obj:oeq:sharp-constant} is an open question.",
+      "The separate problem distinct from the catalogued item in \\cref{obj:oeq:sharp-constant} remains an open question.",
+      "The unrelated frontier compared with the question in \\cref{obj:oeq:sharp-constant} is an open problem.",
+      "A different problem discussed alongside the item at \\cref{obj:oeq:sharp-constant} remains an open research question.",
+    ]) {
+      expect(lintNegativeContributionFraming(unrelated)).toHaveLength(1);
+    }
+  });
+
   it("hypothesis-presentation lint: flags restated assumptions + un-itemized walls, not clean statements", () => {
     // clean: a two-ref theorem stated inline is fine.
     expect(
@@ -403,12 +469,13 @@ Let \(v_0=(1,0)\), \(v_j=(\sigma_j,1)\), and \(v_{m+1}=(\delta,1)\).
     ]);
     expect(bad.map((p) => p.objId)).toEqual(["ass:forward-axis-model", "ass:reverse-axis-model"]);
     expect(lintDefinitionOrder(definitions + assumptions, notation)).toEqual([]);
+    // Prose outside environments is not consulted: P1 orders the frozen layer, which has none.
     expect(
       lintDefinitionOrder(
         String.raw`We define \(u_j\) as the forward source loading. ${assumptions}${definitions}`,
         notation,
       ),
-    ).toHaveLength(1); // v_j remains undefined before its assumption.
+    ).toHaveLength(2);
   });
 
   it("definition-order lint collapses witnessed cycles but enforces external incoming homes", () => {
@@ -416,32 +483,41 @@ Let \(v_0=(1,0)\), \(v_j=(\sigma_j,1)\), and \(v_{m+1}=(\delta,1)\).
 | A | \(A(x)\) | first construction | a |
 | B | \(B(x)\) | second construction | b |
 | C | \(C(x)\) | external prerequisite | c |`;
+    // A mutual pair: whichever way round, one row is violated; P1's repair keeps the pair in
+    // place and reports it once (see the p1_order tests) — the check itself just reports.
     const cycle = String.raw`
 \begin{definitionv}{a}We define \(A(x):=B(x)\).\end{definitionv}
 \begin{definitionv}{b}We define \(B(x):=A(x)\).\end{definitionv}`;
-    expect(lintDefinitionOrder(cycle, notation)).toEqual([]);
+    expect(lintDefinitionOrder(cycle, notation)).toEqual([expect.objectContaining({ objId: "a" })]);
 
     const externalLate = String.raw`
 \begin{definitionv}{a}We define \(A(x):=B(x)+C(x)\).\end{definitionv}
 \begin{definitionv}{b}We define \(B(x):=A(x)\).\end{definitionv}
 \begin{definitionv}{c}We define \(C(x):=x\).\end{definitionv>`;
-    expect(lintDefinitionOrder(externalLate.replace("definitionv>", "definitionv}"), notation)).toEqual([
-      expect.objectContaining({ gate: "notation-defined-after-use", objId: "a" }),
-    ]);
+    expect(lintDefinitionOrder(externalLate.replace("definitionv>", "definitionv}"), notation).map((p) => p.objId)).toEqual(["a", "a"]);
 
     const internalFirstExternalSecond = String.raw`
 \begin{definitionv}{b}We define \(B(x):=A(x)\).\end{definitionv}
 \begin{lemmav}{external}Use \(A(x)\).\end{lemmav}
 \begin{definitionv}{a}We define \(A(x):=B(x)\).\end{definitionv}`;
-    expect(lintDefinitionOrder(internalFirstExternalSecond, notation)).toEqual([
-      expect.objectContaining({ gate: "notation-defined-after-use", objId: "external" }),
+    expect(lintDefinitionOrder(internalFirstExternalSecond, notation).map((p) => p.objId)).toEqual(["b", "external"]);
+
+    // A longer cycle (a→b→c→a through three symbols, no pair mutual): the check reports the
+    // violated rows; P1's repair finds the strongly connected set and reports it once.
+    const threeCycle = String.raw`
+\begin{definitionv}{a}We define \(A(x):=B(x)\).\end{definitionv}
+\begin{definitionv}{b}We define \(B(x):=C(x)\).\end{definitionv}
+\begin{definitionv}{c}We define \(C(x):=A(x)\).\end{definitionv}`;
+    expect(definitionOrderViolations(threeCycle, notation).map((v) => [v.symbol, v.firstUse])).toEqual([
+      ["B(x)", "a"], ["C(x)", "b"],
     ]);
 
     const partialNotation = String.raw`| A | \(A(x)\) | first construction | a |`;
-    const certifiedCycle = String.raw`
+    const halfTabled = String.raw`
 \begin{definitionv}{b}We define \(C(x):=A(x)\).\end{definitionv}
 \begin{definitionv}{a}We define \(A(x):=C(x)\).\end{definitionv}`;
-    expect(lintDefinitionOrder(certifiedCycle, partialNotation)).toEqual([]);
+    // Only A is a table row: b's use of A before a is a violation the repair fixes by moving a first.
+    expect(lintDefinitionOrder(halfTabled, partialNotation).map((p) => p.objId)).toEqual(["b"]);
   });
 
   it("definition-order lint does not manufacture an edge from an unwitnessed metadata home", () => {
@@ -561,22 +637,30 @@ describe("node-id anchors + lintCrossRefs (graph-driven references)", () => {
     expect(problems).toEqual([]);
   });
 
-  it("flags a \\ref outside the env's edge targets (dangling)", () => {
+  it("flags a reference to an environment absent from the paper", () => {
     const layer = `\\begin{assumptionv}{a1}[A]\nUses Definition~\\ref{obj:pX}.\n\\end{assumptionv}`;
-    const problems = lintCrossRefs(layer, new Map([["a1", new Set(["p7"])]]));
+    const problems = lintCrossRefs(layer, new Map([["a1", new Set(["p7"])]]), new Set(["a1", "p7", "t9", "pZ"]));
     expect(problems.some((p) => p.gate === "xref-dangling" && p.detail.includes("pX"))).toBe(true);
+  });
+
+  it("accepts a repair's new citation while still enforcing graph assumptions", () => {
+    const layer = String.raw`\begin{definitionv}{def:weights}Use the repair in \cref{obj:def:repair}.\end{definitionv}`;
+    const available = new Set(["def:weights", "def:repair", "ass:model"]);
+    expect(lintCrossRefs(layer, new Map([["def:weights", new Set()]]), available)).toEqual([]);
+    expect(lintCrossRefs(layer, new Map([["def:weights", new Set(["ass:model"])]]), available))
+      .toMatchObject([{ gate: "xref-missing-assumption", objId: "def:weights" }]);
   });
 
   it("flags a missing reference to a declared edge target", () => {
     const layer = `\\begin{assumptionv}{a1}[A]\nNo references here.\n\\end{assumptionv}`;
-    const problems = lintCrossRefs(layer, new Map([["a1", new Set(["p7"])]]));
+    const problems = lintCrossRefs(layer, new Map([["a1", new Set(["p7"])]]), new Set(["a1", "p7", "t9", "pZ"]));
     expect(problems.some((p) => p.gate === "xref-missing" && p.detail.includes("p7"))).toBe(true);
   });
 
   it("enforces (not advisory) a missing reference to an ASSUMPTION edge target", () => {
     const layer = `\\begin{theoremv}{thm:a}[A]\nNo references here.\n\\end{theoremv}`;
     // a statement-uses dep on an assumption is a hypothesis → the ENFORCED gate, not advisory xref-missing.
-    const problems = lintCrossRefs(layer, new Map([["thm:a", new Set(["ass:foo", "def:bar"])]]));
+    const problems = lintCrossRefs(layer, new Map([["thm:a", new Set(["ass:foo", "def:bar"])]]), new Set(["thm:a", "ass:foo", "def:bar"]));
     expect(problems.some((p) => p.gate === "xref-missing-assumption" && p.detail.includes("ass:foo"))).toBe(true);
     expect(problems.some((p) => p.gate === "xref-missing" && p.detail.includes("def:bar"))).toBe(true);
     // the assumption case must NOT be emitted under the advisory gate.
@@ -585,19 +669,39 @@ describe("node-id anchors + lintCrossRefs (graph-driven references)", () => {
 
   it("passes when refs exactly match the edge targets", () => {
     const layer = `\\begin{assumptionv}{a1}[A]\nBy Definition~\\ref{obj:p7}.\n\\end{assumptionv}`;
-    expect(lintCrossRefs(layer, new Map([["a1", new Set(["p7"])]]))).toEqual([]);
+    expect(lintCrossRefs(layer, new Map([["a1", new Set(["p7"])]]), new Set(["a1", "p7", "t9", "pZ"]))).toEqual([]);
   });
 
-  it("skips an env absent from the allowed map (unconstrained)", () => {
+  it("permits presented references in an environment without graph dependencies", () => {
     const layer = `\\begin{theoremv}{t9}[T]\nUses Definition~\\ref{obj:pZ}.\n\\end{theoremv}`;
-    expect(lintCrossRefs(layer, new Map([["a1", new Set(["p7"])]]))).toEqual([]);
+    expect(lintCrossRefs(layer, new Map([["a1", new Set(["p7"])]]), new Set(["a1", "p7", "t9", "pZ"]))).toEqual([]);
   });
 
-  it("flags a stray ref when the env's allowed set is empty (dangling, no missing)", () => {
+  it("flags an absent target even when no graph dependencies are expected", () => {
     const layer = `\\begin{theoremv}{t1}[T]\nStray Definition~\\ref{obj:p7}.\n\\end{theoremv}`;
-    const problems = lintCrossRefs(layer, new Map([["t1", new Set<string>()]]));
+    const problems = lintCrossRefs(layer, new Map([["t1", new Set<string>()]]), new Set(["t1"]));
     expect(problems.some((p) => p.gate === "xref-dangling" && p.detail.includes("p7"))).toBe(true);
     expect(problems.some((p) => p.gate === "xref-missing")).toBe(false);
+  });
+});
+
+describe("free uses alongside local binders", () => {
+  it("keeps free occurrences even when the same symbol is locally bound elsewhere", () => {
+    for (const text of [
+      String.raw`\[b + \sum_{b=1}^{r} b\]`,
+      String.raw`\(a\) is fixed. Separately, \(\max_a f(a)\).`,
+      String.raw`\[\theta + \operatorname*{argmin}_{\theta} L(\theta)\]`,
+    ]) {
+      const symbol = text.includes("argmin") ? String.raw`\theta` : text.includes("max") ? "a" : "b";
+      expect(usesSymbolUndecorated(text, symbol)).toBe(true);
+    }
+  });
+
+  it("retains and repairs the baseline's definition-order constraint", () => {
+    const table = String.raw`| baseline | \(b\) | baseline | def:baseline |`;
+    const tex = String.raw`\begin{theoremv}{thm:use}\[b+\sum_{b=1}^{r} b\]\end{theoremv}
+\begin{definitionv}{def:baseline}\[b:=1\]\end{definitionv}`;
+    expect(definitionOrderViolations(tex, table)).toContainEqual({ symbol: "b", home: "def:baseline", firstUse: "thm:use" });
   });
 });
 
@@ -631,5 +735,70 @@ For an index set, \\[ N_k := |I_k|. \\]
     // A genuinely early BARE use is still caught.
     const early = tex.replace("The fold sizes are", "The count \\(N_k\\) and the fold sizes are");
     expect(lintDefinitionOrder(early, notation).some((p) => /synth_1/.test(p.detail))).toBe(true);
+  });
+});
+
+describe("placeFrozenEnvs (P2 mechanical placement of frozen environments)", () => {
+  const block = (env: string, id: string) => `\\begin{${env}}{${id}}\nBody of ${id}.\n\\end{${env}}`;
+  const canonical = new Map([
+    ["def:a", block("definitionv", "def:a")],
+    ["ass:b", block("assumptionv", "ass:b")],
+    ["thm:c", block("theoremv", "thm:c")],
+  ]);
+  const order = ["def:a", "ass:b", "thm:c"];
+
+  it("returns a complete, ordered section unchanged with no repairs", () => {
+    const tex = `\\section{S}\nIntro.\n\n${block("definitionv", "def:a")}\n\nMid.\n\n${block("assumptionv", "ass:b")}\n\n${block("theoremv", "thm:c")}\n`;
+    const out = placeFrozenEnvs(tex, order, canonical);
+    expect(out.repairs).toEqual([]);
+    expect(out.tex).toBe(tex);
+  });
+
+  it("drops later duplicates and permutes the remaining blocks into the P1 order, leaving prose in place", () => {
+    const tex = `\\section{S}\nIntro.\n\n${block("assumptionv", "ass:b")}\n\nMid.\n\n${block("definitionv", "def:a")}\n\n${block("assumptionv", "ass:b")}\n\n${block("theoremv", "thm:c")}\n`;
+    const out = placeFrozenEnvs(tex, order, canonical);
+    expect(out.repairs).toEqual(["ass:b: duplicate copy removed", "re-sequenced 3 environment(s) into the P1 order"]);
+    expect(parseAnchoredEnvs(out.tex).map((e) => e.obj_id)).toEqual(order);
+    expect(lintEnvOrder(out.tex, order)).toEqual([]);
+    expect(out.tex.indexOf("Intro.")).toBeLessThan(out.tex.indexOf("def:a"));
+    expect(out.tex.indexOf("Mid.")).toBeGreaterThan(out.tex.indexOf("{def:a}"));
+  });
+
+  it("inserts a missing block after its P1 predecessor, before a successor when nothing precedes, or at the end", () => {
+    const afterPredecessor = placeFrozenEnvs(`\\section{S}\n${block("definitionv", "def:a")}\n\nTail prose.\n`, order, canonical);
+    expect(afterPredecessor.repairs).toEqual(["ass:b: inserted at its P1 position (the draft omitted it)", "thm:c: inserted at its P1 position (the draft omitted it)"]);
+    expect(parseAnchoredEnvs(afterPredecessor.tex).map((e) => e.obj_id)).toEqual(order);
+    expect(afterPredecessor.tex.indexOf("Tail prose.")).toBeGreaterThan(afterPredecessor.tex.indexOf("{thm:c}"));
+    const beforeSuccessor = placeFrozenEnvs(`\\section{S}\nLead prose.\n\n${block("theoremv", "thm:c")}\n`, order, canonical);
+    expect(parseAnchoredEnvs(beforeSuccessor.tex).map((e) => e.obj_id)).toEqual(order);
+    expect(beforeSuccessor.tex.indexOf("Lead prose.")).toBeLessThan(beforeSuccessor.tex.indexOf("{def:a}"));
+    const empty = placeFrozenEnvs("\\section{S}\nOnly prose.\n", ["thm:c"], canonical);
+    expect(empty.tex).toBe(`\\section{S}\nOnly prose.\n\n${block("theoremv", "thm:c")}\n`);
+    expect(lintEnvOrder(empty.tex, ["thm:c"])).toEqual([]);
+  });
+
+  it("removes an environment the outline places in another section and ignores prose-only objects", () => {
+    const tex = `\\section{S}\n${block("definitionv", "def:a")}\n\n${block("theoremv", "thm:c")}\n\n${block("lemmav", "lem:invented")}\n`;
+    const out = placeFrozenEnvs(tex, ["def:a", "note:prose-only"], canonical);
+    expect(out.repairs).toEqual(["thm:c: removed — the outline places it in another section", "lem:invented: removed — it is not a frozen environment of this paper"]);
+    expect(parseAnchoredEnvs(out.tex).map((e) => e.obj_id)).toEqual(["def:a"]);
+  });
+});
+
+describe("lintAnchors: unterminated anchored environments", () => {
+  it("reports a \\begin{…v} with no matching \\end, and ignores a commented-out begin", () => {
+    const tex = "\\begin{definitionv}{def:a}\nBody.\n\\end{definition}\n% \\begin{lemmav}{lem:ghost}\n\\begin{lemmav}{lem:b}\nOk.\n\\end{lemmav}\n";
+    const problems = lintAnchors(tex, new Set(["def:a", "lem:b"]), null);
+    expect(problems.filter((p) => p.gate === "unterminated-env")).toEqual([
+      { gate: "unterminated-env", objId: "def:a", detail: "def:a: \\begin{definitionv} has no matching \\end{definitionv}" },
+    ]);
+    expect(lintAnchors("\\begin{lemmav}{lem:b}\nOk.\n\\end{lemmav}\n", new Set(["lem:b"]), null)).toEqual([]);
+  });
+});
+
+describe("normalizeCrefs: label-list separators", () => {
+  it("removes whitespace around commas inside a reference list and leaves single labels alone", () => {
+    expect(normalizeCrefs("see \\cref{obj:a, obj:b , obj:c} and \\Cref{obj:d}")).toBe("see \\cref{obj:a,obj:b,obj:c} and \\Cref{obj:d}");
+    expect(normalizeCrefs("\\cref{obj:a,obj:b}")).toBe("\\cref{obj:a,obj:b}"); // idempotent
   });
 });

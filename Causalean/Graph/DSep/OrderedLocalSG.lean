@@ -34,10 +34,7 @@ variable (G : DAG V)
 -- § 1. The ordered-local semi-graphoid closure
 -- ============================================================
 
-/-- **Ordered-local semi-graphoid closure.** A conditional-independence claim
-    between two random-node blocks, given a third block, belongs to this closure
-    when it can be derived from the DAG's ordered-local Markov basis using only
-    the semi-graphoid rules.
+/-- For [a finite vertex population with decidable equality](hyp:V), [a directed acyclic graph on that population](hyp:G), and [an ambient set of random vertices](hyp:R), the [ordered-local semi-graphoid closure](goal) contains precisely the triples of finite vertex sets that can be derived as follows: [the empty first set is independent of any second and conditioning sets contained in the ambient set](hyp:nil); [a vertex in the ambient set is independent of a set of its non-descendants, excluding its ambient parents, conditional on those ambient parents, whenever that set contains those parents](hyp:basis); and the relation is closed under [symmetry](hyp:symm), [decomposition](hyp:decomp), [weak union](hyp:weakUnion), and [contraction](hyp:contract).
 
     The basis constructor `basis` is the ordered/local Markov statement: a node `v`
     is independent of any block `P` of its non-descendants (with its random parents

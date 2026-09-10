@@ -45,12 +45,15 @@ open scoped RealInnerProductSpace
 
 namespace Causalean.Stat
 
-/-- The chi-squared distribution with `d` degrees of freedom: the law of the
-squared norm of the standard `d`-dimensional Gaussian. -/
+/-- For [a nonnegative integer number of degrees of freedom](hyp:d), the
+[chi-squared distribution](goal) is the probability law on the real line of
+the squared Euclidean norm of a standard Gaussian vector with that many
+coordinates. -/
 noncomputable def chiSqDist (d : ℕ) : Measure ℝ :=
   (stdGaussian (EuclideanSpace ℝ (Fin d))).map (fun w => ‖w‖ ^ 2)
 
-/-- The chi-squared distribution is a probability law. -/
+/-- For [every nonnegative integer number of degrees of freedom](hyp:d), the
+[chi-squared distribution with that number of degrees of freedom is a probability law](goal). -/
 instance (d : ℕ) : IsProbabilityMeasure (chiSqDist d) := by
   unfold chiSqDist
   exact Measure.isProbabilityMeasure_map (by fun_prop)

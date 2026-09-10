@@ -55,13 +55,15 @@ namespace POBackdoorSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 variable (S : POBackdoorSystem P γ)
 
-/-- The **smallest** admissible inverse-propensity weight at sensitivity level `Λ`:
-`wMin = 1 + (1 − e(X)) / (Λ · e(X))`, the `OR = 1/Λ` endpoint of the odds-ratio box. -/
+/-- For [a potential-outcomes backdoor system](hyp:S), [a real sensitivity level](hyp:Λ), and [a unit in its sample space](hyp:ω), the [lower endpoint inverse-propensity weight](goal) is $1+(1-e)/(\Lambda e)$, where $e$ is that unit's treated propensity score. It is the endpoint corresponding to an odds ratio of $1/\Lambda$.
+
+This is the **smallest** admissible inverse-propensity weight at sensitivity level `Λ`. -/
 noncomputable def wMin (Λ : ℝ) (ω : P.Ω) : ℝ :=
   1 + (1 - S.propScore true ω) / (Λ * S.propScore true ω)
 
-/-- The **largest** admissible inverse-propensity weight at sensitivity level `Λ`:
-`wMax = 1 + Λ · (1 − e(X)) / e(X)`, the `OR = Λ` endpoint of the odds-ratio box. -/
+/-- For [a potential-outcomes backdoor system](hyp:S), [a real sensitivity level](hyp:Λ), and [a unit in its sample space](hyp:ω), the [upper endpoint inverse-propensity weight](goal) is $1+\Lambda(1-e)/e$, where $e$ is that unit's treated propensity score. It is the endpoint corresponding to an odds ratio of $\Lambda$.
+
+This is the **largest** admissible inverse-propensity weight at sensitivity level `Λ`. -/
 noncomputable def wMax (Λ : ℝ) (ω : P.Ω) : ℝ :=
   1 + Λ * (1 - S.propScore true ω) / S.propScore true ω
 
@@ -123,12 +125,12 @@ lemma measurable_wMin (Λ : ℝ) : Measurable (S.wMin Λ) :=
 lemma measurable_wMax (Λ : ℝ) : Measurable (S.wMax Λ) :=
   (S.measurable_wMax_sigmaX Λ).mono S.sigmaX_le le_rfl
 
-/-- The closed-form **upper** integrand: `wMax` where `Y ≥ 0`, `wMin` where `Y < 0`. -/
+/-- For [a potential-outcomes backdoor system](hyp:S) and [a real sensitivity level](hyp:Λ), the [upper marginal-sensitivity functional](goal) is the expectation of the factual outcome among treated units, weighted by the upper endpoint weight when that outcome is nonnegative and by the lower endpoint weight otherwise. -/
 noncomputable def msmUpperForm (Λ : ℝ) : ℝ :=
   ∫ ω, S.dVar.indicator true ω * S.factualY ω
       * (if 0 ≤ S.factualY ω then S.wMax Λ ω else S.wMin Λ ω) ∂P.μ
 
-/-- The closed-form **lower** bound: `wMin` where `Y ≥ 0`, `wMax` where `Y < 0`. -/
+/-- For [a potential-outcomes backdoor system](hyp:S) and [a real sensitivity level](hyp:Λ), the [lower marginal-sensitivity functional](goal) is the expectation of the factual outcome among treated units, weighted by the lower endpoint weight when that outcome is nonnegative and by the upper endpoint weight otherwise. -/
 noncomputable def msmLowerForm (Λ : ℝ) : ℝ :=
   ∫ ω, S.dVar.indicator true ω * S.factualY ω
       * (if 0 ≤ S.factualY ω then S.wMin Λ ω else S.wMax Λ ω) ∂P.μ

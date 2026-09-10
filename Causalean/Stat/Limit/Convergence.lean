@@ -47,9 +47,10 @@ variable {Ω : Type*} [MeasurableSpace Ω]
 
 /-! ## Convergence in probability -/
 
-/-- A sequence of real random variables converges in probability to a limit
-when, for every positive tolerance, the probability that the absolute error
-exceeds that tolerance tends to zero.
+/-- Given [a sequence of real-valued random variables](hyp:Xn), [a real-valued limiting random
+variable](hyp:X), and [a measure on a measurable sample space](hyp:μ), [convergence in probability](goal)
+means that, for every positive tolerance, the measure of outcomes whose absolute error exceeds
+that tolerance tends to zero as the sample-size index tends to infinity.
 
 This is the project-level wrapper around Mathlib's convergence-in-measure
 predicate along the natural-number limit. -/
@@ -65,7 +66,10 @@ lemma Tendsto_inProb_iff (Xn : ℕ → Ω → ℝ) (X : Ω → ℝ) (μ : Measur
 
 /-! ## L² convergence -/
 
-/-- `Tendsto_L2 Xn X μ` is convergence in `L²(μ)` of `Xn` to `X`. -/
+/-- Given [a sequence of real-valued random variables](hyp:Xn), [a real-valued limiting random
+variable](hyp:X), and [a measure on a measurable sample space](hyp:μ), [$L^2$ convergence](goal) means
+that the $L^2$ norm of the difference between the indexed random variable and the limit tends to
+zero as the index tends to infinity. -/
 def Tendsto_L2 (Xn : ℕ → Ω → ℝ) (X : Ω → ℝ) (μ : Measure Ω) : Prop :=
   Tendsto (fun n => eLpNorm (fun ω => Xn n ω - X ω) 2 μ) atTop (𝓝 0)
 
@@ -76,8 +80,10 @@ probability measure `Q` on ℝ.  Phrased at the measure level (rather than as
 convergence to a limiting random variable) so the target laws — e.g. a
 Gaussian — can be supplied directly.  A thin re-statement wrapper may be
 needed once the upstream `CLT` repo is wired in. -/
-/-- Convergence in distribution means that the laws of the random variables
-converge weakly to a specified probability law on the real line.
+/-- Given [a sequence of almost-everywhere measurable real-valued random variables](hyp:Xn,hXn),
+[a probability law on the real line](hyp:Q), and [a probability measure on a measurable sample space](hyp:μ),
+[convergence in distribution](goal) means that the sequence of induced laws converges weakly to
+the specified real-line probability law.
 
 This is the project-level scalar convergence-in-distribution wrapper, phrased directly
 in terms of pushforward probability measures. -/
@@ -144,8 +150,12 @@ theorem Tendsto_dist.const_mul_tendsto
 
 /-! ## Stochastic order -/
 
-/-- `IsBigOp Xn rn μ`: the sequence `Xn` is bounded in probability at rate
-`rn` under `μ`.  Matches `def:est-stoch-order`(1):
+/-- Given [a sequence of real-valued random variables](hyp:Xn), [a real-valued rate sequence](hyp:rn),
+and [a measure on a measurable sample space](hyp:μ), [boundedness in probability at that rate](goal) means
+that for every $arepsilon>0$ there exists a real $M$ such that the limit superior, over indices,
+of the measure of outcomes satisfying $|X_n|>M r_n$ is at most $arepsilon$.
+
+Matches `def:est-stoch-order`(1):
 
   ∀ ε > 0, ∃ M, limsup_n μ {ω : |Xn n ω| > M · rn n} ≤ ε. -/
 def IsBigOp (Xn : ℕ → Ω → ℝ) (rn : ℕ → ℝ) (μ : Measure Ω) : Prop :=
@@ -153,8 +163,12 @@ def IsBigOp (Xn : ℕ → Ω → ℝ) (rn : ℕ → ℝ) (μ : Measure Ω) : Pro
     Filter.limsup (fun n => μ {ω | M * rn n < |Xn n ω|}) atTop
       ≤ ENNReal.ofReal ε
 
-/-- `IsLittleOp Xn rn μ`: the sequence `Xn` is `o_p(rn)` under `μ`.  Matches
-`def:est-stoch-order`(2):
+/-- Given [a sequence of real-valued random variables](hyp:Xn), [a real-valued rate sequence](hyp:rn),
+and [a measure on a measurable sample space](hyp:μ), [negligibility in probability relative to that rate](goal)
+means that for every $arepsilon>0$, the measure of outcomes satisfying $|X_n|>arepsilon r_n$
+tends to zero as the index tends to infinity.
+
+Matches `def:est-stoch-order`(2):
 
   ∀ ε > 0, μ {ω : |Xn n ω| > ε · rn n} → 0. -/
 def IsLittleOp (Xn : ℕ → Ω → ℝ) (rn : ℕ → ℝ) (μ : Measure Ω) : Prop :=

@@ -52,11 +52,10 @@ namespace Causalean.Discovery.LinearDisentanglement
 
 open scoped BigOperators
 
-/-- Standard basis (column) vector `e_i : Fin d → ℝ`, `e_i j = ⟦j = i⟧`. -/
+/-- For [a nonnegative integer dimension](hyp:d) and [an index in that dimension](hyp:i), the [standard basis vector](goal) is the real vector that equals one at the specified index and zero at every other index. -/
 abbrev stdVec (d : ℕ) (i : Fin d) : Fin d → ℝ := Pi.single i (1 : ℝ)
 
-/-- The permutation matrix of `σ`, with `(permMat σ) i j = 1` if `i = σ j` and `0`
-otherwise — the convention `(P_σ)_{ij} = ⟦i = σ(j)⟧` of the paper. -/
+/-- For [a nonnegative integer dimension](hyp:d) and [a permutation of its indices](hyp:σ), the [permutation matrix](goal) is the real square matrix whose entry in row i and column j is one exactly when i is the image of j under the permutation, and is zero otherwise. -/
 def permMat {d : ℕ} (σ : Equiv.Perm (Fin d)) : Matrix (Fin d) (Fin d) ℝ :=
   Matrix.of fun i j => if i = σ j then (1 : ℝ) else 0
 
@@ -105,16 +104,15 @@ namespace Solution
 
 variable {d p K : ℕ}
 
-/-- The observational precision matrix `Θ₀ = Hᵀ B₀ᵀ B₀ H ∈ ℝ^{p×p}`. -/
+/-- For [a linear causal disentanglement solution with d latent variables, p observed variables, and K intervention contexts](hyp:d,p,K,S), the [observational precision matrix](goal) is the p-by-p real matrix obtained by sandwiching the observational structural matrix's Gram matrix between the mixing pseudoinverse and its transpose. -/
 def Theta0 (S : Solution d p K) : Matrix (Fin p) (Fin p) ℝ :=
   S.H.transpose * S.B0.transpose * S.B0 * S.H
 
-/-- The interventional precision matrix `Θ_k = Hᵀ Bₖᵀ Bₖ H ∈ ℝ^{p×p}`. -/
+/-- For [a linear causal disentanglement solution with d latent variables, p observed variables, and K intervention contexts](hyp:d,p,K,S) and [an intervention context](hyp:k), the [interventional precision matrix](goal) is the p-by-p real matrix obtained by sandwiching that context's structural-matrix Gram matrix between the mixing pseudoinverse and its transpose. -/
 def Theta (S : Solution d p K) (k : Fin K) : Matrix (Fin p) (Fin p) ℝ :=
   S.H.transpose * (S.Bint k).transpose * (S.Bint k) * S.H
 
-/-- The order-preserving relabelings `S(𝒢)`: permutations `σ` with `σ i < σ j` for
-every edge `j → i`. -/
+/-- For [a linear causal disentanglement solution with d latent variables, p observed variables, and K intervention contexts](hyp:d,p,K,S) and [a permutation of the latent-node indices](hyp:σ), the [order-preserving relabeling condition](goal) holds exactly when every directed edge from a parent to a child remains ordered with the child's relabeled index strictly smaller than the parent's. -/
 def InSG (S : Solution d p K) (σ : Equiv.Perm (Fin d)) : Prop :=
   ∀ j i, S.Edge j i → σ i < σ j
 

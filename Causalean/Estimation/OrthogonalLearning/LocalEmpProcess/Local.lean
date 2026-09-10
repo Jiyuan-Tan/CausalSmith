@@ -42,8 +42,15 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
          {Θ : Type*} [NormedAddCommGroup Θ] [InnerProductSpace ℝ Θ]
          {G : Type*} [AddCommGroup G] [Module ℝ G]
 
-/-- **Local empirical-process modulus** — the named high-probability
-regularity condition on the empirical excess risk.
+/-- Given [an orthogonal statistical-learning system](hyp:S), [an independent and identically
+distributed sample with the system's population law](hyp:S_iid), [a one-shot sample split](hyp:split),
+[a rate sequence](hyp:ρ), [a confidence tolerance](hyp:δ), and [a nuisance function](hyp:g), the
+[local empirical-process modulus condition](goal) holds exactly when, for every sample size, there
+exists an event that is [measurable](step:1), has measure at least $1-\delta^+$, with subtraction
+truncated at zero, and on
+which, uniformly over the target class, the population excess risk minus the fold-B empirical
+excess risk is at most $\rho_n$ times the distance from the distinguished target plus
+$\rho_n^2$.
 
 For each sample size `n`, there is an event `E n ⊆ Ω` of probability at
 least `1 - δ` such that, on `E n`, the centred excess risk satisfies

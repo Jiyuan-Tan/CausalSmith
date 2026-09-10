@@ -125,7 +125,20 @@ export function markUnreviewed(g: FormalizationGraph, id: string): Formalization
 export function withSetup(g: FormalizationGraph, id: string, mods: string[]): FormalizationGraph {
   return { ...g, nodes: g.nodes.map((n) => (n.id === id ? { ...n, setup: { required_modules: mods } } : n)) };
 }
-/** Point one node at an external (library) Lean declaration. */
-export function withExternalLean(g: FormalizationGraph, id: string, decl: string): FormalizationGraph {
-  return { ...g, nodes: g.nodes.map((n) => (n.id === id ? { ...n, lean: { decl_name: decl, file: null } } : n)) };
+/** Point one node at an external Lean declaration. Typed-core graphs may additionally
+ * classify the node itself as library-backed; legacy note graphs retain their paper
+ * provenance because review scope depends on it. */
+export function withExternalLean(
+  g: FormalizationGraph,
+  id: string,
+  decl: string,
+  provenance?: Provenance,
+): FormalizationGraph {
+  return {
+    ...g,
+    nodes: g.nodes.map((n) =>
+      n.id === id
+        ? { ...n, ...(provenance ? { provenance } : {}), lean: { decl_name: decl, file: null } }
+        : n),
+  };
 }

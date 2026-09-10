@@ -115,7 +115,7 @@ theorem doObsKernelYMarginal_heq_of_ancestralMarginal_heq
   congr 1
   exact eq_of_heq hAnc
 
-/-- The observed-ancestral marginal of a post-intervention observational law is a finite measure. -/
+/-- For [a finite collection of distinguishable node labels](hyp:N), [measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), [an intervention set](hyp:X) whose [random intervention nodes are observed](hyp:hObs) and whose [fixed intervention nodes are not already fixed](hyp:hFix), [a query-node set](hyp:Y), and [fixed intervention values](hyp:s), [the observed-ancestral post-intervention marginal measure](goal) has finite total mass. -/
 instance instIsFiniteMeasure_doObsKernelAncestralMarginal
     (M : Causalean.SCM N Ω) (X : Finset N)
     (hObs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)

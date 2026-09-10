@@ -49,16 +49,30 @@ variable {Z : Type*} [MeasurableSpace Z]
 
 /-! ## The exponential tilt -/
 
-/-- Normalizing constant `c(t) = ∫ e^{t·s} dP` of the exponential tilt. -/
+/-- For [a measurable sample space](hyp:Z), [a measure on that space](hyp:P), [a
+real-valued score function](hyp:s), and [a real perturbation parameter](hyp:t), the
+[normalizing constant of the exponential tilt](goal) is $\int \exp(ts(z))\,dP(z)$.
+
+Normalizing constant `c(t) = ∫ e^{t·s} dP` of the exponential tilt. -/
 noncomputable def tiltNorm (P : Measure Z) (s : Z → ℝ) (t : ℝ) : ℝ :=
   ∫ z, Real.exp (t * s z) ∂P
 
-/-- Tilted expectation `E_{P_t}[φ] = (∫ φ·e^{t·s} dP)/(∫ e^{t·s} dP)`.  This is
+/-- For [a measurable sample space](hyp:Z), [a measure on that space](hyp:P), [a
+real-valued score function](hyp:s), [a real-valued integrand](hyp:φ), and [a real
+perturbation parameter](hyp:t), the [exponentially tilted expectation](goal) is
+$\int \phi(z)\exp(ts(z))\,dP(z)$ divided by $\int \exp(ts(z))\,dP(z)$.
+
+Tilted expectation `E_{P_t}[φ] = (∫ φ·e^{t·s} dP)/(∫ e^{t·s} dP)`.  This is
 the expectation of `φ` under the exponentially tilted law `P_t`. -/
 noncomputable def tiltExp (P : Measure Z) (s φ : Z → ℝ) (t : ℝ) : ℝ :=
   (∫ z, φ z * Real.exp (t * s z) ∂P) / tiltNorm P s t
 
-/-- The exponentially tilted measure `P_t = (e^{t·s}/c(t)) · P`. -/
+/-- For [a measurable sample space](hyp:Z), [a measure on that space](hyp:P), [a
+real-valued score function](hyp:s), and [a real perturbation parameter](hyp:t), the
+[exponentially tilted measure](goal) assigns density
+$\exp(ts(z))/\int\exp(ts(u))\,dP(u)$ relative to the given measure.
+
+The exponentially tilted measure `P_t = (e^{t·s}/c(t)) · P`. -/
 noncomputable def tiltMeasure (P : Measure Z) (s : Z → ℝ) (t : ℝ) : Measure Z :=
   (ENNReal.ofReal (tiltNorm P s t))⁻¹ •
     P.withDensity (fun z => ENNReal.ofReal (Real.exp (t * s z)))

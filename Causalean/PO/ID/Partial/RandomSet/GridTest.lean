@@ -72,8 +72,12 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
   {k : ℕ} [NeZero k]
   {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V]
 
-/-- The finite-grid test statistic is the grid supremum of the normalized
-centered support-process sum.
+/-- For [a measurable sample space](hyp:Ω) with [sampling measure](hyp:μ), [a measurable outcome
+space](hyp:X) with [outcome measure](hyp:P), [a nonempty grid containing $k$ directions](hyp:k),
+[an inner-product outcome space](hyp:V), [an independent and identically distributed sample](hyp:S),
+[a set-valued outcome function](hyp:F), [its proposed center set](hyp:EF), and [a grid of directions](hyp:p),
+the [finite-grid test statistic](goal), at every nonnegative sample size and sample point, is the
+largest absolute coordinate of the normalized centered support-process sum.
 
 It applies the `ℓ^∞` functional `maxAbsK` to the normalized sum of the centered
 support process.  This declaration is the algebraic normalized-sum statistic;
@@ -88,8 +92,14 @@ noncomputable def gridTestStat (S : IIDSample Ω X μ P) (F : X → Set V) (EF :
   fun n ω => maxAbsK (IsAsymLinearVec.normalizedSum S (supportProcess F EF p)
     (fun m => Finset.range m) n ω)
 
-/-- **The rejection region** of the finite-grid test at critical value `c`:
-reject `H₀ : E[F] = EF` when the statistic `Tₙ` exceeds `c`. -/
+/-- For [a measurable sample space](hyp:Ω) with [sampling measure](hyp:μ), [a measurable outcome
+space](hyp:X) with [outcome measure](hyp:P), [a nonempty grid containing $k$ directions](hyp:k),
+[an inner-product outcome space](hyp:V), [an independent and identically distributed sample](hyp:S),
+[a set-valued outcome function](hyp:F), [its proposed center set](hyp:EF), [a grid of directions](hyp:p),
+[a nonnegative sample size](hyp:n), and [a real critical value](hyp:c), the [rejection region](goal)
+is the set of sample points at which the finite-grid test statistic exceeds the critical value.
+
+Reject `H₀ : E[F] = EF` when the statistic `Tₙ` exceeds `c`. -/
 def gridTestReject (S : IIDSample Ω X μ P) (F : X → Set V) (EF : Set V)
     (p : Fin k → V) (n : ℕ) (c : ℝ) : Set Ω :=
   {ω | c < gridTestStat S F EF p n ω}

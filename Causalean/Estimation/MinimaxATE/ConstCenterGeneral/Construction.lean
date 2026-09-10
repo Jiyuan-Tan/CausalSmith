@@ -28,19 +28,11 @@ class membership, and the χ² indistinguishability live in the sibling `ConstCe
 
 import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Construction
 
-/-! # General Constant-Center Lower-Bound Construction
+/-! # General constant-center lower-bound construction
 
-This file generalizes the structure-agnostic ATE lower-bound construction from
-the centered half-probability nuisance estimates to arbitrary constant nuisance
-centers bounded away from zero and one. It defines the perturbed data-generating
-process and proves that the resulting propensity and outcome functions are valid
-probability functions.
-
-The record `GenConstr` stores the bump sizes `α, β`, the constant center
-`(m₀, g₀, g₁)`, and the inequalities that keep the perturbation in `[0,1]`.
-The public definitions `mhatG`, `ghatG`, `mPertG`, and `gPertG` give the null
-and sign-indexed perturbed DGPs, while `validDGP_hatG` and `validDGP_pertG`
-establish their finite-model validity. -/
+This file constructs null and sign-perturbed finite data-generating processes around arbitrary
+constant propensity and outcome-regression centers strictly inside the unit interval. These
+objects supply the general-center witness used by the ATE minimax lower bound. -/
 
 namespace Causalean.Estimation.MinimaxATE
 
@@ -95,18 +87,25 @@ theorem ratio_nonneg : 0 ≤ P.β / P.g₁ := div_nonneg P.hβ P.hg₁0.le
 /-- `β/g₁ < 1` since `β < g₁`. -/
 theorem ratio_lt_one : P.β / P.g₁ < 1 := (div_lt_one P.hg₁0).mpr P.hβg₁
 
-/-- The constant propensity center as a function of the covariate. -/
+/-- For [general constant-center construction data](hyp:P), [the null propensity function](goal)
+assigns the construction’s constant propensity center to every paired-cell covariate value. -/
 noncomputable def mhatG : (Fin K × Bool) → ℝ := fun _ => P.m₀
 
-/-- The constant outcome-regression center: `g₁` on the treated arm, `g₀` on control. -/
+/-- For [general constant-center construction data](hyp:P), [the null outcome-regression
+function](goal) assigns its treated-arm center to every treated observation and its control-arm
+center to every control observation, at every paired-cell covariate value. -/
 noncomputable def ghatG : Bool → (Fin K × Bool) → ℝ := fun d _ => if d then P.g₁ else P.g₀
 
-/-- The perturbed propensity `mλ = m₀·(1 − (β/g₁)·Δ)`. -/
+/-- For [a number of covariate pairs](hyp:K), [general constant-center construction data](hyp:P),
+and [a binary sign vector over those pairs](hyp:lam), [the perturbed propensity function](goal)
+multiplies the constant propensity center by one minus the scaled balanced sign perturbation. -/
 noncomputable def mPertG (lam : Fin K → Bool) : (Fin K × Bool) → ℝ :=
   fun x => P.m₀ * (1 - (P.β / P.g₁) * Δ lam x)
 
-/-- The perturbed outcome regression: control arm `= g₀`, treated arm
-`gλ(1,·) = (g₁ + α·Δ)/(1 − (β/g₁)·Δ)`. -/
+/-- For [a number of covariate pairs](hyp:K), [general constant-center construction data](hyp:P),
+and [a binary sign vector over those pairs](hyp:lam), [the perturbed outcome-regression
+function](goal) leaves the control arm at its constant center and sets the treated arm to its
+sign-perturbed numerator divided by one minus the scaled balanced sign perturbation. -/
 noncomputable def gPertG (lam : Fin K → Bool) : Bool → (Fin K × Bool) → ℝ :=
   fun d x => if d then (P.g₁ + P.α * Δ lam x) / (1 - (P.β / P.g₁) * Δ lam x) else P.g₀
 

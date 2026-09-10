@@ -71,7 +71,7 @@ describe("runSubstratePipeline (fakes)", () => {
     expect(s.terminalEscalationKind).toBe("scaffolder");
   });
 
-  it("re-enters build only when an escalated scaffolder requirement changed, preserving work and counters", async () => {
+  it("re-enters build on a changed requirement with preserved work and fresh requirement-scoped budgets", async () => {
     await seedReq("x");
     const escalate = {
       runScaffolder: async () => ({ decision: "escalate", plan_markdown: "P", codex_prompts: [], escalation: { reason: "fix requirement" } }),
@@ -94,10 +94,10 @@ describe("runSubstratePipeline (fakes)", () => {
     } as any);
     expect(calls).toBe(1);
     expect(resumed.phase).toBe("done");
-    expect(resumed.buildRounds).toBe(4);
-    expect(resumed.reviewRounds).toBe(2);
+    expect(resumed.buildRounds).toBe(0);
+    expect(resumed.reviewRounds).toBe(0);
     expect(resumed.moduleFiles).toEqual(["kept.lean"]);
-    expect(resumed.lastReport?.round).toBe(4);
+    expect(resumed.lastReport).toBeNull();
     expect(resumed.pendingPrompts).toEqual([]);
     expect(resumed.requirementVersion).toBe(1);
   });
@@ -138,16 +138,43 @@ describe("runSubstratePipeline (fakes)", () => {
     }
   });
 
-  it("halts after BUILD_CAP build rounds", async () => {
+  it("halts after BUILD_CAP build rounds when proof debt remains", async () => {
     await seedReq("x");
     const deps = {
       runScaffolder: async () => ({ decision: "build", plan_markdown: "P", codex_prompts: [{ id: "a", target_decls: [], prompt: "go" }] }),
       runFillers: async () => [{ id: "a", ok: true, summary: "" }],
-      buildTargets: okBuild, runReviewer: async () => ({}), coordinate: async () => ({ ok: true, log: "" }),
+      buildTargets: async () => ({ ok: true, errors: [], sorryCount: 1, perFile: {} }),
+      runReviewer: async () => ({}), coordinate: async () => ({ ok: true, log: "" }),
     };
     const s = await runSubstratePipeline({ repoRoot: root, slug: "x", resume: false }, deps as any);
     expect(s.phase).toBe("halted");
     expect(s.buildRounds).toBe(BUILD_CAP);
+  });
+
+  it("reviews a zero-sorry build completed exactly at BUILD_CAP", async () => {
+    await seedReq("x");
+    const initial = {
+      ...createInitialSubstrateState("x"),
+      phase: "fill" as const,
+      buildRounds: BUILD_CAP - 1,
+      pendingPrompts: [{ id: "last", target_decls: [], prompt: "close" }],
+    };
+    await saveSubstrateState(root, "x", initial);
+    let reviewCalls = 0;
+    const deps = {
+      runScaffolder: async () => ({ decision: "build", plan_markdown: "P", codex_prompts: [] }),
+      runFillers: async () => [{ id: "last", ok: true, summary: "closed" }],
+      buildTargets: okBuild,
+      runReviewer: async () => {
+        reviewCalls++;
+        return { pass: true, findings: "", checks: { generic: true, reusable: true, standard: true, not_vacuous: true, fulfills_goal: true, sorry_free: true, layered: true } };
+      },
+      coordinate: async () => ({ ok: true, log: "coordinated" }),
+    };
+    const s = await runSubstratePipeline({ repoRoot: root, slug: "x", resume: true }, deps as any);
+    expect(s.phase).toBe("done");
+    expect(s.buildRounds).toBe(BUILD_CAP);
+    expect(reviewCalls).toBe(1);
   });
 
   it("dry-run reaches done with NO deps, never touching real promotion", async () => {

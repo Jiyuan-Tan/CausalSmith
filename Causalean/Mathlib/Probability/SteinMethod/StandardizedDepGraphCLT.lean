@@ -26,7 +26,13 @@ open scoped Topology BigOperators
 namespace Causalean
 namespace SteinMethod
 
-/-- Dividing every summand in a dependency graph by the same deterministic constant preserves the
+/-- For every measurable sample space, finite index set, measure, and real-valued random-variable
+family, [a dependency graph for that family](hyp:D), and [any real constant $s$](hyp:s), the
+[rescaled dependency graph](goal) is a dependency graph for the variables obtained by dividing
+each original variable by $s$. It retains the original adjacency relation, including its
+reflexivity and symmetry, and its measurability and independence properties.
+
+Dividing every summand in a dependency graph by the same deterministic constant preserves the
 graph and transfers the independence field by measurable post-composition. -/
 noncomputable def depGraph_div_const
     {Ω ι : Type*} [MeasurableSpace Ω] [Fintype ι]

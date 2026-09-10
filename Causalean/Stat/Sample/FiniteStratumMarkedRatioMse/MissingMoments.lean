@@ -654,16 +654,13 @@ theorem integral_missingArmCount_mul_eq {m : Nat} (mu : Measure Omega)
   simp only [Fintype.card_fin]
   ring
 
-/-- The aggregate exponentially damped missing-arm envelope sums each
-category mass times the overlap-driven empty-arm decay. -/
+/-- For [a measure on the observation space](hyp:mu), [a category-label function](hyp:group), [a nonnegative integer sample size](hyp:m), [a real overlap margin](hyp:epsilon), and [a finite set of categories](hyp:H), the [missing-arm exponential envelope](goal) is the sum, over selected categories, of category mass times the exponential decay determined by the sample size, overlap margin, and that mass. -/
 noncomputable def missingArmExponentialEnvelope (mu : Measure Omega)
     (group : Omega → kappa) (m : Nat) (epsilon : Real) (H : Finset kappa) : Real :=
   ∑ k ∈ H, categoryMass mu group k *
     Real.exp (-(((m - 2 : Nat) : Real) / 2 * epsilon * categoryMass mu group k))
 
-/-- The lower-mass envelope uses inverse-polynomial decay when its denominator
-is positive and otherwise falls back to total selected mass, so it remains
-defined for small samples, zero overlap, and a zero mass lower bound. -/
+/-- For [a measure on the observation space](hyp:mu), [a category-label function](hyp:group), [a nonnegative integer sample size](hyp:m), [a real overlap margin](hyp:epsilon), [a real mass lower bound](hyp:B), and [a finite set of categories](hyp:H), the [lower-mass missing envelope](goal) first sets [its squared overlap denominator](step:1) to the squared half-adjusted sample-size overlap margin times the mass lower bound, and then uses the number of selected categories divided by that denominator when it is positive, and their total category mass otherwise.  This totalization keeps the envelope defined for small samples, zero overlap, and a zero mass lower bound. -/
 noncomputable def lowerMassMissingEnvelope (mu : Measure Omega)
     (group : Omega → kappa) (m : Nat) (epsilon B : Real) (H : Finset kappa) : Real :=
   let D := ((((m - 2 : Nat) : Real) / 2 * epsilon) ^ 2) * B

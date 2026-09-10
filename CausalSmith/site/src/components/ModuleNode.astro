@@ -18,7 +18,8 @@ import {
   type Library,
   type ModTree,
 } from "../lib/library.js";
-import { structureAndLinkify, findProofStart, type StructuredStatement } from "../lib/leanStatement.js";
+import { findProofStart } from "../lib/leanStatement.js";
+import { declViewAndLinkify, type DeclView } from "../lib/leanDeclView.js";
 import { renderDoc, renderNl, nlOf, nlPlain } from "../lib/docmd.js";
 import { GITHUB_REPO, sourceRef } from "../lib/config.js";
 import LeanStatement from "./LeanStatement.astro";
@@ -87,6 +88,7 @@ const declSignature = (d: LibDecl): string | null => {
   if (!d.source) return null;
   const source = stripLeadingDoc(d.source);
   if (d.kind !== "theorem") return source;
+  // (`d.kind` is the index's coarse kind: a `lemma` is a "theorem" there.)
   // Depth-aware: a naive `/\s:=/` can match a named-argument application
   // inside the signature itself (`H_ε (γ := γ) ε`) and truncate mid-binder.
   const proofStart = findProofStart(source);
@@ -94,18 +96,20 @@ const declSignature = (d: LibDecl): string | null => {
 };
 const theoremStmtClass = (d: LibDecl) => stmtClass(declSignature(d) ?? d.statement);
 
-// Restructures a theorem's hypotheses or a structure/class's fields into one
-// row each instead of a single shared-scroll block, including any inline
-// `-- comment`/`/-- doc -/` the author placed between them. Falls back to
+// Restructures a declaration into labelled rows — a theorem's hypotheses and
+// conclusion, a definition's parameters / def / given-by, a structure's
+// parameters and fields (or assumption clauses) — including any inline
+// `-- comment`/`/-- doc -/` the author placed between binders. Falls back to
 // `null` — same as the plain rendering — for anything the parser isn't
-// confident it understood correctly.
-const structuredStatement = (d: LibDecl): StructuredStatement | null => {
+// confident it understood correctly. The kind is read from the SOURCE
+// (`abbrev`, `lemma`, `instance` …), not the index's coarse `kind`.
+const structuredStatement = (d: LibDecl): DeclView | null => {
   const sig = declSignature(d);
   if (!sig) return null;
-  return structureAndLinkify(sig, lib, base, d.kind);
+  return declViewAndLinkify(sig, sourceKind(d), lib, base, d.params, d.result, undefined, leafOf(d.name));
 };
-const structurable = (d: LibDecl) => d.kind === "theorem" || d.kind === "structure" || d.kind === "class";
-const sectionLabel = (d: LibDecl) => (d.kind === "theorem" ? "hypotheses" : "fields");
+const STRUCTURABLE = new Set(["theorem", "lemma", "def", "abbrev", "structure", "class", "instance", "inductive"]);
+const structurable = (d: LibDecl) => STRUCTURABLE.has(sourceKind(d));
 ---
 
 <details class={`module-block depth-${Math.min(depth, 3)}`} id={node.module ?? `ns-${area}.${node.path}`} open={open}>
@@ -183,7 +187,7 @@ const sectionLabel = (d: LibDecl) => (d.kind === "theorem" ? "hypotheses" : "fie
               <details>
                 <summary>Formal statement</summary>
                 {structured ? (
-                  <LeanStatement structured={structured} copyText={declSignature(d) ?? d.statement} sectionLabel={sectionLabel(d)} />
+                  <LeanStatement view={structured} copyText={declSignature(d) ?? d.statement} />
                 ) : (
                   <div class={theoremStmtClass(d)} set:html={linkifyStatement(d.statement, lib, base)} />
                 )}
@@ -202,7 +206,7 @@ const sectionLabel = (d: LibDecl) => (d.kind === "theorem" ? "hypotheses" : "fie
             <details>
               <summary>{d.source ? "Definition (Lean source)" : "Formal statement"}</summary>
               {structured ? (
-                <LeanStatement structured={structured} copyText={declSignature(d) ?? d.statement} sectionLabel={sectionLabel(d)} />
+                <LeanStatement view={structured} copyText={declSignature(d) ?? d.statement} />
               ) : (
               <div
                 class={stmtClass(d.source ? stripLeadingDoc(d.source) : d.statement)}
@@ -270,7 +274,7 @@ const sectionLabel = (d: LibDecl) => (d.kind === "theorem" ? "hypotheses" : "fie
                   {nlPlain(d.doc) ? <span class="helper-nl"> — {nlPlain(d.doc)}</span> : null}
                 </summary>
                 {structured2 ? (
-                  <LeanStatement structured={structured2} copyText={declSignature(d) ?? d.statement} sectionLabel={sectionLabel(d)} />
+                  <LeanStatement view={structured2} copyText={declSignature(d) ?? d.statement} />
                 ) : (
                   <div
                     class={stmtClass(d.kind !== "theorem" && d.source ? stripLeadingDoc(d.source) : d.statement)}

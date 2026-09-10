@@ -859,27 +859,29 @@ theorem foo (x : Nat) : x = x := rfl`,
 // Hard gate on website regeneration (npm test runs before astro build, both
 // internally and in the public mirror's site workflow): a docstring that
 // carries crosslink markup must satisfy the convention IN FULL —
-//   - every `(hyp:name)` resolves to a binder/field row of the structured
-//     statement (drift = a hypothesis renamed after annotation);
+//   - every `(hyp:name)` resolves to a parameter/hypothesis/field row of the
+//     structured statement (drift = a binder renamed after annotation);
 //   - crosslinks live only in the first paragraph (the NL translation);
-//   - `(goal)` only on theorems (structures have no conclusion);
+//   - `(goal)` / `(step:N)` only on theorems, definitions, instances and
+//     inductives (a structure has no conclusion); a `(step:N)` names a clause
+//     the page actually numbers;
 //   - an annotated THEOREM is completely covered: every hyp-classified row
-//     linked, and the conclusion linked via `(goal)`;
+//     linked, and the conclusion linked via `(goal)`; an annotated DEFINITION
+//     covers every explicit parameter and its defined object via `(goal)`;
 //   - annotations only on statements the structurer can parse (otherwise the
 //     underlines would render inert).
 // Unannotated docstrings pass untouched — the gate tightens per migration wave.
 describe("NL ↔ Lean crosslink gate", () => {
   it("every annotated docstring satisfies the crosslink convention", async () => {
     const { parseCrosslinks, nlOf } = await import("../src/lib/docmd.js");
-    const { structureDeclSource, findProofStart, isBinderRow } = await import(
-      "../src/lib/leanStatement.js"
-    );
-    const { naturalLanguageDoc, stripLeadingDoc } = await import("../src/lib/library.js");
+    const { findProofStart, isBinderRow } = await import("../src/lib/leanStatement.js");
+    const { buildDeclView, numberedTokens } = await import("../src/lib/leanDeclView.js");
+    const { naturalLanguageDoc, stripLeadingDoc, sourceKind } = await import("../src/lib/library.js");
     const lib = loadLibrary(libraryRoot());
     const problems: string[] = [];
     for (const d of lib.entries) {
       const doc = naturalLanguageDoc(d);
-      if (!doc || !/\]\((?:hyp:|goal\))/.test(doc)) continue;
+      if (!doc || !/\]\((?:hyp:|goal\)|step:)/.test(doc)) continue;
       const paras = doc.trim().split(/\n\s*\n/);
       for (const p of paras.slice(1)) {
         if (parseCrosslinks(p).some((s) => s.links)) {
@@ -889,22 +891,26 @@ describe("NL ↔ Lean crosslink gate", () => {
       }
       const segs = parseCrosslinks(nlOf(doc) ?? "").filter((s) => s.links);
       if (segs.length === 0) continue;
-      const names = [...new Set(segs.flatMap((s) => s.links!))].filter((n) => n !== "⊢");
-      const hasGoal = segs.some((s) => s.links!.includes("⊢"));
-      if (hasGoal && d.kind !== "theorem") {
-        problems.push(`${d.name}: (goal) crosslink on a ${d.kind}`);
+      const all = [...new Set(segs.flatMap((s) => s.links!))];
+      const names = all.filter((n) => !n.startsWith("⊢"));
+      const steps = all.filter((n) => /^⊢\d+$/.test(n));
+      const hasGoal = all.includes("⊢");
+      const clauseBearing = d.kind === "theorem" || d.kind === "def" || d.kind === "instance" || d.kind === "inductive";
+      if ((hasGoal || steps.length > 0) && !clauseBearing) {
+        problems.push(`${d.name}: (goal)/(step:N) crosslink on a ${d.kind}`);
       }
       if (!d.source) {
         problems.push(`${d.name}: annotated but no authored source in the index`);
         continue;
       }
       let sig = stripLeadingDoc(d.source);
+      const kind = sourceKind(d);
       if (d.kind === "theorem") {
         const proofStart = findProofStart(sig);
         if (proofStart >= 0) sig = sig.slice(0, proofStart);
       }
-      const st = structureDeclSource(sig, d.kind);
-      if (!st) {
+      const view = buildDeclView(sig, kind, d.params, d.result);
+      if (!view) {
         // A source the index truncated at sourceSliceCap cannot structure —
         // the card falls back to plain (stripped) rendering, so annotations
         // are harmless there. Any OTHER unstructurable annotated statement
@@ -914,7 +920,7 @@ describe("NL ↔ Lean crosslink gate", () => {
         }
         continue;
       }
-      const rows = [...st.rows, ...(st.fields ?? [])].filter(isBinderRow);
+      const rows = [...view.rows, ...(view.fields ?? [])].filter(isBinderRow);
       const declared = new Set(
         rows.flatMap((r) => (r.dataNames ?? r.names).split(/\s+/).filter(Boolean)),
       );
@@ -924,16 +930,33 @@ describe("NL ↔ Lean crosslink gate", () => {
         for (const n of names) {
           if (!declared.has(n)) problems.push(`${d.name}: crosslink name '${n}' not in signature`);
         }
+        const tokens = numberedTokens(view);
+        for (const t of steps) {
+          if (!tokens.has(t)) problems.push(`${d.name}: ${t.replace("⊢", "(step:")}) names a clause the page does not number`);
+        }
       }
+      const linked = new Set(names);
+      // Coverage is judged on AUTHORED binders: rows lifted out of the goal /
+      // body by the card builder (`origin: "lifted"`) are part of the clause
+      // the `(goal)` link already covers.
       if (d.kind === "theorem") {
-        const linked = new Set(names);
         for (const r of rows) {
+          if (r.origin !== undefined) continue;
           const rNames = r.names.split(/\s+/).filter(Boolean);
           if (r.chip === "hyp" && !rNames.some((n) => linked.has(n))) {
             problems.push(`${d.name}: hypothesis '${r.names}' has no linked NL phrase`);
           }
         }
         if (!hasGoal) problems.push(`${d.name}: conclusion has no (goal) crosslink`);
+      } else if (d.kind === "def" || d.kind === "instance" || d.kind === "inductive") {
+        for (const r of view.rows.filter(isBinderRow)) {
+          if (r.origin !== undefined || r.bracketKind !== "explicit" || !r.names) continue;
+          const rNames = r.names.split(/\s+/).filter(Boolean);
+          if (!rNames.some((n) => linked.has(n))) {
+            problems.push(`${d.name}: parameter '${r.names}' has no linked NL phrase`);
+          }
+        }
+        if (!hasGoal) problems.push(`${d.name}: defined object has no (goal) crosslink`);
       }
     }
     expect(problems, problems.join("\n")).toEqual([]);

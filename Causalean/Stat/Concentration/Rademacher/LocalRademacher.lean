@@ -85,8 +85,9 @@ section LocalRademacher
 
 variable {Ω ι 𝒳 : Type*} [MeasurableSpace Ω]
 
-/-- The **localized Rademacher complexity** of a function family `F`,
-    evaluated at radius `r` and norm `norm`. Defined via the *zero-out*
+/-- Given [a real-valued family of functions indexed by a set of labels](hyp:F), [a real-valued functional measuring the size of such functions](hyp:norm), [a measure on a sample space equipped with a σ-algebra](hyp:μ), [a sample-space-valued covariate map](hyp:X), [a nonnegative integer sample size](hyp:n), and [a real radius](hyp:r), the [localized Rademacher complexity](goal) is the Rademacher complexity of the star-hull family after functions whose size exceeds that radius are replaced by zero.
+
+    Defined via the *zero-out*
     re-indexing: each parameter `(α, i) : starHullParam ι` contributes
     `α • F i` if `norm (α • F i) ≤ r`, and the constant `0` otherwise. -/
 noncomputable def localRademacherComplexity

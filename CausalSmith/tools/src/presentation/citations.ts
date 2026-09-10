@@ -22,6 +22,28 @@ export interface ExternalRecord {
   authoritative?: boolean;
 }
 
+interface OpenAlexItem {
+  title?: string;
+  publication_year?: number;
+  authorships?: Array<{ author?: { display_name?: string } }>;
+}
+
+function fromOpenAlex(item: OpenAlexItem | undefined): ExternalRecord | null {
+  const title = item?.title?.trim() ?? "";
+  const authors = (item?.authorships ?? [])
+    .map((a) => a.author?.display_name?.trim() ?? "")
+    .filter(Boolean);
+  const first = authors[0]?.split(/\s+/) ?? [];
+  const year = item?.publication_year ?? 0;
+  if (!title || first.length === 0 || year <= 0) return null;
+  return {
+    title,
+    authorFamily: first[first.length - 1] ?? "",
+    author: authors.join(" and "),
+    year,
+  };
+}
+
 /** Rewrite only identity-confirmed bibliographic fields. The citation key, type, DOI/eprint,
  * and all unrelated fields are preserved. Title-query records are intentionally ineligible. */
 export function canonicalizeBibEntry(bib: string, key: string, rec: ExternalRecord): string | null {
@@ -213,40 +235,99 @@ const norm = (s: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
+/** Every author's family name in a BibTeX author field, normalized. */
+const bibAuthorFamilies = (authors: string): string[] =>
+  authors.split(/\s+and\s+/i).map((a) => {
+    const one = a.trim();
+    const comma = one.indexOf(",");
+    if (comma >= 0) return norm(one.slice(0, comma));
+    const words = one.split(/\s+/).filter(Boolean);
+    return norm(words[words.length - 1] ?? "");
+  }).filter(Boolean);
+
+/** A registry's family name confirms the entry when it IS one of the entry's family names or the
+ * trailing whole word of one ("erven" for "van erven": most adapters take the last word of a full
+ * name). Any position: registries do not always list the authors in the entry's order. Whole-word
+ * only, so "li" never confirms "lin". */
+const authorFamilyMatches = (e: BibEntry, rec: ExternalRecord): boolean => {
+  const fam = norm(rec.authorFamily);
+  if (!fam) return false;
+  // Either side may carry the fuller name: a particle family in the entry ("van erven" ⊇ "erven"),
+  // or a registry that put the whole name in the family slot ("jiantao jiao" ⊇ "jiao").
+  return bibAuthorFamilies(e.fields.author ?? "").some((f) => f === fam || f.endsWith(" " + fam) || fam.endsWith(" " + f));
+};
+
+/** Title identity ignores spacing as well as case and punctuation: registries carry typos such as
+ * "ofN-way" for "of N-way", and spaces never distinguish works. */
+const titleKey = (s: string): string => norm(stripRegistryMarkup(s)).replace(/ /g, "");
+const titleCore = (title: string): string => titleKey(title.split(/\s*[:–—]\s*/, 1)[0] ?? "");
+
+/** Same title, or an exact short/full-title relation: one side IS the other's pre-subtitle title.
+ * Crossref stores books under the short title; arXiv and publishers vary the subtitle. Two titles
+ * that merely share a core but carry different subtitles are different works. */
+const titleRelated = (a: string, b: string): boolean =>
+  titleKey(a) === titleKey(b) ||
+  ((substantive(a) || substantive(b)) && titleCore(a) !== "" && (titleKey(a) === titleCore(b) || titleKey(b) === titleCore(a)));
+
+/** Three or more words: registries hold author-less records titled "Introduction", "Comment",
+ * "Erratum" in every year, and a one-word short title relates to any "Word: subtitle" entry. Only a
+ * substantive title may confirm a work without an author or through the short/full relation. */
+const substantive = (title: string): boolean => norm(title).split(" ").filter(Boolean).length >= 3;
+
 export async function verifyEntry(e: BibEntry, lookup: Lookup): Promise<Verification> {
+  // A work no registry indexes under its own identity (an unindexed monograph, a title shared with
+  // a review of it) can only be confirmed by hand: the orchestrator records what confirmed it in a
+  // `verifiedby` field and the entry is kept on that authority, visibly. P0 strips the field from
+  // fresh model output, so it only ever reaches here from a hand edit.
+  const handVerified = e.fields.verifiedby?.trim();
+  if (handVerified) return { key: e.key, verdict: "minor", detail: `hand-verified (${handVerified})` };
   const rec = await lookup(e);
-  // Registry unreachable (transient) with an identifier present: non-blocking. The DOI/arXiv id is
-  // itself weak evidence the work exists; we simply could not confirm metadata this run. Kept as a
-  // caveat (P0 keeps it, P4 does not abort) rather than a false hallucination rejection.
+  // A registry the check needed did not answer (429/5xx/network, or a non-JSON body): the work may
+  // well be indexed there. Kept as a transient caveat (P0 keeps it, P4 does not abort) rather than
+  // laundered into a hallucination rejection; the next run re-verifies.
   if (rec === UNREACHABLE) {
     return {
       key: e.key,
       verdict: "minor",
-      detail: "external registry unreachable (transient); DOI/arXiv id present but metadata unverified this run",
+      detail: "external registry unreachable (transient); metadata unverified this run",
     };
   }
   if (!rec) return { key: e.key, verdict: "major", detail: "no external record found" };
-  const titleOk = norm(rec.title) === norm(e.fields.title ?? "");
+  const titleOk = titleKey(rec.title) === titleKey(e.fields.title ?? "");
   const year = parseInt(e.fields.year ?? "0", 10);
   const yearOk = Math.abs(rec.year - year) <= 1;
-  const famOk = rec.authorFamily !== "" && norm(e.fields.author ?? "").includes(norm(rec.authorFamily));
+  // A registry record that lists no author cannot contradict the entry; it corroborates nothing
+  // either, so it never yields "exact" and its caveat says the author went unverified.
+  const famKnown = norm(rec.authorFamily) !== "";
+  const famOk = famKnown && authorFamilyMatches(e, rec);
+  const titleVariantOk = titleRelated(rec.title, e.fields.title ?? "");
   if (titleOk && yearOk && famOk) return { key: e.key, verdict: "exact", detail: "" };
+  // Title and author together identify the work; a year gap (edition, print vs online, an
+  // unparsable year) is a field caveat for the orchestrator, with the record's year named.
+  if (titleOk && famOk) {
+    return { key: e.key, verdict: "minor", detail: `year ${e.fields.year ?? ""} vs record ${rec.year} — check the edition/year` };
+  }
+  // A short/full-title relation with the year corroborating and the author agreeing (or absent) is
+  // the same work: a registry subtitle discrepancy (Crossref keeps only a book's short title), never
+  // a wrong-source drop. A same-author record for a genuinely different work still fails below.
+  if ((famOk || (!famKnown && substantive(rec.title))) && yearOk && titleVariantOk) {
+    return {
+      key: e.key,
+      verdict: "minor",
+      detail: !famKnown
+        ? `registry record lists no author; title and year agree — author unverified`
+        : rec.authoritative
+          ? `id-confirmed source; entry title differs from registry ("${rec.title}") — fix title/fields from record`
+          : `entry title differs from registry ("${rec.title}"); author and year agree — check the subtitle`,
+    };
+  }
+  // Same title, different identity: the registry hit is another work (a review, a namesake). Never
+  // "fix" the entry from it; the halt names the record so the orchestrator can adjudicate.
   if (titleOk) {
     return {
       key: e.key,
-      verdict: "minor",
-      detail: `field mismatch (year ${year} vs ${rec.year}; author ok=${famOk}) — fix fields from record`,
-    };
-  }
-  // An id-authoritative record (fetched by the entry's own DOI/arXiv id) IS the right work, so a
-  // title mismatch is a registry/subtitle discrepancy to fix, NOT a wrong-source rejection — as
-  // long as the author corroborates (guards the rare made-up DOI that resolves to some other real
-  // paper). Books (Crossref stores only the short title) and arXiv subtitle variants land here.
-  if (rec.authoritative && famOk) {
-    return {
-      key: e.key,
-      verdict: "minor",
-      detail: `id-confirmed source; entry title differs from registry ("${rec.title}") — fix title/fields from record`,
+      verdict: "major",
+      detail: `title matches but author or year does not (record: ${rec.authorFamily || "no author"} ${rec.year}; entry: ${bibAuthorFamilies(e.fields.author ?? "")[0] ?? "no author"} ${e.fields.year ?? ""})`,
     };
   }
   return { key: e.key, verdict: "major", detail: "title does not match external record" };
@@ -294,10 +375,19 @@ interface CrossrefItem {
   issued?: { "date-parts"?: number[][] };
 }
 
+/** Registry titles carry publisher markup (IEEE wraps formulas in `<inline-formula>` /
+ *  `<tex-math>`, entities appear escaped); strip it before any comparison. */
+export function stripRegistryMarkup(title: string): string {
+  return title
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ").trim();
+}
+
 function fromCrossref(it: CrossrefItem | undefined | null): ExternalRecord | null {
   if (!it) return null;
   return {
-    title: it.title?.[0] ?? "",
+    title: stripRegistryMarkup(it.title?.[0] ?? ""),
     authorFamily: it.author?.[0]?.family ?? "",
     author: it.author?.map((a) => [a.family, a.given].filter(Boolean).join(", ")).filter(Boolean).join(" and ") || undefined,
     year: it.issued?.["date-parts"]?.[0]?.[0] ?? 0,
@@ -403,18 +493,28 @@ async function jmlrByUrl(url: string): Promise<RecFetch> {
 
 /**
  * Production lookup: DOI → Crossref; arXiv id → arXiv API; else title query
- * (Crossref, falling back to arXiv title search for arXiv-only preprints).
- * Each candidate record is accepted only if its title matches the entry —
+ * (Crossref, then arXiv and OpenAlex exact-title search).
+ * A title-query candidate is accepted only when title, an author family, and year match —
  * a wrong-paper hit from one source must not mask a right-paper hit from the
  * next, and verifyEntry re-checks the returned record anyway.
  */
 export async function defaultLookup(e: BibEntry): Promise<ExternalRecord | typeof UNREACHABLE | null> {
-  const titleMatches = (rec: ExternalRecord | null) =>
-    rec !== null && norm(rec.title) === norm(e.fields.title ?? "");
+  const titleMatches = (rec: ExternalRecord | null) => rec !== null && titleRelated(rec.title, e.fields.title ?? "");
+  const workMatches = (rec: ExternalRecord | null) => rec !== null && titleMatches(rec) && authorFamilyMatches(e, rec);
+  const yearMatches = (rec: ExternalRecord) => {
+    const year = parseInt(e.fields.year ?? "0", 10);
+    return Number.isFinite(year) && Math.abs(rec.year - year) <= 1;
+  };
+  const identityMatches = (rec: ExternalRecord | null) => workMatches(rec) && yearMatches(rec!);
+  // A record without an author can be the work (registries omit book authors); it ranks below any
+  // author-confirmed candidate.
+  const authorlessMatches = (rec: ExternalRecord | null) =>
+    rec !== null && norm(rec.authorFamily) === "" && substantive(rec.title) && titleMatches(rec) && yearMatches(rec);
   const getJson = async (url: string): Promise<{ json: unknown; unreachable: boolean }> => {
     const r = await politeFetch(url);
     if (!r.ok) return { json: null, unreachable: r.unreachable };
-    return { json: await r.response.json(), unreachable: false };
+    // A 200 whose body is not JSON is a rate-limit interstitial or an outage page: transient.
+    try { return { json: await r.response.json(), unreachable: false }; } catch { return { json: null, unreachable: true }; }
   };
   const jmlrUrl = trustedJmlrUrl(e.fields.url);
   const hasAuthId = Boolean(e.fields.doi || e.fields.eprint || jmlrUrl);
@@ -449,14 +549,34 @@ export async function defaultLookup(e: BibEntry): Promise<ExternalRecord | typeo
     if (hasAuthId && authUnreachable) return UNREACHABLE;
     // No identifier (or identifier definitively did not resolve): search by title.
     const candidates: (ExternalRecord | null)[] = [];
-    const { json } = await getJson(
-      `https://api.crossref.org/works?rows=1&query.title=${encodeURIComponent(e.fields.title ?? "")}`,
+    let titleUnreachable = false; // a registry the title search needed answered 429/5xx/network
+    const crossref = await getJson(
+      `https://api.crossref.org/works?rows=10&query.title=${encodeURIComponent(e.fields.title ?? "")}`,
     );
-    candidates.push(fromCrossref((json as { message?: { items?: CrossrefItem[] } } | null)?.message?.items?.[0]));
-    if (!titleMatches(candidates[0]) && e.fields.title) {
-      candidates.push((await arxivByTitle(e.fields.title)).rec);
+    titleUnreachable ||= crossref.unreachable;
+    const crossrefItems = (crossref.json as { message?: { items?: CrossrefItem[] } } | null)?.message?.items ?? [];
+    candidates.push(...crossrefItems.map(fromCrossref));
+    if (!candidates.some(identityMatches) && e.fields.title) {
+      const arxiv = await arxivByTitle(e.fields.title);
+      titleUnreachable ||= arxiv.unreachable;
+      candidates.push(arxiv.rec);
     }
-    return candidates.find(titleMatches) ?? candidates[0] ?? null;
+    if (!candidates.some(identityMatches) && e.fields.title) {
+      const openAlex = await getJson(
+        // Commas and colons are OpenAlex filter syntax; the search is tokenized, so punctuation carries nothing.
+        `https://api.openalex.org/works?filter=title.search:${encodeURIComponent(e.fields.title.replace(/[^\p{L}\p{N}]+/gu, " ").trim())}&per-page=10`,
+      );
+      titleUnreachable ||= openAlex.unreachable;
+      const openAlexItems = (openAlex.json as { results?: OpenAlexItem[] } | null)?.results ?? [];
+      candidates.push(...openAlexItems.map(fromOpenAlex));
+    }
+    // Prefer the same work at another year (edition, print vs online) over an unrelated top hit.
+    const best = candidates.find(identityMatches) ?? candidates.find(workMatches) ?? candidates.find(authorlessMatches);
+    if (best) return best;
+    // No match, but a registry the search needed did not answer: the work may well be indexed
+    // there. Transient, non-blocking — never launder a rate limit into a confident rejection.
+    if (titleUnreachable) return UNREACHABLE;
+    return candidates[0] ?? null;
   } catch {
     return null;
   }

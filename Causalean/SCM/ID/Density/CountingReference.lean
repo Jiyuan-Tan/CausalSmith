@@ -23,7 +23,12 @@ open scoped MeasureTheory ProbabilityTheory
 variable {N : Type*} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-/-- The counting reference family: each SWIG-node coordinate carries the counting
+/-- For any node set with measurable node-value spaces, provided every random or fixed node has
+a countable value space and every base-node singleton is measurable, [the counting reference
+family](goal) [assigns counting measure to every random and fixed node coordinate](step:1) and
+records that each such measure is σ-finite.
+
+The counting reference family: each SWIG-node coordinate carries the counting
 measure.  On countable value spaces this is a σ-finite measure. -/
 noncomputable def countingRef
     [∀ sn, Countable (swigΩ Ω sn)] [∀ n, MeasurableSingletonClass (Ω n)] :

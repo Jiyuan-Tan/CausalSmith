@@ -32,15 +32,19 @@ namespace DesignBased
 
 variable {U C : Type*} [Fintype C] [DecidableEq C]
 
-/-- The **cluster-randomization design**: each cluster `c` is independently assigned treatment with
-probability `p c` (a Bernoulli design over the cluster labels). A unit is treated iff its cluster
-is. -/
+/-- For a finite population [of clusters](hyp:C), [cluster-specific treatment
+probabilities](hyp:p) that [are each between zero and one](hyp:hp0,hp1), the [cluster-randomization
+design](goal) independently assigns each cluster to treatment with its specified probability.
+
+A unit is treated if and only if its cluster is treated. -/
 noncomputable def clusterDesign (p : C → ℝ) (hp0 : ∀ c, 0 ≤ p c) (hp1 : ∀ c, p c ≤ 1) :
     FiniteDesign (C → Bool) :=
   bernoulliDesign p hp0 hp1
 
-/-- The treatment indicator of unit `i` under cluster assignment `z`: `1` if `i`'s cluster is
-treated, else `0`. -/
+/-- For a finite population [of units](hyp:U), a finite population [of clusters](hyp:C), [a map
+assigning every unit to a cluster](hyp:clus), [a unit](hyp:i), and [a treatment assignment for the
+clusters](hyp:z), the [unit-level treatment indicator](goal) equals one if that unit's cluster is
+treated and zero otherwise. -/
 def unitTreatInd (clus : U → C) (i : U) (z : C → Bool) : ℝ := treatInd (clus i) z
 
 /-- **First-order inclusion probability.** A unit `i` is treated with probability `p (clus i)`, the

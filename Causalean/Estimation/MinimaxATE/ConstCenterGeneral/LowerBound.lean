@@ -52,7 +52,9 @@ open scoped ENNReal BigOperators
 
 namespace GenConstr
 
-/-- The paired-cell covariate is nonempty whenever `K ≠ 0`. -/
+/-- For every [positive number $K$ of paired cells](hyp:K), [the paired-cell covariate space](goal) contains [the first cell paired with the true binary position](step:1).
+
+The paired-cell covariate is nonempty whenever $K \ne 0$. -/
 instance instNonemptyFinBoolProd {K : ℕ} [NeZero K] : Nonempty (Fin K × Bool) :=
   ⟨(⟨0, Nat.pos_of_ne_zero (NeZero.ne K)⟩, true)⟩
 
@@ -76,17 +78,24 @@ theorem inClass_nullG (P : GenConstr) {K : ℕ} {εg εm : ℝ} (hεg : 0 ≤ ε
   err_g d := by rw [l2sq_self]; exact hεg
   err_m := by rw [l2sq_self]; exact hεm
 
-/-- The null `n`-sample law `P̂^⊗n`. -/
+/-- For [general constant-center construction data](hyp:P), [a positive number of covariate
+pairs](hyp:K), and [a nonnegative sample size](hyp:n), [the null sample probability law](goal)
+is the joint law of that many independent observations from the null data-generating process. -/
 noncomputable def QfalseG (P : GenConstr) (K n : ℕ) [NeZero K] :
     Measure (Fin n → Obs (Fin K × Bool)) :=
   productLaw (P.validDGP_hatG (K := K)) n
 
-/-- The perturbed `n`-sample law `Qλ^⊗n`. -/
+/-- For [general constant-center construction data](hyp:P), [a positive number of covariate
+pairs](hyp:K), [a nonnegative sample size](hyp:n), and [a binary sign vector over the
+pairs](hyp:lam), [the perturbed sample probability law](goal) is the joint law of that many
+independent observations from the sign-indexed perturbed data-generating process. -/
 noncomputable def QpertG (P : GenConstr) (K n : ℕ) [NeZero K] (lam : Fin K → Bool) :
     Measure (Fin n → Obs (Fin K × Bool)) :=
   productLaw (P.validDGP_pertG lam) n
 
-/-- The alternative `n`-sample law: the uniform Rademacher mixture of the perturbed laws. -/
+/-- For [general constant-center construction data](hyp:P), [a positive number of covariate
+pairs](hyp:K), and [a nonnegative sample size](hyp:n), [the alternative sample probability
+law](goal) is the uniform mixture over all binary sign vectors of their perturbed sample laws. -/
 noncomputable def QtrueG (P : GenConstr) (K n : ℕ) [NeZero K] :
     Measure (Fin n → Obs (Fin K × Bool)) :=
   mixture (signWeight K) (fun lam => QpertG P K n lam)

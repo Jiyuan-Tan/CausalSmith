@@ -70,44 +70,48 @@ namespace POLeeSystem
 
 variable {P : POSystem} (S : POLeeSystem P)
 
-/-- Treatment packaged as a `POVar` valued in `Bool`. -/
+/-- For [a Lee sample-selection system](hyp:S), the [binary treatment potential-outcome variable](goal) is its treatment node with its binary representation. -/
 def aVar : POVar P Bool := ⟨S.A, S.hAbool⟩
 
-/-- Selection indicator packaged as a `POVar` valued in `Bool`. -/
+/-- For [a Lee sample-selection system](hyp:S), the [binary selection-indicator potential-outcome variable](goal) is its selection node with its binary representation. -/
 def selVar : POVar P Bool := ⟨S.Sel, S.hSelbool⟩
 
-/-- Outcome packaged as a `POVar` valued in `ℝ`. -/
+/-- For [a Lee sample-selection system](hyp:S), the [real-valued outcome potential-outcome variable](goal) is its outcome node with its real-valued representation. -/
 def yVar : POVar P ℝ := ⟨S.Y, S.hYreal⟩
 
-/-- Counterfactual selection under treatment arm `a`.
+/-- For [a Lee sample-selection system](hyp:S) and [a treatment arm](hyp:a), the [potential selection indicator](goal) assigns each unit whether its outcome would be selected under that arm.
+
+Counterfactual selection under treatment arm `a`.
 
 This is the function `Sel(a) : P.Ω → Bool`. -/
 noncomputable def SelOfA (a : Bool) : P.Ω → Bool := S.selVar.cfUnder S.aVar a
 
-/-- Counterfactual outcome under treatment arm `a`.
+/-- For [a Lee sample-selection system](hyp:S) and [a treatment arm](hyp:a), the [potential outcome](goal) assigns each unit its outcome under that arm.
+
+Counterfactual outcome under treatment arm `a`.
 
 This is the function `Y(a) : P.Ω → ℝ`. -/
 noncomputable def YofA (a : Bool) : P.Ω → ℝ := S.yVar.cfUnder S.aVar a
 
-/-- Factual treatment. -/
+/-- For [a Lee sample-selection system](hyp:S), the [factual treatment](goal) assigns each unit its observed binary treatment. -/
 noncomputable def factualA : P.Ω → Bool := S.aVar.factual
 
-/-- Factual selection indicator. -/
+/-- For [a Lee sample-selection system](hyp:S), the [factual selection indicator](goal) assigns each unit its observed selection status. -/
 noncomputable def factualSel : P.Ω → Bool := S.selVar.factual
 
-/-- Factual outcome. -/
+/-- For [a Lee sample-selection system](hyp:S), the [factual outcome](goal) assigns each unit its observed real outcome. -/
 noncomputable def factualY : P.Ω → ℝ := S.yVar.factual
 
-/-- The event `{A = a}`. -/
+/-- For [a Lee sample-selection system](hyp:S) and [a treatment arm](hyp:a), the [treatment event](goal) is the set of units whose observed treatment equals that arm. -/
 def aEvent (a : Bool) : Set P.Ω := S.aVar.event a
 
-/-- The event `{Sel = s}`. -/
+/-- For [a Lee sample-selection system](hyp:S) and [a selection status](hyp:s), the [selection event](goal) is the set of units whose observed selection indicator equals that status. -/
 def selEvent (s : Bool) : Set P.Ω := S.selVar.event s
 
-/-- The selected-treated cell `{A = true, Sel = true}`. -/
+/-- For [a Lee sample-selection system](hyp:S), the [selected-treated cell](goal) is the set of units with observed treatment and observed selection both equal to one. -/
 def selectedTreated : Set P.Ω := S.aEvent true ∩ S.selEvent true
 
-/-- The selected-control cell `{A = false, Sel = true}`. -/
+/-- For [a Lee sample-selection system](hyp:S), the [selected-control cell](goal) is the set of units with observed treatment equal to zero and observed selection equal to one. -/
 def selectedControl : Set P.Ω := S.aEvent false ∩ S.selEvent true
 
 /-! ### Measurability -/

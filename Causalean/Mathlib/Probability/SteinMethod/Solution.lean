@@ -37,14 +37,21 @@ open scoped Real
 namespace Causalean
 namespace SteinMethod
 
-/-- Expectation of `h` under the standard normal law, `E[h(Z)]`. -/
+/-- For every [real-valued function](hyp:h), the [standard-normal expectation of that
+function](goal) is its integral with respect to the normal distribution having mean zero and
+variance one. -/
 noncomputable def gExpect (h : ℝ → ℝ) : ℝ := ∫ x, h x ∂(gaussianReal 0 1)
 
-/-- The bounded solution of the Stein equation `f' − w·f = h − E[h(Z)]`. -/
+/-- For every [real-valued test function](hyp:h) and [real evaluation point](hyp:w), the
+[Stein-solution value](goal) is the exponential factor $e^{w^2/2}$ times the integral from
+$-\infty$ to $w$ of the test function minus its standard-normal expectation, weighted by
+$e^{-x^2/2}$. -/
 noncomputable def steinSol (h : ℝ → ℝ) (w : ℝ) : ℝ :=
   Real.exp (w ^ 2 / 2) * ∫ x in Set.Iic w, (h x - gExpect h) * Real.exp (-x ^ 2 / 2)
 
-/-- The integrand `(h x − E[h(Z)])·e^{−x²/2}` appearing inside `steinSol`. -/
+/-- For every [real-valued test function](hyp:h) and [real argument](hyp:x), the [Stein
+integrand value](goal) is the test function at that argument minus its standard-normal
+expectation, multiplied by $e^{-x^2/2}$. -/
 noncomputable def steinIntegrand (h : ℝ → ℝ) (x : ℝ) : ℝ :=
   (h x - gExpect h) * Real.exp (-x ^ 2 / 2)
 

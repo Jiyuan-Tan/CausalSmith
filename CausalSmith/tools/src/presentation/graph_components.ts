@@ -3,9 +3,9 @@ import type { ComponentSpec } from "./components.js";
 
 /**
  * The Lean component set of a paper object, read from the GRAPH (no codex): the node's own
- * `lean.decl_name` plus the decls of its `statement-uses` neighbours that are themselves
- * formalized. This is how a node "with multiple lines of Lean code" enumerates all its pieces
- * deterministically from the verified graph instead of by codex discovery.
+ * `lean.decl_name`, explicitly mapped `lean.supporting_decls`, and the decls of its
+ * formalized `statement-uses` neighbours. Prerequisite edges alone do not enumerate
+ * every theorem certifying a definition's properties; those belong in supporting_decls.
  *
  * Returns `[]` when the obj_id is unknown or the node carries no Lean decl — the caller then
  * falls back to codex component discovery, so no Lean piece is ever silently dropped.
@@ -20,6 +20,12 @@ export function graphComponentSpecs(graph: FormalizationGraph, objId: string): C
   if (!node?.lean?.decl_name) return [];
   const specs: ComponentSpec[] = [{ type: "decl", decl: node.lean.decl_name }];
   const seen = new Set([node.lean.decl_name]);
+  for (const decl of node.lean.supporting_decls ?? []) {
+    if (!seen.has(decl)) {
+      seen.add(decl);
+      specs.push({ type: "decl", decl });
+    }
+  }
   for (const e of graph.edges) {
     if (e.kind !== "statement-uses" || e.from !== node.id) continue;
     const nbr = byKey.get(e.to);

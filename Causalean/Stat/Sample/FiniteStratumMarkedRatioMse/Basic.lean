@@ -24,58 +24,50 @@ variable {Omega kappa : Type*} [MeasurableSpace Omega]
   [Fintype kappa] [DecidableEq kappa]
   [MeasurableSpace kappa] [MeasurableSingletonClass kappa]
 
-/-- The safe real sample size is one at an empty sample and otherwise equals
-the ordinary sample size. -/
+/-- For [a nonnegative integer sample size](hyp:m), the [safe real sample size](goal) is one when the sample is empty and otherwise equals the ordinary sample size. -/
 def safeSampleSize (m : Nat) : Real := ((max 1 m : Nat) : Real)
 
-/-- The empirical arm/category count is the number of coordinates with the
-specified Boolean arm and finite category. -/
+/-- For [a category-label function](hyp:group), [a Boolean arm-label function](hyp:arm), [a finite sample](hyp:z), [an arm value](hyp:a), and [a category](hyp:k), the [empirical arm--category count](goal) is the number of sample coordinates having both specified labels. -/
 def categoryArmCount {m : Nat} (group : Omega → kappa) (arm : Omega → Bool)
     (z : Fin m → Omega) (a : Bool) (k : kappa) : Nat :=
   Causalean.Stat.groupArmCount group arm z a k
 
-/-- The empirical category count includes both Boolean arms. -/
+/-- For [a category-label function](hyp:group), [a Boolean arm-label function](hyp:arm), [a finite sample](hyp:z), and [a category](hyp:k), the [empirical category count](goal) is the number of sample coordinates in that category across both arm values. -/
 def categoryCount {m : Nat} (group : Omega → kappa) (arm : Omega → Bool)
     (z : Fin m → Omega) (k : kappa) : Nat :=
   Causalean.Stat.groupCount group arm z k
 
-/-- The arm/category event contains observations with the requested arm and
-category labels. -/
+/-- For [a category-label function](hyp:group), [a Boolean arm-label function](hyp:arm), [an arm value](hyp:a), and [a category](hyp:k), the [arm--category event](goal) is the set of observations with both requested labels. -/
 def armCategoryEvent (group : Omega → kappa) (arm : Omega → Bool)
     (a : Bool) (k : kappa) : Set Omega :=
   Causalean.Stat.armGroupEvent group arm a k
 
-/-- The category event contains observations with the requested category,
-irrespective of arm. -/
+/-- For [a category-label function](hyp:group) and [a category](hyp:k), the [category event](goal) is the set of observations assigned that category. -/
 def categoryEvent (group : Omega → kappa) (k : kappa) : Set Omega :=
   Causalean.Stat.groupEvent group k
 
-/-- The population category mass is the real mass of the category event. -/
+/-- For [a measure on the observation space](hyp:mu), [a category-label function](hyp:group), and [a category](hyp:k), the [population category mass](goal) is the real-valued measure of the category event. -/
 noncomputable def categoryMass (mu : Measure Omega) (group : Omega → kappa)
     (k : kappa) : Real :=
   (mu (categoryEvent group k)).toReal
 
-/-- The population arm/category mass is the real mass of the joint label
-event. -/
+/-- For [a measure on the observation space](hyp:mu), [a category-label function](hyp:group), [a Boolean arm-label function](hyp:arm), [an arm value](hyp:a), and [a category](hyp:k), the [population arm--category mass](goal) is the real-valued measure of their joint-label event. -/
 noncomputable def armCategoryMass (mu : Measure Omega) (group : Omega → kappa)
     (arm : Omega → Bool) (a : Bool) (k : kappa) : Real :=
   (mu (armCategoryEvent group arm a k)).toReal
 
-/-- The supported mark equals the real mark on one arm/category cell and zero
-off that cell. -/
+/-- For [a category-label function](hyp:group), [a Boolean arm-label function](hyp:arm), [a real-valued mark](hyp:Y), [an arm value](hyp:a), and [a category](hyp:k), the [supported arm mark](goal) equals the mark on the corresponding arm--category event and zero outside it. -/
 noncomputable def supportedArmMark (group : Omega → kappa) (arm : Omega → Bool)
     (Y : Omega → Real) (a : Bool) (k : kappa) : Omega → Real :=
   (armCategoryEvent group arm a k).indicator Y
 
-/-- The empirical arm/category mark sum adds the supported mark over all
-sample coordinates. -/
+/-- For [a category-label function](hyp:group), [a Boolean arm-label function](hyp:arm), [a real-valued mark](hyp:Y), [a finite sample](hyp:z), [an arm value](hyp:a), and [a category](hyp:k), the [empirical arm--category mark sum](goal) is the sum of supported marks over all sample coordinates. -/
 noncomputable def armMarkSum {m : Nat} (group : Omega → kappa)
     (arm : Omega → Bool) (Y : Omega → Real) (z : Fin m → Omega)
     (a : Bool) (k : kappa) : Real :=
   ∑ i, supportedArmMark group arm Y a k (z i)
 
-/-- The totalized empirical arm mean is the mark sum divided by its positive
-arm/category count, and is zero when that count is empty. -/
+/-- For [a category-label function](hyp:group), [a Boolean arm-label function](hyp:arm), [a real-valued mark](hyp:Y), [a finite sample](hyp:z), [an arm value](hyp:a), and [a category](hyp:k), the [totalized empirical arm mean](goal) is the arm--category mark sum divided by its count when that count is positive, and zero otherwise. -/
 noncomputable def totalizedArmMean {m : Nat} (group : Omega → kappa)
     (arm : Omega → Bool) (Y : Omega → Real) (z : Fin m → Omega)
     (a : Bool) (k : kappa) : Real :=
@@ -83,8 +75,7 @@ noncomputable def totalizedArmMean {m : Nat} (group : Omega → kappa)
     (categoryArmCount group arm z a k : Real)⁻¹ * armMarkSum group arm Y z a k
   else 0
 
-/-- The population arm/category mark mean is the cell mark integral divided
-by its positive cell mass, and is zero on a zero-mass cell. -/
+/-- For [a measure on the observation space](hyp:mu), [a category-label function](hyp:group), [a Boolean arm-label function](hyp:arm), [a real-valued mark](hyp:Y), [an arm value](hyp:a), and [a category](hyp:k), the [population arm--category mean](goal) is the mark integral over that cell divided by its positive mass, and zero when its mass is zero. -/
 noncomputable def populationArmMean (mu : Measure Omega) (group : Omega → kappa)
     (arm : Omega → Bool) (Y : Omega → Real) (a : Bool) (k : kappa) : Real :=
   if 0 < armCategoryMass mu group arm a k then
@@ -92,82 +83,71 @@ noncomputable def populationArmMean (mu : Measure Omega) (group : Omega → kapp
       ∫ omega in armCategoryEvent group arm a k, Y omega ∂mu
   else 0
 
-/-- The fixed-set single-arm score weights each zero-safe empirical arm mean
-by its empirical category occupancy divided by the nominal sample size. -/
+/-- For [a category-label function](hyp:group), [a Boolean arm-label function](hyp:arm), [a real-valued mark](hyp:Y), [a finite set of categories](hyp:H), [an arm value](hyp:a), and [a finite sample](hyp:z), the [fixed-stratum arm score](goal) is the sum of totalized arm means weighted by empirical category occupancy divided by the nominal sample size. -/
 noncomputable def fixedStratumArmScore {m : Nat} (group : Omega → kappa)
     (arm : Omega → Bool) (Y : Omega → Real) (H : Finset kappa)
     (a : Bool) (z : Fin m → Omega) : Real :=
   ∑ k ∈ H, (categoryCount group arm z k : Real) / (m : Real) *
     totalizedArmMean group arm Y z a k
 
-/-- The fixed-set marked ratio score is the treated single-arm score minus the
-control single-arm score. -/
+/-- For [a category-label function](hyp:group), [a Boolean arm-label function](hyp:arm), [a real-valued mark](hyp:Y), [a finite set of categories](hyp:H), and [a finite sample](hyp:z), the [fixed-stratum marked ratio](goal) is the fixed-stratum arm score for the true arm minus that for the false arm. -/
 noncomputable def fixedStratumMarkedRatio {m : Nat} (group : Omega → kappa)
     (arm : Omega → Bool) (Y : Omega → Real) (H : Finset kappa)
     (z : Fin m → Omega) : Real :=
   fixedStratumArmScore group arm Y H true z -
     fixedStratumArmScore group arm Y H false z
 
-/-- The population fixed-set single-arm target weights conditional arm means
-by population category masses. -/
+/-- For [a measure on the observation space](hyp:mu), [a category-label function](hyp:group), [a Boolean arm-label function](hyp:arm), [a real-valued mark](hyp:Y), [a finite set of categories](hyp:H), and [an arm value](hyp:a), the [fixed-stratum arm target](goal) is the sum of population arm--category means weighted by population category masses. -/
 noncomputable def fixedStratumArmTarget (mu : Measure Omega) (group : Omega → kappa)
     (arm : Omega → Bool) (Y : Omega → Real) (H : Finset kappa)
     (a : Bool) : Real :=
   ∑ k ∈ H, categoryMass mu group k * populationArmMean mu group arm Y a k
 
-/-- The population fixed-set marked target is the treated arm target minus
-the control arm target. -/
+/-- For [a measure on the observation space](hyp:mu), [a category-label function](hyp:group), [a Boolean arm-label function](hyp:arm), [a real-valued mark](hyp:Y), and [a finite set of categories](hyp:H), the [fixed-stratum marked target](goal) is the true-arm target minus the false-arm target. -/
 noncomputable def fixedStratumMarkedTarget (mu : Measure Omega)
     (group : Omega → kappa) (arm : Omega → Bool) (Y : Omega → Real)
     (H : Finset kappa) : Real :=
   fixedStratumArmTarget mu group arm Y H true -
     fixedStratumArmTarget mu group arm Y H false
 
-/-- The center-weighted population target is the auxiliary form used by the
-residual decomposition. -/
+/-- For [a measure on the observation space](hyp:mu), [a category-label function](hyp:group), [a finite set of categories](hyp:H), [an arm-and-category center function](hyp:center), and [an arm value](hyp:a), the [fixed-stratum arm center target](goal) is the sum of category masses multiplied by the corresponding supplied centers. -/
 noncomputable def fixedStratumArmCenterTarget (mu : Measure Omega)
     (group : Omega → kappa) (H : Finset kappa) (center : Bool → kappa → Real)
     (a : Bool) : Real :=
   ∑ k ∈ H, categoryMass mu group k * center a k
 
-/-- The centered arm/category residual is the mark minus its supplied cell
-center, supported on that cell. -/
+/-- For [a category-label function](hyp:group), [a Boolean arm-label function](hyp:arm), [a real-valued mark](hyp:Y), [an arm-and-category center function](hyp:center), [an arm value](hyp:a), and [a category](hyp:k), the [supported arm residual](goal) is the mark minus its supplied cell center on that cell and zero outside it. -/
 noncomputable def supportedArmResidual (group : Omega → kappa)
     (arm : Omega → Bool) (Y : Omega → Real) (center : Bool → kappa → Real)
     (a : Bool) (k : kappa) : Omega → Real :=
   Causalean.Stat.supportedArmGroupResidual group arm Y center a k
 
-/-- The totalized empirical residual mean is zero on an empty arm/category
-cell and otherwise averages its supported centered residuals. -/
+/-- For [a category-label function](hyp:group), [a Boolean arm-label function](hyp:arm), [a real-valued mark](hyp:Y), [an arm-and-category center function](hyp:center), [a finite sample](hyp:z), [an arm value](hyp:a), and [a category](hyp:k), the [totalized empirical residual mean](goal) is zero for an empty arm--category cell and otherwise averages its supported centered residuals. -/
 noncomputable def totalizedArmResidualMean {m : Nat} (group : Omega → kappa)
     (arm : Omega → Bool) (Y : Omega → Real) (center : Bool → kappa → Real)
     (z : Fin m → Omega) (a : Bool) (k : kappa) : Real :=
   Causalean.Stat.armResidualMean group arm Y center z a k
 
-/-- A missing-arm count is the category occupancy when the requested empirical
-arm count is zero, and is zero otherwise. -/
+/-- For [a category-label function](hyp:group), [a Boolean arm-label function](hyp:arm), [a finite sample](hyp:z), [an arm value](hyp:a), and [a category](hyp:k), the [missing-arm count](goal) is the category occupancy when the requested arm--category count is zero, and zero otherwise. -/
 noncomputable def missingArmCount {m : Nat} (group : Omega → kappa)
     (arm : Omega → Bool) (z : Fin m → Omega) (a : Bool) (k : kappa) : Nat :=
   if categoryArmCount group arm z a k = 0 then categoryCount group arm z k else 0
 
-/-- The fixed-arm centered noise is the occupancy-weighted sum of totalized
-cell residual means. -/
+/-- For [a category-label function](hyp:group), [a Boolean arm-label function](hyp:arm), [a real-valued mark](hyp:Y), [an arm-and-category center function](hyp:center), [a finite set of categories](hyp:H), [an arm value](hyp:a), and [a finite sample](hyp:z), the [fixed-stratum arm centered noise](goal) is the occupancy-weighted sum of totalized cell residual means. -/
 noncomputable def fixedStratumArmCenteredNoise {m : Nat} (group : Omega → kappa)
     (arm : Omega → Bool) (Y : Omega → Real) (center : Bool → kappa → Real)
     (H : Finset kappa) (a : Bool) (z : Fin m → Omega) : Real :=
   ∑ k ∈ H, (categoryCount group arm z k : Real) / (m : Real) *
     totalizedArmResidualMean group arm Y center z a k
 
-/-- The fixed-arm missing remainder is the normalized sum of cell centers
-times category occupancies whose requested arm is absent. -/
+/-- For [a category-label function](hyp:group), [a Boolean arm-label function](hyp:arm), [an arm-and-category center function](hyp:center), [a finite set of categories](hyp:H), [an arm value](hyp:a), and [a finite sample](hyp:z), the [fixed-stratum arm missing remainder](goal) is the nominal-sample-size-normalized sum of cell centers times category occupancies whose requested arm is absent. -/
 noncomputable def fixedStratumArmMissingRemainder {m : Nat}
     (group : Omega → kappa) (arm : Omega → Bool)
     (center : Bool → kappa → Real) (H : Finset kappa) (a : Bool)
     (z : Fin m → Omega) : Real :=
   ∑ k ∈ H, center a k * (missingArmCount group arm z a k : Real) / (m : Real)
 
-/-- The empirical-mass fluctuation is the centered sample category weighting
-of the supplied arm/category centers. -/
+/-- For [a measure on the observation space](hyp:mu), [a category-label function](hyp:group), [a Boolean arm-label function](hyp:arm), [an arm-and-category center function](hyp:center), [a finite set of categories](hyp:H), [an arm value](hyp:a), and [a finite sample](hyp:z), the [fixed-stratum arm mass fluctuation](goal) is the sum of each center multiplied by empirical category occupancy divided by nominal sample size minus population category mass. -/
 noncomputable def fixedStratumArmMassFluctuation {m : Nat} (mu : Measure Omega)
     (group : Omega → kappa) (arm : Omega → Bool)
     (center : Bool → kappa → Real) (H : Finset kappa) (a : Bool)

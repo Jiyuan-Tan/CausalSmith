@@ -36,41 +36,36 @@ namespace DAG
 
 variable (G : DAG V)
 
-/-- A **v-structure (immorality)** at `b`: directed edges `a → b` and `c → b` whose tails
-`a` and `c` are distinct and not joined by any edge. Immoralities are the colliders whose
-parents are non-adjacent; they are exactly the part of the collider structure that is
-visible to conditional independence. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [three ordered vertices](hyp:a,b,c), [the v-structure, or immorality, condition](goal) holds exactly when the first and third vertices are distinct, each has a directed edge into the second, and no directed edge joins the first and third in either direction.
+
+Immoralities are the colliders whose parents are non-adjacent; they are exactly the part of the collider structure that is visible to conditional independence. -/
 def IsImmorality (a b c : V) : Prop :=
   G.edge a b ∧ G.edge c b ∧ ¬ G.UAdj a c ∧ a ≠ c
 
-/-- Whether a proposed v-structure in a finite DAG is decidable. -/
+/-- For [a finite vertex population with decidable equality](hyp:V), [a directed acyclic graph on that population](hyp:G), and [three ordered vertices](hyp:a,b,c), the [decision procedure for the v-structure condition](goal) determines whether the first and third vertices are distinct non-adjacent parents of the second. -/
 instance (a b c : V) : Decidable (G.IsImmorality a b c) := by
   unfold IsImmorality; infer_instance
 
 end DAG
 
-/-- Two DAGs have the **same skeleton** when their undirected adjacency relations agree:
-for every pair `a, b`, there is an edge (in either direction) between them in `G₁` iff there
-is one in `G₂`. -/
+/-- For [a finite vertex population](hyp:V) and [two directed acyclic graphs on it](hyp:G₁,G₂), [the same-skeleton condition](goal) holds exactly when, for every pair of vertices, a directed edge joins the pair in either direction in the first graph if and only if one does in the second graph. -/
 def SameSkeleton (G₁ G₂ : DAG V) : Prop := ∀ a b, G₁.UAdj a b ↔ G₂.UAdj a b
 
-/-- Two DAGs have the **same v-structures** when their immorality relations agree. -/
+/-- For [a finite vertex population](hyp:V) and [two directed acyclic graphs on it](hyp:G₁,G₂), [the same-immoralities condition](goal) holds exactly when, for every ordered triple of vertices, it is an immorality in the first graph if and only if it is an immorality in the second graph. -/
 def SameImmoralities (G₁ G₂ : DAG V) : Prop :=
   ∀ a b c, G₁.IsImmorality a b c ↔ G₂.IsImmorality a b c
 
-/-- Two DAGs are **Markov equivalent** when they entail exactly the same d-separations:
-for every triple of vertex sets `X, Y, Z`, `X` and `Y` are d-separated by `Z` in `G₁` iff
-they are in `G₂`. Equivalently (via the global Markov property) the two graphs impose the
-same conditional-independence constraints on every distribution. Pairwise disjointness is
-already part of `dSep`, so it need not be repeated here. -/
+/-- For [a finite vertex population](hyp:V) and [two directed acyclic graphs on it](hyp:G₁,G₂), [Markov equivalence](goal) holds exactly when, for every three finite vertex sets, the first and second sets are d-separated by the third in the first graph if and only if they are d-separated in the second graph.
+
+Equivalently, via the global Markov property, the two graphs impose the same conditional-independence constraints on every distribution. Pairwise disjointness is already part of d-separation, so it need not be repeated here. -/
 def MarkovEquiv (G₁ G₂ : DAG V) : Prop :=
   ∀ X Y Z : Finset V, G₁.dSep X Y Z ↔ G₂.dSep X Y Z
 
-/-- Whether two finite DAGs have the same skeleton is decidable. -/
+/-- For [a finite vertex population with decidable equality](hyp:V) and [two directed acyclic graphs on that population](hyp:G₁,G₂), the [decision procedure for the same-skeleton condition](goal) determines whether the graphs have identical undirected adjacencies for every pair of vertices. -/
 instance (G₁ G₂ : DAG V) : Decidable (SameSkeleton G₁ G₂) := by
   unfold SameSkeleton; infer_instance
 
-/-- Whether two finite DAGs have the same v-structures is decidable. -/
+/-- For [a finite vertex population with decidable equality](hyp:V) and [two directed acyclic graphs on that population](hyp:G₁,G₂), the [decision procedure for the same-immoralities condition](goal) determines whether the graphs have identical v-structures for every ordered triple of vertices. -/
 instance (G₁ G₂ : DAG V) : Decidable (SameImmoralities G₁ G₂) := by
   unfold SameImmoralities; infer_instance
 

@@ -41,7 +41,12 @@ open MeasureTheory ProbabilityTheory Filter Topology Causalean.PO Causalean.Esti
 
 variable {γ : Type*} [MeasurableSpace γ]
 
-/-- Uncentered AIPW pseudo-outcome (Kennedy's `φ_η`):
+/-- For [a covariate space](hyp:γ), given [an observed covariate, binary treatment, and outcome triple](hyp:z) and [a nuisance
+vector consisting of outcome regressions and a treatment propensity](hyp:η), the [uncentered
+augmented inverse-probability-weighted pseudo-outcome](goal) is the difference between the two
+outcome regressions plus the treated and control inverse-propensity-weighted residual corrections.
+
+Uncentered AIPW pseudo-outcome (Kennedy's `φ_η`):
 
     φ_η(z) := μ_fn 1 x − μ_fn 0 x
               + (a / e_fn x) (y − μ_fn 1 x)
@@ -53,8 +58,12 @@ noncomputable def phi_eta (z : γ × Bool × ℝ) (η : NuisanceVec γ) : ℝ :=
 
 variable {P : POSystem} [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- True DR pseudo-outcome: `φ_0(z) := φ_{η_0}(z)` where `η_0` is the truth
-nuisance vector carried by the back-door substrate of `S`. -/
+/-- For [a covariate space](hyp:γ) and [a population outcome system](hyp:P), given [a CATE estimation system](hyp:S) and [an observed covariate, binary treatment, and
+outcome triple](hyp:z), the [true doubly robust pseudo-outcome](goal) is the uncentered
+augmented inverse-probability-weighted pseudo-outcome evaluated with that system's true nuisance vector.
+
+True DR pseudo-outcome: `φ_0(z) := φ_{η_0}(z)` where `η_0` is the truth nuisance vector
+carried by the back-door substrate of `S`. -/
 noncomputable def phi₀ (S : CATEEstimationSystem P γ) (z : γ × Bool × ℝ) : ℝ :=
   phi_eta z S.toBackdoorEstimationSystem.η₀
 

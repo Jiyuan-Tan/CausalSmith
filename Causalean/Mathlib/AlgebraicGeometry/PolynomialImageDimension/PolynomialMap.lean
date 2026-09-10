@@ -17,7 +17,9 @@ namespace Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension
 
 noncomputable section
 
-/-- Every coordinate of `f` is a polynomial in the source coordinates. -/
+/-- For [a source-coordinate index set](hyp:ι), [a target-coordinate index set](hyp:κ), and [a map $f$ from the resulting source complex affine space to the resulting target complex affine space](hyp:f), [the statement that $f$ is a polynomial map](goal) means that, for every target coordinate, there exists a multivariate complex polynomial in the source coordinates whose value at every source point equals that coordinate of $f$.
+
+Every coordinate of `f` is a polynomial in the source coordinates. -/
 def IsPolynomialMap {ι κ : Type*} (f : (ι → ℂ) → (κ → ℂ)) : Prop :=
   ∀ k, ∃ P : MvPolynomial ι ℂ, ∀ x, MvPolynomial.eval x P = f x k
 

@@ -58,7 +58,16 @@ open scoped MeasureTheory ProbabilityTheory
 -- § 1. Deterministic prefix-state builder
 -- ============================================================
 
-/-- Deterministic twin of `jointKernelPrefix`: produces the prefix state
+/-- For [a finite collection of nodes with a measurable outcome space for each node](hyp:N,Ω),
+    [a structural causal model](hyp:M), [a nonnegative integer](hyp:n), and [proof that this
+    integer does not exceed the number of observed nodes](hyp:hn), the [deterministic prefix-state
+    map](goal) takes fixed-node values and latent-node values and returns the latent-node
+    values together with the values generated for the first specified number of observed nodes.
+    [At zero observed nodes it returns the latent-node values and the unique empty prefix](step:1);
+    [at each positive prefix length it first forms the preceding prefix and then appends the value
+    given by the next node's structural equation](step:2).
+
+    Deterministic twin of `jointKernelPrefix`: produces the prefix state
     `(ℓ, observed-prefix)` at level `n` as a plain function.  Its
     `Dirac`-pushforward equals `jointKernelPrefix n hn` (see
     `jointKernelPrefix_apply_eq`).

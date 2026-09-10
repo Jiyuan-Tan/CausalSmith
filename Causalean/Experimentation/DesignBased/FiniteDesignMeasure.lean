@@ -45,7 +45,9 @@ namespace FiniteDesign
 variable {Ω : Type*} [Fintype Ω] [MeasurableSpace Ω] [MeasurableSingletonClass Ω]
 variable (D : FiniteDesign Ω)
 
-/-- The probability measure on `Ω` induced by the design: `∑_z (p z)·δ_z`. -/
+/-- For [a randomization design on a finite assignment space equipped with a σ-algebra](hyp:D),
+[the induced probability measure](goal) assigns to each assignment a point mass equal to that
+assignment's design probability, and sums these point masses over all assignments. -/
 noncomputable def toMeasure : Measure Ω := ∑ z, ENNReal.ofReal (D.p z) • Measure.dirac z
 
 omit [MeasurableSingletonClass Ω] in
@@ -57,7 +59,8 @@ lemma toMeasure_apply (s : Set Ω) :
   refine Finset.sum_congr rfl (fun z _ => ?_)
   rw [Measure.smul_apply, smul_eq_mul]
 
-/-- The measure induced by a finite randomization design has total mass one. -/
+/-- For [every randomization design on a finite assignment space equipped with a σ-algebra](hyp:D),
+[the measure induced by that design is a probability measure](goal): its total mass is one. -/
 instance : IsProbabilityMeasure D.toMeasure := by
   refine ⟨?_⟩
   rw [toMeasure_apply]

@@ -79,7 +79,8 @@ open TreatedEstimationSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- One-shot DML / AIPW estimator of the back-door ATT
+/-- For [a potential-outcomes system with a standard Borel sample space and finite probability measure](hyp:P), [a measurable covariate space](hyp:γ), [a treated estimation system](hyp:S), [an independent and identically distributed sample of observed covariate, treatment, and outcome triples from that system's observed-data distribution](hyp:sample), [a one-shot split of that sample](hyp:split), [a sequence of control-arm outcome-regression estimators](hyp:μ₀_hat), [a sequence of propensity-score estimators](hyp:e_hat), and [a sample-size index](hyp:n), the [one-shot double-machine-learning estimator of the back-door average treatment effect on the treated](goal) is the marginal-treatment-probability-normalized mean, over the split's evaluation fold at that index, of the ATT AIPW score evaluated at zero using the supplied nuisance functions at that index.
+
 (`def:est-dml-att`).
 
 Inputs:

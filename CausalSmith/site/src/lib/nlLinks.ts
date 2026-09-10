@@ -215,7 +215,18 @@ function coerceStructured(raw: unknown): StructuredView | null {
     if (!card) return null;
     conclusions.push(card);
   }
-  return conclusions.length > 0 ? { sharedHyps, conclusions } : null;
+  // A definition's `def` row (name applied to its parameters : type) — a leaf
+  // card like any other content row. A definition given by a `where` block the
+  // producer could not split has this row and no clauses, and is still usable.
+  let defRow: ConclusionCard | undefined;
+  if (r.defRow !== undefined && r.defRow !== null) {
+    const card = coerceCard(r.defRow, 0);
+    if (!card || card.code === undefined) return null;
+    defRow = card;
+  }
+  if (conclusions.length === 0 && !defRow) return null;
+  const role = r.role === "instance" || r.role === "inductive" || r.role === "def" ? (r.role as "def" | "instance" | "inductive") : undefined;
+  return defRow ? { sharedHyps, conclusions, defRow, ...(role ? { role } : {}) } : { sharedHyps, conclusions };
 }
 
 /**
@@ -234,6 +245,7 @@ function rowIds(view: StructuredView): (string | undefined)[] {
     for (const sub of card.sub ?? []) walk(sub);
   };
   for (const h of view.sharedHyps) out.push(h.id);
+  if (view.defRow) out.push(view.defRow.id);
   for (const c of view.conclusions) walk(c);
   return out;
 }

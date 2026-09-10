@@ -7,8 +7,8 @@ import { loadBankGraph, isCitedNode, renderedNodes, type FormalizationGraph, typ
 import { isUndeliveredNode } from "../graph/types.js";
 
 /** decl_kind hint for a node kind (extractDeclSnippet scans by name, so this is
- *  only a display/grep hint, not load-bearing). A cited gate's Lean object is an
- *  assumed `def : Prop`, hence `def`. */
+ *  only a display/grep hint, not load-bearing). Both cited logical and metadata
+ *  carriers are deferred `def` declarations, hence `def`. */
 const DECL_KIND: Record<string, string> = {
   theorem: "theorem",
   lemma: "lemma",

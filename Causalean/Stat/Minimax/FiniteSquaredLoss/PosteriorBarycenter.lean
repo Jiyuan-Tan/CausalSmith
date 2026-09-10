@@ -42,7 +42,10 @@ open Causalean.Stat.Minimax.FiniteSquaredLoss
 variable {Theta B : Type*} [Fintype Theta] [Fintype B]
 variable {X : B → Type*} [∀ b, Fintype (X b)]
 
-/-- The prior predictive mass of an observation in one design-index fiber. -/
+/-- Given [a dependent finite experiment](hyp:M), [a prior probability design over states](hyp:nu),
+[a design index](hyp:b), and [an observation in that design's observation space](hyp:x), [the prior
+predictive mass](goal) is the sum over states of prior probability times the conditional probability
+of that observation. -/
 noncomputable def Model.predictiveMass (M : Model Theta B X) (nu : FiniteDesign Theta)
     (b : B) (x : X b) : ℝ :=
   ∑ theta, nu.p theta * M.P theta b x
@@ -61,13 +64,18 @@ theorem Model.predictiveMass_nonneg (M : Model Theta B X) (nu : FiniteDesign The
     (b : B) (x : X b) : 0 ≤ M.predictiveMass nu b x := by
   exact Finset.sum_nonneg fun theta _ => mul_nonneg (nu.p_nonneg theta) (M.P_nonneg theta b x)
 
-/-- The predictive target numerator is the prior average of target times joint mass. -/
+/-- Given [a dependent finite experiment](hyp:M), [a prior probability design over states](hyp:nu),
+[a design index](hyp:b), and [an observation in that design's observation space](hyp:x), [the predictive
+target numerator](goal) is the sum over states of prior probability times observation likelihood times
+the state's target. -/
 noncomputable def Model.predictiveTarget (M : Model Theta B X) (nu : FiniteDesign Theta)
     (b : B) (x : X b) : ℝ :=
   ∑ theta, nu.p theta * M.P theta b x * M.tau theta
 
-/-- The guarded posterior mean is the predictive target divided by predictive mass on a
-non-null fiber and is zero on a null fiber. -/
+/-- Given [a dependent finite experiment](hyp:M), [a prior probability design over states](hyp:nu),
+[a design index](hyp:b), and [an observation in that design's observation space](hyp:x), [the guarded
+posterior mean](goal) is the predictive target numerator divided by predictive mass when that mass
+is nonzero, and is zero when it is zero. -/
 noncomputable def Model.posteriorMean (M : Model Theta B X) (nu : FiniteDesign Theta)
     (b : B) (x : X b) : ℝ :=
   if M.predictiveMass nu b x = 0 then 0
@@ -109,8 +117,10 @@ theorem Model.predictiveMass_mul_posteriorMean (M : Model Theta B X)
   · rw [Model.posteriorMean, if_neg hx]
     exact mul_div_cancel₀ _ hx
 
-/-- The posterior residual at a design index is the prior joint squared deviation from the
-guarded posterior mean. -/
+/-- Given [a dependent finite experiment](hyp:M), [a prior probability design over states](hyp:nu),
+and [a design index](hyp:b), [the posterior residual](goal) is the sum, over states and observations,
+of prior probability times observation likelihood times squared deviation of the guarded posterior
+mean from the state's target. -/
 noncomputable def Model.posteriorResidual (M : Model Theta B X)
     (nu : FiniteDesign Theta) (b : B) : ℝ :=
   ∑ theta, nu.p theta *
@@ -315,8 +325,11 @@ open Causalean.Stat.Minimax.FiniteSquaredLoss
 variable {Theta B G : Type*} [Fintype Theta] [Fintype B] [Fintype G]
 variable {X : B → Type*}
 
-/-- The guarded conditional barycenter uses the normalized grid weights on positive design
-fibers and a caller-supplied default on zero-design-mass fibers. -/
+/-- Given [a probability design over design indices](hyp:pi), [grid weights for each design index,
+observation, and grid action](hyp:w), [real grid actions](hyp:gamma), [a default action](hyp:d),
+[a design index](hyp:b), and [an observation in that design's observation space](hyp:x), [the guarded
+conditional barycenter](goal) is the weighted average of grid actions divided by that design's
+probability when it is positive, and is the default action when it is zero. -/
 noncomputable def conditionalBarycenter (pi : FiniteDesign B)
     (w : ∀ b, X b → G → ℝ) (gamma : G → ℝ) (d : ℝ)
     (b : B) (x : X b) : ℝ :=
@@ -461,8 +474,12 @@ theorem Model.conditionalBarycenter_risk_le [∀ b, Fintype (X b)]
         M.P theta b x * w b x g * (gamma g - M.tau theta) ^ 2 := by
       simp_rw [Finset.mul_sum, mul_assoc]
 
-/-- Interval-bounded defaults and grid actions turn a guarded conditional barycenter into a
-valid bounded dependent finite squared-loss procedure. -/
+/-- Given [a probability design over design indices](hyp:pi), [grid weights](hyp:w), [real grid
+actions](hyp:gamma), [a default action](hyp:d), [nonnegative grid weights](hyp:hw), [weights that
+sum to the corresponding design probability](hyp:hocc), [a default action in the closed interval
+from $l$ to $u$](hyp:hd), and [grid actions all in that interval](hyp:hgamma), [the barycenter
+procedure](goal) is the bounded finite procedure using that design and the guarded conditional
+barycenter as its decision rule. -/
 noncomputable def barycenterProcedure (pi : FiniteDesign B)
     [∀ b, Fintype (X b)]
     (w : ∀ b, X b → G → ℝ)

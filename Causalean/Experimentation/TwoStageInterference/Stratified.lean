@@ -46,21 +46,17 @@ open DesignBased
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 variable {n : ι → ℕ}
 
-/-- The number of units `k ≠ j` in group `i` that are treated under within-group assignment
-`w` (the count of *other* treated units relevant to unit `j`). -/
+/-- For [a collection of groups](hyp:ι), [their group sizes](hyp:n), [a group $i$](hyp:i), [a unit $j$ in that group](hyp:j), and [a within-group treatment assignment](hyp:w), the [number of other treated units](goal) is the number of units in group $i$ other than $j$ that the assignment treats. -/
 def numTreatedOthers (i : ι) (j : Fin (n i)) (w : WAssign n i) : ℕ :=
   (Finset.univ.filter (fun k => k ≠ j ∧ w k = true)).card
 
-/-- The **stratified-interference exposure** of unit `(i,j)` under within-group assignment
-`w`: the pair of its own treatment `w j` and the number of other treated units in its group.
+/-- For [a collection of groups](hyp:ι), [their group sizes](hyp:n), [a group $i$](hyp:i), [a unit $j$ in that group](hyp:j), and [a within-group treatment assignment](hyp:w), the [stratified-interference exposure of unit $j$](goal) is the pair consisting of $j$'s own treatment and the number of other treated units in group $i$.
+
 This is the exposure summary through which outcomes are allowed to depend on the assignment. -/
 def stratExpo (i : ι) (j : Fin (n i)) (w : WAssign n i) : Bool × ℕ :=
   (w j, numTreatedOthers i j w)
 
-/-- **Assumption 2 (stratified interference).**  A population of potential outcomes `Y`
-satisfies stratified interference when each unit's outcome depends on the within-group
-assignment only through its stratified exposure: whenever two assignments give a unit the
-same own treatment and the same count of treated others, the unit's outcome agrees. -/
+/-- For [a collection of groups](hyp:ι), [their group sizes](hyp:n), and [a potential-outcome schedule](hyp:Y), the [stratified-interference condition](goal) holds exactly when, for every group, every unit in that group, and every two within-group treatment assignments, equal own treatment and equal numbers of other treated units imply equal potential outcomes for that unit. -/
 def StratifiedInterference (Y : ∀ i, Fin (n i) → WAssign n i → ℝ) : Prop :=
   ∀ i (j : Fin (n i)) (w w' : WAssign n i),
     stratExpo i j w = stratExpo i j w' → Y i j w = Y i j w'

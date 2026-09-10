@@ -49,22 +49,26 @@ namespace POBackdoorSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 variable (S : POBackdoorSystem P γ)
 
-/-- **Calibration (data-compatibility).** A candidate complete propensity `ẽ` is *calibrated* if the
+/-- Given [a binary-treatment backdoor system](hyp:S) and [a candidate complete-propensity function](hyp:etilde), the [calibration condition](goal) holds exactly when the conditional mean, given the covariate σ-algebra, of the treated-arm indicator divided by that function equals one almost surely.
+
+**Calibration (data-compatibility).** A candidate complete propensity `ẽ` is *calibrated* if the
 inverse-propensity weighting of the treatment indicator averages to one within every covariate
 stratum: `E[ Z / ẽ | σ(X) ] = 1` a.e. This is the only restriction on `ẽ`
 beyond the odds-ratio box implied by the observed-data distribution. -/
 def Calibrated (etilde : P.Ω → ℝ) : Prop :=
   P.μ[fun ω => S.dVar.indicator true ω / etilde ω | S.sigmaX] =ᵐ[P.μ] (fun _ => 1)
 
-/-- **The calibrated (sharp) MSM ambiguity set:** odds-ratio-box members that also satisfy
+/-- Given [a binary-treatment backdoor system](hyp:S) and [a sensitivity level](hyp:Λ), the [calibrated MSM ambiguity set](goal) contains exactly the candidate complete-propensity functions that [belong to the MSM ambiguity set at that level](step:1) and satisfy the calibration condition.
+
+**The calibrated (sharp) MSM ambiguity set:** odds-ratio-box members that also satisfy
 calibration. -/
 def MSMSetCalib (Λ : ℝ) : Set (P.Ω → ℝ) :=
   { etilde | etilde ∈ S.MSMSet Λ ∧ S.Calibrated etilde }
 
-/-- The **sharp upper bound:** the supremum of the candidate mean over the calibrated set. -/
+/-- Given [a binary-treatment backdoor system](hyp:S) and [a sensitivity level](hyp:Λ), the [sharp MSM upper bound](goal) is the supremum of candidate inverse-probability-weighted means over the calibrated MSM ambiguity set. -/
 noncomputable def msmUpperCalib (Λ : ℝ) : ℝ := sSup (S.candMean '' S.MSMSetCalib Λ)
 
-/-- The **sharp lower bound:** the infimum of the candidate mean over the calibrated set. -/
+/-- Given [a binary-treatment backdoor system](hyp:S) and [a sensitivity level](hyp:Λ), the [sharp MSM lower bound](goal) is the infimum of candidate inverse-probability-weighted means over the calibrated MSM ambiguity set. -/
 noncomputable def msmLowerCalib (Λ : ℝ) : ℝ := sInf (S.candMean '' S.MSMSetCalib Λ)
 
 /-- **The true complete propensity is calibrated.** `E[Z / e₀ | σ(X)] = 1` a.e., where

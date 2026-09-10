@@ -18,26 +18,22 @@ open scoped BigOperators
 namespace Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
 namespace Transcendental
 
-/-- The integer scaling factor reduces a rational exponential argument to
-absolute value at most one. -/
+/-- For [a rational exponential argument](hyp:q), [the exponential scaling factor](goal) is the larger of one and the absolute value of the argument's numerator. -/
 def expScale (q : ℚ) : ℕ := max 1 q.num.natAbs
 
-/-- The reduced exponential argument divides by its positive natural scaling factor. -/
+/-- For [a rational exponential argument](hyp:q), [the reduced exponential argument](goal) is the argument divided by its exponential scaling factor. -/
 def expReduced (q : ℚ) : ℚ := q / (expScale q : ℚ)
 
-/-- The rational Taylor polynomial for the exponential retains all terms
-through the requested degree. -/
+/-- For [a rational number](hyp:q) and [a nonnegative polynomial degree](hyp:n), [the exponential Taylor partial sum](goal) is the sum of the terms $q^k/k!$ for every integer $k$ from zero through $n$. -/
 def expPartial (q : ℚ) (n : ℕ) : ℚ :=
   ∑ k ∈ Finset.range (n + 1), q ^ k / (k.factorial : ℚ)
 
-/-- The rational remainder radius is the explicit exponential-series bound
-after the retained Taylor terms. -/
+/-- For [a rational number](hyp:q) and [a nonnegative polynomial degree](hyp:n), [the exponential remainder radius](goal) is $|q|^{n+1}(n+2)/((n+1)!(n+1))$. -/
 def expRemainder (q : ℚ) (n : ℕ) : ℚ :=
   |q| ^ (n + 1) * ((n + 2 : ℕ) : ℚ) /
     (((n + 1).factorial : ℚ) * (n + 1 : ℕ))
 
-/-- A reduced rational argument is enclosed by its Taylor polynomial plus or
-minus the rational remainder radius. -/
+/-- For [a rational number](hyp:q) and [a nonnegative polynomial degree](hyp:n), [the reduced exponential enclosure](goal) has [lower endpoint equal to the Taylor partial sum minus the remainder radius](step:1), upper endpoint equal to the Taylor partial sum plus the remainder radius, and valid endpoint order. -/
 def expReducedRaw (q : ℚ) (n : ℕ) : RatInterval :=
   ⟨expPartial q n - expRemainder q n,
     expPartial q n + expRemainder q n, by
@@ -46,18 +42,16 @@ def expReducedRaw (q : ℚ) (n : ℕ) : RatInterval :=
         positivity
       linarith⟩
 
-/-- The raw exponential enclosure raises the reduced-argument enclosure to the
-exact scaling power. -/
+/-- For [a rational exponential argument](hyp:q) and [a nonnegative polynomial degree](hyp:n), [the raw exponential enclosure](goal) is the natural-power interval obtained by raising the reduced exponential enclosure to the exponential scaling factor. -/
 def expRaw (q : ℚ) (n : ℕ) : RatInterval :=
   (expReducedRaw (expReduced q) n).npow (expScale q)
 
-/-- Successive exponential enclosures are intersected to make the returned sequence nested. -/
+/-- For [a rational exponential argument](hyp:q), [the scalar exponential enclosure sequence](goal) assigns [the raw exponential enclosure at degree zero](step:1) to index zero and [the conditional tightening of the preceding enclosure with the next raw enclosure](step:2) to each positive index. -/
 def expScalar (q : ℚ) : ℕ → RatInterval
   | 0 => expRaw q 0
   | n + 1 => RatInterval.tighten (expScalar q n) (expRaw q (n + 1))
 
-/-- The explicit exponential precision is a natural function of the rational
-input and target width. -/
+/-- For [a rational exponential argument](hyp:q) and [a strictly positive rational target width](hyp:ε), [the exponential precision index](goal) is the product of one plus the target-width denominator and two copies of one plus the exponential scaling factor. -/
 def expPrecision (q : ℚ) (ε : PosRat) : ℕ :=
   (ε.1.den + 1) * (expScale q + 1) * (expScale q + 1)
 
@@ -481,7 +475,7 @@ theorem expScalar_width (q : ℚ) (ε : PosRat) :
     _ ≤ ε.1 := by
       simpa [D] using inv_den_le_of_pos ε.1 ε.2
 
-/-- A rational exponential is a certified real with a fully rational endpoint algorithm. -/
+/-- For [a rational number](hyp:q), [the certified-real representation of its exponential](goal) has [value equal to the real exponential of that rational number](step:1), approximating intervals given by the scalar exponential enclosure sequence, nested approximations, containment of the exact value, the exponential precision index as its modulus, and the corresponding target-width guarantee. -/
 noncomputable def expName (q : ℚ) : CertifiedReal where
   value := Real.exp (q : ℝ)
   approx := expScalar q

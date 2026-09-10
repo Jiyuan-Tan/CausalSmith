@@ -34,7 +34,9 @@ namespace FiniteUniformExperiment
 
 variable (E : FiniteUniformExperiment Latent Allocation Observation Statistic)
 
-/-- The full-data Markov kernel sends each latent state to the finite joint allocation-observation
+/-- Given [a finite uniform experiment on finite latent, allocation, observation, and statistic spaces](hyp:E), with σ-algebras on the latent, allocation, and observation spaces and measurable singleton latent states, the [full-data Markov kernel](goal) assigns to each latent state the experiment's finite joint probability law of the allocation and observation at that state.
+
+The full-data Markov kernel sends each latent state to the finite joint allocation-observation
 law at that state. -/
 noncomputable def fullKernel : Kernel Latent (Allocation × Observation) :=
   Kernel.ofFunOfCountable fun θ ↦
@@ -44,7 +46,11 @@ noncomputable def fullKernel : Kernel Latent (Allocation × Observation) :=
       p_sum := E.jointMass_sum θ
     } : FiniteDesign (Allocation × Observation)).toMeasure
 
-/-- The full-data kernel is a Markov kernel. -/
+/-- For [a finite uniform experiment on finite latent, allocation, observation, and statistic
+spaces, with distinguishable allocation, observation, and statistic values, σ-algebras on the
+latent, allocation, and observation spaces, and measurable singleton latent states](hyp:E), the
+[full-data kernel is a Markov kernel](goal): [at every latent state, its output law is a probability
+measure](step:1). -/
 instance fullKernel_isMarkovKernel : IsMarkovKernel E.fullKernel where
   isProbabilityMeasure θ := by
     change IsProbabilityMeasure
@@ -55,30 +61,43 @@ instance fullKernel_isMarkovKernel : IsMarkovKernel E.fullKernel where
       } : FiniteDesign (Allocation × Observation)).toMeasure)
     infer_instance
 
-/-- The statistic Markov kernel sends each latent state to the finite statistic marginal law. -/
+/-- Given [a finite uniform experiment on finite latent, allocation, observation, and statistic spaces](hyp:E), with σ-algebras on the latent and statistic spaces and measurable singleton latent states, the [statistic Markov kernel](goal) assigns to each latent state the experiment's finite marginal probability law of the statistic.
+
+The statistic Markov kernel sends each latent state to the finite statistic marginal law. -/
 noncomputable def statisticKernel : Kernel Latent Statistic :=
   Kernel.ofFunOfCountable fun θ ↦ (E.statisticDesign θ).toMeasure
 
-/-- The statistic kernel is a Markov kernel. -/
+/-- For [a finite uniform experiment on finite latent, allocation, observation, and statistic
+spaces, with distinguishable allocation, observation, and statistic values, σ-algebras on the
+latent and statistic spaces, and measurable singleton latent states](hyp:E), the [statistic
+kernel is a Markov kernel](goal): [at every latent state, its output law is a probability measure](step:1). -/
 instance statisticKernel_isMarkovKernel : IsMarkovKernel E.statisticKernel where
   isProbabilityMeasure θ := by
     change IsProbabilityMeasure (E.statisticDesign θ).toMeasure
     infer_instance
 
-/-- At a fixed latent state, the guarded conditional Markov kernel sends each statistic value to
+/-- Given [a finite uniform experiment on finite latent, allocation, observation, and statistic spaces](hyp:E), with σ-algebras on the allocation, observation, and statistic spaces and measurable singleton statistic values, and [a latent state](hyp:θ), the [guarded conditional Markov kernel](goal) assigns to each statistic value the experiment's conditional probability law of the allocation--observation pair at that state, using the fallback law when the statistic fiber has zero probability.
+
+At a fixed latent state, the guarded conditional Markov kernel sends each statistic value to
 the corresponding full-data conditional law, using the fallback law on null fibers. -/
 noncomputable def conditionalKernel (θ : Latent) :
     Kernel Statistic (Allocation × Observation) :=
   Kernel.ofFunOfCountable fun s ↦ (E.conditionalDesign θ s).toMeasure
 
-/-- Every guarded conditional kernel is a Markov kernel, including at null fibers. -/
+/-- For [a finite uniform experiment on finite latent, allocation, observation, and statistic
+spaces, with distinguishable allocation, observation, and statistic values, σ-algebras on the
+allocation, observation, and statistic spaces, and measurable singleton statistic values](hyp:E)
+and [a latent state](hyp:θ), the [guarded conditional kernel is a Markov kernel](goal): [at every
+statistic value, including a zero-probability fibre, its output law is a probability measure](step:1). -/
 instance conditionalKernel_isMarkovKernel (θ : Latent) :
     IsMarkovKernel (E.conditionalKernel θ) where
   isProbabilityMeasure s := by
     change IsProbabilityMeasure (E.conditionalDesign θ s).toMeasure
     infer_instance
 
-/-- A sufficient factorization gives a state-independent Markov kernel from the statistic to
+/-- Given [a finite uniform experiment on finite latent, allocation, observation, and statistic spaces](hyp:E), with σ-algebras on the allocation, observation, and statistic spaces and measurable singleton statistic values, and [a sufficient factorization of its full-data masses](hyp:F), the [common conditional Markov kernel](goal) assigns to each statistic value the factorization-induced state-independent conditional probability law of the allocation--observation pair.
+
+A sufficient factorization gives a state-independent Markov kernel from the statistic to
 the full data by converting its derived common finite conditional law to measures. -/
 noncomputable def commonConditionalMarkovKernel (F : E.SufficientFactorization) :
     Kernel Statistic (Allocation × Observation) :=
@@ -89,8 +108,12 @@ noncomputable def commonConditionalMarkovKernel (F : E.SufficientFactorization) 
       p_sum := F.toCommonConditionalKernel.weight_sum s
     } : FiniteDesign (Allocation × Observation)).toMeasure
 
-/-- The factorization-derived common conditional kernel is a Markov kernel on every statistic
-fiber, including null fibers. -/
+/-- For [a finite uniform experiment on finite latent, allocation, observation, and statistic
+spaces, with distinguishable allocation, observation, and statistic values, σ-algebras on the
+allocation, observation, and statistic spaces, and measurable singleton statistic values](hyp:E)
+and [a sufficient factorization of its full-data probability masses](hyp:F), the
+[factorization-derived common conditional kernel is a Markov kernel](goal): [at every statistic
+value, including a zero-probability fibre, its output law is a probability measure](step:1). -/
 instance commonConditionalMarkovKernel_isMarkovKernel (F : E.SufficientFactorization) :
     IsMarkovKernel (E.commonConditionalMarkovKernel F) where
   isProbabilityMeasure s := by
@@ -102,13 +125,19 @@ instance commonConditionalMarkovKernel_isMarkovKernel (F : E.SufficientFactoriza
       } : FiniteDesign (Allocation × Observation)).toMeasure)
     infer_instance
 
-/-- Under a finite prior, the posterior Markov kernel sends each statistic value to the guarded
+/-- Given [a finite uniform experiment on finite latent, allocation, observation, and statistic spaces](hyp:E), with σ-algebras on the latent and statistic spaces and measurable singleton statistic values, and [a finite prior probability distribution on latent states](hyp:prior), the [posterior Markov kernel](goal) assigns to each statistic value the guarded posterior probability law of the latent state, using the designated fallback law on prior-predictive statistic fibers of zero probability.
+
+Under a finite prior, the posterior Markov kernel sends each statistic value to the guarded
 conditional law of the latent state. -/
 noncomputable def posteriorKernel (prior : FiniteDesign Latent) : Kernel Statistic Latent :=
   Kernel.ofFunOfCountable fun s ↦ (E.posteriorDesign prior s).toMeasure
 
-/-- Every guarded finite-prior posterior kernel is a Markov kernel, including on null
-prior-predictive statistic fibers. -/
+/-- For [a finite uniform experiment on finite latent, allocation, observation, and statistic
+spaces, with distinguishable allocation, observation, and statistic values, σ-algebras on the
+latent and statistic spaces, and measurable singleton statistic values](hyp:E) and [a finite
+prior probability distribution on latent states](hyp:prior), the [guarded posterior kernel is a
+Markov kernel](goal): [at every statistic value, including a prior-predictive zero-probability
+fibre, its output law is a probability measure](step:1). -/
 instance posteriorKernel_isMarkovKernel (prior : FiniteDesign Latent) :
     IsMarkovKernel (E.posteriorKernel prior) where
   isProbabilityMeasure s := by

@@ -13,7 +13,7 @@ import { parseFigureDsl, renderFigureSvg } from "../figure_layout.js";
  * internal/plans/2026-08-27-p6-slides-proposal.md). One codex call emits
  * `slides.md`; formal statements are injected from the frozen layer at render
  * time, so no equivalence/proof re-audit runs here. `slides.md` is an AUTHORED
- * SOURCE: hand edits survive regeneration (refused without ctx.refreshSlides),
+ * SOURCE: hand edits survive regeneration (delete slides.md to regenerate),
  * and the quality gate is the orchestrator reading it — clarity is the measure.
  */
 export async function stageP6(io: StageIO): Promise<void> {
@@ -109,10 +109,10 @@ export async function stageP6(io: StageIO): Promise<void> {
     const handEdited = cache === null || hashEnvBody(existing) !== cache.generated_hash;
     // Both kept-deck paths still author any figure whose asset is missing (a hand
     // edit may ADD an @figure; a prior run may have died mid-figure-authoring).
-    if (handEdited && io.ctx.refreshSlides !== true) {
+    if (handEdited) {
       const authored = await authorMissingFigures(io, parseSlidesMd(existing), meta.abstract, layer.blocks);
       io.state.notes.push(
-        `P6: slides.md has hand edits — kept as-is (regenerate with --refresh-slides to discard them)${authored > 0 ? `; ${authored} figure(s) authored` : ""}.`,
+        `P6: slides.md has hand edits — kept as-is (delete slides.md to regenerate and discard them)${authored > 0 ? `; ${authored} figure(s) authored` : ""}.`,
       );
       return;
     }
@@ -176,7 +176,7 @@ export async function stageP6(io: StageIO): Promise<void> {
   }
   // Atomic (tmp+rename) writes, cache FIRST: a crash between the writes can
   // only leave a cache mismatching the (old or absent) deck — the next run then
-  // fails CLOSED, keeping the old deck as "hand-edited" until --refresh-slides.
+  // fails CLOSED, keeping the old deck as "hand-edited" until slides.md is deleted.
   // Never a fresh deck without provenance, and NFS readers never see torn files.
   const finalMd = md.endsWith("\n") ? md : md + "\n";
   await writeAtomic(

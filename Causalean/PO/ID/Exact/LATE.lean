@@ -53,51 +53,55 @@ namespace POIVSystem
 
 variable {P : POSystem} (S : POIVSystem P)
 
-/-- Instrument packaged as a `POVar` valued in `Bool`. -/
+/-- For [a binary instrumental-variables system](hyp:S), the [binary instrument potential-outcome variable](goal) is its instrument node with its binary representation. -/
 def zVar : POVar P Bool := ⟨S.Z, S.hZbool⟩
 
-/-- Treatment packaged as a `POVar` valued in `Bool`. -/
+/-- For [a binary instrumental-variables system](hyp:S), the [binary treatment potential-outcome variable](goal) is its treatment node with its binary representation. -/
 def dVar : POVar P Bool := ⟨S.D, S.hDbool⟩
 
-/-- Outcome packaged as a `POVar` valued in `ℝ`. -/
+/-- For [a binary instrumental-variables system](hyp:S), the [real-valued outcome potential-outcome variable](goal) is its outcome node with its real-valued representation. -/
 def yVar : POVar P ℝ := ⟨S.Y, S.hYreal⟩
 
-/-- Regime fixing instrument to `z`. -/
+/-- For [a binary instrumental-variables system](hyp:S) and [an instrument value](hyp:z), the [instrument intervention regime](goal) fixes the instrument to that value. -/
 noncomputable def instrumentRegime (z : Bool) : Regime P.V P.X :=
   Regime.single S.Z (S.hZbool.symm z)
 
-/-- Regime fixing treatment to `d`. -/
+/-- For [a binary instrumental-variables system](hyp:S) and [a treatment value](hyp:d), the [treatment intervention regime](goal) fixes treatment to that value. -/
 noncomputable def treatmentRegime (d : Bool) : Regime P.V P.X :=
   Regime.single S.D (S.hDbool.symm d)
 
-/-- The potential treatment under an instrument value is the treatment that
+/-- For [a binary instrumental-variables system](hyp:S) and [an instrument value](hyp:z), the [potential treatment](goal) assigns each unit the treatment it would take if the instrument were fixed to that value.
+
+The potential treatment under an instrument value is the treatment that
 would be observed if the instrument were fixed to that value.
 
 `D(z) : P.Ω → Bool`. -/
 noncomputable def DofZ (z : Bool) : P.Ω → Bool :=
   S.dVar.cfUnder S.zVar z
 
-/-- The potential outcome under a treatment value is the outcome that would be
+/-- For [a binary instrumental-variables system](hyp:S) and [a treatment value](hyp:d), the [potential outcome](goal) assigns each unit the outcome it would have if treatment were fixed to that value.
+
+The potential outcome under a treatment value is the outcome that would be
 observed if treatment were fixed to that value.
 
 `Y(d) : P.Ω → ℝ`. -/
 noncomputable def YofD (d : Bool) : P.Ω → ℝ :=
   S.yVar.cfUnder S.dVar d
 
-/-- Factual instrument Z. -/
+/-- For [a binary instrumental-variables system](hyp:S), the [factual instrument](goal) assigns each unit its observed binary instrument. -/
 noncomputable def factualZ : P.Ω → Bool := S.zVar.factual
 
-/-- Factual treatment D. -/
+/-- For [a binary instrumental-variables system](hyp:S), the [factual treatment](goal) assigns each unit its observed binary treatment. -/
 noncomputable def factualD : P.Ω → Bool := S.dVar.factual
 
-/-- Factual outcome Y. -/
+/-- For [a binary instrumental-variables system](hyp:S), the [factual outcome](goal) assigns each unit its observed real outcome. -/
 noncomputable def factualY : P.Ω → ℝ := S.yVar.factual
 
-/-- Complier event `{ω | D(1)(ω) = 1 ∧ D(0)(ω) = 0}` -- def:po-late. -/
+/-- For [a binary instrumental-variables system](hyp:S), the [complier event](goal) is the set of units that would take treatment when the instrument is on and would not take treatment when it is off. -/
 def complierEvent : Set P.Ω :=
   { ω | S.DofZ true ω = true ∧ S.DofZ false ω = false }
 
-/-- Set `{ω | Z(ω) = z}`. -/
+/-- For [a binary instrumental-variables system](hyp:S) and [an instrument value](hyp:z), the [instrument event](goal) is the set of units whose observed instrument equals that value. -/
 def zEvent (z : Bool) : Set P.Ω := S.zVar.event z
 
 /-- The potential treatment under a fixed instrument value is measurable. -/
@@ -131,7 +135,7 @@ lemma measurableSet_complierEvent : MeasurableSet S.complierEvent :=
 lemma measurableSet_zEvent (z : Bool) : MeasurableSet (S.zEvent z) :=
   S.zVar.measurableSet_event _ (measurableSet_singleton _)
 
-/-- `Y` composed with `D(z)`: `1_{D(z)=1} Y(1) + 1_{D(z)=0} Y(0)`. -/
+/-- For [a binary instrumental-variables system](hyp:S) and [an instrument value](hyp:z), the [outcome under the instrument-induced treatment](goal) assigns each unit its treated potential outcome if the instrument induces treatment and its untreated potential outcome otherwise. -/
 noncomputable def YofDofZ (z : Bool) : P.Ω → ℝ :=
   fun ω => if S.DofZ z ω then S.YofD true ω else S.YofD false ω
 
@@ -143,26 +147,30 @@ lemma YofDofZ_def (z : Bool) :
     S.YofDofZ z = fun ω => if S.DofZ z ω then S.YofD true ω else S.YofD false ω :=
   rfl
 
-/-- `E[D | Z = z]`, the event-level conditional expectation of the (0/1-coded)
+/-- For [a binary instrumental-variables system](hyp:S) and [an instrument value](hyp:z), the [conditional treatment mean](goal) is the event-conditional mean of observed treatment among units with that instrument value.
+
+`E[D | Z = z]`, the event-level conditional expectation of the (0/1-coded)
 factual treatment on `{Z = z}`. Uses the shared PO conditioning tool
 `eventCondExp` (definitionally `(∫_A g)/μ(A)`). -/
 noncomputable def condExpDZ (z : Bool) : ℝ :=
   eventCondExp P.μ (S.zEvent z) (fun ω => ((S.factualD ω).toNat : ℝ))
 
-/-- `E[Y | Z = z]`, the event-level conditional expectation of the factual outcome
+/-- For [a binary instrumental-variables system](hyp:S) and [an instrument value](hyp:z), the [conditional outcome mean](goal) is the event-conditional mean of observed outcome among units with that instrument value.
+
+`E[Y | Z = z]`, the event-level conditional expectation of the factual outcome
 on `{Z = z}`, via the shared PO conditioning tool `eventCondExp`. -/
 noncomputable def condExpYZ (z : Bool) : ℝ :=
   eventCondExp P.μ (S.zEvent z) S.factualY
 
-/-- Regimed variable for `D(z)` (treatment under instrument set to `z`). -/
+/-- For [a binary instrumental-variables system](hyp:S) and [an instrument value](hyp:z), the [treatment under the instrument regime](goal) is the potential treatment represented together with the intervention fixing the instrument to that value. -/
 def dUnderZ (z : Bool) : RegimedVar P Bool :=
   ⟨S.dVar, Regime.single S.Z (S.hZbool.symm z)⟩
 
-/-- Regimed variable for `Y(d)` (outcome under treatment set to `d`). -/
+/-- For [a binary instrumental-variables system](hyp:S) and [a treatment value](hyp:d), the [outcome under the treatment regime](goal) is the potential outcome represented together with the intervention fixing treatment to that value. -/
 def yUnderD (d : Bool) : RegimedVar P ℝ :=
   ⟨S.yVar, Regime.single S.D (S.hDbool.symm d)⟩
 
-/-- Counterfactual bundle `(D(1), D(0), Y(1), Y(0))`. -/
+/-- For [a binary instrumental-variables system](hyp:S), the [counterfactual bundle](goal) contains potential treatments under both instrument values and potential outcomes under both treatment values. -/
 noncomputable def cfBundle : POCFBundle P :=
   POCFBundle.cons (S.dUnderZ true) <|
   POCFBundle.cons (S.dUnderZ false) <|
@@ -204,7 +212,9 @@ structure Assumptions (S : POIVSystem P) : Prop where
       positive mass of units (the LATE denominator is non-zero). -/
   relevance : 0 < (P.μ S.complierEvent).toReal
 
-/-- Local Average Treatment Effect -- def:po-late.
+/-- For [a binary instrumental-variables system](hyp:S), the [local average treatment effect](goal) is the mean difference between treated and untreated potential outcomes among compliers, with value zero when the complier event has zero probability.
+
+Local Average Treatment Effect -- def:po-late.
 
     `E[Y(1) - Y(0) | C]`, the average treatment effect over the complier event
     `C`, via the shared PO conditioning tool `eventCondExp` (definitionally

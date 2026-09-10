@@ -36,10 +36,21 @@ namespace EnvFamily
 
 variable {ι : Type*} [Fintype ι]
 
-/-- The singleton node set `{Y}` used as the conditioned target. -/
+/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
+environment index set](hyp:ι), and [an invariant-prediction environment family](hyp:F), [the
+target set](goal) is the singleton containing that family's random-form target node. -/
 abbrev targetSet (F : EnvFamily N Ω ι) : Finset (SWIGNode N) := {SWIGNode.random F.Y}
 
-/-- `S` is **invariant** across the environment family `F`.
+/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
+environment index set](hyp:ι), [an invariant-prediction environment family](hyp:F), and [a finite
+predictor-node set that is observed in every environment](hyp:S,hS), [the assertion that this
+predictor set is invariant](goal) means that there exists a measure-valued rule for the target as a
+function of the predictor values and the values of fixed parents such that (1) [after transporting fixed-parent
+values between environments, this law is the same in every pair of environments](step:1), and
+(2) in each environment, the observed conditional law of the target given the predictors agrees
+almost everywhere with that common law evaluated at that environment's fixed-parent values.
+
+`S` is **invariant** across the environment family `F`.
 
 Faithful to the paper's "condition on `X_{PA(Y)}` regardless of intervention
 status": the witness conditional law `κ` may depend on the values of the target's

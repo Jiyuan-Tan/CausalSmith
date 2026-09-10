@@ -23,15 +23,13 @@ open scoped MeasureTheory ProbabilityTheory
 variable {N : Type*} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-/-- Every random or fixed SWIG-node value space is finite when every base-node
-value space is finite. -/
+/-- For [a collection of node labels](hyp:N), [a family of finite base-node value spaces](hyp:Ω), and [a random or fixed SWIG node](hyp:sn), [the finite enumeration of that node's value space](goal) is inherited from the finite enumeration of its corresponding base-node value space [by the random-node case](step:1) or [by the fixed-node case](step:2). -/
 instance instFintypeSwigΩ [∀ n, Fintype (Ω n)] :
     ∀ sn : SWIGNode N, Fintype (swigΩ Ω sn)
   | .random _ => inferInstance
   | .fixed _ => inferInstance
 
-/-- Every random or fixed SWIG-node value space has measurable singletons when
-every base-node value space has measurable singletons. -/
+/-- For [a collection of node labels](hyp:N), [a family of base-node value spaces with measurable singletons](hyp:Ω), and [a random or fixed SWIG node](hyp:sn), [the measurable-singleton structure on that node's value space](goal) is inherited from its corresponding base-node value space [in the random-node case](step:1) or [in the fixed-node case](step:2). -/
 instance instMeasurableSingletonClassSwigΩ [∀ n, MeasurableSingletonClass (Ω n)] :
     ∀ sn : SWIGNode N, MeasurableSingletonClass (swigΩ Ω sn)
   | .random _ => inferInstance
@@ -51,7 +49,7 @@ lemma isFiniteMeasure_of_finite_measurableSingleton
   exact MeasureTheory.measure_biUnion_lt_top Set.finite_univ
     (fun x _ => MeasureTheory.measure_singleton_lt_top (μ := μ) (a := x))
 
-/-- Each coordinate reference measure is finite on finite measurable-singleton node spaces. -/
+/-- For [a collection of node labels](hyp:N), [finite measurable base-node value spaces with measurable singletons](hyp:Ω), [a family of reference measures](hyp:ref), and [a random or fixed SWIG node](hyp:v), [the reference measure at that node](goal) has finite total mass. -/
 instance instIsFiniteMeasure_refMu [∀ n, Finite (Ω n)]
     [∀ n, MeasurableSingletonClass (Ω n)]
     (ref : ReferenceMeasures Ω) (v : SWIGNode N) :
@@ -61,7 +59,7 @@ instance instIsFiniteMeasure_refMu [∀ n, Finite (Ω n)]
   haveI : MeasureTheory.SigmaFinite (ref.μ v) := ref.sigmaFinite v
   exact isFiniteMeasure_of_finite_measurableSingleton (ref.μ v)
 
-/-- The finite product reference measure is finite on finite measurable-singleton node spaces. -/
+/-- For [a collection of node labels](hyp:N), [finite measurable base-node value spaces with measurable singletons](hyp:Ω), [a family of reference measures](hyp:ref), and [a finite set of random or fixed SWIG nodes](hyp:I), [the corresponding product reference measure](goal) has finite total mass. -/
 instance instIsFiniteMeasure_jointRef [∀ n, Finite (Ω n)]
     [∀ n, MeasurableSingletonClass (Ω n)]
     (ref : ReferenceMeasures Ω) (I : Finset (SWIGNode N)) :
@@ -69,7 +67,11 @@ instance instIsFiniteMeasure_jointRef [∀ n, Finite (Ω n)]
   unfold jointRef
   infer_instance
 
-/-- A reference family is faithful when every single coordinate value has nonzero reference mass.
+/-- For any node set with measurable node-value spaces and [a family of reference
+measures](hyp:ref), [reference faithfulness](goal) means that every value at every random or
+fixed node has nonzero mass under that node's reference measure.
+
+A reference family is faithful when every single coordinate value has nonzero reference mass.
 
 Counting reference measures on finite spaces satisfy this full-support condition. -/
 def ReferenceFaithful (ref : ReferenceMeasures Ω) : Prop :=

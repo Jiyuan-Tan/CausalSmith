@@ -48,10 +48,16 @@ variable {ι : ℕ → Type*} [∀ n, Fintype (ι n)] [∀ n, DecidableEq (ι n)
 variable {α : ∀ n, ι n → Type*} [∀ n i, Fintype (α n i)]
 variable [∀ n i, MeasurableSpace (α n i)] [∀ n i, MeasurableSingletonClass (α n i)]
 
-/-- The **diagonal dependency graph** for the per-coordinate summands `X n i = fun w => g n i (w i)`
-under the product-design measure: each coordinate depends only on itself (`G a b := a = b`).  The
-independence field is the product-measure block independence `indepFun_prodDesign_apply_blocks`,
-since distinct coordinate-index sets are disjoint. -/
+/-- At each stage suppose the coordinate index set and every coordinate assignment space are
+finite, coordinate equality is decidable, and every singleton in every coordinate assignment
+space is measurable. For [a family of coordinate-specific randomization designs, indexed by stage
+and coordinate](hyp:D), [a family of real-valued coordinate summands](hyp:g), and [a stage](hyp:n),
+[the diagonal dependency graph](goal) is the dependency graph of the coordinate summands under the
+corresponding product design, in which two coordinates are adjacent exactly when they are the same
+coordinate.
+
+Its independence property follows from independence of disjoint coordinate blocks under the
+product design. -/
 noncomputable def diagDepGraph (D : ∀ n, ∀ i, FiniteDesign (α n i)) (g : ∀ n, ∀ i, α n i → ℝ)
     (n : ℕ) :
     DepGraph (fun (i : ι n) (w : ∀ j, α n j) => g n i (w i)) (prodDesign (D n)).toMeasure where

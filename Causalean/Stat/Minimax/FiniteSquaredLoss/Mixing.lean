@@ -27,7 +27,14 @@ open Causalean.Experimentation.DesignBased
 variable {Theta R : Type*} [Fintype Theta] [Fintype R]
 variable {X : R → Type*} [∀ r, Fintype (X r)]
 
-/-- Conditional mixing combines two designs linearly and, at every design point
+/-- Given [a finite set of design points](hyp:R), [a finite observation set at each design point](hyp:X),
+[ordered action bounds](hyp:hlu), [a mixing weight no smaller than zero](hyp:ht0), [the same weight no
+larger than one](hyp:ht1), and [two feasible randomized procedures](hyp:q₀,q₁), the [mixed feasible
+randomized procedure](goal) assigns [the convex combination of their design masses](step:1) at each
+design point. At a point with positive mixed mass it averages their actions using the corresponding
+posterior mixture weights, and at a point with zero mixed mass it uses the lower action bound.
+
+Conditional mixing combines two designs linearly and, at every design point
 with positive mixed mass, averages their actions using the corresponding posterior
 mixture weights; at zero mass it uses the lower endpoint. -/
 noncomputable def mixProcedure {l u t : ℝ} (hlu : l ≤ u)
@@ -176,7 +183,13 @@ theorem risk_mixProcedure_le
         simp only [m₀, m₁]
         ring
 
-/-- A risk vector is dominated when some ordinary finite procedure has no larger
+/-- Given [a parameter space](hyp:Theta), [a finite set of design points](hyp:R), [a finite
+observation set at each design point](hyp:X), [likelihood coefficients](hyp:P), [a target value for
+each parameter](hyp:tau), and [two action bounds](hyp:l,u), the [set of dominated risk vectors](goal)
+consists of exactly those real-valued functions on the parameter space for which there exists a
+feasible finite randomized procedure whose squared-loss risk is no greater at every parameter.
+
+A risk vector is dominated when some ordinary finite procedure has no larger
 risk in any state. -/
 def dominatedRiskVectors
     (P : Theta → ∀ r, X r → ℝ) (tau : Theta → ℝ) (l u : ℝ) :

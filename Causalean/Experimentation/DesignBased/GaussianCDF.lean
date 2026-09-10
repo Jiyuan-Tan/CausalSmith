@@ -34,9 +34,11 @@ namespace Causalean
 namespace Experimentation
 namespace DesignBased
 
-/-- Standard normal cumulative distribution function `Φ(t) = P[Z ≤ t]`, `Z ∼ 𝒩(0,1)`, in the
-`(gaussianReal 0 1).real (Iic t)` presentation used by the design-based interval theorems.
-Definitionally the canonical `Causalean.Mathlib.stdNormalCDF` (see `stdNormalCdf_eq`). -/
+/-- For [a real threshold](hyp:t), [the standard normal cumulative distribution function](goal)
+is the probability that a standard normal random variable is no greater than that threshold.
+
+It is definitionally the canonical `Causalean.Mathlib.stdNormalCDF` (see `stdNormalCdf_eq`) in
+the probability-measure presentation used by the design-based interval theorems. -/
 noncomputable def stdNormalCdf (t : ℝ) : ℝ :=
   (ProbabilityTheory.gaussianReal 0 1).real (Set.Iic t)
 

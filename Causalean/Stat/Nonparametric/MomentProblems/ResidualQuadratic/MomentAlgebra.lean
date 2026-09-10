@@ -54,22 +54,28 @@ namespace Causalean.Stat.MomentProblems.ResidualQuadratic.MomentAlgebra
 
 open scoped Real
 
-/-- The regression objective, in moment coordinates: the second moment about the linear fit
-`b₀ + b₁ y` of `y²`, i.e. `∫ (y² − b₀ − b₁ y)² dμ` expressed through the raw moments
-`m₁ = ∫ y`, `m₂ = ∫ y²`, `m₃ = ∫ y³`, `m₄ = ∫ y⁴` (with `m₀ = 1`). -/
+/-- Given [four real numbers representing the first through fourth raw moments](hyp:m1,m2,m3,m4)
+and [an intercept and slope](hyp:b0,b1), the [moment-coordinate regression objective](goal) is the
+polynomial obtained by expanding the squared residual from fitting $y^2$ by $b_0+b_1y$. -/
 def residualQuad (m1 m2 m3 m4 b0 b1 : ℝ) : ℝ :=
   m4 - 2 * b1 * m3 - 2 * b0 * m2 + b1 ^ 2 * m2 + 2 * b0 * b1 * m1 + b0 ^ 2
 
-/-- The closed-form residual variance of regressing `y²` on `{1, y}`: the value at the optimal
+/-- Given [four real numbers representing the first through fourth raw moments](hyp:m1,m2,m3,m4),
+the [closed-form residual variance](goal) is the ratio of the leading third- and second-order Hankel
+determinants formed from those moments.
+
+The closed-form residual variance of regressing `y²` on `{1, y}`: the value at the optimal
 coefficients of `residualQuad`, equal to the ratio of the two leading Hankel determinants
 `det [[1,m₁,m₂],[m₁,m₂,m₃],[m₂,m₃,m₄]] / det [[1,m₁],[m₁,m₂]]`. -/
 noncomputable def momentResidual (m1 m2 m3 m4 : ℝ) : ℝ :=
   (m1 ^ 2 * m4 - 2 * m1 * m2 * m3 + m2 ^ 3 - m2 * m4 + m3 ^ 2) / (m1 ^ 2 - m2)
 
-/-- The optimal intercept `b₀*` in the regression of `y²` on `{1, y}`. -/
+/-- Given [three real numbers representing the first three raw moments](hyp:m1,m2,m3), the
+[optimal regression intercept](goal) is $(m_1m_3-m_2^2)/(m_1^2-m_2)$. -/
 noncomputable def optIntercept (m1 m2 m3 : ℝ) : ℝ := (m1 * m3 - m2 ^ 2) / (m1 ^ 2 - m2)
 
-/-- The optimal slope `b₁*` in the regression of `y²` on `{1, y}`. -/
+/-- Given [three real numbers representing the first three raw moments](hyp:m1,m2,m3), the
+[optimal regression slope](goal) is $(m_1m_2-m_3)/(m_1^2-m_2)$. -/
 noncomputable def optSlope (m1 m2 m3 : ℝ) : ℝ := (m1 * m2 - m3) / (m1 ^ 2 - m2)
 
 /-- **Attainment at the optimal coefficients.** For raw moments `m1, m2, m3, m4` of a law with
@@ -110,24 +116,30 @@ The optimizer among laws on `[0,1]` with `∫ y² = q` is the three-point law on
 moments, as functions of the support parameter `t = μᵥ`, reduce to the single fractions below
 (`M₀ = 1`, `M₁ = t`, `M₂ = q`). -/
 
-/-- The envelope value `ρ`, as a function of the support parameter `t = μᵥ` and `q = v²`:
-`ρ = ((t − q)(q − t²)) / (4 t (1 − t))`. -/
+/-- Given [a real support parameter](hyp:t) and [a real second-moment value](hyp:q), the [envelope
+value](goal) is $(t-q)(q-t^2)/(4t(1-t))$. -/
 noncomputable def momentEnvelope (t q : ℝ) : ℝ := ((t - q) * (q - t ^ 2)) / (4 * t * (1 - t))
 
-/-- First moment `M₁ = ∫ y` of the extremal three-point law: the support parameter `t = μᵥ`. -/
+/-- Given [a real support parameter](hyp:t), the [first moment of the extremal three-point law](goal)
+is that support parameter itself. -/
 def extremalM1 (t : ℝ) : ℝ := t
 
-/-- Third moment `M₃ = ∫ y³` of the extremal three-point law. -/
+/-- Given [a real support parameter](hyp:t) and [a real second-moment value](hyp:q), the [third
+moment of the extremal three-point law](goal) is
+$(2q^2t-q^2-qt^2-qt+t^3)/(2t(t-1))$. -/
 noncomputable def extremalM3 (t q : ℝ) : ℝ :=
   (2 * q ^ 2 * t - q ^ 2 - q * t ^ 2 - q * t + t ^ 3) / (2 * t * (t - 1))
 
-/-- Fourth moment `M₄ = ∫ y⁴` of the extremal three-point law. -/
+/-- Given [a real support parameter](hyp:t) and [a real second-moment value](hyp:q), the [fourth
+moment of the extremal three-point law](goal) is
+$(4q^3t^2-4q^3t+q^3-4q^2t^3+q^2t+3qt^4-2qt^3+2qt^2+t^5-2t^4)/(4t^2(t-1)^2)$. -/
 noncomputable def extremalM4 (t q : ℝ) : ℝ :=
   (4 * q ^ 3 * t ^ 2 - 4 * q ^ 3 * t + q ^ 3 - 4 * q ^ 2 * t ^ 3 + q ^ 2 * t
       + 3 * q * t ^ 4 - 2 * q * t ^ 3 + 2 * q * t ^ 2 + t ^ 5 - 2 * t ^ 4)
     / (4 * t ^ 2 * (t - 1) ^ 2)
 
-/-- The quartic whose stationary root in `(q, √q)` is the envelope maximizer `t = μᵥ`. -/
+/-- Given [a real support parameter](hyp:t) and [a real second-moment value](hyp:q), the [envelope
+first-order quartic](goal) is $t^4-2t^3+2qt^2-2q^2t+q^2$. -/
 def envelopeQuartic (t q : ℝ) : ℝ := t ^ 4 - 2 * t ^ 3 + 2 * q * t ^ 2 - 2 * q ^ 2 * t + q ^ 2
 
 /-- **Family residual identity.** For every nondegenerate support parameter `t` (with `t ≠ 0`,
@@ -213,19 +225,25 @@ right side is `∫ y(1−y)(y−xᵥ)² dμ = crossMoment m q m₃ m₄ ≥ 0`, 
 The envelope
 `momentEnvelope · q` is then maximized at the quartic root, so `momentEnvelope m q ≤ ρ(v)`. -/
 
-/-- The interior support point `xᵥ = (m² − 2 m q + q) / (2 m (1 − m))` of the extremal three-point
-law realizing first moment `m` and second moment `q`. -/
+/-- Given [a real first-moment value](hyp:m) and [a real second-moment value](hyp:q), the [interior
+support point of the extremal three-point law](goal) is $(m^2-2mq+q)/(2m(1-m))$. -/
 noncomputable def extremalMid (m q : ℝ) : ℝ := (m ^ 2 - 2 * m * q + q) / (2 * m * (1 - m))
 
-/-- The intercept `b₀` of the certificate's linear fit: the regression coefficient of `y²` on `1`
-for the extremal three-point law at first moment `m`, second moment `q`. -/
+/-- Given [a real first-moment value](hyp:m) and [a real second-moment value](hyp:q), the [intercept
+of the dual-certificate linear fit](goal) is $(mM_3-q^2)/(m^2-q)$, where $M_3$ is the extremal
+third moment at first moment $m$ and second moment $q$. -/
 noncomputable def extremalCoeff0 (m q : ℝ) : ℝ := (m * extremalM3 m q - q ^ 2) / (m ^ 2 - q)
 
-/-- The slope `b₁` of the certificate's linear fit: the regression coefficient of `y²` on `y`
-for the extremal three-point law at first moment `m`, second moment `q`. -/
+/-- Given [a real first-moment value](hyp:m) and [a real second-moment value](hyp:q), the [slope of
+the dual-certificate linear fit](goal) is $(mq-M_3)/(m^2-q)$, where $M_3$ is the extremal third
+moment at first moment $m$ and second moment $q$. -/
 noncomputable def extremalCoeff1 (m q : ℝ) : ℝ := (m * q - extremalM3 m q) / (m ^ 2 - q)
 
-/-- The certificate cross moment `∫ y (1 − y) (y − xᵥ)² dμ` of a law with moments
+/-- Given [real numbers representing the first through fourth raw moments](hyp:m,q,m3,m4), the
+[dual-certificate cross moment](goal) is $-m_4+(1+2x)m_3-(2x+x^2)q+x^2m$, where
+$x=(m^2-2mq+q)/(2m(1-m))$.
+
+The certificate cross moment `∫ y (1 − y) (y − xᵥ)² dμ` of a law with moments
 `(1, m, q, m₃, m₄)`, expanded in the moments (`xᵥ = extremalMid m q`). It is nonnegative for every
 law supported in `[0,1]` — the integral of a nonnegative polynomial — and equals the certificate
 slack `momentEnvelope m q − residualQuad m q m₃ m₄ b₀ b₁`. -/

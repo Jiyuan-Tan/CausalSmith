@@ -56,9 +56,9 @@ open scoped InnerProductSpace BigOperators
 
 variable {α : Type*} [MeasurableSpace α] {μ : Measure α}
 
-/-- A finite-dimensional subspace of `Lp ℝ 2 μ` admits an orthogonal
-projection: it is complete (finite-dimensional over the complete field `ℝ`),
-so Mathlib's completeness instance applies. -/
+/-- For a measurable sample space, [a measure on that sample space](hyp:μ), and [a finite-dimensional real linear subspace of the square-integrable real functions under that measure](hyp:H), [an orthogonal projection onto that subspace](goal) exists.
+
+The result follows because every finite-dimensional real inner-product subspace is complete. -/
 instance hasOrthogonalProjection_of_finiteDimensional
     (H : Submodule ℝ (Lp ℝ 2 μ)) [FiniteDimensional ℝ H] :
     H.HasOrthogonalProjection :=

@@ -27,18 +27,18 @@ open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
 
 namespace Transcendental
 
-/-- The rational alternating Taylor sum through degree `2 * fuel + 1`
-approximates arctangent on the unit interval. -/
+/-- Given [a rational argument](hyp:q) and [a natural-number fuel level](hyp:fuel), the [arctangent Taylor partial sum](goal) is the alternating rational series through degree $2f+1$. -/
 def atanPartial (q : ℚ) (fuel : ℕ) : ℚ :=
   ∑ k ∈ Finset.range (fuel + 1),
     (-1 : ℚ) ^ k * q ^ (2 * k + 1) / (2 * k + 1 : ℕ)
 
-/-- The first omitted arctangent term is a rational absolute error bound when
-the argument has absolute value at most one. -/
+/-- Given [a rational argument](hyp:q) and [a natural-number fuel level](hyp:fuel), the [arctangent remainder scale](goal) is $|q|^{2f+3}/(2f+3)$.
+
+When $|q|≤1$, this is the absolute size of the first omitted arctangent-series term. -/
 def atanError (q : ℚ) (fuel : ℕ) : ℚ :=
   |q| ^ (2 * fuel + 3) / (2 * fuel + 3 : ℕ)
 
-/-- A rational arctangent Taylor sum widened by its first omitted term. -/
+/-- Given [a rational argument](hyp:q) and [a natural-number fuel level](hyp:fuel), the [raw arctangent interval](goal) has endpoints equal to the Taylor partial sum minus and plus the remainder scale, respectively. -/
 def atanRaw (q : ℚ) (fuel : ℕ) : RatInterval :=
   ⟨atanPartial q fuel - atanError q fuel,
     atanPartial q fuel + atanError q fuel, by
@@ -47,19 +47,20 @@ def atanRaw (q : ℚ) (fuel : ℕ) : RatInterval :=
         positivity
       linarith⟩
 
-/-- Machin's formula combines two rational arctangent enclosures without
-using an exact π endpoint. -/
+/-- Given [a natural-number fuel level](hyp:fuel), the [raw π interval](goal) is four times the difference between four times the arctangent interval at $1/5$ and the arctangent interval at $1/239$.
+
+Machin's formula combines these rational enclosures without using an exact π endpoint. -/
 def piRaw (fuel : ℕ) : RatInterval :=
   (RatInterval.point 4).mul
     ((RatInterval.point 4).mul (atanRaw (1 / 5) fuel) |>.sub
       (atanRaw (1 / 239) fuel))
 
-/-- Successive π approximations are recursive finite intersections of Machin bounds. -/
+/-- For a natural-number fuel level, the [π interval at that level](goal) is [the raw π interval at level zero](step:1), and at every successor level is [the intersection of the preceding π interval and the new raw π interval](step:2). -/
 def piInterval : ℕ → RatInterval
   | 0 => piRaw 0
   | fuel + 1 => (piInterval fuel).tighten (piRaw (fuel + 1))
 
-/-- A denominator-sensitive executable fuel for a requested π width. -/
+/-- Given [a positive rational target width](hyp:ε), the [π precision](goal) is eight times one plus the denominator of that target. -/
 def piPrecision (ε : PosRat) : ℕ := 8 * (ε.1.den + 1)
 
 private theorem atan_taylor_error_bound (q : ℝ) (hq0 : 0 ≤ q) (hq1 : q < 1)
@@ -202,7 +203,7 @@ theorem piInterval_width (ε : PosRat) :
     exact (by norm_num : (8 / 25 : ℚ) ≤ 16).trans hprod
   exact hw.trans (by nlinarith [he5, he239, hcoarse])
 
-/-- The Machin enclosure sequence packages π as an effectively refining certified real name. -/
+/-- The [certified real name for π](goal) has exact value π, uses the recursively refined π intervals as approximations, and uses the specified π precision to achieve each requested positive rational width. -/
 noncomputable def piName : CertifiedReal where
   value := Real.pi
   approx := piInterval
@@ -211,25 +212,25 @@ noncomputable def piName : CertifiedReal where
   modulus := piPrecision
   width_modulus := piInterval_width
 
-/-- The rational sine Taylor polynomial retains terms through the requested fuel. -/
+/-- Given [a rational argument](hyp:q) and [a natural-number fuel level](hyp:fuel), the [sine Taylor partial sum](goal) is the alternating rational sine series through degree $2f+1$. -/
 def sinPartial (q : ℚ) (fuel : ℕ) : ℚ :=
   ∑ k ∈ Finset.range (fuel + 1),
     (-1 : ℚ) ^ k * q ^ (2 * k + 1) / ((2 * k + 1).factorial : ℚ)
 
-/-- The absolute first omitted sine Taylor scale is an executable rational remainder bound. -/
+/-- Given [a rational argument](hyp:q) and [a natural-number fuel level](hyp:fuel), the [sine remainder scale](goal) is $|q|^{2f+3}/(2f+3)!$. -/
 def sinError (q : ℚ) (fuel : ℕ) : ℚ :=
   |q| ^ (2 * fuel + 3) / ((2 * fuel + 3).factorial : ℚ)
 
-/-- The rational cosine Taylor polynomial retains terms through the requested fuel. -/
+/-- Given [a rational argument](hyp:q) and [a natural-number fuel level](hyp:fuel), the [cosine Taylor partial sum](goal) is the alternating rational cosine series through degree $2f$. -/
 def cosPartial (q : ℚ) (fuel : ℕ) : ℚ :=
   ∑ k ∈ Finset.range (fuel + 1),
     (-1 : ℚ) ^ k * q ^ (2 * k) / ((2 * k).factorial : ℚ)
 
-/-- The absolute first omitted cosine Taylor scale is an executable rational remainder bound. -/
+/-- Given [a rational argument](hyp:q) and [a natural-number fuel level](hyp:fuel), the [cosine remainder scale](goal) is $|q|^{2f+2}/(2f+2)!$. -/
 def cosError (q : ℚ) (fuel : ℕ) : ℚ :=
   |q| ^ (2 * fuel + 2) / ((2 * fuel + 2).factorial : ℚ)
 
-/-- A rational sine Taylor value widened by its explicit remainder. -/
+/-- Given [a rational argument](hyp:q) and [a natural-number fuel level](hyp:fuel), the [raw sine interval](goal) has endpoints equal to the sine Taylor partial sum minus and plus the sine remainder scale, respectively. -/
 def sinRaw (q : ℚ) (fuel : ℕ) : RatInterval :=
   ⟨sinPartial q fuel - sinError q fuel,
     sinPartial q fuel + sinError q fuel, by
@@ -238,7 +239,7 @@ def sinRaw (q : ℚ) (fuel : ℕ) : RatInterval :=
         positivity
       linarith⟩
 
-/-- A rational cosine Taylor value widened by its explicit remainder. -/
+/-- Given [a rational argument](hyp:q) and [a natural-number fuel level](hyp:fuel), the [raw cosine interval](goal) has endpoints equal to the cosine Taylor partial sum minus and plus the cosine remainder scale, respectively. -/
 def cosRaw (q : ℚ) (fuel : ℕ) : RatInterval :=
   ⟨cosPartial q fuel - cosError q fuel,
     cosPartial q fuel + cosError q fuel, by
@@ -247,30 +248,36 @@ def cosRaw (q : ℚ) (fuel : ℕ) : RatInterval :=
         positivity
       linarith⟩
 
-/-- The rational midpoint of an interval is used only as a Taylor expansion center. -/
+/-- Given [a rational interval](hyp:I), its [rational midpoint](goal) is the arithmetic mean of its lower and upper endpoints.
+
+It is used only as a Taylor expansion center. -/
 def intervalMid (I : RatInterval) : ℚ := (I.lo + I.hi) / 2
 
-/-- Half the rational interval width bounds distance from every enclosed point to its midpoint. -/
+/-- Given [a rational interval](hyp:I), its [rational radius](goal) is half its width.
+
+This quantity bounds the distance from every enclosed point to its midpoint. -/
 def intervalRadius (I : RatInterval) : ℚ := I.width / 2
 
-/-- Raw sine interval evaluation adds the input-radius Lipschitz error to a
-rational Taylor enclosure at the midpoint. -/
+/-- Given [a rational input interval](hyp:I) and [a natural-number fuel level](hyp:fuel), the [raw sine image interval](goal) expands the midpoint sine interval by the input interval's radius.
+
+The expansion accounts for the sine function's Lipschitz error. -/
 def sinIntervalRaw (I : RatInterval) (fuel : ℕ) : RatInterval :=
   (sinRaw (intervalMid I) fuel).expand (intervalRadius I) (by
     exact div_nonneg (RatInterval.width_nonneg I) (by norm_num))
 
-/-- Raw cosine interval evaluation adds the input-radius Lipschitz error to a
-rational Taylor enclosure at the midpoint. -/
+/-- Given [a rational input interval](hyp:I) and [a natural-number fuel level](hyp:fuel), the [raw cosine image interval](goal) expands the midpoint cosine interval by the input interval's radius.
+
+The expansion accounts for the cosine function's Lipschitz error. -/
 def cosIntervalRaw (I : RatInterval) (fuel : ℕ) : RatInterval :=
   (cosRaw (intervalMid I) fuel).expand (intervalRadius I) (by
     exact div_nonneg (RatInterval.width_nonneg I) (by norm_num))
 
-/-- Sine interval outputs recursively intersect all raw bounds seen so far. -/
+/-- For [a rational input interval](hyp:I) and a natural-number fuel level, the [sine image interval at that level](goal) is [the raw sine image interval at level zero](step:1), and at every successor level is [the intersection of the preceding sine image interval and the new raw sine image interval](step:2). -/
 def sinInterval (I : RatInterval) : ℕ → RatInterval
   | 0 => sinIntervalRaw I 0
   | fuel + 1 => (sinInterval I fuel).tighten (sinIntervalRaw I (fuel + 1))
 
-/-- Cosine interval outputs recursively intersect all raw bounds seen so far. -/
+/-- For [a rational input interval](hyp:I) and a natural-number fuel level, the [cosine image interval at that level](goal) is [the raw cosine image interval at level zero](step:1), and at every successor level is [the intersection of the preceding cosine image interval and the new raw cosine image interval](step:2). -/
 def cosInterval (I : RatInterval) : ℕ → RatInterval
   | 0 => cosIntervalRaw I 0
   | fuel + 1 => (cosInterval I fuel).tighten (cosIntervalRaw I (fuel + 1))

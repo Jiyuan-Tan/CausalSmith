@@ -110,12 +110,20 @@ describe("undelivered delivery audit", () => {
 });
 
 describe("cited F4 receipt audit", () => {
+  const citedCore: Core = {
+    ...core,
+    statements: [{
+      id: "lem:source", kind: "lemma", statement: "For every x, P x.", depends_on: [], status: "cited",
+      source: { cite: "source", locator: "Theorem 2", carrier: "logical-claim", verbatim_statement: "For every x, P x." },
+    }],
+  };
+  const leanEvidence = { "lem:source": "current-lean-digest" };
   const citedPlan = PlanSchema.parse({
     qid: "q",
     specialization: "v1",
     env: [],
     nodes: {
-      "gate:source": {
+      "lem:source": {
         lean_kind: "assumption",
         lean_name: "sourceInterface",
         disposition: "define-local",
@@ -134,7 +142,7 @@ describe("cited F4 receipt audit", () => {
     qid: "q",
     specialization: "v1",
     nodes: [{
-      id: "gate:source",
+      id: "lem:source",
       kind: "gate" as const,
       provenance: "from-note" as const,
       nl: { statement: "source interface", tex_anchor: "", frozen: true },
@@ -147,22 +155,54 @@ describe("cited F4 receipt audit", () => {
   };
 
   it("requires one current cite-id-and-locator receipt from each peer", () => {
-    const evidence_hash = citedEvidenceHash(citedPlan, citedGraph, "gate:source");
+    const evidence_hash = citedEvidenceHash(citedCore, citedPlan, citedGraph, "lem:source", leanEvidence["lem:source"]);
     expect(auditCitedReview({
+      core: citedCore,
       plan: citedPlan,
       graph: citedGraph,
+      leanEvidence,
       receipts: [
-        { node_id: "gate:source", reviewer: "codex", check_status: "cited-verified-attested", cite_id: "cite:source", locator: "Theorem 2", evidence_hash },
-        { node_id: "gate:source", reviewer: "claude", check_status: "cited-verified-attested", cite_id: "cite:source", locator: "Wrong theorem", evidence_hash },
+        { node_id: "lem:source", reviewer: "codex", check_status: "cited-verified-attested", cite_id: "cite:source", locator: "Theorem 2", evidence_hash },
+        { node_id: "lem:source", reviewer: "claude", check_status: "cited-verified-attested", cite_id: "cite:source", locator: "Wrong theorem", evidence_hash },
       ],
     }).some((finding) => /different source or locator/.test(finding.message))).toBe(true);
+  });
+
+  it("invalidates cited receipts when the plan carrier kind changes", () => {
+    const before = citedEvidenceHash(citedCore, citedPlan, citedGraph, "lem:source", leanEvidence["lem:source"]);
+    const changed = structuredClone(citedPlan);
+    changed.nodes["lem:source"].lean_kind = "def";
+    expect(citedEvidenceHash(citedCore, changed, citedGraph, "lem:source", leanEvidence["lem:source"])).not.toBe(before);
+    expect(citedEvidenceHash(citedCore, citedPlan, citedGraph, "lem:source", "edited-lean-digest")).not.toBe(before);
+  });
+
+  it("keeps a locally discharged citation in the source-receipt inventory", () => {
+    const discharged = structuredClone(citedPlan);
+    Object.assign(discharged.nodes["lem:source"], {
+      lean_kind: "theorem", gate: false, gate_class: undefined,
+      citation_discharged: true, target_file: "Source.lean", hyps: [],
+    });
+    const dischargedGraph = {
+      ...citedGraph,
+      nodes: [{ ...citedGraph.nodes[0], kind: "theorem" as const, gate: undefined }],
+    };
+    const oldHash = citedEvidenceHash(citedCore, citedPlan, citedGraph, "lem:source", leanEvidence["lem:source"]);
+    const findings = auditCitedReview({
+      core: citedCore, plan: discharged, graph: dischargedGraph,
+      leanEvidence: { "lem:source": "discharged-theorem-digest" },
+      receipts: [
+        { node_id: "lem:source", reviewer: "codex", check_status: "cited-verified", cite_id: "cite:source", locator: "Theorem 2", evidence_hash: oldHash },
+        { node_id: "lem:source", reviewer: "claude", check_status: "cited-verified", cite_id: "cite:source", locator: "Theorem 2", evidence_hash: oldHash },
+      ],
+    });
+    expect(findings.filter((finding) => /stale/.test(finding.message))).toHaveLength(2);
   });
 
   it("rejects a graph-only delivered cited node even when the plan is empty", () => {
     const emptyPlan = PlanSchema.parse({
       qid: "q", specialization: "v1", env: [], nodes: {}, citations: [], feasibility: "formalizable-now",
     });
-    expect(auditCitedReview({ plan: emptyPlan, graph: citedGraph, receipts: [] }).some(
+    expect(auditCitedReview({ core: citedCore, plan: emptyPlan, graph: citedGraph, leanEvidence, receipts: [] }).some(
       (finding) => /absent from the authoritative plan cited inventory/.test(finding.message),
     )).toBe(true);
   });

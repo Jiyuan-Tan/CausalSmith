@@ -42,17 +42,17 @@ variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 variable (S : POBackdoorSystem P γ)
 
 
-/-- Marginal probability of being treated, `π_T = E[1_{D=1}] = P[D=1]`. -/
+/-- Given [a binary-treatment backdoor system](hyp:S), the [marginal treatment probability](goal) is the population mean of the indicator for the treated arm. -/
 noncomputable def propTreated : ℝ :=
   ∫ ω, S.dVar.indicator true ω ∂P.μ
 
-/-- ATT (Average Treatment Effect on the Treated):
+/-- Given [a binary-treatment backdoor system](hyp:S), the [average treatment effect on the treated](goal) is the population mean treatment effect weighted by the treated-arm indicator and divided by the marginal treatment probability.  It is
 `ATT = E[A · (Y(1) − Y(0))] / π_T`. -/
 noncomputable def ATT : ℝ :=
   (∫ ω, S.dVar.indicator true ω * (S.YofD true ω - S.YofD false ω) ∂P.μ)
     / S.propTreated
 
-/-- Adjusted ATT (observable, control-regression form):
+/-- Given [a binary-treatment backdoor system](hyp:S), the [adjusted average treatment effect on the treated](goal) is the treated-indicator-weighted population mean of factual outcome minus the adjusted control conditional functional, divided by the marginal treatment probability.  It is the observable, control-regression form:
 `E[A · (Y − μ₀(X))] / π_T`. Only the CONTROL regression `μ₀(X) = adjustedCE false`
 appears — the treated potential outcome is observed directly on `{D = 1}` via
 consistency (`A · Y = A · Y(1)`), so no treated regression `μ₁(X)` and hence no

@@ -16,6 +16,18 @@ structure ExtRef where
   m : String
   deriving ToJson
 
+/-- One binder of a declaration's type, read off the elaborated `Expr` rather
+than the pretty-printed statement: the pretty-printer erases the names of
+non-dependent explicit binders (`(S : Sys) → …` prints as `Sys → …`), and a
+`variable`-introduced section parameter never appears in the authored source
+at all. `n` is `""` for a genuinely anonymous binder; `bi` is one of
+`explicit` / `implicit` / `inst` / `strict`. -/
+structure ParamEntry where
+  n : String
+  t : String
+  bi : String
+  deriving ToJson
+
 structure DeclEntry where
   name : String
   kind : String
@@ -34,6 +46,12 @@ structure DeclEntry where
   extRefs : Array ExtRef
   axioms : Array String
   usesSorry : Bool
+  /-- The type's leading binders in order (see `ParamEntry`). The site uses them
+  to show a definition's section variables as parameter rows. -/
+  params : Array ParamEntry
+  /-- The type's result after all leading binders (a definition's codomain,
+  a theorem's goal) — what an authored `abbrev Foo (V) := …` leaves implicit. -/
+  result : String
   deriving ToJson
 
 def auxSuffixes : List String :=
@@ -283,23 +301,27 @@ def entryFor? (pfx : Name) (srcRoot : String)
     return none
   let some moduleName := moduleNameOf? env n
     | return none
-  let congrSource ← if isSynthetic then
-      sourceFor fileCache moduleName srcRoot (moduleToFile moduleName) n
-    else
-      pure none
-  if let some source := congrSource then
-    -- A later `add_decl_doc` can attach its own command range to a generated
-    -- companion.  Do not mistake that documentation range for authorship.
-    if isAddedDocRangeSource source then
-      return none
   let some kind ← kindOf env n ci
     | return none
-  -- A def nested under another def/instance is a compiler- or where-generated
-  -- worker (`instRepr*.repr`, `instDecidableEq*.decEq`, `f.go`), not a library
-  -- declaration. Theorems namespaced under a def are kept.
-  if kind == "def" || kind == "instance" then
-    if let some (.defnInfo _) := env.find? n.getPrefix then
-      return none
+  let nestedDefinition := (kind == "def" || kind == "instance") &&
+    match env.find? n.getPrefix with
+    | some (.defnInfo _) => true
+    | _ => false
+  if nestedDefinition then
+    -- A type alias can also be an authored namespace. Only a missing range or
+    -- a range inside the parent declaration identifies a generated/local worker.
+    let some child ← findDeclarationRanges? n | return none
+    if moduleNameOf? env n.getPrefix == some moduleName then
+      if let some parent ← findDeclarationRanges? n.getPrefix then
+        if !Position.lt child.range.pos parent.range.pos &&
+            !Position.lt parent.range.endPos child.range.endPos then
+          return none
+  let file := moduleToFile moduleName
+  let source ← sourceFor fileCache moduleName srcRoot file n
+  if isSynthetic || nestedDefinition then
+    if let some text := source then
+      -- add_decl_doc supplies a range for a generated constant, not authorship.
+      if isAddedDocRangeSource text then return none
   let fmt ← Meta.MetaM.run' <|
     withOptions
       (fun opts =>
@@ -326,16 +348,35 @@ def entryFor? (pfx : Name) (srcRoot : String)
     else
       pure statement
   let envDoc ← liftM <| findDocString? env n
+  -- Fail-safe: a binder whose type resists pretty-printing must not cost the
+  -- whole index; the site degrades to "no section variables" for that decl.
+  let params ← try
+      Meta.MetaM.run' <|
+        withOptions
+          (fun opts => opts |>.setBool `pp.deepTerms true |>.set `pp.maxSteps (200000 : Nat)) <|
+          Meta.forallTelescope ci.type fun fvars _ => do
+            fvars.mapM fun fv => do
+              let decl ← fv.fvarId!.getDecl
+              let t ← Meta.ppExpr decl.type
+              let name := decl.userName
+              pure { n := if name.hasMacroScopes then "" else name.toString
+                     t := t.pretty (width := stmtPPWidth)
+                     bi := match decl.binderInfo with
+                       | .default => "explicit"
+                       | .implicit => "implicit"
+                       | .instImplicit => "inst"
+                       | .strictImplicit => "strict" : ParamEntry }
+    catch _ => pure #[]
+  let result ← try
+      Meta.MetaM.run' <|
+        withOptions
+          (fun opts => opts |>.setBool `pp.deepTerms true |>.set `pp.maxSteps (200000 : Nat)) <|
+          Meta.forallTelescope ci.type fun _ body => do
+            pure ((← Meta.ppExpr body).pretty (width := stmtPPWidth))
+    catch _ => pure ""
   let axioms ← axiomStringsFor pfx axiomCache {} n
   let refs := refsFor pfx env n ci.type
   let proofRefs := proofRefsFor pfx env n refs ci.value?
-  let file := moduleToFile moduleName
-  -- Theorems carry their source too: the proof renders behind an expandable
-  -- "Proof" link on the site (statement stays the primary view).
-  let source ← if isSynthetic then
-      pure congrSource
-    else
-      sourceFor fileCache moduleName srcRoot file n
   let doc := envDoc
   return some {
     name := n.toString
@@ -351,6 +392,8 @@ def entryFor? (pfx : Name) (srcRoot : String)
     extRefs := extRefsFor pfx env ci.type
     axioms := axioms
     usesSorry := axioms.contains "sorryAx"
+    params := params
+    result := result
   }
 
 def buildEntries (pfx : Name) (srcRoot : String) : CoreM (Array DeclEntry) := do
@@ -397,7 +440,11 @@ unsafe def runIndex (importRoot pfx : Name) (srcRoot outPath : String)
   let roots := if extraModules.isEmpty then #[importRoot] else extraModules
   let imports := roots.map (fun m => { module := m : Import })
   let env ← importModules imports {} (trustLevel := 0) (loadExts := true)
-  let ctx : Core.Context := { fileName := "<library_index>", fileMap := default }
+  -- Heartbeats count from process start and the default budget is per
+  -- elaboration task, not per indexing run: with binder telescopes added the
+  -- run exceeds it after a few thousand declarations. Unlimited is right for a
+  -- batch exe whose work is bounded by the environment it walks.
+  let ctx : Core.Context := { fileName := "<library_index>", fileMap := default, maxHeartbeats := 0 }
   let cstate : Core.State := { env }
   let (entries, _) ← (buildEntries pfx srcRoot).toIO ctx cstate
   let moduleDocs : List (String × Json) :=

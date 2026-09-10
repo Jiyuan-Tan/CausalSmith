@@ -13,8 +13,7 @@ namespace Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
 
 namespace RatInterval
 
-/-- Squaring a rational interval uses zero as the lower bound exactly when the
-interval crosses zero and the larger squared endpoint as the upper bound. -/
+/-- For [a rational interval](hyp:I), [its squared interval](goal) is [the interval from the square of its upper endpoint to the square of its lower endpoint when it lies strictly below zero](step:1), the interval from the square of its lower endpoint to the square of its upper endpoint when it lies strictly above zero, and the interval from zero to the larger squared endpoint when it contains zero. -/
 def sq (I : RatInterval) : RatInterval :=
   if hneg : I.hi < 0 then
     ⟨I.hi ^ 2, I.lo ^ 2, by nlinarith [I.lo_le_hi]⟩
@@ -74,16 +73,14 @@ theorem sq_mono {I J : RatInterval} (hIJ : I.Subinterval J) :
     · exact_mod_cast hz.1
     · exact max_le (by exact_mod_cast hlo.2) (by exact_mod_cast hhi.2)
 
-/-- The Newton upper iterate is an executable rational approximation to the
-square root of a nonnegative rational. -/
+/-- For [a rational number](hyp:q), [the Newton upper-iterate sequence](goal) assigns [the absolute value of the number plus one at iteration zero](step:1) and [one half of the sum of the preceding iterate and the number divided by that iterate at each later iteration](step:2). -/
 def sqrtUpper (q : ℚ) : ℕ → ℚ
   | 0 => |q| + 1
   | n + 1 =>
       let u := sqrtUpper q n
       (u + q / u) / 2
 
-/-- Dividing a nonnegative rational by its Newton upper iterate gives a
-matching executable lower square-root bound. -/
+/-- For [a rational number](hyp:q) and [an iteration count](hyp:n), [the Newton lower square-root bound](goal) is the number divided by its Newton upper iterate at that count. -/
 def sqrtLower (q : ℚ) (n : ℕ) : ℚ := q / sqrtUpper q n
 
 private theorem sqrtUpper_invariants (q : ℚ) (hq : 0 ≤ q) (n : ℕ) :
@@ -180,8 +177,7 @@ theorem sqrt_iterates_converge (q : ℚ) (hq : 0 ≤ q) (ε : PosRat) :
   push_cast
   nlinarith [ε.2]
 
-/-- A nonnegative rational interval is mapped to a rational square-root
-interval by applying lower and upper Newton bounds to its endpoints. -/
+/-- For [a rational interval](hyp:I) [whose lower endpoint is nonnegative](hyp:hI) and [a Newton iteration count](hyp:fuel), [the square-root interval](goal) has [lower endpoint equal to the Newton lower bound of the original lower endpoint](step:1), upper endpoint equal to the Newton upper bound of the original upper endpoint, and valid endpoint order. -/
 def sqrtInterval (I : RatInterval) (hI : 0 ≤ I.lo) (fuel : ℕ) : RatInterval :=
   ⟨sqrtLower I.lo fuel, sqrtUpper I.hi fuel, by
     have hhi : 0 ≤ I.hi := hI.trans I.lo_le_hi

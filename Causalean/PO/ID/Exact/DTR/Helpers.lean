@@ -41,8 +41,9 @@ variable [∀ k, MeasurableSpace (γ k)]
 The joint value at stage `k+1` therefore contains the joint value at stage
 `k` starting from coordinate `2`.  `hb_step_proj` extracts that suffix. -/
 
-/-- Projection from the stage-`(k+1)` joint value down to the stage-`k` joint
-value.  Drops the fresh `(S (k+1), D k)` pair and keeps the history prefix. -/
+/-- For [a dynamic treatment-regime system](hyp:S), [a stage index](hyp:k), and [proof that
+the next stage exists](hyp:h), the [projection from the next-stage history vector to the current-
+stage history vector](goal) drops the newly added next state and current treatment coordinates. -/
 noncomputable def hb_step_proj (S : PODTRSystem P n δ γ) (k : ℕ) (h : k + 1 < n) :
     (∀ i, (S.historyBundle (k+1) h).type i) →
       (∀ j, (S.historyBundle k (Nat.lt_of_succ_lt h)).type j) :=

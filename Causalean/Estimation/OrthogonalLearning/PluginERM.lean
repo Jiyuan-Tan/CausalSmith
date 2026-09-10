@@ -42,8 +42,13 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
          {Θ : Type*} [NormedAddCommGroup Θ] [InnerProductSpace ℝ Θ]
          {G : Type*} [AddCommGroup G] [Module ℝ G]
 
-/-- Empirical risk on the estimation fold `B(n)`:
-`(1 / |B(n)|) · Σ_{i ∈ B(n)} ℓ (Z_i ω) θ g`. -/
+/-- For a [sample space, its σ-algebra and measure; an observation space and its measure; a
+target inner-product space; and a nuisance vector space](hyp:Ω,μ,Z,P_Z,Θ,G),
+a [learning system](hyp:S), an [independent and identically distributed sample](hyp:S_iid), a
+[one-shot sample split](hyp:split), a [sample size](hyp:n), a [realized sample point](hyp:ω), a
+[target parameter](hyp:θ), and a [nuisance value](hyp:g), the [estimation-fold empirical
+risk](goal) is the average loss over the split's estimation fold at that parameter and nuisance
+value. -/
 noncomputable def empRiskFoldB
     (S : LearningSystem Ω μ Z P_Z Θ G)
     (S_iid : IIDSample Ω Z μ P_Z)

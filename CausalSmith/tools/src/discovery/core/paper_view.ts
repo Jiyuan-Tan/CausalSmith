@@ -24,8 +24,6 @@
 // is correct by construction rather than by remembering to overlay.
 import { existsSync } from "node:fs";
 import type { PipelineContext } from "../../types.js";
-import { loadWorkingState } from "../stages/d0_working.js";
-import { readRoundProposals } from "../solve/proposals.js";
 import { type Core } from "./schema.js";
 import { renderCoreTex } from "./render_tex.js";
 import { coreJsonPath } from "../stages/d0_core.js";
@@ -33,58 +31,17 @@ import { readTypedCore } from "./core_io.js";
 
 /** A same-round proof payload banked in `proposed_proofs.json` while a structural
  *  proposal is pending. */
-export interface ProvisionalProof {
-  id: string;
-  proof_tex: string;
-}
-
 export interface PaperView {
   /** The core with this round's provisional proofs overlaid. Use this for review,
    *  for rendering, and as the edit base — never the raw core.json. */
   core: Core;
   /** Deterministic render of `core`. Identical bytes for every consumer. */
   tex: string;
-  /** Ids whose proof came from `proposed_proofs.json` rather than core.json. */
+  /** Always empty since the graph store: kept for the consumers' log line. */
   overlaid: string[];
-  /** Provisional proofs naming no core statement — a plumbing fault, surfaced. */
   unmatchedProofs: string[];
   /** Provenance, for the one-line log every consumer emits. */
   provenance: { corePath: string; provisionalPath: string | null; statements: number; texChars: number };
-}
-
-/** Overlay provisional proofs onto a copy of the core. Pure; does not mutate input. */
-export function overlayProvisionalProofs<
-  C extends { statements: Array<{ id: string; proof_tex?: string }> },
->(core: C, proofs: ProvisionalProof[]): { core: C; applied: string[]; unmatched: string[] } {
-  const next = structuredClone(core);
-  const byId = new Map(next.statements.map((s) => [s.id, s] as const));
-  const applied: string[] = [];
-  const unmatched: string[] = [];
-  for (const proof of proofs) {
-    const stmt = byId.get(proof.id);
-    if (!stmt || typeof proof.proof_tex !== "string" || proof.proof_tex.trim().length === 0) {
-      unmatched.push(proof.id);
-      continue;
-    }
-    stmt.proof_tex = proof.proof_tex;
-    applied.push(proof.id);
-  }
-  return { core: next, applied, unmatched };
-}
-
-async function readProvisionalProofs(ctx: PipelineContext): Promise<{ proofs: ProvisionalProof[]; path: string | null }> {
-  // `working.proposals` is AUTHORITATIVE when present; the per-kind files are a derived
-  // mirror (solve/proposals.ts). Reading the mirror here let the reviewer grade one set of
-  // proofs while the apply committed another -- the two stores can disagree, and D0.5/D0.R
-  // both consume this view. Prefer the authoritative copy, mirror only as the legacy
-  // fallback, exactly as the apply resolves it.
-  const working = await loadWorkingState(ctx);
-  // Route through the canonical accessor so a pre-fold run's legacy leftovers
-  // fail LOUD here too — a reviewer must never grade a paper against a
-  // phantom-empty proof payload (the incident class the fold exists to kill).
-  const round = await readRoundProposals(ctx, working);
-  if (round.proofs.length > 0) return { proofs: round.proofs, path: "working.proposals" };
-  return { proofs: [], path: null };
 }
 
 /** Assemble the canonical paper view. Fail-closed: a missing or empty core is a
@@ -94,9 +51,7 @@ export async function loadPaperView(ctx: PipelineContext, opts?: { corePath?: st
   if (!existsSync(corePath)) {
     throw new Error(`Cannot assemble the paper view: core is absent at ${corePath}. This is a plumbing failure.`);
   }
-  const raw = await readTypedCore(corePath);
-  const { proofs, path: provisionalPath } = await readProvisionalProofs(ctx);
-  const { core, applied, unmatched } = overlayProvisionalProofs(raw, proofs);
+  const core = await readTypedCore(corePath);
   const tex = renderCoreTex(core);
   if (tex.trim().length === 0) {
     throw new Error(`Assembled paper view is EMPTY (core ${corePath} rendered to 0 chars). Refusing to review nothing.`);
@@ -104,9 +59,9 @@ export async function loadPaperView(ctx: PipelineContext, opts?: { corePath?: st
   return {
     core,
     tex,
-    overlaid: applied,
-    unmatchedProofs: unmatched,
-    provenance: { corePath, provisionalPath, statements: core.statements.length, texChars: tex.length },
+    overlaid: [],
+    unmatchedProofs: [],
+    provenance: { corePath, provisionalPath: null, statements: core.statements.length, texChars: tex.length },
   };
 }
 

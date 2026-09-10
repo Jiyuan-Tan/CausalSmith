@@ -1,0 +1,891 @@
+{
+  "qid": "stat_bdd_thickness_estimability_frontier",
+  "specialization": "v1",
+  "cluster": "stat",
+  "lean_target_subdirectory": "CausalSmith/Stat/STAT_BddThicknessEstimabilityFrontier_Research",
+  "lean_namespace": "CausalSmith.Stat.BddThicknessEstimabilityFrontier",
+  "feasibility": "formalizable-now",
+  "design_decisions_honored": {
+    "d0r_pending_approval": "The provisionally revised construction node `def:fixed-bandwidth-boundary-net-estimator` does not appear in the frozen core handed to F1; the core instead carries the count-adaptive chain `def:empirical-counts` -> `def:local-constant-side-fit` -> `def:admissible-bandwidths` -> `def:count-adaptive-bandwidth` -> `def:mass-adaptive-estimator`, and that chain is what the plan maps. No node is planned for the withdrawn name.",
+    "d0_open_oeq_residuals": "`oeq:honest-adaptive-bands` is planned as a never-proved `Prop` def (Case A of the two-case OEQ rule: every quantified domain, coverage criterion, width-ratio functional, lower-bound target and score-law distinguishability relation is fully specified by other core nodes), excluded from any theorem manifest, and no delivered statement depends on it."
+  },
+  "decisions": [
+    "No `state.theorems` / paper manifest was supplied in the brief, so the paper-scoped preamble is inert and no `theorems` manifest or per-node `local_id` is emitted.",
+    "Every core statement has `status:\"proved\"` except the single open-ended question; there is no `status:\"cited\"` statement, hence no `gate:true` node, no `citations[]`, and no substrate-gate threading anywhere in this plan.",
+    "All thirteen `ass:` nodes are modeling assumptions (sampling / causal-structural / design geometry / smoothness / support / tail regularity). None is a general mathematical theorem that Causalean proves in full at the exact atom, so all thirteen stay threaded Prop hypotheses and none is discharged or escalated.",
+    "Round-2 correction (S4 abstraction + reuse misfit): `Causalean.Mathlib.Analysis.HalfDiscPolar` is demoted from reuse to an ANALOGOUS source in `S4`, `def:circular-thinning-witnesses` and `lem:circular-witness-membership`, because its identities hold only for origin-centred/translated upper half-discs with separable radial-angular integrands and therefore do not realize the annular-tube coordinates of (1)/(3) or the translated local-ball, nonseparable-integrand calculations of (5)/(6). No direct translated-annular polar theorem exists in Causalean (`Grep -i \"annul|tubular|signedDistance|normalCoord\" ../Causalean` finds only the `radialAnnulusMonomial` VC function class) or in Mathlib beyond the generic `polarCoord` / `Function.Jacobian` change of variables, so the missing tube-coordinate/Jacobian and translated-ball mass facts are planned as LOCAL build-inline lemmas in a new `Helpers/TubeCoords.lean`; they are small/medium and carry no Defer tier, so `infrastructure_needed` stays empty.",
+    "Round-2 correction (unsearched define-local nodes): `def:minimum-side-mass`, `def:local-effective-multiplicity`, `def:mass-adaptive-estimator`, `def:polynomial-horn`, `def:exponential-modulus` and `def:band-half-width` now each carry a re-runnable two-sided trace — a literal `Grep` pattern over the sibling `../Causalean` tree and a literal `lean_leansearch` query with its returned declarations. All six remain define-local; the closest Mathlib hits (`Metric.packingNumber`, `regionBetween` + `volume_regionBetween_eq_integral`, `intervalIntegral.intervalIntegral_pos_of_pos`, `Real.ediam_Icc`) are recorded as the idioms the definitions are written in, not as discharges, and the Causalean half-width formulas are recorded as an explicit PARTIAL fit.",
+    "Round-3 correction (`def:admissible-bandwidths` FLAG-unsearched): the node now carries a re-runnable two-sided trace. Causalean side — `Grep \"^(noncomputable )?(def|abbrev|structure) \\w*[Bb]andwidth\\w*\" ../Causalean` returns NO MATCHES (Causalean declares no bandwidth object, set, or selection rule; the 24 `bandwidth` files are prose/scalar-parameter uses in `Stat/Nonparametric/LocalPoly/*` etc.), `Grep \"countQualified|admissibleBandwidth|bandwidthSet|effectiveSampleSize\" ../Causalean` returns no files, and `lean_local_search \"admissible\"` returns only admissible LAW/design families plus `Lean.Order.admissible`. Mathlib side — `lean_leansearch \"bandwidth selection rule adaptive nonparametric estimator\"` returns only the order-theoretic `Mathlib.Deprecated.Estimator`. No packaged count-qualified bandwidth-set declaration type-fits, so the node remains `define-local`, with the PARTIAL generic reuse stated exactly: Mathlib `Finset.filter` / `Finset.mem_filter` (`Mathlib.Data.Finset.Filter`, now listed in the node's `modules`) supply the container and membership characterization, while the count-qualification predicate is local. Its selection-chain consumer `def:count-adaptive-bandwidth` carries the same recorded result plus its own `Finset.min'` partial-reuse note. No disposition, `defer_tier`, `gate`, `target_file`, `env`, class `members` or statement `hyps` moved anywhere in the dependency closure, so `infrastructure_needed` stays empty and the feasibility verdict is unchanged.",
+    "File layout is planned for the projected post-proof size: one `T*.lean` per delivered theorem/proposition, a shared `Basic.lean` for the world + assumption Props + class structures, and eight topic-split `Helpers/*.lean` files in a dependency chain (Testing -> Geometry -> Estimator -> Benchmark -> DiskPattern -> TubeCoords -> Witness -> BandWidth)."
+  ],
+  "env": [
+    {
+      "id": "S1",
+      "world": "A sharp bivariate boundary-discontinuity superpopulation model. A law \\(P\\) for \\((Y(0),Y(1),X)\\) with \\(X\\in\\mathbb R^2\\) and real potential outcomes is observed through the known Borel assignment regions \\(\\mathcal A_0,\\mathcal A_1\\subseteq\\mathbb R^2\\) with common compact boundary \\(\\mathcal B=\\operatorname{bd}(\\mathcal A_0)\\cap\\operatorname{bd}(\\mathcal A_1)\\): the treatment is the deterministic indicator \\(T=\\mathbf 1\\{X\\in\\mathcal A_1\\}\\), the observed outcome is \\(Y=TY(1)+(1-T)Y(0)\\), and the observed unit is \\(O=(Y,X)\\in\\mathbb R\\times\\mathbb R^2\\). The sample \\(\\mathcal D_n=(O_i:1\\le i\\le n)\\) consists of \\(n\\) independent draws induced by \\(P\\). For each side \\(t\\in\\{0,1\\}\\) the one-sided restricted score measure is \\(\\mu_{t,P}(E)=P_X(E\\cap\\mathcal A_t)\\), with closed support \\(\\mathcal X_{t,P}=\\operatorname{supp}(\\mu_{t,P})\\); the side regression \\(g_{t,P}\\) is a Borel representative on \\(\\mathcal X_{t,P}\\) of \\(z\\mapsto\\mathbb E_P[Y\\mid X=z]\\) taken modulo \\(\\mu_{t,P}\\), its boundary trace is \\(\\theta_{t,P}(x)=\\lim_{z\\to x,\\ z\\in\\mathcal X_{t,P}}g_{t,P}(z)\\), and the target estimand is the boundary causal trace contrast \\(\\tau_P=\\theta_{1,P}-\\theta_{0,P}\\) on \\(\\mathcal B\\). Local information is measured by the one-sided local-mass function \\(q_{t,P}(x,h)=P\\{X\\in\\mathcal A_t,\\ d(X,x)\\le h\\}\\) with \\(d(x,z)=\\lVert x-z\\rVert_2\\), by its two-sided minimum \\(a_P(x,h)=\\min_{t}q_{t,P}(x,h)\\), by the thin-site packing profile \\(\\mathsf J_P(h,u)\\) — the largest cardinality of an \\(h\\)-separated subset of \\(\\{x\\in\\mathcal B:a_P(x,h)\\le u\\}\\), declared for all \\(u\\in[0,\\infty)\\) — and by the local effective multiplicity \\(K_P(x,h)=1\\vee\\mathsf J_P(h,a_P(x,h))\\). Fixed constants are the localization radius \\(h_0\\in(0,1)\\), the Lipschitz and trace envelope \\(L>0\\), the known sub-Gaussian noise scale \\(\\sigma>0\\), the mass constants \\(0<c_m<C_m\\), and the exponent range \\(\\kappa\\in(2,\\overline\\kappa]\\). Law classes are carved out of this world by member conditions: the polynomial-thickness class \\(\\mathcal P_\\kappa^{\\mathrm{base}}\\), its isolated and pervasive thinning subclasses \\(\\mathcal P_\\kappa^{\\mathrm{iso}}\\), \\(\\mathcal P_\\kappa^{\\mathrm{perv}}\\), the declared modulus--lower-profile class \\(\\mathcal P(m,\\mathsf J_-)\\) built from a nondecreasing modulus \\(m\\) and a lower packing envelope \\(\\mathsf J_-\\), and the triangular union \\(\\mathcal P_n(\\Lambda_n)\\) over declared triples \\((\\kappa,\\mathsf J_-,\\mathsf J_+)\\).",
+      "binds_symbols": [
+        "n", "t", "\\overline\\kappa", "\\kappa", "L", "\\sigma", "c_{m}", "C_{m}", "h_0",
+        "X", "Y(0)", "Y(1)", "\\mathcal A_0", "\\mathcal A_1", "T", "Y", "O", "\\mathcal D_n",
+        "P", "P_{X}", "\\mathcal B", "d", "\\mathcal X_{t,P}", "g_{t,P}", "\\theta_{t,P}",
+        "\\tau_P", "q_{t,P}", "\\mathsf J_P", "a_P", "K_P",
+        "m", "\\mathsf J_{-}", "\\mathsf J_{+}",
+        "\\mathcal P_{\\kappa}^{\\mathrm{base}}", "\\Lambda_n", "\\mathcal P_n(\\Lambda_n)",
+        "\\mathcal P_{\\kappa}^{\\mathrm{iso}}", "\\mathcal P_{\\kappa}^{\\mathrm{perv}}",
+        "\\mathcal P(m,\\mathsf J_{-})"
+      ],
+      "binds_sampling_model": true,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Sample",
+        "Causalean.Mathlib.CondDistrib",
+        "Mathlib.Probability.Moments.SubGaussian",
+        "Mathlib.Topology.MetricSpace.CoveringNumbers"
+      ],
+      "notes": "Search trace: `npm run search -- \"boundary discontinuity two-sided regression trace\"` / `\"one-sided restricted score measure support\"` / `\"local mass ball boundary\"` over `Causalean/PO/`, `Causalean/Stat/`, `Causalean/Estimation/`; plus grep of `../doc/API.md` sections 8h (`PO/`), 9i0 (`PO/Analysis/Regression.lean`), 9i0b (`PO/ID/Exact/RDD/RDDLimits.lean`), 9i' (SharpRDD), 12 (`Stat/`), 12w (`Stat/Minimax/`) and of `doc/API.md` section 3.13. Result: Causalean's boundary/RDD substrate (`Causalean.PO.RDDLimits.oneSidedLimit_eq_right/_left`, `POSharpRDDSystem`) is the SCALAR cutoff world on \\(\\mathbb R\\) with a two-sided-support premise at a single point; it does not carry a planar assignment region, a compact boundary curve, a restricted-score support, or a local-mass function, so it cannot bind these symbols. The nearest planar world, `CausalSmith.Stat.BddUniformLogPenalty` (doc/API.md 3.13), is the CTY common-map distance-architecture class with a POSITIVE score density and is a converse-only decision-theoretic world: wrong class, wrong architecture. Bypass-justified: this world is scaffolded over Mathlib + the listed Causalean primitives. Reused inside the block rather than rebuilt: `Causalean.Stat.IIDSample` for the i.i.d. sampling structure, `Causalean.Mathlib.CondDistrib` for the regular conditional outcome kernel \\(\\mathsf R_P\\), `ProbabilityTheory.HasSubgaussianMGF` / `HasCondSubgaussianMGF` for the residual tail, and `Metric.packingNumber` for \\(h\\)-separated cardinalities behind \\(\\mathsf J_P\\) and the boundary entropy condition. Analogous module for the one-sided-limit step: `Causalean/PO/ID/Exact/RDD/RDDLimits.lean` — F3 should adapt `oneSidedLimit_eq_left/right` from the half-line filter \\(\\mathcal N[<]c\\) to the restricted-support filter \\(z\\to x,\\ z\\in\\mathcal X_{t,P}\\); the gap to bridge is that positivity of one-sided mass now comes from the polynomial lower-mass member condition rather than from a scalar support premise."
+    },
+    {
+      "id": "S2",
+      "world": "The observable estimation layer over the model of \\(\\mathrm{S1}\\), together with its decision-theoretic risk. Tuning is confined to the dyadic bandwidth grid \\(\\mathcal H_n=\\{2^{-j}h_0:0\\le j\\le\\lceil\\log_2 n\\rceil\\}\\). From the sample one forms the one-sided counts \\(N_{t,n}(x,h)=\\sum_{i\\le n}\\mathbf 1\\{X_i\\in\\mathcal A_t,\\ d(X_i,x)\\le h\\}\\), the side-specific local-constant fits \\(\\widehat g_{t,n}(x;h)\\), the count-qualified admissible set \\(\\widehat{\\mathcal H}_{t,n}(x)\\), the count-adaptive bandwidth \\(\\widehat h_{t,n}(x)\\) with its deterministic tie-break and its \\(h_0\\) fallback, and the mass-adaptive boundary trace estimator \\(\\widehat\\tau_n(x)=\\widehat g_{1,n}(x;\\widehat h_{1,n}(x))-\\widehat g_{0,n}(x;\\widehat h_{0,n}(x))\\). Performance is measured by the expected-supremum minimax risk \\(R_n(\\mathcal P)=\\inf_{\\widetilde\\tau_n}\\sup_{P\\in\\mathcal P}\\mathbb E_P[\\sup_{x\\in\\mathcal B}|\\widetilde\\tau_n(x)-\\tau_P(x)|]\\), the infimum running over estimators measurable in \\(\\mathcal D_n\\) and the known assignment geometry, and it is compared against the two frontier rates \\(r_{n,\\kappa}^{\\mathrm{iso}}=n^{-1/(\\kappa+2)}\\) and \\(r_{n,\\kappa}^{\\mathrm{perv}}=(\\log n/n)^{1/(\\kappa+2)}\\).",
+      "binds_symbols": [
+        "\\mathcal H_n", "N_{t,n}", "\\widehat g_{t,n}", "\\widehat{\\mathcal H}_{t,n}",
+        "\\widehat h_{t,n}", "\\widehat\\tau_n", "R_n",
+        "r_{n,\\kappa}^{\\mathrm{iso}}", "r_{n,\\kappa}^{\\mathrm{perv}}"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Minimax.MinimaxRisk",
+        "Causalean.Mathlib.Analysis.ClipInterval",
+        "Causalean.Stat.Concentration.TailBounds.BinomialCount"
+      ],
+      "notes": "Search trace: `npm run search -- \"minimax risk supremum over a law class\"`, `\"local constant regression estimator bandwidth selection\"`, `\"Lepski bandwidth selection empirical count\"` over `Causalean/Stat/Minimax/`, `Causalean/Stat/Nonparametric/`, `Causalean/Estimation/`; grep `^## ` on `../doc/API.md` then read of sections 12w (Minimax), 12'.f' (BinomialCount), 10z. Mathlib check via `lean_leansearch` for a supremum-loss minimax value: `ProbabilityTheory.minimaxRisk` (Mathlib `Probability/Decision/Risk/Defs.lean`) is a Bayes/decision-kernel risk over a fixed loss and does NOT type-match an expected-sup-over-a-boundary-curve risk with an estimator ranging over sample-measurable maps into a function space, and `Causalean.Stat.Minimax.MinimaxRisk` carries `sqRisk`/two-point plumbing for a REAL functional, not a sup-norm curve loss. So the risk functional is define-local; `Causalean.Stat.sqRisk`'s file is nonetheless imported because the two-point/Le Cam interface there is what the lower bounds compose with. Genuinely reused rather than rebuilt: `Causalean.Mathlib.Analysis.clipIcc` (+ `clipIcc_mem_Icc`, `abs_clipIcc_sub_le`, `measurable_clipIcc`, `lipschitzWith_clipIcc`) for the \\([-2L,2L]\\) projection and the \"projection cannot increase the error\" step, and `Causalean.Stat.Concentration.bernoulliCount_lower_tail` for the binomial lower tail \\(\\Pr(N\\le nq/2)\\le e^{-nq/8}\\) that appears as equations (29), (37), (53) and (106) of the core proofs."
+    },
+    {
+      "id": "S3",
+      "world": "The honest-inference layer. For a target simultaneous miscoverage level \\(\\gamma\\in(0,1)\\), a band is a data-measurable map \\(\\mathcal C_n\\) sending each boundary location \\(x\\in\\mathcal B\\) to an interval in \\(\\mathbb R\\), with half-width \\(W_n(x)=\\operatorname{diam}(\\mathcal C_n(x))/2\\). Honesty over a law class is simultaneous coverage \\(P\\{\\tau_P(x)\\in\\mathcal C_n(x)\\ \\text{for every}\\ x\\in\\mathcal B\\}\\ge1-\\gamma\\) (or \\(\\ge1-\\gamma-\\epsilon_n\\) for a vanishing slack), and width is judged against the local thickness--entropy benchmark \\(r_{n,P}^{\\mathrm{loc}}(x)=\\inf_{h\\in\\mathcal H_n}[2Lh+\\sigma\\sqrt{n^{-1}\\log\\{eK_P(x,h)/\\gamma\\}(q_{0,P}(x,h)^{-1}+q_{1,P}(x,h)^{-1})}]\\). Distinguishability between two full observed laws is measured by the total-variation distance \\(\\operatorname{TV}(Q,Q')=\\sup_E|Q(E)-Q'(E)|\\).",
+      "binds_symbols": [
+        "\\gamma", "r_{n,P}^{\\mathrm{loc}}", "\\mathcal C_n", "W_n", "\\operatorname{TV}"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Minimax.TotalVariation",
+        "Causalean.Stat.Minimax.HonestConfidenceSet"
+      ],
+      "notes": "Search trace: `npm run search -- \"honest confidence band simultaneous coverage width\"`, `\"total variation coverage transfer\"`, `\"expected length confidence set lower bound\"` over `Causalean/Stat/Minimax/`, `Causalean/Estimation/Inference/`; read of `../doc/API.md` 12w.1 and 12w.11. Genuine reuse: `Causalean.Stat.tvDist` binds the symbol \\(\\operatorname{TV}\\) exactly (`⨆ A measurable, |μ.real A − ν.real A|`), and `Causalean.Stat.abs_measureReal_sub_le_tvDist` is the variational step used at equation (120) of `thm:global-honest-band-and-width-obstruction`. Analogous module for the width converse: `Causalean/Stat/Minimax/HonestConfidenceSet.lean` — `Causalean.Stat.coverage_tv_expectedRestrictedVolume_lower` is the same coverage-to-expected-width argument but for a random SUBSET of \\(\\mathbb R\\) measured by Lebesgue volume over a one-dimensional parameter region; the gap to bridge is that here the loss is the half-width of an interval at a fixed boundary location \\(x\\in\\mathcal B\\) and the supremum is over the boundary curve, so the Tonelli volume identity does not apply and the decoding argument of `lem:geometry-general-pervasive-band-width-obstruction` is used instead. Bypass-justified for the band object itself: no Causalean type carries a boundary-curve-indexed interval band."
+    },
+    {
+      "id": "S4",
+      "world": "The explicit witness and diagnostic geometry. Write \\(\\rho(z)=\\lVert z\\rVert_2-1\\) for the signed distance to the unit circle, \\(\\mathcal T=\\{z\\in\\mathbb R^2:|\\rho(z)|\\le h_0\\}\\) for the symmetric circular tube, and fix a site \\(x_\\star\\in S^1\\). On \\(\\mathcal T\\) the two normalized score densities are \\(f_\\kappa^{\\mathrm{perv}}(z)\\propto\\mathbf 1_{\\mathcal T}(z)|\\rho(z)|^{\\kappa-2}\\) and \\(f_\\kappa^{\\mathrm{iso}}(z)\\propto\\mathbf 1_{\\mathcal T}(z)\\min\\{1,(d(z,x_\\star)/h_0)^{\\kappa-2}\\}\\); the baseline witness laws \\(P_\\kappa^{\\mathrm{perv},0}\\) and \\(P_\\kappa^{\\mathrm{iso},0}\\) give \\(X\\) the corresponding density and set \\(Y(t)=\\sigma Z_t\\) with independent standard normal \\(Z_0,Z_1\\), so both have identically vanishing side regressions and traces. Perturbed experiments are indexed by a maximal \\(3h\\)-separated set \\(\\Xi_h^{\\mathrm{perv}}\\subseteq S^1\\) and the scale-dependent Lipschitz tents \\(\\psi_{j,h}(z)=(1-d(z,x_j)/h)_+\\), with \\(\\psi_{0,h}\\equiv0\\): the laws \\(\\mathbb P_{\\kappa,j,h}^{\\mathrm{perv}}\\) and \\(\\mathbb P_{\\kappa,j,h}^{\\mathrm{iso}}\\) keep the score density and set \\(Y(1)=(Lh/4)\\psi_{j,h}(X)+\\sigma Z_1\\), \\(Y(0)=-(Lh/4)\\psi_{j,h}(X)+\\sigma Z_0\\). Two separate geometric diagnostics live here: the polynomial horn \\(\\mathsf H_\\kappa=\\{(u,v):0<u<h_0,\\ |v|\\le u^{\\kappa-1}\\}\\), and, for a severity exponent \\(\\alpha>0\\), the exponential horn mass modulus \\(m_\\alpha(h)=\\int_0^h2\\exp(-u^{-\\alpha})\\,du\\).",
+      "binds_symbols": [
+        "\\rho", "\\mathcal T", "x_{\\star}", "f_{\\kappa}^{\\mathrm{perv}}", "f_{\\kappa}^{\\mathrm{iso}}",
+        "P_{\\kappa}^{\\mathrm{perv},0}", "P_{\\kappa}^{\\mathrm{iso},0}", "\\Xi_h^{\\mathrm{perv}}",
+        "\\psi_{j,h}", "\\mathbb P_{\\kappa,j,h}^{\\mathrm{perv}}", "\\mathbb P_{\\kappa,j,h}^{\\mathrm{iso}}",
+        "\\mathsf H_{\\kappa}", "\\alpha", "m_{\\alpha}"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Distributions.Gaussian.Real",
+        "Causalean.Mathlib.InformationTheory.GaussianKL",
+        "Mathlib.Analysis.SpecialFunctions.PolarCoord",
+        "Mathlib.MeasureTheory.Function.Jacobian",
+        "Mathlib.MeasureTheory.Group.LIntegral"
+      ],
+      "notes": "Search trace (Causalean): `Grep \"halfDisc\" ../Causalean` -> only `Causalean/Mathlib/Analysis/HalfDiscPolar.lean`; `Grep -i \"annul|tubular|signedDistance|normalCoord\" ../Causalean` -> only `Stat/Concentration/Covering/EuclideanRadialPolynomial/{Geometry,Cover,Score}.lean` (`radialAnnulusMonomial`, a VC/pseudo-dimension class of radial monomials supported on a relative annulus — a function class, not a change of variables) and `Stat/PolynomialTail/MomentIBounds.lean`; `Grep \"polarCoord|integral_comp_polarCoord|Jacobian\" ../Causalean` -> `HalfDiscPolar.lean` is the ONLY integration-side polar file (the other `Jacobian` hits are M-estimation derivative matrices and `Mathlib/AlgebraicGeometry/PolynomialImageDimension/Jacobian.lean`). Search trace (Mathlib): `lean_leansearch \"change of variables to polar coordinates for integral over the plane\"` -> `integral_comp_polarCoord_symm`, `lintegral_comp_polarCoord_symm` (`Mathlib.Analysis.SpecialFunctions.PolarCoord`), `MeasureTheory.lintegral_image_eq_lintegral_abs_det_fderiv_mul` (`Mathlib.MeasureTheory.Function.Jacobian`); `lean_leansearch \"measure preserving translation of Lebesgue measure integral over translated ball\"` -> `MeasureTheory.lintegral_add_right_eq_self`, `MeasureTheory.MeasurePreserving.setLIntegral_comp_preimage` (`Mathlib.MeasureTheory.Group.LIntegral`, `.../Integral/Lebesgue/Map`). RESULT / CORRECTION: `Causalean.Mathlib.Analysis.HalfDiscPolar` is recorded here as an ANALOGOUS source only, NOT as reuse. Verified by reading the file: every declaration is stated on the origin-centred (or additively translated) upper half-disc `{z | 0 < z.2 ∧ planarRadius z ≤ r}` with a radial-times-angular SEPARABLE integrand (`halfDisc_weighted_polar_integral`, `halfDisc_radial_integral`) or is a cosine-cancellation corollary; there is no annulus/tube domain, no signed-normal-plus-arclength coordinate, and no nonseparable integrand such as \\(\\min\\{1,(d(z,x_\\star)/h_0)^{\\kappa-2}\\}\\). It therefore cannot realize the circular-tube normalizer (1), the two-sided tube ball masses (3), or the translated local-ball bounds (5)-(6); it is the reference for the polar-factorization PROOF PATTERN (reduce a planar set integral to `polarCoord` + Tonelli), with the gap being annulus-vs-half-disc domain and translated-centre-vs-origin balls. Consequently the following LOCAL work is planned in `Helpers/TubeCoords.lean` (build-inline, small/medium, no Defer): (i) `tubePolarChart` — the tube parametrisation \\(z=(1+s)(\\cos\\phi,\\sin\\phi)\\) on \\(|s|\\le h_0<1\\) with its area element \\((1+s)\\,ds\\,d\\phi\\), obtained from Mathlib `polarCoord` + `integral_comp_polarCoord_symm`; (ii) `tubeJacobian_two_sided_bounds` — the uniform \\(1-h_0\\le 1+s\\le 1+h_0\\) Jacobian sandwich and the metric comparison \\(c(s^2+v^2)^{1/2}\\le d(z,x)\\le C(s^2+v^2)^{1/2}\\) of the core's equation (2), by compactness of \\(S^1\\); (iii) `translatedBall_sideMass_bounds` — the side-specific translated-ball mass comparisons (5)-(6) for a centre \\(x\\ne x_\\star\\), from (ii) plus translation invariance (`lintegral_add_right_eq_self`) and monotonicity of ball mass. Also still ANALOGOUS-only: the ANGULAR-GRID design on a square in `CausalSmith.Stat.BddUniformLogPenalty` (`packingSquare`, `angularPacking_geometry`, `angularDesignMeasure_map_distance_eq`, `packingBump`, `bernoulliGaussianLaw`) — different frontier geometry, positive design density, Bernoulli-Gaussian marks; it is the reference for the arc-packing / disjoint-cell counting behind \\(|\\Xi_h^{\\mathrm{perv}}|\\asymp h^{-1}\\) and for the localized-perturbation KL localization. GENUINE reuse inside this block, unchanged: `Causalean.Mathlib.InformationTheory.gaussianKL_eq` (equal-variance Gaussian KL \\((m_0-m_1)^2/(2v)\\), used verbatim at equation (8))."
+    }
+  ],
+  "nodes": {
+    "ass:iid-sampling": {
+      "lean_kind": "assumption",
+      "lean_name": "IidSampling",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Stat.Sample"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "env": "S1",
+      "notes": "Modeling assumption (sampling). One `def … : Prop` asserting that the sample law is the `n`-fold product of the observed law induced by `P`. Search trace: `npm run search -- \"iid sample product law\"` over `Causalean/Stat/`; `lean_local_search \"IIDSample\"` -> `Causalean.Stat.IIDSample` in `Causalean/Stat/Sample.lean`. The structure is reused as the carrier inside S1, but the atom itself is a Prop about a given law, not a structure, so it is stated locally over `Measure.pi`."
+    },
+    "ass:sharp-assignment": {
+      "lean_kind": "assumption",
+      "lean_name": "SharpAssignment",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "env": "S1",
+      "notes": "Modeling assumption (causal-structural): \\(T=\\mathbf 1\\{X\\in\\mathcal A_1\\}\\) a.s. Search trace: `npm run search -- \"sharp assignment indicator treatment cutoff\"` and grep `sharpCutoff` over `Causalean/PO/`; the analogue `Causalean.PO.POSharpRDDSystem.Assumptions.sharpCutoff` is a FIELD of the scalar-cutoff RDD assumption bundle (`D = 1{X ≥ c}` on \\(\\mathbb R\\)), not a standalone reusable Prop and not planar, so it cannot be reused as the atom."
+    },
+    "ass:consistency": {
+      "lean_kind": "assumption",
+      "lean_name": "Consistency",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "env": "S1",
+      "notes": "Modeling assumption (causal-structural): \\(Y=TY(1)+(1-T)Y(0)\\) a.s. Search trace: grep `consistency` over `Causalean/PO/`; `Causalean.PO.POSharpRDDSystem.Assumptions.consistency` and the `PO` framework's `cfUnder` consistency are again bundle fields tied to the scalar RDD system, so the atom is restated locally over the S1 world."
+    },
+    "ass:global-boundary-entropy": {
+      "lean_kind": "assumption",
+      "lean_name": "GlobalBoundaryEntropy",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Topology.MetricSpace.CoveringNumbers"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "env": "S1",
+      "notes": "Modeling assumption (design geometry), flagged `novel` in the core: two-sided \\(h^{-1}\\) control of the maximal \\(h\\)-separated cardinality of \\(\\mathcal B\\). Search trace: `npm run search -- \"packing number separated set cardinality metric space\"` over `Causalean/Stat/Concentration/Covering/`; Mathlib check `lean_local_search \"packing\"` -> `Metric.packingNumber` (`Mathlib/Topology/MetricSpace/CoveringNumbers.lean`) and `Causalean.Stat.Concentration.vc_weightedHamming_packing_card_le` (a VC-Hamming packing BOUND, wrong metric). `Metric.packingNumber` is reused to spell the separated-set cardinality, but the two-sided constant-sandwiched condition itself is a modeling restriction on the design and stays an assumption."
+    },
+    "ass:lipschitz-side-means": {
+      "lean_kind": "assumption",
+      "lean_name": "LipschitzSideMeans",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "env": "S1",
+      "notes": "Modeling assumption (smoothness): \\(L\\)-Lipschitz side regressions on the near-boundary part of \\(\\mathcal X_{t,P}\\). Search trace: `npm run search -- \"Lipschitz regression function class\"`, Mathlib check `LipschitzOnWith`; `LipschitzOnWith` is used to spell it but the restriction to the \\(h_0\\)-tube of the one-sided support is bespoke, so the atom is a local Prop."
+    },
+    "ass:bounded-side-traces": {
+      "lean_kind": "assumption",
+      "lean_name": "BoundedSideTraces",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "env": "S1",
+      "notes": "Modeling assumption (support/envelope): \\(|\\theta_{t,P}(x)|\\le L\\) on \\(\\mathcal B\\). Search trace: `npm run search -- \"bounded outcome envelope regression class\"` over `Causalean/Stat/`, `Causalean/Estimation/`; the existing envelopes (`BoundedOutcome` in `CausalSmith.Stat.PolicyRegretMarginOverlap`, `radialMonomialEnvelope`) bound the OUTCOME or a function class, not the boundary trace of a one-sided regression, so no fit."
+    },
+    "ass:gaussian-errors": {
+      "lean_kind": "assumption",
+      "lean_name": "CenteredSubGaussianKernel",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Mathlib.CondDistrib",
+        "Mathlib.Probability.Moments.SubGaussian"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "env": "S1",
+      "notes": "Modeling assumption (tail regularity): a single regular conditional outcome kernel \\(\\mathsf R_P(z,dy)\\) that is integrable, centered at \\(g_{t,P}(z)\\) and \\(\\sigma\\)-sub-Gaussian outside one \\(\\mu_{t,P}\\)-null set per side. Search trace: `npm run search -- \"conditional sub-Gaussian regression noise kernel\"` over `Causalean/Stat/Concentration/`; Mathlib check `lean_leansearch \"sub-Gaussian moment generating function conditional\"` -> `ProbabilityTheory.HasSubgaussianMGF`, `ProbabilityTheory.HasCondSubgaussianMGF` (`Mathlib/Probability/Moments/SubGaussian.lean`). Those give the MGF predicate but are stated for a sub-sigma-algebra, not for a chosen regular conditional kernel with SIDE-SPECIFIC restricted-measure null sets, which is the corrected formulation the core deliberately atomizes. The MGF inequality is spelled with the Mathlib predicate where possible; the restricted-kernel packaging is local."
+    },
+    "ass:polynomial-lower-mass": {
+      "lean_kind": "assumption",
+      "lean_name": "PolynomialLowerMass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "env": "S1",
+      "notes": "Modeling assumption (support), flagged `novel`: \\(q_{t,P}(x,h)\\ge c_mh^\\kappa\\) uniformly on \\(\\mathcal B\\times(0,h_0]\\) on both sides. Search trace: `npm run search -- \"polynomial design density degeneracy local mass lower bound\"`, `\"overlap decay one-sided\"` over `Causalean/Stat/`, `Causalean/Estimation/MinimaxATE/`; the closest existing conditions are one-sided propensity overlap decay (`CausalSmith.Stat.PolicyRegretMarginOverlap`, overlap-decay exponent) and Ahlfors-type density bounds — neither is a two-sided ball-mass modulus at a boundary curve. No fit."
+    },
+    "ass:isolated-thin-profile-upper": {
+      "lean_kind": "assumption",
+      "lean_name": "IsolatedThinProfileUpper",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "env": "S1",
+      "notes": "Modeling assumption (design geometry), flagged `novel`: the \\(C_{\\mathrm{iso}}\\{1+h^{-1}(u/h^2)^{1/(\\kappa-2)}\\}\\) upper envelope on \\(\\mathsf J_P\\). Search trace: `npm run search -- \"thin site packing profile upper envelope\"`, `\"entropy profile of hard locations\"` over `Causalean/Stat/`; the focal object \\(\\mathsf J_P\\) is introduced by this paper, so nothing in the index can state it."
+    },
+    "ass:isolated-thin-site": {
+      "lean_kind": "assumption",
+      "lean_name": "IsolatedThinSite",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "env": "S1",
+      "notes": "Modeling assumption (design geometry), flagged `novel`: \\(\\mathsf J_P(h,C_mh^\\kappa)\\ge1\\). Same search trace as `ass:isolated-thin-profile-upper`; the predicate is a statement about the paper's own packing profile, so no library fit exists."
+    },
+    "ass:pervasive-thin-sites": {
+      "lean_kind": "assumption",
+      "lean_name": "PervasiveThinSites",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "env": "S1",
+      "notes": "Modeling assumption (design geometry), flagged `novel`: \\(\\mathsf J_P(h,C_mh^\\kappa)\\ge c_Jh^{-1}\\). Same search trace as `ass:isolated-thin-profile-upper`; no library fit."
+    },
+    "ass:declared-modulus-lower-mass": {
+      "lean_kind": "assumption",
+      "lean_name": "DeclaredModulusLowerMass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "env": "S1",
+      "notes": "Modeling assumption (support), flagged `novel`: \\(q_{t,P}(x,h)\\ge m(h)\\) for a declared nondecreasing modulus. Search trace as for `ass:polynomial-lower-mass`; this is the arbitrary-modulus generalization of that atom and has no library analogue."
+    },
+    "ass:declared-profile-lower": {
+      "lean_kind": "assumption",
+      "lean_name": "DeclaredProfileLower",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "env": "S1",
+      "notes": "Modeling assumption (design geometry), flagged `novel`: \\(\\mathsf J_-(h,u)\\le\\mathsf J_P(h,u)\\). Same search trace as `ass:isolated-thin-profile-upper`; no library fit."
+    },
+
+    "def:modulus-profile-class": {
+      "lean_kind": "structure",
+      "lean_name": "ModulusProfileClass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "env": "S1",
+      "members": [
+        "ass:sharp-assignment",
+        "ass:consistency",
+        "ass:global-boundary-entropy",
+        "ass:lipschitz-side-means",
+        "ass:bounded-side-traces",
+        "ass:gaussian-errors",
+        "ass:declared-modulus-lower-mass",
+        "ass:declared-profile-lower"
+      ],
+      "notes": "Build-inline: the class the core introduces for the arbitrary-modulus bracket; one structure field per member, each typed by that member's Prop `def`. Search trace: `npm run search -- \"law class bundle member assumptions nonparametric\"` over `Causalean/Estimation/`, `CausalSmith/Stat/`; the analogous bundling pattern is `CausalSmith.Stat.PolicyRegretMarginOverlap.LawClass` (six member assumptions as structure fields) — pattern reused, contents entirely different."
+    },
+    "def:base-thickness-class": {
+      "lean_kind": "structure",
+      "lean_name": "BaseThicknessClass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "env": "S1",
+      "members": [
+        "ass:sharp-assignment",
+        "ass:consistency",
+        "ass:global-boundary-entropy",
+        "ass:lipschitz-side-means",
+        "ass:bounded-side-traces",
+        "ass:gaussian-errors",
+        "ass:polynomial-lower-mass"
+      ],
+      "notes": "Build-inline: the maximal polynomial-thickness class over which the count-adaptive upper bound is uniform. Same search trace as `def:modulus-profile-class`."
+    },
+    "def:triangular-profile-union": {
+      "lean_kind": "def",
+      "lean_name": "triangularProfileUnion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "env": "S1",
+      "notes": "Build-inline construction: the union over declared triples \\((\\kappa,\\mathsf J_-,\\mathsf J_+)\\in\\Lambda_n\\) of the profile-bracketed base classes, with the declared-domain nonemptiness side condition carried as an explicit field of \\(\\Lambda_n\\). Search trace: `npm run search -- \"union of model classes indexed adaptation range\"` over `Causalean/Stat/Minimax/`; only generic `Set`-level unions exist, nothing to reuse beyond Mathlib `Set.iUnion`."
+    },
+    "def:isolated-thinning-class": {
+      "lean_kind": "structure",
+      "lean_name": "IsolatedThinningClass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "env": "S1",
+      "members": [
+        "ass:sharp-assignment",
+        "ass:consistency",
+        "ass:global-boundary-entropy",
+        "ass:lipschitz-side-means",
+        "ass:bounded-side-traces",
+        "ass:gaussian-errors",
+        "ass:polynomial-lower-mass",
+        "ass:isolated-thin-profile-upper",
+        "ass:isolated-thin-site"
+      ],
+      "notes": "Build-inline. Members list the seven base-class atoms plus the two isolated-thinning atoms, matching the core's `by_member_properties` exactly; the `⊆ 𝒫_base` inclusion is a derived lemma, not a field."
+    },
+    "def:pervasive-thinning-class": {
+      "lean_kind": "structure",
+      "lean_name": "PervasiveThinningClass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "env": "S1",
+      "members": [
+        "ass:sharp-assignment",
+        "ass:consistency",
+        "ass:global-boundary-entropy",
+        "ass:lipschitz-side-means",
+        "ass:bounded-side-traces",
+        "ass:gaussian-errors",
+        "ass:polynomial-lower-mass",
+        "ass:pervasive-thin-sites"
+      ],
+      "notes": "Build-inline. Members = the seven base-class atoms plus pervasive thin sites, matching `by_member_properties` exactly."
+    },
+    "def:dyadic-grid": {
+      "lean_kind": "def",
+      "lean_name": "dyadicGrid",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Estimator.lean",
+      "env": "S2",
+      "notes": "Build-inline (small): the finite set \\(\\{2^{-j}h_0:0\\le j\\le\\lceil\\log_2n\\rceil\\}\\) as a `Finset ℝ` via `Finset.image` on `Finset.range`. Search trace: `npm run search -- \"dyadic bandwidth grid Lepski\"` over `Causalean/Stat/`; Mathlib check `lean_loogle` for a dyadic-scale grid — nothing packaged; this is three lines and is written locally."
+    },
+    "def:minimum-side-mass": {
+      "lean_kind": "def",
+      "lean_name": "minSideMass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Benchmark.lean",
+      "env": "S1",
+      "notes": "Build-inline (small): \\(a_P(x,h)=\\min_t q_{t,P}(x,h)\\), a two-point `min` over the local-mass function of S1. Search trace (Causalean): `Grep \"halfWidth|packingNumber|minSideMass|effectiveMultiplicity\" ../Causalean` -> 0 hits for `minSideMass`; `Grep -i \"annul|tubular\" ../Causalean` -> no one-sided ball-mass functional anywhere; the only local-mass-like objects are the propensity/overlap conditions surveyed for `ass:polynomial-lower-mass`, which are scalar overlap bounds, not a two-sided minimum of restricted ball masses. Search trace (Mathlib): `lean_leansearch \"packing number maximal cardinality of a separated subset of a metric space\"` (run for the sibling node) confirms `Mathlib.Topology.MetricSpace.CoveringNumbers` carries packing/covering numbers but no measure-of-ball functional; the minimum itself is `min` on `ℝ≥0∞` with `min_le_left`/`le_min`, so there is nothing to reuse beyond core order lemmas. RESULT: define-local, two lines."
+    },
+    "def:local-effective-multiplicity": {
+      "lean_kind": "def",
+      "lean_name": "localEffectiveMultiplicity",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Benchmark.lean",
+      "env": "S1",
+      "notes": "Build-inline (small): \\(K_P(x,h)=1\\vee\\mathsf J_P(h,a_P(x,h))\\). Search trace (Causalean): `Grep \"halfWidth|packingNumber|minSideMass|effectiveMultiplicity\" ../Causalean` -> 0 hits for `effectiveMultiplicity` and 0 hits for `packingNumber` (Causalean's only entropy-style counts are `Causalean.Stat.Concentration.vc_weightedHamming_packing_card_le` and the `growthFamily` VC machinery, both in Hamming/VC metrics, not a threshold-indexed thin-site profile). Search trace (Mathlib): `lean_leansearch \"packing number maximal cardinality of a separated subset of a metric space\"` -> `Metric.packingNumber`, `Metric.maximalSeparatedSet`, `Metric.IsSeparated.encard_le_packingNumber` (`Mathlib.Topology.MetricSpace.CoveringNumbers`). RESULT: `Metric.packingNumber` is the carrier used to SPELL \\(\\mathsf J_P\\) inside S1, but the composite \\(1\\vee\\mathsf J_P(h,a_P(x,h))\\) — the paper's own local entropy benchmark, evaluated at the data-independent threshold \\(a_P(x,h)\\) — has no library analogue, so this node is define-local (one line, `max 1 …` in `ℕ∞`)."
+    },
+    "def:local-oracle-benchmark": {
+      "lean_kind": "def",
+      "lean_name": "localOracleBenchmark",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Benchmark.lean",
+      "env": "S3",
+      "notes": "Build-inline: the finite infimum over \\(\\mathcal H_n\\) of bias plus multiplicity-calibrated stochastic width, valued in \\((0,\\infty]\\) (a `Finset.inf'` over the nonempty grid, with the reciprocal masses guarded). Search trace: `npm run search -- \"oracle bandwidth benchmark bias variance infimum\"` over `Causalean/Stat/Nonparametric/`, `Causalean/Stat/Minimax/`; nothing carries the \\(\\log\\{eK_P/\\gamma\\}\\) multiplicity term, which is the paper's own contribution."
+    },
+    "def:empirical-counts": {
+      "lean_kind": "def",
+      "lean_name": "empiricalSideCount",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Stat.Concentration.TailBounds.BinomialCount"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Estimator.lean",
+      "env": "S2",
+      "notes": "Build-inline (small): \\(N_{t,n}(x,h)=\\sum_i\\mathbf 1\\{X_i\\in\\mathcal A_t,\\ d(X_i,x)\\le h\\}\\). Reuse note: this is an instance of `Causalean.Stat.Concentration.bernoulliCount` applied to the \\([0,1]\\)-valued statistic \\(\\mathbf 1\\{z\\in\\mathcal A_t\\wedge d(z,x)\\le h\\}\\); the bridge lemma `empiricalSideCount = bernoulliCount …` is what unlocks `bernoulliCount_lower_tail` for the count events in every upper-bound proof. Search trace: `lean_local_search \"bernoulliCount\"` -> `Causalean/Stat/Concentration/TailBounds/BinomialCount.lean`."
+    },
+    "def:local-constant-side-fit": {
+      "lean_kind": "def",
+      "lean_name": "localConstantSideFit",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Estimator.lean",
+      "env": "S2",
+      "notes": "Build-inline (small): the guarded side average \\(\\{N_{t,n}\\vee1\\}^{-1}\\sum_iY_i\\mathbf 1\\{\\cdots\\}\\), zero on an empty disk. Search trace: `npm run search -- \"local constant Nadaraya Watson estimator\"`, `\"local polynomial fit\"` over `Causalean/Stat/Nonparametric/`; `Causalean.Stat.Nonparametric.LocalPolynomial.*` provides Gram COERCIVITY for local polynomials of degree \\(\\ge1\\), not a degree-zero guarded average, and the core deliberately restricts to local constants because scalar mass does not imply Gram coercivity. Bypass-justified."
+    },
+    "def:admissible-bandwidths": {
+      "lean_kind": "def",
+      "lean_name": "admissibleBandwidths",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Data.Finset.Filter"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Estimator.lean",
+      "env": "S2",
+      "notes": "Build-inline (small): the `Finset` filter \\(\\widehat{\\mathcal H}_{t,n}(x)=\\{h\\in\\mathcal H_n:N_{t,n}(x,h)\\ge8\\log(e+nh^{-1})\\}\\) (decidable via `Classical.dec`). Round-3 search trace (Causalean, sibling tree `../Causalean`): `Grep \"bandwidth|Bandwidth|Lepski|lepski\" ../Causalean` -> 24 files, ALL prose/scalar-parameter uses (`Stat/Nonparametric/LocalPoly/{Rate,Bias,EstimatorRisk/*}.lean`, `Approximation/{Kernel,HolderInterpolation}.lean`, `HOIF/*`, `Concentration/Covering/EuclideanRadialPolynomial/*`, `Limit/ObservationDependentVanTrees/*`, `PO/ID/Partial/RandomSet/IntervalInference.lean`); e.g. `Rate.lean` mentions `bandwidth` only in the phrase \"bandwidth-free shape matrix `T`\". `Grep \"^(noncomputable )?(def|abbrev|structure) \\w*[Bb]andwidth\\w*\" ../Causalean` -> NO MATCHES: Causalean declares no bandwidth object at all, let alone a bandwidth SET, a count-qualification predicate, or a selection rule; `h` is always a bare scalar parameter of a local-polynomial risk bound. `Grep \"countQualified|admissibleBandwidth|bandwidthSet|effectiveSampleSize\" ../Causalean` -> no files. `lean_local_search \"bandwidth\"` -> only CausalSmith research modules (`CausalSmith.Stat.DiscreteAteMinimaxLoggap.bandwidth`, read at `Helpers/Estimator.lean:82`, is the DETERMINISTIC scalar formula `b0 * logScale n / splitSize n 1` — a fixed sequence, not a data-driven admissible set; the `DpCateMinimax.bandwidth_*_cancel*` hits are population-Gram algebra). `lean_local_search \"admissible\"` -> `CausalSmith.Stat.BddUniformLogPenalty.admissibleLaws` / `admissibleA1A2Laws` (admissible LAW classes, not bandwidths), `Experimentation.PrognosticDesignAdmissibility.admissibleFamily` (design families), `Lean.Order.admissible` (fixpoint-order predicate) — none type-fits a count-qualified subset of a bandwidth grid. Round-3 search trace (Mathlib, cwd-independent): `lean_leansearch \"bandwidth selection rule adaptive nonparametric estimator\"` -> only `Mathlib.Deprecated.Estimator` (`Estimator`, `EstimatorData.bound/improve`), an order-theoretic bound-refinement gadget with no statistical content; Mathlib carries no bandwidth-selection or effective-sample-size API. RESULT: no packaged count-qualified bandwidth-set declaration exists in Causalean, CausalSmith or Mathlib, so this node stays `define-local`. PARTIAL generic reuse, recorded explicitly: the node is written as Mathlib's generic `Finset.filter` — `lean_leansearch \"finset filter of elements satisfying a decidable predicate\"` -> `Finset.filter : (p : α → Prop) → [DecidablePred p] → Finset α → Finset α` and `Finset.mem_filter : a ∈ Finset.filter p s ↔ a ∈ s ∧ p a` (`Mathlib.Data.Finset.Filter`), which supply the container and the membership characterization used at equations (40), (51)-(55) and (108)-(110). That is a container-level fit only: the count-qualification predicate \\(N_{t,n}(x,h)\\ge8\\log(e+nh^{-1})\\) — its data-driven empirical count, its \\(8\\log(e+n/h)\\) threshold, and the nonemptiness event driving the \\(h_0\\) fallback — is this paper's own construction and is supplied locally, so this is a PARTIAL fit and NOT a discharge."
+    },
+    "def:count-adaptive-bandwidth": {
+      "lean_kind": "def",
+      "lean_name": "countAdaptiveBandwidth",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Estimator.lean",
+      "env": "S2",
+      "notes": "Build-inline: the numerically smallest minimizer of the criterion over the nonempty admissible `Finset` supplied by `def:admissible-bandwidths`, with the explicit \\(h_0\\) fallback on the empty set. The deterministic tie-break is what makes the map measurable, so the construction must be a `Finset.min'`-style selection rather than an `argmin` choice. Search trace: `npm run search -- \"Lepski selection deterministic tie break measurable bandwidth\"` over `Causalean/Stat/`; nothing packaged. Round-3 (re-searched with its parent `def:admissible-bandwidths`, same result recorded there): `Grep \"^(noncomputable )?(def|abbrev|structure) \\w*[Bb]andwidth\\w*\" ../Causalean` -> NO MATCHES, and `Grep \"bandwidth|Bandwidth|Lepski|lepski\" ../Causalean` -> 24 files of prose/scalar-parameter uses only, so Causalean packages no bandwidth-selection rule to reuse. Mathlib-side check `lean_leansearch \"bandwidth selection rule adaptive nonparametric estimator\"` -> only the unrelated order-theoretic `Mathlib.Deprecated.Estimator`. RESULT: define-local. PARTIAL generic reuse: the selection is Mathlib's `Finset.min'` on the (nonempty) `Finset.filter`-image of the criterion's argmin set, i.e. the container and its minimality lemmas are reused while the criterion \\(Lh+\\sigma\\sqrt{\\log(e+nh^{-1})/\\{N_{t,n}\\vee1\\}}\\) and the \\(h_0\\) fallback are local."
+    },
+    "def:mass-adaptive-estimator": {
+      "lean_kind": "def",
+      "lean_name": "massAdaptiveEstimator",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Estimator.lean",
+      "env": "S2",
+      "notes": "Build-inline (small): the difference of the two count-adaptive side fits, \\(\\widehat\\tau_n(x)=\\widehat g_{1,n}(x;\\widehat h_{1,n}(x))-\\widehat g_{0,n}(x;\\widehat h_{0,n}(x))\\). Search trace (Causalean): `Grep -i \"massAdaptive|adaptiveBandwidth|traceEstimator|sideFit|localConstant\" ../Causalean` -> 0 matches in the whole tree; the nearest estimators are `Causalean/Stat/Nonparametric/LocalPoly/*` (degree \\(\\ge1\\) local polynomials with Gram coercivity, already bypass-justified on `def:local-constant-side-fit`) and the scalar RDD jump `Causalean/PO/ID/Exact/RDD/*`, neither of which is a boundary-curve-indexed difference of two data-driven-bandwidth side averages. Search trace (Mathlib): none applicable — this is a definitional difference of two already-defined local objects (`localConstantSideFit` at `countAdaptiveBandwidth`), so there is no library statement to match; a `lean_leansearch` query would only return generic `sub` lemmas. RESULT: define-local, one line."
+    },
+    "def:expected-sup-risk": {
+      "lean_kind": "def",
+      "lean_name": "expectedSupMinimaxRisk",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Stat.Minimax.MinimaxRisk"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Estimator.lean",
+      "env": "S2",
+      "notes": "Build-inline: \\(\\inf_{\\widetilde\\tau_n}\\sup_{P\\in\\mathcal P}\\mathbb E_P\\sup_{x\\in\\mathcal B}|\\widetilde\\tau_n(x)-\\tau_P(x)|\\) in `ℝ≥0∞`, the infimum over sample-and-geometry-measurable maps \\((\\mathbb R\\times\\mathbb R^2)^n\\to(\\mathcal B\\to\\mathbb R)\\). Search trace: `lean_local_search \"minimaxRisk\"` -> `ProbabilityTheory.minimaxRisk` (Mathlib `Probability/Decision/Risk/Defs.lean`) and `Causalean.Stat.minimaxValue`; both are decision-kernel/Bayes risks for a fixed loss on a fixed action space and do not type-match a supremum-over-a-curve loss with a function-valued estimator, so this is a PARTIAL fit and is NOT discharged. Measurability of the inner supremum is handled by taking a countable dense subset of the compact \\(\\mathcal B\\); the outer-integral escape hatch `MeasureTheory.outerLIntegral` / `UpperSemianalytic.lintegral_completion_eq_outerLIntegral` (Causalean 10z) is available if F3 needs it."
+    },
+    "def:circular-thinning-witnesses": {
+      "lean_kind": "def",
+      "lean_name": "circularThinningWitness",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Distributions.Gaussian.Real",
+        "Mathlib.Analysis.SpecialFunctions.PolarCoord",
+        "Mathlib.MeasureTheory.Function.Jacobian"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Witness.lean",
+      "env": "S4",
+      "notes": "Build-inline: the circular inside/outside partition, the two normalized tube densities, and the two zero-trace Gaussian baseline laws. Search trace (Causalean): `Grep \"halfDisc\" ../Causalean` -> only `Causalean/Mathlib/Analysis/HalfDiscPolar.lean`; `Grep -i \"annul|tubular|signedDistance|normalCoord\" ../Causalean` -> only the `EuclideanRadialPolynomial` VC files (`radialAnnulusMonomial` is a function class, not a coordinate change); `Grep \"polarCoord|Jacobian\" ../Causalean` -> no annular/tube change of variables anywhere. Search trace (Mathlib): `lean_leansearch \"change of variables to polar coordinates for integral over the plane\"` -> `integral_comp_polarCoord_symm` / `lintegral_comp_polarCoord_symm` (`Mathlib.Analysis.SpecialFunctions.PolarCoord`) and `MeasureTheory.lintegral_image_eq_lintegral_abs_det_fderiv_mul` (`Mathlib.MeasureTheory.Function.Jacobian`). RESULT: no exact reuse; `disposition` stays `define-local` with `reuse: null`. CORRECTION vs the previous round: `halfDisc_radial_integral` / `halfDisc_weighted_polar_integral` are NOT reused here — they are stated only for origin-centred (or translated) upper HALF-discs with radial-times-angular separable integrands, whereas the normalizer \\(Z^{\\mathrm{perv}}_\\kappa=\\int_{\\mathcal T}|\\rho|^{\\kappa-2}\\) is over a full annular tube and the isolated density \\(\\min\\{1,(d(z,x_\\star)/h_0)^{\\kappa-2}\\}\\) is not separable in tube coordinates. They are recorded as the ANALOGOUS proof pattern (planar set integral -> `polarCoord` + Tonelli). The tube normalizer and its two-sided positivity/finiteness bounds are computed from the LOCAL `Helpers/TubeCoords.lean` lemmas planned in `S4` (`tubePolarChart`, `tubeJacobian_two_sided_bounds`), which are built on the Mathlib `polarCoord` change of variables. Analogous module F3 should also adapt: `CausalSmith/Stat/STAT_BddUniformLogPenalty_Research/Helpers/AngularDesign.lean` + `AngularMeasure.lean` (`packingAngularDensity`, `angularDesignMeasure_gridCell_radialSet_eq_volume`) — same normalize-a-density-on-a-frontier-tube pattern, gap = square frontier with positive density vs circle with \\(|\\rho|^{\\kappa-2}\\) depletion."
+    },
+    "def:fano-tent-family": {
+      "lean_kind": "def",
+      "lean_name": "tentPerturbedLaw",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Probability.Distributions.Gaussian.Real"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Witness.lean",
+      "env": "S4",
+      "notes": "Build-inline: the \\(3h\\)-separated site set, the tents \\(\\psi_{j,h}\\), and the two-sided sign-opposed Gaussian mean shifts, in one construction covering both the pervasive (many \\(j\\)) and isolated (\\(j\\in\\{0,1\\}\\)) families. Search trace: `npm run search -- \"tent perturbation family lower bound construction\"`, `\"bump perturbation Holder packing\"` over `Causalean/Stat/Minimax/`, `CausalSmith/Stat/`; analogous references F3 should adapt: `CausalSmith/Stat/STAT_BddUniformLogPenalty_Research/Helpers/BumpHolder.lean` (`packingBump`, `packingRegression`) and `CausalSmith/Stat/STAT_DpCateMinimaxV1_Research/Helpers/BumpHolder.lean` — same localized-perturbation-of-a-baseline-law pattern; gap = Lipschitz cone tents on a circle with SIGN-OPPOSED two-sided shifts rather than smooth bumps on one arm."
+    },
+    "def:polynomial-horn": {
+      "lean_kind": "def",
+      "lean_name": "polynomialHorn",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Geometry.lean",
+      "env": "S4",
+      "notes": "Build-inline (small): the planar set \\(\\{(u,v):0<u<h_0,\\ |v|\\le u^{\\kappa-1}\\}\\). Search trace (Causalean): `Grep -i \"regionBetween|\\\\bhorn\\\\b|\\\\bcusp\\\\b\" ../Causalean` -> 0 occurrences in the whole tree; no cusp/horn region and no region-under-a-graph construction exists there. Search trace (Mathlib): `lean_leansearch \"volume of the region between two graphs of functions equals integral of the difference\"` -> `regionBetween` with `volume_regionBetween_eq_integral`, `volume_regionBetween_eq_lintegral` (`Mathlib.MeasureTheory.Measure.Lebesgue.{Integral,Basic}`). RESULT: `regionBetween (fun u => -u^(\\kappa-1)) (fun u => u^(\\kappa-1)) (Ioo 0 h_0)` is the Mathlib idiom this `def` is written in, and its measure lemma is what `lem:polynomial-horn-mass` consumes; the horn set itself is a three-symbol definition with no packaged analogue, so it is define-local rather than a reuse."
+    },
+    "def:exponential-modulus": {
+      "lean_kind": "def",
+      "lean_name": "exponentialModulus",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Geometry.lean",
+      "env": "S4",
+      "notes": "Build-inline (small): \\(m_\\alpha(h)=\\int_0^h2e^{-u^{-\\alpha}}\\,du\\) as an `intervalIntegral`. Search trace (Causalean): `Grep \"modulus|Modulus\" ../Causalean` -> hits are modulus-of-continuity / critical-radius objects in `Stat/EmpiricalProcess/Equicontinuity/*`, `Estimation/OrthogonalLearning/LocalEmpProcess/*` and `Estimation/NPIV/Primal/EmpiricalProcessEvent/*`; none is a local-mass modulus \\(h\\mapsto\\) mass, and `Grep -i \"\\\\bhorn\\\\b|\\\\bcusp\\\\b\" ../Causalean` -> 0. Search trace (Mathlib): `lean_leansearch \"interval integral of a strictly positive continuous function is positive\"` -> `intervalIntegral.intervalIntegral_pos_of_pos`, `intervalIntegral.intervalIntegral_pos_of_pos_on`, `intervalIntegral.integral_pos` (`Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic`) — these are the tools `prop:exponential-horn-consistency` uses for the positivity clause; there is no packaged \\(\\int_0^h e^{-u^{-\\alpha}}\\) modulus. RESULT: define-local, one `intervalIntegral` line."
+    },
+    "def:arbitrary-modulus-handle": {
+      "lean_kind": "def",
+      "lean_name": "clippedMassAdaptiveEstimator",
+      "disposition": "define-local",
+      "reuse": "Causalean.Mathlib.Analysis.clipIcc",
+      "modules": ["Causalean.Mathlib.Analysis.ClipInterval"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Estimator.lean",
+      "env": "S2",
+      "notes": "Build-inline construction whose clipping component is a genuine reuse: \\(\\overline\\tau_n=\\mathrm{clipIcc}(-2L)(2L)\\circ\\widehat\\tau_n\\). Verified with `lean_local_search`/read of `Causalean/Mathlib/Analysis/ClipInterval.lean`: `clipIcc a b x = max a (min b x)` with `clipIcc_mem_Icc`, `abs_clipIcc_sub_le` (projection cannot increase the error when the target lies in the interval), `measurable_clipIcc`, `lipschitzWith_clipIcc` — exactly the four facts the bracket proof uses. The node also records the converse recipe (radius-\\(h/3\\) tents at \\(\\mathsf J_-\\)-certified separated thin sites); that recipe is realized by `def:fano-tent-family` and the testing lemmas rather than by a separate object."
+    },
+    "def:honest-band-handle": {
+      "lean_kind": "def",
+      "lean_name": "honestBand",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Stat.Minimax.TotalVariation"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Benchmark.lean",
+      "env": "S3",
+      "notes": "Build-inline: the explicit band \\(\\mathcal C_n(x)=[\\widehat\\tau_n(x)\\pm(B_{0,n}(x)+B_{1,n}(x))]\\) with \\(B_{t,n}\\) the disk-pattern-calibrated radius at a positive selected count and the trace envelope \\(L\\) at a zero count, and \\(M_n=2|\\mathcal H_n|\\sum_{j\\le3}\\binom nj\\). The core's node text is a recipe; the plan realizes it as the concrete band `def` that `thm:global-honest-band-and-width-obstruction` then states its coverage for. Search trace: `npm run search -- \"confidence band calibration union bound sub-Gaussian\"` over `Causalean/Stat/Concentration/`, `Causalean/Estimation/Inference/`; `Causalean.Stat.Concentration.hoeffdingCIHalfWidth`/`bernsteinCIHalfWidth` are SCALAR-mean half-widths at a fixed sample size and do not carry the disk-pattern union or the bias term, so no fit. The `TV` component of the node's two-law transfer clause reuses `Causalean.Stat.tvDist`."
+    },
+    "def:band-half-width": {
+      "lean_kind": "def",
+      "lean_name": "bandHalfWidth",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Topology.Instances.ENNReal.Lemmas"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Benchmark.lean",
+      "env": "S3",
+      "notes": "Build-inline (small): \\(W_n(x)=\\operatorname{diam}(\\mathcal C_n(x))/2\\), valued in \\([0,\\infty]\\) via `Metric.ediam` on the reported interval. Search trace (Causalean): `Grep \"def .*[Hh]alfWidth\" ../Causalean` -> `hoeffdingCIHalfWidth`, `bernsteinCIHalfWidth` (`Stat/Concentration/UniformDeviation/ConfidenceInterval.lean`), `empiricalBernsteinCIHalfWidth` (`Stat/Concentration/TailBounds/EmpiricalBernstein.lean`), `gaussianMSMHalfWidthFactor` (`PO/ID/Partial/Sensitivity/MSM/GaussianHalfWidth.lean`). All four are CLOSED-FORM scalar half-width FORMULAS in \\((n,\\delta,\\sigma)\\) for a single mean, not the half-diameter functional of an arbitrary reported interval at a boundary location, so none type-fits; PARTIAL fit, not a discharge. Search trace (Mathlib): `lean_leansearch \"diameter of a closed interval in the reals equals b minus a\"` -> `Real.ediam_Icc : Metric.ediam (Set.Icc a b) = ENNReal.ofReal (b - a)`, `Real.diam_Icc`, `Metric.diam` (`Mathlib.Topology.Instances.ENNReal.Lemmas`, `Mathlib.Topology.MetricSpace.Bounded`). RESULT: define-local as `Metric.ediam (𝒞 n x) / 2`, with `Real.ediam_Icc` supplying the explicit \\(B_{0,n}+B_{1,n}\\) evaluation used at equation (115) of `thm:global-honest-band-and-width-obstruction`."
+    },
+
+    "prop:observed-law-identification": {
+      "lean_kind": "theorem",
+      "lean_name": "observed_law_identification",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Mathlib.CondDistrib",
+        "Mathlib.Probability.Kernel.Disintegration.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T_ObservedLawIdentification.lean",
+      "hyps": ["def:base-thickness-class"],
+      "env": "S1",
+      "notes": "Build-inline (the paper's identification kernel). All five assumption dependencies (`ass:lipschitz-side-means`, `ass:bounded-side-traces`, `ass:polynomial-lower-mass`, `ass:sharp-assignment`, `ass:consistency`) are bundled in `def:base-thickness-class`, which is the single threaded hypothesis; `lem:conditional-sub-gaussian-regression-moments` is USED, not assumed. Analogous module F3 should adapt: `Causalean/PO/ID/Exact/RDD/RDDLimits.lean` (`oneSidedLimit_eq_left/right`, `value_eq_of_aeEq_right`) and `Causalean/PO/ID/Exact/RDD/SharpRDD.lean` (the a.e.-agreement -> limit-equality upgrade via `Integrable.ae_eq_of_forall_setIntegral_eq` and `Measure.exists_mem_of_measure_ne_zero_of_ae`). Gap to bridge: the half-line filter must become the restricted-support filter on \\(\\mathcal X_{t,P}\\), positive one-sided mass comes from the polynomial modulus rather than a support premise, and uniqueness is proved for the LIPSCHITZ representative on the \\(h_0\\)-tube rather than by continuity at a single cutoff."
+    },
+    "lem:polynomial-horn-mass": {
+      "lean_kind": "lemma",
+      "lean_name": "polynomialHorn_measure_asymp",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.MeasureTheory.Integral.Layercake"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Geometry.lean",
+      "hyps": [],
+      "env": "S4",
+      "notes": "Build-inline (small): two Tonelli section integrals give \\(2^{1-\\kappa}\\kappa^{-1}h^\\kappa\\le\\operatorname{Leb}_2(\\mathsf H_\\kappa\\cap B(0,h))\\le2\\kappa^{-1}h^\\kappa\\). Search trace: `npm run search -- \"area of a cusp region section integral\"`, `\"planar set measure by Fubini sections\"`; Mathlib check `lean_leansearch \"measure of a region under a graph by Tonelli\"` -> `MeasureTheory.volume_regionBetween_eq_integral` / `Measure.prod_apply` — those are the general tools this lemma is written with; there is no packaged horn-mass statement, and there should not be, since the exponent claim (\\(\\kappa\\), not \\(\\kappa-1\\)) is the paper's geometry kill test."
+    },
+    "lem:circular-witness-membership": {
+      "lean_kind": "lemma",
+      "lean_name": "circularWitness_membership",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.SpecialFunctions.PolarCoord",
+        "Mathlib.MeasureTheory.Function.Jacobian",
+        "Mathlib.MeasureTheory.Group.LIntegral",
+        "Mathlib.Topology.MetricSpace.CoveringNumbers",
+        "Mathlib.Probability.Distributions.Gaussian.Real"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Witness.lean",
+      "hyps": ["def:isolated-thinning-class", "def:pervasive-thinning-class"],
+      "env": "S4",
+      "notes": "Build-inline (the paper's nonemptiness certificate). IMPORTANT semantics: the three assumption dependencies `ass:global-boundary-entropy`, `ass:gaussian-errors` and `ass:isolated-thin-profile-upper` are DISCHARGED by this lemma, not assumed; they are covered here only through the two class predicates named in `hyps`, which occur in the lemma's CONCLUSION (\\(P^{\\mathrm{perv},0}_\\kappa\\in\\mathcal P^{\\mathrm{perv}}_\\kappa\\), \\(P^{\\mathrm{iso},0}_\\kappa\\in\\mathcal P^{\\mathrm{iso}}_\\kappa\\)). Search trace (Causalean): `Grep \"halfDisc\" ../Causalean` -> `Causalean/Mathlib/Analysis/HalfDiscPolar.lean` only; `Grep -i \"annul|tubular|signedDistance|normalCoord\" ../Causalean` -> no tube/normal-coordinate declaration (only `radialAnnulusMonomial`, a VC function class); `Grep \"def .*[Hh]alfWidth|packingNumber\" ../Causalean` -> no `packingNumber` in Causalean. Search trace (Mathlib): `lean_leansearch \"change of variables to polar coordinates for integral over the plane\"` -> `integral_comp_polarCoord_symm`, `MeasureTheory.lintegral_image_eq_lintegral_abs_det_fderiv_mul`; `lean_leansearch \"measure preserving translation of Lebesgue measure integral over translated ball\"` -> `MeasureTheory.lintegral_add_right_eq_self`, `MeasurePreserving.setLIntegral_comp_preimage`; `lean_leansearch \"packing number maximal cardinality of a separated subset of a metric space\"` -> `Metric.packingNumber`, `Metric.maximalSeparatedSet`, `Metric.IsSeparated.encard_le_packingNumber` (`Mathlib.Topology.MetricSpace.CoveringNumbers`). RESULT: no declaration with this geometry exists; `disposition` stays `define-local`, `reuse: null`. CORRECTION vs the previous round: the `HalfDiscPolar` identities are NOT reused and do NOT prove the steps this lemma needs — they give a separable radial-times-angular factorization on an origin-centred upper half-disc, whereas equations (1)-(3) need the annular-tube area element \\((1+s)\\,ds\\,d\\phi\\), (2) needs a Jacobian/metric comparison in signed-normal-plus-arclength coordinates, and (5)-(6) need side-specific TRANSLATED local-ball masses about a centre \\(x\\ne x_\\star\\) with the nonseparable integrand \\(\\min\\{1,(d(z,x_\\star)/h_0)^{\\kappa-2}\\}\\); the file is kept only as the analogous polar-factorization pattern. LOCAL work this lemma consumes, planned as build-inline lemmas in `Helpers/TubeCoords.lean` (see `S4`): `tubePolarChart` (tube parametrisation + area element, from Mathlib `polarCoord` / `integral_comp_polarCoord_symm`), `tubeJacobian_two_sided_bounds` (uniform \\(1-h_0\\le1+s\\le1+h_0\\) sandwich and the metric comparison of equation (2), by compactness of \\(S^1\\) and \\(h_0<1\\)), and `translatedBall_sideMass_bounds` (the side-specific translated-ball comparisons (5)-(6), from translation invariance plus monotonicity of ball mass). The arc-packing conclusions (4), (8), (9) are spelled with `Metric.packingNumber` / `Metric.IsSeparated.encard_le_packingNumber`. Analogous module: `CausalSmith/Stat/STAT_BddUniformLogPenalty_Research/Helpers/AngularPacking.lean` (`angularPacking_geometry`, `angularGridPackingCells_disjoint`) for the disjoint-arc-vs-covering-arc counting that yields \\(ch^{-1}\\le\\mathsf J\\le Ch^{-1}\\); gap = arcs on a circle rather than cells on a square frontier. Gaussian kernel facts come from `Mathlib.Probability.Distributions.Gaussian.Real` and the file of `Causalean.Mathlib.InformationTheory.gaussianKL_eq`."
+    },
+    "lem:fano-tent-validity": {
+      "lean_kind": "lemma",
+      "lean_name": "tentFamily_validity",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Mathlib.InformationTheory.GaussianKL",
+        "Causalean.Mathlib.InformationTheory.ProductKLLeCam"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Witness.lean",
+      "hyps": [],
+      "env": "S4",
+      "notes": "Build-inline. Two genuine reuses carry the information budget: `Causalean.Mathlib.InformationTheory.gaussianKL_eq` (equal-variance Gaussian KL \\(=(m_0-m_1)^2/(2v)\\), verified signature `(m₀ m₁ : ℝ) (hv : 0 < v)`) for equation (8), and `Causalean.Mathlib.InformationTheory.productKL_tensorization` (verified: `ProductKLTensorizationBound n μ ν` from `μ ≪ ν` + `Integrable (llr μ ν) μ`) for the \\(n\\)-fold additivity at equation (10). Remaining build: class membership of every perturbed law (Lipschitz constant \\(L/4\\), trace bound, unchanged score law, unchanged centered Gaussian residual kernel with the side-null-set bookkeeping) and \\(|\\Xi^{\\mathrm{perv}}_h|\\asymp h^{-1}\\) (spelled with `Metric.packingNumber` / `Metric.IsSeparated.encard_le_packingNumber`, per the Mathlib trace recorded on `lem:circular-witness-membership`). Dependency-closure note after the S4 correction: the localized ball-mass bounds \\(\\int_{B(x_j,h)}f_\\kappa^{\\bullet}\\le Ch^{\\kappa}\\) that this lemma's KL step (9) imports from `lem:circular-witness-membership` now come from the local `Helpers/TubeCoords.lean` lemmas (`tubeJacobian_two_sided_bounds`, `translatedBall_sideMass_bounds`), NOT from `HalfDiscPolar`, which is analogous-only."
+    },
+    "thm:thickness-entropy-separation": {
+      "lean_kind": "theorem",
+      "lean_name": "thickness_entropy_separation",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Concentration.TailBounds.BinomialCount",
+        "Causalean.Mathlib.InformationTheory.GaussianKL",
+        "Causalean.Mathlib.Analysis.ClipInterval"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T_ThicknessEntropySeparation.lean",
+      "hyps": [
+        "ass:iid-sampling",
+        "ass:global-boundary-entropy",
+        "def:isolated-thinning-class",
+        "def:pervasive-thinning-class"
+      ],
+      "env": "S2",
+      "notes": "Build-inline: the paper's headline separation \\(R_n(\\mathcal P^{\\mathrm{iso}}_\\kappa)\\asymp n^{-1/(\\kappa+2)}\\) versus \\(R_n(\\mathcal P^{\\mathrm{perv}}_\\kappa)\\asymp(\\log n/n)^{1/(\\kappa+2)}\\) at a common scalar modulus. This is the theorem's OWN novel content and is feasible, so it is built, not assumed. It is the longest chain in the plan; the four factored inputs (`lem:circular-witness-membership`, `lem:fano-tent-validity`, `lem:finite-information-testing`, `lem:disk-pattern-sub-gaussian-control`) are already separate nodes, so the theorem file holds only the two lower-bound calibrations, the net/clipping upper bound and the group-by-mass-level summation (32)-(34). Reused inside: `Causalean.Stat.Concentration.bernoulliCount_lower_tail` for (29), `gaussianKL_eq` for (22)/(25), `clipIcc` + `abs_clipIcc_sub_le` for (28)."
+    },
+    "thm:pervasive-adaptive-frontier": {
+      "lean_kind": "theorem",
+      "lean_name": "pervasive_adaptive_frontier",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Stat.Concentration.TailBounds.BinomialCount"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T_PervasiveAdaptiveFrontier.lean",
+      "hyps": [
+        "ass:iid-sampling",
+        "def:base-thickness-class",
+        "def:pervasive-thinning-class"
+      ],
+      "env": "S2",
+      "notes": "Build-inline: the count-adaptive estimator attains \\((\\log n/n)^{1/(\\kappa+2)}\\) uniformly over \\(\\mathcal P^{\\mathrm{base}}_\\kappa\\) without knowing \\(\\kappa\\) or the density, with the explicit \\(Cn^3e^{-cnc_mh_0^\\kappa}\\) fallback-event bound. `ass:bounded-side-traces` is covered through `def:base-thickness-class`. Reuse: `Causalean.Stat.Concentration.bernoulliCount_lower_tail` for (37) and (47)."
+    },
+    "prop:exponential-horn-consistency": {
+      "lean_kind": "theorem",
+      "lean_name": "exponential_horn_consistency",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T_ExponentialHornConsistency.lean",
+      "hyps": [],
+      "env": "S4",
+      "notes": "Build-inline (small/medium): positivity, the incomplete-Gamma asymptotic \\(m_\\alpha(h)\\sim(2/\\alpha)h^{\\alpha+1}e^{-h^{-\\alpha}}\\) by one integration by parts, and the explicit sequence \\(h_n=(\\tfrac12\\log n)^{-1/\\alpha}\\). Search trace: `npm run search -- \"incomplete gamma tail asymptotic\"`; Mathlib check `lean_leansearch \"asymptotics of the upper incomplete gamma function\"` -> `Real.Gamma`, `Mathlib.Analysis.SpecialFunctions.Gamma.*` carry the Gamma function and its Beta/Stirling theory but no upper-incomplete tail equivalence at a moving endpoint, so the two-sided ratio bound is proved directly from the integration-by-parts identity as in the core proof."
+    },
+    "oeq:honest-adaptive-bands": {
+      "lean_kind": "def",
+      "lean_name": "HonestAdaptiveBandsQuestion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Stat.Minimax.TotalVariation"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T_HonestAdaptiveBandsQuestion.lean",
+      "hyps": [],
+      "env": "S3",
+      "notes": "Redirected to open-ended Case (B): `lean_kind:\"def\"` now produces a closed descriptive `_root_.String`. The frozen node asks the formalization to characterize benchmark separation and admissible triangular profile-pair quantification rather than defining them, so asserting an iff Prop would invent a truth condition. The payload records the coverage/width upper target, universal lower target, and score-product-TV alternative, explicitly states that the two missing notions remain to be characterized, supplies no witnesses, and remains excluded from theorem dependencies and the theorem manifest."
+    },
+    "lem:finite-information-testing": {
+      "lean_kind": "lemma",
+      "lean_name": "finite_information_testing",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Minimax.LeCam",
+        "Causalean.Stat.Minimax.Pinsker",
+        "Causalean.Stat.Minimax.TotalVariation",
+        "Causalean.Mathlib.InformationTheory.ProductKLLeCam"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Testing.lean",
+      "hyps": [],
+      "env": "S2",
+      "notes": "Build-inline, but the two-law clause is essentially a reuse composite: `Causalean.Stat.half_one_sub_tvDist_le_max_error` (Le Cam max form, verified in `Causalean/Stat/Minimax/LeCam.lean`) composed with `Causalean.Stat.pinskerBound_of_ac_of_ne_top` / `Causalean.Stat.klForm_two_point_lower_bound` gives exactly the \\(M=1\\), \\(\\mathrm{KL}\\le1/8\\) branch, and `productKL_tensorization` gives the product-experiment clause. The \\(M\\ge2\\) clause is NOT reusable: `Causalean.Stat.fano_exists_error` is the TV-form Fano bound (`1 − 1/N − β ≤ error`), deliberately proved without entropy machinery, whereas this node's premise is the AVERAGE-KL budget \\(M^{-1}\\sum_j\\mathrm{KL}(Q_j,Q_0)\\le a\\log M\\) with \\(a<1/8\\), which needs mutual information and the entropy decoding step. Mathlib check via `lean_leansearch \"Fano's inequality conditional entropy bound on probability of error\"` -> only `Real.binEntropy` and its elementary lemmas; no Fano inequality upstream. So the \\(M\\ge2\\) branch is built here on top of `lem:explicit-entropy-decoding-bound`."
+    },
+    "lem:explicit-entropy-decoding-bound": {
+      "lean_kind": "lemma",
+      "lean_name": "explicit_entropy_decoding_bound",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.InformationTheory.KullbackLeibler.Basic",
+        "Mathlib.Analysis.SpecialFunctions.BinaryEntropy"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Testing.lean",
+      "hyps": [],
+      "env": "S2",
+      "notes": "Build-inline (medium, self-contained): the explicit finite-\\(M\\) Fano decoding-error bound \\((M+1)^{-1}\\sum_jQ_j\\{\\widehat J\\ne j\\}\\ge(\\log(M+1)-\\overline{\\mathrm{KL}}-\\log2)/\\log M\\). Search trace: `npm run search -- \"mutual information decoding error entropy chain rule\"`, `\"Fano inequality\"` over `Causalean/Stat/Minimax/`, `Causalean/Mathlib/InformationTheory/`; Mathlib check `lean_leansearch \"Fano's inequality conditional entropy bound on probability of error\"` -> nothing (only `Real.binEntropy`, `binEntropy_le_log_two`, which IS the \\(\\log2\\) term used in step (2)). `Causalean/Stat/Minimax/Fano.lean` is explicitly documented as the TV-form, entropy-free tier and does not prove this. Genuinely absent; built from `InformationTheory.klDiv` nonnegativity, the mixture identity, and the entropy chain rule."
+    },
+    "lem:disk-pattern-sub-gaussian-control": {
+      "lean_kind": "lemma",
+      "lean_name": "diskPattern_subGaussian_control",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Concentration.Covering.VCCovering",
+        "Causalean.Stat.Concentration.Covering.EuclideanRadialPolynomial.Geometry",
+        "Mathlib.Probability.Moments.SubGaussian"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/DiskPattern.lean",
+      "hyps": ["ass:iid-sampling", "ass:gaussian-errors"],
+      "env": "S2",
+      "notes": "Build-inline (medium). Three pieces. (a) The deterministic trace count \\(|\\mathscr S_n|\\le2|\\mathcal H_n|\\sum_{j\\le3}\\binom nj\\): search trace `npm run search -- \"VC dimension of Euclidean balls\"`, `\"growth function Sauer Shelah binomial sum\"` -> `Causalean.Stat.Concentration.EuclideanRadialPolynomial.euclideanClosedBall_hasVCAtMost` (closed balls in \\(\\mathbb R^d\\), VC \\(\\le d+2\\)) and `Causalean.Stat.Concentration.card_growthFamily_le_sum_choose` / `growthFamily` in `Causalean/Stat/Concentration/Covering/VCCovering.lean`. This is a PARTIAL fit and is NOT a discharge: the Causalean bound is for VARIABLE-radius balls (VC \\(\\le d+2=4\\) in the plane, giving \\(\\sum_{j\\le4}\\binom nj\\)), whereas the frozen statement asserts the sharper \\(\\sum_{j\\le3}\\binom nj\\) available for FIXED-radius planar disks. F3 should either prove VC \\(\\le3\\) for the fixed-radius disk class and then apply `card_growthFamily_le_sum_choose`, or reproduce the three-parameter hyperplane-arrangement recursion \\(A(n,v)\\le A(n-1,v)+A(n-1,v-1)\\) given in the core proof. (b) The conditional MGF tensorisation uses `ProbabilityTheory.HasSubgaussianMGF` (Mathlib) plus the restricted-kernel clauses of `ass:gaussian-errors`. (c) The expected-maximum bound \\(\\sqrt{2\\log\\{2(1\\vee|\\mathscr S_n|)\\}}+1\\): Mathlib check `lean_leansearch \"expected maximum of finitely many sub-Gaussian random variables\"` returned only `measure_sum_range_ge_le_of_iIndepFun` and martingale maximal inequalities, so the tail-integral argument is written locally (small)."
+    },
+    "lem:conditional-sub-gaussian-regression-moments": {
+      "lean_kind": "lemma",
+      "lean_name": "conditional_subGaussian_regression_moments",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Probability.Moments.SubGaussian"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/DiskPattern.lean",
+      "hyps": ["ass:gaussian-errors"],
+      "env": "S1",
+      "notes": "Build-inline (small): from the MGF bound, Chernoff on both tails gives \\(\\mathsf R_P(z,\\{|Z_z|\\ge u\\})\\le2e^{-u^2/(2\\sigma^2)}\\) and the layer-cake identity gives \\(\\mathbb E|\\varepsilon_t|\\le\\sigma\\sqrt{2\\pi}\\). Search trace: `npm run search -- \"sub-Gaussian absolute first moment bound\"`; Mathlib check `lean_leansearch \"sub-Gaussian random variable absolute moment bound sigma sqrt 2 pi\"` -> `HasSubgaussianMGF.measure_ge_le` gives the one-sided tail but no packaged \\(L^1\\) constant, and `MeasureTheory.lintegral_comp_eq_lintegral_meas_lt_mul` (layer cake) is the generic tool. The \\(\\sigma\\sqrt{2\\pi}\\) constant is derived here from those two, in three steps."
+    },
+    "thm:arbitrary-modulus-two-sided-bracket": {
+      "lean_kind": "theorem",
+      "lean_name": "arbitrary_modulus_two_sided_bracket",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Mathlib.Analysis.ClipInterval",
+        "Causalean.Stat.Concentration.TailBounds.BinomialCount",
+        "Causalean.Mathlib.InformationTheory.GaussianKL"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T_ArbitraryModulusTwoSidedBracket.lean",
+      "hyps": ["ass:iid-sampling", "def:modulus-profile-class"],
+      "env": "S2",
+      "notes": "Build-inline after redirect: the statement uses the fixed geometry-parametrized clipped mass-adaptive estimator, a sequence of nonempty geometry-restricted classes with profiles `(m n,Jminus n)`, the full two-branch feasible-radius functional, and explicit shared-geometry/nonemptiness premises for polynomial exact rates. The final polynomial clause records the one-site slack-profile inclusion and divergent isolated/pervasive scale mismatch. `ass:declared-modulus-lower-mass` and `ass:global-boundary-entropy` remain covered through `def:modulus-profile-class`."
+    },
+    "thm:lower-profile-only-class-cannot-recover-isolated-frontier": {
+      "lean_kind": "theorem",
+      "lean_name": "lower_profile_only_class_cannot_recover_isolated_frontier",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T_LowerProfileOnlyClass.lean",
+      "hyps": [
+        "ass:iid-sampling",
+        "def:base-thickness-class",
+        "def:isolated-thinning-class",
+        "def:pervasive-thinning-class",
+        "def:modulus-profile-class"
+      ],
+      "env": "S2",
+      "notes": "Build-inline (medium): a containment certificate plus monotonicity of \\(R_n\\) under class inclusion, then the matched pervasive rate from the two preceding theorems. `ass:polynomial-lower-mass` is covered by base/iso/perv, `ass:isolated-thin-site` by iso, `ass:pervasive-thin-sites` by perv, `ass:declared-modulus-lower-mass` and `ass:declared-profile-lower` by modulus-profile. Search trace: `npm run search -- \"minimax risk monotone under model class inclusion\"` over `Causalean/Stat/Minimax/`; `Causalean.Stat.minimaxValue` monotonicity exists only for the finite decision-problem value, not for this sup-loss risk, so the two-line monotonicity lemma (70) is proved locally against `def:expected-sup-risk`."
+    },
+    "lem:geometry-general-pervasive-band-width-obstruction": {
+      "lean_kind": "lemma",
+      "lean_name": "pervasive_band_width_obstruction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Mathlib.InformationTheory.GaussianKL",
+        "Causalean.Mathlib.InformationTheory.ProductKLLeCam"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/BandWidth.lean",
+      "hyps": [
+        "ass:iid-sampling",
+        "ass:global-boundary-entropy",
+        "def:base-thickness-class",
+        "def:pervasive-thinning-class"
+      ],
+      "env": "S3",
+      "notes": "Build-inline: the geometry-general width converse, obtained by retaining an arbitrary pervasive member's score law and perturbing only the Gaussian outcome means at \\(h\\)-separated thin sites, then decoding from the reported intervals. All remaining assumption dependencies (`ass:sharp-assignment`, `ass:consistency`, `ass:lipschitz-side-means`, `ass:bounded-side-traces`, `ass:gaussian-errors`, `ass:polynomial-lower-mass`, `ass:pervasive-thin-sites`) are covered by the two classes in `hyps`. Consumes `lem:explicit-entropy-decoding-bound`. Reuses `gaussianKL_eq` (83) and `productKL_tensorization`."
+    },
+    "thm:global-honest-band-and-width-obstruction": {
+      "lean_kind": "theorem",
+      "lean_name": "global_honest_band_and_width_obstruction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Minimax.TotalVariation",
+        "Causalean.Stat.Concentration.TailBounds.BinomialCount"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T_GlobalHonestBand.lean",
+      "hyps": [
+        "ass:iid-sampling",
+        "def:base-thickness-class",
+        "def:pervasive-thinning-class"
+      ],
+      "env": "S3",
+      "notes": "Build-inline: finite-sample simultaneous coverage of the explicit band on every declared nonempty triangular union, the \\(C_\\gamma(\\log n/n)^{1/(\\kappa+2)}\\) expected-sup half-width, the geometry-general pervasive converses transferred from `lem:geometry-general-pervasive-band-width-obstruction`, and the general two-full-observed-law pointwise obstruction. `ass:lipschitz-side-means` and `ass:bounded-side-traces` are covered by `def:base-thickness-class`; `def:triangular-profile-union` is a CONSTRUCTION and therefore appears as a used object in the statement, not as a `hyps` entry. Reuses `Causalean.Stat.abs_measureReal_sub_le_tvDist` for the variational step (120) and `bernoulliCount_lower_tail` for (106). NO TAUTOLOGICAL CONJUNCTS check: every conjunct of the delivered statement is model-dependent — coverage, the width bound, the two converses and the TV obstruction all quantify over the formalized law classes; nothing reduces to a model-independent arithmetic shell."
+    }
+  },
+  "file_plan": {
+    "Basic.lean": "S1 world (`BoundaryLaw` and its derived functionals \\(\\mu_{t,P}\\), \\(\\mathcal X_{t,P}\\), \\(g_{t,P}\\), \\(\\theta_{t,P}\\), \\(\\tau_P\\), \\(q_{t,P}\\), \\(\\mathsf J_P\\)), the thirteen assumption Props, and the four class structures + the triangular union.",
+    "Helpers/Estimator.lean": "S2: dyadic grid, empirical counts (+ the `bernoulliCount` bridge), local-constant side fit, admissible bandwidths, count-adaptive bandwidth, mass-adaptive estimator, clipped estimator, expected-sup minimax risk, the two frontier rates.",
+    "Helpers/Benchmark.lean": "S3 objects: minimum side mass, local effective multiplicity, local oracle benchmark, explicit honest band, band half-width.",
+    "Helpers/Testing.lean": "`lem:explicit-entropy-decoding-bound` then `lem:finite-information-testing` (self-contained, no dependence on the world).",
+    "Helpers/DiskPattern.lean": "`lem:conditional-sub-gaussian-regression-moments` then `lem:disk-pattern-sub-gaussian-control`.",
+    "Helpers/Geometry.lean": "polynomial horn, exponential modulus, and `lem:polynomial-horn-mass`.",
+    "Helpers/TubeCoords.lean": "S4 supporting geometry required by the round-2 correction (no core node maps here; these are local build-inline lemmas F2 scaffolds and F3 proves): `tubePolarChart` (the annular-tube parametrisation \\(z=(1+s)(\\cos\\phi,\\sin\\phi)\\), \\(|s|\\le h_0<1\\), with area element \\((1+s)\\,ds\\,d\\phi\\), built on Mathlib `polarCoord` / `integral_comp_polarCoord_symm`), `tubeJacobian_two_sided_bounds` (the uniform \\(1-h_0\\le1+s\\le1+h_0\\) Jacobian sandwich and the signed-normal/arclength metric comparison of equation (2), from compactness of \\(S^1\\)), and `translatedBall_sideMass_bounds` (side-specific translated-ball mass comparisons (5)-(6) for centres \\(x\\ne x_\\star\\) and the nonseparable isolated integrand, from translation invariance `MeasureTheory.lintegral_add_right_eq_self` plus monotonicity of ball mass). These replace the previously-claimed `HalfDiscPolar` reuse, which is analogous-only.",
+    "Helpers/Witness.lean": "circular witnesses, tent family, `lem:circular-witness-membership`, `lem:fano-tent-validity`; consumes `Helpers/TubeCoords.lean`.",
+    "Helpers/BandWidth.lean": "`lem:geometry-general-pervasive-band-width-obstruction`.",
+    "T_ObservedLawIdentification.lean": "prop:observed-law-identification",
+    "T_ThicknessEntropySeparation.lean": "thm:thickness-entropy-separation",
+    "T_PervasiveAdaptiveFrontier.lean": "thm:pervasive-adaptive-frontier",
+    "T_ExponentialHornConsistency.lean": "prop:exponential-horn-consistency",
+    "T_ArbitraryModulusTwoSidedBracket.lean": "thm:arbitrary-modulus-two-sided-bracket",
+    "T_LowerProfileOnlyClass.lean": "thm:lower-profile-only-class-cannot-recover-isolated-frontier",
+    "T_GlobalHonestBand.lean": "thm:global-honest-band-and-width-obstruction",
+    "T_HonestAdaptiveBandsQuestion.lean": "oeq:honest-adaptive-bands (never-proved `Prop` def only)",
+    "dependency_order": [
+      "Basic.lean",
+      "Helpers/Testing.lean",
+      "Helpers/Geometry.lean",
+      "Helpers/Estimator.lean",
+      "Helpers/Benchmark.lean",
+      "Helpers/DiskPattern.lean",
+      "Helpers/TubeCoords.lean",
+      "Helpers/Witness.lean",
+      "Helpers/BandWidth.lean",
+      "T_ObservedLawIdentification.lean",
+      "T_ExponentialHornConsistency.lean",
+      "T_ThicknessEntropySeparation.lean",
+      "T_PervasiveAdaptiveFrontier.lean",
+      "T_ArbitraryModulusTwoSidedBracket.lean",
+      "T_LowerProfileOnlyClass.lean",
+      "T_GlobalHonestBand.lean",
+      "T_HonestAdaptiveBandsQuestion.lean"
+    ],
+    "bypass_justified": [
+      "Causalean/PO/ID/Exact/RDD/ (RDDLimits, SharpRDD, FuzzyRDD) — scalar cutoff on \\(\\mathbb R\\) with a two-sided-support premise at one point; no planar assignment region, boundary curve, restricted-score support or local-mass function. Used as the ANALOGOUS proof pattern for the one-sided-limit step of prop:observed-law-identification, not as a base world.",
+      "Causalean/Estimation/{ATE,ATT,CATE,MinimaxATE,Efficiency,OrthogonalMoments,NPIV}/ — all target scalar or covariate-indexed functionals under positivity/overlap of a propensity; there is no propensity here (assignment is deterministic) and the target is a sup-norm curve on a boundary, so none applies.",
+      "Causalean/Stat/Nonparametric/LocalPolynomial/ — supplies Gram coercivity for local polynomials of degree \\(\\ge1\\); the core deliberately uses local constants because scalar mass does not imply Gram coercivity (stated in the note's technical internal limitation), so degree-zero fits are written directly.",
+      "Causalean/Stat/Minimax/{Assouad,ChiSquared,HellingerAffinity,MaximalCoupling,CoordinatewiseOverlap}.lean — surveyed; the lower bounds here are Le Cam two-point and average-KL Fano over a NON-hypercube packing with an exact Gaussian-shift KL, so the hypercube, chi-squared, affinity and coupling tiers are not the right reduction. LeCam.lean, Pinsker.lean and TotalVariation.lean ARE used.",
+      "Causalean/Mathlib/Analysis/HalfDiscPolar.lean — surveyed and DEMOTED to analogous-only in round 2. Every declaration there (`halfDisc_weighted_polar_integral`, `halfDisc_radial_integral`, the cosine-cancellation family, and the translated variants) is stated on an origin-centred or additively translated upper HALF-disc `{z | 0 < z.2 ∧ planarRadius z ≤ r}` with a radial-times-angular separable integrand. The witness computations here need an annular tube with the area element \\((1+s)\\,ds\\,d\\phi\\), a signed-normal/arclength Jacobian comparison, and translated local-ball masses of the nonseparable isolated density, so the file is used as the polar-factorization PROOF PATTERN only; the corresponding facts are built locally in `Helpers/TubeCoords.lean` over Mathlib `polarCoord`, `MeasureTheory.Function.Jacobian` and `MeasureTheory.Group.LIntegral`.",
+      "CausalSmith/Stat/STAT_BddUniformLogPenalty_Research/ — the predecessor boundary paper, but on the CTY common-map distance architecture with a POSITIVE score density and a converse-only decision world. Used as the ANALOGOUS reference for arc/cell packing (Helpers/AngularPacking.lean), frontier-tube density normalization (Helpers/AngularDesign.lean, AngularMeasure.lean) and localized bump perturbation (Helpers/BumpHolder.lean); none of its declarations type-fits a node here."
+    ]
+  },
+  "infrastructure_needed": [],
+  "gates": [],
+  "citations": []
+}

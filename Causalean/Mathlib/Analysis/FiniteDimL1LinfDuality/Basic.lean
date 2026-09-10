@@ -48,23 +48,32 @@ namespace Causalean.Mathlib.Analysis.FiniteDimL1LinfDuality
 
 variable {k β : ℕ} {p : Fin (k + 1) → ℝ}
 
-/-- The **moment system** of admissible weight vectors.  `w ∈ MomentSol p β`
-means that for every degree `ℓ ≤ β` the sampled weighted sum
-`∑ j, w j * (p j) ^ ℓ` equals `1^ℓ - 0^ℓ`, i.e. `0` when `ℓ = 0` and `1`
-otherwise.  Equivalently, `w` reproduces the endpoint contrast
-`r ↦ r.eval 1 - r.eval 0` on every real polynomial `r` of degree `≤ β` via the
-node values `(r.eval (p j))ⱼ`. -/
+/-- For [a nonnegative number of nodes minus one](hyp:k), [a collection of real nodes indexed
+from zero through that number](hyp:p), and [a nonnegative degree bound](hyp:β), the [moment
+system of admissible weight vectors](goal) consists of precisely those real weight vectors whose
+weighted power sum at every nonnegative degree no greater than the bound is zero at degree zero
+and one at every positive degree.
+
+Equivalently, such a vector reproduces the value at one minus the value at zero of every real
+polynomial of degree at most the bound from its values at the nodes. -/
 def MomentSol (p : Fin (k + 1) → ℝ) (β : ℕ) : Set (Fin (k + 1) → ℝ) :=
   {w | ∀ ℓ, ℓ ≤ β → ∑ j, w j * p j ^ ℓ = if ℓ = 0 then (0 : ℝ) else 1}
 
-/-- The set of achievable ℓ¹ norms of admissible weights:
-`primalNormSet p β = { ∑ j, |w j| : w ∈ MomentSol p β }`.  Its infimum is the
-primal (min-norm-representation) value. -/
+/-- For [a nonnegative number of nodes minus one](hyp:k), [a collection of real nodes indexed
+from zero through that number](hyp:p), and [a nonnegative degree bound](hyp:β), the [set of
+achievable primal norms](goal) consists of the sums of absolute weights over all weight vectors
+that satisfy the corresponding moment system.
+
+Its infimum is the primal minimum-norm representation value. -/
 def primalNormSet (p : Fin (k + 1) → ℝ) (β : ℕ) : Set ℝ :=
   {s | ∃ w ∈ MomentSol p β, s = ∑ j, |w j|}
 
-/-- The set of achievable endpoint contrasts of node-bounded polynomials:
-`dualValSet p β = { |r.eval 1 - r.eval 0| : r.natDegree ≤ β, ∀ j, |r.eval (p j)| ≤ 1 }`.
+/-- For [a nonnegative number of nodes minus one](hyp:k), [a collection of real nodes indexed
+from zero through that number](hyp:p), and [a nonnegative degree bound](hyp:β), the [set of
+achievable dual values](goal) consists of the absolute differences between a real polynomial's
+values at one and zero, for every polynomial of degree at most the bound whose absolute value at
+every node is at most one.
+
 Its supremum is the dual value. -/
 def dualValSet (p : Fin (k + 1) → ℝ) (β : ℕ) : Set ℝ :=
   {t | ∃ r : Polynomial ℝ,

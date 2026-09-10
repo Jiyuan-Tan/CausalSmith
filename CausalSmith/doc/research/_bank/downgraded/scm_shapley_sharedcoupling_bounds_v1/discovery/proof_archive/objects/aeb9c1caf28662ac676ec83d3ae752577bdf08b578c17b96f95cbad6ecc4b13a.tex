@@ -1,0 +1,124 @@
+Fix \(i\in[H]\) and \(\sigma\in\{-1,+1\}\).  All maximizations below use this one fixed sign.  We first make the finite decision alphabets explicit.
+
+For a nonfactual row \((t,x)\), put
+\[
+ \bar u_{t,x}(y)=\min\!\left\{1,\frac{K_t(y\mid x)}{p_t}\right\},
+ \qquad y\in\mathcal S.
+\]
+Division is valid by \(\texttt{ass:factual-positivity}\).  The corresponding factor of \(\mathcal B(K,\tau)\) is
+\[
+ \mathcal P_{t,x}
+ =\left\{v\in\mathbb R^{\mathcal S}:
+ 0\le v(y)\le \bar u_{t,x}(y),\quad
+ \sum_{y\in\mathcal S}v(y)=1\right\}.
+\]
+It is nonempty: before truncation the caps sum to \(1/p_t\ge1\), and truncating any cap at one cannot make their sum smaller than one.  A point of \(\mathcal P_{t,x}\) is a vertex if and only if all but at most one of its coordinates belong to \(\{0,\bar u_{t,x}(y)\}\).  Indeed, if two coordinates are strictly between their respective bounds, a sufficiently small positive and negative perturbation in their exchange direction expresses the point as the midpoint of two distinct feasible points.  Conversely, if all but at most one coordinate are at a bound, every convex decomposition fixes those bound coordinates, and the sum constraint then fixes the remaining coordinate.
+
+This characterization also gives an output-sensitive exact enumeration.  A first vertex is obtained by filling coordinates, in a fixed order, to their caps until the residual mass fits in one coordinate and setting all later coordinates to zero.  From a discovered vertex \(v\), for every ordered pair \((y,y')\) for which \(e_y-e_{y'}\) is locally feasible, move in that direction until one of the two moving coordinates first reaches a bound, and retain the endpoint precisely when it satisfies the vertex characterization.  These retained segments include every edge incident to \(v\).  To verify that traversal reaches every vertex, first discard the coordinates whose cap is zero, since they are fixed throughout the polytope, and let \(v^*\) be any target vertex in the remaining coordinates.  Give coefficient \(1\) to coordinates at their upper bounds in \(v^*\), coefficient \(-1\) to coordinates equal to zero in \(v^*\), and coefficient zero to its possible unique non-bound coordinate.  The resulting affine functional has \(v^*\) as its unique maximizer.  At any other vertex \(v\), the feasible direction \(v^*-v\) is a nonnegative combination of incident exchange directions: decompose a zero-sum feasible direction into transfers from decreasing to increasing coordinates; if \(v\) has a unique non-bound coordinate, split every transfer not using it into two transfers through it.  Since the functional increases along \(v^*-v\), it increases along at least one incident edge.  Repeating reaches \(v^*\), because there are finitely many vertices and the functional strictly increases.  Thus graph traversal with duplicate suppression lists all vertices using \(O(|\mathcal S|^2d)\) rational operations for a row whose selector alphabet has size at most \(d\).  Every listed coordinate is either zero, a rational cap, or one minus a finite sum of rational caps, so its bit length is polynomial in the rational input length.  The factual-row factor is the singleton \(\{\delta_{y_t}\}\).  Let \(Z_{t,x}\) index these lists and denote the selected row by \(q^{Z}_{t,x}\).
+
+By \(\texttt{thm:sharp-shared-interval}\), each extremum of \(\Phi_i\), and hence each extremum of \(F_i^\sigma=C_\nu+\sigma\Phi_i/R\) from \(\texttt{prop:affine-nonnegative-lift}\), has an optimizer that is a vertex in every row.  Consequently,
+\[
+ V_\sigma=\max_z F_i^\sigma(q^z),
+\]
+where \(z\) is one joint assignment of all row selectors.  This is the only reduction from continuous to finite optimization used below.
+
+We next construct the circuit.  Exactness of the quadrature rule for the constant polynomial, from \(\texttt{prop:exact-coalition-compression}\), gives \(\sum_{j=1}^H\nu_j=1\), so \(C_\nu\ge1\).  Define
+\[
+ \rho_{jb}=\frac{|a_{jb}^\sigma|}{2C_\nu},
+ \qquad
+ \eta_{jb}=\begin{cases}
+ +,&a_{jb}^\sigma\ge0,\\
+ -,&a_{jb}^\sigma<0.
+ \end{cases}
+\]
+Because \(|a_{j0}^\sigma|=|a_{j1}^\sigma|=|\nu_j|\), we have \(\sum_{j,b}\rho_{jb}=1\).  Introduce a single global chance selector \(W=(J,B,T)\) with
+\[
+ \Pr\{W=(j,b,t)\}=\frac{\rho_{jb}}{H}.
+\]
+Conditional on \((J,B)=(j,b)\), use the policy factor
+\[
+ \gamma^{jb}_t(a\mid s)=
+ \begin{cases}
+ \alpha_i^b(a\mid s),&t=i,\\
+ (1-\zeta_j)\alpha_t^0(a\mid s)+\zeta_j\alpha_t^1(a\mid s),&t\ne i.
+ \end{cases}
+\]
+For every row include the nonnegative transition factor
+\[
+ \psi_{t,x}(S_t,A_t,S_{t+1},Z_{t,x})=
+ \begin{cases}
+ q^{Z}_{t,x}(S_{t+1}),&(S_t,A_t)=x,\\
+ 1,&(S_t,A_t)\ne x,
+ \end{cases}
+\]
+and include the initial-state factor \(\mathbf 1\{S_1=s_1\}\).  Finally, for every reward time include
+\[
+ \chi_t(W,S_t,A_t,S_{t+1})=
+ \begin{cases}
+ Hh_t^{\eta_{JB}}((S_t,A_t),S_{t+1}),&T=t,\\
+ 1,&T\ne t.
+ \end{cases}
+\]
+All factors are rational and nonnegative under the theorem's rational-input hypotheses and \(R>0\).  Each variable \(Z_{t,x}\) is a single shared variable and occurs only in its factor \(\psi_{t,x}\); in particular it is not copied when \(W\), a path, or a reward time changes.
+
+Let \(T_\sigma(z)\) be the sum of the product of these factors over \(W\), all action variables, and all noninitial state variables, with the joint row assignment fixed at \(z\).  The product over \(x\) of the transition factors at time \(t\) equals the selected transition probability for the unique visited row.  Therefore
+\[
+ \begin{aligned}
+ 2C_\nu T_\sigma(z)
+ &=\sum_{j=1}^H\sum_{b=0}^1 |a_{jb}^\sigma|
+   \sum_{t=1}^H
+   \mathbb E_{q^z}\!\left[
+    h_t^{\eta_{jb}}((S_t,A_t),S_{t+1})
+    \mid J=j,B=b,S_1=s_1
+   \right]\\
+ &=F_i^\sigma(q^z).
+ \end{aligned}
+\]
+For the second equality, when \(\eta_{jb}=+\), the inner sum is \(h_{jb}(q^z)\) by \(\texttt{def:nonnegative-endpoint-objectives}\); when \(\eta_{jb}=-\), the pathwise complement identity in \(\texttt{prop:affine-nonnegative-lift}\) makes it \(1-h_{jb}(q^z)\).  Thus the displayed factors, followed by the deterministic scale \(2C_\nu\), are the required circuit \(\mathfrak F_i^\sigma\) and realize the finite objective exactly.
+
+It remains to prove that legal mixed elimination preserves the outer maximization.  At every stage maintain the following invariant: the product of the current factors, with all unperformed sums and maxima applied in their prescribed order, equals the corresponding partial elimination of \(\mathfrak F_i^\sigma\).  Summing a chance variable preserves the invariant by distributivity, since factors outside its bucket do not contain that variable.
+
+Now suppose that a decision variable \(Z\) is the next variable eliminated.  Let \(A(Z,Y)\) be the product of its current bucket factors, where \(Y\) denotes the other uneliminated decision variables in that scope.  By legality of \(\preceq\), no uneliminated chance variable occurs in this scope.  The product of all remaining factors can consequently be written
+\[
+ A(Z,Y)B(X,Y),
+\]
+where \(X\) collects the remaining chance variables and \(B\) does not involve \(Z\).  Nonnegativity of every current factor, preserved by both summation and maximization, yields pointwise
+\[
+ \max_Z\{A(Z,Y)B(X,Y)\}
+ =B(X,Y)\max_Z A(Z,Y).
+\]
+Thus this maximization may be moved past every remaining chance summation without changing the value.  Decision maxima commute with one another.  Repeating the argument converts any legal order into the canonical quantifier order
+\[
+ \max_z\sum_{W,S,A}\mathfrak F_i^\sigma(z,W,S,A)
+\]
+without changing its value.  Induction over the buckets proves the invariant for the whole order.  After applying the deterministic scale, the returned value is therefore
+\[
+ \max_z F_i^\sigma(q^z)=V_\sigma.
+\]
+
+We now count operations.  By definition of \(w_{\mathrm c}(\preceq)\), a bucket table contains at most \(w_{\mathrm c}(\preceq)+1\) nonglobal live variables, each with alphabet at most \(d\).  The only global selector is \(W\), with \(2H^2\) values, and the sign is fixed rather than eliminated.  Hence forming and eliminating one factor entry costs at most a constant multiple of
+\[
+ H^2d^{w_{\mathrm c}(\preceq)+1}.
+\]
+In bucket elimination every initial or generated factor is consumed once, and the number of variables plus factors is at most a constant multiple of \(N\).  The total elimination cost is therefore
+\[
+ O\!\left(H^2N d^{w_{\mathrm c}(\preceq)+1}\right)
+\]
+rational arithmetic operations.  Circuit-table construction obeys the same bound.  The row-vertex traversal costs \(O(N|\mathcal S|^2d)\).  Since \(|\mathcal S|\le d\), and every nonconstant row selector occurs with at least two chance variables in an initial transition-factor scope, \(w_{\mathrm c}(\preceq)+1\ge3\); hence this traversal is absorbed by the displayed constrained-width bound.  Degenerate singleton rows require only constant work.
+
+For bit complexity, let \(B_0\) be the total bit length of the rational arrays and quadrature data.  Caps and row-vertex coordinates have polynomial bit length in \(B_0\).  Assign to every intermediate factor the disjoint set of original factors from which it descends.  Bucket multiplication unions disjoint provenance sets, chance elimination forms a sum of products using each original factor at most once, and decision elimination selects one existing rational value.  For a fixed remaining decision context, each row selector therefore contributes the coordinates of only one selected vertex, not the denominators of all its alternatives.  A common denominator can be formed from the input-factor denominators and those selected vertex coordinates, whose total bit length is polynomial in \(B_0+N\).  There are at most \((2H^2)d^N\) chance assignments in an expanded sum, adding only \(O(\log H+N\log d)\) numerator bits.  Finally, a capped simplex in \(|\mathcal S|\) coordinates has at most \(|\mathcal S|2^{|\mathcal S|-1}\) vertices, so \(\log d=O(|\mathcal S|)\), which is bounded by the encoded input length.  Reduced intermediate and exact output rationals thus have bit lengths polynomial in \(B_0\) and \(N\); reporting to a requested precision adds only the requested number of output bits.
+
+At each maximization bucket, store a maximizing value as a function of the later decision variables in its scope, breaking ties by a fixed order.  Reverse elimination order fixes those later decisions before consulting the record, so \(\mathsf{BP}_\sigma\) recovers one joint assignment \(z_\sigma\).  No chance variable can occur in such a record by legality, and consequently the recovered rows do not depend on \(W\) or on a realized state path.
+
+For completeness, the compact gluing used in \(\texttt{lem:posterior-row-projection}\) can be implemented without writing an exponential response-table mass function.  At time \(t\), draw an indicator \(E_t\) with probability \(p_t\).  Conditional on \(E_t=1\), fix the factual coordinate to \(y_t\) and draw every other response-row coordinate from \(q^{z_\sigma}_{t,x}\).  If \(p_t<1\), conditional on \(E_t=0\), draw the factual coordinate from its residual marginal and each nonfactual coordinate from
+\[
+ y\longmapsto
+ \frac{K_t(y\mid x)-p_tq^{z_\sigma}_{t,x}(y)}{1-p_t}.
+\]
+The numerator is nonnegative by \(q^{z_\sigma}\in\mathcal B(K,\tau)\), and its sum is \(1-p_t\).  When \(p_t=1\), the residual branch is absent and the fiber inequalities force the required unconditional marginals directly.  Sampling these timewise response tables independently gives a member of \(\mathfrak M(K)\) by \(\texttt{lem:posterior-row-projection}\).  The same selected row assignment is used in every coalition world.  Finally, \(\texttt{prop:affine-nonnegative-lift}\) gives
+\[
+ U_i(K,\tau)=R(V_{+1}-C_\nu),
+ \qquad
+ L_i(K,\tau)=R(C_\nu-V_{-1}),
+\]
+so the two backtracked compatible SCMs attain the asserted upper and lower endpoints, respectively.

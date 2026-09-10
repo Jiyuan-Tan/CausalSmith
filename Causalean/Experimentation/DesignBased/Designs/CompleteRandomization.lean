@@ -51,9 +51,10 @@ lemma completeRandomization_card {V : Type*} [Fintype V] (n₁ : ℕ) :
   ext S
   simp [Finset.mem_powersetCard]
 
-/-- The **complete-randomization design**: the uniform law on size-`n₁` subsets of the population,
-i.e. exactly `n₁` of the `N = card U` units are treated, with every such treated set equally likely.
-Requires `n₁ ≤ N` so that the design space is nonempty. -/
+/-- For a finite population [of units](hyp:V), [a nonnegative number of treated
+units](hyp:n₁) that [does not exceed the population size](hyp:hn), the [complete-randomization
+design](goal) assigns equal probability to every treatment allocation that treats exactly that many
+units. -/
 noncomputable def completeRandomization {V : Type*} [Fintype V] (n₁ : ℕ)
     (hn : n₁ ≤ Fintype.card V) : FiniteDesign {S : Finset V // S.card = n₁} := by
   classical

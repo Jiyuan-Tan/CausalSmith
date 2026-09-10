@@ -56,7 +56,9 @@ open MeasureTheory ProbabilityTheory Filter Topology
 
 /-! ## DR-Learner orthogonal-learning system -/
 
-/-- Bounded-direction nuisance slice anchored at `η₀`.
+/-- On a measurable covariate space, given [a nuisance-function vector at the truth](hyp:η₀), the [bounded-direction nuisance slice](goal) is the set of all nuisance-function vectors for which [the outcome-regression difference from the truth is uniformly bounded over both treatment arms and covariate values](step:1), and the propensity-score difference from the truth is uniformly bounded over covariate values.
+
+Bounded-direction nuisance slice anchored at `η₀`.
 
 `BoundedNuisanceDirs η₀` is the set of `η : NuisanceVec γ` whose
 deviation `η − η₀` has uniformly bounded outcome-regression and
@@ -95,7 +97,9 @@ lemma anchor_mem_boundedNuisanceDirs
       ring
     rw [he, abs_zero]
 
-/-- The DR-Learner target `θ₀` minimizes the population squared-loss risk
+/-- For [a CATE estimation system with a standard Borel unit space and finite population measure](hyp:S), [a candidate target set](hyp:Θ_set), [a candidate target](hyp:θ₀), and [an evaluation map from candidate targets to functions of the covariates](hyp:eval), the [DR-Learner target-minimization condition](goal) states that, for every target in the candidate set, the population squared error between the true-nuisance augmented inverse-probability-weighted pseudo-outcome and the evaluation of the designated target is no greater than the corresponding squared error for that target.
+
+The DR-Learner target `θ₀` minimizes the population squared-loss risk
 against the true nuisance over the candidate target class.
 
 This is the concrete CATE-side form of the `LearningSystem` target condition:
@@ -113,7 +117,9 @@ def DRThetaMinimizes
     ∫ z, (phi_eta z S.toBackdoorEstimationSystem.η₀ - eval θ z.1)^2
         ∂S.toBackdoorEstimationSystem.P_Z
 
-/-- The DR-Learner target `θ₀` minimizes the clamped true-nuisance squared
+/-- For [a CATE estimation system with a standard Borel unit space and finite population measure](hyp:S), [a candidate target set](hyp:Θ_set), [a candidate target](hyp:θ₀), [an evaluation map from candidate targets to functions of the covariates](hyp:eval), and [a real clamp radius](hyp:b), the [clamped DR-Learner target-minimization condition](goal) states that, for every target in the candidate set, the population risk obtained by clamping the true-nuisance squared pseudo-outcome error to the interval $[-b,b]$ is no greater for the designated target than for that target.
+
+The DR-Learner target `θ₀` minimizes the clamped true-nuisance squared
 loss used by almost-everywhere empirical-process reductions.
 
 For a clamp radius `b`, every admissible target has clamped true-nuisance
@@ -133,7 +139,9 @@ def DRClampedThetaMinimizes
           (min b ((phi_eta z S.toBackdoorEstimationSystem.η₀ - eval θ z.1)^2))
         ∂S.toBackdoorEstimationSystem.P_Z
 
-/-- The DR-Learner orthogonal-learning system: a `LearningSystem` whose data law is the CATE
+/-- Given [a CATE estimation system with a standard Borel unit space and finite population measure](hyp:S), [a real inner-product target space](hyp:Θ), [a convex candidate target set](hyp:Θ_set,Θ_convex), [a designated candidate target belonging to that set](hyp:θ₀,θ₀_mem), [an evaluation map whose evaluation is measurable for every candidate](hyp:eval,eval_meas), [the condition that the designated target evaluates pointwise to the system's conditional average treatment effect](hyp:_eval_θ₀), and [the condition that it minimizes the true-nuisance population squared pseudo-outcome risk over the candidate set](hyp:θ₀_minimizes), the [DR-Learner orthogonal statistical-learning system](goal) has observed-data law given by the CATE system, nuisance functions given by outcome regressions and a propensity score, and squared augmented inverse-probability-weighted pseudo-outcome loss.
+
+The DR-Learner orthogonal-learning system: a `LearningSystem` whose data law is the CATE
 observation triple's joint law `P_Z`, target space `Θ` is a
 user-provided convex subset of an inner-product space (with a candidate
 evaluation map `eval : Θ → γ → ℝ`), nuisance space `G := NuisanceVec γ`,

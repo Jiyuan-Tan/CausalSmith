@@ -1,0 +1,1267 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{scm\_\allowbreak{}propensity\_\allowbreak{}lv\_\allowbreak{}sharpness\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} The field-level result lifts the propensity frontier to one covariate-conditioned global SCM: measurable residual kernels characterize exactly the jointly realizable interventional kernels on a common covariate-conull set, in both the one-sided and reverse-support regimes, and the jointly Borel adaptive hinge recovers these classes fiber by fiber without integrating the divergence over covariates. At a fixed propensity, the affine-invariant generator iff remains exact, while no single fixed generator can be universally exact at two distinct propensities. Sharp CDF endpoints and simultaneous inference remain fixed-stratum consequences.
+
+\section{Project justification}
+
+\paragraph{Gap.} Jung and Kang prove validity of propensity-calibrated conditional divergence ambiguity classes, but validity alone does not show that every admissible collection of conditional laws is realized simultaneously by one structural model. Huber's classical gross-error contamination model supplies the fixed-fiber mixture benchmark, while existing contamination and density-band results do not provide a measurable two-arm SCM pasting theorem or the universal fixed-propensity generator iff.
+
+\paragraph{Niche.} The missing object is a conditional causal legality frontier that joins three layers: global measurable SCM realization, the exact one-sided versus reverse-support split, and the generator geometry required to detect each propensity cap.
+
+\paragraph{Fill.} The note constructs one global latent SCM from a measurable product kernel, proves conditional mixture completeness and support intersection on a common conull set, and shows that the jointly Borel adaptive hinge exactly enforces the fiberwise cap. The fixed-fiber generator iff and heterogeneous-propensity elbow explain why adaptation is necessary. Fixed-stratum CDF and inference results are retained as consequences rather than promoted to conditional-process claims.
+
+\section{Related work}
+
+Jung and Kang (2026, Theorem 5) use the propensity score to calibrate the propensity-only divergence radius, define the resulting ambiguity class in equation (10), and optimize causal functionals over that class while presenting the framework as sharp partial identification with tight causal bounds. The open-illegality theorem makes the model distinction explicit: for every \(f\) outside the hinge class, that divergence program contains a nonempty Euclidean-open set of full-support binary laws outside the bow-SCM feasible set, so its extrema can be exact for the declared divergence relaxation without being sharp for the bow-SCM model. This note distinguishes the one-sided support statement visible in equation (10) from the reverse-support regime supplied by the maintained model and density parametrization. Sason and Verdu (2016) supply affine normalization, bounded-relative-information, and hinge-divergence machinery that motivates the cap-detecting direction. Guntuboyina, Saha, and Schiebinger (2014, Theorem 2.1 and Section 3) show why divergence geometry can be exposed on small alphabets, while the necessity proof specializes the boundary analysis to a binary propensity cap. Fauss, Zoubir, and Poor (2018, main theorem and Discussion) equate least-favorable robust tests under divergence balls and constructed density bands and leave set equality and generator recovery open; the fixed-propensity iff resolves that question for the propensity band. Huber's (1964) unrestricted contamination model \(Q=eP+(1-e)R\) yields the event-probability interval \([ep,ep+1-e]\); the present support split additionally proves the mutual-absolute-continuity boundary collapse at \(p=0,1\), atom-aware formulas, and attaining bow-SCM constructions. Chen, Berrett, Damoulas, and Caprio (2026, Proposition 2.3) identify Huber contamination with a linear-vacuous credal ball, which establishes the noncausal mixture geometry but not the ordinary \(f\)-generator frontier or bow-SCM realization. Duarte et al. (2024) certify sharp causal bounds by response-function polynomial programs for discrete variables; the latent construction here is analytic and covers general standard Borel outcomes. Dorn and Guo (2023) provide an econometric precedent for repairing an over-wide sensitivity optimization by imposing the exact compatible weighting class. Masten, Poirier, and Zhang (2024) and Fang and Santos (2019) motivate the uniform and derivative-aware inference layer, respectively.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\boldsymbol Q=(Q_0,Q_1),\quad Q_a(x,\cdot)=P(Y(a)\in\cdot\mid X=x)=P(Y\in\cdot\mid\operatorname{do}(A=a),X=x)\) as conditional-law versions defined on one common \(\mu_X\)-conull set.
+Primary functional / estimator / diagnostic: Without reverse support, \(\boldsymbol Q\in\mathfrak M^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)=\mathfrak L^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)=\mathfrak B^{\mathrm{ad},\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)\); under conditional reverse support, \(\boldsymbol Q\in\mathfrak M_{\mu_X,\boldsymbol e}(\boldsymbol P)=\mathfrak L_{\mu_X,\boldsymbol e}(\boldsymbol P)=\mathfrak B^{\mathrm{ad}}_{\mu_X,\boldsymbol e}(\boldsymbol P)\), with all equalities on one common \(\mu_X\)-conull set. At a fixed stratum, \(Q_a=eP+(1-e)R\) with arbitrary \(R\) in the one-sided regime and \(R\ll P\) in the reverse-support regime; the corresponding CDF endpoint maps and simultaneous band retain their fixed-stratum scope..
+\begin{itemize}
+  \item \(\mathcal Y\) --- \texttt{outcome measurable space}; \texttt{standard Borel space}; \texttt{ambient space}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The state space of the observed and potential outcomes.}
+  \item \(a\) --- \texttt{treatment-\allowbreak{}arm index}; \(\{0,1\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The treatment arm whose counterfactual law is studied.}
+  \item \(A\) --- \texttt{binary treatment}; \(\{0,1\}\); \texttt{observed variable}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The observed treatment variable.}
+  \item \(Y(0),Y(1)\) --- \texttt{potential outcomes}; \(\mathcal Y^2\); \texttt{causal variables}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The two potential outcomes under the binary treatment interventions.}
+  \item \(Y\) --- \texttt{observed outcome}; \(\mathcal Y\); \texttt{observed variable}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The realized outcome.}
+  \item \(e\) --- \texttt{arm propensity}; \(\mathbb R\); \texttt{identified primitive}
+  \par\smallskip\noindent\emph{Definition.} The scalar probability \(e=\Pr(A=a)\) in the fixed covariate stratum.
+  \item \(P\) --- \texttt{observational arm law}; \(\mathcal P(\mathcal Y)\); \texttt{identified primitive}
+  \par\smallskip\noindent\emph{Definition.} The law \(P=\mathcal L(Y\mid A=a)\).
+  \item \(Q\) --- \texttt{candidate interventional law}; \(\mathcal P(\mathcal Y)\); \texttt{causal target}
+  \par\smallskip\noindent\emph{Definition.} A candidate for \(\mathcal L(Y(a))=P(Y\in\cdot\mid\operatorname{do}(A=a))\).
+  \item \(R\) --- \texttt{residual potential-\allowbreak{}outcome law}; \(\mathcal P(\mathcal Y)\); \texttt{latent nuisance law}
+  \par\smallskip\noindent\emph{Definition.} The residual law representing \(\mathcal L(Y(a)\mid A\ne a)\).
+  \item \(c\) --- \texttt{likelihood-\allowbreak{}ratio cap}; \((1,\infty)\); \texttt{derived frontier parameter}
+  \par\smallskip\noindent\emph{Definition.} The propensity-induced cap \(c=1/e\).
+  \item \(f\) --- \texttt{divergence generator}; finite continuous convex functions \(f:[0,\infty)\to\mathbb R\) with \(f(1)=0\); \texttt{frontier object}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The generator shared by the one-\allowbreak{}sided and mutual-\allowbreak{}absolute-\allowbreak{}continuity Jung-\allowbreak{}-\allowbreak{}Kang divergence ambiguity classes.}
+  \item \(f_{\mathrm{KL}}\) --- \texttt{Kullback-\allowbreak{}-\allowbreak{}Leibler generator}; finite continuous convex function on \([0,\infty)\); \texttt{explicit failing-\allowbreak{}generator certificate}
+  \par\smallskip\noindent\emph{Definition.} The generator \(f_{\mathrm{KL}}(t)=t\log t\), with \(0\log 0=0\).
+  \item \(f_c\) --- \texttt{propensity-\allowbreak{}hinge generator}; finite continuous convex function on \([0,\infty)\); \texttt{explicit exact-\allowbreak{}generator certificate}
+  \par\smallskip\noindent\emph{Definition.} The cap hinge \(f_c(t)=(t-c)_+\).
+  \item \(D_f(P\|Q)\) --- \(f\)-divergence; \([0,\infty)\); \texttt{distance functional}
+  \par\smallskip\noindent\emph{Definition.} \(D_f(P\|Q)=\int_{\mathcal Y}f(dP/dQ)\,dQ\) when \(P\ll Q\).
+  \item \(B_f(e)\) --- \texttt{propensity divergence radius}; \([0,\infty)\); \texttt{published outer radius}
+  \par\smallskip\noindent\emph{Definition.} \(B_f(e)=e f(1/e)+(1-e)f(0)\).
+  \item \(\mathfrak M_e(P)\) --- \texttt{mutual-\allowbreak{}absolute-\allowbreak{}continuity bow-\allowbreak{}ADMG compatible interventional-\allowbreak{}law class}; subset of \(\mathcal P(\mathcal Y)\); \texttt{mutual-\allowbreak{}AC graphical identified set}
+  \par\smallskip\noindent\emph{Definition.} The Assumption-4 class defined in \(\mathrm{def:bow\text{-}compatible}\).
+  \item \(\mathfrak L_e(P)\) --- \texttt{mutual-\allowbreak{}absolute-\allowbreak{}continuity propensity-\allowbreak{}mixture class}; subset of \(\mathcal P(\mathcal Y)\); \texttt{exact Assumption-\allowbreak{}4 likelihood-\allowbreak{}ratio class}
+  \par\smallskip\noindent\emph{Definition.} The \(R\ll P\) mixture class defined in \(\mathrm{def:mixture\text{-}class}\).
+  \item \(\mathfrak B_{f,e}(P)\) --- \texttt{mutual-\allowbreak{}absolute-\allowbreak{}continuity Jung-\allowbreak{}-\allowbreak{}Kang divergence ambiguity class}; subset of \(\mathcal P(\mathcal Y)\); \texttt{Assumption-\allowbreak{}4/\allowbreak{}Theorem-\allowbreak{}11 relaxation}
+  \par\smallskip\noindent\emph{Definition.} The positive-density ball defined in \(\mathrm{def:jk\text{-}ball}\).
+  \item \(\mathfrak H_c\) --- \texttt{propensity-\allowbreak{}hinge generator class}; \texttt{class of finite continuous convex generators}; \texttt{fixed-\allowbreak{}propensity exactness frontier}
+  \par\smallskip\noindent\emph{Definition.} The affine-equivalence class defined in \(\mathrm{def:hinge\text{-}class}\).
+  \item \(p\) --- \texttt{observed event probability}; \([0,1]\); \texttt{CDF primitive}
+  \par\smallskip\noindent\emph{Definition.} The scalar \(p=P(B)\) for a measurable event \(B\subseteq\mathcal Y\).
+  \item \(q_0\) --- \texttt{binary cap-\allowbreak{}boundary probability}; \((0,1)\); \texttt{explicit KL illegality certificate}
+  \par\smallskip\noindent\emph{Definition.} The boundary coordinate \(q_0=ep\) for a full-support binary observational law.
+  \item \(\varepsilon\) --- \texttt{outward binary perturbation}; \((0,ep)\); \texttt{explicit KL illegality certificate}
+  \par\smallskip\noindent\emph{Definition.} A positive perturbation for the binary candidate probability \(q=ep-\varepsilon\).
+  \item \(q\) --- \texttt{candidate binary event probability}; \([0,1]\); \texttt{binary witness coordinate}
+  \par\smallskip\noindent\emph{Definition.} The success probability in the binary candidate law \(Q=\operatorname{Bernoulli}(q)\).
+  \item \(y\) --- \texttt{outcome threshold}; \(\mathbb R\); \texttt{CDF index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A generic threshold indexing the counterfactual CDF.}
+  \item \(L_e(p),U_e(p)\) --- \texttt{mutual-\allowbreak{}absolute-\allowbreak{}continuity event-\allowbreak{}probability endpoints}; \([0,1]^2\); \texttt{sharp mutual-\allowbreak{}AC CDF bound functional}
+  \par\smallskip\noindent\emph{Definition.} The atom-aware piecewise maps defined in \(\mathrm{def:cdf\text{-}maps}\).
+  \item \(F_P,F_Q\) --- \texttt{observational and counterfactual CDFs}; cadlag distribution functions on \(\mathbb R\); \texttt{distributional target}
+  \par\smallskip\noindent\emph{Definition.} \(F_P(y)=P(({-}\infty,y])\) and \(F_Q(y)=Q(({-}\infty,y])\).
+  \item \(h\) --- \texttt{bounded causal query}; \(L^\infty(P)\); \texttt{query direction}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A measurable bounded function whose counterfactual expectation is bounded.}
+  \item \(\underline\theta_h,\overline\theta_h\) --- \texttt{lawful expectation endpoints}; \(\mathbb R^2\); \texttt{partial-\allowbreak{}identification endpoints}
+  \par\smallskip\noindent\emph{Definition.} The infimum and supremum of \(E_Q[h]\) over \(Q\in\mathfrak M_e(P)\).
+  \item \(\mathfrak B^{\mathrm{law}}_{f,e}(P)\) --- \texttt{mutual-\allowbreak{}absolute-\allowbreak{}continuity legality-\allowbreak{}corrected divergence class}; subset of \(\mathcal P(\mathcal Y)\); exact generic feasible-set intersection on an alphabet restricted to \(\operatorname{supp}(P)\)
+  \par\smallskip\noindent\emph{Definition.} The P-supported intersection defined in \(\mathrm{def:lawful\text{-}correction}\).
+  \item \(\mathcal O_f\) --- \texttt{open illegal binary region}; nonempty Euclidean-open subset of \((0,1)^2\); \texttt{derived separation object}
+  \par\smallskip\noindent\emph{Definition.} The stable ball-feasible but SCM-illegal region delivered by \(\mathrm{thm:open\text{-}illegal\text{-}dichotomy}\).
+  \item \(n\) --- \texttt{sample size}; \(\mathbb N\); \texttt{sampling index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The number of independent observational units.}
+  \item \(\alpha\) --- \texttt{miscoverage level}; \((0,1)\); \texttt{inference parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The target familywise error probability.}
+  \item \(\widehat e_n,\widehat F_{P,n}\) --- \texttt{empirical propensity and arm CDF}; \([0,1]\times\ell^\infty(\mathbb R)\); \texttt{observable estimators}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat e_n=n^{-1}\sum_{i=1}^n\mathbf 1\{A_i=a\}\) and \(\widehat F_{P,n}(y)=n_a^{-1}\sum_{i:A_i=a}\mathbf 1\{Y_i\le y\}\) when \(n_a>0\).
+  \item \(\widehat{\mathcal C}_{n,\alpha}\) --- \texttt{simultaneous endpoint confidence band}; set-valued functions on \(\mathbb R\); \texttt{inference construction}
+  \par\smallskip\noindent\emph{Definition.} The finite-sample confidence construction in \(\mathrm{def:honest\text{-}band}\).
+  \item \(\mathsf H_{\mathrm{dir}}\) --- \texttt{directional-\allowbreak{}inference handle}; \texttt{proof and construction handle}; \texttt{regular-\allowbreak{}stratum inference handle}
+  \par\smallskip\noindent\emph{Definition.} The handle specified in \(\mathrm{def:directional\text{-}handle}\).
+  \item \(\mathfrak M^{\to}_e(P)\) --- \texttt{unrestricted bow-\allowbreak{}ADMG compatible interventional-\allowbreak{}law class}; subset of \(\mathcal P(\mathcal Y)\); \texttt{literal equation-\allowbreak{}(10) graphical identified set}
+  \par\smallskip\noindent\emph{Definition.} The class defined in \(\mathrm{def:bow\text{-}compatible\text{-}one\text{-}sided}\), without the mutual-absolute-continuity member property.
+  \item \(\mathfrak L^{\to}_e(P)\) --- \texttt{unrestricted propensity-\allowbreak{}mixture class}; subset of \(\mathcal P(\mathcal Y)\); \texttt{exact one-\allowbreak{}sided likelihood-\allowbreak{}ratio class}
+  \par\smallskip\noindent\emph{Definition.} The arbitrary-residual mixture class defined in \(\mathrm{def:mixture\text{-}class\text{-}one\text{-}sided}\).
+  \item \(\mathfrak B^{\to}_{f,e}(P)\) --- \texttt{one-\allowbreak{}sided Jung-\allowbreak{}-\allowbreak{}Kang divergence ambiguity class}; subset of \(\mathcal P(\mathcal Y)\); \texttt{literal equation-\allowbreak{}(10) relaxation}
+  \par\smallskip\noindent\emph{Definition.} The ball defined in \(\mathrm{def:jk\text{-}ball\text{-}one\text{-}sided}\), requiring only \(P\ll Q\).
+  \item \(L^{\to}_e(p),U^{\to}_e(p)\) --- \texttt{unrestricted event-\allowbreak{}probability endpoints}; \([0,1]^2\); \texttt{sharp one-\allowbreak{}sided CDF bound functional}
+  \par\smallskip\noindent\emph{Definition.} The continuous maps defined in \(\mathrm{def:cdf\text{-}maps\text{-}one\text{-}sided}\).
+  \item \(\mathfrak B^{\mathrm{law},\to}_{f,e}(P)\) --- \texttt{one-\allowbreak{}sided legality-\allowbreak{}corrected divergence class}; subset of \(\mathcal P(\mathcal Y)\); exact generic feasible-set intersection on an alphabet that may retain cells outside \(\operatorname{supp}(P)\)
+  \par\smallskip\noindent\emph{Definition.} The intersection defined in \(\mathrm{def:lawful\text{-}correction\text{-}one\text{-}sided}\).
+  \item \(e_1,e_2\) --- \texttt{two arm propensities}; \((0,1)^2\); \texttt{heterogeneity indices}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Two distinct propensity values used to state the heterogeneous-\allowbreak{}propensity impossibility.}
+  \item \(f_e\) --- \texttt{propensity-\allowbreak{}adaptive divergence generator}; finite continuous convex functions on \([0,\infty)\); \texttt{stratumwise exact generator}
+  \par\smallskip\noindent\emph{Definition.} The adaptive hinge \(f_e(t)=(t-1/e)_+\).
+  \item \(p_j,q_j\) --- \texttt{finite-\allowbreak{}alphabet probability weights}; \([0,1]^2\) cellwise; \texttt{optimization coordinates}
+  \par\smallskip\noindent\emph{Definition.} For cell \(j\), \(p_j=P(\{j\})\) and \(q_j=Q(\{j\})\).
+  \item \(\mathcal X\) --- \texttt{covariate measurable space}; \texttt{standard Borel space}; \texttt{ambient space}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The state space of the observed covariate.}
+  \item \(X\) --- \texttt{observed covariate}; \(\mathcal X\); \texttt{observed variable}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The observed pretreatment covariate.}
+  \item \(\mu_X\) --- \texttt{covariate marginal law}; \(\mathcal P(\mathcal X)\); \texttt{identified primitive}
+  \par\smallskip\noindent\emph{Definition.} The marginal law \(\mu_X=\mathcal L(X)\).
+  \item \(\kappa\) --- \texttt{uniform overlap constant}; \((0,1/2]\); \texttt{support constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A common lower bound for both conditional arm propensities and their complements.}
+  \item \(\boldsymbol e\) --- \texttt{conditional propensity system}; pairs of measurable maps from \(\mathcal X\) to \([0,1]\); \texttt{identified primitive}
+  \par\smallskip\noindent\emph{Definition.} The pair \(\boldsymbol e=(e_0,e_1)\), where \(e_a(x)=\Pr(A=a\mid X=x)\).
+  \item \(\boldsymbol P\) --- \texttt{observational arm-\allowbreak{}kernel pair}; pairs of Markov kernels from \(\mathcal X\) to \(\mathcal Y\); \texttt{identified primitive}
+  \par\smallskip\noindent\emph{Definition.} The pair \(\boldsymbol P=(P_0,P_1)\), where \(P_a(x,\cdot)=\mathcal L(Y\mid A=a,X=x)\).
+  \item \(\boldsymbol Q\) --- \texttt{conditional interventional-\allowbreak{}kernel pair}; pairs of Markov kernels from \(\mathcal X\) to \(\mathcal Y\); \texttt{causal target}
+  \par\smallskip\noindent\emph{Definition.} The pair \(\boldsymbol Q=(Q_0,Q_1)\), where \(Q_a(x,\cdot)=\mathcal L(Y(a)\mid X=x)\) as a conditional-law version.
+  \item \(\boldsymbol R\) --- \texttt{residual-\allowbreak{}kernel pair}; pairs of Markov kernels from \(\mathcal X\) to \(\mathcal Y\); \texttt{latent nuisance kernel}
+  \par\smallskip\noindent\emph{Definition.} The pair \(\boldsymbol R=(R_0,R_1)\) of off-arm potential-outcome kernels.
+  \item \(U\) --- \texttt{latent variable}; \texttt{standard Borel latent state space}; \texttt{unobserved variable}
+  \par\smallskip\noindent\emph{Definition.} A common latent input that may be a parent of \(X\), \(A\), and \(Y\).
+  \item \(\mathfrak M^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)\) --- \texttt{conditional one-\allowbreak{}sided compatible interventional-\allowbreak{}kernel class}; set of pairs of Markov kernels from \(\mathcal X\) to \(\mathcal Y\); \texttt{one-\allowbreak{}sided conditional causal identified set}
+  \par\smallskip\noindent\emph{Definition.} The globally realizable class defined in \(\mathrm{def:conditional\text{-}bow\text{-}compatible\text{-}one\text{-}sided}\).
+  \item \(\mathfrak L^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)\) --- \texttt{conditional one-\allowbreak{}sided propensity-\allowbreak{}mixture class}; set of pairs of Markov kernels from \(\mathcal X\) to \(\mathcal Y\); \texttt{exact one-\allowbreak{}sided conditional likelihood-\allowbreak{}ratio class}
+  \par\smallskip\noindent\emph{Definition.} The arbitrary-residual kernel class defined in \(\mathrm{def:conditional\text{-}mixture\text{-}class\text{-}one\text{-}sided}\).
+  \item \(\mathfrak M_{\mu_X,\boldsymbol e}(\boldsymbol P)\) --- \texttt{conditional mutual-\allowbreak{}support compatible interventional-\allowbreak{}kernel class}; set of pairs of Markov kernels from \(\mathcal X\) to \(\mathcal Y\); \texttt{conditional Assumption-\allowbreak{}4 causal identified set}
+  \par\smallskip\noindent\emph{Definition.} The global reverse-support class defined in \(\mathrm{def:conditional\text{-}bow\text{-}compatible}\).
+  \item \(\mathfrak L_{\mu_X,\boldsymbol e}(\boldsymbol P)\) --- \texttt{conditional mutual-\allowbreak{}support propensity-\allowbreak{}mixture class}; set of pairs of Markov kernels from \(\mathcal X\) to \(\mathcal Y\); \texttt{exact conditional Assumption-\allowbreak{}4 likelihood-\allowbreak{}ratio class}
+  \par\smallskip\noindent\emph{Definition.} The dominated-residual kernel class defined in \(\mathrm{def:conditional\text{-}mixture\text{-}class}\).
+  \item \(f_{a,x}\) --- \texttt{propensity-\allowbreak{}adaptive conditional divergence generator}; finite continuous convex functions on \([0,\infty)\); \texttt{conditional frontier object}
+  \par\smallskip\noindent\emph{Definition.} The adaptive hinge \(f_{a,x}(t)=(t-1/e_a(x))_+\).
+  \item \(\mathfrak B^{\mathrm{ad},\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)\) --- \texttt{conditional one-\allowbreak{}sided adaptive-\allowbreak{}hinge ambiguity class}; set of pairs of Markov kernels from \(\mathcal X\) to \(\mathcal Y\); \texttt{one-\allowbreak{}sided conditional divergence class}
+  \par\smallskip\noindent\emph{Definition.} The fiberwise class defined in \(\mathrm{def:conditional\text{-}adaptive\text{-}hinge\text{-}ball\text{-}one\text{-}sided}\).
+  \item \(\mathfrak B^{\mathrm{ad}}_{\mu_X,\boldsymbol e}(\boldsymbol P)\) --- \texttt{conditional mutual-\allowbreak{}support adaptive-\allowbreak{}hinge ambiguity class}; set of pairs of Markov kernels from \(\mathcal X\) to \(\mathcal Y\); \texttt{conditional Assumption-\allowbreak{}4 divergence class}
+  \par\smallskip\noindent\emph{Definition.} The fiberwise reverse-support class defined in \(\mathrm{def:conditional\text{-}adaptive\text{-}hinge\text{-}ball}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:bow-structure]\label{ass:bow-structure}
+The observed vertices \(A,Y\) have the bow ADMG \(A\to Y\) and \(A\leftrightarrow Y\), represented by a nonparametric latent-variable SCM.
+\par\smallskip\noindent\emph{Standard} (Nonparametric SCM Markov to a bow ADMG, \cite{Pearl2009}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+The realized outcome satisfies \(Y=Y(A)\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Potential-outcome consistency, \cite{Pearl2009}).
+\end{assumption}
+
+\begin{assumption}[ass:positivity]\label{ass:positivity}
+The arm propensity satisfies \(0<e<1\).
+\par\smallskip\noindent\emph{Standard} (Strict treatment positivity, \cite{pmlr-v323-jung26a}).
+\end{assumption}
+
+\begin{assumption}[ass:mutual-ac]\label{ass:mutual-ac}
+Every candidate bow SCM satisfies \(\mathcal L(Y(a)\mid A=a)\sim\mathcal L(Y(a))\).
+\par\smallskip\noindent\emph{Standard} (Mutual absolute continuity of observational and interventional arm laws, \cite{pmlr-v323-jung26a}).
+\end{assumption}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+The observations \((A_i,Y_i)_{i=1}^n\) are independent and identically distributed draws from the observed bow-SCM law.
+\par\smallskip\noindent\emph{Standard} (Independent observational sampling, \cite{vanDerVaartWellner1996}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-bow-architecture]\label{ass:conditional-bow-architecture}
+One global nonparametric latent-variable SCM has observed vertices \(X,A,Y\), observed arrows \(X\to A\), \(X\to Y\), and \(A\to Y\), and a latent variable \(U\) that may be a parent of each of \(X,A,Y\).
+\par\smallskip\noindent\emph{Standard} (pmlr-v323-jung26a, equation (1), \cite{pmlr-v323-jung26a}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-overlap]\label{ass:conditional-overlap}
+There is a constant \(0<\kappa\le1/2\) and a measurable propensity system \(\boldsymbol e=(e_0,e_1)\) on \(\mathcal X\) such that \(e_a(x)\in[\kappa,1-\kappa]\) and \(e_0(x)+e_1(x)=1\) for every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Standard} (pmlr-v323-jung26a, Assumption 4, \cite{pmlr-v323-jung26a}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-consistency]\label{ass:conditional-consistency}
+The global SCM satisfies \(Y=Y(A)\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Pearl2009, consistency, \cite{Pearl2009}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-reverse-support]\label{ass:conditional-reverse-support}
+For both arms on one common measurable \(\mu_X\)-conull set, the conditional interventional kernel is absolutely continuous with respect to the observed arm kernel: \(Q_a(x,\cdot)\ll P_a(x,\cdot)\).
+\par\smallskip\noindent\emph{Standard} (pmlr-v323-jung26a, Assumption 4, \cite{pmlr-v323-jung26a}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:bow-compatible]\label{def:bow-compatible}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak M_e(P)\)
+\par\smallskip\noindent\emph{Construction.} For \(0<e<1\), \(\mathfrak M_e(P)=\{Q\in\mathcal P(\mathcal Y): Q=\mathcal L(Y(a))\text{ in a bow-ADMG SCM with }\Pr(A=a)=e,\ \mathcal L(Y\mid A=a)=P,\text{ and member properties }\mathrm{ass:bow\text{-}structure},\mathrm{ass:consistency},\mathrm{ass:positivity},\mathrm{ass:mutual\text{-}ac}\}\). At the boundary, define \(\mathfrak M_1(P)=\{P\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}bow-\allowbreak{}structure}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}positivity}; \texttt{ass:\allowbreak{}mutual-\allowbreak{}ac}.
+\end{definition}
+
+\begin{definition}[def:mixture-class]\label{def:mixture-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak L_e(P)\)
+\par\smallskip\noindent\emph{Construction.} For \(0<e\le1\), \(\mathfrak L_e(P)=\{Q\in\mathcal P(\mathcal Y): Q=eP+(1-e)R\text{ for some }R\in\mathcal P(\mathcal Y)\text{ with }R\ll P\}\); hence \(\mathfrak L_1(P)=\{P\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}positivity}.
+\end{definition}
+
+\begin{definition}[def:jk-ball]\label{def:jk-ball}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak B_{f,e}(P)\)
+\par\smallskip\noindent\emph{Construction.} \(\{Q\in\mathcal P(\mathcal Y):Q\sim P,\ D_f(P\|Q)\le B_f(e)\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}positivity}.
+\end{definition}
+
+\begin{definition}[def:hinge-class]\label{def:hinge-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak H_c\)
+\par\smallskip\noindent\emph{Construction.} \(\{f:[0,\infty)\to\mathbb R: f\text{ is finite, continuous, convex, }f(1)=0,\text{ and there exists }b\in\mathbb R\text{ such that }g_b(t)=f(t)-b(t-1)\text{ obeys }g_b(t)=0\text{ for }0\le t\le c\text{ and }g_b(t)>0\text{ for }t>c\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}positivity}.
+\end{definition}
+
+\begin{definition}[def:cdf-maps]\label{def:cdf-maps}
+\par\smallskip\noindent\emph{Defined object.} \(L_e,U_e\)
+\par\smallskip\noindent\emph{Construction.} For \(0\le e\le1\), \(L_e(p)=e p\) for \(0\le p<1\), \(L_e(1)=1\), \(U_e(0)=0\), and \(U_e(p)=e p+1-e\) for \(0<p\le1\). In particular, \(L_1(p)=U_1(p)=p\) for every \(p\in[0,1]\).
+\par\smallskip\noindent\emph{Inputs.} \(e\); \(p\).
+\end{definition}
+
+\begin{definition}[def:lawful-correction]\label{def:lawful-correction}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak B^{\mathrm{law}}_{f,e}(P)\)
+\par\smallskip\noindent\emph{Construction.} \(\{Q\in\mathcal P(\mathcal Y):Q\in\mathfrak B_{f,e}(P)\text{ and }Q\in\mathfrak L_e(P)\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}positivity}.
+\end{definition}
+
+\begin{definition}[def:honest-band]\label{def:honest-band}
+\par\smallskip\noindent\emph{Defined object.} \(\widehat{\mathcal C}_{n,\alpha}\)
+\par\smallskip\noindent\emph{Construction.} Let \(n_a=\sum_{i=1}^n\mathbf 1\{A_i=a\}\), \(\delta_e=\sqrt{\log(4/\alpha)/(2n)}\), and \(\delta_F=\sqrt{\log(4/\alpha)/(2n_a)}\) when \(n_a>0\). Form \(I_e=[\widehat e_n-\delta_e,\widehat e_n+\delta_e]\cap[0,1]\) and \(I_F(y)=[\widehat F_{P,n}(y)-\delta_F,\widehat F_{P,n}(y)+\delta_F]\cap[0,1]\). For every \(y\), \(\widehat{\mathcal C}_{n,\alpha}(y)\) is the coordinatewise rectangular hull of \(\{(L_\eta(p),U_\eta(p)):\eta\in I_e,\ p\in I_F(y)\}\); when \(n_a=0\), set it to \([0,1]^2\).
+\par\smallskip\noindent\emph{Inputs.} \(A\); \(Y\); \(n\); \(\alpha\).
+\end{definition}
+
+\begin{definition}[def:directional-handle]\label{def:directional-handle}
+\par\smallskip\noindent\emph{Defined object.} \(\mathsf H_{\mathrm{dir}}\)
+\par\smallskip\noindent\emph{Construction.} Handle: linearize the joint pre-endpoint empirical process \((\widehat e_n,\widehat F_{P,n})\), derive the Hadamard directional derivative of the piecewise map \((e,F_P)\mapsto(L_e\circ F_P,U_e\circ F_P)\), and estimate that derivative inside a Fang--Santos multiplier or numerical-delta bootstrap before taking the supremum over thresholds and arms.
+\par\smallskip\noindent\emph{Inputs.} \(\widehat e_n,\widehat F_{P,n}\); \(L_e(p),U_e(p)\).
+\end{definition}
+
+\begin{definition}[def:bow-compatible-one-sided]\label{def:bow-compatible-one-sided}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak M^{\to}_e(P)\)
+\par\smallskip\noindent\emph{Construction.} For \(0<e<1\), \(\mathfrak M^{\to}_e(P)\) is the set of laws \(Q=\mathcal L(Y(a))\) realized in a nonparametric latent-variable bow-ADMG SCM with \(\Pr(A=a)=e\), \(\mathcal L(Y\mid A=a)=P\), and member properties \(\mathrm{ass:bow\text{-}structure}\), \(\mathrm{ass:consistency}\), and \(\mathrm{ass:positivity}\), without imposing \(\mathrm{ass:mutual\text{-}ac}\). At the boundary define \(\mathfrak M^{\to}_1(P)=\{P\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}bow-\allowbreak{}structure}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}positivity}.
+\end{definition}
+
+\begin{definition}[def:mixture-class-one-sided]\label{def:mixture-class-one-sided}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak L^{\to}_e(P)\)
+\par\smallskip\noindent\emph{Construction.} For \(0<e\le1\), \(\mathfrak L^{\to}_e(P)=\{Q\in\mathcal P(\mathcal Y):Q=eP+(1-e)R\text{ for some }R\in\mathcal P(\mathcal Y)\}\); hence \(\mathfrak L^{\to}_1(P)=\{P\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}positivity}.
+\end{definition}
+
+\begin{definition}[def:jk-ball-one-sided]\label{def:jk-ball-one-sided}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak B^{\to}_{f,e}(P)\)
+\par\smallskip\noindent\emph{Construction.} \(\{Q\in\mathcal P(\mathcal Y):P\ll Q,\ D_f(P\|Q)\le B_f(e)\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}positivity}.
+\end{definition}
+
+\begin{definition}[def:cdf-maps-one-sided]\label{def:cdf-maps-one-sided}
+\par\smallskip\noindent\emph{Defined object.} \(L^{\to}_e,U^{\to}_e\)
+\par\smallskip\noindent\emph{Construction.} For \(0\le e\le1\) and \(0\le p\le1\), define \(L^{\to}_e(p)=ep\) and \(U^{\to}_e(p)=ep+1-e\).
+\par\smallskip\noindent\emph{Inputs.} \(e\); \(p\).
+\end{definition}
+
+\begin{definition}[def:lawful-correction-one-sided]\label{def:lawful-correction-one-sided}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak B^{\mathrm{law},\to}_{f,e}(P)\)
+\par\smallskip\noindent\emph{Construction.} \(\{Q\in\mathcal P(\mathcal Y):Q\in\mathfrak B^{\to}_{f,e}(P)\text{ and }Q\in\mathfrak L^{\to}_e(P)\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}positivity}.
+\end{definition}
+
+\begin{definition}[def:conditional-bow-compatible-one-sided]\label{def:conditional-bow-compatible-one-sided}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak M^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)\)
+\par\smallskip\noindent\emph{Construction.} Let \(\mathcal X,\mathcal Y\) be standard Borel spaces, let \(\mu_X\in\mathcal P(\mathcal X)\), let \(0<\kappa\le1/2\), let \(\boldsymbol e=(e_0,e_1)\) satisfy \(\mathrm{ass:conditional\text{-}overlap}\), and let \(\boldsymbol P=(P_0,P_1)\) be Markov kernels from \(\mathcal X\) to \(\mathcal Y\).  Then \(\mathfrak M^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)\) is the set of pairs \(\boldsymbol Q=(Q_0,Q_1)\) of Markov kernels for which one SCM satisfying \(\mathrm{ass:conditional\text{-}bow\text{-}architecture}\), \(\mathrm{ass:conditional\text{-}overlap}\), and \(\mathrm{ass:conditional\text{-}consistency}\) has \(X\sim\mu_X\) and admits one measurable \(\mu_X\)-conull set \(S\) on which, simultaneously for \(a=0,1\), \(\Pr(A=a\mid X=x)=e_a(x)\), \(\mathcal L(Y\mid A=a,X=x)=P_a(x,\cdot)\), and \(\mathcal L(Y(a)\mid X=x)=Q_a(x,\cdot)\).  Conditional kernels are versions and no restriction is placed on \(S^c\).  No reverse-support condition is imposed.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}conditional-\allowbreak{}bow-\allowbreak{}architecture}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}consistency}.
+\end{definition}
+
+\begin{definition}[def:conditional-mixture-class-one-sided]\label{def:conditional-mixture-class-one-sided}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak L^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)\)
+\par\smallskip\noindent\emph{Construction.} Under the same self-contained setup of standard Borel \(\mathcal X,\mathcal Y\), \(\mu_X\in\mathcal P(\mathcal X)\), \(0<\kappa\le1/2\), measurable \(\boldsymbol e=(e_0,e_1)\) satisfying \(\mathrm{ass:conditional\text{-}overlap}\), and Markov kernels \(\boldsymbol P=(P_0,P_1)\), the class \(\mathfrak L^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)\) consists of pairs \(\boldsymbol Q=(Q_0,Q_1)\) of Markov kernels for which there are Markov kernels \(\boldsymbol R=(R_0,R_1)\) and one measurable \(\mu_X\)-conull set \(S\) such that, for every \(x\in S\) and \(a=0,1\),
+\[
+ Q_a(x,\cdot)=e_a(x)P_a(x,\cdot)+(1-e_a(x))R_a(x,\cdot).
+\]
+No restriction is imposed on the versions over \(S^c\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}conditional-\allowbreak{}overlap}.
+\end{definition}
+
+\begin{definition}[def:conditional-bow-compatible]\label{def:conditional-bow-compatible}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak M_{\mu_X,\boldsymbol e}(\boldsymbol P)\)
+\par\smallskip\noindent\emph{Construction.} Let \(\mathcal X,\mathcal Y\) be standard Borel spaces, let \(\mu_X\in\mathcal P(\mathcal X)\), let \(0<\kappa\le1/2\), let measurable \(\boldsymbol e=(e_0,e_1)\) satisfy \(\mathrm{ass:conditional\text{-}overlap}\), and let \(\boldsymbol P=(P_0,P_1)\) be Markov kernels from \(\mathcal X\) to \(\mathcal Y\).  Then \(\mathfrak M_{\mu_X,\boldsymbol e}(\boldsymbol P)\) is the set of pairs \(\boldsymbol Q=(Q_0,Q_1)\) for which one SCM satisfying \(\mathrm{ass:conditional\text{-}bow\text{-}architecture}\), \(\mathrm{ass:conditional\text{-}overlap}\), and \(\mathrm{ass:conditional\text{-}consistency}\) has \(X\sim\mu_X\) and admits one measurable \(\mu_X\)-conull set \(S\) on which, simultaneously for \(a=0,1\), \(\Pr(A=a\mid X=x)=e_a(x)\), \(\mathcal L(Y\mid A=a,X=x)=P_a(x,\cdot)\), \(\mathcal L(Y(a)\mid X=x)=Q_a(x,\cdot)\), and \(Q_a(x,\cdot)\ll P_a(x,\cdot)\).  Conditional kernels are versions and no restriction is placed on \(S^c\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}conditional-\allowbreak{}bow-\allowbreak{}architecture}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}consistency}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}reverse-\allowbreak{}support}.
+\end{definition}
+
+\begin{definition}[def:conditional-mixture-class]\label{def:conditional-mixture-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak L_{\mu_X,\boldsymbol e}(\boldsymbol P)\)
+\par\smallskip\noindent\emph{Construction.} Under the same self-contained setup of standard Borel \(\mathcal X,\mathcal Y\), \(\mu_X\in\mathcal P(\mathcal X)\), \(0<\kappa\le1/2\), measurable \(\boldsymbol e=(e_0,e_1)\) satisfying \(\mathrm{ass:conditional\text{-}overlap}\), and Markov kernels \(\boldsymbol P=(P_0,P_1)\), the class \(\mathfrak L_{\mu_X,\boldsymbol e}(\boldsymbol P)\) consists of pairs \(\boldsymbol Q=(Q_0,Q_1)\) for which there are Markov kernels \(\boldsymbol R=(R_0,R_1)\) and one measurable \(\mu_X\)-conull set \(S\) such that \(Q_a=e_aP_a+(1-e_a)R_a\) and \(R_a(x,\cdot)\ll P_a(x,\cdot)\) for both arms and every \(x\in S\).  No restriction is imposed on the versions over \(S^c\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}conditional-\allowbreak{}overlap}.
+\end{definition}
+
+\begin{definition}[def:conditional-adaptive-hinge-ball-one-sided]\label{def:conditional-adaptive-hinge-ball-one-sided}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak B^{\mathrm{ad},\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)\)
+\par\smallskip\noindent\emph{Construction.} Let \(\mathcal X,\mathcal Y\) be standard Borel spaces, let \(\mu_X\in\mathcal P(\mathcal X)\), let \(0<\kappa\le1/2\), let measurable \(\boldsymbol e=(e_0,e_1)\) satisfy \(\mathrm{ass:conditional\text{-}overlap}\), and let \(\boldsymbol P=(P_0,P_1)\) be Markov kernels from \(\mathcal X\) to \(\mathcal Y\).  Define \(f_{a,x}(t)=(t-1/e_a(x))_+\).  The class \(\mathfrak B^{\mathrm{ad},\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)\) consists of pairs \(\boldsymbol Q=(Q_0,Q_1)\) of Markov kernels from \(\mathcal X\) to \(\mathcal Y\) for which there is one measurable \(\mu_X\)-conull set \(S\) such that, for every \(x\in S\) and \(a=0,1\), \(P_a(x,\cdot)\ll Q_a(x,\cdot)\) and
+\[
+ D_{f_{a,x}}(P_a(x,\cdot)\|Q_a(x,\cdot))\le B_{f_{a,x}}(e_a(x)).
+\]
+The constraints are fiberwise, not integrated over \(x\), and no assertion is made at a specified point in \(S^c\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}conditional-\allowbreak{}overlap}.
+\end{definition}
+
+\begin{definition}[def:conditional-adaptive-hinge-ball]\label{def:conditional-adaptive-hinge-ball}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak B^{\mathrm{ad}}_{\mu_X,\boldsymbol e}(\boldsymbol P)\)
+\par\smallskip\noindent\emph{Construction.} Let \(\mathcal X,\mathcal Y\) be standard Borel spaces, let \(\mu_X\in\mathcal P(\mathcal X)\), let \(0<\kappa\le1/2\), let measurable \(\boldsymbol e=(e_0,e_1)\) satisfy \(\mathrm{ass:conditional\text{-}overlap}\), and let \(\boldsymbol P=(P_0,P_1)\) be Markov kernels from \(\mathcal X\) to \(\mathcal Y\).  With \(f_{a,x}(t)=(t-1/e_a(x))_+\), the class \(\mathfrak B^{\mathrm{ad}}_{\mu_X,\boldsymbol e}(\boldsymbol P)\) consists of pairs \(\boldsymbol Q=(Q_0,Q_1)\) of Markov kernels from \(\mathcal X\) to \(\mathcal Y\) for which there is one measurable \(\mu_X\)-conull set \(S\) such that, for every \(x\in S\) and \(a=0,1\), \(P_a(x,\cdot)\sim Q_a(x,\cdot)\) and
+\[
+ D_{f_{a,x}}(P_a(x,\cdot)\|Q_a(x,\cdot))\le B_{f_{a,x}}(e_a(x)).
+\]
+The constraints are fiberwise, not integrated over \(x\), and no assertion is made at a specified point in \(S^c\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}conditional-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}reverse-\allowbreak{}support}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:bow-mixture-completeness]\label{thm:bow-mixture-completeness}
+For every standard Borel \(\mathcal Y\), arm \(a\), probability law \(P\), and \(0<e<1\), the bow-ADMG compatible interventional laws are exactly the propensity mixtures: \(\mathfrak M_e(P)=\mathfrak L_e(P)\). Equivalently, \(Q\in\mathfrak M_e(P)\) if and only if \(Q=eP+(1-e)R\) for some \(R\ll P\), or if and only if \(Q\sim P\) and \(dP/dQ\le1/e\) \(Q\)-almost surely. Every admissible \(R\) is realized by a latent construction with \(U=(A,Y(0),Y(1))\).
+\end{theorem}
+\begin{proof}
+Fix the objects in the theorem.  If \(Q\in\mathfrak M_e(P)\), consistency and the observed-arm restriction give
+\[
+ \mathcal L(Y(a)\mid A=a)=\mathcal L(Y\mid A=a)=P.
+\]
+Because \(0<e<1\), the conditional law
+\[
+ R=\mathcal L(Y(a)\mid A\ne a)
+\]
+is a probability law.  For every measurable \(B\subseteq\mathcal Y\), the law of total probability gives
+\[
+ Q(B)=\Pr\{Y(a)\in B\}=eP(B)+(1-e)R(B). \tag{1}
+\]
+The mutual-absolute-continuity member property says \(P\sim Q\), in particular \(Q\ll P\).  If \(P(B)=0\), then \(Q(B)=0\), and (1), nonnegativity, and \(1-e>0\) imply \(R(B)=0\).  Hence \(R\ll P\), proving \(\mathfrak M_e(P)\subseteq\mathfrak L_e(P)\).
+
+Conversely, suppose
+\[
+ Q=eP+(1-e)R,\qquad R\ll P. \tag{2}
+\]
+On a standard Borel probability space, draw \(A\) with \(\Pr(A=a)=e\); conditionally on \(A=a\), draw \(Y(a)\) with law \(P\), and conditionally on \(A\ne a\), draw \(Y(a)\) with law \(R\).  Draw \(Y(1-a)\), conditionally independently given \(A\), from any fixed probability law, for example \(P\).  Put \(U=(A,Y(0),Y(1))\), let the treatment structural equation return the \(A\)-coordinate of \(U\), and let the outcome structural equation return \(Y(A)\).  These measurable structural equations form a nonparametric latent-variable SCM Markov to the bow ADMG: the common latent input permits \(A\leftrightarrow Y\), and the selector equation uses the arrow \(A\to Y\).  The construction satisfies consistency, has propensity \(e\), and has observed arm law \(P\).  Equation (2) is exactly its law of \(Y(a)\).
+
+Moreover, (2) implies \(Q\ge eP\), so \(P\ll Q\), while \(R\ll P\) implies \(Q\ll P\).  Thus \(P\sim Q\), and the constructed SCM satisfies the mutual-absolute-continuity member property.  This proves \(\mathfrak L_e(P)\subseteq\mathfrak M_e(P)\), hence equality.
+
+It remains to prove the likelihood-ratio characterization.  Under (2), let \(r=dP/dQ\), which exists because \(P\ll Q\).  The measure inequality \(Q-eP\ge0\) is equivalent to
+\[
+ 1-er\ge0\qquad Q\text{-almost surely},
+\]
+and therefore \(r\le1/e\), \(Q\)-almost surely.  We already proved \(Q\ll P\), so \(Q\sim P\).  Conversely, suppose \(Q\sim P\) and \(r=dP/dQ\le1/e\), \(Q\)-almost surely.  Define
+\[
+ R(B)=\frac{Q(B)-eP(B)}{1-e}
+     =\int_B\frac{1-er}{1-e}\,dQ.
+\]
+The displayed density is nonnegative, and its integral is
+\[
+ \frac{1-e\int r\,dQ}{1-e}=1,
+\]
+so \(R\) is a probability law and (2) holds.  Since \(Q\ll P\), every \(P\)-null set is also \(Q\)-null and hence \(R\)-null, so \(R\ll P\).  The preceding construction realizes this \(R\), completing every asserted equivalence and the realization claim.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem is the abstract fixed-fiber structural input; the new conditional theorem proves measurable simultaneous realization rather than evaluating this result at a version-dependent covariate point. \textit{Gap.} Jung and Kang prove outer validity but do not prove realization of every fixed-fiber mixture by the bow SCM. \textit{Consumer.} It supports the fixed-propensity generator frontier and fixed-stratum CDF and inference consequences.
+
+\begin{theorem}[thm:generator-iff-frontier]\label{thm:generator-iff-frontier}
+Fix \(0<e<1\) and \(c=1/e\). For every finite continuous convex \(f:[0,\infty)\to\mathbb R\) with \(f(1)=0\), the following are equivalent: \(\mathfrak B_{f,e}(P)=\mathfrak L_e(P)\) for every probability law \(P\) on every standard Borel space; this equality holds for every full-support binary \(P\); and \(f\in\mathfrak H_c\). Thus, modulo the divergence-invariant affine term \(b(t-1)\), exactness holds if and only if the generator vanishes on \([0,1/e]\) and is strictly positive on \((1/e,\infty)\).
+\end{theorem}
+\begin{proof}
+Fix \(0<e<1\) and put \(c=1/e\).  If \(P\ll Q\) and \(r=dP/dQ\), then \(\int r\,dQ=1\).  Consequently, for every \(b\in\mathbb R\), replacing \(f\) by
+\[
+ f_b(t)=f(t)-b(t-1)
+\]
+changes neither the divergence nor the calibrated radius, because
+\[
+ \int(r-1)\,dQ=0,
+ \qquad
+ e(c-1)+(1-e)(0-1)=0. \tag{2}
+\]
+Convexity gives the chord inequality
+\[
+ f(t)\le \left(1-\frac{t}{c}\right)f(0)+\frac{t}{c}f(c),
+ \qquad 0\le t\le c. \tag{3}
+\]
+
+If \(Q\in\mathfrak L_e(P)\), the mixture characterization in \(\mathrm{thm:bow\text{-}mixture\text{-}completeness}\) gives \(Q\sim P\) and \(r\le c\), \(Q\)-almost surely.  Integrating (3), using \(\int r\,dQ=1\) and \(1/c=e\), yields
+\[
+ D_f(P\|Q)
+ \le \left(1-\frac1c\right)f(0)+\frac1c f(c)
+ =(1-e)f(0)+ef(c)=B_f(e). \tag{4}
+\]
+Thus \(\mathfrak L_e(P)\subseteq\mathfrak B_{f,e}(P)\) for every admissible generator.
+
+Suppose first that \(f\in\mathfrak H_c\).  By definition there is \(b\) such that \(g(t)=f(t)-b(t-1)\) vanishes on \([0,c]\) and is strictly positive on \((c,\infty)\).  In particular \(g\ge0\), and
+\[
+ B_g(e)=eg(c)+(1-e)g(0)=0. \tag{5}
+\]
+For \(Q\in\mathfrak B_{f,e}(P)\), mutual support supplies \(r=dP/dQ\), and affine invariance (2) gives
+\[
+ 0\le \int g(r)\,dQ=D_g(P\|Q)=D_f(P\|Q)\le B_f(e)=B_g(e)=0.
+\]
+Hence \(g(r)=0\), \(Q\)-almost surely, and strict positivity above \(c\) implies \(r\le c\), \(Q\)-almost surely.  The likelihood-ratio characterization in the preceding theorem now gives \(Q\in\mathfrak L_e(P)\).  Together with (4), this proves universal exactness.
+
+For necessity, assume equality for every full-support binary \(P\).  Write \(P=\operatorname{Bernoulli}(p)\), \(p\in(0,1)\), and \(Q_q=\operatorname{Bernoulli}(q)\).  The law \(Q_{ep}\) is the mixture of \(P\) and \(\operatorname{Bernoulli}(0)\), and the residual is absolutely continuous with respect to full-support \(P\); hence \(Q_{ep}\in\mathfrak L_e(P)\).  For \(0<q<ep\), the likelihood ratio on the success cell is \(p/q>c\), so \(Q_q\notin\mathfrak L_e(P)\).  Exactness therefore gives
+\[
+ D_f(P\|Q_{ep})\le B_f(e),
+ \qquad
+ D_f(P\|Q_q)>B_f(e)\quad(0<q<ep). \tag{6}
+\]
+The binary divergence
+\[
+ q\longmapsto qf(p/q)+(1-q)f((1-p)/(1-q))
+\]
+is continuous on \((0,1)\).  Letting \(q\uparrow ep\) in (6) proves the boundary equality
+\[
+ epf(c)+(1-ep)f\!\left(\frac{1-p}{1-ep}\right)=B_f(e). \tag{7}
+\]
+Letting \(p\downarrow0\) in (7), using finiteness and continuity of \(f\) and \(f(1)=0\), gives
+\[
+ B_f(e)=0. \tag{8}
+\]
+
+Normalize by setting \(g(t)=f(t)+f(0)(t-1)\).  By affine invariance, \(B_g(e)=0\), while
+\[
+ g(0)=g(1)=0,
+ \qquad
+ 0=B_g(e)=eg(c)+(1-e)g(0)
+\]
+implies \(g(c)=0\).  Applying (7) to \(g\) yields
+\[
+ g\!\left(\frac{1-p}{1-ep}\right)=0,\qquad 0<p<1. \tag{9}
+\]
+The argument of \(g\) in (9) ranges over \((0,1)\); continuity therefore gives \(g=0\) on \([0,1]\).
+
+Let \(y\in(1,c)\), choose \(x\in(0,1)\), and put \(\lambda=(1-x)/(y-x)\).  Give one cell \(Q\)-mass \(\lambda\), the other mass \(1-\lambda\), and obtain \(P\) by multiplying these masses by \(y\) and \(x\), respectively.  Because
+\[
+ \lambda y+(1-\lambda)x=1,
+\]
+these are full-support probability laws, and both likelihood ratios are at most \(c\).  Hence \(Q\in\mathfrak L_e(P)\), and exactness, convexity at the mean-one likelihood ratio, and (8) give
+\[
+ 0=g(1)\le D_g(P\|Q)
+   =\lambda g(y)+(1-\lambda)g(x)\le B_g(e)=0.
+\]
+Since \(g(x)=0\) and \(\lambda>0\), it follows that \(g(y)=0\).  Thus \(g=0\) on \([0,c]\).
+
+For \(t>c\), express \(c\) as a strict convex combination of \(1\) and \(t\).  Convexity and \(g(1)=g(c)=0\) imply \(g(t)\ge0\).  If \(g(t)=0\), choose any \(x\in(0,1)\) and repeat the preceding two-ratio construction with ratios \(t\) and \(x\).  It gives full-support binary laws with
+\[
+ D_g(P\|Q)=0=B_g(e),
+\]
+so \(Q\in\mathfrak B_{f,e}(P)\), but the ratio \(t>c\) excludes \(Q\) from \(\mathfrak L_e(P)\), contradicting exactness.  Hence \(g(t)>0\) for every \(t>c\), which is exactly \(f\in\mathfrak H_c\).  Universal exactness plainly implies binary exactness, and the bow-mixture theorem identifies the mixture class with the compatible causal class, completing the three-way equivalence.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The affine-invariant iff gives the exact cap-detecting geometry at a fixed propensity and is paired with the conditional adaptive-hinge theorem. \textit{Gap.} Prior divergence and density-band work does not characterize all ordinary convex generators yielding causal feasible-set equality. \textit{Consumer.} It explains both the adaptive conditional construction and the impossibility of a single exact generator across distinct propensities.
+
+\begin{theorem}[thm:open-illegal-dichotomy]\label{thm:open-illegal-dichotomy}
+Fix \(0<e<1\), let \(c=1/e\), and suppose \(f\notin\mathfrak H_c\). There is a nonempty Euclidean-open set \(\mathcal O_f\subset(0,1)^2\) of binary pairs \((p,q)\), interpreted as \(P=\operatorname{Bernoulli}(p)\) and \(Q=\operatorname{Bernoulli}(q)\), such that \(Q\in\mathfrak B_{f,e}(P)\setminus\mathfrak L_e(P)\) throughout \(\mathcal O_f\). More precisely, either no affine representative of \(f\) is affine on \([0,c]\), in which case \(\mathcal O_f\) can be chosen with \(D_f(P\|Q)<B_f(e)\), or an affine representative vanishes on \([0,c]\) and on \([0,d]\) for some \(d>c\), in which case an open illegal set is contained in the zero-divergence face. This dichotomy includes nondifferentiable and piecewise-linear generators.
+\end{theorem}
+\begin{proof}
+Fix \(0<e<1\), put \(c=1/e\), and define the chord of \(f\) between \(0\) and \(c\) by
+\[
+ \ell(t)=\left(1-\frac tc\right)f(0)+\frac tc f(c).
+\]
+Convexity gives \(f(t)\le\ell(t)\) on \([0,c]\), and
+\[
+ \ell(1)=(1-e)f(0)+ef(c)=B_f(e). \tag{6}
+\]
+Subtracting an affine function does not change whether a function is affine on an interval.  Thus the first case in the statement is precisely the case in which \(f\) is not affine on \([0,c]\).
+
+Assume first that \(f\) is not affine on \([0,c]\).  Then
+\[
+ f(x)<\ell(x)\qquad\text{for every }x\in(0,c). \tag{7}
+\]
+Indeed, \(h=\ell-f\) is concave and nonnegative on \([0,c]\), with \(h(0)=h(c)=0\).  If \(h(x_0)=0\) at one interior point, concavity applied first with endpoints \(x<x_0<c\) and then with endpoints \(0<x_0<x\) forces \(h(x)=0\) on both sides of \(x_0\), contradicting non-affinity.
+
+Choose \(x\in(0,1)\), let
+\[
+ \lambda=\frac{1-x}{c-x},\qquad q_0=\lambda,\qquad p_0=c\lambda,
+\]
+and put \(P_0=\operatorname{Bernoulli}(p_0)\), \(Q_0=\operatorname{Bernoulli}(q_0)\).  Since \(c>1\) and \(0<x<1\), both laws have full support.  Their likelihood ratios are \(c\) and \(x\), and \(q_0=ep_0\), so \(Q_0\in\mathfrak L_e(P_0)\).  Because affine functions commute with expectation and the two ratios have \(Q_0\)-mean one, (6)--(7) give
+\[
+ D_f(P_0\|Q_0)
+ =\lambda f(c)+(1-\lambda)f(x)
+ <\lambda\ell(c)+(1-\lambda)\ell(x)
+ =\ell(1)=B_f(e). \tag{8}
+\]
+The binary divergence is continuous on \((0,1)^2\).  Hence one may choose \(q_1<q_0=ep_0\), sufficiently close to \(q_0\), such that
+\[
+ D_f\!\left(\operatorname{Bernoulli}(p_0)\middle\|\operatorname{Bernoulli}(q_1)\right)<B_f(e).
+\]
+Both strict inequalities \(D_f<B_f(e)\) and \(q<ep\) persist on some nonempty Euclidean-open neighborhood \(\mathcal O_f\) of \((p_0,q_1)\) contained in \((0,1)^2\).  Throughout this neighborhood, \(P\sim Q\), the strict divergence inequality places \(Q\) in \(\mathfrak B_{f,e}(P)\), while \(p/q>c\) excludes \(Q\) from \(\mathfrak L_e(P)\).  This proves the first alternative.
+
+Assume next that \(f\) is affine on \([0,c]\).  Since \(f(1)=0\), there is \(b\in\mathbb R\) such that
+\[
+ g(t)=f(t)-b(t-1)=0,\qquad 0\le t\le c. \tag{9}
+\]
+Convexity and (9) imply \(g(t)\ge0\) for \(t>c\).  Because \(f\notin\mathfrak H_c\), strict positivity fails: there is \(d>c\) with \(g(d)=0\).  Convexity between \(c\) and \(d\), together with nonnegativity, shows that in fact
+\[
+ g(t)=0,\qquad 0\le t\le d. \tag{10}
+\]
+Choose \(x\in(0,1)\) and \(y\in(c,d)\), let \(\lambda=(1-x)/(y-x)\), and form full-support binary laws for which \(dP/dQ\) equals \(y\) on a cell of \(Q\)-mass \(\lambda\) and \(x\) on its complement.  In Bernoulli coordinates this means \(q=\lambda\) and \(p=\lambda y\).  Then \(p/q=y>c\), so the pair is SCM-illegal, whereas affine invariance and (10) give
+\[
+ D_f(P\|Q)=D_g(P\|Q)=0=B_g(e)=B_f(e).
+\]
+The inequalities \(p/q>c\), \((1-p)/(1-q)\in(0,d)\), and \(p/q<d\) persist on a sufficiently small open neighborhood.  On that neighborhood both likelihood ratios lie in \((0,d)\), so (10) keeps the divergence identically zero, while the cap remains violated.  This is the asserted nonempty open illegal set in the zero-divergence face.  The argument uses only finiteness, continuity, and convexity, and therefore includes kinked and piecewise-linear generators.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Jung--Kang (2026) use Theorem 5 to calibrate the propensity-only divergence radius, define the resulting ambiguity class in equation (10), and optimize causal functionals over it while presenting the framework as sharp partial identification with tight causal bounds. The theorem isolates the exact model distinction: every generator \(f\) outside the hinge class admits a nonempty open set of full-support binary laws accepted by that divergence program but excluded by the bow-SCM feasible set. \textit{Gap.} Jung--Kang's extrema may be exact for their declared divergence relaxation, but their sharpness presentation does not establish that every law in the ambiguity class is bow-SCM realizable. The open-illegality theorem proves that, for every failing generator, an open set is not realizable, so the corresponding extrema need not be sharp for the bow-SCM model. \textit{Consumer.} The result gives a robust legality diagnostic for KL, Hellinger, chi-square, total-variation, Jensen--Shannon, and every other failing generator.
+
+\begin{theorem}[thm:cdf-endpoints-sharp]\label{thm:cdf-endpoints-sharp}
+Let \(\mathcal Y=\mathbb R\). For every threshold \(y\), write \(p=F_P(y)\). The exact bow-SCM identified interval is \(\{F_Q(y):Q\in\mathfrak M_e(P)\}=[L_e(p),U_e(p)]\). Each endpoint is attained by a bow-ADMG SCM satisfying all maintained support conditions, including when \(P\) has an atom at \(y\), \(p=0\), or \(p=1\). For \(0<p<1\), the witnesses choose residual laws supported on \(({-}\infty,y]\) or its complement; the boundary formulas force the unique value \(0\) or \(1\).
+\end{theorem}
+\begin{proof}
+Fix \(y\in\mathbb R\), put \(B_y=(-\infty,y]\), and write \(p=P(B_y)=F_P(y)\).  Assumption \(\mathrm{ass:positivity}\) gives \(0<e<1\).  By \(\mathrm{thm:bow\text{-}mixture\text{-}completeness}\), a law \(Q\) belongs to \(\mathfrak M_e(P)\) exactly when
+\[
+ Q=eP+(1-e)R
+ \quad\text{for some probability law }R\ll P.
+\]
+Consequently, with \(r=R(B_y)\),
+\[
+ F_Q(y)=Q(B_y)=eP(B_y)+(1-e)R(B_y)=ep+(1-e)r. \tag{1}
+\]
+Suppose first that \(0<p<1\).  Absolute continuity only implies \(r\in[0,1]\), so (1) gives the inclusion
+\[
+ \{F_Q(y):Q\in\mathfrak M_e(P)\}\subseteq[ep,ep+1-e]. \tag{2}
+\]
+For the reverse inclusion, define the conditional probability laws
+\[
+ P_{B_y}(C)=\frac{P(C\cap B_y)}{p},
+ \qquad
+ P_{B_y^c}(C)=\frac{P(C\cap B_y^c)}{1-p}
+\]
+for measurable \(C\subseteq\mathbb R\).  The divisions are valid because \(0<p<1\).  For every \(r\in[0,1]\), let
+\[
+ R_r=rP_{B_y}+(1-r)P_{B_y^c}.
+\]
+Both conditional laws, and hence \(R_r\), are absolutely continuous with respect to \(P\), while \(R_r(B_y)=r\).  The completeness theorem therefore supplies a bow-ADMG SCM, with latent variable \(U=(A,Y(0),Y(1))\), realizing
+\[
+ Q_r=eP+(1-e)R_r
+ \quad\text{and}
+ \quad F_{Q_r}(y)=ep+(1-e)r.
+\]
+As \(r\) ranges over \([0,1]\), the last expression ranges over the whole interval in (2).  In particular, \(R_0=P_{B_y^c}\) and \(R_1=P_{B_y}\) attain the lower and upper endpoints and are supported on the complement of \(B_y\) and on \(B_y\), respectively.
+
+If \(p=0\), then \(P(B_y)=0\), so \(R\ll P\) forces \(R(B_y)=0\).  Equation (1) then forces \(F_Q(y)=0\) for every compatible \(Q\).  If \(p=1\), then \(P(B_y^c)=0\), so \(R(B_y^c)=0\), \(R(B_y)=1\), and (1) forces \(F_Q(y)=1\).  In either boundary case \(R=P\) is admissible, so the unique value is attained by the latent bow construction from the completeness theorem.  By \(\mathrm{def:cdf\text{-}maps}\),
+\[
+ [L_e(p),U_e(p)]
+ =
+ \begin{cases}
+ [0,0],&p=0,\\
+ [ep,ep+1-e],&0<p<1,\\
+ [1,1],&p=1.
+ \end{cases}
+\]
+This proves the asserted equality and attainment.  The argument depends only on the measurable event \(B_y\), not on whether \(P\) has an atom at \(y\).  It is also exactly the mutual-absolute-continuity branch of \(\mathrm{thm:support\text{-}regime\text{-}cdf\text{-}endpoints\text{-}sharp}\), which distinguishes these boundary values from those obtained when singular residual laws are allowed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Huber's (1964) unrestricted contamination model yields the event-probability interval \([ep,ep+1-e]\). The delivered contribution is the support split: under mutual absolute continuity the endpoints collapse to the unique values zero and one at \(p=0\) and \(p=1\), respectively, while the formulas remain atom-aware and every endpoint is attained by a bow-ADMG SCM. \textit{Gap.} Unrestricted Huber contamination supplies the linear interval \([ep,ep+1-e]\), but it does not certify the mutual-absolute-continuity boundary collapse, the atom-aware support cases, or endpoint attainment inside the maintained bow-SCM class. \textit{Consumer.} It supplies the exact CDF map appropriate to each support convention and the mutual map used for inference.
+
+\begin{theorem}[thm:query-legality-correction]\label{thm:query-legality-correction}
+For every admissible generator \(f\), \(\mathfrak B^{\mathrm{law}}_{f,e}(P)=\mathfrak L_e(P)=\mathfrak M_e(P)\). For each \(h\in L^\infty(P)\), the exact mutual-AC support-function endpoints are \(\underline\theta_h=eE_P[h]+(1-e)\operatorname*{ess\,inf}_P h\) and \(\overline\theta_h=eE_P[h]+(1-e)\operatorname*{ess\,sup}_P h\). On a finite alphabet restricted to \(\operatorname{supp}(P)\), adding the cap constraints \(q_j\ge ep_j\) to a divergence program yields the exact mutual-AC class, weakly tightens every linear bounded-query optimization, and strictly tightens it whenever a unique relaxed optimizer violates the cap. For every \(f\notin\mathfrak H_c\), a bounded binary query has a strict legality gap on a nonempty open region of observational laws.
+\end{theorem}
+\begin{proof}
+Fix \(0<e<1\), put \(c=1/e\), and let \(f\) be any finite continuous convex generator with \(f(1)=0\).  If \(Q\in\mathfrak L_e(P)\), then \(Q=eP+(1-e)R\) for some \(R\ll P\).  Thus \(Q\sim P\), and for \(r=dP/dQ\) one has \(0<r\le c\), \(Q\)-almost surely, and \(\int r\,dQ=1\).  The convex chord inequality on \([0,c]\) yields
+\[
+ D_f(P\|Q)
+ \le\int\left\{\left(1-\frac rc\right)f(0)+\frac rc f(c)\right\}dQ
+ =(1-e)f(0)+ef(c)=B_f(e). \tag{11}
+\]
+Hence \(\mathfrak L_e(P)\subseteq\mathfrak B_{f,e}(P)\).  By the definition of the lawful correction,
+\[
+ \mathfrak B^{\mathrm{law}}_{f,e}(P)
+ =\mathfrak B_{f,e}(P)\cap\mathfrak L_e(P)
+ =\mathfrak L_e(P).
+\]
+The frozen bow-mixture completeness theorem then gives \(\mathfrak L_e(P)=\mathfrak M_e(P)\).
+
+Let \(h\in L^\infty(P)\), and write
+\[
+ m=\operatorname*{ess\,inf}_P h,\qquad M=\operatorname*{ess\,sup}_P h.
+\]
+For \(Q=eP+(1-e)R\) with \(R\ll P\),
+\[
+ E_Q[h]=eE_P[h]+(1-e)E_R[h],\qquad m\le E_R[h]\le M. \tag{12}
+\]
+Thus the claimed expressions bound the infimum and supremum.  Conversely, for every \(\eta>0\), the defining properties of essential infimum and supremum give sets of positive \(P\)-probability
+\[
+ C^-_\eta=\{h<m+\eta\},\qquad C^+_\eta=\{h>M-\eta\}.
+\]
+Taking \(R^-_\eta=P(\,\cdot\mid C^-_\eta)\) and \(R^+_\eta=P(\,\cdot\mid C^+_\eta)\), both of which are absolutely continuous with respect to \(P\), and then letting \(\eta\downarrow0\) in (12), proves
+\[
+ \underline\theta_h=eE_P[h]+(1-e)m,\qquad
+ \overline\theta_h=eE_P[h]+(1-e)M. \tag{13}
+\]
+
+Now suppose the alphabet is finite and restricted to \(\operatorname{supp}(P)\), so every retained cell has \(p_j>0\).  A probability vector \(q=(q_j)_j\) belongs to \(\mathfrak L_e(P)\) if and only if
+\[
+ q_j\ge ep_j\quad\text{for every }j. \tag{14}
+\]
+The forward implication follows from \(q_j=ep_j+(1-e)r_j\).  Conversely, (14) makes
+\[
+ r_j=\frac{q_j-ep_j}{1-e}
+\]
+nonnegative with \(\sum_jr_j=1\), and the support restriction gives \(R\ll P\).  By (11), the divergence constraint is redundant on (14).  Therefore adjoining (14) to the divergence program gives exactly the mutual-absolute-continuity compatible class.  Its feasible set is a closed subset of the finite simplex and hence compact.  Restricting a feasible set can only weakly lower a linear maximum and weakly raise a linear minimum.  If a relaxed optimizer is unique and violates (14), equality of the corresponding optimal values would make an optimizer over the compact capped set a second relaxed optimizer, a contradiction.  The tightening is then strict.  The same coordinate argument is consistent with the unrestricted-alphabet formulation in \(\mathrm{thm:one\text{-}sided\text{-}query\text{-}legality\text{-}correction}\).
+
+Finally suppose \(f\notin\mathfrak H_c\).  The construction in \(\mathrm{thm:open\text{-}illegal\text{-}dichotomy}\) yields an open binary set with \(q<ep\) and \(Q\in\mathfrak B_{f,e}(P)\).  It contains a rectangle \(I\times J\) about one of its points.  For every \(p\) in a sufficiently small nonempty open interval \(I\), some \(q\in J\) remains divergence-feasible and satisfies \(q<ep\).  For the bounded success indicator \(h(z)=\mathbf 1\{z=1\}\), the lawful lower endpoint is \(ep\) by (13), whereas the relaxed lower value is at most \(q<ep\).  This is the claimed strict legality gap on an open region of observational laws.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem converts the likelihood-ratio cap into an exact feasible-set intersection and explicit finite-alphabet constraints for generic bounded-query optimization. \textit{Gap.} The divergence ambiguity class is a valid outer class, but outer-class validity alone does not establish that every feasible law is realizable by the bow SCM; this theorem supplies the generic legality correction without making a claim about a particular procedure. \textit{Consumer.} Researchers optimizing bounded causal queries on a declared finite alphabet can impose \(q_j\ge ep_j\) to recover the exact bow-SCM feasible set.
+
+\begin{theorem}[thm:finite-sample-simultaneous-band]\label{thm:finite-sample-simultaneous-band}
+Under independent observational sampling, the band \(\widehat{\mathcal C}_{n,\alpha}\) satisfies \(\Pr\{(L_e(F_P(y)),U_e(F_P(y)))\in\widehat{\mathcal C}_{n,\alpha}(y)\text{ for every }y\in\mathbb R\}\ge1-\alpha\) for every \(n\), including \(n_a=0\), arbitrary atoms, and contact with \(F_P(y)\in\{0,1\}\). The guarantee follows by combining a propensity Hoeffding interval with a conditional Dvoretzky--Kiefer--Wolfowitz band and propagating their joint rectangle through the full piecewise endpoint map.
+\end{theorem}
+\begin{proof}
+Fix a positive integer \(n\) and \(0<\alpha<1\).  Let
+\[
+ E_e=\{|\widehat e_n-e|\le\delta_e\}.
+\]
+Apply \(\mathrm{lem:hoeffding\text{-}bounded\text{-}mean}\) to the independent variables \(\mathbf 1\{A_i=a\}\in[0,1]\), whose common mean is \(e\) by the definition of the propensity.  Since \(\delta_e^2=\log(4/\alpha)/(2n)\),
+\[
+ \Pr(E_e^c)
+ \le 2\exp(-2n\delta_e^2)
+ =2\exp\{-\log(4/\alpha)\}
+ =\frac{\alpha}{2}. \tag{1}
+\]
+Because both \(e\) and \(\widehat e_n\) lie in \([0,1]\), the event \(E_e\) implies \(e\in I_e\), including when the untrimmed Hoeffding interval crosses zero or one.
+
+For \(n_a>0\), define
+\[
+ E_F=\left\{\sup_{y\in\mathbb R}|\widehat F_{P,n}(y)-F_P(y)|\le\delta_F\right\}.
+\]
+Under \(\mathrm{ass:iid\text{-}sampling}\), conditional on the treatment indicators and on \(n_a=m>0\), the \(m\) outcomes with \(A_i=a\) are independent and have common distribution function \(F_P\).  Thus \(\mathrm{lem:dkw\text{-}massart\text{-}cdf\text{-}band}\), applied conditionally, gives
+\[
+ \Pr(E_F^c\mid A_1,\ldots,A_n)
+ \le 2\exp(-2m\delta_F^2)
+ =\frac{\alpha}{2}
+ \qquad\text{on }\{n_a=m>0\}. \tag{2}
+\]
+Summing (2) over all treatment-indicator configurations yields
+\[
+ \Pr(n_a>0,E_F^c)\le\frac{\alpha}{2}. \tag{3}
+\]
+On \(E_F\), clipping the empirical interval to \([0,1]\) cannot remove the true value \(F_P(y)\in[0,1]\), so \(F_P(y)\in I_F(y)\) simultaneously for every \(y\).
+Combining (1) and (3) by the union bound,
+\[
+ \Pr\bigl(E_e\cap(\{n_a=0\}\cup E_F)\bigr)\ge1-\alpha. \tag{4}
+\]
+
+On \(E_e\cap E_F\) with \(n_a>0\), one has simultaneously for every \(y\in\mathbb R\)
+\[
+ e\in I_e,
+ \qquad
+ F_P(y)\in I_F(y).
+\]
+Therefore the generating set in \(\mathrm{def:honest\text{-}band}\) contains
+\[
+ \bigl(L_e(F_P(y)),U_e(F_P(y))\bigr)
+\]
+for every \(y\), and its coordinatewise rectangular hull contains that pair as well.  On \(\{n_a=0\}\), the same conclusion holds because the definition sets \(\widehat{\mathcal C}_{n,\alpha}(y)=[0,1]^2\).  Equation (4) consequently proves
+\[
+ \Pr\left\{
+ \bigl(L_e(F_P(y)),U_e(F_P(y))\bigr)
+ \in\widehat{\mathcal C}_{n,\alpha}(y)
+ \text{ for every }y\in\mathbb R
+ \right\}\ge1-\alpha.
+\]
+By \(\mathrm{thm:cdf\text{-}endpoints\text{-}sharp}\), the covered pair is the exact causal CDF endpoint pair.  The Dvoretzky--Kiefer--Wolfowitz inequality is distribution-free and permits atoms.  Moreover, the last containment uses membership of the true point in the generating rectangle rather than continuity of \((\eta,p)\mapsto(L_\eta(p),U_\eta(p))\); hence it remains valid at \(p=0\), \(p=1\), and at every discontinuous face of the piecewise endpoint map.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This gives honest finite-sample simultaneous coverage for the mutual-AC piecewise endpoint pair, including atoms and support contacts. \textit{Gap.} Existing scalar or sensitivity-index inference does not provide this distribution-free threshold-indexed guarantee. \textit{Consumer.} The band supplies simultaneous uncertainty for the newly derived mutual-absolute-continuity CDF endpoint map.
+
+\begin{lemma}[lem:hoeffding-bounded-mean]\label{lem:hoeffding-bounded-mean}
+For every integer \(m\ge1\), if \(Z_1,\ldots,Z_m\) are independent random variables satisfying \(0\le Z_i\le1\) almost surely and \(\mu=m^{-1}\sum_{i=1}^m E[Z_i]\), then for every \(t>0\),
+\[
+ \Pr\left(\left|m^{-1}\sum_{i=1}^m Z_i-\mu\right|>t\right)\le2\exp(-2mt^2).
+\]
+\end{lemma}
+
+\begin{lemma}[lem:dkw-massart-cdf-band]\label{lem:dkw-massart-cdf-band}
+For every integer \(m\ge1\), if \(X_1,\ldots,X_m\) are independent real random variables with common distribution function \(F\), and \(\widehat F_m\) is their empirical distribution function, then for every \(t>0\),
+\[
+ \Pr\left(\sup_{y\in\mathbb R}|\widehat F_m(y)-F(y)|>t\right)\le2\exp(-2mt^2).
+\]
+\end{lemma}
+
+\begin{theorem}[thm:one-sided-bow-mixture-completeness]\label{thm:one-sided-bow-mixture-completeness}
+For every standard Borel \(\mathcal Y\), arm \(a\), probability law \(P\), and \(0<e<1\), \(\mathfrak M^{\to}_e(P)=\mathfrak L^{\to}_e(P)=\{Q:P\ll Q,\ dP/dQ\le1/e\ Q\text{-almost surely}\}\). Every representation \(Q=eP+(1-e)R\) with arbitrary probability law \(R\) is realized by a latent bow-ADMG construction with \(U=(A,Y(0),Y(1))\), without imposing mutual absolute continuity.
+\end{theorem}
+\begin{proof}
+Fix a standard Borel \(\mathcal Y\), an arm \(a\), a probability law \(P\), and \(0<e<1\).  If \(Q\in\mathfrak M^{\to}_e(P)\), consistency gives
+\[
+ \mathcal L(Y(a)\mid A=a)=\mathcal L(Y\mid A=a)=P.
+\]
+Since \(1-e>0\), \(R=\mathcal L(Y(a)\mid A\ne a)\) is a probability law, and total probability yields, for every measurable \(B\),
+\[
+ Q(B)=eP(B)+(1-e)R(B). \tag{36}
+\]
+Thus \(Q\in\mathfrak L^{\to}_e(P)\).
+
+Conversely, suppose (36) holds for an arbitrary probability law \(R\).  Draw \(A\) with \(\Pr(A=a)=e\), draw \(Y(a)\) conditionally from \(P\) on \(\{A=a\}\) and from \(R\) on \(\{A\ne a\}\), draw \(Y(1-a)\) conditionally from any fixed law, put \(U=(A,Y(0),Y(1))\), and set \(Y=Y(A)\).  Standard Borelness ensures that these probability kernels can be realized measurably.  The common latent input and selector equation give a nonparametric SCM Markov to the bow ADMG.  It satisfies consistency, has the required propensity and observed arm law, and realizes \(Q\) by (36).  Therefore
+\[
+ \mathfrak M^{\to}_e(P)=\mathfrak L^{\to}_e(P). \tag{37}
+\]
+
+Under (36), \(Q\ge eP\), whence \(P\ll Q\).  With \(r=dP/dQ\), the measure inequality is equivalent to
+\[
+ 1-er\ge0\quad Q\text{-almost surely},
+\]
+so \(r\le1/e\).  Conversely, if \(P\ll Q\) and \(r\le1/e\), define
+\[
+ R(B)=\frac{Q(B)-eP(B)}{1-e}
+     =\int_B\frac{1-er}{1-e}\,dQ.
+\]
+The density is nonnegative and integrates to one, so \(R\) is a probability law and (36) follows.  Combining this equivalence with (37) proves the likelihood-ratio description and the asserted latent realization.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} At a fixed propensity, the arbitrary-residual mixture has the algebraic form of Huber's gross-error contamination class with contamination fraction \(1-e\); here it is derived as the exact bow-SCM compatible law class and is the singleton-covariate input to the global measurable-kernel construction. \textit{Gap.} Huber (1964) studies robust location estimation under gross-error contamination, rather than deriving that mixture from a causal bow SCM, jointly realizing arbitrary residual kernels by one covariate-conditioned SCM, or characterizing the divergence generators that enforce its likelihood-ratio cap. \textit{Consumer.} It supplies the fixed-fiber cap class used by the one-sided generator iff and by the conditional lift, distinguishing the causal realization and cap/generator frontier from the classical contamination benchmark.
+
+\begin{theorem}[thm:support-regime-cdf-endpoints-sharp]\label{thm:support-regime-cdf-endpoints-sharp}
+Let \(\mathcal Y=\mathbb R\), fix a threshold \(y\), and put \(p=F_P(y)\). In the unrestricted bow class, \(\{F_Q(y):Q\in\mathfrak M^{\to}_e(P)\}=[L^{\to}_e(p),U^{\to}_e(p)]=[ep,ep+1-e]\) for every \(p\in[0,1]\). In the mutual-AC bow class, \(\{F_Q(y):Q\in\mathfrak M_e(P)\}=[L_e(p),U_e(p)]\), with unique value zero at \(p=0\) and one at \(p=1\). Every endpoint is attained in its stated support regime, including at atoms; boundary endpoints outside the mutual interval require singular residual laws.
+\end{theorem}
+\begin{proof}
+Fix \(y\in\mathbb R\), let \(B=(-\infty,y]\), and put \(p=P(B)=F_P(y)\).  In the unrestricted bow class, \(\mathrm{thm:one\text{-}sided\text{-}bow\text{-}mixture\text{-}completeness}\) gives \(Q=eP+(1-e)R\) with arbitrary \(R\).  Thus, writing \(s=R(B)\),
+\[
+ F_Q(y)=Q(B)=ep+(1-e)s. \tag{20}
+\]
+Both \(B\) and \(B^c\) are nonempty.  A point mass at any point of \(B\) has \(s=1\), a point mass at any point of \(B^c\) has \(s=0\), and mixtures of these two laws attain every \(s\in[0,1]\).  Hence, for every \(p\in[0,1]\),
+\[
+ \{F_Q(y):Q\in\mathfrak M^{\to}_e(P)\}
+ =[ep,ep+1-e]=[L^{\to}_e(p),U^{\to}_e(p)]. \tag{21}
+\]
+The unrestricted construction in the completeness theorem supplies an attaining bow SCM for each value.  When \(p=0\) or \(p=1\), an endpoint requiring mass on a \(P\)-null side is attained by a singular residual law and therefore does not satisfy mutual absolute continuity.
+
+Now impose the mutual-AC condition.  The mutual corollary \(\mathrm{thm:bow\text{-}mixture\text{-}completeness}\) gives exactly the representations (20) with \(R\ll P\).  If \(0<p<1\), define
+\[
+ R_1(C)=\frac{P(C\cap B)}p,
+ \qquad
+ R_0(C)=\frac{P(C\cap B^c)}{1-p}.
+\]
+Both laws are absolutely continuous with respect to \(P\), and they satisfy \(R_1(B)=1\) and \(R_0(B)=0\).  Their convex mixtures attain all \(s\in[0,1]\), so the mutual interval is \([ep,ep+1-e]\).  If \(p=0\), absolute continuity forces \(R(B)=0\), and (20) is uniquely zero.  If \(p=1\), it forces \(R(B^c)=0\), and (20) is uniquely one.  At either boundary \(R=P\) is an admissible attaining residual law.  These are precisely the piecewise values in \(\mathrm{def:cdf\text{-}maps}\):
+\[
+ \{F_Q(y):Q\in\mathfrak M_e(P)\}=[L_e(p),U_e(p)]. \tag{22}
+\]
+Every residual law used for (22) is absolutely continuous with respect to \(P\), so the mutual construction in the completeness theorem gives an attaining SCM satisfying all four maintained assumptions.  The argument is eventwise and does not assume that \(P\) is atomless; in particular an atom at \(y\) causes no change.
+\end{proof}
+
+\begin{theorem}[thm:one-sided-generator-iff-frontier]\label{thm:one-sided-generator-iff-frontier}
+Fix \(0<e<1\) and \(c=1/e\). For every finite continuous convex \(f:[0,\infty)\to\mathbb R\) with \(f(1)=0\), the following are equivalent: \(\mathfrak B^{\to}_{f,e}(P)=\mathfrak L^{\to}_e(P)\) for every probability law \(P\) on every standard Borel space; this equality holds for every full-support binary \(P\); and \(f\in\mathfrak H_c\). Thus, modulo the divergence-invariant affine term \(b(t-1)\), one-sided exactness holds if and only if the generator vanishes on \([0,1/e]\) and is strictly positive on \((1/e,\infty)\).
+\end{theorem}
+\begin{proof}
+Fix \(0<e<1\) and put \(c=1/e\).  If \(P\ll Q\), write \(r=dP/dQ\), so \(\int r\,dQ=1\).  Replacing \(f\) by \(f_b(t)=f(t)-b(t-1)\) changes neither divergence nor radius because
+\[
+ \int(r-1)\,dQ=0,
+ \qquad
+ e(c-1)+(1-e)(0-1)=0. \tag{41}
+\]
+Convexity gives
+\[
+ f(t)\le\left(1-\frac tc\right)f(0)+\frac tc f(c),
+ \qquad 0\le t\le c. \tag{42}
+\]
+If \(Q=eP+(1-e)R\), then \(Q\ge eP\), hence \(P\ll Q\) and \(r\le c\), \(Q\)-almost surely.  Integrating (42) yields
+\[
+ D_f(P\|Q)\le(1-e)f(0)+ef(c)=B_f(e). \tag{43}
+\]
+Thus \(\mathfrak L^{\to}_e(P)\subseteq\mathfrak B^{\to}_{f,e}(P)\).
+
+If \(f\in\mathfrak H_c\), choose an affine representative \(g\) that is zero on \([0,c]\) and strictly positive above \(c\).  Then \(g\ge0\) and \(B_g(e)=0\).  For \(Q\in\mathfrak B^{\to}_{f,e}(P)\), affine invariance gives
+\[
+ 0\le\int g(r)\,dQ=D_g(P\|Q)\le B_g(e)=0.
+\]
+Thus \(r\le c\), \(Q\)-almost surely.  The measure \(R=(Q-eP)/(1-e)\) has nonnegative \(Q\)-density \((1-er)/(1-e)\) and total mass one, so \(Q\in\mathfrak L^{\to}_e(P)\).  Together with (43), this proves universal exactness.
+
+Conversely, assume exactness for every full-support binary \(P=\operatorname{Bernoulli}(p)\).  For \(Q_q=\operatorname{Bernoulli}(q)\), the boundary \(q=ep\) belongs to the mixture class, while every \(0<q<ep\) violates the cap \(p/q\le c\).  Exactness and continuity in \(q\) therefore give
+\[
+ epf(c)+(1-ep)f\!\left(\frac{1-p}{1-ep}\right)=B_f(e). \tag{44}
+\]
+Letting \(p\downarrow0\) and using \(f(1)=0\) gives \(B_f(e)=0\).  Normalize
+\[
+ g(t)=f(t)+f(0)(t-1).
+\]
+Affine invariance gives \(B_g(e)=0\), while \(g(0)=g(1)=0\) and \(B_g(e)=eg(c)\) give \(g(c)=0\).  Equation (44) applied to \(g\) shows that \(g((1-p)/(1-ep))=0\).  This ratio ranges over \((0,1)\), so \(g=0\) on \([0,1]\).
+
+For \(y\in(1,c)\), choose \(x\in(0,1)\) and \(\lambda=(1-x)/(y-x)\).  Construct full-support binary \(P,Q\) whose likelihood ratios are \(y,x\) with \(Q\)-weights \(\lambda,1-\lambda\).  Their mean ratio is one, and both ratios obey the cap, so exactness and convexity imply
+\[
+ 0=g(1)\le\lambda g(y)+(1-\lambda)g(x)\le B_g(e)=0.
+\]
+Thus \(g(y)=0\), and \(g=0\) on \([0,c]\).  Convexity then gives \(g(t)\ge0\) for \(t>c\).  If \(g(t)=0\) for some \(t>c\), the two-ratio construction with ratios \(t\) and any \(x\in(0,1)\) produces a zero-divergence ball member that violates the cap, contradicting exactness.  Hence \(g(t)>0\) above \(c\), so \(f\in\mathfrak H_c\).  Universal exactness implies binary exactness, and \(\mathrm{thm:one\text{-}sided\text{-}bow\text{-}mixture\text{-}completeness}\) identifies the exact set with the causal class.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the load-bearing fixed-propensity classification, proved by a binary boundary equality and a two-ratio convexity argument that includes nondifferentiable generators. \textit{Gap.} Existing divergence and density-band results do not characterize all finite continuous convex generators whose calibrated ball equals the cap class. \textit{Consumer.} It is invoked fiberwise at each covariate value and proves the negative half of the heterogeneous-propensity elbow.
+
+\begin{theorem}[thm:support-regime-open-illegal-dichotomy]\label{thm:support-regime-open-illegal-dichotomy}
+Fix \(0<e<1\), let \(c=1/e\), and suppose \(f\notin\mathfrak H_c\). There is a nonempty Euclidean-open set \(\mathcal O_f\subset(0,1)^2\) of full-support binary pairs \((p,q)\) such that \(Q\in\mathfrak B^{\to}_{f,e}(P)\setminus\mathfrak L^{\to}_e(P)\) and simultaneously \(Q\in\mathfrak B_{f,e}(P)\setminus\mathfrak L_e(P)\). If \(f\) is not affine on \([0,c]\), the set can be chosen with \(D_f(P\|Q)<B_f(e)\); otherwise a normalized representative vanishes on \([0,d]\) for some \(d>c\), and the set can be chosen inside the zero-divergence face. This includes nondifferentiable and piecewise-linear generators.
+\end{theorem}
+\begin{proof}
+Put \(c=1/e\) and let
+\[
+ \ell(t)=\left(1-\frac tc\right)f(0)+\frac tc f(c),
+ \qquad \ell(1)=B_f(e).
+\]
+If \(f\) is not affine on \([0,c]\), convexity implies the strict chord inequality \(f(x)<\ell(x)\) at every \(x\in(0,c)\): otherwise the nonnegative concave function \(\ell-f\), zero at both endpoints, would have an interior zero and concavity would force it to vanish everywhere.  Choose \(x\in(0,1)\), set
+\[
+ \lambda=\frac{1-x}{c-x},\qquad q_0=\lambda,\qquad p_0=c\lambda,
+\]
+and take \(P_0=\operatorname{Bernoulli}(p_0)\), \(Q_0=\operatorname{Bernoulli}(q_0)\).  Their likelihood ratios are \(c,x\), with respective \(Q_0\)-weights \(\lambda,1-\lambda\), and hence
+\[
+ D_f(P_0\|Q_0)<\lambda\ell(c)+(1-\lambda)\ell(x)=\ell(1)=B_f(e). \tag{18}
+\]
+Choose \(q_1<q_0=ep_0\) sufficiently close that the strict inequality in (18) persists.  By continuity, there is a nonempty open neighborhood \(\mathcal O_f\subset(0,1)^2\) of \((p_0,q_1)\) on which simultaneously \(D_f(P\|Q)<B_f(e)\) and \(p/q>c\).  Every pair has full support, so the mutual and one-sided divergence-ball support requirements both hold, while the violated likelihood-ratio cap excludes the pair from both mixture classes.
+
+If instead \(f\) is affine on \([0,c]\), normalize it by an affine term to obtain a convex \(g\) that vanishes on \([0,c]\).  Convexity gives \(g\ge0\) above \(c\).  Since \(f\notin\mathfrak H_c\), there exists \(d>c\) with \(g(d)=0\), and convexity then gives \(g=0\) throughout \([0,d]\).  Choose \(x\in(0,1)\), \(y\in(c,d)\), and \(\lambda=(1-x)/(y-x)\).  The full-support binary pair with likelihood ratios \(y,x\) and \(Q\)-weights \(\lambda,1-\lambda\) satisfies \(D_f=D_g=0=B_f(e)\) and violates the cap.  A sufficiently small open neighborhood keeps both likelihood ratios in \((0,d)\) and the first above \(c\); throughout it the divergence remains zero and both mixture classes remain violated.  On full-support binary alphabets every residual law is absolutely continuous with respect to \(P\), so the mutual and one-sided mixture classes coincide there.  This proves the simultaneous dichotomy, including its nondifferentiable and piecewise-linear cases.  It also supplies the stable witness promised by the failure direction of \(\mathrm{thm:one\text{-}sided\text{-}generator\text{-}iff\text{-}frontier}\).
+\end{proof}
+
+\begin{theorem}[thm:one-sided-query-legality-correction]\label{thm:one-sided-query-legality-correction}
+For every admissible generator \(f\), \(\mathfrak B^{\mathrm{law},\to}_{f,e}(P)=\mathfrak L^{\to}_e(P)=\mathfrak M^{\to}_e(P)\). On a finite alphabet that retains cells outside \(\operatorname{supp}(P)\), adding \(q_j\ge ep_j\) to the divergence program gives exactly this unrestricted lawful class, weakly tightens every linear bounded-query optimization, and strictly tightens it whenever the relaxed optimizer is unique and violates the cap. For every \(f\notin\mathfrak H_c\), the success-indicator query has a strict one-sided legality gap on a nonempty open region of observational binary laws.
+\end{theorem}
+\begin{proof}
+Fix \(0<e<1\), set \(c=1/e\), and let \(f\) be admissible.  If \(Q=eP+(1-e)R\) for an arbitrary probability law \(R\), then \(Q\ge eP\).  Therefore \(P\ll Q\), \(r=dP/dQ\le c\), and \(\int r\,dQ=1\).  The convex chord bound on \([0,c]\) gives
+\[
+ \begin{aligned}
+ D_f(P\|Q)
+ &\le\int\left\{\left(1-\frac rc\right)f(0)+\frac rc f(c)\right\}dQ\\
+ &=(1-e)f(0)+ef(c)=B_f(e).
+ \end{aligned} \tag{46}
+\]
+Hence \(\mathfrak L^{\to}_e(P)\subseteq\mathfrak B^{\to}_{f,e}(P)\), and the lawful-correction definition yields
+\[
+ \mathfrak B^{\mathrm{law},\to}_{f,e}(P)
+ =\mathfrak B^{\to}_{f,e}(P)\cap\mathfrak L^{\to}_e(P)
+ =\mathfrak L^{\to}_e(P)=\mathfrak M^{\to}_e(P), \tag{47}
+\]
+where the last equality is one-sided bow-mixture completeness.
+
+On a finite alphabet, including cells with \(p_j=0\), a probability vector \(q=(q_j)_j\) is in \(\mathfrak L^{\to}_e(P)\) exactly when
+\[
+ q_j\ge ep_j\quad\text{for every }j. \tag{48}
+\]
+The forward implication is immediate from \(q_j=ep_j+(1-e)r_j\).  Conversely, (48) makes \(r_j=(q_j-ep_j)/(1-e)\) nonnegative and summing gives \(\sum_jr_j=1\), so \(Q=eP+(1-e)R\).  It also implies \(P\ll Q\).  Inequality (46) makes the divergence constraint redundant after (48) is imposed.  Thus the capped program has exactly the unrestricted lawful class.  Its feasible set is a nonempty compact subset of the probability simplex.  Restricting to it weakly lowers every linear maximum and weakly raises every linear minimum.  If an attained relaxed optimizer is unique and violates (48), equality of values would make an optimizer over the compact capped set a distinct relaxed optimizer, which is impossible.  The tightening is therefore strict.
+
+For \(f\notin\mathfrak H_c\), \(\mathrm{thm:support\text{-}regime\text{-}open\text{-}illegal\text{-}dichotomy}\) gives a nonempty open set of full-support binary pairs satisfying \(q<ep\) while remaining feasible for the one-sided divergence ball.  Shrinking to a rectangle gives a nonempty open interval of observational probabilities \(p\), for each of which some feasible \(q<ep\) remains.  For the success indicator, (48) makes the lawful lower value \(ep\), while the relaxed lower value is at most \(q<ep\).  This is the claimed strict one-sided legality gap.
+\end{proof}
+
+\begin{theorem}[thm:heterogeneous-propensity-elbow]\label{thm:heterogeneous-propensity-elbow}
+Let \(e_1,e_2\in(0,1)\) with \(e_1\ne e_2\). No single finite continuous convex generator \(f:[0,\infty)\to\mathbb R\) with \(f(1)=0\) is universally exact at both propensities: it is impossible to have \(\mathfrak B^{\to}_{f,e_i}(P)=\mathfrak L^{\to}_{e_i}(P)\) for every probability law \(P\) and both \(i=1,2\). Equivalently, \(\mathfrak H_{1/e_1}\cap\mathfrak H_{1/e_2}=\varnothing\). In contrast, the adaptive family \(f_e(t)=(t-1/e)_+\) belongs to \(\mathfrak H_{1/e}\) and is exact stratum by stratum, in both the one-sided and mutual-absolute-continuity regimes.
+\end{theorem}
+\begin{proof}
+Let \(c_i=1/e_i\) for \(i=1,2\).  If one generator were universally exact at both propensities, \(\mathrm{thm:one\text{-}sided\text{-}generator\text{-}iff\text{-}frontier}\) would imply
+\[
+ f\in\mathfrak H_{c_1}\cap\mathfrak H_{c_2}. \tag{49}
+\]
+Assume without loss of generality that \(c_1<c_2\).  Membership in \(\mathfrak H_{c_i}\) supplies \(b_i\in\mathbb R\) such that
+\[
+ f(t)=b_i(t-1),\qquad 0\le t\le c_i.
+\]
+The two identities agree on \([0,c_1]\); evaluation at \(t=0\ne1\) gives \(b_1=b_2=:b\).  Hence \(g(t)=f(t)-b(t-1)\) vanishes on \([0,c_2]\).  Membership in \(\mathfrak H_{c_1}\), however, requires \(g(t)>0\) for every \(t>c_1\), contradicting its vanishing on \((c_1,c_2]\).  Thus the intersection in (49) is empty, and no fixed generator is universally exact at both distinct propensities.
+
+For any \(e\in(0,1)\),
+\[
+ f_e(t)=(t-1/e)_+
+\]
+is finite, continuous, and convex, satisfies \(f_e(1)=0\), vanishes on \([0,1/e]\), and is strictly positive above \(1/e\).  Taking the affine coefficient \(b=0\) shows \(f_e\in\mathfrak H_{1/e}\).  The one-sided and mutual generator frontier theorems therefore give exactness at that stratum in their respective support regimes.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The elbow proves that covariate adaptation is mathematically necessary whenever two propensity values occur. \textit{Gap.} The published calibrated classes vary with propensity but do not isolate this no-fixed-generator obstruction. \textit{Consumer.} It motivates the jointly Borel conditional hinge used by the global exactness theorem.
+
+\begin{proposition}[prop:mutual-support-intersection]\label{prop:mutual-support-intersection}
+For every admissible \(f\), the Assumption-4 and positive-density classes are the reverse-support intersections of the literal one-sided classes: \(\mathfrak M_e(P)=\mathfrak M^{\to}_e(P)\cap\{Q:Q\ll P\}\), \(\mathfrak L_e(P)=\mathfrak L^{\to}_e(P)\cap\{Q:Q\ll P\}\), and \(\mathfrak B_{f,e}(P)=\mathfrak B^{\to}_{f,e}(P)\cap\{Q:Q\ll P\}\). On every full-support binary alphabet the corresponding one-sided and mutual classes coincide.
+\end{proposition}
+\begin{proof}
+For the divergence classes, the definitions and the identity
+\[
+ Q\sim P\quad\Longleftrightarrow\quad(P\ll Q\ \text{and}\ Q\ll P)
+\]
+give directly
+\[
+ \mathfrak B_{f,e}(P)
+ =\mathfrak B^{\to}_{f,e}(P)\cap\{Q:Q\ll P\}. \tag{50}
+\]
+
+If \(Q=eP+(1-e)R\), then
+\[
+ Q\ll P\quad\Longleftrightarrow\quad R\ll P. \tag{51}
+\]
+Indeed, the reverse implication follows by addition of absolutely continuous measures.  For the forward implication, if \(P(B)=0\), then \(Q(B)=0\), while \((1-e)R(B)\le Q(B)\) and \(1-e>0\), so \(R(B)=0\).  Consequently,
+\[
+ \mathfrak L_e(P)
+ =\mathfrak L^{\to}_e(P)\cap\{Q:Q\ll P\}. \tag{52}
+\]
+
+If a mutual-support SCM witnesses \(Q\in\mathfrak M_e(P)\), dropping the mutual-support member property gives a one-sided witness and that property itself gives \(Q\ll P\).  Conversely, suppose a one-sided SCM witnesses \(Q\in\mathfrak M^{\to}_e(P)\) and \(Q\ll P\).  One-sided bow-mixture completeness gives \(P\ll Q\).  Consistency identifies \(P=\mathcal L(Y(a)\mid A=a)\), so the same witness satisfies \(\mathcal L(Y(a)\mid A=a)\sim\mathcal L(Y(a))\).  Hence
+\[
+ \mathfrak M_e(P)
+ =\mathfrak M^{\to}_e(P)\cap\{Q:Q\ll P\}. \tag{53}
+\]
+On a two-point alphabet with full-support \(P\), every probability law \(Q\) satisfies \(Q\ll P\).  Moreover, every member of a one-sided class satisfies \(P\ll Q\), which forces \(Q\) itself to have full support.  Thus the intersections in (50)--(53) are vacuous on every full-support binary alphabet, proving the final assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition isolates reverse support as the sole distinction between the literal one-sided and Assumption-4 fixed-fiber classes. \textit{Gap.} Conflating the two support regimes changes both the causal class and software feasibility constraints. \textit{Consumer.} It transfers the one-sided generator frontier to the mutual-support fiber and motivates the conditional support-intersection theorem.
+
+\begin{theorem}[thm:conditional-one-sided-bow-mixture-completeness]\label{thm:conditional-one-sided-bow-mixture-completeness}
+Let \(\mathcal X,\mathcal Y\) be standard Borel spaces, \(\mu_X\in\mathcal P(\mathcal X)\), \(0<\kappa\le1/2\), let measurable \(\boldsymbol e=(e_0,e_1)\) satisfy \(e_a(x)\in[\kappa,1-\kappa]\) and \(e_0(x)+e_1(x)=1\) for every \(x\), and let \(\boldsymbol P=(P_0,P_1)\) be Markov kernels from \(\mathcal X\) to \(\mathcal Y\).  Candidate pairs \(\boldsymbol Q=(Q_0,Q_1)\) and residual pairs \(\boldsymbol R=(R_0,R_1)\) below are also Markov kernels from \(\mathcal X\) to \(\mathcal Y\).  Then
+\[
+ \mathfrak M^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)
+ =\mathfrak L^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)
+ =\{\boldsymbol Q:Q_a(x,\cdot)\ge e_a(x)P_a(x,\cdot)\text{ for }a=0,1\text{ on one measurable }\mu_X\text{-conull set}\}.
+\]
+Equivalently, on that common conull set, \(P_a(x,\cdot)\ll Q_a(x,\cdot)\) and \(dP_a(x,\cdot)/dQ_a(x,\cdot)\le1/e_a(x)\), \(Q_a(x,\cdot)\)-almost surely, for both arms.  Every admissible pair of residual Markov kernels is realized jointly by one global SCM compatible with the conditional latent architecture.  The scalar theorem \(\mathrm{thm:one\text{-}sided\text{-}bow\text{-}mixture\text{-}completeness}\) is the corresponding abstract fixed-fiber statement, not evaluation of kernel versions at a prescribed \(\mu_X\)-null covariate value.
+\end{theorem}
+\begin{proof}
+Fix the setup in the theorem.  First let \(\boldsymbol Q\in\mathfrak M^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)\), witnessed by one global SCM.  Because \(\mathcal Y\) is standard Borel, its Borel sigma-field has a countable generating algebra \(\mathcal C\).  For every \(C\in\mathcal C\), consistency and the conditional versions in the definition give, for each arm and almost every \(x\),
+\[
+ \begin{aligned}
+ Q_a(x,C)
+ &=\Pr\{Y(a)\in C\mid X=x\}\\
+ &=\Pr\{A=a,Y(a)\in C\mid X=x\}
+   +\Pr\{A\ne a,Y(a)\in C\mid X=x\}\\
+ &=e_a(x)P_a(x,C)
+   +\Pr\{A\ne a,Y(a)\in C\mid X=x\}\\
+ &\ge e_a(x)P_a(x,C).
+ \end{aligned} \tag{54}
+\]
+There are two arms and countably many \(C\), so deleting the union of all exceptional sets leaves one measurable \(\mu_X\)-conull set \(S\) on which (54) holds simultaneously.
+
+For fixed \(x\in S\) and \(a\), put \(\lambda_{a,x}=Q_a(x,\cdot)+e_a(x)P_a(x,\cdot)\).  Every Borel set can be approximated in \(\lambda_{a,x}\)-symmetric-difference measure by members of \(\mathcal C\): the approximable sets contain \(\mathcal C\), and finite-measure continuity shows directly that they are closed under increasing unions and decreasing intersections, hence under the monotone closure of the generating algebra.  Passing (54) through such approximations yields
+\[
+ Q_a(x,B)\ge e_a(x)P_a(x,B) \tag{55}
+\]
+for every Borel \(B\), both arms, and every \(x\in S\).
+
+Fix any probability law \(H\) on \(\mathcal Y\), and define
+\[
+ R_a(x,B)=
+ \begin{cases}
+ \dfrac{Q_a(x,B)-e_a(x)P_a(x,B)}{1-e_a(x)},&x\in S,\\[6pt]
+ H(B),&x\notin S.
+ \end{cases} \tag{56}
+\]
+Overlap gives \(1-e_a(x)\ge\kappa>0\).  By (55), the numerator in (56) is a nonnegative countably additive measure of total mass \(1-e_a(x)\); therefore each section is a probability law.  For every Borel \(B\), the right side is measurable in \(x\), so \(R_a\) is a Markov kernel.  Equation (56) proves the required mixture identity on \(S\), and hence
+\[
+ \mathfrak M^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)
+ \subseteq\mathfrak L^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P). \tag{57}
+\]
+
+Conversely, suppose residual Markov kernels \(R_0,R_1\) give the mixture identities on one measurable conull set \(S\).  Paste the common fallback law \(H\) into each of \(P_a,Q_a,R_a\) on \(S^c\).  These are versions of the original kernels, remain measurable, and satisfy the mixture identities for every \(x\).  Define a Markov kernel from \(\mathcal X\) to \(\{0,1\}\times\mathcal Y^2\) by
+\[
+ \begin{aligned}
+ K_x(\{0\}\times dy_0\times dy_1)
+ &=e_0(x)P_0(x,dy_0)R_1(x,dy_1),\\
+ K_x(\{1\}\times dy_0\times dy_1)
+ &=e_1(x)R_0(x,dy_0)P_1(x,dy_1).
+ \end{aligned} \tag{58}
+\]
+Products and finite sums of Markov kernels on standard Borel spaces are Markov kernels; explicitly, measurability first holds on measurable rectangles by iterated kernel integration and extends to the generated sigma-field by closure under bounded monotone limits.  The total mass in (58) is \(e_0(x)+e_1(x)=1\).  Integrating \(K_x\) against \(\mu_X(dx)\) gives one joint law of \((X,A,Y(0),Y(1))\).
+
+Take \(U=(X,A,Y(0),Y(1))\).  Let the equations for \(X\) and \(A\) return their corresponding coordinates, with the stipulated observed parents available, and let the outcome equation return \(Y(A)\).  Coordinate projections and the binary selector are measurable.  The global conditional architecture permits this common latent parent together with the arrows \(X\to A\), \(X\to Y\), and \(A\to Y\); the construction therefore defines one compatible SCM and satisfies consistency.  From (58),
+\[
+ \Pr(A=a,Y\in B\mid X=x)=e_a(x)P_a(x,B).
+\]
+Overlap permits division by \(e_a(x)\ge\kappa\), yielding the observed arm kernel \(P_a\).  Also,
+\[
+ \begin{aligned}
+ \mathcal L(Y(a)\mid X=x)
+ &=e_a(x)P_a(x,\cdot)+e_{1-a}(x)R_a(x,\cdot)\\
+ &=e_a(x)P_a(x,\cdot)+(1-e_a(x))R_a(x,\cdot)
+ =Q_a(x,\cdot).
+ \end{aligned} \tag{59}
+\]
+Thus one SCM realizes both arms simultaneously, giving the reverse inclusion in (57).
+
+Finally, at \(x\in S\), (55) implies \(P_a(x,\cdot)\ll Q_a(x,\cdot)\).  If \(r_{a,x}=dP_a(x,\cdot)/dQ_a(x,\cdot)\), then
+\[
+ Q_a-e_aP_a\ge0
+ \quad\Longleftrightarrow\quad
+ 1-e_a(x)r_{a,x}\ge0\quad Q_a(x,\cdot)\text{-almost surely},
+\]
+which is the displayed cap.  Reversing the density calculation proves the converse.  All measure inequalities and kernel identities hold on the one common measurable conull set \(S\); no assertion is made at a prescribed null-stratum version.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the measurable global realization theorem for the literal one-sided support regime. \textit{Gap.} Pointwise mixture identities do not by themselves supply one two-arm SCM or measurable residual kernels on a common conull set. \textit{Consumer.} It is the structural foundation for conditional support intersection and adaptive-hinge exactness.
+
+\begin{proposition}[prop:conditional-mutual-support-intersection]\label{prop:conditional-mutual-support-intersection}
+Let \(\mathcal X,\mathcal Y\) be standard Borel spaces, \(\mu_X\in\mathcal P(\mathcal X)\), \(0<\kappa\le1/2\), let measurable \(\boldsymbol e=(e_0,e_1)\) satisfy \(e_a(x)\in[\kappa,1-\kappa]\) and \(e_0(x)+e_1(x)=1\), and let \(\boldsymbol P=(P_0,P_1)\) and \(\boldsymbol Q=(Q_0,Q_1)\) be pairs of Markov kernels from \(\mathcal X\) to \(\mathcal Y\).  Let \(\mathcal S_{\mu_X}(\boldsymbol P)\) denote the pairs \(\boldsymbol Q\) for which \(Q_a(x,\cdot)\ll P_a(x,\cdot)\) for both arms on one measurable \(\mu_X\)-conull set.  Then
+\[
+ \mathfrak M_{\mu_X,\boldsymbol e}(\boldsymbol P)=\mathfrak M^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)\cap\mathcal S_{\mu_X}(\boldsymbol P),\qquad
+ \mathfrak L_{\mu_X,\boldsymbol e}(\boldsymbol P)=\mathfrak L^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)\cap\mathcal S_{\mu_X}(\boldsymbol P),
+\]
+and
+\[
+ \mathfrak B^{\mathrm{ad}}_{\mu_X,\boldsymbol e}(\boldsymbol P)=\mathfrak B^{\mathrm{ad},\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)\cap\mathcal S_{\mu_X}(\boldsymbol P).
+\]
+Forward support \(P_a(x,\cdot)\ll Q_a(x,\cdot)\) is automatic in each one-sided mixture or adaptive-hinge class.
+\end{proposition}
+\begin{proof}
+Let \(\mathcal S_{\mu_X}(\boldsymbol P)\) be the class in the statement.  For the adaptive divergence classes, the identity is definitional: fiberwise equivalence \(P_a\sim Q_a\) is the conjunction of the one-sided support condition \(P_a\ll Q_a\) and reverse support \(Q_a\ll P_a\).  Intersecting the finitely many conull carriers produces one common measurable conull set, so
+\[
+ \mathfrak B^{\mathrm{ad}}_{\mu_X,\boldsymbol e}(\boldsymbol P)
+ =\mathfrak B^{\mathrm{ad},\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)
+  \cap\mathcal S_{\mu_X}(\boldsymbol P). \tag{60}
+\]
+
+For a mixture identity \(Q_a=e_aP_a+(1-e_a)R_a\), overlap gives \(e_a\ge\kappa>0\), so \(Q_a\ge e_aP_a\) and therefore \(P_a\ll Q_a\).  Moreover,
+\[
+ Q_a(x,\cdot)\ll P_a(x,\cdot)
+ \quad\Longleftrightarrow\quad
+ R_a(x,\cdot)\ll P_a(x,\cdot). \tag{61}
+\]
+The reverse implication follows by addition.  For the forward implication, \((1-e_a(x))R_a(x,\cdot)\le Q_a(x,\cdot)\) and \(1-e_a(x)\ge\kappa>0\).  Applying (61) for two arms and intersecting their conull sets gives
+\[
+ \mathfrak L_{\mu_X,\boldsymbol e}(\boldsymbol P)
+ =\mathfrak L^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)
+  \cap\mathcal S_{\mu_X}(\boldsymbol P). \tag{62}
+\]
+
+Dropping reverse support from a mutual SCM witness gives a one-sided witness.  Conversely, take a one-sided witness whose \(\boldsymbol Q\) lies in \(\mathcal S_{\mu_X}(\boldsymbol P)\).  Conditional one-sided completeness gives \(P_a\ll Q_a\) for both arms on one common conull set; intersecting it with the reverse-support carrier gives \(P_a\sim Q_a\) for both arms.  The same SCM witness therefore satisfies the conditional reverse-support member property.  Hence
+\[
+ \mathfrak M_{\mu_X,\boldsymbol e}(\boldsymbol P)
+ =\mathfrak M^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)
+  \cap\mathcal S_{\mu_X}(\boldsymbol P). \tag{63}
+\]
+Equations (60)--(63) also prove the asserted automatic forward support.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This identifies conditional reverse support as exactly the Assumption-4 correction on one common conull set. \textit{Gap.} Fiberwise absolute-continuity claims must be synchronized across covariates and the same SCM witness. \textit{Consumer.} It converts the unrestricted global kernel class to the mutual-support class.
+
+\begin{theorem}[thm:conditional-bow-mixture-completeness]\label{thm:conditional-bow-mixture-completeness}
+Let \(\mathcal X,\mathcal Y\) be standard Borel spaces, \(\mu_X\in\mathcal P(\mathcal X)\), \(0<\kappa\le1/2\), let measurable \(\boldsymbol e=(e_0,e_1)\) satisfy \(e_a(x)\in[\kappa,1-\kappa]\) and \(e_0(x)+e_1(x)=1\), and let \(\boldsymbol P=(P_0,P_1)\), \(\boldsymbol Q=(Q_0,Q_1)\), and \(\boldsymbol R=(R_0,R_1)\) denote pairs of Markov kernels from \(\mathcal X\) to \(\mathcal Y\).  In the reverse-support regime, which requires \(Q_a(x,\cdot)\ll P_a(x,\cdot)\) for both arms on one measurable \(\mu_X\)-conull set,
+\[
+ \mathfrak M_{\mu_X,\boldsymbol e}(\boldsymbol P)=\mathfrak L_{\mu_X,\boldsymbol e}(\boldsymbol P).
+\]
+Equivalently, membership holds precisely when, for both arms on one measurable \(\mu_X\)-conull set, \(P_a(x,\cdot)\sim Q_a(x,\cdot)\) and
+\[
+ \frac{dP_a(x,\cdot)}{dQ_a(x,\cdot)}\le\frac1{e_a(x)}\qquad Q_a(x,\cdot)\text{-almost surely}.
+\]
+Every such pair is realized jointly by the single product-kernel SCM in \(\mathrm{thm:conditional\text{-}one\text{-}sided\text{-}bow\text{-}mixture\text{-}completeness}\), with residual kernels satisfying \(R_a(x,\cdot)\ll P_a(x,\cdot)\).  The scalar theorem \(\mathrm{thm:bow\text{-}mixture\text{-}completeness}\) is the corresponding abstract fixed-fiber statement and does not identify a prescribed null-stratum version.
+\end{theorem}
+\begin{proof}
+Let \(\mathcal S_{\mu_X}(\boldsymbol P)\) denote the reverse-support class defined in \(\mathrm{prop:conditional\text{-}mutual\text{-}support\text{-}intersection}\).  Conditional one-sided completeness and that proposition give
+\[
+ \begin{aligned}
+ \mathfrak M_{\mu_X,\boldsymbol e}(\boldsymbol P)
+ &=\mathfrak M^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)
+   \cap\mathcal S_{\mu_X}(\boldsymbol P)\\
+ &=\mathfrak L^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)
+   \cap\mathcal S_{\mu_X}(\boldsymbol P)\\
+ &=\mathfrak L_{\mu_X,\boldsymbol e}(\boldsymbol P).
+ \end{aligned} \tag{64}
+\]
+The one-sided theorem supplies \(P_a(x,\cdot)\ll Q_a(x,\cdot)\) and
+\[
+ \frac{dP_a(x,\cdot)}{dQ_a(x,\cdot)}\le\frac1{e_a(x)}
+ \quad Q_a(x,\cdot)\text{-almost surely}, \tag{65}
+\]
+for both arms on a common conull set.  Membership in \(\mathcal S_{\mu_X}(\boldsymbol P)\) supplies the reverse absolute continuity, after taking the finite intersection of conull sets.  Thus (64) implies the stated mutual-support likelihood-ratio characterization.
+
+Conversely, mutual support and (65) make the signed kernel \(Q_a-e_aP_a\) nonnegative.  Since \(1-e_a(x)\ge\kappa>0\), the explicit formula
+\[
+ R_a(x,B)=\frac{Q_a(x,B)-e_a(x)P_a(x,B)}{1-e_a(x)}
+\]
+defines the residual Markov kernels on the common conull set, with a fixed fallback law off it, exactly as in the conditional one-sided theorem.  Reverse support \(Q_a\ll P_a\) then implies \(R_a\ll P_a\) because \((1-e_a)R_a\le Q_a\).  The product-kernel SCM constructed in that theorem is one simultaneous two-arm witness, which proves the realization assertion.  The result concerns conditional-law versions on a common \(\mu_X\)-conull set and therefore makes no claim at a prescribed null covariate value.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem lifts fixed-fiber Assumption-4 completeness to the published covariate-conditioned architecture. \textit{Gap.} Outer validity under reverse support does not prove that every compatible kernel pair has, or is attained by, a measurable residual-kernel representation. \textit{Consumer.} It supplies the exact global conditional causal class in the positive-density regime.
+
+\begin{theorem}[thm:conditional-adaptive-hinge-exactness]\label{thm:conditional-adaptive-hinge-exactness}
+Let \(\mathcal X,\mathcal Y\) be standard Borel spaces, \(\mu_X\in\mathcal P(\mathcal X)\), \(0<\kappa\le1/2\), let measurable \(\boldsymbol e=(e_0,e_1)\) satisfy \(e_a(x)\in[\kappa,1-\kappa]\) and \(e_0(x)+e_1(x)=1\), and let \(\boldsymbol P=(P_0,P_1)\) and \(\boldsymbol Q=(Q_0,Q_1)\) denote pairs of Markov kernels from \(\mathcal X\) to \(\mathcal Y\).  Define the jointly indexed adaptive hinge \(f_{a,x}(t)=(t-1/e_a(x))_+\).  The map \((a,x,t)\mapsto f_{a,x}(t)\) is Borel measurable, each fiber is finite, continuous, and convex with \(f_{a,x}(1)=0\), and \(B_{f_{a,x}}(e_a(x))=0\).  The fiberwise, nonintegrated adaptive divergence classes are exactly the globally realizable conditional causal classes:
+\[
+ \mathfrak B^{\mathrm{ad},\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)
+ =\mathfrak L^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)
+ =\mathfrak M^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P),
+\]
+and, after imposing \(Q_a(x,\cdot)\ll P_a(x,\cdot)\) for both arms on the same common \(\mu_X\)-conull set,
+\[
+ \mathfrak B^{\mathrm{ad}}_{\mu_X,\boldsymbol e}(\boldsymbol P)
+ =\mathfrak L_{\mu_X,\boldsymbol e}(\boldsymbol P)
+ =\mathfrak M_{\mu_X,\boldsymbol e}(\boldsymbol P).
+\]
+These equalities hold on one common measurable \(\mu_X\)-conull set and make no claim about a prescribed null-stratum version.
+\end{theorem}
+\begin{proof}
+Because the arm set is finite, \(e_a(x)\) is measurable jointly in \((a,x)\).  Conditional overlap gives \(e_a(x)\ge\kappa>0\), so reciprocal, subtraction, and positive part show that
+\[
+ (a,x,t)\longmapsto f_{a,x}(t)=(t-1/e_a(x))_+
+\]
+is Borel measurable.  Each fiber is finite, continuous, and convex.  Since \(e_a(x)\le1-\kappa<1\), one has \(1<1/e_a(x)\), and hence \(f_{a,x}(1)=0\).  Writing \(c_{a,x}=1/e_a(x)\),
+\[
+ B_{f_{a,x}}(e_a(x))
+ =e_a(x)(c_{a,x}-c_{a,x})_+
+  +(1-e_a(x))(0-c_{a,x})_+=0. \tag{66}
+\]
+
+Fix an arm and a covariate value in the common conull set and abbreviate the two fiber laws by \(P_x,Q_x\).  If \(P_x\ll Q_x\) and \(r_x=dP_x/dQ_x\), then
+\[
+ D_{f_{a,x}}(P_x\|Q_x)
+ =\int(r_x-c_{a,x})_+\,dQ_x. \tag{67}
+\]
+The integrand is nonnegative.  Its integral is zero if and only if it vanishes \(Q_x\)-almost surely: if it were positive on a set of positive measure, then for some integer \(m\) the set on which it is at least \(1/m\) would have positive measure and the integral would be positive.  Combining (66)--(67), the fiberwise divergence constraint is therefore equivalent to
+\[
+ r_x\le c_{a,x}=1/e_a(x),\qquad Q_x\text{-almost surely}. \tag{68}
+\]
+Equivalently, (68) says that the measure \(Q_a(x,\cdot)-e_a(x)P_a(x,\cdot)\) is nonnegative.
+
+The conditional one-sided completeness theorem proves, on one common measurable conull set and simultaneously for both arms, that this measure cap is equivalent to the residual-kernel mixture identity and to global SCM realizability.  Therefore
+\[
+ \mathfrak B^{\mathrm{ad},\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)
+ =\mathfrak L^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P)
+ =\mathfrak M^{\to}_{\mu_X,\boldsymbol e}(\boldsymbol P). \tag{69}
+\]
+No jointly measurable choice of Radon--Nikodym densities is needed: the equivalent measure inequalities can be synchronized using the countable generating algebra in the proof of conditional completeness, and the resulting carrier is measurable.
+
+Finally intersect all three one-sided classes in (69) with \(\mathcal S_{\mu_X}(\boldsymbol P)\).  The conditional support-intersection proposition converts the divergence and SCM intersections to their mutual-support versions, and conditional bow-mixture completeness converts the mixture intersection.  Hence
+\[
+ \mathfrak B^{\mathrm{ad}}_{\mu_X,\boldsymbol e}(\boldsymbol P)
+ =\mathfrak L_{\mu_X,\boldsymbol e}(\boldsymbol P)
+ =\mathfrak M_{\mu_X,\boldsymbol e}(\boldsymbol P). \tag{70}
+\]
+All intersections involve only finitely many common carriers, so (69)--(70) hold on one measurable \(\mu_X\)-conull set and make no assertion about a prescribed version on its complement.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the combined field-tier frontier: one jointly Borel adaptive family equals the globally realizable conditional class fiberwise in both support regimes. \textit{Gap.} Neither an integrated divergence bound nor unrelated pointwise choices establish measurable global causal exactness. \textit{Consumer.} Conditional divergence designers obtain an explicit, measurable, cap-exact generator system and its exact causal feasible set.
+
+\begin{theorem}[thm:tie-inclusive-band-impossibility]\label{thm:tie-inclusive-band-impossibility}
+Fix \(0<e<1\) and \(0<\alpha<1/2\). Consider any sequence of rectangular simultaneous bands that has asymptotic coverage at least \(1-\alpha\) uniformly over a local class. Suppose the class contains a boundary observed-data law with \(F_P(y_0)=1\) and a sequence of alternatives with the same arm propensity \(e\) such that \(F_{P,n}(y_0)=1-\delta_n\) for all sufficiently large \(n\), where \(\delta_n>0\), \(n\delta_n\to0\), and the total-variation distance between the corresponding \(n\)-sample observed-data laws is \(o(1)\). Under the boundary law, with probability at least \(1-2\alpha-o(1)\), the lower-endpoint projection of the band at \(y_0\) has diameter at least \(1-e\). The analogous assertion holds for the upper-endpoint projection when the class contains a boundary law with \(F_P(y_0)=0\) and alternatives with the same propensity such that \(F_{P,n}(y_0)=\delta_n\) for all sufficiently large \(n\), under the same \(n\)-sample total-variation condition. Such alternative sequences, with the displayed CDF identities holding for all sufficiently large \(n\), exist within the bow-SCM class whenever \(\delta_n>0\) and \(n\delta_n\to0\). Consequently, \(\mathsf H_{\mathrm{dir}}\) cannot yield a nonconservative shrinking band uniformly over such a total-variation-local tie-inclusive class; derivative-aware inference is restricted to strata separated from these contacts, with \(\widehat{\mathcal C}_{n,\alpha}\) retained as the honest fallback. The extension of \(L_e,U_e\) to \(e=0\) is algebraic and used only by the clipped finite-sample construction; this impossibility result assumes \(0<e<1\).
+\end{theorem}
+\begin{proof}
+Write the rectangular band at \(y_0\) as \(I_n^L(y_0)\times I_n^U(y_0)\), where the two factors are intervals for the lower and upper endpoint, respectively.  Uniform asymptotic coverage at least \(1-\alpha\) means that there is a deterministic sequence \(\rho_n\downarrow0\) such that, for every sufficiently large \(n\), every law in the stated local class has simultaneous coverage probability at least \(1-\alpha-\rho_n\).
+
+First consider a boundary law \(\nu_0\) with \(F_P(y_0)=1\) and an alternative sequence \((\nu_n)\) satisfying \(F_{P,n}(y_0)=1-\delta_n\) for all sufficiently large \(n\), and let
+\[
+ d_n=\|\nu_0^{\otimes n}-\nu_n^{\otimes n}\|_{\mathrm{TV}}=o(1).
+\]
+By \(\mathrm{def:cdf\text{-}maps}\), the lower endpoints under these two laws are
+\[
+ L_e(1)=1,
+ \qquad
+ L_e(1-\delta_n)=e(1-\delta_n), \tag{1}
+\]
+where the second identity is used only on a common eventual tail on which the assumed CDF identity holds and \(0<\delta_n<1\); such a tail exists because \(\delta_n>0\) and \(n\delta_n\to0\).  Restrict (1)--(5) to that tail and define the data events
+\[
+ C_{0n}=\{1\in I_n^L(y_0)\},
+ \qquad
+ C_{1n}=\{e(1-\delta_n)\in I_n^L(y_0)\}.
+\]
+Simultaneous coverage implies the corresponding coordinatewise coverage, so
+\[
+ \Pr_{\nu_0^{\otimes n}}(C_{0n})\ge1-\alpha-\rho_n,
+ \qquad
+ \Pr_{\nu_n^{\otimes n}}(C_{1n})\ge1-\alpha-\rho_n. \tag{2}
+\]
+The definition of total variation gives, for the same measurable data event \(C_{1n}\),
+\[
+ \Pr_{\nu_0^{\otimes n}}(C_{1n})
+ \ge \Pr_{\nu_n^{\otimes n}}(C_{1n})-d_n
+ \ge1-\alpha-\rho_n-d_n. \tag{3}
+\]
+The union bound applied under \(\nu_0^{\otimes n}\) to (2)--(3) yields
+\[
+ \Pr_{\nu_0^{\otimes n}}(C_{0n}\cap C_{1n})
+ \ge1-2\alpha-2\rho_n-d_n
+ =1-2\alpha-o(1). \tag{4}
+\]
+On this intersection, the interval \(I_n^L(y_0)\) contains both numbers in (1), and therefore
+\[
+ \operatorname{diam} I_n^L(y_0)
+ \ge 1-e(1-\delta_n)
+ =1-e+e\delta_n
+ \ge1-e. \tag{5}
+\]
+This proves the first assertion.
+
+For the lower-support boundary, \(F_P(y_0)=0\), and an alternative sequence satisfying \(F_{P,n}(y_0)=\delta_n>0\) for all sufficiently large \(n\), the same argument is restricted to the corresponding common eventual tail, on which \(\mathrm{def:cdf\text{-}maps}\) gives
+\[
+ U_e(0)=0,
+ \qquad
+ U_e(\delta_n)=e\delta_n+1-e. \tag{6}
+\]
+Repeating (2)--(4) with the events that the upper projection \(I_n^U(y_0)\) contains the two values in (6) shows, under the boundary law, with probability at least \(1-2\alpha-o(1)\), that
+\[
+ \operatorname{diam} I_n^U(y_0)
+ \ge e\delta_n+1-e
+ \ge1-e. \tag{7}
+\]
+
+It remains to verify that the required indistinguishable alternatives occur inside the bow-SCM class.  Choose real numbers \(z_-\le y_0<z_+\), and fix \(N\) such that \(0<\delta_n<1\) for every \(n\ge N\).  For the upper-support boundary in (1), and only for \(n\ge N\), take observational arm laws
+\[
+ P_0^- =\delta_{z_-},
+ \qquad
+ P_n^-=(1-\delta_n)\delta_{z_-}+\delta_n\delta_{z_+}. \tag{8}
+\]
+Then \(F_{P_0^-}(y_0)=1\) and \(F_{P_n^-}(y_0)=1-\delta_n\).  For the lower-support boundary in (6), again for \(n\ge N\), take
+\[
+ P_0^+=\delta_{z_+},
+ \qquad
+ P_n^+=(1-\delta_n)\delta_{z_+}+\delta_n\delta_{z_-}, \tag{9}
+\]
+which have CDF values zero and \(\delta_n\) at \(y_0\).  For \(n<N\) in each alternative sequence, use the corresponding boundary model itself; no CDF identity is required on this finite prefix.
+
+For each law \(P_j^\pm\), choose residual law \(R_j^\pm=P_j^\pm\).  Then \(R_j^\pm\ll P_j^\pm\), and
+\[
+ eP_j^\pm+(1-e)R_j^\pm=P_j^\pm. \tag{10}
+\]
+By \(\mathrm{thm:bow\text{-}mixture\text{-}completeness}\), (10) is realized by a bow-ADMG SCM with latent variable \(U=(A,Y(0),Y(1))\), consistency, propensity \(e\), and mutual absolute continuity.  Concretely, one may take \(A\) with \(\Pr(A=a)=e\), take \(Y(a)\) independent of \(A\) with law \(P_j^\pm\), fix \(Y(1-a)\) at one common value for all \(j\), and set \(Y=Y(A)\).  This is the latent bow construction in the completeness theorem and also makes the observed conditional law outside arm \(a\) identical across \(j\).
+
+For \(n\ge N\), couple one observation from the boundary and alternative models using the same \(A\), the same outside-arm outcome, and, on \(\{A=a\}\), the same outcome except for the probability-\(\delta_n\) mass moved between \(z_-\) and \(z_+\) in (8) or (9).  The coupled observations differ with probability \(e\delta_n\).  Taking independent copies of this coupling and using the union bound gives a coupling of the \(n\)-sample laws whose vectors differ with probability at most \(ne\delta_n\).  For any event \(H\), the absolute difference of its probabilities under two coupled laws is at most the probability that the coupled vectors differ; hence
+\[
+ \|\nu_0^{\otimes n}-\nu_n^{\otimes n}\|_{\mathrm{TV}}
+ \le ne\delta_n=o(1). \tag{11}
+\]
+Thus the alternatives required in both parts exist in the maintained bow-SCM class.
+
+Because \(0<e<1\) by \(\mathrm{ass:positivity}\), the fixed lower bounds \(1-e\) in (5) and (7) are strictly positive.  Any implementation of the directional handle \(\mathsf H_{\mathrm{dir}}\) that produced uniformly shrinking rectangular projections while retaining the stipulated uniform coverage would contradict (5) or (7).  It therefore cannot provide a nonconservative shrinking band on a local class containing either contact; such use must exclude these contacts.  The finite-sample construction \(\widehat{\mathcal C}_{n,\alpha}\) remains an honest fallback by \(\mathrm{thm:finite\text{-}sample\text{-}simultaneous\text{-}band}\).  Every separation argument above assumes \(0<e<1\); the values at \(e=0\) enter only through the algebraic extension used by the clipped finite-sample construction.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This resolved negative theorem quantifies the nonshrinking cost of uniform honesty at total-variation-local support contacts; its constructed drifting alternatives need satisfy the displayed CDF identities only eventually, which is the exact asymptotic quantifier. \textit{Gap.} Directional bootstrap validity cannot overcome statistical indistinguishability across a discontinuous endpoint face, even though a finite prefix of the local sequence is unrestricted. \textit{Consumer.} The result confines shorter derivative-aware bands to separated strata and retains the honest finite-sample band at support contacts.
+
+\section{Interpretation}
+
+The conditional causal identified set is not obtained by making unrelated choices at each covariate value. Its members are Markov kernels linked across strata by measurability, and the proof realizes both treatment arms together through one product-kernel SCM. The adaptive hinge is consequently a fiberwise exact encoding of this global class. The heterogeneous-propensity elbow shows why a fixed generator cannot play the same exact role when propensities vary.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+Conditional kernels are versions defined only \(\mu_X\)-almost everywhere; neither the structural theorem nor the adaptive divergence equality identifies an arbitrarily specified null-stratum value. The CDF endpoint and inference layer remains fixed-stratum. Even there, pointwise attainment of \(L_e(F_P(y))\) and \(U_e(F_P(y))\) permits the residual law to depend on \(y\), so it does not produce one whole-envelope counterfactual CDF. A fortiori, the note does not claim one residual kernel jointly attains every endpoint over both \(x\) and \(y\).
+
+\section{Honest scope}
+
+The paper proves the fixed-propensity bow-SCM mixture characterization, the necessity-and-sufficiency frontier for every finite continuous convex generator, including kinked and piecewise-linear cases, and the nonempty open illegal-region dichotomy for every generator outside the hinge class. The mixture and SCM classes and the endpoint maps also extend to the boundary \(e=1\), where \(\mathfrak M_1(P)=\mathfrak L_1(P)=\{P\}\) and \(L_1(p)=U_1(p)=p\); no all-generator singleton claim is made for calibrated divergence classes at \(e=1\), because affine and identically zero generators are counterexamples. All CDF endpoint and inference claims are fixed-stratum statements. The finite-sample simultaneous band is honest but deliberately conservative at support contacts, and the tie-inclusive impossibility theorem shows that no uniformly shrinking rectangular endpoint band can retain the stated coverage over total-variation-local classes containing those contacts. In its constructed local alternatives, the drifting CDF identities are required only for all sufficiently large \(n\); arbitrary valid bow-SCM laws may fill the finite prefix. Directional inference is restricted to separated regular strata. The extension of the endpoint maps to \(e=0\) is algebraic only and is used solely by the clipped finite-sample construction. No \(\texttt{itbound}\) or IHDP implementation deliverable is claimed.
+
+\begin{thebibliography}{99}
+
+  \bibitem{pmlr-v323-jung26a} Yonghan Jung and Bogyeong Kang. Information-Theoretic Causal Bounds under Unmeasured Confounding. Proceedings of the Fifth Conference on Causal Learning and Reasoning, PMLR 323, 2026. Equation (10); Assumption 4; Theorems 5 and 11; proof of Theorem 5 in Appendix E.
+
+  \bibitem{SasonVerdu2016FDiv} Igal Sason and Sergio Verdu. \(f\)-Divergence Inequalities. IEEE Transactions on Information Theory 62(11), 2016. arXiv:1508.00335.
+
+  \bibitem{GuntuboyinaSahaSchiebinger2014} Adityanand Guntuboyina, Sujayam Saha, and Geoffrey Schiebinger. Sharp Inequalities for \(f\)-Divergences. IEEE Transactions on Information Theory 60(1), 2014. arXiv:1302.0336.
+
+  \bibitem{Huber1964Robust} Peter J. Huber. Robust Estimation of a Location Parameter. Annals of Mathematical Statistics 35(1), 1964.
+
+  \bibitem{DuarteFinkelsteinKnoxMummoloShpitser2024} Guilherme Duarte, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser. An Automated Approach to Causal Inference in Discrete Settings. Journal of the American Statistical Association 119(547), 2024.
+
+  \bibitem{FaussZoubirPoor2018} Michael Fauss, Abdelhak M. Zoubir, and H. Vincent Poor. On the Equivalence of \(f\)-Divergence Balls and Density Bands in Robust Detection. Proceedings of ICASSP, 2018. arXiv:1804.05632.
+
+  \bibitem{ChenBerrettDamoulasCaprio2026} Mengqi Chen, Thomas B. Berrett, Theodoros Damoulas, and Michele Caprio. Bulk-Calibrated Credal Ambiguity Sets: Fast, Tractable Decision Making under Out-of-Sample Contamination. arXiv:2601.21324, 2026.
+
+  \bibitem{DornGuo2023QuantileBalancing} Jacob Dorn and Kevin Guo. Sharp Sensitivity Analysis for Inverse Propensity Weighting via Quantile Balancing. Journal of the American Statistical Association 118(544), 2023.
+
+  \bibitem{MastenPoirierZhang2024} Matthew A. Masten, Alexandre Poirier, and Linqi Zhang. Assessing Sensitivity to Unconfoundedness: Estimation and Inference. Journal of Business and Economic Statistics 42(1), 2024.
+
+  \bibitem{FangSantos2019} Zheng Fang and Andres Santos. Inference on Directionally Differentiable Functions. Review of Economic Studies 86(1), 2019.
+
+  \bibitem{Pearl2009} Judea Pearl. Causality: Models, Reasoning, and Inference. Second edition, Cambridge University Press, 2009.
+
+  \bibitem{vanDerVaartWellner1996} Aad van der Vaart and Jon Wellner. Weak Convergence and Empirical Processes. Springer, 1996.
+
+\end{thebibliography}
+
+\end{document}

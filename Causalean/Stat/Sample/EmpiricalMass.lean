@@ -21,7 +21,9 @@ noncomputable section
 
 variable {𝒳 : Type*}
 
-/-- The empirical mass of a point is the fraction of sample observations equal to that point. -/
+/-- Given [an observation space](hyp:𝒳), [a nonnegative sample size](hyp:N), [a sample indexed by the integers from zero through one less than that size](hyp:sample), and [a point in the observation space](hyp:x), [the empirical mass of that point](goal) is the reciprocal of the sample size multiplied by the number of sampled observations equal to that point.
+
+The empirical mass of a point is the fraction of sample observations equal to that point. -/
 def empiricalMass {N : ℕ} (sample : Fin N → 𝒳) (x : 𝒳) : ℝ :=
   by
     classical

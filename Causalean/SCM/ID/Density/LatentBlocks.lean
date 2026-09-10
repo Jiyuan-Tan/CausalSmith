@@ -24,8 +24,12 @@ open scoped MeasureTheory ProbabilityTheory ENNReal BigOperators
 variable {N : Type*} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-/-- The recursive evaluator can read all earlier observed coordinates from a
-full observed assignment. -/
+/-- For [a finite collection of distinguishable node labels with measurable
+value spaces](hyp:N), [a structural causal model](hyp:M), [a full assignment of its observed
+node values](hyp:x), [a natural-number bound $n$](hyp:n), [an index $m<n$](hyp:m), and
+[evidence that this index is within the observed topological order](hyp:hm), the
+[previous-value reader](goal) returns from the assignment the value of the
+$m$-th observed node in that order. -/
 noncomputable def prevFromObservedValues
     (M : Causalean.SCM N Ω) (x : ValuesOn M.observed (swigΩ Ω))
     {n : ℕ} :
@@ -33,7 +37,10 @@ noncomputable def prevFromObservedValues
       swigΩ Ω (M.observedAt ⟨m, hm⟩).val :=
   fun m _ hm => x (M.observedAt ⟨m, hm⟩)
 
-/-- The latent variables with an edge into a candidate observed c-component. -/
+/-- For [a finite collection of distinguishable node labels with measurable
+value spaces](hyp:N), [a structural causal model](hyp:M) and [a candidate node set](hyp:C), the
+[latent block](goal) is the set of all unobserved nodes having a directed edge
+into at least one member of that set. -/
 noncomputable def latentBlock
     (M : Causalean.SCM N Ω) (C : Finset (SWIGNode N)) :
     Finset (SWIGNode N) :=
@@ -110,7 +117,14 @@ lemma latentBlock_pairwise_disjoint_fixSet_induce_components
   latentBlock_pairwise_disjoint_induce_components
     (M.fixSet X hObs hFix) R hC hC' hne
 
-/-- `v`'s mechanism, parents read locally from `x`/`s`/`ℓ`, reproduces `x v`. -/
+/-- For [a finite collection of distinguishable node labels with measurable
+value spaces](hyp:N), [a structural causal model](hyp:M), [a fixed-node assignment](hyp:s),
+[an observed-node assignment](hyp:x), [an observed node](hyp:v) [with evidence
+that it is observed](hyp:hv), and [a latent-node assignment](hyp:ℓ), [local
+consistency at that node](goal) holds exactly when its structural function,
+[is indexed by that node's canonical observed-order position](step:1) and,
+fed the corresponding fixed, latent, and earlier observed parent values,
+equals its assigned observed value. -/
 noncomputable def localConsistent
     (M : Causalean.SCM N Ω) (s : M.FixedValues)
     (x : ValuesOn M.observed (swigΩ Ω)) (v : SWIGNode N)
@@ -673,7 +687,11 @@ lemma localConsistent_fixSet_iff
       = x ⟨v, hv⟩)
   rw [hsf, hxv]
 
-/-- A finite set of observed nodes is closed under observed parents. -/
+/-- For [a finite collection of distinguishable node labels with measurable
+value spaces](hyp:N), [a structural causal model](hyp:M) and [a finite node set](hyp:P), the
+[observed-parent-closure condition](goal) holds exactly when [every member of
+the set is observed](step:1) and [every observed parent of each member also
+belongs to the set](step:2). -/
 def ObsParentClosed
     (M : Causalean.SCM N Ω) (P : Finset (SWIGNode N)) : Prop :=
   P ⊆ M.observed ∧ ∀ v ∈ P, ∀ w ∈ M.observed, M.dag.edge w v → w ∈ P

@@ -19,7 +19,7 @@
  * every re-scaffold AND passes review as a sorry-free CONDITIONAL, without any manual `.lean` edit.
  *
  * WHAT IT DOES (idempotent):
- *   1. plan.json: ensure the node exists with `gate:true`, `gate_class`, `lean_kind:"assumption"`,
+ *   1. plan.json: ensure the logical gate node exists with `gate:true`, `gate_class`, `lean_kind:"assumption"`,
  *      and add `<node_id>` to every consumer's `hyps` (so F2 threads it as a hypothesis).
  *   2. graph.json: set the node `kind:"gate"` + `gate:{gate_class, source?}`, add a `proof-uses`
  *      edge consumer→node, and flip each consumer back to `unreviewed` (so F2.5 re-checks the
@@ -30,7 +30,9 @@
  * gate_class:
  *   - "gated"  (default): assumed to parallelize fill; DISCHARGE before banking when feasible,
  *      else it stays honest substrate-debt. Use for our own hard fact (delta-method core, etc.).
- *   - "cited": a borrowed/classical result; requires `--source` for F2.5 source-matching.
+ *   - "cited": a borrowed logical/classical result; requires `--source` for F2.5 source-matching.
+ *     Frozen `source.carrier:"bibliographic-metadata"` nodes are not logical gates: this CLI
+ *     refuses to register, thread, or discharge them; F1/F2 preserve their closed non-Prop def.
  *
  * Usage:
  *   npx tsx tools/bin/gate.ts <qid> <spec> <node_id> --consumers <id1,id2,...> [--class gated|cited] \
@@ -52,8 +54,9 @@ import path from "node:path";
 import process from "node:process";
 import { loadState, saveState } from "../src/state.js";
 import { loadGraph, saveGraph, graphPath } from "../src/graph/store.js";
+import { parseAnnotatedDecls } from "../src/graph/extractor.js";
 import { addAssumption } from "../src/graph/mutate.js";
-import { planPath } from "../src/paths.js";
+import { leanTheoremDir, planPath } from "../src/paths.js";
 import {
   deriveGateConsumers,
   auditSubstrateGates,
@@ -146,6 +149,37 @@ async function main() {
 
   let graph = await loadGraph(gpath);
   const plan = existsSync(ppath) ? JSON.parse(readFileSync(ppath, "utf8")) : null;
+  // Load + validate ledger-side inputs before any plan/graph write. A misspelled
+  // --supersedes used to fail only after those two artifacts had already mutated.
+  const state = await loadState(repoRoot, qid, spec);
+  if (!ungate && supersedes && !(state.added_assumptions ?? []).some((a) => a.label === supersedes)) {
+    console.error(`gate: --supersedes "${supersedes}" matches no existing disclosure label.`);
+    process.exit(1);
+  }
+
+  // Only logical cited claims have a proof/discharge path. Bibliographic metadata is
+  // permanently non-logical: converting it to a stamped theorem would erase its
+  // source-review surface before P9 gets a chance to reject the mutated plan.
+  const corePath = path.join(fdir, "discovery", "core.json");
+  const core = existsSync(corePath) ? JSON.parse(readFileSync(corePath, "utf8")) : null;
+  const coreStatement = core?.statements?.find((statement: { id?: unknown }) => statement.id === nodeId);
+  const frozenCarrier = coreStatement?.status === "cited"
+    ? coreStatement?.source?.carrier ?? "logical-claim"
+    : null;
+  if (frozenCarrier === "bibliographic-metadata" && !has(args, "--show")) {
+    if (ungate) {
+      console.error(
+        `gate: ${nodeId} is frozen source.carrier:"bibliographic-metadata" and cannot be discharged ` +
+        `to a lemma/theorem; keep its closed non-Prop cited def and source-review receipt.`,
+      );
+    } else {
+      console.error(
+        `gate: ${nodeId} is frozen source.carrier:"bibliographic-metadata" and cannot be registered ` +
+        `as a threaded Prop gate; F1/F2 must preserve its closed non-Prop cited def.`,
+      );
+    }
+    process.exit(1);
+  }
 
   // MINT. A debt disclosed only in prose (`state.added_assumptions` with no plan/graph node —
   // what `--audit` reports as "prose-only and unenforceable") has no node to register, so
@@ -189,13 +223,49 @@ async function main() {
     Object.keys(planResidual).every((k) => ["lean_kind", "lean_name", "disposition", "source"].includes(k)) &&
     (planResidual.lean_kind === undefined || planResidual.lean_kind === "assumption") &&
     (planResidual.disposition === undefined || planResidual.disposition === "define-local");
-  const mintedGateOnly = ungate && gnode.provenance === "agent-introduced" && registrationOnlyResidual;
+  // A registration-only PLAN entry is always transient: plan_gate intentionally has
+  // one key per core node, while an F3-built helper is tracked in the graph/source
+  // snapshot instead. Do not conflate that plan cleanup with graph cleanup. Once the
+  // minted placeholder has become a concrete sorry-free Lean declaration, deleting
+  // its graph node destroys the pre-F2 identity P7 needs to recognize the preserved
+  // helper on the next scaffold.
+  const requestedUngateKind = flag(args, "--lean-kind");
+  const mintedPlanOnly = ungate && !coreStatement &&
+    gnode.provenance === "agent-introduced" && registrationOnlyResidual;
+  const annotated = mintedPlanOnly
+    ? await parseAnnotatedDecls(leanTheoremDir(repoRoot, state.lean_subdir))
+    : [];
+  const nodeDecls = annotated.filter((decl) => decl.nodeId === nodeId);
+  const preservedDecl = nodeDecls.length === 1 ? nodeDecls[0] : undefined;
+  const requestedNameMatches = !leanName || !!preservedDecl &&
+    (preservedDecl.declName === leanName || preservedDecl.declName.split(".").at(-1) === leanName);
+  const sourceBackedMintedHelper = mintedPlanOnly && !!preservedDecl &&
+    (preservedDecl.declKind === "lemma" || preservedDecl.declKind === "theorem") &&
+    !preservedDecl.hasSorry &&
+    gnode.proof.state === "complete" && gnode.proof.sorry_count === 0 &&
+    gnode.lean.decl_name === preservedDecl.declName && gnode.lean.file === preservedDecl.file;
+  const preservationRequested = mintedPlanOnly &&
+    (!!leanName || requestedUngateKind === "lemma" || requestedUngateKind === "theorem");
+  const preserveMintedHelper = sourceBackedMintedHelper && requestedNameMatches;
+  if ((preservationRequested || sourceBackedMintedHelper) && !preserveMintedHelper) {
+    console.error(
+      `gate: refusing to preserve ${nodeId} as a proved helper: require exactly one matching ` +
+      `sorry-free tagged lemma/theorem whose extracted name/file equals the graph anchor` +
+      `${leanName ? ` and --lean-name ${leanName}` : ""}.`,
+    );
+    process.exit(1);
+  }
+  const removeMintedGraphNode = mintedPlanOnly && !preserveMintedHelper;
+  if (preserveMintedHelper && gnode.review.status === "drift") {
+    console.error(`gate: refusing to preserve ${nodeId} as a completed helper while its review status is drift.`);
+    process.exit(1);
+  }
   const registeredLeanName = plan?.nodes?.[nodeId]?.lean_name as string | undefined;
 
   // Discharge: auto-detect the consumers threading this gate (graph `proof-uses` ∪ plan `hyps`),
   // so the caller need not re-supply the exact `--consumers` used at registration.
-  if (ungate && consumers.length === 0) {
-    consumers = deriveGateConsumers(graph.edges, plan?.nodes, nodeId);
+  if (ungate) {
+    consumers = [...new Set([...consumers, ...deriveGateConsumers(graph.edges, plan?.nodes, nodeId)])];
   }
 
   if (has(args, "--show")) {
@@ -213,6 +283,10 @@ async function main() {
       // plan_gate P9 accepts that form only with this stamp, which nothing else writes.
       if ((pn as { gate_class?: unknown }).gate_class === "cited") {
         stripped.citation_discharged = true;
+        // Discharge turns external debt into a locally proved theorem-family node.
+        // Leaving the old Defer flag behind makes P8 correctly reject the plan as
+        // paper-owned work still marked deferred even though no gate remains.
+        stripped.defer_tier = false;
         const requestedKind = flag(args, "--lean-kind");
         stripped.lean_kind = requestedKind === "theorem" || requestedKind === "lemma"
           ? requestedKind
@@ -224,7 +298,7 @@ async function main() {
       // `{}` — an empty entry has no `lean_kind`/`lean_name`/`disposition` and trips the F2
       // post-sync `plan_gate` schema check on every subsequent run. Only a node that carried a
       // real non-gate role keeps its residual.
-      if (mintedGateOnly || Object.keys(stripped).length === 0) delete plan.nodes[nodeId];
+      if (mintedPlanOnly || Object.keys(stripped).length === 0) delete plan.nodes[nodeId];
       else plan.nodes[nodeId] = stripped;
     } else {
       plan.nodes[nodeId] = {
@@ -271,14 +345,20 @@ async function main() {
   }
 
   // ---- 2. graph.json: mark gate + proof-uses edges + reopen consumers for re-review ------
+  const theoremKind = (k: unknown): "theorem" | "lemma" | undefined =>
+    k === "theorem" || k === "lemma" ? k : undefined;
+  const dischargedKind = preserveMintedHelper
+    ? "lemma" as const
+    : theoremKind(requestedUngateKind) ?? theoremKind(plan?.nodes?.[nodeId]?.lean_kind) ?? "definition" as const;
   let g = graph;
   g = {
     ...g,
     nodes: g.nodes.flatMap((n) => {
       if (n.id === nodeId) {
-        if (mintedGateOnly) return [];
+        if (removeMintedGraphNode) return [];
         return [ungate
-          ? { ...n, kind: "definition" as const, gate: undefined }
+          ? { ...n, kind: dischargedKind, gate: undefined,
+              ...(preserveMintedHelper ? { assumption: undefined } : {}) }
           : { ...n, kind: "gate" as const, gate: { gate_class: gateClass, ...(source ? { source } : {}) } }];
       }
       // Reopen every consumer for re-review in BOTH directions: registering makes its
@@ -295,8 +375,8 @@ async function main() {
   for (const c of consumers) {
     if (ungate) {
       g = { ...g, edges: g.edges.filter((e) =>
-        mintedGateOnly ? e.from !== nodeId && e.to !== nodeId
-          : !(e.kind === "proof-uses" && e.from === c && e.to === nodeId)) };
+        removeMintedGraphNode ? e.from !== nodeId && e.to !== nodeId
+          : preserveMintedHelper || !(e.kind === "proof-uses" && e.from === c && e.to === nodeId)) };
     } else if (g.nodes.some((n) => n.id === c) && !edgeExists(c, nodeId)) {
       g = { ...g, edges: [...g.edges, { kind: "proof-uses" as const, from: c, to: nodeId, source: "declared" as const }] };
     }
@@ -304,7 +384,6 @@ async function main() {
   await saveGraph(gpath, g);
 
   // ---- 3. state.json: disclose (register) or remove (discharge) the added assumption -----
-  const state = await loadState(repoRoot, qid, spec);
   // Identity strings: node id + Lean realization name(s). F5 keys its derived disclosure by
   // the Lean TYPE name while gate.ts keys its own by the node id, so discharge matches both.
   //
@@ -316,7 +395,7 @@ async function main() {
   const declBase = declName?.split(".").pop();
   const ids = gateIdentityStrings(
     nodeId,
-    plan?.nodes?.[nodeId]?.lean_name as string | undefined,
+    registeredLeanName,
     declBase,
     leanName,
   );
@@ -329,13 +408,7 @@ async function main() {
     // Retire the prose-only disclosure this registration supersedes. Its label predates the gate
     // node, so it matches neither `label` nor `isGateDisclosure(ids)` — without this the entry ends
     // up with TWO disclosures for one debt, and the stale one keeps describing it as unregistered.
-    if (supersedes) {
-      if (!aa.some((a) => a.label === supersedes)) {
-        console.error(`gate: --supersedes "${supersedes}" matches no existing disclosure label.`);
-        process.exit(1);
-      }
-      aa = aa.filter((a) => a.label !== supersedes);
-    }
+    if (supersedes) aa = aa.filter((a) => a.label !== supersedes);
     aa = aa.filter((a) => a.label !== label);
     aa.push({
       label,

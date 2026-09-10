@@ -502,10 +502,3 @@ export function inClusterSubstrate(file: string, cluster: ClusterKey | null | un
     return file === rr || file.startsWith(rr + "/");
   });
 }
-
-/**
- * @deprecated Use `REUSE_LIST_BY_CLUSTER[cluster]` instead. Kept as the
- * panel-cluster value so any unported caller continues to compile, but the
- * brief no longer injects it directly.
- */
-export const REUSE_LIST = REUSE_LIST_BY_CLUSTER.panel;

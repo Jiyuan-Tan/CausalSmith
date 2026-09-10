@@ -90,9 +90,12 @@ variable {V : Type*}
   [NormedAddCommGroup V] [InnerProductSpace ℝ V]
   (H : Submodule ℝ V) [H.HasOrthogonalProjection]
 
-/-- Orthogonal residual operator `M_H v := v - P_H v` as a function
-`V → V`. We use `Submodule.orthogonalProjectionFn` (which lands in `V`,
-not in `↥H`) so that `residualize H v : V`. -/
+/-- For [a real inner-product space](hyp:V), [a subspace that admits an orthogonal
+projection](hyp:H), and [a vector](hyp:v), the [orthogonal residual](goal) is the vector minus
+its orthogonal projection onto that subspace.
+
+We use `Submodule.orthogonalProjectionFn` (which lands in `V`, not in `↥H`) so that
+`residualize H v : V`. -/
 noncomputable def residualize (v : V) : V := v - H.orthogonalProjectionFn v
 
 /-- Residualization is the original vector minus its orthogonal projection onto
@@ -100,8 +103,11 @@ the nuisance subspace. -/
 @[simp] lemma residualize_def (v : V) :
     residualize H v = v - H.orthogonalProjectionFn v := rfl
 
-/-- The residual maker as a continuous linear map. This bundled form is
-used only to transfer linearity facts back to `residualize`. -/
+/-- For [a real inner-product space](hyp:V) and [a subspace that admits an orthogonal
+projection](hyp:H), the [residual-maker linear map](goal) sends each vector to its orthogonal
+residual after removal of its projection onto that subspace.
+
+This bundled form is used only to transfer linearity facts back to `residualize`. -/
 noncomputable def residualizeL : V →L[ℝ] V :=
   ContinuousLinearMap.id ℝ V - H.starProjection
 
@@ -144,7 +150,9 @@ lemma residualize_inner_swap_right (v w : V) :
 
 variable {K : ℕ} (X : Fin K → V)
 
-/-- Fitted value for a finite tuple of regressors. -/
+/-- For [a real inner-product space](hyp:V), [a finite number of regressors](hyp:K), [a tuple of
+regressor vectors](hyp:X), and [a vector of real coefficients](hyp:β), the [fitted value](goal)
+is the sum of each regressor multiplied by its corresponding coefficient. -/
 noncomputable def fittedValue (β : Fin K → ℝ) : V :=
   ∑ j, β j • X j
 
@@ -176,8 +184,10 @@ lemma residualize_regressionResidual (Y : V) (β : Fin K → ℝ) :
       fittedValue (fun j => residualizeL H (X j)) β by
         simpa [residualizeL_apply] using residualize_fittedValue H X β]
 
-/-- The residualized Gram matrix `Q_{XX}` with entries
-`⟨residualize H (X j), residualize H (X k)⟩`. -/
+/-- For [a real inner-product space](hyp:V), [a subspace that admits an orthogonal
+projection](hyp:H), [a finite number of regressors](hyp:K), and [a tuple of regressor
+vectors](hyp:X), the [residualized Gram matrix](goal) has as its $(j,k)$ entry the inner product
+of the orthogonal residuals of the $j$th and $k$th regressors. -/
 noncomputable def gramResid : Matrix (Fin K) (Fin K) ℝ :=
   fun j k => inner ℝ (residualize H (X j)) (residualize H (X k))
 
@@ -187,8 +197,10 @@ regressors. -/
     gramResid H X j k =
       inner ℝ (residualize H (X j)) (residualize H (X k)) := rfl
 
-/-- The right-hand side of the residualized normal equations,
-`r_j := ⟨residualize H (X j), Y⟩`. -/
+/-- For [a real inner-product space](hyp:V), [a subspace that admits an orthogonal
+projection](hyp:H), [a finite number of regressors](hyp:K), [a tuple of regressor vectors](hyp:X),
+and [an outcome vector](hyp:Y), the [residualized inner-product vector](goal) assigns to each
+regressor index the inner product of that regressor's orthogonal residual with the outcome. -/
 noncomputable def residInnerVec (Y : V) : Fin K → ℝ :=
   fun j => inner ℝ (residualize H (X j)) Y
 
@@ -197,8 +209,11 @@ regressor with the outcome. -/
 @[simp] lemma residInnerVec_apply (Y : V) (j : Fin K) :
     residInnerVec H X Y j = inner ℝ (residualize H (X j)) Y := rfl
 
-/-- **The FWL coefficient.** Defined directly as
-`Q_{XX}⁻¹ *ᵥ (fun j => ⟨X̃ j, Y⟩)`. -/
+/-- For [a real inner-product space](hyp:V), [a subspace that admits an orthogonal
+projection](hyp:H), [a finite number of regressors](hyp:K), [a tuple of regressor vectors](hyp:X),
+and [an outcome vector](hyp:Y), the [Frisch–Waugh–Lovell coefficient vector](goal) is the inverse
+residualized Gram matrix multiplied by the vector of inner products between residualized
+regressors and the outcome. -/
 noncomputable def fwlCoef (Y : V) : Fin K → ℝ :=
   (gramResid H X)⁻¹.mulVec (residInnerVec H X Y)
 
@@ -224,13 +239,20 @@ lemma residInnerVec_eq_residualize_right (Y : V) :
   funext j
   simpa [residInnerVec] using residualize_inner_swap_right H (X j) Y
 
-/-- Residualized least-squares objective. -/
+/-- For [a real inner-product space](hyp:V), [a subspace that admits an orthogonal
+projection](hyp:H), [a finite number of regressors](hyp:K), [a tuple of regressor vectors](hyp:X),
+[an outcome vector](hyp:Y), and [a vector of real coefficients](hyp:β), the [residualized
+least-squares objective](goal) is the squared norm of the orthogonal residual of the outcome minus
+the fitted value formed from the orthogonal residuals of the regressors. -/
 noncomputable def residualizedObjective (Y : V) (β : Fin K → ℝ) : ℝ :=
   inner ℝ
     (residualize H Y - fittedValue (fun j => residualize H (X j)) β)
     (residualize H Y - fittedValue (fun j => residualize H (X j)) β)
 
-/-- Original least-squares objective with an explicit nuisance term `h ∈ H`. -/
+/-- For [a real inner-product space](hyp:V), [a finite number of regressors](hyp:K), [a tuple of
+regressor vectors](hyp:X), [an outcome vector](hyp:Y), [a vector of real coefficients](hyp:β), and
+[a nuisance vector](hyp:h), the [original least-squares objective](goal) is the squared norm of
+the outcome minus its fitted value and minus the nuisance vector. -/
 noncomputable def originalObjective (Y : V) (β : Fin K → ℝ) (h : V) : ℝ :=
   inner ℝ (Y - fittedValue X β - h) (Y - fittedValue X β - h)
 

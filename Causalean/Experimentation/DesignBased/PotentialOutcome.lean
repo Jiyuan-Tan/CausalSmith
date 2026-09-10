@@ -21,14 +21,9 @@ import Causalean.Experimentation.DesignBased.Exposure
 
 /-! # Potential outcomes under exposure mappings
 
-Exposure-indexed potential outcomes factor observed outcomes through a finite assignment's exposure.
-
-`ProperlySpecified` states that randomization potential outcomes factor through the exposure
-mapping, while `Yobs` evaluates the exposure-indexed potential outcome at the realized exposure.
-The lemmas `Yobs_eq_sum`, `expoInd_mul_Yobs`, `expoInd_mul_Yobs_sq`, and
-`expoInd₂_mul_Yobs` provide the consistency and on-event substitution identities used by
-Horvitz-Thompson and variance calculations.
--/
+This file represents a unit's outcome under an assignment by evaluating its potential outcome at
+the exposure induced by that assignment. It supplies the properly specified exposure condition and
+the observed-outcome construction used by the design-based interference results. -/
 
 open scoped BigOperators
 open Finset
@@ -40,12 +35,18 @@ namespace DesignBased
 variable {Ω : Type*} [Fintype Ω]
 variable {ι Θ Δ : Type*} [DecidableEq Δ]
 
-/-- A properly specified exposure mapping: the randomization potential outcome `yr`
-factors through the exposure via exposure-indexed potential outcomes `y`. -/
+/-- For [potential outcomes indexed by unit and exposure level](hyp:y), [randomization potential
+outcomes indexed by unit and assignment](hyp:yr), [an assignment-to-exposure mapping](hyp:f), and
+[unit-level attributes used by that mapping](hyp:θ), [the properly specified exposure condition](goal)
+states that, for every unit and every assignment, the randomization potential outcome equals the
+potential outcome at the exposure induced for that unit by the assignment. -/
 def ProperlySpecified (y : ι → Δ → ℝ) (yr : ι → Ω → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ) : Prop :=
   ∀ i z, yr i z = y i (expo f θ i z)
 
-/-- Observed outcome of unit `i` under assignment `z`: `y i (expo i z)`. -/
+/-- For [potential outcomes indexed by unit and exposure level](hyp:y), [an assignment-to-exposure
+mapping](hyp:f), [unit-level attributes used by that mapping](hyp:θ), [a unit](hyp:i), and [an
+assignment](hyp:z), [the observed outcome](goal) is that unit's potential outcome at the exposure
+induced by the assignment. -/
 def Yobs (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ) (i : ι) (z : Ω) : ℝ :=
   y i (expo f θ i z)
 

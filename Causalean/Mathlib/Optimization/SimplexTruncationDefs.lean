@@ -17,14 +17,32 @@ namespace Causalean.Mathlib.Optimization
 
 open scoped BigOperators
 
-/-- Membership in the parity-truncated simplex `K_d = {t ∈ Δ_M : t_y + t_z ≥ d}`. -/
+/-- For [a total mass and truncation threshold](hyp:M,d) and [a three-coordinate
+allocation](hyp:t), the [truncated-simplex membership condition](goal) holds exactly when
+[the allocation belongs to the scaled three-point simplex](step:1) and [its second and third
+coordinates sum to at least the threshold](step:2).
+
+Membership in the parity-truncated simplex `K_d = {t ∈ Δ_M : t_y + t_z ≥ d}`. -/
 def InTruncSimplex (M d : ℝ) (t : Fin 3 → ℝ) : Prop :=
   InSimplex M t ∧ d ≤ t 1 + t 2
 
-/-- The boundary segment `H_d`: the point with `t_x = M − d`, `t_y = s`, `t_z = d − s`. -/
+/-- For [a total mass, threshold, and segment coordinate](hyp:M,d,s), the [truncation-boundary
+point](goal) is the three-coordinate allocation whose first coordinate is the total mass
+minus the threshold, whose second coordinate is the segment coordinate, and whose third
+coordinate is the threshold minus that coordinate.
+
+The boundary segment `H_d`: the point with `t_x = M − d`, `t_y = s`, `t_z = d − s`. -/
 def truncSegPoint (M d s : ℝ) : Fin 3 → ℝ := ![M - d, s, d - s]
 
-/-- The endpoint/interior selector `s⋆` on `H_d`, with `δ = α_y − α_z`
+/-- Given [a total mass and threshold](hyp:M,d), [three linear coefficients and three
+weights](hyp:α,β), and [a scale](hyp:kappa), the [boundary-segment selector](goal) first
+sets the difference of the second and third coefficients to $δ$ [as its first
+intermediate quantity](step:1) and the weighted squared first coordinate to $A$ as its
+second intermediate quantity; it then returns zero when $δ$ is at least
+$κ d/\sqrt{A+d^2}$, returns $d$ when $δ$ is at most its negative, and otherwise
+returns $(d-δ\sqrt{(A+d^2/2)/(\kappa^2-δ^2/2)})/2$.
+
+The endpoint/interior selector `s⋆` on `H_d`, with `δ = α_y − α_z`
 and `A = β_x (M − d)²`:
 `s⋆ = 0` if `δ ≥ κ d / √(A + d²)`, `s⋆ = d` if `δ ≤ − κ d / √(A + d²)`, and
 otherwise the interior root `s⋆ = (d − δ √((A + d²/2)/(κ² − δ²/2)))/2`.

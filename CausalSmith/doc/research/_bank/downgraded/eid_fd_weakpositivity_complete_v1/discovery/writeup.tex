@@ -1,0 +1,2440 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{eid\_\allowbreak{}fd\_\allowbreak{}weakpositivity\_\allowbreak{}complete}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For the four-node categorical model with hidden non-root \(A=f(Z)\), the observed law has a complete fixed-alphabet solution on every support pattern: count positive-root profiles for feasibility, enumerate augmented hidden-state partitions for the exact full response-kernel region, and project to a product of translated simplexes for intervention on \(X\) alone.  The construction attains every rational selected point with rational original-alphabet mechanisms, identifies the least hidden cardinality at which missing response rows decouple, and collapses to \(P(Y\mid Z,X)\) only under the required joint-support guards.  For general finite DAGs, exact feasibility, guarded sound successes, and exact separating witnesses are available output lanes, but the cardinality-preserving guarded-district success-or-countermodel dichotomy remains open; branch-respecting multinomial inference applies only after a point-identifying guarded leaf has been certified.
+
+\section{Project justification}
+
+\paragraph{Gap.} Chen--Darwiche Theorem 18 gives a reduction on the separate-marginal-positivity domain, but its converse construction may enlarge alphabets and does not provide an exact original-alphabet sharp fiber for arbitrary support patterns.  Hwang et al. extract sufficient positivity for returned formulas but prove only soundness of that return guarantee, while classical ID, invariant-cut search, and CSI/state algorithms do not deliver a fixed-alphabet joint-positive graph-general success-or-countermodel dichotomy.
+
+\paragraph{Niche.} In the categorical four-node family, deterministic hidden maps turn positive-root observational rows into finitely many profiles; zero-root values are handled by augmented hidden-state partitions, and unreachable outcome rows expose exactly the remaining causal freedom.  This finite combinatorics yields an exact region and cardinality threshold without generic real quantifier elimination.
+
+\paragraph{Fill.} The proved family-specific front end first tests the exact criterion \(R\leq|\mathcal A_A|\), then returns the finite augmented-partition union for the full \(do(Z,X)\) response kernel, its product-of-simplexes \(do(X)\) projection, or an explicit same-law/different-effect pair when the region is non-singleton.  Joint support yields a guarded conditional circuit, and the existing multinomial procedures respect support-branch uncertainty.  The broader \(\mathsf{F\text{-}ID}^{+}\) architecture retains a no-verdict residual until its graph-general cardinality-preserving dichotomy is proved; \(\texttt{dosearch}\) is the intended software consumer of the certified four-node and guarded-success lanes.
+
+\section{Related work}
+
+Chen and Darwiche (2024, Theorem 18 and Appendix C) supply the closest reduction architecture: close observed-parent functional nodes, eliminate them, and transport same-law models.  The restriction of the arbitrary-law theorem to \(p(z)>0\) for every \(z\) AND \(p_X(x)>0\) for every \(x\) lies on their separate-coordinate-positive domain.  The present four-node result instead computes the exact original-alphabet augmented-partition fiber on every support pattern, together with its cardinality elbow and simultaneous attainment; it does not attribute fixed-alphabet preservation to their construction or claim their graph-general converse.  Hwang et al. (2024, Theorem 5.1, Algorithms 1--2, and Theorem 6.1) provide the denominator-licensing calculus adapted here; on the common finite fixed-alphabet scope, the present guarded circuit gives a mechanically supported success, while failed orders are not treated as nonidentification certificates.  Shpitser and Pearl (2006) provide classical ID and hedge completeness for saturated semi-Markovian models; every returned ID functional embeds one way, but fixed cardinalities preclude importing the converse.  Chen and Darwiche (2025, Proposition 4 and Section 5) characterize identification through invariant cuts without supplying complete cut discovery beyond strict positivity.  Tikka, Hyttinen, and Karvanen (2019, Theorem 1) give hardness and a sound state calculus for general context-specific identification, and Mokhtarian et al. (2022, Theorem 2 and Corollary 1) obtain completeness by observed root-control decomposition; neither supplies the endogenous non-root augmented-partition calculation.  Zhang, Tian, and Bareinboim (2022, Theorem 2.4) and Duarte et al. (2024, Theorem 1 and Proposition 3) provide finite response-function and polynomial-program representations, whereas the four-node theorem closes the program symbolically as a finite polytope union and a closed-form projection.  Basu, Pollack, and Roy (2006, Chapters 2 and 10) supply exact real-algebraic encoding for residual certificates, and Jung, Tian, and Bareinboim (2021, Theorems 1--3) provide the fixed-functional estimation comparator; the present inference problem additionally allows random support-branch selection.
+
+\section{Setup}
+
+Target (estimand / structural parameter): The causal target is \(q_M=(P_M(Y=y\mid do(T=t)))_{t\in\mathcal A_T,\ y\in\mathcal A_Y}\).  In the arbitrary-observed-law categorical four-node response-kernel specialization, the joint intervention coordinates are \(T=\{i_Z,i_X\}\) and the target is \(K_M(z,x,y)=P_M(i_Y=y\mid do(i_Z=z,i_X=x))\).  The observed conditionals \(m_{zx}\) are defined separately: the arbitrary-law theorem characterizes the entire compatible response-kernel fiber, its separate-coordinate-positive restriction gives the corresponding specialized region, and joint positivity is the additional condition under which the guarded observed conditional equals the causal target..
+Primary functional / estimator / diagnostic: On the arbitrary-observed-law categorical four-node family with hidden \(A=f(Z)\), feasibility is equivalent to \(R=|\mathcal R(p)|\leq|\mathcal A_A|\), where profiles use only positive-mass root values.  The sharp full response-kernel region is the finite union over augmented hidden-state partitions: positive-mass root values may share a hidden state only when their observed profiles agree, zero-mass root values may be assigned to existing or unused hidden-state blocks, reached rows equal the guarded conditionals \(m_{zx}=p(z,x,\cdot)/p(z,x)\), and every missing response row is shared exactly within its block.  The theorem proves original-alphabet rational simultaneous attainment when the selected observed law and kernel are rational, identifies \(B_{\mathrm{sat}}^{0}(p)\) as the least hidden cardinality at which all missing response rows vary independently, and gives the exact cardinality-sensitive singleton criterion.  On restriction to \(p(z)>0\) for every \(z\) and \(p_X(x)>0\) for every \(x\), the augmented union reduces to \(\mathcal K(p)=\bigcup_{\pi\in\Pi_{|\mathcal A_A|}(p)}\mathcal K_\pi(p)\) and \(B_{\mathrm{sat}}^{0}(p)=B_{\mathrm{sat}}(p)\).  Projection by \(Q_M^X(x,\cdot)=\sum_zp(z)K_M(z,x,\cdot)\) gives the single-\(X\) region \(\prod_x(L_x+M_x\Delta(\mathcal A_Y))\); joint positivity collapses the kernel to the guarded conditional \(p(z,x,y)/p(z,x)\).  The binary rectangle is the binary-outcome corollary.  On every other certified success branch, \(q\) is the unique intervention vector returned by the active guarded leaf \(C(p,q)\), with every division licensed by an entailed strict-support guard.  An exact separating output proves that no graphwide functional of \(p\) equals \(q_M\); the residual formula \(\Psi_{\mathcal U}(p)\) remains only a doubled-fiber characterization and makes no identification verdict..
+\begin{itemize}
+  \item \texttt{D} --- \texttt{finite endogenous vertex set}; \(2^{\mathbb N}\); \texttt{vertex set}
+  \par\smallskip\noindent\emph{Definition.} \(D\) indexes all endogenous vertices.
+  \item \texttt{G} --- \texttt{finite directed acyclic graph}; \(\operatorname{DAG}(D)\); \texttt{causal graph}
+  \par\smallskip\noindent\emph{Definition.} \(G=(D,E)\) is the causal graph.
+  \item \texttt{E} --- \texttt{directed edge set}; \(D\times D\); \texttt{graph edges}
+  \par\smallskip\noindent\emph{Definition.} \(E=E(G)\).
+  \item \texttt{d} --- \texttt{number of vertices}; \(\mathbb N_{\ge 1}\); \texttt{input size}
+  \par\smallskip\noindent\emph{Definition.} \(d=|D|\).
+  \item \texttt{m} --- \texttt{number of directed edges}; \(\mathbb N\); \texttt{input size}
+  \par\smallskip\noindent\emph{Definition.} \(m=|E|\).
+  \item \texttt{Acal} --- \texttt{fixed finite alphabet family}; \(\prod_{i\in D}2^{\mathbb N}\); \texttt{prescribed endogenous state spaces}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A=(\mathcal A_i)_{i\in D}\), where every \(\mathcal A_i\) is finite and nonempty.
+  \item \texttt{Omega} --- \texttt{complete endogenous state space}; \texttt{finite set}; \texttt{joint state space}
+  \par\smallskip\noindent\emph{Definition.} \(\Omega=\prod_{i\in D}\mathcal A_i\).
+  \item \texttt{Vobs} --- \texttt{observed vertex set}; \(2^D\); \texttt{observed variables}
+  \par\smallskip\noindent\emph{Definition.} \(V\subseteq D\) is the set whose observational marginal is available.
+  \item \texttt{Hhid} --- \texttt{hidden vertex set}; \(2^D\); \texttt{latent variables}
+  \par\smallskip\noindent\emph{Definition.} \(H=D\setminus V\).
+  \item \texttt{pa} --- \texttt{parent map}; \(D\to 2^D\); \texttt{local mechanism domain}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{pa}_G(i)=\{j\in D:(j,i)\in E\}\).
+  \item \texttt{r} --- \texttt{parent-\allowbreak{}row count family}; \(\mathbb N^D\); \texttt{number of conditional rows}
+  \par\smallskip\noindent\emph{Definition.} \(r_i=\prod_{j\in\operatorname{pa}_G(i)}|\mathcal A_j|\).
+  \item \texttt{W} --- \texttt{declared qualitative functional vertex set}; \(2^{D\setminus\operatorname{root}(G)}\); \texttt{functional-\allowbreak{}node declarations}
+  \par\smallskip\noindent\emph{Definition.} \(W\) contains the non-root vertices whose conditional rows are unknown point masses.
+  \item \texttt{T} --- \texttt{treatment vertex set}; \(2^{V}\); \texttt{joint intervention coordinates}
+  \par\smallskip\noindent\emph{Definition.} \(T\subseteq V\) is nonempty.
+  \item \texttt{Yset} --- \texttt{outcome vertex set}; \(2^{V\setminus T}\); \texttt{intervention outcomes}
+  \par\smallskip\noindent\emph{Definition.} \(Y\subseteq V\setminus T\) is nonempty.
+  \item \texttt{t} --- \texttt{joint treatment assignment}; \(\mathcal A_T=\prod_{i\in T}\mathcal A_i\); \texttt{intervention value}
+  \par\smallskip\noindent\emph{Definition.} \(t\in\mathcal A_T\).
+  \item \texttt{Jtreat} --- \texttt{number of joint treatment assignments}; \(\mathbb N_{\ge 1}\); \texttt{feasibility-\allowbreak{}scan size}
+  \par\smallskip\noindent\emph{Definition.} \(J_T=|\mathcal A_T|\).
+  \item \texttt{y} --- \texttt{joint outcome assignment}; \(\mathcal A_Y=\prod_{i\in Y}\mathcal A_i\); \texttt{outcome value}
+  \par\smallskip\noindent\emph{Definition.} \(y\in\mathcal A_Y\).
+  \item \texttt{theta} --- \texttt{conditional probability table family}; \(\prod_{i\in D}\prod_{u\in\mathcal A_{\operatorname{pa}_G(i)}}\Delta(\mathcal A_i)\); \texttt{causal mechanisms}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_i(a\mid u)\) is the row probability of state \(a\) at vertex \(i\) given parent assignment \(u\).
+  \item \texttt{M} --- \texttt{finite recursive causal Bayesian-\allowbreak{}network model}; models over \(G\) and \(\mathcal A\); \texttt{data-\allowbreak{}generating model}
+  \par\smallskip\noindent\emph{Definition.} \(M=(G,\mathcal A,\theta)\).
+  \item \texttt{PM} --- \texttt{observational law induced by a model}; \(\Delta(\Omega)\); \texttt{full observational law}
+  \par\smallskip\noindent\emph{Definition.} \(P_M\) is the joint observational law on all endogenous vertices generated by \(M\).
+  \item \texttt{p} --- \texttt{observed marginal law}; \(\Delta(\mathcal A_V)\); \texttt{available observational distribution}
+  \par\smallskip\noindent\emph{Definition.} \(p_M(v)=\sum_{h\in\mathcal A_H}P_M(v,h)\).
+  \item \texttt{QM} --- \texttt{full post-\allowbreak{}intervention distribution}; \(\prod_{t\in\mathcal A_T}\Delta(\mathcal A_Y)\); \texttt{causal target distribution}
+  \par\smallskip\noindent\emph{Definition.} \(Q_M(t,y)=P_M(Y=y\mid do(T=t))\).
+  \item \texttt{q} --- \texttt{intervention-\allowbreak{}distribution vector}; \([0,1]^{|\mathcal A_T||\mathcal A_Y|}\); \texttt{complete effect vector}
+  \par\smallskip\noindent\emph{Definition.} \(q_M=(Q_M(t,y))_{t\in\mathcal A_T,\ y\in\mathcal A_Y}\).
+  \item \texttt{Fmapcount} --- \texttt{number of deterministic functional-\allowbreak{}map tuples}; \(\mathbb N_{\ge 1}\); \texttt{functional enumeration size}
+  \par\smallskip\noindent\emph{Definition.} \(F=\prod_{i\in W}|\mathcal A_i|^{r_i}\).
+  \item \texttt{hstate} --- \texttt{number of complete endogenous assignments}; \(\mathbb N_{\ge 1}\); \texttt{state-\allowbreak{}space size}
+  \par\smallskip\noindent\emph{Definition.} \(h=\prod_{i\in D}|\mathcal A_i|\).
+  \item \texttt{Rrows} --- \texttt{total number of conditional rows}; \(\mathbb N_{\ge 1}\); \texttt{table size}
+  \par\smallskip\noindent\emph{Definition.} \(R=\sum_{i\in D}r_i\).
+  \item \texttt{Kentries} --- \texttt{total number of conditional-\allowbreak{}table entries}; \(\mathbb N_{\ge 1}\); \texttt{support-\allowbreak{}stratum exponent}
+  \par\smallskip\noindent\emph{Definition.} \(K=\sum_{i\in D}|\mathcal A_i|r_i\).
+  \item \texttt{Mclass} --- \texttt{fixed-\allowbreak{}alphabet functional model class}; \(2^{\{M\}}\); \texttt{identification domain}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak M(G,\mathcal A,V,W,T)\) is the class in Definition \(\mathrm{def:model\text{-}class}\).
+  \item \texttt{Fiber} --- \texttt{observed-\allowbreak{}law fiber}; \(2^{\mathfrak M(G,\mathcal A,V,W,T)}\); \texttt{law-\allowbreak{}specific equivalence class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak F(p)=\{M\in\mathfrak M:p_M=p\}\).
+  \item \texttt{Ssupport} --- \texttt{conditional-\allowbreak{}row support pattern}; \(\prod_{i,u}(2^{\mathcal A_i}\setminus\{\varnothing\})\); \texttt{support stratum}
+  \par\smallskip\noindent\emph{Definition.} \(S=(S_{i,u})_{i,u}\), where \(S_{i,u}=\{a:\theta_i(a\mid u)>0\}\).
+  \item \texttt{Cguard} --- \texttt{support-\allowbreak{}guarded exact algebraic success certificate}; observed law \(p\to\) uniquely certified intervention vector \(q\); \texttt{machine-\allowbreak{}checkable exact identifying certificate}
+  \par\smallskip\noindent\emph{Definition.} \(C\) is a finite branch tree whose guards are rational-coefficient polynomial sign tests in \(p\). Each success leaf either returns rational expressions for \(q\), with every divisor licensed by an ancestor guard entailing strict positivity, or returns square-free rational-coefficient polynomial relations in \(p,q\) with Thom encodings and rational isolating data that select a unique admissible \(q\) in the target probability simplex.
+  \item \texttt{Sepcert} --- \texttt{exact algebraic separating-\allowbreak{}pair certificate}; \texttt{machine-\allowbreak{}checkable nonidentification certificate}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{Sep}\) consists of two original-alphabet CPT families \(\theta^{(0)},\theta^{(1)}\) whose entries are exact real algebraic numbers encoded by integer minimal polynomials and rational isolating intervals or Thom data, together with exact certificates of model membership, \(p_{M_0}=p_{M_1}\), and \(q_{M_0}\ne q_{M_1}\).
+  \item \texttt{Ssep} --- \texttt{graphwide separating-\allowbreak{}pair semialgebraic set}; \texttt{a semialgebraic subset of two copies of the CPT parameter space}; \texttt{algebraic nonidentification witness set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal S_{\mathrm{sep}}\) is the set of pairs \(\theta^{(0)},\theta^{(1)}\) satisfying the two copies of the fixed qualitative model constraints, \(p_{M_0}=p_{M_1}\), and \(q_{M_0}\ne q_{M_1}\). For graph, alphabet, functional, and positivity input stated with rational coefficients, this set is defined over \(\mathbb Q\).
+  \item \texttt{Fplus} --- \texttt{fixed-\allowbreak{}alphabet four-\allowbreak{}output functional-\allowbreak{}identification front end}; input instance \(\to\) exact feasibility or infeasibility certificate, complete guarded success certificate, exact support-hole separating certificate, or exact residual semialgebraic fiber instance without a verdict; \texttt{headline four-\allowbreak{}output front end}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{F\text{-}ID}^{+}\) is the terminating front end in Definition \(\mathrm{def:fidplus\text{-}handle}\); its residual output is a characterization to be decided, not an identifying functional.
+  \item \texttt{IDalg} --- \texttt{classical identification algorithm}; latent projection and query \(\to\) rational functional or failure; \texttt{sound baseline embedded by the guarded procedure}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{ID}\) is the Shpitser--Pearl identification algorithm applied to the latent projection of \(G\) onto \(V\); when it succeeds, \(\mathsf{ID}(G,V,T,Y)=\phi_{\mathrm{ID}}(p)\) denotes its returned functional.
+  \item \texttt{O} --- \texttt{observed categorical draw}; \(\mathcal A_V\); \texttt{sampling observation}
+  \par\smallskip\noindent\emph{Definition.} \(O\) records one draw of the observed vertices.
+  \item \texttt{n} --- \texttt{sample size}; \(\mathbb N_{\ge 1}\); \texttt{sampling index}
+  \item \texttt{Ncounts} --- \texttt{multinomial cell-\allowbreak{}count vector}; \(\mathbb N^{|\mathcal A_V|}\); \texttt{empirical sufficient statistic}
+  \par\smallskip\noindent\emph{Definition.} \(N_v=\sum_{k=1}^n\mathbf 1\{O_k=v\}\).
+  \item \texttt{phat} --- \texttt{empirical observed law}; \(\Delta(\mathcal A_V)\); \texttt{plug-\allowbreak{}in law}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat p_v=N_v/n\).
+  \item \texttt{Sigma} --- \texttt{multinomial covariance matrix}; \(\mathbb R^{|\mathcal A_V|\times|\mathcal A_V|}\); \texttt{regular-\allowbreak{}branch limit covariance}
+  \par\smallskip\noindent\emph{Definition.} \(\Sigma(p)=\operatorname{diag}(p)-pp^{\mathsf T}\).
+  \item \texttt{alpha} --- \texttt{noncoverage probability}; \((0,1)\); \texttt{confidence level}
+  \item \texttt{epsilon} --- \texttt{support-\allowbreak{}separation margin}; \((0,1)\); \texttt{regular branch margin}
+  \item \texttt{Zw} --- \texttt{binary observed root in the witness graph}; \(\{0,1\}\); \texttt{witness covariate}
+  \item \texttt{Aw} --- \texttt{binary hidden functional node in the witness graph}; \(\{0,1\}\); \texttt{witness functional node}
+  \item \texttt{Xw} --- \texttt{binary observed treatment in the witness graph}; \(\{0,1\}\); \texttt{witness treatment}
+  \item \texttt{Yw} --- \texttt{binary observed outcome in the witness graph}; \(\{0,1\}\); \texttt{witness outcome}
+  \item \texttt{Gwitness} --- \texttt{binary four-\allowbreak{}node witness DAG}; \(\operatorname{DAG}(\{Z,A,X,Y\})\); \texttt{common graph for the early-\allowbreak{}kill instances}
+  \par\smallskip\noindent\emph{Definition.} \(G_{\mathrm w}\) has edges \(Z\to A\), \(A\to X\), \(A\to Y\), and \(X\to Y\).
+  \item \texttt{Acalw} --- \texttt{binary witness alphabet family}; \(\prod_{i\in\{Z,A,X,Y\}}2^{\{0,1\}}\); \texttt{fixed witness alphabets}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A_{\mathrm w,i}=\{0,1\}\) for every \(i\in\{Z,A,X,Y\}\).
+  \item \texttt{Vw} --- \texttt{observed set of the hidden-\allowbreak{}functional witness}; \(2^{\{Z,A,X,Y\}}\); \texttt{hidden-\allowbreak{}functional observed coordinates}
+  \par\smallskip\noindent\emph{Definition.} \(V_{\mathrm w}=\{Z,X,Y\}\).
+  \item \texttt{Hw} --- \texttt{hidden set of the hidden-\allowbreak{}functional witness}; \(2^{\{Z,A,X,Y\}}\); \texttt{hidden-\allowbreak{}functional latent coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(H_{\mathrm w}=\{A\}\).
+  \item \texttt{Ww} --- \texttt{functional set of the hidden-\allowbreak{}functional witness}; \(2^{\{Z,A,X,Y\}}\); \texttt{hidden qualitative functional declaration}
+  \par\smallskip\noindent\emph{Definition.} \(W_{\mathrm w}=\{A\}\), so the unknown row mechanism at \(A\) is a deterministic map \(f:\{0,1\}\to\{0,1\}\).
+  \item \texttt{Txw} --- \texttt{single-\allowbreak{}treatment set of the witness}; \(2^{V_{\mathrm w}}\); \texttt{single-\allowbreak{}intervention query}
+  \par\smallskip\noindent\emph{Definition.} \(T_{X}=\{X\}\).
+  \item \texttt{Tzxw} --- \texttt{joint-\allowbreak{}treatment set of the witness}; \(2^{V_{\mathrm w}}\); \texttt{joint-\allowbreak{}intervention query}
+  \par\smallskip\noindent\emph{Definition.} \(T_{ZX}=\{Z,X\}\).
+  \item \texttt{Ywset} --- \texttt{outcome set of the witness}; \(2^{V_{\mathrm w}}\); \texttt{witness outcome coordinates}
+  \par\smallskip\noindent\emph{Definition.} \(Y_{\mathrm w}^{\star}=\{Y\}\).
+  \item \texttt{MwXclass} --- \texttt{single-\allowbreak{}treatment hidden-\allowbreak{}functional witness class}; \(2^{\{M\}}\); \texttt{domain of the sharp rectangle}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak M_{\mathrm w,X}=\mathfrak M(G_{\mathrm w},\mathcal A_{\mathrm w},V_{\mathrm w},W_{\mathrm w},T_X)\) with hidden set \(H_{\mathrm w}\) and outcome set \(Y_{\mathrm w}^{\star}\).
+  \item \texttt{MwZXclass} --- \texttt{joint-\allowbreak{}treatment hidden-\allowbreak{}functional witness class}; \(2^{\{M\}}\); \texttt{domain of the joint-\allowbreak{}intervention identity}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak M_{\mathrm w,ZX}=\mathfrak M(G_{\mathrm w},\mathcal A_{\mathrm w},V_{\mathrm w},W_{\mathrm w},T_{ZX})\) with hidden set \(H_{\mathrm w}\) and outcome set \(Y_{\mathrm w}^{\star}\).
+  \item \texttt{pw} --- \texttt{observed law of the hidden-\allowbreak{}functional witness}; \(\Delta(\{0,1\}^{V_{\mathrm w}})\); \texttt{law used by the binary identification claims}
+  \par\smallskip\noindent\emph{Definition.} \(p_{\mathrm w}\) is the marginal law of \(Z,X,Y\) induced by a model on \(G_{\mathrm w}\) with alphabets \(\mathcal A_{\mathrm w}\), observed set \(V_{\mathrm w}\), hidden set \(H_{\mathrm w}\), and functional set \(W_{\mathrm w}\).
+  \item \texttt{Qxw} --- \texttt{single-\allowbreak{}treatment intervention map of the hidden-\allowbreak{}functional witness}; \(\prod_{x\in\{0,1\}}\Delta(\{0,1\})\); \texttt{single-\allowbreak{}treatment witness target}
+  \par\smallskip\noindent\emph{Definition.} \(Q_{X,M}(x,y)=P_M(Y=y\mid do(X=x))\) for \(M\in\mathfrak M_{\mathrm w,X}\).
+  \item \texttt{Qzxw} --- \texttt{joint-\allowbreak{}treatment intervention map of the hidden-\allowbreak{}functional witness}; \(\prod_{z,x\in\{0,1\}}\Delta(\{0,1\})\); \texttt{joint-\allowbreak{}treatment witness target}
+  \par\smallskip\noindent\emph{Definition.} \(Q_{ZX,M}(z,x,y)=P_M(Y=y\mid do(Z=z,X=x))\) for \(M\in\mathfrak M_{\mathrm w,ZX}\).
+  \item \texttt{Vclosure} --- \texttt{observed set of the unrestricted closure instance}; \(2^{\{Z,A,X,Y\}}\); \texttt{closure observed coordinates}
+  \par\smallskip\noindent\emph{Definition.} \(V_{\mathrm c}=\{Z,A,X,Y\}\).
+  \item \texttt{Hclosure} --- \texttt{hidden set of the unrestricted closure instance}; \(2^{\{Z,A,X,Y\}}\); \texttt{closure latent coordinates}
+  \par\smallskip\noindent\emph{Definition.} \(H_{\mathrm c}=\varnothing\).
+  \item \texttt{Wclosure} --- \texttt{functional set of the unrestricted closure instance}; \(2^{\{Z,A,X,Y\}}\); \texttt{absence of a closure functional declaration}
+  \par\smallskip\noindent\emph{Definition.} \(W_{\mathrm c}=\varnothing\); in particular, \(A\) is stochastic and unrestricted conditional on \(Z\).
+  \item \texttt{Tclosure} --- \texttt{joint-\allowbreak{}treatment set of the unrestricted closure instance}; \(2^{V_{\mathrm c}}\); \texttt{closure intervention coordinates}
+  \par\smallskip\noindent\emph{Definition.} \(T_{\mathrm c}=\{Z,X\}\).
+  \item \texttt{Yclosure} --- \texttt{outcome set of the unrestricted closure instance}; \(2^{V_{\mathrm c}\setminus T_{\mathrm c}}\); \texttt{closure outcome coordinates}
+  \par\smallskip\noindent\emph{Definition.} \(Y_{\mathrm c}=\{Y\}\).
+  \item \texttt{Mclosure} --- \texttt{unrestricted observed-\allowbreak{}closure model class}; \(2^{\{M\}}\); \texttt{fully specified diagnostic comparison class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak M_{\mathrm c}=\mathfrak M(G_{\mathrm w},\mathcal A_{\mathrm w},V_{\mathrm c},W_{\mathrm c},T_{\mathrm c})\) with outcome set \(Y_{\mathrm c}\).
+  \item \texttt{pclosure} --- \texttt{observed-\allowbreak{}law map of the unrestricted closure instance}; binary CPT family on \(G_{\mathrm w}\) \(\to\Delta(\{0,1\}^{V_{\mathrm c}})\); \texttt{closure observational equivalence map}
+  \par\smallskip\noindent\emph{Definition.} \(p_{\mathrm c,M}(z,a,x,y)=P_M(Z=z,A=a,X=x,Y=y)\) for any normalized binary CPT family \(M\) on \(G_{\mathrm w}\).
+  \item \texttt{Qclosure} --- \texttt{joint-\allowbreak{}intervention map of the unrestricted closure instance}; binary CPT family on \(G_{\mathrm w}\) \(\to\prod_{z,x}\Delta(\{0,1\})\); \texttt{closure causal target map}
+  \par\smallskip\noindent\emph{Definition.} \(Q_{\mathrm c,M}(z,x,y)=P_M(Y=y\mid do(Z=z,X=x))\) under truncated factorization for any normalized binary CPT family \(M\) on \(G_{\mathrm w}\).
+  \item \texttt{lambdaW} --- \texttt{observed-\allowbreak{}closure root probability}; \((0,1)\); \texttt{counterfamily parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\lambda=P(Z=1)\).
+  \item \texttt{alphazW} --- \texttt{observed-\allowbreak{}closure conditional probability family}; \((0,1)^{\{0,1\}}\); \texttt{counterfamily parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\alpha_z=P(A=1\mid Z=z)\) for \(z\in\{0,1\}\).
+  \item \texttt{rW} --- \texttt{reached-\allowbreak{}row outcome probability pair}; \((0,1)^2\); \texttt{nonconstant observed outcome parameters}
+  \par\smallskip\noindent\emph{Definition.} \(r_a=P(Y=1\mid A=a,X=a)\) for \(a\in\{0,1\}\).
+  \item \texttt{etaW} --- \texttt{off-\allowbreak{}support outcome probability}; \((0,1/2)\); \texttt{counterfamily separation parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\eta\) indexes the two separating outcome mechanisms.
+  \item \texttt{Mminus} --- \texttt{lower observed-\allowbreak{}closure countermodel}; normalized binary CPT families on \(G_{\mathrm w}\); \texttt{exact nonidentification witness}
+  \par\smallskip\noindent\emph{Definition.} \(M^-\) has \(P(Z=1)=\lambda\), \(P(A=1\mid Z=z)=\alpha_z\), \(X=A\), reached outcome rows \(P(Y=1\mid A=a,X=a)=r_a\), and both off-support rows \(P(Y=1\mid A=1,X=0)=P(Y=1\mid A=0,X=1)=\eta\).
+  \item \texttt{Mplus} --- \texttt{upper observed-\allowbreak{}closure countermodel}; normalized binary CPT families on \(G_{\mathrm w}\); \texttt{exact nonidentification witness}
+  \par\smallskip\noindent\emph{Definition.} \(M^+\) agrees with \(M^-\) except that both off-support outcome rows equal \(1-\eta\).
+  \item \texttt{xw} --- \texttt{binary witness treatment value}; \(\{0,1\}\); \texttt{single-\allowbreak{}treatment coordinate}
+  \item \texttt{pz} --- \texttt{witness marginal cell}; \([0,1]\); \texttt{standardization weight}
+  \par\smallskip\noindent\emph{Definition.} \(p_z=p_{\mathrm w}(Z=z)\).
+  \item \texttt{pzx} --- \texttt{witness joint cell}; \([0,1]\); \texttt{support guard}
+  \par\smallskip\noindent\emph{Definition.} \(p_{zx}=p_{\mathrm w}(Z=z,X=x)\).
+  \item \texttt{Lx} --- \texttt{identified lower endpoint for one witness intervention}; \([0,1]\); \texttt{sharp lower endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(L_x=\sum_{z:p_{zx}>0}p_z\,p(z,x,Y=1)/p_{zx}\).
+  \item \texttt{Mx} --- \texttt{unobserved-\allowbreak{}row mass for one witness intervention}; \([0,1]\); \texttt{sharp interval width}
+  \par\smallskip\noindent\emph{Definition.} \(M_x=\sum_{z:p_z>0,\ p_{zx}=0}p_z\).
+  \item \texttt{Irect} --- \texttt{witness vector identified region}; \(2^{[0,1]^2}\); \texttt{sharp law-\allowbreak{}indexed rectangle}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal I(p_{\mathrm w})=[L_0,L_0+M_0]\times[L_1,L_1+M_1]\).
+  \item \texttt{iquad} --- \texttt{ordered quadruple of distinct endogenous vertices}; \(\{(i_Z,i_A,i_X,i_Y)\in D^4:i_Z,i_A,i_X,i_Y\text{ are pairwise distinct}\}\); \texttt{four-\allowbreak{}node family coordinates}
+  \par\smallskip\noindent\emph{Definition.} \(\iota=(i_Z,i_A,i_X,i_Y)\) orders the root, hidden functional, observed treatment, and outcome vertices in the categorical four-node family.
+  \item \texttt{Msep} --- \texttt{separate-\allowbreak{}coordinate-\allowbreak{}positive categorical four-\allowbreak{}node model class}; \(2^{\{M\}}\); \texttt{family-\allowbreak{}specific identification domain}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak M_{\mathrm{sep}}(G,\mathcal A,V,W,T,Y;\iota)\) is the class in Definition \(\mathrm{def:separate\text{-}positive\text{-}four\text{-}node\text{-}class}\).
+  \item \texttt{Kresp} --- \texttt{categorical joint-\allowbreak{}intervention response kernel}; \(\prod_{z\in\mathcal A_{i_Z},\ x\in\mathcal A_{i_X}}\Delta(\mathcal A_{i_Y})\); \texttt{family-\allowbreak{}specific causal target}
+  \par\smallskip\noindent\emph{Definition.} \(K_M(z,x,y)=P_M(i_Y=y\mid do(i_Z=z,i_X=x))\).
+  \item \texttt{PiB} --- \texttt{profile-\allowbreak{}compatible partition family}; \texttt{finite set of partitions}; \texttt{hidden-\allowbreak{}functional refinement index}
+  \par\smallskip\noindent\emph{Definition.} \(\Pi_b(p)\) is the family in Definition \(\mathrm{def:profile\text{-}refinement\text{-}kernel\text{-}region}\).
+  \item \texttt{Kregion} --- \texttt{law-\allowbreak{}specific response-\allowbreak{}kernel region}; \(2^{\prod_{z,x}\Delta(\mathcal A_{i_Y})}\); \texttt{sharp family-\allowbreak{}specific identified region}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal K(p)=\bigcup_{\pi\in\Pi_{|\mathcal A_{i_A}|}(p)}\mathcal K_\pi(p)\).
+  \item \texttt{Bsat} --- \texttt{response-\allowbreak{}row saturation cardinality}; \(\mathbb N\); \texttt{hidden-\allowbreak{}cardinality elbow}
+  \par\smallskip\noindent\emph{Definition.} \(B_{\mathrm{sat}}(p)\) is the integer computed in Definition \(\mathrm{def:saturation\text{-}alphabet\text{-}threshold}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:causal-factorization]\label{ass:causal-factorization}
+For every \(a_D\in\Omega\), \(P_M(a_D)=\prod_{i\in D}\theta_i(a_i\mid a_{\operatorname{pa}_G(i)})\).
+\par\smallskip\noindent\emph{Standard} (recursive causal Bayesian-network factorization, \cite{Pearl2009}).
+\end{assumption}
+
+\begin{assumption}[ass:truncated-intervention]\label{ass:truncated-intervention}
+For every \(t\in\mathcal A_T\), the law \(Q_M(t,\cdot)\) is obtained by replacing the rows at vertices in \(T\) by point masses at \(t\) in the product factorization.
+\par\smallskip\noindent\emph{Standard} (truncated factorization under intervention, \cite{Pearl2009}).
+\end{assumption}
+
+\begin{assumption}[ass:qualitative-functionality]\label{ass:qualitative-functionality}
+For every \(i\in W\) and every \(u\in\mathcal A_{\operatorname{pa}_G(i)}\), the row \(\theta_i(\cdot\mid u)\) is a point mass at an unknown state of \(\mathcal A_i\).
+\par\smallskip\noindent\emph{Standard} (unknown qualitative functional dependency, \cite{ChenDarwiche2024}).
+\end{assumption}
+
+\begin{assumption}[ass:joint-treatment-positivity]\label{ass:joint-treatment-positivity}
+For every \(t\in\mathcal A_T\), \(P_M(T=t)>0\).
+\par\smallskip\noindent\emph{Standard} (joint-treatment positivity, \cite{HwangEtAl2024}).
+\end{assumption}
+
+\begin{assumption}[ass:iid-multinomial-sampling]\label{ass:iid-multinomial-sampling}
+\(O_1,\ldots,O_n\) are independent draws from the categorical law \(p\).
+\par\smallskip\noindent\emph{Standard} (independent multinomial sampling, \cite{vanDerVaart1998}).
+\end{assumption}
+
+\begin{assumption}[ass:fixed-support-margin]\label{ass:fixed-support-margin}
+On the active witness branch, every cell \(p_{zx}\) used as a divisor satisfies \(p_{zx}\ge\epsilon\).
+\par\smallskip\noindent\emph{Standard} (fixed-support interiority, \cite{vanDerVaart1998}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak M(G,\mathcal A,V,W,T)\)
+\par\smallskip\noindent\emph{Construction.} \(\{M=(G,\mathcal A,\theta): P_M\text{ obeys the recursive product factorization},\ Q_M\text{ obeys truncated intervention semantics},\ \theta_i(\cdot\mid u)\text{ is a point mass for }i\in W,\ P_M(T=t)>0\text{ for every }t\in\mathcal A_T\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}causal-\allowbreak{}factorization}; \texttt{ass:\allowbreak{}truncated-\allowbreak{}intervention}; \texttt{ass:\allowbreak{}qualitative-\allowbreak{}functionality}; \texttt{ass:\allowbreak{}joint-\allowbreak{}treatment-\allowbreak{}positivity}.
+\end{definition}
+
+\begin{definition}[def:observed-fiber]\label{def:observed-fiber}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak F(p)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak F(p)=\{M\in\mathfrak M(G,\mathcal A,V,W,T):p_M=p\}\).
+\par\smallskip\noindent\emph{Inputs.} An observed law \(p\) on \(\mathcal A_V\)..
+\end{definition}
+
+\begin{definition}[def:graphwide-fid]\label{def:graphwide-fid}
+\par\smallskip\noindent\emph{Defined object.} graphwide \(F\)-identification
+\par\smallskip\noindent\emph{Construction.} \(q\text{ is graphwide }F\text{-identified}\iff\forall M_1,M_2\in\mathfrak M,\ p_{M_1}=p_{M_2}\Rightarrow q_{M_1}=q_{M_2}\).
+\par\smallskip\noindent\emph{Inputs.} The class \(\mathfrak M\), observed-law map \(p_M\), and target map \(q_M\)..
+\end{definition}
+
+\begin{definition}[def:separating-pair-set]\label{def:separating-pair-set}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal S_{\mathrm{sep}}\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal S_{\mathrm{sep}}=\{(\theta^{(0)},\theta^{(1)}):M_0,M_1\in\mathfrak M,\ p_{M_0}=p_{M_1},\ q_{M_0}\ne q_{M_1}\}\), represented by the rational-coefficient polynomial equalities and sign conditions induced by the finite graph, alphabet, functional, and joint-positivity declarations.
+\par\smallskip\noindent\emph{Inputs.} \texttt{A graph,\allowbreak{} fixed alphabets,\allowbreak{} qualitative functional declarations,\allowbreak{} treatment set,\allowbreak{} outcome set,\allowbreak{} and rational-\allowbreak{}coefficient qualitative constraints.}.
+\end{definition}
+
+\begin{definition}[def:support-stratum]\label{def:support-stratum}
+\par\smallskip\noindent\emph{Defined object.} \(S\)
+\par\smallskip\noindent\emph{Construction.} \(S=(S_{i,u})_{i\in D,\ u\in\mathcal A_{\operatorname{pa}_G(i)}}\) with \(\varnothing\ne S_{i,u}\subseteq\mathcal A_i\) and \(S_{i,u}\) singleton for \(i\in W\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{The graph,\allowbreak{} alphabet family,\allowbreak{} and functional-\allowbreak{}node set.}.
+\end{definition}
+
+\begin{definition}[def:guarded-circuit]\label{def:guarded-circuit}
+\par\smallskip\noindent\emph{Defined object.} support-guarded exact algebraic certificate \(C\)
+\par\smallskip\noindent\emph{Construction.} A finite decision DAG whose guards are rational-coefficient polynomial tests \(g(p)=0\) or \(g(p)>0\). A success leaf either gives rational arithmetic expressions for every coordinate of \(q\), with each denominator \(b(p)\) licensed by ancestor guards whose conjunction entails \(b(p)>0\) on the compatible-model stratum, or gives square-free rational-coefficient polynomial relations \(H_j(p,q_j)=0\) together with Thom encodings and rational isolating data certifying one unique admissible vector \(q\) in \(\prod_t\Delta(\mathcal A_Y)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Observed cells and compatibility constraints induced by the fixed input instance.}.
+\end{definition}
+
+\begin{definition}[def:algebraic-separating-certificate]\label{def:algebraic-separating-certificate}
+\par\smallskip\noindent\emph{Defined object.} exact algebraic separating certificate \(\mathsf{Sep}\)
+\par\smallskip\noindent\emph{Construction.} Two original-alphabet CPT families \(\theta^{(0)},\theta^{(1)}\) with every entry encoded by an integer minimal polynomial and a rational isolating interval or Thom encoding, accompanied by exact polynomial and sign checks that both tables belong to \(\mathfrak M\), that \(p_{M_0}=p_{M_1}\), and that at least one coordinate satisfies \(q_{M_0}(t,y)\ne q_{M_1}(t,y)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{A feasible rational-\allowbreak{}coefficient qualitative input instance and a failed identification branch.}.
+\end{definition}
+
+\begin{definition}[def:feasibility-enumerator]\label{def:feasibility-enumerator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{functional-\allowbreak{}map feasibility enumerator}
+\par\smallskip\noindent\emph{Construction.} Enumerate the \(F\) tuples of maps \(f_i:\mathcal A_{\operatorname{pa}_G(i)}\to\mathcal A_i\) for \(i\in W\). For each tuple, scan each of the \(J_T\) assignments \(t\in\mathcal A_T\) and at most \(h\) complete assignments for an extension satisfying every equation \(a_i=f_i(a_{\operatorname{pa}_G(i)})\). On success, set every nonfunctional conditional row to the uniform distribution. On exhaustion, expand \(P_M(T=t)\) as a sum of nonnegative monomials, record the functional zero factor in every monomial, and combine the resulting identity \(P_M(T=t)=0\) with the positivity encoding \(P_M(T=t)s_t^2=1\).
+\par\smallskip\noindent\emph{Inputs.} The finite instance \(G,\mathcal A,V,W,T\)..
+\end{definition}
+
+\begin{definition}[def:fidplus-handle]\label{def:fidplus-handle}
+\par\smallskip\noindent\emph{Defined object.} guarded fixed-alphabet four-output handle for \(\mathsf{F\text{-}ID}^{+}\)
+\par\smallskip\noindent\emph{Construction.} Start from the exact functional-map feasibility enumerator. On feasible inputs, enumerate deterministic functional-map and row-support strata, discard strata that violate joint-treatment reachability, and compile their induced observable supports into rational-coefficient sign guards in \(p\). Install a success leaf when the one-way classical-\(\mathsf{ID}\) proposition applies or when exact coefficient comparison proves, on every latent stratum compatible with the observable guard, a complete collection of conditional-event-ratio identities for \(q\); license each denominator by the entailed positive observed-event guard. On unresolved strata, enumerate observationally unreachable parent rows and test the intervention-row endpoint-difference polynomials exactly; a nonzero polynomial is evaluated on the fixed rational interpolation grid to return an original-alphabet rational separating pair. If no such pair is found, fix every proved target-inert unreachable row canonically and return the remaining doubled existential semialgebraic fiber formula, together with any already-certified success leaves, without an identification verdict. Generic real quantifier elimination is not used to decide the residual formula or to search for identification; it may be used only to verify an independently supplied exact certificate.
+\par\smallskip\noindent\emph{Inputs.} The finite instance and the target vector \(q_M\)..
+\end{definition}
+
+\begin{definition}[def:binary-identified-region]\label{def:binary-identified-region}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal I(p)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal I(p_{\mathrm w})=[L_0,L_0+M_0]\times[L_1,L_1+M_1]\), where \(L_x=\sum_{z:p_{zx}>0}p_zp_{\mathrm w}(z,x,Y=1)/p_{zx}\) and \(M_x=\sum_{z:p_z>0,\ p_{zx}=0}p_z\).
+\par\smallskip\noindent\emph{Inputs.} The hidden-functional witness law \(p_{\mathrm w}\) satisfying \(p_{\mathrm w}(X=x)>0\) for \(x\in\{0,1\}\)..
+\end{definition}
+
+\begin{definition}[def:observed-closure-pair]\label{def:observed-closure-pair}
+\par\smallskip\noindent\emph{Defined object.} \((M^-,M^+)\)
+\par\smallskip\noindent\emph{Construction.} On \(G_{\mathrm w}\) with the fixed binary alphabets \(\mathcal A_{\mathrm w}\) and the coordinate choices \(V_{\mathrm c}=\{Z,A,X,Y\}\), \(H_{\mathrm c}=W_{\mathrm c}=\varnothing\), \(T_{\mathrm c}=\{Z,X\}\), and \(Y_{\mathrm c}=\{Y\}\), set \(P(Z=1)=\lambda\), \(P(A=1\mid Z=z)=\alpha_z\), and \(P(X=A\mid A)=1\). In both models set \(P(Y=1\mid A=a,X=a)=r_a\). Set both rows \((A,X)=(1,0),(0,1)\) to \(\operatorname{Bernoulli}(\eta)\) in \(M^-\) and to \(\operatorname{Bernoulli}(1-\eta)\) in \(M^+\). All unmentioned complementary binary probabilities are fixed by normalization.
+\par\smallskip\noindent\emph{Inputs.} Parameters \(\lambda,\alpha_0,\alpha_1,r_0,r_1\in(0,1)\) with \(r_0\ne r_1\), and \(\eta\in(0,1/2)\)..
+\end{definition}
+
+\begin{definition}[def:binary-estimator]\label{def:binary-estimator}
+\par\smallskip\noindent\emph{Defined object.} \(\widehat q_x\)
+\par\smallskip\noindent\emph{Construction.} \(\widehat q_x=\sum_{z:\widehat p_{zx}>0}\widehat p_z\,\widehat p(z,x,Y=1)/\widehat p_{zx}\), with an arbitrary bounded value assigned on empirical zero-denominator events that lie outside the active population branch.
+\par\smallskip\noindent\emph{Inputs.} The empirical multinomial law \(\widehat p\) and a fixed treatment value \(x\)..
+\end{definition}
+
+\begin{definition}[def:branch-confidence-map]\label{def:branch-confidence-map}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal C_{n,\alpha}\)
+\par\smallskip\noindent\emph{Construction.} Construct simultaneous two-sided Clopper--Pearson intervals for every observed multinomial cell with individual noncoverage \(\alpha/|\mathcal A_V|\), intersect their Cartesian product with the probability simplex and the feasible observed-law image, and take the union of the target images over every compatible support branch.
+\par\smallskip\noindent\emph{Inputs.} The cell-count vector \(N\), confidence level \(1-\alpha\), and the branchwise target map..
+\end{definition}
+
+\begin{definition}[def:separate-positive-four-node-class]\label{def:separate-positive-four-node-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak M_{\mathrm{sep}}(G,\mathcal A,V,W,T,Y;\iota)\)
+\par\smallskip\noindent\emph{Construction.} For an ordered quadruple \(\iota=(i_Z,i_A,i_X,i_Y)\) of distinct
+vertices, \(\mathfrak M_{\mathrm{sep}}(G,\mathcal A,V,W,T,Y;\iota)\) is
+the set of recursive models \(M=(G,\mathcal A,\theta)\) for which
+\(D=\{i_Z,i_A,i_X,i_Y\}\), the edge set is
+\(\{i_Z\to i_A,i_A\to i_X,i_A\to i_Y,i_X\to i_Y\}\),
+\(V=\{i_Z,i_X,i_Y\}\), \(W=\{i_A\}\),
+\(T=\{i_Z,i_X\}\), and \(Y=\{i_Y\}\); the observational law obeys the
+recursive product factorization, interventions obey the truncated product
+factorization, every row at \(i_A\) is a point mass, and
+\[
+ P_M(i_Z=z)>0\quad(z\in\mathcal A_{i_Z}),
+ \qquad
+ P_M(i_X=x)>0\quad(x\in\mathcal A_{i_X}).
+\]
+No condition \(P_M(i_Z=z,i_X=x)>0\) is imposed.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}causal-\allowbreak{}factorization}; \texttt{ass:\allowbreak{}truncated-\allowbreak{}intervention}; \texttt{ass:\allowbreak{}qualitative-\allowbreak{}functionality}.
+\end{definition}
+
+\begin{definition}[def:profile-refinement-kernel-region]\label{def:profile-refinement-kernel-region}
+\par\smallskip\noindent\emph{Defined object.} \(\Pi_b(p)\), \(\mathcal K_\pi(p)\), and \(\mathcal K(p)\)
+\par\smallskip\noindent\emph{Construction.} Fix the four-node notation \(\iota=(i_Z,i_A,i_X,i_Y)\), put
+\(\mathcal Z=\mathcal A_{i_Z}\), \(\mathcal B=\mathcal A_{i_A}\),
+\(\mathcal X=\mathcal A_{i_X}\), and
+\(\mathcal Y=\mathcal A_{i_Y}\), and let \(p\) be a law on
+\(\mathcal Z\times\mathcal X\times\mathcal Y\) with \(p(z)>0\) for every
+\(z\).  Define, under the displayed positive denominators,
+\[
+ e_z(x)=\frac{p(z,x)}{p(z)},
+ \qquad
+ m_{zx}(y)=\frac{p(z,x,y)}{p(z,x)}\quad\text{when }p(z,x)>0,
+\]
+and
+\[
+ \rho_z=\bigl(e_z,(m_{zx})_{x:e_z(x)>0}\bigr),
+ \qquad
+ \mathcal R(p)=\{\rho_z:z\in\mathcal Z\}.
+\]
+For an integer \(b\geq1\), let \(\Pi_b(p)\) be the set of partitions
+\(\pi\) of \(\mathcal Z\) with at most \(b\) nonempty blocks such that
+every block is contained in one set \(\{z:\rho_z=\rho\}\).  For
+\(\pi\in\Pi_b(p)\), let \(\mathcal K_\pi(p)\) be the set of arrays
+\(k=(k(z,x,\cdot))_{z,x}\) of elements of \(\Delta(\mathcal Y)\) such
+that, for every block \(C\in\pi\),
+\[
+ k(z,x,\cdot)=m_{zx}\quad\text{if }e_z(x)>0,
+\]
+and, if \(e_z(x)=0\) for \(z\in C\), there is one
+\(s_{C,x}\in\Delta(\mathcal Y)\) satisfying
+\[
+ k(z,x,\cdot)=s_{C,x}\quad\text{for every }z\in C.
+\]
+The separate-positive response-kernel region is
+\[
+ \mathcal K(p)=
+ \bigcup_{\pi\in\Pi_{|\mathcal B|}(p)}\mathcal K_\pi(p).
+\]
+\par\smallskip\noindent\emph{Inputs.} A categorical observed law \(p\) with \(p(z)>0\) for every root state, the ordered four-node coordinates, and a positive integer block bound \(b\)..
+\end{definition}
+
+\begin{definition}[def:saturation-alphabet-threshold]\label{def:saturation-alphabet-threshold}
+\par\smallskip\noindent\emph{Defined object.} \(B_{\mathrm{sat}}(p)\)
+\par\smallskip\noindent\emph{Construction.} In the notation of
+Definition \(\mathrm{def:profile\text{-}refinement\text{-}kernel\text{-}region}\),
+put
+\[
+ H_\rho=\{x\in\mathcal X:e_z(x)=0\text{ for, equivalently every, }
+ z\text{ with }\rho_z=\rho\},
+\]
+and define
+\[
+ B_{\mathrm{sat}}(p)
+ =|\mathcal R(p)|+
+ \sum_{\rho\in\mathcal R(p):H_\rho\ne\varnothing}
+ \bigl(|\{z\in\mathcal Z:\rho_z=\rho\}|-1\bigr).
+\]
+\par\smallskip\noindent\emph{Inputs.} The guarded profiles and hole sets from Definition \(\mathrm{def:profile\text{-}refinement\text{-}kernel\text{-}region}\)..
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:feasibility-certificate]\label{thm:feasibility-certificate}
+The class \(\mathfrak M(G,\mathcal A,V,W,T)\) is nonempty if and only if some tuple of deterministic maps for \(W\) has, for every \(t\in\mathcal A_T\), a complete assignment extending \(t\) and satisfying all functional equations. The functional-map feasibility enumerator decides this condition in \(O(FJ_T(d+m)h+FR)\) table operations; on feasibility it returns an original-alphabet rational model with uniform nonfunctional rows, and on infeasibility it returns the exact identity \(P_M(T=t)=0\) for a failed assignment \(t\), expanded as functional-zero monomials, together with its contradiction with \(P_M(T=t)s_t^2=1\).
+\end{theorem}
+\begin{proof}
+For a tuple \(f=(f_i)_{i\in W}\) of deterministic maps and a treatment assignment \(t\in\mathcal A_T\), define
+\[
+ \Gamma_f(t)
+ =\left\{a_D\in\Omega:
+ a_T=t\ \text{ and }\
+ a_i=f_i(a_{\operatorname{pa}_G(i)})\ \text{for every }i\in W
+ \right\}.
+\]
+There are exactly
+\[
+ \prod_{i\in W}
+ |\mathcal A_i|^{|\mathcal A_{\operatorname{pa}_G(i)}|}
+ =\prod_{i\in W}|\mathcal A_i|^{r_i}=F
+\]
+such tuples, by the definitions of \(r_i\) and \(F\).
+
+First suppose that \(M\in\mathfrak M(G,\mathcal A,V,W,T)\).  By qualitative functionality, each functional row selects a unique value, and hence determines one tuple \(f\).  For any \(t\in\mathcal A_T\), causal factorization gives
+\[
+ P_M(T=t)
+ =\sum_{a_{D\setminus T}\in\mathcal A_{D\setminus T}}
+   \prod_{i\in D}
+   \theta_i(a_i\mid a_{\operatorname{pa}_G(i)}).
+\]
+Every summand is nonnegative because every conditional-table entry is a probability.  Joint-treatment positivity says that the left-hand side is strictly positive.  A finite sum of nonnegative numbers is strictly positive only if one summand is strictly positive.  In such a summand every factor at a vertex \(i\in W\) must equal the selected point-mass entry, so
+\(a_i=f_i(a_{\operatorname{pa}_G(i)})\).  Consequently \(\Gamma_f(t)\ne\varnothing\) for every \(t\).
+
+Conversely, suppose that a tuple \(f\) satisfies \(\Gamma_f(t)\ne\varnothing\) for every \(t\).  Define a CPT family \(\theta^f\) by
+\[
+ \theta^f_i(a\mid u)
+ =\begin{cases}
+  1, & i\in W\ \text{and }a=f_i(u),\\
+  0, & i\in W\ \text{and }a\ne f_i(u),\\
+  |\mathcal A_i|^{-1}, & i\notin W.
+ \end{cases}
+\]
+Every row is normalized and nonnegative, every declared functional row is a point mass, and every entry is rational.  Let \(M_f=(G,\mathcal A,\theta^f)\), with the factorization and truncated-intervention semantics stipulated in the model-class definition.  If \(a_D\in\Gamma_f(t)\), then
+\[
+ P_{M_f}(a_D)
+ =\prod_{i\in W}1
+  \prod_{i\in D\setminus W}|\mathcal A_i|^{-1}
+ >0.
+\]
+Hence, choosing one \(a_D\in\Gamma_f(t)\),
+\[
+ P_{M_f}(T=t)
+ \ge P_{M_f}(a_D)>0.
+\]
+This holds for every \(t\), so \(M_f\in\mathfrak M(G,\mathcal A,V,W,T)\).  This proves both directions and also proves that the feasible witness preserves all prescribed alphabets.
+
+For the operation count, enumerate the \(F\) map tuples.  For a fixed pair \((f,t)\), scan at most \(h=|\Omega|\) complete assignments.  Comparing \(a_T\) with \(t\) costs at most \(d\) operations, and checking all functional equations costs at most one vertex operation per functional vertex plus one parent-coordinate access per incident edge, hence \(O(d+m)\).  The scans therefore cost
+\[
+ O\!\left(FJ_T(d+m)h\right).
+\]
+Generating or reading all functional row choices and, on success, writing uniform rows costs at most \(O(FR)\) row operations.  Thus the claimed total is
+\[
+ O\!\left(FJ_T(d+m)h+FR\right).
+\]
+All loops range over finite sets, so the enumerator terminates.
+
+It remains to justify the exact infeasibility certificate.  If no tuple succeeds, then for every \(f\) the scan returns an assignment \(t_f\) with \(\Gamma_f(t_f)=\varnothing\).  On the branch selecting \(f\), expand
+\[
+ P_M(T=t_f)
+ =\sum_{a_{D\setminus T}}
+   \prod_{i\in D}
+   \theta_i(a_i\mid a_{\operatorname{pa}_G(i)}).
+\]
+Every extension of \(t_f\) violates at least one functional equation, by emptiness of \(\Gamma_f(t_f)\); the corresponding monomial therefore contains an entry declared zero on that branch.  Thus the displayed network polynomial is identically zero on the branch, with a recorded zero factor for every monomial.
+
+For a single global algebraic check, let
+\[
+ E_f=\prod_{i\in W}\prod_{u\in
+ \mathcal A_{\operatorname{pa}_G(i)}}
+ \theta_i(f_i(u)\mid u).
+\]
+Point-mass rows obey normalization and the valid orthogonality relations
+\[
+ \theta_i(a\mid u)\theta_i(b\mid u)=0
+ \quad(a\ne b).
+\]
+Expanding the product of the row normalizations gives the exact identity
+\[
+ \sum_f E_f
+ =\prod_{i\in W}\prod_u\sum_{a\in\mathcal A_i}
+   \theta_i(a\mid u)=1.
+\]
+Because \(\Gamma_f(t_f)=\varnothing\), every monomial of
+\(E_fP_M(T=t_f)\) contains two distinct entries from some functional row and is therefore zero by orthogonality.  Hence
+\[
+ E_fP_M(T=t_f)=0
+ \quad\text{for every }f.
+\]
+Strict positivity of a nonnegative treatment probability is equivalently encoded by the existence of a real auxiliary variable \(s_t\) satisfying
+\[
+ P_M(T=t)s_t^2=1:
+\]
+if the probability is positive take \(s_t=P_M(T=t)^{-1/2}\), while the equation and nonnegativity imply strict positivity in the reverse direction.  Multiplying the equation for \(t_f\) by \(E_f\) yields
+\[
+ E_f=E_fP_M(T=t_f)s_{t_f}^2=0.
+\]
+Summing over \(f\) contradicts \(\sum_fE_f=1\).  The enumerator can output the finite list \((f,t_f)\), every expanded network monomial with its functional zero factor, the normalization identity, and these displayed polynomial reductions.  They use rational coefficients and constitute the asserted exact infeasibility certificate.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Identification over an empty constrained class is vacuous, so exact fixed-alphabet feasibility must be decided before any causal-effect claim. \textit{Gap.} Chen and Darwiche give sufficient consistency conditions, while canonical-SCM and arithmetic-circuit papers presuppose or globally optimize over a compatible class; none supplies this fixed-alphabet if-and-only-if certificate with an elementary causal enumeration. \textit{Consumer.} A constrained extension of the CRAN package dosearch can reject contradictory functional and positivity declarations and return a checkable witness or certificate before formula search.
+
+\begin{lemma}[lem:support-propagation]\label{lem:support-propagation}
+For a fixed row-support pattern \(S\), an observational or interventional cell is strictly positive if and only if at least one compatible complete assignment uses only entries in \(S\) in the corresponding product or truncated product. There are at most \(2^K\) row-support patterns, and every entailed support guard is decidable by finite reachability.
+\end{lemma}
+\begin{proof}
+Fix a row-support pattern \(S\).  By its definition,
+\[
+ \theta_i(a\mid u)>0
+ \quad\Longleftrightarrow\quad
+ a\in S_{i,u}.
+\]
+Let \(B\subseteq D\) and fix a cell \(B=b\).  Causal factorization expands its observational probability as
+\[
+ P_M(B=b)
+ =\sum_{a_{D\setminus B}}
+   \prod_{i\in D}
+   \theta_i(a_i\mid a_{\operatorname{pa}_G(i)}),
+\]
+where the sum ranges over complete assignments extending \(b\).  Each product is nonnegative.  A particular product is strictly positive if and only if every one of its finitely many factors is strictly positive, which, by the displayed support equivalence, holds if and only if
+\[
+ a_i\in S_{i,a_{\operatorname{pa}_G(i)}}
+ \quad\text{for every }i\in D.
+\]
+A finite sum of nonnegative terms is positive if and only if at least one term is positive.  This proves the observational assertion.
+
+For an intervention \(do(T=t)\), truncated intervention semantics gives, for any cell \(B=b\) disjoint from the fixed intervention coordinates,
+\[
+ P_M(B=b\mid do(T=t))
+ =\sum_{a_{D\setminus(T\cup B)}}
+   \prod_{i\in D\setminus T}
+   \theta_i(a_i\mid a_{\operatorname{pa}_G(i)}),
+\]
+where all summands extend both \(a_T=t\) and \(a_B=b\).  The identical nonnegative-sum argument shows that this cell is positive exactly when one compatible complete assignment uses only supported entries in the truncated product.  No division or limiting argument is used.
+
+For row \((i,u)\), there are \(2^{|\mathcal A_i|}-1\) possible nonempty supports, and functionality restricts a declared functional row to singleton supports.  Ignoring that restriction gives the upper bound
+\[
+ \prod_{i\in D}
+ \left(2^{|\mathcal A_i|}-1\right)^{r_i}
+ \le
+ \prod_{i\in D}2^{|\mathcal A_i|r_i}
+ =2^{\sum_{i\in D}|\mathcal A_i|r_i}
+ =2^K.
+\]
+For a specified observational or interventional cell and a specified \(S\), enumerate the at most \(h\) compatible complete assignments and test the finitely many indicated membership relations.  The preceding equivalences show that this reachability test decides the positivity guard exactly.  Enumerating the at most \(2^K\) strata also decides whether such a guard is entailed on any declared finite collection of compatible support strata.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Nonnegative network polynomials convert positivity from an analytic side condition into a finite support-reachability fact. \textit{Gap.} Hwang et al. propagate sufficient positivity through an already chosen formula; this lemma computes exact row-support consequences before and during formula construction. \textit{Consumer.} The guard checker in dosearch can attach a finite support witness to every permitted division.
+
+\begin{lemma}[lem:support-hole-separator]\label{lem:support-hole-separator}
+Let \(M\in\mathfrak M\) contain a parent configuration \(u\) of a nonintervened vertex whose observational probability is zero. If the target coordinate \(q_M(t,y)\) is nonconstant as that conditional row varies over its simplex, then two vertices of that simplex give original-alphabet models \(M_0,M_1\in\mathfrak M\) with \(p_{M_0}=p_{M_1}\) and \(q_{M_0}(t,y)\ne q_{M_1}(t,y)\); rational unchanged rows yield a rational separating pair.
+\end{lemma}
+\begin{proof}
+Let the row in the statement belong to vertex \(i\notin T\), and write its parent configuration as \(u\).  For \(r\in\Delta(\mathcal A_i)\), let \(M^r\) be obtained from \(M\) by replacing only \(\theta_i(\cdot\mid u)\) by \(r\).  When \(i\in W\), only vertex choices \(r=\delta_a\) are asserted to belong to the qualitative-functional class; when \(i\notin W\), every \(r\) is allowed.
+
+First, the joint law of the parents of \(i\) does not depend on the conditional row of \(i\).  Indeed, no descendant of \(i\) can be a parent of \(i\), by acyclicity.  In the causal product, first sum all descendants of \(i\) in reverse topological order.  Once the descendants of such a vertex have been summed, its own conditional row is the only remaining factor involving its state, so its sum is \(1\).  After all proper descendants have been removed in this way, summing over the state of \(i\) also replaces its conditional row by \(1\).  The remaining finite sum computes the parent marginal and contains no entry from the row at \(i\).  Therefore
+\[
+ P_{M^r}(\operatorname{pa}_G(i)=u)
+ =P_M(\operatorname{pa}_G(i)=u)=0.
+\]
+All full-assignment probabilities are nonnegative.  Hence every full assignment satisfying \(a_{\operatorname{pa}_G(i)}=u\) has probability zero under both \(M\) and \(M^r\).  If the parent configuration is different from \(u\), the two causal products use identical rows.  It follows cell by cell that
+\[
+ P_{M^r}(a_D)=P_M(a_D)
+ \quad\text{for every }a_D\in\Omega,
+\]
+and therefore
+\[
+ p_{M^r}=p_M.
+\]
+In particular all treatment marginals are unchanged, so the joint-treatment positivity already possessed by \(M\) is preserved.  Row normalization, nonnegativity, the graph, and the alphabets are also preserved; for vertex choices the functionality declaration is preserved as well.
+
+Because \(i\notin T\), the truncated product for the fixed target coordinate still contains exactly one entry from the row of vertex \(i\).  Grouping the terms according to the value of \(a_i\) when the parents equal \(u\) gives constants \(c\) and \(c_a\), independent of \(r\), such that
+\[
+ q_{M^r}(t,y)=c+\sum_{a\in\mathcal A_i}c_a r(a).
+\]
+Thus this coordinate is affine in \(r\).  Since every
+\(r\in\Delta(\mathcal A_i)\) has the representation
+\[
+ r=\sum_{a\in\mathcal A_i}r(a)\delta_a,
+\]
+affineness yields
+\[
+ q_{M^r}(t,y)
+ =\sum_{a\in\mathcal A_i}r(a)
+   q_{M^{\delta_a}}(t,y).
+\]
+If all vertex values on the right were equal, the function would be constant on the simplex.  The assumed nonconstancy therefore supplies \(a_0,a_1\in\mathcal A_i\) with
+\[
+ q_{M^{\delta_{a_0}}}(t,y)
+ \ne q_{M^{\delta_{a_1}}}(t,y).
+\]
+Set \(M_0=M^{\delta_{a_0}}\) and \(M_1=M^{\delta_{a_1}}\).  The preceding invariance proves \(p_{M_0}=p_{M_1}\), while the last display separates the target coordinate.  Both models use the original alphabets and belong to \(\mathfrak M\).  Finally, if every unchanged row is rational, the only new entries are zeros and ones, so both CPT families are rational.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the local countermodel compiler for failures caused by structural or sampling-support holes. \textit{Gap.} Classical hedge witnesses address positive-support latent confounding, while Chen and Darwiche use zero-parent-row changes inside a converse that may enlarge alphabets; this lemma preserves the prescribed alphabets. \textit{Consumer.} A failed guarded search can return an explicit diagnostic pair rather than the undifferentiated label \(\texttt{nonidentifiable}\).
+
+\begin{lemma}[lem:real-algebraic-separator]\label{lem:real-algebraic-separator}
+For every finite graph, fixed-alphabet, qualitative-functional input whose constraints have rational coefficients, if \(\mathcal S_{\mathrm{sep}}\ne\varnothing\), then \(\mathcal S_{\mathrm{sep}}\) contains a pair \(M_0,M_1\) all of whose CPT entries lie in the field of real algebraic numbers. Each entry therefore admits an integer minimal polynomial and rational root-isolation or Thom data, and equality of the observed laws and inequality of the intervention vectors admit exact real-closed-field verification.
+\end{lemma}
+\begin{proof}
+Let \(N\) be the finite number of scalar CPT entries in one copy of the parameterization.  Row nonnegativity and normalization are rational polynomial sign conditions.  For a declared functional row, the point-mass condition is the finite disjunction, over \(a\in\mathcal A_i\), of
+\[
+ \theta_i(a\mid u)=1,
+ \qquad
+ \theta_i(b\mid u)=0\quad(b\ne a).
+\]
+By causal factorization, every observational cell is a finite sum of degree-\(d\) monomials in CPT entries.  By truncated intervention semantics, every target cell is likewise a finite sum of monomials, with factors at \(T\) omitted.  Thus joint-treatment positivity, equality of the two observed laws, and inequality of the two target vectors are all finite Boolean combinations of rational-coefficient polynomial equalities and strict or weak inequalities.  In particular, nonemptiness of \(\mathcal S_{\mathrm{sep}}\) is the truth over the real numbers of an existential first-order sentence \(\Phi\) in \(2N\) variables with rational coefficients.
+
+The cited Tarski transfer lemma applies because both the real numbers and the field of real algebraic numbers are real closed and \(\Phi\) has only rational coefficients.  Hence
+\[
+ \mathbb R\models\Phi
+ \quad\Longrightarrow\quad
+ \mathbb R_{\mathrm{alg}}\models\Phi.
+\]
+Therefore, whenever \(\mathcal S_{\mathrm{sep}}\ne\varnothing\), it contains a pair whose every CPT entry is real algebraic.  Notice that this is an existence transfer after nonidentification has been established; it does not use quantifier elimination as an identification search.
+
+For each such entry \(\xi\), its monic minimal polynomial over the rationals can be cleared of denominators to obtain a primitive integer polynomial.  Characteristic zero makes that polynomial square-free.  Because it has finitely many real roots and the rationals are dense, rational endpoints can be chosen that isolate \(\xi\) from its other real roots; alternatively, the signs of the successive derivatives give Thom data selecting that root.  The cited exact-encoding lemma then supplies exact arithmetic and sign determination for rational polynomials evaluated at the finite algebraic tuple.  Applying it to the row constraints, the observed-law difference polynomials, and a target-coordinate difference polynomial verifies respectively
+\[
+ M_0,M_1\in\mathfrak M,
+ \qquad p_{M_0}=p_{M_1},
+ \qquad q_{M_0}\ne q_{M_1}.
+\]
+These are precisely the membership, equality, and separation checks required by the algebraic separating certificate.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The transfer principle for real closed fields converts existence of a separator over a rational semialgebraic instance into a finite exact algebraic certificate without claiming a rational witness. \textit{Gap.} Canonical response-function and polynomial-program representations establish semialgebraicity, but the proposed output contract needs the explicit certificate-level consequence that a nonempty rational separating set has an encodable real-algebraic point. \textit{Consumer.} The dosearch verifier can check a returned nonidentification pair exactly using minimal polynomials, isolating intervals, and polynomial sign evaluation.
+
+\begin{proposition}[prop:classical-id-embedding]\label{prop:classical-id-embedding}
+Suppose \(W=\varnothing\) and \(p(v)>0\) for every \(v\in\mathcal A_V\). Whenever \(\mathsf{ID}(G,V,T,Y)\) returns \(\phi_{\mathrm{ID}}(p)\), that functional is constant on every observed-law fiber of the fixed-alphabet class and can be represented by a support-guarded rational success certificate whose denominator guards are entailed by strict observational positivity. This implication is one-way: no converse from fixed-alphabet identification to classical ID is asserted. In the further special case \(H=\varnothing\), the certificate reduces to the ordinary truncated g-formula \(Q_M(t,y)=\sum_{a_{D\setminus(T\cup Y)}}\prod_{i\in D\setminus T}p(a_i\mid a_{\operatorname{pa}_G(i)})\).
+\end{proposition}
+\begin{proof}
+Fix a strictly positive observed law \(p\), meaning
+\[
+ p(v)>0\qquad\text{for every }v\in\mathcal A_V,
+\]
+and suppose \(W=\varnothing\).  Let \(M\in\mathfrak F(p)\).  Causal factorization and truncated intervention semantics make \(M\) a recursive latent-variable causal model compatible with the latent projection of \(G\) onto \(V\).  The cited soundness theorem for \(\mathsf{ID}\) therefore gives, coordinate by coordinate, whenever the algorithm succeeds,
+\[
+ Q_M(t,y)=\phi_{\mathrm{ID}}(p)(t,y).
+\]
+Thus, if \(M_1,M_2\in\mathfrak F(p)\),
+\[
+ q_{M_1}=\phi_{\mathrm{ID}}(p)=q_{M_2}.
+\]
+This proves constancy on the strictly positive observed-law fiber.  It proves only the stated sound implication from successful classical identification; no failure-to-nonidentification converse is used.
+
+It remains to build the support-guarded representation.  The successful \(\mathsf{ID}\) recursion described in the cited result uses finitely many marginalizations, products, and conditional-probability divisions.  Strict positivity of all joint observed cells implies positivity of every observed marginal, since for \(B\subseteq V\),
+\[
+ p(B=b)=\sum_{v:v_B=b}p(v)>0.
+\]
+Starting with the positive cells \(p(v)\), an induction over the successful recursion shows that every kernel entry being normalized is positive: finite products of positive entries are positive, and any nonempty finite marginal sum of positive entries is positive.  Hence each conditional-probability divisor is strictly positive.
+
+For a mechanical polynomial guard trace, place the finitely many rational-coefficient guards
+\[
+ p(v)>0,\qquad v\in\mathcal A_V,
+\]
+at the root.  At any later division, clear the already licensed positive denominators from its divisor.  The result is a rational-coefficient polynomial that is a nonempty sum of products of the guarded positive cells, and is therefore strictly positive.  Add that polynomial sign test immediately above the division.  Induction over the finite expression proves that every divisor has an ancestor guard whose conjunction entails its strict positivity.  The resulting finite decision DAG is a support-guarded rational success certificate and returns \(\phi_{\mathrm{ID}}(p)=q_M\).
+
+Finally suppose \(H=\varnothing\), so \(V=D\).  Strict positivity of \(p\) implies \(p(a_{\operatorname{pa}_G(i)})>0\) for every parent assignment.  Sum the causal product first over the descendants of \(i\) in reverse topological order; row normalization removes all their factors.  The factor at \(i\), which depends only on the retained values of \(i\) and its parents, can then be taken outside the remaining sum over nondescendants.  That remaining sum is the parent marginal, and therefore
+\[
+ p(a_i,a_{\operatorname{pa}_G(i)})
+ =\theta_i(a_i\mid a_{\operatorname{pa}_G(i)})
+  p(a_{\operatorname{pa}_G(i)}).
+\]
+Division is licensed by the positive parent marginal, and hence
+\[
+ \theta_i(a_i\mid a_{\operatorname{pa}_G(i)})
+ =p(a_i\mid a_{\operatorname{pa}_G(i)}).
+\]
+Substituting this equality into the truncated factorization and marginalizing the nonoutcome, nonintervened coordinates proves
+\[
+ Q_M(t,y)
+ =\sum_{a_{D\setminus(T\cup Y)}}
+   \prod_{i\in D\setminus T}
+   p(a_i\mid a_{\operatorname{pa}_G(i)}),
+\]
+with \(a_T=t\) and \(a_Y=y\) in every summand.  Every displayed conditional denominator is again licensed by strict observational positivity.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the valid sanity collapse: the guarded language contains every classical ID success, while fixed cardinalities are allowed to add identifications that a latent projection cannot see. \textit{Gap.} Shpitser--Pearl completeness concerns the saturated semi-Markovian model represented by an ADMG; fixed endogenous alphabets define a potentially smaller model class, so only the sound embedding of returned ID functionals transfers without an additional saturation hypothesis. \textit{Consumer.} A constrained dosearch mode can reuse every formula produced by its classical core and invoke the new search only after classical ID fails.
+
+\begin{theorem}[thm:binary-rectangle]\label{thm:binary-rectangle}
+In the fixed binary class \(\mathfrak M_{\mathrm w,X}\), where \(A=f(Z)\), suppose \(p_{\mathrm w}(X=x)>0\) for \(x\in\{0,1\}\). The sharp law-specific identified set of \((Q_{X,M}(0,1),Q_{X,M}(1,1))\) is exactly \(\mathcal I(p_{\mathrm w})=[L_0,L_0+M_0]\times[L_1,L_1+M_1]\). Every point of the rectangle is attained by a model using the original binary alphabets, and the vector is point identified if and only if \(p_{zx}>0\) for every \(z\) with \(p_z>0\) and every \(x\in\{0,1\}\).
+\end{theorem}
+\begin{proof}
+Apply the categorical hidden-functional sharp-region theorem with
+\(\mathcal Z=\mathcal B=\mathcal X=\mathcal Y=\{0,1\}\), with the four
+vertices and edges specified by \(G_{\mathrm w}\), observed set
+\(V_{\mathrm w}\), functional set \(W_{\mathrm w}\), singleton treatment
+set \(T_X\), and outcome set \(Y_{\mathrm w}^{\star}\).  The law
+\(p_{\mathrm w}\) is feasible because it is, by definition, induced by a
+model in \(\mathfrak M_{\mathrm w,X}\), and the assumed inequalities
+\(p_{\mathrm w}(X=x)>0\) are precisely singleton joint-treatment
+positivity for the two treatment values.
+
+For binary \(Y\), a probability vector is determined by its coordinate at
+\(Y=1\), and
+\[
+ \{L_x+M_xs:s\in\Delta(\{0,1\})\}_{Y=1}
+ =[L_x(1),L_x(1)+M_x].
+\tag{1}
+\]
+The categorical lower coordinate is
+\[
+ L_x(1)
+ =\sum_{z:p_{\mathrm w}(z,x)>0}
+ p_{\mathrm w}(z)\frac{p_{\mathrm w}(z,x,Y=1)}{p_{\mathrm w}(z,x)},
+\tag{2}
+\]
+where every division is guarded by \(p_{\mathrm w}(z,x)>0\), and its
+categorical missing mass is
+\[
+ M_x=\sum_{z:p_{\mathrm w}(z)>0,\ p_{\mathrm w}(z,x)=0}
+ p_{\mathrm w}(z).
+\tag{3}
+\]
+Equations (2)--(3) are exactly the quantities in
+Definition~\(\mathrm{def:binary\text{-}identified\text{-}region}\).
+Taking the Cartesian product of (1) for \(x=0,1\) therefore gives
+\[
+ \left\{\bigl(Q_{X,M}(0,1),Q_{X,M}(1,1)\bigr):
+ M\in\mathfrak M_{\mathrm w,X},\ p_M=p_{\mathrm w}\right\}
+ =[L_0,L_0+M_0]\times[L_1,L_1+M_1]
+ =\mathcal I(p_{\mathrm w}).
+\tag{4}
+\]
+The simultaneous-attainment part of the categorical theorem uses one
+common slack distribution for all functional-profile rows missing a given
+\(x\), independently across \(x\), and never changes an alphabet.  Hence
+every point of the rectangle in (4) is attained by a model on the original
+four binary alphabets.
+
+Because \(\lvert\mathcal Y\rvert=2\), the categorical collapse criterion
+says that (4) is a singleton if and only if \(M_0=M_1=0\).  Every summand
+in (3) is strictly positive, so \(M_x=0\) is equivalent to
+\(p_{\mathrm w}(z,x)>0\) for every \(z\) with
+\(p_{\mathrm w}(z)>0\).  Requiring this for both \(x=0,1\) proves the
+stated point-identification equivalence.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The rectangle is a nontrivial sharp boundary test that forces the general recursion to distinguish graphwide failure from law-specific identification. \textit{Gap.} Duarte et al. and Zhang et al. return numerical or polynomial-program characterizations for generic discrete bounds; this result is a closed, support-indexed vector region with simultaneous exact attainability. \textit{Consumer.} The example becomes a regression test for support-aware formula and countermodel output in dosearch.
+
+\begin{theorem}[thm:binary-joint-identification]\label{thm:binary-joint-identification}
+In the fixed binary class \(\mathfrak M_{\mathrm w,ZX}\), where \(A=f(Z)\), suppose \(p_{\mathrm w}(Z=z,X=x)>0\) for all \(z,x\). The full intervention distribution is graphwide identified by \(Q_{ZX,M}(z,x,y)=p_{\mathrm w}(Y=y\mid Z=z,X=x)\) for every \(z,x,y\).
+\end{theorem}
+\begin{proof}
+The binary witness is an instance of \(\mathrm{thm:categorical\text{-}joint\text{-}identification}\): take \(D=\{Z,A,X,Y\}\), take every alphabet to be \(\{0,1\}\), use the edge set of \(G_{\mathrm w}\), and set \(V=V_{\mathrm w}\), \(H=H_{\mathrm w}\), \(W=W_{\mathrm w}\), \(T=T_{ZX}\), and the outcome set to \(Y_{\mathrm w}^{\star}\).  By the definition of \(\mathfrak M_{\mathrm w,ZX}\), every \(M\in\mathfrak M_{\mathrm w,ZX}\) is then a model in the categorical theorem's class, and its observed marginal on \((Z,X,Y)\) is \(p_{\mathrm w}\).
+
+Consequently, for every \(z,x,y\in\{0,1\}\), that theorem supplies the strict guard
+\[
+ p_{\mathrm w}(Z=z,X=x)>0
+\]
+and the equation-by-equation identification
+\[
+\begin{aligned}
+ Q_{ZX,M}(z,x,y)
+ &=P_M(Y=y\mid do(Z=z,X=x))\\
+ &=\frac{p_{\mathrm w}(z,x,y)}{p_{\mathrm w}(z,x)}\\
+ &=p_{\mathrm w}(Y=y\mid Z=z,X=x).
+\end{aligned}
+\]
+The first equality is the definition of \(Q_{ZX,M}\); the second is the categorical theorem; and the third is the definition of conditional probability under the displayed positive-denominator guard.  The theorem's explicit support premise is therefore satisfied (and, in this class, redundant with joint-treatment positivity).
+
+If two binary models \(M,M'\in\mathfrak M_{\mathrm w,ZX}\) have the same observed law \(p_{\mathrm w}\), the middle ratio is common to both, so
+\[
+ Q_{ZX,M}(z,x,y)
+ =\frac{p_{\mathrm w}(z,x,y)}{p_{\mathrm w}(z,x)}
+ =Q_{ZX,M'}(z,x,y)
+\]
+for every \(z,x,y\).  Hence the full binary joint-intervention distribution is graphwide identified, as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This binary result is the smallest regression corollary of the arbitrary-categorical joint-intervention theorem and confirms the functional-node gain that ordinary ID on the projected bow misses. \textit{Gap.} Joint positivity implies Chen--Darwiche's separate marginal treatment positivity; the result is therefore a fixed-alphabet functional reduction, not a positivity-domain extension. \textit{Consumer.} A constrained dosearch implementation must return the guarded conditional formula on this binary regression case rather than the bow-graph failure produced by its classical core.
+
+\begin{theorem}[thm:branch-respecting-coverage]\label{thm:branch-respecting-coverage}
+Under independent multinomial sampling, the confidence map \(\mathcal C_{n,\alpha}\) contains the entire true target image \(\{q_M:M\in\mathfrak F(p)\}\) with probability at least \(1-\alpha\). In particular, empirical zero cells are never promoted to structural-zero guards unless every law in the simultaneous cell region has that zero.
+\end{theorem}
+\begin{proof}
+Let \(\mathcal I=\mathcal A_V\) be the finite observed-cell set and put \(K=|\mathcal I|\).  Every prescribed alphabet is finite and nonempty, so \(1\leq K<\infty\).  Also put \(\delta=\alpha/K\); the declared range \(0<\alpha<1\) gives \(0<\delta<1\).  For \(v\in\mathcal I\), define
+\[
+ N_v=\sum_{j=1}^n {\bf 1}\{O_j=v\}.
+\]
+By \(\mathrm{ass:iid\text{-}multinomial\text{-}sampling}\), marginally \(N_v\sim\operatorname{Bin}(n,p(v))\).  The counts need not be mutually independent in what follows.
+
+We first verify the finite-sample property of the intervals used in \(\mathrm{def:branch\text{-}confidence\text{-}map}\).  The two-sided Clopper--Pearson interval of individual noncoverage \(\delta\) is the inversion of the two exact one-sided binomial tests with tail levels \(\delta/2\).  Thus, if \(B_r\sim\operatorname{Bin}(n,r)\), its acceptance set after observing \(x\in\{0,\ldots,n\}\) is
+\[
+ I_\delta(x)
+ =\left\{r\in[0,1]:
+       \Pr(B_r\geq x)\geq\delta/2
+       \ \text{and}\ 
+       \Pr(B_r\leq x)\geq\delta/2
+   \right\}.
+\]
+This is an interval because the first displayed tail is nondecreasing in \(r\), whereas the second is nonincreasing in \(r\).  We give the coverage argument rather than invoke asymptotics.  Fix \(r\in[0,1]\), let \(B\sim\operatorname{Bin}(n,r)\), and set \(g(k)=\Pr(B\geq k)\).  Since \(g\) is nonincreasing in \(k\), the set
+\[
+ \{k:g(k)<\delta/2\}
+\]
+is either empty or is \(\{k_0,k_0+1,\ldots,n\}\) for its least element \(k_0\).  In the latter case,
+\[
+ \Pr\{g(B)<\delta/2\}=\Pr(B\geq k_0)=g(k_0)<\delta/2;
+\]
+in the former case the probability is zero.  Applying the same argument to the nondecreasing function \(h(k)=\Pr(B\leq k)\), the set \(\{k:h(k)<\delta/2\}\) is either empty or an initial set \(\{0,\ldots,k_1\}\); in the latter case its probability is \(\Pr(B\leq k_1)=h(k_1)<\delta/2\).  Thus
+\[
+ \Pr\{h(B)<\delta/2\}<\delta/2.
+\]
+Consequently, by the union bound,
+\[
+ \Pr_r\{r\notin I_\delta(B)\}
+ \leq
+ \Pr\{g(B)<\delta/2\}+\Pr\{h(B)<\delta/2\}
+ \leq\delta.
+\]
+The weak final inequality also covers the empty-set cases.  Substituting \(r=p(v)\) and \(B=N_v\) therefore yields
+\[
+ \Pr_p\{p(v)\notin I_\delta(N_v)\}\leq\delta
+ \qquad(v\in\mathcal I).
+\]
+
+Let
+\[
+ \mathcal E_n=\bigcap_{v\in\mathcal I}
+ \{p(v)\in I_\delta(N_v)\}.
+\]
+No independence among the \(N_v\)'s is needed for the Bonferroni bound
+\[
+ \Pr_p(\mathcal E_n^c)
+ \leq\sum_{v\in\mathcal I}
+       \Pr_p\{p(v)\notin I_\delta(N_v)\}
+ \leq K\delta=\alpha.
+\]
+Hence \(\Pr_p(\mathcal E_n)\geq1-\alpha\).
+
+Write \(\mathcal R_n\) for the simultaneous cell region after the two intersections prescribed by \(\mathrm{def:branch\text{-}confidence\text{-}map}\):
+\[
+ \mathcal R_n=
+ \left(\prod_{v\in\mathcal I}I_\delta(N_v)\right)
+ \cap\Delta(\mathcal I)
+ \cap\{p_{M'}:M'\in\mathfrak M(G,\mathcal A,V,W,T)\}.
+\]
+If \(\mathfrak F(p)=\varnothing\), then the asserted target image is empty and the desired inclusion is automatic.  Otherwise, take any \(M_0\in\mathfrak F(p)\).  By \(\mathrm{def:observed\text{-}fiber}\), \(p_{M_0}=p\), so \(p\) lies both in the simplex and in the feasible observed-law image.  On \(\mathcal E_n\), it also lies in every cell interval.  Therefore
+\[
+ p\in\mathcal R_n \qquad\text{on }\mathcal E_n.
+\]
+
+For clarity, the support branch of a model \(M'=(G,\mathcal A,\theta')\) is the row-support family
+\[
+ S(M')=\left(\{a\in\mathcal A_i:\theta'_i(a\mid u)>0\}\right)_{i\in D,\ u\in\mathcal A_{\operatorname{pa}_G(i)}}
+\]
+of \(\mathrm{def:support\text{-}stratum}\).  Each row is a probability vector, so every displayed support is nonempty; by qualitative functionality, its support is a singleton when \(i\in W\).  A branch \(S\) is compatible with \(\mathcal R_n\) precisely when there is a model \(M'\in\mathfrak M(G,\mathcal A,V,W,T)\) such that \(p_{M'}\in\mathcal R_n\) and \(S(M')=S\).  Now fix an arbitrary \(M\in\mathfrak F(p)\).  By \(\mathrm{def:observed\text{-}fiber}\), \(p_M=p\).  On \(\mathcal E_n\), we have proved that \(p\in\mathcal R_n\), and therefore \(S(M)\) is one of the compatible branches whose target images are unioned in \(\mathcal C_{n,\alpha}\).  In particular, \(M\) occurs in the target image attached to its own branch.  The definition of the confidence map therefore gives
+\[
+ q_M\in\mathcal C_{n,\alpha}.
+\]
+The event \(\mathcal E_n\) is common to all \(M\in\mathfrak F(p)\), so the preceding conclusion is simultaneous:
+\[
+ \{q_M:M\in\mathfrak F(p)\}
+ \subseteq\mathcal C_{n,\alpha}
+ \qquad\text{on }\mathcal E_n.
+\]
+Combining this inclusion with \(\Pr_p(\mathcal E_n)\geq1-\alpha\) proves the first assertion.  Notice that no equality between the observed law \(p\) and the causal target \(q_M\) has been assumed: the conclusion follows by retaining the target image of every causal model whose observed law remains in \(\mathcal R_n\).
+
+It remains to verify the stated guard behavior.  If \(N_v=0\), the lower endpoint of \(I_\delta(0)\) is zero and its upper endpoint \(u\) is determined by
+\[
+ \Pr\{\operatorname{Bin}(n,u)\leq0\}
+ =(1-u)^n=\delta/2,
+\]
+namely
+\[
+ u=1-(\delta/2)^{1/n}>0,
+\]
+where \(n\geq1\) and \(0<\delta/2<1\) justify the root and the strict inequality.  Thus an empirical zero does not by itself force the corresponding population cell to vanish.  After intersection with the simplex and the feasible observed-law image, suppose that some \(r\in\mathcal R_n\) has \(r(v)>0\).  Feasibility supplies a model \(M'\in\mathfrak M(G,\mathcal A,V,W,T)\) with \(p_{M'}=r\).  Its branch \(S(M')\) is compatible and is retained in the defining union for \(\mathcal C_{n,\alpha}\), while the observed-cell guard \(p_{M'}(v)=0\) is false on that retained branch.  Hence a structural-zero guard for cell \(v\) can hold across the confidence map only if
+\[
+ \forall r\in\mathcal R_n,\qquad r(v)=0.
+\]
+This is exactly the second assertion.  The argument uses neither division by an observed cell probability nor a limiting operation, so it requires no additional support, rank, overlap, boundary, or regularity condition beyond the stated finiteness, \(n\geq1\), and \(0<\alpha<1\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Finite-sample validity must respect uncertainty about which support branch is active rather than conditioning on empirical zeros. \textit{Gap.} Hwang et al. analyze population well-definedness and Jung et al. estimate a fixed formula; neither covers sampling-valid inference after support-dependent formula selection. \textit{Consumer.} Users of dosearch obtain a conservative confidence object even when sparse cells make the active identification branch uncertain.
+
+\begin{theorem}[thm:regular-branch-wald]\label{thm:regular-branch-wald}
+For the point-identified branch of \(G_{\mathrm w}\), if every active \(p_{zx}\ge\epsilon\), then \(\sqrt n(\widehat q-q)\Rightarrow\mathcal N(0,J\Sigma(p)J^{\mathsf T})\), where \(J\) is the Jacobian of the guarded standardization circuit on that fixed support face. The plug-in covariance is consistent, and every contrast with positive limiting variance has asymptotically exact Wald coverage \(1-\alpha\).
+\end{theorem}
+\begin{proof}
+Write
+\[
+q=\bigl(Q_{X,M}(0,1),Q_{X,M}(1,1)\bigr)^{\mathsf T},
+\qquad
+\widehat q=(\widehat q_0,\widehat q_1)^{\mathsf T}.
+\]
+Let the eight observed cells be indexed by \(v=(z,x,y)\), and define the
+indicator vector \(R_k=(\mathbf 1\{O_k=v\})_v\).  By the independent
+multinomial-sampling assumption,
+\[
+\widehat p=\frac1n\sum_{k=1}^nR_k,
+\qquad
+\mathbb E[R_k]=p,
+\qquad
+\operatorname{Cov}(R_k)=\operatorname{diag}(p)-pp^{\mathsf T}=\Sigma(p).
+\tag{10}
+\]
+The vectors are bounded and hence have finite second moments.  Applying
+Lemma~\texttt{lem:multivariate-central-limit} to (10) yields
+\[
+\sqrt n(\widehat p-p)\Rightarrow
+\mathcal N\bigl(0,\Sigma(p)\bigr).
+\tag{11}
+\]
+
+Let \(S=\{z:p_z>0\}\).  On the point-identified branch,
+Theorem~\texttt{thm:binary-rectangle} implies
+\(p_{zx}>0\) for every \(z\in S\) and \(x\in\{0,1\}\); the fixed-support
+margin strengthens these inequalities to \(p_{zx}\ge\epsilon\).  For a
+real cell vector \(r=(r_{zxy})\), write
+\(r_z=\sum_{x,y}r_{zxy}\), \(r_{zx}=\sum_yr_{zxy}\), and define, on
+\[
+\mathcal U=\{r:r_{zx}>\epsilon/2
+\text{ for all }z\in S,\ x\in\{0,1\}\},
+\]
+the guarded standardization map
+\[
+g_x(r)=\sum_{z\in S}r_z\frac{r_{zx1}}{r_{zx}},
+\qquad
+g(r)=(g_0(r),g_1(r))^{\mathsf T}.
+\tag{12}
+\]
+Every denominator in (12) is positive on \(\mathcal U\), so \(g\) is a
+rational, continuously differentiable map there.  Theorem
+\texttt{thm:binary-rectangle} gives \(g(p)=q\).  Its ambient Jacobian
+\(J=Dg(p)\) is computable cell by cell: with
+\(m_{ax}=p_{ax1}/p_{ax}\),
+\[
+J_{x,(a,b,c)}
+=\mathbf 1\{a\in S\}
+\left[
+m_{ax}
++\mathbf 1\{b=x\}p_a
+\frac{\mathbf 1\{c=1\}p_{ax}-p_{ax1}}{p_{ax}^2}
+\right].
+\tag{13}
+\]
+The guards \(p_{ax}\ge\epsilon\) justify both divisions in (13).
+
+For completeness, \(\widehat p\to p\) in probability follows directly from
+the sampling assumption: each cell frequency has variance at most \(1/(4n)\),
+so Chebyshev's inequality followed by a union bound over eight cells makes
+\(\max_v|\widehat p_v-p_v|\to0\) in probability.  Hence
+\(P(\widehat p\in\mathcal U)\to1\).  If \(z\notin S\), then \(P(Z=z)=0\),
+so its empirical cells are zero almost surely.  Consequently, on
+\(\{\widehat p\in\mathcal U\}\), Definition
+\texttt{def:binary-estimator} agrees exactly with (12):
+\[
+\widehat q=g(\widehat p).
+\tag{14}
+\]
+The arbitrary bounded convention on the complementary zero-denominator
+event is therefore used with probability tending to zero.
+
+Apply Lemma~\texttt{lem:finite-dimensional-delta-method} to (11)--(12).
+Together with (14), which can alter expectations of a bounded continuous
+test function by at most twice its supremum times
+\(P(\widehat p\notin\mathcal U)\), this gives
+\[
+\sqrt n(\widehat q-q)
+\Rightarrow
+\mathcal N\bigl(0,J\Sigma(p)J^{\mathsf T}\bigr).
+\tag{15}
+\]
+
+To make the covariance assertion explicit, let \(J(r)=Dg(r)\) on
+\(\mathcal U\), and define the plug-in matrix
+\[
+\widehat V=J(\widehat p)\Sigma(\widehat p)J(\widehat p)^{\mathsf T}
+\tag{16}
+\]
+there, and set \(\widehat V=0\) off \(\mathcal U\).  Both \(J(r)\) and
+\(\Sigma(r)=\operatorname{diag}(r)-rr^{\mathsf T}\) are continuous at
+\(p\).  The elementary epsilon--delta definition of continuity and
+\(\widehat p\to p\), together with
+\(P(\widehat p\in\mathcal U)\to1\), therefore imply
+\[
+\widehat V\mathrel{\mathop{\longrightarrow}^{p}}
+V:=J\Sigma(p)J^{\mathsf T}.
+\tag{17}
+\]
+
+Finally fix any nonrandom contrast \(c\in\mathbb R^2\) whose limiting
+variance \(\sigma_c^2=c^{\mathsf T}Vc\) is strictly positive.  By (17),
+\(\widehat\sigma_c^2=c^{\mathsf T}\widehat Vc\to_p\sigma_c^2\), so its
+nonnegative square root is also consistent and is positive with probability
+tending to one.  Lemma~\texttt{lem:studentized-wald-coverage}, applied to
+(15) and (17), gives
+\[
+\frac{\sqrt n\,c^{\mathsf T}(\widehat q-q)}{\widehat\sigma_c}
+\Rightarrow\mathcal N(0,1).
+\tag{18}
+\]
+If \(z_{1-\alpha/2}\) is the \((1-\alpha/2)\)-quantile of the standard
+normal law, its continuity and \(\alpha\in(0,1)\) yield
+\[
+P\!\left(
+c^{\mathsf T}q\in
+\left[c^{\mathsf T}\widehat q
+\mathbin{-}z_{1-\alpha/2}\frac{\widehat\sigma_c}{\sqrt n},
+c^{\mathsf T}\widehat q
+\mathbin{+}z_{1-\alpha/2}\frac{\widehat\sigma_c}{\sqrt n}
+\right]
+\right)\longrightarrow1-\alpha.
+\tag{19}
+\]
+The strict inequality \(\sigma_c^2>0\) is exactly the nondegeneracy
+condition required for the division in (18); no Wald assertion is made for
+a zero-variance contrast.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} On stable support faces the piecewise problem must collapse to ordinary smooth multinomial inference with no nonregularity tax. \textit{Gap.} DML-ID supplies asymptotic normality for fixed identifying functionals, while the proposed result derives the exact multinomial collapse for a support-selected branch and pairs it with the branch-respecting procedure at the boundary. \textit{Consumer.} Applied users receive standard errors and familiar Wald intervals whenever the data-generating support is separated from a guard switch.
+
+\begin{lemma}[lem:tarski-transfer-rational-sentences]\label{lem:tarski-transfer-rational-sentences}
+\texttt{Every first-\allowbreak{}order sentence in the language of ordered fields with rational coefficients has the same truth value in the real numbers and in the field of real algebraic numbers.}
+\end{lemma}
+
+\begin{lemma}[lem:real-algebraic-exact-encoding]\label{lem:real-algebraic-exact-encoding}
+\texttt{Every real algebraic number can be encoded by an integer polynomial together with a rational isolating interval or a Thom encoding,\allowbreak{} and the sign of a rational-\allowbreak{}coefficient polynomial at any finite tuple of so encoded real algebraic numbers is exactly decidable.}
+\end{lemma}
+
+\begin{lemma}[lem:id-soundness-rational-structure]\label{lem:id-soundness-rational-structure}
+For a recursive causal model \(M\) represented by a latent-variable DAG \(G\), whenever \(\mathsf{ID}\) on the latent projection onto \(V\) returns \(\phi_{\mathrm{ID}}(p)\) for the query \(Q_M(t,y)\), its value equals \(Q_M(t,y)\).  Every successful return is a finite expression obtained from the observational law by marginalization, multiplication, and conditional-probability division.
+\end{lemma}
+
+\begin{lemma}[lem:multivariate-central-limit]\label{lem:multivariate-central-limit}
+Let \(R_1,R_2,\ldots\) be independent and identically distributed random
+vectors in \(\mathbb R^k\) with mean \(\mu\) and finite covariance matrix
+\(\Gamma\).  As \(N\to\infty\),
+\[
+\sqrt N\left(N^{-1}\sum_{j=1}^N R_j-\mu\right)
+\Rightarrow\mathcal N_k(0,\Gamma).
+\]
+\end{lemma}
+
+\begin{lemma}[lem:finite-dimensional-delta-method]\label{lem:finite-dimensional-delta-method}
+Let \(\phi:D_\phi\subseteq\mathbb R^k\to\mathbb R^m\) be differentiable at
+\(\vartheta\), let \(T_N\) take values in \(D_\phi\), and let
+\(r_N\to\infty\).  If \(r_N(T_N-\vartheta)\Rightarrow T\), then
+\[
+r_N\bigl(\phi(T_N)-\phi(\vartheta)\bigr)
+\Rightarrow D\phi(\vartheta)T,
+\]
+and the difference between the left side and
+\(D\phi(\vartheta)r_N(T_N-\vartheta)\) converges to zero in probability.
+\end{lemma}
+
+\begin{lemma}[lem:studentized-wald-coverage]\label{lem:studentized-wald-coverage}
+Suppose that
+\(\sqrt N(T_N-\vartheta)\Rightarrow\mathcal N(0,\sigma^2)\) with
+\(\sigma>0\), and that \(S_N\to_p\sigma\).  Then
+\(\sqrt N(T_N-\vartheta)/S_N\Rightarrow\mathcal N(0,1)\), and the
+two-sided interval
+\[
+\left[T_N-z_{1-\alpha/2}S_N/\sqrt N,
+T_N+z_{1-\alpha/2}S_N/\sqrt N\right]
+\]
+has limiting coverage \(1-\alpha\) for every \(\alpha\in(0,1)\).
+\end{lemma}
+
+\begin{theorem}[thm:fixed-alphabet-four-output-front-end]\label{thm:fixed-alphabet-four-output-front-end}
+For every finite rational-coefficient input \((G,\mathcal A,V,W,T,Y)\), the corrected guarded-district handle defines a terminating four-output fixed-alphabet front end \(\mathsf{F\text{-}ID}^{+}\). It first returns the feasibility or infeasibility certificate of Theorem \(\mathrm{thm:feasibility\text{-}certificate}\). Conditional on feasibility, it enumerates functional-map and row-support strata, compiles their observable supports into guards in \(p\), and does exactly one of the following: (i) if every feasible observable-support branch is covered by a coefficient-verified conditional-event-ratio formula or by the one-way classical-\(\mathsf{ID}\) embedding, it returns a support-guarded rational certificate \(C\) for the complete intervention vector \(q_M\) for every \(M\in\mathfrak M(G,\mathcal A,V,W,T)\); (ii) if an observationally unreachable parent row is target-relevant, it returns an original-alphabet rational separating certificate \(\mathsf{Sep}\); or (iii) it returns the already-certified success leaves together with an exact residual positive-support semialgebraic fiber formula and makes no identification verdict on that formula. More precisely, after target-inert unreachable rows have been fixed canonically and \(\mathcal U\) denotes the remaining unresolved strata, the residual output is
+\[
+ \Psi_{\mathcal U}(p)
+ :=
+ \bigvee_{s_0,s_1\in\mathcal U}
+ \exists\theta^{(0)},\theta^{(1)}
+ \left\{
+ \begin{aligned}
+ &\overline\Phi_{s_0}(\theta^{(0)})\wedge
+   \overline\Phi_{s_1}(\theta^{(1)})\\
+ &{}\wedge\bigwedge_{v\in\mathcal A_V}
+   \bigl(P_{\theta^{(0)}}(v)=p(v)=P_{\theta^{(1)}}(v)\bigr)\\
+ &{}\wedge\bigvee_{t\in\mathcal A_T,\,y\in\mathcal A_Y}
+   \bigl(Q_{\theta^{(0)}}(t,y)\ne Q_{\theta^{(1)}}(t,y)\bigr).
+ \end{aligned}
+ \right.
+\]
+Here every free, noncanonical row in \(\overline\Phi_s\) has a strictly positive observational parent-configuration probability. The formula \(\Psi_{\mathcal U}(p)\) is true exactly when the unresolved part of the fiber at \(p\) contains two models with different targets. The procedure neither decides \(\Psi_{\mathcal U}\) nor invokes generic real quantifier elimination to search for an identification verdict; if satisfiability is established independently, the real-algebraic separator lemma converts it to an exactly encodable algebraic pair.
+
+Let \(B=F2^K\). A direct implementation uses
+\[
+ \begin{aligned}
+ \mathcal T={}&O\!\left(FJ_T(d+m)h+FR+4^d(d+m+h)\right)\\
+ &{}+O\!\left(BJ_T(d+m)\left[h^3 4^d6^h+Rh^4(d+1)^K\right]\right)\\
+ &{}+O\!\left(B^2\left[2R+4K+2J_T+(2h+2J_Th)dh\right]\right)
+ \end{aligned}
+\]
+table and exact rational-arithmetic operations and has output length \(O(\mathcal T)\) rational words. Since \(R\le K\le dh\), this is an explicit elementary bound in \(F,J_T,2^K,h,d,m\). In the expanded residual formula there are at most \(2K\le2dh\) existential CPT variables, at most \(h\) free observed-law coordinates, at most \(B^2\) stratum-pair disjuncts, and at most
+\[
+ B^2\bigl(2R+4K+2J_T+2h+2J_Th\bigr)
+\]
+polynomial sign atoms. Their degrees are at most \(d\), and their integer coefficient bit heights are at most \(\lceil\log_2(2h+1)\rceil\). A support-hole pair constructed by the scan has CPT denominators dividing \(L=h(d+1)+1\), so its CPT-entry bit height is at most \(\lceil\log_2 L\rceil+1\), while direct exact checks of its observed and intervention polynomials have bit length \(O(d\log L+\log h)\). Thus this theorem proves a total exact four-output front end, not the stronger universal success-or-countermodel dichotomy.
+\end{theorem}
+\begin{proof}
+Write \(N_V=|\mathcal A_V|\) and \(N_q=|\mathcal A_T||\mathcal A_Y|\). Since \(\mathcal A_V\) and \(\mathcal A_Y\) are coordinate projections of \(\Omega\),
+\[
+ N_V\le h,
+ \qquad
+ N_q=J_T|\mathcal A_Y|\le J_Th.
+ \tag{1}
+\]
+For a CPT family \(\theta\), define the observational and interventional network polynomials
+\[
+ P_\theta(v)
+ =\sum_{a_D:\,a_V=v}\prod_{i\in D}
+   \theta_i(a_i\mid a_{\operatorname{pa}_G(i)}),
+ \tag{2}
+\]
+and
+\[
+ Q_\theta(t,y)
+ =\sum_{a_{D\setminus(T\cup Y)}}
+   \prod_{i\in D\setminus T}
+   \theta_i(a_i\mid a_{\operatorname{pa}_G(i)}),
+ \tag{3}
+\]
+where the coordinates in \(T\cup Y\) are fixed at \((t,y)\) in (3), and all unreported hidden or observed coordinates are summed. Assumption \(\mathrm{ass:causal\text{-}factorization}\) makes (2) equal to the observed marginal \(p_M(v)\), and Assumption \(\mathrm{ass:truncated\text{-}intervention}\) makes (3) equal to the causal target coordinate \(Q_M(t,y)\). Thus the causal target is not defined by any expression below; equality with an observed-law expression must be proved from (2)--(3).
+
+First run the functional-map feasibility enumerator. By Theorem \(\mathrm{thm:feasibility\text{-}certificate}\), this terminates in
+\[
+ O\!\left(FJ_T(d+m)h+FR\right)
+ \tag{4}
+\]
+table operations. On failure it gives the asserted polynomial contradiction to joint-treatment positivity; on success it gives a rational original-alphabet member of \(\mathfrak M\). This proves the first output and permits us henceforth to assume that the class is feasible.
+
+For each deterministic map tuple \(f\) allowed by Assumption \(\mathrm{ass:qualitative\text{-}functionality}\), enumerate every row-support pattern \(S\) from Definition \(\mathrm{def:support\text{-}stratum}\). Let \(\Theta_{f,S}\) be the relatively open product of row simplexes obtained by fixing the functional rows according to \(f\), setting entries outside \(S\) to zero, requiring entries in \(S\) to be strictly positive, and imposing every row-sum equation. There are at most
+\[
+ B:=F2^K
+ \tag{5}
+\]
+enumerated pairs \((f,S)\). Discard a pair if some \(t\in\mathcal A_T\) has no compatible complete assignment. By Lemma \(\mathrm{lem:support\text{-}propagation}\), such a pair has \(P_\theta(T=t)=0\) throughout its stratum and is excluded by Assumption \(\mathrm{ass:joint\text{-}treatment\text{-}positivity}\). Conversely, if every \(t\) has a compatible complete assignment, every \(\theta\in\Theta_{f,S}\) has \(P_\theta(T=t)>0\), again by that lemma. Hence the retained strata partition the feasible CPT parameter space.
+
+For a retained stratum define
+\[
+ \mathcal B(f,S)
+ :=\{v\in\mathcal A_V:\text{a compatible complete assignment extends }v\}.
+ \tag{6}
+\]
+Lemma \(\mathrm{lem:support\text{-}propagation}\), applied to (2), gives the equivalence
+\[
+ v\in\mathcal B(f,S)
+ \quad\Longleftrightarrow\quad
+ P_\theta(v)>0
+ \qquad(\theta\in\Theta_{f,S}).
+ \tag{7}
+\]
+Thus the observable-support branch \(\mathcal B\subseteq\mathcal A_V\) is selected by the rational-coefficient guards
+\[
+ p(v)>0\quad(v\in\mathcal B),
+ \qquad
+ p(v)=0\quad(v\notin\mathcal B).
+ \tag{8}
+\]
+There are at most \(2^{N_V}\le2^h\) such branches, and reachability decides (6) without division.
+
+We next describe the finite guarded success lane. For observed-cell events \(E_1\subseteq E_0\subseteq\mathcal A_V\), put
+\[
+ P_\theta(E_j)=\sum_{v\in E_j}P_\theta(v),
+ \qquad j\in\{0,1\}.
+ \tag{9}
+\]
+There are at most \(3^{N_V}\le3^h\) ordered pairs \((E_1,E_0)\). If \(E_0\cap\mathcal B\ne\varnothing\), (7)--(8) entail
+\[
+ P_\theta(E_0)=\sum_{v\in E_0}p(v)>0,
+ \tag{10}
+\]
+so this exact guard licenses division. Parameterize every nonfunctional row of \(\Theta_{f,S}\) by all but one of its supported probabilities and substitute the last probability as one minus their sum. Equations (2), (3), and (9) then become rational-coefficient polynomials in at most \(K\) free coordinates. For a target coordinate \(\ell=(t,y)\), the assertion
+\[
+ Q_\theta(\ell)
+ =\frac{P_\theta(E_1)}{P_\theta(E_0)}
+ \tag{11}
+\]
+on that stratum is equivalent, by the positive denominator (10), to the polynomial identity
+\[
+ Q_\theta(\ell)P_\theta(E_0)-P_\theta(E_1)\equiv0.
+ \tag{12}
+\]
+Identity (12) is decided by exact coefficient comparison, not by quantifier elimination. If it holds for every retained stratum having observable support \(\mathcal B\), then (2)--(3) prove (11) for every model in that observed-law branch. Choosing one such pair for every \(\ell\) gives a complete rational leaf for \(q\), and (10) licenses every denominator mechanically. In addition, when \(W=\varnothing\), \(\mathcal B=\mathcal A_V\), and classical \(\mathsf{ID}\) succeeds, Proposition \(\mathrm{prop:classical\text{-}id\text{-}embedding}\) supplies its finite guarded rational leaf. Memoizing the classical recursion over pairs of vertex subsets uses at most \(4^d\) states, hence at most \(O(4^d(d+m+h))\) elementary graph and circuit operations. If all feasible branches receive complete leaves, (8), (10)--(12), and the cited proposition give the certificate \(C\) in output (i).
+
+It remains to scan the unresolved strata for an exact support-hole witness. Fix a row \(\rho=(i,u)\) for which the parent event \(\{\operatorname{pa}_G(i)=u\}\) is observationally unreachable according to Lemma \(\mathrm{lem:support\text{-}propagation}\). For states \(a,b\in\mathcal A_i\) and a target coordinate \(\ell\), leave all other rows free in the preceding simplex coordinates and form
+\[
+ D_{\rho,a,b,\ell}(x)
+ :=Q_{\theta(x,\rho=e_a)}(\ell)
+   -Q_{\theta(x,\rho=e_b)}(\ell),
+ \tag{13}
+\]
+where \(e_a,e_b\) are simplex vertices. This is an explicitly computable rational-coefficient polynomial of degree at most \(d\). If it is not the zero polynomial, set
+\[
+ L=h(d+1)+1,
+ \qquad
+ \mathcal G=\left\{\frac1L,\frac2L,\ldots,\frac{d+1}{L}\right\}.
+ \tag{14}
+\]
+Every Cartesian grid point in \(\mathcal G^K\), restricted to the actually present free coordinates, lies in the relevant product of open simplexes: a row has at most \(h-1\) free coordinates and therefore their sum is at most \((h-1)(d+1)/L<1\). A nonzero polynomial having degree at most \(d\) in each coordinate cannot vanish on all of \(\mathcal G^K\). Indeed, induction on the number of coordinates reduces this assertion to the elementary fact that a nonzero univariate polynomial of degree at most \(d\) has at most \(d\) roots. Hence exact grid evaluation finds \(x^\star\) with
+\[
+ D_{\rho,a,b,\ell}(x^\star)\ne0.
+ \tag{15}
+\]
+The parent event of \(\rho\) has probability zero, so changing only that row leaves every monomial contributing to (2), and hence the entire observed law, unchanged. Joint-treatment positivity is therefore unchanged as well. Moreover, (3) does not contain a row at an intervened vertex; hence (15) implies \(i\notin T\), as required by the support-hole lemma. Equation (15) and the truncated product (3) show that the two targets differ. Lemma \(\mathrm{lem:support\text{-}hole\text{-}separator}\) now gives two original-alphabet models in \(\mathfrak M\), and the construction (14) makes every unchanged nonfunctional entry rational while \(e_a,e_b\) are rational vertices. Thus output (ii) is an exact rational \(\mathsf{Sep}\), not merely an existence assertion.
+
+Suppose the scan finds no nonzero polynomial (13). The truncated product is affine in the entries of any one row, because a product term contains exactly one entry from that row. Consequently, equality of (13) for every pair of simplex vertices implies, coordinate by coordinate, that \(q\) is constant over the whole row simplex. Observational unreachability already makes \(p\) constant over that row. For a nonfunctional row we may therefore replace it by the uniform distribution on its existing support \(S_{i,u}\); this remains in the same support stratum. A functional row is already a fixed singleton in its map stratum and requires no replacement. Repeating this operation within each stratum yields semialgebraic strata \(\overline\Phi_s\) in which every row that remains free has a strictly positive observational parent event. This is the asserted positive-support qualification; unreachable rows have not been assumed positive but have been fixed only after their target-inertness was proved.
+
+Let \(\mathcal U\) be the canonical unresolved strata whose observable branches did not receive a complete success leaf. The displayed formula \(\Psi_{\mathcal U}(p)\) is obtained by inserting two copies of (2)--(3), two canonical stratum formulas, equality to the same observed-law coordinates, and a finite disjunction of target-coordinate inequalities. Therefore
+\[
+ \Psi_{\mathcal U}(p)
+ \quad\Longleftrightarrow\quad
+ \exists M_0,M_1\text{ represented in unresolved strata such that }
+ p_{M_0}=p_{M_1}=p,
+ \ q_{M_0}\ne q_{M_1}.
+ \tag{16}
+\]
+The forward implication reads the witnesses from the formula. For the reverse implication, canonicalize every unreachable target-inert row in both models; the preceding argument preserves both laws and both targets and places the resulting pair in two members of \(\mathcal U\). This proves (16). If (16) is later shown satisfiable, then \(\mathcal S_{\mathrm{sep}}\ne\varnothing\), and Lemma \(\mathrm{lem:real\text{-}algebraic\text{-}separator}\) supplies an exactly encodable real-algebraic pair. The front end itself only emits (16) and makes neither the positive nor the negative identification inference.
+
+We verify the quantitative claims. A polynomial in (12) is a product or difference of network polynomials with at most \(h\) assignment monomials and degree at most \(2d\); after the simplex substitution it has at most the coarse expansion factor \(4^d\). Using (1), (5), at most \(2^h\) observable branches, and at most \(3^h\) event pairs, all coefficient tests cost at most
+\[
+ O\!\left(BJ_T(d+m)h^3 4^d6^h\right).
+ \tag{17}
+\]
+There are at most \(R\) rows, at most \(h^2\) ordered state pairs per row, and \(N_q\le J_Th\) target coordinates. Evaluating (13) on at most \((d+1)^K\) grid points costs at most
+\[
+ O\!\left(BJ_TR(d+m)h^4(d+1)^K\right).
+ \tag{18}
+\]
+For every vertex \(i\), both \(r_i\le h\) and \(|\mathcal A_i|r_i\le h\), because the corresponding products range over subsets of the factors defining \(h\). Hence
+\[
+ R\le K\le dh.
+ \tag{19}
+\]
+Combining (4), (17)--(19), and the memoized classical lane gives the first two lines of \(\mathcal T\) and their advertised bound in the declared parameters.
+
+Finally, \(\Psi_{\mathcal U}\) has two copies of at most \(K\) raw CPT variables and at most \(N_V\le h\) free coordinates of \(p\). There are at most \(B^2\) stratum pairs. Within one pair, two row-normalization and support/canonical blocks use at most \(2R+4K\) atoms, two joint-positivity blocks use \(2J_T\), equality of each model's observed law to \(p\) uses at most \(2h\), and writing every nonzero target difference as the disjunction of its positive and negative signs uses at most \(2J_Th\). This proves the stated atom count. Equations (2)--(3) have degree at most \(d\). Their uncollected network coefficients are \(0,1\), or \(-1\); collecting assignment terms gives magnitude at most \(2h\). Clearing the denominator of a canonical uniform-row equation introduces an integer coefficient no larger than \(|S_{i,u}|\le h\). Thus every coefficient has bit height at most \(\lceil\log_2(2h+1)\rceil\). Encoding each network atom by at most \(h\) monomials of length at most \(d\) gives the third line of \(\mathcal T\), and all other returned objects have no larger encoding than the work used to construct them. This proves termination, soundness of every decisive output, exactness of the residual characterization, and the claimed elementary output bound. It deliberately does not prove the missing universal fixed-alphabet dichotomy.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proved object is a terminating and exactly checkable fixed-alphabet front end: it certifies feasibility, compiles guarded successes when finite coefficient identities prove them, constructs rational support-hole countermodels, and isolates every remaining case in one explicit doubled-fiber formula. \textit{Gap.} The theorem does not decide the residual positive-support formula and therefore does not prove the universal same-alphabet success-or-countermodel dichotomy. No cited converse currently supplies that missing step without alphabet enlargement or generic quantifier-elimination search. \textit{Consumer.} The CRAN \(\texttt{dosearch}\) engine can implement the finite feasibility, observable-support, guarded-ratio, and support-hole lanes now, return the residual formula on undecided instances, and avoid reporting an unsupported identification or nonidentification verdict.
+
+\begin{theorem}[thm:categorical-hidden-functional-sharp-region]\label{thm:categorical-hidden-functional-sharp-region}
+Let \(i_Z,i_A,i_X,i_Y\) be distinct vertices and suppose
+\(D=\{i_Z,i_A,i_X,i_Y\}\), the edge set of \(G\) is exactly
+\[
+\{i_Z\mathbin{\to} i_A,\ i_A\mathbin{\to} i_X,
+  \ i_A\mathbin{\to} i_Y,\ i_X\mathbin{\to} i_Y\},
+\]
+\(V=\{i_Z,i_X,i_Y\}\), \(W=\{i_A\}\), \(T=\{i_X\}\), and
+\(Y=\{i_Y\}\).  Put
+\(\mathcal Z=\mathcal A_{i_Z}\), \(\mathcal B=\mathcal A_{i_A}\),
+\(\mathcal X=\mathcal A_{i_X}\), and \(\mathcal Y=\mathcal A_{i_Y}\).
+Let \(p\) be a probability law on
+\(\mathcal Z\times\mathcal X\times\mathcal Y\).  Put
+\(p_X(x)=\sum_{z,y}p(z,x,y)\), and assume \(p_X(x)>0\) for every
+\(x\in\mathcal X\).  Write
+\(p(z)=\sum_{x,y}p(z,x,y)\) and \(p(z,x)=\sum_y p(z,x,y)\).  Under
+the displayed guards define
+\[
+ e_z(x)=\frac{p(z,x)}{p(z)}\quad\text{when }p(z)>0,
+ \qquad
+ m_{zx}(y)=\frac{p(z,x,y)}{p(z,x)}\quad\text{when }p(z,x)>0.
+\]
+For each \(z\) with \(p(z)>0\), define its observed profile by
+\[
+ \rho_z=\bigl(e_z,(m_{zx})_{x:e_z(x)>0}\bigr).
+\]
+Thus \(\rho_z=\rho_{z'}\) means that \(e_z=e_{z'}\) and that
+\(m_{zx}=m_{z'x}\) for every \(x\) in their common positive support.  Let
+\(\mathcal R(p)=\{\rho_z:p(z)>0\}\), and define
+\[
+ L_x(y)=\sum_{z:p(z,x)>0}p(z)m_{zx}(y),
+ \qquad
+ M_x=\sum_{z:p(z)>0,\ p(z,x)=0}p(z).
+\]
+Then the following conclusions hold.
+\begin{enumerate}
+\item The law \(p\) is the observed marginal of a model in
+\(\mathfrak M(G,\mathcal A,V,W,T)\) if and only if
+\(\lvert\mathcal R(p)\rvert\leq\lvert\mathcal B\rvert\).  Given an
+injection \(\kappa:\mathcal R(p)\to\mathcal B\), an explicit realizing
+model sends every positive-mass \(z\) to
+\(f(z)=\kappa(\rho_z)\), uses the root row
+\(\theta_{i_Z}(z)=p(z)\), uses
+\(\theta_{i_X}(\cdot\mid\kappa(\rho_z))=e_z\), and on reached treatment
+rows uses \(\theta_{i_Y}(\cdot\mid\kappa(\rho_z),x)=m_{zx}\).  Zero-root-mass,
+unused-state, and unreached outcome rows may be filled by arbitrary
+probability vectors.  If \(p\) is rational, all arbitrary rows can be
+chosen rational, giving a rational realizing model on the original
+alphabets.
+\item On every feasible law, the sharp identified set of the full
+single-treatment intervention vector is
+\[
+ \mathcal Q(p)
+ :=\left\{\bigl(Q_M(x,\cdot)\bigr)_{x\in\mathcal X}:
+ M\in\mathfrak M(G,\mathcal A,V,W,T),\ p_M=p\right\}
+ =\prod_{x\in\mathcal X}\bigl(L_x+M_x\Delta(\mathcal Y)\bigr),
+\]
+where \(L_x=(L_x(y))_{y\in\mathcal Y}\).  Simultaneous attainment is
+obtained in the model above by setting, for every assigned profile whose
+\(X\)-row misses \(x\), the common outcome row
+\[
+ s_x=\frac{q_x-L_x}{M_x}\quad\text{when }M_x>0
+\]
+for a desired \(q_x\in L_x+M_x\Delta(\mathcal Y)\); when \(M_x=0\), the
+row is irrelevant and may be arbitrary.  The choices are independent
+across \(x\).  If both \(p\) and the desired vector \(q\) are rational,
+this attaining model can be chosen rational.
+\item The full vector is point identified if and only if either
+\(\lvert\mathcal Y\rvert=1\), or \(M_x=0\) for every
+\(x\in\mathcal X\).  Hence, when \(\lvert\mathcal Y\rvert\geq2\), point
+identification holds exactly when \(p(z,x)>0\) for every \(z\) with
+\(p(z)>0\) and every \(x\in\mathcal X\).
+\item After exact comparison of the profiles, feasibility, all
+\(L_x(y)\) and \(M_x\), and the point-collapse test require
+\(O(\lvert\mathcal Z\rvert\lvert\mathcal X\rvert
+\lvert\mathcal Y\rvert)\) guarded arithmetic operations.  The region has
+the linear-size half-space representation
+\[
+ q_x(y)\geq L_x(y)\quad(x\in\mathcal X,\ y\in\mathcal Y),
+ \qquad
+ \sum_{y\in\mathcal Y}q_x(y)=1\quad(x\in\mathcal X).
+\]
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+The causal target here is the single-intervention distribution
+\(Q_M(x,y)=P_M(i_Y=y\mid do(i_X=x))\).  The profiles, \(L_x\), and
+\(M_x\) are observed-law quantities.  We derive the equality between the
+causal fiber and the displayed product region.
+
+Let
+\[
+ \mathcal Z_+=\{z\in\mathcal Z:p(z)>0\}.
+\]
+This set is nonempty because \(p\) has total mass one.  Restrict \(p\) to
+\(\mathcal Z_+\times\mathcal X\times\mathcal Y\), retaining its original
+cell probabilities; denote the resulting law by \(p_+\).  It has total
+mass one, satisfies \(p_+(z)>0\) for every \(z\in\mathcal Z_+\), and has
+the same \(X\)-marginal as \(p\), which is positive by hypothesis.  Its
+profiles are exactly the profiles in \(\mathcal R(p)\), and its quantities
+\(L_x\) and \(M_x\) are exactly those displayed in the statement, because
+zero-mass root values contribute to neither sum.
+
+We record explicitly why restriction loses no relevant model.  In any
+compatible original-alphabet model, qualitative functionality gives
+\(A=f(Z)\).  Writing
+\[
+ \lambda(z)=\theta_{i_Z}(z),\qquad
+ r_a(x)=\theta_{i_X}(x\mid a),\qquad
+ g_{a,x}(y)=\theta_{i_Y}(y\mid a,x),
+\]
+the causal factorization gives
+\[
+ p(z,x,y)=\lambda(z)r_{f(z)}(x)g_{f(z),x}(y).
+\tag{17}
+\]
+Summation shows \(\lambda(z)=p(z)\).  Deleting zero-root-mass states from
+the root alphabet therefore produces a model inducing \(p_+\), satisfying
+separate root and \(X\) positivity, and having the same single-
+\(X\) intervention distribution, since truncated intervention gives
+\[
+ Q_M(x,\cdot)=\sum_{z\in\mathcal Z}p(z)g_{f(z),x}
+             =\sum_{z\in\mathcal Z_+}p_+(z)g_{f(z),x}.
+\tag{18}
+\]
+Conversely, any model on the reduced root alphabet extends to the original
+alphabet by setting the root probabilities of
+\(\mathcal Z\setminus\mathcal Z_+\) to zero and assigning their functional
+values arbitrarily.  Equations (17)--(18) show that this extension
+preserves both the observed law and the target.  It also preserves the
+positive \(X\)-marginal, hence singleton joint-treatment positivity.  All
+other rows and all alphabets, in particular the hidden alphabet, remain
+unchanged.
+
+For a compatible reduced model, division of the marginalization of (17)
+by the now-positive \(p_+(z)\) gives \(e_z=r_{f(z)}\), and division by a
+positive \(p_+(z,x)\) gives \(m_{zx}=g_{f(z),x}\).  Therefore two root
+values mapped to the same hidden state have the same profile, so at most
+\(|\mathcal B|\) distinct profiles can occur.  Conversely, the explicit
+profile construction below realizes every law with at most that many
+profiles.  Together with the restriction--extension equivalence, this
+proves
+\[
+ p\text{ is feasible}
+ \quad\Longleftrightarrow\quad
+ |\mathcal R(p)|\leq|\mathcal B|.
+\tag{19}
+\]
+For a chosen injection
+\(\kappa:\mathcal R(p)\to\mathcal B\), the profile-class partition in
+that theorem gives exactly the announced construction: for positive-mass
+\(z\), put \(f(z)=\kappa(\rho_z)\), set
+\[
+ \theta_{i_Z}(z)=p(z),\qquad
+ \theta_{i_X}(\cdot\mid\kappa(\rho_z))=e_z,
+ \qquad
+ \theta_{i_Y}(\cdot\mid\kappa(\rho_z),x)=m_{zx}
+ \quad\text{when }p(z,x)>0.
+\tag{20}
+\]
+Profile equality makes (20) independent of the representative.  Zero-root
+states, unused hidden states, and unreached outcome rows are arbitrary.
+For a reached cell, its induced probability is
+\[
+ p(z)\frac{p(z,x)}{p(z)}
+       \frac{p(z,x,y)}{p(z,x)}=p(z,x,y),
+\tag{21}
+\]
+with both denominators guarded by the positive quantities stated in their
+definitions; an unreached or zero-root cell is zero on both sides.  This
+also directly verifies the construction in item 1.  Rational \(p\) gives
+rational guarded ratios, and arbitrary rows may be chosen as point masses.
+
+For any compatible model, split the projection (18) into reached and
+missing pairs.  On a reached pair the guarded division of (17) gives
+\(g_{f(z),x}=m_{zx}\), whereas on a missing pair it is an arbitrary
+element of \(\Delta(\mathcal Y)\).  The missing weights are nonnegative
+and sum to \(M_x\).  Hence every compatible target belongs to the product
+below.  The common-row construction following the display proves the
+reverse inclusion, so the exact sharp region is
+\[
+ \mathcal Q(p)=
+ \prod_{x\in\mathcal X}\bigl(L_x+M_x\Delta(\mathcal Y)\bigr).
+\tag{22}
+\]
+For completeness, simultaneous attainment in the original alphabet is
+explicit.  If \(q_x=L_x+M_xs_x\), use in every assigned profile whose
+\(X\)-row misses \(x\) the common outcome row \(s_x\).  When \(M_x>0\),
+the displayed choice in the statement is valid because
+\[
+ s_x=\frac{q_x-L_x}{M_x},\qquad
+ q_x-L_x\geq0,\qquad
+ \sum_y(q_x(y)-L_x(y))=M_x;
+\tag{23}
+\]
+the division is guarded by \(M_x>0\).  When \(M_x=0\), the row has zero
+weight and is arbitrary.  Different \(x\)'s index different mechanism
+rows, so all choices are simultaneous.  Equations (18) and (23) give
+\(Q_M(x,\cdot)=L_x+M_xs_x=q_x\).  If \(p\) and \(q\) are rational, then
+so is every row in this construction.
+
+If \(|\mathcal Y|=1\), every simplex in (22) is a singleton.  Suppose
+\(|\mathcal Y|\geq2\).  If every \(M_x=0\), (22) is a singleton.  If
+some \(M_{x_0}>0\), two distinct point masses in
+\(\Delta(\mathcal Y)\), used as \(s_{x_0}\) in (23), give two compatible
+models with the same observed law and different targets.  Thus point
+identification is equivalent to \(M_x=0\) for every \(x\).  Since each
+summand in \(M_x\) is strictly positive, this is equivalent to
+\(p(z,x)>0\) for every positive-mass \(z\) and every \(x\), proving item
+3.
+
+Finally,
+\[
+ \sum_yL_x(y)=\sum_{z:p(z,x)>0}p(z)=1-M_x.
+\tag{24}
+\]
+Consequently
+\[
+ q_x\in L_x+M_x\Delta(\mathcal Y)
+ \quad\Longleftrightarrow\quad
+ q_x(y)\geq L_x(y)\text{ for every }y,
+ \quad \sum_yq_x(y)=1.
+\tag{25}
+\]
+For the reverse implication in (25), \(q_x-L_x\) is nonnegative and has
+sum \(M_x\); divide by \(M_x\) when it is positive, while if \(M_x=0\)
+nonnegativity and zero sum force \(q_x=L_x\).  This proves the stated
+half-space representation.  One pass through the observed table computes
+all marginals in
+\(O(|\mathcal Z||\mathcal X||\mathcal Y|)\) operations.  After exact
+profile comparison, the guarded ratios, \(L_x(y)\), \(M_x\), feasibility
+count, and collapse test have the same order, and (25) contains
+\(|\mathcal X||\mathcal Y|\) inequalities and \(|\mathcal X|\)
+equalities.  Item 4 and the theorem follow.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem is the exact single-\(X\) projection of the arbitrary-law response-kernel result; it proves why zero-root kernel uncertainty vanishes from the causal mixture and gives the computable product-of-simplexes region. \textit{Gap.} Generic discrete partial-identification methods return numerical or polynomial-program regions, whereas this result gives a closed guarded product region with exact feasibility and simultaneous original-alphabet attainment. \textit{Consumer.} A support-aware causal implementation can compare positive-root profiles, emit the linear half-space region, and construct an exact rational witness when the requested point is rational.
+
+\begin{theorem}[thm:categorical-joint-identification]\label{thm:categorical-joint-identification}
+Let \(D=\{Z,A,X,Y\}\), let \(\mathcal A_Z,\mathcal A_A,\mathcal A_X,\mathcal A_Y\) be arbitrary fixed finite nonempty alphabets, and let \(G\) have precisely the edges \(Z\to A\), \(A\to X\), \(A\to Y\), and \(X\to Y\).  Set \(V=\{Z,X,Y\}\), \(H=\{A\}\), \(W=\{A\}\), \(T=\{Z,X\}\), and take the outcome set to be \(\{Y\}\).  For every \(M\in\mathfrak M(G,\mathcal A,V,W,T)\), every \(z\in\mathcal A_Z\), every \(x\in\mathcal A_X\), and every \(y\in\mathcal A_Y\), joint-treatment positivity entails \(p_M(z,x)>0\), and
+\[
+ P_M(Y=y\mid do(Z=z,X=x))
+ =\frac{p_M(z,x,y)}{p_M(z,x)}
+ =p_M(Y=y\mid Z=z,X=x).
+\]
+Thus the complete joint-intervention distribution is graphwide identified by a guarded conditional-probability circuit for arbitrary fixed finite alphabets.
+\end{theorem}
+\begin{proof}
+Fix \(M=(G,\mathcal A,\theta)\in\mathfrak M(G,\mathcal A,V,W,T)\).  Every sum below is finite because every alphabet in \(\mathcal A\) is finite.  Since \(W=\{A\}\), Assumption \(\mathrm{ass:qualitative\text{-}functionality}\) says that, for each \(z\in\mathcal A_Z\), the probability row \(\theta_A(\cdot\mid z)\) is a point mass on the nonempty finite set \(\mathcal A_A\).  Consequently there is a uniquely determined map \(f:\mathcal A_Z\to\mathcal A_A\) such that
+\[
+ \theta_A(a\mid z)=\mathbf 1\{a=f(z)\}
+ \qquad
+ (a\in\mathcal A_A,\ z\in\mathcal A_Z).
+\]
+
+The stipulated edge set gives
+\[
+ \operatorname{pa}_G(Z)=\varnothing,
+ \qquad
+ \operatorname{pa}_G(A)=\{Z\},
+ \qquad
+ \operatorname{pa}_G(X)=\{A\},
+ \qquad
+ \operatorname{pa}_G(Y)=\{A,X\}.
+\]
+Thus Assumption \(\mathrm{ass:causal\text{-}factorization}\) and the preceding point-mass representation imply, for every \((z,a,x,y)\in\mathcal A_Z\times\mathcal A_A\times\mathcal A_X\times\mathcal A_Y\),
+\[
+\begin{aligned}
+ P_M(z,a,x,y)
+ &=\theta_Z(z)\theta_A(a\mid z)\theta_X(x\mid a)\theta_Y(y\mid a,x)\\
+ &=\theta_Z(z)\mathbf 1\{a=f(z)\}\theta_X(x\mid a)\theta_Y(y\mid a,x).
+\end{aligned}
+\]
+By the definition of the observed marginal, \(V=\{Z,X,Y\}\), and \(H=\{A\}\), summation over the hidden state gives
+\[
+\begin{aligned}
+ p_M(z,x,y)
+ &=\sum_{a\in\mathcal A_A}P_M(z,a,x,y)\\
+ &=\theta_Z(z)\theta_X(x\mid f(z))\theta_Y(y\mid f(z),x).
+\end{aligned}
+\]
+Summing this identity over \(y'\in\mathcal A_Y\), and using normalization of the conditional-probability row \(\theta_Y(\cdot\mid f(z),x)\), yields
+\[
+\begin{aligned}
+ p_M(z,x)
+ &=\sum_{y'\in\mathcal A_Y}p_M(z,x,y')\\
+ &=\theta_Z(z)\theta_X(x\mid f(z))
+   \sum_{y'\in\mathcal A_Y}\theta_Y(y'\mid f(z),x)\\
+ &=\theta_Z(z)\theta_X(x\mid f(z)).
+\end{aligned}
+\]
+Because \(T=\{Z,X\}\), Assumption \(\mathrm{ass:joint\text{-}treatment\text{-}positivity}\), applied to the joint treatment assignment \((z,x)\in\mathcal A_Z\times\mathcal A_X\), entails
+\[
+ p_M(z,x)=P_M(T=(z,x))>0.
+\]
+This is the strict support guard needed for the only division below.  Hence
+\[
+ \frac{p_M(z,x,y)}{p_M(z,x)}
+ =\theta_Y(y\mid f(z),x)
+ =p_M(Y=y\mid Z=z,X=x).
+\]
+The ratio is an observable-law functional; it has not been identified with the causal target by definition.
+
+To establish that identification, apply Assumption \(\mathrm{ass:truncated\text{-}intervention}\).  Under \(do(Z=z,X=x)\), the rows at \(Z\) and \(X\) are replaced by point masses at \(z\) and \(x\), while the mechanisms at \(A\) and \(Y\) remain unchanged.  Marginalizing the remaining non-outcome vertex \(A\) therefore gives
+\[
+\begin{aligned}
+ P_M(Y=y\mid do(Z=z,X=x))
+ &=\sum_{a\in\mathcal A_A}\theta_A(a\mid z)\theta_Y(y\mid a,x)\\
+ &=\sum_{a\in\mathcal A_A}\mathbf 1\{a=f(z)\}\theta_Y(y\mid a,x)\\
+ &=\theta_Y(y\mid f(z),x).
+\end{aligned}
+\]
+Combining the last two displays proves, for every \(z\in\mathcal A_Z\), \(x\in\mathcal A_X\), and \(y\in\mathcal A_Y\),
+\[
+ P_M(Y=y\mid do(Z=z,X=x))
+ =\frac{p_M(z,x,y)}{p_M(z,x)}
+ =p_M(Y=y\mid Z=z,X=x).
+\]
+
+Finally, let \(M,M'\in\mathfrak M(G,\mathcal A,V,W,T)\) have the same observed law \(p\).  The equality just proved, applied once to each model, gives
+\[
+ P_M(Y=y\mid do(Z=z,X=x))
+ =\frac{p(z,x,y)}{p(z,x)}
+ =P_{M'}(Y=y\mid do(Z=z,X=x))
+\]
+for every \(z,x,y\), where \(p(z,x)>0\) follows from joint-treatment positivity in either model.  Thus the complete joint-intervention distribution is constant on every observed-law fiber.  The map \(p\mapsto(p(z,x,y)/p(z,x))_{z,x,y}\) is therefore a graphwide identifying arithmetic circuit, and every one of its divisions is licensed by the mechanically entailed guard \(p(z,x)>0\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The arbitrary-categorical theorem isolates the exact functional-node reduction: joint intervention fixes the parent of the hidden deterministic node and converts the causal target into a guarded observed conditional distribution without changing any alphabet. \textit{Gap.} Chen--Darwiche identification on their larger separate-marginal-positive class transfers to this joint-positive subclass, so the gain asserted here is an explicit fixed-alphabet reduction missed by ordinary ID on the latent projection, not a positivity-domain extension of their theorem. \textit{Consumer.} A constrained dosearch front end can recognize this family in time linear in its observed table and return the conditional-probability circuit with the joint-positivity guard attached.
+
+\begin{theorem}[thm:categorical-separate-positive-response-kernel]\label{thm:categorical-separate-positive-response-kernel}
+Let \(i_Z,i_A,i_X,i_Y\) be distinct vertices, put
+\(\iota=(i_Z,i_A,i_X,i_Y)\), and suppose that
+\(D=\{i_Z,i_A,i_X,i_Y\}\), that the edge set of \(G\) is exactly
+\[
+ \{i_Z\mathbin{\to}i_A,\ i_A\mathbin{\to}i_X,
+   \ i_A\mathbin{\to}i_Y,\ i_X\mathbin{\to}i_Y\},
+\]
+that \(V=\{i_Z,i_X,i_Y\}\), \(W=\{i_A\}\),
+\(T=\{i_Z,i_X\}\), and \(Y=\{i_Y\}\).  Write
+\(\mathcal Z=\mathcal A_{i_Z}\), \(\mathcal B=\mathcal A_{i_A}\),
+\(\mathcal X=\mathcal A_{i_X}\), \(\mathcal Y=\mathcal A_{i_Y}\),
+and \(B=\lvert\mathcal B\rvert\).  Let \(p\) be a law on
+\(\mathcal Z\times\mathcal X\times\mathcal Y\) satisfying the separate
+coordinate positivity conditions
+\[
+ p(z)>0\quad(z\in\mathcal Z),
+ \qquad p_X(x)>0\quad(x\in\mathcal X).
+\]
+Use the guarded profiles, the profile-refinement partitions
+\(\Pi_B(p)\), the response-kernel region \(\mathcal K(p)\), and the
+saturation threshold \(B_{\mathrm{sat}}(p)\) from Definitions
+\(\mathrm{def:profile\text{-}refinement\text{-}kernel\text{-}region}\)
+and \(\mathrm{def:saturation\text{-}alphabet\text{-}threshold}\).  For a
+model \(M\), define the causal response kernel
+\[
+ K_M(z,x,y)=P_M(i_Y=y\mid do(i_Z=z,i_X=x)).
+\]
+Then the following statements hold.
+\begin{enumerate}
+\item The law \(p\) is induced by a model in
+\(\mathfrak M_{\mathrm{sep}}(G,\mathcal A,V,W,T,Y;\iota)\) if and only if
+\(R:=\lvert\mathcal R(p)\rvert\leq B\).  On a feasible observed-law
+fiber, the partitions of \(\mathcal Z\) into the nonempty fibers of the
+functional map \(f:\mathcal Z\to\mathcal B\) are exactly
+\(\Pi_B(p)\): the map may split an observed-profile class but may never
+merge two distinct observed-profile classes.
+\item On every feasible law, the sharp, simultaneously attainable set of
+the full response kernel is
+\[
+ \left\{K_M:M\in
+ \mathfrak M_{\mathrm{sep}}(G,\mathcal A,V,W,T,Y;\iota),\ p_M=p\right\}
+ =\mathcal K(p)
+ =\bigcup_{\pi\in\Pi_B(p)}\mathcal K_\pi(p).
+\]
+Every point is attained without changing any alphabet.  If \(p\) and the
+selected kernel are rational, an attaining model can be chosen with
+rational conditional tables.
+\item Suppose \(R\leq B\).  At \(B=R\), the only admissible partition is
+the partition into observed-profile classes, so for each profile \(\rho\)
+and each \(x\in H_\rho\) there is one common free row shared by all
+\(z\) having profile \(\rho\).  If \(\lvert\mathcal Y\rvert\geq2\), then
+\[
+ B_{\mathrm{sat}}(p)
+ =R+\sum_{\rho:H_\rho\ne\varnothing}
+ \bigl(\lvert\{z:\rho_z=\rho\}\rvert-1\bigr)
+\]
+is the least hidden-alphabet cardinality for which every missing
+\((z,x)\) response row can vary independently.  More precisely, for
+\[
+ \mathcal K_{\mathrm{ind}}(p)
+ =\left\{k:
+ \begin{array}{ll}
+ k(z,x,\cdot)=m_{zx},&e_z(x)>0,\\
+ k(z,x,\cdot)\in\Delta(\mathcal Y)\text{ independently},&e_z(x)=0,
+ \end{array}\right\},
+\]
+the region with hidden cardinality \(b\) equals
+\(\mathcal K_{\mathrm{ind}}(p)\) for every
+\(b\geq B_{\mathrm{sat}}(p)\), and is a strict subset for
+\(R\leq b<B_{\mathrm{sat}}(p)\).  Intermediate cardinalities give exactly
+the displayed finite union of profile-refinement polytopes.
+\item On a feasible law, the full response kernel is point identified if
+and only if either \(\lvert\mathcal Y\rvert=1\), or
+\(p(z,x)>0\) for every \((z,x)\in\mathcal Z\times\mathcal X\).
+\item Let \(Q_M^X(x,\cdot)=P_M(i_Y\in\cdot\mid do(i_X=x))\).  Projection
+of the response kernel gives
+\[
+ Q_M^X(x,\cdot)=\sum_{z\in\mathcal Z}p(z)K_M(z,x,\cdot),
+\]
+and its sharp region is
+\[
+ \prod_{x\in\mathcal X}\bigl(L_x+M_x\Delta(\mathcal Y)\bigr),
+ \quad
+ L_x(y)=\sum_{z:p(z,x)>0}p(z)m_{zx}(y),
+ \quad
+ M_x=\sum_{z:p(z,x)=0}p(z).
+\]
+If, in addition, joint positivity \(p(z,x)>0\) holds for every
+\((z,x)\), then \(\mathcal K(p)\) is the singleton guarded circuit
+\[
+ K_M(z,x,y)=m_{zx}(y)=\frac{p(z,x,y)}{p(z,x)}.
+\]
+\item The family \(\Pi_B(p)\) can be enumerated by at most
+\(B^{\lvert\mathcal Z\rvert}\) labeled block assignments after exact
+profile comparison.  Each \(\mathcal K_\pi(p)\) has
+\(O(\lvert\mathcal Z\rvert\lvert\mathcal X\rvert
+\lvert\mathcal Y\rvert)\) simplex inequalities and linear equalities,
+and all conditional divisions are guarded by the tested strict
+denominators \(p(z)>0\) or \(p(z,x)>0\).
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+We distinguish throughout the causal response kernel from the observable
+quantities.  The array \(K_M\) is defined by the truncated intervention
+law, whereas \(e_z\), \(m_{zx}\), \(\rho_z\), and
+\(\mathcal K_\pi(p)\) are functions of the observed law.  We prove their
+equality or set equality below.
+
+First, every displayed division is well defined on its declared guard.
+Separate root positivity gives \(p(z)>0\) for every
+\(z\in\mathcal Z\), and therefore
+\[
+ e_z(x)=\frac{p(z,x)}{p(z)}\geq 0,
+ \qquad
+ \sum_{x\in\mathcal X}e_z(x)=1.
+ \tag{1}
+\]
+Whenever \(p(z,x)>0\), marginalization gives \(p(z)>0\), and
+\[
+ m_{zx}(y)=\frac{p(z,x,y)}{p(z,x)}\geq0,
+ \qquad
+ \sum_{y\in\mathcal Y}m_{zx}(y)=1.
+ \tag{2}
+\]
+Thus \(e_z\in\Delta(\mathcal X)\) and every reached response row is in
+\(\Delta(\mathcal Y)\).  The condition \(p_X(x)>0\) is the separate
+positivity condition on the \(X\)-coordinate; it does not imply
+\(p(z,x)>0\).
+
+Let \(M\) belong to the separate-positive four-node class and induce
+\(p\).  By qualitative functionality, there is a map
+\(f:\mathcal Z\to\mathcal B\) such that \(i_A=f(i_Z)\).  Define the
+remaining mechanism rows by
+\[
+ \lambda(z)=\theta_{i_Z}(z),\qquad
+ r_a(x)=\theta_{i_X}(x\mid a),\qquad
+ g_{a,x}(y)=\theta_{i_Y}(y\mid a,x).
+ \tag{3}
+\]
+The recursive causal factorization and summation over the hidden point
+mass at \(f(z)\) imply, cell by cell,
+\[
+ p(z,x,y)=\lambda(z)r_{f(z)}(x)g_{f(z),x}(y).
+ \tag{4}
+\]
+Summing (4) over \((x,y)\), and then over \(y\), gives respectively
+\[
+ p(z)=\lambda(z),
+ \qquad
+ p(z,x)=p(z)r_{f(z)}(x).
+ \tag{5}
+\]
+The guard \(p(z)>0\) permits division in (5), proving
+\[
+ e_z=r_{f(z)}.
+ \tag{6}
+\]
+If \(p(z,x)>0\), then (5) also gives \(r_{f(z)}(x)>0\), and division of
+(4) by the guarded denominator \(p(z,x)\) proves
+\[
+ m_{zx}=g_{f(z),x}.
+ \tag{7}
+\]
+If \(f(z)=f(z')\), equation (6) makes \(e_z=e_{z'}\), hence their
+positive supports coincide, and (7) makes the reached \(m\)-rows equal
+on that support.  Thus \(\rho_z=\rho_{z'}\).  Every nonempty fiber of
+\(f\) is consequently contained in one observed-profile class.  Its
+fiber partition has at most \(B=|\mathcal B|\) blocks and hence belongs
+to \(\Pi_B(p)\).  Since distinct profile classes must lie in distinct
+fibers, \(R=|\mathcal R(p)|\leq B\).  This proves necessity in item 1
+and the prohibition against merging distinct profiles.
+
+Conversely, fix \(\pi\in\Pi_B(p)\).  There are at most \(B\) blocks, so
+choose distinct states \(a_C\in\mathcal B\), one for each
+\(C\in\pi\), and define \(f(z)=a_C\) for \(z\in C\).  Set
+\[
+ \lambda(z)=p(z),\qquad
+ r_{a_C}=e_z\quad(z\in C),
+ \tag{8}
+\]
+and, whenever \(e_z(x)>0\), set
+\[
+ g_{a_C,x}=m_{zx}.
+ \tag{9}
+\]
+These definitions are independent of the representative \(z\in C\)
+because \(C\) is contained in a profile class.  Fill rows in (9) for
+which \(e_z(x)=0\), and all rows belonging to unused hidden states, by
+arbitrary elements of the relevant probability simplexes.  Equations
+(1)--(2) show that all assigned rows are valid conditional probability
+rows.  If \(p(z,x)=0\), then (1) gives \(e_z(x)=0\), and both the
+induced cell probability and \(p(z,x,y)\) are zero.  If
+\(p(z,x)>0\), both denominators below are strictly positive and
+\[
+ p(z)e_z(x)m_{zx}(y)
+ =p(z)\frac{p(z,x)}{p(z)}
+       \frac{p(z,x,y)}{p(z,x)}
+ =p(z,x,y).
+ \tag{10}
+\]
+Thus the construction induces exactly \(p\).  Its root and
+\(X\)-marginals satisfy the assumed separate positivity, so it belongs
+to the stipulated model class.  If \(R\leq B\), taking the blocks to be
+the profile classes gives such a model.  More generally, the construction
+realizes every \(\pi\in\Pi_B(p)\), proving sufficiency and the exact
+partition characterization in item 1.
+
+We next determine the causal kernel.  Under
+\(do(i_Z=z,i_X=x)\), the truncated-intervention assumption replaces the
+rows at \(i_Z\) and \(i_X\) by point masses, while qualitative
+functionality fixes \(i_A=f(z)\).  Summing the truncated product over
+the resulting hidden point mass yields
+\[
+ K_M(z,x,\cdot)=g_{f(z),x}.
+ \tag{11}
+\]
+For the fiber partition \(\pi_f\), equations (7) and (11) fix this row
+to \(m_{zx}\) whenever \(e_z(x)>0\).  If \(e_z(x)=0\), then all
+members of the block containing \(z\) have the same zero at \(x\), and
+the single mechanism row \(g_{f(z),x}\) is a common, otherwise arbitrary
+vector \(s_{C,x}\in\Delta(\mathcal Y)\).  Hence
+\[
+ \{K_M:p_M=p\}
+ \subseteq \bigcup_{\pi\in\Pi_B(p)}\mathcal K_\pi(p).
+ \tag{12}
+\]
+
+For the reverse inclusion, fix \(\pi\in\Pi_B(p)\) and
+\(k\in\mathcal K_\pi(p)\).  Use (8)--(9), and for every block--treatment
+pair missing from the observational support set
+\[
+ g_{a_C,x}=s_{C,x},
+ \tag{13}
+\]
+where \(s_{C,x}\) is the common row supplied by the definition of
+\(k\in\mathcal K_\pi(p)\).  These choices do not change (10), because
+the corresponding observational factor \(e_z(x)\) is zero.  Equation
+(11) gives \(K_M=k\) simultaneously for all \((z,x)\).  This proves the
+reverse containment in (12), the asserted sharp union, simultaneous
+attainment, and preservation of every original alphabet.  If \(p\) and
+\(k\) are rational, the guarded ratios in (8)--(9), the selected rows in
+(13), and the root row are rational; unused rows may be chosen as point
+masses.  The attaining model then has rational conditional tables.  This
+proves item 2.
+
+For item 3, write \(C_\rho=\{z:\rho_z=\rho\}\).  Every admissible
+partition has at least one block inside each of the \(R\) distinct
+profile classes.  At \(B=R\), it therefore has exactly one block
+\(C_\rho\) per profile, so every missing row with a given pair
+\((\rho,x)\) is shared across that entire class.
+
+For every profile with \(H_\rho\ne\varnothing\), split \(C_\rho\) into
+singletons, while retaining one block \(C_\rho\) for every profile with
+\(H_\rho=\varnothing\).  The number of blocks is
+\[
+ \sum_{\rho:H_\rho=\varnothing}1
+ +\sum_{\rho:H_\rho\ne\varnothing}|C_\rho|
+ =R+\sum_{\rho:H_\rho\ne\varnothing}(|C_\rho|-1)
+ =B_{\mathrm{sat}}(p).
+ \tag{14}
+\]
+Under this partition, each missing pair \((z,x)\) has its own mechanism
+row, so (13) attains every member of
+\(\mathcal K_{\mathrm{ind}}(p)\).  Conversely, every kernel in any
+\(\mathcal K_\pi(p)\) fixes reached rows to \(m_{zx}\), and therefore
+belongs to \(\mathcal K_{\mathrm{ind}}(p)\).  Equality follows at
+\(b=B_{\mathrm{sat}}(p)\), and it persists for larger \(b\) because
+the same partition remains admissible.
+
+For minimality, assume \(|\mathcal Y|\geq2\).  The simplex
+\(\Delta(\mathcal Y)\) then contains infinitely many distinct points.
+For every hole-bearing profile \(\rho\), the finite product
+\(\prod_{x\in H_\rho}\Delta(\mathcal Y)\) also contains infinitely
+many points, so choose pairwise distinct tuples
+\[
+ u_z\in\prod_{x\in H_\rho}\Delta(\mathcal Y),
+ \qquad z\in C_\rho.
+ \tag{15}
+\]
+Construct a member of \(\mathcal K_{\mathrm{ind}}(p)\) by assigning
+\(u_z\) to the complete tuple of missing rows of \(z\) within profile
+\(\rho\), independently for every hole-bearing profile, and retaining
+the required reached rows.  If distinct \(z,z'\in C_\rho\) belonged to
+one block of a partition representing this kernel, the common-row
+constraints defining \(\mathcal K_\pi(p)\) would make their complete
+missing-row tuples equal, contradicting (15).  Hence each hole-bearing
+profile needs \(|C_\rho|\) blocks and each hole-free profile needs at
+least one.  Equation (14) shows that at least
+\(B_{\mathrm{sat}}(p)\) blocks are necessary.  Therefore, for
+\(R\leq b<B_{\mathrm{sat}}(p)\), the region is a strict subset of
+\(\mathcal K_{\mathrm{ind}}(p)\).  Together with the already proved
+union formula, this establishes every assertion in item 3.
+
+For item 4, if \(|\mathcal Y|=1\), every response simplex is a singleton.
+If \(p(z,x)>0\) for all \((z,x)\), there are no missing rows, and
+(7) together with (11) fixes every kernel entry.  Conversely, suppose
+\(|\mathcal Y|\geq2\) and \(p(z_0,x_0)=0\) for some pair.  Feasibility
+supplies at least one admissible partition.  In construction (13), replace
+the free row for the block containing \(z_0\) at \(x_0\) by either of
+two distinct points of \(\Delta(\mathcal Y)\).  The observational law is
+unchanged because its multiplier is zero, but (11) shows that the two
+causal kernels differ at \((z_0,x_0)\).  This is an exact
+same-observed-law/different-effect witness, and proves the stated
+if-and-only-if criterion.
+
+For item 5, under the single intervention \(do(i_X=x)\), the root row is
+not replaced and has law \(\lambda(z)=p(z)\); functionality then gives
+\(i_A=f(z)\), and the outcome row is the row appearing in (11).  The
+truncated product factorization therefore gives
+\[
+ Q_M^X(x,\cdot)
+ =\sum_{z\in\mathcal Z}p(z)g_{f(z),x}
+ =\sum_{z\in\mathcal Z}p(z)K_M(z,x,\cdot).
+ \tag{16}
+\]
+For the fiber partition of the model, let \(\rho(C)\) denote the unique
+profile whose class contains the block \(C\), and split this sum into
+reached and missing pairs:
+\[
+ Q_M^X(x,\cdot)
+ =L_x+
+ \sum_{C\in\pi_f:\,x\in H_{\rho(C)}}
+ \left(\sum_{z\in C}p(z)\right)s_{C,x}.
+ \tag{17}
+\]
+The coefficients in the second term are nonnegative and sum to \(M_x\).
+Thus (17) belongs to \(L_x+M_x\Delta(\mathcal Y)\).  Conversely, if
+\(M_x>0\) and \(q_x=L_x+M_xs_x\), choose
+\(s_{C,x}=s_x\) for every block missing \(x\); then (17) equals
+\(q_x\).  If \(M_x=0\), the affine set is the singleton \(\{L_x\}\)
+and no missing-row choice is relevant.  Outcome rows indexed by different
+\(x\)'s are distinct conditional-table rows, so these choices can be made
+simultaneously and independently across \(x\).  This proves the product
+region.
+
+Under the additional joint-positivity condition, every denominator
+\(p(z,x)\) is strictly positive.  Equations (7) and (11) then yield the
+guarded observable circuit
+\[
+ K_M(z,x,y)=m_{zx}(y)=\frac{p(z,x,y)}{p(z,x)}.
+ \tag{18}
+\]
+This proves the final assertion of item 5 without identifying the causal
+kernel by definition.
+
+Finally, a map from \(\mathcal Z\) to a labeled set of \(B\) possible
+blocks has \(B^{|\mathcal Z|}\) possibilities.  Enumerating these maps,
+discarding empty labels, and retaining precisely those whose fibers lie
+within observed-profile classes enumerates \(\Pi_B(p)\), possibly with
+duplicates, within the bound in item 6.  For fixed \(\pi\), the reached
+row equalities, common missing-row equalities, nonnegativity inequalities,
+and row-normalization equalities number at most a constant multiple of
+\(|\mathcal Z||\mathcal X||\mathcal Y|\).  Equations (1), (2), (7),
+(10), and (18) exhibit every division together with its strict support
+guard.  This proves item 6 and completes the theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem is the exact separate-coordinate-positive restriction of the arbitrary-law response-kernel result and retains the original-alphabet sharp union, simultaneous attainment, and hidden-cardinality elbow on the comparator's matched domain. \textit{Gap.} Existing functional-dependency reductions do not give this law-specific union of profile-refinement polytopes or the least hidden cardinality at which every missing response row becomes independent. \textit{Consumer.} A support-aware front end for \(\texttt{dosearch}\) can compare profiles, enumerate compatible refinements, return the exact kernel polytope union, and collapse it to the guarded conditional circuit under joint positivity.
+
+\begin{theorem}[thm:categorical-arbitrary-law-response-kernel]\label{thm:categorical-arbitrary-law-response-kernel}
+Let \(i_Z,i_A,i_X,i_Y\) be distinct vertices, put
+\(\iota=(i_Z,i_A,i_X,i_Y)\), and suppose that
+\(D=\{i_Z,i_A,i_X,i_Y\}\), that the edge set of \(G\) is exactly
+\[
+ \{i_Z\mathbin{\to}i_A,\ i_A\mathbin{\to}i_X,
+   \ i_A\mathbin{\to}i_Y,\ i_X\mathbin{\to}i_Y\},
+\]
+that \(V=\{i_Z,i_X,i_Y\}\), and that \(W=\{i_A\}\).  Write
+\(\mathcal Z=\mathcal A_{i_Z}\), \(\mathcal B=\mathcal A_{i_A}\),
+\(\mathcal X=\mathcal A_{i_X}\), \(\mathcal Y=\mathcal A_{i_Y}\),
+and \(B=\lvert\mathcal B\rvert\).  Define the family-local
+arbitrary-law class \(\mathfrak F_0(G,\mathcal A,V,W;\iota)\) to consist
+of the recursive mechanisms \(M=(G,\mathcal A,\theta)\) whose
+observational law has the recursive product factorization, whose
+intervention distributions mentioned below have the corresponding
+truncated product factorization, and whose row at \(i_A\), conditional on
+each state of \(i_Z\), is a point mass.  The definition of
+\(\mathfrak F_0\) imposes no positivity condition.
+
+Let \(p\) be an arbitrary probability law on
+\(\mathcal Z\times\mathcal X\times\mathcal Y\).  Put
+\[
+ p(z)=\sum_{x,y}p(z,x,y),\qquad
+ p(z,x)=\sum_y p(z,x,y),\qquad
+ \mathcal Z_+=\{z:p(z)>0\},\qquad
+ \mathcal Z_0=\mathcal Z\setminus\mathcal Z_+.
+\]
+For \(z\in\mathcal Z_+\), define, under the displayed strict guards,
+\[
+ e_z(x)=\frac{p(z,x)}{p(z)},\qquad
+ m_{zx}(y)=\frac{p(z,x,y)}{p(z,x)}
+ \quad\text{when }p(z,x)>0,
+\]
+and define the positive-root profile
+\[
+ \rho_z=\bigl(e_z,(m_{zx})_{x:e_z(x)>0}\bigr).
+\]
+Thus two positive roots have the same profile exactly when their
+\(e\)-rows agree and their \(m\)-rows agree on the resulting common
+positive support.  Put
+\[
+ \mathcal R_+(p)=\{\rho_z:z\in\mathcal Z_+\},\qquad
+ R=\lvert\mathcal R_+(p)\rvert,
+\]
+and, for \(\rho\in\mathcal R_+(p)\), put
+\[
+ \mathcal Z_\rho=\{z\in\mathcal Z_+:\rho_z=\rho\},\qquad
+ H_\rho=\{x\in\mathcal X:e_z(x)=0\text{ for }z\in\mathcal Z_\rho\}.
+\]
+The definition of \(H_\rho\) is independent of the chosen member of
+\(\mathcal Z_\rho\).
+
+For an integer \(b\geq1\), let \(\Pi_b^0(p)\) be the set of partitions
+\(\pi\) of every state in \(\mathcal Z\) into at most \(b\) nonempty
+blocks such that
+\[
+ z,z'\in C\cap\mathcal Z_+\quad\Longrightarrow\quad \rho_z=\rho_{z'}
+ \qquad(C\in\pi).
+\]
+Thus zero-root states are also assigned to blocks, while the positive
+part of a block is empty or is contained in one profile class.  For
+\(\pi\in\Pi_b^0(p)\), let \(\mathcal K_\pi^0(p)\) be the set of arrays
+\(k=(k(z,x,\cdot))_{z,x}\), with every
+\(k(z,x,\cdot)\in\Delta(\mathcal Y)\), such that
+\[
+ \begin{split}
+ k(z,x,\cdot)&=k(z',x,\cdot)
+ &&(C\in\pi,\ z,z'\in C,\ x\in\mathcal X),\\
+ k(z,x,\cdot)&=m_{zx}
+ &&(z\in\mathcal Z_+,\ e_z(x)>0).
+ \end{split}
+\]
+Define the augmented sharp candidate and the unconstrained-row candidate
+by
+\[
+ \mathcal K_b^0(p)=\bigcup_{\pi\in\Pi_b^0(p)}\mathcal K_\pi^0(p)
+\]
+and
+\[
+ \mathcal K_{\mathrm{ind}}^0(p)
+ =\left\{k:
+ k(z,x,\cdot)=m_{zx}\text{ if }z\in\mathcal Z_+
+ \text{ and }e_z(x)>0,
+ \text{ with all remaining rows free in }\Delta(\mathcal Y)
+ \right\}.
+\]
+Finally define
+\[
+ B_{\mathrm{sat}}^0(p)
+ =R+\lvert\mathcal Z_0\rvert+
+ \sum_{\rho\in\mathcal R_+(p):H_\rho\ne\varnothing}
+ \bigl(\lvert\mathcal Z_\rho\rvert-1\bigr).
+\]
+For a mechanism \(M\), distinguish the causal response kernel
+\[
+ K_M(z,x,y)=P_M(i_Y=y\mid do(i_Z=z,i_X=x))
+\]
+from the observed conditionals \(m_{zx}\).  Then the following conclusions
+hold.
+\begin{enumerate}
+\item The law \(p\) is induced by a mechanism in
+\(\mathfrak F_0(G,\mathcal A,V,W;\iota)\) if and only if \(R\leq B\).
+On every feasible observed-law fiber, the partitions of \(\mathcal Z\)
+into the nonempty fibers of the qualitative functional map
+\(f:\mathcal Z\to\mathcal B\) are exactly the members of
+\(\Pi_B^0(p)\).
+\item On every feasible law, the sharp full response-kernel region is
+\[
+ \left\{K_M:M\in\mathfrak F_0(G,\mathcal A,V,W;\iota),\ p_M=p\right\}
+ =\mathcal K_B^0(p).
+\]
+Every member of this union is attained simultaneously on all
+\((z,x,y)\) without changing any alphabet.  If \(p\) and the selected
+kernel are rational, the attaining mechanism can be chosen with rational
+conditional tables.
+\item If \(\lvert\mathcal Y\rvert\geq2\), then
+\[
+ \mathcal K_b^0(p)=\mathcal K_{\mathrm{ind}}^0(p)
+ \quad\Longleftrightarrow\quad
+ b\geq B_{\mathrm{sat}}^0(p)
+\]
+for every \(b\geq R\).  Consequently
+\(B_{\mathrm{sat}}^0(p)\) is the least hidden-alphabet cardinality at
+which every unobserved response row can vary independently.
+\item On a feasible law the full response kernel is point identified
+automatically when \(\lvert\mathcal Y\rvert=1\).  If
+\(\lvert\mathcal Y\rvert\geq2\), it is point identified if and only if
+\[
+ H_\rho=\varnothing\quad(\rho\in\mathcal R_+(p))
+\]
+and one of the following two mutually exclusive conditions holds:
+\begin{enumerate}
+\item \(\mathcal Z_0=\varnothing\);
+\item \(\mathcal Z_0\ne\varnothing\), \(B=R\), and the complete arrays
+\[
+ g_\rho=(m_{zx})_{x\in\mathcal X},\qquad z\in\mathcal Z_\rho,
+\]
+are equal for all \(\rho\in\mathcal R_+(p)\).
+\end{enumerate}
+At \(B=R\), every zero-root state must join one of the existing positive
+profile blocks; at \(B>R\), a zero-root state can instead form a free
+singleton block.
+\item For the single-coordinate intervention, put
+\(Q_M^X(x,\cdot)=P_M(i_Y\in\cdot\mid do(i_X=x))\).  Its sharp projection
+is
+\[
+ \left\{(Q_M^X(x,\cdot))_{x\in\mathcal X}:
+ M\in\mathfrak F_0(G,\mathcal A,V,W;\iota),\ p_M=p\right\}
+ =\prod_{x\in\mathcal X}\bigl(L_x+M_x\Delta(\mathcal Y)\bigr),
+\]
+where
+\[
+ L_x(y)=\sum_{z\in\mathcal Z_+:p(z,x)>0}p(z)m_{zx}(y),
+ \qquad
+ M_x=\sum_{z\in\mathcal Z_+:p(z,x)=0}p(z).
+\]
+The projection is attained simultaneously across \(x\), on the original
+alphabets, and rationally when \(p\) and the selected projected vector are
+rational.  If \(p(z,x)>0\) for every \((z,x)\), then
+\(\mathcal Z_0=\varnothing\) and the full response kernel collapses to the
+guarded observed-law circuit
+\[
+ K_M(z,x,y)=m_{zx}(y)=\frac{p(z,x,y)}{p(z,x)}.
+\]
+If merely \(\mathcal Z_0=\varnothing\), then the augmented partitions,
+kernel union, and saturation threshold reduce respectively to
+\(\Pi_b(p)\), \(\mathcal K_b(p)\), and
+\(B_{\mathrm{sat}}(p)\) obtained by omitting the superscript \(0\) and
+the term \(\lvert\mathcal Z_0\rvert\).
+\item After exact profile comparison, feasibility and
+\(B_{\mathrm{sat}}^0(p)\) require
+\(O(\lvert\mathcal Z\rvert\lvert\mathcal X\rvert
+\lvert\mathcal Y\rvert)\) guarded arithmetic operations.
+The family \(\Pi_B^0(p)\) is enumerable by at most
+\(B^{\lvert\mathcal Z\rvert}\) labeled assignments, and each
+\(\mathcal K_\pi^0(p)\) has
+\(O(\lvert\mathcal Z\rvert\lvert\mathcal X\rvert
+\lvert\mathcal Y\rvert)\) simplex constraints and linear equalities.
+Every division above is licensed by the displayed tested strict guard.
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+We first separate the causal mechanisms from the observable quantities.
+Qualitative functionality at \(i_A\) and nonemptiness of
+\(\mathcal B\) give a map \(f:\mathcal Z\to\mathcal B\) such that
+\[
+ \theta_{i_A}(a\mid z)=\mathbf 1\{a=f(z)\}.
+\tag{1}
+\]
+Write
+\[
+ \lambda(z)=\theta_{i_Z}(z),\qquad
+ r_b(x)=\theta_{i_X}(x\mid b),\qquad
+ g_{b,x}(y)=\theta_{i_Y}(y\mid b,x).
+\]
+The four displayed edges determine all parent sets.  Substitution of
+(1) into the recursive factorization, followed by summation over the
+hidden state, therefore gives
+\[
+ p_M(z,x,y)=\lambda(z)r_{f(z)}(x)g_{f(z),x}(y).
+\tag{2}
+\]
+Every row of \(r\) and \(g\) is a probability vector.  Summing (2) over
+\((x,y)\) gives
+\[
+ p_M(z)=\lambda(z),
+\tag{3}
+\]
+and summing only over \(y\) gives
+\[
+ p_M(z,x)=\lambda(z)r_{f(z)}(x).
+\tag{4}
+\]
+For \(z\in\mathcal Z_+\), division of (4) by the strict guard
+\(p(z)=\lambda(z)>0\) yields
+\[
+ e_z(x)=r_{f(z)}(x).
+\tag{5}
+\]
+If in addition \(p(z,x)>0\), division of (2) by (4), whose common value
+is then strictly positive, yields
+\[
+ m_{zx}(y)=g_{f(z),x}(y).
+\tag{6}
+\]
+Equations (5)--(6) show that two positive-mass roots having the same
+functional value have the same profile.  Thus the nonempty fibers of
+\(f\) form a partition in \(\Pi_B^0(p)\), and distinct members of
+\(\mathcal R_+(p)\) require distinct values of \(f\).  This proves the
+necessity of
+\[
+ R\leq B.
+\tag{7}
+\]
+
+We next give a construction that proves feasibility, sharpness, and
+simultaneous attainment rather than defining them into the candidate
+region.  Fix \(\pi\in\Pi_B^0(p)\), fix
+\(k\in\mathcal K_\pi^0(p)\), and choose an injection
+\(\ell:\pi\to\mathcal B\).  Put
+\[
+ \lambda(z)=p(z),\qquad f(z)=\ell(C)\quad(z\in C).
+\tag{8}
+\]
+If \(C\cap\mathcal Z_+\ne\varnothing\), select
+\(z_C\in C\cap\mathcal Z_+\) and set
+\[
+ r_{\ell(C)}=e_{z_C}.
+\tag{9}
+\]
+This does not depend on the selection at the level of its value, because
+all positive members of \(C\) have one profile.  If
+\(C\cap\mathcal Z_+=\varnothing\), choose any probability vector for
+\(r_{\ell(C)}\).  For every block and every \(x\), set
+\[
+ g_{\ell(C),x}=k(z,x,\cdot)\quad(z\in C).
+\tag{10}
+\]
+The first defining equality of \(\mathcal K_\pi^0(p)\) makes (10)
+well defined.  Assign arbitrary probability rows to unused hidden states,
+and use (1) for the functional row.
+
+For \(z\in\mathcal Z_+\) and \(p(z,x)>0\), equations (8)--(10) and the
+second defining equality of \(\mathcal K_\pi^0(p)\) give
+\[
+ \lambda(z)r_{f(z)}(x)g_{f(z),x}(y)
+ =p(z)e_z(x)m_{zx}(y)=p(z,x,y),
+\tag{11}
+\]
+where the two ratios defining \(e_z\) and \(m_{zx}\) are guarded by
+\(p(z)>0\) and \(p(z,x)>0\).  If \(z\in\mathcal Z_+\) but
+\(p(z,x)=0\), then \(e_z(x)=0\), so both sides of (11) are zero without
+division.  If \(z\in\mathcal Z_0\), then \(\lambda(z)=p(z)=0\), and
+again both sides are zero.  Hence (2) for the constructed mechanism is
+exactly the prescribed observed law \(p\).
+
+Under \(do(i_Z=z,i_X=x)\), truncated factorization replaces the two
+intervened rows by point masses and retains (1) and the outcome row.
+Summing over the hidden state gives
+\[
+\begin{aligned}
+ K_M(z,x,y)
+ &=\sum_{a\in\mathcal B}
+   \mathbf 1\{a=f(z)\}g_{a,x}(y)\\
+ &=g_{f(z),x}(y)\\
+ &=k(z,x,y).
+\end{aligned}
+\tag{12}
+\]
+Thus every member of every displayed polytope is genuinely attained by a
+causal mechanism on the original alphabets.  Conversely, (5), (6), and
+(12) show that any compatible mechanism has a functional-fiber partition
+\(\pi\in\Pi_B^0(p)\), is constant on each block at every \(x\), and
+equals \(m_{zx}\) on every reached positive-root row.  Its kernel
+therefore belongs to \(\mathcal K_\pi^0(p)\).  We have proved
+\[
+ \{K_M:M\in\mathfrak F_0(G,\mathcal A,V,W;\iota),\ p_M=p\}
+ =\mathcal K_B^0(p).
+\tag{13}
+\]
+
+Because \(p\) has total mass one, \(\mathcal Z_+\) and hence
+\(\mathcal R_+(p)\) are nonempty.  If (7) holds, partition
+\(\mathcal Z_+\) into its \(R\) profile classes and attach every member
+of \(\mathcal Z_0\), if any, to any one of those classes.  This is an
+element of \(\Pi_B^0(p)\), and its kernel set is nonempty because all
+unfixed rows may be chosen as point masses.  The preceding construction
+then realizes \(p\), proving sufficiency in item 1.  It also proves that
+every member of \(\Pi_B^0(p)\) is the exact nonempty-fiber partition of
+some realizing functional map, while the necessity argument proved the
+reverse inclusion.  If \(p\) and \(k\) are rational, every guarded ratio
+in (9) and (11) is rational; the other rows can be chosen as rational
+point masses, and (10) is rational.  This proves the rational-attainment
+claim.
+
+We now prove the saturation formula.  The inclusion
+\[
+ \mathcal K_b^0(p)\subseteq\mathcal K_{\mathrm{ind}}^0(p)
+\tag{14}
+\]
+follows immediately from the reached-row constraint in the definition of
+each \(\mathcal K_\pi^0(p)\).  Conversely, fix
+\(k\in\mathcal K_{\mathrm{ind}}^0(p)\).  Make every positive root in a
+profile with \(H_\rho\ne\varnothing\) a singleton block, keep all of
+\(\mathcal Z_\rho\) in one block when \(H_\rho=\varnothing\), and make
+every zero-root state a singleton block.  For a no-hole profile all rows
+of \(k\) are the profile's observed rows, so they are identical within
+its block.  The resulting augmented partition has exactly
+\[
+ \sum_{\rho:H_\rho=\varnothing}1
+ +\sum_{\rho:H_\rho\ne\varnothing}|\mathcal Z_\rho|
+ +|\mathcal Z_0|
+ =B_{\mathrm{sat}}^0(p)
+\tag{15}
+\]
+blocks and places \(k\) in its kernel polytope.  Hence equality holds in
+(14) whenever \(b\geq B_{\mathrm{sat}}^0(p)\).
+
+For the reverse implication, assume \(|\mathcal Y|\geq2\).  Then
+\(\Delta(\mathcal Y)\) contains infinitely many distinct probability
+vectors.  For each hole-bearing profile \(\rho\), choose pairwise
+distinct missing-row tuples
+\[
+ u_{\rho,z}\in
+ \prod_{x\in H_\rho}\Delta(\mathcal Y),
+ \qquad z\in\mathcal Z_\rho,
+\tag{16}
+\]
+and use them for the missing rows of the corresponding positive roots,
+while using \(m_{zx}\) on reached rows.  This defines finitely many full
+response tuples for the positive roots.  For the zero roots, choose
+pairwise distinct full response tuples in
+\(\prod_{x\in\mathcal X}\Delta(\mathcal Y)\), also distinct from every
+positive-root full tuple just constructed.  Such a finite choice exists
+because that product is infinite.  Call the resulting kernel \(k^\star\).
+It belongs to \(\mathcal K_{\mathrm{ind}}^0(p)\).
+
+If \(k^\star\in\mathcal K_\pi^0(p)\), block constancy and (16) force a
+separate block for every member of every hole-bearing positive profile.
+Profile compatibility forces at least one distinct block for each
+no-hole positive profile.  The pairwise-distinct full tuples force every
+zero root into its own block and prevent it from joining a positive-root
+block.  Therefore \(\pi\) has at least the number in (15) of blocks.
+For \(R\leq b<B_{\mathrm{sat}}^0(p)\), this proves
+\(k^\star\notin\mathcal K_b^0(p)\), so the inclusion (14) is strict.
+Item 3 follows.
+
+We next characterize point identification.  If
+\(|\mathcal Y|=1\), every probability simplex used above is a singleton,
+so (13) is a singleton.  Suppose henceforth that
+\(|\mathcal Y|\geq2\).  If some positive profile has
+\(H_\rho\ne\varnothing\), use the partition into positive profile
+classes with zero roots attached arbitrarily.  At any
+\(x\in H_\rho\), two distinct choices in \(\Delta(\mathcal Y)\) for the
+free common row of that block give two members of (13) that differ at a
+positive root.  Thus point identification requires
+\[
+ H_\rho=\varnothing\quad\text{for every }\rho.
+\tag{17}
+\]
+Under (17), every positive-root response row is fixed by (6).  If
+\(\mathcal Z_0=\varnothing\), these are all rows of the kernel, so (13)
+is a singleton.
+
+Suppose instead that \(\mathcal Z_0\ne\varnothing\).  If \(B>R\), take
+the \(R\) positive profile blocks and add a singleton block containing
+one fixed \(z_0\in\mathcal Z_0\), attaching any remaining zero roots
+arbitrarily.  The singleton's full response tuple is unconstrained, so
+two choices give distinct kernels in (13).  Hence point identification
+requires \(B=R\).  At \(B=R\), every augmented partition must use one
+block for each of the \(R\) distinct positive profiles.  There is no
+remaining block with which to split a positive class or form a zero-only
+block.  Consequently every zero root must join a positive profile block,
+and its response tuple is the complete array \(g_\rho\) of that profile.
+If all arrays \(g_\rho\) agree, this fixes every zero-root row to their
+common value and proves point identification.  If
+\(g_{\rho_1}\ne g_{\rho_2}\), attaching a fixed zero root first to the
+\(\rho_1\)-block and then to the \(\rho_2\)-block gives two admissible
+partitions and two kernels that differ at that root.  This proves both
+necessity and sufficiency in item 4.
+
+For the single-coordinate intervention, truncated factorization gives
+the causal equality
+\[
+\begin{aligned}
+ Q_M^X(x,y)
+ &=\sum_{z\in\mathcal Z}\sum_{a\in\mathcal B}
+   \lambda(z)\mathbf 1\{a=f(z)\}g_{a,x}(y)\\
+ &=\sum_{z\in\mathcal Z}p(z)K_M(z,x,y).
+\end{aligned}
+\tag{18}
+\]
+The first line follows by replacing only the \(i_X\)-row by a point mass;
+the second uses (3) and (12).  Split the last sum into reached and missing
+positive-root pairs; zero roots have weight zero.  This yields
+\[
+ Q_M^X(x,\cdot)
+ =L_x+\sum_{z\in\mathcal Z_+:p(z,x)=0}p(z)K_M(z,x,\cdot).
+\tag{19}
+\]
+The second term lies in \(M_x\Delta(\mathcal Y)\): when \(M_x>0\), its
+division by \(M_x\) is a convex combination of probability vectors, and
+when \(M_x=0\) it is zero.  Hence every projection lies in the displayed
+product region.
+
+Conversely, given \(q_x\in L_x+M_x\Delta(\mathcal Y)\), define under the
+strict guard
+\[
+ s_x=\frac{q_x-L_x}{M_x}\in\Delta(\mathcal Y)
+ \quad\text{when }M_x>0,
+\tag{20}
+\]
+and choose any \(s_x\in\Delta(\mathcal Y)\) when \(M_x=0\).  Use the
+positive profile-class partition, attach zero roots arbitrarily, and set
+every block row missing \(x\) to the common value \(s_x\).  These choices
+are independent for different \(x\), so they define one member of
+\(\mathcal K_B^0(p)\).  Equations (19)--(20) give
+\(Q_M^X(x,\cdot)=q_x\) for every \(x\), proving sharp simultaneous
+attainment.  Rationality follows from the already-proved construction and
+the guarded rational ratio in (20).
+
+If \(p(z,x)>0\) for all \((z,x)\), then in particular
+\(p(z)=\sum_xp(z,x)>0\), so \(\mathcal Z_0=\varnothing\), and every
+\(e_z(x)>0\).  Equation (6) fixes every response row, while (12) proves
+the causal, rather than definitional, equality
+\[
+ K_M(z,x,y)=m_{zx}(y)=\frac{p(z,x,y)}{p(z,x)},
+\]
+with division licensed by the assumed strict cell guard.  If only
+\(\mathcal Z_0=\varnothing\), the definitions of the augmented objects
+literally remove the zero-root allowance and the term
+\(|\mathcal Z_0|\), giving the stated root-positive specialization.
+
+Finally, one pass through the finite observed table computes all
+marginals and guarded ratios.  Once exact comparison of the resulting
+finite profiles has supplied their class labels, accumulation of the
+class sizes and hole sets requires
+\(O(|\mathcal Z||\mathcal X||\mathcal Y|)\) arithmetic operations.
+Each map from \(\mathcal Z\) to \(B\) labels induces at most one labeled
+partition, so there are at most \(B^{|\mathcal Z|}\) candidates.  For a
+fixed partition, block equalities, reached-row equalities, simplex
+normalizations, and nonnegativity inequalities are all linear and number
+\(O(|\mathcal Z||\mathcal X||\mathcal Y|)\).  This proves item 6 and
+completes the theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem gives the exact fixed-alphabet causal response-kernel fiber for every observed support pattern in the categorical four-node hidden-functional family, including simultaneous attainment and the zero-root cardinality boundary. \textit{Gap.} Existing functional-dependency reductions do not provide the augmented all-root partition union, the least hidden cardinality for independent missing rows, or the exact singleton criterion when root states have zero observational mass. \textit{Consumer.} A support-aware \(\texttt{dosearch}\) front end can test \(R\leq B\), enumerate at most \(B^{|\mathcal Z|}\) augmented assignments, and return the exact response-kernel union or a same-law/different-effect witness.
+
+\section{Interpretation}
+
+Observed profile equality determines which positive-root values may share a hidden functional state, but it does not determine how zero-root values use the finite hidden alphabet or what an observationally unreachable outcome row would produce after intervention.  The augmented partitions enumerate precisely those two freedoms.  Identification is therefore a theorem about the singleton status of the resulting causal fiber, not a definition by an observed conditional: \(P(Y\mid Z=z,X=x)\) equals the joint-intervention response only on cells whose denominator is strictly positive, while the theorem retains the unobserved rows and their hidden-state sharing constraints elsewhere.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The arbitrary-law theorem is exact only for the stated categorical four-node hidden-functional family; it does not close the graph-general cardinality-preserving guarded-district dichotomy.  Outside this family, a deterministic-map stratum can contain an algebraic observed-law fiber with no rational point, so exact real-algebraic witnesses remain necessary and rational density of ambient conditional-table simplexes is insufficient.  For rational-coefficient qualitative input, real-closed-field transfer yields real-algebraic witnesses and the output language encodes them exactly; it does not assert universal rationality.  For the four-node theorem, rationality is asserted only when both the observed law and the selected kernel or projected target are rational.  If an externally fixed observed law is transcendental, or numerical constraints have arbitrary real coefficients, existence is only over the real closure of that coefficient field and need not admit an integer-minimal-polynomial encoding over \(\mathbb Q\).  The separately defined unrestricted observed-closure class \(\mathfrak M_{\mathrm c}\) and pair \((M^-,M^+)\) remain an internal regression test, not a theorem-level comparison with a published reduction.  Direct substitution gives \(p_{\mathrm c,M^-}=p_{\mathrm c,M^+}\); every cell \(p_{\mathrm c}(z,a,a,y)\) is positive, \(p_{\mathrm c}(z,x)>0\) for all \(z,x\), and cells with \(x\ne a\) are zero.  Thus the common law is relative-interior on its structural-support face, not full-support.  The exact target differences are \(Q_{\mathrm c,M^+}(z,0,1)-Q_{\mathrm c,M^-}(z,0,1)=\alpha_z(1-2\eta)\) and \(Q_{\mathrm c,M^+}(z,1,1)-Q_{\mathrm c,M^-}(z,1,1)=(1-\alpha_z)(1-2\eta)\).
+
+\section{Honest scope}
+
+The concrete closed results are exact finite feasibility; support propagation and support-hole separation; exact real-algebraic witness encoding; one-way classical-ID embedding; the arbitrary-law categorical four-node augmented-partition response-kernel theorem with rational simultaneous attainment, \(B_{\mathrm{sat}}^{0}(p)\) minimality, and the cardinality-sensitive point-identification criterion; its separate-coordinate-positive restriction; the sharp single-\(X\) product region and binary rectangle; the jointly positive guarded conditional; and branch-respecting multinomial inference with regular-face Wald collapse.  The observed-closure pair remains only an internal regression test and is not a refutation of Chen--Darwiche or another published method.  The genuinely open content is graph-general: a cardinality-preserving guarded-district algorithm must still decide positive-support hedge failures and algebraic strata without using generic quantifier elimination as its identification search.  Accordingly, the general four-output front end retains a no-verdict residual, every classical-ID success embeds only one way, and no fixed-alphabet hedge converse is claimed.
+
+\begin{thebibliography}{99}
+
+  \bibitem{Pearl2009} Judea Pearl (2009), Causality: Models, Reasoning, and Inference, second edition, Cambridge University Press.
+
+  \bibitem{ShpitserPearl2006} Ilya Shpitser and Judea Pearl (2006), Identification of joint interventional distributions in recursive semi-Markovian causal models, Proceedings of the Twenty-First National Conference on Artificial Intelligence.
+
+  \bibitem{ChenDarwiche2024} Yizuo Chen and Adnan Darwiche (2024), Identifying causal effects under functional dependencies, Advances in Neural Information Processing Systems 37, arXiv:2403.04919.
+
+  \bibitem{HwangEtAl2024} Inwoo Hwang, Yesong Choe, Yeahoon Kwon, and Sanghack Lee (2024), On positivity condition for causal inference, Proceedings of Machine Learning Research 235, 20818--20841.
+
+  \bibitem{ChenDarwiche2025} Yizuo Chen and Adnan Darwiche (2025), Constrained identifiability of causal effects, Proceedings of the Thirty-Ninth AAAI Conference on Artificial Intelligence, arXiv:2412.02869.
+
+  \bibitem{TikkaEtAl2019} Santtu Tikka, Antti Hyttinen, and Juha Karvanen (2019), Identifying causal effects via context-specific independence relations, Advances in Neural Information Processing Systems 32.
+
+  \bibitem{MokhtarianEtAl2022} Ehsan Mokhtarian, Fateme Jamshidi, Jalal Etesami, and Negar Kiyavash (2022), Causal effect identification with context-specific independence relations of control variables, Proceedings of Machine Learning Research 151.
+
+  \bibitem{ZhangEtAl2022} Junzhe Zhang, Jin Tian, and Elias Bareinboim (2022), Partial counterfactual identification from observational and experimental data, Proceedings of the Thirty-Ninth International Conference on Machine Learning.
+
+  \bibitem{DuarteEtAl2024} Guilherme Duarte, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser (2024), An automated approach to causal inference in discrete settings, Journal of the American Statistical Association 119, 1778--1793.
+
+  \bibitem{JungEtAl2021} Yonghan Jung, Jin Tian, and Elias Bareinboim (2021), Estimating identifiable causal effects through double machine learning, Proceedings of the Thirty-Fifth AAAI Conference on Artificial Intelligence.
+
+  \bibitem{vanDerVaart1998} A. W. van der Vaart (1998), Asymptotic Statistics, Cambridge University Press.
+
+  \bibitem{ClopperPearson1934} C. J. Clopper and E. S. Pearson (1934), The use of confidence or fiducial limits illustrated in the case of the binomial, Biometrika 26, 404--413.
+
+  \bibitem{BasuPollackRoy2006} Saugata Basu, Richard Pollack, and Marie-Françoise Roy (2006), Algorithms in Real Algebraic Geometry, second edition, Springer.
+
+\end{thebibliography}
+
+\end{document}

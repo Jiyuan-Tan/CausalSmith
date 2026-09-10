@@ -1,0 +1,44 @@
+{
+  "node_type": "statement",
+  "body": {
+    "id": "prop:clubsandwich-consumer",
+    "kind": "proposition",
+    "statement": "Suppose \\(G_{1n}\\ge 2\\) and \\(G_{0n}\\ge 2\\). Let \\({\\tt fit}={\\tt lm}(Y^{\\mathrm{obs}}\\sim Z)\\) be unweighted, with only an intercept and numeric binary group treatment, equal group size \\(M\\), and clusters equal the realized groups. With the default identity target, the treatment-coordinate entry of \\({\\tt clubSandwich::vcovCR}({\\tt fit},\\ {\\tt cluster}={\\tt group},\\ {\\tt type}={\\tt 'CR2'})\\) equals \\(\\widehat V_{\\mathrm{CR2},n}=s_{1,n}^2/G_{1n}+s_{0,n}^2/G_{0n}\\) exactly.",
+    "free_symbols": [
+      "M",
+      "G_{1n}",
+      "G_{0n}",
+      "H^{\\mathrm{obs}}_{ng}",
+      "s_{z,n}^2",
+      "\\widehat V_{\\mathrm{CR2},n}"
+    ],
+    "depends_on": [
+      "def:random-partition-design",
+      "def:cr2-statistic"
+    ],
+    "justification": "Freezing the exact software call prevents a theoretical group-HC2 formula from being misapplied to a different sandwich specification.",
+    "gap": "FuSamiiWang2026 states the equal-group formula and an implementation call, but it does not connect that software output to the dense projection correction.",
+    "consumer": "The proposition identifies the exact coefficient variance returned to users of \\({\\tt clubSandwich}\\) in the design studied here.",
+    "proof_tex": "Fix a realized data set and suppress the row index \\(n\\).  The equality to be proved is deterministic conditional on these data.  For a realized group \\(g\\) in arm \\(z\\), let \\(y_g\\in\\mathbb R^M\\) be its vector of individual observed outcomes, let \\(\\mathbf 1_M\\) be the \\(M\\)-vector of ones, and put\n\\[\n H_g=M^{-1}\\mathbf 1_M^{\\mathsf T}y_g=H^{\\mathrm{obs}}_{ng},\n \\qquad x_z=\\begin{pmatrix}1\\\\ z\\end{pmatrix},\n \\qquad X_g=\\mathbf 1_M x_z^{\\mathsf T}.\n\\]\nThus the rows of \\(X_g\\) are precisely the intercept and numeric binary-treatment regressors specified in the proposition.  Write \\(G_z=G_{zn}\\), so that \\(G_1=G_{1n}\\) and \\(G_0=G_{0n}\\).  Because \\(M>0\\) and both \\(G_0\\) and \\(G_1\\) are positive, the stacked design matrix \\(X\\) has rank two.  Direct multiplication gives\n\\[\n X^{\\mathsf T}X\n =M\\begin{pmatrix}G_0+G_1&G_1\\\\G_1&G_1\\end{pmatrix},\n \\qquad\n B:=(X^{\\mathsf T}X)^{-1}\n =\\frac1M\\begin{pmatrix}\n G_0^{-1}&-G_0^{-1}\\\\\n -G_0^{-1}&G_0^{-1}+G_1^{-1}\n \\end{pmatrix}.\n\\]\nIn particular, if \\(c=(0,1)^{\\mathsf T}\\) selects the treatment coefficient, then\n\\[\n c^{\\mathsf T}Bx_1=\\frac{1}{MG_1},\n \\qquad\n c^{\\mathsf T}Bx_0=-\\frac{1}{MG_0}.\n \\tag{1}\n\\]\n\nFor an unweighted \\({\\tt lm}\\) object, the documented default working target is the identity matrix, and the documented \\({\\tt type}={\\tt 'CR2'}\\), \\({\\tt form}={\\tt 'sandwich'}\\) construction is\n\\[\n \\widehat\\Sigma_{\\mathrm{CR2}}\n =B\\sum_{g=1}^{G_0+G_1}\n X_g^{\\mathsf T}A_g e_g e_g^{\\mathsf T}A_g^{\\mathsf T}X_gB,\n \\qquad\n A_g=\\bigl(I_M-X_gBX_g^{\\mathsf T}\\bigr)^{-1/2},\n \\tag{2}\n\\]\nwhere \\(e_g=y_g-X_g\\widehat\\beta\\) is the ordinary least-squares residual vector; this is the \\({\\tt vcovCR.lm}\\), \\({\\tt CR2}\\), and sandwich construction recorded in \\cite{ClubSandwich2026}.  The implementation's bread and scale factors cancel to the matrix \\(B\\) on both sides of the sum in (2), so (2) is on the usual covariance scale.\n\nLet\n\\[\n P_M=M^{-1}\\mathbf 1_M\\mathbf 1_M^{\\mathsf T}.\n\\]\nFor a group in arm \\(z\\), the displayed formula for \\(B\\) yields\n\\[\n X_gBX_g^{\\mathsf T}\n =\\mathbf 1_M(x_z^{\\mathsf T}Bx_z)\\mathbf 1_M^{\\mathsf T}\n =G_z^{-1}P_M.\n \\tag{3}\n\\]\nThe orthogonal projection \\(P_M\\) is the identity on the cluster-constant subspace and is zero on its orthogonal complement.  Consequently \\(I_M-G_z^{-1}P_M\\) has eigenvalue \\(1-G_z^{-1}>0\\) on the cluster-constant subspace and eigenvalue \\(1\\) on its orthogonal complement.  Positivity follows here from the proposed domain condition \\(G_z\\ge2\\).  Taking the unique symmetric positive-definite inverse square root in (2) therefore gives\n\\[\n A_g=(I_M-P_M)+a_zP_M,\n \\qquad\n a_z=\\left(1-\\frac1{G_z}\\right)^{-1/2}\n =\\sqrt{\\frac{G_z}{G_z-1}}.\n \\tag{4}\n\\]\n\nEqual group size and the two-regressor design imply, by substituting the displayed inverse \\(B\\) into \\(\\widehat\\beta=BX^{\\mathsf T}y\\), that\n\\[\n \\widehat\\beta\n =\\begin{pmatrix}\\bar H_0\\\\ \\bar H_1-\\bar H_0\\end{pmatrix},\n \\qquad\n \\bar H_z=G_z^{-1}\\sum_{g:Z_{ng}=z}H_g.\n \\tag{5}\n\\]\nIt follows from (5) that the mean residual in group \\(g\\) is\n\\[\n M^{-1}\\mathbf 1_M^{\\mathsf T}e_g=H_g-\\bar H_z=:d_g.\n \\tag{6}\n\\]\nEquations (4) and (6) then show that within-group residual components orthogonal to \\(\\mathbf 1_M\\) make no contribution to the cluster score and that\n\\[\n \\mathbf 1_M^{\\mathsf T}A_ge_g\n =a_z\\mathbf 1_M^{\\mathsf T}e_g\n =Ma_zd_g.\n \\tag{7}\n\\]\nCombining (1) and (7), the treatment-coordinate adjusted score of group \\(g\\) is exactly\n\\[\n q_g:=c^{\\mathsf T}BX_g^{\\mathsf T}A_ge_g\n =\\begin{cases}\n a_1d_g/G_1,&Z_{ng}=1,\\\\\n -a_0d_g/G_0,&Z_{ng}=0.\n \\end{cases}\n \\tag{8}\n\\]\nTaking the treatment-coordinate entry of (2), using (8), and then using the definition of \\(s_{z,n}^2\\) in \\({\\rm def:cr2\\text{-}statistic}\\), we obtain\n\\[\n \\begin{aligned}\n c^{\\mathsf T}\\widehat\\Sigma_{\\mathrm{CR2}}c\n &=\\sum_g q_g^2\\\\\n &=\\sum_{z=0}^1\\frac{a_z^2}{G_z^2}\n   \\sum_{g:Z_{ng}=z}(H_g-\\bar H_z)^2\\\\\n &=\\sum_{z=0}^1\n   \\frac{G_z}{G_z-1}\\frac{(G_z-1)s_{z,n}^2}{G_z^2}\\\\\n &=\\frac{s_{1,n}^2}{G_{1n}}+\\frac{s_{0,n}^2}{G_{0n}}\n =\\widehat V_{\\mathrm{CR2},n}.\n \\end{aligned}\n\\]\nThe last equality is exactly \\({\\rm def:cr2\\text{-}statistic}\\).  This proves the claimed software-to-statistic identity.  Notice that no probabilistic independence or outcome-model assumption enters the calculation: \\({\\rm def:random\\text{-}partition\\text{-}design}\\) supplies the realized equal-size groups and fixed arm counts, while the identity itself holds for every realized outcome array.",
+    "proof_basis": {
+      "def:cr2-statistic": "d6b41a02db955301974897c7ba25ca561e099f4becc22c57c551822d6412199b",
+      "def:random-partition-design": "c7d668c19d7f6cab079b32a32a60ffa6da0728ceac78c3b7e52e5894f1e3bf88",
+      "prop:clubsandwich-consumer": "af78ee93ce6b52c874b72ac4802b1feaaab7489bff596802a65c179c74603c1e",
+      "sym:G_n": "1a6dee04597356baf7d714472fad4ed792bd088428f440ca405c19f716bc6b69",
+      "sym:G_{0n}": "fc30a02efcb7c89ad528805358bed50939dc9c595af438256f141e8f6e0a49ef",
+      "sym:G_{1n}": "5860ebbeca802aa658fedc99d2f908c7b1500d5241975324625f156b662c5c6d",
+      "sym:H^{\\mathrm{obs}}_{ng}": "65b8573e321145f7b83fa9b26f717c5f21ef7fcdb48c18e6d16c3a64bae8f1b0",
+      "sym:M": "b7fdd2258e24ad77e2fc05037907839a80471e08a573ed9913974548856d1dca",
+      "sym:Y_{i,n}(z,A)": "f696882be258670b6b6f10d9806e15535fcb7394c6574ca137f3d46f3d32b966",
+      "sym:\\Omega_{n,M}": "158dd61d8312a216e9d74336923e4149518b222dda7eae4425f66c49588df2ed",
+      "sym:\\mathbf A_n": "66bd0c2f93a167fa0954646e9bc14e792618cb078570a54ab58a4bb194024c36",
+      "sym:\\mathbf Z_n": "dcc2657b3bea56d17be9dd8cf5b1c625620b5c078a19a2f592a9053b66772264",
+      "sym:\\mathcal U_n": "0e4cc7c35c3381a3e649fd793f72ba7e0c312c3a86ba1741a4e078c280da6280",
+      "sym:\\mathcal Z": "fb12945555e1ffc732a7db7e7a4655bc2e0059c113dd773c64a5f40232a51095",
+      "sym:\\widehat V_{\\mathrm{CR2},n}": "e57fd2c1fb0c3d67034829586cd13df4c39203f9338cc0a989ca8710118a5aa5",
+      "sym:h_{z,n}": "9cd0101feba105cca2eec8d613c7e2a8c1334d512ca2fc34bcbba7551b5c41db",
+      "sym:n": "712d72b4eb1ad30212ea13e0c40291b3312ff9e1893fadc57c656167bab230fa",
+      "sym:s_{z,n}^2": "2468dd504bea78f6d3e1a4b4295d98bdab909487cd63f22c639d05581f71762a"
+    }
+  }
+}

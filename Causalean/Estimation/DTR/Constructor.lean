@@ -120,11 +120,20 @@ lemma exists_stage1_lift (S : PODTRSystem P 2 δ γ) (g : P.Ω → ℝ)
 /-! ## Derivability constructor -/
 
 open Classical in
-/-- **The DTR estimation-system fields are free given two-stage overlap.**
-From a bare `PODTRSystem P 2 δ γ`, a fixed target regime `dbar`, and a.e.
-overlap at stages 0 and 1, construct a `DTREstimationSystem`.  The regression
-fields are Doob--Dynkin lifts of the observable nested regressions, and the
-propensity fields are the corresponding lifts clamped into `(0, 1)` off support. -/
+/-- For [a two-stage potential-outcome system on a standard Borel sample space with a
+finite measure, measurable treatment values that have measurable singletons, and
+measurable state spaces at both stages](hyp:P,δ,γ),
+[a two-stage dynamic-treatment-regime system](hyp:S), and [a fixed two-stage target
+treatment regime](hyp:dbar), suppose [the conditional probability of the target
+treatment at stage 0, given the stage-0 history, lies strictly between zero and one
+almost everywhere](hyp:hov0), and [the analogous conditional probability at stage 1,
+given the stage-1 history, also lies strictly between zero and one almost
+everywhere](hyp:hov1). The [dynamic-treatment-regime estimation system](goal) is
+then constructed from those data.
+
+**The DTR estimation-system fields are free given two-stage overlap.** The regression
+fields are Doob--Dynkin lifts of the observable nested regressions, and the propensity
+fields are the corresponding lifts clamped into `(0, 1)` off support. -/
 noncomputable def _root_.Causalean.PO.PODTRSystem.toDTREstimationSystem
     (S : PODTRSystem P 2 δ γ) (dbar : Fin 2 → δ)
     (hov0 : ∀ᵐ ω ∂P.μ,

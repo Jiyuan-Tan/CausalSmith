@@ -30,9 +30,11 @@ open Causalean.SteinMethod
 
 variable {V Ω : Type*} [Fintype V] [DecidableEq V] [MeasurableSpace Ω] {μ : Measure Ω}
 
-/-- The **network-HAC variance estimator** for a network field: the empirical sum of summand
-products over network-adjacent pairs, `V̂(ω) = ∑ᵢ ∑_{j ∈ N i} Xᵢ(ω)·Xⱼ(ω)`.  It targets the
-variance of the network sum, whose cross-terms vanish outside the network neighborhoods. -/
+/-- Given [a finite population of units](hyp:V), [a measurable sample space](hyp:Ω), [a measure on
+that space](hyp:μ), [a super-population locally dependent network field](hyp:F), and [a sample point](hyp:ω),
+the [network-HAC variance estimator](goal) is the sum, over every unit and every unit in its closed
+network neighborhood, of the product of their realized summands.  It targets the variance of the
+network sum, whose cross-terms vanish outside the network neighborhoods. -/
 noncomputable def NetworkDependence.netHACVarEst (F : NetworkDependence V Ω μ) (ω : Ω) : ℝ :=
   ∑ i, ∑ j ∈ F.nbhd i, F.X i ω * F.X j ω
 

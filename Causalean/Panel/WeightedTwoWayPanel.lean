@@ -60,32 +60,45 @@ structure UnitWeights (Unit : Type*) [Fintype Unit] where
   pos : ∀ i, 0 < p i
   sum_one : ∑ i, p i = 1
 
-/-- Unit mean `\bar V_{i·}` under the uniform period measure (weight-free in time). -/
+/-- For [a set of units](hyp:Unit), [a finite set of periods](hyp:Time), [a panel array indexed by units and periods](hyp:V), and [a unit](hyp:i), the [unit mean](goal) is the arithmetic average of that unit's values over all periods.
+
+Unit mean `\bar V_{i·}` under the uniform period measure (weight-free in time). -/
 noncomputable def unitMean (V : Unit → Time → ℝ) (i : Unit) : ℝ :=
   (Fintype.card Time : ℝ)⁻¹ * ∑ t, V i t
 
-/-- `p`-weighted time mean `\bar V_{·t} = ∑_i p_i V_{it}`. -/
+/-- For [a finite set of units](hyp:Unit), [a set of periods](hyp:Time), [unit weights that are strictly positive and sum to one](hyp:w), [a panel array indexed by units and periods](hyp:V), and [a period](hyp:t), the [weighted time mean](goal) is the weighted average across units of the array at that period.
+
+`p`-weighted time mean `\bar V_{·t} = ∑_i p_i V_{it}`. -/
 noncomputable def timeMean (w : UnitWeights Unit) (V : Unit → Time → ℝ) (t : Time) : ℝ :=
   ∑ i, w.p i * V i t
 
-/-- `p`-weighted grand mean `\bar V = ∑_i p_i \bar V_{i·}`. -/
+/-- For [a finite set of units](hyp:Unit), [a finite set of periods](hyp:Time), [unit weights that are strictly positive and sum to one](hyp:w), and [a panel array indexed by units and periods](hyp:V), the [weighted grand mean](goal) is the weighted average across units of their arithmetic means over periods.
+
+`p`-weighted grand mean `\bar V = ∑_i p_i \bar V_{i·}`. -/
 noncomputable def grandMean (w : UnitWeights Unit) (V : Unit → Time → ℝ) : ℝ :=
   ∑ i, w.p i * unitMean V i
 
-/-- Two-way residual / double-demeaned array under the `p`-weighted means. -/
+/-- For [a finite set of units](hyp:Unit), [a finite set of periods](hyp:Time), [unit weights that are strictly positive and sum to one](hyp:w), [a panel array indexed by units and periods](hyp:V), [a unit](hyp:i), and [a period](hyp:t), the [double-demeaned value](goal) is that array value minus its unit mean and weighted time mean plus its weighted grand mean.
+
+Two-way residual / double-demeaned array under the `p`-weighted means. -/
 noncomputable def ddot (w : UnitWeights Unit) (V : Unit → Time → ℝ) (i : Unit) (t : Time) : ℝ :=
   V i t - unitMean V i - timeMean w V t + grandMean w V
 
-/-- `p`-weighted finite-panel inner product (uniform-time normalizer dropped as
-harmless). -/
+/-- For [a finite set of units](hyp:Unit), [a finite set of periods](hyp:Time), [unit weights that are strictly positive and sum to one](hyp:w), and [two panel arrays](hyp:V,W), the [weighted panel inner product](goal) is the sum over every unit and period of the unit weight times the product of the arrays; no uniform-period normalizing factor is included.
+
+`p`-weighted finite-panel inner product (uniform-time normalizer dropped as harmless). -/
 noncomputable def inner (w : UnitWeights Unit) (V W : Unit → Time → ℝ) : ℝ :=
   ∑ i, ∑ t, w.p i * (V i t * W i t)
 
-/-- Unit-time additive nuisance class `h_it = a_i + b_t` (shared predicate). -/
+/-- For [a set of units](hyp:Unit), [a set of periods](hyp:Time), and [a panel array indexed by units and periods](hyp:h), the [unit-time additive property](goal) holds exactly when there exist a real-valued unit-specific function and a real-valued time-specific function whose sum equals the array at every unit-period pair.
+
+Unit-time additive nuisance class `h_it = a_i + b_t` (shared predicate). -/
 abbrev IsUnitTimeAdditive (h : Unit → Time → ℝ) : Prop :=
   Causalean.Panel.Weighted.IsUnitTimeAdditive h
 
-/-- The unit/time component removed by double demeaning. -/
+/-- For [a finite set of units](hyp:Unit), [a finite set of periods](hyp:Time), [unit weights that are strictly positive and sum to one](hyp:w), [a panel array indexed by units and periods](hyp:V), [a unit](hyp:i), and [a period](hyp:t), the [unit-time component removed by double demeaning](goal) is the unit mean plus the weighted time mean minus the weighted grand mean.
+
+The unit/time component removed by double demeaning. -/
 noncomputable def unitTimeProjection (w : UnitWeights Unit) (V : Unit → Time → ℝ)
     (i : Unit) (t : Time) : ℝ :=
   unitMean V i + timeMean w V t - grandMean w V
@@ -265,8 +278,9 @@ open Causalean.Panel.Weighted
 
 variable [DecidableEq Unit] [DecidableEq Time] [Nonempty Unit] [Nonempty Time]
 
-/-- The panel viewed as a cell-indexed weighted support on `R = Unit × Time`
-with the factorized weight `ω_{(i,t)} = p_i / |Time|` (every cell observed). -/
+/-- For [finite, nonempty, distinguishable sets of units and periods](hyp:Unit,Time) and [unit weights that are strictly positive and sum to one](hyp:w), the [cell-indexed weighted support for the panel](goal) treats every unit-period pair as observed and assigns pair $(i,t)$ the weight given by unit $i$'s weight divided by the number of periods.
+
+The panel viewed as a cell-indexed weighted support on `R = Unit × Time` with the factorized weight `ω_{(i,t)} = p_i / |Time|` (every cell observed). -/
 noncomputable def cellSupport (w : UnitWeights Unit) :
     WeightedSupport (Unit × Time) where
   observed := Finset.univ

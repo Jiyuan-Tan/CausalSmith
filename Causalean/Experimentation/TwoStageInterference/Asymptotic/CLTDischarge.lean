@@ -46,21 +46,9 @@ import Causalean.Experimentation.TwoStageInterference.Asymptotic.CLT
 import Causalean.Experimentation.DesignBased.IndepSummandsCLT
 import Causalean.Experimentation.DesignBased.ProductVariance
 
-/-! # Primitive ingredients for the Liu-Hudgens homogeneous CLT discharge
+/-! # Ingredients for the homogeneous two-stage central limit theorem
 
-This file provides the primitive ingredients that remove the conditional-CLT premise from the
-Liu-Hudgens Proposition 5.1 argument under homogeneity.
-
-It defines the per-group contrast estimator `groupDiff`, the conditional product design
-`condDesign`, and the homogeneity/regularity bundle `Homogeneous`. The main reductions show that
-homogeneity collapses the estimand to the common contrast (`DEbar_eq_of_homogeneous`), collapses
-the two-stage variance to `v / C` (`directVar_eq_of_homogeneous`), and rewrites the studentized
-statistic as a normalized sum of independent per-coordinate summands (`stud_eq_sum_of_homogeneous`).
-
-The support-restricted averaging lemma `FiniteDesign.tendsto_E_of_uniformBound_ae` and the
-reference-selection lemmas `refSel`, `refSel_mem`, and `nonempty_of_refSel` are used by
-`CLTDischargeMain.lean` to prove `directEffect_clt_homogeneous` without taking a conditional CLT as
-a black box. -/
+This file develops the conditional-design ingredients for a central limit theorem for the studentized direct-effect estimator in homogeneous two-stage interference experiments.  It defines group-level contrasts, conditional assignment designs, normalized summands, and a reference selection, and derives the estimand and variance reductions needed for the final asymptotic result. -/
 
 open scoped BigOperators Topology
 open Finset Filter
@@ -114,8 +102,7 @@ namespace TwoStageInterference
 
 open DesignBased
 
-/-- This is the per-group estimator for the treatment-minus-control direct-effect contrast in one
-group of a Liu-Hudgens experiment.
+/-- For [a Liu--Hudgens experiment](hyp:E), [one of its groups](hyp:i), and [a within-group treatment assignment](hyp:w), the [per-group treatment-minus-control direct-effect estimator](goal) is the treated-strategy group estimator minus the control-strategy group estimator.
 
 It subtracts the control-strategy group estimator from the treated-strategy group estimator for the
 same within-group assignment. -/
@@ -123,7 +110,7 @@ noncomputable def groupDiff (E : LHExperiment) (i : E.ι)
     (w : Fin (E.gsize i) → Bool) : ℝ :=
   groupEst E.Y i true (E.m1 i) w - groupEst E.Y i false (E.m0 i) w
 
-/-- This is the stage-two product design conditional on a stage-one strategy assignment. -/
+/-- For [a Liu--Hudgens experiment](hyp:E) and [a stage-one strategy assignment](hyp:s), the [conditional stage-two design](goal) independently assigns each group according to its treatment design when that group is assigned treatment and according to its control design otherwise. -/
 noncomputable def condDesign (E : LHExperiment) (s : StratAssign E.ι) :
     FiniteDesign (∀ i, Fin (E.gsize i) → Bool) :=
   prodDesign (fun i => if s i then E.ψ i else E.φ i)
@@ -230,8 +217,7 @@ lemma directVar_eq_of_homogeneous (h : Homogeneous Exp t stud δ M v) (n : ℕ) 
   field_simp
   ring
 
-/-- This is the mean-zero scaled per-coordinate summand of the conditional studentized statistic
-under homogeneity. -/
+/-- For [a sequence of Liu--Hudgens experiments](hyp:Exp), [an experiment index $n$](hyp:n), [a common group-level contrast $\delta$](hyp:δ), [a sequence of within-group variances](hyp:v), [a stage-one strategy assignment](hyp:s), [a group](hyp:i), and [that group's within-group treatment assignment](hyp:a), the [scaled per-coordinate summand of the conditional studentized statistic](goal) is the selected-group indicator times the centered group contrast estimator, divided by $\sqrt{C_n v_n}$. -/
 noncomputable def cltSummand (n : ℕ) (δ : ℝ) (v : ℕ → ℝ) (s : StratAssign (Exp n).ι)
     (i : (Exp n).ι) (a : Fin ((Exp n).gsize i) → Bool) : ℝ :=
   (if s i then (1 : ℝ) else 0) * (groupDiff (Exp n) i a - δ)
@@ -307,7 +293,7 @@ lemma exists_support_selection (E : LHExperiment) : ∃ s, E.D₁.p s ≠ 0 := b
   exact one_ne_zero this
 
 open Classical in
-/-- A fixed reference selection in the support of stage 1. -/
+/-- For [a sequence of Liu--Hudgens experiments](hyp:Exp) and [an experiment index $n$](hyp:n), the [reference stage-one selection](goal) is a fixed strategy assignment having positive probability under that experiment's stage-one design. -/
 noncomputable def refSel (Exp : ℕ → LHExperiment) (n : ℕ) : StratAssign (Exp n).ι :=
   (exists_support_selection (Exp n)).choose
 

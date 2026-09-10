@@ -162,9 +162,10 @@ theorem bernoulliDesign_E_ctrlInd_prod_mul_prod (p : U → ℝ) (hp0 : ∀ i, 0 
 
 /-! ### Centered monomials and their orthogonality -/
 
-/-- The **centered monomial** attached to a finite set of units `S`: the product over `j ∈ S` of
-unit `j`'s treatment indicator minus its treatment probability.  These are the Walsh/Fourier basis
-functions of the biased Boolean cube; the empty set gives the constant `1`. -/
+/-- For [a population of units](hyp:U), [unit-specific treatment probabilities](hyp:p), and [a
+finite set of units](hyp:S), the [centered monomial](goal) maps each assignment to the product,
+over the selected units, of that unit's treatment indicator minus its treatment probability.  The
+empty selected set gives the constant one. -/
 noncomputable def centeredMonomial (p : U → ℝ) (S : Finset U) : (U → Bool) → ℝ :=
   fun z => ∏ j ∈ S, (treatInd j z - p j)
 
@@ -370,8 +371,10 @@ theorem centeredMonomial_coef_empty_eq_zero (p : U → ℝ) (hp0 : ∀ i, 0 ≤ 
   simp_rw [hterm] at hmean
   simpa using hmean
 
-/-- A statistic **depends only on the coordinate block `N`** if changing the assignment of any unit
-outside `N` leaves its value unchanged. -/
+/-- For [a population of units](hyp:U), [a finite block of units](hyp:N), and [a real-valued
+statistic of the assignment](hyp:F), the [assertion that the statistic depends only on the
+block](goal) means that any two assignments agreeing on every unit in the block have the same
+statistic value. -/
 def DependsOnBlock (N : Finset U) (F : (U → Bool) → ℝ) : Prop :=
   ∀ z z', (∀ j ∈ N, z j = z' j) → F z = F z'
 

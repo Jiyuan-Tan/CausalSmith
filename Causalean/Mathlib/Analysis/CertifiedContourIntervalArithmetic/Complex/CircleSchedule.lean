@@ -56,8 +56,9 @@ structure Schedule where
   /-- The selected mesh absorbs the magnitude-amplified discretization error. -/
   mesh_error_le : magnitude / mesh ≤ meshBudget
 
-/-- A canonical schedule splits tolerance equally and chooses conservative
-integer fuel and mesh from the exact rational denominator and magnitude. -/
+/-- Given [a positive rational tolerance](hyp:tolerance), [a natural-number operation count](hyp:operationCount), [a rational magnitude bound](hyp:magnitude), and [evidence that this bound is nonnegative](hyp:hmagnitude), the [canonical contour schedule](goal) allocates one third of the tolerance to each error budget and selects its input precision, mesh size, and fuel from the stated rational data.
+
+This construction uses conservative integer bounds derived from the tolerance denominator and magnitude. -/
 def Schedule.canonical (tolerance : PosRat) (operationCount : ℕ)
     (magnitude : ℚ) (hmagnitude : 0 ≤ magnitude) : Schedule where
   tolerance := tolerance
@@ -129,24 +130,23 @@ structure TraceEvent where
   /-- The primitive-operation ordinal within the node program. -/
   operation : ℕ
 
-/-- A circle-node trace event uses the schedule definitionally, not a copied fuel field. -/
+/-- Given [a contour schedule](hyp:schedule), [a mesh-endpoint index](hyp:node), and [a primitive-operation index](hyp:operation), the [circle-node trace event](goal) records exactly those three quantities. -/
 def circleNodeEvent (schedule : Schedule) (node operation : ℕ) : TraceEvent :=
   ⟨schedule, node, operation⟩
 
-/-- The rational rectangle for the pure-imaginary angle `2 * π * k / mesh`
-uses the π enclosure at the schedule's input precision. -/
+/-- Given [a contour schedule](hyp:schedule) and [a natural-number endpoint index](hyp:k), the [rational rectangle enclosing the corresponding pure-imaginary circle angle](goal) has real coordinate zero and imaginary coordinate $2πk/m$, where $m$ is the schedule's mesh size. -/
 def circleAngle (schedule : Schedule) (k : ℕ) : ComplexRatInterval :=
   ⟨RatInterval.point 0,
     (RatInterval.point (2 * k / schedule.mesh : ℚ)).mul
       (Transcendental.piInterval schedule.inputPrecision)⟩
 
-/-- The scheduled rational circle node computes `radius * exp(2 * π * i * k / mesh)`
-entirely through executable rational rectangle operations. -/
+/-- Given [a rational radius](hyp:radius), [a contour schedule](hyp:schedule), and [a natural-number endpoint index](hyp:k), the [scheduled circle-node rectangle](goal) is the rational-interval evaluation of $r\exp(2πik/m)$ using that schedule's angle enclosure and fuel. -/
 def circleNode (radius : ℚ) (schedule : Schedule) (k : ℕ) : ComplexRatInterval :=
   (Transcendental.complexExp (circleAngle schedule k) schedule.fuel).smulRat radius
 
-/-- The internal circle tolerance is capped by one so the elementary-factor
-magnitude estimates used in complex multiplication remain uniform. -/
+/-- Given [a rational radius](hyp:radius) and [a positive rational target width](hyp:target), the [internal circle tolerance](goal) is the smaller of $\mathrm{target}/(256(|r|+1))$ and $1/1024$.
+
+The cap at one keeps the elementary-factor magnitude estimates used in complex multiplication uniform. -/
 def circleInnerTolerance (radius : ℚ) (target : PosRat) : PosRat :=
   ⟨min (target.1 / (256 * (|radius| + 1))) (1 / 1024), by
     apply lt_min
@@ -154,13 +154,13 @@ def circleInnerTolerance (radius : ℚ) (target : PosRat) : PosRat :=
         (mul_pos (by norm_num) (by linarith [abs_nonneg radius]))
     · norm_num⟩
 
-/-- The uniform π precision selected for a requested circle-node width uses
-only rational data and is shared by every endpoint of the mesh. -/
+/-- Given [a rational radius](hyp:radius) and [a positive rational target width](hyp:target), the [circle input precision](goal) is the π-approximation precision selected for their internal circle tolerance. -/
 def circleInputPrecision (radius : ℚ) (target : PosRat) : ℕ :=
   Transcendental.piPrecision (circleInnerTolerance radius target)
 
-/-- A uniform Taylor fuel selected for a requested circle-node width is an
-explicit rational-data bound valid for all endpoints of the finite mesh. -/
+/-- Given [a rational radius](hyp:radius), [a natural-number mesh size](hyp:_mesh), and [a positive rational target width](hyp:target), the [circle exponential fuel](goal) is the larger of the zero-input exponential precision and an explicit trigonometric Taylor-fuel bound computed from the internal circle tolerance.
+
+This rational-data bound is valid uniformly for all endpoints of the finite mesh. -/
 def circleExpFuel (radius : ℚ) (_mesh : ℕ) (target : PosRat) : ℕ :=
   max
     (Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Transcendental.expPrecision
@@ -380,7 +380,7 @@ theorem circleNode_width_at_selected_precision (radius : ℚ) (hradius : 0 ≤ r
         radius * (14 * τ.1) := mul_le_mul_of_nonneg_left hcomplex hradius
     _ ≤ target.1 := by nlinarith
 
-/-- The exact semantic circle node corresponding to the scheduled rational endpoint. -/
+/-- Given [a rational radius](hyp:radius), [a contour schedule](hyp:schedule), and [a natural-number endpoint index](hyp:k), the [exact circle node](goal) is the complex number $r\exp(2πik/m)$, where $m$ is the schedule's mesh size. -/
 noncomputable def exactCircleNode (radius : ℚ) (schedule : Schedule) (k : ℕ) : ℂ :=
   (radius : ℂ) * Complex.exp
     (((2 : ℝ) * Real.pi * ((k : ℝ) / schedule.mesh)) * Complex.I)

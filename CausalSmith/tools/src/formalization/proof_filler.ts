@@ -1,8 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { MODELS } from "../models.js";
 import { existsSync } from "node:fs";
-import { addAssumption, markUnreviewed } from "../graph/mutate.js";
+import { addAssumption, addEdge, markUnreviewed } from "../graph/mutate.js";
 import { nodeIdToObjId, objIdToNodeId } from "../graph/from_note.js";
+import { reviewerObjId } from "../graph/skeleton.js";
 import { isUndeliveredNode, type AssumptionClass, type FormalizationGraph } from "../graph/types.js";
 import type { CodexRunInput } from "../shared/codex.js";
 import { parseJsonWithEscapeRepair } from "../shared/codex_json.js";
@@ -288,16 +289,54 @@ export async function runFiller(args: {
       );
       continue;
     }
-    if (!graph.nodes.some((n) => n.id === a.id)) {
+    // Filler ids often use the legacy short form (`a1`).  That spelling has a display alias
+    // (`A-1`) which may already belong to a frozen from-note assumption whose semantic graph id is
+    // different (`ass:overlap`).  Allocate over the COMPLETE reviewer-identity namespace, not only
+    // exact graph ids.  Reuse is allowed only when the existing node is the same disclosed premise
+    // already attached to the same parent; otherwise choose an injective parent-scoped semantic id
+    // and collision-check that generated id too.  This prevents both alias theft and silent premise/
+    // edge loss when two fillers independently choose the same short id.
+    const owners = (candidate: string) => {
+      const candidateIdentities = new Set([candidate, nodeIdToObjId(candidate)]);
+      return graph.nodes.filter((n) =>
+        [n.id, n.obj_id, nodeIdToObjId(n.id), reviewerObjId(n)]
+          .some((identity) => identity != null && candidateIdentities.has(identity)));
+    };
+    const samePremise = (node: FormalizationGraph["nodes"][number]) =>
+      node.kind === "assumption" &&
+      node.nl.statement === a.statement &&
+      node.nl.tex_anchor === (a.anchor ?? "") &&
+      node.assumption?.tier === (a.tier ?? 2) &&
+      node.assumption?.classification === toAssumptionClass(a.classification) &&
+      graph.edges.some((e) => e.kind === "proof-uses" && e.from === parentId && e.to === node.id);
+    const choose = (candidate: string): string | null => {
+      const found = owners(candidate);
+      if (found.length === 0) return candidate;
+      if (found.length === 1 && samePremise(found[0])) return found[0].id;
+      return null;
+    };
+    // Never let a model-chosen raw id enter the reviewer namespace.  The graph can gain hidden AUX
+    // nodes during the post-fill refresh and synthetic `sym:*` rows come from the typed core rather
+    // than today's graph, so a pre-refresh blacklist can never be complete.  A semantic `ass:filler:`
+    // id is stable across resumes and cannot acquire legacy/AUX/symbol projection semantics later.
+    const encodedParent = `${parentId.length}:${parentId}`;
+    const encodedRequested = `${a.id.length}:${a.id}`;
+    const base = `ass:filler:${encodedParent}:${encodedRequested}`;
+    let assumptionId = choose(base);
+    for (let suffix = 1; assumptionId == null; suffix += 1) assumptionId = choose(`${base}:${suffix}`);
+    if (!graph.nodes.some((n) => n.id === assumptionId)) {
       graph = addAssumption(graph, {
         node: parentId,
-        id: a.id,
+        id: assumptionId,
         statement: a.statement,
         tier: a.tier ?? 2,
         classification: toAssumptionClass(a.classification),
         anchor: a.anchor ?? "",
         provenance: "agent-introduced",
       });
+    } else {
+      // Semantic reuse still must carry the dependency requested in THIS filler output.
+      graph = addEdge(graph, { kind: "proof-uses", from: parentId, to: assumptionId, source: "declared" });
     }
     graph = markUnreviewed(graph, parentId); // the parent gained a hypothesis → re-review
   }

@@ -4,10 +4,8 @@ import {
   renderRoutingPlan,
   KIND_ACTION,
   partitionFindings,
-  MAX_P5_REVISION_PASSES,
   findingFingerprint,
   requiresNewResearch,
-  revisionMode,
 } from "../src/presentation/revision_routing.js";
 import type { ReviewFinding } from "../src/presentation/revision_brief.js";
 
@@ -19,7 +17,7 @@ const f = (kind: ReviewFinding["kind"], section = "s"): ReviewFinding => ({
   kind,
 });
 
-describe("holistic revision routing", () => {
+describe("hand revision routing", () => {
   it("maps each kind to its orchestrator action", () => {
     expect(KIND_ACTION.prose).toEqual({ type: "revise" });
     expect(KIND_ACTION.structure).toEqual({ type: "revise" });
@@ -35,25 +33,32 @@ describe("holistic revision routing", () => {
       recommendation: "major_revision",
       findings: [f("prose"), { ...f("structure", "global"), issue: "retitle the paper" }, f("statement"), f("other")],
     });
-    expect(md).toContain("holistic revision (reframe)");
+    expect(md).toContain("fix by hand in the authored sources");
     expect(md).not.toContain("rewind P");
     expect(md).toContain("escalate");
     expect(md).toMatch(/your call|decide/i);
   });
-  it("allows only rewrite findings into unattended revision", () => {
+  it("routes only rewrite findings to the hand-revision bucket", () => {
     const p = partitionFindings([f("prose"), f("structure"), f("statement"), f("citation"), f("other")]);
     expect(p.repairable).toHaveLength(2);
     expect(p.blocked).toHaveLength(3);
-    expect(MAX_P5_REVISION_PASSES).toBe(2);
   });
-  it("uses one reviser for local and paper-wide structure, enabling reframing only when warranted", () => {
+  it("routes local and paper-wide structure findings alike to hand revision", () => {
     const local = { ...f("structure", "Discussion"), issue: "paragraph is hard to follow" };
     const global = { ...f("structure", "global"), issue: "reframe the contribution for econometric readers" };
     expect(actionForFinding(local)).toEqual({ type: "revise" });
     expect(actionForFinding(global)).toEqual({ type: "revise" });
-    expect(revisionMode([local])).toBe("local");
-    expect(revisionMode([global])).toBe("reframe");
   });
+  it("trusts a structured `rewrite` remedy over research keywords in the suggested fix", () => {
+    const f = { kind: "prose", section: "Introduction", severity: "minor", remedy: "rewrite",
+      issue: "The phrase 'a sharp summary-inversion set' suggests an optimality result that is not stated.",
+      fix: "Replace 'sharp' with 'exact' unless the authors add and prove a formal sharpness criterion." } as ReviewFinding;
+    expect(requiresNewResearch(f)).toBe(false);
+    expect(actionForFinding(f)).toEqual({ type: "revise" });
+    // Without a remedy the keyword fallback still applies.
+    expect(requiresNewResearch({ ...f, remedy: undefined })).toBe(true);
+  });
+
   it("blocks new-research remedies and uses stable issue ids", () => {
     const research = { ...f("prose"), finding_id: "missing-simulation", remedy: "simulation" as const };
     expect(requiresNewResearch(research)).toBe(true);

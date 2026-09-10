@@ -68,19 +68,25 @@ variable {P : POSystem} (S : POCSDIDSystem P)
 
 /-! ### `POVar` wrappers, factuals, and events -/
 
-/-- The treatment at a period is packaged as a binary potential-outcome variable. -/
+/-- For [a staggered-adoption DID system](hyp:S) and [a period](hyp:s), the [binary
+treatment potential-outcome variable](goal) is the treatment node for that period. -/
 def dVar (s : Fin S.T) : POVar P Bool := ⟨S.D s, S.hDbool s⟩
 
-/-- The outcome at a period is packaged as a real-valued potential-outcome variable. -/
+/-- For [a staggered-adoption DID system](hyp:S) and [a period](hyp:s), the [real-valued
+outcome potential-outcome variable](goal) is the outcome node for that period. -/
 def yVar (s : Fin S.T) : POVar P ℝ := ⟨S.Y s, S.hYreal s⟩
 
-/-- The factual treatment at a period is the observed treatment value for that period. -/
+/-- For [a staggered-adoption DID system](hyp:S) and [a period](hyp:s), the [factual
+treatment function](goal) assigns each unit its observed treatment at that period. -/
 noncomputable def factualD (s : Fin S.T) : P.Ω → Bool := (S.dVar s).factual
 
-/-- The factual outcome at a period is the observed outcome value for that period. -/
+/-- For [a staggered-adoption DID system](hyp:S) and [a period](hyp:s), the [factual
+outcome function](goal) assigns each unit its observed outcome at that period. -/
 noncomputable def factualY (s : Fin S.T) : P.Ω → ℝ := (S.yVar s).factual
 
-/-- The period-specific treatment event contains units with the chosen observed treatment value. -/
+/-- For [a staggered-adoption DID system](hyp:S), [a period](hyp:s), and [a binary
+treatment value](hyp:b), the [period-specific treatment event](goal) is the set of
+units whose observed treatment at that period equals that value. -/
 def dEvent (s : Fin S.T) (b : Bool) : Set P.Ω := (S.dVar s).event b
 
 /-- The observed treatment at each period is measurable. -/
@@ -105,7 +111,9 @@ Built recursively over `k ≤ S.T`, mirroring the construction in
 `dTargetUpTo` lets us prove disjointness for the next `Regime.sqcup`.
 -/
 
-/-- The standalone target set contains the treatment nodes from periods before the cutoff. -/
+/-- For [a staggered-adoption DID system](hyp:S), the [treatment-target-set function](goal)
+maps each cutoff to [the empty set at cutoff zero](step:1) and [the treatment nodes from periods
+strictly before the cutoff at every positive cutoff](step:2). -/
 def dTargetUpTo (S : POCSDIDSystem P) : ℕ → Finset P.V
   | 0     => ∅
   | k + 1 =>
@@ -134,8 +142,11 @@ lemma dTargetUpTo_mem_iff (S : POCSDIDSystem P) :
           have : (⟨k, hk⟩ : Fin S.T) = i := by apply Fin.ext; simp [hi']
           rw [this]
 
-/-- The recursive auxiliary builds a treatment-path regime over the first
-periods and records its target set. -/
+/-- For [a staggered-adoption DID system](hyp:S), [a binary treatment path over
+all periods](hyp:b), [a cutoff](hyp:k), and proof that the cutoff does not exceed
+the horizon, the [partial treatment-path regime together with its target-set
+identity](goal) fixes treatments before the cutoff according to that path and has
+exactly the treatment nodes before the cutoff as its target. -/
 noncomputable def regUpToAux (S : POCSDIDSystem P) (b : Fin S.T → Bool) :
     (k : ℕ) → k ≤ S.T →
       { r : Regime P.V P.X // r.target = S.dTargetUpTo k }
@@ -165,7 +176,9 @@ noncomputable def regUpToAux (S : POCSDIDSystem P) (b : Fin S.T → Bool) :
         rw [hrec]
         ext w; simp [Finset.mem_insert, v]⟩
 
-/-- A full-horizon regime fixes every period's treatment according to a chosen treatment path. -/
+/-- For [a staggered-adoption DID system](hyp:S) and [a binary treatment path over all
+periods](hyp:b), the [full-horizon treatment regime](goal) fixes every period's treatment
+to the corresponding value on that path. -/
 noncomputable def regimeBy (S : POCSDIDSystem P) (b : Fin S.T → Bool) :
     Regime P.V P.X :=
   (S.regUpToAux b S.T (le_refl _)).1
@@ -175,11 +188,14 @@ lemma regimeBy_target_eq (S : POCSDIDSystem P) (b : Fin S.T → Bool) :
     (S.regimeBy b).target = S.dTargetUpTo S.T :=
   (S.regUpToAux b S.T (le_refl _)).2
 
-/-- The cohort regime leaves periods before the cohort untreated and treats all later periods. -/
+/-- For [a staggered-adoption DID system](hyp:S) and [a cohort period](hyp:g), the
+[cohort treatment regime](goal) leaves all earlier periods untreated and fixes treatment
+to true in that cohort period and every later period. -/
 noncomputable def regOf (g : Fin S.T) : Regime P.V P.X :=
   S.regimeBy (fun s => decide (g.val ≤ s.val))
 
-/-- The never-treated regime fixes every period's treatment to untreated. -/
+/-- For [a staggered-adoption DID system](hyp:S), the [never-treated regime](goal)
+fixes treatment to false in every period. -/
 noncomputable def regNT : Regime P.V P.X :=
   S.regimeBy (fun _ => false)
 
@@ -210,11 +226,15 @@ lemma yVar_v_notin_regNT_target (t : Fin S.T) :
 
 /-! ### Counterfactual outcomes and ATT -/
 
-/-- The cohort potential outcome is the period outcome under the treatment path for that cohort. -/
+/-- For [a staggered-adoption DID system](hyp:S), [an outcome period](hyp:t), and [a
+cohort period](hyp:g), the [cohort potential-outcome function](goal) assigns each unit
+its outcome at that period under the treatment path that begins in the cohort period. -/
 noncomputable def YofCohort (t g : Fin S.T) : P.Ω → ℝ :=
   (S.yVar t).cf (S.regOf g)
 
-/-- The never-treated potential outcome is the period outcome under the never-treated path. -/
+/-- For [a staggered-adoption DID system](hyp:S) and [an outcome period](hyp:t), the
+[never-treated potential-outcome function](goal) assigns each unit its outcome at that
+period under the regime that never treats. -/
 noncomputable def YofNT (t : Fin S.T) : P.Ω → ℝ :=
   (S.yVar t).cf S.regNT
 
@@ -228,12 +248,15 @@ lemma measurable_YofCohort (t g : Fin S.T) : Measurable (S.YofCohort t g) :=
 lemma measurable_YofNT (t : Fin S.T) : Measurable (S.YofNT t) :=
   (S.yVar t).measurable_cf _
 
-/-- The predecessor of an admissible cohort is the immediately preceding period. -/
+/-- For [a staggered-adoption DID system](hyp:S), [a cohort period](hyp:g), and [proof
+that the cohort is not the first period](hyp:_hg), the [predecessor period](goal) is the
+period immediately before that cohort. -/
 def predFin (g : Fin S.T) (_hg : 1 ≤ g.val) : Fin S.T :=
   ⟨g.val - 1, lt_of_le_of_lt (Nat.sub_le _ _) g.isLt⟩
 
-/-- The cohort event contains units untreated just before the cohort period and
-treated at the cohort period. -/
+/-- For [a staggered-adoption DID system](hyp:S), [a cohort period](hyp:g), and [proof
+that it is not the first period](hyp:hg), the [cohort event](goal) is the set of units
+untreated immediately before that period and treated in that period. -/
 def cohortEvent (g : Fin S.T) (hg : 1 ≤ g.val) : Set P.Ω :=
   S.dEvent (S.predFin g hg) false ∩ S.dEvent g true
 
@@ -242,15 +265,18 @@ lemma measurableSet_cohortEvent (g : Fin S.T) (hg : 1 ≤ g.val) :
     MeasurableSet (S.cohortEvent g hg) :=
   (S.measurableSet_dEvent _ _).inter (S.measurableSet_dEvent _ _)
 
-/-- The never-treated event contains units untreated in every period. -/
+/-- For [a staggered-adoption DID system](hyp:S), the [never-treated event](goal) is
+the set of units whose observed treatment is false in every period. -/
 def neverTreatedEvent : Set P.Ω := ⋂ s : Fin S.T, S.dEvent s false
 
 /-- The never-treated event is measurable. -/
 lemma measurableSet_neverTreatedEvent : MeasurableSet S.neverTreatedEvent :=
   MeasurableSet.iInter (fun s => S.measurableSet_dEvent s _)
 
-/-- The group-time ATT is the cohort mean contrast between cohort and
-never-treated potential outcomes. -/
+/-- For [a staggered-adoption DID system](hyp:S), [a cohort period](hyp:g), [an outcome
+period](hyp:t), and [proof that the cohort is not the first period](hyp:hg), the
+[group-time average treatment effect on the treated](goal) is the cohort-event conditional
+mean of the period-$t$ difference between the cohort and never-treated potential outcomes. -/
 noncomputable def ATT (g t : Fin S.T) (hg : 1 ≤ g.val) : ℝ :=
   eventCondExp P.μ (S.cohortEvent g hg)
     (fun ω => S.YofCohort t g ω - S.YofNT t ω)

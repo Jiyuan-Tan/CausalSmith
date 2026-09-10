@@ -44,7 +44,7 @@ private theorem rectangle_width_mono {I J : ComplexRatInterval}
     (hIJ : I.Subinterval J) : I.width ≤ J.width := by
   exact max_le_max (RatInterval.width_mono hIJ.1) (RatInterval.width_mono hIJ.2)
 
-/-- A certified complex name refines effectively to a requested rational width. -/
+/-- For [a certified complex name](hyp:z) and [a requested positive rational tolerance](hyp:ε), [the refined rational rectangle](goal) is the rectangle selected by that name's tolerance-to-fuel rule. -/
 def refine (z : CertifiedComplex) (ε : PosRat) : ComplexRatInterval := z.approx (z.modulus ε)
 
 /-- Effective refinement preserves containment and meets its requested width. -/
@@ -52,7 +52,7 @@ theorem refine_spec (z : CertifiedComplex) (ε : PosRat) :
     (z.refine ε).Contains z.value ∧ (z.refine ε).width ≤ ε.1 := by
   exact ⟨z.contains _, z.width_modulus ε⟩
 
-/-- A rational complex point has the constant point rectangle as its certified name. -/
+/-- For [a rational real coordinate](hyp:x) and [a rational imaginary coordinate](hyp:y), [the certified complex name of their complex point](goal) has that point as its exact value and the corresponding singleton rectangle at every fuel level. -/
 def ofRatPair (x y : ℚ) : CertifiedComplex where
   value := (x : ℝ) + (y : ℝ) * Complex.I
   approx := fun _ => ComplexRatInterval.point x y
@@ -66,8 +66,7 @@ def ofRatPair (x y : ℚ) : CertifiedComplex where
     simpa [ComplexRatInterval.width, ComplexRatInterval.point,
       RatInterval.width, RatInterval.point] using ε.2.le
 
-/-- Adding certified complex names uses equal-fuel rectangle addition and a
-half-tolerance refinement for each operand. -/
+/-- For [two certified complex names](hyp:z,w), [their certified sum](goal) denotes the sum of their exact complex values and uses the coordinatewise sum of their equal-fuel rectangles. -/
 def add (z w : CertifiedComplex) : CertifiedComplex where
   value := z.value + w.value
   approx := fun n => (z.approx n).add (w.approx n)
@@ -99,15 +98,13 @@ def add (z w : CertifiedComplex) : CertifiedComplex where
     dsimp [k, δ] at hzre hzim hwre hwim ⊢
     exact max_le (by linarith) (by linarith)
 
-/-- Modulus evaluation on a refining complex name recursively intersects the
-current Newton enclosure with every preceding output. -/
+/-- For [a certified complex name](hyp:z), [the modulus approximation at each nonnegative fuel level](goal) is computed recursively: [at zero it is the initial rectangle's modulus enclosure](step:1), and [at each successor it is the intersection of the preceding approximation with the new modulus enclosure](step:2). -/
 def normApprox (z : CertifiedComplex) : ℕ → RatInterval
   | 0 => (z.approx 0).normInterval 0
   | fuel + 1 => (normApprox z fuel).tighten
       ((z.approx (fuel + 1)).normInterval (fuel + 1))
 
-/-- A conservative executable modulus precision includes both input-name
-diameter and Newton iteration fuel, including the nondifferentiable origin. -/
+/-- For [a certified complex name](hyp:z) and [a requested positive rational tolerance](hyp:ε), [the modulus precision](goal) is the maximum of a fuel level that refines the input rectangle to a tolerance determined by its initial magnitude bound and an explicit Newton-iteration fuel bound. -/
 def normPrecision (z : CertifiedComplex) (ε : PosRat) : ℕ :=
   let M := (z.approx 0).maxAbs
   let δ : PosRat :=
@@ -304,7 +301,7 @@ theorem norm_width_at_precision (z : CertifiedComplex) (ε : PosRat) :
       linarith [huhi, hllo, hsqrtspan])
   exact (RatInterval.width_mono (normApprox_subinterval_current z k)).trans hcurrent
 
-/-- Complex modulus lifts a refining certified complex name to a certified real name. -/
+/-- For [a certified complex name](hyp:z), [its certified modulus name](goal) denotes the absolute value of its exact complex value and uses the recursive modulus enclosures with the stated precision rule. -/
 noncomputable def norm (z : CertifiedComplex) : CertifiedReal where
   value := ‖z.value‖
   approx := normApprox z

@@ -43,7 +43,9 @@ open scoped ENNReal BigOperators
 
 namespace VarConstr2
 
-/-- The paired-cell covariate is nonempty whenever `K ≠ 0`. -/
+/-- For every [positive number $K$ of paired cells](hyp:K), [the paired-cell covariate space](goal) contains [the first cell paired with the true binary position](step:1).
+
+The paired-cell covariate is nonempty whenever $K \ne 0$. -/
 instance instNonemptyFinBoolProd {K : ℕ} [NeZero K] : Nonempty (Fin K × Bool) :=
   ⟨(⟨0, Nat.pos_of_ne_zero (NeZero.ne K)⟩, true)⟩
 
@@ -56,17 +58,27 @@ theorem inClass_null2 (P : VarConstr2 K) {εg εm : ℝ} (hεg : 0 ≤ εg) (hε
   err_g d := by rw [l2sq_self]; exact hεg
   err_m := by rw [l2sq_self]; exact hεm
 
-/-- The null `n`-sample law `P̂^⊗n`. -/
+/-- For [a propensity-dominant construction with a specified number of paired covariate
+cells](hyp:K,P) and [a sample size](hyp:n), provided that there is at least one pair, [the
+null sample law](goal) is the joint distribution of that many independent observed records
+generated from the construction's unperturbed propensity and outcome regressions. -/
 noncomputable def Qfalse2 (P : VarConstr2 K) (n : ℕ) [NeZero K] :
     Measure (Fin n → Obs (Fin K × Bool)) :=
   productLaw (P.validDGP_hat2 (K := K)) n
 
-/-- The perturbed `n`-sample law `Qλ^⊗n`. -/
+/-- For [a propensity-dominant construction with a specified number of paired covariate
+cells](hyp:K,P), [a sample size](hyp:n), and [a binary sign vector indexing a
+perturbation](hyp:lam), provided that there is at least one pair, [the perturbed sample
+law](goal) is the joint distribution of that many independent observed records generated
+from the corresponding perturbed propensity and outcome regressions. -/
 noncomputable def Qpert2 (P : VarConstr2 K) (n : ℕ) [NeZero K] (lam : Fin K → Bool) :
     Measure (Fin n → Obs (Fin K × Bool)) :=
   productLaw (P.validDGP_pert2 lam) n
 
-/-- The alternative `n`-sample law: the uniform Rademacher mixture of the perturbed laws. -/
+/-- For [a propensity-dominant construction with a specified number of paired covariate
+cells](hyp:K,P) and [a sample size](hyp:n), provided that there is at least one pair, [the
+alternative sample law](goal) is the uniform mixture, over all binary sign vectors, of the
+corresponding perturbed independent-sample laws. -/
 noncomputable def Qtrue2 (P : VarConstr2 K) (n : ℕ) [NeZero K] :
     Measure (Fin n → Obs (Fin K × Bool)) :=
   mixture (signWeight K) (fun lam => Qpert2 P n lam)

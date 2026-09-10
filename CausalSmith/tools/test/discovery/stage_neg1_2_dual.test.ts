@@ -68,6 +68,21 @@ function makeState(): StateJson {
   } as unknown as StateJson;
 }
 
+function checklistRow(bibkey: string, relevant_to: string) {
+  return {
+    author: "Test Author",
+    year: 2026,
+    venue: "Test Journal",
+    bibkey,
+    one_line: "Comparator result used by this test.",
+    relevant_to,
+  };
+}
+
+function checklistRows(bibkey: string, relevant_to: string) {
+  return Array.from({ length: 4 }, (_, i) => checklistRow(`${bibkey}_${i + 1}`, relevant_to));
+}
+
 /** runCodex stub: writes `coreBody` to the core path, returns `extra` handoff keys. */
 function authorDeps(
   coreBody: string | ((attempt: number) => string),
@@ -125,6 +140,11 @@ beforeAll(async () => {
     new URL("../fixtures/stat_ate_overlap_decay_proto_core.json", import.meta.url),
     "utf8",
   );
+  const completeGolden = JSON.parse(goldenCore) as Record<string, unknown>;
+  completeGolden.literature_checklist = checklistRows("Golden2026", "thm:upper");
+  completeGolden.novelty_justification = "Fixture novelty justification.";
+  completeGolden.message = "Fixture proposal completed.";
+  goldenCore = JSON.stringify(completeGolden);
 });
 
 afterAll(async () => {
@@ -317,9 +337,12 @@ describe("Stage -1.2 author (single artifact: formal + prose → gate → schema
     const ctx = makeCtx(repoRoot);
     const broken = JSON.parse(goldenCore);
     broken.statements[0].status = "proved";
+    const canonical = protoCoreJsonPath(ctx);
+    await writeFile(canonical, goldenCore, "utf8");
     await expect(
       runStageNeg1_2ProtoCore({ ctx, state: makeState(), mode: "cold-start", deps: authorDeps(JSON.stringify(broken)) }),
     ).rejects.toThrow(/proposal gate/);
+    expect(await readFile(canonical, "utf8")).toBe(goldenCore);
   });
 
   it("THROWS when the authored core fails the gate (GP3: missing tldr)", async () => {
@@ -354,6 +377,70 @@ describe("Stage -1.2 author (single artifact: formal + prose → gate → schema
     };
     await expect(runStageNeg1_2ProtoCore({ ctx, state: makeState(), mode: "cold-start", deps })).rejects.toThrow(/failed/);
   });
+
+  it("grades a valid authored core when the advisory stdout receipt is malformed", async () => {
+    const ctx = makeCtx(repoRoot);
+    const core = JSON.parse(goldenCore) as Record<string, unknown>;
+    core.literature_checklist = checklistRows("Author2026", "thm:pn");
+    core.novelty_justification = "Independent review decides the mathematical claim.";
+    core.message = "Complete proposal core authored.";
+    const deps: StageDeps = {
+      runCodex: async ({ prompt }: { prompt: string }) => {
+        const m = prompt.match(/proposal core JSON to this path \(create it\): (.+)/);
+        if (!m) throw new Error("malformed-receipt deps: no core path in prompt");
+        await mkdir(path.dirname(m[1].trim()), { recursive: true });
+        await writeFile(m[1].trim(), JSON.stringify(core), "utf8");
+        return { stdout: '{"status":"completed","message":"core",,"artifacts":[]}', stderr: "" };
+      },
+      runClaude: async () => { throw new Error("unused"); },
+      lean: undefined as never,
+    };
+
+    const result = await runStageNeg1_2ProtoCore({
+      ctx,
+      state: makeState(),
+      mode: "revise",
+      deps,
+    });
+
+    expect(result.status).toBe("completed");
+    expect(result.message).toMatch(/validated proposal core despite a malformed advisory receipt/);
+    expect(CoreSchema.parse(JSON.parse(await readFile(result.protoCoreJsonPath, "utf8"))).qid).toBe(QID);
+  });
+
+  it("fails closed on malformed stdout when no authored core exists", async () => {
+    const deps: StageDeps = {
+      runCodex: async () => ({ stdout: '{"status":"completed",,}', stderr: "" }),
+      runClaude: async () => { throw new Error("unused"); },
+      lean: undefined as never,
+    };
+    await expect(runStageNeg1_2ProtoCore({
+      ctx: makeCtx(repoRoot),
+      state: makeState(),
+      mode: "revise",
+      deps,
+    })).rejects.toThrow(/did not parse|without writing/);
+  });
+
+  it.each(["{}", '{"status":"blocked"}'])(
+    "fails closed on a well-formed unknown disposition: %s",
+    async (stdout) => {
+      const core = JSON.parse(goldenCore) as Record<string, unknown>;
+      core.literature_checklist = checklistRows("Author2026", "thm:pn");
+      core.novelty_justification = "Independent review decides the mathematical claim.";
+      core.message = "Complete proposal core authored.";
+      const deps = authorDeps(JSON.stringify(core));
+      deps.runCodex = async ({ prompt }: { prompt: string }) => {
+        const m = prompt.match(/proposal core JSON to this path \(create it\): (.+)/);
+        if (!m) throw new Error("unknown-status deps: no core path in prompt");
+        await writeFile(m[1].trim(), JSON.stringify(core), "utf8");
+        return { stdout, stderr: "" };
+      };
+      await expect(runStageNeg1_2ProtoCore({
+        ctx: makeCtx(repoRoot), state: makeState(), mode: "revise", deps,
+      })).rejects.toThrow(/unknown disposition/);
+    },
+  );
 });
 
 describe("runStageNeg1_2Dual (rollout step 5 — one author + render + harvest)", () => {
@@ -423,11 +510,26 @@ describe("runStageNeg1_2Dual (rollout step 5 — one author + render + harvest)"
     expect(state.proposed_from!.last_draft_status).toBe("env-failure");
   });
 
+  it("routes a malformed status-only needs-pivot receipt to environment retry", async () => {
+    const ctx = makeCtx(repoRoot);
+    const state = makeState();
+    const deps: StageDeps = {
+      runCodex: async () => ({ stdout: '{"status":"needs-pivot",,}', stderr: "" }),
+      runClaude: async () => { throw new Error("unused"); },
+      lean: undefined as never,
+    };
+    const res = await runStageNeg1_2Dual({
+      ctx, state, deps, mode: "revise", nextVersion: 1, angleIndex: 0,
+    });
+    expect(res.status).toBe("completed");
+    expect(state.proposed_from!.last_draft_status).toBe("env-failure");
+  });
+
   it("authors the core (no .tex) and harvests the handoff into proposed_from", async () => {
     const ctx = makeCtx(repoRoot);
     const state = makeState();
     const deps = authorDeps(goldenCore, {
-      literature_checklist: [{ bibkey: "Tsybakov2009", relevant_to: "thm:lower" }],
+      literature_checklist: checklistRows("Tsybakov2009", "thm:lower"),
       cluster: "stat",
       novelty_justification: "novel: matching converse under overlap decay",
       seeds: ["seedA"],
@@ -463,9 +565,7 @@ describe("runStageNeg1_2Dual (rollout step 5 — one author + render + harvest)"
       string,
       unknown
     >;
-    expect(persisted.literature_checklist).toEqual([
-      { bibkey: "Tsybakov2009", relevant_to: "thm:lower" },
-    ]);
+    expect(persisted.literature_checklist).toEqual(checklistRows("Tsybakov2009", "thm:lower"));
     expect(persisted.message).toBeDefined();
   });
 
@@ -477,14 +577,14 @@ describe("runStageNeg1_2Dual (rollout step 5 — one author + render + harvest)"
     const ctx = makeCtx(repoRoot);
     const state = makeState();
     const core = JSON.parse(goldenCore) as Record<string, unknown>;
-    core.literature_checklist = [{ bibkey: "StaleIteration1Key", relevant_to: "thm:pn" }];
+    core.literature_checklist = checklistRows("StaleIteration1Key", "thm:pn");
     const res = await runStageNeg1_2Dual({
       ctx,
       state,
       deps: authorDeps(JSON.stringify(core), {
         literature_checklist: [
-          { bibkey: "StaleIteration1Key", relevant_to: "thm:pn" },
-          { bibkey: "FreshIteration2Key", relevant_to: "thm:pn" },
+          ...checklistRows("StaleIteration1Key", "thm:pn"),
+          ...checklistRows("FreshIteration2Key", "thm:pn"),
         ],
       }),
       mode: "cold-start",
@@ -497,8 +597,8 @@ describe("runStageNeg1_2Dual (rollout step 5 — one author + render + harvest)"
       unknown
     >;
     expect(persisted.literature_checklist).toEqual([
-      { bibkey: "StaleIteration1Key", relevant_to: "thm:pn" },
-      { bibkey: "FreshIteration2Key", relevant_to: "thm:pn" },
+      ...checklistRows("StaleIteration1Key", "thm:pn"),
+      ...checklistRows("FreshIteration2Key", "thm:pn"),
     ]);
   });
 
@@ -537,12 +637,12 @@ describe("runStageNeg1_2Dual (rollout step 5 — one author + render + harvest)"
     const ctx = makeCtx(repoRoot);
     const state = makeState();
     const core = JSON.parse(goldenCore) as Record<string, unknown>;
-    core.literature_checklist = [{ bibkey: "StaleIteration1Key", relevant_to: "thm:pn" }];
+    core.literature_checklist = checklistRows("StaleIteration1Key", "thm:pn");
     const res = await runStageNeg1_2Dual({
       ctx,
       state,
       deps: authorDeps(JSON.stringify(core), {
-        named_literature_checklist: [{ bibkey: "FreshDriftSpelledKey", relevant_to: "thm:pn" }],
+        named_literature_checklist: checklistRows("FreshDriftSpelledKey", "thm:pn"),
       }),
       mode: "cold-start",
       nextVersion: 1,
@@ -553,9 +653,7 @@ describe("runStageNeg1_2Dual (rollout step 5 — one author + render + harvest)"
       string,
       unknown
     >;
-    expect(persisted.literature_checklist).toEqual([
-      { bibkey: "FreshDriftSpelledKey", relevant_to: "thm:pn" },
-    ]);
+    expect(persisted.literature_checklist).toEqual(checklistRows("FreshDriftSpelledKey", "thm:pn"));
     expect(persisted.named_literature_checklist).toBeUndefined();
     expect(persisted.literature_check_list).toBeUndefined();
   });
@@ -581,7 +679,7 @@ describe("runStageNeg1_2Dual (rollout step 5 — one author + render + harvest)"
     core.seed_details = [{ seed: "core seed A", motif: "M20" }];
     core.literature_map = { anchor: "Tian and Pearl", gap: "mediator-defier frontier" };
     core.novelty_justification = "core-authored novelty case";
-    core.literature_checklist = [{ bibkey: "TianPearl2000", relevant_to: "thm:pn" }];
+    core.literature_checklist = checklistRows("TianPearl2000", "thm:pn");
 
     const res = await runStageNeg1_2Dual({
       ctx,
@@ -602,9 +700,53 @@ describe("runStageNeg1_2Dual (rollout step 5 — one author + render + harvest)"
     expect(pf.novelty_justification).toBe("core-authored novelty case");
     expect(pf.last_draft_version).toBe(1);
     const persisted = JSON.parse(await readFile(protoCoreJsonPath(ctx), "utf8")) as Record<string, unknown>;
-    expect(persisted.literature_checklist).toEqual([
-      { bibkey: "TianPearl2000", relevant_to: "thm:pn" },
-    ]);
+    expect(persisted.literature_checklist).toEqual(checklistRows("TianPearl2000", "thm:pn"));
+  });
+
+  it("canonicalizes a structured core-authored novelty justification", async () => {
+    const ctx = makeCtx(repoRoot);
+    const state = makeState();
+    const core = JSON.parse(goldenCore) as Record<string, unknown>;
+    core.novelty_justification = {
+      strict_delta: "A new sharp compatible-full-law interval.",
+      closest_results: "Existing sequential and cross-sectional sensitivity results.",
+    };
+
+    const res = await runStageNeg1_2Dual({
+      ctx,
+      state,
+      deps: authorDeps(JSON.stringify(core)),
+      mode: "cold-start",
+      nextVersion: 1,
+      angleIndex: 0,
+    });
+
+    expect(res.status).toBe("completed");
+    const expected =
+      '{"closest_results":"Existing sequential and cross-sectional sensitivity results.","strict_delta":"A new sharp compatible-full-law interval."}';
+    expect(state.proposed_from!.novelty_justification).toBe(expected);
+    const persisted = JSON.parse(await readFile(protoCoreJsonPath(ctx), "utf8")) as Record<string, unknown>;
+    expect(persisted.novelty_justification).toBe(expected);
+  });
+
+  it.each([
+    {},
+    { strict_delta: "" },
+    { closest_results: null },
+    { sections: [{ text: "   " }, null] },
+  ])("rejects a structured novelty justification without substantive text: %j", async (value) => {
+    const ctx = makeCtx(repoRoot);
+    const core = JSON.parse(goldenCore) as Record<string, unknown>;
+    core.novelty_justification = value;
+
+    await expect(runStageNeg1_2Dual({
+      ctx,
+      state: makeState(),
+      deps: authorDeps(JSON.stringify(core)),
+      mode: "cold-start",
+      nextVersion: 1,
+      angleIndex: 0,
+    })).rejects.toThrow(/novelty_justification\(nonempty string\)/);
   });
 
   it("rehydrates missing seed state from a revised core after an interrupted run", async () => {

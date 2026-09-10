@@ -12,18 +12,15 @@ import type {
   CoreStatement,
   CoreSymbol,
 } from "../core/schema.js";
-import { stampDefinitionRevision, statementRevision } from "../core/revision.js";
 import { extractNodeRefs } from "../core/node_ids.js";
-import { normalizeSymbol } from "../core/preflight.js";
+import { normalizeSymbol } from "../core/symbol_names.js";
 
-type FrozenStatement = Pick<CoreStatement, "id" | "kind" | "statement" | "depends_on"> & {
-  revision: string;
-};
+type FrozenStatement = Pick<CoreStatement, "id" | "kind" | "statement" | "depends_on">;
 
 export interface FrozenCoreInlineView {
   symbols: CoreSymbol[];
   assumptions: CoreAssumption[];
-  definitions: Array<CoreDefinition & { revision: string }>;
+  definitions: CoreDefinition[];
   target_estimand: string;
   estimand_functional?: string;
   statements: FrozenStatement[];
@@ -52,20 +49,12 @@ const frozenStatement = (statement: CoreStatement): FrozenStatement => ({
   kind: statement.kind,
   statement: statement.statement,
   depends_on: statement.depends_on,
-  revision: statementRevision(statement),
 });
 
 /** Complete content-addressed snapshot payload. Unlike the inline formal view,
  * this retains prose, sources, bibliography, and proof bytes for selective reads. */
 export function frozenCoreSnapshot(core: Core): object {
-  return {
-    ...core,
-    definitions: core.definitions.map((definition) => stampDefinitionRevision(definition, core)),
-    statements: core.statements.map((statement) => ({
-      ...statement,
-      revision: statementRevision(statement),
-    })),
-  };
+  return core;
 }
 
 export function serializeFrozenCoreSnapshot(core: Core): { bytes: string; sha256: string } {
@@ -215,9 +204,7 @@ export function projectFrozenCore(
 
   const symbols = core.symbols.filter((symbol) => symbolNames.has(symbol.name));
   const assumptions = core.assumptions.filter((assumption) => assumptionIds.has(assumption.id));
-  const definitions = core.definitions
-    .filter((definition) => definitionIds.has(definition.id))
-    .map((definition) => stampDefinitionRevision(definition, core));
+  const definitions = core.definitions.filter((definition) => definitionIds.has(definition.id));
   const statements = core.statements
     .filter((statement) => statementIds.has(statement.id))
     .map(frozenStatement);

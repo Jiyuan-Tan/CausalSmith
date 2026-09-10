@@ -98,11 +98,17 @@ namespace VarConstr2
 
 variable (P : VarConstr2 K)
 
-/-- The propensity bump coefficient `κⱼ = β/g₁ⱼ + α·g₁ⱼ − α²·β·g₁ⱼ`. -/
+/-- For [a propensity-dominant construction with a specified number of paired covariate
+cells](hyp:K,P) and [a pair of cells](hyp:j), [the propensity bump coefficient](goal) is
+$\beta/g_{1j}+\alpha g_{1j}-\alpha^2\beta g_{1j}$, where the construction supplies the bump magnitudes and the
+treated-arm outcome-regression center. -/
 noncomputable def κ (j : Fin K) : ℝ :=
   P.β / P.g₁ j + P.α * P.g₁ j - P.α ^ 2 * P.β * P.g₁ j
 
-/-- The treated-arm denominator `D = 1 + (β/g₁)·Δ − α·β`. -/
+/-- For [a propensity-dominant construction with a specified number of paired covariate
+cells](hyp:K,P), [a binary sign vector indexing a perturbation](hyp:lam), and [a covariate
+cell](hyp:x), [the treated-arm denominator](goal) is
+$1+(\beta/g_{1j})\Delta-\alpha\beta$, with $j$ the pair containing that cell and $\Delta$ its signed perturbation. -/
 noncomputable def D2 (lam : Fin K → Bool) (x : Fin K × Bool) : ℝ :=
   1 + (P.β / P.g₁ x.1) * Δ lam x - P.α * P.β
 
@@ -135,20 +141,31 @@ theorem D2_pos (lam : Fin K → Bool) (x : Fin K × Bool) : 0 < P.D2 lam x := by
   · rw [h]; nlinarith
   · rw [h]; nlinarith
 
-/-- The cell-varying propensity center as a function of the covariate. -/
+/-- For [a propensity-dominant construction with a specified number of paired covariate
+cells](hyp:K,P), [the cell-varying propensity center](goal) assigns to each covariate cell
+the construction's baseline propensity for that cell's pair. -/
 noncomputable def mhat2 : (Fin K × Bool) → ℝ := fun x => P.m₀ x.1
 
-/-- The cell-varying outcome-regression center: `g₁ j` on the treated arm, `g₀ j` on
-control, where `j` is the pair index of the cell. -/
+/-- For [a propensity-dominant construction with a specified number of paired covariate
+cells](hyp:K,P), [the cell-varying outcome-regression center](goal) assigns the treated-arm
+baseline outcome regression to treated observations and the control-arm baseline outcome
+regression to control observations, using the baseline associated with the cell's pair. -/
 noncomputable def ghat2 : Bool → (Fin K × Bool) → ℝ :=
   fun d x => if d then P.g₁ x.1 else P.g₀ x.1
 
-/-- The perturbed propensity `mλ x = m₀ x.1·(1 + α·g₁ x.1·Δ)·D`. -/
+/-- For [a propensity-dominant construction with a specified number of paired covariate
+cells](hyp:K,P) and [a binary sign vector indexing a perturbation](hyp:lam), [the perturbed
+propensity function](goal) assigns each covariate cell the baseline propensity times
+$(1+\alpha g_{1j}\Delta)$ times the treated-arm denominator, where $j$ is the cell's pair and $\Delta$ is its
+signed perturbation. -/
 noncomputable def mPert2 (lam : Fin K → Bool) : (Fin K × Bool) → ℝ :=
   fun x => P.m₀ x.1 * ((1 + P.α * P.g₁ x.1 * Δ lam x) * P.D2 lam x)
 
-/-- The perturbed outcome regression: control arm `= g₀ x.1`, treated arm
-`gλ(1,x) = g₁ x.1 / D`. -/
+/-- For [a propensity-dominant construction with a specified number of paired covariate
+cells](hyp:K,P) and [a binary sign vector indexing a perturbation](hyp:lam), [the perturbed
+outcome-regression function](goal) equals the baseline control-arm regression for control
+observations and the baseline treated-arm regression divided by the treated-arm denominator
+for treated observations. -/
 noncomputable def gPert2 (lam : Fin K → Bool) : Bool → (Fin K × Bool) → ℝ :=
   fun d x => if d then P.g₁ x.1 / P.D2 lam x else P.g₀ x.1
 

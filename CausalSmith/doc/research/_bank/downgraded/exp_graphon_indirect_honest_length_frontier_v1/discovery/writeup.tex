@@ -1,0 +1,2020 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}graphon\_\allowbreak{}indirect\_\allowbreak{}honest\_\allowbreak{}length\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} A Bernoulli network experiment reveals a derivative only through the exact binomial support associated with each realized degree. The proposal studies the finite-population derivative \(\theta_n\) in the known-rank sparse-graphon model, uses \(h_i(h)=\max\{h,\delta_{N_i}\}\) so every positive degree has a normalized local score, and reports a graph-observable interval radius containing exact degree-level bias, exact inverse score moments, graph dependence, isolates, and feasible-PC remainders. The supported-unit benchmark has lattice, interior, and graph-floor phases. The finite-sample bridge bounds the difference from Li and Wager's finite indirect effect by the displayed degree-exact smoothness and isolate terms, and this difference is \(o_P(\sqrt{\rho_n})\) along maintained sequences in the stated sparsity regime. Li and Wager's equation~(43) is transferred only on the intersection with every source hypothesis and under \(\liminf_n\sigma_{\mathrm{IND},n}>0\); no containment of the maintained class in their theorem is asserted. Because same-class isolate testing gives only the proved \(Bn^{-1}\mathbb E\sqrt{I_0(A)}\) term while the safe interval pays \(Bn^{-1}\mathbb E I_0(A)\), no sharp minimax or honest expected-length frontier is claimed, and a rate-sharp feasible PC construction at logarithmic degree remains open.
+
+\section{Project justification}
+
+\paragraph{Gap.} Li and Wager give asymptotic principal-component inference for a distinct finite indirect effect under their full Theorem~6 regime.  That result does not provide finite-sample conditional coverage or honest expected length for the realized midpoint derivative, and it does not resolve exact low-degree exposure support or isolates.  In the maintained class here, the remaining mathematical gap is a rate-sharp feasible principal-component certificate at logarithmic degree: the proved observable spectral and bounded-difference remainders are finite but have no established comparison with the supported analytic envelope.
+
+\paragraph{Niche.} The paper targets degree-exact estimation and conditional inference for a causal derivative from one sparse graph.  Its distinctive objects are the exact binomial-lattice score, an explicit polynomial-time first-Hoeffding-projection principal-component correction, graph-observable bias and variance radii, and a same-class lower benchmark that separates graph, interior-smoothness, and lattice obstructions.
+
+\paragraph{Fill.} The note proves exact score moments and first two Hoeffding projections, constructs the feasible estimator and a graph-adaptive endpoint-clipped confidence interval with finite-sample conditional coverage, proves the graph-conditional isolate wall, and derives same-class absolute-risk and honest-length lower bounds at the supported envelope.  It combines those lower bounds with the conservative operational upper envelope \(\mathfrak u_{n,d,L}\), explicitly leaving their rate comparison open.
+
+\section{Related work}
+
+LiWager2022RandomGraph is the central asymptotic comparator. Its Proposition~1 and equations~(4)--(5) relate its finite indirect effect to an average derivative through a minimum-degree remainder, while its Theorem~6 and equation~(43) give \(\sqrt{\rho_n}\)-scale Gaussian limits under the full source conditions recorded in \({\rm lem:li-wager-theorem-six-regime}\). The present target \(\theta_n\) is the distinct realized finite-population midpoint derivative. Proposition~\({\rm prop:li-wager-bridge}\) proves a degree-exact conditional comparison retaining isolates and proves that the center difference is \(o_P(\sqrt{\rho_n})\) in the stated maintained-class sparsity regime. Transfer of equation~(43) is made only after intersecting with every source hypothesis and imposing \(\liminf_n\sigma_{\mathrm{IND},n}>0\); it is neither a finite-sample equality nor a claim that the maintained class satisfies Li and Wager's theorem. HuLiWager2022AverageDirectIndirect supplies the Bernoulli-policy decomposition and causal interpretation. ArmstrongKolesar2020SimpleHonest informs the computable smoothness-bias interval geometry, while CaiLow2004Adaptation informs the testing-to-expected-length argument; neither treats network support or spectral residualization. AbbeFanWangZhong2020Entrywise and TangCape2025InfiniteRank inform empirical-eigenspace analysis but do not control the exact-support causal score. Leung2022NetworkInference concerns locality-based inference for level effects. BhadraSchweinberger2025Survey is used only as a broad survey of network-interference frameworks.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta_n=n^{-1}\sum_{i=1}^n\{\partial_x f_i(1,1/2)+\partial_x f_i(0,1/2)\}/2\).
+Primary functional / estimator / diagnostic: \(X=Z-\tfrac12\mathbf1_n,\quad P_A=\widehat\Pi_r(A),\quad C_A=P_AA,\quad \widetilde\gamma_{i,h}=q_{i,h}-4(C_AX)_i,\quad \widehat\theta_h=n^{-1}\sum_{i=1}^n\widetilde\gamma_{i,h}Y_i^{\mathrm{obs}}\), with \(h_i(h)=\max\{h,\delta_{N_i}\}\).  The bias certificate is
+\[
+ \widehat\Delta_{\mathrm{pc},h}=\frac{2B}{n}\sum_i|(C_A)_{ii}|+\frac{B}{n}\sum_{i:N_i>0}\frac1{N_i}\sum_{j:A_{ij}=1}|(C_A)_{ij}|,
+\]
+while \(Q_{i,h}\), \(D_{ij,h}\), \(\Gamma_{i,h}\), and \(\beta_{ij,h}\) are the finite-lattice maxima and coordinate-oscillation bounds in \({\rm def:pc-handle}\), and
+\[
+ \widehat V_{\mathrm{pc},h}=\frac1{4n^2}\sum_j\left(\sum_i\beta_{ij,h}\right)^2,
+ \qquad
+ \overline s_h(A)^2=\widehat V_{\mathrm{pc},h}.
+\]
+The bias radius is \(\overline b_h(A)=L(6n)^{-1}\sum_{i:N_i>0}h_i(h)^2+Bn^{-1}\sum_i\mathbf1\{N_i=0\}+\widehat\Delta_{\mathrm{pc},h}\).  The operational bandwidth \(\widehat h(A)\) is the smallest minimizer of \(\overline b_h(A)+\overline s_h(A)\) over the finite graph-observable candidate set in \({\rm def:operational\text{-}bandwidth}\).  For either a prespecified \(h\) or \(h=\widehat h(A)\), put
+\[
+ a_\alpha=\sqrt{2\log(2/\alpha)},\qquad R_h(A)=\overline b_h(A)+a_\alpha\overline s_h(A),
+\]
+\[
+ L_h=\widehat\theta_h-R_h(A),\qquad U_h=\widehat\theta_h+R_h(A),\qquad \operatorname{clip}_{[-B,B]}(t)=\max\{-B,\min\{B,t\}\}.
+\]
+The reportable interval is
+\[
+ \mathcal C_h=[\operatorname{clip}_{[-B,B]}(L_h),\operatorname{clip}_{[-B,B]}(U_h)].
+\].
+\begin{itemize}
+  \item \texttt{n} --- \texttt{population size}; \(\mathbb N\); \texttt{asymptotic index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of experimental units.}
+  \item \texttt{d} --- \texttt{average degree scale}; \((0,n)\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Sparse-\allowbreak{}graph degree scale.}
+  \item \texttt{r} --- \texttt{graphon rank}; \(\mathbb N\); \texttt{structural complexity}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Known fixed rank of the graphon kernel.}
+  \item \texttt{B} --- \texttt{response envelope}; \((0,\infty)\); \texttt{scale constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Known bound on response levels and derivatives through order two.}
+  \item \texttt{L} --- \texttt{third-\allowbreak{}derivative radius}; \([0,\infty)\); \texttt{smoothness parameter}
+  \par\smallskip\noindent\emph{Definition.} Known uniform \(C^3\) radius for exposure responses.
+  \item \texttt{\textbackslash{}\allowbreak{}kappa} --- \texttt{graphon regularity constant}; \([1,\infty)\); \texttt{class constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed bound for kernel size and expected-\allowbreak{}degree regularity.}
+  \item \texttt{\textbackslash{}\allowbreak{}underline\textbackslash{}\allowbreak{}lambda} --- \texttt{spectral strength}; \((0,\infty)\); \texttt{class constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed lower bound on nonzero graphon eigenvalues in magnitude.}
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{miscoverage level}; \((0,1/2)\); \texttt{inference level}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Prespecified confidence-\allowbreak{}interval error probability.}
+  \item \texttt{C\_\allowbreak{}\{\textbackslash{}\allowbreak{}log\}\allowbreak{}} --- \texttt{logarithmic-\allowbreak{}degree constant}; \((0,\infty)\); \texttt{class constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed lower constant in the sparse-\allowbreak{}degree window.}
+  \item \texttt{b\_\allowbreak{}\textbackslash{}\allowbreak{}psi} --- \texttt{Bernstein moment constant}; \((0,\infty)\); \texttt{class constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed moment parameter for graphon eigenfunctions.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal V\_\allowbreak{}n} --- \texttt{unit set}; \(2^{\mathbb N}\); \texttt{index set}
+  \par\smallskip\noindent\emph{Definition.} Finite population \(\mathcal V_n=\{1,\ldots,n\}\).
+  \item \texttt{i} --- \texttt{unit index}; \(\mathcal V_n\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic outcome-\allowbreak{}unit index.}
+  \item \texttt{j} --- \texttt{unit index}; \(\mathcal V_n\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic neighbor index.}
+  \item \texttt{a} --- \texttt{own-\allowbreak{}treatment argument}; \(\{0,1\}\); \texttt{function argument}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic own-\allowbreak{}treatment value.}
+  \item \texttt{s} --- \texttt{derivative order}; \(\{0,1,2\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic lower-\allowbreak{}order derivative index.}
+  \item \texttt{x} --- \texttt{neighbor-\allowbreak{}fraction argument}; \([0,1]\); \texttt{function argument}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic treated-\allowbreak{}neighbor fraction.}
+  \item \texttt{u} --- \texttt{graphon argument}; \([0,1]\); \texttt{function argument}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic latent-\allowbreak{}type argument.}
+  \item \texttt{v} --- \texttt{graphon argument}; \([0,1]\); \texttt{function argument}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Second generic latent-\allowbreak{}type argument.}
+  \item \texttt{k} --- \texttt{eigencomponent index}; \(\{1,\ldots,r\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic graphon component.}
+  \item \texttt{\textbackslash{}\allowbreak{}ell} --- \texttt{eigencomponent index}; \(\{1,\ldots,r\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Second generic graphon component.}
+  \item \texttt{z} --- \texttt{assignment argument}; \(\{0,1\}^{\mathcal V_n}\); \texttt{function argument}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic treatment assignment.}
+  \item \texttt{U\_\allowbreak{}i} --- \texttt{latent graphon type}; \([0,1]\); \texttt{graph primitive}
+  \par\smallskip\noindent\emph{Definition.} Latent type of unit \(i\).
+  \item \texttt{f\_\allowbreak{}i} --- \texttt{anonymous response function}; \(C^3(\{0,1\}\times[0,1])\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} Unit \(i\)'s response as a function of own treatment and treated-neighbor fraction.
+  \item \texttt{W} --- \texttt{graphon kernel}; \(L^2_{\mathrm{sym}}([0,1]^2)\); \texttt{network primitive}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Measurable symmetric network kernel.}
+  \item \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}k} --- \texttt{graphon eigenvalue}; \(\mathbb R\setminus\{0\}\); \texttt{spectral primitive}
+  \par\smallskip\noindent\emph{Definition.} Eigenvalue of component \(k\).
+  \item \texttt{\textbackslash{}\allowbreak{}psi\_\allowbreak{}k} --- \texttt{graphon eigenfunction}; \(L^2([0,1])\); \texttt{spectral primitive}
+  \par\smallskip\noindent\emph{Definition.} Eigenfunction associated with \(\lambda_k\).
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}n} --- \texttt{sparsity factor}; \((0,1)\); \texttt{network scale}
+  \par\smallskip\noindent\emph{Definition.} Sparsity factor \(\rho_n=d/n\).
+  \item \texttt{A} --- \texttt{adjacency matrix}; \(\{0,1\}^{n\times n}\); \texttt{observed network}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed symmetric adjacency matrix with zero diagonal.}
+  \item \texttt{N\_\allowbreak{}i} --- \texttt{realized degree}; \(\{0,\ldots,n-1\}\); \texttt{exposure denominator}
+  \par\smallskip\noindent\emph{Definition.} Observed degree \(N_i=\sum_{j\ne i}A_{ij}\).
+  \item \texttt{N} --- \texttt{generic realized degree}; \(\{0,\ldots,n-1\}\); \texttt{definition argument}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic integer degree used to define the exact lattice radius.}
+  \item \texttt{Z} --- \texttt{assignment vector}; \(\{0,1\}^{\mathcal V_n}\); \texttt{randomization}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Realized Bernoulli assignment.}
+  \item \texttt{M\_\allowbreak{}i} --- \texttt{treated-\allowbreak{}neighbor count}; \(\{0,\ldots,N_i\}\); \texttt{observed exposure}
+  \par\smallskip\noindent\emph{Definition.} Count \(M_i=\sum_{j\ne i}A_{ij}Z_j\).
+  \item \texttt{V\_\allowbreak{}i} --- \texttt{centered neighbor fraction}; \([-1/2,1/2]\); \texttt{localization variable}
+  \par\smallskip\noindent\emph{Definition.} Centered exposure \(V_i=M_i/N_i-1/2\) for \(N_i>0\), with \(V_i=0\) for \(N_i=0\).
+  \item \texttt{Y\_\allowbreak{}i(z)} --- \texttt{potential outcome}; \(\mathbb R\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} Potential outcome of unit \(i\) under assignment \(z\).
+  \item \texttt{Y\_\allowbreak{}i\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{}} --- \texttt{observed outcome}; \(\mathbb R\); \texttt{observed data}
+  \par\smallskip\noindent\emph{Definition.} Observed response \(Y_i^{\mathrm{obs}}=Y_i(Z)=f_i(Z_i,1/2+V_i)\) for \(N_i>0\), and \(Y_i^{\mathrm{obs}}=f_i(Z_i,0)\) for \(N_i=0\).
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}n} --- \texttt{finite-\allowbreak{}population indirect derivative}; \(\mathbb R\); \texttt{target estimand}
+  \par\smallskip\noindent\emph{Definition.} Target defined in \({\rm def:target}\).
+  \item \texttt{\textbackslash{}\allowbreak{}bar\textbackslash{}\allowbreak{}tau\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{IND\}\allowbreak{},\allowbreak{}n\}\allowbreak{}} --- \texttt{Li-\allowbreak{}-\allowbreak{}Wager finite indirect effect}; \(\mathbb R\); \texttt{benchmark estimand}
+  \par\smallskip\noindent\emph{Definition.} Finite Bernoulli-policy indirect-effect estimand defined in \({\rm def:li-wager-target}\).
+  \item \texttt{h} --- \texttt{base bandwidth}; \((0,1/2]\); \texttt{tuning parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Common localization bandwidth before exact degree adaptation.}
+  \item \texttt{\textbackslash{}\allowbreak{}delta\_\allowbreak{}N} --- \texttt{nearest nonzero lattice radius}; \((0,1/2]\); \texttt{support correction}
+  \par\smallskip\noindent\emph{Definition.} Exact distance from one half to the nearest nonzero point on the degree-\(N\) exposure lattice, defined in \({\rm def:lattice-radius}\).
+  \item \texttt{h\_\allowbreak{}i(h)} --- \texttt{degree-\allowbreak{}adaptive bandwidth}; \((0,1/2]\); \texttt{unit-\allowbreak{}level tuning}
+  \par\smallskip\noindent\emph{Definition.} Exact-support bandwidth defined in \({\rm def:lattice-radius}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal H\_\allowbreak{}\{n,\allowbreak{}d\}\allowbreak{}} --- \texttt{base-\allowbreak{}bandwidth interval}; \(2^{(0,1/2]}\); \texttt{global tuning range}
+  \par\smallskip\noindent\emph{Definition.} Admissible set defined in \({\rm def:bandwidth-set}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mu\_\allowbreak{}\{2,\allowbreak{}i\}\allowbreak{}(h)} --- \texttt{exact truncated second moment}; \([0,1/4]\); \texttt{score normalizer}
+  \par\smallskip\noindent\emph{Definition.} Conditional binomial moment defined in \({\rm def:discrete-score}\).
+  \item \texttt{q\_\allowbreak{}\{i,\allowbreak{}h\}\allowbreak{}} --- \texttt{exact discrete derivative score}; \(\mathbb R\); \texttt{derivative score}
+  \par\smallskip\noindent\emph{Definition.} Normalized score defined in \({\rm def:discrete-score}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}Psi\_\allowbreak{}r(A)} --- \texttt{empirical eigenvector matrix}; \(\mathbb R^{n\times\min\{r,n\}}\); \texttt{spectral estimate}
+  \par\smallskip\noindent\emph{Definition.} Matrix of the \(\min\{r,n\}\) eigenvectors of \(A\) with eigenvalues largest in magnitude, selected by the deterministic convention in \({\rm def:empirical\text{-}projector}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}Pi\_\allowbreak{}r(A)} --- \texttt{empirical spectral projector}; \(\mathbb R^{n\times n}\); \texttt{baseline balancing}
+  \par\smallskip\noindent\emph{Definition.} Orthogonal projector onto the deterministically selected leading \(\min\{r,n\}\) eigenspace of \(A\), defined in \({\rm def:empirical\text{-}projector}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widetilde\textbackslash{}\allowbreak{}gamma\_\allowbreak{}h} --- \texttt{feasible PC-\allowbreak{}balanced score}; \(\mathbb R^n\); \texttt{open construction}
+  \par\smallskip\noindent\emph{Definition.} Bandwidth-indexed score produced from \({\rm def:pc-handle}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}Delta\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{pc\}\allowbreak{},\allowbreak{}h\}\allowbreak{}} --- \texttt{observable PC bias remainder}; \([0,\infty)\); \texttt{bias certificate}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Nonnegative graph-\allowbreak{}observable residualization certificate returned by the PC construction.}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat V\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{pc\}\allowbreak{},\allowbreak{}h\}\allowbreak{}} --- \texttt{observable PC variance remainder}; \([0,\infty)\); \texttt{variance certificate}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Nonnegative graph-\allowbreak{}observable variance remainder returned by the PC construction.}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}theta\_\allowbreak{}h} --- \texttt{indirect-\allowbreak{}derivative estimator}; \(\mathbb R\); \texttt{estimator}
+  \par\smallskip\noindent\emph{Definition.} Estimator defined in \({\rm def:estimator}\).
+  \item \texttt{\textbackslash{}\allowbreak{}overline b\_\allowbreak{}h(A)} --- \texttt{observable bias certificate}; \([0,\infty)\); \texttt{honesty radius}
+  \par\smallskip\noindent\emph{Definition.} Degree-exact radius defined in \({\rm def:radii}\).
+  \item \texttt{\textbackslash{}\allowbreak{}overline s\_\allowbreak{}h(A)} --- \texttt{observable stochastic certificate}; \([0,\infty)\); \texttt{honesty radius}
+  \par\smallskip\noindent\emph{Definition.} Degree-exact standard-deviation radius defined in \({\rm def:radii}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}h} --- \texttt{confidence interval}; \(2^{\mathbb R}\); \texttt{inference procedure}
+  \par\smallskip\noindent\emph{Definition.} Smoothness-bound interval defined in \({\rm def:honest-interval}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}\{n,\allowbreak{}d,\allowbreak{}L\}\allowbreak{}} --- \texttt{maintained Li-\allowbreak{}-\allowbreak{}Wager-\allowbreak{}type two-\allowbreak{}radius graphon class}; \texttt{set of probability laws}; \texttt{model class}
+  \par\smallskip\noindent\emph{Definition.} Triangular-array class defined in \({\rm def:model-class}\).
+  \item \texttt{P} --- \texttt{generic model law}; \(\mathcal M_{n,d,L}\); \texttt{law index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic probability law in the maintained graphon-\allowbreak{}response class.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak r\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{sup\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{n,\allowbreak{}d,\allowbreak{}L\}\allowbreak{}} --- \texttt{supported-\allowbreak{}unit frontier}; \((0,\infty)\); \texttt{rate object}
+  \par\smallskip\noindent\emph{Definition.} Bias--stochastic--graph envelope defined in \({\rm def:frontier-envelope}\).
+  \item \texttt{h\textasciicircum{}\textbackslash{}\allowbreak{}dagger} --- \texttt{oracle degree-\allowbreak{}exact optimal base bandwidth}; \(\mathcal H_{n,d}\); \texttt{oracle tuning benchmark}
+  \par\smallskip\noindent\emph{Definition.} Oracle full-class radius-minimizing bandwidth, defined in \({\rm def:exact-optimal-bandwidth}\) only when both the bandwidth set and model class are nonempty.
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak u\_\allowbreak{}\{n,\allowbreak{}d,\allowbreak{}L\}\allowbreak{}} --- \texttt{oracle degree-\allowbreak{}exact full-\allowbreak{}class upper envelope}; \([0,\infty)\); \texttt{oracle upper benchmark}
+  \par\smallskip\noindent\emph{Definition.} Oracle conservative worst-case expected graph-observable radius at \(h^\dagger\), defined in \({\rm def:frontier-envelope}\) only when both the bandwidth set and model class are nonempty.
+  \item \texttt{R\textasciicircum{}*\_\allowbreak{}\{n,\allowbreak{}d,\allowbreak{}L\}\allowbreak{}} --- \texttt{minimax absolute risk}; \([0,\infty)\); \texttt{optimality criterion}
+  \par\smallskip\noindent\emph{Definition.} Decision-theoretic risk defined in \({\rm def:minimax-criteria}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Lambda\textasciicircum{}*\_\allowbreak{}\{n,\allowbreak{}d,\allowbreak{}L\}\allowbreak{}(\textbackslash{}\allowbreak{}alpha)} --- \texttt{minimax honest expected interval length}; \([0,\infty)\); \texttt{optimality criterion}
+  \par\smallskip\noindent\emph{Definition.} Honest expected interval-length criterion defined in \({\rm def:minimax\text{-}criteria}\).
+  \item \texttt{h\_\allowbreak{}0} --- \texttt{unconstrained bandwidth}; \((0,\infty]\); \texttt{phase-\allowbreak{}boundary object}
+  \par\smallskip\noindent\emph{Definition.} Balance point \(h_0=(L^{-2}/(n\sqrt d))^{1/7}\) for \(L>0\), and \(h_0=\infty\) for \(L=0\).
+  \item \texttt{h\_\allowbreak{}\textbackslash{}\allowbreak{}star} --- \texttt{constrained base bandwidth}; \(\mathcal H_{n,d}\); \texttt{optimal supported-\allowbreak{}unit tuning}
+  \par\smallskip\noindent\emph{Definition.} Clamped bandwidth defined in \({\rm def:optimal-bandwidth}\).
+  \item \texttt{Q\_\allowbreak{}\{i,\allowbreak{}h\}\allowbreak{}} --- \texttt{exact score-\allowbreak{}level envelope}; \([0,\infty)\); \texttt{bounded-\allowbreak{}difference certificate}
+  \par\smallskip\noindent\emph{Definition.} Finite degree-lattice maximum of the absolute exact score for unit \(i\) and bandwidth \(h\), defined in \({\rm def:pc-handle}\).
+  \item \texttt{D\_\allowbreak{}\{ij,\allowbreak{}h\}\allowbreak{}} --- \texttt{exact coordinate score-\allowbreak{}jump envelope}; \([0,\infty)\); \texttt{bounded-\allowbreak{}difference certificate}
+  \par\smallskip\noindent\emph{Definition.} Finite degree-lattice maximum change in unit \(i\)'s exact score when assignment coordinate \(j\) is flipped, defined in \({\rm def:pc-handle}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}\{i,\allowbreak{}h\}\allowbreak{}} --- \texttt{balanced-\allowbreak{}score level envelope}; \([0,\infty)\); \texttt{bounded-\allowbreak{}difference certificate}
+  \par\smallskip\noindent\emph{Definition.} Observable uniform bound on the absolute feasible PC-balanced score for unit \(i\) and bandwidth \(h\), defined in \({\rm def:pc-handle}\).
+  \item \texttt{\textbackslash{}\allowbreak{}beta\_\allowbreak{}\{ij,\allowbreak{}h\}\allowbreak{}} --- \texttt{outcome-\allowbreak{}weighted coordinate oscillation envelope}; \([0,\infty)\); \texttt{bounded-\allowbreak{}difference certificate}
+  \par\smallskip\noindent\emph{Definition.} Observable bound on the change in unit \(i\)'s score--outcome product when assignment coordinate \(j\) is flipped, defined in \({\rm def:pc-handle}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat h(A)} --- \texttt{graph-\allowbreak{}adaptive operational bandwidth}; \(\mathcal H_{n,d}\); \texttt{operational tuning rule}
+  \par\smallskip\noindent\emph{Definition.} Smallest graph-observable finite-candidate certificate minimizer defined in \({\rm def:operational\text{-}bandwidth}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:bernoulli-design]\label{ass:bernoulli-design}
+\(Z_i\overset{\mathrm{ind}}{\sim}{\rm Bernoulli}(1/2)\) conditional on \((U_i,f_i)_{i\in\mathcal V_n}\) and \(A\).
+\par\smallskip\noindent\emph{Standard} (Independent Bernoulli randomization at probability one half, \cite{HuLiWager2022AverageDirectIndirect}).
+\end{assumption}
+
+\begin{assumption}[ass:unit-sampling]\label{ass:unit-sampling}
+\((U_i,f_i)_{i\in\mathcal V_n}\) are independent and identically distributed preassignment draws from a joint law whose \(U_i\)-marginal is \({\rm Uniform}[0,1]\).
+\par\smallskip\noindent\emph{Standard} (Li--Wager independent unit-type and response sampling with uniform latent types, \cite{LiWager2022RandomGraph}).
+\end{assumption}
+
+\begin{assumption}[ass:graphon-draw]\label{ass:graphon-draw}
+Conditional on \((U_i)_{i\in\mathcal V_n}\), the variables \((A_{ij})_{i<j}\) are independent with \(A_{ij}\sim{\rm Bernoulli}(\rho_nW(U_i,U_j))\), \(A_{ji}=A_{ij}\), and \(A_{ii}=0\).
+\par\smallskip\noindent\emph{Standard} (Sparse graphon sampling, \cite{LiWager2022RandomGraph}).
+\end{assumption}
+
+\begin{assumption}[ass:log-degree]\label{ass:log-degree}
+\(C_{\log}\log n\le d\).
+\par\smallskip\noindent\emph{Standard} (Logarithmic expected-degree lower bound, \cite{AbbeFanWangZhong2020Entrywise}).
+\end{assumption}
+
+\begin{assumption}[ass:sparse-limit]\label{ass:sparse-limit}
+\(d/n\to0\).
+\par\smallskip\noindent\emph{Standard} (Sparse graphon asymptotic regime, \cite{LiWager2022RandomGraph}).
+\end{assumption}
+
+\begin{assumption}[ass:edge-probability]\label{ass:edge-probability}
+\(\rho_n\kappa\le1\).
+\par\smallskip\noindent\emph{Standard} (Sparse graphon probability feasibility, \cite{LiWager2022RandomGraph}).
+\end{assumption}
+
+\begin{assumption}[ass:kernel-bound]\label{ass:kernel-bound}
+\(0\le W(u,v)\le\kappa\) for almost every \((u,v)\in[0,1]^2\).
+\par\smallskip\noindent\emph{Standard} (Bounded nonnegative graphon kernel, \cite{LiWager2022RandomGraph}).
+\end{assumption}
+
+\begin{assumption}[ass:degree-regularity]\label{ass:degree-regularity}
+\(\int_0^1W(u,v)\,dv\ge\kappa^{-1}\) for almost every \(u\in[0,1]\).
+\par\smallskip\noindent\emph{Standard} (Graphon expected-degree lower regularity, \cite{LiWager2022RandomGraph}).
+\end{assumption}
+
+\begin{assumption}[ass:finite-rank]\label{ass:finite-rank}
+\(W(u,v)=\sum_{k=1}^r\lambda_k\psi_k(u)\psi_k(v)\) has known fixed rank \(r\).
+\par\smallskip\noindent\emph{Standard} (Known finite-rank graphon, \cite{LiWager2022RandomGraph}).
+\end{assumption}
+
+\begin{assumption}[ass:spectral-strength]\label{ass:spectral-strength}
+\(\min_{1\le k\le r}|\lambda_k|\ge\underline\lambda\).
+\par\smallskip\noindent\emph{Standard} (Fixed nonzero graphon spectral strength, \cite{LiWager2022RandomGraph}).
+\end{assumption}
+
+\begin{assumption}[ass:eigenfunction-orthonormality]\label{ass:eigenfunction-orthonormality}
+\(\int_0^1\psi_k(u)\psi_\ell(u)\,du=\mathbf 1\{k=\ell\}\) for \(1\le k,\ell\le r\).
+\par\smallskip\noindent\emph{Standard} (Graphon eigenfunction normalization, \cite{LiWager2022RandomGraph}).
+\end{assumption}
+
+\begin{assumption}[ass:eigenfunction-bernstein]\label{ass:eigenfunction-bernstein}
+Each \(\psi_k(U_i)\) satisfies Bernstein's moment condition with parameter \(b_\psi\) for \(1\le k\le r\).
+\par\smallskip\noindent\emph{Standard} (Li--Wager Bernstein eigenfunction condition, \cite{LiWager2022RandomGraph}).
+\end{assumption}
+
+\begin{assumption}[ass:anonymous-interference]\label{ass:anonymous-interference}
+\(Y_i(z)=f_i\!\left(z_i,N_i^{-1}\sum_{j\ne i}A_{ij}z_j\right)\) when \(N_i>0\), and \(Y_i(z)=f_i(z_i,0)\) when \(N_i=0\).
+\par\smallskip\noindent\emph{Standard} (Anonymous treated-neighbor-fraction interference, \cite{LiWager2022RandomGraph}).
+\end{assumption}
+
+\begin{assumption}[ass:response-envelope]\label{ass:response-envelope}
+\(\sup_{i\in\mathcal V_n}\max_{0\le s\le2}\sup_{a\in\{0,1\},\,x\in[0,1]}|\partial_x^s f_i(a,x)|\le B\).
+\par\smallskip\noindent\emph{Standard} (Li--Wager bounded response and derivative envelope through order two, \cite{LiWager2022RandomGraph}).
+\end{assumption}
+
+\begin{assumption}[ass:third-derivative-bound]\label{ass:third-derivative-bound}
+\(\sup_{i\in\mathcal V_n}\sup_{a\in\{0,1\},\,x\in[0,1]}|\partial_x^3 f_i(a,x)|\le L\).
+\par\smallskip\noindent\emph{Standard} (Known \(C^3\) radius separated from the lower-order response envelope, \cite{ArmstrongKolesar2020SimpleHonest}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} Maintained known-rank \(C^3\) graphon class
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{n,d,L}=\{P_{n,d,L}:\text{ every condition in the displayed member-property list holds for }P_{n,d,L}\text{ at triangular-array index }n\}\).  This is the maintained bounded, row-regular, known-rank, two-radius graphon class selected by exactly those properties.  It is neither identified with nor contained in the full Theorem~4/6 regime of LiWager2022RandomGraph; only the intersection of the two regimes is used for comparison.  In particular, \(C_{\log}\log n\leq d\) and \(d/n\to0\) do not imply the source condition \(-1/2<\liminf_n\log(\rho_n)/\log n\), and the displayed member properties do not reproduce every source condition.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}bernoulli-\allowbreak{}design}; \texttt{ass:\allowbreak{}unit-\allowbreak{}sampling}; \texttt{ass:\allowbreak{}graphon-\allowbreak{}draw}; \texttt{ass:\allowbreak{}log-\allowbreak{}degree}; \texttt{ass:\allowbreak{}sparse-\allowbreak{}limit}; \texttt{ass:\allowbreak{}edge-\allowbreak{}probability}; \texttt{ass:\allowbreak{}kernel-\allowbreak{}bound}; \texttt{ass:\allowbreak{}degree-\allowbreak{}regularity}; \texttt{ass:\allowbreak{}finite-\allowbreak{}rank}; \texttt{ass:\allowbreak{}spectral-\allowbreak{}strength}; \texttt{ass:\allowbreak{}eigenfunction-\allowbreak{}orthonormality}; \texttt{ass:\allowbreak{}eigenfunction-\allowbreak{}bernstein}; \texttt{ass:\allowbreak{}anonymous-\allowbreak{}interference}; \texttt{ass:\allowbreak{}response-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}third-\allowbreak{}derivative-\allowbreak{}bound}.
+\end{definition}
+
+\begin{definition}[def:target]\label{def:target}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite-\allowbreak{}population average indirect derivative}
+\par\smallskip\noindent\emph{Construction.} \(\theta_n=n^{-1}\sum_{i\in\mathcal V_n}\{\partial_x f_i(1,1/2)+\partial_x f_i(0,1/2)\}/2\).
+\par\smallskip\noindent\emph{Inputs.} \((f_i)_{i\in\mathcal V_n}\).
+\end{definition}
+
+\begin{definition}[def:li-wager-target]\label{def:li-wager-target}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Li-\allowbreak{}-\allowbreak{}Wager finite indirect-\allowbreak{}effect benchmark}
+\par\smallskip\noindent\emph{Construction.} At Bernoulli probability one half, \(\bar\tau_{\mathrm{IND},n}=4n^{-1}\sum_{i\in\mathcal V_n}\mathbb E_Z[Y_i(Z)(M_i-N_i/2)\mid A,(f_j)_{j\in\mathcal V_n}]\), equivalently the finite indirect effect in equation (1) of LiWager2022RandomGraph.
+\par\smallskip\noindent\emph{Inputs.} \(A\); \((f_i)_{i\in\mathcal V_n}\).
+\end{definition}
+
+\begin{definition}[def:bandwidth-set]\label{def:bandwidth-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Base-\allowbreak{}bandwidth range}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal H_{n,d}=\{h\in(0,1/2]:d^{-1}\le h\le d^{-1/2}\}\).
+\par\smallskip\noindent\emph{Inputs.} \(n\); \(d\).
+\end{definition}
+
+\begin{definition}[def:lattice-radius]\label{def:lattice-radius}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact realized-\allowbreak{}degree support correction}
+\par\smallskip\noindent\emph{Construction.} For \(N\ge1\), set \(\delta_N=N^{-1}\) when \(N\) is even and \(\delta_N=(2N)^{-1}\) when \(N\) is odd; for each \(i\) with \(N_i>0\), set \(h_i(h)=\max\{h,\delta_{N_i}\}\).
+\par\smallskip\noindent\emph{Inputs.} \(N_i\); \(h\).
+\end{definition}
+
+\begin{definition}[def:discrete-score]\label{def:discrete-score}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact symmetric discrete local-\allowbreak{}polynomial score}
+\par\smallskip\noindent\emph{Construction.} For \(N_i>0\), let \(\mu_{2,i}(h)=\mathbb E_Z[V_i^2\mathbf 1\{|V_i|\le h_i(h)\}\mid A]\) and \(q_{i,h}=V_i\mathbf 1\{|V_i|\le h_i(h)\}/\mu_{2,i}(h)\). For \(N_i=0\), set \(q_{i,h}=0\) and \(\mu_{2,i}(h)=0\).
+\par\smallskip\noindent\emph{Inputs.} \(A\); \(Z\); \(h\).
+\end{definition}
+
+\begin{definition}[def:empirical-projector]\label{def:empirical-projector}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Deterministically selected observed principal-\allowbreak{}component projector}
+\par\smallskip\noindent\emph{Construction.} Put \(m_{r,n}=\min\{r,n\}\).  Order the \(n\) eigenvalues of the symmetric matrix \(A\) by decreasing absolute value, breaking equal-absolute-value ties by decreasing signed value.  Within every remaining repeated eigenspace, choose the orthonormal basis obtained by applying Gram--Schmidt to the nonzero vectors in the ordered list of projections of \(e_1,\ldots,e_n\) onto that eigenspace.  Let \(\widehat\Psi_r(A)\in\mathbb R^{n\times m_{r,n}}\) contain the first \(m_{r,n}\) resulting orthonormal eigenvectors and define
+\[
+ \widehat\Pi_r(A)=\widehat\Psi_r(A)\widehat\Psi_r(A)^\top.
+\]
+Thus \(\widehat\Pi_r(A)\) is the orthogonal spectral projector onto the leading \(\min\{r,n\}\)-dimensional eigenspace selected by this convention.  The deterministic tie rule makes \(A\mapsto\widehat\Pi_r(A)\) a fixed Borel-measurable sample map for every \(r,n\in\mathbb N\), without requiring \(r\leq n\).
+\par\smallskip\noindent\emph{Inputs.} \(A\); \(r\).
+\end{definition}
+
+\begin{definition}[def:pc-handle]\label{def:pc-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Explicit first-\allowbreak{}projection PC handle with bounded-\allowbreak{}difference certificate}
+\par\smallskip\noindent\emph{Construction.} Conditionally on \(A\), put \(X=Z-\tfrac12\mathbf1_n\), \(P_A=\widehat\Pi_r(A)\), and \(C_A=P_AA\).  For every \(h\in\mathcal H_{n,d}\), define
+\[
+ \widetilde\gamma_{i,h}=q_{i,h}-4(C_AX)_i.
+\]
+Thus only the bandwidth-free first Hoeffding projection is spectrally balanced.  Retain the graph-observable bias certificate
+\[
+ \widehat\Delta_{\mathrm{pc},h}
+ =\frac{2B}{n}\sum_{i\in\mathcal V_n}|(C_A)_{ii}|
+ +\frac{B}{n}\sum_{i:N_i>0}\frac1{N_i}
+       \sum_{j:A_{ij}=1}|(C_A)_{ij}|.
+\]
+For \(N_i>0\), define the exact score-level and score-jump bounds
+\[
+ Q_{i,h}=\max_{0\le m\le N_i}
+ \frac{|m/N_i-1/2|\mathbf1\{|m/N_i-1/2|\le h_i(h)\}}
+      {\mu_{2,i}(h)}
+\]
+and
+\[
+ D_{ij,h}=\mathbf1\{A_{ij}=1\}
+ \max_{0\le m\le N_i-1}\frac1{\mu_{2,i}(h)}
+ \left|
+ \left(\frac{m+1}{N_i}-\frac12\right)
+ \mathbf1\!\left\{\left|\frac{m+1}{N_i}-\frac12\right|\le h_i(h)\right\}
+ -\left(\frac m{N_i}-\frac12\right)
+ \mathbf1\!\left\{\left|\frac m{N_i}-\frac12\right|\le h_i(h)\right\}
+ \right|.
+\]
+For \(N_i=0\), set \(Q_{i,h}=0\) and \(D_{ij,h}=0\).  Put
+\[
+ \Gamma_{i,h}=Q_{i,h}+2\sum_{j\in\mathcal V_n}|(C_A)_{ij}|
+\]
+and, with the convention \(A_{ij}/N_i=0\) when \(N_i=0\),
+\[
+ \beta_{ij,h}
+ =B\{D_{ij,h}+4|(C_A)_{ij}|\}
+ +B\Gamma_{i,h}
+ \left\{2\mathbf1\{i=j\}+\frac{A_{ij}}{N_i}\right\}.
+\]
+The graph-observable bounded-difference certificate is
+\[
+ \widehat V_{\mathrm{pc},h}
+ =\frac1{4n^2}\sum_{j\in\mathcal V_n}
+       \left(\sum_{i\in\mathcal V_n}\beta_{ij,h}\right)^2.
+\]
+Every maximum is over a finite degree lattice, so this certificate is a polynomial-time sample map.  No assertion that it has order \(d/n+(n\sqrt d\,h^3)^{-1}\) is part of the definition.
+\par\smallskip\noindent\emph{Inputs.} \(A\); \(Z\); \(h\); \(r\); \(B\).
+\end{definition}
+
+\begin{definition}[def:estimator]\label{def:estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Feasible explicit first-\allowbreak{}projection PC estimator}
+\par\smallskip\noindent\emph{Construction.} With the explicit score from \({\rm def:pc-handle}\),
+\[
+ \widehat\theta_h
+ =\frac1n\sum_{i\in\mathcal V_n}
+ \left[q_{i,h}-4\left\{\widehat\Pi_r(A)A
+       (Z-\tfrac12\mathbf1_n)\right\}_i\right]Y_i^{\mathrm{obs}}.
+\]
+\par\smallskip\noindent\emph{Inputs.} \(A\); \(Z\); \((Y_i^{\mathrm{obs}})_{i\in\mathcal V_n}\); \(h\).
+\end{definition}
+
+\begin{definition}[def:radii]\label{def:radii}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Graph-\allowbreak{}observable degree-\allowbreak{}exact radii for the explicit PC handle}
+\par\smallskip\noindent\emph{Construction.} For the explicit certificates in \({\rm def:pc-handle}\), set
+\[
+ \overline b_h(A)=\frac{L}{6n}\sum_{i:N_i>0}h_i(h)^2
+ +\frac{B}{n}\sum_{i\in\mathcal V_n}\mathbf1\{N_i=0\}
+ +\widehat\Delta_{\mathrm{pc},h}
+\]
+and
+\[
+ \overline s_h(A)^2=\widehat V_{\mathrm{pc},h}.
+\]
+Thus \(\overline s_h(A)\) is a finite-sample conditional standard-deviation certificate, not an asserted sharp-rate formula.
+\par\smallskip\noindent\emph{Inputs.} \(A\); \(h\); \(L\); \(B\).
+\end{definition}
+
+\begin{definition}[def:honest-interval]\label{def:honest-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact-\allowbreak{}support exponential bounded-\allowbreak{}difference interval}
+\par\smallskip\noindent\emph{Construction.} Put
+\[
+ a_\alpha=\sqrt{2\log(2/\alpha)},\qquad
+ R_h(A)=\overline b_h(A)+a_\alpha\overline s_h(A),
+\]
+\[
+ L_h=\widehat\theta_h-R_h(A),\qquad
+ U_h=\widehat\theta_h+R_h(A),\qquad
+ \operatorname{clip}_{[-B,B]}(t)=\max\{-B,\min\{B,t\}\}.
+\]
+Define the unprojected interval \(\mathcal J_h=[L_h,U_h]\) and the reported interval
+\[
+ \mathcal C_h=
+ [\operatorname{clip}_{[-B,B]}(L_h),
+  \operatorname{clip}_{[-B,B]}(U_h)].
+\]
+Thus \(\mathcal C_h\) is the endpointwise monotone projection of \(\mathcal J_h\) onto the known parameter range.
+\par\smallskip\noindent\emph{Inputs.} \(\widehat\theta_h\); \(\overline b_h(A)\); \(\overline s_h(A)\); \(\alpha\).
+\end{definition}
+
+\begin{definition}[def:exact-optimal-bandwidth]\label{def:exact-optimal-bandwidth}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Oracle degree-\allowbreak{}exact optimal base bandwidth}
+\par\smallskip\noindent\emph{Construction.} At every index for which \(\mathcal H_{n,d}\ne\varnothing\) and \(\mathcal M_{n,d,L}\ne\varnothing\), define
+\[
+ h^\dagger=\min\operatorname*{argmin}_{h\in\mathcal H_{n,d}}
+ \sup_{P\in\mathcal M_{n,d,L}}
+ \mathbb E_P[\overline b_h(A)+\overline s_h(A)].
+\]
+This is the oracle full-class radius-minimizing bandwidth.  Its evaluation requires the full-class supremum and is not an operational data-driven tuning rule.
+\par\smallskip\noindent\emph{Inputs.} \(\mathcal M_{n,d,L}\); \(n\); \(d\); \(L\); \(B\).
+\end{definition}
+
+\begin{definition}[def:frontier-envelope]\label{def:frontier-envelope}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Supported and oracle degree-\allowbreak{}exact full-\allowbreak{}class envelopes}
+\par\smallskip\noindent\emph{Construction.} At every index for which \(\mathcal H_{n,d}\ne\varnothing\), define
+\[
+ \mathfrak r^{\mathrm{sup}}_{n,d,L}
+ =\sqrt{d/n}+\inf_{h\in\mathcal H_{n,d}}
+ \{Lh^2+(n\sqrt d\,h^3)^{-1/2}\}.
+\]
+At every index for which both \(\mathcal H_{n,d}\ne\varnothing\) and \(\mathcal M_{n,d,L}\ne\varnothing\), define
+\[
+ \mathfrak u_{n,d,L}
+ =\sup_{P\in\mathcal M_{n,d,L}}
+ \mathbb E_P[\overline b_{h^\dagger}(A)+\overline s_{h^\dagger}(A)].
+\]
+The second quantity is the oracle conservative full-class envelope associated with \(h^\dagger\); its definition does not assert \(\mathfrak u_{n,d,L}\lesssim\mathfrak r^{\mathrm{sup}}_{n,d,L}\).
+\par\smallskip\noindent\emph{Inputs.} \(n\); \(d\); \(L\); \(B\).
+\end{definition}
+
+\begin{definition}[def:minimax-criteria]\label{def:minimax-criteria}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Nonempty-\allowbreak{}class absolute-\allowbreak{}risk and honest expected interval-\allowbreak{}length criteria}
+\par\smallskip\noindent\emph{Construction.} At every index for which \(\mathcal M_{n,d,L}\ne\varnothing\), let \(D=(A,Z,(Y_i^{\mathrm{obs}})_{i\in\mathcal V_n})\). Define \(R^*_{n,d,L}=\inf_{\widetilde\theta}\sup_{P\in\mathcal M_{n,d,L}}\mathbb E_P|\widetilde\theta-\theta_n|\), where the infimum ranges over all real-valued measurable estimators \(\widetilde\theta=\widetilde\theta(D)\). Define \(\Lambda^*_{n,d,L}(\alpha)=\inf_{\mathcal C}\sup_{P\in\mathcal M_{n,d,L}}\mathbb E_P[u(D)-\ell(D)]\), where the infimum ranges over data-measurable closed intervals \(\mathcal C(D)=[\ell(D),u(D)]\) with finite measurable endpoints \(\ell(D)\leq u(D)\) and satisfying \(\inf_{P\in\mathcal M_{n,d,L}}P\{\theta_n\in\mathcal C(D)\}\geq1-\alpha\). For every such interval, \(\operatorname{length}\{\mathcal C(D)\}=u(D)-\ell(D)\).
+\par\smallskip\noindent\emph{Inputs.} \(\mathcal M_{n,d,L}\); \(\theta_n\); \(\alpha\).
+\end{definition}
+
+\begin{definition}[def:optimal-bandwidth]\label{def:optimal-bandwidth}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Clamped supported-\allowbreak{}unit balance bandwidth}
+\par\smallskip\noindent\emph{Construction.} \(h_\star=\min\{d^{-1/2},\max\{d^{-1},h_0\}\}\), where \(h_0=(L^{-2}/(n\sqrt d))^{1/7}\) for \(L>0\) and \(h_0=\infty\) for \(L=0\).
+\par\smallskip\noindent\emph{Inputs.} \(n\); \(d\); \(L\).
+\end{definition}
+
+\begin{definition}[def:operational-bandwidth]\label{def:operational-bandwidth}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Graph-\allowbreak{}observable finite-\allowbreak{}breakpoint operational bandwidth}
+\par\smallskip\noindent\emph{Construction.} At every index for which \(\mathcal H_{n,d}\ne\varnothing\), put \(\ell=d^{-1}\), \(u=\min\{d^{-1/2},1/2\}\), and, for each realized graph \(A\), define the finite nonempty candidate set
+\[
+ \mathcal K(A)=\{\ell,u\}\cup
+ \left\{\left|\frac m{N_i}-\frac12\right|:
+ i\in\mathcal V_n,\ N_i>0,\ 0\leq m\leq N_i,\
+ \ell\leq\left|\frac m{N_i}-\frac12\right|\leq u\right\}.
+\]
+The graph-adaptive operational bandwidth is
+\[
+ \widehat h(A)=\min\operatorname*{argmin}_{h\in\mathcal K(A)}
+ \{\overline b_h(A)+\overline s_h(A)\}.
+\]
+All ties are therefore resolved deterministically toward the smallest candidate.  The construction uses only the observed graph, the known constants, and the finite-lattice certificates; it does not use \(Z\) or the observed outcomes.
+\par\smallskip\noindent\emph{Inputs.} \(A\); \(n\); \(d\); \(L\); \(B\); \(r\).
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:exact-score-moments]\label{lem:exact-score-moments}
+For every \(i\in\mathcal V_n\) with \(N_i\ge1\) and every \(h\in\mathcal H_{n,d}\), the exact support correction gives \(\mu_{2,i}(h)>0\). Symmetry of \(M_i\sim{\rm Binomial}(N_i,1/2)\) yields \(\mathbb E_Z[q_{i,h}\mid A]=0\), \(\mathbb E_Z[q_{i,h}V_i\mid A]=1\), \(\mathbb E_Z[q_{i,h}V_i^2\mid A]=0\), and \(\mathbb E_Z[q_{i,h}^2\mid A]=\mu_{2,i}(h)^{-1}\). For each \(a\in\{0,1\}\), \(|\mathbb E_Z[q_{i,h}f_i(a,1/2+V_i)\mid A]-\partial_xf_i(a,1/2)|\le Lh_i(h)^2/6\).
+\end{lemma}
+\begin{proof}
+Fix \(i\in\mathcal V_n\) with \(N_i=N\geq1\), fix \(h\in\mathcal H_{n,d}\), and condition on \(A\) and the preassignment response functions.  By \({\rm ass:bernoulli\text{-}design}\),
+\[
+ M_i\mid A\sim {\rm Binomial}(N,1/2),\qquad V_i=M_i/N-1/2.
+\]
+If \(N\) is even, the nearest nonzero exposure-lattice points are \(\pm N^{-1}\); if \(N\) is odd, they are \(\pm(2N)^{-1}\).  Each has strictly positive binomial probability.  Hence \({\rm def:lattice\text{-}radius}\) implies
+\[
+ \Pr_Z\{0<|V_i|\leq h_i(h)\mid A\}>0,
+\]
+and the nonnegative summands in \({\rm def:discrete\text{-}score}\) give \(\mu_{2,i}(h)>0\).
+
+The involution \(M_i\mapsto N-M_i\) preserves binomial probability and sends \(V_i\) to \(-V_i\).  The truncation indicator is even and \(q_{i,h}\) is odd.  Therefore
+\[
+ \mathbb E_Z[q_{i,h}\mid A]=0,
+\]
+\[
+ \mathbb E_Z[q_{i,h}V_i\mid A]
+ =\frac{\mathbb E_Z[V_i^2\mathbf1\{|V_i|\leq h_i(h)\}\mid A]}{\mu_{2,i}(h)}=1,
+\]
+\[
+ \mathbb E_Z[q_{i,h}V_i^2\mid A]
+ =\frac{\mathbb E_Z[V_i^3\mathbf1\{|V_i|\leq h_i(h)\}\mid A]}{\mu_{2,i}(h)}=0,
+\]
+and
+\[
+ \mathbb E_Z[q_{i,h}^2\mid A]
+ =\frac{\mathbb E_Z[V_i^2\mathbf1\{|V_i|\leq h_i(h)\}\mid A]}{\mu_{2,i}(h)^2}
+ =\mu_{2,i}(h)^{-1}.
+\]
+Every division is valid by the strict positivity just proved.
+
+Fix \(a\in\{0,1\}\).  Taylor's formula with integral remainder, together with \({\rm ass:third\text{-}derivative\text{-}bound}\), gives for \(v\in[-1/2,1/2]\)
+\[
+ f_i(a,1/2+v)=f_i(a,1/2)+\partial_xf_i(a,1/2)v
+ +\frac12\partial_x^2f_i(a,1/2)v^2+R_i(a,v),
+ \qquad |R_i(a,v)|\leq \frac L6|v|^3.
+\]
+Multiplication by \(q_{i,h}\), conditional expectation, and the three preceding moment identities show
+\[
+ \mathbb E_Z[q_{i,h}f_i(a,1/2+V_i)\mid A]-\partial_xf_i(a,1/2)
+ =\mathbb E_Z[q_{i,h}R_i(a,V_i)\mid A].
+\]
+On the support of \(q_{i,h}\), \(|V_i|\leq h_i(h)\).  Consequently
+\[
+\begin{aligned}
+ \left|\mathbb E_Z[q_{i,h}R_i(a,V_i)\mid A]\right|
+ &\leq \frac{L}{6\mu_{2,i}(h)}
+ \mathbb E_Z[|V_i|^4\mathbf1\{|V_i|\leq h_i(h)\}\mid A]\\
+ &\leq \frac{Lh_i(h)^2}{6\mu_{2,i}(h)}
+ \mathbb E_Z[V_i^2\mathbf1\{|V_i|\leq h_i(h)\}\mid A]
+ =\frac L6h_i(h)^2.
+\end{aligned}
+\]
+This proves all claimed moment and bias identities.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact-support proof establishes positivity, all derivative moment equations, and the third-order Taylor bias with every division justified. \textit{Gap.} LiWager2022RandomGraph uses an unlocalized global binomial score; ArmstrongKolesar2020SimpleHonest does not face a random degree lattice. \textit{Consumer.} It supplies the unitwise bias and exact inverse-moment contribution in the feasible-PC certificate.
+
+\begin{proposition}[prop:li-wager-bridge]\label{prop:li-wager-bridge}
+Conditional on \(A\) and \((f_i)_{i\in\mathcal V_n}\), the derivative target and the Li--Wager finite indirect effect satisfy
+\[
+ \left|\bar\tau_{\mathrm{IND},n}-\theta_n\right|
+ \le \frac{L}{8n}\sum_{i:N_i>0}\frac{1}{N_i}
+ +\frac{B}{n}\sum_{i\in\mathcal V_n}\mathbf 1\{N_i=0\}.
+\]
+Moreover, along any maintained triangular-array sequence with fixed \(B\) and \(\kappa\) such that \(\liminf_{n\to\infty}\log(\rho_n)/\log(n)>-1/2\), one has \(\bar\tau_{\mathrm{IND},n}-\theta_n=o_P(\sqrt{\rho_n})\). On the further intersection of such a sequence with every source hypothesis enumerated in \({\rm lem:li-wager-theorem-six-regime}\), specialize the treatment probability to one half and, writing \(\sigma_{\mathrm{IND},n}\) for the nonnegative variance factor in the full standardizer \(\sqrt{\rho_n}\sigma_{\mathrm{IND},n}\) of Li--Wager's equation~(43) at the \(n\)-th law, additionally suppose that \(\liminf_{n\to\infty}\sigma_{\mathrm{IND},n}>0\). Then the equation~(43) Gaussian limit centered at \(\bar\tau_{\mathrm{IND},n}\) transfers by an additive Slutsky argument to the same statistic centered at \(\theta_n\). This is an asymptotic comparator only on that intersection, not a theorem for every sequence in \(\mathcal M_{n,d,L}\), and it is not a finite-sample equality of the two targets.
+\end{proposition}
+\begin{proof}
+Work throughout the finite-sample calculation conditionally on \(A\) and \((f_i)_{i\in\mathcal V_n}\), and define the proof-intermediate function
+\[
+ g_i(x):=\frac{f_i(1,x)+f_i(0,x)}2,
+ \qquad x\in[0,1].
+\]
+By \({\rm ass:bernoulli-design}\), for every \(z\in\{0,1\}^{\mathcal V_n}\),
+\[
+ \Pr\!\left\{Z=z\mid A,(U_i,f_i)_{i\in\mathcal V_n}\right\}=2^{-n}.
+\]
+The displayed conditional probability is constant in the latent types.  Therefore the tower property gives
+\[
+ \Pr\!\left\{Z=z\mid A,(f_i)_{i\in\mathcal V_n}\right\}
+ =\mathbb E\!\left[
+   \Pr\!\left\{Z=z\mid A,(U_i,f_i)_{i\in\mathcal V_n}\right\}
+   \mathrel{\big|}A,(f_i)_{i\in\mathcal V_n}
+ \right]
+ =2^{-n}.
+\]
+Thus, under the conditional law appearing in \({\rm def:li-wager-target}\), the coordinates of \(Z\) are still independent \({\rm Bernoulli}(1/2)\) variables.
+
+Fix \(i\in\mathcal V_n\) with \(N_i=m>0\).  Because \(A_{ii}=0\) under \({\rm ass:graphon-draw}\), the variable \(M_i\) depends only on \((Z_j)_{j\ne i}\).  The preceding product law and the definition of \(M_i\) consequently imply
+\[
+ M_i\sim {\rm Binomial}(m,1/2),
+ \qquad Z_i\ \hbox{is independent of }M_i.
+\]
+Define
+\[
+ \beta_i:=4\,\mathbb E_Z\!\left[
+ Y_i(Z)(M_i-m/2)\mid A,(f_j)_{j\in\mathcal V_n}
+ \right].
+\]
+By \({\rm ass:anonymous-interference}\), \(Y_i(Z)=f_i(Z_i,1/2+V_i)\) for this positive-degree unit.  Averaging first over the independent variable \(Z_i\), and using \(M_i-m/2=mV_i\), yields
+\[
+ \beta_i
+ =4m\,\mathbb E_Z\!\left[
+ g_i(1/2+V_i)V_i\mid A,(f_j)_{j\in\mathcal V_n}
+ \right].
+\]
+For \(N_i=0\), the factor \(M_i-N_i/2\) is zero, so put \(\beta_i=0\).  It follows directly from \({\rm def:li-wager-target}\) that
+\[
+ \bar\tau_{\mathrm{IND},n}=\frac1n\sum_{i\in\mathcal V_n}\beta_i.
+\]
+
+For the fixed positive-degree unit, let \(X_1,\ldots,X_m\) be independent variables taking values \(-1/2\) and \(1/2\), each with probability \(1/2\), and let \(S_m=\sum_{j=1}^mX_j\).  The binomial law identifies the conditional distribution of \(V_i\) with that of \(S_m/m\).  Centering, independence, and symmetry give
+\[
+ \mathbb E S_m=0,
+ \qquad
+ \mathbb E S_m^2=\sum_{j=1}^m\mathbb E X_j^2=\frac m4,
+ \qquad
+ \mathbb E S_m^3=0.
+\]
+In the fourth-power expansion, the only terms with nonzero expectation are the one-index terms and the terms formed from two index pairs.  Since \(\mathbb E X_j^2=1/4\) and \(\mathbb E X_j^4=1/16\),
+\[
+ \mathbb E S_m^4
+ =\sum_{j=1}^m\mathbb E X_j^4
+  +6\sum_{1\le j<k\le m}\mathbb E X_j^2\mathbb E X_k^2
+ =\frac{3m^2-2m}{16}.
+\]
+Consequently,
+\[
+ \mathbb E V_i=0,
+ \qquad
+ \mathbb E V_i^2=\frac1{4m},
+ \qquad
+ \mathbb E V_i^3=0,
+ \qquad
+ \mathbb E V_i^4=\frac{3m^2-2m}{16m^4}\le\frac3{16m^2}.
+\]
+
+By \({\rm ass:third-derivative-bound}\) and the definition of \(g_i\),
+\[
+ \sup_{x\in[0,1]}|g_i^{(3)}(x)|\le L.
+\]
+Repeated use of the fundamental theorem of calculus on the segment from \(1/2\) to \(1/2+v\), which is contained in \([0,1]\) whenever \(|v|\le1/2\), gives
+\[
+ g_i(1/2+v)
+ =g_i(1/2)+g_i'(1/2)v+\frac12g_i''(1/2)v^2+R_i(v),
+\]
+where
+\[
+ R_i(v)=\frac{v^3}{2}\int_0^1(1-t)^2g_i^{(3)}(1/2+tv)\,dt,
+ \qquad
+ |R_i(v)|\le\frac L6|v|^3.
+\]
+Multiplying the expansion by \(v\), taking conditional expectations, and using the four moment identities cancels the constant and quadratic terms, while \(4m\mathbb E V_i^2=1\).  Therefore
+\[
+ \beta_i-g_i'(1/2)
+ =4m\,\mathbb E\!\left[V_iR_i(V_i)\mid A,(f_j)_{j\in\mathcal V_n}\right],
+\]
+and hence
+\[
+ |\beta_i-g_i'(1/2)|
+ \le\frac{4mL}{6}\mathbb E V_i^4
+ \le\frac{4mL}{6}\frac3{16m^2}
+ =\frac{L}{8m}.
+\]
+By \({\rm def:target}\), the contribution of unit \(i\) to \(\theta_n\) is \(g_i'(1/2)\).  For an isolate, \({\rm ass:response-envelope}\) implies
+\[
+ |g_i'(1/2)|
+ \le\frac{|\partial_xf_i(1,1/2)|+|\partial_xf_i(0,1/2)|}{2}
+ \le B.
+\]
+Separating positive-degree units from isolates and applying the triangle inequality proves
+\[
+\begin{aligned}
+ |\bar\tau_{\mathrm{IND},n}-\theta_n|
+ &\le\frac1n\sum_{i:N_i>0}|\beta_i-g_i'(1/2)|
+       +\frac1n\sum_{i:N_i=0}|g_i'(1/2)|\\
+ &\le\frac{L}{8n}\sum_{i:N_i>0}\frac1{N_i}
+       +\frac Bn\sum_{i\in\mathcal V_n}\mathbf1\{N_i=0\}.
+\end{aligned}
+\]
+
+We next prove the maintained-class center approximation using only the fixed lower-order envelope, so no uniform bound on \(L\) is needed along the sequence.  By \({\rm ass:response-envelope}\), \(\sup_x|g_i''(x)|\le B\).  Two integrations give
+\[
+ g_i(1/2+v)=g_i(1/2)+g_i'(1/2)v+T_i(v),
+\]
+where
+\[
+ T_i(v)=v^2\int_0^1(1-t)g_i''(1/2+tv)\,dt,
+ \qquad
+ |T_i(v)|\le\frac B2v^2.
+\]
+The same cancellations show
+\[
+ |\beta_i-g_i'(1/2)|\le2mB\,\mathbb E|V_i|^3.
+\]
+For completeness, the elementary nonnegativity relation
+\[
+ 0\le\mathbb E\bigl[(|V_i|-tV_i^2)^2\bigr]
+ =\mathbb EV_i^2-2t\mathbb E|V_i|^3+t^2\mathbb EV_i^4,
+ \qquad t\in\mathbb R,
+\]
+implies, by the nonpositivity of the discriminant,
+\[
+ \mathbb E|V_i|^3\le
+ \sqrt{\mathbb EV_i^2\,\mathbb EV_i^4}
+ \le\frac{\sqrt3}{8m^{3/2}}.
+\]
+Thus the sharper bound
+\[
+ |\beta_i-g_i'(1/2)|\le\frac{\sqrt3 B}{4\sqrt m}
+\]
+holds for every \(m>0\).
+
+Consider any maintained triangular-array sequence with fixed \(B\) and \(\kappa\) such that
+\[
+ \liminf_{n\to\infty}\frac{\log(\rho_n)}{\log n}>-\frac12.
+\]
+There is an \(\varepsilon>0\) for which, eventually,
+\[
+ \rho_n\ge n^{-1/2+\varepsilon}.
+\]
+Fix \(i\).  By \({\rm ass:unit-sampling}\) and \({\rm ass:graphon-draw}\), conditional only on \(U_i=u\), the pairs formed by \(U_j\) and the edge draw \(A_{ij}\), for \(j\ne i\), are independent and identically distributed.  Integrating each \(U_j\) therefore gives
+\[
+ N_i\mid U_i=u\sim{\rm Binomial}(n-1,p_n(u)),
+ \qquad
+ p_n(u):=\rho_n\int_0^1W(u,v)\,dv.
+\]
+The conditions \({\rm ass:kernel-bound}\) and \({\rm ass:edge-probability}\) imply \(0\le p_n(u)\le\rho_n\kappa\le1\), and \({\rm ass:degree-regularity}\) gives, for almost every \(u\),
+\[
+ \mu_i(u):=\mathbb E[N_i\mid U_i=u]
+ =(n-1)p_n(u)
+ \ge\frac{(n-1)\rho_n}{\kappa}.
+\]
+Because the \(U_i\) have the uniform marginal specified in \({\rm ass:unit-sampling}\), the last almost-everywhere inequality holds for all of the finitely many sampled types with probability one at every \(n\).
+
+We derive the only tail inequality needed below.  If \(S\sim{\rm Binomial}(m,p)\), \(\mu=mp\), and \(t=\log2\), then
+\[
+ \mathbf1\{S\le\mu/2\}\le e^{t(\mu/2-S)}.
+\]
+Independence of the Bernoulli summands and the elementary inequality \(1-y\le e^{-y}\) yield
+\[
+\begin{aligned}
+ \Pr(S\le\mu/2)
+ &\le e^{t\mu/2}\mathbb Ee^{-tS}
+ =e^{t\mu/2}(1-p+pe^{-t})^m\\
+ &\le\exp\!\left\{\frac{t\mu}{2}-\mu(1-e^{-t})\right\}
+ =\exp\!\left\{-\frac{1-\log2}{2}\mu\right\}
+ \le e^{-\mu/8},
+\end{aligned}
+\]
+where the last step uses \((1-\log2)/2\ge1/8\).  Applying this inequality conditionally on each \(U_i\), integrating, and taking a union bound shows that
+\[
+ \mathcal E_n:=\left\{\min_{i\in\mathcal V_n}N_i
+ \ge\frac{(n-1)\rho_n}{2\kappa}\right\}
+\]
+satisfies
+\[
+ \Pr(\mathcal E_n^c)
+ \le n\exp\!\left\{-\frac{(n-1)\rho_n}{8\kappa}\right\}
+ \longrightarrow0.
+\]
+Indeed, \(n\rho_n\ge n^{1/2+\varepsilon}\) eventually, so the negative term in the exponent dominates \(\log n\).
+
+On \(\mathcal E_n\), there are no isolates for all sufficiently large \(n\), and
+\[
+ \frac1n\sum_{i\in\mathcal V_n}\frac1{\sqrt{N_i}}
+ \le\left(\frac{2\kappa}{(n-1)\rho_n}\right)^{1/2}.
+\]
+The preceding lower-order bound therefore gives
+\[
+ \frac{|\bar\tau_{\mathrm{IND},n}-\theta_n|}{\sqrt{\rho_n}}
+ \le\frac{\sqrt{6\kappa}\,B}{4\sqrt{n-1}\,\rho_n}
+ \le\frac{\sqrt{6\kappa}\,B}{4\sqrt{1-1/n}\,n^\varepsilon}
+ \longrightarrow0
+ \qquad\hbox{on }\mathcal E_n.
+\]
+Together with \(\Pr(\mathcal E_n^c)\to0\), this proves
+\[
+ \bar\tau_{\mathrm{IND},n}-\theta_n=o_P(\sqrt{\rho_n}).
+\]
+
+Finally, restrict the sequence to the intersection with every source hypothesis enumerated in \({\rm lem:li-wager-theorem-six-regime}\), and specialize the treatment probability to one half.  That cited lemma supplies the equation~(43) Gaussian limit centered at \(\bar\tau_{\mathrm{IND},n}\), with full standardizer \(\sqrt{\rho_n}\sigma_{\mathrm{IND},n}\).  Under the additional condition \(\liminf_n\sigma_{\mathrm{IND},n}>0\), there are constants \(c>0\) and \(n_0\) such that \(\sigma_{\mathrm{IND},n}\ge c\) for \(n\ge n_0\).  Consequently,
+\[
+ R_n:=\frac{\bar\tau_{\mathrm{IND},n}-\theta_n}
+ {\sqrt{\rho_n}\sigma_{\mathrm{IND},n}}=o_P(1).
+\]
+Let \(T_n\) denote the equation~(43) statistic centered at \(\bar\tau_{\mathrm{IND},n}\).  The same statistic centered at \(\theta_n\) is exactly \(T_n+R_n\).  This additive limit step may be checked directly: for each \(x\in\mathbb R\) and \(\eta>0\),
+\[
+ \Pr(T_n\le x-\eta)-\Pr(|R_n|>\eta)
+ \le\Pr(T_n+R_n\le x)
+ \le\Pr(T_n\le x+\eta)+\Pr(|R_n|>\eta).
+\]
+The cited limit gives \(T_n\Rightarrow N(0,1)\), whereas the preceding display for \(R_n\) gives \(R_n=o_P(1)\).  Taking lower and upper limits and then letting \(\eta\downarrow0\), using continuity of the standard-normal distribution function, proves \(T_n+R_n\Rightarrow N(0,1)\).  This transfer uses every source condition and the stated full-standardizer nondegeneracy; it does not assert that every sequence in \(\mathcal M_{n,d,L}\) lies in the source theorem's class.  Moreover, the nonzero degree-exact remainder established above keeps \(\bar\tau_{\mathrm{IND},n}\) and \(\theta_n\) distinct rather than identifying them by definition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The bridge separates a maintained-class center approximation from use of the published Gaussian theorem, so the latter is invoked only where every source condition holds. \textit{Gap.} LiWager2022RandomGraph Proposition~1 gives a minimum-degree approximation; the displayed degree-exact symmetric remainder keeps isolates visible and does not identify the two finite-sample targets. Its Theorem~6 applies only under the full source conditions recorded in the cited lemma. \textit{Consumer.} It permits asymptotic comparison with Li--Wager equation~(43) only on the stated class intersection while keeping the finite-population derivative as a distinct target everywhere.
+
+\begin{theorem}[thm:honest-upper]\label{thm:honest-upper}
+At every index for which \(\mathcal H_{n,d}\ne\varnothing\), the graph-observable selector \(\widehat h(A)\) is well defined, Borel measurable, and polynomial-time computable.  For every prespecified \(h\in\mathcal H_{n,d}\) and every \(P\in\mathcal M_{n,d,L}\), the feasible estimator and interval satisfy
+\[
+ \Pr_Z\{\theta_n\in\mathcal C_h\mid A,(f_i)_{i\in\mathcal V_n}\}\geq1-\alpha
+\]
+for almost every preassignment realization, and the same conditional guarantee holds after the graph-adaptive choice \(h=\widehat h(A)\).  Before endpoint clipping to \([-B,B]\), the pointwise half-length is exactly
+\[
+ \overline b_h(A)+\overline s_h(A)\sqrt{2\log(2/\alpha)},
+\]
+including every realized degree and isolate.  In particular, \(h=d^{-1}\) is admissible whenever \(\mathcal H_{n,d}\ne\varnothing\), while \(\widehat h(A)\) is the operational certificate-minimizing choice.
+
+At every index for which both \(\mathcal H_{n,d}\ne\varnothing\) and \(\mathcal M_{n,d,L}\ne\varnothing\), the class-level oracle bandwidth \(h^\dagger\) is well defined and is used only as a comparison object.  The pointwise candidate inequality implies the operational integrated bounds
+\[
+ \sup_{P\in\mathcal M_{n,d,L}}
+ \mathbb E_P|\widehat\theta_{\widehat h(A)}-\theta_n|
+ \leq\mathfrak u_{n,d,L},
+ \qquad
+ \inf_{P\in\mathcal M_{n,d,L}}
+ P\{\theta_n\in\mathcal C_{\widehat h(A)}\}\geq1-\alpha,
+\]
+and
+\[
+ \sup_{P\in\mathcal M_{n,d,L}}
+ \mathbb E_P[\operatorname{length}(\mathcal C_{\widehat h(A)})]
+ \leq2\sqrt{2\log(2/\alpha)}\,\mathfrak u_{n,d,L}.
+\]
+No comparison \(\mathfrak u_{n,d,L}\lesssim\mathfrak r^{\mathrm{sup}}_{n,d,L}\), sharp minimax rate, or achieved honest expected-length frontier is asserted.
+\end{theorem}
+\begin{proof}
+Put
+\[
+ a_\alpha=\sqrt{2\log(2/\alpha)}.
+\tag{1}
+\]
+Because \(0<\alpha<1/2\), one has \(a_\alpha>1\).  Fix an index for which \(\mathcal H_{n,d}\ne\varnothing\).  By \({\rm def:bandwidth\text{-}set}\),
+\[
+ \mathcal H_{n,d}=[\ell,u],\quad
+ \ell=d^{-1},\quad u=\min\{d^{-1/2},1/2\},
+ \quad0<\ell\leq u\leq1/2.
+\tag{2}
+\]
+For a fixed realized graph, list the distinct points of \(\mathcal K(A)\) as \(\ell=t_0<t_1<\cdots<t_K=u\), with the single-point interpretation when \(\ell=u\).  Every score indicator has the form
+\[
+ \mathbf1\{|m/N_i-1/2|\leq\max(h,\delta_{N_i})\}.
+\tag{3}
+\]
+Because the inequality is weak, all score-dependent terms are constant on each cell \([t_k,t_{k+1})\).  The matrix \(C_A\), the isolate term, and \(\widehat\Delta_{\mathrm{pc},h}\) are bandwidth independent, and \(\overline s_h(A)\) is constant on each cell.  The only varying term is
+\[
+ \frac{L}{6n}\sum_{i:N_i>0}\max\{h,\delta_{N_i}\}^2,
+\tag{4}
+\]
+which is nondecreasing because \(L\geq0\).  Hence, for every \(h\in[t_k,t_{k+1})\),
+\[
+ \overline b_{t_k}(A)+\overline s_{t_k}(A)
+ \leq\overline b_h(A)+\overline s_h(A).
+\tag{5}
+\]
+The terminal point is itself a candidate.  Minimization over \(\mathcal K(A)\) proves the pointwise comparison
+\[
+ \overline b_{\widehat h(A)}(A)+\overline s_{\widehat h(A)}(A)
+ \leq\overline b_h(A)+\overline s_h(A)
+ \quad\text{for every }h\in\mathcal H_{n,d}.
+\tag{6}
+\]
+
+Assume also that \(\mathcal M_{n,d,L}\ne\varnothing\), and define
+\[
+ J(h)=\sup_{P\in\mathcal M_{n,d,L}}
+ \mathbb E_P[\overline b_h(A)+\overline s_h(A)].
+\tag{7}
+\]
+Let
+\[
+ \mathcal K_n=\{\ell,u\}\cup
+ \left\{\left|\frac mN-\frac12\right|:
+ 1\leq N\leq n-1,\ 0\leq m\leq N,\
+ \ell\leq\left|\frac mN-\frac12\right|\leq u\right\}.
+\tag{8}
+\]
+This deterministic set is finite and contains every possible graph-specific breakpoint.  Positive normalizers, the finite graph sample space, and the formulas in \({\rm def:radii}\) imply \(0\leq J(h)<\infty\).  Repeating (3)--(5) on the universal partition induced by \(\mathcal K_n\), then taking expectation and the supremum over the same nonempty class, gives
+\[
+ \inf_{h\in\mathcal H_{n,d}}J(h)=\min_{t\in\mathcal K_n}J(t).
+\tag{9}
+\]
+Thus the smallest minimizer exists and is exactly \(h^\dagger\) in \({\rm def:exact\text{-}optimal\text{-}bandwidth}\).  It remains a class-level comparison object because (7) requires the full-class supremum.
+
+Fix \(P\in\mathcal M_{n,d,L}\) and set
+\[
+ \mathcal G=\sigma\!\left(A,(f_i)_{i\in\mathcal V_n}\right),
+ \quad E_h=\widehat\theta_h-\theta_n,
+ \quad m_h=\mathbb E_P(E_h\mid\mathcal G).
+\tag{10}
+\]
+By \({\rm thm:explicit\text{-}pc\text{-}conditional\text{-}certificate}\),
+\[
+ |m_h|\leq\overline b_h(A),\quad
+ \mathbb E_P[(E_h-m_h)^2\mid\mathcal G]\leq\overline s_h(A)^2,
+\tag{11}
+\]
+and
+\[
+ \Pr_Z\{|E_h|\leq\overline b_h(A)+a_\alpha\overline s_h(A)\mid\mathcal G\}
+ \geq1-\alpha.
+\tag{12}
+\]
+The same theorem proves that \(\widehat h(A)\) is \(\mathcal G\)-measurable and assignment independent, so (11)--(12) remain valid at the selected bandwidth without a selection penalty.  Moreover, \({\rm ass:response\text{-}envelope}\) and \({\rm def:target}\) give
+\[
+ |\theta_n|\leq\frac1{2n}\sum_i
+ \{ |\partial_xf_i(1,1/2)|+|\partial_xf_i(0,1/2)|\}\leq B.
+\tag{13}
+\]
+For any \(h\), define
+\[
+ R_h(A)=\overline b_h(A)+a_\alpha\overline s_h(A),\quad
+ L_h=\widehat\theta_h-R_h(A),\quad U_h=\widehat\theta_h+R_h(A),
+\]
+and let \(p(t)=\operatorname{clip}_{[-B,B]}(t)\).  Since \(R_h(A)\geq0\), one has \(L_h\leq U_h\).  The map \(p\) is nondecreasing, so \(p(L_h)\leq p(U_h)\), proving that the corrected \(\mathcal C_h=[p(L_h),p(U_h)]\) is a nonempty closed interval.  On the event in (12), \(L_h\leq\theta_n\leq U_h\); by (13), \(p(\theta_n)=\theta_n\), and hence
+\[
+ p(L_h)\leq\theta_n\leq p(U_h).
+\tag{14}
+\]
+Thus endpoint clipping preserves the fixed and selected conditional coverage events.  The half-length of the unprojected interval \([L_h,U_h]\) is exactly \(R_h(A)\), including the explicit contributions of every positive degree and isolate in \({\rm def:radii}\).  Equation (2) also gives \(d^{-1}\in\mathcal H_{n,d}\).
+
+Conditional Cauchy--Schwarz in (11), followed by the bias bound, gives
+\[
+ \mathbb E_P(|E_h|\mid\mathcal G)
+ \leq\overline b_h(A)+\overline s_h(A).
+\tag{15}
+\]
+Evaluate (15) at \(\widehat h(A)\), use (6) with \(h=h^\dagger\), and take expectations.  For every member law,
+\[
+\begin{aligned}
+ \mathbb E_P|\widehat\theta_{\widehat h(A)}-\theta_n|
+ &\leq\mathbb E_P[\overline b_{\widehat h(A)}(A)+\overline s_{\widehat h(A)}(A)]\\
+ &\leq\mathbb E_P[\overline b_{h^\dagger}(A)+\overline s_{h^\dagger}(A)].
+\end{aligned}
+\tag{16}
+\]
+Taking the supremum and using \({\rm def:frontier\text{-}envelope}\) proves
+\[
+ \sup_{P\in\mathcal M_{n,d,L}}
+ \mathbb E_P|\widehat\theta_{\widehat h(A)}-\theta_n|
+ \leq\mathfrak u_{n,d,L}.
+\tag{17}
+\]
+Integrating (14) proves
+\[
+ \inf_{P\in\mathcal M_{n,d,L}}
+ P\{\theta_n\in\mathcal C_{\widehat h(A)}\}\geq1-\alpha.
+\tag{18}
+\]
+
+Finally, \(p\) is one-Lipschitz as the Euclidean projection onto \([-B,B]\).  Since its endpoints are ordered,
+\[
+ \operatorname{length}(\mathcal C_h)
+ =p(U_h)-p(L_h)\leq U_h-L_h=2R_h(A).
+\tag{19}
+\]
+Because \(a_\alpha>1\), (6) and (19) give
+\[
+\begin{aligned}
+ \operatorname{length}(\mathcal C_{\widehat h(A)})
+ &\leq2\{\overline b_{\widehat h(A)}(A)+a_\alpha\overline s_{\widehat h(A)}(A)\}\\
+ &\leq2a_\alpha\{\overline b_{\widehat h(A)}(A)+\overline s_{\widehat h(A)}(A)\}\\
+ &\leq2a_\alpha\{\overline b_{h^\dagger}(A)+\overline s_{h^\dagger}(A)\}.
+\end{aligned}
+\tag{20}
+\]
+Expectations, the class supremum, and (1) yield
+\[
+ \sup_{P\in\mathcal M_{n,d,L}}
+ \mathbb E_P[\operatorname{length}(\mathcal C_{\widehat h(A)})]
+ \leq2\sqrt{2\log(2/\alpha)}\,\mathfrak u_{n,d,L}.
+\tag{21}
+\]
+The operational conclusions come from (6), not from identifying \(\widehat h(A)\) with \(h^\dagger\), and the selected rule minimizes \(\overline b_h+\overline s_h\), not the literal exponential half-length.  No step compares \(\mathfrak u_{n,d,L}\) with \(\mathfrak r^{\mathrm{sup}}_{n,d,L}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem converts the graph-only finite-breakpoint selector into selection-valid conditional inference and operational integrated guarantees, while retaining the class oracle only as a comparison object. Monotone endpoint clipping preserves coverage because \(\theta_n\in[-B,B]\) and can only shorten the unprojected interval. \textit{Gap.} The conservative envelope is not proved to have the supported lower-benchmark order. \textit{Consumer.} Experimenters may report the selected nonempty endpoint-clipped exponential interval directly; its risk and expected length are bounded by the conservative envelope without pretending that envelope is rate sharp.
+
+\begin{theorem}[thm:minimax-lower]\label{thm:minimax-lower}
+For \(1\leq k\leq r\), let \(I_k=[(k-1)/r,k/r)\), with \(1\) included in \(I_r\), put \(\psi_k(u)=\sqrt r\,\mathbf 1\{u\in I_k\}\), and set
+\[
+ c_0=\max\{r/\kappa,r\underline\lambda\},
+ \qquad
+ W_0(u,v)=c_0\mathbf 1\{u\text{ and }v\text{ belong to the same }I_k\}.
+\]
+Suppose, in addition to the conditions defining \(\mathcal M_{n,d,L}\), that
+\[
+ c_0\leq\kappa,
+ \qquad
+ b_\psi\geq (r-1)/\sqrt r.
+\]
+Let \(s_0=B/4\), let \(\xi_i\) be i.i.d. with density \(p_{s_0}(t)=s_0^{-1}\cos^2(\pi t/(2s_0))\mathbf 1\{|t|\leq s_0\}\), and use response pairs \(f_i^\pm(a,x)=\xi_i\pm g(x)\), with the three functions \(g\) constructed in the proof.  Then \(W_0\) and these random-intercept response laws generate an explicit block submodel of \(\mathcal M_{n,d,L}\).  Along sequences with \(B,L,r,\kappa,\underline\lambda,b_\psi,\alpha,C_{\log}\) fixed and \(C_{\log}\log n\leq d=o(n)\), there is a constant \(c>0\), independent of \(n\) and \(d\), such that, for all sufficiently large \(n\),
+\[
+ R^*_{n,d,L}\geq c\mathfrak r^{\mathrm{sup}}_{n,d,L},
+ \qquad
+ \Lambda^*_{n,d,L}(\alpha)\geq c\mathfrak r^{\mathrm{sup}}_{n,d,L}.
+\]
+Within this same block submodel, respectively, a degree-lattice bump, an interior \(C^3\) bump, and a linear response pair furnish the lattice term, the interior nonlinear term for both absolute risk and honest expected length, and the graph floor.  The two displayed compatibility inequalities are only sufficient conditions for this explicit block witness and do not characterize nonemptiness; \({\rm thm:unrestricted\text{-}supported\text{-}converse}\) separately proves the same supported lower benchmark over every eventually nonempty repaired class.
+\end{theorem}
+\begin{proof}
+Define \(\lambda_k=c_0/r\).  Because the intervals \(I_1,\ldots,I_r\) partition \([0,1]\) up to endpoints of Lebesgue measure zero,
+\[
+ \sum_{k=1}^r\lambda_k\psi_k(u)\psi_k(v)
+ =c_0\mathbf1\{u\text{ and }v\text{ belong to the same }I_k\}
+ =W_0(u,v)
+\tag{1}
+\]
+for almost every \((u,v)\).  Moreover,
+\[
+ \int_0^1\psi_k(u)\psi_\ell(u)\,du=\mathbf1\{k=\ell\}.
+\tag{2}
+\]
+All \(r\) eigenvalues in (1) are nonzero, and the definition of \(c_0\) gives
+\[
+ |\lambda_k|=c_0/r\geq\underline\lambda,\qquad
+ \int_0^1W_0(u,v)\,dv=c_0/r\geq\kappa^{-1}.
+\tag{3}
+\]
+The compatibility condition \(c_0\leq\kappa\) gives \(0\leq W_0\leq\kappa\).  Together with \({\rm ass:edge\text{-}probability}\), this makes every edge probability \(\rho_nW_0(U_i,U_j)\) lie in \([0,1]\).
+
+To verify the Bernstein member property, note that
+\[
+ \overline\psi_k:=\int_0^1\psi_k(u)\,du=1/\sqrt r.
+\]
+For \(r\geq2\), the centered variable \(X_k=\psi_k(U)-\overline\psi_k\) takes the values \((r-1)/\sqrt r\) and \(-1/\sqrt r\), and hence \(|X_k|\leq(r-1)/\sqrt r\leq b_\psi\).  For every integer \(m\geq2\),
+\[
+ \mathbb E|X_k|^m
+ \leq b_\psi^{m-2}\mathbb EX_k^2
+ \leq\frac{m!}{2}b_\psi^{m-2}\mathbb EX_k^2.
+\tag{4}
+\]
+For \(r=1\), \(X_k=0\), so (4) is immediate.  Thus the declared Bernstein moment condition holds.  Equations (1)--(4), the independent uniform latent types, \({\rm ass:graphon\text{-}draw}\), and \({\rm ass:bernoulli\text{-}design}\) establish the advertised known-rank equal-block graph submodel, including rank, positivity, degree regularity, spectral strength, and treatment overlap.
+
+Put \(s_0=B/4\).  The function
+\[
+ p_{s_0}(t)=s_0^{-1}\cos^2\!\left(\frac{\pi t}{2s_0}\right)
+ \mathbf1\{|t|\leq s_0\}
+\tag{5}
+\]
+is nonnegative, is supported on \([-B/4,B/4]\), and integrates to one because the change of variables \(y=t/s_0\) gives
+\[
+ \int_{-s_0}^{s_0}p_{s_0}(t)\,dt
+ =\int_{-1}^{1}\cos^2(\pi y/2)\,dy=1.
+\tag{6}
+\]
+Let \(\xi_i\) be independent draws from this density, independent of the graph primitives.  For a deterministic function \(g\), define
+\[
+ f_i^\sigma(a,x)=\xi_i+\sigma g(x),\qquad \sigma\in\{-1,1\}.
+\tag{7}
+\]
+The resulting \((U_i,f_i^\sigma)\) are independent and identically distributed.  Since \(g\) is independent of \(a\), \({\rm def:target}\) gives
+\[
+ \theta_n^\sigma=\sigma g'(1/2).
+\tag{8}
+\]
+
+We now specialize the explicit response experiments proved in \({\rm thm:unrestricted\text{-}supported\text{-}converse}\) to the graphon \(W_0\).  Write
+\[
+ \phi(t)=t(1-t^2)^4\mathbf1\{|t|\leq1\}.
+\tag{9}
+\]
+Its zero extension is \(C^3\), because the polynomial has a zero of order four at each endpoint, and \(\phi'(0)=1\).  For \(K_j=\sup_t|\phi^{(j)}(t)|\), choose fixed \(\gamma>0\) such that \(\gamma K_3\leq1\) and sufficiently small for the testing bounds below.  The three functions are
+\[
+\begin{aligned}
+ g_G(x)&=a_G(x-1/2),
+ &a_G&=\zeta s_0\sqrt{d/n},\\
+ g_I(x)&=\gamma Lh_0^3\phi((x-1/2)/h_0),&&\\
+ g_L(x)&=\gamma Lh_L^3\phi((x-1/2)/h_L),
+ &h_L&=(4Kd)^{-1},
+\end{aligned}
+\tag{10}
+\]
+where \(\zeta>0\) is a sufficiently small fixed constant and \(K>\kappa\) is fixed and chosen so that
+\[
+ C_{\log}\{K\log(K/\kappa)-K+\kappa\}\geq4.
+\tag{11}
+\]
+The interior function \(g_I\) is used only when \(L>0\) and \(d^{-1}<h_0<d^{-1/2}\); when \(L=0\), only the graph pair is needed.
+
+We verify that (7) stays in the same response class.  For \(g_G\), \(d/n\to0\) implies eventually
+\[
+ \|g_G\|_\infty\leq B-s_0,\qquad |g_G'|=a_G\leq B,\qquad
+ g_G''=g_G'''=0.
+\tag{12}
+\]
+For either local bump \(g(x)=\gamma Lh^3\phi((x-1/2)/h)\), differentiation gives
+\[
+ \|g^{(j)}\|_\infty\leq\gamma Lh^{3-j}K_j,\qquad 0\leq j\leq3.
+\tag{13}
+\]
+In the interior regime, \(h_0<d^{-1/2}\to0\); for the lattice bump, \(h_L\to0\).  Hence (13), \(\gamma K_3\leq1\), and fixed \(B,L\) imply, for all large \(n\),
+\[
+ \|g\|_\infty\leq B-s_0,\qquad
+ \max_{1\leq j\leq2}\|g^{(j)}\|_\infty\leq B,\qquad
+ \|g'''\|_\infty\leq L.
+\tag{14}
+\]
+Equations (5), (7), (12), and (14) verify the response envelope and the third-derivative radius.  Thus every pair in (10), with the retained \(W_0\) graph law, belongs to \(\mathcal M_{n,d,L}\) for all sufficiently large \(n\).
+
+For clarity, we recall the quantitative two-point conclusion established in \({\rm thm:unrestricted\text{-}supported\text{-}converse}\).  If \(P_g^+\) and \(P_g^-\) denote the two full observed-data laws generated by (7), its Hellinger calculation gives
+\[
+ H^2(P_g^+,P_g^-)
+ \leq\frac{\pi^2}{s_0^2}\sum_{i=1}^n\mathbb E[g(T_i)^2],
+\tag{15}
+\]
+where \(T_i=M_i/N_i\) for \(N_i>0\) and \(T_i=0\) for isolates.  Put \(\eta=(1-2\alpha)/2\in(0,1)\).  Whenever the right side of (15) is at most \(\eta^2\), total variation is at most \(\eta\), and the testing inequalities proved there yield, with \(a=|g'(1/2)|\),
+\[
+ \inf_{\widetilde\theta}\max_{\sigma\in\{-1,1\}}
+ \mathbb E_{P_g^\sigma}|\widetilde\theta-\theta_n^\sigma|
+ \geq\frac a2(1-\eta),
+\tag{16}
+\]
+and, for every interval having coverage at least \(1-\alpha\) under both laws,
+\[
+ \max_{\sigma\in\{-1,1\}}
+ \mathbb E_{P_g^\sigma}[\operatorname{length}(\mathcal C)]
+ \geq a(1-2\alpha).
+\tag{17}
+\]
+These are internal proved consequences of the declared converse theorem, not additional assumptions.
+
+For the block graphon, conditional degrees have means bounded above and below by fixed multiples of \(d\).  The moment calculation in \({\rm thm:unrestricted\text{-}supported\text{-}converse}\) therefore gives
+\[
+ \mathbb E(T_i-1/2)^2\leq C_1/d.
+\tag{18}
+\]
+Equations (10), (15), and (18) show
+\[
+ H^2(P_{g_G}^+,P_{g_G}^-)
+ \leq C_2\zeta^2.
+\tag{19}
+\]
+Choosing \(\zeta\) once so that (19) is at most \(\eta^2\), equations (8), (10), and (16)--(17) give lower bounds of order \(\sqrt{d/n}\) for both criteria.
+
+The binomial small-ball calculation in the declared converse theorem gives, uniformly for \(d^{-1}\leq h\leq d^{-1/2}\),
+\[
+ \Pr\{|T_i-1/2|\leq h\}\leq C_3h\sqrt d.
+\tag{20}
+\]
+Since \(nL^2h_0^7\sqrt d=1\), equations (10), (15), and (20) imply
+\[
+ H^2(P_{g_I}^+,P_{g_I}^-)
+ \leq C_4\gamma^2,\qquad
+ |g_I'(1/2)|=\gamma Lh_0^2
+ =\gamma L^{3/7}(n^2d)^{-1/7}.
+\tag{21}
+\]
+Choose \(\gamma\) small enough that the first quantity in (21) is at most \(\eta^2\).  Equations (16)--(17) then give the interior lower term for both criteria.
+
+For the lattice bump, every nonzero centered exposure-lattice point of a unit with \(1\leq N_i\leq Kd\) has absolute value at least \((2N_i)^{-1}\geq(2Kd)^{-1}>h_L\), while \(g_L(1/2)=0\).  Thus \(g_L(T_i)=0\) for these units and also for isolates.  The binomial Chernoff calculation in the declared converse theorem and (11) give
+\[
+ \Pr(N_i>Kd)\leq n^{-4}.
+\tag{22}
+\]
+Consequently,
+\[
+ H^2(P_{g_L}^+,P_{g_L}^-)
+ \leq C_5nL^2d^{-6}n^{-4}=o(1),\qquad
+ |g_L'(1/2)|=\gamma Lh_L^2
+ =\frac{\gamma L}{16K^2d^2}.
+\tag{23}
+\]
+For all sufficiently large \(n\), equations (16)--(17) give the degree-lattice lower term \(Ld^{-2}\).  This pair agrees exactly on every vertex of degree at most \(Kd\); only the uniformly negligible upper-degree tail contributes to (23).
+
+It remains to compare the three separations with the analytic envelope.  Put \(c_{n,d}=n^{-1/2}d^{-1/4}\) and \(g_0(h)=Lh^2+c_{n,d}h^{-3/2}\).  For \(L>0\),
+\[
+ Lh_0^2=c_{n,d}h_0^{-3/2}.
+\tag{24}
+\]
+At all large indices, \(\mathcal H_{n,d}=[d^{-1},d^{-1/2}]\).  Evaluation at the appropriate endpoint or at \(h_0\) gives
+\[
+ \inf_{h\in\mathcal H_{n,d}}g_0(h)
+ \leq
+ \begin{cases}
+ 2Ld^{-2},&h_0\leq d^{-1},\\
+ 2Lh_0^2,&d^{-1}<h_0<d^{-1/2},\\
+ 2\sqrt{d/n},&h_0\geq d^{-1/2}.
+ \end{cases}
+\tag{25}
+\]
+For \(L=0\), evaluation at \(d^{-1/2}\) gives the last order directly.  By \({\rm def:frontier\text{-}envelope}\), \(\mathfrak r^{\mathrm{sup}}_{n,d,L}=\sqrt{d/n}+\inf_{h\in\mathcal H_{n,d}}g_0(h)\).  The largest applicable separation in (19), (21), and (23) is therefore at least a fixed multiple of \(\mathfrak r^{\mathrm{sup}}_{n,d,L}\), because the maximum of two nonnegative quantities is at least half their sum.  Since all testing laws are in the explicit block submodel, equations (16)--(17) and \({\rm def:minimax\text{-}criteria}\) yield
+\[
+ R^*_{n,d,L}\geq c\mathfrak r^{\mathrm{sup}}_{n,d,L},
+ \qquad
+ \Lambda^*_{n,d,L}(\alpha)\geq c\mathfrak r^{\mathrm{sup}}_{n,d,L}
+\tag{26}
+\]
+eventually, where \(c>0\) depends only on the fixed class constants and \(\alpha\), not on \(n,d\).  The compatibility inequalities were used only to certify the convenient block witness through (3)--(4).  Independently, \({\rm thm:unrestricted\text{-}supported\text{-}converse}\) proves (26) by retaining the graph primitives of any admissible member, so these sufficient block inequalities do not characterize nonemptiness of the maintained class.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit equal-block graphon and three same-class response pairs prove the supported analytic converse under the displayed sufficient compatibility conditions. The expected-length reduction applies to uniformly covering closed intervals, whose connectedness turns simultaneous inclusion into a length lower bound; \({\rm thm:unrestricted\text{-}supported\text{-}converse}\) separately proves the same benchmark over every eventually nonempty repaired class. Low1997NonparametricCI is the classical nonparametric honest-CI lower-bound antecedent, whereas this theorem is a same-class one-network graphon lower benchmark rather than an adaptation-impossibility result. The accepted known-graph SNIPE frontier in CausalSmithExpSnipeDegreeFrontierV1 is the closest Bernoulli-network minimax neighbor: it proves a matched design-based MSE frontier for a fixed known directed graph and finite-population total effect over low-order polynomial neighborhood-interference classes. It neither subsumes nor is subsumed by this result: the present theorem averages over a sparse finite-rank graphon law, targets an anonymous-neighbor-fraction midpoint derivative in a local \(C^3\) class, and lower-bounds absolute risk and honest closed-interval expected length, while the SNIPE theorem supplies a matched MSE upper bound in its fixed-graph polynomial setting. KandirosHarshawSavje2026DesignBasedMinimax studies design-based minimax questions on a fixed observed network over designs and arbitrary neighborhood interference; this result fixes Bernoulli assignment and averages over a sparse graphon law for a midpoint derivative. CortezEichhornYu2023LowOrder concerns total effects under low-order polynomial interactions, rather than anonymous treated-neighbor fractions with a local \(C^3\) response class and degree-lattice alternatives. LuLiLiu2026UniformlyBoundedNeighborhood develops bounded-neighborhood asymptotics and adjusted point/variance estimators, whereas the present conclusion is a finite-sample-class minimax lower benchmark for closed-interval expected length and does not supply a matching feasible upper rate. \textit{Gap.} The compatibility inequalities are merely sufficient for this explicit block witness and do not characterize nonemptiness. This is a limitation of the witness, not a gap in the supported lower benchmark, which \({\rm thm:unrestricted\text{-}supported\text{-}converse}\) establishes over every eventually nonempty repaired class. The adjacent fixed-known-graph SNIPE frontier is a different estimand, model, and MSE criterion, so it cannot provide a matching upper bound or a converse for the present graphon derivative and closed-interval expected-length criterion. No claim is made for disconnected confidence sets or for the broader adaptation and design-optimization questions treated by the cited comparator classes. \textit{Consumer.} Experimenters may use the supported bandwidth envelope as a certified global lower benchmark for minimax absolute risk and minimax honest expected interval length whenever the repaired class is eventually nonempty; this theorem additionally provides a concrete equal-block witness when its displayed compatibility conditions hold. The accepted SNIPE frontier is an adjacent fixed-graph MSE benchmark, not an optimality certificate for this procedure. This theorem supplies a lower benchmark, not a design-based optimality result, an adaptation theorem, or a matching feasible-PC rate.
+
+\begin{proposition}[prop:phase-diagram]\label{prop:phase-diagram}
+For \(L>0\), at every sufficiently large triangular-array index the supported-unit component satisfies \(\mathfrak r^{\mathrm{sup}}_{n,d,L}\asymp Ld^{-2}+\sqrt{d/n}\) when \(h_0\leq d^{-1}\), \(\mathfrak r^{\mathrm{sup}}_{n,d,L}\asymp L^{3/7}(n^2d)^{-1/7}+\sqrt{d/n}\) when \(d^{-1}<h_0<d^{-1/2}\), and \(\mathfrak r^{\mathrm{sup}}_{n,d,L}\asymp\sqrt{d/n}\) when \(h_0\geq d^{-1/2}\).  At every index for which \(\mathcal H_{n,d}\ne\varnothing\) and \(\mathcal M_{n,d,L}\ne\varnothing\), the operational graph-adaptive selector satisfies
+\[
+ R^*_{n,d,L}\leq\mathfrak u_{n,d,L},
+ \qquad
+ \Lambda^*_{n,d,L}(\alpha)
+ \leq2\sqrt{2\log(2/\alpha)}\,\mathfrak u_{n,d,L}.
+\]
+Along every sequence covered by the unrestricted supported converse, there is a constant \(c>0\) such that, for all sufficiently large \(n\),
+\[
+ R^*_{n,d,L}\geq c\mathfrak r^{\mathrm{sup}}_{n,d,L},
+ \qquad
+ \Lambda^*_{n,d,L}(\alpha)\geq c\mathfrak r^{\mathrm{sup}}_{n,d,L}.
+\]
+Every graph-only conditional-bias certificate over the maintained class retains at least \(Bn^{-1}\sum_i\mathbf1\{N_i=0\}\) on a realized graph.  The explicit compatible block-submodel lower bound transfers upward only to the maintained class, and the unrestricted converse proves the maintained-class lower benchmark directly; neither result transfers automatically to the nonnested LiWager2022RandomGraph Theorem~6 regime or its distinct finite indirect-effect target.  No bound \(\mathfrak u_{n,d,L}\lesssim\mathfrak r^{\mathrm{sup}}_{n,d,L}\) is proved, so the three analytic phases remain tuning geometry and a minimax lower benchmark rather than a sharp or achieved frontier.
+\end{proposition}
+\begin{proof}
+Assume \(L>0\), and put
+\[
+ c_{n,d}=n^{-1/2}d^{-1/4},\qquad
+ g(h)=Lh^2+c_{n,d}h^{-3/2},\qquad
+ \ell=d^{-1},\qquad u=d^{-1/2}.
+\tag{1}
+\]
+By \({\rm ass:log\text{-}degree}\), \(d\to\infty\) along the triangular array.  Thus \(d\geq4\) eventually, and \({\rm def:bandwidth\text{-}set}\) gives \(\mathcal H_{n,d}=[\ell,u]\).  From \({\rm def:optimal\text{-}bandwidth}\),
+\[
+ h_0^7=\frac{L^{-2}}{n\sqrt d}.
+\tag{2}
+\]
+Since \(c_{n,d}^2=(n\sqrt d)^{-1}\), positivity and (2) imply
+\[
+ Lh_0^2=c_{n,d}h_0^{-3/2}.
+\tag{3}
+\]
+If \(h_0\leq\ell\), then \(g(h)\geq L\ell^2\) for every admissible \(h\), whereas
+\[
+ c_{n,d}\ell^{-3/2}
+ \leq c_{n,d}h_0^{-3/2}
+ =Lh_0^2\leq L\ell^2.
+\]
+Evaluation at \(\ell\) gives
+\[
+ Ld^{-2}\leq\inf_{h\in\mathcal H_{n,d}}g(h)\leq2Ld^{-2}.
+\tag{4}
+\]
+If \(\ell<h_0<u\), then for \(h\geq h_0\), \(Lh^2\geq Lh_0^2\), while for \(h\leq h_0\), \(c_{n,d}h^{-3/2}\geq c_{n,d}h_0^{-3/2}=Lh_0^2\).  Evaluation at \(h_0\) gives
+\[
+ Lh_0^2\leq\inf_{h\in\mathcal H_{n,d}}g(h)\leq2Lh_0^2,
+ \qquad
+ Lh_0^2=L^{3/7}(n^2d)^{-1/7}.
+\tag{5}
+\]
+If \(h_0\geq u\), then every admissible \(h\) satisfies \(g(h)\geq c_{n,d}u^{-3/2}=\sqrt{d/n}\), while
+\[
+ Lu^2\leq Lh_0^2=c_{n,d}h_0^{-3/2}
+ \leq c_{n,d}u^{-3/2}.
+\]
+Evaluation at \(u\) proves
+\[
+ \sqrt{d/n}\leq\inf_{h\in\mathcal H_{n,d}}g(h)
+ \leq2\sqrt{d/n}.
+\tag{6}
+\]
+Combining (4)--(6) with
+\[
+ \mathfrak r^{\mathrm{sup}}_{n,d,L}
+ =\sqrt{d/n}+\inf_{h\in\mathcal H_{n,d}}g(h)
+\tag{7}
+\]
+proves all three asserted equivalences, with constants independent of \(n,d\).
+
+Fix an index at which both \(\mathcal H_{n,d}\) and \(\mathcal M_{n,d,L}\) are nonempty.  By \({\rm thm:honest\text{-}upper}\), the observed-data estimator \(\widehat\theta_{\widehat h(A)}\) satisfies
+\[
+ \sup_{P\in\mathcal M_{n,d,L}}
+ \mathbb E_P|\widehat\theta_{\widehat h(A)}-\theta_n|
+ \leq\mathfrak u_{n,d,L}.
+\tag{8}
+\]
+It is an admissible competitor in \({\rm def:minimax\text{-}criteria}\), hence
+\[
+ R^*_{n,d,L}\leq\mathfrak u_{n,d,L}.
+\tag{9}
+\]
+The same theorem states that the endpoint-clipped interval \(\mathcal C_{\widehat h(A)}\) is a data-measurable nonempty closed interval, is uniformly honest after integration, and obeys
+\[
+ \sup_{P\in\mathcal M_{n,d,L}}
+ \mathbb E_P[\operatorname{length}(\mathcal C_{\widehat h(A)})]
+ \leq2\sqrt{2\log(2/\alpha)}\,\mathfrak u_{n,d,L}.
+\tag{10}
+\]
+It is therefore an admissible interval competitor in \({\rm def:minimax\text{-}criteria}\), so
+\[
+ \Lambda^*_{n,d,L}(\alpha)
+ \leq2\sqrt{2\log(2/\alpha)}\,\mathfrak u_{n,d,L}.
+\tag{11}
+\]
+
+Along every sequence covered by \({\rm thm:unrestricted\text{-}supported\text{-}converse}\), that theorem supplies a constant \(c>0\), independent of \(n,d\), such that eventually
+\[
+ R^*_{n,d,L}\geq c\mathfrak r^{\mathrm{sup}}_{n,d,L},
+ \qquad
+ \Lambda^*_{n,d,L}(\alpha)
+ \geq c\mathfrak r^{\mathrm{sup}}_{n,d,L}.
+\tag{12}
+\]
+Under the two compatibility inequalities in \({\rm thm:minimax\text{-}lower}\), its explicit block response pairs are members of the maintained class, so their lower bounds transfer upward to that class.  The unrestricted theorem proves (12) directly without the block compatibility conditions.  By the nonnesting qualification in \({\rm def:model\text{-}class}\), and because \(\theta_n\) differs from the finite indirect-effect target in LiWager2022RandomGraph, neither argument transfers automatically to that source regime.
+
+Finally, \({\rm thm:conditional\text{-}isolate\text{-}wall}\) gives, on every realized graph,
+\[
+ b(A)\geq\frac Bn\sum_{i\in\mathcal V_n}\mathbf1\{N_i=0\}
+\tag{13}
+\]
+for every uniformly valid graph-only conditional-bias certificate of the stated kind.  Equations (9), (11), and (12) are the conservative lower--upper bracket.  Its lower side is \(\mathfrak r^{\mathrm{sup}}_{n,d,L}\), whereas its upper side is \(\mathfrak u_{n,d,L}\).  No declared result bounds the latter by the former, so (4)--(7) describe tuning geometry and a lower benchmark, not a sharp minimax rate or an achieved honest expected-length frontier.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The phase algebra is unchanged, while the upper bracket is now witnessed by the operational selector with the exponential length constant. \textit{Gap.} The lower and upper envelopes remain unlinked, so the bracket may be loose. \textit{Consumer.} Use the three phases as tuning geometry and a lower benchmark, not as an achieved minimax or honest-length frontier.
+
+\begin{lemma}[lem:li-wager-theorem-six-regime]\label{lem:li-wager-theorem-six-regime}
+LiWager2022RandomGraph Theorem~6 is stated conditional on every condition of its Theorem~4: the source's Assumptions~1--5; independent Bernoulli treatment with a fixed probability strictly between zero and one; writing \(G\) for the source graphon, the pointwise row condition that \(g_1(u):=\int_0^1\min\{1,G(u,t)\}\,dt\) is bounded below by a positive constant for every \(u\in[0,1]\); the first- and second-kernel-moment bounds in Theorem~4; and \(\liminf_{n\to\infty}\log(\rho_n)/\log(n)>-1\). Theorem~6 additionally assumes the sparse exponent window \(-1/2<\liminf_{n\to\infty}\log(\rho_n)/\log(n)\) and \(\limsup_{n\to\infty}\log(\rho_n)/\log(n)<0\), a rank-\(r\) decomposition, the nonzero ordered-eigenvalue and normalization/orthogonality conditions displayed in equation~(41), and the Bernstein condition displayed in equation~(42). Under all of those source conditions, equation~(43) gives the standardized \(\sqrt{\rho_n}\)-scale principal-component-balancing Gaussian limits centered at both the source population indirect effect and the finite indirect effect \(\bar\tau_{\mathrm{IND},n}\). This citation record does not assert that every sequence in the maintained class satisfies all of the source conditions.
+\end{lemma}
+
+\begin{lemma}[lem:exact-score-hoeffding-projections]\label{lem:exact-score-hoeffding-projections}
+Conditionally on \(A\), write \(X_j=Z_j-1/2\), \(X=(X_1,\ldots,X_n)^\top\), and \(q_h=(q_{1,h},\ldots,q_{n,h})^\top\).  For a centered scalar function \(g(X)\), define its first projection as \(g^{(1)}=\sum_j\mathbb E[g\mid X_j]\) and its second projection as
+\[
+ g^{(2)}=\sum_{j<k}\left\{\mathbb E[g\mid X_j,X_k]
+ -\mathbb E[g\mid X_j]-\mathbb E[g\mid X_k]\right\},
+\]
+and apply these definitions coordinatewise to a vector.  The first two conditional Hoeffding projections of the exact-support score satisfy
+\[
+ q_h^{(1)}=4AX,\qquad q_h^{(2)}=0
+\]
+simultaneously for every \(h\in\mathcal H_{n,d}\).  Consequently, for every \(A\)-measurable orthogonal projector \(\Pi\),
+\[
+ \{(I_n-\Pi)q_h\}^{(1)}=4(I_n-\Pi)AX,
+ \qquad \{(I_n-\Pi)q_h\}^{(2)}=0,
+\]
+and
+\[
+ \mathbb E_Z\!\left[\|4(I_n-\Pi)AX\|_2^2\mid A\right]
+ =4\|(I_n-\Pi)A\|_{\mathrm F}^2.
+\]
+\end{lemma}
+\begin{proof}
+Condition on \(A\), and put \(X_j=Z_j-1/2\).  The score is centered by \({\rm lem:exact\text{-}score\text{-}moments}\).  Fix \(i\).  If \(A_{ij}=1\), the \(N_i\) neighbor contrasts are exchangeable.  Since
+\[
+ V_i=N_i^{-1}\sum_{k:A_{ik}=1}X_k,
+\]
+the exact first-moment identity in \({\rm lem:exact\text{-}score\text{-}moments}\) yields
+\[
+ 1=\mathbb E_Z[q_{i,h}V_i\mid A]
+ =N_i^{-1}\sum_{k:A_{ik}=1}\mathbb E_Z[q_{i,h}X_k\mid A]
+ =\mathbb E_Z[q_{i,h}X_j\mid A].
+\]
+If \(A_{ij}=0\), then \(q_{i,h}\) is independent of the centered variable \(X_j\), so the same covariance is zero.  A centered function of the symmetric two-point variable \(X_j\in\{-1/2,1/2\}\) is a scalar multiple of \(X_j\).  Because \(\mathbb E_ZX_j^2=1/4\),
+\[
+ \mathbb E_Z[q_{i,h}\mid X_j,A]
+ =4\mathbb E_Z[q_{i,h}X_j\mid A]X_j=4A_{ij}X_j.
+\]
+Summing over \(j\) proves, coordinatewise and simultaneously for all admissible \(h\),
+\[
+ q_h^{(1)}=4AX.
+\]
+
+For the second projection, take distinct \(j,k\).  If either coordinate is not a neighbor of \(i\), independence makes the corresponding two-coordinate interaction zero.  If both are neighbors, let
+\[
+ H_{jk}(x_j,x_k)=\mathbb E_Z[q_{i,h}\mid X_j=x_j,X_k=x_k,A].
+\]
+Simultaneously changing every neighbor contrast to its negative preserves their joint law and changes the odd score to its negative.  Hence
+\[
+ H_{jk}(-x_j,-x_k)=-H_{jk}(x_j,x_k).
+\]
+Every function on \(\{-1/2,1/2\}^2\) has a unique Walsh expansion in \(1,x_j,x_k,x_jx_k\).  The displayed oddness forces the coefficients of the even terms \(1\) and \(x_jx_k\) to vanish.  Thus \(H_{jk}\) is the sum of its two one-coordinate conditional expectations, and the \(\{j,k\}\) interaction in the definition of the second projection is zero.  Therefore
+\[
+ q_h^{(2)}=0.
+\]
+
+An \(A\)-measurable linear map preserves Hoeffding order.  Thus, for every \(A\)-measurable orthogonal projector \(\Pi\),
+\[
+ \{(I_n-\Pi)q_h\}^{(1)}=4(I_n-\Pi)AX,
+ \qquad \{(I_n-\Pi)q_h\}^{(2)}=0.
+\]
+Finally, conditional independence under \({\rm ass:bernoulli\text{-}design}\) gives \(\mathbb E_Z[XX^\top\mid A]=I_n/4\).  Symmetry of \(A\) and idempotence and symmetry of \(I_n-\Pi\) then imply
+\[
+\begin{aligned}
+ \mathbb E_Z\!\left[\|4(I_n-\Pi)AX\|_2^2\mid A\right]
+ &=16\operatorname{tr}\!\left((I_n-\Pi)AA^\top(I_n-\Pi)\frac{I_n}{4}\right)\\
+ &=4\|(I_n-\Pi)A\|_{\mathrm F}^2.
+\end{aligned}
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the exact early-kill calculation required to decide whether spectral balancing itself introduces a bandwidth-dependent first- or second-order term. \textit{Gap.} The identity is exact on the binomial lattice and is not supplied by global-score graphon projector results. \textit{Consumer.} It is the load-bearing decomposition used by the explicit PC conditional certificate.
+
+\begin{lemma}[lem:mcdiarmid-bounded-differences]\label{lem:mcdiarmid-bounded-differences}
+Let \(X_1,\ldots,X_n\) be independent random variables with \(X_j\) taking values in a measurable space \(\mathcal X_j\), and let \(F:\prod_{j=1}^n\mathcal X_j\to\mathbb R\) be measurable.  Suppose that changing coordinate \(j\) alone changes \(F\) by at most \(c_j\geq0\), and put \(S=\sum_{j=1}^nc_j^2\).  If \(S>0\), then, for every \(t>0\),
+\[
+ \Pr\{|F-\mathbb EF|\geq t\}\leq2\exp\{-2t^2/S\}.
+\]
+\end{lemma}
+
+\begin{theorem}[thm:explicit-pc-conditional-certificate]\label{thm:explicit-pc-conditional-certificate}
+At every index for which \(\mathcal H_{n,d}\ne\varnothing\), the graph-adaptive bandwidth \(\widehat h(A)\) in \({\rm def:operational\text{-}bandwidth}\) is a Borel-measurable polynomial-time sample map, and all distinct scores over \(h\in\mathcal H_{n,d}\) can be represented and computed in polynomial time.  For \(F_h(Z)=\widehat\theta_h\), define
+\[
+ c_{j,h}=\frac1n\sum_{i\in\mathcal V_n}\beta_{ij,h}.
+\]
+Conditional on \(A\) and the preassignment response functions, every \(h\in\mathcal H_{n,d}\) satisfies
+\[
+ |F_h(z)-F_h(z^{(j)})|\leq c_{j,h},
+ \qquad
+ \sum_{j\in\mathcal V_n}c_{j,h}^2
+ =4\widehat V_{\mathrm{pc},h}=4\overline s_h(A)^2,
+\]
+where \(z^{(j)}\) differs from \(z\) only in coordinate \(j\), and
+\[
+ \left|\mathbb E_Z(\widehat\theta_h-\theta_n\mid A,(f_i)_i)\right|
+ \leq\overline b_h(A),
+ \qquad
+ \operatorname{Var}_Z(\widehat\theta_h\mid A,(f_i)_i)
+ \leq\overline s_h(A)^2.
+\]
+Consequently the conditional bounded-differences inequality gives
+\[
+ \Pr_Z\!\left\{
+ |\widehat\theta_h-\mathbb E_Z(\widehat\theta_h\mid A,(f_i)_i)|
+ >\overline s_h(A)\sqrt{2\log(2/\alpha)}
+ \mathrel{\Big|}A,(f_i)_i\right\}\leq\alpha,
+\]
+and hence
+\[
+ \Pr_Z\{\theta_n\in\mathcal C_h\mid A,(f_i)_i\}\geq1-\alpha.
+\]
+Because \(\widehat h(A)\) is fixed under this conditioning, every displayed certificate and the conditional coverage conclusion remain valid with \(h=\widehat h(A)\).  Thus both the fixed-bandwidth and selected intervals are uniformly honest after integration over every \(P\in\mathcal M_{n,d,L}\).  If \(C_A=\widehat\Pi_r(A)A\) and
+\[
+ G_A(C_A)=\sum_{i:N_i>0}\frac1{N_i}\sum_{j:A_{ij}=1}(C_A)_{ij}^2,
+\]
+then
+\[
+ \widehat\Delta_{\mathrm{pc},h}
+ \leq \frac{2B}{n}\|C_A\|_*
+      +B\sqrt{\frac{G_A(C_A)}{n}}.
+\]
+The exact first two Hoeffding projections create no bandwidth-dependent term.  No rates \(\widehat\Delta_{\mathrm{pc},h}=O_P(d/n)\), \(\widehat V_{\mathrm{pc},h}=O_P(d/n)\), or \(\mathfrak u_{n,d,L}\lesssim\mathfrak r^{\mathrm{sup}}_{n,d,L}\) are asserted.
+\end{theorem}
+\begin{proof}
+Fix a realized graph \(A\), the preassignment response functions \((f_i)_{i\in\mathcal V_n}\), and \(h\in\mathcal H_{n,d}\).  All probabilities, expectations, and variances until stated otherwise are over the assignment.  By \({\rm ass:bernoulli\text{-}design}\), its conditional law is the product of \(n\) Bernoulli-one-half laws.  Put
+\[
+ X=Z-\tfrac12\mathbf1_n,\quad
+ P_A=\widehat\Pi_r(A),\quad C_A=P_AA,
+ \quad F_h(Z)=\widehat\theta_h.
+\tag{1}
+\]
+The definition of \(A\) gives \(A_{ii}=0\), and \({\rm def:empirical\text{-}projector}\) makes \(P_A\) an \(n\)-dimensional orthogonal spectral projector even when \(r>n\).
+
+Let \(z^{(j)}\) differ from \(z\) only by flipping coordinate \(j\).  The finite maximum in \({\rm def:pc\text{-}handle}\) gives
+\[
+ |q_{i,h}(z)-q_{i,h}(z^{(j)})|\leq D_{ij,h}.
+\tag{2}
+\]
+Indeed, if \(A_{ij}=0\), the treated-neighbor count is unchanged.  If \(A_{ij}=1\), it moves between consecutive integers in the maximum defining \(D_{ij,h}\).  Division by \(\mu_{2,i}(h)\) is legitimate when \(N_i>0\) by \({\rm lem:exact\text{-}score\text{-}moments}\), and the zero-degree conventions settle \(N_i=0\).  Since \(|X_j|=1/2\), the definitions of \(Q_{i,h}\), \(\Gamma_{i,h}\), and \(\widetilde\gamma_{i,h}\) imply
+\[
+ |\widetilde\gamma_{i,h}(z)|
+ \leq Q_{i,h}+2\sum_{k\in\mathcal V_n}|(C_A)_{ik}|
+ =\Gamma_{i,h}.
+\tag{3}
+\]
+A flip changes \(X_j\) by one in absolute value, so (2) also gives
+\[
+ |\widetilde\gamma_{i,h}(z)-\widetilde\gamma_{i,h}(z^{(j)})|
+ \leq D_{ij,h}+4|(C_A)_{ij}|.
+\tag{4}
+\]
+
+The level part of \({\rm ass:response\text{-}envelope}\) yields \(|Y_i^{\mathrm{obs}}(z)|\leq B\).  If \(j=i\), flipping \(j\) changes only the own-treatment argument, and the response changes by at most \(2B\).  If \(j\ne i\) and \(A_{ij}=1\), the exposure changes by \(1/N_i\); the first-derivative part of the same assumption and the fundamental theorem of calculus give
+\[
+ |f_i(z_i,x+N_i^{-1})-f_i(z_i,x)|
+ =\left|\int_x^{x+N_i^{-1}}\partial_t f_i(z_i,t)\,dt\right|
+ \leq B/N_i.
+\tag{5}
+\]
+In all other cases \({\rm ass:anonymous\text{-}interference}\) makes the response unchanged.  With the convention in \({\rm def:pc\text{-}handle}\),
+\[
+ |Y_i^{\mathrm{obs}}(z)-Y_i^{\mathrm{obs}}(z^{(j)})|
+ \leq B\left\{2\mathbf1\{i=j\}+\frac{A_{ij}}{N_i}\right\}.
+\tag{6}
+\]
+Applying \(|gy-g'y'|\leq|g-g'||y|+|g'||y-y'|\) to (3), (4), and (6) proves
+\[
+ |\widetilde\gamma_{i,h}(z)Y_i^{\mathrm{obs}}(z)
+ -\widetilde\gamma_{i,h}(z^{(j)})Y_i^{\mathrm{obs}}(z^{(j)})|
+ \leq\beta_{ij,h}.
+\tag{7}
+\]
+Summing (7) and using \({\rm def:estimator}\) gives
+\[
+ |F_h(z)-F_h(z^{(j)})|
+ \leq c_{j,h}:=\frac1n\sum_{i\in\mathcal V_n}\beta_{ij,h}.
+\tag{8}
+\]
+By \({\rm def:pc\text{-}handle}\) and \({\rm def:radii}\),
+\[
+ \sum_{j\in\mathcal V_n}c_{j,h}^2
+ =\frac1{n^2}\sum_j\left(\sum_i\beta_{ij,h}\right)^2
+ =4\widehat V_{\mathrm{pc},h}=4\overline s_h(A)^2.
+\tag{9}
+\]
+
+The same oscillations give the stated variance certificate.  Let \(\mathcal F_j=\sigma(Z_1,\ldots,Z_j)\), \(M_j=\mathbb E_Z(F_h\mid\mathcal F_j)\), and \(E_j=M_j-M_{j-1}\).  The tower property makes the increments orthogonal, whence
+\[
+ \operatorname{Var}_Z(F_h)=\sum_{j=1}^n\mathbb E_ZE_j^2.
+\tag{10}
+\]
+Conditional on \(\mathcal F_{j-1}\), the two possible values of \(M_j\) differ by at most \(c_{j,h}\), because they average differences of \(F_h\) with coordinate \(j\) flipped.  They have equal conditional mass by \({\rm ass:bernoulli\text{-}design}\), so their conditional variance is at most \(c_{j,h}^2/4\).  Equations (9)--(10) yield
+\[
+ \operatorname{Var}_Z(\widehat\theta_h\mid A,(f_i)_i)
+ \leq\frac14\sum_jc_{j,h}^2
+ =\widehat V_{\mathrm{pc},h}=\overline s_h(A)^2.
+\tag{11}
+\]
+
+We next prove the bias certificate.  For \(N_i>0\), the zero diagonal makes \(q_{i,h}\) independent of \(Z_i\).  Conditioning first on \(Z_i=a\), applying \({\rm ass:anonymous\text{-}interference}\) and \({\rm lem:exact\text{-}score\text{-}moments}\), and averaging the two equiprobable values of \(a\) gives
+\[
+ \left|\mathbb E_Z[q_{i,h}Y_i^{\mathrm{obs}}]
+ -\frac{\partial_xf_i(1,1/2)+\partial_xf_i(0,1/2)}2\right|
+ \leq\frac L6h_i(h)^2.
+\tag{12}
+\]
+For \(N_i=0\), the score is zero and \({\rm ass:response\text{-}envelope}\) bounds the absolute target summand by \(B\).  Thus the score component has conditional bias at most
+\[
+ \frac{L}{6n}\sum_{i:N_i>0}h_i(h)^2
+ +\frac Bn\sum_i\mathbf1\{N_i=0\}.
+\tag{13}
+\]
+Centering and \(|Y_i^{\mathrm{obs}}|\leq B\) imply
+\[
+ |\mathbb E_Z[X_iY_i^{\mathrm{obs}}]|\leq B/2.
+\tag{14}
+\]
+For \(j\ne i\) with \(A_{ij}=1\), condition on all coordinates except \(Z_j\).  Equations (5) and the Bernoulli-one-half calculation imply
+\[
+ |\mathbb E_Z[X_jY_i^{\mathrm{obs}}]|
+ =\frac14\left|\mathbb E_Z[Y_i^{\mathrm{obs}}\mid Z_j=1]
+ -\mathbb E_Z[Y_i^{\mathrm{obs}}\mid Z_j=0]\right|
+ \leq\frac B{4N_i}.
+\tag{15}
+\]
+For \(j\ne i\) with \(A_{ij}=0\), anonymous interference and assignment independence make this expectation zero.  Consequently,
+\[
+\begin{aligned}
+ \frac4n\sum_i\left|\sum_j(C_A)_{ij}\mathbb E_Z[X_jY_i^{\mathrm{obs}}]\right|
+ &\leq\frac{2B}{n}\sum_i|(C_A)_{ii}|\\
+ &\quad+\frac Bn\sum_{i:N_i>0}\frac1{N_i}
+       \sum_{j:A_{ij}=1}|(C_A)_{ij}|\\
+ &=\widehat\Delta_{\mathrm{pc},h}.
+\end{aligned}
+\tag{16}
+\]
+Combining (13)--(16) with \({\rm def:target}\), \({\rm def:estimator}\), and \({\rm def:radii}\) proves
+\[
+ \left|\mathbb E_Z(\widehat\theta_h-\theta_n\mid A,(f_i)_i)\right|
+ \leq\overline b_h(A).
+\tag{17}
+\]
+
+Since \(P_A\) is a spectral projector of the symmetric matrix \(A\), it commutes with \(A\), and \(C_A\) is symmetric.  In a spectral decomposition \(C_A=\sum_t\nu_tu_tu_t^\top\),
+\[
+ \sum_i|(C_A)_{ii}|
+ \leq\sum_t|\nu_t|\sum_i u_{t,i}^2
+ =\sum_t|\nu_t|=\|C_A\|_*.
+\tag{18}
+\]
+Cauchy--Schwarz within every positive-degree row and then across at most \(n\) rows gives
+\[
+\begin{aligned}
+ \sum_{i:N_i>0}\frac1{N_i}\sum_{j:A_{ij}=1}|(C_A)_{ij}|
+ &\leq\sum_{i:N_i>0}
+ \left\{\frac1{N_i}\sum_{j:A_{ij}=1}(C_A)_{ij}^2\right\}^{1/2}\\
+ &\leq\sqrt{nG_A(C_A)}.
+\end{aligned}
+\tag{19}
+\]
+Substitution in the definition of the remainder yields
+\[
+ \widehat\Delta_{\mathrm{pc},h}
+ \leq\frac{2B}{n}\|C_A\|_*+B\sqrt{\frac{G_A(C_A)}n}.
+\tag{20}
+\]
+
+Apply \({\rm lem:mcdiarmid\text{-}bounded\text{-}differences}\) to the conditional product law and (8).  If \(\overline s_h(A)>0\), set \(t_h=\overline s_h(A)\sqrt{2\log(2/\alpha)}\).  By (9),
+\[
+\begin{aligned}
+ \Pr_Z\{|F_h-\mathbb E_ZF_h|>t_h\mid A,(f_i)_i\}
+ &\leq2\exp\left\{-\frac{2t_h^2}{\sum_jc_{j,h}^2}\right\}\\
+ &=2\exp\{-\log(2/\alpha)\}=\alpha.
+\end{aligned}
+\tag{21}
+\]
+If \(\overline s_h(A)=0\), (9) gives \(c_{j,h}=0\) for every \(j\), so (8) and connectedness of the assignment hypercube make \(F_h\) constant; (21) again holds.  Combining (17) and (21), and writing
+\[
+ R_h(A)=\overline b_h(A)+\overline s_h(A)\sqrt{2\log(2/\alpha)},
+\]
+gives
+\[
+ \Pr_Z\!\left\{\theta_n\in
+ [\widehat\theta_h-R_h(A),\widehat\theta_h+R_h(A)]
+ \mathrel{\Big|}A,(f_i)_i\right\}\geq1-\alpha.
+\tag{22}
+\]
+
+It remains to pass from this unprojected interval to the interval in the corrected \({\rm def:honest\text{-}interval}\).  Let \(p(t)=\operatorname{clip}_{[-B,B]}(t)=\max\{-B,\min\{B,t\}\}\).  This map is nondecreasing and one-Lipschitz.  Since \(R_h(A)\geq0\), its unprojected endpoints \(L_h=\widehat\theta_h-R_h(A)\) and \(U_h=\widehat\theta_h+R_h(A)\) obey \(L_h\leq U_h\); monotonicity gives \(p(L_h)\leq p(U_h)\).  Hence \(\mathcal C_h=[p(L_h),p(U_h)]\) is a nonempty closed interval.  Moreover, \({\rm ass:response\text{-}envelope}\) and \({\rm def:target}\) give
+\[
+ |\theta_n|
+ \leq\frac1{2n}\sum_{i\in\mathcal V_n}
+ \{|\partial_xf_i(1,1/2)|+|\partial_xf_i(0,1/2)|\}
+ \leq B,
+\tag{23}
+\]
+so \(p(\theta_n)=\theta_n\).  On the event \(L_h\leq\theta_n\leq U_h\), monotonicity therefore yields
+\[
+ p(L_h)\leq p(\theta_n)=\theta_n\leq p(U_h).
+\tag{24}
+\]
+Thus endpoint clipping preserves the event in (22), proving fixed-bandwidth conditional coverage.  The one-Lipschitz property also gives the pointwise length comparison
+\[
+ \operatorname{length}(\mathcal C_h)
+ =p(U_h)-p(L_h)\leq U_h-L_h=2R_h(A).
+\tag{25}
+\]
+Integration proves uniform unconditional coverage.
+
+It remains to verify selection and computation.  When \(\mathcal H_{n,d}\ne\varnothing\), \({\rm def:bandwidth\text{-}set}\) gives \([\ell,u]\), where \(\ell=d^{-1}\) and \(u=\min\{d^{-1/2},1/2\}\).  The set \(\mathcal K(A)\) contains both endpoints and at most
+\[
+ 2+\sum_{i:N_i>0}(N_i+1)\leq2+n^2
+\tag{26}
+\]
+candidates.  At every candidate, positive-degree normalizers are positive by \({\rm lem:exact\text{-}score\text{-}moments}\), so every finite maximum and both radii are finite.  A minimum exists, and the smallest-minimizer rule makes \(\widehat h(A)\) single valued.  The graph sample space is finite, hence this graph map is Borel measurable.  Exact binomial sums compute \(\mu_{2,i}(h)\), finite enumeration computes \(Q_{i,h}\) and \(D_{ij,h}\), one eigendecomposition computes \(C_A\), and finite matrix arithmetic computes the remaining quantities.  Equation (26) proves polynomial-time computation in the real-arithmetic model.  The selector depends on neither \(Z\) nor the outcomes, so it is fixed conditional on \(A,(f_i)_i\).  Applying (8)--(25) at this conditional value proves the selected certificates and selected coverage without a union bound.
+
+For degree \(N_i\), the score changes only when \(h\) crosses one of the finitely many distances \(|m/N_i-1/2|\); hence the candidates in (26) represent every distinct score regime.  Finally, \({\rm lem:exact\text{-}score\text{-}hoeffding\text{-}projections}\) gives \(q_h^{(1)}=4AX\) and \(q_h^{(2)}=0\).  Therefore the first projection of \(q_h-4P_AAX\) is \(4(I_n-P_A)AX\), while its second projection is zero; neither expression depends on \(h\).  Equations (8), (9), (11), (17), (20)--(26) prove all asserted certificates.  No sharp stochastic-rate comparison has been used.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This gives an explicit polynomial-time first-projection PC estimator, an exponential finite-sample conditional certificate, and graph-only selection-valid tuning without asserting the unproved sharp spectral remainder rates. The reported interval projects its ordered endpoints onto \([-B,B]\), so it remains nonempty while preserving the certified coverage event and never increasing length. \textit{Gap.} No stochastic-order comparison of the empirical-PC bias or bounded-difference variance certificate with the supported analytic envelope is proved. \textit{Consumer.} Experimenters can compute the graph-adaptive bandwidth and report its selected endpoint-clipped conditional interval; the conservative certificate still transparently marks the unresolved sharp confidence-length rate.
+
+\begin{theorem}[thm:unrestricted-supported-converse]\label{thm:unrestricted-supported-converse}
+Along every triangular-array sequence for which \(\mathcal M_{n,d,L}\) is nonempty at every sufficiently large index, \(C_{\log}\log n\leq d=o(n)\), and \(B,L,r,\kappa,\underline\lambda,b_\psi,\alpha,C_{\log}\) are fixed, there is a constant \(c>0\), independent of \(n\) and \(d\), such that, for every sufficiently large \(n\),
+\[
+ R^*_{n,d,L}\geq c\mathfrak r^{\mathrm{sup}}_{n,d,L},
+ \qquad
+ \Lambda^*_{n,d,L}(\alpha)\geq c\mathfrak r^{\mathrm{sup}}_{n,d,L}.
+\]
+At each index the proof fixes the graph primitives of an arbitrary admissible member, retains its kernel \(W\) and the independent \({\rm Uniform}[0,1]\) latent types, and changes only the response law.  For almost every \(u\),
+\[
+ N_i\mid U_i=u
+ \sim{\rm Binomial}\!\left(n-1,\rho_n\int_0^1W(u,v)\,dv\right),
+ \qquad
+ \frac{(n-1)\rho_n}{\kappa}
+ \leq\mathbb E(N_i\mid U_i=u)
+ \leq(n-1)\rho_n\kappa.
+\]
+These uniform conditional-degree bounds, together with explicit linear, local \(C^3\)-bump, and degree-lattice response pairs, give respectively the graph, interior, and lattice terms for both minimax absolute risk and minimax honest expected length.  No null-row modification or atomic latent-type law is used.
+\end{theorem}
+\begin{proof}
+Fix a sufficiently large index at which \(\mathcal M_{n,d,L}\ne\varnothing\), and select any member only to retain its graph primitives.  We keep its kernel \(W\), its independent uniform latent types, and its graph draw, and replace only the response law below.  Conditional on \(U_i=u\), marginalizing the independent pairs \((U_j,A_{ij})\), \(j\ne i\), under \({\rm ass:unit\text{-}sampling}\) and \({\rm ass:graphon\text{-}draw}\) gives
+\[
+ N_i\mid U_i=u\sim{\rm Binomial}(n-1,p_n(u)),
+ \quad p_n(u)=\rho_n\int_0^1W(u,v)\,dv.
+\tag{1}
+\]
+The kernel and degree-regularity assumptions imply, for almost every \(u\),
+\[
+ 0<p_n(u)\leq\rho_n\kappa\leq1,\quad
+ \frac{(n-1)\rho_n}{\kappa}
+ \leq\mu_n(u):=(n-1)p_n(u)
+ \leq(n-1)\rho_n\kappa.
+\tag{2}
+\]
+Since \(\rho_n=d/n\), for all large \(n\),
+\[
+ \frac d{2\kappa}\leq\mu_n(u)\leq\kappa d.
+\tag{3}
+\]
+The almost-everywhere qualification is sufficient because each \(U_i\) is uniform.
+
+We first give a common two-point testing calculation.  Put \(s_0=B/4\) and let \(\xi_i\) be independent of the graph primitives with density
+\[
+ p_{s_0}(t)=s_0^{-1}\cos^2\!\left(\frac{\pi t}{2s_0}\right)
+ \mathbf1\{|t|\leq s_0\}.
+\tag{4}
+\]
+The density integrates to one.  For a deterministic \(C^3\) function \(g\), define two response laws by
+\[
+ f_i^\sigma(a,x)=\xi_i+\sigma g(x),\quad \sigma\in\{-1,1\}.
+\tag{5}
+\]
+Whenever \(g\) satisfies the displayed response bounds below, (5) and the retained graph primitives are members of the same class.  Their targets are deterministic and equal to
+\[
+ \theta_n^\sigma=\sigma g'(1/2).
+\tag{6}
+\]
+
+Let \(T_i=M_i/N_i\) when \(N_i>0\) and \(T_i=0\) when \(N_i=0\).  Conditional on \((A,Z)\), the outcomes under sign \(\sigma\) are independent translates of (4) by \(\sigma g(T_i)\).  If \(q_s=\sqrt{p_s}\), its zero extension is absolutely continuous and
+\[
+ \|q_s'\|_2^2=\frac{\pi^2}{4s^2}.
+\tag{7}
+\]
+Translation and the fundamental theorem of calculus in \(L^2\) therefore give
+\[
+ \|q_s(\,\cdot-a)-q_s(\,\cdot-b)\|_2^2
+ \leq(a-b)^2\|q_s'\|_2^2.
+\tag{8}
+\]
+The product-affinity identity and \(1-\prod_i x_i\leq\sum_i(1-x_i)\) for \(x_i\in[0,1]\), followed by averaging over the common law of \((A,Z)\), yield for the two full data laws \(P_g^+,P_g^-\)
+\[
+ H^2(P_g^+,P_g^-)
+ \leq\frac{\pi^2}{s_0^2}\sum_{i=1}^n\mathbb E[g(T_i)^2].
+\tag{9}
+\]
+Here \(H^2(P,Q)=\int(\sqrt{dP}-\sqrt{dQ})^2\), and Cauchy--Schwarz gives \(\|P-Q\|_{\rm TV}\leq H(P,Q)\).
+
+We record the decision consequence directly.  Suppose \(g'(1/2)=a>0\) and \(\|P_g^+-P_g^-\|_{\rm TV}\leq\eta\), where
+\[
+ \eta:=\frac{1-2\alpha}{2}\in(0,1).
+\tag{10}
+\]
+For any estimator, testing the sign according as the estimate lies above or below zero shows
+\[
+ \max_{\sigma\in\{-1,1\}}
+ \mathbb E_{P_g^\sigma}|\widetilde\theta-\theta_n^\sigma|
+ \geq\frac a2(1-\eta).
+\tag{11}
+\]
+Indeed, each testing error forces absolute error at least \(a\).  If \(E\) is the event on which the test selects the positive law, then
+\[
+ P_g^-(E)+P_g^+(E^c)
+ =1-\{P_g^+(E)-P_g^-(E)\}
+ \geq1-\|P_g^+-P_g^-\|_{\rm TV},
+\]
+which proves (11).  If an interval has coverage at least \(1-\alpha\) under both laws, then under \(P_g^-\) the probability that it contains both \(-a\) and \(a\) is at least
+\[
+ (1-\alpha)+(1-\alpha-\eta)-1=1-2\alpha-\eta.
+\]
+Thus
+\[
+ \max_{\sigma\in\{-1,1\}}
+ \mathbb E_{P_g^\sigma}[\operatorname{length}(\mathcal C)]
+ \geq2a(1-2\alpha-\eta)=a(1-2\alpha).
+\tag{12}
+\]
+
+We now construct the three experiments and verify (9).  First, for \(N\sim{\rm Binomial}(n-1,p_n(u))\),
+\[
+ \mathbb E\!\left[\frac{\mathbf1\{N>0\}}N\mathrel{\Big|}U_i=u\right]
+ \leq2\mathbb E\!\left[\frac1{N+1}\mathrel{\Big|}U_i=u\right]
+ \leq\frac2{np_n(u)}\leq\frac2{\mu_n(u)},
+\tag{13}
+\]
+where the middle inequality follows from
+\[
+ \mathbb E\frac1{N+1}
+ =\frac{1-(1-p_n(u))^n}{np_n(u)}.
+\]
+Also \(\Pr(N=0\mid U_i=u)\leq e^{-\mu_n(u)}\).  Equations (3) and (13) imply, uniformly in \(i\),
+\[
+ \mathbb E\left[(T_i-1/2)^2\right]
+ =\frac14\mathbb E\!\left[\frac{\mathbf1\{N_i>0\}}{N_i}
+ +\mathbf1\{N_i=0\}\right]
+ \leq\frac{C_1}{d},
+\tag{14}
+\]
+where \(C_1\) depends only on \(\kappa\).  Choose a fixed \(\zeta>0\), sufficiently small in terms of \(\eta,C_1\), and put
+\[
+ a_G=\zeta s_0\sqrt{d/n},\quad g_G(x)=a_G(x-1/2).
+\tag{15}
+\]
+Because \(d/n\to0\), for all sufficiently large \(n\), \(|g_G|\leq B-s_0\), \(|g_G'|\leq B\), and the higher derivatives vanish.  Thus (5) is admissible.  Equations (9), (14), and (15) give
+\[
+ H^2(P_{g_G}^+,P_{g_G}^-)\leq\pi^2C_1\zeta^2.
+\tag{16}
+\]
+Choose \(\zeta\) so that the right side is at most \(\eta^2\).  Then (11)--(12) yield both minimax lower bounds of order \(\sqrt{d/n}\).
+
+For the interior experiment, define
+\[
+ \phi(t)=t(1-t^2)^4\mathbf1\{|t|\leq1\}.
+\tag{17}
+\]
+Because the polynomial has a zero of order four at each endpoint, its zero extension is \(C^3\); moreover \(\phi'(0)=1\).  Put \(K_j=\sup_t|\phi^{(j)}(t)|<\infty\) for \(0\leq j\leq3\).  We use the elementary binomial small-ball bound
+\[
+ \Pr\{|M/N-1/2|\leq h\mid N\}
+ \leq C_2\{h\sqrt N+N^{-1/2}\},\quad N\geq1.
+\tag{18}
+\]
+To prove it, orthogonality of the exponentials on \([-\pi,\pi]\) gives the coefficient identity
+\[
+ \Pr\{{\rm Binomial}(N,1/2)=m\}
+ =\frac1{2\pi}\int_{-\pi}^{\pi}
+ e^{-imt}\left(\frac{1+e^{it}}2\right)^Ndt.
+\]
+Since \(\tan u\geq u\) for \(u\geq0\), integration of \((\log\cos u)'=-\tan u\) gives \(\log(\cos u)\leq-u^2/2\) for \(|u|<\pi/2\).  Therefore
+\[
+ \max_m\Pr\{{\rm Binomial}(N,1/2)=m\}
+ \leq\frac1{2\pi}\int_{-\pi}^{\pi}|\cos(t/2)|^Ndt
+ \leq\sqrt{\frac2{\pi N}}.
+\]
+There are at most \(2Nh+2\) lattice points in the event, proving (18).  To bound the lower tail, put \(t=\log2\), use \(1-y\leq e^{-y}\), and calculate
+\[
+\begin{aligned}
+ \Pr\{N\leq\mu_n(u)/2\mid U_i=u\}
+ &\leq e^{t\mu_n(u)/2}\mathbb E[e^{-tN}\mid U_i=u]\\
+ &=e^{t\mu_n(u)/2}\{1-p_n(u)+p_n(u)e^{-t}\}^{n-1}\\
+ &\leq\exp\!\left[-\frac{1-\log2}{2}\mu_n(u)\right]
+ \leq e^{-\mu_n(u)/8}.
+\end{aligned}
+\]
+Hence (3), Jensen's inequality, and a split at \(N=\mu_n(u)/2\) give
+\[
+ \mathbb E\sqrt{N_i}\leq\sqrt{\kappa d},
+ \quad
+ \mathbb E[N_i^{-1/2}\mathbf1\{N_i>0\}]\leq C_3d^{-1/2}.
+\tag{19}
+\]
+For \(d^{-1}\leq h\leq d^{-1/2}\), (18)--(19) therefore imply
+\[
+ \Pr\{|T_i-1/2|\leq h\}\leq C_4h\sqrt d;
+\tag{20}
+\]
+isolates do not enter because \(T_i=0\) and \(h<1/2\) eventually.
+
+Suppose \(L>0\) and \(d^{-1}<h_0<d^{-1/2}\), and set
+\[
+ h=h_0=(L^{-2}/(n\sqrt d))^{1/7},
+ \quad g_I(x)=\gamma Lh^3\phi((x-1/2)/h).
+\tag{21}
+\]
+Choose the fixed \(\gamma>0\) so that \(\gamma K_3\leq1\) and the distance bound below is at most \(\eta^2\).  Since \(h\to0\), for all large \(n\), the level and first two derivative bounds in \({\rm ass:response\text{-}envelope}\) hold, while \(|g_I'''|\leq L\) by construction.  Thus (5) is admissible.  By (9), (20), and \(nL^2h^7\sqrt d=1\),
+\[
+ H^2(P_{g_I}^+,P_{g_I}^-)
+ \leq\frac{\pi^2}{s_0^2}n\gamma^2L^2h^6K_0^2C_4h\sqrt d
+ \leq C_5\gamma^2.
+\tag{22}
+\]
+After reducing \(\gamma\) if necessary, (11)--(12), together with \(g_I'(1/2)=\gamma Lh_0^2\), give both lower bounds of order
+\[
+ Lh_0^2=L^{3/7}(n^2d)^{-1/7}.
+\tag{23}
+\]
+
+For the lattice experiment, choose a fixed \(K>\kappa\) so large that
+\[
+ C_{\log}\{K\log(K/\kappa)-K+\kappa\}\geq4,
+\tag{24}
+\]
+and set
+\[
+ h_L=(4Kd)^{-1},\quad
+ g_L(x)=\gamma Lh_L^3\phi((x-1/2)/h_L).
+\tag{25}
+\]
+If \(1\leq N_i\leq Kd\), every nonzero point of the centered degree lattice is at distance at least \(1/(2N_i)\geq1/(2Kd)>h_L\) from zero, and \(g_L(1/2)=0\).  Thus \(g_L(T_i)=0\) for such units; it is also zero for isolates.  From the binomial moment generating function, (2), and \(t=\log(K/\kappa)>0\),
+\[
+\begin{aligned}
+ \Pr(N_i>Kd\mid U_i=u)
+ &\leq\exp\{-tKd+\mu_n(u)(e^t-1)\}\\
+ &\leq\exp[-d\{K\log(K/\kappa)-K+\kappa\}]
+ \leq n^{-4}.
+\end{aligned}
+\tag{26}
+\]
+The response bounds follow as for (21), and (9), (25), and (26) imply
+\[
+ H^2(P_{g_L}^+,P_{g_L}^-)
+ \leq C_6nL^2d^{-6}n^{-4}=o(1).
+\tag{27}
+\]
+For all sufficiently large \(n\), (11)--(12) apply, and since
+\[
+ g_L'(1/2)=\gamma Lh_L^2=\frac{\gamma L}{16K^2d^2},
+\tag{28}
+\]
+they give both lower bounds of order \(Ld^{-2}\).  This is the degree-lattice pair: its two observed laws agree exactly on every vertex of degree at most \(Kd\), and only the uniformly negligible upper-degree tail contributes to (27).
+
+It remains to compare these separations with the frozen envelope.  Put \(c_{n,d}=n^{-1/2}d^{-1/4}\) and \(g_0(h)=Lh^2+c_{n,d}h^{-3/2}\).  For \(L>0\), the defining identity for \(h_0\) gives
+\[
+ Lh_0^2=c_{n,d}h_0^{-3/2}.
+\tag{29}
+\]
+At large indices \(\mathcal H_{n,d}=[d^{-1},d^{-1/2}]\).  If \(h_0\leq d^{-1}\), evaluation at \(d^{-1}\) and (29) give
+\[
+ \inf_{h\in\mathcal H_{n,d}}g_0(h)\leq2Ld^{-2}.
+\tag{30}
+\]
+If \(d^{-1}<h_0<d^{-1/2}\), evaluation at \(h_0\) gives
+\[
+ \inf_{h\in\mathcal H_{n,d}}g_0(h)\leq2Lh_0^2.
+\tag{31}
+\]
+If \(h_0\geq d^{-1/2}\), evaluation at \(d^{-1/2}\) and (29) gives
+\[
+ \inf_{h\in\mathcal H_{n,d}}g_0(h)\leq2\sqrt{d/n}.
+\tag{32}
+\]
+For \(L=0\), evaluation at \(d^{-1/2}\) gives the stochastic term \(\sqrt{d/n}\).  Combining (30)--(32) with \({\rm def:frontier\text{-}envelope}\), and using that the maximum of two nonnegative numbers is at least half their sum, shows that the largest applicable separation among (15), (23), and (28) is at least a fixed multiple of \(\mathfrak r^{\mathrm{sup}}_{n,d,L}\).  Equations (11)--(12) then prove the two claimed minimax inequalities, with a constant depending only on the fixed class constants and \(\alpha\), never on \(n,d\).  Every response pair changed only the response law of the arbitrary admissible graph member, so all lower instances belong to the original maintained class; no null-row modification or change of the uniform latent-type law occurred.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} At every sufficiently large nonempty-class index, the proof retains the graph primitives of an arbitrary admissible member and varies only an i.i.d. random-intercept response law.  Uniform conditional-degree bounds then support explicit linear, local \(C^3\)-bump, and degree-lattice two-point experiments. \textit{Gap.} This theorem settles only the same-class supported lower benchmark.  It supplies no feasible upper comparison and therefore does not identify a sharp minimax or honest expected-length rate. \textit{Consumer.} The supported analytic envelope is a valid global lower benchmark for every eventually nonempty repaired class, without a null-row modification, an atomic latent-type law, or the equal-block compatibility restrictions.
+
+\begin{theorem}[thm:conditional-isolate-wall]\label{thm:conditional-isolate-wall}
+Let \(I_0(A)=\sum_{i\in\mathcal V_n}\mathbf1\{N_i=0\}\).  Under the repaired class, any graph-only radius \(b(A)\) that is required to satisfy
+\[
+ \left|\mathbb E_Z(\widetilde\theta-\theta_n\mid A,(f_i)_i)\right|\leq b(A)
+\]
+for every response configuration in the conditional support must obey
+\[
+ b(A)\geq \frac{B}{n}I_0(A)
+\]
+on every realized graph.  Whenever \(\mathcal M_{n,d,L}\) is nonempty, the independent-Rademacher response submodel \(f_i(a,x)=\varepsilon_iBx\) is admissible, and even a genie revealing every nonisolate sign leaves, conditionally on \(A\), Bayes absolute-error risk between
+\[
+ \frac{B}{\sqrt3\,n}\sqrt{I_0(A)}
+ \quad\hbox{and}\quad
+ \frac{B}{n}\sqrt{I_0(A)}.
+\]
+Thus the corresponding unconditional missing-sign fluctuation is of order \(Bn^{-1}\mathbb E\sqrt{I_0(A)}\), which is no larger than the expected conditional radius \(Bn^{-1}\mathbb E I_0(A)\).  This distinction neither constructs an unconditionally honest interval nor proves that every such interval must pay the graph-only conditional radius.
+\end{theorem}
+\begin{proof}
+Fix a realized graph \(A\) in the support and write
+\[
+ I_0=I_0(A)=\sum_{i\in\mathcal V_n}\mathbf1\{N_i=0\}.
+\tag{1}
+\]
+Whenever \(\mathcal M_{n,d,L}\ne\varnothing\), retain the graph primitives of any member law and replace only its response law by
+\[
+ f_i(a,x)=\varepsilon_iBx,
+ \qquad
+ \Pr(\varepsilon_i=1)=\Pr(\varepsilon_i=-1)=\frac12,
+\tag{2}
+\]
+where the signs are independent across units and independent of the uniform latent types.  Then the pairs \((U_i,f_i)\) are independent and identically distributed, as required by \({\rm ass:unit\text{-}sampling}\).  For every \(a\in\{0,1\}\) and \(x\in[0,1]\),
+\[
+ |f_i(a,x)|\leq B,\qquad
+ |\partial_x f_i(a,x)|=B,\qquad
+ \partial_x^2f_i(a,x)=\partial_x^3f_i(a,x)=0.
+\tag{3}
+\]
+Thus \({\rm ass:response\text{-}envelope}\) and \({\rm ass:third\text{-}derivative\text{-}bound}\) hold for every \(L\geq0\); the retained graph, assignment, rank, positivity, and overlap conditions are unchanged.  Hence (2) is a submodel of the maintained class.
+
+For an isolate, \({\rm ass:anonymous\text{-}interference}\) gives
+\[
+ Y_i^{\mathrm{obs}}=f_i(Z_i,0)=0,
+\tag{4}
+\]
+whereas its summand in \({\rm def:target}\) is
+\[
+ \frac{\partial_xf_i(1,1/2)+\partial_xf_i(0,1/2)}2
+ =\varepsilon_iB.
+\tag{5}
+\]
+Fix all nonisolate response functions.  Consider two supported sign configurations which assign, respectively, \(+1\) and \(-1\) to every isolate.  By (4), the two configurations induce the same conditional law of all observed data given \(A\), but by (5) their targets \(\theta_+\) and \(\theta_-\) satisfy
+\[
+ |\theta_+-\theta_-|=\frac{2B}{n}I_0.
+\tag{6}
+\]
+Let \(m\) denote the common conditional expectation of any data-measurable estimator \(\widetilde\theta\) under these two configurations.  The triangle inequality gives
+\[
+ \max\{|m-\theta_+|,|m-\theta_-|\}
+ \geq\frac{|\theta_+-\theta_-|}{2}
+ =\frac BnI_0.
+\tag{7}
+\]
+Both configurations have positive conditional-support probability under (2), independently of the graph.  Therefore every graph-only radius required to dominate the conditional bias for every response configuration in that support must satisfy
+\[
+ b(A)\geq\frac BnI_0(A).
+\tag{8}
+\]
+
+Now give a genie all nonisolate signs.  Conditional on \(A\), the remaining isolate signs are independent Rademacher variables and are independent of the observed sample because their outcomes are identically zero by (4).  After subtracting the known nonisolate target contribution, estimation reduces exactly to the location problem
+\[
+ \frac BnS_{I_0},\qquad S_m=\sum_{k=1}^m\varepsilon_k.
+\tag{9}
+\]
+The law of \(S_m\) is symmetric about zero, so zero is a median and minimizes expected absolute loss.  The conditional Bayes risk is therefore \((B/n)\mathbb E|S_{I_0}|\).  Independence and centering give
+\[
+ \mathbb ES_m^2=m,\qquad
+ \mathbb ES_m^4=m+6\binom m2=3m^2-2m\leq3m^2.
+\tag{10}
+\]
+Cauchy--Schwarz gives \(\mathbb E|S_m|\leq\sqrt m\).  Hölder's inequality gives
+\[
+ m=\mathbb ES_m^2
+ \leq(\mathbb E|S_m|)^{2/3}(\mathbb ES_m^4)^{1/3}
+ \leq(\mathbb E|S_m|)^{2/3}(3m^2)^{1/3},
+\]
+and hence, for \(m\geq1\),
+\[
+ \sqrt{m/3}\leq\mathbb E|S_m|\leq\sqrt m.
+\tag{11}
+\]
+The conclusion is also valid at \(m=0\).  Substitution into (9) proves the two asserted conditional Bayes-risk bounds.  Averaging them over \(A\) yields the unconditional missing-sign fluctuation scale \(Bn^{-1}\mathbb E\sqrt{I_0(A)}\).  Since \(\sqrt m\leq m\) for every integer \(m\geq1\), this fluctuation is no larger than \(Bn^{-1}\mathbb EI_0(A)\).  The first argument concerns a graph-conditional, graph-only bias certificate, and the second is a genie-aided Bayes subproblem; neither step constructs an unconditionally honest interval or proves a universal expected-length lower bound for all such intervals.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Opposite derivative signs on realized isolates induce identical conditional observed laws, while the independent-sign submodel gives an exact Rademacher-sum Bayes calculation with lower constant \(B/(\sqrt3\,n)\). \textit{Gap.} The radius conclusion is conditional on the realized graph and response configuration; it does not prove a sharp expected length for every unconditionally honest procedure. \textit{Consumer.} Analysts using the graph-conditional certificate must retain the realized isolate allowance or explicitly adopt a different conditioning convention.
+
+\section{Interpretation}
+
+The supported analytic envelope has three roles: the linear pair gives the graph floor, the local \(C^3\) pair gives the interior smoothness term, and the degree-lattice pair gives the boundary lattice term.  These are minimax lower obstructions and bandwidth geometry.  The reportable interval is nevertheless fully operational and conditionally honest, but its expected length is certified by \(\mathfrak u_{n,d,L}\), not by the supported envelope.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The exact score identities control localization bias and expose the bandwidth-free first two Hoeffding projections, but they do not imply a sharp rate for the empirical-projector residual or the bounded-difference variance certificate.  Isolates have no exposure variation: any graph-only conditional-bias radius valid over all supported response configurations must pay \(BI_0(A)/n\), whereas the independent-sign Bayes fluctuation is only of order \(Bn^{-1}\sqrt{I_0(A)}\) conditionally.  Neither fact closes the rate gap between \(\mathfrak r^{\mathrm{sup}}_{n,d,L}\) and \(\mathfrak u_{n,d,L}\).
+
+\section{Honest scope}
+
+The finite-population derivative \(\theta_n\) is the target and is not defined to equal Li and Wager's finite indirect effect. Proposition~\({\rm prop:li-wager-bridge}\) gives their conditional degree-exact separation, including isolates, and proves an \(o_P(\sqrt{\rho_n})\) center approximation along maintained sequences with fixed \(B\) and \(\kappa\) in the stated sparsity regime. LiWager2022RandomGraph Theorem~6 is used only on the further intersection with all of its source hypotheses, with treatment probability one half and \(\liminf_n\sigma_{\mathrm{IND},n}>0\); there is no theorem-wide transfer to every law in \(\mathcal M_{n,d,L}\) and no transfer to a distinct target. Every positive realized degree is handled by its exact support radius, and isolates remain visible in the certificate. The supported-unit lattice, interior, and graph-floor terms have a lower benchmark, while the conservative feasible envelope is presented only as an upper side of a bracket. A full matched frontier is not claimed because the safe \(Bn^{-1}\mathbb E I_0(A)\) isolate allowance is not matched by the \(Bn^{-1}\mathbb E\sqrt{I_0(A)}\) isolate testing term. A rate-sharp feasible PC construction at logarithmic degree, unknown rank, unknown \(L\), simultaneous policy bands, and optimal ego-cluster design remain outside the proved scope.
+
+\begin{thebibliography}{99}
+
+  \bibitem{LiWager2022RandomGraph} Li, Shuangning, and Stefan Wager (2022). Random Graph Asymptotics for Treatment Effect Estimation under Network Interference. Annals of Statistics 50(4), 2334--2358. Theorem 6, equation (43), and Proposition 1, equations (4)--(5). arXiv:2007.13302. DOI: 10.1214/22-AOS2191.
+
+  \bibitem{HuLiWager2022AverageDirectIndirect} Hu, Yuchen, Shuangning Li, and Stefan Wager (2022). Average Direct and Indirect Causal Effects under Interference. Biometrika 109(4), 1165--1172. arXiv:2104.03802. DOI: 10.1093/biomet/asac008.
+
+  \bibitem{ArmstrongKolesar2020SimpleHonest} Armstrong, Timothy B., and Michal Kolesar (2020). Simple and Honest Confidence Intervals in Nonparametric Regression. Quantitative Economics 11(1), 1--39. Theorem 2.1 and Section 3. arXiv:1606.01200. DOI: 10.3982/QE1199.
+
+  \bibitem{CaiLow2004Adaptation} Cai, T. Tony, and Mark G. Low (2004). An Adaptation Theory for Nonparametric Confidence Intervals. Annals of Statistics 32(5), 1805--1840. Theorems 1--3. DOI: 10.1214/009053604000000049.
+
+  \bibitem{Low1997NonparametricCI} Low, Mark G. (1997). On Nonparametric Confidence Intervals. Annals of Statistics 25(6), 2547--2554. DOI: 10.1214/aos/1030741084.
+
+  \bibitem{AbbeFanWangZhong2020Entrywise} Abbe, Emmanuel, Jianqing Fan, Kaizheng Wang, and Yiqiao Zhong (2020). Entrywise Eigenvector Analysis of Random Matrices with Low Expected Rank. Annals of Statistics 48(3), 1452--1474. Theorem 2.1. arXiv:1709.09565. DOI: 10.1214/19-AOS1854.
+
+  \bibitem{TangCape2025InfiniteRank} Tang, Minh, and Joshua R. Cape (2025). Eigenvector Fluctuations and Limit Results for Random Graphs with Infinite Rank Kernels. arXiv:2501.15725.
+
+  \bibitem{Leung2022NetworkInference} Leung, Michael P. (2022). Causal Inference under Approximate Neighborhood Interference. Econometrica 90(1), 267--293. arXiv:1911.07085.
+
+  \bibitem{BhadraSchweinberger2025Survey} Bhadra, Subhankar, and Michael Schweinberger (2025). Causal Inference Under Network Interference. arXiv:2508.06808.
+
+  \bibitem{KandirosHarshawSavje2026DesignBasedMinimax} Kandiros, Vardis, Christopher Harshaw, and Fredrik Sävje (2026). A Design-Based Minimax Theory for Network Experiments. arXiv:2608.04909v1.
+
+  \bibitem{CortezEichhornYu2023LowOrder} Cortez-Rodriguez, Mayleen, Matthew Eichhorn, and Christina Lee Yu (2023). Exploiting Neighborhood Interference with Low-Order Interactions under Unit Randomized Design. Journal of Causal Inference. arXiv:2208.05553v4. DOI: 10.1515/jci-2022-0051.
+
+  \bibitem{LuLiLiu2026UniformlyBoundedNeighborhood} Lu, Xin, Hongzi Li, and Hanzhong Liu (2026). Causal inference under uniformly bounded neighbourhood interference. Journal of the Royal Statistical Society Series B: Statistical Methodology. DOI: 10.1093/jrsssb/qkag077.
+
+  \bibitem{McDiarmid1989BoundedDifferences} McDiarmid, Colin (1989). On the Method of Bounded Differences. Surveys in Combinatorics, 1989, London Mathematical Society Lecture Note Series 141, 148--188. Lemma 1.2. DOI: 10.1017/CBO9781107359949.008.
+
+\end{thebibliography}
+
+\end{document}

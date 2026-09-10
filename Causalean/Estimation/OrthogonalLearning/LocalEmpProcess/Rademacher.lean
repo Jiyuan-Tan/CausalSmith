@@ -62,16 +62,10 @@ import FoML.Main
 
 /-! # Global Rademacher Modulus
 
-This file derives `LocalEmpProcessModulus` for an orthogonal statistical-learning
-system from global Rademacher-complexity control. `RademacherBound` records the
-fold-B complexity bound on a countable dense sequence, while
-`UniformlyBoundedLoss`, `UniformlyBoundedLossAE`, and `LossContinuousOnΘset`
-package the boundedness and continuity hypotheses used to lift the countable
-supremum to `Θ_set`. The bridge theorems
-`localEmpProcessModulus_of_bounded_rademacher` and
-`localEmpProcessModulus_of_bounded_rademacher_ae` produce the modulus from
-pointwise or a.e. bounded losses, and `localEmpProcessModulus_singleton` covers
-the degenerate singleton target class.
+This file obtains a local empirical-process bound for orthogonal statistical
+learning from global control of the Rademacher complexity of the centred loss
+class. It supplies versions for losses bounded everywhere or almost everywhere,
+and treats the degenerate case in which the target class contains one element.
 -/
 
 namespace Causalean
@@ -113,8 +107,13 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
          {Θ : Type*} [NormedAddCommGroup Θ] [InnerProductSpace ℝ Θ]
          {G : Type*} [AddCommGroup G] [Module ℝ G]
 
-/-- **Rademacher-complexity bound on the centred loss class on fold B,
-indexed by a countable dense sequence in `S.Θ_set`.**
+/-- Given [an orthogonal statistical-learning system](hyp:S), [an independent and identically
+distributed sample with the system's population law](hyp:S_iid), [a one-shot sample split](hyp:split),
+[a nuisance function](hyp:g), [a sequence of targets in the target class](hyp:idx), and [a real
+sequence](hyp:R), the [Rademacher-complexity bound](goal) holds exactly when, for every sample
+size, [the proposed bound is nonnegative](step:1) and [the Rademacher complexity of the centred
+loss class indexed by that target sequence on fold B, computed under the ambient sample measure
+using the zeroth observation coordinate, is at most the proposed bound](step:2).
 
 For a fixed nuisance `g`, the population Rademacher complexity of the
 *countable* centred class
@@ -153,12 +152,18 @@ def RademacherBound
       (fun (k : ℕ) z => S.ℓ z (idx k).val g - S.ℓ z S.θ₀ g)
       μ (S_iid.Z 0) ≤ R n
 
-/-- **Loss bounded uniformly over `Θ_set` at fixed nuisance `g`.** -/
+/-- Given [an orthogonal statistical-learning system](hyp:S), [a nuisance function](hyp:g), and
+[a real bound](hyp:b), the [uniform bounded-loss condition](goal) holds exactly when, for every
+observation and every target in the target class, the absolute loss at that nuisance function is at
+most the bound. -/
 def UniformlyBoundedLoss
     (S : LearningSystem Ω μ Z P_Z Θ G) (g : G) (b : ℝ) : Prop :=
   ∀ z, ∀ θ ∈ S.Θ_set, |S.ℓ z θ g| ≤ b
 
-/-- **Loss bounded uniformly over `Θ_set` at fixed nuisance `g`, almost everywhere.**
+/-- Given [an orthogonal statistical-learning system](hyp:S), [a nuisance function](hyp:g), and
+[a real bound](hyp:b), the [almost-everywhere uniform bounded-loss condition](goal) holds exactly
+when, outside a set of population probability zero, every target in the target class has absolute
+loss at that nuisance function at most the bound.
 
 This is the satisfiable bounded-loss hypothesis for real-valued outcomes with
 unbounded support: the bound only has to hold under the population law. -/
@@ -166,7 +171,10 @@ def UniformlyBoundedLossAE
     (S : LearningSystem Ω μ Z P_Z Θ G) (g : G) (b : ℝ) : Prop :=
   ∀ᵐ z ∂P_Z, ∀ θ ∈ S.Θ_set, |S.ℓ z θ g| ≤ b
 
-/-- **Loss continuous in θ on `Θ_set` (for each `z` and fixed nuisance `g`).**
+/-- Given [an orthogonal statistical-learning system](hyp:S) and [a nuisance function](hyp:g),
+the [target-continuity condition for the loss](goal) holds exactly when, for every observation, the
+loss as a function of the target is continuous on the system's target class at that fixed nuisance
+function.
 
 Used by the bridge theorem for the countable-dense lifting via
 `separableSpaceSup_eq_real`.  The subtype `↥S.Θ_set` carries the

@@ -112,8 +112,9 @@ lemma μ_compat (S : BackdoorEstimationSystem P γ)
       =ᵐ[P.μ] (fun ω => S.μ_val d (S.toPOBackdoorSystem.factualX ω)) :=
   (S.toPOBackdoorSystem.cate_backdoor hA d).trans (S.μ_reg_compat d).symm
 
-/-- Strict-overlap predicate `ε ≤ propScore true ω ≤ 1 − ε` a.s., with
-`ε ∈ (0, 1/2]`.  Restated to the value-space propensity via `e_compat`. -/
+/-- For a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), [a back-door estimation system](hyp:S), and [a real overlap level](hyp:ε), the [strict-overlap condition](goal) holds precisely when [$ε>0$](step:1), [$ε\leq 1/2$](step:2), and [almost surely under the population measure, the probability of treatment is between $ε$ and $1-ε$](step:3).
+
+Restated to the value-space propensity via `e_compat`. -/
 def StrictOverlap (S : BackdoorEstimationSystem P γ) (ε : ℝ) : Prop :=
   0 < ε ∧ ε ≤ 1 / 2 ∧
     (∀ᵐ ω ∂P.μ, ε ≤ S.toPOBackdoorSystem.propScore true ω ∧
@@ -121,7 +122,7 @@ def StrictOverlap (S : BackdoorEstimationSystem P γ) (ε : ℝ) : Prop :=
 
 /-! ## Marginal of the covariate and joint data law -/
 
-/-- Covariate marginal: `P_X := μ.map factualX`. -/
+/-- For a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), and [a back-door estimation system](hyp:S), the [covariate marginal law](goal) is the image of the population measure under the factual covariate. -/
 noncomputable def P_X (S : BackdoorEstimationSystem P γ) : Measure γ :=
   P.μ.map S.toPOBackdoorSystem.factualX
 
@@ -132,7 +133,7 @@ lemma P_X_eq (S : BackdoorEstimationSystem P γ) :
     S.P_X = P.μ.map S.toPOBackdoorSystem.factualX :=
   rfl
 
-/-- Data triple `(X, A, Y) : Ω → γ × Bool × ℝ`. -/
+/-- For a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), and [a back-door estimation system](hyp:S), the [factual data map](goal) sends every sample point to its observed covariate, binary treatment, and outcome triple. -/
 noncomputable def factualZ (S : BackdoorEstimationSystem P γ) :
     P.Ω → γ × Bool × ℝ :=
   fun ω => (S.toPOBackdoorSystem.factualX ω,
@@ -147,7 +148,7 @@ lemma measurable_factualZ (S : BackdoorEstimationSystem P γ) :
     ((S.toPOBackdoorSystem.measurable_factualD).prodMk
       S.toPOBackdoorSystem.measurable_factualY)
 
-/-- Joint data law `P_Z := μ.map (X, A, Y)`. -/
+/-- For a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), and [a back-door estimation system](hyp:S), the [observed-data law](goal) is the image of the population measure under the factual covariate--treatment--outcome map. -/
 noncomputable def P_Z (S : BackdoorEstimationSystem P γ) :
     Measure (γ × Bool × ℝ) :=
   P.μ.map S.factualZ
@@ -171,7 +172,7 @@ lemma P_Z_map_projX_eq_P_X (S : BackdoorEstimationSystem P γ) :
 
 /-! ## ATE estimand on the value space -/
 
-/-- Value-space ATE: `θ₀ = ∫ (μ(1, x) - μ(0, x)) dP_X`. -/
+/-- For a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), and [a back-door estimation system](hyp:S), the [value-space average treatment effect](goal) is the covariate-law integral of the true treated outcome regression minus the true control outcome regression. -/
 noncomputable def θ₀ (S : BackdoorEstimationSystem P γ) : ℝ :=
   ∫ x, S.μ_val true x - S.μ_val false x ∂(S.P_X)
 
@@ -213,15 +214,9 @@ end BackdoorEstimationSystem
 /-! ## Derivability: the estimation system adds no assumptions beyond overlap -/
 
 open Classical in
-/-- **The compatibility/positivity fields are free.** From a `POBackdoorSystem` with
-a.e. two-sided overlap and an integrable observed outcome — and *no* unconfoundedness
-— one constructs a `BackdoorEstimationSystem`: `μ_val` is the value-space outcome
-regression `regFn` and `e_val` is the propensity lift `eLift` clamped into `(0,1)`
-off-support. Every added field is discharged (`μ_reg_compat` from
-`regression_adjustment`; `e_pos`/`e_lt_one` from the clamp; `e_compat` from overlap).
-So `BackdoorEstimationSystem` carries no assumption beyond `POBackdoorSystem` + overlap
-+ integrability — in particular the value-space lifts (`μ_compat`, `e_compat`) were
-never genuine assumptions. -/
+/-- Given a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), [a back-door potential-outcome system](hyp:S), [the assumption that its treated propensity is strictly between zero and one almost surely](hyp:hov), and [an integrable factual outcome](hyp:hY), the [associated back-door estimation system](goal) uses the value-space outcome regression and a propensity score that equals the lifted propensity on its strict-overlap support and equals one half elsewhere.
+
+**The compatibility/positivity fields are free.** Every added field is discharged: the outcome-regression compatibility follows from regression adjustment, positivity from the clamp, and propensity compatibility from overlap. Thus the estimation system adds no assumption beyond the back-door potential-outcome system, overlap, and integrability. -/
 noncomputable def _root_.Causalean.PO.POBackdoorSystem.toBackdoorEstimationSystem
     {P : POSystem} {γ : Type*} [MeasurableSpace γ]
     (S : PO.POBackdoorSystem P γ) [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]

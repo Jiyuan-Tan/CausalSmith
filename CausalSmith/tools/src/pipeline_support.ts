@@ -660,10 +660,12 @@ export function collectSubstrateGates(review: ReviewResult): SubstrateGate[] {
 
 const CITED_DEPENDENCIES_HEADER = `# Cited dependencies registry
 
-Borrowed results a banked theorem ASSUMES but does NOT discharge at run time
-(\`gate_class:"cited"\`): each is formalized as a Lean \`def … : Prop\`, taken as a
-hypothesis (like citing a theorem in a paper), and MATCHED against an external
-source by the F4 convergence reviewer, which also writes these rows. Unlike
+External dependencies a banked artifact does NOT discharge at run time
+(\`gate_class:"cited"\`): a logical source claim is formalized as a Lean
+\`def … : Sort 0\` (semantically Prop) and threaded as a hypothesis; genuinely bibliographic
+scope/provenance metadata is a direct literal root-qualified text \`def\` and is never used as a proof
+premise. Both carrier kinds are MATCHED against an external source by the F4
+convergence reviewer, which also writes these rows. Unlike
 SUBSTRATE_DEBT.md these are NOT owed a build — they may graduate to a real lemma
 in a future run.
 
@@ -672,7 +674,7 @@ it to \`state.cited_checks\` and escalates, and \`bankEntry\` re-checks that fie
 the block survives outside the review loop (a row is written here only once the
 match gate PASSES, so this registry never lists a failing def).
 
-| Cited def | Run (qid/spec) | Assumed statement | Source | Locator | Check status |
+| Cited carrier | Run (qid/spec) | Recorded statement or metadata | Source | Locator | Check status |
 |-----------|----------------|-------------------|--------|---------|--------------|
 `;
 

@@ -30,7 +30,8 @@ open scoped MeasureTheory ENNReal
 variable {N : Type*} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-/-- A measure has full point-mass support when every singleton has nonzero mass. -/
+/-- For [a measure on a measurable space](hyp:μ), [positive point mass](goal)
+    means that every point of that space has nonzero singleton mass. -/
 def PositiveMass {α : Type*} [MeasurableSpace α] (μ : MeasureTheory.Measure α) : Prop :=
   ∀ x : α, singletonMass μ x ≠ 0
 
@@ -42,9 +43,14 @@ theorem PositiveMass.eq_of_ae_eq
     ∀ x : α, f x = g x :=
   eq_of_ae_eq_of_forall_singletonMass_ne_zero hμ hfg
 
-/-- A discrete SCM has full observational support on every observed assignment,
-at every fixed-value slice.  This is strong but non-vacuous, and it is the
-safe default assumption for first-pass discrete ID soundness. -/
+/-- For [a finite node-label set](hyp:N), [measurable node-value spaces](hyp:Ω),
+    and [a structural causal model](hyp:M), [discrete positivity](goal) means
+    that, at every assignment of its fixed variables, the model's observational
+    probability measure assigns nonzero mass to every assignment of its observed
+    variables.
+
+    This is strong but non-vacuous, and it is the safe default assumption for
+    first-pass discrete ID soundness. -/
 def DiscretePositive (M : Causalean.SCM N Ω) : Prop :=
   ∀ s : M.FixedValues, PositiveMass (M.obsKernel s)
 
@@ -120,7 +126,9 @@ theorem conditionalDenominator_ne_zero_of_positive_marginal
     conditionalDenominator μ b ≠ 0 :=
   hμ b
 
-/-- The structural assumptions for the first discrete ID soundness target. -/
+/-- For [a finite node-label set](hyp:N), [measurable node-value spaces](hyp:Ω),
+    and [a structural causal model](hyp:M), [standard discrete positivity](goal)
+    means that the model is standard and has discrete positivity. -/
 def StandardDiscretePositive (M : Causalean.SCM N Ω) : Prop :=
   M.isStandard ∧ DiscretePositive M
 

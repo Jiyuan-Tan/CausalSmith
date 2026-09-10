@@ -31,8 +31,8 @@ import { loadPaperView, logPaperView } from "../core/paper_view.js";
 import { diffCoreProse, type ProseUpdates } from "../core/assemble.js";
 import { runGates } from "../framework/gates.js";
 import { structuralGate } from "../framework/gate_registrations.js";
-import { normalizeTexWhitespace } from "../../shared/tex_text.js";
 import type { Stage0_5CoreResult } from "./d0_5_core.js";
+import { reachableFrom } from "../core/graph_walk.js";
 
 export interface Stage0RCoreResult {
   message: string;
@@ -118,10 +118,10 @@ export async function runStage0RCore(args: {
   const restoreProtectedCore = async (): Promise<void> => {
     await writeJsonAtomic(corePath, core);
   };
-  const preStatementText = new Map(
+  const preProtectedClaims = new Map(
     core.statements
-      .filter((s) => /^(thm|prop|lem):/.test(s.id) && s.kind !== "openendedquestion")
-      .map((s) => [s.id, s.statement] as const),
+      .filter((s) => /^(thm|prop|lem|conj):/.test(s.id))
+      .map((s) => [s.id, { statement: s.statement, kind: s.kind }] as const),
   );
   const findings = args.review.verdicts.flatMap((v) =>
     v.findings.map((f) => ({ referee: v.referee, ...f })),
@@ -285,6 +285,31 @@ export async function runStage0RCore(args: {
       .map((f) => (f as { node_id?: string }).node_id)
       .filter((id): id is string => typeof id === "string"),
   );
+  const statementsBefore = new Map(core.statements.map((s) => [s.id, s] as const));
+  const directedDependencyClosure = reachableFrom(findingNodeIds, (id) =>
+    statementsBefore.get(id)?.depends_on ?? [],
+  );
+  const editedStatements = new Map(edited.statements.map((s) => [s.id, s] as const));
+  // The directed finding may rewrite its target and the target's prerequisite
+  // closure. Every pre-existing statement outside that region is immutable: an
+  // ID-preserving replacement is the same scope violation as deleting the row.
+  const unauthorizedStatementMutations = core.statements
+    .filter((s) =>
+      !directedDependencyClosure.has(s.id) && JSON.stringify(editedStatements.get(s.id)) !== JSON.stringify(s)
+    )
+    .map((s) => s.id);
+  if (unauthorizedStatementMutations.length > 0) {
+    await restoreProtectedCore();
+    return {
+      message: "Stage 0.R attempted out-of-closure statement mutation(s)",
+      coreJsonPath: corePath,
+      escalate: {
+        reason:
+          `D0.R changed or deleted statement node(s) outside the reported finding dependency closure: ` +
+          `${unauthorizedStatementMutations.join(", ")}; the pre-edit core was restored`,
+      },
+    };
+  }
   const editedAssumptionIds = new Set(edited.assumptions.map((a) => a.id));
   const unauthorizedDeletedAssumptions = core.assumptions
     .filter((a) => !editedAssumptionIds.has(a.id) && !findingNodeIds.has(a.id))
@@ -301,20 +326,21 @@ export async function runStage0RCore(args: {
       },
     };
   }
-  // why: only a real CLAIM change is illegal here; collapse whitespace so a formatting-only
-  // rewrite (re-wrapping, trimmed spaces) of a legitimate D0.R repair does not spuriously escalate.
-  const normClaim = (t: string) => normalizeTexWhitespace(t); // a \par-only edit to a protected statement must not slip the guard
   const illegalStatementEdits = edited.statements.filter((s) => {
-    const before = preStatementText.get(s.id);
-    return before !== undefined && normClaim(before) !== normClaim(s.statement);
+    const before = preProtectedClaims.get(s.id);
+    // Claim text is immutable byte-for-byte. TeX whitespace can be semantic
+    // (`\verb`, verbatim-like payloads), so normalization is not a sound guard.
+    return before !== undefined && (before.statement !== s.statement || before.kind !== s.kind);
   });
-  if (illegalStatementEdits.length > 0) {
+  const deletedProtectedStatements = [...preProtectedClaims.keys()].filter((id) => !editedStatements.has(id));
+  if (illegalStatementEdits.length > 0 || deletedProtectedStatements.length > 0) {
     // why: D0.R may fix proof/DAG content, but statement changes must go through orchestrator-owned proto.
     await restoreProtectedCore();
+    const protectedIds = [...illegalStatementEdits.map((s) => s.id), ...deletedProtectedStatements];
     return {
       message: `Stage 0.R attempted protected statement edits`,
       coreJsonPath: corePath,
-      escalate: { reason: `D0.R changed protected statement text for ${illegalStatementEdits.map((s) => s.id).join(", ")}` },
+      escalate: { reason: `D0.R changed or deleted protected statement text for ${protectedIds.join(", ")}` },
     };
   }
   const { hard: gateViolations } = runGates([structuralGate], { core: edited, requireDischarged: true });

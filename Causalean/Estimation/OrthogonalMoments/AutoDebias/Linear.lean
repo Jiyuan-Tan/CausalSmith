@@ -100,7 +100,9 @@ attribute [instance] LinRegFnSys.Z_meas LinRegFnSys.P_Z_prob
 
 attribute [fun_prop] LinRegFnSys.proj_X_meas LinRegFnSys.Y_obs_meas LinRegFnSys.m_lin_meas
 
-/-- **Population linear functional** `L(γ) := ∫ m_lin(z, γ) dP_Z`. -/
+/-- For a [linear regression-functional system](hyp:S), the [population linear functional](goal)
+maps each regression function in that system's admissible class to the integral of its linear
+moment function under the system's observation measure. -/
 noncomputable def L_of_m (S : LinRegFnSys) : S.H_γ → ℝ :=
   fun γ => ∫ z, S.m_lin z γ ∂S.P_Z
 
@@ -122,7 +124,13 @@ theorem L_of_m_smul (S : LinRegFnSys) (c : ℝ) (γ : S.H_γ) :
     funext z; exact S.m_lin_smulLeft c z γ
   rw [hpoint]; exact integral_const_mul c (fun z => S.m_lin z γ)
 
-/-- **Linear Riesz score**: alias of the generic `rieszScore`
+/-- For a [linear regression-functional system](hyp:S), a [regression function in its
+admissible class](hyp:γ), a [candidate Riesz representer on the covariate space](hyp:α), a
+[scalar target value](hyp:θ), and an [observation](hyp:z), the [linear Riesz score](goal) is
+the generic Riesz score specialized to that system's regression target, population functional,
+covariate projection, and observed outcome.
+
+**Linear Riesz score**: alias of the generic `rieszScore`
 applied to the linear regression-functional system's data. -/
 noncomputable def linRieszScore (S : LinRegFnSys)
     (γ : S.H_γ) (α : S.X → ℝ) (θ : ℝ) (z : S.Z) : ℝ :=
@@ -171,7 +179,12 @@ theorem linRieszScore_directional_α_zero (S : LinRegFnSys)
     ∫ z, ν_α (S.proj_X z) * (S.Y_obs z - S.γ_target S.g₀ (S.proj_X z)) ∂S.P_Z = 0 := by
   exact S.regression_resid_orthog ν_α hν_α_meas h_int
 
-/-- **Linear Riesz loss**:
+/-- For a [linear regression-functional system](hyp:S) and a [candidate regression function
+in its admissible class](hyp:α), the [linear Riesz loss](goal) is the covariate-distribution
+mean of the squared regression target of that function minus twice the system's population
+linear functional evaluated at it.
+
+**Linear Riesz loss**:
 
   `L_m(α) := ∫ (γ_target α x)² dP_X − 2 · L_of_m S α`.
 

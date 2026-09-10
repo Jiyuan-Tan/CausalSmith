@@ -1,0 +1,3029 @@
+{
+  "qid": "exp_offpolicy_fourier_overlap_minimax_frontier",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "symbols": [
+    {
+      "name": "n",
+      "type": "population_size",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Number of units in the fixed finite population.",
+      "role": "asymptotic_index"
+    },
+    {
+      "name": "V_n",
+      "type": "unit_set",
+      "space": "\\(2^{\\mathbb N}\\)",
+      "def": "Finite population \\(V_n=\\{1,\\ldots,n\\}\\).",
+      "role": "population_index",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "i",
+      "type": "unit_index",
+      "space": "\\(V_n\\)",
+      "def": "Generic outcome-unit index.",
+      "role": "index",
+      "refs": [
+        "V_n"
+      ]
+    },
+    {
+      "name": "j",
+      "type": "assignment_index",
+      "space": "\\(V_n\\)",
+      "def": "Generic assignment-coordinate index.",
+      "role": "index",
+      "refs": [
+        "V_n"
+      ]
+    },
+    {
+      "name": "\\Omega_n",
+      "type": "assignment_space",
+      "space": "\\(2^{V_n}\\)",
+      "def": "Binary assignment space \\(\\Omega_n=\\{0,1\\}^{V_n}\\).",
+      "role": "design_support",
+      "refs": [
+        "V_n"
+      ]
+    },
+    {
+      "name": "z",
+      "type": "assignment_argument",
+      "space": "\\(\\Omega_n\\)",
+      "def": "Generic global assignment.",
+      "role": "function_argument",
+      "refs": [
+        "\\Omega_n"
+      ]
+    },
+    {
+      "name": "\\varepsilon",
+      "type": "overlap_constant",
+      "space": "\\((0,1/2)\\)",
+      "def": "Fixed interior-overlap constant.",
+      "role": "regularity_constant"
+    },
+    {
+      "name": "p",
+      "type": "homogeneous_source_probability",
+      "space": "\\([\\varepsilon,1-\\varepsilon]\\)",
+      "def": "Source probability used in the separating hub family.",
+      "role": "example_parameter",
+      "refs": [
+        "\\varepsilon"
+      ]
+    },
+    {
+      "name": "q",
+      "type": "homogeneous_target_probability",
+      "space": "\\([\\varepsilon,1-\\varepsilon]\\)",
+      "def": "Target probability used in the separating hub family.",
+      "role": "example_parameter",
+      "refs": [
+        "\\varepsilon"
+      ]
+    },
+    {
+      "name": "\\pi",
+      "type": "source_policy",
+      "space": "\\(\\mathbb R^{V_n}\\)",
+      "def": "Known vector of source Bernoulli probabilities.",
+      "role": "design_parameter",
+      "refs": [
+        "V_n"
+      ]
+    },
+    {
+      "name": "\\pi'",
+      "type": "target_policy",
+      "space": "\\(\\mathbb R^{V_n}\\)",
+      "def": "Known vector of target Bernoulli probabilities.",
+      "role": "target_parameter",
+      "refs": [
+        "V_n"
+      ]
+    },
+    {
+      "name": "p_{\\pi}(z)",
+      "type": "source_assignment_mass",
+      "space": "\\([0,1]\\)",
+      "def": "Source probability mass at assignment \\(z\\).",
+      "role": "design_law",
+      "refs": [
+        "\\pi",
+        "z"
+      ]
+    },
+    {
+      "name": "p_{\\pi'}(z)",
+      "type": "target_assignment_mass",
+      "space": "\\([0,1]\\)",
+      "def": "Target probability mass at assignment \\(z\\).",
+      "role": "target_law",
+      "refs": [
+        "\\pi'",
+        "z"
+      ]
+    },
+    {
+      "name": "\\Gamma_i",
+      "type": "known_local_neighborhood",
+      "space": "\\(2^{V_n}\\)",
+      "def": "Known assignment coordinates on which unit \\(i\\)'s schedule may depend.",
+      "role": "interference_support",
+      "refs": [
+        "V_n",
+        "i"
+      ]
+    },
+    {
+      "name": "X_i",
+      "type": "local_assignment_space",
+      "space": "\\(2^{\\Gamma_i}\\)",
+      "def": "Local assignment cells \\(X_i=\\{0,1\\}^{\\Gamma_i}\\).",
+      "role": "local_domain",
+      "refs": [
+        "\\Gamma_i",
+        "i"
+      ]
+    },
+    {
+      "name": "x",
+      "type": "local_assignment_argument",
+      "space": "\\(X_i\\)",
+      "def": "Generic local assignment cell.",
+      "role": "function_argument",
+      "refs": [
+        "X_i",
+        "i"
+      ]
+    },
+    {
+      "name": "U",
+      "type": "Fourier_index",
+      "space": "\\(2^{\\Gamma_i}\\)",
+      "def": "Generic local Fourier subset.",
+      "role": "basis_index",
+      "refs": [
+        "\\Gamma_i",
+        "i"
+      ]
+    },
+    {
+      "name": "W",
+      "type": "Fourier_subindex",
+      "space": "\\(2^{\\Gamma_i}\\)",
+      "def": "Generic subset of a retained Fourier index.",
+      "role": "hierarchy_index",
+      "refs": [
+        "\\Gamma_i",
+        "i"
+      ]
+    },
+    {
+      "name": "\\mathcal S_i",
+      "type": "local_Fourier_support",
+      "space": "\\(2^{2^{\\Gamma_i}}\\)",
+      "def": "Known finite family of retained local Fourier subsets.",
+      "role": "structural_support",
+      "refs": [
+        "\\Gamma_i",
+        "i"
+      ]
+    },
+    {
+      "name": "\\chi_{i,U}^{\\pi}",
+      "type": "biased_Fourier_character",
+      "space": "\\(X_i\\to\\mathbb R\\)",
+      "def": "Source-policy biased Fourier character constructed in \\(\\mathrm{def:local-fourier-character}\\).",
+      "role": "basis_function",
+      "refs": [
+        "X_i",
+        "\\pi",
+        "U",
+        "i"
+      ]
+    },
+    {
+      "name": "H_i",
+      "type": "local_Fourier_subspace",
+      "space": "\\(2^{\\mathbb R^{X_i}}\\)",
+      "def": "Span of the retained characters, constructed in \\(\\mathrm{def:local-fourier-space}\\).",
+      "role": "outcome_space",
+      "refs": [
+        "X_i",
+        "\\chi_{i,U}^{\\pi}",
+        "\\mathcal S_i",
+        "i"
+      ]
+    },
+    {
+      "name": "v_i",
+      "type": "local_potential_outcome_schedule",
+      "space": "\\(\\mathbb R^{X_i}\\)",
+      "def": "Fixed local potential-outcome schedule for unit \\(i\\).",
+      "role": "causal_primitive",
+      "refs": [
+        "X_i",
+        "i"
+      ]
+    },
+    {
+      "name": "E",
+      "type": "finite_dimensional_real_Hilbert_space",
+      "space": "\\(\\bigoplus_{i\\in V_n}H_i\\)",
+      "def": "For the fixed \\(n\\)-unit instance, \\(E=\\bigoplus_{i\\in V_n}H_i\\) is equipped with the product-\\(L^2\\) inner product \\(\\langle f,g\\rangle_E=\\sum_{i\\in V_n}\\sum_{z\\in\\Omega_n}p_{\\pi}(z)f_i(z_{\\Gamma_i})g_i(z_{\\Gamma_i})\\). Source positivity makes this an inner product, so \\(E\\) is a finite-dimensional real Hilbert space.",
+      "role": "parameter_space",
+      "refs": [
+        "V_n",
+        "H_i",
+        "i",
+        "z",
+        "\\Omega_n",
+        "p_{\\pi}(z)",
+        "\\Gamma_i"
+      ]
+    },
+    {
+      "name": "v",
+      "type": "potential_outcome_schedule",
+      "space": "\\(E\\)",
+      "def": "Schedule vector \\(v=(v_i)_{i\\in V_n}\\).",
+      "role": "causal_schedule",
+      "refs": [
+        "E",
+        "v_i",
+        "V_n",
+        "i"
+      ]
+    },
+    {
+      "name": "K_i",
+      "type": "bounded_local_evaluation_polytope",
+      "space": "\\(2^{H_i}\\)",
+      "def": "Bounded local Fourier evaluation polytope constructed in \\(\\mathrm{def:local-evaluation-polytope}\\).",
+      "role": "local_model_class",
+      "refs": [
+        "H_i",
+        "i"
+      ]
+    },
+    {
+      "name": "K",
+      "type": "bounded_schedule_class",
+      "space": "\\(2^E\\)",
+      "def": "Product schedule class constructed in \\(\\mathrm{def:bounded-fourier-class}\\).",
+      "role": "model_class",
+      "refs": [
+        "E",
+        "K_i",
+        "V_n",
+        "i"
+      ]
+    },
+    {
+      "name": "Y_i^{\\mathrm{obs}}",
+      "type": "observed_outcome",
+      "space": "\\([-1,1]\\)",
+      "def": "Observed outcome \\(Y_i^{\\mathrm{obs}}=v_i(z_{\\Gamma_i})\\) at the realized source assignment.",
+      "role": "observed_data",
+      "refs": [
+        "v_i",
+        "z",
+        "\\Gamma_i",
+        "i"
+      ]
+    },
+    {
+      "name": "p_{\\pi',i}(x)",
+      "type": "target_local_cell_mass",
+      "space": "\\([0,1]\\)",
+      "def": "Target-policy probability of local cell \\(x\\), constructed in \\(\\mathrm{def:local-target-mass}\\).",
+      "role": "target_loading",
+      "refs": [
+        "p_{\\pi'}(z)",
+        "i",
+        "x",
+        "z",
+        "\\Gamma_i",
+        "\\Omega_n"
+      ]
+    },
+    {
+      "name": "\\theta",
+      "type": "target_policy_value_functional",
+      "space": "\\(E\\to\\mathbb R\\)",
+      "def": "Target-policy expected average outcome constructed in \\(\\mathrm{def:target-value}\\).",
+      "role": "target_estimand",
+      "refs": [
+        "E",
+        "p_{\\pi'}(z)",
+        "v",
+        "n"
+      ]
+    },
+    {
+      "name": "o_z(v)",
+      "type": "observation_vector",
+      "space": "\\(\\mathbb R^{V_n}\\)",
+      "def": "Vector of all unit outcomes revealed at assignment \\(z\\).",
+      "role": "observed_data_map",
+      "refs": [
+        "v",
+        "z",
+        "V_n"
+      ]
+    },
+    {
+      "name": "N_z",
+      "type": "selector_operator",
+      "space": "\\(E\\to\\mathbb R^{V_n}\\)",
+      "def": "Linear selector satisfying \\(N_zv=o_z(v)\\).",
+      "role": "observation_operator",
+      "refs": [
+        "E",
+        "V_n",
+        "z",
+        "v",
+        "o_z(v)"
+      ]
+    },
+    {
+      "name": "\\langle\\cdot,\\cdot\\rangle_{V_n}",
+      "type": "Euclidean_inner_product",
+      "space": "\\(\\mathbb R^{V_n}\\times\\mathbb R^{V_n}\\to\\mathbb R\\)",
+      "def": "The Euclidean inner product \\(\\langle r,s\\rangle_{V_n}=\\sum_{i\\in V_n}r_is_i\\) on \\(\\mathbb R^{V_n}\\).",
+      "role": "observation_space_geometry",
+      "refs": [
+        "V_n",
+        "i"
+      ]
+    },
+    {
+      "name": "N_z^{\\ast}",
+      "type": "selector_adjoint",
+      "space": "\\(\\mathbb R^{V_n}\\to E\\)",
+      "def": "The unique adjoint of \\(N_z\\) relative to \\(\\langle\\cdot,\\cdot\\rangle_E\\) and \\(\\langle\\cdot,\\cdot\\rangle_{V_n}\\), characterized by \\(\\langle N_zf,r\\rangle_{V_n}=\\langle f,N_z^{\\ast}r\\rangle_E\\) for every \\(f\\in E\\) and \\(r\\in\\mathbb R^{V_n}\\).",
+      "role": "dual_observation_operator",
+      "refs": [
+        "N_z",
+        "E",
+        "V_n",
+        "\\langle\\cdot,\\cdot\\rangle_{V_n}"
+      ]
+    },
+    {
+      "name": "\\mathbb S_+^E",
+      "type": "positive_semidefinite_cone",
+      "space": "\\(2^{\\mathcal L(E)}\\)",
+      "def": "The cone \\(\\mathbb S_+^E=\\{M\\in\\mathcal L(E):M=M^{\\ast},\\ \\langle f,Mf\\rangle_E\\ge0\\text{ for every }f\\in E\\}\\), where the operator adjoint is taken in the Hilbert geometry of \\(E\\).",
+      "role": "moment_operator_domain",
+      "refs": [
+        "E"
+      ]
+    },
+    {
+      "name": "a_z",
+      "type": "assignment_indexed_weight_vector",
+      "space": "\\(\\mathbb R^{V_n}\\)",
+      "def": "Linear weights used after assignment \\(z\\) is observed.",
+      "role": "decision_variable",
+      "refs": [
+        "V_n",
+        "z"
+      ]
+    },
+    {
+      "name": "a",
+      "type": "weight_rule",
+      "space": "\\((\\mathbb R^{V_n})^{\\Omega_n}\\)",
+      "def": "Collection \\(a=(a_z)_{z\\in\\Omega_n}\\).",
+      "role": "semilinear_decision_rule",
+      "refs": [
+        "a_z",
+        "\\Omega_n",
+        "V_n",
+        "z"
+      ]
+    },
+    {
+      "name": "\\delta_a",
+      "type": "semilinear_estimator",
+      "space": "\\(\\Omega_n\\times\\mathbb R^{V_n}\\to\\mathbb R\\)",
+      "def": "Assignment-indexed linear estimator constructed in \\(\\mathrm{def:semilinear-rule}\\).",
+      "role": "estimator",
+      "refs": [
+        "a",
+        "\\Omega_n",
+        "V_n"
+      ]
+    },
+    {
+      "name": "F",
+      "type": "linear_minimax_MSE",
+      "space": "\\([0,1]\\)",
+      "def": "Finite linear-minimax frontier constructed in \\(\\mathrm{def:linear-frontier}\\).",
+      "role": "frontier",
+      "refs": [
+        "a",
+        "K",
+        "p_{\\pi}(z)",
+        "\\delta_a",
+        "\\theta"
+      ]
+    },
+    {
+      "name": "\\delta",
+      "type": "measurable_estimator",
+      "space": "\\(\\Omega_n\\times\\mathbb R^{V_n}\\to\\mathbb R\\)",
+      "def": "Generic Borel measurable estimator based on the assignment and observed outcomes.",
+      "role": "unrestricted_decision_rule",
+      "refs": [
+        "\\Omega_n",
+        "V_n"
+      ]
+    },
+    {
+      "name": "R^{\\star}",
+      "type": "unrestricted_minimax_MSE",
+      "space": "\\([0,1]\\)",
+      "def": "All-measurable-estimator minimax frontier constructed in \\(\\mathrm{def:unrestricted-frontier}\\).",
+      "role": "minimax_benchmark",
+      "refs": [
+        "\\delta",
+        "K",
+        "p_{\\pi}(z)",
+        "\\theta"
+      ]
+    },
+    {
+      "name": "\\ell",
+      "type": "target_Riesz_vector",
+      "space": "\\(E\\)",
+      "def": "The unique Riesz vector in the specified Hilbert geometry satisfying \\(\\theta(v)=\\langle\\ell,v\\rangle_E\\) for every \\(v\\in E\\).",
+      "role": "target_coordinate",
+      "refs": [
+        "E",
+        "\\theta",
+        "v"
+      ]
+    },
+    {
+      "name": "a^{\\star}",
+      "type": "minimax_incidence_weights",
+      "space": "\\((\\mathbb R^{V_n})^{\\Omega_n}\\)",
+      "def": "A minimizer of the finite program defining \\(F\\).",
+      "role": "attaining_weights",
+      "refs": [
+        "F",
+        "V_n",
+        "\\Omega_n"
+      ]
+    },
+    {
+      "name": "\\operatorname{clip}",
+      "type": "projection_map",
+      "sig": "\\(\\mathbb R\\to[-1,1]\\)",
+      "def": "Projection \\(\\operatorname{clip}(t)=\\max\\{-1,\\min\\{1,t\\}\\}\\).",
+      "role": "loss_contraction"
+    },
+    {
+      "name": "\\widehat\\theta_{\\mathrm{inc}}",
+      "type": "clipped_incidence_estimator",
+      "space": "\\([-1,1]\\)",
+      "def": "Clipped estimator constructed in \\(\\mathrm{def:clipped-incidence-estimator}\\).",
+      "role": "attaining_estimator",
+      "refs": [
+        "a^{\\star}",
+        "\\operatorname{clip}",
+        "N_z",
+        "v",
+        "z"
+      ]
+    },
+    {
+      "name": "\\nu",
+      "type": "genuine_schedule_prior",
+      "space": "\\(\\mathcal P(K)\\)",
+      "def": "Countably additive probability law supported on genuine bounded schedules.",
+      "role": "lower_bound_certificate",
+      "refs": [
+        "K"
+      ]
+    },
+    {
+      "name": "\\mathbf V",
+      "type": "random_schedule",
+      "space": "\\(K\\)",
+      "def": "Random bounded schedule with law \\(\\nu\\).",
+      "role": "Bayes_parameter",
+      "refs": [
+        "K",
+        "\\nu"
+      ]
+    },
+    {
+      "name": "\\mathcal B(\\nu)",
+      "type": "Bayes_posterior_ambiguity",
+      "space": "\\([0,1]\\)",
+      "def": "Average posterior-variance certificate constructed in \\(\\mathrm{def:prior-certificate}\\).",
+      "role": "dual_lower_bound",
+      "refs": [
+        "\\nu",
+        "\\theta",
+        "N_z",
+        "p_{\\pi}(z)",
+        "z"
+      ]
+    },
+    {
+      "name": "\\operatorname{UB}(a)",
+      "type": "primal_risk_certificate",
+      "space": "\\([0,\\infty)\\)",
+      "def": "Worst-case risk of a feasible assignment-indexed linear rule.",
+      "role": "upper_certificate",
+      "refs": [
+        "a",
+        "K",
+        "p_{\\pi}(z)",
+        "\\delta_a",
+        "\\theta"
+      ]
+    },
+    {
+      "name": "\\operatorname{LB}(\\nu)",
+      "type": "prior_risk_certificate",
+      "space": "\\([0,1]\\)",
+      "def": "Lower certificate \\(\\operatorname{LB}(\\nu)=\\mathcal B(\\nu)\\).",
+      "role": "lower_certificate",
+      "refs": [
+        "\\nu",
+        "\\mathcal B(\\nu)"
+      ]
+    },
+    {
+      "name": "c_0",
+      "type": "universal_comparison_constant",
+      "space": "\\((0,1]\\)",
+      "def": "Numerical constant independent of the population, graph, policies, and supports.",
+      "role": "comparison_constant"
+    },
+    {
+      "name": "\\mathcal I",
+      "type": "exposure_incidence_graph",
+      "space": "\\(2^{(V_n\\sqcup V_n)\\times(V_n\\sqcup V_n)}\\)",
+      "def": "Bipartite assignment-to-outcome incidence graph constructed in \\(\\mathrm{def:incidence-graph}\\).",
+      "role": "computational_graph",
+      "refs": [
+        "V_n",
+        "\\mathcal S_i",
+        "i",
+        "j"
+      ]
+    },
+    {
+      "name": "\\operatorname{tw}(\\mathcal I)",
+      "type": "incidence_treewidth",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Treewidth of the bipartite exposure-incidence graph.",
+      "role": "computational_parameter",
+      "refs": [
+        "\\mathcal I"
+      ]
+    },
+    {
+      "name": "w",
+      "type": "treewidth_bound",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Fixed upper bound on incidence treewidth.",
+      "role": "complexity_parameter"
+    },
+    {
+      "name": "L_{\\mathrm{in}}",
+      "type": "explicit_input_length",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Bit length of rational policies and explicitly listed local support and vertex tables.",
+      "role": "complexity_parameter",
+      "refs": [
+        "\\pi",
+        "\\pi'",
+        "\\mathcal S_i",
+        "K_i"
+      ]
+    },
+    {
+      "name": "G_n",
+      "type": "indexed_known_graph",
+      "space": "\\(2^{V_n\\times V_n}\\)",
+      "def": "Known graph on vertex set \\(V_n\\) in the \\(n\\)-th experiment.",
+      "role": "triangular_array_graph",
+      "refs": [
+        "V_n",
+        "n"
+      ]
+    },
+    {
+      "name": "\\pi_n",
+      "type": "indexed_source_policy",
+      "space": "\\([\\varepsilon,1-\\varepsilon]^{V_n}\\)",
+      "def": "Known source product-Bernoulli probability vector in the \\(n\\)-th experiment.",
+      "role": "triangular_array_source_policy",
+      "refs": [
+        "\\varepsilon",
+        "V_n",
+        "n"
+      ]
+    },
+    {
+      "name": "\\pi'_n",
+      "type": "indexed_target_policy",
+      "space": "\\([\\varepsilon,1-\\varepsilon]^{V_n}\\)",
+      "def": "Known target product-Bernoulli probability vector in the \\(n\\)-th experiment.",
+      "role": "triangular_array_target_policy",
+      "refs": [
+        "\\varepsilon",
+        "V_n",
+        "n"
+      ]
+    },
+    {
+      "name": "p_{\\pi_n}(z)",
+      "type": "indexed_source_assignment_mass",
+      "space": "\\([0,1]\\)",
+      "def": "The row-\\(n\\) source mass \\(p_{\\pi_n}(z)=\\prod_{j\\in V_n}(\\pi_n)_j^{z_j}(1-(\\pi_n)_j)^{1-z_j}\\).",
+      "role": "indexed_design_law",
+      "refs": [
+        "\\pi_n",
+        "z",
+        "j",
+        "V_n",
+        "n"
+      ]
+    },
+    {
+      "name": "p_{\\pi'_n}(z)",
+      "type": "indexed_target_assignment_mass",
+      "space": "\\([0,1]\\)",
+      "def": "The row-\\(n\\) target mass \\(p_{\\pi'_n}(z)=\\prod_{j\\in V_n}(\\pi'_n)_j^{z_j}(1-(\\pi'_n)_j)^{1-z_j}\\).",
+      "role": "indexed_target_law",
+      "refs": [
+        "\\pi'_n",
+        "z",
+        "j",
+        "V_n",
+        "n"
+      ]
+    },
+    {
+      "name": "\\Gamma_{n,i}",
+      "type": "indexed_known_local_neighborhood",
+      "space": "\\(2^{V_n}\\)",
+      "def": "Known local assignment neighborhood of outcome unit \\(i\\) in graph \\(G_n\\).",
+      "role": "triangular_array_interference_support",
+      "refs": [
+        "V_n",
+        "i",
+        "G_n"
+      ]
+    },
+    {
+      "name": "\\mathcal S_{n,i}",
+      "type": "indexed_local_Fourier_support",
+      "space": "\\(2^{2^{\\Gamma_{n,i}}}\\)",
+      "def": "Known finite downward-closed local Fourier support of unit \\(i\\) in the \\(n\\)-th experiment.",
+      "role": "triangular_array_structural_support",
+      "refs": [
+        "\\Gamma_{n,i}",
+        "i",
+        "n"
+      ]
+    },
+    {
+      "name": "X_{n,i}",
+      "type": "indexed_local_assignment_space",
+      "space": "\\(2^{\\Gamma_{n,i}}\\)",
+      "def": "Local assignment cells \\(X_{n,i}=\\{0,1\\}^{\\Gamma_{n,i}}\\) in row \\(n\\).",
+      "role": "indexed_local_domain",
+      "refs": [
+        "\\Gamma_{n,i}",
+        "n",
+        "i"
+      ]
+    },
+    {
+      "name": "H_{n,i}",
+      "type": "indexed_local_Fourier_subspace",
+      "space": "\\(2^{\\mathbb R^{X_{n,i}}}\\)",
+      "def": "The space \\(H_{n,i}=\\operatorname{span}\\{x\\mapsto\\prod_{j\\in U}(x_j-(\\pi_n)_j)/\\sqrt{(\\pi_n)_j(1-(\\pi_n)_j)}:U\\in\\mathcal S_{n,i}\\}\\).",
+      "role": "indexed_outcome_space",
+      "refs": [
+        "X_{n,i}",
+        "\\pi_n",
+        "j",
+        "U",
+        "\\mathcal S_{n,i}",
+        "n",
+        "i"
+      ]
+    },
+    {
+      "name": "E_n",
+      "type": "indexed_finite_dimensional_real_Hilbert_space",
+      "space": "\\(\\bigoplus_{i\\in V_n}H_{n,i}\\)",
+      "def": "The row-\\(n\\) direct-sum schedule space equipped with the product-\\(L^2\\) inner product constructed in \\(\\mathrm{def:indexed-hilbert-geometry}\\).",
+      "role": "indexed_parameter_space",
+      "refs": [
+        "V_n",
+        "H_{n,i}",
+        "i",
+        "n"
+      ]
+    },
+    {
+      "name": "\\langle\\cdot,\\cdot\\rangle_{E_n}",
+      "type": "indexed_product_L2_inner_product",
+      "space": "\\(E_n\\times E_n\\to\\mathbb R\\)",
+      "def": "The row-\\(n\\) product-\\(L^2\\) inner product under the source law, constructed in \\(\\mathrm{def:indexed-hilbert-geometry}\\).",
+      "role": "indexed_parameter_geometry",
+      "refs": [
+        "E_n",
+        "\\pi_n",
+        "n"
+      ]
+    },
+    {
+      "name": "v_n",
+      "type": "indexed_potential_outcome_schedule",
+      "space": "\\(E_n\\)",
+      "def": "A fixed row-\\(n\\) schedule vector \\(v_n=(v_{n,i})_{i\\in V_n}\\).",
+      "role": "indexed_causal_schedule",
+      "refs": [
+        "E_n",
+        "V_n",
+        "i",
+        "n"
+      ]
+    },
+    {
+      "name": "\\theta_n",
+      "type": "indexed_target_policy_value_functional",
+      "space": "\\(E_n\\to\\mathbb R\\)",
+      "def": "The row-\\(n\\) target-policy functional constructed in \\(\\mathrm{def:indexed-target-selector-geometry}\\).",
+      "role": "indexed_target_estimand",
+      "refs": [
+        "E_n",
+        "\\pi'_n",
+        "n"
+      ]
+    },
+    {
+      "name": "N_{n,z}",
+      "type": "indexed_selector_operator",
+      "space": "\\(E_n\\to\\mathbb R^{V_n}\\)",
+      "def": "The row-\\(n\\) evaluation selector constructed in \\(\\mathrm{def:indexed-target-selector-geometry}\\).",
+      "role": "indexed_observation_operator",
+      "refs": [
+        "E_n",
+        "V_n",
+        "z",
+        "n"
+      ]
+    },
+    {
+      "name": "N_{n,z}^{\\ast}",
+      "type": "indexed_selector_adjoint",
+      "space": "\\(\\mathbb R^{V_n}\\to E_n\\)",
+      "def": "The adjoint of \\(N_{n,z}\\) relative to \\(\\langle\\cdot,\\cdot\\rangle_{E_n}\\) and the Euclidean inner product \\(\\langle\\cdot,\\cdot\\rangle_{V_n}\\).",
+      "role": "indexed_dual_observation_operator",
+      "refs": [
+        "N_{n,z}",
+        "E_n",
+        "V_n",
+        "\\langle\\cdot,\\cdot\\rangle_{E_n}",
+        "\\langle\\cdot,\\cdot\\rangle_{V_n}",
+        "n",
+        "z"
+      ]
+    },
+    {
+      "name": "\\mathbb S_+^{E_n}",
+      "type": "indexed_positive_semidefinite_cone",
+      "space": "\\(2^{\\mathcal L(E_n)}\\)",
+      "def": "The cone of self-adjoint positive semidefinite operators on the row-\\(n\\) Hilbert space, constructed in \\(\\mathrm{def:indexed-psd-riesz-geometry}\\).",
+      "role": "indexed_moment_operator_domain",
+      "refs": [
+        "E_n",
+        "n"
+      ]
+    },
+    {
+      "name": "M",
+      "type": "row_indexed_second_moment_operator",
+      "space": "\\(\\mathbb S_+^{E_n}\\)",
+      "def": "For a fixed row \\(n\\), a generic positive semidefinite self-adjoint operator \\(M\\) on the Hilbert space \\(E_n\\).",
+      "role": "dual_variable",
+      "refs": [
+        "\\mathbb S_+^{E_n}",
+        "E_n",
+        "n"
+      ]
+    },
+    {
+      "name": "\\ell_n",
+      "type": "indexed_target_Riesz_vector",
+      "space": "\\(E_n\\)",
+      "def": "The unique Riesz vector for \\(\\theta_n\\) in the row-\\(n\\) product-\\(L^2\\) geometry, constructed in \\(\\mathrm{def:indexed-psd-riesz-geometry}\\).",
+      "role": "indexed_target_coordinate",
+      "refs": [
+        "E_n",
+        "\\theta_n",
+        "n"
+      ]
+    },
+    {
+      "name": "K_{n,i}",
+      "type": "indexed_bounded_local_evaluation_polytope",
+      "space": "\\(2^{H_{n,i}}\\)",
+      "def": "The row-\\(n\\) local evaluation polytope constructed in \\(\\mathrm{def:indexed-bounded-fourier-class}\\).",
+      "role": "indexed_local_model_class",
+      "refs": [
+        "H_{n,i}",
+        "X_{n,i}",
+        "n",
+        "i"
+      ]
+    },
+    {
+      "name": "K_n",
+      "type": "indexed_bounded_schedule_class",
+      "space": "\\(2^{E_n}\\)",
+      "def": "The row-\\(n\\) bounded schedule class \\(K_n=\\prod_{i\\in V_n}K_{n,i}\\subset E_n\\), constructed from \\(\\pi_n\\), \\(\\Gamma_{n,i}\\), and \\(\\mathcal S_{n,i}\\).",
+      "role": "triangular_array_model_class",
+      "refs": [
+        "E_n",
+        "K_{n,i}",
+        "\\pi_n",
+        "\\Gamma_{n,i}",
+        "\\mathcal S_{n,i}",
+        "V_n",
+        "i",
+        "n"
+      ]
+    },
+    {
+      "name": "a_{n,z}",
+      "type": "indexed_assignment_weight_vector",
+      "space": "\\(\\mathbb R^{V_n}\\)",
+      "def": "Linear weight vector used after assignment \\(z\\) in row \\(n\\).",
+      "role": "indexed_decision_variable",
+      "refs": [
+        "V_n",
+        "n",
+        "z"
+      ]
+    },
+    {
+      "name": "a_n",
+      "type": "indexed_weight_rule",
+      "space": "\\((\\mathbb R^{V_n})^{\\Omega_n}\\)",
+      "def": "The row-\\(n\\) collection \\(a_n=(a_{n,z})_{z\\in\\Omega_n}\\).",
+      "role": "indexed_semilinear_rule",
+      "refs": [
+        "a_{n,z}",
+        "V_n",
+        "\\Omega_n",
+        "n",
+        "z"
+      ]
+    },
+    {
+      "name": "\\mathfrak M_n(K_n)",
+      "type": "indexed_moment_body",
+      "space": "\\(2^{\\mathbb S_+^{E_n}}\\)",
+      "def": "The row-\\(n\\) convex moment body constructed in \\(\\mathrm{def:moment-body}\\).",
+      "role": "indexed_dual_feasible_set",
+      "refs": [
+        "K_n",
+        "\\mathbb S_+^{E_n}",
+        "E_n",
+        "n"
+      ]
+    },
+    {
+      "name": "\\psi_{n,z}(M)",
+      "type": "indexed_linear_prediction_residual",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The row-\\(n\\), assignment-specific generalized least-squares residual, with domain and pseudoinverse convention fixed in \\(\\mathrm{def:moment-dual}\\).",
+      "role": "indexed_dual_objective",
+      "refs": [
+        "n",
+        "z",
+        "M",
+        "\\ell_n",
+        "N_{n,z}",
+        "N_{n,z}^{\\ast}",
+        "\\mathbb S_+^{E_n}"
+      ]
+    },
+    {
+      "name": "\\mathcal D_n",
+      "type": "indexed_moment_dual_value",
+      "space": "\\([0,1]\\)",
+      "def": "The row-\\(n\\) moment-body dual value constructed in \\(\\mathrm{def:moment-dual}\\).",
+      "role": "indexed_dual_frontier",
+      "refs": [
+        "\\mathfrak M_n(K_n)",
+        "\\psi_{n,z}(M)",
+        "p_{\\pi_n}(z)",
+        "n",
+        "z"
+      ]
+    },
+    {
+      "name": "\\mathfrak M(K)",
+      "type": "moment_body",
+      "space": "\\(2^{\\mathbb S_+^E}\\)",
+      "def": "Convex hull of rank-one schedule moments constructed in \\(\\mathrm{def:moment-body}\\).",
+      "role": "dual_feasible_set",
+      "refs": [
+        "K",
+        "E"
+      ]
+    },
+    {
+      "name": "\\psi_z(M)",
+      "type": "linear_prediction_residual",
+      "space": "\\([0,\\infty)\\)",
+      "def": "Assignment-specific generalized least-squares residual constructed in \\(\\mathrm{def:moment-dual}\\).",
+      "role": "dual_objective",
+      "refs": [
+        "z",
+        "M",
+        "\\ell",
+        "N_z"
+      ]
+    },
+    {
+      "name": "\\mathcal D",
+      "type": "moment_dual_value",
+      "space": "\\([0,1]\\)",
+      "def": "Moment-body dual value constructed in \\(\\mathrm{def:moment-dual}\\).",
+      "role": "dual_frontier",
+      "refs": [
+        "\\mathfrak M(K)",
+        "\\psi_z(M)",
+        "p_{\\pi}(z)",
+        "M",
+        "z"
+      ]
+    },
+    {
+      "name": "\\mathfrak H_{\\mathrm{prior}}",
+      "type": "prior_rounding_handle",
+      "space": "\\(\\text{method handle}\\)",
+      "def": "Structure-preserving prior-rounding handle constructed in \\(\\mathrm{def:prior-rounding-handle}\\).",
+      "role": "open_question_handle",
+      "refs": [
+        "\\mathfrak M(K)",
+        "N_z",
+        "K"
+      ]
+    },
+    {
+      "name": "\\mathfrak H_{\\mathrm{tw}}",
+      "type": "treewidth_localization_handle",
+      "space": "\\(\\text{method handle}\\)",
+      "def": "Bag-local moment and epigraph elimination handle constructed in \\(\\mathrm{def:treewidth-handle}\\).",
+      "role": "open_question_handle",
+      "refs": [
+        "\\mathcal I",
+        "\\mathfrak M(K)",
+        "F"
+      ]
+    },
+    {
+      "name": "F_n",
+      "type": "indexed_linear_minimax_MSE",
+      "space": "\\([0,1]\\)",
+      "def": "The row-\\(n\\) linear frontier defined directly from \\(E_n\\), \\(K_n\\), \\(N_{n,z}\\), \\(\\theta_n\\), and source policy \\(\\pi_n\\) in \\(\\mathrm{def:indexed-frontiers}\\).",
+      "role": "consistency_frontier",
+      "refs": [
+        "n",
+        "E_n",
+        "K_n",
+        "N_{n,z}",
+        "\\theta_n",
+        "p_{\\pi_n}(z)",
+        "a_n"
+      ]
+    },
+    {
+      "name": "R_n^{\\star}",
+      "type": "indexed_unrestricted_minimax_MSE",
+      "space": "\\([0,1]\\)",
+      "def": "The row-\\(n\\) unrestricted minimax risk defined directly from \\(E_n\\), \\(K_n\\), \\(N_{n,z}\\), \\(\\theta_n\\), and source policy \\(\\pi_n\\) in \\(\\mathrm{def:indexed-frontiers}\\).",
+      "role": "consistency_benchmark",
+      "refs": [
+        "n",
+        "E_n",
+        "K_n",
+        "N_{n,z}",
+        "\\theta_n",
+        "p_{\\pi_n}(z)",
+        "\\delta"
+      ]
+    },
+    {
+      "name": "\\mathfrak A",
+      "type": "triangular_array",
+      "space": "\\(\\text{sequences of indexed finite experiments}\\)",
+      "def": "The sequence \\(\\mathfrak A=((G_n,\\pi_n,\\pi'_n,(\\Gamma_{n,i},\\mathcal S_{n,i},X_{n,i},H_{n,i},K_{n,i})_{i\\in V_n},E_n,\\langle\\cdot,\\cdot\\rangle_{E_n},\\theta_n,(N_{n,z},N_{n,z}^{\\ast})_{z\\in\\Omega_n},K_n,F_n,R_n^{\\star}))_{n\\ge1}\\).",
+      "role": "asymptotic_experiment",
+      "refs": [
+        "G_n",
+        "\\pi_n",
+        "\\pi'_n",
+        "\\Gamma_{n,i}",
+        "\\mathcal S_{n,i}",
+        "X_{n,i}",
+        "H_{n,i}",
+        "K_{n,i}",
+        "i",
+        "V_n",
+        "E_n",
+        "\\langle\\cdot,\\cdot\\rangle_{E_n}",
+        "\\theta_n",
+        "N_{n,z}",
+        "N_{n,z}^{\\ast}",
+        "z",
+        "\\Omega_n",
+        "K_n",
+        "F_n",
+        "R_n^{\\star}",
+        "n"
+      ]
+    },
+    {
+      "name": "\\mathsf{Adm}",
+      "type": "admissible_triangular_array_class",
+      "space": "\\(\\text{class of triangular arrays}\\)",
+      "def": "Class of admissible triangular arrays constructed in \\(\\mathrm{def:admissible-triangular-array}\\).",
+      "role": "asymptotic_quantifier_domain",
+      "refs": [
+        "\\mathfrak A"
+      ]
+    },
+    {
+      "name": "\\mathsf C(c_0,\\mathfrak A)",
+      "type": "common_comparison_predicate",
+      "space": "\\(\\{\\mathrm{true},\\mathrm{false}\\}\\)",
+      "def": "Uniform comparison predicate constructed in \\(\\mathrm{def:common-comparison}\\).",
+      "role": "uniform_constant_quantifier",
+      "refs": [
+        "c_0",
+        "\\mathfrak A"
+      ]
+    },
+    {
+      "name": "\\mathcal H_n^{\\mathrm{hub}}",
+      "type": "hub_separating_family",
+      "space": "\\(\\text{admissible instances}\\)",
+      "def": "Overlapping additive-hub family constructed in \\(\\mathrm{def:hub-family}\\).",
+      "role": "separating_family",
+      "refs": [
+        "n",
+        "V_n",
+        "p",
+        "q",
+        "\\Gamma_i",
+        "\\mathcal S_i"
+      ]
+    },
+    {
+      "name": "D_n^{\\mathrm{LE}}",
+      "type": "anchor_overlap_degree",
+      "space": "\\(\\{0,\\ldots,n-1\\}\\)",
+      "def": "The exact spectral-overlap degree \\(D_n^{\\mathrm{LE}}=\\max_{i\\in V_n}|\\{j\\in V_n\\setminus\\{i\\}:\\Gamma_i\\cap\\Gamma_j\\ne\\varnothing\\}|\\), constructed in \\(\\mathrm{def:loomba-eckles-spectral-envelope}\\).",
+      "role": "comparator_quantity",
+      "refs": [
+        "n",
+        "V_n",
+        "i",
+        "j",
+        "\\Gamma_i"
+      ]
+    },
+    {
+      "name": "m",
+      "type": "motif_repetition_count",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Number of assignment-independent copies of a fixed local motif.",
+      "role": "tensorization_index"
+    },
+    {
+      "name": "\\mathfrak m",
+      "type": "fixed_admissible_motif",
+      "space": "\\(\\text{finite admissible instance}\\)",
+      "def": "A fixed finite source-target Fourier observation motif.",
+      "role": "motif_template"
+    },
+    {
+      "name": "u_{\\mathfrak m}",
+      "type": "motif_unbiased_rule",
+      "space": "\\(\\text{local decision rules}\\)",
+      "def": "A bounded unbiased local rule for the motif target.",
+      "role": "motif_upper_witness",
+      "refs": [
+        "\\mathfrak m"
+      ]
+    },
+    {
+      "name": "\\nu_{\\mathfrak m}",
+      "type": "motif_genuine_prior",
+      "space": "\\(\\mathcal P(\\text{bounded schedules of }\\mathfrak m)\\)",
+      "def": "A symmetric genuine prior supported on the motif schedule class.",
+      "role": "motif_lower_witness",
+      "refs": [
+        "\\mathfrak m"
+      ]
+    },
+    {
+      "name": "\\sigma_{\\mathfrak m}^2",
+      "type": "motif_upper_constant",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Worst-case risk of \\(u_{\\mathfrak m}\\) on one motif.",
+      "role": "motif_rate_constant",
+      "refs": [
+        "u_{\\mathfrak m}",
+        "\\mathfrak m"
+      ]
+    },
+    {
+      "name": "b_{\\mathfrak m}",
+      "type": "motif_ambiguity_constant",
+      "space": "\\((0,1]\\)",
+      "def": "Positive one-motif posterior ambiguity under \\(\\nu_{\\mathfrak m}\\).",
+      "role": "motif_lower_constant",
+      "refs": [
+        "\\nu_{\\mathfrak m}",
+        "\\mathfrak m"
+      ]
+    },
+    {
+      "name": "\\mathfrak m^{\\sqcup m}",
+      "type": "disjoint_motif_family",
+      "space": "\\(\\text{admissible instances}\\)",
+      "def": "Disjoint union of \\(m\\) assignment-independent copies of \\(\\mathfrak m\\), with the target averaged across copies.",
+      "role": "recovery_family",
+      "refs": [
+        "\\mathfrak m",
+        "m"
+      ]
+    },
+    {
+      "name": "F_m^{\\sqcup}",
+      "type": "motif_linear_frontier",
+      "space": "\\([0,1]\\)",
+      "def": "Linear frontier for \\(\\mathfrak m^{\\sqcup m}\\).",
+      "role": "recovery_frontier",
+      "refs": [
+        "F",
+        "\\mathfrak m^{\\sqcup m}"
+      ]
+    },
+    {
+      "name": "R_m^{\\star,\\sqcup}",
+      "type": "motif_unrestricted_frontier",
+      "space": "\\([0,1]\\)",
+      "def": "Unrestricted minimax risk for \\(\\mathfrak m^{\\sqcup m}\\).",
+      "role": "recovery_benchmark",
+      "refs": [
+        "R^{\\star}",
+        "\\mathfrak m^{\\sqcup m}"
+      ]
+    },
+    {
+      "name": "\\Delta_U^{\\pi,\\pi'}",
+      "type": "Fourier_policy_shift_coefficient",
+      "space": "\\(\\mathbb R\\)",
+      "def": "The coefficient \\(\\Delta_U^{\\pi,\\pi'}=\\prod_{j\\in U}(\\pi'_j-\\pi_j)/\\sqrt{\\pi_j(1-\\pi_j)}\\), with empty product one, loading the source-policy Fourier character indexed by \\(U\\) under the target policy.",
+      "role": "comparator_loading",
+      "refs": [
+        "\\pi",
+        "\\pi'",
+        "U",
+        "j"
+      ]
+    },
+    {
+      "name": "W_i^{\\mathrm{LE}}",
+      "type": "unit_level_spectral_transport_weight",
+      "space": "\\(\\Omega_n\\to\\mathbb R\\)",
+      "def": "The Loomba--Eckles retained-support spectral transport weight constructed in \\(\\mathrm{def:loomba-eckles-spectral-envelope}\\).",
+      "role": "comparator_weight",
+      "refs": [
+        "\\Omega_n",
+        "i",
+        "\\mathcal S_i",
+        "\\Delta_U^{\\pi,\\pi'}",
+        "\\chi_{i,U}^{\\pi}"
+      ]
+    },
+    {
+      "name": "B_n^{\\mathrm{LE}}",
+      "type": "anchor_second_moment_envelope",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The smallest uniform bounded-class second-moment envelope for the Loomba--Eckles unit EAO summands, constructed in \\(\\mathrm{def:loomba-eckles-spectral-envelope}\\).",
+      "role": "comparator_quantity",
+      "refs": [
+        "n",
+        "V_n",
+        "i",
+        "K_i",
+        "W_i^{\\mathrm{LE}}",
+        "z",
+        "\\Omega_n",
+        "p_{\\pi}(z)"
+      ]
+    },
+    {
+      "name": "h",
+      "type": "schedule_direction",
+      "space": "\\(E\\)",
+      "def": "Generic bounded-schedule direction used in a selector fiber.",
+      "role": "fiber_argument",
+      "refs": [
+        "E"
+      ]
+    },
+    {
+      "name": "M^{\\star}",
+      "type": "minimum_rank_dual_optimizer",
+      "space": "\\(\\mathfrak M(K)\\)",
+      "def": "When \\(F>0\\), a maximizer of \\(\\mathcal D\\) having minimum rank among all maximizers.",
+      "role": "adaptive_dual_optimizer",
+      "refs": [
+        "F",
+        "\\mathcal D",
+        "\\mathfrak M(K)"
+      ]
+    },
+    {
+      "name": "r_{\\star}",
+      "type": "adaptive_dual_rank",
+      "space": "\\(\\mathbb N\\)",
+      "def": "For \\(F>0\\), \\(r_{\\star}=\\operatorname{rank}(M^{\\star})\\); for \\(F=0\\), \\(r_{\\star}=1\\).",
+      "role": "rank_complexity",
+      "refs": [
+        "F",
+        "M^{\\star}"
+      ]
+    },
+    {
+      "name": "\\rho_z",
+      "type": "selector_fiber_radius",
+      "space": "\\([0,1]\\)",
+      "def": "Maximum absolute target contrast among bounded schedules invisible under selector \\(N_z\\).",
+      "role": "fiber_ambiguity",
+      "refs": [
+        "z",
+        "N_z",
+        "K",
+        "\\theta"
+      ]
+    },
+    {
+      "name": "S_{\\mathrm{fib}}",
+      "type": "average_fiber_complexity",
+      "space": "\\([0,1]\\)",
+      "def": "Source-probability-weighted sum of squared selector-fiber radii.",
+      "role": "fiber_upper_certificate",
+      "refs": [
+        "p_{\\pi}(z)",
+        "\\rho_z",
+        "z",
+        "\\Omega_n"
+      ]
+    },
+    {
+      "name": "m_{\\mathrm{fib}}",
+      "type": "largest_weighted_fiber_ambiguity",
+      "space": "\\([0,1]\\)",
+      "def": "Largest source-probability-weighted squared selector-fiber radius.",
+      "role": "fiber_lower_certificate",
+      "refs": [
+        "p_{\\pi}(z)",
+        "\\rho_z",
+        "z",
+        "\\Omega_n"
+      ]
+    },
+    {
+      "name": "\\kappa_{\\mathrm{fib}}",
+      "type": "effective_selector_fiber_count",
+      "space": "\\([1,2^n]\\)",
+      "def": "Ratio \\(S_{\\mathrm{fib}}/m_{\\mathrm{fib}}\\) when \\(m_{\\mathrm{fib}}>0\\), and one otherwise.",
+      "role": "fiber_complexity",
+      "refs": [
+        "S_{\\mathrm{fib}}",
+        "m_{\\mathrm{fib}}",
+        "n"
+      ]
+    },
+    {
+      "name": "\\kappa",
+      "type": "instance_adaptive_comparison_complexity",
+      "space": "\\([1,2^n]\\)",
+      "def": "Minimum of the dual-rank and effective-fiber complexities, with value one in the zero-fiber case.",
+      "role": "comparison_factor",
+      "refs": [
+        "r_{\\star}",
+        "\\kappa_{\\mathrm{fib}}",
+        "m_{\\mathrm{fib}}",
+        "n"
+      ]
+    },
+    {
+      "name": "\\nu_z",
+      "type": "selector_fiber_two_point_prior",
+      "space": "\\(\\mathcal P(K)\\)",
+      "def": "A symmetric genuine prior supported on a pair of opposite schedules in \\(K\\cap\\ker N_z\\) attaining \\(\\rho_z\\).",
+      "role": "fiber_lower_bound_certificate",
+      "refs": [
+        "K",
+        "N_z",
+        "z",
+        "\\rho_z"
+      ]
+    },
+    {
+      "name": "M_n^{\\star}",
+      "type": "indexed_minimum_rank_dual_optimizer",
+      "space": "\\(\\mathfrak M_n(K_n)\\)",
+      "def": "Row-\\(n\\) minimum-rank maximizer of \\(\\mathcal D_n\\) when \\(F_n>0\\).",
+      "role": "indexed_adaptive_dual_optimizer",
+      "refs": [
+        "n",
+        "F_n",
+        "\\mathcal D_n",
+        "\\mathfrak M_n(K_n)"
+      ]
+    },
+    {
+      "name": "r_n",
+      "type": "indexed_adaptive_dual_rank",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Row-\\(n\\) version of \\(r_{\\star}\\).",
+      "role": "indexed_rank_complexity",
+      "refs": [
+        "n",
+        "M_n^{\\star}",
+        "F_n"
+      ]
+    },
+    {
+      "name": "\\rho_{n,z}",
+      "type": "indexed_selector_fiber_radius",
+      "space": "\\([0,1]\\)",
+      "def": "Row-\\(n\\) selector-fiber radius for assignment \\(z\\).",
+      "role": "indexed_fiber_ambiguity",
+      "refs": [
+        "n",
+        "z",
+        "K_n",
+        "N_{n,z}",
+        "\\theta_n"
+      ]
+    },
+    {
+      "name": "S_{n,\\mathrm{fib}}",
+      "type": "indexed_average_fiber_complexity",
+      "space": "\\([0,1]\\)",
+      "def": "Row-\\(n\\) source-weighted sum of squared fiber radii.",
+      "role": "indexed_fiber_upper_certificate",
+      "refs": [
+        "n",
+        "p_{\\pi_n}(z)",
+        "\\rho_{n,z}",
+        "z",
+        "\\Omega_n"
+      ]
+    },
+    {
+      "name": "m_{n,\\mathrm{fib}}",
+      "type": "indexed_largest_weighted_fiber_ambiguity",
+      "space": "\\([0,1]\\)",
+      "def": "Row-\\(n\\) largest source-weighted squared fiber radius.",
+      "role": "indexed_fiber_lower_certificate",
+      "refs": [
+        "n",
+        "p_{\\pi_n}(z)",
+        "\\rho_{n,z}",
+        "z",
+        "\\Omega_n"
+      ]
+    },
+    {
+      "name": "\\kappa_{n,\\mathrm{fib}}",
+      "type": "indexed_effective_selector_fiber_count",
+      "space": "\\([1,2^n]\\)",
+      "def": "Row-\\(n\\) effective selector-fiber count.",
+      "role": "indexed_fiber_complexity",
+      "refs": [
+        "n",
+        "S_{n,\\mathrm{fib}}",
+        "m_{n,\\mathrm{fib}}"
+      ]
+    },
+    {
+      "name": "\\kappa_n",
+      "type": "indexed_instance_adaptive_comparison_complexity",
+      "space": "\\([1,2^n]\\)",
+      "def": "Row-\\(n\\) minimum of the rank and effective-fiber complexities, with the zero-case convention.",
+      "role": "indexed_comparison_factor",
+      "refs": [
+        "n",
+        "r_n",
+        "\\kappa_{n,\\mathrm{fib}}",
+        "m_{n,\\mathrm{fib}}"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:source-product-design",
+      "kind": "randomization",
+      "condition": "The source assignment mass satisfies \\(p_{\\pi}(z)=\\prod_{j\\in V_n}\\pi_j^{z_j}(1-\\pi_j)^{1-z_j}\\) for every \\(z\\in\\Omega_n\\).",
+      "free_symbols": [
+        "p_{\\pi}(z)",
+        "\\pi",
+        "z",
+        "j",
+        "V_n",
+        "\\Omega_n"
+      ],
+      "standard": {
+        "name": "Heterogeneous product-Bernoulli randomization",
+        "cite": "LoombaEckles2026OffPolicy"
+      },
+      "used_by": [
+        "def:admissible-triangular-array",
+        "lem:hub-frontier-rate-sandwich",
+        "lem:hub-loomba-eckles-envelope",
+        "lem:loomba-eckles-spectral-overlap-envelope",
+        "lem:rank-fiber-genuine-prior-certificates",
+        "lem:selector-reduction-and-dual",
+        "oeq:prior-rounding",
+        "oeq:treewidth-exactness",
+        "prop:raw-incidence-bag-moment-obstruction",
+        "thm:additive-one-hub-exact-minimax"
+      ]
+    },
+    {
+      "id": "ass:source-overlap",
+      "kind": "support",
+      "condition": "The source probabilities satisfy \\(\\varepsilon\\le\\pi_j\\le1-\\varepsilon\\) for every \\(j\\in V_n\\).",
+      "free_symbols": [
+        "\\varepsilon",
+        "\\pi",
+        "j",
+        "V_n"
+      ],
+      "standard": {
+        "name": "Uniform Bernoulli overlap",
+        "cite": "LoombaEckles2026OffPolicy"
+      },
+      "used_by": [
+        "def:admissible-triangular-array",
+        "lem:hub-frontier-rate-sandwich",
+        "lem:hub-loomba-eckles-envelope",
+        "lem:rank-fiber-genuine-prior-certificates",
+        "lem:selector-reduction-and-dual",
+        "oeq:prior-rounding",
+        "oeq:treewidth-exactness",
+        "prop:raw-incidence-bag-moment-obstruction",
+        "thm:additive-one-hub-exact-minimax",
+        "thm:hub-separation"
+      ]
+    },
+    {
+      "id": "ass:target-product-policy",
+      "kind": "randomization",
+      "condition": "The target assignment mass satisfies \\(p_{\\pi'}(z)=\\prod_{j\\in V_n}(\\pi'_j)^{z_j}(1-\\pi'_j)^{1-z_j}\\) for every \\(z\\in\\Omega_n\\).",
+      "free_symbols": [
+        "p_{\\pi'}(z)",
+        "\\pi'",
+        "z",
+        "j",
+        "V_n",
+        "\\Omega_n"
+      ],
+      "standard": {
+        "name": "Heterogeneous product-Bernoulli target policy",
+        "cite": "LoombaEckles2026OffPolicy"
+      },
+      "used_by": [
+        "def:admissible-triangular-array",
+        "lem:hub-frontier-rate-sandwich",
+        "lem:loomba-eckles-spectral-overlap-envelope",
+        "lem:rank-fiber-genuine-prior-certificates",
+        "oeq:prior-rounding",
+        "prop:raw-incidence-bag-moment-obstruction",
+        "thm:additive-one-hub-exact-minimax"
+      ]
+    },
+    {
+      "id": "ass:target-overlap",
+      "kind": "support",
+      "condition": "The target probabilities satisfy \\(\\varepsilon\\le\\pi'_j\\le1-\\varepsilon\\) for every \\(j\\in V_n\\).",
+      "free_symbols": [
+        "\\varepsilon",
+        "\\pi'",
+        "j",
+        "V_n"
+      ],
+      "standard": {
+        "name": "Uniform target-policy positivity",
+        "cite": "ChinEcklesUgander2022"
+      },
+      "used_by": [
+        "def:admissible-triangular-array",
+        "lem:hub-frontier-rate-sandwich",
+        "lem:hub-loomba-eckles-envelope",
+        "lem:rank-fiber-genuine-prior-certificates",
+        "oeq:prior-rounding",
+        "prop:raw-incidence-bag-moment-obstruction",
+        "thm:additive-one-hub-exact-minimax",
+        "thm:hub-separation"
+      ]
+    },
+    {
+      "id": "ass:hierarchical-support",
+      "kind": "causal-structural",
+      "condition": "Each retained support is downward closed: if \\(U\\in\\mathcal S_i\\) and \\(W\\subseteq U\\), then \\(W\\in\\mathcal S_i\\).",
+      "free_symbols": [
+        "U",
+        "W",
+        "\\mathcal S_i",
+        "i"
+      ],
+      "standard": {
+        "name": "Hierarchical low-order interaction support",
+        "cite": "CortezRodriguezEichhornYu2023"
+      },
+      "used_by": [
+        "def:admissible-triangular-array",
+        "oeq:prior-rounding",
+        "oeq:treewidth-exactness",
+        "prop:raw-incidence-bag-moment-obstruction",
+        "thm:additive-one-hub-exact-minimax"
+      ]
+    },
+    {
+      "id": "ass:fourier-membership",
+      "kind": "causal-structural",
+      "condition": "For every \\(i\\in V_n\\), the local schedule satisfies \\(v_i\\in H_i\\).",
+      "free_symbols": [
+        "i",
+        "V_n",
+        "v_i",
+        "H_i"
+      ],
+      "standard": {
+        "name": "Prespecified local Fourier-subspace restriction",
+        "cite": "LoombaEckles2026OffPolicy"
+      },
+      "used_by": [
+        "def:admissible-triangular-array",
+        "def:bounded-fourier-class",
+        "def:indexed-bounded-fourier-class",
+        "def:local-evaluation-polytope"
+      ]
+    },
+    {
+      "id": "ass:bounded-schedules",
+      "kind": "support",
+      "condition": "For every \\(i\\in V_n\\) and \\(x\\in X_i\\), \\( |v_i(x)|\\le1\\).",
+      "free_symbols": [
+        "i",
+        "V_n",
+        "X_i",
+        "x",
+        "v_i"
+      ],
+      "standard": {
+        "name": "Uniformly bounded finite-population potential outcomes",
+        "cite": "ChenValiantValiant2020"
+      },
+      "used_by": [
+        "def:admissible-triangular-array",
+        "def:bounded-fourier-class",
+        "def:indexed-bounded-fourier-class",
+        "def:local-evaluation-polytope",
+        "lem:rank-fiber-genuine-prior-certificates",
+        "oeq:prior-rounding",
+        "prop:primal-dual-certificates",
+        "thm:additive-one-hub-exact-minimax"
+      ]
+    },
+    {
+      "id": "ass:fixed-schedules",
+      "kind": "causal-structural",
+      "condition": "The schedule vector \\(v\\) is fixed before the source assignment \\(z\\) is drawn.",
+      "free_symbols": [
+        "v",
+        "z",
+        "p_{\\pi}(z)"
+      ],
+      "standard": {
+        "name": "Neyman finite-population design-based convention",
+        "cite": "KandirosHarshawSavje2026Minimax"
+      },
+      "used_by": [
+        "def:admissible-triangular-array",
+        "lem:rank-fiber-genuine-prior-certificates",
+        "lem:selector-reduction-and-dual",
+        "oeq:prior-rounding",
+        "prop:raw-incidence-bag-moment-obstruction",
+        "thm:additive-one-hub-exact-minimax"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:local-fourier-character",
+      "name": "Source-policy local Fourier character",
+      "construction": "For \\(x\\in X_i\\) and \\(U\\subseteq\\Gamma_i\\), set \\(\\chi_{i,U}^{\\pi}(x)=\\prod_{j\\in U}(x_j-\\pi_j)/\\sqrt{\\pi_j(1-\\pi_j)}\\), with \\(\\chi_{i,\\varnothing}^{\\pi}=1\\).",
+      "free_symbols": [
+        "X_i",
+        "x",
+        "U",
+        "\\Gamma_i",
+        "\\chi_{i,U}^{\\pi}",
+        "\\pi",
+        "j",
+        "i"
+      ],
+      "inputs": [
+        "X_i",
+        "U",
+        "\\pi"
+      ],
+      "revision": "rev:a0b8bdb4756baa35b11d783eb55348b4eed5436fab5dbbde1f3c0ab5f7023681"
+    },
+    {
+      "id": "def:local-fourier-space",
+      "name": "Retained local Fourier space",
+      "construction": "\\(H_i=\\operatorname{span}\\{\\chi_{i,U}^{\\pi}:U\\in\\mathcal S_i\\}\\subseteq\\mathbb R^{X_i}\\).",
+      "free_symbols": [
+        "H_i",
+        "\\chi_{i,U}^{\\pi}",
+        "U",
+        "\\mathcal S_i",
+        "X_i",
+        "i"
+      ],
+      "inputs": [
+        "\\mathcal S_i",
+        "\\chi_{i,U}^{\\pi}"
+      ],
+      "revision": "rev:ec9a8a62737028c8dc76a4567647b4fcb186acfdfc398d6b99683854a0858480"
+    },
+    {
+      "id": "def:local-evaluation-polytope",
+      "name": "Bounded local Fourier evaluation polytope",
+      "construction": "\\(K_i=\\{v_i\\in H_i: |v_i(x)|\\le1\\text{ for every }x\\in X_i\\}\\).",
+      "free_symbols": [
+        "K_i",
+        "v_i",
+        "H_i",
+        "X_i",
+        "x",
+        "i"
+      ],
+      "by_member_properties": [
+        "ass:fourier-membership",
+        "ass:bounded-schedules"
+      ],
+      "revision": "rev:1f4e289d8ddbda34f001d60e6760436b4ea7291d09b9a917afd2a523dca73afe"
+    },
+    {
+      "id": "def:bounded-fourier-class",
+      "name": "Bounded local-Fourier schedule class",
+      "construction": "\\(K=\\{v=(v_i)_{i\\in V_n}\\in E: v_i\\in H_i\\text{ and }|v_i(x)|\\le1\\text{ for every }i\\in V_n,\\ x\\in X_i\\}=\\prod_{i\\in V_n}K_i\\).",
+      "free_symbols": [
+        "K",
+        "v",
+        "v_i",
+        "i",
+        "V_n",
+        "E",
+        "H_i",
+        "X_i",
+        "x",
+        "K_i"
+      ],
+      "by_member_properties": [
+        "ass:fourier-membership",
+        "ass:bounded-schedules"
+      ],
+      "revision": "rev:8ff02a74483e3b79aee65486b9f90e64c4b7b4ab7608dc4d01f1ce9413e68567"
+    },
+    {
+      "id": "def:local-target-mass",
+      "name": "Target local-cell probability",
+      "construction": "\\(p_{\\pi',i}(x)=\\sum_{z\\in\\Omega_n:z_{\\Gamma_i}=x}p_{\\pi'}(z)\\).",
+      "free_symbols": [
+        "p_{\\pi',i}(x)",
+        "i",
+        "x",
+        "z",
+        "\\Omega_n",
+        "\\Gamma_i",
+        "p_{\\pi'}(z)"
+      ],
+      "inputs": [
+        "p_{\\pi'}(z)",
+        "i",
+        "x"
+      ],
+      "revision": "rev:a0c42f852f76b617810e3b1d9637af0bc54240d823e943c4595eaf5261c7d427"
+    },
+    {
+      "id": "def:target-value",
+      "name": "Target-policy expected average outcome",
+      "construction": "\\(\\theta(v)=n^{-1}\\sum_{i\\in V_n}\\sum_{x\\in X_i}p_{\\pi',i}(x)v_i(x)\\).",
+      "free_symbols": [
+        "\\theta",
+        "v",
+        "n",
+        "i",
+        "V_n",
+        "X_i",
+        "x",
+        "p_{\\pi',i}(x)",
+        "v_i"
+      ],
+      "inputs": [
+        "v",
+        "p_{\\pi',i}(x)"
+      ],
+      "revision": "rev:196e318d859577ef17c6f811397d4b248f7bd0f6e24b21a6bcece073bf134367"
+    },
+    {
+      "id": "def:observation-operator",
+      "name": "Selector observation operator",
+      "construction": "For each \\(z\\in\\Omega_n\\), \\(N_z:E\\to\\mathbb R^{V_n}\\) is defined by \\((N_zv)_i=v_i(z_{\\Gamma_i})\\), so \\(o_z(v)=N_zv\\).",
+      "free_symbols": [
+        "z",
+        "\\Omega_n",
+        "N_z",
+        "E",
+        "V_n",
+        "v",
+        "i",
+        "v_i",
+        "\\Gamma_i",
+        "o_z(v)"
+      ],
+      "inputs": [
+        "z",
+        "v"
+      ],
+      "revision": "rev:e183c38abd3ae693aa6f36899b23aecdbd26a5db60345488e1e676746321a189"
+    },
+    {
+      "id": "def:semilinear-rule",
+      "name": "Assignment-indexed linear rule",
+      "construction": "For \\(a=(a_z)_{z\\in\\Omega_n}\\), define \\(\\delta_a(z,N_zv)=a_z^{\\mathsf T}N_zv\\).",
+      "free_symbols": [
+        "a",
+        "a_z",
+        "z",
+        "\\Omega_n",
+        "\\delta_a",
+        "N_z",
+        "v"
+      ],
+      "inputs": [
+        "a",
+        "z",
+        "N_z"
+      ],
+      "revision": "rev:92aaa0e0d44b2959dda7c78b89cc1f94fbcd9babf7b093d900ac4498c2afa61f"
+    },
+    {
+      "id": "def:linear-frontier",
+      "name": "Probability-weighted Fourier exposure-incidence frontier",
+      "construction": "\\(F=\\inf_{a\\in(\\mathbb R^{V_n})^{\\Omega_n}}\\sup_{v\\in K}\\sum_{z\\in\\Omega_n}p_{\\pi}(z)\\bigl(a_z^{\\mathsf T}N_zv-\\theta(v)\\bigr)^2\\).",
+      "free_symbols": [
+        "F",
+        "a",
+        "V_n",
+        "\\Omega_n",
+        "v",
+        "K",
+        "z",
+        "p_{\\pi}(z)",
+        "a_z",
+        "N_z",
+        "\\theta"
+      ],
+      "inputs": [
+        "p_{\\pi}(z)",
+        "N_z",
+        "K",
+        "\\theta"
+      ],
+      "revision": "rev:465a4be5d6352680497da3a2258df470252b4f9be5f6e0340c526d8f6e896092"
+    },
+    {
+      "id": "def:unrestricted-frontier",
+      "name": "Unrestricted design-based minimax risk",
+      "construction": "\\(R^{\\star}=\\inf_{\\delta\\ \\mathrm{Borel}}\\sup_{v\\in K}\\sum_{z\\in\\Omega_n}p_{\\pi}(z)\\bigl(\\delta(z,N_zv)-\\theta(v)\\bigr)^2\\).",
+      "free_symbols": [
+        "R^{\\star}",
+        "\\delta",
+        "v",
+        "K",
+        "z",
+        "\\Omega_n",
+        "p_{\\pi}(z)",
+        "N_z",
+        "\\theta"
+      ],
+      "inputs": [
+        "p_{\\pi}(z)",
+        "N_z",
+        "K",
+        "\\theta"
+      ],
+      "revision": "rev:9f7b0efab99b8c2b66944cea17e7964385a1508ce6e9ca38b060e7d4be3721ad"
+    },
+    {
+      "id": "def:indexed-hilbert-geometry",
+      "name": "Indexed product-\\(L^2\\) schedule Hilbert space",
+      "construction": "For every \\(n\\ge1\\) and \\(i\\in V_n\\), let \\(X_{n,i}=\\{0,1\\}^{\\Gamma_{n,i}}\\) and \\(H_{n,i}=\\operatorname{span}\\{x\\mapsto\\prod_{j\\in U}(x_j-(\\pi_n)_j)/\\sqrt{(\\pi_n)_j(1-(\\pi_n)_j)}:U\\in\\mathcal S_{n,i}\\}\\). Define \\(E_n=\\bigoplus_{i\\in V_n}H_{n,i}\\) and, for \\(f,g\\in E_n\\), \\(\\langle f,g\\rangle_{E_n}=\\sum_{i\\in V_n}\\sum_{z\\in\\Omega_n}p_{\\pi_n}(z)f_i(z_{\\Gamma_{n,i}})g_i(z_{\\Gamma_{n,i}})\\), where \\(p_{\\pi_n}(z)=\\prod_{j\\in V_n}(\\pi_n)_j^{z_j}(1-(\\pi_n)_j)^{1-z_j}\\). Also fix \\(\\langle r,s\\rangle_{V_n}=\\sum_{i\\in V_n}r_is_i\\) on \\(\\mathbb R^{V_n}\\). Positivity of \\(\\pi_n\\) makes \\(E_n\\) a finite-dimensional real Hilbert space.",
+      "free_symbols": [
+        "n",
+        "i",
+        "V_n",
+        "X_{n,i}",
+        "\\Gamma_{n,i}",
+        "H_{n,i}",
+        "U",
+        "j",
+        "\\pi_n",
+        "\\mathcal S_{n,i}",
+        "E_n",
+        "z",
+        "\\Omega_n",
+        "p_{\\pi_n}(z)",
+        "\\langle\\cdot,\\cdot\\rangle_{E_n}",
+        "\\langle\\cdot,\\cdot\\rangle_{V_n}"
+      ],
+      "inputs": [
+        "G_n",
+        "\\pi_n",
+        "p_{\\pi_n}(z)",
+        "\\Gamma_{n,i}",
+        "\\mathcal S_{n,i}"
+      ],
+      "revision": "rev:828de359bce41c295c4a7ac6c8a5c1560ce9820a122ca9633948be4caa929980"
+    },
+    {
+      "id": "def:indexed-target-selector-geometry",
+      "name": "Indexed target functional, selector, and adjoint",
+      "construction": "For every \\(n\\ge1\\), define \\(\\theta_n(v_n)=n^{-1}\\sum_{i\\in V_n}\\sum_{z\\in\\Omega_n}p_{\\pi'_n}(z)v_{n,i}(z_{\\Gamma_{n,i}})\\), where \\(p_{\\pi'_n}(z)=\\prod_{j\\in V_n}(\\pi'_n)_j^{z_j}(1-(\\pi'_n)_j)^{1-z_j}\\). For each \\(z\\in\\Omega_n\\), define \\(N_{n,z}:E_n\\to\\mathbb R^{V_n}\\) by \\((N_{n,z}v_n)_i=v_{n,i}(z_{\\Gamma_{n,i}})\\). Its adjoint \\(N_{n,z}^{\\ast}:\\mathbb R^{V_n}\\to E_n\\) is the unique linear map satisfying \\(\\langle N_{n,z}f,r\\rangle_{V_n}=\\langle f,N_{n,z}^{\\ast}r\\rangle_{E_n}\\) for every \\(f\\in E_n\\) and \\(r\\in\\mathbb R^{V_n}\\).",
+      "free_symbols": [
+        "n",
+        "\\theta_n",
+        "v_n",
+        "i",
+        "V_n",
+        "z",
+        "\\Omega_n",
+        "\\pi'_n",
+        "p_{\\pi'_n}(z)",
+        "j",
+        "\\Gamma_{n,i}",
+        "N_{n,z}",
+        "E_n",
+        "N_{n,z}^{\\ast}",
+        "\\langle\\cdot,\\cdot\\rangle_{V_n}",
+        "\\langle\\cdot,\\cdot\\rangle_{E_n}"
+      ],
+      "inputs": [
+        "E_n",
+        "\\pi'_n",
+        "p_{\\pi'_n}(z)",
+        "\\Gamma_{n,i}"
+      ],
+      "revision": "rev:3606d8fc0d7d0d0646420af99ba1ac1d6225c587c09bb388f7b6b025f9c2744f"
+    },
+    {
+      "id": "def:indexed-psd-riesz-geometry",
+      "name": "Indexed positive cone and target Riesz vector",
+      "construction": "For each \\(n\\), define \\(\\mathbb S_+^{E_n}=\\{M\\in\\mathcal L(E_n):M=M^{\\ast},\\ \\langle f,Mf\\rangle_{E_n}\\ge0\\text{ for every }f\\in E_n\\}\\). Define \\(\\ell_n\\in E_n\\) as the unique vector satisfying \\(\\theta_n(v_n)=\\langle\\ell_n,v_n\\rangle_{E_n}\\) for every \\(v_n\\in E_n\\).",
+      "free_symbols": [
+        "n",
+        "\\mathbb S_+^{E_n}",
+        "M",
+        "E_n",
+        "\\langle\\cdot,\\cdot\\rangle_{E_n}",
+        "\\ell_n",
+        "\\theta_n",
+        "v_n"
+      ],
+      "inputs": [
+        "E_n",
+        "\\langle\\cdot,\\cdot\\rangle_{E_n}",
+        "\\theta_n"
+      ],
+      "revision": "rev:2517f44a2bb7e93be2d114b392b01c36d71cab979bf90ba39dabbfa25a914bf6"
+    },
+    {
+      "id": "def:indexed-bounded-fourier-class",
+      "name": "Indexed bounded local-Fourier schedule class",
+      "construction": "For every \\(n\\ge1\\), \\(K_{n,i}=\\{h\\in H_{n,i}:|h(x)|\\le1\\text{ for every }x\\in X_{n,i}\\}\\) and \\(K_n=\\{v_n=(v_{n,i})_{i\\in V_n}\\in E_n:v_{n,i}\\in K_{n,i}\\text{ for every }i\\in V_n\\}=\\prod_{i\\in V_n}K_{n,i}\\subset E_n\\).",
+      "free_symbols": [
+        "n",
+        "K_{n,i}",
+        "H_{n,i}",
+        "x",
+        "X_{n,i}",
+        "K_n",
+        "v_n",
+        "i",
+        "V_n",
+        "E_n"
+      ],
+      "by_member_properties": [
+        "ass:fourier-membership",
+        "ass:bounded-schedules"
+      ],
+      "revision": "rev:26af3234deb16d8e6f9911f360eae6716cf2ae97a0640a96a35a22b7e7113081"
+    },
+    {
+      "id": "def:indexed-frontiers",
+      "name": "Indexed linear and unrestricted minimax frontiers",
+      "construction": "For every \\(n\\ge1\\), define \\(F_n=\\inf_{a_n\\in(\\mathbb R^{V_n})^{\\Omega_n}}\\sup_{v_n\\in K_n}\\sum_{z\\in\\Omega_n}p_{\\pi_n}(z)\\bigl(a_{n,z}^{\\mathsf T}N_{n,z}v_n-\\theta_n(v_n)\\bigr)^2\\) and \\(R_n^{\\star}=\\inf_{\\delta\\ \\mathrm{Borel}}\\sup_{v_n\\in K_n}\\sum_{z\\in\\Omega_n}p_{\\pi_n}(z)\\bigl(\\delta(z,N_{n,z}v_n)-\\theta_n(v_n)\\bigr)^2\\).",
+      "free_symbols": [
+        "n",
+        "F_n",
+        "a_n",
+        "V_n",
+        "\\Omega_n",
+        "v_n",
+        "K_n",
+        "z",
+        "p_{\\pi_n}(z)",
+        "a_{n,z}",
+        "N_{n,z}",
+        "\\theta_n",
+        "R_n^{\\star}",
+        "\\delta"
+      ],
+      "inputs": [
+        "E_n",
+        "K_n",
+        "N_{n,z}",
+        "\\theta_n",
+        "p_{\\pi_n}(z)"
+      ],
+      "revision": "rev:919bd292662c985ffe9051f6c2ad7dfcd3beac1cc1ab0707bd787d1d7298f48b"
+    },
+    {
+      "id": "def:admissible-triangular-array",
+      "name": "Admissible triangular array",
+      "construction": "\\(\\mathsf{Adm}=\\{\\mathfrak A=((G_n,\\pi_n,\\pi'_n,(\\Gamma_{n,i},\\mathcal S_{n,i},X_{n,i},H_{n,i},K_{n,i})_{i\\in V_n},E_n,\\langle\\cdot,\\cdot\\rangle_{E_n},\\theta_n,(N_{n,z},N_{n,z}^{\\ast})_{z\\in\\Omega_n},K_n,F_n,R_n^{\\star}))_{n\\ge1}:\\text{ for every }n,\\ G_n\\text{ is a known graph on }V_n,\\ \\Gamma_{n,i}\\subseteq V_n\\text{ is known for every }i,\\ p_{\\pi_n}(z)=\\prod_{j\\in V_n}(\\pi_n)_j^{z_j}(1-(\\pi_n)_j)^{1-z_j}\\text{ and }p_{\\pi'_n}(z)=\\prod_{j\\in V_n}(\\pi'_n)_j^{z_j}(1-(\\pi'_n)_j)^{1-z_j}\\text{ with one common }\\varepsilon\\le(\\pi_n)_j,(\\pi'_n)_j\\le1-\\varepsilon,\\ \\mathcal S_{n,i}\\subseteq2^{\\Gamma_{n,i}}\\text{ is finite and downward closed},\\ (X_{n,i},H_{n,i},E_n,\\langle\\cdot,\\cdot\\rangle_{E_n})\\text{ is exactly the row geometry of }\\mathrm{def:indexed-hilbert-geometry},\\ (\\theta_n,N_{n,z},N_{n,z}^{\\ast})\\text{ is exactly }\\mathrm{def:indexed-target-selector-geometry},\\ K_n=\\prod_{i\\in V_n}K_{n,i}\\subset E_n\\text{ is exactly }\\mathrm{def:indexed-bounded-fourier-class},\\text{ and }F_n,R_n^{\\star}\\text{ are exactly the row-specific values in }\\mathrm{def:indexed-frontiers}\\}\\).",
+      "free_symbols": [
+        "\\mathsf{Adm}",
+        "\\mathfrak A",
+        "G_n",
+        "n",
+        "V_n",
+        "\\pi_n",
+        "\\pi'_n",
+        "p_{\\pi_n}(z)",
+        "p_{\\pi'_n}(z)",
+        "\\Gamma_{n,i}",
+        "i",
+        "j",
+        "z",
+        "\\Omega_n",
+        "\\varepsilon",
+        "\\mathcal S_{n,i}",
+        "X_{n,i}",
+        "H_{n,i}",
+        "K_{n,i}",
+        "E_n",
+        "\\langle\\cdot,\\cdot\\rangle_{E_n}",
+        "\\theta_n",
+        "N_{n,z}",
+        "N_{n,z}^{\\ast}",
+        "K_n",
+        "F_n",
+        "R_n^{\\star}"
+      ],
+      "by_member_properties": [
+        "ass:source-product-design",
+        "ass:source-overlap",
+        "ass:target-product-policy",
+        "ass:target-overlap",
+        "ass:hierarchical-support",
+        "ass:fourier-membership",
+        "ass:bounded-schedules",
+        "ass:fixed-schedules"
+      ],
+      "revision": "rev:833bbf0dada418680e9c243a775cfa0ea61c9b4d4f2c572099bb3a194f1434e6"
+    },
+    {
+      "id": "def:common-comparison",
+      "name": "Common numerical comparison on an array",
+      "construction": "For \\(c_0\\in(0,1]\\) and \\(\\mathfrak A\\in\\mathsf{Adm}\\), define \\(\\mathsf C(c_0,\\mathfrak A)\\Longleftrightarrow\\bigl[c_0F_n\\le R_n^{\\star}\\le F_n\\text{ for every }n\\ge1\\bigr]\\). Thus one occurrence of \\(c_0\\) is shared by every row of the array.",
+      "free_symbols": [
+        "c_0",
+        "\\mathfrak A",
+        "\\mathsf{Adm}",
+        "\\mathsf C(c_0,\\mathfrak A)",
+        "F_n",
+        "R_n^{\\star}",
+        "n"
+      ],
+      "inputs": [
+        "c_0",
+        "\\mathfrak A"
+      ],
+      "revision": "rev:ea86c7c0a81e7c4de75873b09346eb8f7cd6d3f6ab6e97796f38c24db82d830c"
+    },
+    {
+      "id": "def:moment-body",
+      "name": "Indexed bounded-schedule moment body",
+      "construction": "For every fixed \\(n\\), \\(\\mathfrak M_n(K_n)=\\operatorname{conv}\\{v_n\\otimes v_n:v_n\\in K_n\\}\\subseteq\\mathbb S_+^{E_n}\\), where \\(v_n\\otimes v_n\\) denotes the rank-one self-adjoint operator \\(f\\mapsto\\langle v_n,f\\rangle_{E_n}v_n\\). In fixed-instance notation this is \\(\\mathfrak M(K)=\\operatorname{conv}\\{v\\otimes v:v\\in K\\}\\subseteq\\mathbb S_+^E\\).",
+      "free_symbols": [
+        "n",
+        "\\mathfrak M_n(K_n)",
+        "v_n",
+        "K_n",
+        "\\mathbb S_+^{E_n}",
+        "E_n",
+        "\\langle\\cdot,\\cdot\\rangle_{E_n}",
+        "\\mathfrak M(K)",
+        "v",
+        "K",
+        "\\mathbb S_+^E",
+        "E"
+      ],
+      "inputs": [
+        "K_n",
+        "E_n",
+        "\\langle\\cdot,\\cdot\\rangle_{E_n}"
+      ],
+      "revision": "rev:f518a8ede5f095128b9928f2a4f84710a126a57dfed64e1e3af80d9cb0624595"
+    },
+    {
+      "id": "def:moment-dual",
+      "name": "Exact covariance-moment dual",
+      "construction": "For each fixed \\(n\\), assignment \\(z\\in\\Omega_n\\), and \\(M\\in\\mathbb S_+^{E_n}\\), define \\(\\psi_{n,z}(M)=\\langle\\ell_n,M\\ell_n\\rangle_{E_n}-\\langle N_{n,z}M\\ell_n,(N_{n,z}MN_{n,z}^{\\ast})^{\\dagger}N_{n,z}M\\ell_n\\rangle_{V_n}\\). Here \\(N_{n,z}MN_{n,z}^{\\ast}\\) is a positive semidefinite operator on Euclidean \\(\\mathbb R^{V_n}\\), \\(\\dagger\\) is its Moore--Penrose pseudoinverse relative to \\(\\langle\\cdot,\\cdot\\rangle_{V_n}\\), and the convention is \\(0^{\\dagger}=0\\); moreover \\(N_{n,z}M\\ell_n\\in\\operatorname{range}(N_{n,z}MN_{n,z}^{\\ast})\\), so the quadratic term is unambiguous. Define \\(\\mathcal D_n=\\max_{M\\in\\mathfrak M_n(K_n)}\\sum_{z\\in\\Omega_n}p_{\\pi_n}(z)\\psi_{n,z}(M)\\). Under the fixed-instance abbreviations \\(E=E_n\\), \\(K=K_n\\), \\(N_z=N_{n,z}\\), and \\(\\ell=\\ell_n\\), these same formulas define \\(\\psi_z(M)\\) and \\(\\mathcal D\\).",
+      "free_symbols": [
+        "n",
+        "z",
+        "\\Omega_n",
+        "M",
+        "\\mathbb S_+^{E_n}",
+        "\\psi_{n,z}(M)",
+        "\\ell_n",
+        "E_n",
+        "N_{n,z}",
+        "N_{n,z}^{\\ast}",
+        "V_n",
+        "\\langle\\cdot,\\cdot\\rangle_{V_n}",
+        "\\mathcal D_n",
+        "\\mathfrak M_n(K_n)",
+        "p_{\\pi_n}(z)",
+        "E",
+        "K",
+        "N_z",
+        "\\ell",
+        "\\psi_z(M)",
+        "\\mathcal D"
+      ],
+      "inputs": [
+        "\\mathfrak M_n(K_n)",
+        "\\ell_n",
+        "N_{n,z}",
+        "N_{n,z}^{\\ast}",
+        "p_{\\pi_n}(z)",
+        "\\langle\\cdot,\\cdot\\rangle_{E_n}",
+        "\\langle\\cdot,\\cdot\\rangle_{V_n}"
+      ],
+      "revision": "rev:64dfc1262a685c0b4bee95c9e108dc43c9f5101b5d938d4cfc219e7c8985ffac"
+    },
+    {
+      "id": "def:clipped-incidence-estimator",
+      "name": "Clipped minimax incidence estimator",
+      "construction": "Choose any minimizer \\(a^{\\star}\\) of \\(F\\) and define \\(\\widehat\\theta_{\\mathrm{inc}}(z,N_zv)=\\operatorname{clip}((a_z^{\\star})^{\\mathsf T}N_zv)\\).",
+      "free_symbols": [
+        "a^{\\star}",
+        "F",
+        "\\widehat\\theta_{\\mathrm{inc}}",
+        "z",
+        "N_z",
+        "v",
+        "\\operatorname{clip}"
+      ],
+      "inputs": [
+        "a^{\\star}",
+        "z",
+        "N_z"
+      ],
+      "revision": "rev:806b17fac7a1c8e9c4248e02ccc3a28fb42bfb270d5fa3504bdec968360fdcd8"
+    },
+    {
+      "id": "def:prior-certificate",
+      "name": "Genuine-prior posterior-ambiguity certificate",
+      "construction": "For \\(\\mathbf V\\sim\\nu\\), define \\(\\mathcal B(\\nu)=\\sum_{z\\in\\Omega_n}p_{\\pi}(z)\\,\\mathbb E_{\\nu}[\\operatorname{Var}_{\\nu}(\\theta(\\mathbf V)\\mid N_z\\mathbf V)]\\) and \\(\\operatorname{LB}(\\nu)=\\mathcal B(\\nu)\\).",
+      "free_symbols": [
+        "\\nu",
+        "\\mathbf V",
+        "\\mathcal B(\\nu)",
+        "z",
+        "\\Omega_n",
+        "p_{\\pi}(z)",
+        "\\theta",
+        "N_z",
+        "\\operatorname{LB}(\\nu)"
+      ],
+      "inputs": [
+        "\\nu",
+        "p_{\\pi}(z)",
+        "N_z",
+        "\\theta"
+      ],
+      "revision": "rev:326c865bbaaf15f4dc0524925deaec3556f0f31284311e37b3e5c6860c1a55d1"
+    },
+    {
+      "id": "def:primal-certificate",
+      "name": "Feasible-rule upper certificate",
+      "construction": "\\(\\operatorname{UB}(a)=\\sup_{v\\in K}\\sum_{z\\in\\Omega_n}p_{\\pi}(z)\\bigl(a_z^{\\mathsf T}N_zv-\\theta(v)\\bigr)^2\\).",
+      "free_symbols": [
+        "\\operatorname{UB}(a)",
+        "a",
+        "v",
+        "K",
+        "z",
+        "\\Omega_n",
+        "p_{\\pi}(z)",
+        "a_z",
+        "N_z",
+        "\\theta"
+      ],
+      "inputs": [
+        "a",
+        "K",
+        "p_{\\pi}(z)",
+        "N_z",
+        "\\theta"
+      ],
+      "revision": "rev:c1517e78591ca3d9283dcbe8f97ecfba06e053b4741005b4a66ea707eb514647"
+    },
+    {
+      "id": "def:prior-rounding-handle",
+      "name": "Fiber-ambiguity prior-rounding handle",
+      "construction": "Start from an extremal decomposition of an optimizer in \\(\\mathfrak M(K)\\); color and symmetrize the atoms by the common fibers of the selector family \\((N_z)_{z\\in\\Omega_n}\\), then round the signed moment representation to a nonnegative probability law on \\(K\\) while preserving a constant fraction of average posterior ambiguity.",
+      "free_symbols": [
+        "\\mathfrak H_{\\mathrm{prior}}",
+        "\\mathfrak M(K)",
+        "K",
+        "N_z",
+        "z",
+        "\\Omega_n"
+      ],
+      "inputs": [
+        "\\mathfrak M(K)",
+        "N_z",
+        "K"
+      ],
+      "revision": "rev:e4228690db118adf2e2676d2be87c847ac77b48587d7d39b1bda07baf8dbebe0"
+    },
+    {
+      "id": "def:incidence-graph",
+      "name": "Exposure-incidence graph",
+      "construction": "\\(\\mathcal I\\) is bipartite with assignment vertices \\(j\\in V_n\\), outcome-factor vertices \\(i\\in V_n\\), and edge \\(j\\sim i\\) if \\(j\\in\\bigcup_{U\\in\\mathcal S_i}U\\).",
+      "free_symbols": [
+        "\\mathcal I",
+        "j",
+        "V_n",
+        "i",
+        "U",
+        "\\mathcal S_i"
+      ],
+      "inputs": [
+        "V_n",
+        "\\mathcal S_i"
+      ],
+      "revision": "rev:9aaf7a8e76c814547e69d0a36e3993426deec2b390be4d4486ba803f18bed393"
+    },
+    {
+      "id": "def:treewidth-handle",
+      "name": "Bag-local optimizer-localization handle",
+      "construction": "Lift rank-one schedule moments to bag-local moments on a tree decomposition of \\(\\mathcal I\\), carry the target-sum epigraph as a separator statistic, and eliminate assignment variables only after proving that optimal weights and moment consistency admit bag-local representatives.",
+      "free_symbols": [
+        "\\mathfrak H_{\\mathrm{tw}}",
+        "\\mathcal I",
+        "\\mathfrak M(K)",
+        "F"
+      ],
+      "inputs": [
+        "\\mathcal I",
+        "\\mathfrak M(K)",
+        "F"
+      ],
+      "revision": "rev:bdbc3c3326752e95d48bcc7169e693e7df9b86227554b204e05cff620394aa1f"
+    },
+    {
+      "id": "def:hub-family",
+      "name": "Additive-hub separating family",
+      "construction": "For \\(n\\ge2\\), set \\(\\pi_j=p\\), \\(\\pi'_j=q\\), \\(\\Gamma_1=V_n\\), \\(\\mathcal S_1=\\{\\varnothing\\}\\cup\\{\\{j\\}:j\\in V_n\\}\\), and for \\(i\\ge2\\) set \\(\\Gamma_i=\\{i\\}\\) and \\(\\mathcal S_i=\\{\\varnothing,\\{i\\}\\}\\).",
+      "free_symbols": [
+        "n",
+        "\\pi",
+        "j",
+        "p",
+        "\\pi'",
+        "q",
+        "\\Gamma_i",
+        "V_n",
+        "\\mathcal S_i",
+        "i",
+        "\\mathcal H_n^{\\mathrm{hub}}"
+      ],
+      "inputs": [
+        "n",
+        "p",
+        "q"
+      ],
+      "revision": "rev:956def1df3d81e6d61fb5eb490bf2b9651ef3677cc41b960accabedc1c815b51"
+    },
+    {
+      "id": "def:motif-repetition",
+      "name": "Disjoint repeated-motif experiment",
+      "construction": "\\(\\mathfrak m^{\\sqcup m}\\) is formed from \\(m\\) disjoint copies of \\(\\mathfrak m\\), with independent source assignments across copies, product schedule class across copies, and target equal to the arithmetic mean of the \\(m\\) motif targets.",
+      "free_symbols": [
+        "\\mathfrak m^{\\sqcup m}",
+        "m",
+        "\\mathfrak m"
+      ],
+      "inputs": [
+        "\\mathfrak m",
+        "m"
+      ],
+      "revision": "rev:2a61a04a7f2c0b9f310aa2ebbeb08fb8cd18debec05a9e5b2f7f1aa945f7c5db"
+    },
+    {
+      "id": "def:loomba-eckles-spectral-envelope",
+      "name": "Loomba--Eckles EAO weight and least bounded-class envelope",
+      "construction": "For every fixed instance, define the Fourier policy-shift coefficient by\n\\[\n \\Delta_U^{\\pi,\\pi'}\n =\\prod_{j\\in U}\\frac{\\pi'_j-\\pi_j}{\\sqrt{\\pi_j(1-\\pi_j)}},\n \\qquad \\Delta_{\\varnothing}^{\\pi,\\pi'}=1,\n\\]\nand define the Loomba--Eckles EAO transport weight for unit \\(i\\) by\n\\[\n W_i^{\\mathrm{LE}}(z)\n =\\sum_{U\\in\\mathcal S_i}\n   \\Delta_U^{\\pi,\\pi'}\\chi_{i,U}^{\\pi}(z_{\\Gamma_i}).\n\\]\nThe smallest uniform bounded-class second-moment envelope and the overlap degree are\n\\[\n B_n^{\\mathrm{LE}}\n =\\max_{i\\in V_n}\\ \\sup_{v_i\\in K_i}\n   \\sum_{z\\in\\Omega_n}p_{\\pi}(z)\n   \\bigl(v_i(z_{\\Gamma_i})W_i^{\\mathrm{LE}}(z)\\bigr)^2\n\\]\nand\n\\[\n D_n^{\\mathrm{LE}}\n =\\max_{i\\in V_n}\n   \\left|\\left\\{j\\in V_n\\setminus\\{i\\}:\n   \\Gamma_i\\cap\\Gamma_j\\ne\\varnothing\\right\\}\\right|.\n\\]\nThus \\(B_n^{\\mathrm{LE}}\\) is the least number \\(B\\) for which every bounded schedule in \\(K\\) satisfies the unitwise second-moment premise of the Loomba--Eckles spectral-overlap theorem.",
+      "free_symbols": [
+        "U",
+        "\\Delta_U^{\\pi,\\pi'}",
+        "j",
+        "\\pi",
+        "\\pi'",
+        "W_i^{\\mathrm{LE}}",
+        "i",
+        "z",
+        "\\mathcal S_i",
+        "\\chi_{i,U}^{\\pi}",
+        "\\Gamma_i",
+        "B_n^{\\mathrm{LE}}",
+        "n",
+        "V_n",
+        "v_i",
+        "K_i",
+        "\\Omega_n",
+        "p_{\\pi}(z)",
+        "D_n^{\\mathrm{LE}}",
+        "K"
+      ],
+      "inputs": [
+        "\\pi",
+        "\\pi'",
+        "\\mathcal S_i",
+        "\\chi_{i,U}^{\\pi}",
+        "\\Gamma_i",
+        "K_i",
+        "p_{\\pi}(z)"
+      ],
+      "revision": "rev:cc8a56b9b00d106f518d997216c4ce0c45aa78c1d3a128fb02e248c41b4c0c08"
+    },
+    {
+      "id": "def:adaptive-rank-fiber-complexity",
+      "name": "Adaptive dual-rank and selector-fiber complexity",
+      "construction": "For a fixed admissible instance with \\(F>0\\), choose\n\\[\n M^{\\star}\\in\\operatorname*{arg\\,max}_{M\\in\\mathfrak M(K)}\n \\sum_{z\\in\\Omega_n}p_{\\pi}(z)\\psi_z(M)\n\\]\nhaving minimum rank among all maximizers, and set \\(r_{\\star}=\\operatorname{rank}(M^{\\star})\\). If \\(F=0\\), set \\(r_{\\star}=1\\) and do not use \\(M^{\\star}\\). For every \\(z\\in\\Omega_n\\), define\n\\[\n \\rho_z=\\sup\\{\\lvert\\theta(h)\\rvert:h\\in K,\\ N_zh=0\\},\\qquad\n S_{\\mathrm{fib}}=\\sum_{z\\in\\Omega_n}p_{\\pi}(z)\\rho_z^2,\n \\qquad\n m_{\\mathrm{fib}}=\\max_{z\\in\\Omega_n}p_{\\pi}(z)\\rho_z^2.\n\\]\nIf \\(m_{\\mathrm{fib}}>0\\), define\n\\[\n \\kappa_{\\mathrm{fib}}=\\frac{S_{\\mathrm{fib}}}{m_{\\mathrm{fib}}},\n \\qquad\n \\kappa=\\min\\{r_{\\star},\\kappa_{\\mathrm{fib}}\\};\n\\]\nif \\(m_{\\mathrm{fib}}=0\\), define \\(\\kappa_{\\mathrm{fib}}=\\kappa=1\\).\n\nFor every row of \\(\\mathfrak A\\in\\mathsf{Adm}\\), make the same definitions with \\((F,\\mathcal D,M^{\\star},r_{\\star},\\rho_z,S_{\\mathrm{fib}},m_{\\mathrm{fib}},\\kappa_{\\mathrm{fib}},\\kappa)\\) replaced by \\((F_n,\\mathcal D_n,M_n^{\\star},r_n,\\rho_{n,z},S_{n,\\mathrm{fib}},m_{n,\\mathrm{fib}},\\kappa_{n,\\mathrm{fib}},\\kappa_n)\\) and with every fixed-instance object replaced by its row-\\(n\\) indexed version.",
+      "free_symbols": [
+        "F",
+        "M^{\\star}",
+        "M",
+        "\\mathfrak M(K)",
+        "\\Omega_n",
+        "z",
+        "p_{\\pi}(z)",
+        "\\psi_z(M)",
+        "r_{\\star}",
+        "\\rho_z",
+        "h",
+        "K",
+        "N_z",
+        "\\theta",
+        "S_{\\mathrm{fib}}",
+        "m_{\\mathrm{fib}}",
+        "\\kappa_{\\mathrm{fib}}",
+        "\\kappa",
+        "\\mathfrak A",
+        "\\mathsf{Adm}",
+        "\\mathcal D",
+        "F_n",
+        "\\mathcal D_n",
+        "M_n^{\\star}",
+        "r_n",
+        "\\rho_{n,z}",
+        "S_{n,\\mathrm{fib}}",
+        "m_{n,\\mathrm{fib}}",
+        "\\kappa_{n,\\mathrm{fib}}",
+        "\\kappa_n",
+        "n"
+      ],
+      "inputs": [
+        "F",
+        "\\mathcal D",
+        "\\mathfrak M(K)",
+        "\\psi_z(M)",
+        "p_{\\pi}(z)",
+        "K",
+        "N_z",
+        "\\theta",
+        "\\mathfrak A"
+      ],
+      "revision": "rev:ade5757a5e135ca5162ec04bebcdaea5400f0bc5ef2dfbdc40b179e3296b65f7"
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:selector-reduction-and-dual",
+      "kind": "lemma",
+      "statement": "For every fixed \\(n\\) and every admissible row-\\(n\\) instance, the observed experiment is exactly the randomized selector experiment \\(z\\mapsto N_{n,z}v_n\\). A minimizing indexed weight rule exists after quotienting, separately for each \\(z\\), the coefficient directions in \\(\\ker(N_{n,z}^{\\ast})\\), and the exact identity is \\(F_n=\\mathcal D_n\\). Equivalently, under the fixed-instance abbreviations, \\(F=\\mathcal D\\).",
+      "free_symbols": [
+        "n",
+        "z",
+        "N_{n,z}",
+        "v_n",
+        "N_{n,z}^{\\ast}",
+        "F_n",
+        "\\mathcal D_n",
+        "F",
+        "\\mathcal D"
+      ],
+      "depends_on": [
+        "ass:source-product-design",
+        "ass:source-overlap",
+        "ass:fixed-schedules",
+        "def:indexed-hilbert-geometry",
+        "def:indexed-target-selector-geometry",
+        "def:indexed-psd-riesz-geometry",
+        "def:indexed-bounded-fourier-class",
+        "def:indexed-frontiers",
+        "def:moment-body",
+        "def:moment-dual"
+      ],
+      "status": "proved",
+      "justification": "This reduction fixes the finite decision problem and supplies the exact dual object from which both algorithms and lower bounds must start.",
+      "gap": "ChenValiantValiant2020 gives a positive-semidefinite relaxation for full cubes, while LoombaEckles2026OffPolicy does not optimize jointly over assignment-indexed biased weights or bounded Fourier evaluation polytopes.",
+      "consumer": "The dual is the input to the genuine-prior converse and to certified risk computation for the Crépon et al. saturation design.",
+      "proof_tex": "Fix \\(n\\).  By \\texttt{def:indexed-hilbert-geometry} and source positivity in \\texttt{ass:source-product-design} and \\texttt{ass:source-overlap}, \\(E_n\\) is a finite-dimensional real Hilbert space and \\(p_{\\pi_n}(z)>0\\) for every \\(z\\in\\Omega_n\\).  By \\texttt{def:indexed-bounded-fourier-class}, each \\(K_{n,i}\\) is the intersection of a finite-dimensional linear space with finitely many closed slabs.  It is therefore a compact, centrally symmetric polytope.  It contains a neighborhood of zero relative to \\(H_{n,i}\\), because finitely many evaluation functionals are continuous.  Consequently \\(K_n=\\prod_iK_{n,i}\\) is a compact, centrally symmetric polytope containing a ball\n\\[\n \\{v_n\\in E_n:\\|v_n\\|_{E_n}\\le \\rho_n\\}\\subseteq K_n\n\\]\nfor some \\(\\rho_n>0\\).\n\nThe observation assertion follows directly from \\texttt{def:indexed-target-selector-geometry}: conditional on assignment \\(z\\), the observed vector has coordinates \\(v_{n,i}(z_{\\Gamma_{n,i}})\\), and hence is exactly \\(N_{n,z}v_n\\).  The fixed-schedule condition \\texttt{ass:fixed-schedules} makes \\(v_n\\) nonrandom under this design; all expectations below are therefore only over \\(z\\).\n\nLet \\(\\ell_n\\) be the Riesz vector from \\texttt{def:indexed-psd-riesz-geometry}, and put\n\\[\n q_z(a_{n,z})=N_{n,z}^{\\ast}a_{n,z}-\\ell_n,\n \\qquad\n f_v(a_n)=\\sum_{z\\in\\Omega_n}p_{\\pi_n}(z)\n       \\langle q_z(a_{n,z}),v\\rangle_{E_n}^{,2}.\n\\]\nThe adjoint identity and \\(\\theta_n(v)=\\langle\\ell_n,v\\rangle_{E_n}\\) show, term by term, that \\(f_v(a_n)\\) is precisely the design risk of the indexed linear rule at schedule \\(v\\).  If \\(\\mathcal V_n\\) denotes the finite vertex set of \\(K_n\\), then\n\\[\n \\sup_{v\\in K_n}f_v(a_n)=\\max_{v\\in\\mathcal V_n}f_v(a_n).\n\\]\nIndeed, \\(f_v(a_n)=\\langle v,Q(a_n)v\\rangle_{E_n}\\) for the positive semidefinite operator\n\\[\n Q(a_n)=\\sum_zp_{\\pi_n}(z)q_z(a_{n,z})\\otimes q_z(a_{n,z}),\n\\]\nso \\(v\\mapsto f_v(a_n)\\) is convex; writing a point of the polytope as a convex combination of vertices proves the display.\n\nWe next justify attainment without compactifying the coefficient space artificially.  For each \\(z\\), coefficient directions in \\(\\ker(N_{n,z}^{\\ast})\\) do not change \\(q_z\\), so restrict \\(a_{n,z}\\) to\n\\[\n A_{n,z}=\\ker(N_{n,z}^{\\ast})^{\\perp}=\\operatorname{range}(N_{n,z}).\n\\]\nOn \\(A_{n,z}\\), the map \\(N_{n,z}^{\\ast}\\) is injective.  Moreover, using the ball contained in \\(K_n\\),\n\\[\n \\max_{v\\in K_n}f_v(a_n)\n \\ge p_{\\pi_n}(z)\\max_{\\|v\\|_{E_n}\\le\\rho_n}\n          \\langle q_z(a_{n,z}),v\\rangle_{E_n}^{,2}\n =p_{\\pi_n}(z)\\rho_n^2\\|q_z(a_{n,z})\\|_{E_n}^2.\n\\]\nFinite-dimensional injectivity gives a positive smallest singular value for \\(N_{n,z}^{\\ast}\\) on every nonzero \\(A_{n,z}\\).  Since every source mass is positive, the last display proves that the continuous function \\(a_n\\mapsto\\max_{v\\in\\mathcal V_n}f_v(a_n)\\) is coercive on \\(\\prod_zA_{n,z}\\).  It therefore has a minimizer \\(a_n^{\\star}\\).  Adding arbitrary elements of \\(\\ker(N_{n,z}^{\\ast})\\) describes all redundant representatives.\n\nIt remains to establish the exact dual without assuming a minimax theorem on a noncompact set.  For \\(M\\in\\mathfrak M_n(K_n)\\), define\n\\[\n \\Phi(a_n,M)=\\sum_zp_{\\pi_n}(z)\n \\langle N_{n,z}^{\\ast}a_{n,z}-\\ell_n,\n M(N_{n,z}^{\\ast}a_{n,z}-\\ell_n)\\rangle_{E_n}.\n\\]\nIf \\(M=\\sum_r\\lambda_r(v_r\\otimes v_r)\\), with \\(v_r\\in K_n\\), \\(\\lambda_r\\ge0\\), and \\(\\sum_r\\lambda_r=1\\), then\n\\[\n \\Phi(a_n,M)=\\sum_r\\lambda_rf_{v_r}(a_n)\n \\le \\max_{v\\in K_n}f_v(a_n).\n\\]\nHence \\(\\max_M\\inf_{a_n}\\Phi(a_n,M)\\le F_n\\).\n\nFor the reverse inequality, let \\(I\\subseteq\\mathcal V_n\\) be the vertices active at \\(a_n^{\\star}\\).  The origin belongs to the convex hull of \\(\\{\\nabla f_v(a_n^{\\star}):v\\in I\\}\\).  Otherwise finite-dimensional strict separation would give a direction \\(d\\) having negative inner product with every active gradient.  Finiteness of \\(\\mathcal V_n\\), continuity, and the positive gap to every inactive value would then imply\n\\[\n \\max_{v\\in\\mathcal V_n}f_v(a_n^{\\star}+td)\n <\\max_{v\\in\\mathcal V_n}f_v(a_n^{\\star})\n\\]\nfor all sufficiently small \\(t>0\\), contradicting minimality.  Thus there are \\(v_r\\in I\\) and \\(\\lambda_r\\ge0\\), \\(\\sum_r\\lambda_r=1\\), such that \\(\\sum_r\\lambda_r\\nabla f_{v_r}(a_n^{\\star})=0\\).  Set\n\\[\n M^{\\star}=\\sum_r\\lambda_r(v_r\\otimes v_r)\\in\\mathfrak M_n(K_n).\n\\]\nThe function \\(a_n\\mapsto\\Phi(a_n,M^{\\star})=\\sum_r\\lambda_rf_{v_r}(a_n)\\) is differentiable and convex, and its gradient vanishes at \\(a_n^{\\star}\\).  Therefore \\(a_n^{\\star}\\) minimizes it.  Since every \\(v_r\\) is active,\n\\[\n \\inf_{a_n}\\Phi(a_n,M^{\\star})\n =\\Phi(a_n^{\\star},M^{\\star})\n =\\sum_r\\lambda_rF_n=F_n.\n\\]\nTogether with the preceding weak inequality, this proves\n\\[\n F_n=\\max_{M\\in\\mathfrak M_n(K_n)}\\inf_{a_n}\\Phi(a_n,M).\n\\]\n\nFinally fix \\(M\\in\\mathfrak M_n(K_n)\\).  The minimization separates over \\(z\\).  Write\n\\[\n A_z=N_{n,z}MN_{n,z}^{\\ast},\n \\qquad b_z=N_{n,z}M\\ell_n.\n\\]\nIf \\(r\\in\\ker(A_z)\\), positivity gives\n\\[\n 0=\\langle r,A_zr\\rangle_{V_n}\n   =\\|M^{1/2}N_{n,z}^{\\ast}r\\|_{E_n}^2,\n\\]\nand hence\n\\[\n \\langle r,b_z\\rangle_{V_n}\n =\\langle M^{1/2}N_{n,z}^{\\ast}r,M^{1/2}\\ell_n\\rangle_{E_n}=0.\n\\]\nThus \\(b_z\\perp\\ker(A_z)\\), equivalently \\(b_z\\in\\operatorname{range}(A_z)\\).  Expanding the quadratic and completing the square with the Moore--Penrose inverse yields\n\\[\n\\begin{aligned}\n &\\inf_{a_{n,z}\\in\\mathbb R^{V_n}}\n \\langle N_{n,z}^{\\ast}a_{n,z}-\\ell_n,\n M(N_{n,z}^{\\ast}a_{n,z}-\\ell_n)\\rangle_{E_n}\\\\\n &\\quad=\\langle\\ell_n,M\\ell_n\\rangle_{E_n}\n -\\langle b_z,A_z^{\\dagger}b_z\\rangle_{V_n}\n =\\psi_{n,z}(M).\n\\end{aligned}\n\\]\nFor example, \\(a_{n,z}=A_z^{\\dagger}b_z\\) attains the infimum, with arbitrary kernel directions also allowed.  Summing with the positive source weights gives\n\\[\n F_n=\\max_{M\\in\\mathfrak M_n(K_n)}\n       \\sum_zp_{\\pi_n}(z)\\psi_{n,z}(M)=\\mathcal D_n\n\\]\nby \\texttt{def:moment-dual}.  The fixed-instance equality \\(F=\\mathcal D\\) is the same identity under the abbreviations specified in that definition.",
+      "revision": "rev:edae8a11edf70870db960497eaa7b06f4e3bca915fd4b70ea054af55aa4e9c53"
+    },
+    {
+      "id": "prop:primal-dual-certificates",
+      "kind": "proposition",
+      "statement": "For every feasible weight rule \\(a\\) and every genuine prior \\(\\nu\\in\\mathcal P(K)\\), \\(\\operatorname{LB}(\\nu)\\le R^{\\star}\\le F\\le\\operatorname{UB}(a)\\). The clipped incidence estimator satisfies \\(\\sup_{v\\in K}\\sum_zp_{\\pi}(z)(\\widehat\\theta_{\\mathrm{inc}}-\\theta(v))^2\\le F\\).",
+      "free_symbols": [
+        "a",
+        "\\nu",
+        "K",
+        "\\operatorname{LB}(\\nu)",
+        "R^{\\star}",
+        "F",
+        "\\operatorname{UB}(a)",
+        "v",
+        "z",
+        "p_{\\pi}(z)",
+        "\\widehat\\theta_{\\mathrm{inc}}",
+        "\\theta"
+      ],
+      "depends_on": [
+        "ass:bounded-schedules",
+        "def:linear-frontier",
+        "def:unrestricted-frontier",
+        "def:clipped-incidence-estimator",
+        "def:prior-certificate",
+        "def:primal-certificate",
+        "lem:selector-reduction-and-dual"
+      ],
+      "status": "proved",
+      "justification": "The certificate pair separates what is computationally verifiable from the universal comparison and prevents a signed moment functional from being mislabeled as a Bayes prior.",
+      "gap": "BrownCohen2021 gives a sufficient combinatorial all-estimator lower bound, but not an instance-specific posterior-variance certificate paired with the Fourier-section semilinear program.",
+      "consumer": "Analysts can report finite-sample certified lower and upper risk bounds even when the universal constant or exact treewidth computation is unresolved.",
+      "proof_tex": "First, \\(R^{\\star}\\le F\\).  Indeed, for every weight rule \\(a\\), the map \\((z,y)\\mapsto a_z^{\\mathsf T}y\\) is Borel, so it is feasible in \\texttt{def:unrestricted-frontier}.  Taking its worst-case risk and then the infimum over \\(a\\) gives\n\\[\n R^{\\star}\\le\n \\inf_a\\sup_{v\\in K}\\sum_zp_{\\pi}(z)\n (a_z^{\\mathsf T}N_zv-\\theta(v))^2=F.\n\\]\nAlso, for a fixed feasible \\(a\\), \\texttt{def:linear-frontier} and \\texttt{def:primal-certificate} give directly\n\\[\n F\\le \\sup_{v\\in K}\\sum_zp_{\\pi}(z)\n (a_z^{\\mathsf T}N_zv-\\theta(v))^2=\\operatorname{UB}(a).\n\\]\n\nNow fix a genuine prior \\(\\nu\\in\\mathcal P(K)\\), let \\(\\mathbf V\\sim\\nu\\), and fix an arbitrary Borel estimator \\(\\delta\\).  The target is bounded: by \\texttt{ass:bounded-schedules}, \\texttt{ass:target-product-policy}, \\texttt{def:local-target-mass}, and \\texttt{def:target-value},\n\\[\n |\\theta(v)|\n \\le \\frac1n\\sum_{i\\in V_n}\\sum_{x\\in X_i}\n p_{\\pi',i}(x)|v_i(x)|\n \\le \\frac1n\\sum_{i\\in V_n}1=1.\n\\]\nThus all conditional second moments below exist.  Conditional on \\(N_z\\mathbf V\\), the elementary squared-error decomposition is\n\\[\n\\begin{aligned}\n &\\mathbb E_{\\nu}\\!left[\n   (\\delta(z,N_z\\mathbf V)-\\theta(\\mathbf V))^2\n   \\mid N_z\\mathbf V\\right]\\\\\n &\\quad=\\operatorname{Var}_{\\nu}(\\theta(\\mathbf V)\\mid N_z\\mathbf V)\n +\\left(\\delta(z,N_z\\mathbf V)\n -\\mathbb E_{\\nu}[\\theta(\\mathbf V)\\mid N_z\\mathbf V]\\right)^2\\\\\n &\\quad\\ge \\operatorname{Var}_{\\nu}(\\theta(\\mathbf V)\\mid N_z\\mathbf V).\n\\end{aligned}\n\\]\nFor each \\(\\delta\\), its supremum over \\(K\\) is at least its average under \\(\\nu\\).  Taking expectations in the last display and then averaging over the source assignment therefore gives\n\\[\n \\sup_{v\\in K}\\sum_zp_{\\pi}(z)\n (\\delta(z,N_zv)-\\theta(v))^2\n \\ge \\sum_zp_{\\pi}(z)\\mathbb E_{\\nu}\n [\\operatorname{Var}_{\\nu}(\\theta(\\mathbf V)\\mid N_z\\mathbf V)]\n =\\operatorname{LB}(\\nu).\n\\]\nTaking the infimum over all Borel \\(\\delta\\) proves \\(\\operatorname{LB}(\\nu)\\le R^{\\star}\\).\n\nBy \\texttt{lem:selector-reduction-and-dual}, a minimizing rule \\(a^{\\star}\\) exists.  For any \\(s\\in[-1,1]\\) and \\(t\\in\\mathbb R\\), projection onto the interval satisfies\n\\[\n |\\operatorname{clip}(t)-s|\\le |t-s|.\n\\]\nThe preceding bound on the target gives \\(\\theta(v)\\in[-1,1]\\).  Applying the projection inequality pointwise with \\(t=(a_z^{\\star})^{\\mathsf T}N_zv\\), summing over \\(z\\), and then taking the supremum over \\(v\\in K\\) yields\n\\[\n \\sup_{v\\in K}\\sum_zp_{\\pi}(z)\n (\\widehat\\theta_{\\mathrm{inc}}(z,N_zv)-\\theta(v))^2\n \\le F.\n\\]\nCombining the displayed inequalities proves every assertion.",
+      "revision": "rev:5c66608d1dc60a8782754ced580d5ecd8183c5437f064b0aa13aa0bee77fa3b5"
+    },
+    {
+      "id": "oeq:prior-rounding",
+      "kind": "openendedquestion",
+      "statement": "Determine whether there exists one numerical constant \\(c_0>0\\), independent of the population size, graph, source and target policies, Fourier supports, selector system, and triangular array, such that every admissible fixed instance satisfies \\(c_0F\\le R^{\\star}\\). Equivalently, determine whether one \\(c_0\\) makes \\(\\mathsf C(c_0,\\mathfrak A)\\) true for every \\(\\mathfrak A\\in\\mathsf{Adm}\\). One sufficient, but not logically necessary, route through \\(\\mathfrak H_{\\mathrm{prior}}\\) is to construct for every instance a symmetric genuine law \\(\\nu\\in\\mathcal P(K)\\) satisfying \\(\\mathcal B(\\nu)\\ge c_0\\mathcal D\\). A negative resolution instead requires an explicit admissible growing family for which \\(R^{\\star}/F\\to0\\).",
+      "free_symbols": [
+        "c_0",
+        "F",
+        "R^{\\star}",
+        "\\mathsf C(c_0,\\mathfrak A)",
+        "\\mathfrak A",
+        "\\mathsf{Adm}",
+        "\\mathfrak H_{\\mathrm{prior}}",
+        "\\nu",
+        "K",
+        "\\mathcal B(\\nu)",
+        "\\mathcal D"
+      ],
+      "depends_on": [
+        "ass:source-product-design",
+        "ass:source-overlap",
+        "ass:target-product-policy",
+        "ass:target-overlap",
+        "ass:hierarchical-support",
+        "ass:bounded-schedules",
+        "ass:fixed-schedules",
+        "def:bounded-fourier-class",
+        "def:linear-frontier",
+        "def:unrestricted-frontier",
+        "def:admissible-triangular-array",
+        "def:common-comparison",
+        "def:moment-body",
+        "def:moment-dual",
+        "def:prior-certificate",
+        "def:prior-rounding-handle",
+        "lem:selector-reduction-and-dual",
+        "prop:primal-dual-certificates"
+      ],
+      "status": "to-prove",
+      "justification": "This is the remaining launch-or-kill question: whether local Fourier selector geometry permits an unbounded nonlinear advantage after the proved rank and fiber losses are exposed.",
+      "gap": "ChenValiantValiant2020 leaves the universal semilinear-versus-unrestricted gap open; DonohoLiuMacGibbon1990 gives a Gaussian comparison that does not transfer to noiseless selectors.",
+      "consumer": "A positive answer makes the linear frontier dimension-free sharp for all measurable estimators; a negative answer requires a certified growing admissible family with vanishing risk ratio.",
+      "revision": "rev:ee7fa1956923a938c3a3194be9776159a930b5b6a51facab4865ce1c6e0eb81c"
+    },
+    {
+      "id": "thm:universal-minimax-frontier",
+      "kind": "theorem",
+      "statement": "For every admissible fixed finite-population instance, the unrestricted and linear minimax risks obey the instance-adaptive certificate\n\\[\n \\max\\left\\{\\frac{F}{r_{\\star}},m_{\\mathrm{fib}}\\right\\}\n \\le R^{\\star}\\le F=\\mathcal D\\le S_{\\mathrm{fib}},\n \\qquad\n \\frac{F}{\\kappa}\\le R^{\\star}\\le F.\n\\]\nThe factors \\(r_{\\star}\\) and \\(\\kappa_{\\mathrm{fib}}\\) are respectively the minimum rank of a dual optimizer and the effective number of assignment fibers carrying nonzero ambiguity, with \\(1\\le\\kappa_{\\mathrm{fib}}\\le|\\{z:\\rho_z>0\\}|\\le2^n\\) when \\(m_{\\mathrm{fib}}>0\\). If \\(m_{\\mathrm{fib}}=0\\), all four values \\(R^{\\star},F,\\mathcal D,S_{\\mathrm{fib}}\\) are zero. The clipped incidence estimator has worst-case risk at most \\(F\\). This is an instance-adaptive comparison and does not assert a universal numerical comparison constant.",
+      "free_symbols": [
+        "F",
+        "r_{\\star}",
+        "m_{\\mathrm{fib}}",
+        "R^{\\star}",
+        "\\mathcal D",
+        "S_{\\mathrm{fib}}",
+        "\\kappa",
+        "\\kappa_{\\mathrm{fib}}",
+        "z",
+        "\\rho_z",
+        "n"
+      ],
+      "depends_on": [
+        "def:adaptive-rank-fiber-complexity",
+        "lem:rank-fiber-genuine-prior-certificates",
+        "lem:selector-reduction-and-dual",
+        "prop:primal-dual-certificates"
+      ],
+      "status": "proved",
+      "justification": "The instance-adaptive theorem turns the exact dual and genuine-prior constructions into a quantitative all-estimator comparison without asserting dimension-free equivalence.",
+      "gap": "ChenValiantValiant2020 leaves the universal gap open; this result instead proves the sharp unconditional comparison available from minimum dual rank and effective selector-fiber complexity.",
+      "consumer": "Experimenters can pair the attainable incidence risk with explicit rank and fiber factors to calibrate how informative that upper certificate is for unrestricted procedures.",
+      "proof_tex": "The exact rank-prior identity, the fiber two-point lower certificate, the norm-extension upper certificate, all boundary cases, and the complexity inequalities are proved in \\(\\mathrm{lem:rank-fiber-genuine-prior-certificates}\\). The equality \\(F=\\mathcal D\\) is also independently supplied by \\(\\mathrm{lem:selector-reduction-and-dual}\\), while \\(R^{\\star}\\le F\\) and the clipped-estimator conclusion are supplied by \\(\\mathrm{prop:primal-dual-certificates}\\). Combining these declared conclusions gives every displayed inequality and the zero case exactly as stated. Because \\(r_{\\star}\\) and \\(\\kappa\\) are allowed to depend on the instance, no dimension-free claim is made.",
+      "revision": "rev:d091c4963b793ca569407ca0a5bb0cdfaa8d7e9d4344ebefa8098db79c5d113b"
+    },
+    {
+      "id": "thm:iff-consistency-frontier",
+      "kind": "theorem",
+      "statement": "For every \\(\\mathfrak A\\in\\mathsf{Adm}\\), let \\(r_n,\\rho_{n,z},S_{n,\\mathrm{fib}},m_{n,\\mathrm{fib}},\\kappa_{n,\\mathrm{fib}}\\), and \\(\\kappa_n\\) be the rowwise quantities in \\(\\mathrm{def:adaptive-rank-fiber-complexity}\\). Then: \\(\\mathrm{(a)}\\) \\(F_n\\to0\\) implies \\(R_n^{\\star}\\to0\\); \\(\\mathrm{(b)}\\) for every fixed row, \\(R_n^{\\star}=0\\) if and only if \\(F_n=0\\); \\(\\mathrm{(c)}\\) \\(\\kappa_nR_n^{\\star}\\to0\\) implies \\(F_n\\to0\\); and \\(\\mathrm{(d)}\\) on every subfamily of arrays satisfying \\(\\sup_n\\kappa_n<\\infty\\), one has \\(R_n^{\\star}\\to0\\) if and only if \\(F_n\\to0\\). Clause \\(\\mathrm{(d)}\\) is conditional on the displayed subfamily property and is not an additional condition in the definition of \\(\\mathsf{Adm}\\).",
+      "free_symbols": [
+        "\\mathfrak A",
+        "\\mathsf{Adm}",
+        "r_n",
+        "\\rho_{n,z}",
+        "S_{n,\\mathrm{fib}}",
+        "m_{n,\\mathrm{fib}}",
+        "\\kappa_{n,\\mathrm{fib}}",
+        "\\kappa_n",
+        "F_n",
+        "R_n^{\\star}",
+        "n"
+      ],
+      "depends_on": [
+        "def:admissible-triangular-array",
+        "def:adaptive-rank-fiber-complexity",
+        "thm:universal-minimax-frontier"
+      ],
+      "status": "proved",
+      "justification": "The complexity-calibrated theorem separates unconditional forward consistency from the reverse implication that requires uniformly controlled instance complexity.",
+      "gap": "LoombaEckles2026OffPolicy gives a sufficient degree-envelope condition and HarshawSavjeWang2022 characterizes consistency within the Riesz-estimator class; neither gives this all-measurable rank/fiber calibration.",
+      "consumer": "A vanishing linear frontier certifies consistency on every admissible array, while the rowwise factor identifies the subfamilies on which failure of that frontier also rules out unrestricted consistency.",
+      "proof_tex": "Fix \\(\\mathfrak A\\in\\mathsf{Adm}\\). Applying the instance-adaptive minimax frontier theorem to each row gives\n\\[\n 0\\le R_n^{\\star}\\le F_n\\le\\kappa_nR_n^{\\star},\n \\qquad n\\ge1,\n\\]\nwhere \\(\\kappa_n\\ge1\\) is finite by \\(\\mathrm{def:adaptive-rank-fiber-complexity}\\) and the cardinality bound in that theorem.\n\nIf \\(F_n\\to0\\), then for every \\(\\eta>0\\) there is \\(N\\) such that \\(n\\ge N\\) implies \\(F_n<\\eta\\); the displayed inequality then gives \\(0\\le R_n^{\\star}<\\eta\\). Hence \\(R_n^{\\star}\\to0\\), proving \\(\\mathrm{(a)}\\). For a fixed row, if \\(F_n=0\\), then \\(0\\le R_n^{\\star}\\le F_n=0\\), so \\(R_n^{\\star}=0\\). Conversely, if \\(R_n^{\\star}=0\\), then \\(0\\le F_n\\le\\kappa_nR_n^{\\star}=0\\), so \\(F_n=0\\). This proves \\(\\mathrm{(b)}\\) without any limit or uniformity assumption.\n\nIf \\(\\kappa_nR_n^{\\star}\\to0\\), then for every \\(\\eta>0\\) the displayed inequality eventually gives \\(0\\le F_n<\\eta\\), proving \\(F_n\\to0\\) and hence \\(\\mathrm{(c)}\\). Finally, suppose an array belongs to a subfamily for which \\(\\sup_n\\kappa_n=C<\\infty\\). Then \\(R_n^{\\star}\\to0\\) implies\n\\[\n 0\\le F_n\\le\\kappa_nR_n^{\\star}\\le C R_n^{\\star}\\longrightarrow0.\n\\]\nTogether with \\(\\mathrm{(a)}\\), this proves the equivalence in \\(\\mathrm{(d)}\\). No reverse implication is asserted on all of \\(\\mathsf{Adm}\\), because the proved factors \\(\\kappa_n\\) may diverge.",
+      "revision": "rev:2f4d5f165e2b0375418fd15f65ad34dc38e34e4588576d25a31f96db14dc2f9b"
+    },
+    {
+      "id": "oeq:treewidth-exactness",
+      "kind": "openendedquestion",
+      "statement": "Using \\(\\mathfrak H_{\\mathrm{tw}}\\), determine whether \\(\\operatorname{tw}(\\mathcal I)\\le w\\) implies an exact algorithm that returns \\(F\\), liftable optimal weights \\(a^{\\star}\\), and a matching moment certificate in time \\(\\operatorname{poly}(L_{\\mathrm{in}})2^{O(w)}\\); if it fails, identify the smallest path or star instance where every exact optimizer representation requires nonlocal separator state.",
+      "free_symbols": [
+        "\\mathfrak H_{\\mathrm{tw}}",
+        "\\operatorname{tw}(\\mathcal I)",
+        "w",
+        "F",
+        "a^{\\star}",
+        "L_{\\mathrm{in}}"
+      ],
+      "depends_on": [
+        "ass:source-product-design",
+        "ass:source-overlap",
+        "ass:hierarchical-support",
+        "def:linear-frontier",
+        "def:moment-body",
+        "def:moment-dual",
+        "def:incidence-graph",
+        "def:treewidth-handle",
+        "lem:selector-reduction-and-dual"
+      ],
+      "status": "to-prove",
+      "justification": "Input factorization alone is not an algorithm; the open content is whether the optimizer itself localizes on incidence separators.",
+      "gap": "WainwrightJordan2004 proves hierarchy collapse for polynomial programs whose objective and constraints share the canonical hypergraph, while PeyrardEtAl2019 gives junction-tree elimination; neither covers assignment-indexed weights coupled by a squared global target error.",
+      "consumer": "A positive answer gives exact risk certificates for bounded-width market and school networks; a negative answer prevents misleading claims that sparse interference automatically makes minimax optimization local.",
+      "revision": "rev:21697869253e2fad5cb1c887220f1fec9d9153a4147edd60281f2385b2f7ca10"
+    },
+    {
+      "id": "thm:hub-separation",
+      "kind": "theorem",
+      "statement": "Fix \\(p,q\\in[\\varepsilon,1-\\varepsilon]\\). On \\(\\mathcal H_n^{\\mathrm{hub}}\\), \\(F_n=\\Theta(n^{-1})\\) and \\(R_n^{\\star}=\\Theta(n^{-1})\\), while the Loomba--Eckles envelope is exactly\n\\[\n \\frac{B_n^{\\mathrm{LE}}(D_n^{\\mathrm{LE}}+1)}{n}\n =1+n\\frac{(q-p)^2}{p(1-p)}.\n\\]\nConsequently, this envelope divided by either \\(F_n\\) or \\(R_n^{\\star}\\) is \\(\\Theta(n)\\) when \\(p=q\\) and \\(\\Theta(n^2)\\) for fixed \\(p\\ne q\\). Thus the exact frontier is strictly rate-sharper on a genuinely overlapping growing family, both on-policy and under a fixed nonzero policy shift.",
+      "free_symbols": [
+        "p",
+        "q",
+        "\\varepsilon",
+        "\\mathcal H_n^{\\mathrm{hub}}",
+        "F_n",
+        "R_n^{\\star}",
+        "B_n^{\\mathrm{LE}}",
+        "D_n^{\\mathrm{LE}}",
+        "n"
+      ],
+      "depends_on": [
+        "ass:source-overlap",
+        "ass:target-overlap",
+        "def:hub-family",
+        "lem:hub-frontier-rate-sandwich",
+        "lem:hub-loomba-eckles-envelope"
+      ],
+      "status": "proved",
+      "justification": "The hub family proves that probability-weighted signed incidence geometry yields an order-\\(n^{-1}\\) minimax certificate even when the published maximum-overlap envelope is larger by order \\(n\\) on-policy and order \\(n^2\\) under a fixed nonzero policy shift.",
+      "gap": "LoombaEckles2026OffPolicy, Theorem 5.1, assumes any \\(B^{(n)}\\) dominating all unit-summand second moments and multiplies it by \\(D^{(n)}+1\\); on the additive hub the least such bounded-class envelope is exactly \\(1+n(q-p)^2/[p(1-p)]\\) and \\(D^{(n)}=n-1\\).",
+      "consumer": "Dense-star and influencer-network analyses obtain a finite design-based certificate decaying as \\(n^{-1}\\), together with an exact diagnosis of how conservative the published maximum-overlap sufficient envelope is on-policy and off-policy.",
+      "proof_tex": "Fix \\(p,q\\in[\\varepsilon,1-\\varepsilon]\\), with no restriction that they differ, and define\n\\[\n A_{p,q}=(1-p)q^2+p(1-q)^2,\n \\qquad\n C_{p,q}=\\frac{(1-q)^2}{1-p}+\\frac{q^2}{p}.\n\\]\nBy \\texttt{ass:source-overlap} and \\texttt{ass:target-overlap}, \\(0<p,q<1\\).  Both summands of \\(A_{p,q}\\) are strictly positive, so \\(A_{p,q}>0\\); both denominators in \\(C_{p,q}\\) are strictly positive, so \\(C_{p,q}<\\infty\\).  These constants depend only on the fixed policies, not on \\(n\\).\n\nFor every \\(n\\ge2\\), \\texttt{lem:hub-frontier-rate-sandwich} gives\n\\[\n \\frac{n-1}{n^2}A_{p,q}\n \\le R_n^{\\star}\\le F_n\n \\le\\frac{1+(n-1)C_{p,q}}{n^2}.\n\\]\nSince \\((n-1)/n^2\\ge1/(2n)\\) and\n\\(\n [1+(n-1)C_{p,q}]/n^2\\le(1+C_{p,q})/n\n\\) for \\(n\\ge2\\),\n\\[\n \\frac{A_{p,q}}{2n}\n \\le R_n^{\\star}\\le F_n\n \\le\\frac{1+C_{p,q}}{n}.\n\\]\nIn particular, each of \\(R_n^{\\star}\\) and \\(F_n\\) is bounded above and below by positive finite multiples of \\(n^{-1}\\).  Thus\n\\[\n R_n^{\\star}=\\Theta(n^{-1})\n \\qquad\\text{and}\\qquad\n F_n=\\Theta(n^{-1}).\n\\]\nThis conclusion includes \\(p=q\\); for example, at that boundary \\(A_{p,p}=p(1-p)>0\\) and \\(C_{p,p}=1\\).\n\nSet\n\\[\n E_n^{\\mathrm{LE}}\n =\\frac{B_n^{\\mathrm{LE}}(D_n^{\\mathrm{LE}}+1)}{n}.\n\\]\nThe strengthened \\texttt{lem:hub-loomba-eckles-envelope} proves the exact identity\n\\[\n E_n^{\\mathrm{LE}}\n =1+n c,\n \\qquad\n c=\\frac{(q-p)^2}{p(1-p)}.\n\\]\nFor either \\(X_n=F_n\\) or \\(X_n=R_n^{\\star}\\), the preceding sandwich implies\n\\[\n \\frac{n}{1+C_{p,q}}\n \\le \\frac{1}{X_n}\n \\le \\frac{2n}{A_{p,q}}.\n\\]\nIf \\(p=q\\), then \\(c=0\\) and \\(E_n^{\\mathrm{LE}}=1\\); multiplication of the last display by one gives\n\\[\n \\frac{E_n^{\\mathrm{LE}}}{F_n}=\\Theta(n),\n \\qquad\n \\frac{E_n^{\\mathrm{LE}}}{R_n^{\\star}}=\\Theta(n).\n\\]\nIf \\(p\\ne q\\) is fixed, then \\(c>0\\), and \\(n\\ge1\\) gives\n\\[\n cn\\le E_n^{\\mathrm{LE}}=1+cn\\le(1+c)n.\n\\]\nCombining this with the reciprocal bounds yields, for either permitted \\(X_n\\),\n\\[\n \\frac{c}{1+C_{p,q}}n^2\n \\le \\frac{E_n^{\\mathrm{LE}}}{X_n}\n \\le \\frac{2(1+c)}{A_{p,q}}n^2.\n\\]\nTherefore\n\\[\n \\frac{E_n^{\\mathrm{LE}}}{F_n}=\\Theta(n^2),\n \\qquad\n \\frac{E_n^{\\mathrm{LE}}}{R_n^{\\star}}=\\Theta(n^2)\n \\quad\\text{when fixed }p\\ne q.\n\\]\nThe neighborhoods remain genuinely overlapping in both cases because the hub intersects every periphery neighborhood.  Hence the exact frontiers exploit the signed incidence geometry at rate \\(n^{-1}\\), whereas the published maximum-overlap sufficient envelope is larger by a factor of order \\(n\\) on-policy and order \\(n^2\\) under a fixed nonzero policy shift.  No universal comparison between \\(F_n\\) and \\(R_n^{\\star}\\) is used.",
+      "revision": "rev:e96a94d924ff7dc5b41c31c36910023df3a81e17f945a928fb39a10ca498ad4b"
+    },
+    {
+      "id": "thm:disjoint-motif-recovery",
+      "kind": "theorem",
+      "statement": "Suppose the fixed motif \\(\\mathfrak m\\) admits a bounded assignment-indexed linear rule \\(u_{\\mathfrak m}\\) that is design-unbiased for the motif target at every admissible motif schedule and has one-motif worst-case mean-squared error at most \\(\\sigma_{\\mathfrak m}^2\\), and the symmetric genuine prior \\(\\nu_{\\mathfrak m}\\) has posterior ambiguity \\(b_{\\mathfrak m}>0\\). Then for every \\(m\\ge1\\), \\(b_{\\mathfrak m}/m\\le R_m^{\\star,\\sqcup}\\le F_m^{\\sqcup}\\le\\sigma_{\\mathfrak m}^2/m\\).",
+      "free_symbols": [
+        "\\mathfrak m",
+        "u_{\\mathfrak m}",
+        "\\sigma_{\\mathfrak m}^2",
+        "\\nu_{\\mathfrak m}",
+        "b_{\\mathfrak m}",
+        "m",
+        "R_m^{\\star,\\sqcup}",
+        "F_m^{\\sqcup}"
+      ],
+      "depends_on": [
+        "def:motif-repetition",
+        "def:semilinear-rule",
+        "def:linear-frontier",
+        "def:prior-certificate",
+        "prop:primal-dual-certificates"
+      ],
+      "status": "proved",
+      "justification": "This reduction recovers the familiar effective-number-of-independent-motifs rate without confusing it with a general overlap theorem.",
+      "gap": "CortezRodriguezEichhornYu2023 uses Gaussian coefficient priors for a regular-graph lower bound, while this result tensorizes genuine bounded-schedule ambiguity for arbitrary fixed Fourier motifs.",
+      "consumer": "Clustered village and school experiments obtain interpretable \\(1/m\\) benchmarks and a calibration check for numerical certificates.",
+      "proof_tex": "Let the copies be indexed by \\(r\\in\\{1,\\ldots,m\\}\\).  For copy \\(r\\), write \\(Z_r\\) for its source assignment, \\(O_r\\) for its observed outcome vector, \\(T_r\\) for its motif target, and \\(u_r=u_{\\mathfrak m}(Z_r,O_r)\\).  By the proposed hypothesis, \\(u_{\\mathfrak m}\\) is assignment-indexed linear, design-unbiased at every motif schedule, and has worst-case mean-squared error at most \\(\\sigma_{\\mathfrak m}^2\\).  Thus, for every fixed product schedule,\n\\[\n e_r:=u_r-T_r,\n \\qquad\n \\mathbb E[e_r]=0,\n \\qquad\n \\mathbb E[e_r^2]\\le\\sigma_{\\mathfrak m}^2.\n\\]\nBy \\texttt{def:motif-repetition}, the assignments are independent across copies.  Since the schedules are fixed in design-based risk, \\(e_1,\\ldots,e_m\\) are independent.  The repeated-motif target is \\(\\overline T=m^{-1}\\sum_rT_r\\), and\n\\[\n \\overline u=\\frac1m\\sum_{r=1}^mu_r\n\\]\nis an assignment-indexed linear rule for that target.  Hence its risk satisfies, equation by equation,\n\\[\n\\begin{aligned}\n \\mathbb E[(\\overline u-\\overline T)^2]\n &=\\frac1{m^2}\\mathbb E\\left[\\left(\\sum_{r=1}^me_r\\right)^2\\right]\\\\\n &=\\frac1{m^2}\\sum_{r=1}^m\\mathbb E[e_r^2]\n   +\\frac2{m^2}\\sum_{r<s}\\mathbb E[e_r]\\mathbb E[e_s]\\\\\n &\\le\\frac{\\sigma_{\\mathfrak m}^2}{m}.\n\\end{aligned}\n\\]\nTaking the supremum over the product schedule class and invoking \\texttt{def:linear-frontier} proves \\(F_m^{\\sqcup}\\le\\sigma_{\\mathfrak m}^2/m\\).  The middle inequality \\(R_m^{\\star,\\sqcup}\\le F_m^{\\sqcup}\\) follows from \\texttt{prop:primal-dual-certificates} applied to the repeated instance.\n\nFor the converse, put the product prior \\(\\nu^{(m)}=\\nu_{\\mathfrak m}^{\\otimes m}\\) on the product schedule class.  It is countably additive and genuinely supported on bounded schedules; symmetry of the one-copy prior also makes the product prior symmetric.  Let \\(\\mathbf T_r\\) be the random motif target in copy \\(r\\).  Product prior, product source assignment, and copywise observation imply conditional independence of \\(\\mathbf T_1,\\ldots,\\mathbf T_m\\) given \\((Z_r,O_r)_{r=1}^m\\).  Therefore\n\\[\n \\operatorname{Var}\\!\\left(\n \\frac1m\\sum_{r=1}^m\\mathbf T_r\n \\mathrel{\\Big|}(Z_s,O_s)_{s=1}^m\\right)\n =\\frac1{m^2}\\sum_{r=1}^m\n \\operatorname{Var}(\\mathbf T_r\\mid Z_r,O_r).\n\\]\nAveraging over the product source design and product prior, and using the definition of the one-motif ambiguity, gives\n\\[\n \\mathcal B(\\nu^{(m)})\n =\\frac1{m^2}\\sum_{r=1}^mb_{\\mathfrak m}\n =\\frac{b_{\\mathfrak m}}m.\n\\]\nThe lower-certificate inequality in \\texttt{prop:primal-dual-certificates} now yields \\(b_{\\mathfrak m}/m\\le R_m^{\\star,\\sqcup}\\).  Combining the three bounds proves the proposed statement.  At \\(m=1\\) the calculation reduces exactly to \\(b_{\\mathfrak m}\\le R_1^{\\star,\\sqcup}\\le F_1^{\\sqcup}\\le\\sigma_{\\mathfrak m}^2\\); at \\(m=2\\) the vanished cross term explicitly checks the smallest nontrivial tensorization.",
+      "revision": "rev:4f1cdb50cf6967f4b90dcf8bc69327e1a5e9bc7d2c9384bdf27af22c2f1bc399"
+    },
+    {
+      "id": "prop:one-binary-cell-sanity",
+      "kind": "proposition",
+      "statement": "When \\(n=1\\), \\(\\Gamma_1=\\{1\\}\\), and \\(\\mathcal S_1=2^{\\{1\\}}\\), the full-class exact risks coincide and equal \\(R^{\\star}=F=(1-\\pi_1)(\\pi'_1)^2+\\pi_1(1-\\pi'_1)^2\\). Pointwise, for every unknown schedule \\(v\\in K\\) restricted by \\(v_1(0)=v_1(1)\\), the measurable rule \\(\\delta(z,N_zv)=(N_zv)_1\\) has zero squared error under both assignments because \\(\\delta(z,N_zv)=\\theta(v)\\).",
+      "free_symbols": [
+        "n",
+        "\\Gamma_i",
+        "\\mathcal S_i",
+        "R^{\\star}",
+        "F",
+        "\\pi",
+        "\\pi'",
+        "v",
+        "K",
+        "v_i",
+        "\\delta",
+        "z",
+        "N_z",
+        "\\theta"
+      ],
+      "depends_on": [
+        "def:bounded-fourier-class",
+        "def:observation-operator",
+        "def:target-value",
+        "def:linear-frontier",
+        "def:unrestricted-frontier"
+      ],
+      "status": "proved",
+      "justification": "The exact base case distinguishes minimax shrinkage weights from unbiased likelihood-ratio transport, while the pointwise constant-schedule calculation checks zero error without changing the full-class minimax domain.",
+      "gap": "LoombaEckles2026OffPolicy characterizes the minimum-norm unbiased transport weight, not the biased minimax rule even for one binary exposure.",
+      "consumer": "The formula is a unit test for the exact small-instance solver and for the saturation-policy implementation.",
+      "proof_tex": "Put \\(p=\\pi_1\\) and \\(q=\\pi'_1\\). By \\texttt{ass:source-overlap}, \\(0<p<1\\); hence every denominator below is nonzero. By \\texttt{ass:source-product-design}, the two assignments have source probabilities\n\\[\np_{\\pi}(0)=1-p,\n\\qquad\np_{\\pi}(1)=p.\n\\]\nBy \\texttt{ass:target-product-policy} and \\texttt{def:local-target-mass}, their target local-cell probabilities are \\(p_{\\pi',1}(0)=1-q\\) and \\(p_{\\pi',1}(1)=q\\).\n\nWe first identify the parameter set in this special case. The hypotheses give \\(X_1=\\{0,1\\}\\) and \\(\\mathcal S_1=\\{\\varnothing,\\{1\\}\\}\\). By \\texttt{def:local-fourier-character},\n\\[\n\\chi_{1,\\varnothing}^{\\pi}(x)=1,\n\\qquad\n\\chi_{1,\\{1\\}}^{\\pi}(x)=\\frac{x-p}{\\sqrt{p(1-p)}}.\n\\]\nThe second character takes different values at \\(0\\) and \\(1\\), since their difference is \\(1/\\sqrt{p(1-p)}\\ne0\\). Thus these two characters are linearly independent. Because \\(\\mathbb R^{X_1}\\) has dimension two, \\texttt{def:local-fourier-space} yields \\(H_1=\\mathbb R^{X_1}\\). It then follows from \\texttt{def:bounded-fourier-class} that\n\\[\nK=[-1,1]^{X_1}=[-1,1]^2.\n\\]\nWrite a schedule as \\(v=(v_0,v_1)\\), where \\(v_x=v_1(x)\\). By \\texttt{def:observation-operator}, assignment \\(z=x\\) reveals \\(N_xv=(v_x)\\). By \\texttt{def:target-value} and the target-cell probabilities above,\n\\[\n\\theta(v)=(1-q)v_0+qv_1.\n\\]\n\nFor the upper bound, choose the assignment-indexed linear weights \\(a_0=1-q\\) and \\(a_1=q\\). The resulting rule is\n\\[\n\\delta_a(0,N_0v)=(1-q)v_0,\n\\qquad\n\\delta_a(1,N_1v)=qv_1.\n\\]\nConsequently its two assignment-specific errors are\n\\[\n\\delta_a(0,N_0v)-\\theta(v)=-qv_1,\n\\qquad\n\\delta_a(1,N_1v)-\\theta(v)=-(1-q)v_0.\n\\]\nIts design risk therefore satisfies\n\\[\n\\begin{aligned}\nr_a(v)\n&=(1-p)q^2v_1^2+p(1-q)^2v_0^2\\\\\n&\\le (1-p)q^2+p(1-q)^2=:A,\n\\end{aligned}\n\\]\nwhere the inequality uses \\(|v_0|,|v_1|\\le1\\). Equality holds, for example, at \\((v_0,v_1)=(1,1)\\). Hence \\texttt{def:linear-frontier} gives \\(F\\le A\\), and this displayed rule attains worst-case risk \\(A\\).\n\nIt remains to prove that no measurable nonlinear rule does better. Fix an arbitrary Borel rule \\(\\delta\\), and abbreviate \\(d_x(y)=\\delta(x,(y))\\). Average its risk over the genuine probability distribution under which \\(V_0\\) and \\(V_1\\) are independent and each is uniform on \\(\\{-1,1\\}\\). This distribution is supported on \\(K\\). Conditional on assignment zero, set \\(T_0=d_0(V_0)-(1-q)V_0\\). Independence, \\(\\mathbb E[V_1]=0\\), and \\(V_1^2=1\\) give\n\\[\n\\begin{aligned}\n\\mathbb E\\!\\left[\\bigl(d_0(V_0)-\\theta(V)\\bigr)^2\\right]\n&=\\mathbb E\\!\\left[(T_0-qV_1)^2\\right]\\\\\n&=\\mathbb E[T_0^2]-2q\\,\\mathbb E[T_0]\\mathbb E[V_1]+q^2\\mathbb E[V_1^2]\\\\\n&=\\mathbb E[T_0^2]+q^2\\\\\n&\\ge q^2.\n\\end{aligned}\n\\]\nSimilarly, conditional on assignment one, put \\(T_1=d_1(V_1)-qV_1\\). Independence, \\(\\mathbb E[V_0]=0\\), and \\(V_0^2=1\\) imply\n\\[\n\\mathbb E\\!\\left[\\bigl(d_1(V_1)-\\theta(V)\\bigr)^2\\right]\n=\\mathbb E[T_1^2]+(1-q)^2\n\\ge(1-q)^2.\n\\]\nCombining the two assignments with their source probabilities shows that the average, over this four-point prior, of the design risk of \\(\\delta\\) is at least\n\\[\n(1-p)q^2+p(1-q)^2=A.\n\\]\nThe supremum of a function over \\(K\\) is at least its average under any probability distribution supported on \\(K\\). Therefore every Borel \\(\\delta\\) has worst-case risk at least \\(A\\), and \\texttt{def:unrestricted-frontier} yields \\(R^{\\star}\\ge A\\). Conversely, every assignment-indexed linear rule is Borel, so the two infima in \\texttt{def:linear-frontier} and \\texttt{def:unrestricted-frontier} satisfy \\(R^{\\star}\\le F\\). Together with \\(F\\le A\\),\n\\[\nA\\le R^{\\star}\\le F\\le A,\n\\]\nwhich proves\n\\[\nR^{\\star}=F=(1-\\pi_1)(\\pi'_1)^2+\\pi_1(1-\\pi'_1)^2.\n\\]\nThis argument explicitly enumerates both assignments and all four support points of the lower-bound prior, so it also supplies the claimed smallest-instance stress test.\n\nFinally, suppose \\(v_1(0)=v_1(1)=c\\). Boundedness gives \\(|c|\\le1\\), and the target formula gives \\(\\theta(v)=(1-q)c+qc=c\\). Under either \\(z=0\\) or \\(z=1\\), \\texttt{def:observation-operator} gives \\((N_zv)_1=c\\). Thus the Borel rule \\(\\delta(z,N_zv)=(N_zv)_1\\) equals \\(\\theta(v)\\) under each assignment, and its squared error is identically zero.",
+      "revision": "rev:85064958a031c84d356f0973f6ebda983b233053f4e94cdf2e406d347a182846"
+    },
+    {
+      "id": "lem:hub-frontier-rate-sandwich",
+      "kind": "lemma",
+      "statement": "For every \\(n\\ge2\\) on \\(\\mathcal H_n^{\\mathrm{hub}}\\),\n\\[\n \\frac{n-1}{n^2}\\bigl((1-p)q^2+p(1-q)^2\\bigr)\n \\le R_n^{\\star}\\le F_n\n \\le \\frac{1+(n-1)\\bigl((1-q)^2/(1-p)+q^2/p\\bigr)}{n^2}.\n\\]\nIn particular, for fixed \\(p,q\\in[\\varepsilon,1-\\varepsilon]\\), both \\(F_n\\) and \\(R_n^{\\star}\\) are \\(\\Theta(n^{-1})\\).",
+      "free_symbols": [
+        "n",
+        "p",
+        "q",
+        "\\varepsilon",
+        "\\mathcal H_n^{\\mathrm{hub}}",
+        "R_n^{\\star}",
+        "F_n"
+      ],
+      "depends_on": [
+        "ass:source-product-design",
+        "ass:source-overlap",
+        "ass:target-product-policy",
+        "ass:target-overlap",
+        "def:local-fourier-character",
+        "def:local-fourier-space",
+        "def:bounded-fourier-class",
+        "def:local-target-mass",
+        "def:target-value",
+        "def:observation-operator",
+        "def:semilinear-rule",
+        "def:linear-frontier",
+        "def:unrestricted-frontier",
+        "def:prior-certificate",
+        "def:hub-family",
+        "prop:primal-dual-certificates"
+      ],
+      "proof_tex": "Fix \\(n\\ge2\\).  For a peripheral unit \\(i\\ge2\\), \\texttt{def:hub-family} gives \\(\\Gamma_i=\\{i\\}\\) and \\(\\mathcal S_i=\\{\\varnothing,\\{i\\}\\}\\).  By \\texttt{ass:source-overlap} and \\texttt{def:local-fourier-character}, the two characters \\(1\\) and \\((x-p)/\\sqrt{p(1-p)}\\) are linearly independent on \\(\\{0,1\\}\\).  Hence \\texttt{def:local-fourier-space} gives \\(H_i=\\mathbb R^{\\{0,1\\}}\\), and \\texttt{def:bounded-fourier-class} gives \\(K_i=[-1,1]^2\\).\n\nWrite\n\\[\n T_i=(1-q)v_i(0)+qv_i(1)\n\\]\nfor the unscaled target contribution of unit \\(i\\).  Under the source product design, define the peripheral assignment-indexed linear rule\n\\[\n U_i=\n \\begin{cases}\n \\dfrac{1-q}{1-p}v_i(0),&Z_i=0,\\\\[5pt]\n \\dfrac{q}{p}v_i(1),&Z_i=1.\n \\end{cases}\n\\]\nThe denominators are positive by \\texttt{ass:source-overlap}.  Direct calculation using \\texttt{ass:source-product-design} gives\n\\[\n \\mathbb E_{\\pi}[U_i]=(1-q)v_i(0)+qv_i(1)=T_i\n\\]\nand, since \\(|v_i(0)|,|v_i(1)|\\le1\\),\n\\[\n \\operatorname{Var}_{\\pi}(U_i)\n \\le \\mathbb E_{\\pi}[U_i^2]\n \\le \\frac{(1-q)^2}{1-p}+\\frac{q^2}{p}=:A_{p,q}.\n\\]\nUse the global semilinear estimator \\(\\widehat T=n^{-1}\\sum_{i=2}^nU_i\\), assigning weight zero to the hub outcome.  The source coordinates \\(Z_2,\\ldots,Z_n\\) are independent, so the centered peripheral errors are independent.  The hub target contribution \\(T_1\\) obeys \\(|T_1|\\le1\\), because it is a target-policy average of a schedule bounded by one.  Therefore\n\\[\n\\begin{aligned}\n \\mathbb E_{\\pi}[(\\widehat T-\\theta(v))^2]\n &=\\frac1{n^2}\\left\\{\n \\sum_{i=2}^n\\operatorname{Var}_{\\pi}(U_i)+T_1^2\\right\\}\\\\\n &\\le \\frac{1+(n-1)A_{p,q}}{n^2}.\n\\end{aligned}\n\\]\nThe displayed estimator is feasible in \\texttt{def:linear-frontier}; this proves the upper bound on \\(F_n\\).  The inequality \\(R_n^{\\star}\\le F_n\\) follows from \\texttt{prop:primal-dual-certificates}.\n\nFor the lower bound, put the hub schedule identically equal to zero.  Independently for every \\(i\\ge2\\), draw \\(v_i(0)\\) and \\(v_i(1)\\) as independent Rademacher variables.  The preceding identification of \\(K_i\\) shows that this is a genuine prior supported on the hub schedule class.  If \\(Z_i=0\\), then \\(v_i(1)\\) remains unobserved and contributes posterior variance \\(q^2/n^2\\); if \\(Z_i=1\\), then \\(v_i(0)\\) remains unobserved and contributes \\((1-q)^2/n^2\\).  Independence across units makes the posterior covariances vanish.  Consequently the prior certificate is exactly\n\\[\n \\mathcal B(\\nu)\n =\\frac{n-1}{n^2}\\bigl((1-p)q^2+p(1-q)^2\\bigr).\n\\]\nThe lower-certificate part of \\texttt{prop:primal-dual-certificates} gives the claimed lower bound on \\(R_n^{\\star}\\).  Finally, interior overlap implies the two constants in the sandwich are finite and strictly positive; since \\((n-1)/n^2\\) is between \\(1/(2n)\\) and \\(1/n\\) for \\(n\\ge2\\), the \\(\\Theta(n^{-1})\\) conclusion follows.",
+      "status": "proved",
+      "revision": "rev:a959d120cf83657eaf2f6c31984ecde1c526d588c72a3f31d5d1cfa749d3e6e5"
+    },
+    {
+      "id": "lem:loomba-eckles-spectral-overlap-envelope",
+      "kind": "lemma",
+      "statement": "For product-Bernoulli source and target policies, the retained-support spectral transport weight is\n\\[\n w_{mathcal S_i}^{\\pi,\\pi'}(z)\n =\\sum_{U\\in\\mathcal S_i}\\Delta_U^{\\pi,\\pi'}\n   \\chi_{i,U}^{\\pi}(z_{\\Gamma_i}),\n\\]\nand it transports the target expectation of every function in \\(H_i\\).  If square-integrable unit summands depend respectively only on the assignment coordinates in \\(\\Gamma_i\\), if\n\\[\n D=\\max_{i\\in V_n}\n \\left|\\left\\{k\\in V_n\\setminus\\{i\\}:\\Gamma_i\\cap\\Gamma_k\\ne\\varnothing\\right\\}\\right|,\n\\]\nand if their second moments are all at most \\(B\\), then the variance of their average is at most \\(B(D+1)/n\\).",
+      "free_symbols": [
+        "\\pi",
+        "\\pi'",
+        "\\mathcal S_i",
+        "\\Delta_U^{\\pi,\\pi'}",
+        "\\chi_{i,U}^{\\pi}",
+        "z",
+        "\\Gamma_i",
+        "H_i",
+        "i",
+        "U",
+        "V_n",
+        "n"
+      ],
+      "depends_on": [
+        "ass:source-product-design",
+        "ass:target-product-policy",
+        "def:local-fourier-character",
+        "def:local-fourier-space",
+        "def:loomba-eckles-spectral-envelope"
+      ],
+      "status": "cited",
+      "source": {
+        "cite": "LoombaEckles2026OffPolicy",
+        "locator": "Equation (4) and Proposition 3.1 on p. 4; Theorem 5.1 on p. 7 and its Cauchy--Schwarz proof on p. 14 of arXiv:2609.02756v1",
+        "carrier": "logical-claim",
+        "url": "https://arxiv.org/pdf/2609.02756v1",
+        "attestation": {
+          "by": "d0-agent",
+          "note": "Transcribed from the cited equation, proposition, theorem, and proof in arXiv:2609.02756v1, dated 2 September 2026."
+        }
+      },
+      "proof_tex": "",
+      "revision": "rev:29d7adc3a27e6fb8adf161a056973e822578210665c5f0187acfafda97326755"
+    },
+    {
+      "id": "lem:hub-loomba-eckles-envelope",
+      "kind": "lemma",
+      "statement": "Fix \\(n\\ge2\\) and \\(p,q\\in[\\varepsilon,1-\\varepsilon]\\), and put\n\\[\n \\Delta=\\frac{q-p}{\\sqrt{p(1-p)}},\n \\qquad c=\\Delta^2=\\frac{(q-p)^2}{p(1-p)}.\n\\]\nOn \\(\\mathcal H_n^{\\mathrm{hub}}\\), the Loomba--Eckles transport weights and the smallest uniform bounded-class envelope satisfy\n\\[\n W_1^{\\mathrm{LE}}\n =1+\\Delta\\sum_{j=1}^n\\chi_{1,\\{j\\}}^{\\pi},\n \\qquad\n W_i^{\\mathrm{LE}}=1+\\Delta\\chi_{i,\\{i\\}}^{\\pi}\\quad(2\\le i\\le n),\n\\]\n\\[\n B_n^{\\mathrm{LE}}=1+nc,\n \\qquad D_n^{\\mathrm{LE}}=n-1,\n \\qquad\n \\frac{B_n^{\\mathrm{LE}}(D_n^{\\mathrm{LE}}+1)}{n}=1+n\\frac{(q-p)^2}{p(1-p)}.\n\\]\nThe last quantity equals \\(1\\) when \\(p=q\\) and is \\(\\Theta(n)\\) for fixed \\(p\\ne q\\).",
+      "free_symbols": [
+        "n",
+        "p",
+        "q",
+        "\\varepsilon",
+        "\\mathcal H_n^{\\mathrm{hub}}",
+        "W_i^{\\mathrm{LE}}",
+        "\\chi_{i,U}^{\\pi}",
+        "\\pi",
+        "i",
+        "j",
+        "B_n^{\\mathrm{LE}}",
+        "D_n^{\\mathrm{LE}}"
+      ],
+      "depends_on": [
+        "ass:source-product-design",
+        "ass:source-overlap",
+        "ass:target-overlap",
+        "def:local-fourier-character",
+        "def:local-evaluation-polytope",
+        "def:hub-family",
+        "def:loomba-eckles-spectral-envelope",
+        "lem:loomba-eckles-spectral-overlap-envelope"
+      ],
+      "status": "proved",
+      "proof_tex": "Fix \\(n\\ge 2\\) and \\(p,q\\in[\\varepsilon,1-\\varepsilon]\\).  Since \\(\\varepsilon\\in(0,1/2)\\), \\texttt{ass:source-overlap} gives \\(0<p<1\\), and hence\n\\[\n \\Delta=\\frac{q-p}{\\sqrt{p(1-p)}}\n \\quad\\text{and}\\quad\n c=\\Delta^2=\\frac{(q-p)^2}{p(1-p)}\n\\]\nare well defined, with \\(c\\ge0\\).  No strict inequality between \\(p\\) and \\(q\\) is used.\n\nLet \\(Z\\) have the source law in \\texttt{ass:source-product-design}, and abbreviate\n\\[\n \\chi_j=\\frac{Z_j-p}{\\sqrt{p(1-p)}}.\n\\]\nThe two Bernoulli values give\n\\[\n \\mathbb E_{\\pi}[\\chi_j]\n =\\frac{p(1-p)+(1-p)(-p)}{\\sqrt{p(1-p)}}=0\n\\]\nand\n\\[\n \\mathbb E_{\\pi}[\\chi_j^2]\n =\\frac{p(1-p)^2+(1-p)p^2}{p(1-p)}=1.\n\\]\nFor \\(j\\ne k\\), product independence from \\texttt{ass:source-product-design} and the first identity imply\n\\[\n \\mathbb E_{\\pi}[\\chi_j\\chi_k]\n =\\mathbb E_{\\pi}[\\chi_j]\\mathbb E_{\\pi}[\\chi_k]=0.\n\\]\nThese are precisely the singleton characters of \\texttt{def:local-fourier-character} on the homogeneous source policy.\n\nBy \\texttt{def:hub-family},\n\\[\n \\mathcal S_1=\\{\\varnothing\\}\\cup\\{\\{j\\}:j\\in V_n\\},\n \\qquad\n \\mathcal S_i=\\{\\varnothing,\\{i\\}\\}\\quad(2\\le i\\le n).\n\\]\nFor a singleton, \\texttt{def:loomba-eckles-spectral-envelope} gives\n\\(\n \\Delta_{\\{j\\}}^{\\pi,\\pi'}=(q-p)/\\sqrt{p(1-p)}=\\Delta\n\\), while the empty-set loading is one.  Therefore the transport formula, equivalently \\texttt{lem:loomba-eckles-spectral-overlap-envelope}, yields\n\\[\n W_1^{\\mathrm{LE}}\n =1+\\Delta\\sum_{j=1}^n\\chi_{1,\\{j\\}}^{\\pi},\n \\qquad\n W_i^{\\mathrm{LE}}\n =1+\\Delta\\chi_{i,\\{i\\}}^{\\pi}\\quad(2\\le i\\le n).\n\\]\nUsing the three moment identities above term by term,\n\\[\n\\begin{aligned}\n \\mathbb E_{\\pi}\\!\\left[(W_1^{\\mathrm{LE}})^2\\right]\n &=1+2\\Delta\\sum_{j=1}^n\\mathbb E_{\\pi}[\\chi_j]\n   +\\Delta^2\\sum_{j=1}^n\\mathbb E_{\\pi}[\\chi_j^2]\n   +2\\Delta^2\\sum_{1\\le j<k\\le n}\\mathbb E_{\\pi}[\\chi_j\\chi_k]\\\\\n &=1+n\\Delta^2=1+nc,\n\\end{aligned}\n\\]\nand, for \\(2\\le i\\le n\\),\n\\[\n \\mathbb E_{\\pi}\\!\\left[(W_i^{\\mathrm{LE}})^2\\right]\n =1+2\\Delta\\mathbb E_{\\pi}[\\chi_i]\n   +\\Delta^2\\mathbb E_{\\pi}[\\chi_i^2]\n =1+c.\n\\]\n\nIt remains to verify exactness of the bounded-class envelope.  For every \\(v_i\\in K_i\\), \\texttt{def:local-evaluation-polytope} gives \\(|v_i(x)|\\le1\\) at every local cell.  Hence, pointwise in \\(Z\\),\n\\[\n \\bigl(v_i(Z_{\\Gamma_i})W_i^{\\mathrm{LE}}(Z)\\bigr)^2\n \\le (W_i^{\\mathrm{LE}}(Z))^2,\n\\]\nand consequently\n\\[\n \\sup_{v_i\\in K_i}\\mathbb E_{\\pi}\\!\\left[\n   \\bigl(v_i(Z_{\\Gamma_i})W_i^{\\mathrm{LE}}(Z)\\bigr)^2\n \\right]\n \\le \\mathbb E_{\\pi}\\!\\left[(W_i^{\\mathrm{LE}})^2\\right].\n\\]\nConversely, the constant schedule \\(v_i\\equiv1\\) is the empty-set character.  Each support displayed above contains \\(\\varnothing\\), so \\texttt{def:local-evaluation-polytope} implies \\(v_i\\equiv1\\in K_i\\); it attains equality in the preceding display.  Thus\n\\[\n \\sup_{v_i\\in K_i}\\mathbb E_{\\pi}\\!\\left[\n   \\bigl(v_i(Z_{\\Gamma_i})W_i^{\\mathrm{LE}}(Z)\\bigr)^2\n \\right]\n =\\mathbb E_{\\pi}\\!\\left[(W_i^{\\mathrm{LE}})^2\\right].\n\\]\nBecause \\(n\\ge2\\) and \\(c\\ge0\\), \\(1+nc\\ge1+c\\).  Taking the maximum over units in \\texttt{def:loomba-eckles-spectral-envelope} therefore proves\n\\[\n B_n^{\\mathrm{LE}}=1+nc.\n\\]\n\nFor the overlap degree, \\texttt{def:hub-family} gives \\(\\Gamma_1=V_n\\) and \\(\\Gamma_i=\\{i\\}\\) for \\(i\\ge2\\).  Hence \\(\\Gamma_1\\cap\\Gamma_k=\\{k\\}\\ne\\varnothing\\) for every \\(k\\ne1\\).  The hub has \\(n-1\\) intersecting partners, and no unit can have more, so \\texttt{def:loomba-eckles-spectral-envelope} gives\n\\[\n D_n^{\\mathrm{LE}}=n-1.\n\\]\nCombining the two exact formulas,\n\\[\n \\frac{B_n^{\\mathrm{LE}}(D_n^{\\mathrm{LE}}+1)}{n}\n =\\frac{(1+nc)n}{n}\n =1+n\\frac{(q-p)^2}{p(1-p)}.\n\\]\nIf \\(p=q\\), then \\(c=0\\), so this quantity equals one for every \\(n\\).  If \\(p\\ne q\\) is fixed, source overlap makes \\(c\\in(0,\\infty)\\) independent of \\(n\\), and the quantity is \\(\\Theta(n)\\).  As the smallest-instance check, \\(n=2\\) gives \\(B_2^{\\mathrm{LE}}=1+2c\\), \\(D_2^{\\mathrm{LE}}=1\\), and the same envelope value \\(1+2c\\), including the boundary value one when \\(p=q\\).",
+      "revision": "rev:e9a8eec7462a4daea08dc885266c845ccd6b4eda69f92916b6f909d5b9cee50e"
+    },
+    {
+      "id": "prop:raw-incidence-bag-moment-obstruction",
+      "kind": "proposition",
+      "statement": "Fix any even integer \\(r\\ge 2\\) and any \\(q\\in[\\varepsilon,1-\\varepsilon]\\setminus\\{1/2\\}\\), and put \\(d=2q-1\\).  There is an \\(n=r\\) instance with \\(\\pi_j=1/2\\), \\(\\pi'_j=q\\), and one additive hub whose retained support is \\(\\mathcal S_1=\\{\\varnothing,\\{1\\},\\ldots,\\{r\\}\\}\\), such that \\(\\mathcal I\\) is the star \\(K_{1,r}\\) together with isolated vertices and hence \\(\\operatorname{tw}(\\mathcal I)=1\\).  Write its hub schedule as \\(h_\\beta(s)=\\beta_0+\\sum_{j=1}^r\\beta_js_j\\), where \\(s_j=2z_j-1\\); boundedness is equivalent to \\(|\\beta_0|+\\sum_{j=1}^r|\\beta_j|\\le1\\).  For a genuine prior \\(\\nu\\) supported on schedules with all non-hub coordinates zero, define its ordinary edge-bag record to be the collection of projected laws \\(\\{\\mathcal L_\\nu(\\beta_0,\\beta_j):1\\le j\\le r\\}\\), with the common \\(\\beta_0\\)-marginal identified on overlaps.  There are two genuine, finitely supported priors \\(\\nu_{\\mathrm A}\\) and \\(\\nu_{\\mathrm B}\\) having the same ordinary edge-bag record but satisfying\n\\[\n \\int_K\\theta(v)^2\\,d\\nu_{\\mathrm A}(v)=\\frac{d^2}{r^2}\n \\qquad\\text{and}\\qquad\n \\int_K\\theta(v)^2\\,d\\nu_{\\mathrm B}(v)=0.\n\\]\nFor \\(r=2\\), they can be chosen as the symmetric two-point laws generated respectively by \\((\\beta_0,\\beta_1,\\beta_2)=(0,1/2,1/2)\\) and \\((0,1/2,-1/2)\\); in particular their cross moments are \\(1/4\\) and \\(-1/4\\).  This is the smallest additive-star obstruction: with one leaf the sole edge-bag law is the full coefficient law and determines the squared target.  More generally, define the canonical interaction graph of the target-square polynomial by joining two coefficient variables exactly when they occur together in a nonzero monomial.  This graph contains a clique on the \\(r\\) leaf coefficients.  Consequently, ordinary bag moments on the raw incidence decomposition do not determine the target-moment term \\(\\langle\\ell,M_\\nu\\ell\\rangle_E\\), where \\(M_\\nu=\\int_K v\\otimes v\\,d\\nu(v)\\in\\mathfrak M(K)\\); the bag-local lift described by \\(\\mathfrak H_{\\mathrm{tw}}\\) therefore requires cross-leaf correlation state or an equivalent global target-sum state to be exact.",
+      "free_symbols": [
+        "n",
+        "j",
+        "z",
+        "\\varepsilon",
+        "q",
+        "\\pi",
+        "\\pi'",
+        "\\mathcal S_i",
+        "K",
+        "v",
+        "\\nu",
+        "\\theta",
+        "\\mathcal I",
+        "\\operatorname{tw}(\\mathcal I)",
+        "E",
+        "M",
+        "\\ell",
+        "\\mathfrak M(K)",
+        "\\mathfrak H_{\\mathrm{tw}}"
+      ],
+      "depends_on": [
+        "ass:source-product-design",
+        "ass:source-overlap",
+        "ass:target-product-policy",
+        "ass:target-overlap",
+        "ass:hierarchical-support",
+        "ass:fixed-schedules",
+        "def:local-fourier-character",
+        "def:local-fourier-space",
+        "def:local-evaluation-polytope",
+        "def:bounded-fourier-class",
+        "def:target-value",
+        "def:indexed-psd-riesz-geometry",
+        "def:moment-body",
+        "def:moment-dual",
+        "def:incidence-graph",
+        "def:treewidth-handle"
+      ],
+      "status": "proved",
+      "justification": "This proposition isolates the smallest exact obstruction to treating raw exposure-incidence treewidth as the canonical width of the minimax moment program.",
+      "gap": "The obstruction disproves ordinary edge-bag moment localization but does not exclude a different exact algorithm using a compressed global state.",
+      "consumer": "Any future bounded-width algorithm must represent the cross-leaf target moment explicitly rather than infer it from overlap-consistent edge-bag marginals.",
+      "proof_tex": "Let \\(V_r=\\{1,\\ldots,r\\}\\).  Set every source coordinate to \\(\\pi_j=1/2\\) and every target coordinate to \\(\\pi'_j=q\\).  The source law is product Bernoulli by \\texttt{ass:source-product-design}; because \\(\\varepsilon<1/2\\), \\(1/2\\in[\\varepsilon,1-\\varepsilon]\\), so \\texttt{ass:source-overlap} holds.  The target law is product Bernoulli by \\texttt{ass:target-product-policy}, and the chosen \\(q\\) obeys \\texttt{ass:target-overlap}.\n\nFor outcome unit \\(1\\), take \\(\\Gamma_1=V_r\\) and\n\\[\n \\mathcal S_1=\\{\\varnothing,\\{1\\},\\ldots,\\{r\\}\\}.\n\\]\nFor every outcome unit \\(i\\ge2\\), take \\(\\Gamma_i=\\varnothing\\) and \\(\\mathcal S_i=\\{\\varnothing\\}\\).  These supports are downward closed, as required by \\texttt{ass:hierarchical-support}.  By \\texttt{def:incidence-graph}, assignment vertex \\(j\\) is adjacent only to outcome-factor vertex \\(1\\); hence \\(\\mathcal I\\) is \\(K_{1,r}\\) plus isolated vertices.  The bags consisting of the hub and one leaf, connected in any tree, form a width-one tree decomposition.  Since the graph has an edge, its treewidth is not zero.  Thus \\(\\operatorname{tw}(\\mathcal I)=1\\).\n\nAt source probability \\(1/2\\), \\texttt{def:local-fourier-character} gives\n\\[\n \\chi_{1,\\{j\\}}^\\pi(z)=\\frac{z_j-1/2}{\\sqrt{(1/2)(1/2)}}=2z_j-1=:s_j\\in\\{-1,1\\}.\n\\]\nTherefore \\texttt{def:local-fourier-space} identifies every additive hub schedule with\n\\[\n h_\\beta(s)=\\beta_0+\\sum_{j=1}^r\\beta_js_j.\n\\]\nThe triangle inequality gives\n\\[\n \\max_{s\\in\\{-1,1\\}^r}|h_\\beta(s)|\n \\le |\\beta_0|+\\sum_{j=1}^r|\\beta_j|.\n\\]\nFor the reverse inequality, choose \\(t\\in\\{-1,1\\}\\) with \\(\\beta_0=t|\\beta_0|\\), taking either value if \\(\\beta_0=0\\), and choose \\(s_j=t\\operatorname{sgn}(\\beta_j)\\), with \\(\\operatorname{sgn}(0)=1\\).  Then\n\\[\n h_\\beta(s)=t\\left(|\\beta_0|+\\sum_{j=1}^r|\\beta_j|\\right).\n\\]\nConsequently\n\\[\n \\max_{s\\in\\{-1,1\\}^r}|h_\\beta(s)|\n =|\\beta_0|+\\sum_{j=1}^r|\\beta_j|,\n\\]\nso \\texttt{def:local-evaluation-polytope} and \\texttt{def:bounded-fourier-class} make the hub coefficient set exactly the displayed \\(\\ell_1\\)-ball.\n\nLet\n\\[\n b^{\\mathrm A}=\\left(0,\\frac1r,\\ldots,\\frac1r\\right)\n\\]\nand let \\(b^{\\mathrm B}\\) have zero intercept, its first \\(r/2\\) leaf coefficients equal to \\(1/r\\), and its last \\(r/2\\) leaf coefficients equal to \\(-1/r\\).  Both coefficient vectors have \\(\\ell_1\\)-norm one.  For \\(C\\in\\{\\mathrm A,\\mathrm B\\}\\), let \\(v^{b^C}\\) denote the schedule whose hub coordinate is \\(h_{b^C}\\) and whose other outcome coordinates are identically zero, and define the genuine prior\n\\[\n \\nu_C=\\frac12\\delta_{v^{b^C}}+\\frac12\\delta_{-v^{b^C}}.\n\\]\nThe preceding \\(\\ell_1\\) calculation proves that all four support schedules belong to \\(K\\), so these are countably additive probability laws on the actual bounded schedule class, not signed moment functionals.  They are convex-analytic certificates only: conditional on any support schedule, the potential outcomes remain fixed and the source assignment is the experiment's sole randomness, as required by \\texttt{ass:fixed-schedules}.\n\nFor every leaf \\(j\\), under either prior \\(\\beta_0=0\\) almost surely and \\(\\beta_j\\) is uniform on \\(\\{-1/r,1/r\\}\\).  Hence\n\\[\n \\mathcal L_{\\nu_{\\mathrm A}}(\\beta_0,\\beta_j)\n =\\frac12\\delta_{(0,1/r)}+\\frac12\\delta_{(0,-1/r)}\n =\\mathcal L_{\\nu_{\\mathrm B}}(\\beta_0,\\beta_j)\n\\]\nfor every \\(j\\).  Thus the two priors have identical edge-bag laws, and a fortiori identical first and second moments within every edge bag and identical overlap marginals.\n\nUnder the target product policy,\n\\[\n \\mathbb E_{\\pi'}[s_j]=2q-1=d.\n\\]\nAll non-hub outcome coordinates vanish under the two priors, so \\texttt{def:target-value} yields, for any coefficient vector \\(\\beta\\) in their support,\n\\[\n \\theta(v^\\beta)=\\frac1r\\left(\\beta_0+d\\sum_{j=1}^r\\beta_j\\right).\n\\]\nNow \\(\\sum_jb_j^{\\mathrm A}=1\\), whereas \\(\\sum_jb_j^{\\mathrm B}=0\\).  Symmetrizing changes the sign of \\(\\theta\\) but not its square.  Therefore\n\\[\n \\int_K\\theta(v)^2\\,d\\nu_{\\mathrm A}(v)=\\frac{d^2}{r^2},\n \\qquad\n \\int_K\\theta(v)^2\\,d\\nu_{\\mathrm B}(v)=0.\n\\]\nWhen \\(r=2\\), the generating vectors are precisely \\((0,1/2,1/2)\\) and \\((0,1/2,-1/2)\\).  Enumerating all four source assignments gives the exact stress-test table\n\\[\n\\begin{array}{c|rrrr}\n (s_1,s_2)&(1,1)&(1,-1)&(-1,1)&(-1,-1)\\\\ \\hline\n h_{b^{\\mathrm A}}&1&0&0&-1\\\\\n h_{b^{\\mathrm B}}&0&1&-1&0\n\\end{array}\n\\]\nand directly confirms boundedness on every realized cell.  Since multiplication is unchanged by the common sign flip in each symmetric prior,\n\\[\n \\mathbb E_{\\nu_{\\mathrm A}}[\\beta_1\\beta_2]=\\frac14,\n \\qquad\n \\mathbb E_{\\nu_{\\mathrm B}}[\\beta_1\\beta_2]=-\\frac14.\n\\]\nFor \\(r=1\\), in contrast, the unique edge-bag record is the complete law of \\((\\beta_0,\\beta_1)\\), and the function \\(r^{-2}(\\beta_0+d\\beta_1)^2\\) is measurable with respect to that record.  Thus two leaves are minimal for this particular edge-bag ambiguity.\n\nThe failure can also be read directly from the polynomial scope.  The target square expands as\n\\[\n \\theta(v^\\beta)^2\n =\\frac1{r^2}\\left[\n \\beta_0^2+2d\\beta_0\\sum_{j=1}^r\\beta_j\n +d^2\\sum_{j=1}^r\\beta_j^2\n +2d^2\\sum_{1\\le j<k\\le r}\\beta_j\\beta_k\n \\right].\n\\]\nDefine the canonical coefficient-interaction graph by joining two coefficient variables when they occur together in a nonzero monomial of this polynomial.  Because \\(d\\ne0\\), every pair \\(\\beta_j,\\beta_k\\) of distinct leaf coefficients is joined, so this graph contains \\(K_r\\).  To verify the resulting width lower bound directly, root the decomposition tree.  For each clique vertex, the bags containing it form a connected subtree; let its top be the vertex of that subtree nearest the root, and choose a clique vertex whose top is farthest from the root.  The subtrees for two clique vertices intersect because some bag contains their graph edge.  If \\(y\\) is an intersection with the selected subtree, both tops lie on the root-to-\\(y\\) path; maximal depth puts the selected top between the other top and \\(y\\).  Connectivity of the other subtree then places the selected top in it.  Thus the selected top belongs to every clique-vertex subtree, so its bag contains all \\(r\\) leaf variables.  The coefficient-interaction treewidth is therefore at least \\(r-1\\), although the raw incidence treewidth is one.\n\nFinally, for either genuine prior define\n\\[\n M_{\\nu_C}=\\int_K v\\otimes v\\,d\\nu_C(v).\n\\]\nThis is a convex combination of two rank-one schedule moments and hence belongs to \\(\\mathfrak M(K)\\) by \\texttt{def:moment-body}.  By the Riesz identity for \\(\\ell\\),\n\\[\n \\langle\\ell,M_{\\nu_C}\\ell\\rangle_E\n =\\int_K\\langle\\ell,v\\rangle_E^2\\,d\\nu_C(v)\n =\\int_K\\theta(v)^2\\,d\\nu_C(v).\n\\]\nThe two equal edge-bag records therefore give different values of the first target-moment term in \\texttt{def:moment-dual}.  No function of those edge-bag records alone can reproduce that term for every \\(M\\in\\mathfrak M(K)\\).  Thus ordinary bag-moment consistency on the tree decomposition of \\(\\mathcal I\\) is not an exact representation of the defined moment problem.  It must be augmented by cross-leaf correlation information or by an equivalent state carrying the global target sum, which proves the proposition.",
+      "revision": "rev:8067a04c53e1d47b75de9ff5712dc196d6301586864763e12ed0eeee91df0dfa"
+    },
+    {
+      "id": "lem:rank-fiber-genuine-prior-certificates",
+      "kind": "lemma",
+      "statement": "For every admissible fixed instance, if \\(F>0\\) there is a symmetric genuine probability law on \\(K\\) whose posterior-ambiguity certificate is exactly \\(F/r_{\\star}\\). For every \\(z\\in\\Omega_n\\), there is a symmetric genuine two-point law \\(\\nu_z\\in\\mathcal P(K)\\) satisfying \\(\\mathcal B(\\nu_z)\\ge p_{\\pi}(z)\\rho_z^2\\), and there is a coefficient vector \\(a_z\\in\\mathbb R^{V_n}\\) satisfying\n\\[\n \\sup_{v\\in K}\\left\\lvert a_z^{\\mathsf T}N_zv-\\theta(v)\\right\\rvert=\\rho_z.\n\\]\nConsequently,\n\\[\n \\max\\left\\{\\frac{F}{r_{\\star}},m_{\\mathrm{fib}}\\right\\}\n \\le R^{\\star}\\le F=\\mathcal D\\le S_{\\mathrm{fib}},\n \\qquad\n \\frac{F}{\\kappa}\\le R^{\\star}\\le F,\n\\]\nand\n\\[\n 1\\le\\kappa_{\\mathrm{fib}}\n \\le\\left\\lvert\\{z\\in\\Omega_n:\\rho_z>0\\}\\right\\rvert\n \\le 2^n\n\\]\nwhenever \\(m_{\\mathrm{fib}}>0\\), with the stated convention when \\(m_{\\mathrm{fib}}=0\\). In the latter case \\(R^{\\star}=F=\\mathcal D=S_{\\mathrm{fib}}=0\\). The clipped incidence estimator has worst-case risk at most \\(F\\).",
+      "free_symbols": [
+        "F",
+        "K",
+        "r_{\\star}",
+        "z",
+        "\\Omega_n",
+        "n",
+        "\\nu_z",
+        "\\mathcal B(\\nu)",
+        "p_{\\pi}(z)",
+        "\\rho_z",
+        "a_z",
+        "V_n",
+        "v",
+        "N_z",
+        "\\theta",
+        "R^{\\star}",
+        "\\mathcal D",
+        "S_{\\mathrm{fib}}",
+        "m_{\\mathrm{fib}}",
+        "\\kappa",
+        "\\kappa_{\\mathrm{fib}}"
+      ],
+      "depends_on": [
+        "ass:source-product-design",
+        "ass:source-overlap",
+        "ass:target-product-policy",
+        "ass:target-overlap",
+        "ass:bounded-schedules",
+        "ass:fixed-schedules",
+        "def:local-target-mass",
+        "def:target-value",
+        "def:observation-operator",
+        "def:bounded-fourier-class",
+        "def:linear-frontier",
+        "def:unrestricted-frontier",
+        "def:moment-body",
+        "def:moment-dual",
+        "def:prior-certificate",
+        "def:adaptive-rank-fiber-complexity",
+        "lem:selector-reduction-and-dual",
+        "prop:primal-dual-certificates"
+      ],
+      "status": "proved",
+      "justification": "The rank prior and selector-fiber constructions give genuine, computable all-estimator lower certificates with explicit instance-dependent losses.",
+      "gap": "The construction preserves bounded-schedule support exactly, while exposing why its rank and fiber losses do not settle the dimension-free question left open by ChenValiantValiant2020.",
+      "consumer": "The two in-place frontier theorems use this lemma to calibrate finite-instance risk and triangular-array consistency.",
+      "proof_tex": "Fix an admissible finite instance. The parameter remains the fixed potential-outcome schedule \\(v\\in K\\), the only experimental randomness is \\(z\\sim p_{\\pi}\\), and the priors constructed below are decision-theoretic lower-bound devices rather than superpopulation assumptions.\n\nFirst record the geometry supplied by \\(\\mathrm{def:bounded-fourier-class}\\). On \\(E\\), put\n\\[\n \\|v\\|_K=\\max_{i\\in V_n}\\max_{x\\in X_i}|v_i(x)|.\n\\]\nIf this maximum is zero, every function \\(v_i\\) vanishes on its finite domain, hence \\(v=0\\). Thus \\(\\|\\cdot\\|_K\\) is a norm and \\(K=\\{v:\\|v\\|_K\\le1\\}\\). In particular, \\(K\\) is compact, convex, centrally symmetric, and absolutely convex in the finite-dimensional space \\(E\\), and it contains a relative neighborhood of zero. Since the target probabilities are nonnegative and sum to one for every outcome unit, boundedness also gives\n\\[\n |\\theta(v)|\n \\le \\frac1n\\sum_{i\\in V_n}\\sum_{x\\in X_i}p_{\\pi',i}(x)|v_i(x)|\n \\le1,\n \\qquad v\\in K.\n\\]\nConsequently every compact set \\(K\\cap\\ker N_z\\) has an element attaining \\(\\rho_z\\).\n\nWe next justify the optimizer used in \\(\\mathrm{def:adaptive-rank-fiber-complexity}\\). Expanding a quadratic form and solving its normal equations gives, for every positive semidefinite \\(M\\),\n\\[\n \\psi_z(M)\n =\\min_{b\\in\\mathbb R^{V_n}}\n \\langle\\ell-N_z^{\\ast}b,M(\\ell-N_z^{\\ast}b)\\rangle_E.\n\\]\nIndeed, the normal equation is \\(N_zMN_z^{\\ast}b=N_zM\\ell\\); the range condition and Moore--Penrose convention in \\(\\mathrm{def:moment-dual}\\) show that a solution exists and that substitution yields exactly the displayed pseudoinverse formula. Hence\n\\[\n \\Phi(M):=\\sum_zp_{\\pi}(z)\\psi_z(M)\n =\\inf_{(b_z)_z}\\sum_zp_{\\pi}(z)\n \\langle\\ell-N_z^{\\ast}b_z,M(\\ell-N_z^{\\ast}b_z)\\rangle_E.\n\\]\nFor fixed \\((b_z)_z\\), the last expression is continuous and linear in \\(M\\); its infimum is therefore upper semicontinuous. The moment body is compact. To see this without importing an existence claim, let \\(d\\) be the dimension of the ambient self-adjoint-operator space. If a convex representation uses more than \\(d+1\\) atoms, affine dependence supplies coefficients summing to zero whose weighted atom sum is zero; moving the weights in one of the two possible directions until one weight first reaches zero preserves the represented point and the probability simplex. Iteration leaves at most \\(d+1\\) atoms. Hence \\(\\mathfrak M(K)\\) is the continuous image of the compact set \\(K^{d+1}\\times\\Delta_d\\), allowing repeated atoms and zero weights, and is compact. Thus \\(\\Phi\\) attains its maximum. The finite set of possible ranks then has a minimum over the nonempty maximizing set. By \\(\\mathrm{lem:selector-reduction-and-dual}\\), this maximum is \\(\\mathcal D=F\\). If \\(F>0\\), a maximizing operator cannot be zero, so \\(r_{\\star}\\ge1\\).\n\nAssume now that \\(F>0\\). By \\(\\mathrm{def:moment-body}\\), a finite convex representation of the chosen optimizer is\n\\[\n M^{\\star}=\\sum_{k=1}^q\\lambda_k(v_k\\otimes v_k),\n \\qquad\n v_k\\in K,\\quad \\lambda_k>0,\\quad \\sum_{k=1}^q\\lambda_k=1.\n\\]\nDefine \\(B:\\mathbb R^q\\to E\\) by\n\\[\n Bt=\\sum_{k=1}^q\\sqrt{\\lambda_k}\\,t_kv_k.\n\\]\nFor \\(\\|t\\|_2\\le1\\), nonnegativity of\n\\(\\sum_{k<l}(\\sqrt{\\lambda_l}|t_k|-\\sqrt{\\lambda_k}|t_l|)^2\\)\ngives\n\\[\n \\left(\\sum_{k=1}^q\\sqrt{\\lambda_k}|t_k|\\right)^2\n \\le\\left(\\sum_k\\lambda_k\\right)\\left(\\sum_kt_k^2\\right)\n \\le1.\n\\]\nAbsolute convexity of \\(K\\) therefore implies \\(B\\{t:\\|t\\|_2\\le1\\}\\subseteq K\\). Moreover,\n\\[\n BB^{\\ast}f\n =\\sum_{k=1}^q\\lambda_k\\langle v_k,f\\rangle_Ev_k\n =M^{\\star}f,\n\\]\nso, on \\(H_0=(\\ker B)^{\\perp}\\), the dimension is\n\\(\n\\dim H_0=\\operatorname{rank}(B)=\\operatorname{rank}(M^{\\star})=r_{\\star}\n\\).\n\nLet \\(U\\) be uniform on the unit sphere of \\(H_0\\), set \\(\\mathbf V=BU\\), and denote its law by \\(\\nu_{\\mathrm{rank}}\\). This is a countably additive symmetric probability law supported on the genuine schedule class \\(K\\). Rotation invariance gives\n\\[\n \\mathbb E[U\\otimes U]=\\frac1{r_{\\star}}I_{H_0}.\n\\]\nFor completeness, the left side commutes with every orthogonal transformation of \\(H_0\\), hence is a scalar multiple of the identity; taking traces and using \\(\\|U\\|_2=1\\) makes that scalar \\(1/r_{\\star}\\).\n\nFix \\(z\\), let \\(A_z=N_zB|_{H_0}\\), and let \\(P_z\\) be the orthogonal projection of \\(H_0\\) onto \\((\\ker A_z)^{\\perp}=\\operatorname{range}(A_z^{\\ast})\\). The vector \\(P_zU\\) is a linear measurable function of \\(A_zU\\), because \\(A_z\\) is injective on \\((\\ker A_z)^{\\perp}\\). The orthogonal reflection \\(R_z=2P_z-I_{H_0}\\) preserves the uniform sphere law, satisfies \\(A_zR_zU=A_zU\\), and negates \\((I-P_z)U\\). Thus, for every bounded Borel function \\(g\\),\n\\[\n \\mathbb E\\!\\left[g(A_zU)(I-P_z)U\\right]\n =-\\mathbb E\\!\\left[g(A_zU)(I-P_z)U\\right]=0.\n\\]\nThis is the defining conditional-expectation identity, so\n\\[\n \\mathbb E[U\\mid A_zU]=P_zU.\n\\]\nPut \\(q=B^{\\ast}\\ell\\). For every \\(k\\in\\ker B\\), \\(\\langle q,k\\rangle=\\langle\\ell,Bk\\rangle_E=0\\), so \\(q\\in H_0\\). Since\n\\(\n\\theta(\\mathbf V)=\\langle\\ell,BU\\rangle_E=\\langle q,U\\rangle_{H_0}\n\\), the preceding identity and the spherical second moment imply\n\\[\n \\mathbb E_{\\nu_{\\mathrm{rank}}}\n \\!\\left[\\operatorname{Var}_{\\nu_{\\mathrm{rank}}}\n \\!\\left(\\theta(\\mathbf V)\\mid N_z\\mathbf V\\right)\\right]\n =\\mathbb E\\langle(I-P_z)q,U\\rangle^2\n =\\frac1{r_{\\star}}\\|(I-P_z)q\\|_2^2.\n\\]\nNow \\(N_zM^{\\star}\\ell=A_zq\\), \\(N_zM^{\\star}N_z^{\\ast}=A_zA_z^{\\ast}\\), and diagonalizing the positive semidefinite operator \\(A_zA_z^{\\ast}\\) on its range gives\n\\[\n A_z^{\\ast}(A_zA_z^{\\ast})^{\\dagger}A_z=P_z.\n\\]\nTherefore\n\\[\n \\psi_z(M^{\\star})\n =\\|q\\|_2^2-\n \\langle A_zq,(A_zA_z^{\\ast})^{\\dagger}A_zq\\rangle_{V_n}\n =\\|(I-P_z)q\\|_2^2.\n\\]\nSumming over assignments proves the exact genuine-prior certificate\n\\[\n \\mathcal B(\\nu_{\\mathrm{rank}})\n =\\frac1{r_{\\star}}\\sum_zp_{\\pi}(z)\\psi_z(M^{\\star})\n =\\frac{\\mathcal D}{r_{\\star}}\n =\\frac{F}{r_{\\star}}.\n\\]\n\nWe now construct the fiber certificates. Choose \\(h_z\\in K\\cap\\ker N_z\\) with \\(|\\theta(h_z)|=\\rho_z\\), and let\n\\[\n \\nu_z=\\tfrac12\\delta_{h_z}+\\tfrac12\\delta_{-h_z}.\n\\]\nCentral symmetry of \\(K\\) makes this a genuine symmetric prior. Under assignment \\(z\\), both atoms give the observation zero and their target values are opposite. Hence\n\\[\n \\operatorname{Var}_{\\nu_z}(\\theta(\\mathbf V)\\mid N_z\\mathbf V)\n =\\theta(h_z)^2=\\rho_z^2.\n\\]\nEvery other assignment contribution is nonnegative, so\n\\[\n \\mathcal B(\\nu_z)\\ge p_{\\pi}(z)\\rho_z^2.\n\\]\nApplying the lower certificate in \\(\\mathrm{prop:primal-dual-certificates}\\) and maximizing over \\(z\\) gives\n\\[\n R^{\\star}\\ge m_{\\mathrm{fib}}.\n\\]\n\nIt remains to prove the computable fiber upper bound. On \\(S_z=\\ker N_z\\), the functional \\(\\theta|_{S_z}\\) has dual norm \\(\\rho_z\\) relative to \\(\\|\\cdot\\|_K\\). We give the finite-dimensional norm-preserving extension argument explicitly. Suppose \\(f\\) is already defined on a proper subspace \\(S\\) and obeys \\(|f(s)|\\le\\rho_z\\|s\\|_K\\). For \\(x\\notin S\\), set\n\\[\n L=\\sup_{s\\in S}\\{f(s)-\\rho_z\\|s-x\\|_K\\},\n \\qquad\n U=\\inf_{t\\in S}\\{\\rho_z\\|t+x\\|_K-f(t)\\}.\n\\]\nFor all \\(s,t\\in S\\),\n\\[\n f(s)+f(t)=f(s+t)\n \\le\\rho_z\\|s+t\\|_K\n \\le\\rho_z\\bigl(\\|s-x\\|_K+\\|t+x\\|_K\\bigr),\n\\]\nso \\(L\\le U\\). Choosing \\(\\alpha\\in[L,U]\\) and defining\n\\(\nf'(s+\\lambda x)=f(s)+\\lambda\\alpha\n\\)\npreserves \\(|f'|\\le\\rho_z\\|\\cdot\\|_K\\): for \\(\\lambda>0\\) this follows from the definitions of \\(L\\) and \\(U\\) after division by \\(\\lambda\\), for \\(\\lambda<0\\) it follows by negation, and \\(\\lambda=0\\) is the original bound. Iterating over a basis of \\(E\\) yields a linear functional \\(q_z\\) on \\(E\\) such that\n\\[\n q_z|_{\\ker N_z}=\\theta|_{\\ker N_z},\n \\qquad\n \\sup_{v\\in K}|q_z(v)|=\\rho_z.\n\\]\nThe equality follows because the extension has norm at most \\(\\rho_z\\), while its restriction has norm exactly \\(\\rho_z\\); the case \\(\\rho_z=0\\) is included.\n\nThe functional \\(\\theta-q_z\\) vanishes on \\(\\ker N_z\\), so it factors through \\(N_z\\): on \\(\\operatorname{range}(N_z)\\), define \\(b_z(N_zv)=\\theta(v)-q_z(v)\\). This is well defined, and a linear extension to Euclidean \\(\\mathbb R^{V_n}\\) has the form \\(b_z(y)=a_z^{\\mathsf T}y\\) for some \\(a_z\\in\\mathbb R^{V_n}\\). Thus\n\\[\n a_z^{\\mathsf T}N_zv-\\theta(v)=-q_z(v),\n \\qquad\n \\sup_{v\\in K}|a_z^{\\mathsf T}N_zv-\\theta(v)|=\\rho_z.\n\\]\nUsing these vectors assignment by assignment in \\(\\mathrm{def:linear-frontier}\\) gives\n\\[\n F\\le\\sup_{v\\in K}\\sum_zp_{\\pi}(z)\\rho_z^2\n =S_{\\mathrm{fib}}.\n\\]\n\nWhen \\(F>0\\), the rank prior and \\(\\mathrm{prop:primal-dual-certificates}\\) give \\(R^{\\star}\\ge F/r_{\\star}\\). Together with the fiber prior, the established upper comparison, and \\(F=\\mathcal D\\), this proves\n\\[\n \\max\\left\\{\\frac{F}{r_{\\star}},m_{\\mathrm{fib}}\\right\\}\n \\le R^{\\star}\\le F=\\mathcal D\\le S_{\\mathrm{fib}}.\n\\]\nIf \\(m_{\\mathrm{fib}}>0\\), then \\(S_{\\mathrm{fib}}\\ge m_{\\mathrm{fib}}\\), and every positive summand in \\(S_{\\mathrm{fib}}\\) is at most \\(m_{\\mathrm{fib}}\\). Therefore\n\\[\n 1\\le\\kappa_{\\mathrm{fib}}\n =\\frac{S_{\\mathrm{fib}}}{m_{\\mathrm{fib}}}\n \\le|\\{z:\\rho_z>0\\}|\\le|\\Omega_n|=2^n.\n\\]\nFurthermore, since \\(F\\le S_{\\mathrm{fib}}\\),\n\\[\n \\frac{F}{\\kappa}\n =\\max\\left\\{\\frac{F}{r_{\\star}},\n                 \\frac{Fm_{\\mathrm{fib}}}{S_{\\mathrm{fib}}}\\right\\}\n \\le\\max\\left\\{\\frac{F}{r_{\\star}},m_{\\mathrm{fib}}\\right\\}\n \\le R^{\\star}.\n\\]\nIf \\(m_{\\mathrm{fib}}=0\\), then every nonnegative summand is zero, so \\(S_{\\mathrm{fib}}=0\\); the bound \\(F\\le S_{\\mathrm{fib}}\\) forces \\(F=\\mathcal D=0\\), and \\(0\\le R^{\\star}\\le F\\) forces \\(R^{\\star}=0\\). The convention \\(r_{\\star}=\\kappa=1\\) then makes the same sandwich valid. Finally, the clipped-incidence risk bound is exactly the last assertion of \\(\\mathrm{prop:primal-dual-certificates}\\). This completes every case.",
+      "revision": "rev:6cc3a0c93d4068137d839f1490dd7b8021fa971176cbd611a6ad542d64e40c58"
+    },
+    {
+      "id": "thm:additive-one-hub-exact-minimax",
+      "kind": "theorem",
+      "statement": "For every pair of integers \\(d\\geq 1\\) and \\(n\\geq d\\), consider an admissible fixed \\(n\\)-unit instance with one distinguished outcome unit \\(i_{\\circ}\\) having neighborhood \\(\\Gamma_{i_{\\circ}}=\\{1,\\ldots,d\\}\\), source probabilities \\(\\pi_j=1/2\\) on these coordinates, and retained support\n\\[\n \\mathcal S_{i_{\\circ}}=\\{\\varnothing,\\{1\\},\\ldots,\\{d\\}\\}.\n\\]\nWrite \\(S_j=2Z_j-1\\), \\(r_0(s)=1\\), and \\(r_j(s)=s_j\\) for \\(1\\leq j\\leq d\\).  The distinguished schedule is\n\\[\n h_{\\beta}(s)=\\sum_{j=0}^d\\beta_jr_j(s),\n \\qquad\n \\sum_{j=0}^d|\\beta_j|\\leq 1,\n\\]\nand every other outcome unit has retained support \\(\\{\\varnothing\\}\\), so its schedule class consists exactly of constants.  Put \\(m_j=2\\pi'_j-1\\), \\(\\gamma_0=1\\), and \\(\\gamma_j=m_j\\) for \\(1\\leq j\\leq d\\), and let\n\\[\n \\Delta_d=\\left\\{\\lambda\\in[0,1]^{d+1}:\\sum_{j=0}^d\\lambda_j=1\\right\\}.\n\\]\nIf \\(F_d^{\\mathrm{hub}}\\) and \\(R_d^{\\star,\\mathrm{hub}}\\) denote, before population-average normalization, respectively the assignment-indexed linear and all-Borel minimax mean squared errors for estimating\n\\[\n L(\\beta)=\\beta_0+\\sum_{j=1}^dm_j\\beta_j\n\\]\nfrom the source assignment and the observed hub response, then\n\\[\n R_d^{\\star,\\mathrm{hub}}=F_d^{\\mathrm{hub}}\n =\\max_{\\lambda\\in\\Delta_d}\n \\left\\{\\lambda_0(1-\\lambda_0)\n +\\sum_{j=1}^dm_j^2\\lambda_j(1-\\lambda_j)\\right\\}.\n\\]\nA maximizer \\(\\lambda^{\\star}\\) exists.  An attaining linear rule is \\(a^{\\star}(s)Y\\), where\n\\[\n a^{\\star}(s)=\\sum_{j=0}^d\\lambda_j^{\\star}\\gamma_jr_j(s),\n \\qquad\n Y=h_{\\beta}(S),\n\\]\nand a matching genuine least-favorable prior is \\(\\mathbf B=T_0e_J\\), where \\(T_0\\) is Rademacher, \\(\\mathbb P(J=j)=\\lambda_j^{\\star}\\), and \\(T_0\\), \\(J\\), and the source assignment are mutually independent.  For the population-average target of the full instance, the frontiers in \\(\\mathrm{def:linear-frontier}\\) and \\(\\mathrm{def:unrestricted-frontier}\\) therefore satisfy\n\\[\n R^{\\star}=F\n =\\frac{1}{n^2}\\max_{\\lambda\\in\\Delta_d}\n \\left\\{\\lambda_0(1-\\lambda_0)\n +\\sum_{j=1}^dm_j^2\\lambda_j(1-\\lambda_j)\\right\\}.\n\\]\nThus this additive one-hub family has \\(R^{\\star}/F=1\\) whenever \\(F>0\\) in every dimension and cannot be a vanishing-ratio witness for the universal comparison question.",
+      "free_symbols": [
+        "n",
+        "i",
+        "j",
+        "\\Gamma_i",
+        "\\mathcal S_i",
+        "\\pi",
+        "\\pi'",
+        "F",
+        "R^{\\star}"
+      ],
+      "depends_on": [
+        "ass:source-product-design",
+        "ass:source-overlap",
+        "ass:target-product-policy",
+        "ass:target-overlap",
+        "ass:hierarchical-support",
+        "ass:bounded-schedules",
+        "ass:fixed-schedules",
+        "def:local-fourier-character",
+        "def:local-fourier-space",
+        "def:local-evaluation-polytope",
+        "def:local-target-mass",
+        "def:target-value",
+        "def:observation-operator",
+        "def:semilinear-rule",
+        "def:bounded-fourier-class",
+        "def:linear-frontier",
+        "def:unrestricted-frontier"
+      ],
+      "proof_tex": "Fix \\(d\\geq1\\) and an instance described in the statement.  The source-product design and \\(\\pi_j=1/2\\) imply that \\(S_1,\\ldots,S_d\\) are independent Rademacher variables.  By \\(\\mathrm{def:local-fourier-character}\\),\n\\[\n \\chi_{i_{\\circ},\\{j\\}}^{\\pi}(Z)\n =\\frac{Z_j-1/2}{\\sqrt{(1/2)(1-1/2)}}=2Z_j-1=S_j.\n\\]\nThe retained characters in \\(\\mathrm{def:local-fourier-space}\\) are therefore exactly \\(1,S_1,ldots,S_d\\), which are linearly independent under the positive source law.  Hence each distinguished schedule has a unique representation\n\\[\n h_{\\beta}(s)=\\beta_0+\\sum_{j=1}^d\\beta_js_j.\n\\]\nFor every \\(s\\in\\{-1,1\\}^d\\), the triangle inequality gives\n\\[\n |h_{\\beta}(s)|\\leq |\\beta_0|+\\sum_{j=1}^d|\\beta_j|.\n\\]\nConversely, if \\(\\beta_0\\neq0\\), choose each \\(s_j\\) so that \\(\\beta_js_j\\) has the sign of \\(\\beta_0\\); if \\(\\beta_0=0\\), choose \\(s_j\\) so that \\(\\beta_js_j\\geq0\\).  In either case equality holds for that \\(s\\).  Consequently \\(\\mathrm{def:local-evaluation-polytope}\\) gives the exact coefficient body\n\\[\n K_{i_{\\circ}}\n \\cong B_1^{d+1}\n :=\\left\\{\\beta\\in\\mathbb R^{d+1}:\\sum_{j=0}^d|\\beta_j|\\leq1\\right\\}.\n\\]\nThis verifies rather than assumes the bounded-schedule membership of the family.  The support is downward closed, source overlap holds because \\(\\varepsilon<1/2\\), and target overlap makes every \\(m_j=2\\pi'_j-1\\) well defined with \\(|m_j|<1\\).\n\nUnder the target-product policy, \\(\\mathbb E_{\\pi'}S_j=2\\pi'_j-1=m_j\\).  Therefore \\(\\mathrm{def:local-target-mass}\\) and \\(\\mathrm{def:target-value}\\) give the unnormalized distinguished-unit target\n\\[\n L(\\beta)=\\mathbb E_{\\pi'}h_{\\beta}(S)\n =\\beta_0+\\sum_{j=1}^dm_j\\beta_j\n =\\sum_{j=0}^d\\gamma_j\\beta_j.\n\\]\nThe selector in \\(\\mathrm{def:observation-operator}\\) reveals\n\\[\n Y=h_{\\beta}(S)=\\sum_{j=0}^dr_j(S)\\beta_j.\n\\]\nAssignment coordinates outside \\(\\{1,ldots,d\\}\\) are ancillary.  Indeed, if \\(W\\) denotes those coordinates and an assignment-indexed linear rule uses the hub coefficient \\(A(S,W)\\), put \\(\\bar a(S)=\\mathbb E[A(S,W)\\mid S]\\).  For each \\(j\\), conditional Jensen gives\n\\[\n \\mathbb E\\!left[(A(S,W)r_j(S)-\\gamma_j)^2\\mid S\\right]\n \\geq (\\bar a(S)r_j(S)-\\gamma_j)^2.\n\\]\nThus ancillary assignment dependence cannot reduce any of the coordinate risks below that of a rule \\(a(S)Y\\).\n\nFor such a rule, define\n\\[\n Q_a(\\beta)=\\mathbb E\\left[\n \\left\\{a(S)\\sum_{j=0}^dr_j(S)\\beta_j-\n             \\sum_{j=0}^d\\gamma_j\\beta_j\\right\\}^2\n \\right]\n\\]\nand\n\\[\n L_j(a)=Q_a(e_j)=\\mathbb E[(a(S)r_j(S)-\\gamma_j)^2].\n\\]\nThe function \\(Q_a\\) is a positive semidefinite quadratic form and hence convex.  Since\n\\(\nB_1^{d+1}=\\operatorname{conv}\\{\\pm e_0,ldots,\\pm e_d\\}\n\\), convexity and \\(Q_a(-e_j)=Q_a(e_j)\\) imply\n\\[\n \\sup_{\\beta\\in B_1^{d+1}}Q_a(\\beta)=\\max_{0\\leq j\\leq d}L_j(a).\n\\]\nAccordingly,\n\\[\n F_d^{\\mathrm{hub}}=\\inf_a\\max_{0\\leq j\\leq d}L_j(a).\n\\]\n\nFor \\(\\lambda\\in\\Delta_d\\), orthogonality of the Rademacher characters gives \\(\\mathbb E[r_j(S)r_k(S)]=\\mathbf 1\\{j=k\\}\\).  Completing the square pointwise therefore yields, for every \\(a\\),\n\\[\n\\begin{aligned}\n \\max_jL_j(a)\n &\\geq\\sum_{j=0}^d\\lambda_jL_j(a)\\\\\n &=\\mathbb E\\!\\left[\n \\left(a(S)-\\sum_{j=0}^d\\lambda_j\\gamma_jr_j(S)\\right)^2\n \\right]+G(\\lambda)\\\\\n &\\geq G(\\lambda),\n\\end{aligned}\n\\]\nwhere\n\\[\n\\begin{aligned}\n G(\\lambda)\n &=\\sum_{j=0}^d\\lambda_j\\gamma_j^2\n   -\\sum_{j=0}^d\\lambda_j^2\\gamma_j^2\\\\\n &=\\lambda_0(1-\\lambda_0)\n   +\\sum_{j=1}^dm_j^2\\lambda_j(1-\\lambda_j).\n\\end{aligned}\n\\]\nTaking the infimum over \\(a\\) and then the supremum over \\(\\lambda\\) proves\n\\[\n F_d^{\\mathrm{hub}}\\geq\\max_{\\lambda\\in\\Delta_d}G(\\lambda).\n\\]\nThe simplex is compact and \\(G\\) is continuous, so a maximizer \\(\\lambda^{\\star}\\) exists.\n\nDefine\n\\[\n a^{\\star}(s)=\\sum_{j=0}^d\\lambda_j^{\\star}\\gamma_jr_j(s),\n \\qquad\n T=\\sum_{j=0}^d(\\lambda_j^{\\star})^2\\gamma_j^2.\n\\]\nOrthogonality gives\n\\[\n L_j(a^{\\star})=T+\\gamma_j^2(1-2\\lambda_j^{\\star}).\n\\]\nWe now certify optimality on the simplex directly.  If \\(\\lambda_j^{\\star}>0\\) and \\(\\lambda_k^{\\star}>0\\), the feasible perturbation \\(\\lambda^{\\star}+t(e_j-e_k)\\) exists for both signs of all sufficiently small \\(t\\).  Maximality forces the derivative at zero to vanish, so\n\\[\n \\gamma_j^2(1-2\\lambda_j^{\\star})\n =\\gamma_k^2(1-2\\lambda_k^{\\star}).\n\\]\nIf \\(\\lambda_j^{\\star}=0\\) and \\(\\lambda_k^{\\star}>0\\), the same perturbation is feasible for sufficiently small \\(t\\geq0\\); its one-sided derivative cannot be positive, and hence\n\\[\n \\gamma_j^2(1-2\\lambda_j^{\\star})\n \\leq\\gamma_k^2(1-2\\lambda_k^{\\star}).\n\\]\nThus the values \\(L_j(a^{\\star})\\) are equal on the support of \\(\\lambda^{\\star}\\), and every value off that support is no larger.  Moreover, the completed-square identity at \\(a=a^{\\star}\\) gives\n\\[\n \\sum_{j=0}^d\\lambda_j^{\\star}L_j(a^{\\star})=G(\\lambda^{\\star}).\n\\]\nThe left side is the common supported value because the supported weights sum to one.  Therefore\n\\[\n \\max_jL_j(a^{\\star})=G(\\lambda^{\\star}),\n \\qquad\n F_d^{\\mathrm{hub}}=G(\\lambda^{\\star}).\n\\]\nThis supplies matching primal and simplex-dual certificates, not merely a candidate rule.\n\nIt remains to show that nonlinear Borel rules cannot improve the value.  Let \\(J\\) have probabilities \\(\\lambda_j^{\\star}\\), let \\(T_0\\) be an independent Rademacher sign, and set\n\\[\n \\mathbf B=T_0e_J.\n\\]\nBecause every \\(\\pm e_j\\) belongs to \\(B_1^{d+1}\\), this is a countably additive symmetric prior supported on genuine bounded schedules, and it is independent of the source assignment as required by the fixed-schedule convention.  Conditional on \\(J=j\\),\n\\[\n Y=T_0r_j(S)\\in\\{-1,1\\}.\n\\]\nFor every \\(s\\), every \\(j\\), and every \\(y\\in\\{-1,1\\}\\),\n\\[\n \\mathbb P(Y=y\\mid S=s,J=j)=\\frac12.\n\\]\nBayes' formula consequently gives\n\\[\n \\mathbb P(J=j\\mid S=s,Y=y)=\\lambda_j^{\\star}.\n\\]\nThe ancillary coordinates \\(W\\) are independent of \\((J,T_0)\\) and add no information, so the same posterior holds conditional on \\((S,W,Y)\\).  Since \\(T_0=Yr_J(S)\\),\n\\[\n L(\\mathbf B)=Y\\gamma_Jr_J(S)\n\\]\nand hence\n\\[\n \\mathbb E[L(\\mathbf B)\\mid S,W,Y]\n =Y\\sum_{j=0}^d\\lambda_j^{\\star}\\gamma_jr_j(S)\n =Ya^{\\star}(S).\n\\]\nIts average posterior variance is\n\\[\n\\begin{aligned}\n \\mathbb E\\!\\left[\\operatorname{Var}(L(\\mathbf B)\\mid S,W,Y)\\right]\n &=\\mathbb E_S\\!\\left[\n \\sum_{j=0}^d\\lambda_j^{\\star}\\gamma_j^2-\n \\left(\\sum_{j=0}^d\\lambda_j^{\\star}\\gamma_jr_j(S)\\right)^2\n \\right]\\\\\n &=\\sum_{j=0}^d\\lambda_j^{\\star}\\gamma_j^2\n   -\\sum_{j=0}^d(\\lambda_j^{\\star})^2\\gamma_j^2\\\\\n &=G(\\lambda^{\\star})=F_d^{\\mathrm{hub}}.\n\\end{aligned}\n\\]\nFor completeness, if \\(D=D(S,W,Y)\\) is any Borel estimator and \\(\\mu=\\mathbb E[L(\\mathbf B)\\mid S,W,Y]\\), expansion followed by conditional expectation gives\n\\[\n \\mathbb E[(D-L(\\mathbf B))^2]\n =\\mathbb E[(D-\\mu)^2]\n  +\\mathbb E[(L(\\mathbf B)-\\mu)^2]\n \\geq F_d^{\\mathrm{hub}},\n\\]\nbecause the cross term has conditional expectation zero.  The worst-case risk is at least this prior-average risk.  Thus \\(R_d^{\\star,\\mathrm{hub}}\\geq F_d^{\\mathrm{hub}}\\).  Conversely, \\(a^{\\star}(S)Y\\) is Borel, so \\(R_d^{\\star,\\mathrm{hub}}\\leq F_d^{\\mathrm{hub}}\\), proving the unnormalized equality.\n\nFinally, every nondistinguished schedule is constant, its realized outcome equals its target-policy mean under every assignment, and it can therefore be included with coefficient \\(1/n\\) without error.  The rule\n\\[\n \\widehat\\theta\n =\\frac1n\\left(a^{\\star}(S)Y+\n          \\sum_{i\\neq i_{\\circ}}Y_i^{\\mathrm{obs}}\\right)\n\\]\nhas worst-case risk \\(n^{-2}G(\\lambda^{\\star})\\).  For the reverse inequality, restrict the full schedule class to zero constants on all other units and use the preceding genuine prior on the distinguished schedule; multiplication of the target by \\(n^{-1}\\) multiplies squared loss by \\(n^{-2}\\).  This proves\n\\[\n R^{\\star}=F=n^{-2}G(\\lambda^{\\star}).\n\\]\nAs the smallest exact stress test, when \\(d=1\\) the simplex has \\(\\lambda_1=1-\\lambda_0\\), so\n\\[\n R_1^{\\star,\\mathrm{hub}}=F_1^{\\mathrm{hub}}\n =\\max_{0\\leq\\lambda_0\\leq1}(1+m_1^2)\\lambda_0(1-\\lambda_0)\n =\\frac{1+m_1^2}{4}.\n\\]\nIn particular the equality remains valid at \\(\\pi'_1=\\pi_1=1/2\\).  The proof used only additive supports; it supplies no dimension-free rounding for supports containing interactions.",
+      "status": "proved",
+      "justification": "This exact all-Borel calculation is the prescribed additive launch-or-kill test for the remaining dimension-free comparison question.",
+      "gap": "It rules out additive one-hub schedules with the exact coefficient \\(\\ell_1\\) body as a vanishing-ratio witness but does not cover interaction supports.",
+      "consumer": "The unresolved prior-rounding question uses this theorem to exclude the additive-hub route to a negative answer.",
+      "revision": "rev:f34d41fcf753fef8c0e9464e8781549aa92a8eaae242117a576f3996d553d8b8"
+    }
+  ],
+  "sampling_model": {
+    "design": "One known heterogeneous product-Bernoulli source assignment is drawn; assignment is the only randomness and all potential-outcome schedules are fixed.",
+    "units": "A fixed finite population with a known graph, known local neighborhoods, and known downward-closed local Fourier supports.",
+    "treatment": "Binary coordinates are mutually independent under the source law, with probabilities in \\([\\varepsilon,1-\\varepsilon]\\); the target product policy is also known and interior.",
+    "overlap": "Overlap is represented exactly by shared assignment coordinates in the local selector operators, rather than only by maximum dependency degree.",
+    "nuisance_estimation": "None. The policies, graph, neighborhoods, and support sets are known; only one schedule evaluation per unit is observed."
+  },
+  "estimand_functional": "\\(\\max\\{F/r_{\\star},m_{\\mathrm{fib}}\\}\\le R^{\\star}\\le F=\\mathcal D\\le S_{\\mathrm{fib}}\\), and hence \\(F/\\kappa\\le R^{\\star}\\le F\\), where \\(r_{\\star}\\) is the minimum rank of a dual optimizer, \\(\\rho_z=\\sup\\{|\\theta(h)|:h\\in K,\\ N_zh=0\\}\\), \\(S_{\\mathrm{fib}}=\\sum_zp_{\\pi}(z)\\rho_z^2\\), \\(m_{\\mathrm{fib}}=\\max_zp_{\\pi}(z)\\rho_z^2\\), and \\(\\kappa=\\min\\{r_{\\star},S_{\\mathrm{fib}}/m_{\\mathrm{fib}}\\}\\) when \\(m_{\\mathrm{fib}}>0\\).",
+  "target_estimand": "\\(\\theta(v)=n^{-1}\\sum_{i\\in V_n}\\sum_{x\\in X_i}p_{\\pi',i}(x)v_i(x)\\)",
+  "bibliography": [
+    {
+      "key": "LoombaEckles2026OffPolicy",
+      "citation": "Sahil Loomba and Dean Eckles. Off-policy causal estimation in networks. arXiv:2609.02756v1, 2 September 2026. Equation (4) and Proposition 3.1 on spectral transport; Theorem 5.1 and its proof on consistency under spectral overlap; Corollary 5.2."
+    },
+    {
+      "key": "ChenValiantValiant2020",
+      "citation": "Justin Y. Chen, Gregory Valiant, and Paul Valiant. Worst-Case Analysis for Randomly Collected Data. Advances in Neural Information Processing Systems 33, 2020. Theorem 1, Fact 1, Appendix D, and Section 4."
+    },
+    {
+      "key": "BrownCohen2021",
+      "citation": "Jonah Brown-Cohen. Faster Algorithms and Constant Lower Bounds for the Worst-Case Expected Error. Advances in Neural Information Processing Systems 34, 2021. Section 4, Definition 4.1 and Theorem 4.2, for the \\(\\alpha\\)-non-expansion condition and its all-estimator lower bound."
+    },
+    {
+      "key": "DonohoLiuMacGibbon1990",
+      "citation": "David L. Donoho, Richard C. Liu, and Brenda MacGibbon. Minimax Risk Over Hyperrectangles, and Implications. Annals of Statistics 18(3):1416--1437, 1990. Main linear-minimax comparison and Sections 1--2."
+    },
+    {
+      "key": "KandirosHarshawSavje2026Minimax",
+      "citation": "Vardis Kandiros, Christopher Harshaw, and Fredrik Sävje. A Design-Based Minimax Theory for Network Experiments. arXiv:2608.04909, 2026. Proposition characterizing risk by the conflict graph and Sections 3--6."
+    },
+    {
+      "key": "HarshawSavjeWang2022",
+      "citation": "Christopher Harshaw, Fredrik Sävje, and Yitan Wang. A Design-Based Riesz Representation Framework for Randomized Experiments. arXiv:2210.08698, 2022. Section 5 and Corollary on uniform consistency."
+    },
+    {
+      "key": "CortezRodriguezEichhornYu2023",
+      "citation": "Mayleen Cortez-Rodriguez, Matthew Eichhorn, and Christina Lee Yu. Exploiting Neighborhood Interference with Low Order Interactions under Unit Randomized Design. Journal of Causal Inference 11(1), 2023. Estimator theorem, minimax lower bound, and conclusion."
+    },
+    {
+      "key": "WainwrightJordan2004",
+      "citation": "Martin J. Wainwright and Michael I. Jordan. Treewidth-Based Conditions for Exactness of the Sherali--Adams and Lasserre Relaxations. Technical Report 671, University of California, Berkeley, 2004. Main treewidth-rank theorem."
+    },
+    {
+      "key": "PeyrardEtAl2019",
+      "citation": "Nicolas Peyrard, Marie-Josée Cros, Simon de Givry, Alain Franc, Sophie Robin, Régis Sabbadin, Thomas Schiex, and Martin Vignes. Exact and approximate inference in graphical models: variable elimination and beyond. Australian and New Zealand Journal of Statistics 61(1):4--40, 2019. Sections on exact elimination and treewidth."
+    },
+    {
+      "key": "ChinEcklesUgander2022",
+      "citation": "Alex Chin, Dean Eckles, and Johan Ugander. Evaluating stochastic seeding strategies in networks. Management Science 68(9):6855--6877, 2022. Sections 2--4, optimized-design appendix, and empirical reanalyses."
+    },
+    {
+      "key": "Kallus2018OptimalBalance",
+      "citation": "Nathan Kallus. Optimal a priori balance in the design of controlled experiments. Journal of the Royal Statistical Society, Series B 80(1):85--112, 2018. Minimax design formulation and optimality results."
+    },
+    {
+      "key": "CreponEtAl2013",
+      "citation": "Bruno Crépon, Esther Duflo, Marc Gurgand, Roland Rathelot, and Philippe Zamora. Do Labor Market Policies Have Displacement Effects? Quarterly Journal of Economics 128(2):531--580, 2013. Saturation-randomized design and displacement analysis."
+    },
+    {
+      "key": "Leung2022ANI",
+      "citation": "Michael P. Leung. Causal Inference Under Approximate Neighborhood Interference. Econometrica 90(1):267--293, 2022. Primitive network asymptotics and conservative network-HAC inference."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "ChenValiantValiant2020",
+      "comparator_claim": "The paper gives a \\(\\pi/2\\)-approximation to optimal semilinear risk and leaves open whether semilinear risk is within a universal constant of unrestricted risk.",
+      "matched_by": "oeq:prior-rounding",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "LoombaEckles2026OffPolicy",
+      "comparator_claim": "Theorem 5.1 assumes any \\(B^{(n)}\\) with \\(\\max_i\\mathbb E[(\\widehat\\theta_i^{(n)})^2]\\le B^{(n)}\\), defines \\(D^{(n)}=\\max_i|\\{j\\ne i:\\Gamma_i^{(n)}\\cap\\Gamma_j^{(n)}\\ne\\varnothing\\}|\\), and bounds the variance by \\(B^{(n)}(D^{(n)}+1)/n\\).",
+      "matched_by": "thm:hub-separation",
+      "match_kind": "strict_tightening"
+    },
+    {
+      "comparator_bibkey": "HarshawSavjeWang2022",
+      "comparator_claim": "The consistency corollary is necessary and sufficient for the Riesz estimator through the norm of its variance-characterizing operator.",
+      "matched_by": "thm:iff-consistency-frontier",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "DonohoLiuMacGibbon1990",
+      "comparator_claim": "For Gaussian estimation over orthosymmetric quadratically convex sets, linear minimax risk is within a factor \\(1.25\\) of unrestricted minimax risk; this does not transfer to noiseless randomized selectors.",
+      "matched_by": "oeq:prior-rounding",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "WainwrightJordan2004",
+      "comparator_claim": "Hierarchy exactness is controlled by the canonical hypergraph of the actual polynomial system, not automatically by a raw exposure-incidence graph.",
+      "matched_by": "prop:raw-incidence-bag-moment-obstruction",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "KandirosHarshawSavje2026Minimax",
+      "comparator_claim": "The paper characterizes unrestricted network-experiment minimax risk through an estimand-specific conflict graph and gives connectivity-based bounds.",
+      "matched_by": "thm:universal-minimax-frontier",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "One product-Bernoulli network experiment reveals one local evaluation of each fixed bounded schedule, while the target is an average under another product policy. The proposal defines the exact assignment-indexed linear minimax risk \\(F\\) on the bounded local-Fourier evaluation polytopes and asks whether a structure-preserving genuine-prior argument proves \\(R^{\\star}\\asymp F\\) for every measurable estimator. A positive resolution yields an iff consistency frontier, a clipped incidence-minimax estimator, finite primal and prior certificates, a strict separation from the published degree envelope on additive hubs, and repeated-motif recovery. Incidence-treewidth exactness is retained as a separate open computational question because sparse factorization does not by itself localize the global minimax optimizer.",
+  "project_justification": {
+    "gap": "LoombaEckles2026OffPolicy identifies the unique minimum-norm unbiased Fourier transport weight and a degree-based sufficient consistency bound, but it does not benchmark against biased linear rules or all measurable estimators. ChenValiantValiant2020 formulates the generic semilinear problem, exhibits a strict nonlinear improvement, and explicitly leaves the size of that gap open.",
+    "niche": "Product-Bernoulli local-cell selectors and downward-closed Fourier-section polytopes form a structured decision class that is neither the full-cube randomly collected-data problem nor the two-exposure conflict-graph model. Its shared fibers may permit genuine prior rounding that fails for arbitrary sampling laws.",
+    "fill": "The project derives the exact selector and moment dual, constructs the clipped incidence rule and certified lower and upper bounds, and concentrates the novel work in a dimension-free posterior-ambiguity rounding theorem. It then converts that comparison into an iff consistency boundary and demonstrates strict value over degree counting on an explicit overlapping family."
+  },
+  "related_work": "LoombaEckles2026OffPolicy, Proposition on spectral transport and its consistency theorem, supplies the policy-indexed Fourier basis, the unbiased transport comparator, and the \\(B_n(D_n+1)/n\\) envelope sharpened here. ChenValiantValiant2020, Theorem 1 and Appendix D, is the closest generic formulation: it approximates semilinear risk, shows a four-coordinate strict gap, and asks whether the unrestricted gap is universally bounded. BrownCohen2021, Section 3, gives an all-estimator constant lower bound only under an alpha-non-expansion condition and therefore does not settle vanishing-risk instances. DonohoLiuMacGibbon1990 supplies the hardest-rectangle and genuine-prior comparison template in a Gaussian quadratically convex experiment, not a noiseless randomized-selector experiment. KandirosHarshawSavje2026Minimax characterizes unrestricted design-based risk through conflict graphs for contrastive exposures and design choice; it does not encode heterogeneous source-target transport or Fourier-section outcome classes. HarshawSavjeWang2022 characterizes consistency of the Riesz estimator through an operator norm, which motivates an exact geometric frontier but does not compare with unrestricted procedures. CortezRodriguezEichhornYu2023 supplies low-order Bernoulli score and fuzzy-prior techniques for a different total-effect target. WainwrightJordan2004 and PeyrardEtAl2019 motivate the treewidth handle, but their exactness results apply only after objective and constraint locality is proved. ChinEcklesUgander2022 and CreponEtAl2013 are the empirical consumers: the proposed certificate can quantify design mismatch for stochastic seeding and saturation-policy curves.",
+  "technical_internal_limitation": "The four-coordinate example in ChenValiantValiant2020 proves that semilinear and unrestricted risks need not be equal, so the comparison constant cannot be obtained from central symmetry alone. A decomposition of an optimal moment operator into rank-one atoms yields a signed or genuine mixing law, but noiseless observations may reveal the atom label and make nonlinear posterior prediction much easier than linear regression. The proposal therefore treats posterior-ambiguity-preserving rounding as the central open object. Likewise, raw incidence treewidth controls the input factorization but may fail to control the global squared target error or the assignment dependence of optimal weights; the smallest path and star systems are explicit kill tests.",
+  "honest_scope": "The exact selector reduction, clipping inequality, moment-body dual, one-binary-cell formula, and generic primal/prior certificate are expected finite-dimensional results. The universal constant comparison, its iff consistency consequence, and optimizer localization at bounded raw incidence treewidth are open. The treewidth question is not used to justify the statistical frontier. At any schedule whose local outcomes are constant across assignment cells, the observed outcome vector determines the target with pointwise zero error; this fact does not set the minimax risk over the unrestricted bounded class to zero. Under one complete binary exposure the displayed full-class exact formula is recovered. General correlated assignment designs, adaptive support selection, studentization, and design optimization over an entire target-policy curve are outside the selected kernel."
+}

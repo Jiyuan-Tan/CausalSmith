@@ -16,8 +16,9 @@ conditional probability `η(x) = P(Y = 1 ∣ X = x)`.
 
 namespace Causalean.ML
 
-/-- The Bernoulli cross-entropy of predicting probability `q` when the true
-probability is `η`. -/
+/-- For [a true success probability $\eta$](hyp:η) and [a predicted success probability $q$](hyp:q), the [Bernoulli cross-entropy](goal) is $-\eta\log q-(1-\eta)\log(1-q)$.
+
+This pointwise loss underlies binary logistic prediction. -/
 noncomputable def bernoulliCE (η q : ℝ) : ℝ :=
   -η * Real.log q - (1 - η) * Real.log (1 - q)
 

@@ -33,8 +33,7 @@ open MeasureTheory
 open scoped BigOperators
 open Matrix
 
-/-- The integral (population) moment matrix `S_{jk} = ∫ (a − t)^j (a − t)^k dν` of the centered
-monomials against a measure `ν`. -/
+/-- Given a [nonnegative polynomial degree](hyp:p), a [measure on the real line](hyp:ν), and a [real target point](hyp:t), the [integral population moment matrix](goal) is the matrix whose $(j,k)$ entry is $\int (a-t)^j(a-t)^k\,d\nu(a)$. -/
 noncomputable def intMomentMatrix (p : ℕ) (ν : Measure ℝ) (t : ℝ) :
     Matrix (Fin (p + 1)) (Fin (p + 1)) ℝ :=
   Matrix.of (fun j k => ∫ a, (a - t) ^ (j : ℕ) * (a - t) ^ (k : ℕ) ∂ν)

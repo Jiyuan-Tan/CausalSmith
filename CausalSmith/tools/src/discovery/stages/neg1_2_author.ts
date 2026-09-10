@@ -11,7 +11,7 @@
 // literature_map / cluster / novelty_justification / literature_checklist) is returned
 // as `handoff` for the -0.5 loop. See D0_CORE_REDESIGN.md §12.
 import { existsSync } from "node:fs";
-import { mkdir, readFile } from "node:fs/promises";
+import { mkdir, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { MODEL_PLAN } from "../../constants.js";
 import { artifactPath } from "../../paths.js";
@@ -29,6 +29,7 @@ import { runGates } from "../framework/gates.js";
 import { dispatchAgent } from "../../framework/agent_dispatch.js";
 import { proposalGate } from "../framework/gate_registrations.js";
 import { writeJsonAtomic } from "../../shared/json_atomic.js";
+import { stableJson } from "../../shared/stable_json.js";
 import {
   extensionEditBasePath,
   sealPendingExtensionSource,
@@ -53,6 +54,66 @@ export interface StageNeg1_2ProtoCoreResult {
    * proto core. The core is authoritative because the final stdout contract is a
    * deliberately small status receipt and may omit seeds / literature metadata. */
   handoff: Record<string, unknown>;
+}
+
+function leadingStageStatus(stdout: string): "completed" | "needs-pivot" | "failed" | null {
+  const match = stdout.match(/^\s*\{\s*"status"\s*:\s*"(completed|needs-pivot|failed)"\s*[,}]/);
+  return match?.[1] as "completed" | "needs-pivot" | "failed" | undefined ?? null;
+}
+
+function containsSubstantiveText(value: unknown): boolean {
+  if (typeof value === "string") return value.trim() !== "";
+  if (Array.isArray(value)) return value.some(containsSubstantiveText);
+  if (value !== null && typeof value === "object") {
+    return Object.values(value as Record<string, unknown>).some(containsSubstantiveText);
+  }
+  return false;
+}
+
+function invalidReviewerFields(
+  reviewerFields: Record<string, unknown>,
+  upgrade: NonNullable<StateJson["proposed_from"]>["upgrade_from"],
+): string[] {
+  const invalid: string[] = [];
+  const checklistPresent = Object.prototype.hasOwnProperty.call(reviewerFields, "literature_checklist");
+  const checklistValid = Array.isArray(reviewerFields.literature_checklist) &&
+    reviewerFields.literature_checklist.length >= 4 &&
+    reviewerFields.literature_checklist.length <= 10 &&
+    reviewerFields.literature_checklist.every((row) => {
+    if (typeof row !== "object" || row === null) return false;
+    const item = row as Record<string, unknown>;
+    const nonempty = (key: string) => typeof item[key] === "string" && (item[key] as string).trim() !== "";
+    return nonempty("author") &&
+      ((typeof item.year === "number" && Number.isFinite(item.year)) || nonempty("year")) &&
+      nonempty("venue") && nonempty("bibkey") && nonempty("one_line") && nonempty("relevant_to");
+  });
+  if (!checklistPresent || !checklistValid) invalid.push("literature_checklist(typed rows)");
+  const noveltyPresent = Object.prototype.hasOwnProperty.call(reviewerFields, "novelty_justification");
+  if (!noveltyPresent ||
+      typeof reviewerFields.novelty_justification !== "string" || reviewerFields.novelty_justification.trim() === "") {
+    invalid.push("novelty_justification(nonempty string)");
+  }
+  const messagePresent = Object.prototype.hasOwnProperty.call(reviewerFields, "message");
+  if (!messagePresent || typeof reviewerFields.message !== "string" || reviewerFields.message.trim() === "") {
+    invalid.push("message(nonempty string)");
+  }
+  if (upgrade) {
+    if (reviewerFields.upgrade_mode !== true) invalid.push("upgrade_mode(true)");
+    if (reviewerFields.parent_qid !== upgrade.parent_qid) invalid.push("parent_qid(exact)");
+    if (reviewerFields.parent_spec !== upgrade.parent_spec) invalid.push("parent_spec(exact)");
+    if (reviewerFields.upgrade_axis !== upgrade.upgrade_axis) invalid.push("upgrade_axis(exact)");
+    if (typeof reviewerFields.delta_summary !== "string" || reviewerFields.delta_summary.trim() === "") {
+      invalid.push("delta_summary(nonempty string)");
+    }
+    const bibkeysValid = (value: unknown) => Array.isArray(value) && value.every(
+      (key) => typeof key === "string" && key.trim() !== "",
+    );
+    if (!bibkeysValid(reviewerFields.reused_bibkeys)) invalid.push("reused_bibkeys(nonempty strings)");
+    if (!bibkeysValid(reviewerFields.new_bibkeys) || (reviewerFields.new_bibkeys as unknown[]).length === 0) {
+      invalid.push("new_bibkeys(nonempty array of nonempty strings)");
+    }
+  }
+  return invalid;
 }
 
 export function assembleNeg1_2AuthorPrompt(parts: {
@@ -211,6 +272,10 @@ export async function runStageNeg1_2ProtoCore(args: {
   contextBlocks?: string;
 }): Promise<StageNeg1_2ProtoCoreResult> {
   const corePath = protoCoreJsonPath(args.ctx);
+  // The author writes here; only a core that passed schema, gates and reviewer-
+  // metadata validation is renamed onto the canonical path, so a malformed
+  // receipt or a rejected draft can never displace the last validated core.
+  const attemptPath = `${corePath}.next`;
   await mkdir(path.dirname(corePath), { recursive: true });
 
   // An additive F→D extension is based on the accepted D0 core, which may
@@ -233,8 +298,9 @@ export async function runStageNeg1_2ProtoCore(args: {
     brief: discoveryBrief(args.ctx, args.state),
     contextBlocks: args.contextBlocks,
     modeBlock,
-    corePath,
+    corePath: attemptPath,
   });
+  const upgradeFrom = args.state.pre_d0_intent?.upgrade_from ?? args.state.proposed_from?.upgrade_from ?? args.ctx.upgradeFrom;
 
   // The proposal gate (G1–G7 + GP1–GP3) can reject the authored core (e.g. prose
   // in an atomic `condition`/target field). Re-author with the violations fed back
@@ -255,6 +321,9 @@ export async function runStageNeg1_2ProtoCore(args: {
         `designated prose/description fields.`
       : basePrompt;
 
+    // The staging path is fixed, so a leftover from a declined / failed / killed
+    // earlier attempt must never pass for this author's output.
+    await rm(attemptPath, { force: true });
     const out = await dispatchAgent({
       ctx: args.ctx,
       deps: args.deps,
@@ -272,10 +341,23 @@ export async function runStageNeg1_2ProtoCore(args: {
       reasoningEffort: MODEL_PLAN.stageNeg1_2_draft.codex.effort,
       inactivityTimeoutMs: 40 * 60 * 1000,
     });
-    const parsedOut = parseStageOutput(out.stdout);
+    const initiallyParsed = parseStageOutput(out.stdout);
+    const recoveredLeadingStatus = initiallyParsed.status === "parse_failed"
+      ? leadingStageStatus(out.stdout)
+      : null;
+    const parsedOut = initiallyParsed.status === "parse_failed" && recoveredLeadingStatus
+      ? { status: recoveredLeadingStatus, message: "Recovered the leading producer disposition from malformed JSON" }
+      : initiallyParsed;
     if (parsedOut.status === "parse_failed") {
-      // AUDIT-A: fail closed on unparseable stage output; why: Stage -1.2 must not advance on garbage.
+      // The receipt is advisory once the author has written the declared artifact:
+      // only an unambiguous leading disposition may recover it. Unknown status
+      // remains a hard failure even if a diagnostic artifact happens to exist.
       throw new Error("Stage -1.2: proto-core author output did not parse (parse_failed) - refusing to advance on unparseable output");
+    }
+    if (parsedOut.status !== "completed" && parsedOut.status !== "needs-pivot" && parsedOut.status !== "failed") {
+      throw new Error(
+        `Stage -1.2: proto-core author returned an unknown disposition ${JSON.stringify(parsedOut.status)} - refusing to advance`,
+      );
     }
     if (parsedOut.status === "failed") {
       throw new Error(
@@ -292,12 +374,21 @@ export async function runStageNeg1_2ProtoCore(args: {
     // gate/schema validated because it is not advancing as an authored proposal.
     if (parsedOut.status === "needs-pivot") {
       let handoff: Record<string, unknown> = {};
+      if (initiallyParsed.status === "parse_failed") {
+        // A status-only malformed refusal cannot safely distinguish a
+        // mathematical pivot from a local execution/output failure. Route it
+        // through the existing environment retry lane, never burn the angle.
+        handoff.blocking_reason = "local execution tools failed to return a parseable producer receipt";
+      }
       try {
         // TeX-bearing model boundary: normalize raw bytes before the JSON funnel,
         // exactly as the core read below does. Without it an under-escaped command
         // in the diagnostic seed slate silently empties the handoff (this catch is
         // best-effort by design), and every pivot then burns budget on no seeds.
-        handoff = extractJsonObject(normalizeRawModelJson(out.stdout)) as Record<string, unknown>;
+        handoff = {
+          ...(extractJsonObject(normalizeRawModelJson(out.stdout)) as Record<string, unknown>),
+          ...handoff,
+        };
       } catch {
         // The normalizer assumes pure JSON: odd `"` counts in surrounding
         // narration flip its string tracker and corrupt correctly-escaped
@@ -306,14 +397,14 @@ export async function runStageNeg1_2ProtoCore(args: {
         // corruption only raw-byte normalization could have prevented).
         try {
           const rawHandoff = extractJsonObject(out.stdout) as Record<string, unknown>;
-          if (!containsLikelyDecodedTexNewlines(rawHandoff)) handoff = rawHandoff;
+          if (!containsLikelyDecodedTexNewlines(rawHandoff)) handoff = { ...rawHandoff, ...handoff };
         } catch {
           /* best-effort */
         }
       }
-      if (existsSync(corePath)) {
+      if (existsSync(attemptPath)) {
         try {
-          const diagnosticCore = JSON.parse(normalizeRawModelJson(await readFile(corePath, "utf8"))) as Record<string, unknown>;
+          const diagnosticCore = JSON.parse(normalizeRawModelJson(await readFile(attemptPath, "utf8"))) as Record<string, unknown>;
           handoff = mergeCoreHandoff(diagnosticCore, handoff);
         } catch {
           /* best-effort: the stdout receipt still drives needs-pivot */
@@ -326,11 +417,11 @@ export async function runStageNeg1_2ProtoCore(args: {
         handoff,
       };
     }
-    if (!existsSync(corePath)) {
+    if (!existsSync(attemptPath)) {
       if (attempt === REAUTHOR_BUDGET) {
-        throw new Error(`Stage -1.2 author completed without writing the required core at ${corePath}`);
+        throw new Error(`Stage -1.2 author completed without writing the required core at ${attemptPath}`);
       }
-      lastGateFeedback = `  [WRITE] ${corePath}: author completed without writing the core file`;
+      lastGateFeedback = `  [WRITE] ${attemptPath}: author completed without writing the core file`;
       continue;
     }
 
@@ -338,12 +429,12 @@ export async function runStageNeg1_2ProtoCore(args: {
     try {
       // Pre-parse raw-byte normalization: repair under-escaped TeX backslashes
       // while the raw bytes still distinguish them from intended control escapes.
-      core = JSON.parse(normalizeRawModelJson(await readFile(corePath, "utf8")));
+      core = JSON.parse(normalizeRawModelJson(await readFile(attemptPath, "utf8")));
     } catch (e) {
       if (attempt === REAUTHOR_BUDGET) {
-        throw new Error(`Stage -1.2 author wrote a core at ${corePath} that is not valid JSON: ${String(e)}`);
+        throw new Error(`Stage -1.2 author wrote a core at ${attemptPath} that is not valid JSON: ${String(e)}`);
       }
-      lastGateFeedback = `  [JSON] ${corePath}: not valid JSON (${String(e)})`;
+      lastGateFeedback = `  [JSON] ${attemptPath}: not valid JSON (${String(e)})`;
       continue;
     }
 
@@ -425,6 +516,23 @@ export async function runStageNeg1_2ProtoCore(args: {
     if (checklistSpelling !== undefined) {
       persistedCore.literature_checklist = checklistSource[checklistSpelling];
     }
+    // The authored core is a permitted fallback for this handoff field, and
+    // models sometimes express its requested argument as a structured record.
+    // Canonicalize that record at the producer boundary: downstream state has
+    // always stored the field as a string, and key order must not turn the same
+    // justification into different persisted content.
+    if (persistedCore.novelty_justification !== null &&
+        typeof persistedCore.novelty_justification === "object" &&
+        !Array.isArray(persistedCore.novelty_justification) &&
+        containsSubstantiveText(persistedCore.novelty_justification)) {
+      persistedCore.novelty_justification = stableJson(persistedCore.novelty_justification);
+    }
+    const invalidReviewerMetadata = invalidReviewerFields(persistedCore, upgradeFrom);
+    if (invalidReviewerMetadata.length > 0) {
+      throw new Error(
+        `Stage -1.2 reviewer metadata is invalid: ${invalidReviewerMetadata.join(", ")}`,
+      );
+    }
     // Emitted-vs-persisted visibility (computed AFTER the folds so a key with a
     // persistence home is never falsely reported): the drop is intentional, but
     // it must never be SILENT — a prompt-mandated field missing from every
@@ -445,13 +553,16 @@ export async function runStageNeg1_2ProtoCore(args: {
       );
     }
     await writeJsonAtomic(corePath, persistedCore);
+    await rm(attemptPath, { force: true });
     core = persistedCore;
 
     const handoff = mergeCoreHandoff(core as Record<string, unknown>, stdoutHandoff);
 
     return {
       status: "completed",
-      message: parsedOut.message ?? "Stage -1.2 authored the proposal core",
+      message: initiallyParsed.status === "parse_failed"
+        ? "Stage -1.2 accepted the validated proposal core despite a malformed advisory receipt"
+        : parsedOut.message ?? "Stage -1.2 authored the proposal core",
       protoCoreJsonPath: corePath,
       handoff,
     };

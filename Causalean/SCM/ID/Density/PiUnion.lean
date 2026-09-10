@@ -29,8 +29,7 @@ open MeasureTheory
 variable {N : Type*} [DecidableEq N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-/-- Value assignments on finite SWIG-node sets are finite when each base node
-value space is finite. -/
+/-- For [a distinguishable node population with measurable, finite-valued node spaces](hyp:N,Ω) and [a finite set of SWIG nodes](hyp:I), the [finite enumeration structure on assignments of values to those nodes](goal) exists. -/
 instance instFintypeValuesOnSwigΩ [∀ n, Fintype (Ω n)]
     (I : Finset (SWIGNode N)) : Fintype (ValuesOn I (swigΩ Ω)) := by
   classical
@@ -39,8 +38,15 @@ instance instFintypeValuesOnSwigΩ [∀ n, Fintype (Ω n)]
     | .fixed _ => inferInstance
   infer_instance
 
-/-- Override the coordinates in `W` of an assignment on `I`, leaving the other
-coordinates unchanged. -/
+/-- For [a collection of nodes with a measurable outcome space for each node](hyp:N,Ω), [a
+    finite set of target coordinates](hyp:I), [a finite set of replacement coordinates](hyp:W),
+    [an assignment on the target coordinates](hyp:x), and [an assignment on the replacement
+    coordinates](hyp:y), the [overridden target-coordinate assignment](goal) uses the replacement
+    assignment at every target coordinate that is also a replacement coordinate, and otherwise
+    uses the original target-coordinate assignment.
+
+    Override the coordinates in `W` of an assignment on `I`, leaving the other
+    coordinates unchanged. -/
 def overrideOn {I W : Finset (SWIGNode N)}
     (x : ValuesOn I (swigΩ Ω)) (y : ValuesOn W (swigΩ Ω)) :
     ValuesOn I (swigΩ Ω) :=
@@ -80,7 +86,9 @@ replacement assignment. -/
   funext i
   exact overrideOn_mem x y ⟨i.val, hWI i.property⟩ i.property
 
-/-- The index equivalence `{a ∈ A} ⊕ {b ∈ B} ≃ {i ∈ A ∪ B}` for disjoint `A`, `B`. -/
+/-- For [a collection of nodes](hyp:N), [two finite sets of nodes](hyp:A,B), and [their
+    disjointness](hyp:hDisj), the [index equivalence between their tagged sum and their
+    union](goal) maps each tagged node to that same node regarded as a member of the union. -/
 def unionSumEquiv {A B : Finset (SWIGNode N)} (hDisj : Disjoint A B) :
     ({a // a ∈ A} ⊕ {b // b ∈ B}) ≃ {i // i ∈ A ∪ B} where
   toFun := Sum.elim

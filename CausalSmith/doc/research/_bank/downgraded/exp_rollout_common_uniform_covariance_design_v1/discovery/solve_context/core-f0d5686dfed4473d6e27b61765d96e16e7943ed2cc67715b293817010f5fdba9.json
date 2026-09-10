@@ -1,0 +1,1333 @@
+{
+  "qid": "exp_rollout_common_uniform_covariance_design",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "symbols": [
+    {
+      "name": "n",
+      "type": "population size",
+      "space": "\\(\\mathbb N\\)",
+      "def": "The number of units in the fixed finite population.",
+      "role": "asymptotic index"
+    },
+    {
+      "name": "beta",
+      "type": "interaction order",
+      "space": "\\(\\{1,\\ldots,n\\}\\)",
+      "def": "The maximum cardinality of an active treatment interaction, with \\(1\\le\\beta\\le n\\).",
+      "role": "structural complexity",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "k",
+      "type": "number of rollout intervals",
+      "space": "\\(\\{m\\in\\mathbb N:m\\ge\\beta\\}\\)",
+      "def": "The rollout has \\(k+1\\) measurements including the baseline and terminal budget fraction.",
+      "role": "design size",
+      "refs": [
+        "beta"
+      ]
+    },
+    {
+      "name": "q",
+      "type": "rollout budget",
+      "space": "\\((0,1]\\)",
+      "def": "The largest treated fraction observed during the rollout.",
+      "role": "design constraint"
+    },
+    {
+      "name": "x",
+      "type": "quadratic-witness interior node",
+      "space": "\\([1/8,3/8]\\)",
+      "def": "The interior rollout fraction in the three-unit quadratic witness.",
+      "role": "diagnostic design coordinate"
+    },
+    {
+      "name": "delta",
+      "type": "minimum stage separation",
+      "space": "\\((0,q/k]\\)",
+      "def": "The smallest operationally permitted gap between consecutive rollout fractions.",
+      "role": "design constraint",
+      "refs": [
+        "q",
+        "k"
+      ]
+    },
+    {
+      "name": "B",
+      "type": "coefficient radius",
+      "space": "\\((0,\\infty)\\)",
+      "def": "The declared radius of the aggregate coefficient ellipsoid.",
+      "role": "robustness scale"
+    },
+    {
+      "name": "alpha",
+      "type": "miscoverage level",
+      "space": "\\((0,1)\\)",
+      "def": "The nominal error probability for the finite-sample Chebyshev confidence set.",
+      "role": "inference level"
+    },
+    {
+      "name": "I_n",
+      "type": "unit index set",
+      "space": "\\(\\{1,\\ldots,n\\}\\)",
+      "def": "\\(I_n=\\{1,\\ldots,n\\}\\).",
+      "role": "index set",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "S_beta",
+      "type": "interaction-subset index set",
+      "space": "\\(2^{I_n}\\)",
+      "def": "\\(\\mathcal S_{n,\\beta}=\\{S\\subseteq I_n:1\\le |S|\\le\\beta\\}\\).",
+      "role": "coefficient index set",
+      "refs": [
+        "I_n",
+        "beta"
+      ]
+    },
+    {
+      "name": "S",
+      "type": "interaction subset",
+      "space": "\\(\\mathcal S_{n,\\beta}\\)",
+      "def": "A generic first interaction subset.",
+      "role": "kernel index",
+      "refs": [
+        "S_beta"
+      ]
+    },
+    {
+      "name": "T",
+      "type": "interaction subset",
+      "space": "\\(\\mathcal S_{n,\\beta}\\)",
+      "def": "A generic second interaction subset.",
+      "role": "kernel index",
+      "refs": [
+        "S_beta"
+      ]
+    },
+    {
+      "name": "U",
+      "type": "unit randomizers",
+      "space": "\\([0,1]^{I_n}\\)",
+      "def": "\\(U=(U_i)_{i\\in I_n}\\) is the sole source of design randomness.",
+      "role": "randomization",
+      "refs": [
+        "I_n"
+      ]
+    },
+    {
+      "name": "u",
+      "type": "rollout fraction",
+      "space": "\\([0,1]\\)",
+      "def": "A generic first scalar rollout fraction.",
+      "role": "diagnostic covariance argument"
+    },
+    {
+      "name": "v",
+      "type": "rollout fraction",
+      "space": "\\([0,1]\\)",
+      "def": "A generic second scalar rollout fraction.",
+      "role": "diagnostic covariance argument"
+    },
+    {
+      "name": "p",
+      "type": "rollout node vector",
+      "space": "\\([0,q]^{k+1}\\)",
+      "def": "\\(p=(p_0,\\ldots,p_k)\\) lists the nested treatment fractions.",
+      "role": "design decision",
+      "refs": [
+        "q",
+        "k"
+      ]
+    },
+    {
+      "name": "P_class",
+      "type": "feasible rollout-node class",
+      "space": "\\(2^{[0,q]^{k+1}}\\)",
+      "def": "\\(\\mathcal P_{k,q,\\delta}=\\{p:p_0=0,\\ p_k=q,\\ p_t-p_{t-1}\\ge\\delta\\text{ for }t=1,\\ldots,k\\}\\).",
+      "role": "node design space",
+      "refs": [
+        "p",
+        "k",
+        "q",
+        "delta"
+      ]
+    },
+    {
+      "name": "s",
+      "type": "rollout stage index",
+      "space": "\\(\\{0,\\ldots,k\\}\\)",
+      "def": "A generic first rollout stage.",
+      "role": "kernel index",
+      "refs": [
+        "k"
+      ]
+    },
+    {
+      "name": "t",
+      "type": "rollout stage index",
+      "space": "\\(\\{0,\\ldots,k\\}\\)",
+      "def": "A generic second rollout stage.",
+      "role": "kernel index",
+      "refs": [
+        "k"
+      ]
+    },
+    {
+      "name": "Z",
+      "type": "nested treatment path",
+      "space": "\\(\\{0,1\\}^{I_n\\times[0,1]}\\)",
+      "def": "\\(Z_i(r)=\\mathbf 1\\{U_i\\le r\\}\\) for \\(i\\in I_n\\) and \\(r\\in[0,1]\\).",
+      "role": "known randomization design",
+      "refs": [
+        "U",
+        "I_n"
+      ]
+    },
+    {
+      "name": "Y",
+      "type": "finite-population potential-outcome schedule",
+      "space": "\\(\\prod_{i\\in I_n}\\{\\{0,1\\}^n\\to\\mathbb R\\}\\)",
+      "def": "\\(Y=(Y_i)_{i\\in I_n}\\) is fixed before \\(U\\) is drawn.",
+      "role": "causal schedule",
+      "refs": [
+        "I_n",
+        "n",
+        "U"
+      ]
+    },
+    {
+      "name": "c",
+      "type": "unit-level interaction coefficients",
+      "space": "\\(\\mathbb R^{I_n\\times(\\{\\varnothing\\}\\cup\\mathcal S_{n,\\beta})}\\)",
+      "def": "The coefficients satisfy \\(Y_i(z)=c_{i,\\varnothing}+\\sum_{S\\in\\mathcal S_{n,\\beta}}c_{i,S}\\prod_{j\\in S}z_j\\).",
+      "role": "primitive schedule coordinates",
+      "refs": [
+        "Y",
+        "I_n",
+        "S_beta"
+      ]
+    },
+    {
+      "name": "a",
+      "type": "aggregate interaction coefficients",
+      "space": "\\(\\mathbb R^{\\mathcal S_{n,\\beta}}\\)",
+      "def": "\\(a_S=n^{-1}\\sum_{i\\in I_n}c_{i,S}\\) for \\(S\\in\\mathcal S_{n,\\beta}\\).",
+      "role": "adversarial coefficient vector",
+      "refs": [
+        "c",
+        "n",
+        "I_n",
+        "S_beta"
+      ]
+    },
+    {
+      "name": "omega",
+      "type": "order weights",
+      "space": "\\((0,\\infty)^\\beta\\)",
+      "def": "\\(\\omega=(\\omega_1,\\ldots,\\omega_\\beta)\\) specifies the allowed aggregate energy at each interaction order.",
+      "role": "robustness geometry",
+      "refs": [
+        "beta"
+      ]
+    },
+    {
+      "name": "Omega",
+      "type": "coefficient shape matrix",
+      "space": "\\(\\mathbb R^{\\mathcal S_{n,\\beta}\\times\\mathcal S_{n,\\beta}}\\)",
+      "def": "\\(\\Omega_{S,T}=\\omega_{|S|}\\mathbf 1\\{S=T\\}\\).",
+      "role": "ellipsoid matrix",
+      "refs": [
+        "omega",
+        "S_beta"
+      ]
+    },
+    {
+      "name": "C_CEY",
+      "type": "noise-free published low-order schedule-envelope union",
+      "space": "\\(2^{(\\prod_{i\\in I_n}\\{\\{0,1\\}^n\\to\\mathbb R\\})\\times\\mathbb R^{I_n\\times(\\{\\varnothing\\}\\cup\\mathcal S_{n,\\beta})}}\\)",
+      "def": "\\(\\mathcal C^{\\mathrm{CEY}}_{n,\\beta}\\) is the noise-free potential-outcome-schedule projection of the Cortez--Eichhorn--Yu static-graph model, unioned over directed graphs on \\(I_n\\) containing every self-loop, with graph-neighborhood-supported interactions of order at most \\(\\beta\\) and no common radius across schedules.",
+      "role": "published comparison schedule envelope",
+      "refs": [
+        "n",
+        "beta",
+        "I_n",
+        "Y",
+        "c",
+        "S_beta"
+      ]
+    },
+    {
+      "name": "C_ellip",
+      "type": "ellipsoidal coefficient schedule class",
+      "space": "\\(2^{\\mathcal C^{\\mathrm{CEY}}_{n,\\beta}}\\)",
+      "def": "\\(\\mathcal C_{n,\\beta}(B,\\omega)\\) contains the low-order schedules whose aggregate coefficient vector obeys \\(a^{\\mathsf T}\\Omega^{-1}a\\le B^2/n\\).",
+      "role": "robust adversary class",
+      "refs": [
+        "C_CEY",
+        "n",
+        "beta",
+        "B",
+        "omega",
+        "a",
+        "Omega"
+      ]
+    },
+    {
+      "name": "Q",
+      "type": "subset-lattice isotypic transform",
+      "space": "\\(\\mathbb R^{\\mathcal S_{n,\\beta}\\times\\mathcal S_{n,\\beta}}\\)",
+      "def": "\\(Q\\) is the explicit orthogonal transform obtained from the harmonic inclusion decomposition of subset levels \\(1,\\ldots,\\beta\\); \\(Q_h\\) denotes its lift for isotypic order \\(h\\).",
+      "role": "spectral reduction",
+      "refs": [
+        "S_beta",
+        "n",
+        "beta"
+      ]
+    },
+    {
+      "name": "M",
+      "type": "observed rollout mean process",
+      "space": "\\(\\{[0,1]\\to\\mathbb R\\}\\)",
+      "def": "\\(M(r)=n^{-1}\\sum_{i\\in I_n}Y_i(Z(r))\\).",
+      "role": "observed stage statistic",
+      "refs": [
+        "n",
+        "I_n",
+        "Y",
+        "Z"
+      ]
+    },
+    {
+      "name": "Gamma",
+      "type": "stage-mean covariance kernel",
+      "space": "\\(\\{[0,1]^2\\to\\mathbb R\\}\\)",
+      "def": "\\(\\Gamma(u,v)=\\operatorname{Cov}_U\\{M(u),M(v)\\}\\).",
+      "role": "diagnostic covariance",
+      "refs": [
+        "U",
+        "M",
+        "u",
+        "v"
+      ]
+    },
+    {
+      "name": "m",
+      "type": "randomization mean curve",
+      "space": "\\(\\{[0,1]\\to\\mathbb R\\}\\)",
+      "def": "\\(m(r)=\\mathbb E_U[M(r)]\\).",
+      "role": "identified polynomial curve",
+      "refs": [
+        "M",
+        "U"
+      ]
+    },
+    {
+      "name": "tau",
+      "type": "finite-population total treatment effect",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(\\tau=n^{-1}\\sum_{i\\in I_n}\\{Y_i(\\mathbf 1)-Y_i(\\mathbf 0)\\}=m(1)-m(0)\\).",
+      "role": "causal estimand",
+      "refs": [
+        "n",
+        "I_n",
+        "Y",
+        "m"
+      ]
+    },
+    {
+      "name": "w",
+      "type": "linear readout weights",
+      "space": "\\(\\mathbb R^{k+1}\\)",
+      "def": "\\(w=(w_0,\\ldots,w_k)\\) linearly combines the stage means.",
+      "role": "estimator decision",
+      "refs": [
+        "k"
+      ]
+    },
+    {
+      "name": "W_class",
+      "type": "polynomial-exact weight class",
+      "space": "\\(2^{\\mathbb R^{k+1}}\\)",
+      "def": "\\(\\mathcal W_\\beta(p)=\\{w:\\sum_{t=0}^kw_t=0,\\ \\sum_{t=0}^kw_tp_t^d=1\\text{ for }d=1,\\ldots,\\beta\\}\\).",
+      "role": "readout design space",
+      "refs": [
+        "w",
+        "p",
+        "k",
+        "beta",
+        "t"
+      ]
+    },
+    {
+      "name": "hat_tau",
+      "type": "rollout estimator",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(\\widehat\\tau_{p,w}=\\sum_{t=0}^k w_tM(p_t)\\).",
+      "role": "design-based estimator",
+      "refs": [
+        "p",
+        "w",
+        "M",
+        "k"
+      ]
+    },
+    {
+      "name": "K",
+      "type": "common-uniform monomial covariance tensor",
+      "space": "\\(\\mathbb R^{(k+1)\\times(k+1)\\times\\mathcal S_{n,\\beta}\\times\\mathcal S_{n,\\beta}}\\)",
+      "def": "\\(K_{st}(S,T)=\\min(p_s,p_t)^{|S\\cap T|}p_s^{|S\\setminus T|}p_t^{|T\\setminus S|}-p_s^{|S|}p_t^{|T|}\\).",
+      "role": "exact covariance kernel",
+      "refs": [
+        "p",
+        "k",
+        "S_beta"
+      ]
+    },
+    {
+      "name": "G",
+      "type": "weighted aggregate covariance operator",
+      "space": "\\(\\mathbb R^{\\mathcal S_{n,\\beta}\\times\\mathcal S_{n,\\beta}}\\)",
+      "def": "\\(G(p,w)_{S,T}=\\sum_{s=0}^k\\sum_{t=0}^k w_sw_tK_{st}(S,T)\\).",
+      "role": "design risk operator",
+      "refs": [
+        "K",
+        "p",
+        "w",
+        "k",
+        "S_beta"
+      ]
+    },
+    {
+      "name": "H",
+      "type": "reduced isotypic covariance blocks",
+      "space": "\\(\\prod_{h=0}^{\\beta}\\mathbb R^{(\\beta-h+1)\\times(\\beta-h+1)}\\)",
+      "def": "\\(H_h(p,w)\\) is the \\(h\\)-th diagonal block of \\(Q^{\\mathsf T}\\Omega^{1/2}G(p,w)\\Omega^{1/2}Q\\), restricted to the nonempty subset levels.",
+      "role": "computable covariance reduction",
+      "refs": [
+        "Q",
+        "Omega",
+        "G",
+        "p",
+        "w",
+        "beta"
+      ]
+    },
+    {
+      "name": "V_rob",
+      "type": "design-computable radius-based variance certificate",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(V_{\\mathrm{rob}}(p,w)=B^2n^{-1}\\lambda_{\\max}\\{\\Omega^{1/2}G(p,w)\\Omega^{1/2}\\}\\).",
+      "role": "robust variance bound and design criterion",
+      "refs": [
+        "B",
+        "n",
+        "Omega",
+        "G",
+        "p",
+        "w"
+      ]
+    },
+    {
+      "name": "V_star",
+      "type": "optimal robust exact-covariance value",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(V^*_{n,\\beta,k,q,\\delta}=\\inf_{p\\in\\mathcal P_{k,q,\\delta}}\\inf_{w\\in\\mathcal W_\\beta(p)}V_{\\mathrm{rob}}(p,w)\\).",
+      "role": "design optimum",
+      "refs": [
+        "n",
+        "beta",
+        "k",
+        "q",
+        "delta",
+        "P_class",
+        "W_class",
+        "V_rob",
+        "p",
+        "w"
+      ]
+    },
+    {
+      "name": "CI",
+      "type": "finite-sample Chebyshev confidence interval",
+      "space": "intervals in \\(\\mathbb R\\)",
+      "def": "\\(\\mathrm{CI}^{\\mathrm{Ch}}_{1-\\alpha}(p,w)=[\\widehat\\tau_{p,w}-\\sqrt{V_{\\mathrm{rob}}(p,w)/\\alpha},\\widehat\\tau_{p,w}+\\sqrt{V_{\\mathrm{rob}}(p,w)/\\alpha}]\\).",
+      "role": "design-based confidence set",
+      "refs": [
+        "hat_tau",
+        "p",
+        "w",
+        "V_rob",
+        "alpha"
+      ]
+    },
+    {
+      "name": "R_beta",
+      "type": "degree-moment Gram matrix",
+      "space": "\\(\\mathbb R^{\\beta\\times\\beta}\\)",
+      "def": "\\(R_\\beta(q)_{d,e}=de\\,q^{d+e-1}/(d+e-1)\\) for \\(1\\le d,e\\le\\beta\\).",
+      "role": "continuous moment-relaxation geometry",
+      "refs": [
+        "beta",
+        "q"
+      ]
+    },
+    {
+      "name": "Psi_beta",
+      "type": "degree-moment variance barrier",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(\\Psi_\\beta(q)=\\mathbf 1_\\beta^{\\mathsf T}R_\\beta(q)^{-1}\\mathbf 1_\\beta-1\\).",
+      "role": "computable lower bound for robust rollout variance",
+      "refs": [
+        "beta",
+        "q",
+        "R_beta"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:fixed-finite-population",
+      "kind": "causal-structural",
+      "condition": "The schedule \\(Y\\) is fixed before the draw of \\(U\\), and all probability statements condition on \\(Y\\).",
+      "free_symbols": [
+        "Y",
+        "U"
+      ],
+      "standard": {
+        "name": "Neyman finite-population randomization",
+        "cite": "BasseAiroldi2018"
+      },
+      "used_by": [
+        "prop:unnormalized-published-envelope-dichotomy",
+        "thm:exact-covariance-saddle",
+        "thm:finite-sample-robust-inference"
+      ]
+    },
+    {
+      "id": "ass:common-uniform-rollout",
+      "kind": "randomization-design",
+      "condition": "The coordinates \\((U_i)_{i\\in I_n}\\) are independent \\(\\operatorname{Unif}[0,1]\\) variables and \\(Z_i(r)=\\mathbf 1\\{U_i\\le r\\}\\) for every \\(r\\in[0,1]\\).",
+      "free_symbols": [
+        "U",
+        "I_n",
+        "Z"
+      ],
+      "standard": {
+        "name": "monotone staggered Bernoulli rollout",
+        "cite": "CortezEichhornYu2022"
+      },
+      "used_by": [
+        "lem:common-uniform-monomial-covariance",
+        "lem:joint-design-attainment",
+        "prop:quadratic-witness",
+        "prop:rollout-budget-elbow",
+        "prop:unnormalized-published-envelope-dichotomy",
+        "thm:exact-covariance-saddle",
+        "thm:finite-sample-robust-inference"
+      ]
+    },
+    {
+      "id": "ass:low-order-schedule",
+      "kind": "causal-structural",
+      "condition": "For every \\(i\\in I_n\\) and \\(z\\in\\{0,1\\}^n\\), \\(Y_i(z)=c_{i,\\varnothing}+\\sum_{S\\in\\mathcal S_{n,\\beta}}c_{i,S}\\prod_{j\\in S}z_j\\).",
+      "free_symbols": [
+        "I_n",
+        "n",
+        "Y",
+        "c",
+        "S_beta",
+        "beta"
+      ],
+      "standard": {
+        "name": "bounded-order polynomial interference",
+        "cite": "CortezEichhornYu2022"
+      },
+      "used_by": [
+        "def:ellipsoidal-coefficient-class",
+        "def:published-low-order-class",
+        "lem:common-uniform-monomial-covariance",
+        "prop:class-inclusion",
+        "prop:unnormalized-published-envelope-dichotomy",
+        "thm:exact-covariance-saddle",
+        "thm:finite-sample-robust-inference"
+      ]
+    },
+    {
+      "id": "ass:aggregate-coefficient-ellipsoid",
+      "kind": "support",
+      "condition": "The aggregate coefficient vector satisfies \\(a^{\\mathsf T}\\Omega^{-1}a\\le B^2/n\\).",
+      "free_symbols": [
+        "a",
+        "Omega",
+        "B",
+        "n"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This permutation-invariant energy restriction models platforms with many weak interactions whose root-mean-square aggregate strength is stable within each interaction order. It contains dense exchangeable spillovers, sparse local interactions, and mixtures across every order up to \\(\\beta\\), while allowing the order weights to be calibrated from domain bounds or a pilot ramp."
+      },
+      "used_by": [
+        "def:ellipsoidal-coefficient-class",
+        "prop:class-inclusion",
+        "thm:exact-covariance-saddle",
+        "thm:finite-sample-robust-inference"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:published-low-order-class",
+      "name": "Published low-order schedule class",
+      "construction": "\\(\\mathcal C^{\\mathrm{CEY}}_{n,\\beta}=\\{(Y,c):Y_i(z)=c_{i,\\varnothing}+\\sum_{S\\in\\mathcal S_{n,\\beta}}c_{i,S}\\prod_{j\\in S}z_j\\text{ for every }i\\in I_n\\text{ and }z\\in\\{0,1\\}^n\\}\\).",
+      "free_symbols": [
+        "C_CEY",
+        "n",
+        "beta",
+        "Y",
+        "c",
+        "S_beta",
+        "I_n"
+      ],
+      "by_member_properties": [
+        "ass:low-order-schedule"
+      ],
+      "revision": "rev:969713053b5a3983440504d890a3f9b91ee7134022ea69f2af1554e68e43bb51"
+    },
+    {
+      "id": "def:ellipsoidal-coefficient-class",
+      "name": "Ellipsoidal common-uniform coefficient class",
+      "construction": "\\(\\mathcal C_{n,\\beta}(B,\\omega)=\\{(Y,c)\\in\\mathcal C^{\\mathrm{CEY}}_{n,\\beta}:a_S=n^{-1}\\sum_{i\\in I_n}c_{i,S}\\text{ for every }S\\in\\mathcal S_{n,\\beta},\\ a^{\\mathsf T}\\Omega^{-1}a\\le B^2/n\\}\\).",
+      "free_symbols": [
+        "C_ellip",
+        "n",
+        "beta",
+        "B",
+        "omega",
+        "Y",
+        "c",
+        "a",
+        "S_beta",
+        "I_n",
+        "Omega"
+      ],
+      "by_member_properties": [
+        "ass:low-order-schedule",
+        "ass:aggregate-coefficient-ellipsoid"
+      ],
+      "revision": "rev:675634a7c6763bccc5d898a369b40c5b2fd6e0135769b6ce1270cc5e1522a561"
+    },
+    {
+      "id": "def:feasible-node-class",
+      "name": "Feasible rollout nodes",
+      "construction": "\\(\\mathcal P_{k,q,\\delta}=\\{p=(p_0,\\ldots,p_k):p_0=0,\\ p_k=q,\\ p_t-p_{t-1}\\ge\\delta\\text{ for }t=1,\\ldots,k\\}\\).",
+      "free_symbols": [
+        "P_class",
+        "p",
+        "k",
+        "q",
+        "delta"
+      ],
+      "inputs": [
+        "k",
+        "q",
+        "delta"
+      ],
+      "revision": "rev:ed5dec24eb67658f4a2ac6d7085687543eae213c324dff932c3f2de804df973a"
+    },
+    {
+      "id": "def:unbiased-weight-class",
+      "name": "Polynomial-exact readout weights",
+      "construction": "\\(\\mathcal W_\\beta(p)=\\{w\\in\\mathbb R^{k+1}:\\sum_{t=0}^kw_t=0,\\ \\sum_{t=0}^kw_tp_t^d=1\\text{ for }d=1,\\ldots,\\beta\\}\\).",
+      "free_symbols": [
+        "W_class",
+        "beta",
+        "p",
+        "w",
+        "k",
+        "t"
+      ],
+      "inputs": [
+        "beta",
+        "p"
+      ],
+      "revision": "rev:54fc5adb47bc07f3e8fe6cfa471c0fd5634ae5bce89cdc68c2bf7352c89fe24e"
+    },
+    {
+      "id": "def:rollout-estimator",
+      "name": "Linear rollout estimator",
+      "construction": "\\(\\widehat\\tau_{p,w}=\\sum_{t=0}^kw_tM(p_t)\\) for \\(p\\in\\mathcal P_{k,q,\\delta}\\) and \\(w\\in\\mathcal W_\\beta(p)\\).",
+      "free_symbols": [
+        "hat_tau",
+        "p",
+        "w",
+        "M",
+        "k",
+        "beta",
+        "q",
+        "delta"
+      ],
+      "inputs": [
+        "p",
+        "w",
+        "M"
+      ],
+      "revision": "rev:457ee8fa3cfa7ed8f3b67dcdf2dba93528f756e7bb23f59606723e8f48e7a24e"
+    },
+    {
+      "id": "def:exact-covariance-operator",
+      "name": "Exact common-uniform covariance operator",
+      "construction": "For \\(S,T\\in\\mathcal S_{n,\\beta}\\), set \\(K_{st}(S,T)=\\min(p_s,p_t)^{|S\\cap T|}p_s^{|S\\setminus T|}p_t^{|T\\setminus S|}-p_s^{|S|}p_t^{|T|}\\) and \\(G(p,w)_{S,T}=\\sum_{s,t=0}^kw_sw_tK_{st}(S,T)\\).",
+      "free_symbols": [
+        "S_beta",
+        "S",
+        "T",
+        "K",
+        "G",
+        "p",
+        "w",
+        "k",
+        "s",
+        "t"
+      ],
+      "inputs": [
+        "p",
+        "w",
+        "S_beta"
+      ],
+      "revision": "rev:dbcad15c65ddc5278ce1d2042dcac7d85e7cb7dac50cb19570e91f9fb5d23c44"
+    },
+    {
+      "id": "def:exact-saddle",
+      "name": "Robust exact-covariance saddle",
+      "construction": "\\(V^*_{n,\\beta,k,q,\\delta}=\\inf_{p\\in\\mathcal P_{k,q,\\delta}}\\inf_{w\\in\\mathcal W_\\beta(p)}V_{\\mathrm{rob}}(p,w)\\).",
+      "free_symbols": [
+        "V_star",
+        "P_class",
+        "W_class",
+        "n",
+        "beta",
+        "k",
+        "q",
+        "delta",
+        "p",
+        "w",
+        "V_rob"
+      ],
+      "inputs": [
+        "n",
+        "beta",
+        "k",
+        "q",
+        "delta",
+        "V_rob"
+      ],
+      "revision": "rev:b6cc8190c80c0849cc57a3be6aa439c8e7c36b8bddddc2f676c9df0227ef20be"
+    },
+    {
+      "id": "def:variance-certificate",
+      "name": "Design-computable radius-based variance certificate",
+      "construction": "Given the implemented \\((p,w)\\), compute every reduced covariance block from the known common-uniform kernel and set \\(V_{\\mathrm{rob}}(p,w)=B^2n^{-1}\\max_{0\\le h\\le\\beta}\\lambda_{\\max}\\{H_h(p,w)\\}\\). The certificate uses the declared radius and the known design, not observed outcomes.",
+      "free_symbols": [
+        "p",
+        "w",
+        "B",
+        "n",
+        "V_rob",
+        "beta",
+        "H"
+      ],
+      "inputs": [
+        "p",
+        "w",
+        "B",
+        "n",
+        "beta"
+      ],
+      "revision": "rev:a47a237b2064fd08a7a7ea69e72009f6f53331622cc2f799eac3c72be9ce7ff5"
+    },
+    {
+      "id": "def:chebyshev-interval",
+      "name": "Finite-sample robust Chebyshev interval",
+      "construction": "\\(\\mathrm{CI}^{\\mathrm{Ch}}_{1-\\alpha}(p,w)=[\\widehat\\tau_{p,w}-\\sqrt{V_{\\mathrm{rob}}(p,w)/\\alpha},\\widehat\\tau_{p,w}+\\sqrt{V_{\\mathrm{rob}}(p,w)/\\alpha}]\\).",
+      "free_symbols": [
+        "CI",
+        "alpha",
+        "hat_tau",
+        "p",
+        "w",
+        "V_rob"
+      ],
+      "inputs": [
+        "p",
+        "w",
+        "alpha",
+        "V_rob"
+      ],
+      "revision": "rev:0dbf98d0d5ca675c0c1885f5d84e59b4883a473ad687c62b7710bb8ffca4ba27"
+    },
+    {
+      "id": "def:analytic-optimizer-handle",
+      "name": "Subset-lattice spectral equioscillation handle",
+      "construction": "Start from the \\(S_n\\)-isotypic block decomposition of \\(\\Omega^{1/2}G(p,w)\\Omega^{1/2}\\); impose the polynomial exactness equations on \\(w\\); quotient common covariance-null weight directions; then combine active-block KKT conditions, eigenvalue subgradients, endpoint equioscillation, and a node-global dual certificate to characterize every jointly minimizing node--weight pair and partition the nondegenerate parameter region into shifted Chebyshev--Lobatto win, lose, and tie regimes.",
+      "free_symbols": [
+        "n",
+        "Omega",
+        "G",
+        "p",
+        "w",
+        "beta",
+        "Q",
+        "H"
+      ],
+      "inputs": [
+        "Omega",
+        "G",
+        "p",
+        "w"
+      ],
+      "revision": "rev:012af496bde499229b413a0e804eed5e1c363a7493e517e17993768fdc085aa9"
+    },
+    {
+      "id": "def:quadratic-witness",
+      "name": "Three-unit quadratic witness",
+      "construction": "Set \\(n=3\\), \\(\\beta=2\\), \\(q=1/2\\), \\(Y_1=Y_2=0\\), \\(Y_3(z)=z_1z_2\\), and \\(p=(0,x,1/2)\\) for \\(x\\in[1/8,3/8]\\); use the unique weights in \\(\\mathcal W_2(p)\\).",
+      "free_symbols": [
+        "n",
+        "beta",
+        "q",
+        "x",
+        "Y",
+        "p",
+        "w"
+      ],
+      "inputs": [
+        "Y",
+        "p"
+      ],
+      "revision": "rev:4878c1200a1a02fae06f76cd483a514f9a5b8fdef70ef4e08a46703dd073cc6a"
+    },
+    {
+      "id": "def:degree-moment-barrier",
+      "name": "Degree-sensitive rollout moment barrier",
+      "construction": "For \\(q\\in(0,1]\\), define the \\(\\beta\\)-by-\\(\\beta\\) matrix and scalar\n\\[\nR_\\beta(q)_{d,e}=\\frac{de\\,q^{d+e-1}}{d+e-1}\n\\quad(1\\le d,e\\le\\beta),\n\\qquad\n\\Psi_\\beta(q)=\\mathbf 1_\\beta^{\\mathsf T}R_\\beta(q)^{-1}\\mathbf 1_\\beta-1,\n\\]\nwhenever the displayed inverse exists, where \\(\\mathbf 1_\\beta\\in\\mathbb R^\\beta\\) is the all-ones vector.",
+      "free_symbols": [
+        "q",
+        "beta",
+        "R_beta",
+        "Psi_beta"
+      ],
+      "inputs": [
+        "q",
+        "beta"
+      ],
+      "revision": "rev:49466158904a33f87240cfcff4c2aa30360173fa07e5ce19dd120e0a2151cdde"
+    }
+  ],
+  "statements": [
+    {
+      "id": "prop:class-inclusion",
+      "kind": "proposition",
+      "statement": "For every finite \\(n\\), \\(1\\le\\beta\\le n\\), positive \\(B\\), and positive order weights \\(\\omega\\), \\(\\mathcal C_{n,\\beta}(B,\\omega)\\subsetneq\\mathcal C^{\\mathrm{CEY}}_{n,\\beta}\\). Strictness is witnessed by the published-class schedule \\(c_{i,\\{1\\}}=2B\\sqrt{\\omega_1/n}\\) for every \\(i\\in I_n\\), with all other coefficients zero: its nonzero aggregate coefficient satisfies \\(a_{\\{1\\}}=2B\\sqrt{\\omega_1/n}\\) and hence \\(a^{\\mathsf T}\\Omega^{-1}a=4B^2/n>B^2/n\\).",
+      "free_symbols": [
+        "C_ellip",
+        "C_CEY",
+        "n",
+        "B",
+        "omega",
+        "beta",
+        "a",
+        "Omega",
+        "c",
+        "I_n"
+      ],
+      "depends_on": [
+        "ass:low-order-schedule",
+        "ass:aggregate-coefficient-ellipsoid",
+        "def:published-low-order-class",
+        "def:ellipsoidal-coefficient-class"
+      ],
+      "status": "to-prove",
+      "justification": "This records exactly what transfers from the published low-order model and prevents an ellipsoidal achievability result from being presented as a theorem for the full bounded-outcome class.",
+      "gap": "CortezEichhornYu2022 works with low-order schedules and coefficient-size bounds but does not isolate the permutation-invariant aggregate ellipsoid used by the exact covariance saddle.",
+      "consumer": "A reader can identify which parts of the design certificate remain valid when platform-specific coefficient bounds replace the ellipsoid.",
+      "revision": "rev:25eb3158aa807f0864de4c12ac94294c8a51deaf39442dbd7120987e7b3b5fb7"
+    },
+    {
+      "id": "lem:common-uniform-monomial-covariance",
+      "kind": "lemma",
+      "statement": "For every \\(S,T\\in\\mathcal S_{n,\\beta}\\) and stages \\(s,t\\), \\[\\operatorname{Cov}_U\\!\\left(\\prod_{i\\in S}Z_i(p_s),\\prod_{j\\in T}Z_j(p_t)\\right)=K_{st}(S,T).\\] Consequently, \\(\\operatorname{Var}_U(\\widehat\\tau_{p,w})=a^{\\mathsf T}G(p,w)a\\) for every low-order schedule.",
+      "free_symbols": [
+        "S_beta",
+        "S",
+        "T",
+        "U",
+        "Z",
+        "p",
+        "K",
+        "hat_tau",
+        "w",
+        "a",
+        "G",
+        "s",
+        "t"
+      ],
+      "depends_on": [
+        "ass:common-uniform-rollout",
+        "ass:low-order-schedule",
+        "def:rollout-estimator",
+        "def:exact-covariance-operator"
+      ],
+      "status": "to-prove",
+      "justification": "This is the first changed proof step relative to spacing envelopes and independent-stage calculations: overlap cardinalities determine every cross-stage term exactly.",
+      "gap": "The variance proof of CortezEichhornYu2022 bounds these terms by local overlap and unit magnitudes; it does not state the full subset-intersection kernel.",
+      "consumer": "The kernel is the input required by a rollout scheduler to compare candidate ramps using their actual shared-hash dependence.",
+      "revision": "rev:550752bdbb700fcaa526200e1394d2f559b94b4d02fc6cc21174f9776105475a"
+    },
+    {
+      "id": "lem:subset-lattice-block-reduction",
+      "kind": "lemma",
+      "statement": "Because \\(\\Omega^{1/2}G(p,w)\\Omega^{1/2}\\) depends on \\((S,T)\\) only through \\((|S|,|T|,|S\\cap T|)\\), there is an explicit orthogonal subset-lattice transform that block diagonalizes it into isotypic blocks \\(H_h(p,w)\\), \\(h=0,\\ldots,\\beta\\), with block dimension at most \\(\\beta-h+1\\). Each entry of \\(H_h(p,w)\\) is a finite sum of binomial coefficients and the kernel values \\(K_{st}(S,T)\\), and \\[\\lambda_{\\max}\\{\\Omega^{1/2}G(p,w)\\Omega^{1/2}\\}=\\max_{0\\le h\\le\\beta}\\lambda_{\\max}\\{H_h(p,w)\\}.\\]",
+      "free_symbols": [
+        "Omega",
+        "G",
+        "p",
+        "w",
+        "S_beta",
+        "beta",
+        "K",
+        "Q",
+        "H",
+        "S",
+        "T"
+      ],
+      "depends_on": [
+        "lem:common-uniform-monomial-covariance",
+        "def:exact-covariance-operator"
+      ],
+      "status": "to-prove",
+      "justification": "The reduction converts an operator indexed by all subsets of up to \\(\\beta\\) units into a collection of small matrices without discarding covariance compatibility.",
+      "gap": "Neither Kallus2021 nor ChenLiDengWang2023 has the cross-level subset-intersection symmetry created by nested low-order monomials.",
+      "consumer": "A platform can evaluate and globally optimize the robust risk for small \\(\\beta\\) without forming a matrix whose dimension grows as \\(n^\\beta\\).",
+      "revision": "rev:60fccf6e404a3645c8086d079a10c5d2127d37bb1839ea50d79e82d361508e7b"
+    },
+    {
+      "id": "thm:exact-covariance-saddle",
+      "kind": "theorem",
+      "statement": "For every feasible \\((n,\\beta,k,q,\\delta,B,\\omega)\\) with \\(1\\le\\beta\\le n\\),\n\\[\n\\min_{p\\in\\mathcal P_{k,q,\\delta}}\\min_{w\\in\\mathcal W_\\beta(p)}\\sup_{(Y,c)\\in\\mathcal C_{n,\\beta}(B,\\omega)}\\operatorname{Var}_U(\\widehat\\tau_{p,w})=\\frac{B^2}{n}\\min_{p\\in\\mathcal P_{k,q,\\delta}}\\min_{w\\in\\mathcal W_\\beta(p)}\\max_{0\\le h\\le\\beta}\\lambda_{\\max}\\{H_h(p,w)\\}=V^*_{n,\\beta,k,q,\\delta}.\n\\]\nFor every fixed \\((p,w)\\), if \\(v^*\\) is a unit leading eigenvector in an active block and \\(Q_h\\) is its explicit subset-lattice lift, then \\(a^*=(B/\\sqrt n)\\Omega^{1/2}Q_hv^*\\) attains the inner supremum. The schedule \\(c^*_{i,S}=a^*_S\\), \\(c^*_{i,\\varnothing}=0\\), and \\(Y_i^*(z)=\\sum_{S\\in\\mathcal S_{n,\\beta}}c^*_{i,S}\\prod_{j\\in S}z_j\\) satisfies \\(\\max_{i\\in I_n,z\\in\\{0,1\\}^n}|Y_i^*(z)|\\le\\sum_{S\\in\\mathcal S_{n,\\beta}}|a_S^*|<\\infty\\) and is a legal least-favourable member of \\(\\mathcal C_{n,\\beta}(B,\\omega)\\). For fixed nodes \\(p\\), the weight problem has a semidefinite epigraph and attains its value after quotienting the common null directions of the covariance blocks.  The joint node--weight minimum is attained for every declared feasible tuple.",
+      "free_symbols": [
+        "C_ellip",
+        "P_class",
+        "W_class",
+        "Q",
+        "H",
+        "V_star",
+        "n",
+        "beta",
+        "k",
+        "q",
+        "delta",
+        "B",
+        "omega",
+        "p",
+        "w",
+        "Y",
+        "c",
+        "a",
+        "U",
+        "hat_tau",
+        "Omega",
+        "S_beta"
+      ],
+      "depends_on": [
+        "ass:fixed-finite-population",
+        "ass:common-uniform-rollout",
+        "ass:low-order-schedule",
+        "ass:aggregate-coefficient-ellipsoid",
+        "def:feasible-node-class",
+        "def:unbiased-weight-class",
+        "def:rollout-estimator",
+        "def:ellipsoidal-coefficient-class",
+        "def:exact-covariance-operator",
+        "def:variance-certificate",
+        "def:exact-saddle",
+        "lem:common-uniform-monomial-covariance",
+        "lem:subset-lattice-block-reduction",
+        "prop:rollout-budget-elbow"
+      ],
+      "status": "to-prove",
+      "justification": "This is the theorem-level kernel: it solves Nature's exact common-uniform covariance problem, jointly minimizes over nodes and weights with guaranteed attainment, and produces the required legal converse schedule.",
+      "gap": "CortezEichhornYu2022 and the accepted Chebyshev-envelope proposal provide upper bounds without an attainable-covariance characterization or a joint-attainment proof; Kallus2021 provides an eigenvalue minimax template but not the nested subset kernel or rollout-node optimization.",
+      "consumer": "LinkedIn-style shared-hash ramps obtain a directly computable attained minimum and worst-case precision certificate under a declared interaction-strength budget.",
+      "revision": "rev:4cb910e478680e3e9fa51bf2674b601ebe084224d41fceef1770ea455455dca5"
+    },
+    {
+      "id": "prop:quadratic-witness",
+      "kind": "proposition",
+      "statement": "For the schedule in \\(\\text{def:quadratic-witness}\\), \\[\\Gamma(u,v)=\\operatorname{Cov}_U\\{M(u),M(v)\\}=\\frac{\\min(u,v)^2-u^2v^2}{9}.\\] The nonbaseline interpolation weights are \\(w_x=-\\{x(1-2x)\\}^{-1}\\) and \\(w_{1/2}=4(1-x)/(1-2x)\\), and \\[\\operatorname{Var}_U(\\widehat\\tau_{p,w})=\\frac{4(1-x)}{9(1-2x)}.\\] This risk is strictly increasing on \\([1/8,3/8]\\), with values \\(14/27\\) at \\(x=1/8\\) and \\(2/3\\) at \\(x=1/4\\).",
+      "free_symbols": [
+        "Gamma",
+        "u",
+        "v",
+        "x",
+        "n",
+        "beta",
+        "q",
+        "Y",
+        "U",
+        "M",
+        "p",
+        "w",
+        "hat_tau"
+      ],
+      "depends_on": [
+        "ass:common-uniform-rollout",
+        "def:quadratic-witness",
+        "def:unbiased-weight-class",
+        "lem:common-uniform-monomial-covariance"
+      ],
+      "status": "to-prove",
+      "justification": "The witness verifies that exact shared-randomizer covariance changes the design criterion and that a familiar interior node need not dominate a more asymmetric node.",
+      "gap": "Published rollout bounds do not contain a legal finite-population example with a strict node-risk ordering generated by cross-stage covariance.",
+      "consumer": "A design reviewer can use this calculation as a regression test that implementation code has not silently replaced shared-hash stages by independent assignments.",
+      "revision": "rev:3e2abbf7d6d9af6a13e6cf2140c5fec78517941c120b5dd15eb053a0a03f0e70"
+    },
+    {
+      "id": "thm:finite-sample-robust-inference",
+      "kind": "theorem",
+      "statement": "For every \\(p\\in\\mathcal P_{k,q,\\delta}\\), \\(w\\in\\mathcal W_\\beta(p)\\), and \\((Y,c)\\in\\mathcal C_{n,\\beta}(B,\\omega)\\), \\[\\mathbb E_U[\\widehat\\tau_{p,w}]=\\tau,\\qquad \\operatorname{Var}_U(\\widehat\\tau_{p,w})\\le V_{\\mathrm{rob}}(p,w).\\] If \\(V_{\\mathrm{rob}}(p,w)>0\\), then for every \\(\\alpha\\in(0,1)\\), \\[\\Pr_U\\!\\left\\{|\\widehat\\tau_{p,w}-\\tau|\\le\\sqrt{V_{\\mathrm{rob}}(p,w)/\\alpha}\\right\\}\\ge1-\\alpha,\\] equivalently \\(\\Pr_U\\{\\tau\\in\\mathrm{CI}^{\\mathrm{Ch}}_{1-\\alpha}(p,w)\\}\\ge1-\\alpha\\). If \\(V_{\\mathrm{rob}}(p,w)=0\\), then \\(\\widehat\\tau_{p,w}=\\tau\\) almost surely and the singleton interval \\(\\{\\widehat\\tau_{p,w}\\}\\) has coverage one.",
+      "free_symbols": [
+        "C_ellip",
+        "P_class",
+        "W_class",
+        "Y",
+        "c",
+        "n",
+        "beta",
+        "B",
+        "omega",
+        "V_rob",
+        "U",
+        "hat_tau",
+        "p",
+        "w",
+        "tau",
+        "CI",
+        "alpha",
+        "k",
+        "q",
+        "delta"
+      ],
+      "depends_on": [
+        "ass:fixed-finite-population",
+        "ass:common-uniform-rollout",
+        "ass:low-order-schedule",
+        "ass:aggregate-coefficient-ellipsoid",
+        "def:ellipsoidal-coefficient-class",
+        "def:unbiased-weight-class",
+        "def:rollout-estimator",
+        "def:variance-certificate",
+        "def:chebyshev-interval",
+        "lem:common-uniform-monomial-covariance",
+        "thm:exact-covariance-saddle"
+      ],
+      "status": "to-prove",
+      "justification": "The same exact covariance support function used for design yields assumption-free finite-sample inference over the declared coefficient class.",
+      "gap": "CortezEichhornYu2022 gives spacing-based variance control for nested rollouts but does not turn the exact common-uniform covariance support function into a radius-certified finite-sample confidence set.",
+      "consumer": "The owner of a shared-hash production ramp can report a valid finite-sample interval using only the declared robustness radius and the implemented nodes and weights.",
+      "revision": "rev:6fe82623daf5b9d1461b10b43e5f50669a36bd30ece2ba08b178dfbfe274f47f"
+    },
+    {
+      "id": "oeq:analytic-node-weight-frontier",
+      "kind": "openendedquestion",
+      "statement": "Characterize every jointly minimizing node--weight pair for \\(V^*_{n,\\beta,k,q,\\delta}\\) by explicit necessary-and-sufficient global active-block conditions and a matching dual certificate over both nodes and weights. Determine the nondegenerate region of \\((\\beta,k,q,\\delta,\\omega)\\) on which shifted Chebyshev--Lobatto nodes attain the minimum, are strictly suboptimal, or tie with other designs. The resolution must specialize at \\((n,\\beta,k,q)=(3,2,2,1/2)\\) consistently with \\(\\text{prop:quadratic-witness}\\).",
+      "free_symbols": [
+        "V_star",
+        "P_class",
+        "W_class",
+        "Q",
+        "H",
+        "p",
+        "w",
+        "n",
+        "beta",
+        "k",
+        "q",
+        "delta",
+        "omega"
+      ],
+      "depends_on": [
+        "def:exact-saddle",
+        "def:analytic-optimizer-handle",
+        "lem:subset-lattice-block-reduction",
+        "thm:exact-covariance-saddle",
+        "prop:quadratic-witness"
+      ],
+      "status": "to-prove",
+      "justification": "Existence of a joint minimizer is settled; the genuinely open content is an analytic global certificate identifying all minimizers and the Chebyshev--Lobatto regime frontier.",
+      "gap": "No located result supplies necessary-and-sufficient active-block conditions or a global node dual certificate for this common-uniform saddle.",
+      "consumer": "Rollout designers obtain a reusable rule for when classical Chebyshev spacing is justified and when exact shared-hash covariance requires different nodes.",
+      "revision": "rev:ec01ddcd4c480aeb956f32d8624140729c8ad2b2fec7863fd12891ca7e98943f"
+    },
+    {
+      "id": "lem:hilbert-corner-inverse",
+      "kind": "lemma",
+      "statement": "For every integer \\(\\beta\\ge1\\), the \\(\\beta\\)-by-\\(\\beta\\) Hilbert Gram matrix \\(\\mathsf H_\\beta\\), whose \\((d,e)\\)-entry is \\((d+e-1)^{-1}\\), is positive definite and\n\\[\n(\\mathsf H_\\beta^{-1})_{\\beta,\\beta}\n=(2\\beta-1)\\binom{2\\beta-2}{\\beta-1}^{\\!2}.\n\\]",
+      "free_symbols": [
+        "beta"
+      ],
+      "depends_on": [],
+      "status": "proved",
+      "justification": "This finite-dimensional identity supplies the leading constant in the small-budget moment-barrier asymptotic.",
+      "gap": "The required corner formula is derived directly so that no unstated matrix-inverse result enters the proof spine.",
+      "consumer": "Proposition~\\(\\mathrm{prop{:}rollout\\text{-}budget\\text{-}elbow}\\) uses it to compute the exact leading power and constant.",
+      "proof_tex": "Put \\(m=\\beta-1\\).  The matrix \\(\\mathsf H_\\beta\\) is the Gram matrix in \\(L^2[0,1]\\) of the linearly independent functions \\(1,x,\\ldots,x^m\\), because\n\\[\nb^{\\mathsf T}\\mathsf H_\\beta b\n=\\int_0^1\\left(\\sum_{j=0}^m b_jx^j\\right)^2dx.\n\\]\nIf the right side is zero, the polynomial vanishes almost everywhere and hence identically, so \\(b=0\\).  Thus \\(\\mathsf H_\\beta\\) is positive definite.\n\nDefine the shifted Rodrigues polynomial\n\\[\nL_m(x)=\\frac1{m!}\\frac{d^m}{dx^m}\\{x^m(x-1)^m\\}.\n\\]\nIts coefficient of \\(x^m\\) is\n\\[\n\\frac1{m!}\\frac{(2m)!}{m!}=\\binom{2m}{m}.\n\\tag{42}\n\\]\nFor any polynomial \\(h\\) of degree less than \\(m\\), integrating by parts \\(m\\) times gives\n\\[\n\\int_0^1h(x)L_m(x)\\,dx\n=\\frac{(-1)^m}{m!}\\int_0^1h^{(m)}(x)x^m(x-1)^m\\,dx=0.\n\\tag{43}\n\\]\nEvery boundary term vanishes because \\(x^m(x-1)^m\\) and its derivatives of order below \\(m\\) vanish at both endpoints.  Applying the same calculation with \\(h=L_m\\), and using \\(L_m^{(m)}=m!\\binom{2m}{m}\\), yields\n\\[\n\\begin{aligned}\n\\int_0^1L_m(x)^2dx\n&=\\binom{2m}{m}\\int_0^1x^m(1-x)^m\\,dx\\\\\n&=\\binom{2m}{m}\\frac{(m!)^2}{(2m+1)!}\n=\\frac1{2m+1}.\n\\end{aligned}\n\\tag{44}\n\\]\nFor the middle equality, if \\(I_{a,b}=\\int_0^1x^a(1-x)^b dx\\), integration by parts gives \\(I_{a,b}=bI_{a+1,b-1}/(a+1)\\); iteration from \\((m,m)\\), followed by \\(I_{2m,0}=(2m+1)^{-1}\\), gives \\(I_{m,m}=(m!)^2/(2m+1)!\\).\n\nBy (42)--(43),\n\\[\nP_m(x)=\\binom{2m}{m}^{-1}L_m(x)\n\\]\nis the unique monic degree-\\(m\\) polynomial orthogonal to every polynomial of degree at most \\(m-1\\).  It is the residual from projecting \\(x^m\\) onto \\(\\operatorname{span}(1,x,\\ldots,x^{m-1})\\), and (44) gives\n\\[\n\\|P_m\\|_2^2\n=\\frac1{(2m+1)\\binom{2m}{m}^2}.\n\\tag{45}\n\\]\nWriting \\(\\mathsf H_\\beta\\) in last-coordinate block form, completion of the square identifies the minimum in (45) with the Schur complement of the leading \\(m\\)-by-\\(m\\) block.  The block inverse identity makes its reciprocal \\((\\mathsf H_\\beta^{-1})_{\\beta,\\beta}\\).  Hence\n\\[\n(\\mathsf H_\\beta^{-1})_{\\beta,\\beta}\n=(2m+1)\\binom{2m}{m}^2\n=(2\\beta-1)\\binom{2\\beta-2}{\\beta-1}^2.\n\\]\nFor \\(m=0\\), the same calculation is \\(\\mathsf H_1=(1)\\), so the formula also holds.",
+      "revision": "rev:204a65367b215a98059e90fdbe9c18fdb105c5a4124fd820ca28c4b3697cf2e3"
+    },
+    {
+      "id": "prop:rollout-budget-elbow",
+      "kind": "proposition",
+      "statement": "For every declared feasible tuple and every \\(p\\in\\mathcal P_{k,q,\\delta}\\), \\(w\\in\\mathcal W_\\beta(p)\\), define \\(r_j=\\sum_{t=j}^kw_t\\).  For every singleton \\(S\\in\\mathcal S_{n,\\beta}\\),\n\\[\nG(p,w)_{S,S}=\\sum_{j=1}^k(p_j-p_{j-1})(r_j-1)^2+(1-q)\n\\ge\\delta\\sum_{j=1}^k(r_j-1)^2\n\\quad\\text{and}\\quad\nG(p,w)_{S,S}\\ge\\frac{1-q}{q}.\n\\]\nConsequently, if \\(0<q<1\\), then\n\\[\nV^*_{n,\\beta,k,q,\\delta}\\ge\n\\frac{B^2\\omega_1}{n}\\frac{1-q}{q}.\n\\]\nAt \\(q=1\\), \\(V^*_{n,\\beta,k,1,\\delta}=0\\), attained by \\(w_0=-1\\), \\(w_k=1\\), and zero intermediate weights.  If \\(\\beta=1\\), then for every \\(0<q\\le1\\),\n\\[\nV^*_{n,1,k,q,\\delta}=\\frac{B^2\\omega_1}{n}\\frac{1-q}{q},\n\\]\nand, for every fixed feasible \\(p\\), the unique minimizing weights are \\(w_0=-1/q\\), \\(w_k=1/q\\), and \\(w_t=0\\) for \\(0<t<k\\).",
+      "free_symbols": [
+        "P_class",
+        "W_class",
+        "V_star",
+        "V_rob",
+        "G",
+        "S_beta",
+        "S",
+        "n",
+        "beta",
+        "k",
+        "q",
+        "delta",
+        "B",
+        "omega",
+        "p",
+        "w"
+      ],
+      "depends_on": [
+        "ass:common-uniform-rollout",
+        "def:feasible-node-class",
+        "def:unbiased-weight-class",
+        "def:exact-covariance-operator",
+        "def:variance-certificate",
+        "def:exact-saddle",
+        "lem:common-uniform-monomial-covariance"
+      ],
+      "status": "to-prove",
+      "justification": "This is the sharp rollout-budget obstruction and its exact first-order solution; it also supplies the coercivity needed for joint node--weight attainment.",
+      "gap": "Spacing-only envelopes do not expose the exact support restriction induced by a common-uniform ramp or the resulting unique first-order readout.",
+      "consumer": "A rollout designer can read off the unavoidable precision loss from stopping at fraction \\(q<1\\), and can implement the unique optimal first-order weights.",
+      "revision": "rev:4075ed33cc8b673a8bc3a36a70000f72e303100ac800b9601f47ca04f86b7c98"
+    },
+    {
+      "id": "prop:unnormalized-published-envelope-dichotomy",
+      "kind": "proposition",
+      "statement": "For the unnormalized published schedule envelope,\n\\[\n\\inf_{p\\in\\mathcal P_{k,q,\\delta}}\n\\inf_{w\\in\\mathcal W_\\beta(p)}\n\\sup_{(Y,c)\\in\\mathcal C^{\\mathrm{CEY}}_{n,\\beta}}\n\\operatorname{Var}_U(\\widehat\\tau_{p,w})\n=\n\\begin{cases}\n+\\infty,&0<q<1,\\\\\n0,&q=1.\n\\end{cases}\n\\]\nFor \\(0<q<1\\), the divergence is witnessed by the legal singleton schedules \\(c_{i,\\{1\\}}=A\\), with all other coefficients zero, as \\(|A|\\to\\infty\\).  Thus a common coefficient or outcome radius is necessary for a finite robust precision guarantee below full rollout.  This statement concerns the unnormalized schedule-envelope union, not the full fixed-graph, noisy model of CortezEichhornYu2022 and not a uniformly \\(Y_{\\max}\\)-bounded comparator class.",
+      "free_symbols": [
+        "C_CEY",
+        "P_class",
+        "W_class",
+        "n",
+        "beta",
+        "k",
+        "q",
+        "delta",
+        "Y",
+        "c",
+        "U",
+        "hat_tau",
+        "p",
+        "w"
+      ],
+      "depends_on": [
+        "ass:fixed-finite-population",
+        "ass:common-uniform-rollout",
+        "ass:low-order-schedule",
+        "def:published-low-order-class",
+        "def:feasible-node-class",
+        "def:unbiased-weight-class",
+        "def:rollout-estimator",
+        "lem:common-uniform-monomial-covariance",
+        "prop:rollout-budget-elbow"
+      ],
+      "status": "to-prove",
+      "justification": "This separates the exact full published schedule-envelope conclusion from the finite-radius ellipsoidal minimax theorem.",
+      "gap": "Without an explicit common radius, the broad polynomial schedule union has no finite robust precision guarantee below full rollout.",
+      "consumer": "Platform users learn exactly when a coefficient or outcome scale restriction is mathematically necessary for robust rollout design.",
+      "revision": "rev:47dc8c670eec736abd18bedfc33b4a69b1b5ce1bc115ca5facb8c20edf0599dd"
+    },
+    {
+      "id": "lem:joint-design-attainment",
+      "kind": "lemma",
+      "statement": "For every feasible \\((n,\\beta,k,q,\\delta,B,\\omega)\\) with \\(1\\le\\beta\\le n\\),\n\\[\nV^*_{n,\\beta,k,q,\\delta}\n=\\min_{p\\in\\mathcal P_{k,q,\\delta}}\n\\min_{w\\in\\mathcal W_\\beta(p)}V_{\\mathrm{rob}}(p,w),\n\\]\nand at least one joint minimizer exists.  For every fixed \\(p\\in\\mathcal P_{k,q,\\delta}\\), the minimum over \\(w\\in\\mathcal W_\\beta(p)\\) is also attained.",
+      "free_symbols": [
+        "n",
+        "beta",
+        "k",
+        "q",
+        "delta",
+        "B",
+        "omega",
+        "V_star",
+        "P_class",
+        "p",
+        "W_class",
+        "w",
+        "V_rob"
+      ],
+      "depends_on": [
+        "ass:common-uniform-rollout",
+        "def:feasible-node-class",
+        "def:unbiased-weight-class",
+        "def:exact-covariance-operator",
+        "def:variance-certificate",
+        "def:exact-saddle",
+        "lem:common-uniform-monomial-covariance",
+        "lem:subset-lattice-block-reduction"
+      ],
+      "status": "to-prove",
+      "justification": "The first-moment singleton identity makes objective sublevels coercive in the weight coordinates, which turns compactness of the node polytope into joint attainment.",
+      "gap": "A spectral infimum alone does not certify that an implementable rollout attains it.",
+      "consumer": "The saddle theorem and the strict higher-order finite-stage barrier both require an attained design.",
+      "revision": "rev:9feb554a98b407b59c541491f66972ab02db2f9cd7e3cea9d18405017ef84db9"
+    },
+    {
+      "id": "lem:cey-envelope-union-equivalence",
+      "kind": "lemma",
+      "statement": "The noise-free graph-union schedule envelope in Definition~\\(\\mathrm{def{:}published\\text{-}low\\text{-}order\\text{-}class}\\) equals the unrestricted algebraic degree-at-most-\\(\\beta\\) class:\n\\[\n\\mathcal C^{\\mathrm{CEY}}_{n,\\beta}\n=\\left\\{(Y,c):Y_i(z)=c_{i,\\varnothing}+\n\\sum_{S\\in\\mathcal S_{n,\\beta}}c_{i,S}\\prod_{j\\in S}z_j\n\\text{ for every }i\\in I_n,\\ z\\in\\{0,1\\}^n\\right\\}.\n\\]",
+      "free_symbols": [
+        "C_CEY",
+        "n",
+        "beta",
+        "Y",
+        "c",
+        "S_beta",
+        "I_n"
+      ],
+      "depends_on": [
+        "def:published-low-order-class"
+      ],
+      "status": "to-prove",
+      "justification": "The complete graph proves that the noise-free union over unknown static graphs is exactly the unrestricted algebraic low-order schedule class.",
+      "gap": "The comparison class must distinguish the published fixed-graph noisy model from its noise-free schedule projection.",
+      "consumer": "The exact covariance theorem and the unnormalized-envelope witness use the corrected graph-union interpretation without changing their algebra.",
+      "revision": "rev:c8106af1e750d725f9a4a34fca9fa3501dab7f739923589fef956d2cc1e28725"
+    },
+    {
+      "id": "prop:uniform-coefficient-envelope-transfer",
+      "kind": "proposition",
+      "statement": "Let \\(L>0\\), put \\(\\omega_{\\min}=\\min_{1\\le d\\le\\beta}\\omega_d\\), and suppose \\((Y,c)\\in\\mathcal C^{\\mathrm{CEY}}_{n,\\beta}\\) satisfies\n\\[\n\\max_{i\\in I_n}\\sum_{S\\in\\mathcal S_{n,\\beta}}|c_{i,S}|\\le L.\n\\]\nThen, with \\(B^\\dagger=\\sqrt n\\,L/\\sqrt{\\omega_{\\min}}\\), one has \\((Y,c)\\in\\mathcal C_{n,\\beta}(B^\\dagger,\\omega)\\).  Consequently, for every feasible \\((p,w)\\), the estimator is design-unbiased for \\(\\tau\\), its variance is bounded by the certificate obtained from \\(V_{\\mathrm{rob}}(p,w)\\) after substituting \\(B=B^\\dagger\\), and the corresponding interval in Definition~\\(\\mathrm{def{:}chebyshev\\text{-}interval}\\) has design coverage at least \\(1-\\alpha\\).",
+      "free_symbols": [
+        "C_CEY",
+        "C_ellip",
+        "n",
+        "beta",
+        "omega",
+        "Y",
+        "c",
+        "a",
+        "Omega",
+        "I_n",
+        "S_beta",
+        "P_class",
+        "W_class",
+        "p",
+        "w",
+        "hat_tau",
+        "tau",
+        "V_rob",
+        "CI",
+        "alpha"
+      ],
+      "depends_on": [
+        "def:published-low-order-class",
+        "def:ellipsoidal-coefficient-class",
+        "thm:finite-sample-robust-inference"
+      ],
+      "status": "to-prove",
+      "justification": "A genuinely uniform coefficient bound has a computable conservative embedding into the aggregate ellipsoid.",
+      "gap": "Schedule-specific published bounds do not themselves define a common minimax radius, while a uniform bound can be transferred only conservatively.",
+      "consumer": "A platform with a common coefficient envelope can use the radius certificate without claiming exact minimaxity for its smaller class.",
+      "revision": "rev:cd8a8584af884072b25cdcb8253aa5c8e4bf41a120f03006ea908bd7c54f7454"
+    }
+  ],
+  "sampling_model": {
+    "design": "Finite-population common-uniform nested Bernoulli rollout: draw independent \\(U_i\\sim\\operatorname{Unif}[0,1]\\) once and set \\(Z_i(p_t)=\\mathbf 1\\{U_i\\le p_t\\}\\) at every stage.",
+    "units": "The \\(n\\) units and all potential outcomes are fixed; the assignment path is the only randomness.",
+    "treatment": "Treatment is absorbing across the ordered fractions \\(0=p_0<\\cdots<p_k=q\\).",
+    "overlap": "No inverse exposure probabilities are used; implementability is enforced by \\(p_t-p_{t-1}\\ge\\delta\\).",
+    "nuisance_estimation": "There are no sampled-law nuisance functions. The declared values \\(B\\) and \\(\\omega\\), together with the known assignment law, determine the design-computable radius-based variance certificate."
+  },
+  "estimand_functional": "\\(\\widehat\\tau_{p,w}=\\sum_{t=0}^kw_tM(p_t),\\quad V^*_{n,\\beta,k,q,\\delta}=\\min_{p\\in\\mathcal P_{k,q,\\delta}}\\min_{w\\in\\mathcal W_\\beta(p)}\\frac{B^2}{n}\\max_{0\\le h\\le\\beta}\\lambda_{\\max}\\{H_h(p,w)\\}\\)",
+  "target_estimand": "\\(\\tau=n^{-1}\\sum_{i=1}^n\\{Y_i(\\mathbf 1)-Y_i(\\mathbf 0)\\}\\)",
+  "bibliography": [
+    {
+      "key": "CortezEichhornYu2022",
+      "citation": "Mayleen Cortez, Matthew Eichhorn, and Christina Lee Yu. Staggered Rollout Designs Enable Causal Inference Under Interference Without Network Knowledge. \\emph{Advances in Neural Information Processing Systems}, 35, 2022. \\url{https://arxiv.org/abs/2205.14552}."
+    },
+    {
+      "key": "Kallus2021",
+      "citation": "Nathan Kallus. On the Optimality of Randomization in Experimental Design: How to Randomize for Minimax Variance and Design-Based Inference. \\emph{Journal of the Royal Statistical Society: Series B}, 83(2), 2021. \\url{https://doi.org/10.1111/rssb.12412}."
+    },
+    {
+      "key": "ChenLiDengWang2023",
+      "citation": "Qianyi Chen, Bo Li, Lu Deng, and Yong Wang. Optimized Covariance Design for A/B Test on Social Network under Interference. \\emph{Advances in Neural Information Processing Systems}, 36, 2023. \\url{https://arxiv.org/abs/2311.14042}."
+    },
+    {
+      "key": "EichhornKhanUganderYu2024",
+      "citation": "Matthew Eichhorn, Samir Khan, Johan Ugander, and Christina Lee Yu. Low-Order Outcomes and Clustered Designs: Combining Design and Analysis for Causal Inference under Network Interference. arXiv preprint, 2024. \\url{https://arxiv.org/abs/2405.07979}."
+    },
+    {
+      "key": "XuChenFernandezSinnoBhasin2015",
+      "citation": "Ya Xu, Nanyu Chen, Addrian Fernandez, Omar Sinno, and Anmol Bhasin. From Infrastructure to Culture: A/B Testing Challenges in Large Scale Social Networks. \\emph{Proceedings of the 21st ACM SIGKDD International Conference on Knowledge Discovery and Data Mining}, 2015. \\url{https://doi.org/10.1145/2783258.2788602}."
+    },
+    {
+      "key": "LiJamkhandeKochetkovLiu2022",
+      "citation": "Qike Li, Samir Jamkhande, Pavel Kochetkov, and Pai Liu. Assign Experiment Variants at Scale in Online Controlled Experiments. arXiv preprint, 2022. \\url{https://arxiv.org/abs/2212.08771}."
+    },
+    {
+      "key": "CortezRodriguezEichhornYu2025",
+      "citation": "Mayleen Cortez-Rodriguez, Matthew Eichhorn, and Christina Lee Yu. Analysis of Two-Stage Rollout Designs with Clustering for Causal Inference under Network Interference. \\emph{Proceedings of AISTATS}, 2025. \\url{https://arxiv.org/abs/2405.05119}."
+    },
+    {
+      "key": "BasseAiroldi2018",
+      "citation": "Guillaume W. Basse and Edoardo M. Airoldi. Limitations of Design-Based Causal Inference and A/B Testing under Arbitrary and Network Interference. \\emph{Sociological Methodology}, 48(1), 2018. \\url{https://doi.org/10.1177/0081175018782569}."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "CortezEichhornYu2022",
+      "comparator_claim": "The static-graph model uses neighborhood-supported degree-at-most-\\(\\beta\\) outcomes, a common-uniform monotone Bernoulli rollout, per-schedule \\(Y_{\\max}\\) and \\(L_{\\max}\\) controls, and independent identically distributed Gaussian observation noise.  Its Theorems 2 and 3 on pp.~5--6 establish unbiased polynomial-interpolation TTE estimators and spacing-based variance bounds; for a linear readout the noise adds \\((\\sigma^2/n)\\sum_{t=0}^k w_t^2\\) to the design variance.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Kallus2021",
+      "comparator_claim": "The mixed-strategy optimal design minimizes a largest-eigenvalue worst-case variance criterion over an ellipsoidal conditional-mean class.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ChenLiDengWang2023",
+      "comparator_claim": "The proposed single-stage network design optimizes an MSE upper bound through the covariance matrix of a cluster treatment vector.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "A monotone production ramp assigns unit \\(i\\) at every fraction by the same threshold rule \\(Z_i(u)=\\mathbf 1\\{U_i\\le u\\}\\). Over the declared permutation-invariant ellipsoid for aggregate coefficients of a \\(\\beta\\)-order finite-population schedule, the exact cross-stage covariance is a subset-intersection kernel rather than the diagonal or total-variation envelope used in existing rollout bounds. The kernel reduces the exponentially large robust eigenvalue to \\(\\beta+1\\) subset-lattice isotypic blocks and turns joint node-and-weight choice into an exact spectral infimum problem. A leading eigenvector gives an explicit legal finite-valued least-favourable schedule for every fixed design. The same design-computable radius certificate yields a finite-sample Chebyshev confidence interval without a central limit theorem or an outcome-estimated variance. The open problem is attainment and an analytic characterization of optimal nodes, including the regime in which Chebyshev nodes cease to be optimal for the true common-uniform covariance.",
+  "project_justification": {
+    "gap": "Cortez, Eichhorn, and Yu derive polynomial-interpolation estimators for nested Bernoulli rollouts and control their variance by spacing bounds, while the accepted Chebyshev-envelope result optimizes a positive-semidefinite diagonal envelope. Neither result characterizes the covariance matrices attainable when every stage thresholds the same unit uniforms, and neither supplies a least-favourable legal schedule for that covariance.",
+    "niche": "The common-uniform path imposes exact intersection-cardinality identities across stages and interference monomials. Those identities create a robust design problem that is neither classical independent-error polynomial design nor a free positive-semidefinite covariance envelope.",
+    "fill": "The project identifies the exact monomial covariance kernel, exploits permutation symmetry to reduce the robust covariance operator to small subset-lattice blocks, formulates the joint rollout-node and polynomial-exact-weight infimum, constructs the least-favourable schedule from the active block eigenvector, and derives a finite-sample Chebyshev interval from the design-computable radius certificate."
+  },
+  "related_work": "CortezEichhornYu2022 is the setup and writing anchor. Its Theorems 2 and 3 on pp. 5--6 show unbiasedness and spacing-based variance bounds for polynomial interpolation under monotone Bernoulli and complete rollouts; the Bernoulli proof bounds each cross-stage monomial covariance rather than retaining its exact common-uniform value. Kallus2021 is the minimax-design method exemplar: its mixed-strategy optimal design reduces an ellipsoidal outcome adversary to a largest-eigenvalue criterion, but its design variable is a two-arm assignment law rather than nested rollout nodes and readout weights. ChenLiDengWang2023 makes assignment covariance a design variable under one-hop interference, but optimizes an upper bound for a single-stage Horvitz--Thompson estimator and explicitly notes that covariance feasibility is delicate. EichhornKhanUganderYu2024 treats low-order outcomes under general and clustered designs and gives design-dependent variance bounds, but does not characterize common-uniform cross-stage covariance or optimize rollout nodes. XuChenFernandezSinnoBhasin2015 and LiJamkhandeKochetkovLiu2022 document that production experimentation platforms use shared deterministic hashes to preserve assignment as traffic ramps; their balance diagnostics do not characterize interference-induced cross-threshold covariance. The exact-covariance Chebyshev question in the accepted CausalSmith proposal \\(\\texttt{exp\\_rollout\\_chebyshev\\_minimax}\\) is the immediate in-repository opening, and this paper addresses its missing attainable-covariance and converse-schedule steps on a declared aggregate-coefficient ellipsoid.",
+  "technical_internal_limitation": "The permutation-invariant aggregate-coefficient ellipsoid is a strict subclass of the unrestricted bounded \\(\\beta\\)-order schedules used for the broadest variance bounds in CortezEichhornYu2022. It is selected because it is rich enough to retain every interaction order and overlap pattern while admitting an exact spectral adversary and an explicit least-favourable schedule. Exact minimax optimality over the full product \\(\\ell^1\\) coefficient class remains open. The \\(N=3\\) calculation proves only that common-uniform covariance changes node rankings relative to an independent-stage surrogate; it does not identify a design attaining the robust infimum.",
+  "honest_scope": "The exact covariance identity, subset-lattice reduction, ellipsoidal minimax infimum, fixed-design least-favourable construction, and finite-sample robust coverage are theorem targets only over \\(\\mathcal C_{n,\\beta}(B,\\omega)\\), not over the full published low-order class. Joint node--weight attainment and a necessary-and-sufficient frontier for Chebyshev optimality are open. A design-based central limit theorem is outside the formal claims because pairwise non-independence does not supply a genuine setwise dependency graph. When \\(\\beta=1\\), the block system reduces to the linear-rollout variance expressions associated with Theorems 2 and 3 of CortezEichhornYu2022 on pp. 5--6. When \\(q=1\\), the target is observed at the endpoint and the design reduces to the no-extrapolation estimator \\(M(1)-M(0)\\)."
+}

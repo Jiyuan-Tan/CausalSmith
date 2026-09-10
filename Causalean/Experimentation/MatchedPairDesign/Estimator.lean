@@ -43,18 +43,25 @@ open DesignBased
 
 variable {P : Type*} [Fintype P] [DecidableEq P]
 
-/-- The **sample average treatment effect** over the `2|P|` units (both positions of every pair). -/
+/-- For [a finite collection of pairs](hyp:P) and [the treated and control potential outcomes
+of every position in every pair](hyp:y1,y0), the [sample average treatment effect](goal) is the
+sum, over both positions of all pairs, of the treated potential outcome minus the control potential
+outcome, divided by twice the number of pairs, with a zero denominator understood to yield zero. -/
 noncomputable def sate (y1 y0 : P → Bool → ℝ) : ℝ :=
   (∑ p, ∑ b, (y1 p b - y0 p b)) / (2 * (Fintype.card P : ℝ))
 
-/-- The observed treated-minus-control contribution of pair `p` under assignment `z`: the treated
-position is `z p` (outcome `y1 p (z p)`), the control position is `¬ z p` (outcome
-`y0 p (¬ z p)`). -/
+/-- For [the treated and control potential outcomes of every position in every pair](hyp:P,y1,y0),
+[a particular pair](hyp:p), and [an assignment selecting a treated position in every pair](hyp:z),
+the [observed treated-minus-control contribution of that pair](goal) is its treated potential
+outcome at the selected position minus its control potential outcome at the other position. -/
 noncomputable def pairContribution (y1 y0 : P → Bool → ℝ) (p : P) (z : P → Bool) : ℝ :=
   y1 p (z p) - y0 p (!z p)
 
-/-- The **matched-pair difference-in-means estimator**: the average over pairs of the per-pair
-treated-minus-control contributions. -/
+/-- For [a finite collection of pairs](hyp:P), [the treated and control potential outcomes of
+every position in every pair](hyp:y1,y0), and [an assignment selecting a treated position in every
+pair](hyp:z), the [matched-pair difference-in-means estimator](goal) is the sum of the observed
+treated-minus-control contributions across pairs divided by the number of pairs, with a zero
+denominator understood to yield zero. -/
 noncomputable def matchedPairEstimator (y1 y0 : P → Bool → ℝ) (z : P → Bool) : ℝ :=
   (∑ p, pairContribution y1 y0 p z) / (Fintype.card P : ℝ)
 

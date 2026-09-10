@@ -23,16 +23,9 @@ import Causalean.Panel.Weighted.InnerProduct
 import Causalean.Panel.Weighted.Subspace
 import Causalean.Panel.EstimandCharacterization.ImputationEventStudy.Imputation
 
-/-! # BJS panel-substrate bridge
+/-! # Imputation event-study linear-algebra bridge
 
-Provides the uniform untreated-cell `WeightedSupport`, the regressor column maps
-into `Untreated → ℝ`, their span, and the bridge identifying the BJS
-left-null-space condition with `ip`-orthogonality to that span.  The main public
-bridge is `columnSpan_ip_orthogonal_iff`; `exists_imputationWeights_of_gap_orthogonal`
-uses it to absorb a left-null-space gap into one target-relevant imputation row.
-The file then proves `linear_unbiased_of_prediction_identified` and
-`bjs_linear_unbiased_iff_imputation_form`, the linear-unbiased characterization
-theorems kept separate from the base finite imputation algebra. -/
+This file connects the finite imputation event-study construction to the library's weighted-panel linear algebra. It equips untreated cells with uniform weights, forms the span of their regressor columns, identifies the usual left-null-space restriction with orthogonality to that span, and derives the corresponding linear-unbiasedness characterizations. -/
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
@@ -49,10 +42,9 @@ section Bridge
 
 variable [DecidableEq Untreated]
 
-/-- The untreated cells equipped with the **uniform** weighted support
-`ω_u ≡ 1/|U|`.  The OLS imputation estimator is the uniform-weight instance of
-the panel WLS substrate, so this is the `WeightedSupport` through which BJS
-consumes the `ip` / `Subspace` API. -/
+/-- For [a nonempty finite collection of untreated cells](hyp:Untreated), the [uniform untreated-cell weighted support](goal) assigns every untreated cell weight $1/|U|$ and regards every such cell as observed.
+
+The OLS imputation estimator is the uniform-weight instance of the panel weighted-least-squares substrate. -/
 def untreatedSupport (Untreated : Type*) [Fintype Untreated] [DecidableEq Untreated]
     [Nonempty Untreated] : WeightedSupport Untreated where
   observed := Finset.univ
@@ -72,14 +64,12 @@ namespace BJSPanel
 
 variable (P : BJSPanel Treated Untreated Regressor)
 
-/-- The `r`-th regressor **column** as an array over the untreated cells:
-`u ↦ q_{ur}`. -/
+/-- For [a BJS event-study panel with finite treated cells, untreated cells, and regressors](hyp:P) and [a regressor](hyp:r), the [corresponding untreated-cell regressor column](goal) assigns to each untreated cell its entry in that regressor's panel row. -/
 def regressorColumn (r : Regressor) : Untreated → ℝ := fun u => P.qU u r
 
-/-- The regressor column span inside `Untreated → ℝ`: the span of all columns
-`u ↦ q_{ur}`.  Membership of a treated row's representation in (the analogous
-span over `Regressor`) is the BJS row-span condition; orthogonality to *this*
-span is the left-null-space condition. -/
+/-- For [a BJS event-study panel with finite treated cells, untreated cells, and regressors](hyp:P), the [untreated-cell regressor column span](goal) is the real linear span of all vectors of untreated-cell regressor values, one vector for each regressor.
+
+Orthogonality to this span is the BJS left-null-space condition. -/
 def columnSpan : Submodule ℝ (Untreated → ℝ) :=
   Submodule.span ℝ (Set.range P.regressorColumn)
 

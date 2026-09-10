@@ -26,7 +26,10 @@ open scoped BigOperators
 
 noncomputable section
 
-/-- The monomial exponent attached to the two copies of `Fin n`. -/
+/-- Given [a nonnegative integer \(n\)](hyp:n), the [doubled exponent](goal) assigns exponent
+\(i\) to the \(i\)-th index in the first block of \(n\) indices and exponent \(n+i\) to the
+\(i\)-th index in the second block. [The first-block assignment](step:1) and
+[the second-block assignment](step:2) together define the encoding. -/
 def doubledExponent {n : ℕ} : Fin n ⊕ Fin n → ℕ
   | Sum.inl i => i.val
   | Sum.inr i => n + i.val
@@ -57,7 +60,10 @@ lemma doubledExponent_lt {n : ℕ} (i : Fin n ⊕ Fin n) :
   · have := i.isLt
     omega
 
-/-- Monomial coefficients encoded by the doubled finite index. -/
+/-- Given [a nonnegative integer \(n\)](hyp:n), [a semiring of coefficients](hyp:K), and
+[a coefficient vector indexed by two blocks of \(n\) positions](hyp:v), the
+[doubled coefficient polynomial](goal) is the polynomial whose coefficient at each encoded
+exponent is the corresponding entry of that vector. -/
 def doubledCoefficientPolynomial {n : ℕ} {K : Type*} [Semiring K]
     (v : Fin n ⊕ Fin n → K) : Polynomial K :=
   ∑ i, Polynomial.monomial (doubledExponent i) (v i)
@@ -101,8 +107,10 @@ lemma natDegree_doubledCoefficientPolynomial_lt {n : ℕ} {K : Type*} [Semiring 
   have hpos : 0 < 2 * n := by omega
   exact Nat.pred_lt hpos.ne'
 
-/-- The square Hermite-evaluation matrix with value and first-derivative
-columns at every node.  Rows are monomials of degrees `0, ..., 2n-1`. -/
+/-- Given [a nonnegative integer \(n\)](hyp:n), [a semiring of coefficients](hyp:K), and
+[\(n\) node values](hyp:s), the [confluent Vandermonde matrix](goal) is the square matrix with
+rows indexed by monomial degrees from zero through \(2n-1\), value columns at every node, and
+first-derivative columns at every node. -/
 def confluentVandermonde {K : Type*} [Semiring K] (s : Fin n → K) :
     Matrix (Fin n ⊕ Fin n) (Fin n ⊕ Fin n) K :=
   fun a b => match b with
@@ -209,12 +217,16 @@ theorem det_confluentVandermonde_ne_zero {n : ℕ} {K : Type*} [Field K] (hn : 1
 
 /-! ### A pinned Hermite minor: one simple node and the remaining double nodes -/
 
-/-- Monomial degrees for one simple node and `n - 1` doubled nodes. -/
+/-- Given [a nonnegative integer \(n\)](hyp:n), the [pinned exponent](goal) assigns exponent
+\(i\) to the \(i\)-th index in its block of \(n\) simple-node positions and exponent \(n+i\) to
+the \(i\)-th index in its block of \(n-1\) derivative positions. [The simple-node assignment](step:1)
+and [the derivative-position assignment](step:2) together define the encoding. -/
 def pinnedExponent {n : ℕ} : Fin n ⊕ Fin (n - 1) → ℕ
   | Sum.inl i => i.val
   | Sum.inr i => n + i.val
 
-/-- Embed the doubled-node index as a positive node index. -/
+/-- Given [a nonnegative integer \(n\)](hyp:n) and [an index \(i<n-1\)](hyp:i), the
+[pinned successor index](goal) is the index \(i+1<n\). -/
 def pinnedSucc {n : ℕ} (i : Fin (n - 1)) : Fin n :=
   ⟨i.val + 1, by have := i.isLt; omega⟩
 
@@ -260,7 +272,10 @@ lemma pinnedExponent_lt {n : ℕ}
   · have := i.isLt
     omega
 
-/-- Encode pinned Hermite coefficients as a polynomial. -/
+/-- Given [a nonnegative integer \(n\)](hyp:n), [a semiring of coefficients](hyp:K), and
+[a coefficient vector indexed by \(n\) value positions and \(n-1\) derivative positions](hyp:v),
+the [pinned coefficient polynomial](goal) is the polynomial whose coefficient at each pinned
+exponent is the corresponding vector entry. -/
 def pinnedCoefficientPolynomial {n : ℕ} {K : Type*} [Semiring K]
     (v : Fin n ⊕ Fin (n - 1) → K) : Polynomial K :=
   ∑ i, Polynomial.monomial (pinnedExponent i) (v i)
@@ -305,8 +320,10 @@ lemma natDegree_pinnedCoefficientPolynomial_lt {n : ℕ} {K : Type*} [Semiring K
         (Nat.le_pred_of_lt (pinnedExponent_lt i))))
   exact Nat.pred_lt hpos.ne'
 
-/-- The pinned Hermite matrix records values at all nodes and derivatives at
-nodes `1, ..., n-1`, with the derivative at node zero deleted. -/
+/-- Given [a nonnegative integer \(n\)](hyp:n), [a semiring of coefficients](hyp:K), and
+[\(n\) node values](hyp:s), the [pinned confluent Vandermonde matrix](goal) records values at
+all nodes and first derivatives at nodes one through \(n-1\), omitting the derivative at node
+zero. -/
 def pinnedConfluentVandermonde {K : Type*} [Semiring K]
     (s : Fin n → K) :
     Matrix (Fin n ⊕ Fin (n - 1)) (Fin n ⊕ Fin (n - 1)) K :=

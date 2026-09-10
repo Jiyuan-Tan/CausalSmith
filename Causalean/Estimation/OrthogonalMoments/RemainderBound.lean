@@ -33,8 +33,11 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
          {Z : Type*} [MeasurableSpace Z] {P_Z : MeasureTheory.Measure Z}
          {H : Type*} [AddCommGroup H] [Module ℝ H]
 
-/-- Bilinear remainder predicate: the population moment at any
-`η ∈ H_ε` is bounded by `C · ρ₁(η, η₀) · ρ₂(η, η₀)`. -/
+/-- For [a general moment system](hyp:M) and [a real constant](hyp:C), the
+[bilinear-remainder condition](goal) requires that, for every nuisance value in
+the system's admissible perturbation set, the absolute population moment at the
+true scalar target is at most $C$ times the product of its two seminorm
+distances from the true nuisance. -/
 def BilinearRemainder (M : GeneralMoment Ω μ Z P_Z H) (C : ℝ) : Prop :=
   ∀ η ∈ M.H_ε,
     |∫ z, M.m η z M.θ₀ ∂P_Z|

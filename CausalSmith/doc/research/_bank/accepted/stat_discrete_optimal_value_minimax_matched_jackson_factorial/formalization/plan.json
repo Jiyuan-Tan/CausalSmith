@@ -1,0 +1,982 @@
+{
+  "qid": "stat_discrete_optimal_value_minimax_matched",
+  "specialization": "jackson_factorial",
+  "cluster": "stat",
+  "target_dir": "CausalSmith/Stat/STAT_DiscreteOptimalValueMinimaxMatched_Research",
+  "lean_namespace": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched",
+  "feasibility": "needs-new-infrastructure",
+  "paper_scoped": false,
+  "env": [
+    {
+      "id": "S1",
+      "world": "A finite observational experiment with a categorical confounder. One unit is the triple \\(O=(X,A,Y)\\) taking values in \\([d]\\times\\{0,1\\}^2\\), where \\([d]=\\{1,\\ldots,d\\}\\) with \\(d\\ge 2\\), \\(A\\) is a binary treatment and \\(Y\\) a binary outcome. An observed law \\(\\mathbb P\\) is described by its atom masses \\(q_{ay,x}=\\mathbb P(X=x,A=a,Y=y)\\), collected into the four-vector \\(q_x=(q_{00,x},q_{01,x},q_{10,x},q_{11,x})\\) and the table \\(\\mathbf q=(q_x)_{x=1}^d\\); these determine the cell mass \\(p_x=\\mathbb P(X=x)\\), the propensity \\(\\pi_x=\\mathbb P(A=1\\mid X=x)\\) and the outcome regressions \\(\\mu_{ax}=E_{\\mathbb P}[Y\\mid A=a,X=x]\\) on occupied cells. For a fixed overlap constant \\(0<\\epsilon<1/2\\), \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) is the class of such laws whose occupied cells satisfy \\(\\epsilon\\le\\pi_x\\le 1-\\epsilon\\); the cell masses are otherwise unrestricted and null cells are allowed. The sampling model is \\(n\\) independent observations \\(O_1,\\ldots,O_n\\) with common law \\(\\mathbb P\\), indexed by \\(i\\in\\{1,\\ldots,n\\}\\). The estimation target is \\(\\Psi(\\mathbb P)=\\sum_{x=1}^d p_x\\max_{a}\\mu_{ax}\\), the loss is squared error, and \\(\\mathfrak R_{n,d,\\epsilon}\\) is the infimum over all measurable estimators of the worst-case risk over \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\). The rate scale is \\(L_d=\\log(ed)\\), and \\(c_\\epsilon,C_\\epsilon\\) denote the two constants of the frontier.",
+      "binds_symbols": [
+        "\\(n\\)",
+        "\\(d\\)",
+        "\\(\\epsilon\\)",
+        "\\([d]\\)",
+        "\\(i\\)",
+        "\\(x\\)",
+        "\\(a\\)",
+        "\\(y\\)",
+        "\\(X\\)",
+        "\\(A\\)",
+        "\\(Y\\)",
+        "\\(O_i\\)",
+        "\\(\\mathbb P\\)",
+        "\\(q_{ay,x}\\)",
+        "\\(q_x\\)",
+        "\\(\\mathbf q\\)",
+        "\\(p_x\\)",
+        "\\(\\pi_x\\)",
+        "\\(\\mu_{ax}\\)",
+        "\\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\)",
+        "\\(\\Psi(\\mathbb P)\\)",
+        "\\(\\mathfrak R_{n,d,\\epsilon}\\)",
+        "\\(L_d\\)",
+        "\\(c_\\epsilon\\)",
+        "\\(C_\\epsilon\\)"
+      ],
+      "binds_sampling_model": true,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Basic",
+        "Causalean.Stat.Minimax.MinimaxValue",
+        "Causalean.Stat.Minimax.MinimaxRisk",
+        "Causalean.Stat.Sample.PiTransport",
+        "Mathlib.Probability.ProbabilityMassFunction.Constructions",
+        "Mathlib.Probability.ProductMeasure"
+      ],
+      "notes": "Encoding: `Obs d := Fin d × Bool × Bool`, `structure DiscreteLaw (d) where pmf : PMF (Obs d)`, `obsLaw P := P.pmf.toMeasure`, `productLaw P n := Measure.pi (fun _ : Fin n => obsLaw P)`. Risk uses `Causalean.Stat.sqRisk` (Causalean/Stat/Minimax/MinimaxRisk.lean:180) and the minimax value uses `Causalean.Stat.minimaxValue` (Causalean/Stat/Minimax/MinimaxValue.lean:59) at `E = {f : (Fin n → Obs d) → ℝ // Measurable f}`, `Θ = the class subtype`. WORLD-CHOICE SEARCH TRACE: surveyed `Causalean/Estimation/MinimaxATE/Model.lean` (`ValidDGP`, `obsLaw`, `minimaxMiss`) — bypass-justified: that world fixes a uniform covariate marginal and indexes the class by nuisance-estimator quality `(mhat, ghat, εg, εm)`, whereas this note needs arbitrary/null cell masses and a class indexed only by overlap; surveyed `Causalean/Estimation/Efficiency/`, `Causalean/Stat/Nonparametric/` — different (semiparametric/smooth) abstraction. ANALOGOUS MODULE (same world, same four-cell overlap cone, different estimand): `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean:26-198` (`Obs`, `DiscreteLaw`, `jointMass`, `cellVector`, `cellMass`, `armMass`, `propensity`, `outcomeMean`, `Overlap`, `productLaw`, `mse`, `minimaxRisk`) — F2 should mirror that encoding verbatim; it is a sibling CausalSmith run, not an importable curated dependency (no CausalSmith run imports another run's modules), so the definitions are re-declared locally in this run's `Basic.lean`."
+    },
+    {
+      "id": "S2",
+      "world": "A finite binary potential-outcome overlay on the same alphabet. A full-data law \\(P\\) is a law of \\((X,A,Y,Y(0),Y(1))\\) with \\(X\\in[d]\\) and \\(A,Y,Y(0),Y(1)\\in\\{0,1\\}\\). Its observed margin \\(\\operatorname{Obs}(P)\\) is the law of \\((X,A,Y)\\). Under consistency \\(Y=Y(A)\\) and armwise conditional exchangeability \\(Y(a)\\perp A\\mid X\\), \\(P\\) carries the causal optimal-treatment value \\(V^\\star(P)=E_P[\\max_{a}E_P\\{Y(a)\\mid X\\}]\\). The causal completion class \\(\\mathcal P_{d,\\epsilon}\\) collects the full-data laws satisfying both causal conditions whose observed margin lies in the overlap class of \\(\\mathrm{S1}\\).",
+      "binds_symbols": [
+        "\\(Y(a)\\)",
+        "\\(P\\)",
+        "\\(\\operatorname{Obs}(P)\\)",
+        "\\(V^\\star(P)\\)",
+        "\\(\\mathcal P_{d,\\epsilon}\\)"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Basic"
+      ],
+      "notes": "Encoding: `FullObs d := Fin d × Bool × Bool × Bool × Bool`, `structure PotentialLaw (d) where pmf : PMF (FullObs d)`, `observedMarginal Q := ⟨Q.pmf.map (fun z => (z.1, z.2.1, z.2.2.1))⟩`. SEARCH TRACE: grepped `Causalean/PO/` for `Consistency`, `CondIndepCF`, `POSystem`, `POVar` — found `Causalean.PO.Consistency` (Causalean/PO/Assumptions/Consistency.lean:53), `Causalean.PO.POSystem.CondIndepCF` (Causalean/PO/Assumptions/IndepCF.lean:105), `Causalean.PO.Assumptions.ConsistencyLemmas.*`. BYPASS-JUSTIFIED: those are regime-indexed measure-theoretic potential-outcome systems over an abstract `P.Ω` with counterfactual variables and `EventCondExp` conditioning; here every variable is a coordinate of a five-fold finite Bool/Fin product and the whole identification argument is finite summation over atoms, so the regime-indexed API is a strictly different abstraction level and would add a measure-theoretic layer with no mathematical content. The same bypass was taken and accepted in the sibling four-cell run (`CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean:1-10, 204-241`), which is the ANALOGOUS MODULE for `PotentialLaw`, `Consistency`, `ConditionalExchangeability`, `poAtom`, `observedMarginal`."
+    },
+    {
+      "id": "S3",
+      "world": "The four-cell analytic cone and the Poissonized pilot/evaluation construction. Write \\(\\mathcal J=\\{(0,0),(0,1),(1,0),(1,1)\\}\\) with generic coordinate \\(\\jmath\\), and for \\(u\\in\\mathbb R_+^4\\) put \\(s_a(u)=u_{a0}+u_{a1}\\) and \\(s(u)=s_0(u)+s_1(u)\\). The overlap cone is \\(\\mathcal C_\\epsilon=\\{u\\in\\mathbb R_+^4:\\epsilon s(u)\\le s_1(u)\\le(1-\\epsilon)s(u)\\}\\), and \\(\\bar f_\\epsilon\\) is a globally Lipschitz extension to all of \\(\\mathbb R_+^4\\) of the cell contribution to the target. Fixed universal numerical constants \\(H_0>0\\), \\(0<\\kappa<1\\) and a cutoff \\(D_0\\in\\mathbb N\\) calibrate the Jackson degree \\(K_d=\\max\\{2,\\lfloor\\kappa L_d\\rfloor\\}\\) and the one-dimensional order-four Jackson kernel \\(J_{K_d}\\). An auxiliary count \\(M\\sim\\operatorname{Pois}(n/4)\\) and independent fair marks \\(B_i\\in\\{0,1\\}\\) split the included observations into pilot counts \\(N'_{\\jmath,x}\\) and evaluation counts \\(N_{\\jmath,x}\\). The pilot builds a random rectangle \\(Q_x\\subseteq\\mathbb R_+^4\\), the kernel builds the tensor polynomial \\(P_{x,K_d}\\) on \\(Q_x\\), the centered factorial operator \\(U_h(N;z)\\) lifts monomials to unbiased statistics of the evaluation counts, and clipping produces the cell estimator \\(T_x^{\\mathrm{JF}}\\). Summing, projecting to \\([0,1]\\) and Rao--Blackwellizing gives \\(\\widehat V_{n,d}^{\\mathrm{JF}}\\), which falls back to the empirical-ratio statistic \\(\\widehat V_{n,d}^{\\mathrm{ER}}\\) on bounded alphabets. \\(\\mathscr H_\\epsilon^{\\mathrm{const}}\\) names the (open) sharp-constant derivation route attached to this construction.",
+      "binds_symbols": [
+        "\\(\\mathcal J\\)",
+        "\\(\\jmath\\)",
+        "\\(u\\)",
+        "\\(s_a(u)\\)",
+        "\\(s(u)\\)",
+        "\\(\\mathcal C_\\epsilon\\)",
+        "\\(\\bar f_\\epsilon\\)",
+        "\\(H_0\\)",
+        "\\(\\kappa\\)",
+        "\\(D_0\\)",
+        "\\(K_d\\)",
+        "\\(J_{K_d}\\)",
+        "\\(M\\)",
+        "\\(B_i\\)",
+        "\\(N'_{\\jmath,x}\\)",
+        "\\(N_{\\jmath,x}\\)",
+        "\\(Q_x\\)",
+        "\\(P_{x,K_d}\\)",
+        "\\(U_h(N;z)\\)",
+        "\\(T_x^{\\mathrm{JF}}\\)",
+        "\\(\\widehat V_{n,d}^{\\mathrm{ER}}\\)",
+        "\\(\\widehat V_{n,d}^{\\mathrm{JF}}\\)",
+        "\\(\\mathscr H_\\epsilon^{\\mathrm{const}}\\)"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.ConeExtension",
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.JacksonKernel",
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.FactorialLift",
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.Estimator",
+        "Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Basic",
+        "Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Partition.Splitting",
+        "Causalean.Mathlib.Analysis.BernsteinSzegoTrig.Szego",
+        "Mathlib.RingTheory.Polynomial.Chebyshev",
+        "Mathlib.Probability.Distributions.Poisson.Basic"
+      ],
+      "notes": "Encoding: `Cell := Fin 2 × Fin 2` (so \\(\\mathcal J\\) is `Cell` and \\(\\jmath\\) ranges over it), \\(u\\) is `Cell → ℝ`, \\(Q_x\\) is a pair of endpoint functions `Cell → ℝ`, \\(P_{x,K_d}\\) is `MvPolynomial Cell ℝ`, \\(U_h(N;z)\\) is a `ℕ → ℝ → ℝ` built from `Nat.descFactorial`. SEARCH TRACE (Causalean CLI concept words: `Jackson kernel`, `Fejer kernel`, `trigonometric polynomial approximation`, `positive kernel convolution`, `factorial moment unbiased estimator`, `Poisson splitting marks pilot`): Causalean HAS the marked-Poisson layer — `Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.finiteMarkedPoissonSampleLaw`, `.map_restrictPartition_finiteMarkedPoissonSampleLaw`, `.finitePoissonSampleLaw_map_count` — which supplies the Poisson-splitting independence of \\((N'_{\\jmath,x},N_{\\jmath,x})\\) across cells; and the even-trig-polynomial layer — `Causalean.Mathlib.Analysis.BernsteinSzegoTrig.IsTrigPolyLE`, `.cosComp_isTrigPolyLE`, `.cos_nat_mul_isTrigPolyLE` — which supplies the `even trigonometric polynomial of degree D ↔ polynomial of degree D in cos` bridge that `def:jackson-kernel` needs. Causalean does NOT contain a Jackson/Fejér kernel: `Causalean/Stat/Nonparametric/SeriesSieve/Jackson.lean` despite its filename contains only `piecewiseTaylorApprox` / `piecewiseTaylor_sup_approx_rate` (piecewise Taylor sieve, not the Jackson convolution kernel) — that is a filename false positive, confirmed by reading its declarations. MATHLIB-SIDE CHECK: `lean_leansearch \"Jackson kernel trigonometric polynomial approximation modulus of continuity\"` returned only `ContinuousMap.modulus`, `bernsteinApproximation`, `exists_polynomial_near_of_continuousOn` — no Jackson/Fejér kernel and no quantitative degree-\\(K\\) rate; `lean_loogle \"Polynomial.Chebyshev.T\"` confirms the Chebyshev basis (`Polynomial.Chebyshev.T`, `T_mul`, `T_real_cos`) is available for the coefficient-envelope half. So the kernel itself is new local construction over reused trig-polynomial and Poisson substrate."
+    },
+    {
+      "id": "S4",
+      "world": "The Poissonized moment-matching lower-bound experiment. \\(\\Delta_d=\\{R\\in\\mathbb R_+^d:\\sum_x R_x=1\\}\\) is the probability simplex, and \\(\\mathbf P,\\mathbf Q\\in\\Delta_d\\) are the two multinomial laws of the normalized two-sample distance experiment. The dense hard submodel is indexed by a contrast vector \\(\\theta\\in[-1/2,1/2]^d\\) through the equal-mass law \\(P_\\theta^{\\mathrm{dense}}\\) with \\(p_x=1/d\\), \\(\\pi_x=1/2\\) and \\(\\mu_{1x}=(1+\\theta_x)/2\\), \\(\\mu_{0x}=(1-\\theta_x)/2\\). For an even degree \\(K\\), \\(E_K=\\inf_{\\deg p\\le K}\\sup_{|t|\\le1}\\bigl||t|-p(t)\\bigr|\\) is the best even-polynomial approximation error of the absolute value, and \\(\\nu_{0,K},\\nu_{1,K}\\) are symmetric probability measures on \\([-1,1]\\) whose moments agree through degree \\(K\\) with absolute-moment gap \\(2E_K\\). Setting \\(K_d^{\\mathrm{lb}}=2\\lceil 4L_d\\rceil\\), \\(\\lambda_{n,d}=2n/d\\) and \\(a_{n,d}=\\sqrt{K_d^{\\mathrm{lb}}/(64\\lambda_{n,d})}\\), the scaled product priors \\(\\Pi_{0,n,d},\\Pi_{1,n,d}\\) on \\([-a_{n,d},a_{n,d}]^d\\) induce the two observation mixtures \\(\\mathbb M_{0,n,d},\\mathbb M_{1,n,d}\\) when the total sample size is an independent \\(\\operatorname{Pois}(2n)\\). Here \\(r\\) indexes the exponential likelihood expansion, \\(L_{\\theta_x}\\) is the one-cell Poisson likelihood ratio against \\(\\theta_x=0\\), \\(\\Delta_{n,d}^{\\mathrm{dense}}\\) is the separation of the two prior means of the target, and \\(\\mathfrak R^{\\mathrm{Pois}}_{2n,d,\\epsilon}\\) is the minimax squared risk in that Poissonized experiment.",
+      "binds_symbols": [
+        "\\(\\Delta_d\\)",
+        "\\(\\mathbf P\\)",
+        "\\(\\mathbf Q\\)",
+        "\\(\\theta\\)",
+        "\\(P_\\theta^{\\mathrm{dense}}\\)",
+        "\\(K\\)",
+        "\\(K_d^{\\mathrm{lb}}\\)",
+        "\\(\\lambda_{n,d}\\)",
+        "\\(r\\)",
+        "\\(L_{\\theta_x}\\)",
+        "\\(a_{n,d}\\)",
+        "\\(E_K\\)",
+        "\\(\\nu_{0,K}\\)",
+        "\\(\\nu_{1,K}\\)",
+        "\\(\\Pi_{0,n,d}\\)",
+        "\\(\\Pi_{1,n,d}\\)",
+        "\\(\\mathbb M_{0,n,d}\\)",
+        "\\(\\mathbb M_{1,n,d}\\)",
+        "\\(\\Delta_{n,d}^{\\mathrm{dense}}\\)",
+        "\\(\\mathfrak R^{\\mathrm{Pois}}_{2n,d,\\epsilon}\\)"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.L1Embedding",
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.DenseConstruction",
+        "Causalean.Stat.Minimax.TotalVariation",
+        "Causalean.Stat.Minimax.LeCam",
+        "Causalean.Stat.Minimax.ChiSquared",
+        "Causalean.Stat.Minimax.MinimaxRisk",
+        "Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Depoissonization",
+        "CausalSmith.Mathlib.InformationTheory.ProductChiSquared"
+      ],
+      "notes": "SEARCH TRACE (concept words: `two point lower bound squared loss`, `total variation testing error`, `chi square tensorization product`, `Poisson depoissonization fixed sample transfer`, `fuzzy hypotheses mixture prior`): Causalean HAS the whole lower-bound plumbing — `Causalean.Stat.tvDist` and `Causalean.Stat.one_sub_tvDist_le_test` (Minimax/TotalVariation.lean:49,107), `Causalean.Stat.half_one_sub_tvDist_le_max_error` (Minimax/LeCam.lean:76), `Causalean.Stat.two_point_lower_bound_of_tvDist_le` / `two_point_lower_bound_of_chiSqDiv_le` / `iid_two_point_lower_bound` (Minimax/MinimaxRisk.lean:74,105,88), `Causalean.Stat.chiSqDiv_prod` and `one_add_chiSqDiv_pi_iid_general` (Minimax/ChiSquared.lean:184,419), and `Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.poisson_two_n_lower_tail` + `map_canonicalPrefixObservations_restrict_count_ge` (Depoissonization.lean:198,163), which is exactly the `apply a fixed-n estimator to the first n observations of a Pois(2n) sample` transfer used at the end of `lem:dense-moment-matching-lower` and in `thm:all-estimator-lower`. Causalean does NOT contain the moment-matched pair \\((\\nu_{0,K},\\nu_{1,K})\\) for \\(|t|\\) nor the value of \\(E_K\\): grepped `Chebyshev|bestApprox|moment matching prior|Bernstein constant` across `Causalean/` — the closest hits are `Causalean/Mathlib/Analysis/BernsteinSzegoTrig/*` (Bernstein--Szegő derivative inequalities, not best approximation of \\(|t|\\)) and `Causalean/Stat/Nonparametric/MomentProblems/*` (score/residual moment programs). MATHLIB-SIDE CHECK: `lean_loogle \"Polynomial.Chebyshev.T\"` and `lean_leansearch` for best uniform approximation of the absolute value return nothing quantitative. That absence is precisely the frozen cited gate `lem:cai-low-absolute-moment-priors`."
+    }
+  ],
+  "citations": [
+    {
+      "id": "cite:cai-low-2011-l1",
+      "bibkey": "CaiLow2011L1",
+      "title": "Testing Composite Hypotheses, Hermite Polynomials and Optimal Estimation of a Nonsmooth Functional",
+      "authors": "Cai, T. Tony, and Low, Mark G.",
+      "year": 2011,
+      "url": "https://arxiv.org/abs/1105.3039",
+      "citation": "Cai, T. Tony, and Mark G. Low (2011). ``Testing Composite Hypotheses, Hermite Polynomials and Optimal Estimation of a Nonsmooth Functional.'' Annals of Statistics 39(2): 1012--1041.",
+      "locator": "Lemma 1 and Section 3.1",
+      "carrier": "logical-claim",
+      "verbatim_statement": "For any given even integer k>0, there exist two probability measures ν_0 and ν_1 on [-1,1]: ∫t^l ν_1(dt)=∫t^l ν_0(dt), l=0,...,k; ∫|t|ν_1(dt)-∫|t|ν_0(dt)=2δ_k; δ_k=β_* k^{-1}(1+o(1)).",
+      "attestation": {
+        "by": "main",
+        "note": "Verified 2026-09-04 from the primary arXiv v1 TeX/HTML source 1105.3039, Lemma 1 and the immediately following Bernstein-constant statement; δ_k is defined there as best uniform degree-k approximation error for |x|.",
+        "at": "2026-09-05T05:59:00.946Z"
+      },
+      "node": "lem:cai-low-absolute-moment-priors",
+      "gates": [
+        "lem:cai-low-absolute-moment-priors"
+      ]
+    },
+    {
+      "id": "cite:jiao-han-weissman-2018-l1",
+      "bibkey": "JiaoHanWeissman2018L1",
+      "title": "Minimax Estimation of the L_1 Distance",
+      "authors": "Jiao, Jiantao, Han, Yanjun, and Weissman, Tsachy",
+      "year": 2018,
+      "doi": "10.1109/TIT.2018.2846245",
+      "citation": "Jiao, Jiantao, Yanjun Han, and Tsachy Weissman (2018). ``Minimax Estimation of the L_1 Distance.'' IEEE Transactions on Information Theory 64(10): 6672--6706.",
+      "locator": "Theorem 3, equation (24), and its Poissonized lower-bound proof",
+      "carrier": "logical-claim",
+      "verbatim_statement": "n≥c S/ln S, ln n≤C ln S ⇒ sup_Q inf_L sup_P E_P|L-||P-Q||_1|² ≳_{c,C} S/(n ln n). The lower bound for the known Q case also serves as a lower bound for the unknown Q case.",
+      "attestation": {
+        "by": "main",
+        "note": "Verified 2026-09-07 from primary arXiv:1705.00807v7 TeX, Theorem 3 lower-bound lines 457--465: for every fixed positive c,C the hidden lower constant may depend on c,C; the paper globally works in the Poisson model, and the known-Q lower bound transfers to the unknown-Q experiment. The run separately performs the 2n rescaling and fixed-sample transfer.",
+        "at": "2026-09-05T05:58:34.822Z"
+      },
+      "node": "lem:jhw-poisson-l1-lower",
+      "gates": [
+        "lem:jhw-poisson-l1-lower"
+      ]
+    }
+  ],
+  "nodes": {
+    "ass:iid-sampling": {
+      "lean_kind": "assumption",
+      "lean_name": "IidSampling",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Basic",
+        "Causalean.Stat.Sample.PiTransport"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "target_file": "Basic.lean",
+      "notes": "`def IidSampling {d n} (P : DiscreteLaw d) (mu_n : Measure (Fin n → Obs d)) : Prop := mu_n = productLaw P n`. Modeling assumption (a restriction on the design), kept as a threaded hypothesis of every consumer; never discharged. SEARCH TRACE (`i.i.d. sample product law`, `infinite product iid pushforward`): `Causalean.Stat.HasIIDSample` / `Causalean.Stat.iidSample_infinitePi` / `Causalean.Stat.iidSample_finN_pushforward` (Causalean/Stat/Sample/PiTransport.lean:54,68,237) exist and are REUSED for the finite-prefix transport lemma the Poissonization argument needs, but they state the existence of an ambient i.i.d. stream rather than the atom `mu_n = productLaw P n`; the atom itself is one line and stays local. MATHLIB-SIDE CHECK: `Measure.pi` / `Measure.infinitePi` supply the construction, no named `Prop` atom. Analogous: `STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean:190`."
+    },
+    "ass:consistency": {
+      "lean_kind": "assumption",
+      "lean_name": "Consistency",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "target_file": "Basic.lean",
+      "notes": "`def Consistency {d} (Q : PotentialLaw d) : Prop := ∀ z, z.2.2.1 ≠ (if z.2.1 then z.2.2.2.2 else z.2.2.2.1) → fullMass Q z = 0`, i.e. zero mass on atoms where the observed outcome disagrees with the selected potential outcome. Causal-structural modeling assumption; bundled into `def:model-class`, never discharged. SEARCH TRACE (`consistency potential outcome factual agrees`): `Causalean.PO.Consistency` (Causalean/PO/Assumptions/Consistency.lean:53) and `Causalean.PO.POVar.cf_eq_factual_of_factualAgrees` exist but are stated for a regime-indexed `POSystem`; see the S2 bypass justification. No Mathlib analogue (this is a domain notion, not a standard measure-theory fact), so no Mathlib-side trace is applicable."
+    },
+    "ass:conditional-exchangeability": {
+      "lean_kind": "assumption",
+      "lean_name": "ConditionalExchangeability",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "target_file": "Basic.lean",
+      "notes": "Finite cross-multiplied conditional-independence identity for `(Y(0),Y(1)) ⟂ A | X` over the atom masses `poAtom Q k a y0 y1`, avoiding division by a possibly zero cell mass. Causal-structural modeling assumption; bundled into `def:model-class`, never discharged. SEARCH TRACE (`conditional independence counterfactual given covariate`): `Causalean.PO.POSystem.CondIndepCF` (Causalean/PO/Assumptions/IndepCF.lean:105) and `Causalean.PO.CondIndepCF.component` exist; bypass-justified per S2 (regime-indexed `POSystem` over an abstract `Ω` versus a finite five-fold Bool/Fin product). MATHLIB-SIDE CHECK: `ProbabilityTheory.CondIndepFun` requires a sub-σ-algebra formulation that would force conditional-kernel machinery on a finite alphabet; the cross-multiplied identity is the standard finite encoding. Analogous: `STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean:232`."
+    },
+    "ass:fixed-overlap": {
+      "lean_kind": "assumption",
+      "lean_name": "Overlap",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "classification": "modeling-assumption",
+      "target_file": "Basic.lean",
+      "notes": "`def Overlap {d} (epsilon : ℝ) (P : DiscreteLaw d) : Prop := ∀ x, 0 < cellMass P x → epsilon ≤ propensity P x ∧ propensity P x ≤ 1 - epsilon`. Support/modeling assumption; bundled by both `def:observed-model-class` and `def:model-class`, never discharged. SEARCH TRACE (`overlap positivity propensity bounded away from zero`): `Causalean.Estimation.MinimaxATE.strictOverlap` exists inside the `ValidDGP` world (Causalean/Estimation/MinimaxATE/Causal/Minimax.lean:125) but is tied to that model's `(m, g)` parametrization with a uniform covariate marginal; `Causalean/Stat/Minimax/CoordinatewiseOverlap.lean` uses `overlap` in the unrelated Le Cam/decoder sense. MATHLIB-SIDE CHECK: not a Mathlib notion. Analogous, verbatim same statement: `STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean:196`."
+    },
+    "def:model-class": {
+      "lean_kind": "structure",
+      "lean_name": "CausalCompletionClass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "members": [
+        "ass:consistency",
+        "ass:conditional-exchangeability",
+        "ass:fixed-overlap"
+      ],
+      "target_file": "Basic.lean",
+      "notes": "`structure CausalCompletionClass (epsilon : ℝ) {d} (Q : PotentialLaw d) : Prop where consistency : Consistency Q; exchangeability : ConditionalExchangeability Q; overlap : Overlap epsilon (observedMarginal Q)` — one field per core member, each typed by that member's Prop `def`. The `ass:fixed-overlap` field is applied to `observedMarginal Q`, which is exactly the core's `Obs(P) ∈ D^obs_{d,ε}` clause. SEARCH TRACE (`causal completion class consistency exchangeability overlap bundle`): no Causalean structure bundles these three at the finite-alphabet level; `Causalean.Estimation.MinimaxATE.ValidDGP` bundles a different triple (nonnegativity/normalization of an `(m,g)` parametrization). MATHLIB-SIDE CHECK: not applicable (domain bundle)."
+    },
+    "def:overlap-cone": {
+      "lean_kind": "def",
+      "lean_name": "overlapCone",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.ConeExtension"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/ConeExtension.lean",
+      "notes": "`def vectorArmMass (u : Cell → ℝ) (a : Fin 2) := u (a,0) + u (a,1)`, `def vectorMass u := vectorArmMass u 0 + vectorArmMass u 1`, `def overlapCone (epsilon) : Set (Cell → ℝ) := {u | (∀ i, 0 ≤ u i) ∧ epsilon * vectorMass u ≤ vectorArmMass u 1 ∧ vectorArmMass u 1 ≤ (1 - epsilon) * vectorMass u}`. SEARCH TRACE (`overlap cone four cell nonnegative arm mass`): no Causalean decl; MATHLIB-SIDE CHECK: `Convex`/`ConvexCone` give the ambient notion but not this specific set, and the note only needs the raw set. ANALOGOUS MODULE — verbatim identical definition already proved workable at `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean:257-270` (`vectorArmMass`, `vectorMass`, `overlapCone`); F2 mirrors it, F3 reuses its downstream algebra pattern. Small, build-inline."
+    },
+    "def:global-extension": {
+      "lean_kind": "def",
+      "lean_name": "globalCellValueNonnegative",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.ConeExtension"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/ConeExtension.lean",
+      "notes": "NonnegativeCellVector := {u : Cell → ℝ // ∀ j, 0 ≤ u j} is the exact Lean carrier for the paper's ℝ_+^4 domain. The paper-facing anchor is globalCellValueNonnegative epsilon u, defined by the displayed arm-specific maximum on that subtype. The unannotated helper globalCellValue epsilon (u : Cell → ℝ) is only a totalized ambient implementation used by the Jackson machinery; all paper-facing bounds and identification statements consume the subtype wrapper. Lean's total division convention gives the stipulated value 0 at the origin, and the explicit mass-zero guard is retained. SEARCH TRACE (Lipschitz extension homogeneous ratio functional, max of arm ratios cell contribution): no Causalean decl; the nearest sibling object is cellPhi at STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean:274, an analogous but different signed functional. MATHLIB-SIDE CHECK: LipschitzWith, lipschitzWith_max, and LipschitzOnWith.mono supply the Lipschitz calculus used by prop:identification-and-extension; the functional itself is paper-owned. Build-inline."
+    },
+    "def:oracle-value": {
+      "lean_kind": "def",
+      "lean_name": "oracleValue",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "`noncomputable def oracleValue {d} (Q : PotentialLaw d) : ℝ := ∑ x : Fin d, poCellMass Q x * max (poRegression Q 0 x) (poRegression Q 1 x)`, the finite-support form of \\(E_P[\\max_a E_P\\{Y(a)\\mid X\\}]\\) with the totalizing convention on null cells. Kept STRICTLY separate from `observedOptimalValue`: their equality is asserted only by `prop:causal-optimal-value-corollary`, never by definition. SEARCH TRACE (`optimal treatment value expected maximum conditional mean`): no Causalean decl (`Causalean.Estimation.MinimaxATE.ate` is the signed average treatment effect, a different functional). MATHLIB-SIDE CHECK: `Finset.sum` / `max` only. Small, build-inline."
+    },
+    "def:empirical-ratio-estimator": {
+      "lean_kind": "def",
+      "lean_name": "empiricalRatioEstimator",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.Estimator",
+        "Causalean.Stat.Sample.FiniteStratumMarkedRatioMse.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Estimator.lean",
+      "notes": "Empirical counts `barN x`, `barN a x`, `barS a x` over `Fin n → Obs d`, plugged into `phat x := barN x / n`, `muhat a x := barS a x / barN a x` (Lean's `0/0 = 0` is exactly the note's convention), and `empiricalRatioEstimator := ∑ x, phat x * max (muhat 0 x) (muhat 1 x)`. SEARCH TRACE (`empirical stratum arm ratio estimator mean squared error`): REAL HIT — `Causalean.Stat.fixedStratumMarkedRatio` and `Causalean.Stat.integral_fixedStratumMarkedRatio_error_sq_le` (Causalean/Stat/Sample/FiniteStratumMarkedRatioMse/{Basic.lean:105, Main.lean:670}) are a stratum-wise marked ratio statistic with a proved uniform squared-error bound built from `integral_fixedStratumArmCenteredNoise_sq_le`, `integral_fixedStratumArmMissingRemainder_sq_le` and `missingArmExponentialEnvelope_le_lowerMass`. Not an exact type-fit here (their statistic averages a mark within an arm cell, whereas this estimator takes a cellwise MAXIMUM of two arm ratios and reweights by `phat`), so the definition stays local; but F3 should adapt those three moment bounds for the `2 ≤ d < D_0` fallback branch of `thm:jackson-factorial-upper`, where they cover exactly the empty-arm-cell / `E[1{H>0}/H] ≤ 2/(kρ)` step. MATHLIB-SIDE CHECK: `Finset.sum`, `div`, `Nat.cast` only. Build-inline."
+    },
+    "def:jackson-kernel": {
+      "lean_kind": "def",
+      "lean_name": "jacksonTensorPolynomial",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.JacksonKernel",
+        "Causalean.Mathlib.Analysis.BernsteinSzegoTrig.TrigPoly",
+        "Causalean.Mathlib.Analysis.BernsteinSzegoTrig.Szego",
+        "Mathlib.RingTheory.Polynomial.Chebyshev"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/JacksonKernel.lean",
+      "notes": "`noncomputable def jacksonKernel (K : ℕ) (t : ℝ) : ℝ := jacksonNormalizer K * (Real.sin (K*t/2) / Real.sin (t/2))^4` with the removable value filled continuously and `jacksonNormalizer` fixed by `∫_{-π}^{π} jacksonKernel K = 1`; then `jacksonTensorPolynomial` is the even product convolution `P_{x,K}(b + r ⊙ cos θ) = ∫_{[-π,π]^4} f̄_ε(b + r ⊙ cos(θ+t)) ∏_ȷ jacksonKernel K t_ȷ dt`, packaged as an `MvPolynomial Cell ℝ` of coordinate degree `2(K-1)` via the even-trig-polynomial bridge. SEARCH TRACE — see the S3 trace: Causalean has NO Jackson/Fejér kernel (`Causalean/Stat/Nonparametric/SeriesSieve/Jackson.lean` is a piecewise-Taylor sieve, filename false positive) and Mathlib has none either (`lean_leansearch` on the Jackson kernel returns `ContinuousMap.modulus`, `bernsteinApproximation`, `exists_polynomial_near_of_continuousOn`, none quantitative). REUSED for the degree bookkeeping: `Causalean.Mathlib.Analysis.BernsteinSzegoTrig.IsTrigPolyLE` (+ `.add`, `.sub`, `.const_mul`, `.mono`, `.congr`), `cos_nat_mul_isTrigPolyLE`, `cosComp_isTrigPolyLE` (Szego.lean:71-130) — these give `even trigonometric polynomial of degree ≤ D ⇒ polynomial of degree ≤ D in cos`, which is the only structural fact the definition needs; and `Polynomial.Chebyshev.T` / `T_real_cos` for the tensor Chebyshev basis. Build-inline (a fixed explicit kernel plus a convolution; no open analysis)."
+    },
+    "def:jackson-factorial-estimator": {
+      "lean_kind": "def",
+      "lean_name": "jacksonFactorialEstimator",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.Estimator",
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.FactorialLift",
+        "Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Basic",
+        "Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Partition.Splitting",
+        "Mathlib.Probability.Distributions.Poisson.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Estimator.lean",
+      "notes": "The full construction of the note: the branch selector on `d < D_0` / `n < d/L_d`, the auxiliary `M ~ Pois(n/4)` and Bernoulli marks `B_i` producing `N'` and `N`, the pilot rectangle `Q_x` from `c = N'/m` and `h = H_0(√(cτ) + τ)`, the centered factorial lift `U_h(N;z) = ∑_{t≤h} C(h,t) (-z)^{h-t} (N)_t / m^t` (from `Helpers/FactorialLift.lean`), the clipped cell statistic `T_x^JF`, the projected sum `Ṽ`, and the Rao--Blackwellization `E[Ṽ | O_1,…,O_n]`. SEARCH TRACE (`Poisson thinning pilot evaluation split independent counts`, `Rao-Blackwell conditional expectation randomized estimator`, `falling factorial unbiased Poisson`): REUSED — `Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.finiteMarkedPoissonSampleLaw` / `finitePoissonSampleLaw_map_count` / `map_restrictPartition_finiteMarkedPoissonSampleLaw` (Basic.lean:101-175, Partition/Splitting.lean:764) give exactly the marked-Poisson sample law and the across-cell splitting independence that the construction's marks require; `Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.FiniteMeasurablePartition.restrictPartition` supplies the per-cell restriction; `ProbabilityTheory.poissonMeasure` (Mathlib.Probability.Distributions.Poisson.Basic) supplies `M`. `Nat.descFactorial` supplies `(N)_t`. No decl anywhere constructs this estimator, which is the paper's contribution. Build-inline (a definition, not a proof obligation)."
+    },
+    "def:l1-embedding": {
+      "lean_kind": "def",
+      "lean_name": "l1Embedding",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.L1Embedding"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/L1Embedding.lean",
+      "notes": "`noncomputable def l1Embedding {d} (Pv Qv : Fin d → ℝ) : PotentialLaw d`, placing `q_{11,x} = q_{00,x} = Pv x / 4` and `q_{10,x} = q_{01,x} = Qv x / 4`, completed with conditionally independent Bernoulli potential outcomes, propensity 1/2 and consistency; the observed margin is `observedMarginal (l1Embedding Pv Qv)`. SEARCH TRACE (`equal propensity embedding L1 distance two sample`, `four cell observed law from two multinomials`): no Causalean or CausalSmith decl. MATHLIB-SIDE CHECK: `PMF.ofFintype` plus a normalization lemma is the whole construction (the sibling run's `twoCategoryWitness` at `STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean:481` is the analogous packaging pattern: unnormalized mass function + `_nonneg` + `_sum` + `PMF.ofFintype`). Small, build-inline."
+    },
+    "def:observed-margin": {
+      "lean_kind": "def",
+      "lean_name": "observedMarginal",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "`noncomputable def observedMarginal {d} (Q : PotentialLaw d) : DiscreteLaw d := ⟨Q.pmf.map (fun z => (z.1, z.2.1, z.2.2.1))⟩`. SEARCH TRACE (`observed margin of full data law`, `pushforward of potential outcome law`): `Causalean.PO.Bridge.Induce` / `Causalean.PO.Bridge.FromSCM` induce observed laws from a `POSystem`, i.e. the S2-bypassed abstraction; nothing at the finite-PMF level. MATHLIB-SIDE CHECK: `PMF.map` / `Measure.map` are the primitives and are used directly. Small, build-inline; verbatim analogue at `STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean:440`."
+    },
+    "def:observed-model-class": {
+      "lean_kind": "structure",
+      "lean_name": "ObservedModelClass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "members": [
+        "ass:fixed-overlap"
+      ],
+      "target_file": "Basic.lean",
+      "notes": "`structure ObservedModelClass (epsilon : ℝ) {d} (P : DiscreteLaw d) : Prop where overlap : Overlap epsilon P` — exactly one field, matching the core's single `by_member_properties` entry. The core's displayed factorization `q_{a1,x} = p_x π_x^a (1-π_x)^{1-a} μ_{ax}` etc. is not an extra field: on the finite alphabet every law admits it with `p_x := cellMass P x`, `π_x := propensity P x`, `μ_{ax} := outcomeMean P a x`, and the free choice on null cells is exactly Lean's totalizing `0/0 = 0` convention; F2 must emit a `def`-unfolding lemma `observedModelClass_factorization` witnessing that, so the encoding is provably the note's class and not a weakening. SEARCH TRACE (`unrestricted discrete confounder observed law class overlap`): `Causalean.Estimation.MinimaxATE.InClass`/`InClassDGP` (Model.lean:152-159) index by nuisance-estimator accuracy and fix a uniform covariate marginal — bypass-justified; the exact analogue is `STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean:244` (`ExperimentClass`), which additionally bundles the sampling atom. MATHLIB-SIDE CHECK: not applicable."
+    },
+    "def:observed-optimal-value": {
+      "lean_kind": "def",
+      "lean_name": "observedOptimalValue",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "`noncomputable def observedOptimalValue {d} (P : DiscreteLaw d) : ℝ := ∑ x : Fin d, cellMass P x * max (outcomeMean P false x) (outcomeMean P true x)`. Independence of the null-cell choice of `μ_{ax}` is automatic because the null cell contributes `0 * _ = 0`; F2 emits that as a `simp` lemma. SEARCH TRACE (`optimal regression value cellwise maximum weighted`): nothing in Causalean (`Causalean.Estimation.MinimaxATE.ate` is the signed contrast); nothing in Mathlib beyond `Finset.sum`/`max`. Small, build-inline."
+    },
+    "def:minimax-risk": {
+      "lean_kind": "def",
+      "lean_name": "Causalean.Stat.minimaxValue",
+      "disposition": "reuse",
+      "reuse": "Causalean.Stat.minimaxValue",
+      "modules": [
+        "Causalean.Stat.Minimax.MinimaxValue",
+        "Causalean.Stat.Minimax.MinimaxRisk",
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "REUSE at the right abstraction. `Causalean.Stat.minimaxValue (risk : E → Θ → ℝ) : ℝ := ⨅ e, ⨆ θ, risk e θ` (Causalean/Stat/Minimax/MinimaxValue.lean:59, namespace `Causalean.Stat`, verified by reading the file) is instantiated at `E := {f : (Fin n → Obs d) → ℝ // Measurable f}`, `Θ := {P : DiscreteLaw d // ObservedModelClass epsilon P}`, and `risk est P := Causalean.Stat.sqRisk (productLaw P.1 n) est.1 (observedOptimalValue P.1)` (`sqRisk` at Causalean/Stat/Minimax/MinimaxRisk.lean:180 is literally `∫ (est x - theta)^2 ∂law`, i.e. the note's squared-error risk). F2 emits `noncomputable abbrev minimaxRisk n d epsilon := Causalean.Stat.minimaxValue (…)` as a thin notation wrapper only — no new mathematics. The reuse buys the whole inf/sup calculus for free: `Causalean.Stat.worstCaseRisk`, `minimaxValue_nonneg`, `bddBelow_range_worstCaseRisk`, `minimaxValue_le_worstCaseRisk_of_nonneg` (used verbatim for the middle inequality of `thm:matched-minimax-frontier`), `le_minimaxValue`, `le_minimaxValue_of_two_point`, `minimaxValue_mono_class_of_nonneg` (used for the null-cell padding / subclass restriction step of `thm:all-estimator-lower`), and `minimaxValue_subtype_eq_sInf_setOf`."
+    },
+    "def:dense-moment-matching-construction": {
+      "lean_kind": "def",
+      "lean_name": "denseSubmodel",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.DenseConstruction",
+        "Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Basic",
+        "Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Depoissonization",
+        "Causalean.Stat.Minimax.MinimaxValue",
+        "Mathlib.Probability.Distributions.Poisson.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/DenseConstruction.lean",
+      "notes": "Source-faithful encoding: `DensePriorFamily` exactly characterizes the symmetric probability-measure pair for every even degree, including support, symmetry, moment matching through that degree, and the `2 E_K` absolute-moment gap. `denseSubmodel n d epsilon hdom priors` specializes this full family at `lowerDegree d` under only `DenseConstructionDomain`: `d ≥ 2`, `0 < epsilon < 1/2`, and the intrinsic positive/support range `0 < denseAmplitude n d ≤ 1/2` needed for its scaled prior to be carried on `DenseContrast d`. It does not assume the theorem-only regime `d^2 < n`. Strict separation and its upper bound are conclusions in `DenseMomentMatchingCertificate`, not fields of the construction. The bundled Poissonized risk is `poissonOptimalValueRisk (2 * n) d epsilon`. The actual one-cell likelihood is the two-count ratio `(1+theta)^Nplus (1-theta)^Nminus` under independent baseline `Pois(lambda/2)` counts. SEARCH TRACE remains the S4 trace: Causalean supplies TV/chi-square/Le Cam/depoissonization but not the cited moment-matched priors."
+    },
+    "def:constant-handle": {
+      "lean_kind": "def",
+      "lean_name": "sharpConstantHandle",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.OpenQuestions"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "OpenQuestions.lean",
+      "notes": "NON-ASSERTIVE DESCRIPTIVE CARRIER. The core declares \\(\\mathscr H_\\epsilon^{\\mathrm{const}}\\) with `role: \"open construction\"` and describes a derivation ROUTE (rescale the pilot-local four-cell rectangles by their Poisson noise geometry; optimize the tensor-polynomial bias--variance functional for `f̄_ε`; dualize the approximation constraint into moment-matched observed laws in the class for the target `Ψ`). A route is not a mathematical object with a membership criterion, so it is encoded as `def sharpConstantHandle (epsilon : ℝ) : _root_.List _root_.String := [\"rescale the pilot-local four-cell rectangles by their Poisson noise geometry\", \"optimize the tensor-polynomial bias-variance functional for the globally Lipschitz cell extension at overlap constant …\", \"dualize the approximation constraint into moment-matched observed laws in the overlap class for the optimal-regression target\"]` — a closed non-`Prop` payload that changes when the route changes, and never a `Prop`, `PUnit`, `True` or empty tag. It is not a proof obligation and no delivered theorem depends on it; it exists so `oeq:sharp-overlap-constant` can name it. SEARCH TRACE (`sharp constant dual program approximation moment`): `Causalean/Stat/Nonparametric/MomentProblems/ScoreProgram/` and `Causalean/PO/ID/Partial/LP/ConicDuality.lean` are genuine dual-program modules but formalize different programs; nothing matches a named derivation route. MATHLIB-SIDE CHECK: not applicable."
+    },
+    "prop:identification-and-extension": {
+      "lean_kind": "theorem",
+      "lean_name": "identification_and_extension",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TIdentificationAndExtension",
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.ConeExtension"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TIdentificationAndExtension.lean",
+      "hyps": [
+        "def:observed-model-class",
+        "def:model-class"
+      ],
+      "notes": "Four conclusions in one theorem: (i) `q_x ∈ overlapCone epsilon`; (ii) `observedOptimalValue P = ∑ x, globalCellValue epsilon (cellVector P x)`; (iii) `0 ≤ globalCellValue epsilon u ≤ vectorMass u` and the `(1 + ε⁻¹)`-Lipschitz bound in the ℓ¹ norm on all of `ℝ_+^4`; (iv) the two-way experiment equivalence — an explicit completion `Q : PotentialLaw d` with `CausalCompletionClass epsilon Q ∧ observedMarginal Q = P`, and conversely `ObservedModelClass epsilon (observedMarginal Q)` for every `Q` in the class. HYPS ROLE: `def:observed-model-class` is a genuine hypothesis (it bundles `ass:fixed-overlap`); `def:model-class` is listed because it is the membership predicate of the completion asserted in conclusion (iv) and is the bundle through which the dependencies `ass:consistency` and `ass:conditional-exchangeability` enter — it appears in the Lean statement's conclusion rather than its binder list, and F2 should place it accordingly. SEARCH TRACE (`identification observed regression equals potential outcome mean`, `Lipschitz bound ratio functional gradient`): no Causalean decl proves this bridge for the cellwise maximum; REUSED in the proof — `LipschitzWith.max` / `abs_max_sub_max_le_max` (Mathlib) for conclusion (iii)'s reduction of the max to the two arms, `Convex.inner_smul_le_norm_mul_norm`-free mean-value argument via `norm_image_sub_le_of_norm_deriv_le_segment`. Build-inline crux."
+    },
+    "lem:simultaneous-jackson-certificate": {
+      "lean_kind": "lemma",
+      "lean_name": "simultaneous_jackson_certificate",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.JacksonCertificate",
+        "Causalean.Mathlib.Analysis.BernsteinSzegoTrig.Szego",
+        "Mathlib.RingTheory.Polynomial.Chebyshev"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/JacksonCertificate.lean",
+      "hyps": [],
+      "notes": "One polynomial, two conclusions: the vertex-adaptive pointwise bound `|P_{x,K}(v) - f̄_ε(v)| ≤ C_ε ∑_ȷ {√((v_ȷ-ℓ_ȷ)(u_ȷ-v_ȷ))/K + r_ȷ/K²}` on `Q_x`, and the centered coefficient envelope `∑_α |b_{x,α}| ≤ A^K (1+ε⁻¹) ∑_ȷ r_ȷ`. No core assumption is a dependency, so `hyps` is empty; the numeric side conditions (`0 < ε < 1/2`, `2 ≤ K`, positive radii) are ordinary binders, not core nodes. SEARCH TRACE (`Jackson kernel moment bounds`, `positive kernel first and second moment K^{-1} K^{-2}`, `Chebyshev coefficient l1 envelope exponential`): nothing in Causalean or Mathlib proves a Jackson-kernel rate — see the S3 trace. REUSED in the proof: `Causalean.Mathlib.Analysis.BernsteinSzegoTrig.cos_nat_mul_isTrigPolyLE`, `cosComp_isTrigPolyLE`, `IsTrigPolyLE.{add,sub,const_mul,mono,congr}` (Szego.lean:71-130) for the coordinate-degree bookkeeping; `Polynomial.Chebyshev.T`, `Polynomial.Chebyshev.T_real_cos` and the recursion `T_{h+1} = 2X T_h - T_{h-1}` for the `c_h ≤ (1+√2)^h` monomial-coefficient bound. ANALOGOUS MODULE for the envelope half: `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Helpers/MvPolynomialEnvelope.lean` (`monomialWeight`, `coefficientEnvelope`, `coefficientEnvelope_extend`) and `Helpers/ShiftedChebyshev.lean:135` (`shiftedChebyshevExpansion`) — same four-cell `MvPolynomial Cell ℝ` envelope pattern under a different approximant; F3 adapts them, bridging the gap that here the basis is the tensor Chebyshev basis on `[-1,1]^4` rather than a one-dimensional shifted basis. Build-inline crux."
+    },
+    "lem:centered-factorial-pilot-control": {
+      "lean_kind": "lemma",
+      "lean_name": "centered_factorial_pilot_control",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.PilotControl",
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.FactorialLift",
+        "Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Partition.Splitting",
+        "Causalean.Stat.Concentration.TailBounds"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/PilotControl.lean",
+      "hyps": [
+        "ass:iid-sampling",
+        "def:observed-model-class"
+      ],
+      "notes": "The signature uses the actual uncapped experiment induced by a finite Poisson sample with `M ~ Pois(n/4)` and independent fair Bool marks. It fixes `m = n/8`, states the total-count marginal, identifies the complete marked count table with independent pilot/evaluation Poisson tables, projects that splitting to every `(x,j)` cell, and states both factorial identities as evaluation expectations conditional on an arbitrary fixed pilot table. The cell bias and variance bounds use this same `m`; pilot failure is exactly the complement of the paper's coordinatewise event `G_x = ∀ j, |N'_{j,x}/m-q_{j,x}| ≤ h_{j,x}/4`, and has separate absolute first-moment and squared second-moment bounds at the corresponding local `p_x` scales. It must not be weakened to mere failure of membership in the radius-`h` pilot rectangle. The canonical i.i.d. handle is threaded explicitly. SEARCH TRACE (`Poisson splitting independent cell counts generating function`, `factorial moment unbiased estimator variance`, `Poisson tail Chernoff sqrt(2λz)+2z`): REUSED — `Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.finitePoissonSampleLaw`, `finitePoissonSampleLaw_map_count`, and `map_restrictPartition_finiteMarkedPoissonSampleLaw` supply the induced count law and its pilot/evaluation splitting; `Causalean.Stat.poissonMeasure_singleton_eq_poissonPMF` links to `ProbabilityTheory.poissonPMFReal`. MATHLIB-SIDE CHECK: `Nat.descFactorial` and `Nat.descFactorial_eq_prod_range`; no packaged centered-factorial operator exists. Build-inline crux."
+    },
+    "thm:jackson-factorial-upper": {
+      "lean_kind": "theorem",
+      "lean_name": "jackson_factorial_upper",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TJacksonFactorialUpper",
+        "Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Depoissonization",
+        "Causalean.Stat.Sample.FiniteStratumMarkedRatioMse.Main"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TJacksonFactorialUpper.lean",
+      "hyps": [
+        "ass:iid-sampling",
+        "def:observed-model-class"
+      ],
+      "notes": "`∀ 0 < ε < 1/2, ∃ C_ε < ∞, ∀ n ≥ 1, d ≥ 2, worstCaseRisk over ObservedModelClass of jacksonFactorialEstimator ≤ C_ε * min 1 (d/(n * log (e*d)))`. Three regimes: the Jackson branch (`d ≥ D_0`, `n ≥ d/L_d`) via `lem:centered-factorial-pilot-control` plus across-cell independence; the saturated branch (risk ≤ 1/4 while the rate is 1); and the bounded-alphabet fallback `2 ≤ d < D_0` via the empirical-ratio estimator. SEARCH TRACE (`Poisson coupling capped sample exponential Markov`, `Rao-Blackwell conditional Jensen squared loss`, `binomial inverse count expectation 2/(k rho)`): REUSED — `Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.poisson_two_n_lower_tail` and `map_canonicalPrefixObservations_restrict_count_ge` (Depoissonization.lean:198,163) for the `{M ≤ n}` coupling step (18); `MeasureTheory.integral_condExp` / `condExp_sq_le` route (Mathlib `MeasureTheory.Function.ConditionalExpectation`) for the Rao--Blackwell conditional-Jensen step; `Causalean.Stat.integral_fixedStratumArm_error_sq_le` and `missingArmExponentialEnvelope_le_lowerMass` (Causalean/Stat/Sample/FiniteStratumMarkedRatioMse/{Main.lean:431, MissingMoments.lean:690}) for the bounded-alphabet branch's steps (19)-(22) — the `E[1{H>0}/H] ≤ 2/(kρ)` and empty-arm-cell bookkeeping is exactly what those prove for a stratum-wise ratio. MATHLIB-SIDE CHECK: `Finset.inner_mul_le_norm_mul_norm` / `Finset.sum_div_pow_mul_fract`-free; the Cauchy--Schwarz steps are `Finset.inner_mul_le_norm_mul_norm` or `Finset.sum_sqrt_mul_sqrt_le`. Paper-owned headline result: build-inline, `defer_tier:false`, `gate:false`, however hard."
+    },
+    "prop:equal-propensity-l1-reduction": {
+      "lean_kind": "theorem",
+      "lean_name": "equal_propensity_l1_reduction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TEqualPropensityL1Reduction",
+        "Causalean.Stat.Minimax.MarkovKernelTransport",
+        "Causalean.Stat.Minimax.MinimaxValue"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TEqualPropensityL1Reduction.lean",
+      "hyps": [
+        "ass:iid-sampling"
+      ],
+      "notes": "Two conclusions: the identities `p_x = (P_x+Q_x)/2`, `π_x = 1/2`, `Ψ = 1/2 + ‖P-Q‖₁/4` for the embedded margin, and the factor-1/16 minimax transfer. SEARCH TRACE (`Markov kernel transport minimax squared risk`, `affine pullback estimator risk`, `product kernel n independent observations`): STRONG REUSE — `Causalean.Stat.forall_estimator_exists_sqRisk_ge_of_kernel_affine_transport_pi` (Causalean/Stat/Minimax/MarkovKernelTransport.lean:372) is exactly this reduction pattern: given a Markov kernel `K : Kernel X Y`, its `finProductKernel n K` (line 250, with `finProductKernel_comp_pi` at line 289 proving the product law is transported), and an affine map `a * v + b`, every estimator in the target experiment has squared risk at least that of the affine pullback in the source. Instantiate with `X := Fin d ⊕ Fin d`-style paired draw, `Y := Obs d`, `a := 4`, `b := -2` (i.e. `L̂ = 4(V̂ - 1/2)`); the supporting `sqRisk_kernelAffinePullback_le_comp` (line 193) and `uniformlyBounded_kernelAffinePullback` (line 100) discharge the conditional-Jensen step (17) of the note's proof. This is not a full discharge of the node (the Ψ identity and the class-membership half are paper-owned), so the node stays `define-local`, but F3 must build the proof on top of these decls rather than re-deriving the transport. Build-inline."
+    },
+    "lem:dense-moment-matching-lower": {
+      "lean_kind": "lemma",
+      "lean_name": "dense_moment_matching_lower",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.DenseMomentMatchingLower",
+        "Causalean.Stat.Minimax.TotalVariation",
+        "Causalean.Stat.Minimax.LeCam",
+        "Causalean.Stat.Minimax.ChiSquared",
+        "Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Depoissonization",
+        "CausalSmith.Mathlib.InformationTheory.ProductChiSquared"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/DenseMomentMatchingLower.lean",
+      "hyps": [
+        "ass:iid-sampling",
+        "lem:cai-low-absolute-moment-priors"
+      ],
+      "notes": "GATE-CONSUMER: this lemma is in scope and is proved CONDITIONAL on the cited gate `lem:cai-low-absolute-moment-priors`, which is threaded as an explicit hypothesis (the moment-matched pair and the `c/K ≤ E_K ≤ C/K` bracket are its only external inputs). Everything else — the class membership of `Obs(P_θ^dense)`, the target identity `Ψ = 1/2 + (2d)^{-1}∑|θ_x|`, the one-cell likelihood identity `E_0[L L'] = exp(λ θ θ')`, the χ² tail bound (22)-(24), the prior-variance Chebyshev step (25)-(26), the two-point testing bound (27), and the Poisson-to-fixed-sample transfer (28) — is paper-owned build-inline work. SEARCH TRACE (`chi square divergence product prior moment matching`, `total variation between mixtures`, `Poissonized minimax to fixed sample transfer`): REUSED — `Causalean.Stat.tvDist` + `one_sub_tvDist_le_test` (TotalVariation.lean:49,107), `Causalean.Stat.half_one_sub_tvDist_le_max_error` (LeCam.lean:76), `Causalean.Stat.tvDist_le_half_sqrt_chiSqDiv` and `chiSqDiv_prod` (ChiSquared.lean:66,184), `CausalSmith.Mathlib.ProductChiSquared.one_add_chiSqDiv_pi_iid_general` for the across-cell tensorization, and `Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.poisson_two_n_lower_tail` (Depoissonization.lean:198) for the final `P{Pois(2n) < n} ≤ e^{-n/4}` step. MATHLIB-SIDE CHECK: `Polynomial.eval`, `Finset.sum_range_succ`, `Real.add_pow_le_pow_mul_pow_of_sq_le_sq` for the series tail; `Nat.factorial_le_pow`-style `r! ≥ (r/e)^r` is `Nat.factorial_le` plus `Real.exp` bounds, small and local. Build-inline crux."
+    },
+    "thm:all-estimator-lower": {
+      "lean_kind": "theorem",
+      "lean_name": "all_estimator_lower",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TAllEstimatorLower",
+        "Causalean.Stat.Minimax.MinimaxRisk",
+        "Causalean.Stat.Minimax.MinimaxValue",
+        "Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Depoissonization"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TAllEstimatorLower.lean",
+      "hyps": [
+        "ass:iid-sampling",
+        "lem:cai-low-absolute-moment-priors",
+        "lem:jhw-poisson-l1-lower"
+      ],
+      "notes": "Conditional headline with exactly the three premises already declared in the frozen dependency list: one canonical i.i.d.-experiment premise and the two exact borrowed Cai--Low and Jiao--Han--Weissman propositions. The i.i.d. premise is `h_iid : ∀ {d n} (P : DiscreteLaw d), IidSampling P (productLaw P n)`, tying every experiment used by `minimaxRisk` to its actual canonical product law; it adds no alternate sample measure. The borrowed inputs are explicit hypotheses `h_cai_low : CaiLowAbsoluteMomentPriors` and `h_jhw : JhwPoissonL1Lower`; neither is re-proved or synthesized. Four exhaustive regimes: dense Poisson moment matching (`n > d²`), the exact `L₁` slice (`c_0 d/L_d ≤ n ≤ d²`), null-cell padding in the saturated regime, and the regular two-point pair for bounded `d`. SEARCH TRACE (`two point lower bound chi squared iid product`, `subclass restriction lower bounds minimax`, `null cell padding preserves law`): REUSED — `Causalean.Stat.iid_two_point_lower_bound` and `two_point_lower_bound_of_chiSqDiv_le` (Causalean/Stat/Minimax/MinimaxRisk.lean:88,105) prove exactly the regular two-point step (29)-(30) with `δ = 1/(8√n)` and `χ²(P₁,P₀) = 2δ²`; `Causalean.Stat.minimaxValue_mono_class_of_nonneg` and `worstCaseRisk_mono_class_of_nonneg` (MinimaxValue.lean:232,184) give the `restricting to a subclass lower-bounds the supremum` step used at every regime boundary; `poisson_two_n_lower_tail` gives the fixed/Poisson transfer (32). Paper-owned theorem: build-inline, `defer_tier:false`, `gate:false`; only the two named cited propositions remain borrowed."
+    },
+    "thm:matched-minimax-frontier": {
+      "lean_kind": "theorem",
+      "lean_name": "matched_minimax_frontier",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TMatchedMinimaxFrontier",
+        "Causalean.Stat.Minimax.MinimaxValue"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TMatchedMinimaxFrontier.lean",
+      "hyps": [
+        "lem:cai-low-absolute-moment-priors",
+        "lem:jhw-poisson-l1-lower"
+      ],
+      "notes": "The headline three-inequality chain plus the causal transfer, conditional only on the two exact borrowed propositions `CaiLowAbsoluteMomentPriors` and `JhwPoissonL1Lower`, which are threaded unchanged into `all_estimator_lower`. SEARCH TRACE (`minimax value at most worst case risk of a given estimator`): REUSED — `Causalean.Stat.minimaxValue_le_worstCaseRisk_of_nonneg` (Causalean/Stat/Minimax/MinimaxValue.lean:136) is EXACTLY the middle inequality (3) of the note's proof (evaluate the infimum at the admissible Jackson--factorial estimator); `Causalean.Stat.worstCaseRisk_eq_sSup_range` and `minimaxValue_subtype_eq_sInf_setOf` (lines 247,297) unfold the sup/inf over the class and estimator subtypes. The causal transfer (4) is a `csInf`/`ciSup` congruence over the two experiments, discharged by `prop:identification-and-extension` (surjectivity of `observedMarginal`) and `prop:causal-optimal-value-corollary` (target equality). Build-inline."
+    },
+    "prop:parent-reduction": {
+      "lean_kind": "theorem",
+      "lean_name": "parent_reduction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TParentReduction"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TParentReduction.lean",
+      "hyps": [
+        "lem:cai-low-absolute-moment-priors",
+        "lem:jhw-poisson-l1-lower"
+      ],
+      "notes": "Conditional on the same two exact borrowed propositions threaded to the matched frontier, existentially bind the same universal `JacksonTuning`, state the predecessor comparisons as actual bounds on `minimaxRisk`, use that tuning's cutoff in the exact estimator branch identity, and express the bounded-sequence parametric rate by `EventualParametricRisk`. Its comparison constants are chosen after the fixed sequence and may depend on epsilon and its finite alphabet bound; no constants are shared uniformly over all bounded sequences. SEARCH TRACE (`log(ed) vs log(en)` and `min` comparisons): elementary real analysis over `Real.log`; no matching Causalean theorem."
+    },
+    "thm:consistency-and-parametric-boundaries": {
+      "lean_kind": "theorem",
+      "lean_name": "consistency_and_parametric_boundaries",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TConsistencyParametricBoundaries"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TConsistencyParametricBoundaries.lean",
+      "hyps": [
+        "lem:cai-low-absolute-moment-priors",
+        "lem:jhw-poisson-l1-lower"
+      ],
+      "notes": "Conditional on the same two exact borrowed propositions threaded to the matched frontier, prove the two `iff` statements along arbitrary sequences: uniform consistency `↔ d = o(n log(en))`, and per-sequence parametric MSE `↔ d = O(1)`, each transferred to the causal experiment. `ParametricRate risk := ∃ c C, 0 < c ∧ c ≤ C ∧ ∀ᶠ n, c/n ≤ risk n ∧ risk n ≤ C/n`; because it is instantiated after a fixed `dseq`, the comparison constants may depend on epsilon and that sequence's finite alphabet bound. They are not uniform over all bounded sequences. Stated with `Filter.Tendsto`/`Asymptotics.IsBigO`/`Asymptotics.IsLittleO` at `Filter.atTop`. SEARCH TRACE (`o(n log n) equivalence`, `bounded above and away from zero Theta`): the remaining content is real-sequence manipulation; no Causalean or Mathlib decl states the equivalence."
+    },
+    "oeq:sharp-overlap-constant": {
+      "lean_kind": "def",
+      "lean_name": "sharpOverlapConstantQuestion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.OpenQuestions"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "OpenQuestions.lean",
+      "oeq_case": "B",
+      "notes": "OPEN QUESTION, `status: \"to-prove\"`, mapped to a `def`, NEVER a `theorem`. TWO-CASE READING OF THE FROZEN NODE TEXT → CASE (B). The node is a conjunction. Its first half (`does (n log(ed)/d) 𝔯_{n,d,ε} converge to a finite positive limit along each nonsaturated sequence`) is fully specified. Its second half (`and can an estimator attaining that limit be derived through 𝓗_ε^const`) is not: `𝓗_ε^const` is declared in the core with `role: \"open construction\"` and `def:constant-handle` describes a derivation ROUTE, not an object with a membership criterion, so `derivable through 𝓗_ε^const` carries no truth condition. A `Prop` encoding would therefore have to either silently drop the second conjunct or invent a criterion the note does not state; both are infidelities. Encoding: `def sharpOverlapConstantQuestion (epsilon : ℝ) : _root_.String := \"…\"` — a full descriptive `String` recording (a) the nonsaturated regime `d → ∞` with `d/(n log(ed)) → 0`, (b) the normalized risk `(n log(ed)/d) 𝔯_{n,d,ε}` and the question whether its liminf and limsup coincide at a finite positive limit, (c) the second alternative, whether an attaining estimator is derivable through the sharp-constant handle, (d) the explicit disclaimer that the matched frontier proves only `0 < c_ε ≤ liminf ≤ limsup ≤ C_ε < ∞` and asserts neither convergence, nor a cone-dependent optimal leading constant, nor an attaining estimator. The payload contains NO selector, procedure, rate, confidence or lower-bound witness field, is never `PUnit`/`Unit`/`True`/an empty tag, and changes whenever the question changes. `defer_tier:false`, `gate:false`, excluded from any theorem manifest, and no delivered theorem depends on it. SEARCH TRACE (`sharp constant Bernstein absolute value nonsmooth functional`): `CaiLow2011L1` obtains a Bernstein-constant characterization in a Gaussian experiment and `JiaoHanWeissman2018L1` gives rate equivalence only; neither identifies the overlap-cone constant, and neither Causalean nor Mathlib contains any such decl."
+    },
+    "lem:cai-low-absolute-moment-priors": {
+      "lean_kind": "assumption",
+      "lean_name": "CaiLowAbsoluteMomentPriors",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.CitedGates"
+      ],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "source": "cite:cai-low-2011-l1",
+      "carrier": "logical-claim",
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "consumers": [
+        "lem:dense-moment-matching-lower",
+        "thm:all-estimator-lower",
+        "thm:matched-minimax-frontier",
+        "prop:parent-reduction",
+        "thm:consistency-and-parametric-boundaries"
+      ],
+      "notes": "FROZEN CITED LOGICAL CLAIM. `carrier: \"logical-claim\"` is fixed by D0 and mapped exactly: a named proposition `def CaiLowAbsoluteMomentPriors : Sort 0 := ∀ K : ℕ, Even K → 0 < K → ∃ ν₀ ν₁ : Measure ℝ, IsProbabilityMeasure ν₀ ∧ IsProbabilityMeasure ν₁ ∧ (supports in [-1,1]) ∧ (symmetry) ∧ (∀ l ≤ K, ∫ t^l ∂ν₁ = ∫ t^l ∂ν₀) ∧ ∫ |t| ∂ν₁ - ∫ |t| ∂ν₀ = 2 * bestEvenApproxError K` together with the universal bracket `∃ c C, 0 < c ∧ c < C ∧ ∀ even K, c/K ≤ bestEvenApproxError K ∧ bestEvenApproxError K ≤ C/K`. F2 writes the proposition universe as the unshadowable `Sort 0`, never a shadowable `Prop` identifier. It is threaded as an explicit hypothesis into `lem:dense-moment-matching-lower` (its only direct consumer) and reaches `thm:all-estimator-lower`, `thm:matched-minimax-frontier`, `prop:parent-reduction` and `thm:consistency-and-parametric-boundaries` transitively as an inherited Lean hypothesis. It is NEVER reconstructed as sub-lemmas and NEVER turned into a non-gate assumption or a crux. SEARCH TRACE (`best uniform polynomial approximation of absolute value`, `moment matched priors Hahn-Banach`, `Bernstein constant`): grepped `Chebyshev|bestApprox|Bernstein` across `Causalean/` — hits are `Causalean/Mathlib/Analysis/BernsteinSzegoTrig/*` (Bernstein--Szegő derivative inequality for trigonometric polynomials) and `Causalean/Mathlib/Analysis/EhlichZellerMesh/Bernstein.lean` (mesh/Bernstein interpolation), neither about best approximation of `|t|`; `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Helpers/{ShiftedChebyshev,OneArmShiftedPrior}.lean` build moment-matched priors for a SHIFTED RATIONAL functional (`oneArmLobatto_shifted_uniform_gap`), not for `|t|`. MATHLIB-SIDE CHECK: `lean_loogle \"Polynomial.Chebyshev.T\"` returns only the Chebyshev family and its algebra; `lean_leansearch` for best uniform approximation returns `exists_polynomial_near_of_continuousOn` (qualitative Weierstrass, no rate) and `bernsteinApproximation` (Bernstein operator, wrong rate). Genuinely infeasible to build here: the Hahn--Banach duality plus the sharp `β_* k^{-1}(1+o(1))` Bernstein constant is a major upstream approximation-theory contribution. Effort: large."
+    },
+    "lem:jhw-poisson-l1-lower": {
+      "lean_kind": "assumption",
+      "lean_name": "JhwPoissonL1Lower",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.CitedGates"
+      ],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "source": "cite:jiao-han-weissman-2018-l1",
+      "carrier": "logical-claim",
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "consumers": [
+        "thm:all-estimator-lower",
+        "thm:matched-minimax-frontier",
+        "prop:parent-reduction",
+        "thm:consistency-and-parametric-boundaries"
+      ],
+      "notes": "FROZEN CITED LOGICAL CLAIM. `carrier: \"logical-claim\"` fixed by D0 and mapped exactly: a named proposition `def JhwPoissonL1Lower : Sort 0 := ∀ c₀ C₀ : ℝ, 0 < c₀ → 0 < C₀ → ∃ c₁ : ℝ, 0 < c₁ ∧ ∀ (d : ℕ) (n : ℕ), 2 ≤ d → (c₀ * d / Real.log (Real.exp 1 * d) ≤ n) → (Real.log (Real.exp 1 * n) ≤ C₀ * Real.log (Real.exp 1 * d)) → c₁ * min 1 (d / (n * Real.log (Real.exp 1 * n))) ≤ poissonL1FiniteRiskMinimaxRisk n d`. This encodes the source-faithful interpretation: the positive regime constants c₀ and C₀ are arbitrary fixed inputs, and the positive lower constant c₁ may depend on them, where `poissonL1FiniteRiskMinimaxRisk` is the local `Causalean.Stat.minimaxValue` instance over measurable estimators whose squared loss is integrable at every simplex-law pair and whose risk profile over simplex-law pairs is bounded above, for estimating `‖P - Q‖₁` from two independent `Pois(2n)` samples over `Δ_d²`; this finite-worst-case-risk scope faithfully represents finite minimax mean-squared error and prevents both nonintegrable Bochner losses and unbounded real suprema from receiving junk values. F2 writes the proposition universe as the unshadowable `Sort 0`. The exact borrowed claim is an explicit public theorem hypothesis `h_jhw : JhwPoissonL1Lower` on `thm:all-estimator-lower`, and is threaded unchanged through every downstream headline consumer; it is NEVER reconstructed, proved internally, or replaced by paper-owned transfer machinery. SEARCH TRACE (`L1 distance minimax lower bound large alphabet`, `two sample multinomial distance estimation`, `Poissonized minimax risk multinomial`): grepped `L1|totalVariation|distance estimation|large alphabet` across `Causalean/Stat/` — `Causalean.Stat.leCam_two_point_L1_lower` (Minimax/LeCamTwoPoint.lean:78) is a two-point `L₁` bound for a generic parameter, not the large-alphabet `d/(n log n)` rate; `Causalean/Stat/Sample/CollisionEstimator.lean` handles collision/quadratic functionals; nothing proves this theorem. MATHLIB-SIDE CHECK: not a Mathlib subject (`lean_leansearch` for large-alphabet distance estimation returns nothing relevant). Genuinely infeasible to build here: the proof is an entire published paper's worth of polynomial-approximation lower-bound machinery over a growing alphabet. Effort: large."
+    },
+    "prop:causal-optimal-value-corollary": {
+      "lean_kind": "theorem",
+      "lean_name": "causal_optimal_value_corollary",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TCausalOptimalValueCorollary"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TCausalOptimalValueCorollary.lean",
+      "hyps": [
+        "def:model-class"
+      ],
+      "notes": "`∀ Q : PotentialLaw d, CausalCompletionClass epsilon Q → oracleValue Q = observedOptimalValue (observedMarginal Q)`. The hypothesis `def:model-class` is the bundle carrying the two assumption dependencies `ass:consistency` and `ass:conditional-exchangeability` (and, redundantly here, `ass:fixed-overlap`); listing the class rather than the atoms is the note's own atomization. The proof is finite summation over atoms: exchangeability turns `E[Y(a) | X=x]` into `E[Y(a) | A=a, X=x]` on occupied cells (positive by overlap), consistency turns that into `E[Y | A=a, X=x] = μ_{ax}`, and null cells contribute zero on both sides. SEARCH TRACE (`identification of counterfactual mean under exchangeability and consistency`): `Causalean.PO.Assumptions.ConsistencyLemmas.POVar.cf_eq_factual_on_event` and `Causalean.PO.CondIndepCF.component` prove this pattern for the regime-indexed `POSystem`; bypass-justified per S2 (finite five-fold product versus abstract `Ω` with `EventCondExp`). MATHLIB-SIDE CHECK: `Finset.sum_congr`, `PMF.map_apply`, `div_mul_cancel₀`. Small-to-medium, build-inline."
+    }
+  },
+  "file_plan": {
+    "target_dir": "CausalSmith/Stat/STAT_DiscreteOptimalValueMinimaxMatched_Research",
+    "barrel": "CausalSmith/Stat/STAT_DiscreteOptimalValueMinimaxMatched_Research.lean",
+    "layout_rationale": "Fourteen statement nodes, so the layout is one `T<id>.lean` per delivered theorem plus a shared `Basic.lean` for the model and a `Helpers/` chain for the L-lemmas and constructions. The helper chain is split by subsystem (cone geometry → Jackson kernel → certificate; factorial lift → estimator → pilot control; L1 embedding → dense construction → dense lower bound), each file with a single upstream dependency direction, so every file stays well under the 600-line target after F3's proofs land. `Helpers/PilotControl.lean` and `Helpers/DenseMomentMatchingLower.lean` are the two most likely to need a later split (they carry the longest proof chains); F2 may pre-split them by proof stage.",
+    "files": [
+      {
+        "path": "Basic.lean",
+        "nodes": [
+          "ass:iid-sampling",
+          "ass:consistency",
+          "ass:conditional-exchangeability",
+          "ass:fixed-overlap",
+          "def:model-class",
+          "def:observed-model-class",
+          "def:observed-margin",
+          "def:observed-optimal-value",
+          "def:oracle-value",
+          "def:minimax-risk"
+        ],
+        "projected_lines": 480
+      },
+      {
+        "path": "Helpers/ConeExtension.lean",
+        "nodes": [
+          "def:overlap-cone",
+          "def:global-extension"
+        ],
+        "projected_lines": 320
+      },
+      {
+        "path": "Helpers/JacksonKernel.lean",
+        "nodes": [
+          "def:jackson-kernel"
+        ],
+        "projected_lines": 380
+      },
+      {
+        "path": "Helpers/JacksonCertificate.lean",
+        "nodes": [
+          "lem:simultaneous-jackson-certificate"
+        ],
+        "projected_lines": 560
+      },
+      {
+        "path": "Helpers/FactorialLift.lean",
+        "nodes": [],
+        "projected_lines": 300,
+        "role": "the centered factorial operator U_h(N;z) and its Poisson moment identities, factored out of def:jackson-factorial-estimator and lem:centered-factorial-pilot-control"
+      },
+      {
+        "path": "Helpers/Estimator.lean",
+        "nodes": [
+          "def:empirical-ratio-estimator",
+          "def:jackson-factorial-estimator"
+        ],
+        "projected_lines": 420
+      },
+      {
+        "path": "Helpers/PilotControl.lean",
+        "nodes": [
+          "lem:centered-factorial-pilot-control"
+        ],
+        "projected_lines": 600
+      },
+      {
+        "path": "Helpers/L1Embedding.lean",
+        "nodes": [
+          "def:l1-embedding"
+        ],
+        "projected_lines": 220
+      },
+      {
+        "path": "Helpers/DenseConstruction.lean",
+        "nodes": [
+          "def:dense-moment-matching-construction"
+        ],
+        "projected_lines": 400
+      },
+      {
+        "path": "Helpers/DenseMomentMatchingLower.lean",
+        "nodes": [
+          "lem:dense-moment-matching-lower"
+        ],
+        "projected_lines": 580
+      },
+      {
+        "path": "Helpers/CitedGates.lean",
+        "nodes": [
+          "lem:cai-low-absolute-moment-priors",
+          "lem:jhw-poisson-l1-lower"
+        ],
+        "projected_lines": 120
+      },
+      {
+        "path": "TIdentificationAndExtension.lean",
+        "nodes": [
+          "prop:identification-and-extension"
+        ],
+        "projected_lines": 520
+      },
+      {
+        "path": "TJacksonFactorialUpper.lean",
+        "nodes": [
+          "thm:jackson-factorial-upper"
+        ],
+        "projected_lines": 540
+      },
+      {
+        "path": "TEqualPropensityL1Reduction.lean",
+        "nodes": [
+          "prop:equal-propensity-l1-reduction"
+        ],
+        "projected_lines": 360
+      },
+      {
+        "path": "TAllEstimatorLower.lean",
+        "nodes": [
+          "thm:all-estimator-lower"
+        ],
+        "projected_lines": 520
+      },
+      {
+        "path": "TMatchedMinimaxFrontier.lean",
+        "nodes": [
+          "thm:matched-minimax-frontier"
+        ],
+        "projected_lines": 260
+      },
+      {
+        "path": "TCausalOptimalValueCorollary.lean",
+        "nodes": [
+          "prop:causal-optimal-value-corollary"
+        ],
+        "projected_lines": 260
+      },
+      {
+        "path": "TParentReduction.lean",
+        "nodes": [
+          "prop:parent-reduction"
+        ],
+        "projected_lines": 240
+      },
+      {
+        "path": "TConsistencyParametricBoundaries.lean",
+        "nodes": [
+          "thm:consistency-and-parametric-boundaries"
+        ],
+        "projected_lines": 280
+      },
+      {
+        "path": "OpenQuestions.lean",
+        "nodes": [
+          "def:constant-handle",
+          "oeq:sharp-overlap-constant"
+        ],
+        "projected_lines": 70
+      }
+    ]
+  },
+  "substrate_survey": [
+    {
+      "module": "Causalean/Stat/Minimax/MinimaxValue.lean",
+      "verdict": "reuse",
+      "reason": "`Causalean.Stat.minimaxValue`/`worstCaseRisk` and their monotonicity, nonnegativity and inf/sup-evaluation lemmas realize def:minimax-risk exactly and supply the middle inequality of thm:matched-minimax-frontier."
+    },
+    {
+      "module": "Causalean/Stat/Minimax/MinimaxRisk.lean",
+      "verdict": "reuse",
+      "reason": "`sqRisk` is the note's squared-error risk verbatim; `iid_two_point_lower_bound` and `two_point_lower_bound_of_chiSqDiv_le` are the regular two-point subclass of thm:all-estimator-lower."
+    },
+    {
+      "module": "Causalean/Stat/Minimax/MarkovKernelTransport.lean",
+      "verdict": "reuse",
+      "reason": "`finProductKernel`, `finProductKernel_comp_pi` and `forall_estimator_exists_sqRisk_ge_of_kernel_affine_transport_pi` are exactly the n-observation Markov-kernel plus affine-pullback reduction of prop:equal-propensity-l1-reduction."
+    },
+    {
+      "module": "Causalean/Stat/Minimax/{TotalVariation,LeCam,ChiSquared,ChiSquaredFinite}.lean",
+      "verdict": "reuse",
+      "reason": "`tvDist`, `one_sub_tvDist_le_test`, `half_one_sub_tvDist_le_max_error`, `tvDist_le_half_sqrt_chiSqDiv`, `chiSqDiv_prod` carry the testing/divergence steps of lem:dense-moment-matching-lower."
+    },
+    {
+      "module": "Causalean/Mathlib/Probability/FiniteMarkedPoissonPartition/**",
+      "verdict": "reuse",
+      "reason": "`finiteMarkedPoissonSampleLaw`, `finitePoissonSampleLaw_map_count`, `map_restrictPartition_finiteMarkedPoissonSampleLaw`, `poisson_two_n_lower_tail`, `map_canonicalPrefixObservations_restrict_count_ge` supply Poisson splitting, marked partitions and the Poissonized-to-fixed-sample transfer used by both the upper and the lower bound."
+    },
+    {
+      "module": "Causalean/Mathlib/Analysis/BernsteinSzegoTrig/**",
+      "verdict": "reuse",
+      "reason": "`IsTrigPolyLE` and `cosComp_isTrigPolyLE`/`cos_nat_mul_isTrigPolyLE` give the even-trigonometric-polynomial to polynomial-in-cos degree bridge that def:jackson-kernel and lem:simultaneous-jackson-certificate need."
+    },
+    {
+      "module": "Causalean/Stat/Sample/PiTransport.lean",
+      "verdict": "reuse",
+      "reason": "`iidSample_infinitePi` and `iidSample_finN_pushforward` give the infinite-stream-to-finite-prefix transport used when adjoining the independent continuation in thm:jackson-factorial-upper."
+    },
+    {
+      "module": "Causalean/Stat/Sample/FiniteStratumMarkedRatioMse/**",
+      "verdict": "reuse",
+      "reason": "`integral_fixedStratumArm_error_sq_le` and `missingArmExponentialEnvelope_le_lowerMass` cover the empty-arm-cell and inverse-count moment bookkeeping of the bounded-alphabet fallback branch of thm:jackson-factorial-upper."
+    },
+    {
+      "module": "CausalSmith/Mathlib/InformationTheory/ProductChiSquared.lean",
+      "verdict": "reuse",
+      "reason": "`one_add_chiSqDiv_pi_iid_general` tensorizes the χ² divergence across the d independent cells of the dense mixture."
+    },
+    {
+      "module": "Causalean/Estimation/MinimaxATE/**",
+      "verdict": "bypass-justified",
+      "reason": "Its `ValidDGP`/`InClass`/`minimaxMiss` world fixes a uniform covariate marginal and indexes the class by nuisance-estimator accuracy `(mhat, ghat, εg, εm)`; this note needs arbitrary and null cell masses with a class indexed only by overlap, and a squared-error minimax value rather than a nuisance-miss functional."
+    },
+    {
+      "module": "Causalean/PO/{Assumptions,Bridge,Conditioning}/**",
+      "verdict": "bypass-justified",
+      "reason": "The regime-indexed `POSystem`/`POVar`/`EventCondExp` API is measure-theoretic over an abstract `Ω`; here every variable is a coordinate of a five-fold finite `Fin d × Bool^4` product and identification is finite atom summation, so the general API is a strictly different abstraction level (same bypass as the accepted sibling four-cell run)."
+    },
+    {
+      "module": "Causalean/Stat/Nonparametric/SeriesSieve/Jackson.lean",
+      "verdict": "bypass-justified",
+      "reason": "Filename false positive: the file contains `piecewiseTaylorApprox` and `piecewiseTaylor_sup_approx_rate`, a piecewise-Taylor sieve for Hölder functions, not a Jackson convolution kernel; no declaration is usable for def:jackson-kernel."
+    },
+    {
+      "module": "Causalean/Stat/{Concentration,EmpiricalProcess,Efficiency,Orthogonality,SampleSplit,UStatistic}/**",
+      "verdict": "bypass-justified",
+      "reason": "Surveyed for the cell moment bounds; these are empirical-process / localization / semiparametric-efficiency toolboxes over general function classes, whereas every bound here is an explicit finite Poisson moment computation on four coordinates per cell."
+    },
+    {
+      "module": "CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/**",
+      "verdict": "analogous",
+      "reason": "Same four-cell overlap cone, same finite `DiscreteLaw`/`Overlap`/`mse`/`minimaxRisk` encoding, different (signed) estimand. Not importable — no CausalSmith research run imports another run's modules — so its `Basic.lean`, `Helpers/MvPolynomialEnvelope.lean`, `Helpers/ShiftedChebyshev.lean`, `Helpers/PilotSandwich.lean` and `Helpers/OneArmPoissonMonotonicity.lean` are recorded as adaptation references for F3, with the per-node gaps stated in the node notes."
+    }
+  ],
+  "infrastructure_needed": [
+    {
+      "id": "lem:cai-low-absolute-moment-priors",
+      "kind": "mathlib-lemma",
+      "description": "Symmetric moment-matched probability measures on [-1,1] agreeing through degree K with absolute-moment gap 2E_K, together with the two-sided bracket c/K ≤ E_K ≤ C/K for the best even-polynomial approximation error of |t|.",
+      "effort": "large"
+    },
+    {
+      "id": "lem:jhw-poisson-l1-lower",
+      "kind": "autoid-lemma",
+      "description": "Large-alphabet minimax lower bound of order min{1, d/(n log(en))} for estimating the L1 distance between two multinomials from two independent Pois(2n) samples.",
+      "effort": "large"
+    }
+  ],
+  "design_decisions": {},
+  "decisions": [
+    "The run carries no paper manifest (`state.theorems` is absent), so the paper-scoped preamble is inert: no `local_id` is set on any statement node and no `theorems` manifest is emitted.",
+    "def:observed-model-class is encoded as a one-field structure carrying only ass:fixed-overlap, matching the core's `by_member_properties` exactly. The core's displayed p/pi/mu factorization is automatic on a finite alphabet with Lean's totalizing division, and F2 must emit an explicit `observedModelClass_factorization` unfolding lemma so the encoding is provably equivalent to the note's class rather than a weakening.",
+    "prop:identification-and-extension lists def:model-class in `hyps` because that class is the bundle carrying the ass:consistency and ass:conditional-exchangeability dependencies; in the Lean statement it occurs in the conclusion (the asserted completion) rather than in the binder list, and the node note says so.",
+    "oeq:sharp-overlap-constant is read under TWO-CASE (B) and mapped to a descriptive `_root_.String` payload, because its second conjunct asks whether an estimator is derivable through the open construction 𝓗_ε^const, which carries no truth condition; def:constant-handle is correspondingly a closed `_root_.List _root_.String` route record rather than a Prop.",
+    "The two cited gates are threaded only into the direct consumers whose `depends_on` names them (P4 requires `hyps ⊆ depends_on`); their transitive reach into thm:all-estimator-lower, thm:matched-minimax-frontier, prop:parent-reduction and thm:consistency-and-parametric-boundaries is recorded in those nodes' notes so F2 scaffolds the inherited hypotheses.",
+    "thm:jackson-factorial-upper, thm:all-estimator-lower, lem:simultaneous-jackson-certificate, lem:centered-factorial-pilot-control and lem:dense-moment-matching-lower are all paper-owned `status: proved` work and are kept `defer_tier:false, gate:false` regardless of proof difficulty; the only deferred nodes are the two frozen cited gates.",
+    "Round-2 schema correction (carrier-preserving, no mathematical change): each cited gate node's `source` is now the plain cite-id STRING (`cite:cai-low-2011-l1`, `cite:jiao-han-weissman-2018-l1`) as the schema requires, with the frozen `carrier: \"logical-claim\"` kept as a sibling node key; the locator, url/doi, verbatim_statement and attestation that previously lived inside the `source` object are preserved verbatim in the corresponding `citations[]` entry, which additionally now carries the required `title`, `authors` and `year` fields plus a `node` back-pointer. Both gates remain `defer_tier:true, gate:true, gate_class:\"cited\", lean_kind:\"assumption\"`, remain threaded into exactly their direct consumers' `hyps` (lem:dense-moment-matching-lower and thm:all-estimator-lower), and remain excluded from any theorems manifest; no disposition, reuse, member set, hyp set or S-block moved.",
+    "The finite-PMF encoding of the potential-outcome overlay (rather than Causalean's regime-indexed POSystem) is bypass-justified on abstraction grounds and follows the accepted sibling four-cell run; Stage 2.5 should read `substrate_survey` for the per-module record."
+  ]
+}

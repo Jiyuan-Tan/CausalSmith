@@ -21,8 +21,7 @@ open Order
 
 noncomputable section
 
-/-- An irreducible affine closed subset of finite-dimensional complex affine space determines
-the point of the polynomial ring's prime spectrum given by its vanishing ideal. -/
+/-- For [a finite index set](hyp:ι), [a subset of the associated complex affine space](hyp:Z), and [the hypothesis that this subset is irreducible and affine Zariski-closed](hyp:hZ), [the associated prime-spectrum point](goal) is the prime ideal consisting of all complex polynomials that vanish on the subset. -/
 def primeOfIrreducible {ι : Type*} [Finite ι]
     (Z : Set (ι → ℂ)) (hZ : IsIrreducibleAffineClosed Z) :
     PrimeSpectrum (MvPolynomial ι ℂ) :=

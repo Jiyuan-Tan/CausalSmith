@@ -20,9 +20,7 @@ open scoped ENNReal
 
 namespace Causalean.Stat.Concentration
 
-/-- A function class has uniform VC-type entropy when it has a measurable
-uniform envelope, a strict population L2 radius, and polynomial empirical L2
-covers along every countable enumeration. -/
+/-- For [a measure on a measurable sample space](hyp:μ), [a class of real-valued functions indexed by a set](hyp:g), [an envelope bound](hyp:U), [a radius](hyp:σ), [a covering constant](hyp:A), and [an entropy exponent](hyp:v), [the class has uniform VC-type entropy](goal) exactly when (1) [the radius is positive](step:1), (2) [the radius is strictly smaller than the envelope bound](step:2), (3) [the covering constant is at least $e$](step:3), (4) [the entropy exponent is at least one](step:4), (5) [every function in the class is measurable](step:5), (6) [every function is bounded in absolute value by the envelope bound at every sample point](step:6), (7) [every function has population $L^2$ distance at most the radius from the zero function](step:7), and (8) [every countable enumeration of the class has the stipulated polynomial empirical $L^2$ covering property](step:8). -/
 def HasVCUniformEntropy {Ω ι : Type*} [MeasurableSpace Ω]
     (μ : Measure Ω) (g : ι → Ω → ℝ) (U σ A v : ℝ) : Prop :=
   0 < σ ∧ σ < U ∧ Real.exp 1 ≤ A ∧ 1 ≤ v ∧
@@ -33,7 +31,7 @@ def HasVCUniformEntropy {Ω ι : Type*} [MeasurableSpace Ω]
     Causalean.Stat.Concentration.HasPolynomialEmpiricalL2Cover
       (fun k => g (g0 k)) U A v
 
-/-- Countable empirical-process supremum associated with an enumeration. -/
+/-- For [a measure on a measurable sample space](hyp:μ), [a class of real-valued functions](hyp:g), [a countable enumeration of that class](hyp:g0), and [a finite sample](hyp:w), [the countable empirical-process supremum](goal) is the extended nonnegative real supremum, over the enumerated functions, of the absolute centered empirical average. -/
 noncomputable def countableEmpiricalProcessSup
     {Ω ι : Type*} [MeasurableSpace Ω] (μ : Measure Ω)
     (g : ι → Ω → ℝ) (g0 : ℕ → ι) {n : ℕ} (w : Fin n → Ω) : ℝ≥0∞ :=

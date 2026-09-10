@@ -280,7 +280,7 @@ export async function loadBundle(dir: string, id: string): Promise<Bundle> {
     // Display links are resolved here too, not inside the enrichment: a link
     // whose declaration does not exist must vanish from BOTH halves, or the
     // prose keeps a token whose Lean counterpart was never minted.
-    const resolved = resolveDisplayLinks(checked.blocks, paperLib?.entries);
+    const resolved = resolveDisplayLinks(checked.blocks, paperLib?.entries, snippets.snippets);
     validBlocks = resolved.blocks;
     linkSkips = [...linkSkips, ...checked.problems, ...resolved.problems];
   }

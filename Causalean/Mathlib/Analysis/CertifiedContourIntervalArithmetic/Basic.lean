@@ -29,42 +29,40 @@ structure RatInterval where
 
 namespace RatInterval
 
-/-- A real number is contained in a rational interval when it lies between the
-real casts of its endpoints. -/
+/-- For [a rational interval](hyp:I) and [a real number](hyp:x), [the containment relation](goal) holds precisely when [the real number is no smaller than the interval's lower endpoint](step:1) and [no larger than its upper endpoint](step:2), after the rational endpoints are viewed as real numbers. -/
 def Contains (I : RatInterval) (x : ℝ) : Prop :=
   (I.lo : ℝ) ≤ x ∧ x ≤ (I.hi : ℝ)
 
-/-- The width of a rational interval is its upper endpoint minus its lower endpoint. -/
+/-- For [a rational interval](hyp:I), [its width](goal) is the upper rational endpoint minus the lower rational endpoint. -/
 def width (I : RatInterval) : ℚ := I.hi - I.lo
 
-/-- The maximum endpoint magnitude is a rational bound for the absolute value
-of every real number in the interval. -/
+/-- For [a rational interval](hyp:I), [its maximum endpoint magnitude](goal) is the larger of the absolute values of its two rational endpoints. -/
 def maxAbs (I : RatInterval) : ℚ := max |I.lo| |I.hi|
 
-/-- Interval inclusion means that every point in the first enclosure also lies in the second. -/
+/-- For [two rational intervals](hyp:I,J), [the subinterval relation](goal) holds precisely when [the second interval's lower endpoint is no greater than the first interval's lower endpoint](step:1) and [the first interval's upper endpoint is no greater than the second interval's upper endpoint](step:2). -/
 def Subinterval (I J : RatInterval) : Prop :=
   J.lo ≤ I.lo ∧ I.hi ≤ J.hi
 
-/-- A point interval contains exactly one rational value. -/
+/-- For [a rational number](hyp:q), [the point interval at that number](goal) is the rational interval whose [lower endpoint is that number](step:1), upper endpoint is that number, and endpoints are ordered because they are equal. -/
 def point (q : ℚ) : RatInterval := ⟨q, q, le_rfl⟩
 
-/-- The convex hull of two rational intervals is their least endpoint-wise hull. -/
+/-- For [two rational intervals](hyp:I,J), [their rational interval hull](goal) has [the smaller lower endpoint](step:1), the larger upper endpoint, and these endpoints in weakly increasing order. -/
 def hull (I J : RatInterval) : RatInterval :=
   ⟨min I.lo J.lo, max I.hi J.hi, by
     exact (min_le_left _ _).trans (I.lo_le_hi.trans (le_max_left _ _))⟩
 
-/-- Addition evaluates all possible sums by adding the two lower and two upper endpoints. -/
+/-- For [two rational intervals](hyp:I,J), [their interval sum](goal) has [lower endpoint equal to the sum of the lower endpoints](step:1), upper endpoint equal to the sum of the upper endpoints, and valid endpoint order. -/
 def add (I J : RatInterval) : RatInterval :=
   ⟨I.lo + J.lo, I.hi + J.hi, add_le_add I.lo_le_hi J.lo_le_hi⟩
 
-/-- Negation reverses and negates the endpoints. -/
+/-- For [a rational interval](hyp:I), [its interval negation](goal) has [lower endpoint equal to the negative of the original upper endpoint](step:1), upper endpoint equal to the negative of the original lower endpoint, and valid endpoint order. -/
 def neg (I : RatInterval) : RatInterval :=
   ⟨-I.hi, -I.lo, neg_le_neg I.lo_le_hi⟩
 
-/-- Subtraction is addition with the negated second interval. -/
+/-- For [two rational intervals](hyp:I,J), [their interval difference](goal) is the interval sum of the first interval and the interval negation of the second. -/
 def sub (I J : RatInterval) : RatInterval := add I (neg J)
 
-/-- Multiplication takes the minimum and maximum of the four endpoint products. -/
+/-- For [two rational intervals](hyp:I,J), [their interval product](goal) has [lower endpoint equal to the least of the four products of one endpoint from each interval](step:1), upper endpoint equal to the greatest of those four products, and valid endpoint order. -/
 def mul (I J : RatInterval) : RatInterval :=
   let a := I.lo * J.lo
   let b := I.lo * J.hi
@@ -74,32 +72,31 @@ def mul (I J : RatInterval) : RatInterval :=
     exact (min_le_left _ _).trans
       ((min_le_left _ _).trans ((le_max_left _ _).trans (le_max_left _ _)))⟩
 
-/-- An interval is separated from zero when it lies strictly on one side of zero. -/
+/-- For [a rational interval](hyp:I), [the property of being separated from zero](goal) holds precisely when the interval lies strictly below zero or strictly above zero. -/
 def AwayFromZero (I : RatInterval) : Prop := I.hi < 0 ∨ 0 < I.lo
 
-/-- Reciprocal reverses the endpoints of an interval certified away from zero. -/
+/-- For [a rational interval](hyp:I) [that is separated from zero](hyp:hI), [its interval reciprocal](goal) has [lower endpoint equal to the reciprocal of the original upper endpoint](step:1), upper endpoint equal to the reciprocal of the original lower endpoint, and valid endpoint order. -/
 def inv (I : RatInterval) (hI : I.AwayFromZero) : RatInterval :=
   ⟨I.hi⁻¹, I.lo⁻¹, by
     rcases hI with hI | hI
     · exact (inv_le_inv_of_neg hI (I.lo_le_hi.trans_lt hI)).2 I.lo_le_hi
     · exact (inv_le_inv₀ (hI.trans_le I.lo_le_hi) hI).2 I.lo_le_hi⟩
 
-/-- Division multiplies by the reciprocal of a denominator interval certified away from zero. -/
+/-- For [a numerator rational interval and a denominator rational interval](hyp:I,J) [whose denominator interval is separated from zero](hyp:hJ), [their interval quotient](goal) is the interval product of the numerator interval and the interval reciprocal of the denominator interval. -/
 def div (I J : RatInterval) (hJ : J.AwayFromZero) : RatInterval := mul I (inv J hJ)
 
-/-- Natural powers are evaluated by repeated rational interval multiplication. -/
+/-- For [a rational interval](hyp:I), [its natural-power interval sequence](goal) assigns [the point interval at one to exponent zero](step:1) and [the interval product of the preceding power and the original interval to each positive exponent](step:2). -/
 def npow (I : RatInterval) : ℕ → RatInterval
   | 0 => point 1
   | n + 1 => mul (npow I n) I
 
-/-- Conditional intersection keeps the exact intersection when its rational
-endpoints overlap, and otherwise returns the first interval. -/
+/-- For [two rational intervals](hyp:I,J), [their conditional tightening](goal) is [their exact intersection when its lower endpoint does not exceed its upper endpoint](step:1), and the first interval otherwise. -/
 def tighten (I J : RatInterval) : RatInterval :=
   if h : max I.lo J.lo ≤ min I.hi J.hi then
     ⟨max I.lo J.lo, min I.hi J.hi, h⟩
   else I
 
-/-- Widening by a nonnegative rational amount subtracts it below and adds it above. -/
+/-- For [a rational interval](hyp:I), [a rational widening amount](hyp:e) [that is nonnegative](hyp:he), [the expanded interval](goal) has [lower endpoint equal to the original lower endpoint minus the widening amount](step:1), upper endpoint equal to the original upper endpoint plus the widening amount, and valid endpoint order. -/
 def expand (I : RatInterval) (e : ℚ) (he : 0 ≤ e) : RatInterval :=
   ⟨I.lo - e, I.hi + e, by linarith [I.lo_le_hi]⟩
 

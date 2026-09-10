@@ -23,7 +23,9 @@ open scoped BigOperators ENNReal
 
 noncomputable section
 
-/-- Empirical Kish dispersion is the sample average of the squared observation-level weights. -/
+/-- Given [an observation space](hyp:Ω), [a real-valued weight function on that space](hyp:g), [a nonnegative sample size](hyp:n), and [a sample indexed by the integers from zero through one less than that size](hyp:sample), [the empirical Kish dispersion](goal) is the reciprocal of the sample size multiplied by the sum of the squared weights of the sampled observations.
+
+Empirical Kish dispersion is the sample average of the squared observation-level weights. -/
 def empiricalKishDispersion {Ω : Type*} (g : Ω → ℝ) (n : ℕ)
     (sample : Fin n → Ω) : ℝ :=
   (n : ℝ)⁻¹ * ∑ i, g (sample i) ^ 2

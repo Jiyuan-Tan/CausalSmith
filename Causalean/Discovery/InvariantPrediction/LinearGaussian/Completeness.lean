@@ -76,10 +76,18 @@ namespace EnvFamily
 
 variable (F : EnvFamily p)
 
-/-- The observational mean of coordinate `j`: `E[X¹_j] = ∫ X_j dP¹`. -/
+/-- For [a model with p predictor coordinates and one target coordinate](hyp:p), [a linear-Gaussian
+environment family](hyp:F), and [a coordinate index](hyp:j), [the observational mean of that
+coordinate](goal) is its expectation under the family's observational probability law. -/
 noncomputable def obsMean (j : Fin (p + 1)) : ℝ := ∫ ω, F.obs.X ω j ∂F.obs.P
 
-/-- **Do-intervention single-intervention hypothesis** of `prop:1`(i): for every
+/-- For [a model with p predictor coordinates and one target coordinate](hyp:p) and [a
+linear-Gaussian environment family](hyp:F), [the shifted single-intervention condition](goal) means
+that for every predictor coordinate there is an environment such that (1) [that environment
+intervenes on that coordinate alone](step:1), and (2) [its assigned value differs from the
+coordinate's observational mean](step:2).
+
+**Do-intervention single-intervention hypothesis** of `prop:1`(i): for every
 predictor `j`, some environment performs a single shifted do-intervention on `j`,
 i.e. `A i = {j}` and the assigned value differs from the observational mean
 `a i j ≠ E[X¹_j]`. -/
@@ -87,7 +95,11 @@ def HasShiftedSingleInterventions : Prop :=
   ∀ j ∈ predictors p, ∃ i : F.ι,
     (F.env i).A = {j} ∧ (F.env i).a j ≠ F.obsMean j
 
-/-- Integrability of the observational coordinates (all Gaussian moments exist);
+/-- For [a model with p predictor coordinates and one target coordinate](hyp:p) and [a
+linear-Gaussian environment family](hyp:F), [the observational-integrability condition](goal) means
+that every observational coordinate is integrable under the observational probability law.
+
+Integrability of the observational coordinates (all Gaussian moments exist);
 carried as an explicit hypothesis so the observational means `E[X¹_j]` used by
 the shifted-intervention condition are available. -/
 def ObsIntegrable : Prop := ∀ j, Integrable (fun ω => F.obs.X ω j) F.obs.P

@@ -30,7 +30,7 @@ structure FinitePartitionPredictor (X : Type*) where
 
 attribute [instance] FinitePartitionPredictor.fintypeCell
 
-/-- The tree prediction: the value of the cell the input falls into. -/
+/-- For [an input space](hyp:X), [a finite-partition predictor](hyp:T), and [an input](hyp:x), [the tree prediction](goal) is the constant value assigned to the partition cell containing that input. -/
 def FinitePartitionPredictor.eval {X : Type*} (T : FinitePartitionPredictor X) (x : X) : ℝ :=
   T.value (T.chooseCell x)
 

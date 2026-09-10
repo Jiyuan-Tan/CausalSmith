@@ -31,7 +31,7 @@ async function seed(kind: "revise" | "angle-boundary") {
     last_draft_version: 5,
     exhausted_angles: [],
     archived_proposals: [],
-    iterations: [],
+    iterations: [{ angle: 0, version: 5, mode: "revise", verdict: "REVISE" }],
     angle_checkpoint: {
       kind,
       angle: 0,
@@ -66,6 +66,7 @@ describe("proposal angle checkpoint actions", () => {
     const state = await loadState(repoRoot, qid, spec);
     expect(state.proposed_from!.angle_checkpoint).toBeUndefined();
     expect(state.proposed_from!.last_draft_version).toBeUndefined();
+    expect(state.proposed_from!.last_draft_status).toBe("completed");
     expect(state.proposed_from!.current_mode).toBe("revise");
     const log = await readFile(neg1EscalationLogPath({
       repoRoot, qid, specialization: spec, dryRun: false, resume: true,
@@ -84,6 +85,7 @@ describe("proposal angle checkpoint actions", () => {
     expect(state.proposed_from!.revision_cap_by_angle).toEqual({ "0": 7 });
     expect(state.proposed_from!.current_angle_index).toBe(0);
     expect(state.proposed_from!.last_draft_version).toBeUndefined();
+    expect(state.proposed_from!.last_draft_status).toBe("completed");
   });
 
   it("archives the old artifacts and switches only after explicit action", async () => {
@@ -187,6 +189,24 @@ describe("--angle-action parsing", () => {
       action: "continue",
       directive: "must not leak into the next action",
     })).rejects.toThrow(/requires a revise checkpoint/);
+    await expect(readFile(neg1EscalationLogPath({
+      repoRoot, qid, specialization: spec, dryRun: false, resume: true,
+    }), "utf8")).rejects.toThrow();
+  });
+
+  it("rejects a stale checkpoint before journaling its directive", async () => {
+    await seed("revise");
+    const state = await loadState(repoRoot, qid, spec);
+    state.proposed_from!.current_version = 6;
+    await saveState(repoRoot, qid, spec, state);
+
+    await expect(applyProposalAngleAction({
+      repoRoot,
+      qid,
+      specialization: spec,
+      action: "continue",
+      directive: "must not be journaled from a stale checkpoint",
+    })).rejects.toThrow(/stale D-0.5 angle checkpoint/);
     await expect(readFile(neg1EscalationLogPath({
       repoRoot, qid, specialization: spec, dryRun: false, resume: true,
     }), "utf8")).rejects.toThrow();

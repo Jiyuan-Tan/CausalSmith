@@ -69,9 +69,9 @@ variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 
 /-! ## Pointwise Lipschitz bound on `m_AIPW(·, z, θ₀)` on `H_ε` -/
 
-/-- Pointwise Lipschitz constant for the AIPW moment in `η` on `H_ε`:
-`K_AIPW ε := 1 + 2/ε + 2/ε²`.  Tracks the quadratic blow-up of the inverse
-weights `1/ê`, `1/(1−ê)` and the cross terms `(ê − e)/(ê·e)`. -/
+/-- For [a real number](hyp:ε), the [AIPW Lipschitz constant](goal) is $1+2/ε+2/ε^2$.
+
+It tracks the quadratic blow-up of the inverse weights `1/ê`, `1/(1−ê)` and the cross terms `(ê − e)/(ê·e)`. -/
 noncomputable def K_AIPW (ε : ℝ) : ℝ := 1 + 2 / ε + 2 / ε ^ 2
 
 private lemma K_AIPW_one_le {ε : ℝ} (hε : 0 < ε) :
@@ -348,8 +348,9 @@ above using `|Δe| ≤ 1` (since `ε ≤ ê, e ≤ 1−ε` ⇒ `|Δe| ≤ 1−2�
 We package this as a non-asymptotic bound; the asymptotic `o_p(1)` form is
 the headline corollary below. -/
 
-/-- The "tilted" cross-term integrand `(|y − μ_val(1, x)| + |y − μ_val(0, x)|)²`,
-viewed as a fixed L¹(P_Z) function (witness via `h_y2 + h_yd2 + Cauchy–Schwarz`). -/
+/-- For a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), and [a back-door estimation system](hyp:S), the [squared residual-sum integrand](goal) maps each observed triple to the square of the sum of the absolute residuals from its two true outcome regressions.
+
+This is the "tilted" cross-term integrand `(|y − μ_val(1, x)| + |y − μ_val(0, x)|)²`, viewed as a fixed L¹(P_Z) function (witness via `h_y2 + h_yd2 + Cauchy–Schwarz`). -/
 noncomputable def YMuVal_residual_sq
     (S : BackdoorEstimationSystem P γ) : (γ × Bool × ℝ) → ℝ :=
   fun z => (|projY z - S.μ_val true (projX z)|

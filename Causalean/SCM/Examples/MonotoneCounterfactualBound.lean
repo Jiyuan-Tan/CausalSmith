@@ -28,14 +28,14 @@ open Causalean.SCM.Assumptions
 open Causalean.SCM.Assumptions.BoolChainNode
 open Causalean.SCM.PartialID
 
-/-- A Boolean value is scored as one for `true` and zero for `false`.
+/-- For [a Boolean value](hyp:b), [its real-valued score](goal) is one when it is true and zero when it is false.
 
 This turns the Boolean structural response into the usual real-valued response
 indicator used in a binary-outcome causal contrast. -/
 def boolScore (b : Bool) : ℝ :=
   if b then 1 else 0
 
-/-- A parent assignment inside an arbitrary Boolean-chain SCM.
+/-- For [a Boolean-chain structural causal model](hyp:M) and [a Boolean treatment value](hyp:b), [the outcome-parent assignment](goal) gives [each coordinate corresponding to a parent of the outcome](hyp:w) that treatment value when it is the designated treatment parent and false otherwise.
 
 The designated treatment parent is set to `b`; every other parent coordinate is
 held at `false`. In compatible models with the Boolean-chain graph, the only
@@ -67,7 +67,7 @@ def boolParentAssignmentIn (M : Causalean.SCM BoolChainNode boolChainΩ) (b : Bo
     boolParentAssignmentIn antitoneBoolSCM b boolChainDParent = b := by
   cases b <;> rfl
 
-/-- The real-valued response contrast of the Boolean outcome equation.
+/-- For each Boolean-chain structural causal model, [the monotone response contrast](goal) is the real-valued difference between the scored outcome response when the designated treatment parent is true and when it is false, and it is zero whenever the outcome is not observed or the designated treatment parent is absent.
 
 This is the difference between the outcome structural response at parent value
 `true` and the response at parent value `false`, scored as a binary outcome. If

@@ -33,11 +33,19 @@ namespace Causalean.Stat
 
 open MeasureTheory Set
 
-/-- `tailInd a s` is the indicator `𝟙{s < a}`, i.e. `1` when `s < a` and `0`
+/-- For [a real threshold](hyp:a) and [a real argument](hyp:s), [the tail
+indicator](goal) equals one when the argument is strictly below the threshold
+and zero otherwise.
+
+`tailInd a s` is the indicator `𝟙{s < a}`, i.e. `1` when `s < a` and `0`
 otherwise, written as the indicator function of the ray `Iio a`. -/
 noncomputable def tailInd (a s : ℝ) : ℝ := (Iio a).indicator (fun _ => (1 : ℝ)) s
 
-/-- `signedTail a s = 𝟙{s < a} - 𝟙{s < 0}`, the *signed tail indicator* of `a`.
+/-- For [a real threshold](hyp:a) and [a real argument](hyp:s), [the signed
+tail indicator](goal) is the indicator that the argument is below the threshold
+minus the indicator that it is below zero.
+
+`signedTail a s = 𝟙{s < a} - 𝟙{s < 0}`, the *signed tail indicator* of `a`.
 As a function of `s` it is `+1` on `[0, a)` when `a ≥ 0`, `-1` on `[a, 0)` when
 `a < 0`, and `0` elsewhere; its Lebesgue integral is exactly `a`. -/
 noncomputable def signedTail (a s : ℝ) : ℝ := tailInd a s - tailInd 0 s

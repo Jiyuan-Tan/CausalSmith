@@ -30,16 +30,12 @@ import Mathlib.MeasureTheory.Constructions.BorelSpace.Order
 
 /-! # Fréchet-Hoeffding and Makarov Bounds
 
-This file proves probability bounds for the joint distribution of two real random
-variables with a fixed joint law. The Fréchet-Hoeffding theorems
-`frechet_upper` and `frechet_lower` bound the joint CDF value
-`P(X <= u, Y <= v)` by the marginal CDF values. The Makarov theorems
-`makarov_lower_param` and `makarov_lower_iSup` give the elementary lower bound
-on the CDF of the difference `X - Y`.
+This file establishes Fréchet–Hoeffding bounds for the joint cumulative distribution
+function of two real-valued random variables under a fixed joint probability law, and
+an elementary lower Makarov bound for the cumulative distribution function of their difference.
 
-These results are the directions that follow from an already fixed coupling of
-`X` and `Y`. The file deliberately does not claim the sharp attainability part
-of Makarov's theorem, which would require constructing extremal couplings. -/
+The results apply to an already fixed coupling and do not establish the sharp
+attainability part of Makarov's theorem, which requires construction of extremal couplings. -/
 
 open MeasureTheory
 

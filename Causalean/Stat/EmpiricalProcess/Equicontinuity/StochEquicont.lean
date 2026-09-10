@@ -34,11 +34,17 @@ open MeasureTheory ProbabilityTheory Filter Topology
 variable {X E : Type*} [MeasurableSpace X]
   [NormedAddCommGroup E] [NormedSpace ℝ E]
 
-/-- **Asymptotic equicontinuity of the score family at `θ₀`** along the
-sequence `θn`.
+/-- On [a measurable observation space](hyp:X) and [a normed real vector space](hyp:E), for [a
+score function taking a parameter and an observation to a vector](hyp:ψ), [a distinguished
+parameter value](hyp:θ₀), [an observation-space measure](hyp:P), [a measurable sample space](hyp:Ω),
+[a measure on that sample space](hyp:μ), [an independent
+identically distributed sample with that observation law](hyp:S), and [a sequence of
+sample-dependent parameter estimates](hyp:θn), the [stochastic equicontinuity property at the
+distinguished parameter](goal) holds when, for every positive tolerance, there is [a positive
+radius](step:1) such that [the probability of the stated large empirical-process gap while the
+estimate lies within that radius converges to zero as the sample size tends to infinity](step:2).
 
-For every `ε > 0` there is a neighborhood radius `δ > 0` such that the
-empirical-process gap
+The empirical-process gap is
 
   `R_n(ω) := (√n)⁻¹ • ∑_{i<n} (ψ(θn,Z_i) − ψ(θ₀,Z_i))
               − √n • ∫ (ψ(θn,·) − ψ(θ₀,·)) dP`

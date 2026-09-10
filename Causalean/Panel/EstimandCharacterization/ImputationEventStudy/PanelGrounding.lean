@@ -45,26 +45,25 @@ noncomputable section
 variable {I : Type*} [Fintype I] [DecidableEq I] {T : ℕ}
   (g : I → WithTop (Fin T))
 
-/-- Cells whose treatment has switched on by period `t` (`g i ≤ t`). -/
+/-- For [an adoption-time path for the units over a finite number of periods](hyp:g), the [treated cells](goal) are precisely the unit-period pairs for which the unit's adoption time is no later than the period. -/
 def TreatedCell : Type _ :=
   { c : I × Fin T // AdoptionPath.le (g c.1) c.2 }
 
-/-- Cells still untreated at period `t` (`t < g i`).  Includes every cell of a
-never-treated unit and every pre-adoption cell of a treated unit. -/
+/-- For [an adoption-time path for the units over a finite number of periods](hyp:g), the [untreated cells](goal) are precisely the unit-period pairs whose period is strictly before the unit's adoption time. They include every period of a never-treated unit and every pre-adoption period of a treated unit. -/
 def UntreatedCell : Type _ :=
   { c : I × Fin T // AdoptionPath.lt (g c.1) c.2 }
 
-/-- The treated-cell predicate is decidable for each unit-period cell. -/
+/-- For [an adoption-time path for the units over a finite number of periods](hyp:g), [a decision procedure for the treated-cell condition](goal) determines, for every unit-period cell, whether the unit's adoption time is no later than that period. -/
 instance : DecidablePred (fun c : I × Fin T => AdoptionPath.le (g c.1) c.2) := by
   intro c; unfold AdoptionPath.le; infer_instance
 
-/-- The untreated-cell predicate is decidable for each unit-period cell. -/
+/-- For [an adoption-time path for the units over a finite number of periods](hyp:g), [a decision procedure for the untreated-cell condition](goal) determines, for every unit-period cell, whether the period is strictly before the unit's adoption time. -/
 instance : DecidablePred (fun c : I × Fin T => AdoptionPath.lt (g c.1) c.2) := by
   intro c; unfold AdoptionPath.lt; infer_instance
 
-/-- The treated cells form a finite type whenever units and periods are finite. -/
+/-- For [an adoption-time path for a finite population over a finite number of periods](hyp:g), [a finite enumeration of the treated cells](goal) is available. -/
 instance : Fintype (TreatedCell g) := by unfold TreatedCell; infer_instance
-/-- The untreated cells form a finite type whenever units and periods are finite. -/
+/-- For [an adoption-time path for a finite population over a finite number of periods](hyp:g), [a finite enumeration of the untreated cells](goal) is available. -/
 instance : Fintype (UntreatedCell g) := by unfold UntreatedCell; infer_instance
 
 omit [Fintype I] [DecidableEq I] in
@@ -84,8 +83,7 @@ theorem treated_or_untreated (c : I × Fin T) :
   · exact Or.inl (le_of_eq h)
   · exact Or.inr h
 
-/-- Two-way fixed-effect design row for cell `(i,t)`: the unit-`i` indicator on
-the `I` block stacked with the time-`t` indicator on the `Fin T` block. -/
+/-- For [a unit-period cell with a finite number of periods and equality-comparable unit labels](hyp:c), the [two-way fixed-effect design row](goal) assigns one to that cell's unit coordinate and period coordinate, and zero to all other unit and period coordinates. -/
 def feRow (c : I × Fin T) : (I ⊕ Fin T) → ℝ :=
   Sum.elim (fun i' => if i' = c.1 then (1 : ℝ) else 0)
     (fun t' => if t' = c.2 then (1 : ℝ) else 0)
@@ -99,12 +97,7 @@ lemma dot_feRow (c : I × Fin T) (α : I → ℝ) (lam : Fin T → ℝ) :
   simp only [Sum.elim_inl, Sum.elim_inr, ite_mul, one_mul, zero_mul,
     Finset.sum_ite_eq', Finset.mem_univ, if_true]
 
-/-- **Grounding constructor.**  From an adoption path `g`, unit effects `α`, time
-effects `λ`, target weights `a`, and treated-cell effects `τ`, build the
-`BJSPanel` whose treated/untreated cells are the staggered-adoption partition of
-`I × Fin T` and whose regressors are the two-way fixed effects.  The
-untreated-outcome model `E[Y(0)] = α_i + λ_t`, no anticipation, and the
-fixed-effect equation all hold definitionally. -/
+/-- For [an adoption-time path for finitely many equality-comparable units over a finite number of periods](hyp:g), [unit effects](hyp:α), [period effects](hyp:lam), [target weights](hyp:a), and [treated-cell effects](hyp:tau), the [staggered-adoption two-way-fixed-effects BJS panel](goal) has treated and untreated cells given by that path and regressors given by the unit and period indicators. Its untreated potential-outcome mean is the sum of the relevant unit and period effects, and its treated observed mean adds the treated-cell effect. -/
 def ofStaggeredTWFE (α : I → ℝ) (lam : Fin T → ℝ)
     (a tau : TreatedCell g → ℝ) :
     BJSPanel (TreatedCell g) (UntreatedCell g) (I ⊕ Fin T) where

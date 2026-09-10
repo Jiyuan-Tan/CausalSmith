@@ -62,8 +62,9 @@ variable [Fintype R] [DecidableEq R]
 
 /-! ### Scalar weighted inner product -/
 
-/-- The weighted inner product multiplies two arrays record by record and sums
-the products with the support weights over observed records. -/
+/-- For [a finite record set](hyp:R), [a weighted support](hyp:c), and [two real-valued arrays on the records](hyp:A,B), the [weighted inner product](goal) is the sum, over observed records, of each support weight times the product of the two arrays at that record.
+
+The weighted inner product multiplies two arrays record by record and sums the products with the support weights over observed records. -/
 def ip (c : WeightedSupport R) (A B : R → ℝ) : ℝ :=
   ∑ r ∈ c.observed, c.weight r * A r * B r
 
@@ -154,8 +155,9 @@ scalar inner product. -/
 
 variable {J : Type*}
 
-/-- The matrix-valued inner product takes the scalar weighted inner product
-between each pair of columns. -/
+/-- For [a finite record set](hyp:R), [an index set](hyp:J), [a weighted support](hyp:c), and [two families of real-valued arrays indexed by that set](hyp:A,B), the [matrix-valued weighted inner product](goal) is the matrix whose $(j,k)$ entry is the weighted inner product of array $j$ in the first family and array $k$ in the second family.
+
+The matrix-valued inner product takes the scalar weighted inner product between each pair of columns. -/
 def ipMat (c : WeightedSupport R) (A B : J → R → ℝ) :
     Matrix J J ℝ :=
   fun j k => c.ip (A j) (B k)

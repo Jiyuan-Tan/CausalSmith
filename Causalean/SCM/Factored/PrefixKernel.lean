@@ -47,14 +47,22 @@ open scoped MeasureTheory ProbabilityTheory
 -- § 1. Latent constant kernel (shorthand)
 -- ============================================================
 
-/-- The latent product law as a kernel indexed by fixed values.  Ignores the
+/-- For [a finite collection of nodes with a measurable outcome space for each node](hyp:N,Ω)
+    and [a structural causal model](hyp:M), the [kernel giving the distribution of the latent-node
+    values conditional on the fixed-node values](goal) assigns the same latent product
+    distribution to every fixed-node assignment.
+
+    The latent product law as a kernel indexed by fixed values.  Ignores the
     fixed input and always returns the product distribution `latentProduct`.
     Shorthand for readability of the recursion below. -/
 noncomputable def latentKernelOnFixed (M : Causalean.SCM N Ω) :
     ProbabilityTheory.Kernel M.FixedValues M.LatentValues :=
   ProbabilityTheory.Kernel.const _ M.latentProduct
 
-/-- The latent constant kernel is Markov. -/
+/-- For [a finite collection of nodes with measurable value spaces](hyp:N,Ω) and [a structural
+causal model](hyp:M), [the Markov-kernel structure for the constant latent-value kernel](goal)
+asserts that the kernel assigning the latent product distribution to every fixed-value assignment
+is a Markov kernel. -/
 instance isMarkov_latentKernelOnFixed (M : Causalean.SCM N Ω) :
     ProbabilityTheory.IsMarkovKernel M.latentKernelOnFixed := by
   unfold latentKernelOnFixed; infer_instance
@@ -63,7 +71,12 @@ instance isMarkov_latentKernelOnFixed (M : Causalean.SCM N Ω) :
 -- § 2. Base prefix kernel at `n = 0`
 -- ============================================================
 
-/-- Base case of the recursive prefix kernel: only the latent variables have been
+/-- For [a finite collection of nodes with a measurable outcome space for each node](hyp:N,Ω)
+    and [a structural causal model](hyp:M), the [zero-step prefix kernel](goal) maps every
+    fixed-node assignment to the joint distribution of all latent-node values and the unique
+    empty observed-node prefix [at prefix length zero](step:1).
+
+    Base case of the recursive prefix kernel: only the latent variables have been
     generated so far, paired with the trivial `PUnit` observed prefix.
 
     Concretely: the constant kernel at `latentProduct`, pushed through
@@ -73,7 +86,9 @@ noncomputable def jointKernelPrefixZero (M : Causalean.SCM N Ω) :
       (M.OrderedLatentPrefixValues 0 (Nat.zero_le _)) :=
   M.latentKernelOnFixed.map (fun ℓ => (ℓ, (PUnit.unit : PUnit.{uΩ + 1})))
 
-/-- The base prefix kernel is Markov. -/
+/-- For [a finite collection of nodes with measurable value spaces](hyp:N,Ω) and [a structural
+causal model](hyp:M), [the Markov-kernel structure for the zero-step prefix kernel](goal) asserts
+that the kernel generating the latent values and the empty observed prefix is a Markov kernel. -/
 instance isMarkov_jointKernelPrefixZero (M : Causalean.SCM N Ω) :
     ProbabilityTheory.IsMarkovKernel M.jointKernelPrefixZero := by
   unfold jointKernelPrefixZero
@@ -84,7 +99,15 @@ instance isMarkov_jointKernelPrefixZero (M : Causalean.SCM N Ω) :
 -- § 3. Recursive prefix kernel
 -- ============================================================
 
-/-- The prefix kernel at level `n`: sends fixed values `s` to the joint law of
+/-- For [a finite collection of nodes with a measurable outcome space for each node](hyp:N,Ω),
+    [a structural causal model](hyp:M), [a nonnegative integer](hyp:n), and [proof that this
+    integer does not exceed the number of observed nodes](hyp:hn), the [prefix kernel](goal)
+    maps each fixed-node assignment to the joint distribution of all latent-node values and the
+    values of the first specified number of observed nodes.  [At zero observed nodes it is the
+    zero-step prefix kernel](step:1); [at each positive prefix length it extends the preceding
+    prefix distribution by the next observed node's deterministic structural equation](step:2).
+
+    The prefix kernel at level `n`: sends fixed values `s` to the joint law of
     the latent tuple together with the values of the first `n` observed nodes,
     built by sequential `compProd` with the deterministic `stepKernel`s.
 
@@ -99,7 +122,11 @@ noncomputable def jointKernelPrefix (M : Causalean.SCM N Ω) :
       ((M.jointKernelPrefix k (Nat.le_of_succ_le hn)) ⊗ₖ (M.stepKernel hn)).map
         (M.extendOrderedLatentPrefix hn)
 
-/-- The prefix kernel is Markov at every step. -/
+/-- For [a finite collection of nodes with measurable value spaces](hyp:N,Ω), [a structural
+causal model](hyp:M), [a nonnegative integer](hyp:n), and [proof that this integer does not exceed
+the number of observed nodes](hyp:hn), [the Markov-kernel structure for the corresponding prefix
+kernel](goal) asserts that the kernel generating all latent values and the first specified observed
+values is a Markov kernel. -/
 instance isMarkov_jointKernelPrefix (M : Causalean.SCM N Ω) :
     ∀ (n : ℕ) (hn : n ≤ M.observed.card),
       ProbabilityTheory.IsMarkovKernel (M.jointKernelPrefix n hn)

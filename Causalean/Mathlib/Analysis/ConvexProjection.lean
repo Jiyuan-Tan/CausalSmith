@@ -32,8 +32,7 @@ section Hilbert
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
 
-/-- Metric projection assigns each point in a real Hilbert space its nearest point in a specified
-nonempty closed convex set. -/
+/-- For [a real Hilbert space](hyp:E) and [a target subset](hyp:K) that is [nonempty](hyp:hne), [closed](hyp:hc), and [convex](hyp:hconv), the [metric projection](goal) assigns each point its nearest point in that target subset. -/
 noncomputable def convexProj (K : Set E) (hne : K.Nonempty) (hc : IsClosed K)
     (hconv : Convex ℝ K) : E → E := fun x =>
   Classical.choose (exists_norm_eq_iInf_of_complete_convex hne hc.isComplete hconv x)
@@ -127,26 +126,22 @@ section Matrices
 
 variable {p : ℕ} {c C : ℝ}
 
-/-- A Loewner interval contains the real matrices bounded between two scalar multiples of the
-identity matrix in positive-semidefinite order. -/
+/-- Given [a square matrix dimension](hyp:p) and [two real endpoints](hyp:c,C), the [Loewner interval](goal) is the set of real square matrices for which (1) [the matrix minus the lower endpoint times the identity is positive semidefinite](step:1), and (2) the upper endpoint times the identity minus the matrix is positive semidefinite. -/
 def loewnerSet (p : ℕ) (c C : ℝ) : Set (Matrix (Fin p) (Fin p) ℝ) :=
   {G | (G - c • (1 : Matrix (Fin p) (Fin p) ℝ)).PosSemidef ∧
     (C • (1 : Matrix (Fin p) (Fin p) ℝ) - G).PosSemidef}
 
-/-- The Frobenius distance between two real matrices is the square root of the sum of the squared
-entrywise differences. -/
+/-- For [a square matrix dimension](hyp:p) and [two real square matrices](hyp:A,B), the [Frobenius distance](goal) is the square root of the sum of squared entrywise differences between the two matrices. -/
 noncomputable def frobDist (A B : Matrix (Fin p) (Fin p) ℝ) : ℝ :=
   Real.sqrt (∑ k : Fin p, ∑ l : Fin p, (A k l - B k l) ^ 2)
 
-/-- Finite real matrices are linearly equivalent to Euclidean vectors indexed by pairs of row and
-column coordinates. -/
+/-- For [a square matrix dimension](hyp:p), the [matrix vectorization linear equivalence](goal) identifies real square matrices of that dimension with Euclidean vectors indexed by ordered pairs of row and column coordinates. -/
 noncomputable def mtx (p : ℕ) :
     Matrix (Fin p) (Fin p) ℝ ≃ₗ[ℝ] EuclideanSpace ℝ (Fin p × Fin p) :=
   (LinearEquiv.curry ℝ ℝ (Fin p) (Fin p)).symm.trans
     (EuclideanSpace.equiv (Fin p × Fin p) ℝ).symm.toLinearEquiv
 
-/-- Finite square real matrices of dimension p are homeomorphic to Euclidean vectors indexed by
-    their row and column coordinates. -/
+/-- For [a square matrix dimension](hyp:p), the [matrix vectorization homeomorphism](goal) identifies real square matrices of that dimension, with their usual topology, with Euclidean vectors indexed by ordered pairs of row and column coordinates. -/
 noncomputable def mtxHomeo (p : ℕ) :
     Matrix (Fin p) (Fin p) ℝ ≃ₜ EuclideanSpace ℝ (Fin p × Fin p) :=
   Homeomorph.piCurry.symm.trans (EuclideanSpace.equiv (Fin p × Fin p) ℝ).symm.toHomeomorph
@@ -263,8 +258,7 @@ private noncomputable def loewnerProjAux (p : ℕ) (c C : ℝ) (hcC : c ≤ C) :
     (mtx_image_isClosed p c C)
     ((loewnerSet_convex p c C).linear_image (mtx p).toLinearMap) (mtx p G))
 
-/-- Loewner projection is the nearest-point projection in Frobenius geometry when the interval
-endpoints are ordered, and is the identity map when they are reversed. -/
+/-- Given [a square matrix dimension](hyp:p) and [two real endpoints](hyp:c,C), the [Loewner projection](goal) maps each real square matrix to its nearest point, in Frobenius distance, in the corresponding Loewner interval when the endpoints are ordered; when they are reversed, it is the identity map. -/
 noncomputable def loewnerProj (p : ℕ) (c C : ℝ) :
     Matrix (Fin p) (Fin p) ℝ → Matrix (Fin p) (Fin p) ℝ :=
   if h : c ≤ C then loewnerProjAux p c C h else id
@@ -385,13 +379,12 @@ namespace Causalean.Mathlib.Analysis
 /-! The finite matrix space uses its coordinatewise Borel measurable structure.  Keeping these
 instances here makes measurability part of the public Loewner-projection interface. -/
 
-/-- Finite real matrices carry the coordinatewise product sigma-algebra. -/
+/-- For every [nonnegative integer dimension](hyp:p), the [measurable structure on real square matrices of that dimension](goal) is the coordinatewise product $\sigma$-algebra. -/
 instance matrixMeasurableSpace (p : ℕ) :
     MeasurableSpace (Matrix (Fin p) (Fin p) ℝ) :=
   MeasurableSpace.pi
 
-/-- The coordinatewise measurable structure on finite real matrices agrees with their Borel
-sigma-algebra. -/
+/-- For every [nonnegative integer dimension](hyp:p), the [Borel-space structure on real square matrices of that dimension](goal) certifies [that their coordinatewise product $\sigma$-algebra equals their Borel $\sigma$-algebra](step:1). -/
 instance matrixBorelSpace (p : ℕ) :
     BorelSpace (Matrix (Fin p) (Fin p) ℝ) :=
   ⟨by

@@ -15,8 +15,10 @@ open scoped Interval
 
 namespace Causalean.Mathlib.Analysis
 
-/-- The Euclidean radius on the real coordinate plane. This is explicit because
-the product type `ℝ × ℝ` carries the max product norm, not the Euclidean norm. -/
+/-- For [a point in the real coordinate plane](hyp:z), the [planar radius](goal) is its Euclidean
+distance from the origin, namely $\sqrt{x^2+y^2}$ for coordinates $(x,y)$.
+
+This is explicit because the product type `ℝ × ℝ` carries the max product norm, not the Euclidean norm. -/
 -- @node: planarRadius
 noncomputable def planarRadius (z : ℝ × ℝ) : ℝ :=
   Real.sqrt (z.1 ^ 2 + z.2 ^ 2)
@@ -28,8 +30,10 @@ lemma planarRadius_measurable : Measurable planarRadius := by
   exact ((measurable_fst.pow_const 2).add
     (measurable_snd.pow_const 2)).sqrt
 
-/-- The polar angle of a nonzero point, using Mathlib's polar-coordinate
-chart. Only its values on the open upper half-plane are used below. -/
+/-- For [a point in the real coordinate plane](hyp:z), the [planar angle](goal) is the angular
+coordinate assigned by the polar-coordinate chart.
+
+Only its values on the open upper half-plane are used below. -/
 -- @node: planarAngle
 noncomputable def planarAngle (z : ℝ × ℝ) : ℝ :=
   (polarCoord z).2

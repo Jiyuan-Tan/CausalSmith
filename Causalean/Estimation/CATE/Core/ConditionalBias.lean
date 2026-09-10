@@ -62,8 +62,9 @@ variable {γ : Type*} [MeasurableSpace γ]
 
 /-! ## Closed-form value-space bias -/
 
-/-- The closed-form σ(X)-conditional bias of the DR pseudo-outcome
-contrast `φ_η − φ_0`, summed over the two treatment arms:
+/-- For [a measurable covariate space](hyp:γ), [a candidate pair of outcome-regression and propensity-score nuisance functions](hyp:η), [a reference pair of such nuisance functions](hyp:η₀), and [a covariate value](hyp:x), the [closed-form conditional bias of the doubly robust pseudo-outcome contrast](goal) is the sum over the two treatment arms of the product of the candidate-minus-reference propensity error and the corresponding outcome-regression error, divided by the candidate probability of that arm at the covariate value.
+
+It is given by
 
     condBias η η₀ x
       := ∑_{a ∈ Bool}

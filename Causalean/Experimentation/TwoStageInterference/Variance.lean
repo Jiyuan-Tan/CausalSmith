@@ -101,34 +101,30 @@ section Group
 
 variable {n : ℕ}
 
-/-- Treatment indicator of unit `j`: `1` on within-group assignments that treat `j`, `0`
-otherwise.  (The indicator does not depend on the design.) -/
+/-- For [a population of $n$ units](hyp:n) and [a unit $j$](hyp:j), the [treatment indicator of unit $j$](goal) equals one for each within-group assignment that treats $j$ and zero otherwise. -/
 noncomputable def T (j : Fin n) : (Fin n → Bool) → ℝ :=
   FiniteDesign.ind (fun w => w j = true)
 
 variable (K : ℕ) (a b : Fin n → ℝ)
 
-/-- The difference-in-means estimator `ȳ(0) − ȳ(1)`: the mean untreated-state outcome among the
-`n − K` control units minus the mean treated-state outcome among the `K` treated units, as a
-function of the realized assignment.  On the design's support the treated units realize `a` and
-the control units realize `b`, so this is linear in the treatment indicators. -/
+/-- For [a population of $n$ units](hyp:n), [a treated-unit count $K$](hyp:K), [unit-level treated potential outcomes](hyp:a), and [unit-level control potential outcomes](hyp:b), the [difference-in-means estimator](goal) maps each realized assignment to the mean control potential outcome among the $n-K$ control units minus the mean treated potential outcome among the $K$ treated units.
+
+On the design's support the treated units realize `a` and the control units realize `b`, so this is linear in the treatment indicators. -/
 noncomputable def tauHat : (Fin n → Bool) → ℝ :=
   fun w => (∑ j, b j * (1 - T j w)) / (n - K : ℝ) - (∑ j, a j * T j w) / K
 
 /-! ### Population sample variances (Neyman, `n−1` denominator) -/
 
-/-- Population mean of a unit-indexed quantity: `(1/n)∑ⱼ x j`. -/
+/-- For [a population of $n$ units](hyp:n) and [a real-valued quantity $x_j$ for each unit](hyp:x), the [population mean of that quantity](goal) is $n^{-1}\sum_j x_j$. -/
 noncomputable def popMeanV (x : Fin n → ℝ) : ℝ := (∑ j, x j) / n
 
-/-- Population sample variance of the treated-state outcomes `a`, `S₁ = (1/(n−1))∑ⱼ(a j − ā)²`. -/
+/-- For [a population of $n$ units](hyp:n) and [their treated potential outcomes](hyp:a), the [population sample variance of the treated potential outcomes](goal) is $(n-1)^{-1}\sum_j(a_j-\bar a)^2$. -/
 noncomputable def S1 : ℝ := (∑ j, (a j - popMeanV a) ^ 2) / (n - 1 : ℝ)
 
-/-- Population sample variance of the untreated-state outcomes `b`,
-`S₀ = (1/(n−1))∑ⱼ(b j − b̄)²`. -/
+/-- For [a population of $n$ units](hyp:n) and [their control potential outcomes](hyp:b), the [population sample variance of the control potential outcomes](goal) is $(n-1)^{-1}\sum_j(b_j-\bar b)^2$. -/
 noncomputable def S0 : ℝ := (∑ j, (b j - popMeanV b) ^ 2) / (n - 1 : ℝ)
 
-/-- Population sample variance of the unit-level treatment effects `a j − b j`,
-`Sτ = (1/(n−1))∑ⱼ((a j − b j) − (ā − b̄))²`. -/
+/-- For [a population of $n$ units](hyp:n), [their treated potential outcomes](hyp:a), and [their control potential outcomes](hyp:b), the [population sample variance of the unit-level treatment effects](goal) is $(n-1)^{-1}\sum_j[(a_j-b_j)-(\bar a-\bar b)]^2$. -/
 noncomputable def Stau : ℝ :=
   (∑ j, ((a j - b j) - (popMeanV a - popMeanV b)) ^ 2) / (n - 1 : ℝ)
 

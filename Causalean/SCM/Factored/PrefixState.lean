@@ -29,7 +29,12 @@ open scoped MeasureTheory ProbabilityTheory
 -- § 1. Observed prefix values
 -- ============================================================
 
-/-- Values for the first `n` observed nodes in canonical topological order. -/
+/-- For [a finite collection of distinguishable node labels with measurable
+value spaces](hyp:N), [a structural causal model](hyp:M), [a natural number $n$ no greater
+than its number of observed nodes](hyp:n), the [observed-prefix value space](goal)
+is [the one-point space of the empty assignment when $n=0$](step:1), and the
+product of the preceding prefix space and the value space of the $n$-th observed
+node when $n$ is positive. -/
 def ObservedPrefixValues (M : Causalean.SCM N Ω) :
     (n : ℕ) → n ≤ M.observed.card → Type _ :=
   fun n hn =>
@@ -38,8 +43,9 @@ def ObservedPrefixValues (M : Causalean.SCM N Ω) :
     | k + 1 => ObservedPrefixValues M k (Nat.le_of_succ_le hn) ×
         swigΩ Ω (M.observedAt ⟨k, hn⟩).val
 
-/-- Measurable-space structure on `ObservedPrefixValues`, by the same recursion
-    as the type itself. -/
+/-- For [a finite, distinguishable node population with measurable node-value spaces](hyp:N,Ω), [a structural causal model](hyp:M), and [any natural number no greater than the number of its observed nodes](hyp:n,hn), the [measurable-space structure on the corresponding observed-prefix value space](goal) is provided [by the one-point measurable space for a zero-length prefix](step:1) and [by the product measurable space for a positive-length prefix](step:2).
+
+This structure is constructed by the same recursion as the observed-prefix value space. -/
 noncomputable instance instMeasurableSpaceObservedPrefixValues (M : Causalean.SCM N Ω) :
     ∀ {n : ℕ} (hn : n ≤ M.observed.card), MeasurableSpace (M.ObservedPrefixValues n hn)
   | 0, _ => by
@@ -60,8 +66,13 @@ abbrev OrderedLatentPrefixValues (M : Causalean.SCM N Ω) (n : ℕ)
 -- § 2. Coordinate reader on an observed prefix
 -- ============================================================
 
-/-- Read the value of an observed node at position `i < n` from a prefix state
-    of length `n`. -/
+/-- For [a finite collection of distinguishable node labels with measurable
+value spaces](hyp:N), [a structural causal model](hyp:M), [a prefix length no greater than
+the number of its observed nodes](hyp:n), an assignment on that prefix,
+and [a position within the prefix](hyp:i), the [observed-prefix coordinate
+reader](goal) [has no value when the prefix is empty](step:1), and [otherwise
+returns the assigned value at that position, reading recursively from the
+preceding prefix or directly from its final coordinate](step:2). -/
 noncomputable def observedPrefixValue (M : Causalean.SCM N Ω) :
     ∀ {n : ℕ} (hn : n ≤ M.observed.card),
       M.ObservedPrefixValues n hn →
@@ -103,7 +114,14 @@ theorem measurable_observedPrefixValue (M : Causalean.SCM N Ω) :
 -- § 3. Extending a prefix state by one position
 -- ============================================================
 
-/-- Append the next observed value to an ordered-latent prefix state.  This is the
+/-- For [a finite collection of distinguishable node labels with measurable
+value spaces](hyp:N), [a structural causal model](hyp:M), [a natural number $n$](hyp:n), and [evidence
+that the model has at least $n+1$ observed nodes](hyp:hn), the [ordered-latent
+prefix extension map](goal) takes a latent assignment, an assignment to the
+first $n$ observed nodes, and the value of the next observed node, and returns
+[the same latent assignment paired with the resulting length-$n+1$ observed prefix](step:1).
+
+Append the next observed value to an ordered-latent prefix state.  This is the
     state-space normalization map used after one `compProd` step in the factored
     construction: `((ℓ, ξ), y) ↦ (ℓ, (ξ, y))`. -/
 def extendOrderedLatentPrefix (M : Causalean.SCM N Ω) {n : ℕ}

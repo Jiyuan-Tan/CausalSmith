@@ -84,7 +84,15 @@ private theorem posSqrtEquiv_apply
     (hinj : Function.Injective (secondMomentLM hψ hvar)) (x : E) :
     posSqrtEquiv hψ hvar hinj x = (secondMomentLM_isPositive hψ hvar).posSqrt x := rfl
 
-/-- The inverse `Σ⁻¹ = (√Σ)⁻¹ ∘ (√Σ)⁻¹` of the second-moment operator, as a
+/-- Let $P$ be a measure on a measurable sample space, and let a measurable
+function take values in a finite-dimensional real inner-product space equipped
+with its Borel σ-algebra. Given [that function is measurable](hyp:hψ), [its
+squared norm is integrable under $P$](hyp:hvar), and [its second-moment operator
+is injective](hyp:hinj), [the inverse second-moment operator](goal) is the
+continuous linear map obtained by applying twice the inverse of the positive
+square root of that operator.
+
+The inverse `Σ⁻¹ = (√Σ)⁻¹ ∘ (√Σ)⁻¹` of the second-moment operator, as a
 continuous linear map (continuity is automatic in finite dimension). -/
 noncomputable def secondMomentInv
     (hinj : Function.Injective (secondMomentLM hψ hvar)) : E →L[ℝ] E :=

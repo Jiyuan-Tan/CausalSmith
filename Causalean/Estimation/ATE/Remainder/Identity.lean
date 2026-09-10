@@ -91,8 +91,7 @@ The statement below packages the conclusion directly; the proof body
 performs the expansion and applies `integral_abs_mul_le_eLpNorm_mul_eLpNorm`
 componentwise. -/
 
-/-- The AIPW remainder constant is the uniform strict-overlap weight bound
-used in the second-order remainder estimate. -/
+/-- For [a real overlap level](hyp:ε), the [AIPW remainder constant](goal) is $2/[ε(1-ε)]$, the uniform strict-overlap weight bound used in the second-order remainder estimate. -/
 noncomputable def aipw_rem_const (ε : ℝ) : ℝ := 2 / (ε * (1 - ε))
 
 /-- The AIPW moment functional is measurable in the observed data triple for

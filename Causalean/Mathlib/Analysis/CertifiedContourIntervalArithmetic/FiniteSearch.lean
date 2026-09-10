@@ -32,15 +32,17 @@ private theorem countable_complexRatInterval : Countable ComplexRatInterval := b
       cases b
       simp_all)
 
-/-- Rational intervals carry the countable discrete measurable space used for certified outputs. -/
+/-- The [measurable structure on rational intervals](goal) is the discrete $\sigma$-algebra, so every collection of rational intervals is measurable.
+
+This is the countable discrete measurable space used for certified outputs. -/
 instance : MeasurableSpace RatInterval := ⊤
 
-/-- Complex rational rectangles carry the countable discrete measurable space
-used for certified outputs. -/
+/-- The [measurable structure on complex rational rectangles](goal) is the discrete $\sigma$-algebra, so every collection of complex rational rectangles is measurable.
+
+This is the countable discrete measurable space used for certified outputs. -/
 instance : MeasurableSpace ComplexRatInterval := ⊤
 
-/-- The least successful index of a nonempty finite Boolean family is returned,
-or zero if none succeeds. -/
+/-- For [a nonnegative integer](hyp:n) and [a Boolean-valued family indexed by the $n+1$ indices from zero through $n](hyp:accept), [the least-successful-index rule](goal) returns [the smallest index whose Boolean value is true when such an index exists](step:1), and index zero when none exists. -/
 def leastTrue {n : ℕ} (accept : Fin (n + 1) → Bool) : Fin (n + 1) :=
   if h : (Finset.univ.filter fun i => accept i).Nonempty then
     (Finset.univ.filter fun i => accept i).min' h
@@ -81,8 +83,7 @@ theorem leastTrue_eq_zero {n : ℕ} {accept : Fin (n + 1) → Bool}
     contradiction
   · rfl
 
-/-- Finite refinement returns the first candidate interval meeting a rational
-width tolerance, with a total fallback. -/
+/-- For [a nonnegative integer](hyp:n), [a family of $n+1$ rational candidate intervals](hyp:candidates), and [a strictly positive rational width tolerance](hyp:ε), [the finite-refinement interval](goal) is the candidate at the least index whose width is at most the tolerance, or the zeroth candidate when no candidate meets that condition. -/
 def finiteRefine {n : ℕ} (candidates : Fin (n + 1) → RatInterval) (ε : PosRat) :
     RatInterval :=
   candidates (leastTrue fun i => decide ((candidates i).width ≤ ε.1))
@@ -108,8 +109,7 @@ theorem measurable_finiteRefine {n : ℕ} (ε : PosRat) :
   letI : Countable RatInterval := countable_ratInterval
   exact fun s _ => (Set.to_countable _).measurableSet
 
-/-- The least-score index minimizes lexicographically by real score and then by
-the original finite index. -/
+/-- For [a nonnegative integer](hyp:n) and [a real-valued score for each of the $n+1$ indices from zero through $n](hyp:score), [the least-score index](goal) is obtained by [forming the finite set of pairs consisting of each score and its index, ordered first by score and then by index](step:1), certifying that this finite set is nonempty, and returning the index in its least pair. -/
 noncomputable def leastScoreIndex {n : ℕ} (score : Fin (n + 1) → ℝ) : Fin (n + 1) := by
   classical
   let keys : Finset (ℝ ×ₗ Fin (n + 1)) :=

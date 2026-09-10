@@ -41,12 +41,7 @@ import FoML.Main
 
 /-! # Localized Uniform Deviation
 
-This file assembles localized high-probability empirical-process deviation
-bounds for bounded loss classes.  The structure `LocalizedRegime` packages the
-uniform boundedness and sub-root Rademacher envelope assumptions,
-`localized_uniform_deviation` proves the fixed-radius critical-radius bound, and
-`localized_uniform_deviation_sharp` performs the peeling step that yields the
-uniform sharp form `O(ρ * norm(F i) + ρ^2)` over a bounded class. -/
+This file develops high-probability, localized empirical-process deviation bounds for bounded classes of loss functions.  It packages the boundedness and sub-root complexity assumptions, proves a critical-radius bound at a fixed radius, and then obtains a uniform sharp bound by peeling.  These results provide the concentration component used by the library's statistical estimation theory. -/
 
 namespace Causalean
 namespace Stat

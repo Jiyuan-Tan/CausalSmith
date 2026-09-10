@@ -621,8 +621,8 @@ async function runDischargeGate(repoRoot: string, parsed: CliArgs): Promise<void
   execFileSync(
     process.execPath,
     [
-      "--import", tsxEsmSpecifier(), gateScript, parsed.qid, spec, node, "--ungate",
-      ...(parsed.dischargeLeanName ? ["--lean-name", parsed.dischargeLeanName] : []),
+      "--import", tsxEsmSpecifier(), gateScript,
+      ...gateDischargeArgs(parsed.qid, spec, node, parsed.dischargeLeanName),
     ],
     { cwd: repoRoot, stdio: "inherit" },
   );
@@ -660,6 +660,20 @@ async function runDischargeGate(repoRoot: string, parsed: CliArgs): Promise<void
     reason: `Gate ${node} discharged (substrate built); re-verified F4→F5 and re-banked.`,
   });
   console.log(`discharge-gate: ${parsed.qid}/${spec} re-banked — gate ${node} discharged.`);
+}
+
+/** Exact gate.ts argv for the public built-substrate discharge route. The public
+ * operation discharges a proved Lean lemma, so carry that semantic fact across
+ * the child-process boundary; gate.ts uses it to preserve a minted completed
+ * helper in the pre-F2 graph rather than deleting it as an unbuilt placeholder. */
+export function gateDischargeArgs(
+  qid: string,
+  spec: string,
+  node: string,
+  leanName?: string,
+): string[] {
+  return [qid, spec, node, "--ungate", "--lean-kind", "lemma",
+    ...(leanName ? ["--lean-name", leanName] : [])];
 }
 
 /**

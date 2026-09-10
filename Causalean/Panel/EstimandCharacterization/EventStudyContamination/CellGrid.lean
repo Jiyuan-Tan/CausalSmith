@@ -47,16 +47,26 @@ namespace EventStudySystem
 
 variable {T : ℕ}
 
-/-- The finite cell index type for the conventional design `D`: the admissible
-cohort-relative-time cells. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
+conventional design](hyp:D), the [cell index](goal) is the collection of
+admissible cohort--relative-time cells in that design. -/
 abbrev CellIndex (P : EventStudySystem T) (D : P.ConventionalDesign) : Type :=
   {ge : Fin T × ℤ // ge ∈ P.admissibleCells D.eventSupport}
 
-/-- Total admissible cell mass `Z = Σ_{(g,e)} cellMassAtEvent g e`. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
+conventional design](hyp:D), the [total admissible cell mass](goal) is the sum
+of the population masses of all admissible cohort--relative-time cells. -/
 noncomputable def cellTotalMass (P : EventStudySystem T) (D : P.ConventionalDesign) : ℝ :=
   ∑ ge ∈ P.admissibleCells D.eventSupport, P.cellMassAtEvent ge.1 ge.2
 
-/-- The cell-grid weighted support: the empirical population over admissible
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
+conventional design](hyp:D), if [every admissible cohort--relative-time cell
+has strictly positive population mass](hyp:hpos) and [at least one admissible
+cell exists](hyp:hne), the [cell-grid weighted support](goal) is the finite
+population of admissible cells, weighted by each cell's mass divided by total
+admissible cell mass.
+
+The cell-grid weighted support: the empirical population over admissible
 cells with weight `cellMassAtEvent / Z`. -/
 noncomputable def cellSupport (P : EventStudySystem T) (D : P.ConventionalDesign)
     (hpos : ∀ ge ∈ P.admissibleCells D.eventSupport, 0 < P.cellMassAtEvent ge.1 ge.2)
@@ -123,15 +133,18 @@ lemma ip_cellSupport (P : EventStudySystem T) (D : P.ConventionalDesign)
 
 /-! ### Cell-nuisance subspace on the cell grid -/
 
-/-- Generators of the cell-nuisance subspace: cell-evaluated event-study
-nuisance functions. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
+conventional design](hyp:D), the [generators of the cell-nuisance space](goal)
+are precisely the functions on admissible cells obtained by averaging an
+event-study nuisance function within each cohort--relative-time cell. -/
 def cellNuisanceGen (P : EventStudySystem T) (D : P.ConventionalDesign) :
     Set (P.CellIndex D → ℝ) :=
   {f | ∃ hCell : Fin T → Fin T → ℝ, P.IsEventStudyNuisance D hCell ∧
         f = fun cell => P.cellAverage hCell cell.val.1 cell.val.2}
 
-/-- The cell-nuisance subspace `H` on the cell grid: the span of cell-evaluated
-event-study nuisance functions. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
+conventional design](hyp:D), the [cell-nuisance space](goal) is the linear span
+of all cell-level averages of event-study nuisance functions. -/
 noncomputable def cellNuisance (P : EventStudySystem T) (D : P.ConventionalDesign) :
     Submodule ℝ (P.CellIndex D → ℝ) :=
   Submodule.span ℝ (P.cellNuisanceGen D)
@@ -235,13 +248,17 @@ lemma sum_admissible_mul_eventIndicator (P : EventStudySystem T) (D : P.Conventi
 
 /-! ### Genuine cell-grid residualization input -/
 
-/-- Cell-grid regressor: the displayed-event relative-time indicator as a cell
-function. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
+conventional design](hyp:D), the [cell-grid regressor](goal) assigns one to an
+admissible cell exactly when its relative time is the displayed event time, and
+zero otherwise. -/
 noncomputable def cellRegressor (P : EventStudySystem T) (D : P.ConventionalDesign) :
     P.CellIndex D → ℝ :=
   fun cell => eventIndicator D.displayedEvent cell.val.2
 
-/-- Cell-grid outcome: the observed cell mean as a cell function. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
+conventional design](hyp:D), the [cell-grid outcome](goal) assigns to each
+admissible cohort--relative-time cell its observed mean outcome. -/
 noncomputable def cellOutcome (P : EventStudySystem T) (D : P.ConventionalDesign) :
     P.CellIndex D → ℝ :=
   fun cell => P.observedCellMean cell.val.1 cell.val.2

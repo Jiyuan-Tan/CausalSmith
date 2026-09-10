@@ -36,8 +36,10 @@ open scoped BigOperators
 variable {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 𝒢] [DecidableEq 𝒢]
   [MeasurableSpace 𝒢] [MeasurableSingletonClass 𝒢] {T : ℕ}
 
-/-- The "balanced cell-mass product" hypothesis. Says the joint law of
-`(G, T_rv)` factors as a product on each cohort × period cell:
+/-- For [a measure](hyp:μ), [a cohort classifier](hyp:G), and [a period classifier](hyp:T_rv), [the balanced-panel-law condition](goal) states that every cohort-period cell has mass equal to the product of its cohort marginal mass and its period marginal mass.
+
+The "balanced cell-mass product" hypothesis says the joint law of
+the cohort and period classifiers factors as a product on each cohort × period cell:
 
     cellMass μ G T_rv g t = cohortMass μ G g · periodMass μ T_rv t
 

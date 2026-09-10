@@ -33,6 +33,27 @@ const cw = (obj_id: string, decl: string): CrosswalkEntry => ({
 });
 
 describe("buildProseEntries", () => {
+  it("retains exact private helper source without publishing an unmangled declaration anchor", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "prose-private-"));
+    try {
+      const source = "/-- Source-local normalization. -/\nprivate noncomputable def scale : Nat := 1\n";
+      await writeFile(join(dir, "Basic.lean"), source);
+      const graph: FormalizationGraph = {
+        qid: "q", specialization: "s", edges: [],
+        nodes: [node("scale", "scale", "definition", "Example.scale", "unreviewed")],
+      };
+      const { entries, snippets } = await buildProseEntries({
+        objIds: ["scale"], graph, crosswalk: [cw("scale", "Example.scale")],
+        repoRoot: dir, leanSubdir: ".", env: "auxiliary",
+      });
+      expect(entries[0].lean).toBeNull();
+      expect(entries[0].fallback).toContain("Private Lean declaration in Basic.lean");
+      expect(snippets.scale.statement).toContain("private noncomputable def scale : Nat := 1");
+      expect(entries[0].sorry_free).toBe(true);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
   it("builds a standalone drawer entry from a graph node's Lean decl", async () => {
     const dir = await mkdtemp(join(tmpdir(), "prose-"));
     await writeFile(join(dir, "Basic.lean"), "/-- iid -/\nstructure IsIIDSample : Prop\n", "utf8");

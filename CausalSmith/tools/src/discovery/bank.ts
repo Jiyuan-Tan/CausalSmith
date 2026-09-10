@@ -10,10 +10,8 @@
  * literature bank (`_literature_bank/_failed/<reason>/<bt_id>/`). Validated by
  * `bin/bank_entry.ts` when a study-mode qid is banked at the failed tier.
  *
- * Distinct from `bin/study_bank.ts`'s `REASONS` (study-pipeline *run*-level
- * quarantine, granularity = `run_id`); this taxonomy is theorem-level
- * (granularity = `bt_id = <qid>_<spec>`) and tracks where in the causalsmith
- * pipeline the formalization gave up.
+ * The taxonomy is theorem-level (granularity = `bt_id = <qid>_<spec>`) and tracks
+ * where in the causalsmith pipeline the formalization gave up.
  */
 export const LITERATURE_FAILURE_REASONS = [
   // Stage 1.5 reviewer rejected the NL formalization plan beyond retry budget.

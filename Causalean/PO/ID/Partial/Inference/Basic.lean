@@ -75,7 +75,11 @@ open MeasureTheory
 
 variable {Ω : Type*}
 
-/-- **Coverage of the parameter** (Imbens–Manski notion).  The event that the
+/-- For [a sample space](hyp:Ω), [a lower endpoint function](hyp:A), [an upper endpoint function](hyp:B), and
+[a fixed real parameter value](hyp:θ), the [parameter-coverage event](goal) is the set of
+sample outcomes at which the random interval with those endpoints contains that value.
+
+**Coverage of the parameter** (Imbens–Manski notion).  The event that the
 random interval `[A ω, B ω]` contains the fixed real value `θ`.
 
 This is a *sampling-level* object — a (random) subset of the sample space `Ω`,
@@ -86,7 +90,12 @@ event of the random confidence interval, which is the whole point of inference. 
 def RandomCoversPoint (A B : Ω → ℝ) (θ : ℝ) : Set Ω :=
   {ω | A ω ≤ θ ∧ θ ≤ B ω}
 
-/-- **Coverage of the identified set** (Horowitz–Manski notion).  The event that
+/-- For [a sample space](hyp:Ω), [a lower endpoint function](hyp:A), [an upper endpoint function](hyp:B), [a real
+lower bound](hyp:L), and [a real upper bound](hyp:U), the [identified-set coverage event](goal)
+is the set of sample outcomes at which the random interval with those endpoints contains the
+entire closed interval from the lower to the upper bound.
+
+**Coverage of the identified set** (Horowitz–Manski notion).  The event that
 the random interval `[A ω, B ω]` contains the whole population interval `[L, U]`.
 Equivalently `A ω ≤ L` and `U ≤ B ω`. -/
 def RandomCoversIcc (A B : Ω → ℝ) (L U : ℝ) : Set Ω :=

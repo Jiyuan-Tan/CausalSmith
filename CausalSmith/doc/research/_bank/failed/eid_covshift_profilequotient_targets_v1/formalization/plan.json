@@ -1,0 +1,749 @@
+{
+  "qid": "eid_covshift_profilequotient_targets",
+  "specialization": "v1",
+  "cluster": "exactid",
+  "target_subdirectory": "CausalSmith/ExactID/EID_CovshiftProfilequotientTargets_Research",
+  "namespace": "CausalSmith.ExactID.CovshiftProfilequotientTargets",
+  "feasibility": "formalizable-now",
+
+  "decisions": [
+    {
+      "id": "P1",
+      "decision": "Search tooling substitution. The Causalean concept-search CLI (`cd CausalSmith/tools && npm run search`) requires a shell, and no shell tool is available to this stage. Every recorded search trace was executed with the tools that are available: `Grep`/`Glob` over `../doc/API.md` (the curated Causalean API index, 12.5k lines) and over the `../Causalean/**` source tree, plus `lean_loogle` / `lean_leansearch` for the Mathlib side. Traces name the literal words grepped and the files/sections read so they are re-runnable either way."
+    },
+    {
+      "id": "P2",
+      "decision": "`def:certified-approximate-selector` is realized by a genuine finite cylindrical decomposition of the witness-augmented graph. `FixedCertifiedCAD` partitions the graph of `(statistic, covariance, target-membership vector, ordered target tuple)` into pairwise-disjoint semialgebraic cells, fixes a total coordinate order, and requires cell projections on every coordinate prefix to agree or be disjoint. Each cell has a semialgebraic within-cell choice map; the global selector uses that map on the first cell with a nonempty fiber. No fiber-uniqueness condition is imposed. `IsCertifiedSemialgebraicSelector` records the resulting semialgebraic/Borel section, `ThetaK` membership, ordered certificate, and strict epsilon bound."
+    },
+    {
+      "id": "P3",
+      "decision": "`lem:measurable-certified-selection` stays fully in scope (`defer_tier:false`, `gate:false`) and now constructs the object the paper states: a cylindrical algebraic decomposition of the ordered-witness-augmented graph, together with its first-nonempty-cell definable-choice section. The conclusion supplies the full `FixedCertifiedCAD`, whose partition, cylindricity, witness coordinates, and within-cell choice fields imply the semialgebraic/Borel selector, `Theta_K` membership, ordered certificate, and strict epsilon bound. The prior finite-net replacement is retracted because a finite Voronoi cover does not by itself certify cylindricity."
+    },
+    {
+      "id": "P4",
+      "decision": "The SCM world (`S1`) is a record over the covariance algebra whose primitive-noise fields carry genuine measure-theoretic laws (`ProbabilityTheory.IsGaussian`, `ProbabilityTheory.iIndepFun`), so `ass:centered-gaussian-noises` and `ass:block-independent-noises` are real distributional Props rather than covariance-level paraphrases. The observed covariance identity `Cov(Y_e) = U (C Omega_H C^T + diag(omega_0 + lambda_e)) U^T + Omega_eta` is then a derived lemma of the world, not an axiom of the record."
+    },
+    {
+      "id": "P5",
+      "decision": "`lem:measurable-certified-selection` and `prop:four-node-collision` carry `hyps: []`. `def:bounded-covariance-class` appears in their `depends_on` as the DEFINITION of `Theta_K` (a set the statement quantifies over / a membership premise internal to the statement), not as an ambient hypothesis bundle on a generic tuple, so threading it as a `hyps` entry would misdescribe both statements. Neither has any assumption node in `depends_on`, so P4 coverage is vacuous."
+    },
+    {
+      "id": "P6",
+      "decision": "No substrate gates. Every statement in the core has `status:\"proved\"` and is paper-owned; there is no `status:\"cited\"` statement and no externally-established named theorem is being assumed. `infrastructure_needed` is therefore empty and no node is `gate:true`."
+    },
+    {
+      "id": "P7",
+      "decision": "Bypass record (Stage 2.5 `bypass-justified`). Cluster substrate root modules surveyed and NOT used: `Causalean/PO/ID/Exact/` (potential-outcome exact identification: this artifact has no treatment/potential-outcome pair, only environment-indexed covariances), `Causalean/SCM/ID/` and `Causalean/SCM/ID/GraphicalThms/` (graphical do-calculus identification: the target here is a labeled target FIBER of a linear-Gaussian covariance model, not a do-expression; `Identifiable`/`Adjustment`/`Backdoor`/`Frontdoor` do not type-fit), `Causalean/PO/` (`Overlap` is treatment-propensity overlap, unrelated to the covariance eigenvalue box `m I <= Sigma_e <= M I`), `Causalean/SCM/Do/` (interventional kernels on a generalized SCM: the soft interventions here are variance shifts in a linear-Gaussian equilibrium and never leave the covariance algebra), `Causalean/Graph/SWIG.lean` (`SWIGGraph` splits nodes for counterfactual d-separation; acyclicity here is used only as a triangular labeling constraint on `B_mu`, handled by `Matrix.BlockTriangular`). The abstraction gap is uniform: the cluster substrate is measure-theoretic/graphical causal identification, this artifact is matrix-algebraic over `Matrix (Fin d) (Fin d) ℝ` plus a Gaussian sampling layer. The substrate that IS reused sits in `Causalean/Mathlib/**` and `Causalean/Stat/Minimax/**` and is recorded per node."
+    },
+    {
+      "id": "P8",
+      "decision": "Dependency-closure consequence of P2/P3. `thm:honest-family-confidence` consumes the measurable first-cell selector delivered by the genuine witness-augmented CAD. Its probability bound still uses outer-measure monotonicity from the incorrect-report event to the Markov error event, so it does not add an unstated measurable-projection premise. The displayed region, outer family, and classification-image formulas remain unchanged."
+    }
+  ],
+
+  "env": [
+    {
+      "id": "S1",
+      "world": "A fixed-dimension linear Gaussian covariance-shift structural causal model observed across environments. The observed dimension is \\(d\\ge 2\\), the environment labels are \\(\\mathcal E=\\{0,1,\\ldots,E\\}\\) with \\(E\\ge 2\\) nonbaseline environments, the observed labels are \\(\\mathcal V=\\{1,\\ldots,d\\}\\), and the target size is \\(r\\in\\{1,\\ldots,d-1\\}\\). A model \\(\\mu\\) consists of an observed structural coefficient matrix \\(B_{\\mu}\\in\\mathbb R^{d\\times d}\\) that is permutation-similar to a strictly lower-triangular matrix, with total-effect matrix \\(U_{\\mu}=(I_d-B_{\\mu})^{-1}\\); an invariant latent loading \\(C_{\\mu}\\in\\mathbb R^{d\\times d}\\) with invariant latent covariance \\(\\Omega_{H,\\mu}\\succeq 0\\); a strictly positive baseline structural-noise variance vector \\(\\omega_{0,\\mu}\\in\\mathbb R^d\\); an invariant diagonal measurement-error covariance \\(\\Omega_{\\eta,\\mu}\\succ 0\\); a target set \\(T_{\\mu}\\subseteq\\mathcal V\\) of size \\(r\\); and variance increments \\(\\lambda\\in\\mathbb R^{E\\times d}\\) with \\(\\lambda_0=0\\), vanishing off \\(T_{\\mu}\\), nonnegative on \\(T_{\\mu}\\), and strictly positive for each target in at least one nonbaseline environment. In environment \\(e\\) the primitive vector \\((H_e,\\varepsilon_e,\\eta_e)\\) is centered Gaussian with mutually independent blocks and coordinates, \\(\\operatorname{Cov}(H_e)=\\Omega_{H,\\mu}\\), \\(\\operatorname{Cov}(\\varepsilon_e)=\\operatorname{diag}(\\omega_{0,\\mu}+\\lambda_e)\\), and \\(\\operatorname{Cov}(\\eta_e)=\\Omega_{\\eta,\\mu}\\), and the observation is \\(Y_e=U_{\\mu}(C_{\\mu}H_e+\\varepsilon_e)+\\eta_e\\). The legal class \\(\\mathcal M_{d,E,r}\\) collects all such \\(\\mu\\).",
+      "binds_symbols": ["d", "E", "r", "V", "Env", "Id", "Symd", "SPDd", "mu", "Bmu", "Umu", "Cmu", "OmegaH", "omega0", "Omegaeta", "Tmu", "lambda", "He", "epsilone", "etae", "Ye", "Mscm"],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.LinearAlgebra.Matrix.Block",
+        "Mathlib.Analysis.Matrix.Order",
+        "Mathlib.Probability.Distributions.Gaussian.Basic",
+        "Mathlib.Probability.Independence.Basic",
+        "Causalean.Mathlib.StandardGaussian"
+      ],
+      "notes": "Search trace: grepped `../doc/API.md` section index (`^## `) and then grepped the whole index for `Wishart|empirical covariance|sample covariance` (0 hits) and read sections 17b (`Discovery/LinearDisentanglement/`, lines 11638-11760) and 9b/9-9l (`SCM/ID/`, `PO/ID/Exact/`); globbed `../Causalean/Discovery/LinearDisentanglement/**` and `../Causalean/Mathlib/**`; Mathlib checked with `lean_loogle \"IsGaussian\"` and `lean_leansearch \"mutually independent family of random variables iIndepFun\"`. Result: no Causalean world models a multi-environment linear-Gaussian SCM with invariant latent confounding PLUS invariant measurement error PLUS per-environment structural-variance shifts. Two near misses, both at the wrong abstraction: (a) `Causalean.Discovery.LinearDisentanglement.Solution` (`Causalean/Discovery/LinearDisentanglement/Model.lean`) is a latent SEM with a full-row-rank mixing and ONE perfect single-node intervention per context, indexed by precision matrices, with no additive measurement error and no nonnegative-shift design; (b) the sibling CausalSmith note `CausalSmith.ExactID.RobustBackshiftUniformDistance.BackshiftSystem` (`CausalSmith/ExactID/EID_RobustBackshiftUniformDistance_Research/Basic.lean:42`) is the closest sibling record but permits cyclic coefficients, carries no latent loading and no measurement error, and its shifts are the whole model rather than an exact-rank target fiber. Both are recorded as STYLE references for F2 (matrix/environment abbreviations, `@realizes` annotation discipline) rather than reuse. Cluster-root modules `Causalean/PO/**`, `Causalean/SCM/ID/**`, `Causalean/SCM/Do/**`, `Causalean/Graph/SWIG.lean` are bypass-justified per decision P7. Reused pieces INSIDE the world: `Matrix.BlockTriangular` (verified `lean_loogle Matrix.BlockTriangular`, module `Mathlib.LinearAlgebra.Matrix.Block`) for acyclicity, `Matrix.PosDef`/`Matrix.PosSemidef` for the covariance cones, `ProbabilityTheory.IsGaussian` and `ProbabilityTheory.iIndepFun` for the primitive-law assumptions, `Causalean.Mathlib.stdGaussian` for the standard-Gaussian building block used by the realization construction."
+    },
+    {
+      "id": "S2",
+      "world": "The observable covariance-tuple and ordered-certificate world. A population covariance tuple is \\(\\theta=(\\Sigma_0,\\ldots,\\Sigma_E)\\) with \\(\\Sigma_e\\) real symmetric \\(d\\times d\\); the covariance shifts are \\(\\Delta_e=\\Sigma_e-\\Sigma_0\\) with \\(\\Delta_0=0\\), and the aggregate carrier is \\(\\bar Q=\\sum_{e=1}^E\\Delta_e\\). For a candidate label set \\(T\\subseteq\\mathcal V\\) and an ordering \\(t=(t_1,\\ldots,t_r)\\) of \\(T\\), the selection matrix \\(P_t\\in\\{0,1\\}^{r\\times d}\\) picks the coordinates in the order \\(t\\), the ordered aggregate principal block is \\(\\bar Q_{tt}=P_t\\bar QP_t^{\\mathsf T}\\), and when \\(\\bar Q_{tt}\\succ0\\) it has the unique factorization \\(\\bar Q_{tt}=L_tD_tL_t^{\\mathsf T}\\) with \\(L_t\\) unit lower triangular and \\(D_t\\) diagonal positive, giving the transformed target blocks \\(\\Lambda_{e,t}=L_t^{-1}P_t\\Delta_eP_t^{\\mathsf T}L_t^{-\\mathsf T}\\). The reconstruction map is \\(W_t=\\bar QP_t^{\\mathsf T}\\bar Q_{tt}^{-1}\\), the recovered target columns are \\(A_t=W_tL_t\\), and the completion places \\(t\\) first to form the unit-lower-triangular \\(U_t\\), the structural matrix \\(B_t=I_d-U_t^{-1}\\), the slack \\(\\tau>0\\), the baseline remainder \\(R_0=\\Sigma_0-\\tau U_tU_t^{\\mathsf T}-\\tau I_d\\), and the loading \\(C_t=U_t^{-1}R_0^{1/2}\\). Over this world sit the causal fiber \\(\\mathcal F_{\\mathrm{causal}}(\\theta)\\), the algebraic fiber \\(\\mathcal F_{\\mathrm{LDL}}(\\theta)\\), the compulsory and possible label sets \\(\\mathcal C(\\theta)\\) and \\(\\mathcal P(\\theta)\\) with \\(h(\\theta)=(\\mathcal C(\\theta),\\mathcal P(\\theta))\\), and the subset-memoized pivot state \\((R_S,(M_{e,S})_{e=1}^E)\\) indexed by selected subsets \\(S\\subseteq\\mathcal V\\) with \\(|S|\\le r\\). Three explicit tuples live here: the three-node signed-shift witness \\(\\theta^{\\pm}\\), the three-node split-reference witness \\(\\theta^{\\mathrm{split}}\\), and the four-node collision path \\(\\theta_{\\gamma}\\) indexed by \\(\\gamma\\in(-1,1)\\).",
+      "binds_symbols": ["theta", "Sigma", "Delta", "Q", "T", "t", "Pt", "Qtt", "Lt", "Dt", "Lambdat", "Cert", "Nmat", "Wt", "At", "Ut", "Bt", "tau", "Rzero", "Ct", "Fcausal", "Falg", "Comp", "Poss", "h", "Sset", "PS", "RS", "MeS", "Pivot", "thetaSigned", "thetaSplitRef", "gamma", "thetagamma"],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.LinearAlgebra.Matrix.Rank",
+        "Mathlib.Analysis.Matrix.LDL",
+        "Mathlib.Analysis.Matrix.Order",
+        "Causalean.Mathlib.LinearAlgebra.Cholesky"
+      ],
+      "notes": "Search trace: grepped `../doc/API.md` for `Cholesky|LDL` and read section 10j' (line 5707); grepped `../Causalean/Mathlib/LinearAlgebra/Cholesky.lean` for `^(theorem|lemma|def|namespace)` (confirms `Causalean.Mathlib.LinearAlgebra.{ldl_lowerInv_diag_one, ldl_diagEntries_pos, ldl_lowerInv_blockTriangular, ldl_lower_blockTriangular, ldl_lower_diag_one, cholesky_exists, orthogonal_upperTri_pos_diag_eq_one, cholesky_unique}`); Mathlib checked with `lean_loogle LDL.lower_conj_diag` (hit: `LDL.lower hS * LDL.diag hS * (LDL.lower hS)^H = S`, module `Mathlib.Analysis.Matrix.LDL`), `lean_leansearch \"positive semidefinite matrix has a positive semidefinite square root\"` (hit: `Matrix.PosSemidef.sqrt`, `Matrix.PosSemidef.sq_sqrt`, module `Mathlib.Analysis.Matrix.Order`), `lean_leansearch \"rank of a matrix over a field\"` (hit: `Matrix.rank`, module `Mathlib.LinearAlgebra.Matrix.Rank`). Result: the positive `LDL^T` factorization with unit-lower factor is EXACTLY Mathlib's `LDL.lower`/`LDL.diag` plus `LDL.lower_conj_diag`, and its uniqueness (the step `thm:sharp-target-fiber` spends a paragraph on) follows from `Causalean.Mathlib.LinearAlgebra.cholesky_unique` after absorbing the square roots of the diagonal factor, exactly the direction `cholesky_exists` already travels. The unit-diagonal and positive-pivot side facts `ldl_lower_diag_one` and `ldl_diagEntries_pos` are also direct reuse. `R_0^{1/2}` is `Matrix.PosSemidef.sqrt`. What is NOT in the library and is built here: the ordered SELECTION operator \\(P_t\\), the ordered principal-block certificate, the two fibers, the completion, and the subset pivot state. `lean_local_search` was tried first for all four Cholesky names and returned empty for every one — treated as tool flakiness, not absence, and confirmed by direct source grep."
+    },
+    {
+      "id": "S3",
+      "world": "The bounded multi-sample Gaussian covariance experiment. Constants \\(0<m<M\\) bound the spectrum, and \\(\\Theta_K\\) is the class of tuples \\(\\zeta=(Z_0,\\ldots,Z_E)\\) of positive-definite matrices with \\(mI_d\\preceq Z_e\\preceq MI_d\\) for every \\(e\\in\\mathcal E\\), aggregate difference \\(\\sum_{f=1}^E(Z_f-Z_0)\\) of rank exactly \\(r\\), every \\(\\operatorname{range}(Z_e-Z_0)\\) contained in the range of that aggregate, and at least one ordered certificate. Given sample sizes \\(n=(n_0,\\ldots,n_E)\\), the observations \\(Y_{ei}\\sim N(0,\\Sigma_e)\\) are independent over \\(e\\in\\mathcal E\\) and \\(1\\le i\\le n_e\\), with empirical covariances \\(\\widehat\\Sigma_e=n_e^{-1}\\sum_{i}Y_{ei}Y_{ei}^{\\mathsf T}\\). The tuple space carries the sample-size weighted Frobenius norm \\(\\lVert a\\rVert_w^2=\\sum_{e=0}^En_e\\lVert a_e\\rVert_F^2\\) and, at a fixed \\(\\theta\\), the frozen Gaussian covariance-information norm \\(\\lVert H\\rVert_{I,n,\\theta}^2=\\tfrac12\\sum_{e=0}^{E}n_e\\operatorname{tr}(\\Sigma_e^{-1}H_e\\Sigma_e^{-1}H_e)\\). At level \\(\\alpha\\in(0,1)\\) with \\(V_{\\max}=(E+1)M^2d(d+1)\\) and \\(c_{\\alpha}=\\sqrt{V_{\\max}/\\alpha}\\), the raw region is \\(W_n=\\{\\zeta:mI_d\\preceq Z_e\\preceq MI_d,\\ \\lVert\\zeta-\\widehat\\Sigma\\rVert_w\\le c_{\\alpha}\\}\\); for tolerance \\(\\epsilon>0\\) the strict approximate-minimizer graph is \\(G_{\\epsilon}=\\{(s,\\zeta):\\zeta\\in\\Theta_K,\\ \\lVert\\zeta-s\\rVert_w<\\inf_{\\xi\\in\\Theta_K}\\lVert\\xi-s\\rVert_w+\\epsilon\\}\\), a certified selector \\(s_{\\epsilon}\\) is a section of it, \\(\\widetilde\\theta_n=s_1(\\widehat\\Sigma)\\), and \\(R_n=W_n\\cup\\{\\widetilde\\theta_n\\}\\) carries the outer family \\(\\mathcal F_{\\mathrm{out},n}\\) and the classification image \\(\\mathcal H_n\\). The classification information distance is \\(\\delta_n(\\theta)=\\inf\\{\\lVert\\zeta-\\theta\\rVert_{I,n,\\theta}:\\zeta\\in\\Theta_K,\\ h(\\zeta)\\ne h(\\theta)\\}\\), with \\(\\inf\\varnothing=\\infty\\); \\(C<\\infty\\) bounds it in the impossibility regime and \\(x>0\\) is the deterministic sampling-error threshold.",
+      "binds_symbols": ["m", "M", "zeta", "ThetaK", "alpha", "n", "Shat", "normw", "Vmax", "calpha", "Wn", "epsilon", "Gepsilon", "stilde", "thetatilde", "Rn", "Fout", "Hn", "Hpert", "Inorm", "Ah", "deltan", "Cbound", "xrad"],
+      "binds_sampling_model": true,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Distributions.Gaussian.Basic",
+        "Mathlib.Probability.Independence.Basic",
+        "Mathlib.Analysis.Matrix.Order",
+        "Mathlib.Analysis.Matrix.Spectrum",
+        "Causalean.Mathlib.StandardGaussian",
+        "Mathlib.Topology.UniformSpace.Cauchy",
+        "Mathlib.Topology.MetricSpace.ProperSpace",
+        "Causalean.Stat.Minimax.TotalVariation"
+      ],
+      "notes": "Search trace: grepped `../doc/API.md` for `Wishart|empirical covariance|sample covariance` (0 hits) and for `Isserlis|Chebyshev|two-point|Le Cam|chiSq|Hellinger|totalVariation` (hits at 7390-7474, `Stat/Minimax/`); read sections 12w.1-12w.3; grepped `../Causalean/Stat/Minimax/TotalVariation.lean` (`namespace Causalean.Stat`, `tvDist` at :50, `one_sub_tvDist_le_test` at :108); grepped `../Causalean/Mathlib/MeasureTheory/CompactArgminSelection.lean` (`namespace Causalean.Mathlib.MeasureTheory`, `borelMeasurable_compact_argmin_selector` at :134, `borelMeasurable_nearestPoint_selector` at :338). Result: Causalean has NO empirical-covariance / Wishart second-moment layer, so the fourth-moment identity behind \\(\\mathbb E\\lVert\\widehat\\Sigma-\\Sigma\\rVert_F^2=n^{-1}\\{(\\operatorname{tr}\\Sigma)^2+\\operatorname{tr}(\\Sigma^2)\\}\\) is built inline in `Helpers/Sampling.lean`. It DOES have the testing core the impossibility theorem needs (`Causalean.Stat.tvDist`, `Causalean.Stat.one_sub_tvDist_le_test`, the Le Cam and Pinsker layers), recorded as a reference and not a discharge (the testing bound is stated for total variation over a two-point pair while the paper's bound is a Holder argument on a \\(p\\)-th likelihood-ratio moment). ROUND-2 CORRECTION: the measurable-selection modules of `Causalean/Mathlib/MeasureTheory/` are NO LONGER on the route for this world. `borelMeasurable_compact_argmin_selector` requires `IsCompact K`, and \\(\\Theta_K\\) is neither closed nor open (exact rank plus strict pivots), so it does not apply; it also delivers only Borel measurability, which is weaker than the semialgebraic section the core states. The selector is instead built from a FINITE net of \\(\\Theta_K\\) (bounded by the Loewner box, hence totally bounded: `ProperSpace.isCompact_closedBall` in `Mathlib.Topology.MetricSpace.ProperSpace`, `IsCompact.totallyBounded` and `TotallyBounded.subset` and `totallyBounded_iff_subset` in `Mathlib.Topology.UniformSpace.Cauchy`, the last of which returns a net whose centres lie IN the set — verified round 2 by `lean_loogle \"totallyBounded_iff_subset\"` and `lean_leansearch \"subset of a totally bounded set is totally bounded\"`), which makes the section piecewise constant on finitely many polynomial cells and therefore both semialgebraic and Borel. See decisions P2, P3, P8."
+    },
+    {
+      "id": "S4",
+      "world": "The Gaussian local tangent experiment attached to a collision. A tangent geometry is a triple \\(\\mathcal G=(k,g_0,\\mathcal A)\\) with \\(k\\) the whitened local dimension, \\(X\\sim N(g,I_k)\\) the local Gaussian shift experiment, \\(g_0\\in\\mathbb R^k\\) the focal shift carrying the focal complete classification, and \\(\\mathcal A\\subseteq\\mathbb R^k\\) the union of tangent sets carrying a different complete classification. A randomized certification rule is a Borel \\(\\phi:\\mathbb R^k\\to[0,1]\\); it is honest at level \\(\\alpha\\) when \\(\\sup_{g\\in\\mathcal A}\\mathbb E_g\\phi(X)\\le\\alpha\\), and the geometry-indexed optimal focal-certification value is \\(\\beta^{\\star}_{\\mathcal G}(\\alpha)=\\sup\\{\\mathbb E_{g_0}\\phi(X):\\phi\\text{ honest at }\\alpha\\}\\). The nearest-opposite distance \\(c=\\inf_{g\\in\\mathcal A}\\lVert g-g_0\\rVert_2\\) is retained as a scalar summary of the geometry.",
+      "binds_symbols": ["clocal", "Gtan", "betastar"],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Distributions.Gaussian.Basic",
+        "Causalean.Mathlib.Probability.StdNormalCDF",
+        "Causalean.Mathlib.StandardGaussian"
+      ],
+      "notes": "Search trace: grepped `../doc/API.md` for `Neyman|NeymanPearson|likelihood ratio test` (hits only at 3587-3613, the Dorn-Guo MSM quantile-balancing exchange argument, and at 5863/6594/9372-9385, Neyman ORTHOGONALITY, a different notion) and read section 10a''' (line 4368); grepped `../Causalean/Mathlib/Probability/StdNormalCDF.lean` (`namespace Causalean.Mathlib`, `stdNormalPDF` :40, `stdNormalCDF` :47, `stdNormalCDF_neg` :84, `stdNormalCDF_continuous` :117, `stdNormalCDF_strictMono` :123, `probit` :164, `stdNormalCDF_probit` :167, `probit_stdNormalCDF` :194); Mathlib checked with `lean_loogle \"IsGaussian\"` (module `Mathlib.Probability.Distributions.Gaussian.Basic`, plus `gaussianReal`). Result: Mathlib and Causalean have NO general Neyman-Pearson lemma, so the one-sided and two-sided optimality exchange arguments are built inline (the frozen proof already supplies self-contained signed-integrand arguments). The scalar layer is exact reuse: `Causalean.Mathlib.stdNormalCDF` is \\(\\Phi\\), `Causalean.Mathlib.probit` is \\(\\Phi^{-1}\\), `stdNormalCDF_probit` gives \\(\\Phi(\\Phi^{-1}(\\alpha))=\\alpha\\), `stdNormalCDF_strictMono` and `stdNormalCDF_continuous` give the unique root \\(t_{c,\\alpha}\\) of \\(\\Phi(t-c)-\\Phi(-t-c)=\\alpha\\), and `stdNormalCDF_neg` gives the reflection identity. The nearest ANALOGOUS proved exchange argument, recorded for F3 to adapt, is `Causalean/PO/ID/Partial/Sensitivity/MSM/QuantileBalance.lean` `cutoff_optimal` / `cutoff_optimal_lower` (`../doc/API.md:3592`, :3613): same signed-integrand structure (integrand times a sign-controlled weight difference, the level term cancelling by calibration), applied there to a cutoff weight rather than to a likelihood-ratio test region. Gap to bridge: our reference measure in the two-sided case is the mixture \\(Q=(P_c+P_{-c})/2\\), so the exchange must be run after reflection symmetrization."
+    }
+  ],
+
+  "nodes": {
+    "ass:acyclic-observed-system": {
+      "lean_kind": "assumption",
+      "lean_name": "AcyclicObservedSystem",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.Block"],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (causal-structural): a restriction on the observed mechanism, kept as a threaded/bundled Prop, never discharged. Encoded as `∃ σ : Equiv.Perm (Fin d), (B.submatrix σ σ).BlockTriangular id ∧ ∀ i, (B.submatrix σ σ) i i = 0` (permutation-similar to strictly lower triangular). Search trace: `lean_loogle Matrix.BlockTriangular` → `Matrix.BlockTriangular`, `Matrix.blockTriangular_diagonal`, module `Mathlib.LinearAlgebra.Matrix.Block`; grepped `../doc/API.md` for the graph layer (`Graph/DAG.lean` §1, `Graph/SWIG.lean` §3) — `Causalean.Graph.DAG` is an edge-relation DAG on a node type, not a matrix predicate, so it does not type-fit an assumption about \\(B_{\\mu}\\) and is bypass-justified here. Style reference: `Causalean.Discovery.LinearDisentanglement.Solution` encodes acyclicity as `j → i ⟹ i < j` on an edge relation with an already-triangular `B₀`; this artifact needs the permutation-similar form because the labels are fixed by the paper and the topological order is existentially quantified."
+    },
+    "ass:centered-gaussian-noises": {
+      "lean_kind": "assumption",
+      "lean_name": "CenteredGaussianNoises",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Probability.Distributions.Gaussian.Basic"],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (distributional). Encoded as: for every `e : Env`, the law of the stacked primitive vector `(H e, ε e, η e)` is a centered Gaussian, i.e. `ProbabilityTheory.IsGaussian (Measure.map (primitive e) P)` together with vanishing mean. Search trace: `lean_loogle \"IsGaussian\"` → `ProbabilityTheory.IsGaussian` on a topological module, `isGaussian_gaussianReal`, `IsGaussian.eq_gaussianReal`, module `Mathlib.Probability.Distributions.Gaussian.Basic`; grepped `../doc/API.md` for `StandardGaussian` (§10i, `Causalean.Mathlib.stdGaussian` on a finite-dim inner-product space). Reuse is inside the Prop body (`IsGaussian`), not at the node level: the node is a named condition on THIS model's primitives, which no library declaration states."
+    },
+    "ass:block-independent-noises": {
+      "lean_kind": "assumption",
+      "lean_name": "BlockIndependentNoises",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Probability.Independence.Basic"],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (causal-structural). Encoded with `ProbabilityTheory.iIndepFun` over the index type `Unit ⊕ Fin d ⊕ Unit` collecting `H e`, the `d` coordinates of `ε e`, and `η e`. Search trace: `lean_leansearch \"mutually independent family of random variables iIndepFun\"` → `ProbabilityTheory.iIndepFun`, `iIndepFun_iff_finset`, `iIndepFun_iff_map_fun_eq_pi_map`, module `Mathlib.Probability.Independence.Basic`; grepped `../doc/API.md` for the Causalean independence plumbing (§10c `Mathlib/Indep.lean` — `IndepFun`/`CondIndepFun` helpers for the graphical layer, pairwise/conditional, not the `iIndepFun` block form needed here). Reuse is inside the Prop body."
+    },
+    "ass:stationary-latent-noise": {
+      "lean_kind": "assumption",
+      "lean_name": "StationaryLatentNoise",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.PosDef"],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (invariance): `∀ e, Cov (H e) = Ω_H`. Search trace: grepped `../doc/API.md` for `stationary|invariant noise|group-wise` — the only related entry is the coroICA-motivated discussion in the artifact's own related work, nothing in Causalean; grepped `../Causalean/Discovery/LinearDisentanglement/**` (its contexts share `H` but have no environment-invariant latent covariance field). Mathlib side: this is a model-specific equality of matrices, not a standard fact, so no `lean_leansearch` candidate applies. Build-inline, one line."
+    },
+    "ass:stationary-measurement-error": {
+      "lean_kind": "assumption",
+      "lean_name": "StationaryMeasurementError",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.PosDef"],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (invariance): `∀ e, Cov (η e) = Ω_η` with `Ω_η` diagonal. Search trace: grepped `../doc/API.md` for `measurement error` — no Causalean module; the cited Yang et al. measurement-error setting is not formalized in the substrate. Build-inline, one line."
+    },
+    "ass:positive-structural-noise": {
+      "lean_kind": "assumption",
+      "lean_name": "PositiveStructuralNoise",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (support): `∀ j, 0 < ω₀ j`. Search trace: coordinatewise positivity of a model-specific vector; grepped `../doc/API.md` for `positive noise|nonsingular structural` (no matching declaration). Build-inline, one line."
+    },
+    "ass:positive-measurement-noise": {
+      "lean_kind": "assumption",
+      "lean_name": "PositiveMeasurementNoise",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.PosDef"],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (support): `Ω_η.PosDef`. Search trace: `Matrix.PosDef` confirmed via `lean_leansearch \"positive semidefinite matrix has a positive semidefinite square root\"` (same module family, `Mathlib.Analysis.Matrix.Order` / `Mathlib.LinearAlgebra.Matrix.PosDef`); the node itself is a one-line condition on this model. Build-inline."
+    },
+    "ass:target-cardinality": {
+      "lean_kind": "assumption",
+      "lean_name": "TargetCardinality",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (design): `T_μ.card = r` for `T_μ : Finset (Fin d)`. Search trace: `Finset.card` is Mathlib core; no library declaration states this model's cardinality condition. Build-inline, one line."
+    },
+    "ass:no-off-target-shifts": {
+      "lean_kind": "assumption",
+      "lean_name": "NoOffTargetShifts",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (exclusion): `∀ e j, j ∉ T_μ → λ e j = 0`. Search trace: grepped `../doc/API.md` for `shift intervention|additive shift` and read §17b — the LinearDisentanglement model uses single-node PERFECT interventions (`Bₖ = B₀ + e_{iₖ}cₖᵀ`), a different exclusion shape (one target per context, coefficient-row replacement) that does not type-fit an off-target variance-increment exclusion over an `E × d` array. Build-inline, one line."
+    },
+    "ass:nonnegative-variance-shifts": {
+      "lean_kind": "assumption",
+      "lean_name": "NonnegativeVarianceShifts",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (design, flagged novel in the core): `∀ e j, j ∈ T_μ → 0 ≤ λ e j`. Kept as a threaded Prop; it is both a member of `def:legal-scm-class` and a direct hypothesis of `thm:sharp-target-fiber`, which is one `def` referenced twice, not two nodes. Search trace: grepped `CausalSmith/ExactID/EID_RobustBackshiftUniformDistance_Research/Basic.lean` — the sibling note has the analogous `NonnegativeShifts` (`:73`, `∀ e ∈ W.honest, ∀ k, 0 ≤ W.shifts e k`), but over a `BackshiftSystem` with an honest-subset field rather than a target set, so it is a naming/style reference and NOT a type-fitting reuse. Build-inline, one line."
+    },
+    "ass:reference-shifts-all-targets": {
+      "lean_kind": "assumption",
+      "lean_name": "PanelTargetCoverage",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "target_file": "Basic.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (design, flagged novel): `∀ j ∈ T_μ, ∃ e ∈ Finset.Icc 1 E, 0 < λ e j`. This is the paper's replacement for a common all-target reference environment; grepped `../doc/API.md` and `../Causalean/Discovery/**` for `coverage|reference environment|all-target` — nothing analogous exists. Build-inline, one line."
+    },
+    "ass:baseline-positive": {
+      "lean_kind": "assumption",
+      "lean_name": "BaselinePositive",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.PosDef"],
+      "target_file": "Helpers/Certificate.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (support): `(θ 0).PosDef`. Declared as its own `ass:` node by the author and used as an explicit premise by three theorems, so it stays a threaded hypothesis; no discharge is attempted (the author's atomization is a deliberate modeling boundary). Search trace: `Matrix.PosDef` verified in `Mathlib.LinearAlgebra.Matrix.PosDef` (imported by the sibling note's `Basic.lean:3`). Build-inline."
+    },
+    "ass:reference-exact-rank": {
+      "lean_kind": "assumption",
+      "lean_name": "AggregateExactRank",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.Rank"],
+      "target_file": "Helpers/Certificate.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (rank, flagged novel): `(aggregate θ).rank = r`. This is an observable regularity PREMISE for standalone tuples (inside the legal class it is a consequence), so it is threaded, never escalated. Search trace: `lean_leansearch \"rank of a matrix over a field\"` → `Matrix.rank`, `Matrix.rank_eq_finrank_span_row`, module `Mathlib.LinearAlgebra.Matrix.Rank`; grepped `../doc/API.md` for `exact rank|rank r|rank-one` (hits: §10a''''''''''''' `RankOneGramPseudoinverse`, `Fin 2`-specific — not a general exact-rank predicate). Build-inline, one line."
+    },
+    "ass:common-shift-range": {
+      "lean_kind": "assumption",
+      "lean_name": "CommonShiftRange",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.Rank", "Mathlib.LinearAlgebra.Matrix.ToLin"],
+      "target_file": "Helpers/Certificate.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (rank, flagged novel): for every nonbaseline `e`, `LinearMap.range (Matrix.mulVecLin (shift θ e)) ≤ LinearMap.range (Matrix.mulVecLin (aggregate θ))`. Threaded, not discharged. Search trace: `lean_leansearch \"Moore-Penrose pseudoinverse of a matrix range projection\"` → only generic `LinearMap.IsProj` / `Submodule.linearProjOfIsCompl` results, no matrix range-inclusion predicate; grepped `../doc/API.md` for `range inclusion|rowspan` (hit: §17b `rowspan_inclusion_a/b/c`, which relate a PRECISION difference's row span to a latent parent set in the disentanglement model — a different object, not a reusable range-inclusion condition). Build-inline, one line. `Mathlib.LinearAlgebra.Matrix.ToLin` supplies `Matrix.mulVecLin`."
+    },
+    "ass:bounded-covariance-member": {
+      "lean_kind": "assumption",
+      "lean_name": "BoundedCovarianceMember",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Analysis.Matrix.Order", "Mathlib.LinearAlgebra.Matrix.PosDef"],
+      "target_file": "Helpers/BoundedClass.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (support): `∀ e, (Z e - m • 1).PosSemidef ∧ (M • 1 - Z e).PosSemidef`, the Loewner box. Search trace: `lean_leansearch` for the positive-semidefinite order (hits in `Mathlib.Analysis.Matrix.Order`, the module carrying `Matrix.PosSemidef.sqrt` and the Loewner order instance, imported by the sibling note); grepped `../doc/API.md` for `eigenvalue bounds|Loewner` (nothing packaging this as a named condition). Build-inline, one line."
+    },
+    "ass:bounded-reference-rank": {
+      "lean_kind": "assumption",
+      "lean_name": "BoundedAggregateRank",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.Rank"],
+      "target_file": "Helpers/BoundedClass.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (rank, flagged novel): the generic-tuple analogue of `ass:reference-exact-rank`. Same search trace as `ass:reference-exact-rank` (`lean_leansearch \"rank of a matrix over a field\"` → `Matrix.rank`); it is a separate core node because it constrains the generic member `ζ` of `Θ_K` rather than the population `θ`, and the plan keeps the author's two-node atomization rather than fusing them. Build-inline, one line."
+    },
+    "ass:bounded-common-range": {
+      "lean_kind": "assumption",
+      "lean_name": "BoundedCommonRange",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.ToLin"],
+      "target_file": "Helpers/BoundedClass.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (rank, flagged novel): the generic-tuple analogue of `ass:common-shift-range`. Same search trace; kept as its own node per the author's atomization. Build-inline, one line."
+    },
+    "ass:bounded-certificate-exists": {
+      "lean_kind": "assumption",
+      "lean_name": "BoundedCertificateExists",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "target_file": "Helpers/BoundedClass.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (correct-specification): `∃ T : Finset (Fin d), T.card = r ∧ ∃ t, orders t T ∧ Cert ζ T t`. Depends on `def:ordered-ldl-certificate`, so `Helpers/BoundedClass.lean` imports `Helpers/Certificate.lean`. Search trace: grepped `../doc/API.md` for `identified set|correctly specified` (hits §9j2cs `CriterionSet/` — Chernozhukov-Hong-Tamer criterion-function set inference, and §9j2 the abstract partial-ID engine; both are inference machinery over an ALREADY-GIVEN identified set, neither states a model-nonemptiness condition for this certificate). Build-inline, one line."
+    },
+    "ass:independent-environment-samples": {
+      "lean_kind": "assumption",
+      "lean_name": "IndependentEnvironmentSamples",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Probability.Independence.Basic", "Mathlib.Probability.Distributions.Gaussian.Basic", "Causalean.Mathlib.StandardGaussian"],
+      "target_file": "Helpers/Sampling.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Modeling assumption (sampling): the observations `Y e i` for `e : Env`, `i < n e` are `iIndepFun` and each has law `N(0, Σ e)`. Search trace: `lean_leansearch \"mutually independent family of random variables iIndepFun\"` → `ProbabilityTheory.iIndepFun` (`Mathlib.Probability.Independence.Basic`); `lean_loogle \"IsGaussian\"` → `ProbabilityTheory.IsGaussian` (`Mathlib.Probability.Distributions.Gaussian.Basic`); grepped `../doc/API.md` for `i.i.d.|IidMeanVariance` (hit §10a'''''' `Mathlib/Probability/IidMeanVariance.lean` — moments and deviations of a SCALAR i.i.d. empirical mean, and §10d' `IIDCenteredSum.lean` — conditional second-moment bound for centered i.i.d. sums). Those two are the closest analogues and are recorded for F3: the covariance second-moment bound in `thm:honest-family-confidence` is the matrix-valued analogue of `iid_centered_sum_sq_lintegral_le`, with the gap being the Gaussian fourth-moment (Isserlis) identity, which is absent from both Mathlib (`lean_leansearch` for Gaussian fourth moments returned only `StdNormalMoments` truncated-first-moment material) and Causalean. Build-inline."
+    },
+
+    "def:legal-scm-class": {
+      "lean_kind": "structure",
+      "lean_name": "LegalCovShiftModel",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.LinearAlgebra.Matrix.Block",
+        "Mathlib.Probability.Distributions.Gaussian.Basic",
+        "Mathlib.Probability.Independence.Basic"
+      ],
+      "target_file": "Basic.lean",
+      "members": [
+        "ass:acyclic-observed-system",
+        "ass:centered-gaussian-noises",
+        "ass:block-independent-noises",
+        "ass:stationary-latent-noise",
+        "ass:stationary-measurement-error",
+        "ass:positive-structural-noise",
+        "ass:positive-measurement-noise",
+        "ass:target-cardinality",
+        "ass:no-off-target-shifts",
+        "ass:nonnegative-variance-shifts",
+        "ass:reference-shifts-all-targets"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "notes": "The class structure the paper INTRODUCES; build-inline, one field per member Prop, in the order of `by_member_properties`. Carried over the raw record `CovShiftModel` (fields `B`, `C`, `Ω_H`, `ω₀`, `Ω_η`, `T`, `λ`, plus the primitive-noise families on a probability space) also defined in `Basic.lean` as part of world S1. `U_μ = (1 - B)⁻¹` and the derived covariance map `covOf : Env → RealMatrix d` are definitions on the record, not fields. Search trace: see S1 — no Causalean class models this; `Causalean.Discovery.LinearDisentanglement.Solution` and `CausalSmith.ExactID.RobustBackshiftUniformDistance.BackshiftSystem` are the two nearest records and both miss required structure (no measurement error / no latent loading / no exact-rank target fiber respectively)."
+    },
+    "def:ordered-ldl-certificate": {
+      "lean_kind": "def",
+      "lean_name": "Cert",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Matrix.LDL",
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Causalean.Mathlib.LinearAlgebra.Cholesky"
+      ],
+      "target_file": "Helpers/Certificate.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Construction (`inputs: theta, T, t`) → `def Cert (θ) (T : Finset (Fin d)) (t : Fin r → Fin d) : Prop`. The central observable predicate the paper introduces; build-inline. Its `LDL` clause is stated with Mathlib's factorization vocabulary: `lean_loogle LDL.lower_conj_diag` returns `LDL.lower hS * LDL.diag hS * (LDL.lower hS)ᴴ = S` in `Mathlib.Analysis.Matrix.LDL`, and `Causalean.Mathlib.LinearAlgebra.{ldl_lower_diag_one, ldl_diagEntries_pos, ldl_lower_blockTriangular}` (grepped from `../Causalean/Mathlib/LinearAlgebra/Cholesky.lean:53-94`) supply unit-diagonality, positivity of the pivots, and triangularity, so the certificate can be phrased against the CANONICAL factor rather than an existentially quantified one, and the uniqueness argument in `thm:sharp-target-fiber` reduces to `Causalean.Mathlib.LinearAlgebra.cholesky_unique` (`Cholesky.lean:206`) after absorbing `√D`. What is genuinely new here and must be built: the ordered selection matrix `P_t`, the ordered principal block `Q̄_tt`, and the simultaneous diagonal-and-nonnegative condition on every `Λ_{e,t}`."
+    },
+    "def:causal-target-fiber": {
+      "lean_kind": "def",
+      "lean_name": "causalTargetFiber",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.PosDef"],
+      "target_file": "Helpers/Certificate.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Construction (`inputs: theta, Mscm`) → `def causalTargetFiber (θ) : Set (Finset (Fin d))`, the size-`r` label sets realized by some legal model with covariance tuple `θ`. Build-inline. Search trace: grepped `../doc/API.md` for `fiber|target set|intervention target` — §17b's Theorem 2 characterizes solutions up to `S(𝒢)` (an equivalence class of MODELS, not a set of label sets) and §9 `Identifiable`/`Adjustment` are do-expression identifiability, so neither type-fits a family of `Finset (Fin d)`. No reuse."
+    },
+    "def:algebraic-target-fiber": {
+      "lean_kind": "def",
+      "lean_name": "algebraicTargetFiber",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "target_file": "Helpers/Certificate.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Construction (`inputs: theta, Cert`) → `def algebraicTargetFiber (θ) : Set (Finset (Fin d))`, the size-`r` label sets admitting a certifying ordering. Build-inline, thin wrapper over `Cert`. Search trace: same as `def:causal-target-fiber`; nothing in the substrate defines a certificate-indexed family of label sets."
+    },
+    "def:positive-noise-completion": {
+      "lean_kind": "def",
+      "lean_name": "positiveNoiseCompletion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Matrix.Order",
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.Analysis.Matrix.Spectrum",
+        "Mathlib.Analysis.CStarAlgebra.Matrix",
+        "Causalean.Mathlib.StandardGaussian"
+      ],
+      "target_file": "Helpers/Completion.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "SCAFFOLD-REDIRECT REVISION: the construction now takes `BaselinePositive θ`, chooses and certifies `0 < τ < λ_min(Σ₀)/(2(‖U_t‖_op²+1))`, stores the standard-Gaussian latent law with zero mean and identity covariance, stores both baseline covariances as `τ I`, proves the remainder positive semidefinite, and uses the canonical `CFC.sqrt R₀` rather than an arbitrary factor."
+    },
+    "def:subset-pivot-recursion": {
+      "lean_kind": "def",
+      "lean_name": "subsetPivotRecursion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.PosDef", "Mathlib.LinearAlgebra.Matrix.Rank"],
+      "target_file": "Helpers/PivotRecursion.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "SCAFFOLD-REDIRECT REVISION: `subsetPivotRecursion` accepts only a shift family with the stated baseline equation `Δ₀ = 0` and definitionally sets `Q = ∑_{e=1}^E Δ_e`; it no longer accepts an unrelated aggregate or arbitrary baseline. The state includes an inductive `PivotRun` initialized at `(∅,Q,Δ)`, reachable memo keys, and the exact child-only updates `R-q uuᵀ` and `M_e-m_e uuᵀ`; accepted leaves are reachable states of cardinality `r`."
+    },
+    "def:complete-classification": {
+      "lean_kind": "def",
+      "lean_name": "completeClassification",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "target_file": "Helpers/Certificate.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Construction (`inputs: Falg`) → `C(θ) = ⋂ T ∈ algebraicTargetFiber θ, T`, `P(θ) = ⋃ …`, `h θ = (C θ, P θ)`. Build-inline, thin. Search trace: `Set.sInter`/`Set.sUnion` are Mathlib core; grepped `../doc/API.md` for `compulsory|possible|consensus` (hit: the sibling note's `subsetConsensus` in `CausalSmith/ExactID/EID_RobustBackshiftUniformDistance_Research/Helpers/ConfidenceUnion.lean:64`, which intersects FEASIBLE-MATRIX sets over environment subsets — a different object, recorded as a naming reference only)."
+    },
+    "def:bounded-covariance-class": {
+      "lean_kind": "structure",
+      "lean_name": "BoundedCovarianceClass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Analysis.Matrix.Order", "Mathlib.LinearAlgebra.Matrix.Rank"],
+      "target_file": "Helpers/BoundedClass.lean",
+      "members": [
+        "ass:bounded-covariance-member",
+        "ass:bounded-reference-rank",
+        "ass:bounded-common-range",
+        "ass:bounded-certificate-exists"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "notes": "The class structure defining `Θ_K`; build-inline, one field per member Prop in `by_member_properties` order. `Θ_K` itself is then `{ζ | Nonempty (BoundedCovarianceClass … ζ)}`, so the four bounded assumptions are bundled exactly once. Search trace: see `ass:bounded-*`; no Causalean covariance-class structure exists (the sibling note's `InferenceWorld` in `Helpers/ConfidenceUnion.lean:34` is a class over `BackshiftSystem` regions, not a bounded exact-rank covariance stratum)."
+    },
+    "def:certified-approximate-selector": {
+      "lean_kind": "def",
+      "lean_name": "IsCertifiedSemialgebraicSelector",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Algebra.MvPolynomial.Eval",
+        "Mathlib.Topology.Algebra.MvPolynomial",
+        "Mathlib.MeasureTheory.Constructions.BorelSpace.Basic"
+      ],
+      "target_file": "Helpers/Selector.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "SCAFFOLD-REDIRECT REVISION: `FixedCertifiedCAD` partitions the ordered-witness-augmented graph into pairwise-disjoint semialgebraic cells and records cylindricity along a fixed total coordinate order. Its selector applies a semialgebraic within-cell choice rule to the first cell with a nonempty fiber; no unsupported fiber-uniqueness condition is present. `IsCertifiedSemialgebraicSelector` forces equality with that canonical CAD selector and records all section properties."
+    },
+    "def:augmented-family-region": {
+      "lean_kind": "def",
+      "lean_name": "augmentedFamilyRegion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Analysis.Matrix.Order", "Mathlib.MeasureTheory.Constructions.BorelSpace.Basic"],
+      "target_file": "Helpers/Sampling.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "SCAFFOLD-REDIRECT REVISION: the displayed `W_n`, `θ̃_n`, `R_n`, `F_out,n`, and `H_n` formulas are unchanged, but the input is now the faithful cylindrical, partitioning, ordered-witness-augmented `FixedCertifiedCAD`; `θ̃_n` evaluates its first-nonempty-cell within-cell choice at `Shat`. The construction also takes the explicit `0 < α < 1` witness used by the confidence radius."
+    },
+    "def:classification-information-distance": {
+      "lean_kind": "def",
+      "lean_name": "classificationInformationDistance",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.PosDef", "Mathlib.Analysis.Matrix.Order"],
+      "target_file": "Helpers/InformationDistance.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Construction (`inputs: theta, ThetaK, h, n`) defining the frozen information norm `‖H‖_{I,n,θ}`, the opposite-classification set `A_h(θ)`, and `δ_n(θ) : ℝ≥0∞` (so `inf ∅ = ∞` is definitional rather than a side condition). Build-inline. Search trace: grepped `../doc/API.md` for `information distance|Fisher|information norm|klDiv` — Causalean has the KL/χ²/TV divergence layer (§12w.1-12w.4, `Causalean.Stat.tvDist`, `chiSqDiv`, `Pinsker`) but no Gaussian covariance FISHER-information quadratic form; `lean_leansearch` for a Gaussian covariance Fisher information metric returns nothing in Mathlib. The trace-form norm `½ ∑_e n_e tr(Σ_e⁻¹ H_e Σ_e⁻¹ H_e)` is written directly with `Matrix.trace` and `Matrix.inv`. Build-inline."
+    },
+    "def:four-node-collision-path": {
+      "lean_kind": "def",
+      "lean_name": "fourNodeCollisionPath",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.PosDef"],
+      "target_file": "Helpers/Witnesses.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "SCAFFOLD-REDIRECT REVISION: the explicit path is unchanged algebraically, but its argument is the subtype `CollisionParameter = {γ : ℝ // -1 < γ ∧ γ < 1}`, so the frozen symbol domain is enforced by the definition."
+    },
+    "def:restriction-boundary-witnesses": {
+      "lean_kind": "def",
+      "lean_name": "restrictionBoundaryWitnesses",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.PosDef"],
+      "target_file": "Helpers/Witnesses.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Construction (`inputs: []`): the two explicit `d = 3`, `r = 2`, `E = 2` diagonal tuples `θ^±` and `θ^split` together with the shared primitive data `B_μ = 0`, `C_μ = 0`, `ω₀ = (3/2,3/2,3/2)ᵀ`, `Ω_η = I₃/2`, `T_μ = {1,2}`. Fully explicit; nothing to reuse. Build-inline; all matrices are `Matrix.diagonal` of explicit rational vectors, so `norm_num`/`decide` discharge the arithmetic."
+    },
+    "def:power-envelope-handle": {
+      "lean_kind": "def",
+      "lean_name": "powerEnvelope",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Distributions.Gaussian.Basic",
+        "Causalean.Mathlib.StandardGaussian",
+        "Causalean.Mathlib.Probability.StdNormalCDF"
+      ],
+      "target_file": "Helpers/PowerEnvelope.lean",
+      "defer_tier": false,
+      "gate": false,
+      "notes": "SCAFFOLD-REDIRECT REVISION: `GaussianLocalExperimentDerivation` uses the actual parameter-independent observed sample arrays, Gaussian covariance laws, exact likelihood-ratio identities relative to the focal law, and joint finite-dimensional LAN convergence of those likelihood ratios to the asserted Gaussian-shift likelihood-ratio process. It records only the focal and opposite tangent classification geometry needed by the definition; the unstated global opposite-completeness and `δ_n` convergence fields were removed. `powerEnvelope` takes this derivation and an admissible level and retains both the geometry-indexed supremum and nearest-boundary summary."
+    },
+
+    "lem:range-reconstruction": {
+      "lean_kind": "lemma",
+      "lean_name": "range_reconstruction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.Rank", "Mathlib.LinearAlgebra.Matrix.ToLin"],
+      "target_file": "Helpers/Certificate.lean",
+      "hyps": ["ass:reference-exact-rank"],
+      "defer_tier": false,
+      "gate": false,
+      "notes": "SCAFFOLD-REDIRECT REVISION: the lemma has only the paper's rank, invertible principal block, displayed `W`, symmetry, and range-of-`N` premises. The unrelated `CommonShiftRange θ` binder was removed."
+    },
+    "thm:positive-noise-realization": {
+      "lean_kind": "theorem",
+      "lean_name": "positive_noise_realization",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Matrix.Order",
+        "Mathlib.Analysis.Matrix.Spectrum",
+        "Mathlib.Analysis.CStarAlgebra.Matrix",
+        "Mathlib.Probability.Distributions.Gaussian.Basic",
+        "Causalean.Mathlib.StandardGaussian"
+      ],
+      "target_file": "TPositiveNoiseRealization.lean",
+      "hyps": ["ass:baseline-positive", "ass:reference-exact-rank", "ass:common-shift-range"],
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Paper contribution, `status: proved`; fully in scope. Reuse inside the proof: `Causalean.Mathlib.LinearAlgebra.ldl_lower_diag_one` and `ldl_diagEntries_pos` for the certificate's factor properties, `Matrix.PosSemidef.sqrt` + `Matrix.PosSemidef.sq_sqrt` for `R₀^{1/2}`, `Matrix.IsHermitian.eigenvalues`/`Matrix.PosDef` spectral bounds for `λ_min(Σ₀) > 0`, `Causalean.Mathlib.stdGaussian` for the primitive laws, `ProbabilityTheory.iIndepFun` for their independence. The heaviest genuinely new step is the unit-lower-triangular completion `U_t` and the derivation that `U_t⁻¹` is again unit lower triangular (Mathlib's `Matrix.BlockTriangular` inverse lemmas, `Matrix.blockTriangular_inv_of_blockTriangular`, cover this; verified via `lean_loogle Matrix.BlockTriangular`, module `Mathlib.LinearAlgebra.Matrix.Block`)."
+    },
+    "thm:sharp-target-fiber": {
+      "lean_kind": "theorem",
+      "lean_name": "sharp_target_fiber",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Matrix.LDL",
+        "Causalean.Mathlib.LinearAlgebra.Cholesky"
+      ],
+      "target_file": "TSharpTargetFiber.lean",
+      "hyps": ["ass:baseline-positive", "ass:reference-exact-rank", "ass:common-shift-range", "ass:nonnegative-variance-shifts"],
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Headline paper contribution, `status: proved`; fully in scope. The forward inclusion's uniqueness paragraph (uniqueness of the positive unit-lower `LDL^T` factorization) is DISCHARGED by `Causalean.Mathlib.LinearAlgebra.cholesky_unique` (`../Causalean/Mathlib/LinearAlgebra/Cholesky.lean:206`) after absorbing `√D`, exactly the correspondence `cholesky_exists` (`:112`) already establishes in the other direction; `Causalean.Mathlib.LinearAlgebra.orthogonal_upperTri_pos_diag_eq_one` (`:157`) is the underlying engine if the absorption is done by hand. This is the single largest concrete reuse win in the plan — the frozen proof spends an induction on it. The reverse inclusion is `thm:positive-noise-realization`."
+    },
+    "thm:subset-pivot-completeness": {
+      "lean_kind": "theorem",
+      "lean_name": "subset_pivot_completeness",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.Rank", "Mathlib.LinearAlgebra.Matrix.PosDef"],
+      "target_file": "TSubsetPivotCompleteness.lean",
+      "hyps": ["ass:baseline-positive", "ass:reference-exact-rank", "ass:common-shift-range"],
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Paper contribution, `status: proved`; fully in scope. Three sub-arguments, all build-inline in this file: (a) path-independence of the residual state (the closed form `R_S = Q̄ - Q̄_{:S} Q̄_{SS}⁻¹ Q̄_{S:}`), (b) the rank-drop of a congruence elimination at a strictly positive pivot, (c) the range-inclusion propagation `range(M_{e,S}) ⊆ range(R_S)` via `M_{e,S} = R_S C_e R_S`. Search trace: grepped `../doc/API.md` for `Schur complement|Moore-Penrose|pseudoinverse` — Causalean has only the `Fin 2` rank-one pseudoinverse (§10a'''''''''''''); Mathlib's Schur-complement lemmas (`lean_leansearch`) address `2×2` block positive-definiteness, not the subset-indexed elimination state, so (a) is written directly. The memoization bound `∑_{k≤r} C(d,k)` is `Finset.card_powersetCard` arithmetic. The final identification with `F_causal` reuses `thm:sharp-target-fiber` and the reconstruction reuses `lem:range-reconstruction`."
+    },
+    "lem:measurable-certified-selection": {
+      "lean_kind": "lemma",
+      "lean_name": "measurable_certified_selection",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Constructions.BorelSpace.Basic",
+        "Mathlib.Topology.Algebra.MvPolynomial",
+        "Mathlib.Analysis.Matrix.Order"
+      ],
+      "target_file": "Helpers/Selector.lean",
+      "hyps": [],
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Paper-owned lemma, `status: proved`; fully in scope (`defer_tier:false`, `gate:false`) per decision P3. `hyps: []` per decision P5: `ThetaK` is a defined set, not an ambient hypothesis bundle. The conclusion constructs a `FixedCertifiedCAD` of the full ordered-witness-augmented graph and its canonical first-nonempty-cell selector. The structure explicitly carries nonempty pairwise-disjoint semialgebraic cells, graph partition, a fixed coordinate order, prefix cylindricity, and semialgebraic within-cell choice; the selector then lands in `ThetaK`, retains its ordered certificate, is Borel measurable, and satisfies the strict epsilon bound."
+    },
+    "thm:honest-family-confidence": {
+      "lean_kind": "theorem",
+      "lean_name": "honest_family_confidence",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Distributions.Gaussian.Basic",
+        "Mathlib.Probability.Independence.Basic",
+        "Mathlib.MeasureTheory.Constructions.BorelSpace.Basic",
+        "Mathlib.MeasureTheory.OuterMeasure.Basic",
+        "Causalean.Mathlib.MeasureTheory.AnalyticSetUniversalMeasurability"
+      ],
+      "target_file": "THonestFamilyConfidence.lean",
+      "hyps": ["ass:independent-environment-samples"],
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Paper contribution, `status: proved`; fully in scope. The Gaussian fourth-moment identity yields the uniform empirical-covariance second-moment bound, followed by Markov's inequality at radius `c_α`. Coverage uses `thm:sharp-target-fiber`, and nonemptiness of `R_n ∩ Θ_K` uses the genuine witness-augmented CAD selector from `lem:measurable-certified-selection` at `ε = 1`. The singleton-rule error bound uses outer-measure monotonicity from the incorrect-report event to the covariance-error event, adding no extra measurability premise."
+    },
+    "thm:consistency-above-boundary": {
+      "lean_kind": "theorem",
+      "lean_name": "consistency_above_boundary",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Analysis.Matrix.Order", "Mathlib.LinearAlgebra.Matrix.PosDef"],
+      "target_file": "TConsistencyAboveBoundary.lean",
+      "hyps": ["ass:independent-environment-samples"],
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Paper contribution, `status: proved`; fully in scope. Elementary given its predecessors: triangle inequalities for the two branches of `R_n`, the two-sided norm comparison `‖H‖_w/(√2 M) ≤ ‖H‖_{I,n,θ} ≤ ‖H‖_w/(√2 m)` from the Loewner box, and the Markov bound at radius `x` reused from `thm:honest-family-confidence`. The asymptotic sequence clause now has the paper's explicit antecedent `∀ k e, 0 < nSeq k e`, matching the frozen positive sample-size domain. Search trace: grepped `../doc/API.md` for `norm comparison|whitening|eigenvalue bounds` — the whitening identity `tr(Σ⁻¹HΣ⁻¹H) = ‖Σ^{-1/2}HΣ^{-1/2}‖_F²` uses `Matrix.PosDef` square roots and Frobenius-norm submultiplicativity under a positive-definite congruence, both Mathlib."
+    },
+    "prop:design-restriction-boundary": {
+      "lean_kind": "theorem",
+      "lean_name": "design_restriction_boundary",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.Probability.Distributions.Gaussian.Basic",
+        "Causalean.Mathlib.StandardGaussian"
+      ],
+      "target_file": "TDesignRestrictionBoundary.lean",
+      "hyps": [],
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Paper contribution (`prop:` → `lean_kind: theorem`), `status: proved`; fully in scope. `hyps: []` — its `depends_on` contains only definitions (the legal class, the certificate, and the witness data), and the two witnesses are CONSTRUCTED to satisfy or fail specific member conditions rather than assuming any. Fully explicit and diagonal, so the certificate computations are `norm_num`/`decide` on `3×3` rationals; the only non-arithmetic step is exhibiting the primitive Gaussian variables of the two witness models, which reuses `Causalean.Mathlib.stdGaussian` and `ProbabilityTheory.iIndepFun`. Search trace: as for `def:restriction-boundary-witnesses` — nothing to reuse for an explicit boundary witness."
+    },
+    "thm:impossibility-bounded-information": {
+      "lean_kind": "theorem",
+      "lean_name": "impossibility_bounded_information",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Distributions.Gaussian.Basic",
+        "Mathlib.Analysis.MeanInequalities",
+        "Causalean.Stat.Minimax.TotalVariation"
+      ],
+      "target_file": "TImpossibilityBoundedInformation.lean",
+      "hyps": ["ass:independent-environment-samples"],
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Paper contribution, `status: proved`; fully in scope. The theorem quantifies measures only on the canonical observed sample-array space, whose coordinate projections are parameter-independent; no auxiliary Ω can carry parameter-revealing ancillary data. Rules are required to be measurable for the generated finite-report σ-algebra. The universal `κ = κ(C,α,m,M,d,E)` is quantified before all experiment-law and rule binders. Build-inline core: the exact `p`-th moment of a multivariate Gaussian likelihood ratio, its Taylor bound, and the Hölder step; `Causalean.Stat.one_sub_tvDist_le_test` remains an analogous testing skeleton rather than a node-level discharge."
+    },
+    "prop:four-node-collision": {
+      "lean_kind": "theorem",
+      "lean_name": "four_node_collision",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.PosDef", "Mathlib.Analysis.Matrix.Order"],
+      "target_file": "TFourNodeCollision.lean",
+      "hyps": [],
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Paper contribution (`prop:` → `lean_kind: theorem`), `status: proved`; fully in scope. `hyps: []` per decision P5 — the `Θ_K` membership premise (`∃ γ₀ > 0, ∀ |γ| ≤ γ₀, θ_γ ∈ Θ_K`) is an explicit antecedent INSIDE the statement of the rate half, not an ambient class bundle, and the fiber half needs no bounded-class hypothesis at all. Fully explicit `4×4` rank-two arithmetic (the six squared `2×2` minors `1,1,4,1,1,9`, the elimination table (41)) discharged by `norm_num`/`decide`; the local rate half is a mean-value-theorem argument on three explicit polynomials `f_2, f_3, f_4` plus the same Loewner norm comparison as `thm:consistency-above-boundary`. Search trace: grepped `../doc/API.md` for `collision|profile separation|weak identification` → §17b's quantitative layer (`Causalean.Discovery.LinearDisentanglement.Quantitative.{AffineMinorSeparated, PairwiseAffine.PairwiseAffineSeparated}`, `../Causalean/Discovery/LinearDisentanglement/Quantitative/Definitions.lean`) is the closest ANALOGUE: it measures profile separation by an affine minor determinant and converts a separation margin into a quantitative stability modulus, which is structurally the inverse of what is wanted here (that layer proves stability WHEN separated; this proposition computes the rate AT the collision, where the margin vanishes). Recorded as a reference for the determinant-margin bookkeeping, not a reuse — the shift arrays there are indexed per coordinate with no target-fiber notion, so no conclusion type-fits."
+    },
+    "prop:rank-one-reduction": {
+      "lean_kind": "theorem",
+      "lean_name": "rank_one_reduction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.Rank"],
+      "target_file": "TRankOneReduction.lean",
+      "hyps": [],
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Paper contribution (`prop:` → `lean_kind: theorem`), `status: proved`; fully in scope. Small sanity reduction: at `r = 1` the certificate's unit-lower factor is `(1)` and the condition collapses to `Q_{jj} > 0`. Reuses `thm:sharp-target-fiber` and, inside the proof, the rank-one outer-product algebra `Δ_e = λ_{ek} u uᵀ`. Search trace: grepped `../doc/API.md` for `rank-one|outer product|vecMulVec` → §10a''''''''''''' `RankOneGramPseudoinverse` (`Fin 2`, not applicable) and §17b `fact_transpose_mul` / `key_identity` (`Causalean/Discovery/LinearDisentanglement/KeyIdentity.lean`), which decompose `BᵀB` into outer products and show a single-node intervention changes a precision matrix by a difference of two outer products — the same rank-one bookkeeping in a different model; recorded as a reference, no conclusion type-fit. Mathlib supplies `Matrix.vecMulVec` and `Matrix.rank_le_one_iff`-family facts (checked with `lean_leansearch \"rank of a matrix over a field\"` → `Mathlib.LinearAlgebra.Matrix.Rank`)."
+    },
+    "thm:geometry-indexed-local-power-envelope": {
+      "lean_kind": "theorem",
+      "lean_name": "geometry_indexed_local_power_envelope",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Distributions.Gaussian.Basic",
+        "Causalean.Mathlib.Probability.StdNormalCDF",
+        "Causalean.Mathlib.StandardGaussian"
+      ],
+      "target_file": "TGeometryIndexedLocalPowerEnvelope.lean",
+      "hyps": [],
+      "defer_tier": false,
+      "gate": false,
+      "notes": "Paper contribution, `status: proved`; fully in scope. The statement is now purely geometry-indexed: it evaluates `gaussianPowerSupremum` for the two explicit one-dimensional geometries and does not assert or require auxiliary regular-sequence provenance witnesses. Actual covariance-sequence-to-Gaussian-shift derivation is encoded separately and faithfully in `GaussianLocalExperimentDerivation`, with likelihood-ratio convergence. Reuse: `stdNormalCDF`, `probit`, their inverse/continuity/strict-monotonicity/reflection facts; build-inline: the one-sided and reflection-symmetrized two-sided exchange arguments, uniqueness, and strict inequality."
+    }
+  },
+
+  "file_plan": [
+    {"file": "Basic.lean", "contents": "World S1: `RealMatrix`, `Environment`, the raw model record `CovShiftModel` with its primitive-noise families, the derived `U_μ` and `covOf`, the eleven member assumption Props, and the `LegalCovShiftModel` structure.", "projected_lines": 420},
+    {"file": "Helpers/Certificate.lean", "contents": "World S2 core: covariance tuple, `shift`, `aggregate`, ordering/selection `P_t`, `ass:baseline-positive`, `ass:reference-exact-rank`, `ass:common-shift-range`, `Cert`, the two fibers, `completeClassification`, and `lem:range-reconstruction`.", "projected_lines": 520},
+    {"file": "Helpers/Completion.lean", "contents": "`def:positive-noise-completion`: `W_t`, `A_t`, `U_t`, `B_t`, `τ`, `R₀`, `C_t`, and the completed model's primitive laws.", "projected_lines": 380},
+    {"file": "Helpers/PivotRecursion.lean", "contents": "`def:subset-pivot-recursion`: `R_S`, `M_{e,S}`, `PivotAdmissible`, the accepted depth-`r` leaves, and the elimination-update algebra.", "projected_lines": 340},
+    {"file": "Helpers/BoundedClass.lean", "contents": "The four bounded assumptions and the `BoundedCovarianceClass` structure defining `Θ_K`.", "projected_lines": 220},
+    {"file": "Helpers/Semialgebraic.lean", "contents": "The local semialgebraic API needed to state the core's selector conclusion: `IsSemialgebraicSet` (finite union of finite intersections of `MvPolynomial` sign conditions), `IsSemialgebraicMap` (semialgebraic graph), the finite-union/intersection closure lemmas, and `IsSemialgebraicSet.measurableSet` via `MvPolynomial.continuous_eval`. Mathlib has no semialgebraic development (`lean_loogle \"Semialgebraic\"` → zero declarations), so this file is new; it is deliberately the sign-condition NORMAL FORM only, with no Tarski-Seidenberg projection theorem, because the selector's graph is exhibited in that normal form directly.", "projected_lines": 220},
+    {"file": "Helpers/Selector.lean", "contents": "`G_ε`, its ordered-witness augmentation, the semialgebraic-cell partition and prefix-cylindricity predicates, `FixedCertifiedCAD`, its first-nonempty-cell within-cell selector, `IsCertifiedSemialgebraicSelector`, and `lem:measurable-certified-selection`.", "projected_lines": 520},
+    {"file": "Helpers/Sampling.lean", "contents": "`ass:independent-environment-samples`, `Σ̂`, `‖·‖_w`, `V_max`, `c_α`, and `def:augmented-family-region` (`W_n`, `θ̃_n`, `R_n`, `F_out,n`, `H_n`).", "projected_lines": 360},
+    {"file": "Helpers/InformationDistance.lean", "contents": "`def:classification-information-distance`: the frozen information norm, `A_h(θ)`, and `δ_n(θ)`.", "projected_lines": 200},
+    {"file": "Helpers/Witnesses.lean", "contents": "`def:four-node-collision-path` and `def:restriction-boundary-witnesses`.", "projected_lines": 240},
+    {"file": "Helpers/PowerEnvelope.lean", "contents": "`def:power-envelope-handle`: `TangentGeometry`, the honest-rule predicate, `β*_G(α)`, the nearest-boundary summary `c`, and the covariance-experiment likelihood-ratio convergence derivation of the Gaussian local experiment.", "projected_lines": 260},
+    {"file": "TPositiveNoiseRealization.lean", "contents": "`thm:positive-noise-realization`.", "projected_lines": 520},
+    {"file": "TSharpTargetFiber.lean", "contents": "`thm:sharp-target-fiber`.", "projected_lines": 480},
+    {"file": "TSubsetPivotCompleteness.lean", "contents": "`thm:subset-pivot-completeness`.", "projected_lines": 560},
+    {"file": "THonestFamilyConfidence.lean", "contents": "`thm:honest-family-confidence`, including the Gaussian fourth-moment covariance bound.", "projected_lines": 520},
+    {"file": "TConsistencyAboveBoundary.lean", "contents": "`thm:consistency-above-boundary`.", "projected_lines": 380},
+    {"file": "TDesignRestrictionBoundary.lean", "contents": "`prop:design-restriction-boundary`.", "projected_lines": 420},
+    {"file": "TImpossibilityBoundedInformation.lean", "contents": "`thm:impossibility-bounded-information`.", "projected_lines": 520},
+    {"file": "TFourNodeCollision.lean", "contents": "`prop:four-node-collision`.", "projected_lines": 560},
+    {"file": "TRankOneReduction.lean", "contents": "`prop:rank-one-reduction`.", "projected_lines": 220},
+    {"file": "TGeometryIndexedLocalPowerEnvelope.lean", "contents": "`thm:geometry-indexed-local-power-envelope`.", "projected_lines": 560}
+  ],
+
+  "dependency_order": [
+    "Basic.lean",
+    "Helpers/Certificate.lean",
+    "Helpers/Completion.lean",
+    "Helpers/PivotRecursion.lean",
+    "Helpers/BoundedClass.lean",
+    "Helpers/Semialgebraic.lean",
+    "Helpers/Selector.lean",
+    "Helpers/Sampling.lean",
+    "Helpers/InformationDistance.lean",
+    "Helpers/Witnesses.lean",
+    "Helpers/PowerEnvelope.lean",
+    "TPositiveNoiseRealization.lean",
+    "TSharpTargetFiber.lean",
+    "TSubsetPivotCompleteness.lean",
+    "TRankOneReduction.lean",
+    "TDesignRestrictionBoundary.lean",
+    "THonestFamilyConfidence.lean",
+    "TConsistencyAboveBoundary.lean",
+    "TImpossibilityBoundedInformation.lean",
+    "TFourNodeCollision.lean",
+    "TGeometryIndexedLocalPowerEnvelope.lean"
+  ],
+
+  "infrastructure_needed": [],
+  "citations": [],
+  "theorems": []
+}

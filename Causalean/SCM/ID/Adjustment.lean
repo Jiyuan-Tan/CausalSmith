@@ -58,14 +58,26 @@ variable [∀ n, StandardBorelSpace (swigΩ Ω n)] [∀ n, Nonempty (swigΩ Ω n
 
 open scoped MeasureTheory ProbabilityTheory
 
-/-- The observational conditional kernel `obsCondKernel Y CC` is a Markov kernel (its
-    values are probability measures), inherited from Mathlib's `condKernel`. -/
+/-- For [a finite, distinguishable node population with measurable, standard-Borel, nonempty node-value spaces](hyp:N,Ω) and [a structural causal model](hyp:M), [a finite observed outcome-node set](hyp:Y,hY), and [a finite observed conditioning-node set](hyp:CC,hCC), the [observational conditional kernel from the conditioning values to the outcome values](goal) is a Markov kernel: each of its values is a probability measure.
+
+This property is inherited from Mathlib's conditional-kernel construction. -/
 instance instIsMarkovKernelObsCondKernel (M : Causalean.SCM N Ω)
     (Y CC : Finset (SWIGNode N)) (hY : Y ⊆ M.observed) (hCC : CC ⊆ M.observed) :
     ProbabilityTheory.IsMarkovKernel (M.obsCondKernel Y CC hY hCC) := by
   unfold SCM.obsCondKernel; infer_instance
 
-/-- **Backdoor adjustment functional.**
+/-- For a finite node set with measurable node-value spaces in which every random or fixed node
+value space is standard Borel and nonempty, [a structural causal model](hyp:M), [a treatment
+node set whose random copies are observed](hyp:X,hX_obs), [whose fixed copies are not already
+fixed in the model](hyp:hX_fixed), and [outcome and adjustment SWIG-node sets, each contained in
+the observed-node set](hyp:Y,Z,_hY,_hZ), [the backdoor adjustment functional](goal) is the
+kernel from post-intervention fixed-node assignments to distributions of the outcome-node
+assignment. It first forms [the observational marginal distribution of the adjustment
+nodes](step:1), then that marginal indexed by the post-intervention fixed-node
+assignment, and then the conditional outcome distribution given the treatment and
+adjustment-node assignments.
+
+**Backdoor adjustment functional.**
 
     The graph-level functional that maps an SCM's observational kernel
     plus a backdoor-admissible adjustment set `Z` to the post-intervention
@@ -127,8 +139,9 @@ noncomputable def backdoorAdjustment
         (M.measurable_fillZrW_prod X hX_obs hX_fixed Z))
   exact ((zMarginalPost ⊗ₖ condPost).map Prod.snd)
 
-/-- The backdoor-adjustment functional is a finite kernel (a `compProd` of finite
-    kernels, pushed through `Prod.snd`). -/
+/-- For [a finite, distinguishable node population with measurable, standard-Borel, nonempty node-value spaces](hyp:N,Ω) and [a structural causal model](hyp:M), [a finite treatment set](hyp:X), [the requirement that every corresponding random treatment node is observed](hyp:hX_obs), [the requirement that no corresponding fixed treatment node is already fixed](hyp:hX_fixed), and [finite observed outcome and adjustment-node sets](hyp:Y,Z,hY,hZ), the [backdoor-adjustment functional](goal) is a finite kernel.
+
+The construction composes finite kernels and then maps to the outcome coordinate. -/
 instance instIsFiniteKernelBackdoorAdjustment (M : Causalean.SCM N Ω) (X : Finset N)
     (hX_obs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)
     (hX_fixed : ∀ D ∈ X, SWIGNode.fixed D ∉ M.fixed)
@@ -136,7 +149,18 @@ instance instIsFiniteKernelBackdoorAdjustment (M : Causalean.SCM N Ω) (X : Fins
     ProbabilityTheory.IsFiniteKernel (M.backdoorAdjustment X hX_obs hX_fixed Y Z hY hZ) := by
   rw [SCM.backdoorAdjustment]; infer_instance
 
-/-- **Frontdoor adjustment functional.**
+/-- For a finite node set with measurable node-value spaces in which every random or fixed node
+value space is standard Borel and nonempty, [a structural causal model](hyp:M), [a treatment
+node set whose random copies are observed](hyp:X,hX_obs), [whose fixed copies are not already
+fixed in the model](hyp:hX_fixed), and [outcome and mediator SWIG-node sets, each contained in
+the observed-node set](hyp:Y,Z,_hY,_hZ), [the frontdoor adjustment functional](goal) is the
+kernel from post-intervention fixed-node assignments to distributions of the outcome-node
+assignment. It first forms [the intervention treatment assignment](step:1), the mediator law
+conditional on that assignment, the observational treatment marginal, the
+conditional outcome law given observational treatment and mediator assignments, and
+the outcome law obtained by averaging over observational treatment.
+
+**Frontdoor adjustment functional.**
 
     The graph-level functional that maps an SCM's observational kernel
     plus a frontdoor-admissible mediator set `Z` to the post-intervention
@@ -246,8 +270,9 @@ noncomputable def frontdoorAdjustment
   -- Outer mediator integration `∫_z innerY(·, z) dP(Z | X = x_do)`.
   exact (zCondXdo ⊗ₖ innerY).map Prod.snd
 
-/-- The frontdoor-adjustment functional is a finite kernel (nested `compProd`s of finite
-    kernels, pushed through `Prod.snd`). -/
+/-- For [a finite, distinguishable node population with measurable, standard-Borel, nonempty node-value spaces](hyp:N,Ω) and [a structural causal model](hyp:M), [a finite treatment set](hyp:X), [the requirement that every corresponding random treatment node is observed](hyp:hX_obs), [the requirement that no corresponding fixed treatment node is already fixed](hyp:hX_fixed), and [finite observed outcome and mediator-node sets](hyp:Y,Z,hY,hZ), the [frontdoor-adjustment functional](goal) is a finite kernel.
+
+The construction nests compositions of finite kernels and then maps to the outcome coordinate. -/
 instance instIsFiniteKernelFrontdoorAdjustment (M : Causalean.SCM N Ω) (X : Finset N)
     (hX_obs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)
     (hX_fixed : ∀ D ∈ X, SWIGNode.fixed D ∉ M.fixed)

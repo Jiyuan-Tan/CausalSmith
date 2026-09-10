@@ -65,7 +65,9 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
   {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
 
-/-- **Class-level asymptotic equicontinuity** of the score family `ψ` at `θ₀`.
+/-- For [a score family](hyp:ψ), [a reference parameter](hyp:θ₀), [a population probability measure](hyp:P), [a sample-space probability measure](hyp:μ), and [an independent and identically distributed sample from the population](hyp:S), [class-level asymptotic equicontinuity](goal) means that for every $\varepsilon>0$ and every $\eta>0$, there is a $\delta>0$ such that, for all sufficiently large sample sizes, the sample-space probability that some parameter within distance $\delta$ of the reference parameter has centered empirical-process norm exceeding $\varepsilon$ is at most $\eta$.
+
+**Class-level asymptotic equicontinuity** of the score family `ψ` at `θ₀`.
 
 For every `ε > 0` and every probability tolerance `η > 0` there is a ball radius
 `δ > 0` such that, eventually in `n`, the probability that the centered

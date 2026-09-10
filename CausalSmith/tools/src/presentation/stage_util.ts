@@ -35,6 +35,8 @@ export interface OutlineSection {
   name: string;
   brief: string;
   objs: string[];
+  /** Planner order before P1 dependency placement; objs is the resolved downstream layout. */
+  homeObjs?: string[];
   bib: string[];
 }
 
@@ -96,7 +98,7 @@ export function lintMainBodyDependencies(
 /**
  * Parses the P1 outline.md contract:
  *   # Title / # Notation / # Sections with `## section: <name>` blocks each
- *   carrying free brief lines plus `objs:` and `bib:` lines.
+ *   carrying free brief lines plus `objs:`, optional `home_objs:`, and `bib:` lines.
  */
 export function parseOutline(md: string): Outline {
   // The title line on the row after `# Title` shows up in two LLM-produced
@@ -147,7 +149,9 @@ export function parseOutline(md: string): Outline {
     }
     const objs = line.match(/^objs:\s*(.*)$/);
     const bib = line.match(/^bib:\s*(.*)$/);
-    if (objs) cur.objs = splitList(objs[1]);
+    const homes = line.match(/^home_objs:\s*(.*)$/);
+    if (homes) cur.homeObjs = splitList(homes[1]);
+    else if (objs) cur.objs = splitList(objs[1]);
     else if (bib) cur.bib = splitList(bib[1]);
     else if (line.trim() !== "") cur.brief += (cur.brief ? "\n" : "") + line.trim();
   }

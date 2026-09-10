@@ -119,11 +119,12 @@ structure HasMixedDirDeriv
       (𝓝[≠] 0) (𝓝 (dℓ_θg θ g z))
   dℓ_θg_meas         : ∀ θ g, Measurable (dℓ_θg θ g)
 
-/-- Population first-order inequality at the truth: for every admissible
-target `θ ∈ Θ_set`, the integrated target directional derivative at the
-true nuisance is non-negative.  This is the population KKT condition
-characterising `θ₀` as a minimizer of `L(·, g₀)` over the convex set
-`Θ_set`.
+/-- For [an orthogonal statistical-learning system](hyp:S) and [target-direction derivative
+data for its loss at the distinguished nuisance function](hyp:Dθ), the [population first-order
+inequality](goal) holds exactly when, for every target in the system's target class, the integral
+under the population observation law of the corresponding target directional derivative is
+nonnegative. This is the population KKT condition characterising the distinguished target as a
+minimizer of population risk at the distinguished nuisance over the target class.
 
 Parameterised over `Dθ : HasDirDerivTheta S S.g₀` so that the integral can
 be expressed using the DD datum already attached to the truth. -/

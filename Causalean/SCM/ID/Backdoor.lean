@@ -57,13 +57,23 @@ open scoped MeasureTheory ProbabilityTheory
 -- § 1. Treatment marginal and joint positivity
 -- ============================================================
 
-/-- The observational treatment marginal `νX = (M.obsKernel s₀).map π_{X.random}`. -/
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω), [a structural causal
+model](hyp:M), [a finite treatment set](hyp:X), [the condition that its random treatment copies
+are observed](hyp:hXr), and [fixed-node values](hyp:s0), [the observational treatment
+marginal](goal) is the observational law of the random treatment coordinates at those fixed-node
+values. -/
 noncomputable def treatmentMarginal (M : Causalean.SCM N Ω) (X : Finset N)
     (hXr : X.image SWIGNode.random ⊆ M.observed) (s0 : M.FixedValues) :
     MeasureTheory.Measure (ValuesOn (X.image SWIGNode.random) (swigΩ Ω)) :=
   (M.obsKernel s0).map (valuesProjection hXr)
 
-/-- **Joint (product) positivity / overlap at base `s₀`.**
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω), [a structural causal
+model](hyp:M), [a finite treatment set](hyp:X), [a finite adjustment-node set](hyp:Z), [the
+condition that every adjustment node is observed](hyp:hZ), [the condition that every random
+treatment copy and adjustment node is observed](hyp:hXrZ), and [fixed-node values](hyp:s0), [the
+backdoor product-positivity condition](goal) states that the product of the observational
+treatment marginal and observational adjustment marginal is absolutely continuous with respect to
+the observational joint law of treatment and adjustment coordinates.
 
     The product of the observational treatment marginal `νX` and outcome-adjustment marginal `μZ`
     is absolutely continuous w.r.t. the observational joint `μXZ = P_{X,Z}`.  Informally
@@ -84,7 +94,14 @@ def BackdoorPositivityAE (M : Causalean.SCM N Ω) (X : Finset N)
 -- § 2. The two treatment-indexed kernels
 -- ============================================================
 
-/-- Post-intervention `Y`-marginal as a kernel in the treatment value `t`, at base `s₀`:
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω), [a structural causal
+model](hyp:M), [a finite treatment set](hyp:X), [the condition that every random treatment copy
+is observed](hyp:hObs), [the condition that no fixed treatment copy is already fixed](hyp:hFix),
+[a finite observed outcome-node set](hyp:Y,hY), and [fixed-node values](hyp:s0), [the
+treatment-indexed post-intervention outcome kernel](goal) maps each treatment value to the
+post-intervention observational law of the outcome coordinates.
+
+Post-intervention `Y`-marginal as a kernel in the treatment value `t`, at base `s₀`:
     `t ↦ ((M.fixSet X).obsKernel (s_post s₀ t)).map π_Y`. -/
 noncomputable def doKernelY (M : Causalean.SCM N Ω) (X : Finset N)
     (hObs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)
@@ -96,7 +113,12 @@ noncomputable def doKernelY (M : Causalean.SCM N Ω) (X : Finset N)
       (M.measurable_fixSetExtend X hObs hFix s0)).map
     (valuesProjection ((SCM.fixSet_observed M X hObs hFix).symm ▸ hY)))
 
-/-- Backdoor-adjustment `Y`-marginal as a kernel in the treatment value `t`, at base `s₀`. -/
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω), [a structural causal
+model](hyp:M), [a finite treatment set](hyp:X), [the condition that every random treatment copy
+is observed](hyp:hObs), [the condition that no fixed treatment copy is already fixed](hyp:hFix),
+[a finite observed outcome-node set](hyp:Y,hY), [a finite observed adjustment-node set](hyp:Z,hZ),
+and [fixed-node values](hyp:s0), [the treatment-indexed backdoor-adjustment outcome kernel](goal)
+maps each treatment value to the backdoor-adjustment law of the outcome coordinates. -/
 noncomputable def adjustmentKernelY (M : Causalean.SCM N Ω) (X : Finset N)
     (hObs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)
     (hFix : ∀ D ∈ X, SWIGNode.fixed D ∉ M.fixed)
@@ -107,7 +129,9 @@ noncomputable def adjustmentKernelY (M : Causalean.SCM N Ω) (X : Finset N)
   (M.backdoorAdjustment X hObs hFix Y Z hY hZ).comap
     (M.fixSetExtend X hObs hFix s0) (M.measurable_fixSetExtend X hObs hFix s0)
 
-/-- The treatment-indexed post-intervention `Y`-marginal kernel is finite. -/
+/-- For [a finite, distinguishable node population with measurable node-value spaces](hyp:N,Ω) and [a structural causal model](hyp:M), [a finite treatment set](hyp:X), [the requirement that every corresponding random treatment node is observed](hyp:hObs), [the requirement that no corresponding fixed treatment node is already fixed](hyp:hFix), [a finite observed outcome-node set](hyp:Y,hY), and [a fixed-node assignment](hyp:s0), the [treatment-indexed post-intervention outcome kernel](goal) is finite.
+
+The treatment-indexed post-intervention outcome kernel is finite. -/
 instance instIsFiniteKernelDoKernelY (M : Causalean.SCM N Ω) (X : Finset N)
     (hObs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)
     (hFix : ∀ D ∈ X, SWIGNode.fixed D ∉ M.fixed)
@@ -115,7 +139,9 @@ instance instIsFiniteKernelDoKernelY (M : Causalean.SCM N Ω) (X : Finset N)
     ProbabilityTheory.IsFiniteKernel (M.doKernelY X hObs hFix Y hY s0) := by
   rw [SCM.doKernelY]; infer_instance
 
-/-- The treatment-indexed backdoor-adjustment `Y`-marginal kernel is finite. -/
+/-- For [a finite, distinguishable node population with measurable, standard-Borel, nonempty node-value spaces](hyp:N,Ω) and [a structural causal model](hyp:M), [a finite treatment set](hyp:X), [the requirement that every corresponding random treatment node is observed](hyp:hObs), [the requirement that no corresponding fixed treatment node is already fixed](hyp:hFix), [finite observed outcome and adjustment-node sets](hyp:Y,Z,hY,hZ), and [a fixed-node assignment](hyp:s0), the [treatment-indexed backdoor-adjustment outcome kernel](goal) is finite.
+
+The treatment-indexed backdoor-adjustment outcome kernel is finite. -/
 instance instIsFiniteKernelAdjustmentKernelY (M : Causalean.SCM N Ω) (X : Finset N)
     (hObs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)
     (hFix : ∀ D ∈ X, SWIGNode.fixed D ∉ M.fixed)

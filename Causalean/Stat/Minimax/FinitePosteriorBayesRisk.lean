@@ -30,7 +30,10 @@ open Causalean.Experimentation.DesignBased
 variable {S X : Type*} [Fintype S] [Fintype X]
 variable [MeasurableSpace S] [MeasurableSpace X] [MeasurableSingletonClass X]
 
-/-- The real singleton mass assigned to an observation by a finite-state Markov kernel. -/
+/-- Given a [measurable latent-state space](hyp:S), a [measurable observation space](hyp:X), a Markov
+observation kernel [from latent states to observations](hyp:L), a [latent state](hyp:s), and an
+[observation](hyp:x), the [real-valued singleton observation mass](goal) is the kernel's mass
+at that observation conditional on that latent state. -/
 noncomputable def kernelMass (L : Kernel S X) (s : S) (x : X) : ℝ :=
   (L s).real {x}
 
@@ -46,8 +49,11 @@ theorem kernelMass_sum (L : Kernel S X) [IsMarkovKernel L] (s : S) :
   simpa [kernelMass] using
     (sum_measureReal_singleton (μ := L s) (Finset.univ : Finset X))
 
-/-- The joint mass of a latent state and observation is prior mass times conditional
-observation mass. -/
+/-- Given a [finite measurable latent-state space](hyp:S), a [measurable observation space](hyp:X), a finite
+probability design [on the latent states](hyp:ν), a Markov observation kernel [from latent
+states to observations](hyp:L), a [latent state](hyp:s), and an [observation](hyp:x), the
+[joint mass of that state and observation](goal) is the prior mass of the state times the
+conditional singleton mass of the observation. -/
 noncomputable def jointMass (ν : FiniteDesign S) (L : Kernel S X) (s : S) (x : X) : ℝ :=
   ν.p s * kernelMass L s x
 
@@ -64,7 +70,10 @@ theorem jointMass_sum (ν : FiniteDesign S) (L : Kernel S X) [IsMarkovKernel L] 
   simp_rw [jointMass, ← Finset.mul_sum, kernelMass_sum, mul_one]
   exact ν.p_sum
 
-/-- The observation marginal is the sum of joint masses over the latent state. -/
+/-- Given a [finite measurable latent-state space](hyp:S), a [measurable observation space](hyp:X), a finite
+probability design [on the latent states](hyp:ν), a Markov observation kernel [from latent
+states to observations](hyp:L), and an [observation](hyp:x), the [observation marginal
+mass](goal) is the sum, over all latent states, of their joint masses with that observation. -/
 noncomputable def observationMass (ν : FiniteDesign S) (L : Kernel S X) (x : X) : ℝ :=
   ∑ s, jointMass ν L s x
 
@@ -81,8 +90,11 @@ theorem observationMass_sum (ν : FiniteDesign S) (L : Kernel S X) [IsMarkovKern
   rw [Finset.sum_comm]
   exact jointMass_sum ν L
 
-/-- The guarded posterior weight is the Bayes ratio on a nonzero observation fiber and zero
-on a null fiber. -/
+/-- Given a [finite measurable latent-state space](hyp:S), a [measurable observation space](hyp:X), a finite
+probability design [on the latent states](hyp:ν), a Markov observation kernel [from latent
+states to observations](hyp:L), an [observation](hyp:x), and a [latent state](hyp:s), the
+[guarded posterior weight](goal) is zero when the observation has zero marginal mass and is
+otherwise the joint mass of the state and observation divided by that marginal mass. -/
 noncomputable def posteriorWeight (ν : FiniteDesign S) (L : Kernel S X) (x : X) (s : S) : ℝ :=
   if observationMass ν L x = 0 then 0 else jointMass ν L s x / observationMass ν L x
 
@@ -154,8 +166,11 @@ theorem disintegrate_sum (ν : FiniteDesign S) (L : Kernel S X) (f : S → X →
     observationMass_mul_posteriorWeight ν L]
   rw [Finset.sum_comm]
 
-/-- The guarded posterior mean is the posterior-weighted average of an observation-dependent
-real target. -/
+/-- Given a [finite measurable latent-state space](hyp:S), a [measurable observation space](hyp:X), a finite
+probability design [on the latent states](hyp:ν), a Markov observation kernel [from latent
+states to observations](hyp:L), an [observation-dependent real target](hyp:t), and an
+[observation](hyp:x), the [guarded posterior mean](goal) is the sum over latent states of the
+guarded posterior weight times that target at the state and observation. -/
 noncomputable def posteriorMean (ν : FiniteDesign S) (L : Kernel S X)
     (t : S → X → ℝ) (x : X) : ℝ :=
   ∑ s, posteriorWeight ν L x s * t s x
@@ -183,14 +198,21 @@ theorem posterior_centered_sum_of_pos (ν : FiniteDesign S) (L : Kernel S X)
   rw [posteriorMean]
   exact sub_self _
 
-/-- The finite-design squared risk averages observation-dependent squared error over the joint
-latent-state/observation law. -/
+/-- Given a [finite measurable latent-state space](hyp:S), a [finite measurable observation space](hyp:X), a finite
+probability design [on the latent states](hyp:ν), a Markov observation kernel [from latent
+states to observations](hyp:L), an [observation-dependent real target](hyp:t), and a
+[real-valued estimator based on the observation](hyp:T), the [squared risk](goal) is the sum
+over all latent states and observations of their joint mass times the estimator's squared error
+relative to the target. -/
 noncomputable def squaredRisk (ν : FiniteDesign S) (L : Kernel S X)
     (t : S → X → ℝ) (T : X → ℝ) : ℝ :=
   ∑ s, ∑ x, jointMass ν L s x * (T x - t s x) ^ 2
 
-/-- The posterior residual risk averages squared deviations of the target from its guarded
-posterior mean. -/
+/-- Given a [finite measurable latent-state space](hyp:S), a [finite measurable observation space](hyp:X), a finite
+probability design [on the latent states](hyp:ν), a Markov observation kernel [from latent
+states to observations](hyp:L), and an [observation-dependent real target](hyp:t), the
+[posterior residual risk](goal) is the sum over observations of their marginal mass times the
+posterior-weighted squared deviation of the target from its guarded posterior mean. -/
 noncomputable def posteriorResidual (ν : FiniteDesign S) (L : Kernel S X)
     (t : S → X → ℝ) : ℝ :=
   ∑ x, observationMass ν L x *
@@ -285,7 +307,11 @@ theorem iInf_squaredRisk_eq_posteriorResidual (ν : FiniteDesign S) (L : Kernel 
           (squaredRisk_posteriorMean ν L t).symm
         _ ≤ squaredRisk ν L t T := posteriorMean_minimizes ν L t T
 
-/-- The statewise squared loss of an estimator averages over the observation kernel. -/
+/-- Given a [measurable latent-state space](hyp:S), a [finite measurable observation space](hyp:X), a Markov
+observation kernel [from latent states to observations](hyp:L), an [observation-dependent real
+target](hyp:t), a [real-valued estimator based on the observation](hyp:T), and a [latent
+state](hyp:s), the [statewise squared loss](goal) is the sum over observations of their
+conditional singleton masses times the estimator's squared error relative to the target. -/
 noncomputable def statewiseSquaredLoss (L : Kernel S X) (t : S → X → ℝ)
     (T : X → ℝ) (s : S) : ℝ :=
   ∑ x, kernelMass L s x * (T x - t s x) ^ 2

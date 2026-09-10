@@ -43,8 +43,7 @@ section StageOne
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι] {Ω₁ : Type*} [Fintype Ω₁]
 
-/-- The population sample variance (Neyman `N−1` denominator) of the group-level quantities `μ`,
-`Sμ² = (∑ᵢ(μᵢ − μ̄)²)/(N−1)`, where `N := card ι` and `μ̄ = (∑ μ)/N`. -/
+/-- For [a finite collection of groups](hyp:ι) and [a real-valued group-level quantity $\mu_i$](hyp:μ), the [population sample variance of the group-level quantity](goal) is $(N-1)^{-1}\sum_i(\mu_i-\bar\mu)^2$, where $N$ is the number of groups and $\bar\mu=N^{-1}\sum_i\mu_i$. -/
 noncomputable def SmuVar (μ : ι → ℝ) : ℝ :=
   (∑ i, (μ i - (∑ i, μ i) / (Fintype.card ι : ℝ)) ^ 2) / ((Fintype.card ι : ℝ) - 1)
 

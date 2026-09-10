@@ -193,11 +193,10 @@ theorem isLittleOp_quarter_of_isBigOp_sqrt
   rw [heq]
   exact le_of_lt (lt_of_le_of_lt (measure_mono hsubset) hBn)
 
-/-- The L² estimation error has a finite seminorm at every sample size and
-experiment outcome, and that finite seminorm is stochastically bounded at the
-supplied rate under the experiment law.  The L² seminorm is computed using the
-covariate marginal of the joint law, so the real-valued stochastic-order claim
-never comes from converting an infinite extended norm to zero. -/
+/-- For [a measurable sample space](hyp:Ω), [a measurable covariate space](hyp:X), [a sequence of estimated regression functions indexed by sample size and experiment outcome](hyp:hhat), [a target regression function](hyp:hstar), [a joint covariate--response measure](hyp:P), [a real-valued rate sequence](hyp:rn), and [an experiment measure](hyp:μ), [the predicate that the estimators achieve the stated L² rate](goal) holds precisely when [for every sample size and experiment outcome, the L² seminorm of the estimation error under the covariate marginal of the joint measure is finite](step:1), and [the resulting real-valued sequence of L² seminorms is stochastically bounded at the supplied rate under the experiment measure](step:2).
+
+The L² seminorm is computed using the covariate marginal of the joint law, so the
+real-valued stochastic-order claim never comes from converting an infinite extended norm to zero. -/
 def AchievesL2Rate {X : Type*} [MeasurableSpace X]
     (hhat : ℕ → Ω → (X → ℝ)) (hstar : X → ℝ) (P : Measure (X × ℝ))
     (rn : ℕ → ℝ) (μ : Measure Ω) : Prop :=

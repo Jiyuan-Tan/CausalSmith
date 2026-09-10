@@ -69,12 +69,12 @@ namespace POBackdoorSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 variable (S : POBackdoorSystem P γ)
 
-/-- The `τ`-quantile of the potential outcome `Y(d)`. -/
+/-- For [a potential-outcomes backdoor system](hyp:S), [a treatment arm](hyp:d), [a measure on its sample space](hyp:μ), and [a real quantile level](hyp:τ), the [arm-specific potential-outcome quantile](goal) is the generalized $\tau$-quantile of the potential outcome under that treatment arm, evaluated under that measure. -/
 noncomputable def qtdQuantile (d : Bool) (μ : Measure P.Ω) (τ : ℝ) : ℝ :=
   S.yVar.cfUnderQuantile S.dVar d μ τ
 
-/-- **Totalized quantile treatment effect** at level `τ`: the difference
-between the two generalized quantile functionals, defined for every real `τ`.
+/-- For [a potential-outcomes backdoor system](hyp:S), [a measure on its sample space](hyp:μ), and [a real quantile level](hyp:τ), the [totalized quantile treatment effect](goal) is the generalized $\tau$-quantile of the treated potential outcome minus that of the control potential outcome. It is defined for every real $\tau$.
+
 Literature-facing quantile effects normally restrict `τ` to the unit interval. -/
 noncomputable def qte (μ : Measure P.Ω) (τ : ℝ) : ℝ :=
   S.qtdQuantile true μ τ - S.qtdQuantile false μ τ

@@ -33,7 +33,10 @@ open Matrix
 
 variable {Obs Param : Type*} [Fintype Obs] [Fintype Param] [DecidableEq Param]
 
-/-- OLS weight via the normal-equations inverse: `wStar = X (XᵀX)⁻¹ c`.
+/-- For [finite observation and parameter index sets, with parameter indices that can be
+distinguished](hyp:Obs,Param), [a real design matrix](hyp:X), and
+[a real vector specifying a linear combination of the parameters](hyp:c), the
+[ordinary-least-squares weight vector](goal) is $X(X^\mathsf{T}X)^{-1}c$.
 
 This uses Lean's ordinary matrix inverse of `XᵀX`, not a Moore-Penrose
 pseudoinverse; the unbiasedness theorem below separately assumes

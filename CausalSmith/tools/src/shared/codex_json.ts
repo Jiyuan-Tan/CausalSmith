@@ -12,8 +12,8 @@
  *      run dir itself.
  *   2. Parses with brace-balance repair (a 1-char truncation by the model
  *      is the single most common failure mode observed so far).
- *   3. Throws errors tagged `code: "codex_malformed_output"` so
- *      the retired study-pipeline CLI can route the run via `study_bank.ts`.
+ *   3. Throws errors tagged `code: "codex_malformed_output"` so a caller can
+ *      tell a malformed model reply from a transport failure.
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";

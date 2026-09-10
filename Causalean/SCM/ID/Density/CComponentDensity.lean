@@ -28,7 +28,16 @@ open scoped MeasureTheory ProbabilityTheory ENNReal BigOperators
 variable {N : Type*} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-/-- The **per-c-component density factor**: the product of the one-node
+/-- For a finite node set with measurable node-value spaces, [a structural causal model](hyp:M),
+[a family of reference measures](hyp:ref), [an assignment to the model's fixed nodes](hyp:s),
+and [a set of SWIG nodes](hyp:C), assuming every observational law is finite, every singleton
+observed-node value space is standard Borel and nonempty, and every fixed-node space together
+with every observed-node prefix space satisfies the stated countability condition, [the
+per-c-component density factor](goal) maps a full observed-node assignment to the product of its
+one-node conditional density factors over precisely those observed nodes whose c-component is
+the given set.
+
+The **per-c-component density factor**: the product of the one-node
 conditional density factors over exactly the observed nodes lying in the
 c-component `C`.  This is the density-side analogue of Tian's c-factor `Q[C]`. -/
 noncomputable def cComponentDensityFactor

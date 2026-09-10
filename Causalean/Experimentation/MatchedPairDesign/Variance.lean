@@ -44,8 +44,11 @@ open DesignBased
 
 variable {P : Type*} [Fintype P] [DecidableEq P]
 
-/-- The **within-pair imbalance** of pair `p`: the difference, between its two positions, of the
-unit totals `y1 + y0`.  Good matching makes this small. -/
+/-- For [the treated and control potential outcomes of every position in every pair](hyp:P,y1,y0)
+and [a particular pair](hyp:p), the [within-pair imbalance](goal) is the difference between the
+two positions in the sum of their treated and control potential outcomes.
+
+Good matching makes this quantity small. -/
 noncomputable def pairImbalance (y1 y0 : P → Bool → ℝ) (p : P) : ℝ :=
   (y1 p true + y0 p true) - (y1 p false + y0 p false)
 

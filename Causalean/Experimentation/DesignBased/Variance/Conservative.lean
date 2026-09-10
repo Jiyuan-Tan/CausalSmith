@@ -38,8 +38,10 @@ namespace FiniteDesign
 
 variable {Ω : Type*} [Fintype Ω] (D : FiniteDesign Ω)
 
-/-- A variance estimator `Vhat` is **conservative** for `X` when its expectation is at least the
-randomization variance of `X`. -/
+/-- For [a randomization design](hyp:D), [a real-valued variance estimator](hyp:Vhat), and [a
+real-valued statistic of the realized assignment](hyp:X), [the assertion that the estimator is
+conservative](goal) means that its design expectation is at least the design variance of the
+statistic. -/
 def IsConservativeVarEst (Vhat X : Ω → ℝ) : Prop := D.Var X ≤ D.E Vhat
 
 /-- A variance estimator whose expectation equals the variance plus a nonnegative bias is

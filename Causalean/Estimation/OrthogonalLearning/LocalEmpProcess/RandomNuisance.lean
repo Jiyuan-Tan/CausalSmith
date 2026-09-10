@@ -57,9 +57,14 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
 
 /-! ## The random-nuisance modulus predicate -/
 
-/-- **Random-nuisance local empirical-process modulus.**  The `hMod` shape: for
-each `n` there is a high-probability event on which the centred excess risk at
-the *random* nuisance `ĥ n ω` obeys the modulus inequality uniformly in `θ`. -/
+/-- Given [an orthogonal statistical-learning system](hyp:S), [an independent and identically
+distributed sample with the system's population law](hyp:S_iid), [a one-shot sample split](hyp:split),
+[a rate sequence](hyp:ρ), [a confidence tolerance](hyp:δ), and [a sample-dependent nuisance
+estimator](hyp:ĥ), the [random-nuisance local empirical-process modulus condition](goal) holds
+exactly when, for every sample size, there exists an event that is [measurable](step:1), has
+measure at least $1-\delta^+$, with subtraction truncated at zero, and on which, uniformly over the target class, the
+population excess risk at the realized nuisance estimate minus the fold-B empirical excess risk is
+at most $\rho_n$ times the distance from the distinguished target plus $\rho_n^2$. -/
 def LocalEmpProcessModulusRandom
     (S : LearningSystem Ω μ Z P_Z Θ G)
     (S_iid : IIDSample Ω Z μ P_Z)
@@ -74,15 +79,22 @@ def LocalEmpProcessModulusRandom
 
 /-! ## `g`-parametric pieces of the fixed-nuisance bridge -/
 
-/-- The fold-B coordinate map `Y : Ω → (Fin m → Z)`, `m = card (foldB n)`,
-reindexing the fold-B subsample by the canonical order isomorphism. -/
+/-- Given [an independent and identically distributed sample](hyp:S_iid), [a one-shot sample
+split](hyp:split), and [a sample size](hyp:n), the [fold-B coordinate map](goal) sends each sample
+realization to its fold-B observations, indexed in their canonical finite order. -/
 noncomputable def foldBCoord
     (S_iid : IIDSample Ω Z μ P_Z)
     (split : OneShotSplit S_iid)
     (n : ℕ) : Ω → Fin (split.foldB n).card → Z :=
   fun ω j => S_iid.Z (((split.foldB n).orderIsoOfFin rfl) j).val ω
 
-/-- The product-sample bad event for nuisance `g`.
+/-- Given [an orthogonal statistical-learning system](hyp:S), [an independent and identically
+distributed sample with the system's population law](hyp:S_iid), [a one-shot sample split](hyp:split),
+[a sample size](hyp:n), [a loss bound](hyp:b), [a confidence tolerance](hyp:δ), [a candidate
+complexity-bound sequence](hyp:_R), and [a nuisance function](hyp:g), the [product-sample bad event](goal)
+is the set of fold-B observation vectors for which twice the centred-loss Rademacher complexity plus
+$2b\sqrt{2\log(1/\delta)/m}$, where $m$ is the fold-B size, does not exceed the centred-loss
+uniform deviation.
 
 Although the declaration is named `badDataSet`, it denotes the subset of
 fold-B product samples on which the centred-loss uniform deviation is too large;
@@ -100,7 +112,10 @@ noncomputable def badDataSet
       ≤ uniformDeviation (split.foldB n).card
           (fun (θ : S.Θ_set) z => S.ℓ z θ.val g - S.ℓ z S.θ₀ g) P_Z id (id ∘ s)}
 
-/-- The deterministic modulus radius `ρ n`. -/
+/-- Given [an independent and identically distributed sample](hyp:S_iid), [a one-shot sample split](hyp:split), [a loss bound](hyp:b), [a confidence
+tolerance](hyp:δ), and [a complexity-bound sequence](hyp:R), the [deterministic modulus-radius
+sequence](goal) assigns to every sample size $n$ the value $\sqrt{2b}$ when fold B is empty, and
+otherwise the value $\sqrt{2R_n+2b\sqrt{2\log(1/\delta)/m}}$, where $m$ is the fold-B size. -/
 noncomputable def modulusRadius
     {S_iid : IIDSample Ω Z μ P_Z}
     (split : OneShotSplit S_iid) (b δ : ℝ) (R : ℕ → ℝ) : ℕ → ℝ :=

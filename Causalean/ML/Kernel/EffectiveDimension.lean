@@ -41,8 +41,13 @@ open scoped Topology
 
 variable {ι : Type*}
 
-/-- The **effective dimension** `N(λ) = ∑ᵢ μᵢ/(μᵢ+λ)` of an operator with eigenvalue family
-`μ` at regularization level `λ`. -/
+/-- Given [an arbitrary set of eigenvalue indices](hyp:ι), [a family of real eigenvalues indexed
+by that set](hyp:μ), and [a real regularization level](hyp:lam), the [effective dimension](goal)
+is the infinite sum $\sum_i \mu_i/(\mu_i+\lambda)$. This definition imposes no positivity,
+summability, or nonzero-denominator condition; a summand with zero denominator, and the total
+when the summand family is not summable, are assigned the value zero.
+
+The effective dimension is the trace-style quantity used in kernel-ridge variance bounds. -/
 noncomputable def effectiveDimension (μ : ι → ℝ) (lam : ℝ) : ℝ :=
   ∑' i, μ i / (μ i + lam)
 

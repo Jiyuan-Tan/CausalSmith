@@ -45,10 +45,15 @@ open Causalean
 variable {N : Type*} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-/-- **Rule 2 joint overlap (canonical, continuous-friendly).**  Absolute
-    continuity of the `(Z.image .random ∪ W)`-marginal of
-    `(M'.fixSet Z).obsKernel s'` w.r.t. the same marginal of
-    `M'.obsKernel (fixSetProj s')`.
+/-- For [a finite node-label set](hyp:N), [measurable node-value spaces](hyp:Ω),
+    [a structural causal model](hyp:M'), [an intervention target set](hyp:Z),
+    [proof that each target is an observed random node not already fixed](hyp:hZ_obs,hZ_fixed),
+    [an additional observed-node set](hyp:W), [proof that the random copies of
+    the targets together with that set are observed](hyp:hZrW), and [a fixed-value
+    assignment after intervention](hyp:s'), [Rule 2 joint overlap](goal) means
+    that the post-intervention observational marginal on those nodes is absolutely
+    continuous with respect to the corresponding pre-intervention observational
+    marginal at the projected fixed-value assignment.
 
     A kernel-level absolute-continuity predicate with no pointwise
     singleton positivity requirement.  Holds trivially in the discrete

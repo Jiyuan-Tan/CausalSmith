@@ -29,7 +29,10 @@ open scoped ENNReal BigOperators
 
 variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {ι : Type*} [Fintype ι]
 
-/-- Finite mixture of measures with weights `w : ι → ℝ≥0∞`. -/
+/-- Given a [sample space equipped with a σ-algebra](hyp:Ω,mΩ), a [finite index set](hyp:ι),
+[nonnegative extended-real weights indexed by that set](hyp:w), and [a measure for each
+index](hyp:P), the [finite mixture measure](goal) is the sum of the component measures, each
+scaled by its corresponding weight. -/
 noncomputable def mixture (w : ι → ℝ≥0∞) (P : ι → Measure Ω) : Measure Ω :=
   ∑ i, w i • P i
 

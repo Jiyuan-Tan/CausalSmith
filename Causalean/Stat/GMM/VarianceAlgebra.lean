@@ -68,14 +68,13 @@ variable {E F : Type*}
   [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
   [NormedAddCommGroup F] [InnerProductSpace ℝ F] [FiniteDimensional ℝ F]
 
-/-- The **bread** operator `GᵀWG : E →L E` of a GMM problem with Jacobian `G`
-and weighting `W`.  Symmetric whenever `W` is, and invertible whenever `G` has
-full column rank and `W ≻ 0`. -/
+/-- Given [a finite-dimensional real inner-product parameter space](hyp:E), [a finite-dimensional real inner-product moment space](hyp:F), [a linear Jacobian from the parameter space to the moment space](hyp:G), and [a linear weighting operator on the moment space](hyp:W), [the GMM bread operator](goal) is the parameter-space operator $G^{\mathsf T}WG$.
+
+It is symmetric whenever the weighting operator is symmetric, and invertible whenever the Jacobian has full column rank and the weighting operator is positive definite. -/
 noncomputable def gmmBread (G : E →L[ℝ] F) (W : F →L[ℝ] F) : E →L[ℝ] E :=
   (adjoint G) ∘L W ∘L G
 
-/-- The **sandwich asymptotic variance** `(GᵀWG)⁻¹ GᵀW Σ WG (GᵀWG)⁻¹`, given a
-two-sided inverse `breadInv` of `GᵀWG`. -/
+/-- Given [a finite-dimensional real inner-product parameter space](hyp:E), [a finite-dimensional real inner-product moment space](hyp:F), [a linear Jacobian from the parameter space to the moment space](hyp:G), [a linear weighting operator](hyp:W), [a moment covariance operator](hyp:Cov), and [a parameter-space linear operator](hyp:breadInv), [the GMM sandwich variance operator](goal) is $AG^{\mathsf T}W\Sigma WGA$, where $A$ is the supplied operator. -/
 noncomputable def gmmSandwich (G : E →L[ℝ] F) (W Cov : F →L[ℝ] F)
     (breadInv : E →L[ℝ] E) : E →L[ℝ] E :=
   breadInv ∘L (adjoint G) ∘L W ∘L Cov ∘L W ∘L G ∘L breadInv

@@ -34,7 +34,13 @@ open scoped MeasureTheory ProbabilityTheory
 variable {N : Type*} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-/-- The **`Y`-marginal of the do-observational law**: push `(M.fixSet X).obsKernel`
+/-- For [a finite population of variables](hyp:N) with [measurable value spaces](hyp:Ω),
+[a structural causal model](hyp:M), [an intervention set](hyp:X) whose [random nodes are
+observed](hyp:hObs) and whose [fixed nodes are not already fixed](hyp:hFix), [an outcome-node
+set](hyp:Y) [contained in the observed nodes](hyp:hY), [the do-observational outcome
+marginal kernel](goal) maps fixed intervention values to the induced distribution of those outcomes.
+
+The **`Y`-marginal of the do-observational law**: push `(M.fixSet X).obsKernel`
 forward along the projection to the outcome coordinates `Y`.  This is the only
 part of the do-law that the post-intervention `Y`-marginal kernel `doKernelY`
 depends on — `doKernelY` is this marginal, reindexed in the treatment value by the

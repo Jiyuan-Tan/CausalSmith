@@ -1,0 +1,34 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Basic
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.AronowSamiiBinary
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.BlockArray
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.BooleanMobius
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.CitedGates
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.FiniteConeDuality
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.WitnessCertificates
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.WitnessData
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.OpenSchoolBlock
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TAronowSamiiSpecialization
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TComplementDegreeCollapse
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TDualCompleteClass
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.THMSClassInclusion
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TObservableMobius
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TQuarticSeparation
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TRationalCertificates
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TStudentizedCoverage
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TTensorization
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TVarianceEstimability
+import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TWitnessSDPOptimum
+
+/-! # Run barrel (auto-generated)
+
+Aggregates every module of this causalsmith run so the whole run is ONE buildable target
+(`lake build <this module>`). Research modules are not reachable from the top-level
+`CausalSmith.lean` barrel, so the default lake target skips them and reports green on stale
+oleans. Rewritten from the run's module set on every F-stage entry — do not hand-edit. -/

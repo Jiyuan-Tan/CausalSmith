@@ -64,7 +64,9 @@ namespace SCM
 -- § 1. Ancestral closure for SCMs
 -- ============================================================
 
-/-- `R ⊆ V ∪ S ∪ L` is **ancestrally closed** in the SCM sense if it
+/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), and [a set of graph nodes](hyp:R), the [SCM ancestral-closure condition](goal) holds exactly when [every observed parent of every retained node is retained](step:1) and [the random counterpart of every fixed parent of every retained node is retained](step:2).
+
+    `R ⊆ V ∪ S ∪ L` is **ancestrally closed** in the SCM sense if it
     satisfies both clauses of `def:scm-anc-closed`:
 
     (a) **Observed-ancestor closure.** For every `v ∈ R` and every
@@ -143,7 +145,9 @@ lemma induce_parents_eq_of_ancClosed (M : Causalean.SCM N Ω)
     refine (M.toSWIGGraph.induce R).dag.mem_parents.mpr ?_
     exact ⟨huEdge, huActive, hvActive⟩
 
-/-- The induced sub-SCM for an ancestrally closed node set keeps the observed
+/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), [a set of graph nodes](hyp:R), and [the condition that this set is ancestrally closed in the SCM sense](hyp:hR), the [induced structural causal submodel](goal) retains the selected observed and fixed nodes and precisely the original latent roots feeding retained observed nodes. It is defined [from the induced SWIG graph](step:1), inheriting the relevant value spaces, structural functions, and latent distributions.
+
+    The induced sub-SCM for an ancestrally closed node set keeps the observed
     and fixed parts selected by the induced SWIG graph and keeps exactly the
     original latent roots that feed retained observed nodes.
 

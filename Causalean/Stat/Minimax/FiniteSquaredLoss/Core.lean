@@ -36,7 +36,10 @@ structure Procedure (X : R → Type*) [∀ r, Fintype (X r)] (l u : ℝ) where
   /-- The bounded decision rule after observing the selected design's outcome. -/
   decision : ∀ r, X r → Set.Icc l u
 
-/-- The statewise squared-loss risk of a bounded finite procedure. -/
+/-- Given [state-specific observation likelihoods](hyp:P), [a real target for each state](hyp:tau),
+[a bounded randomized procedure](hyp:q), and [a state](hyp:theta), [the statewise squared-loss risk](goal)
+is the procedure-design-weighted sum of likelihood-weighted squared differences between the selected
+action and that state's target. -/
 def risk (P : Theta → ∀ r, X r → ℝ) (tau : Theta → ℝ)
     (q : Procedure X l u) (theta : Theta) : ℝ :=
   ∑ r, q.design.p r * ∑ x, P theta r x * ((q.decision r x : ℝ) - tau theta) ^ 2
@@ -69,17 +72,21 @@ theorem procedure_nonempty [Nonempty R] {l u : ℝ} (hlu : l ≤ u) :
       p_sum := by simp }
     decision := fun _ _ ↦ ⟨l, le_rfl, hlu⟩ }⟩
 
-/-- The ambient Euclidean coordinates contain a design-weight vector and one real
-action coordinate for every dependent design-observation pair. -/
+/-- Given [a set of design indices](hyp:R) and [an observation space for each design
+index](hyp:X), [the ambient coordinate space](goal) consists of one real design-weight vector and
+one real action coordinate for every design-index and observation pair. -/
 abbrev Ambient (R : Type*) (X : R → Type*) :=
   (R → ℝ) × (∀ r, X r → ℝ)
 
-/-- The feasible Euclidean set consists exactly of a probability-simplex design
-vector and action coordinates lying in the common closed interval. -/
+/-- Given [a family of finite observation spaces indexed by design](hyp:X), [a lower action bound](hyp:l),
+and [an upper action bound](hyp:u), [the feasible procedure-coordinate set](goal) contains exactly
+those ambient coordinates whose design weights form a probability distribution and whose action
+coordinates all lie in the closed interval from the lower to the upper bound. -/
 def procedureSet (X : R → Type*) (l u : ℝ) : Set (Ambient R X) :=
   {z | z.1 ∈ stdSimplex ℝ R ∧ ∀ r x, z.2 r x ∈ Set.Icc l u}
 
-/-- The Euclidean coordinates of a bounded finite procedure. -/
+/-- Given [a bounded finite randomized procedure](hyp:q), [its ambient Euclidean coordinates](goal)
+are its design probabilities together with its action at every design-index and observation pair. -/
 def Procedure.toAmbient (q : Procedure X l u) : Ambient R X :=
   ⟨q.design.p, fun r x ↦ q.decision r x⟩
 
@@ -90,7 +97,9 @@ theorem Procedure.toAmbient_mem (q : Procedure X l u) :
   -- The two obligations are exactly the proof fields of `FiniteDesign` and `Set.Icc`.
   exact ⟨⟨q.design.p_nonneg, q.design.p_sum⟩, fun r x ↦ (q.decision r x).property⟩
 
-/-- A feasible Euclidean point determines a bounded finite procedure. -/
+/-- Given [an ambient coordinate point](hyp:z) that [belongs to the feasible procedure-coordinate
+set](hyp:hz), [the corresponding bounded finite procedure](goal) uses its design-weight coordinates
+as design probabilities and its action coordinates as bounded decisions. -/
 noncomputable def Procedure.ofAmbient {z : Ambient R X}
     (hz : z ∈ procedureSet X l u) : Procedure X l u where
   design :=
@@ -106,7 +115,10 @@ coordinate point](goal). -/
     (Procedure.ofAmbient hz).toAmbient = z := by
   rfl
 
-/-- The polynomial risk expression on the ambient Euclidean coordinates. -/
+/-- Given [state-specific observation likelihoods](hyp:P), [a real target for each state](hyp:tau),
+[an ambient coordinate point](hyp:z), and [a state](hyp:theta), [the raw squared-loss risk](goal) is
+the design-coordinate-weighted sum of likelihood-weighted squared differences between action coordinates
+and that state's target. -/
 def rawRisk (P : Theta → ∀ r, X r → ℝ) (tau : Theta → ℝ)
     (z : Ambient R X) (theta : Theta) : ℝ :=
   ∑ r, z.1 r * ∑ x, P theta r x * (z.2 r x - tau theta) ^ 2
@@ -171,7 +183,9 @@ theorem continuous_rawRisk
   unfold rawRisk
   fun_prop
 
-/-- The vector of all statewise risks of an ambient procedure. -/
+/-- Given [state-specific observation likelihoods](hyp:P), [a real target for each state](hyp:tau),
+and [an ambient coordinate point](hyp:z), [the risk vector](goal) assigns to every state its raw
+squared-loss risk at that coordinate point. -/
 def riskVector (P : Theta → ∀ r, X r → ℝ) (tau : Theta → ℝ)
     (z : Ambient R X) : Theta → ℝ :=
   fun theta ↦ rawRisk P tau z theta
@@ -199,14 +213,17 @@ theorem finiteDesign_mem_stdSimplex (nu : FiniteDesign Theta) :
     nu.p ∈ stdSimplex ℝ Theta := by
   exact ⟨nu.p_nonneg, nu.p_sum⟩
 
-/-- A point of the standard simplex determines a finite design. -/
+/-- Given [a vector of weights over the finite state space](hyp:w) that [belongs to the standard
+probability simplex](hyp:hw), [the corresponding finite design](goal) is the probability design whose
+mass function is that vector. -/
 def finiteDesignOfSimplex {w : Theta → ℝ} (hw : w ∈ stdSimplex ℝ Theta) :
     FiniteDesign Theta where
   p := w
   p_nonneg := hw.1
   p_sum := hw.2
 
-/-- Pairing a risk vector with a prior gives its finite Bayes risk. -/
+/-- Given [a real-valued risk vector over states](hyp:z) and [a vector of prior weights](hyp:nu),
+[the finite Bayes payoff](goal) is the sum over states of each prior weight times its risk-vector value. -/
 def bayesPayoff (z nu : Theta → ℝ) : ℝ :=
   ∑ theta, nu theta * z theta
 

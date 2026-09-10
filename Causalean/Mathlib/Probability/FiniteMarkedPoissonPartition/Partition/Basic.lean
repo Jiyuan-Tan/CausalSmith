@@ -35,8 +35,7 @@ namespace FiniteMeasurablePartition
 -- `FiniteMeasurablePartition.cell`, so it registers as a `fun_prop` leaf directly.
 attribute [fun_prop] measurable_cell
 
-/-- A finite family of measurable, pairwise disjoint sets covering the whole
-space determines its unique measurable classifier partition. -/
+/-- Given [a family of subsets of the observation space indexed by a finite index set](hyp:A), [each of which is measurable](hyp:hA), [which are pairwise disjoint](hyp:hdis), and [whose union is the whole observation space](hyp:hcover), the [partition constructed from these sets](goal) assigns every observation to the unique index of the set containing it. -/
 noncomputable def ofSets (A : ι → Set X)
     (hA : ∀ j, MeasurableSet (A j))
     (hdis : Pairwise (fun i j => Disjoint (A i) (A j)))
@@ -86,7 +85,7 @@ lemma ofSets_cellSet (A : ι → Set X)
     exact Set.disjoint_left.1 (hdis hne)
       (Classical.choose_spec hex) hx
 
-/-- The measurable set forming cell `j` of a classifier partition. -/
+/-- Given [a measurable classifier partition](hyp:p) and [a cell index](hyp:j), the [cell set](goal) is the set of observations assigned to that index by the partition. -/
 def cellSet (p : FiniteMeasurablePartition X ι) (j : ι) : Set X :=
   p.cell ⁻¹' {j}
 
@@ -108,7 +107,7 @@ lemma iUnion_cellSet (p : FiniteMeasurablePartition X ι) :
   ext x
   simp [cellSet]
 
-/-- The probability mass of a cell, represented as a nonnegative real. -/
+/-- Given [a measurable classifier partition](hyp:p), [a measure on the observation space](hyp:P), and [a cell index](hyp:j), the [cell mass](goal) is the measure of that cell, represented as a nonnegative real number. -/
 noncomputable def cellMass (p : FiniteMeasurablePartition X ι) (P : Measure X) (j : ι) :
     ℝ≥0 :=
   (P (p.cellSet j)).toNNReal
@@ -132,15 +131,13 @@ lemma sum_cellMass (p : FiniteMeasurablePartition X ι)
     _ = P (⋃ j, p.cellSet j) := by simp
     _ = 1 := by rw [p.iUnion_cellSet, measure_univ]
 
-/-- The within-cell observation law is the normalised restriction when the
-cell has positive mass and the ambient probability law when its mass is zero. -/
+/-- Given [a measurable classifier partition](hyp:p), [a probability measure on the observation space](hyp:P), and [a cell index](hyp:j), the [within-cell observation law](goal) is the normalized restriction of that probability measure to the cell when the cell has positive probability, and is the original probability measure when the cell has probability zero. -/
 noncomputable def cellObservationLaw (p : FiniteMeasurablePartition X ι)
     (P : Measure X) [IsProbabilityMeasure P] (j : ι) : Measure X :=
   if h : P (p.cellSet j) = 0 then P
   else (P (p.cellSet j))⁻¹ • P.restrict (p.cellSet j)
 
-/-- The within-cell observation law is a probability measure, including the
-zero-mass fallback branch. -/
+/-- Let the observation space and the cell-index space each be equipped with a $\sigma$-algebra.  For [a finite measurable partition of the observation space indexed by the cell-index space](hyp:p), [a probability measure on the observation space](hyp:P), and [a cell index](hyp:j), [the assertion that the associated within-cell observation law is a probability measure](goal) holds, including when the selected cell has probability zero. -/
 instance cellObservationLaw_isProbabilityMeasure
     (p : FiniteMeasurablePartition X ι)
     (P : Measure X) [IsProbabilityMeasure P] (j : ι) :
@@ -162,21 +159,20 @@ lemma cellObservationLaw_apply_cellSet
     Measure.restrict_apply (p.measurableSet_cellSet j)]
   simpa using ENNReal.inv_mul_cancel hj (measure_ne_top P _)
 
-/-- Indices of the marked observations belonging to cell `j`. -/
+/-- Given [a measurable classifier partition](hyp:p), [a cell index](hyp:j), and [a finite sample of observation--real-mark pairs](hyp:s), the [cell indices](goal) are precisely the original sample positions whose observations belong to that cell. -/
 noncomputable def cellIndices (p : FiniteMeasurablePartition X ι) (j : ι)
     (s : FiniteSample (X × ℝ)) : Finset (Fin s.count) := by
   classical
   exact Finset.univ.filter (fun k => p.cell (s.points k).1 = j)
 
-/-- Restrict a finite marked sequence to one cell, preserving the original
-relative order of all points that lie in that cell. -/
+/-- Given [a measurable classifier partition](hyp:p), [a cell index](hyp:j), and [a finite sample of observation--real-mark pairs](hyp:s), the [restriction to that cell](goal) retains exactly the pairs whose observations belong to the cell, in their original relative order. -/
 noncomputable def restrictCell (p : FiniteMeasurablePartition X ι) (j : ι)
     (s : FiniteSample (X × ℝ)) : FiniteSample (X × ℝ) := by
   classical
   let t := p.cellIndices j s
   exact ⟨t.card, fun k => s.points (t.orderIsoOfFin rfl k)⟩
 
-/-- Restrict a finite marked sequence simultaneously to every partition cell. -/
+/-- Given [a measurable classifier partition](hyp:p) and [a finite sample of observation--real-mark pairs](hyp:s), the [partition-wise restriction](goal) assigns to every cell index the sample obtained by retaining exactly the pairs in that cell, in their original relative order. -/
 noncomputable def restrictPartition (p : FiniteMeasurablePartition X ι)
     (s : FiniteSample (X × ℝ)) : ι → FiniteSample (X × ℝ) :=
   fun j => p.restrictCell j s

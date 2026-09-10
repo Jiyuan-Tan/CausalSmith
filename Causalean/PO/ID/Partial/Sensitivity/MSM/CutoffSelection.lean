@@ -50,11 +50,11 @@ namespace POBackdoorSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 variable (S : POBackdoorSystem P γ)
 
-/-- The **conditional treated-survival** at cutoff `c`: `G(c) = E[Z·1{Y > c(X)} | σ(X)]`. -/
+/-- For [a potential-outcomes backdoor system](hyp:S) and [a real-valued cutoff function on its sample space](hyp:c), the [conditional treated-survival function](goal) assigns each unit the conditional expectation, given its covariates, of the treatment indicator times the indicator that its factual outcome exceeds its cutoff. -/
 noncomputable def treatedSurv (c : P.Ω → ℝ) : P.Ω → ℝ :=
   P.μ[fun ω => S.dVar.indicator true ω * (if c ω < S.factualY ω then (1 : ℝ) else 0) | S.sigmaX]
 
-/-- The **target survival** that calibrates the cutoff: `(1 − wMin·e)/(wMax − wMin)`. -/
+/-- For [a potential-outcomes backdoor system](hyp:S), [a real sensitivity level](hyp:Λ), and [a unit in its sample space](hyp:ω), the [target survival probability for cutoff calibration](goal) is $(1-w_{\min}e)/(w_{\max}-w_{\min})$, where $e$ is the unit's treated propensity score and $w_{\min},w_{\max}$ are its endpoint weights. -/
 noncomputable def survTarget (Λ : ℝ) (ω : P.Ω) : ℝ :=
   (1 - S.wMin Λ ω * S.propScore true ω) / (S.wMax Λ ω - S.wMin Λ ω)
 

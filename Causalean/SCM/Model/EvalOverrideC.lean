@@ -67,8 +67,7 @@ open scoped MeasureTheory ProbabilityTheory
 -- § 1. Parent-tuple assembly with C-override short-circuit
 -- ============================================================
 
-/-- The override parent-value tuple reads latent, fixed, overridden, or recursively evaluated
-observed parent values as appropriate.
+/-- For [a structural causal model](hyp:M), [an override block](hyp:C), [an assignment of fixed values](hyp:s), [an override assignment on that block](hyp:c), [a latent realization](hyp:ℓ), [an index strictly below the number of observed nodes](hyp:hn), [values supplied for every earlier observed index](hyp:prev), and [a parent of the observed node at that index](hyp:w), the [override parent-value assignment](goal) gives that parent's value, reading an overridden observed parent from the override assignment and otherwise following the fixed, latent, or earlier-observed source appropriate to that parent.
 
     Parent-value assembly for the observed node at topological index `n` with the
     extra C-override.  Observed parents `w ∈ C` are read directly from `c`; all
@@ -174,8 +173,7 @@ lemma parentMapOverride_observed (M : Causalean.SCM N Ω)
 -- § 2. Strong recursion over topological order with C-override
 -- ============================================================
 
-/-- The override auxiliary evaluator computes each observed node in topological order,
-short-circuiting nodes in the override block.
+/-- For [a structural causal model](hyp:M), [an override block](hyp:C) [contained in its observed nodes](hyp:hC), [an assignment of fixed values](hyp:s), [an assignment on the override block](hyp:c), [a latent realization](hyp:ℓ), and [an observed-node index](hyp:n), the [override auxiliary evaluator](goal) gives, for every proof that the index is valid, the node's override value when it lies in the override block and otherwise its structural-function value computed recursively from overridden parent values.
 
     Value of the observed node at topological index `n` under the C-override,
     computed by strong recursion using `parentMapOverride`.  If the node itself
@@ -215,8 +213,7 @@ lemma evalObservedAuxOverride_eq (M : Causalean.SCM N Ω)
 -- § 3. The C-overridden evaluation map
 -- ============================================================
 
-/-- The overridden evaluation map returns target observed values while holding the override block
-fixed.
+/-- For [a structural causal model](hyp:M), [a target set](hyp:Y) [contained in its observed nodes](hyp:hY), [an override block](hyp:C) [contained in its observed nodes](hyp:hC), [an assignment of fixed values](hyp:s), [an assignment on the override block](hyp:c), and [a latent realization](hyp:ℓ), the [overridden evaluation map](goal) returns the values of every target node, holding every node in the override block to its assigned override value.
 
     The C-overridden evaluation map.  Returns values on `Y ⊆ M.observed`, with
     every `v ∈ C` short-circuited to `c`.  The recursion mirrors `evalMap` but

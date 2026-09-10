@@ -57,19 +57,25 @@ Mirror the helpers in `DR/Estimator.lean`: expose the
 the rest of the `Primal` namespace can use plain (non-`@`) syntax for
 `Measure S.𝒲`, `IIDSample`, `OneShotSplit`, etc. -/
 
-/-- The observation space carries the measurable space stored in the inverse
+/-- For an inverse-problem system, the observation space is equipped with the measurable space specified by that system.
+
+The observation space carries the measurable space stored in the inverse
 problem system. -/
 scoped instance instMeasurableSpace_𝒲
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
     (S : InverseProblemSystem Ω μ) : MeasurableSpace S.𝒲 := S.inst𝒲
 
-/-- The covariate space carries the measurable space stored in the inverse
+/-- For an inverse-problem system, the covariate space is equipped with the measurable space specified by that system.
+
+The covariate space carries the measurable space stored in the inverse
 problem system. -/
 scoped instance instMeasurableSpace_𝒳
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
     (S : InverseProblemSystem Ω μ) : MeasurableSpace S.𝒳 := S.inst𝒳
 
-/-- The instrument space carries the measurable space stored in the inverse
+/-- For an inverse-problem system, the instrument space is equipped with the measurable space specified by that system.
+
+The instrument space carries the measurable space stored in the inverse
 problem system. -/
 scoped instance instMeasurableSpace_𝒵
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
@@ -100,7 +106,9 @@ structure TRAEClasses (S : OperatorSystem Ω μ) where
 
 /-! ## Empirical objectives -/
 
-/-- The fold-`A` empirical pointwise integrand at `(h, f)` and observation
+/-- For [an NPIV operator system](hyp:S), [a real regularization level](hyp:lambda), [a covariate candidate function](hyp:h), [an instrument critic function](hyp:f), and [an observation](hyp:w), [the empirical integrand is $2\{m(w;f)-h(x)f(z)\}-f(z)^2+\lambda h(x)^2$, where $x$ and $z$ are that observation's covariate and instrument](goal).
+
+The fold-`A` empirical pointwise integrand at `(h, f)` and observation
 `w : 𝒲`:
 
     2 (m(w; f) − h(x) f(z)) − f(z)² + λ h(x)²,    where (x, z) := (xOf w, zOf w).
@@ -112,7 +120,9 @@ noncomputable def innerIntegrand
   2 * (S.m w f - h (S.xOf w) * f (S.zOf w))
     - f (S.zOf w) ^ 2 + lambda * h (S.xOf w) ^ 2
 
-/-- The fold-`A` empirical inner objective at a candidate `h` and critic
+/-- For [an NPIV operator system](hyp:S), [an independent sample](hyp:sample), [a one-shot sample split](hyp:split), [a real regularization level](hyp:lambda), [a covariate candidate function](hyp:h), [an instrument critic function](hyp:f), [a sample-size index](hyp:n), and [a sample realization](hyp:ω), [the fold-A inner objective is the average empirical integrand over the nuisance fold at that index](goal).
+
+The fold-`A` empirical inner objective at a candidate `h` and critic
 `f`: the average of `innerIntegrand` over the nuisance fold `A(n)`. -/
 noncomputable def innerObjective
     (S : OperatorSystem Ω μ)
@@ -125,7 +135,9 @@ noncomputable def innerObjective
     ∑ i ∈ split.foldA n,
       innerIntegrand S lambda h f (sample.Z i ω)
 
-/-- The TRAE primal sup-min objective:
+/-- For [an NPIV operator system](hyp:S), [candidate and critic classes](hyp:TC), [an independent sample](hyp:sample), [a one-shot sample split](hyp:split), [a real regularization level](hyp:lambda), [a covariate candidate function](hyp:h), [a sample-size index](hyp:n), and [a sample realization](hyp:ω), [the TRAE primal sup-min objective is the supremum of the fold-A inner objective over the critic class](goal).
+
+The TRAE primal sup-min objective:
     `sup_{f ∈ TC.F} P_{A(n)} [innerIntegrand λ h f W]`. -/
 noncomputable def supObjective
     (S : OperatorSystem Ω μ) (TC : TRAEClasses S)

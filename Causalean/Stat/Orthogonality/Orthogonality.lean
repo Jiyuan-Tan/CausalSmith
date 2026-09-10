@@ -32,9 +32,13 @@ open MeasureTheory Filter Topology
 
 variable {H X : Type*} [AddCommGroup H] [Module ℝ H] [MeasurableSpace X]
 
-/-- Neyman orthogonality of a moment functional `m : H → X → ℝ → ℝ` at
-nuisance value `η₀ : H` and target value `θ₀ : ℝ`, with respect to the
-population measure `P : Measure X`.
+/-- Given [an abstract real vector space of nuisance values](hyp:H), [a measurable sample
+space](hyp:X), [a real-valued moment function of a nuisance value, an observation, and a target
+value](hyp:m), [a reference nuisance value](hyp:η₀), [a target value](hyp:θ₀), and [a population
+measure on the sample space](hyp:P), [Neyman orthogonality](goal) means that [the population
+moment at the reference nuisance and target values is zero](step:1) and that, for every nuisance
+direction, [the population moment along the line from the reference nuisance toward that direction,
+divided by the nonzero line parameter, converges to zero as the parameter tends to zero](step:2).
 
 Two conjuncts:
 

@@ -20,8 +20,7 @@ open Causalean.Experimentation.DesignBased
 
 variable {Ω B V : Type*} [Fintype Ω] [Fintype B] [Fintype V]
 
-/-- The mass of a coarsening fiber is the total probability assigned by the finite design to
-source points mapped to the requested coarsened value. -/
+/-- For [a finite probability design on source points](hyp:D), [a deterministic coarsening map](hyp:φ), and [a coarsened value](hyp:b), the [fiber mass](goal) is the total design probability of source points mapped to that value. -/
 noncomputable def fiberMass (D : FiniteDesign Ω) (φ : Ω → B) (b : B) : ℝ :=
   by
     classical
@@ -46,16 +45,14 @@ theorem fiberMass_sum (D : FiniteDesign Ω) (φ : Ω → B) :
   simp only [fiberMass_eq_map_p]
   exact (D.map φ).p_sum
 
-/-- The weighted numerator on a fiber is the sum of each matching source value multiplied by
-its design probability. -/
+/-- For [a finite probability design on source points](hyp:D), [a deterministic coarsening map](hyp:φ), [a real-valued source function indexed by values](hyp:h), [a coarsened value](hyp:b), and [an index value](hyp:v), the [fiber numerator](goal) is the sum of the design probability times the source-function value over source points mapped to that coarsened value. -/
 noncomputable def fiberNumerator (D : FiniteDesign Ω) (φ : Ω → B)
     (h : Ω → V → ℝ) (b : B) (v : V) : ℝ :=
   by
     classical
     exact ∑ ω, if φ ω = b then D.p ω * h ω v else 0
 
-/-- A source point receives its design probability divided by its fiber mass on a nonnull
-matching fiber, and receives zero otherwise. -/
+/-- For [a finite probability design on source points](hyp:D), [a deterministic coarsening map](hyp:φ), [a coarsened value](hyp:b), and [a source point](hyp:ω), the [conditional fiber weight](goal) is its design probability divided by the fiber mass when that mass is nonzero and the point maps to the value, and zero otherwise. -/
 noncomputable def conditionalFiberWeight (D : FiniteDesign Ω) (φ : Ω → B)
     (b : B) (ω : Ω) : ℝ :=
   by
@@ -122,8 +119,7 @@ theorem fiberNumerator_eq_zero_of_fiberMass_eq_zero
   · simp [hω, p_eq_zero_of_mem_fiberMass_eq_zero D φ b hb ω hω]
   · simp [hω]
 
-/-- The conditional mean along a deterministic coarsening is the design-weighted fiber mean,
-with a supplied default returned exactly on zero-mass fibers. -/
+/-- For [a finite probability design on source points](hyp:D), [a deterministic coarsening map](hyp:φ), [a real-valued default](hyp:d), [a real-valued source function indexed by values](hyp:h), [a coarsened value](hyp:b), and [an index value](hyp:v), the [conditional mean along the map](goal) is the design-weighted fiber mean when the fiber has nonzero mass and the supplied default when it has zero mass. -/
 noncomputable def conditionalMeanAlongMap (D : FiniteDesign Ω) (φ : Ω → B)
     (d : ℝ) (h : Ω → V → ℝ) (b : B) (v : V) : ℝ :=
   if fiberMass D φ b = 0 then d

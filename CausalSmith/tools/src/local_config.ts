@@ -52,6 +52,10 @@ export interface LocalConfig {
   /** CODEX_HOME used in codex api mode; kept separate from `~/.codex` so the
    *  subscription login is never evicted. Default `~/.codex-causalsmith-api`. */
   codexApiHome?: string;
+  /** CLAUDE_CONFIG_DIR for the spawned `claude` workers, so the pipeline can run
+   *  on a DIFFERENT Anthropic subscription than the operator's interactive login.
+   *  Unset (the default) means the workers use `~/.claude` like everything else. */
+  claudeConfigDir?: string;
 }
 
 const CONFIG_DIR = path.resolve(
@@ -133,6 +137,7 @@ export function localConfig(): LocalConfig {
     openaiApiKey: file.openaiApiKey ?? undefined,
     openaiApiKeyFile: file.openaiApiKeyFile ?? undefined,
     codexApiHome: file.codexApiHome ?? undefined,
+    claudeConfigDir: file.claudeConfigDir ?? undefined,
   };
   return cached;
 }

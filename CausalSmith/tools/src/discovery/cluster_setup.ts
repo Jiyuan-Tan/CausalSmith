@@ -1,8 +1,5 @@
-// Cluster routing + setup-block loading, shared across the discovery stages.
-//
-// Extracted from the (retired) monolithic Stage 0 (`stage0.ts`) so the typed
-// D0-SOLVE path (`stage0_solve.ts`) can depend on these helpers without pulling
-// in the deleted legacy orchestrator. Pure routing/prompt-assembly — no codex.
+// Cluster routing + setup-block loading for the D0 solve round (`vcs/round.ts`).
+// Pure routing/prompt-assembly — no codex.
 
 import type { PipelineContext, StateJson } from "../types.js";
 import { readPrompt } from "../pipeline_support.js";
@@ -27,30 +24,11 @@ export function clusterFor(ctx: PipelineContext, state: StateJson): Cluster | nu
   return null;
 }
 
-/** Strip the "In-repo substrate (informational only …)" paragraph — the only
- * Causalean push in the cluster setup blocks — for DISCOVERY use. Removes the
- * heading line and the following non-blank lines (the substrate bullet list).
- * Leaves the math setup untouched. No-op when the marker is absent (e.g. panel). */
-function stripInRepoSubstrate(block: string): string {
-  const lines = block.split("\n");
-  const start = lines.findIndex((l) => /^\s*In-repo substrate \(informational only/i.test(l));
-  if (start === -1) return block;
-  let end = start + 1;
-  while (end < lines.length && lines[end].trim() !== "") end += 1;
-  lines.splice(start, end - start);
-  return lines.join("\n").replace(/\n{3,}/g, "\n\n");
-}
-
-/** Discovery variant of the cluster setup block: the same math setup with the
- * Causalean "In-repo substrate" paragraph removed (D stages reason about math,
- * not formalization). */
-export async function loadDiscoveryClusterSetupBlock(
-  ctx: PipelineContext,
-  cluster: Cluster | null,
-): Promise<string> {
-  return stripInRepoSubstrate(await loadClusterSetupBlock(ctx, cluster));
-}
-
+/** The cluster setup block: the math setup a D-stage solver sees for its cluster.
+ * D stages reason about the natural-language mathematics ONLY. These prompts must not
+ * name Causalean/Mathlib paths, declarations, or "what the library already has" —
+ * doing so once put a Lean declaration into a paper's prose proof (df458618d).
+ * Formalization substrate is an F-stage concern. */
 export async function loadClusterSetupBlock(
   ctx: PipelineContext,
   cluster: Cluster | null,

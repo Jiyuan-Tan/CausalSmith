@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { decideLitReviewOutcome } from "../../../src/discovery/stages/neg1_1.js";
+import { bindScoutTopic, decideLitReviewOutcome } from "../../../src/discovery/stages/neg1_1.js";
 
 describe("decideLitReviewOutcome", () => {
   it("completed with a healthy count", () => {
@@ -28,5 +28,17 @@ describe("decideLitReviewOutcome", () => {
   it("non-finite and negative counts are clamped like the original (floor, min 0)", () => {
     expect(decideLitReviewOutcome({ n_open_problems: 3.9 })).toEqual({ kind: "completed", nOpen: 3 });
     expect(decideLitReviewOutcome({ n_open_problems: -2 })).toEqual({ kind: "needs-pivot", nOpen: 0 });
+  });
+});
+
+describe("bindScoutTopic", () => {
+  it("replaces a truncated model echo with durable orchestrator provenance", () => {
+    expect(bindScoutTopic({ topic: "short", n_open_problems: 3 }, "full topic appendix"))
+      .toEqual({ topic: "full topic appendix", n_open_problems: 3 });
+  });
+
+  it("supplies a missing model echo from durable orchestrator provenance", () => {
+    expect(bindScoutTopic({ n_open_problems: 3 }, "full topic"))
+      .toEqual({ topic: "full topic", n_open_problems: 3 });
   });
 });

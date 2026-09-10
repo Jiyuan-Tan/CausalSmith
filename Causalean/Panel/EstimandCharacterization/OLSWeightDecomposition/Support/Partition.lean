@@ -29,9 +29,7 @@ namespace Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition
 open MeasureTheory Finset Causalean.Panel
 open scoped BigOperators
 
-/-- Measurable binary treatment data with a finite cell classifier and positive
-saturated-overlap denominator determine the finite Słoczyński partition of cell
-masses, treated shares, and within-cell treatment effects.
+/-- Given [a probability measure](hyp:μ), [a treatment variable](hyp:D), [the untreated and treated potential-outcome variables](hyp:Y0,Y1), and [a measurable finite cell classifier](hyp:G,G_meas), with [treatment equal to zero or one almost surely](hyp:D_binary) and [a strictly positive sum of cell masses times treated-share variances](hyp:overlap), [the finite Słoczyński partition](goal) consists of the cell masses, treated shares, and within-cell treatment effects.
 
 The resulting partition uses the classifier's cell masses, within-cell treated
 shares, and within-cell averages of the treated-minus-control potential-outcome
@@ -91,7 +89,7 @@ theorem partitionOf_tau_eq_eventCondExp {Ω 𝒢 : Type*} [MeasurableSpace Ω]
       = Causalean.PO.eventCondExp μ {ω | G ω = g} (fun ω => Y1 ω - Y0 ω) :=
   cellTau_eq_eventCondExp μ Y0 Y1 G G_meas g
 
-/-- Residualization witness for the treatment variable `D`.
+/-- Given [a probability measure](hyp:μ), [a treatment variable](hyp:D), and [a measurable finite cell classifier](hyp:G,G_meas), where [the treatment is measurable](hyp:D_meas) and [equals zero or one almost surely](hyp:D_binary), [the residualization witness for the treatment variable](goal) decomposes treatment into its saturated-cell propensity and an orthogonal residual.
 
 With `VH := propensity μ D G` and
 `Vtilde ω := D ω − propensity μ D G ω`, this packages the four
@@ -161,7 +159,7 @@ noncomputable def residWitnessD {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 
                 (fun g => residD_cell_orthogonal μ D G G_meas D_meas D_binary g)
       }
 
-/-- Residualization witness for the outcome variable `Y`.
+/-- Given [a probability measure](hyp:μ), [an outcome variable](hyp:Y), [a measurable finite cell classifier](hyp:G,G_meas), and [a finite second moment for the outcome](hyp:Y_memLp), [the residualization witness for the outcome variable](goal) decomposes the outcome into its saturated-cell mean regression and an orthogonal residual.
 
 With `VH := meanReg μ Y G`
 and `Vtilde ω := Y ω − meanReg μ Y G ω`, the witness obligations are as for

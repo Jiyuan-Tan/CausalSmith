@@ -77,7 +77,9 @@ These declarations live in namespace `Causalean.Stat` (alongside
 `IIDSample.sampleMean`) so dot-notation `S.sampleVariance` resolves through the
 structure's namespace. -/
 
-/-- The **sample variance** of `f` over the first `n` observations, normalised by
+/-- For [an independent and identically distributed sample](hyp:S), [a real-valued statistic](hyp:f), and [a natural-number sample size $n$](hyp:n), the [sample variance as a function of the sample outcome](goal) is the average, with divisor $n$, of the squared deviations of the first $n$ observed statistic values from their sample mean.
+
+The **sample variance** of `f` over the first `n` observations, normalised by
 `1/n`:
 `V̂ₙ(ω) = (1/n) ∑_{i<n} (f (Zᵢ ω) − X̄ₙ(ω))²`,
 where `X̄ₙ = S.sampleMean f n` is the sample mean.  (This is the biased estimator;
@@ -150,7 +152,9 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
 
 /-! ## Data-driven population-variance bound -/
 
-/-- The deterministic slack added to the observed sample variance to upper-bound
+/-- Given [real interval endpoints $a$ and $b$](hyp:a,b), [a natural-number sample size $n$](hyp:n), and [a real confidence level $\delta$](hyp:δ), the [empirical-variance slack](goal) is $\max\{|a|,|b|\}^2\sqrt{\log(4/\delta)/(2n)}+2\max\{|a|,|b|\}(b-a)\sqrt{\log(4/\delta)/(2n)}$.
+
+The deterministic slack added to the observed sample variance to upper-bound
 the population variance with probability `≥ 1 − δ`.  With `M := max |a| |b|` and
 `d := √(log(4/δ)/(2n))` the (level `δ/2`) Hoeffding deviation factor, it is
 `M²·d + 2 M (b − a)·d`.  The first term controls the second-moment deviation
@@ -355,7 +359,9 @@ theorem empirical_variance_concentration (S : IIDSample Ω X μ P) {f : X → �
 
 /-! ## Data-driven Bernstein confidence interval -/
 
-/-- The **data-driven Bernstein half-width**: the Bernstein half-width with the
+/-- Given [an independent and identically distributed sample](hyp:S), [a real-valued statistic](hyp:f), [real interval endpoints $a$ and $b$](hyp:a,b), [a real range-bound constant $c$](hyp:c), [a natural-number sample size $n$](hyp:n), and [a real confidence level $\delta$](hyp:δ), the [data-driven Bernstein confidence-interval half-width as a function of the sample outcome](goal) is the Bernstein half-width with standard-deviation input equal to the square root of the observed sample variance plus the empirical-variance slack.
+
+The **data-driven Bernstein half-width**: the Bernstein half-width with the
 oracle standard deviation `σ` replaced by the *observed* upper bound
 `√(V̂ₙ(ω) + τ)`, where `τ = empiricalVarianceSlack a b n δ`.  This is a function of
 `ω` (it depends on the sample through `V̂ₙ`). -/

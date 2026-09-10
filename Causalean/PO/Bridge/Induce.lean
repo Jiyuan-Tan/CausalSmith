@@ -25,10 +25,7 @@ namespace POSystem
 
 variable (P : POSystem) (R : Finset P.V)
 
-/-- For a potential-outcome system, a finite set of variables, and an
-intervention regime whose variables all lie in that finite set, this construction
-returns the corresponding intervention regime on the original system by viewing
-each restricted variable as a variable of the original system.
+/-- For [a potential-outcome system](hyp:P), [a finite collection of its variables](hyp:R), and [an intervention regime on that collection](hyp:r'), [the lifted intervention regime](goal) is the regime on the original variable collection that targets the same variables and assigns each its restricted-regime value.
 
 Lift a sub-regime on `R` to an ambient regime on `V`. -- def:po-restrict.
 
@@ -78,11 +75,7 @@ lemma liftRegime_assign
   · intro v hv _
     simp [liftRegime_target, Regime.empty] at hv
 
-/-- For a potential-outcome system and a finite set of variables, the restricted
-potential-outcome system has that finite set as its variable collection, keeps
-the same sample space and probability measure, and evaluates restricted
-intervention regimes by first lifting them back to intervention regimes of the
-original system.
+/-- For [a potential-outcome system](hyp:P) and [a finite collection of its variables](hyp:R), [the restricted potential-outcome system](goal) has precisely that collection as its variables, retains the original sample space and probability measure, and evaluates every restricted intervention by lifting it to the original system first.
 
 Restricted sub-PO system `P|_R` -- def:po-restrict. -/
 noncomputable def restrict : POSystem where

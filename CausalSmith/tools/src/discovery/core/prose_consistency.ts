@@ -62,8 +62,7 @@ const NEGATION =
 function wholeWordRe(term: string): RegExp {
   const esc = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   // `\\` in the left class: a term must not match the tail of a TeX command
-  // (`overline` inside `\overline{m}_h`) — the same guard
-  // `preflight.mentionsSymbol` already carries.
+  // (`overline` inside `\overline{m}_h`).
   const left = /^[A-Za-z0-9]/.test(term) ? "(?<![A-Za-z0-9\\\\])" : "";
   const right = /[A-Za-z0-9]$/.test(term) ? "(?![A-Za-z0-9])" : "";
   return new RegExp(`${left}${esc}${right}`, "i");

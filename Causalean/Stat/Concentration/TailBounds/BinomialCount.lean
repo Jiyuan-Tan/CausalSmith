@@ -41,7 +41,7 @@ open scoped BigOperators
 variable {Ω 𝒳 : Type*} [MeasurableSpace Ω] [MeasurableSpace 𝒳]
   {μ : Measure Ω} {P : Measure 𝒳}
 
-/-- The number of the first `m` observations on which `f` is one. -/
+/-- For [an independent and identically distributed sample with a specified sample-space law and population law](hyp:S), [a real-valued statistic on the observation space](hyp:f), and [a nonnegative integer $m$](hyp:m), [the Bernoulli count](goal) is the function that maps every sample-space outcome to the sum of the statistic over its first $m$ sampled observations. -/
 noncomputable def bernoulliCount
     (S : Causalean.Stat.IIDSample Ω 𝒳 μ P) (f : 𝒳 → ℝ) (m : ℕ) : Ω → ℝ :=
   fun ω ↦ ∑ i ∈ Finset.range m, f (S.Z i ω)

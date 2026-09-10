@@ -22,7 +22,9 @@ namespace POSystem
 
 variable (P : POSystem)
 
-/-- For a potential-outcome system, a finite list of queries, and a unit in the
+/-- For [a potential-outcome system](hyp:P) and [a finite ordered list of queries, each consisting of an intervention regime and a finite variable set](hyp:qs), the [cross-world evaluation map](goal) assigns to every unit the tuple whose $i$th component is the joint potential outcome for the $i$th query.
+
+For a potential-outcome system, a finite list of queries, and a unit in the
 sample space, this function returns the tuple whose $i$th component is the
 potential outcome, for the finite variable set in the $i$th query, under the
 intervention regime in the $i$th query.
@@ -56,7 +58,9 @@ lemma measurable_crossWorldEval
   intro i
   exact P.measurable_poVariable _ _
 
-/-- For a potential-outcome system and a finite list of counterfactual queries,
+/-- For [a potential-outcome system](hyp:P) and [a finite ordered list of counterfactual queries](hyp:qs), the [joint counterfactual distribution](goal) is the probability measure induced by applying the cross-world evaluation map to a random unit drawn from the system's probability measure.
+
+For a potential-outcome system and a finite list of counterfactual queries,
 the counterfactual distribution is the probability measure obtained by pushing
 the system's probability measure on the sample space through the cross-world
 evaluation map for those queries.
@@ -79,7 +83,12 @@ lemma counterfactualDist_eq (qs : List (Regime P.V P.X × Finset P.V)) :
     P.counterfactualDist qs = P.μ.map (P.crossWorldEval qs) :=
   rfl
 
-/-- The finite cross-world counterfactual distribution is a probability measure. -/
+/-- For [a potential-outcomes system](hyp:P) and [a finite ordered list of
+counterfactual queries, each consisting of an intervention regime and a finite
+variable set](hyp:qs), [the joint cross-world counterfactual distribution for
+that list](goal) is a probability measure.
+
+The finite cross-world counterfactual distribution is a probability measure. -/
 instance (qs : List (Regime P.V P.X × Finset P.V)) :
     IsProbabilityMeasure (P.counterfactualDist qs) := by
   simp only [causal_defs_simps]

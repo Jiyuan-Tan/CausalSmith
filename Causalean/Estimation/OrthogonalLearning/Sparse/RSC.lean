@@ -40,7 +40,15 @@ open scoped BigOperators RealInnerProductSpace
 
 variable {p : ℕ}
 
-/-- σₙ-restricted strong convexity of `empRiskFn` at `θ₀` over `S₀`.
+/-- For a [finite coordinate dimension](hyp:p), an [empirical-risk function](hyp:empRiskFn),
+a [specified gradient-like vector-valued function](hyp:gradEmp), a [reference coefficient vector](hyp:θ₀), a [support
+set](hyp:S₀), and a [real curvature constant](hyp:σn), [restricted strong convexity](goal)
+means that, for every vector in the restricted cone of the support, the empirical-risk increase
+minus the inner product of that perturbation with the specified vector-valued function at the
+reference vector is at least one half the curvature constant times the perturbation's squared
+Euclidean norm.
+
+σₙ-restricted strong convexity of `empRiskFn` at `θ₀` over `S₀`.
 
 For every `ν ∈ RestrictedCone S₀`,
 `empRiskFn (θ₀ + ν) - empRiskFn θ₀ - ⟪∇emp θ₀, ν⟫ ≥ (σn/2) * ‖ν‖²`. -/

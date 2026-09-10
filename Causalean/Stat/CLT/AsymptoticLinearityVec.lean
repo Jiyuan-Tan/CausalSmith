@@ -96,7 +96,9 @@ namespace IsAsymLinearVec
 variable {θn : ℕ → Ω → E} {θ₀ : E} {ψ : X → E} {S : IIDSample Ω X μ P}
   {I : ℕ → Finset ℕ}
 
-/-- Vector normalised partial sum `(1/√|I n|) Σ_{i ∈ I n} ψ(Z_i)`. -/
+/-- For [a measurable sample space carrying a measure](hyp:Ω,μ), [a measurable observation space carrying a population measure](hyp:X,P), [a normed real vector space](hyp:E), [an independent and identically distributed sample from that population](hyp:S), [a vector-valued influence function](hyp:ψ), [a finite index set selected for every nonnegative integer](hyp:I), and [a nonnegative integer index](hyp:n), the [vector normalized partial sum](goal) maps each sample-space outcome to $|I_n|^{-1/2}\sum_{i\in I_n}\psi(Z_i)$ in that vector space.
+
+The scalar reciprocal square root acts by scalar multiplication on the vector sum. -/
 noncomputable def normalizedSum (S : IIDSample Ω X μ P) (ψ : X → E)
     (I : ℕ → Finset ℕ) (n : ℕ) : Ω → E :=
   fun ω => (Real.sqrt ((I n).card : ℝ))⁻¹ • ∑ i ∈ I n, ψ (S.Z i ω)
@@ -111,7 +113,9 @@ lemma normalizedSum_def (S : IIDSample Ω X μ P) (ψ : X → E)
       fun ω => (Real.sqrt ((I n).card : ℝ))⁻¹ • ∑ i ∈ I n, ψ (S.Z i ω) :=
   rfl
 
-/-- Vector rescaled estimator `√|I n| · (θn n − θ₀)`. -/
+/-- For [a sample space](hyp:Ω), [a normed real vector space](hyp:E), [a sequence of vector-valued estimators on that space](hyp:θn), [a target vector](hyp:θ₀), [a finite index set selected for every nonnegative integer](hyp:I), and [a nonnegative integer index](hyp:n), the [rescaled estimator](goal) maps each sample-space outcome to $\sqrt{|I_n|}\,[\widehat\theta_n-\theta_0]$ in that vector space.
+
+The scale is the square root of the selected block's cardinality. -/
 noncomputable def rescaledEstimator (θn : ℕ → Ω → E) (θ₀ : E)
     (I : ℕ → Finset ℕ) (n : ℕ) : Ω → E :=
   fun ω => Real.sqrt ((I n).card : ℝ) • (θn n ω - θ₀)

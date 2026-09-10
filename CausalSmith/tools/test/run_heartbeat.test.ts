@@ -39,6 +39,30 @@ describe("run heartbeat", () => {
     await Promise.all([first, second]);
   });
 
+  it("keeps same-qid ownership while the parallel flag permits different qids", async () => {
+    const previous = process.env.CAUSALSMITH_ALLOW_PARALLEL;
+    process.env.CAUSALSMITH_ALLOW_PARALLEL = "1";
+    const logsA = await mkdtemp(join(tmpdir(), "causalsmith-heartbeat-flag-a-"));
+    const logsB = await mkdtemp(join(tmpdir(), "causalsmith-heartbeat-flag-b-"));
+    dirs.push(logsA, logsB);
+
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => { release = resolve; });
+    try {
+      const first = withRunHeartbeatAt(logsA, "qid-a", "spec", async () => { await held; });
+      const second = withRunHeartbeatAt(logsB, "qid-b", "spec", async () => undefined);
+      await second;
+      await expect(
+        withRunHeartbeatAt(logsA, "qid-a", "spec", async () => undefined),
+      ).rejects.toMatchObject({ code: "causalsmith_qid_busy" });
+      release();
+      await first;
+    } finally {
+      if (previous === undefined) delete process.env.CAUSALSMITH_ALLOW_PARALLEL;
+      else process.env.CAUSALSMITH_ALLOW_PARALLEL = previous;
+    }
+  });
+
   it("refuses a concurrent owner of the same presentation bundle", async () => {
     const logs = await mkdtemp(join(tmpdir(), "causalsmith-heartbeat-"));
     dirs.push(logs);

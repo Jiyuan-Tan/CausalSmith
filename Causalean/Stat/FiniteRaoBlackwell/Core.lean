@@ -46,27 +46,25 @@ namespace FiniteUniformExperiment
 
 variable (E : FiniteUniformExperiment Latent Allocation Observation Statistic)
 
-/-- The canonical fallback allocation is an arbitrary member of the nonempty admissible set. -/
+/-- For [a finite uniform-allocation experiment](hyp:E), the [fallback allocation](goal) is a chosen member of its nonempty set of admissible allocations. -/
 noncomputable def fallbackAllocation : Allocation :=
   E.allocations_nonempty.choose
 
-/-- The canonical fallback full-data point is formed from the fallback allocation and observation. -/
+/-- For [a finite uniform-allocation experiment](hyp:E), the [fallback full-data point](goal) pairs its fallback allocation with its fallback observation. -/
 noncomputable def fallbackSample : Allocation × Observation :=
   (E.fallbackAllocation, E.fallbackObservation)
 
-/-- The statistic of a full-data point is obtained by applying the experiment's statistic map. -/
+/-- For [a finite uniform-allocation experiment](hyp:E) and [a full-data point](hyp:z), the [sample statistic](goal) is the statistic computed from that point's allocation and observation. -/
 def sampleStatistic (z : Allocation × Observation) : Statistic :=
   E.statistic z.1 z.2
 
-/-- The uniform allocation mass is the reciprocal support size on admissible allocations and zero
-off the support. -/
+/-- For [a finite uniform-allocation experiment](hyp:E) and [an allocation](hyp:a), the [uniform allocation mass](goal) is the reciprocal of the number of admissible allocations when that allocation is admissible, and zero otherwise. -/
 noncomputable def uniformAllocationMass (a : Allocation) : ℝ :=
   by
     classical
     exact if a ∈ E.allocations then (E.allocations.card : ℝ)⁻¹ else 0
 
-/-- The full-data joint mass at a fixed latent state is uniform allocation mass times conditional
-observation mass. -/
+/-- For [a finite uniform-allocation experiment](hyp:E), [a latent state](hyp:θ), and [a full-data point](hyp:z), the [joint mass](goal) is the uniform allocation mass of its allocation multiplied by the conditional observation mass of its observation at that state and allocation. -/
 noncomputable def jointMass (θ : Latent) (z : Allocation × Observation) : ℝ :=
   E.uniformAllocationMass z.1 * E.observationMass θ z.1 z.2
 
@@ -95,7 +93,7 @@ theorem jointMass_sum (θ : Latent) :
   simp_rw [jointMass, ← Finset.mul_sum, E.observationMass_sum, mul_one]
   simp [uniformAllocationMass, E.allocations_nonempty.card_ne_zero]
 
-/-- The statistic mass is the joint mass summed over the corresponding statistic fiber. -/
+/-- For [a finite uniform-allocation experiment](hyp:E), [a latent state](hyp:θ), and [a statistic value](hyp:s), the [statistic mass](goal) is the sum of joint masses of all full-data points whose statistic equals that value. -/
 noncomputable def statisticMass (θ : Latent) (s : Statistic) : ℝ :=
   by
     classical
@@ -121,8 +119,7 @@ theorem statisticMass_sum (θ : Latent) :
   rw [Finset.sum_comm]
   simp
 
-/-- The guarded conditional weight uses Bayes' ratio on a positive statistic fiber and the
-fallback point mass on a zero-mass fiber. -/
+/-- For [a finite uniform-allocation experiment](hyp:E), [a latent state](hyp:θ), [a statistic value](hyp:s), and [a full-data point](hyp:z), the [guarded conditional weight](goal) is the joint mass divided by the statistic mass when that mass is positive and the point has the requested statistic, is zero for other points, and is instead a point mass at the fallback sample when the statistic mass is zero. -/
 noncomputable def conditionalWeight (θ : Latent) (s : Statistic)
     (z : Allocation × Observation) : ℝ :=
   by
@@ -187,15 +184,14 @@ theorem conditionalWeight_sum (θ : Latent) (s : Statistic) :
       le_antisymm (le_of_not_gt h) (E.statisticMass_nonneg θ s)
     simp [E.conditionalWeight_of_eq_zero hs]
 
-/-- The guarded conditional weights define a finite probability design on full data for every
-latent state and statistic value. -/
+/-- For [a finite uniform-allocation experiment](hyp:E), [a latent state](hyp:θ), and [a statistic value](hyp:s), the [guarded conditional full-data design](goal) is the finite probability design whose probabilities are the guarded conditional weights. -/
 noncomputable def conditionalDesign (θ : Latent) (s : Statistic) :
     FiniteDesign (Allocation × Observation) where
   p := E.conditionalWeight θ s
   p_nonneg := E.conditionalWeight_nonneg θ s
   p_sum := E.conditionalWeight_sum θ s
 
-/-- The statistic masses define a finite probability design at every latent state. -/
+/-- For [a finite uniform-allocation experiment](hyp:E) and [a latent state](hyp:θ), the [statistic design](goal) is the finite probability design whose probabilities are the statistic masses. -/
 noncomputable def statisticDesign (θ : Latent) : FiniteDesign Statistic where
   p := E.statisticMass θ
   p_nonneg := E.statisticMass_nonneg θ

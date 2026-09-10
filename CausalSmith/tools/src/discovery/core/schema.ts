@@ -126,7 +126,7 @@ export const DefinitionSchema = z
     // doc/research/{active,_bank} carry the key, every legacy definition would parse as
     // a credible "uses no symbols" and a symbol re-definition would invalidate nothing —
     // silently unsound. Follows the `external_refs` precedent below for the same reason.
-    // Consumed by `d0_working.declaredSymbolScope` to SCOPE symbol invalidation.
+    // Consumed by `vcs/validity.contentClosure` to SCOPE symbol invalidation.
     free_symbols: z.array(z.string()).optional(),
     // Present ⟺ this definition is a CLASS, carved by these member-property ids.
     // This is the A6 firewall anchor: a class is carved ONLY by member-properties;
@@ -150,6 +150,12 @@ export const DefinitionSchema = z
 export const CitedSourceSchema = z.object({
   cite: z.string(), // bibkey into `bibliography`
   locator: z.string(), // e.g. "Theorem 3.1", "Lemma 4.2", "§5.2"
+  // Frozen semantic carrier classification. Logical/mathematical claims are the default
+  // and become threaded Prop assumptions in F1. Only genuinely bibliographic
+  // scope/provenance/delivery records may select the non-logical metadata carrier.
+  // Keeping this in the typed core (not mutable plan prose) prevents F1/F4 from
+  // self-attesting a quantitative claim into the metadata exemption.
+  carrier: z.enum(["logical-claim", "bibliographic-metadata"]).optional(), // absent legacy value = logical-claim
   // Exact source-of-record when the source can be transcribed lawfully. This is
   // preferred over agent recollection and is copied unchanged into F1's cite:
   // entry. Legacy cores may still carry the transcription in `proof_tex`; D0.5
@@ -198,7 +204,7 @@ export const StatementSchema = z
     // the key, so a `.default([])` would make every legacy statement look like a
     // credible "uses no symbols" and scope the invalidation to nothing — strictly worse
     // than the global invalidation it replaces. Same reasoning as `external_refs` below.
-    // Consumed by `d0_working.declaredSymbolScope`.
+    // Consumed by `vcs/validity.contentClosure`.
     free_symbols: z.array(z.string()).optional(),
     depends_on: z.array(z.string()).default([]),
     route: z.string().optional(), // proof strategy — D0-CORE fills (statement + strategy)
@@ -213,7 +219,8 @@ export const StatementSchema = z
     // proof_tex) is laundering. A `cited` statement MUST carry `source` and is a
     // LEAF: it may reference `def:`/`ass:` for notation but must not `depends_on`
     // other `lem:`/`thm:`/`prop:` (cite the theorem, never reconstruct its proof —
-    // G-cited). F1 initially maps `cited` → `gate_class:"cited"`. A later supported
+    // G-cited). `source.carrier` fixes whether F1 maps it to a logical Prop assumption
+    // or a closed bibliographic metadata def; the plan may not reclassify it. A later supported
     // discharge keeps this discovery provenance while mapping the node to an exact
     // proved lemma/theorem and removing it from consumer hypotheses. A delivered
     // headline or headline-support result may not remain conditional on cited debt;
@@ -239,6 +246,15 @@ export const StatementSchema = z
     justification: z.string().optional(), // one-line: why this claim / why it matters
     gap: z.string().optional(), // closest prior art (bibkeys) + why this differs
     consumer: z.string().optional(), // one concrete downstream consumer
+    // The isolated open step of a target the solver could not close (see the D0 solve
+    // prompt's `open_obligations`). Node state, not a side file: it is shown back to
+    // the next solver as prior progress and cleared by the next version of the node.
+    obligation: z.object({
+      what_is_open: z.string(),
+      obstruction: z.string(),
+      attempted: z.string(),
+      partial_result: z.string().optional(),
+    }).optional(),
   })
   .refine((s) => (s.status === "cited") === (s.source !== undefined), {
     message: "a `cited` statement must carry `source` (bibkey + locator), and only a cited statement may (G-cited)",
@@ -329,9 +345,8 @@ export const CoreSchema = z.object({
   qid: z.string(),
   specialization: z.string().optional(),
   cluster: z.enum(["panel", "exactid", "partialid", "stat", "experimentation", "scm"]).optional(),
-  // Symbol dependency ordering and semantic-basis traversal both key declarations by
-  // name. A duplicate cannot have a well-defined position or meaning and can hide a
-  // dependency cycle when the topological canonicalizer defers invalid input here.
+  // The G1 order rule (`vcs/render.ts`) and semantic-basis traversal both key
+  // declarations by name; a duplicate has no well-defined position or meaning.
   symbols: z.array(SymbolSchema).refine(
     (symbols) => new Set(symbols.map((s) => s.name)).size === symbols.length,
     (symbols) => {

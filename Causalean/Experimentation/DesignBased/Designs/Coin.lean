@@ -20,8 +20,9 @@ namespace Causalean
 namespace Experimentation
 namespace DesignBased
 
-/-- The single-unit **coin design** on `Bool`: treatment (`true`) with probability `p`, control
-(`false`) with probability `1 − p`. -/
+/-- For [a probability](hyp:p) [between zero and one](hyp:hp0,hp1), the [single-unit coin
+randomization design](goal) assigns treatment with probability $p$ and control with probability
+$1-p$. -/
 def coinDesign (p : ℝ) (hp0 : 0 ≤ p) (hp1 : p ≤ 1) : FiniteDesign Bool where
   p := fun b => cond b p (1 - p)
   p_nonneg := by

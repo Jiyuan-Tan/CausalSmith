@@ -37,7 +37,16 @@ variable {Ω : N → Type uΩ} [∀ n, MeasurableSpace (Ω n)]
 --      on ObservedValues
 -- ============================================================
 
-/-- **Observational conditional independence.**
+/-- For [a finite collection of distinguishable node labels with measurable
+value spaces](hyp:N), [a structural causal model](hyp:M), [three sets of observed nodes,
+respectively the first, second, and conditioning sets](hyp:X), [each
+of which is contained in the model's observed-node set](hyp:hX,hY,hZ),
+and [a finite measure on the standard-Borel observed-value space](hyp:μ), the
+[observational conditional-independence relation](goal) asserts that the value
+vectors on the first and second node sets are conditionally independent given
+the value vector on the conditioning set under that measure.
+
+**Observational conditional independence.**
 
     `ObsCondIndep M X Y Z hX hY hZ μ` says that the `X`-projection and
     `Y`-projection of `M.ObservedValues` are conditionally independent given

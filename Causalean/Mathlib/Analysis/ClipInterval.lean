@@ -28,7 +28,9 @@ namespace Causalean.Mathlib.Analysis
 
 variable {a b t x B : ℝ}
 
-/-- **Clip to an interval.** `clipIcc a b x` is `x` pushed into the closed interval from `a` to
+/-- For [two real endpoints](hyp:a,b) and [a real input](hyp:x), the [clipped value](goal) is the larger of the first endpoint and the smaller of the second endpoint and the input. When the first endpoint does not exceed the second, it is the input pushed into their closed interval.
+
+**Clip to an interval.** `clipIcc a b x` is `x` pushed into the closed interval from `a` to
 `b`: it returns `a` when `x` falls below `a`, `b` when `x` exceeds `b`, and `x` itself otherwise.
 It is the plain real-valued form of the projection onto the interval. -/
 noncomputable def clipIcc (a b x : ℝ) : ℝ := max a (min b x)

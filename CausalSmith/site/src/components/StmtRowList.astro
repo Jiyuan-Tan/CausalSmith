@@ -1,22 +1,36 @@
 ---
-// Renders one list of rows (a theorem's hypotheses, a structure's parameter
-// telescope, or a structure's fields) — factored out of LeanStatement.astro
-// so it can render both the "parameters" and "fields" sections of a
-// structure/class identically.
+// Renders one list of rows (a theorem's hypotheses, a definition's or
+// structure's parameter telescope, a structure's fields, an assumption
+// bundle's clauses) — factored out so every section of every declaration
+// kind renders binders identically.
 import { isBinderRow, type StatementItem } from "../lib/leanStatement.js";
+import { renderNl } from "../lib/docmd.js";
 import StmtBodyView from "./StmtBodyView.astro";
 
 interface Props {
   items: StatementItem[];
+  /** Rows are numbered clauses too (an inductive's constructors): each carries
+   *  `⊢N` alongside its name, so `[phrase](step:N)` can address it. */
+  numbered?: boolean;
 }
-const { items } = Astro.props as Props;
+const { items, numbered = false } = Astro.props as Props;
+let n = 0;
+const binderOf = (row: { dataNames?: string; names: string }) => {
+  const base = row.dataNames ?? row.names;
+  if (!numbered) return base || undefined;
+  n += 1;
+  return `${base} ⊢${n}`.trim();
+};
 ---
 
 <div class="stmt-rows">
   {
     items.map((row) =>
       isBinderRow(row) ? (
-        <div class={`stmt-row ${row.chip}`} data-binder={(row.dataNames ?? row.names) || undefined}>
+        <div
+          class:list={["stmt-row", row.chip, row.origin && `origin-${row.origin}`]}
+          data-binder={binderOf(row)}
+        >
           {row.names ? (
             <>
               <div class="stmt-row-label">
@@ -30,6 +44,10 @@ const { items } = Astro.props as Props;
               <StmtBodyView body={row.body} />
             </div>
           )}
+          {row.origin === "section" && (
+            <span class="stmt-row-tag" title="a `variable` declared once for the whole section and shared by every declaration in it that uses it">shared</span>
+          )}
+          {row.doc && <div class="stmt-row-doc" set:html={renderNl(row.doc)} />}
         </div>
       ) : (
         <div class="stmt-comment">{row.text}</div>

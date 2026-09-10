@@ -36,17 +36,17 @@ namespace DAG
 variable {V : Type*} [DecidableEq V] [Fintype V]
 variable (G : DAG V)
 
-/-- A directed edge `a → b` is **covered** when `a` and `b` share all parents apart from the
-edge `a → b` itself: every vertex `c ≠ a` is a parent of `a` iff it is a parent of `b`. Then
-`pa(a) = pa(b) \ {a}`. Covered edges are exactly the reversible (unprotected) ones. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [two vertices](hyp:a,b), [the covered-edge condition](goal) holds exactly when there is a directed edge from the first vertex to the second and, for every other vertex, that vertex has an edge into the first if and only if it has an edge into the second.
+
+Then the parent set of the first vertex equals the parent set of the second after removal of the first vertex. Covered edges are exactly the reversible (unprotected) ones. -/
 def IsCoveredEdge (a b : V) : Prop :=
   G.edge a b ∧ ∀ c, c ≠ a → (G.edge c a ↔ G.edge c b)
 
-/-- The edge relation of `G` with the single edge `a → b` deleted. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [two vertices](hyp:a,b), [the edge relation with one deletion](goal) holds for two queried vertices exactly when the original graph has an edge from the first queried vertex to the second and the queried edge is not the edge from the first specified vertex to the second. -/
 def flipMinus (a b : V) : V → V → Prop :=
   fun u w => G.edge u w ∧ ¬ (u = a ∧ w = b)
 
-/-- The edge relation of `G` with the single edge `a → b` reversed to `b → a`. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [two vertices](hyp:a,b), [the edge relation with one reversal](goal) holds for two queried vertices exactly when the original graph has the queried edge other than the edge from the first specified vertex to the second, or the queried edge is the reversed edge from the second specified vertex to the first. -/
 def flipRel (a b : V) : V → V → Prop :=
   fun u w => G.flipMinus a b u w ∨ (u = b ∧ w = a)
 
@@ -121,7 +121,7 @@ theorem flipRel_acyclic {a b : V} (hcov : G.IsCoveredEdge a b) :
     · exact hcov.ne heq.symm
     · exact hnodetour htr
 
-/-- The directed acyclic graph obtained from `G` by reversing the covered edge `a → b`. -/
+/-- For [a finite vertex population](hyp:V), [a directed acyclic graph](hyp:G), [two vertices](hyp:a,b), and [evidence that their directed edge is covered](hyp:hcov), [the covered-edge reversal graph](goal) is the directed acyclic graph obtained by replacing the edge from the first vertex to the second with the edge from the second to the first. -/
 noncomputable def flipEdge {a b : V} (hcov : G.IsCoveredEdge a b) : DAG V :=
   DAG.ofAcyclic (G.flipRel a b) (flipRel_acyclic hcov)
 

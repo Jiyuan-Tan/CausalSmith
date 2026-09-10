@@ -48,28 +48,34 @@ variable {V : Type*} [DecidableEq V] [Fintype V]
 
 namespace DAG
 
-/-- Direction from which a node is visited in the Bayes Ball algorithm: arrival from a
-parent (`fromParent`) or arrival from a child (`fromChild`). -/
+/-- The [Bayes Ball arrival-direction type](goal) has exactly two cases: [arrival at a vertex from one of its parents](hyp:fromParent) and [arrival at a vertex from one of its children](hyp:fromChild). -/
 inductive BBDir
   | fromParent
   | fromChild
   deriving DecidableEq, Repr
 
-/-- The two Bayes Ball arrival directions form a finite type. -/
+/-- The [finite enumeration of Bayes Ball arrival directions](goal) [lists the two arrival directions](step:1) and [certifies that every arrival direction is listed](step:2). -/
 instance : Fintype BBDir where
   elems := {BBDir.fromParent, BBDir.fromChild}
   complete := fun b => by cases b <;> decide
 
-/-- A Bayes Ball state: a vertex paired with arrival direction. -/
+/-- For [a vertex population](hyp:V), [a Bayes Ball state](goal) is a vertex together with an indication of whether the ball arrived from a parent or from a child. -/
 abbrev BBState (V : Type*) := V × BBDir
 
 variable (G : DAG V)
 
-/-- The set of vertices in `Z` together with all ancestors of `Z`.
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [a conditioning set](hyp:Z), [the activated-collider set](goal) consists of every conditioned vertex and every ancestor of a conditioned vertex.
+
+    The set of vertices in `Z` together with all ancestors of `Z`.
     A collider is "activated" iff it or a descendant is in `Z`. -/
 def bbZAncestors (Z : Finset V) : Finset V := G.ancestralSet Z
 
-/-- One step of the Bayes Ball algorithm from state `(w, dir)`.
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G), [a conditioning set](hyp:Z), and [a current Bayes Ball state](hyp:s), [writing the state as its vertex and arrival direction](step:1),
+    the [one-step successor set](goal) sends an arrival from a child at an unconditioned vertex to
+    its parents and children, and sends such an arrival at a conditioned vertex nowhere; it sends
+    an arrival from a parent at an unconditioned vertex to its children and, when that vertex is an
+    ancestor of a conditioned vertex, also to its parents, while an arrival from a parent at a
+    conditioned vertex goes to its parents.
 
     Rules (encoding collider/non-collider blocking):
     - fromChild, w ∉ Z: go to parents (fromChild) and children (fromParent)
@@ -235,7 +241,9 @@ private theorem bbReachAux_mono_combined (Z : Finset V)
         rw [← bbReachAux_sdiff_eq G Z n h_sdiff]
         exact step1
 
-/-- Initial BFS frontier from a source set `X`: for each `x ∈ X`, include all
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [a source set](hyp:X), [the initial Bayes Ball frontier](goal) contains, for every source vertex, each child paired with arrival from a parent and each parent paired with arrival from a child.
+
+    Initial BFS frontier from a source set `X`: for each `x ∈ X`, include all
     children of `x` in direction `fromParent` and all parents of `x` in direction
     `fromChild`. These are the states a "ball" passing through `x` can occupy. -/
 def bbInit (X : Finset V) : Finset (BBState V) :=
@@ -245,8 +253,9 @@ def bbInit (X : Finset V) : Finset (BBState V) :=
     (G.parents x).map
       ⟨(·, BBDir.fromChild), fun _ _ h => by simpa using h⟩)
 
-/-- The set of Bayes Ball states reachable from source vertices `X`
-    given conditioning set `Z`. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G), [a conditioning set](hyp:Z), and [a source set](hyp:X), [the Bayes Ball reachable-state set](goal) is the set returned by
+    repeatedly applying the one-step transition to the initial frontier, with a limit of twice the
+    number of graph vertices plus one rounds. -/
 def bbReachable (Z X : Finset V) : Finset (BBState V) :=
   bbReachAux G Z (G.bbInit X) (G.bbInit X) (2 * Fintype.card V + 1)
 
@@ -324,7 +333,8 @@ private theorem bbReachAux_closed_of_invariant (Z : Finset V)
         omega
       exact ih newStates (visited ∪ newStates) hnewF hInv' hfuel'
 
-/-- Vertices reachable from `X` via Bayes Ball (ignoring direction). -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G), [a conditioning set](hyp:Z), and [a source set](hyp:X), [the Bayes Ball reachable-vertex set](goal) is the set of vertices
+    appearing in the reachable states, with their arrival directions discarded. -/
 def bbReachableVertices (Z X : Finset V) : Finset V :=
   (G.bbReachable Z X).image Prod.fst
 

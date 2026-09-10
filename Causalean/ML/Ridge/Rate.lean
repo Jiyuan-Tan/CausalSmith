@@ -39,30 +39,58 @@ open MeasureTheory Matrix BigOperators Causalean.Stat
 variable {Ω γ K : Type*} [MeasurableSpace Ω] [MeasurableSpace γ]
   [Fintype K] [DecidableEq K] {μ : Measure Ω}
 
-/-- Empirical feature Gram over the first `n` sample points:
-`Ĝₙ = n⁻¹ Σ_{i<n} φ(xᵢ) φ(xᵢ)ᵀ`. -/
+/-- Given [an arbitrary sample space](hyp:Ω), [an arbitrary covariate space](hyp:γ), [a finite
+set of feature coordinates](hyp:K), [a feature map from covariates into those coordinates](hyp:φ),
+[a sequence of data samples indexed by sample-space outcomes](hyp:Z), [a nonnegative sample
+size](hyp:n), and [a sample-space outcome selecting one realized sequence](hyp:ω), the [empirical
+feature Gram matrix](goal) is $n^{-1}\sum_{i<n}\phi(x_i)\phi(x_i)^\mathsf{T}$, where
+$(x_i,y_i)$ is the $i$th realized observation. -/
 noncomputable def empiricalGram (φ : FeatureMap γ K) (Z : ℕ → Ω → γ × ℝ)
     (n : ℕ) (ω : Ω) : Matrix K K ℝ :=
   (n : ℝ)⁻¹ • ∑ i ∈ Finset.range n,
     Matrix.vecMulVec (φ.φ (Z i ω).1) (φ.φ (Z i ω).1)
 
-/-- Empirical feature–response cross moment: `Ĉₙ = n⁻¹ Σ_{i<n} yᵢ φ(xᵢ)`. -/
+/-- Given [an arbitrary sample space](hyp:Ω), [an arbitrary covariate space](hyp:γ), [a finite
+set of feature coordinates](hyp:K), [a feature map from covariates into those coordinates](hyp:φ),
+[a sequence of data samples indexed by sample-space outcomes](hyp:Z), [a nonnegative sample
+size](hyp:n), and [a sample-space outcome selecting one realized sequence](hyp:ω), the [empirical
+feature--response cross moment](goal) is $n^{-1}\sum_{i<n}y_i\phi(x_i)$, where
+$(x_i,y_i)$ is the $i$th realized observation. -/
 noncomputable def empiricalCross (φ : FeatureMap γ K) (Z : ℕ → Ω → γ × ℝ)
     (n : ℕ) (ω : Ω) : K → ℝ :=
   (n : ℝ)⁻¹ • ∑ i ∈ Finset.range n, (Z i ω).2 • φ.φ (Z i ω).1
 
-/-- The sample ridge coefficient `β̂ₙ = (Ĝₙ + λI)⁻¹ Ĉₙ`. -/
+/-- Given [an arbitrary sample space](hyp:Ω), [an arbitrary covariate space](hyp:γ), [a finite
+set of feature coordinates whose labels can be compared for equality](hyp:K), [a feature map from
+covariates into those coordinates](hyp:φ),
+[a sequence of data samples indexed by sample-space outcomes](hyp:Z), [a real ridge-penalty
+level](hyp:lam), [a nonnegative sample size](hyp:n), and [a sample-space outcome selecting one
+realized sequence](hyp:ω), the [sample ridge coefficient vector](goal) is
+$(\widehat G_n+\lambda I)^{-1}\widehat C_n$. No nonsingularity condition is imposed on the
+regularized Gram matrix; its inverse is the total matrix-inverse operation used here. -/
 noncomputable def sampleRidgeCoef (φ : FeatureMap γ K) (Z : ℕ → Ω → γ × ℝ)
     (lam : ℝ) (n : ℕ) (ω : Ω) : K → ℝ :=
   (empiricalGram φ Z n ω + lam • (1 : Matrix K K ℝ))⁻¹ *ᵥ empiricalCross φ Z n ω
 
-/-- The sample ridge predictor `x ↦ ⟨β̂ₙ, φ(x)⟩`. -/
+/-- Given [an arbitrary sample space](hyp:Ω), [an arbitrary covariate space](hyp:γ), [a finite
+set of feature coordinates whose labels can be compared for equality](hyp:K), [a feature map from
+covariates into those coordinates](hyp:φ),
+[a sequence of data samples indexed by sample-space outcomes](hyp:Z), [a real ridge-penalty
+level](hyp:lam), [a nonnegative sample size](hyp:n), and [a sample-space outcome selecting one
+realized sequence](hyp:ω), the [sample ridge predictor](goal) maps each covariate value $x$ to
+$\sum_k\widehat\beta_{n,k}\phi_k(x)$, where $\widehat\beta_n$ is the corresponding sample ridge
+coefficient vector. -/
 noncomputable def sampleRidgePredictor (φ : FeatureMap γ K) (Z : ℕ → Ω → γ × ℝ)
     (lam : ℝ) (n : ℕ) (ω : Ω) : γ → ℝ :=
   fun x => ∑ k, sampleRidgeCoef φ Z lam n ω k * φ.φ x k
 
-/-- The population feature Gram, defined entrywise (avoids matrix-valued Bochner
-integration): `Gₖₗ = ∫ φ(x)ₖ φ(x)ₗ dP`. -/
+/-- Given [an arbitrary covariate space](hyp:γ), [a finite set of feature coordinates](hyp:K),
+[a feature map from covariates into those coordinates](hyp:φ), and [a probability or other measure
+on covariate--response pairs](hyp:P), the [population feature Gram matrix](goal) has $(k,l)$ entry
+$\int \phi_k(x)\phi_l(x)\,dP(x,y)$. The definition is entrywise, so it does not require a
+matrix-valued integral.
+
+The population feature Gram is defined entrywise to avoid matrix-valued Bochner integration. -/
 noncomputable def populationGram (φ : FeatureMap γ K) (P : Measure (γ × ℝ)) :
     Matrix K K ℝ :=
   Matrix.of fun k l => ∫ z, φ.φ z.1 k * φ.φ z.1 l ∂P

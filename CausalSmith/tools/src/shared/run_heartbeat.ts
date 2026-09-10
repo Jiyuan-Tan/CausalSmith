@@ -12,9 +12,9 @@
  * heartbeat file is owner metadata for operators. This makes stale recovery
  * and simultaneous contenders single-writer safe.
  *
- * Bypass: `CAUSALSMITH_ALLOW_PARALLEL=1` skips the check entirely (preserves the
- * existing escape hatch used by tests and by operators who know what they're
- * doing).
+ * `CAUSALSMITH_ALLOW_PARALLEL=1` does not bypass this per-qid lock. Distinct
+ * qids already have distinct lock paths and therefore run concurrently; a
+ * same-qid bypass would permit two writers to corrupt the shared run state.
  *
  * Legacy migration: a live PID recorded by the former heartbeat-only scheme is
  * still honored even when no sibling lock directory exists.
@@ -87,9 +87,6 @@ export async function withRunHeartbeatAt<T>(
   specialization: string,
   action: () => Promise<T>,
 ): Promise<T> {
-  if (process.env.CAUSALSMITH_ALLOW_PARALLEL === "1") {
-    return action();
-  }
   // The heartbeat is colocated with the durable per-run logs, so a stale lock
   // is visible to the operator alongside the agent-call transcript.
   mkdirSync(logDirectory, { recursive: true });
@@ -112,8 +109,7 @@ export async function withRunHeartbeatAt<T>(
           `(spec ${existing.specialization || "?"}, PID ${existing.pid}, ` +
           `heartbeat age ${ageS}s at ${hbPath}). ` +
           `Wait for it to finish, kill PID ${existing.pid} and remove the ` +
-          `heartbeat if you are certain it is stale, or set ` +
-          `CAUSALSMITH_ALLOW_PARALLEL=1 to bypass.`,
+          `heartbeat if you are certain it is stale.`,
       ),
       { code: "causalsmith_qid_busy" },
     );

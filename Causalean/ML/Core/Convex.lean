@@ -118,8 +118,9 @@ end FirstOrder
 section Subgradient
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
-/-- `g` is a subgradient of `f` at `x` relative to `s`: the affine support
-inequality `f x + ⟪g, y − x⟫ ≤ f y` holds for all `y ∈ s` (and `x ∈ s`). -/
+/-- In [a real inner-product space](hyp:E), for [a real-valued function](hyp:f), [a subset of the space](hyp:s), [a vector](hyp:g), and [a point](hyp:x), the [statement that the vector is a subgradient of the function at the point relative to the subset](goal) requires [the point to belong to the subset](step:1) and [for every point $y$ in that subset, $f(x)+\langle g,y-x\rangle\le f(y)$](step:2).
+
+This is the affine supporting-hyperplane inequality restricted to the specified set. -/
 def SubgradientAt (f : E → ℝ) (s : Set E) (g x : E) : Prop :=
   x ∈ s ∧ ∀ y ∈ s, f x + inner ℝ g (y - x) ≤ f y
 

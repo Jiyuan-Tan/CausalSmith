@@ -38,11 +38,9 @@ open scoped BigOperators
 
 variable {α : Type*} [Fintype α]
 
-/-- Shannon entropy (in nats) of a real-valued mass function `p : α → ℝ` on a finite
-alphabet `α`, defined as `∑ i, Real.negMulLog (p i) = ∑ i, -(p i) * log (p i)`.
+/-- For [a finite alphabet](hyp:α) and [a real-valued mass function on it](hyp:p), the [Shannon entropy in nats](goal) is $\sum_i -p(i)\log p(i)$, with the standard zero-continuous convention for the summands.
 
-The definition makes no positivity or normalization assumption on `p`; the
-probability-mass hypotheses enter the lemmas about `entropy`. -/
+The definition makes no positivity or normalization assumption on the mass function; probability-mass hypotheses enter the lemmas about `entropy`. -/
 noncomputable def entropy (p : α → ℝ) : ℝ :=
   ∑ i, Real.negMulLog (p i)
 

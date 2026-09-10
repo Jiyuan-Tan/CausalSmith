@@ -19,12 +19,16 @@ namespace Causalean.ML
 
 open Matrix
 
-/-- The Gram matrix `Kᵢⱼ = k(xᵢ, xⱼ)` of a kernel `k` on a finite sample `x`. -/
+/-- For [an input space](hyp:X), [a sample size](hyp:n), [a real-valued kernel on that
+space](hyp:k), and [a sample of that size](hyp:x), the [Gram matrix](goal) is the matrix whose
+row-$i$, column-$j$ entry is the kernel evaluated at the $i$th and $j$th sample points. -/
 def gram {X : Type*} {n : ℕ} (k : X → X → ℝ) (x : Fin n → X) :
     Matrix (Fin n) (Fin n) ℝ :=
   fun i j => k (x i) (x j)
 
-/-- A kernel is positive semidefinite when every Gram matrix is PSD. -/
+/-- For [an input space](hyp:X) and [a real-valued kernel on that space](hyp:k), the
+[positive-semidefinite-kernel property](goal) holds exactly when, for every finite sample,
+its Gram matrix is positive semidefinite. -/
 def IsPSDkernel {X : Type*} (k : X → X → ℝ) : Prop :=
   ∀ (n : ℕ) (x : Fin n → X), (gram k x).PosSemidef
 

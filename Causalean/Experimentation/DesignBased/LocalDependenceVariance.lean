@@ -43,9 +43,10 @@ namespace DesignBased
 
 variable {U : Type*} [Fintype U] [DecidableEq U]
 
-/-- A family of dependence blocks has **degree at most `d`** if no single unit's treatment is read
-by more than `d` of the blocks.  When the blocks are the in-neighbourhoods of a dependency graph
-this is the bound on out-degree. -/
+/-- For [a finite population of units](hyp:U), [a dependence block assigned to each unit](hyp:N),
+and [a nonnegative integer bound](hyp:d), the [assertion that the block family has degree at most
+$d$](goal) means that, for every unit, at most $d$ blocks contain that unit.  When the blocks are
+the in-neighbourhoods of a dependency graph, this is the out-degree bound. -/
 def BlockDegreeLE (N : U → Finset U) (d : ℕ) : Prop :=
   ∀ j : U, (Finset.univ.filter fun i => j ∈ N i).card ≤ d
 

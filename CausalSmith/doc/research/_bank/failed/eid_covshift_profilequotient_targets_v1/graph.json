@@ -1,0 +1,4215 @@
+{
+  "qid": "eid_covshift_profilequotient_targets",
+  "specialization": "v1",
+  "nodes": [
+    {
+      "id": "S1",
+      "obj_id": "S-1",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "A fixed-dimension linear Gaussian covariance-shift structural causal model observed across environments. The observed dimension is \\(d\\ge 2\\), the environment labels are \\(\\mathcal E=\\{0,1,\\ldots,E\\}\\) with \\(E\\ge 2\\) nonbaseline environments, the observed labels are \\(\\mathcal V=\\{1,\\ldots,d\\}\\), and the target size is \\(r\\in\\{1,\\ldots,d-1\\}\\). A model \\(\\mu\\) consists of an observed structural coefficient matrix \\(B_{\\mu}\\in\\mathbb R^{d\\times d}\\) that is permutation-similar to a strictly lower-triangular matrix, with total-effect matrix \\(U_{\\mu}=(I_d-B_{\\mu})^{-1}\\); an invariant latent loading \\(C_{\\mu}\\in\\mathbb R^{d\\times d}\\) with invariant latent covariance \\(\\Omega_{H,\\mu}\\succeq 0\\); a strictly positive baseline structural-noise variance vector \\(\\omega_{0,\\mu}\\in\\mathbb R^d\\); an invariant diagonal measurement-error covariance \\(\\Omega_{\\eta,\\mu}\\succ 0\\); a target set \\(T_{\\mu}\\subseteq\\mathcal V\\) of size \\(r\\); and variance increments \\(\\lambda\\in\\mathbb R^{E\\times d}\\) with \\(\\lambda_0=0\\), vanishing off \\(T_{\\mu}\\), nonnegative on \\(T_{\\mu}\\), and strictly positive for each target in at least one nonbaseline environment. In environment \\(e\\) the primitive vector \\((H_e,\\varepsilon_e,\\eta_e)\\) is centered Gaussian with mutually independent blocks and coordinates, \\(\\operatorname{Cov}(H_e)=\\Omega_{H,\\mu}\\), \\(\\operatorname{Cov}(\\varepsilon_e)=\\operatorname{diag}(\\omega_{0,\\mu}+\\lambda_e)\\), and \\(\\operatorname{Cov}(\\eta_e)=\\Omega_{\\eta,\\mu}\\), and the observation is \\(Y_e=U_{\\mu}(C_{\\mu}H_e+\\varepsilon_e)+\\eta_e\\). The legal class \\(\\mathcal M_{d,E,r}\\) collects all such \\(\\mu\\). — Search trace: grepped `../doc/API.md` section index (`^## `) and then grepped the whole index for `Wishart|empirical covariance|sample covariance` (0 hits) and read sections 17b (`Discovery/LinearDisentanglement/`, lines 11638-11760) and 9b/9-9l (`SCM/ID/`, `PO/ID/Exact/`); globbed `../Causalean/Discovery/LinearDisentanglement/**` and `../Causalean/Mathlib/**`; Mathlib checked with `lean_loogle \"IsGaussian\"` and `lean_leansearch \"mutually independent family of random variables iIndepFun\"`. Result: no Causalean world models a multi-environment linear-Gaussian SCM with invariant latent confounding PLUS invariant measurement error PLUS per-environment structural-variance shifts. Two near misses, both at the wrong abstraction: (a) `Causalean.Discovery.LinearDisentanglement.Solution` (`Causalean/Discovery/LinearDisentanglement/Model.lean`) is a latent SEM with a full-row-rank mixing and ONE perfect single-node intervention per context, indexed by precision matrices, with no additive measurement error and no nonnegative-shift design; (b) the sibling CausalSmith note `CausalSmith.ExactID.RobustBackshiftUniformDistance.BackshiftSystem` (`CausalSmith/ExactID/EID_RobustBackshiftUniformDistance_Research/Basic.lean:42`) is the closest sibling record but permits cyclic coefficients, carries no latent loading and no measurement error, and its shifts are the whole model rather than an exact-rank target fiber. Both are recorded as STYLE references for F2 (matrix/environment abbreviations, `@realizes` annotation discipline) rather than reuse. Cluster-root modules `Causalean/PO/**`, `Causalean/SCM/ID/**`, `Causalean/SCM/Do/**`, `Causalean/Graph/SWIG.lean` are bypass-justified per decision P7. Reused pieces INSIDE the world: `Matrix.BlockTriangular` (verified `lean_loogle Matrix.BlockTriangular`, module `Mathlib.LinearAlgebra.Matrix.Block`) for acyclicity, `Matrix.PosDef`/`Matrix.PosSemidef` for the covariance cones, `ProbabilityTheory.IsGaussian` and `ProbabilityTheory.iIndepFun` for the primitive-law assumptions, `Causalean.Mathlib.stdGaussian` for the standard-Gaussian building block used by the realization construction.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Mathlib.LinearAlgebra.Matrix.PosDef",
+          "Mathlib.LinearAlgebra.Matrix.Block",
+          "Mathlib.Analysis.Matrix.Order",
+          "Mathlib.Probability.Distributions.Gaussian.Basic",
+          "Mathlib.Probability.Independence.Basic",
+          "Causalean.Mathlib.StandardGaussian"
+        ]
+      }
+    },
+    {
+      "id": "S2",
+      "obj_id": "S-2",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The observable covariance-tuple and ordered-certificate world. A population covariance tuple is \\(\\theta=(\\Sigma_0,\\ldots,\\Sigma_E)\\) with \\(\\Sigma_e\\) real symmetric \\(d\\times d\\); the covariance shifts are \\(\\Delta_e=\\Sigma_e-\\Sigma_0\\) with \\(\\Delta_0=0\\), and the aggregate carrier is \\(\\bar Q=\\sum_{e=1}^E\\Delta_e\\). For a candidate label set \\(T\\subseteq\\mathcal V\\) and an ordering \\(t=(t_1,\\ldots,t_r)\\) of \\(T\\), the selection matrix \\(P_t\\in\\{0,1\\}^{r\\times d}\\) picks the coordinates in the order \\(t\\), the ordered aggregate principal block is \\(\\bar Q_{tt}=P_t\\bar QP_t^{\\mathsf T}\\), and when \\(\\bar Q_{tt}\\succ0\\) it has the unique factorization \\(\\bar Q_{tt}=L_tD_tL_t^{\\mathsf T}\\) with \\(L_t\\) unit lower triangular and \\(D_t\\) diagonal positive, giving the transformed target blocks \\(\\Lambda_{e,t}=L_t^{-1}P_t\\Delta_eP_t^{\\mathsf T}L_t^{-\\mathsf T}\\). The reconstruction map is \\(W_t=\\bar QP_t^{\\mathsf T}\\bar Q_{tt}^{-1}\\), the recovered target columns are \\(A_t=W_tL_t\\), and the completion places \\(t\\) first to form the unit-lower-triangular \\(U_t\\), the structural matrix \\(B_t=I_d-U_t^{-1}\\), the slack \\(\\tau>0\\), the baseline remainder \\(R_0=\\Sigma_0-\\tau U_tU_t^{\\mathsf T}-\\tau I_d\\), and the loading \\(C_t=U_t^{-1}R_0^{1/2}\\). Over this world sit the causal fiber \\(\\mathcal F_{\\mathrm{causal}}(\\theta)\\), the algebraic fiber \\(\\mathcal F_{\\mathrm{LDL}}(\\theta)\\), the compulsory and possible label sets \\(\\mathcal C(\\theta)\\) and \\(\\mathcal P(\\theta)\\) with \\(h(\\theta)=(\\mathcal C(\\theta),\\mathcal P(\\theta))\\), and the subset-memoized pivot state \\((R_S,(M_{e,S})_{e=1}^E)\\) indexed by selected subsets \\(S\\subseteq\\mathcal V\\) with \\(|S|\\le r\\). Three explicit tuples live here: the three-node signed-shift witness \\(\\theta^{\\pm}\\), the three-node split-reference witness \\(\\theta^{\\mathrm{split}}\\), and the four-node collision path \\(\\theta_{\\gamma}\\) indexed by \\(\\gamma\\in(-1,1)\\). — Search trace: grepped `../doc/API.md` for `Cholesky|LDL` and read section 10j' (line 5707); grepped `../Causalean/Mathlib/LinearAlgebra/Cholesky.lean` for `^(theorem|lemma|def|namespace)` (confirms `Causalean.Mathlib.LinearAlgebra.{ldl_lowerInv_diag_one, ldl_diagEntries_pos, ldl_lowerInv_blockTriangular, ldl_lower_blockTriangular, ldl_lower_diag_one, cholesky_exists, orthogonal_upperTri_pos_diag_eq_one, cholesky_unique}`); Mathlib checked with `lean_loogle LDL.lower_conj_diag` (hit: `LDL.lower hS * LDL.diag hS * (LDL.lower hS)^H = S`, module `Mathlib.Analysis.Matrix.LDL`), `lean_leansearch \"positive semidefinite matrix has a positive semidefinite square root\"` (hit: `Matrix.PosSemidef.sqrt`, `Matrix.PosSemidef.sq_sqrt`, module `Mathlib.Analysis.Matrix.Order`), `lean_leansearch \"rank of a matrix over a field\"` (hit: `Matrix.rank`, module `Mathlib.LinearAlgebra.Matrix.Rank`). Result: the positive `LDL^T` factorization with unit-lower factor is EXACTLY Mathlib's `LDL.lower`/`LDL.diag` plus `LDL.lower_conj_diag`, and its uniqueness (the step `thm:sharp-target-fiber` spends a paragraph on) follows from `Causalean.Mathlib.LinearAlgebra.cholesky_unique` after absorbing the square roots of the diagonal factor, exactly the direction `cholesky_exists` already travels. The unit-diagonal and positive-pivot side facts `ldl_lower_diag_one` and `ldl_diagEntries_pos` are also direct reuse. `R_0^{1/2}` is `Matrix.PosSemidef.sqrt`. What is NOT in the library and is built here: the ordered SELECTION operator \\(P_t\\), the ordered principal-block certificate, the two fibers, the completion, and the subset pivot state. `lean_local_search` was tried first for all four Cholesky names and returned empty for every one — treated as tool flakiness, not absence, and confirmed by direct source grep.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Mathlib.LinearAlgebra.Matrix.PosDef",
+          "Mathlib.LinearAlgebra.Matrix.Rank",
+          "Mathlib.Analysis.Matrix.LDL",
+          "Mathlib.Analysis.Matrix.Order",
+          "Causalean.Mathlib.LinearAlgebra.Cholesky"
+        ]
+      }
+    },
+    {
+      "id": "S3",
+      "obj_id": "S-3",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The bounded multi-sample Gaussian covariance experiment. Constants \\(0<m<M\\) bound the spectrum, and \\(\\Theta_K\\) is the class of tuples \\(\\zeta=(Z_0,\\ldots,Z_E)\\) of positive-definite matrices with \\(mI_d\\preceq Z_e\\preceq MI_d\\) for every \\(e\\in\\mathcal E\\), aggregate difference \\(\\sum_{f=1}^E(Z_f-Z_0)\\) of rank exactly \\(r\\), every \\(\\operatorname{range}(Z_e-Z_0)\\) contained in the range of that aggregate, and at least one ordered certificate. Given sample sizes \\(n=(n_0,\\ldots,n_E)\\), the observations \\(Y_{ei}\\sim N(0,\\Sigma_e)\\) are independent over \\(e\\in\\mathcal E\\) and \\(1\\le i\\le n_e\\), with empirical covariances \\(\\widehat\\Sigma_e=n_e^{-1}\\sum_{i}Y_{ei}Y_{ei}^{\\mathsf T}\\). The tuple space carries the sample-size weighted Frobenius norm \\(\\lVert a\\rVert_w^2=\\sum_{e=0}^En_e\\lVert a_e\\rVert_F^2\\) and, at a fixed \\(\\theta\\), the frozen Gaussian covariance-information norm \\(\\lVert H\\rVert_{I,n,\\theta}^2=\\tfrac12\\sum_{e=0}^{E}n_e\\operatorname{tr}(\\Sigma_e^{-1}H_e\\Sigma_e^{-1}H_e)\\). At level \\(\\alpha\\in(0,1)\\) with \\(V_{\\max}=(E+1)M^2d(d+1)\\) and \\(c_{\\alpha}=\\sqrt{V_{\\max}/\\alpha}\\), the raw region is \\(W_n=\\{\\zeta:mI_d\\preceq Z_e\\preceq MI_d,\\ \\lVert\\zeta-\\widehat\\Sigma\\rVert_w\\le c_{\\alpha}\\}\\); for tolerance \\(\\epsilon>0\\) the strict approximate-minimizer graph is \\(G_{\\epsilon}=\\{(s,\\zeta):\\zeta\\in\\Theta_K,\\ \\lVert\\zeta-s\\rVert_w<\\inf_{\\xi\\in\\Theta_K}\\lVert\\xi-s\\rVert_w+\\epsilon\\}\\), a certified selector \\(s_{\\epsilon}\\) is a section of it, \\(\\widetilde\\theta_n=s_1(\\widehat\\Sigma)\\), and \\(R_n=W_n\\cup\\{\\widetilde\\theta_n\\}\\) carries the outer family \\(\\mathcal F_{\\mathrm{out},n}\\) and the classification image \\(\\mathcal H_n\\). The classification information distance is \\(\\delta_n(\\theta)=\\inf\\{\\lVert\\zeta-\\theta\\rVert_{I,n,\\theta}:\\zeta\\in\\Theta_K,\\ h(\\zeta)\\ne h(\\theta)\\}\\), with \\(\\inf\\varnothing=\\infty\\); \\(C<\\infty\\) bounds it in the impossibility regime and \\(x>0\\) is the deterministic sampling-error threshold. — Search trace: grepped `../doc/API.md` for `Wishart|empirical covariance|sample covariance` (0 hits) and for `Isserlis|Chebyshev|two-point|Le Cam|chiSq|Hellinger|totalVariation` (hits at 7390-7474, `Stat/Minimax/`); read sections 12w.1-12w.3; grepped `../Causalean/Stat/Minimax/TotalVariation.lean` (`namespace Causalean.Stat`, `tvDist` at :50, `one_sub_tvDist_le_test` at :108); grepped `../Causalean/Mathlib/MeasureTheory/CompactArgminSelection.lean` (`namespace Causalean.Mathlib.MeasureTheory`, `borelMeasurable_compact_argmin_selector` at :134, `borelMeasurable_nearestPoint_selector` at :338). Result: Causalean has NO empirical-covariance / Wishart second-moment layer, so the fourth-moment identity behind \\(\\mathbb E\\lVert\\widehat\\Sigma-\\Sigma\\rVert_F^2=n^{-1}\\{(\\operatorname{tr}\\Sigma)^2+\\operatorname{tr}(\\Sigma^2)\\}\\) is built inline in `Helpers/Sampling.lean`. It DOES have the testing core the impossibility theorem needs (`Causalean.Stat.tvDist`, `Causalean.Stat.one_sub_tvDist_le_test`, the Le Cam and Pinsker layers), recorded as a reference and not a discharge (the testing bound is stated for total variation over a two-point pair while the paper's bound is a Holder argument on a \\(p\\)-th likelihood-ratio moment). ROUND-2 CORRECTION: the measurable-selection modules of `Causalean/Mathlib/MeasureTheory/` are NO LONGER on the route for this world. `borelMeasurable_compact_argmin_selector` requires `IsCompact K`, and \\(\\Theta_K\\) is neither closed nor open (exact rank plus strict pivots), so it does not apply; it also delivers only Borel measurability, which is weaker than the semialgebraic section the core states. The selector is instead built from a FINITE net of \\(\\Theta_K\\) (bounded by the Loewner box, hence totally bounded: `ProperSpace.isCompact_closedBall` in `Mathlib.Topology.MetricSpace.ProperSpace`, `IsCompact.totallyBounded` and `TotallyBounded.subset` and `totallyBounded_iff_subset` in `Mathlib.Topology.UniformSpace.Cauchy`, the last of which returns a net whose centres lie IN the set — verified round 2 by `lean_loogle \"totallyBounded_iff_subset\"` and `lean_leansearch \"subset of a totally bounded set is totally bounded\"`), which makes the section piecewise constant on finitely many polynomial cells and therefore both semialgebraic and Borel. See decisions P2, P3, P8.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Mathlib.Probability.Distributions.Gaussian.Basic",
+          "Mathlib.Probability.Independence.Basic",
+          "Mathlib.Analysis.Matrix.Order",
+          "Mathlib.Analysis.Matrix.Spectrum",
+          "Causalean.Mathlib.StandardGaussian",
+          "Mathlib.Topology.UniformSpace.Cauchy",
+          "Mathlib.Topology.MetricSpace.ProperSpace",
+          "Causalean.Stat.Minimax.TotalVariation"
+        ]
+      }
+    },
+    {
+      "id": "S4",
+      "obj_id": "S-4",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The Gaussian local tangent experiment attached to a collision. A tangent geometry is a triple \\(\\mathcal G=(k,g_0,\\mathcal A)\\) with \\(k\\) the whitened local dimension, \\(X\\sim N(g,I_k)\\) the local Gaussian shift experiment, \\(g_0\\in\\mathbb R^k\\) the focal shift carrying the focal complete classification, and \\(\\mathcal A\\subseteq\\mathbb R^k\\) the union of tangent sets carrying a different complete classification. A randomized certification rule is a Borel \\(\\phi:\\mathbb R^k\\to[0,1]\\); it is honest at level \\(\\alpha\\) when \\(\\sup_{g\\in\\mathcal A}\\mathbb E_g\\phi(X)\\le\\alpha\\), and the geometry-indexed optimal focal-certification value is \\(\\beta^{\\star}_{\\mathcal G}(\\alpha)=\\sup\\{\\mathbb E_{g_0}\\phi(X):\\phi\\text{ honest at }\\alpha\\}\\). The nearest-opposite distance \\(c=\\inf_{g\\in\\mathcal A}\\lVert g-g_0\\rVert_2\\) is retained as a scalar summary of the geometry. — Search trace: grepped `../doc/API.md` for `Neyman|NeymanPearson|likelihood ratio test` (hits only at 3587-3613, the Dorn-Guo MSM quantile-balancing exchange argument, and at 5863/6594/9372-9385, Neyman ORTHOGONALITY, a different notion) and read section 10a''' (line 4368); grepped `../Causalean/Mathlib/Probability/StdNormalCDF.lean` (`namespace Causalean.Mathlib`, `stdNormalPDF` :40, `stdNormalCDF` :47, `stdNormalCDF_neg` :84, `stdNormalCDF_continuous` :117, `stdNormalCDF_strictMono` :123, `probit` :164, `stdNormalCDF_probit` :167, `probit_stdNormalCDF` :194); Mathlib checked with `lean_loogle \"IsGaussian\"` (module `Mathlib.Probability.Distributions.Gaussian.Basic`, plus `gaussianReal`). Result: Mathlib and Causalean have NO general Neyman-Pearson lemma, so the one-sided and two-sided optimality exchange arguments are built inline (the frozen proof already supplies self-contained signed-integrand arguments). The scalar layer is exact reuse: `Causalean.Mathlib.stdNormalCDF` is \\(\\Phi\\), `Causalean.Mathlib.probit` is \\(\\Phi^{-1}\\), `stdNormalCDF_probit` gives \\(\\Phi(\\Phi^{-1}(\\alpha))=\\alpha\\), `stdNormalCDF_strictMono` and `stdNormalCDF_continuous` give the unique root \\(t_{c,\\alpha}\\) of \\(\\Phi(t-c)-\\Phi(-t-c)=\\alpha\\), and `stdNormalCDF_neg` gives the reflection identity. The nearest ANALOGOUS proved exchange argument, recorded for F3 to adapt, is `Causalean/PO/ID/Partial/Sensitivity/MSM/QuantileBalance.lean` `cutoff_optimal` / `cutoff_optimal_lower` (`../doc/API.md:3592`, :3613): same signed-integrand structure (integrand times a sign-controlled weight difference, the level term cancelling by calibration), applied there to a cutoff weight rather than to a likelihood-ratio test region. Gap to bridge: our reference measure in the two-sided case is the mixture \\(Q=(P_c+P_{-c})/2\\), so the exchange must be run after reflection symmetrization.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Mathlib.Probability.Distributions.Gaussian.Basic",
+          "Causalean.Mathlib.Probability.StdNormalCDF",
+          "Causalean.Mathlib.StandardGaussian"
+        ]
+      }
+    },
+    {
+      "id": "ass:acyclic-observed-system",
+      "obj_id": "A-1",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The observed coefficient matrix \\(B_{\\mu}\\) is permutation-similar to a strictly lower-triangular matrix.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.AcyclicObservedSystem",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "1b9863eb722437ff699b09fc25ae6622f574724b",
+        "note": "Matrix.BlockTriangular id makes the permuted matrix upper triangular and the second conjunct zeros its diagonal; existentially reversing the finite ordering gives exactly permutation-similarity to a strictly lower-triangular matrix, and conversely."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Acyclic linear structural equation model",
+        "cite": "YangSalehkaleybarKiyavash2024LIT",
+        "citation": "Yang, Yuqin, Saber Salehkaleybar, and Negar Kiyavash. 2024. ``Learning Unknown Intervention Targets in Structural Causal Models from Heterogeneous Data.'' Proceedings of AISTATS, PMLR 238:3187--3195. arXiv:2312.06091."
+      }
+    },
+    {
+      "id": "ass:centered-gaussian-noises",
+      "obj_id": "A-2",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(e\\in\\mathcal E\\), the primitive vector \\((H_e,\\varepsilon_e,\\eta_e)\\) is centered Gaussian.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.CenteredGaussianNoises",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "751975ecb59dcfe98376be49e027c2bb92572988",
+        "note": "IsGaussian specifies a Gaussian law for the complete primitive vector, and the coordinatewise integral equalities specify its zero mean, exactly expressing centered joint Gaussianity."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Linear Gaussian latent-variable model",
+        "cite": "VariciEtAl2022LatentTargets",
+        "citation": "Varici, Burak, Karthikeyan Shanmugam, Prasanna Sattigeri, and Ali Tajer. 2022. ``Intervention Target Estimation in the Presence of Latent Variables.'' Proceedings of UAI, PMLR 180:2013--2023."
+      }
+    },
+    {
+      "id": "ass:block-independent-noises",
+      "obj_id": "A-3",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(e\\in\\mathcal E\\), the collection consisting of \\(H_e\\), all coordinates of \\(\\varepsilon_e\\), and \\(\\eta_e\\) is mutually independent.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.BlockIndependentNoises",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "202a5030a80633bc8233d601a57f5b5322fcdbda",
+        "note": "The heterogeneous iIndepFun family consists exactly of the whole latent block, every individual structural-noise coordinate, and the whole measurement block, so it is equivalent to the stated mutual independence."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Independent structural noises with separate latent roots",
+        "cite": "YangGhassamiNafeaKiyavashZhangShpitser2022MeasurementError",
+        "citation": "Yang, Yuqin, AmirEmad Ghassami, Mohamed Nafea, Negar Kiyavash, Kun Zhang, and Ilya Shpitser. 2022. ``Causal Discovery in Linear Latent Variable Models Subject to Measurement Error.'' Advances in Neural Information Processing Systems 35. arXiv:2211.03984."
+      }
+    },
+    {
+      "id": "ass:stationary-latent-noise",
+      "obj_id": "A-4",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The covariance of \\(H_e\\) equals \\(\\Omega_{H,\\mu}\\) for every \\(e\\in\\mathcal E\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.StationaryLatentNoise",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "1303965183f0d67226e9d19f27334b4103a01e7f",
+        "note": "Unfolding covariance and latentPart gives exactly Cov(H_e) = Ω_H for every environment."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Group-wise stationary confounding",
+        "cite": "PfisterWeichwaldBuhlmannScholkopf2019CoroICA",
+        "citation": "Pfister, Niklas, Sebastian Weichwald, Peter Bühlmann, and Bernhard Schölkopf. 2019. ``Robustifying Independent Component Analysis by Adjusting for Group-Wise Stationary Noise.'' Journal of Machine Learning Research 20(147):1--50. arXiv:1806.01094."
+      }
+    },
+    {
+      "id": "ass:stationary-measurement-error",
+      "obj_id": "A-5",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The covariance of \\(\\eta_e\\) equals the same diagonal matrix \\(\\Omega_{\\eta,\\mu}\\) for every \\(e\\in\\mathcal E\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.StationaryMeasurementError",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "233871358829ade17ed93dfc2d417f2561fb3607",
+        "note": "Unfolding covariance and measurementPart gives exactly Cov(η_e) = Ω_η for every environment, while CovShiftModel independently pins Ω_η as diagonal."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Classical additive measurement error with invariant variance",
+        "cite": "YangGhassamiNafeaKiyavashZhangShpitser2022MeasurementError",
+        "citation": "Yang, Yuqin, AmirEmad Ghassami, Mohamed Nafea, Negar Kiyavash, Kun Zhang, and Ilya Shpitser. 2022. ``Causal Discovery in Linear Latent Variable Models Subject to Measurement Error.'' Advances in Neural Information Processing Systems 35. arXiv:2211.03984."
+      }
+    },
+    {
+      "id": "ass:positive-structural-noise",
+      "obj_id": "A-6",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Every coordinate of \\(\\omega_{0,\\mu}\\) is strictly positive.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.PositiveStructuralNoise",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "be47a9a276c8a0dd147f378348b1828155fbe114",
+        "note": "The Lean predicate is exactly strict positivity of every coordinate of ω₀."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Nonsingular structural-noise covariance",
+        "cite": "YangGhassamiNafeaKiyavashZhangShpitser2022MeasurementError",
+        "citation": "Yang, Yuqin, AmirEmad Ghassami, Mohamed Nafea, Negar Kiyavash, Kun Zhang, and Ilya Shpitser. 2022. ``Causal Discovery in Linear Latent Variable Models Subject to Measurement Error.'' Advances in Neural Information Processing Systems 35. arXiv:2211.03984."
+      }
+    },
+    {
+      "id": "ass:positive-measurement-noise",
+      "obj_id": "A-7",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The diagonal measurement covariance satisfies \\(\\Omega_{\\eta,\\mu}\\succ0\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.PositiveMeasurementNoise",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "8ab375f20495cc7c47d05f7fdfbaa8472e618790",
+        "note": "Matrix.PosDef is the standard positive-definiteness predicate, and the model independently pins Ωη as diagonal."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Strictly positive classical measurement error",
+        "cite": "YangGhassamiNafeaKiyavashZhangShpitser2022MeasurementError",
+        "citation": "Yang, Yuqin, AmirEmad Ghassami, Mohamed Nafea, Negar Kiyavash, Kun Zhang, and Ilya Shpitser. 2022. ``Causal Discovery in Linear Latent Variable Models Subject to Measurement Error.'' Advances in Neural Information Processing Systems 35. arXiv:2211.03984."
+      }
+    },
+    {
+      "id": "ass:target-cardinality",
+      "obj_id": "A-8",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The changing-coordinate set satisfies \\(\\lvert T_{\\mu}\\rvert=r\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.TargetCardinality",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "a31d063a7072ee090a5d4e8a201057ce5586c606",
+        "note": "The Lean predicate is exactly the cardinality equality |Tμ| = r."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Fixed intervention-target cardinality",
+        "cite": "YangSalehkaleybarKiyavash2024LIT",
+        "citation": "Yang, Yuqin, Saber Salehkaleybar, and Negar Kiyavash. 2024. ``Learning Unknown Intervention Targets in Structural Causal Models from Heterogeneous Data.'' Proceedings of AISTATS, PMLR 238:3187--3195. arXiv:2312.06091."
+      }
+    },
+    {
+      "id": "ass:no-off-target-shifts",
+      "obj_id": "A-9",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(e\\in\\{1,\\ldots,E\\}\\) and \\(j\\notin T_{\\mu}\\), \\(\\lambda_{ej}=0\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.NoOffTargetShifts",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "120435c829c3fd8d214e3ef982cce80580b4f2c8",
+        "note": "Lean quantifies over Fin (E+1); its extra baseline case is automatic from CovShiftModel.baselineShift, while the successor cases are exactly environments 1,…,E."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Additive shift intervention exclusion",
+        "cite": "RothenhauslerHeinzePetersMeinshausen2015BACKSHIFT",
+        "citation": "Rothenhäusler, Dominik, Christina Heinze, Jonas Peters, and Nicolai Meinshausen. 2015. ``backShift: Learning Causal Cyclic Graphs from Unknown Shift Interventions.'' Advances in Neural Information Processing Systems 28. arXiv:1506.02494."
+      }
+    },
+    {
+      "id": "ass:nonnegative-variance-shifts",
+      "obj_id": "A-10",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(e\\in\\{1,\\ldots,E\\}\\) and \\(j\\in T_{\\mu}\\), \\(\\lambda_{ej}\\ge0\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.NonnegativeVarianceShifts",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "fe94a2461ccb430992cd171e3451dfd68899c6f5",
+        "note": "Lean quantifies over Fin (E+1); its extra baseline inequality is automatic because baselineShift makes it 0 ≤ 0, while the successor cases are exactly environments 1,…,E."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:reference-shifts-all-targets",
+      "obj_id": "A-11",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(j\\in T_{\\mu}\\), there exists \\(e\\in\\{1,\\ldots,E\\}\\) such that \\(\\lambda_{ej}>0\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.PanelTargetCoverage",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "df7d247326154bca733d4457b6976ac3a532cee4",
+        "note": "Fin E indexed through e.succ is exactly the nonbaseline set {1,…,E}, so the quantified target-coverage condition is equivalent in both directions."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:baseline-positive",
+      "obj_id": "A-12",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The baseline covariance satisfies \\(\\Sigma_0\\succ0\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.BaselinePositive",
+        "file": "Helpers/Certificate.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "79e4eb4267052e2b4a82eab9b767e79391ca01be",
+        "note": "Matrix.PosDef on θ.cov 0 states exactly that the baseline covariance Σ₀ is positive definite."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Nonsingular Gaussian covariance",
+        "cite": "StriederFreidlingHaffnerDrton2021ConfidenceCausalDiscovery",
+        "citation": "Strieder, David, Tobias Freidling, Stefan Haffner, and Mathias Drton. 2021. ``Confidence in Causal Discovery with Linear Causal Models.'' Proceedings of UAI, PMLR 161:1217--1226. arXiv:2106.05694."
+      }
+    },
+    {
+      "id": "ass:reference-exact-rank",
+      "obj_id": "A-13",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The aggregate shift \\(\\bar Q=\\sum_{e=1}^E\\Delta_e\\) satisfies \\(\\operatorname{rank}(\\bar Q)=r\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.AggregateExactRank",
+        "file": "Helpers/Certificate.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "a647e6faf0986ba33288277586d6e92239cbfd3d",
+        "note": "aggregateShift is exactly the sum of Δₑ over e=1,…,E, and the Lean predicate asserts its rank equals r."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:common-shift-range",
+      "obj_id": "A-14",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(e\\in\\{1,\\ldots,E\\}\\), \\(\\operatorname{range}(\\Delta_e)\\subseteq\\operatorname{range}(\\bar Q)\\), where \\(\\bar Q=\\sum_{f=1}^E\\Delta_f\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.CommonShiftRange",
+        "file": "Helpers/Certificate.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "dd73cbace6bf053c05c51e4af85cc63f14112a42",
+        "note": "Submodule ≤ is range inclusion, and e.succ ranges exactly over e=1,…,E, yielding precisely range(Δₑ) ⊆ range(Q̄) for every nonbaseline environment."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:bounded-covariance-member",
+      "obj_id": "A-15",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(e\\in\\mathcal E\\), the generic tuple satisfies \\(mI_d\\preceq Z_e\\preceq MI_d\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.BoundedCovarianceMember",
+        "file": "Helpers/BoundedClass.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "787eccfc7add19e987a38b9ddabc67d0369e8071",
+        "note": "The two positive-semidefinite difference conditions are respectively equivalent to mI_d ≼ Zₑ and Zₑ ≼ MI_d for every e in 𝓔."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Uniform covariance eigenvalue bounds",
+        "cite": "Lewis2022RobustHeteroskedasticity",
+        "citation": "Lewis, Daniel J. 2022. ``Robust Inference in Models Identified via Heteroskedasticity.'' Review of Economics and Statistics 104(3):510--524."
+      }
+    },
+    {
+      "id": "ass:bounded-reference-rank",
+      "obj_id": "A-16",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The generic aggregate difference \\(\\sum_{e=1}^E(Z_e-Z_0)\\) has rank \\(r\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.BoundedAggregateRank",
+        "file": "Helpers/BoundedClass.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "dba57ea8a554390e8e13234590ee15ed69a16fca",
+        "note": "Unfolding aggregateShift and covarianceShift gives rank(∑ e : Fin E, (ζ.cov e.succ − ζ.cov 0)) = r, exactly the stated aggregate-rank condition."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:bounded-common-range",
+      "obj_id": "A-17",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(e\\in\\{1,\\ldots,E\\}\\), \\(\\operatorname{range}(Z_e-Z_0)\\subseteq\\operatorname{range}(\\sum_{f=1}^E(Z_f-Z_0))\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.BoundedCommonRange",
+        "file": "Helpers/BoundedClass.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "ccd815d670603df25cef2684083425f97b66e8af",
+        "note": "The quantified Fin E indices map via succ exactly to environments 1 through E, and submodule ≤ is precisely inclusion of each shift's linear range in the aggregate-shift range."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:bounded-certificate-exists",
+      "obj_id": "A-18",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "There exist \\(T\\subseteq\\mathcal V\\) with \\(\\lvert T\\rvert=r\\) and an ordering \\(t\\) of \\(T\\) such that \\(\\operatorname{Cert}(\\zeta,T,t)\\) holds.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.BoundedCertificateExists",
+        "file": "Helpers/BoundedClass.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "e9144f45852242c14abcc6ee353a8fef2aafbcf8",
+        "note": "Finset (Fin d), card r, and Orders encode a size-r subset of the vertex set with an injective exhaustive ordering; the additional Orders conjunct already inside Cert is logically redundant."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Nonempty correctly specified identified-set model",
+        "cite": "RomanoShaikh2010IdentifiedSetInference",
+        "citation": "Romano, Joseph P., and Azeem M. Shaikh. 2010. ``Inference for the Identified Set in Partially Identified Econometric Models.'' Econometrica 78(1):169--211."
+      }
+    },
+    {
+      "id": "ass:independent-environment-samples",
+      "obj_id": "A-19",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Conditional on \\(\\theta\\), the observations \\(Y_{ei}\\sim N(0,\\Sigma_e)\\) are independent over all \\(e\\in\\mathcal E\\) and \\(1\\le i\\le n_e\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.IndependentEnvironmentSamples",
+        "file": "Helpers/Sampling.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "6750e0ca9ca1fba5a015a0bed4c73ee053457b82",
+        "note": "The statement jointly requires independence of every environment-sample variable, measurability, Gaussian pushforward law, zero coordinate means, and second-moment matrix θ.cov e, which is exactly the fixed-θ independent N(0,Σ_e) experiment."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Independent multi-sample Gaussian covariance experiment",
+        "cite": "Lewis2022RobustHeteroskedasticity",
+        "citation": "Lewis, Daniel J. 2022. ``Robust Inference in Models Identified via Heteroskedasticity.'' Review of Economics and Statistics 104(3):510--524."
+      }
+    },
+    {
+      "id": "def:legal-scm-class",
+      "obj_id": "P-1",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\mathcal M_{d,E,r}=\\{\\mu_{d,E,r}: B_{\\mu}\\text{ is acyclic};\\ (H_e,\\varepsilon_e,\\eta_e)\\text{ obey the centered Gaussian and independence conditions};\\ \\operatorname{Cov}(H_e)=\\Omega_{H,\\mu};\\ \\operatorname{Cov}(\\eta_e)=\\Omega_{\\eta,\\mu};\\ \\omega_{0,\\mu}>0;\\ \\Omega_{\\eta,\\mu}\\succ0;\\ |T_{\\mu}|=r;\\ \\lambda_{ej}=0\\text{ off }T_{\\mu};\\ \\lambda_{ej}\\ge0\\text{ on }T_{\\mu};\\ \\forall j\\in T_{\\mu}\\ \\exists e\\in\\{1,\\ldots,E\\}:\\lambda_{ej}>0\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.LegalCovShiftModel",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "60f1cfb52435ff202786cf1e73f27004ad12071b",
+        "note": "After unfolding all member predicates, the structure imposes exactly the paper's acyclicity, centered joint Gaussianity, block independence, stationary covariances, positivity, target cardinality, shift exclusion/nonnegativity, and nonbaseline panel coverage; its dimension and target-size clauses restate global domains."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:ordered-ldl-certificate",
+      "obj_id": "P-2",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\operatorname{Cert}(\\theta,T,t)\\iff [\\,t\\text{ orders }T,\\ \\bar Q_{tt}\\succ0,\\ \\bar Q_{tt}=L_tD_tL_t^{\\mathsf T},\\ L_t\\text{ unit lower triangular},\\ D_t\\text{ diagonal positive},\\ \\Lambda_{e,t}=L_t^{-1}P_t\\Delta_eP_t^{\\mathsf T}L_t^{-\\mathsf T}\\text{ diagonal and entrywise nonnegative for every }1\\le e\\le E\\,]\\), where \\(\\bar Q=\\sum_{e=1}^E\\Delta_e\\) and \\(\\bar Q_{tt}=P_t\\bar QP_t^{\\mathsf T}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.Cert",
+        "file": "Helpers/Certificate.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "6f12d0733118035a9b460128c1208f3f7ef08e3a",
+        "note": "After unfolding Orders, aggregateShift, orderedPrincipalBlock, transformedTargetBlock, IsDiagonal, and EntrywiseNonnegative, Lean states exactly the ordered positive LDLᵀ certificate and every nonbaseline transformed block condition."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:causal-target-fiber",
+      "obj_id": "P-3",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\mathcal F_{\\mathrm{causal}}(\\theta)=\\{T\\subseteq\\mathcal V:|T|=r,\\ \\exists\\mu\\in\\mathcal M_{d,E,r}\\text{ with }T_{\\mu}=T\\text{ and }\\operatorname{Cov}_{\\mu}(Y_e)=\\Sigma_e\\text{ for every }e\\in\\mathcal E\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.causalTargetFiber",
+        "file": "Helpers/Certificate.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "984b8b98276bc6968741c8d760ad10dddf3bbb8f",
+        "note": "Lean quantifies exactly over legal covariance-shift models with target T and all environment covariances equal to θ; under LegalCovShiftModel, covOf is the covariance of the stated centered block-independent observation."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:algebraic-target-fiber",
+      "obj_id": "P-4",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\mathcal F_{\\mathrm{LDL}}(\\theta)=\\{T\\subseteq\\mathcal V:|T|=r,\\ \\exists t\\text{ ordering }T\\text{ with }\\operatorname{Cert}(\\theta,T,t)\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.algebraicTargetFiber",
+        "file": "Helpers/Certificate.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "f14e2a20d29c7b0464724c1c70522e574e6da70b",
+        "note": "Lean gives exactly the cardinality-r targets admitting an ordering with Cert; the additional Orders conjunct is redundant because Cert already contains it."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:positive-noise-completion",
+      "obj_id": "P-5",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Given \\(\\operatorname{Cert}(\\theta,T,t)\\), set \\(W_t=\\bar QP_t^{\\mathsf T}\\bar Q_{tt}^{-1}\\), \\(A_t=W_tL_t\\), \\(U_t=\\begin{psmallmatrix}L_t&0\\\\A_{t,T^c}&I_{d-r}\\end{psmallmatrix}\\) after placing \\(t\\) first, and \\(B_t=I_d-U_t^{-1}\\).  Choose \\(0<\\tau<\\lambda_{\\min}(\\Sigma_0)/(2(\\lVert U_t\\rVert_{\\mathrm{op}}^2+1))\\), set \\(R_0=\\Sigma_0-\\tau U_tU_t^{\\mathsf T}-\\tau I_d\\), and set \\(C_t=U_t^{-1}R_0^{1/2}\\).  Take \\(H_e\\sim N(0,I_d)\\), baseline structural and measurement covariances \\(\\tau I_d\\), and in environment \\(e\\) place the increments \\(\\operatorname{diag}(\\Lambda_{e,t})\\) on \\(t\\) and zero increments off \\(T\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.positiveNoiseCompletion",
+        "file": "Helpers/Completion.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "f80711b0a6c235cfd3af9f3f886accf18cb018cc",
+        "note": "The record realizes every displayed construction, with the explicit slack formula providing a valid canonical choice in the stated interval; baseline positivity is intrinsic to that choice and dimension admissibility is a global domain condition."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:subset-pivot-recursion",
+      "obj_id": "P-6",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Initialize \\(S=\\varnothing\\), \\(R_S=\\bar Q=\\sum_{e=1}^E\\Delta_e\\), and \\(M_{e,S}=\\Delta_e\\).  A label \\(j\\notin S\\) is admissible when \\(q=(R_S)_{jj}>0\\), \\(m_e=(M_{e,S})_{jj}\\ge0\\), and \\(q(M_{e,S})_{:j}=m_e(R_S)_{:j}\\) for every \\(1\\le e\\le E\\).  With \\(u=(R_S)_{:j}/q\\), update \\(R_{S\\cup\\{j\\}}=R_S-quu^{\\mathsf T}\\) and \\(M_{e,S\\cup\\{j\\}}=M_{e,S}-m_euu^{\\mathsf T}\\), memoizing only \\(S\\cup\\{j\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.subsetPivotRecursion",
+        "file": "Helpers/PivotRecursion.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "93d3de7f152beac9f30efb2b8dd1a23efd7f1580",
+        "note": "PivotRun initializes the empty subset with the nonbaseline aggregate and shifts, and its child rule exactly encodes the positivity, proportional-column test, rank-one residual updates, depth-r stopping, and subset-keyed reachable leaves."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:complete-classification",
+      "obj_id": "P-7",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\mathcal C(\\theta)=\\bigcap_{T\\in\\mathcal F_{\\mathrm{LDL}}(\\theta)}T\\), \\(\\mathcal P(\\theta)=\\bigcup_{T\\in\\mathcal F_{\\mathrm{LDL}}(\\theta)}T\\), and \\(h(\\theta)=(\\mathcal C(\\theta),\\mathcal P(\\theta))\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.completeClassification",
+        "file": "Helpers/Certificate.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "abf81c5a336ad285309d588e39462e72ba5741c5",
+        "note": "After unfolding compulsoryLabels, possibleLabels, and algebraicTargetFiber, Lean gives exactly the intersection and union of all size-r certificate-admitting targets, including the standard universe/empty-set conventions."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:bounded-covariance-class",
+      "obj_id": "P-8",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\Theta_K=\\{\\zeta_{d,E,r}:mI_d\\preceq Z_e\\preceq MI_d\\text{ for every }e\\in\\mathcal E;\\ \\operatorname{rank}(\\sum_{f=1}^E(Z_f-Z_0))=r;\\ \\operatorname{range}(Z_e-Z_0)\\subseteq\\operatorname{range}(\\sum_{f=1}^E(Z_f-Z_0))\\text{ for every }1\\le e\\le E;\\ \\exists T,t\\text{ with }|T|=r\\text{ and }\\operatorname{Cert}(\\zeta,T,t)\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.BoundedCovarianceClass",
+        "file": "Helpers/BoundedClass.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "496e944f9e6238adb4530ba0fabb7aa193573e56",
+        "note": "The four structure fields unfold exactly to the per-environment Loewner bounds, aggregate rank r, nonbaseline common-range inclusions, and existence of a size-r ordered certificate."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:certified-approximate-selector",
+      "obj_id": "P-9",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Fix a cylindrical algebraic decomposition of the semialgebraic graph \\(G_{\\epsilon}\\) together with its ordered-certificate witness variables, and let \\(s_{\\epsilon}(s)\\) be the definable-choice section obtained by taking the first nonempty cell in that fixed decomposition.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.IsCertifiedSemialgebraicSelector",
+        "file": "Helpers/Selector.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "fbea3235ccc7505064185f41cc27fa14fda7c991",
+        "note": "The fixed CAD partitions the witness-augmented strict approximate graph and its firstCell fields select the first nonempty fiber; the additional certification, semialgebraicity, measurability, and strict-error conjuncts follow from that CAD data and do not narrow the section."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:augmented-family-region",
+      "obj_id": "P-10",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(W_n=\\{\\zeta:mI_d\\preceq Z_e\\preceq MI_d,\\ \\lVert\\zeta-\\widehat\\Sigma\\rVert_w\\le c_{\\alpha}\\}\\), \\(\\widetilde\\theta_n=s_1(\\widehat\\Sigma)\\), \\(R_n=W_n\\cup\\{\\widetilde\\theta_n\\}\\), \\(\\mathcal F_{\\mathrm{out},n}=\\bigcup_{\\zeta\\in R_n\\cap\\Theta_K}\\mathcal F_{\\mathrm{LDL}}(\\zeta)\\), and \\(\\mathcal H_n=\\{h(\\zeta):\\zeta\\in R_n\\cap\\Theta_K\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.augmentedFamilyRegion",
+        "file": "Helpers/Sampling.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "7082fc5db0aa1fb0b3069dc35573eb9fc99f1b0a",
+        "note": "After unfolding the referenced definitions, the five structure fields are exactly the Loewner-box weighted-distance region, the epsilon-one canonical CAD point, its singleton augmentation, the union of algebraic target fibers over Rn intersect ThetaK, and the image of completeClassification."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:classification-information-distance",
+      "obj_id": "P-11",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\mathcal A_h(\\theta)=\\{\\zeta\\in\\Theta_K:h(\\zeta)\\ne h(\\theta)\\}\\) and \\(\\delta_n(\\theta)=\\inf_{\\zeta\\in\\mathcal A_h(\\theta)}[\\tfrac12\\sum_{e=0}^{E}n_e\\operatorname{tr}(\\Sigma_e^{-1}(Z_e-\\Sigma_e)\\Sigma_e^{-1}(Z_e-\\Sigma_e))]^{1/2}\\), with \\(\\inf\\varnothing=\\infty\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.classificationInformationDistance",
+        "file": "Helpers/InformationDistance.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "4b4124115a828bf4539557e21734b4444e44f725",
+        "note": "Unfolding oppositeClassificationSet and informationNorm yields exactly the infimum over Θ_K tuples with different complete classification of the stated square-root information quadratic, and ENNReal sInf gives infinity for the empty set."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:four-node-collision-path",
+      "obj_id": "P-12",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For \\(d=4\\), \\(r=2\\), and \\(E=2\\), take \\(a=(1,1,2,1)^{\\mathsf T}\\), \\(b=(0,1,1,2)^{\\mathsf T}\\), \\(\\Sigma_0=I_4\\), \\(\\Delta_1=aa^{\\mathsf T}+bb^{\\mathsf T}\\), and \\(\\Delta_2(\\gamma)=2aa^{\\mathsf T}+(2+\\gamma)bb^{\\mathsf T}\\).  Set \\(\\Sigma_e=\\Sigma_0+\\Delta_e\\), \\(\\theta_\\gamma=(\\Sigma_0,\\Sigma_1,\\Sigma_2)\\), and \\(\\bar Q=\\Delta_1+\\Delta_2=3aa^{\\mathsf T}+(3+\\gamma)bb^{\\mathsf T}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.fourNodeCollisionPath",
+        "file": "Helpers/Witnesses.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "00d14f4a448265c8ff4f50ab676b3d4733edbe07",
+        "note": "The subtype pins γ∈(-1,1), the three environment components are exactly I4, I4+aaᵀ+bbᵀ, and I4+2aaᵀ+(2+γ)bbᵀ, and aggregateShift definitionally yields 3aaᵀ+(3+γ)bbᵀ."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:restriction-boundary-witnesses",
+      "obj_id": "P-13",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For \\(d=3\\), \\(r=2\\), and \\(E=2\\), set \\(B_{\\mu}=0\\), \\(C_{\\mu}=0\\), \\(\\omega_{0,\\mu}=(3/2,3/2,3/2)^{\\mathsf T}\\), \\(\\Omega_{\\eta,\\mu}=I_3/2\\), and \\(T_{\\mu}=\\{1,2\\}\\).  Define \\(\\theta^{\\pm}\\) by \\(\\lambda_1=(1,1,0)^{\\mathsf T}\\) and \\(\\lambda_2=(-1/2,0,0)^{\\mathsf T}\\), so \\(\\Sigma_0=2I_3\\), \\(\\Sigma_1=\\operatorname{diag}(3,3,2)\\), and \\(\\Sigma_2=\\operatorname{diag}(3/2,2,2)\\).  Define \\(\\theta^{\\mathrm{split}}\\) by \\(\\lambda_1=(1,0,0)^{\\mathsf T}\\) and \\(\\lambda_2=(0,1,0)^{\\mathsf T}\\), so \\(\\Sigma_0=2I_3\\), \\(\\Sigma_1=\\operatorname{diag}(3,2,2)\\), and \\(\\Sigma_2=\\operatorname{diag}(2,3,2)\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.restrictionBoundaryWitnesses",
+        "file": "Helpers/Witnesses.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "bba332b8a4707305edd24fb3f877042f3ec3b7d3",
+        "note": "After unfolding diagonalTriple and zero-based Fin indexing, all fixed matrices, target labels, and both covariance tuples equal the paper construction; the displayed variance increments are recoverable as the corresponding covariance differences."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:power-envelope-handle",
+      "obj_id": "P-14",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For a specified regular sequence, first derive its Gaussian local experiment and record its tangent geometry as \\(\\mathcal G=(k,g_0,\\mathcal A)\\), where \\(X\\sim N(g,I_k)\\), \\(g_0\\) has the focal complete classification, and \\(\\mathcal A\\) is the union of tangent sets having a different complete classification.  Define the geometry-indexed honest focal-certification value by \\(\\beta^{\\star}_{\\mathcal G}(\\alpha)=\\sup\\{\\mathbb E_{g_0}\\phi(X):\\phi:\\mathbb R^k\\to[0,1]\\text{ is Borel and }\\sup_{g\\in\\mathcal A}\\mathbb E_g\\phi(X)\\le\\alpha\\}\\).  Record \\(c=\\inf_{g\\in\\mathcal A}\\lVert g-g_0\\rVert_2\\) as the nearest-boundary summary, but retain \\(\\mathcal G\\) as an argument of the envelope.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.powerEnvelope",
+        "file": "Helpers/PowerEnvelope.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "8e2c15cc61e61a258d5fa0442380df8fad68770e",
+        "note": "The handle retains the specified Gaussian-experiment derivation and full tangent geometry, records the infimum Euclidean distance to the opposite set, and sets its value to the supremum over Borel [0,1]-valued rules satisfying the equivalent pointwise honesty constraints at every opposite tangent."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "lem:range-reconstruction",
+      "obj_id": "L-1",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "If \\(\\operatorname{rank}(Q)=r\\), \\(Q_{tt}\\) is invertible, \\(W_t=QP_t^{\\mathsf T}Q_{tt}^{-1}\\), and \\(N=N^{\\mathsf T}\\) satisfies \\(\\operatorname{range}(N)\\subseteq\\operatorname{range}(Q)\\), then \\(N=W_t(P_tNP_t^{\\mathsf T})W_t^{\\mathsf T}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.range_reconstruction",
+        "file": "Helpers/Certificate.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "f2814fcf68369206ff15a2bc2ba647570846a06c",
+        "note": "Unfolding AggregateExactRank, aggregateShift, orderedPrincipalBlock, and selectionMatrix gives exactly rank(Q)=r, invertibility of Qtt, the displayed Wt formula, real symmetry and range inclusion for N, and the stated reconstruction identity. | After unfolding AggregateExactRank, orderedPrincipalBlock, and selectionMatrix, Lean states exactly the same rank, invertibility, symmetry, range-inclusion, W-definition, and reconstruction identity; the explicit W binder with hW is equivalent in both directions to the paper's defined W_t."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "thm:positive-noise-realization",
+      "obj_id": "T-1",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Suppose \\(\\Sigma_0\\succ0\\), \\(\\operatorname{rank}(\\bar Q)=r\\), and \\(\\operatorname{range}(\\Delta_e)\\subseteq\\operatorname{range}(\\bar Q)\\) for every \\(1\\le e\\le E\\), where \\(\\bar Q=\\sum_{e=1}^E\\Delta_e\\).  For every \\(T\\subseteq\\mathcal V\\) and ordering \\(t\\) satisfying \\(\\operatorname{Cert}(\\theta,T,t)\\), the construction in \\(\\text{def:positive-noise-completion}\\) yields a model in \\(\\mathcal M_{d,E,r}\\) with target set \\(T\\), covariance \\(\\operatorname{Cov}(Y_e)=\\Sigma_e\\) for all \\(e\\in\\mathcal E\\), strictly positive baseline structural-noise variances, and strictly positive stationary measurement-error variances.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.positive_noise_realization",
+        "file": "TPositiveNoiseRealization.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "c2ad30f11e0591b51aadc797ad9ac8585d39c347",
+        "note": "After unfolding the referenced predicates, the premises exactly encode baseline positive definiteness, aggregate rank r, common shift range, and the certificate; the witness is the stated positive-noise completion, is legal, has target T and all prescribed covariances, and has strictly positive structural and stationary measurement noise."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:sharp-target-fiber",
+      "obj_id": "T-2",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every covariance tuple \\(\\theta\\) satisfying \\(\\Sigma_0\\succ0\\), \\(\\operatorname{rank}(\\bar Q)=r\\), and \\(\\operatorname{range}(\\Delta_e)\\subseteq\\operatorname{range}(\\bar Q)\\) for all \\(1\\le e\\le E\\), where \\(\\bar Q=\\sum_{e=1}^E\\Delta_e\\), one has \\(\\mathcal F_{\\mathrm{causal}}(\\theta)=\\mathcal F_{\\mathrm{LDL}}(\\theta)\\).  Equivalently, a labeled size-\\(r\\) set is compatible if and only if some ordering has a positive-definite aggregate principal block whose unique unit-lower \\(LDL^{\\mathsf T}\\) factor simultaneously transforms every target-block shift to a diagonal entrywise-nonnegative matrix.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.sharp_target_fiber",
+        "file": "TSharpTargetFiber.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "b82bd6f7f33aa1db759743241ec63d5bd9c2eb87",
+        "note": "After unfolding both fibers, Cert, and the rank/range/positivity predicates, Lean states the same fiber equality and ordered-LDL characterization; the dimension and target-size hypotheses enforce the core symbol domains, while hNonnegative is logically redundant because every LegalCovShiftModel already supplies nonnegativeShifts."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:subset-pivot-completeness",
+      "obj_id": "T-3",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Suppose \\(\\Sigma_0\\succ0\\), \\(\\operatorname{rank}(\\bar Q)=r\\), and \\(\\operatorname{range}(\\Delta_e)\\subseteq\\operatorname{range}(\\bar Q)\\) for every \\(1\\le e\\le E\\), where \\(\\bar Q=\\sum_{e=1}^E\\Delta_e\\).  The leaves of depth \\(r\\) accepted by the recursion in \\(\\text{def:subset-pivot-recursion}\\) are exactly \\(\\mathcal F_{\\mathrm{LDL}}(\\theta)=\\mathcal F_{\\mathrm{causal}}(\\theta)\\).  Every reached residual pair \\((R_S,(M_{e,S})_{e=1}^{E})\\) depends only on \\(S\\), so the algorithm terminates after visiting at most \\(\\sum_{k=0}^{r}\\binom{d}{k}\\) subset states, and the intersection and union of its leaves equal \\(\\mathcal C(\\theta)\\) and \\(\\mathcal P(\\theta)\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.subset_pivot_completeness",
+        "file": "TSubsetPivotCompleteness.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "36ff239d2aeab111600123f2f8211c1d474be839",
+        "note": "After unfolding all referenced definitions, Lean exactly states the three paper hypotheses, equality of recursive leaves with both target fibers, subset-indexed residual coherence, the stated binomial state bound and termination properties, and the compulsory/possible leaf classifications."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "lem:measurable-certified-selection",
+      "obj_id": "L-2",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(\\epsilon>0\\), the correspondence \\(G_{\\epsilon}\\) admits a semialgebraic, hence Borel measurable, section \\(s_{\\epsilon}\\) that returns both \\(s_{\\epsilon}(s)\\in\\Theta_K\\) and an ordered certificate witness, with \\(\\lVert s_{\\epsilon}(s)-s\\rVert_w<\\inf_{\\zeta\\in\\Theta_K}\\lVert\\zeta-s\\rVert_w+\\epsilon\\) for every covariance statistic \\(s\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.measurable_certified_selection",
+        "file": "Helpers/Selector.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "35d8468f294ac139bea5559dbff88a399f8b76cd",
+        "note": "Unfolding FixedCertifiedCAD, canonicalCADSelector, IsCertifiedSemialgebraicSelector, ThetaK, Cert, and the weighted distance definitions yields exactly a semialgebraic and Borel section of Gε with pointwise ΘK membership, an ordered certificate, and the strict ε-infimum bound; conversely the paper's fixed semialgebraic decomposition can be refined by the selector graph and its complement to supply the auxiliary FixedCertifiedCAD fields."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:honest-family-confidence",
+      "obj_id": "T-4",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Under the independent Gaussian sampling design, uniformly over \\(\\theta\\in\\Theta_K\\), \\(\\Pr_{\\theta}[\\mathcal F_{\\mathrm{causal}}(\\theta)\\subseteq\\mathcal F_{\\mathrm{out},n}\\text{ and }h(\\theta)\\in\\mathcal H_n]\\ge1-\\alpha\\).  The region \\(R_n\\cap\\Theta_K\\) is nonempty for every sample, and a rule reports a classification only when \\(\\mathcal H_n\\) is a singleton has probability at most \\(\\alpha\\) of reporting a classification different from \\(h(\\theta)\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.honest_family_confidence",
+        "file": "THonestFamilyConfidence.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "25db2b901d618beb584617c3e0f57c737a21cd95",
+        "note": "The certified CAD selector is chosen before X and θ; unfolding the two events and augmentedFamilyRegion yields exactly uniform joint family/classification coverage, pointwise nonemptiness of R_n ∩ Θ_K, and the α-bound for an incorrect singleton report under the independent Gaussian design."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:consistency-above-boundary",
+      "obj_id": "T-5",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(x>0\\), on the event \\(\\lVert\\widehat\\Sigma-\\theta\\rVert_w\\le x\\), every point of \\(R_n\\) is within weighted distance at most \\(\\max\\{x+c_{\\alpha},2x+1\\}\\) of \\(\\theta\\).  Hence, if \\(\\max\\{x+c_{\\alpha},2x+1\\}<\\sqrt{2}m\\delta_n(\\theta)\\), the singleton rule based on \\(\\mathcal H_n\\) reports \\(h(\\theta)\\), and its failure probability is at most \\(V_{\\max}/x^2\\).  In particular, \\(\\sqrt{2}m\\delta_n(\\theta)>2c_{\\alpha}+1\\) implies correct reporting with probability at least \\(1-\\alpha\\).  For every sequence \\(\\theta_n\\in\\Theta_K\\) with \\(\\delta_n(\\theta_n)\\to\\infty\\), the rule reports \\(h(\\theta_n)\\) with probability tending to one, uniformly over subclasses on which the infimum of \\(\\delta_n\\) diverges.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.consistency_above_boundary",
+        "file": "TConsistencyAboveBoundary.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "12bcde04c329c8e065e0fc948265b85f4e486437",
+        "note": "After unfolding the region, distance, information distance, sampling predicate, and singleton event, Lean states the same good-event radius and separation implication; its tail inequality yields the advertised failure bound, the x=cα specialization gives 1−α coverage, and universal convergence for every positive-allocation sequence is the sequentially equivalent form of uniform consistency over subclasses whose infimum distance diverges."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "prop:design-restriction-boundary",
+      "obj_id": "T-6",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The tuple \\(\\theta^{\\pm}\\) is generated by an acyclic positive-structural-noise, positive-measurement-noise Gaussian SCM satisfying every member condition of \\(\\mathcal M_{3,2,2}\\) except nonnegative variance shifts, and its true target set is \\(\\{1,2\\}\\).  For each ordering of that target, the aggregate ordered certificate has unit-lower factor equal to the identity and its transformed second-environment target block contains the diagonal entry \\(-1/2\\), so \\(\\operatorname{Cert}\\) rejects the true target.  The tuple \\(\\theta^{\\mathrm{split}}\\) is generated by a member of \\(\\mathcal M_{3,2,2}\\) with true target set \\(\\{1,2\\}\\).  Its first-environment covariance shift has rank one, strictly less than \\(r=2\\), whereas its aggregate carrier \\(\\bar Q\\) has rank \\(r\\), and \\(\\operatorname{Cert}\\) accepts the true target in both orders.  Thus signed shifts destroy the nonnegative-diagonal necessity and require strict baseline-variance feasibility in place of nonnegativity, whereas an environment that shifts every target is unnecessary for the aggregate-carrier certificate.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.design_restriction_boundary",
+        "file": "TDesignRestrictionBoundary.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "a61625d8747df03d9ff9630fc420b76bf4f05ae2",
+        "note": "After unfolding the witness, model, ordering, shift, and certificate definitions, Lean states both explicit SCM realizations, strict signed-variance feasibility, rejection with the identity LDL lower factor and −1/2 diagonal entry in every order, and the split-environment rank and acceptance claims exactly."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:impossibility-bounded-information",
+      "obj_id": "T-7",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Fix \\(C<\\infty\\).  For any possibly abstaining rule whose probability of an incorrect classification is uniformly at most \\(\\alpha\\) on \\(\\Theta_K\\), there exists \\(\\kappa=\\kappa(C,\\alpha,m,M,d,E)>0\\) such that along every sequence \\(\\theta_n\\in\\Theta_K\\) with \\(\\delta_n(\\theta_n)\\le C\\), the probability of correctly certifying \\(h(\\theta_n)\\) is at most \\(1-\\kappa\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.impossibility_bounded_information",
+        "file": "TImpossibilityBoundedInformation.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "6e2a6d269602ff5554155250b8937000a6e12295",
+        "note": "After unfolding Θ_K, the information distance, Gaussian sampling condition, and report events, Lean equivalently quantifies a universal positive κ before all experiment, rule, and sequence binders and gives the stated uniform incorrect- and correct-classification probability bounds."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "prop:four-node-collision",
+      "obj_id": "T-8",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Along the legal path \\(\\theta_{\\gamma}\\), \\(\\mathcal F_{\\mathrm{causal}}(\\theta_{\\gamma})=\\{\\{1,2\\},\\{1,3\\},\\{1,4\\}\\}\\) and \\(h(\\theta_{\\gamma})=(\\{1\\},\\{1,2,3,4\\})\\) for \\(\\gamma\\ne0\\), whereas at \\(\\gamma=0\\) all six two-element target sets are compatible and \\(h(\\theta_0)=(\\varnothing,\\{1,2,3,4\\})\\).  If the fixed constants \\(m,M\\) admit \\(\\gamma_0>0\\) such that \\(\\theta_{\\gamma}\\in\\Theta_K\\) for every \\(|\\gamma|\\le\\gamma_0\\), then, for equal environment sample sizes, there exist constants \\(0<c<C<\\infty\\) such that \\(c\\sqrt n|\\gamma|\\le\\delta_n(\\theta_{\\gamma})\\le C\\sqrt n|\\gamma|\\) for all sufficiently small nonzero \\(\\gamma\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.four_node_collision",
+        "file": "TFourNodeCollision.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "3f78bedec2c64012317b39ff5ff654ccae3a9487",
+        "note": "The Lean statement exactly encodes the off-collision and collision fibers/classifications and the uniform equal-sample information-distance bounds on the declared γ∈(-1,1) domain, with zero-based Fin 4 labels corresponding to paper labels 1–4."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "prop:rank-one-reduction",
+      "obj_id": "T-9",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "When \\(r=1\\) and \\(\\mathcal F_{\\mathrm{causal}}(\\theta)\\ne\\varnothing\\), the sharp fiber reduces to \\(\\mathcal F_{\\mathrm{causal}}(\\theta)=\\{\\{j\\}:Q_{jj}>0\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.rank_one_reduction",
+        "file": "TRankOneReduction.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "a91ca85aa4a0d783cf55b1461fcf5611169571ba",
+        "note": "With r fixed to 1, Lean’s nonempty causal fiber hypothesis and equality to exactly the singleton targets {j} satisfying 0 < aggregateShift θ j j are equivalent to the paper statement, since aggregateShift is Q = ∑ₑ₌₁ᴱ(Σₑ−Σ₀)."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:geometry-indexed-local-power-envelope",
+      "obj_id": "T-10",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "There is no universal correct-certification envelope determined only by \\(c=\\lim\\delta_n(\\theta_n)\\).  For any specified Gaussian tangent geometry \\(\\mathcal G=(k,g_0,\\mathcal A)\\), where \\(X\\sim N(g,I_k)\\), \\(g_0\\) has the focal classification, and \\(\\mathcal A\\) is the opposite-classification tangent set, the geometry-indexed focal-certification value is\n\\[\n \\beta^{\\star}_{\\mathcal G}(\\alpha)\n =\\sup_{\\substack{\\phi:\\mathbb R^k\\to[0,1]\\ \\mathrm{Borel}\\\\\n                    \\sup_{g\\in\\mathcal A}\\mathbb E_g\\phi(X)\\le\\alpha}}\n   \\mathbb E_{g_0}\\phi(X).\n\\]\nThe nearest-opposite distance \\(c=\\inf_{g\\in\\mathcal A}\\lVert g-g_0\\rVert_2\\) does not determine this value.  Explicitly, for \\(k=1\\), \\(g_0=0\\), and opposite sets \\(\\mathcal A_+=[c,\\infty)\\) and \\(\\mathcal A_{\\pm}=(-\\infty,-c]\\cup[c,\\infty)\\), with \\(c>0\\),\n\\[\n \\beta^{\\star}_{\\mathcal G_+}(\\alpha)=\\Phi(\\Phi^{-1}(\\alpha)+c),\n \\qquad\n \\beta^{\\star}_{\\mathcal G_{\\pm}}(\\alpha)=2\\Phi(t_{c,\\alpha})-1\n <\\beta^{\\star}_{\\mathcal G_+}(\\alpha),\n\\]\nwhere \\(\\Phi\\) is the standard-normal distribution function and \\(t_{c,\\alpha}>0\\) is the unique solution of \\(\\Phi(t-c)-\\Phi(-t-c)=\\alpha\\).  Thus the handle yields an explicit optimization only after the incident tangent geometry is supplied; neither a one-variable \\(\\beta^{\\star}(c)\\) nor one classifier attaining it uniformly over all regular sequences is determined by the frozen core.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.geometry_indexed_local_power_envelope",
+        "file": "TGeometryIndexedLocalPowerEnvelope.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "fb2c1e65618b0d86f7b142d1134f31b5fdfab192",
+        "note": "After unfolding the geometry, honesty, Gaussian-law, supremum, and nearest-distance definitions, Lean states the same two equal-distance geometries, both exact envelope values, the unique positive threshold equation, and the strict value separation; these witnesses imply the paper's no-scalar-envelope and no-uniform-attaining-rule conclusions."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "aux_aggregateShift",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def aggregateShift, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "aggregateShift",
+        "file": "Helpers/Certificate.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_AugmentedFamilyRegion",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def AugmentedFamilyRegion, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "AugmentedFamilyRegion",
+        "file": "Helpers/Sampling.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_ClassificationRule",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ClassificationRule, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ClassificationRule",
+        "file": "TImpossibilityBoundedInformation.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CompletionRealizes",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CompletionRealizes, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CompletionRealizes",
+        "file": "Helpers/Completion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_compulsoryLabels",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def compulsoryLabels, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "compulsoryLabels",
+        "file": "Helpers/Certificate.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_confidenceRadius",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def confidenceRadius, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "confidenceRadius",
+        "file": "Helpers/Sampling.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_correctSingletonEvent",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def correctSingletonEvent, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "correctSingletonEvent",
+        "file": "TConsistencyAboveBoundary.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_covarianceCoordinates",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def covarianceCoordinates, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "covarianceCoordinates",
+        "file": "Helpers/Selector.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_covarianceShift",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def covarianceShift, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "covarianceShift",
+        "file": "Helpers/Certificate.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CovarianceStatistic",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CovarianceStatistic, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CovarianceStatistic",
+        "file": "Helpers/Selector.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CovarianceTuple",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CovarianceTuple, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CovarianceTuple",
+        "file": "Helpers/Certificate.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_covarianceVarianceBound",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def covarianceVarianceBound, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "covarianceVarianceBound",
+        "file": "Helpers/Sampling.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CovShiftModel",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CovShiftModel, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CovShiftModel",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_empiricalCovariance",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def empiricalCovariance, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "empiricalCovariance",
+        "file": "Helpers/Sampling.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_EntrywiseNonnegative",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def EntrywiseNonnegative, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "EntrywiseNonnegative",
+        "file": "Helpers/Certificate.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_Environment",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def Environment, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "Environment",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_familyCoverageEvent",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def familyCoverageEvent, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "familyCoverageEvent",
+        "file": "THonestFamilyConfidence.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_incorrectSingletonEvent",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def incorrectSingletonEvent, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "incorrectSingletonEvent",
+        "file": "THonestFamilyConfidence.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsDiagonal",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsDiagonal, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsDiagonal",
+        "file": "Helpers/Certificate.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsHonestRule",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsHonestRule, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsHonestRule",
+        "file": "Helpers/PowerEnvelope.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsRandomizedRule",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsRandomizedRule, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsRandomizedRule",
+        "file": "Helpers/PowerEnvelope.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsSemialgebraicMap",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsSemialgebraicMap, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsSemialgebraicMap",
+        "file": "Helpers/Semialgebraic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsSemialgebraicSet",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsSemialgebraicSet, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsSemialgebraicSet",
+        "file": "Helpers/Semialgebraic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_leafIntersection",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def leafIntersection, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "leafIntersection",
+        "file": "TSubsetPivotCompleteness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_leafUnion",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def leafUnion, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "leafUnion",
+        "file": "TSubsetPivotCompleteness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_nearestOppositeDistance",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def nearestOppositeDistance, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "nearestOppositeDistance",
+        "file": "Helpers/PowerEnvelope.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_oneSidedGeometry",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def oneSidedGeometry, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "oneSidedGeometry",
+        "file": "TGeometryIndexedLocalPowerEnvelope.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_Orders",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def Orders, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "Orders",
+        "file": "Helpers/Certificate.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_PivotAdmissible",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def PivotAdmissible, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "PivotAdmissible",
+        "file": "Helpers/PivotRecursion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_PolynomialSignCondition",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def PolynomialSignCondition, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "PolynomialSignCondition",
+        "file": "Helpers/Semialgebraic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_PositiveNoiseCompletionData",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def PositiveNoiseCompletionData, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "PositiveNoiseCompletionData",
+        "file": "Helpers/Completion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_possibleLabels",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def possibleLabels, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "possibleLabels",
+        "file": "Helpers/Certificate.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_ruleCorrectEvent",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ruleCorrectEvent, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ruleCorrectEvent",
+        "file": "TImpossibilityBoundedInformation.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_ruleIncorrectEvent",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ruleIncorrectEvent, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ruleIncorrectEvent",
+        "file": "TImpossibilityBoundedInformation.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_SamplingExperiment",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def SamplingExperiment, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "SamplingExperiment",
+        "file": "Helpers/Sampling.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_subsetEnvironmentResidual",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def subsetEnvironmentResidual, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "subsetEnvironmentResidual",
+        "file": "Helpers/PivotRecursion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_SubsetPivotState",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def SubsetPivotState, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "SubsetPivotState",
+        "file": "Helpers/PivotRecursion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_subsetResidual",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def subsetResidual, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "subsetResidual",
+        "file": "Helpers/PivotRecursion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_TangentGeometry",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def TangentGeometry, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "TangentGeometry",
+        "file": "Helpers/PowerEnvelope.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_ThetaK",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ThetaK, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ThetaK",
+        "file": "Helpers/BoundedClass.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_twoSidedGeometry",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def twoSidedGeometry, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "twoSidedGeometry",
+        "file": "TGeometryIndexedLocalPowerEnvelope.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_visitedSubsetStates",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def visitedSubsetStates, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "visitedSubsetStates",
+        "file": "TSubsetPivotCompleteness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_weightedDistance",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def weightedDistance, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "weightedDistance",
+        "file": "Helpers/Selector.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_AdmissibleDimension",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def AdmissibleDimension, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "AdmissibleDimension",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_AdmissibleEnvironmentCount",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def AdmissibleEnvironmentCount, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "AdmissibleEnvironmentCount",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_AdmissibleProbabilityLevel",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def AdmissibleProbabilityLevel, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "AdmissibleProbabilityLevel",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_AdmissibleTargetSize",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def AdmissibleTargetSize, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "AdmissibleTargetSize",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_canonicalCADSelector",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def canonicalCADSelector, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "canonicalCADSelector",
+        "file": "Helpers/Selector.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_FixedCertifiedCAD",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def FixedCertifiedCAD, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "FixedCertifiedCAD",
+        "file": "Helpers/Selector.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_PowerEnvelopeHandle",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def PowerEnvelopeHandle, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "PowerEnvelopeHandle",
+        "file": "Helpers/PowerEnvelope.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_RegularSequenceProvenance",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def RegularSequenceProvenance, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "RegularSequenceProvenance",
+        "file": "Helpers/PowerEnvelope.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CertifiedGraphPoint",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CertifiedGraphPoint, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CertifiedGraphPoint",
+        "file": "Helpers/Selector.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_gaussianPowerSupremum",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def gaussianPowerSupremum, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "gaussianPowerSupremum",
+        "file": "Helpers/PowerEnvelope.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsMeasurableClassificationRule",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsMeasurableClassificationRule, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsMeasurableClassificationRule",
+        "file": "TImpossibilityBoundedInformation.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_ObservedSampleArray",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ObservedSampleArray, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ObservedSampleArray",
+        "file": "Helpers/Sampling.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_observedSampleExperiment",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def observedSampleExperiment, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "observedSampleExperiment",
+        "file": "Helpers/Sampling.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_OrderedCertificateWitness",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def OrderedCertificateWitness, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "OrderedCertificateWitness",
+        "file": "Helpers/Selector.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "baselineMinimumEigenvalue_smul_one_le",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.CovshiftProfilequotientTargets.baselineMinimumEigenvalue_smul_one_le)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.baselineMinimumEigenvalue_smul_one_le",
+        "file": "Helpers/Completion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "355bc2b5845f61fbf4c043df0121c79e17f1025a"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "mul_transpose_le_operatorNorm_sq_smul_one",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.CovshiftProfilequotientTargets.mul_transpose_le_operatorNorm_sq_smul_one)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.mul_transpose_le_operatorNorm_sq_smul_one",
+        "file": "Helpers/Completion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "39c7029d06e497c20e7b2c4fea2bf9f97ed9194d"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "completionRzero_posSemidef",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.CovshiftProfilequotientTargets.completionRzero_posSemidef)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.CovshiftProfilequotientTargets.completionRzero_posSemidef",
+        "file": "Helpers/Completion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "d85520f60d0dde9fecd7b2e23dcc841888228c35"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "kind": "proof-uses",
+      "from": "lem:range-reconstruction",
+      "to": "ass:reference-exact-rank",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:positive-noise-realization",
+      "to": "def:legal-scm-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:positive-noise-realization",
+      "to": "def:ordered-ldl-certificate",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:positive-noise-realization",
+      "to": "def:positive-noise-completion",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:positive-noise-realization",
+      "to": "ass:baseline-positive",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:positive-noise-realization",
+      "to": "ass:reference-exact-rank",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:positive-noise-realization",
+      "to": "ass:common-shift-range",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:positive-noise-realization",
+      "to": "lem:range-reconstruction",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-target-fiber",
+      "to": "def:legal-scm-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-target-fiber",
+      "to": "def:ordered-ldl-certificate",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-target-fiber",
+      "to": "def:causal-target-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-target-fiber",
+      "to": "def:algebraic-target-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-target-fiber",
+      "to": "ass:baseline-positive",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-target-fiber",
+      "to": "ass:reference-exact-rank",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-target-fiber",
+      "to": "ass:common-shift-range",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-target-fiber",
+      "to": "thm:positive-noise-realization",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-target-fiber",
+      "to": "ass:nonnegative-variance-shifts",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "def:subset-pivot-recursion",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "def:complete-classification",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "ass:baseline-positive",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "ass:reference-exact-rank",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "ass:common-shift-range",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "thm:sharp-target-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "lem:range-reconstruction",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:measurable-certified-selection",
+      "to": "def:ordered-ldl-certificate",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:measurable-certified-selection",
+      "to": "def:bounded-covariance-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:measurable-certified-selection",
+      "to": "def:certified-approximate-selector",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:honest-family-confidence",
+      "to": "ass:independent-environment-samples",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:honest-family-confidence",
+      "to": "def:augmented-family-region",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:honest-family-confidence",
+      "to": "thm:sharp-target-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:honest-family-confidence",
+      "to": "lem:measurable-certified-selection",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "ass:independent-environment-samples",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "def:augmented-family-region",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "def:classification-information-distance",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "thm:honest-family-confidence",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:design-restriction-boundary",
+      "to": "def:legal-scm-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:design-restriction-boundary",
+      "to": "def:ordered-ldl-certificate",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:design-restriction-boundary",
+      "to": "def:restriction-boundary-witnesses",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:impossibility-bounded-information",
+      "to": "ass:independent-environment-samples",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:impossibility-bounded-information",
+      "to": "def:classification-information-distance",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:impossibility-bounded-information",
+      "to": "thm:honest-family-confidence",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:four-node-collision",
+      "to": "def:four-node-collision-path",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:four-node-collision",
+      "to": "def:bounded-covariance-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:four-node-collision",
+      "to": "def:classification-information-distance",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:four-node-collision",
+      "to": "thm:sharp-target-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:rank-one-reduction",
+      "to": "thm:sharp-target-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:geometry-indexed-local-power-envelope",
+      "to": "def:power-envelope-handle",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:geometry-indexed-local-power-envelope",
+      "to": "def:classification-information-distance",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:positive-noise-realization",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:positive-noise-realization",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:positive-noise-realization",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:positive-noise-realization",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:sharp-target-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:sharp-target-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:sharp-target-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:sharp-target-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:subset-pivot-completeness",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:subset-pivot-completeness",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:subset-pivot-completeness",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:subset-pivot-completeness",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:honest-family-confidence",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:honest-family-confidence",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:honest-family-confidence",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:honest-family-confidence",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:consistency-above-boundary",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:consistency-above-boundary",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:consistency-above-boundary",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:consistency-above-boundary",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "prop:design-restriction-boundary",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "prop:design-restriction-boundary",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "prop:design-restriction-boundary",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "prop:design-restriction-boundary",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:impossibility-bounded-information",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:impossibility-bounded-information",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:impossibility-bounded-information",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:impossibility-bounded-information",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "prop:four-node-collision",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "prop:four-node-collision",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "prop:four-node-collision",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "prop:four-node-collision",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "prop:rank-one-reduction",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "prop:rank-one-reduction",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "prop:rank-one-reduction",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "prop:rank-one-reduction",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:geometry-indexed-local-power-envelope",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:geometry-indexed-local-power-envelope",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:geometry-indexed-local-power-envelope",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:geometry-indexed-local-power-envelope",
+      "source": "declared"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:acyclic-observed-system",
+      "to": "aux_CovShiftModel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:centered-gaussian-noises",
+      "to": "aux_CovShiftModel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:block-independent-noises",
+      "to": "aux_CovShiftModel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:stationary-latent-noise",
+      "to": "aux_CovShiftModel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:stationary-measurement-error",
+      "to": "aux_CovShiftModel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:positive-structural-noise",
+      "to": "aux_CovShiftModel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:positive-measurement-noise",
+      "to": "aux_CovShiftModel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:target-cardinality",
+      "to": "aux_CovShiftModel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:no-off-target-shifts",
+      "to": "aux_CovShiftModel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:nonnegative-variance-shifts",
+      "to": "aux_CovShiftModel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:reference-shifts-all-targets",
+      "to": "aux_CovShiftModel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:legal-scm-class",
+      "to": "aux_CovShiftModel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:legal-scm-class",
+      "to": "aux_AdmissibleDimension",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:legal-scm-class",
+      "to": "aux_AdmissibleEnvironmentCount",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:legal-scm-class",
+      "to": "ass:acyclic-observed-system",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:legal-scm-class",
+      "to": "ass:centered-gaussian-noises",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:legal-scm-class",
+      "to": "ass:block-independent-noises",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:legal-scm-class",
+      "to": "ass:stationary-latent-noise",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:legal-scm-class",
+      "to": "ass:stationary-measurement-error",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:legal-scm-class",
+      "to": "ass:positive-structural-noise",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:legal-scm-class",
+      "to": "ass:positive-measurement-noise",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:legal-scm-class",
+      "to": "ass:target-cardinality",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:legal-scm-class",
+      "to": "ass:no-off-target-shifts",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:legal-scm-class",
+      "to": "ass:nonnegative-variance-shifts",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:legal-scm-class",
+      "to": "ass:reference-shifts-all-targets",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:bounded-covariance-member",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:bounded-reference-rank",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:bounded-common-range",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:bounded-certificate-exists",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:bounded-covariance-class",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:bounded-covariance-class",
+      "to": "ass:bounded-covariance-member",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:bounded-covariance-class",
+      "to": "ass:bounded-reference-rank",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:bounded-covariance-class",
+      "to": "ass:bounded-common-range",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:bounded-covariance-class",
+      "to": "ass:bounded-certificate-exists",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:baseline-positive",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:reference-exact-rank",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:common-shift-range",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:ordered-ldl-certificate",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:causal-target-fiber",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:algebraic-target-fiber",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:complete-classification",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:range-reconstruction",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:range-reconstruction",
+      "to": "ass:reference-exact-rank",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:range-reconstruction",
+      "to": "aux_aggregateShift",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "baselineMinimumEigenvalue_smul_one_le",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "baselineMinimumEigenvalue_smul_one_le",
+      "to": "aux_AdmissibleDimension",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "baselineMinimumEigenvalue_smul_one_le",
+      "to": "ass:baseline-positive",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "completionRzero_posSemidef",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "completionRzero_posSemidef",
+      "to": "def:ordered-ldl-certificate",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "completionRzero_posSemidef",
+      "to": "aux_AdmissibleDimension",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "completionRzero_posSemidef",
+      "to": "ass:baseline-positive",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:positive-noise-completion",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:positive-noise-completion",
+      "to": "def:ordered-ldl-certificate",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:positive-noise-completion",
+      "to": "aux_AdmissibleDimension",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:positive-noise-completion",
+      "to": "ass:baseline-positive",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:positive-noise-completion",
+      "to": "aux_PositiveNoiseCompletionData",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:classification-information-distance",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:classification-information-distance",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:subset-pivot-recursion",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:subset-pivot-recursion",
+      "to": "aux_SubsetPivotState",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:power-envelope-handle",
+      "to": "aux_TangentGeometry",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:power-envelope-handle",
+      "to": "aux_AdmissibleProbabilityLevel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:power-envelope-handle",
+      "to": "aux_PowerEnvelopeHandle",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:independent-environment-samples",
+      "to": "aux_SamplingExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:independent-environment-samples",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:augmented-family-region",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:augmented-family-region",
+      "to": "aux_CovarianceStatistic",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:augmented-family-region",
+      "to": "aux_AdmissibleProbabilityLevel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:augmented-family-region",
+      "to": "aux_FixedCertifiedCAD",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:augmented-family-region",
+      "to": "aux_AugmentedFamilyRegion",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:certified-approximate-selector",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:certified-approximate-selector",
+      "to": "aux_FixedCertifiedCAD",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:certified-approximate-selector",
+      "to": "aux_CovarianceStatistic",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:certified-approximate-selector",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:measurable-certified-selection",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:measurable-certified-selection",
+      "to": "aux_FixedCertifiedCAD",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:measurable-certified-selection",
+      "to": "def:certified-approximate-selector",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:measurable-certified-selection",
+      "to": "aux_canonicalCADSelector",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:four-node-collision-path",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "aux_FixedCertifiedCAD",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "def:certified-approximate-selector",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "aux_canonicalCADSelector",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "aux_SamplingExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "aux_ThetaK",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "ass:independent-environment-samples",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "aux_weightedDistance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "aux_empiricalCovariance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "aux_covarianceCoordinates",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "def:augmented-family-region",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "aux_confidenceRadius",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "def:classification-information-distance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "aux_correctSingletonEvent",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:consistency-above-boundary",
+      "to": "aux_covarianceVarianceBound",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:design-restriction-boundary",
+      "to": "def:restriction-boundary-witnesses",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:design-restriction-boundary",
+      "to": "aux_CovShiftModel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:design-restriction-boundary",
+      "to": "ass:nonnegative-variance-shifts",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:design-restriction-boundary",
+      "to": "aux_Orders",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:design-restriction-boundary",
+      "to": "def:ordered-ldl-certificate",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:design-restriction-boundary",
+      "to": "aux_aggregateShift",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:design-restriction-boundary",
+      "to": "def:legal-scm-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:design-restriction-boundary",
+      "to": "aux_covarianceShift",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:design-restriction-boundary",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:four-node-collision",
+      "to": "def:causal-target-fiber",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:four-node-collision",
+      "to": "def:four-node-collision-path",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:four-node-collision",
+      "to": "def:complete-classification",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:four-node-collision",
+      "to": "aux_ThetaK",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:four-node-collision",
+      "to": "def:classification-information-distance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:geometry-indexed-local-power-envelope",
+      "to": "aux_nearestOppositeDistance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:geometry-indexed-local-power-envelope",
+      "to": "aux_oneSidedGeometry",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:geometry-indexed-local-power-envelope",
+      "to": "aux_twoSidedGeometry",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:geometry-indexed-local-power-envelope",
+      "to": "aux_gaussianPowerSupremum",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-family-confidence",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-family-confidence",
+      "to": "aux_FixedCertifiedCAD",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-family-confidence",
+      "to": "def:certified-approximate-selector",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-family-confidence",
+      "to": "aux_canonicalCADSelector",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-family-confidence",
+      "to": "aux_SamplingExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-family-confidence",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-family-confidence",
+      "to": "aux_ThetaK",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-family-confidence",
+      "to": "ass:independent-environment-samples",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-family-confidence",
+      "to": "aux_familyCoverageEvent",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-family-confidence",
+      "to": "def:augmented-family-region",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-family-confidence",
+      "to": "aux_empiricalCovariance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:honest-family-confidence",
+      "to": "aux_incorrectSingletonEvent",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:impossibility-bounded-information",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:impossibility-bounded-information",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:impossibility-bounded-information",
+      "to": "aux_ObservedSampleArray",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:impossibility-bounded-information",
+      "to": "aux_ClassificationRule",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:impossibility-bounded-information",
+      "to": "aux_IsMeasurableClassificationRule",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:impossibility-bounded-information",
+      "to": "aux_ThetaK",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:impossibility-bounded-information",
+      "to": "ass:independent-environment-samples",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:impossibility-bounded-information",
+      "to": "aux_observedSampleExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:impossibility-bounded-information",
+      "to": "aux_ruleIncorrectEvent",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:impossibility-bounded-information",
+      "to": "def:classification-information-distance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:impossibility-bounded-information",
+      "to": "aux_ruleCorrectEvent",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:positive-noise-realization",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:positive-noise-realization",
+      "to": "ass:baseline-positive",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:positive-noise-realization",
+      "to": "ass:reference-exact-rank",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:positive-noise-realization",
+      "to": "ass:common-shift-range",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:positive-noise-realization",
+      "to": "def:ordered-ldl-certificate",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:positive-noise-realization",
+      "to": "aux_CovShiftModel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:positive-noise-realization",
+      "to": "def:legal-scm-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:positive-noise-realization",
+      "to": "aux_CompletionRealizes",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:positive-noise-realization",
+      "to": "def:positive-noise-completion",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:positive-noise-realization",
+      "to": "ass:positive-structural-noise",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:positive-noise-realization",
+      "to": "ass:positive-measurement-noise",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:rank-one-reduction",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:rank-one-reduction",
+      "to": "def:causal-target-fiber",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:rank-one-reduction",
+      "to": "aux_aggregateShift",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-target-fiber",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-target-fiber",
+      "to": "ass:baseline-positive",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-target-fiber",
+      "to": "ass:reference-exact-rank",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-target-fiber",
+      "to": "ass:common-shift-range",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-target-fiber",
+      "to": "aux_CovShiftModel",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-target-fiber",
+      "to": "def:legal-scm-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-target-fiber",
+      "to": "ass:nonnegative-variance-shifts",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-target-fiber",
+      "to": "def:causal-target-fiber",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-target-fiber",
+      "to": "def:algebraic-target-fiber",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "aux_CovarianceTuple",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "ass:baseline-positive",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "ass:reference-exact-rank",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "ass:common-shift-range",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "def:subset-pivot-recursion",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "aux_covarianceShift",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "def:algebraic-target-fiber",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "def:causal-target-fiber",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "aux_leafIntersection",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "aux_compulsoryLabels",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "aux_leafUnion",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:subset-pivot-completeness",
+      "to": "aux_possibleLabels",
+      "source": "extracted"
+    }
+  ],
+  "symbolReview": {
+    "sym:d": {
+      "verdict": "matched",
+      "hash": "56b6e47dcf657572874ecf1b8169e6061ca9b403"
+    },
+    "sym:E": {
+      "verdict": "matched",
+      "hash": "1e34360fb668adecca79755099c364db92fb898f"
+    },
+    "sym:r": {
+      "verdict": "matched",
+      "hash": "5744fcb942945f6f53fc2e5f903da1b75bb07569"
+    },
+    "sym:V": {
+      "verdict": "matched",
+      "hash": "df19a685da0d10d57e0afb359a36816988415570"
+    },
+    "sym:Env": {
+      "verdict": "matched",
+      "hash": "fecb0ca35ccadd4bbc765a58b88e4c8bde347a06"
+    },
+    "sym:tau": {
+      "verdict": "matched",
+      "hash": "be14ec0b6024cfbba48ab0a9c506a06688123aba"
+    },
+    "sym:m": {
+      "verdict": "matched",
+      "hash": "29e726db0d07d7e78b5e07f2539db256adf3c19a"
+    },
+    "sym:alpha": {
+      "verdict": "matched",
+      "hash": "dd2ce1689aec4a21026280ed155d7f2306dcd27d"
+    },
+    "sym:epsilon": {
+      "verdict": "matched",
+      "hash": "b8f0413d1d12feb49ebfd35237765d655cd411f9"
+    },
+    "sym:deltan": {
+      "verdict": "matched",
+      "hash": "1d168cccff737cc6557e91c35a76e8f79e39e5dc"
+    },
+    "sym:gamma": {
+      "verdict": "matched",
+      "hash": "e6224b13a461479ee79a6e50499da4efefbc561d"
+    },
+    "sym:clocal": {
+      "verdict": "matched",
+      "hash": "4589e0712cf31556b0baa75a1400a1a3209caebe"
+    },
+    "sym:Cbound": {
+      "verdict": "matched",
+      "hash": "97544fad540409c6699e74eac201f6a6d9c979a1"
+    },
+    "sym:xrad": {
+      "verdict": "matched",
+      "hash": "5877930cbb90a12447dae8639c10192757e09d52"
+    }
+  }
+}

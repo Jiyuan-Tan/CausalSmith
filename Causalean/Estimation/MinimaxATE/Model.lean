@@ -47,31 +47,20 @@ import Mathlib.MeasureTheory.Constructions.Pi
 import Mathlib.MeasureTheory.Measure.Real
 import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
-/-! # Finite Observed-Data Model
+/-! # Finite observed-data model for ATE estimation
 
-This file defines the finite observed-data experiment used for structure-agnostic ATE estimation.
-The covariate space is an arbitrary finite type `C`, treatment and outcome are binary, and one
-observation is `Obs C = C × Bool × Bool`.
-
-Main declarations:
-
-* `ValidDGP`, `obsReal`, `obsPMF`, and `obsLaw` build a valid data-generating process and its
-  single-observation law, with `obsReal_sum`, `obsReal_nonneg`, and `obsLaw_isProb` recording the
-  finite probability facts.
-* `ate` and `l2sq` define the average treatment effect and squared `L²(P_X)` nuisance distance.
-* `InClass` and `InClassDGP` package the structure-agnostic nuisance class around fixed estimates.
-* `productLaw`, `nMiss`, `nMSE`, and `minimaxMiss` define the sample law, miss probability,
-  expected squared error, and worst-case-over-class miss probability.
-* `nMiss_sq_le_nMSE` connects probability-of-miss lower bounds to mean-squared-error lower
-  bounds, and `nMiss_le_minimaxMiss` embeds an in-class DGP's miss probability into the minimax
-  supremum. -/
+This file supplies the finite observed-data experiment used for structure-agnostic estimation of
+the average treatment effect: a finite covariate, binary treatment, and binary outcome. It defines
+the data laws, nuisance class, sample risks, and minimax miss probability used by the lower-bound
+construction. -/
 
 namespace Causalean.Estimation.MinimaxATE
 
 open MeasureTheory
 open scoped ENNReal BigOperators
 
-/-- One observation: covariate `X : C`, treatment `D : Bool`, outcome `Y : Bool`. -/
+/-- For [a covariate space](hyp:C), [one observed data record](goal) consists of a covariate
+value, a binary treatment indicator, and a binary outcome indicator. -/
 abbrev Obs (C : Type*) := C × Bool × Bool
 
 variable {C : Type*} [Fintype C]
@@ -83,8 +72,10 @@ structure ValidDGP (m : C → ℝ) (g : Bool → C → ℝ) : Prop where
   m_mem : ∀ x, m x ∈ Set.Icc (0 : ℝ) 1
   g_mem : ∀ d x, g d x ∈ Set.Icc (0 : ℝ) 1
 
-/-- The real-valued mass the DGP `(m, g)` assigns to the observation `z = (x, d, y)`:
-`(1/card C) · P(D = d | x) · P(Y = y | d, x)`. -/
+/-- For [a finite covariate space](hyp:C), [a propensity function](hyp:m), [an
+outcome-regression function for binary treatment](hyp:g), and [an observed record](hyp:z), [the
+record’s real-valued probability mass](goal) is the uniform covariate mass times the conditional
+treatment probability times the conditional outcome probability. -/
 noncomputable def obsReal (m : C → ℝ) (g : Bool → C → ℝ) (z : Obs C) : ℝ :=
   (Fintype.card C : ℝ)⁻¹ * (if z.2.1 then m z.1 else 1 - m z.1)
     * (if z.2.2 then g z.2.1 z.1 else 1 - g z.2.1 z.1)
@@ -114,7 +105,10 @@ theorem obsReal_nonneg {m : C → ℝ} {g : Bool → C → ℝ}
   · obtain ⟨hg0, hg1⟩ := hv.g_mem z.2.1 z.1
     rcases z.2.2 with _ | _ <;> simp <;> linarith
 
-/-- The single-observation law of the DGP `(m, g)` as a probability `PMF`. -/
+/-- For [a finite nonempty covariate space](hyp:C), [a propensity function](hyp:m),
+[an outcome-regression function](hyp:g), and [evidence that these functions define valid
+probabilities](hyp:hv), [the single-observation probability mass function](goal) assigns each
+record its nonnegative real-valued mass. -/
 noncomputable def obsPMF [Nonempty C] {m : C → ℝ} {g : Bool → C → ℝ}
     (hv : ValidDGP m g) : PMF (Obs C) :=
   PMF.ofFintype (fun z => ENNReal.ofReal (obsReal m g z)) <| by
@@ -123,23 +117,30 @@ noncomputable def obsPMF [Nonempty C] {m : C → ℝ} {g : Bool → C → ℝ}
 
 variable [MeasurableSpace C]
 
-/-- The single-observation law of the DGP `(m, g)` as a probability `Measure`. -/
+/-- For [a finite nonempty covariate space with a measurable structure](hyp:C),
+[a propensity function](hyp:m), [an outcome-regression function](hyp:g), and [evidence that
+these functions define valid probabilities](hyp:hv), [the single-observation probability
+measure](goal) is the measure associated with the corresponding finite probability mass function. -/
 noncomputable def obsLaw [Nonempty C] {m : C → ℝ} {g : Bool → C → ℝ}
     (hv : ValidDGP m g) : Measure (Obs C) :=
   (obsPMF hv).toMeasure
 
-/-- The single-observation law of any valid data-generating process is a probability measure. -/
+/-- For every [finite, nonempty covariate space equipped with a $\sigma$-algebra](hyp:C), [propensity function $m$](hyp:m), [binary-treatment outcome-regression function $g$](hyp:g), and [evidence that these functions constitute a valid data-generating process](hyp:hv), [the corresponding single-observation law](goal) is [a probability measure](step:1).
+
+The single-observation law of any valid data-generating process is a probability measure. -/
 instance obsLaw_isProb [Nonempty C] {m : C → ℝ} {g : Bool → C → ℝ}
     (hv : ValidDGP m g) : IsProbabilityMeasure (obsLaw hv) := by
   unfold obsLaw; infer_instance
 
-/-- The average treatment effect `(1/card C) Σ_x (g true x − g false x)`.  Depends only
-on the outcome regression `g`. -/
+/-- For [a finite covariate space](hyp:C) and [an outcome-regression function for binary
+treatment](hyp:g), [the average treatment effect](goal) is the uniform average over covariate
+values of the treated-arm regression minus the control-arm regression. -/
 noncomputable def ate (g : Bool → C → ℝ) : ℝ :=
   (Fintype.card C : ℝ)⁻¹ * ∑ x, (g true x - g false x)
 
-/-- The squared `L²(P_X)` distance `(1/card C) Σ_x (a x − b x)²` between two functions of
-the covariate. -/
+/-- For [a finite covariate space](hyp:C), [a first real-valued covariate function](hyp:a),
+and [a second real-valued covariate function](hyp:b), [the squared uniform $L^2$ distance](goal)
+is the uniform average of their squared pointwise difference. -/
 noncomputable def l2sq (a b : C → ℝ) : ℝ :=
   (Fintype.card C : ℝ)⁻¹ * ∑ x, (a x - b x) ^ 2
 
@@ -155,29 +156,47 @@ structure InClass (mhat : C → ℝ) (ghat : Bool → C → ℝ) (εg εm : ℝ)
   err_g : ∀ d, l2sq (g d) (ghat d) ≤ εg
   err_m : l2sq m mhat ≤ εm
 
-/-- A DGP packaged with a proof that it lies in the class `ℱ(εg, εm)`. -/
+/-- For [a finite covariate space](hyp:C), [a reference propensity function](hyp:mhat), [a
+reference outcome-regression function](hyp:ghat), [an outcome-regression error budget](hyp:εg),
+and [a propensity error budget](hyp:εm), [an in-class data-generating process](goal) is a pair
+of propensity and outcome-regression functions together with evidence that the pair belongs to
+the corresponding nuisance class. -/
 def InClassDGP (mhat : C → ℝ) (ghat : Bool → C → ℝ) (εg εm : ℝ) : Type _ :=
   { p : (C → ℝ) × (Bool → C → ℝ) // InClass mhat ghat εg εm p.1 p.2 }
 
-/-- The `n`-sample data law: the product `Measure.pi` of `n` independent copies of
-the single-observation law. -/
+/-- For [a finite nonempty covariate space with a measurable structure](hyp:C),
+[a propensity function](hyp:m), [an outcome-regression function](hyp:g), [evidence that the
+functions define valid probabilities](hyp:hv), and [a nonnegative sample size](hyp:n), [the
+sample probability law](goal) is the joint law of that many independent observations from the
+single-observation law. -/
 noncomputable def productLaw [Nonempty C] {m : C → ℝ} {g : Bool → C → ℝ}
     (hv : ValidDGP m g) (n : ℕ) : Measure (Fin n → Obs C) :=
   Measure.pi (fun _ => obsLaw hv)
 
-/-- The independent sample law of any valid data-generating process is a probability measure. -/
+/-- For every [finite, nonempty covariate space equipped with a $\sigma$-algebra](hyp:C), [propensity function $m$](hyp:m), [binary-treatment outcome-regression function $g$](hyp:g), [evidence that these functions constitute a valid data-generating process](hyp:hv), and [sample size $n$](hyp:n), [the corresponding independent-sample law](goal) is [a probability measure](step:1).
+
+The independent sample law of any valid data-generating process is a probability measure. -/
 instance productLaw_isProb [Nonempty C] {m : C → ℝ} {g : Bool → C → ℝ}
     (hv : ValidDGP m g) (n : ℕ) : IsProbabilityMeasure (productLaw hv n) := by
   unfold productLaw; infer_instance
 
-/-- The probability that the estimator `est`, run on `n` samples from the DGP
-`(m, g)`, **misses** the true ATE `ate g` by at least `s`. -/
+/-- For [a finite nonempty covariate space with a measurable structure](hyp:C),
+[a propensity function](hyp:m), [an outcome-regression function](hyp:g), [evidence that the
+functions define valid probabilities](hyp:hv), [a nonnegative sample size](hyp:n), [an estimator
+based on that sample](hyp:est), and [a real-valued threshold](hyp:s), [the miss probability](goal)
+is the probability that the estimator differs from the true average treatment effect by at least
+the threshold. -/
 noncomputable def nMiss [Nonempty C] {m : C → ℝ} {g : Bool → C → ℝ}
     (hv : ValidDGP m g) (n : ℕ) (est : (Fin n → Obs C) → ℝ) (s : ℝ) : ℝ :=
   (productLaw hv n).real {x | s ≤ |est x - ate g|}
 
-/-- The **mean-squared error** of `est` on `n` samples from the DGP `(m, g)`: the
-expected squared deviation from the true ATE `ate g`.  This is the expected-risk
+/-- For [a finite nonempty covariate space with a measurable structure](hyp:C),
+[a propensity function](hyp:m), [an outcome-regression function](hyp:g), [evidence that the
+functions define valid probabilities](hyp:hv), [a nonnegative sample size](hyp:n), and [an
+estimator based on that sample](hyp:est), [the mean-squared error](goal) is the expected squared
+deviation of the estimator from the true average treatment effect.
+
+This is the expected-risk
 functional whose minimax lower bound the paper (Jin–Syrgkanis 2024, eq. for
 `𝔐ⁿ,γ`) deduces — as the weaker `(1−γ)`-factor consequence — from the quantile
 (probability-of-miss) form. -/
@@ -207,10 +226,16 @@ theorem nMiss_sq_le_nMSE [Nonempty C] [MeasurableSingletonClass C]
   exact mul_meas_ge_le_integral_of_nonneg
     (Filter.Eventually.of_forall fun x => sq_nonneg _) Integrable.of_finite (s ^ 2)
 
-/-- **Minimax (worst-case-over-class) miss probability.**  The supremum over all
-in-class DGPs of the probability that `est` misses that DGP's true ATE by `s`.
-A lower bound on this quantity is a minimax lower bound: no estimator can be
-within `s` of the truth with high probability uniformly over the class. -/
+/-- For [a finite nonempty covariate space with a measurable structure](hyp:C),
+[a reference propensity function](hyp:mhat), [a reference outcome-regression function](hyp:ghat),
+[an outcome-regression error budget](hyp:εg), [a propensity error budget](hyp:εm), [a nonnegative
+sample size](hyp:n), [an estimator based on that sample](hyp:est), and [a real-valued threshold](hyp:s),
+[the minimax miss probability](goal) is the supremum, over all data-generating processes in the
+specified nuisance class, of the probability that the estimator differs from that process’s true
+average treatment effect by at least the threshold.
+
+A lower bound on this quantity is a minimax lower bound: no estimator can be within the threshold
+of the truth with high probability uniformly over the class. -/
 noncomputable def minimaxMiss [Nonempty C] (mhat : C → ℝ) (ghat : Bool → C → ℝ)
     (εg εm : ℝ) (n : ℕ) (est : (Fin n → Obs C) → ℝ) (s : ℝ) : ℝ :=
   ⨆ p : InClassDGP mhat ghat εg εm, nMiss p.2.valid n est s

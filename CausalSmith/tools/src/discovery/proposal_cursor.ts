@@ -18,6 +18,9 @@ import { loadState, saveState } from "../state.js";
 import { proposalTexPath } from "../paths.js";
 import { NEG1_PIVOT_BUDGET } from "./stages/neg1_2.js";
 import { readRepairedModelJson } from "./core/core_io.js";
+import { CoreSchema } from "./core/schema.js";
+import { runGates } from "./framework/gates.js";
+import { proposalGate } from "./framework/gate_registrations.js";
 
 export type ProposalMode = "cold-start" | "revise" | "pivot" | "kernel-replace" | "draft-rebuild";
 
@@ -180,6 +183,29 @@ export async function resetProposalCursor(
         cursorVersion: pf.current_version,
       });
 
+  // --no-restore means the canonical core itself is the requested reset base.
+  // Prove that before changing any in-memory state: otherwise the command can
+  // report success while leaving a core stamped for another angle/version, and
+  // the next resume must either reject it or silently discard the reset.
+  let retainedProtoCore: string | null = null;
+  if (!freshAngle && options.restoreArchived === false) {
+    retainedProtoCore = path.join(
+      path.dirname(proposalTexPath(repoRoot, qid, specialization)),
+      "proto_core.json",
+    );
+    let raw: Record<string, unknown>;
+    try {
+      raw = (await readRepairedModelJson(retainedProtoCore)) as Record<string, unknown>;
+      CoreSchema.parse(raw);
+      if (runGates([proposalGate], raw).hard.length > 0) throw new Error("proposal gates failed");
+    } catch (err) {
+      throw new Error(
+        `[reset_proposal_cursor] --no-restore requires a valid canonical proto_core.json ` +
+          `(${err instanceof Error ? err.message : String(err)}). Nothing was written.`,
+      );
+    }
+  }
+
   const clearedVerdict = pf.final_verdict;
   // Clear the angle checkpoint on EVERY reset, not only `--fresh-angle`.
   //
@@ -204,6 +230,7 @@ export async function resetProposalCursor(
   pf.last_draft_status = "completed";
   pf.last_draft_version = undefined;
   delete pf.last_draft_handoff;
+  if (retainedProtoCore) pf.proposal_path = retainedProtoCore;
 
   if (freshAngle) {
     // Return to the durable D-1.1 boundary. `state.gaps` and gaps.json are

@@ -88,27 +88,24 @@ structure FinitePartition (𝒢 : Type*) [Fintype 𝒢] where
 
 namespace FinitePartition
 
-/-- Within-cell treatment variance `p_g (1 − p_g)`. -/
+/-- For [a finite covariate partition](hyp:P) and [one of its cells](hyp:g), the [within-cell treatment overlap](goal) is $p_g(1-p_g)$, where $p_g$ is that cell's treated share. -/
 def cellOverlap {𝒢 : Type*} [Fintype 𝒢] (P : FinitePartition 𝒢) (g : 𝒢) : ℝ :=
   P.p g * (1 - P.p g)
 
-/-- Numerator `Σ_g π_g · p_g (1−p_g) · τ_g` of the saturated-OLS estimand
-in finite-cell form. -/
+/-- For [a finite covariate partition](hyp:P), the [overlap-weighted numerator](goal) is $\sum_g \pi_g p_g(1-p_g)\tau_g$, the sum of each cell effect weighted by its probability and treatment overlap. -/
 def overlapNumerator {𝒢 : Type*} [Fintype 𝒢] (P : FinitePartition 𝒢) : ℝ :=
   ∑ g, P.π g * P.cellOverlap g * P.τ g
 
-/-- Denominator `Σ_g π_g · p_g (1−p_g)` of the saturated-OLS estimand
-in finite-cell form. Positive by `overlap_pos`. -/
+/-- For [a finite covariate partition](hyp:P), the [overlap-weighted denominator](goal) is $\sum_g \pi_g p_g(1-p_g)$, the probability-weighted sum of within-cell treatment overlap. -/
 def overlapDenominator {𝒢 : Type*} [Fintype 𝒢] (P : FinitePartition 𝒢) : ℝ :=
   ∑ g, P.π g * P.cellOverlap g
 
-/-- Normalized weight `ω_g = π_g p_g (1−p_g) / Σ_h π_h p_h (1−p_h)`. -/
+/-- For [a finite covariate partition](hyp:P) and [one of its cells](hyp:g), the [normalized overlap weight](goal) is $\pi_g p_g(1-p_g)/\sum_h\pi_h p_h(1-p_h)$. -/
 noncomputable def overlapWeight {𝒢 : Type*} [Fintype 𝒢]
     (P : FinitePartition 𝒢) (g : 𝒢) : ℝ :=
   (P.π g * P.cellOverlap g) / P.overlapDenominator
 
-/-- Saturated-OLS estimand in finite-cell form,
-`β_sat = (Σ π·p(1−p)·τ) / (Σ π·p(1−p))`. -/
+/-- For [a finite covariate partition](hyp:P), the [saturated ordinary-least-squares estimand](goal) is $\sum_g\pi_g p_g(1-p_g)\tau_g / \sum_g\pi_g p_g(1-p_g)$. -/
 noncomputable def overlapWeightedATE {𝒢 : Type*} [Fintype 𝒢]
     (P : FinitePartition 𝒢) : ℝ :=
   P.overlapNumerator / P.overlapDenominator
@@ -178,7 +175,7 @@ theorem homogeneous_collapses
     rw [h g]; ring
   rw [overlapWeightedATE, hnum, mul_div_assoc, div_self hD, mul_one]
 
-/-- **Per-treated-observation leverage factor** in cell `g`.
+/-- For [a finite covariate partition](hyp:P) and [one of its cells](hyp:g), the [per-treated-observation leverage factor](goal) is $1-p_g$, the untreated share in that cell.
 
 The paper (Słoczyński 2022, Remark `rem:po-estimand-sloczynski-ols-group-size`)
 notes that in the overlap-weighted OLS formula each treated observation in
@@ -190,7 +187,7 @@ This definition makes the first factor explicit; see
 noncomputable def perTreatedWeight {𝒢 : Type*} [Fintype 𝒢]
     (P : FinitePartition 𝒢) (g : 𝒢) : ℝ := 1 - P.p g
 
-/-- **Per-untreated-observation leverage factor** in cell `g`.
+/-- For [a finite covariate partition](hyp:P) and [one of its cells](hyp:g), the [per-untreated-observation leverage factor](goal) is $p_g$, the treated share in that cell.
 
 Each untreated observation in cell `g` contributes a leverage factor of
 `p_g` (the treated share). Cells with more treated units (high `p_g`) give
@@ -302,8 +299,7 @@ structure OppositeGroupRepr where
 
 namespace OppositeGroupRepr
 
-/-- ATE expressed as `ρ τ_ATT + (1−ρ) τ_ATU`
-(`def:po-estimand-sloczynski-ols-att-atu`). -/
+/-- For [an opposite-group representation](hyp:R), the [average treatment effect](goal) is $\rho\tau_{ATT}+(1-\rho)\tau_{ATU}$, the treated-share-weighted average of the effects on treated and untreated groups. -/
 def tau_ATE (R : OppositeGroupRepr) : ℝ := R.ρ * R.τ_ATT + (1 - R.ρ) * R.τ_ATU
 
 variable (R : OppositeGroupRepr)

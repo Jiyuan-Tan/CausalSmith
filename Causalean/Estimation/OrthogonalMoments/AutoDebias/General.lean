@@ -125,14 +125,25 @@ structure AutoDebiasRepresenter (S : RegNuisanceMomentSys) where
   α₀_integrable : Integrable α₀ S.P_X
   representation : ∀ ν : S.H, S.D_g_M ν = ∫ x, α₀ x * S.γ_target ν x ∂S.P_X
 
-/-- **Automatically debiased score** (observation-level form):
+/-- For a [regression-nuisance moment system](hyp:S), a [regression nuisance
+function](hyp:g), a [candidate representer on the covariate space](hyp:α), a [scalar target
+value](hyp:θ), and an [observation](hyp:z), the [automatically debiased score](goal) is the
+baseline moment contribution plus the candidate representer evaluated at the observation's
+covariates times the observed-outcome residual from the regression target.
+
+**Automatically debiased score** (observation-level form):
 
   `m(g, z, θ) + α(proj_X z) · (Y_obs z − γ_target g (proj_X z))`. -/
 noncomputable def autoDebiasedScore (S : RegNuisanceMomentSys)
     (g : S.H) (α : S.X → ℝ) (θ : ℝ) (z : S.Z) : ℝ :=
   S.m g z θ + α (S.proj_X z) * (S.Y_obs z - S.γ_target g (S.proj_X z))
 
-/-- **Automatically debiased moment** (population form):
+/-- For a [regression-nuisance moment system](hyp:S), a [regression nuisance
+function](hyp:g), a [candidate representer on the covariate space](hyp:α), and a [scalar
+target value](hyp:θ), the [automatically debiased population moment](goal) is the expectation
+of the automatically debiased score under the system's observation distribution.
+
+**Automatically debiased moment** (population form):
 
   `∫ z, autoDebiasedScore S g α θ z ∂P_Z`,
 
@@ -187,7 +198,12 @@ theorem autoDebiasedMoment_directional_α_zero (S : RegNuisanceMomentSys)
     ∫ z, ν_α (S.proj_X z) * (S.Y_obs z - S.γ_target S.g₀ (S.proj_X z)) ∂S.P_Z = 0 := by
   exact S.regression_resid_orthog ν_α hν_α_meas h_int
 
-/-- **General Riesz loss.**
+/-- For a [regression-nuisance moment system](hyp:S) and a [candidate regression function in
+its nuisance class](hyp:α), the [general Riesz loss](goal) is the covariate-distribution mean
+of the squared regression target of that function minus twice the directional derivative of the
+population moment in that function's direction.
+
+**General Riesz loss.**
 
 The loss is `L_M(α) := ∫ (γ_target α x)² dP_X − 2 · D_g_M α`.
 
@@ -198,7 +214,16 @@ instances. -/
 noncomputable def genRieszLoss (S : RegNuisanceMomentSys) (α : S.H) : ℝ :=
   ∫ x, (S.γ_target α x) ^ 2 ∂S.P_X - 2 * S.D_g_M α
 
-/-- **Finite-difference representer loss.**
+/-- For a [regression-nuisance moment system](hyp:S), a [sample-indexed auxiliary sample
+space](hyp:Ω), [observation-valued sample data](hyp:Z_data), [sample-indexed target
+estimates](hyp:θ_hat), [sample-indexed nuisance estimates](hyp:g_hat), [finite-difference
+scales](hyp:ε), a [candidate nuisance-direction function](hyp:α), [sample-index sets](hyp:C),
+a [sample size](hyp:n), and a [realized auxiliary sample point](hyp:ω), the
+[finite-difference representer loss](goal) is the empirical second moment of the candidate's
+regression target on the specified index set minus twice the centered finite-difference
+approximation to the moment's nuisance derivative at the corresponding estimates.
+
+**Finite-difference representer loss.**
 
 Pure-empirical analogue of `genRieszLoss`, intended as the loss minimised
 by Chernozhukov–Newey–Singh "RieszNet"-type estimators. The first term is

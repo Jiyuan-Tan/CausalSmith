@@ -273,4 +273,102 @@ describe("runStage0RCore (D0.R provisional core-only editor)", () => {
     const restored = JSON.parse(await readFile(coreJsonPath(ctx), "utf8"));
     expect(restored.assumptions.some((a: any) => a.id === deletedId)).toBe(true);
   });
+
+  it("restores the whole core when D0.R deletes an accepted statement outside the finding dependency closure", async () => {
+    const ctx = makeCtx(repoRoot);
+    await seed(ctx);
+    const unauthorized = JSON.parse(goldenCore) as Core;
+    const deletedId = "thm:upper";
+    unauthorized.statements = unauthorized.statements.filter((s) => s.id !== deletedId);
+
+    const res = await runStage0RCore({
+      ctx,
+      state: makeState(),
+      deps: makeDeps(JSON.stringify(unauthorized)),
+      review,
+    });
+
+    expect(res.escalate?.reason).toMatch(/outside the reported finding dependency closure/i);
+    const restored = JSON.parse(await readFile(coreJsonPath(ctx), "utf8"));
+    expect(restored.statements.some((s: any) => s.id === deletedId)).toBe(true);
+  });
+
+  it("restores the whole core when D0.R replaces an out-of-closure accepted statement under the same id", async () => {
+    const ctx = makeCtx(repoRoot);
+    await seed(ctx);
+    const unauthorized = JSON.parse(goldenCore) as Core;
+    const upper = unauthorized.statements.find((s) => s.id === "thm:upper")!;
+    upper.proof_tex = "A replacement proof outside the directed scope.";
+
+    const res = await runStage0RCore({
+      ctx,
+      state: makeState(),
+      deps: makeDeps(JSON.stringify(unauthorized)),
+      review,
+    });
+
+    expect(res.escalate?.reason).toMatch(/changed or deleted statement node.*thm:upper/i);
+    const restored = JSON.parse(await readFile(coreJsonPath(ctx), "utf8")) as Core;
+    expect(restored.statements.find((s) => s.id === "thm:upper")?.proof_tex).not.toBe(
+      "A replacement proof outside the directed scope.",
+    );
+  });
+
+  it("restores the whole core when D0.R deletes the protected finding target", async () => {
+    const ctx = makeCtx(repoRoot);
+    await seed(ctx);
+    const unauthorized = JSON.parse(goldenCore) as Core;
+    unauthorized.statements = unauthorized.statements.filter((s) => s.id !== "thm:lower");
+
+    const res = await runStage0RCore({
+      ctx,
+      state: makeState(),
+      deps: makeDeps(JSON.stringify(unauthorized)),
+      review,
+    });
+
+    expect(res.escalate?.reason).toMatch(/changed or deleted protected statement text.*thm:lower/i);
+    const restored = JSON.parse(await readFile(coreJsonPath(ctx), "utf8")) as Core;
+    expect(restored.statements.some((s) => s.id === "thm:lower")).toBe(true);
+  });
+
+  it("restores the whole core when D0.R changes the protected finding target kind", async () => {
+    const ctx = makeCtx(repoRoot);
+    await seed(ctx);
+    const unauthorized = JSON.parse(goldenCore) as Core;
+    const lower = unauthorized.statements.find((s) => s.id === "thm:lower")!;
+    lower.kind = "openendedquestion";
+
+    const res = await runStage0RCore({
+      ctx,
+      state: makeState(),
+      deps: makeDeps(JSON.stringify(unauthorized)),
+      review,
+    });
+
+    expect(res.escalate?.reason).toMatch(/changed or deleted protected statement text.*thm:lower/i);
+    const restored = JSON.parse(await readFile(coreJsonPath(ctx), "utf8")) as Core;
+    expect(restored.statements.find((s) => s.id === "thm:lower")?.kind).toBe("theorem");
+  });
+
+  it("protects a legacy claim-prefix node even when its pre-edit kind is openendedquestion", async () => {
+    const ctx = makeCtx(repoRoot);
+    const legacy = JSON.parse(goldenCore) as Core;
+    const lower = legacy.statements.find((s) => s.id === "thm:lower")!;
+    lower.kind = "openendedquestion";
+    await writeFile(coreJsonPath(ctx), JSON.stringify(legacy), "utf8");
+    const unauthorized = structuredClone(legacy);
+    unauthorized.statements.find((s) => s.id === "thm:lower")!.statement = "A substituted legacy claim.";
+
+    const res = await runStage0RCore({
+      ctx,
+      state: makeState(),
+      deps: makeDeps(JSON.stringify(unauthorized)),
+      review,
+    });
+
+    expect(res.escalate?.reason).toMatch(/changed or deleted protected statement text.*thm:lower/i);
+    const restored = JSON.parse(await readFile(coreJsonPath(ctx), "utf8")) as Core;
+    expect(restored.statements.find((s) => s.id === "thm:lower")?.statement).toBe(lower.statement);
+  });
 });

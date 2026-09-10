@@ -62,8 +62,8 @@ variable {Ω : N → Type uΩ} [∀ n, MeasurableSpace (Ω n)]
 -- § 1. Observed-node index type for the induced PO system
 -- ============================================================
 
-/-- The observed-node index set of the induced potential-outcome system consists
-of all random observed nodes of the structural model.
+/-- Given [a structural causal model](hyp:M), the [observed-node index set](goal) consists of all random observed nodes of that model.
+
 
 The PO system induced by a gSCM has one variable per observed random node,
 including nodes whose fixed counterpart is already part of the structural
@@ -71,28 +71,29 @@ model's background fixed set. Implements def:po-from-scm. -/
 abbrev ObsIdx (M : Causalean.SCM N Ω) :=
   {v : SWIGNode N // v ∈ M.observed}
 
-/-- Every observed random node is an index of the potential-outcome system induced by an SCM. -/
+/-- Given [a structural causal model](hyp:M), [a node name](hyp:n), and [evidence that its random node is observed](hyp:h), the [corresponding observed-node index](goal) is that observed random node viewed as an index of the induced potential-outcome system. -/
 def obsIdx_mk_random (M : Causalean.SCM N Ω) (n : N)
     (h : SWIGNode.random n ∈ M.observed) : ObsIdx M :=
   ⟨SWIGNode.random n, h⟩
 
-/-- The value space of an observed-node index in the induced potential-outcome
+/-- Given [a structural causal model](hyp:M) and [an observed-node index](hyp:v), the [associated observed value space](goal) is the structural-model value space attached to that node.
+
+The value space of an observed-node index in the induced potential-outcome
 system is the structural-model value space attached to that observed node.
 
 Each observed node carries its SWIG value space `swigΩ Ω v.val`. Implements
 def:po-from-scm. -/
 abbrev obsValue (M : Causalean.SCM N Ω) (v : ObsIdx M) : Type uΩ := swigΩ Ω v.val
 
-/-- The observed-node indices of an induced potential-outcome system form a finite type. -/
+/-- For [a finite collection of node names with decidable equality](hyp:N), [measurable value spaces indexed by those names](hyp:Ω), and [a structural causal model](hyp:M), the [collection of observed-node indices in its induced potential-outcome system is finite](goal). [Its finiteness follows from the model's finite node collection](step:1). -/
 instance instFintypeObsIdx (M : Causalean.SCM N Ω) : Fintype (ObsIdx M) :=
   inferInstance
 
-/-- Observed-node indices of an induced potential-outcome system have decidable equality. -/
+/-- For [a finite collection of node names with decidable equality](hyp:N), [measurable value spaces indexed by those names](hyp:Ω), and [a structural causal model](hyp:M), [equality between observed-node indices in its induced potential-outcome system can be decided](goal). [The decision follows from equality of the underlying nodes](step:1). -/
 instance instDecidableEqObsIdx (M : Causalean.SCM N Ω) : DecidableEq (ObsIdx M) :=
   inferInstance
 
-/-- The value space attached to each observed-node index has the measurable
-structure inherited from the structural model. -/
+/-- For [a finite collection of node names with decidable equality](hyp:N), [measurable value spaces indexed by those names](hyp:Ω), [a structural causal model](hyp:M), and [one of its observed-node indices](hyp:v), the [value space associated with that index carries the σ-algebra of the corresponding structural-model variable](goal). [That σ-algebra is inherited from the corresponding variable](step:1). -/
 instance instMeasurableObsValue (M : Causalean.SCM N Ω) (v : ObsIdx M) :
     MeasurableSpace (obsValue M v) :=
   inferInstanceAs (MeasurableSpace (swigΩ Ω v.val))
@@ -101,7 +102,9 @@ instance instMeasurableObsValue (M : Causalean.SCM N Ω) (v : ObsIdx M) :
 -- § 2. Regime → do-set translation (graph-level)
 -- ============================================================
 
-/-- The structural variable names targeted by a potential-outcome regime are the
+/-- Given [a structural causal model](hyp:M) and [a potential-outcome regime](hyp:r), the [structural intervention target set](goal) is the finite set of underlying names targeted by that regime whose fixed counterparts are not already fixed in the structural model.
+
+The structural variable names targeted by a potential-outcome regime are the
 underlying names of the regime targets whose fixed counterparts are not already
 fixed in the structural model.
 
@@ -172,7 +175,9 @@ private lemma combinedFixed_exists
   rcases Finset.mem_image.mp hD with ⟨v', hv'tgt, hobsEq⟩
   exact ⟨v', (Finset.mem_filter.mp hv'tgt).1, by simp [obsName, hobsEq, hfixEq]⟩
 
-/-- The combined fixed-variable assignment feeds the original background values
+/-- Given [a structural causal model](hyp:M), [a background assignment of its fixed variables](hyp:s), and [a potential-outcome regime](hyp:r), the [combined fixed-variable assignment](goal) assigns each fixed coordinate of the intervened model either its background value or, for a newly targeted coordinate, the regime's intervention value.
+
+The combined fixed-variable assignment feeds the original background values
 and the regime's intervention values into the intervened structural model.
 
 Combined fixed assignment `s ⊔ x` for the post-intervention SCM
@@ -201,7 +206,9 @@ noncomputable def combinedFixed
 -- § 4. The induced world-eval map (def:po-from-scm)
 -- ============================================================
 
-/-- The induced joint evaluation map assigns values to all observed-node indices
+/-- Given [a structural causal model](hyp:M), [a background assignment of its fixed variables](hyp:s), [a potential-outcome regime](hyp:r), and [a latent-variable assignment](hyp:ℓ), the [induced joint evaluation](goal) assigns each observed random node its value in the intervened structural model.
+
+The induced joint evaluation map assigns values to all observed-node indices
 by evaluating the intervened structural model at a background assignment, a
 potential-outcome regime, and a latent draw.
 
@@ -244,7 +251,9 @@ lemma inducedEval_measurable (M : Causalean.SCM N Ω)
 -- § 5. The induced PO system `PO(M; s)` — def:po-from-scm
 -- ============================================================
 
-/-- A structural model and a background assignment induce a potential-outcome
+/-- Given [a structural causal model](hyp:M) and [a background assignment of its fixed variables](hyp:s), the [induced potential-outcome system](goal) is the potential-outcome system whose units are latent-variable assignments and whose variables are all observed random nodes of the model.
+
+A structural model and a background assignment induce a potential-outcome
 system whose variables are all observed random nodes of the model.
 
 Potential outcome system induced by a gSCM `M` and background assignment `s`.

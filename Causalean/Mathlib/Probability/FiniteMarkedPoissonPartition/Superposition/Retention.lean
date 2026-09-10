@@ -16,8 +16,10 @@ namespace Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition
 
 variable {X : Type*} [MeasurableSpace X]
 
-/-- Retain the first `n` observations after sorting by marks and forget their
-marks; `x₀` supplies an irrelevant value outside the event `n ≤ count`. -/
+/-- For [a fallback sample value](hyp:x₀), [a nonnegative integer prefix length](hyp:n), and [a
+finite sample of value--mark pairs](hyp:s), [the retained-observations vector](goal) consists of
+the values attached to the first $n$ sample points after ordering by their marks when the sample
+contains at least $n$ points, and otherwise consists entirely of the fallback value. -/
 noncomputable def retainedObservations (x₀ : X) (n : ℕ)
     (s : FiniteSample (X × ℝ)) : Fin n → X :=
   if h : n ≤ s.count then
@@ -25,8 +27,10 @@ noncomputable def retainedObservations (x₀ : X) (n : ℕ)
       (Fin.cast (orderByMarks_count s).symm (Fin.castLE h k))).1
   else fun _ => x₀
 
-/-- The `k`-th point of a finite sample once it has at least `n` points, and the fallback
-value `y₀` otherwise. -/
+/-- For [a fallback sample value](hyp:y₀), [a nonnegative integer prefix length](hyp:n), [a
+position among the first $n$ positions](hyp:k), and [a finite sample](hyp:s), [the prefix point
+with fallback](goal) is the sample point at that position when the sample contains at least $n$
+points, and is otherwise the fallback value. -/
 noncomputable def prefixPointOr {Y : Type*} [MeasurableSpace Y]
     (y₀ : Y) (n : ℕ) (k : Fin n) (s : FiniteSample Y) : Y :=
   if h : n ≤ s.count then s.points (Fin.castLE h k) else y₀

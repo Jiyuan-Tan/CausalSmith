@@ -16,12 +16,16 @@ namespace Causalean.Stat.Concentration
 
 open scoped BigOperators
 
-/-- Weighted Hamming pseudo-distance squared between two Boolean vectors on
+/-- Given [a finite collection of real coordinate weights](hyp:w) and [two Boolean-valued vectors on the same finite coordinate set](hyp:a,b), the [weighted squared Hamming pseudo-distance](goal) is the sum of the weights at exactly those coordinates where the vectors differ.
+
+Weighted Hamming pseudo-distance squared between two Boolean vectors on
 `Fin n`, using nonnegative coordinate weights. -/
 def weightedHammingSq {n : ℕ} (w : Fin n → ℝ) (a b : Fin n → Bool) : ℝ :=
   ∑ j : Fin n, if a j = b j then 0 else w j
 
-/-- The set of sampled coordinates, pulled back along a coordinate map `J`, on
+/-- Given [a map from a finite sample-coordinate set into a finite original-coordinate set](hyp:J) and [a Boolean-valued vector on the original-coordinate set](hyp:a), the [subsample pattern](goal) is the finite set of sample coordinates whose mapped original coordinates have Boolean value true.
+
+The set of sampled coordinates, pulled back along a coordinate map `J`, on
 which a Boolean vector is true. -/
 noncomputable def subsamplePattern {n m : ℕ} (J : Fin m → Fin n)
     (a : Fin n → Bool) : Finset (Fin m) := by

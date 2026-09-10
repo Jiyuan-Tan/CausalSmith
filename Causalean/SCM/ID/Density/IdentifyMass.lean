@@ -31,27 +31,25 @@ variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
 namespace SWIGGraph
 
-/-- This order compares graph nodes by their topological position in the SWIG graph. -/
+/-- For [a finite collection of distinguishable base-variable labels](hyp:N) and [a SWIG graph](hyp:G), the [topological linear order](goal) orders its nodes by their positions in the graph's topological ordering. -/
 noncomputable def topoLinearOrder (G : SWIGGraph N) : LinearOrder (SWIGNode N) :=
   LinearOrder.lift' G.dag.topoOrder G.dag.topoOrder_injective
 
-/-- This selector returns the node at a given position in a finite node set
-sorted by graph topological order. -/
+/-- For [a finite collection of distinguishable base-variable labels](hyp:N), [a SWIG graph](hyp:G), [a finite set of graph nodes](hyp:D), and [a position from zero through one less than the set's size](hyp:i), the [node-at-position selector](goal) returns the node occupying that position when the set is sorted in graph topological order. -/
 noncomputable def nodesAt (G : SWIGGraph N) (D : Finset (SWIGNode N))
     (i : Fin D.card) : {v // v ∈ D} := by
   classical
   letI := G.topoLinearOrder
   exact D.orderIsoOfFin rfl i
 
-/-- This selector returns a node's position inside a finite node set sorted by
-graph topological order. -/
+/-- For [a finite collection of distinguishable base-variable labels](hyp:N), [a SWIG graph](hyp:G), [a finite set of graph nodes](hyp:D), and [a node belonging to that set](hyp:v), the [node-position selector](goal) returns that node's position when the set is sorted in graph topological order. -/
 noncomputable def nodeIndex (G : SWIGGraph N) (D : Finset (SWIGNode N))
     (v : {v // v ∈ D}) : Fin D.card := by
   classical
   letI := G.topoLinearOrder
   exact (D.orderIsoOfFin rfl).symm v
 
-/-- This finite set contains the first selected nodes in graph topological order. -/
+/-- For [a finite collection of distinguishable base-variable labels](hyp:N), [a SWIG graph](hyp:G), [a finite set of graph nodes](hyp:D), and [a nonnegative integer](hyp:n), the [topological prefix](goal) consists of the nodes in that set whose topological positions are strictly less than $n$. -/
 noncomputable def prefixIn (G : SWIGGraph N) (D : Finset (SWIGNode N)) (n : ℕ) :
     Finset (SWIGNode N) :=
   D.filter (fun v => if h : v ∈ D then (G.nodeIndex D ⟨v, h⟩).val < n else False)
@@ -108,17 +106,14 @@ end SCM.ID
 
 namespace SCM
 
-/-- Marginalize a full-observed mass function by summing over the coordinates
-in `W` and overriding those coordinates in the evaluation point. -/
+/-- For [an ambient set of graph nodes](hyp:O), [a subset of coordinates to eliminate](hyp:W) that is [contained in the ambient set](hyp:hW), and [a nonnegative extended-real mass function on assignments to the ambient set](hyp:q), the [marginalized mass function](goal) maps each ambient assignment [to the sum of the mass function over all assignments on the eliminated coordinates, replacing those coordinates in the evaluation point](step:1). -/
 noncomputable def marginalizeOn [∀ n, Fintype (Ω n)]
     (O W : Finset (SWIGNode N)) (hW : W ⊆ O)
     (q : ValuesOn O (swigΩ Ω) → ENNReal) :
     ValuesOn O (swigΩ Ω) → ENNReal :=
   fun x => ∑ y : ValuesOn W (swigΩ Ω), q (overrideOn x y)
 
-/-- Extract the district factor for `C'` from a mass function on `A` by
-multiplying adjacent prefix marginal ratios along the topological order of
-`G'`. -/
+/-- For [an ambient node set](hyp:O), [a SWIG graph](hyp:G'), [a node set](hyp:A), [a district node set](hyp:C'), [the condition that the node set is contained in the ambient set](hyp:hA), and [a nonnegative extended-real mass function on ambient assignments](hyp:q), the [district factor](goal) maps each ambient assignment [to the product, over the nodes of the district in graph topological order, of the ratio of the two adjacent prefix marginals obtained by summing out the remaining nodes of $A$](step:1). -/
 noncomputable def extractDistrict [∀ n, Fintype (Ω n)]
     (O : Finset (SWIGNode N)) (G' : SWIGGraph N)
     (A C' : Finset (SWIGNode N)) (hA : A ⊆ O)
@@ -131,11 +126,9 @@ noncomputable def extractDistrict [∀ n, Fintype (Ω n)]
         marginalizeOn O (A \ G'.prefixIn A i.val)
           (fun _ hv => hA ((Finset.mem_sdiff.mp hv).1)) q x
 
-/-- The mass-level IDENTIFY recursion.  Starting with a mass function for `T`,
-it recursively projects to the induced ancestral set of `C`, extracts the
-containing district there, and stops when the induced ancestral set is exactly
-`C`.  The hedge branch `A = T` returns the current mass function; successful
-reachability proofs never use that branch. -/
+/-- For [an ambient node set](hyp:O) and [a SWIG graph](hyp:G), the [mass-level IDENTIFY recursion](goal) maps every target node set, district node set, proof that the target set is contained in the ambient set, and nonnegative extended-real mass function on ambient assignments to a mass function on ambient assignments. It [first forms the induced ancestral set and its containment proof](step:1), then returns the marginal eliminating the target coordinates outside the district when that ancestral set equals the district, returns the original mass function when it equals the target set, and otherwise recurses after extracting the containing district factor from the appropriate marginal.
+
+The hedge branch returns the current mass function; successful reachability proofs never use that branch. -/
 noncomputable def identifyMassRec [∀ n, Fintype (Ω n)]
     (O : Finset (SWIGNode N)) (G : SWIGGraph N) :
     (T C : Finset (SWIGNode N)) → (hT : T ⊆ O) →

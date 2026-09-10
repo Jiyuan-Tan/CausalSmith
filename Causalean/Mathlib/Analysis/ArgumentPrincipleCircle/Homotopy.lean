@@ -25,7 +25,9 @@ open scoped Topology
 
 namespace Causalean.Mathlib.Analysis.ArgumentPrincipleCircle
 
-/-- This is the straight-line interpolation between two complex-valued functions, indexed from
+/-- For [two complex-valued functions](hyp:f,g), [a real interpolation time](hyp:t), and [a complex argument](hyp:z), [the straight-line homotopy](goal) is the value at that argument of the affine combination giving weight $1-t$ to the first function and weight $t$ to the second.
+
+This is the straight-line interpolation between two complex-valued functions, indexed from
 the first endpoint at time zero to the second endpoint at time one. -/
 def straightLineHomotopy (f g : ℂ → ℂ) (t : ℝ) (z : ℂ) : ℂ :=
   (1 - (t : ℂ)) * f z + (t : ℂ) * g z

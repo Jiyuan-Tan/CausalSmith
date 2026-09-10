@@ -43,13 +43,19 @@ open Real Polynomial
 
 namespace Causalean.Mathlib.Analysis.EhlichZellerMesh
 
-/-- The trigonometric transform of a real polynomial `R`: `czTrig R t = R(-cos t)`.
-For `R` of degree `≤ β` this is an even trigonometric polynomial of degree `≤ β`,
-and as `t` ranges over `[0, π]` the argument `-cos t` ranges over all of `[-1, 1]`. -/
+/-- For [a real polynomial](hyp:R) and [a real argument](hyp:t), the [cosine-parametrized
+polynomial transform](goal) is the polynomial evaluated at $-\cos(t)$.  As the argument ranges
+over $[0,\pi]$, its evaluation point ranges over all of $[-1,1]$.
+
+For a polynomial of degree at most $\beta$, this is an even trigonometric polynomial of degree at
+most $\beta$. -/
 noncomputable def czTrig (R : Polynomial ℝ) (t : ℝ) : ℝ := R.eval (- Real.cos t)
 
-/-- The sup-norm of the trigonometric transform of `R` over the compact interval
-`[0, π]`.  By surjectivity of `t ↦ -cos t` this equals `sup_{x∈[-1,1]} |R x|`. -/
+/-- For [a real polynomial](hyp:R), the [cosine-transform sup norm](goal) is the supremum of the
+absolute value of its cosine-parametrized transform over $[0,\pi]$.  Equivalently, it is the
+supremum of the polynomial's absolute value over $[-1,1]$.
+
+The supremum is taken over a compact interval. -/
 noncomputable def czSup (R : Polynomial ℝ) : ℝ :=
   sSup ((fun t => |czTrig R t|) '' Set.Icc 0 Real.pi)
 

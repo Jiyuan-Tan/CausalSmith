@@ -19,8 +19,13 @@ namespace Causalean.ML
 
 open MeasureTheory
 
-/-- The hypothesis class realized by a predictor: the image of its admissible
-parameter set under the prediction map. -/
+/-- Given [an arbitrary parameter space](hyp:Θ), [an arbitrary covariate space equipped with a
+σ-algebra](hyp:X), [an arbitrary outcome space equipped with a σ-algebra](hyp:Y), [a parametric
+predictor together with its admissible parameter set](hyp:M) and [evidence that the prediction
+function is measurable for every admissible parameter](hyp:hmeas),
+the [realized hypothesis class](goal) consists exactly of the prediction functions obtained by
+letting the parameter range over that admissible set; its members are equipped with the stated
+measurability guarantee. -/
 def imageClass {Θ X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
     (M : Predictor Θ X Y)
     (hmeas : ∀ θ ∈ M.paramSet, Measurable (M.predict θ)) : HypothesisClass X Y where

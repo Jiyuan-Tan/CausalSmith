@@ -43,7 +43,9 @@ namespace POLeeSystem
 
 variable {P : POSystem} (S : POLeeSystem P)
 
-/-- Conditional selection probability `p_a := P(Sel = true | A = a)`
+/-- For [a Lee sample-selection system](hyp:S) and [a treatment arm](hyp:a), the [conditional selection probability](goal) is the event-conditional mean of the observed selection indicator among units in that arm.
+
+Conditional selection probability `p_a := P(Sel = true | A = a)`
 expressed via the event-conditional expectation of the selection
 indicator. -/
 noncomputable def pSelGivenA (a : Bool) : ℝ :=
@@ -56,16 +58,18 @@ lemma pSelGivenA_eq (a : Bool) :
     S.pSelGivenA a = eventCondExp P.μ (S.aEvent a) (S.selVar.indicator true) :=
   rfl
 
-/-- `p₀ = P(Sel = true | A = false)`. -/
+/-- For [a Lee sample-selection system](hyp:S), the [control-arm selection probability](goal) is the conditional selection probability when treatment is zero. -/
 noncomputable def p0 : ℝ := S.pSelGivenA false
 
-/-- `p₁ = P(Sel = true | A = true)`. -/
+/-- For [a Lee sample-selection system](hyp:S), the [treated-arm selection probability](goal) is the conditional selection probability when treatment is one. -/
 noncomputable def p1 : ℝ := S.pSelGivenA true
 
-/-- The trimming ratio `ρ := p₀ / p₁`. -/
+/-- For [a Lee sample-selection system](hyp:S), the [trimming ratio](goal) is the control-arm selection probability divided by the treated-arm selection probability. -/
 noncomputable def rho : ℝ := S.p0 / S.p1
 
-/-- Observable conditional density of the outcome at `y` among selected
+/-- For [a Lee sample-selection system](hyp:S) and [an outcome value](hyp:y), the [selected-treated outcome mass function](goal) is the event-conditional probability that the observed outcome equals that value among selected treated units.
+
+Observable conditional density of the outcome at `y` among selected
 treated units: `f₁(y) := P(Y = y | A = true, Sel = true)`. -/
 noncomputable def f1 (y : ℝ) : ℝ :=
   eventCondExp P.μ S.selectedTreated
@@ -83,22 +87,30 @@ structure LeeTrimWeight (𝒴 : Finset ℝ) where
   zero_off : ∀ y, y ∉ 𝒴 → w y = 0
   sum_eq : ∑ y ∈ 𝒴, w y * S.f1 y = S.rho
 
-/-- The trimmed mean associated with a Lee trim weight:
+/-- For [a Lee sample-selection system](hyp:S), [a finite outcome support](hyp:𝒴), and [a feasible Lee trim weight on that support](hyp:wt), the [trimmed mean](goal) is the trimming-ratio inverse times the weighted selected-treated outcome sum over that support.
+
+The trimmed mean associated with a Lee trim weight:
 `M(w) := ρ⁻¹ · ∑_{y ∈ 𝒴} y · w(y) · f₁(y)`. -/
 noncomputable def Mw {𝒴 : Finset ℝ} (wt : S.LeeTrimWeight 𝒴) : ℝ :=
   (S.rho)⁻¹ * ∑ y ∈ 𝒴, y * wt.w y * S.f1 y
 
-/-- Lower trimmed mean `underline_m₁ := inf_{w} M(w)` ranging over Lee trim
+/-- For [a Lee sample-selection system](hyp:S) and [a finite outcome support](hyp:𝒴), the [lower trimmed mean](goal) is the infimum of trimmed means over all feasible Lee trim weights on that support.
+
+Lower trimmed mean `underline_m₁ := inf_{w} M(w)` ranging over Lee trim
 weights on `𝒴`. -/
 noncomputable def lowerTrimMean (𝒴 : Finset ℝ) : ℝ :=
   sInf (Set.range (fun wt : S.LeeTrimWeight 𝒴 => S.Mw wt))
 
-/-- Upper trimmed mean `overline_m₁ := sup_{w} M(w)` ranging over Lee trim
+/-- For [a Lee sample-selection system](hyp:S) and [a finite outcome support](hyp:𝒴), the [upper trimmed mean](goal) is the supremum of trimmed means over all feasible Lee trim weights on that support.
+
+Upper trimmed mean `overline_m₁ := sup_{w} M(w)` ranging over Lee trim
 weights on `𝒴`. -/
 noncomputable def upperTrimMean (𝒴 : Finset ℝ) : ℝ :=
   sSup (Set.range (fun wt : S.LeeTrimWeight 𝒴 => S.Mw wt))
 
-/-- Observable selected-control outcome mean
+/-- For [a Lee sample-selection system](hyp:S), the [selected-control outcome mean](goal) is the event-conditional mean of the observed outcome among selected control units.
+
+Observable selected-control outcome mean
 `m₀ := E[Y | A = false, Sel = true]`. -/
 noncomputable def m0 : ℝ :=
   eventCondExp P.μ S.selectedControl S.factualY

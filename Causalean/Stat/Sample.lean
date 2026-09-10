@@ -63,8 +63,9 @@ the one they can. -/
 @[fun_prop]
 theorem measurable_Z (S : IIDSample Ω X μ P) (i : ℕ) : Measurable (S.Z i) := S.meas i
 
-/-- Sample mean of a real-valued statistic `f` along the sample's first `n`
-points: `(1/n) Σ_{i < n} f (Z i ω)`. -/
+/-- For [a measurable sample space carrying a measure](hyp:Ω,μ), [a measurable observation space carrying a population measure](hyp:X,P), [an independent and identically distributed sample from that population](hyp:S), [a real-valued statistic of one observation](hyp:f), and [a nonnegative integer sample size](hyp:n), the [sample mean](goal) is the function that assigns each sample-space outcome the average $n^{-1}\sum_{i<n} f(Z_i)$, with the reciprocal convention also applying when $n=0$.
+
+This is the empirical mean over the first `n` observations. -/
 noncomputable def sampleMean (S : IIDSample Ω X μ P) (f : X → ℝ) (n : ℕ) :
     Ω → ℝ :=
   fun ω => (n : ℝ)⁻¹ * ∑ i ∈ Finset.range n, f (S.Z i ω)

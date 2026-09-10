@@ -46,7 +46,12 @@ theorem obsLaw_real_singleton {C : Type*} [Fintype C] [Nonempty C] [MeasurableSp
 
 variable {K : ℕ} {α β : ℝ}
 
-/-- The one-observation χ² second-moment overlap of two perturbed laws relative to the null. -/
+/-- For [a number of paired covariate cells](hyp:K), [two real-valued bump
+magnitudes](hyp:α,β), and [two binary sign vectors indexing perturbations](hyp:lam,lam'),
+[the one-observation chi-squared second-moment overlap](goal) is the sum, over every possible
+observed record $z$, of $q_{\lambda}(z)q_{\lambda'}(z)/p_0(z)$, where $q_{\lambda}$ and
+$q_{\lambda'}$ are the two perturbed record probabilities and $p_0$ is the unperturbed record
+probability. -/
 noncomputable def chiSqOverlap (α β : ℝ) (lam lam' : Fin K → Bool) : ℝ :=
   ∑ z : Obs (Fin K × Bool),
     obsReal (mPerturbed β lam) (gPerturbed α β lam) z

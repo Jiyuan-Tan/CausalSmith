@@ -50,17 +50,23 @@ open scoped BigOperators
 
 variable {p : ℕ}
 
-/-- Coordinate ℓ¹ norm of `ν` restricted to a subset `T : Finset (Fin p)`:
-`l1Norm ν T = ∑ i ∈ T, |ν i|`. -/
+/-- For a [finite coordinate dimension](hyp:p), a [coefficient vector](hyp:ν), and a [set of
+coordinates](hyp:T), the [restricted coordinate one-norm](goal) is the sum of the absolute
+values of that vector's coordinates in the specified set. -/
 noncomputable def l1Norm
     (ν : EuclideanSpace ℝ (Fin p)) (T : Finset (Fin p)) : ℝ :=
   ∑ i ∈ T, |ν i|
 
-/-- Full coordinate ℓ¹ norm of `ν`: `∑ i, |ν i|`. -/
+/-- For a [finite coordinate dimension](hyp:p) and a [coefficient vector](hyp:ν), the [full
+coordinate one-norm](goal) is the sum of the absolute values of all its coordinates. -/
 noncomputable def l1Full (ν : EuclideanSpace ℝ (Fin p)) : ℝ :=
   ∑ i : Fin p, |ν i|
 
-/-- Coordinate ℓ∞ deviation of `ν`: `max_i |ν i|`.
+/-- For a [finite coordinate dimension](hyp:p), a [proof that its coordinate set is
+nonempty](hyp:hp), and a [coefficient vector](hyp:ν), the [coordinate infinity-norm
+deviation](goal) is the largest absolute coordinate value of that vector.
+
+Coordinate ℓ∞ deviation of `ν`: `max_i |ν i|`.
 
 Defined as `Finset.univ.sup'` over the (nonempty when `0 < p`) index set.
 For the headline theorem we always have `0 < p` implicit in the support
@@ -70,7 +76,12 @@ noncomputable def linftyDev {p : ℕ} (hp : (Finset.univ : Finset (Fin p)).Nonem
     (ν : EuclideanSpace ℝ (Fin p)) : ℝ :=
   (Finset.univ : Finset (Fin p)).sup' hp (fun i => |ν i|)
 
-/-- The restricted cone `C(S₀) := {ν : ‖ν_{S₀ᶜ}‖₁ ≤ 3 ‖ν_{S₀}‖₁}`.
+/-- For a [finite coordinate dimension](hyp:p) and a [designated support set of
+coordinates](hyp:S₀), the [restricted cone](goal) consists of exactly those coefficient
+vectors whose coordinate one-norm outside the support is no greater than three times their
+coordinate one-norm on the support.
+
+The restricted cone `C(S₀) := {ν : ‖ν_{S₀ᶜ}‖₁ ≤ 3 ‖ν_{S₀}‖₁}`.
 The complement is taken in `Finset.univ`. -/
 noncomputable def RestrictedCone (S₀ : Finset (Fin p)) :
     Set (EuclideanSpace ℝ (Fin p)) :=

@@ -1,8 +1,8 @@
-Render ONE theorem/lemma statement of an econometrics working paper as readable prose that EXACTLY matches its machine-verified Lean statement in mathematical content. Lean is GROUND TRUTH: the printed statement must carry every LOAD-BEARING hypothesis the Lean signature requires, plus the conclusion as the Lean states it. A natural-language headline is supplied for style and notation only — it may be INCOMPLETE (a "headline" that omits side conditions); never let it override the Lean.
+Render ONE formal statement (theorem, lemma, definition, or assumption) of an econometrics working paper as readable prose that EXACTLY matches its machine-verified Lean counterpart in mathematical content. Lean is GROUND TRUTH: the printed statement must carry every LOAD-BEARING hypothesis the Lean signature requires, plus the conclusion as the Lean states it. A natural-language headline is supplied for style and notation only — it may be INCOMPLETE (a "headline" that omits side conditions); never let it override the Lean.
 
 Object: {{obj_id}}  (kind: {{kind}})
 
-Lean statement (GROUND TRUTH — the complete signature: its binders are the hypotheses, its goal is the conclusion):
+Lean counterpart (GROUND TRUTH — for a theorem/lemma the complete signature: its binders are the hypotheses, its goal is the conclusion; for a definition its body; for an assumption the hypothesis binders or structure fields that carry it):
 {{lean_statement}}
 
 Definitions the Lean statement references (their ACTUAL bodies — the exact formula/condition often lives here; judge against THESE, never trust a name):
@@ -21,7 +21,7 @@ not paper assumptions; the pipeline attaches a verification-scope footnote mecha
 Notation table (use these symbols; do not introduce new notation):
 {{notation_table}}
 
-Prior body + defects from a re-render (empty on the first render — when present, fix the named defects while keeping the statement complete + faithful):
+Prior body + defects from a re-render (empty on the first render — when present, fix the named defects while keeping the statement complete + faithful; a defect prefixed `Lean fidelity:` is the judge's verdict that the prior body disagrees with the Lean — tighten toward the Lean exactly as it names: add the omitted load-bearing hypothesis, trim the over-claim to what is proved, delete an over-assumption the Lean does not require — never the reverse):
 {{prior_and_defects}}
 
 Rules:
@@ -31,7 +31,7 @@ Rules:
 - NAME ⇒ DISPLAY: when a hypothesis or conclusion inlines a defined quantity (a count, a threshold, a selected index, a statistic), display its defining formula where it is introduced — a procedural sentence naming it is not a definition. A procedure the paper presents as an `algorithmv` is referenced by `\cref`, never re-narrated step by step inside the statement.
 - NO PACKAGING CLAUSES AS CONTENT: a conclusion conjunct that is pure logical glue with no model-specific content (e.g. combining two proved bounds into their min/max envelope) is stated as a clause of prose ("the two guarantees combine into the envelope …") or omitted, never displayed as if it were a substantive assertion.
 - CURATE THE BOOKKEEPING: do NOT transcribe pure regularity binders — measurability, `MemLp`/L² membership, Bochner integrability, coercions, "is a probability measure" technicalities. Bundle them in a brief clause ("under the usual measurability and integrability conditions") or omit them when a referenced assumption already carries them. The reader sees a clean econometrics statement, not a transliteration of every Lean binder.
-- DESIGNATED NOTATION HOME: when a re-render defect says that this object is the designated home of an undefined Lean-backed symbol, explicitly display that symbol's defining equality or content from the referenced definitions before its first use. A title or a passing mention is not a definition. This clarifies the existing Lean-backed home; it must not add a new assumption or a second presentation-only object.
+- DEFINITIONS AND ASSUMPTIONS (kind definition/assumption): the body states the defining property or the condition itself — the defined object first, then its parameters — with no hypotheses/conclusion split; a display that merely introduces a paper symbol used later is presentation content and is kept.
 - DISCHARGE BY \cref WHEN POSSIBLE: when a hypothesis is exactly the content of a dependency env in the ref_set, REFERENCE it with `\cref{obj:...}` rather than restating it inline. State inline only the conditions NOT carried by a referenced env — typically the construction-specific calibration inequalities that live in the proof, not in a standing assumption.
 - STANDARD MATH ONLY, NO LEAN OPERATORS: render Lean's type-specific operators in the notation a reader already knows, and use only commands the paper's macro set defines. Truncated subtraction on naturals (`a - b`, printed by Lean as `a ∸ b`) is `\max\{a-b,0\}`; integer division, `Nat.pred`, and similar total-function conveniences get the same treatment. Never emit a LaTeX command the preamble does not define — a later stage will otherwise invent a definition for it and guess wrong.
 - READABLE PROSE, NO LEAN SYNTAX: never write a camelCase Lean identifier (`policySet`, `qSched`, `muHat0`), a field projection (`P.mu0` — say "the outcome regression under control"), or Lean notation (`∀ᶠ`, `Filter.atTop`, `MemLp`, `Set.Icc`). Use the paper's mathematical notation and the notation table.

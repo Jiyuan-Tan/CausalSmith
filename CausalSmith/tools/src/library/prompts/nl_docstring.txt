@@ -34,7 +34,19 @@ The first paragraph must:
   notation like (0, 1/2] must sit inside backticks or $…$ math, where the parser
   ignores brackets. Crosslinks live ONLY in the first paragraph — never insert a blank
   line between a bold title sentence and the annotated translation. A structure's
-  docstring may likewise link phrases to its field names with [phrase](hyp:fieldName).
+  docstring may likewise link phrases to its field names with [phrase](hyp:fieldName);
+- (definitions) carry crosslinks with the same markup: wrap the phrase introducing each
+  explicit parameter as [phrase](hyp:paramName) (a section `variable` the definition uses
+  is a parameter too — link it by its name), wrap the phrase that names the object being
+  defined as [phrase](goal), and when the value is given in several clauses (a run of `let`
+  steps, equation alternatives `| pat => …`, or the conjuncts of a `def … : Prop`) wrap the
+  phrase for the N-th clause as [phrase](step:N) —N counts the clauses as the page numbers them: the top-level clauses, or — when the whole value/proposition is one "there exist … such that (1) … (k)" — those k clauses. Cover EVERY explicit parameter and the object. The `(goal)` phrase is the one a reader would point at to say what the thing IS
+  ("the [observable IPW law](goal) is …"), not the whole sentence;
+- (instances, inductives) an `instance` is annotated exactly like a definition (its `(goal)`
+  phrase names the structure it provides; `(step:N)` the N-th `where` field or clause). An
+  `inductive` links its parameters, wraps the phrase naming the type as [phrase](goal), and
+  each constructor's phrase as [phrase](hyp:ctorName) (or [phrase](step:N) by position); a
+  constructor's own `/-- … -/` docstring stays with the constructor.
 
 DUTY 2 — module docstrings. For EACH file listed under "Files missing a module
 docstring", add a module docstring at the top of the file (immediately after the
@@ -46,8 +58,11 @@ docstring", add a module docstring at the top of the file (immediately after the
 Lean-free register as above.> -/
 
 Rules:
-- NEVER change any code outside docstring comments (/-- … -/ and /-! … -/). Every file
-  must still compile.
+- Every docstring you write or rewrite must be properly closed with `-/` on its last line — an
+  unterminated `/--` swallows the declaration below it and breaks the build.
+- NEVER change any code outside docstring comments (/-- … -/ and /-! … -/), so every file
+  still compiles. Do NOT run `lake build` or any Lean tooling yourself — several of these
+  passes run concurrently and verification happens once, after all of them.
 - If an existing first paragraph already satisfies the rubric, leave it unchanged.
 - Edit the files in place.
 

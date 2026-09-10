@@ -20,7 +20,10 @@ open Matrix BigOperators
 
 variable {Obs Param : Type*} [Fintype Obs] [Fintype Param] [DecidableEq Param]
 
-/-- The ridge objective: least-squares error plus the L² penalty `λ‖β‖²`. -/
+/-- For [a finite set of observations](hyp:Obs), [a finite coefficient index set](hyp:Param),
+[a design matrix](hyp:X), [an outcome vector](hyp:y), [a ridge penalty weight](hyp:lam), and
+[a coefficient vector](hyp:β), the [ridge objective](goal) is the sum of squared residuals
+plus the penalty weight times the sum of squared coefficients. -/
 noncomputable def ridgeObjective
     (X : Matrix Obs Param ℝ) (y : Obs → ℝ) (lam : ℝ) (β : Param → ℝ) : ℝ :=
   olsObjective X y β + lam * (β ⬝ᵥ β)

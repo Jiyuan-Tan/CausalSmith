@@ -42,7 +42,7 @@ open scoped MeasureTheory ProbabilityTheory
 -- § 1. Parent-tuple assembly (one step of the recursion)
 -- ============================================================
 
-/-- A parent-value tuple is assembled from fixed, latent, and earlier observed values.
+/-- For [a structural causal model](hyp:M), [an assignment of its fixed values](hyp:s), [a realization of its latent values](hyp:ℓ), [an index strictly below the number of observed nodes](hyp:hn), [values already supplied for every earlier observed index](hyp:prev), and [a parent of the observed node at that index](hyp:w), the [parent-value assignment](goal) gives that parent's value: it reads an unobserved parent from the latent realization, a fixed parent from the fixed assignment, and any observed parent from the earlier supplied values.
 
     Assemble the parent-value tuple for the observed node at topological index `n`,
     given a strong recursion hypothesis `prev` that supplies the value at every
@@ -133,7 +133,7 @@ lemma parentMap_observed (M : Causalean.SCM N Ω)
 -- § 2. Strong recursion over the observed topological order
 -- ============================================================
 
-/-- The auxiliary evaluator recursively applies structural functions in topological order.
+/-- For [a structural causal model](hyp:M), [an assignment of its fixed values](hyp:s), [a realization of its latent values](hyp:ℓ), and [an observed-node index](hyp:n), the [auxiliary observed-node evaluator](goal) assigns, for every proof that the index is valid, the value of that observed node by recursively applying its structural function to its parent values in topological order.
 
     Value of the observed node at topological index `n`, computed by strong recursion
     on `n` using `parentMap` at each step.
@@ -167,8 +167,7 @@ lemma evalObservedAux_eq (M : Causalean.SCM N Ω)
 -- § 3. The evaluation map
 -- ============================================================
 
-/-- The evaluation map sends fixed values and a latent realization to the
-resulting values of all observed and latent random nodes.
+/-- For [a structural causal model](hyp:M), the [evaluation map](goal) maps each fixed-value assignment and latent realization to the resulting assignment of all random-node values, using the recursive structural evaluation for observed nodes and the supplied latent realization for unobserved nodes.
 
     The evaluation map `φ_M : 𝒳_S × Ω_M → ∏_{w ∈ V ∪ L} 𝒳_w`.
 

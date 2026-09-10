@@ -32,27 +32,39 @@ open DesignBased
 
 variable {C : Type*} [Fintype C] [DecidableEq C]
 
-/-- The **Horvitz–Thompson treated total**: each treated cluster's total outcome `y1 c`, weighted by
-the inverse assignment probability `1 / p c`. -/
+/-- For [a finite population of clusters](hyp:C), [cluster treatment probabilities](hyp:p),
+[treated potential-outcome totals for the clusters](hyp:y1), and [a realized cluster
+assignment](hyp:z), the [Horvitz–Thompson treated total](goal) is the sum, over clusters, of
+each treated cluster's potential-outcome total weighted by the reciprocal of its treatment
+probability. -/
 noncomputable def htTreatedTotal (p y1 : C → ℝ) (z : C → Bool) : ℝ :=
   ∑ c, (treatInd c z / p c) * y1 c
 
-/-- The **Horvitz–Thompson control total**: each control cluster's total outcome `y0 c`, weighted by
-the inverse control probability `1 / (1 − p c)`. -/
+/-- For [a finite population of clusters](hyp:C), [cluster treatment probabilities](hyp:p),
+[control potential-outcome totals for the clusters](hyp:y0), and [a realized cluster
+assignment](hyp:z), the [Horvitz–Thompson control total](goal) is the sum, over clusters, of
+each untreated cluster's potential-outcome total weighted by the reciprocal of its control
+probability. -/
 noncomputable def htControlTotal (p y0 : C → ℝ) (z : C → Bool) : ℝ :=
   ∑ c, ((1 - treatInd c z) / (1 - p c)) * y0 c
 
-/-- The total number of experimental units represented by the cluster counts `n c`. -/
+/-- For [a finite population of clusters](hyp:C) and [the number of experimental units in each
+cluster](hyp:n), the [total number of experimental units](goal) is the sum of the cluster sizes. -/
 noncomputable def totalUnits (n : C → ℕ) : ℝ := ∑ c, (n c : ℝ)
 
-/-- The **Middleton-Aronow Horvitz-Thompson ATE estimator** divides the inverse-probability
-weighted treated-minus-control cluster-total estimator by the total number of units. -/
+/-- For [a finite population of clusters](hyp:C), [cluster treatment probabilities](hyp:p), [the
+number of units in each cluster](hyp:n), [treated and control potential-outcome totals](hyp:y1,y0),
+and [a realized cluster assignment](hyp:z), the [Middleton--Aronow Horvitz--Thompson average
+treatment-effect estimator](goal) is the inverse-probability-weighted treated total minus control
+total, divided by the total number of units. -/
 noncomputable def htClusterEffect (p : C → ℝ) (n : C → ℕ) (y1 y0 : C → ℝ)
     (z : C → Bool) : ℝ :=
   (htTreatedTotal p y1 z - htControlTotal p y0 z) / totalUnits n
 
-/-- The **finite-population average treatment effect** is the all-unit treated-minus-control
-potential-outcome total, aggregated through cluster totals, divided by the total number of units. -/
+/-- For [a finite population of clusters](hyp:C), [the number of units in each cluster](hyp:n), and
+[treated and control potential-outcome totals](hyp:y1,y0), the [finite-population average treatment
+effect](goal) is the sum of treated-minus-control cluster totals divided by the total number of
+units. -/
 noncomputable def totalEffect (n : C → ℕ) (y1 y0 : C → ℝ) : ℝ :=
   (∑ c, (y1 c - y0 c)) / totalUnits n
 

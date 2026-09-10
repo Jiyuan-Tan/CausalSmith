@@ -48,8 +48,11 @@ namespace FiniteDesign
 
 variable {Ω : ℕ → Type*} [∀ m, Fintype (Ω m)]
 
-/-- **Convergence in probability** along a sequence of finite designs: `X m` converges in
-probability to the target `c m` if `Pr(|X m − c m| ≥ ε) → 0` for every `ε > 0`. -/
+/-- For [a sequence of finite assignment spaces](hyp:Ω), [a sequence of finite randomization
+designs](hyp:D), [a sequence of real-valued statistics](hyp:X), and [a sequence of real-valued
+targets](hyp:c), the [assertion of convergence in probability](goal) means that, for every positive
+$\varepsilon$, the probability that the statistic differs from its target by at least
+$\varepsilon$ tends to zero as the sequence index tends to infinity. -/
 def TendstoInProb (D : ∀ m, FiniteDesign (Ω m)) (X : ∀ m, Ω m → ℝ) (c : ℕ → ℝ) : Prop :=
   ∀ ε : ℝ, 0 < ε →
     Tendsto (fun m => (D m).Pr (fun z => ε ≤ |X m z - c m|)) atTop (𝓝 0)
@@ -258,10 +261,12 @@ theorem tendstoInProb_div_one (D : ∀ m, FiniteDesign (Ω m)) (X Y : ∀ m, Ω 
     simpa using this
   refine squeeze_zero (fun m => (D m).Pr_nonneg _) hbound hupper
 
-/-- **Uniform tightness (bounded in probability).** The statistics `X m` are uniformly tight if,
-for every tolerance `η`, there is a single threshold `M` past which the deviation probability
-`Pr(M ≤ |X m|)` is at most `η` for every index `m`.  This is the `O_p(1)` counterpart of
-`TendstoInProb`, satisfied by a bounded (non-vanishing) factor of a delta-method remainder. -/
+/-- For [a sequence of finite assignment spaces](hyp:Ω), [a sequence of finite randomization
+designs](hyp:D), and [a sequence of real-valued statistics](hyp:X), the [assertion that the
+statistics are bounded in probability](goal) means that, for every positive tolerance, there is a
+real threshold such that, from some index onward, the probability that the statistic's absolute
+value is at least that threshold is at most the tolerance.  This is the $O_p(1)$ counterpart of
+convergence in probability. -/
 def BoundedInProb (D : ∀ m, FiniteDesign (Ω m)) (X : ∀ m, Ω m → ℝ) : Prop :=
   ∀ η : ℝ, 0 < η → ∃ M : ℝ, ∀ᶠ m in atTop, (D m).Pr (fun z => M ≤ |X m z|) ≤ η
 

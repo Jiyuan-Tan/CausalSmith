@@ -13,7 +13,12 @@ let seq = 0;
  * a unique temp name because caches ARE written concurrently.
  */
 export async function writeJsonAtomic(path: string, value: unknown): Promise<void> {
+  await writeTextAtomic(path, JSON.stringify(value, null, 2) + "\n");
+}
+
+/** Replace a complete authored artifact without exposing a truncated file on interruption. */
+export async function writeTextAtomic(path: string, text: string): Promise<void> {
   const tmp = `${path}.${process.pid}.${++seq}.tmp`;
-  await writeFile(tmp, JSON.stringify(value, null, 2) + "\n", "utf8");
+  await writeFile(tmp, text, "utf8");
   await rename(tmp, path);
 }

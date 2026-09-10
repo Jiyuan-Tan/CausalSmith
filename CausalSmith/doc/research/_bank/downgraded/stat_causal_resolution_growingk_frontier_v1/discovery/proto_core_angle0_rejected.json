@@ -1,0 +1,1736 @@
+{
+  "qid": "stat_causal_resolution_growingk_frontier",
+  "specialization": "v1",
+  "cluster": "stat",
+  "symbols": [
+    {
+      "name": "n",
+      "type": "sample size",
+      "space": "\\(\\mathbb N\\)",
+      "def": "The number of observations in row \\(n\\).",
+      "role": "index"
+    },
+    {
+      "name": "K",
+      "type": "resolution index",
+      "space": "\\(\\mathbb N\\)",
+      "def": "The number of scalar quantization cells.",
+      "role": "index"
+    },
+    {
+      "name": "K_n",
+      "type": "maximum resolution sequence",
+      "space": "\\(\\{2,\\ldots,n\\}\\)",
+      "def": "The largest quantization resolution reported in row \\(n\\).",
+      "role": "regime parameter",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "a",
+      "type": "treatment level",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "A binary treatment level.",
+      "role": "index"
+    },
+    {
+      "name": "O_{n,i}",
+      "type": "observed data unit",
+      "space": "\\([-1,1]\\times\\{0,1\\}\\times\\mathcal X\\)",
+      "def": "The row-\\(n\\) observation \\(O_{n,i}=(Y_{n,i},A_{n,i},X_{n,i})\\).",
+      "role": "data unit",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "Y_{n,i}",
+      "type": "outcome",
+      "space": "\\([-1,1]\\)",
+      "def": "The observed outcome in \\(O_{n,i}\\).",
+      "role": "data component",
+      "refs": [
+        "O_{n,i}"
+      ]
+    },
+    {
+      "name": "A_{n,i}",
+      "type": "treatment",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "The observed treatment in \\(O_{n,i}\\).",
+      "role": "data component",
+      "refs": [
+        "O_{n,i}"
+      ]
+    },
+    {
+      "name": "X_{n,i}",
+      "type": "covariate",
+      "space": "\\(\\mathcal X\\)",
+      "def": "The observed pretreatment covariate in \\(O_{n,i}\\).",
+      "role": "data component",
+      "refs": [
+        "O_{n,i}"
+      ]
+    },
+    {
+      "name": "Y_{n,i}(a)",
+      "type": "potential outcome",
+      "space": "\\([-1,1]\\)",
+      "def": "The potential outcome of unit \\(i\\) in row \\(n\\) under treatment \\(a\\).",
+      "role": "causal primitive",
+      "refs": [
+        "Y_{n,i}",
+        "a"
+      ]
+    },
+    {
+      "name": "O_n^n",
+      "type": "row sample",
+      "space": "\\(\\mathcal O^n\\)",
+      "def": "The row sample \\(O_n^n=(O_{n,1},\\ldots,O_{n,n})\\).",
+      "role": "data",
+      "refs": [
+        "O_{n,i}",
+        "n"
+      ]
+    },
+    {
+      "name": "P^(n)",
+      "type": "row population law",
+      "space": "Laws on \\(\\mathcal O\\)",
+      "def": "The population law generating every observation in row \\(n\\).",
+      "role": "model",
+      "refs": [
+        "O_{n,i}",
+        "n"
+      ]
+    },
+    {
+      "name": "P_emp,n",
+      "type": "empirical measure",
+      "def": "\\(P_{\\mathrm{emp},n}f=n^{-1}\\sum_{i=1}^n f(O_{n,i})\\).",
+      "role": "sampling operator",
+      "refs": [
+        "n",
+        "O_n^n"
+      ]
+    },
+    {
+      "name": "P_X^(n)",
+      "type": "covariate law",
+      "space": "Laws on \\(\\mathcal X\\)",
+      "def": "The marginal law of \\(X_{n,i}\\) induced by \\(P^{(n)}\\).",
+      "role": "nuisance law",
+      "refs": [
+        "P^(n)",
+        "X_{n,i}"
+      ]
+    },
+    {
+      "name": "e_{P^(n)}",
+      "type": "propensity score",
+      "sig": "\\(\\mathcal X\\to[0,1]\\)",
+      "def": "\\(e_{P^{(n)}}(x)=P^{(n)}(A_{n,i}=1\\mid X_{n,i}=x)\\).",
+      "role": "nuisance",
+      "refs": [
+        "P^(n)",
+        "A_{n,i}",
+        "X_{n,i}"
+      ]
+    },
+    {
+      "name": "mu_{a,P^(n)}",
+      "type": "outcome regression",
+      "sig": "\\(\\{0,1\\}\\times\\mathcal X\\to[-1,1]\\)",
+      "def": "\\(\\mu_{a,P^{(n)}}(x)=\\mathbb E_{P^{(n)}}[Y_{n,i}\\mid A_{n,i}=a,X_{n,i}=x]\\).",
+      "role": "nuisance",
+      "refs": [
+        "P^(n)",
+        "Y_{n,i}",
+        "A_{n,i}",
+        "X_{n,i}",
+        "a"
+      ]
+    },
+    {
+      "name": "b_{P^(n)}",
+      "type": "scalar causal feature",
+      "sig": "\\(\\mathcal X\\to[0,1]\\)",
+      "def": "\\(b_{P^{(n)}}(x)=\\{\\mu_{1,P^{(n)}}(x)-\\mu_{0,P^{(n)}}(x)+1\\}/2\\).",
+      "role": "causal target feature",
+      "refs": [
+        "mu_{a,P^(n)}"
+      ]
+    },
+    {
+      "name": "zeta_{P^(n)}",
+      "type": "feature influence residual",
+      "sig": "\\(\\mathcal O\\to\\mathbb R\\)",
+      "def": "\\(\\zeta_{P^{(n)}}(O_{n,i})=\\tfrac12[\\tfrac{A_{n,i}}{e_{P^{(n)}}(X_{n,i})}\\{Y_{n,i}-\\mu_{1,P^{(n)}}(X_{n,i})\\}-\\tfrac{1-A_{n,i}}{1-e_{P^{(n)}}(X_{n,i})}\\{Y_{n,i}-\\mu_{0,P^{(n)}}(X_{n,i})\\}]\\).",
+      "role": "efficient-score component",
+      "refs": [
+        "O_{n,i}",
+        "Y_{n,i}",
+        "A_{n,i}",
+        "X_{n,i}",
+        "e_{P^(n)}",
+        "mu_{a,P^(n)}"
+      ]
+    },
+    {
+      "name": "v_{P^(n)}",
+      "type": "conditional feature-noise variance",
+      "sig": "\\(\\mathcal X\\to[0,\\infty)\\)",
+      "def": "\\(v_{P^{(n)}}(x)=\\operatorname{Var}_{P^{(n)}}\\{\\zeta_{P^{(n)}}(O_{n,i})\\mid X_{n,i}=x\\}\\).",
+      "role": "regime parameter",
+      "refs": [
+        "P^(n)",
+        "zeta_{P^(n)}",
+        "O_{n,i}",
+        "X_{n,i}"
+      ]
+    },
+    {
+      "name": "mathcal C_K",
+      "type": "compact ordered codebook space",
+      "space": "A compact subset of \\([0,1]^K\\)",
+      "def": "\\(\\mathcal C_K=\\{(c_1,\\ldots,c_K)\\in[0,1]^K:0\\le c_1\\le\\cdots\\le c_K\\le1\\}\\).",
+      "role": "optimization domain",
+      "refs": [
+        "K"
+      ]
+    },
+    {
+      "name": "C_{P^(n),K}",
+      "type": "population codebook",
+      "space": "\\(\\mathcal C_K\\)",
+      "def": "\\(C_{P^{(n)},K}=(c_{P^{(n)},K,1},\\ldots,c_{P^{(n)},K,K})\\) is a minimizer over \\(\\mathcal C_K\\) of \\(C\\mapsto\\mathbb E_{P^{(n)}}[\\min_{1\\le j\\le K}\\{b_{P^{(n)}}(X_{n,i})-c_j\\}^2]\\).",
+      "role": "optimized nuisance functional",
+      "refs": [
+        "P^(n)",
+        "K",
+        "mathcal C_K",
+        "b_{P^(n)}",
+        "X_{n,i}"
+      ]
+    },
+    {
+      "name": "B_{P^(n),K}",
+      "type": "Voronoi-boundary set",
+      "space": "Finite subsets of \\((0,1)\\)",
+      "def": "\\(B_{P^{(n)},K}=\\{(c_{P^{(n)},K,j}+c_{P^{(n)},K,j+1})/2:1\\le j<K\\}\\), with \\(B_{P^{(n)},1}=\\varnothing\\) and \\(\\operatorname{dist}(u,\\varnothing)=+\\infty\\).",
+      "role": "quantizer geometry",
+      "refs": [
+        "C_{P^(n),K}",
+        "K"
+      ]
+    },
+    {
+      "name": "q_{P^(n),K}",
+      "type": "nearest-center map",
+      "sig": "\\([0,1]\\to\\{c_{P^{(n)},K,1},\\ldots,c_{P^{(n)},K,K}\\}\\)",
+      "def": "\\(q_{P^{(n)},K}(u)=c_{P^{(n)},K,j^*(u)}\\), where \\(j^*(u)\\) is the smallest index in \\(\\arg\\min_{1\\le j\\le K}|u-c_{P^{(n)},K,j}|\\).",
+      "role": "quantizer",
+      "refs": [
+        "C_{P^(n),K}",
+        "K"
+      ]
+    },
+    {
+      "name": "ell_{P^(n),K}",
+      "type": "optimized pointwise distortion",
+      "sig": "\\([0,1]\\to[0,1]\\)",
+      "def": "\\(\\ell_{P^{(n)},K}(u)=\\{u-q_{P^{(n)},K}(u)\\}^2\\).",
+      "role": "loss",
+      "refs": [
+        "q_{P^(n),K}"
+      ]
+    },
+    {
+      "name": "W_{P^(n)}(K)",
+      "type": "optimal causal distortion",
+      "space": "\\([0,1]\\)",
+      "def": "\\(W_{P^{(n)}}(K)=\\mathbb E_{P^{(n)}}[\\ell_{P^{(n)},K}\\{b_{P^{(n)}}(X_{n,i})\\}]\\).",
+      "role": "causal estimand component",
+      "refs": [
+        "P^(n)",
+        "ell_{P^(n),K}",
+        "b_{P^(n)}",
+        "X_{n,i}"
+      ]
+    },
+    {
+      "name": "rho_{P^(n)}(K)",
+      "type": "causal resolution profile",
+      "space": "\\([0,1]\\)",
+      "def": "On the nondegenerate class, \\(\\rho_{P^{(n)}}(K)=1-W_{P^{(n)}}(K)/W_{P^{(n)}}(1)\\).",
+      "role": "causal estimand",
+      "refs": [
+        "W_{P^(n)}(K)"
+      ]
+    },
+    {
+      "name": "phi_{W,P^(n),K}",
+      "type": "efficient influence function",
+      "sig": "\\(\\mathcal O\\to\\mathbb R\\)",
+      "def": "\\(\\phi_{W,P^{(n)},K}(O_{n,i})=\\ell_{P^{(n)},K}\\{b_{P^{(n)}}(X_{n,i})\\}-W_{P^{(n)}}(K)+2\\{b_{P^{(n)}}(X_{n,i})-q_{P^{(n)},K}(b_{P^{(n)}}(X_{n,i}))\\}\\zeta_{P^{(n)}}(O_{n,i})\\).",
+      "role": "efficient score",
+      "refs": [
+        "O_{n,i}",
+        "X_{n,i}",
+        "ell_{P^(n),K}",
+        "b_{P^(n)}",
+        "W_{P^(n)}(K)",
+        "q_{P^(n),K}",
+        "zeta_{P^(n)}"
+      ]
+    },
+    {
+      "name": "phi_{rho,P^(n),K}",
+      "type": "efficient influence function",
+      "sig": "\\(\\mathcal O\\to\\mathbb R\\)",
+      "def": "On the nondegenerate class, \\(\\phi_{\\rho,P^{(n)},K}=-\\phi_{W,P^{(n)},K}/W_{P^{(n)}}(1)+W_{P^{(n)}}(K)\\phi_{W,P^{(n)},1}/W_{P^{(n)}}(1)^2\\).",
+      "role": "profile score",
+      "refs": [
+        "phi_{W,P^(n),K}",
+        "W_{P^(n)}(K)"
+      ]
+    },
+    {
+      "name": "G_{P^(n)}(K)",
+      "type": "adjacent resolution gain",
+      "space": "\\([0,1]\\)",
+      "def": "\\(G_{P^{(n)}}(K)=\\rho_{P^{(n)}}(K+1)-\\rho_{P^{(n)}}(K)=\\{W_{P^{(n)}}(K)-W_{P^{(n)}}(K+1)\\}/W_{P^{(n)}}(1)\\).",
+      "role": "causal estimand",
+      "refs": [
+        "rho_{P^(n)}(K)",
+        "W_{P^(n)}(K)",
+        "K"
+      ]
+    },
+    {
+      "name": "Delta_phi_{P^(n),K}",
+      "type": "adjacent efficient score",
+      "sig": "\\(\\mathcal O\\to\\mathbb R\\)",
+      "def": "\\(\\Delta\\phi_{P^{(n)},K}=\\phi_{\\rho,P^{(n)},K+1}-\\phi_{\\rho,P^{(n)},K}\\).",
+      "role": "studentized score",
+      "refs": [
+        "phi_{rho,P^(n),K}",
+        "K"
+      ]
+    },
+    {
+      "name": "sigma_{P^(n),K}",
+      "type": "adjacent score standard deviation",
+      "space": "\\((0,\\infty)\\)",
+      "def": "On the nondegenerate class, \\(\\sigma_{P^{(n)},K}^2=\\operatorname{Var}_{P^{(n)}}\\{\\Delta\\phi_{P^{(n)},K}(O_{n,i})\\}\\).",
+      "role": "regime parameter",
+      "refs": [
+        "P^(n)",
+        "Delta_phi_{P^(n),K}",
+        "O_{n,i}"
+      ]
+    },
+    {
+      "name": "H_{P^(n),K}",
+      "type": "distortion Hessian",
+      "space": "\\(\\mathbb R^{K\\times K}\\)",
+      "def": "The Hessian of the population distortion with respect to the increasingly labelled centers, evaluated at \\(C_{P^{(n)},K}\\).",
+      "role": "geometry",
+      "refs": [
+        "P^(n)",
+        "K",
+        "C_{P^(n),K}"
+      ]
+    },
+    {
+      "name": "lambda_{P^(n),K}",
+      "type": "curvature constant",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(\\lambda_{P^{(n)},K}=\\lambda_{\\min}(H_{P^{(n)},K})\\).",
+      "role": "regime parameter",
+      "refs": [
+        "H_{P^(n),K}"
+      ]
+    },
+    {
+      "name": "s_{P^(n),K}",
+      "type": "maximum cell radius",
+      "space": "\\((0,1]\\)",
+      "def": "\\(s_{P^{(n)},K}=\\operatorname*{ess\\,sup}_{u\\sim P^{(n)}_{b_{P^{(n)}}(X)}}|u-q_{P^{(n)},K}(u)|\\).",
+      "role": "geometry",
+      "refs": [
+        "P^(n)",
+        "b_{P^(n)}",
+        "q_{P^(n),K}"
+      ]
+    },
+    {
+      "name": "alpha_{P^(n),K}",
+      "type": "margin exponent",
+      "space": "\\((0,\\infty)\\)",
+      "def": "The boundary-margin exponent at resolution \\(K\\) under \\(P^{(n)}\\).",
+      "role": "regime parameter",
+      "refs": [
+        "P^(n)",
+        "K"
+      ]
+    },
+    {
+      "name": "M_{P^(n),K}",
+      "type": "margin coefficient",
+      "space": "\\([1,\\infty)\\)",
+      "def": "The boundary-margin coefficient at resolution \\(K\\) under \\(P^{(n)}\\).",
+      "role": "regime parameter",
+      "refs": [
+        "P^(n)",
+        "K"
+      ]
+    },
+    {
+      "name": "kappa_{P^(n),K}",
+      "type": "margin radius",
+      "space": "\\((0,1]\\)",
+      "def": "The radius on which the boundary-margin condition holds.",
+      "role": "regime parameter",
+      "refs": [
+        "P^(n)",
+        "K"
+      ]
+    },
+    {
+      "name": "r_n",
+      "type": "causal nuisance rate",
+      "space": "\\((0,1)\\)",
+      "def": "A deterministic rowwise rate controlling estimability of the propensity and outcome regressions.",
+      "role": "regime parameter",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "L_n",
+      "type": "uniform empirical fluctuation gauge",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(L_n=\\sqrt{\\log(nK_n)/n}\\).",
+      "role": "derived frontier quantity",
+      "refs": [
+        "n",
+        "K_n"
+      ]
+    },
+    {
+      "name": "R_{P^(n),K,n}",
+      "type": "optimized-risk remainder gauge",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(R_{P^{(n)},K,n}=W_{P^{(n)}}(K)\\log(nK_n)/\\{n\\lambda_{P^{(n)},K}\\}+r_n^2\\{1+\\kappa_{P^{(n)},K}^{-1}\\}+M_{P^{(n)},K}r_n^{\\alpha_{P^{(n)},K}+1}\\).",
+      "role": "derived frontier quantity",
+      "refs": [
+        "W_{P^(n)}(K)",
+        "n",
+        "K_n",
+        "lambda_{P^(n),K}",
+        "r_n",
+        "kappa_{P^(n),K}",
+        "M_{P^(n),K}",
+        "alpha_{P^(n),K}"
+      ]
+    },
+    {
+      "name": "R^G_{P^(n),K,n}",
+      "type": "adjacent ratio remainder gauge",
+      "space": "\\([0,\\infty)\\)",
+      "def": "Writing \\(D_{P^{(n)},K}=W_{P^{(n)}}(K)-W_{P^{(n)}}(K+1)\\) and \\(E_{P^{(n)},j,n}=L_n+R_{P^{(n)},j,n}\\), define \\[R^G_{P^{(n)},K,n}=\\frac{R_{P^{(n)},K,n}+R_{P^{(n)},K+1,n}}{W_{P^{(n)}}(1)}+\\frac{|D_{P^{(n)},K}|R_{P^{(n)},1,n}}{W_{P^{(n)}}(1)^2}+\\frac{(E_{P^{(n)},K,n}+E_{P^{(n)},K+1,n})E_{P^{(n)},1,n}}{W_{P^{(n)}}(1)^2}+\\frac{|D_{P^{(n)},K}|E_{P^{(n)},1,n}^2}{W_{P^{(n)}}(1)^3}.\\]",
+      "role": "derived frontier quantity",
+      "refs": [
+        "W_{P^(n)}(K)",
+        "R_{P^(n),K,n}",
+        "L_n",
+        "K"
+      ]
+    },
+    {
+      "name": "S^G_{P^(n),K,n}",
+      "type": "adjacent score-estimation gauge",
+      "space": "\\([0,\\infty)\\)",
+      "def": "With \\(D_{P^{(n)},K}=W_{P^{(n)}}(K)-W_{P^{(n)}}(K+1)\\), define \\[S^G_{P^{(n)},K,n}=\\frac{r_n\\{s_{P^{(n)},K}+s_{P^{(n)},K+1}+r_n\\}}{W_{P^{(n)}}(1)}+\\frac{|D_{P^{(n)},K}|r_n\\{s_{P^{(n)},1}+r_n\\}}{W_{P^{(n)}}(1)^2}.\\]",
+      "role": "derived frontier quantity",
+      "refs": [
+        "W_{P^(n)}(K)",
+        "r_n",
+        "s_{P^(n),K}",
+        "K"
+      ]
+    },
+    {
+      "name": "B_n(P^(n))",
+      "type": "standardized score envelope",
+      "space": "\\([1,\\infty]\\)",
+      "def": "On the nondegenerate class, \\(B_n(P^{(n)})=\\max_{1\\le K<K_n}\\|\\Delta\\phi_{P^{(n)},K}/\\sigma_{P^{(n)},K}\\|_{\\psi_1}\\).",
+      "role": "Gaussian-approximation parameter",
+      "refs": [
+        "K",
+        "K_n",
+        "Delta_phi_{P^(n),K}",
+        "sigma_{P^(n),K}"
+      ]
+    },
+    {
+      "name": "d_n(P^(n))",
+      "type": "minimum standardized adjacent gain",
+      "space": "\\([0,\\infty)\\)",
+      "def": "On the nondegenerate class, \\(d_n(P^{(n)})=\\min_{1\\le K<K_n}G_{P^{(n)}}(K)/\\sigma_{P^{(n)},K}\\).",
+      "role": "resolution-strength parameter",
+      "refs": [
+        "K",
+        "K_n",
+        "G_{P^(n)}(K)",
+        "sigma_{P^(n),K}"
+      ]
+    },
+    {
+      "name": "Gamma_n(P^(n))",
+      "type": "joint frontier index",
+      "space": "\\([0,\\infty)\\)",
+      "def": "On the nondegenerate class, \\[\\Gamma_n(P^{(n)})=\\left\\{\\frac{B_n(P^{(n)})^2\\log^7(nK_n)}{n}\\right\\}^{1/6}+\\max_{1\\le K<K_n}\\left\\{\\frac{\\sqrt{n\\log K_n}R^G_{P^{(n)},K,n}}{\\sigma_{P^{(n)},K}}+\\frac{\\log K_n S^G_{P^{(n)},K,n}}{\\sigma_{P^{(n)},K}}\\right\\}.\\]",
+      "role": "derived frontier quantity",
+      "refs": [
+        "B_n(P^(n))",
+        "n",
+        "K_n",
+        "K",
+        "R^G_{P^(n),K,n}",
+        "S^G_{P^(n),K,n}",
+        "sigma_{P^(n),K}"
+      ]
+    },
+    {
+      "name": "mathcal P_n^CQ",
+      "type": "triangular model class",
+      "space": "Sets of row population laws",
+      "def": "The class \\(\\mathcal P_n^{\\mathrm{CQ}}\\) defined in def:triangular-causal-quantizer-class.",
+      "role": "model class",
+      "ref": "def:triangular-causal-quantizer-class",
+      "refs": [
+        "n",
+        "P^(n)",
+        "K_n"
+      ]
+    },
+    {
+      "name": "hat_eta",
+      "type": "cross-fitted nuisance estimator",
+      "def": "The raw collection \\(\\widehat\\eta=(\\widehat e,\\widehat\\mu_0,\\widehat\\mu_1)\\) fitted away from each validation fold.",
+      "role": "estimator",
+      "refs": [
+        "e_{P^(n)}",
+        "mu_{a,P^(n)}"
+      ]
+    },
+    {
+      "name": "hat_e^cl",
+      "type": "clipped cross-fitted propensity estimator",
+      "sig": "\\(\\mathcal X\\to[\\epsilon/2,1-\\epsilon/2]\\)",
+      "def": "For each training fold, \\(\\widehat e^{\\mathrm{cl}}(x)=\\min\\{1-\\epsilon/2,\\max(\\epsilon/2,\\widehat e(x))\\}\\). This is an estimator construction, not a class assumption. Under ass:overlap, \\(\\lvert\\widehat e^{\\mathrm{cl}}(x)-e_{P^{(n)}}(x)\\rvert\\le\\lvert\\widehat e(x)-e_{P^{(n)}}(x)\\rvert\\) pointwise, so clipping preserves the foldwise \\(L_2(P_X^{(n)})\\) rate and uniformly bounds every inverse propensity.",
+      "role": "estimator",
+      "refs": [
+        "hat_eta",
+        "e_{P^(n)}",
+        "P_X^(n)"
+      ]
+    },
+    {
+      "name": "hat_eta^cl",
+      "type": "clipped cross-fitted nuisance estimator",
+      "def": "The foldwise collection \\(\\widehat\\eta^{\\mathrm{cl}}=(\\widehat e^{\\mathrm{cl}},\\widehat\\mu_0,\\widehat\\mu_1)\\) used in every corrected loss and estimated influence score.",
+      "role": "estimator",
+      "refs": [
+        "hat_eta",
+        "hat_e^cl"
+      ]
+    },
+    {
+      "name": "hat_C_K",
+      "type": "corrected-risk codebook estimator",
+      "space": "\\(\\mathcal C_K\\)",
+      "def": "The minimizer of the cross-fitted corrected empirical distortion at resolution \\(K\\), with \\(\\widehat e^{\\mathrm{cl}}\\) used in every inverse-propensity term.",
+      "role": "estimator",
+      "refs": [
+        "K",
+        "mathcal C_K",
+        "hat_eta^cl"
+      ]
+    },
+    {
+      "name": "hat_W_K",
+      "type": "corrected distortion estimator",
+      "space": "\\(\\mathbb R\\)",
+      "def": "The cross-fitted corrected estimate \\(\\widehat W_K\\) evaluated at \\(\\widehat C_K\\), using \\(\\widehat e^{\\mathrm{cl}}\\) in the corrected loss.",
+      "role": "estimator",
+      "refs": [
+        "hat_C_K",
+        "hat_eta^cl"
+      ]
+    },
+    {
+      "name": "hat_rho_K",
+      "type": "corrected resolution estimator",
+      "space": "\\(\\mathbb R\\)",
+      "def": "On the event \\(\\widehat W_1>0\\), \\(\\widehat\\rho(K)=1-\\widehat W_K/\\widehat W_1\\).",
+      "role": "estimator",
+      "refs": [
+        "hat_W_K",
+        "K"
+      ]
+    },
+    {
+      "name": "hat_G_K",
+      "type": "adjacent gain estimator",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(\\widehat G_K=\\widehat\\rho(K+1)-\\widehat\\rho(K)\\).",
+      "role": "estimator",
+      "refs": [
+        "hat_rho_K",
+        "K"
+      ]
+    },
+    {
+      "name": "hat_sigma_K",
+      "type": "score standard-deviation estimator",
+      "space": "\\((0,\\infty)\\)",
+      "def": "The positive empirical standard deviation of the estimated cross-fitted adjacent efficient scores computed with \\(\\widehat e^{\\mathrm{cl}}\\).",
+      "role": "estimator",
+      "refs": [
+        "Delta_phi_{P^(n),K}",
+        "hat_C_K",
+        "hat_eta^cl"
+      ]
+    },
+    {
+      "name": "xi_i",
+      "type": "multiplier",
+      "space": "\\(N(0,1)\\)",
+      "def": "Independent Gaussian multipliers, conditionally independent of \\(O_n^n\\).",
+      "role": "bootstrap randomness",
+      "refs": [
+        "O_n^n"
+      ]
+    },
+    {
+      "name": "alpha",
+      "type": "miscoverage level",
+      "space": "\\((0,1)\\)",
+      "def": "The nominal simultaneous-band error probability.",
+      "role": "inference constant"
+    },
+    {
+      "name": "T_n",
+      "type": "studentized maximum statistic",
+      "space": "\\([0,\\infty)\\)",
+      "def": "On the nondegenerate class and the event \\(\\min_{K<K_n}\\widehat\\sigma_K>0\\), \\(T_n=\\max_{1\\le K<K_n}|\\sqrt n\\{\\widehat G_K-G_{P^{(n)}}(K)\\}/\\widehat\\sigma_K|\\).",
+      "role": "test statistic",
+      "refs": [
+        "n",
+        "K",
+        "K_n",
+        "hat_G_K",
+        "G_{P^(n)}(K)",
+        "hat_sigma_K"
+      ]
+    },
+    {
+      "name": "T_n^sharp",
+      "type": "multiplier-bootstrap statistic",
+      "space": "\\([0,\\infty)\\)",
+      "def": "On the same event, \\(T_n^{\\#}=\\max_{1\\le K<K_n}|n^{-1/2}\\sum_{i=1}^n\\xi_i\\widehat{\\Delta\\phi}_{i,K}/\\widehat\\sigma_K|\\), where every estimated score uses \\(\\widehat e^{\\mathrm{cl}}\\) and is centered by \\(P_{\\mathrm{emp},n}\\).",
+      "role": "bootstrap statistic",
+      "refs": [
+        "K",
+        "K_n",
+        "n",
+        "xi_i",
+        "Delta_phi_{P^(n),K}",
+        "hat_e^cl",
+        "hat_sigma_K",
+        "P_emp,n"
+      ]
+    },
+    {
+      "name": "c_{1-alpha}^sharp",
+      "type": "bootstrap critical value",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The conditional \\((1-\\alpha)\\)-quantile of \\(T_n^{\\#}\\) given \\(O_n^n\\).",
+      "role": "critical value",
+      "refs": [
+        "T_n^sharp",
+        "O_n^n",
+        "alpha"
+      ]
+    },
+    {
+      "name": "I_{n,K}",
+      "type": "simultaneous confidence interval",
+      "space": "Intervals in \\(\\mathbb R\\)",
+      "def": "On the event \\(\\widehat\\sigma_K>0\\), \\(I_{n,K}=[\\widehat G_K-c_{1-\\alpha}^{\\#}\\widehat\\sigma_K/\\sqrt n,\\widehat G_K+c_{1-\\alpha}^{\\#}\\widehat\\sigma_K/\\sqrt n]\\).",
+      "role": "confidence band coordinate",
+      "refs": [
+        "hat_G_K",
+        "c_{1-alpha}^sharp",
+        "hat_sigma_K",
+        "n"
+      ]
+    },
+    {
+      "name": "A_n",
+      "type": "set-valued unresolved profile",
+      "space": "Subsets of \\(\\{1,\\ldots,K_n-1\\}\\)",
+      "def": "\\(\\mathcal A_n=\\{K:0\\in I_{n,K}\\}\\).",
+      "role": "set-valued report",
+      "refs": [
+        "K",
+        "K_n",
+        "I_{n,K}"
+      ]
+    },
+    {
+      "name": "beta_W",
+      "type": "distortion-decay exponent",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The exponent in the sufficient polynomial bound for \\(W_{P^{(n)}}(K)\\).",
+      "role": "growth exponent",
+      "refs": [
+        "W_{P^(n)}(K)"
+      ]
+    },
+    {
+      "name": "beta_lambda",
+      "type": "curvature-decay exponent",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The exponent in the sufficient polynomial lower bound for curvature.",
+      "role": "growth exponent"
+    },
+    {
+      "name": "beta_s",
+      "type": "cell-radius exponent",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The exponent in the sufficient polynomial upper bound for cell radius.",
+      "role": "growth exponent"
+    },
+    {
+      "name": "beta_M",
+      "type": "margin-coefficient exponent",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The exponent in the sufficient polynomial upper bound for the margin coefficient.",
+      "role": "growth exponent"
+    },
+    {
+      "name": "beta_kappa",
+      "type": "margin-radius exponent",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The exponent in the sufficient polynomial lower bound for the margin radius.",
+      "role": "growth exponent"
+    },
+    {
+      "name": "alpha_0",
+      "type": "uniform margin exponent",
+      "space": "\\((0,\\infty)\\)",
+      "def": "A uniform lower bound on the boundary-margin exponents.",
+      "role": "growth exponent"
+    },
+    {
+      "name": "gamma",
+      "type": "nuisance-rate exponent",
+      "space": "\\((0,\\infty)\\)",
+      "def": "The exponent in \\(r_n\\lesssim n^{-\\gamma}\\).",
+      "role": "growth exponent",
+      "refs": [
+        "r_n",
+        "n"
+      ]
+    },
+    {
+      "name": "beta_B",
+      "type": "score-envelope exponent",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The exponent in the sufficient polynomial score-envelope bound.",
+      "role": "growth exponent"
+    },
+    {
+      "name": "beta_1",
+      "type": "denominator-decay exponent",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The exponent in \\(W_{P^{(n)}}(1)\\gtrsim K_n^{-\\beta_1}\\); the uniformly nondegenerate regime has \\(\\beta_1=0\\).",
+      "role": "growth exponent",
+      "refs": [
+        "W_{P^(n)}(K)",
+        "K_n"
+      ]
+    },
+    {
+      "name": "beta_sigma",
+      "type": "adjacent-standard-deviation exponent",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The exponent in the sufficient polynomial lower bound for \\(\\sigma_{P^{(n)},K}\\).",
+      "role": "growth exponent",
+      "refs": [
+        "sigma_{P^(n),K}"
+      ]
+    },
+    {
+      "name": "eta_star",
+      "type": "admissible resolution exponent",
+      "space": "\\((0,\\infty]\\)",
+      "def": "The explicit ceiling exponent derived in cor:polynomial-growth-ceiling.",
+      "role": "derived growth exponent"
+    },
+    {
+      "name": "U",
+      "type": "uniform causal feature",
+      "space": "\\([0,1]\\)",
+      "def": "A random variable with law \\(\\operatorname{Unif}[0,1]\\).",
+      "role": "witness feature"
+    },
+    {
+      "name": "nu_n",
+      "type": "feature-noise scale",
+      "space": "\\([0,1/2]\\)",
+      "def": "The conditional standard deviation of the efficient residual in the uniform witness.",
+      "role": "phase parameter",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "g_K",
+      "type": "uniform adjacent gain",
+      "space": "\\((0,1)\\)",
+      "def": "\\(g_K=(2K+1)/\\{K^2(K+1)^2\\}\\).",
+      "role": "witness quantity",
+      "refs": [
+        "K"
+      ]
+    },
+    {
+      "name": "V_K^(0)",
+      "type": "uniform geometric score variance",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(V_K^{(0)}=8(K^8+4K^7+10K^6+16K^5+5K^4-12K^3-14K^2-6K-1)/\\{5K^6(K+1)^6\\}\\).",
+      "role": "witness quantity",
+      "refs": [
+        "K"
+      ]
+    },
+    {
+      "name": "A_K",
+      "type": "uniform causal-noise variance loading",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(A_K=48(K^2+K+1)(2K^4+4K^3-K^2-3K-1)/\\{K^4(K+1)^4\\}\\).",
+      "role": "witness quantity",
+      "refs": [
+        "K"
+      ]
+    },
+    {
+      "name": "P_{U,nu_n}^(n)",
+      "type": "uniform randomized-trial witness law",
+      "space": "Observed-data laws",
+      "def": "The row law with \\(X_{n,i}=U\\), \\(A_{n,i}\\sim\\operatorname{Bernoulli}(1/2)\\) independent of \\(U\\), \\(Y_{n,i}(1)=U-1/2+\\nu_n\\varepsilon_1\\), and \\(Y_{n,i}(0)=1/2-U+\\nu_n\\varepsilon_0\\), where the two Rademacher marks are independent of \\(U\\) and treatment.",
+      "role": "witness law",
+      "refs": [
+        "P^(n)",
+        "X_{n,i}",
+        "A_{n,i}",
+        "Y_{n,i}(a)",
+        "U",
+        "nu_n"
+      ]
+    },
+    {
+      "name": "P_{0,K}^(n)",
+      "type": "nondegenerate baseline causal law",
+      "space": "Observed-data laws",
+      "def": "The randomized law with \\(X_{n,i}=U\\), \\(A_{n,i}\\sim\\operatorname{Bernoulli}(1/2)\\), and conditionally independent binary potential outcomes satisfying \\(P^{(n)}\\{Y_{n,i}(1)=1\\mid U=u\\}=(u+1/2)/2\\) and \\(P^{(n)}\\{Y_{n,i}(0)=1\\mid U=u\\}=(3/2-u)/2\\).",
+      "role": "converse baseline",
+      "refs": [
+        "P^(n)",
+        "X_{n,i}",
+        "A_{n,i}",
+        "Y_{n,i}(a)",
+        "U",
+        "K"
+      ]
+    },
+    {
+      "name": "s_K^(0)",
+      "type": "normalized adjacent score direction",
+      "sig": "\\(\\mathcal O\\to\\mathbb R\\)",
+      "def": "\\(s_K^{(0)}(o)=\\Delta\\phi_{P_{0,K}^{(n)},K}(o)/\\sigma_{P_{0,K}^{(n)},K}\\).",
+      "role": "converse direction",
+      "refs": [
+        "Delta_phi_{P^(n),K}",
+        "sigma_{P^(n),K}",
+        "P_{0,K}^(n)"
+      ]
+    },
+    {
+      "name": "theta",
+      "type": "local tilt parameter",
+      "space": "\\(\\mathbb R\\)",
+      "def": "The scalar parameter indexing the adjacent-score transport.",
+      "role": "local parameter"
+    },
+    {
+      "name": "P_{theta,K}^(n)",
+      "type": "score-transport causal law",
+      "space": "Observed-data laws",
+      "def": "The law whose observed-data density relative to \\(P_{0,K}^{(n)}\\) is \\(\\exp\\{\\theta s_K^{(0)}(o)\\}/\\mathbb E_{P_{0,K}^{(n)}}[\\exp\\{\\theta s_K^{(0)}(O_{n,i})\\}]\\), causally completed by drawing \\(A_{n,i}\\) from its tilted propensity and drawing \\(Y_{n,i}(0),Y_{n,i}(1)\\) conditionally independently from the two tilted outcome regressions.",
+      "role": "explicit converse subfamily",
+      "refs": [
+        "O_{n,i}",
+        "A_{n,i}",
+        "Y_{n,i}(a)",
+        "P_{0,K}^(n)",
+        "s_K^(0)",
+        "theta"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:consistency",
+      "kind": "causal-structural",
+      "condition": "For every row \\(n\\), \\(Y_{n,i}=Y_{n,i}(a)\\) almost surely on \\(\\{A_{n,i}=a\\}\\), for each \\(a\\in\\{0,1\\}\\).",
+      "free_symbols": [
+        "n",
+        "Y_{n,i}",
+        "Y_{n,i}(a)",
+        "A_{n,i}",
+        "a"
+      ],
+      "standard": {
+        "name": "Consistency of potential outcomes",
+        "cite": "ImbensRubin2015"
+      },
+      "used_by": [
+        "thm:growing-profile-band",
+        "prop:uniform-witness-membership",
+        "thm:adjacent-local-resolution-lower-bound"
+      ]
+    },
+    {
+      "id": "ass:exchangeability",
+      "kind": "causal-structural",
+      "condition": "Under \\(P^{(n)}\\), \\(\\{Y_{n,i}(0),Y_{n,i}(1)\\}\\perp A_{n,i}\\mid X_{n,i}\\).",
+      "free_symbols": [
+        "P^(n)",
+        "Y_{n,i}(a)",
+        "A_{n,i}",
+        "X_{n,i}"
+      ],
+      "standard": {
+        "name": "Conditional exchangeability",
+        "cite": "ImbensRubin2015"
+      },
+      "used_by": [
+        "thm:growing-profile-band",
+        "prop:uniform-witness-membership",
+        "thm:adjacent-local-resolution-lower-bound"
+      ]
+    },
+    {
+      "id": "ass:overlap",
+      "kind": "support",
+      "condition": "There is a fixed \\(\\epsilon>0\\), common to all rows and laws in the class, such that \\(\\epsilon\\le e_{P^{(n)}}(X_{n,i})\\le1-\\epsilon\\) almost surely.",
+      "free_symbols": [
+        "n",
+        "P^(n)",
+        "e_{P^(n)}",
+        "X_{n,i}"
+      ],
+      "constants": [
+        "\\epsilon"
+      ],
+      "standard": {
+        "name": "Strong overlap",
+        "cite": "ChernozhukovEtAl2018DML"
+      },
+      "used_by": [
+        "thm:growing-profile-band",
+        "prop:uniform-witness-membership",
+        "thm:adjacent-local-resolution-lower-bound"
+      ]
+    },
+    {
+      "id": "ass:bounded-feature",
+      "kind": "support",
+      "condition": "Under \\(P^{(n)}\\), \\(\\lvert\\mu_{1,P^{(n)}}(X_{n,i})-\\mu_{0,P^{(n)}}(X_{n,i})\\rvert\\le1\\) almost surely; under the stated scaling this is equivalent to \\(b_{P^{(n)}}(X_{n,i})\\in[0,1]\\) almost surely.",
+      "free_symbols": [
+        "P^(n)",
+        "mu_{a,P^(n)}",
+        "b_{P^(n)}",
+        "X_{n,i}"
+      ],
+      "standard": {
+        "name": "Bounded causal pseudo-outcome support",
+        "cite": "KimKimKennedy2026"
+      },
+      "used_by": [
+        "lem:growing-codebook-remainder",
+        "thm:growing-profile-band"
+      ]
+    },
+    {
+      "id": "ass:singleton-interior-optimizer",
+      "kind": "regularity",
+      "condition": "For every \\(1\\le K\\le K_n\\), the optimizer set of \\(C\\mapsto\\mathbb E_{P^{(n)}}[\\min_{1\\le j\\le K}\\{b_{P^{(n)}}(X_{n,i})-c_j\\}^2]\\) over \\(\\mathcal C_K\\) is the singleton \\(\\{C_{P^{(n)},K}\\}\\), and its coordinates satisfy \\(0<c_{P^{(n)},K,1}<\\cdots<c_{P^{(n)},K,K}<1\\).",
+      "free_symbols": [
+        "P^(n)",
+        "K",
+        "K_n",
+        "C_{P^(n),K}",
+        "mathcal C_K",
+        "b_{P^(n)}",
+        "X_{n,i}"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This proposal-specific growing-resolution condition is exactly satisfied by the uniform causal-feature witness, whose unique optimizer has centers \\((2j-1)/(2K)\\). It is also interpretable in applications as excluding tied population segmentations and endpoint-only cells. Pollard1982Central is a fixed-\\(K\\) antecedent for uniqueness, not the provenance of this uniform-in-\\(K\\) condition."
+      },
+      "used_by": [
+        "lem:growing-codebook-remainder",
+        "thm:growing-profile-band"
+      ]
+    },
+    {
+      "id": "ass:curvature",
+      "kind": "regularity",
+      "condition": "For every \\(1\\le K\\le K_n\\), \\(\\lambda_{P^{(n)},K}>0\\).",
+      "free_symbols": [
+        "P^(n)",
+        "K",
+        "K_n",
+        "lambda_{P^(n),K}"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Allowing the smallest Hessian eigenvalue to decay with \\(K\\) is a growing-resolution regularity condition. It is satisfied by the uniform causal-feature witness with \\(\\lambda_{P^{(n)},K}=2/K\\), and it permits the increasing local instability expected from progressively finer customer segmentation. Pollard1982Central supplies the fixed-\\(K\\) positive-Hessian antecedent only."
+      },
+      "used_by": [
+        "lem:growing-codebook-remainder",
+        "thm:growing-profile-band"
+      ]
+    },
+    {
+      "id": "ass:margin",
+      "kind": "tail-rate",
+      "condition": "For every \\(1\\le K\\le K_n\\) and \\(0<t\\le\\kappa_{P^{(n)},K}\\), \\[P^{(n)}\\!\\left\\{\\operatorname{dist}\\!\\left(b_{P^{(n)}}(X_{n,i}),B_{P^{(n)},K}\\right)\\le t\\right\\}\\le M_{P^{(n)},K}\\left(\\frac{t}{s_{P^{(n)},K}}\\right)^{\\alpha_{P^{(n)},K}}.\\] For \\(K=1\\), the left side is zero because \\(B_{P^{(n)},1}=\\varnothing\\) and \\(\\operatorname{dist}(u,\\varnothing)=+\\infty\\).",
+      "free_symbols": [
+        "P^(n)",
+        "K",
+        "K_n",
+        "kappa_{P^(n),K}",
+        "b_{P^(n)}",
+        "X_{n,i}",
+        "B_{P^(n),K}",
+        "M_{P^(n),K}",
+        "s_{P^(n),K}",
+        "alpha_{P^(n),K}"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "The arbitrary-exponent condition with \\(K\\)-dependent coefficient, cell-radius normalization, and validity radius is tailored to growing resolution. It is satisfied by the uniform causal-feature witness with exponent one, coefficient two, and radius \\(1/(2K)\\), and it allows empirical feature densities to place increasing mass near finer Voronoi boundaries. Levrard2015 is a fixed-resolution margin antecedent rather than exact provenance for this condition."
+      },
+      "used_by": [
+        "lem:growing-codebook-remainder",
+        "thm:growing-profile-band"
+      ]
+    },
+    {
+      "id": "ass:nuisance-estimability",
+      "kind": "nuisance rate",
+      "condition": "The functions \\(e_{P^{(n)}}\\) and \\(\\mu_{a,P^{(n)}}\\) admit cross-fitted estimators whose maximum \\(L_2(P_X^{(n)})\\) error and maximum outcome-regression uniform error are \\(O_{P^{(n)}}(r_n)\\), uniformly over the row class.",
+      "free_symbols": [
+        "P^(n)",
+        "e_{P^(n)}",
+        "mu_{a,P^(n)}",
+        "P_X^(n)",
+        "r_n"
+      ],
+      "standard": {
+        "name": "Cross-fitted nuisance estimability in the norm combination used for causal quantization",
+        "cite": "KimKimKennedy2026"
+      },
+      "used_by": [
+        "lem:growing-codebook-remainder",
+        "thm:growing-profile-band"
+      ]
+    },
+    {
+      "id": "ass:resolution-denominator",
+      "kind": "nondegeneracy",
+      "condition": "There is a fixed \\(\\underline w>0\\), common to every row and law in the class, such that \\(W_{P^{(n)}}(1)\\ge\\underline w\\).",
+      "free_symbols": [
+        "P^(n)",
+        "W_{P^(n)}(K)"
+      ],
+      "constants": [
+        "\\underline w"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Because \\(W_{P^{(n)}}(1)=\\inf_{c\\in[0,1]}\\mathbb E_{P^{(n)}}[\\{b_{P^{(n)}}(X_{n,i})-c\\}^2]=\\operatorname{Var}_{P^{(n)}}\\{b_{P^{(n)}}(X_{n,i})\\}\\), the lower bound is the proposal-specific nonvanishing causal-heterogeneity regime needed to define and uniformly linearize the normalized ratio profile. It excludes homogeneous and drifting-to-homogeneous laws, and it is nonempty because the exact uniform witness has \\(W_{P_{U,\\nu_n}^{(n)}}(1)=1/12\\)."
+      },
+      "used_by": [
+        "lem:growing-codebook-remainder",
+        "thm:growing-profile-band",
+        "thm:locally-honest-profile"
+      ]
+    },
+    {
+      "id": "ass:adjacent-score-nondegeneracy",
+      "kind": "nondegeneracy",
+      "condition": "For every \\(1\\le K<K_n\\), \\(\\sigma_{P^{(n)},K}>0\\).",
+      "free_symbols": [
+        "P^(n)",
+        "K",
+        "K_n",
+        "sigma_{P^(n),K}"
+      ],
+      "standard": {
+        "name": "Coordinatewise variance nondegeneracy for studentized high-dimensional inference",
+        "cite": "ChernozhukovChetverikovKoike2021NearlyOptimal"
+      },
+      "used_by": [
+        "thm:growing-profile-band",
+        "thm:locally-honest-profile"
+      ]
+    },
+    {
+      "id": "ass:score-envelope",
+      "kind": "empirical-process",
+      "condition": "\\(B_n(P^{(n)})<\\infty\\).",
+      "free_symbols": [
+        "P^(n)",
+        "B_n(P^(n))"
+      ],
+      "standard": {
+        "name": "Coordinatewise standardized sub-exponential envelope",
+        "cite": "ChernozhukovChetverikovKato2017HighDimensional"
+      },
+      "used_by": [
+        "thm:growing-profile-band"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:triangular-causal-quantizer-class",
+      "name": "The triangular causal-quantizer class \\(\\mathcal P_n^{\\mathrm{CQ}}\\)",
+      "construction": "\\(\\mathcal P_n^{\\mathrm{CQ}}=\\{P^{(n)}:P^{(n)}\\text{ is a population law in row }n\\text{ satisfying ass:consistency, ass:exchangeability, ass:overlap, ass:bounded-feature, ass:singleton-interior-optimizer, ass:curvature, ass:margin, ass:nuisance-estimability, ass:resolution-denominator, ass:adjacent-score-nondegeneracy, and ass:score-envelope for every stated }1\\le K\\le K_n\\}\\).",
+      "free_symbols": [
+        "n",
+        "P^(n)",
+        "K",
+        "K_n"
+      ],
+      "by_member_properties": [
+        "ass:consistency",
+        "ass:exchangeability",
+        "ass:overlap",
+        "ass:bounded-feature",
+        "ass:singleton-interior-optimizer",
+        "ass:curvature",
+        "ass:margin",
+        "ass:nuisance-estimability",
+        "ass:resolution-denominator",
+        "ass:adjacent-score-nondegeneracy",
+        "ass:score-envelope"
+      ]
+    },
+    {
+      "id": "def:corrected-profile-estimator",
+      "name": "The corrected-moment growing-resolution estimator",
+      "construction": "On each validation fold, form \\(\\widehat e^{\\mathrm{cl}}(x)=\\min\\{1-\\epsilon/2,\\max(\\epsilon/2,\\widehat e(x))\\}\\) and insert \\(\\widehat\\eta^{\\mathrm{cl}}=(\\widehat e^{\\mathrm{cl}},\\widehat\\mu_0,\\widehat\\mu_1)\\) into the corrected loss associated with \\(\\phi_{W,P^{(n)},K}\\). Minimize its \\(P_{\\mathrm{emp},n}\\)-average to obtain \\(\\widehat C_K\\), and evaluate \\(\\widehat W_K\\) for every \\(1\\le K\\le K_n\\), always using \\(\\widehat e^{\\mathrm{cl}}\\) in inverse-propensity terms. On the event \\(\\widehat W_1>0\\), form \\(\\widehat\\rho(K)=1-\\widehat W_K/\\widehat W_1\\) and \\(\\widehat G_K=\\widehat\\rho(K+1)-\\widehat\\rho(K)\\) for \\(K<K_n\\).",
+      "free_symbols": [
+        "hat_e^cl",
+        "hat_eta^cl",
+        "phi_{W,P^(n),K}",
+        "P_emp,n",
+        "hat_C_K",
+        "hat_W_K",
+        "K",
+        "K_n",
+        "hat_rho_K",
+        "hat_G_K"
+      ],
+      "inputs": [
+        "O_n^n",
+        "K_n",
+        "hat_eta^cl"
+      ]
+    },
+    {
+      "id": "def:multiplier-band",
+      "name": "The corrected-score multiplier band",
+      "construction": "Compute every estimated adjacent score at \\(\\widehat C_K\\) with \\(\\widehat e^{\\mathrm{cl}}\\), center the scores by \\(P_{\\mathrm{emp},n}\\), compute their empirical standard deviations \\(\\widehat\\sigma_K\\), verify \\(\\min_{K<K_n}\\widehat\\sigma_K>0\\), draw \\(\\xi_i\\), evaluate \\(T_n^{\\#}\\) from the same clipped-propensity scores, and return \\(\\{I_{n,K}:1\\le K<K_n\\}\\) using \\(c_{1-\\alpha}^{\\#}\\).",
+      "free_symbols": [
+        "Delta_phi_{P^(n),K}",
+        "hat_C_K",
+        "hat_e^cl",
+        "P_emp,n",
+        "K",
+        "K_n",
+        "hat_sigma_K",
+        "xi_i",
+        "T_n^sharp",
+        "I_{n,K}",
+        "c_{1-alpha}^sharp"
+      ],
+      "inputs": [
+        "O_n^n",
+        "hat_eta^cl",
+        "hat_C_K",
+        "hat_sigma_K"
+      ]
+    },
+    {
+      "id": "def:locally-honest-profile",
+      "name": "The unresolved adjacent-resolution profile",
+      "construction": "\\(\\mathcal A_n=\\{K\\in\\{1,\\ldots,K_n-1\\}:0\\in I_{n,K}\\}\\), accompanied by the full intervals \\(I_{n,K}\\).",
+      "free_symbols": [
+        "A_n",
+        "K",
+        "K_n",
+        "I_{n,K}"
+      ],
+      "inputs": [
+        "I_{n,K}"
+      ]
+    },
+    {
+      "id": "def:polynomial-growth-regime",
+      "name": "The transparent polynomial regime",
+      "construction": "For fixed positive constants \\(c,C\\), uniformly over \\(P^{(n)}\\in\\mathcal P_n^{\\mathrm{CQ}}\\) and \\(K\\le K_n\\), impose \\[W_{P^{(n)}}(K)\\le CK^{-\\beta_W},\\quad \\lambda_{P^{(n)},K}\\ge cK^{-\\beta_\\lambda},\\quad s_{P^{(n)},K}\\le CK^{-\\beta_s},\\quad M_{P^{(n)},K}\\le CK^{\\beta_M},\\quad \\kappa_{P^{(n)},K}\\ge cK^{-\\beta_\\kappa},\\] \\[\\alpha_{P^{(n)},K}\\ge\\alpha_0,\\quad r_n\\le Cn^{-\\gamma},\\quad B_n(P^{(n)})\\le CK_n^{\\beta_B},\\quad W_{P^{(n)}}(1)\\ge cK_n^{-\\beta_1},\\quad \\sigma_{P^{(n)},K}\\ge cK^{-\\beta_\\sigma}.\\] The uniform-ratio specialization sets \\(\\beta_1=0\\).",
+      "free_symbols": [
+        "P^(n)",
+        "mathcal P_n^CQ",
+        "K",
+        "K_n",
+        "W_{P^(n)}(K)",
+        "beta_W",
+        "lambda_{P^(n),K}",
+        "beta_lambda",
+        "s_{P^(n),K}",
+        "beta_s",
+        "M_{P^(n),K}",
+        "beta_M",
+        "kappa_{P^(n),K}",
+        "beta_kappa",
+        "alpha_{P^(n),K}",
+        "alpha_0",
+        "r_n",
+        "gamma",
+        "B_n(P^(n))",
+        "beta_B",
+        "beta_1",
+        "sigma_{P^(n),K}",
+        "beta_sigma"
+      ],
+      "inputs": [
+        "K_n",
+        "r_n"
+      ]
+    },
+    {
+      "id": "def:explicit-adjacent-score-transport",
+      "name": "The explicit nondegenerate adjacent-score transport",
+      "construction": "Start from \\(P_{0,K}^{(n)}\\), whose randomized propensity and binary outcome probabilities lie in \\([1/4,3/4]\\). For \\(s_K^{(0)}=\\Delta\\phi_{P_{0,K}^{(n)},K}/\\sigma_{P_{0,K}^{(n)},K}\\), set \\[\\frac{dP_{\\theta,K}^{(n)}}{dP_{0,K}^{(n)}}(o)=\\frac{\\exp\\{\\theta s_K^{(0)}(o)\\}}{\\mathbb E_{P_{0,K}^{(n)}}[\\exp\\{\\theta s_K^{(0)}(O)\\}]},\\qquad |\\theta|\\le c_0/\\|s_K^{(0)}\\|_\\infty.\\] Complete each tilted observed law causally by its tilted propensity and its two tilted outcome regressions, with conditionally independent potential outcomes. This is a normalized, mass-preserving parametric subfamily with score \\(s_K^{(0)}\\) at \\(\\theta=0\\).",
+      "free_symbols": [
+        "P_{0,K}^(n)",
+        "P_{theta,K}^(n)",
+        "s_K^(0)",
+        "Delta_phi_{P^(n),K}",
+        "sigma_{P^(n),K}",
+        "theta",
+        "K"
+      ],
+      "inputs": [
+        "P_{0,K}^(n)",
+        "K",
+        "theta"
+      ]
+    },
+    {
+      "id": "def:frontier-converse-handle",
+      "name": "The multi-resolution converse handle",
+      "construction": "Apply a Le Cam chain or Assouad hypercube to disjoint score-aligned exponential tilts of the target object \\(\\{G_{P^{(n)}}(K):K<K_n\\}\\), then verify uniform membership by perturbation bounds for the Voronoi boundaries, curvature, margin constants, and causal nuisance radius.",
+      "free_symbols": [
+        "G_{P^(n)}(K)",
+        "P^(n)",
+        "K",
+        "K_n",
+        "B_{P^(n),K}",
+        "lambda_{P^(n),K}",
+        "M_{P^(n),K}",
+        "r_n"
+      ],
+      "inputs": [
+        "P_{theta,K}^(n)",
+        "K_n"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "prop:uniform-witness-membership",
+      "kind": "proposition",
+      "statement": "For every row \\(n\\) and \\(0\\le\\nu_n\\le1/2\\), the bounded randomized-trial law \\(P_{U,\\nu_n}^{(n)}\\) belongs to \\(\\mathcal P_n^{\\mathrm{CQ}}\\) whenever its nuisance rate satisfies ass:nuisance-estimability. For every \\(1\\le K\\le K_n\\), the optimizer over the compact ordered-tuple space \\(\\mathcal C_K\\) is the singleton whose strictly interior coordinates are \\[C_{P_{U,\\nu_n}^{(n)},K}=((2j-1)/(2K))_{j=1}^K,\\qquad 0<1/(2K)<\\cdots<(2K-1)/(2K)<1,\\] and \\[B_{P_{U,\\nu_n}^{(n)},K}=\\{j/K:1\\le j<K\\},\\quad W_{P_{U,\\nu_n}^{(n)}}(K)=1/(12K^2),\\quad \\rho_{P_{U,\\nu_n}^{(n)}}(K)=1-K^{-2},\\] \\[\\lambda_{P_{U,\\nu_n}^{(n)},K}=2/K,\\quad s_{P_{U,\\nu_n}^{(n)},K}=1/(2K).\\] One may take \\(\\alpha_{P_{U,\\nu_n}^{(n)},K}=1\\), \\(M_{P_{U,\\nu_n}^{(n)},K}=2\\), and \\(\\kappa_{P_{U,\\nu_n}^{(n)},K}=1/(2K)\\). In particular, \\(W_{P_{U,\\nu_n}^{(n)}}(1)=1/12\\) and every adjacent score variance below is positive.",
+      "free_symbols": [
+        "n",
+        "nu_n",
+        "P_{U,nu_n}^(n)",
+        "mathcal P_n^CQ",
+        "K",
+        "K_n",
+        "C_{P^(n),K}",
+        "mathcal C_K",
+        "B_{P^(n),K}",
+        "W_{P^(n)}(K)",
+        "rho_{P^(n)}(K)",
+        "lambda_{P^(n),K}",
+        "s_{P^(n),K}",
+        "alpha_{P^(n),K}",
+        "M_{P^(n),K}",
+        "kappa_{P^(n),K}"
+      ],
+      "depends_on": [
+        "def:triangular-causal-quantizer-class",
+        "ass:nuisance-estimability"
+      ],
+      "status": "to-prove",
+      "justification": "The witness places the noise--geometry phase transition inside a bounded causal model with the required nondegeneracy and the corrected Voronoi margin geometry.",
+      "gap": "Pollard1982Central and Levrard2015 analyze observed quantizers, while KimKimKennedy2026 does not give a growing uniform causal witness with exact adjacent-score variance.",
+      "consumer": "The witness calibrates the largest defensible resolution in the MineThatData randomized e-mail experiment."
+    },
+    {
+      "id": "lem:uniform-score-phase",
+      "kind": "lemma",
+      "statement": "Under \\(P_{U,\\nu_n}^{(n)}\\), \\(G_{P_{U,\\nu_n}^{(n)}}(K)=g_K\\) and \\(\\sigma_{P_{U,\\nu_n}^{(n)},K}^2=V_K^{(0)}+\\nu_n^2A_K\\), where \\[V_K^{(0)}=\\frac{8(K^8+4K^7+10K^6+16K^5+5K^4-12K^3-14K^2-6K-1)}{5K^6(K+1)^6},\\qquad A_K=\\frac{48(K^2+K+1)(2K^4+4K^3-K^2-3K-1)}{K^4(K+1)^4}.\\] Uniformly over sequences \\(K\\to\\infty\\), \\[\\sigma_{P_{U,\\nu_n}^{(n)},K}^2=\\left\\{\\frac{8}{5K^4}+\\frac{96\\nu_n^2}{K^2}\\right\\}\\{1+o(1)\\},\\qquad \\frac{G_{P_{U,\\nu_n}^{(n)}}(K)}{\\sigma_{P_{U,\\nu_n}^{(n)},K}}=\\frac{2+o(1)}{K\\sqrt{8/5+96(\\nu_nK)^2}}.\\] Hence the standardized gain is of order \\(K^{-1}\\) when \\(\\nu_nK=O(1)\\) and of order \\((\\nu_nK^2)^{-1}\\) when \\(\\nu_nK\\to\\infty\\).",
+      "free_symbols": [
+        "P_{U,nu_n}^(n)",
+        "nu_n",
+        "g_K",
+        "G_{P^(n)}(K)",
+        "K",
+        "sigma_{P^(n),K}",
+        "V_K^(0)",
+        "A_K"
+      ],
+      "depends_on": [
+        "prop:uniform-witness-membership"
+      ],
+      "status": "to-prove",
+      "justification": "The exact calculation identifies the phase transition between geometric cancellation and causal outcome noise.",
+      "gap": "KimKimKennedy2026 supplies a fixed-resolution influence function, but neither it nor Pollard1982Quantization computes the adjacent cancellation or its finite-\\(K\\) constants.",
+      "consumer": "MineThatData analysts can distinguish a nearly noiseless \\(K^{-1}\\) standardized-gap regime from the practically relevant noisy \\(K^{-2}\\) regime."
+    },
+    {
+      "id": "lem:growing-codebook-remainder",
+      "kind": "lemma",
+      "statement": "Uniformly over \\(P^{(n)}\\in\\mathcal P_n^{\\mathrm{CQ}}\\) and every \\(1\\le K\\le K_n\\), \\[\\widehat W_K-W_{P^{(n)}}(K)=(P_{\\mathrm{emp},n}-P^{(n)})\\phi_{W,P^{(n)},K}+O_{P^{(n)}}\\!\\left(R_{P^{(n)},K,n}\\right).\\] Consequently, uniformly over \\(1\\le K<K_n\\), \\[\\widehat G_K-G_{P^{(n)}}(K)=(P_{\\mathrm{emp},n}-P^{(n)})\\Delta\\phi_{P^{(n)},K}+O_{P^{(n)}}\\!\\left(R^G_{P^{(n)},K,n}\\right),\\] and the maximum \\(L_2(P^{(n)})\\) discrepancy of the estimated adjacent score divided by \\(\\sigma_{P^{(n)},K}\\) is \\(O_{P^{(n)}}(\\max_{K<K_n}S^G_{P^{(n)},K,n}/\\sigma_{P^{(n)},K})\\). The first expansion includes \\(K=K_n\\), so the adjacent expansion at \\(K_n-1\\) controls both optimized risks and the \\(W_{P^{(n)}}(1)\\) denominator.",
+      "free_symbols": [
+        "P^(n)",
+        "mathcal P_n^CQ",
+        "n",
+        "K",
+        "K_n",
+        "hat_W_K",
+        "W_{P^(n)}(K)",
+        "P_emp,n",
+        "phi_{W,P^(n),K}",
+        "R_{P^(n),K,n}",
+        "hat_G_K",
+        "G_{P^(n)}(K)",
+        "Delta_phi_{P^(n),K}",
+        "R^G_{P^(n),K,n}",
+        "sigma_{P^(n),K}",
+        "S^G_{P^(n),K,n}"
+      ],
+      "depends_on": [
+        "def:triangular-causal-quantizer-class",
+        "def:corrected-profile-estimator",
+        "ass:singleton-interior-optimizer",
+        "ass:curvature",
+        "ass:margin",
+        "ass:nuisance-estimability",
+        "ass:resolution-denominator"
+      ],
+      "status": "to-prove",
+      "justification": "This is the missing bridge from fixed-resolution orthogonality to a growing optimized profile with a valid ratio expansion.",
+      "gap": "Levrard2015 tracks fixed-level excess risk and KimKimKennedy2026 proves fixed-resolution causal expansions; neither controls both neighboring optimized risks, the common denominator, and quadratic ratio terms on the shrinking adjacent-score scale.",
+      "consumer": "The bound identifies whether codebook fitting, denominator estimation, or causal nuisance learning reaches the MineThatData adjacent-gain noise floor first."
+    },
+    {
+      "id": "thm:growing-profile-band",
+      "kind": "theorem",
+      "statement": "Suppose \\(K_n\\to\\infty\\) and \\[\\sup_{P^{(n)}\\in\\mathcal P_n^{\\mathrm{CQ}}}\\Gamma_n(P^{(n)})\\to0.\\] Then the corrected-score multiplier band is uniformly valid on the same nondegenerate triangular class: \\[\\sup_{P^{(n)}\\in\\mathcal P_n^{\\mathrm{CQ}}}\\left|P_{P^{(n)}}\\!\\left\\{G_{P^{(n)}}(K)\\in I_{n,K}\\text{ for every }1\\le K<K_n\\right\\}-(1-\\alpha)\\right|\\to0.\\] This is a strict growing-resolution extension of the fixed-\\(k\\) corrected-risk machinery corroborated in KimKimKennedy2026, arXiv:2405.03083v5: Section 4.1, equation (10), and Lemma 4.1 give the fixed-\\(k\\) optimal-risk influence function; Section 4.2, Assumptions A4--A6, and Lemma 4.2 give root-\\(n\\) normality for a corrected risk at a fixed codebook; and Remark 3.1 states that \\(k\\) is fixed and that \\(k\\)-selection and increasing \\(k\\) are not addressed. The result here instead treats \\(K_n\\to\\infty\\), reoptimizes neighboring codebooks, studentizes possibly shrinking adjacent variances, and covers the full adjacent ratio vector simultaneously. When \\(K_n=2\\), it is a one-coordinate ratio delta-method specialization built from those fixed-risk scores; the normalized ratio is not itself a theorem stated by KimKimKennedy2026.",
+      "free_symbols": [
+        "K_n",
+        "n",
+        "P^(n)",
+        "mathcal P_n^CQ",
+        "Gamma_n(P^(n))",
+        "G_{P^(n)}(K)",
+        "I_{n,K}",
+        "K",
+        "alpha"
+      ],
+      "depends_on": [
+        "lem:growing-codebook-remainder",
+        "def:multiplier-band",
+        "ass:score-envelope",
+        "ass:resolution-denominator",
+        "ass:adjacent-score-nondegeneracy"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem turns the fixed-\\(k\\) risk-score ingredients in KimKimKennedy2026, arXiv:2405.03083v5, Section 4.1, equation (10), and Lemma 4.1 into simultaneous inference for an entire growing causal-resolution curve.",
+      "gap": "KimKimKennedy2026, arXiv:2405.03083v5, Section 4.2, Assumptions A4--A6, and Lemma 4.2 establish fixed-codebook corrected-risk root-\\(n\\) normality, while Remark 3.1 explicitly leaves \\(k\\)-selection and increasing \\(k\\) untreated; BelloniChernozhukovChetverikovWei2018 begins from supplied score vectors. KimKimWassermanKennedy2024 instead studies plug-in hierarchical linkages and density level sets for the vector counterfactual feature, so its multiple dendrogram granularities are not coordinates of an adjacent optimized-distortion profile. None gives a band for growing reoptimized neighboring scalar squared-error \\(k\\)-means codebooks with shrinking adjacent variances and a common estimated ratio denominator.",
+      "consumer": "The band replaces visual elbow inspection by familywise-valid uncertainty for every candidate MineThatData resolution."
+    },
+    {
+      "id": "prop:polynomial-growth-ceiling",
+      "kind": "proposition",
+      "statement": "Under def:polynomial-growth-regime with the uniform denominator exponent \\(\\beta_1=0\\), assume \\(\\gamma>1/4\\) and \\(\\gamma(\\alpha_0+1)>1/2\\). For \\(x\\ge0\\), write \\(1/x=+\\infty\\) when \\(x=0\\), and retain only positive numerators and denominators in the following minimum: \\[\\eta_\\star=\\min\\left\\{\\frac{1}{2\\beta_B},\\frac{1}{2(\\beta_\\sigma+\\beta_\\lambda-\\beta_W)_+},\\frac{2\\gamma-1/2}{\\beta_\\sigma+\\beta_\\kappa},\\frac{\\gamma(\\alpha_0+1)-1/2}{\\beta_\\sigma+\\beta_M},\\frac{1}{2\\beta_\\sigma},\\frac{\\gamma}{\\beta_\\sigma}\\right\\}.\\] If \\(K_n=O(n^\\eta)\\) for some \\(0<\\eta<\\eta_\\star\\), with logarithmic slack at equality, then \\(\\sup_{P^{(n)}\\in\\mathcal P_n^{\\mathrm{CQ}}}\\Gamma_n(P^{(n)})\\to0\\). Fixed \\(K_n\\) requires only the stated nuisance thresholds. For the exact-nuisance uniform witness, the optimized-risk component instead reduces sharply to \\[\\frac{K_n\\sqrt{\\log K_n}\\log(nK_n)}{\\sqrt n\\sqrt{1+(\\nu_nK_n)^2}}\\to0.\\] If \\(\\nu_nK_n=O(1)\\), band validity allows \\(K_n=o(n^{1/2})\\) up to logarithms and profile resolution additionally requires \\(K_n=o(\\sqrt{n/\\log K_n})\\). If \\(\\nu_nK_n\\to\\infty\\), the displayed band remainder becomes \\(\\sqrt{\\log K_n}\\log(nK_n)/(\\sqrt n\\nu_n)\\), while standardized resolution requires \\(K_n=o\\{n^{1/4}\\nu_n^{-1/2}(\\log K_n)^{-1/4}\\}\\).",
+      "free_symbols": [
+        "beta_1",
+        "gamma",
+        "alpha_0",
+        "eta_star",
+        "beta_B",
+        "beta_sigma",
+        "beta_lambda",
+        "beta_W",
+        "beta_kappa",
+        "beta_M",
+        "K_n",
+        "n",
+        "eta_star",
+        "P^(n)",
+        "mathcal P_n^CQ",
+        "Gamma_n(P^(n))",
+        "P_{U,nu_n}^(n)",
+        "nu_n"
+      ],
+      "depends_on": [
+        "def:polynomial-growth-regime",
+        "lem:growing-codebook-remainder",
+        "lem:uniform-score-phase",
+        "thm:growing-profile-band"
+      ],
+      "status": "to-prove",
+      "justification": "The corollary converts the abstract frontier gauge into an auditable ceiling and separates coverage from actual resolution.",
+      "gap": "Fixed-\\(K\\) causal quantization and generic high-dimensional bootstrap theory do not expose how curvature, distortion decay, margin radius, nuisance rate, denominator scale, and adjacent variance jointly set the maximal \\(K_n\\).",
+      "consumer": "A MineThatData analysis can plug in conservative empirical exponents and report a precommitted resolution ceiling."
+    },
+    {
+      "id": "thm:locally-honest-profile",
+      "kind": "theorem",
+      "statement": "Under thm:growing-profile-band, \\(\\mathcal A_n\\) is locally honest. Uniformly over every triangular subfamily of \\(\\mathcal P_n^{\\mathrm{CQ}}\\) satisfying \\(\\max_{K<K_n}\\sqrt n|G_{P^{(n)}}(K)|/\\sigma_{P^{(n)},K}=O(\\sqrt{\\log K_n})\\), the full local gain vector is covered with probability \\(1-\\alpha+o(1)\\). Every coordinate satisfying \\(\\sqrt n|G_{P^{(n)}}(K)|/\\sigma_{P^{(n)},K}>2c_{1-\\alpha}^{\\#}+o_{P^{(n)}}(1)\\) is excluded from \\(\\mathcal A_n\\) with probability tending to one. Thus unresolved resolutions are determined by standardized rather than raw adjacent gains.",
+      "free_symbols": [
+        "A_n",
+        "P^(n)",
+        "mathcal P_n^CQ",
+        "K",
+        "K_n",
+        "n",
+        "G_{P^(n)}(K)",
+        "sigma_{P^(n),K}",
+        "c_{1-alpha}^sharp",
+        "alpha"
+      ],
+      "depends_on": [
+        "thm:growing-profile-band",
+        "def:locally-honest-profile"
+      ],
+      "status": "to-prove",
+      "justification": "Resolution selection is nonregular near adjacent ties, so honest inference must display ambiguity rather than force a single elbow.",
+      "gap": "AndrewsSoares2010 and ChernozhukovChetverikovKato2019MMI treat supplied moment systems, not moving differences of optimized causal risks.",
+      "consumer": "MineThatData investigators receive the resolutions that remain empirically indistinguishable together with the full familywise-valid intervals."
+    },
+    {
+      "id": "thm:adjacent-local-resolution-lower-bound",
+      "kind": "theorem",
+      "statement": "Fix a sequence \\(1\\le K<K_n\\) for which \\(\\|s_K^{(0)}\\|_\\infty/\\sqrt n\\to0\\), and use the explicit causal subfamily in def:explicit-adjacent-score-transport. For every fixed sufficiently small \\(c>0\\), let \\(\\theta_{n,+}=c/\\sqrt n\\) and \\(\\theta_{n,-}=-c/\\sqrt n\\). Then both laws remain in a common nondegenerate causal-quantizer neighborhood, \\[\\operatorname{KL}\\!\\left((P_{\\theta_{n,+},K}^{(n)})^{\\otimes n},(P_{\\theta_{n,-},K}^{(n)})^{\\otimes n}\\right)\\le 2c^2+o(1),\\] and \\[G_{P_{\\theta_{n,+},K}^{(n)}}(K)-G_{P_{\\theta_{n,-},K}^{(n)}}(K)=\\frac{2c\\,\\sigma_{P_{0,K}^{(n)},K}}{\\sqrt n}+o\\!\\left(\\frac{\\sigma_{P_{0,K}^{(n)},K}}{\\sqrt n}\\right).\\] Consequently, the infimum over all tests of the sum of the two sign-classification errors is bounded away from zero. No uniformly honest procedure can force coordinate \\(K\\) to a resolved singleton throughout alternatives with \\(\\sqrt n|G_{P^{(n)}}(K)|/\\sigma_{P^{(n)},K}=O(1)\\). This establishes necessity only of the coordinatewise standardized-separation component; it does not claim necessity of every term in \\(\\Gamma_n(P^{(n)})\\) or the simultaneous \\(\\sqrt{\\log K_n}\\) factor.",
+      "free_symbols": [
+        "K",
+        "K_n",
+        "s_K^(0)",
+        "n",
+        "P_{theta,K}^(n)",
+        "theta",
+        "P^(n)",
+        "sigma_{P^(n),K}",
+        "P_{0,K}^(n)",
+        "G_{P^(n)}(K)",
+        "Gamma_n(P^(n))"
+      ],
+      "depends_on": [
+        "def:explicit-adjacent-score-transport",
+        "ass:consistency",
+        "ass:exchangeability",
+        "ass:overlap",
+        "ass:resolution-denominator",
+        "ass:adjacent-score-nondegeneracy"
+      ],
+      "status": "to-prove",
+      "justification": "The explicit score-aligned causal experiment supplies a genuine adjacent-resolution converse without promising an unsupported full frontier.",
+      "gap": "Levrard2015 proves a fixed-level excess-distortion lower bound, whereas this theorem targets local discrimination of adjacent normalized causal risks in a nondegenerate randomized causal subfamily.",
+      "consumer": "The lower bound prevents MineThatData analysts from interpreting an unresolved standardized adjacent gain as a failure of the particular bootstrap algorithm."
+    },
+    {
+      "id": "oeq:sharp-joint-frontier",
+      "kind": "openendedquestion",
+      "statement": "Using def:frontier-converse-handle, determine which components of the uniform condition \\(\\sup_{P^{(n)}\\in\\mathcal P_n^{\\mathrm{CQ}}}\\Gamma_n(P^{(n)})\\to0\\) are necessary up to logarithmic factors for simultaneous coverage. On separated triangular subclasses, determine whether uniform divergence of \\(\\sqrt n\\,d_n(P^{(n)})/\\sqrt{\\log K_n}\\) is necessary and sufficient for singleton profile resolution. Identify which score approximation, optimized-risk, denominator-ratio, or Gaussian-coupling component first forces nonvanishing undercoverage, while preserving the prescribed curvature, Voronoi margin, and nuisance-rate bounds.",
+      "free_symbols": [
+        "P^(n)",
+        "mathcal P_n^CQ",
+        "Gamma_n(P^(n))",
+        "n",
+        "d_n(P^(n))",
+        "K_n",
+        "lambda_{P^(n),K}",
+        "B_{P^(n),K}",
+        "M_{P^(n),K}",
+        "r_n"
+      ],
+      "depends_on": [
+        "def:frontier-converse-handle",
+        "thm:growing-profile-band",
+        "thm:locally-honest-profile",
+        "thm:adjacent-local-resolution-lower-bound",
+        "lem:uniform-score-phase"
+      ],
+      "status": "to-prove",
+      "justification": "A maximal frontier requires a multi-coordinate undercoverage or ambiguity construction beyond the coordinatewise Le Cam bound.",
+      "gap": "Levrard2015 and CaiLow2004 provide fixed-loss and adaptive-confidence lower-bound machinery, but neither supplies a geometry-preserving causal experiment for a growing adjacent profile.",
+      "consumer": "A matching converse would certify the finest resolution any MineThatData analysis can report honestly, irrespective of its estimator or bootstrap implementation."
+    }
+  ],
+  "sampling_model": {
+    "design": "Triangular independent superpopulation sampling under observational assignment or a randomized trial.",
+    "units": "For each row \\(n\\), \\(O_{n,1},\\ldots,O_{n,n}\\) are independent and identically distributed from the population law \\(P^{(n)}\\); \\(P_{\\mathrm{emp},n}\\) is their empirical measure.",
+    "treatment": "Binary treatment satisfies rowwise consistency and conditional exchangeability.",
+    "overlap": "The same fixed \\(\\epsilon\\) bounds \\(e_{P^{(n)}}(X)\\) away from zero and one over the triangular class.",
+    "nuisance_estimation": "Cross-fitting estimates \\(e_{P^{(n)}}\\) and \\(\\mu_{a,P^{(n)}}\\) at the common rowwise rate \\(r_n\\). On every training fold, the fitted propensity is clipped by construction to \\(\\widehat e^{\\mathrm{cl}}(x)=\\min\\{1-\\epsilon/2,\\max(\\epsilon/2,\\widehat e(x))\\}\\); under overlap this preserves its \\(L_2(P_X^{(n)})\\) rate, and the clipped fit is used in every corrected loss, estimated influence score, variance estimate, and multiplier-bootstrap coordinate."
+  },
+  "estimand_functional": "\\(\\widehat G_K=\\widehat\\rho(K+1)-\\widehat\\rho(K),\\quad \\widehat G_K-G_{P^{(n)}}(K)=(P_{\\mathrm{emp},n}-P^{(n)})\\Delta\\phi_{P^{(n)},K}+O_{P^{(n)}}(R^G_{P^{(n)},K,n})\\)",
+  "target_estimand": "\\(\\{G_{P^{(n)}}(K)=\\rho_{P^{(n)}}(K+1)-\\rho_{P^{(n)}}(K):1\\le K<K_n\\}\\)",
+  "bibliography": [
+    {
+      "key": "KimKimKennedy2026",
+      "citation": "Kwangho Kim, Jisu Kim, and Edward H. Kennedy (2026), Causal K-Means Clustering, Journal of the Royal Statistical Society: Series B; corroborating preprint arXiv:2405.03083v5. The version-of-record receipt currently supports the Abstract, while the numbered technical locators used here are Section 4.1, equation (10), and Lemma 4.1; Section 4.2, Assumptions A4--A6, and Lemma 4.2; and Remark 3.1 of arXiv v5."
+    },
+    {
+      "key": "KimKimWassermanKennedy2024",
+      "citation": "Kwangho Kim, Jisu Kim, Larry Wasserman, and Edward H. Kennedy (2024), Hierarchical and Density-based Causal Clustering, Advances in Neural Information Processing Systems 37. Theorem 3.2 controls pruning and misclassification error under a good-neighborhood condition; Theorem 4.1 controls Hausdorff error of a smoothed-density level set."
+    },
+    {
+      "key": "BelloniChernozhukovChetverikovWei2018",
+      "citation": "Alexandre Belloni, Victor Chernozhukov, Denis Chetverikov, and Ying Wei (2018), Uniformly Valid Post-Regularization Confidence Regions for Many Functional Parameters in Z-Estimation Framework, Annals of Statistics 46, 3643--3675."
+    },
+    {
+      "key": "Levrard2015",
+      "citation": "Clément Levrard (2015), Nonasymptotic Bounds for Vector Quantization in Hilbert Spaces, Annals of Statistics 43, 592--619, arXiv:1405.6672."
+    },
+    {
+      "key": "Pollard1982Central",
+      "citation": "David Pollard (1982), A Central Limit Theorem for \\(k\\)-Means Clustering, Annals of Probability 10, 919--926."
+    },
+    {
+      "key": "Pollard1982Quantization",
+      "citation": "David Pollard (1982), Quantization and the Method of \\(k\\)-Means, IEEE Transactions on Information Theory 28, 199--205."
+    },
+    {
+      "key": "ChernozhukovEtAl2018DML",
+      "citation": "Victor Chernozhukov and coauthors (2018), Double/Debiased Machine Learning for Treatment and Structural Parameters, Econometrics Journal 21, C1--C68, arXiv:1608.00060."
+    },
+    {
+      "key": "ChernozhukovChetverikovKato2017HighDimensional",
+      "citation": "Victor Chernozhukov, Denis Chetverikov, and Kengo Kato (2017), Central Limit Theorems and Bootstrap in High Dimensions, Annals of Probability 45, 2309--2352."
+    },
+    {
+      "key": "ChernozhukovChetverikovKoike2021NearlyOptimal",
+      "citation": "Victor Chernozhukov, Denis Chetverikov, and Yuta Koike (2021), Nearly Optimal Central Limit Theorem and Bootstrap Approximations in High Dimensions, arXiv:2012.09513."
+    },
+    {
+      "key": "AndrewsSoares2010",
+      "citation": "Donald W. K. Andrews and Gustavo Soares (2010), Inference for Parameters Defined by Moment Inequalities Using Generalized Moment Selection, Econometrica 78, 119--157."
+    },
+    {
+      "key": "ChernozhukovChetverikovKato2019MMI",
+      "citation": "Victor Chernozhukov, Denis Chetverikov, and Kengo Kato (2019), Inference on Causal and Structural Parameters Using Many Moment Inequalities, Review of Economic Studies 86, 1867--1900, arXiv:1312.7614."
+    },
+    {
+      "key": "CaiLow2004",
+      "citation": "T. Tony Cai and Mark G. Low (2004), An Adaptation Theory for Nonparametric Confidence Intervals, Annals of Statistics 32, 1805--1840."
+    },
+    {
+      "key": "LiuPages2020",
+      "citation": "Yating Liu and Gilles Pagès (2020), Convergence Rate of Optimal Quantization and Application to the Clustering Performance of the Empirical Measure, Journal of Machine Learning Research 21, 1--36."
+    },
+    {
+      "key": "AtheyWager2021",
+      "citation": "Susan Athey and Stefan Wager (2021), Policy Learning with Observational Data, Econometrica 89, 133--161."
+    },
+    {
+      "key": "ChernozhukovWuthrichZhu2021",
+      "citation": "Victor Chernozhukov, Kaspar Wüthrich, and Yinchu Zhu (2021), An Exact and Robust Conformal Inference Method for Counterfactual and Synthetic Controls, Journal of the American Statistical Association 116, 1849--1864."
+    },
+    {
+      "key": "ImbensRubin2015",
+      "citation": "Guido W. Imbens and Donald B. Rubin (2015), Causal Inference for Statistics, Social, and Biomedical Sciences, Cambridge University Press."
+    },
+    {
+      "key": "Hillstrom2008",
+      "citation": "Kevin Hillstrom (2008), The MineThatData E-Mail Analytics and Data Mining Challenge, public randomized e-mail experiment with 64,000 customers."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "KimKimKennedy2026",
+      "comparator_claim": "In arXiv:2405.03083v5, Section 4.1, equation (10), and Lemma 4.1 give the fixed-\\(k\\) optimal-risk influence function; Section 4.2, Assumptions A4--A6, and Lemma 4.2 give fixed-codebook corrected-risk root-\\(n\\) normality; Remark 3.1 states that \\(k\\) is fixed and \\(k\\)-selection or increasing \\(k\\) is not addressed.",
+      "matched_by": "Theorem 1",
+      "match_kind": "strict_tightening"
+    },
+    {
+      "comparator_bibkey": "KimKimWassermanKennedy2024",
+      "comparator_claim": "Theorem 3.2 controls pruning and misclassification error for plug-in hierarchical causal clustering under a good-neighborhood condition, and Theorem 4.1 controls Hausdorff error of a smoothed-density level set for the vector counterfactual feature.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BelloniChernozhukovChetverikovWei2018",
+      "comparator_claim": "Its orthogonal-score multiplier method yields simultaneous bands for many supplied functional parameters under a uniform Bahadur expansion.",
+      "matched_by": "Theorem 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Levrard2015",
+      "comparator_claim": "Its margin condition gives fixed-level fast excess-distortion bounds and a fixed-level minimax lower bound.",
+      "matched_by": "Theorem 3",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Pollard1982Central",
+      "comparator_claim": "Its positive-Hessian argument gives asymptotic normality of a unique fixed-\\(k\\) empirical codebook.",
+      "matched_by": "Lemma 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ChernozhukovChetverikovKoike2021NearlyOptimal",
+      "comparator_claim": "Its rectangle approximation covers high-dimensional standardized sums with nondegenerate coordinate variances.",
+      "matched_by": "Theorem 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "AndrewsSoares2010",
+      "comparator_claim": "Its generalized moment-selection confidence sets have uniformly correct asymptotic size for supplied moment inequalities.",
+      "matched_by": "Theorem 2",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "For scalar squared-error causal \\(k\\)-means, the adjacent resolution profile is estimated over a triangular sequence of population laws \\(P^{(n)}\\), separately from the empirical measure \\(P_{\\mathrm{emp},n}\\). The exact uniform-law score variance has a noise--geometry transition from order \\(K^{-4}\\) to order \\(\\nu_n^2K^{-2}\\). A corrected optimized-risk expansion through \\(K_n\\), an adjacent ratio remainder with explicit \\(W_{P^{(n)}}(1)\\) factors, and a studentized multiplier band yield a uniform sufficient frontier and a locally honest unresolved profile. A polynomial corollary gives an explicit \\(K_n\\) ceiling, while a score-aligned exponential-tilt causal subfamily proves only coordinatewise standardized-separation necessity and leaves both the full \\(\\Gamma_n\\) boundary and the simultaneous \\(\\sqrt{\\log K_n}\\) penalty open. Hierarchical and density-based causal clustering concerns different vector-feature objects and dendrogram or level-set granularities, rather than this adjacent-distortion profile.",
+  "project_justification": {
+    "gap": "KimKimKennedy2026 establishes fixed-resolution causal \\(k\\)-means risk inference, Levrard2015 controls fixed-level quantizer geometry, and BelloniChernozhukovChetverikovWei2018 supplies many-score bands. KimKimWassermanKennedy2024 studies plug-in hierarchical linkages and smoothed-density level sets for a vector counterfactual feature, with pruning, misclassification, and Hausdorff guarantees, but does not define optimized \\(k\\)-means distortion, normalized distortion profiles, adjacent gains, corrected risk scores, or a growing \\(K_n\\) frontier. None treats a growing reoptimized scalar squared-error ratio profile under triangular population laws with shrinking adjacent variances.",
+    "niche": "Within scalar squared-error causal \\(k\\)-means, the exact adjacent variance reveals an observation-noise phase parameter \\(\\nu_nK\\), while the ratio expansion shows that denominator stability and both neighboring optimized risks enter the honest-resolution frontier. This niche is distinct from dendrogram levels and density level sets.",
+    "fill": "The project derives a \\(K\\)-uniform corrected-risk expansion through \\(K_n\\), a studentized multiplier band, a locally honest unresolved profile, a transparent polynomial ceiling, an exact uniform-law phase diagram, and a concrete coordinatewise adjacent-resolution lower bound without claiming a generic causal-clustering theorem."
+  },
+  "related_work": "KimKimKennedy2026 is anchored by the corroborating preprint arXiv:2405.03083v5: Section 4.1, equation (10), and Lemma 4.1 give the fixed-\\(k\\) optimal-risk influence function; Section 4.2, Assumptions A4--A6, and Lemma 4.2 give fixed-codebook corrected-risk root-\\(n\\) normality; and Remark 3.1 explicitly says that \\(k\\) is fixed and that \\(k\\)-selection and increasing \\(k\\) are not addressed. The version-of-record receipt currently supports only the Abstract, so the numbered technical locators are identified as arXiv-v5 corroboration. Theorem 1 strictly extends this fixed-\\(k\\) corrected-risk machinery to a triangular \\(K_n\\to\\infty\\), simultaneously studentized adjacent ratio profile with reoptimized neighboring codebooks and possibly shrinking variances. For \\(K_n=2\\), the result is a one-coordinate ratio delta-method specialization built from the fixed-risk scores, not a claim that KimKimKennedy2026 states the normalized ratio theorem. KimKimWassermanKennedy2024 is a non-overlapping causal-clustering comparator: it studies the vector counterfactual feature \\(\\mu(X)\\) through plug-in hierarchical linkages and density level sets; its Theorem 3.2 controls pruning and misclassification error under a good-neighborhood condition, and its Theorem 4.1 controls Hausdorff error of a smoothed-density level set. It does not define optimized \\(k\\)-means distortion \\(W(K)\\), the normalized profile \\(\\rho(K)\\), adjacent gains \\(G(K)\\), corrected risk scores, simultaneous studentized bands, or a growing \\(K_n\\) frontier. Its multiple granularities are dendrogram levels, not coordinates of the adjacent-distortion profile, and its lack of a \\(k\\)-means margin condition reflects the different clustering object. Its stated future-work gap on efficient semiparametric estimators further separates its plug-in guarantees from the corrected-score inference developed here. Theorem 1 is not presented as an extension of KimKimWassermanKennedy2024. Pollard1982Central gives fixed-\\(k\\) codebook normality under uniqueness and positive curvature. Levrard2015 links Voronoi-boundary margins to fixed-level excess risk and supplies a different fixed-loss converse; its tools inform the stability argument and the explicit adjacent causal lower bound does not claim to extend that theorem. BelloniChernozhukovChetverikovWei2018, ChernozhukovChetverikovKato2017HighDimensional, and ChernozhukovChetverikovKoike2021NearlyOptimal inform the standardized multiplier coupling after the optimized-risk expansion is established. AndrewsSoares2010 and ChernozhukovChetverikovKato2019MMI inform local set-valued reporting for binding moments but do not cover moving causal codebooks. LiuPages2020 studies changing source laws for quantization without adjacent causal-score inference. Hillstrom2008 supplies the public randomized e-mail experiment that motivates a noisy, data-dependent resolution ceiling.",
+  "technical_internal_limitation": "The geometric raw-loss variance is not the causal efficient-score variance. When \\(v_{P^{(n)}}(X)\\) is bounded away from zero, the residual term in \\(\\phi_{W,P^{(n)},K}\\) contributes order \\(K^{-2}\\) to the adjacent variance and dominates the order \\(K^{-4}\\) geometric contribution. The \\(K^{-1}\\) standardized-gap law is therefore valid only when \\(\\nu_nK=O(1)\\).",
+  "honest_scope": "The exact uniform-law variance, the corrected attainable band, the polynomial sufficient ceiling, and a coordinatewise adjacent-resolution lower bound are theorem targets for scalar squared-error causal \\(k\\)-means. The ordered centers, nearest-center maps, Voronoi boundaries, cell radii, distortion Hessians, optimized-risk influence function, and remainder gauges are specific to that object; no generic causal-quantizer or hierarchical-clustering theorem is claimed. KimKimWassermanKennedy2024 studies vector-feature dendrogram and density-level-set targets and is a non-overlapping comparator. Necessity of every component of \\(\\Gamma_n(P^{(n)})\\) and the simultaneous \\(\\sqrt{\\log K_n}\\) separation penalty remain open; the lower bound establishes only coordinatewise standardized-separation necessity. For \\(K_n=2\\), the band theorem is a one-coordinate ratio delta-method specialization built from the fixed-risk score machinery corroborated in KimKimKennedy2026, arXiv:2405.03083v5, Section 4.1, equation (10), and Lemma 4.1, together with the fixed-codebook corrected-risk conditions and normality in Section 4.2, Assumptions A4--A6, and Lemma 4.2; the normalized ratio is not itself a stated theorem there, and Remark 3.1 leaves \\(k\\)-selection and increasing \\(k\\) untreated. The noiseless uniform case reduces to \\(W_{P^{(n)}}(K)=1/(12K^2)\\).",
+  "message": "Applied all v4 survey-completeness and positioning directives while preserving the flagship scalar squared-error causal k-means kernel. Schema, proposal gate, symbol, LaTeX-sealing, and PDF-compilation checks pass.",
+  "literature_checklist": [
+    {
+      "author": "Kim, Kim, and Kennedy",
+      "year": 2026,
+      "venue": "Journal of the Royal Statistical Society: Series B",
+      "bibkey": "KimKimKennedy2026",
+      "one_line": "arXiv:2405.03083v5 supplies the fixed-k influence-function, corrected-risk normality, and fixed-k scope locators used for comparison.",
+      "relevant_to": "thm:growing-profile-band"
+    },
+    {
+      "author": "Kim, Kim, Wasserman, and Kennedy",
+      "year": 2024,
+      "venue": "Advances in Neural Information Processing Systems",
+      "bibkey": "KimKimWassermanKennedy2024",
+      "one_line": "Theorem 3.2 controls hierarchical-pruning and misclassification error, while Theorem 4.1 controls density-level-set Hausdorff error; these vector-feature targets do not overlap the adjacent optimized-distortion profile.",
+      "relevant_to": "thm:growing-profile-band"
+    },
+    {
+      "author": "Belloni, Chernozhukov, Chetverikov, and Wei",
+      "year": 2018,
+      "venue": "Annals of Statistics",
+      "bibkey": "BelloniChernozhukovChetverikovWei2018",
+      "one_line": "Uniform orthogonal-score Bahadur representations and multiplier bands.",
+      "relevant_to": "thm:growing-profile-band"
+    },
+    {
+      "author": "Levrard",
+      "year": 2015,
+      "venue": "Annals of Statistics",
+      "bibkey": "Levrard2015",
+      "one_line": "Voronoi-margin quantization bounds and fixed-level minimax lower bounds.",
+      "relevant_to": "lem:growing-codebook-remainder"
+    },
+    {
+      "author": "Pollard",
+      "year": 1982,
+      "venue": "Annals of Probability",
+      "bibkey": "Pollard1982Central",
+      "one_line": "Fixed-resolution codebook normality under uniqueness and positive curvature.",
+      "relevant_to": "lem:growing-codebook-remainder"
+    },
+    {
+      "author": "Chernozhukov, Chetverikov, and Koike",
+      "year": 2021,
+      "venue": "arXiv",
+      "bibkey": "ChernozhukovChetverikovKoike2021NearlyOptimal",
+      "one_line": "Nearly optimal approximation for standardized high-dimensional sums.",
+      "relevant_to": "thm:growing-profile-band"
+    },
+    {
+      "author": "Andrews and Soares",
+      "year": 2010,
+      "venue": "Econometrica",
+      "bibkey": "AndrewsSoares2010",
+      "one_line": "Uniformly valid generalized moment selection near binding inequalities.",
+      "relevant_to": "thm:locally-honest-profile"
+    },
+    {
+      "author": "Cai and Low",
+      "year": 2004,
+      "venue": "Annals of Statistics",
+      "bibkey": "CaiLow2004",
+      "one_line": "Lower-bound machinery for honest adaptive confidence intervals.",
+      "relevant_to": "oeq:sharp-joint-frontier"
+    },
+    {
+      "author": "Liu and Pagès",
+      "year": 2020,
+      "venue": "Journal of Machine Learning Research",
+      "bibkey": "LiuPages2020",
+      "one_line": "Optimal-quantizer convergence under changing source laws.",
+      "relevant_to": "lem:growing-codebook-remainder"
+    },
+    {
+      "author": "Hillstrom",
+      "year": 2008,
+      "venue": "MineThatData public challenge",
+      "bibkey": "Hillstrom2008",
+      "one_line": "Public randomized e-mail experiment motivating the noisy resolution profile.",
+      "relevant_to": "thm:locally-honest-profile"
+    }
+  ]
+}

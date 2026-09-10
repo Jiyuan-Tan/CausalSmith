@@ -58,9 +58,36 @@ export interface PlanGateOptions {
    * identical at the extractor level; graph review hashes can be stale across parser
    * upgrades and therefore are not an adequate pre-image. */
   preF2AnnotatedDecls?: ExtractedDecl[];
+  /** Final delivery audit only: permit a non-cited secondary omission after that
+   * caller has required and will validate dual-model evidence receipts. */
+  allowReviewedSecondaryUndelivered?: boolean;
 }
 
 const MODULE_RE = /^[A-Z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)*$/;
+
+function isDirectCanonicalMetadataPayload(decl: ExtractedDecl | undefined): boolean {
+  if (!decl?.sourceText) return false;
+  const cut = decl.sourceText.indexOf(":=");
+  if (cut < 0) return false;
+  // The extractor bounds declarations at the next declaration/tag. For the final
+  // declaration in a namespace, that can leave the namespace-closing `end ...`
+  // attached to sourceText even though it is not part of the definition body.
+  const body = decl.sourceText.slice(cut + 2).trim()
+    .replace(/\n\s*end(?:\s+[A-Za-z0-9_.]+)?\s*$/, "")
+    .trim();
+  const leanString = `"(?:\\\\.|[^"\\\\])*"`;
+  const items = `(?:${leanString}(?:\\s*,\\s*${leanString})*\\s*,?)?`;
+  if (/\b_root_\.String\b/.test(decl.statement) && !/\b_root_\.(?:List|Array)\b/.test(decl.statement)) {
+    return new RegExp(`^${leanString}$`, "s").test(body);
+  }
+  if (/\b_root_\.List\s+_root_\.String\b/.test(decl.statement)) {
+    return new RegExp(`^\\[\\s*${items}\\s*\\]$`, "s").test(body);
+  }
+  if (/\b_root_\.Array\s+_root_\.String\b/.test(decl.statement)) {
+    return new RegExp(`^#\\[\\s*${items}\\s*\\]$`, "s").test(body);
+  }
+  return false;
+}
 
 export function runPlanGate(planInput: unknown, core: Core, opts: PlanGateOptions = {}): PlanGateResult {
   const violations: PlanGateViolation[] = [];
@@ -79,22 +106,6 @@ export function runPlanGate(planInput: unknown, core: Core, opts: PlanGateOption
   const classIds = new Set([...dag.kindOf].filter(([, k]) => k === "definition-class").map(([id]) => id));
   const assumptionIds = new Set([...dag.kindOf].filter(([, k]) => k === "assumption").map(([id]) => id));
   const gateIds = new Set(Object.entries(plan.nodes).filter(([, n]) => n.gate).map(([id]) => id));
-  // DISCHARGED assumptions: a core `assumption` node the plan reclassifies to a proved
-  // `lemma`/`theorem` (the substrate-fact discharge, route (2)→(1) / substrate-built
-  // channel). It is no longer a hypothesis but a PROVED dependency the consumer's proof
-  // uses, so P3 must allow the lemma/theorem kind and P4 must not demand it as a hyp.
-  // (Semantic soundness — that the lemma is genuinely proved/reused, not a laundered
-  // modeling assumption — is enforced downstream by F1.5 type-fit, F3 proof, and F4.)
-  const dischargedAssumptions = new Set(
-    [...assumptionIds].filter((id) => {
-      const node = plan.nodes[id];
-      if (!node) return false;
-      // A proved lemma/theorem is the canonical discharged form; `disposition:"reuse"`
-      // on an assumption is the same signal (it points at a real decl that proves the
-      // fact — a modeling assumption is never "reused" from a library decl).
-      return node.lean_kind === "lemma" || node.lean_kind === "theorem" || node.disposition === "reuse";
-    }),
-  );
 
   // P1: coverage. nodes keys == core node ids; symbols all bound by some S-block.
   const planNodeKeys = new Set(Object.keys(plan.nodes));
@@ -127,7 +138,9 @@ export function runPlanGate(planInput: unknown, core: Core, opts: PlanGateOption
       : kind === "definition-class" ? ["structure"]
       : kind === "definition-construction" ? ["def"]
       : coreStmt && node.gate
-        ? node.gate_class === "cited" ? ["assumption", "def"] : ["assumption"]
+        ? node.gate_class === "cited"
+          ? (coreStmt.source?.carrier ?? "logical-claim") === "bibliographic-metadata" ? ["def"] : ["assumption"]
+          : ["assumption"]
       : coreStmt?.kind === "openendedquestion" ? ["def"] // solved OEQs are replaced by thm: nodes at D0; only unresolved OEQs can reach F1.
       : ["theorem", "lemma"]; // statement
     if (!want.includes(node.lean_kind)) {
@@ -151,25 +164,57 @@ export function runPlanGate(planInput: unknown, core: Core, opts: PlanGateOption
     }
   }
 
-  // P4: hyp closure. hyps ⊆ depends_on; each hyp is an assumption or a class; every
-  // assumption/def dependency is covered (directly, or via a class in hyps).
+  // P4: declared-hyp consistency. Only theorem/lemma consumers may carry hyps at all.
+  // Each declared top-level hyp must be an assumption, class, or logical gate in
+  // depends_on. Do not infer the converse from the dependency DAG: a core assumption
+  // may occur under a quantified implication in the theorem conclusion, so requiring
+  // every assumption dependency here as a top-level hyp changes a faithful statement.
+  // F2.5 compares the emitted Lean statement with the frozen note and remains the
+  // authoritative completeness check.
+  for (const [id, candidate] of Object.entries(plan.nodes)) {
+    if ((candidate.hyps?.length ?? 0) === 0) continue;
+    if (candidate.lean_kind !== "theorem" && candidate.lean_kind !== "lemma") {
+      violations.push({ code: "P4", where: id, message: `lean_kind '${candidate.lean_kind}' cannot carry hyps` });
+    } else if (!core.statements.some((statement) => statement.id === id)) {
+      violations.push({ code: "P4", where: id, message: `only a core statement mapped to theorem/lemma may carry hyps` });
+    }
+  }
   for (const s of core.statements) {
     const node = plan.nodes[s.id];
-    if (!node || (node.lean_kind !== "theorem" && node.lean_kind !== "lemma")) continue;
+    if (!node) continue;
+    const logicalCitedDeps = s.depends_on.filter((dep) => {
+      const cited = core.statements.find((candidate) => candidate.id === dep && candidate.status === "cited");
+      return !!cited && (cited.source?.carrier ?? "logical-claim") === "logical-claim";
+    });
+    if (node.lean_kind !== "theorem" && node.lean_kind !== "lemma") {
+      for (const dep of logicalCitedDeps) {
+        violations.push({ code: "P4", where: s.id, message: `logical cited dep '${dep}' requires a theorem/lemma consumer with an explicit hyp` });
+      }
+      continue;
+    }
     const hyps = new Set(node.hyps ?? []);
     const depSet = new Set(s.depends_on);
     for (const h of hyps) {
       if (!depSet.has(h)) violations.push({ code: "P4", where: s.id, message: `hyp '${h}' is not in depends_on` });
       else if (!assumptionIds.has(h) && !classIds.has(h) && !gateIds.has(h)) {
         violations.push({ code: "P4", where: s.id, message: `hyp '${h}' is neither an assumption nor a class (cannot be a hypothesis)` });
+      } else if (gateIds.has(h)) {
+        const citedGate = core.statements.find((candidate) => candidate.id === h && candidate.status === "cited");
+        if (citedGate && (citedGate.source?.carrier ?? "logical-claim") === "bibliographic-metadata") {
+          violations.push({ code: "P4", where: s.id, message: `bibliographic metadata '${h}' cannot be a logical hyp` });
+        }
       }
     }
-    for (const dep of dag.assumptionDeps.get(s.id) ?? []) {
-      if (!assumptionIds.has(dep)) continue; // only assumptions must surface as hyps; defs are used, not assumed
-      if (dischargedAssumptions.has(dep)) continue; // discharged → a proved lemma the proof USES, not a hyp
-      if (hyps.has(dep)) continue;
-      const viaClass = [...classIds].some((c) => hyps.has(c) && (dag.classMembers.get(c) ?? []).includes(dep));
-      if (!viaClass) violations.push({ code: "P4", where: s.id, message: `assumption dep '${dep}' is neither a hyp nor a member of a bundled class` });
+    // A logical cited statement is a borrowed proposition and must surface explicitly
+    // in every direct consumer. Bibliographic metadata is deliberately non-logical and
+    // is never a theorem hypothesis even when the core uses it for comparative framing.
+    for (const dep of logicalCitedDeps) {
+      const citedPlanNode = plan.nodes[dep];
+      if (citedPlanNode?.citation_discharged === true &&
+          (citedPlanNode.lean_kind === "lemma" || citedPlanNode.lean_kind === "theorem")) continue;
+      if (!hyps.has(dep)) {
+        violations.push({ code: "P4", where: s.id, message: `logical cited dep '${dep}' must be an explicit hyp` });
+      }
     }
   }
 
@@ -278,11 +323,46 @@ export function runPlanGate(planInput: unknown, core: Core, opts: PlanGateOption
   if (plan.feasibility && plan.feasibility !== deriveFeasibility(plan)) {
     violations.push({ code: "P8", where: "<root>", message: `feasibility '${plan.feasibility}' disagrees with derived '${deriveFeasibility(plan)}'` });
   }
+  // Paper-owned work cannot leave F1 as an assumed or omitted proof obligation.
+  // Only an explicit external gate may use the substrate-build checkpoint; all
+  // other delivered define-local nodes must proceed to F2–F4, however difficult.
+  for (const [id, node] of Object.entries(plan.nodes)) {
+    if (
+      node.disposition === "define-local" &&
+      node.defer_tier &&
+      !node.gate
+    ) {
+      violations.push({
+        code: "P8",
+        where: id,
+        message: "paper-owned proved/to-prove statement or support node cannot be defer_tier without an external gate; keep it in the F2–F4 proof scope",
+      });
+    }
+  }
+  for (const statement of core.statements) {
+    const node = plan.nodes[statement.id];
+    if (node?.gate && statement.status !== "cited") {
+      violations.push({
+        code: "P8",
+        where: statement.id,
+        message: `paper-owned core statement with status '${statement.status}' cannot be converted into a planner-authored external gate`,
+      });
+    }
+  }
+  for (const [id, node] of Object.entries(plan.nodes)) {
+    if (node.gate && !core.statements.some((statement) => statement.id === id)) {
+      violations.push({
+        code: "P8",
+        where: id,
+        message: "gate:true is legal only for a core statement with frozen external provenance",
+      });
+    }
+  }
 
   // P9: cited mapping. A D0 `status:"cited"` statement starts BORROWED (D0 chose not to
-  // prove it). Its normal representation is therefore a `gate_class:"cited"` Prop
-  // assumption, or a source-reviewed non-Prop `def` when the cited node records
-  // bibliographic scope rather than a logical premise.
+  // prove it). A mathematical cited claim is represented by a `gate_class:"cited"`
+  // Prop assumption; a bibliographic scope/provenance record uses a source-reviewed non-Prop `def`
+  // rather than a logical premise.
   // The supported discharge path may later replace that gate with an exact proved
   // lemma/theorem while retaining `source` as provenance. Do not force such a proved node
   // back into an assumption: gate.ts --discharge deliberately removes the gate keys and
@@ -295,18 +375,22 @@ export function runPlanGate(planInput: unknown, core: Core, opts: PlanGateOption
     const node = plan.nodes[s.id];
     if (!node) continue; // P1 already flagged
     if (s.status === "cited") {
+      const frozenCarrier = s.source?.carrier ?? "logical-claim";
+      const expectedDeferredKind = frozenCarrier === "bibliographic-metadata" ? "def" : "assumption";
       const deferredCitation =
-        node.gate && node.gate_class === "cited" &&
-        (node.lean_kind === "assumption" || node.lean_kind === "def");
+        node.gate && node.gate_class === "cited" && node.lean_kind === expectedDeferredKind;
       const provedCitation =
+        frozenCarrier === "logical-claim" &&
         !node.gate && node.gate_class === undefined && node.citation_discharged === true &&
+        node.disposition !== "reuse" &&
         (node.lean_kind === "lemma" || node.lean_kind === "theorem");
       if (!deferredCitation && !provedCitation) {
         violations.push({
           code: "P9",
           where: s.id,
           message:
-            `core status:"cited" must map either to a gate_class:"cited" assumption/metadata def or to its ` +
+            `core status:"cited" with source.carrier=${frozenCarrier} must map to a gate_class:"cited" ` +
+            `${expectedDeferredKind} or to its ` +
             `discharged lemma/theorem form stamped citation_discharged:true by gate.ts --discharge ` +
             `(got lean_kind=${node.lean_kind}, gate=${!!node.gate}, gate_class=${node.gate_class ?? "none"}, ` +
             `citation_discharged=${node.citation_discharged === true}) — re-laundering a citation`,
@@ -317,7 +401,9 @@ export function runPlanGate(planInput: unknown, core: Core, opts: PlanGateOption
         const decls = opts.annotatedDecls.filter((decl) => decl.nodeId === s.id);
         const expectedName = node.lean_name.split(".").at(-1) ?? node.lean_name;
         const exact = decls.length === 1 ? decls[0] : undefined;
-        const exactName = exact && (exact.declName.split(".").at(-1) ?? exact.declName) === expectedName;
+        const exactName = exact && (node.lean_name.includes(".")
+          ? exact.declName === node.lean_name
+          : (exact.declName.split(".").at(-1) ?? exact.declName) === expectedName);
         const exactKind = exact && exact.declKind === node.lean_kind;
         if (!exact || !exactName || !exactKind || exact.hasSorry) {
           violations.push({
@@ -326,6 +412,36 @@ export function runPlanGate(planInput: unknown, core: Core, opts: PlanGateOption
             message:
               `discharged citation must map to exactly one sorry-free emitted ${node.lean_kind} ` +
               `'${node.lean_name}' (found ${decls.length}${exact ? `; decl=${exact.declName}, kind=${exact.declKind}, sorry=${exact.hasSorry}` : ""})`,
+          });
+        }
+      }
+      if (deferredCitation && opts.annotatedDecls && node.disposition !== "reuse") {
+        const decls = opts.annotatedDecls.filter((decl) => decl.nodeId === s.id);
+        const expectedName = node.lean_name.split(".").at(-1) ?? node.lean_name;
+        const exact = decls.length === 1 ? decls[0] : undefined;
+        const exactName = exact && (node.lean_name.includes(".")
+          ? exact.declName === node.lean_name
+          : (exact.declName.split(".").at(-1) ?? exact.declName) === expectedName);
+        const exactDef = exact?.declKind === "def";
+        // Carrier checks are deliberately syntactic and closed-world. In particular, "anything
+        // other than the token Prop" is not a metadata type: `Sort 0` and aliases can elaborate
+        // to Prop. Metadata therefore uses only the canonical text payloads supported by F2.
+        // `Sort 0` is Lean's unshadowable proposition universe syntax. A bare `Prop`
+        // identifier can be shadowed by a namespace-local alias and is therefore rejected.
+        const isSyntacticProp = !!exact && /:\s*\(*\s*Sort\s+0\s*\)*\s*(?:--[^\n]*)?$/.test(exact.statement.trim());
+        const isCanonicalMetadata = !!exact &&
+          /:\s*\(*\s*(?:_root_\.String|_root_\.List\s+_root_\.String|_root_\.Array\s+_root_\.String)\s*\)*\s*(?:--[^\n]*)?$/.test(exact.statement.trim());
+        const exactCarrier = frozenCarrier === "logical-claim"
+          ? isSyntacticProp
+          : isCanonicalMetadata && isDirectCanonicalMetadataPayload(exact);
+        if (!exact || !exactName || !exactDef || !exactCarrier || exact.hasSorry) {
+          violations.push({
+            code: "P9",
+            where: s.id,
+            message:
+              `deferred cited ${frozenCarrier} carrier must match one sorry-free emitted def named '${expectedName}' ` +
+              `with ${frozenCarrier === "logical-claim" ? "the unshadowable proposition carrier Sort 0" : "a direct literal root-qualified _root_.String/_root_.List _root_.String/_root_.Array _root_.String metadata"} payload ` +
+              `(found ${decls.length === 0 ? "none" : decls.map((decl) => `${decl.declKind} ${decl.declName}: ${decl.statement}`).join("; ")})`,
           });
         }
       }
@@ -343,8 +459,9 @@ export function runPlanGate(planInput: unknown, core: Core, opts: PlanGateOption
   }
 
   // P10: `undelivered` is a narrow, disclosed presentation status — never a way
-  // to hide a headline or a proof dependency. It is legal only for (a) a theorem
-  // explicitly classified secondary, or (b) a cited node. It must be a leaf with
+  // to hide a headline or a proof dependency. At F1 it is legal only for a cited
+  // node: the planner cannot independently certify its own theorem as secondary
+  // before the downstream role audit. It must be a leaf with
   // respect to every delivered statement, because a delivered result cannot rely
   // on an object that has no Lean declaration.
   const undeliveredIds = new Set(
@@ -356,14 +473,17 @@ export function runPlanGate(planInput: unknown, core: Core, opts: PlanGateOption
     const node = plan.nodes[id];
     const stmt = core.statements.find((s) => s.id === id);
     const cited = !!stmt && stmt.status === "cited" && node.gate && node.gate_class === "cited";
-    const secondaryTheorem =
-      stmt?.kind === "theorem" && node.lean_kind === "theorem" && node.delivery_role === "secondary";
-    if (!cited && !secondaryTheorem) {
+    const reviewedSecondary =
+      opts.allowReviewedSecondaryUndelivered === true &&
+      stmt?.kind === "theorem" &&
+      node.lean_kind === "theorem" &&
+      node.delivery_role === "secondary";
+    if (!cited && !reviewedSecondary) {
       violations.push({
         code: "P10",
         where: id,
         message:
-          `undelivered is legal only for a secondary theorem or a cited node ` +
+          `F1 may mark only a cited node undelivered; paper-owned secondary classification requires downstream independent review ` +
           `(got kind=${stmt?.kind ?? "non-statement"}, role=${node.delivery_role ?? "none"}, cited=${cited})`,
       });
     }

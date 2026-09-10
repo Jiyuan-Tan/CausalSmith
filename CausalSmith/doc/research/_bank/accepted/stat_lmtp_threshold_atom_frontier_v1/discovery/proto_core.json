@@ -1,0 +1,1883 @@
+{
+  "qid": "stat_lmtp_threshold_atom_frontier",
+  "specialization": "v1",
+  "cluster": "stat",
+  "symbols": [
+    {
+      "name": "n",
+      "type": "sample_size",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Sample size.",
+      "role": "index"
+    },
+    {
+      "name": "J",
+      "type": "number_of_strata",
+      "space": "\\(\\{1,2,\\ldots\\}\\)",
+      "def": "Fixed number of baseline strata.",
+      "role": "model_index"
+    },
+    {
+      "name": "mathcal_X",
+      "type": "stratum_space",
+      "space": "\\(\\{1,\\ldots,J\\}\\)",
+      "def": "Finite baseline-stratum space \\(\\mathcal X=\\{1,\\ldots,J\\}\\).",
+      "role": "sample_space",
+      "refs": [
+        "J"
+      ]
+    },
+    {
+      "name": "beta",
+      "type": "smoothness_exponent",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Known Hölder smoothness exponent \\(\\beta\\).",
+      "role": "regime_parameter"
+    },
+    {
+      "name": "ell",
+      "type": "polynomial_order",
+      "space": "\\(\\mathbb N_0\\)",
+      "def": "Local-polynomial order \\(\\ell=\\lfloor\\beta\\rfloor\\), with \\(\\ell=\\beta-1\\) when \\(\\beta\\) is an integer.",
+      "role": "tuning_parameter",
+      "refs": [
+        "beta"
+      ]
+    },
+    {
+      "name": "kappa",
+      "type": "thinning_exponent",
+      "space": "\\([0,\\infty)\\)",
+      "def": "Known polynomial generalized-propensity thinning exponent \\(\\kappa\\).",
+      "role": "regime_parameter"
+    },
+    {
+      "name": "L",
+      "type": "holder_radius",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Known Hölder radius \\(L\\).",
+      "role": "regularity_constant"
+    },
+    {
+      "name": "c_minus",
+      "type": "density_lower_constant",
+      "space": "\\((0,\\kappa+1]\\)",
+      "def": "Lower polynomial-density comparison constant \\(c_-\\).",
+      "role": "regularity_constant",
+      "refs": [
+        "kappa"
+      ]
+    },
+    {
+      "name": "c_plus",
+      "type": "density_upper_constant",
+      "space": "\\([\\kappa+1,\\infty)\\)",
+      "def": "Upper polynomial-density comparison constant \\(c_+\\).",
+      "role": "regularity_constant",
+      "refs": [
+        "kappa"
+      ]
+    },
+    {
+      "name": "p_min",
+      "type": "stratum_probability_lower_bound",
+      "space": "\\((0,1/J]\\)",
+      "def": "Lower bound \\(p_{\\min}\\) on every stratum probability.",
+      "role": "regularity_constant",
+      "refs": [
+        "J"
+      ]
+    },
+    {
+      "name": "delta_bar",
+      "type": "threshold_envelope",
+      "space": "\\((0,1)\\)",
+      "def": "Fixed upper envelope \\(\\bar\\delta\\) for the threshold sequence.",
+      "role": "regularity_constant"
+    },
+    {
+      "name": "alpha",
+      "type": "noncoverage_level",
+      "space": "\\((0,1/2)\\)",
+      "def": "Prespecified noncoverage probability \\(\\alpha\\).",
+      "role": "inference_parameter"
+    },
+    {
+      "name": "delta_n",
+      "type": "deterministic_threshold_sequence",
+      "space": "\\([0,\\bar\\delta]\\)",
+      "def": "Arbitrary deterministic threshold \\(\\delta_n\\) at sample size \\(n\\).",
+      "role": "regime_index",
+      "refs": [
+        "n",
+        "delta_bar"
+      ]
+    },
+    {
+      "name": "X",
+      "type": "baseline_stratum",
+      "space": "\\(\\mathcal X\\)",
+      "def": "Observed baseline stratum \\(X\\).",
+      "role": "data_component",
+      "refs": [
+        "mathcal_X"
+      ]
+    },
+    {
+      "name": "A",
+      "type": "continuous_treatment",
+      "space": "\\([0,1]\\)",
+      "def": "Observed continuous treatment \\(A\\).",
+      "role": "data_component"
+    },
+    {
+      "name": "Y",
+      "type": "bounded_outcome",
+      "space": "\\([0,1]\\)",
+      "def": "Observed bounded outcome \\(Y\\).",
+      "role": "data_component"
+    },
+    {
+      "name": "O",
+      "type": "observed_unit",
+      "space": "\\(\\mathcal X\\times[0,1]\\times[0,1]\\)",
+      "def": "Observed unit \\(O=(X,A,Y)\\).",
+      "role": "data_unit",
+      "refs": [
+        "X",
+        "A",
+        "Y",
+        "mathcal_X"
+      ]
+    },
+    {
+      "name": "O_i",
+      "type": "iid_sample",
+      "space": "\\(O^n\\)",
+      "def": "The \\(i\\)-th unit in the sample \\(O_1,\\ldots,O_n\\).",
+      "role": "data",
+      "refs": [
+        "O",
+        "n"
+      ]
+    },
+    {
+      "name": "P",
+      "type": "observed_data_law",
+      "space": "\\(\\mathcal P(O)\\)",
+      "def": "Law \\(P\\) of one observed unit.",
+      "role": "model",
+      "refs": [
+        "O"
+      ]
+    },
+    {
+      "name": "p_x",
+      "type": "stratum_probability",
+      "sig": "\\(\\mathcal X\\to(0,1]\\)",
+      "def": "Stratum mass \\(p_x=P(X=x)\\).",
+      "role": "nuisance",
+      "refs": [
+        "P",
+        "X",
+        "mathcal_X"
+      ]
+    },
+    {
+      "name": "pi_x",
+      "type": "conditional_treatment_density",
+      "sig": "\\([0,1]\\times\\mathcal X\\to[0,\\infty)\\)",
+      "def": "Borel function \\(\\pi_x\\) whose defining conditional-density identity is imposed by \\(\\text{ass:conditional-density-law}\\).",
+      "role": "nuisance",
+      "refs": [
+        "P",
+        "A",
+        "X",
+        "mathcal_X"
+      ]
+    },
+    {
+      "name": "mu_x_P",
+      "type": "outcome_regression",
+      "sig": "\\([0,1]\\times\\mathcal X\\to[0,1]\\)",
+      "def": "The unique continuous function \\(\\mu_x^P\\) that equals an almost-everywhere version of \\(\\mathbb E_P[Y\\mid A=a,X=x]\\) and satisfies the declared Taylor-remainder Hölder condition.",
+      "role": "nuisance",
+      "refs": [
+        "P",
+        "Y",
+        "A",
+        "X",
+        "mathcal_X"
+      ]
+    },
+    {
+      "name": "d_delta",
+      "type": "modified_treatment_policy",
+      "sig": "\\([0,1]\\to[0,1]\\)",
+      "def": "Lower-threshold clamp \\(d_\\delta(a)=\\max\\{a,\\delta\\}\\).",
+      "role": "policy"
+    },
+    {
+      "name": "q_x",
+      "type": "conditional_atom_mass",
+      "sig": "\\(\\mathcal X\\times[0,\\bar\\delta]\\to[0,1]\\)",
+      "def": "Conditional atom mass \\(q_x(\\delta)=\\int_0^\\delta\\pi_x(a)\\,\\mathrm da=P(A\\leq\\delta\\mid X=x)\\).",
+      "role": "identified_component",
+      "refs": [
+        "P",
+        "A",
+        "X",
+        "pi_x",
+        "mathcal_X",
+        "delta_bar"
+      ]
+    },
+    {
+      "name": "nu_delta",
+      "type": "retained_natural_course_mean",
+      "space": "\\([0,1]\\)",
+      "def": "Observable retained-natural-course contribution \\(\\nu_\\delta(P)=\\mathbb E_P[Y\\mathbf 1\\{A>\\delta\\}]\\).",
+      "role": "identified_component",
+      "refs": [
+        "P",
+        "Y",
+        "A"
+      ]
+    },
+    {
+      "name": "theta_delta",
+      "type": "observed_data_clamp_functional",
+      "space": "\\([0,1]\\)",
+      "def": "Observed-data target \\(\\theta_\\delta(P)=\\nu_\\delta(P)+\\sum_{x\\in\\mathcal X}p_xq_x(\\delta)\\mu_x^P(\\delta)\\).",
+      "role": "target_estimand",
+      "refs": [
+        "P",
+        "nu_delta",
+        "mathcal_X",
+        "p_x",
+        "q_x",
+        "mu_x_P"
+      ]
+    },
+    {
+      "name": "mathcal_M",
+      "type": "law_class",
+      "space": "\\(\\mathcal P(O)\\)",
+      "def": "Finite-stratum Hölder and polynomial-thinning model \\(\\mathcal M\\).",
+      "role": "model_class",
+      "ref": "def:model-class",
+      "refs": [
+        "P",
+        "O"
+      ]
+    },
+    {
+      "name": "h_n",
+      "type": "oracle_bandwidth",
+      "space": "\\((0,1]\\)",
+      "def": "Bandwidth \\(h_n\\) defined by the first crossing of the polynomial information balance.",
+      "role": "rate_object",
+      "refs": [
+        "n",
+        "beta",
+        "kappa",
+        "delta_n"
+      ]
+    },
+    {
+      "name": "r_n",
+      "type": "risk_frontier",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Candidate frontier \\(r_n=n^{-1/2}+\\delta_n^{\\kappa+1}h_n^\\beta\\).",
+      "role": "rate_object",
+      "refs": [
+        "n",
+        "delta_n",
+        "kappa",
+        "h_n",
+        "beta"
+      ]
+    },
+    {
+      "name": "delta_crit",
+      "type": "critical_threshold_scale",
+      "space": "\\((0,1]\\)",
+      "def": "Critical scale \\(\\delta_{\\mathrm{crit},n}=n^{-1/[2(\\beta\\kappa+2\\beta+\\kappa+1)]}\\).",
+      "role": "phase_boundary",
+      "refs": [
+        "n",
+        "beta",
+        "kappa"
+      ]
+    },
+    {
+      "name": "delta_edge",
+      "type": "boundary_design_scale",
+      "space": "\\((0,1]\\)",
+      "def": "Moving-point boundary scale \\(\\delta_{\\mathrm{edge},n}=n^{-1/(2\\beta+\\kappa+1)}\\).",
+      "role": "phase_boundary",
+      "refs": [
+        "n",
+        "beta",
+        "kappa"
+      ]
+    },
+    {
+      "name": "v_ell",
+      "type": "polynomial_basis",
+      "sig": "\\([0,1]\\to\\mathbb R^{\\ell+1}\\)",
+      "def": "Monomial vector \\(v_\\ell(u)=(1,u,\\ldots,u^\\ell)^\\top\\).",
+      "role": "estimator_component",
+      "refs": [
+        "ell"
+      ]
+    },
+    {
+      "name": "M_kappa_rho",
+      "type": "population_moment_matrix",
+      "space": "\\(\\mathbb R^{(\\ell+1)\\times(\\ell+1)}\\)",
+      "def": "Normalized reference moment matrix \\(M_{\\kappa,\\rho}=\\{\\int_0^1v_\\ell(u)v_\\ell(u)^\\top(\\rho+u)^\\kappa\\,\\mathrm du\\}/\\{\\int_0^1(\\rho+u)^\\kappa\\,\\mathrm du\\}\\) for \\(\\rho\\in[0,\\infty)\\).",
+      "role": "gram_reference",
+      "refs": [
+        "v_ell",
+        "ell",
+        "kappa"
+      ]
+    },
+    {
+      "name": "lambda_star",
+      "type": "uniform_gram_constant",
+      "space": "\\([0,\\infty)\\)",
+      "def": "Uniform population-Gram constant \\(\\lambda_\\star=(c_-/c_+)\\inf_{\\rho\\geq0}\\lambda_{\\min}(M_{\\kappa,\\rho})\\).",
+      "role": "gram_reference",
+      "refs": [
+        "c_minus",
+        "c_plus",
+        "M_kappa_rho",
+        "kappa"
+      ]
+    },
+    {
+      "name": "I_0",
+      "type": "sample_split_block",
+      "space": "\\(2^{\\{1,\\ldots,n\\}}\\)",
+      "def": "First deterministic sample block satisfying \\(|I_0|\\geq\\lfloor n/4\\rfloor\\), for the retained natural-course mean.",
+      "role": "estimator_input",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "I_1",
+      "type": "sample_split_block",
+      "space": "\\(2^{\\{1,\\ldots,n\\}}\\)",
+      "def": "Second deterministic sample block satisfying \\(|I_1|\\geq\\lfloor n/4\\rfloor\\), for atom masses.",
+      "role": "estimator_input",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "I_2",
+      "type": "sample_split_block",
+      "space": "\\(2^{\\{1,\\ldots,n\\}}\\)",
+      "def": "Third deterministic sample block satisfying \\(|I_2|\\geq\\lfloor n/4\\rfloor\\), for local regressions.",
+      "role": "estimator_input",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "N_x",
+      "type": "local_count",
+      "space": "\\(\\mathbb N_0\\)",
+      "def": "Local count \\(N_x=\\sum_{i\\in I_2}\\mathbf 1\\{X_i=x,\\delta_n\\leq A_i\\leq\\delta_n+h_n\\}\\).",
+      "role": "estimator_component",
+      "refs": [
+        "I_2",
+        "O_i",
+        "X",
+        "A",
+        "delta_n",
+        "h_n"
+      ]
+    },
+    {
+      "name": "G_x",
+      "type": "total_local_gram_matrix",
+      "space": "\\(\\mathbb R^{(\\ell+1)\\times(\\ell+1)}\\)",
+      "def": "Unnormalized local Gram matrix \\(G_x=\\sum_{i\\in I_2}\\mathbf 1\\{X_i=x,0\\leq U_i\\leq1\\}v_\\ell(U_i)v_\\ell(U_i)^\\top\\), where \\(U_i=(A_i-\\delta_n)/h_n\\).",
+      "role": "estimator_component",
+      "refs": [
+        "I_2",
+        "O_i",
+        "X",
+        "A",
+        "delta_n",
+        "h_n",
+        "v_ell",
+        "ell"
+      ]
+    },
+    {
+      "name": "Omega_x",
+      "type": "good_gram_event",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "Realized-design event \\(\\Omega_x=\\{N_x>0,\\lambda_{\\min}(G_x)\\geq\\lambda_\\star N_x/2\\}\\).",
+      "role": "estimator_component",
+      "refs": [
+        "N_x",
+        "G_x",
+        "lambda_star"
+      ]
+    },
+    {
+      "name": "w_ix",
+      "type": "local_polynomial_weight",
+      "space": "\\(\\mathbb R\\)",
+      "def": "Intercept weight \\(w_{ix}=\\mathbf 1\\{X_i=x,0\\leq U_i\\leq1\\}e_0^\\top G_x^{-1}v_\\ell(U_i)\\) on \\(\\Omega_x\\), and \\(w_{ix}=0\\) off \\(\\Omega_x\\).",
+      "role": "estimator_component",
+      "refs": [
+        "O_i",
+        "X",
+        "A",
+        "G_x",
+        "Omega_x",
+        "v_ell",
+        "ell"
+      ]
+    },
+    {
+      "name": "theta_hat_n",
+      "type": "clamp_mean_estimator",
+      "space": "\\([0,1]\\)",
+      "def": "Sample-split, total-Gram-stabilized estimator \\(\\widehat\\theta_n\\) of \\(\\theta_{\\delta_n}(P)\\).",
+      "role": "estimator",
+      "refs": [
+        "theta_delta",
+        "delta_n",
+        "P"
+      ]
+    },
+    {
+      "name": "CI_n",
+      "type": "confidence_interval",
+      "space": "\\(\\{[l,u]:0\\leq l\\leq u\\leq1\\}\\)",
+      "def": "Bias-aware confidence interval \\(\\mathrm{CI}_n\\) with a local atom fallback on singular-Gram events.",
+      "role": "inference_object",
+      "refs": [
+        "n",
+        "alpha"
+      ]
+    },
+    {
+      "name": "R_n_star",
+      "type": "minimax_absolute_risk",
+      "space": "\\([0,1]\\)",
+      "def": "Minimax absolute-error risk \\(R_n^\\star=\\inf_{\\widehat\\theta}\\sup_{P\\in\\mathcal M}\\mathbb E_P|\\widehat\\theta-\\theta_{\\delta_n}(P)|\\).",
+      "role": "performance_criterion",
+      "refs": [
+        "n",
+        "P",
+        "mathcal_M",
+        "theta_delta",
+        "delta_n"
+      ]
+    },
+    {
+      "name": "L_n_star",
+      "type": "minimax_honest_expected_length",
+      "space": "\\([0,1]\\)",
+      "def": "Minimax worst-case expected length \\(L_n^\\star=\\inf_{C_n:\\,\\inf_{P\\in\\mathcal M}P\\{\\theta_{\\delta_n}(P)\\in C_n\\}\\geq1-\\alpha}\\sup_{P\\in\\mathcal M}\\mathbb E_P[\\operatorname{len}(C_n)]\\).",
+      "role": "performance_criterion",
+      "refs": [
+        "n",
+        "P",
+        "mathcal_M",
+        "theta_delta",
+        "delta_n",
+        "alpha"
+      ]
+    },
+    {
+      "name": "mathcal_U",
+      "type": "latent_state_space",
+      "space": "\\(\\text{a standard Borel space}\\)",
+      "def": "Generic notation for the law-specific standard Borel latent-response carrier \\(\\mathcal U\\), bound separately inside each full-data law package.",
+      "role": "causal_primitive"
+    },
+    {
+      "name": "U",
+      "type": "latent_response_variable",
+      "space": "\\(\\mathcal U\\)",
+      "def": "Within one full-data law package, the latent response variable \\(U\\) taking values in that member's carrier \\(\\mathcal U\\).",
+      "role": "causal_primitive",
+      "refs": [
+        "mathcal_U"
+      ]
+    },
+    {
+      "name": "g_x",
+      "type": "structural_response_map",
+      "sig": "\\([0,1]\\times\\mathcal U\\to[0,1]\\)",
+      "def": "Within one full-data law package and for each \\(x\\in\\mathcal X\\), the jointly Borel measurable structural response map \\(g_x(a,u)\\) on that member's carrier.",
+      "role": "causal_primitive",
+      "refs": [
+        "mathcal_U",
+        "mathcal_X",
+        "X",
+        "Y"
+      ]
+    },
+    {
+      "name": "Y_a",
+      "type": "jointly_measurable_potential_outcome_process",
+      "space": "\\([0,1]\\to[0,1]\\)",
+      "def": "Within one full-data law package, the potential-outcome process \\(a\\mapsto Y(a)\\), represented simultaneously outside one null set by \\(Y(a)=g_X(a,U)\\) under \\(\\text{ass:consistency}\\).",
+      "role": "causal_primitive",
+      "refs": [
+        "g_x",
+        "X",
+        "U"
+      ]
+    },
+    {
+      "name": "P_full",
+      "type": "full_data_causal_law",
+      "def": "A full-data law package \\(P^{\\mathrm F}\\) that contains its own standard Borel latent carrier, latent variable, response maps, and potential-outcome process together with a probability law whose observed \\((X,A,Y)\\)-margin is \\(P\\).",
+      "role": "causal_model",
+      "refs": [
+        "P",
+        "X",
+        "A",
+        "Y",
+        "mathcal_U",
+        "U",
+        "g_x",
+        "Y_a"
+      ]
+    },
+    {
+      "name": "psi_delta",
+      "type": "causal_mean",
+      "space": "\\([0,1]\\)",
+      "def": "Full-data clamp-policy mean \\(\\psi_\\delta(P^{\\mathrm F})=\\mathbb E_{P^{\\mathrm F}}[Y\\{d_\\delta(A)\\}]\\).",
+      "role": "causal_interpretation",
+      "refs": [
+        "P_full",
+        "Y_a",
+        "d_delta",
+        "A"
+      ]
+    },
+    {
+      "name": "m_x_F",
+      "type": "full_data_response_mean",
+      "sig": "\\([0,1]\\times\\mathcal X\\to[0,1]\\)",
+      "def": "For a fixed full-data law package, the fiberwise response mean \\(m_x^{\\mathrm F}(a)=\\mathbb E_{P^{\\mathrm F}}[g_x(a,U)\\mid X=x]\\), computed using that member's carrier and law.",
+      "role": "causal_nuisance",
+      "refs": [
+        "P_full",
+        "g_x",
+        "U",
+        "X",
+        "mathcal_X"
+      ]
+    },
+    {
+      "name": "mathcal_M_F",
+      "type": "full_data_law_class",
+      "def": "Carrier-heterogeneous full-data structural law-package class \\(\\mathcal M^{\\mathrm F}\\).",
+      "role": "causal_model_class",
+      "ref": "def:full-data-model-class",
+      "refs": [
+        "P_full",
+        "mathcal_M"
+      ]
+    },
+    {
+      "name": "R_n_F_star",
+      "type": "causal_minimax_absolute_risk",
+      "space": "\\([0,1]\\)",
+      "def": "Observed-sample minimax absolute-error risk \\(R_{n,\\mathrm F}^\\star\\) for the causal clamp mean over \\(\\mathcal M^{\\mathrm F}\\).",
+      "role": "causal_performance_criterion",
+      "refs": [
+        "n",
+        "psi_delta",
+        "mathcal_M_F"
+      ]
+    },
+    {
+      "name": "L_n_F_star",
+      "type": "causal_minimax_honest_expected_length",
+      "space": "\\([0,1]\\)",
+      "def": "Minimax worst-case expected length \\(L_{n,\\mathrm F}^\\star\\) among observed-sample intervals honest for the causal clamp mean over \\(\\mathcal M^{\\mathrm F}\\).",
+      "role": "causal_performance_criterion",
+      "refs": [
+        "n",
+        "psi_delta",
+        "mathcal_M_F",
+        "alpha"
+      ]
+    },
+    {
+      "name": "mathcal_M_cont",
+      "type": "law_class",
+      "space": "\\(\\mathcal P(O)\\)",
+      "def": "Finite-stratum polynomial-thinning model \\(\\mathcal M_{\\mathrm{cont}}\\) with qualitative conditional-regression continuity and no common modulus.",
+      "role": "model_class",
+      "ref": "def:continuity-model-class",
+      "refs": [
+        "P",
+        "O"
+      ]
+    },
+    {
+      "name": "mu_x_cont_P",
+      "type": "continuous_outcome_regression",
+      "sig": "\\([0,\\bar\\delta]\\times\\mathcal X\\to[0,1]\\)",
+      "def": "For \\(P\\in\\mathcal M_{\\mathrm{cont}}\\), the unique continuous extension \\(\\mu_{x,\\mathrm{cont}}^P\\) of an almost-everywhere version of \\(\\mathbb E_P[Y\\mid A=a,X=x]\\) on \\([0,\\bar\\delta]\\).",
+      "role": "nuisance",
+      "refs": [
+        "P",
+        "mathcal_M_cont",
+        "mathcal_X",
+        "delta_bar",
+        "Y",
+        "A",
+        "X"
+      ]
+    },
+    {
+      "name": "theta_delta_cont",
+      "type": "continuity_only_clamp_functional",
+      "space": "\\([0,1]\\)",
+      "def": "Observed-data clamp target \\(\\theta_{\\delta,\\mathrm{cont}}(P)\\) on \\(\\mathcal M_{\\mathrm{cont}}\\).",
+      "role": "target_estimand",
+      "refs": [
+        "P",
+        "mathcal_M_cont",
+        "delta_bar"
+      ]
+    },
+    {
+      "name": "s_n",
+      "type": "continuity_only_frontier",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Continuity-only frontier \\(s_n=n^{-1/2}+\\delta_n^{\\kappa+1}\\).",
+      "role": "rate_object",
+      "refs": [
+        "n",
+        "delta_n",
+        "kappa"
+      ]
+    },
+    {
+      "name": "theta_hat_cont_n",
+      "type": "continuity_only_clamp_estimator",
+      "space": "\\([0,1]\\)",
+      "def": "Fixed atom-regression fallback estimator \\(\\widehat\\theta_{n,\\mathrm{cont}}\\).",
+      "role": "estimator",
+      "refs": [
+        "n",
+        "theta_delta_cont"
+      ]
+    },
+    {
+      "name": "CI_cont_n",
+      "type": "continuity_only_confidence_interval",
+      "space": "\\(\\{[l,u]:0\\leq l\\leq u\\leq1\\}\\)",
+      "def": "Hoeffding interval \\(\\mathrm{CI}_{n,\\mathrm{cont}}\\) using the fixed atom fallback.",
+      "role": "inference_object",
+      "refs": [
+        "n",
+        "alpha"
+      ]
+    },
+    {
+      "name": "R_n_cont_star",
+      "type": "continuity_only_minimax_absolute_risk",
+      "space": "\\([0,1]\\)",
+      "def": "Minimax absolute-error risk \\(R_{n,\\mathrm{cont}}^\\star\\) for \\(\\theta_{\\delta_n,\\mathrm{cont}}\\) over \\(\\mathcal M_{\\mathrm{cont}}\\).",
+      "role": "performance_criterion",
+      "refs": [
+        "n",
+        "theta_delta_cont",
+        "delta_n",
+        "mathcal_M_cont"
+      ]
+    },
+    {
+      "name": "L_n_cont_star",
+      "type": "continuity_only_minimax_honest_expected_length",
+      "space": "\\([0,1]\\)",
+      "def": "Minimax uniformly honest expected length \\(L_{n,\\mathrm{cont}}^\\star\\) over \\(\\mathcal M_{\\mathrm{cont}}\\).",
+      "role": "performance_criterion",
+      "refs": [
+        "n",
+        "theta_delta_cont",
+        "delta_n",
+        "mathcal_M_cont",
+        "alpha"
+      ]
+    },
+    {
+      "name": "mathcal_M_cont_F",
+      "type": "continuity_only_full_data_law_class",
+      "def": "Carrier-heterogeneous continuity-only full-data class \\(\\mathcal M_{\\mathrm{cont}}^{\\mathrm F}\\).",
+      "role": "causal_model_class",
+      "ref": "def:continuity-full-data-model-class",
+      "refs": [
+        "P_full",
+        "mathcal_M_cont"
+      ]
+    },
+    {
+      "name": "R_n_cont_F_star",
+      "type": "continuity_only_causal_minimax_absolute_risk",
+      "space": "\\([0,1]\\)",
+      "def": "Observed-sample minimax risk \\(R_{n,\\mathrm{cont},\\mathrm F}^\\star\\) for the causal clamp mean over \\(\\mathcal M_{\\mathrm{cont}}^{\\mathrm F}\\).",
+      "role": "causal_performance_criterion",
+      "refs": [
+        "n",
+        "psi_delta",
+        "mathcal_M_cont_F"
+      ]
+    },
+    {
+      "name": "L_n_cont_F_star",
+      "type": "continuity_only_causal_minimax_honest_expected_length",
+      "space": "\\([0,1]\\)",
+      "def": "Observed-sample minimax honest expected length \\(L_{n,\\mathrm{cont},\\mathrm F}^\\star\\) for the causal clamp mean over \\(\\mathcal M_{\\mathrm{cont}}^{\\mathrm F}\\).",
+      "role": "causal_performance_criterion",
+      "refs": [
+        "n",
+        "psi_delta",
+        "mathcal_M_cont_F",
+        "alpha"
+      ]
+    },
+    {
+      "name": "exactHolderBias",
+      "type": "realized_holder_bias",
+      "space": "\\([0,\\infty)\\)",
+      "def": "For a realized design \\(z\\), stratum \\(x\\), and admissible affine weights \\(w\\), \\(\\operatorname{exactHolderBias}_{z,x}(w)\\) is the supremum of the absolute intercept error over the declared \\([0,1]\\)-valued Hölder class.",
+      "role": "exact_modulus_component",
+      "ref": "def:exact-modulus-handle",
+      "refs": [
+        "I_2",
+        "X",
+        "A",
+        "mathcal_X",
+        "ell",
+        "beta",
+        "L",
+        "delta_n"
+      ]
+    },
+    {
+      "name": "realizedExactModulus",
+      "type": "conditional_realized_radius",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The quantity \\(\\operatorname{realizedExactModulus}_{z,x}(t)\\) is the infimum of exact Hölder bias plus \\(t\\) times the \\(\\ell_2\\)-norm of admissible affine weights, totalized to zero when no such weight exists.",
+      "role": "inference_radius_candidate",
+      "ref": "def:exact-modulus-handle",
+      "refs": [
+        "exactHolderBias",
+        "I_2",
+        "X",
+        "A",
+        "mathcal_X",
+        "ell",
+        "beta",
+        "L",
+        "delta_n",
+        "h_n"
+      ]
+    },
+    {
+      "name": "exactModulusHandle",
+      "type": "integrated_exact_modulus_radius",
+      "space": "\\(\\mathbb R\\)",
+      "def": "The quantity \\(\\operatorname{exactModulusHandle}(P,I_2,x,\\ell,\\beta,\\kappa,L,c_-,c_+,p_{\\min},\\delta_n,h_n,t)\\) is the real-valued integral of \\(\\operatorname{realizedExactModulus}_{z,x}(t)\\) under the \\(n\\)-fold iid observed-design law induced by \\(P\\).",
+      "role": "integrated_inference_radius_candidate",
+      "ref": "def:exact-modulus-handle",
+      "refs": [
+        "P",
+        "I_2",
+        "mathcal_X",
+        "ell",
+        "beta",
+        "kappa",
+        "L",
+        "c_minus",
+        "c_plus",
+        "p_min",
+        "delta_n",
+        "h_n",
+        "n",
+        "realizedExactModulus"
+      ]
+    },
+    {
+      "name": "worstExactModulus",
+      "type": "worst_case_integrated_radius",
+      "space": "\\(\\mathbb R\\)",
+      "def": "The quantity \\(\\operatorname{worstExactModulus}_n(t)\\) is the supremum of the integrated exact-modulus radius over \\(P\\in\\mathcal M\\) and \\(x\\in\\mathcal X\\).",
+      "role": "sharp_constant_candidate",
+      "ref": "def:exact-modulus-handle",
+      "refs": [
+        "exactModulusHandle",
+        "P",
+        "mathcal_M",
+        "mathcal_X",
+        "n"
+      ]
+    },
+    {
+      "name": "t_alpha",
+      "type": "conditional_test_multiplier",
+      "space": "\\((0,\\infty)\\)",
+      "def": "The open-question calibration is \\(t_\\alpha=\\sqrt{\\log(12J/\\alpha)/2}\\).",
+      "role": "inference_parameter",
+      "ref": "def:exact-modulus-handle",
+      "refs": [
+        "alpha",
+        "J"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:iid-sampling",
+      "kind": "sampling",
+      "condition": "The observations \\(O_1,\\ldots,O_n\\) are independent and identically distributed from \\(P\\).",
+      "free_symbols": [
+        "O_i",
+        "n",
+        "P"
+      ],
+      "standard": {
+        "name": "Independent random-design sampling",
+        "cite": "Gaiffas2005DegenerateDesign"
+      },
+      "used_by": [
+        "def:exact-modulus-handle",
+        "lem:total-gram",
+        "thm:continuity-only-frontier"
+      ]
+    },
+    {
+      "id": "ass:conditional-density-law",
+      "kind": "treatment-law",
+      "condition": "For every \\(x\\in\\mathcal X\\) and Borel set \\(B\\subseteq[0,1]\\), \\(P(A\\in B\\mid X=x)=\\int_B\\pi_x(a)\\,\\mathrm da\\).",
+      "free_symbols": [
+        "P",
+        "A",
+        "X",
+        "mathcal_X",
+        "pi_x"
+      ],
+      "standard": {
+        "name": "Conditional absolute continuity for a continuous treatment",
+        "cite": "DiazWilliamsHoffmanSchenck2023"
+      },
+      "used_by": [
+        "def:continuity-model-class",
+        "def:model-class",
+        "lem:continuity-regression-extension-unique",
+        "prop:causal-bridge",
+        "prop:continuity-causal-bridge",
+        "prop:continuity-observed-margin-surjectivity",
+        "prop:observed-margin-surjectivity",
+        "prop:policy-support",
+        "prop:pushforward-setup",
+        "thm:continuity-only-frontier"
+      ]
+    },
+    {
+      "id": "ass:consistency",
+      "kind": "causal-structural",
+      "condition": "Under \\(P^{\\mathrm F}\\), the latent variable \\(U\\) is \\(\\mathcal U\\)-valued and, for every \\(x\\in\\mathcal X\\), \\(g_x:[0,1]\\times\\mathcal U\\to[0,1]\\) is jointly Borel measurable, with one \\(P^{\\mathrm F}\\)-null set outside which \\(Y(a)=g_X(a,U)\\) for every \\(a\\in[0,1]\\) and \\(Y=g_X(A,U)\\).",
+      "free_symbols": [
+        "P_full",
+        "U",
+        "mathcal_U",
+        "g_x",
+        "mathcal_X",
+        "X",
+        "Y_a",
+        "Y",
+        "A"
+      ],
+      "standard": {
+        "name": "NPSEM-style simultaneous latent-response consistency",
+        "cite": "DiazWilliamsHoffmanSchenck2023"
+      },
+      "used_by": [
+        "def:continuity-full-data-model-class",
+        "def:full-data-model-class",
+        "prop:causal-bridge",
+        "prop:continuity-causal-bridge",
+        "prop:continuity-observed-margin-surjectivity",
+        "prop:observed-margin-surjectivity"
+      ]
+    },
+    {
+      "id": "ass:exchangeability",
+      "kind": "causal-structural",
+      "condition": "Under \\(P^{\\mathrm F}\\), \\(A\\) and \\(U\\) are conditionally independent given \\(X\\).",
+      "free_symbols": [
+        "P_full",
+        "A",
+        "U",
+        "X"
+      ],
+      "standard": {
+        "name": "Latent-response randomization",
+        "cite": "DiazWilliamsHoffmanSchenck2023"
+      },
+      "used_by": [
+        "def:continuity-full-data-model-class",
+        "def:full-data-model-class",
+        "prop:causal-bridge",
+        "prop:continuity-causal-bridge",
+        "prop:continuity-observed-margin-surjectivity",
+        "prop:observed-margin-surjectivity"
+      ]
+    },
+    {
+      "id": "ass:stratum-mass",
+      "kind": "support",
+      "condition": "For every \\(x\\in\\mathcal X\\), \\(p_x\\geq p_{\\min}\\).",
+      "free_symbols": [
+        "p_x",
+        "p_min",
+        "mathcal_X"
+      ],
+      "standard": {
+        "name": "Finite-stratum overlap",
+        "cite": "DiazWilliamsHoffmanSchenck2023"
+      },
+      "used_by": [
+        "def:continuity-model-class",
+        "def:model-class",
+        "lem:total-gram",
+        "prop:causal-bridge",
+        "prop:continuity-observed-margin-surjectivity",
+        "prop:observed-margin-surjectivity",
+        "thm:continuity-only-frontier"
+      ]
+    },
+    {
+      "id": "ass:polynomial-thinning",
+      "kind": "tail-rate",
+      "condition": "For every \\(x\\in\\mathcal X\\) and Lebesgue-almost every \\(a\\in[0,1]\\), \\(c_-a^\\kappa\\leq\\pi_x(a)\\leq c_+a^\\kappa\\).",
+      "free_symbols": [
+        "pi_x",
+        "mathcal_X",
+        "c_minus",
+        "c_plus",
+        "kappa"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "The global two-sided measurable envelope is an explicit treatment-assignment design class. It contains beta-type assignment densities proportional to \\(a^\\kappa\\) and their normalized bounded measurable tilts, representing protocols that suppress doses near a contraindicated boundary while permitting irregular assignment elsewhere. It is not asserted to follow from Gaiffas's regular-variation condition."
+      },
+      "used_by": [
+        "def:continuity-model-class",
+        "def:model-class",
+        "lem:bandwidth-phases",
+        "lem:continuity-regression-extension-unique",
+        "lem:total-gram",
+        "prop:causal-bridge",
+        "prop:continuity-causal-bridge",
+        "prop:policy-support",
+        "prop:pushforward-setup",
+        "thm:continuity-only-frontier"
+      ]
+    },
+    {
+      "id": "ass:holder-regression",
+      "kind": "smoothness",
+      "condition": "For every \\(x\\in\\mathcal X\\), an almost-everywhere version of \\(\\mathbb E_P[Y\\mid A=a,X=x]\\) has a continuous extension \\(\\mu_x^P\\) satisfying \\(\\left|\\mu_x^P(t)-\\sum_{j=0}^{\\ell}(\\mu_x^P)^{(j)}(s)(t-s)^j/j!\\right|\\leq L|t-s|^\\beta\\) for all \\(s,t\\in[0,1]\\).",
+      "free_symbols": [
+        "P",
+        "Y",
+        "A",
+        "X",
+        "mu_x_P",
+        "mathcal_X",
+        "beta",
+        "ell",
+        "L"
+      ],
+      "standard": {
+        "name": "Taylor-remainder formulation of Hölder outcome-regression smoothness",
+        "cite": "ArmstrongKolesar2020"
+      },
+      "used_by": [
+        "def:model-class",
+        "prop:causal-bridge",
+        "prop:observed-margin-surjectivity"
+      ]
+    },
+    {
+      "id": "ass:full-data-response-continuity",
+      "condition": "Under \\(P^{\\mathrm F}\\), for every \\(x\\in\\mathcal X\\), the function \\(a\\mapsto m_x^{\\mathrm F}(a)\\) is continuous on \\([0,\\bar\\delta]\\).",
+      "free_symbols": [
+        "P_full",
+        "m_x_F",
+        "mathcal_X",
+        "delta_bar"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This author-imposed scientific mean-regularity premise is weaker than conditional \\(L^1\\)-continuity of the full response path: it constrains only the fiberwise structural mean and only on the declared threshold range.  It is not attributed to Díaz et al."
+      },
+      "used_by": [
+        "def:continuity-full-data-model-class",
+        "def:full-data-model-class",
+        "prop:causal-bridge",
+        "prop:continuity-causal-bridge",
+        "prop:continuity-observed-margin-surjectivity",
+        "prop:observed-margin-surjectivity"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:model-class",
+      "name": "Finite-stratum clamp model",
+      "construction": "\\(\\mathcal M=\\{P\\in\\mathcal P(\\mathcal X\\times[0,1]\\times[0,1]):P\\text{ satisfies the conditional-density, stratum-mass, polynomial-thinning, and Hölder member conditions}\\}\\).",
+      "free_symbols": [
+        "mathcal_M",
+        "P",
+        "mathcal_X",
+        "A",
+        "Y"
+      ],
+      "by_member_properties": [
+        "ass:conditional-density-law",
+        "ass:stratum-mass",
+        "ass:polynomial-thinning",
+        "ass:holder-regression"
+      ]
+    },
+    {
+      "id": "def:clamp-policy",
+      "name": "Lower-threshold LMTP",
+      "construction": "For \\(0\\leq\\delta\\leq\\bar\\delta\\), set \\(d_\\delta(a)=\\max\\{a,\\delta\\}\\) and \\(A^\\delta=d_\\delta(A)\\).",
+      "free_symbols": [
+        "d_delta",
+        "A",
+        "delta_bar"
+      ],
+      "inputs": [
+        "A",
+        "delta_n"
+      ]
+    },
+    {
+      "id": "def:bandwidth",
+      "name": "Information-balance bandwidth",
+      "construction": "\\(h_n=\\inf\\{h\\in(0,1-\\bar\\delta]:n h^{2\\beta+1}(\\delta_n+h)^\\kappa\\geq1\\}\\), with \\(h_n=1-\\bar\\delta\\) if the set is empty.",
+      "free_symbols": [
+        "h_n",
+        "n",
+        "delta_bar",
+        "beta",
+        "delta_n",
+        "kappa"
+      ],
+      "inputs": [
+        "n",
+        "delta_n",
+        "beta",
+        "kappa",
+        "delta_bar"
+      ]
+    },
+    {
+      "id": "def:frontier",
+      "name": "Clamp estimation frontier",
+      "construction": "\\(r_n=n^{-1/2}+\\delta_n^{\\kappa+1}h_n^\\beta\\).",
+      "free_symbols": [
+        "r_n",
+        "n",
+        "delta_n",
+        "kappa",
+        "h_n",
+        "beta"
+      ],
+      "inputs": [
+        "n",
+        "delta_n",
+        "kappa",
+        "h_n",
+        "beta"
+      ]
+    },
+    {
+      "id": "def:total-gram-estimator",
+      "name": "Total-Gram-stabilized local-polynomial estimator",
+      "construction": "Split the sample into \\(I_0,I_1,I_2\\). Set \\(\\widehat\\nu_n=|I_0|^{-1}\\sum_{i\\in I_0}Y_i\\mathbf 1\\{A_i>\\delta_n\\}\\), \\(\\widehat b_x=|I_1|^{-1}\\sum_{i\\in I_1}\\mathbf 1\\{X_i=x,A_i\\leq\\delta_n\\}\\), and \\(\\widetilde\\mu_x=\\Pi_{[0,1]}(\\sum_{i\\in I_2}w_{ix}Y_i)\\) on \\(\\Omega_x\\), with \\(\\widetilde\\mu_x=1/2\\) off \\(\\Omega_x\\). Define \\(\\widehat\\theta_n=\\Pi_{[0,1]}[\\widehat\\nu_n+\\sum_{x\\in\\mathcal X}\\widehat b_x\\widetilde\\mu_x]\\).",
+      "free_symbols": [
+        "I_0",
+        "I_1",
+        "I_2",
+        "O_i",
+        "Y",
+        "A",
+        "X",
+        "delta_n",
+        "mathcal_X",
+        "w_ix",
+        "Omega_x",
+        "theta_hat_n"
+      ],
+      "inputs": [
+        "I_0",
+        "I_1",
+        "I_2",
+        "delta_n",
+        "h_n",
+        "w_ix",
+        "Omega_x"
+      ]
+    },
+    {
+      "id": "def:honest-interval",
+      "name": "Bias-aware atom-fallback interval",
+      "construction": "Let \\(t_\\alpha=\\sqrt{\\log(12J/\\alpha)/2}\\), \\(b_0=t_\\alpha/\\sqrt{|I_0|}\\), and \\(b_1=t_\\alpha/\\sqrt{|I_1|}\\). For each \\(x\\), set \\(B_x=Lh_n^\\beta\\sum_{i\\in I_2}|w_{ix}|+t_\\alpha(\\sum_{i\\in I_2}w_{ix}^2)^{1/2}\\) and \\(D_x=(\\widehat b_x+b_1)B_x+b_1\\) on \\(\\Omega_x\\), while \\(D_x=\\widehat b_x+b_1\\) off \\(\\Omega_x\\). Define \\(\\mathrm{CI}_n=[\\widehat\\theta_n-b_0-\\sum_xD_x,\\widehat\\theta_n+b_0+\\sum_xD_x]\\cap[0,1]\\).",
+      "free_symbols": [
+        "alpha",
+        "J",
+        "n",
+        "I_0",
+        "I_1",
+        "I_2",
+        "L",
+        "h_n",
+        "beta",
+        "w_ix",
+        "Omega_x",
+        "X",
+        "A",
+        "delta_n",
+        "theta_hat_n",
+        "CI_n"
+      ],
+      "inputs": [
+        "theta_hat_n",
+        "alpha",
+        "L",
+        "h_n",
+        "w_ix",
+        "Omega_x"
+      ]
+    },
+    {
+      "id": "def:exact-modulus-handle",
+      "name": "Realized-design exact-modulus handle",
+      "construction": "Fix \\(P\\in\\mathcal M\\), a split block \\(I_2\\), \\(x\\in\\mathcal X\\), \\(\\ell\\), \\(\\beta\\), \\(\\kappa\\), \\(L\\), \\(c_-\\), \\(c_+\\), \\(p_{\\min}\\), \\(\\delta_n\\), \\(h_n>0\\), and a test multiplier \\(t\\geq0\\).  For a realized design \\(z=\\{(X_i,A_i):i\\in I_2\\}\\), put \\(u_i=(A_i-\\delta_n)/h_n\\), \\(S_{z,x}=\\{i\\in I_2:X_i=x,\\ 0\\leq u_i\\leq1\\}\\), and\n\\[\n\\mathcal W_{z,x}=\\left\\{w=(w_i)_{i\\in I_2}\\in\\mathbb R^{I_2}: w_i=0\\ \\text{for }i\\notin S_{z,x},\\quad \\sum_{i\\in I_2}w_i u_i^j=\\mathbf 1\\{j=0\\}\\ \\text{for }j=0,\\ldots,\\ell\\right\\}.\n\\]\nIf \\(V_{z,x}\\) is the matrix whose row indexed by \\(i\\in S_{z,x}\\) is \\(v_\\ell(u_i)^\\top\\), these are equivalently the affine realized-design constraints \\(V_{z,x}^\\top w_{S_{z,x}}=e_0\\), and the associated total Gram is \\(G_x=V_{z,x}^\\top V_{z,x}\\).  Let \\(\\mathcal H_{\\beta,L}\\) be the class of functions \\(f:[0,1]\\to[0,1]\\) that are continuous and satisfy\n\\[\n\\left|f(a')-\\sum_{j=0}^{\\ell}f^{(j)}(a)(a'-a)^j/j!\\right|\\leq L|a'-a|^\\beta\n\\quad\\text{for every }a,a'\\in[0,1],\n\\]\nwhere the derivatives are the intrinsic derivatives on \\([0,1]\\) used in the declared Hölder condition.  For \\(w\\in\\mathcal W_{z,x}\\), define the exact realized Hölder bias and conditional radius objective by\n\\[\n\\operatorname{exactHolderBias}_{z,x}(w)\n=\\sup_{f\\in\\mathcal H_{\\beta,L}}\n\\left|\\sum_{i\\in I_2}w_i f(A_i)-f(\\delta_n)\\right|,\n\\qquad\n\\mathcal Q_{z,x,t}(w)\n=\\operatorname{exactHolderBias}_{z,x}(w)+t\\left(\\sum_{i\\in I_2}w_i^2\\right)^{1/2}.\n\\]\nThe realized exact modulus is the real-valued totalization\n\\[\n\\operatorname{realizedExactModulus}_{z,x}(t)=\n\\begin{cases}\n\\inf_{w\\in\\mathcal W_{z,x}}\\mathcal Q_{z,x,t}(w),&\\mathcal W_{z,x}\\neq\\varnothing,\\\\\n0,&\\mathcal W_{z,x}=\\varnothing.\n\\end{cases}\n\\]\nThus the empty affine-feasible set has value zero, matching the real \\(\\operatorname{sInf}\\) convention in the verified construction.  Define\n\\[\n\\operatorname{exactModulusHandle}(P,I_2,x,\\ell,\\beta,\\kappa,L,c_-,c_+,p_{\\min},\\delta_n,h_n,t)\n=\\int \\operatorname{realizedExactModulus}_{z,x}(t)\\,\n\\mathrm d(P_{X,A}^{\\otimes n})(z),\n\\]\nthe real-valued integral under the \\(n\\)-fold independent observed-design law induced by \\(P\\).  The inputs \\(\\kappa,c_-,c_+,p_{\\min}\\) enter by requiring that \\(P\\) satisfy the corresponding member conditions of \\(\\mathcal M\\); they do not impose any additional smoothness on \\(\\pi_x\\).  Finally set\n\\[\nt_\\alpha=\\sqrt{\\log(12J/\\alpha)/2},\\qquad\n\\operatorname{worstExactModulus}_n(t_\\alpha)\n=\\sup_{P\\in\\mathcal M}\\sup_{x\\in\\mathcal X}\n\\operatorname{exactModulusHandle}(P,I_2,x,\\ell,\\beta,\\kappa,L,c_-,c_+,p_{\\min},\\delta_n,h_n,t_\\alpha).\n\\]\nBoth \\(\\operatorname{realizedExactModulus}_{z,x}(t)\\) and \\(\\operatorname{exactModulusHandle}\\) are radius, or half-length, quantities.  An untruncated symmetric interval with such radius has full length twice the radius.  The zero value on \\(\\mathcal W_{z,x}=\\varnothing\\) only totalizes this candidate handle on singular designs; no validity, nondegeneracy, honesty, or optimality of an interval using that convention is asserted here.",
+      "free_symbols": [
+        "exactHolderBias",
+        "realizedExactModulus",
+        "exactModulusHandle",
+        "worstExactModulus",
+        "t_alpha",
+        "P",
+        "n",
+        "O_i",
+        "X",
+        "A",
+        "mathcal_X",
+        "mathcal_M",
+        "I_2",
+        "G_x",
+        "v_ell",
+        "ell",
+        "beta",
+        "kappa",
+        "L",
+        "c_minus",
+        "c_plus",
+        "p_min",
+        "delta_n",
+        "h_n",
+        "J",
+        "alpha"
+      ],
+      "inputs": [
+        "def:model-class",
+        "ass:iid-sampling",
+        "P",
+        "I_2",
+        "x",
+        "ell",
+        "beta",
+        "kappa",
+        "L",
+        "c_minus",
+        "c_plus",
+        "p_min",
+        "delta_n",
+        "h_n",
+        "t"
+      ]
+    },
+    {
+      "id": "def:full-data-model-class",
+      "name": "Structural full-data clamp model",
+      "construction": "\\(\\mathcal M^{\\mathrm F}\\) is the collection of full-data law packages \\(P^{\\mathrm F}\\) with the following memberwise structure.  Each member carries its own standard Borel latent-response space \\(\\mathcal U\\), an \\(\\mathcal U\\)-valued random variable \\(U\\), jointly Borel maps \\(g_x:[0,1]\\times\\mathcal U\\to[0,1]\\) for \\(x\\in\\mathcal X\\), and a jointly measurable process \\(\\{Y(a):a\\in[0,1]\\}\\), together with a probability law for \\((X,A,Y,U,\\{Y(a):a\\in[0,1]\\})\\).  Its \\((X,A,Y)\\)-margin is some \\(P\\in\\mathcal M\\), and, within that member's own carrier, the simultaneous latent-response consistency, latent randomization, and fiberwise structural-mean continuity on \\([0,\\bar\\delta]\\) member conditions hold.  Different members may use different standard Borel carriers; no common carrier and no carrier-richness condition is imposed.",
+      "free_symbols": [
+        "mathcal_M_F",
+        "P_full",
+        "mathcal_U",
+        "U",
+        "g_x",
+        "mathcal_X",
+        "X",
+        "A",
+        "Y",
+        "Y_a",
+        "P",
+        "mathcal_M",
+        "m_x_F",
+        "delta_bar"
+      ],
+      "by_member_properties": [
+        "ass:consistency",
+        "ass:exchangeability",
+        "ass:full-data-response-continuity"
+      ]
+    },
+    {
+      "id": "def:causal-frontier-criteria",
+      "name": "Causal minimax risk and honest expected length",
+      "construction": "For estimators and intervals measurable with respect to the observed sample \\(O_1,\\ldots,O_n\\), define\n\\[\n R_{n,\\mathrm F}^\\star=\\inf_{\\widehat\\psi}\\sup_{P^{\\mathrm F}\\in\\mathcal M^{\\mathrm F}}\n \\mathbb E_{(P^{\\mathrm F})^{\\otimes n}}|\\widehat\\psi-\\psi_{\\delta_n}(P^{\\mathrm F})|\n\\]\nand\n\\[\n L_{n,\\mathrm F}^\\star=\n \\inf_{C_n:\\,\\inf_{P^{\\mathrm F}\\in\\mathcal M^{\\mathrm F}}\n (P^{\\mathrm F})^{\\otimes n}\\{\\psi_{\\delta_n}(P^{\\mathrm F})\\in C_n\\}\\geq1-\\alpha}\n \\sup_{P^{\\mathrm F}\\in\\mathcal M^{\\mathrm F}}\n \\mathbb E_{(P^{\\mathrm F})^{\\otimes n}}[\\operatorname{len}(C_n)].\n\\]",
+      "free_symbols": [
+        "R_n_F_star",
+        "L_n_F_star",
+        "n",
+        "P_full",
+        "mathcal_M_F",
+        "psi_delta",
+        "delta_n",
+        "O_i",
+        "alpha"
+      ],
+      "inputs": [
+        "O_i",
+        "delta_n",
+        "alpha",
+        "def:full-data-model-class"
+      ]
+    },
+    {
+      "id": "def:continuity-model-class",
+      "name": "Continuity-only finite-stratum clamp model",
+      "construction": "\\(\\mathcal M_{\\mathrm{cont}}\\) is the set of laws \\(P\\in\\mathcal P(\\mathcal X\\times[0,1]\\times[0,1])\\) satisfying \\(\\texttt{ass:conditional-density-law}\\), \\(\\texttt{ass:stratum-mass}\\), and \\(\\texttt{ass:polynomial-thinning}\\), and such that, for every \\(x\\in\\mathcal X\\), an almost-everywhere version of \\(\\mathbb E_P[Y\\mid A=a,X=x]\\) admits a continuous extension to \\([0,\\bar\\delta]\\).  There is no common Hölder exponent, modulus, or radius.",
+      "free_symbols": [
+        "mathcal_M_cont",
+        "P",
+        "mathcal_X",
+        "X",
+        "A",
+        "Y",
+        "delta_bar"
+      ],
+      "by_member_properties": [
+        "ass:conditional-density-law",
+        "ass:stratum-mass",
+        "ass:polynomial-thinning"
+      ]
+    },
+    {
+      "id": "def:continuity-clamp-functional",
+      "name": "Continuity-only observed clamp functional",
+      "construction": "For \\(P\\in\\mathcal M_{\\mathrm{cont}}\\) and \\(0\\leq\\delta\\leq\\bar\\delta\\), define\n\\[\n \\theta_{\\delta,\\mathrm{cont}}(P)\n =\\mathbb E_P[Y\\mathbf 1\\{A>\\delta\\}]\n +\\sum_{x\\in\\mathcal X}p_xq_x(\\delta)\\mu_{x,\\mathrm{cont}}^P(\\delta).\n\\]",
+      "free_symbols": [
+        "P",
+        "mathcal_M_cont",
+        "delta_bar",
+        "theta_delta_cont",
+        "Y",
+        "A",
+        "mathcal_X",
+        "p_x",
+        "q_x",
+        "mu_x_cont_P"
+      ],
+      "inputs": [
+        "P",
+        "delta_n"
+      ]
+    },
+    {
+      "id": "def:continuity-frontier",
+      "name": "Continuity-only clamp frontier",
+      "construction": "\\[\n s_n=n^{-1/2}+\\delta_n^{\\kappa+1}.\n\\]",
+      "free_symbols": [
+        "s_n",
+        "n",
+        "delta_n",
+        "kappa"
+      ],
+      "inputs": [
+        "n",
+        "delta_n",
+        "kappa"
+      ]
+    },
+    {
+      "id": "def:continuity-fallback-estimator",
+      "name": "Continuity-only fixed atom fallback estimator",
+      "construction": "Using the deterministic split blocks \\(I_0,I_1\\), put\n\\[\n \\widehat\\nu_n=|I_0|^{-1}\\sum_{i\\in I_0}Y_i\\mathbf 1\\{A_i>\\delta_n\\},\n \\qquad\n \\widehat b_x=|I_1|^{-1}\\sum_{i\\in I_1}\\mathbf 1\\{X_i=x,A_i\\leq\\delta_n\\},\n\\]\nand define the fixed-regression-fallback estimator\n\\[\n \\widehat\\theta_{n,\\mathrm{cont}}\n =\\Pi_{[0,1]}\\left\\{\\widehat\\nu_n+\\frac12\\sum_{x\\in\\mathcal X}\\widehat b_x\\right\\}.\n\\]\nIt uses no local regression and no propensity estimate.",
+      "free_symbols": [
+        "I_0",
+        "I_1",
+        "O_i",
+        "Y",
+        "A",
+        "delta_n",
+        "X",
+        "mathcal_X",
+        "theta_hat_cont_n"
+      ],
+      "inputs": [
+        "I_0",
+        "I_1",
+        "delta_n"
+      ]
+    },
+    {
+      "id": "def:continuity-honest-interval",
+      "name": "Continuity-only Hoeffding interval",
+      "construction": "Let\n\\[\n t_{j,\\alpha}=\\sqrt{\\frac{\\log(4/\\alpha)}{2|I_j|}}\n \\quad(j=0,1),\n \\qquad \\widehat B_n=\\sum_{x\\in\\mathcal X}\\widehat b_x.\n\\]\nDefine the Hoeffding interval\n\\[\n \\mathrm{CI}_{n,\\mathrm{cont}}\n =\\left[\n \\widehat\\theta_{n,\\mathrm{cont}}-t_{0,\\alpha}-t_{1,\\alpha}-\\frac12\\widehat B_n,\n \\widehat\\theta_{n,\\mathrm{cont}}+t_{0,\\alpha}+t_{1,\\alpha}+\\frac12\\widehat B_n\n \\right]\\cap[0,1].\n\\]",
+      "free_symbols": [
+        "n",
+        "alpha",
+        "I_0",
+        "I_1",
+        "mathcal_X",
+        "theta_hat_cont_n",
+        "CI_cont_n"
+      ],
+      "inputs": [
+        "theta_hat_cont_n",
+        "I_0",
+        "I_1",
+        "alpha"
+      ]
+    },
+    {
+      "id": "def:continuity-full-data-model-class",
+      "name": "Continuity-only structural full-data clamp model",
+      "construction": "\\(\\mathcal M_{\\mathrm{cont}}^{\\mathrm F}\\) is the collection of full-data law packages having the memberwise carrier, latent variable, jointly Borel response maps, and jointly measurable potential-outcome process described in \\(\\texttt{def:full-data-model-class}\\), whose observed \\((X,A,Y)\\)-margin belongs to \\(\\mathcal M_{\\mathrm{cont}}\\), and which satisfy \\(\\texttt{ass:consistency}\\), \\(\\texttt{ass:exchangeability}\\), and \\(\\texttt{ass:full-data-response-continuity}\\).  As before, carriers may vary across members.",
+      "free_symbols": [
+        "mathcal_M_cont_F",
+        "P_full",
+        "mathcal_U",
+        "U",
+        "g_x",
+        "Y_a",
+        "X",
+        "A",
+        "Y",
+        "P",
+        "mathcal_M_cont",
+        "m_x_F",
+        "delta_bar"
+      ],
+      "by_member_properties": [
+        "ass:consistency",
+        "ass:exchangeability",
+        "ass:full-data-response-continuity"
+      ]
+    },
+    {
+      "id": "def:continuity-frontier-criteria",
+      "name": "Continuity-only observed and causal decision criteria",
+      "construction": "For estimators and intervals measurable with respect to \\(O_1,\\ldots,O_n\\), define\n\\[\n R_{n,\\mathrm{cont}}^\\star\n =\\inf_{\\widehat\\theta}\\sup_{P\\in\\mathcal M_{\\mathrm{cont}}}\n \\mathbb E_{P^{\\otimes n}}|\\widehat\\theta-\\theta_{\\delta_n,\\mathrm{cont}}(P)|\n\\]\nand\n\\[\n L_{n,\\mathrm{cont}}^\\star\n =\\inf_{C_n:\\,\\inf_{P\\in\\mathcal M_{\\mathrm{cont}}}P^{\\otimes n}\n \\{\\theta_{\\delta_n,\\mathrm{cont}}(P)\\in C_n\\}\\geq1-\\alpha}\n \\sup_{P\\in\\mathcal M_{\\mathrm{cont}}}\n \\mathbb E_{P^{\\otimes n}}[\\operatorname{len}(C_n)].\n\\]\nFor the full-data class define\n\\[\n R_{n,\\mathrm{cont},\\mathrm F}^\\star\n =\\inf_{\\widehat\\psi}\\sup_{P^{\\mathrm F}\\in\\mathcal M_{\\mathrm{cont}}^{\\mathrm F}}\n \\mathbb E_{(P^{\\mathrm F})^{\\otimes n}}|\\widehat\\psi-\\psi_{\\delta_n}(P^{\\mathrm F})|\n\\]\nand\n\\[\n L_{n,\\mathrm{cont},\\mathrm F}^\\star\n =\\inf_{C_n:\\,\\inf_{P^{\\mathrm F}\\in\\mathcal M_{\\mathrm{cont}}^{\\mathrm F}}\n (P^{\\mathrm F})^{\\otimes n}\\{\\psi_{\\delta_n}(P^{\\mathrm F})\\in C_n\\}\\geq1-\\alpha}\n \\sup_{P^{\\mathrm F}\\in\\mathcal M_{\\mathrm{cont}}^{\\mathrm F}}\n \\mathbb E_{(P^{\\mathrm F})^{\\otimes n}}[\\operatorname{len}(C_n)].\n\\]",
+      "free_symbols": [
+        "R_n_cont_star",
+        "L_n_cont_star",
+        "R_n_cont_F_star",
+        "L_n_cont_F_star",
+        "n",
+        "P",
+        "mathcal_M_cont",
+        "theta_delta_cont",
+        "delta_n",
+        "P_full",
+        "mathcal_M_cont_F",
+        "psi_delta",
+        "O_i",
+        "alpha"
+      ],
+      "inputs": [
+        "O_i",
+        "delta_n",
+        "alpha",
+        "def:continuity-model-class",
+        "def:continuity-full-data-model-class"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "prop:pushforward-setup",
+      "kind": "proposition",
+      "statement": "For every \\(P\\in\\mathcal M\\), \\(x\\in\\mathcal X\\), and \\(0\\leq\\delta\\leq\\bar\\delta\\), the conditional pushforward law satisfies \\(P\\{d_\\delta(A)\\in\\mathrm da\\mid X=x\\}=\\pi_x(a)\\mathbf 1\\{a>\\delta\\}\\,\\mathrm da+q_x(\\delta)\\,\\delta_\\delta(\\mathrm da)\\), with \\(c_-\\delta^{\\kappa+1}/(\\kappa+1)\\leq q_x(\\delta)\\leq c_+\\delta^{\\kappa+1}/(\\kappa+1)\\).",
+      "free_symbols": [
+        "P",
+        "mathcal_M",
+        "mathcal_X",
+        "delta_bar",
+        "d_delta",
+        "A",
+        "X",
+        "pi_x",
+        "q_x",
+        "c_minus",
+        "c_plus",
+        "kappa"
+      ],
+      "depends_on": [
+        "def:model-class",
+        "def:clamp-policy",
+        "ass:conditional-density-law",
+        "ass:polynomial-thinning"
+      ],
+      "status": "to-prove",
+      "justification": "This cited setup specializes the threshold-LMTP pushforward calculation to the deterministic clamp and fixes the mixed dominating measure used to interpret the observed functional.",
+      "gap": "Díaz et al. supply threshold-LMTP identification, and McCoy et al. formulate clipped MTP ratios with an appropriate mixed dominating measure; this proposition claims no novelty beyond recording their specialization in the notation of the statistical frontier.",
+      "consumer": "The formula connects the observed-data target to the user-specified lower-threshold policy in the \\(\\texttt{lmtp}\\) workflow."
+    },
+    {
+      "id": "prop:policy-support",
+      "kind": "proposition",
+      "statement": "For every \\(P\\in\\mathcal M\\), \\(x\\in\\mathcal X\\), and \\(0\\leq\\delta\\leq\\bar\\delta\\), \\(d_\\delta(A)\\) lies in the support of the conditional natural-treatment law given \\(X=x\\) almost surely. At \\(\\delta=0\\) this follows from the identity map; at \\(\\delta>0\\) every neighborhood of \\(\\delta\\) has positive conditional probability by conditional absolute continuity and the lower polynomial envelope.",
+      "free_symbols": [
+        "P",
+        "mathcal_M",
+        "mathcal_X",
+        "delta_bar",
+        "d_delta",
+        "A",
+        "X"
+      ],
+      "depends_on": [
+        "def:model-class",
+        "def:clamp-policy",
+        "ass:conditional-density-law",
+        "ass:polynomial-thinning"
+      ],
+      "status": "to-prove",
+      "justification": "The support statement records why no separate pointwise density-positivity assumption is needed for causal interpretation of the clamp.",
+      "gap": "This is the standard modified-policy support requirement specialized to a boundary-thinned continuous treatment law, not a novel statistical claim.",
+      "consumer": "The proposition discharges the positivity premise in the causal bridge while keeping causal assumptions outside the minimax model."
+    },
+    {
+      "id": "prop:causal-bridge",
+      "kind": "proposition",
+      "statement": "Let \\(P^{\\mathrm F}\\in\\mathcal M^{\\mathrm F}\\), let \\(P\\in\\mathcal M\\) be its observed \\((X,A,Y)\\)-margin, and interpret \\(\\mathcal U\\), \\(U\\), \\(g_x\\), and \\(\\{Y(a):a\\in[0,1]\\}\\) as the carrier components packaged by this member.  Define \\(m_x^{\\mathrm F}(a)=\\mathbb E_{P^{\\mathrm F}}[g_x(a,U)\\mid X=x]\\).  Then, for every \\(x\\in\\mathcal X\\) and Borel \\(B\\subseteq[0,1]\\), \\(\\mathbb E_{P^{\\mathrm F}}[Y\\mathbf 1\\{A\\in B\\}\\mid X=x]=\\int_Bm_x^{\\mathrm F}(a)\\pi_x(a)\\,\\mathrm da\\), and \\(m_x^{\\mathrm F}(a)=\\mu_x^P(a)\\) for every \\(a\\in[0,\\bar\\delta]\\).  Consequently, for every \\(0\\leq\\delta\\leq\\bar\\delta\\), \\(d_\\delta(A)\\) belongs to the support of the conditional natural-treatment law almost surely, \\(Y\\{d_\\delta(A)\\}=Y\\mathbf 1\\{A>\\delta\\}+Y(\\delta)\\mathbf 1\\{A\\leq\\delta\\}\\) almost surely, and \\(\\psi_\\delta(P^{\\mathrm F})=\\mathbb E_P[Y\\mathbf 1\\{A>\\delta\\}]+\\sum_{x\\in\\mathcal X}p_xq_x(\\delta)\\mu_x^P(\\delta)=\\theta_\\delta(P)\\).",
+      "free_symbols": [
+        "P_full",
+        "P",
+        "mathcal_M_F",
+        "mathcal_M",
+        "mathcal_U",
+        "U",
+        "g_x",
+        "Y_a",
+        "X",
+        "A",
+        "Y",
+        "mathcal_X",
+        "m_x_F",
+        "pi_x",
+        "mu_x_P",
+        "d_delta",
+        "delta_bar",
+        "psi_delta",
+        "theta_delta",
+        "p_x",
+        "q_x"
+      ],
+      "depends_on": [
+        "def:full-data-model-class",
+        "def:model-class",
+        "def:clamp-policy",
+        "prop:pushforward-setup",
+        "prop:policy-support",
+        "ass:conditional-density-law",
+        "ass:consistency",
+        "ass:exchangeability",
+        "ass:full-data-response-continuity",
+        "ass:stratum-mass",
+        "ass:polynomial-thinning",
+        "ass:holder-regression"
+      ],
+      "status": "to-prove",
+      "justification": "This proposition derives the exact deterministic clamp-policy equality fiberwise for the carrier packaged by each full-data law, transporting the observed identifying functional to the causal target without assuming pointwise mean/version equality.",
+      "gap": "Díaz et al. supply the LMTP structural template and support logic, but not the fiberwise structural-mean continuity on \\([0,\\bar\\delta]\\) used here to extend almost-everywhere regression equality pointwise over the threshold range; the carrier is quantified internally to each law.",
+      "consumer": "The causal-frontier lift uses this fiberwise bridge for the exact unsmoothed causal clamp mean; the result targets the same lower-threshold policy specification as the official \\(\\texttt{lmtp}\\) workflow and motivates a future atom-aware implementation."
+    },
+    {
+      "id": "lem:bandwidth-phases",
+      "kind": "lemma",
+      "statement": "Uniformly over deterministic \\(\\delta_n\\in[0,\\bar\\delta]\\), the bandwidth satisfies \\(n h_n^{2\\beta+1}(\\delta_n+h_n)^\\kappa\\asymp1\\) and the effective local count satisfies \\(n h_n(\\delta_n+h_n)^\\kappa\\asymp h_n^{-2\\beta}\\). If \\(\\delta_n/\\delta_{\\mathrm{edge},n}\\to\\infty\\), then \\(h_n\\asymp(n\\delta_n^\\kappa)^{-1/(2\\beta+1)}\\); if \\(\\delta_n/\\delta_{\\mathrm{edge},n}=O(1)\\), then \\(h_n\\asymp n^{-1/(2\\beta+\\kappa+1)}\\).",
+      "free_symbols": [
+        "delta_n",
+        "delta_bar",
+        "h_n",
+        "n",
+        "beta",
+        "kappa",
+        "delta_edge"
+      ],
+      "depends_on": [
+        "def:bandwidth",
+        "ass:polynomial-thinning"
+      ],
+      "status": "to-prove",
+      "justification": "This balance converts polynomial thinning into the information scale that drives both estimation and inference.",
+      "gap": "Gaiffas derives the balance at a fixed degenerate point; the clamp requires a moving point \\(\\delta_n\\) and an atom multiplier that changes the relevant phase boundary.",
+      "consumer": "The local-count identity is the normalization needed by the total-Gram probability bound and by bandwidth selection in the threshold-policy estimator."
+    },
+    {
+      "id": "lem:total-gram",
+      "kind": "lemma",
+      "statement": "The constant \\(\\lambda_\\star\\) is strictly positive. There are constants \\(C,c>0\\), depending only on the declared model constants, such that uniformly over \\(P\\in\\mathcal M\\), \\(x\\in\\mathcal X\\), and deterministic \\(\\delta_n\\), \\(P(\\Omega_x^c)\\leq C\\exp\\{-c n h_n(\\delta_n+h_n)^\\kappa\\}\\). On \\(\\Omega_x\\), the exact intercept weights reproduce polynomials through degree \\(\\ell\\) and obey \\(\\sum_{i\\in I_2}|w_{ix}|\\leq C\\) and \\(\\sum_{i\\in I_2}w_{ix}^2\\leq C/N_x\\). No continuity or differentiability of \\(\\pi_x\\) beyond two-sided polynomial comparability is required.",
+      "free_symbols": [
+        "lambda_star",
+        "P",
+        "mathcal_M",
+        "mathcal_X",
+        "delta_n",
+        "Omega_x",
+        "n",
+        "h_n",
+        "kappa",
+        "ell",
+        "I_2",
+        "w_ix",
+        "N_x",
+        "pi_x"
+      ],
+      "depends_on": [
+        "def:model-class",
+        "def:bandwidth",
+        "ass:iid-sampling",
+        "ass:stratum-mass",
+        "ass:polynomial-thinning",
+        "lem:bandwidth-phases"
+      ],
+      "status": "to-prove",
+      "justification": "This is the early-kill lemma: it makes the singular-Gram fallback negligible at the atom-weighted target scale under measurable density envelopes alone.",
+      "gap": "Gaiffas stabilizes local polynomial Gram matrices under an exact regularly varying design; the present claim is uniform over every measurable density between two polynomial envelopes and controls the exact \\(\\ell_1\\)- and \\(\\ell_2\\)-weight norms.",
+      "consumer": "The lemma is the sole random-design input needed for the finite-sample honest interval and prevents an undocumented propensity-smoothness condition from entering the official workflow."
+    },
+    {
+      "id": "thm:minimax-risk",
+      "kind": "theorem",
+      "statement": "There exist constants \\(0<c<C<\\infty\\), depending only on the declared model constants, such that for every deterministic threshold sequence and all sufficiently large \\(n\\), \\(c r_n\\leq R_n^\\star\\leq\\sup_{P\\in\\mathcal M}\\mathbb E_P|\\widehat\\theta_n-\\theta_{\\delta_n}(P)|\\leq C r_n\\). The lower bound is the maximum, and therefore the same order as the sum, of a same-class global Bernoulli shift yielding \\(n^{-1/2}\\) separation and a same-class localized Bernoulli regression perturbation of width \\(h_n\\) yielding \\(\\delta_n^{\\kappa+1}h_n^\\beta\\) separation with bounded product divergence.",
+      "free_symbols": [
+        "n",
+        "r_n",
+        "R_n_star",
+        "P",
+        "mathcal_M",
+        "theta_hat_n",
+        "theta_delta",
+        "delta_n",
+        "h_n",
+        "kappa",
+        "beta"
+      ],
+      "depends_on": [
+        "def:model-class",
+        "def:bandwidth",
+        "def:frontier",
+        "def:total-gram-estimator",
+        "prop:pushforward-setup",
+        "lem:bandwidth-phases",
+        "lem:total-gram"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem gives the exact order frontier for the unsmoothed clamp target, including both its regular and point-evaluation components.",
+      "gap": "Gaiffas establishes an unweighted fixed-point regression rate under a degenerate random design, while Díaz et al. identify the threshold-LMTP mean without a minimax rate; McCoy et al. analyze a stochastic-shift effect-modifier target under high-probability regularity. None gives the matched risk frontier for the observed retained-natural-course mean plus an atom-weighted moving point evaluation.",
+      "consumer": "An analyst using the lower-threshold \\(\\texttt{lmtp}\\) policy obtains the first threshold-sequence-specific accuracy benchmark without replacing the policy by a stochastic region average."
+    },
+    {
+      "id": "thm:honest-length",
+      "kind": "theorem",
+      "statement": "For every \\(n\\) large enough, \\(\\inf_{P\\in\\mathcal M}P\\{\\theta_{\\delta_n}(P)\\in\\mathrm{CI}_n\\}\\geq1-\\alpha\\), and \\(\\sup_{P\\in\\mathcal M}\\mathbb E_P[\\operatorname{len}(\\mathrm{CI}_n)]\\leq C r_n\\). Conversely, every confidence interval with coverage at least \\(1-\\alpha\\) uniformly over \\(\\mathcal M\\) satisfies \\(L_n^\\star\\geq c r_n\\). The interval adapts the bias-aware construction of Armstrong and Kolesár to the distinct polynomially thinned random-design clamp functional and remains honest on singular-Gram realizations through the atom fallback.",
+      "free_symbols": [
+        "n",
+        "P",
+        "mathcal_M",
+        "theta_delta",
+        "delta_n",
+        "CI_n",
+        "alpha",
+        "r_n",
+        "L_n_star"
+      ],
+      "depends_on": [
+        "def:model-class",
+        "def:frontier",
+        "def:total-gram-estimator",
+        "def:honest-interval",
+        "prop:pushforward-setup",
+        "lem:total-gram",
+        "thm:minimax-risk"
+      ],
+      "status": "to-prove",
+      "justification": "Risk optimality alone does not justify uncertainty quantification for a nonregular target; the confidence-length statement makes honesty a theorem-level deliverable.",
+      "gap": "Armstrong and Kolesár calibrate smoothing bias for nonparametric regression under fixed-design formulations, Gaiffas does not construct honest intervals, and McCoy et al.'s high-probability regularity theory does not give uniformly honest expected length. None integrates a random singular-Gram event at a shrinking atom-mass scale.",
+      "consumer": "The interval replaces the invalid Wald output that a continuous threshold policy can otherwise produce in the \\(\\texttt{lmtp}\\) workflow."
+    },
+    {
+      "id": "thm:phase-diagram",
+      "kind": "theorem",
+      "statement": "The phase boundary satisfies \\(\\delta_{\\mathrm{crit},n}/\\delta_{\\mathrm{edge},n}\\to\\infty\\). If \\(\\delta_n/\\delta_{\\mathrm{crit},n}\\to0\\), then \\(r_n\\asymp n^{-1/2}\\) (regular regime). If \\(\\delta_n/\\delta_{\\mathrm{crit},n}\\to c\\in(0,\\infty)\\), both summands of \\(r_n\\) have order \\(n^{-1/2}\\) (critical regime). If \\(\\delta_n/\\delta_{\\mathrm{crit},n}\\to\\infty\\) and \\(\\delta_n\\to0\\), then \\(r_n\\asymp\\delta_n^{\\kappa+1}(n\\delta_n^\\kappa)^{-\\beta/(2\\beta+1)}\\) (atom-dominated regime). If \\(\\delta_n\\to\\delta_0\\in(0,\\bar\\delta]\\), then \\(r_n\\asymp n^{-\\beta/(2\\beta+1)}\\) (fixed-threshold regime). At \\(\\delta_n=0\\), \\(q_x(0)=0\\), \\(\\theta_0(P)=\\mathbb E_P[Y]\\), and the construction reduces to bounded-mean inference at rate \\(n^{-1/2}\\).",
+      "free_symbols": [
+        "delta_crit",
+        "delta_edge",
+        "delta_n",
+        "r_n",
+        "n",
+        "kappa",
+        "beta",
+        "delta_bar",
+        "q_x",
+        "theta_delta",
+        "P",
+        "Y"
+      ],
+      "depends_on": [
+        "def:frontier",
+        "lem:bandwidth-phases",
+        "thm:minimax-risk",
+        "thm:honest-length"
+      ],
+      "status": "to-prove",
+      "justification": "The phase diagram states when the published root-\\(n\\) paradigm is valid, critical, or false for the exact clamp.",
+      "gap": "Existing LMTP theory separates pathwise differentiable policies from excluded threshold policies but supplies no quantitative boundary between regular and atom-dominated sequences.",
+      "consumer": "The four regimes tell an applied user whether a threshold choice supports ordinary precision, requires the bias-aware atom interval, or behaves like a fixed nonparametric point target."
+    },
+    {
+      "id": "prop:one-cell-calibration",
+      "kind": "proposition",
+      "statement": "In the one-stratum model with \\(\\beta=\\kappa=1\\) and \\(\\pi(a)=2a\\), whenever \\(\\delta_n\\gg n^{-1/4}\\), \\(h_n\\asymp(n\\delta_n)^{-1/3}\\), the localized Bernoulli alternatives have product Kullback--Leibler divergence of order \\(n\\delta_n h_n^3\\), and their target separation is of order \\(\\delta_n^2h_n\\). The regular-to-atom transition is exactly \\(\\delta_n\\asymp n^{-1/10}\\).",
+      "free_symbols": [
+        "beta",
+        "kappa",
+        "pi_x",
+        "delta_n",
+        "n",
+        "h_n"
+      ],
+      "depends_on": [
+        "lem:bandwidth-phases",
+        "thm:minimax-risk",
+        "thm:phase-diagram"
+      ],
+      "status": "to-prove",
+      "justification": "This explicit calibration is the requested early-kill test and checks the general exponents against a transparent design.",
+      "gap": "No cited LMTP or degenerate-design result computes this atom-attenuated transition for the deterministic clamp mean.",
+      "consumer": "The calibration supplies a simulation benchmark and a unit test for an implementation of the proposed interval."
+    },
+    {
+      "id": "oeq:sharp-constant",
+      "kind": "openendedquestion",
+      "statement": "With \\(t=t_\\alpha=\\sqrt{\\log(12J/\\alpha)/2}\\) in \\(\\operatorname{exactModulusHandle}\\), does a conditional-modulus interval whose realized radius is \\(\\sup_{x\\in\\mathcal X}\\operatorname{realizedExactModulus}_{z,x}(t_\\alpha)\\) attain the sharp asymptotic minimax constant for \\(L_n^\\star/r_n\\) uniformly over all finite or infinite limits of \\(\\delta_n/\\delta_{\\mathrm{crit},n}\\), while retaining \\(P\\in\\mathcal M\\), bounded \\(Y\\), and the measurable envelope \\(c_-a^\\kappa\\leq\\pi_x(a)\\leq c_+a^\\kappa\\)?  Equivalently, can one prove that the candidate interval is uniformly honest despite the convention \\(\\operatorname{realizedExactModulus}_{z,x}(t_\\alpha)=0\\) when the affine feasible set is empty, and that \\(2\\operatorname{worstExactModulus}_n(t_\\alpha)\\)---the candidate untruncated expected full length---matches the minimax expected full interval length and a least-favorable mixed regular-plus-local experiment in the regular, critical, atom-dominated, and fixed-threshold regimes?  This question does not assert that the zero-totalized candidate is honest, nondegenerate, or optimal.",
+      "free_symbols": [
+        "exactModulusHandle",
+        "realizedExactModulus",
+        "worstExactModulus",
+        "t_alpha",
+        "L_n_star",
+        "r_n",
+        "delta_n",
+        "delta_crit",
+        "P",
+        "mathcal_M",
+        "mathcal_X",
+        "pi_x",
+        "kappa",
+        "c_minus",
+        "c_plus",
+        "J",
+        "alpha",
+        "Y"
+      ],
+      "depends_on": [
+        "def:exact-modulus-handle",
+        "thm:minimax-risk",
+        "thm:honest-length",
+        "thm:phase-diagram"
+      ],
+      "status": "to-prove",
+      "justification": "The explicit realized-design modulus is only a candidate radius; deciding its coverage and exact constant would complete the order-optimal expected-length theory.",
+      "gap": "Fixed-design convex-modulus theory does not settle the moving random design, the mixed regular-plus-local experiment, or the zero-totalized singular-design behavior under a merely measurable polynomial density envelope.",
+      "consumer": "A positive resolution would determine the shortest defensible full-length interval and its calibrated multiplier for the official threshold-policy workflow; a negative resolution would rule out this zero-totalized candidate."
+    }
+  ],
+  "sampling_model": {
+    "design": "Independent random design with fixed finite \\(X\\)-strata and continuous \\(A\\).",
+    "units": "\\(O_i=(X_i,A_i,Y_i)\\), \\(i=1,\\ldots,n\\), sampled independently from \\(P\\in\\mathcal M\\).",
+    "treatment": "The observed-data target is \\(\\theta_{\\delta_n}(P)\\) for the exact deterministic map \\(d_{\\delta_n}(a)=\\max\\{a,\\delta_n\\}\\); it is neither smoothed nor replaced.",
+    "overlap": "Within every stratum, \\(P(A\\in B\\mid X=x)=\\int_B\\pi_x(a)\\,\\mathrm da\\) for every Borel \\(B\\subseteq[0,1]\\), and the explicit novel treatment-assignment class imposes the global measurable envelope \\(c_-a^\\kappa\\leq\\pi_x(a)\\leq c_+a^\\kappa\\), allowing polynomial boundary thinning and bounded measurable departures from an exact power density.",
+    "nuisance_estimation": "Finite-stratum empirical atom masses and a sample-split local polynomial of order \\(\\ell\\); no propensity estimator or propensity smoothness condition is imposed."
+  },
+  "estimand_functional": "On the fixed-Hölder classes, \\(\\psi_{\\delta_n}(P^{\\mathrm F})=\\theta_{\\delta_n}(P)=\\mathbb E_P[Y\\mathbf 1\\{A>\\delta_n\\}]+\\sum_{x\\in\\mathcal X}p_xq_x(\\delta_n)\\mu_x^P(\\delta_n)\\), the observed and causal criteria are exactly equal for every \\(n\\), and their common order is \\(r_n=n^{-1/2}+\\delta_n^{\\kappa+1}h_n^\\beta\\).  On the continuity-only classes, \\(\\psi_{\\delta_n}(P^{\\mathrm F})=\\theta_{\\delta_n,\\mathrm{cont}}(P)=\\mathbb E_P[Y\\mathbf 1\\{A>\\delta_n\\}]+\\sum_{x\\in\\mathcal X}p_xq_x(\\delta_n)\\mu_{x,\\mathrm{cont}}^P(\\delta_n)\\), the corresponding observed and causal criteria are exactly equal for every \\(n\\), and their common order is \\(s_n=n^{-1/2}+\\delta_n^{\\kappa+1}\\).",
+  "target_estimand": "The causal estimand is the exact unsmoothed clamp mean \\(\\psi_{\\delta_n}(P^{\\mathrm F})=\\mathbb E_{P^{\\mathrm F}}[Y\\{d_{\\delta_n}(A)\\}]\\).  It equals \\(\\theta_{\\delta_n}(P)\\) on the fixed-Hölder class by \\(\\texttt{prop:causal-bridge}\\), and equals \\(\\theta_{\\delta_n,\\mathrm{cont}}(P)\\) on the continuity-only class by \\(\\texttt{prop:continuity-causal-bridge}\\), where in either case \\(P\\) is the observed margin.",
+  "bibliography": [
+    {
+      "key": "DiazWilliamsHoffmanSchenck2023",
+      "citation": "Iván Díaz, Nicholas T. Williams, Katherine L. Hoffman, and Edward J. Schenck. Non-parametric causal effects based on longitudinal modified treatment policies. \\(\\textit{Journal of the American Statistical Association}\\), 118:846--857, 2023. arXiv:2006.01366."
+    },
+    {
+      "key": "HoffmanSalazarBarretoWilliamsRudolphDiaz2024",
+      "citation": "Katherine L. Hoffman, Diego Salazar-Barreto, Nicholas T. Williams, Kara E. Rudolph, and Ivan Díaz. Studying Continuous, Time-varying, and/or Complex Exposures Using Longitudinal Modified Treatment Policies. \\(\\textit{Epidemiology}\\), 35(5):667--675, 2024. arXiv:2304.09460."
+    },
+    {
+      "key": "WilliamsDiaz2023lmtp",
+      "citation": "Nicholas T. Williams and Iván Díaz. \\(\\texttt{lmtp}\\): An R package for estimating the causal effects of modified treatment policies. \\(\\textit{Observational Studies}\\), 9:103--122, 2023."
+    },
+    {
+      "key": "Gaiffas2005DegenerateDesign",
+      "citation": "Stéphane Gaïffas. Convergence rates for pointwise curve estimation with a degenerate design. \\(\\textit{Mathematical Methods of Statistics}\\), 14:1--27, 2005. arXiv:math/0410354."
+    },
+    {
+      "key": "Gaiffas2007Inhomogeneous",
+      "citation": "Stéphane Gaïffas. On pointwise adaptive curve estimation with a degenerate random design. \\(\\textit{ESAIM: Probability and Statistics}\\), 11:344--364, 2007. arXiv:math/0503715."
+    },
+    {
+      "key": "ArmstrongKolesar2020",
+      "citation": "Timothy B. Armstrong and Michal Kolesár. Simple and honest confidence intervals in nonparametric regression. \\(\\textit{Quantitative Economics}\\), 11:1--39, 2020. arXiv:1606.01200."
+    },
+    {
+      "key": "ArmstrongKolesar2018OptimalInference",
+      "citation": "Timothy B. Armstrong and Michal Kolesár. Optimal inference in a class of regression models. \\(\\textit{Econometrica}\\), 86:655--683, 2018. arXiv:1511.06028."
+    },
+    {
+      "key": "KennedyMaMcHughSmall2017",
+      "citation": "Edward H. Kennedy, Zongming Ma, Matthew D. McHugh, and Dylan S. Small. Non-parametric methods for doubly robust estimation of continuous treatment effects. \\(\\textit{Journal of the Royal Statistical Society: Series B}\\), 79:1229--1245, 2017. arXiv:1507.00747."
+    },
+    {
+      "key": "vanderLaanZhangGilbert2023",
+      "citation": "Lars van der Laan, Wenbo Zhang, and Peter B. Gilbert. Efficient nonparametric estimation of the covariate-adjusted threshold-response function, a support-restricted stochastic intervention. \\(\\textit{Biometrics}\\), 79:1868--1881, 2023. arXiv:2107.11459."
+    },
+    {
+      "key": "ShahuXiaWeiMalinsky2026",
+      "citation": "Anja Shahu, Weijie Xia, Ying Wei, and Daniel Malinsky. Estimating effects of longitudinal modified treatment policies on rates of change in health outcomes. \\(\\textit{Statistics in Medicine}\\), 2026. arXiv:2508.11131."
+    },
+    {
+      "key": "BonviniKennedy2026",
+      "citation": "Matteo Bonvini and Edward H. Kennedy. Fast convergence rates for dose-response estimation. \\(\\textit{Electronic Journal of Statistics}\\), 20(2):3839--3907, 2026. doi:10.1214/26-EJS2573."
+    },
+    {
+      "key": "McCoyZhangHubbardvanderLaanSchuler2026",
+      "citation": "David McCoy, Wenxin Zhang, Alan Hubbard, Mark van der Laan, and Alejandro Schuler. Data-adaptive identification of effect modifiers through stochastic shift interventions and cross-validated targeted learning. \\(\\textit{Biostatistics}\\), 27:kxag020, 2026."
+    },
+    {
+      "key": "Crippa2024ThresholdRegret",
+      "citation": "Federico Crippa. Regret analysis in threshold policy design. Public preprint, 2024. arXiv:2404.11767."
+    },
+    {
+      "key": "Kallenberg2002Foundations",
+      "citation": "Kallenberg, O. (2002). Foundations of Modern Probability, second edition. Springer. Theorem 6.3. doi:10.1007/978-1-4757-4015-8."
+    },
+    {
+      "key": "Hoeffding1963",
+      "citation": "Wassily Hoeffding. Probability inequalities for sums of bounded random variables. \\(\\textit{Journal of the American Statistical Association}\\), 58(301):13--30, 1963. doi:10.1080/01621459.1963.10500830."
+    },
+    {
+      "key": "Low1997NonparametricConfidenceIntervals",
+      "citation": "Mark G. Low. On nonparametric confidence intervals. \\(\\textit{The Annals of Statistics}\\), 25(6):2547--2554, 1997. doi:10.1214/aos/1030741084."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "DiazWilliamsHoffmanSchenck2023",
+      "comparator_claim": "Estimand: the threshold-LMTP mean; design class: the LMTP causal model with piecewise-smooth invertibility required only for continuous-exposure efficiency theory; moving-threshold status: no deterministic triangular-array frontier; delivered result: identification, together with non-pathwise differentiability of the continuous threshold example.",
+      "matched_by": "Díaz et al. supply the structural and identification template. The fixed-Hölder result adds the \\(r_n\\) observed-data frontier. The paper-defined full-data class, causal bridge, and onto observed-margin map then transport that frontier exactly; \\(\\texttt{thm:causal-frontier-lift}\\) is this corollary, not an independently novel causal frontier. The continuity-only result adds the matched \\(s_n\\) frontier on a separate author-defined one-time specialization with finite strata, author-imposed positive stratum mass, bounded outcomes, polynomial thinning, and qualitative mean continuity. It is not labeled the published Díaz class. Its converse transfers to any broader compatible model containing this subclass, but its matched upper bound does not transfer to arbitrary longitudinal histories or treatment laws.",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "McCoyZhangHubbardvanderLaanSchuler2026",
+      "comparator_claim": "Estimand: a stochastic-shift effect-modifier target; design class: clipping is represented by a Radon--Nikodym comparison relative to an appropriate dominating measure, and the classification procedure targets the clipped pushforward law; moving-threshold status: no deterministic clamp sequence; delivered result: high-probability regularity and targeted-learning guarantees rather than minimax risk or uniformly honest expected length.",
+      "matched_by": "The fixed-Hölder and continuity-only observed-data frontier theorems record the proposal row: the exact deterministic clamp functionals; the author-defined polynomially thinned finite-stratum classes; every deterministic threshold sequence; and matched minimax risk plus uniformly honest expected length. The causal statements follow by the explicit bridge and onto full-data lift. Neither proposed estimator is attributed to current software.",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Low1997NonparametricConfidenceIntervals",
+      "comparator_claim": "Low proves a general lower-bound inequality for the expected length of a confidence interval that has prescribed coverage over a family of distributions and, as a corollary, shows that adaptation across derivative-smoothness density classes cannot improve the rate of interval length over minimax fixed-length intervals while retaining uniform coverage.",
+      "matched_by": "Low is the closest generic antecedent for the honest-inference obstruction when no common smoothness scale is available. The continuity-only theorem does not claim that generic obstruction as new: it derives for the exact clamp functional the explicit matched risk and honest-length rate \\(n^{-1/2}+\\delta_n^{\\kappa+1}\\), the elbow \\(\\delta_n\\asymp n^{-1/[2(\\kappa+1)]}\\), and fixed-positive-threshold impossibility caused by the threshold-generated atom mass.",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ArmstrongKolesar2020",
+      "comparator_claim": "Estimand: a nonparametric regression functional such as a point value; design class: fixed-design local-polynomial formulations; moving-threshold status: no atom-weighted deterministic threshold sequence; delivered result: bias-aware honest confidence intervals with near-minimax expected length.",
+      "matched_by": "\\(\\texttt{thm:honest-length}\\) supplies the novel observed-data result for the exact clamp functional under polynomially thinned random design with singular-Gram fallback and every deterministic threshold sequence. \\(\\texttt{thm:causal-frontier-lift}\\) transports that result to the paper-defined onto causal class; it is not positioned as an independent frontier beyond the observed theorem.",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Gaiffas2005DegenerateDesign",
+      "comparator_claim": "Estimand: an unweighted regression value at one fixed point; design class: a regularly varying degenerate random design; moving-threshold status: fixed point only; delivered result: the pointwise minimax regression rate determined by a bias-information fixed point.",
+      "matched_by": "The fixed-Hölder observed-data frontier combines the degenerate-design point rate with the clamp atom weight; the continuity-only theorem shows that removing every common modulus leaves the full atom mass as the irreducible term, with its exact moving-threshold scaling derived here.",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Gaiffas2007Inhomogeneous",
+      "comparator_claim": "A conditioned-on-design stabilized local polynomial adapts to unknown smoothness and design degeneration with an unavoidable logarithmic payment.",
+      "matched_by": "\\(\\texttt{lem:total-gram}\\)",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "vanderLaanZhangGilbert2023",
+      "comparator_claim": "A support-restricted stochastic threshold-response curve is root-\\(n\\) estimable and admits simultaneous efficient bands.",
+      "matched_by": "unmatched",
+      "match_kind": "dropped_from_abstract"
+    },
+    {
+      "comparator_bibkey": "KennedyMaMcHughSmall2017",
+      "comparator_claim": "A doubly robust pseudo-outcome followed by local smoothing estimates the continuous-treatment dose-response at a point.",
+      "matched_by": "\\(\\texttt{thm:minimax-risk}\\)",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ArmstrongKolesar2018OptimalInference",
+      "comparator_claim": "Estimand: a linear regression functional; design class: convex centrosymmetric fixed-design regression models; moving-threshold status: absent; delivered result: optimal honest inference through a convex modulus.",
+      "matched_by": "\\(\\texttt{oeq:sharp-constant}\\)",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BonviniKennedy2026",
+      "comparator_claim": "Estimand: a continuous-treatment dose-response value; design class: smooth positive conditional treatment densities; moving-threshold status: no deterministic clamp atom; delivered result: fast point-estimation rates.",
+      "matched_by": "\\(\\texttt{thm:minimax-risk}\\)",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ShahuXiaWeiMalinsky2026",
+      "comparator_claim": "Estimand: longitudinal LMTP effects on rates of change; design class: continuous policies satisfying piecewise smooth invertibility; moving-threshold status: threshold maps excluded; delivered result: simultaneous regular inference.",
+      "matched_by": "\\(\\texttt{thm:phase-diagram}\\)",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "The first novel result is the matched minimax-risk and uniformly honest expected-length frontier \\(n^{-1/2}+\\delta_n^{\\kappa+1}h_n^\\beta\\) for the observed-data target \\(\\theta_{\\delta_n}(P)=\\mathbb E_P[Y\\mathbf 1\\{A>\\delta_n\\}]+\\sum_x p_xq_x(\\delta_n)\\mu_x^P(\\delta_n)\\), where \\(n h_n^{2\\beta+1}(\\delta_n+h_n)^\\kappa\\asymp1\\). On a fixed finite-stratum Hölder model with the explicit novel treatment-assignment envelope \\(c_-a^\\kappa\\leq\\pi_x(a)\\leq c_+a^\\kappa\\), a total-Gram-stabilized local polynomial, an atom-specific singular-design fallback, and same-class global-shift and localized-Bernoulli lower bounds yield the regular, critical, atom-dominated, and fixed-threshold regimes. These statistical headline theorems are observed-data-only. The conditional pushforward is a cited specialization of Díaz et al.; consistent with McCoy et al., clipping mass is represented relative to an appropriate mixed dominating measure. Equality of \\(\\theta_{\\delta_n}(P)\\) to the exact deterministic clamp-policy mean consumed by the official \\(\\texttt{lmtp}\\) workflow is only an optional full-data interpretation, conditional on standard causal premises and an extra author-imposed, pointwise, non-testable equality between potential-outcome means and the declared continuous observed-regression version. That equality is not implied by consistency, exchangeability, policy support, observed-regression Hölder smoothness, or Díaz et al., and is not a novelty contribution.",
+  "project_justification": {
+    "gap": "Published LMTP identification covers the deterministic clamp, but its continuous-exposure efficiency theory does not provide rates for that non-pathwise-differentiable target. McCoy et al. correctly accommodate clipping mass through an appropriate dominating measure and a classification estimator of the pushforward law, but their stochastic-shift effect-modifier target and high-probability regularity theory do not provide a deterministic moving-clamp minimax or uniformly honest expected-length frontier. Degenerate-design regression theory treats an unweighted fixed point, and bias-aware confidence-interval theory does not integrate this atom-weighted random-design problem.",
+    "niche": "The unoccupied object is the observed functional \\(\\theta_{\\delta_n}(P)\\) induced by the exact unsmoothed clamp under polynomial generalized-propensity thinning, with a threshold that may follow any deterministic sequence and with inference honest across the transition where the shrinking atom becomes first-order.",
+    "fill": "The known mixed-measure representation fixes the observed functional \\(\\theta_\\delta(P)\\); the novel global measurable polynomial envelope defines a treatment-assignment class containing beta-type boundary-thinning designs and bounded measurable tilts; the information-balance bandwidth and total-Gram lemma give an estimator on that class; two same-class experiments certify the minimax risk and confidence-length order; and the phase diagram converts those bounds into policy-facing regimes."
+  },
+  "related_work": "Díaz, Williams, Hoffman, and Schenck identify threshold-LMTP means by sequential regression and show that the continuous threshold example is not pathwise differentiable. Their result supplies the identification template and standard causal premises, but it does not supply pointwise equality at every dose between causal means and a selected continuous observed-regression version. The pushforward formula is a cited specialization, while the optional full-data bridge is conditional on that extra author-imposed, pointwise, non-testable compatibility restriction; neither setup statement nor the restriction is a novelty contribution. The statistical target and headline frontier theorems are observed-data-only, and Díaz et al. do not derive a risk or confidence-length frontier for deterministic threshold sequences. Hoffman et al. repeat the piecewise-invertibility boundary in their applied tutorial, and Williams and Díaz document the \\(\\texttt{lmtp}\\) user-policy workflow that consumes the proposed result. McCoy et al.'s MTP density ratio is a Radon--Nikodym derivative with respect to an appropriate dominating measure, expressly allowing clipping-induced boundary mass, and their classification estimator targets the clipped pushforward law directly. Their object is a stochastic-shift effect-modifier target, and their high-probability regularity theory does not deliver the minimax risk or uniformly honest expected-length frontier for the deterministic clamp with an arbitrary moving threshold. Gaiffas derives the fixed-point regression rate and stabilized local polynomials under regularly varying degenerate random design. The global measurable envelope \\(c_-a^\\kappa\\leq\\pi_x(a)\\leq c_+a^\\kappa\\) used here is an explicit novel treatment-assignment class, not a consequence attributed to regular variation; together with the exact conditional-density identity for every Borel set, it permits bounded measurable deviations from exact power behavior while retaining controlled boundary thinning. Armstrong and Kolesár construct bias-aware honest intervals for nonparametric regression under fixed-design formulations; the observed mixed functional \\(\\theta_{\\delta_n}(P)\\), vanishing random design, moving point, and singular-Gram expected-length integration are absent. Kennedy et al. motivate two-stage causal local regression, while Bonvini and Kennedy study dose-response rates under smooth positive conditional densities rather than polynomial thinning. Van der Laan, Zhang, and Gilbert obtain root-\\(n\\) bands for a support-restricted stochastic region-average threshold response, a different estimand not used as a comparator target. Shahu et al. extend simultaneous LMTP inference under piecewise invertibility rather than the continuous threshold map.",
+  "technical_internal_limitation": "The expected-length theorem requires the Hölder radius and thinning exponent to be declared. Adaptation to unknown \\(\\beta\\) and \\(\\kappa\\) is a separate ordered-modulus problem and may require a logarithmic payment. The exact-constant question also remains open; the primary claims concern sharp order uniformly over deterministic threshold sequences.",
+  "honest_scope": "The proposal fixes a finite number of strata, a bounded outcome, known smoothness radius, and known thinning exponent. Its statistical minimax and honest-length claims concern only the observed-data model and require no causal premise. The clamp-policy equality is an optional interpretation requiring a jointly measurable potential-outcome process, \\(Y=Y(A)\\), conditional exchangeability, policy support, and the extra author-imposed pointwise equality of the causal mean with \\(\\mu_x^P(a)\\) for every treatment value. This equality is non-testable, is credible only when the scientific model posits a well-defined intervention and a smooth structural conditional-mean response at every dose, and is not implied by consistency, exchangeability, support, observed-regression Hölder smoothness, continuity alone, or Díaz et al. It is not a novelty contribution. The proposal proves no longitudinal recursion, no simultaneous band over a continuum of thresholds, and no claim about the validity or invalidity of McCoy et al.'s dominating-measure density-ratio estimator for their stochastic-shift effect-modifier target. The reduction \\(\\delta_n=0\\) gives the ordinary bounded sample-mean problem, while any fixed positive threshold reduces the irregular component to the Gaiffas pointwise exponent multiplied by a nonvanishing atom mass."
+}

@@ -60,7 +60,13 @@ variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 -- without using them syntactically.
 set_option linter.unusedFintypeInType false
 
-/-- Observed-set form of `SCM.marginalizeOn`, used only to expose that the
+/-- For [a population of variables](hyp:N) with [finite value spaces](hyp:Ω),
+[an observed-node set](hyp:O), [a node subset to be marginalized](hyp:W) [contained
+in that observed set](hyp:hW), and [a nonnegative mass function on observed assignments](hyp:q),
+[the observed-set marginalization functional](goal) assigns to each observed assignment
+the sum of that mass function over all replacements on the specified subset.
+
+Observed-set form of `SCM.marginalizeOn`, used only to expose that the
 recursive mass functional is independent of the rest of the SCM record. -/
 noncomputable def marginalizeOnObserved [∀ n, Fintype (Ω n)]
     (O W : Finset (SWIGNode N)) (hW : W ⊆ O)
@@ -68,7 +74,14 @@ noncomputable def marginalizeOnObserved [∀ n, Fintype (Ω n)]
     ValuesOn O (swigΩ Ω) → ENNReal :=
   fun x => ∑ y : ValuesOn W (swigΩ Ω), q (overrideOn x y)
 
-/-- Observed-set form of `SCM.extractDistrict`. -/
+/-- For [a population of variables](hyp:N) with [finite value spaces](hyp:Ω),
+[an observed-node set](hyp:O), [a SWIG graph](hyp:G'), [an ancestral node set](hyp:A),
+[a target district](hyp:C') [contained in the observed set](hyp:hA), and [a nonnegative
+mass function on observed assignments](hyp:q), [the observed-set district-extraction
+functional](goal) is the product of the successive marginal-ratio factors indexed by
+the graph order of nodes in the target district.
+
+Observed-set form of `SCM.extractDistrict`. -/
 noncomputable def extractDistrictObserved [∀ n, Fintype (Ω n)]
     (O : Finset (SWIGNode N)) (G' : SWIGGraph N)
     (A C' : Finset (SWIGNode N)) (hA : A ⊆ O)
@@ -81,7 +94,15 @@ noncomputable def extractDistrictObserved [∀ n, Fintype (Ω n)]
         marginalizeOnObserved O (A \ G'.prefixIn A i.val)
           (fun _ hv => hA ((Finset.mem_sdiff.mp hv).1)) q x
 
-/-- Observed-set form of `SCM.identifyMassRec`. -/
+/-- For [a population of variables](hyp:N) with [finite value spaces](hyp:Ω),
+[an observed-node set](hyp:O), [a SWIG graph](hyp:G), [a containing node set](hyp:T),
+[a target district](hyp:C) [contained in the observed set](hyp:hT), and [a nonnegative
+mass function on observed assignments](hyp:q), [the recursive observed-set mass
+identification functional](goal) first [forms the induced ancestral set and records that
+it is observed](step:1,step:2), then returns the appropriate marginal, original mass,
+or recursively extracted district mass according to its ancestral-set cases.
+
+Observed-set form of `SCM.identifyMassRec`. -/
 noncomputable def identifyMassRecObserved [∀ n, Fintype (Ω n)]
     (O : Finset (SWIGNode N)) (G : SWIGGraph N) :
     (T C : Finset (SWIGNode N)) → (hT : T ⊆ O) →
@@ -167,7 +188,16 @@ lemma identifyMassRecObserved_eq_identifyMassRec [∀ n, Fintype (Ω n)]
         exact ih C₁.card hlt C₁ C _ _ rfl
   exact hP T.card T C hT q rfl
 
-/-- Obs-side recursive recovered factor for a target district.
+/-- For [a finite population of variables](hyp:N) with [measurable value spaces](hyp:Ω),
+[a structural causal model](hyp:M), [reference measures](hyp:ref), [a fixed-value
+assignment](hyp:s), [a containing c-component](hyp:C), and [a target district](hyp:S),
+assuming finite value spaces, finite observational-kernel slices, standard-Borel and nonempty
+one-node observed value spaces, and countably generated prefix value spaces, [the recursively
+recovered factor](goal) assigns to every observed-data realization the recursive identification
+mass for the target divided by its reference atom, and is zero when either named node set is
+not observed.
+
+Obs-side recursive recovered factor for a target district.
 
 The seed is the observational mass form of the full containing c-component
 factor `Q[C]`: the c-component density factor multiplied by the `C` reference

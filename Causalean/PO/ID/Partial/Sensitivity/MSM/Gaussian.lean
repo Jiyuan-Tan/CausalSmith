@@ -96,8 +96,9 @@ structure GaussianTreatedModel (m σ : γ → ℝ) : Prop where
   condCDF_eq : ∀ a t, condCDF S.treatedXYLaw a t
     = Causalean.Mathlib.stdNormalCDF ((t - m a) / σ a)
 
-/-- The **explicit Gaussian cutoff** `c(X) = m(X) + σ(X)·Φ⁻¹(Λ/(Λ+1))`, the `Λ/(Λ+1)` conditional
-quantile of the treated Gaussian outcome law. -/
+/-- For [a potential-outcome backdoor system](hyp:S), [a covariate-indexed mean function and standard-deviation function](hyp:m,σ), [a sensitivity parameter](hyp:Λ), and [a sample point](hyp:ω), the [explicit Gaussian cutoff](goal) is $m(X(\omega))+\sigma(X(\omega))\Phi^{-1}(\Lambda/(\Lambda+1))$.
+
+It is the $\Lambda/(\Lambda+1)$ conditional quantile of the treated Gaussian outcome law. -/
 noncomputable def gaussianCutoff (m σ : γ → ℝ) (Λ : ℝ) (ω : P.Ω) : ℝ :=
   m (S.factualX ω) + σ (S.factualX ω) * Causalean.Mathlib.probit (Λ / (Λ + 1))
 

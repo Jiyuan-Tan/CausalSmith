@@ -1,0 +1,113 @@
+Write \(Z^{\mathrm{GX}}_t=(\beta_1,\beta_2,q_1,q_2)^\top\) for the current augmented state. Its induced armwise update is
+\[
+q_a^+=\frac{q_a}{1+\mathbf 1\{A=a\}q_aX^2},\qquad
+\beta_a^+=\frac{\beta_a+\mathbf 1\{A=a\}q_aXY(a)}{1+\mathbf 1\{A=a\}q_aX^2}.
+\]
+The next clipped-UCB action uses \(\beta_aX+|X|\sqrt{q_a}\), so \(Z^{\mathrm{GX}}_t\), rather than its two-dimensional slope projection, is the time-homogeneous Markov state. Put \(D_{t,a}=\Phi^{\mathrm{GX}}_{t,a}\), \(N_{t,a}=b^{\mathrm{GX}}_{t,a}\), \(C_{t,a}=\mathbf 1\{A_t=a\}\), and, for \(t\geq1\),
+\[
+\Psi_t=\left(\frac{D_{t,1}}t,\frac{D_{t,2}}t,\frac{N_{t,1}}t,\frac{N_{t,2}}t\right),\qquad
+U_{t+1}=\bigl(C_{t+1,1}X_{t+1}^2,C_{t+1,2}X_{t+1}^2,
+C_{t+1,1}X_{t+1}Y_{t+1}(1),C_{t+1,2}X_{t+1}Y_{t+1}(2)\bigr).
+\]
+With \(\gamma_t=1/t\), the sufficient-statistic updates give the exact recursion
+\[
+\Psi_{t+1}-\Psi_t=\gamma_{t+1}(U_{t+1}-\Psi_t)=\frac1{t+1}(U_{t+1}-\Psi_t).
+\]
+
+Here is the actual one-step finite expectation under the bounded law in Definition~\(\textnormal{def:guoxu-recursion}\). Let \(\mu_1=1/2\), \(\mu_2=1/12\), let \(p_{t,1}(1)=u_t\), \(p_{t,1}(-4)=v_t\), and let \(p_{t,2}(x)=1-p_{t,1}(x)\). Conditional on \(\mathcal F_t\), independence and equiprobability of \(X_{t+1}\) and the innovations \(R_{t+1,a}\) give the finite law
+\[
+\operatorname{guoXuNoiseLaw}_t(x,a,r_1,r_2)
+=\frac18p_{t,a}(x),
+\quad x\in\{-4,1\},\quad a\in\{1,2\},\quad r_1,r_2\in\{-1,1\},
+\]
+and
+\[
+\mathcal U(x,a,r_1,r_2)=
+\bigl(\mathbf1\{a=1\}x^2,\mathbf1\{a=2\}x^2,
+\mathbf1\{a=1\}x(\mu_1+\sigma_1r_1),
+\mathbf1\{a=2\}x(\mu_2+\sigma_2r_2)\bigr).
+\]
+Thus the conditional expectation is the displayed finite sum
+\[
+E[U_{t+1}\mid\mathcal F_t]
+=\sum_{x\in\{-4,1\}}\sum_{a=1}^2\sum_{r_1,r_2\in\{-1,1\}}
+\operatorname{guoXuNoiseLaw}_t(x,a,r_1,r_2)\mathcal U(x,a,r_1,r_2)
+=h(u_t,v_t),
+\]
+where
+\[
+h(u,v)=\left(\frac{u+16v}{2},\frac{17-u-16v}{2},
+\frac{u-4v}{4},\frac{-3-u+4v}{24}\right).
+\]
+Let
+\[
+M_{t+1}=U_{t+1}-E[U_{t+1}\mid\mathcal F_t],
+\qquad
+R_{j,k}=\sum_{s=j}^k\gamma_{s+1}M_{s+1}\quad(j\leq k).
+\]
+For every coordinate \(i\in\{1,2,3,4\}\), every \(\epsilon>0\), and every initialized law \(P_{\eta_0}\), the coordinatewise dyadic tail estimate proved in equation (12) is
+\[
+P_{\eta_0}\!\left\{\exists\ell\geq L:\ 
+\sup_{k\geq2^\ell}\left|R_{2^\ell,k}^{(i)}\right|>\epsilon\right\}
+\leq \frac{C_i}{\epsilon^2}\sum_{\ell\geq L}2^{-\ell}
+\longrightarrow0\qquad(L\to\infty),
+\]
+for a finite constant \(C_i\) depending only on the fixed bounded-noise envelope.
+
+For \(C<\infty\) and \(c>0\), define the compact carrier
+\[
+\mathsf K(C,c)=[c,C]^2\times[-C,C]^2.
+\]
+For the recursion above one may take
+\[
+c_{\mathrm{GX}}=\frac{17}{400},\qquad
+C_{\mathrm{GX}}=\max\left\{17,1+4\max\left\{\frac12+\sigma_1,\frac1{12}+\sigma_2\right\}\right\};
+\]
+then \(\Psi_t\in\mathsf K(C_{\mathrm{GX}},c_{\mathrm{GX}})\) eventually almost surely. Put \(p=99/100\), \(q=1/100\), \(h_+=h(p,q)\), \(h_-=h(q,p)\), \(h_1=h(p,p)\), \(h_2=h(q,q)\), and, for \(\psi=(d_1,d_2,n_1,n_2)\in\mathsf K(C,c)\), put \(\Delta(\psi)=n_1/d_1-n_2/d_2\). The exact four-mode convexified graph on this carrier is
+\[
+F_{C,c}(\psi)=
+\begin{cases}
+\{h_+-\psi\},&\Delta(\psi)>0,\\
+\{h_--\psi\},&\Delta(\psi)<0,\\
+\operatorname{co}\{h_+,h_-,h_1\}-\psi,&\Delta(\psi)=0,\ d_1<d_2,\\
+\operatorname{co}\{h_+,h_-,h_2\}-\psi,&\Delta(\psi)=0,\ d_1>d_2,\\
+\operatorname{co}\{h_+,h_-,h_1,h_2\}-\psi,&\Delta(\psi)=0,\ d_1=d_2.
+\end{cases}
+\]
+Its graph is understood in the relative topology of \(\mathsf K(C,c)\times\mathbb R^4\); it is relatively closed there and has nonempty compact convex values. No ambient closed-graph assertion at the boundary of \(\{d_1,d_2>0\}\) is part of this handle. The name \(\operatorname{GuoXuReductionConditions}(C,c)\) denotes only: the exact recursion above; eventual containment in \(\mathsf K(C,c)\); the relative closed-graph and compact-convex-value properties just stated; the switching-layer drift inclusion
+\[
+E[U_{t+1}\mid\mathcal F_t]-\Psi_t\in F_{C,c}^{\,c_0t^{-1/2}}(\Psi_t)
+\]
+for some finite deterministic \(c_0\) and all sufficiently large \(t\); boundedness of \(U_{t+1}\) and \(\Psi_t\); and the displayed coordinatewise dyadic tail limit for \(R_{j,k}\).
+
+For clarity, the compact-initial-set finite-attractor property is only a named target for future work. For \(m_{\mathrm{GX}}\geq1\), distinct deterministic targets \(\bar\beta^{\mathrm{GX}}_1,\ldots,\bar\beta^{\mathrm{GX}}_{m_{\mathrm{GX}}}\in\mathbb R^2\), and a \(\sigma(\bigcup_{t\geq1}\mathcal F_t)\)-measurable selector \(J_{\mathrm{GX}}\in\{1,\ldots,m_{\mathrm{GX}}\}\), define
+\[
+B^{\mathrm{GX}}_j=\{\eta_0\in\mathsf K_{\mathrm{GX}}:P_{\eta_0}(J_{\mathrm{GX}}=j)>0\},
+\qquad
+\mathcal L_{\eta_0}=\left\{\lim_{t\to\infty}
+(\widehat\beta^{\mathrm{GX}}_{t,1},\widehat\beta^{\mathrm{GX}}_{t,2})^\top
+=\bar\beta^{\mathrm{GX}}_{J_{\mathrm{GX}}}\right\}.
+\]
+For a compact set
+\[
+K_0\subset\bigcup_{j=1}^{m_{\mathrm{GX}}}
+\operatorname{relint}_{\mathsf K_{\mathrm{GX}}}(B^{\mathrm{GX}}_j),
+\]
+define the event
+\[
+\mathcal A_T(\eta_0,K_0)=\left\{
+\frac1T\sum_{t=1}^T
+\left\|(\widehat\beta^{\mathrm{GX}}_{t,1},\widehat\beta^{\mathrm{GX}}_{t,2})^\top
+-\bar\beta^{\mathrm{GX}}_{J_{\mathrm{GX}}}\right\|_2
+\leq r_T(K_0)\right\}.
+\]
+For nonnegative deterministic sequences \(r_T(K_0)\) and \(\delta_T(K_0)\), the future predicate \(\operatorname{CompactAttraction}_{\mathrm{GX}}(K_0)\) means
+\[
+P_{\eta_0}(\mathcal L_{\eta_0})=1\quad\text{for every }\eta_0\in K_0,
+\qquad
+\sup_{\eta_0\in K_0}P_{\eta_0}\{\mathcal A_T(\eta_0,K_0)^c\}
+\leq\delta_T(K_0),
+\qquad
+r_T(K_0)\to0,\quad\delta_T(K_0)\to0.
+\]
+This future predicate is not asserted by this definition or by the present dynamics theorem, and it is not a conjunct of \(\operatorname{GuoXuReductionConditions}(C,c)\). In particular, the handle posits neither a quantitative-hitting condition, nor a quantitative-escape condition, nor an arbitrary auxiliary vanishing sequence.

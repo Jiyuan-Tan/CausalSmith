@@ -5,6 +5,8 @@ import { normalizeFrozenEnvs, parseAnchoredEnvs } from "./tex_anchors.js";
  * ONE applicator for "let a model rewrite prose, then guarantee the frozen layer
  * is byte-identical afterwards" — shared by the P3 revise loop and the P5
  * holistic reviser (which each used to hand-roll an overlapping guard stack).
+ * P2 final assembly also passes through this boundary with before === revised,
+ * so downstream guards receive the same canonical frozen bodies and scope notes.
  * The model owns prose, never the P1-frozen formal layer or P2-audited proofs:
  * paraphrased frozen bodies are mechanically re-imposed, deleted envs are
  * reinserted next to their surviving neighbours, structural changes (moved /
@@ -43,7 +45,7 @@ export function restoreFrozenEnvsAfterRevision(
   before: string,
   revised: string,
   canonical: Map<string, string>,
-  who = "P5 holistic reviser",
+  who = "the reviser",
 ): string {
   const beforeIds = parseAnchoredEnvs(before).map((e) => e.obj_id).filter((id) => canonical.has(id));
   const beforeSet = new Set(beforeIds);
@@ -130,4 +132,32 @@ export function applyProseRevision(args: {
     throw new Error(`${args.who} broke the frozen layer (restored): ${mismatches.join("; ")}`);
   }
   return out;
+}
+
+export interface TextReplacement { before: string; after: string }
+
+/** Apply exact, unique replacements in order against the current text; a missing or ambiguous `before` is SKIPPED and reported,
+ *  never a reason to discard the round's other patches (eleven good patches were lost that way on
+ *  2026-08-21). An optional existing-content guard rejects protected edits before they can be
+ *  propagated to authored sources. Structural guard errors still throw.
+ *  The caller decides what an all-skipped round means. */
+export function applyTargetedReplacements(
+  tex: string,
+  replacements: TextReplacement[],
+  accept?: (candidate: string, current: string) => boolean,
+): { tex: string; applied: TextReplacement[]; skipped: { before: string; reason: "missing" | "non-unique" | "protected" }[] } {
+  let out = tex;
+  const applied: TextReplacement[] = [];
+  const skipped: { before: string; reason: "missing" | "non-unique" | "protected" }[] = [];
+  for (const { before, after } of replacements) {
+    if (!before || before === after) continue;
+    const first = out.indexOf(before);
+    if (first < 0) { skipped.push({ before, reason: "missing" }); continue; }
+    if (out.indexOf(before, first + 1) >= 0) { skipped.push({ before, reason: "non-unique" }); continue; }
+    const candidate = out.slice(0, first) + after + out.slice(first + before.length);
+    if (accept && !accept(candidate, out)) { skipped.push({ before, reason: "protected" }); continue; }
+    out = candidate;
+    applied.push({ before, after });
+  }
+  return { tex: out, applied, skipped };
 }

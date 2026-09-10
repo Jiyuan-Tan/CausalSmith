@@ -1,0 +1,1804 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}slate\_\allowbreak{}benefit\_\allowbreak{}partialtransport}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Observed instrument contrasts identify two possibly unequal selected-complier outcome submeasures in each covariate cell. Latent-direction weak selection monotonicity makes their smaller total mass the survivor-complier mass, including the observable zero-gap face. A single branch-free exact-mass partial-transport polytope yields closed sharp threshold-cut endpoints, and explicit full latent laws attain both endpoints. The bounds and sparse endpoint couplings are computable in \(O(|\mathcal X|K)\) operations, with \(O(|\mathcal X|K^2)\) work only when dense matrices are materialized; the three-level witness has survivor share \(1/2\), normalized higher-arm mixture \((0.2,0.5,0.3)\), lower-arm marginal \((0.3,0.4,0.3)\), and sharp interval \([0,0.7]\). The projected plug-in estimator has a margin-free fixed-law Hadamard directional limit at arbitrary simultaneous threshold ties, positive-survivor zero-gap cells, and screened zero-survivor cells. An explicit deterministic guard gives uniform whole-interval containment under overlap and a uniform positive aggregate survivor-mass bound. The face-aware multiplier envelope is diagnostic only; first-order exact unguarded uniform multiplier calibration under changing survivor support remains open.
+
+\section{Project justification}
+
+\paragraph{Gap.} DongHeiler2026 bounds survivor-complier means by trimming selected-complier distributions. LuDingDasgupta2018, GabrielSachsJensen2024, and deAguasEtAl2025 bound ordered benefit when complete treatment-arm marginals or different observable response-function restrictions are available. ChenLi2026 point identifies cross-unit principal generalized causal effects, including stratum-specific probabilistic-index and win-ratio estimands, under treatment unconfoundedness, monotonicity, and mean principal ignorability. None characterizes the same-unit benefit probability from unequal survivor-complier submeasures induced jointly by noncompliance and treatment-dependent selection, including observable zero-gap cells.
+
+\paragraph{Niche.} Finite ordered outcomes make the strict-benefit graph a Ferrers network, while latent-direction weak selection monotonicity turns observed submeasures into exact survivor capacities. The same finite-discrete structure reduces estimation error to a fixed collection of observable events and makes the branch-free threshold maps globally Lipschitz in unconditional capacities, including at tied cuts and zero-gap faces.
+
+\paragraph{Fill.} The project identifies the observable selected-complier capacities; proves that the branch-free exact-mass polytope is the exact projection of compatible latent laws; derives sharp lower and upper threshold min-cut formulas valid in both selection directions and on the zero-gap face; constructs endpoint-attaining full laws; supplies an \(O(|\mathcal X|K)\) sparse-flow algorithm and a compatible three-level witness with interval \([0,0.7]\); recovers the classical complete-marginal formula on the tie face; establishes the projected, screened estimator's fixed-law directional limit without a direction margin; and gives a conservative deterministic-guard confidence set with uniform whole-interval containment. Calibrated first-order face-aware multiplier inference under changing survivor support is isolated as the remaining open frontier.
+
+\section{Related work}
+
+KennedyHarrisKeele2019 establishes survivor-complier mean effects under treatment-induced selection and provides the principal-stratum framing. ChenFlores2015 bounds mean wage effects for always-employed Job Corps compliers; this note reinterprets their application only at the variable level, with \(Z\) as offer assignment, \(D\) as program receipt, \(S\) as employment, and \(Y\) as an ordered wage category, and does not claim an empirical reanalysis or transfer of their published bounds. DongHeiler2026 Assumption 3.2 states cellwise weak sample-selection monotonicity, and equations (3.1)--(3.2) separate positive and negative direction cells while attaching the no-selection intersection to the positive partition by convention. Its sharp results concern intensive-margin means, so it informs the model but is not a theorem-level result being tightened. LuDingDasgupta2018 Proposition 2, equation (6), gives the sharp strict-benefit interval from two complete ordinal marginals; the no-selection theorem makes that formula exactly the \(\Gamma_x^{0}\) face. GabrielSachsJensen2024 Section 3.2, Theorem 2 and Results 3--4 derive probability-of-benefit bounds under confounding and imperfect randomization by symbolic response-function methods, without treatment-induced survivor selection. deAguasEtAl2025 Definitions 1--2 define the same ordered-tier benefit event, Propositions 4--5 and equations (5)--(8) give sharp bounds from complete treatment-arm marginals under ignorability, and Section 5 with Algorithm 1 and equations (17)--(18) addresses nonregularity from tied complete-marginal bounds. That paper does not recover unequal survivor-complier submeasures under noncompliance and treatment-induced selection, derive directional partial-transport threshold formulas, or lift endpoint couplings to a compatible full instrument-selection law. FangSantos2019 supplies directional resampling, ChernozhukovLeeRosen2013 supplies contact-set localization, and Semenova2025 studies covariate-specific Lee-bound directions. These sources motivate the proved fixed-law directional calculation and the diagnostic face envelope, but they do not establish first-order exact unguarded uniform multiplier calibration for the two summed survivor-complier transport endpoints under simultaneous cut ties and changing survivor support; the paper's proved uniform guarantee instead comes from an explicit conservative deterministic guard.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta=P(Y_1>Y_0\mid S_1=S_0=1,D_1>D_0)\).
+Primary functional / estimator / diagnostic: \(\Theta_I(P_{\mathrm{obs}})=\left[\sum_xp_xB_L(x)/\sum_xp_xm(x),\;\sum_xp_xB_U(x)/\sum_xp_xm(x)\right]\).
+\begin{itemize}
+  \item \texttt{K} --- \texttt{positive integer}; \(\{3,4,\ldots\}\); \texttt{Number of ordered outcome levels.}
+  \item \texttt{n} --- \texttt{positive integer}; \texttt{Sample size.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal Y} --- \texttt{finite ordered set}; \(\{0,1,\ldots,K-1\}\); \texttt{Outcome support.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Y=\{0,1,\ldots,K-1\}\) with its natural order.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal X} --- \texttt{finite discrete measurable space}; \texttt{A finite set equipped with the discrete measurable structure.}; \texttt{Covariate-\allowbreak{}cell support.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal X\) is finite and carries the discrete \(\sigma\)-algebra \(2^{\mathcal X}\); in particular, every singleton \(\{x\}\) is measurable.
+  \item \texttt{X} --- \texttt{random variable}; \(\mathcal X\); \texttt{Baseline covariate cell.}
+  \item \texttt{x\textasciicircum{}\{\textbackslash{}\allowbreak{}star\}\allowbreak{}} --- \texttt{covariate value}; \(\mathcal X\); \texttt{The sole covariate cell in the three-\allowbreak{}level witness.}
+  \item \texttt{Z} --- \texttt{random variable}; \(\{0,1\}\); \texttt{Binary instrument assignment.}
+  \item \texttt{D} --- \texttt{random variable}; \(\{0,1\}\); \texttt{Received treatment.}
+  \item \texttt{S} --- \texttt{random variable}; \(\{0,1\}\); \texttt{Outcome-\allowbreak{}selection indicator.}
+  \item \texttt{Y} --- \texttt{partially observed random variable}; \(\mathcal Y\); Observed outcome when \(S=1\).
+  \item \texttt{D\_\allowbreak{}0} --- \texttt{random variable}; \(\{0,1\}\); Treatment under \(Z=0\).
+  \item \texttt{D\_\allowbreak{}1} --- \texttt{random variable}; \(\{0,1\}\); Treatment under \(Z=1\).
+  \item \texttt{S\_\allowbreak{}0} --- \texttt{random variable}; \(\{0,1\}\); \texttt{Selection under treatment zero.}
+  \item \texttt{S\_\allowbreak{}1} --- \texttt{random variable}; \(\{0,1\}\); \texttt{Selection under treatment one.}
+  \item \texttt{Y\_\allowbreak{}0} --- \texttt{random variable}; \(\mathcal Y\); \texttt{Outcome under treatment zero when defined.}
+  \item \texttt{Y\_\allowbreak{}1} --- \texttt{random variable}; \(\mathcal Y\); \texttt{Outcome under treatment one when defined.}
+  \item \texttt{O} --- \texttt{observed random element}; \(\mathcal X\times\{0,1\}^3\times(\mathcal Y\cup\{\star\})\); \texttt{Observed data for one unit.}
+  \par\smallskip\noindent\emph{Definition.} \(O=(X,Z,D,S,SY)\), where \(\star\) records an unobserved outcome.
+  \item \texttt{P\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{}} --- \texttt{probability law}; \(\mathcal P(\mathrm{range}(O))\); \texttt{Observed-\allowbreak{}data law.}
+  \par\smallskip\noindent\emph{Definition.} \(P_{\mathrm{obs}}=\mathcal L(O)\).
+  \item \texttt{P\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}star\}\allowbreak{}} --- \texttt{probability law}; \texttt{Observed witness law.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fully specified one-\allowbreak{}cell observed-\allowbreak{}data law in the three-\allowbreak{}level witness.}
+  \item \texttt{P} --- \texttt{probability law}; \texttt{Latent causal law.}
+  \par\smallskip\noindent\emph{Definition.} The full law of \(X,Z,D_0,D_1,S_0,S_1,Y_0,Y_1\).
+  \item \texttt{P\textasciicircum{}\{\textbackslash{}\allowbreak{}star\}\allowbreak{}} --- \texttt{probability law}; \texttt{Latent witness law.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The compatible full latent law explicitly allocated in the three-\allowbreak{}level witness.}
+  \item \texttt{P\textasciicircum{}L} --- \texttt{probability law}; \texttt{Lower endpoint-\allowbreak{}attaining latent law.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The lower endpoint-\allowbreak{}attaining full law supplied by the full-\allowbreak{}law attainment theorem.}
+  \item \texttt{P\textasciicircum{}U} --- \texttt{probability law}; \texttt{Upper endpoint-\allowbreak{}attaining latent law.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The upper endpoint-\allowbreak{}attaining full law supplied by the full-\allowbreak{}law attainment theorem.}
+  \item \texttt{C} --- \texttt{event}; \texttt{Complier principal stratum.}
+  \par\smallskip\noindent\emph{Definition.} \(C=\{D_1>D_0\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}pi} --- \texttt{function}; \(\mathcal X\to[0,1]\); \texttt{Instrument propensity.}
+  \par\smallskip\noindent\emph{Definition.} \(\pi(x)=P_{\mathrm{obs}}(Z=1\mid X=x)\).
+  \item \texttt{p\_\allowbreak{}x} --- \texttt{nonnegative scalar}; \texttt{Covariate-\allowbreak{}cell probability.}
+  \par\smallskip\noindent\emph{Definition.} \(p_x=P_{\mathrm{obs}}(X=x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}ell\_\allowbreak{}i(x)} --- \texttt{nonnegative array}; \(\mathbb R_+^{K|\mathcal X|}\); \texttt{Lower-\allowbreak{}arm selected-\allowbreak{}complier outcome capacity.}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_i(x)=P_{\mathrm{obs}}(Y=i,S=1,D=0\mid Z=0,X=x)-P_{\mathrm{obs}}(Y=i,S=1,D=0\mid Z=1,X=x)\).
+  \item \texttt{h\_\allowbreak{}j(x)} --- \texttt{nonnegative array}; \(\mathbb R_+^{K|\mathcal X|}\); \texttt{Higher-\allowbreak{}arm selected-\allowbreak{}complier outcome capacity.}
+  \par\smallskip\noindent\emph{Definition.} \(h_j(x)=P_{\mathrm{obs}}(Y=j,S=1,D=1\mid Z=1,X=x)-P_{\mathrm{obs}}(Y=j,S=1,D=1\mid Z=0,X=x)\).
+  \item \texttt{q\_\allowbreak{}0(x)} --- \texttt{nonnegative scalar}; \texttt{Selected-\allowbreak{}complier mass under treatment zero.}
+  \par\smallskip\noindent\emph{Definition.} \(q_0(x)=\sum_{i=0}^{K-1}\ell_i(x)\).
+  \item \texttt{q\_\allowbreak{}1(x)} --- \texttt{nonnegative scalar}; \texttt{Selected-\allowbreak{}complier mass under treatment one.}
+  \par\smallskip\noindent\emph{Definition.} \(q_1(x)=\sum_{j=0}^{K-1}h_j(x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}ell\_\allowbreak{}\{\textbackslash{}\allowbreak{}le t\}\allowbreak{}(x)} --- \texttt{nonnegative scalar}; \texttt{Lower-\allowbreak{}arm prefix capacity.}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_{\le t}(x)=\sum_{i\le t}\ell_i(x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}ell\_\allowbreak{}\{<t\}\allowbreak{}(x)} --- \texttt{nonnegative scalar}; \texttt{Lower-\allowbreak{}arm strict-\allowbreak{}prefix capacity.}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_{<t}(x)=\sum_{i<t}\ell_i(x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}ell\_\allowbreak{}\{>t\}\allowbreak{}(x)} --- \texttt{nonnegative scalar}; \texttt{Lower-\allowbreak{}arm upper-\allowbreak{}tail capacity.}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_{>t}(x)=\sum_{i>t}\ell_i(x)\).
+  \item \texttt{h\_\allowbreak{}\{\textbackslash{}\allowbreak{}le t\}\allowbreak{}(x)} --- \texttt{nonnegative scalar}; \texttt{Higher-\allowbreak{}arm prefix capacity.}
+  \par\smallskip\noindent\emph{Definition.} \(h_{\le t}(x)=\sum_{j\le t}h_j(x)\).
+  \item \texttt{h\_\allowbreak{}\{>t\}\allowbreak{}(x)} --- \texttt{nonnegative scalar}; \texttt{Higher-\allowbreak{}arm upper-\allowbreak{}tail capacity.}
+  \par\smallskip\noindent\emph{Definition.} \(h_{>t}(x)=\sum_{j>t}h_j(x)\).
+  \item \texttt{d(x)} --- \texttt{latent direction function}; \(\{-1,+1\}\); \texttt{Latent cellwise direction,\allowbreak{} including cells on the observable tie face.}
+  \par\smallskip\noindent\emph{Definition.} \(d:\mathcal X\to\{-1,+1\}\) indexes the weak selection-monotonicity direction among compliers in each covariate cell.
+  \item \texttt{\textbackslash{}\allowbreak{}Delta q(x)} --- \texttt{scalar}; \texttt{Observable selected-\allowbreak{}complier selection gap.}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta q(x)=q_1(x)-q_0(x)\).
+  \item \texttt{m(x)} --- \texttt{nonnegative scalar}; Survivor-complier mass in cell \(x\).
+  \par\smallskip\noindent\emph{Definition.} \(m(x)=\min\{q_0(x),q_1(x)\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}gamma\_\allowbreak{}x} --- \texttt{nonnegative matrix}; \(\mathbb R_+^{K\times K}\); \texttt{Survivor-\allowbreak{}complier outcome subcoupling.}
+  \par\smallskip\noindent\emph{Definition.} \(\gamma_{ij,x}=P(Y_0=i,Y_1=j,S_0=S_1=1,C\mid X=x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}x\textasciicircum{}\{+\allowbreak{}\}\allowbreak{}} --- \texttt{convex polytope}; \texttt{Increasing-\allowbreak{}direction feasible set.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The increasing-\allowbreak{}selection partial-\allowbreak{}transport polytope.}
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}x\textasciicircum{}\{-\allowbreak{}\}\allowbreak{}} --- \texttt{convex polytope}; \texttt{Decreasing-\allowbreak{}direction feasible set.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The decreasing-\allowbreak{}selection partial-\allowbreak{}transport polytope.}
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}x\textasciicircum{}\{0\}\allowbreak{}} --- \texttt{convex polytope}; \texttt{Tie-\allowbreak{}safe survivor-\allowbreak{}complier coupling set.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The complete fixed-\allowbreak{}marginal coupling polytope on the observable tie face.}
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}x} --- \texttt{convex polytope}; \texttt{Cellwise projected feasible set.}
+  \par\smallskip\noindent\emph{Definition.} The tie-safe partial-transport feasibility set selected by the sign of \(\Delta q(x)\), with a separate zero-gap branch.
+  \item \texttt{b\_\allowbreak{}x(\textbackslash{}\allowbreak{}gamma\_\allowbreak{}x)} --- \texttt{linear functional}; \texttt{Unnormalized survivor-\allowbreak{}complier benefit mass.}
+  \par\smallskip\noindent\emph{Definition.} \(b_x(\gamma_x)=\sum_{0\le i<j\le K-1}\gamma_{ij,x}\).
+  \item \texttt{B\_\allowbreak{}L(x)} --- \texttt{nonnegative scalar}; \texttt{Sharp lower benefit mass.}
+  \par\smallskip\noindent\emph{Definition.} The lower threshold-cut value in cell \(x\).
+  \item \texttt{B\_\allowbreak{}U(x)} --- \texttt{nonnegative scalar}; \texttt{Sharp upper benefit mass.}
+  \par\smallskip\noindent\emph{Definition.} The upper threshold-cut value in cell \(x\).
+  \item \texttt{M} --- \texttt{positive scalar}; \texttt{Aggregate survivor-\allowbreak{}complier mass.}
+  \par\smallskip\noindent\emph{Definition.} \(M=\sum_{x\in\mathcal X}p_xm(x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}L} --- \texttt{scalar}; \([0,1]\); \texttt{Lower identified endpoint.}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_L=\sum_xp_xB_L(x)/M\).
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}U} --- \texttt{scalar}; \([0,1]\); \texttt{Upper identified endpoint.}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_U=\sum_xp_xB_U(x)/M\).
+  \item \texttt{\textbackslash{}\allowbreak{}theta} --- \texttt{causal probability}; \texttt{Survivor-\allowbreak{}complier probability of benefit.}
+  \par\smallskip\noindent\emph{Definition.} \(\theta=P(Y_1>Y_0\mid S_1=S_0=1,C)\).
+  \item \texttt{\textbackslash{}\allowbreak{}Theta\_\allowbreak{}I(P\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{})} --- \texttt{closed interval}; \([0,1]\); \texttt{Target identified interval.}
+  \par\smallskip\noindent\emph{Definition.} The identified set of \(\theta\) over compatible full laws.
+  \item \texttt{\textbackslash{}\allowbreak{}Psi(P\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{})} --- \texttt{map}; \(P_{\mathrm{obs}}\mapsto(\theta_L,\theta_U)\); \texttt{Observable endpoint functional.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The ratio-\allowbreak{}of-\allowbreak{}summed-\allowbreak{}threshold-\allowbreak{}cuts endpoint map.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal X\_\allowbreak{}+\allowbreak{}(P)} --- \texttt{subset of covariate cells}; Fixed positive-survivor support at a law \(P\).
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal X_+(P)=\{x\in\mathcal X:p_xm(x)>0\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathbb Z\_\allowbreak{}\{P\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{}\}\allowbreak{}} --- \texttt{mean-\allowbreak{}zero Gaussian vector}; \texttt{First-\allowbreak{}stage pointwise Gaussian perturbation.}
+  \par\smallskip\noindent\emph{Definition.} The joint multinomial Gaussian limit of the finite vector of empirical observed-cell probabilities under \(P_{\mathrm{obs}}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal A\_\allowbreak{}L(x)} --- \texttt{finite index set}; \texttt{Population lower active face.}
+  \par\smallskip\noindent\emph{Definition.} The set of threshold cuts attaining \(B_L(x)\), including the zero cut.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal A\_\allowbreak{}U(x)} --- \texttt{finite index set}; \texttt{Population upper active face.}
+  \par\smallskip\noindent\emph{Definition.} The set of threshold cuts attaining \(B_U(x)\), including the mass cap.
+  \item \texttt{\textbackslash{}\allowbreak{}mathbf O\_\allowbreak{}n} --- \texttt{random sample}; \texttt{Observed sample.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbf O_n=(O_1,\ldots,O_n)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat P\_\allowbreak{}n} --- \texttt{empirical probability law}; \texttt{Empirical observed-\allowbreak{}data law.}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat P_n=n^{-1}\sum_{r=1}^n\delta_{O_r}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat p\_\allowbreak{}x} --- \texttt{nonnegative random scalar}; \texttt{Empirical covariate-\allowbreak{}cell probability.}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat p_x=\widehat P_n(X=x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widetilde\textbackslash{}\allowbreak{}ell\_\allowbreak{}i(x)} --- \texttt{random scalar array}; \(\mathbb R^{K|\mathcal X|}\); \texttt{Raw lower-\allowbreak{}arm IV contrast.}
+  \par\smallskip\noindent\emph{Definition.} The empirical analogue of \(\ell_i(x)\), with every empirical conditional probability defined as zero when its empirical \(X,Z\) denominator is zero.
+  \item \texttt{\textbackslash{}\allowbreak{}widetilde h\_\allowbreak{}j(x)} --- \texttt{random scalar array}; \(\mathbb R^{K|\mathcal X|}\); \texttt{Raw higher-\allowbreak{}arm IV contrast.}
+  \par\smallskip\noindent\emph{Definition.} The empirical analogue of \(h_j(x)\), with every empirical conditional probability defined as zero when its empirical \(X,Z\) denominator is zero.
+  \item \texttt{\textbackslash{}\allowbreak{}widetilde c\_\allowbreak{}n} --- \texttt{random vector}; \(\mathbb R^{2K|\mathcal X|}\); \texttt{Stacked raw empirical capacity contrasts.}
+  \par\smallskip\noindent\emph{Definition.} \(\widetilde c_n=(\widetilde\ell_i(x),\widetilde h_j(x))_{x,i,j}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak C} --- \texttt{closed convex set}; \(\mathbb R^{2K|\mathcal X|}\); \texttt{Exact nonnegative-\allowbreak{}capacity projection set.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak C=\prod_{x\in\mathcal X}\mathbb R_+^{2K}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat c\_\allowbreak{}n} --- \texttt{random vector}; \(\mathfrak C\); \texttt{Uniquely projected empirical capacities.}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat c_n=\Pi_{\mathfrak C}(\widetilde c_n)=\arg\min_{c\in\mathfrak C}\|c-\widetilde c_n\|_2^2\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}ell\_\allowbreak{}i(x)} --- \texttt{nonnegative random array}; \texttt{Projected lower-\allowbreak{}arm capacities.}
+  \par\smallskip\noindent\emph{Definition.} The lower-arm coordinates of \(\widehat c_n\), equivalently \(\widehat\ell_i(x)=\max\{\widetilde\ell_i(x),0\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat h\_\allowbreak{}j(x)} --- \texttt{nonnegative random array}; \texttt{Projected higher-\allowbreak{}arm capacities.}
+  \par\smallskip\noindent\emph{Definition.} The higher-arm coordinates of \(\widehat c_n\), equivalently \(\widehat h_j(x)=\max\{\widetilde h_j(x),0\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat q\_\allowbreak{}0(x)} --- \texttt{nonnegative random scalar}; \texttt{Projected lower-\allowbreak{}arm selected-\allowbreak{}complier mass.}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat q_0(x)=\sum_i\widehat\ell_i(x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat q\_\allowbreak{}1(x)} --- \texttt{nonnegative random scalar}; \texttt{Projected higher-\allowbreak{}arm selected-\allowbreak{}complier mass.}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat q_1(x)=\sum_j\widehat h_j(x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}Delta q\}\allowbreak{}(x)} --- \texttt{random scalar}; \texttt{Estimated selection gap.}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat{\Delta q}(x)=\widehat q_1(x)-\widehat q_0(x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat m(x)} --- \texttt{nonnegative random scalar}; \texttt{Estimated survivor-\allowbreak{}complier mass.}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat m(x)=\min\{\widehat q_0(x),\widehat q_1(x)\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat B\_\allowbreak{}L(x)} --- \texttt{nonnegative random scalar}; \texttt{Estimated lower benefit mass.}
+  \par\smallskip\noindent\emph{Definition.} The lower threshold-cut value obtained by substituting projected capacities into the positive, negative, or exact-zero branch according to the sign of \(\widehat{\Delta q}(x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat B\_\allowbreak{}U(x)} --- \texttt{nonnegative random scalar}; \texttt{Estimated upper benefit mass.}
+  \par\smallskip\noindent\emph{Definition.} The upper threshold-cut value obtained by substituting projected capacities into the positive, negative, or exact-zero branch according to the sign of \(\widehat{\Delta q}(x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat r\_\allowbreak{}x} --- \texttt{nonnegative random scalar}; \texttt{Unconditional estimated cell survivor mass used for screening.}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat r_x=\widehat p_x\widehat m(x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}eta\_\allowbreak{}n} --- \texttt{positive deterministic sequence}; \texttt{Boundary-\allowbreak{}cell screening level.}
+  \par\smallskip\noindent\emph{Definition.} A zero-cell omission threshold satisfying \(\eta_n\to0\) and \(\sqrt n\eta_n\to\infty\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat M\_\allowbreak{}n} --- \texttt{nonnegative random scalar}; \texttt{Screened survivor-\allowbreak{}complier denominator.}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat M_n=\sum_x\mathbf 1\{\widehat r_x>\eta_n\}\widehat p_x\widehat m(x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat N\_\allowbreak{}\{L,\allowbreak{}n\}\allowbreak{}} --- \texttt{nonnegative random scalar}; \texttt{Screened lower-\allowbreak{}endpoint numerator.}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat N_{L,n}=\sum_x\mathbf 1\{\widehat r_x>\eta_n\}\widehat p_x\widehat B_L(x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat N\_\allowbreak{}\{U,\allowbreak{}n\}\allowbreak{}} --- \texttt{nonnegative random scalar}; \texttt{Screened upper-\allowbreak{}endpoint numerator.}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat N_{U,n}=\sum_x\mathbf 1\{\widehat r_x>\eta_n\}\widehat p_x\widehat B_U(x)\).
+  \item \texttt{a\_\allowbreak{}n} --- \texttt{positive deterministic sequence}; \texttt{Estimated contact-\allowbreak{}set tolerance.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A near-\allowbreak{}active-\allowbreak{}face localization tolerance.}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}Psi\_\allowbreak{}n} --- \texttt{random vector}; \(\mathbb R^2\); \texttt{Endpoint estimator.}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\Psi_n=(\widehat N_{L,n}/\widehat M_n,\widehat N_{U,n}/\widehat M_n)\) when \(\widehat M_n>0\), and \(\widehat\Psi_n=(0,1)\) when \(\widehat M_n=0\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}mathcal A\}\allowbreak{}\_\allowbreak{}\{L,\allowbreak{}n\}\allowbreak{}(x;\allowbreak{}a\_\allowbreak{}n)} --- \texttt{random finite index set}; \texttt{Estimated near-\allowbreak{}active lower face.}
+  \par\smallskip\noindent\emph{Definition.} The lower cuts within \(a_n\) of the estimated lower optimum.
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}mathcal A\}\allowbreak{}\_\allowbreak{}\{U,\allowbreak{}n\}\allowbreak{}(x;\allowbreak{}a\_\allowbreak{}n)} --- \texttt{random finite index set}; \texttt{Estimated near-\allowbreak{}active upper face.}
+  \par\smallskip\noindent\emph{Definition.} The upper cuts within \(a_n\) of the estimated upper optimum.
+  \item \texttt{\textbackslash{}\allowbreak{}xi\_\allowbreak{}r} --- \texttt{multiplier random variable}; \texttt{Multiplier-\allowbreak{}bootstrap weight.}
+  \par\smallskip\noindent\emph{Definition.} A conditionally independent, mean-zero, unit-variance multiplier for observation \(r\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathbb G\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}xi\}\allowbreak{}} --- \texttt{conditional multiplier process}; \texttt{Gaussian first-\allowbreak{}stage approximation.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbb G_n^{\xi}=n^{-1/2}\sum_{r=1}^n\xi_r\{\delta_{O_r}-\widehat P_n\}\) for conditionally mean-zero, unit-variance multipliers.
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{scalar}; \((0,1)\); \texttt{Nominal error probability.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}\{1-\allowbreak{}\textbackslash{}\allowbreak{}alpha,\allowbreak{}n\}\allowbreak{}} --- \texttt{random closed set}; \(2^{[0,1]}\); \texttt{Inferential target.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A simultaneous confidence set for the entire identified interval.}
+  \item \texttt{\textbackslash{}\allowbreak{}varepsilon\_\allowbreak{}Z} --- \texttt{positive constant}; \((0,1/2)\); \texttt{Instrument-\allowbreak{}overlap margin.}
+  \item \texttt{\textbackslash{}\allowbreak{}kappa\_\allowbreak{}\{\textbackslash{}\allowbreak{}sigma\}\allowbreak{}} --- \texttt{positive constant}; \texttt{Selection-\allowbreak{}direction separation margin.}
+  \item \texttt{m\_\allowbreak{}\{\textbackslash{}\allowbreak{}star\}\allowbreak{}} --- \texttt{positive constant}; \texttt{Aggregate survivor-\allowbreak{}mass lower bound.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M} --- \texttt{class of probability laws}; \texttt{Domain for the sharp identified set.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The structural law class satisfying the maintained identification conditions,\allowbreak{} including tie-\allowbreak{}safe weak selection monotonicity but no direction-\allowbreak{}separation condition.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal P\_\allowbreak{}n} --- \texttt{class of probability laws}; \texttt{Domain for uniform coverage.}
+  \par\smallskip\noindent\emph{Definition.} The triangular-array subclass of \(\mathcal M\) used only for estimation and uniform inference.
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}x\textasciicircum{}\{\textbackslash{}\allowbreak{}ast\}\allowbreak{}} --- \texttt{convex polytope}; \texttt{Cellwise projected feasible set.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The branch-\allowbreak{}free exact-\allowbreak{}mass survivor-\allowbreak{}complier capacity polytope.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal E} --- \texttt{finite collection of observable measurable events}; \texttt{Finite event class controlling every empirical cell numerator and denominator.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal E=\bigl\{\{X=x\}:x\in\mathcal X\bigr\}\cup\bigl\{\{X=x,Z=z\}:x\in\mathcal X,\ z\in\{0,1\}\bigr\}\cup\bigl\{\{X=x,Z=z,D=d,S=1,Y=k\}:x\in\mathcal X,\ z,d\in\{0,1\},\ k\in\mathcal Y\bigr\}.\)
+  \item \texttt{\textbackslash{}\allowbreak{}delta\_\allowbreak{}n} --- \texttt{nonnegative random scalar}; \([0,1]\); \texttt{Maximal empirical deviation over the finite guard event class.}
+  \par\smallskip\noindent\emph{Definition.} \(\delta_n=\max_{E\in\mathcal E}|\widehat P_n(E)-P_{\mathrm{obs}}(E)|.\)
+  \item \texttt{b\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{positive deterministic scalar}; \texttt{Finite-\allowbreak{}sample union second-\allowbreak{}moment deviation threshold.}
+  \par\smallskip\noindent\emph{Definition.} \(b_{n,\alpha}=\sqrt{|\mathcal E|/(4n\alpha)}.\)
+  \item \texttt{A\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{positive deterministic scalar}; \texttt{Capacity-\allowbreak{}estimation and screening error envelope on the finite-\allowbreak{}sample concentration event.}
+  \par\smallskip\noindent\emph{Definition.} \(A_{n,\alpha}=64K|\mathcal X|b_{n,\alpha}/\varepsilon_Z^2+|\mathcal X|\eta_n.\)
+  \item \texttt{g\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{positive deterministic scalar}; \((0,1]\); \texttt{Finite-\allowbreak{}sample alpha-\allowbreak{}indexed deterministic endpoint guard.}
+  \par\smallskip\noindent\emph{Definition.} \(g_{n,\alpha}=\min\{1,4A_{n,\alpha}/m_{\star}\}.\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:iv-independence]\label{ass:iv-independence}
+\((D_0,D_1,S_0,S_1,Y_0,Y_1)\perp Z\mid X\).
+\par\smallskip\noindent\emph{Standard} (Conditional instrument independence, \cite{AngristImbensRubin1996}).
+\end{assumption}
+
+\begin{assumption}[ass:treatment-consistency]\label{ass:treatment-consistency}
+\(D=D_Z\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Treatment consistency, \cite{AngristImbensRubin1996}).
+\end{assumption}
+
+\begin{assumption}[ass:selection-exclusion-consistency]\label{ass:selection-exclusion-consistency}
+\(S=S_D\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Selection exclusion through received treatment, \cite{KennedyHarrisKeele2019}).
+\end{assumption}
+
+\begin{assumption}[ass:outcome-exclusion-consistency]\label{ass:outcome-exclusion-consistency}
+\(Y=Y_D\) on \(\{S=1\}\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Outcome exclusion through received treatment, \cite{KennedyHarrisKeele2019}).
+\end{assumption}
+
+\begin{assumption}[ass:instrument-overlap]\label{ass:instrument-overlap}
+\(\varepsilon_Z\le\pi(x)\le1-\varepsilon_Z\) for every \(x\in\mathcal X\) with \(p_x>0\).
+\par\smallskip\noindent\emph{Standard} (Conditional instrument overlap, \cite{KennedyHarrisKeele2019}).
+\end{assumption}
+
+\begin{assumption}[ass:no-defiers]\label{ass:no-defiers}
+\(D_1\ge D_0\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Instrument monotonicity, \cite{AngristImbensRubin1996}).
+\end{assumption}
+
+\begin{assumption}[ass:weak-selection-monotonicity]\label{ass:weak-selection-monotonicity}
+\(P\{d(x)(S_1-S_0)\ge0\mid C,X=x\}=1\) for every \(x\) with \(P(C\mid X=x)>0\), where \(d(x)\in\{-1,+1\}\).
+\par\smallskip\noindent\emph{Standard} (Covariate-specific weak sample-selection monotonicity of Dong and Heiler, Assumption 3.2, \cite{DongHeiler2026}).
+\end{assumption}
+
+\begin{assumption}[ass:direction-margin]\label{ass:direction-margin}
+\(|\Delta q(x)|\ge\kappa_{\sigma}\) for every \(x\in\mathcal X\) with \(p_x>0\) and \(m(x)>0\).
+\par\smallskip\noindent\emph{Standard} (Strong sign-separation variant for covariate-specific selection direction, \cite{Semenova2025}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-aggregate-survivors]\label{ass:positive-aggregate-survivors}
+\(M>0\).
+\par\smallskip\noindent\emph{Standard} (Positive target-stratum probability, \cite{KennedyHarrisKeele2019}).
+\end{assumption}
+
+\begin{assumption}[ass:uniform-aggregate-survivor-bound]\label{ass:uniform-aggregate-survivor-bound}
+\(M\ge m_{\star}\).
+\par\smallskip\noindent\emph{Standard} (Uniform positive target-stratum probability, \cite{KennedyHarrisKeele2019}).
+\end{assumption}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+\(O_1,\ldots,O_n\) are independent draws from \(P_{\mathrm{obs}}\).
+\par\smallskip\noindent\emph{Standard} (Independent sampling, \cite{vanDerVaart1998}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:structural-law-class]\label{def:structural-law-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Tie-\allowbreak{}safe survivor-\allowbreak{}complier model}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M=\{P:P\text{ satisfies conditional instrument independence, treatment consistency, treatment-mediated selection and outcome exclusion, instrument overlap, no defiers, latent-direction weak selection monotonicity, and positive aggregate survivor-complier mass}\}\).  This is the finite-ordered, finite-covariate specialization of Dong--Heiler Assumptions 3.1--3.2 on cells with \(P(C\mid X=x)>0\); cells with \(P(C\mid X=x)=0\) have zero capacities and are inert for the target.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}iv-\allowbreak{}independence}; \texttt{ass:\allowbreak{}treatment-\allowbreak{}consistency}; \texttt{ass:\allowbreak{}selection-\allowbreak{}exclusion-\allowbreak{}consistency}; \texttt{ass:\allowbreak{}outcome-\allowbreak{}exclusion-\allowbreak{}consistency}; \texttt{ass:\allowbreak{}instrument-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}no-\allowbreak{}defiers}; \texttt{ass:\allowbreak{}weak-\allowbreak{}selection-\allowbreak{}monotonicity}; \texttt{ass:\allowbreak{}positive-\allowbreak{}aggregate-\allowbreak{}survivors}.
+\end{definition}
+
+\begin{definition}[def:uniform-law-class]\label{def:uniform-law-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Margin-\allowbreak{}free uniform inference law class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_n=\{P\in\mathcal M:P\text{ satisfies the uniform aggregate-survivor and independent-sampling conditions at index }n\}\).  No selection-direction separation condition is imposed.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}iv-\allowbreak{}independence}; \texttt{ass:\allowbreak{}treatment-\allowbreak{}consistency}; \texttt{ass:\allowbreak{}selection-\allowbreak{}exclusion-\allowbreak{}consistency}; \texttt{ass:\allowbreak{}outcome-\allowbreak{}exclusion-\allowbreak{}consistency}; \texttt{ass:\allowbreak{}instrument-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}no-\allowbreak{}defiers}; \texttt{ass:\allowbreak{}weak-\allowbreak{}selection-\allowbreak{}monotonicity}; \texttt{ass:\allowbreak{}uniform-\allowbreak{}aggregate-\allowbreak{}survivor-\allowbreak{}bound}; \texttt{ass:\allowbreak{}iid-\allowbreak{}sampling}.
+\end{definition}
+
+\begin{definition}[def:observable-capacities]\label{def:observable-capacities}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observable selected-\allowbreak{}complier capacities}
+\par\smallskip\noindent\emph{Construction.} For \(i,j\in\mathcal Y\), form \(\ell_i(x)\) and \(h_j(x)\) from the two conditional instrument contrasts displayed in the symbol table, set \(q_0(x)=\sum_i\ell_i(x)\), \(q_1(x)=\sum_jh_j(x)\), define \(\Delta q(x)=q_1(x)-q_0(x)\), and set \(m(x)=\min\{q_0(x),q_1(x)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:partial-transport-polytope]\label{def:partial-transport-polytope}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Branch-\allowbreak{}free exact-\allowbreak{}mass partial-\allowbreak{}transport polytope}
+\par\smallskip\noindent\emph{Construction.} \[\Gamma_x^{\ast}=\left\{\gamma_x\ge0:\sum_j\gamma_{ij,x}\le\ell_i(x),\ \sum_i\gamma_{ij,x}\le h_j(x),\ \sum_{i,j}\gamma_{ij,x}=m(x)\right\}.\]
+For comparison, retain
+\[\Gamma_x^{+}=\left\{\gamma_x\ge0:\sum_j\gamma_{ij,x}=\ell_i(x),\ \sum_i\gamma_{ij,x}\le h_j(x)\right\},\qquad
+\Gamma_x^{-}=\left\{\gamma_x\ge0:\sum_j\gamma_{ij,x}\le\ell_i(x),\ \sum_i\gamma_{ij,x}=h_j(x)\right\},\]
+and
+\[\Gamma_x^{0}=\left\{\gamma_x\ge0:\sum_j\gamma_{ij,x}=\ell_i(x),\ \sum_i\gamma_{ij,x}=h_j(x)\right\}.\]
+Define \(\Gamma_x=\Gamma_x^{\ast}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}observable-\allowbreak{}capacities}.
+\end{definition}
+
+\begin{definition}[def:threshold-cuts]\label{def:threshold-cuts}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Closed threshold-\allowbreak{}cut endpoints}
+\par\smallskip\noindent\emph{Construction.} For every \(x\in\mathcal X\), define
+\[
+B_L(x)=\max\left\{0,\ \max_{t\in\mathcal Y}\bigl[\ell_{\le t}(x)-h_{\le t}(x)\bigr]+\min\{\Delta q(x),0\}\right\}
+\]
+and
+\[
+B_U(x)=\min\left\{m(x),\ \min_{t\in\mathcal Y}\bigl[\ell_{<t}(x)+h_{>t}(x)\bigr]\right\}.
+\]
+These formulas are branch-free and remain defined on positive-survivor zero-gap cells and on zero-survivor cells.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}observable-\allowbreak{}capacities}.
+\end{definition}
+
+\begin{definition}[def:identified-interval]\label{def:identified-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Aggregate identified interval}
+\par\smallskip\noindent\emph{Construction.} \[\Psi(P_{\mathrm{obs}})=(\theta_L,\theta_U)=\left(\frac{\sum_{x\in\mathcal X}p_xB_L(x)}{M},\frac{\sum_{x\in\mathcal X}p_xB_U(x)}{M}\right),\qquad \Theta_I(P_{\mathrm{obs}})=[\theta_L,\theta_U].\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}threshold-\allowbreak{}cuts}.
+\end{definition}
+
+\begin{definition}[def:threshold-flow-construction]\label{def:threshold-flow-construction}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Threshold-\allowbreak{}flow and latent-\allowbreak{}completion construction}
+\par\smallskip\noindent\emph{Construction.} In each cell, first compute the exact mass \(m(x)\), the prefix and tail sums, and the two threshold values.  For an upper-attaining coupling, greedily construct a maximum subflow on the nested benefit graph \(i<j\); for a lower-attaining coupling, greedily construct a maximum subflow on the nested nonbenefit graph \(j\le i\).  Complete either subflow to total mass \(m(x)\) by a two-pointer allocation on the residual complete bipartite graph.  The result belongs to \(\Gamma_x^{\ast}\).  Allocate every row or column residual to the one-sided selected-complier stratum forced by the sign of \(q_1(x)-q_0(x)\), put the remaining compliers in the never-selected stratum, and adjoin the unchanged never-taker and always-taker components of a baseline compatible law.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}partial-\allowbreak{}transport-\allowbreak{}polytope}; \texttt{def:\allowbreak{}threshold-\allowbreak{}cuts}.
+\end{definition}
+
+\begin{definition}[def:three-level-witness]\label{def:three-level-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fully specified three-\allowbreak{}level observed and latent witness}
+\par\smallskip\noindent\emph{Construction.} Let \(X=x^{\star}\) almost surely, \(P_{\mathrm{obs}}^{\star}(Z=1)=P_{\mathrm{obs}}^{\star}(Z=0)=1/2\), and \(K=3\). Given \(Z=0\), assign probabilities \(0.075\), \(0.10\), and \(0.075\) to \((D,S,Y)=(0,1,0),(0,1,1),(0,1,2)\), respectively, and probability \(0.75\) to \((D,S,Y)=(0,0,\star)\). Given \(Z=1\), assign probabilities \(0.10\), \(0.25\), and \(0.15\) to \((D,S,Y)=(1,1,0),(1,1,1),(1,1,2)\), respectively, and probability \(0.50\) to \((D,S,Y)=(1,0,\star)\); all unlisted conditional cells have probability zero. Construct \(P^{\star}\) by taking every unit to satisfy \(D_0=0,D_1=1\), allocating masses \(0.075,0.10,0.075\) to \(S_0=S_1=1\) with diagonal survivor pairs \((Y_0,Y_1)=(0,0),(1,1),(2,2)\), allocating mass \(0.25\) to \(S_0=0,S_1=1\) with \(Y_1\) residual masses \((0.025,0.15,0.075)\), and allocating mass \(0.50\) to \(S_0=S_1=0\). Take \(Z\) independent with probability one half and assign arbitrary latent outcomes wherever selection makes them unobserved.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}structural-\allowbreak{}law-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:plugin-endpoint-estimator]\label{def:plugin-endpoint-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Total constrained plug-\allowbreak{}in endpoint estimator}
+\par\smallskip\noindent\emph{Construction.} For every empirical conditional probability given \((X=x,Z=z)\), use its empirical ratio when the denominator is positive and the fixed value zero when the denominator is zero. Form \(\widetilde c_n=(\widetilde\ell,\widetilde h)\), set \(\mathfrak C=\prod_{x\in\mathcal X}\mathbb R_+^{2K}\), and define \(\widehat c_n=\Pi_{\mathfrak C}(\widetilde c_n)=\arg\min_{c\in\mathfrak C}\|c-\widetilde c_n\|_2^2\). The fixed Euclidean metric makes the minimizer unique, and \(\Pi_{\mathfrak C}\) is the coordinatewise positive-part map. From \(\widehat c_n=(\widehat\ell,\widehat h)\), form \(\widehat q_0(x)=\sum_i\widehat\ell_i(x)\), \(\widehat q_1(x)=\sum_j\widehat h_j(x)\), \(\widehat{\Delta q}(x)=\widehat q_1(x)-\widehat q_0(x)\), and \(\widehat m(x)=\min\{\widehat q_0(x),\widehat q_1(x)\}\). Evaluate
+\[
+\widehat B_L(x)=\max\left\{0,\ \max_{t\in\mathcal Y}\left[\sum_{i\le t}\widehat\ell_i(x)-\sum_{j\le t}\widehat h_j(x)\right]+\min\{\widehat{\Delta q}(x),0\}\right\}
+\]
+and
+\[
+\widehat B_U(x)=\min\left\{\widehat m(x),\ \min_{t\in\mathcal Y}\left[\sum_{i<t}\widehat\ell_i(x)+\sum_{j>t}\widehat h_j(x)\right]\right\}.
+\]
+Set \(\widehat r_x=\widehat p_x\widehat m(x)\), retain exactly the cells satisfying \(\widehat r_x>\eta_n\), and form \(\widehat M_n=\sum_x\mathbf 1\{\widehat r_x>\eta_n\}\widehat p_x\widehat m(x)\), \(\widehat N_{L,n}=\sum_x\mathbf 1\{\widehat r_x>\eta_n\}\widehat p_x\widehat B_L(x)\), and \(\widehat N_{U,n}=\sum_x\mathbf 1\{\widehat r_x>\eta_n\}\widehat p_x\widehat B_U(x)\). Define \(\widehat\Psi_n=(\widehat N_{L,n}/\widehat M_n,\widehat N_{U,n}/\widehat M_n)\) when \(\widehat M_n>0\), and use the fixed fallback \(\widehat\Psi_n=(0,1)\) otherwise.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}observable-\allowbreak{}capacities}; \texttt{def:\allowbreak{}identified-\allowbreak{}interval}.
+\end{definition}
+
+\begin{definition}[def:face-aware-inference-handle]\label{def:face-aware-inference-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Conservative guarded inference and face diagnostic}
+\par\smallskip\noindent\emph{Construction.} Use the same retained-cell rule \(\widehat r_x>\eta_n\).  The near-active lower and upper threshold cuts, the active face of \(\min\{\widehat{\Delta q}(x),0\}\), the active face of \(\min\{\widehat q_0(x),\widehat q_1(x)\}\), and the coordinatewise nonnegativity faces generated by \(\Pi_{\mathfrak C}\) define a computable finite diagnostic face envelope for \(\mathbb G_n^\xi\).  This multiplier envelope is not used as a calibrated critical value.  Retain \(a_n=(n\eta_n)^{-1/4}\) solely as its near-active-face localization tolerance.  The finite event collection \(\mathcal E\) and its maximal empirical deviation \(\delta_n\) supply the concentration input.  Set
+\[
+b_{n,\alpha}=\sqrt{\frac{|\mathcal E|}{4n\alpha}},\qquad
+A_{n,\alpha}=\frac{64K|\mathcal X|}{\varepsilon_Z^2}b_{n,\alpha}+|\mathcal X|\eta_n,
+\qquad
+g_{n,\alpha}=\min\left\{1,\frac{4A_{n,\alpha}}{m_{\star}}\right\}.
+\]
+Define the conservative guarded confidence set
+\[
+\mathcal C_{1-\alpha,n}=
+\left[\max\{0,\widehat\Psi_{n,L}-g_{n,\alpha}\},\
+\min\{1,\widehat\Psi_{n,U}+g_{n,\alpha}\}\right].
+\]
+The alpha-indexed deterministic guard supplies finite-sample uniform containment and uniform endpoint consistency; first-order exact calibration of an unguarded face-aware multiplier region remains outside this construction.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}plugin-\allowbreak{}endpoint-\allowbreak{}estimator}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:capacity-identification]\label{prop:capacity-identification}
+For every supported \(x\in\mathcal X\) and \(i,j\in\mathcal Y\), \(\ell_i(x)=P(Y_0=i,S_0=1,C\mid X=x)\) and \(h_j(x)=P(Y_1=j,S_1=1,C\mid X=x)\). Hence \(\Delta q(x)=P(S_1=1,C\mid X=x)-P(S_0=1,C\mid X=x)\) and, under weak selection monotonicity, \(m(x)=P(S_0=S_1=1,C\mid X=x)\). If \(\Delta q(x)>0\), then \(d(x)=+1\); if \(\Delta q(x)<0\), then \(d(x)=-1\). No direction is identified from the observable gap when \(\Delta q(x)=0\).
+\end{proposition}
+\begin{proof}
+Let \((\Omega,\mathscr F,P)\) carry a full law compatible with the maintained restrictions, and fix \(x\in\mathcal X\) with \(p_x>0\).  We first make the atomwise conditioning step explicit.  By the repaired declaration of \(\mathcal X\), its measurable structure is discrete.  Thus \(\{x\}\) is measurable, and measurability of the random variable \(X\) implies that
+\[
+A_x:=X^{-1}(\{x\})=\operatorname{xEvent}(x)\in\mathscr F.
+\]
+The observed carrier
+\[
+\mathcal O_{\mathrm{obs}}
+=\mathcal X\times\{0,1\}^{3}\times(\mathcal Y\cup\{\star\})
+\]
+is also finite and discrete.  Write \(W=Y\) on \(\{S=1\}\) and \(W=\star\) on \(\{S=0\}\), so that
+\[
+\operatorname{observedDatum}(\omega)
+=\bigl(X(\omega),Z(\omega),D(\omega),S(\omega),W(\omega)\bigr)
+=O(\omega).
+\]
+For each singleton \(\{o\}\subseteq\mathcal O_{\mathrm{obs}}\), its inverse image under \(O\) is a finite intersection of measurable coordinate events.  In particular, the last-coordinate fibers are \(\{S=1,Y=i\}\) for \(i\in\mathcal Y\) and \(\{S=0\}\) for \(\star\).  Hence every singleton inverse image is measurable.  Every subset of the finite carrier is a finite union of singletons, so \(O=\operatorname{observedDatum}\) is measurable.  Consequently
+\[
+P_{\mathrm{obs}}=P\mathbin{\operatorname{map}}O,
+\qquad
+(P\mathbin{\operatorname{map}}O)(\mathcal O_{\mathrm{obs}})
+=P\{O\in\mathcal O_{\mathrm{obs}}\}=1,
+\]
+and \(P_{\mathrm{obs}}\) is a probability law.  Moreover, for every measurable \(E\subseteq\mathcal O_{\mathrm{obs}}\), the defining identity for a measurable pushforward gives
+\[
+P_{\mathrm{obs}}(E)=P\bigl(O^{-1}(E)\bigr).
+\tag{1}
+\]
+Taking \(E=\{o:X(o)=x\}\) in (1) shows \(P(A_x)=p_x\).
+
+We next transport conditional instrument independence to the positive atom \(A_x\).  Put
+\[
+V=(D_0,D_1,S_0,S_1,Y_0,Y_1),
+\qquad \mathscr G=\sigma(X).
+\]
+For any event \(A\in\sigma(V)\) and \(z\in\{0,1\}\), conditional instrument independence gives the conditional bundle identity
+\[
+E_P\!\left[\mathbf 1_A\mathbf 1_{\{Z=z\}}\mid\mathscr G\right]
+=E_P\!\left[\mathbf 1_A\mid\mathscr G\right]
+ E_P\!\left[\mathbf 1_{\{Z=z\}}\mid\mathscr G\right]
+\quad P\text{-almost surely}.
+\tag{2}
+\]
+Because \(X\) has a finite discrete carrier, on every atom \(A_u\) with \(P(A_u)>0\) the three conditional expectations in (2) have the ratio versions
+\[
+\frac{P(A\cap\{Z=z\}\cap A_u)}{P(A_u)},
+\qquad
+\frac{P(A\cap A_u)}{P(A_u)},
+\qquad
+\frac{P(\{Z=z\}\cap A_u)}{P(A_u)},
+\]
+respectively.  Evaluating (2) on the positive atom \(A_x\) therefore yields
+\[
+P(A\cap\{Z=z\}\cap A_x)P(A_x)
+=P(A\cap A_x)P(\{Z=z\}\cap A_x).
+\tag{3}
+\]
+Let \(\pi_1(x)=\pi(x)\) and \(\pi_0(x)=1-\pi(x)\).  Identity (1), the definition of \(\pi\), and instrument overlap imply
+\[
+P(\{Z=z\}\cap A_x)=p_x\pi_z(x)
+\ge p_x\varepsilon_Z>0.
+\tag{4}
+\]
+Dividing (3) by the two positive factors justified by \(p_x>0\) and (4) gives the required atomwise conditional-independence equality
+\[
+P(A\mid Z=z,X=x)
+=\frac{P(A\cap\{Z=z\}\cap A_x)}{P(\{Z=z\}\cap A_x)}
+=\frac{P(A\cap A_x)}{P(A_x)}
+=P(A\mid X=x).
+\tag{5}
+\]
+
+Fix \(i\in\mathcal Y\).  On \(\{Z=z,D=0,S=1\}\), treatment consistency gives \(D_z=0\), selection exclusion-consistency gives \(S_0=1\), and outcome exclusion-consistency gives \(Y_0=Y\).  Therefore (1) rewrites the relevant observed atom as
+\[
+\begin{aligned}
+&P_{\mathrm{obs}}(Y=i,S=1,D=0\mid Z=z,X=x)\\
+&\qquad=P(Y_0=i,S_0=1,D_z=0\mid Z=z,X=x)\\
+&\qquad=P(Y_0=i,S_0=1,D_z=0\mid X=x),
+\end{aligned}
+\tag{6}
+\]
+where the last equality is (5) applied to the measurable event \(A=\{Y_0=i,S_0=1,D_z=0\}\in\sigma(V)\).  Substituting \(z=0\) and \(z=1\) into (6), then using the definition of \(\ell_i(x)\), gives
+\[
+\begin{aligned}
+\ell_i(x)
+&=P(Y_0=i,S_0=1,D_0=0\mid X=x)\\
+&\quad-P(Y_0=i,S_0=1,D_1=0\mid X=x).
+\end{aligned}
+\tag{7}
+\]
+No defiers and binary treatment imply
+\[
+\{D_1=0\}\subseteq\{D_0=0\},
+\qquad
+\{D_0=0\}\setminus\{D_1=0\}=\{D_0=0,D_1=1\}=C.
+\tag{8}
+\]
+Using (8) to subtract the nested events in (7) proves
+\[
+\ell_i(x)=P(Y_0=i,S_0=1,C\mid X=x)\ge0.
+\tag{9}
+\]
+
+The higher-arm calculation is symmetric but its subtraction order is reversed.  On \(\{Z=z,D=1,S=1\}\), the three consistency and exclusion restrictions give \((D_z,S_1,Y_1)=(1,1,Y)\).  Thus (1) and (5) imply, for every \(j\in\mathcal Y\),
+\[
+P_{\mathrm{obs}}(Y=j,S=1,D=1\mid Z=z,X=x)
+=P(Y_1=j,S_1=1,D_z=1\mid X=x).
+\tag{10}
+\]
+Hence
+\[
+\begin{aligned}
+h_j(x)
+&=P(Y_1=j,S_1=1,D_1=1\mid X=x)\\
+&\quad-P(Y_1=j,S_1=1,D_0=1\mid X=x).
+\end{aligned}
+\tag{11}
+\]
+Again by no defiers and binary treatment,
+\[
+\{D_0=1\}\subseteq\{D_1=1\},
+\qquad
+\{D_1=1\}\setminus\{D_0=1\}=C.
+\tag{12}
+\]
+Subtracting the nested events in (11) therefore yields
+\[
+h_j(x)=P(Y_1=j,S_1=1,C\mid X=x)\ge0.
+\tag{13}
+\]
+
+Because \(\mathcal Y=\{0,\ldots,K-1\}\) is finite and the events \(\{Y_a=k\}\), \(k\in\mathcal Y\), partition the relevant selected stratum, finite additivity in (9) and (13) gives
+\[
+q_0(x)=\sum_{i=0}^{K-1}\ell_i(x)=P(S_0=1,C\mid X=x),
+\qquad
+q_1(x)=\sum_{j=0}^{K-1}h_j(x)=P(S_1=1,C\mid X=x).
+\tag{14}
+\]
+Subtracting the two equalities in (14) proves
+\[
+\Delta q(x)
+=P(S_1=1,C\mid X=x)-P(S_0=1,C\mid X=x).
+\tag{15}
+\]
+
+It remains to identify the survivor mass and read the direction.  If \(P(C\mid X=x)=0\), then (14) gives \(q_0(x)=q_1(x)=m(x)=0\), and also
+\[
+P(S_0=S_1=1,C\mid X=x)=0=m(x).
+\tag{16}
+\]
+Suppose instead that \(P(C\mid X=x)>0\).  Under weak selection monotonicity, if \(d(x)=+1\), then \(S_1\ge S_0\) almost surely conditional on \((C,X=x)\).  Since selection is binary,
+\[
+\{S_0=1,C\}\subseteq\{S_1=1,C\}\quad\text{conditional on }X=x.
+\]
+Consequently, by (14),
+\[
+P(S_0=S_1=1,C\mid X=x)=q_0(x)=m(x)
+\tag{17}
+\]
+and
+\[
+\Delta q(x)=P(S_0=0,S_1=1,C\mid X=x)\ge0.
+\tag{18}
+\]
+If \(d(x)=-1\), weak selection monotonicity instead gives \(S_1\le S_0\) almost surely conditional on \((C,X=x)\), and the same nested-event argument gives
+\[
+P(S_0=S_1=1,C\mid X=x)=q_1(x)=m(x)
+\tag{19}
+\]
+and
+\[
+\Delta q(x)=-P(S_0=1,S_1=0,C\mid X=x)\le0.
+\tag{20}
+\]
+Equations (16), (17), and (19) establish the survivor-mass formula in every case.  Equation (20) rules out \(d(x)=-1\) when \(\Delta q(x)>0\), so a positive gap forces \(d(x)=+1\); equation (18) rules out \(d(x)=+1\) when \(\Delta q(x)<0\), so a negative gap forces \(d(x)=-1\).  Finally, when \(\Delta q(x)=0\), (18) or (20) makes the corresponding one-sided selection stratum null.  Thus \(S_0=S_1\) almost surely within \((C,X=x)\), and the same conditional latent law satisfies the weak-monotonicity inequality with either label \(d(x)=+1\) or \(d(x)=-1\).  Relabeling that direction leaves \(P_{\mathrm{obs}}\) unchanged; if the complier mass is zero, the restriction is vacuous and the same conclusion holds.  Hence the observable zero gap does not identify the direction.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This projection converts observed IV contrasts into the two latent submeasures used by the exact-mass capacity polytope. \textit{Gap.} Dong--Heiler use the same structural direction restriction for trimmed means but do not identify these ordinal submeasures as capacities for a same-unit benefit coupling. \textit{Consumer.} An analyst can compute the survivor-complier outcome capacities from instrument, receipt, employment, and categorized-outcome cells.
+
+\begin{proposition}[prop:tie-face-collapse]\label{prop:tie-face-collapse}
+For every supported cell, \(\Gamma_x^{+}=\Gamma_x^{-}=\Gamma_x^{0}\) if and only if \(\Delta q(x)=0\). On this tie face, weak selection monotonicity implies \(P(S_0=S_1,C\mid X=x)=P(C\mid X=x)\), and \(\Gamma_x^{+}=\Gamma_x^{-}=\Gamma_x^{0}=\Gamma_x\): in \(\Gamma_x^{+}\), the column inequalities bind because their total capacity equals the required row mass, and symmetrically the row inequalities bind in \(\Gamma_x^{-}\). Moreover, \(\ell_{\le t}(x)-h_{\le t}(x)=h_{>t}(x)-\ell_{>t}(x)\) for every \(t\), so the increasing, decreasing, and explicit tie formulas for \(B_L(x)\) coincide, while all three branches share \(B_U(x)\).
+\end{proposition}
+\begin{proof}
+\noindent\textit{Proof.}
+Fix a supported cell \(x\), suppress its argument, and write
+\[
+q_0=\sum_i\ell_i,\qquad q_1=\sum_jh_j,
+\qquad m=\min\{q_0,q_1\}.
+\]
+The technique in the first part is exact-mass slack algebra.  For every
+\(\gamma\in\Gamma_x^{\ast}\), Definition
+\(\mathrm{def{:}partial\text{-}transport\text{-}polytope}\) gives
+\[
+\sum_i\left(\ell_i-\sum_j\gamma_{ij}\right)=q_0-m,
+\qquad
+\sum_j\left(h_j-\sum_i\gamma_{ij}\right)=q_1-m.
+\tag{1}
+\]
+Every summand is nonnegative.  If \(q_0<q_1\), the first sum in (1) is
+zero, so every row constraint binds and
+\(\Gamma_x^{\ast}=\Gamma_x^{+}\).  The latter set is nonempty: because
+the total column capacity \(q_1\) exceeds the required row mass \(q_0\),
+a two-pointer allocation on the complete bipartite graph assigns all row
+mass without violating any column capacity.  In contrast,
+\(\Gamma_x^{-}\) and \(\Gamma_x^{0}\) are empty, since either would have
+total mass \(q_1>q_0\) while its row sums are bounded by a total capacity
+\(q_0\).  Symmetrically, if \(q_1<q_0\), then
+\(\Gamma_x^{\ast}=\Gamma_x^{-}\ne\varnothing\), whereas
+\(\Gamma_x^{+}=\Gamma_x^{0}=\varnothing\).  If \(q_0=q_1=m\), both
+sums in (1) vanish, and hence
+\[
+\Gamma_x^{\ast}=\Gamma_x^{+}=\Gamma_x^{-}=\Gamma_x^{0}.
+\tag{2}
+\]
+Since Definition \(\mathrm{def{:}partial\text{-}transport\text{-}polytope}\)
+sets \(\Gamma_x=\Gamma_x^{\ast}\), these cases prove
+\(\Gamma_x^{+}=\Gamma_x^{-}=\Gamma_x^{0}\) if and only if
+\(\Delta q(x)=q_1-q_0=0\), as well as the claimed equality with
+\(\Gamma_x\) on the tie face.
+
+We next use binary monotonicity algebra.  Put
+\(c_x=P(C\mid X=x)\).  If \(c_x=0\), both
+\(P(S_0=S_1,C\mid X=x)\) and \(P(C\mid X=x)\) are zero.  Suppose instead
+that \(c_x>0\).  Proposition
+\(\mathrm{prop{:}capacity\text{-}identification}\) gives
+\[
+\Delta q(x)=P(S_1=1,C\mid X=x)-P(S_0=1,C\mid X=x).
+\tag{3}
+\]
+Under Assumption \(\mathrm{ass{:}weak\text{-}selection\text{-}monotonicity}\),
+if \(d(x)=+1\), then \(S_1\ge S_0\) almost surely conditional on
+\((C,X=x)\), and the right side of (3) is
+\(P(S_0=0,S_1=1,C\mid X=x)\).  If \(d(x)=-1\), it is the negative of
+\(P(S_0=1,S_1=0,C\mid X=x)\).  Thus \(\Delta q(x)=0\) makes the only
+permitted one-sided selection stratum have probability zero in either
+direction.  Consequently
+\[
+P(S_0=S_1,C\mid X=x)=P(C\mid X=x).
+\tag{4}
+\]
+This conclusion does not identify \(d(x)\); both directions impose the
+same restriction on the observable tie face.
+
+Finally, use finite cumulative-sum algebra.  When \(q_0=q_1\), for every
+\(t\in\mathcal Y\),
+\[
+\ell_{\le t}-h_{\le t}
+=(q_0-\ell_{>t})-(q_1-h_{>t})
+=h_{>t}-\ell_{>t}.
+\tag{5}
+\]
+Also \(\min\{\Delta q,0\}=0\).  Equation (5) therefore makes the two
+directional lower-cut expressions and the explicit tie expression agree
+with \(B_L(x)\) from Definition \(\mathrm{def{:}threshold\text{-}cuts}\).
+The upper expression in that definition has no direction branch, so it is
+common to all three presentations. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The slack identities show that exact mass forces both margins to bind exactly at a zero selection gap. \textit{Gap.} This replaces a directional tie convention by a proved direction-invariant transport face. \textit{Consumer.} Implementations evaluate zero-gap cells without choosing an artificial sign.
+
+\begin{theorem}[thm:full-law-endpoint-attainment]\label{thm:full-law-endpoint-attainment}
+For every \(P_{\mathrm{obs}}\) compatible with \(\mathcal M\), the threshold-flow construction returns full laws \(P^L\) and \(P^U\) over \((Y_0,Y_1,S_0,S_1,D_0,D_1,X,Z)\) that belong to \(\mathcal M\), induce exactly \(P_{\mathrm{obs}}\), and obey \(P^L(Y_1>Y_0\mid S_1=S_0=1,C)=\theta_L\) and \(P^U(Y_1>Y_0\mid S_1=S_0=1,C)=\theta_U\), including observable tie cells and zero-survivor cells.
+\end{theorem}
+\begin{proof}
+\noindent\textit{Proof.}
+Choose a baseline compatible law \(\bar P\in\mathcal M\), whose existence
+is the meaning of compatibility.  We first verify that the named
+threshold-flow construction produces cellwise endpoint couplings rather
+than merely invoking abstract attainment.  On the nested benefit graph
+\(i<j\), process columns in increasing order and fill each column from
+the largest-index currently eligible residual row.  A future row cannot
+serve an earlier column.  Moreover, if a feasible flow sends positive
+mass from a smaller row to the current column while a larger eligible row
+is sent to a later column, swapping the smaller of those two masses
+preserves both margins and all inequalities \(i<j\).  Repeating this
+finite exchange transforms a maximum flow into the greedy order without
+changing its value, so the greedy benefit subflow is maximum.  The
+reverse scan on the nested nonbenefit graph \(j\le i\), filling a column
+from the smallest eligible row, has the symmetric exchange proof and is
+also maximum.
+
+After either subflow of mass \(f\le m(x)\), residual row and column
+capacities have respective totals at least \(m(x)-f\).  A two-pointer
+allocation on the residual complete bipartite graph therefore extends it
+to total mass \(m(x)\).  If the maximum benefit subflow has mass less than
+\(m(x)\), no residual benefit edge has two positive endpoint capacities,
+for otherwise it could be augmented; hence its completion adds only
+nonbenefit mass.  The analogous statement for a maximum nonbenefit
+subflow shows that any added mass is beneficial.  The endpoint equalities
+follow because the benefit part of every exact-mass coupling is a feasible
+benefit subflow, while its nonbenefit part is a feasible nonbenefit
+subflow: the two completions therefore attain, respectively, the greatest
+possible benefit mass and \(m(x)\) minus the greatest possible nonbenefit
+mass.  The formulas in Theorem
+\(\mathrm{thm{:}sharp\text{-}exact\text{-}mass\text{-}threshold\text{-}interval}\)
+then show that the two completed matrices, denoted
+\(\gamma_x^L,\gamma_x^U\in\Gamma_x^{\ast}\), satisfy
+\[
+b_x(\gamma_x^L)=B_L(x),\qquad
+b_x(\gamma_x^U)=B_U(x).
+\tag{1}
+\]
+When \(m(x)=0\), both are the unique zero matrix.  We apply the following
+completion separately to the lower and upper collections.
+
+Fix one selected matrix \(\gamma_x\).  Write
+\(c_x=\bar P(C\mid X=x)\).  Proposition
+\(\mathrm{prop{:}capacity\text{-}identification}\), used inside the sharp
+theorem, gives \(q_d(x)\le c_x\).  If \(q_1(x)>q_0(x)\), exact mass makes
+the row-slack sum equal \(q_0(x)-m(x)=0\), so every row binds.  The column
+residuals
+\[
+r_j=h_j(x)-\sum_i\gamma_{ij,x}
+\tag{2}
+\]
+are nonnegative and sum to \(q_1(x)-q_0(x)\).  Allocate mass \(r_j\) to
+compliers with \((S_0,S_1)=(0,1)\) and \(Y_1=j\), and allocate the
+remaining complier mass \(c_x-q_1(x)\ge0\) to \((S_0,S_1)=(0,0)\).  If
+\(q_0(x)>q_1(x)\), every column binds; allocate the row residuals
+\[
+r_i=\ell_i(x)-\sum_j\gamma_{ij,x}
+\tag{3}
+\]
+to \((S_0,S_1)=(1,0)\) compliers with \(Y_0=i\), and put the remaining
+mass \(c_x-q_0(x)\ge0\) in \((0,0)\).  At equality both margins bind and
+all nonsurviving compliers use \((0,0)\).  Assign arbitrary potential
+outcomes wherever the corresponding selection indicator is zero.  These
+allocations remain valid when \(m(x)=0\).
+
+For each endpoint construction, retain from \(\bar P\) the law of \(X\),
+the conditional probabilities of the three no-defier compliance types,
+and every never-taker and always-taker latent component.  Replace only the
+conditional complier selection/outcome allocation by (2)--(3), leaving
+unsupported cells unchanged.  Retain
+\(P(Z=1\mid X=x)=\pi(x)\), draw \(Z\) conditionally independently of all
+potential variables, and impose \(D=D_Z\), \(S=S_D\), and \(Y=Y_D\) on
+\(\{S=1\}\).  Conditional instrument independence, both consistency and
+exclusion restrictions, overlap, and no defiers then hold by construction.
+The new complier allocation uses only \((1,1),(0,1),(0,0)\) when
+\(q_1>q_0\), only \((1,1),(1,0),(0,0)\) when \(q_0>q_1\), and only
+\((1,1),(0,0)\) at equality.  Assumption
+\(\mathrm{ass{:}weak\text{-}selection\text{-}monotonicity}\) is therefore
+satisfied in the appropriate cellwise direction, including the
+direction-invariant tie case.
+
+The selected complier outcome masses under treatments zero and one are
+exactly \(\ell\) and \(h\).  The complier total and both selected
+complier totals are unchanged, and all noncomplier observed components
+are unchanged.  Treatment and outcome consistency and exclusion then
+show, cell by cell and instrument arm by instrument arm, that the
+resulting full law induces exactly \(P_{\mathrm{obs}}\).  Call the lower
+and upper completions \(P^L\) and \(P^U\).  Their common target-stratum
+mass is \(M>0\), while (1) yields
+\[
+P^L(Y_1>Y_0,S_0=S_1=1,C)=\sum_xp_xB_L(x),
+\]
+and
+\[
+P^U(Y_1>Y_0,S_0=S_1=1,C)=\sum_xp_xB_U(x).
+\]
+Division by \(M\), justified by Assumption
+\(\mathrm{ass{:}positive\text{-}aggregate\text{-}survivors}\) inside the
+structural class, gives \(\theta_L\) and \(\theta_U\), respectively.
+Thus the endpoints are attained by compatible full latent laws, not only
+inside the projected transport polytope. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact-mass extremal couplings are pasted into full IV, compliance, and selection laws, closing the sharpness argument. \textit{Gap.} Projected coupling feasibility alone does not imply existence of a compatible full latent law. \textit{Consumer.} Simulation and sensitivity analyses can use exact least-favorable data-generating laws.
+
+\begin{proposition}[prop:three-level-witness]\label{prop:three-level-witness}
+The displayed latent allocation defines \(P^{\star}\in\mathcal M\) and induces exactly the fully specified law \(P_{\mathrm{obs}}^{\star}\): every unit is a complier, weak selection monotonicity holds in the increasing direction, and the selected cells under each instrument arm equal the listed probabilities. Applying the observable contrasts to \(P_{\mathrm{obs}}^{\star}\) gives \(\ell=(0.075,0.10,0.075)\), \(h=(0.10,0.25,0.15)\), \(q_0=m=0.25\), \(q_1=0.50\), and \(\Delta q=0.25\). The threshold cuts then give \(B_L=0\) and \(B_U=0.175\); consequently the sharpness and full-law-attainment theorems imply \(\Theta_I(P_{\mathrm{obs}}^{\star})=[0,0.7]\) and attainment of both endpoints.
+\end{proposition}
+\begin{proof}
+\noindent\textit{Proof.}
+The masses in the displayed allocation are nonnegative and sum to
+\[
+0.075+0.10+0.075+0.25+0.50=1.
+\tag{1}
+\]
+Thus they define a probability law conditional on the sole supported cell
+\(X=x^{\star}\).  Every unit has \((D_0,D_1)=(0,1)\), so \(C\) has
+probability one and the no-defiers condition holds.  Draw \(Z\) independently
+of all potential variables with probability one half and set \(D=D_Z\),
+\(S=S_D\), and \(Y=Y_D\) whenever \(S=1\).  This gives conditional
+instrument independence, treatment consistency, and both exclusion and
+consistency restrictions.  Since \(\pi(x^{\star})=1/2\) and
+\(0<\varepsilon_Z<1/2\), instrument overlap holds.
+
+The only selection pairs assigned positive mass are \((S_0,S_1)=(1,1)\),
+\((0,1)\), and \((0,0)\).  Hence \(S_1-S_0\ge0\) almost surely among
+compliers, which verifies weak selection monotonicity with
+\(d(x^{\star})=+1\).  The survivor-complier mass is the total mass of the
+three diagonal allocations,
+\[
+P^{\star}(S_0=S_1=1,C\mid X=x^{\star})
+=0.075+0.10+0.075=0.25>0.
+\tag{2}
+\]
+Consequently the aggregate survivor mass is positive.  All conditions in
+the definition of \(\mathcal M\) have now been verified, so
+\(P^{\star}\in\mathcal M\).
+
+Under \(Z=0\), treatment consistency gives \(D=0\) for every unit.
+Exactly the diagonal survivor units are selected; their observed outcome
+masses are \(0.075,0.10,0.075\), and the remaining mass is
+\(1-0.25=0.75\) at \((D,S,Y)=(0,0,\star)\).  Under \(Z=1\), every unit
+has \(D=1\).  Adding the higher-arm outcome masses of the diagonal
+survivors and the \((0,1)\) selection stratum gives
+\[
+(0.075,0.10,0.075)+(0.025,0.15,0.075)
+=(0.10,0.25,0.15).
+\tag{3}
+\]
+Their total is \(0.50\), and the remaining mass \(0.50\) is unselected.
+Equations (2)--(3), together with the independent fair instrument, are
+exactly the conditional cells specified by \(P_{\mathrm{obs}}^{\star}\).
+Thus \(P^{\star}\) induces \(P_{\mathrm{obs}}^{\star}\).
+
+There are no treated observations under \(Z=0\) and no untreated
+observations under \(Z=1\).  Therefore the observable contrast definition,
+or equivalently Proposition
+\(\mathrm{prop{:}capacity\text{-}identification}\), yields
+\[
+\ell=(0.075,0.10,0.075),\qquad
+h=(0.10,0.25,0.15).
+\tag{4}
+\]
+Summing (4) gives
+\[
+q_0=0.25,\qquad q_1=0.50,\qquad
+m=\min\{q_0,q_1\}=0.25,
+\qquad \Delta q=q_1-q_0=0.25.
+\tag{5}
+\]
+In particular, the survivor share among the higher-arm selected compliers
+is \(m/q_1=1/2\), the normalized higher-arm mixture is
+\(h/q_1=(0.2,0.5,0.3)\), and the normalized lower-arm marginal is
+\(\ell/q_0=(0.3,0.4,0.3)\).
+
+Because \(\Delta q>0\), the additive term
+\(\min\{\Delta q,0\}\) in the lower cut is zero.  At thresholds
+\(t=0,1,2\), the prefix differences are, respectively,
+\[
+0.075-0.10=-0.025,qquad
+0.175-0.35=-0.175,qquad
+0.25-0.50=-0.25.
+\tag{6}
+\]
+Their maximum is \(-0.025\), so the outer maximum with zero gives
+\(B_L=0\).  For the upper cut, the three values
+\(\ell_{<t}+h_{>t}\) are
+\[
+0+0.40=0.40,qquad
+0.075+0.15=0.225,qquad
+0.175+0=0.175.
+\tag{7}
+\]
+Hence their minimum is \(0.175\), which is below \(m=0.25\), and thus
+\(B_U=0.175\).
+
+Since \(p_{x^{\star}}=1\), equation (5) gives \(M=0.25\).  The sharp
+exact-mass threshold theorem now identifies
+\[
+\Theta_I(P_{\mathrm{obs}}^{\star})
+=\left[\frac{B_L}{M},\frac{B_U}{M}\right]
+=\left[0,\frac{0.175}{0.25}\right]=[0,0.7].
+\tag{8}
+\]
+Finally, Theorem
+\(\mathrm{thm{:}full\text{-}law\text{-}endpoint\text{-}attainment}\)
+applies because \(P_{\mathrm{obs}}^{\star}\) is compatible with the
+exhibited law \(P^{\star}\in\mathcal M\), and supplies compatible full
+laws attaining both endpoints in (8).  This proves every asserted part of
+the witness. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The smallest informative ordered witness separates survivor mass, unequal selected-arm capacities, and coupling uncertainty. \textit{Gap.} Mean-effect Job Corps analyses do not display an unequal-capacity probability-of-benefit witness with full-law endpoint attainment. \textit{Consumer.} The witness is a transparent software diagnostic and Job Corps calibration.
+
+\begin{theorem}[thm:no-selection-reduction]\label{thm:no-selection-reduction}
+On the no-selection submodel with \(P(S_0=S_1=1\mid C,X=x)=1\) for each cell with \(P(C\mid X=x)>0\), one has \(\Delta q(x)=0\) and \(\Gamma_x=\Gamma_x^{0}\), the full coupling polytope for the identified survivor-complier marginals \(\ell(x)/m(x)\) and \(h(x)/m(x)\). After division by \(m(x)\), \(B_L(x)\) and \(B_U(x)\) equal the sharp fixed-marginal strict-benefit formulas in LuDingDasgupta2018 Proposition 2, equation (6), cell by cell.
+\end{theorem}
+\begin{proof}
+\noindent\textit{Proof.}
+Fix a supported cell \(x\), and write \(c_x=P(C\mid X=x)\).  Proposition
+\(\mathrm{prop{:}capacity\text{-}identification}\), whose premises include
+conditional instrument independence, instrument overlap, and no defiers,
+gives
+\[
+q_0(x)=P(S_0=1,C\mid X=x),
+\qquad
+q_1(x)=P(S_1=1,C\mid X=x).
+\tag{1}
+\]
+If \(c_x=0\), both probabilities in (1) vanish because their events are
+subsets of \(C\).  Every \(\ell_i(x)\) and \(h_j(x)\) also vanishes by
+the same proposition.  Consequently
+\[
+q_0(x)=q_1(x)=m(x)=\Delta q(x)=0,
+\quad
+\Gamma_x^{\ast}=\Gamma_x^{0}=\{0\},
+\quad
+B_L(x)=B_U(x)=0.
+\tag{2}
+\]
+There is no normalized survivor-complier distribution in this zero-mass
+cell, so division below is restricted to \(c_x>0\).
+
+Suppose \(c_x>0\).  The no-selection restriction states
+\[
+P(S_0=S_1=1\mid C,X=x)=1.
+\tag{3}
+\]
+Since the event in (3) is contained in \(\{S_d=1\}\), the probability-one
+upper bound gives \(P(S_d=1\mid C,X=x)=1\) for \(d=0,1\).  Multiplication
+by \(c_x>0\), followed by (1), yields
+\[
+q_0(x)=q_1(x)=c_x,
+\qquad \Delta q(x)=0,
+\qquad m(x)=c_x>0.
+\tag{4}
+\]
+Proposition \(\mathrm{prop{:}tie\text{-}face\text{-}collapse}\) therefore
+implies \(\Gamma_x=\Gamma_x^{0}\).  Directly, if
+\(\gamma_x\in\Gamma_x=\Gamma_x^{\ast}\), its row and column sums satisfy
+\[
+0\le r_i:=\sum_j\gamma_{ij,x}\le\ell_i(x),
+\qquad
+0\le s_j:=\sum_i\gamma_{ij,x}\le h_j(x).
+\]
+Exact mass and (4) imply
+\[
+\sum_i\{\ell_i(x)-r_i\}=q_0(x)-m(x)=0,
+\qquad
+\sum_j\{h_j(x)-s_j\}=q_1(x)-m(x)=0.
+\]
+All summands are nonnegative, so both margins bind coordinatewise.  This
+proves \(\Gamma_x\subseteq\Gamma_x^{0}\); the reverse inclusion follows
+because an exact-marginal coupling has total mass \(m(x)\).  Thus
+\[
+\Gamma_x=\Gamma_x^{\ast}=\Gamma_x^{0}.
+\tag{5}
+\]
+
+Define the normalized cumulative distribution functions
+\[
+F_0(t)=\frac{\ell_{\le t}(x)}{m(x)},
+\qquad
+F_1(t)=\frac{h_{\le t}(x)}{m(x)},
+\qquad F_0(-1)=0.
+\tag{6}
+\]
+The capacity totals in (4) show that \(\ell_i(x)/m(x)\) and
+\(h_j(x)/m(x)\) are probability mass functions.  The scaling map
+\(\gamma_x\mapsto\gamma_x/m(x)\) is a bijection from \(\Gamma_x^{0}\)
+onto their complete coupling polytope.
+
+Definition \(\mathrm{def{:}threshold\text{-}cuts}\) and \(\Delta q(x)=0\)
+give
+\[
+\frac{B_L(x)}{m(x)}
+=\max\left\{0,\max_{t\in\mathcal Y}
+\frac{\ell_{\le t}(x)-h_{\le t}(x)}{m(x)}\right\}
+=\max\left\{0,\max_t\{F_0(t)-F_1(t)\}\right\}.
+\tag{7}
+\]
+For the upper endpoint,
+\(\ell_{<t}(x)/m(x)=F_0(t-1)\) and
+\(h_{>t}(x)/m(x)=1-F_1(t)\), whence
+\[
+\frac{B_U(x)}{m(x)}
+=\min\left\{1,\min_{t\in\mathcal Y}
+\{F_0(t-1)+1-F_1(t)\}\right\}.
+\tag{8}
+\]
+At \(t=0\), the inner expression is \(h_{>0}(x)/m(x)\le1\), so the
+separate cap is redundant.  The revalidated cited Lemma
+\(\mathrm{lem{:}ordinal\text{-}fixed\text{-}marginal\text{-}strict\text{-}benefit}\),
+which records Lu, Ding, and Dasgupta's Proposition 2, equation (6), states
+that (7)--(8) are exactly the sharp lower and upper probabilities of
+\(Y_1>Y_0\) over all couplings of the normalized ordinal marginals.  The
+scaling bijection and (5) prove the claimed cellwise reduction. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact-mass model nests the complete-fixed-marginal strict-benefit formula on its no-selection face. \textit{Gap.} The equivalence is cellwise and does not assert converse transfer to a larger structural class. \textit{Consumer.} Users can validate implementations against the published closed form.
+
+\begin{openendedquestion}[oeq:uniform-face-multiplier]\label{oeq:uniform-face-multiplier}
+Can the near-active-face directional-multiplier handle be calibrated so that \[\liminf_{n\to\infty}\inf_{P\in\mathcal P_n}P\{\Theta_I(P_{\mathrm{obs}})\subseteq\mathcal C_{1-\alpha,n}\}\ge1-\alpha,\] uniformly over direction-separated triangular arrays \(\mathcal P_n\), while allowing arbitrary simultaneous threshold-cut ties and covariate cells whose survivor mass approaches zero and is omitted at the unnormalized threshold \(\eta_n\)?
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} Uniform simultaneous coverage at intersecting cut and zero-mass faces is the proposal's genuine unresolved inferential content. \textit{Gap.} FangSantos2019 handles estimated directional derivatives, ChernozhukovLeeRosen2013 handles localized contact sets, Semenova2025 handles covariate-specific Lee directions, and deAguasEtAl2025 equations (17)--(18) give pointwise stabilized coverage for tier-benefit bounds. None establishes uniform joint validity for two summed survivor-complier transport endpoints with changing cell support. \textit{Consumer.} The result would deliver an honest confidence set for the complete sharp Job Corps benefit interval even when several wage thresholds bind.
+
+\begin{lemma}[lem:hadamard-directional-delta-method]\label{lem:hadamard-directional-delta-method}
+Let \(\mathbb D\) and \(\mathbb E\) be Banach spaces, let \(\mathbb D_\phi\subseteq\mathbb D\), and let \(\phi:\mathbb D_\phi\to\mathbb E\).  Fix \(\theta_0\in\mathbb D_\phi\) and \(\mathbb D_0\subseteq\mathbb D\).  Suppose that there is a continuous map \(\phi'_{\theta_0}:\mathbb D_0\to\mathbb E\) such that, whenever \(t_k\downarrow0\), \(h_k\to h\in\mathbb D_0\), and \(\theta_0+t_kh_k\in\mathbb D_\phi\),
+\[
+\left\|\frac{\phi(\theta_0+t_kh_k)-\phi(\theta_0)}{t_k}-\phi'_{\theta_0}(h)\right\|_{\mathbb E}\longrightarrow0.
+\]
+Thus \(\phi\) is Hadamard directionally differentiable at \(\theta_0\) tangentially to \(\mathbb D_0\).  Let \(\widehat\theta_n\) be \(\mathbb D_\phi\)-valued estimators and let \(r_n\uparrow\infty\) satisfy
+\[
+r_n(\widehat\theta_n-\theta_0)\rightsquigarrow\mathbb G_0
+\quad\text{in }\mathbb D,
+\]
+where \(\mathbb G_0\) is tight and its support is contained in \(\mathbb D_0\).  Then
+\[
+r_n\{\phi(\widehat\theta_n)-\phi(\theta_0)\}
+=\phi'_{\theta_0}\!\left(r_n\{\widehat\theta_n-\theta_0\}\right)+o_P(1)
+\quad\text{in }\mathbb E,
+\]
+and consequently
+\[
+r_n\{\phi(\widehat\theta_n)-\phi(\theta_0)\}
+\rightsquigarrow\phi'_{\theta_0}(\mathbb G_0)
+\quad\text{in }\mathbb E.
+\]
+If a finite-sample direction \(r_n(\widehat\theta_n-\theta_0)\) is outside \(\mathbb D_0\), the derivative appearing in the expansion is interpreted, as in Fang and Santos's Remark 2.1, by evaluating a continuous extension of \(\phi'_{\theta_0}\) from \(\mathbb D_0\) to \(\mathbb D\) at that direction.
+\end{lemma}
+
+\begin{lemma}[lem:finite-multinomial-central-limit]\label{lem:finite-multinomial-central-limit}
+Under independent sampling from a probability law on a fixed finite support, the empirical probability vector satisfies a multivariate central limit theorem: its centered \(\sqrt n\)-scaled error converges to a mean-zero Gaussian vector with the multinomial covariance matrix.
+\end{lemma}
+
+\begin{theorem}[thm:sharp-exact-mass-threshold-interval]\label{thm:sharp-exact-mass-threshold-interval}
+Let \(P_{\mathrm{obs}}\) be induced by at least one law in \(\mathcal M\).  For every supported cell,
+\[
+\Gamma_x^{\ast}=\left\{\gamma_x\ge0:\sum_j\gamma_{ij,x}\le\ell_i(x),\ \sum_i\gamma_{ij,x}\le h_j(x),\ \sum_{i,j}\gamma_{ij,x}=m(x)\right\}
+\]
+is exactly the projection of all compatible laws onto the survivor-complier coupling.  Exact mass forces the smaller-total margin to bind: \(\Gamma_x^{\ast}=\Gamma_x^{+}\) if \(\Delta q(x)>0\), \(\Gamma_x^{\ast}=\Gamma_x^{-}\) if \(\Delta q(x)<0\), and \(\Gamma_x^{\ast}=\Gamma_x^{0}\) if \(\Delta q(x)=0\).  Moreover,
+\[
+\inf_{\gamma_x\in\Gamma_x^{\ast}}b_x(\gamma_x)
+=\max\left\{0,\max_{t\in\mathcal Y}\bigl[\ell_{\le t}(x)-h_{\le t}(x)\bigr]+\min\{\Delta q(x),0\}\right\}=B_L(x),
+\]
+and
+\[
+\sup_{\gamma_x\in\Gamma_x^{\ast}}b_x(\gamma_x)
+=\min\left\{m(x),\min_{t\in\mathcal Y}\bigl[\ell_{<t}(x)+h_{>t}(x)\bigr]\right\}=B_U(x).
+\]
+Consequently,
+\[
+\Theta_I(P_{\mathrm{obs}})
+=\left[\frac{\sum_{x\in\mathcal X}p_xB_L(x)}{M},\frac{\sum_{x\in\mathcal X}p_xB_U(x)}{M}\right],
+\]
+and this interval is sharp; cells with \(m(x)=0\) contribute the unique zero coupling.
+\end{theorem}
+\begin{proof}
+\noindent\textit{Proof.}
+Fix a supported cell and suppress \(x\).  Put \(a_i=\ell_i\),
+\(c_j=h_j\), and
+\[
+q_0=\sum_i a_i,\qquad q_1=\sum_jc_j,
+\qquad m=\min\{q_0,q_1\}.
+\]
+We first derive the finite partial-transport cut identity used below.  For
+a bipartite edge set \(E\), let \(F(E;a,c)\) be the greatest mass of a
+nonnegative flow supported on \(E\), with row capacities \(a\) and column
+capacities \(c\).  The feasible set is a nonempty compact polytope, so a
+maximum exists.  For every row set \(A\subseteq\mathcal Y\), splitting
+flow according as its row lies outside or inside \(A\) gives the cut
+upper bound
+\[
+F(E;a,c)\le a(\mathcal Y\setminus A)+c(N_E(A)),
+\tag{1}
+\]
+where \(N_E(A)\) is the set of columns adjacent to \(A\).
+
+For the reverse inequality, represent the problem by a finite network
+whose source-to-row capacities are \(a_i\), whose column-to-sink
+capacities are \(c_j\), and whose allowed row-to-column arcs have capacity
+\(H=q_0+q_1+1>m\).  Choose a maximum flow and form its residual network.
+There is no residual source-to-sink path, since such a path could be
+augmented by the positive minimum residual capacity along it.  Let \(A\)
+be the reachable rows.  Because every row-to-column arc has capacity
+\(H>m\), whereas total flow is at most \(m\), none is saturated; hence
+the reachable columns are exactly \(N_E(A)\).  Every source arc entering
+\(\mathcal Y\setminus A\) and every sink arc leaving \(N_E(A)\) is
+saturated, and no positive-flow reverse arc crosses this reachable cut.
+Flow conservation therefore makes (1) an equality for this \(A\).  Thus
+the residual-cut argument proves, without importing an undeclared
+max-flow theorem,
+\[
+F(E;a,c)=\min_{A\subseteq\mathcal Y}
+\{a(\mathcal Y\setminus A)+c(N_E(A))\}.
+\tag{2}
+\]
+
+For benefit edges \(E_{<}=\{(i,j):i<j\}\), a nonempty \(A\) with
+\(t=\min A\) has \(N_{E_<}(A)=\{j:j>t\}\).  At fixed \(t\), the cut in
+(2) is minimized by \(A=\{i:i\ge t\}\), so its value is
+\(a_{<t}+c_{>t}\).  The empty set contributes \(q_0\), and the
+\(t=0\) threshold value is at most \(q_1\).  Consequently
+\[
+F(E_<;a,c)=
+\min\left\{m,\min_{t\in\mathcal Y}(a_{<t}+c_{>t})\right\}.
+\tag{3}
+\]
+For nonbenefit edges \(E_{\ge}=\{(i,j):j\le i\}\), a nonempty \(A\) with
+\(t=\max A\) has \(N_{E_{\ge}}(A)=\{j:j\le t\}\).  The minimizing set
+with that maximum is \(A=\{i:i\le t\}\), giving
+\(a_{>t}+c_{\le t}\).  The empty set contributes \(q_0\), and the
+\(t=K-1\) threshold contributes \(q_1\).  Hence
+\[
+F(E_{\ge};a,c)=
+\min\left\{m,\min_{t\in\mathcal Y}(a_{>t}+c_{\le t})\right\}.
+\tag{4}
+\]
+
+Any subflow of mass \(f\le m\) extends to total mass \(m\) on the
+complete bipartite graph: after subtracting the subflow, the total
+residual row and column capacities are both at least \(m-f\), and a
+two-pointer allocation sends exactly that amount.  Apply this to a
+maximum benefit subflow.  If its mass is below \(m\), no residual benefit
+edge has positive capacities at both endpoints, since otherwise that
+edge would augment the subflow.  Its completion therefore has the same
+benefit mass, and (3) proves
+\[
+\sup_{\gamma\in\Gamma_x^{\ast}}b_x(\gamma)
+=\min\left\{m,\min_t(\ell_{<t}+h_{>t})\right\}=B_U(x).
+\tag{5}
+\]
+Next complete a maximum nonbenefit subflow.  If its mass is below \(m\),
+every residual edge with positive endpoint capacities is beneficial by
+the same augmentation argument.  Thus (4) gives
+\[
+\inf_{\gamma\in\Gamma_x^{\ast}}b_x(\gamma)
+=m-F(E_{\ge};\ell,h)
+=\max\left\{0,\max_t(m-\ell_{>t}-h_{\le t})\right\}.
+\tag{6}
+\]
+Since \(q_0=\ell_{\le t}+\ell_{>t}\) and
+\(m-q_0=\min\{q_1-q_0,0\}=\min\{\Delta q,0\}\),
+\[
+m-\ell_{>t}-h_{\le t}
+=\ell_{\le t}-h_{\le t}+\min\{\Delta q,0\}.
+\tag{7}
+\]
+Equations (6)--(7) are the stated formula for \(B_L(x)\).  The slack
+identities in Proposition \(\mathrm{prop{:}tie\text{-}face\text{-}collapse}\)
+also show that \(\Gamma_x^{\ast}\) equals \(\Gamma_x^+\),
+\(\Gamma_x^-\), or \(\Gamma_x^0\) according as \(\Delta q(x)\) is
+positive, negative, or zero.
+
+It remains to prove that the observable optimization is exactly the
+causal identified set.  Let \(\bar P\in\mathcal M\) induce
+\(P_{\mathrm{obs}}\).  Proposition
+\(\mathrm{prop{:}capacity\text{-}identification}\) and weak selection
+monotonicity show that its survivor-complier subcoupling has row sums
+bounded by \(\ell\), column sums bounded by \(h\), and total mass \(m\).
+It therefore lies in \(\Gamma_x^{\ast}\).
+
+Conversely, fix \(\gamma\in\Gamma_x^{\ast}\), and put
+\(c_x=\bar P(C\mid X=x)\).  If \(q_1>q_0\), exact mass forces every row
+to bind.  Assign \(\gamma_{ij}\) to survivor compliers with outcomes
+\((i,j)\), assign
+\[
+h_j-\sum_i\gamma_{ij}\ge0
+\]
+to \((S_0,S_1)=(0,1)\) compliers with \(Y_1=j\), and assign the remaining
+complier mass \(c_x-q_1\ge0\) to \((0,0)\).  If \(q_0>q_1\), exact mass
+forces every column to bind; assign
+\(\ell_i-\sum_j\gamma_{ij}\ge0\) to \((1,0)\) compliers with \(Y_0=i\),
+and assign \(c_x-q_0\ge0\) to \((0,0)\).  On a tie both margins bind and
+all nonsurviving compliers use \((0,0)\).  The last remainders are
+nonnegative because (by capacity identification)
+\(q_d=P(S_d=1,C\mid X=x)\le c_x\).  Assign arbitrary outcomes where the
+corresponding selection indicator is zero.
+
+Perform this replacement in every supported cell while retaining the
+law of \(X\), compliance-type probabilities, instrument propensities,
+and all noncomplier latent components of \(\bar P\).  Draw \(Z\)
+conditionally independently of the reconstructed potential variables
+and impose the consistency and exclusion equations.  The construction
+preserves the selected-complier outcome submargins \(\ell,h\), complier
+totals, all noncomplier observed components, and every maintained
+restriction.  Hence it induces exactly \(P_{\mathrm{obs}}\).  This proves
+that every \(\gamma\in\Gamma_x^{\ast}\) is the projection of a compatible
+full law, while the preceding paragraph proved the reverse inclusion.
+
+The completion is independent across the finite cells.  Under every
+compatible law,
+\[
+P(Y_1>Y_0,S_0=S_1=1,C)=\sum_xp_xb_x(\gamma_x),
+\qquad
+P(S_0=S_1=1,C)=\sum_xp_xm(x)=M.
+\tag{8}
+\]
+Assumption \(\mathrm{ass{:}positive\text{-}aggregate\text{-}survivors}\)
+permits division by \(M\).  The finite product of the nonempty compact
+convex polytopes \(\Gamma_x^{\ast}\) is compact and convex, and the
+numerator in (8) is linear.  Its image is therefore the entire closed
+interval between the sums of its cellwise extrema.  A cell with
+\(m(x)=0\) has only the zero coupling.  Dividing (5)--(8) by \(M\) proves
+\[
+\Theta_I(P_{\mathrm{obs}})
+=\left[\frac{\sum_xp_xB_L(x)}{M},
+       \frac{\sum_xp_xB_U(x)}{M}\right],
+\]
+with endpoint and intermediate-point attainment.  Thus the interval is
+sharp, not merely an outer bound. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem gives the branch-free sharp identified set, not merely an outer bound. \textit{Gap.} ChenLi2026 is the closest Job Corps ordinal comparison: under principal ignorability it point identifies principal generalized causal effects, including U-statistic and principal win-ratio targets, rather than partially identifying the same-unit survivor-complier strict-benefit probability. FanPark2010 Lemma 2.1 gives pointwise-best-possible bounds for the distribution function of \(Y_1-Y_0\) from two identified complete potential-outcome marginals, and Section 5 gives the conditional-covariate version; because strict benefit is the complementary threshold event at zero, this is the complete-marginal threshold benchmark. Russell2021 gives a generic identification-and-estimation method for sharp bounds on continuous functionals of joint potential-outcome distributions, allowing unrestricted treatment assignment, instruments, and additional model constraints; it is therefore a broad computational benchmark, not a work outside the IV setting. PossebomRiva2025 derives sharp probability-of-causation bounds for always-observed units under exogenous treatment and monotone sample selection, while GabrielSachsJensen2024 gives benefit bounds in a distinct IV response-function model without treatment-induced survivor selection. Relative to these benchmarks, the present theorem’s model-specific contribution is the identification of unequal survivor-complier capacities from IV contrasts, their reduction to an exact-mass partial coupling, closed branch-free finite-ordinal threshold endpoints, and an endpoint-preserving lift of every feasible partial coupling to a compatible full IV-selection law. \textit{Consumer.} A policy evaluator obtains an explicit sharp fraction benefiting among survivor compliers.
+
+\begin{theorem}[thm:linear-sparse-threshold-flow]\label{thm:linear-sparse-threshold-flow}
+For finite \(\mathcal X\) and \(K\), the branch-free threshold formulas and sparse lower- and upper-attaining couplings in \(\Gamma_x^{\ast}\) can be computed using \(O(|\mathcal X|K)\) arithmetic operations and comparisons.  If every entry of each dense \(K\times K\) coupling matrix must be materialized, the complexity is \(O(|\mathcal X|K^2)\).  Both operation counts are independent of the numerical magnitudes of the capacities.
+\end{theorem}
+\begin{proof}
+\noindent\textit{Proof.}
+The computational model counts real arithmetic operations and
+comparisons and stores a sparse matrix as its positive triples.  For each
+cell, one forward scan computes \(q_0,q_1,m,\Delta q\) and all prefix
+sums; one backward scan computes the tails.  A scan over the \(K\)
+thresholds then evaluates the maximum defining \(B_L\) and the minimum
+defining \(B_U\).  This costs \(O(K)\) operations.
+
+For an upper-attaining sparse coupling, process columns \(j\) in
+increasing order on the Ferrers graph \(i<j\).  As a row becomes eligible,
+place its residual capacity on a stack ordered by decreasing row index;
+fill the current column from the largest-index eligible residual row.
+Each row is inserted once.  Each positive assignment exhausts a row or a
+column.  The scan is maximum: a future row cannot serve a previously
+processed column, and whenever another feasible flow assigns a smaller
+eligible row to the current column while a larger eligible row serves a
+later column, exchanging the smaller of the two assigned masses preserves
+all capacities and all inequalities \(i<j\).  Repeating these exchanges
+puts a maximum flow into the greedy order.  The greedy subflow therefore
+has the maximum benefit-edge value used in the cut formula of Theorem
+\(\mathrm{thm{:}sharp\text{-}exact\text{-}mass\text{-}threshold\text{-}interval}\).
+
+For a maximum nonbenefit subflow on \(j\le i\), reverse the order: process
+columns from high to low and supply them from the smallest-index eligible
+residual row.  The symmetric nested-neighborhood exchange argument proves
+maximality.  In either scan, at most \(2K-1\) positive assignments occur,
+because every assignment exhausts one of the \(2K\) row or column
+capacities and the final assignment may exhaust both.
+
+Extend either subflow to exact mass \(m\) by a two-pointer scan on the
+residual complete bipartite graph.  The residual row and column totals are
+both at least the mass still required.  Each completion assignment again
+exhausts a row or a column, so it costs \(O(K)\) and has \(O(K)\) support.
+If the maximum benefit subflow has mass below \(m\), no residual benefit
+edge can carry positive flow; hence the completion attains \(B_U\).  If
+the maximum nonbenefit subflow has mass below \(m\), no residual
+nonbenefit edge can carry positive flow; hence the completed coupling has
+benefit mass \(B_L\).  These are exactly the endpoint equalities of the
+sharp-threshold theorem.
+
+Thus the threshold values and sparse endpoint couplings require
+\(O(K)\) operations per cell and \(O(|\mathcal X|K)\) overall.  If every
+entry of every dense \(K\times K\) matrix must be initialized or written,
+the output itself has \(|\mathcal X|K^2\) entries and dominates the scans,
+giving \(O(|\mathcal X|K^2)\).  No loop count depends on a capacity's
+numerical magnitude, so both bounds are magnitude-independent. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Nested neighborhoods yield linear sparse-output complexity and quadratic cost only when dense matrices are written. \textit{Gap.} Generic latent-type linear programs do not expose this magnitude-free ordered transport algorithm. \textit{Consumer.} Exact bounds remain cheap across many cells, categories, and resamples.
+
+\begin{lemma}[lem:ordinal-fixed-marginal-strict-benefit]\label{lem:ordinal-fixed-marginal-strict-benefit}
+For two distributions on \(\mathcal Y\) with masses \(\ell_i(x)/m(x)\) and \(h_j(x)/m(x)\), the sharp lower and upper bounds on the strict-benefit probability are
+\[
+\max\left\{0,\max_t\frac{\ell_{\le t}(x)-h_{\le t}(x)}{m(x)}\right\}
+\quad\text{and}\quad
+\min_t\frac{\ell_{<t}(x)+h_{>t}(x)}{m(x)},
+\]
+respectively.
+\end{lemma}
+
+\begin{theorem}[thm:branch-free-pointwise-directional-limit]\label{thm:branch-free-pointwise-directional-limit}
+Fix a finite-support law \(P_{\mathrm{obs}}\) induced by some \(P\in\mathcal M\) and satisfying instrument overlap, independent sampling, and \(M>0\).  No direction-separation condition is required.  Then
+\[
+P\!\left\{\{x:\widehat r_x>\eta_n\}=\mathcal X_+(P)\right\}\to1,\qquad
+\widehat\Psi_n\to_P\Psi(P_{\mathrm{obs}}),
+\]
+and \(\sqrt n\{\widehat\Psi_n-\Psi(P_{\mathrm{obs}})\}\) converges to \(\mathbb Z_{P_{\mathrm{obs}}}\) passed through the Hadamard directional derivative of the following reduced-support composite map: coordinatewise projection onto \(\mathfrak C\); the branch-free lower functional
+\[
+\max\left\{0,\max_t[\ell_{\le t}(x)-h_{\le t}(x)]+\min\{\Delta q(x),0\}\right\};
+\]
+the upper minimum over the mass cap and threshold cuts; and the \(p_x\)-weighted common-denominator quotient.  At \(\Delta q(x)=0\), the lower derivative uses the active face \(g\mapsto\min\{\Delta q_x'(g),0\}\), while the mass-cap derivative uses \(g\mapsto\min\{q_{0,x}'(g),q_{1,x}'(g)\}\).  Thus positive-survivor zero-gap cells and arbitrary simultaneous threshold ties are included.  Zero-survivor cells contribute zero because screening recovers the fixed reduced support with probability tending to one.
+\end{theorem}
+\begin{proof}
+\noindent\textit{Proof.}
+Let \(\mathcal O\) be the finite support of \(O\), put
+\(J=|\mathcal O|\), and write
+\[
+v=\bigl(P_{\mathrm{obs}}(O=o)\bigr)_{o\in\mathcal O}\in\mathbb R^J,
+\qquad
+\widehat v_n=
+\bigl(\widehat P_n(O=o)\bigr)_{o\in\mathcal O}.
+\]
+Assumption \(\mathrm{ass{:}iid\text{-}sampling}\) and Lemma
+\(\mathrm{lem{:}finite\text{-}multinomial\text{-}central\text{-}limit}\)
+give
+\[
+\sqrt n(\widehat v_n-v)\rightsquigarrow
+\mathbb Z_{P_{\mathrm{obs}}}
+\quad\text{in }\mathbb R^J.
+\tag{1}
+\]
+
+We first construct the reduced-support map and use finite-dimensional
+polyhedral directional calculus to derive its derivative.  Set
+\(\mathbb D=\mathbb R^J\), \(\mathbb E=\mathbb R^2\), and
+\(\mathbb D_0=\mathbb D\).  For every \(w\in\mathbb D\), compute the
+ratio analogues prescribed by Definition
+\(\mathrm{def{:}plugin\text{-}endpoint\text{-}estimator}\), using zero
+when a conditioning denominator is zero.  Form the raw capacity contrasts,
+apply \(\Pi_{\mathfrak C}\), and compute
+\(q_0,q_1,\Delta q,m,B_L,B_U\).  Sum numerator and denominator
+contributions only over the fixed set \(\mathcal X_+(P)\), divide by the
+common denominator when it is nonzero, and otherwise use \((0,1)\).
+Denote this total map by
+\[
+\Phi:\mathbb D_\phi=\mathbb D\longrightarrow\mathbb E.
+\tag{2}
+\]
+The values assigned at zero denominators merely totalize \(\Phi\) away
+from the population neighborhood.
+
+If \(x\in\mathcal X_+(P)\), then \(p_xm(x)>0\), so \(p_x>0\).
+Assumption \(\mathrm{ass{:}instrument\text{-}overlap}\) gives
+\[
+P_{\mathrm{obs}}(X=x,Z=1)=p_x\pi(x)
+\ge p_x\varepsilon_Z>0
+\]
+and
+\[
+P_{\mathrm{obs}}(X=x,Z=0)=p_x\{1-\pi(x)\}
+\ge p_x\varepsilon_Z>0.
+\tag{3}
+\]
+Thus every ratio denominator used by \(\Phi\) on the fixed support is
+positive at \(v\) and remains nonzero in a neighborhood of \(v\).  The
+map from \(w\) to the finite vector of cell probabilities and raw
+capacities is continuously differentiable there by the quotient rule.
+
+At the population law, Proposition
+\(\mathrm{prop{:}capacity\text{-}identification}\), which is part of the
+proof basis of Theorem
+\(\mathrm{thm{:}sharp\text{-}exact\text{-}mass\text{-}threshold\text{-}interval}\),
+shows that the raw capacity vector is the nonnegative vector
+\(c=(\ell,h)\).  For a raw-capacity direction \(g\), coordinatewise
+positive part has Hadamard directional derivative
+\[
+[\Pi'_{\mathfrak C,c}(g)]_k=
+\begin{cases}
+g_k,&c_k>0,\\
+\max\{g_k,0\},&c_k=0.
+\end{cases}
+\tag{4}
+\]
+Indeed, for every \(t_r\downarrow0\) and \(g_r\to g\), the corresponding
+scalar difference quotient converges to the displayed value; finiteness
+of the coordinates makes the convergence Euclidean.  Let
+\(\dot\ell_i(x),\dot h_j(x)\) denote the directions after (4), and set
+\[
+\dot q_0(x)=\sum_i\dot\ell_i(x),\qquad
+\dot q_1(x)=\sum_j\dot h_j(x),\qquad
+\dot{\Delta q}(x)=\dot q_1(x)-\dot q_0(x).
+\tag{5}
+\]
+
+For the lower endpoint, define
+\[
+A_{x,t}=\ell_{\le t}(x)-h_{\le t}(x),\qquad
+G_x=\max_{t\in\mathcal Y}A_{x,t},\qquad
+s_x=\min\{\Delta q(x),0\},
+\tag{6}
+\]
+and the nonempty active set
+\[
+\mathcal A_L(x)=\{t\in\mathcal Y:A_{x,t}=G_x\}.
+\]
+Writing
+\[
+\dot A_{x,t}=\sum_{i\le t}\dot\ell_i(x)
+-\sum_{j\le t}\dot h_j(x),
+\]
+the finite active-set expansion gives
+\[
+\dot G_x=\max_{t\in\mathcal A_L(x)}\dot A_{x,t}.
+\tag{7}
+\]
+To verify (7) along arbitrary convergent directions, note that every
+inactive threshold lies a strictly positive distance below \(G_x\); the
+smallest such gap is positive because \(\mathcal Y\) is finite.  No
+inactive threshold can therefore maximize for sufficiently small step
+size, and division by that step leaves the maximum of the active
+first-order terms.  Direct scalar case analysis gives
+\[
+\dot s_x=
+\begin{cases}
+\dot{\Delta q}(x),&\Delta q(x)<0,\\
+0,&\Delta q(x)>0,\\
+\min\{\dot{\Delta q}(x),0\},&\Delta q(x)=0.
+\end{cases}
+\tag{8}
+\]
+Since \(B_L(x)=\max\{0,G_x+s_x\}\), the same scalar expansion gives
+\[
+\dot B_L(x)=
+\begin{cases}
+\dot G_x+\dot s_x,&G_x+s_x>0,\\
+0,&G_x+s_x<0,\\
+\max\{\dot G_x+\dot s_x,0\},&G_x+s_x=0.
+\end{cases}
+\tag{9}
+\]
+Equations (7)--(9) allow arbitrary simultaneous threshold ties.  In
+particular, on \(\Delta q(x)=0\), equation (8) is exactly the asserted
+face derivative \(g\mapsto\min\{\dot{\Delta q}(x),0\}\).
+
+For the upper endpoint, define
+\[
+U_{x,t}=\ell_{<t}(x)+h_{>t}(x),
+\qquad
+\dot U_{x,t}=\sum_{i<t}\dot\ell_i(x)+\sum_{j>t}\dot h_j(x).
+\tag{10}
+\]
+The survivor-mass derivative, obtained by the scalar minimum case split,
+is
+\[
+\dot m(x)=
+\begin{cases}
+\dot q_0(x),&q_0(x)<q_1(x),\\
+\dot q_1(x),&q_1(x)<q_0(x),\\
+\min\{\dot q_0(x),\dot q_1(x)\},&q_0(x)=q_1(x).
+\end{cases}
+\tag{11}
+\]
+Index the mass cap by \(\star\), put
+\(V_{x,\star}=m(x)\), \(\dot V_{x,\star}=\dot m(x)\), and put
+\(V_{x,t}=U_{x,t}\), \(\dot V_{x,t}=\dot U_{x,t}\) for
+\(t\in\mathcal Y\).  With
+\[
+\mathcal A_U(x)=
+\{a\in\{\star\}\cup\mathcal Y:V_{x,a}=B_U(x)\},
+\]
+the same finite-gap argument, now for a minimum, yields
+\[
+\dot B_U(x)=\min_{a\in\mathcal A_U(x)}\dot V_{x,a}.
+\tag{12}
+\]
+Thus (11)--(12) include positive-survivor zero-gap cells and arbitrary
+ties between the mass cap and any number of threshold cuts.
+
+The sequential arguments above establish Hadamard directional
+differentiability: every expansion holds for each \(t_r\downarrow0\) and
+each convergent sequence of directions.  The derivative maps are finite
+maxima or minima of continuous linear maps and coordinatewise positive
+parts, hence are continuous in the direction.  If \(\dot p_x\) denotes
+the cell-probability direction, define, for \(e=L,U\),
+\[
+N_e=\sum_{x\in\mathcal X_+(P)}p_xB_e(x),
+\qquad
+\dot N_e=\sum_{x\in\mathcal X_+(P)}
+\{\dot p_xB_e(x)+p_x\dot B_e(x)\},
+\tag{13}
+\]
+and
+\[
+M=\sum_{x\in\mathcal X_+(P)}p_xm(x),
+\qquad
+\dot M=\sum_{x\in\mathcal X_+(P)}
+\{\dot p_xm(x)+p_x\dot m(x)\}.
+\tag{14}
+\]
+Cells outside \(\mathcal X_+(P)\) have \(p_xm(x)=0\), so (14) equals
+the aggregate survivor mass in the frozen core.  Assumption
+\(\mathrm{ass{:}positive\text{-}aggregate\text{-}survivors}\) gives
+\(M>0\), which is the premise needed for division.  The quotient
+derivative is therefore
+\[
+\left(\frac{N_e}{M}\right)'(g)
+=\frac{\dot N_eM-N_e\dot M}{M^2},
+\qquad e\in\{L,U\}.
+\tag{15}
+\]
+Equations (3)--(15) prove that \(\Phi\) is Hadamard directionally
+differentiable at \(v\), tangentially to
+\(\mathbb D_0=\mathbb R^J\), with the displayed continuous derivative.
+
+We now apply the directional delta method.  The spaces
+\(\mathbb D=\mathbb R^J\) and \(\mathbb E=\mathbb R^2\) are Banach
+spaces; \(\mathbb D_\phi=\mathbb D\); the base point is \(v\); the
+estimator is \(\widehat v_n\); and the rate is \(\sqrt n\to\infty\).
+Weak convergence is (1).  The finite-dimensional Gaussian vector is
+tight and supported in \(\mathbb R^J=\mathbb D_0\).  Lemma
+\(\mathrm{lem{:}hadamard\text{-}directional\text{-}delta\text{-}method}\)
+therefore gives
+\[
+\sqrt n\{\Phi(\widehat v_n)-\Phi(v)\}
+=\Phi'_v\!\left(\sqrt n(\widehat v_n-v)\right)+o_P(1)
+\rightsquigarrow\Phi'_v(\mathbb Z_{P_{\mathrm{obs}}}).
+\tag{16}
+\]
+
+It remains to compare the fixed-support map with the screened estimator.
+Write \(r_x=p_xm(x)\).  Since \(M>0\), the finite set
+\(\mathcal X_+(P)\) is nonempty and
+\[
+\rho=\min_{x\in\mathcal X_+(P)}r_x>0.
+\tag{17}
+\]
+Equation (1) implies \(\widehat v_n\to_Pv\).  For every
+\(x\in\mathcal X_+(P)\), (3) and continuity of the local ratio,
+projection, and finite-minimum maps give \(\widehat r_x\to_Pr_x\).
+Ordinary convergence \(\eta_n\to0\) implies that eventually
+\(0<\eta_n<\rho/2\).  Finiteness of \(\mathcal X_+(P)\) then shows that
+all its cells are retained with probability tending to one; no
+monotonicity of \(n\mapsto\eta_n\) is used.
+
+If \(p_x=0\), independent sampling gives \(\widehat p_x=0\) almost
+surely, so \(\widehat r_x=0\).  Suppose instead that \(p_x>0\) and
+\(m(x)=0\).  Nonnegativity of \(q_0(x)\) and \(q_1(x)\) implies that at
+least one total, say \(q_a(x)\), is zero.  Every constituent population
+capacity in that arm is then zero.  Overlap and \(p_x>0\) make the
+relevant conditioning denominators positive, so the corresponding raw
+empirical contrasts are smooth near \(v\), centered at zero, and are
+\(O_P(n^{-1/2})\) by (1).  Coordinatewise positive part preserves this
+order.  Since \(K\) is fixed and \(0\le\widehat p_x\le1\),
+\[
+0\le\widehat m(x)\le\widehat q_a(x)=O_P(n^{-1/2}),
+\qquad
+0\le\widehat r_x=\widehat p_x\widehat m(x)
+\le\widehat m(x)=O_P(n^{-1/2})=o_P(\eta_n),
+\tag{18}
+\]
+where the last equality follows from
+\(\sqrt n\eta_n\to\infty\).  A finite union over cells combines
+(17)--(18) into
+\[
+P\!\left\{\{x:\widehat r_x>\eta_n\}=\mathcal X_+(P)\right\}
+\longrightarrow1.
+\tag{19}
+\]
+
+On the event in (19), the screened sums in Definition
+\(\mathrm{def{:}plugin\text{-}endpoint\text{-}estimator}\) are exactly
+the fixed-support sums defining \(\Phi(\widehat v_n)\).  Their common
+denominator is positive because the retained set is nonempty and each
+retained \(\widehat r_x\) exceeds the positive number \(\eta_n\); hence
+the fallback is not used.  At the population law, Definitions
+\(\mathrm{def{:}threshold\text{-}cuts}\) and
+\(\mathrm{def{:}identified\text{-}interval}\), together with Theorem
+\(\mathrm{thm{:}sharp\text{-}exact\text{-}mass\text{-}threshold\text{-}interval}\),
+give \(\Phi(v)=\Psi(P_{\mathrm{obs}})\).  Replacing
+\(\Phi(\widehat v_n)\) by \(\widehat\Psi_n\) in (16) on an event whose
+probability tends to one proves the asserted directional limit.  The same
+replacement and (16) yield
+\(\widehat\Psi_n\to_P\Psi(P_{\mathrm{obs}})\).  Thus positivity,
+ordinary convergence \(\eta_n\to0\), and
+\(\sqrt n\eta_n\to\infty\) suffice for all three conclusions; no
+direction separation, monotonicity of the screening sequence,
+multiplier calibration, or uniform-in-law conclusion is used.
+\(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Min/max geometry gives the derivative at zero selection gaps and removes a nonessential direction margin. \textit{Gap.} Fang and Santos's directional delta method is generic and conditional on its map, first-stage, tightness, and tangent-support hypotheses. This theorem verifies those premises for the projected-capacity, branch-free tied-cut, screened-support, common-denominator endpoint map and derives its active-face derivative. \textit{Consumer.} Practitioners obtain the correct fixed-law nonsmooth limit at simultaneous faces.
+
+\begin{theorem}[thm:uniform-deterministic-guard]\label{thm:uniform-deterministic-guard}
+Let
+\[
+\begin{aligned}
+\mathcal E={}&\bigl\{\{X=x\}:x\in\mathcal X\bigr\}
+\cup\bigl\{\{X=x,Z=z\}:x\in\mathcal X,\ z\in\{0,1\}\bigr\}\\
+&\cup\bigl\{\{X=x,Z=z,D=d,S=1,Y=k\}:x\in\mathcal X,\ z,d\in\{0,1\},\ k\in\mathcal Y\bigr\},
+\end{aligned}
+\]
+and let
+\[
+\delta_n=\max_{E\in\mathcal E}\left|\widehat P_n(E)-P_{\mathrm{obs}}(E)\right|.
+\]
+For every \(n\ge1\) and \(\alpha\in(0,1)\), set
+\[
+b_{n,\alpha}=\sqrt{\frac{|\mathcal E|}{4n\alpha}},\qquad
+A_{n,\alpha}=\frac{64K|\mathcal X|}{\varepsilon_Z^2}b_{n,\alpha}+|\mathcal X|\eta_n,
+\qquad
+g_{n,\alpha}=\min\left\{1,\frac{4A_{n,\alpha}}{m_{\star}}\right\},
+\]
+and define
+\[
+\mathcal C_{1-\alpha,n}
+=\left[\max\{0,\widehat\Psi_{n,L}-g_{n,\alpha}\},\
+\min\{1,\widehat\Psi_{n,U}+g_{n,\alpha}\}\right].
+\]
+Then, for every \(n\ge1\),
+\[
+\inf_{P\in\mathcal P_n}P\{\Theta_I(P_{\mathrm{obs}})\subseteq\mathcal C_{1-\alpha,n}\}\ge1-\alpha.
+\]
+For each fixed \(\alpha\in(0,1)\),
+\[
+\sup_{P\in\mathcal P_n}
+P\!\left\{\|\widehat\Psi_n-\Psi(P_{\mathrm{obs}})\|_\infty>g_{n,\alpha}\right\}\longrightarrow0,
+\]
+and \(g_{n,\alpha}=O(n^{-1/2}+\eta_n)\).  In particular, for every positive deterministic sequence \((L_n)\) with \(L_n\to\infty\) and \(L_n=o(n^{1/2})\), the choice \(\eta_n=n^{-1/2}L_n\) satisfies the screening conditions and gives guard padding \(O(n^{-1/2}L_n)\).  The tolerance \(a_n=(n\eta_n)^{-1/4}\) is used solely by the diagnostic near-active-face multiplier envelope.  Both conclusions permit arbitrary simultaneous threshold-cut ties, positive-survivor zero-gap cells, and survivor masses approaching zero that are screened at \(\eta_n\).  No first-order exact calibration of an unguarded face-aware multiplier confidence set is asserted.
+\end{theorem}
+\begin{proof}
+\noindent\textit{Proof.}
+Every event in \(\mathcal E\) is measurable because \(\mathcal X\), \(\mathcal Y\), and the binary carriers are finite and discrete.  Moreover, the empirical numerator and denominator of every conditional probability in \(\mathrm{def{:}plugin\text{-}endpoint\text{-}estimator}\) is the empirical probability of an event in \(\mathcal E\).  For \(E\in\mathcal E\), write \(I_{r,E}=\mathbf 1\{O_r\in E\}\).  Assumption \(\mathrm{ass{:}iid\text{-}sampling}\) gives
+\[
+\mathbb E_P\!\left[
+ \left\{\widehat P_n(E)-P_{\mathrm{obs}}(E)\right\}^{2}
+ \right]
+=\frac{\operatorname{Var}_P(I_{1,E})}{n}
+\le \frac{1}{4n},
+\tag{1}
+\]
+because a Bernoulli variable with success probability \(u\in[0,1]\) has variance \(u(1-u)\le1/4\).  For \(v>0\), the pointwise inequality \(\mathbf 1\{|W|>v\}\le W^2/v^2\), followed by finite subadditivity of probability, therefore yields
+\[
+\begin{aligned}
+P(\delta_n>b_{n,\alpha})
+&\le \sum_{E\in\mathcal E}
+ \frac{\mathbb E_P[(\widehat P_n(E)-P_{\mathrm{obs}}(E))^2]}
+      {b_{n,\alpha}^2}\\
+&\le\frac{|\mathcal E|}{4n b_{n,\alpha}^2}=\alpha.
+\end{aligned}
+\tag{2}
+\]
+Thus, for every \(n\ge1\), every \(\alpha\in(0,1)\), and every \(P\in\mathcal P_n\),
+\[
+P\{\delta_n\le b_{n,\alpha}\}\ge1-\alpha.
+\tag{3}
+\]
+This is a finite second-moment calculation and uses no asymptotic approximation.
+
+We next derive a deterministic stability inequality.  Put
+\[
+L_i(x)=p_x\ell_i(x),\qquad H_j(x)=p_xh_j(x),\qquad
+\widehat L_i(x)=\widehat p_x\widehat\ell_i(x),\qquad
+\widehat H_j(x)=\widehat p_x\widehat h_j(x).
+\]
+Fix a cell with \(p_x>0\) and \(p_x\ge4\delta_n/\varepsilon_Z\).  For \(z\in\{0,1\}\), let
+\[
+B_{xz}=P_{\mathrm{obs}}(X=x,Z=z),\qquad
+\widehat B_{xz}=\widehat P_n(X=x,Z=z).
+\]
+Assumption \(\mathrm{ass{:}instrument\text{-}overlap}\) implies \(B_{xz}\ge\varepsilon_Zp_x\ge4\delta_n\).  Hence \(\widehat B_{xz}\ge B_{xz}-\delta_n\ge3B_{xz}/4>0\), so every division below is valid.  For any numerator event in \(\mathcal E\) contained in \(\{X=x,Z=z\}\), write its population and empirical probabilities as \(A\) and \(\widehat A\).  Then \(0\le A\le B_{xz}\), \(|\widehat A-A|\le\delta_n\), and
+\[
+\frac{\widehat A}{\widehat B_{xz}}-\frac{A}{B_{xz}}
+=\frac{\widehat A-A}{\widehat B_{xz}}
++\frac{A(B_{xz}-\widehat B_{xz})}
+        {B_{xz}\widehat B_{xz}}.
+\]
+Consequently,
+\[
+\left|\frac{\widehat A}{\widehat B_{xz}}-
+             \frac{A}{B_{xz}}\right|
+\le\frac{8\delta_n}{3B_{xz}}
+\le\frac{4\delta_n}{\varepsilon_Zp_x}.
+\tag{4}
+\]
+Multiplication by \(p_x\), replacement of \(p_x\) by \(\widehat p_x\), the bound \(|\widehat p_x-p_x|\le\delta_n\), and the fact that an empirical conditional probability lies in \([0,1]\) show that one weighted conditional probability changes by at most \(4\delta_n/\varepsilon_Z+\delta_n\).  Each raw capacity is a difference of two such conditional probabilities.  Proposition \(\mathrm{prop{:}capacity\text{-}identification}\) gives nonnegative population capacities.  The map \(u\mapsto u_+=\max\{u,0\}\) is one-Lipschitz and, for \(\widehat p_x\ge0\), satisfies \(\widehat p_xu_+=(\widehat p_xu)_+\).  Thus the projection in \(\mathrm{def{:}plugin\text{-}endpoint\text{-}estimator}\) does not enlarge the unconditional-capacity error.  Since \(0<\varepsilon_Z<1/2\),
+\[
+\max_{i,j}\left\{|\widehat L_i(x)-L_i(x)|,
+                    |\widehat H_j(x)-H_j(x)|\right\}
+\le\frac{16\delta_n}{\varepsilon_Z^2}.
+\tag{5}
+\]
+
+It remains to verify (5) for small cells.  If \(0<p_x<4\delta_n/\varepsilon_Z\), each population unconditional capacity is at most \(p_x\).  The positive part of a difference of two empirical conditional probabilities is at most one, so each empirical unconditional projected capacity is at most \(\widehat p_x\le p_x+\delta_n\).  Its error is therefore at most \(2p_x+\delta_n\), which is no larger than \(16\delta_n/\varepsilon_Z^2\) because \(0<\varepsilon_Z<1/2\).  If \(p_x=0\), independent sampling under \(\mathrm{ass{:}iid\text{-}sampling}\) gives \(\widehat p_x=0\) almost surely, and all the corresponding unconditional capacities vanish.  Thus (5) holds simultaneously in every cell, without a lower bound on \(p_x\).
+
+The threshold-cut maps in \(\mathrm{def{:}threshold\text{-}cuts}\) are positively homogeneous.  Hence \(p_xB_e(x)\), for \(e\in\{L,U\}\), is the same cut map evaluated at \((L(x),H(x))\), with zero contribution when \(p_x=0\).  If every coordinate of these unconditional capacities changes by at most \(e_0\), every prefix or tail changes by at most \(Ke_0\), each selected-complier total changes by at most \(Ke_0\), and the difference of the two totals changes by at most \(2Ke_0\).  For finite collections,
+\[
+|\max_r u_r-\max_r v_r|\le\max_r|u_r-v_r|,
+\qquad
+|\min_r u_r-\min_r v_r|\le\max_r|u_r-v_r|.
+\]
+Applying these inequalities successively to the formulas in \(\mathrm{def{:}threshold\text{-}cuts}\) shows that the lower cut, upper cut, and survivor-mass maps each change by at most \(4Ke_0\).  Combining this fact with (5), summing over \(x\), and writing \(N_e=\sum_xp_xB_e(x)\), we obtain
+\[
+\left|\sum_x\widehat p_x\widehat B_e(x)-N_e\right|
+\le\frac{64K|\mathcal X|}{\varepsilon_Z^2}\delta_n,
+\qquad
+\left|\sum_x\widehat p_x\widehat m(x)-M\right|
+\le\frac{64K|\mathcal X|}{\varepsilon_Z^2}\delta_n.
+\tag{6}
+\]
+No unique active threshold or selection direction was chosen, so (6) applies at arbitrary simultaneous cut ties and at positive-survivor zero-gap cells.
+
+For arbitrary nonnegative capacities, \(0\le B_e(x)\le m(x)\).  For \(B_U\), both inequalities follow immediately from its definition as the minimum of the nonnegative mass cap and nonnegative threshold cuts.  For \(B_L\), if \(q_1\ge q_0\), then
+\[
+\ell_{\le t}-h_{\le t}+\min\{q_1-q_0,0\}
+=\ell_{\le t}-h_{\le t}\le q_0=m.
+\]
+If \(q_1<q_0\), then
+\[
+\ell_{\le t}-h_{\le t}+q_1-q_0
+=h_{>t}-\ell_{>t}\le q_1=m.
+\]
+The outer maximum with zero proves the assertion, and the same algebra applies to the projected empirical capacities.  A screened-out cell satisfies \(\widehat p_x\widehat m(x)=\widehat r_x\le\eta_n\); therefore screening changes each empirical numerator and the empirical denominator by at most \(|\mathcal X|\eta_n\).  Define
+\[
+C_0=\frac{64K|\mathcal X|}{\varepsilon_Z^2},
+\qquad
+R_n=C_0\delta_n+|\mathcal X|\eta_n.
+\]
+Equation (6) and the screening bound imply, for \(e\in\{L,U\}\),
+\[
+|\widehat N_{e,n}-N_e|\le R_n,
+\qquad
+|\widehat M_n-M|\le R_n.
+\tag{7}
+\]
+This step permits cell survivor masses to approach zero and does not require recovery of their support.
+
+On \(\{\delta_n\le b_{n,\alpha}\}\), equation (7) gives \(R_n\le A_{n,\alpha}\).  If \(g_{n,\alpha}<1\), its definition implies \(A_{n,\alpha}<m_{\star}/4\).  Assumption \(\mathrm{ass{:}uniform\text{-}aggregate\text{-}survivor\text{-}bound}\) then gives
+\[
+\widehat M_n\ge M-R_n
+\ge m_{\star}-A_{n,\alpha}>\frac{3m_{\star}}4>0.
+\tag{8}
+\]
+Thus the fallback estimator is not used.  Theorem \(\mathrm{thm{:}sharp\text{-}exact\text{-}mass\text{-}threshold\text{-}interval}\) and the preceding bound \(0\le B_e(x)\le m(x)\) imply \(0\le N_e\le M\).  Quotient algebra and (7)--(8) therefore give
+\[
+\begin{aligned}
+\left|\frac{\widehat N_{e,n}}{\widehat M_n}-\frac{N_e}{M}\right|
+&\le\frac{|\widehat N_{e,n}-N_e|}{\widehat M_n}
+ +\frac{N_e|\widehat M_n-M|}{M\widehat M_n}\\
+&\le\frac{2R_n}{\widehat M_n}
+\le\frac{8A_{n,\alpha}}{3m_{\star}}
+\le\frac{4A_{n,\alpha}}{m_{\star}}
+=g_{n,\alpha}.
+\end{aligned}
+\tag{9}
+\]
+Taking \(e=L,U\) proves \(\|\widehat\Psi_n-\Psi(P_{\mathrm{obs}})\|_\infty\le g_{n,\alpha}\).  If instead \(g_{n,\alpha}=1\), then \(0\le\widehat N_{e,n}\le\widehat M_n\) whenever \(\widehat M_n>0\), and the fallback is \((0,1)\) when \(\widehat M_n=0\).  Thus both coordinates of \(\widehat\Psi_n\) lie in \([0,1]\), and the clipped guarded set is exactly \([0,1]\).
+
+In either case, on the event in (3), the sharpness theorem gives \(\Theta_I(P_{\mathrm{obs}})=[\theta_L,\theta_U]\subseteq\mathcal C_{1-\alpha,n}\).  Taking the infimum of (3) over \(P\in\mathcal P_n\) proves, for every \(n\ge1\),
+\[
+\inf_{P\in\mathcal P_n}
+P\{\Theta_I(P_{\mathrm{obs}})\subseteq\mathcal C_{1-\alpha,n}\}
+\ge1-\alpha.
+\tag{10}
+\]
+
+It remains to prove uniform endpoint consistency.  Fix \(\alpha\in(0,1)\) and define
+\[
+\mathcal D_n=\left\{\delta_n\le
+\frac{|\mathcal X|\eta_n}{2C_0}\right\}.
+\]
+On \(\mathcal D_n\),
+\[
+R_n\le\frac32|\mathcal X|\eta_n
+\le\frac32A_{n,\alpha}.
+\tag{11}
+\]
+Because \(\eta_n\to0\), the first quantity in (11) is eventually smaller than \(m_{\star}/4\).  The denominator and quotient argument in (8)--(9), now with \(R_n\) in place of \(A_{n,\alpha}\), yields
+\[
+\|\widehat\Psi_n-\Psi(P_{\mathrm{obs}})\|_\infty
+\le\frac{8R_n}{3m_{\star}}
+\le\frac{4A_{n,\alpha}}{m_{\star}}.
+\tag{12}
+\]
+For fixed \(\alpha\), both \(b_{n,\alpha}\to0\) and \(\eta_n\to0\), so eventually \(4A_{n,\alpha}/m_{\star}<1\), and the last member of (12) equals \(g_{n,\alpha}\).  Applying the same second-moment calculation as in (2), now at the positive threshold \(|\mathcal X|\eta_n/(2C_0)\), gives uniformly in \(P\in\mathcal P_n\)
+\[
+P(\mathcal D_n^c)
+\le \frac{|\mathcal E|C_0^2}
+{n|\mathcal X|^2\eta_n^2}.
+\tag{13}
+\]
+The right-hand side tends to zero because \(\sqrt n\eta_n\to\infty\).  Equations (12)--(13) prove
+\[
+\sup_{P\in\mathcal P_n}
+P\!\left\{\|\widehat\Psi_n-\Psi(P_{\mathrm{obs}})\|_\infty>g_{n,\alpha}\right\}
+\longrightarrow0.
+\tag{14}
+\]
+
+Finally, for fixed \(\alpha\), the finite cardinality of \(\mathcal E\) gives \(b_{n,\alpha}=O(n^{-1/2})\).  Hence \(A_{n,\alpha}=O(n^{-1/2}+\eta_n)\), and, since \(\eta_n\to0\), the second argument of the minimum defining \(g_{n,\alpha}\) tends to zero.  Therefore
+\[
+g_{n,\alpha}=O(n^{-1/2}+\eta_n).
+\]
+Let \((L_n)\) be any positive deterministic sequence such that \(L_n\to\infty\) and \(L_n=o(n^{1/2})\), and set \(\eta_n=n^{-1/2}L_n\).  Then \(\eta_n>0\) for every \(n\ge1\),
+\[
+\eta_n=\frac{L_n}{\sqrt n}\longrightarrow0,
+\qquad
+\sqrt n\eta_n=L_n\longrightarrow\infty,
+\]
+and the guard padding is \(O(n^{-1/2}L_n)\).  No monotonicity of \((\eta_n)\) or \((L_n)\) is used or asserted.  The localization tolerance \(a_n=(n\eta_n)^{-1/4}\) and the multiplier process do not enter (1)--(14), so neither conclusion claims calibrated face-aware multiplier inference. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A finite observable event class, an explicit second-moment deviation inequality, and global capacity, cut, screening, and quotient stability bounds prove both every-sample full-interval containment and uniform endpoint consistency. \textit{Gap.} The multiplier envelope is not calibrated by this proof; first-order exact unguarded face-aware multiplier inference under changing survivor support remains open. \textit{Consumer.} Users obtain a computable conservative confidence set with finite-sample coverage at least \(1-\alpha\) and a vanishing near-root-\(n\) endpoint guard.
+
+\section{Interpretation}
+
+For a Job Corps-style application, interpret \(Z\) as randomized offer assignment, \(D\) as actual program receipt, \(S\) as employment, and \(Y\) as a prespecified ordered wage category observed among employed units. Then \(C=\{D_1>D_0\}\) denotes offer compliers, \(S_0=S_1=1\) denotes those employed under either receipt state, and \(\theta=P(Y_1>Y_0\mid S_1=S_0=1,C)\) is the probability that program receipt raises the wage category among always-employed compliers. This is a variable-level reinterpretation only: the note neither reanalyzes the Job Corps data nor claims that the numerical bounds published by Chen and Flores transfer to this ordinal-benefit estimand. The displayed three-level law is a synthetic compatible witness, not an empirical estimate.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+Finite enumeration is a diagnostic rather than a proof. The exact projection, threshold formulas, endpoint-attaining compatible laws, and computational complexity are supported by the symbolic results; the enumerated linear-program checks and the three-level witness serve only as independent implementation checks. For the inference theorem, capacity identification is an explicit proof dependency because it places the population raw contrasts in the nonnegative capacity cone before the positive-part directional derivative is taken. The fixed-law limit recovers a fixed positive-survivor support and permits arbitrary simultaneous threshold ties and zero selection gaps, but it is not a changing-support uniform limit. Uniform whole-interval containment is supplied separately by the conservative deterministic guard, whose padding may exceed a first-order calibrated region. The near-active-face multiplier envelope is therefore diagnostic, and exact unguarded uniform multiplier calibration under changing survivor support is not proved.
+
+\section{Honest scope}
+
+The paper proves the tie-safe observable capacity identities, the branch-free exact-mass projection, sharp threshold min-cut endpoints, endpoint-attaining full latent laws, the \(O(|\mathcal X|K)\) sparse-flow algorithm, the compatible three-level witness, the complete-marginal reduction, the total projected plug-in estimator's fixed-law directional limit, and conservative deterministic-guard inference. Identification permits \(\Delta q(x)=0\) and \(m(x)=0\) and imposes no direction margin. The fixed-law limit likewise imposes no direction-separation condition: it includes positive-survivor zero-gap cells and simultaneous active cuts, while screening recovers the law's fixed positive-survivor support with probability tending to one. Under instrument overlap and the uniform lower bound \(M\ge m_{\star}>0\), the deterministic guard gives finite-sample uniform containment of the entire sharp interval and uniform endpoint consistency, including changing cellwise survivor support. No first-order exact calibration of an unguarded face-aware multiplier confidence set, no changing-support directional limit, and no empirical Job Corps reanalysis are claimed. Continuous outcomes, sensitivity to violations of weak selection monotonicity, and additional concordance restrictions are outside scope.
+
+\begin{thebibliography}{99}
+
+  \bibitem{AngristImbensRubin1996} Angrist, J. D., Imbens, G. W., and Rubin, D. B. (1996). Identification of causal effects using instrumental variables. Journal of the American Statistical Association 91, 444--455.
+
+  \bibitem{KennedyHarrisKeele2019} Kennedy, E. H., Harris, S., and Keele, L. J. (2019). Survivor-complier effects in the presence of selection on treatment, with application to a study of prompt ICU admission. Journal of the American Statistical Association 114, 93--104.
+
+  \bibitem{ChenFlores2015} Chen, X., and Flores, C. A. (2015). Bounds on treatment effects in the presence of sample selection and noncompliance: The wage effects of Job Corps. Journal of Business and Economic Statistics 33, 523--540.
+
+  \bibitem{DongHeiler2026} Dong, Y., and Heiler, P. (2026). Sharp bounds and inference in sample selection models with treatment endogeneity. arXiv:2606.09223.
+
+  \bibitem{LuDingDasgupta2018} Lu, J., Ding, P., and Dasgupta, T. (2018). Treatment effects on ordinal outcomes: Causal estimands and sharp bounds. Journal of Educational and Behavioral Statistics 43, 540--567.
+
+  \bibitem{GabrielSachsJensen2024} Gabriel, E. E., Sachs, M. C., and Jensen, A. K. (2024). Sharp symbolic nonparametric bounds for measures of benefit in observational and imperfect randomized studies with ordinal outcomes. Biometrika 111, 1429--1436.
+
+  \bibitem{deAguasEtAl2025} de Aguas, J., Krumscheid, S., Pensar, J., and Biele, G. (2025). The probability of tiered benefit: Partial identification with robust and stable inference. Proceedings of Machine Learning Research 275, 90--113.
+
+  \bibitem{FangSantos2019} Fang, Z., and Santos, A. (2019). Inference on directionally differentiable functions. Review of Economic Studies 86, 377--412.
+
+  \bibitem{ChernozhukovLeeRosen2013} Chernozhukov, V., Lee, S., and Rosen, A. M. (2013). Intersection bounds: Estimation and inference. Econometrica 81, 667--737.
+
+  \bibitem{HongLi2018} Hong, H., and Li, J. (2018). The numerical delta method. Journal of Econometrics 206, 379--394.
+
+  \bibitem{Semenova2025} Semenova, V. (2025). Generalized Lee bounds. Journal of Econometrics 251, 106055.
+
+  \bibitem{Noack2026} Noack, C. (2026). Sensitivity of LATE estimates to violations of the monotonicity assumption. Working paper, arXiv:2106.06421.
+
+  \bibitem{FanPark2010} Fan, Y., and Park, S. S. (2010). Sharp bounds on the distribution of treatment effects and their statistical inference. Econometric Theory 26, 931--951.
+
+  \bibitem{Russell2021} Russell, T. M. (2021). Sharp bounds on functionals of the joint distribution in the analysis of treatment effects. Journal of Business and Economic Statistics 39, 532--546.
+
+  \bibitem{vanDerVaart1998} van der Vaart, A. W. (1998). Asymptotic Statistics. Cambridge University Press.
+
+  \bibitem{PossebomRiva2025} Possebom, V., and Riva, F. (2025). Probability of causation with sample selection: A reanalysis of the impacts of Jóvenes en Acción on formality. Journal of Business and Economic Statistics 43, 391--400.
+
+  \bibitem{ChenLi2026} Chen, X., and Li, F. (2026). Principal stratification with U-statistics under principal ignorability. Journal of the Royal Statistical Society Series B: Statistical Methodology, qkag044.
+
+\end{thebibliography}
+
+\end{document}

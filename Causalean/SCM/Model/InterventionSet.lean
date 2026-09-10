@@ -38,7 +38,9 @@ namespace SCM
 -- § 1. `fixSet` — monolithic multi-target do
 -- ============================================================
 
-/-- **Standard (Pearl) multi-target do** — definitional alias for `fixMono`. -/
+/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), and [a finite set of intervention targets](hyp:X) whose [random copies are observed](hyp:hObs) and whose [fixed copies are not already fixed](hyp:hFix), the [standard multi-target intervention](goal) is the model obtained by simultaneously splitting all targets. It is defined [as the monolithic intervention](step:1).
+
+    **Standard (Pearl) multi-target do** — definitional alias for `fixMono`. -/
 noncomputable def fixSet
     (M : Causalean.SCM N Ω) (X : Finset N)
     (hObs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)
@@ -722,7 +724,9 @@ theorem swigInterventionSet_insert_equiv
 -- § 3. `fixSetProj` — projection onto original fixed coordinates
 -- ============================================================
 
-/-- Canonical projection of post-intervention fixed assignments onto the
+/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), [a finite intervention-target set](hyp:X) whose [random copies are observed](hyp:hObs) and whose [fixed copies are not already fixed](hyp:hFix), the [projection from post-intervention fixed-value assignments to original fixed-value assignments](goal) restricts an assignment to the model's original fixed coordinates. It is defined [by coordinate projection](step:1).
+
+    Canonical projection of post-intervention fixed assignments onto the
     original fixed coordinates.
 
     Reads an assignment `s' : (M.fixSet X _ _).FixedValues` on the enlarged
@@ -749,7 +753,9 @@ theorem measurable_fixSetProj (M : Causalean.SCM N Ω) (X : Finset N)
 -- § 4. `fixSetZSlice` — extractor of the inner `do(Z)` slice
 -- ============================================================
 
-/-- **Z-fixed-slice extractor.**  Reads a `FixedValues` assignment of the
+/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), [an initial intervention-target set](hyp:X) whose [random copies are observed](hyp:hX_obs) and whose [fixed copies are not already fixed](hyp:hX_fixed), and [a second intervention-target set](hyp:Z) whose [random copies are observed after the first intervention](hyp:hZ_obs) and whose [fixed copies are not already fixed after the first intervention](hyp:hZ_fixed), the [second-intervention fixed-slice extractor](goal) maps every fixed-value assignment after both interventions to its coordinates for the fixed copies of the second targets. It is defined [by coordinate projection](step:1).
+
+    **Z-fixed-slice extractor.**  Reads a `FixedValues` assignment of the
     double-intervention `((M.fixSet X).fixSet Z)` on the `Z.image .fixed`
     slice, producing a `ValuesOn (Z.image SWIGNode.fixed) (swigΩ Ω)`.
     General-purpose extractor for the inner `do(z)` coordinate slice of a

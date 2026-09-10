@@ -36,7 +36,9 @@ lemma coveringNumber_exists {X : Type*} {A : Set X} [PseudoMetricSpace X]
   · convert tball
     simp only [Set.mem_toFinset]
 
-/-- The covering number is the smallest size of a finite positive-radius net
+/-- For [a totally bounded subset $A$ of a pseudometric space](hyp:ha) and [a real radius $\varepsilon$](hyp:ε), the [covering number of $A$ at radius $\varepsilon$](goal) is the least cardinality of a finite family of open $\varepsilon$-balls covering $A$ when $\varepsilon>0$, and is zero when $\varepsilon\leq0$.
+
+The covering number is the smallest size of a finite positive-radius net
 for a totally bounded set, and is zero at nonpositive radii. -/
 noncomputable def coveringNumber {X : Type*} [PseudoMetricSpace X] {A : Set X}
     (ha : TotallyBounded A) (ε : ℝ) : ℕ :=
@@ -94,7 +96,9 @@ theorem coveringNumber_aemeasurable {X : Type*} [PseudoMetricSpace X] {A : Set X
     rw [Set.indicator_of_notMem h]
     rw [coveringNumber, dif_neg (by exact h)]
 
-/-- A chosen finite positive-radius net attains the covering number. -/
+/-- For [a totally bounded subset $A$ of a pseudometric space](hyp:ha) and [a strictly positive real radius $\varepsilon$](hyp:ε,hε), the [chosen finite $\varepsilon$-net for $A$](goal) is a finite set whose cardinality attains the covering number.
+
+A chosen finite positive-radius net attains the covering number. -/
 noncomputable def coveringFinset
     {X : Type*} [PseudoMetricSpace X] {A : Set X}
     (ha : TotallyBounded A) {ε : ℝ} (hε : ε > 0) : Finset X :=

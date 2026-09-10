@@ -17,10 +17,9 @@ import {
   type Library,
 } from "../../../lib/library.js";
 import {
-  structureAndLinkify,
   findProofStart,
-  type StructuredStatement,
 } from "../../../lib/leanStatement.js";
+import { declViewAndLinkify, type DeclView } from "../../../lib/leanDeclView.js";
 import LeanStatement from "../../../components/LeanStatement.astro";
 import SeoHead from "../../../components/SeoHead.astro";
 import { renderDoc, nlOf, renderTexLine, titleCase } from "../../../lib/docmd.js";
@@ -114,16 +113,15 @@ const cleanSnippet = (s: string) => {
 const stmtClass = (text: string) =>
   `decl-stmt ${text.split("\n").length < 5 ? "decl-stmt-wrap" : "decl-stmt-scrollable"}`;
 
-// Structured statements — the same one-row-per-binder layout the Causalean
-// library pages use (see ModuleNode / LeanStatement): a theorem separates its
-// hypotheses from its conclusion, a structure/class its parameters from its
-// fields. `structureAndLinkify` returns null whenever the parser isn't
-// confident it understood the signature, and the flat block renders instead.
-// `selfNames` keeps a paper-local identifier anchored on this page.
-const structurable = (kind: string) =>
-  kind === "theorem" || kind === "lemma" || kind === "structure" || kind === "class";
-const sectionLabel = (kind: string) =>
-  kind === "theorem" || kind === "lemma" ? "hypotheses" : "fields";
+// Structured statements — the same labelled-row layout the Causalean library
+// pages use (see ModuleNode / LeanStatement): a theorem separates its
+// hypotheses from its conclusion, a definition its parameters / def / given
+// by, a structure/class its parameters from its fields. `declViewAndLinkify`
+// returns null whenever the parser isn't confident it understood the source,
+// and the flat block renders instead. `selfNames` keeps a paper-local
+// identifier anchored on this page.
+const STRUCTURABLE = new Set(["theorem", "lemma", "def", "abbrev", "structure", "class"]);
+const structurable = (kind: string) => STRUCTURABLE.has(kind);
 // A structure/class's source is already scoped to the declaration; a theorem's
 // carries its proof, which the signature view drops.
 const signatureOf = (source: string, kind: string) => {
@@ -133,9 +131,9 @@ const signatureOf = (source: string, kind: string) => {
 };
 const declSignature = (d: LibDecl): string | null =>
   d.source ? signatureOf(stripLeadingDoc(d.source), d.kind) : null;
-const structuredOf = (text: string | null, kind: string): StructuredStatement | null =>
+const structuredOf = (text: string | null, kind: string, d?: LibDecl): DeclView | null =>
   text && structurable(kind)
-    ? structureAndLinkify(text, merged, base, kind, selfNames)
+    ? declViewAndLinkify(text, kind, merged, base, d?.params, d?.result, selfNames)
     : null;
 ---
 
@@ -201,7 +199,7 @@ const structuredOf = (text: string | null, kind: string): StructuredStatement | 
                 const cw = cwByName.get(d.name);
                 const realAxioms = publicAxioms(d.axioms);
                 const sig = declSignature(d);
-                const structured = structuredOf(sig, d.kind);
+                const structured = structuredOf(sig, d.kind, d);
                 return (
                   <div class={`decl-card kind-${d.kind}`} id={d.name}>
                     <div class="decl-head">
@@ -227,11 +225,7 @@ const structuredOf = (text: string | null, kind: string): StructuredStatement | 
                         <details>
                           <summary>Formal statement</summary>
                           {structured ? (
-                            <LeanStatement
-                              structured={structured}
-                              copyText={sig ?? d.statement}
-                              sectionLabel={sectionLabel(d.kind)}
-                            />
+                            <LeanStatement view={structured} copyText={sig ?? d.statement} />
                           ) : (
                             <div
                               class={stmtClass(sig ?? d.statement)}
@@ -253,11 +247,7 @@ const structuredOf = (text: string | null, kind: string): StructuredStatement | 
                       <details>
                         <summary>{d.source ? "Definition (Lean source)" : "Formal statement"}</summary>
                         {structured ? (
-                          <LeanStatement
-                            structured={structured}
-                            copyText={sig ?? d.statement}
-                            sectionLabel={sectionLabel(d.kind)}
-                          />
+                          <LeanStatement view={structured} copyText={sig ?? d.statement} />
                         ) : (
                           <div
                             class={stmtClass(d.source ? stripLeadingDoc(d.source) : d.statement)}
@@ -311,11 +301,7 @@ const structuredOf = (text: string | null, kind: string): StructuredStatement | 
                   <details>
                     <summary>Formal statement</summary>
                     {structured ? (
-                      <LeanStatement
-                        structured={structured}
-                        copyText={sig}
-                        sectionLabel={sectionLabel(kind)}
-                      />
+                      <LeanStatement view={structured} copyText={sig} />
                     ) : (
                       <div
                         class={stmtClass(cleanSnippet(snip.statement))}

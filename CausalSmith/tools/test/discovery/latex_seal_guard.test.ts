@@ -71,6 +71,49 @@ describe("assertSealableLatexPayload", () => {
     }, "test payload")).not.toThrow();
   });
 
+  it("rejects zero/even-slash qquad in proof math and accepts odd-slash commands", () => {
+    // Fail-before: companion bytes containing `,qquad` passed the seal and were
+    // only rejected by an expensive mathematical audit. Pass-after is both
+    // directions: reject the missing slash, preserve the canonical command.
+    expect(() => assertSealableLatexPayload({
+      proof_tex: "\\[a=b,qquad c=d.\\]",
+    }, "test payload")).toThrow(/bare 'qquad'|missing TeX control-word/i);
+    expect(() => assertSealableLatexPayload({
+      proof_tex: "\\[a=b,\\qquad c=d.\\]",
+    }, "test payload")).not.toThrow();
+    expect(() => assertSealableLatexPayload({
+      proof_tex: String.raw`\[a=b,\\qquad c=d.\]`,
+    }, "test payload")).toThrow(/bare 'qquad'|missing TeX control-word/i);
+    expect(() => assertSealableLatexPayload({
+      proof_tex: String.raw`\[a=b,\\\qquad c=d.\]`,
+    }, "test payload")).not.toThrow();
+  });
+
+  it("does not treat literal qquad prose, Unicode adjacency, metadata, or text commands as broken TeX", () => {
+    expect(() => assertSealableLatexPayload({
+      proof_tex: String.raw`The token qquad is discussed; \(αqquad + qquadβ + αqquadβ + \text{outer {qquad at C:/qquad/file}}\) are literal.`,
+      reason: "The token qquad is discussed in /qquad documentation.",
+    }, "test payload")).not.toThrow();
+  });
+
+  it("checks qquad parity in dollar math and standalone nested math environments", () => {
+    expect(() => assertSealableLatexPayload({
+      proof_tex: String.raw`$a=qquad b$`,
+    }, "test payload")).toThrow(/bare 'qquad'|missing TeX control-word/i);
+    expect(() => assertSealableLatexPayload({
+      proof_tex: String.raw`$$a=\qquad b$$`,
+    }, "test payload")).not.toThrow();
+    expect(() => assertSealableLatexPayload({
+      proof_tex: String.raw`\begin{equation}\begin{aligned}a=qquad b\end{aligned}\end{equation}`,
+    }, "test payload")).toThrow(/bare 'qquad'|missing TeX control-word/i);
+    expect(() => assertSealableLatexPayload({
+      proof_tex: String.raw`\begin{equation}a=\\qquad b\end{equation}`,
+    }, "test payload")).toThrow(/bare 'qquad'|missing TeX control-word/i);
+    expect(() => assertSealableLatexPayload({
+      proof_tex: String.raw`\begin{equation}a=\\\qquad b\end{equation}`,
+    }, "test payload")).not.toThrow();
+  });
+
   it("rejects decoded control characters via the shared boundary check", () => {
     expect(() => assertSealableLatexPayload({
       construction: "a\theta-smooth class",

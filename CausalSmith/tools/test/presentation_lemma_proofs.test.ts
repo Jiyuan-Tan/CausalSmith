@@ -1,37 +1,31 @@
 import { describe, expect, it } from "vitest";
-import { parseLemmaProofBatch, insertLemmaProofs, insertProofPointers } from "../src/presentation/stages/p2_draft.js";
+import { parseProofRender, insertLemmaProofs, insertProofPointers } from "../src/presentation/stages/p2_draft.js";
 
-// obj_ids are graph NODE ids and contain ':' (e.g. prop:overlap-envelope) — the marker/env regexes
+// Object ids contain ':' (e.g. prop:overlap-envelope) — the marker/env regexes
 // must handle the colon, or the whole lemma-proof batch fails to parse (real P2 incident 2026-06-25).
 const proofA = "\\begin{proof}[Proof of Lemma~\\ref{obj:lem:witness-membership}]\nStep. % lean: witness_membership\n\\end{proof}";
 const proofB = "\\begin{proof}[Proof of Lemma~\\ref{obj:prop:overlap-envelope}]\nOther. % lean: overlap_envelope\n\\end{proof}";
 
-describe("parseLemmaProofBatch", () => {
-  it("splits delimited batch output into per-lemma proofs (colon-bearing obj_ids)", () => {
-    const stdout = `%% PROOF lem:witness-membership\n${proofA}\n\n%% PROOF prop:overlap-envelope\n${proofB}\n`;
-    const m = parseLemmaProofBatch(stdout, ["lem:witness-membership", "prop:overlap-envelope"]);
-    expect(m.get("lem:witness-membership")).toBe(proofA);
-    expect(m.get("prop:overlap-envelope")).toBe(proofB);
+describe("parseProofRender", () => {
+  it("attributes a lemma proof to its colon-bearing object id", () => {
+    expect(parseProofRender(proofA, "lem:witness-membership"))
+      .toContain(String.raw`\begin{proof}[Proof of \cref{obj:lem:witness-membership}]`);
   });
 
-  it("tolerates chatter around markers and keeps UNCLEAR verdicts", () => {
-    const stdout = `noise\n%% PROOF lem:witness-membership\n${proofA}\n%% PROOF prop:overlap-envelope\nUNCLEAR: route not visible\n`;
-    const m = parseLemmaProofBatch(stdout, ["lem:witness-membership", "prop:overlap-envelope"]);
-    expect(m.get("lem:witness-membership")).toBe(proofA);
-    expect(m.get("prop:overlap-envelope")).toMatch(/^UNCLEAR:/);
+  it("rejects an UNCLEAR response even if it echoes a prior proof", () => {
+    expect(parseProofRender(`UNCLEAR: route missing\n${proofA}`, "lem:witness-membership")).toBeNull();
   });
 
-  it("returns the parseable subset when a lemma is omitted — the caller retries the rest", () => {
-    // The old all-or-nothing throw here discarded the parseable proofs from the same paid
-    // reply; the caller now re-requests ONLY the omitted lemmas (audit, 2026-08-26).
-    const m = parseLemmaProofBatch(`%% PROOF lem:witness-membership\n${proofA}`, ["lem:witness-membership", "lem:two-point-divergence"]);
-    expect(m.get("lem:witness-membership")).toBe(proofA);
-    expect(m.has("lem:two-point-divergence")).toBe(false);
+  it("rejects absent or incomplete proof envelopes for a targeted retry", () => {
+    expect(parseProofRender("No proof emitted", "lem:a")).toBeNull();
+    expect(parseProofRender(String.raw`\begin{proof}Unfinished`, "lem:a")).toBeNull();
   });
 
-  it("drops marker ids that were not requested (a stray echo never writes a stray proof file)", () => {
-    const m = parseLemmaProofBatch(`%% PROOF lem:stray\n${proofA}\n%% PROOF lem:witness-membership\n${proofA}`, ["lem:witness-membership"]);
-    expect([...m.keys()]).toEqual(["lem:witness-membership"]);
+  it("preserves a nested claim proof and discards surrounding chatter", () => {
+    const nested = String.raw`\begin{proof}Outer. \begin{proof}[Claim]Inner.\end{proof} Conclusion.\end{proof}`;
+    const parsed = parseProofRender(`chatter\n${nested}\nchatter`, "lem:a");
+    expect(parsed).toContain(String.raw`\begin{proof}[Claim]Inner.\end{proof} Conclusion.\end{proof}`);
+    expect(parsed).not.toContain("chatter");
   });
 });
 

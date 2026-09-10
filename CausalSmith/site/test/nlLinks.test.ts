@@ -147,6 +147,34 @@ describe("parseNlLinks", () => {
   // checked in full rather than salvaged in part: half-consuming it would leave
   // rows silently untokened, which a reader cannot tell from a paper that
   // genuinely says nothing about them.
+  it("keeps a definition's `def` row: it is assignable and counted like any content row", () => {
+    const t = parseNlLinks(
+      withBlock({
+        structured: {
+          sharedHyps: [{ chip: "decl", code: "(n : ℕ)", id: "r1" }],
+          defRow: { hyps: [], code: "frontierRate n : ℝ", id: "r2" },
+          conclusions: [{ hyps: [], code: "Real.rpow (Real.log n / n) (1 / 4)", id: "r3" }],
+        },
+        assignments: [
+          { row: "r1", segments: ["s1"] },
+          { row: "r2", segments: ["s1"] },
+          { row: "r3", segments: ["s1"] },
+        ],
+      }),
+    )!;
+    const b = t.blocks["T-1"];
+    expect(b.structured!.defRow!.id).toBe("r2");
+    expect(b.assignments.map((a) => a.row)).toEqual(["r1", "r2", "r3"]);
+    // a where-block definition: def row, no clauses — still a usable tree
+    const w = parseNlLinks(
+      withBlock({
+        structured: { sharedHyps: [], defRow: { hyps: [], code: "sys : System", id: "r1" }, conclusions: [] },
+        assignments: [{ row: "r1", segments: ["s1"] }],
+      }),
+    )!;
+    expect(w.blocks["T-1"].structured!.conclusions).toEqual([]);
+  });
+
   describe("closed-world totality", () => {
     it("requires a digest and a byte length", () => {
       expect(reasonFor({ digest: undefined })).toBe("block carries no digest");

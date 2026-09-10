@@ -19,8 +19,9 @@ with zero as the boundary value. -/
 namespace Causalean
 namespace Panel
 
-/-- A treatment path: each unit `i : I` and time index `t : T` is assigned
-an action in `A`, representing the realized assignment `D_{it}`. -/
+/-- Given [a set of units](hyp:I), [a set of time periods](hyp:T), and [a set of treatment
+actions](hyp:A), a [treatment path](goal) assigns one treatment action to every unit-period
+pair. -/
 def TreatmentPath (I T A : Type*) : Type _ := I → T → A
 
 namespace TreatmentPath

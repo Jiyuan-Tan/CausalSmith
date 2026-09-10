@@ -25,7 +25,13 @@ namespace Causalean.SCM.PartialID
 variable {N : Type*} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-/-- A bound `[L, U]` is **sharp** for the real-valued query `obj` over the compatible class of
+/-- For a finite node set with measurable node-value spaces, [a SWIG graph](hyp:G), [a class of
+structural causal models](hyp:As), [a baseline structural causal model](hyp:M₀), [a real-valued
+query of such models](hyp:obj), and [two real numbers $L$ and $U$](hyp:L,U), [the sharpness
+predicate](goal) holds exactly when the query's range over models compatible with the graph,
+class, and baseline model is the closed interval $[L,U]$.
+
+A bound `[L, U]` is **sharp** for the real-valued query `obj` over the compatible class of
 `(G, As, M₀)` when the identified set (the range of `obj` over the compatible class) is exactly
 the closed interval `[L, U]`. -/
 def IsSharp (G : SWIGGraph N) (As : Causalean.SCM N Ω → Prop) (M₀ : Causalean.SCM N Ω)

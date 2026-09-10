@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CEILING_FOR_FIELD,
+  CEILING_FOR_FLAGSHIP,
   CEILING_FOR_SUBFIELD,
   ceilingTierCap,
   decideGeneralReroute,
@@ -21,14 +22,15 @@ const base = {
 
 describe("ceilingTierCap", () => {
   it("maps the ceiling ladder to the highest permitted tier", () => {
-    expect(ceilingTierCap(9.4)).toBe("flagship");
-    expect(ceilingTierCap(9.0)).toBe("flagship");
-    expect(ceilingTierCap(8.9)).toBe("field");
+    // Assertions are relative to the exported thresholds: the ladder's SHAPE is the
+    // invariant, not the particular numbers, which move as the D0.5.G scale is recalibrated.
+    expect(ceilingTierCap(CEILING_FOR_FLAGSHIP + 0.4)).toBe("flagship");
+    expect(ceilingTierCap(CEILING_FOR_FLAGSHIP)).toBe("flagship");
+    expect(ceilingTierCap(CEILING_FOR_FLAGSHIP - 0.1)).toBe("field");
     expect(ceilingTierCap(CEILING_FOR_FIELD)).toBe("field");
-    expect(ceilingTierCap(7.4)).toBe("field");
-    expect(ceilingTierCap(6.9)).toBe("subfield");
+    expect(ceilingTierCap(CEILING_FOR_FIELD - 0.1)).toBe("subfield");
     expect(ceilingTierCap(CEILING_FOR_SUBFIELD)).toBe("subfield");
-    expect(ceilingTierCap(6.4)).toBe("incremental");
+    expect(ceilingTierCap(CEILING_FOR_SUBFIELD - 0.1)).toBe("incremental");
   });
 
   it("fails OPEN on an absent or unusable ceiling so a paid call is never discarded", () => {
@@ -42,7 +44,7 @@ describe("normalizeGeneralReview ceiling cap", () => {
     const gen = normalizeGeneralReview({ ...base, paper_score_ceiling: 7.8 }, "raw");
     expect(gen.tier).toBe("field");
     expect(gen.salvageable).toBe(false);
-    expect(gen.critique).not.toMatch(/ceiling gate/);
+    expect(gen.critique).not.toMatch(/projected paper-score gate/);
     expect(gen.paper_score_ceiling).toBe(7.8);
   });
 
@@ -59,7 +61,7 @@ describe("normalizeGeneralReview ceiling cap", () => {
     // Below a `field` floor + salvageable → the existing D0.5 boundary reroutes to D0.
     expect(gen.salvageable).toBe(true);
     expect(gen.improvement_directive).toBe("restate the converse over the published class");
-    expect(gen.critique).toMatch(/ceiling gate/);
+    expect(gen.critique).toMatch(/projected paper-score gate/);
   });
 
   it("caps to incremental and routes to REJECT below the subfield ceiling", () => {
@@ -70,6 +72,16 @@ describe("normalizeGeneralReview ceiling cap", () => {
     expect(gen.tier).toBe("incremental");
     // Overrides the referee's own `salvageable: true` — no rewrite lifts this to the bar.
     expect(gen.salvageable).toBe(false);
+  });
+
+  it("does not buy a below-threshold retry when the referee already graded incremental", () => {
+    const gen = normalizeGeneralReview({
+      ...base, tier: "incremental", paper_score_ceiling: 6.0,
+      salvageable: true, improvement_directive: "add a completed comparison",
+    }, "raw");
+    expect(gen.tier).toBe("incremental");
+    expect(gen.salvageable).toBe(false);
+    expect(decideGeneralReroute({ gen, reroutesUsed: 0, cap: 2 }).canReroute).toBe(false);
   });
 
   it("never promotes: a low graded tier is not raised by a high ceiling", () => {
@@ -97,7 +109,7 @@ describe("normalizeGeneralReview ceiling cap", () => {
     const gen = normalizeGeneralReview({ ...base, tier: "field" }, "raw");
     expect(gen.tier).toBe("field");
     expect(gen.paper_score_ceiling).toBeUndefined();
-    expect(gen.critique).not.toMatch(/ceiling gate/);
+    expect(gen.critique).not.toMatch(/projected paper-score gate/);
   });
 });
 

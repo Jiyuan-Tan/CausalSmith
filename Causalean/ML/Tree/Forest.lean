@@ -28,7 +28,9 @@ structure RandomForest (X : Type*) (T : ℕ) where
   /-- The ensemble of trees. -/
   tree : Fin T → FinitePartitionPredictor X
 
-/-- The forest prediction: the average of the tree predictions. -/
+/-- Given [an input domain](hyp:X), [a nonnegative number of trees](hyp:T), [a random forest on that domain](hyp:F), and [an input point](hyp:x), the [forest prediction](goal) is the arithmetic average of the predictions made at that point by all trees in the forest.
+
+The displayed definition uses reciprocal scaling by the number of trees, including its conventional value when that number is zero. -/
 noncomputable def RandomForest.eval {X : Type*} {T : ℕ} (F : RandomForest X T) (x : X) : ℝ :=
   (T : ℝ)⁻¹ * ∑ t : Fin T, (F.tree t).eval x
 

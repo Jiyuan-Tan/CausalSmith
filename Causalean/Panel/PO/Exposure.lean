@@ -28,13 +28,15 @@ responses. -/
 namespace Causalean
 namespace Panel
 
-/-- An exposure mapping: a known function from realized treatment paths
-to a cell-dependent exposure set `E r`. -/
+/-- [For a set of units](hyp:I), [a set of periods](hyp:T), [a treatment-value set](hyp:A), and [a cell-specific exposure set](hyp:E), [an exposure mapping](goal) assigns to every unit-period cell and every realized treatment path an exposure in that cell's exposure set.
+
+It is a known function from realized treatment paths to a cell-dependent exposure set. -/
 def Exposure (I T A : Type*) (E : I × T → Type*) : Type _ :=
   (r : I × T) → TreatmentPath I T A → E r
 
-/-- A baseline exposure: a distinguished element `e_r^0 ∈ E r` for every
-cell `r`.  In the binary finite-memory case this is `(0, …, 0)`. -/
+/-- [For a set of units](hyp:I), [a set of periods](hyp:T), and [a cell-specific exposure set](hyp:E), [a baseline exposure](goal) assigns a distinguished exposure to every unit-period cell.
+
+In the binary finite-memory case this is the all-zero exposure history. -/
 def BaselineExposure {I T : Type*} (E : I × T → Type*) : Type _ :=
   (r : I × T) → E r
 

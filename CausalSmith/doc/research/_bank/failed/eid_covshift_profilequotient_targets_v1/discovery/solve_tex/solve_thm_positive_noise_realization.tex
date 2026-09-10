@@ -1,0 +1,363 @@
+%%% FIELD stmt-positive
+Suppose \(\Sigma_0\succ0\), \(\operatorname{rank}(\bar Q)=r\), and \(\operatorname{range}(\Delta_e)\subseteq\operatorname{range}(\bar Q)\) for every \(1\le e\le E\), where \(\bar Q=\sum_{e=1}^E\Delta_e\).  For every \(T\subseteq\mathcal V\) and ordering \(t\) satisfying \(\operatorname{Cert}(\theta,T,t)\), the construction in \(\text{def:positive-noise-completion}\) yields a model in \(\mathcal M_{d,E,r}\) with target set \(T\), covariance \(\operatorname{Cov}(Y_e)=\Sigma_e\) for all \(e\in\mathcal E\), strictly positive baseline structural-noise variances, and strictly positive stationary measurement-error variances.
+%%% FIELD proof-positive
+Fix \(T\) and an ordering \(t\) for which \(\operatorname{Cert}(\theta,T,t)\) holds.  Write \(W=W_t\), \(L=L_t\), \(D=D_t\), and \(A=WL\).  The aggregate certificate and the definitions give
+\[
+ P_tA=P_t\bar QP_t^{\mathsf T}\bar Q_{tt}^{-1}L=L,
+ \qquad
+ P_t\Delta_eP_t^{\mathsf T}=L\Lambda_{e,t}L^{\mathsf T}. \tag{1}
+\]
+The hypotheses \(\operatorname{rank}(\bar Q)=r\) and \(\operatorname{range}(\Delta_e)\subseteq\operatorname{range}(\bar Q)\) are explicit premises of the narrowed statement.  Apply \(\text{lem:range-reconstruction}\), with its carrier symbol interpreted as \(\bar Q\), first to \(N=\bar Q\) and then to \(N=\Delta_e\).  Because \(\bar Q_{tt}=LDL^{\mathsf T}\), equation (1) yields
+\[
+ \bar Q=W\bar Q_{tt}W^{\mathsf T}=ADA^{\mathsf T},
+ \qquad
+ \Delta_e=W(P_t\Delta_eP_t^{\mathsf T})W^{\mathsf T}
+ =A\Lambda_{e,t}A^{\mathsf T}. \tag{2}
+\]
+Every \(\Delta_e\) is therefore positive semidefinite, since every \(\Lambda_{e,t}\) is diagonal and entrywise nonnegative.
+
+The aggregate identity is also needed to verify target coverage.  Summing the definition of \(\Lambda_{e,t}\) over \(e\) gives
+\[
+ \sum_{e=1}^E\Lambda_{e,t}
+ =L^{-1}P_t\bar QP_t^{\mathsf T}L^{-\mathsf T}
+ =L^{-1}(LDL^{\mathsf T})L^{-\mathsf T}=D. \tag{3}
+\]
+Thus, for each \(1\le k\le r\), the nonnegative numbers \((\Lambda_{e,t})_{kk}\) sum to \(D_{kk}>0\).  Consequently at least one environment has \((\Lambda_{e,t})_{kk}>0\).  This proves the target-coverage condition without requiring a single environment to change every target.
+
+Permute the observed coordinates so that \(t_1,\ldots,t_r\) occur first.  Write \(A_{T^c}\) for the remaining rows of \(A\), and define
+\[
+ U=\begin{pmatrix}L&0\\ A_{T^c}&I_{d-r}\end{pmatrix}. \tag{4}
+\]
+By (1), the first \(r\) columns of \(U\) are exactly \(A\).  The matrix \(U\) is unit lower triangular and invertible.  Solving \(UX=I_d\) successively by rows shows that \(U^{-1}\) is unit lower triangular.  Hence \(B=I_d-U^{-1}\) is strictly lower triangular in this permutation, so it is an acyclic observed structural matrix.  Undoing the permutation retains the original observed labels.
+
+Let \(a_0=\lambda_{\min}(\Sigma_0)>0\), using the explicit premise \(\Sigma_0\succ0\), and choose \(\tau\) as in \(\text{def:positive-noise-completion}\).  For every \(x\in\mathbb R^d\),
+\[
+ \begin{aligned}
+ x^{\mathsf T}R_0x
+ &=x^{\mathsf T}\Sigma_0x-\tau\lVert U^{\mathsf T}x\rVert_2^2-\tau\lVert x\rVert_2^2\\
+ &\ge\bigl(a_0-\tau(\lVert U\rVert_{\mathrm{op}}^2+1)\bigr)\lVert x\rVert_2^2
+ >\frac{a_0}{2}\lVert x\rVert_2^2.
+ \end{aligned} \tag{5}
+\]
+Thus \(R_0\succ0\).  Its spectral decomposition supplies the unique symmetric positive square root \(R_0^{1/2}\).
+
+For each environment, take mutually independent random vectors
+\[
+ H_e\sim N(0,I_d),\qquad
+ \eta_e\sim N(0,\tau I_d),\qquad
+ \varepsilon_e\sim N\!\left(0,\tau I_d+
+ \operatorname{diag}_t(\Lambda_{e,t})\right), \tag{6}
+\]
+where \(\operatorname{diag}_t(\Lambda_{e,t})\) places the diagonal entries on the labels in \(t\), is zero off \(T\), and \(\Lambda_{0,t}=0\).  Set \(C=U^{-1}R_0^{1/2}\).  Equation (6) supplies centered Gaussian primitives and the required mutual independence.  The latent covariance \(I_d\), loading \(C\), and measurement covariance \(\tau I_d\succ0\) are invariant over environments.  The baseline structural variance vector is \(\tau\mathbf 1_d>0\).  Its increments vanish off \(T\), are nonnegative on \(T\), and, by (3), every label in \(T\) has a strictly positive increment in at least one environment.  Thus the changing-coordinate set is exactly the declared size-\(r\) set \(T\).
+
+At baseline, independence and the definition of \(Y_e\) give
+\[
+ \operatorname{Cov}(Y_0)
+ =UCC^{\mathsf T}U^{\mathsf T}+\tau UU^{\mathsf T}+\tau I_d
+ =R_0+\tau UU^{\mathsf T}+\tau I_d=\Sigma_0. \tag{7}
+\]
+Only the structural-noise covariance changes across environments.  Since the target columns of \(U\) equal \(A\), equations (2) and (7) imply
+\[
+ \operatorname{Cov}(Y_e)-\operatorname{Cov}(Y_0)
+ =A\Lambda_{e,t}A^{\mathsf T}=\Delta_e,
+ \qquad
+ \operatorname{Cov}(Y_e)=\Sigma_0+\Delta_e=\Sigma_e. \tag{8}
+\]
+All conditions of the repaired \(\mathcal M_{d,E,r}\), including strict structural and measurement-noise positivity and aggregate target coverage, have now been verified from the construction.
+%%% FIELD stmt-sharp
+For every covariance tuple \(\theta\) satisfying \(\Sigma_0\succ0\), \(\operatorname{rank}(\bar Q)=r\), and \(\operatorname{range}(\Delta_e)\subseteq\operatorname{range}(\bar Q)\) for all \(1\le e\le E\), where \(\bar Q=\sum_{e=1}^E\Delta_e\), one has \(\mathcal F_{\mathrm{causal}}(\theta)=\mathcal F_{\mathrm{LDL}}(\theta)\).  Equivalently, a labeled size-\(r\) set is compatible if and only if some ordering has a positive-definite aggregate principal block whose unique unit-lower \(LDL^{\mathsf T}\) factor simultaneously transforms every target-block shift to a diagonal entrywise-nonnegative matrix.
+%%% FIELD proof-sharp
+We prove the two inclusions and keep the causal fiber distinct from the observable certificate until their equality has been derived.
+
+First let \(T\in\mathcal F_{\mathrm{causal}}(\theta)\), and choose a witnessing model \(\mu\in\mathcal M_{d,E,r}\).  Set \(U=U_{\mu}\), choose a topological ordering in which \(U=(I_d-B_{\mu})^{-1}\) is unit lower triangular, let \(t\) be the induced order on \(T\), and put \(A=UP_t^{\mathsf T}\).  Stationarity of the latent and measurement-error covariances, mutual independence of the primitive blocks, and the absence of off-target shifts imply, for every \(e\ge1\),
+\[
+ \Delta_e
+ =U\operatorname{diag}(\lambda_e)U^{\mathsf T}
+ =A\operatorname{diag}(\lambda_{e,t_1},\ldots,\lambda_{e,t_r})A^{\mathsf T}. \tag{9}
+\]
+This covariance calculation uses only the stated second-moment invariance and independence conditions; Gaussianity is not used in this necessity direction.
+
+Define \(s_k=\sum_{e=1}^E\lambda_{e,t_k}\).  Nonnegative shifts give \(s_k\ge0\), and target coverage gives at least one strictly positive summand for every \(k\), so \(s_k>0\).  Summing (9) yields
+\[
+ \bar Q=\sum_{e=1}^E\Delta_e
+ =A\operatorname{diag}(s_1,\ldots,s_r)A^{\mathsf T}. \tag{10}
+\]
+The columns of \(A\) are a subset of the columns of the invertible matrix \(U\), hence have rank \(r\).  It follows from (10) that
+\[
+ \operatorname{rank}(\bar Q)=r,\qquad
+ \operatorname{range}(\bar Q)=\operatorname{range}(A),\qquad
+ \operatorname{range}(\Delta_e)\subseteq\operatorname{range}(\bar Q). \tag{11}
+\]
+Thus exact aggregate rank and all shift-range inclusions are consequences for every legal causal witness, rather than requirements on a designated calibration environment.
+
+The target principal submatrix \(P_tA=U_{tt}\) is unit lower triangular because its indices retain their topological order.  Therefore
+\[
+ \bar Q_{tt}=U_{tt}\operatorname{diag}(s_1,\ldots,s_r)U_{tt}^{\mathsf T}\succ0. \tag{12}
+\]
+The positive unit-lower \(LDL^{\mathsf T}\) factorization is unique.  Indeed, its first diagonal pivot and first lower column are determined by the first column of the matrix; subtracting that rank-one term and inducting on the trailing principal block determines all remaining pivots and columns.  Applying uniqueness to (12) gives
+\[
+ L_t=U_{tt},\qquad D_t=\operatorname{diag}(s_1,\ldots,s_r). \tag{13}
+\]
+Taking the \(t\)-principal block in (9) and using (13),
+\[
+ \Lambda_{e,t}
+ =L_t^{-1}P_t\Delta_eP_t^{\mathsf T}L_t^{-\mathsf T}
+ =\operatorname{diag}(\lambda_{e,t_1},\ldots,\lambda_{e,t_r}), \tag{14}
+\]
+which is diagonal and entrywise nonnegative.  Hence \(\operatorname{Cert}(\theta,T,t)\) holds, and
+\(\mathcal F_{\mathrm{causal}}(\theta)\subseteq\mathcal F_{\mathrm{LDL}}(\theta)\).
+
+Conversely, let \(T\in\mathcal F_{\mathrm{LDL}}(\theta)\).  The algebraic-fiber definition supplies an ordering \(t\) with \(\operatorname{Cert}(\theta,T,t)\).  The explicit baseline, aggregate-rank, and aggregate-range premises of the repaired \(\text{thm:positive-noise-realization}\) are precisely the premises of the present theorem.  That theorem constructs \(\mu\in\mathcal M_{d,E,r}\) with \(T_{\mu}=T\) and covariance tuple \(\theta\).  Therefore \(T\in\mathcal F_{\mathrm{causal}}(\theta)\), proving the reverse inclusion.  Expanding the definitions of the algebraic fiber and the aggregate ordered certificate gives the asserted necessary-and-sufficient recovery map.
+%%% FIELD stmt-subset
+Suppose \(\Sigma_0\succ0\), \(\operatorname{rank}(\bar Q)=r\), and \(\operatorname{range}(\Delta_e)\subseteq\operatorname{range}(\bar Q)\) for every \(1\le e\le E\), where \(\bar Q=\sum_{e=1}^E\Delta_e\).  The leaves of depth \(r\) accepted by the recursion in \(\text{def:subset-pivot-recursion}\) are exactly \(\mathcal F_{\mathrm{LDL}}(\theta)=\mathcal F_{\mathrm{causal}}(\theta)\).  Every reached residual pair \((R_S,(M_{e,S})_{e=1}^{E})\) depends only on \(S\), so the algorithm terminates after visiting at most \(\sum_{k=0}^{r}\binom{d}{k}\) subset states, and the intersection and union of its leaves equal \(\mathcal C(\theta)\) and \(\mathcal P(\theta)\).
+%%% FIELD proof-subset
+We first prove the order-independent residual formula.  For a reached subset \(S\), let
+\[
+ E_S=I_d-\bar Q_{:S}\bar Q_{SS}^{-1}P_S. \tag{15}
+\]
+All preceding aggregate pivots are positive, so elimination gives a unit-lower factorization of \(\bar Q_{SS}\) with positive diagonal pivots; hence \(\bar Q_{SS}\succ0\) and the inverse in (15) exists.  Direct multiplication, using \(P_S\bar Q_{:S}=\bar Q_{SS}\), gives
+\[
+ E_S\bar Q=\bar QE_S^{\mathsf T}
+ =\bar Q-\bar Q_{:S}\bar Q_{SS}^{-1}\bar Q_{S:},
+ \qquad E_S\bar QE_S^{\mathsf T}=E_S\bar Q. \tag{16}
+\]
+Therefore the residuals defined in the recursion satisfy
+\[
+ R_S=\bar Q-\bar Q_{:S}\bar Q_{SS}^{-1}\bar Q_{S:},
+ \qquad M_{e,S}=E_S\Delta_eE_S^{\mathsf T}. \tag{17}
+\]
+If (17) holds and \(j\notin S\) is accepted, put \(q=(R_S)_{jj}>0\) and \(u=(R_S)_{:j}/q\).  The scalar block-inverse identity for \(\bar Q_{S\cup\{j\},S\cup\{j\}}\) changes the first expression in (17) to
+\(R_S-quu^{\mathsf T}\).  The same elimination applied to the second expression, together with
+\((M_{e,S})_{:j}=m_eu\), changes it to \(M_{e,S}-m_euu^{\mathsf T}\).  These are exactly the recursion updates.  Induction from \(S=\varnothing\) proves (17) at every reached subset, so the residual tuple depends only on \(S\).
+
+Suppose next that \(t=(t_1,\ldots,t_r)\) certifies \(T\).  By \(\text{lem:range-reconstruction}\), applied with aggregate carrier \(\bar Q\), and with \(A=W_tL_t\),
+\[
+ \bar Q=\sum_{k=1}^r d_ka_ka_k^{\mathsf T},
+ \qquad
+ \Delta_e=\sum_{k=1}^r \ell_{ek}a_ka_k^{\mathsf T}, \tag{18}
+\]
+where \(a_k\) is column \(k\) of \(A\), \(d_k=(D_t)_{kk}>0\), and \(\ell_{ek}=(\Lambda_{e,t})_{kk}\ge0\).  Since \(P_tA=L_t\),
+\[
+ (a_k)_{t_i}=0\quad(i<k),\qquad (a_k)_{t_k}=1. \tag{19}
+\]
+After the first \(k-1\) updates, equations (18)--(19) imply inductively
+\[
+ R=\sum_{l=k}^r d_la_la_l^{\mathsf T},
+ \qquad M_e=\sum_{l=k}^r\ell_{el}a_la_l^{\mathsf T}. \tag{20}
+\]
+At label \(t_k\), one has \(q=d_k>0\), \(m_e=\ell_{ek}\ge0\), \(R_{:t_k}=d_ka_k\), and \((M_e)_{:t_k}=\ell_{ek}a_k\).  Hence the proportionality equation holds and every certifying ordering is an accepted depth-\(r\) path.
+
+Conversely, let \(t=(t_1,\ldots,t_r)\) be an accepted path, with successive values \(q_k>0\), \(m_{ek}\ge0\), and \(u_k\).  The explicit aggregate-range premise implies
+\[
+ \operatorname{range}(M_{e,S})\subseteq\operatorname{range}(R_S). \tag{21}
+\]
+To justify (21), symmetry and \(\operatorname{range}(\Delta_e)\subseteq\operatorname{range}(\bar Q)\) permit the factorization
+\(\Delta_e=\bar Q C_e\bar Q\), for example with
+\(C_e=\bar Q^{+}\Delta_e\bar Q^{+}\), where \(\bar Q^{+}\) is the Moore--Penrose inverse.  Indeed, \(P=\bar Q\bar Q^{+}\) is the orthogonal projection onto \(\operatorname{range}(\bar Q)\); range inclusion gives \(P\Delta_e=\Delta_e\), symmetry gives \(\Delta_eP=\Delta_e\), and therefore \(\bar QC_e\bar Q=P\Delta_eP=\Delta_e\).  Equations (16)--(17) then give
+\(M_{e,S}=R_SC_eR_S\), proving the range inclusion.
+
+The Schur-complement rank identity in (17) shows that each nonzero pivot lowers \(\operatorname{rank}(R_S)\) by one.  Since \(\operatorname{rank}(\bar Q)=r\), after \(r\) accepted pivots \(R_T=0\), and (21) then implies \(M_{e,T}=0\).  Telescoping the updates gives
+\[
+ \bar Q=\sum_{k=1}^r q_ku_ku_k^{\mathsf T},
+ \qquad
+ \Delta_e=\sum_{k=1}^r m_{ek}u_ku_k^{\mathsf T}. \tag{22}
+\]
+Every residual has zero rows and columns at earlier selected labels.  Thus \((u_k)_{t_i}=0\) for \(i<k\), while \((u_k)_{t_k}=1\).  If
+\(L=P_t[u_1\ \cdots\ u_r]\), then \(L\) is unit lower triangular, and (22) yields
+\[
+ \bar Q_{tt}=L\operatorname{diag}(q_1,\ldots,q_r)L^{\mathsf T}\succ0,
+ \qquad
+ L^{-1}P_t\Delta_eP_t^{\mathsf T}L^{-\mathsf T}
+ =\operatorname{diag}(m_{e1},\ldots,m_{er})\succeq0. \tag{23}
+\]
+Hence \(\operatorname{Cert}(\theta,T,t)\) holds.  The depth-\(r\) leaves are exactly \(\mathcal F_{\mathrm{LDL}}(\theta)\), and the baseline, aggregate-rank, and aggregate-range premises allow \(\text{thm:sharp-target-fiber}\) to identify this family with \(\mathcal F_{\mathrm{causal}}(\theta)\).
+
+There are at most \(\binom dk\) memoized subsets at depth \(k\), hence at most \(\sum_{k=0}^r\binom dk\) states.  The recursion stops at depth \(r\).  Finally, the complete-classification definition identifies the intersection and union of the exact leaf family with \(\mathcal C(\theta)\) and \(\mathcal P(\theta)\), respectively.
+%%% FIELD proof-four
+Let \(A=[a\ b]\).  The six squared determinants of the two-row submatrices \(A_{\{j,k\},:}\), in pair order \(12,13,14,23,24,34\), are
+\[
+ 1,\ 1,\ 4,\ 1,\ 1,\ 9. \tag{24}
+\]
+They are all positive.  Along the corrected path,
+\[
+ \Delta_1=aa^{\mathsf T}+bb^{\mathsf T},\qquad
+ \Delta_2=2aa^{\mathsf T}+(2+\gamma)bb^{\mathsf T},\qquad
+ \bar Q=3aa^{\mathsf T}+(3+\gamma)bb^{\mathsf T}. \tag{25}
+\]
+For \(|\gamma|<1\), both aggregate weights are positive, so every two-by-two aggregate principal block is positive definite; its determinant is \(3(3+\gamma)\) times the corresponding number in (24).  Also \(\operatorname{rank}(\bar Q)=2\) and both shift ranges lie in \(\operatorname{span}\{a,b\}=\operatorname{range}(\bar Q)\).  The explicit baseline is \(\Sigma_0=I_4\succ0\).
+
+Consider an ordered pair \(t=(j,k)\).  The unit-lower factor of \(\bar Q_{tt}\) has lower entry \(\ell=\bar Q_{kj}/\bar Q_{jj}\).  The off-diagonal entry obtained by congruently transforming the \(\Delta_1\) block equals
+\[
+ (\Delta_1)_{kj}-\ell(\Delta_1)_{jj}
+ =-\frac{\gamma a_jb_j(a_jb_k-b_ja_k)}{\bar Q_{jj}}. \tag{26}
+\]
+Equation (26) follows by substituting (25), expanding the numerator
+\(\bar Q_{jj}(\Delta_1)_{kj}-\bar Q_{kj}(\Delta_1)_{jj}\), and cancelling the terms with equal weight three.  The row determinants in (24) are nonzero.  Since \(b_1=0\) while \(a_jb_j\ne0\) for \(j=2,3,4\), equation (26) vanishes for \(\gamma\ne0\) exactly when the first pivot is label \(1\).
+
+For the three orders \((1,2),(1,3),(1,4)\), direct elimination gives, respectively,
+\[
+ \begin{array}{c|c|c|c}
+ t&D_t&\Lambda_{1,t}&\Lambda_{2,t}\\ \hline
+ (1,2)&\operatorname{diag}(3,3+\gamma)&\operatorname{diag}(1,1)&\operatorname{diag}(2,2+\gamma)\\
+ (1,3)&\operatorname{diag}(3,3+\gamma)&\operatorname{diag}(1,1)&\operatorname{diag}(2,2+\gamma)\\
+ (1,4)&\operatorname{diag}(3,12+4\gamma)&\operatorname{diag}(1,4)&\operatorname{diag}(2,8+4\gamma).
+ \end{array} \tag{27}
+\]
+All entries are nonnegative for \(|\gamma|<1\).  Thus, when \(\gamma\ne0\), the algebraic fiber is
+\[
+ \mathcal F_{\mathrm{LDL}}(\theta_\gamma)
+ =\{\{1,2\},\{1,3\},\{1,4\}\}. \tag{28}
+\]
+At \(\gamma=0\), equation (25) gives \(\Delta_2=2\Delta_1\) and \(\bar Q=3\Delta_1\).  Hence every aggregate \(LDL^{\mathsf T}\) factor transforms \(\Delta_1\) and \(\Delta_2\) to \(D_t/3\) and \(2D_t/3\), so all six pairs are certified.  The hypotheses of the aggregate sharp-fiber theorem were verified after (25); it converts these algebraic fibers into the asserted causal fibers.  Their intersections and unions give
+\(h(\theta_\gamma)=(\{1\},\{1,2,3,4\})\) for \(\gamma\ne0\) and
+\(h(\theta_0)=(\varnothing,\{1,2,3,4\})\).  The positive-noise realization theorem, applied for example to \(t=(1,2)\), constructs a legal SCM for each tuple with the displayed baseline \(I_4\); thus legality is proved rather than inserted into the path definition.
+
+It remains to prove the information-distance rate under the stated bounded-class premise.  Let
+\[
+ D(\zeta,\theta)=\left(\sum_{e=0}^2\lVert Z_e-\Sigma_e\rVert_F^2\right)^{1/2},
+ \qquad
+ \bar Q(\zeta)=\sum_{e=1}^2(Z_e-Z_0), \tag{29}
+\]
+and define, for \(j=2,3,4\),
+\[
+ f_j(\zeta)=\bar Q(\zeta)_{jj}(Z_1-Z_0)_{1j}
+ -(Z_1-Z_0)_{jj}\bar Q(\zeta)_{1j}. \tag{30}
+\]
+Substitution from (25) gives
+\[
+ f_2(\theta_\gamma)=\gamma,\qquad
+ f_3(\theta_\gamma)=2\gamma,\qquad
+ f_4(\theta_\gamma)=4\gamma. \tag{31}
+\]
+At \(\theta_0\), every aggregate two-by-two principal minor is strictly positive.  Choose a bounded neighborhood \(\mathcal U\) of \(\theta_0\) on which they remain positive.  The polynomials in (30) have bounded gradients on the closure of a smaller such neighborhood, so the mean-value theorem supplies \(K<\infty\) such that
+\[
+ \max_{j=2,3,4}|f_j(\zeta)-f_j(\theta_\gamma)|
+ \le K D(\zeta,\theta_\gamma) \tag{32}
+\]
+whenever both tuples lie in that neighborhood.
+
+If \(\zeta\in\Theta_K\cap\mathcal U\) and
+\(D(\zeta,\theta_\gamma)<|\gamma|/(2K)\), then (31)--(32) make all three \(f_j(\zeta)\) nonzero.  The initial pivot proportionality equation for first pivot \(j\) would force \(f_j(\zeta)=0\) by taking row \(1\).  Hence no certificate starts at \(2,3,4\).  Membership in \(\Theta_K\) guarantees that a certificate exists, so it starts at \(1\).  After that pivot the aggregate residual has rank one.  Every remaining aggregate residual diagonal is positive because the corresponding two-by-two principal minor stays positive.  Range reconstruction from the existing certificate writes each full shift as a nonnegative sum of its certified columns; after eliminating label \(1\), each shift residual is therefore positive semidefinite and has range in the rank-one aggregate residual range.  It is a nonnegative scalar multiple of that aggregate residual.  Consequently every remaining label is an admissible second pivot, and the fiber is exactly the star in (28).
+
+Choose \(\mathcal U\) to contain a fixed ball about \(\theta_0\).  Since \(\theta_\gamma\to\theta_0\), points outside \(\mathcal U\) have a fixed positive \(D\)-distance from \(\theta_\gamma\) for all sufficiently small \(|\gamma|\).  Combining this with the preceding paragraph yields \(c_0>0\) such that every \(\zeta\in\Theta_K\) with \(h(\zeta)\ne h(\theta_\gamma)\) satisfies
+\[
+ D(\zeta,\theta_\gamma)\ge c_0|\gamma|. \tag{33}
+\]
+
+For equal environment sample sizes \(n\), the covariance bounds imply, for every displacement \(H\),
+\[
+ \frac{\sqrt n}{\sqrt2M}\left(\sum_{e=0}^2\lVert H_e\rVert_F^2\right)^{1/2}
+ \le\lVert H\rVert_{I,n,\theta_\gamma}
+ \le\frac{\sqrt n}{\sqrt2m}\left(\sum_{e=0}^2\lVert H_e\rVert_F^2\right)^{1/2}. \tag{34}
+\]
+Indeed, write \(K_e=\Sigma_e^{-1/2}H_e\Sigma_e^{-1/2}\), use
+\(\lVert H_e\rVert_F\le M\lVert K_e\rVert_F\) and
+\(\lVert K_e\rVert_F\le m^{-1}\lVert H_e\rVert_F\), and sum the defining quadratic forms.  The left inequality in (34) and (33) give
+\[
+ \delta_n(\theta_\gamma)\ge\frac{c_0}{\sqrt2M}\sqrt n\,|\gamma|. \tag{35}
+\]
+For the reverse inequality, the premise places \(\theta_0\) in \(\Theta_K\), and its classification differs from that of every nonzero \(\gamma\).  Only environment \(2\) changes, by \(\gamma bb^{\mathsf T}\).  Hence the right inequality in (34) gives
+\[
+ \delta_n(\theta_\gamma)
+ \le\lVert\theta_0-\theta_\gamma\rVert_{I,n,\theta_\gamma}
+ \le\frac{\sqrt n}{\sqrt2m}|\gamma|\lVert bb^{\mathsf T}\rVert_F. \tag{36}
+\]
+Equations (35)--(36) prove the asserted constants \(0<c<C<\infty\).
+%%% FIELD stmt-envelope
+There is no universal correct-certification envelope determined only by \(c=\lim\delta_n(\theta_n)\).  For any specified Gaussian tangent geometry \(\mathcal G=(k,g_0,\mathcal A)\), where \(X\sim N(g,I_k)\), \(g_0\) has the focal classification, and \(\mathcal A\) is the opposite-classification tangent set, the geometry-indexed focal-certification value is
+\[
+ \beta^{\star}_{\mathcal G}(\alpha)
+ =\sup_{\substack{\phi:\mathbb R^k\to[0,1]\ \mathrm{Borel}\\
+                    \sup_{g\in\mathcal A}\mathbb E_g\phi(X)\le\alpha}}
+   \mathbb E_{g_0}\phi(X).
+\]
+The nearest-opposite distance \(c=\inf_{g\in\mathcal A}\lVert g-g_0\rVert_2\) does not determine this value.  Explicitly, for \(k=1\), \(g_0=0\), and opposite sets \(\mathcal A_+=[c,\infty)\) and \(\mathcal A_{\pm}=(-\infty,-c]\cup[c,\infty)\), with \(c>0\),
+\[
+ \beta^{\star}_{\mathcal G_+}(\alpha)=\Phi(\Phi^{-1}(\alpha)+c),
+ \qquad
+ \beta^{\star}_{\mathcal G_{\pm}}(\alpha)=2\Phi(t_{c,\alpha})-1
+ <\beta^{\star}_{\mathcal G_+}(\alpha),
+\]
+where \(\Phi\) is the standard-normal distribution function and \(t_{c,\alpha}>0\) is the unique solution of \(\Phi(t-c)-\Phi(-t-c)=\alpha\).  Thus the handle yields an explicit optimization only after the incident tangent geometry is supplied; neither a one-variable \(\beta^{\star}(c)\) nor one classifier attaining it uniformly over all regular sequences is determined by the frozen core.
+%%% FIELD proof-envelope
+The displayed optimization follows directly from the meaning of an \(\alpha\)-honest focal-class certificate in the Gaussian shift experiment.  A randomized certificate is a Borel function \(\phi\) taking values in \([0,1]\).  At the focal shift its correct-certification probability is \(\mathbb E_{g_0}\phi(X)\), while at an opposite-classification shift \(g\) the same report is incorrect, so honesty imposes \(\mathbb E_g\phi(X)\le\alpha\).  Conversely, any such \(\phi\) extends to a possibly abstaining complete classifier by assigning probability \(\phi(X)\) to the focal report, zero to every nonfocal report, and the remaining probability to abstention.  Thus no additional action can increase the probability of the correct focal report, and taking the supremum gives the stated geometry-indexed value.  This step distinguishes the causal classification from its limiting decision functional: the optimization is obtained only after the tangent experiment and its classification strata have been derived.
+
+We now calculate two geometries having the same nearest-opposite distance.  Let \(p_u\) be the density of \(N(u,1)\), and first take \(\mathcal A_+=[c,\infty)\).  The likelihood ratio at its nearest point is
+\[
+ \frac{p_0(x)}{p_c(x)}=\exp\{-cx+c^2/2\} \tag{37}
+\]
+is strictly decreasing in \(x\).  Put \(a=c+\Phi^{-1}(\alpha)\) and \(A=(-\infty,a]\), so \(P_c(A)=\alpha\).  To prove optimality without invoking an undeclared testing theorem, set \(K=p_0(a)/p_c(a)\).  For any measurable \(0\le\phi\le1\) with \(E_c\phi\le\alpha\),
+\[
+ \begin{aligned}
+ E_0\phi-P_0(A)
+ &=\int(\phi-\mathbf1_A)\frac{p_0}{p_c}\,dP_c\\
+ &=\int(\phi-\mathbf1_A)\left(\frac{p_0}{p_c}-K\right)dP_c
+   +K\{E_c\phi-P_c(A)\}\le0. 
+ \end{aligned} \tag{38}
+\]
+On \(A\), the first factor \(\phi-1\) is nonpositive and the likelihood-ratio difference is nonnegative; off \(A\), the two signs are reversed.  The last term is nonpositive by feasibility.  Moreover, for every \(u\ge c\),
+\(P_u(A)=\Phi(a-u)\le\Phi(a-c)=\alpha\), so \(\mathbf1_A\) is feasible for the entire opposite set.  Since every rule feasible for the entire set is feasible at \(u=c\), inequality (38) proves optimality and
+\[
+ \beta^{\star}_{\mathcal G_+}(\alpha)=P_0(A)
+ =\Phi(c+\Phi^{-1}(\alpha)). \tag{39}
+\]
+Strict monotonicity in (37) also shows that this optimizer is unique up to null sets.
+
+Now take \(\mathcal A_{\pm}=(-\infty,-c]\cup[c,\infty)\).  Given any feasible \(\phi\), symmetrize it as
+\(\psi(x)=\{\phi(x)+\phi(-x)\}/2\).  Then \(E_0\psi=E_0\phi\), and
+\[
+ E_c\psi=E_{-c}\psi=\frac{E_c\phi+E_{-c}\phi}{2}\le\alpha. \tag{40}
+\]
+Let \(Q=(P_c+P_{-c})/2\).  Its density satisfies
+\[
+ \frac{p_0(x)}{dQ/dx}
+ =\frac{e^{c^2/2}}{\cosh(cx)}, \tag{41}
+\]
+which is strictly decreasing in \(|x|\).  The function
+\(t\mapsto Q([-t,t])=\Phi(t-c)-\Phi(-t-c)\) is continuous and strictly increasing from zero to one.  Hence there is a unique \(t_{c,\alpha}>0\) for which this probability equals \(\alpha\).
+
+Apply the same signed-integrand calculation as in (38), now with the density ratio in (41), the measure \(Q\), and the central interval \(A_{\pm}=[-t_{c,\alpha},t_{c,\alpha}]\).  It proves that every \(\psi\) with \(E_Q\psi\le\alpha\) satisfies
+\(E_0\psi\le P_0(A_{\pm})\).  The indicator of \(A_{\pm}\) has probability \(\alpha\) under both \(P_c\) and \(P_{-c}\).  For \(u\ge0\),
+\[
+ \frac{d}{du}P_u(A_{\pm})
+ =-\varphi(t_{c,\alpha}-u)+\varphi(t_{c,\alpha}+u)\le0, \tag{42}
+\]
+where \(\varphi\) is the standard-normal density; the inequality follows because
+\(|t_{c,\alpha}+u|\ge|t_{c,\alpha}-u|\).  Symmetry gives the same monotonicity in \(|u|\), so the indicator is feasible for every \(|u|\ge c\).  Therefore
+\[
+ \beta^{\star}_{\mathcal G_{\pm}}(\alpha)
+ =P_0(A_{\pm})=2\Phi(t_{c,\alpha})-1. \tag{43}
+\]
+
+The feasible set for \(\mathcal G_{\pm}\) is contained in that for \(\mathcal G_+\).  Equality of the two optima would force the unique one-sided optimizer \(\mathbf1_{(-\infty,a]}\) from (39) to satisfy the additional constraint under \(P_{-c}\).  It does not, because
+\[
+ P_{-c}(( -\infty,a])=\Phi(a+c)
+ =\Phi(\Phi^{-1}(\alpha)+2c)>\alpha. \tag{44}
+\]
+Thus the inequality in the theorem is strict.  Both geometries have nearest-opposite Euclidean distance \(c\), yet their exact optimal honest certification probabilities differ.  The corrected handle records its Gaussian tangent experiment in information-whitened coordinates, so its Euclidean distance is, by construction, the limiting information distance.  Thus \(\lim\delta_n=c\) retains the nearest distance but not the number or arrangement of incident opposite-classification regions.  The scalar cannot determine a universal envelope or a common attaining rule.  Supplying \(\mathcal G\), as in the corrected handle, is necessary and gives the explicit computable optimization stated above.
+%%% FIELD def-legal
+\(\mathcal M_{d,E,r}=\{\mu_{d,E,r}: B_{\mu}\text{ is acyclic};\ (H_e,\varepsilon_e,\eta_e)\text{ obey the centered Gaussian and independence conditions};\ \operatorname{Cov}(H_e)=\Omega_{H,\mu};\ \operatorname{Cov}(\eta_e)=\Omega_{\eta,\mu};\ \omega_{0,\mu}>0;\ \Omega_{\eta,\mu}\succ0;\ |T_{\mu}|=r;\ \lambda_{ej}=0\text{ off }T_{\mu};\ \lambda_{ej}\ge0\text{ on }T_{\mu};\ \forall j\in T_{\mu}\ \exists e\in\{1,\ldots,E\}:\lambda_{ej}>0\}\).
+%%% FIELD def-cert
+\(\operatorname{Cert}(\theta,T,t)\iff [\,t\text{ orders }T,\ \bar Q_{tt}\succ0,\ \bar Q_{tt}=L_tD_tL_t^{\mathsf T},\ L_t\text{ unit lower triangular},\ D_t\text{ diagonal positive},\ \Lambda_{e,t}=L_t^{-1}P_t\Delta_eP_t^{\mathsf T}L_t^{-\mathsf T}\text{ diagonal and entrywise nonnegative for every }1\le e\le E\,]\), where \(\bar Q=\sum_{e=1}^E\Delta_e\) and \(\bar Q_{tt}=P_t\bar QP_t^{\mathsf T}\).
+%%% FIELD def-completion
+Given \(\operatorname{Cert}(\theta,T,t)\), set \(W_t=\bar QP_t^{\mathsf T}\bar Q_{tt}^{-1}\), \(A_t=W_tL_t\), \(U_t=\begin{psmallmatrix}L_t&0\\A_{t,T^c}&I_{d-r}\end{psmallmatrix}\) after placing \(t\) first, and \(B_t=I_d-U_t^{-1}\).  Choose \(0<\tau<\lambda_{\min}(\Sigma_0)/(2(\lVert U_t\rVert_{\mathrm{op}}^2+1))\), set \(R_0=\Sigma_0-\tau U_tU_t^{\mathsf T}-\tau I_d\), and set \(C_t=U_t^{-1}R_0^{1/2}\).  Take \(H_e\sim N(0,I_d)\), baseline structural and measurement covariances \(\tau I_d\), and in environment \(e\) place the increments \(\operatorname{diag}(\Lambda_{e,t})\) on \(t\) and zero increments off \(T\).
+%%% FIELD def-pivot
+Initialize \(S=\varnothing\), \(R_S=\bar Q=\sum_{e=1}^E\Delta_e\), and \(M_{e,S}=\Delta_e\).  A label \(j\notin S\) is admissible when \(q=(R_S)_{jj}>0\), \(m_e=(M_{e,S})_{jj}\ge0\), and \(q(M_{e,S})_{:j}=m_e(R_S)_{:j}\) for every \(1\le e\le E\).  With \(u=(R_S)_{:j}/q\), update \(R_{S\cup\{j\}}=R_S-quu^{\mathsf T}\) and \(M_{e,S\cup\{j\}}=M_{e,S}-m_euu^{\mathsf T}\), memoizing only \(S\cup\{j\}\).
+%%% FIELD def-bounded
+\(\Theta_K=\{\zeta_{d,E,r}:mI_d\preceq Z_e\preceq MI_d\text{ for every }e\in\mathcal E;\ \operatorname{rank}(\sum_{f=1}^E(Z_f-Z_0))=r;\ \operatorname{range}(Z_e-Z_0)\subseteq\operatorname{range}(\sum_{f=1}^E(Z_f-Z_0))\text{ for every }1\le e\le E;\ \exists T,t\text{ with }|T|=r\text{ and }\operatorname{Cert}(\zeta,T,t)\}\).
+%%% FIELD def-four
+For \(d=4\), \(r=2\), and \(E=2\), take \(a=(1,1,2,1)^{\mathsf T}\), \(b=(0,1,1,2)^{\mathsf T}\), \(\Sigma_0=I_4\), \(\Delta_1=aa^{\mathsf T}+bb^{\mathsf T}\), and \(\Delta_2(\gamma)=2aa^{\mathsf T}+(2+\gamma)bb^{\mathsf T}\).  Set \(\Sigma_e=\Sigma_0+\Delta_e\), \(\theta_\gamma=(\Sigma_0,\Sigma_1,\Sigma_2)\), and \(\bar Q=\Delta_1+\Delta_2=3aa^{\mathsf T}+(3+\gamma)bb^{\mathsf T}\).
+%%% FIELD def-handle
+For a specified regular sequence, first derive its Gaussian local experiment and record its tangent geometry as \(\mathcal G=(k,g_0,\mathcal A)\), where \(X\sim N(g,I_k)\), \(g_0\) has the focal complete classification, and \(\mathcal A\) is the union of tangent sets having a different complete classification.  Define the geometry-indexed honest focal-certification value by \(\beta^{\star}_{\mathcal G}(\alpha)=\sup\{\mathbb E_{g_0}\phi(X):\phi:\mathbb R^k\to[0,1]\text{ is Borel and }\sup_{g\in\mathcal A}\mathbb E_g\phi(X)\le\alpha\}\).  Record \(c=\inf_{g\in\mathcal A}\lVert g-g_0\rVert_2\) as the nearest-boundary summary, but retain \(\mathcal G\) as an argument of the envelope.
+%%% FIELD ass-coverage
+For every \(j\in T_{\mu}\), there exists \(e\in\{1,\ldots,E\}\) such that \(\lambda_{ej}>0\).
+%%% FIELD ass-aggregate-rank
+The aggregate shift \(\bar Q=\sum_{e=1}^E\Delta_e\) satisfies \(\operatorname{rank}(\bar Q)=r\).
+%%% FIELD ass-aggregate-range
+For every \(e\in\{1,\ldots,E\}\), \(\operatorname{range}(\Delta_e)\subseteq\operatorname{range}(\bar Q)\), where \(\bar Q=\sum_{f=1}^E\Delta_f\).
+%%% FIELD ass-bounded-rank
+The generic aggregate difference \(\sum_{e=1}^E(Z_e-Z_0)\) has rank \(r\).
+%%% FIELD ass-bounded-range
+For every \(e\in\{1,\ldots,E\}\), \(\operatorname{range}(Z_e-Z_0)\subseteq\operatorname{range}(\sum_{f=1}^E(Z_f-Z_0))\).
+%%% FIELD estimand-functional
+\(\mathcal F_{\mathrm{causal}}(\theta)=\{T\subseteq\mathcal V:|T|=r,\ \exists t\text{ ordering }T\text{ with }\bar Q_{tt}\succ0\text{ and }L_t^{-1}P_t\Delta_eP_t^{\mathsf T}L_t^{-\mathsf T}\text{ diagonal and nonnegative for every }e\}\), where \(\bar Q=\sum_{e=1}^E\Delta_e\) and \(L_t\) is the unit-lower factor in the positive \(LDL^{\mathsf T}\) factorization of \(\bar Q_{tt}\).

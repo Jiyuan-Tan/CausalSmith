@@ -65,10 +65,8 @@ open MeasureTheory
 
 namespace Causalean.Tactic
 
-/-- Normalize a Bochner integral through the linear structure of its integrand: `+`, `-`,
-negation, `•`, multiplication or division by a factor independent of the integration variable,
-and finite sums all move outside the `∫`, and the integrability side conditions are discharged
-from the local context or by `fun_prop`.
+/-- The parser description defines the tactic command named `integral_linearity`.
+Every invocation of this command consists solely of that command name.
 
 A normalizer rather than a finisher — it closes the goal only when linearity alone suffices;
 otherwise follow it with `ring`, a domain rewrite, or `linarith`. It does not touch `=ᵐ[μ]`

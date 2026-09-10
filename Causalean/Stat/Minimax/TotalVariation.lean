@@ -44,8 +44,9 @@ open scoped ENNReal
 
 variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ ν : Measure Ω}
 
-/-- The statistical total variation distance between two measures:
-the supremum, over measurable sets `A`, of the gap `|μ.real A − ν.real A|`. -/
+/-- For [a sample space equipped with a σ-algebra](hyp:Ω,mΩ) and [two measures on that space](hyp:μ,ν), [the statistical total variation distance](goal) is the supremum, over all measurable events $A$, of the absolute difference between the two measures' real-valued masses of $A$.
+
+The statistical total variation distance between two measures is the supremum, over measurable sets `A`, of the gap `|μ.real A − ν.real A|`. -/
 noncomputable def tvDist (μ ν : Measure Ω) : ℝ :=
   ⨆ A : {A : Set Ω // MeasurableSet A}, |μ.real A.1 - ν.real A.1|
 

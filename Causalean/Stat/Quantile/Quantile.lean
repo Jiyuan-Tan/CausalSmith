@@ -42,11 +42,14 @@ open MeasureTheory ProbabilityTheory Set Filter Topology
 
 variable (μ : Measure ℝ)
 
-/-- The defining super-level set of the cdf, `{x | τ ≤ cdf μ x}`. -/
+/-- Given a [measure on the real line](hyp:μ) and a [real level](hyp:τ), the
+[quantile super-level set](goal) is the set of all real numbers at which the measure's
+cumulative distribution function is at least that level. -/
 def quantileSet (τ : ℝ) : Set ℝ := {x : ℝ | τ ≤ cdf μ x}
 
-/-- The (lower) quantile function: the left-continuous generalized inverse of
-the cdf, `quantile μ τ = inf {x : ℝ | τ ≤ cdf μ x}`. -/
+/-- Given a [measure on the real line](hyp:μ) and a [real level](hyp:τ), the
+[lower quantile](goal) is the infimum of all real numbers at which the measure's cumulative
+distribution function is at least that level. -/
 noncomputable def quantile (τ : ℝ) : ℝ := sInf (quantileSet μ τ)
 
 variable {μ}

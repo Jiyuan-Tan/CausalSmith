@@ -1,46 +1,40 @@
 import { readFile, writeFile, appendFile, mkdir } from "node:fs/promises";
 
 import { join } from "node:path";
+import { stripTexComments } from "../shared/tex_text.js";
 import type { StageIO } from "./pipeline.js";
 import { PRESENTATION_PROSE_POLICY_VERSION, presentationPrompt, promptFingerprint } from "./prompt_io.js";
 import { notationForArtifact, parseOutline } from "./stage_util.js";
-import { canonicalizeProofTitle, hashEnvBody, normalizeCrefs, type AnchoredEnv, type LintProblem } from "./tex_anchors.js";
-import { fixOverEscapedTex } from "./emit.js";
-import { FormalLayerSource, blocksToTex } from "./formal_layer.js";
+import { canonicalizeProofTitle, hashEnvBody, parseAnchoredEnvs, repairObjRefs, type AnchoredEnv, type LintProblem } from "./tex_anchors.js";
+import { FormalLayerSource, type FormalBlock } from "./formal_layer.js";
 import { bankAcceptedDir } from "./paths.js";
 import { saveGraph, graphPath } from "../graph/store.js";
 import { extractDeclSnippet, extractFullDeclSource } from "./lean_extract.js";
 import { parseLeanDecls } from "../formalization/crosswalk.js";
-import { ensureComponentsForEnvs, assembleComponentText, componentSignature } from "./components.js";
+import { ensureComponentsForEnvs, assembleComponentText, componentSignature, buildModuleDeclIndex } from "./components.js";
+import { helperDeclarationsFor, sectionContextBefore } from "./lean_one_hop.js";
 import { parseNoteBlocks } from "./note_parser.js";
-import { writeJsonAtomic } from "./json_io.js";
+import { writeJsonAtomic, writeTextAtomic } from "./json_io.js";
 import { loadJsonCache } from "./cache.js";
-import { loadInformalDerivations } from "./bank.js";
 import { resolveLeanDeclaration, resolvedLeanAbsolutePath } from "./declaration_resolver.js";
 export { resolveLeanDeclaration } from "./declaration_resolver.js";
-import {
-  refineStatement,
-  parseJsonLoose,
-  mapLimit,
-  type StatementCheck,
-  type RefineRunner,
-} from "./gates.js";
+import { parseJsonLoose, mapLimit, type StatementCheck } from "./gates.js";
 
 /**
  * Per-artifact Lean-equivalence audits, co-located with the stage that PRODUCES the artifact
  * (design: "the review of a produced artifact belongs directly after that stage"):
- *   • `runStatementAudit` runs at P1 — the moment the frozen statements are rendered — and reconciles
- *     each paper env body against its Lean declaration, refining drift toward Lean and persisting the
- *     validated body back onto the graph (`nl.frozen_body`) and the formal layer.
- *   • `runProofAudit` runs at P2 — the moment the appendix proofs are rendered — and reconciles each
- *     proof's prose against its machine-verified Lean proof.
- * P3 keeps only the WHOLE-PAPER gates (overclaim, citation support, anchor lint, rubric). Both audits
- * are built on the pure, unit-tested `refineStatement` kernel from gates.ts.
+ *   • `judgeStatements` runs inside P1's render loop — the moment the statements are rendered — and
+ *     judges each paper env body against its Lean declaration; P1 feeds a drift verdict back to its
+ *     renderer and freezes faithful bodies onto the graph (`nl.frozen_body`) once the layer settles.
+ *   • `runProofAudit` runs at P2 — the moment the appendix proofs are rendered — and judges each
+ *     proof's prose against its machine-verified Lean proof; an unfaithful proof is re-rendered by
+ *     P2's own renderer with the judge's issues as defects.
+ * P3 keeps only the WHOLE-PAPER gates (overclaim, citation support, anchor lint, rubric).
  */
 
 const MAX_ROUNDS = 2;
 /** Max concurrent codex audits. Each statement/proof is checked against its OWN Lean decl, so the
- *  audits (and the pure refine loops) are independent and run concurrently. */
+ *  audits (and the judge → repair loops) are independent and run concurrently. */
 const AUDIT_CONCURRENCY = 6;
 
 /** Claims about algorithms, computability, or complexity are especially easy for a
@@ -52,7 +46,7 @@ export function requiresIndividualStatementAudit(body: string): boolean {
 }
 
 /** Content key for one statement's equivalence verdict. One definition for BOTH the pre-audit
- *  lookup and the post-refinement stamp — the two used to be hand-written 137 lines apart.
+ *  lookup and the verdict stamp.
  *  why: Lean edits, trust-boundary edits, or a verdict-POLICY change (v2 = over-assumption is
  *  drift) must invalidate verdicts; citation-erasure-v1 covers the cited-dependency prompt. */
 export function equivalenceAuditKey(parts: {
@@ -61,6 +55,8 @@ export function equivalenceAuditKey(parts: {
   // (2026-08-21, no bump) IMPLEMENTATION PACKAGING clause added to both equivalence prompts:
   // it only widens FAITHFUL, and the cache short-circuits faithful verdicts only, so replay
   // of cached verdicts is sound — a bump would just re-buy ~all faithful verdicts.
+  // Missing-coverage only distinguishes a mapping failure from drift; neither approves
+  // a statement. Keep existing faithful receipts under the same acceptance criterion.
   // equivalence-v3: the statement auditor now receives the contract DIGEST instead of
   // the full authoring contracts (with a small added flag-in-schema remit) — a
   // deliberate one-time re-audit sweep per bundle at its next P1 entry. This key has
@@ -74,16 +70,33 @@ export function equivalenceAuditKey(parts: {
  *  is asked to check, so widening the gate — by prompt edit or policy bump — must not read a
  *  verdict cached under the narrower standard; an unchanged proof would silently keep its stale
  *  `faithful`. The prompt fingerprint makes prompt-only widenings self-invalidating (same pattern
- *  as P1's promptFp), removing the "did any run execute since the bump?" timing dependence. */
+ *  as P1's promptFp), removing the "did any run execute since the bump?" timing dependence.
+ *  `formalContext` is `proofAuditFormalContext` — the statements the verdict can depend on (the
+ *  target, the environments the proof cites, and every definition/assumption), order-independent —
+ *  so a promoted lemma, a re-rendered theorem elsewhere, or a P1 order repair keeps approvals. */
 export function proofAuditCacheKey(parts: {
   proofTex: string; leanPointer: string; leanProofCacheSource: string; notationTable: string; auditPromptFp: string;
-  /** The canonical statement env the proof is judged against (formal-layer body; "" when
-   *  unavailable). Without it, fixing a statement never invalidated a cached proof verdict
-   *  that had failed AGAINST the broken statement (observed: \ne-typo verdict replay). */
-  targetStatement: string;
+  formalContext: string;
 }): string {
-  return hashEnvBody(`${PRESENTATION_PROSE_POLICY_VERSION}|${parts.auditPromptFp}|${parts.targetStatement}|${parts.proofTex}|${parts.leanPointer}|${parts.leanProofCacheSource}|${proofAuditSemanticNotation(parts.notationTable)}`);
+  return hashEnvBody(`${PRESENTATION_PROSE_POLICY_VERSION}|${parts.auditPromptFp}|${parts.formalContext}|${parts.proofTex}|${parts.leanPointer}|${parts.leanProofCacheSource}|${proofAuditSemanticNotation(parts.notationTable)}`);
 }
+
+/** The key formula before the closure-keyed context (whole `formal_layer.tex` hash, target body,
+ *  absolute Lean path). Read-only transition: a row stamped with it is honoured and re-stamped
+ *  under the current key, so the key change itself never re-judges a proof. Delete once every
+ *  live bundle has re-entered P2 (2026-09). */
+function legacyProofAuditCacheKey(parts: {
+  proofTex: string; leanPointer: string; leanProofCacheSource: string; notationTable: string; auditPromptFp: string;
+  targetStatement: string; formalSource: string;
+}): string {
+  return hashEnvBody(`${PRESENTATION_PROSE_POLICY_VERSION}|${parts.auditPromptFp}|${hashEnvBody(parts.formalSource)}|${parts.targetStatement}|${parts.proofTex}|${parts.leanPointer}|${parts.leanProofCacheSource}|${proofAuditSemanticNotation(parts.notationTable)}`);
+}
+
+/** Fingerprints of `proof_audit` before a prompt edit that only ADDED deterministic context
+ *  (the helper declarations the Lean proof names, 2026-09-10). Such an edit cannot narrow a
+ *  verdict, so a row stamped under one of these is honoured once and re-stamped. Delete once the
+ *  live bundles have re-entered P2. */
+export const LEGACY_PROOF_AUDIT_PROMPT_FPS = ["c4ed03d34c039a4c6b10e632b2946bda021f718b38a0ed22b5c47671a827db67"];
 
 /** Proof validity depends on symbol spelling and reader-facing meaning, not on
  * notation-table row placement or the outline section that owns the symbol. */
@@ -105,38 +118,6 @@ export function proofAuditSemanticNotation(notationTable: string): string {
 const ask = async (out: Promise<{ stdout: string; stderr: string }>) =>
   parseJsonLoose((await out).stdout);
 
-function decodeLooseJsonString(s: string): string {
-  let out = "";
-  for (let i = 0; i < s.length; i++) {
-    if (s[i] !== "\\" || i + 1 >= s.length) {
-      out += s[i];
-      continue;
-    }
-    const next = s[++i];
-    // This decoder runs on the RAW-LaTeX fallback path (the strict JSON parse
-    // already failed), so JSON escape semantics must NOT be applied blindly:
-    // `\n`/`\t`/`\b`/`\f`/`\r` followed by a letter are TeX commands (`\nabla`,
-    // `\to`, `\beta`, `\frac`, `\rho`) and decoding them injected control
-    // characters into the frozen statement layer. Decode the whitespace escapes
-    // only when NOT followed by a letter; keep everything letter-led verbatim.
-    const standard: Record<string, string> = {
-      "\\": "\\", '"': '"', "/": "/", n: "\n", r: "\r", t: "\t", b: "\b", f: "\f",
-    };
-    const letterFollows = /^[A-Za-z]/.test(s.slice(i + 1, i + 2));
-    if (next === "\\" || next === '"' || next === "/") out += standard[next];
-    else if ("nrtbf".includes(next) && !letterFollows) out += standard[next];
-    else if (next === "u" && /^[0-9a-fA-F]{4}$/.test(s.slice(i + 1, i + 5))) {
-      out += String.fromCharCode(Number.parseInt(s.slice(i + 1, i + 5), 16));
-      i += 4;
-    } else {
-      // GPT sometimes emits raw LaTeX escapes such as `\(` inside a JSON string. They are
-      // invalid JSON but unambiguous LaTeX, so preserve the unknown escape verbatim.
-      out += `\\${next}`;
-    }
-  }
-  return out;
-}
-
 /** A cached Lean-source reader (one read per file across an audit run). */
 function leanSourceReader(repoRoot: string, leanSubdir: string) {
   const cache = new Map<string, string>();
@@ -146,38 +127,8 @@ function leanSourceReader(repoRoot: string, leanSubdir: string) {
   };
 }
 
-/** Parse a model-authored LaTeX refinement. The normal JSON path stays authoritative; the
- * fallback recovers only the common invalid-JSON shape where LaTeX commands use raw backslashes. */
-export function parseLatexRefinement(
-  raw: string,
-  bodyField: "refined_body" | "refined_proof",
-): { body?: string; changed?: boolean; note?: string } | null {
-  const normal = parseJsonLoose(raw) as Record<string, unknown> | null;
-  if (normal && typeof normal[bodyField] === "string") {
-    return {
-      body: normal[bodyField] as string,
-      changed: normal.changed === true,
-      note: typeof normal.note === "string" ? normal.note : undefined,
-    };
-  }
-  const startRe = new RegExp(`"${bodyField}"\\s*:\\s*"`);
-  const start = startRe.exec(raw);
-  if (!start) return null;
-  const bodyStart = start.index + start[0].length;
-  const tail = raw.slice(bodyStart);
-  const boundary = /"\s*,\s*"changed"\s*:\s*(true|false)/.exec(tail);
-  if (!boundary) return null;
-  const afterChanged = tail.slice(boundary.index + boundary[0].length);
-  const note = /,\s*"note"\s*:\s*"([\s\S]*)"\s*}\s*$/.exec(afterChanged);
-  return {
-    body: decodeLooseJsonString(tail.slice(0, boundary.index)),
-    changed: boundary[1] === "true",
-    note: note ? decodeLooseJsonString(note[1]) : undefined,
-  };
-}
-
 /**
- * One-hop definition index for a refiner: give it the actual definition bodies its Lean statement
+ * One-hop definition index for a judge or renderer: the actual definition bodies its Lean statement
  * references (e.g. `clipBias`'s formula), not just a name to self-fetch. Returns `unfold(leanText)`.
  */
 async function buildRefDefUnfolder(
@@ -194,7 +145,7 @@ async function buildRefDefUnfolder(
       }
     }
   } catch {
-    /* best-effort: the refiner still has lean-lsp to self-fetch */
+    /* best-effort: the judge still has lean-lsp to self-fetch */
   }
   return async (leanText: string): Promise<string> => {
     const names = new Set(leanText.match(/[A-Za-z_][A-Za-z0-9_']*/g) ?? []);
@@ -214,45 +165,116 @@ async function buildRefDefUnfolder(
   };
 }
 
-/** Append a human-readable drift report (the Lean re-audit caught an under-specified statement/proof). */
+/** Append a human-readable repair report (the judge found the proof unfaithful; the renderer re-wrote it). */
 async function appendDriftReport(
   outDir: string,
   objId: string,
   before: string,
   after: string,
   rounds: number,
-  note?: string,
+  faithful: boolean,
 ): Promise<void> {
   const dir = join(outDir, "logs");
   await mkdir(dir, { recursive: true });
   await appendFile(
     join(dir, "graph_nl_drift.md"),
-    `\n## ${objId} — refined toward Lean in ${rounds} round(s)\n` +
-      (note ? `_${note}_\n` : "") +
-      `\n**Before:**\n\n\`\`\`\n${before.trim()}\n\`\`\`\n\n**After (tightened toward Lean):**\n\n\`\`\`\n${after.trim()}\n\`\`\`\n`,
+    `\n## ${objId} — re-rendered toward Lean in ${rounds} round(s); final verdict ${faithful ? "faithful" : "UNFAITHFUL"}\n` +
+      `\n**Before:**\n\n\`\`\`\n${before.trim()}\n\`\`\`\n\n**After:**\n\n\`\`\`\n${after.trim()}\n\`\`\`\n`,
     "utf8",
   );
 }
 
+/** One statement's Lean counterpart as resolved for the judge — reusable by a renderer that
+ *  must repair a drifting body toward it. */
+export interface StatementLeanContext {
+  leanStatement: string;
+  leanPointer: string;
+  refDefs: string;
+  citedDependencies: string;
+}
+export interface StatementJudgement {
+  verdict: "faithful" | "drift" | "missing-coverage";
+  detail?: string;
+}
+export interface StatementJudgeOutcome {
+  /** obj_id → verdict, for every env-bearing block with a Lean counterpart (presentation-
+   *  synthesized and undelivered blocks have none and are not judged). */
+  verdicts: Map<string, StatementJudgement>;
+  contexts: Map<string, StatementLeanContext>;
+}
+
 /**
- * P1 STATEMENT EQUIVALENCE AUDIT. Compares each frozen env body (from formal_layer.json) against its
- * Lean declaration; refines drift toward Lean (≤MAX_ROUNDS, fresh audits), and persists every faithful
- * body durably onto the graph (`nl.frozen_body`/`frozen_title`) and the formal layer (block body +
- * re-derived `.tex`). Returns the obj_ids still drifting after refinement — the P1 caller
- * halts on a non-empty result (the frozen layer disagrees with Lean beyond what auto-refinement could
- * tighten — adjudicate or fix the graph). Lean is trusted; the graph NL was only the draft.
+ * Freeze audit-faithful bodies onto the bank graph (`nl.frozen_body` / `frozen_title`) so a
+ * re-run reuses them verbatim. P1 calls this ONCE, after the notation reviewer, the Lean judge
+ * and the order check agree on the same bodies — never mid-flight, so a halted run leaves no
+ * half-frozen layer behind.
  */
+export async function persistFrozenBodies(
+  io: StageIO,
+  faithful: ReadonlyMap<string, { body: string; title: string | null }>,
+): Promise<number> {
+  let n = 0;
+  for (const [objId, { body, title }] of faithful) {
+    const node = io.bank.graph.nodes.find((x) => x.id === objId);
+    if (!node || node.delivery?.status === "undelivered") continue;
+    const trimmed = body.trim();
+    if (node.nl.frozen_body === trimmed && node.nl.frozen_title === title) continue;
+    node.nl.frozen_body = trimmed;
+    node.nl.frozen_title = title;
+    n += 1;
+  }
+  if (n > 0) {
+    await saveGraph(graphPath(bankAcceptedDir(io.ctx.repoRoot, io.ctx.qid, io.ctx.spec), io.ctx.qid, io.ctx.spec), io.bank.graph);
+    io.state.notes.push(`P1: persisted ${n} audit-faithful statement body/bodies to the bank graph (nl.frozen_body) — a re-run reuses them verbatim instead of re-rendering.`);
+  }
+  return n;
+}
+
+/** Judge the persisted layer, freeze what is faithful, report drift (P1 internals and tests). */
 export async function runStatementAudit(io: StageIO): Promise<LintProblem[]> {
-  const { deps } = io.ctx;
-  const { repoRoot } = io.ctx;
+  const out = await auditStatements(io);
+  await persistFrozenBodies(io, out.faithful);
+  return out.problems;
+}
+
+/** Judge `formal_layer.json` as it stands: drift verdicts as `equivalence` problems, faithful
+ *  bodies as freeze candidates. Read-only on the layer. */
+export async function auditStatements(io: StageIO): Promise<{ problems: LintProblem[]; faithful: Map<string, { body: string; title: string | null }> }> {
+  const layer = FormalLayerSource.parse(JSON.parse(await readFile(join(io.outDir, "formal_layer.json"), "utf8")));
+  const { verdicts } = await judgeStatements(io, layer.blocks);
+  const problems: LintProblem[] = [];
+  const faithful = new Map<string, { body: string; title: string | null }>();
+  for (const b of layer.blocks) {
+    const v = verdicts.get(b.obj_id);
+    if (!v) continue;
+    if (v.verdict === "faithful") faithful.set(b.obj_id, { body: b.body.trim(), title: b.title ?? null });
+    else problems.push({ gate: v.verdict === "missing-coverage" ? "lean-coverage" : "equivalence",
+      objId: b.obj_id, detail: `${b.obj_id}: ${v.detail ?? v.verdict}` });
+  }
+  await mkdir(join(io.outDir, "logs"), { recursive: true });
+  await appendFile(join(io.outDir, "logs", "reviews.jsonl"), JSON.stringify({ kind: "equivalence", problems }) + "\n", "utf8");
+  return { problems, faithful };
+}
+
+/**
+ * P1 STATEMENT EQUIVALENCE JUDGE — verdict only. Every env-bearing block with a Lean
+ * counterpart is compared against it: a tiered batch pre-audit (lemmas ≤3 at high effort,
+ * definitions/assumptions ≤5 at medium) and an individual high-effort audit for theorems and
+ * for anything the batch did not answer. Verdicts are content-keyed in `equivalence_cache.json`
+ * (faithful and missing-coverage verdicts are reused across runs; drift is re-asked) and in `memo` within
+ * a run. Nothing is rewritten or frozen here: P1 hands a drift verdict back to its renderer as
+ * a defect and freezes faithful bodies once the whole layer has settled.
+ */
+export async function judgeStatements(
+  io: StageIO,
+  blocks: readonly FormalBlock[],
+  memo: Map<string, StatementJudgement> = new Map(),
+): Promise<StatementJudgeOutcome> {
+  const { deps, repoRoot } = io.ctx;
   const leanSubdir = io.bank.leanSubdir;
   const leanSource = leanSourceReader(repoRoot, leanSubdir);
   const notation = parseOutline(await readFile(join(io.outDir, "outline.md"), "utf8")).notation;
-  const reviewsPath = join(io.outDir, "logs", "reviews.jsonl");
-  await mkdir(join(io.outDir, "logs"), { recursive: true });
-  const layerPath = join(io.outDir, "formal_layer.json");
-  const layerSrc0 = FormalLayerSource.parse(JSON.parse(await readFile(layerPath, "utf8")));
-  const citedTextByObjId = new Map(layerSrc0.blocks.map((b) => [
+  const citedTextByObjId = new Map(blocks.map((b) => [
     b.obj_id,
     b.cited_dependencies.length === 0
       ? "(none — no Lean premise may be erased)"
@@ -260,16 +282,16 @@ export async function runStatementAudit(io: StageIO): Promise<LintProblem[]> {
           `- ${d.node_id}: ${d.statement.replace(/\s+/g, " ").trim()} [${d.cite_id}; ${d.locator ?? "locator unavailable"}; status ${d.status}]`,
         ).join("\n"),
   ] as const));
-  // Env source = the formal-layer env blocks (P1 just wrote them). Same shape the P3 gate used to
-  // parse out of paper.tex, but here the JSON layer is the source of truth (no paper.tex yet).
-  const envs: AnchoredEnv[] = layerSrc0.blocks
-    .filter((b) => b.env)
+  // An undelivered node prints an open-direction remark, not a statement of its Lean target.
+  const envs: AnchoredEnv[] = blocks
+    .filter((b) => b.env && b.status !== "undelivered")
     .map((b, i) => ({ env: b.env!, obj_id: b.obj_id, title: b.title, body: b.body, order: i }));
-  if (envs.length === 0) return [];
+  const verdicts = new Map<string, StatementJudgement>();
+  const contexts = new Map<string, StatementLeanContext>();
+  if (envs.length === 0) return { verdicts, contexts };
 
-
-  // Verdict cache keyed by (env body, decl pointer): a statement already judged faithful is skipped on
-  // rerun unless its frozen body or its crosswalk mapping changed.
+  // Verdict cache keyed by (env body, decl pointer, referenced defs, trust boundary): a body
+  // already judged faithful is skipped unless any of those changed.
   const cachePath = join(io.outDir, "equivalence_cache.json");
   const cache = await loadJsonCache<Record<string, { key: string; verdict: string; detail?: string }>>(cachePath);
 
@@ -290,8 +312,11 @@ export async function runStatementAudit(io: StageIO): Promise<LintProblem[]> {
     graph: io.bank.graph,
   });
   const unfoldReferencedDefs = await buildRefDefUnfolder(repoRoot, leanSubdir, leanSource);
+  // What the judge used to fetch by hand: the unfolded definitions the statement names and the
+  // section context in scope at the declaration. Prompt-only (the key already carries refDefs).
+  const referencedContext = new Map<string, string>();
 
-  const equivalence = async (s: StatementCheck): Promise<{ verdict: string; detail?: string }> => {
+  const equivalence = async (s: StatementCheck): Promise<StatementJudgement> => {
     const v = (await ask(
       deps.runCodex({
         prompt: await presentationPrompt("statement_equivalence", {
@@ -301,6 +326,7 @@ export async function runStatementAudit(io: StageIO): Promise<LintProblem[]> {
           lean_pointer: s.leanPointer,
           notation_table: notation,
           cited_dependencies: s.citedDependencies ?? "(none — no Lean premise may be erased)",
+          referenced_definitions: referencedContext.get(s.obj_id) ?? "(none resolved)",
         }),
         cwd: repoRoot,
         // Theorems/lemmas carry the quantifier/rate/witness structure where deep reasoning pays;
@@ -309,29 +335,20 @@ export async function runStatementAudit(io: StageIO): Promise<LintProblem[]> {
         leanLsp: true,
       }),
     )) as { verdict?: string; detail?: string } | null;
-    return { verdict: v?.verdict ?? "drift", detail: v?.detail ?? "unparseable auditor output" };
+    if (v?.verdict === "faithful" || v?.verdict === "missing-coverage") {
+      return { verdict: v.verdict, detail: v.detail };
+    }
+    return { verdict: "drift", detail: v?.detail ?? "unparseable auditor output" };
   };
 
-  const refDefsByObjId = new Map<string, string>();
-  // LOCK RESPECT: an env whose current layer body is exactly its node's persisted
-  // nl.frozen_body (modulo the mechanical cref normalization render0 applies) was
-  // ALREADY validated when it froze — by a prior audit pass or by operator
-  // adjudication. Re-auditing it every run defeats the lock's purpose ("a re-run
-  // stays tight"): a stale or stricter verdict rewrites the frozen body and
-  // oscillates against the notation reviewer (observed: repeated stripping of
-  // reviewer-required notation displays). Audit only bodies that CHANGED.
-  const canonBody = (t: string) => normalizeCrefs(t).replace(/\s+/g, " ").trim();
-  const frozenBodyById = new Map(
-    io.bank.graph.nodes.filter((n) => n.nl.frozen_body).map((n) => [n.id, canonBody(n.nl.frozen_body!)] as const),
-  );
-  const lockedVerbatim = (e: AnchoredEnv) => frozenBodyById.get(e.obj_id) === canonBody(e.body);
-  const statements: (StatementCheck & { cacheKey: string; mapping: string; env: string; locked: boolean })[] = [];
-  // Envs whose CURRENT body already holds a cached faithful verdict — validated, so they are
-  // frozen below like any other faithful body (a verdict cached before this freeze policy
-  // existed would otherwise leave the body loose and re-rendered on the next prompt edit).
-  const cachedFaithful: AnchoredEnv[] = [];
+  // A block that is NOT a bank object (a definition P1 rendered from the Lean declaration that
+  // defines its symbols) is anchored by its own Lean pointer; a bank object is anchored by its
+  // crosswalk row only, so a row without a Lean anchor still fails loudly below.
+  const blockLean = new Map(blocks.flatMap((b) => b.lean ? [[b.obj_id, { file: b.lean.file, decl: b.lean.decl, line: 0 }] as const] : []));
+  const statements: (StatementCheck & { cacheKey: string; env: string })[] = [];
   for (const e of envs) {
     const cw = io.bank.crosswalk.find((c) => c.obj_id === e.obj_id);
+    const anchor = cw ? cw.lean : blockLean.get(e.obj_id);
     const comps = componentsMap[e.obj_id] ?? [];
     const componentReceipt = componentReceipts[e.obj_id] === true;
     if (comps.length > 0 && !componentReceipt) {
@@ -340,6 +357,11 @@ export async function runStatementAudit(io: StageIO): Promise<LintProblem[]> {
     let leanStatement: string | null = null;
     let leanPointer = "";
     let mapping = "";
+    // Pre-2026-09-09 keys carried source LINE numbers; a docstring edit above a declaration then
+    // re-judged every statement in the file although the snippet hash already keys its content.
+    // A row stamped with the line-carrying key is honoured once and re-stamped. Delete this
+    // fallback once every live bundle has re-entered P1.
+    let legacyMapping = "";
     if (comps.length > 0) {
       const assembled = await assembleComponentText({
         specs: comps,
@@ -351,6 +373,8 @@ export async function runStatementAudit(io: StageIO): Promise<LintProblem[]> {
       if (assembled.text) {
         leanStatement = assembled.text;
         mapping = `components:${componentSignature(comps)}:` + assembled.resolved
+          .map((r) => `${r.file}:${r.decl}:${hashEnvBody(r.snippet)}`).sort().join("|");
+        legacyMapping = `components:${componentSignature(comps)}:` + assembled.resolved
           .map((r) => `${r.file}:${r.decl}:${r.line}:${hashEnvBody(r.snippet)}`).sort().join("|");
         leanPointer =
           `Formalized by ${comps.length} Lean piece(s) — ` +
@@ -360,15 +384,18 @@ export async function runStatementAudit(io: StageIO): Promise<LintProblem[]> {
           `. Read each in ${leanSubdir} before judging; every paper clause must map to SOME piece.`;
       }
     }
-    if (leanStatement === null && cw?.lean) {
-      const resolved = await resolveLeanDeclaration(repoRoot, leanSubdir, cw.lean);
+    if (leanStatement === null && anchor) {
+      const resolved = await resolveLeanDeclaration(repoRoot, leanSubdir, anchor);
       leanStatement = resolved.snippet;
-      mapping = `${resolved.file}:${resolved.decl}:${resolved.line}`;
+      mapping = `${resolved.file}:${resolved.decl}`;
+      legacyMapping = `${resolved.file}:${resolved.decl}:${resolved.line}`;
       const abs = await resolvedLeanAbsolutePath(repoRoot, resolved.file);
-      leanPointer = `file: ${abs}\ndeclaration: ${resolved.decl} (around line ${resolved.line})\nRead the file with your tools; do not guess its contents.`;
+      leanPointer = `file: ${abs}\ndeclaration: ${resolved.decl} (around line ${resolved.line})\nThe section context and referenced definitions are supplied below; read the file only for what they lack.`;
+      const scope = sectionContextBefore(await readFile(abs, "utf8").catch(() => ""), resolved.line);
+      if (scope) referencedContext.set(e.obj_id, `-- section context in scope at ${resolved.decl}\n${scope}`);
       if (resolved.relocated) {
         io.state.notes.push(
-          `P1: resolved re-exported Lean declaration for ${e.obj_id}: ${cw.lean.file}:${cw.lean.decl} -> ` +
+          `P1: resolved re-exported Lean declaration for ${e.obj_id}: ${anchor.file}:${anchor.decl} -> ` +
           `${resolved.file}:${resolved.decl}:${resolved.line} (${resolved.resolution})`,
         );
       }
@@ -385,11 +412,25 @@ export async function runStatementAudit(io: StageIO): Promise<LintProblem[]> {
       continue;
     }
     const refDefs = await unfoldReferencedDefs(leanStatement);
-    refDefsByObjId.set(e.obj_id, refDefs);
+    if (refDefs) referencedContext.set(e.obj_id, [referencedContext.get(e.obj_id), refDefs].filter(Boolean).join("\n\n"));
     const citedDependencies = citedTextByObjId.get(e.obj_id) ?? "(none — no Lean premise may be erased)";
+    contexts.set(e.obj_id, { leanStatement, leanPointer, refDefs, citedDependencies });
     const key = equivalenceAuditKey({ envBody: e.body, mapping, leanStatement, refDefs, citedDependencies });
-    if (cache[e.obj_id]?.key === key && cache[e.obj_id].verdict === "faithful") {
-      cachedFaithful.push(e);
+    const remembered = memo.get(key);
+    if (remembered) {
+      verdicts.set(e.obj_id, remembered);
+      continue;
+    }
+    const hit = cache[e.obj_id];
+    if (hit && hit.key !== key && hit.key === equivalenceAuditKey({ envBody: e.body, mapping: legacyMapping, leanStatement, refDefs, citedDependencies })) {
+      hit.key = key;
+      await writeJsonAtomic(cachePath, cache);
+    }
+    // An unchanged coverage failure cannot be repaired by paying the same judge again.
+    // Correcting mapped declarations changes this key and permits a fresh audit.
+    if (hit?.key === key && (hit.verdict === "faithful" || hit.verdict === "missing-coverage")) {
+      verdicts.set(e.obj_id, { verdict: hit.verdict, detail: hit.detail });
+      memo.set(key, verdicts.get(e.obj_id)!);
       continue;
     }
     statements.push({
@@ -399,14 +440,8 @@ export async function runStatementAudit(io: StageIO): Promise<LintProblem[]> {
       leanPointer,
       isMainResult: e.env === "theoremv" || e.env === "lemmav",
       cacheKey: key,
-      mapping,
       env: e.env,
       citedDependencies,
-      // LOCK SEMANTICS: a locked env is audited like any other (a Lean edit after the
-      // freeze changes the cache key above, forcing a fresh verdict), but on genuine
-      // drift it is NEVER auto-refined — the frozen body is P3-validated or operator-
-      // adjudicated, so the disagreement halts for adjudication instead (Phase 2).
-      locked: lockedVerbatim(e),
     });
   }
 
@@ -415,7 +450,7 @@ export async function runStatementAudit(io: StageIO): Promise<LintProblem[]> {
   // pre-empts the individual call; anything missing falls through to its own individual call.
   const LEMMA_BATCH = 3;
   const SHALLOW_BATCH = 5;
-  const batchVerdicts = new Map<string, { verdict: string; detail?: string }>();
+  const batchVerdicts = new Map<string, StatementJudgement>();
   const groupsOf = <T>(arr: T[], size: number): T[][] => {
     const out: T[][] = [];
     for (let i = 0; i < arr.length; i += size) {
@@ -432,6 +467,11 @@ export async function runStatementAudit(io: StageIO): Promise<LintProblem[]> {
       !requiresIndividualStatementAudit(s.envBody)
     ), SHALLOW_BATCH).map((group) => ({ group, effort: "medium" as const })),
   ];
+  const remember = (s: { obj_id: string; cacheKey: string }, v: StatementJudgement) => {
+    verdicts.set(s.obj_id, v);
+    memo.set(s.cacheKey, v);
+    cache[s.obj_id] = { key: s.cacheKey, verdict: v.verdict, detail: v.detail };
+  };
   await mapLimit(batchJobs, AUDIT_CONCURRENCY, async ({ group, effort }) => {
     const block = group
       .map(
@@ -450,20 +490,18 @@ export async function runStatementAudit(io: StageIO): Promise<LintProblem[]> {
       )) as { results?: { obj_id?: string; verdict?: string; detail?: string }[] } | null;
       let adopted = 0;
       for (const r of parsed?.results ?? []) {
-        if (r.obj_id && (r.verdict === "faithful" || r.verdict === "drift")) {
+        if (r.obj_id && (r.verdict === "faithful" || r.verdict === "drift" || r.verdict === "missing-coverage")) {
+          const st = group.find((x) => x.obj_id === r.obj_id);
+          if (!st) continue;
           batchVerdicts.set(r.obj_id, { verdict: r.verdict, detail: r.detail });
-          const st = statements.find((x) => x.obj_id === r.obj_id);
-          if (st) cache[r.obj_id] = { key: st.cacheKey, verdict: r.verdict, detail: r.detail };
+          remember(st, { verdict: r.verdict, detail: r.detail });
           adopted += 1;
         }
       }
-      // Persist each batch's verdicts as they land (atomic write; concurrent workers are
-      // safe, same pattern as the proof audit): the sweep used to write the cache ONCE at
-      // the end, so an interruption (Slurm expiry, 2026-08-20) lost hours of paid audits.
+      // Persist each batch's verdicts as they land (atomic write; concurrent workers are safe):
+      // an interruption must not lose hours of paid audits.
       await writeJsonAtomic(cachePath, cache);
-      // The individual-call fallback is by design, but SYSTEMATIC batch misparses double the
-      // audit cost of every run with no trace anywhere but agent_calls.log — say when a batch
-      // contributed nothing (audit, 2026-08-26).
+      // A systematically misparsed batch doubles the audit cost with no trace but agent_calls.log.
       if (adopted === 0) {
         console.error(`[statement-equivalence] batch reply contributed no verdicts (${group.length} statement(s) fall through to individual audits)`);
       }
@@ -471,205 +509,40 @@ export async function runStatementAudit(io: StageIO): Promise<LintProblem[]> {
       console.error(`[statement-equivalence] batch dispatch failed (${(e as Error).message?.slice(0, 80)}) — ${group.length} statement(s) fall through to individual audits`);
     }
   });
-
-  const refineRunner: RefineRunner = async (c) => {
-    const raw = (await deps.runCodex({
-        prompt: await presentationPrompt("refine_statement", {
-          obj_id: c.obj_id,
-          env_body: c.envBody,
-          lean_statement: c.leanStatement,
-          lean_pointer: c.leanPointer,
-          drift_detail: c.driftDetail,
-          notation_table: notationForArtifact(notation, `${c.envBody}\n${refDefsByObjId.get(c.obj_id) ?? ""}`),
-          referenced_defs: refDefsByObjId.get(c.obj_id) || "(none indexed — read the Lean via your tools)",
-          cited_dependencies: c.citedDependencies ?? "(none — no Lean premise may be erased)",
-        }),
-        cwd: repoRoot,
-        reasoningEffort: "high",
-        leanLsp: true,
-      })).stdout;
-    const v = parseLatexRefinement(raw, "refined_body");
-    const refined_body = typeof v?.body === "string" ? fixOverEscapedTex(v.body) : c.envBody;
-    return {
-      refinedBody: refined_body,
-      changed: v?.changed === true && refined_body.trim().length > 0 && refined_body.trim() !== c.envBody.trim(),
-      note: v?.note,
-    };
-  };
-
-  // Phase 1 — initial audits in PARALLEL (each statement vs its own Lean is independent).
-  const eqProblems: LintProblem[] = [];
-  const audited = await mapLimit(statements, AUDIT_CONCURRENCY, async (s) => {
-    const v0 = batchVerdicts.get(s.obj_id) ?? (await equivalence(s));
-    cache[s.obj_id] = { key: s.cacheKey, verdict: v0.verdict, detail: v0.detail };
+  // Individual audits in PARALLEL (each statement vs its own Lean is independent).
+  await mapLimit(statements.filter((s) => !batchVerdicts.has(s.obj_id)), AUDIT_CONCURRENCY, async (s) => {
+    remember(s, await equivalence(s));
     await writeJsonAtomic(cachePath, cache); // incremental persistence — see the batch loop note
-    return { s, v0 };
   });
-  // Phase 2 — refine the drifting statements in PARALLEL (refineStatement is PURE; writes are serialized).
-  // A LOCKED drifting statement is not refined: rewriting a validated frozen body caused the
-  // audit↔reviewer display-stripping oscillation, and silently accepting it would ship a stale
-  // claim over changed Lean. Halt loudly with the drift detail for operator adjudication.
-  for (const { s: ls, v0 } of audited) {
-    if (ls.locked && v0.verdict !== "faithful") {
-      eqProblems.push({
-        gate: "locked-env-drift",
-        objId: ls.obj_id,
-        detail: `${ls.obj_id}: locked (frozen) body disagrees with the current Lean statement — ${v0.detail ?? v0.verdict}. Adjudicate: update nl.frozen_body to match the Lean, or fix the Lean/crosswalk; the audit never auto-rewrites a locked body.`,
-      });
-    }
-  }
-  const refinedResults = await mapLimit(
-    audited.filter(({ s: fs, v0 }) => v0.verdict !== "faithful" && !fs.locked),
-    AUDIT_CONCURRENCY,
-    async ({ s }) => ({
-      s,
-      refined: await refineStatement({
-        check: s,
-        notation,
-        maxRounds: MAX_ROUNDS,
-        reaudit: (sc) => equivalence(sc), // fresh audits on the refined body (no cache)
-        refine: refineRunner,
-      }),
-    }),
-  );
-  // Phase 3 — apply re-freeze writes SERIALLY (formal_layer.json + graph are shared).
-  const layerSrc = FormalLayerSource.parse(JSON.parse(await readFile(layerPath, "utf8")));
-  let bankGraphDirty = false;
-  let layerDirty = false;
-  // FREEZE EVERY FAITHFUL BODY, not only refined ones. A body that passed on its first audit used
-  // to stay loose, so the next render-prompt (or global contract) edit re-rendered it — wording
-  // drift with no Lean change — which re-keyed its statement audit, every proof audit citing it,
-  // and every section placing it: one prompt commit became a near-full re-run (sa_plm, 2026-08-21).
-  // Validated ⇒ locked: P1 reuses the body verbatim; a LEAN change still re-audits it (the verdict
-  // key holds the Lean source) and halts as locked-env-drift for adjudication. To push a prompt
-  // improvement into an already-frozen paper, re-enter with `--from P1 --refresh-frozen-bodies`.
-  const freezeFaithful = (objId: string, body: string): void => {
-    const node = io.bank.graph.nodes.find((n) => n.id === objId);
-    if (!node || node.delivery?.status === "undelivered") return;
-    const trimmed = body.trim();
-    if (node.nl.frozen_body === trimmed) return;
-    node.nl.frozen_body = trimmed;
-    node.nl.frozen_title = layerSrc.blocks.find((b) => b.obj_id === objId)?.title ?? null;
-    bankGraphDirty = true;
-  };
-  for (const e of cachedFaithful) freezeFaithful(e.obj_id, e.body);
-  for (const { s, v0 } of audited) if (v0.verdict === "faithful") freezeFaithful(s.obj_id, s.envBody);
-  for (const { s, refined } of refinedResults) {
-    if (refined.body.trim() !== s.envBody.trim()) {
-      // Persist the refiner's BEST attempt (faithful or not) into the source of truth — a
-      // tightened-but-still-drifting body is a better starting point for the next re-audit than the
-      // stale original. Update block.body; re-derive the read-only .tex below.
-      const blk = layerSrc.blocks.find((b) => b.obj_id === s.obj_id);
-      if (blk) {
-        blk.body = refined.body.trim();
-        layerDirty = true;
-      }
-      // DURABLE persistence: once FAITHFUL, write the validated body back onto the graph node so a P1
-      // re-run reproduces it VERBATIM (the locked-env path) instead of re-deriving and reverting.
-      if (refined.faithful) {
-        const node = io.bank.graph.nodes.find((n) => n.id === s.obj_id);
-        if (node) {
-          node.nl.frozen_body = refined.body.trim();
-          node.nl.frozen_title = blk?.title ?? null;
-          bankGraphDirty = true;
-        }
-      }
-      cache[s.obj_id] = {
-        key: equivalenceAuditKey({ envBody: refined.body, mapping: s.mapping, leanStatement: s.leanStatement, refDefs: refDefsByObjId.get(s.obj_id) ?? "", citedDependencies: s.citedDependencies ?? "" }), // why: the refined faithful verdict is tied to the exact Lean source, trust boundary, and verdict policy audited.
-        verdict: refined.faithful ? "faithful" : "drift",
-        detail: refined.detail,
-      };
-      await appendDriftReport(io.outDir, s.obj_id, s.envBody, refined.body, refined.rounds, refined.note);
-      await appendFile(
-        reviewsPath,
-        JSON.stringify({ kind: "refine", obj_id: s.obj_id, rounds: refined.rounds, faithful: refined.faithful, note: refined.note }) + "\n",
-        "utf8",
-      );
-      io.state.notes.push(
-        `P1: refined ${s.obj_id} toward Lean fidelity (${refined.rounds} round(s)` +
-          (refined.faithful ? "" : "; STILL DRIFTING — best attempt persisted, re-audit/adjudicate") +
-          `) — see logs/graph_nl_drift.md`,
-      );
-    }
-    if (!refined.faithful) {
-      eqProblems.push({ gate: "equivalence", detail: `${s.obj_id}: ${refined.detail ?? "drift"}` });
-    }
-  }
-  if (layerDirty) {
-    await writeFile(layerPath, JSON.stringify(layerSrc, null, 2) + "\n", "utf8");
-    await writeFile(
-      join(io.outDir, "formal_layer.tex"),
-      "% DERIVED from formal_layer.json — read-only, do not edit.\n" + blocksToTex(layerSrc.blocks) + "\n",
-      "utf8",
-    );
-  }
-  if (bankGraphDirty) {
-    await saveGraph(
-      graphPath(bankAcceptedDir(repoRoot, io.ctx.qid, io.ctx.spec), io.ctx.qid, io.ctx.spec),
-      io.bank.graph,
-    );
-    io.state.notes.push("P1: persisted audit-faithful statement body/bodies to the bank graph (nl.frozen_body) — a re-run reuses them verbatim instead of re-rendering.");
-  }
   await writeJsonAtomic(cachePath, cache); // why: the equivalence cache is the P4 trust anchor — a corrupt write must not survive.
-  await appendFile(reviewsPath, JSON.stringify({ kind: "equivalence", problems: eqProblems }) + "\n", "utf8");
-  return eqProblems;
+  return { verdicts, contexts };
 }
 
-/**
- * P2 PROOF EQUIVALENCE AUDIT. Reconciles each rendered appendix proof's PROSE against its
- * machine-verified Lean proof. The Lean proof type-checks, so revising the prose toward it is always
- * safe (no laundering — the prose only describes a verified object). Audits each proof, REFINES the
- * unfaithful ones (≤MAX_ROUNDS, persist-best), and rewrites `proofs/<obj_id>.tex`. Returns the final
- * proof text for EVERY proof (so the P2 assembly uses the refined versions) plus the obj_ids that are
- * still unfaithful after refinement — the P2 caller halts on a non-empty `problems` (re-render or
- * adjudicate). `proofTargets` are the (obj_id, env-kind, leanFile/decl) tuples P2 already resolved.
- */
-/**
- * Lean routes (`% lean: declA, declB`) the refinement dropped, compared as declaration names with
- * their occurrence counts — so reordering, spacing, and a route moving to another line all count as
- * PRESENT, while deleting one of two identically-anchored branches still counts as dropped.
- *
- * The refiner rewrites toward Lean and only removes prose; it never supplies a conclusion the
- * auditor reported missing. A refinement that drops an anchored step has deleted content tied to a
- * declaration, and the auditor re-reports the same omission next cycle.
- *
- * Deliberately kept to one pattern: an escaped `\%` is not a route, and no other TeX context
- * is modelled. A false positive here keeps the input proof, which then HALTS for adjudication
- * rather than assembling silently, so the failure mode is loud and a scrubbing pass is not worth
- * the complexity.
- */
-export function droppedLeanRoutes(before: string, after: string): string[] {
-  const decls = (tex: string): Map<string, number> => {
-    const counts = new Map<string, number>();
-    for (const m of tex.matchAll(/(?<!\\)%\s*lean:\s*([^\n]+)/g))
-      // Split on repeated `% lean:` too: several markers on ONE line otherwise parse as a single
-      // phantom route (`A % lean: B`) that no well-formed rewrite can preserve — every refinement
-      // then "drops" it and is discarded, an unescapable loop (observed live 2026-08-25,
-      // lem:clip-balance-exponent).
-      for (const seg of m[1].split(/%\s*lean:\s*/))
-        // `;` too: the refiner has emitted `% lean: A; B` live — comma-only splitting reads that
-        // as one phantom route, the same unescapable-discard failure as the multi-marker line.
-        for (const raw of seg.split(/[,;]/)) {
-          const name = raw.trim().replace(/[.;]+$/, "");
-          if (name) counts.set(name, (counts.get(name) ?? 0) + 1);
-        }
-    return counts;
-  };
-  const kept = decls(after);
-  return [...decls(before)].filter(([name, n]) => (kept.get(name) ?? 0) < n).map(([name]) => name);
+/** Re-render a proof with the judge's issues as defects (P2 supplies it: the same `p2_proof` prompt
+ *  that wrote the proof, given the prior proof and the tagged issues). `null` = the renderer could
+ *  produce a valid repair; the prior proof then stands and halts. */
+export type ProofRenderHook = (objId: string, priorProof: string, issues: string[], previousIssues: readonly string[]) => Promise<string | null>;
+
+/** A proof still unfaithful after repair. `promotable` iff the judge tagged an issue
+ *  `[missing-step]` — content the Lean derives that no paper environment supplies, the one
+ *  case a promoted helper lemma can fix; rendering/citation defects never promote. */
+export interface ProofAuditProblem extends LintProblem {
+  issues: string[];
+  promotable: boolean;
 }
+
+export const isMissingStepIssue = (issue: string): boolean => /^\s*\[missing-step\]/i.test(issue);
 
 /**
  * Deterministic missing-citation check: paper result envs whose realized Lean declaration the
  * proof's own Lean source DIRECTLY invokes, but whose environment the rendered proof never
- * `\cref`s. The p2_proof/refine_proof rule ("a route step realized by a paper env is rendered as a
- * citation, never an inline re-derivation") is otherwise enforced only by prompt; this closes the
- * common direct-invocation case from ground truth (the decl source), leaving transitive
- * helper-mediated uses to the isolated-lemma assembly gate. Matching is by the declaration's final
- * name segment as a whole word — Lean call sites use the open-namespace short name. Deliberately a
- * per-proof AUDIT issue (feeding the existing refine loop, which adds the citation) rather than a
- * new hard gate: the bank's `proof-uses` edges are heuristic, and a textual match can occasionally
- * over-trigger; a wasted refine round is cheap, a false halt is not.
+ * `\cref`s. The p2_proof rule ("a route step realized by a paper env is rendered as a citation,
+ * never an inline re-derivation") is otherwise enforced only by prompt; this closes the common
+ * direct-invocation case from ground truth (the decl source), leaving transitive helper-mediated
+ * uses to the isolated-lemma assembly gate. Matching is by the declaration's final name segment as
+ * a whole word — Lean call sites use the open-namespace short name. A per-proof AUDIT issue (the
+ * renderer adds the citation) rather than a hard gate: the bank's `proof-uses` edges are heuristic
+ * and a textual match can over-trigger; a wasted repair round is cheap, a false halt is not.
  */
 export function missingRealizedCitations(
   leanProofSource: string,
@@ -693,299 +566,315 @@ export function missingRealizedCitations(
   return out;
 }
 
+/** The statements a proof's translation is judged against: the one it proves and the ones it
+ *  cites by `\cref` — a citation asserts that the cited statement supplies a fact, which is checked
+ *  against that statement's printed text. One hop only: what a cited statement itself rests on is
+ *  that statement's own faithfulness to its Lean, settled at P1. */
+export function proofDirectStatements(envs: readonly AnchoredEnv[], objId: string, proof: string): AnchoredEnv[] {
+  const wanted = new Set([objId]);
+  for (const match of stripTexComments(proof).matchAll(/\\(?:Cref|cref|ref)\{([^}]+)\}/g)) {
+    for (const label of match[1].split(",").map(s => s.trim())) {
+      if (label.startsWith("obj:")) wanted.add(label.slice(4));
+    }
+  }
+  return envs.filter(env => wanted.has(env.obj_id));
+}
+
+/** Exact current statements the judge checks the proof against, from the same formal-layer text
+ * the verdict key hashes. Any other environment stays retrievable from the source file. */
+export function proofAuditPaperContext(envs: readonly AnchoredEnv[], objId: string, proof: string): string {
+  return [
+    "Exact statement excerpts from that source (the result this proof proves and the statements it cites; retrieve any other object needed):",
+    ...proofDirectStatements(envs, objId, proof).map(env =>
+      `--- ${env.obj_id} (${env.env}${env.title ? `: ${env.title}` : ""}) ---\n${env.body}`),
+  ].join("\n\n");
+}
+
+/**
+ * The formal context a proof verdict is keyed on: the target statement and the statements the
+ * proof cites, as sorted `id|env|title|body` lines (layer ORDER never enters). The audit judges
+ * whether the prose faithfully renders the Lean proof; a definition, assumption, remark or result
+ * the proof does not name cannot change that verdict — if its content is wrong, that is its own
+ * statement's faithfulness problem, settled at P1 — so it does not invalidate the approval.
+ */
+export function proofAuditFormalContext(envs: readonly AnchoredEnv[], objId: string, proof: string): string {
+  return proofDirectStatements(envs, objId, proof)
+    .map(env => `${env.obj_id}|${env.env}|${env.title ?? ""}|${env.body.replace(/\s+/g, " ").trim()}`)
+    .sort()
+    .join("\n");
+}
+
+/**
+ * P2 PROOF EQUIVALENCE AUDIT — one writer, one judge. Each rendered appendix proof is judged
+ * against its machine-verified Lean proof (`proof_audit`, verdict cached per proof body); an
+ * unfaithful proof is RE-RENDERED by the same renderer that wrote it, with the judge's tagged
+ * issues as defects, and judged again (≤MAX_ROUNDS). There is no separate "refiner": a second
+ * writer that only deleted prose could never supply a step the judge said was missing, and its
+ * deletions had to be guarded and discarded (the 2026-08-22/25/26 loops). Persists the last
+ * proof per target to `proofs/<obj_id>.tex`; returns the final text for EVERY proof (assembly
+ * uses it) plus the residual problems, each marked `promotable` when a `[missing-step]` issue
+ * remains — the only case in which P2's promotion round can help.
+ */
 export async function runProofAudit(
   io: StageIO,
   proofTargets: { obj_id: string; isMain: boolean; lean: { file: string; decl: string } }[],
-): Promise<{ refined: Map<string, string>; problems: LintProblem[] }> {
+  render: ProofRenderHook,
+  repairContextKeys: ReadonlyMap<string, string> = new Map(),
+): Promise<{ refined: Map<string, string>; problems: ProofAuditProblem[] }> {
   const { deps, repoRoot } = io.ctx;
   const leanSubdir = io.bank.leanSubdir;
-  const leanSource = leanSourceReader(repoRoot, leanSubdir);
   const notation = parseOutline(await readFile(join(io.outDir, "outline.md"), "utf8")).notation;
-  // The refiner re-authors (and expands) proof prose, so it gets the same subordinated
-  // D-stage derivation the P2 renderer gets. The AUDITOR does not — its Lean-vs-prose
-  // verdict must stay independent of the untrusted derivation.
-  const informalDerivations = await loadInformalDerivations(repoRoot, io.ctx.qid, io.ctx.spec);
-  // Citable paper environments, each annotated with the Lean declaration it realizes,
-  // so the refiner can map a proof step's `% lean:` route onto a paper label and CITE
-  // the lemma instead of re-deriving content the paper already states. Without this
-  // the refiner cannot cite promoted helper lemmas at all (inventing crefs is banned).
   const declByNode = new Map((io.bank.graph?.nodes ?? [])
     .filter((n) => n.lean?.decl_name)
     .map((n) => [n.id, n.lean!.decl_name] as const));
-  const allLayerBlocks = await readFile(join(io.outDir, "formal_layer.json"), "utf8")
-    .then((raw) => (JSON.parse(raw).blocks ?? []) as { obj_id: string; env: string; title?: string | null; body: string }[])
-    .catch(() => null);
-  const citableBlocks = allLayerBlocks === null
-    ? null
-    : allLayerBlocks.filter((b) => b.env === "lemmav" || b.env === "definitionv" || b.env === "algorithmv" || b.env === "theoremv");
-  // Per-proof view: exclude the result under proof itself — otherwise the refiner could
-  // "repair" a flagged step by citing the very theorem being proved (circular).
-  // Full bodies only for envs the proof/findings actually engage (a {obj:…} mention,
-  // or the proof's `% lean:` routes naming the env's realized declaration); the rest
-  // appear as an id/title/decl index — sending every body was measured at 59% of each
-  // refine input (2026-08-20 token audit), and the index plus the formal_layer.tex
-  // inventory (openable via tools) preserves discoverability of citable helpers.
-  const citableHelperEnvsFor = (objId: string, referenceText: string): string => {
-    if (citableBlocks === null) return "(no formal layer available)";
-    const full: string[] = [];
-    const index: string[] = [];
-    for (const b of citableBlocks) {
-      if (b.obj_id === objId) continue;
-      const decl = declByNode.get(b.obj_id);
-      // Bare-id disjunct: audit issues name envs without braces ("should cite
-      // lem:aux-bound"); obj ids are kind-namespaced, so collisions are negligible.
-      const engaged = referenceText.includes(b.obj_id) ||
-        (decl != null && referenceText.includes(decl));
-      if (engaged) {
-        const head = decl ? `% realizes Lean declaration: ${decl}\n` : "";
-        full.push(`${head}\\begin{${b.env}}{${b.obj_id}}${b.title ? `[${b.title}]` : ""}\n${b.body}\n\\end{${b.env}}`);
-      } else {
-        index.push(`- ${b.obj_id} [${b.env}]${b.title ? ` ${b.title}` : ""}${decl ? ` (realizes ${decl})` : ""}`);
-      }
-    }
-    const indexBlock = index.length > 0
-      ? `INDEX of further citable environments — bodies are in ${join(io.outDir, "formal_layer.tex")}; open it with your tools before citing any of them:\n${index.join("\n")}`
-      : "";
-    return [full.join("\n\n"), indexBlock].filter(Boolean).join("\n\n") || "(no citable helper environments)";
-  };
+  // The SOURCE of truth for statements is formal_layer.json (formal_layer.tex is a derived view that
+  // an in-flight P1 or a hand edit can leave stale): the judge's excerpts, the reference check and
+  // the approval key all read the blocks. Read once so every worker keys on the same snapshot.
+  const allLayerBlocks = (JSON.parse(await readFile(join(io.outDir, "formal_layer.json"), "utf8")).blocks ?? []) as
+    { obj_id: string; env: string | null; title?: string | null; body: string }[];
+  const formalEnvs: AnchoredEnv[] = allLayerBlocks.flatMap((b, i) =>
+    b.env ? [{ env: b.env as AnchoredEnv["env"], obj_id: b.obj_id, title: b.title ?? null, body: b.body, order: i }] : []);
+  const layerIds = new Set(formalEnvs.map((e) => e.obj_id));
+  // Only the pre-closure legacy key hashed the derived .tex; read it just to honour those rows.
+  const formalSource = await readFile(join(io.outDir, "formal_layer.tex"), "utf8").catch(() => "");
   const reviewsPath = join(io.outDir, "logs", "reviews.jsonl");
   await mkdir(join(io.outDir, "logs"), { recursive: true });
-  const unfoldReferencedDefs = await buildRefDefUnfolder(repoRoot, leanSubdir, leanSource);
 
   // Verdict cache keyed by (proof body, decl pointer): a proof already judged faithful is skipped.
   const cachePath = join(io.outDir, "proof_audit_cache.json");
-  const cache = await loadJsonCache<Record<string, { key: string; verdict: string; issues?: string[] }>>(cachePath);
-  const saveCache = () => writeJsonAtomic(cachePath, cache); // why: proofAudit workers save concurrently under mapLimit — interleaved plain writes can corrupt the cache.
+  const cache = await loadJsonCache<Record<string, {
+    key: string; verdict: string; issues?: string[];
+    repairStoppedKey?: string;
+  }>>(cachePath);
+  const saveCache = () => writeJsonAtomic(cachePath, cache); // why: workers save concurrently under mapLimit — interleaved plain writes can corrupt the cache.
 
   const auditPromptFp = await promptFingerprint("proof_audit");
+  const repairPromptFp = await promptFingerprint("p2_proof");
   // Lemma envs with a realized decl — the deterministic missing-citation check's citable set.
   // Lemmas only, matching the isolated-lemma rule this check upstreams (a proof invoking a
-  // paper LEMMA's decl must cite it); theorem-to-theorem citation stays the auditor's judgment.
-  const resultCitables = (citableBlocks ?? [])
+  // paper LEMMA's decl must cite it); theorem-to-theorem citation stays the judge's call.
+  const resultCitables = allLayerBlocks
     .filter((b) => b.env === "lemmav")
     .flatMap((b) => {
       const decl = declByNode.get(b.obj_id);
       return decl ? [{ objId: b.obj_id, decl }] : [];
     });
-  // UNFILTERED lookup: propositionv proofs are audited too (isMainProofEnv), and the
-  // citable list excludes them — a filtered lookup would leave their targetStatement
-  // permanently "", replaying stale verdicts across statement fixes.
+  // UNFILTERED lookup: propositionv proofs are judged too and the citable list excludes them —
+  // a filtered lookup would leave their targetStatement permanently "".
   const targetStatementFor = (objId: string): string =>
-    allLayerBlocks?.find((b) => b.obj_id === objId)?.body ?? "";
-  const proofAudit = async (p: { obj_id: string; proofTex: string; leanPointer: string; leanProofSource: string; leanProofCacheSource: string; notationTable: string; tier: "main" | "auxiliary" }) => {
-    const key = proofAuditCacheKey({ ...p, auditPromptFp, targetStatement: targetStatementFor(p.obj_id) });
-    // Deterministic pre-check, merged into the verdict at RETURN time (never persisted — the
-    // citable set is not in the cache key; see the hit path below). A hit stays a hit when the
-    // check is clean; a miss on the check overrides even a cached-faithful verdict, and the
-    // refine loop adds the citation.
+    allLayerBlocks.find((b) => b.obj_id === objId)?.body ?? "";
+  type JudgeInput = { obj_id: string; proofTex: string; leanPointer: string; leanKeyPointer: string; leanProofSource: string; leanProofCacheSource: string; notationTable: string; tier: "main" | "auxiliary"; helperDeclarations: string };
+  const auditKey = (p: JudgeInput) => proofAuditCacheKey({
+    proofTex: p.proofTex, leanPointer: p.leanKeyPointer, leanProofCacheSource: p.leanProofCacheSource,
+    notationTable: p.notationTable, auditPromptFp, formalContext: proofAuditFormalContext(formalEnvs, p.obj_id, p.proofTex),
+  });
+  const proofAudit = async (p: JudgeInput) => {
+    const key = auditKey(p);
+    // Deterministic citation hint, merged at RETURN time (never persisted — the citable set is
+    // not in the cache key, so a baked-in "cite X" would replay after X stops being a lemma).
     const detIssues = missingRealizedCitations(p.leanProofSource, p.proofTex, resultCitables, p.obj_id).map(
       (c) =>
-        `the Lean route invokes ${c.decl.split(".").pop()}, which the paper states as ${c.objId} — ` +
+        `[citation] the Lean route invokes ${c.decl.split(".").pop()}, which the paper states as ${c.objId} — ` +
         `cite \\cref{obj:${c.objId}} at that step instead of re-deriving it`,
     );
+    // The hint joins the judge's issues only when the judge already found the proof unfaithful
+    // (the repair render then adds the citation). When the judge affirms — freshly, from cache,
+    // or by operator adjudication (flip `verdict`, keep `key`) — the hint is an advisory note:
+    // one behaviour on every run, and P4's isolated-lemma gate remains the hard guard on
+    // uncited lemmas.
+    const withHint = (verdict: string, issues: string[]): { verdict: string; issues: string[] } => {
+      if (detIssues.length === 0) return { verdict, issues };
+      if (verdict !== "faithful") return { verdict, issues: [...issues, ...detIssues] };
+      const note = `P2: ${p.obj_id} — ${detIssues.length} missing-citation hint(s) noted on a judge-faithful proof (advisory; uncited lemmas remain guarded by the P4 isolated-lemma gate)`;
+      if (!io.state.notes.includes(note)) io.state.notes.push(note);
+      return { verdict, issues };
+    };
     const hit = cache[p.obj_id];
     const cacheable = p.leanProofCacheSource.length > 0;
-    // The cache stores the CODEX verdict only — the deterministic issues are recomputed and
-    // merged at return time on hit and miss alike. Persisting the merged verdict would go stale:
-    // the citable set is not part of the cache key (it changes when a lemma is reclassified or
-    // removed), so a baked-in "unfaithful + cite X" would replay after X stops being a lemma.
-    if (cacheable && hit?.key === key) {
-      if (detIssues.length === 0) return { verdict: hit.verdict, issues: hit.issues };
-      // A cached FAITHFUL on an unchanged proof is an affirmation — either codex's or, via the
-      // documented adjudication channel (flip `verdict`, keep `key`), the orchestrator's. The
-      // deterministic hint must not override it: it did, which made adjudication impossible and
-      // produced an unescapable halt — forced unfaithful → refiner rewrites → the rewrite drops
-      // an anchored `% lean:` step → discard guard throws it away → "input proof stands
-      // unaudited" → repeat forever (observed live 2026-08-26, thm:radius-channel-converse-all-d,
-      // ~2.5h of cycles). The hint keeps its teeth where it does the work — fresh audits and
-      // non-faithful cached verdicts — and P4's isolated-lemma gate remains the hard guard on
-      // lemmas no proof cites. Suppression is always announced, never silent.
-      if (hit.verdict === "faithful") {
-        // Neutral wording: the cached faithful may be codex's own prior verdict, not
-        // necessarily an operator adjudication (audit, 2026-08-26). Dedup: reruns hit
-        // this branch every pass and duplicate notes drown the state log.
-        const note = `P2: ${p.obj_id} — ${detIssues.length} missing-citation hint(s) suppressed by its cached faithful verdict; uncited lemmas remain guarded by the P4 isolated-lemma gate`;
-        if (!io.state.notes.includes(note)) io.state.notes.push(note);
-        return { verdict: hit.verdict, issues: hit.issues };
-      }
-      return { verdict: "unfaithful", issues: [...(hit.issues ?? []), ...detIssues] };
+    // A row stamped under the pre-closure key is the same verdict on a superset of this context.
+    if (cacheable && hit && hit.key !== key && hit.key === legacyProofAuditCacheKey({
+      proofTex: p.proofTex, leanPointer: p.leanPointer, leanProofCacheSource: p.leanProofCacheSource,
+      notationTable: p.notationTable, auditPromptFp, targetStatement: targetStatementFor(p.obj_id), formalSource,
+    })) {
+      hit.key = key;
+      await saveCache();
     }
-    const v = (await ask(
+    // A row stamped under the prompt as it read before deterministic context was added.
+    if (cacheable && hit && hit.key !== key && LEGACY_PROOF_AUDIT_PROMPT_FPS.some((fp) => hit.key === proofAuditCacheKey({
+      proofTex: p.proofTex, leanPointer: p.leanKeyPointer, leanProofCacheSource: p.leanProofCacheSource,
+      notationTable: p.notationTable, auditPromptFp: fp, formalContext: proofAuditFormalContext(formalEnvs, p.obj_id, p.proofTex),
+    }))) {
+      hit.key = key;
+      await saveCache();
+    }
+    // A cached UNFAITHFUL verdict without issues (a pre-change cache) cannot drive a repair —
+    // treat it as a miss and re-judge.
+    if (cacheable && hit?.key === key && (hit.verdict === "faithful" || (hit.issues?.length ?? 0) > 0)) {
+      return withHint(hit.verdict, hit.issues ?? []);
+    }
+    // A reply with no verdict, or a non-faithful verdict with no issue to repair, is a mechanical
+    // failure: retried once in place, then thrown — never a writer round, never cached.
+    let v: { verdict?: string; issues?: string[] } | null = null;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      v = (await ask(
       deps.runCodex({
         prompt: await presentationPrompt("proof_audit", {
           obj_id: p.obj_id,
           proof_tex: p.proofTex,
-          lean_proof_source: `${p.leanPointer}\n\nLean excerpt:\n${p.leanProofSource || "(snippet unavailable — read the file via tools)"}`,
+          lean_proof_source: `${p.leanPointer.replace("Read the file with your tools; do not guess its contents.",
+            p.leanProofSource ? "The exact declaration is supplied below, and every run or library declaration it names is supplied under HELPER DECLARATIONS; no file read is needed for them." :
+              "Read the declaration from this source file.")}\n\nLean excerpt:\n${p.leanProofSource || "(snippet unavailable — read the file via tools)"}\n\nOnly a helper ABSENT from the supplied list is read from source: rg -n -g '*.lean' for its declaration head under ${join(repoRoot, leanSubdir)} (Causalean at ${join(repoRoot, '..', 'Causalean')}), then read that declaration only. Never dump directory inventories, .olean/.ilean files, or the .lake tree.`,
+          helper_declarations: p.helperDeclarations,
           notation_table: p.notationTable,
-          // Check 6 audits claims the proof makes ABOUT other objects ("recall from <env> that …"),
-          // which can only be judged by opening those environments.
-          paper_path: join(io.outDir, "formal_layer.tex"), // canonical env inventory NOW; paper.tex lags for newly promoted envs
+          // Check 6 audits claims the proof makes ABOUT other objects, which can only be judged by
+          // opening those environments.
+          paper_path: `${join(io.outDir, "formal_layer.json")}\n\n${proofAuditPaperContext(formalEnvs, p.obj_id, p.proofTex)}\n\nThe supplied excerpts are the current statements this proof proves and cites, taken from that JSON file (the "blocks" array; each block's "body" is the printed statement). When another statement is needed, select its block by exact obj_id from that file; do not read the whole file. The complete notation table is available at ${join(io.outDir, "outline.md")}.`,
         }),
         cwd: repoRoot,
         reasoningEffort: p.tier === "main" ? "high" : "medium",
         leanLsp: true,
       }),
-    )) as { verdict?: string; issues?: string[] } | null;
-    const out = { verdict: v?.verdict ?? "unfaithful", issues: v?.issues ?? ["unparseable auditor output"] };
-    // Cache only a RENDERED verdict. An unparseable reply still fails closed for THIS pass
-    // (unfaithful → refine loop), but persisting it would brand the proof unfaithful forever:
-    // every re-run replays the hit, burns a high-effort refine whose only audit_issues input
-    // is the string "unparseable auditor output", and halts P2 blaming the mathematics —
-    // recoverable only by hand-deleting the cache entry (audit finding, 2026-08-26).
-    if (cacheable && typeof v?.verdict === "string") {
-      cache[p.obj_id] = { key, ...out }; // codex verdict only — see the hit path above
+      )) as { verdict?: string; issues?: string[] } | null;
+      if (typeof v?.verdict === "string" && (v.verdict === "faithful" || (v.issues?.length ?? 0) > 0)) break;
+      v = null;
+    }
+    if (v === null) throw new Error(`P2 proof judge returned no usable verdict for ${p.obj_id} twice — see agent_calls.log and re-run P2`);
+    const out = { verdict: v.verdict!, issues: v.issues ?? [] };
+    if (cacheable) {
+      cache[p.obj_id] = { key, ...out };
       await saveCache();
     }
-    if (detIssues.length > 0) {
-      return { verdict: "unfaithful", issues: [...(out.issues ?? []), ...detIssues] };
-    }
-    return out;
+    return withHint(out.verdict, out.issues);
   };
 
-  const proofRefine: RefineRunner = async (c) => {
-    // Scope both context blocks to this proof: helpers it engages (plus an index of
-    // the rest), and only the notation rows appearing in the artifact the refiner
-    // actually sees — the same filter the statement-equivalence path already trusts.
-    const helperEnvs = citableHelperEnvsFor(c.obj_id, `${c.envBody}\n${c.driftDetail}`);
-    const refineArtifact = [c.envBody, c.driftDetail, refDefsByObjId.get(c.obj_id) ?? "",
-      targetStatementFor(c.obj_id), helperEnvs].join("\n");
-    const raw = (await deps.runCodex({
-        prompt: await presentationPrompt("refine_proof", {
-          obj_id: c.obj_id,
-          proof_tex: c.envBody,
-          lean_proof_source: c.leanPointer,
-          referenced_defs: refDefsByObjId.get(c.obj_id) || "(none indexed — read the Lean via your tools)",
-          audit_issues: c.driftDetail,
-          helper_lemma_envs: helperEnvs,
-          informal_derivation: informalDerivations.get(c.obj_id) ?? "(none recorded for this result)",
-          notation_table: notationForArtifact(notation, refineArtifact),
-        }),
-        cwd: repoRoot,
-        reasoningEffort: "high",
-        leanLsp: true,
-      })).stdout;
-    const v = parseLatexRefinement(raw, "refined_proof");
-    const refined = typeof v?.body === "string" ? fixOverEscapedTex(v.body) : c.envBody;
-    return {
-      refinedBody: refined,
-      changed: v?.changed === true && refined.trim().length > 0 && refined.trim() !== c.envBody.trim(),
-      note: v?.note,
-    };
-  };
-
-  const refDefsByObjId = new Map<string, string>();
-  type Target = { obj_id: string; proofTex: string; leanPointer: string; leanProofSource: string; leanProofCacheSource: string; notationTable: string; isMain: boolean };
+  type Target = { obj_id: string; proofTex: string; leanPointer: string; leanKeyPointer: string; leanProofSource: string; leanProofCacheSource: string; isMain: boolean; helperDeclarations: string };
   const targets: Target[] = [];
+  const runIndex = await buildModuleDeclIndex(repoRoot, leanSubdir);
+  const readRunFile = leanSourceReader(repoRoot, leanSubdir);
+  const libraryMemo = new Map<string, string | null>();
   for (const pt of proofTargets) {
     const proofTex = await readFile(join(io.outDir, "proofs", `${pt.obj_id}.tex`), "utf8").catch(() => null);
     if (proofTex === null) continue; // statement-only / no rendered proof
     const resolved = await resolveLeanDeclaration(repoRoot, leanSubdir, { ...pt.lean, line: 0 });
     const resolvedPath = await resolvedLeanAbsolutePath(repoRoot, resolved.file);
     const leanPointer = `file: ${resolvedPath}\ndeclaration: ${resolved.decl}\nRead the file with your tools; do not guess its contents.`;
-    // Best-effort def unfold for the refiner: extract the decl snippet, then unfold its referenced defs.
+    // Keyed on the workspace-relative declaration, so a checkout path is not a cache input.
+    const leanKeyPointer = `${resolved.file}:${resolved.decl}`;
     let leanProofSource = "";
-    let leanProofCacheSource = "";
     try {
-      const exactDecl = extractFullDeclSource(await readFile(resolvedPath, "utf8"), resolved.decl, 0);
-      leanProofSource = exactDecl;
-      leanProofCacheSource = exactDecl;
-      if (exactDecl) refDefsByObjId.set(pt.obj_id, await unfoldReferencedDefs(exactDecl));
+      leanProofSource = extractFullDeclSource(await readFile(resolvedPath, "utf8"), resolved.decl, resolved.line);
     } catch {
-      /* refiner still has lean-lsp to self-fetch */
+      /* the judge still has lean-lsp to self-fetch */
     }
     targets.push({
       obj_id: pt.obj_id,
-      proofTex: proofTex.trim(),
+      proofTex: canonicalizeProofTitle(pt.obj_id, proofTex.trim()),
       leanPointer,
+      leanKeyPointer,
       leanProofSource,
-      leanProofCacheSource,
-      // Only the notation rows the auditor can encounter in THIS proof's material —
-      // the full table averaged 32-42% of every proof_audit input (2026-08-20 token
-      // audit); the filter is the one already trusted on the equivalence path. The
-      // filtered table enters proofAuditCacheKey via notationTable, so this change
-      // re-keys verdicts once per bundle (a deliberate one-time re-audit sweep).
-      notationTable: notationForArtifact(notation,
-        `${proofTex}\n${leanProofSource}\n${targetStatementFor(pt.obj_id)}`),
+      leanProofCacheSource: leanProofSource,
       isMain: pt.isMain,
+      helperDeclarations: leanProofSource
+        ? await helperDeclarationsFor({ proofSource: leanProofSource, targetDecl: resolved.decl, runIndex, readRunFile, repoRoot, libraryMemo })
+        : "(snippet unavailable — read helpers from source)",
     });
   }
 
-  // Refine the non-(cached-faithful) proofs in PARALLEL (refineStatement is pure — no writes).
-  const refinedResults = await mapLimit(targets, AUDIT_CONCURRENCY, async (pt) => {
-    const refined = await refineStatement({
-      check: { obj_id: pt.obj_id, envBody: pt.proofTex, leanStatement: pt.leanPointer, leanPointer: pt.leanPointer, isMainResult: pt.isMain },
-      notation: pt.notationTable,
-      maxRounds: MAX_ROUNDS,
-      reaudit: async (sc) => {
-        const r = await proofAudit({
-          obj_id: sc.obj_id,
-          proofTex: sc.envBody,
-          leanPointer: sc.leanPointer,
-          leanProofSource: pt.leanProofSource,
-          leanProofCacheSource: pt.leanProofCacheSource,
-          notationTable: pt.notationTable,
-          tier: sc.isMainResult ? "main" : "auxiliary",
-        });
-        return { verdict: r.verdict, detail: (r.issues ?? []).join("; ") || "unfaithful" };
-      },
-      refine: proofRefine,
-    });
-    return { pt, refined };
-  });
-
-  // Persist-best SERIALLY (proofs/<id>.tex is the source of truth; P2 assembly re-reads the map below).
   const refined = new Map<string, string>();
-  const problems: LintProblem[] = [];
-  for (const { pt, refined: r } of refinedResults) {
-    // Canonical title on BOTH the in-memory map and disk: stamping the verdict cache
-    // against a body that differs from what the next run reads from disk costs a
-    // redundant re-audit per title-repaired proof. Compare CANONICALLY so a faithful
-    // proof whose only difference is a legacy title is not rewritten or drift-reported
-    // (P2's entry points heal titles on read).
-    let newBody = canonicalizeProofTitle(pt.obj_id, r.body.trim());
-    // A refinement may reword an anchored step; it may not delete one. When it does, keep the
-    // input — and treat the retained proof as UNFAITHFUL regardless of the discarded body's
-    // verdict. The verdict below describes the text that was thrown away; inheriting it would
-    // let an unaudited proof reach assembly, which is worse than the deletion being guarded.
-    let faithful = r.faithful;
-    const lost = droppedLeanRoutes(pt.proofTex, newBody);
-    if (lost.length > 0) {
-      newBody = canonicalizeProofTitle(pt.obj_id, pt.proofTex);
-      faithful = false;
-      io.state.notes.push(
-        `P2: refinement of ${pt.obj_id} discarded — it dropped Lean-anchored step(s) (${lost.join("; ")}); ` +
-          `kept the input proof, which halts for adjudication rather than assembling an unaudited body.`,
-      );
-    }
-    refined.set(pt.obj_id, newBody);
-    if (newBody !== canonicalizeProofTitle(pt.obj_id, pt.proofTex)) {
-      await writeFile(join(io.outDir, "proofs", `${pt.obj_id}.tex`), newBody + "\n", "utf8");
-      await appendDriftReport(io.outDir, `${pt.obj_id} (proof)`, pt.proofTex, newBody, r.rounds, r.note);
-    }
-    await appendFile(
-      reviewsPath,
-      JSON.stringify({
-        kind: "proof-refine",
-        obj_id: pt.obj_id,
-        rounds: r.rounds,
-        faithful,
-        ...(lost.length > 0 ? { discarded: true, discarded_verdict: r.faithful, dropped_routes: lost } : {}),
-        note: r.note,
-      }) + "\n",
-      "utf8",
-    );
-    if (!faithful) {
-      problems.push({
-        gate: "proof-audit",
-        detail: `${pt.obj_id}: ${lost.length > 0
-          ? `refinement discarded for dropping Lean-anchored step(s) (${lost.join("; ")}); the input proof stands unaudited`
-          : r.detail ?? "unfaithful"}`,
+  const problems: ProofAuditProblem[] = [];
+  // Each worker owns its proof file. Complete in-flight persistence before propagating errors.
+  try {
+    await mapLimit(targets, AUDIT_CONCURRENCY, async (pt) => {
+      // Only the notation rows the judge can encounter in THIS candidate's material (the full table
+      // averaged 32-42% of every proof_audit input). Computed per candidate: the filtered table is in
+      // the verdict cache key, so a repaired proof must be keyed on ITS rows, or every re-run
+      // re-judges it (and a stochastic flip re-repairs it).
+      const judgeInput = (proofTex: string): JudgeInput => ({
+        obj_id: pt.obj_id, proofTex, leanPointer: pt.leanPointer, leanKeyPointer: pt.leanKeyPointer, leanProofSource: pt.leanProofSource,
+        leanProofCacheSource: pt.leanProofCacheSource, tier: pt.isMain ? "main" as const : "auxiliary" as const, helperDeclarations: pt.helperDeclarations,
+        notationTable: notationForArtifact(notation, `${proofTex}\n${pt.leanProofSource}\n${targetStatementFor(pt.obj_id)}`),
       });
-      io.state.notes.push(
-        `P2: proof ${pt.obj_id} refined toward Lean (${r.rounds} round(s)); STILL unfaithful — best attempt persisted, will halt for adjudication`,
+      const judge = (proofTex: string) => proofAudit(judgeInput(proofTex));
+      const proofPath = join(io.outDir, "proofs", `${pt.obj_id}.tex`);
+      // Cross-reference targets are checked deterministically before any judge call: a dropped
+      // kind prefix is repaired in place (the assembly repair, applied earlier); a target with no
+      // environment is a defect the writer repairs once, without paying the judge to find it.
+      const resolveRefs = (proofTex: string): { proof: string; dangling: string[] } => {
+        const { tex, problems } = repairObjRefs(proofTex, new Set([...layerIds, pt.obj_id])); // the title cites the target itself
+        return {
+          proof: tex === proofTex ? proofTex : canonicalizeProofTitle(pt.obj_id, tex),
+          dangling: problems.map((q) => `[rendering] ${q.detail}`),
+        };
+      };
+      let { proof, dangling } = resolveRefs(pt.proofTex);
+      if (proof !== pt.proofTex) await writeTextAtomic(proofPath, proof + "\n");
+      const danglingVerdict = (issues: string[]) => ({ verdict: "unfaithful", issues });
+      let verdict: { verdict: string; issues: string[] } = dangling.length > 0 ? danglingVerdict(dangling) : await judge(proof);
+      let rounds = 0;
+      // Bounded by MAX_ROUNDS (one more when the first defect was a dangling reference found
+      // without a judge call, so a proof keeps its judged repair budget): retain earlier findings
+      // so a later repair cannot forget a correction merely because the current judge reports a
+      // different issue.
+      const maxRounds = MAX_ROUNDS + (dangling.length > 0 ? 1 : 0);
+      const previousIssues = new Set<string>();
+      // A terminal failed attempt stays stopped on unchanged re-entry. The caller supplies
+      // every renderer input; changed proof, diagnosis or context releases this receipt.
+      const stoppedKey = () => {
+        const renderContext = repairContextKeys.get(pt.obj_id);
+        return renderContext === undefined || !pt.leanProofCacheSource ? undefined : hashEnvBody(JSON.stringify([
+          renderContext, repairPromptFp, verdict.issues, auditKey(judgeInput(proof)),
+        ]));
+      };
+      while (verdict.verdict !== "faithful" && rounds < maxRounds) {
+        const key = stoppedKey();
+        if (key !== undefined && cache[pt.obj_id]?.repairStoppedKey === key) break;
+        rounds++;
+        const next = await render(pt.obj_id, proof, verdict.issues,
+          [...previousIssues].filter(issue => !verdict.issues.includes(issue)));
+        for (const issue of verdict.issues) previousIssues.add(issue);
+        const canon = next === null ? null : resolveRefs(canonicalizeProofTitle(pt.obj_id, next.trim()));
+        if (canon === null || canon.proof === proof) break; // the renderer could not do better — halt with what stands
+        proof = canon.proof;
+        // Persist the candidate before judging: a failed judge or sibling cannot erase paid work.
+        await writeTextAtomic(proofPath, proof + "\n");
+        verdict = canon.dangling.length > 0 ? danglingVerdict(canon.dangling) : await judge(proof);
+      }
+      if (verdict.verdict !== "faithful") {
+        const key = stoppedKey();
+        if (key !== undefined) {
+          // A proof halted before any judge call (unresolvable references) has no verdict row yet;
+          // the receipt still needs a home so an unchanged re-entry does not re-pay the writer.
+          cache[pt.obj_id] = { ...(cache[pt.obj_id] ?? { key: "", verdict: verdict.verdict, issues: verdict.issues }), repairStoppedKey: key };
+          await saveCache();
+        }
+      }
+      refined.set(pt.obj_id, proof);
+      const faithful = verdict.verdict === "faithful";
+      if (proof !== pt.proofTex) {
+        await appendDriftReport(io.outDir, `${pt.obj_id} (proof)`, pt.proofTex, proof, rounds, faithful);
+      }
+      await appendFile(
+        reviewsPath,
+        JSON.stringify({ kind: "proof-refine", obj_id: pt.obj_id, rounds, faithful, issues: faithful ? [] : verdict.issues }) + "\n",
+        "utf8",
       );
-    }
+      if (!faithful) {
+        const promotable = verdict.issues.some(isMissingStepIssue);
+        problems.push({
+          gate: "proof-audit",
+          objId: pt.obj_id,
+          detail: `${pt.obj_id}: ${verdict.issues.join("; ") || "unfaithful"}`,
+          issues: verdict.issues,
+          promotable,
+        });
+        io.state.notes.push(
+          `P2: proof ${pt.obj_id} re-rendered against the judge's issues (${rounds} round(s)); STILL ${verdict.verdict} — ` +
+            (promotable ? "a missing derivation remains (promotion-eligible)" : "rendering defects remain (adjudicate or delete proofs/<id>.tex to re-render)"),
+        );
+      }
+    });
+  } finally {
+    await saveCache();
   }
-  await saveCache();
   return { refined, problems };
 }

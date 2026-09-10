@@ -59,7 +59,16 @@ open BackdoorEstimationSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- One-shot DML / AIPW estimator of the back-door ATE
+/-- For [a potential-outcome system with a measurable covariate space](hyp:P), [a
+back-door estimation system](hyp:S), [an independent and identically distributed sample of
+observed covariate, treatment, and outcome triples from its observable data law](hyp:sample),
+[a one-shot split of that sample](hyp:split), [an outcome-regression learner indexed by sample
+size and population realization](hyp:μ_hat), [a propensity-score learner indexed in the same
+way](hyp:e_hat), and [a nonnegative integer sample-size index](hyp:n), the [one-shot DML/AIPW
+estimator of the back-door average treatment effect](goal) assigns to each population realization
+the average AIPW moment over that index's estimation fold.
+
+One-shot DML / AIPW estimator of the back-door ATE
 (`def:est-dml-ate`).
 
 Inputs:

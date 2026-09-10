@@ -1,0 +1,3665 @@
+{
+  "qid": "exp_bandit_random_qv_studentization_frontier",
+  "specialization": "v1",
+  "nodes": [
+    {
+      "id": "S1",
+      "obj_id": "S-1",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "An adaptive multi-arm causal experiment at horizon \\(T\\): a probability space carrying a filtration \\(\\mathcal F_0\\subseteq\\cdots\\subseteq\\mathcal F_T\\); independent and identically distributed full-data draws \\(W_t=(X_t,(Y_t(a))_{a\\in\\mathcal A})\\) on a measurable context space \\(\\mathcal X\\) with finite action set \\(\\mathcal A=\\{1,\\ldots,K\\}\\); a measurable policy map \\(\\Pi:\\mathcal A\\times\\mathcal X\\times\\mathsf H\\to[0,1]\\) whose arm probabilities sum to one, driven by a predictable policy state \\(\\eta_{t}\\in\\mathsf H\\subset\\mathbb R^q\\); randomized actions \\(A_t\\) drawn from \\(\\pi_t(\\cdot\\mid X_t,\\mathcal F_{t-1})=\\Pi(\\cdot\\mid X_t,\\eta_{t-1})\\) conditionally independently of \\((Y_t(a))_{a\\in\\mathcal A}\\); observed outcomes \\(Y_t=Y_t(A_t)\\); a stacked causal score \\(g(a,x,y;\\theta)\\in\\mathbb R^d\\) on a compact \\(\\Theta\\subset\\mathbb R^d\\), with population moment \\(M_P\\), distinguished root \\(\\theta^*\\), Jacobian \\(H\\), adaptive IPW scores \\(\\xi_t\\), cumulative score \\(S_T\\), predictable and realized quadratic variations \\(\\langle S\\rangle_T\\) and \\([S]_T\\), the state-indexed score covariance \\(\\Gamma_P\\), and the standard normal law \\(\\Phi\\) used by every Wald statement. — New `AdaptiveCausalExperiment` structure (planned in `Basic.lean`): filtration + i.i.d. full data + predictable `Fin K`-valued policy + potential outcomes + score. Search trace: `lean_local_search 'Martingale'` -> only `MeasureTheory.Martingale.*` in Mathlib; `grep -n 'artingale' ../doc/API.md` -> 0 hits; `grep -n 'adaptive|bandit' ../doc/API.md` -> only variance-adaptive concentration, no adaptive-design world; `Glob Causalean/Experimentation/**/*.lean` + read of `Causalean/Experimentation/Sequential/AdaptiveDesign.lean` -> the only adaptive world is `Causalean.Experimentation.Sequential.AdaptiveExperiment`, which carries a single binary propensity process with `HasOverlap (delta <= p <= 1 - delta)` and NO contexts, potential outcomes, policy state, or K-arm map. Partial fit only, so bypass-justified: the K-arm policy-state world is a strict generalization; the binary structure is reused in S2 as a ROW-INDEXED FAMILY (`row : ℕ → AdaptiveExperiment Omega m0`, one library experiment per triangular-array row) and the overlap idiom is copied -- copied, not called: per the round-6 fix the S2 class field is the local ALMOST-EVERYWHERE predicate `RowOverlapAE`, since the library's `HasOverlap` bounds the propensity at every `omega` whereas the source condition is almost sure. Causalean's `Experimentation/DesignBased/` cluster is finite-population `FiniteDesign` (finite Omega, `E X = sum p z * X z`) and cannot express a filtration, `condExp`, or a superpopulation martingale; `htTotal/htMean/htEffect/E_htEffect/var_htMean_le/Exposure.*/PotentialOutcome.*/chebyshev/EdgeVarianceBound.*/Var_prod_linear_comb/E_compound_tower/Var_compound_eq_tower/IndepSummandsCLT.*/DepGraphCLT.*/LocalDependenceCLT.*` from the supplied reuse list are all `FiniteDesign`-typed and therefore bypass-justified at the wrong abstraction. Reused verbatim from that list: `GaussianCDF.*` in its measure-theoretic form `Causalean.Mathlib.stdNormalCDF` / `Causalean.Mathlib.probit` for \\(\\Phi\\) and \\(z_{1-\\alpha/2}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Mathlib.Probability.Process.Predictable",
+          "Mathlib.Probability.Martingale.Basic",
+          "Mathlib.Probability.Martingale.Centering",
+          "Mathlib.Probability.CondVar",
+          "Mathlib.Probability.Notation",
+          "Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic",
+          "Mathlib.Analysis.InnerProductSpace.PiL2",
+          "Mathlib.LinearAlgebra.Matrix.PosDef",
+          "Causalean.Experimentation.Sequential.AdaptiveDesign",
+          "Causalean.Mathlib.Probability.StdNormalCDF"
+        ]
+      }
+    },
+    {
+      "id": "S2",
+      "obj_id": "S-2",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The binary-treatment triangular array of AIPW adaptive experiments: for each row \\(n\\), independent and identically distributed full-data triples \\((X_{n,t},Y_{n,t}(0),Y_{n,t}(1))\\) unaffected by the policy, a pre-treatment \\(\\sigma\\)-field \\(\\mathcal B_{n,t}\\) containing the past and the current covariate, a logged predictable propensity \\(\\pi_{n,t}\\) with \\(\\mathbb P_n(A_{n,t}=1\\mid\\mathcal B_{n,t})=\\pi_{n,t}\\) and, almost surely at every scored index \\(t\\in\\mathcal T_n\\), \\(\\epsilon\\le\\pi_{n,t}\\le1-\\epsilon\\), consistency \\(Y_{n,t}=A_{n,t}Y_{n,t}(1)+(1-A_{n,t})Y_{n,t}(0)\\), history-measurable regressions \\(\\widehat m_{n,t-1,a}\\), a deterministic scored set \\(\\mathcal T_n\\) of size \\(N_n\\), the AIPW pseudo-outcome \\(\\widehat\\phi_{n,t}\\) with target \\(\\theta_{0,n}=E\\{Y_{n,t}(1)-Y_{n,t}(0)\\}\\), and the scored-order filtration \\(\\mathcal G_{n,s}\\). Only fourth-moment envelopes on outcomes and fitted regressions are imposed; no almost-sure bound on the centered scores. — REVISED (round 4): the carrier is now at the RIGHT ARITY for the triangular array. The round-3 plan gave `SacoArrayWorld` a single field `base : AdaptiveExperiment Omega m0`, which is an arity error the reviewer correctly flagged: the library decl carries exactly ONE filtration `ℱ : Filtration ℕ m0` and ONE propensity process `propensity : ℕ → Ω → ℝ` (signature re-read at `Causalean/Experimentation/Sequential/AdaptiveDesign.lean:48-61`), so a single `base` cannot host the row-indexed family `pi_{n,t}` nor the row filtrations `F_{n,·}`. FIX: the design layer is a ROW-INDEXED FAMILY of library experiments, `structure SacoArrayWorld (Omega : Type*) (m0 : MeasurableSpace Omega) where row : ℕ → Causalean.Experimentation.Sequential.AdaptiveExperiment Omega m0` (emitted in the run's Lean target subdirectory, `.../Research/Saco/World.lean`; NOT the library decl). For each row `n`: `(W.row n).ℱ` IS the row history filtration `F_{n,·}` (so `(W.row n).ℱ t` is `F_{n,t}` and the scored-order filtration `G_{n,s}` is defined from it by `G_{n,s} = (W.row n).ℱ (t_{n,s+1} - 1)` exactly as the core prescribes); `(W.row n).propensity t` IS the logged propensity `pi_{n,t}`; `(W.row n).propensity_predictable` IS Assumption 3.2 measurability for that row; OVERLAP (REVISED round 7 -- FLAG-overlap-reuse + FLAG-overlap-domain; the round-6 plan text was correct in intent but was NOT realized in the emitted artifact, and its domain was still too wide). Two defects are fixed together. (a) MODALITY. `Causalean.Experimentation.Sequential.AdaptiveExperiment.HasOverlap` unfolds to `0 < delta /\\ forall t omega, delta <= E.propensity t omega /\\ E.propensity t omega <= 1 - delta` (definition re-read verbatim at `Causalean/Experimentation/Sequential/AdaptiveDesign.lean:71-72`): the bound is quantified over EVERY `omega`, whereas core Saco Assumption 3.8 requires `epsilon <= pi_{n,t} <= 1 - epsilon` only ALMOST SURELY. The current artifact nevertheless still calls it verbatim as the class's overlap field (`Saco/Class.lean:30-31`, `overlap : 0 < epsilon /\\ epsilon < 1/2 /\\ forall n, AdaptiveExperiment.HasOverlap (W.row n) epsilon`) and `Saco/World.lean` declares NO `RowOverlapAE` at all, so the a.e. replacement planned in round 6 is not yet on disk; F2 MUST emit it. (b) DOMAIN. Even the round-6 predicate quantified `forall n t`, i.e. over EVERY occasion of every row, while the core imposes the two-sided bound only at SCORED indices (`epsilon <= pi_{n,t} <= 1 - epsilon` almost surely for every `t in mathcal T_n`) -- quantifying over all `t` silently shrinks the source class in the other direction and is corrected here. The faithful predicate, emitted in `Saco/World.lean` and using the world's own row-indexed law field `law : ℕ → Measure Omega`, is therefore `def RowOverlapAE (W : SacoArrayWorld Omega 𝒳) (eps : ℝ) : Prop := 0 < eps ∧ eps < 1/2 ∧ ∀ n, ∀ t ∈ W.scoredSet n, ∀ᵐ omega ∂W.law n, eps ≤ (W.row n).propensity t omega ∧ (W.row n).propensity t omega ≤ 1 - eps`, with the SAME `eps` for every row (the class-level uniformity over the array is the `forall n` quantifier, exactly as before -- only the modality and the time domain change; the constraint `eps < 1/2` is folded in, since the round-6 class field carried it as a separate conjunct). Restricting to `W.scoredSet n` costs nothing downstream: every use of `1/pi_{n,t}` in the array model goes through `W.increment n s`, which evaluates `W.phiHat n (W.scoredTime n s)`, and the world's existing field `scoredTime_mem : forall n s, s < (W.scoredSet n).card -> W.scoredTime n s ∈ W.scoredSet n` (`Saco/World.lean:32`) is exactly the bridge F3 uses to instantiate the restricted bound at each scored increment. This a.e. shape is the library's own idiom for a source-faithful overlap condition: `Causalean.Estimation.ATE.Score.AIPWMoment.H_ε_aeL2` (AIPWMoment.lean:302-306) is the source-shaped a.e./L2 nuisance set `{eta | (∀ᵐ x ∂P_X, eps ≤ eta.e_fn x ∧ eta.e_fn x ≤ 1 - eps) ∧ ...}` and is explicitly contrasted in that file's own docstring with the legacy POINTWISE overlap-bounded realization set `H_ε` -- the same pointwise-vs-a.e. distinction, resolved the same way. The library `HasOverlap` is RETAINED (still in `reuse_ingredients`) but only on the WITNESS side, through a one-way bridge lemma proved locally in `Saco/World.lean`, `lemma rowOverlapAE_of_hasOverlap {W : SacoArrayWorld Omega 𝒳} {eps : ℝ} (heps : eps < 1/2) (h : forall n, AdaptiveExperiment.HasOverlap (W.row n) eps) : RowOverlapAE W eps` -- it discards BOTH strengthenings at once, weakening the pointwise bound to an a.e. one by `Filter.Eventually.of_forall` and restricting the `forall t` to `t ∈ W.scoredSet n` by simply dropping the membership hypothesis. The converse is NOT available (a.e. does not give pointwise, and scored indices do not give all indices) and is never used. `propensity_pos_of_overlap` is likewise scoped to that pointwise witness path; on the class side the finite inverse weights come a.e. from the a.e. lower bound, which is all the AIPW score algebra (an integral/conditional-expectation computation) ever needs. The remaining reuse is unchanged and modality-free: `(W.row n).ℱ`, `(W.row n).propensity`, `(W.row n).propensity_predictable`. No pairing/flattening of `(n,t)` into a single timeline is used or needed, since the row index lives on the family rather than inside a base process. The parent decl hosts NONE of the following, which are therefore ADDITIONAL local fields of `SacoArrayWorld`, each stated against the row-specific design layer `W.row n`: (1) row-indexed full data / potential outcomes `X : ℕ → ℕ → Ω → 𝒳`, `Y0 Y1 : ℕ → ℕ → Ω → ℝ` (row `n`, occasion `t`) with the i.i.d.-within-row / policy-unaffected field (Assumptions 3.5-3.6); (2) the row-indexed assignment process `A : ℕ → ℕ → Ω → ℝ` valued in `{0,1}`; (3) the consistency link `Y = A * Y1 + (1 - A) * Y0` a.s. (Assumption 3.5); (4) conditional randomization given the pre-treatment sigma-field, `P(A n t = 1 | B_{n,t}) = (W.row n).propensity t` with `B_{n,t}` a sub-sigma-field containing `(W.row n).ℱ (t-1)` and the current covariate, plus conditional independence of `A n t` from `(Y0 n t, Y1 n t)` given `B_{n,t}` (Assumptions 3.2, 3.7) -- these are the fields the correction requires to be stated against the ROW design layer, and they are; (5) the nuisance regressions `mhat : ℕ → ℕ → Fin 2 → 𝒳 → Ω → ℝ` with `(W.row n).ℱ (t-1)`-measurability (Assumption 4.5); (6) the deterministic scored set `T : ℕ → Finset ℕ` fixed before data collection, with `N n = (T n).card` and the induced scored-order filtration `G_{n,s}` built from `(W.row n).ℱ` (Assumption 4.8); (7) the AIPW / QV model: the pseudo-outcome `phihat_{n,t}`, target `theta_{0,n}`, centered score `X_{n,s}`, `S_n`, `Q_n`, `thetahat_n`, `Vhat_n`, and the predictable `V_n^2`, `A_{n,+}^2`. Bypass rationale (recorded in the file plan for Stage 2.5): the parent decl is at the SINGLE-ROW SCALAR-PROPENSITY abstraction level and hosts no row index, no potential outcomes, no covariates and no scored set, so the local structure EXTENDS it by carrying a family of it, rather than replacing it. Search trace (re-run for this revision, S2 scope only): `Grep 'structure AdaptiveExperiment' /soalnas/.../AutoID` -> the single hit `Causalean/Experimentation/Sequential/AdaptiveDesign.lean` (note: `Glob '../Causalean/**'` from the CausalSmith cwd is the WRONG BASE and returned nothing -- absence NOT concluded from it); read of that file lines 30-85 re-confirms the five fields (one filtration, one `ℕ → Ω → ℝ` propensity -- hence the arity fix above) plus `HasOverlap`/`propensity_pos_of_overlap`, and confirms no row index, potential-outcome, covariate, nuisance or scored-set field anywhere in the module; `Grep 'triangular array|row-indexed|Array.*Experiment' Causalean/Experimentation/` -> no row-indexed design family anywhere, so the family wrapper is genuinely local. Round-7 overlap trace (S2 scope only, re-run for this revision): `Grep 'HasOverlap|propensity_pos_of_overlap' Causalean/Experimentation/Sequential/AdaptiveDesign.lean -C 4` -> the sole definition, `0 < δ ∧ ∀ t ω, δ ≤ E.propensity t ω ∧ E.propensity t ω ≤ 1 - δ` (line 71), i.e. genuinely pointwise AND quantified over every occasion `t`, with `propensity_pos_of_overlap` (line 76) extracting pointwise strict positivity; `Grep '∀ᵐ.*propensity|propensity.*∀ᵐ|∀ t ∈ .*propensity' Causalean/` -> ZERO hits, so the library has neither an a.e. variant of `HasOverlap` nor any index-set-restricted overlap predicate on a propensity process, and no pointwise-to-a.e. bridge; `Grep 'H_ε_aeL2|H_ε\\b' Causalean/Estimation/ATE/Score/AIPWMoment.lean` -> the a.e.-overlap IDIOM `H_ε_aeL2` (line 302) with its module docstring explicitly labelling `H_ε` (line 292) the `legacy pointwise overlap-bounded realization set` (lines 14-15, 31-32), which is exactly the pointwise-vs-a.e. distinction at issue and which the local predicate copies; Mathlib-side check `lean_leansearch 'almost everywhere two-sided bound on a propensity / conditional probability'` -> only the generic `∀ᵐ`/`Filter.Eventually` primitives, no packaged overlap predicate. Absence of both an a.e. and a scored-index-restricted adaptive-overlap decl is therefore confirmed, so `RowOverlapAE` is written locally and the library predicate is kept only for the pointwise witness. Artifact-state check for this revision: `Read Saco/World.lean` (78 lines) -> fields `row/law/law_univ/context/potential0/potential1/action/outcome/nuisance/scoredSet/scoredTime/scoredTime_mem` plus `N/theta0/phiHat/increment/scoreSum/realizedQV/predictableQV/thetaHat/sampleVariance`, and NO `RowOverlapAE`; `Read Saco/Class.lean` (64 lines) -> `SacoSourceConditions.overlap` at lines 30-31 still calls `AdaptiveExperiment.HasOverlap` verbatim. Both are the defects this revision instructs F2 to repair. The listed symbols are DELIBERATELY re-bound here: they are the same core symbols re-instantiated in the binary array (S1 binds them for the multi-arm world); the S-block coverage requirement is symbol coverage, not a partition.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Causalean.Experimentation.Sequential.AdaptiveDesign",
+          "Causalean.Estimation.ATE.Score.AIPWMoment",
+          "Mathlib.Probability.Process.Predictable",
+          "Mathlib.Probability.Martingale.Basic",
+          "Mathlib.Probability.CondVar",
+          "Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic",
+          "Mathlib.MeasureTheory.Function.LpSpace.Basic",
+          "Causalean.Mathlib.Probability.StdNormalCDF"
+        ]
+      }
+    },
+    {
+      "id": "S3",
+      "obj_id": "S-3",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The bounded-noise clipped-LinUCB (Guo--Xu no-intercept) recursion: two arms; contexts \\(X_t\\) drawn independently and uniformly from \\(\\{-4,1\\}\\); rewards \\(Y_t(1)=1/2+\\sigma_1R_{t,1}\\) and \\(Y_t(2)=1/12+\\sigma_2R_{t,2}\\) with independent centered Rademacher innovations \\(R_{t,a}\\) and arbitrary fixed \\(\\sigma_1,\\sigma_2>0\\); unit-precision ridge states \\(\\Phi^{\\mathrm{GX}}_{t,a}=\\Phi^{\\mathrm{GX}}_{t-1,a}+\\mathbf 1\\{A_t=a\\}X_t^2\\) and \\(b^{\\mathrm{GX}}_{t,a}=b^{\\mathrm{GX}}_{t-1,a}+\\mathbf 1\\{A_t=a\\}X_tY_t\\), slopes \\(\\widehat\\beta^{\\mathrm{GX}}_{t,a}=b^{\\mathrm{GX}}_{t,a}/\\Phi^{\\mathrm{GX}}_{t,a}\\), inverse Gram \\(q^{\\mathrm{GX}}_{t,a}=1/\\Phi^{\\mathrm{GX}}_{t,a}\\), and the augmented time-homogeneous Markov state \\(Z^{\\mathrm{GX}}_t\\) on the compact set \\(\\mathsf E_{\\mathrm{GX}}=[-M_{\\mathrm{GX}},M_{\\mathrm{GX}}]^2\\times[0,1]^2\\); at each occasion the index \\(\\widehat\\beta^{\\mathrm{GX}}_{t-1,a}X_t+|X_t|\\sqrt{q^{\\mathrm{GX}}_{t-1,a}}\\) is maximized with ties broken to arm \\(1\\) and the maximizer is assigned with probability \\(0.99\\); the chain is started at \\(Z^{\\mathrm{GX}}_0=\\iota_{\\mathrm{GX}}(\\eta_0)\\) for \\(\\eta_0\\in\\mathsf K_{\\mathrm{GX}}=[-1,1]^2\\), inducing the law \\(P_{\\eta_0}\\). The ambient limit object is the normalized state \\(\\Psi_t=(D_{t,1}/t,D_{t,2}/t,N_{t,1}/t,N_{t,2}/t)\\) together with the closed convexified differential inclusion \\(\\dot\\psi\\in F(\\psi)\\) it perturbs. — The chain law \\(P_{\\eta_0}\\) is built by Ionescu--Tulcea composition of the one-step kernel (`Mathlib.Probability.Kernel.IonescuTulcea.Traj`, file confirmed at `.lake/packages/mathlib/Mathlib/Probability/Kernel/IonescuTulcea/Traj.lean`). Search trace: `lean_leansearch 'stochastic approximation differential inclusion internally chain transitive'`-class concepts do not exist locally -- `grep -rn 'DifferentialInclusion|chain transitive|stochastic approximation' Causalean/` -> 0 files; `grep -n '^## ' ../doc/API.md` shows no dynamical-systems section; Mathlib has no set-valued-map / Filippov / asymptotic-pseudotrajectory layer (`lean_leansearch 'set-valued map closed graph solution differential inclusion'` returns nothing usable). The two Benaim--Hofbauer--Sorin ingredients are therefore taken as cited substrate gates (`lem:bhs-perturbed-limit-set`, `lem:bhs-lyapunov-ict`), and only the recursion-specific algebra is local. Reserved future-inference symbols \\(\\Theta_{\\mathrm{GX}},g_{\\mathrm{GX}},\\theta^*_{\\mathrm{GX}},c_{\\mathrm{GX}},\\tau_{\\mathrm{GX}}\\) are bound here as declared placeholders: they are notation the note explicitly reserves for a future result and carry no formal obligation, so they are realized as documented `abbrev`-level notation comments in `Helpers/GuoXuRecursion.lean`, never as asserted objects.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Mathlib.Probability.Kernel.IonescuTulcea.Traj",
+          "Mathlib.Probability.Kernel.Composition.CompProd",
+          "Mathlib.Probability.Martingale.Basic",
+          "Mathlib.Analysis.InnerProductSpace.PiL2"
+        ]
+      }
+    },
+    {
+      "id": "ass:iid-full-data",
+      "obj_id": "A-1",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The vectors \\(W_1,\\ldots,W_T\\) are independent and identically distributed under \\(P\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.IIDFullData",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "00918afe00cf24ef4ced4ead3e2e859cce3066bf",
+        "note": "The decision-time-indexed mutual independence together with identical distribution to W₁ is equivalent to W₁,…,W_T being independent and identically distributed under P."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Sequential exogenous arrivals",
+        "cite": "GuoXu2026MisspecifiedBandits",
+        "citation": "Yongyi Guo and Ziping Xu. Statistical Inference for Misspecified Contextual Bandits. arXiv:2606.22639v1, 21 June 2026."
+      }
+    },
+    {
+      "id": "ass:sequential-randomization",
+      "obj_id": "A-2",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Conditional on \\(X_t\\) and \\(\\mathcal F_{t-1}\\), the action \\(A_t\\) is drawn from the logged distribution \\(\\pi_t(\\cdot\\mid X_t,\\mathcal F_{t-1})\\) independently of \\((Y_t(a))_{a\\in\\mathcal A}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.SequentialRandomization",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "52e25ad492e884bfd13345829b6463a970dd8322",
+        "note": "The pre-treatment σ-field is exactly σ(F_{t-1},X_t), singleton conditional probabilities equal the logged finite-arm policy, and measurable-rectangle factorization gives the stated conditional independence from the complete potential-outcome vector."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Sequential randomization",
+        "cite": "QianEtAl2022MRT",
+        "citation": "Tianchen Qian and coauthors. The Micro-Randomized Trial for Developing Digital Interventions. Psychological Methods 27, 2022."
+      }
+    },
+    {
+      "id": "ass:uniform-overlap",
+      "obj_id": "A-3",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(a\\in\\mathcal A\\), \\(x\\in\\mathcal X\\), and \\(\\eta\\in\\mathsf H\\), the policy satisfies \\(\\Pi(a\\mid x,\\eta)\\ge\\varepsilon\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.UniformOverlap",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "292596e47c914fea60eaf94c13ad661e012e1ef3",
+        "note": "The universal policy lower bound is exactly the paper condition; 0<ε<1/K merely realizes the frozen symbol domain ε∈(0,1/K)."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Policy-wide clipped adaptive overlap",
+        "cite": "GuoXu2026MisspecifiedBandits",
+        "citation": "Yongyi Guo and Ziping Xu. Statistical Inference for Misspecified Contextual Bandits. arXiv:2606.22639v1, 21 June 2026."
+      }
+    },
+    {
+      "id": "ass:bounded-score",
+      "obj_id": "A-4",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The common envelope satisfies \\(\\sup_{a\\in\\mathcal A,\\theta\\in\\Theta}\\|g(a,X_t,Y_t(a);\\theta)\\|_2\\le B\\) almost surely.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.BoundedScore",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "77ac59a368a5ea2404e1bd35408320a00da690c5",
+        "note": "For every decision time, the almost-sure universal bound over all arms and θ∈Θ is equivalent to the stated pointwise supremum envelope; positivity of B realizes its frozen symbol domain."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Bounded martingale increments",
+        "cite": "Mourrat2013MartingaleCLT",
+        "citation": "Jean-Christophe Mourrat. On the Rate of Convergence in the Martingale Central Limit Theorem. Bernoulli 19, 2013."
+      }
+    },
+    {
+      "id": "ass:smooth-z-map",
+      "obj_id": "A-5",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The map \\(\\theta\\mapsto g(a,x,y;\\theta)\\) is continuously differentiable on a common open neighborhood of \\(\\operatorname{conv}(\\Theta)\\), with \\(\\|\\partial_\\theta g(a,x,y;\\theta)\\|_{\\mathrm{op}}\\le D_1\\) there, and is twice continuously differentiable on the closed \\(\\rho\\)-ball about \\(\\theta^*\\), with \\(\\|\\partial_\\theta^2 g(a,x,y;\\theta)\\|_{\\mathrm{op}}\\le D_2\\) throughout that ball.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.SmoothZMap",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "03a5fdb4bf611ab360341b650090ee077ee77e1d",
+        "note": "The shared open set contains conv(Θ), carries C¹ regularity and the D₁ operator-norm bound, while the closed ρ-ball carries C² regularity and the D₂ second-derivative operator-norm bound; positivity realizes the frozen parameter domains."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Smooth Z-estimation moments",
+        "cite": "GuoXu2026MisspecifiedBandits",
+        "citation": "Yongyi Guo and Ziping Xu. Statistical Inference for Misspecified Contextual Bandits. arXiv:2606.22639v1, 21 June 2026."
+      }
+    },
+    {
+      "id": "ass:uniform-root-separation",
+      "obj_id": "A-6",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(u>0\\), \\(\\inf_{\\theta\\in\\Theta:\\|\\theta-\\theta^*\\|_2\\ge u}\\|M_P(\\theta)\\|_2\\ge\\kappa(u)\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.UniformRootSeparation",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "d05a8bc752066a2a645ca6cd44e5bad2d3dcf3da",
+        "note": "The pointwise lower bound over every θ ∈ Θ with ‖θ−θ*‖ ≥ u is equivalent to the stated infimum bound, and κ(u)>0 is explicitly required by the frozen constant declaration."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Uniform separation of a Z-functional root",
+        "cite": "GuoXu2026MisspecifiedBandits",
+        "citation": "Yongyi Guo and Ziping Xu. Statistical Inference for Misspecified Contextual Bandits. arXiv:2606.22639v1, 21 June 2026."
+      }
+    },
+    {
+      "id": "ass:root-interior",
+      "obj_id": "A-7",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The causal root satisfies \\(\\operatorname{dist}(\\theta^*,\\partial\\Theta)\\ge s_\\Theta\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.RootInterior",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "fc346c7f62bcfbfd941a400950ab35d602b1a9e0",
+        "note": "Metric.infDist from θ* to frontier Θ realizes dist(θ*,∂Θ), and the added sTheta>0 conjunct is explicitly required by the frozen constant declaration."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Interior Z-functional root",
+        "cite": "GuoXu2026MisspecifiedBandits",
+        "citation": "Yongyi Guo and Ziping Xu. Statistical Inference for Misspecified Contextual Bandits. arXiv:2606.22639v1, 21 June 2026."
+      }
+    },
+    {
+      "id": "ass:jacobian-nonsingular",
+      "obj_id": "A-8",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The population Jacobian satisfies \\(\\sigma_{\\min}(H)\\ge h_-\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.JacobianNonsingular",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "494bb7b154c68123ab680cbb1c207d7ef655fb50",
+        "note": "The uniform inequality hmin‖v‖ ≤ ‖Hv‖ for all Euclidean vectors is equivalent to σ_min(H) ≥ hmin, and hmin>0 is explicitly required by the frozen constant declaration."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Regular Z-estimation identification",
+        "cite": "GuoXu2026MisspecifiedBandits",
+        "citation": "Yongyi Guo and Ziping Xu. Statistical Inference for Misspecified Contextual Bandits. arXiv:2606.22639v1, 21 June 2026."
+      }
+    },
+    {
+      "id": "ass:policy-lipschitz",
+      "obj_id": "A-9",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The common policy modulus satisfies \\(\\sup_{a\\in\\mathcal A,x\\in\\mathcal X}|\\Pi(a\\mid x,\\eta)-\\Pi(a\\mid x,\\eta')|\\le L_\\Pi\\|\\eta-\\eta'\\|_2\\) for all \\(\\eta,\\eta'\\in\\mathsf H\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.PolicyLipschitz",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "6d0eb854d651d7ddfb6c42f96943b9035ce48293",
+        "note": "The supremum bound is equivalent to the displayed pointwise bound over all arms and contexts; the added 0≤LΠ follows by taking η'=η on the nonempty state space."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Lipschitz stochastic-approximation observation map",
+        "cite": "Borkar2002LockIn",
+        "citation": "Vivek S. Borkar. On the Lock-In Probability of Stochastic Approximation. Combinatorics, Probability and Computing 11, 2002."
+      }
+    },
+    {
+      "id": "ass:finite-tail-selection",
+      "obj_id": "A-10",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "There exists a \\(\\sigma(\\bigcup_{t\\ge1}\\mathcal F_t)\\)-measurable \\(\\{1,\\ldots,m\\}\\)-valued random variable \\(J\\) such that \\(\\eta_\\infty=\\bar\\eta_J\\) almost surely.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.FiniteTailSelection",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "a60280dfa89a2483b4bcd8ee97390ea83b8c849e",
+        "note": "The Fin m label is a harmless reindexing of {1,…,m}, the filtration supremum is the σ-algebra generated by the increasing filtration union, and the equality is almost sure under E.law."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:uniform-attraction-modulus",
+      "obj_id": "A-11",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The member law obeys \\(P\\{T^{-1}\\sum_{t=1}^T\\|\\eta_{t-1}-\\bar\\eta_J\\|_2>r_T\\}\\le\\delta_T\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.UniformAttractionModulus",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "4ddbe29f59d34ad56f999f79339d300a728ef844",
+        "note": "The Lean event is exactly the Cesàro-distance event in the note, with `dist` representing the state-space ℓ₂ distance and `Finset.Icc 1 T` representing t=1,…,T; the T=0 clause is automatic on the core-declared nonnegative r_T and δ_T domain."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:vanishing-modulus",
+      "obj_id": "A-12",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The common deterministic error envelope satisfies \\(e_T=T^{-1/2}+r_T+\\delta_T\\to0\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.VanishingModulus",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "a7819ffe653222196cd398ecddcfc2026f0bd19d",
+        "note": "The Tendsto conjunct is exactly e_T=T⁻¹ᐟ²+r_T+δ_T→0, while the two nonnegativity conjuncts merely realize the core-declared domains of r_T and δ_T."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:basin-nondegeneracy",
+      "obj_id": "A-13",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The terminal covariance satisfies \\(\\Omega_\\infty\\succeq\\omega_-I_d\\) almost surely.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.BasinNondegeneracy",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "6a1e87ebf283dcfa139edec4eb4d6f41496b9b87",
+        "note": "`psdLE (omegaMin • identMat d) (omegaInf ω)` unfolds to the quadratic-form Loewner inequality Ω∞(ω) ⪰ ω_-I_d almost surely, and omegaMin>0 is the core-declared domain of ω_-."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:finite-attractor-separation",
+      "obj_id": "A-14",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For all distinct \\(j,k\\in\\{1,\\ldots,m\\}\\), \\(\\|\\bar\\eta_j-\\bar\\eta_k\\|_2\\ge s_\\eta\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.FiniteAttractorSeparation",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "63c7d0023733cc777e7a22524187026109781777",
+        "note": "Fin m indexes exactly the m attractors and Euclidean dist gives the stated pairwise L2 bound; 0 < sEta merely makes explicit the core-declared domain s_eta in (0,infinity)."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:basin-mass-floor",
+      "obj_id": "A-15",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(j\\in\\{1,\\ldots,m\\}\\), \\(P(J=j)\\ge p_-\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.BasinMassFloor",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "6041c5924307bb913b2d338b8d64b6a095968c90",
+        "note": "The final conjunct is exactly P(J=j)≥p_- for every j, while 0<pmin≤1/m is the core-declared domain of p_- and is also forced by these bounds for a probability law over the measurable Fin m-valued label."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:uniform-projected-predictable-qv-growth",
+      "obj_id": "A-16",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For the prespecified nonzero contrast \\(c\\), deterministic integers \\(0\\le k_T<T\\), deterministic \\(\\omega_{c,T}>0\\), and positive \\(\\mathcal F_{k_T}\\)-measurable scales \\(\\Lambda_T\\ge\\omega_{c,T}\\) almost surely, the chosen sequence \\((\\mathfrak Q_T^{\\mathrm{proj}}(c))_{T\\ge1}\\) satisfies, for every \\(u>0\\),\n\\[\n \\sup_{P\\in\\mathfrak Q_T^{\\mathrm{proj}}(c)}\n P\\!\\left\\{\n \\left|\n \\frac{\\sum_{t=k_T+1}^T E_P[(c^\\top H^{-1}\\xi_t)^2\\mid\\mathcal F_{t-1}]}\n {T\\Lambda_T}-1\n \\right|>u\n \\right\\}\\longrightarrow0.\n\\]",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.UniformProjectedPredictableQVGrowth",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "a33594ff61b826ccdbf16bc72e33bcdebf278507",
+        "note": "After unfolding the law, filtration, projected-score aliases, and UniformInProbability-style quantifiers, Lean states the same uniform suffix predictable-QV convergence; omega > 0 and the almost-sure floor also give the paper's almost-sure positivity of Lambda."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:finite-attractor-class",
+      "obj_id": "P-1",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For fixed \\(m\\), \\(\\bar\\eta_1,\\ldots,\\bar\\eta_m\\), \\(s_\\eta\\), \\(p_-\\), \\(\\varepsilon,B,D_1,D_2,h_-,L_\\Pi,\\omega_-,\\kappa,s_\\Theta,\\rho\\), and common sequences \\((r_T,\\delta_T)_{T\\ge1}\\), define \\(\\mathfrak P_T\\) to be the set of laws \\(P\\) that, at horizon \\(T\\), satisfy every condition in \\(\\mathrm{ass:iid\\text{-}full\\text{-}data},\\ldots,\\mathrm{ass:basin\\text{-}nondegeneracy}\\) with these common objects, envelopes, and moduli. The fixed states obey \\(\\mathrm{ass:finite\\text{-}attractor\\text{-}separation}\\), the terminal label and selected state obey \\(\\mathrm{ass:finite\\text{-}tail\\text{-}selection}\\), every label obeys \\(\\mathrm{ass:basin\\text{-}mass\\text{-}floor}\\), and the path approximation is supplied solely by \\(\\mathrm{ass:uniform\\text{-}attraction\\text{-}modulus}\\). Thus \\(\\eta_\\infty=\\bar\\eta_J\\), every one of the \\(m\\) separated basins has mass at least \\(p_-\\), and the policy path is approximated by its selected attractor only through the uniform Cesaro inequality. Pointwise convergence of \\(\\eta_t\\) is not imposed.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.FiniteAttractorClass",
+        "file": "Helpers/Classes.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "ac5c356a4166d24d62e4f25821a9e46ddb17cc13",
+        "note": "The structure bundles exactly the stated finite-attractor assumptions; attractor/state membership and the radius inequalities are intrinsic symbol-domain constraints, and the only path restriction is the stated Cesaro attraction modulus."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:ipw-z-estimator",
+      "obj_id": "P-2",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "First choose a measurable preliminary estimator \\(\\widetilde\\theta_T\\in\\Theta\\) satisfying \\(\\|G_T(\\widetilde\\theta_T)\\|_2\\le\\inf_{\\theta\\in\\Theta}\\|G_T(\\theta)\\|_2+T^{-1/2}(r_T+\\delta_T)\\), using a fixed measurable tie-breaking rule. Define the compact correspondence \\(\\mathcal Z_T=\\{\\theta\\in\\Theta:G_T(\\theta)=0,\\ \\|\\theta-\\widetilde\\theta_T\\|_2\\le\\rho/2\\}\\) and \\(E_T=\\{\\mathcal Z_T\\ne\\varnothing\\}\\). Continuity of \\(G_T\\) on compact \\(\\Theta\\) makes \\(\\mathcal Z_T\\) compact, and its standard joint measurability permits a fixed measurable lexicographic compact-set selector. On \\(E_T\\), let \\(\\widehat\\theta_T\\) be that selected member of \\(\\mathcal Z_T\\); on \\(E_T^c\\), set \\(\\widehat\\theta_T=\\widetilde\\theta_T\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.ipwZEstimator",
+        "file": "Helpers/Estimator.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "5d98797023f75db6047e91828b60ce241a8957ed",
+        "note": "After unfolding IPWZContract and localRootSet, the definition uses the measurable approximate minimizer, selects the measurable lexicographic local root exactly on its nonempty event, and otherwise returns the preliminary estimator."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:directional-matrix-witness",
+      "obj_id": "P-3",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(T\\ge2\\), let \\(P^{\\dagger}\\) be the law with \\(K=3\\), \\(d=2\\), \\(\\Theta=[-1,1]^2\\), \\(\\theta^*=0\\), a singleton \\(\\mathcal X\\), and constant \\(X_t\\). Independently across \\(t\\) and between arms, let \\(Y_t(1)\\) be equiprobable on \\(\\{-\\sqrt{2/5},\\sqrt{2/5}\\}\\), let \\(Y_t(2)\\) be equiprobable on \\(\\{-\\sqrt{1/2},\\sqrt{1/2}\\}\\), and set \\(Y_t(3)=0\\). Set \\(g(1,x,y;\\theta)=(y-\\theta_1,0)^\\top\\), \\(g(2,x,y;\\theta)=(0,y-\\theta_2)^\\top\\), and \\(g(3,x,y;\\theta)=0\\). Take \\(m=2\\), \\(q=1\\), \\(\\mathsf H=[0,1]\\), \\(\\bar\\eta_1=0\\), \\(\\bar\\eta_2=1\\), and linearly interpolate the context-free policy between \\(\\Pi(\\cdot\\mid x,0)=(2/5,1/4,7/20)\\) and \\(\\Pi(\\cdot\\mid x,1)=(2/5,1/6,13/30)\\). Start at \\(\\eta_0=1/2\\), set \\(J=1\\) if and only if \\(A_1=1\\), set \\(J=2\\) otherwise, define \\(\\eta_\\infty=\\bar\\eta_J=J-1\\), and put \\(\\eta_t=\\eta_\\infty\\) for every \\(t\\ge1\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.directionalMatrixWitness",
+        "file": "Helpers/Witness.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "0c4743badcda53890d1526a5f932b7cbdbc000c4",
+        "note": "The zero-based Fin indices faithfully reindex the paper's arms and basins; the product law, outcomes, score, interpolated policy, A₁-based label, state space, initial state, and terminal state agree in both directions. | After unfolding the local definitions, Lean exactly realizes the horizon, product-independent two-point outcomes, singleton context, parameter set, score, interpolated policy, initial state, first-decision label, attractors, terminal state, and post-first-decision state path, modulo the faithful Fin-index shift from paper arms/labels 1-based to Lean 0-based."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:basin-covariance",
+      "obj_id": "P-4",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For \\(\\eta\\in\\mathsf H\\), define\n\\[\n \\Gamma_P(\\eta)=E_P\\!\\left[\\sum_{a\\in\\mathcal A}\n \\frac{g(a,X_t,Y_t(a);\\theta^*)g(a,X_t,Y_t(a);\\theta^*)^\\top}\n {\\Pi(a\\mid X_t,\\eta)}\\right].\n\\]\nFor every \\(j\\in\\mathcal J=\\{1,\\ldots,m\\}\\), set\n\\[\n p_j=P(J=j),\\qquad\n \\Omega_j=\\Gamma_P(\\bar\\eta_j),\\qquad\n V_j=H^{-1}\\Omega_jH^{-\\top}.\n\\]\nDefine\n\\[\n \\Omega_J=\\sum_{j=1}^m\\mathbf1\\{J=j\\}\\Omega_j,\\qquad\n V_J=\\sum_{j=1}^m\\mathbf1\\{J=j\\}V_j,\n\\]\nand set\n\\[\n \\Omega_\\infty=\\Gamma_P(\\eta_\\infty),\\qquad\n V_\\infty=H^{-1}\\Omega_\\infty H^{-\\top}.\n\\]\nUnder \\(\\mathrm{ass:finite\\text{-}tail\\text{-}selection}\\), substitution of \\(\\eta_\\infty=\\bar\\eta_J\\) gives \\(\\Omega_\\infty=\\Omega_J\\) and \\(V_\\infty=V_J\\) almost surely.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.basinCovarianceBundle",
+        "file": "Helpers/BasinCovariance.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "21ba000424421033163a027f27d55147fc79f899",
+        "note": "Paper implies Lean, but Lean does not imply the paper: hselect retains only the a.e. equality from finite-tail selection and omits the required terminal measurability of J and etaInf."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:event-truncated-rqv-sandwich",
+      "obj_id": "P-5",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Set\n\\[\n \\widehat\\Omega_T=T^{-1}\\sum_{t=1}^T\\widehat\\xi_t\\widehat\\xi_t^\\top,\n \\qquad\n \\mathcal H_T=\\{\\sigma_{\\min}(\\widehat H_T)\\ge h_-/2\\}.\n\\]\nDefine the total nonnegative scalar\n\\[\n \\widehat q_T(c)=\n \\begin{cases}\n c^\\top\\widehat H_T^{-1}\\widehat\\Omega_T\\widehat H_T^{-\\top}c,\n   &\\text{on }\\mathcal H_T,\\\\\n 0,&\\text{on }\\mathcal H_T^c,\n \\end{cases}\n\\]\nwhere the inverse is evaluated only on \\(\\mathcal H_T\\), and set\n\\[\n \\mathcal E_T(c)=\\mathcal H_T\\cap\\{\\widehat q_T(c)\\ge\\omega_{c,T}/2\\}.\n\\]\nDefine the total early-scale event-truncated sandwich by\n\\[\n \\widehat V_T(c)=\n \\begin{cases}\n \\widehat H_T^{-1}\\widehat\\Omega_T\\widehat H_T^{-\\top},\n   &\\text{on }\\mathcal E_T(c),\\\\\n I_d,&\\text{on }\\mathcal E_T(c)^c.\n \\end{cases}\n\\]\nThus every inverse is evaluated only on \\(\\mathcal H_T\\), and \\(c^\\top\\widehat V_T(c)c>0\\) for every realization because \\(c\\ne0\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.eventTruncatedRQVSandwich",
+        "file": "Helpers/Estimator.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "4772d59195d058200448176b671fac5a7cd4d2ba",
+        "note": "After unfolding empiricalOmega, invertibilityEvent, totalContrastVariance, contrastTruncationEvent, and sandwich, Lean gives the stated empirical covariance, equivalent lower-singular-value event, zero-truncated contrast variance, information event, sandwich on that event, and identity otherwise."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:realized-qv-pivot",
+      "obj_id": "P-6",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For the prespecified nonzero \\(c\\), use the early-scale event-truncated sandwich \\(\\widehat V_T(c)\\) and define the everywhere finite statistic\n\\[\n T_T^{\\mathrm{rqv}}(c)=\n \\frac{\\sqrt T\\,c^\\top(\\widehat\\theta_T-\\theta^*)}\n {\\sqrt{c^\\top\\widehat V_T(c)c}}.\n\\]\nThe denominator is positive on every realization by the construction of \\(\\widehat V_T(c)\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.realizedQVPivot",
+        "file": "Helpers/Estimator.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "11427b20e0ad3aafc682ee7377d298d4354a321c",
+        "note": "After unfolding eventTruncatedRQVSandwich and qform, the statistic is exactly the stated pivot; on the truncation event its quadratic form is at least omega/2 > 0, while off the event the identity matrix and c ≠ 0 give a positive denominator."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:deterministic-wald-interval",
+      "obj_id": "P-7",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Define \\(C_T^{\\Sigma}(c,\\alpha)=[c^\\top\\widehat\\theta_T-z_{1-\\alpha/2}\\sqrt{c^\\top\\Sigma c/T},\\ c^\\top\\widehat\\theta_T+z_{1-\\alpha/2}\\sqrt{c^\\top\\Sigma c/T}]\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.deterministicWaldInterval",
+        "file": "Helpers/Estimator.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "6d21d6c7f90cf6a0c18e2b2469545f4c7d45da58",
+        "note": "Unfolding qform and probit yields exactly the closed interval centered at cᵀθ̂_T with half-width z_{1-α/2}√(cᵀΣc/T), on the stated positive-T, positive-definite-Σ, nonzero-c, and α∈(0,1) domain."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:guoxu-recursion",
+      "obj_id": "P-8",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Fix \\(K=2\\), draw \\(X_t\\) independently and uniformly from \\(\\{-4,1\\}\\), and set \\(Y_t(1)=1/2+\\sigma_1R_{t,1}\\) and \\(Y_t(2)=1/12+\\sigma_2R_{t,2}\\), where the \\(R_{t,a}\\) are independent centered Rademacher innovations and \\(\\sigma_1,\\sigma_2>0\\) are arbitrary fixed constants declared as part of this bounded analogue; no numerical innovation variances are attributed to Guo and Xu. Keep their no-intercept working model, ridge constant \\(\\lambda=1\\), unit-precision ridge initialization, and updates \\(\\Phi^{\\mathrm{GX}}_{t,a}=\\Phi^{\\mathrm{GX}}_{t-1,a}+\\mathbf 1\\{A_t=a\\}X_t^2\\), \\(b^{\\mathrm{GX}}_{t,a}=b^{\\mathrm{GX}}_{t-1,a}+\\mathbf 1\\{A_t=a\\}X_tY_t\\), and \\(\\widehat\\beta^{\\mathrm{GX}}_{t,a}=b^{\\mathrm{GX}}_{t,a}/\\Phi^{\\mathrm{GX}}_{t,a}\\). For \\(\\eta_0\\in\\mathsf K_{\\mathrm{GX}}\\), initialize \\(Z^{\\mathrm{GX}}_0=\\iota_{\\mathrm{GX}}(\\eta_0)=(\\eta_{0,1},\\eta_{0,2},1,1)^\\top\\), equivalently \\(\\Phi^{\\mathrm{GX}}_{0,a}=1\\) and \\(b^{\\mathrm{GX}}_{0,a}=\\eta_{0,a}\\); the published initialization is the included case \\(\\eta_0=(0,0)^\\top\\). At occasion \\(t\\), break every exact index tie in favor of arm \\(1\\), maximize \\(\\widehat\\beta^{\\mathrm{GX}}_{t-1,a}X_t+|X_t|\\sqrt{q^{\\mathrm{GX}}_{t-1,a}}\\), and then assign the maximizing arm with probability \\(0.99\\) and the other arm with probability \\(0.01\\). The process of interest is the slope projection \\((\\widehat\\beta^{\\mathrm{GX}}_{t,1},\\widehat\\beta^{\\mathrm{GX}}_{t,2})^\\top\\) of \\(Z^{\\mathrm{GX}}_t\\), not a slope-only Markov chain.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.guoXuRecursion",
+        "file": "Helpers/GuoXuRecursion.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "6411face8be8a603686f7b699f78a0a01c1dad4c",
+        "note": "Unfolding the initial state, reward, index, tie-broken greedy arm, clipped assignment, step, context, and canonical product noise law gives the bounded two-arm recursion, initialization, 0.99/0.01 allocation, independent uniform contexts and Rademacher innovations, with slopes and inverse Grams recoverable from the full state."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:guoxu-dynamics-handle",
+      "obj_id": "P-9",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Write \\(Z^{\\mathrm{GX}}_t=(\\beta_1,\\beta_2,q_1,q_2)^\\top\\) for a current augmented state. Its induced armwise update is \\(q_a^+=q_a/(1+\\mathbf 1\\{A=a\\}q_aX^2)\\) and \\(\\beta_a^+=(\\beta_a+\\mathbf 1\\{A=a\\}q_aXY(a))/(1+\\mathbf 1\\{A=a\\}q_aX^2)\\). The next clipped-UCB action uses \\(\\beta_aX+|X|\\sqrt{q_a}\\), so \\(Z^{\\mathrm{GX}}_t\\), rather than its two-dimensional slope projection, is the time-homogeneous Markov state. For stochastic-approximation analysis, put \\(D_{t,a}=\\Phi^{\\mathrm{GX}}_{t,a}\\), \\(N_{t,a}=b^{\\mathrm{GX}}_{t,a}\\), and, for \\(t\\ge1\\), \\(\\Psi_t=(D_{t,1}/t,D_{t,2}/t,N_{t,1}/t,N_{t,2}/t)\\). Analyze the exact \\(1/(t+1)\\) recursion for \\(\\Psi_t\\) on an eventually compact region with both normalized Gram coordinates bounded away from zero. At the equal-slope surface, retain every limiting conditional-mean mode generated by the square-root UCB bonus: although the bonus is \\(O(t^{-1/2})\\), it can make the same arm greedy at both contexts inside an \\(O(t^{-1/2})\\) switching layer. Thus a closed convexified limiting graph must include these same-arm modes as well as the two opposite-context modes. Any differential-inclusion reduction must verify the closed-graph, compact-convex-value, boundedness, vanishing-perturbation, and martingale-tail conditions for this normalized recursion. Compact-uniform sequences \\(r_T(K_0),\\delta_T(K_0)\\to0\\) require a separate quantitative hitting or escape estimate and may not be inferred from pointwise convergence by a finite-cover argument.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.guoXuNormalizedHandle",
+        "file": "Helpers/GuoXuRecursion.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "20f76a6936ecff2b084337057d784345b9900faf",
+        "note": "Replace the vacuous martingale-tail and quantitative-hitting/escape sequence fields with bounds tied to the recursion and K0, include the quantitative alternative in the reduction predicate, and state closed-graph continuity relative to an actual compact positive-Gram region rather than ambient closedness of the graph over the open positive-Gram domain."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:realized-qv-wald-interval",
+      "obj_id": "P-10",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For the prespecified nonzero \\(c\\) and \\(\\alpha\\in(0,1)\\), use the early-scale event-truncated sandwich and define the total Wald interval\n\\[\n I_T^{\\mathrm{rqv}}(c,\\alpha)=\n \\left[\\widehat\\tau_T-z_{1-\\alpha/2}\n \\sqrt{c^\\top\\widehat V_T(c)c/T},\\ \n \\widehat\\tau_T+z_{1-\\alpha/2}\n \\sqrt{c^\\top\\widehat V_T(c)c/T}\\right].\n\\]",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.realizedQVWaldInterval",
+        "file": "Helpers/Estimator.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "fd539f79b707899b072a4a6f4e9027b89a5762a5",
+        "note": "After unfolding the event-truncated sandwich and `qform`, Lean defines exactly the closed interval centered at tauHat with radius z_{1-alpha/2} sqrt(cᵀ Vhat(c) c/T) on the stated positive-T, nonzero-c, and alpha-in-(0,1) domain."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:projected-qv-growth-ipwz-class",
+      "obj_id": "P-11",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Fix a prespecified \\(c\\in\\mathbb R^d\\setminus\\{0\\}\\), the common objects \\(\\varepsilon,B,D_1,D_2,h_-,\\kappa,s_\\Theta,\\rho,\\Theta\\), deterministic tolerance sequences \\((r_T,\\delta_T)_{T\\ge1}\\), deterministic integers \\(0\\le k_T<T\\), and deterministic numbers \\(\\omega_{c,T}>0\\) satisfying\n\\[\n T\\omega_{c,T}\\longrightarrow\\infty,\n \\qquad\n \\frac{k_T}{T\\omega_{c,T}}\\longrightarrow0.\n\\]\nLet \\((\\mathfrak Q_T^{\\mathrm{proj}}(c))_{T\\ge1}\\) be any chosen sequence of law classes such that every \\(P\\in\\mathfrak Q_T^{\\mathrm{proj}}(c)\\) satisfies\n\\[\n \\mathrm{ass:iid\\text{-}full\\text{-}data},\\quad\n \\mathrm{ass:sequential\\text{-}randomization},\\quad\n \\mathrm{ass:uniform\\text{-}overlap},\\quad\n \\mathrm{ass:bounded\\text{-}score},\n\\]\n\\[\n \\mathrm{ass:smooth\\text{-}z\\text{-}map},\\quad\n \\mathrm{ass:uniform\\text{-}root\\text{-}separation},\\quad\n \\mathrm{ass:root\\text{-}interior},\\quad\n \\mathrm{ass:jacobian\\text{-}nonsingular},\\quad\n \\mathrm{ass:vanishing\\text{-}modulus}.\n\\]\nFor each member law there must exist a positive random scale \\(\\Lambda_T\\), measurable with respect to \\(\\mathcal F_{k_T}\\), such that \\(\\Lambda_T\\ge\\omega_{c,T}\\) almost surely and the chosen class sequence satisfies \\(\\mathrm{ass:uniform\\text{-}projected\\text{-}predictable\\text{-}qv\\text{-}growth}\\). No information-growth condition is imposed in a direction orthogonal to \\(H^{-\\top}c\\), and neither finite attractors nor convergence of the full matrix \\(T^{-1}\\langle S\\rangle_T\\) is required.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.ProjectedQVGrowthIPWZClass",
+        "file": "Helpers/Classes.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "af52656810138139a59cd69fe8b1d0f4eb9ee81e",
+        "note": "Lean is strictly narrower: radius_range imposes rho < sTheta and D2*rho/epsilon < hmin/4, neither stated in the paper class definition nor entailed by its enumerated assumptions; remove this field from the class."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:saco-early-stabilized-aipw-class",
+      "obj_id": "P-12",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For each row \\(n\\), let \\(\\mathcal T_n=\\{t_{n,1}<\\cdots<t_{n,N_n}\\}\\) be a deterministic scored set, fixed before data collection, and put \\(N_n=n_{\\mathrm{eff}}=|\\mathcal T_n|\\).  The class \\(\\mathfrak C^{\\mathrm{Saco,es}}=(\\mathfrak C_n^{\\mathrm{Saco,es}})_{n\\ge1}\\) consists of triangular arrays of binary-treatment laws with the following properties, imposed row by row and uniformly over the displayed class.\n\nFirst, the source conditions retained from Saco are written out explicitly.  For \\(a\\in\\{0,1\\}\\), \\(Y_{n,t}(a)\\) is the potential outcome depending only on the current treatment, and \\(Y_{n,t}=A_{n,t}Y_{n,t}(1)+(1-A_{n,t})Y_{n,t}(0)\\) almost surely.  The triples \\((X_{n,t},Y_{n,t}(0),Y_{n,t}(1))\\) are independent and identically distributed over \\(t\\) within a row and are unaffected by the adaptive policy.  There is a pre-treatment sigma-field \\(\\mathcal B_{n,t}\\), containing the past and \\(X_{n,t}\\), such that the logged propensity \\(\\pi_{n,t}\\) is \\(\\mathcal B_{n,t}\\)-measurable and\n\\[\n0<\\pi_{n,t}<1,\\qquad\n\\mathbb P_n(A_{n,t}=1\\mid\\mathcal B_{n,t})=\\pi_{n,t}\\quad\\text{almost surely}.\n\\]\nConditional on \\(\\mathcal B_{n,t}\\), \\(A_{n,t}\\) is independent of \\((Y_{n,t}(0),Y_{n,t}(1))\\).  There is one constant \\(\\epsilon\\in(0,1/2)\\) such that\n\\[\n\\epsilon\\le\\pi_{n,t}\\le1-\\epsilon\n\\quad\\text{almost surely for every }t\\in\\mathcal T_n.\n\\]\nFor each \\(a\\), the fitted regression \\(\\widehat m_{n,t-1,a}\\), as a random function, is measurable with respect to the history \\(\\mathcal F_{n,t-1}\\).  There are finite constants \\(C_Y,C_M\\), common to the class, such that\n\\[\n\\sup_{n,\\mathbb P_n,t,a}E_{\\mathbb P_n}|Y_{n,t}(a)|^4\\le C_Y,\\qquad\n\\sup_{n,\\mathbb P_n,t\\in\\mathcal T_n,a}\nE_{\\mathbb P_n}|\\widehat m_{n,t-1,a}(X_{n,t})|^4\\le C_M.\n\\]\nThus these are uniform versions of source Assumptions \\(3.5,3.6,3.2,3.7,3.8,4.5,4.8,3.9,\\) and \\(3.10\\), in the order specified by the directive.\n\nDefine the causal target, AIPW pseudo-outcome, centered score, estimator, and its sample variance by\n\\[\n\\theta_{0,n}=E_{\\mathbb P_n}\\{Y_{n,t}(1)-Y_{n,t}(0)\\},\n\\]\n\\[\n\\widehat\\phi_{n,t}=\\frac{A_{n,t}}{\\pi_{n,t}}\n\\{Y_{n,t}-\\widehat m_{n,t-1,1}(X_{n,t})\\}\n-\\frac{1-A_{n,t}}{1-\\pi_{n,t}}\n\\{Y_{n,t}-\\widehat m_{n,t-1,0}(X_{n,t})\\}\n+\\widehat m_{n,t-1,1}(X_{n,t})-\\widehat m_{n,t-1,0}(X_{n,t}),\n\\]\n\\[\nX_{n,s}=\\widehat\\phi_{n,t_{n,s}}-\\theta_{0,n},\\qquad\nS_n=\\sum_{s=1}^{N_n}X_{n,s},\\qquad\nQ_n=\\sum_{s=1}^{N_n}X_{n,s}^2,\n\\]\n\\[\n\\widehat\\theta_n=N_n^{-1}\\sum_{s=1}^{N_n}\\widehat\\phi_{n,t_{n,s}},\\qquad\n\\widehat V_n=(N_n-1)^{-1}\\sum_{s=1}^{N_n}\n\\{\\widehat\\phi_{n,t_{n,s}}-\\widehat\\theta_n\\}^2\n\\quad(N_n\\ge2).\n\\]\nTo order the deterministic scored set without discarding interstitial history, define\n\\[\n\\mathcal G_{n,0}=\\mathcal F_{n,t_{n,1}-1},\\qquad\n\\mathcal G_{n,s}=\\mathcal F_{n,t_{n,s+1}-1}\\ (1\\le s<N_n),\\qquad\n\\mathcal G_{n,N_n}=\\mathcal F_{n,t_{n,N_n}}.\n\\]\nThen \\(X_{n,s}\\) is \\(\\mathcal G_{n,s}\\)-measurable and \\(\\mathcal G_{n,s-1}=\\mathcal F_{n,t_{n,s}-1}\\).  Put\n\\[\nV_n^2=\\sum_{s=1}^{N_n}E_{\\mathbb P_n}[X_{n,s}^2\\mid\\mathcal G_{n,s-1}].\n\\]\nThe source variance-growth Assumption \\(5.11\\) is retained: \\(N_n\\to\\infty\\), and for one \\(v_->0\\),\n\\[\n\\sup_{\\mathbb P_n\\in\\mathfrak C_n^{\\mathrm{Saco,es}}}\n\\mathbb P_n(V_n^2<v_-N_n)\\longrightarrow0.\n\\]\n\nFinally, intersect those source conditions with early quadratic-variation stabilization.  There are deterministic integers \\(0\\le k_n<N_n\\), a constant \\(\\lambda_->0\\), and, for every member law, a positive \\(\\mathcal G_{n,k_n}\\)-measurable random variable \\(\\Lambda_n\\) such that\n\\[\n\\frac{k_n}{N_n}\\longrightarrow0,\\qquad \\Lambda_n\\ge\\lambda_-\\quad\\text{almost surely},\n\\]\nand, writing\n\\[\nA_{n,+}^2=\\sum_{s=k_n+1}^{N_n}\nE_{\\mathbb P_n}[X_{n,s}^2\\mid\\mathcal G_{n,s-1}],\n\\]\none has, for every \\(\\zeta>0\\),\n\\[\n\\sup_{\\mathbb P_n\\in\\mathfrak C_n^{\\mathrm{Saco,es}}}\n\\mathbb P_n\\left(\\left|\\frac{A_{n,+}^2}{N_n\\Lambda_n}-1\\right|>\\zeta\\right)\\longrightarrow0.\n\\]\nConsequently \\(\\mathfrak C^{\\mathrm{Saco,es}}\\) is exactly Saco's enumerated AIPW/DML class, with the overlap and fourth-moment constants made uniform across the triangular array, intersected with this early-measurable suffix-QV condition.  No almost-sure bound on \\(X_{n,s}\\) is imposed.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.SacoEarlyStabilizedAIPWClass",
+        "file": "Saco/Class.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "882e1e69f66fee46122a75abdc2f15be072c0be0",
+        "note": "After unfolding SacoSourceConditions, SacoArrayWorld, and UniformInProbability, the rowwise source conditions, common deterministic scored sets, uniform variance growth, early measurable positive scales, negligible cutoff, and uniform suffix-QV stabilization match the paper; the Lambda parameter conservatively chooses the per-member witnesses."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "thm:basin-stable-ipwz",
+      "obj_id": "T-1",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The common derivative and bounded-IPW envelopes imply\n\\[\n \\|H\\|_{\\mathrm{op}}\\le KD_1,\n \\qquad\n \\omega_-I_d\\preceq\\Omega_j\\preceq(KB^2/\\varepsilon)I_d\n \\quad\\text{for every }j\\in\\mathcal J=\\{1,\\ldots,m\\}.\n\\]\nThe finite-tail-selection relation gives \\(\\Omega_\\infty=\\Omega_J\\) and \\(V_\\infty=V_J\\) almost surely. There is a finite constant \\(C\\), independent of \\(T\\) and \\(P\\), such that\n\\[\n \\sup_{P\\in\\mathfrak P_T}E_P\\!\\left[\n \\left\\|T^{-1}\\langle S\\rangle_T-\\Omega_J\\right\\|_{\\mathrm{op}}\\right]\n \\le C(r_T+\\delta_T).\n\\]\nThe preliminary estimator is uniformly consistent, \\(G_T(\\theta^*)=O_P(T^{-1/2})\\), and \\(\\partial_\\theta G_T(\\theta^*)-H=O_P(T^{-1/2})\\) uniformly. Together with \\(D_2\\rho/\\varepsilon<h_-/4\\), these bounds imply that, with probability tending uniformly to one, there is a unique empirical root in the closed \\(\\rho\\)-ball about \\(\\theta^*\\), it is \\(O_P(T^{-1/2})\\) from \\(\\theta^*\\), and it is the unique member of \\(\\mathcal Z_T\\). Hence \\(\\sup_{P\\in\\mathfrak P_T}P(E_T^c)\\to0\\), and\n\\[\n \\sqrt T(\\widehat\\theta_T-\\theta^*)+H^{-1}T^{-1/2}S_T=O_P(e_T)\n\\]\nuniformly.\n\nFor every basin \\(j\\in\\mathcal J\\), the basin-conditional Gaussian approximation is uniform:\n\\[\n \\sup_{P\\in\\mathfrak P_T}\\sup_{\\|c\\|_2=1}\\sup_{z\\in\\mathbb R}\n \\left|P\\!\\left\\{c^\\top\\sqrt T(\\widehat\\theta_T-\\theta^*)\\le z\\mid J=j\\right\\}\n -\\Phi\\!\\left(\\frac{z}{\\sqrt{c^\\top V_jc}}\\right)\\right|\n \\longrightarrow0.\n\\]\nMore strongly, the corresponding joint \\(\\sigma(J)\\)-stable Gaussian kernel is expressed by\n\\[\n \\sup_{P\\in\\mathfrak P_T}\\sup_{\\|c\\|_2=1}\\sup_{z\\in\\mathbb R}\n \\sup_{\\psi:\\{1,\\ldots,m\\}\\to[-1,1]}\n \\left|E_P\\!\\left[\\psi(J)\\mathbf1\\!\\left\\{\n c^\\top\\sqrt T(\\widehat\\theta_T-\\theta^*)\\le z\\right\\}\\right]\n -\\sum_{j=1}^mp_j\\psi(j)\\Phi\\!\\left(\\frac{z}{\\sqrt{c^\\top V_jc}}\\right)\\right|\n \\longrightarrow0.\n\\]\nMoreover,\n\\[\n \\frac{\\omega_-}{(KD_1)^2}I_d\\preceq V_j\n \\preceq\\frac{KB^2}{\\varepsilon h_-^2}I_d\n \\quad\\text{for every }j\\in\\mathcal J.\n\\]\nThus, for every sequence \\(P_T\\in\\mathfrak P_T\\), the laws of \\(V_J\\) have a weakly convergent subsequence with a limiting law \\(\\mu\\) supported on the displayed compact covariance set. Along that subsequence, every fixed nonzero contrast has the centered Gaussian scale-mixture limit \\(\\sqrt{c^\\top Vc}\\,Z_1\\), where \\(V\\sim\\mu\\), \\(Z_1\\sim N(0,1)\\), and \\(V\\) and \\(Z_1\\) are independent. This limit is Gaussian if and only if \\(c^\\top Vc\\) is \\(\\mu\\)-almost surely constant. No pointwise convergence of \\(\\eta_t\\) is used.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.basin_stable_ipwz",
+        "file": "T_BasinStableIPWZ.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "5e710abc0a1a6d3ddadaa94fe9ced1866029c063",
+        "note": "Lean⇒paper fails for the covariance-law conclusion: `[MeasurableSpace (Mat d)]` is unconstrained, so the weak-convergence and mixture integrals need not use the Euclidean Borel structure, while the stated `psdLE` support admits nonsymmetric skew perturbations and is not the paper's compact covariance set; require `[BorelSpace (Mat d)]` and explicitly use `covarianceInterval` or add transpose symmetry."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:uniform-realized-qv-pivot",
+      "obj_id": "T-2",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Fix a prespecified \\(c\\in\\mathbb R^d\\setminus\\{0\\}\\). For the early-stabilized projected class \\(\\mathfrak Q_T^{\\mathrm{proj}}(c)\\), the exact-root event is uniformly asymptotically certain and\n\\[\n \\sup_{P\\in\\mathfrak Q_T^{\\mathrm{proj}}(c)}P(E_T^c)\\longrightarrow0,\n \\qquad\n \\sqrt T(\\widehat\\theta_T-\\theta^*)+H^{-1}T^{-1/2}S_T\n =O_P(T^{-1/2})\n\\]\nuniformly. Moreover,\n\\[\n T^{-1}([S]_T-\\langle S\\rangle_T)=O_P(T^{-1/2}),\\qquad\n \\widehat\\Omega_T-T^{-1}[S]_T=O_P(T^{-1/2}),\\qquad\n \\widehat H_T-H=O_P(T^{-1/2})\n\\]\nuniformly over that class. Although no information growth is required outside the direction \\(H^{-\\top}c\\), the early-scale condition with \\(T\\omega_{c,T}\\to\\infty\\) makes the contrast-specific truncation inactive:\n\\[\n \\sup_{P\\in\\mathfrak Q_T^{\\mathrm{proj}}(c)}P\\{\\mathcal E_T(c)^c\\}\n \\longrightarrow0.\n\\]\nConsequently,\n\\[\n \\sup_{P\\in\\mathfrak Q_T^{\\mathrm{proj}}(c)}\\sup_{z\\in\\mathbb R}\n \\left|P\\{T_T^{\\mathrm{rqv}}(c)\\le z\\}-\\Phi(z)\\right|\n \\longrightarrow0,\n\\]\nand, for every fixed \\(\\alpha\\in(0,1)\\),\n\\[\n \\sup_{P\\in\\mathfrak Q_T^{\\mathrm{proj}}(c)}\n \\left|P\\{\\tau\\in I_T^{\\mathrm{rqv}}(c,\\alpha)\\}-(1-\\alpha)\\right|\n \\longrightarrow0.\n\\]\nEvery finite-tail-attractor class \\(\\mathfrak P_T\\) satisfies this early-stabilized condition for each fixed nonzero \\(c\\). At every horizon set\n\\[\n k_T=\\min\\!\\left\\{T-1,\\left\\lceil T\\max\\{T^{-1/2},\\sqrt{r_T}\\}\\right\\rceil\\right\\}.\n\\]\nFor \\(k_T\\ge1\\), let \\(J_T\\) be the nearest attractor to \\(k_T^{-1}\\sum_{t=1}^{k_T}\\eta_{t-1}\\), with fixed tie-breaking, and set \\(J_T=1\\) when \\(k_T=0\\). With \\(a=H^{-\\top}c\\), take\n\\[\n \\Lambda_T=a^\\top\\Omega_{J_T}a,\\qquad\n \\omega_{c,T}=\\frac{\\omega_-\\|c\\|_2^2}{(KD_1)^2}.\n\\]\nThen \\(J_T\\) and \\(\\Lambda_T\\) are \\(\\mathcal F_{k_T}\\)-measurable, all early-scale conditions hold uniformly, and the same pivot and coverage conclusions follow.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.uniform_realized_qv_pivot",
+        "file": "T_UniformRealizedQVPivot.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "529fa69675ee8eac113905018ffed071ff0b4aaf",
+        "note": "Neither direction is established for the finite-attractor clause: Lean conditions it on an unrelated projected-class witness hClass, omits the nearest-attractor and kFinite T = 0 default specifications for the same Jearly used in LambdaFinite, and—unlike the projected branch—does not link CF's r/failure or EF's Jacobian derivative to the finite-class data; restate this as an independent implication for every hFinite with an explicit c ≠ 0 premise, the required contract/Jacobian coherence, and the canonical nearest/default Jearly clauses."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:contrastwise-deterministic-sandwich-iff",
+      "obj_id": "T-3",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Let \\(T_\\ell\\to\\infty\\) and \\(P_\\ell\\in\\mathfrak P_{T_\\ell}\\) be a sequence along which the law of \\(V_\\infty\\) under \\(P_\\ell\\) converges weakly to a probability law \\(\\mu\\) on the compact covariance set in Theorem 1. Let \\(V\\sim\\mu\\). Fix nonzero \\(c\\) and deterministic positive-definite \\(\\Sigma\\). Then\n\\[\n \\lim_{\\ell\\to\\infty}P_\\ell\\{\\tau\\in C_{T_\\ell}^{\\Sigma}(c,\\alpha)\\}=1-\\alpha\n \\quad\\text{for every }\\alpha\\in(0,1)\n\\]\nif and only if\n\\[\n c^\\top Vc=c^\\top\\Sigma c\\qquad\\mu\\text{-almost surely}.\n\\]\nThe necessity identifies the projected variance law of a general centered Gaussian scale mixture from coverage at every nominal level; it makes no claim from validity at only one level.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.contrastwise_deterministic_sandwich_iff",
+        "file": "T_ContrastwiseSandwich.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "0fe6a5826de6e2ebcba6a4df339679cbffe459c4",
+        "note": "Paper ⇒ Lean fails: P_l ∈ 𝔓_{T_l} requires the Cesàro attraction bound only at horizon T_l, but unfolding S.member and UniformAttractionModulus requires each P_l to satisfy it at every natural horizon n; parameterize the predicate by the member horizon and instantiate it at S.T l."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:matrixwise-deterministic-sandwich-iff",
+      "obj_id": "T-4",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Along any sequence for which the law of \\(V_\\infty\\) converges weakly to \\(\\mu\\), as in Theorem 3, one deterministic positive-definite matrix \\(\\Sigma\\) gives asymptotic coverage \\(1-\\alpha\\) for every \\(\\alpha\\in(0,1)\\) and every nonzero contrast \\(c\\in\\mathbb R^d\\) if and only if\n\\[\n V=\\Sigma\\qquad\\mu\\text{-almost surely},\n\\]\nwhere \\(V\\sim\\mu\\). Equivalently, the limiting covariance law is the point mass at \\(\\Sigma\\). For a fixed law and horizon-asymptotic sequence, this specializes to \\(V_\\infty=\\Sigma\\) almost surely whenever the law of \\(V_\\infty\\) itself is constant across horizons. The implication from all projected equalities to matrix equality uses only finitely many coordinate and pairwise-sum contrasts.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.matrixwise_deterministic_sandwich_iff",
+        "file": "T_MatrixwiseSandwich.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "560748f525aa68103b08a730f9488a22bd7608df",
+        "note": "The Lean conjunction exactly captures the all-contrast/all-level coverage iff μ-a.s. matrix equality, its equivalent point-mass formulation, and the constant-terminal-law specialization; symmetry, positivity, and d>0 are intrinsic to the stated covariance/positive-definite matrix domain."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "prop:directional-matrix-separation",
+      "obj_id": "T-5",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(\\varepsilon\\in(0,1/6)\\), the bounded witness \\(P^{\\dagger}\\) belongs at every \\(T\\ge2\\) to a class \\(\\mathfrak P_T\\) with common choices \\(B=2\\), \\(D_1=D_2=1\\), \\(h_-=1\\), \\(L_\\Pi=1/12\\), \\(\\omega_-=1\\), \\(\\kappa(u)=u\\), \\(s_\\Theta=1\\), \\(\\rho=\\varepsilon/8\\), \\(r_T=1/(2T)\\), and \\(\\delta_T=0\\). Specifically, the policy floor is \\(1/6\\), \\(\\sup_{a,\\theta}\\|g(a,X_t,Y_t(a);\\theta)\\|_2<2\\), the derivative and curvature bounds are \\(1\\) and \\(0\\), \\(M_{P^{\\dagger}}(\\theta)=-\\theta\\), every empirical moment admits an exact minimum of zero in \\(\\Theta\\), and \\(T^{-1}\\sum_{t=1}^T\\|\\eta_{t-1}-\\bar\\eta_J\\|_2=1/(2T)\\) almost surely. Moreover, \\(P^{\\dagger}(J=1)=2/5\\), \\(P^{\\dagger}(J=2)=3/5\\), so \\(\\mathcal J=\\{1,2\\}\\); tail selection is exact after the first assignment, \\(H=-I_2\\), \\(\\Omega_1=V_1=\\operatorname{diag}(1,2)\\), and \\(\\Omega_2=V_2=\\operatorname{diag}(1,3)\\). Hence for \\(\\Sigma=\\operatorname{diag}(1,2)\\) and \\(c=(1,0)^\\top\\), \\(c^\\top V_jc=c^\\top\\Sigma c=1\\) in both positive-mass basins although \\(V_1\\ne V_2\\), so contrastwise deterministic-sandwich validity holds while matrixwise invariance fails.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.directional_matrix_separation",
+        "file": "P_DirectionalMatrixSeparation.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "e1ce7e59810579f941fd3026fcd2d9e4da0d29a2",
+        "note": "After unfolding, one common horizon-indexed experiment family is fieldwise tied to P†; its class memberships instantiate every stated constant, the explicit witness yields the exact score, moment, policy, and attraction facts, and the connected basin identities, positive masses, coverage limit, and unequal covariance matrices give the advertised contrastwise validity and matrixwise failure."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "lem:mourrat-bounded-martingale-clt",
+      "kind": "gate",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Let \\(p\\in[1,\\infty)\\), \\(\\gamma>0\\), and let \\((X_i,\\mathcal G_i)_{i=1}^n\\) be a scalar martingale-difference sequence with \\(n\\ge2\\) and \\(\\max_i\\|X_i\\|_\\infty\\le\\gamma\\). Put \\(s^2=\\sum_{i=1}^nE[X_i^2]\\), \\(V^2=s^{-2}\\sum_{i=1}^nE[X_i^2\\mid\\mathcal G_{i-1}]\\), and \\(D=\\sup_x|P\\{s^{-1}\\sum_iX_i\\le x\\}-\\Phi(x)|\\). There is a constant \\(C_{p,\\gamma}\\) such that\n\\[\nD\\le C_{p,\\gamma}\\left\\{\\frac{n\\log n}{s^3}+\\left(\\|V^2-1\\|_p^p+s^{-2p}\\right)^{1/(2p+1)}\\right\\}.\n\\]",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.MourratBoundedMartingaleCLT",
+        "file": "Helpers/MartingaleCLT.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "7e1fa2950577a4c7ed15b8cdec2880884ad02640",
+        "note": "The logical carrier self-containedly expands the bounded scalar martingale-difference class and preserves the source quantifier order, constant dependence, normalization, Kolmogorov distance, and every term and exponent in inequality (1.6)."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "gate": {
+        "gate_class": "cited",
+        "source": "cite:mourrat-2013-martingale-clt"
+      }
+    },
+    {
+      "id": "lem:saco-pointwise-rqv-pivot",
+      "kind": "gate",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Saco, arXiv:2602.15559v1, Theorem~5.14, under Assumptions~3.6, 3.2, 3.7, 3.8, 4.5, 4.8, 3.9, 3.10, and 5.11, with maintained Assumption~3.5, asserts that the realized-quadratic-variation score statistic and its feasible Studentized version converge in distribution to \\(N(0,1)\\), and that the associated Wald interval has asymptotically correct coverage without a deterministic variance-stabilization assumption.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.SacoTheorem514Claim",
+        "file": "Saco/CitedClaim.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "2e978cd0bf2ca9b9cc3ac18974728cef11eaccbf",
+        "note": "After unfolding SacoArrayWorld, SacoSourceConditions, CDFConverges, and the AIPW quantities, the carrier encodes the attested numbered assumptions, both Gaussian limits, and Wald coverage without variance stabilization."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "gate": {
+        "gate_class": "cited",
+        "source": "cite:saco-2026-self-normalized-adaptive-experiments"
+      }
+    },
+    {
+      "id": "lem:early-measurable-martingale-mixture",
+      "obj_id": "L-1",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Let \\((X_{T,t},\\mathcal G_{T,t})_{t=1}^T\\) be a scalar martingale-difference triangular array under \\(P\\), let \\(0\\le k_T<T\\), and suppose \\(|X_{T,t}|\\le L<\\infty\\) almost surely. Let \\(\\lambda_T\\) be \\(\\mathcal G_{T,k_T}\\)-measurable and satisfy \\(0<v_-\\le\\lambda_T\\le v_+<\\infty\\) almost surely. If\n\\[\n \\Delta_T:=E_P\\left|T^{-1}\\sum_{t=k_T+1}^T\n E_P[X_{T,t}^2\\mid\\mathcal G_{T,t-1}]-\\lambda_T\\right|\\longrightarrow0,\n\\]\nthen\n\\[\n \\sup_{z\\in\\mathbb R}\\left|P\\left\\{T^{-1/2}\\sum_{t=k_T+1}^T X_{T,t}\\le z\\right\\}\n -E_P\\Phi\\left(\\frac{z}{\\sqrt{\\lambda_T}}\\right)\\right|\\longrightarrow0.\n\\]\nThe conclusion is uniform over any collection of arrays having common \\(L,v_-,v_+\\) and a common upper bound on \\(\\Delta_T\\) that tends to zero.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.early_measurable_martingale_mixture",
+        "file": "Helpers/MartingaleCLT.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "e6684a9535e5263f1f6c07e8848522cde52aceab",
+        "note": "After unfolding martingaleDifference, the probability normalization, adaptedness, integrability, centering, boundedness, early measurability, variance stabilization, and uniform Kolmogorov conclusion match; hMourrat is the frozen node's exact cited global dependency. | After unfolding martingaleDifference and stdNormalCDF, the hypotheses, suffix normalization, early-measurable scale, uniform Δ convergence, and uniform-in-index-and-z Gaussian-mixture conclusion agree in both directions; hMourrat is the frozen cited dependency explicitly threaded into this consumer."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "lem:bhs-perturbed-limit-set",
+      "kind": "gate",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Let \\(F:\\mathbb R^r\\rightrightarrows\\mathbb R^r\\) have closed graph, nonempty compact convex values, and linear growth. In the terminology of Bena\\\"im, Hofbauer, and Sorin, every bounded perturbed solution of \\(\\dot x\\in F(x)\\) is an asymptotic pseudotrajectory, and its limit set is internally chain transitive.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.BHSPerturbedLimitSetICT",
+        "file": "Helpers/StochasticApproximation.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "cd4d55177ded1ceb0f9f91f48a68f9590692162f",
+        "note": "The closed-graph, nonempty compact convex-value, and linear-growth hypotheses and both bounded-perturbed-solution conclusions match the attested BHS results."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "gate": {
+        "gate_class": "cited",
+        "source": "cite:bhs-2005-perturbed-limit-set"
+      }
+    },
+    {
+      "id": "lem:bhs-lyapunov-ict",
+      "kind": "gate",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Let \\(F:\\mathbb R^r\\rightrightarrows\\mathbb R^r\\) satisfy the standing differential-inclusion hypotheses. If \\(V:\\mathbb R^r\\to\\mathbb R\\) is a continuous Lyapunov function for \\(\\Lambda\\), and \\(V(\\Lambda)\\) has empty interior, then every internally chain-transitive set \\(L\\) is contained in \\(\\Lambda\\) and \\(V\\) is constant on \\(L\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.BHSLyapunovICT",
+        "file": "Helpers/StochasticApproximation.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "cf833c61e310e3efd64f3ddffce27129a3c0cae0",
+        "note": "The explicit closed-graph, compact-convex-value, and linear-growth premises reproduce the standing BHS hypotheses, while the unfolded continuity, Lyapunov, empty-interior, ICT, containment, and constancy clauses match Proposition 3.27."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "gate": {
+        "gate_class": "cited",
+        "source": "cite:bhs-2005-lyapunov-ict"
+      }
+    },
+    {
+      "id": "lem:compact-covariance-law-subsequence",
+      "obj_id": "L-2",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Let \\(0<a\\le b<\\infty\\), and let \\((U_n)\\) be random symmetric \\(d\\)-by-\\(d\\) matrices satisfying \\(aI_d\\preceq U_n\\preceq bI_d\\) almost surely. There are a subsequence \\((n_k)\\) and a Borel probability measure \\(\\mu\\), supported on \\(\\mathcal K_{a,b}=\\{u=u^\\top:aI_d\\preceq u\\preceq bI_d\\}\\), such that \\(E[f(U_{n_k})]\\to\\int f(u)\\,d\\mu(u)\\) for every continuous \\(f:\\mathcal K_{a,b}\\to\\mathbb R\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.compact_covariance_law_subsequence",
+        "file": "Helpers/CovarianceLaws.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "71560000836c40ea16325db5ae7db255bec7fb0d",
+        "note": "Unfolding covarianceInterval gives exactly symmetry and both Loewner bounds; passing to laws on the interval subtype, with null-set modification as needed, and realizing subtype laws preserves every continuous-test integral in both directions."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:guoxu-normalized-inclusion-obstruction",
+      "obj_id": "T-6",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Consider the bounded-noise Guo--Xu recursion with arbitrary fixed \\(\\sigma_1,\\sigma_2>0\\) and deterministic tie arm \\(1\\). Put \\(p=99/100\\), \\(q=1/100\\), and, for \\((u,v)\\in[q,p]^2\\), define\n\\[\n h(u,v)=\\left(\\frac{u+16v}{2},\\frac{17-u-16v}{2},\n                 \\frac{u-4v}{4},\\frac{-3-u+4v}{24}\\right).\n\\]\nFor \\(t\\ge1\\), put \\(D_{t,a}=\\Phi^{\\mathrm{GX}}_{t,a}\\), \\(N_{t,a}=b^{\\mathrm{GX}}_{t,a}\\), and \\(\\Psi_t=(D_{t,1}/t,D_{t,2}/t,N_{t,1}/t,N_{t,2}/t)\\). Then \\(q^{\\mathrm{GX}}_{t,a}=O(t^{-1})\\) almost surely, \\(\\Psi_t\\) obeys an exact stochastic-approximation recursion with step \\(1/(t+1)\\), and its affine interpolation is a bounded perturbed solution, hence an asymptotic pseudotrajectory, of the closed convexified inclusion \\(\\dot\\psi\\in F(\\psi)\\) below. Writing \\(\\Delta(\\psi)=n_1/d_1-n_2/d_2\\), \\(h_+=h(p,q)\\), \\(h_-=h(q,p)\\), \\(h_1=h(p,p)\\), and \\(h_2=h(q,q)\\), its graph on \\(d_1,d_2>0\\) is\n\\[\n F(\\psi)=\n \\begin{cases}\n  \\{h_+-\\psi\\},&\\Delta(\\psi)>0,\\\\\n  \\{h_--\\psi\\},&\\Delta(\\psi)<0,\\\\\n  \\operatorname{co}\\{h_+,h_-,h_1\\}-\\psi,&\\Delta(\\psi)=0,\\ d_1<d_2,\\\\\n  \\operatorname{co}\\{h_+,h_-,h_2\\}-\\psi,&\\Delta(\\psi)=0,\\ d_1>d_2,\\\\\n  \\operatorname{co}\\{h_+,h_-,h_1,h_2\\}-\\psi,&\\Delta(\\psi)=0,\\ d_1=d_2.\n \\end{cases}\n\\]\nEvery almost-sure normalized-state limit set is internally chain transitive for \\(F\\) and is contained in the computable parallelogram \\(\\mathcal C=\\{h(u,v):(u,v)\\in[q,p]^2\\}\\); the projected slope limit set is its continuous image under \\((d_1,d_2,n_1,n_2)\\mapsto(n_1/d_1,n_2/d_2)\\).\n\nThe smaller inclusion having only \\(h_+-\\psi\\), \\(h_--\\psi\\), and \\(\\operatorname{co}\\{h_+-\\psi,h_--\\psi\\}\\) on the switching surface is not a valid unconditional reduction of this recursion. If it were the limiting inclusion, its only internally chain-transitive sets would be the three singletons \\(\\{h_-\\}\\), \\(\\{h(u_0,1-u_0)\\}\\), and \\(\\{h_+\\}\\), where\n\\[\n u_0=\\frac{47+\\sqrt{4609}}{150},\\qquad\n \\frac{N_1}{D_1}=\\frac{N_2}{D_2}\n =b_0:=\\frac{\\sqrt{4609}-91}{1224}\n \\quad\\text{at }h(u_0,1-u_0).\n\\]\nThe correct graph instead has an uncountable family of additional internally chain-transitive singleton equilibria. Explicitly, for\n\\[\n u\\in[u_0,p],\\qquad\n v(u)=\\frac{3u+18-\\sqrt{25u^2-228u+324}}{32},\n\\]\none has \\(h(u,v(u))\\in\\mathcal C\\), equal slope coordinates, first normalized Gram coordinate smaller than the second, and \\(0\\in F(h(u,v(u)))\\). In particular,\n\\[\n v_*:=v(p)=\\frac{2097}{3200}-\\frac{3\\sqrt{5457}}{640}\n\\]\ngives an equilibrium \\(h(p,v_*)\\) distinct from \\(h_-\\), \\(h(u_0,1-u_0)\\), and \\(h_+\\). This continuum is an explicit internally-chain-transitive obstruction to a three-candidate conclusion from the standard differential-inclusion route.\n\nFor the actual recursion, on \\(\\mathcal L_+=\\{\\liminf_t(\\widehat\\beta^{\\mathrm{GX}}_{t,1}-\\widehat\\beta^{\\mathrm{GX}}_{t,2})>0\\}\\) and \\(\\mathcal L_-=\\{\\limsup_t(\\widehat\\beta^{\\mathrm{GX}}_{t,1}-\\widehat\\beta^{\\mathrm{GX}}_{t,2})<0\\}\\), respectively,\n\\[\n (\\widehat\\beta^{\\mathrm{GX}}_{t,1},\\widehat\\beta^{\\mathrm{GX}}_{t,2})^\\top\n \\longrightarrow\n \\left(\\frac{19}{46},-\\frac{79}{3804}\\right)^\\top\n \\quad\\text{and}\\quad\n \\left(-\\frac{79}{634},\\frac{19}{276}\\right)^\\top.\n\\]\nBoth events have probability bounded away from zero uniformly over \\(\\eta_0\\in\\mathsf K_{\\mathrm{GX}}\\), and the corresponding pathwise Cesaro errors converge to zero. If both slopes have a common-coordinate subsequential limit and \\((u,v)\\) is a simultaneous subsequential limit of the empirical conditional arm-\\(1\\) rates, then necessarily\n\\[\n u^2+12uv-21u-64v^2+72v=0.\n\\]\nThe relation \\(v=1-u\\), and hence the candidate \\((u_0,b_0)\\), is justified only if same-arm switching-layer occupation is separately excluded; the exact recursion does not provide that exclusion. Consequently, this argument proves neither finite almost-sure tail selection nor zero probability of switching-surface convergence. It also proves no compact-initial-set uniform attraction moduli \\(r_T(K_0),\\delta_T(K_0)\\). These are dynamics-only conclusions: they assert neither membership in \\(\\mathfrak P_T\\) nor applicability of any inference theorem.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.guoxu_normalized_inclusion_obstruction",
+        "file": "T_GuoXuInclusionObstruction.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "822019e99a4507f9f87a10f547b9f60fda4531de",
+        "note": "Paper⇒Lean fails because Lean strengthens per-η₀ uniformly positive event probabilities to one positive-mass noise set working simultaneously for every η₀; Lean⇒paper fails because it never states the smaller inclusion or its three-singleton ICT classification."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "prop:endogenous-qv-self-normalization-obstruction",
+      "obj_id": "T-7",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "There is a bounded two-arm, one-dimensional adaptive IPW-Z experiment targeting the causal arm-mean contrast \\(\\theta^*=E[Y_t(1)]-E[Y_t(2)]\\), with uniform overlap and nonsingular Jacobian, for which \\(T^{-1}\\langle S\\rangle_T\\ge4\\) almost surely but the realized-QV score pivot, and hence its feasible IPW-Z counterpart, has a nonstandard noncentered limit. Specifically, at horizons \\(T=2n\\), the limit is\n\\[\n L=\\mathbf1\\{Z>0\\}\\frac{2Z+4W/\\sqrt3}{\\sqrt{28/3}}\n +\\mathbf1\\{Z\\le0\\}\\frac{2Z+2W}{\\sqrt8},\n\\]\nwhere \\(Z,W\\) are independent \\(N(0,1)\\) variables, and\n\\[\n E[L]=\\frac{2}{\\sqrt{2\\pi}}\n \\left(\\sqrt{\\frac3{28}}-\\frac1{\\sqrt8}\\right)\\ne0.\n\\]\nThus a predictable-QV lower floor and realized-to-predictable QV consistency do not suffice for a Gaussian self-normalized pivot when an early score selects the later variance regime.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.endogenous_qv_self_normalization_obstruction",
+        "file": "P_EndogenousQVObstruction.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "de027374ed65f73f4f454b15376a4504cad77c62",
+        "note": "Neither implication follows: the paper fixes the feasible pivot's truncation scale at omega=4, giving threshold qhat_T(1)>=2, while Lean passes omega=2 and therefore uses threshold 1; instantiate realizedQVPivot with omega=4."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "lem:early-measurable-scale-self-normalized-martingale-clt",
+      "obj_id": "L-3",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Let \\((X_{n,t},\\mathcal G_{n,t})_{t=1}^{N_n}\\) be a scalar martingale-difference triangular array, where \\(N_n\\) and \\(h_n\\) are deterministic integers satisfying \\(0\\le h_n<N_n\\), and suppose \\(|X_{n,t}|\\le L<\\infty\\) almost surely. Let \\(\\lambda_n\\) be a positive \\(\\mathcal G_{n,h_n}\\)-measurable random variable, and let \\(\\nu_n>0\\) be deterministic with \\(\\lambda_n\\ge\\nu_n\\) almost surely. Define\n\\[\n S_n=\\sum_{t=1}^{N_n}X_{n,t},\\qquad\n Q_n=\\sum_{t=1}^{N_n}X_{n,t}^2,\\qquad\n A_{n,+}^2=\\sum_{t=h_n+1}^{N_n}E[X_{n,t}^2\\mid\\mathcal G_{n,t-1}].\n\\]\nIf\n\\[\n N_n\\nu_n\\longrightarrow\\infty,\\qquad\n \\frac{h_n}{N_n\\nu_n}\\longrightarrow0,\\qquad\n \\frac{A_{n,+}^2}{N_n\\lambda_n}\\longrightarrow1\n \\quad\\text{in probability},\n\\]\nthen\n\\[\n \\frac{Q_n}{N_n\\lambda_n}\\longrightarrow1\n \\quad\\text{in probability},\\qquad\n P(Q_n>0)\\longrightarrow1,\\qquad\n \\frac{S_n}{\\sqrt{Q_n}}\\Rightarrow N(0,1).\n\\]\nAll conclusions are uniform over a collection of arrays if \\(L\\) is common and each displayed convergence premise is uniform over that collection.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.early_measurable_scale_self_normalized_martingale_clt",
+        "file": "Helpers/SelfNormalizedCLT.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "b66f3e9f31eb2acdb7dc97528cd77510d3d89cba",
+        "note": "Unfolding the array and uniform-convergence definitions gives exactly the bounded martingale-array premises and the three uniform conclusions, with the self-normalized ratio set to zero when Q_n = 0."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "lem:aldous-eagleson-stable-martingale-apparatus",
+      "kind": "gate",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Aldous and Eagleson show that a martingale central limit theorem can be obtained directly using stability.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.AldousEaglesonStableMartingaleApparatus",
+        "file": "Helpers/MartingaleCLT.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "479380d569d8fecf30812cca537847b49ac58d14",
+        "note": "The cited source does not imply this Lean proposition: the declaration omits an asymptotic-negligibility/Lindeberg hypothesis, so a single Rademacher first increment with all later increments zero satisfies its premises while the standardized sum remains Rademacher rather than Gaussian."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "gate": {
+        "gate_class": "cited",
+        "source": "cite:aldous-eagleson-1978-stability"
+      }
+    },
+    {
+      "id": "prop:saco-theorem-5-14-counterexample",
+      "obj_id": "T-8",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "At every even horizon \\(T=2n\\), the bounded two-regime score and randomization process of Proposition~\\(\\text{prop:endogenous-qv-self-normalization-obstruction}\\) has an explicit bounded augmentation with a nondegenerate observable-outcome law and a nonzero causal effect that satisfies every assumption explicitly listed in Saco's Theorem~5.14 and also its maintained consistency and no-interference condition. Namely, let \\((U_t)_{t=1}^T\\) be independent Rademacher variables, independent of the action randomizers, set \\(A_t^{\\mathrm S}:=\\mathbf1\\{A_t=1\\}\\) and \\(X_t^{\\mathrm S}:=(X_t,U_t)\\), and set\n\\[\n Y_t^{\\mathrm S}(1)=\\frac32+U_t,\n \\qquad\n Y_t^{\\mathrm S}(0)=\\frac12+U_t.\n\\]\nAt context value \\((x,u)\\), set the predictable nuisance regressions to \\(\\widehat m_{t-1,1}(x,u)=u+1/2\\) and \\(\\widehat m_{t-1,0}(x,u)=u-1/2\\). Then the causal target is \\(\\theta_0=E_P[Y_t^{\\mathrm S}(1)-Y_t^{\\mathrm S}(0)]=1\\), while the observed outcome obeys \\(\\operatorname{Var}(Y_t^{\\mathrm S}\\mid\\mathcal F_{t-1})=1+p_t(1-p_t)\\ge1\\), where \\(p_t:=P(A_t=1\\mid\\mathcal F_{t-1})\\). Saco's centered AIPW increment is nevertheless exactly \\(\\xi_t\\). Conditionally on \\(\\mathcal F_{t-1}\\),\n\\[\n P\\!\\left(\\xi_t=\\frac1{p_t}\\,\\middle|\\,\\mathcal F_{t-1}\\right)=p_t,\n \\qquad\n P\\!\\left(\\xi_t=-\\frac1{1-p_t}\\,\\middle|\\,\\mathcal F_{t-1}\\right)=1-p_t,\n\\]\nand hence \\(E(\\xi_t\\mid\\mathcal F_{t-1})=0\\) and \\(\\operatorname{Var}(\\xi_t\\mid\\mathcal F_{t-1})=1/p_t+1/(1-p_t)\\in\\{4,16/3\\}\\). Saco's realized and predictable quadratic variations are therefore \\(Q_T=[S]_T\\) and \\(V_T^2=\\langle S\\rangle_T\\), with \\(V_T^2\\ge4T\\) almost surely. Nevertheless, along \\(T=2n\\),\n\\[\n \\frac{S_T}{\\sqrt{Q_T}}\\Longrightarrow\n L:=\\mathbf1\\{Z>0\\}\\frac{2Z+4W/\\sqrt3}{\\sqrt{28/3}}\n +\\mathbf1\\{Z\\le0\\}\\frac{2Z+2W}{\\sqrt8},\n\\]\nwhere \\(Z,W\\) are independent \\(N(0,1)\\) variables and\n\\[\n E[L]=\\frac{2}{\\sqrt{2\\pi}}\n \\left(\\sqrt{\\frac3{28}}-\\frac1{\\sqrt8}\\right)\\ne0.\n\\]\nThe feasible sample-variance Studentized AIPW statistic has the same limit \\(L\\). Thus the variance-growth-only normal-limit conclusions asserted in Saco's Theorem~5.14 are false as stated, even for bounded nondegenerate outcomes and a nonzero causal effect.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.saco_theorem_5_14_counterexample",
+        "file": "Saco/P_Counterexample.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "44d6132ab5109d1c39090979600286de576ed247",
+        "note": "Paper implies Lean, but Lean does not imply paper: the extra hSaco premise makes the theorem equivalent merely to ¬ SacoTheorem514Claim and therefore does not certify the witness; moreover, unfolded SacoCounterexampleWitnessStatement does not pin the stated Rademacher augmentation, potential-outcome/nuisance identities, observable-outcome support law, or pointwise boundedness. Remove hSaco and assert an existential carrying those construction identities and bounds together with ¬ SacoTheorem514Claim."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "lem:early-measurable-l4-self-normalized-martingale-clt",
+      "obj_id": "L-4",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Let \\((X_{n,s},\\mathcal G_{n,s})_{s=1}^{N_n}\\) be a scalar martingale-difference triangular array, where \\(N_n\\to\\infty\\), and let \\(0\\le h_n<N_n\\) be deterministic with \\(h_n/N_n\\to0\\).  Suppose that for constants \\(C_4<\\infty\\) and \\(\\lambda_->0\\),\n\\[\n\\sup_{n,s}E|X_{n,s}|^4\\le C_4,\\qquad\n\\lambda_n\\ge\\lambda_-\\quad\\text{almost surely},\n\\]\nwhere \\(\\lambda_n\\) is positive and \\(\\mathcal G_{n,h_n}\\)-measurable.  Define\n\\[\nS_n=\\sum_{s=1}^{N_n}X_{n,s},\\qquad\nQ_n=\\sum_{s=1}^{N_n}X_{n,s}^2,\\qquad\nA_{n,+}^2=\\sum_{s=h_n+1}^{N_n}E[X_{n,s}^2\\mid\\mathcal G_{n,s-1}].\n\\]\nIf \\(A_{n,+}^2/(N_n\\lambda_n)\\to1\\) in probability, then\n\\[\n\\frac{Q_n}{N_n\\lambda_n}\\longrightarrow1\\quad\\text{in probability},\\qquad\nP(Q_n>0)\\longrightarrow1,\\qquad\n\\sup_{z\\in\\mathbb R}\\left|P\\left\\{\\frac{S_n}{\\sqrt{Q_n}}\\le z\\right\\}-\\Phi(z)\\right|\\longrightarrow0,\n\\]\nwhere the ratio is set to zero on \\(\\{Q_n=0\\}\\).  Every conclusion is uniform over any collection of arrays for which \\(C_4,\\lambda_-\\), \\(h_n/N_n\\to0\\), and the displayed predictable-QV convergence are uniform.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.early_measurable_l4_self_normalized_martingale_clt",
+        "file": "Helpers/SelfNormalizedCLT.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "af4279a0b8c65e143c2993acbdf68d5c66266548",
+        "note": "After unfolding the array sums, predictable QV, martingale-difference, uniform-probability, uniform-event, and uniform-CDF predicates, the Lean hypotheses and all three uniform conclusions are equivalent to the paper statement; explicit fourth-power integrability supplies the finiteness presupposed by the displayed fourth moment."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:saco-early-stabilized-aipw-pivot",
+      "obj_id": "T-9",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For the class in Definition~\\(\\mathrm{def:saco\\text{-}early\\text{-}stabilized\\text{-}aipw\\text{-}class}\\), let \\(S_n,Q_n,\\widehat\\theta_n,\\widehat V_n,\\theta_{0,n}\\), and \\(N_n=n_{\\mathrm{eff}}\\) have the meanings given there.  Then the centered AIPW scores are martingale differences in deterministic scored-set order, and there is a finite constant \\(C_X\\), depending only on the common overlap and outcome/nuisance fourth-moment envelopes, such that\n\\[\n\\sup_{n,\\mathbb P_n,s}E_{\\mathbb P_n}|X_{n,s}|^4\\le C_X.\n\\]\nFor every \\(\\zeta>0\\),\n\\[\n\\sup_{\\mathbb P_n\\in\\mathfrak C_n^{\\mathrm{Saco,es}}}\n\\mathbb P_n\\left(\\left|\\frac{Q_n}{N_n\\Lambda_n}-1\\right|>\\zeta\\right)\\longrightarrow0,\n\\]\nand\n\\[\n\\sup_{\\mathbb P_n\\in\\mathfrak C_n^{\\mathrm{Saco,es}}}\\sup_{z\\in\\mathbb R}\n\\left|\\mathbb P_n\\left\\{\\frac{S_n}{\\sqrt{Q_n}}\\le z\\right\\}-\\Phi(z)\\right|\\longrightarrow0,\n\\]\nwhere the score ratio is set to zero when \\(Q_n=0\\).  If\n\\[\nZ_n^{\\mathrm{feas}}=\n\\begin{cases}\n\\sqrt{N_n}(\\widehat\\theta_n-\\theta_{0,n})/\\sqrt{\\widehat V_n},&\\widehat V_n>0,\\\\\n0,&\\widehat V_n=0,\n\\end{cases}\n\\]\nthen\n\\[\n\\sup_{\\mathbb P_n\\in\\mathfrak C_n^{\\mathrm{Saco,es}}}\\sup_{z\\in\\mathbb R}\n\\left|\\mathbb P_n\\{Z_n^{\\mathrm{feas}}\\le z\\}-\\Phi(z)\\right|\\longrightarrow0.\n\\]\nConsequently, for every fixed \\(\\alpha\\in(0,1)\\), the interval\n\\[\n\\mathcal I_n(\\alpha)=\\left[\\widehat\\theta_n\\ \\pm\\ \\Phi^{-1}(1-\\alpha/2)\\sqrt{\\widehat V_n/N_n}\\right]\n\\]\nsatisfies\n\\[\n\\sup_{\\mathbb P_n\\in\\mathfrak C_n^{\\mathrm{Saco,es}}}\n\\left|\\mathbb P_n\\{\\theta_{0,n}\\in\\mathcal I_n(\\alpha)\\}-(1-\\alpha)\\right|\\longrightarrow0.\n\\]\nThus the valid direct repair is Saco's published enumerated AIPW/DML class intersected with early measurable suffix-QV stabilization, not the variance-growth-only source class.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.saco_early_stabilized_aipw_pivot",
+        "file": "Saco/T_EarlyStabilizedPivot.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "6566dcddc07d0094eb9e0f7610607509e44ae894",
+        "note": "After unfolding the class, score, sample-variance, martingale-difference, uniform-convergence, Gaussian-CDF/probit, and variance-growth-only predicates, Lean preserves both directions of the paper statement, including all uniform quantifiers, zero-case conventions, the common fourth-moment bound, feasible pivot, Wald coverage, and rejection of the variance-growth-only claim."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "prop:saco-counterexample-violates-early-stabilization",
+      "obj_id": "T-10",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "In the bounded two-regime AIPW witness of Proposition~\\(\\mathrm{prop:saco\\text{-}theorem\\text{-}5\\text{-}14\\text{-}counterexample}\\), at horizons \\(T=2n\\), no deterministic sequence \\(k_T=o(T)\\) and no positive \\(\\mathcal F_{k_T}\\)-measurable scale \\(\\Lambda_T\\), even if bounded uniformly away from zero, can satisfy\n\\[\n\\frac{\\sum_{t=k_T+1}^{T}E[\\xi_t^2\\mid\\mathcal F_{t-1}]}{T\\Lambda_T}\\longrightarrow1\n\\quad\\text{in probability}.\n\\]\nConsequently the witness belongs to Saco's variance-growth-only hypothesis class but cannot belong to the early-stabilized class in Definition~\\(\\mathrm{def:saco\\text{-}early\\text{-}stabilized\\text{-}aipw\\text{-}class}\\) for any cutoff \\(k_T=o(n_{\\mathrm{eff}})\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.Experimentation.BanditRandomQV.saco_counterexample_violates_early_stabilization",
+        "file": "Saco/P_StrictInclusion.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "48a1ba29816c81e92820bc667e2e9d8cc3f83b43",
+        "note": "Paper ⇒ Lean, but Lean ⇒ paper fails: Lean separately asserts `SacoCounterexampleWitnessStatement` and an existential `W` satisfying the stabilization obstruction, so they may be different witnesses; place the obstruction inside the same existential witness that satisfies the counterexample statement."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "aux_AdaptiveCausalExperiment",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def AdaptiveCausalExperiment, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "AdaptiveCausalExperiment",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_basinStableIPWZConclusion",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def basinStableIPWZConclusion, flavor const-exist)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "basinStableIPWZConclusion",
+        "file": "T_BasinStableIPWZ.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CDFConverges",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CDFConverges, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CDFConverges",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CompactSelector",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CompactSelector, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CompactSelector",
+        "file": "Helpers/Estimator.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_ConditionallyIndependent",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def ConditionallyIndependent, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "ConditionallyIndependent",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_DifferentialInclusionInterface",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def DifferentialInclusionInterface, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "DifferentialInclusionInterface",
+        "file": "Helpers/StochasticApproximation.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_guoXuInclusionObstructionConclusion",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def guoXuInclusionObstructionConclusion, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "guoXuInclusionObstructionConclusion",
+        "file": "T_GuoXuInclusionObstruction.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_martingaleDifference",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def martingaleDifference, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "martingaleDifference",
+        "file": "Helpers/MartingaleCLT.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_opNormLE",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def opNormLE, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "opNormLE",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_psdLE",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def psdLE, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "psdLE",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_qform",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def qform, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "qform",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_SacoArrayWorld",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def SacoArrayWorld, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "SacoArrayWorld",
+        "file": "Saco/World.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_SacoSourceConditions",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def SacoSourceConditions, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "SacoSourceConditions",
+        "file": "Saco/Class.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_scaleMixtureCoverage",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def scaleMixtureCoverage, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "scaleMixtureCoverage",
+        "file": "T_ContrastwiseSandwich.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_TendstoInProbability",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def TendstoInProbability, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "TendstoInProbability",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_UniformCDFConverges",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def UniformCDFConverges, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "UniformCDFConverges",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_uniformRealizedQVPivotConclusion",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def uniformRealizedQVPivotConclusion, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "uniformRealizedQVPivotConclusion",
+        "file": "T_UniformRealizedQVPivot.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_Vec",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def Vec, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "Vec",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_RowOverlapAE",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def RowOverlapAE, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "RowOverlapAE",
+        "file": "Saco/World.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_AsymptoticPseudoTrajectory",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def AsymptoticPseudoTrajectory, flavor const-exist)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "AsymptoticPseudoTrajectory",
+        "file": "Helpers/StochasticApproximation.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_basinOmega",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def basinOmega, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "basinOmega",
+        "file": "Helpers/BasinCovariance.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_BoundedPath",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def BoundedPath, flavor const-exist)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "BoundedPath",
+        "file": "Helpers/StochasticApproximation.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_DecisionTime",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def DecisionTime, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "DecisionTime",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_DifferentialInclusionSolution",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def DifferentialInclusionSolution, flavor const-exist)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "DifferentialInclusionSolution",
+        "file": "Helpers/StochasticApproximation.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_dot",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def dot, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "dot",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_earlyCutoff",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def earlyCutoff, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "earlyCutoff",
+        "file": "T_UniformRealizedQVPivot.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_GuoXuState",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def GuoXuState, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "GuoXuState",
+        "file": "Helpers/GuoXuRecursion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_InclusionChain",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def InclusionChain, flavor const-exist)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "InclusionChain",
+        "file": "Helpers/StochasticApproximation.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_InternallyChainTransitive",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def InternallyChainTransitive, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "InternallyChainTransitive",
+        "file": "Helpers/StochasticApproximation.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IPWZContract",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IPWZContract, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IPWZContract",
+        "file": "Helpers/Estimator.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_LexLE",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def LexLE, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "LexLE",
+        "file": "Helpers/Estimator.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_LyapunovFor",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def LyapunovFor, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "LyapunovFor",
+        "file": "Helpers/StochasticApproximation.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_matVec",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def matVec, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "matVec",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_PerturbedSolution",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def PerturbedSolution, flavor const-exist)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "PerturbedSolution",
+        "file": "Helpers/StochasticApproximation.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_terminalV",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def terminalV, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "terminalV",
+        "file": "Helpers/BasinCovariance.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_transpose",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def transpose, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "transpose",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_UniformBigOInProbability",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def UniformBigOInProbability, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "UniformBigOInProbability",
+        "file": "T_BasinStableIPWZ.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_UniformInProbability",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def UniformInProbability, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "UniformInProbability",
+        "file": "Helpers/SelfNormalizedCLT.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_WeakMatrixLawConvergence",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def WeakMatrixLawConvergence, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "WeakMatrixLawConvergence",
+        "file": "T_BasinStableIPWZ.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_GuoXuNoise",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def GuoXuNoise, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "GuoXuNoise",
+        "file": "Helpers/GuoXuRecursion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_GuoXuNormalizedData",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def GuoXuNormalizedData, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "GuoXuNormalizedData",
+        "file": "Helpers/GuoXuRecursion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_GuoXuPositiveScales",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def GuoXuPositiveScales, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "GuoXuPositiveScales",
+        "file": "Helpers/GuoXuRecursion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_GuoXuReductionConditions",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def GuoXuReductionConditions, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "GuoXuReductionConditions",
+        "file": "Helpers/GuoXuRecursion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_PositiveDefinite",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def PositiveDefinite, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "PositiveDefinite",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_SacoVarianceGrowthOnlyClaim",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def SacoVarianceGrowthOnlyClaim, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "SacoVarianceGrowthOnlyClaim",
+        "file": "Saco/T_EarlyStabilizedPivot.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_PositiveHorizon",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def PositiveHorizon, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "PositiveHorizon",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_UniformCDFConvergesPositive",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def UniformCDFConvergesPositive, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "UniformCDFConvergesPositive",
+        "file": "T_UniformRealizedQVPivot.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "kind": "proof-uses",
+      "from": "thm:basin-stable-ipwz",
+      "to": "def:finite-attractor-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:basin-stable-ipwz",
+      "to": "def:ipw-z-estimator",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:basin-stable-ipwz",
+      "to": "def:basin-covariance",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:basin-stable-ipwz",
+      "to": "lem:early-measurable-martingale-mixture",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:basin-stable-ipwz",
+      "to": "lem:compact-covariance-law-subsequence",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:basin-stable-ipwz",
+      "to": "ass:sequential-randomization",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:basin-stable-ipwz",
+      "to": "ass:iid-full-data",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "def:projected-qv-growth-ipwz-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "def:ipw-z-estimator",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "def:event-truncated-rqv-sandwich",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "def:realized-qv-pivot",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "def:realized-qv-wald-interval",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "lem:early-measurable-scale-self-normalized-martingale-clt",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "thm:basin-stable-ipwz",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "def:finite-attractor-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "def:basin-covariance",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:contrastwise-deterministic-sandwich-iff",
+      "to": "thm:basin-stable-ipwz",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:contrastwise-deterministic-sandwich-iff",
+      "to": "def:deterministic-wald-interval",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:matrixwise-deterministic-sandwich-iff",
+      "to": "thm:contrastwise-deterministic-sandwich-iff",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:directional-matrix-separation",
+      "to": "def:finite-attractor-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:directional-matrix-separation",
+      "to": "def:directional-matrix-witness",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:directional-matrix-separation",
+      "to": "def:basin-covariance",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:directional-matrix-separation",
+      "to": "thm:contrastwise-deterministic-sandwich-iff",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:directional-matrix-separation",
+      "to": "thm:matrixwise-deterministic-sandwich-iff",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:early-measurable-martingale-mixture",
+      "to": "lem:mourrat-bounded-martingale-clt",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:guoxu-normalized-inclusion-obstruction",
+      "to": "def:guoxu-recursion",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:guoxu-normalized-inclusion-obstruction",
+      "to": "def:guoxu-dynamics-handle",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:guoxu-normalized-inclusion-obstruction",
+      "to": "lem:bhs-perturbed-limit-set",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:guoxu-normalized-inclusion-obstruction",
+      "to": "lem:bhs-lyapunov-ict",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "def:ipw-z-estimator",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "def:event-truncated-rqv-sandwich",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "def:realized-qv-pivot",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:saco-theorem-5-14-counterexample",
+      "to": "prop:endogenous-qv-self-normalization-obstruction",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:saco-theorem-5-14-counterexample",
+      "to": "lem:saco-pointwise-rqv-pivot",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:saco-early-stabilized-aipw-pivot",
+      "to": "def:saco-early-stabilized-aipw-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:saco-early-stabilized-aipw-pivot",
+      "to": "lem:early-measurable-l4-self-normalized-martingale-clt",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:saco-counterexample-violates-early-stabilization",
+      "to": "def:saco-early-stabilized-aipw-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:saco-counterexample-violates-early-stabilization",
+      "to": "prop:endogenous-qv-self-normalization-obstruction",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:saco-counterexample-violates-early-stabilization",
+      "to": "prop:saco-theorem-5-14-counterexample",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:basin-stable-ipwz",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:basin-stable-ipwz",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:basin-stable-ipwz",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:uniform-realized-qv-pivot",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:uniform-realized-qv-pivot",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:uniform-realized-qv-pivot",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:contrastwise-deterministic-sandwich-iff",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:contrastwise-deterministic-sandwich-iff",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:contrastwise-deterministic-sandwich-iff",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:matrixwise-deterministic-sandwich-iff",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:matrixwise-deterministic-sandwich-iff",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:matrixwise-deterministic-sandwich-iff",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "prop:directional-matrix-separation",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "prop:directional-matrix-separation",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "prop:directional-matrix-separation",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:guoxu-normalized-inclusion-obstruction",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:guoxu-normalized-inclusion-obstruction",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:guoxu-normalized-inclusion-obstruction",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "prop:endogenous-qv-self-normalization-obstruction",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "prop:endogenous-qv-self-normalization-obstruction",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "prop:endogenous-qv-self-normalization-obstruction",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "prop:saco-theorem-5-14-counterexample",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "prop:saco-theorem-5-14-counterexample",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "prop:saco-theorem-5-14-counterexample",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:saco-early-stabilized-aipw-pivot",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:saco-early-stabilized-aipw-pivot",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:saco-early-stabilized-aipw-pivot",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "prop:saco-counterexample-violates-early-stabilization",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "prop:saco-counterexample-violates-early-stabilization",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "prop:saco-counterexample-violates-early-stabilization",
+      "source": "declared"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:iid-full-data",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:sequential-randomization",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:uniform-overlap",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:bounded-score",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:smooth-z-map",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:uniform-root-separation",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:root-interior",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:jacobian-nonsingular",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:policy-lipschitz",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:finite-tail-selection",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:finite-tail-selection",
+      "to": "aux_Vec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:uniform-attraction-modulus",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:uniform-attraction-modulus",
+      "to": "aux_Vec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:finite-attractor-separation",
+      "to": "aux_Vec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:uniform-projected-predictable-qv-growth",
+      "to": "aux_PositiveHorizon",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:uniform-projected-predictable-qv-growth",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:uniform-projected-predictable-qv-growth",
+      "to": "aux_Vec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:basin-covariance",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:basin-covariance",
+      "to": "aux_Vec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:finite-attractor-class",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:finite-attractor-class",
+      "to": "aux_Vec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:finite-attractor-class",
+      "to": "ass:iid-full-data",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:finite-attractor-class",
+      "to": "ass:sequential-randomization",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:finite-attractor-class",
+      "to": "ass:uniform-overlap",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:finite-attractor-class",
+      "to": "ass:bounded-score",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:finite-attractor-class",
+      "to": "ass:smooth-z-map",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:finite-attractor-class",
+      "to": "ass:uniform-root-separation",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:finite-attractor-class",
+      "to": "ass:root-interior",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:finite-attractor-class",
+      "to": "ass:jacobian-nonsingular",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:finite-attractor-class",
+      "to": "ass:policy-lipschitz",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:finite-attractor-class",
+      "to": "ass:finite-attractor-separation",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:finite-attractor-class",
+      "to": "ass:finite-tail-selection",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:projected-qv-growth-ipwz-class",
+      "to": "aux_PositiveHorizon",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:projected-qv-growth-ipwz-class",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:projected-qv-growth-ipwz-class",
+      "to": "aux_Vec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:projected-qv-growth-ipwz-class",
+      "to": "ass:iid-full-data",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:projected-qv-growth-ipwz-class",
+      "to": "ass:sequential-randomization",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:projected-qv-growth-ipwz-class",
+      "to": "ass:uniform-overlap",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:projected-qv-growth-ipwz-class",
+      "to": "ass:bounded-score",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:projected-qv-growth-ipwz-class",
+      "to": "ass:smooth-z-map",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:projected-qv-growth-ipwz-class",
+      "to": "ass:uniform-root-separation",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:projected-qv-growth-ipwz-class",
+      "to": "ass:root-interior",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:projected-qv-growth-ipwz-class",
+      "to": "ass:jacobian-nonsingular",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:projected-qv-growth-ipwz-class",
+      "to": "ass:vanishing-modulus",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:projected-qv-growth-ipwz-class",
+      "to": "ass:uniform-projected-predictable-qv-growth",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:projected-qv-growth-ipwz-class",
+      "to": "aux_dot",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:projected-qv-growth-ipwz-class",
+      "to": "aux_matVec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:ipw-z-estimator",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:ipw-z-estimator",
+      "to": "aux_IPWZContract",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:ipw-z-estimator",
+      "to": "aux_Vec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:event-truncated-rqv-sandwich",
+      "to": "aux_Vec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:realized-qv-pivot",
+      "to": "aux_Vec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:deterministic-wald-interval",
+      "to": "aux_Vec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:deterministic-wald-interval",
+      "to": "aux_PositiveDefinite",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:realized-qv-wald-interval",
+      "to": "aux_Vec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:guoxu-recursion",
+      "to": "aux_GuoXuPositiveScales",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:guoxu-recursion",
+      "to": "aux_GuoXuState",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:guoxu-dynamics-handle",
+      "to": "aux_GuoXuPositiveScales",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:guoxu-dynamics-handle",
+      "to": "aux_GuoXuNormalizedData",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:early-measurable-martingale-mixture",
+      "to": "lem:mourrat-bounded-martingale-clt",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:early-measurable-martingale-mixture",
+      "to": "aux_martingaleDifference",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:early-measurable-scale-self-normalized-martingale-clt",
+      "to": "aux_martingaleDifference",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:early-measurable-scale-self-normalized-martingale-clt",
+      "to": "aux_UniformInProbability",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:early-measurable-scale-self-normalized-martingale-clt",
+      "to": "aux_UniformCDFConverges",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:early-measurable-l4-self-normalized-martingale-clt",
+      "to": "aux_martingaleDifference",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:early-measurable-l4-self-normalized-martingale-clt",
+      "to": "aux_UniformInProbability",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:early-measurable-l4-self-normalized-martingale-clt",
+      "to": "aux_UniformCDFConverges",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "aux_IPWZContract",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "ass:iid-full-data",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "ass:sequential-randomization",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "ass:uniform-overlap",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "ass:bounded-score",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "ass:smooth-z-map",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "ass:uniform-root-separation",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "ass:root-interior",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "ass:jacobian-nonsingular",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "aux_qform",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "aux_TendstoInProbability",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "aux_CDFConverges",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "aux_dot",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "def:realized-qv-pivot",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:endogenous-qv-self-normalization-obstruction",
+      "to": "def:ipw-z-estimator",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:saco-early-stabilized-aipw-class",
+      "to": "aux_SacoArrayWorld",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:saco-early-stabilized-aipw-class",
+      "to": "aux_SacoSourceConditions",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:saco-early-stabilized-aipw-class",
+      "to": "aux_UniformInProbability",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:saco-theorem-5-14-counterexample",
+      "to": "lem:saco-pointwise-rqv-pivot",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:saco-counterexample-violates-early-stabilization",
+      "to": "aux_SacoArrayWorld",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:saco-counterexample-violates-early-stabilization",
+      "to": "aux_SacoSourceConditions",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:saco-counterexample-violates-early-stabilization",
+      "to": "aux_TendstoInProbability",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:saco-early-stabilized-aipw-pivot",
+      "to": "aux_SacoArrayWorld",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:saco-early-stabilized-aipw-pivot",
+      "to": "def:saco-early-stabilized-aipw-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:saco-early-stabilized-aipw-pivot",
+      "to": "aux_martingaleDifference",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:saco-early-stabilized-aipw-pivot",
+      "to": "aux_UniformInProbability",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:saco-early-stabilized-aipw-pivot",
+      "to": "aux_UniformCDFConverges",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:saco-early-stabilized-aipw-pivot",
+      "to": "aux_SacoVarianceGrowthOnlyClaim",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:basin-stable-ipwz",
+      "to": "aux_PositiveHorizon",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:basin-stable-ipwz",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:basin-stable-ipwz",
+      "to": "aux_Vec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:basin-stable-ipwz",
+      "to": "aux_IPWZContract",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:basin-stable-ipwz",
+      "to": "def:finite-attractor-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:basin-stable-ipwz",
+      "to": "aux_basinStableIPWZConclusion",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:contrastwise-deterministic-sandwich-iff",
+      "to": "aux_PositiveDefinite",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:contrastwise-deterministic-sandwich-iff",
+      "to": "aux_Vec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:contrastwise-deterministic-sandwich-iff",
+      "to": "aux_dot",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:contrastwise-deterministic-sandwich-iff",
+      "to": "def:deterministic-wald-interval",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:contrastwise-deterministic-sandwich-iff",
+      "to": "def:ipw-z-estimator",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:contrastwise-deterministic-sandwich-iff",
+      "to": "aux_qform",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:guoxu-normalized-inclusion-obstruction",
+      "to": "lem:bhs-perturbed-limit-set",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:guoxu-normalized-inclusion-obstruction",
+      "to": "lem:bhs-lyapunov-ict",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:guoxu-normalized-inclusion-obstruction",
+      "to": "aux_guoXuInclusionObstructionConclusion",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:matrixwise-deterministic-sandwich-iff",
+      "to": "aux_PositiveDefinite",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:matrixwise-deterministic-sandwich-iff",
+      "to": "aux_transpose",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:matrixwise-deterministic-sandwich-iff",
+      "to": "aux_Vec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:matrixwise-deterministic-sandwich-iff",
+      "to": "aux_dot",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:matrixwise-deterministic-sandwich-iff",
+      "to": "def:deterministic-wald-interval",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:matrixwise-deterministic-sandwich-iff",
+      "to": "def:ipw-z-estimator",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:matrixwise-deterministic-sandwich-iff",
+      "to": "aux_terminalV",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "aux_PositiveHorizon",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "aux_AdaptiveCausalExperiment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "aux_IPWZContract",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "aux_Vec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "def:projected-qv-growth-ipwz-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "def:finite-attractor-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "aux_uniformRealizedQVPivotConclusion",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "aux_earlyCutoff",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "aux_qform",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "aux_basinOmega",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "aux_matVec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "aux_transpose",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "ass:uniform-projected-predictable-qv-growth",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:uniform-realized-qv-pivot",
+      "to": "aux_dot",
+      "source": "extracted"
+    }
+  ],
+  "symbolReview": {
+    "sym:t": {
+      "verdict": "matched",
+      "hash": "ef3df6278221206466f1417643a8b5c4d109f9e2"
+    },
+    "sym:K": {
+      "verdict": "matched",
+      "hash": "47241e2b3e26a67e0e7b05ce9ffba6034d04a85a"
+    },
+    "sym:\\mathcal A": {
+      "verdict": "matched",
+      "hash": "361660e878bd071b11927f3cf69fc27d8b6c71f7"
+    },
+    "sym:\\varepsilon": {
+      "verdict": "matched",
+      "hash": "d7d03aec028f2b658f89bf673eff1f31d1688a17"
+    },
+    "sym:B": {
+      "verdict": "matched",
+      "hash": "eab8941444b778b6fe4c34e9e1d00b733cafb0e9"
+    },
+    "sym:D_1": {
+      "verdict": "matched",
+      "hash": "b08fe601b364903f8566a47cfd19f63111219d4b"
+    },
+    "sym:D_2": {
+      "verdict": "matched",
+      "hash": "bdcc11061c39bac0f40969c8b76e49fa8021bd8e"
+    },
+    "sym:h_-": {
+      "verdict": "matched",
+      "hash": "92df2eb082296f0b4b0ed6f9a0a04036b2272e68"
+    },
+    "sym:L_\\Pi": {
+      "verdict": "matched",
+      "hash": "12ba61d7437553e75c4d333fecd141105bbb61e5"
+    },
+    "sym:\\omega_-": {
+      "verdict": "matched",
+      "hash": "0007ed4aba9a77d9b5914c553d6c8272a3daf532"
+    },
+    "sym:s_\\Theta": {
+      "verdict": "matched",
+      "hash": "b3cf76231d412d11873caa3f5e63fdf5e63c717b"
+    },
+    "sym:\\rho": {
+      "verdict": "matched",
+      "hash": "854bc8ca17274c82bb7b50aea8d43f2525b2489e"
+    },
+    "sym:c": {
+      "verdict": "matched",
+      "hash": "013a1dcca97cdc58c861f8384d85c7b938905054"
+    },
+    "sym:\\mathcal Z_T": {
+      "verdict": "matched",
+      "hash": "b0db4e2492310d871e7b147bdb1e1144698ddedf"
+    },
+    "sym:\\alpha": {
+      "verdict": "matched",
+      "hash": "191cde218aa59a623bf21528baf54c651ba61053"
+    },
+    "sym:R_{t,a}": {
+      "verdict": "matched",
+      "hash": "7c2cef1adf9f84ec0497b98229e2801fff4ebd28"
+    },
+    "sym:\\sigma_a": {
+      "verdict": "matched",
+      "hash": "7410bfd75d2f36b6a0ea2077fa522ed0fb7b2d35"
+    },
+    "sym:q^{\\mathrm{GX}}_{t,a}": {
+      "verdict": "matched",
+      "hash": "b78708b9769b8036b2f1a6feb1a7a924106a9e50"
+    },
+    "sym:M_{\\mathrm{GX}}": {
+      "verdict": "matched",
+      "hash": "20f2ac8a4a12832b85f0067303de711c8799a727"
+    },
+    "sym:\\mathsf K_{\\mathrm{GX}}": {
+      "verdict": "matched",
+      "hash": "0af9fbbabb6b49a49e183aa2598cbde687429f37"
+    },
+    "sym:J_{\\mathrm{GX}}": {
+      "verdict": "matched",
+      "hash": "e7fd2d21d94b3ee4a0d9cdcf34e497f5ae4294ca"
+    },
+    "sym:J": {
+      "verdict": "matched",
+      "hash": "1fe8bee63860f1e40cc409e785f4a86eb3f732aa"
+    },
+    "sym:\\mathcal J": {
+      "verdict": "matched",
+      "hash": "d75d973d3aec2bacb2cd12f0cdf7c16d3ce56d0a"
+    },
+    "sym:Z_1": {
+      "verdict": "drift",
+      "hash": "f8c03ec82f26d042b6bf4335c662032d9d809ada"
+    },
+    "sym:s_\\eta": {
+      "verdict": "matched",
+      "hash": "374fa45a8293dd4e1b5edd96ec2a6479d8d30f8d"
+    },
+    "sym:p_-": {
+      "verdict": "matched",
+      "hash": "5066639b33af2dc0e72857163f7702c0f0ff78b8"
+    },
+    "sym:\\widehat q_T(c)": {
+      "verdict": "matched",
+      "hash": "269cec3d91264c30c753522ddfbe8e04300a7721"
+    },
+    "sym:\\omega_{c,T}": {
+      "verdict": "matched",
+      "hash": "b3e248982a07ccba42ee876c1f881fcb7bab319a"
+    },
+    "sym:k_T": {
+      "verdict": "matched",
+      "hash": "2ac8d1c69f9cba5ed0ebc5102b0ae673fe3952bb"
+    },
+    "sym:\\Lambda_T": {
+      "verdict": "matched",
+      "hash": "fc9ede4ec2edc50b86389a9674f4d4be6341d390"
+    },
+    "sym:J_T": {
+      "verdict": "matched",
+      "hash": "6542c11d4f000033bd11555e13e776e285c2e12a"
+    }
+  }
+}

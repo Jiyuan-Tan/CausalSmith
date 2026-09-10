@@ -20,7 +20,11 @@ namespace Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension
 
 noncomputable section
 
-/-- Algebraic closure in a complex affine space. -/
+/-- For [a coordinate index set](hyp:ι) and [a subset $A$ of the corresponding complex affine space](hyp:A),
+[its affine Zariski closure](goal) is the set of all points at which every complex multivariate
+polynomial that vanishes on every point of $A$ also vanishes.
+
+Algebraic closure in a complex affine space. -/
 def affineZariskiClosure {ι : Type*} (A : Set (ι → ℂ)) : Set (ι → ℂ) :=
   MvPolynomial.zeroLocus ℂ (MvPolynomial.vanishingIdeal ℂ A)
 

@@ -67,7 +67,7 @@ namespace Causalean.SCM.Examples.BackDoor
 -- Vertex type
 -- ============================================================
 
-/-- The backdoor example has treatment, outcome, observed-confounder, and three latent-root vertices. -/
+/-- [The backdoor-example node type](goal) consists of [the treatment vertex](hyp:bdD), [the outcome vertex](hyp:bdY), [the observed-confounder vertex](hyp:bdZ), [the latent root for the confounder](hyp:bdU1), [the latent root for treatment](hyp:bdU2), and [the latent root for the outcome](hyp:bdU3). -/
 inductive BDNode
   | bdD  -- treatment
   | bdY  -- outcome
@@ -98,11 +98,11 @@ protected def repr : BDNode → Nat → Std.Format
 
 end instReprBDNode
 
-/-- Backdoor-example vertices can be rendered as their fully qualified constructor names. -/
+/-- [A textual representation structure for backdoor-example vertices](goal) is provided by [rendering each vertex through its fully qualified constructor name](step:1). -/
 instance instReprBDNode : Repr BDNode where
   reprPrec := instReprBDNode.repr
 
-/-- The backdoor-example vertex set is finite, with six named vertices. -/
+/-- [A finite enumeration of the backdoor-example node type](goal) is provided by [the collection of its six named vertices](step:1) together with [the assertion that every backdoor-example vertex belongs to that collection](step:2). -/
 instance : Fintype BDNode where
   elems := {bdD, bdY, bdZ, bdU1, bdU2, bdU3}
   complete := by intro x; cases x <;> simp
@@ -111,7 +111,7 @@ instance : Fintype BDNode where
 -- Edge relation
 -- ============================================================
 
-/-- The backdoor graph has confounding paths through the observed confounder, a direct treatment-outcome edge, and one latent root for each observed node. -/
+/-- [The backdoor-edge relation](goal) contains exactly [the arrow from the observed confounder to treatment](step:1), [the arrow from the observed confounder to outcome](step:2), [the arrow from treatment to outcome](step:3), [the arrow from the first latent root to the confounder](step:4), [the arrow from the second latent root to treatment](step:5), and [the arrow from the third latent root to outcome](step:6); [all other ordered pairs have no edge](step:7). -/
 def bdEdge : BDNode → BDNode → Prop
   | bdZ,  bdD  => True
   | bdZ,  bdY  => True
@@ -121,7 +121,7 @@ def bdEdge : BDNode → BDNode → Prop
   | bdU3, bdY  => True
   | _,    _    => False
 
-/-- Whether a proposed backdoor-example edge is present is decidable by case analysis on the endpoints. -/
+/-- For every ordered pair of backdoor-example vertices, [a decision procedure for whether the pair is a directed edge](goal) is provided. -/
 instance : DecidableRel bdEdge := by
   intro a b; cases a <;> cases b <;> simp [bdEdge] <;> infer_instance
 
@@ -129,7 +129,7 @@ instance : DecidableRel bdEdge := by
 -- Topological order
 -- ============================================================
 
-/-- The backdoor graph orders latent roots first, then confounder, treatment, and outcome. -/
+/-- [The topological-order label for the backdoor graph](goal) [assigns label 0 to the first latent root](step:1), [label 1 to the second latent root](step:2), [label 2 to the third latent root](step:3), [label 3 to the observed confounder](step:4), [label 4 to treatment](step:5), and [label 5 to outcome](step:6). -/
 def bdTopo : BDNode → ℕ
   | bdU1 => 0
   | bdU2 => 1
@@ -148,7 +148,7 @@ theorem bdTopo_lt : ∀ u v, bdEdge u v → bdTopo u < bdTopo v := by
 -- The DAG
 -- ============================================================
 
-/-- This directed acyclic graph formalizes the canonical backdoor-adjustment example. -/
+/-- [The backdoor-adjustment directed acyclic graph](goal) has the specified backdoor edge relation and the displayed topological ordering, and is therefore acyclic. -/
 def bdDAG : DAG BDNode where
   edge := bdEdge
   decEdge := inferInstance
@@ -205,7 +205,7 @@ example : bdDAG.dSep {bdU1} {bdU2} ∅ := by decide
 -- SWIG graph (standard model, no intervention)
 -- ============================================================
 
-/-- This SWIG graph represents the backdoor example before any intervention.
+/-- [The pre-intervention SWIG graph for the backdoor example](goal) has the backdoor directed acyclic graph, no fixed nodes, treatment, outcome, and confounder as observed random nodes, and the three latent roots as unobserved random nodes.
 
 The treatment, outcome, and confounder are observed random nodes, while the three
 latent roots are unobserved random nodes. -/
@@ -370,7 +370,7 @@ example : ¬bdDAG.isAncestor bdD bdZ := by decide
 -- Edge type assignment
 -- ============================================================
 
-/-- The backdoor example treats every graph edge as nonparametric. -/
+/-- [The edge-type assignment for the backdoor graph](goal) classifies every graph edge as nonparametric. -/
 def bdEdgeTypes : EdgeTypeAssignment bdDAG :=
   EdgeTypeAssignment.allNonparametric bdDAG
 

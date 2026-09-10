@@ -20,14 +20,21 @@ namespace Causalean.PartialID.CriterionSet
 
 variable {Θ : Type*}
 
-/-- A criterion function's identified set is the set of parameters where the population
+/-- For [a parameter space](hyp:Θ) and [a criterion function](hyp:Q), its [identified set](goal) is the set of all
+parameter values at which the criterion equals zero.
+
+A criterion function's identified set is the set of parameters where the population
 criterion reaches zero.
 
 This is the zero set `{θ | Q θ = 0}`; for a nonnegative criterion normalized to
 have infimum zero, it is the argmin set. -/
 def identifiedSet (Q : Θ → ℝ) : Set Θ := {θ | Q θ = 0}
 
-/-- The level-set estimator keeps the parameters whose sample criterion is no larger
+/-- For [a parameter space](hyp:Θ), [a sample criterion function](hyp:Qn), and [a real cutoff](hyp:c), the
+[level-set estimator](goal) is the set of all parameter values whose criterion value is at
+most that cutoff.
+
+The level-set estimator keeps the parameters whose sample criterion is no larger
 than the cutoff.
 
 It is the set `{θ | Qn θ ≤ c}`, the sample analogue of the identified set relaxed

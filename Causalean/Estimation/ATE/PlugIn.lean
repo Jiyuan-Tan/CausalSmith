@@ -61,7 +61,16 @@ open BackdoorEstimationSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- Sample-split plug-in estimator of the back-door ATE
+/-- For [a potential-outcome system with a measurable covariate space](hyp:P), [a
+back-door estimation system](hyp:S), [an independent and identically distributed sample of
+observed covariate, treatment, and outcome triples from its observable data law](hyp:sample),
+[a one-shot split of that sample](hyp:split), [an outcome-regression learner indexed by sample
+size and population realization](hyp:μ_hat), and [a nonnegative integer sample-size index](hyp:n),
+the [sample-split plug-in estimator of the back-door average treatment effect](goal) assigns to
+each population realization the estimation-fold average of the estimated treated-minus-control
+outcome regression at the observed covariates.
+
+Sample-split plug-in estimator of the back-door ATE
 (`def:est-plug-in-ate`).
 
 Inputs:
@@ -86,7 +95,12 @@ noncomputable def plugInEstimator
         (μ_hat n ω true (projX (sample.Z i ω))
           - μ_hat n ω false (projX (sample.Z i ω)))
 
-/-- Plug-in influence function `ψ_plugin(z) := μ(1, x) − μ(0, x) − θ₀`
+/-- For [a potential-outcome system with a measurable covariate space](hyp:P), [a
+back-door estimation system](hyp:S), and [an observed covariate, treatment, and outcome
+triple](hyp:z), the [plug-in influence-function value](goal) is the true treated-minus-control
+outcome regression at that triple's covariate, centered at the system's true average treatment effect.
+
+Plug-in influence function `ψ_plugin(z) := μ(1, x) − μ(0, x) − θ₀`
 from `thm:est-plug-in-ate-al`. -/
 noncomputable def ψ_plugin (S : BackdoorEstimationSystem P γ)
     (z : γ × Bool × ℝ) : ℝ :=

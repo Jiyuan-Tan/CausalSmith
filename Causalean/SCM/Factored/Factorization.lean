@@ -48,7 +48,12 @@ open scoped MeasureTheory ProbabilityTheory
 -- § 1. Full-prefix to `RandomValues` reindex
 -- ============================================================
 
-/-- Reindex the full prefix state (all observed nodes generated, plus the latent
+/-- For [a finite collection of nodes with a measurable outcome space for each node](hyp:N,Ω)
+    and [a structural causal model](hyp:M), the [map from a completed latent-and-observed prefix
+    state to an assignment of all random nodes](goal) assigns each observed node its completed
+    prefix value and each unobserved node its latent value.
+
+    Reindex the full prefix state (all observed nodes generated, plus the latent
     tuple) to `RandomValues M = ValuesOn (observed ∪ unobserved) (swigΩ Ω)`.
 
     * If `v.val ∈ M.observed`, read from the observed prefix via

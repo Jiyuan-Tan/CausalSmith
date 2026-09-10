@@ -27,23 +27,36 @@ open scoped BigOperators
 
 noncomputable section
 
-/-- The affine power vector whose `r`-th entry is `z^r`. Over a field, this is
-the coefficient vector of `(X₀ + z X₁)^k` after normalization by the corresponding
-nonzero binomial coefficient. -/
+/-- Given [an element \(z\) of a multiplicative monoid](hyp:z) and [a nonnegative integer
+\(k\)](hyp:k), the [affine power vector](goal) is the vector indexed by the integers from zero
+through \(k\) whose entry at \(r\) is \(z^r\).
+
+Over a field, this is the coefficient vector of `(X₀ + z X₁)^k` after normalization by the
+corresponding nonzero binomial coefficient. -/
 def affineBinaryPower {K : Type*} [Monoid K] (z : K) (k : ℕ) : Fin (k + 1) → K :=
   fun r => z ^ (r : ℕ)
 
-/-- The coefficient-vector version of the stacked contraction map. Over a
-field in the affine chart `ℓ j = X₀ + slopes j X₁`, its `k`-th component agrees
-with the coefficient vector of `∑ j, weights j k * e j • (ℓ j)^k` up to invertible
-binomial diagonal rescaling. -/
+/-- Given [a nonnegative integer \(N\)](hyp:N), [\(N+1\) slope values](hyp:slopes),
+[a weight assigned to each slope and each of the \(N\) blocks](hyp:weights), and
+[a coefficient attached to each slope](hyp:e), the [stacked contraction](goal) maps a block
+index \(k<N\) and an exponent \(r\leq k\) to the sum, over all slopes, of the weight times the
+coefficient times the \(r\)-th power of that slope.
+
+Over a field in the affine chart `ℓ j = X₀ + slopes j X₁`, its `k`-th component agrees with the
+coefficient vector of `∑ j, weights j k * e j • (ℓ j)^k` up to invertible binomial diagonal
+rescaling. -/
 def stackedContraction {K : Type*} [Semiring K] (N : ℕ) (slopes : Fin (N + 1) → K)
     (weights : Fin (N + 1) → Fin N → K) (e : Fin (N + 1) → K) :
     (k : Fin N) → Fin (k.1 + 1) → K :=
   fun k r => ∑ j, weights j k * e j * affineBinaryPower (slopes j) k.1 r
 
-/-- The two-block specialization from the block-Vandermonde argument:
-`J₀ = {0}` and `J_{N-1} = {1, …, N}`. -/
+/-- Given [a positive integer \(N\)](hyp:N,hN), the [block-Vandermonde witness weights](goal)
+assign weight one only to index zero in block zero and to every nonzero index in block \(N-1\),
+and assign weight zero in all other cases. [The first block is chosen as block zero](step:1),
+the second as block \(N-1\), and the stated case assignment defines the weights.
+
+This is the two-block specialization from the block-Vandermonde argument: `J₀ = {0}` and
+`J_{N-1} = {1, …, N}`. -/
 def blockVandermondeWitnessWeights {K : Type*} [Zero K] [One K] (N : ℕ) (hN : 1 ≤ N) :
     Fin (N + 1) → Fin N → K :=
   let zeroBlock : Fin N := ⟨0, by omega⟩

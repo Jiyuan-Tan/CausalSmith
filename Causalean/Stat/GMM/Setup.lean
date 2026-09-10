@@ -56,15 +56,26 @@ variable {E F X : Type*}
   [MeasurableSpace F] [BorelSpace F]
   [MeasurableSpace X]
 
-/-- The **combined GMM score** `ψ(θ,x) = GᵀW g(θ,x) : E`.  Setting its empirical
-mean to zero is the first-order condition of the GMM criterion
+/-- On [finite-dimensional real inner-product parameter and moment spaces and a measurable data
+space](hyp:E,F,X), given [a continuous linear map from the parameter space to the moment space](hyp:G), [a
+continuous linear weighting operator on the moment space](hyp:W), and [a moment function of a
+parameter and an observation](hyp:g), the [combined GMM score](goal) maps each
+parameter--observation pair to the adjoint-map image of its weighted moment,
+$G^{\mathsf T}Wg(\theta,x)$.
+
+Setting its empirical mean to zero is the first-order condition of the GMM criterion
 `ḡ(θ)ᵀ W ḡ(θ)` (after fixing the Jacobian weight at its population value);
 the GMM estimator is the resulting Z-estimator. -/
 noncomputable def gmmScore (G : E →L[ℝ] F) (W : F →L[ℝ] F) (g : E → X → F) :
     E → X → E :=
   fun θ x => adjoint G (W (g θ x))
 
-/-- The **GMM influence function** `−(GᵀWG)⁻¹ GᵀW g(θ₀,·)`. -/
+/-- On [finite-dimensional real inner-product parameter and moment spaces and a measurable data
+space](hyp:E,F,X), given [a continuous linear map from the parameter space to the moment space](hyp:G), [a
+continuous linear weighting operator](hyp:W), [a continuous linear operator on the parameter
+space](hyp:breadInv), [a moment function](hyp:g), and [a parameter value](hyp:θ₀), the [GMM
+influence function](goal) sends an observation $x$ to $-B G^{\mathsf T}Wg(\theta_0,x)$, where
+$B$ is the supplied parameter-space operator. -/
 noncomputable def gmmIF (G : E →L[ℝ] F) (W : F →L[ℝ] F) (breadInv : E →L[ℝ] E)
     (g : E → X → F) (θ₀ : E) : X → E :=
   fun x => -(breadInv (adjoint G (W (g θ₀ x))))
@@ -119,18 +130,28 @@ namespace GMMProblem
 
 variable {P : Measure X} (prob : GMMProblem (E := E) (F := F) P)
 
-/-- The combined score of the problem, `ψ(θ,x) = GᵀW g(θ,x)`. -/
+/-- For [finite-dimensional real inner-product parameter and moment spaces, a measurable data
+space, and a measure on that data space](hyp:E,F,X,P), [a bundled GMM problem](hyp:prob) determines the [combined score](goal), which maps a parameter and an
+observation to $G^{\mathsf T}Wg(\theta,x)$ using that problem's Jacobian, weighting operator,
+and moment function. -/
 noncomputable def score : E → X → E := gmmScore prob.G prob.W prob.g
 
-/-- The influence function of the problem. -/
+/-- For [finite-dimensional real inner-product parameter and moment spaces, a measurable data
+space, and a measure on that data space](hyp:E,F,X,P), [a bundled GMM problem](hyp:prob) determines the [influence function](goal), which maps an observation to
+$-(G^{\mathsf T}WG)^{-1}G^{\mathsf T}Wg(\theta_0,x)$ using the problem's true parameter and
+inverse bread matrix. -/
 noncomputable def influence : X → E :=
   gmmIF prob.G prob.W prob.breadInv prob.g prob.θ₀
 
-/-- The **sandwich asymptotic variance** `(GᵀWG)⁻¹ GᵀW Cov WG (GᵀWG)⁻¹`. -/
+/-- For [finite-dimensional real inner-product parameter and moment spaces, a measurable data
+space, and a measure on that data space](hyp:E,F,X,P), [a bundled GMM problem](hyp:prob) determines the [sandwich asymptotic variance operator](goal), which is
+$(G^{\mathsf T}WG)^{-1}G^{\mathsf T}W\operatorname{Cov}WG(G^{\mathsf T}WG)^{-1}$. -/
 noncomputable def asympVar : E →L[ℝ] E :=
   gmmSandwich prob.G prob.W prob.Cov prob.breadInv
 
-/-- The **efficient asymptotic variance** `(GᵀCov⁻¹G)⁻¹`. -/
+/-- For [finite-dimensional real inner-product parameter and moment spaces, a measurable data
+space, and a measure on that data space](hyp:E,F,X,P), [a bundled GMM problem](hyp:prob) determines the [efficient asymptotic variance operator](goal), which is
+$(G^{\mathsf T}\operatorname{Cov}^{-1}G)^{-1}$. -/
 noncomputable def effVar : E →L[ℝ] E := prob.effInv
 
 omit [BorelSpace F] in

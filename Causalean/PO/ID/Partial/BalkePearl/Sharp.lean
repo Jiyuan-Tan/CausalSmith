@@ -46,27 +46,26 @@ namespace POBalkePearlSharp
 
 /-! ### Canonical sample space -/
 
-/-- The canonical sample space: a Z-value paired with the four latent
-arms (D(0), D(1), Y(0), Y(1)). -/
+/-- The [canonical sample space](goal) consists of one observed binary instrument value together with four binary latent response values: treatment under each instrument value and outcome under each treatment value. -/
 abbrev SOmega : Type := Bool × (Bool × Bool × Bool × Bool)
 
-/-- The canonical variable index type: 0 = Z, 1 = D, 2 = Y. -/
+/-- The [canonical variable-index set](goal) has exactly three elements, representing respectively the instrument, treatment, and outcome. -/
 abbrev SV : Type := Fin 3
 
-/-- Canonical X assignment — every variable is `Bool`. -/
+/-- The [canonical measurement-scale assignment](goal) assigns the binary scale to each of the three canonical variables. -/
 abbrev SX : SV → Type := fun _ => Bool
 
 /-! ### Canonical eval map -/
 
-/-- The latent arm under intervention `Z = z`. -/
+/-- For [a binary instrument value](hyp:z) and [a canonical sample-space point](hyp:ω), the [latent treatment response](goal) is that point's treatment response under the specified instrument value. -/
 def dArmω (z : Bool) (ω : SOmega) : Bool :=
   if z then ω.2.2.1 else ω.2.1
 
-/-- The latent arm under intervention `D = d`. -/
+/-- For [a binary treatment value](hyp:d) and [a canonical sample-space point](hyp:ω), the [latent outcome response](goal) is that point's outcome response under the specified treatment value. -/
 def yArmω (d : Bool) (ω : SOmega) : Bool :=
   if d then ω.2.2.2.2 else ω.2.2.2.1
 
-/-- Canonical eval: cascade through Z → D → Y. -/
+/-- For [an intervention regime on the canonical instrument, treatment, and outcome variables](hyp:r), [a canonical sample-space point](hyp:ω), and [one of those variables](hyp:v), the [canonical evaluator](goal) returns the variable's assigned value when the regime intervenes on it; otherwise it returns the point's instrument value, its treatment response to the resulting instrument value, or its outcome response to the resulting treatment value, respectively. [For an intervened variable](step:1), the assigned value is used; for the instrument, the observed coordinate is used; for the treatment, the treatment response is used; and for the outcome, the outcome response is used. -/
 noncomputable def eval (r : Regime SV SX) (ω : SOmega) : ∀ v : SV, SX v := by
   classical
   intro v
@@ -161,17 +160,17 @@ We work with `S` and `π` from the surrounding context. -/
 
 variable {P : POSystem} (S : POBalkePearlSystem P)
 
-/-- The Z-marginal of S, viewed as a measure on `Bool`. -/
+/-- For [a potential-outcomes system](hyp:P) and [a binary Balke--Pearl system on it](hyp:S), the [canonical instrument marginal measure](goal) assigns to each binary instrument value the probability of that system's corresponding factual instrument event. -/
 noncomputable def zMeasure : Measure Bool :=
   ∑ z : Bool, P.μ (S.zEvent z) • Measure.dirac z
 
-/-- The discrete π-measure on `Bool⁴` with weights `π`. -/
+/-- For [a table of real weights indexed by the four binary latent response values](hyp:π), the [latent-table measure](goal) is the discrete measure that places at each response type the nonnegative extended-real part of its table weight. -/
 noncomputable def piMeasure (π : Bool → Bool → Bool → Bool → ℝ) :
     Measure (Bool × Bool × Bool × Bool) :=
   ∑ d0 : Bool, ∑ d1 : Bool, ∑ y0 : Bool, ∑ y1 : Bool,
     ENNReal.ofReal (π d0 d1 y0 y1) • Measure.dirac (d0, d1, y0, y1)
 
-/-- Canonical product measure on `SOmega`. -/
+/-- For [a potential-outcomes system](hyp:P), [a binary Balke--Pearl system on it](hyp:S), and [a table of real weights indexed by the four binary latent response values](hyp:π), the [canonical product measure](goal) is the product of the system's instrument marginal measure and the latent-table measure. -/
 noncomputable def canonicalMeasure (π : Bool → Bool → Bool → Bool → ℝ) :
     Measure SOmega :=
   (zMeasure S).prod (piMeasure π)
@@ -201,7 +200,11 @@ lemma zMeasure_univ : (zMeasure S) Set.univ = 1 := by
     rw [← measure_union hdisj hmeas_t, hpart]
   rw [Fintype.sum_bool, add_comm, hadd, measure_univ]
 
-/-- The original instrument marginal is a probability measure. -/
+/-- For [a potential-outcomes system](hyp:P) and [a binary Balke--Pearl system
+on that system](hyp:S), [the canonical marginal distribution of the binary
+instrument](goal) is a probability measure.
+
+The original instrument marginal is a probability measure. -/
 instance instIsProbZMeasure : IsProbabilityMeasure (zMeasure S) :=
   ⟨zMeasure_univ S⟩
 
@@ -262,14 +265,21 @@ lemma instIsProbPiMeasure {π : Bool → Bool → Bool → Bool → ℝ}
 
 /-! ### Canonical POSystem -/
 
-/-- The product of the instrument marginal and latent-table measure is a probability
+/-- For [a potential-outcomes system](hyp:P), [a binary Balke--Pearl system on
+that system](hyp:S), and [a table of real weights indexed by the four binary
+latent response values](hyp:π), if the probability measure induced by that
+latent table is a probability measure, then [the canonical product
+measure combining the instrument marginal and latent-table measure](goal) is a
+probability measure.
+
+The product of the instrument marginal and latent-table measure is a probability
 measure. -/
 instance instIsProbCanonicalMeasure {π : Bool → Bool → Bool → Bool → ℝ}
     [IsProbabilityMeasure (piMeasure π)] :
     IsProbabilityMeasure (canonicalMeasure S π) := by
   unfold canonicalMeasure; infer_instance
 
-/-- The canonical PO system parametrised by `S` and a feasible π. -/
+/-- For [a potential-outcomes system](hyp:P), [a binary Balke--Pearl system on it](hyp:S), [a table of real weights indexed by the four binary latent response values](hyp:π), [the condition that every table entry is nonnegative](hyp:hπ_nn), and [the condition that all table entries sum to one](hyp:hπ_sum), the [canonical potential-outcomes system](goal) has the canonical variables, binary measurement scales, canonical sample space, canonical product probability measure, and canonical evaluator. [Its probability-measure property](step:1) follows from the two conditions on the latent table. -/
 noncomputable def canonicalPOSystem (π : Bool → Bool → Bool → Bool → ℝ)
     (hπ_nn : ∀ d0 d1 y0 y1, 0 ≤ π d0 d1 y0 y1)
     (hπ_sum : ∑ d0 : Bool, ∑ d1 : Bool, ∑ y0 : Bool, ∑ y1 : Bool,
@@ -286,7 +296,7 @@ noncomputable def canonicalPOSystem (π : Bool → Bool → Bool → Bool → �
 
 /-! ### Canonical POBalkePearlSystem -/
 
-/-- The canonical Balke-Pearl system on the canonical PO system. -/
+/-- For [a potential-outcomes system](hyp:P), [a binary Balke--Pearl system on it](hyp:S), [a table of real weights indexed by the four binary latent response values](hyp:π), [the condition that every table entry is nonnegative](hyp:hπ_nn), and [the condition that all table entries sum to one](hyp:hπ_sum), the [canonical Balke--Pearl system](goal) designates the first, second, and third canonical variables as instrument, treatment, and outcome, respectively. -/
 noncomputable def canonicalBP (π : Bool → Bool → Bool → Bool → ℝ)
     (hπ_nn : ∀ d0 d1 y0 y1, 0 ≤ π d0 d1 y0 y1)
     (hπ_sum : ∑ d0 : Bool, ∑ d1 : Bool, ∑ y0 : Bool, ∑ y1 : Bool,

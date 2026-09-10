@@ -1,0 +1,2836 @@
+{
+  "qid": "scm_finiteplate_bernstein_ate_bounds",
+  "specialization": "v1",
+  "nodes": [
+    {
+      "id": "S1",
+      "obj_id": "S-1",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "A positive fixed-plate hierarchical observational world. There are \\(n\\) independent clusters; cluster \\(i\\) carries a latent four-cell law \\(Q_i\\in K_{\\epsilon}=\\{q\\in\\Delta_3:\\epsilon\\le p(q)\\le1-\\epsilon\\}\\), where \\(p(q)=q_{10}+q_{11}\\) and \\(0<\\epsilon<1/2\\), drawn from an unknown mixing measure \\(\\mu\\in\\mathcal P(K_{\\epsilon})\\). Conditionally on \\(Q_i=q\\) the \\(m\\) individual causal vectors \\((A_{ij},Y_{ij}(0),Y_{ij}(1))\\in\\{0,1\\}^3\\) are mutually independent and identically distributed over \\(j\\), treatment is ignorable given \\(Q_i\\), outcomes satisfy \\(Y_{ij}=A_{ij}Y_{ij}(1)+(1-A_{ij})Y_{ij}(0)\\), and the observed pair \\(O_{ij}=(A_{ij},Y_{ij})\\) has conditional cell probabilities \\(\\Pr(O_{ij}=(a,y)\\mid Q_i)=Q_{i,ay}\\) almost surely. The analyst observes only the within-cluster four-cell count \\(C_i\\in\\mathcal I_m\\). The causal target is the cluster-equally-weighted ATE \\(\\tau(\\mu)=\\int_{K_{\\epsilon}}f\\,d\\mu\\) with \\(f(q)=q_{11}/p(q)-q_{01}/(1-p(q))\\in[-1,1]\\). — Encoding: `Cell := Bool × Bool` (the (a,y) pair); `q : Cell → ℝ` with `q ∈ stdSimplex ℝ Cell` (Mathlib `stdSimplex`, verified at Mathlib/Analysis/Convex/StdSimplex.lean, compact + convex lemmas available); `K_epsilon := stdSimplex ℝ Cell ∩ {q | ε ≤ p q ∧ p q ≤ 1-ε}`. Random variables `A Y0 Y1 Y : Fin n → Fin m → Ω → Bool` and `Q : Fin n → Ω → (Cell → ℝ)` on a single probability space; `mu : Measure (Cell → ℝ)` supported on `K_epsilon`. `C i ω : Cell → ℕ` is the within-cluster count. SUBSTRATE SURVEY (bypass-justified, one line each): (a) `Causalean.PO.POSystem` (Causalean/PO/Core/System.lean) — regime/graph-indexed PO operator over dependent value spaces; this note uses no intervention regime and no graph, only a two-arm plate of binary variables, so the regime machinery adds indexing overhead with no reused lemma; (b) `Causalean.SCM.PartialID.CompatibleSCM` / `IsSharp` (Causalean/SCM/PartialID/CanonicalModel.lean, SharpnessCertificate.lean) — require a `SWIGGraph N` and `SCM N Ω` structural-equation model; the hierarchical class here is a latent-mixture plate model with no structural equations over a node set, so the abstraction does not fit; (c) `Causalean/Graph/*`, `Causalean/SCM/Do/*`, `Causalean/SCM/ID/*` (dSep, backdoor, frontdoor, do-calculus, c-components) — graphical identification machinery; this note's identification content is a moment-fiber question at a FIXED, already-ignorable conditioning set, so no do-calculus rule is invoked. Search trace: read `../doc/API.md` §8h (PO/), §9j2 (PO/ID/Partial), §9j2sf (SupportFunction), §9j2rs, §9j2inf, §11 (SCM/ID); globbed `../Causalean/SCM/PartialID/**`; grepped `../Causalean` for `multinomial|pValue|deviance|likelihoodRatio` (11 hits, all unrelated proxy/bootstrap files). Analogous module for F3 to adapt: `CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/Basic.lean:293-317` (`observablePolytope`, `responseFiber`, `sharpEndpointPrograms = (sInf, sSup)` over a fiber) — same architecture with a FINITE latent simplex; the gap to bridge is that our latent parameter ranges over `P(K_ε)`, a continuum of Borel measures, not `stdSimplex ℝ T`.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Mathlib.Analysis.Convex.StdSimplex",
+          "Mathlib.MeasureTheory.Measure.ProbabilityMeasure",
+          "Mathlib.MeasureTheory.Measure.Dirac",
+          "Mathlib.MeasureTheory.Integral.Bochner.Basic",
+          "Mathlib.Data.Nat.Choose.Multinomial",
+          "Causalean.Stat.Sample"
+        ]
+      }
+    },
+    {
+      "id": "S2",
+      "obj_id": "S-2",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The degree-\\(m\\) Bernstein moment geometry over the overlap-restricted simplex. Indexing counts by \\(\\mathcal I_m=\\{c\\in\\mathbb N_0^4:\\sum c_{ay}=m\\}\\) with \\(N_m=|\\mathcal I_m|=\\binom{m+3}{3}\\), the Bernstein coordinates are \\(B^{(m)}_c(q)=\\frac{m!}{\\prod c_{ay}!}\\prod q_{ay}^{c_{ay}}\\), the moment map is \\(g_m=(B^{(m)}_c)_{c\\in\\mathcal I_m}:K_{\\epsilon}\\to\\mathbb R^{N_m}\\), and \\(V_m=\\operatorname{span}\\{B^{(m)}_c\\}\\subset C(K_{\\epsilon})\\). The observable object is the count law \\(b=\\int g_m\\,d\\mu\\), ranging over the compact convex moment body \\(\\mathcal B_{m,\\epsilon}=\\operatorname{conv}g_m(K_{\\epsilon})\\); above each \\(b\\) sits the moment fiber \\(\\mathcal F_{m,\\epsilon}(b)=\\{\\nu\\in\\mathcal P(K_{\\epsilon}):\\int g_m\\,d\\nu=b\\}\\), whose image under \\(\\nu\\mapsto\\int f\\,d\\nu\\) is the sharp interval \\([L_m(b),U_m(b)]\\). Dual to it is the Bernstein majorant--minorant pair \\(D_m(b)\\), the valid envelope class \\(\\mathcal E_m\\), the scalar-reference limited-pooling family \\((\\ell_{m,p_*},u_{m,p_*})\\) with weights \\(w_m\\) and its intersection \\(I^{\\cap}_{LW,m}\\), and the uniform approximation modulus \\(d_m(\\epsilon)=\\inf_{v\\in V_m}\\|f-v\\|_{\\infty,K_{\\epsilon}}\\). — Reuse decisions verified by `lean_local_search`: `convexHull` + Carathéodory `convexHull_eq_union` (Mathlib/Analysis/Convex/Caratheodory.lean) realizes \\(\\mathcal B_{m,\\epsilon}\\) and the (N+1)-atom compression; `intrinsicInterior` / `intrinsicFrontier` (Mathlib/Analysis/Convex/Intrinsic.lean) realize relint/relbd verbatim — do NOT hand-roll a relative interior; `Nat.multinomial` (Mathlib/Data/Nat/Choose/Multinomial.lean) supplies the Bernstein normalisation; `Metric.infDist` in `C(K_ε, ℝ)` (Mathlib/Topology/ContinuousMap/Compact.lean sup-norm instance + Mathlib/Topology/MetricSpace/HausdorffDistance.lean) realizes \\(d_m(\\epsilon)\\); `Causalean.PartialID.IdentifiedInterval` realizes \\(\\Theta_{m,\\epsilon}(b)\\) exactly. Index type `I_m := {c : Cell → ℕ // ∑ c = m}` (a `Fintype`); `N_m := Fintype.card I_m` with the \\(\\binom{m+3}{3}\\) formula proved as a small helper. Search trace for the absent pieces: `lean_local_search \"bernstein\"` → only Mathlib's UNIVARIATE `bernsteinPolynomial` / `bernsteinApproximation` on `[0,1]` (Mathlib/RingTheory/Polynomial/Bernstein.lean, Mathlib/Analysis/SpecialFunctions/Bernstein.lean) — no multivariate simplex Bernstein basis, no moment body, no moment fiber; `lean_local_search \"Caratheodory\"` → empty by name, found via `convexHull_eq_union`; `lean_local_search \"multinomial\"` → `Nat.multinomial` only, no multinomial DISTRIBUTION; grep of `../Causalean` for `multinomial|deviance|likelihoodRatio` → no moment-body or fiber substrate. Analogous module for F3: `CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/Basic.lean:284-334` (`targetFunctional`, `observablePolytope`, `responseFiber`, `sharpEndpointPrograms`, `lowerEndpoint`/`upperEndpoint`) and `T2_SharpInterval.lean`, `T4_DualFaceStrictRefinement.lean`, `T5_RelativeOpenStrictRefinement.lean` — the finite-latent analogue of exactly the primal/dual/contact-face/strict-refinement chain needed here; those files contain `sorry`s, so they are a PATTERN reference, not a `reuse` target.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Mathlib.Analysis.Convex.Caratheodory",
+          "Mathlib.Analysis.Convex.Combination",
+          "Mathlib.Analysis.Convex.Intrinsic",
+          "Mathlib.Analysis.Convex.Topology",
+          "Mathlib.Analysis.Convex.Exposed",
+          "Mathlib.Analysis.Convex.Extreme",
+          "Mathlib.Topology.ContinuousMap.Compact",
+          "Mathlib.Topology.MetricSpace.HausdorffDistance",
+          "Mathlib.Data.Nat.Choose.Multinomial",
+          "Causalean.PO.ID.Partial.Basic",
+          "Causalean.PO.ID.Partial.SupportFunction.Interval"
+        ]
+      }
+    },
+    {
+      "id": "S3",
+      "obj_id": "S-3",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The exact finite-sample multinomial inversion world. With \\(m,n\\) and \\(0<\\alpha<1\\) fixed, the aggregate cluster-count vector \\(Z\\in\\mathcal H_n=\\{z\\in\\mathbb N_0^{N_m}:\\sum_c z_c=n\\}\\) is multinomial with size \\(n\\) and cell law \\(b\\); \\(\\widehat b=Z/n\\). For a candidate law \\(b'\\in\\Delta_{N_m-1}\\) the deviance is \\(T_n(z;b')=2\\sum_{c:z_c>0}z_c\\log\\{z_c/(nb'_c)\\}\\) (extended by \\(+\\infty\\) when \\(z_c>0=b'_c\\)), and \\(P_n(b';z)\\) is its exact tie-inclusive upper-tail probability under \\(b'\\). The nonrandomized test rejects exactly when \\(P_n\\le\\alpha\\); its inversion is the count-law region \\(\\mathcal R_{n,\\alpha}(z^{\\mathrm{obs}})=\\{b':P_n(b';z^{\\mathrm{obs}})>\\alpha\\}\\), and the reported causal object is \\(\\mathcal C_{n,\\alpha}(z^{\\mathrm{obs}})=\\bigcup_{b'\\in\\mathcal R_{n,\\alpha}\\cap\\mathcal B_{m,\\epsilon}}[L_m(b'),U_m(b')]\\subseteq[-1,1]\\). — `T_n` and `P_n` are total functions into `ℝ≥0∞` / `EReal` so the `+∞` branch is definitional rather than a side condition; `H_n` is a `Fintype` so `P_n` is a genuine `Finset.sum`. Search trace: `lean_local_search \"multinomial\"` → `Nat.multinomial`, `Finsupp.multinomial` (combinatorics only) and `CausalSmith.SCM.SelectiveLabelUntrialedImpact.multinomialCounts` / `multinomialCovariance` (a CausalSmith research module with `sorry`s, not reusable); `lean_local_search \"binomial\"` → `ProbabilityTheory.binomial`, `PMF.binomial` (Mathlib/Probability/Distributions/Binomial.lean) — the two-cell case only, no multinomial law and no exact-test p-value; grep `../Causalean` for `pValue|deviance|likelihoodRatio` → nothing statistical. So the multinomial pmf and the exact tie-inclusive p-value are build-inline (both are elementary finite sums). REUSED vocabulary: `Causalean.PartialID.Inference.RandomCoversIcc` (Causalean/PO/ID/Partial/Inference/Basic.lean:92) is the exact set-coverage event `[L,U] ⊆ [A ω, B ω]` used by `prop:whole-set-coverage`; its companion `honest_ci_set_cover` is NOT reusable here because our coverage comes from an exact finite-sample test, not a two-sided concentration union bound. Analogous module: `CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/T6_WholeSetConfidence.lean` states the same `Set.Icc L U ⊆ wholeSetConfidenceInterval …` shape.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Mathlib.Analysis.Convex.StdSimplex",
+          "Mathlib.Data.Nat.Choose.Multinomial",
+          "Mathlib.MeasureTheory.Measure.ProbabilityMeasure",
+          "Causalean.PO.ID.Partial.Inference.Basic",
+          "Causalean.Stat.Sample"
+        ]
+      }
+    },
+    {
+      "id": "S4",
+      "obj_id": "S-4",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The exact real-algebraic decision world. All data (\\(\\epsilon\\), \\(\\alpha\\), the count vectors, the candidate law \\(b\\)) are rational, and every constraint of the problem — the simplex and overlap inequalities cutting out \\(K_{\\epsilon}\\), the Bernstein moment equations, the objective equation after clearing the strictly positive factor \\(p(q)(1-p(q))\\), global Bernstein dual feasibility, complementary contact, and the deviance comparisons after exponentiation — is a polynomial equality or inequality with rational coefficients. The objects living in this world are the quantified first-order formulas whose elimination yields the endpoint functionals, the confidence set, and the boundary stratification: the finite-support recovery procedure \\(\\operatorname{CAD}_m(b,\\epsilon)\\), the confidence-set procedure \\(\\operatorname{CAD}^{\\mathrm{conf}}_{m,n}(z^{\\mathrm{obs}},\\epsilon,\\alpha)\\), and the boundary-atlas handle \\(\\mathcal A_{m,\\epsilon}\\). — This world is the one that carries visible substrate debt: real-closed-field quantifier elimination / cylindrical algebraic decomposition is NOT in Mathlib, and building it is a major upstream contribution, so `lem:cad-quantifier-elimination` is a cited SUBSTRATE-GATE (never crux — a crux tag there would only yield a permanently-unbuildable `sorry`). The three procedures are encoded as named `def`s returning the specification they satisfy (endpoint values + witness atoms + certificate/flag), and every theorem about them is stated CONDITIONAL on the gate Prop. Search trace: `lean_local_search \"Semialgebraic\"` → the single hit `CausalSmith.Experimentation.SaturationSkew.SemialgebraicOptimizationAlgorithms` (CausalSmith/Experimentation/EXP_SaturationSkewThreshold_Research/Helpers/Bridge/SemialgebraicSolver.lean:20), which is itself a threaded `Prop` SUBSTRATE-GATE for the same Tarski–Seidenberg/CAD debt — this note follows that precedent exactly; `lean_leansearch \"real closed field quantifier elimination cylindrical algebraic decomposition\"`-class queries and `lean_local_search` for `Semialgebraic` return no Mathlib decision procedure. PRECEDENT FILE for F2 to copy the gate shape from: CausalSmith/Experimentation/EXP_SaturationSkewThreshold_Research/Helpers/Bridge/SemialgebraicSolver.lean.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Mathlib.Analysis.Convex.Intrinsic",
+          "Mathlib.Analysis.Convex.StdSimplex"
+        ]
+      }
+    },
+    {
+      "id": "ass:clusters-iid",
+      "obj_id": "A-1",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\((Q_i,(A_{ij},Y_{ij}(0),Y_{ij}(1))_{j=1}^m)\\) are independent and identically distributed across \\(i\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.IndependentClusterSampling",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "a34e0261bfdf70855569fbf7db04c900b7e616cf",
+        "note": "The conjunction states mutual independence of the complete cluster vectors and equality of their pushforward laws, exactly expressing iid sampling across i under the model's measurability and probability-space background."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Independent hierarchical cluster sampling",
+        "cite": "NobreSchmidtMoodieStephens2023",
+        "citation": "W. S. Nobre, A. M. Schmidt, E. E. M. Moodie, and D. A. Stephens (2023), The impact of directly observed therapy on the efficacy of tuberculosis treatment: a Bayesian multilevel approach, Journal of the Royal Statistical Society Series C: Applied Statistics 72(4), 889--911. DOI 10.1093/jrsssc/qlad034."
+      }
+    },
+    {
+      "id": "ass:environment-law",
+      "obj_id": "A-2",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(Q_i\\sim\\mu\\) for every \\(1\\le i\\le n\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.EnvironmentLaw",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "d355d2e2d331b13fa0653aad7b2b93480b82443e",
+        "note": "The map equality is exactly Q_i ∼ μ for every i; IsMixingLaw only realizes the core-declared intrinsic domain μ ∈ P(K_epsilon), so it adds no restriction beyond the paper setup."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Random-effects mixing law",
+        "cite": "NobreSchmidtMoodieStephens2023",
+        "citation": "W. S. Nobre, A. M. Schmidt, E. E. M. Moodie, and D. A. Stephens (2023), The impact of directly observed therapy on the efficacy of tuberculosis treatment: a Bayesian multilevel approach, Journal of the Royal Statistical Society Series C: Applied Statistics 72(4), 889--911. DOI 10.1093/jrsssc/qlad034."
+      }
+    },
+    {
+      "id": "ass:conditional-iid-plate",
+      "obj_id": "A-3",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Conditional on \\(Q_i=q\\), the vectors \\((A_{ij},Y_{ij}(0),Y_{ij}(1))\\) are identically distributed and mutually independent over \\(j\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.ConditionalIidPlate",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "9b625ec27445de27319cef66c69c3f31e0dab8bd",
+        "note": "For the finite causal-vector space, equality of the canonical conditional kernels gives identical conditional laws, while factorization of every joint singleton probability is equivalent to mutual conditional independence; the pointwise kernel equality is equivalent to a.e. equality because condDistrib is canonically determined by the common joint law."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Conditional iid repeated-observation model",
+        "cite": "LeeWeidner2026",
+        "citation": "S. Lee and M. Weidner (2026), Bounding treatment effects by pooling limited information across observations, Journal of Econometrics 106254. DOI 10.1016/j.jeconom.2026.106254; arXiv:2111.05243."
+      }
+    },
+    {
+      "id": "ass:observed-cell-calibration",
+      "obj_id": "A-4",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\Pr((A_{ij},Y_{ij})=(a,y)\\mid Q_i)=Q_{i,ay}\\) almost surely for every \\(a,y\\in\\{0,1\\}\\), \\(1\\le i\\le n\\), and \\(1\\le j\\le m\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.ObservedCellCalibration",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "4693443df9fb561d9b4bd04e7cd1dd15b4dcf32b",
+        "note": "Quantification over every finite i, j, and cell c with equality almost everywhere under the Q_i pushforward is exactly the stated almost-sure conditional cell-probability calibration."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Conditional categorical calibration",
+        "cite": "NobreSchmidtMoodieStephens2023",
+        "citation": "W. S. Nobre, A. M. Schmidt, E. E. M. Moodie, and D. A. Stephens (2023), The impact of directly observed therapy on the efficacy of tuberculosis treatment: a Bayesian multilevel approach, Journal of the Royal Statistical Society Series C: Applied Statistics 72(4), 889--911. DOI 10.1093/jrsssc/qlad034."
+      }
+    },
+    {
+      "id": "ass:latent-ignorability",
+      "obj_id": "A-5",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\((Y_{ij}(0),Y_{ij}(1))\\perp A_{ij}\\mid Q_i\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.LatentIgnorability",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "5d01e9fd32767f28687b26aa0d9adc6d3b411e20",
+        "note": "Because both variables have finite discrete ranges, almost-everywhere factorization for every singleton (y,a) is equivalent in both directions to conditional independence of (Y0,Y1) and A given Q_i."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Conditional treatment ignorability",
+        "cite": "RosenbaumRubin1983",
+        "citation": "P. R. Rosenbaum and D. B. Rubin (1983), The central role of the propensity score in observational studies for causal effects, Biometrika 70, 41--55."
+      }
+    },
+    {
+      "id": "ass:consistency",
+      "obj_id": "A-6",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(Y_{ij}=A_{ij}Y_{ij}(1)+(1-A_{ij})Y_{ij}(0)\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.PlateConsistency",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "a811dae76ffcf3d980f0fafa81ecb1ef03d2fda4",
+        "note": "For binary Bool-valued treatment and outcomes, the if-then-else identity is equivalent pointwise to Y_ij=A_ij Y_ij(1)+(1-A_ij)Y_ij(0)."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Potential-outcome consistency",
+        "cite": "Rubin1974",
+        "citation": "D. B. Rubin (1974), Estimating causal effects of treatments in randomized and nonrandomized studies, Journal of Educational Psychology 66, 688--701."
+      }
+    },
+    {
+      "id": "def:hierarchical-scm-class",
+      "obj_id": "P-1",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\mathfrak M_{m,\\epsilon}=\\{(\\mu,\\mathcal M):\\mu\\in\\mathcal P(K_{\\epsilon}),\\ Q_i\\sim\\mu,\\ (Q_i,(A_{ij},Y_{ij}(0),Y_{ij}(1))_{j=1}^m)_{i=1}^n\\text{ satisfies independent cluster sampling, conditional iid sampling, observed-cell calibration, latent ignorability, and consistency}\\}\\)",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.HierarchicalPlateModel",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "6d3825deb26ecb97767e09ccf0a9e79041dce26c",
+        "note": "After unfolding its six assumption predicates, the structure imposes exactly the stated positive-size, overlap-supported mixing, cluster-iid, conditional-iid, calibration, ignorability, and consistency conditions; measurability is intrinsic bookkeeping and C with count_def is a conservative definitional expansion."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:bernstein-moment-body",
+      "obj_id": "P-2",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\mathcal B_{m,\\epsilon}=\\{b\\in\\Delta_{N_m-1}:b=\\int g_m(q)\\,d\\nu(q)\\text{ for some }\\nu\\in\\mathcal P(K_{\\epsilon})\\}\\)",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.bernsteinMomentBody",
+        "file": "Helpers/MomentGeometry.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "162b0bdda1893878b77318dd5e1722510ae9d64a",
+        "note": "On the stated positive-m and overlap domain, the finite-dimensional convex hull of g_m(K_epsilon) equals the set of barycenters under probability measures on compact K_epsilon, and its elements automatically lie in the required simplex."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:sharp-ate-fiber",
+      "obj_id": "P-3",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\Theta_{m,\\epsilon}(b)=\\{\\tau(\\nu):\\nu\\in\\mathcal F_{m,\\epsilon}(b)\\}=[L_m(b),U_m(b)]\\)",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.sharpAteFiber",
+        "file": "Helpers/MomentGeometry.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "8e96a5f8d0fd11b9c79d17bc0b9df28817875bfd",
+        "note": "IdentifiedInterval unfolds exactly to the range {ateFunctional ν | ν ∈ momentFiber m ε b}; on the feasible b-domain the compact convex fiber and affine integral functional make this range the closed interval between its infimum and supremum."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:bernstein-dual",
+      "obj_id": "P-4",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(D_m(b)=(\\sup_{\\lambda\\in\\mathbb R^{N_m}}\\{\\lambda^\\top b:\\sum_c\\lambda_cB_c^{(m)}\\le f\\text{ on }K_{\\epsilon}\\},\\inf_{\\lambda\\in\\mathbb R^{N_m}}\\{\\lambda^\\top b:\\sum_c\\lambda_cB_c^{(m)}\\ge f\\text{ on }K_{\\epsilon}\\})\\)",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.bernsteinDual",
+        "file": "Helpers/MomentGeometry.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "e1fa9f7856fb0d7d780af8b973e0d471edee609b",
+        "note": "Unfolding IsMinorant, IsMajorant, and coefficientValue gives exactly the supremum and infimum of λᵀb over coefficient vectors satisfying the respective pointwise Bernstein inequalities on K_epsilon."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:valid-envelope-class",
+      "obj_id": "P-5",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\mathcal E_m=\\{(\\ell,u)\\in V_m^2:\\ell(q)\\le f(q)\\le u(q)\\text{ for every }q\\in K_{\\epsilon}\\}\\), where \\(\\ell^\\top b=\\sum_c\\ell_cb_c\\) and \\(u^\\top b=\\sum_cu_cb_c\\) use the unique degree-\\(m\\) Bernstein coefficient vectors",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.validEnvelopeClass",
+        "file": "Helpers/MomentGeometry.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "385652b3ccd32ef2522aa2821be8e3f045cf34a9",
+        "note": "On the stated m ≥ 1 and 0 < ε < 1/2 domain, unique Bernstein coefficients bijectively identify V_m with CountIndex m → ℝ, and IsMinorant/IsMajorant unfold to exactly the two pointwise envelope inequalities on K_ε."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:limited-pooling-comparator",
+      "obj_id": "P-6",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For \\(b\\in\\mathcal B_{m,\\epsilon}\\) and \\(p_*\\in[\\epsilon,1-\\epsilon]\\), set \\(I_{LW,m,p_*}(b)=[\\ell_{m,p_*}^{\\top}b,u_{m,p_*}^{\\top}b]\\) and define the best homogeneous scalar-reference intersection by \\(I_{LW,m}^{\\cap}(b)=[\\max_{p_*\\in[\\epsilon,1-\\epsilon]}\\ell_{m,p_*}^{\\top}b,\\min_{p_*\\in[\\epsilon,1-\\epsilon]}u_{m,p_*}^{\\top}b]\\), where the dot products use the unique degree-\\(m\\) Bernstein coefficient vectors of \\(\\ell_{m,p_*},u_{m,p_*}\\in V_m\\)",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.limitedPoolingIntersection",
+        "file": "Helpers/LimitedPooling.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "fd6cd8678b193b3f1ce4ff69ec6b438f66f6b644",
+        "note": "For b ∈ B_{m,ε}, the unique lower/upper Bernstein coefficients give the stated dot products, and continuity on the nonempty compact reference interval makes sSup/sInf equal the advertised attained maximum/minimum."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:exact-multinomial-region",
+      "obj_id": "P-7",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For observed \\(z^{\\mathrm{obs}}\\in\\mathcal H_n\\), enumerate every \\(w\\in\\mathcal H_n\\), compute the exact multinomial upper-tail probability \\(P_n(b';z^{\\mathrm{obs}})\\) using \\(T_n(w;b')\\ge T_n(z^{\\mathrm{obs}};b')\\), include every deviance tie, use no auxiliary randomization, and retain \\(b'\\) exactly when \\(P_n(b';z^{\\mathrm{obs}})>\\alpha\\)",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.exactMultinomialRegion",
+        "file": "Helpers/ExactMultinomial.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "075ed101d7b56d4b0ae9077ee976d1877ecf7a01",
+        "note": "The simplex conjunct is the intrinsic domain of b′, while exactPValue enumerates all aggregate counts with deviance at least the observed deviance, includes ties, and the strict test α < P_n exactly matches retention by P_n > α."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:whole-set-confidence",
+      "obj_id": "P-8",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\mathcal C_{n,\\alpha}(z^{\\mathrm{obs}})=\\{t\\in\\mathbb R:\\exists b'\\in\\mathcal R_{n,\\alpha}(z^{\\mathrm{obs}})\\cap\\mathcal B_{m,\\epsilon},\\ t\\in[L_m(b'),U_m(b')]\\}\\)",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.wholeSetConfidenceSet",
+        "file": "Helpers/ExactMultinomial.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "de41cc3c22f5636954dc86e5f3212f20944ea419",
+        "note": "After unfolding the intersection membership and Icc, Lean is exactly the union of [L_m(b′),U_m(b′)] over b′ in the exact region and Bernstein moment body."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:confidence-set-cad",
+      "obj_id": "P-9",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Represent \\(t\\in\\mathcal C_{n,\\alpha}(z^{\\mathrm{obs}})\\) by variables \\(b'\\), \\(1\\le s\\le N_m+1\\), atom locations \\(q^1,\\ldots,q^s\\in K_{\\epsilon}\\), and masses \\(\\omega_k\\ge0\\) satisfying \\(\\sum_k\\omega_k=1\\), \\(b'_c=\\sum_k\\omega_kB_c^{(m)}(q^k)\\) for every \\(c\\), \\(t=\\sum_k\\omega_k f(q^k)\\), and \\(b'\\in\\mathcal R_{n,\\alpha}(z^{\\mathrm{obs}})\\); split by the finitely many deviance-order cells, clear positive propensity denominators, and apply CAD to eliminate all variables except \\(t\\)",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.confidenceSetCadProcedure",
+        "file": "Helpers/RealAlgebraic.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "faf36d591bb5faf45c39742521bcd9929f13ad9c",
+        "note": "Paper-to-Lean holds because the stated finite-atom CAD elimination returns the exact bounded confidence set with an algebraic decomposition, but Lean-to-paper fails: the predicate omits every atom, mass, moment, deviance-cell, denominator-clearing, and elimination constraint and admits arbitrary auxiliary hull/flag fields whenever out.1 has a finite decomposition; encode those construction certificates and constrain every output component."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:cad-recovery-procedure",
+      "obj_id": "P-10",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Use two quantified branches. On the relative-interior branch, use at most \\(N_m\\) atoms, impose the rational simplex, overlap, mass, Bernstein-moment, objective, global dual-feasibility, and complementary-contact conditions, clear only the positive factors \\(p(q)(1-p(q))\\), and return algebraic primal endpoints, endpoint atoms, and matching dual certificates. On the arbitrary rational boundary branch, use at most \\(N_m\\) atoms and optimize the finite-support primal endpoint formula without any dual variables; after returning both algebraic primal endpoints and endpoint atoms, separately decide existence of matching global dual certificates. If no matching certificate exists, return a boundary/nonattainment flag rather than declaring the primal infeasible or withholding its endpoints and witnesses",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.cadRecoveryProcedure",
+        "file": "Helpers/RealAlgebraic.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "fdb80e654e491180c2bbc068591c1b9f33272807",
+        "note": "Paper ⇒ Lean, but Lean ⇏ paper: endpoint values and atoms need not have rational-algebraic descriptions, no rational CAD branch or positive-factor-clearing condition is encoded, and a false certificate flag does not assert that no matching global dual certificate exists."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:boundary-atlas-handle",
+      "obj_id": "P-11",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Stratify the semialgebraic faces of \\(\\mathcal B_{m,\\epsilon}\\) by CAD and, on each representing support variety, test membership of the restricted function \\(f\\) in the affine span of the restricted Bernstein coordinates",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.boundaryAtlasHandle",
+        "file": "Helpers/RealAlgebraic.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "8210213f64e817204a3520c847ccbe304ea3d7dd",
+        "note": "Paper ⇒ Lean, but Lean ⇏ paper: the alleged cells need not be semialgebraic faces or support varieties, and neither the Boolean label nor the entirely unconstrained third component is tied to restricted-f membership in the affine span of the restricted Bernstein coordinates."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:uniform-identification-modulus",
+      "obj_id": "P-12",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(d_m(\\epsilon)=\\inf_{v\\in V_m}\\|f-v\\|_{\\infty,K_{\\epsilon}}\\), where \\(\\|u\\|_{\\infty,K_{\\epsilon}}=\\sup_{q\\in K_{\\epsilon}}|u(q)|\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.uniformIdentificationModulus",
+        "file": "Helpers/MomentGeometry.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "d0ee8c2f7c663856eb198ea744a5a7d810bf0acf",
+        "note": "The outer sInf is exactly the infimum over v in bernsteinSpan m of overlapUniformError, whose sSup image unfolds to sup over q in K_epsilon of |causalIntegrand q - v q|."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "lem:scm-moment-reduction",
+      "obj_id": "L-1",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Every \\((\\mu,\\mathcal M)\\in\\mathfrak M_{m,\\epsilon}\\) has \\(Q_i\\sim\\mu\\), conditional count law \\(C_i\\mid Q_i=q\\sim\\operatorname{Multinomial}(m,q)\\), marginal count law \\(\\Pr(C_i=c)=\\int B_c^{(m)}(q)\\,d\\mu(q)\\), and cluster-equally-weighted ATE \\(\\tau(\\mu)=\\int\\{q_{11}/p(q)-q_{01}/(1-p(q))\\}\\,d\\mu(q)=\\int f\\,d\\mu\\). Conversely, for every \\(\\mu\\in\\mathcal P(K_{\\epsilon})\\), draw \\(Q_i\\sim\\mu\\); conditional on \\(Q_i=q\\), draw \\(A_{ij}\\sim\\operatorname{Bernoulli}(p(q))\\) and conditionally treatment-independent binary potential outcomes \\(Y_{ij}(0),Y_{ij}(1)\\) with means \\(q_{01}/(1-p(q))\\) and \\(q_{11}/p(q)\\), respectively, independently over \\(j\\), and set \\(Y_{ij}=A_{ij}Y_{ij}(1)+(1-A_{ij})Y_{ij}(0)\\). This construction belongs to \\(\\mathfrak M_{m,\\epsilon}\\) and has conditional cell probabilities \\(\\Pr((A_{ij},Y_{ij})=(a,y)\\mid Q_i)=Q_{i,ay}\\) almost surely.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.scm_moment_reduction",
+        "file": "Helpers/MomentReduction.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "030c9b676ef3249f6025d1b7da3d480e3e97d486",
+        "note": "Paper implies Lean, but Lean does not imply the paper’s unconditional converse: `∀ μ, IsMixingLaw ε μ → MomentReductionConverse m n ε μ` is gated by an already-supplied `M : HierarchicalPlateModel m n ε P`, so an empty model class makes the Lean theorem vacuous; split the universal forward claim from the unconditional construction theorem under explicit parameter-domain hypotheses."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:sharp-primal-dual",
+      "obj_id": "T-1",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Let \\(H_{m,\\epsilon}:=\\operatorname{conv}\\{(g_m(q),f(q)):q\\in K_{\\epsilon}\\}\\). The set \\(H_{m,\\epsilon}\\) is compact and equals\n\\[\n \\left\\{\\left(\\int g_m\\,d\\nu,\\int f\\,d\\nu\\right):\n \\nu\\in\\mathcal P(K_{\\epsilon})\\right\\}.\n\\]\nEvery pair in \\(H_{m,\\epsilon}\\) has a representing probability measure supported on at most \\(N_m+1\\) points of \\(K_{\\epsilon}\\), and therefore has a compatible hierarchical SCM in \\(\\mathfrak M_{m,\\epsilon}\\) with at most \\(N_m+1\\) latent cluster laws. Consequently, for every \\(b\\in\\mathcal B_{m,\\epsilon}\\), the sharp fiber \\(\\Theta_{m,\\epsilon}(b)\\) is a nonempty attained compact interval \\([L_m(b),U_m(b)]\\), and each endpoint has a representing measure, and hence a compatible hierarchical SCM, supported on at most \\(N_m={m+3\\choose3}\\) latent laws. If \\(b\\in\\operatorname{relint}(\\mathcal B_{m,\\epsilon})\\), then \\(D_m(b)=(L_m(b),U_m(b))\\) with both dual extrema attained. If an optimal dual polynomial has contact image of affine dimension \\(r\\), its associated endpoint admits at most \\(r+1\\) atoms.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.sharp_primal_dual",
+        "file": "T_SharpPrimalDual.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "32f4250bc5f6c0352b014c4438371725cfff97d6",
+        "note": "Lean ⇒ paper fails: the contact-rank clauses require b ∈ intrinsicInterior, while the paper asserts the r+1-atom conclusion whenever an optimal dual polynomial exists, explicitly including boundary points; remove the intrinsic-interior premises from the final two conjuncts."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "lem:full-support-perturbation",
+      "obj_id": "L-2",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(b\\in\\operatorname{relint}(\\mathcal B_{m,\\epsilon})\\), there exists \\(\\nu_b\\in\\mathcal F_{m,\\epsilon}(b)\\) with full support on \\(K_{\\epsilon}\\). If \\(r_b=f-\\Pi_{V_m}^{L^2(\\nu_b)}f\\), then \\(r_b\\) is a bounded continuous function, \\(\\int B_c^{(m)}r_b\\,d\\nu_b=0\\) for every \\(c\\), and \\(\\int fr_b\\,d\\nu_b=\\int r_b^2\\,d\\nu_b\\). Whenever \\(f\\notin V_m\\), sufficiently small positive \\(s\\) makes \\(d\\nu_b^{\\pm}=(1\\pm sr_b)d\\nu_b\\) two distinct members of the same fiber with different ATEs.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.full_support_perturbation",
+        "file": "Helpers/FullSupport.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "c3c10e98e10cdcbb9a2671a4c0c5af7fa74079ab",
+        "note": "Paper implies the result only for the declared domain `1 ≤ m` and `0 < ε < 1/2`, whereas Lean quantifies over every natural `m` and real `ε`; `hb` does not entail those restrictions—for example, the moment body can have nonempty relative interior at `ε = 0`—so add the three domain hypotheses."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "lem:finite-plate-nonpolynomial",
+      "obj_id": "L-3",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every finite \\(m\\ge1\\) and every \\(0<\\epsilon<1/2\\), \\(V_m\\) is the restriction to \\(K_{\\epsilon}\\) of polynomials of total degree at most \\(m\\) on the simplex, whereas \\(f(q)=q_{11}/p(q)-q_{01}/(1-p(q))\\) does not belong to \\(V_m\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.finite_plate_nonpolynomial",
+        "file": "Helpers/BernsteinSpan.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "dbfc012a5d4b1b46e3781b5cd5a122984dd44cab",
+        "note": "Paper does not imply Lean’s ambient-function equality: `polynomialRestrictions m ε` admits arbitrary off-`overlapSimplex ε` extensions, while every member of `bernsteinSpan m` is globally polynomial and continuous; replace the equality and nonmembership claim by statements about restrictions to `overlapSimplex ε` (for example via subtype functions or `Set.EqOn`)."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:identification-frontier",
+      "obj_id": "T-2",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For a continuous functional \\(h:K_{\\epsilon}\\to\\mathbb R\\), \\(\\int h\\,d\\nu\\) is identical for all \\(\\nu\\in\\mathcal F_{m,\\epsilon}(b)\\) and every feasible \\(b\\) if and only if \\(h\\in V_m\\). For \\(h=f\\), universal point identification therefore fails for every finite \\(m\\), and every \\(b\\in\\operatorname{relint}(\\mathcal B_{m,\\epsilon})\\) satisfies \\(L_m(b)<U_m(b)\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.identification_frontier",
+        "file": "T_IdentificationFrontier.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "5362710646a56bc370823fd587b576a2cf76428b",
+        "note": "Paper-to-Lean fails because paper V_m is a space of functions on K_epsilon, whereas Lean's h ∈ bernsteinSpan m requires equality on every ambient CellLaw: h ≡ 1 is continuous and universally fiber-identified, but for m ≥ 1 every ambient Bernstein-span function vanishes at q = 0 while h(0) = 1, even though 1 is in the restricted Bernstein span on K_epsilon; replace the RHS with existence of v ∈ bernsteinSpan m agreeing with h on overlapSimplex ε, or use subtype-valued functions."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "prop:boundary-dirac-regression",
+      "obj_id": "T-3",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For \\(m\\ge2\\) and any \\(q^*\\in K_{\\epsilon}\\), the boundary moment vector \\(b=g_m(q^*)\\) has \\(\\mathcal F_{m,\\epsilon}(b)=\\{\\delta_{q^*}\\}\\) and hence \\(L_m(b)=U_m(b)=f(q^*)\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.boundary_dirac_regression",
+        "file": "T_BoundaryDiracRegression.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "ae0443a9723fe82b602771c1c61811ab3a1bcc3a",
+        "note": "After unfolding the fiber, endpoints, moment map, overlap simplex, causal integrand, moment body, and intrinsic frontier, Lean states the singleton Dirac fiber, both endpoint equalities, and the paper's relative-boundary descriptor exactly."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:sharp-envelope-domination",
+      "obj_id": "T-4",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\((\\ell,u)\\in\\mathcal E_m\\) and every \\(b\\in\\mathcal B_{m,\\epsilon}\\), \\([L_m(b),U_m(b)]\\subseteq[\\ell^\\top b,u^\\top b]\\). The lower equality \\(L_m(b)=\\ell^\\top b\\) holds if and only if \\(b\\in\\operatorname{conv}\\{g_m(q):q\\in K_{\\epsilon},\\ \\ell(q)=f(q)\\}\\), and the upper equality \\(U_m(b)=u^\\top b\\) holds if and only if \\(b\\in\\operatorname{conv}\\{g_m(q):q\\in K_{\\epsilon},\\ u(q)=f(q)\\}\\). If \\(m\\ge2\\), each contact hull is a proper closed convex subset of \\(\\mathcal B_{m,\\epsilon}\\); consequently, for each endpoint separately there is a nonempty relatively open subset of \\(\\operatorname{relint}(\\mathcal B_{m,\\epsilon})\\) on which the sharp endpoint strictly improves its valid envelope endpoint.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.sharp_envelope_domination",
+        "file": "T_SharpEnvelopeDomination.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "24081e74c04f53507989642eb0911827b0319b93",
+        "note": "Both directions match after unfolding: the interval, contact-hull equality criteria, proper-subset claims, and separate relatively open strict-improvement regions coincide; convexity is intrinsic to convexHull, and closedness follows because each contact image is compact in the finite-dimensional coefficient space."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:exact-cad-recovery",
+      "obj_id": "T-5",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For rational \\(\\epsilon\\) and rational \\(b\\in\\operatorname{relint}(\\mathcal B_{m,\\epsilon})\\), the relative-interior branch of \\(\\operatorname{CAD}_m(b,\\epsilon)\\) terminates and returns the algebraic numbers \\(L_m(b)\\) and \\(U_m(b)\\) by minimal polynomials and isolating intervals, endpoint measures with at most \\(N_m\\) atoms, compatible endpoint models in \\(\\mathfrak M_{m,\\epsilon}\\), and matching globally feasible Bernstein dual certificates. For arbitrary rational \\(b\\), the boundary-capable branch first decides primal feasibility using no dual variables. If \\(b\\notin\\mathcal B_{m,\\epsilon}\\), it certifies infeasibility. If \\(b\\in\\mathcal B_{m,\\epsilon}\\), it terminates and returns both algebraic primal endpoints, endpoint measures with at most \\(N_m\\) atoms, and compatible endpoint models, then separately decides whether matching globally feasible dual certificates exist; absence of a matching certificate returns a boundary/nonattainment flag and does not alter the primal endpoints or witnesses.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.exact_cad_recovery",
+        "file": "T_ExactCadRecovery.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "1e18fb633faed61ddce02cc4bd046d9761c782b4",
+        "note": "Paper ⇒ Lean, but Lean ⇏ paper: on a feasible boundary fiber, CadEndpointValid only states flag=true → a matching globally feasible dual certificate, while flag=false need not mean that no certificate exists, so the claimed separate dual-existence decision is not encoded."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "thm:finite-complexity-inference",
+      "obj_id": "T-6",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For fixed \\(m,n\\), observed \\(z^{\\mathrm{obs}}\\in\\mathcal H_n\\), and \\(0<\\alpha<1\\), the nonrandomized likelihood-ratio test that rejects \\(b'\\) when \\(P_n(b';z^{\\mathrm{obs}})\\le\\alpha\\), with every equality \\(T_n(w;b')=T_n(z^{\\mathrm{obs}};b')\\) included in the upper tail, has rejection probability at most \\(\\alpha\\) under \\(Z\\sim\\operatorname{Multinomial}(n,b')\\). Its inversion \\(\\mathcal R_{n,\\alpha}(z^{\\mathrm{obs}})\\) is semialgebraic: on each zero-pattern cell, every deviance comparison is equivalent after exponentiation and positive-denominator clearing to a monomial polynomial inequality, and \\(P_n\\) is a finite polynomial sum. If \\(\\epsilon\\), \\(\\alpha\\), and \\(z^{\\mathrm{obs}}\\) are rational, then \\(\\mathcal C_{n,\\alpha}(z^{\\mathrm{obs}})\\subseteq[-1,1]\\) is a one-dimensional semialgebraic set. The procedure \\(\\operatorname{CAD}^{\\mathrm{conf}}_{m,n}\\) terminates after reducing each feasible \\((b',t)\\) to at most \\(N_m+1\\) atoms and returns either the complete disjoint decomposition into points and intervals with every algebraic endpoint and open-or-closed endpoint flag, or the certified endpoint hull with its attainability flags.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.finite_complexity_inference",
+        "file": "T_FiniteComplexityInference.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "75b4a8f5a32a6fb99cffe1dfae72fb6892b56c59",
+        "note": "Paper ⇒ Lean, but Lean ⇏ paper: the Lean conclusion retains only existence of a set satisfying a finite-decomposition-or-algebraic-hull property; it omits the exact rejection-probability bound, semialgebraicity and polynomial-cell characterization of the multinomial inversion, termination, the N_m+1-atom reduction, returned decomposition data, and any semantics connecting the two Bool fields to endpoint openness or attainability."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "prop:whole-set-coverage",
+      "obj_id": "T-7",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Corollary. For every \\(n,m\\), every \\(0<\\alpha<1\\), and every \\((\\mu,\\mathcal M)\\in\\mathfrak M_{m,\\epsilon}\\) with true count law \\(b\\), exact count-law coverage gives \\(\\Pr_{\\mathcal M}(b\\in\\mathcal R_{n,\\alpha}(Z))\\ge1-\\alpha\\). On this event, the defining union for \\(\\mathcal C_{n,\\alpha}(Z)\\) contains \\([L_m(b),U_m(b)]\\); hence \\(\\Pr_{\\mathcal M}([L_m(b),U_m(b)]\\subseteq\\mathcal C_{n,\\alpha}(Z))\\ge1-\\alpha\\), uniformly over \\(\\mathfrak M_{m,\\epsilon}\\), including boundary laws with singleton fibers.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.whole_set_coverage",
+        "file": "T_WholeSetCoverage.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "5e77a16756f7dc51ae91c93033ebb645d2204206",
+        "note": "The existential b and Z are uniquely pinned as M's common true count law and literal aggregate; unfolding wholeSetConfidenceSet shows that b in the exact region and moment body pointwise implies its endpoint interval is contained in the union, so both coverage bounds and uniform model quantification match the paper."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "prop:m-one-regression",
+      "obj_id": "T-8",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "When \\(m=1\\), \\(\\epsilon=1/4\\), and \\(b=(1/4,1/4,1/4,1/4)\\), the exact sharp interval is \\([-1/3,1/3]\\). The upper dual certificate is \\(1-\\frac43(q_{01}+q_{10})\\), the lower certificate is \\(\\frac13-\\frac43(q_{01}+q_{10})\\), and each endpoint is attained by a mixing law with at most four atoms.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.m_one_regression",
+        "file": "T_MOneRegression.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "9c40c3ad62713f62bdd0dc3363d246327ebc4cc9",
+        "note": "After unfolding, Lean states the two sharp endpoint values, the displayed degree-one minorant and majorant certificates on the overlap simplex, and endpoint-attaining probability measures in the uniform moment fiber with support at most four; convexity of the fiber supplies the full interval between the attained endpoints."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "lem:cad-quantifier-elimination",
+      "kind": "gate",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every first-order formula with rational coefficients and finitely many polynomial equalities and weak or strict inequalities, Collins's complete cylindrical algebraic-decomposition algorithm terminates, eliminates any prescribed finite block of real quantifiers, and returns an equivalent finite semialgebraic cell decomposition.  Every nonempty cell has an algebraic sample point represented by a finite rational algebraic description; in particular, zero-dimensional sections and finite one-dimensional cell boundaries are real algebraic numbers represented by defining polynomials and rational isolating intervals.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.CylindricalAlgebraicDecompositionQE",
+        "file": "Helpers/RealAlgebraic.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "027a488723df0efefb407c99cd92c62fc901c483",
+        "note": "Frozen claim ⇒ Lean, but Lean ⇏ frozen claim: the output is only a finite cover by quantifier-free formulas, with no disjoint cylindrical semialgebraic-cell structure, no encoded algorithmic termination, and no returned zero-dimensional or one-dimensional-boundary isolating data."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "gate": {
+        "gate_class": "cited",
+        "source": "cite:collins1975"
+      }
+    },
+    {
+      "id": "thm:boundary-fiber-atlas",
+      "obj_id": "T-9",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every fixed \\(m\\geq1\\) and rational \\(0<\\epsilon<1/2\\), the relative boundary \\(\\operatorname{relbd}(\\mathcal B_{m,\\epsilon})\\), taken in \\(\\operatorname{aff}(\\mathcal B_{m,\\epsilon})\\), admits a finite truth-invariant semialgebraic stratification on each cell of which the indicator of \\(L_m(b)=U_m(b)\\), the affine dimension \\(0\\) or \\(1\\) of \\(\\Theta_{m,\\epsilon}(b)\\), and the ordered pair of minimum lower- and upper-endpoint support sizes are constant.  Both minimum sizes lie in \\(\\{1,\\ldots,N_m\\}\\).  The construction \\(\\mathcal A_{m,\\epsilon}\\), completed by the quantified endpoint and support-size tests in the proof, is a terminating CAD procedure that returns defining formulas, the constant support labels, and one algebraic sample point with endpoint witnesses of the certified minimum sizes for every nonempty cell.  It does not return a uniform symbolic endpoint-witness map over a positive-dimensional cell.  For any separately supplied algebraic \\(b\\) on the relative boundary, specialization followed by a fresh terminating QE/CAD run returns endpoint witnesses having the certified minimum support sizes at that \\(b\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.boundary_fiber_atlas",
+        "file": "T_BoundaryFiberAtlas.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "91cecd1d5b2843f78544ceb303fb51f526de4021",
+        "note": "Paper implies Lean, but Lean does not imply paper: unfolded boundaryAtlasHandle permits an arbitrary finite cover with constant labels and algebraic sample coordinates, without semialgebraic/disjoint cells, defining formulas, or any link to the assumed CAD procedure and its termination; moreover, the sample and fresh-run clauses do not require the returned endpoint certificates to realize the labeled minimum support sizes."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "prop:optimized-limited-pooling-intersection",
+      "obj_id": "T-10",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Corollary. For every \\(p_*\\in[\\epsilon,1-\\epsilon]\\), \\((\\ell_{m,p_*},u_{m,p_*})\\in\\mathcal E_m\\). For every \\(b\\in\\mathcal B_{m,\\epsilon}\\), the extrema defining \\(I_{LW,m}^{\\cap}(b)\\) are attained and \\([L_m(b),U_m(b)]\\subseteq I_{LW,m}^{\\cap}(b)=\\bigcap_{p_*\\in[\\epsilon,1-\\epsilon]}I_{LW,m,p_*}(b)\\). If \\(m\\ge2\\), there is one nonempty relatively open set \\(\\mathcal R\\subseteq\\operatorname{relint}(\\mathcal B_{m,\\epsilon})\\) such that, for every \\(b\\in\\mathcal R\\), \\(L_m(b)>\\max_{p_*\\in[\\epsilon,1-\\epsilon]}\\ell_{m,p_*}^{\\top}b\\) and \\(U_m(b)<\\min_{p_*\\in[\\epsilon,1-\\epsilon]}u_{m,p_*}^{\\top}b\\). The optimized interval above is the intersection of the scalar-reference, \\(b\\)-only transplant; no inclusion comparison with their full observed-covariate, covariate-dependent procedure is asserted.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.optimized_limited_pooling_intersection",
+        "file": "T_OptimizedLimitedPooling.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "3647fdaf0811ccc213ebb0d4d47176ba80e8e6b2",
+        "note": "Under the stated m and ε domain, Lean encodes envelope validity, attainment of both extrema, sharp-interval inclusion, equality with the full scalar-reference intersection, and one common nonempty relatively open strict-improvement region; the attained sSup/sInf are exactly the paper's max/min."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "lem:hahn-banach-quotient-norm",
+      "kind": "gate",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Let \\(X\\) be a real normed vector space, let \\(M\\subseteq X\\) be a closed linear subspace, and let \\(x\\in X\\).  There is a bounded real linear functional \\(\\Lambda\\in X^*\\) such that \\(\\Lambda|_M=0\\), \\(\\|\\Lambda\\|\\leq1\\), and \\(\\Lambda(x)=\\inf_{z\\in M}\\|x-z\\|\\).  If \\(x\\notin M\\), it can be chosen with \\(\\|\\Lambda\\|=1\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.HahnBanachQuotientNorm",
+        "file": "Helpers/CitedAnalysis.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "2b77d14b2f65ff0823637f2bd422f8e63c5b925d",
+        "note": "StrongDual is the bounded real dual, Metric.infDist x M is inf_z∈M ‖x-z‖, and the annihilation, norm bound, attained signed distance, and off-subspace norm-one clauses match the frozen quotient-separation statement."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "gate": {
+        "gate_class": "cited",
+        "source": "cite:encyclopedia-hahn-banach"
+      }
+    },
+    {
+      "id": "lem:riesz-markov-representation",
+      "kind": "gate",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "If \\(K\\) is a compact Hausdorff space, every bounded real linear functional \\(\\Lambda\\) on \\(C(K)\\) has a unique representation \\(\\Lambda(u)=\\int_Ku\\,d\\sigma\\) by a finite signed regular Borel measure \\(\\sigma\\), with \\(\\|\\Lambda\\|=|\\sigma|(K)\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.RieszMarkovRepresentation",
+        "file": "Helpers/CitedAnalysis.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "8e2f7f8817765d6fde1bd7ab47d92eaa47c183bc",
+        "note": "The Lean Prop is equivalent to the frozen compact-Hausdorff Riesz–Markov statement: StrongDual encodes bounded real linear functionals, BorelSpace pins the Borel σ-algebra, and the unique signed-measure representation includes regularity and the total-variation norm identity."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "gate": {
+        "gate_class": "cited",
+        "source": "cite:encyclopedia-riesz-representation"
+      }
+    },
+    {
+      "id": "lem:jordan-decomposition-signed-measure",
+      "kind": "gate",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Every finite signed measure \\(\\sigma\\) has a Jordan decomposition \\(\\sigma=\\sigma^+-\\sigma^-\\) into mutually singular finite positive measures, and its total-variation measure satisfies \\(|\\sigma|=\\sigma^++\\sigma^-\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.JordanDecompositionSignedMeasure",
+        "file": "Helpers/CitedAnalysis.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "1d0c04a318db2d20ea1ff672858d579a7071d4a4",
+        "note": "The Lean Prop is equivalent to the frozen Jordan-decomposition statement: it quantifies over finite signed measures and asserts finite positive mutually singular parts whose difference is σ and whose sum is σ.totalVariation."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "gate": {
+        "gate_class": "cited",
+        "source": "cite:encyclopedia-jordan-decomposition"
+      }
+    },
+    {
+      "id": "thm:growing-plate-identification-modulus",
+      "obj_id": "T-11",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every finite \\(m\\geq1\\) and every \\(0<\\epsilon<1/2\\), let \\(d_m(\\epsilon)\\) be the uniform approximation modulus in the preceding definition.  Put \\(\\rho=1-2\\epsilon\\) and\n\\[\n E_m(\\epsilon)=\\frac{1}{T_m(1/\\rho)}\n =\\operatorname{sech}\\!\\left(m\\operatorname{arcosh}(1/\\rho)\\right),\n\\]\nwhere \\(T_m\\) is the degree-\\(m\\) Chebyshev polynomial of the first kind.  Then\n\\[\n \\max_{b\\in\\mathcal B_{m,\\epsilon}}\\{U_m(b)-L_m(b)\\}\n =\\sup_{b\\in\\operatorname{relint}(\\mathcal B_{m,\\epsilon})}\\{U_m(b)-L_m(b)\\}\n =2d_m(\\epsilon),\n\\]\nand\n\\[\n 0<d_m(\\epsilon)\\leq E_m(\\epsilon)\\leq\\rho^m.\n\\]\nMoreover, \\(E_m(\\epsilon)<\\rho^m\\) whenever \\(m\\geq2\\).  Consequently every feasible fiber has width at most\n\\[\n 2\\operatorname{sech}\\!\\left(m\\operatorname{arcosh}\\!\\left(\\frac{1}{1-2\\epsilon}\\right)\\right).\n\\]\nFor every \\(0<\\delta\\leq2\\), the integer plate-size condition\n\\[\n m\\geq\n \\frac{\\operatorname{arcosh}(2/\\delta)}\n {\\operatorname{arcosh}(1/(1-2\\epsilon))}\n\\]\nguarantees \\(U_m(b)-L_m(b)\\leq\\delta\\) simultaneously for all \\(b\\in\\mathcal B_{m,\\epsilon}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.SCM.FiniteplateBernsteinAteBounds.growing_plate_identification_modulus",
+        "file": "T_GrowingPlateModulus.lean"
+      },
+      "review": {
+        "status": "drift",
+        "passed_hash": "672aa6dbf27ae6048f554d126e27cf8342d42934",
+        "note": "Paper implies Lean, but Lean does not imply the paper's attained maximum: `sSup (identifiedWidth m ε '' bernsteinMomentBody m ε) = 2*d` records only the supremum value and omits `∃ b ∈ bernsteinMomentBody m ε, identifiedWidth m ε b = 2*d`; add that maximizer witness while retaining the relative-interior supremum equality."
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 1
+      }
+    },
+    {
+      "id": "aux_bernsteinSpan",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def bernsteinSpan, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "bernsteinSpan",
+        "file": "Helpers/BernsteinSpan.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_BoundaryLabelCorrect",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def BoundaryLabelCorrect, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "BoundaryLabelCorrect",
+        "file": "T_BoundaryFiberAtlas.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CadEndpointValid",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CadEndpointValid, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CadEndpointValid",
+        "file": "Helpers/RealAlgebraic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_causalIntegrand",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def causalIntegrand, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "causalIntegrand",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CellLaw",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CellLaw, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CellLaw",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_chebyshevError",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def chebyshevError, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "chebyshevError",
+        "file": "Helpers/Chebyshev.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_coefficientValue",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def coefficientValue, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "coefficientValue",
+        "file": "Helpers/MomentGeometry.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_contactHull",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def contactHull, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "contactHull",
+        "file": "T_SharpEnvelopeDomination.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CountIndex",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CountIndex, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CountIndex",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_HasFiniteAlgebraicCellDecomposition",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def HasFiniteAlgebraicCellDecomposition, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "HasFiniteAlgebraicCellDecomposition",
+        "file": "Helpers/RealAlgebraic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_HasRationalAlgebraicDescription",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def HasRationalAlgebraicDescription, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "HasRationalAlgebraicDescription",
+        "file": "Helpers/RealAlgebraic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_identifiedWidth",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def identifiedWidth, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "identifiedWidth",
+        "file": "T_GrowingPlateModulus.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsMajorant",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsMajorant, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsMajorant",
+        "file": "Helpers/MomentGeometry.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsMinorant",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsMinorant, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsMinorant",
+        "file": "Helpers/MomentGeometry.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsMixingLaw",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsMixingLaw, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsMixingLaw",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_IsRationalVector",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def IsRationalVector, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "IsRationalVector",
+        "file": "T_ExactCadRecovery.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_lowerEndpoint",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def lowerEndpoint, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "lowerEndpoint",
+        "file": "Helpers/MomentGeometry.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_MomentReductionConverse",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def MomentReductionConverse, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "MomentReductionConverse",
+        "file": "Helpers/MomentReduction.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_MomentReductionForward",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def MomentReductionForward, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "MomentReductionForward",
+        "file": "Helpers/MomentReduction.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_overlapSimplex",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def overlapSimplex, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "overlapSimplex",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_RelativelyOpenIn",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def RelativelyOpenIn, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "RelativelyOpenIn",
+        "file": "T_SharpEnvelopeDomination.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_SharpPrimalDualSpec",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def SharpPrimalDualSpec, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "SharpPrimalDualSpec",
+        "file": "T_SharpPrimalDual.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_SupportedOnAtMost",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def SupportedOnAtMost, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "SupportedOnAtMost",
+        "file": "T_SharpPrimalDual.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_UniversallyMomentIdentified",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def UniversallyMomentIdentified, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "UniversallyMomentIdentified",
+        "file": "T_IdentificationFrontier.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_upperEndpoint",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def upperEndpoint, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "upperEndpoint",
+        "file": "Helpers/MomentGeometry.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "kind": "proof-uses",
+      "from": "lem:scm-moment-reduction",
+      "to": "ass:clusters-iid",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:scm-moment-reduction",
+      "to": "ass:environment-law",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:scm-moment-reduction",
+      "to": "ass:conditional-iid-plate",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:scm-moment-reduction",
+      "to": "ass:observed-cell-calibration",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:scm-moment-reduction",
+      "to": "ass:latent-ignorability",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:scm-moment-reduction",
+      "to": "ass:consistency",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:scm-moment-reduction",
+      "to": "def:hierarchical-scm-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-primal-dual",
+      "to": "def:bernstein-moment-body",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-primal-dual",
+      "to": "def:sharp-ate-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-primal-dual",
+      "to": "def:bernstein-dual",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-primal-dual",
+      "to": "lem:scm-moment-reduction",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-primal-dual",
+      "to": "lem:finite-plate-nonpolynomial",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:full-support-perturbation",
+      "to": "def:bernstein-moment-body",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:full-support-perturbation",
+      "to": "def:sharp-ate-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "lem:finite-plate-nonpolynomial",
+      "to": "def:bernstein-moment-body",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:identification-frontier",
+      "to": "def:bernstein-moment-body",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:identification-frontier",
+      "to": "def:sharp-ate-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:identification-frontier",
+      "to": "lem:full-support-perturbation",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:identification-frontier",
+      "to": "lem:finite-plate-nonpolynomial",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:boundary-dirac-regression",
+      "to": "def:bernstein-moment-body",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:boundary-dirac-regression",
+      "to": "def:sharp-ate-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-envelope-domination",
+      "to": "def:sharp-ate-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-envelope-domination",
+      "to": "def:valid-envelope-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-envelope-domination",
+      "to": "prop:boundary-dirac-regression",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-envelope-domination",
+      "to": "lem:finite-plate-nonpolynomial",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-envelope-domination",
+      "to": "thm:sharp-primal-dual",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:exact-cad-recovery",
+      "to": "def:cad-recovery-procedure",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:exact-cad-recovery",
+      "to": "lem:scm-moment-reduction",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:exact-cad-recovery",
+      "to": "thm:sharp-primal-dual",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:exact-cad-recovery",
+      "to": "lem:cad-quantifier-elimination",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:finite-complexity-inference",
+      "to": "def:exact-multinomial-region",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:finite-complexity-inference",
+      "to": "def:whole-set-confidence",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:finite-complexity-inference",
+      "to": "def:confidence-set-cad",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:finite-complexity-inference",
+      "to": "thm:sharp-primal-dual",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:finite-complexity-inference",
+      "to": "lem:cad-quantifier-elimination",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:whole-set-coverage",
+      "to": "def:whole-set-confidence",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:whole-set-coverage",
+      "to": "lem:scm-moment-reduction",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:whole-set-coverage",
+      "to": "thm:finite-complexity-inference",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:m-one-regression",
+      "to": "def:sharp-ate-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:m-one-regression",
+      "to": "def:bernstein-dual",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:m-one-regression",
+      "to": "thm:sharp-primal-dual",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:boundary-fiber-atlas",
+      "to": "def:bernstein-moment-body",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:boundary-fiber-atlas",
+      "to": "def:sharp-ate-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:boundary-fiber-atlas",
+      "to": "def:boundary-atlas-handle",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:boundary-fiber-atlas",
+      "to": "prop:boundary-dirac-regression",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:boundary-fiber-atlas",
+      "to": "thm:sharp-primal-dual",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:boundary-fiber-atlas",
+      "to": "thm:exact-cad-recovery",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:boundary-fiber-atlas",
+      "to": "lem:cad-quantifier-elimination",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:optimized-limited-pooling-intersection",
+      "to": "def:bernstein-moment-body",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:optimized-limited-pooling-intersection",
+      "to": "def:valid-envelope-class",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:optimized-limited-pooling-intersection",
+      "to": "def:limited-pooling-comparator",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:optimized-limited-pooling-intersection",
+      "to": "thm:sharp-envelope-domination",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:growing-plate-identification-modulus",
+      "to": "def:bernstein-moment-body",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:growing-plate-identification-modulus",
+      "to": "def:sharp-ate-fiber",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:growing-plate-identification-modulus",
+      "to": "def:uniform-identification-modulus",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:growing-plate-identification-modulus",
+      "to": "lem:finite-plate-nonpolynomial",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:growing-plate-identification-modulus",
+      "to": "lem:hahn-banach-quotient-norm",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:growing-plate-identification-modulus",
+      "to": "lem:riesz-markov-representation",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:growing-plate-identification-modulus",
+      "to": "lem:jordan-decomposition-signed-measure",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:sharp-primal-dual",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:sharp-primal-dual",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:sharp-primal-dual",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:sharp-primal-dual",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:identification-frontier",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:identification-frontier",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:identification-frontier",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:identification-frontier",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "prop:boundary-dirac-regression",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "prop:boundary-dirac-regression",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "prop:boundary-dirac-regression",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "prop:boundary-dirac-regression",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:sharp-envelope-domination",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:sharp-envelope-domination",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:sharp-envelope-domination",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:sharp-envelope-domination",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:exact-cad-recovery",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:exact-cad-recovery",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:exact-cad-recovery",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:exact-cad-recovery",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:finite-complexity-inference",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:finite-complexity-inference",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:finite-complexity-inference",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:finite-complexity-inference",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "prop:whole-set-coverage",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "prop:whole-set-coverage",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "prop:whole-set-coverage",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "prop:whole-set-coverage",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "prop:m-one-regression",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "prop:m-one-regression",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "prop:m-one-regression",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "prop:m-one-regression",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:boundary-fiber-atlas",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:boundary-fiber-atlas",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:boundary-fiber-atlas",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:boundary-fiber-atlas",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "prop:optimized-limited-pooling-intersection",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "prop:optimized-limited-pooling-intersection",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "prop:optimized-limited-pooling-intersection",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "prop:optimized-limited-pooling-intersection",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:growing-plate-identification-modulus",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:growing-plate-identification-modulus",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:growing-plate-identification-modulus",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S4",
+      "to": "thm:growing-plate-identification-modulus",
+      "source": "declared"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:clusters-iid",
+      "to": "aux_CellLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:environment-law",
+      "to": "aux_CellLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:conditional-iid-plate",
+      "to": "aux_CellLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:observed-cell-calibration",
+      "to": "aux_CellLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "ass:latent-ignorability",
+      "to": "aux_CellLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:hierarchical-scm-class",
+      "to": "aux_CellLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:hierarchical-scm-class",
+      "to": "aux_CountIndex",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:hierarchical-scm-class",
+      "to": "ass:clusters-iid",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:hierarchical-scm-class",
+      "to": "ass:environment-law",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:hierarchical-scm-class",
+      "to": "ass:conditional-iid-plate",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:hierarchical-scm-class",
+      "to": "ass:observed-cell-calibration",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:hierarchical-scm-class",
+      "to": "ass:latent-ignorability",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:hierarchical-scm-class",
+      "to": "ass:consistency",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:finite-plate-nonpolynomial",
+      "to": "aux_bernsteinSpan",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:finite-plate-nonpolynomial",
+      "to": "aux_CellLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:finite-plate-nonpolynomial",
+      "to": "aux_causalIntegrand",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:exact-multinomial-region",
+      "to": "aux_CountIndex",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:full-support-perturbation",
+      "to": "aux_CountIndex",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:full-support-perturbation",
+      "to": "def:bernstein-moment-body",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:limited-pooling-comparator",
+      "to": "aux_CountIndex",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:bernstein-moment-body",
+      "to": "aux_CountIndex",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:sharp-ate-fiber",
+      "to": "aux_CountIndex",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:bernstein-dual",
+      "to": "aux_CountIndex",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:valid-envelope-class",
+      "to": "aux_CountIndex",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:scm-moment-reduction",
+      "to": "def:hierarchical-scm-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:scm-moment-reduction",
+      "to": "aux_MomentReductionForward",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:scm-moment-reduction",
+      "to": "aux_IsMixingLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:scm-moment-reduction",
+      "to": "aux_MomentReductionConverse",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:cad-recovery-procedure",
+      "to": "aux_CountIndex",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:boundary-atlas-handle",
+      "to": "aux_CountIndex",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:boundary-dirac-regression",
+      "to": "aux_overlapSimplex",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:boundary-dirac-regression",
+      "to": "aux_lowerEndpoint",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:boundary-dirac-regression",
+      "to": "aux_causalIntegrand",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:boundary-dirac-regression",
+      "to": "aux_upperEndpoint",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:boundary-dirac-regression",
+      "to": "def:bernstein-moment-body",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:boundary-fiber-atlas",
+      "to": "lem:cad-quantifier-elimination",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:boundary-fiber-atlas",
+      "to": "def:boundary-atlas-handle",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:boundary-fiber-atlas",
+      "to": "aux_BoundaryLabelCorrect",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:boundary-fiber-atlas",
+      "to": "aux_HasRationalAlgebraicDescription",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:boundary-fiber-atlas",
+      "to": "def:bernstein-moment-body",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:boundary-fiber-atlas",
+      "to": "def:cad-recovery-procedure",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:exact-cad-recovery",
+      "to": "lem:cad-quantifier-elimination",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:exact-cad-recovery",
+      "to": "aux_CountIndex",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:exact-cad-recovery",
+      "to": "aux_IsRationalVector",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:exact-cad-recovery",
+      "to": "def:bernstein-moment-body",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:exact-cad-recovery",
+      "to": "def:cad-recovery-procedure",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:exact-cad-recovery",
+      "to": "aux_HasRationalAlgebraicDescription",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:exact-cad-recovery",
+      "to": "aux_MomentReductionConverse",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:finite-complexity-inference",
+      "to": "lem:cad-quantifier-elimination",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:finite-complexity-inference",
+      "to": "def:confidence-set-cad",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:finite-complexity-inference",
+      "to": "def:whole-set-confidence",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:finite-complexity-inference",
+      "to": "aux_HasFiniteAlgebraicCellDecomposition",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:finite-complexity-inference",
+      "to": "aux_HasRationalAlgebraicDescription",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:growing-plate-identification-modulus",
+      "to": "lem:hahn-banach-quotient-norm",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:growing-plate-identification-modulus",
+      "to": "lem:riesz-markov-representation",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:growing-plate-identification-modulus",
+      "to": "lem:jordan-decomposition-signed-measure",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:growing-plate-identification-modulus",
+      "to": "aux_identifiedWidth",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:growing-plate-identification-modulus",
+      "to": "def:bernstein-moment-body",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:growing-plate-identification-modulus",
+      "to": "def:uniform-identification-modulus",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:growing-plate-identification-modulus",
+      "to": "aux_chebyshevError",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:identification-frontier",
+      "to": "aux_CellLaw",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:identification-frontier",
+      "to": "aux_overlapSimplex",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:identification-frontier",
+      "to": "aux_UniversallyMomentIdentified",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:identification-frontier",
+      "to": "aux_bernsteinSpan",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:identification-frontier",
+      "to": "aux_causalIntegrand",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:identification-frontier",
+      "to": "def:bernstein-moment-body",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:identification-frontier",
+      "to": "aux_lowerEndpoint",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:identification-frontier",
+      "to": "aux_upperEndpoint",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:m-one-regression",
+      "to": "aux_lowerEndpoint",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:m-one-regression",
+      "to": "aux_upperEndpoint",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:m-one-regression",
+      "to": "aux_IsMinorant",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:m-one-regression",
+      "to": "aux_overlapSimplex",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:m-one-regression",
+      "to": "aux_IsMajorant",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:m-one-regression",
+      "to": "aux_SupportedOnAtMost",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimized-limited-pooling-intersection",
+      "to": "def:valid-envelope-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimized-limited-pooling-intersection",
+      "to": "def:bernstein-moment-body",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimized-limited-pooling-intersection",
+      "to": "aux_coefficientValue",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimized-limited-pooling-intersection",
+      "to": "aux_lowerEndpoint",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimized-limited-pooling-intersection",
+      "to": "aux_upperEndpoint",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimized-limited-pooling-intersection",
+      "to": "def:limited-pooling-comparator",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimized-limited-pooling-intersection",
+      "to": "aux_CountIndex",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:optimized-limited-pooling-intersection",
+      "to": "aux_RelativelyOpenIn",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-envelope-domination",
+      "to": "def:valid-envelope-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-envelope-domination",
+      "to": "def:bernstein-moment-body",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-envelope-domination",
+      "to": "aux_lowerEndpoint",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-envelope-domination",
+      "to": "aux_upperEndpoint",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-envelope-domination",
+      "to": "aux_coefficientValue",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-envelope-domination",
+      "to": "aux_contactHull",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-envelope-domination",
+      "to": "aux_CountIndex",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-envelope-domination",
+      "to": "aux_RelativelyOpenIn",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-primal-dual",
+      "to": "aux_SharpPrimalDualSpec",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:whole-set-coverage",
+      "to": "def:hierarchical-scm-class",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:whole-set-coverage",
+      "to": "aux_CountIndex",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:whole-set-coverage",
+      "to": "def:bernstein-moment-body",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:whole-set-coverage",
+      "to": "def:exact-multinomial-region",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:whole-set-coverage",
+      "to": "aux_lowerEndpoint",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:whole-set-coverage",
+      "to": "aux_upperEndpoint",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:whole-set-coverage",
+      "to": "def:whole-set-confidence",
+      "source": "extracted"
+    }
+  ],
+  "symbolReview": {
+    "sym:epsilon": {
+      "verdict": "matched",
+      "hash": "b29570136c08eecfb5508b8ce1d000d2979e3d0d"
+    },
+    "sym:alpha": {
+      "verdict": "drift",
+      "hash": "6aeac9fc6c1a887ff5ec9a01683024b9011ae86e"
+    },
+    "sym:A_ij": {
+      "verdict": "matched",
+      "hash": "94ee17d72a9f53ff93c441d23168926c9c76e4eb"
+    },
+    "sym:Y0_ij": {
+      "verdict": "matched",
+      "hash": "e80e6656e36d56c33e3c84278ee788fea2cf8061"
+    },
+    "sym:Y1_ij": {
+      "verdict": "matched",
+      "hash": "ac5163f53d02bb0ed2cbffcde2351b6713184ab2"
+    },
+    "sym:Y_ij": {
+      "verdict": "matched",
+      "hash": "16150be1d2fc68a6e40908dc342ae03e0c79597e"
+    },
+    "sym:O_ij": {
+      "verdict": "matched",
+      "hash": "d882730a63ed9f511d8f271465631316354b34b5"
+    },
+    "sym:d_m": {
+      "verdict": "matched",
+      "hash": "1d8f70311d518a762d10f37e9e11eadcfe6d4aa8"
+    }
+  }
+}

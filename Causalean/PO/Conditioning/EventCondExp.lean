@@ -29,16 +29,11 @@ import Mathlib.MeasureTheory.Integral.Bochner.Set
 
 /-! # Event-Level Conditional Expectations
 
-This file packages conditioning on an event as a reusable event-level
-conditional expectation and proves finite-partition and drop-of-conditioning
-identities used throughout potential-outcome identification arguments.
-
-The API starts with `eventCondExp`, its measure identity, finite-partition
-decompositions, congruence, monotonicity, and algebra lemmas.  The main
-potential-outcome workhorses are the `IndepCF` drop-of-conditioning theorems,
-the consistency-on-event rewrite `POVar.eventCondExp_cfUnder_eq_factual_on_event`,
-and `POSystem.eventCondExp_of_consistency_IndepCF`, which combines a supplied
-event relabeling with independence. -/
+This file provides event-level conditional expectations for real-valued
+sample-space quantities, together with finite-partition, algebraic, and
+independence-based conditioning identities.  It supplies the event-conditioning
+tools used by potential-outcome identification arguments elsewhere in the
+library. -/
 
 namespace Causalean
 namespace PO
@@ -49,9 +44,7 @@ noncomputable section
 
 variable {Ω : Type*} [MeasurableSpace Ω]
 
-/-- Event-level conditional expectation is the average of a real-valued
-sample-space quantity over an event, computed as its integral over the event
-divided by the event's real mass.
+/-- For [a measurable sample space](hyp:Ω), [a measure on that space](hyp:μ), [an event in the sample space](hyp:A), and [a real-valued sample-space function](hyp:g), [the event-level conditional expectation](goal) is the integral of the function over the event divided by the event's real-valued measure.
 
 The definition is totalized: if the event has zero mass, the denominator is
 `0` and identities such as `eventCondExp_mul_measure_toReal` keep track of the

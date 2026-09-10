@@ -32,7 +32,12 @@ variable {Omega Alpha Beta Iota X : Type*}
   [MeasurableSpace Omega] [MeasurableSpace Alpha] [MeasurableSpace Beta]
   [MeasurableSpace Iota] [MeasurableSpace X]
 
-/-- The selector cell for a branch is the part of a designated pilot event on
+/-- For [a selection rule from pilot samples to branch labels](hyp:select), [a
+designated set of pilot samples](hyp:good), and [a branch label](hyp:i), [the
+selector cell for that branch](goal) is the subset of the designated set on
+which the selection rule chooses that label.
+
+The selector cell for a branch is the part of a designated pilot event on
 which a finite-valued selection rule chooses that branch. -/
 def selectorCell (select : Alpha -> Iota) (good : Set Alpha) (i : Iota) : Set Alpha :=
   good ∩ select ⁻¹' {i}

@@ -56,6 +56,8 @@ const WORDING_GATES = new Set([
   // so P1 bailed on the first such finding instead of letting the reviser reformat.
   "hypothesis-not-itemized",
   "hypothesis-restated",
+  // The Lean-fidelity judge's verdict: repair the body using the reported drift.
+  "lean-drift",
 ]);
 /**
  * Route a finding to its handler by gate name (the deterministic part of the
@@ -87,13 +89,10 @@ export interface P1Env {
   delivery?: { status: "undelivered"; role?: string; reason: string };
 }
 
-/** Gates that are surfaced for the checkpoint but never block the loop.
- *  `notation-unresolved` is the synthesis ledger's terminal state: the one allowed
- *  synthesis attempt for the symbol failed (or the reviewer re-flagged it afterwards),
- *  so the loop records it for the checkpoint instead of burning further rounds.
+/** Ordering preferences and missing optional cross-references are advisory.
  *  Semantic `notation-reviewer` findings are deliberately NOT advisory: the presentation
  *  contract requires every named object to resolve before the P1 checkpoint can pass. */
-const ADVISORY_GATES = new Set(["xref-missing", "notation-unresolved"]);
+const ADVISORY_GATES = new Set(["xref-missing", "notation-mutual-definition", "notation-home-is-result"]);
 
 /** A reviewer/lint finding. `fixLocus` is the codex reviewer's explicit route when
  *  present; otherwise the router falls back to `routeFinding(gate)`. `symbol` names
@@ -104,20 +103,24 @@ export interface P1Finding {
   detail: string;
   fixLocus?: FixLocus;
   symbol?: string;
+  usedIn?: string[];
 }
 
 /** Injected model/IO operations the loop orchestrates. */
 export interface P1LoopHooks {
-  /** (Re-)render envs to paper prose (codex). Round 1 passes all; later rounds pass
-   *  only flagged/new envs with their prior body + defects. Returns id → new body. */
+  /** (Re-)render envs to paper prose (codex). Round 0 passes the envs that need a body;
+   *  later rounds pass only flagged envs with their prior body + defects. Returns id → new body. */
   render(
     reqs: { id: string; statement: string; refSet: string[]; priorBody?: string; defects?: string[]; delivery?: P1Env["delivery"] }[],
   ): Promise<Map<string, string>>;
   /** Review the assembled layer (codex notation + faithfulness) + deterministic floor lints. */
   review(layer: string, envs: P1Env[]): Promise<P1Finding[]>;
-  /** Synthesize new definition envs for orphan symbols (codex+lean-lsp); returns rendered envs. */
-  synthesize(symbols: string[]): Promise<P1Env[]>;
-  /** Assemble the layer tex from envs (so review sees the current layer). */
+  /** Synthesize new definition envs for orphan symbols (codex+lean-lsp). `unresolved` lists the
+   *  requested symbols the writer could not define faithfully: a later `synthesize-def` finding
+   *  for such a symbol remains blocking instead of repeating the same request. */
+  synthesize(symbols: string[], findings: P1Finding[]): Promise<{ envs: P1Env[]; unresolved: string[] }>;
+  /** Assemble the layer tex from envs in PAPER order (the stage owns ordering; the loop's env
+   *  list order carries no meaning). */
   assemble(envs: P1Env[]): string;
   /** Progress/persistence hook (optional): called after the round-0 render and
    *  after each review, so the stage can log and write the current layer to disk
@@ -137,7 +140,7 @@ export interface P1LoopResult {
 }
 
 const locusOf = (f: P1Finding): FixLocus => f.fixLocus ?? routeFinding(f.gate);
-const isAdvisoryFinding = (f: P1Finding): boolean =>
+export const isAdvisoryFinding = (f: P1Finding): boolean =>
   ADVISORY_GATES.has(f.gate) && f.fixLocus == null; // why: deterministic orphan notation opts into synthesis explicitly.
 
 /** Reviewer findings occasionally name several missing symbols in one field.
@@ -183,14 +186,18 @@ export function atomicRequestedNotationSymbols(symbol: string): string[] {
 }
 
 /**
- * Run the loop: render-all (round 0) → {review → route → handle} until the
- * reviewer is clean, a `halt` fires, or the iteration cap is hit. The
- * `synthesize-def` handler adds rendered envs (so a synthesized env is never
- * un-rendered); `wording-revise` re-renders flagged envs with their defects;
- * `xref-missing` is advisory (collected, never blocking). Pure control flow —
- * all model calls go through `h`.
+ * Run the loop: render (round 0) → {review → route → handle} until the reviewer is clean, a
+ * `halt` fires, or the iteration cap is hit. The `synthesize-def` handler adds authored envs;
+ * `wording-revise` re-renders flagged envs with their defects; advisory gates are collected,
+ * never blocking. Pure control flow — all model calls go through `h`.
  */
-export async function runP1Loop(initial: P1Env[], h: P1LoopHooks): Promise<P1LoopResult> {
+export interface P1LoopOptions {
+  /** Ids to render in round 0 (default: every env). Envs whose bodies are already authored —
+   *  synthesized definitions recovered from the cache — are passed through as they are. */
+  renderIds?: string[];
+}
+
+export async function runP1Loop(initial: P1Env[], h: P1LoopHooks, opts: P1LoopOptions = {}): Promise<P1LoopResult> {
   let envs = initial.map((e) => ({ ...e }));
   const applyRender = (reqIds: string[], m: Map<string, string>) => {
     const requested = new Set(reqIds);
@@ -201,8 +208,10 @@ export async function runP1Loop(initial: P1Env[], h: P1LoopHooks): Promise<P1Loo
     }
     envs = envs.map((e) => (m.has(e.id) ? { ...e, body: m.get(e.id)! } : e));
   };
-  // Round 0: render everything.
-  applyRender(envs.map((e) => e.id), await h.render(envs.map((e) => ({ id: e.id, statement: e.statement, refSet: e.refSet, delivery: e.delivery }))));
+  // Round 0: render the envs that need a body.
+  const round0 = new Set(opts.renderIds ?? envs.map((e) => e.id));
+  const reqs0 = envs.filter((e) => round0.has(e.id)).map((e) => ({ id: e.id, statement: e.statement, refSet: e.refSet, delivery: e.delivery }));
+  if (reqs0.length > 0) applyRender(reqs0.map((r) => r.id), await h.render(reqs0));
   await h.onRound?.({ phase: "render0", iter: 0, envs });
 
   let advisories: P1Finding[] = [];
@@ -216,9 +225,19 @@ export async function runP1Loop(initial: P1Env[], h: P1LoopHooks): Promise<P1Loo
       }
     }
   };
+  // Symbols the synthesizer declined this run: a repeat request would only re-pay the same
+  // refusal, so later findings for them remain blocking without another call.
+  const unresolvable = new Set<string>();
+  const declined = (f: P1Finding): P1Finding => {
+    if (locusOf(f) !== "synthesize-def" || !f.symbol) return f;
+    const atoms = atomicRequestedNotationSymbols(f.symbol);
+    return atoms.length > 0 && atoms.every((a) => unresolvable.has(a))
+      ? { gate: "notation-unresolved", objId: f.objId, symbol: f.symbol, detail: `${f.detail} (the definition writer could not define this symbol faithfully)` }
+      : f;
+  };
   let prevActionableFp = "";
   for (let iter = 1; iter <= h.maxIterations; iter++) {
-    const findings = await h.review(h.assemble(envs), envs);
+    const findings = (await h.review(h.assemble(envs), envs)).map(declined);
     await h.onRound?.({ phase: "review", iter, envs, findings });
     addAdvisories(findings.filter(isAdvisoryFinding));
     const actionable = findings.filter((f) => !isAdvisoryFinding(f));
@@ -241,14 +260,20 @@ export async function runP1Loop(initial: P1Env[], h: P1LoopHooks): Promise<P1Loo
     }
     prevActionableFp = actionableFp;
 
-    // synthesize-def → add rendered envs before the layer they explain. A definition appended
-    // after its first use is still unresolved to a reader, and nested repair rounds naturally
-    // discover prerequisites of earlier synthetic definitions. Prepending each later batch gives
-    // those prerequisites the correct dependency order without another model call.
+    // synthesize-def → add the authored definition envs (the stage orders the layer).
     const symbols = [...new Set(actionable
       .filter((f) => locusOf(f) === "synthesize-def")
       .flatMap((f) => f.symbol ? atomicRequestedNotationSymbols(f.symbol) : []))];
-    if (symbols.length > 0) envs = [...(await h.synthesize(symbols)), ...envs];
+    if (symbols.length > 0) {
+      const made = await h.synthesize(symbols, actionable.filter((f) => locusOf(f) === "synthesize-def"));
+      for (const sym of made.unresolved) unresolvable.add(sym);
+      // A definition that already exists comes back re-rendered (it took on more symbols): its
+      // body is replaced in place; new definitions are appended once.
+      const madeById = new Map(made.envs.map((e) => [e.id, e] as const));
+      envs = envs.map((e) => madeById.get(e.id) ?? e);
+      const present = new Set(envs.map((e) => e.id));
+      envs = [...envs, ...made.envs.filter((e) => !present.has(e.id) && (present.add(e.id), true))];
+    }
 
     // wording-revise → re-render the flagged envs with their accumulated defects.
     const defectsById = new Map<string, string[]>();
@@ -267,7 +292,7 @@ export async function runP1Loop(initial: P1Env[], h: P1LoopHooks): Promise<P1Loo
     // re-reviews the enlarged layer — progress is guaranteed by the cap.
   }
   // Cap reached: re-review once to report what still blocks.
-  const finalFindings = await h.review(h.assemble(envs), envs);
+  const finalFindings = (await h.review(h.assemble(envs), envs)).map(declined);
   addAdvisories(finalFindings.filter(isAdvisoryFinding));
   const residual = finalFindings.filter((f) => !isAdvisoryFinding(f));
   return { envs, ok: residual.length === 0, unresolved: residual, advisories, iterations: h.maxIterations };

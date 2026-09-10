@@ -54,13 +54,18 @@ lemma coinDesign_Var_treat (p : ℝ) (hp0 : 0 ≤ p) (hp1 : p ≤ 1) :
   rw [hsq, coinDesign_E_treat]
   ring
 
-/-- The **Bernoulli randomization design**: each unit `i` is independently assigned treatment with
-probability `p i`.  Built as the product of the per-unit coin designs. -/
+/-- For a finite population [of units](hyp:U), [unit-specific treatment probabilities](hyp:p)
+that [are each between zero and one](hyp:hp0,hp1), the [Bernoulli randomization design](goal)
+independently assigns every unit to treatment with its own specified probability.
+
+Built as the product of the per-unit coin designs. -/
 noncomputable def bernoulliDesign (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1) :
     FiniteDesign (U → Bool) :=
   prodDesign (fun i => coinDesign (p i) (hp0 i) (hp1 i))
 
-/-- The treatment indicator of unit `i` under an assignment `z`: `1` if `i` is treated, else `0`. -/
+/-- For a finite population [of units](hyp:U), [a unit](hyp:i), and [a treatment assignment for
+that population](hyp:z), the [treatment indicator for that unit](goal) equals one when the unit is
+assigned treatment and zero otherwise. -/
 def treatInd (i : U) (z : U → Bool) : ℝ := if z i then 1 else 0
 
 /-- A quantity depending only on unit `i`'s treatment coin has expectation equal to its value under

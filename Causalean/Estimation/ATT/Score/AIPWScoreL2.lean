@@ -73,7 +73,10 @@ variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 
 /-! ## A.e. Lipschitz bound on `m_AIPW^ATT(·, z, θ₀)` on `H_ε` -/
 
-/-- Pointwise Lipschitz constant for the ATT AIPW moment in `η` on `H_ε`:
+/-- For [every real overlap margin](hyp:ε), the [ATT AIPW Lipschitz constant](goal) is
+$1 + 2/ε + 2/ε^2$.
+
+Pointwise Lipschitz constant for the ATT AIPW moment in `η` on `H_ε`:
 `K_AIPW_ATT ε := 1 + 2/ε + 2/ε²`.  Tracks the quadratic blow-up of the inverse
 weight `1/(1−ê)` and the cross term `(ê − e)/((1−ê)·(1−e))` arising from the
 single IPW factor `e/(1−e)` in the ATT AIPW form.  Same shape as the ATE
@@ -278,7 +281,10 @@ theorem aipw_score_lipschitz_ATT
 
 /-! ## L²(P_Z) `o_p(1)` continuity of the ATT AIPW score on `H_ε` -/
 
-/-- The single ATT residual integrand `|Y − μ₀(X)|`, viewed on the data space. -/
+/-- For [a potential-outcome system with a measurable covariate space](hyp:P), [a treated
+estimation system](hyp:S), and an observed covariate, treatment, and outcome triple,
+the [squared ATT control-regression residual](goal) is the square of the observed outcome minus
+the true control-arm outcome regression evaluated at the observed covariate. -/
 noncomputable def YMuVal_residual_sq_ATT
     (S : TreatedEstimationSystem P γ) : (γ × Bool × ℝ) → ℝ :=
   fun z => (projY z - S.μ₀_val (projX z)) ^ 2

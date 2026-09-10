@@ -53,18 +53,23 @@ open scoped RealInnerProductSpace
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} {P : Measure ℝ}
   {k : ℕ}
 
-/-- Pack a coordinate function into Euclidean space (the `PiLp 2` synonym). -/
+/-- For [a nonnegative integer $k$ specifying a finite collection of coordinates](hyp:k) and [a real-valued vector indexed by those coordinates](hyp:v), the [Euclidean representation of that vector](goal) is the corresponding point of the $k$-dimensional Euclidean space.
+
+This is the canonical packaging of a coordinate function into the Euclidean-space representation. -/
 noncomputable abbrev eucl (v : Fin k → ℝ) : EuclideanSpace ℝ (Fin k) :=
   (EuclideanSpace.equiv (Fin k) ℝ).symm v
 
 /-! ## Joint influence function and estimator vector -/
 
-/-- The **joint quantile influence function**
-`ψ(z)_j = (τⱼ − 1{z ≤ qⱼ}) / fⱼ`, valued in `EuclideanSpace ℝ (Fin k)`. -/
+/-- For [a nonnegative integer $k$ specifying a finite collection of quantile coordinates](hyp:k) and [coordinatewise quantile levels, population quantiles, and density values](hyp:τ,q,f), the [joint quantile influence function](goal) maps each real-valued observation $z$ to the Euclidean vector whose $j$th coordinate is $(\tau_j-\mathbf{1}\{z\le q_j\})/f_j$.
+
+The function packages the scalar quantile influence functions into one Euclidean vector. -/
 noncomputable def quantileIFVec (τ q f : Fin k → ℝ) : ℝ → EuclideanSpace ℝ (Fin k) :=
   fun z => eucl (fun j => quantileIF (τ j) (q j) (f j) z)
 
-/-- The **sample-quantile vector** `(q̂ₙ(τ₁), …, q̂ₙ(τ_k))`. -/
+/-- For [a measurable sample space carrying a measure](hyp:Ω,μ), [a population measure on the real line](hyp:P), [a nonnegative integer $k$ specifying a finite collection of quantile coordinates](hyp:k), [an independent and identically distributed real-valued sample from that population](hyp:S), and [a vector of quantile levels](hyp:τ), the [sample-quantile vector](goal) maps every nonnegative integer sample size and sample-space outcome to the Euclidean vector of the corresponding coordinatewise sample quantiles.
+
+Its coordinates are $(\widehat q_n(\tau_1),\ldots,\widehat q_n(\tau_k))$. -/
 noncomputable def IIDSample.sampleQuantileVec (S : IIDSample Ω ℝ μ P) (τ : Fin k → ℝ) :
     ℕ → Ω → EuclideanSpace ℝ (Fin k) :=
   fun n ω => eucl (fun j => S.sampleQuantile (τ j) n ω)

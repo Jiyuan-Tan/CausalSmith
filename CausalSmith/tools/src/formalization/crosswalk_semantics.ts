@@ -3,6 +3,7 @@
 // See crosswalk.ts for the module-level design note.
 
 import { existsSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { isPaperTmpPath } from "../paths.js";
@@ -42,6 +43,9 @@ export interface SymbolClusterMember {
   file: string; // relative to leanDir
   line: number; // 1-indexed
   hint?: string; // the `@realizes sym(<hint>)` clause hint, if any
+  /** Stable code anchor for line-number-named carriers such as standalone `variable` commands.
+   *  Docstring insertion moves their source line but must not change F4 evidence. */
+  codeAnchor?: string;
 }
 
 /** A core symbol + the cluster of Lean decls that jointly realize its space. */
@@ -49,6 +53,168 @@ export interface SymbolCluster {
   symbol: string;
   space?: string;
   members: SymbolClusterMember[];
+}
+
+/** Capture a complete standalone `variable` command, including multiline binders. The masked
+ * source lets us scan balanced binder delimiters without mistaking comments, strings, array
+ * literals, or a tactic keyword for a new top-level command. */
+function variableCommandAnchor(lines: string[], maskedLines: string[], start: number): string {
+  const raw = lines.slice(start).join("\n");
+  const masked = maskedLines.slice(start).join("\n");
+  const head = masked.match(/^\s*variable\b/);
+  let pos = head?.[0].length ?? 0;
+  let end = pos;
+  const pairs: Record<string, string> = { "(": ")", "[": "]", "{": "}", "⟨": "⟩", "⦃": "⦄" };
+  while (pos < masked.length) {
+    while (/\s/.test(masked[pos] ?? "")) pos++;
+    const close = pairs[masked[pos]];
+    if (!close) break;
+    const stack = [close];
+    pos++;
+    while (pos < masked.length && stack.length > 0) {
+      if (masked[pos] === "«") {
+        const escapedEnd = masked.indexOf("»", pos + 1);
+        pos = escapedEnd < 0 ? masked.length : escapedEnd + 1;
+        continue;
+      }
+      const nestedClose = pairs[masked[pos]];
+      if (nestedClose) stack.push(nestedClose);
+      else if (masked[pos] === stack.at(-1)) stack.pop();
+      pos++;
+    }
+    end = pos;
+  }
+  return commentInsensitiveLeanCode(raw.slice(0, end));
+}
+
+/** Canonicalize Lean code while ignoring comments/docstrings and formatting-only whitespace.
+ * Exact string/char literals are digested first because their internal whitespace is semantic. */
+export function commentInsensitiveLeanCode(source: string): string {
+  return protectLeanLexemes(source).trim().replace(/\s+/g, " ");
+}
+
+/** Replace lexemes whose internal whitespace/delimiters are semantic before surrounding source
+ * whitespace is canonicalized. */
+function leanStringEnd(code: string, quote: number): number {
+  let rawPrefix = quote - 1;
+  while (rawPrefix >= 0 && code[rawPrefix] === "#") rawPrefix--;
+  const rawHashes = quote - 1 - rawPrefix;
+  const previousCodePoint = [...code.slice(0, rawPrefix)].at(-1);
+  const rawAtClearBoundary = previousCodePoint === undefined || /[\s([{,;:=⟨⦃]/u.test(previousCodePoint);
+  if (rawPrefix >= 0 && code[rawPrefix] === "r" && (rawHashes > 0 || rawAtClearBoundary)) {
+    const close = `"${"#".repeat(rawHashes)}`;
+    const rawEnd = code.indexOf(close, quote + 1);
+    return rawEnd < 0 ? -1 : rawEnd + close.length - 1;
+  }
+  // `token-ending-in-r"..."` is lexically ambiguous without the active syntax table: it may be
+  // an ordinary string after a custom atom (`😀r"..."`) or a zero-hash raw string after an
+  // operator. Bind the rest of the file exactly rather than risk truncating either literal.
+  if (rawPrefix >= 0 && code[rawPrefix] === "r" && rawHashes === 0) return code.length - 1;
+  const interpolated = quote >= 2 && code.slice(quote - 2, quote) === "s!";
+  if (!interpolated) {
+    for (let j = quote + 1; j < code.length; j++) {
+      if (code[j] === "\\") j++;
+      else if (code[j] === '"') return j;
+    }
+    return -1;
+  }
+  let braces = 0;
+  for (let j = quote + 1; j < code.length; j++) {
+    if (code[j] === "\\") { j++; continue; }
+    if (braces > 0 && code[j] === "-" && code[j + 1] === "-") {
+      j += 2;
+      while (j < code.length && code[j] !== "\n") j++;
+      continue;
+    }
+    if (braces > 0 && code[j] === "/" && code[j + 1] === "-") {
+      let commentDepth = 1;
+      j += 2;
+      while (j < code.length && commentDepth > 0) {
+        if (code[j] === "/" && code[j + 1] === "-") { commentDepth++; j += 2; continue; }
+        if (code[j] === "-" && code[j + 1] === "/") { commentDepth--; j += 2; continue; }
+        j++;
+      }
+      j--;
+      continue;
+    }
+    if (braces > 0 && code[j] === "«") {
+      const escapedEnd = code.indexOf("»", j + 1);
+      if (escapedEnd >= 0) j = escapedEnd;
+      continue;
+    }
+    if (braces > 0 && code[j] === "'") {
+      if (code[j + 1] === "\\" && code[j + 3] === "'") { j += 3; continue; }
+      if (code[j + 1] !== "\\" && code[j + 1] !== undefined && code[j + 2] === "'") { j += 2; continue; }
+    }
+    if (code[j] === '"') {
+      if (braces === 0) return j;
+      const nestedEnd = leanStringEnd(code, j);
+      if (nestedEnd >= 0) j = nestedEnd;
+      continue;
+    }
+    if (code[j] === "{") {
+      if (braces === 0 && code[j + 1] === "{") { j++; continue; }
+      braces++;
+    } else if (code[j] === "}") {
+      if (braces === 0 && code[j + 1] === "}") { j++; continue; }
+      if (braces > 0) braces--;
+    }
+  }
+  return -1;
+}
+
+function protectLeanLexemes(code: string): string {
+  let protectedCode = "";
+  for (let i = 0; i < code.length; i++) {
+    if (code[i] === "-" && code[i + 1] === "-") {
+      protectedCode += " ";
+      i += 2;
+      while (i < code.length && code[i] !== "\n") i++;
+      if (i < code.length) protectedCode += "\n";
+      continue;
+    }
+    if (code[i] === "/" && code[i + 1] === "-") {
+      protectedCode += " ";
+      let depth = 1;
+      i += 2;
+      while (i < code.length && depth > 0) {
+        if (code[i] === "/" && code[i + 1] === "-") { depth++; i += 2; continue; }
+        if (code[i] === "-" && code[i + 1] === "/") { depth--; i += 2; continue; }
+        if (code[i] === "\n") protectedCode += "\n";
+        i++;
+      }
+      i--;
+      continue;
+    }
+    let endLiteral = -1;
+    if (code[i] === "«") {
+      const escapedEnd = code.indexOf("»", i + 1);
+      if (escapedEnd >= 0) endLiteral = escapedEnd;
+    } else if (code[i] === '"') {
+      endLiteral = leanStringEnd(code, i);
+    } else if (code[i] === "'") {
+      if (code[i + 1] === "\\" && code[i + 3] === "'") endLiteral = i + 3;
+      else if (code[i + 1] !== "\\" && code[i + 1] !== undefined && code[i + 2] === "'") endLiteral = i + 2;
+    }
+    if (endLiteral < 0) {
+      protectedCode += code[i];
+      continue;
+    }
+    const literal = code.slice(i, endLiteral + 1);
+    protectedCode += `__lit_${createHash("sha1").update(literal).digest("hex")}__`;
+    i = endLiteral;
+  }
+  return protectedCode;
+}
+
+/** Preserve Lean's potentially meaningful layout while excluding documentation/comments. Comment
+ * stripping preserves newlines; dropping blank lines and right-padding makes added doc blocks and
+ * changed trailing comments invisible without collapsing indentation of actual code. */
+export function commentInsensitiveLeanLayout(source: string): string {
+  return protectLeanLexemes(source)
+    .split(/\r?\n/)
+    .filter((line) => line.trim() !== "")
+    .join("\n");
 }
 
 /** Parse `@realizes a(hint with spaces), b, c(hint2)` out of a docstring block.
@@ -63,7 +229,7 @@ export interface SymbolCluster {
  *  When a tag's payload begins with such a known name (followed by end-of-tag or an
  *  opening `(` that introduces the hint), it is emitted whole and the comma/paren
  *  heuristics are skipped for that tag. */
-export function parseRealizesTags(
+function parseRealizesTagsRaw(
   commentAbove: string,
   knownNames: string[] = [],
 ): { symbol: string; hint?: string }[] {
@@ -84,6 +250,15 @@ export function parseRealizesTags(
       .replace(/-\/\s*$/, "") // drop a trailing block-comment close
       .replace(/;\s*$/, "") // drop the `;` separating it from the next tag
       .trim();
+    // A payload written inside math delimiters: the delimited group IS the symbol and whatever
+    // follows is the hint. Decided before the paren heuristics, which would otherwise read the
+    // closing delimiter as the start of a hint.
+    const delimited = rest.match(/^(?:\\\((.*?)\\\)|\$(.*?)\$|\\\[(.*?)\\\])\s*(?:\((.*)\))?\s*$/s);
+    if (delimited) {
+      const symbol = canonicalRealizedSymbol((delimited[1] ?? delimited[2] ?? delimited[3] ?? "").trim());
+      if (symbol) out.push({ symbol, hint: delimited[4]?.trim() || undefined });
+      continue;
+    }
     const literal = literalNames.find(
       (n) => rest === n || rest.startsWith(n + "(") || rest.startsWith(n + " ("),
     );
@@ -178,6 +353,27 @@ export function parseRealizesTags(
   return out.filter((t) => t.symbol);
 }
 
+/** A `@realizes` symbol as the paper names it: bare TeX, never wrapped in math delimiters. Tags
+ *  written as `@realizes \(Y(a)\)(hint)` produced ids like `sym:\(Y(a)\)`, which break every
+ *  delimiter scan downstream (a link nested in a display closes the display early). */
+export function canonicalRealizedSymbol(symbol: string): string {
+  let s = symbol.trim();
+  for (;;) {
+    const m = s.match(/^(?:\\\((.*)\\\)|\$(.*)\$|\\\[(.*)\\\])$/s);
+    if (!m) return s;
+    s = (m[1] ?? m[2] ?? m[3] ?? "").trim();
+  }
+}
+
+export function parseRealizesTags(
+  commentAbove: string,
+  knownNames: string[] = [],
+): { symbol: string; hint?: string }[] {
+  return parseRealizesTagsRaw(commentAbove, knownNames)
+    .map((t) => ({ ...t, symbol: canonicalRealizedSymbol(t.symbol) }))
+    .filter((t) => t.symbol);
+}
+
 /**
  * Discover EVERY core symbol that carries at least one `@realizes <sym>` tag anywhere in the Lean
  * tree (distinct, in first-seen order). The presentation surfaces all of them — the F-phase
@@ -223,8 +419,8 @@ export async function discoverRealizedSymbols(leanDir: string): Promise<string[]
 const GREEK_COMMAND_RE =
   /\\(?:alpha|beta|gamma|delta|epsilon|varepsilon|zeta|eta|theta|vartheta|iota|kappa|lambda|mu|nu|xi|omicron|pi|varpi|rho|varrho|sigma|varsigma|tau|upsilon|phi|varphi|chi|psi|omega|Gamma|Delta|Theta|Lambda|Xi|Pi|Sigma|Upsilon|Phi|Psi|Omega)(?![A-Za-z])/g;
 
-export function realizedNotationKey(raw: string): string {
-  return raw
+export function realizedNotationKey(raw: string, opts: { preserveCase?: boolean } = {}): string {
+  const key = raw
     .trim()
     .replace(/^\$|\$$/g, "")
     .replace(/^\\\(|\\\)$/g, "")
@@ -239,8 +435,8 @@ export function realizedNotationKey(raw: string): string {
     .replace(/\^\{([^{}]*)\}/g, "$1")
     .replace(/\^/g, "")
     .replace(/[{}\\]/g, "")
-    .replace(/[\s,;:'`]/g, "")
-    .toLowerCase();
+    .replace(/[\s,;:'`]/g, "");
+  return opts.preserveCase ? key : key.toLowerCase();
 }
 
 /** Narrow symbol-tag key: remove only outer math wrappers and normalize harmless TeX command
@@ -256,22 +452,6 @@ export function canonicalSymbolTagKey(raw: string): string {
     .trim();
 }
 
-/** Build the exact notation resolver used by P1. An omitted trailing argument
- * such as `\mathcal E` versus `Ecal(delta)` is treated as the same symbol
- * family; unrelated names never match. */
-export function buildRealizedNotationMatcher(
-  realizedSymbols: string[],
-): (paperSymbol: string | undefined) => boolean {
-  const familyKey = (symbol: string): string =>
-    realizedNotationKey(symbol).replace(/\([^()]*\)$/, "");
-  const keys = new Set(
-    realizedSymbols.flatMap((symbol) => [realizedNotationKey(symbol), familyKey(symbol)]),
-  );
-  return (paperSymbol: string | undefined): boolean => {
-    if (paperSymbol == null) return false;
-    return keys.has(realizedNotationKey(paperSymbol)) || keys.has(familyKey(paperSymbol));
-  };
-}
 
 /**
  * Build the per-symbol realization-cluster map by scanning `@realizes` docstring
@@ -365,7 +545,16 @@ export async function buildSymbolClusters(
         for (const t of parseRealizesTags(commentLines[L], knownNames)) {
           tagged.push({
             sym: t.symbol,
-            member: { decl: owner.m[2], declKind: owner.m[1], file: rel, line: L + 1, hint: t.hint },
+            member: {
+              decl: owner.m[2],
+              declKind: owner.m[1],
+              file: rel,
+              line: L + 1,
+              hint: t.hint,
+              codeAnchor: owner.m[1] === "variable"
+                ? variableCommandAnchor(lines, maskedLines, owner.line)
+                : undefined,
+            },
           });
         }
       }

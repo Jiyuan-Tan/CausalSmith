@@ -85,7 +85,9 @@ theorem indepFun_pi_of_disjoint
     iIndepFun_pi (X := fun _ (ω : Ω _) => ω) (fun _ => aemeasurable_id)
   exact hiindep.indepFun_finset S T hST (fun i => measurable_pi_apply i)
 
-/-- Tuple projection to a finite coordinate block of a dependent product. -/
+/-- Given an [index collection](hyp:ι), [a family of coordinate value spaces](hyp:Ω), and [a
+finite coordinate block](hyp:S), the [coordinate-block projection](goal) maps a full coordinate
+assignment to the assignment obtained by retaining exactly the coordinates in that block. -/
 def finsetCoordProj
     {ι : Type*}
     {Ω : ι → Type*} (S : Finset ι) :
@@ -102,8 +104,10 @@ theorem measurable_finsetCoordProj
   intro i
   exact measurable_pi_apply i.val
 
-/-- Reassemble coordinates on `S` from coordinates on `U` and on the residual
-    block `S \ U`. -/
+/-- Given an [index collection whose equality is decidable](hyp:ι), [a family of coordinate
+value spaces](hyp:Ω), [a target coordinate block and a conditioning block](hyp:S), the
+[residual-reassembly map](goal) reconstructs an assignment on the target block from an assignment
+on the conditioning block and an assignment on those target coordinates outside that block. -/
 def finsetCoordProjFromCondResidual
     {ι : Type*} [DecidableEq ι]
     {Ω : ι → Type*} (S U : Finset ι) :
@@ -142,7 +146,10 @@ theorem finsetCoordProjFromCondResidual_comp
   dsimp [finsetCoordProjFromCondResidual, finsetCoordProj]
   by_cases hiU : i.val ∈ U <;> simp [hiU]
 
-/-- Extract two sub-blocks from the tuple on their union. -/
+/-- Given an [index collection whose equality is decidable](hyp:ι), [a family of coordinate
+value spaces](hyp:Ω), and [finite coordinate blocks](hyp:A), the [union-sub-block
+extraction map](goal) maps an assignment on their union to the pair of its restrictions to the
+first and second blocks. -/
 def finsetCoordProjPairFromUnion
     {ι : Type*} [DecidableEq ι]
     {Ω : ι → Type*} (A B : Finset ι) :

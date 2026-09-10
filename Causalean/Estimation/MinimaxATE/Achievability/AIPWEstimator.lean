@@ -55,10 +55,18 @@ open scoped ENNReal BigOperators
 
 variable {C : Type*} [Fintype C] [MeasurableSpace C] [MeasurableSingletonClass C]
 
-/-- The outcome `Y : Bool` read as a real number `{0,1}`. -/
+/-- For [a binary outcome](hyp:y), [its real-valued representation](goal) is one for a
+success and zero otherwise. -/
 def yReal (y : Bool) : ℝ := if y then 1 else 0
 
-/-- The fixed-center augmented inverse-propensity score combines the fitted
+/-- For [a finite covariate set](hyp:C), [a fitted propensity function](hyp:mhat), [fitted
+outcome-regression functions for the two treatment arms](hyp:ghat), and [an observed
+covariate, treatment, and binary outcome record](hyp:z), [the fixed-center augmented
+inverse-probability-weighted score](goal) is the fitted treated-minus-control contrast plus
+the treated residual divided by the fitted propensity when treated, or minus the control
+residual divided by one minus that propensity when untreated.
+
+The fixed-center augmented inverse-propensity score combines the fitted
 treated-versus-control outcome-regression contrast with the residual from the
 observed treatment arm, weighted by the fitted propensity at the covariate value.
 
@@ -71,7 +79,11 @@ noncomputable def aipwScoreFin (mhat : C → ℝ) (ghat : Bool → C → ℝ) (z
         ((yReal z.2.2 - ghat true z.1) / mhat z.1)
         (-(yReal z.2.2 - ghat false z.1) / (1 - mhat z.1))
 
-/-- The **fixed-center AIPW estimator**: the sample average of the AIPW score. -/
+/-- For [a finite covariate set](hyp:C), [a fitted propensity function](hyp:mhat), [fitted
+outcome-regression functions for the two treatment arms](hyp:ghat), [a sample size](hyp:n),
+and [a sample of observed covariate, treatment, and binary-outcome records](hyp:sample),
+[the fixed-center augmented inverse-probability-weighted estimator](goal) is the arithmetic
+mean of the corresponding fixed-center scores. -/
 noncomputable def estAIPW (mhat : C → ℝ) (ghat : Bool → C → ℝ) (n : ℕ)
     (sample : Fin n → Obs C) : ℝ :=
   (n : ℝ)⁻¹ * ∑ i, aipwScoreFin mhat ghat (sample i)

@@ -44,8 +44,15 @@ open Causalean.Experimentation.DesignBased
 variable {Ω : Type*} [Fintype Ω]
 variable {ι Θ Δ : Type*} [Fintype ι] [DecidableEq ι] [DecidableEq Δ]
 
-/-- Horvitz–Thompson estimator of `Var[ŷᵀ(d)]` (eq:ht_variance_estimator), positive-joint
-regime. Uses observed outcomes `Yobs`. -/
+/-- For a [finite assignment space](hyp:Ω), [a finite unit population](hyp:ι), [a unit-trait
+space](hyp:Θ), [an exposure space](hyp:Δ), [a randomization design](hyp:D),
+[exposure-indexed potential outcomes](hyp:y), [an exposure mapping](hyp:f), [unit traits](hyp:θ),
+[an exposure level](hyp:d), and [an assignment](hyp:z), the [Horvitz--Thompson variance
+estimator](goal) is the sum of its single-unit inverse-propensity terms and its ordered-pair
+terms over distinct units.
+
+It estimates `Var[ŷᵀ(d)]` (eq:ht_variance_estimator) in the positive-joint regime and uses
+observed outcomes `Yobs`. -/
 noncomputable def htVarEst (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (d : Δ) (z : Ω) : ℝ :=
   (∑ i, expoInd f θ i d z * (1 - prop D f θ i d) * (Yobs y f θ i z / prop D f θ i d) ^ 2)
@@ -55,9 +62,15 @@ noncomputable def htVarEst (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω
             / propPairSame D f θ i j d)
         * ((Yobs y f θ i z / prop D f θ i d) * (Yobs y f θ j z / prop D f θ j d))
 
-/-- Horvitz–Thompson-type estimator of `Cov[ŷᵀ(dk),ŷᵀ(dl)]` (eq:ht_cov_estimator),
-positive-joint regime. Conservative (nonpositively biased) via the Young-inequality
-diagonal correction. -/
+/-- For a [finite assignment space](hyp:Ω), [a finite unit population](hyp:ι), [a unit-trait
+space](hyp:Θ), [an exposure space](hyp:Δ), [a randomization design](hyp:D),
+[exposure-indexed potential outcomes](hyp:y), [an exposure mapping](hyp:f), [unit traits](hyp:θ),
+[two exposure levels](hyp:dk,dl), and [an assignment](hyp:z), the [Horvitz--Thompson covariance
+estimator](goal) is its ordered-pair cross-exposure term over distinct units minus its
+single-unit Young correction.
+
+It estimates `Cov[ŷᵀ(dk),ŷᵀ(dl)]` (eq:ht_cov_estimator) in the positive-joint regime and is
+conservative through the Young-inequality diagonal correction. -/
 noncomputable def htCovEst (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (dk dl : Δ) (z : Ω) : ℝ :=
   (∑ i, ∑ j ∈ Finset.univ.erase i,
@@ -68,8 +81,14 @@ noncomputable def htCovEst (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω
   - ∑ i, (expoInd f θ i dk z * (Yobs y f θ i z) ^ 2 / (2 * prop D f θ i dk)
           + expoInd f θ i dl z * (Yobs y f θ i z) ^ 2 / (2 * prop D f θ i dl))
 
-/-- Conservative variance estimator for `Var[τ̂(dk,dl)]` (eq:ate_var_estimator),
-positive-joint regime. -/
+/-- For a [finite assignment space](hyp:Ω), [a finite unit population](hyp:ι), [a unit-trait
+space](hyp:Θ), [an exposure space](hyp:Δ), [a randomization design](hyp:D),
+[exposure-indexed potential outcomes](hyp:y), [an exposure mapping](hyp:f), [unit traits](hyp:θ),
+[two exposure levels](hyp:dk,dl), and [an assignment](hyp:z), the [conservative
+effect-variance estimator](goal) is the sum of the two variance estimators minus twice the
+covariance estimator, divided by the square of the population size.
+
+It estimates `Var[τ̂(dk,dl)]` (eq:ate_var_estimator) in the positive-joint regime. -/
 noncomputable def htEffectVarEst (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (dk dl : Δ) (z : Ω) : ℝ :=
   (htVarEst D y f θ dk z + htVarEst D y f θ dl z - 2 * htCovEst D y f θ dk dl z)
@@ -378,11 +397,17 @@ theorem E_htVarEst_eq_addBias (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f :
         mul_div_assoc, mul_div_assoc, div_self hz]
       ring
 
-/-- Young-inequality correction `Â₂` (eq for Prop 5.3): for each zero-joint pair
-`(i,j)` with `π_{ij}(d)=0`, it adds the diagonal Young terms
+/-- For a [finite assignment space](hyp:Ω), [a finite unit population](hyp:ι), [a unit-trait
+space](hyp:Θ), [an exposure space](hyp:Δ), [a randomization design](hyp:D),
+[exposure-indexed potential outcomes](hyp:y), [an exposure mapping](hyp:f), [unit traits](hyp:θ),
+[an exposure level](hyp:d), and [an assignment](hyp:z), the [Young-inequality correction](goal)
+adds, over every ordered pair of distinct units with zero same-exposure joint probability, the
+two corresponding half-weighted squared observed-outcome terms.
+
+For each zero-joint pair `(i,j)` with `π_{ij}(d)=0`, it adds the diagonal Young terms
 `1(expo i=d)·(Yobs i)²/(2π_i) + 1(expo j=d)·(Yobs j)²/(2π_j)`, whose expectation is
-`y_i(d)²/2 + y_j(d)²/2`.  Added to `htVarEst`, it makes the estimator conservative even
-when some joint exposure probabilities vanish. -/
+`y_i(d)²/2 + y_j(d)²/2`. Added to `htVarEst`, it makes the estimator conservative even when
+some joint exposure probabilities vanish. -/
 noncomputable def htA2 (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (d : Δ) (z : Ω) : ℝ :=
   ∑ i, ∑ j ∈ Finset.univ.erase i,
@@ -550,12 +575,18 @@ theorem E_htCovEst_eq_of_noEffect (D : FiniteDesign Ω) (y : ι → Δ → ℝ) 
   refine Finset.sum_congr rfl (fun i _ => ?_)
   rw [heq i]; ring
 
-/-- General Horvitz–Thompson covariance estimator (`eq:ht_cov_general_estimator`),
-handling zero cross-joint exposure probabilities.  The first double sum (over `j ≠ i`)
-keeps `π_{ij}(d_k,d_l) > 0` pairs via `/π_{ij}` (zero-joint pairs drop, `x/0 = 0`); the
-subtracted Young correction ranges over *all* `j ∈ U` with `π_{ij}(d_k,d_l) = 0`,
-including the diagonal `j = i` (always zero since `d_k ≠ d_l`), which recovers the
-positive-joint estimator's diagonal correction. -/
+/-- For a [finite assignment space](hyp:Ω), [a finite unit population](hyp:ι), [a unit-trait
+space](hyp:Θ), [an exposure space](hyp:Δ), [a randomization design](hyp:D),
+[exposure-indexed potential outcomes](hyp:y), [an exposure mapping](hyp:f), [unit traits](hyp:θ),
+[two exposure levels](hyp:dk,dl), and [an assignment](hyp:z), the [general
+Horvitz--Thompson covariance estimator](goal) is its distinct-unit cross-exposure sum minus a
+Young correction over every ordered pair with zero cross-exposure joint probability.
+
+It is `eq:ht_cov_general_estimator`, handling zero cross-joint exposure probabilities. The first
+double sum (over `j ≠ i`) keeps `π_{ij}(d_k,d_l) > 0` pairs via `/π_{ij}` (zero-joint pairs drop,
+`x/0 = 0`); the subtracted Young correction ranges over *all* `j ∈ U` with
+`π_{ij}(d_k,d_l) = 0`, including the diagonal `j = i` (always zero since `d_k ≠ d_l`), which
+recovers the positive-joint estimator's diagonal correction. -/
 noncomputable def htCovEstA (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (dk dl : Δ) (z : Ω) : ℝ :=
   (∑ i, ∑ j ∈ Finset.univ.erase i,
@@ -746,9 +777,15 @@ theorem E_htCovEstA_le (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω →
       exact div_nonneg (sq_nonneg _) (by norm_num)
     · rw [if_neg hz, zero_mul, zero_mul, add_zero]
 
-/-- General conservative variance estimator for `Var[τ̂(dk,dl)]` (`eq:ate_var_estimator`),
-assembling the zero-joint-robust variance corrections `Â₂` and the general covariance
-estimator `Ĉov_A`. -/
+/-- For a [finite assignment space](hyp:Ω), [a finite unit population](hyp:ι), [a unit-trait
+space](hyp:Θ), [an exposure space](hyp:Δ), [a randomization design](hyp:D),
+[exposure-indexed potential outcomes](hyp:y), [an exposure mapping](hyp:f), [unit traits](hyp:θ),
+[two exposure levels](hyp:dk,dl), and [an assignment](hyp:z), the [general conservative
+effect-variance estimator](goal) is the two variance estimators and their Young corrections,
+minus twice the general covariance estimator, divided by the square of the population size.
+
+It estimates `Var[τ̂(dk,dl)]` (`eq:ate_var_estimator`), assembling the zero-joint-robust variance
+corrections `Â₂` and the general covariance estimator `Ĉov_A`. -/
 noncomputable def htEffectVarEstA (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ)
     (θ : ι → Θ) (dk dl : Δ) (z : Ω) : ℝ :=
   (htVarEst D y f θ dk z + htA2 D y f θ dk z + htVarEst D y f θ dl z + htA2 D y f θ dl z

@@ -59,15 +59,15 @@ variable {E F : Type*}
   [NormedAddCommGroup F] [InnerProductSpace ℝ F] [FiniteDimensional ℝ F]
   [MeasurableSpace F] [BorelSpace F]
 
-/-- The **hat matrix** `H = G (GᵀG)⁻¹ Gᵀ : F →L F` of a whitened GMM problem
-with Jacobian `G` and bread inverse `effInv` (a two-sided inverse of `GᵀG`).
-It is the orthogonal projection onto `range G`. -/
+/-- Given [a finite-dimensional real inner-product parameter space](hyp:E), [a finite-dimensional real inner-product moment space](hyp:F), [a linear Jacobian from the parameter space to the moment space](hyp:G), and [a parameter-space linear operator](hyp:effInv), [the whitened GMM hat operator](goal) is $GAG^{\mathsf T}$, where $A$ is the supplied operator.
+
+It is the orthogonal projection onto the range of the Jacobian when the supplied operator is a two-sided inverse of $G^{\mathsf T}G$. -/
 noncomputable def gmmHatMatrix (G : E →L[ℝ] F) (effInv : E →L[ℝ] E) : F →L[ℝ] F :=
   G ∘L effInv ∘L adjoint G
 
-/-- The **residual maker** `M = I − H : F →L F` of a whitened GMM problem.  It is
-the orthogonal projection onto the orthogonal complement of `range G`; the
-J-statistic's limit law is `‖M w‖²` for `w` a standard Gaussian on `F`. -/
+/-- Given [a finite-dimensional real inner-product parameter space](hyp:E), [a finite-dimensional real inner-product moment space](hyp:F), [a linear Jacobian from the parameter space to the moment space](hyp:G), and [a parameter-space linear operator](hyp:effInv), [the whitened GMM residual-maker operator](goal) is the identity on the moment space minus the corresponding hat operator.
+
+When the supplied operator is a two-sided inverse of $G^{\mathsf T}G$, it is the orthogonal projection onto the orthogonal complement of the Jacobian's range; the J statistic then has limit law equal to its squared norm applied to a standard Gaussian vector. -/
 noncomputable def gmmResidualMaker (G : E →L[ℝ] F) (effInv : E →L[ℝ] E) : F →L[ℝ] F :=
   ContinuousLinearMap.id ℝ F - gmmHatMatrix G effInv
 

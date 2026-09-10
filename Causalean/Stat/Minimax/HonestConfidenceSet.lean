@@ -24,7 +24,10 @@ namespace Causalean.Stat
 open Filter MeasureTheory
 open scoped Topology
 
-/-- The volume of a set after restriction to a parameter region. -/
+/-- For [a parameter region on the real line](hyp:region) and [a set on the
+real line](hyp:set), the [restricted set volume](goal) is the real-valued
+Lebesgue volume of their intersection, with infinite volume represented by
+zero. -/
 noncomputable def restrictedSetVolume (region set : Set ℝ) : ℝ :=
   (volume (set ∩ region)).toReal
 
@@ -220,8 +223,11 @@ theorem inverseSqrtCap_anti {t0 t : ℝ} (ht0 : 0 < t0) (htt : t0 ≤ t) :
   apply min_le_min_left
   exact Real.rpow_le_rpow_of_nonpos ht0 htt (by norm_num)
 
-/-- The asymptotic frontier risk of an arbitrary model class is the limsup of
-the worst expected length among models above a strength threshold. -/
+/-- For [a sequence of model classes](hyp:cls), [a real-valued strength and a
+real-valued expected-length criterion for each sample size and model](hyp:strength,expectedLength),
+and [a real strength threshold](hyp:t0), the [class frontier risk](goal) is the
+limit superior, across sample sizes, of the supremum expected length over the
+models in that class whose strength is at least the threshold. -/
 noncomputable def classFrontierRisk
     {Model : Type*} (cls : ℕ → Model → Prop)
     (strength expectedLength : ℕ → Model → ℝ) (t0 : ℝ) : ℝ :=
@@ -282,7 +288,11 @@ theorem classFrontierRisk_le
   change Filter.limsup row atTop ≤ bound
   exact Filter.limsup_le_of_le hcob (Filter.Eventually.of_forall hrowUpper)
 
-/-- Worst-case coverage is the ordinary infimum when the model class is nonempty, but is
+/-- For [a real-valued criterion indexed by an arbitrary collection](hyp:f),
+the [worst-case criterion with the empty-collection convention](goal) is its
+infimum when the collection is nonempty and is one when it is empty.
+
+Worst-case coverage is the ordinary infimum when the model class is nonempty, but is
 defined as one when the class is empty. A real-valued infimum over an empty index would
 otherwise equal zero and misleadingly signal coverage failure for a vacuous model class.
 

@@ -55,7 +55,9 @@ namespace SufficientFactorization
 variable {E : FiniteUniformExperiment Latent Allocation Observation Statistic}
 variable (F : E.SufficientFactorization)
 
-/-- The carrier mass of a statistic fiber is the sum of the state-independent carrier weights
+/-- For [a finite uniform experiment](hyp:E), [a sufficient factorization of that experiment's full-data masses](hyp:F), and [a statistic value](hyp:s), the [carrier mass of that statistic fiber](goal) is the sum of the factorization's state-independent carrier weights over all allocation--observation pairs having that statistic value.
+
+The carrier mass of a statistic fiber is the sum of the state-independent carrier weights
 over full-data points having that statistic value. -/
 noncomputable def fiberCarrierMass (s : Statistic) : ℝ :=
   ∑ z : Allocation × Observation,
@@ -93,7 +95,9 @@ theorem fiberCarrierMass_pos_of_statisticMass_pos {θ : Latent} {s : Statistic}
     rwa [← F.statisticMass_eq_factor_mul_fiberCarrierMass θ s]
   exact pos_of_mul_pos_right hprod (F.statisticFactor_nonneg θ s)
 
-/-- The factorization-induced conditional weight normalizes the carrier weight on positive
+/-- For [a finite uniform experiment](hyp:E), [a sufficient factorization of its full-data masses](hyp:F), [a statistic value](hyp:s), and [an allocation--observation pair](hyp:z), the [common conditional weight](goal) equals the carrier weight divided by the carrier mass when that mass is positive and the pair has the stated statistic, equals zero when the mass is positive but the pair has another statistic, and otherwise is a unit mass at the experiment's designated fallback pair.
+
+The factorization-induced conditional weight normalizes the carrier weight on positive
 carrier fibers and uses the experiment's fallback point mass on null carrier fibers. -/
 noncomputable def commonConditionalWeight (s : Statistic)
     (z : Allocation × Observation) : ℝ :=
@@ -163,7 +167,9 @@ theorem commonConditionalWeight_eq_conditionalWeight
       (ne_of_gt hfactor)).symm
   · simp [hz]
 
-/-- A sufficient factorization canonically produces a state-independent common conditional
+/-- For [a finite uniform experiment](hyp:E) and [a sufficient factorization of its full-data masses](hyp:F), the [common conditional kernel induced by that factorization](goal) assigns the factorization-induced common conditional weights to every statistic value and allocation--observation pair.
+
+A sufficient factorization canonically produces a state-independent common conditional
 kernel for the full data given the statistic, including a normalized value on null fibers. -/
 noncomputable def toCommonConditionalKernel : E.CommonConditionalKernel where
   weight := F.commonConditionalWeight

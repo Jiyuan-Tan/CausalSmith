@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  claudeConfigDir,
   codexHome,
   resolveApiKey,
   resolveAuthMode,
@@ -204,6 +205,17 @@ describe("local.json reaches the dispatchers (no-argument resolution)", () => {
     expect(() => auth.codexHome({ env: {} })).toThrow(/must NOT be the operator's codex home/);
   });
 
+  it("carries a file-configured claudeConfigDir all the way to the worker env", async () => {
+    // The bug this pins: `claudeConfigDir` was added to the LocalConfig TYPE and to
+    // auth.ts, but `localConfig()` builds its object key by key, so the file value
+    // was dropped and the workers silently stayed on the operator's own account.
+    // Injected-config tests could not see it; only the file path can.
+    const dir = tempDir();
+    const auth = await authWithLocalJson({ claudeConfigDir: dir });
+    expect(auth.claudeConfigDir({ env: {} })).toBe(dir);
+    expect(auth.workerEnv({ env: {} }).CLAUDE_CONFIG_DIR).toBe(dir);
+  });
+
   it("leaves a file-configured subscription run entirely untouched", async () => {
     const auth = await authWithLocalJson({ authMode: "subscription" });
     expect(auth.resolveProviderAuth("anthropic", { env: {} })).toEqual({ mode: "subscription" });
@@ -273,5 +285,40 @@ describe("workerEnv", () => {
     });
     expect(out.ANTHROPIC_API_KEY).toBe("sk-ant");
     expect(out.CODEX_HOME).toBeUndefined();
+  });
+});
+
+describe("claudeConfigDir", () => {
+  it("is undefined by default, leaving workers on the operator's ~/.claude", () => {
+    expect(claudeConfigDir(NO_CONFIG)).toBeUndefined();
+    expect(workerEnv(NO_CONFIG).CLAUDE_CONFIG_DIR).toBeUndefined();
+  });
+
+  it("resolves the configured directory and exports it to the workers", () => {
+    const dir = tempDir();
+    const inputs = { env: {} as NodeJS.ProcessEnv, config: { claudeConfigDir: dir } };
+    expect(claudeConfigDir(inputs)).toBe(dir);
+    expect(workerEnv(inputs).CLAUDE_CONFIG_DIR).toBe(dir);
+  });
+
+  it("lets the env var win over the config file", () => {
+    const fromEnv = tempDir();
+    const fromConfig = tempDir();
+    const env = { CAUSALSMITH_CLAUDE_CONFIG_DIR: fromEnv } as NodeJS.ProcessEnv;
+    expect(claudeConfigDir({ env, config: { claudeConfigDir: fromConfig } })).toBe(fromEnv);
+  });
+
+  it("throws a directed error rather than letting every worker die on 'Not logged in'", () => {
+    const missing = path.join(tempDir(), "never-created");
+    expect(() =>
+      claudeConfigDir({ env: {} as NodeJS.ProcessEnv, config: { claudeConfigDir: missing } }),
+    ).toThrow(/does not exist/);
+  });
+
+  it("is an account switch, not a billing switch: it does not imply api mode", () => {
+    const dir = tempDir();
+    const inputs = { env: {} as NodeJS.ProcessEnv, config: { claudeConfigDir: dir } };
+    expect(resolveAuthMode("anthropic", inputs)).toBe("subscription");
+    expect(workerEnv(inputs).ANTHROPIC_API_KEY).toBeUndefined();
   });
 });

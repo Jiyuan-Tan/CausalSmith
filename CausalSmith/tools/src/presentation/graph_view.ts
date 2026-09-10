@@ -29,8 +29,8 @@ export function envForKind(kind: NodeKind): EnvName | null {
   return ENV_BY_KIND[kind] ?? null;
 }
 
-/** A CITED node: a `gate` whose class is `cited` — an imported external theorem the
- *  paper relies on but does not prove (matched against a citation at F2.5). Guards on
+/** A CITED node: a `gate` whose class is `cited` — a deferred external logical claim or
+ *  bibliographic scope record (matched against a citation at F2.5). Guards on
  *  `gate_class`, NOT bare `kind`, so a stray `gated` gate (discharged before banking)
  *  is still excluded from the paper. */
 export function isCitedNode(n: GraphNode): boolean {
@@ -130,7 +130,7 @@ export function refTargets(g: FormalizationGraph, id: string): GraphNode[] {
   return statementUsesTargets(g, id).filter((n) => n.nl.frozen && envForNode(n) !== null);
 }
 
-/** Cited propositions on which a printed result is formally conditional. Follow only
+/** Cited logical propositions on which a printed result is formally conditional. Follow only
  *  `statement-uses`: a cited proposition must occur in the consumer's Lean type to be a
  *  trust-boundary dependency. A merely contextual/proof-comparison citation must not acquire
  *  a formalization disclaimer. The traversal handles a packaged local proposition whose type

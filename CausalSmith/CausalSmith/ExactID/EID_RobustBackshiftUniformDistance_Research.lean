@@ -1,0 +1,43 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Basic
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Basic.Cycles
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Basic.Occupancy
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.CitedGates
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.CompactExtremeValue
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ConfidenceUnion
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionCompactness
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionExclusionApplication
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionFeasible
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionLocalInverse
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionPointwise
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionResidual
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionTopology
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionUniformExclusion
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionWitness
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionWitnessEmbedding
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.DeterminantEnvelope
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.EuclideanHeineBorel
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.GenericAffineOccupancy
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.GlobalCollinearAmbiguity
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.MatrixMargins
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.OverlapUniqueness
+import Causalean.Mathlib.MeasureTheory.PolynomialZeroLocus
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.SharpThreshold
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.OpenQuestions
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.TConfidenceUnionCoverage
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.TGenericSupportFrontier
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.TNonEffectiveFourMarginContraction
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.TSharpReplacementRadius
+import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.TUniformSupportDeletionRadius
+
+/-! # Run barrel (auto-generated)
+
+Aggregates every module of this causalsmith run so the whole run is ONE buildable target
+(`lake build <this module>`). Research modules are not reachable from the top-level
+`CausalSmith.lean` barrel, so the default lake target skips them and reports green on stale
+oleans. Rewritten from the run's module set on every F-stage entry — do not hand-edit. -/

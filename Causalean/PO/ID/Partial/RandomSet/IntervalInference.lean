@@ -63,9 +63,10 @@ Main declarations:
 
 namespace Causalean.PartialID.RandomSet
 
-/-- **Minkowski dilation** of a real set by a radius `r`:
-`A ⊕ [−r, r] = {a + t | a ∈ A, |t| ≤ r}`.  In Beresteanu–Molinari this is the
-confidence region `Uₙ = Ȳₙ ⊕ B(0, r)` built around the estimated interval. -/
+/-- For [a set of real numbers](hyp:A) and [a real radius](hyp:r), the [Minkowski dilation](goal)
+is the set of all sums $a+t$ such that $a$ belongs to the original set and $|t|\le r$.
+
+In Beresteanu–Molinari this is the confidence region `Uₙ = Ȳₙ ⊕ B(0, r)` built around the estimated interval. -/
 def dilate (A : Set ℝ) (r : ℝ) : Set ℝ :=
   {x : ℝ | ∃ a ∈ A, ∃ t : ℝ, |t| ≤ r ∧ x = a + t}
 
@@ -177,7 +178,10 @@ multivariate CLT through `dirStat w = max 0 (max w₀ (−w₁))`. -/
 
 open ProbabilityTheory Filter Topology Causalean.Stat
 
-/-- The **directed-Hausdorff functional** `dirStat w = max 0 (max w₀ (−w₁))` on `ℝ²`.
+/-- For [a two-dimensional endpoint-deviation vector](hyp:w), the [directed-Hausdorff
+functional](goal) is $\max\{0,w_0,-w_1\}$. On the centered and normalized endpoint sum, it equals
+$\sqrt n$ times the directed Hausdorff distance from the population interval to the sample-mean interval.
+
 On the centered endpoint normalised sum it is `√n · dᴴ(E[Y], Ȳₙ)`. -/
 noncomputable def dirStat (w : EuclideanSpace ℝ (Fin 2)) : ℝ := max 0 (max (w 0) (-(w 1)))
 
@@ -194,7 +198,7 @@ section DirectedCLT
 variable {ψ : X → EuclideanSpace ℝ (Fin 2)} (hψ : Measurable ψ)
   (hvar : Integrable (fun x => ‖ψ x‖ ^ 2) P)
 
-/-- The directed limit law is a probability measure. -/
+/-- For [a measurable sample space equipped with a measure](hyp:X,P) and [a two-dimensional vector-valued process on that space](hyp:ψ) that is [measurable](hyp:hψ) and has [an integrable squared norm under the measure](hyp:hvar), the [law obtained by applying the directed-Hausdorff functional to its Gaussian limit is a probability measure](goal). [This follows from taking the measurable pushforward of that Gaussian limit](step:1). -/
 instance : IsProbabilityMeasure ((gaussianLimit hψ hvar).map dirStat) :=
   Measure.isProbabilityMeasure_map measurable_dirStat.aemeasurable
 

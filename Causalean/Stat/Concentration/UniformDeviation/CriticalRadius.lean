@@ -50,15 +50,14 @@ section CriticalRadius
 
 variable {Ω ι 𝒳 : Type*} [MeasurableSpace Ω]
 
-/-- The intersection of the star hull with a `norm`-ball of radius `r`. -/
+/-- For [an index set](hyp:ι), [an observation domain](hyp:𝒳), [a class of real-valued functions](hyp:F), [a real-valued functional on such functions](hyp:norm), and [a real radius](hyp:r), [the star-hull ball](goal) is the set of all star-hull functions whose functional value is at most the radius. -/
 def starHullBall (F : ι → 𝒳 → ℝ) (norm : (𝒳 → ℝ) → ℝ) (r : ℝ) :
     Set (𝒳 → ℝ) :=
   starHull F ∩ {f | norm f ≤ r}
 
-/-- The **zero-out** family on the `starHullParam` index: each parameter
-    `(α, i)` is mapped to `α • F i` if its norm is at most `r`, and to
-    the zero function otherwise. This is the localized star-hull family used
-    by the local Rademacher-complexity envelope. -/
+/-- For [an index set](hyp:ι), [an observation domain](hyp:𝒳), [a class of real-valued functions](hyp:F), [a real-valued functional on such functions](hyp:norm), and [a real radius](hyp:r), [the zero-out localized star-hull family](goal) assigns to each base function and each scalar between zero and one their scalar product when its functional value is at most the radius, and assigns the zero function otherwise.
+
+This is the localized star-hull family used by the local Rademacher-complexity envelope. -/
 noncomputable def starHullZeroOut
     (F : ι → 𝒳 → ℝ) (norm : (𝒳 → ℝ) → ℝ) (r : ℝ) :
     starHullParam ι → 𝒳 → ℝ :=
@@ -70,7 +69,7 @@ lemma ciSup_mul_const_of_le_one {A : Type*}
     (⨆ a : A, c a * b) = (⨆ a : A, c a) * b := by
   exact (Real.iSup_mul_of_nonneg hb c).symm
 
-/-- The largest active star-hull scalar for a fixed base index. -/
+/-- For [an index set](hyp:ι), [an observation domain](hyp:𝒳), [a class of real-valued functions](hyp:F), [a real-valued functional on such functions](hyp:norm), [a real radius](hyp:r), and [a base-function index](hyp:i), [the zero-out scale coefficient](goal) is the supremum over scalars in $[0,1]$ of that scalar when the corresponding scaled function has functional value at most the radius, and zero otherwise. -/
 noncomputable def starHullZeroOutScaleCoeff
     (F : ι → 𝒳 → ℝ) (norm : (𝒳 → ℝ) → ℝ) (r : ℝ) (i : ι) : ℝ :=
   ⨆ a : Set.Icc (0 : ℝ) 1,
@@ -136,26 +135,18 @@ lemma starHullZeroOut_inner_sup_eq
       if norm (starHullEval F (a, i)) ≤ r then (a : ℝ) else 0)
     _ (abs_nonneg _)
 
-/-- **Deterministic upper envelope on the localized Rademacher
-    complexity.** For every radius `r ≥ 0`, the population Rademacher
-    complexity of the zero-out family on the radius-`r` star-hull ball
-    is at most `ψ r`.
+/-- For [a measurable sample space](hyp:Ω), [an index set](hyp:ι), [an observation domain](hyp:𝒳), [a class of real-valued functions](hyp:F), [a real-valued functional on such functions](hyp:norm), [a measure on the sample space](hyp:μ), [a random observation map from that sample space](hyp:X), [a sample size](hyp:n), and [a real-valued radius envelope](hyp:ψ), [the radius envelope is a deterministic upper bound for localized Rademacher complexity](goal) exactly when, for every nonnegative real radius, the population Rademacher complexity of the zero-out localized star-hull family at that radius is at most the envelope evaluated at that radius.
 
-    The predicate is stated directly in terms of `starHullZeroOut`, so it can
-    be applied to any local-Rademacher argument whose localized class is built
-    by zeroing out star-hull parameters outside the radius. The structural
-    homogeneity of `starHullEval`, parametrized by `(α, i) ∈ [0,1] × ι`, is
-    what lets a sub-root envelope on the base class `F` control this localized
-    family. -/
+The predicate is stated directly in terms of `starHullZeroOut`, so it can be applied to any local-Rademacher argument whose localized class is built by zeroing out star-hull parameters outside the radius. The structural homogeneity of `starHullEval`, parametrized by `(α, i) ∈ [0,1] × ι`, is what lets a sub-root envelope on the base class `F` control this localized family. -/
 def RademacherUpperBound
     (F : ι → 𝒳 → ℝ) (norm : (𝒳 → ℝ) → ℝ)
     (μ : Measure Ω) (X : Ω → 𝒳) (n : ℕ) (ψ : ℝ → ℝ) : Prop :=
   ∀ r : ℝ, 0 ≤ r →
     rademacherComplexity n (starHullZeroOut F norm r) μ X ≤ ψ r
 
-/-- The **critical radius** of `ψ`: the infimum over `δ > 0` with
-    `ψ δ ≤ δ²`. Defined via `sInf`; if the set is empty (e.g. `ψ` grows
-    faster than `δ²` everywhere), the value is `0` by Mathlib convention. -/
+/-- For [a real-valued radius envelope](hyp:ψ), [the critical radius](goal) is the infimum of the positive real radii $δ$ for which $ψ(δ) ≤ δ^2$.
+
+Defined via `sInf`; if the set is empty (for example, if the envelope grows faster than $δ^2$ everywhere), the value is zero by Mathlib convention. -/
 noncomputable def criticalRadius (ψ : ℝ → ℝ) : ℝ :=
   sInf {δ | 0 < δ ∧ ψ δ ≤ δ ^ 2}
 
@@ -182,15 +173,9 @@ lemma criticalRadius_le {ψ : ℝ → ℝ} {δ : ℝ}
     exact le_of_lt hη
   · exact ⟨h₀, h₁⟩
 
-/-- A radius envelope is sub-root when it is non-negative and non-decreasing
-    on non-negative radii, and its value divided by the radius is
-    non-increasing as the positive radius grows.
+/-- For [a real-valued radius envelope](hyp:ψ), [the sub-root condition](goal) holds exactly when (1) [the envelope is nonnegative at every nonnegative radius](step:1), (2) [for every two nonnegative radii with the first no larger than the second, the envelope at the first is no larger than the envelope at the second](step:2), and (3) [for every two positive radii with the first no larger than the second, the envelope divided by the radius is no smaller at the first than at the second](step:3).
 
-    This is the radius-parameterized Bartlett--Bousquet--Mendelson sub-root
-    condition used by the local-Rademacher critical-radius lemmas in this file:
-    non-negativity controls the envelope scale, monotonicity gives the
-    one-sided squeeze needed for continuity, and the non-increasing ratio
-    transfers a fixed-point bound at `δ*` to all larger radii. -/
+This is the radius-parameterized Bartlett--Bousquet--Mendelson sub-root condition used by the local-Rademacher critical-radius lemmas in this file: non-negativity controls the envelope scale, monotonicity gives the one-sided squeeze needed for continuity, and the non-increasing ratio transfers a fixed-point bound at `δ*` to all larger radii. -/
 def SubRoot (ψ : ℝ → ℝ) : Prop :=
   (∀ r ≥ 0, 0 ≤ ψ r) ∧
   (∀ r₁ r₂, 0 ≤ r₁ → r₁ ≤ r₂ → ψ r₁ ≤ ψ r₂) ∧

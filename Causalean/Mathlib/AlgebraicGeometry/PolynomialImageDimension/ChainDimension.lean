@@ -17,8 +17,9 @@ namespace Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension
 
 noncomputable section
 
-/-- Exact affine Zariski dimension is the largest number of strict containments
-in a chain of nonempty irreducible polynomially closed subsets of a set. -/
+/-- For [a coordinate index set](hyp:ι), [a nonnegative integer $d$](hyp:d), and [a subset $Z$ of the corresponding complex affine space](hyp:Z), [the statement that $Z$ has exact affine Zariski dimension $d$](goal) means that [there exists a strictly increasing chain of $d+1$ irreducible affine-closed subsets, all contained in $Z$](step:1), and [no strictly increasing chain of $d+2$ irreducible affine-closed subsets, all contained in $Z$, exists](step:2).
+
+Exact affine Zariski dimension is the largest number of strict containments in a chain of nonempty irreducible polynomially closed subsets of a set. -/
 def HasAffineZariskiDimension {ι : Type*} (d : ℕ) (Z : Set (ι → ℂ)) : Prop :=
   (∃ chain : Fin (d + 1) → Set (ι → ℂ),
       StrictMono chain ∧

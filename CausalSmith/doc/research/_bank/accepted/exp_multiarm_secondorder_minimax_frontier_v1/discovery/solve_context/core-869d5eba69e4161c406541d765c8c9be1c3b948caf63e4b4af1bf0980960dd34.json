@@ -1,0 +1,1476 @@
+{
+  "qid": "exp_multiarm_secondorder_minimax_frontier",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "symbols": [
+    {
+      "name": "K",
+      "type": "number of treatment arms",
+      "space": "\\(\\{2,3,\\ldots\\}\\)",
+      "def": "A fixed number of arms that does not vary with \\(n\\).",
+      "role": "design dimension"
+    },
+    {
+      "name": "\\mathcal A_K",
+      "type": "arm index set",
+      "space": "\\(2^{\\mathbb N}\\)",
+      "def": "\\(\\mathcal A_K=\\{1,\\ldots,K\\}\\).",
+      "role": "index set",
+      "refs": [
+        "K"
+      ]
+    },
+    {
+      "name": "n",
+      "type": "finite-population size",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Number of experimental units.",
+      "role": "asymptotic index"
+    },
+    {
+      "name": "i",
+      "type": "unit index",
+      "space": "\\(\\{1,\\ldots,n\\}\\)",
+      "def": "Generic unit label.",
+      "role": "index",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "a",
+      "type": "arm index",
+      "space": "\\(\\mathcal A_K\\)",
+      "def": "Generic treatment-arm label.",
+      "role": "index",
+      "refs": [
+        "\\mathcal A_K"
+      ]
+    },
+    {
+      "name": "c",
+      "type": "nonzero treatment contrast",
+      "space": "\\(\\{u\\in\\mathbb R^K\\setminus\\{0\\}:\\sum_{a\\in\\mathcal A_K}u_a=0\\}\\)",
+      "def": "Fixed coefficient vector \\(c=(c_a)_{a\\in\\mathcal A_K}\\).",
+      "role": "estimand parameter",
+      "refs": [
+        "K",
+        "\\mathcal A_K",
+        "a"
+      ]
+    },
+    {
+      "name": "S_c",
+      "type": "active-arm support",
+      "space": "\\(2^{\\mathcal A_K}\\)",
+      "def": "\\(S_c=\\{a\\in\\mathcal A_K:c_a\\ne0\\}\\).",
+      "role": "effective arm set",
+      "refs": [
+        "\\mathcal A_K",
+        "c",
+        "a"
+      ]
+    },
+    {
+      "name": "L_c",
+      "type": "contrast \\(\\ell_1\\) norm",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(L_c=\\sum_{a\\in\\mathcal A_K}|c_a|\\).",
+      "role": "risk scale",
+      "refs": [
+        "\\mathcal A_K",
+        "c",
+        "a"
+      ]
+    },
+    {
+      "name": "q^\\star",
+      "type": "contrast-weighted allocation vector",
+      "space": "\\(\\Delta(\\mathcal A_K)\\)",
+      "def": "\\(q_a^\\star=|c_a|/L_c\\) for \\(a\\in S_c\\) and \\(q_a^\\star=0\\) otherwise.",
+      "role": "candidate optimal design",
+      "refs": [
+        "\\mathcal A_K",
+        "c",
+        "S_c",
+        "L_c",
+        "a"
+      ]
+    },
+    {
+      "name": "t",
+      "type": "binary response type",
+      "space": "\\(\\{0,1\\}^{\\mathcal A_K}\\)",
+      "def": "Generic vector \\(t=(t_a)_{a\\in\\mathcal A_K}\\) of arm-specific binary potential outcomes.",
+      "role": "nature state index",
+      "refs": [
+        "\\mathcal A_K",
+        "a"
+      ]
+    },
+    {
+      "name": "\\mathcal T_K",
+      "type": "response-type space",
+      "space": "\\(2^{\\{0,1\\}^{\\mathcal A_K}}\\)",
+      "def": "\\(\\mathcal T_K=\\{0,1\\}^{\\mathcal A_K}\\), with \\(|\\mathcal T_K|=2^K\\).",
+      "role": "finite state space",
+      "refs": [
+        "K",
+        "\\mathcal A_K",
+        "t"
+      ]
+    },
+    {
+      "name": "z",
+      "type": "complete labeled response schedule",
+      "space": "\\(\\mathcal T_K^n\\)",
+      "def": "\\(z=(t_1,\\ldots,t_n)\\), where each labeled unit response type \\(t_i=(t_{i,a})_{a\\in\\mathcal A_K}\\) belongs to \\(\\mathcal T_K\\).",
+      "role": "primitive nature state",
+      "refs": [
+        "n",
+        "i",
+        "a",
+        "\\mathcal A_K",
+        "t",
+        "\\mathcal T_K"
+      ]
+    },
+    {
+      "name": "Y_i(a)",
+      "type": "fixed binary potential outcome",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "\\(Y_i(a)=t_{i,a}\\), the arm \\(a\\) coordinate of unit \\(i\\)'s response type in \\(z\\).",
+      "role": "causal primitive",
+      "refs": [
+        "z",
+        "i",
+        "a"
+      ]
+    },
+    {
+      "name": "A",
+      "type": "assignment vector",
+      "space": "\\(\\mathcal A_K^n\\)",
+      "def": "\\(A=(A_1,\\ldots,A_n)\\) is drawn from a design selected before the fixed potential outcomes are revealed.",
+      "role": "sole randomization",
+      "refs": [
+        "\\mathcal A_K",
+        "n"
+      ]
+    },
+    {
+      "name": "\\mathcal D",
+      "type": "randomized assignment design",
+      "space": "\\(\\Delta(\\mathcal A_K^n)\\)",
+      "def": "Probability law of \\(A\\), chosen without knowledge of the response schedule.",
+      "role": "decision variable",
+      "refs": [
+        "\\mathcal A_K",
+        "n",
+        "A",
+        "z"
+      ]
+    },
+    {
+      "name": "Y_i^{\\mathrm{obs}}",
+      "type": "observed outcome",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "\\(Y_i^{\\mathrm{obs}}=Y_i(A_i)\\).",
+      "role": "observed data",
+      "refs": [
+        "i",
+        "A",
+        "Y_i(a)"
+      ]
+    },
+    {
+      "name": "\\tau_c(z)",
+      "type": "finite-population causal contrast",
+      "space": "\\([-L_c/2,L_c/2]\\)",
+      "def": "\\(\\tau_c(z)=n^{-1}\\sum_{i=1}^n\\sum_{a\\in\\mathcal A_K}c_at_{i,a}\\).",
+      "role": "target estimand",
+      "refs": [
+        "z",
+        "n",
+        "i",
+        "\\mathcal A_K",
+        "a",
+        "c",
+        "L_c"
+      ]
+    },
+    {
+      "name": "\\widehat\\tau",
+      "type": "arbitrary estimator",
+      "space": "\\(\\{f:(\\mathcal A_K\\times\\{0,1\\})^n\\to[-L_c/2,L_c/2]\\}\\)",
+      "def": "Any measurable, possibly biased function of \\((A_i,Y_i^{\\mathrm{obs}})_{i=1}^n\\), clipped to the range of \\(\\tau_c(z)\\).",
+      "role": "decision variable",
+      "refs": [
+        "\\mathcal A_K",
+        "n",
+        "L_c",
+        "A",
+        "Y_i^{\\mathrm{obs}}",
+        "\\tau_c(z)"
+      ]
+    },
+    {
+      "name": "R_n(\\mathcal D,\\widehat\\tau;z)",
+      "type": "design-based mean squared error",
+      "space": "\\([0,L_c^2]\\)",
+      "def": "\\(R_n(\\mathcal D,\\widehat\\tau;z)=\\mathbb E_{\\mathcal D}[(\\widehat\\tau-\\tau_c(z))^2]\\), where the expectation is only over assignment from \\(\\mathcal D\\).",
+      "role": "loss",
+      "refs": [
+        "n",
+        "\\mathcal D",
+        "\\widehat\\tau",
+        "z",
+        "L_c",
+        "\\tau_c(z)"
+      ]
+    },
+    {
+      "name": "\\rho_n(c)",
+      "type": "unrestricted minimax risk",
+      "space": "\\([0,L_c^2]\\)",
+      "def": "\\(\\rho_n(c)=\\inf_{\\mathcal D,\\widehat\\tau}\\max_{z\\in\\mathcal T_K^n}R_n(\\mathcal D,\\widehat\\tau;z)\\).",
+      "role": "minimax value",
+      "refs": [
+        "n",
+        "c",
+        "\\mathcal D",
+        "\\widehat\\tau",
+        "z",
+        "\\mathcal T_K",
+        "R_n(\\mathcal D,\\widehat\\tau;z)",
+        "L_c"
+      ]
+    },
+    {
+      "name": "m",
+      "type": "response-type count vector",
+      "space": "\\(\\mathbb Z_+^{\\mathcal T_K}\\)",
+      "def": "For a labeled schedule \\(z\\), \\(m=(m_t)_{t\\in\\mathcal T_K}\\) is its unit-permutation orbit, with \\(m_t=\\#\\{i:t_i=t\\}\\).",
+      "role": "symmetrized nature state",
+      "refs": [
+        "z",
+        "i",
+        "t",
+        "\\mathcal T_K"
+      ]
+    },
+    {
+      "name": "\\mathcal M_{n,K}",
+      "type": "response-type count simplex",
+      "space": "\\(2^{\\mathbb Z_+^{\\mathcal T_K}}\\)",
+      "def": "\\(\\mathcal M_{n,K}=\\{m\\in\\mathbb Z_+^{\\mathcal T_K}:\\sum_{t\\in\\mathcal T_K}m_t=n\\}\\).",
+      "role": "finite orbit space",
+      "refs": [
+        "n",
+        "K",
+        "t",
+        "\\mathcal T_K",
+        "m"
+      ]
+    },
+    {
+      "name": "\\tau_c(m)",
+      "type": "orbit form of the causal contrast",
+      "space": "\\([-L_c/2,L_c/2]\\)",
+      "def": "\\(\\tau_c(m)=n^{-1}\\sum_{t\\in\\mathcal T_K}m_t\\sum_{a\\in\\mathcal A_K}c_at_a\\).",
+      "role": "symmetrized target",
+      "refs": [
+        "n",
+        "m",
+        "t",
+        "\\mathcal T_K",
+        "a",
+        "\\mathcal A_K",
+        "c",
+        "L_c"
+      ]
+    },
+    {
+      "name": "r",
+      "type": "arm-allocation count vector",
+      "space": "\\(\\mathbb Z_+^{\\mathcal A_K}\\)",
+      "def": "\\(r=(r_a)_{a\\in\\mathcal A_K}\\), where \\(r_a=\\sum_{i=1}^n\\mathbf 1\\{A_i=a\\}\\).",
+      "role": "design orbit",
+      "refs": [
+        "\\mathcal A_K",
+        "a",
+        "n",
+        "i",
+        "A"
+      ]
+    },
+    {
+      "name": "\\mathcal R_{n,K}",
+      "type": "allocation-count simplex",
+      "space": "\\(2^{\\mathbb Z_+^{\\mathcal A_K}}\\)",
+      "def": "\\(\\mathcal R_{n,K}=\\{r\\in\\mathbb Z_+^{\\mathcal A_K}:\\sum_{a\\in\\mathcal A_K}r_a=n\\}\\).",
+      "role": "symmetrized design action space",
+      "refs": [
+        "n",
+        "K",
+        "\\mathcal A_K",
+        "a",
+        "r"
+      ]
+    },
+    {
+      "name": "x",
+      "type": "observed arm-success count vector",
+      "space": "\\(\\prod_{a\\in\\mathcal A_K}\\{0,\\ldots,r_a\\}\\)",
+      "def": "\\(x=(x_a)_{a\\in\\mathcal A_K}\\), where \\(x_a=\\sum_{i=1}^n\\mathbf 1\\{A_i=a,Y_i^{\\mathrm{obs}}=1\\}\\).",
+      "role": "observation orbit",
+      "refs": [
+        "\\mathcal A_K",
+        "a",
+        "r",
+        "n",
+        "i",
+        "A",
+        "Y_i^{\\mathrm{obs}}"
+      ]
+    },
+    {
+      "name": "h",
+      "type": "response-type by arm contingency table",
+      "space": "\\(\\mathbb Z_+^{\\mathcal T_K\\times\\mathcal A_K}\\)",
+      "def": "\\(h=(h_{t,a})\\) records how many units of response type \\(t\\) are assigned arm \\(a\\).",
+      "role": "likelihood summation index",
+      "refs": [
+        "t",
+        "\\mathcal T_K",
+        "a",
+        "\\mathcal A_K"
+      ]
+    },
+    {
+      "name": "\\mathcal H(m,r,x)",
+      "type": "feasible contingency-table fiber",
+      "space": "\\(2^{\\mathbb Z_+^{\\mathcal T_K\\times\\mathcal A_K}}\\)",
+      "def": "The set of \\(h\\) satisfying \\(\\sum_a h_{t,a}=m_t\\), \\(\\sum_t h_{t,a}=r_a\\), and \\(\\sum_{t:t_a=1}h_{t,a}=x_a\\) for every \\(t\\) and \\(a\\).",
+      "role": "orbit fiber",
+      "refs": [
+        "m",
+        "r",
+        "x",
+        "h",
+        "t",
+        "\\mathcal T_K",
+        "a",
+        "\\mathcal A_K"
+      ]
+    },
+    {
+      "name": "P_m(x\\mid r)",
+      "type": "orbit likelihood",
+      "space": "\\([0,1]\\)",
+      "def": "Probability of observed success counts \\(x\\) under uniform assignment conditional on allocation counts \\(r\\) and response-type counts \\(m\\).",
+      "role": "finite-experiment kernel",
+      "refs": [
+        "m",
+        "x",
+        "r",
+        "\\mathcal H(m,r,x)"
+      ]
+    },
+    {
+      "name": "\\pi",
+      "type": "mixture over allocation-count orbits",
+      "space": "\\(\\Delta(\\mathcal R_{n,K})\\)",
+      "def": "\\(\\pi=(\\pi_r)_{r\\in\\mathcal R_{n,K}}\\) selects an allocation count and then assigns units uniformly conditional on that count.",
+      "role": "symmetrized design",
+      "refs": [
+        "r",
+        "\\mathcal R_{n,K}"
+      ]
+    },
+    {
+      "name": "\\delta",
+      "type": "invariant estimator",
+      "space": "\\(\\{f:(r,x)\\mapsto[-L_c/2,L_c/2]\\}\\)",
+      "def": "Deterministic estimator based only on the allocation and observed-success orbits \\((r,x)\\).",
+      "role": "symmetrized estimator",
+      "refs": [
+        "r",
+        "x",
+        "L_c"
+      ]
+    },
+    {
+      "name": "G_n(c)",
+      "type": "finite response-type game value",
+      "space": "\\([0,L_c^2]\\)",
+      "def": "Minimax value of the explicit orbit experiment over \\(\\pi\\), \\(\\delta\\), and \\(m\\).",
+      "role": "finite-game representation",
+      "refs": [
+        "n",
+        "c",
+        "L_c",
+        "\\pi",
+        "\\delta",
+        "m",
+        "P_m(x\\mid r)"
+      ]
+    },
+    {
+      "name": "p_+",
+      "type": "two-arm positive-effect count",
+      "space": "\\(\\{0,\\ldots,n\\}\\)",
+      "def": "Parameter of the published two-arm scalar experiment; when related to the full four-count orbit vector, \\(p_+=m_{(1,0)}\\).",
+      "role": "binary-reduction parameter",
+      "refs": [
+        "n",
+        "m"
+      ]
+    },
+    {
+      "name": "p_-",
+      "type": "two-arm negative-effect count",
+      "space": "\\(\\{0,\\ldots,n\\}\\)",
+      "def": "Parameter of the published two-arm scalar experiment; when related to the full four-count orbit vector, \\(p_-=m_{(0,1)}\\).",
+      "role": "binary-reduction parameter",
+      "refs": [
+        "n",
+        "m"
+      ]
+    },
+    {
+      "name": "r_0",
+      "type": "two-arm zero-effect count",
+      "space": "\\(\\{0,\\ldots,n\\}\\)",
+      "def": "Parameter of the published two-arm scalar experiment; when related to the full four-count orbit vector, \\(r_0=m_{(0,0)}+m_{(1,1)}\\), with \\(p_++p_-+r_0=n\\). This aggregation does not replace the separate counts \\(m_{(0,0)}\\) and \\(m_{(1,1)}\\) in the orbit likelihood.",
+      "role": "binary-reduction parameter",
+      "refs": [
+        "n",
+        "p_+",
+        "p_-",
+        "m"
+      ]
+    },
+    {
+      "name": "X_2",
+      "type": "two-arm reduced observation",
+      "space": "\\(\\{0,\\ldots,n\\}\\)",
+      "def": "The scalar observation \\(X_2=p_++\\operatorname{Binomial}(r_0,1/2)\\) in the published two-arm reduced experiment.",
+      "role": "binary-reduction observation",
+      "refs": [
+        "n",
+        "p_+",
+        "r_0"
+      ]
+    },
+    {
+      "name": "C_A",
+      "type": "two-arm Airy constant",
+      "space": "\\((0,\\infty)\\)",
+      "def": "The published scalar Airy ground-state constant \\(C_A=1.617\\ldots\\).",
+      "role": "binary-reduction benchmark"
+    },
+    {
+      "name": "C_0(c)",
+      "type": "first-order minimax constant",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(C_0(c)=L_c^2/4=(\\sum_{a\\in\\mathcal A_K}|c_a|)^2/4\\).",
+      "role": "risk frontier",
+      "refs": [
+        "c",
+        "L_c",
+        "\\mathcal A_K",
+        "a"
+      ]
+    },
+    {
+      "name": "\\widehat\\tau_{\\mathrm{cHT}}^\\star",
+      "type": "projected contrast-weighted centered Horvitz--Thompson estimator",
+      "space": "\\([-L_c/2,L_c/2]\\)",
+      "def": "Under independent assignment supported on \\(S_c\\) with probabilities \\(q^\\star\\), \\(\\widehat\\tau_{\\mathrm{cHT}}^\\star=\\operatorname{proj}_{[-L_c/2,L_c/2]}\\!\\left[n^{-1}\\sum_{i=1}^n\\sum_{a\\in S_c}c_a\\mathbf 1\\{A_i=a\\}(Y_i^{\\mathrm{obs}}-1/2)/q_a^\\star\\right]\\).",
+      "role": "first-order attaining estimator",
+      "refs": [
+        "n",
+        "i",
+        "c",
+        "a",
+        "S_c",
+        "A",
+        "Y_i^{\\mathrm{obs}}",
+        "q^\\star",
+        "L_c"
+      ]
+    },
+    {
+      "name": "d_n(c)",
+      "type": "second-order risk improvement",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(d_n(c)=C_0(c)/n-\\rho_n(c)\\).",
+      "role": "second-order focal sequence",
+      "refs": [
+        "n",
+        "c",
+        "C_0(c)",
+        "\\rho_n(c)"
+      ]
+    },
+    {
+      "name": "a_n",
+      "type": "positive second-order normalizer",
+      "space": "\\((0,\\infty)\\)",
+      "def": "A deterministic positive sequence indexed by \\(n\\).",
+      "role": "unknown asymptotic scale",
+      "refs": [
+        "n",
+        "d_n(c)"
+      ]
+    },
+    {
+      "name": "C_{\\mathrm{so}}(c)",
+      "type": "conditional second-order limit constant",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Conditional on the branch in which a normalizer \\(a_n\\) exists and \\(a_nd_n(c)\\) converges to a finite positive limit, \\(C_{\\mathrm{so}}(c)=\\lim_{n\\to\\infty}a_nd_n(c)\\).",
+      "role": "conditionally defined second-order frontier",
+      "refs": [
+        "c",
+        "n",
+        "a_n",
+        "d_n(c)"
+      ]
+    },
+    {
+      "name": "c^\\dagger",
+      "type": "three-arm diagnostic contrast",
+      "space": "\\(\\mathbb R^3\\)",
+      "def": "\\(c^\\dagger=(1,-1/2,-1/2)\\).",
+      "role": "early-kill witness"
+    },
+    {
+      "name": "\\rho_n^\\dagger",
+      "type": "three-arm diagnostic minimax risk",
+      "space": "\\([0,1]\\)",
+      "def": "\\(\\rho_n^\\dagger=\\rho_n(c^\\dagger)\\), for which \\(C_0(c^\\dagger)=1\\).",
+      "role": "computational diagnostic target",
+      "refs": [
+        "n",
+        "c^\\dagger",
+        "\\rho_n(c)",
+        "C_0(c)"
+      ]
+    },
+    {
+      "name": "M",
+      "type": "estimator-action grid resolution",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Positive integer controlling the mesh of the rational action grid.",
+      "role": "computation index"
+    },
+    {
+      "name": "j",
+      "type": "action-grid index",
+      "space": "\\(\\{0,\\ldots,2M\\}\\)",
+      "def": "Generic integer index for the rational action grid.",
+      "role": "index",
+      "refs": [
+        "M"
+      ]
+    },
+    {
+      "name": "\\Gamma_M",
+      "type": "rational estimator-action grid",
+      "space": "\\(2^{[-1,1]}\\)",
+      "def": "\\(\\Gamma_M=\\{-1+j/M:j=0,\\ldots,2M\\}\\).",
+      "role": "LP action set",
+      "refs": [
+        "M",
+        "j"
+      ]
+    },
+    {
+      "name": "g",
+      "type": "grid-valued estimate",
+      "space": "\\(\\Gamma_M\\)",
+      "def": "Generic estimator action in the rational grid.",
+      "role": "LP action index",
+      "refs": [
+        "\\Gamma_M"
+      ]
+    },
+    {
+      "name": "u",
+      "type": "LP epigraph variable",
+      "space": "\\(\\mathbb R_+\\)",
+      "def": "Upper bound on every response-type risk in the grid-action LP.",
+      "role": "LP decision variable"
+    },
+    {
+      "name": "w_{r,x,g}",
+      "type": "joint design--action weight",
+      "space": "\\([0,1]\\)",
+      "def": "Nonnegative joint weight for allocation orbit \\(r\\), observation orbit \\(x\\), and randomized grid action \\(g\\).",
+      "role": "LP decision variable",
+      "refs": [
+        "r",
+        "x",
+        "g"
+      ]
+    },
+    {
+      "name": "\\Lambda_{n,M}^\\dagger",
+      "type": "rational grid-action game value",
+      "space": "\\(\\mathbb Q_+\\)",
+      "def": "Value of the finite rational linear program that uses the exact three-arm orbit likelihood and permits randomized estimator actions in \\(\\Gamma_M\\).",
+      "role": "certified LP diagnostic",
+      "refs": [
+        "n",
+        "M",
+        "c^\\dagger",
+        "\\Gamma_M",
+        "P_m(x\\mid r)"
+      ]
+    },
+    {
+      "name": "\\Gamma_{M,c}",
+      "type": "rational contrast-scaled estimator-action grid",
+      "space": "\\(2^{[-L_c/2,L_c/2]}\\)",
+      "def": "For a rational nonzero zero-sum contrast \\(c\\), put \\(h_c=L_c/2\\) and \\(\\Gamma_{M,c}=\\{-h_c+jh_c/M:j=0,\\ldots,2M\\}\\).",
+      "role": "general LP action set",
+      "refs": [
+        "M",
+        "c",
+        "L_c",
+        "j"
+      ]
+    },
+    {
+      "name": "\\Lambda_{n,M}(c)",
+      "type": "rational contrast grid-action game value",
+      "space": "\\(\\mathbb Q_+\\)",
+      "def": "Value of the finite exact-rational grid-action linear program for contrast \\(c\\) on \\(\\Gamma_{M,c}\\).",
+      "role": "general certified LP diagnostic",
+      "refs": [
+        "n",
+        "M",
+        "c",
+        "\\Gamma_{M,c}"
+      ]
+    }
+  ],
+  "assumptions": [],
+  "definitions": [
+    {
+      "id": "def:labeled-schedule-game",
+      "name": "Unrestricted labeled-schedule minimax game",
+      "construction": "\\[\\rho_n(c)=\\inf_{\\mathcal D\\in\\Delta(\\mathcal A_K^n),\\,\\widehat\\tau}\\max_{z\\in\\mathcal T_K^n}\\mathbb E_{\\mathcal D}\\left[\\left\\{\\widehat\\tau((A_i,Y_i^{\\mathrm{obs}})_{i=1}^n)-\\tau_c(z)\\right\\}^2\\right].\\]",
+      "free_symbols": [
+        "\\rho_n(c)",
+        "n",
+        "c",
+        "\\mathcal D",
+        "\\mathcal A_K",
+        "\\widehat\\tau",
+        "z",
+        "\\mathcal T_K",
+        "A",
+        "i",
+        "Y_i^{\\mathrm{obs}}",
+        "\\tau_c(z)"
+      ],
+      "inputs": [
+        "z",
+        "\\mathcal D",
+        "\\widehat\\tau"
+      ],
+      "revision": "rev:0b13140d3d63bc0034e4bef56ac2d717b42a192c0b6dc6062023d29eaf5d09f6"
+    },
+    {
+      "id": "def:orbit-likelihood",
+      "name": "Response-type orbit likelihood",
+      "construction": "\\[P_m(x\\mid r)=\\frac{\\prod_{a\\in\\mathcal A_K}r_a!}{n!}\\sum_{h\\in\\mathcal H(m,r,x)}\\prod_{t\\in\\mathcal T_K}\\frac{m_t!}{\\prod_{a\\in\\mathcal A_K}h_{t,a}!}.\\]",
+      "free_symbols": [
+        "P_m(x\\mid r)",
+        "m",
+        "x",
+        "r",
+        "n",
+        "a",
+        "\\mathcal A_K",
+        "h",
+        "\\mathcal H(m,r,x)",
+        "t",
+        "\\mathcal T_K"
+      ],
+      "inputs": [
+        "m",
+        "r",
+        "x"
+      ],
+      "revision": "rev:5c951e4cc95bf5ad5f949e996235fd5f3c9f658e12c3c5764ca3da88820cf11e"
+    },
+    {
+      "id": "def:finite-orbit-game",
+      "name": "Finite \\(2^K\\)-response-type minimax game",
+      "construction": "\\[G_n(c)=\\inf_{\\pi\\in\\Delta(\\mathcal R_{n,K}),\\,\\delta}\\max_{m\\in\\mathcal M_{n,K}}\\sum_{r\\in\\mathcal R_{n,K}}\\pi_r\\sum_{x\\in\\prod_{a\\in\\mathcal A_K}\\{0,\\ldots,r_a\\}}P_m(x\\mid r)\\{\\delta(r,x)-\\tau_c(m)\\}^2.\\]",
+      "free_symbols": [
+        "G_n(c)",
+        "n",
+        "c",
+        "\\pi",
+        "\\mathcal R_{n,K}",
+        "\\delta",
+        "m",
+        "\\mathcal M_{n,K}",
+        "r",
+        "x",
+        "P_m(x\\mid r)",
+        "a",
+        "\\mathcal A_K",
+        "\\tau_c(m)"
+      ],
+      "inputs": [
+        "def:labeled-schedule-game",
+        "def:orbit-likelihood"
+      ],
+      "revision": "rev:1ff34498128f33e9949d55d644035d9696710ab9c06ac5ec0af1357011db5a33"
+    },
+    {
+      "id": "def:first-order-procedure",
+      "name": "Contrast-weighted first-order procedure",
+      "construction": "Assign each \\(A_i\\) independently on \\(S_c\\) with \\(\\Pr(A_i=a)=q_a^\\star\\), and report \\(\\widehat\\tau_{\\mathrm{cHT}}^\\star=\\operatorname{proj}_{[-L_c/2,L_c/2]}\\!\\left[n^{-1}\\sum_{i=1}^n\\sum_{a\\in S_c}c_a\\mathbf 1\\{A_i=a\\}(Y_i^{\\mathrm{obs}}-1/2)/q_a^\\star\\right]\\).",
+      "free_symbols": [
+        "A",
+        "i",
+        "q^\\star",
+        "\\widehat\\tau_{\\mathrm{cHT}}^\\star",
+        "n",
+        "c",
+        "a",
+        "S_c",
+        "Y_i^{\\mathrm{obs}}",
+        "L_c"
+      ],
+      "inputs": [
+        "c",
+        "q^\\star"
+      ],
+      "revision": "rev:0ddcfce3be10d0db1232a5016f30790dcca4b568c85678870a993c29e292a59a"
+    },
+    {
+      "id": "def:k3-rational-lp",
+      "name": "Three-arm exact-rational grid-action LP",
+      "construction": "For \\(K=3\\) and \\(c=c^\\dagger\\), minimize \\(u\\) over rational variables \\(\\pi_r\\ge0\\) and \\(w_{r,x,g}\\ge0\\), subject to \\(\\sum_r\\pi_r=1\\), \\(\\sum_{g\\in\\Gamma_M}w_{r,x,g}=\\pi_r\\) for every \\((r,x)\\), and \\(\\sum_{r,x,g}P_m(x\\mid r)w_{r,x,g}\\{g-\\tau_{c^\\dagger}(m)\\}^2\\le u\\) for every \\(m\\in\\mathcal M_{n,3}\\); its value is \\(\\Lambda_{n,M}^\\dagger\\).",
+      "free_symbols": [
+        "K",
+        "c",
+        "c^\\dagger",
+        "n",
+        "M",
+        "u",
+        "\\pi",
+        "r",
+        "x",
+        "\\Gamma_M",
+        "g",
+        "w_{r,x,g}",
+        "P_m(x\\mid r)",
+        "m",
+        "\\tau_c(m)",
+        "\\mathcal M_{n,K}",
+        "\\Lambda_{n,M}^\\dagger"
+      ],
+      "inputs": [
+        "def:orbit-likelihood",
+        "def:finite-orbit-game"
+      ],
+      "revision": "rev:b7c0c7801a03ec4ef94535ceed5312e5ee61a9978a242e113bd89358209049ef"
+    },
+    {
+      "id": "def:boundary-layer-handle",
+      "name": "Active-face boundary-layer handle",
+      "construction": "Starting from the exact orbit game, enumerate binding response-type and allocation faces, expand the discrete risk by a vector Stein identity within each stratum, use the certified \\(c^\\dagger\\) LP sequence to select the normalizer, and pass the primal and dual games to a stratified diffusion-control or spectral value problem with face and corner compatibility conditions.",
+      "free_symbols": [
+        "G_n(c)",
+        "c^\\dagger",
+        "\\Lambda_{n,M}^\\dagger",
+        "a_n",
+        "d_n(c)"
+      ],
+      "inputs": [
+        "def:finite-orbit-game",
+        "def:k3-rational-lp"
+      ],
+      "revision": "rev:d58f092fafccd461d45b077766a665a984156f79b3dc5bda869cc36843e726e2"
+    },
+    {
+      "id": "def:attainment-handle",
+      "name": "Contrast-score feedback and converse handle",
+      "construction": "Begin with the vector of centered arm scores generated by \\(q^\\star\\); derive an orbit-saddle posterior mean or feedback correction from the limiting value function, lift that correction to finite \\(n\\), and discretize the squared ground state or dual occupation measure into a least-favorable prior on response-type counts.",
+      "free_symbols": [
+        "q^\\star",
+        "n",
+        "m",
+        "\\mathcal M_{n,K}",
+        "x",
+        "r"
+      ],
+      "inputs": [
+        "def:first-order-procedure",
+        "def:boundary-layer-handle"
+      ],
+      "revision": "rev:5f1be91a7b83a2dbf6ffd9bbc1797d1799d20fc3a14349b816431234e4b8d344"
+    },
+    {
+      "id": "def:rational-contrast-grid-lp",
+      "name": "Rational-contrast exact grid-action LP",
+      "construction": "Fix \\(K\\geq2\\), \\(n,M\\geq1\\), and a rational nonzero zero-sum contrast \\(c\\in\\mathbb Q^K\\).  Put \\(h_c=L_c/2\\) and\n\\[\n \\Gamma_{M,c}=\\{-h_c+jh_c/M:j=0,\\ldots,2M\\}.\n\\]\nMinimize \\(u\\) over \\(\\pi_r\\geq0\\) and \\(w_{r,x,g}\\geq0\\), subject to\n\\[\n \\sum_{r\\in\\mathcal R_{n,K}}\\pi_r=1,\n \\qquad\n \\sum_{g\\in\\Gamma_{M,c}}w_{r,x,g}=\\pi_r\n \\quad\\text{for every }(r,x),\n\\]\nand\n\\[\n \\sum_{r\\in\\mathcal R_{n,K}}\\sum_x\\sum_{g\\in\\Gamma_{M,c}}\n P_m(x\\mid r)w_{r,x,g}\\{g-\\tau_c(m)\\}^2\\leq u\n \\quad\\text{for every }m\\in\\mathcal M_{n,K}.\n\\]\nThe value of this finite grid-action linear program is \\(\\Lambda_{n,M}(c)\\).",
+      "free_symbols": [
+        "K",
+        "n",
+        "M",
+        "c",
+        "L_c",
+        "\\Gamma_{M,c}",
+        "u",
+        "\\pi",
+        "r",
+        "\\mathcal R_{n,K}",
+        "x",
+        "g",
+        "w_{r,x,g}",
+        "P_m(x\\mid r)",
+        "m",
+        "\\tau_c(m)",
+        "\\mathcal M_{n,K}",
+        "\\Lambda_{n,M}(c)"
+      ],
+      "inputs": [
+        "def:orbit-likelihood",
+        "def:finite-orbit-game",
+        "c",
+        "M"
+      ],
+      "revision": "rev:af18f44b594e1c47d4c2d148b76fb7b99636635e2082182cca833146dcb934b0"
+    }
+  ],
+  "statements": [
+    {
+      "id": "thm:exact-response-type-game",
+      "kind": "theorem",
+      "statement": "For every fixed \\(n\\), \\(K\\ge2\\), and contrast \\(c\\), begin with nature choosing a complete labeled schedule \\(z\\in\\mathcal T_K^n\\), an arbitrary assignment law \\(\\mathcal D\\), and an arbitrary estimator \\(\\widehat\\tau\\). Averaging a procedure over common permutations of unit labels is lossless, and the symmetrized risk is constant on each unit-permutation orbit of schedules. Consequently, with \\(m_t=\\#\\{i:t_i=t\\}\\), \\(\\tau_c(z)=\\tau_c(m)\\), and the labeled minimax risk equals the explicit orbit game: \\(\\rho_n(c)=G_n(c)\\). A symmetrized design is exactly a mixture \\(\\pi\\in\\Delta(\\mathcal R_{n,K})\\) of uniform assignments conditional on \\(r\\), and a nonrandomized invariant estimator is \\(\\delta(r,x)\\). The compact convex game admits a minimax procedure and a least-favorable prior on \\(\\mathcal M_{n,K}\\) forming a saddle point.",
+      "free_symbols": [
+        "n",
+        "K",
+        "c",
+        "z",
+        "\\mathcal T_K",
+        "\\mathcal D",
+        "\\widehat\\tau",
+        "\\rho_n(c)",
+        "G_n(c)",
+        "t",
+        "i",
+        "m",
+        "\\mathcal M_{n,K}",
+        "\\tau_c(z)",
+        "\\tau_c(m)",
+        "\\pi",
+        "\\mathcal R_{n,K}",
+        "\\delta",
+        "r",
+        "x"
+      ],
+      "depends_on": [
+        "def:labeled-schedule-game",
+        "def:orbit-likelihood",
+        "def:finite-orbit-game"
+      ],
+      "status": "to-prove",
+      "justification": "This theorem converts an unrestricted and exponentially presented experimental decision problem into an explicit finite object that supports computation, asymptotics, and a matched converse.",
+      "gap": "Sudijono, Dobriban, and Tchetgen Tchetgen (2026, Theorems 1--3, proof of Theorem 2, and Sections 5--6) obtain their scalar two-arm reduction from a least-favorable prior and transformed variables \\(S_i\\) that are ancillary for the design under that prior. Hull (2026, Theorem 1, proof Steps 1--3) instead averages independent per-unit swaps of the two potential-outcome coordinates together with assignment-bit exclusive-or, and then averages over unit labels. Neither route supplies the fixed-contrast \\(2^K\\)-type orbit likelihood or a lossless multi-arm saddle point.",
+      "consumer": "The exact game supplies the finite benchmark needed to audit joint design and analysis choices for a four-arm binary endpoint such as ACTG 175.",
+      "revision": "rev:6c1afd4dbda2bdee1aa6cb2c7ae9747bdb73accd12396f2f12b6ae06afd20e4b"
+    },
+    {
+      "id": "thm:multiarm-strict-extension",
+      "kind": "theorem",
+      "statement": "The exact response-type game is a strict treatment-domain extension beyond the published two-arm results, in the precise binary sense stated here; it is not a setwise extension of Hull's bounded-outcome model. As an explicitly non-novel sanity and regression clause, when \\(K=2\\) and \\(c=(1,-1)\\), this proposal's orbit experiment retains the four distinct counts \\(m_{(0,0)},m_{(0,1)},m_{(1,0)},m_{(1,1)}\\) in the likelihood \\(P_m(x\\mid r)\\). No aggregation by individual-effect class is asserted to identify that likelihood kernel. Instead, composing \\(\\rho_n(c)=G_n(c)\\) with Sudijono, Dobriban, and Tchetgen Tchetgen's published two-arm minimax theorem (2026, Theorems 2.1--2.2 and Section 6) recovers at the minimax-value level their scalar value based on \\(X_2=p_++\\operatorname{Binomial}(r_0,1/2)\\) for estimating \\((p_+-p_-)/n\\), where \\(p_++p_-+r_0=n\\). Consequently, \\(C_0(c)=1\\) and \\(d_n(c)=C_A n^{-4/3}+o(n^{-4/3})\\), with \\(C_A\\) determined by the published scalar Airy ground-state problem. Hull's published theorem permits unrestricted assignment designs and measurable estimators for two bounded-outcome arms. By contrast, for every fixed \\(K\\geq3\\) and every nonzero zero-sum contrast \\(c\\), the exact response-type game theorem assumes binary response schedules and proves equality of the unrestricted labeled-schedule risk and the explicit joint \\(2^K\\)-response-type orbit game, including arbitrary assignment dependence and possibly biased estimators. Thus the strict extension is on the number-of-arms axis within the binary model. This statement asserts neither a bounded-outcome \\(K\\geq3\\) extension nor that the multi-arm game is scalar-nonrepresentable.",
+      "free_symbols": [
+        "K",
+        "c",
+        "G_n(c)",
+        "X_2",
+        "p_+",
+        "p_-",
+        "r_0",
+        "n",
+        "C_0(c)",
+        "d_n(c)",
+        "C_A",
+        "\\rho_n(c)",
+        "z",
+        "\\mathcal T_K",
+        "m",
+        "P_m(x\\mid r)",
+        "x",
+        "r"
+      ],
+      "depends_on": [
+        "thm:exact-response-type-game",
+        "def:orbit-likelihood",
+        "thm:embedded-two-arm-converse",
+        "lem:published-hull-two-arm-bounded-scope"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem preserves the published binary value as a regression target while isolating the exact unrestricted joint response-type game for every fixed multi-arm binary contrast and drawing the two-arm bounded-outcome boundary precisely.",
+      "gap": "Sudijono, Dobriban, and Tchetgen Tchetgen prove the scalar unrestricted binary value for two arms, and Hull proves an unrestricted design-and-estimation result for two bounded-outcome arms. Neither supplies the explicit joint \\(2^K\\)-response-type orbit game for fixed \\(K\\geq3\\); no bounded-outcome multi-arm extension is claimed here.",
+      "consumer": "The result lets the three-arm rational diagnostic and the four-arm ACTG 175 analysis inherit a verified unrestricted binary decision problem while preserving both two-arm theorems as scope-accurate regression comparators.",
+      "revision": "rev:eee7d8cb7a9f031fb52f4dfc7dcce1213942cfd0f2cca9cb813d215a1e7cffca"
+    },
+    {
+      "id": "thm:first-order-saddle",
+      "kind": "theorem",
+      "statement": "Under fixed \\(K\\), \\[\\lim_{n\\to\\infty}n\\rho_n(c)=C_0(c)=\\frac{1}{4}\\left(\\sum_{a\\in\\mathcal A_K}|c_a|\\right)^2.\\] Independent assignment supported on \\(S_c\\) with \\(q_a^\\star=|c_a|/L_c\\) and the projected rule \\(\\widehat\\tau_{\\mathrm{cHT}}^\\star\\) satisfies \\(\\max_{z\\in\\mathcal T_K^n}R_n(\\mathcal D,\\widehat\\tau_{\\mathrm{cHT}}^\\star;z)\\le C_0(c)/n\\). Because every target \\(\\tau_c(z)\\) lies in \\([-L_c/2,L_c/2]\\), projection onto this interval cannot increase pointwise squared loss, so \\(\\widehat\\tau_{\\mathrm{cHT}}^\\star\\) belongs to the same minimax estimator action space. Conversely, every sequence of randomized designs and possibly biased estimators has asymptotic worst-case labeled-schedule risk at least \\(C_0(c)/n+o(n^{-1})\\).",
+      "free_symbols": [
+        "K",
+        "n",
+        "\\rho_n(c)",
+        "c",
+        "C_0(c)",
+        "a",
+        "\\mathcal A_K",
+        "q^\\star",
+        "L_c",
+        "S_c",
+        "\\widehat\\tau_{\\mathrm{cHT}}^\\star",
+        "\\tau_c(z)",
+        "z",
+        "\\mathcal T_K",
+        "R_n(\\mathcal D,\\widehat\\tau;z)",
+        "\\mathcal D"
+      ],
+      "depends_on": [
+        "def:first-order-procedure",
+        "thm:exact-response-type-game"
+      ],
+      "status": "to-prove",
+      "justification": "It certifies the best robustness constant and the allocation rule before the genuinely nonclassical finite-sample correction is studied.",
+      "gap": "Bai (2023) derives Neyman allocation for linear procedures under a different superpopulation adversary, while the two 2026 papers prove unrestricted minimaxity only for two arms.",
+      "consumer": "For ACTG 175, it gives the worst-case allocation benchmark for a prespecified regimen-versus-average contrast rather than default equal allocation.",
+      "revision": "rev:34daa64e5b2871b813abdc1985bcb6d3de97d0c286044dfe4fc7f3acc2ddaa4a"
+    },
+    {
+      "id": "prop:k3-lp-certificate",
+      "kind": "proposition",
+      "statement": "For \\(K=3\\), \\(c=c^\\dagger=(1,-1/2,-1/2)\\), and every \\(n,M\\ge1\\), the grid-action program defining \\(\\Lambda_{n,M}^\\dagger\\) is a finite linear program with rational coefficients and \\[\\rho_n^\\dagger\\le\\Lambda_{n,M}^\\dagger\\le\\rho_n^\\dagger+\\frac{2}{M}+\\frac{1}{M^2}.\\] Consequently, choosing \\(M=n^2\\) yields exact-rational primal and dual certificates whose discretization error is \\(o(n^{-4/3})\\), so the sequence \\(n^{4/3}\\{n^{-1}-\\Lambda_{n,n^2}^\\dagger\\}\\) is a valid early diagnostic for, but not an assumption of, the \\(4/3\\) exponent. The LP retains the all-zero and all-one response types and every response-type count vector in \\(\\mathcal M_{n,3}\\).",
+      "free_symbols": [
+        "K",
+        "c",
+        "c^\\dagger",
+        "n",
+        "M",
+        "\\Lambda_{n,M}^\\dagger",
+        "\\rho_n^\\dagger"
+      ],
+      "depends_on": [
+        "def:k3-rational-lp",
+        "thm:exact-response-type-game"
+      ],
+      "status": "to-prove",
+      "justification": "The proposition turns small-\\(n\\) numerics into certified falsification evidence with an error smaller than the published two-arm second-order scale.",
+      "gap": "Sudijono, Dobriban, and Tchetgen Tchetgen (2026, Appendix A and Section 3) study a scalar finite program and its numerical scaling, while Hull (2026, Theorem 1) resolves a two-arm endpoint game analytically; no cited work gives a rational multi-arm orbit LP hierarchy or an error bracket to the unrestricted continuous-action game.",
+      "consumer": "The diagnostic prevents a long simplex-PDE analysis from proceeding under an incorrect exponent or a falsely multidimensional value.",
+      "revision": "rev:84d87543fceb7652c3c2ec949fb42d72b8aa5b77d17cfef8e9f8d88fe18fcc70"
+    },
+    {
+      "id": "lem:published-two-arm-minimax-airy",
+      "kind": "lemma",
+      "statement": "For \\(K=2\\) and \\(c=(1,-1)\\), Sudijono, Dobriban, and Tchetgen Tchetgen's unrestricted binary finite-population minimax risk equals the scalar minimax value based on \\(X_2=p_++\\operatorname{Binomial}(r_0,1/2)\\) for estimating \\((p_+-p_-)/n\\), where \\(p_++p_-+r_0=n\\).  They further prove \\(\\rho_n(c)=n^{-1}-C_A n^{-4/3}+o(n^{-4/3})\\), with \\(C_A=1.617\\ldots\\).",
+      "free_symbols": [
+        "K",
+        "c",
+        "n",
+        "\\rho_n(c)",
+        "X_2",
+        "p_+",
+        "p_-",
+        "r_0",
+        "C_A"
+      ],
+      "depends_on": [
+        "def:labeled-schedule-game"
+      ],
+      "proof_tex": "",
+      "status": "cited",
+      "source": {
+        "cite": "sudijono_dobriban_tchetgen_2026_sharp",
+        "locator": "Theorems 2.1--2.2, equations (6)--(7), and Theorem 3.1",
+        "arxiv": "2608.13822",
+        "url": "https://arxiv.org/abs/2608.13822",
+        "verbatim_statement": "\\begin{theorem}\\label{thm:simplified_model_minimax_risk}\\begin{equation}\\label{eq:simplified_minimax_risk} r_n^* = \\rho_n^* = \\inf_f \\sup_{\\cl{I}_n} \\E\\left(f(p + \\textsf{Bin}(r,1/2)) - \\frac{p-q}{n} \\right)^2.\\end{equation} Moreover, there is a unique $f^*_n$ minimizing \\eqref{eq:simplified_minimax_risk} and it is the posterior mean of $(p-q)/n$ under a least-favorable prior $\\pi_n^*$ on $\\cl{I}_n$. As a consequence, $f^*_n$ is admissible and $\\rho_n^*$ is the Bayes risk of $\\pi_n^*.$ \\end{theorem} \\begin{theorem}\\label{thm:minimax_risk_reduction} Let $f_n^*$ be the function minimizing \\eqref{eq:simplified_minimax_risk} in the reduced model. Then \\begin{equation}\\label{eq:minimax_risk_is_equal_to_simplified_minimax_risk}\\inf_{\\cl{A}, \\hat \\tau} \\sup_{\\cl{P} \\in \\set{0,1}^{2n}} R_n(\\cl{A},\\hat \\tau) = \\rho_n^*.\\end{equation} A minimax procedure achieving the upper bound is given by Bernoulli$(1/2)$ randomization with corresponding estimator $\\hat{\\tau}_{\\Opt}=f^*_n(\\sum_{i=1}^n S_i)$. Furthermore, this procedure is admissible. \\end{theorem} \\begin{theorem}\\label{thm:second_order_minimax_risk_behavior} Let $a_1^{\\prime}$ be the largest negative zero of the derivative of the Airy function. The minimax risk satisfies \\[\\rho_n^* = \\frac{1}{n} - \\frac{C_A}{n^{4/3}} + o_n(n^{-4/3}),\\] with $C_A = -4^{1/3}a_1^{\\prime} = 1.617\\dots$. \\end{theorem}",
+        "attestation": {
+          "by": "main",
+          "note": "Transcribed byte-faithfully in mathematical content from the primary-source TeX downloaded from https://export.arxiv.org/e-print/2608.13822 on 2026-08-30; main.tex theorem labels thm:simplified_model_minimax_risk, thm:minimax_risk_reduction, and thm:second_order_minimax_risk_behavior.",
+          "at": "2026-08-30T11:12:56.217Z"
+        }
+      },
+      "revision": "rev:7d8f2fd0a17099dae5527356c33c51bc7afd43b1c018bd1b63782a58a9499f9f"
+    },
+    {
+      "id": "lem:published-two-arm-attainment-route",
+      "kind": "lemma",
+      "statement": "For \\(K=2\\) and \\(c=(1,-1)\\), at every \\(n\\) the unrestricted binary finite-population minimax risk is attained by independent balanced Bernoulli assignment and the unique estimator that is the posterior mean of \\((p_+-p_-)/n\\) given \\(X_2\\) under a least-favorable prior on \\((p_+,p_-,r_0)\\). The estimator is a nonlinear shrinkage rule, and the same prior attains the exact finite-\\(n\\) Bayes-risk converse. The published Airy construction further gives an explicit second-order nonlinear shrinkage sequence and an asymptotically least-favorable prior sequence at scale \\(n^{-4/3}\\).",
+      "free_symbols": [
+        "K",
+        "c",
+        "n",
+        "X_2",
+        "p_+",
+        "p_-",
+        "r_0"
+      ],
+      "depends_on": [
+        "def:labeled-schedule-game"
+      ],
+      "status": "cited",
+      "source": {
+        "cite": "sudijono_dobriban_tchetgen_2026_sharp",
+        "locator": "Theorems 2.1--2.2 and 3.1; Theorems C.1--C.2",
+        "arxiv": "2608.13822",
+        "url": "https://arxiv.org/abs/2608.13822",
+        "verbatim_statement": "\\begin{theorem}\\label{thm:simplified_model_minimax_risk}\\begin{equation}\\label{eq:simplified_minimax_risk} r_n^* = \\rho_n^* = \\inf_f \\sup_{\\cl{I}_n} \\E\\left(f(p + \\textsf{Bin}(r,1/2)) - \\frac{p-q}{n} \\right)^2.\\end{equation} Moreover, there is a unique $f^*_n$ minimizing \\eqref{eq:simplified_minimax_risk} and it is the posterior mean of $(p-q)/n$ under a least-favorable prior $\\pi_n^*$ on $\\cl{I}_n$. As a consequence, $f^*_n$ is admissible and $\\rho_n^*$ is the Bayes risk of $\\pi_n^*.$ \\end{theorem} \\begin{theorem}\\label{thm:minimax_risk_reduction} Let $f_n^*$ be the function minimizing \\eqref{eq:simplified_minimax_risk} in the reduced model. Then \\begin{equation}\\label{eq:minimax_risk_is_equal_to_simplified_minimax_risk}\\inf_{\\cl{A}, \\hat \\tau} \\sup_{\\cl{P} \\in \\set{0,1}^{2n}} R_n(\\cl{A},\\hat \\tau) = \\rho_n^*.\\end{equation} A minimax procedure achieving the upper bound is given by Bernoulli$(1/2)$ randomization with corresponding estimator $\\hat{\\tau}_{\\Opt}=f^*_n(\\sum_{i=1}^n S_i)$. Furthermore, this procedure is admissible. \\end{theorem} \\begin{theorem}\\label{thm:second_order_minimax_risk_behavior_detailed_upper_bound} The estimator $\\hat \\tau_n^A(X) := \\frac{X}{n} - \\frac{1}{n^{2/3}}h_A\\left( \\frac{X}{n^{2/3}}\\right)$ satisfies the risk bound \\[\\sup_{(\\theta,r) \\in \\Theta_n} \\E[(\\hat \\tau_n^A(X) - \\theta/n)^2] \\leq \\frac{1}{n} - \\frac{C_A}{n^{4/3}} + o_n(n^{-4/3}).\\] \\end{theorem} \\begin{theorem}\\label{thm:second_order_minimax_risk_behavior_detailed_lower_bound} The priors $\\Pi_n$ on $\\Theta_n$ defined by \\begin{align*}& \\Pi_n((0,n)) \\propto \\phi_A(0)^2 \\\\ & \\Pi_n((k,n-k)) = \\Pi_n((-k,n-k)) \\propto \\frac{1}{2}\\phi_A\\left(\\frac{k}{n^{2/3}}\\right)^2, \\quad 1\\leq k \\leq n.\\end{align*} have Bayes risks lower bounded by $\\frac{1}{n} - \\frac{C_A}{n^{4/3}} + o_n(n^{-4/3}).$ \\end{theorem}",
+        "attestation": {
+          "by": "main",
+          "note": "Transcribed byte-faithfully in mathematical content from primary-source TeX downloaded from https://export.arxiv.org/e-print/2608.13822 on 2026-08-30; main.tex theorem labels thm:simplified_model_minimax_risk, thm:minimax_risk_reduction, thm:second_order_minimax_risk_behavior_detailed_upper_bound, and thm:second_order_minimax_risk_behavior_detailed_lower_bound.",
+          "at": "2026-08-30T11:13:12.164Z"
+        }
+      },
+      "proof_tex": "",
+      "revision": "rev:a8d046b07049489c4768d517e41aaf85de20fd7f90ac6060672d8c3800f13190"
+    },
+    {
+      "id": "lem:published-hull-two-arm-bounded-scope",
+      "kind": "lemma",
+      "statement": "Hull's unrestricted minimax theorem concerns a finite population with two treatment arms and potential outcomes bounded in a known interval. Within that two-arm model it optimizes over arbitrary assignment mechanisms and measurable estimators. It does not state a fixed-\\(K\\geq3\\) bounded-outcome orbit-game theorem.",
+      "free_symbols": [
+        "K"
+      ],
+      "depends_on": [],
+      "proof_tex": "",
+      "status": "cited",
+      "source": {
+        "cite": "hull_2026_bounded",
+        "locator": "Theorem 1 and Section 4",
+        "arxiv": "2608.09812",
+        "verbatim_statement": "We now consider the minimax problem without restricting the class of estimators. The main result shows that independent randomization remains optimal while the optimal estimator is generally nonlinear: \\begin{theorem}\\label{theorem1} For nonnegative integers $k,m$ with $k+m\\leq N$, define $\\theta_{k,m}=\\frac{2k+m}{N}$ and $p_{k,m}(x)=2^{-m}\\binom{m}{x-k}$, $x=0,\\ldots,N$, where $\\binom{m}{j}=0$ when $j\\notin\\{0,\\ldots,m\\}$. Let $\\cK_N$ be the set of all such $(k,m)$ and define $\\kappa_N = \\min_{d=(d_0,\\ldots,d_N)\\in[0,2]^{N+1}} \\max_{(k,m)\\in\\cK_N} \\sum_{x=0}^N p_{k,m}(x)(d_x-\\theta_{k,m})^2.$ Then, over all measurable estimators, $\\inf_{(\\delta,\\hat\\beta)}\\sup_{Y(\\cdot)\\in[L,U]^{2N}}\\E_\\delta[(\\hat\\beta-\\beta)^2]=(U-L)^2\\kappa_N.$ A minimax procedure is independent random assignment, with the estimator $\\hat\\beta^*_{NL}=\\hat\\beta^*+(U-L)\\sum_{x=0}^N(d_x^*-2x/N)p_x(Z)$, where $\\hat\\beta^*$ is the optimal affine estimator in Proposition 1, $d^*=(d_0^*,\\dots,d_N^*)$ is any solution to the displayed minimax problem, $p_x(z)=Pr(\\sum_i B_i=x)$ for $B_i\\stackrel{ind}{\\sim}Bernoulli(z_i)$, and $Z=(Z_i)_{i=1}^N$ with $Z_i=\\frac12+\\frac{(2D_i-1)(Y_i-\\frac{U+L}{2})}{U-L}\\in[0,1]$. \\end{theorem}",
+        "attestation": {
+          "by": "main",
+          "note": "Transcribed from primary-source TeX downloaded from https://export.arxiv.org/e-print/2608.09812 on 2026-08-30; causalHL.tex Section General Problem, theorem label theorem1. The paper setup defines one binary treatment indicator per unit, hence two potential-outcome arms, and the theorem ranges over bounded schedules [L,U]^{2N}, all assignment-estimator pairs, and all measurable estimators.",
+          "at": "2026-08-30T11:13:24.588Z"
+        }
+      },
+      "revision": "rev:1ca023b6d161d2fbbc9e89f3dab0db4363ed516c93c196c68bee7c34459db1be"
+    },
+    {
+      "id": "lem:published-kallus-msod-inference-scope",
+      "kind": "lemma",
+      "statement": "Kallus's framework fixes \\(K=2\\), even \\(n\\), balanced assignments, treatment-label blinding, and a fixed unbiased sample-average-treatment-effect estimator. The ordinary mixed-strategy optimal design minimizes the worst-case variance contribution over a specified conditional-mean class. It may fail to give enough assignment-probability uniformity for Fisher randomization inference. Separately, the inference-constrained mixed-strategy optimal design is minimax for that variance criterion among designs satisfying the stated per-assignment probability cap.",
+      "free_symbols": [
+        "K",
+        "n"
+      ],
+      "depends_on": [],
+      "proof_tex": "",
+      "status": "cited",
+      "source": {
+        "cite": "kallus_2020_optimality",
+        "locator": "Abstract; Section 2, equations (1)--(3); Section 7, equations (6)--(7); Concluding Remarks",
+        "verbatim_statement": "I study the minimax-optimal design for a two-arm controlled experiment where conditional mean outcomes may vary in a given set.",
+        "arxiv": "2005.03151",
+        "url": "https://arxiv.org/abs/2005.03151",
+        "attestation": {
+          "by": "d0-agent",
+          "note": "The quoted sentence was transcribed from the primary-source abstract; the design class, fixed unbiased estimator, ordinary MSOD criterion, and separate inference-constrained MSOD were checked in the primary-source TeX at the listed sections and equations."
+        }
+      },
+      "revision": "rev:fc9e3137a010eec30137afa6f4ecc82be76b8571123928aead283c8a40b1055a"
+    },
+    {
+      "id": "lem:published-aronow-lopatto-bounded-unbiased",
+      "kind": "lemma",
+      "statement": "For a finite population of \\(N\\) fixed values \\(y_j\\in[\\ell_j,u_j]\\), put \\(r_j=(u_j-\\ell_j)/2\\). For every sampling design having inclusion probabilities \\(\\pi_j>0\\) and every design-unbiased estimator of the finite-population total, the worst-case squared error is at least\n\\[\n \\sum_{j=1}^N r_j^2\\frac{1-\\pi_j}{\\pi_j}.\n\\]\nThe midpoint-differenced Horvitz--Thompson estimator attains equality exactly when the inclusion indicators are pairwise independent for coordinates with \\(r_j>0\\). Jointly over sampling designs with a stated expected-sample-size budget \\(b\\) and design-unbiased estimators, the value is the minimum of the displayed expression; it is attained by independent sampling with \\(\\pi_j^\\star=\\min\\{1,\\gamma r_j\\}\\), where \\(\\gamma\\) is chosen so that \\(\\sum_j\\pi_j^\\star=b\\). This result concerns unit-inclusion sampling and design-unbiased estimation of a bounded total, not mutually exclusive multi-arm assignment or a decision class containing possibly biased estimators.",
+      "free_symbols": [],
+      "depends_on": [],
+      "status": "cited",
+      "source": {
+        "cite": "aronow_lopatto_2026_minimax_unbiased",
+        "locator": "Theorems 1--3 in the primary-source main.tex",
+        "arxiv": "2605.20572",
+        "url": "https://arxiv.org/abs/2605.20572",
+        "verbatim_statement": "\\begin{theorem}\n\\label{thm:lower}\nFor any sampling design $p$ with all $\\pi_i>0$ and any unbiased estimator $\\delta$,\n\\[\n  \\sup_{y\\in\\Theta}R(\\delta,p;y)\n  \\geq\n  \\sum_{i=1}^N r_i^2\\left( \\frac{1-\\pi_i}{\\pi_i}\\right).\n\\]\n\\end{theorem}\n\\begin{theorem}\n\\label{thm:sharpness}\nAssume $r_i>0$ for all $i$. Fix a design $p$ with $\\pi_i>0$ for all $i$. The following statements are equivalent:\n\\begin{enumerate}[label=\\textup{(\\roman*)}]\n\\item there exists an unbiased estimator $\\delta$ with\n\\[\n  \\sup_{y\\in\\Theta}R(\\delta,p;y)=D_\\pi;\n\\]\n\\item the midpoint-differenced estimator $\\widehat T$ satisfies\n\\[\n  \\sup_{y\\in\\Theta}R(\\widehat T,p;y)=D_\\pi;\n\\]\n\\item $\\Delta_{ij}=0$ for every $i\\ne j$.\n\\end{enumerate}\n\\end{theorem}\n\\begin{theorem}\n\\label{thm:design}\nAmong all pairs $(p,\\delta)$ in which $p$ is a sampling design such that $\\pi_i >0$ for all $i$ and $\\E_p[|S|]\\leq n$, and $\\delta$ is unbiased,\n\\[\n  \\inf_{p,\\delta}\\sup_{y\\in\\Theta}R(\\delta,p;y)=V_n.\n\\]\nThe value $V_n$ is attained by using the estimator $\\widehat T$ and sampling each unit independently with inclusion probabilities\n\\[\n  \\pi_i^*=\\min(1,cr_i),\n\\]\nwhere the constant $c>0$ is chosen so that $\\sum_{i=1}^N\\pi_i^*=n$.\n\\end{theorem}",
+        "attestation": {
+          "by": "main",
+          "note": "Transcribed from primary-source main.tex downloaded from https://export.arxiv.org/e-print/2605.20572 on 2026-08-30; theorem labels thm:lower, thm:sharpness, and thm:design.",
+          "at": "2026-08-30T12:35:45.770Z"
+        }
+      },
+      "justification": "This is the closest sharp bounded finite-population first-order analogue to midpoint centering and range-proportional weighting.",
+      "gap": "Its decision class is design-unbiased estimation under unit-inclusion sampling, whereas the present causal game uses mutually exclusive arm assignment and permits biased estimators.",
+      "consumer": "It positions the first-order constant and contrast-weighted allocation theorem without being used as a proof premise.",
+      "proof_tex": "",
+      "revision": "rev:420d2cc144e399860ff44b8160b645eb48202d78e5d1e809172881e778c2ebc4"
+    },
+    {
+      "id": "prop:k3-scalar-score-not-minimax-preserving",
+      "kind": "proposition",
+      "statement": "For \\(K=3\\), \\(c=c^\\dagger=(1,-1/2,-1/2)\\), and independent assignment with \\(q^\\star=(1/2,1/4,1/4)\\), define\n\\[\n Z_i=\\operatorname{sign}(c_{A_i}^\\dagger)(2Y_i^{\\mathrm{obs}}-1),\n \\qquad\n \\mu_i=t_{i,1}-\\frac{t_{i,2}+t_{i,3}}{2}.\n\\]\nThen \\(Z_i\\in\\{-1,1\\}\\),\n\\[\n \\mathbb E(Z_i\\mid t_i)=\\mu_i,\n \\qquad\n \\operatorname{Var}(Z_i\\mid t_i)=1-\\mu_i^2,\n\\]\nand\n\\[\n \\mathbb E\\!\\left[\\left\\{\\frac1n\\sum_iZ_i-\\tau_{c^\\dagger}(z)\\right\\}^2\\middle|z\\right]\n =\\frac1n-\\frac1{n^2}\\sum_i\\mu_i^2.\n\\]\nThe exact scalar minimax value at \\(n=3\\), when only \\((Z_1,Z_2,Z_3)\\) is retained and each \\(\\mu_i\\) ranges over \\(\\{-1,-1/2,0,1/2,1\\}\\), is\n\\[\n V_3^Z=1-\\frac{\\sqrt3}{2}.\n\\]\nNevertheless, an explicit deterministic rule based on the full observed arm labels and outcomes under the same independent \\(q^\\star\\) design has maximum risk\n\\[\n \\frac{511653}{4000000}<\\frac{18213}{136000}<V_3^Z.\n\\]\nThus the map from the full data to \\((Z_i)_{i=1}^3\\) is not minimax-preserving, even at the fixed \\(q^\\star\\) design, and cannot itself be an exact scalar reduction of the unrestricted three-arm orbit game.  In addition, if \\(M_\\mu=\\sum_i\\mu_i\\) and \\(Q_\\mu=\\sum_i\\mu_i^2\\), then over feasible half-integer \\(M_\\mu\\),\n\\[\n \\min Q_\\mu=\n \\begin{cases}\n |M_\\mu|/2,&|M_\\mu|\\leq n/2,\\\\\n (3|M_\\mu|-n)/2,&n/2\\leq|M_\\mu|\\leq n.\n \\end{cases}\n\\]\nHence the coefficient \\(\\tfrac12|x|\\) is the correct local wedge for the scalar relaxation, but this proposition does not establish that the discarded arm-label information is negligible at any second-order scale.",
+      "free_symbols": [
+        "K",
+        "c^\\dagger",
+        "q^\\star",
+        "A",
+        "i",
+        "Y_i^{\\mathrm{obs}}",
+        "t",
+        "n",
+        "z",
+        "\\tau_c(z)"
+      ],
+      "depends_on": [
+        "def:first-order-procedure",
+        "thm:exact-response-type-game"
+      ],
+      "status": "to-prove",
+      "revision": "rev:126bb5a66f824ec790e0bc60ded673e2b1c1fb873d2933db1fd92e05a7519c7a"
+    },
+    {
+      "id": "thm:embedded-two-arm-converse",
+      "kind": "theorem",
+      "statement": "For every integer \\(n\\geq1\\), every \\(K\\geq2\\), and every nonzero zero-sum contrast \\(c\\), write \\(\\rho_{n,2}=\\rho_n((1,-1))\\) for the unrestricted two-arm minimax risk with the same population size. Then\n\\[\n \\rho_n(c)\\geq C_0(c)\\rho_{n,2}.\n\\]\nIf \\(|S_c|=2\\), this inequality is an equality. Moreover,\n\\[\n 0\\leq d_n(c)\\leq C_0(c)\\{n^{-1}-\\rho_{n,2}\\}\n =C_0(c)C_A n^{-4/3}+o(n^{-4/3}).\n\\]\nWhen \\(|S_c|=2\\), the upper bound in the last display is also an equality, so \\(d_n(c)=C_0(c)\\{n^{-1}-\\rho_{n,2}\\}\\). The finite-sample lower bound permits arbitrary dependent assignment designs and arbitrary possibly biased estimators.",
+      "free_symbols": [
+        "n",
+        "K",
+        "c",
+        "\\rho_n(c)",
+        "C_0(c)",
+        "S_c",
+        "d_n(c)",
+        "C_A"
+      ],
+      "depends_on": [
+        "def:labeled-schedule-game",
+        "def:first-order-procedure",
+        "lem:published-two-arm-minimax-airy"
+      ],
+      "status": "to-prove",
+      "justification": "The embedded binary subexperiment gives a finite-sample minimax lower envelope for every contrast and exactly solves every contrast with two active coefficients.",
+      "gap": "The published theorem solves the unrestricted binary two-arm problem; the new reduction proves how that value constrains every fixed multi-arm contrast without restricting the design or estimator.",
+      "consumer": "It caps every multi-arm second-order improvement, isolates the genuinely multivariate regime \\(|S_c|\\geq3\\), and lifts the published optimal binary procedure whenever \\(|S_c|=2\\).",
+      "revision": "rev:c0740aa7f1e4e334c78998887c424131a10cf82b4ba707623e5bc661029a3f8c"
+    },
+    {
+      "id": "thm:universal-second-order-rate",
+      "kind": "theorem",
+      "statement": "For every fixed \\(K\\geq2\\) and every nonzero zero-sum contrast \\(c\\), put\n\\[\n h_c=\\frac{L_c}{2}=\\sqrt{C_0(c)},\n \\qquad\n \\lambda_c=min\\left\\{\n \\left|h_c^{-1}\\sum_{a\\in\\mathcal A_K}c_at_a\\right|:\n t\\in\\mathcal T_K,\\ \\sum_{a\\in\\mathcal A_K}c_at_a\\neq0\n \\right\\}.\n\\]\nThen \\(0<\\lambda_c\\leq1\\). Under independent assignment on \\(S_c\\) with \\(\\Pr(A_i=a)=q_a^\\star\\), define the observable centered score and its average by\n\\[\n W_i=\\sum_{a\\in S_c}\\frac{c_a\\mathbf 1\\{A_i=a\\}}{q_a^\\star}\n \\left(Y_i^{\\mathrm{obs}}-\\frac12\\right),\n \\qquad V_i=\\frac{W_i}{h_c},\n \\qquad X_n=\\frac1n\\sum_{i=1}^nV_i.\n\\]\nLet\n\\[\n b_n=n^{-1/3},\\qquad\n \\varepsilon_n=\\frac{\\sqrt{\\lambda_c}}4n^{-1/3},\\qquad\n g_n(x)=\\max\\{-b_n,\\min(x,b_n)\\},\n\\]\nand report the explicit clipped-shrinkage rule\n\\[\n \\widehat\\tau_n^{\\mathrm{sh}}\n =h_c\\{X_n-\\varepsilon_ng_n(X_n)\\}.\n\\]\nThis rule is a map from the realized assignment and observed outcomes into \\([-L_c/2,L_c/2]\\). Define\n\\[\n A_c=\\frac{\\sqrt{\\lambda_c}}2-\\frac{\\lambda_c}{16},\n \\qquad B_c=\\frac{7\\lambda_c}{16},\n \\qquad \\kappa_c=\\frac12\\min\\{A_c,B_c\\}>0,\n\\]\nand choose a finite integer \\(N_c\\) such that\n\\[\n 4\\sqrt{\\lambda_c}\\,m\\exp(-m^{1/3}/8)\\leq A_c\n \\qquad\\text{for every integer }m\\geq N_c.\n\\]\nThen, for every \\(n\\geq N_c\\),\n\\[\n \\max_{z\\in\\mathcal T_K^n}\n R_n(\\mathcal D^\\star,\\widehat\\tau_n^{\\mathrm{sh}};z)\n \\leq C_0(c)\\{n^{-1}-\\kappa_cn^{-4/3}\\},\n\\]\nwhere \\(\\mathcal D^\\star\\) is the displayed independent \\(q^\\star\\) design. Consequently,\n\\[\n 0<C_0(c)\\kappa_c\n \\leq\\liminf_{n\\to\\infty}n^{4/3}d_n(c)\n \\leq\\limsup_{n\\to\\infty}n^{4/3}d_n(c)\n \\leq C_0(c)C_A,\n\\]\nso \\(d_n(c)=\\Theta(n^{-4/3})\\). Moreover, if a positive normalizer \\(a_n\\) is regularly varying with index \\(\\beta\\), meaning \\(a_{\\lfloor xn\\rfloor}/a_n\\to x^\\beta\\) for every \\(x>0\\), and if \\(a_nd_n(c)\\) converges to a finite positive limit, then necessarily \\(\\beta=4/3\\).",
+      "free_symbols": [
+        "K",
+        "c",
+        "L_c",
+        "C_0(c)",
+        "\\mathcal A_K",
+        "a",
+        "t",
+        "\\mathcal T_K",
+        "S_c",
+        "q^\\star",
+        "A",
+        "i",
+        "Y_i^{\\mathrm{obs}}",
+        "n",
+        "\\mathcal D",
+        "\\widehat\\tau",
+        "z",
+        "R_n(\\mathcal D,\\widehat\\tau;z)",
+        "d_n(c)",
+        "C_A",
+        "a_n"
+      ],
+      "depends_on": [
+        "def:labeled-schedule-game",
+        "def:first-order-procedure",
+        "thm:embedded-two-arm-converse"
+      ],
+      "status": "to-prove",
+      "justification": "An explicit independent-\\(q^\\star\\) observed-data rule closes the universal multi-arm second-order exponent rather than leaving it to a conjectural continuum limit.",
+      "gap": "The published exact saddle and Airy expansion cover the support-two branch; for \\(|S_c|\\geq3\\), the embedded converse supplied only an \\(n^{-4/3}\\) ceiling before this matching-order construction.",
+      "consumer": "For a fixed multi-arm binary contrast, including a regimen-versus-average ACTG 175 contrast, the theorem gives a computable allocation and estimator with a certified minimax-order improvement.",
+      "revision": "rev:ca46ac53d9345d47bfdd129ce36b3ebbf32b00327a35e57ad0472ef15d6d9306"
+    },
+    {
+      "id": "thm:rational-contrast-grid-certificate-sandwich",
+      "kind": "theorem",
+      "statement": "Fix \\(K\\geq2\\) and a rational nonzero zero-sum contrast \\(c\\in\\mathbb Q^K\\), and put \\(h_c=L_c/2\\).  For every \\(n,M\\geq1\\), the program defining \\(\\Lambda_{n,M}(c)\\) has rational coefficients and admits exact rational optimal primal and dual certificates.  Let \\((\\pi^{n,M,c},w^{n,M,c},\\Lambda_{n,M}(c))\\) be such a primal certificate and let \\(\\nu_{n,M,c}\\in\\Delta(\\mathcal M_{n,K})\\) be the response-count multiplier in such a dual certificate.  For \\(\\pi_r^{n,M,c}>0\\), define\n\\[\n \\kappa_{r,x}^{n,M,c}(g)=\\frac{w_{r,x,g}^{n,M,c}}{\\pi_r^{n,M,c}},\n \\qquad\n \\delta_{n,M,c}(r,x)=\\sum_{g\\in\\Gamma_{M,c}}g\\kappa_{r,x}^{n,M,c}(g),\n\\]\nand put \\(\\delta_{n,M,c}(r,x)=0\\) when \\(\\pi_r^{n,M,c}=0\\).  Define\n\\[\n U_{n,M}(c)=\\max_{m\\in\\mathcal M_{n,K}}\n \\sum_{r\\in\\mathcal R_{n,K}}\\pi_r^{n,M,c}\\sum_xP_m(x\\mid r)\n \\{\\delta_{n,M,c}(r,x)-\\tau_c(m)\\}^2.\n\\]\nFor a rational prior \\(\\nu\\in\\Delta(\\mathcal M_{n,K})\\), put\n\\[\n D_{r,x,c}(\\nu)=\\sum_m\\nu_mP_m(x\\mid r),\n \\qquad\n N_{r,x,c}(\\nu)=\\sum_m\\nu_mP_m(x\\mid r)\\tau_c(m),\n\\]\nand define\n\\[\n B_{n,c}(\\nu)=\\min_{r\\in\\mathcal R_{n,K}}\n \\left[\n \\sum_m\\nu_m\\tau_c(m)^2-\n \\sum_{x:D_{r,x,c}(\\nu)>0}\n \\frac{N_{r,x,c}(\\nu)^2}{D_{r,x,c}(\\nu)}\n \\right].\n\\]\nThen the computable finite-sample certificates satisfy\n\\[\n B_{n,c}(\\nu_{n,M,c})\\leq\\rho_n(c)\\leq U_{n,M}(c)\n \\leq\\Lambda_{n,M}(c)\n \\leq B_{n,c}(\\nu_{n,M,c})+\\frac{C_0(c)}{4M^2}.\n\\]\nThe upper procedure draws \\(r\\) from \\(\\pi^{n,M,c}\\), assigns uniformly conditional on \\(r\\), and reports \\(\\delta_{n,M,c}(r,x)\\).  The lower certificate completes the rational prior by the unrestricted posterior mean \\(N_{r,x,c}(\\nu)/D_{r,x,c}(\\nu)\\), omitting zero-denominator observations.  There are \\(\\binom{n+2^K-1}{2^K-1}\\) response-count risk constraints, \\(\\binom{n+K-1}{K-1}\\) allocation orbits, and \\(\\binom{n+2K-1}{2K-1}\\) allocation--observation orbits; hence one exact rational linear program with\n\\[\n 1+\\binom{n+K-1}{K-1}\n +(2M+1)\\binom{n+2K-1}{2K-1}\n\\]\nprimal variables, followed by finite rational sums and maxima, evaluates the certificates.\n\nFor every positive normalizer \\(a_n\\) and every integer sequence \\((M_n)\\) satisfying \\(a_n/M_n^2\\to0\\),\n\\[\n a_n\\{U_{n,M_n}(c)-B_{n,c}(\\nu_{n,M_n,c})\\}\\longrightarrow0.\n\\]\nIf \\(a_nd_n(c)\\) has a finite limit, the upper- and lower-certificate improvements converge to that same limit.  At the universally established scale \\(a_n=n^{4/3}\\), the choice \\(M_n=n\\) is sufficient.  These conclusions neither assert convergence of primal optimizers or dual priors nor identify a sharp second-order constant or an analytic limiting feedback rule.",
+      "free_symbols": [
+        "K",
+        "n",
+        "M",
+        "c",
+        "L_c",
+        "C_0(c)",
+        "\\Gamma_{M,c}",
+        "\\Lambda_{n,M}(c)",
+        "\\mathcal M_{n,K}",
+        "\\mathcal R_{n,K}",
+        "m",
+        "r",
+        "x",
+        "g",
+        "P_m(x\\mid r)",
+        "\\tau_c(m)",
+        "\\rho_n(c)",
+        "a_n",
+        "d_n(c)"
+      ],
+      "depends_on": [
+        "def:rational-contrast-grid-lp",
+        "thm:exact-response-type-game",
+        "thm:universal-second-order-rate"
+      ],
+      "status": "to-prove",
+      "revision": "rev:9699ce9304d801dd3ff5c2e044a6311d3784bd561a24e5265f60a44e4812fdaa"
+    },
+    {
+      "id": "thm:contrast-risk-continuity",
+      "kind": "theorem",
+      "statement": "For every integer \\(n\\geq1\\), every \\(K\\geq2\\), and every pair of nonzero zero-sum contrasts \\(c,c'\\in\\mathbb R^K\\), put\n\\[\n \\eta(c,c')=\\frac{L_{c-c'}}2\n =\\frac12\\sum_{a\\in\\mathcal A_K}|c_a-c'_a|.\n\\]\nThen\n\\[\n \\left|\\sqrt{\\rho_n(c)}-\\sqrt{\\rho_n(c')}\\right|\n \\leq \\eta(c,c').\n\\]\nThe bound is finite-sample, permits arbitrary dependent assignment laws and arbitrary possibly biased estimators, and requires no positivity condition.",
+      "free_symbols": [
+        "K",
+        "n",
+        "c",
+        "L_c",
+        "\\mathcal A_K",
+        "a",
+        "\\rho_n(c)"
+      ],
+      "depends_on": [
+        "def:labeled-schedule-game"
+      ],
+      "status": "to-prove",
+      "revision": "rev:bb777ac299efdf96bcee365c6fee706da30c1baf2778781435812cc3e9f91e53"
+    },
+    {
+      "id": "thm:real-contrast-grid-certificate-transfer",
+      "kind": "theorem",
+      "statement": "Fix \\(K\\geq2\\) and a nonzero real zero-sum contrast \\(c\\in\\mathbb R^K\\).  Let \\(c^{(n)}\\in\\mathbb Q^K\\setminus\\{0\\}\\) be zero-sum rational contrasts such that \\(c^{(n)}\\to c\\), let \\(M_n\\geq1\\) be integers, and put\n\\[\n \\eta_n=\\frac{L_{c-c^{(n)}}}{2}.\n\\]\nFor each \\(n\\), let\n\\[\n B_n=B_{n,c^{(n)}}(\\nu_{n,M_n,c^{(n)}}),\n \\qquad\n U_n=U_{n,M_n}(c^{(n)})\n\\]\nbe the exact rational prior and procedure certificates from the rational-contrast grid theorem, and define\n\\[\n R_n^-=\\left\\{\\max(0,\\sqrt{B_n}-\\eta_n)\\right\\}^2,\n \\qquad\n R_n^+=(\\sqrt{U_n}+\\eta_n)^2.\n\\]\nThen\n\\[\n R_n^-\\leq\\rho_n(c)\\leq R_n^+.\n\\]\nThe upper endpoint is attained as a valid worst-case-risk certificate by using the rational finite-program design and projecting its barycenter rule onto \\([-L_c/2,L_c/2]\\).  The lower endpoint is a valid Bayes-risk certificate against every design and estimator, obtained from the same rational response-count prior.  Moreover,\n\\[\n \\begin{aligned}\n 0\\leq R_n^+-R_n^-\n &\\leq \\frac{5C_0(c^{(n)})}{4M_n^2}\n +4\\sqrt{C_0(c^{(n)})}\\,\\eta_n n^{-1/2}\n +3\\eta_n^2\\\\\n &=O\\!\\left(\\frac{C_0(c^{(n)})}{M_n^2}\n +\\eta_n n^{-1/2}+\\eta_n^2\\right).\n \\end{aligned}\n\\]\nFor every fixed real \\(c\\), the rational zero-sum approximants may be chosen with \\(\\eta_n=o(n^{-5/6})\\).  With that choice and \\(M_n=n\\),\n\\[\n R_n^+-R_n^-=o(n^{-4/3}).\n\\]\nEquivalently, if\n\\[\n \\underline d_n=\\frac{C_0(c)}n-R_n^+,\n \\qquad\n \\overline d_n=\\frac{C_0(c)}n-R_n^-,\n\\]\nthen\n\\[\n \\underline d_n\\leq d_n(c)\\leq\\overline d_n,\n \\qquad\n \\overline d_n-\\underline d_n=o(n^{-4/3}).\n\\]\nFor rational \\(c\\), one may take \\(c^{(n)}=c\\); the certificates are then direct exact-rational finite programs and their gap for \\(M_n=n\\) is at most \\(C_0(c)/(4n^2)\\).  Thus scale-matched finite-program procedure and prior certificates exist directly for every rational contrast and, through the displayed approximation brackets, for every real contrast.  This conclusion does not assert convergence of \\(n^{4/3}d_n(c)\\), convergence of the finite-program optimizers or priors, sharp second-order optimality of \\(q^\\star\\), a sharp constant, an analytic limiting rule, or a limiting operator.",
+      "free_symbols": [
+        "K",
+        "n",
+        "c",
+        "L_c",
+        "M",
+        "C_0(c)",
+        "\\rho_n(c)",
+        "d_n(c)",
+        "q^\\star"
+      ],
+      "depends_on": [
+        "thm:rational-contrast-grid-certificate-sandwich",
+        "thm:contrast-risk-continuity"
+      ],
+      "status": "to-prove",
+      "revision": "rev:f90753262283d0d27f9250b4431a26b52e0fc58ee53fb3f33bb5a2af296574ad"
+    },
+    {
+      "id": "thm:k3-grid-certificate-sandwich",
+      "kind": "theorem",
+      "statement": "For \\(K=3\\), \\(c=c^\\dagger\\), and integers \\(n,M\\geq1\\), let \\((\\pi^{n,M},w^{n,M},\\Lambda_{n,M}^\\dagger)\\) be an exact rational optimal primal certificate for the grid-action program, and let \\(\\nu_{n,M}\\in\\Delta(\\mathcal M_{n,3})\\) be the response-count multiplier in a complete exact rational optimal dual certificate.  For \\(\\pi_r^{n,M}>0\\), define\n\\[\n \\kappa_{r,x}^{n,M}(g)=\\frac{w_{r,x,g}^{n,M}}{\\pi_r^{n,M}},\n \\qquad\n \\delta_{n,M}(r,x)=\\sum_{g\\in\\Gamma_M}g\\kappa_{r,x}^{n,M}(g),\n\\]\nand put \\(\\delta_{n,M}(r,x)=0\\) when \\(\\pi_r^{n,M}=0\\).  Define the computable upper certificate\n\\[\n U_{n,M}=\\max_{m\\in\\mathcal M_{n,3}}\n \\sum_{r\\in\\mathcal R_{n,3}}\\pi_r^{n,M}\\sum_xP_m(x\\mid r)\n \\{\\delta_{n,M}(r,x)-\\tau_{c^\\dagger}(m)\\}^2.\n\\]\nFor any rational prior \\(\\nu\\in\\Delta(\\mathcal M_{n,3})\\), put\n\\[\n D_{r,x}(\\nu)=\\sum_m\\nu_mP_m(x\\mid r),\n \\qquad\n N_{r,x}(\\nu)=\\sum_m\\nu_mP_m(x\\mid r)\\tau_{c^\\dagger}(m),\n\\]\nand define the computable lower certificate\n\\[\n B_n(\\nu)=\\min_{r\\in\\mathcal R_{n,3}}\n \\left[\n \\sum_m\\nu_m\\tau_{c^\\dagger}(m)^2-\n \\sum_{x:D_{r,x}(\\nu)>0}\\frac{N_{r,x}(\\nu)^2}{D_{r,x}(\\nu)}\n \\right].\n\\]\nThen\n\\[\n B_n(\\nu_{n,M})\\leq\\rho_n^\\dagger\\leq U_{n,M}\n \\leq\\Lambda_{n,M}^\\dagger\n \\leq B_n(\\nu_{n,M})+\\frac{1}{4M^2}.\n\\]\nThe upper procedure first draws \\(r\\) from \\(\\pi^{n,M}\\), assigns uniformly conditional on \\(r\\), and reports \\(\\delta_{n,M}(r,x)\\); the lower certificate uses the unrestricted posterior mean \\(N_{r,x}(\\nu)/D_{r,x}(\\nu)\\), with zero-denominator observations omitted.  Consequently, for any positive normalizer \\(a_n\\) and integers \\(M_n\\) satisfying \\(a_n/M_n^2\\to0\\),\n\\[\n a_n\\{U_{n,M_n}-B_n(\\nu_{n,M_n})\\}\\longrightarrow0.\n\\]\nIf \\(a_nd_n(c^\\dagger)\\) has a finite limit, both certificate improvements converge to that same limit.  This theorem supplies a finite-\\(n\\) multivariate rule and an unrestricted rational-prior converse at every such selected normalization; it does not select the normalization, decide whether the independent \\(q^\\star\\) design is second-order optimal, or produce an analytic Hamilton--Jacobi--Bellman feedback formula.",
+      "free_symbols": [
+        "K",
+        "c^\\dagger",
+        "n",
+        "M",
+        "\\pi",
+        "r",
+        "\\mathcal R_{n,K}",
+        "x",
+        "g",
+        "\\Gamma_M",
+        "w_{r,x,g}",
+        "\\Lambda_{n,M}^\\dagger",
+        "m",
+        "\\mathcal M_{n,K}",
+        "P_m(x\\mid r)",
+        "\\tau_c(m)",
+        "\\rho_n^\\dagger",
+        "a_n",
+        "d_n(c)",
+        "q^\\star"
+      ],
+      "depends_on": [
+        "thm:rational-contrast-grid-certificate-sandwich",
+        "def:k3-rational-lp",
+        "prop:k3-lp-certificate"
+      ],
+      "status": "to-prove",
+      "revision": "rev:3dcc645612cbc6307d698105690c899f2b68f25008a097d27473079ccb5f8d4e"
+    },
+    {
+      "id": "thm:second-order-rate-and-certificate-frontier",
+      "kind": "theorem",
+      "statement": "Fix \\(K\\geq2\\) and a nonzero zero-sum contrast \\(c\\) with \\(|S_c|\\geq3\\), and define \\(x_n(c)=n^{4/3}d_n(c)\\). Then\n\\[\n 0<\\liminf_{n\\to\\infty}x_n(c)\n \\leq\\limsup_{n\\to\\infty}x_n(c)\n \\leq C_0(c)C_A<\\infty.\n\\]\nConsequently, \\(d_n(c)=\\Theta(n^{-4/3})\\), and the subsequential-limit set of \\(x_n(c)\\) is a nonempty compact subset of a compact interval contained in \\((0,\\infty)\\). If a positive regularly varying normalizer \\((a_n)\\) makes \\(a_nd_n(c)\\) converge to a finite positive limit, then its index is \\(4/3\\). Such a normalizer exists if and only if \\(x_n(c)\\) is slowly varying. In the branch where \\(x_n(c)\\) does not converge, this is equivalent to the existence of a nonconvergent slowly varying correction multiplying \\(n^{4/3}\\).\n\nIf \\(c\\) is rational, take \\(M=n\\) in the exact-rational grid certificate. The normalized grid-value improvement, barycenter-procedure improvement, prior-lower-bound improvement, and \\(x_n(c)\\) have pairwise distance \\(o(1)\\). They therefore have the same subsequential-limit set and converge simultaneously, with a common limit whenever any one converges. If \\(c\\) is real, there are rational zero-sum contrasts \\(c^{(n)}\\) with\n\\[\n \\eta_n=\\frac{L_{c-c^{(n)}}}{2}=o(n^{-5/6})\n\\]\nsuch that, again with \\(M=n\\), the transferred risk bracket has width \\(o(n^{-4/3})\\). The two corresponding normalized improvement endpoints and \\(x_n(c)\\) have the same subsequential-limit set and convergence behavior. These certificates retain every response-type count vector and require no exposure-positivity, allocation-support, rank, or overlap restriction on the unrestricted minimax design.\n\nFor \\(K=3\\) and \\(c=c^\\dagger\\), the general rational certificates specialize to the exact three-arm certificates, while the displayed scalar sign-score compression is not minimax-preserving even at \\(n=3\\). Thus the established results determine the second-order exponent and give scale-matched computable procedures and prior converses, but they do not determine whether \\(x_n(c)\\) converges, its sharp limit or exact subsequential-limit set, whether a nonconvergent \\(x_n(c)\\) is slowly varying, convergence of optimizers or priors, or a limiting face--corner Hamilton--Jacobi--Bellman, cone-spectral, separable, or other operator.",
+      "free_symbols": [
+        "K",
+        "c",
+        "S_c",
+        "n",
+        "d_n(c)",
+        "C_0(c)",
+        "C_A",
+        "a_n",
+        "M",
+        "L_c",
+        "c^\\dagger",
+        "\\Lambda_{n,M}(c)",
+        "m",
+        "\\mathcal M_{n,K}"
+      ],
+      "depends_on": [
+        "thm:universal-second-order-rate",
+        "thm:rational-contrast-grid-certificate-sandwich",
+        "thm:contrast-risk-continuity",
+        "thm:real-contrast-grid-certificate-transfer",
+        "thm:k3-grid-certificate-sandwich",
+        "prop:k3-scalar-score-not-minimax-preserving"
+      ],
+      "status": "to-prove",
+      "revision": "rev:d939888e8f2a3154a25cd51d2a3460e1d08765f1e33214f561b7a0aaf6308bde"
+    },
+    {
+      "id": "thm:attainment-and-k3-certified-converse",
+      "kind": "theorem",
+      "statement": "A rigorous partial answer is available.  Fix \\(K\\geq2\\) and a nonzero zero-sum contrast \\(c\\).\n\nFirst, if \\(|S_c|=2\\), then contrast-weighted independent assignment, with probability \\(1/2\\) on each active arm, and the coefficient-rescaled published two-arm posterior-mean rule form an exact finite-\\(n\\) minimax saddle.  The correspondingly embedded published least-favorable prior is an exact Bayes-risk converse.  In particular, if \\(\\rho_{n,2}=\\rho_n((1,-1))\\), then\n\\[\n \\rho_n(c)=C_0(c)\\rho_{n,2},\n \\qquad\n d_n(c)=C_0(c)C_A n^{-4/3}+o(n^{-4/3}).\n\\]\n\nSecond, for arbitrary support, the independent \\(q^\\star\\) design and the explicit clipped-shrinkage estimator in the universal second-order rate theorem satisfy, for all sufficiently large \\(n\\),\n\\[\n \\max_z R_n(\\mathcal D^\\star,\\widehat\\tau_n^{\\mathrm{sh}};z)\n \\leq C_0(c)\\{n^{-1}-\\kappa_c n^{-4/3}\\},\n \\qquad \\kappa_c>0,\n\\]\nwhere \\(\\kappa_c\\) is the explicit constant in that theorem.  Together with the embedded two-arm converse, this gives\n\\[\n 0<C_0(c)\\kappa_c\n \\leq\\liminf_{n\\to\\infty}n^{4/3}d_n(c)\n \\leq\\limsup_{n\\to\\infty}n^{4/3}d_n(c)\n \\leq C_0(c)C_A.\n\\]\n\nThird, choose rational nonzero zero-sum contrasts \\(c^{(n)}\\in\\mathbb Q^K\\) with \\(c^{(n)}\\to c\\), put\n\\[\n \\eta_n=\\frac{L_{c-c^{(n)}}}{2},\n\\]\nand choose integers \\(M_n\\geq1\\).  Let\n\\[\n B_n=B_{n,c^{(n)}}(\\nu_{n,M_n,c^{(n)}}),\n \\qquad\n U_n=U_{n,M_n}(c^{(n)})\n\\]\nbe the exact rational prior and procedure certificates, and define\n\\[\n R_n^-=\\left\\{\\max(0,\\sqrt{B_n}-\\eta_n)\\right\\}^2,\n \\qquad\n R_n^+=(\\sqrt{U_n}+\\eta_n)^2.\n\\]\nThen\n\\[\n R_n^-\\leq\\rho_n(c)\\leq R_n^+.\n\\]\nThe projected rational-certificate procedure has worst-case risk at most \\(R_n^+\\), while the transferred rational prior certifies the lower bound \\(R_n^-\\).  If\n\\[\n \\underline d_n=\\frac{C_0(c)}n-R_n^+,\n \\qquad\n \\overline d_n=\\frac{C_0(c)}n-R_n^-,\n\\]\nthen\n\\[\n \\underline d_n\\leq d_n(c)\\leq\\overline d_n\n\\]\nand\n\\[\n \\begin{aligned}\n 0\\leq\\overline d_n-\\underline d_n\n &=R_n^+-R_n^-\\\\\n &\\leq\\frac{5C_0(c^{(n)})}{4M_n^2}\n +4\\sqrt{C_0(c^{(n)})}\\,\\eta_n n^{-1/2}\n +3\\eta_n^2.\n \\end{aligned}\n\\]\nOne may choose the approximants so that \\(\\eta_n=o(n^{-5/6})\\); with \\(M_n=n\\), the displayed improvement bracket then has width \\(o(n^{-4/3})\\).  If \\(c\\) is rational, one may take \\(c^{(n)}=c\\), and the direct exact-rational specialization with \\(M_n=n\\) has risk-certificate gap at most \\(C_0(c)/(4n^2)\\).\n\nFor \\(c=c^\\dagger\\), one has \\(C_0(c^\\dagger)=1\\), and the direct three-arm certificates satisfy, for every \\(n,M\\geq1\\),\n\\[\n B_n(\\nu_{n,M})\\leq\\rho_n(c^\\dagger)\\leq U_{n,M}\n \\leq B_n(\\nu_{n,M})+\\frac1{4M^2}.\n\\]\nThe available exact rational calculations through \\(n=5\\) are the computed three-arm showcase for this formula; they are not used to infer a cross-\\(n\\) limit.\n\nThese conclusions establish exact analytic attainment for two active arms, explicit order attainment for every fixed number of active arms, and scale-matched computable procedure and converse certificates for every real zero-sum contrast, directly exact-rational when the contrast is rational.  They do not determine, when \\(|S_c|\\geq3\\), convergence or the sharp constant of \\(n^{4/3}d_n(c)\\), sharp second-order optimality of \\(q^\\star\\), convergence of the finite-program optimizers or priors, an analytic limiting feedback rule, or a limiting Hamilton--Jacobi--Bellman, spectral, separable, or other operator.",
+      "free_symbols": [
+        "K",
+        "n",
+        "c",
+        "S_c",
+        "L_c",
+        "q^\\star",
+        "z",
+        "\\mathcal D",
+        "\\widehat\\tau",
+        "R_n(\\mathcal D,\\widehat\\tau;z)",
+        "\\rho_n(c)",
+        "d_n(c)",
+        "C_0(c)",
+        "C_A",
+        "c^\\dagger",
+        "M"
+      ],
+      "depends_on": [
+        "thm:universal-second-order-rate",
+        "thm:embedded-two-arm-converse",
+        "lem:published-two-arm-attainment-route",
+        "thm:real-contrast-grid-certificate-transfer",
+        "thm:k3-grid-certificate-sandwich"
+      ],
+      "status": "to-prove",
+      "revision": "rev:3c85fe1fa592bec94b85b33a069d42401e5a2be86c4945389bfc78e5af047ead"
+    }
+  ],
+  "sampling_model": {
+    "design": "An arbitrary probability law \\(\\mathcal D\\in\\Delta(\\mathcal A_K^n)\\) chosen before observing the fixed response schedule; the proposed first-order design assigns units independently with probabilities \\(q^\\star\\).",
+    "units": "A fixed finite population of \\(n\\) units with no sampling draw.",
+    "treatment": "Each unit receives exactly one arm in \\(\\mathcal A_K\\).",
+    "potential_outcomes": "The binary array \\((Y_i(a))_{i,a}\\) is fixed; assignment is the only randomness.",
+    "overlap": "Arms in \\(S_c\\) have positive probability under \\(q^\\star\\); zero-coefficient arms are irrelevant to \\(\\tau_c(z)\\).",
+    "nuisance_estimation": "None; nature first chooses the complete labeled schedule \\(z\\), and \\(m\\) appears only as its unit-permutation orbit after symmetrization.",
+    "loss": "Design-based squared error for the finite-population contrast \\(\\tau_c(z)\\)."
+  },
+  "estimand_functional": "\\(\\rho_n(c)=\\inf_{\\mathcal D,\\widehat\\tau}\\max_{z\\in\\mathcal T_K^n}\\mathbb E_{\\mathcal D}[(\\widehat\\tau-\\tau_c(z))^2]=G_n(c)\\)",
+  "target_estimand": "\\(\\tau_c(z)=n^{-1}\\sum_{i=1}^n\\sum_{a\\in\\mathcal A_K}c_at_{i,a}\\)",
+  "bibliography": [
+    {
+      "key": "sudijono_dobriban_tchetgen_2026_sharp",
+      "citation": "Timothy Sudijono, Edgar Dobriban, and Eric Tchetgen Tchetgen (2026). Sharp Minimax Theory for Randomized Experiments. arXiv:2608.13822."
+    },
+    {
+      "key": "hull_2026_bounded",
+      "citation": "Peter Hull (2026). Optimal Experimental Design and Estimation when Potential Outcomes are Bounded. arXiv:2608.09812."
+    },
+    {
+      "key": "bai_2023_why",
+      "citation": "Yuehao Bai (2023). Why Randomize? Minimax Optimality under Permutation Invariance. Journal of Econometrics 232(2), 565--575."
+    },
+    {
+      "key": "levit_1986_schrodinger",
+      "citation": "B. Ya. Levit (1986). Second-Order Asymptotic Optimality and Positive Solutions of Schrödinger's Equation. Theory of Probability and Its Applications 30(2), 333--363."
+    },
+    {
+      "key": "levit_1981_second_order",
+      "citation": "B. Ya. Levit (1981). On Asymptotically Efficient Estimation of the Second Order. Theory of Probability and Its Applications 25, 552--568."
+    },
+    {
+      "key": "rosenman_hunter_2026_shrinkage",
+      "citation": "Evan T. R. Rosenman and Kristen B. Hunter (2026). Adaptive Experimental Design Using Shrinkage Estimators. arXiv:2602.07404."
+    },
+    {
+      "key": "mukerjee_dasgupta_rubin_2018",
+      "citation": "Rahul Mukerjee, Tirthankar Dasgupta, and Donald B. Rubin (2018). Using Standard Tools From Finite Population Sampling to Improve Causal Inference for Complex Experiments. Journal of the American Statistical Association 113(522), 868--881."
+    },
+    {
+      "key": "hammer_et_al_1996_actg175",
+      "citation": "Scott M. Hammer et al. for the ACTG 175 Study Team (1996). A Trial Comparing Nucleoside Monotherapy with Combination Therapy in HIV-Infected Adults with CD4 Cell Counts from 200 to 500 per Cubic Millimeter. New England Journal of Medicine 335(15), 1081--1090."
+    },
+    {
+      "key": "kallus_2020_optimality",
+      "citation": "Nathan Kallus (2020). On the Optimality of Randomization in Experimental Design: How to Randomize for Minimax Variance and Design-Based Inference. arXiv:2005.03151."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "sudijono_dobriban_tchetgen_2026_sharp",
+      "comparator_claim": "For two-arm binary finite-population effects, unrestricted minimax risk equals a scalar reduced-game value, is attained by the published support-two saddle construction, and has an \\(n^{-4/3}\\) Airy correction.",
+      "matched_by": "The embedded theorem recovers the exact support-two result. For every fixed contrast the explicit clipped-shrinkage theorem proves the same second-order order, and for every rational contrast the new exact-rational certificate theorem gives scale-matched finite-program upper and prior lower certificates without asserting the binary Airy constant is sharp in the multi-arm case.",
+      "match_kind": "strict_tightening"
+    },
+    {
+      "comparator_bibkey": "hull_2026_bounded",
+      "comparator_claim": "For two bounded-outcome arms, independent randomization and a nonlinear endpoint-derived estimator attain unrestricted minimax mean squared error.",
+      "matched_by": "The published finite-sample attainment claim is used only on the support-two branch. The universal multi-arm clipped-shrinkage rule and the rational-contrast certificate theorem give rate and finite-program certificates, not exact analytic multi-arm attainment or optimizer convergence.",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "bai_2023_why",
+      "comparator_claim": "Under permutation invariance, complete randomization is minimax, and Neyman allocation with difference-in-means is optimal in the stated linear-estimator model.",
+      "matched_by": "The contrast-weighted first-order certificate is proved directly for the fixed-schedule unrestricted game. The rational grid theorem optimizes over all allocation-orbit mixtures and grid actions at each finite \\(n\\), but it does not show that \\(q^\\star\\) or any sequence of grid optimizers is sharply second-order optimal.",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "kallus_2020_optimality",
+      "comparator_claim": "For balanced treatment-label-blinded two-arm experiments with a fixed unbiased sample-average-treatment-effect estimator and a specified conditional-mean class, ordinary mixed-strategy optimal design minimizes worst-case variance but may not ensure assignment-probability uniformity for Fisher randomization inference; separately, inference-constrained mixed-strategy optimal design is minimax for that variance criterion among designs satisfying the stated per-assignment probability cap.",
+      "matched_by": "The present paper instead jointly minimizes worst-case squared error over every fixed-\\(K\\) assignment law and every possibly biased estimator against fixed binary response schedules. It supplies no randomization-inference guarantee.",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "levit_1986_schrodinger",
+      "comparator_claim": "Second-order asymptotic optimality is characterized through positive solutions and spectral behavior of a problem-specific Schrödinger operator.",
+      "matched_by": "The multi-arm exponent and rational-contrast scale-matched certificates are proved without a limiting operator. Convergence, the sharp constant, and any simplex-face Hamilton--Jacobi--Bellman or cone-spectral characterization remain open.",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "rosenman_hunter_2026_shrinkage",
+      "comparator_claim": "Heteroscedastic Stein-like shrinkage can reduce Gaussian joint squared-error risk for several treatment-versus-control estimates.",
+      "matched_by": "The fixed-schedule binary clipped-shrinkage theorem gives a direct \\(n^{-4/3}\\)-order certificate, while the rational LP theorem supplies a computable multivariate barycenter rule for every rational contrast. The Gaussian result remains a construction donor and does not identify the sharp finite-population rule or constant.",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "For a fixed multi-arm binary trial and a prespecified scalar contrast, the root contribution starts from the unrestricted game over complete labeled response schedules and proves its exact equality to a finite zero-sum orbit game on \\(2^K\\) response-type counts. This is a strict \\(K\\ge3\\) domain extension of the published two-arm scalar theorem and yields the projected contrast-weighted first-order saddle rule with \\(q_a^\\star\\propto|c_a|\\) and constant \\(C_0=(\\sum_a|c_a|)^2/4\\). A signed-contrast proposition separately records the valid arm-label quotient for \\(c=(1,-1/2,-1/2)\\); it makes no claim about Hull's coordinatewise swap construction. The open core asks whether a regularly varying second-order normalization with a finite positive limit exists and what active-face geometry governs either branch, while a certified rational LP hierarchy kills incorrect scaling or separability claims before analysis proceeds. A further open question asks for an attaining multi-arm nonlinear rule and a matched least-favorable-prior converse for contrasts such as the four-arm ACTG 175 consumer. In the \\(K=2\\) sanity clause, the orbit game retains all four response-type counts; only its minimax value is equated to the published scalar binomial value, from which the non-novel \\(n^{-4/3}\\) Airy expansion follows.",
+  "project_justification": {
+    "gap": "Sharp unrestricted binary minimax theory is confined to two arms. Sudijono, Dobriban, and Tchetgen Tchetgen obtain scalarization from a least-favorable prior and transformed variables \\(S_i\\) that are ancillary for the design under that prior. Hull instead averages independent per-unit potential-outcome-coordinate swaps together with assignment-bit exclusive-or, followed by unit averaging. General-contrast design results restrict the estimator or change the adversary, and the second-order literature does not address simultaneous faces and corners of a response-type simplex.",
+    "niche": "For a fixed \\(K\\)-arm contrast, the unrestricted primitive game is over complete labeled response schedules. Unit-permutation symmetrization can convert that game into an explicit \\(2^K\\)-response-type orbit game, while the signed contrast stabilizer provides only an independent, precisely scoped arm-label quotient for computation.",
+    "fill": "The project proves the labeled-game-to-orbit-game equality as a strict \\(K\\ge3\\) extension of the published binary scalar theorem, derives the projected first-order saddle rule, records the exact signed arm-label orbits for \\(c^\\dagger\\), and gives a three-arm rational LP approximation with a theorem-level error bracket. It leaves the existence of a regularly varying second-order scale, the corresponding stratified continuum value problem, and a matched implementable multivariate rule and converse as explicit open questions."
+  },
+  "related_work": "Sudijono, Dobriban, and Tchetgen Tchetgen (2026, Theorems 2.1--2.2, the proof of Theorem 2.2, and Sections 5--6) obtain the two-arm reduction through a least-favorable prior and transformed variables \\(S_i\\) that are ancillary for the design under that prior; finite minimax duality, a discrete Stein expansion, and a squared-ground-state prior then yield the scalar Airy theory. Their published scalar minimax value and \\(n^{-4/3}\\) expansion are a method ancestor and a non-novel value-level regression check. This proposal's \\(K=2\\) orbit likelihood continues to index all four counts \\(m_{(0,0)},m_{(0,1)},m_{(1,0)},m_{(1,1)}\\); equality with the published scalar result is asserted only after composing minimax-value theorems, not by identifying likelihood kernels through effect-class aggregation. The exact labeled-schedule and orbit-game equality for every fixed \\(K\\ge3\\) is the strict extension. Hull (2026, Theorem 1, proof Steps 1--3, and Section 4) follows a distinct route: independent per-unit swaps of the two potential-outcome coordinates are coupled with assignment-bit exclusive-or and then followed by unit averaging; separate convexity extends the endpoint rule to bounded outcomes. The signed-stabilizer proposition is an independent calculation about ordinary arm relabelings and is not presented as an obstruction to Hull's swap action. Bai (2023) establishes why group invariance can select randomization and derives Neyman allocation in a linear framework; it does not settle the present fixed-schedule arbitrary-estimator value. Levit (1986) supplies the spectral language for converting a second-order risk correction into a principal operator problem, while leaving the stratified simplex geometry untreated. Rosenman and Hunter (2026) motivate borrowing information across arm scores through multivariate shrinkage, but their Gaussian superpopulation risk identity is used only as a construction donor. Mukerjee, Dasgupta, and Rubin (2018) provide the general multiple-treatment finite-population contrast framework. Hammer et al. (1996) provide the applied consumer rather than a theorem comparator: ACTG 175 randomized four regimens and makes a regimen-versus-average binary endpoint contrast operationally meaningful.",
+  "technical_internal_limitation": "The exact continuous-action squared-loss game is a finite convex quadratically constrained program, not a literal finite LP. The object called an LP in the computational rung is therefore a rational grid-action hierarchy with a proved approximation bracket. Any claim that exact small-\\(n\\) squared-loss minimax values are obtained by one finite rational LP without this discretization or an additional lossless reformulation would be inaccurate.",
+  "honest_scope": "The labeled-schedule-to-orbit-game equality, its strict \\(K\\ge3\\) scope extension, the projected first-order saddle rule and constant, the signed arm-orbit calculation, and the rational LP approximation are theorem-level claims. The signed calculation licenses only quotients by signed contrast-preserving arm relabelings; it says nothing about Hull's coordinatewise swap action and does not prove that the multi-arm value is nonseparable or that no scalar statistic exists. Whether any regularly varying normalization has a finite positive second-order limit is open; the constant \\(C_{\\mathrm{so}}(c)\\) is defined only in that existence branch. The second-order scale, operator type, uniqueness theory, and second-order optimality of \\(q^\\star\\) remain genuinely open. The project must stop the multidimensional Hamilton--Jacobi--Bellman route if the certified \\(c^\\dagger\\) values separate into scalar games, and it must replace \\(n^{4/3}\\) if the diagnostic scaling disagrees. For \\(K=2\\) and \\(c=(1,-1)\\), all four response-type counts remain in the orbit likelihood. The published scalar binomial value and Airy correction enter only through a non-novel minimax-value regression clause and are not claimed to identify that likelihood kernel."
+}

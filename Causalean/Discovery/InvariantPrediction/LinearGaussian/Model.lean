@@ -62,10 +62,12 @@ open scoped BigOperators
 
 variable {p : ℕ}
 
-/-- The target node `Y = X₁`, encoded at index `0` of `Fin (p+1)`. -/
+/-- For [a model with $p$ predictors](hyp:p), [the target node](goal) is the first of its $p+1$
+variables, represented by index zero. -/
 abbrev target (p : ℕ) : Fin (p + 1) := 0
 
-/-- The predictor index set `{X₂,…,X_{p+1}}`, encoded as `{k : k ≠ 0}`. -/
+/-- For [a model with $p$ predictors](hyp:p), [the predictor index set](goal) contains precisely
+the $p$ non-target variables among its $p+1$ variables. -/
 def predictors (p : ℕ) : Finset (Fin (p + 1)) := Finset.univ.erase 0
 
 /-- A node is a predictor exactly when it is not the target node. -/
@@ -139,8 +141,10 @@ namespace ObsSEM
 
 variable (M : ObsSEM p)
 
-/-- The parents of the target `Y` in the observational graph:
-`PA(Y) = {k : β 0 k ≠ 0}`.  This is the set the completeness theorem recovers. -/
+/-- For [an observational linear-Gaussian structural equation model](hyp:M), [the target's
+parent set](goal) is the set of nodes with an arrow into the target in its acyclic graph.
+
+This is the set the completeness theorem recovers. -/
 def paY : Finset (Fin (p + 1)) := M.dag.parents (target p)
 
 /-- `PA(Y)` consists of predictors only (`0 ∉ PA(Y)`): the target is acyclic, so
@@ -229,7 +233,8 @@ namespace EnvFamily
 
 variable (F : EnvFamily p)
 
-/-- The observational parent set `PA(Y)` of the family. -/
+/-- For [a family of intervention environments](hyp:F), [the family's observational target-parent
+set](goal) is the target-parent set of its observational structural equation model. -/
 abbrev paY : Finset (Fin (p + 1)) := F.obs.paY
 
 end EnvFamily

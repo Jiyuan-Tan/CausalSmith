@@ -68,7 +68,10 @@ Choose `C_ε := 2 / (ε² · (1 − ε))`, the `O(ε⁻²)` closed form analogou
 the ATE `aipw_rem_const ε := 2 / (ε · (1 − ε))`.  The extra `ε⁻¹` factor
 absorbs the stage-1 weight bound `|w₁| ≤ ε⁻²`. -/
 
-/-- **Sequential DR (DTR, n = 2) remainder constant for strict overlap `ε`.**
+/-- For [a real overlap margin](hyp:ε), the [sequential doubly robust remainder
+constant](goal) is $2/[\varepsilon^2(1-\varepsilon)]$.
+
+**Sequential DR (DTR, n = 2) remainder constant for strict overlap `ε`.**
 
 `C_ε := 2 / (ε² · (1 − ε))`. -/
 noncomputable def seqDR_rem_const (ε : ℝ) : ℝ := 2 / (ε ^ 2 * (1 - ε))

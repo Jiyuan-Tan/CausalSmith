@@ -66,7 +66,11 @@ open MeasureTheory ProbabilityTheory Filter Topology
 
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} {P : Measure ℝ}
 
-/-- The sample-quantile influence function
+/-- For [a quantile index $\tau$, a population quantile $q_0$, and a density
+value $f_0$](hyp:τ,q₀,f₀), [the sample-quantile influence function](goal) maps a
+real observation $z$ to $(\tau-\mathbf{1}\{z\le q_0\})/f_0$.
+
+The sample-quantile influence function
 `ψ_τ(z) = (τ − 1{z ≤ q₀}) / f₀`. -/
 noncomputable def quantileIF (τ q₀ f₀ : ℝ) : ℝ → ℝ :=
   fun z => (τ - cdfStat q₀ z) / f₀

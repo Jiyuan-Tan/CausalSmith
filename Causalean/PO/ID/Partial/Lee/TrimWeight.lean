@@ -27,15 +27,28 @@ namespace POLeeSystem
 
 variable {P : POSystem} (S : POLeeSystem P)
 
-/-- Conditional density of `Y(1)` on `alwaysSelected` evaluated at `y`,
+/-- For [a potential-outcome system](hyp:P), [a Lee potential-outcome system based
+on it](hyp:S), and [a real outcome value](hyp:y),
+[the always-selected treated-outcome mass at that value](goal) is the conditional
+expectation, given the always-selected stratum, of the indicator that the
+potential outcome under treatment equals that value.
+
+Conditional density of `Y(1)` on `alwaysSelected` evaluated at `y`,
 expressed as an `eventCondExp` of an indicator of `Y(1) = y`. -/
 noncomputable def f1AS (y : ℝ) : ℝ :=
   eventCondExp P.μ S.alwaysSelected
     (fun ω => if S.YofA true ω = y then (1 : ℝ) else 0)
 
-/-- The conditional sub-distribution of mass `ρ` of `Y(1) | AS`,
-viewed as a Lee trim weight on `𝒴`. The construction yields a
-`LeeTrimWeight` whose mean `Mw` equals `E[Y(1) | alwaysSelected]`.
+/-- Given [a potential-outcome system](hyp:P), [a Lee potential-outcome system
+based on it](hyp:S), [its base assumptions](hyp:hA),
+[monotone sample selection](hyp:hMono), [a finite set of real outcome values](hyp:𝒴),
+and [the condition that the observed outcome belongs to that set almost surely
+under the selected-treated conditional measure](hyp:hSupp), [the always-selected
+trim weight on that finite set](goal) is a Lee trim weight.
+
+The conditional sub-distribution of mass `ρ` of `Y(1) | AS`, viewed as a Lee
+trim weight on `𝒴`. The construction yields a `LeeTrimWeight` whose mean `Mw`
+equals `E[Y(1) | alwaysSelected]`.
 
 Concretely, take `w(y) := ρ · f1AS y / f1 y` on the support of `f1` --
 this satisfies the constraints of `LeeTrimWeight` precisely when the

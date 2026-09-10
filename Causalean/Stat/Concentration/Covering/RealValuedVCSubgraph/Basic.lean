@@ -19,12 +19,16 @@ open MeasureTheory
 open Causalean.Stat.Concentration
 universe u v
 variable {𝒳 : Type u} {ι : Type v}
-/-- The strict subgraph classifier attached to a real-valued function class
-labels `(x,t)` precisely when `t < f(x)`. -/
+/-- Given [a real-valued function class on an observation space](hyp:F,𝒳,ι),
+[a class index](hyp:i), and [an observation-threshold pair](hyp:z), the [strict subgraph
+classifier](goal) returns true exactly when the threshold is strictly below the selected
+function's value at the observation. -/
 noncomputable def subgraphClassifier (F : ι → 𝒳 → ℝ) (i : ι) (z : 𝒳 × ℝ) : Bool :=
   decide (z.2 < F i z.1)
-/-- A real-valued class has pseudo-dimension at most `d` when every finite
-trace of its strict subgraphs has VC dimension at most `d`. -/
+/-- Given [a real-valued function class on an observation space](hyp:F,𝒳,ι) and
+[a nonnegative integer $d$](hyp:d), the [pseudo-dimension-at-most-$d$ property](goal) holds
+exactly when, for every finite collection of observation-threshold pairs, the VC dimension of
+the strict-subgraph labelings induced by the class on that collection is at most $d$. -/
 def HasPseudoDimAtMost (F : ι → 𝒳 → ℝ) (d : ℕ) : Prop :=
   ∀ (n : ℕ) (T : Fin n → 𝒳 × ℝ),
     (growthFamily (subgraphClassifier F) T).vcDim ≤ d
@@ -36,22 +40,30 @@ theorem hasPseudoDimAtMost_iff_growthFamily
       ∀ (n : ℕ) (T : Fin n → 𝒳 × ℝ),
         (growthFamily (subgraphClassifier F) T).vcDim ≤ d := by
   rfl
-/-- The `L²(Q)` semidistance is the square root of the integral of the squared
-pointwise difference. -/
+/-- Given [a measure $Q$ on an observation space](hyp:Q,𝒳) and [two real-valued
+functions on that space](hyp:f,g), their [measure-based $L^2$ semidistance](goal) is
+$\sqrt{\int (f-g)^2\,dQ}$. -/
 noncomputable def measureL2Dist [MeasurableSpace 𝒳]
     (Q : Measure 𝒳) (f g : 𝒳 → ℝ) : ℝ :=
   Real.sqrt (∫ x, (f x - g x) ^ 2 ∂Q)
-/-- A finite set of class indices is an open `L²(Q)` cover at radius `r` when
-every class member is within distance strictly less than `r` of one center. -/
+/-- Given [a measure $Q$ on an observation space](hyp:Q,𝒳), [a real-valued function
+class](hyp:F,ι), [a radius $r$](hyp:r), and [a finite set of class indices](hyp:C), the
+[open $L^2(Q)$ cover property](goal) holds exactly when every class member lies at strictly less
+than distance $r$ from a member indexed by that finite set. -/
 def IsL2Cover [MeasurableSpace 𝒳] (Q : Measure 𝒳)
     (F : ι → 𝒳 → ℝ) (r : ℝ) (C : Finset ι) : Prop :=
   ∀ i : ι, ∃ j ∈ C, measureL2Dist Q (F i) (F j) < r
-/-- The `L²(Q)` covering number is at most `N` when an index-valued cover with
-at most `N` centers exists. -/
+/-- Given [a measure $Q$ on an observation space](hyp:Q,𝒳), [a real-valued function
+class](hyp:F,ι), [a radius $r$](hyp:r), and [a nonnegative integer $N$](hyp:N), the
+[$L^2(Q)$ covering-number-at-most-$N$ property](goal) holds exactly when [there is a finite
+set of at most $N$ class indices](step:1) that [forms an open $L^2(Q)$ cover at radius $r$](step:2). -/
 def L2CoveringNumberLe [MeasurableSpace 𝒳] (Q : Measure 𝒳)
     (F : ι → 𝒳 → ℝ) (r : ℝ) (N : ℕ) : Prop :=
   ∃ C : Finset ι, C.card ≤ N ∧ IsL2Cover Q F r C
-/-- The explicit polynomial cardinality used by the public VC-subgraph bound.
+/-- Given [a nonnegative integer $d$](hyp:d) and [a real number $\varepsilon$](hyp:ε), the
+[explicit VC-subgraph cover bound](goal) is the least integer no smaller than
+$(16/\varepsilon)^{8(d+1)}$.
+
 Its constants are universal and intentionally non-optimized. -/
 noncomputable def vcSubgraphCoverBound (d : ℕ) (ε : ℝ) : ℕ :=
   Nat.ceil ((16 / ε) ^ (8 * (d + 1)))

@@ -80,11 +80,6 @@ export function openStacks(html: string): string[][] {
   return stacks;
 }
 
-/** Open-element depth at every offset. */
-export function openDepths(html: string): number[] {
-  return openStacks(html).map((s) => s.length);
-}
-
 /** Ranges of the block's display-math elements, depth-aware so a display whose
  *  payload contains nested spans is taken whole. */
 export function displayRanges(html: string): Array<[number, number]> {

@@ -27,28 +27,27 @@ structure ComplexRatInterval where
 
 namespace ComplexRatInterval
 
-/-- A complex number belongs to a rational rectangle when both coordinates
-belong to their intervals. -/
+/-- Given [a rational rectangle](hyp:I) and [a complex number](hyp:z), [rectangle membership](goal) means that both the real and imaginary coordinates of the number lie in their respective rational intervals. -/
 def Contains (I : ComplexRatInterval) (z : ℂ) : Prop :=
   I.re.Contains z.re ∧ I.im.Contains z.im
 
-/-- Coordinatewise inclusion is the refinement relation for complex rational rectangles. -/
+/-- Given [two rational rectangles in the complex plane](hyp:I,J), [the refinement relation](goal) holds exactly when each coordinate interval of the first is contained in the corresponding coordinate interval of the second. -/
 def Subinterval (I J : ComplexRatInterval) : Prop :=
   I.re.Subinterval J.re ∧ I.im.Subinterval J.im
 
-/-- Complex rectangle addition is rational interval addition in both coordinates. -/
+/-- For [two rational rectangles in the complex plane](hyp:I,J), [their sum rectangle](goal) is obtained by adding their real-coordinate intervals and their imaginary-coordinate intervals separately. -/
 def add (I J : ComplexRatInterval) : ComplexRatInterval :=
   ⟨I.re.add J.re, I.im.add J.im⟩
 
-/-- Multiplication by a rational scalar uses real interval multiplication in both coordinates. -/
+/-- For [a rational scalar](hyp:q) and [a rational rectangle in the complex plane](hyp:I), [the scalar-multiple rectangle](goal) is obtained by multiplying each coordinate interval by that scalar. -/
 def smulRat (q : ℚ) (I : ComplexRatInterval) : ComplexRatInterval :=
   ⟨(RatInterval.point q).mul I.re, (RatInterval.point q).mul I.im⟩
 
-/-- Coordinatewise widening by a nonnegative rational error produces a larger rectangle. -/
+/-- For [a rational rectangle in the complex plane](hyp:I), [a rational error allowance](hyp:e), and [the condition that this allowance is nonnegative](hyp:he), [the expanded rectangle](goal) widens each coordinate interval by that allowance. -/
 def expand (I : ComplexRatInterval) (e : ℚ) (he : 0 ≤ e) : ComplexRatInterval :=
   ⟨I.re.expand e he, I.im.expand e he⟩
 
-/-- The point rectangle at complex zero is the neutral enclosure for finite recursive sums. -/
+/-- [The zero rectangle](goal) is the rational rectangle whose real and imaginary coordinate intervals are both the singleton interval containing zero. -/
 def zero : ComplexRatInterval := ⟨RatInterval.point 0, RatInterval.point 0⟩
 
 /-- Complex rectangle addition encloses sums of enclosed complex numbers. -/
@@ -75,52 +74,49 @@ end ComplexRatInterval
 
 namespace CircleMesh
 
-/-- A uniform mesh node divides its whole-number position by the positive mesh
-size on the unit parameter interval. -/
+/-- For [a mesh size](hyp:n) and [a node index](hyp:k), [the mesh point](goal) is the real number $k/n$. -/
 noncomputable def meshPoint (n k : ℕ) : ℝ := (k : ℝ) / n
 
-/-- The standard once-around parameterization of a circle with a specified
-center and nonnegative radius. -/
+/-- For [a complex center](hyp:c), [a real radius](hyp:r), and [a real parameter](hyp:u), [the circle point](goal) is $c+r\exp(2\pi u i)$. -/
 noncomputable def circleMap (c : ℂ) (r : ℝ) (u : ℝ) : ℂ :=
   c + r * Complex.exp ((2 * Real.pi * u) * Complex.I)
 
-/-- The derivative of the standard unit-interval circle parameterization. -/
+/-- For [a real radius](hyp:r) and [a real parameter](hyp:u), [the circle tangent](goal) is $2\pi i r\exp(2\pi u i)$. -/
 noncomputable def circleTangent (r : ℝ) (u : ℝ) : ℂ :=
   ((2 * Real.pi) * Complex.I) * r * Complex.exp ((2 * Real.pi * u) * Complex.I)
 
-/-- The parameterized contour integrand is the function value times the circle tangent. -/
+/-- For [a complex-valued function](hyp:f), [a complex center](hyp:c), [a real radius](hyp:r), and [a real parameter](hyp:u), [the parameterized contour integrand](goal) is the value of the function at the corresponding circle point multiplied by the circle tangent there. -/
 noncomputable def circleIntegrand (f : ℂ → ℂ) (c : ℂ) (r : ℝ) (u : ℝ) : ℂ :=
   f (circleMap c r u) * circleTangent r u
 
-/-- The contour integral around a circle is represented deterministically as
-an interval integral over one unit-length parameter cycle. -/
+/-- For [a complex-valued function](hyp:f), [a complex center](hyp:c), and [a real radius](hyp:r), [the circle contour integral](goal) is the integral from $0$ to $1$ of the parameterized contour integrand. -/
 noncomputable def circleContourIntegral (f : ℂ → ℂ) (c : ℂ) (r : ℝ) : ℂ :=
   ∫ u in (0 : ℝ)..1, circleIntegrand f c r u
 
-/-- The minimum lower endpoint among the nodes from the initial node through
-the requested terminal node is
-computed by primitive recursion. -/
+/-- Given [a sequence of rational intervals](hyp:nodes), [the minimum lower endpoint up to a terminal node index](goal) is computed recursively: [at index zero it is the lower endpoint of the initial interval](step:1), and [at each successor index it is the smaller of the preceding result and the new lower endpoint](step:2).
+
+The value is computed by primitive recursion. -/
 def minLoUpTo (nodes : ℕ → RatInterval) : ℕ → ℚ
   | 0 => (nodes 0).lo
   | n + 1 => min (minLoUpTo nodes n) (nodes (n + 1)).lo
 
-/-- The minimum upper endpoint among the nodes from the initial node through
-the requested terminal node is
-computed by primitive recursion. -/
+/-- Given [a sequence of rational intervals](hyp:nodes), [the minimum upper endpoint up to a terminal node index](goal) is computed recursively: [at index zero it is the upper endpoint of the initial interval](step:1), and [at each successor index it is the smaller of the preceding result and the new upper endpoint](step:2).
+
+The value is computed by primitive recursion. -/
 def minHiUpTo (nodes : ℕ → RatInterval) : ℕ → ℚ
   | 0 => (nodes 0).hi
   | n + 1 => min (minHiUpTo nodes n) (nodes (n + 1)).hi
 
-/-- The maximum lower endpoint among the nodes from the initial node through
-the requested terminal node is
-computed by primitive recursion. -/
+/-- Given [a sequence of rational intervals](hyp:nodes), [the maximum lower endpoint up to a terminal node index](goal) is computed recursively: [at index zero it is the lower endpoint of the initial interval](step:1), and [at each successor index it is the larger of the preceding result and the new lower endpoint](step:2).
+
+The value is computed by primitive recursion. -/
 def maxLoUpTo (nodes : ℕ → RatInterval) : ℕ → ℚ
   | 0 => (nodes 0).lo
   | n + 1 => max (maxLoUpTo nodes n) (nodes (n + 1)).lo
 
-/-- The maximum upper endpoint among the nodes from the initial node through
-the requested terminal node is
-computed by primitive recursion. -/
+/-- Given [a sequence of rational intervals](hyp:nodes), [the maximum upper endpoint up to a terminal node index](goal) is computed recursively: [at index zero it is the upper endpoint of the initial interval](step:1), and [at each successor index it is the larger of the preceding result and the new upper endpoint](step:2).
+
+The value is computed by primitive recursion. -/
 def maxHiUpTo (nodes : ℕ → RatInterval) : ℕ → ℚ
   | 0 => (nodes 0).hi
   | n + 1 => max (maxHiUpTo nodes n) (nodes (n + 1)).hi
@@ -275,14 +271,14 @@ theorem continuousOn_of_lipschitz_bound {E : Type*} [NormedAddCommGroup E]
       rw [mul_div_assoc']
       exact (div_lt_iff₀ (by linarith : 0 < C + 1)).2 (by nlinarith)
 
-/-- The infimum enclosure widens the minimum node enclosure downward by one Lipschitz mesh step. -/
+/-- Given [a sequence of rational node intervals](hyp:nodes), [a rational Lipschitz constant](hyp:L), [the condition that the constant is nonnegative](hyp:hL), [a mesh size](hyp:n), and [the condition that the mesh size is positive](hyp:hn), [the infimum enclosure](goal) has lower endpoint equal to the minimum node lower endpoint minus $L/n$ and upper endpoint equal to the minimum node upper endpoint. -/
 def infEnclosure (nodes : ℕ → RatInterval) (L : ℚ) (hL : 0 ≤ L)
     (n : ℕ) (hn : 0 < n) : RatInterval :=
   ⟨minLoUpTo nodes n - L / n, minHiUpTo nodes n, by
     have hdiv : 0 ≤ L / (n : ℚ) := div_nonneg hL (by positivity)
     linarith [minEndpoints_le nodes n]⟩
 
-/-- The supremum enclosure widens the maximum node enclosure upward by one Lipschitz mesh step. -/
+/-- Given [a sequence of rational node intervals](hyp:nodes), [a rational Lipschitz constant](hyp:L), [the condition that the constant is nonnegative](hyp:hL), [a mesh size](hyp:n), and [the condition that the mesh size is positive](hyp:hn), [the supremum enclosure](goal) has lower endpoint equal to the maximum node lower endpoint and upper endpoint equal to the maximum node upper endpoint plus $L/n$. -/
 def supEnclosure (nodes : ℕ → RatInterval) (L : ℚ) (hL : 0 ≤ L)
     (n : ℕ) (hn : 0 < n) : RatInterval :=
   ⟨maxLoUpTo nodes n, maxHiUpTo nodes n + L / n, by

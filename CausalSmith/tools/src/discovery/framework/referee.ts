@@ -185,6 +185,13 @@ export async function runReferee(args: {
   verdictFile?: string;
   validate?: (json: Record<string, unknown>) => string | null;
 }): Promise<RefereeResult> {
+  const dispatchPrompt = args.verdictFile === undefined
+    ? args.prompt
+    : args.prompt.includes(args.verdictFile)
+      ? `${args.prompt}\n\nIMPORTANT OUTPUT-PATH SAFETY: ${args.verdictFile} is already an absolute path. ` +
+        "Write exactly that path; never prefix it with the cwd, repository directory name, or another copy of the path."
+      : `${args.prompt}\n\nIMPORTANT OUTPUT-PATH SAFETY: VERDICT_OUTPUT_PATH above is relative to the repository cwd. ` +
+        "Write exactly that relative path from the cwd; never prefix it with the repository directory name or another copy of the path.";
   let out: { stdout: string; stderr: string } | undefined;
   const requestedRunner = args.runner ?? "codex";
   let actualRunner: "codex" | "claude" = requestedRunner;
@@ -203,7 +210,7 @@ export async function runReferee(args: {
         label: args.label,
         promptSources: args.promptSources,
         input: {
-          prompt: args.prompt,
+          prompt: dispatchPrompt,
           cwd: args.ctx.repoRoot,
           model: args.model,
           // Filesystem/subagent tools stay denied regardless of `webSearch`: the grant is
@@ -239,7 +246,7 @@ export async function runReferee(args: {
         deps: args.deps,
         stage: args.stage,
         label: `${args.label} (Codex availability fallback)`,
-        prompt: `${CODEX_COLD_REFEREE_PREAMBLE}\n\n${args.prompt}`,
+        prompt: `${CODEX_COLD_REFEREE_PREAMBLE}\n\n${dispatchPrompt}`,
         promptSources: args.promptSources,
         model: fallback.model,
         reasoningEffort: fallback.reasoningEffort,
@@ -260,7 +267,7 @@ export async function runReferee(args: {
       deps: args.deps,
       stage: args.stage,
       label: args.label,
-      prompt: args.prompt,
+      prompt: dispatchPrompt,
       promptSources: args.promptSources,
       model: args.model,
       reasoningEffort: args.reasoningEffort,

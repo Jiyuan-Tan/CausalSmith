@@ -6,21 +6,37 @@ import { applyVerdictsToGraph } from "../graph/refresh.js";
 import { reviewTargets, convergenceTargets, incrementalSymbolRows } from "../graph/review_scope.js";
 import { renderDependencyBlock, type GraphSkeletonRow } from "../graph/skeleton.js";
 import { nodeIdToObjId } from "../graph/from_note.js";
-import { statementHash } from "../graph/hash.js";
 // Generic Lean-source utility (decl-snippet extractor) — a dependency-free leaf, shared with
 // causalsmith's P3 equivalence gate. The reviewer embeds the EXTRACTED Lean text per target so the
 // model compares actual code against the NL (instead of being handed decl names + file paths to
 // self-fetch for 25 targets — the skim that let the a1 over-claim slip through).
 import { extractDeclSnippet } from "../presentation/lean_extract.js";
-import { buildSymbolClusters, parseLeanDecls } from "./crosswalk.js";
+import { parseLeanDecls } from "./crosswalk.js";
+import {
+  buildLeanEvidenceIndex,
+  buildSymbolReviewRows,
+  dualClearedAt,
+  ledgerNodeTargets,
+  nodeConvergenceEvidence,
+  reviewerRubricHash,
+  symbolConvergenceEvidence,
+  symbolVerdictPasses,
+  type SymbolReviewRow,
+} from "./convergence_evidence.js";
 import { resolveCitedTarget, type CitedMatchTarget } from "./citation_fetch.js";
 import { PlanSchema, type Citation, type Plan } from "./plan/schema.js";
 import { CoreSchema } from "../discovery/core/schema.js";
 import { readTypedCore } from "../discovery/core/core_io.js";
-import { citedEvidenceHash, deliveryEvidenceHash } from "./delivery_audit.js";
+import { citedEvidenceHash, citedLeanEvidence, deliveryEvidenceHash } from "./delivery_audit.js";
 import { planPath, promptPath } from "../paths.js";
 import type { CitedReviewReceipt, DeliveryReviewReceipt } from "../types.js";
-import { isUndeliveredNode, type FormalizationGraph } from "../graph/types.js";
+import {
+  isUndeliveredNode,
+  type ConvergenceLedger,
+  type ConvergencePeer,
+  type ConvergenceReceipt,
+  type FormalizationGraph,
+} from "../graph/types.js";
 import type { CodexRunInput } from "../shared/codex.js";
 import type { ClaudeRunInput } from "../workers/claude.js";
 import { dispatchAgent, dispatchClaudeAgent } from "../framework/agent_dispatch.js";
@@ -35,7 +51,6 @@ import {
   resolveVerdictIds,
   symbolInScope,
   toVerdictArray,
-  verdictClass,
   type ReviewerOutput,
   type ReviewerResult,
 } from "./reviewer_verdicts.js";
@@ -61,34 +76,12 @@ function fencedExcerpt(text: string, max: number): string {
   return "~~~~~\n" + cut + marker + "\n~~~~~";
 }
 
-type BuiltSyntheticSymbolRow = { id: string; row: string; hash: string; empty: boolean };
-
-/** Build the complete synthetic symbol-review surface once. Callers validate identity on this
- * full surface before consulting incremental cache state, then reuse the same rows/hashes. */
-async function buildSyntheticSymbolRows(
-  leanDir: string,
-  symbols: { name?: string; space?: string; type?: string; role?: string }[],
-): Promise<BuiltSyntheticSymbolRow[]> {
-  const syms = symbols
-    .filter(symbolInScope)
-    .map((s) => ({ name: s.name as string, space: (s.space || s.type) as string }));
-  if (!syms.length) return [];
-  const clusters = await buildSymbolClusters(leanDir, syms);
-  return clusters.map((c) => {
-    const head = `- sym:${c.symbol} : ${c.space ?? "(no space)"}`;
-    const row = !c.members.length
-      ? `${head}\n    realized_by: (UNTAGGED — no \`@realizes ${c.symbol}\` tag found. There is NO member to verify against, so the ONLY valid verdict is \`untagged\`: NEVER \`matched\`/\`equivalent\` (that is "verified against nothing", even for a computed quantity — def-by-construction needs a TAGGED def member) and NEVER \`drift\` (a missing tag is a tagging gap, not a mismatch). In your \`note\`, you MUST NAME the specific Lean decl that realizes this symbol — SEARCH the Lean dir (Grep/lean-lsp) for the \`def\` that computes it, the structure field that carries it, or the theorem/def binder/parameter that introduces it, and state the file + decl name. The scaffolder tags EXACTLY what you name, so a vague note ("tag the decls realizing X") is unactionable.)`
-      : `${head}\n    realized_by (judge the CONJUNCTION of these):\n${c.members
-          .map((m) => `      • ${m.decl} (${m.declKind}) in ${m.file}${m.hint ? `  — ${m.hint}` : ""}`)
-          .join("\n")}`;
-    return { id: `sym:${c.symbol}`, row, hash: statementHash(row), empty: !c.members.length };
-  });
-}
-
 /**
  * The unified faithfulness gate over the dirty frontier. Reviews frozen-theorem statement drift + new assumptions in any frozen theorem's
  * uses-closure, writes verdicts back to node.review, and reports blocking findings / escalation.
- * `delta` mode runs a single reviewer; `convergence` runs dual (Codex + Claude) and merges.
+ * `delta` mode runs a single reviewer; `convergence` runs dual (Codex + Claude) and merges, and
+ * skips a target only when both peers already hold a `matched` receipt at its current evidence
+ * (see `convergence_evidence.ts`).
  */
 export async function runReviewer(args: {
   ctx: { repoRoot: string; qid: string; specialization: string };
@@ -113,8 +106,8 @@ export async function runReviewer(args: {
   debugLogDir?: string;
 }): Promise<ReviewerResult> {
   // Delta = the incremental dirty/not-cleared frontier; convergence (final F4) = the FULL frozen
-  // surface unconditionally, so the dual-model gate re-verifies headline claims even when delta
-  // reviews already marked them matched (otherwise it would run with empty targets, vacuously).
+  // surface, minus targets carrying a current dual receipt (filtered below, after the rubric is
+  // read). A single-model delta `matched` never clears a convergence target.
   const { statementTargets, assumptionTargets, definitionTargets, lemmaTargets, deliveryTargets } =
     args.mode === "convergence" ? convergenceTargets(args.graph) : reviewTargets(args.graph, args.dirty);
   const targetNodeIds = [...statementTargets, ...definitionTargets, ...assumptionTargets, ...lemmaTargets, ...deliveryTargets];
@@ -178,7 +171,7 @@ export async function runReviewer(args: {
       }
     }
   }
-  const targetRows = args.skeleton.filter((r) => targetObjIds.has(r.obj_id));
+  let targetRows = args.skeleton.filter((r) => targetObjIds.has(r.obj_id));
   for (const [objId, intendedNodeId] of requestedTargetOwners) {
     const rows = targetRows.filter((row) => row.obj_id === objId);
     if (rows.length === 0) {
@@ -212,10 +205,10 @@ export async function runReviewer(args: {
 
   // Build and identity-check the FULL synthetic surface before ANY no-work/cache return. The same
   // row payloads and hashes are reused below; prior passing symbolReview state cannot hide duplicate ids.
-  let allBuiltSymbolRows: BuiltSyntheticSymbolRow[] = [];
+  let allBuiltSymbolRows: SymbolReviewRow[] = [];
   if (typedCore && args.leanDir) {
     try {
-      allBuiltSymbolRows = await buildSyntheticSymbolRows(args.leanDir, typedCore.symbols ?? []);
+      allBuiltSymbolRows = await buildSymbolReviewRows(args.leanDir, typedCore.symbols ?? []);
     } catch (err) {
       return failReview(
         "missing-review-evidence",
@@ -223,7 +216,7 @@ export async function runReviewer(args: {
       );
     }
   }
-  const syntheticRowsById = new Map<string, BuiltSyntheticSymbolRow[]>();
+  const syntheticRowsById = new Map<string, SymbolReviewRow[]>();
   for (const row of allBuiltSymbolRows) {
     if (!syntheticRowsById.has(row.id)) syntheticRowsById.set(row.id, []);
     syntheticRowsById.get(row.id)!.push(row);
@@ -253,27 +246,82 @@ export async function runReviewer(args: {
       );
     }
   }
-  // Do NOT short-circuit past unfinished/corrupt symbol review state just because nodes are clean.
-  const incrementallyDirtySymbols = incrementalSymbolRows(
-    allBuiltSymbolRows,
-    args.graph.symbolReview,
-    args.mode,
-    (v) => verdictClass(v) === "pass" && !/untagged/i.test(String(v)),
-  );
-  const needsSymbolReview = incrementallyDirtySymbols.length > 0 || allBuiltSymbolRows.some((row) => row.empty);
-  // Nothing to review (delta pass, every frozen node matched AND every in-scope symbol tagged+matched)
-  // → return `ok` WITHOUT spending a model call. Convergence always has the frozen surface.
-  if (targetRows.length === 0 && !needsSymbolReview) {
-    return { graph: args.graph, ok: true, escalate: null, blocking: [], driftNotes: {}, substrateGates: [], deliveryReviewReceipts: [] };
-  }
-
   // repoRoot IS the CausalSmith package dir, so resolve via the shared promptPath helper
   // (tools/src/<phase>/prompts/<subfolder>/<name>). A hardcoded "CausalSmith/tools/..." prefix
-  // double-nests to CausalSmith/CausalSmith/... → file missing → base silently empty.
+  // double-nests to CausalSmith/CausalSmith/... → file missing → base silently empty. Read BEFORE
+  // the receipt check: a convergence receipt is bound to the rubric it was issued under.
   const promptFile = args.promptPath ?? promptPath(args.ctx.repoRoot, "proof_reviewer.txt");
   if (!existsSync(promptFile)) return failReview("missing-review-evidence", `reviewer prompt missing: ${promptFile}`);
   const base = await readFile(promptFile, "utf8");
   if (!base.trim()) return failReview("missing-review-evidence", `reviewer prompt is empty: ${promptFile}`);
+
+  // ── CONVERGENCE RECEIPTS ── A target is skipped only when it is delta-cleared (node `matched` /
+  // symbol passed at its current cluster) AND both peers hold a `matched` receipt at its CURRENT
+  // evidence hash. Everything else — including a target one peer passed and the other never saw —
+  // is dual-reviewed. Undelivered and `cited` targets keep their own state.json receipts and are
+  // never skipped here. Without a Lean dir no evidence can be bound, so nothing is skipped.
+  const ledger: ConvergenceLedger = args.graph.convergenceReview ?? {};
+  // Cited nodes require source-and-locator-bound receipts in state.json in addition to
+  // ordinary statement-equivalence receipts.  A discharged citation is a normal lemma in
+  // the graph, so it participates in ledgerNodeTargets; do not let the ordinary dual cache
+  // skip it and thereby erase its separate cited-review receipts on this F4 run.
+  const frozenCitedNodeIds = new Set(
+    (typedCore?.statements ?? []).filter((statement) => statement.status === "cited").map((statement) => statement.id),
+  );
+  const rubricHash = await reviewerRubricHash(base);
+  const evidenceIndex = args.mode === "convergence" && args.leanDir ? await buildLeanEvidenceIndex(args.leanDir) : null;
+  const ledgerNodeIds = new Set(args.mode === "convergence" ? ledgerNodeTargets(args.graph) : []);
+  /** graph id / `sym:` id → the evidence hash a receipt issued this round certifies. */
+  const evidenceByKey = new Map<string, string>();
+  const skippedNodeIds: string[] = [];
+  if (evidenceIndex) {
+    const statusById = new Map(args.graph.nodes.map((n) => [n.id, n.review.status] as const));
+    for (const id of ledgerNodeIds) {
+      const evidence = nodeConvergenceEvidence({ graph: args.graph, index: evidenceIndex, core: typedCore, rubricHash, nodeId: id });
+      evidenceByKey.set(id, evidence);
+      if (!frozenCitedNodeIds.has(id) && statusById.get(id) === "matched" && dualClearedAt(ledger, id, evidence)) {
+        skippedNodeIds.push(id);
+      }
+    }
+  }
+  const skippedObjIds = new Set(skippedNodeIds.map(nodeIdToObjId));
+  targetRows = targetRows.filter((r) => !skippedObjIds.has(r.obj_id));
+  // A skipped target is not an EXPECTED verdict: grading synthesizes a `drift` for every expected id
+  // the model did not answer, so leaving it in would turn the skip into a blocker.
+  for (const objId of skippedObjIds) targetObjIds.delete(objId);
+  // Do NOT short-circuit past unfinished/corrupt symbol review state just because nodes are clean.
+  const deltaDirtySymbols = incrementalSymbolRows(allBuiltSymbolRows, args.graph.symbolReview, symbolVerdictPasses);
+  let incrementallyDirtySymbols: SymbolReviewRow[];
+  const skippedSymbolIds: string[] = [];
+  if (args.mode === "delta") {
+    incrementallyDirtySymbols = deltaDirtySymbols;
+  } else {
+    const deltaDirty = new Set(deltaDirtySymbols.map((row) => row.id));
+    incrementallyDirtySymbols = allBuiltSymbolRows.filter((row) => {
+      if (row.empty) return false; // untagged rows join below, unconditionally
+      if (!evidenceIndex) return true;
+      const evidence = symbolConvergenceEvidence({ index: evidenceIndex, rubricHash, row });
+      evidenceByKey.set(row.id, evidence);
+      if (deltaDirty.has(row.id) || !dualClearedAt(ledger, row.id, evidence)) return true;
+      skippedSymbolIds.push(row.id);
+      return false;
+    });
+  }
+  if (args.mode === "convergence") {
+    const skipped = skippedNodeIds.length + skippedSymbolIds.length;
+    const reviewing = targetRows.length + incrementallyDirtySymbols.length + allBuiltSymbolRows.filter((row) => row.empty).length;
+    console.warn(
+      `[f4] convergence: ${skipped} target(s) hold current dual receipts and are skipped` +
+        (skipped ? ` (${[...skippedNodeIds, ...skippedSymbolIds].join(", ")})` : "") +
+        `; reviewing ${reviewing}`,
+    );
+  }
+  const needsSymbolReview = incrementallyDirtySymbols.length > 0 || allBuiltSymbolRows.some((row) => row.empty);
+  // Nothing to review (every frozen node cleared AND every in-scope symbol tagged+cleared) → return
+  // `ok` WITHOUT spending a model call.
+  if (targetRows.length === 0 && !needsSymbolReview) {
+    return { graph: args.graph, ok: true, escalate: null, blocking: [], driftNotes: {}, substrateGates: [], deliveryReviewReceipts: [] };
+  }
 
   // Embed each target's NL (F1 note block, from the graph) AND its EXTRACTED Lean text side by side,
   // exactly like causalsmith's P3 equivalence gate — so the model compares real code against the NL
@@ -308,9 +356,9 @@ export async function runReviewer(args: {
     for (const arr of fileDeclLines.values()) arr.sort((a, b) => a - b);
   }
   // CITED match targets: load the F1 plan, find `gate_class:"cited"` nodes, and resolve each against
-  // its `cite:` source (verbatim-first, best-effort arXiv fetch). These nodes are `kind:"assumption"`
-  // defs, so they review IN THE ASSUMPTION TIER — the cited block below is appended to their target
-  // prompt so the same shallow-tier call that audits assumptions also runs the source-match.
+  // its `cite:` source (verbatim-first, best-effort arXiv fetch). Logical cited assumptions and
+  // non-Prop bibliographic metadata defs both review IN THE ASSUMPTION TIER; the cited block below
+  // distinguishes their semantic contracts while using the same source-match machinery.
   const citedObjIds = new Set(
     args.graph.nodes
       .filter((node) => node.gate?.gate_class === "cited" && !isUndeliveredNode(node))
@@ -319,6 +367,8 @@ export async function runReviewer(args: {
   const citedByObjId = new Map<string, {
     nodeId: string;
     leanName: string;
+    carrierKind: "proposition" | "metadata";
+    citationState: "deferred" | "discharged";
     target: CitedMatchTarget;
     citation: Citation;
   }>();
@@ -331,21 +381,51 @@ export async function runReviewer(args: {
         citedPlan = parsed.data;
         const citById = new Map(parsed.data.citations.map((c) => [c.id, c] as const));
         for (const [id, n] of Object.entries(parsed.data.nodes)) {
-          if (n.gate_class !== "cited" || n.delivery_status === "undelivered" || !n.source) continue;
+          const frozenStatement = typedCore?.statements.find((statement) => statement.id === id);
+          const isFrozenCited = frozenStatement?.status === "cited";
+          const isDeferred = n.gate_class === "cited";
+          const isDischarged = n.citation_discharged === true &&
+            (n.lean_kind === "lemma" || n.lean_kind === "theorem") && n.disposition !== "reuse";
+          if ((!isFrozenCited && !isDeferred) || (!isDeferred && !isDischarged) || n.delivery_status === "undelivered" || !n.source) continue;
           const cit = citById.get(n.source);
           // Key by the obj-id alias — skeleton rows are keyed by `nodeIdToObjId(id)`, not the raw
           // plan/core node id, so we must match the same form (else the cited block never injects).
-          if (cit) citedByObjId.set(nodeIdToObjId(id), {
+          const frozenCarrier = frozenStatement?.source?.carrier;
+          if (cit) {
+            citedObjIds.add(nodeIdToObjId(id));
+            citedByObjId.set(nodeIdToObjId(id), {
             nodeId: id,
             leanName: n.lean_name,
+            // Production runs take the classification from the frozen typed core. The
+            // plan fallback exists only for legacy/unit fixtures lacking that statement;
+            // P3/P9 reject any production plan that disagrees with source.carrier.
+            carrierKind: frozenStatement
+              ? frozenCarrier === "bibliographic-metadata" ? "metadata" : "proposition"
+              : n.lean_kind === "def" ? "metadata" : "proposition",
+            citationState: isDischarged ? "discharged" : "deferred",
             target: await resolveCitedTarget(cit),
             citation: cit,
-          });
+            });
+          }
         }
       }
     }
   } catch {
     /* no plan / parse failure → no cited augmentation; gated behavior is unchanged */
+  }
+  let citedLeanEvidenceByNodeId: Record<string, string> = {};
+  if (citedByObjId.size > 0) {
+    if (!citedPlan || !typedCore || !args.leanDir) {
+      return failReview("missing-review-evidence", "cited review requires typed core, plan, and current Lean directory");
+    }
+    try {
+      citedLeanEvidenceByNodeId = await citedLeanEvidence(args.leanDir, citedPlan, args.graph);
+    } catch (err) {
+      return failReview(
+        "missing-review-evidence",
+        `cited Lean evidence could not be hashed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
   }
   // GATED substrate-gate EXEMPTION: a from-note theorem/lemma/def whose Lean statement carries a
   // registered `gate_class:"gated"` node as a hypothesis is a sorry-free CONDITIONAL on disclosed
@@ -369,6 +449,33 @@ export async function runReviewer(args: {
         list.push({ objId: gObjId, decl: g.lean?.decl_name ?? null, nl: g.nl?.statement?.trim() ?? "" });
       }
       gatedByObjId.set(consumerObjId, list);
+    }
+  }
+  // CITED logical-dependency closure, same shape as the gated map above. A consumer that carries an
+  // independently source-verified `gate_class:"cited"` proposition as a hypothesis is a sorry-free
+  // CONDITIONAL on a published result, not a vacuous or laundered claim. Without this the reviewer
+  // sees only the bare binder and reads it as an added premise — and did so INCONSISTENTLY, accepting
+  // a cited hypothesis on a direct consumer then rejecting the identical threading one level deeper.
+  const citedDepsByObjId = new Map<string, { objId: string; decl: string | null; nl: string }[]>();
+  {
+    const nodeById = new Map(args.graph.nodes.map((n) => [n.id, n] as const));
+    for (const e of args.graph.edges) {
+      if (e.kind !== "proof-uses" && e.kind !== "statement-uses") continue;
+      const g = nodeById.get(e.to);
+      if (!g || g.gate?.gate_class !== "cited") continue;
+      // A bibliographic-metadata carrier RECORDS a citation; it is never a proof premise (the
+      // carrier rule below emits derived + cited-underspecified if one is used as a hypothesis).
+      // Exempting it here would cancel that guard on the consumer side, so it never enters.
+      if (typedCore?.statements.find((s) => s.id === g.id)?.source?.carrier === "bibliographic-metadata") continue;
+      // Undelivered nodes get no source-match receipt, so nothing certifies them as verified.
+      if (isUndeliveredNode(g)) continue;
+      const consumerObjId = nodeIdToObjId(e.from);
+      const gObjId = nodeIdToObjId(g.id);
+      const list = citedDepsByObjId.get(consumerObjId) ?? [];
+      if (!list.some((x) => x.objId === gObjId)) {
+        list.push({ objId: gObjId, decl: g.lean?.decl_name ?? null, nl: g.nl?.statement?.trim() ?? "" });
+      }
+      citedDepsByObjId.set(consumerObjId, list);
     }
   }
   // UNDELIVERED ROLE AUDIT (F4 only): omission legality is a semantic/presentation judgment, not a
@@ -510,15 +617,30 @@ export async function runReviewer(args: {
             "\n```";
         }
       }
-      // CITED nodes: append the source-match block. This node is ASSUMED (not proven); the task is to
-      // verify the Lean def faithfully ENCODES the cited statement of record, and emit a `cited-*`
-      // verdict into substrate_gates. Runs in this same assumption-tier call.
+      // CITED nodes: append the source-match block. A logical carrier may be a deferred assumption
+      // or a locally discharged theorem; metadata is a closed record and never a premise. Every
+      // state remains source-bound and emits a `cited-*` receipt.
       const cited = citedByObjId.get(r.obj_id);
       const okStatus = cited?.target.mode === "fetched" ? "cited-verified" : "cited-verified-attested";
+      const carrierRule = cited?.carrierKind === "metadata"
+        ? [
+            `CARRIER CONTRACT — BIBLIOGRAPHIC METADATA (frozen source.carrier:"bibliographic-metadata"): the Lean declaration is intentionally a closed NON-PROP payload, not an assumed proposition and not a theorem hypothesis.`,
+            `INDEPENDENT CLASSIFICATION CHECK: verify the frozen node itself is only scope/provenance/delivery metadata. If it asserts a bound, rate, equality, existence, causal/quantitative result, or another truth-valued mathematical fact used as a proof premise, emit derived + cited-underspecified and escalate note-wrong; never apply this exemption merely because the plan says def.`,
+            `Judge equivalence as exact semantic coverage: every frozen scope/provenance/delivery clause must appear in the payload with the same domain, direction, and qualification, and the cited source must support the positive source claims. A descriptive source-boundary clause remains bibliographic metadata.`,
+            `Do NOT demand that this payload logically imply a proposition, formalize the cited paper's model, acquire a Prop-valued premise, or be supplemented/replaced by a stronger quantitative theorem. Flag mismatch/underspecification if a clause is missing, altered, open to arbitrary caller input, unsupported by the source, or used as a logical premise.`,
+          ].join("\n")
+        : cited?.citationState === "discharged"
+          ? [
+            `CARRIER CONTRACT — LOCALLY DISCHARGED LOGICAL CITATION: this is a proved, non-gated lemma/theorem retaining frozen cited provenance. Require logical equivalence to the frozen node, verify the source implication, and judge the current theorem statement—not merely proof completion. Do not call it an assumption, content-gate, or needs-substrate.`,
+          ].join("\n")
+          : [
+            `CARRIER CONTRACT — LOGICAL CITED ASSUMPTION (frozen source.carrier:"logical-claim"): this Prop is ASSUMED, never proven here. Require logical equivalence to the frozen node plus the existing self-containedness and source-implication checks.`,
+          ].join("\n");
       const citedBlock = cited
         ? [
             "",
-            `CITED SOURCE TO MATCH — this is a \`gate_class:"cited"\` node: it is ASSUMED, never proven here. Verify the LEAN def above faithfully ENCODES the statement of record below (${cited.citation.authors} ${cited.citation.year}, ${cited.citation.id} @ ${cited.citation.locator}):`,
+            `CITED SOURCE TO MATCH — this is a ${cited.citationState === "discharged" ? "locally discharged citation with retained provenance" : "deferred `gate_class:\"cited\"` carrier"}. Verify the LEAN declaration above faithfully ${cited.carrierKind === "metadata" ? "RECORDS" : "ENCODES"} the frozen node and statement of record below (${cited.citation.authors} ${cited.citation.year}, ${cited.citation.id} @ ${cited.citation.locator}):`,
+            carrierRule,
             cited.target.mode === "unverifiable"
               ? `(no fetchable source and no verbatim statement — emit check_status "cited-source-unverifiable")`
               : cited.target.mode === "fetched"
@@ -529,8 +651,12 @@ export async function runReviewer(args: {
                 ? `(EXCERPT of the fetched paper's TeX SOURCE — theorem numbers are usually auto-generated, so "${cited.citation.locator}" may not appear literally; locate the statement of record by its content. If it is NOT present in this excerpt, emit check_status "cited-source-unverifiable" — do NOT infer a verdict from surrounding text.)\n` +
                   fencedExcerpt(cited.target.text, 12000)
                 : fencedExcerpt(cited.target.text, 4000),
-            `SELF-CONTAINEDNESS: the def must ENCODE every distinguishing hypothesis the cited statement relies on — in particular any regularity/model class that separates it from this paper's own class — as a defined predicate or explicit binder, NOT as a free abstract variable nor an undefined class named only in prose/the docstring. A cited claim about "the risk over class X" whose X is not a defined object is not self-contained.`,
-            `Emit ONE substrate_gates entry: { name:"${r.lean?.decl ?? r.obj_id}", gate_class:"cited", source:{cite_id:"${cited.citation.id}", locator:"${cited.citation.locator}"}, check_status }. check_status = "${okStatus}" if the def faithfully AND self-containedly encodes the statement; "cited-mismatch" if the quantifiers/constants/direction differ or it is vacuous; "cited-underspecified" if a distinguishing hypothesis/class is named but not encoded (a free variable or undefined class). Both cited-mismatch and cited-underspecified BLOCK banking.`,
+            cited.carrierKind === "metadata"
+              ? `CLOSEDNESS: the metadata payload must be fixed by the declaration itself. Parameters are allowed only when they select or instantiate recorded metadata, never when they let a caller supply the claimed clauses.`
+              : `SELF-CONTAINEDNESS: the declaration must ENCODE every distinguishing hypothesis the cited statement relies on — in particular any regularity/model class that separates it from this paper's own class — as a defined predicate or explicit binder, NOT as a free abstract variable nor an undefined class named only in prose/the docstring. A cited claim about "the risk over class X" whose X is not a defined object is not self-contained.`,
+            cited.carrierKind === "metadata"
+              ? `Emit ONE substrate_gates entry: { name:"${r.lean?.decl ?? r.obj_id}", gate_class:"cited", source:{cite_id:"${cited.citation.id}", locator:"${cited.citation.locator}"}, check_status }. check_status = "${okStatus}" if the def closedly and faithfully records every source-supported metadata clause; "cited-mismatch" if a clause, domain, or qualification differs or is unsupported; "cited-underspecified" if a clause is missing or caller-supplied rather than fixed by the declaration. Both cited-mismatch and cited-underspecified BLOCK banking.`
+              : `Emit ONE substrate_gates receipt entry: { name:"${r.lean?.decl ?? r.obj_id}", gate_class:"cited", source:{cite_id:"${cited.citation.id}", locator:"${cited.citation.locator}"}, check_status }. Here gate_class:"cited" labels source provenance in the receipt even when the plan node is locally discharged. check_status = "${okStatus}" if the declaration faithfully AND self-containedly encodes the statement; "cited-mismatch" if the quantifiers/constants/direction differ or it is vacuous; "cited-underspecified" if a distinguishing hypothesis/class is named but not encoded. Both cited-mismatch and cited-underspecified BLOCK banking.`,
           ].join("\n")
         : "";
       // GATED EXEMPTION block: list this target's registered `gated` substrate-gate hypotheses and
@@ -549,6 +675,23 @@ export async function runReviewer(args: {
             ...gatedDeps.map((d) => `  • ${d.decl ?? d.objId}${d.nl ? ` — ${d.nl}` : ""}`),
           ].join("\n")
         : "";
+      // CITED DEPENDENCY block: this target's independently source-verified cited hypotheses. Judge
+      // the consumer MODULO exactly these, including where they appear as antecedents nested inside a
+      // named conclusion predicate. A source-mismatched carrier, or a paper-owned bridge that is
+      // merely assumed rather than proved, is still a rejection — this exempts verified citations only.
+      const citedDeps = citedDepsByObjId.get(r.obj_id) ?? [];
+      const citedDepBlock = citedDeps.length
+        ? [
+            "",
+            "CITED LOGICAL DEPENDENCIES — the Lean statement above is a sorry-free CONDITIONAL on the",
+            "independently source-verified published result(s) below. EXEMPT them: judge the statement MODULO",
+            "exactly these propositions, INCLUDING where they occur as antecedents nested inside a named",
+            "conclusion predicate. A source-matched cited carrier may remain an explicit hypothesis and does",
+            "NOT make the consumer vacuous, laundered, or an added premise. Still REJECT a source-mismatched",
+            "carrier, and still REJECT any paper-owned bridge or result that is merely assumed, not proved.",
+            ...citedDeps.map((d) => `  • ${d.decl ?? d.objId}${d.nl ? ` — ${d.nl}` : ""}`),
+          ].join("\n")
+        : "";
       return [
         `### ${r.obj_id} (${r.kind}) — Lean anchor: ${r.lean ? `\`${r.lean.decl}\` in ${r.lean.file}` : "(unlinked)"}`,
         `NL (paper statement — the F1 note block; this is what a reader sees):`,
@@ -559,6 +702,7 @@ export async function runReviewer(args: {
         "```",
         referencedBlock,
         citedBlock,
+        citedDepBlock,
         gatedBlock,
       ].filter(Boolean).join("\n");
     }),
@@ -653,6 +797,25 @@ export async function runReviewer(args: {
       idAliases.set(alias, canonicalByNodeId.get(alias)!);
       continue;
     }
+    // A stamped from-note obj_id is likewise authoritative over a legacy-normalized alias
+    // exposed only by an agent-introduced helper. This occurs naturally for setup block `S1`
+    // (stamped `S-1`) beside a helper such as `s1`: the helper's legacy spelling must not make
+    // the frozen setup target unreviewable. Competing from-note owners remain ambiguous.
+    const stampedFromNote = args.graph.nodes.filter(
+      (n) => n.provenance === "from-note" && n.obj_id === alias,
+    );
+    const nonStampedOwners = [...owners].filter(
+      (id) => !stampedFromNote.some((n) => n.id === id),
+    );
+    if (
+      stampedFromNote.length === 1
+      && nonStampedOwners.every(
+        (id) => args.graph.nodes.find((n) => n.id === id)?.provenance === "agent-introduced",
+      )
+    ) {
+      idAliases.set(alias, canonicalByNodeId.get(stampedFromNote[0].id)!);
+      continue;
+    }
     if (owners.size !== 1) {
       return failReview(
         "ambiguous-review-target-alias",
@@ -715,21 +878,29 @@ export async function runReviewer(args: {
     [header, "", symbolClusterHeader, rows.map((r) => r.row).join("\n"), "", "Return ONLY the JSON object specified in the prompt."]
       .filter(Boolean).join("\n");
 
-  // Run one tier unit. F2.5 is always Codex-only. F4 (convergence) dual-reviews EVERY unit
-  // with the Claude peer — the `dualReview` flag on the unit structs records the intended
-  // per-tier policy but is deliberately not enforced yet (see `_dualReview` below).
-  // A parse failure surfaces a gate-level escalate (no
-  // obj_id → routes to the orchestrator, not an F2 re-scaffold of one object); the other units'
-  // verdicts still apply.
+  // Receipts issued THIS round, keyed like the ledger (graph id / `sym:` id). Written per peer at
+  // the grading boundary; folded into `graph.convergenceReview` after the wave reduce.
+  const receiptsThisRound = new Map<string, Partial<Record<ConvergencePeer, ConvergenceReceipt>>>();
+  const ledgerKeyByObjId = new Map<string, string>();
+  for (const id of ledgerNodeIds) ledgerKeyByObjId.set(nodeIdToObjId(id), id);
+  for (const key of evidenceByKey.keys()) if (key.startsWith("sym:")) ledgerKeyByObjId.set(key, key);
+  const rawStatementVerdict = (peer: ReviewerOutput, objId: string): string => {
+    for (const v of toVerdictArray(peer.statement_verdicts, recognizedIds)) {
+      const rec = v as Record<string, unknown>;
+      if (normalizeReviewerObjId(rec.obj_id ?? rec.id ?? rec.object ?? rec.target, recognizedIds) === objId) {
+        return String(rec.verdict ?? "").trim();
+      }
+    }
+    return "";
+  };
+
+  // Run one tier unit. F2.5 is always Codex-only. F4 (convergence) dual-reviews EVERY unit with
+  // the Claude peer. A parse failure surfaces a gate-level escalate (no obj_id → routes to the
+  // orchestrator, not an F2 re-scaffold of one object); the other units' verdicts still apply.
   const runUnit = async (
     label: string,
     prompt: string,
     effort: "high" | "medium",
-    // Reserved, deliberately unused: EVERY convergence unit is dual-reviewed today (the tested
-    // contract — see "convergence keeps Claude" in proof_reviewer.test.ts). If F4 credit cost
-    // ever demands shedding the Claude peer for routine lemma/symbol tiers, gate on this flag —
-    // the unit structs below already carry the intended per-tier values.
-    _dualReview: boolean,
     expectedIds: string[],
   ): Promise<ReviewerOutput> => {
     // multiAgent:false — this reviewer fans out ×REVIEW_CONCURRENCY (F2.5/F4/convergence);
@@ -801,6 +972,20 @@ export async function runReviewer(args: {
         const forced = graded.rows
           .filter((row) => row.verdict === "drift")
           .map((row) => ({ obj_id: row.obj_id, verdict: "drift" as const, note: row.note }));
+        if (args.mode === "convergence") {
+          for (const objId of expectedIds) {
+            const key = ledgerKeyByObjId.get(objId);
+            const evidence = key ? evidenceByKey.get(key) : undefined;
+            if (!key || !evidence) continue;
+            const row = graded.rows.find((candidate) => candidate.obj_id === objId);
+            // A symbol's raw `untagged` grades as a pass class but certifies nothing.
+            const pass = row?.verdict === "equivalent" &&
+              (!key.startsWith("sym:") || symbolVerdictPasses(rawStatementVerdict(peer, objId)));
+            const entry = receiptsThisRound.get(key) ?? {};
+            entry[reviewer] = { verdict: pass ? "matched" : "drift", evidence_hash: evidence, ...(row?.note ? { note: row.note } : {}) };
+            receiptsThisRound.set(key, entry);
+          }
+        }
         for (const objId of expectedIds.filter((id) => deliveryObjIds.has(id))) {
           const row = graded.rows.find((candidate) => candidate.obj_id === objId);
           const nodeId = graphIdByObjId.get(objId);
@@ -843,7 +1028,9 @@ export async function runReviewer(args: {
               locator: cited.citation.locator,
               // Rebound to the post-verdict graph before returning; this provisional value is
               // never persisted and exists only to keep the receipt structurally complete.
-              evidence_hash: citedEvidenceHash(citedPlan!, args.graph, cited.nodeId),
+              evidence_hash: citedEvidenceHash(
+                typedCore!, citedPlan!, args.graph, cited.nodeId, citedLeanEvidenceByNodeId[cited.nodeId],
+              ),
             });
           }
           const acceptable = status === "cited-verified" || status === "cited-verified-attested" || status === "cited-source-unverifiable";
@@ -918,18 +1105,18 @@ export async function runReviewer(args: {
   const SHALLOW_BATCH = 5;
 
   // ── WAVE 1 — batch pre-audit (lemmas high@≤3; defs/assumptions + symbols medium@≤5) ──
-  const batchUnits: { label: string; prompt: string; effort: "high" | "medium"; dualReview: boolean; expectedIds: string[] }[] = [
+  const batchUnits: { label: string; prompt: string; effort: "high" | "medium"; expectedIds: string[] }[] = [
     ...groupsOf(lemmaItems, LEMMA_BATCH).map((g) => ({
-      label: `lemma-batch[${g.map((x) => x.row.obj_id).join(",")}]`, prompt: targetPrompt(g), effort: "high" as const, dualReview: false, expectedIds: g.map((x) => x.row.obj_id),
+      label: `lemma-batch[${g.map((x) => x.row.obj_id).join(",")}]`, prompt: targetPrompt(g), effort: "high" as const, expectedIds: g.map((x) => x.row.obj_id),
     })),
     ...groupsOf(shallowItems, SHALLOW_BATCH).map((g) => ({
-      label: `batch[${g.map((x) => x.row.obj_id).join(",")}]`, prompt: targetPrompt(g), effort: "medium" as const, dualReview: true, expectedIds: g.map((x) => x.row.obj_id),
+      label: `batch[${g.map((x) => x.row.obj_id).join(",")}]`, prompt: targetPrompt(g), effort: "medium" as const, expectedIds: g.map((x) => x.row.obj_id),
     })),
     ...groupsOf(symbolRows, SHALLOW_BATCH).map((g) => ({
-      label: `sym-batch[${g.map((x) => x.id).join(",")}]`, prompt: symbolPrompt(g), effort: "medium" as const, dualReview: false, expectedIds: g.map((x) => x.id),
+      label: `sym-batch[${g.map((x) => x.id).join(",")}]`, prompt: symbolPrompt(g), effort: "medium" as const, expectedIds: g.map((x) => x.id),
     })),
   ];
-  const batchOut = (await mapLimit(batchUnits, REVIEW_CONCURRENCY, (u) => runUnit(u.label, u.prompt, u.effort, u.dualReview, u.expectedIds))).reduce(
+  const batchOut = (await mapLimit(batchUnits, REVIEW_CONCURRENCY, (u) => runUnit(u.label, u.prompt, u.effort, u.expectedIds))).reduce(
     mergeOutputs,
     EMPTY,
   );
@@ -944,14 +1131,14 @@ export async function runReviewer(args: {
 
   // ── WAVE 2 — individual HIGH-effort audits: every theorem, plus any lemma / def / assumption /
   // symbol the batch did not cover (singletons, drops, parse failures). The faithfulness floor. ──
-  const indivUnits: { label: string; prompt: string; dualReview: boolean; expectedIds: string[] }[] = [
-    ...deliveryItems.map((t) => ({ label: t.row.obj_id, prompt: targetPrompt([t]), dualReview: true, expectedIds: [t.row.obj_id] })),
-    ...theoremItems.map((t) => ({ label: t.row.obj_id, prompt: targetPrompt([t]), dualReview: true, expectedIds: [t.row.obj_id] })),
-    ...lemmaItems.filter((t) => !covered.has(t.row.obj_id)).map((t) => ({ label: t.row.obj_id, prompt: targetPrompt([t]), dualReview: false, expectedIds: [t.row.obj_id] })),
-    ...shallowItems.filter((t) => !covered.has(t.row.obj_id)).map((t) => ({ label: t.row.obj_id, prompt: targetPrompt([t]), dualReview: true, expectedIds: [t.row.obj_id] })),
-    ...symbolRows.filter((s) => !covered.has(s.id)).map((s) => ({ label: s.id, prompt: symbolPrompt([s]), dualReview: false, expectedIds: [s.id] })),
+  const indivUnits: { label: string; prompt: string; expectedIds: string[] }[] = [
+    ...deliveryItems.map((t) => ({ label: t.row.obj_id, prompt: targetPrompt([t]), expectedIds: [t.row.obj_id] })),
+    ...theoremItems.map((t) => ({ label: t.row.obj_id, prompt: targetPrompt([t]), expectedIds: [t.row.obj_id] })),
+    ...lemmaItems.filter((t) => !covered.has(t.row.obj_id)).map((t) => ({ label: t.row.obj_id, prompt: targetPrompt([t]), expectedIds: [t.row.obj_id] })),
+    ...shallowItems.filter((t) => !covered.has(t.row.obj_id)).map((t) => ({ label: t.row.obj_id, prompt: targetPrompt([t]), expectedIds: [t.row.obj_id] })),
+    ...symbolRows.filter((s) => !covered.has(s.id)).map((s) => ({ label: s.id, prompt: symbolPrompt([s]), expectedIds: [s.id] })),
   ];
-  const indivOuts = await mapLimit(indivUnits, REVIEW_CONCURRENCY, (u) => runUnit(u.label, u.prompt, "high", u.dualReview, u.expectedIds));
+  const indivOuts = await mapLimit(indivUnits, REVIEW_CONCURRENCY, (u) => runUnit(u.label, u.prompt, "high", u.expectedIds));
 
   // Fold batch + individual outputs into one. `mergeOutputs` keys by obj_id, so units accumulate
   // (no collisions); `escalate` resolves to the FIRST non-null across the frontier.
@@ -1003,6 +1190,33 @@ export async function runReviewer(args: {
   if (Object.keys(symUpdates).length) {
     graph = { ...graph, symbolReview: { ...(graph.symbolReview ?? {}), ...symUpdates } };
   }
+  if (args.mode === "convergence") {
+    // Fold this round's receipts into the ledger, keyed by the governed surface: a reviewed target
+    // REPLACES its prior entry (never merges one fresh peer with one stale peer), a skipped target
+    // keeps the receipts that cleared it, and anything no longer on the surface is dropped.
+    // Coverage is fail-closed: a governed target that was reviewed but holds no receipt from some
+    // peer (a peer dispatch that never reached grading) cannot be certified by this round.
+    const skipped = new Set([...skippedNodeIds, ...skippedSymbolIds]);
+    const ledgerOut: ConvergenceLedger = {};
+    const uncertified: string[] = [];
+    for (const key of evidenceByKey.keys()) {
+      if (skipped.has(key)) {
+        ledgerOut[key] = ledger[key];
+        continue;
+      }
+      const fresh = receiptsThisRound.get(key);
+      if (fresh?.codex && fresh?.claude) ledgerOut[key] = fresh;
+      else uncertified.push(key);
+    }
+    if (uncertified.length > 0 && !graded.escalate) {
+      return failReview(
+        "convergence-coverage",
+        `F4 issued no dual receipt for: ${uncertified.join(", ")}`,
+        uncertified.map((key) => (key.startsWith("sym:") ? key : nodeIdToObjId(key))),
+      );
+    }
+    graph = { ...graph, convergenceReview: ledgerOut };
+  }
   return {
     graph,
     ok: graded.blocking.length === 0 && !graded.escalate,
@@ -1031,7 +1245,9 @@ export async function runReviewer(args: {
     citedReviewReceipts: [...new Map(
       citedReviewReceipts.map((receipt) => {
         const rebound = citedPlan
-          ? { ...receipt, evidence_hash: citedEvidenceHash(citedPlan, graph, receipt.node_id) }
+          ? { ...receipt, evidence_hash: citedEvidenceHash(
+              typedCore!, citedPlan, graph, receipt.node_id, citedLeanEvidenceByNodeId[receipt.node_id],
+            ) }
           : receipt;
         return [`${receipt.node_id}:${receipt.reviewer}`, rebound] as const;
       }),

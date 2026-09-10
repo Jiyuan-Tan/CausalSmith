@@ -44,8 +44,11 @@ variable {Ω₁ : Type*} [Fintype Ω₁]
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 variable {α : ι → Type*} [∀ i, Fintype (α i)]
 
-/-- Generic conditional composition of a first-stage finite design with a finite second-stage
-design chosen after observing the first-stage outcome. -/
+/-- For a finite [space of first-stage outcomes](hyp:Ω₁), a finite [space of second-stage
+outcomes](hyp:Ω₂), [a probability design for the first stage](hyp:D₁), and [a rule assigning a
+probability design for the second stage after each first-stage outcome](hyp:D₂), the [compound
+two-stage design](goal) assigns a pair of outcomes the product of its first-stage probability and
+its conditional second-stage probability. -/
 def compoundCore {Ω₂ : Type*} [Fintype Ω₂]
     (D₁ : FiniteDesign Ω₁) (D₂ : Ω₁ → FiniteDesign Ω₂) : FiniteDesign (Ω₁ × Ω₂) where
   p sw := D₁.p sw.1 * (D₂ sw.1).p sw.2
@@ -58,8 +61,11 @@ def compoundCore {Ω₂ : Type*} [Fintype Ω₂]
       rw [← Finset.mul_sum, (D₂ s).p_sum, mul_one]
     rw [Finset.sum_congr rfl (fun s _ => hs s), D₁.p_sum]
 
-/-- The **compound (two-stage) design**: stage-1 design `D₁` on `Ω₁`, then, conditionally on
-the stage-1 outcome `s`, the independent within-coordinate designs `D₂ s i`. -/
+/-- For a finite [space of first-stage outcomes](hyp:Ω₁), a finite [index set for second-stage
+coordinates](hyp:ι), a finite [outcome space for each coordinate](hyp:α), [a probability design
+for the first stage](hyp:D₁), and [a rule assigning, after each first-stage outcome, a design to
+each coordinate](hyp:D₂), the [compound two-stage design](goal) first draws the first-stage
+outcome and then independently draws every coordinate from its conditional design. -/
 def compound (D₁ : FiniteDesign Ω₁) (D₂ : Ω₁ → ∀ i, FiniteDesign (α i)) :
     FiniteDesign (Ω₁ × ∀ i, α i) :=
   compoundCore D₁ (fun s => prodDesign (D₂ s))

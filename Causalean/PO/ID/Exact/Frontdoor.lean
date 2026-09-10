@@ -71,22 +71,22 @@ variable {P : POSystem} {β : Type*}
 
 /-! ### `POVar` wrappers -/
 
-/-- The treatment node is packaged as a binary potential-outcome variable. -/
+/-- For [a frontdoor system](hyp:S), the [binary treatment potential-outcome variable](goal) is its treatment node equipped with its binary value representation. -/
 def aVar : POVar P Bool := ⟨S.A, S.hAbool⟩
-/-- The mediator node is packaged as a potential-outcome variable with finite mediator values. -/
+/-- For [a frontdoor system](hyp:S), the [mediator potential-outcome variable](goal) is its mediator node equipped with its finite mediator-value representation. -/
 def mVar : POVar P β    := ⟨S.M, S.hMequiv⟩
-/-- The outcome node is packaged as a real-valued potential-outcome variable. -/
+/-- For [a frontdoor system](hyp:S), the [real-valued outcome potential-outcome variable](goal) is its outcome node equipped with its real-valued representation. -/
 def yVar : POVar P ℝ    := ⟨S.Y, S.hYreal⟩
 
 /-! ### Counterfactuals -/
 
-/-- The treatment-arm potential outcome fixes treatment to the chosen arm. -/
+/-- For [a frontdoor system](hyp:S) and [a treatment arm](hyp:a), the [potential outcome](goal) assigns to each unit the real outcome it would have under that arm. -/
 noncomputable def YofA (a : Bool) : P.Ω → ℝ := S.yVar.cfUnder S.aVar a
 
-/-- The treatment-arm potential mediator fixes treatment to the chosen arm. -/
+/-- For [a frontdoor system](hyp:S) and [a treatment arm](hyp:a), the [potential mediator](goal) assigns to each unit the mediator value it would have under that arm. -/
 noncomputable def MofA (a : Bool) : P.Ω → β := S.mVar.cfUnder S.aVar a
 
-/-- The joint treatment-mediator regime fixes treatment and mediator simultaneously.
+/-- For [a frontdoor system](hyp:S), [a treatment arm](hyp:a), and [a mediator value](hyp:m), the [joint treatment--mediator intervention regime](goal) fixes treatment and mediator simultaneously.
 
 Built as a disjoint union of the singleton regimes `{A ← a}` and `{M ← m}`; the
 disjointness hypothesis uses `S.hAM : A ≠ M`. -/
@@ -95,17 +95,17 @@ noncomputable def regimeAM (a : Bool) (m : β) : Regime P.V P.X :=
     (Regime.single S.M (S.hMequiv.symm m))
     (Regime.single_disjoint_single S.hAM _ _)
 
-/-- The two-variable potential outcome fixes both treatment and mediator. -/
+/-- For [a frontdoor system](hyp:S), [a treatment arm](hyp:a), and [a mediator value](hyp:m), the [joint potential outcome](goal) assigns to each unit the outcome under simultaneously fixing treatment and mediator to those values. -/
 noncomputable def YofAM (a : Bool) (m : β) : P.Ω → ℝ :=
   S.yVar.cf (S.regimeAM a m)
 
 /-! ### Factuals -/
 
-/-- The factual treatment is the observed treatment assignment for each unit. -/
+/-- For [a frontdoor system](hyp:S), the [factual treatment](goal) assigns each unit its observed binary treatment. -/
 noncomputable def factualA : P.Ω → Bool := S.aVar.factual
-/-- The factual mediator is the observed mediator value for each unit. -/
+/-- For [a frontdoor system](hyp:S), the [factual mediator](goal) assigns each unit its observed mediator value. -/
 noncomputable def factualM : P.Ω → β    := S.mVar.factual
-/-- The factual outcome is the observed outcome for each unit. -/
+/-- For [a frontdoor system](hyp:S), the [factual outcome](goal) assigns each unit its observed real outcome. -/
 noncomputable def factualY : P.Ω → ℝ    := S.yVar.factual
 
 /-! ### Measurability -/
@@ -134,9 +134,9 @@ lemma measurable_factualY : Measurable S.factualY := S.yVar.measurable_factual
 
 /-! ### Events and indicators -/
 
-/-- The event `{A = a}`. -/
+/-- For [a frontdoor system](hyp:S) and [a treatment arm](hyp:a), the [treatment event](goal) is the set of units whose observed treatment equals that arm. -/
 def aEvent (a : Bool) : Set P.Ω := S.aVar.event a
-/-- The event `{M = m}`. -/
+/-- For [a frontdoor system](hyp:S) and [a mediator value](hyp:m), the [mediator event](goal) is the set of units whose observed mediator equals that value. -/
 def mEvent (m : β) : Set P.Ω := S.mVar.event m
 
 /-- The factual treatment event for a treatment arm is measurable. -/
@@ -151,11 +151,11 @@ lemma measurableSet_mEvent (m : β) : MeasurableSet (S.mEvent m) :=
 The bundle `[M(true), M(false)]` is independent of factual `A`.  Sufficient for
 the marginal exchangeability statement `M(a) ⊥ A` for each `a`. -/
 
-/-- `M(a)` as a `RegimedVar`. -/
+/-- For [a frontdoor system](hyp:S) and [a treatment arm](hyp:a), the [mediator under that treatment regime](goal) is the mediator potential outcome represented together with the intervention that fixes treatment to that arm. -/
 def mUnderA (a : Bool) : RegimedVar P β :=
   ⟨S.mVar, Regime.single S.A (S.hAbool.symm a)⟩
 
-/-- Bundle `[M(true), M(false)]`, used to state `A ⊥ (M(1), M(0))`. -/
+/-- For [a frontdoor system](hyp:S), the [counterfactual mediator bundle](goal) consists of the mediator potential outcomes under treatment and control. -/
 noncomputable def mBundle : POCFBundle P :=
   POCFBundle.cons (S.mUnderA true) <|
   POCFBundle.cons (S.mUnderA false) <|
@@ -163,18 +163,18 @@ noncomputable def mBundle : POCFBundle P :=
 
 /-! ### Observable functionals -/
 
-/-- `P(A = a)`. -/
+/-- For [a frontdoor system](hyp:S) and [a treatment arm](hyp:a), the [treatment-arm probability](goal) is the probability that the observed treatment equals that arm. -/
 noncomputable def pA (a : Bool) : ℝ := (P.μ (S.aEvent a)).toReal
 
-/-- `P(M = m | A = a)`, event-conditional probability. -/
+/-- For [a frontdoor system](hyp:S), [a mediator value](hyp:m), and [a treatment arm](hyp:a), the [conditional mediator probability](goal) is the event-conditional probability that the observed mediator equals that value given that observed treatment equals that arm. -/
 noncomputable def pMgivenA (m : β) (a : Bool) : ℝ :=
   eventCondExp P.μ (S.aEvent a) (S.mVar.indicator m)
 
-/-- `E[Y | A = a, M = m]`. -/
+/-- For [a frontdoor system](hyp:S), [a treatment arm](hyp:a), and [a mediator value](hyp:m), the [conditional outcome mean](goal) is the event-conditional mean of the observed outcome among units with that observed treatment and mediator value. -/
 noncomputable def EYgivenAM (a : Bool) (m : β) : ℝ :=
   eventCondExp P.μ (S.aEvent a ∩ S.mEvent m) S.factualY
 
-/-- The frontdoor-adjusted functional `φ(a)` at treatment `a`:
+/-- For [a frontdoor system](hyp:S) and [a treatment arm](hyp:a), the [frontdoor-adjusted functional](goal) is the finite sum over mediator values of the treatment-probability-weighted conditional outcome means, weighted by the mediator distribution conditional on that arm.
 
     ∑ₘ (E[Y|A=1,M=m]·P(A=1) + E[Y|A=0,M=m]·P(A=0)) · P(M=m|A=a). -/
 noncomputable def frontdoorTerm (a : Bool) : ℝ :=
@@ -182,10 +182,10 @@ noncomputable def frontdoorTerm (a : Bool) : ℝ :=
     (S.EYgivenAM true m * S.pA true + S.EYgivenAM false m * S.pA false)
       * S.pMgivenA m a
 
-/-- Target parameter `E[Y(1) - Y(0)]`. -/
+/-- For [a frontdoor system](hyp:S), the [average treatment effect](goal) is the population mean of the difference between each unit's potential outcome under treatment and under control. -/
 noncomputable def ATE : ℝ := ∫ ω, S.YofA true ω - S.YofA false ω ∂P.μ
 
-/-- Observable (frontdoor-adjusted) ATE. -/
+/-- For [a frontdoor system](hyp:S), the [observable frontdoor-adjusted average treatment effect](goal) is the frontdoor-adjusted functional under treatment minus that under control. -/
 noncomputable def frontdoorATE : ℝ := S.frontdoorTerm true - S.frontdoorTerm false
 
 /-! ### Assumptions (def:po-frontdoor-ate-assumptions) -/

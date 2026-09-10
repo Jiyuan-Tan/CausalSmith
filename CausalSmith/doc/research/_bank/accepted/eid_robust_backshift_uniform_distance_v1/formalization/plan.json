@@ -1,0 +1,719 @@
+{
+  "qid": "eid_robust_backshift_uniform_distance",
+  "specialization": "v1",
+  "cluster": "exactid",
+  "lean_target_subdirectory": "CausalSmith/ExactID/EID_RobustBackshiftUniformDistance_Research",
+  "lean_namespace": "CausalSmith.ExactID.RobustBackshiftUniformDistance",
+  "env": [
+    {
+      "id": "S1",
+      "world": "A population BACKSHIFT multi-environment covariance system. Fix a dimension \\(p\\in\\{2,3,\\ldots\\}\\) and a finite label set \\(E=\\{1,\\ldots,m\\}\\) of observed environment slots, a corruption budget \\(c\\in\\{0,\\ldots,m-1\\}\\), and \\(h=m-c\\). Write \\(\\mathbb S_{+}^{p}\\) and \\(\\mathbb S_{++}^{p}\\) for the real symmetric positive-semidefinite and positive-definite \\(p\\times p\\) cones. An observed input is a family \\(\\Sigma=(\\Sigma_e:e\\in E)\\in(\\mathbb S_{+}^{p})^{E}\\). A structural explanation consists of an invertible demixing matrix \\(D\\in\\mathrm{GL}_p(\\mathbb R)\\) with connectivity target \\(B=I_p-D\\), an invariant disturbance covariance \\(\\Omega\\in\\mathbb S^{p}\\) that is permitted to be nondiagonal and singular, and nonnegative diagonal intervention-variance levels \\(s=(s_{ek})\\) on an unknown honest set \\(H\\subseteq E\\) with \\(\\lvert H\\rvert=h\\), linked by the equilibrium covariance equation \\(\\Sigma_e=D^{-1}(\\Omega+\\operatorname{diag}(s_e))D^{-\\mathsf T}\\) for \\(e\\in H\\); the remaining \\(c\\) slots of \\(E\\setminus H\\) may carry arbitrary elements of \\(\\mathbb S_{+}^{p}\\). Admissibility is the BACKSHIFT normalization \\(\\mathcal D=\\{A\\in\\mathrm{GL}_p(\\mathbb R):\\operatorname{diag}(A)=\\mathbf 1,\\ \\operatorname{CP}(I_p-A)<1\\}\\), where \\(\\operatorname{CP}\\) is the maximum absolute entry product along a directed simple cycle of length at least two. Two competing explanations \\(D^{(1)},H_1,s^{(1)}\\) and \\(D^{(2)},H_2,s^{(2)}\\) with \\(\\lvert H_r\\rvert\\ge h\\) may share only the overlap \\(J=H_1\\cap H_2\\), of size at least \\(m-2c=h-c\\). The geometry of a shift design is measured by affine lines \\(L\\subset\\mathbb R^2\\): the pairwise occupancy \\(M_{k\\ell}=\\max_L\\#\\{e\\in H:(s_{ek},s_{e\\ell})\\in L\\}\\), the deletion distance \\(\\delta_H=\\min_{k<\\ell}(h-M_{k\\ell})\\), and the affine-minor separation \\(\\gamma_H\\). The recovery map is the \\(c\\)-replacement compatibility set \\(\\mathcal R_c(\\Sigma)\\subseteq\\mathcal D\\), with its subset-enumeration presentation \\(\\text{SubsetConsensus}\\). Conditioning margins are \\(\\kappa_D=\\|D\\|_{\\mathrm{op}}\\|D^{-1}\\|_{\\mathrm{op}}\\), \\(\\zeta_D=1-\\operatorname{CP}(I_p-D)\\), and the scale bound \\(M_H=1+\\|\\Omega\\|_{\\mathrm{op}}+\\max_{e\\in H}\\|\\Sigma_e\\|_{\\mathrm{op}}+\\max_{e\\in H}\\|\\operatorname{diag}(s_e)\\|_{\\mathrm{op}}\\); no interiority margin is imposed on the covariances, which are only required to be positive semidefinite. The size of a set-valued structural output is measured by \\(\\operatorname{diam}_{\\mathrm{op}}\\) and \\(\\operatorname{outer}_{\\mathrm{op}}\\), both valued in \\([0,+\\infty]\\).",
+      "binds_symbols": [
+        "p",
+        "m",
+        "c",
+        "h",
+        "E",
+        "H",
+        "PSDp",
+        "SPDp",
+        "Sigma",
+        "D",
+        "H1",
+        "H2",
+        "J",
+        "D1",
+        "D2",
+        "B",
+        "CP",
+        "Dcal",
+        "Omega",
+        "s",
+        "s1",
+        "s2",
+        "L",
+        "Mkl",
+        "delta",
+        "Rc",
+        "SubsetConsensus",
+        "gamma",
+        "kappa",
+        "zeta",
+        "Mbound",
+        "diamOp",
+        "outerOp"
+      ],
+      "binds_sampling_model": true,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.NonsingularInverse",
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.Analysis.Matrix.Order",
+        "Mathlib.Analysis.Matrix.Spectrum",
+        "Mathlib.Analysis.CStarAlgebra.Matrix",
+        "Mathlib.GroupTheory.Perm.Cycle.Factors",
+        "Mathlib.Data.Finset.Powerset",
+        "Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional",
+        "Mathlib.Topology.EMetricSpace.Diam",
+        "Causalean.Mathlib.LinearAlgebra.MonomialMatrix"
+      ],
+      "notes": "bypass-justified (ABSTRACTION MISMATCH against the whole declared cluster substrate root). The paper's ambient world carries no graph, no d-separation, no do-operator, no potential outcome, and no probability space at the population layer: an environment is a covariance matrix, an intervention is an unobserved diagonal variance shift, and identification is congruence-diagonalizer uniqueness under a normalization. Surveyed and rejected, one line each: `Causalean/Graph/SWIG.lean` + `Causalean/SCM/ID/GraphicalThms/*` (SWIG/d-separation graphical criteria; the paper never states a graphical condition and the target is a cyclic system, which `Graph/DAG.lean` forbids); `Causalean/SCM/ID/Identifiable.lean` and `Overlap.lean` (identifiability of an interventional kernel from an observational kernel by do-calculus; here the observable is a second-moment family and the target is a matrix, so `Identifiable`'s kernel-equality shape does not type-fit); `Causalean/SCM/Do/*` (do-calculus rules on measure kernels — no consumer); `Causalean/PO/**` and `Causalean/PO/ID/Exact/*` (`POSystem`, `Adjustment`, `Backdoor.*`, `Frontdoor.*`, `ATE.*`, `DID.*`, `DTR.*`, `LATE.*`, `*.Assumptions` — all are potential-outcome estimand identification under overlap/unconfoundedness; the paper has no treatment variable, no propensity, and no estimand of the form \\(E[Y(a)]\\)). What IS reused, and it is the highest-leverage reuse in this plan, is Causalean's linear-causal-discovery matrix layer, which sits at exactly this abstraction: `Causalean.Mathlib.LinearAlgebra.genPerm_of_det_ne_zero_of_colSupport` (Causalean/Mathlib/LinearAlgebra/MonomialMatrix.lean:37) is verbatim the monomial-extraction step of `lem:overlap-uniqueness` ('invertibility then makes \\(Q\\) monomial'), and `Causalean.Mathlib.LinearAlgebra.perm_uniqueness` / `eq_of_genPerm_triangular_unitDiag` (:104,:132) are the unit-diagonal pinning template that the cycle-product argument replaces. Search trace: `grep '^## '` over ../doc/API.md then reads of §9 (Identifiable), §9a (Overlap), §9d/§9e/§9e' (Adjustment/Backdoor), §8h (PO), §17 (LiNGAM), §17b (LinearDisentanglement), §17c (InvariantPrediction), §10j/§10j' (Cholesky, Vandermonde), §10j (OperatorSqrt); `lean_local_search` (project_root=CausalSmith) on `PosSemidef`, `l2_opNorm`, `Collinear`, `cycleFactorsFinset`, `det_eq_prod_eigenvalues`, `powersetCard`; `grep -rn 'genPerm|lingam_reduction|perm_uniqueness|cholesky_unique' Causalean/` under the sibling base `../Causalean/` (NOT a `Causalean/…` glob from the CausalSmith cwd). Result: Causalean has no multi-environment covariance model, no simultaneous-diagonalization-by-congruence predicate, and no BACKSHIFT normalization; `Discovery/LinearDisentanglement/Model.lean` is the nearest neighbour (per-context precision matrices \\(\\Theta_k=H^\\mathsf T B_k^\\mathsf T B_kH\\) under single-node perfect interventions) but its world fixes a full-row-rank mixing, upper-triangular positive-diagonal \\(B_0\\), and an acyclic latent DAG, all of which this cyclic unit-diagonal cycle-product world denies. F2 therefore emits a paper-local record `BackshiftSystem` over `Matrix (Fin p) (Fin p) ℝ`, following the established per-paper record pattern, and imports only the Mathlib matrix/analysis layer plus `MonomialMatrix`. REVISED (core revision): the symbol `lambda` (\\(\\lambda_{\\mathrm{cov},H}=\\min_{e\\in H}\\lambda_{\\min}(\\Sigma_e)\\)) is DROPPED from `binds_symbols` and from the world text — the revised core removes the covariance-interiority margin entirely (the contraction theorem now imposes four true-side margins \\(\\gamma_H,\\zeta_D,\\kappa_D,M_H\\) and only a condition-number bound on feasible candidates, with covariances merely positive semidefinite). No other S1 binding, module, or reuse decision moves: the surveyed-and-rejected cluster substrate and the `MonomialMatrix` reuse are unchanged, since the population layer of the core (records, admissibility, compatibility, occupancy, separation) is untouched by the revision. REVISED AGAIN (F1.5 review, FLAG-missed-reuse on `def:operator-diameter`): the symbol `diamOp` bound here is now realized by REUSED Mathlib `Metric.ediam` rather than by a local functional, so `Mathlib.Topology.EMetricSpace.Diam` joins this block's module list and the operator-norm metric structure on `Matrix (Fin p) (Fin p) ℝ` is taken from the scope `Matrix.Norms.L2Operator` (`Matrix.instL2OpMetricSpace`, `Mathlib/Analysis/CStarAlgebra/Matrix.lean:158,172`) — the same single `open scoped` this development already needs for `‖·‖`. The world text is unchanged (\\(\\operatorname{diam}_{\\mathrm{op}}\\) is still the \\([0,+\\infty]\\)-valued operator-norm diameter; only its Lean realization moved from define-local to reuse), and `outerOp` remains a local one-sided functional because Mathlib has no sup-of-distances-to-a-point decl.",
+      "bypass_justified": true
+    },
+    {
+      "id": "S2",
+      "world": "A prespecified sparse intervention-design genericity world. On a probability space carrying the shift design, a deterministic binary support pattern \\(Z\\in\\{0,1\\}^{H\\times p}\\) is fixed before the experiment, and random positive amplitudes \\(a\\in(0,\\infty)^{H\\times p}\\) produce the realized shift levels \\(s_{ek}=Z_{ek}a_{ek}\\). The joint law of the active subarray \\((a_{ek}:Z_{ek}=1)\\) is absolutely continuous with respect to Lebesgue measure on its positive orthant; nothing is assumed about the inactive coordinates, and the amplitudes may be dependent. For each coordinate pair \\(k<\\ell\\) the pattern determines the incidence counts \\(n_{uv}^{k\\ell}=\\#\\{e\\in H:(Z_{ek},Z_{e\\ell})=(u,v)\\}\\) and the closed-form generic occupancy \\(M_{k\\ell}^{\\mathrm{gen}}=\\max\\{n_{00}^{k\\ell}+n_{10}^{k\\ell},\\ n_{00}^{k\\ell}+n_{01}^{k\\ell},\\ n_{00}^{k\\ell}+\\mathbf 1\\{n_{11}^{k\\ell}>0\\},\\ \\min(2,h)\\}\\). Points of type \\(00\\) coincide at the origin and are counted with their full multiplicity as indexed observations, so this is an incidence statement about an indexed family, not about a set of distinct points.",
+      "binds_symbols": [
+        "Z",
+        "a",
+        "nab",
+        "Mgen"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.MeasureSpace",
+        "Mathlib.MeasureTheory.Measure.Lebesgue.Basic",
+        "Mathlib.MeasureTheory.Constructions.Pi",
+        "Mathlib.Algebra.MvPolynomial.Basic",
+        "Mathlib.Algebra.Polynomial.Roots"
+      ],
+      "notes": "bypass-justified: this is a bare Lebesgue-genericity world, not a causal sampling world. Surveyed `Causalean/Stat/Sample.lean` (`IIDSample`), `Causalean/Stat/EmpiricalProcess/*`, `Causalean/Stat/Concentration/*` via `grep '^## '` of ../doc/API.md §12, §12ep, §12' and reads of the section tables: every Causalean sampling primitive is an i.i.d.-observation layer with empirical means and concentration, whereas this world has no observations and no estimator — it only needs `MeasureTheory.Measure.AbsolutelyContinuous` of one fixed law against the volume measure on a positive orthant and a null-set union over finitely many polynomial equations. Mathlib-side check for the one genuinely mathematical ingredient (`lean_leansearch` \"zero set of a nonzero multivariate polynomial has measure zero\" and \"nonzero polynomial vanishes on a set of Lebesgue measure zero in R^n\"): Mathlib supplies the univariate root finiteness `Polynomial.finite_setOf_isRoot` (Mathlib.Algebra.Polynomial.Roots) and `MvPolynomial.support_nonempty` / `zeroLocus` algebra, but NO statement that the real zero set of a nonzero `MvPolynomial (Fin n) ℝ` is Lebesgue-null; Causalean-side check `grep -rln 'MvPolynomial' ../Causalean/` returns only `Causalean/Mathlib/AlgebraicGeometry/PolynomialImageDimension/*` and `Causalean/Mathlib/Analysis/MonomialGram.lean`, and `grep -n 'measure zero|Lebesgue|volume|addHaar'` over that directory returns nothing — that development is Zariski/dimension-theoretic and carries no measure. The gap is therefore a build-inline helper (`Helpers/PolynomialNull.lean`), proved by the induction the note's own proof spells out: expand in the last variable, apply the inductive hypothesis to the coefficient polynomials, and integrate the finite-root sections via `MeasureTheory.Measure.pi` / Fubini.",
+      "bypass_justified": true
+    },
+    {
+      "id": "S3",
+      "revision_notes": "F2 redirect: `InferenceWorld.regions` is a complete family indexed by positive sample sizes; `sampleSize` selects the current component, and nonemptiness/PSD containment hold at every index.",
+      "world": "A set-theoretic finite-sample inference world layered on the population system. Fix a sample-size index \\(n\\geq1\\) and a nominal noncoverage level \\(\\alpha\\in(0,1)\\). For each slot \\(e\\in E\\) the data supply an ARBITRARY nonempty simultaneous covariance region \\(\\mathcal C^{(n)}_{e,\\alpha}\\subseteq\\mathbb S_{+}^{p}\\); no representation, encoding, membership oracle, or computability property of a region is assumed, and no sampling mechanism producing it is specified. The honest-slot error radius is \\(r_{n,\\alpha,H}=\\max_{e\\in H}\\sup_{\\Gamma\\in\\mathcal C^{(n)}_{e,\\alpha}}\\|\\Gamma-\\Sigma_e\\|_{\\mathrm{op}}\\in[0,+\\infty]\\), with the value \\(+\\infty\\) permitted, and the identification-robust output is the confidence union \\(\\mathcal U^{(n)}_{\\alpha}=\\bigcup\\{\\mathcal R_c(\\Gamma):\\Gamma_e\\in\\mathcal C^{(n)}_{e,\\alpha}\\ \\forall e\\in E\\}\\), the union of the population replacement-compatibility sets over all simultaneous selections. The coverage event is \\(G_{n,\\alpha,H}=\\{\\Sigma_e\\in\\mathcal C^{(n)}_{e,\\alpha}\\ \\forall e\\in H\\}\\). Quantitative statements are made against four fixed rational margins imposed on the TRUE instance — \\(\\gamma_H\\geq\\gamma_0\\in\\mathbb Q_{>0}\\), \\(\\zeta_D\\geq\\zeta_0\\in\\mathbb Q\\cap(0,1]\\), \\(\\kappa_D\\leq\\overline\\kappa\\in\\mathbb Q\\cap[1,\\infty)\\), \\(M_H\\leq\\overline M\\in\\mathbb Q\\cap[1,\\infty)\\) — together with a single declarative condition-number bound \\(\\|A\\|_{\\mathrm{op}}\\|A^{-1}\\|_{\\mathrm{op}}\\leq\\overline\\kappa\\) on every feasible candidate. No covariance-interiority, candidate affine-separation, candidate normalization-slack, or candidate scale condition is imposed, and the local radius \\(r_0\\) is a non-effective compactness quantity: its existence is asserted, no procedure evaluates it, and no executable, algorithmic, or software interface is part of this world.",
+      "binds_symbols": [
+        "n",
+        "alpha",
+        "gamma0",
+        "zeta0",
+        "kappabar",
+        "Mbar",
+        "Calpha",
+        "rRadius",
+        "Ualpha"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.ENNReal.Basic",
+        "Mathlib.Data.Rat.Defs",
+        "Mathlib.Analysis.SpecialFunctions.Pow.Real",
+        "Mathlib.Analysis.CStarAlgebra.Matrix",
+        "Mathlib.Topology.Order.Compact",
+        "Mathlib.Topology.EMetricSpace.Diam",
+        "Mathlib.Data.Finset.Powerset"
+      ],
+      "notes": "REVISED (core revision, whole-block rewrite): the previous S3 was an ENCODED-REGION world binding `RegionCode`, `lambda0`, `CertificateInferenceHandle` and `AuditedReleaseContraction`, and carrying a rational-semialgebraic syntax layer with a release/abstain certificate handle. The revised core deletes all four of those symbols and the entire symbolic layer: regions are now ARBITRARY nonempty subsets of \\(\\mathbb S_+^p\\), the covariance-interiority margin is gone, and every executable/effective/decision/chart/software item is moved into the unresolved `oeq:certified-uniform-inference`. The whole `Mathlib.Algebra.MvPolynomial.Basic` / `Mathlib.Data.Rat.Defs`-syntax module list, the `RationalSignFormula`/`FOFormula` plan, and the sibling-CAD analogous-module record are therefore DROPPED (they are recorded in `file_plan.bypass_survey` for provenance only). What remains is a plain `Set (Matrix (Fin p) (Fin p) ℝ)`-indexed-family world over `ℝ≥0∞`-valued radii plus four rational margin parameters. bypass-justified (ABSTRACTION MISMATCH, re-surveyed for the revised world): Causalean's set-valued identification substrate is `Causalean/PO/ID/Partial/**` — `IdentifiedInterval`, support functions of random convex sets, and Hausdorff-distance vocabulary — which lives at the real-interval / convex-body abstraction over a potential-outcome estimand, whereas this world's uncertainty object is a family of arbitrary subsets of the PSD matrix cone and its output is a union of matrix solution sets. Search trace for the revised world: `grep '^## '` over ../doc/API.md then reads of §9j2/§9j2sf (`PO/ID/Partial/` abstract bounds engine, random sets) and §12/§12ep (`Stat/Sample.lean`, `Stat/EmpiricalProcess/*` — i.i.d. observation layers with empirical means, no set-valued covariance region); `lean_local_search` (project_root=CausalSmith) on `l2_opNorm` (→ `Matrix.l2_opNorm_def`, `l2_opNorm_mul`, `l2_opNorm_mulVec`, `l2_opNorm_conjTranspose`, scoped `Matrix.Norms.L2Operator` — REVISED (F1.5): the scope name recorded here earlier, `Matrix.L2OpNorm`, is STALE and does not exist in this tree; `Mathlib/Analysis/CStarAlgebra/Matrix.lean:172,183,260,269` puts `Matrix.instL2OpMetricSpace`, `Matrix.instL2OpNormedAddCommGroup`, `instL2OpNormedSpace` and `instL2OpNormedRing` under `scoped[Matrix.Norms.L2Operator]`, and F2 must open that name or nothing resolves; REUSED wholesale as this world's operator norm AND — since the same scope supplies the `MetricSpace`, hence `EMetricSpace`, structure — as the ambient metric for the REUSED `Metric.ediam` that now realizes \\(\\operatorname{diam}_{\\mathrm{op}}\\), with `Metric.ediam_le` discharging the contraction theorem's diameter conclusion), on `IsCompact.exists_isMinOn` (→ `IsCompact.exists_isMinOn`, `IsCompact.exists_isMinOn_mem_subset`, Mathlib.Topology.Order.Compact) and on `isCompact_of_isClosed_isBounded` (→ `Metric.isCompact_of_isClosed_isBounded`, Mathlib.Topology.MetricSpace.Bounded) — both confirmed present and named in the two cited-gate nodes' discharge notes; `grep -rn 'diam|opNorm' ../Causalean/` under the sibling base returns only `PO/ID/Partial/RandomSet/` Hausdorff vocabulary and `Mathlib/OperatorSqrt.lean` at the `E →ₗ[ℝ] E` abstraction. No confidence-union or set-valued matrix-compatibility primitive exists in Causalean or Mathlib.",
+      "bypass_justified": true
+    }
+  ],
+  "file_plan": {
+    "root": "CausalSmith/ExactID/EID_RobustBackshiftUniformDistance_Research",
+    "order": [
+      "Basic/Cycles.lean",
+      "Basic.lean",
+      "Basic/Occupancy.lean",
+      "Helpers/CitedGates.lean",
+      "Helpers/PolynomialNull.lean",
+      "Helpers/GenericAffineOccupancy.lean",
+      "Helpers/OverlapUniqueness.lean",
+      "Helpers/MatrixMargins.lean",
+      "Helpers/ConfidenceUnion.lean",
+      "TSharpReplacementRadius.lean",
+      "TGenericSupportFrontier.lean",
+      "TUniformSupportDeletionRadius.lean",
+      "TConfidenceUnionCoverage.lean",
+      "Helpers/ContractionCompactness.lean",
+      "Helpers/ContractionLocalInverse.lean",
+      "TNonEffectiveFourMarginContraction.lean",
+      "OpenQuestions.lean"
+    ],
+    "notes": "REVISED (core revision): the symbolic/executable chain is DELETED from the layout — `Helpers/SemialgebraicCode.lean`, `Helpers/CertificateHandle.lean`, `Helpers/AuditedConstants.lean`, `Helpers/MembershipOracle.lean`, `Helpers/MembershipQueryObstruction.lean`, `TCertifiedInferenceRepresentation.lean`, `TCertifiedUniformInference.lean` and `TCovarianceInteriorityNonvacuity.lean` no longer correspond to any core node (their nodes were removed; the executable/effective program is now the unresolved `oeq:certified-uniform-inference`). `Helpers/Audited{Compactness,LocalInverse}.lean` and `TAuditedReleaseContraction.lean` are renamed to `Helpers/Contraction{Compactness,LocalInverse}.lean` and `TNonEffectiveFourMarginContraction.lean` to match the revised theorem. Two files are ADDED: `TConfidenceUnionCoverage.lean` for the newly separated set-theoretic coverage theorem, and `OpenQuestions.lean` for the OEQ carrier. Seven delivered results (5 T-blocks — `thm:sharp-replacement-radius`, `prop:generic-support-frontier`, `prop:uniform-support-deletion-radius`, `thm:confidence-union-coverage`, `thm:non-effective-four-margin-contraction` — and 2 helper L-lemmas, `lem:overlap-uniqueness` and `lem:generic-affine-occupancy`), one non-assertive OEQ `def`, and two cited substrate gates, so the layout stays one `T<id>.lean` per delivered theorem/proposition with the shared definitional spine split by subsystem into `Basic*`/`Helpers/*` in a dependency chain. Split rationale and projected post-proof sizes (unchanged where the file survives): `Basic/Cycles.lean` (~150 lines) isolates directed simple cycles over `Fin p`, `cycleProduct` and its continuity, which nothing else needs to unfold; `Basic.lean` (~250) carries the `BackshiftSystem` record, `admissibleSet`, the five assumption `Prop`s and `compatibleSet`; `Basic/Occupancy.lean` (~250) carries the affine-line/occupancy/separation vocabulary. `Helpers/PolynomialNull.lean` (~250) is the standalone Lebesgue-null helper and imports no paper object, so it compiles independently. `Helpers/OverlapUniqueness.lean` is projected at ~600-800 lines (the generic \\(\\beta,\\alpha\\) selection, the distinct-eigenvalue coordinate-axis argument, the monomial extraction through `genPerm_of_det_ne_zero_of_colSupport`, and the two-sided cycle-product contradiction) and F2 may split it into `Helpers/OverlapUniqueness/{GenericSelection,Monomial,Main}.lean` if it crosses ~900. The heaviest chain is the non-effective contraction: `Helpers/MatrixMargins.lean` (~350: the Leibniz cycle bound \\(|\\det G|\\le p!\\), the singular-value route \\(\\sigma_1^p/\\overline\\kappa^{p-1}\\le|\\det|\\) via `Matrix.IsHermitian.det_eq_prod_eigenvalues` on \\(G^\\mathsf TG\\), the PSD-summand norm monotonicity of display (17), and the operator/Frobenius comparisons — it also hosts `opOuterRadius`; REVISED at F1.5: it no longer defines a diameter functional, since `def:operator-diameter` is now REUSED Mathlib `Metric.ediam`, and this file instead carries only the bridge lemma `Metric.ediam 𝒜 ≤ 2 * opOuterRadius 𝒜 D` and the single `open scoped Matrix.Norms.L2Operator` that makes both the norm and the `edist` structure ambient), `Helpers/ConfidenceUnion.lean` (~120: `subsetConsensus`, `honestRegionRadius`, `confidenceUnion`), `Helpers/ContractionCompactness.lean` (~400: closedness and boundedness of \\(\\mathfrak T\\) and \\(\\mathfrak T_{\\mathrm{far}}\\), and the positive residual gap \\(\\mu_0>0\\) via the monomial/cycle-product argument), `Helpers/ContractionLocalInverse.lean` (~450: displays (37)-(45), the two-by-two affine-minor solve and the unit-diagonal column bound), and `TNonEffectiveFourMarginContraction.lean` (~250: assembly). That deliberate three-way pre-split is what keeps each file under ~600 lines. `Helpers/CitedGates.lean` now holds exactly two cited gate `Prop`s (Heine-Borel and extreme-value) and is placed early so the contraction theorem can thread them. `OpenQuestions.lean` (~40) holds the single non-assertive `_root_.List _root_.String` OEQ carrier and depends on nothing. F2 may refine the split.",
+    "bypass_survey": [
+      {
+        "module": "Causalean/Graph/SWIG.lean, Causalean/SCM/ID/GraphicalThms/*",
+        "verdict": "surveyed, not applicable",
+        "reason": "SWIG graphs, d-separation and the graphical identification theorems presuppose a DAG and a graphical criterion. This paper's system is CYCLIC (that is the point of BACKSHIFT's cycle-product normalization) and states no graphical condition; every hypothesis is a matrix or a shift-design incidence condition, so no declaration in `SWIGGraph`, `Backdoor.*`, `Frontdoor.*` or `GraphicalThms.*` type-fits any node."
+      },
+      {
+        "module": "Causalean/SCM/ID/Identifiable.lean, Causalean/SCM/ID/Overlap.lean, Causalean/SCM/ID/Adjustment.lean",
+        "verdict": "surveyed, not applicable",
+        "reason": "`Identifiable` expresses equality of an interventional kernel with a functional of the observational kernel, and `Overlap`/`Adjustment` are Rule-2/backdoor measure-theoretic predicates. Here the observable is a family of second moments and the target is a matrix in \\(\\mathrm{GL}_p(\\mathbb R)\\); the paper explicitly refuses to define the causal target through the observable map (`interpretation`), so the recovery map is `compatibleSet`, a paper-local set-valued object, not `Identifiable`."
+      },
+      {
+        "module": "Causalean/PO/**, Causalean/PO/ID/Exact/{ATE,DID,DTR,LATE,Frontdoor}*.lean, *.Assumptions",
+        "verdict": "surveyed, not applicable",
+        "reason": "The whole PO layer identifies estimands of the form \\(E[Y(a)]\\) from an observed law under overlap/unconfoundedness assumptions on a treatment variable. This paper has no treatment, no propensity, no outcome variable and no estimand of that shape; `Overlap` in the cluster reuse list refers to propensity overlap and is unrelated to this paper's set-overlap \\(J=H_1\\cap H_2\\)."
+      },
+      {
+        "module": "Causalean/SCM/Do/*.lean",
+        "verdict": "surveyed, not applicable",
+        "reason": "do-calculus rules operate on Markov kernels of an SCM. The interventions here are unobserved additive shifts whose only trace is the diagonal term \\(\\operatorname{diag}(s_e)\\) in a covariance; no kernel is ever formed."
+      },
+      {
+        "module": "Causalean/Discovery/LiNGAM/*.lean, Causalean/Mathlib/LinearAlgebra/MonomialMatrix.lean",
+        "verdict": "reused",
+        "reason": "This is the correct-abstraction neighbour and the plan's main Causalean reuse. `genPerm_of_det_ne_zero_of_colSupport` (MonomialMatrix.lean:37) is the monomial-extraction step of `lem:overlap-uniqueness` verbatim; `perm_uniqueness` (:104) and `eq_of_genPerm_triangular_unitDiag` (:132) are the unit-diagonal pinning template whose acyclicity input is replaced here by the two-sided strict cycle-product inequality."
+      },
+      {
+        "module": "Causalean/Discovery/LinearDisentanglement/*.lean, Causalean/Mathlib/LinearAlgebra/Cholesky.lean",
+        "verdict": "surveyed, template reused, decls not applicable",
+        "reason": "The closest world (per-context second moments under interventions, identification up to a group) and the reference for the Gram-congruence/`cholesky_unique` proof pattern, but its model fixes a full-row-rank mixing, an acyclic latent DAG and upper-triangular positive-diagonal \\(B_0\\); `disentanglement_uniqueness` and `sigma_solutions` are hard-wired to that tuple and do not type-fit a cyclic unit-diagonal cycle-product-normalized \\(D\\) with PSD nondiagonal invariant nuisance."
+      },
+      {
+        "module": "Causalean/Mathlib/OperatorSqrt.lean, Causalean/Mathlib/SemiInnerProjection.lean, Causalean/Mathlib/Optimization/RationalLP.lean, Causalean/Mathlib/LinearAlgebra/{Confluent,Stacked}Vandermonde.lean",
+        "verdict": "surveyed, not applicable",
+        "reason": "`OperatorSqrt` gives the positive square root of a positive symmetric operator on an inner-product space (`posSqrt`, `eigVals`), which is a possible route to singular values but at the `E →ₗ[ℝ] E` abstraction; `Helpers/MatrixMargins.lean` works at the `Matrix (Fin p) (Fin p) ℝ` abstraction and uses Mathlib's `Matrix.IsHermitian.det_eq_prod_eigenvalues` on \\(G^\\mathsf TG\\) directly, avoiding an operator/matrix transport. `RationalLP` is exact finite rational linear programming with no Boolean sign formula. The Vandermonde files concern confluent/stacked Vandermonde rank, not \\(3\\times3\\) affine minors of shift clouds."
+      },
+      {
+        "module": "CausalSmith/ExactID/EID_LingamDirectionMinOrderV1_Research/Helpers/CAD/*.lean, CausalSmith/Experimentation/EXP_SaturationSkewThreshold_Research/Helpers/Bridge/SemialgebraicSolver.lean",
+        "verdict": "surveyed, no longer applicable after the core revision",
+        "reason": "REVISED: these sibling CausalSmith modules (semialgebraic sets, sign-condition cells, effective rational polynomial codes, a threaded Tarski-Seidenberg/optimization gate) were the analogous-module record for the deleted symbolic layer. The revised core contains no semialgebraic encoding, no region code, no quantifier-elimination node and no certificate handle — every executable/effective item now sits inside the unresolved `oeq:certified-uniform-inference`, which is a non-assertive `_root_.List _root_.String` payload and imports nothing. The entry is retained for provenance only; nothing in the revised plan adapts or imports these modules."
+      },
+      {
+        "module": "Mathlib.Topology.Order.Compact, Mathlib.Topology.MetricSpace.Bounded, Mathlib.Analysis.CStarAlgebra.Matrix",
+        "verdict": "reused",
+        "reason": "REVISED (added for the revised S3/contraction closure; scope name corrected at F1.5). `Metric.isCompact_of_isClosed_isBounded` (Mathlib/Topology/MetricSpace/Bounded.lean) and `IsCompact.exists_isMinOn` (Mathlib/Topology/Order/Compact.lean) were both confirmed present by `lean_local_search` and are named as the one-line discharge route in the two cited gates' notes; the scoped `Matrix.Norms.L2Operator` layer (`Matrix.l2_opNorm_def`, `l2_opNorm_mul`, `l2_opNorm_mulVec`, `l2_opNorm_conjTranspose`) is reused wholesale as the paper's operator norm throughout `Helpers/MatrixMargins.lean` and the contraction chain. The earlier record of this scope as `Matrix.L2OpNorm` was stale: `Mathlib/Analysis/CStarAlgebra/Matrix.lean:172,183,260,269` uses `scoped[Matrix.Norms.L2Operator]`."
+      },
+      {
+        "module": "Mathlib.Topology.EMetricSpace.Diam",
+        "verdict": "reused",
+        "reason": "NEW (F1.5 review, FLAG-missed-reuse). `Metric.ediam` (Diam.lean:32, `noncomputable def ediam (s : Set X) := ⨆ (x ∈ s) (y ∈ s), edist x y`, `[PseudoEMetricSpace X]`, `ℝ≥0∞`-valued) is exactly the core's \\(\\operatorname{diam}_{\\mathrm{op}}\\), including its \\(+\\infty\\) value on an unbounded set, once the `Matrix.instL2OpMetricSpace` instance is in scope via `Matrix.Norms.L2Operator`. It REPLACES the previously planned local `opDiam`; `Metric.ediam_le` (:53) is the consumer-side discharge in `TNonEffectiveFourMarginContraction.lean`. Note for F2: the `EMetric.diam`/`EMetric.diam_le` spellings in this file are `@[deprecated (since := \"2026-01-04\")]` aliases — use the `Metric.*` names. Mathlib's real-valued `Metric.diam` remains REJECTED (returns 0 on an unbounded set, a soundness bug here), and no one-sided outer-radius decl exists, so `opOuterRadius` stays local."
+      }
+    ]
+  },
+  "citations": [
+    {
+      "id": "cite:rudin-1976-euclidean-heine-borel",
+      "bibkey": "Rudin1976Principles",
+      "title": "Principles of Mathematical Analysis",
+      "authors": "Rudin, Walter",
+      "year": 1976,
+      "isbn": "9780070542358",
+      "url": "https://openlibrary.org/books/OL5195991M/Principles_of_mathematical_analysis",
+      "locator": "Theorem 2.41, implication from closed and bounded to compact",
+      "verbatim_statement": "If a set E in R^k has one of the following three properties, then it has the other two: (a) E is closed and bounded. (b) E is compact. (c) Every infinite subset of E has a limit point in E.",
+      "attestation": {
+        "by": "main",
+        "note": "Verified against Walter Rudin, Principles of Mathematical Analysis, 3rd ed. (1976), p. 40, Theorem 2.41, in the Lehman College-hosted page-faithful scan: https://www.lehman.edu/faculty/rbettiol/lehman_teaching/2020mat320/baby_Rudin.pdf. The core node records implication (a) to (b).",
+        "at": "2026-09-04T14:43:11.262Z"
+      },
+      "node": "lem:euclidean-heine-borel"
+    },
+    {
+      "id": "cite:rudin-1976-compact-extreme-value",
+      "bibkey": "Rudin1976Principles",
+      "title": "Principles of Mathematical Analysis",
+      "authors": "Rudin, Walter",
+      "year": 1976,
+      "isbn": "9780070542358",
+      "url": "https://openlibrary.org/books/OL5195991M/Principles_of_mathematical_analysis",
+      "locator": "Theorem 4.16, minimum-attainment part",
+      "verbatim_statement": "Suppose f is a continuous real function on a compact metric space X, and M = sup_{p in X} f(p), m = inf_{p in X} f(p). Then there exist points p, q in X such that f(p) = M and f(q) = m.",
+      "attestation": {
+        "by": "main",
+        "note": "Verified against Walter Rudin, Principles of Mathematical Analysis, 3rd ed. (1976), p. 89, Theorem 4.16, in the Nara Women’s University-hosted page-faithful scan: https://www.nara-wu.ac.jp/math/personal/moritoh/Rudin.pdf. The core node records the minimum-attainment consequence for nonempty compact Euclidean subsets.",
+        "at": "2026-09-04T14:43:12.575Z"
+      },
+      "node": "lem:compact-extreme-value"
+    }
+  ],
+  "nodes": {
+    "ass:backshift-normalization": {
+      "lean_kind": "assumption",
+      "lean_name": "BackshiftNormalization",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.NonsingularInverse",
+        "Mathlib.GroupTheory.Perm.Cycle.Factors",
+        "Causalean.Mathlib.LinearAlgebra.MonomialMatrix"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "notes": "`def BackshiftNormalization (D : Matrix (Fin p) (Fin p) ℝ) : Prop := D ∈ admissibleSet p` — membership of the structural matrix in \\(\\mathcal D\\) (invertible, unit diagonal, strict cycle-product bound), i.e. one atom restricting the structural parameter, kept threaded and never discharged. Classification: MODELING ASSUMPTION (a normalization restricting the admissible structural parameter space, exactly as `RothenhauslerEtAl2015BackShift` imposes it), not a substrate fact. Search trace: `lean_local_search` (project_root=CausalSmith) on `Collinear`, `cycleFactorsFinset`, `PosSemidef`, plus `grep -rn 'genPerm|lingam_reduction|perm_uniqueness' ../Causalean/Discovery ../Causalean/Mathlib` and reads of ../doc/API.md §17/§17b — Causalean's unit-diagonal normalizations (`lingam_reduction`, `LinearDisentanglement.Solution`) are ACYCLIC/triangular normalizations, so no library `Prop` states unit diagonal plus a strict cycle-product bound; Mathlib-side check `lean_local_search cycleFactorsFinset` gives `Equiv.Perm.cycleFactorsFinset` (Mathlib.GroupTheory.Perm.Cycle.Factors) as the cycle vocabulary but nothing about entry products along a directed cycle of a matrix. Build-inline: a one-line `Prop` over `admissibleSet`, whose cycle machinery lives in `Basic/Cycles.lean`."
+    },
+    "ass:nonnegative-shifts": {
+      "lean_kind": "assumption",
+      "lean_name": "NonnegativeShifts",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Finset.Powerset"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "notes": "`def NonnegativeShifts (H : Finset (Fin m)) (s : Fin m → Fin p → ℝ) : Prop := ∀ e ∈ H, ∀ k, 0 ≤ s e k`. Classification: MODELING ASSUMPTION (a support restriction on the design: intervention variances are variances). Search trace: `lean_local_search` on `PosSemidef` and `Matrix.PosSemidef.diagonal` — Mathlib's `Matrix.PosSemidef.diagonal` is the matrix-level consequence, not the coordinatewise design restriction the note atomizes, so the atom is stated directly; no Causalean design-level nonnegativity `Prop` exists (`grep -rn 'Nonneg' ../Causalean/Discovery` returns only per-proof side conditions). Build-inline, one line."
+    },
+    "ass:honest-covariance-model": {
+      "lean_kind": "assumption",
+      "lean_name": "HonestCovarianceModel",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.NonsingularInverse",
+        "Mathlib.LinearAlgebra.Matrix.PosDef"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "notes": "`def HonestCovarianceModel (D Ω : Matrix (Fin p) (Fin p) ℝ) (H) (s) (Σ) : Prop := ∀ e ∈ H, Σ e = D⁻¹ * (Ω + Matrix.diagonal (s e)) * (D⁻¹)ᵀ`. Classification: MODELING ASSUMPTION (the population BACKSHIFT equilibrium equation — the causal-structural restriction on the data law). The invariant-noise cone \\(\\Omega\\in\\mathbb S_+^p\\) is deliberately NOT bundled in (the core states it separately as a theorem-local premise, and `thm:sharp-replacement-radius` needs the strictly stronger \\(\\Omega\\in\\mathbb S_{++}^p\\) only for its converse); F2 must keep that separation or it silently strengthens the class. Search trace: `grep '^## '` of ../doc/API.md then reads of §17b (`LinearDisentanglement.Model.lean`, `Theta k = Hᵀ Bₖᵀ Bₖ H`) and §17c (`InvariantPrediction.EnvFamily`); the former is the precision-matrix form under an acyclic latent DAG with a full-row-rank mixing, the latter a kernel-level environment family — neither is the congruence form \\(\\Sigma_e=D^{-1}(\\Omega+\\operatorname{diag}(s_e))D^{-\\mathsf T}\\) with a shared nondiagonal PSD nuisance. Mathlib-side: `lean_local_search PosSemidef` gives the cone vocabulary (`Matrix.PosSemidef`, `Matrix.PosSemidef.posDef_iff_det_ne_zero`) but no structural model. Build-inline, one line over the record."
+    },
+    "ass:support-factorization": {
+      "lean_kind": "assumption",
+      "lean_name": "SupportFactorization",
+      "revision_notes": "F2 redirect: the predicate includes strict positivity of every active amplitude in addition to the Bool-indicator factorization.",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Finset.Powerset"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic/Occupancy.lean",
+      "classification": "modeling assumption",
+      "notes": "`def SupportFactorization (H) (Z : Fin m → Fin p → Bool) (a s : Fin m → Fin p → ℝ) : Prop := ∀ e ∈ H, ∀ k, s e k = (if Z e k then a e k else 0)`. Classification: MODELING ASSUMPTION (a proposal-specific design restriction conditioning on an investigator-chosen sparse intervention pattern; `novel.flag = true` in the core). Search trace: `grep '^## '` of ../doc/API.md plus reads of §17 and §18 (`Experimentation/DesignBased`) — Causalean's design-based substrate is randomization over treatment assignments with exposure mappings, not a binary support array multiplying positive amplitudes, and `grep -rn 'support pattern|sparse' ../Causalean/Discovery ../Causalean/Experimentation` returns nothing; Mathlib-side not applicable (a design restriction, not a standard mathematical fact). Build-inline, one line."
+    },
+    "ass:generic-active-amplitudes": {
+      "lean_kind": "assumption",
+      "lean_name": "GenericActiveAmplitudes",
+      "revision_notes": "F2 redirect: the measure is required to carry `IsProbabilityMeasure`; absolute continuity is therefore a joint probability-law condition rather than vacuous on the zero measure.",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.MeasureSpace",
+        "Mathlib.MeasureTheory.Measure.Lebesgue.Basic",
+        "Mathlib.MeasureTheory.Constructions.Pi"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic/Occupancy.lean",
+      "classification": "modeling assumption",
+      "notes": "`def GenericActiveAmplitudes … : Prop` — the law of the active subarray \\((a_{ek}:Z_{ek}=1)\\), i.e. the pushforward of the ambient measure along the active-coordinate projection into `activeIndex Z → ℝ`, is `MeasureTheory.Measure.AbsolutelyContinuous` with respect to `MeasureTheory.volume` restricted to the positive orthant. Classification: MODELING ASSUMPTION (a genericity/regularity restriction on the design's randomization, explicitly `novel.flag = true`), so it stays threaded and is NOT a substrate fact to discharge. Search trace: `lean_local_search` for absolute continuity vocabulary + `grep '^## '` ../doc/API.md §12/§12ep — Causalean's statistical layer assumes i.i.d. observations and states no genericity/absolute-continuity design predicate (`grep -rn 'AbsolutelyContinuous' ../Causalean/Stat` returns only Radon-Nikodym plumbing inside efficiency proofs, at the wrong abstraction: those are laws of observations, not of a design array); Mathlib-side `Measure.AbsolutelyContinuous` and `Measure.pi`/`volume` on `ι → ℝ` supply the whole vocabulary, so the atom is a one-line `Prop` over Mathlib primitives. Build-inline. F2 note: the subarray is indexed by the dependent type `{q : Fin m × Fin p // Z q.1 q.2}` and the assumption must be stated on the JOINT law (dependence among active amplitudes is permitted), not coordinatewise."
+    },
+    "def:admissible-matrices": {
+      "lean_kind": "def",
+      "lean_name": "admissibleSet",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.NonsingularInverse",
+        "Mathlib.GroupTheory.Perm.Cycle.Factors"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "`def admissibleSet (p : ℕ) : Set (Matrix (Fin p) (Fin p) ℝ) := {A | IsUnit A.det ∧ (∀ i, A i i = 1) ∧ cycleProduct (1 - A) < 1}`, with `cycleProduct` from `Basic/Cycles.lean`: the maximum over directed simple cycles of length at least two of the absolute product of the corresponding entries, taken as a `Finset.sup'`/`0` over the finite set of cycles of `Fin p` (`Equiv.Perm.IsCycle` restricted to a support of size ≥ 2, or equivalently `List.Chain'`-encoded closed walks with distinct vertices; F2 picks the encoding and proves the equivalence used by `lem:overlap-uniqueness`, which needs (i) the two-sided strict inequality for a cycle and its reverse, and (ii) continuity of \\(A\\mapsto\\operatorname{CP}(I_p-A)\\) for the perturbation argument of `thm:sharp-replacement-radius`). Search trace: `lean_local_search cycleFactorsFinset` (Mathlib.GroupTheory.Perm.Cycle.Factors: `Equiv.Perm.cycleFactorsFinset`, `cycleFactorsFinset_eq_finset`, `cycleFactorsFinset_mem_commute`) is the permutation-cycle vocabulary and `Matrix.det_apply`/`Equiv.Perm.sign` the Leibniz vocabulary, but Mathlib has no 'maximum entry product along a directed cycle of a matrix' functional; Causalean-side `grep -rn 'cycle' ../Causalean/Discovery ../Causalean/Graph` finds only DAG acyclicity predicates (`Graph/DAG.lean`), which is the opposite condition. Build-inline (`Basic/Cycles.lean`, ~150 lines)."
+    },
+    "def:max-line-occupancy": {
+      "lean_kind": "def",
+      "lean_name": "maxLineOccupancy",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional",
+        "Mathlib.Data.Finset.Powerset"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic/Occupancy.lean",
+      "notes": "`def maxLineOccupancy (H : Finset (Fin m)) (s) (k l : Fin p) : ℕ` — the maximum, over affine lines \\(L\\subset\\mathbb R^2\\), of the number of INDEXED environments \\(e\\in H\\) whose pair \\((s_{ek},s_{e\\ell})\\) lies on \\(L\\). Design decision D-plan-4: the maximum over the (infinite) set of affine lines is realized as `Finset.sup` over subsets \\(S\\subseteq H\\) that are collinear, i.e. `maxLineOccupancy … = (H.powerset.filter (fun S => CollinearPairs s k l S)).sup Finset.card` with `CollinearPairs` the \\(3\\times3\\)-minor vanishing condition on every triple of \\(S\\); this is provably equal to the note's sup-over-lines (a finite indexed family lies on a common affine line iff every triple has vanishing affine minor, the note's own display (16)) and is total, decidable-free of any choice of line, and directly matched to `def:affine-separation`. Multiplicity is preserved because the sup ranges over subsets of the INDEX set \\(H\\), so coincident points (all type-\\(00\\) shifts at the origin) contribute with full multiplicity, exactly as `prop:generic-support-frontier` requires. Search trace: `lean_local_search Collinear` → `Collinear` (Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional) plus `Collinear.subset`, `Collinear.collinear_insert_iff_of_ne`, `collinear_iff_of_mem`, which give the set-level predicate and the two-point base case; Mathlib has no maximum-line-incidence counting functional (`lean_leansearch` \"maximum number of points of a finite set on a common line\" → nothing), and `grep -rn 'Collinear|affine line' ../Causalean/` returns no hit. Build-inline; F2 proves the bridge `Collinear ℝ (image) ↔ every triple has vanishing minor` once, in `Basic/Occupancy.lean`, and both this node and `def:affine-separation` consume it."
+    },
+    "def:environment-distance": {
+      "lean_kind": "def",
+      "lean_name": "envDeletionDistance",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Finset.Powerset"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic/Occupancy.lean",
+      "notes": "`def envDeletionDistance (H) (s) : ℕ := Finset.inf' (offDiagPairs p) (fun (k,l) => H.card - maxLineOccupancy H s k l)` over the nonempty finite set of pairs \\(k<\\ell\\) (nonempty since \\(p\\ge2\\); F2 carries `2 ≤ p` from the record so `inf'` is well posed). Truncated ℕ-subtraction is safe because `maxLineOccupancy ≤ H.card` by construction, and F2 proves that bound alongside the definition since displays (13) and (34) of the paper both rewrite \\(\\delta_H>c\\) into \\(M_{k\\ell}<h-c\\) through it. Search trace: nothing to reuse — this is a paper-local statistic; checked `lean_local_search` for `inf'`/`Finset.inf'` (Mathlib.Order.Finset.Lattice) for the vocabulary only. Build-inline, ~15 lines."
+    },
+    "def:compatible-set": {
+      "lean_kind": "def",
+      "lean_name": "compatibleSet",
+      "revision_notes": "F2 redirect: the covariance input has subtype `PSDCovarianceFamily p m`, enforcing positive semidefiniteness at every environment slot.",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.LinearAlgebra.Matrix.NonsingularInverse",
+        "Mathlib.Data.Finset.Powerset"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "`def compatibleSet (c : ℕ) (Σ : Fin m → Matrix (Fin p) (Fin p) ℝ) : Set (Matrix (Fin p) (Fin p) ℝ) := {A ∈ admissibleSet p | ∃ K : Finset (Fin m), h ≤ K.card ∧ ∃ Ψ, Ψ.PosSemidef ∧ ∃ t : Fin m → Fin p → ℝ, (∀ e ∈ K, ∀ j, 0 ≤ t e j) ∧ ∀ e ∈ K, Σ e = A⁻¹ * (Ψ + Matrix.diagonal (t e)) * (A⁻¹)ᵀ}`, with \\(h=m-c\\). F2 note: the equivalent transformed form \\(A\\Sigma_eA^{\\mathsf T}=\\Psi+\\operatorname{diag}(t_e)\\) is used by every proof (REVISED: it is no longer 'what the symbolic layer encodes' — that layer is deleted from the core — but it IS the form in which `thm:non-effective-four-margin-contraction`'s constraint family \\(\\mathfrak T\\), display (12), states the candidate equations), so a one-line bridge lemma between the two forms belongs beside the definition; it needs only `IsUnit A.det` from `admissibleSet`. Search trace: `lean_local_search PosSemidef` → `Matrix.PosSemidef` (Mathlib.LinearAlgebra.Matrix.PosDef), `Matrix.PosSemidef.diagonal`, `Matrix.PosSemidef.posDef_iff_det_ne_zero` (Mathlib.Analysis.Matrix.Order) give the cone; `lean_leansearch` \"simultaneous diagonalization by congruence of a family of symmetric matrices\" and `grep -rn 'congruence|simultaneous' ../Causalean/` → no SDC predicate anywhere in Causalean or Mathlib, and `Causalean/Discovery/LinearDisentanglement/Model.lean`'s `Solution` is a different tuple (see the bypass survey). Build-inline, ~30 lines."
+    },
+    "def:generic-occupancy": {
+      "lean_kind": "def",
+      "lean_name": "genericOccupancy",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Finset.Powerset"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic/Occupancy.lean",
+      "notes": "`def incidenceCount (H) (Z) (k l) (u v : Bool) : ℕ := (H.filter (fun e => Z e k = u ∧ Z e l = v)).card` (the symbol `nab`), and `def genericOccupancy (H) (Z) (k l) : ℕ := max (max (n00+n10) (n00+n01)) (max (n00 + if 0 < n11 then 1 else 0) (min 2 H.card))`. Pure finite combinatorics on `Finset.card`. Search trace: nothing to reuse (paper-local closed form); `lean_local_search powersetCard` confirms `Finset.powersetCard` (Mathlib.Data.Finset.Powerset) as the subset vocabulary used nearby. Build-inline, ~25 lines."
+    },
+    "def:affine-separation": {
+      "lean_kind": "def",
+      "lean_name": "affineSeparation",
+      "revision_notes": "F2 redirect: the signature now carries p >= 2, the honest-set cardinality H.card = m-c, and nonnegative shifts on H.",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Finset.Powerset",
+        "Mathlib.LinearAlgebra.Matrix.Determinant.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic/Occupancy.lean",
+      "notes": "`def affineMinor (s) (k l) (e f g) : ℝ := s f k * s g l - s g k * s f l - (s e k * s g l - s g k * s e l) + (s e k * s f l - s f k * s e l)` (the \\(3\\times3\\) determinant with first column \\(\\mathbf 1\\), written out to avoid a `Matrix.det` unfold in every downstream `nlinarith`), and `def affineSeparation (H) (s) (c) : ℝ := if H.card - c < 3 then 0 else Finset.inf' … (fun (k,l) => Finset.inf' (H.powersetCard (H.card - c)) (fun S => Finset.sup' (triples S) (fun (e,f,g) => |affineMinor s k l e f g|)))`. The `h - c < 3` branch is the core's own convention and must be reproduced verbatim (it is what makes `thm:sharp-replacement-radius`'s equivalence \\(\\gamma_H>0\\Leftrightarrow\\delta_H>c\\) true in the small-\\(q\\) regime, display (15)). F2 must also prove the nonemptiness side conditions for the two `inf'`/`sup'` (a \\(q\\)-subset with \\(q\\ge3\\) has a triple). Search trace: `lean_local_search powersetCard` → `Finset.powersetCard`; `lean_leansearch` \"three points in the plane are collinear iff a 3x3 determinant vanishes\" → Mathlib has `collinear_iff_of_mem` and `Matrix.det_fin_three` but no packaged affine-minor separation functional; `grep -rn 'affineMinor|Vandermonde' ../Causalean/Mathlib/LinearAlgebra/` finds `ConfluentVandermonde`/`StackedVandermonde`, which concern rank of confluent Vandermonde systems and do not type-fit a min-max of \\(3\\times3\\) minors. Build-inline, ~60 lines."
+    },
+    "def:subset-consensus": {
+      "lean_kind": "def",
+      "lean_name": "subsetConsensus",
+      "revision_notes": "F2 redirect: the covariance input has subtype `PSDCovarianceFamily p m`, matching the paper domain.",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Finset.Powerset",
+        "Mathlib.LinearAlgebra.Matrix.PosDef"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/ConfidenceUnion.lean",
+      "notes": "`def subsetConsensus (c) (Σ) : Set (Matrix (Fin p) (Fin p) ℝ) := ⋃ K ∈ (Finset.univ : Finset (Fin m)).powersetCard h, subsetFeasible K Σ`, where `subsetFeasible K Σ` is the per-subset exact solution set (all \\(A\\in\\mathcal D\\) admitting one PSD \\(\\Psi\\) and nonnegative shifts on \\(K\\)). Design decision D-plan-5: the core calls this a 'definitional implementation note' and explicitly disclaims supplying a terminating solver, so F2 emits the SET-THEORETIC union (which makes the query count \\(\\binom mh\\) a `Finset.card` fact and the identity `subsetConsensus = compatibleSet` a `rfl`-level `Set.ext`) rather than an executable oracle; the core says both facts are 'neither a theorem contribution nor a claim that an encoded terminating solver is supplied', so the equality is emitted as an unexported `example`/private lemma beside the definition, not as a node. Search trace: nothing to reuse; `lean_local_search powersetCard` for the enumeration vocabulary only. Build-inline, ~40 lines."
+    },
+    "def:honest-region-radius": {
+      "lean_kind": "def",
+      "lean_name": "honestRegionRadius",
+      "revision_notes": "F2 redirect: the definition consumes an `InferenceWorld` current region component and a `PSDCovarianceFamily`, hence n/alpha validity, regional nonemptiness/PSD containment, and covariance PSD are enforced.",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.ENNReal.Basic",
+        "Mathlib.Analysis.CStarAlgebra.Matrix"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/ConfidenceUnion.lean",
+      "notes": "`def honestRegionRadius (H) (C : Fin m → Set (Matrix (Fin p) (Fin p) ℝ)) (Σ) : ℝ≥0∞ := ⨆ e ∈ H, ⨆ Γ ∈ C e, edist Γ (Σ e)` under `open scoped Matrix.Norms.L2Operator`. STAYS define-local (Mathlib has no per-index sup-of-distances-to-a-moving-centre functional), but REVISED in the closure of the `def:operator-diameter` reuse: (a) the scope name is `Matrix.Norms.L2Operator`, NOT the stale `Matrix.L2OpNorm` recorded before — verified at `Mathlib/Analysis/CStarAlgebra/Matrix.lean:172,183,260,269`, where `Matrix.instL2OpMetricSpace` and `Matrix.instL2OpNormedAddCommGroup` are both exposed under `scoped[Matrix.Norms.L2Operator]`; (b) the body is written with `edist` in that ambient metric structure, matching the reused `Metric.ediam` and `opOuterRadius`, with `edist Γ (Σ e) = ENNReal.ofReal ‖Γ - Σ e‖` available by `edist_dist`/`dist_eq_norm`. Design decision D-plan-6 (unchanged in substance): the value type is `ℝ≥0∞`, not `ℝ`, because the core explicitly allows \\(+\\infty\\) ('the supremum and hence the maximum may equal \\(+\\infty\\)'); a real-valued `iSup` would silently return 0 on an unbounded region and make the contraction hypothesis \\(r_{n,\\alpha,H}\\le r_0\\) vacuously satisfiable — a soundness bug, not a convenience. Consumers compare against `ENNReal.ofReal r₀` and multiply by `ENNReal.ofReal C₀`. Search trace: `lean_local_search l2_opNorm` → `Matrix.l2_opNorm_def`, `Matrix.l2_opNorm_mul`, `Matrix.l2_opNorm_mulVec`, `Matrix.l2_opNorm_conjTranspose`, `Matrix.l2_opNorm_diagonal` (Mathlib.Analysis.CStarAlgebra.Matrix), re-confirmed by direct source read at `Matrix.lean:185,191,199`; no Causalean matrix-norm layer exists (`grep -rn 'l2_opNorm|opNorm' ../Causalean/Mathlib/` returns only `SemiInnerProjection`/`OperatorSqrt` at the linear-map abstraction). Build-inline, ~20 lines."
+    },
+    "def:operator-diameter": {
+      "lean_kind": "def",
+      "lean_name": "Metric.ediam",
+      "disposition": "reuse",
+      "reuse": "Metric.ediam",
+      "modules": [
+        "Mathlib.Topology.EMetricSpace.Diam",
+        "Mathlib.Analysis.CStarAlgebra.Matrix",
+        "Mathlib.Data.ENNReal.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/MatrixMargins.lean",
+      "notes": "REVISED (F1.5 review, FLAG-missed-reuse): this node is now REUSE of Mathlib's `Metric.ediam`, not a local rebuild. The previous entry rejected it on two grounds, BOTH of which were wrong and are withdrawn. (i) Wrong name and wrong scope: the decl is `Metric.ediam`, not `EMetric.diam` (the `EMetric.*` aliases in `Mathlib/Topology/EMetricSpace/Diam.lean` are `@[deprecated (since := \"2026-01-04\")]`), and the scope carrying the matrix metric is `Matrix.Norms.L2Operator`, not `Matrix.L2OpNorm` — the earlier search missed the decl because it searched the deprecated name. Verified in this tree: `Mathlib/Topology/EMetricSpace/Diam.lean:32` reads `noncomputable def ediam (s : Set X) := ⨆ (x ∈ s) (y ∈ s), edist x y` inside `namespace Metric` with `[PseudoEMetricSpace X]`, which is EXACTLY the core's \\(\\operatorname{diam}_{\\mathrm{op}}(\\mathcal A)=\\sup_{A_1,A_2\\in\\mathcal A}\\|A_1-A_2\\|_{\\mathrm{op}}\\in[0,+\\infty]\\) shape, `ℝ≥0∞`-valued and therefore preserving the required \\(+\\infty\\) on an unbounded set (the soundness objection that killed the real-valued `Metric.diam` does NOT apply to `Metric.ediam`). (ii) No instance-plumbing bridge is needed: `Mathlib/Analysis/CStarAlgebra/Matrix.lean:158,172` defines `Matrix.instL2OpMetricSpace : MetricSpace (Matrix m n 𝕜)` and exposes it as `scoped[Matrix.Norms.L2Operator] attribute [instance]`, in the SAME scope as `Matrix.instL2OpNormedAddCommGroup` (:179,:183) that this development already opens for `‖·‖`. So under a single `open scoped Matrix.Norms.L2Operator` the operator-norm `EMetricSpace` structure is ambient and `Metric.ediam 𝒜` IS the operator-norm diameter definitionally; the only bridge is `edist A₁ A₂ = ENNReal.ofReal ‖A₁ - A₂‖` by `edist_dist`/`dist_eq_norm`, i.e. simp, not plumbing. F2 therefore emits NO `opDiam` definition: the paper's \\(\\operatorname{diam}_{\\mathrm{op}}\\) is written `Metric.ediam 𝒜` throughout, and the consumer bound is discharged by REUSED `Metric.ediam_le` (Diam.lean:53, `(∀ x ∈ s, ∀ y ∈ s, edist x y ≤ d) → ediam s ≤ d`) rather than by an `iSup` unfold. Search trace (re-run for this revision): `Grep '^noncomputable def ediam|namespace Metric' .lake/packages/mathlib/Mathlib/Topology/EMetricSpace/Diam.lean` → hit at :32/:25; `Grep 'theorem ediam_le|ediam_le_iff|ediam_union_le' Diam.lean` → `ediam_le_iff` (:37), `ediam_le` (:53), `ediam_union_le` (:118); `Grep 'scoped\\[Matrix\\.Norms|L2Operator' .lake/packages/mathlib/Mathlib/Analysis/CStarAlgebra/Matrix.lean` → the scope is `Matrix.Norms.L2Operator` (:172,:183,:260,:269), confirming the previously recorded `Matrix.L2OpNorm` was a stale scope name; `lean_local_search Metric.ediam` (project_root=CausalSmith) returns `Metric.ediam_closure` — the index surfaces the namespace, and the definition itself is confirmed by direct source read above. Causalean-side unchanged: `grep -rn 'diam' ../Causalean/` finds only Hausdorff-distance vocabulary in `PO/ID/Partial/RandomSet/` at the convex-body abstraction, so Mathlib is the right provider."
+    },
+    "def:operator-outer-radius": {
+      "lean_kind": "def",
+      "lean_name": "opOuterRadius",
+      "revision_notes": "F2 redirect: the signature requires a proof that the matrix set is nonempty; consumers provide this witness.",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Topology.EMetricSpace.Diam",
+        "Mathlib.Analysis.CStarAlgebra.Matrix",
+        "Mathlib.Data.ENNReal.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/MatrixMargins.lean",
+      "notes": "`def opOuterRadius (𝒜 : Set (Matrix (Fin p) (Fin p) ℝ)) (D : Matrix (Fin p) (Fin p) ℝ) : ℝ≥0∞ := ⨆ A₁ ∈ 𝒜, edist A₁ D`, under `open scoped Matrix.Norms.L2Operator`. STAYS define-local — Mathlib has no one-sided sup-of-distances functional — but REVISED (dependency closure of the `def:operator-diameter` reuse) in two ways forced by that reuse. (a) ENCODING: the body is now written with `edist` in the ambient operator-norm `EMetricSpace` (`Matrix.instL2OpMetricSpace`, exposed by the scope `Matrix.Norms.L2Operator`) rather than as `ENNReal.ofReal ‖A₁ - D‖`, so that it lives in the SAME metric structure as the reused `Metric.ediam` and the triangle step is `edist_triangle` directly; `edist A₁ D = ENNReal.ofReal ‖A₁ - D‖` remains available by `edist_dist`/`dist_eq_norm` for the consumers that compare against `ENNReal.ofReal (C₀ * r)`. The `ℝ≥0∞` value type is unchanged and is still load-bearing (the core writes \\(\\operatorname{outer}_{\\mathrm{op}}\\in[0,+\\infty]\\)). (b) THE BRIDGE LEMMA: the companion emitted beside it is now `Metric.ediam 𝒜 ≤ 2 * opOuterRadius 𝒜 D`, not `opDiam 𝒜 ≤ 2 * opOuterRadius 𝒜 D`, and its proof is REUSED `Metric.ediam_le` (Mathlib/Topology/EMetricSpace/Diam.lean:53) applied to `edist A₁ A₂ ≤ edist A₁ D + edist D A₂` via `edist_triangle` + `edist_comm` + `le_iSup₂`, which is exactly the step `thm:non-effective-four-margin-contraction` uses to get its diameter bound from its outer-radius bound (the second former consumer `thm:certified-uniform-inference-audited-answer` no longer exists in the core). Search trace (re-run): `Grep 'theorem ediam_le|infEdist|ediam_union_le' Mathlib/Topology/EMetricSpace/Diam.lean` → `ediam_le_iff`(:37), `ediam_le`(:53), `ediam_union_le`(:118) — all two-sided diameter or infimum statements; `lean_leansearch` \"supremum of the distance from a point to the elements of a set\" → Mathlib has `Metric.infDist`/`EMetric.infEdist` (INFIMA) and `Metric.ediam`, but no `supEdist`/outer-radius decl; `grep -rn 'outerRadius|circumradius' ../Causalean/` → nothing. Build-inline, ~15 lines."
+    },
+    "def:confidence-union": {
+      "lean_kind": "def",
+      "lean_name": "confidenceUnion",
+      "revision_notes": "F2 redirect: the definition consumes an `InferenceWorld`, selects its current positive-n component, and constructs only globally PSD covariance selections from its nonempty PSD region family.",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.PosDef"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/ConfidenceUnion.lean",
+      "notes": "`def confidenceUnion (c) (C : Fin m → Set (Matrix (Fin p) (Fin p) ℝ)) : Set (Matrix (Fin p) (Fin p) ℝ) := ⋃ (Γ : Fin m → Matrix (Fin p) (Fin p) ℝ) (_ : ∀ e, Γ e ∈ C e), compatibleSet c Γ` — the set-valued inversion of the covariance regions through the population replacement-compatibility map. REVISED (core revision, dependency closure of the deleted symbolic layer): the regions \\(\\mathcal C^{(n)}_{e,\\alpha}\\) are now ARBITRARY nonempty subsets of \\(\\mathbb S_+^p\\), not semialgebraic-coded subsets of \\(\\mathbb S_{++}^p\\), so the definition takes a bare `Set`-valued family and the `def:encoded-covariance-regions` premise it previously anticipated no longer exists; the definition body itself is unchanged. Coverage, computability, and singleton conclusions are deliberately NOT part of the definition (the core says so explicitly: 'This definition asserts neither computability nor a coverage property'); coverage is the content of `thm:confidence-union-coverage`, contraction the content of `thm:non-effective-four-margin-contraction`, and every executable/effective item is left to the unresolved `oeq:certified-uniform-inference`. Search trace: `grep '^## '` ../doc/API.md §9j2 (`PO/ID/Partial/` abstract bounds engine) and read of §9j2/§9j2sf — Causalean's set-valued identification vocabulary (`IdentifiedInterval`, support functions, random sets) is for real-interval or convex-body targets in a partial-identification world, not for a union of matrix solution sets over a family of covariance regions; no type-fit. Build-inline, ~15 lines."
+    },
+    "lem:overlap-uniqueness": {
+      "lean_kind": "lemma",
+      "lean_name": "overlap_uniqueness",
+      "revision_notes": "F2 redirect: the lemma has the explicit premise `forall e, (covarianceFamily e).PosSemidef`.",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Mathlib.LinearAlgebra.MonomialMatrix",
+        "Mathlib.LinearAlgebra.Matrix.NonsingularInverse",
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.GroupTheory.Perm.Cycle.Factors",
+        "Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/OverlapUniqueness.lean",
+      "hyps": [],
+      "notes": "The paper's novel population core, and the plan's main Causalean reuse point. Structure of the F3 proof, following the note's own spine: (1) inclusion-exclusion \\(|J|\\ge2h-m\\) — `Finset.card_inter_add_card_union` / `Finset.card_union_le`; (2) differencing at \\(e_0\\in J\\) cancels both PSD nuisances and gives \\(Q\\operatorname{diag}(x_e)Q^{\\mathsf T}=\\operatorname{diag}(y_e)\\) for \\(Q=D^{(2)}(D^{(1)})^{-1}\\), extended to the span \\(W\\) by linearity; (3) the pairwise-noncollinearity hypothesis gives that the coordinate projection of \\(W\\) onto every pair \\((k,\\ell)\\) is all of \\(\\mathbb R^2\\); (4) generic selection of \\(\\beta\\) then \\(\\alpha\\) outside finitely many proper hyperplanes — this needs 'a finite union of proper linear hyperplanes cannot cover \\(\\mathbb R^d\\)', which is the same nonzero-polynomial-does-not-vanish-identically fact that `Helpers/PolynomialNull.lean` supplies in its stronger measure form (F3 uses the algebraic corollary, not the measure statement, so the dependency is on the helper file, not on `lem:generic-affine-occupancy`); (5) `GK⁻¹ = Q diag(ρ) Q⁻¹` is diagonal with pairwise-distinct diagonal entries, so each column of \\(Q\\) is supported on one coordinate axis — this is exactly the `hcol` input of REUSED `Causalean.Mathlib.LinearAlgebra.genPerm_of_det_ne_zero_of_colSupport` (Causalean/Mathlib/LinearAlgebra/MonomialMatrix.lean:37, signature verified by reading lines 32-59: `(hW : W.det ≠ 0) (hcol : ∀ j i k, i ≠ k → W i j = 0 ∨ W k j = 0) : ∃ τ d, (∀ i, d i ≠ 0) ∧ ∀ i j, W i j = if j = τ i then d i else 0`), which discharges step (8) of the note verbatim; (6) the monomial ambiguity is then removed by the TWO-SIDED strict cycle-product inequality, giving \\(\\prod|q_{i_t}|^{-1}<1\\) and \\(\\prod|q_{i_t}|<1\\) and hence \\(1<1\\) — this is where the argument DIVERGES from `eq_of_genPerm_triangular_unitDiag` (:132), which pins the permutation by acyclicity/triangularity; the cyclic setting has no topological order, so that library lemma does not apply and only `perm_uniqueness`'s index-sum proof shape is borrowed. Recorded as build-inline, defer_tier false: every step is elementary linear algebra with a library discharge for the hardest one; the effort is length (~600-800 lines), not open mathematics. Search trace: `grep -rn 'genPerm|perm_uniqueness|eq_of_genPerm' ../Causalean/` (hits in MonomialMatrix.lean:37,104,132 and its two consumers `LiNGAM/LiNGAMKurtosis.lean:53,165`, `LiNGAM/Identifiability.lean:51`), plus `lean_leansearch` \"simultaneous diagonalization by congruence uniqueness\" and \"commuting diagonalizable matrices with distinct eigenvalues have common eigenvectors\" → Mathlib has `Matrix.IsHermitian.spectral_theorem` and simultaneous-eigenvector results for commuting operators, but nothing about congruence diagonalizers of a family with a shared additive nuisance, and no non-unitary joint-diagonalization uniqueness."
+    },
+    "thm:sharp-replacement-radius": {
+      "lean_kind": "theorem",
+      "lean_name": "sharp_replacement_radius",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.Analysis.Matrix.Order",
+        "Mathlib.Topology.Instances.Matrix",
+        "Mathlib.LinearAlgebra.Matrix.NonsingularInverse"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TSharpReplacementRadius.lean",
+      "hyps": [
+        "ass:backshift-normalization",
+        "ass:nonnegative-shifts",
+        "ass:honest-covariance-model"
+      ],
+      "notes": "F2 sync-back: the planned import `Mathlib.Topology.Algebra.Matrix` does not exist in this Mathlib revision; it was replaced by the type-fitting leaf `Mathlib.Topology.Instances.Matrix`, which supplies the matrix product topology used by the cycle-product continuity helper. Three conjuncts, all build-inline. (a) SUFFICIENCY under \\(\\Omega\\in\\mathbb S_+^p\\) (a theorem-local premise, NOT folded into `ass:honest-covariance-model`): \\(D\\in\\mathcal R_c(\\Sigma\\).\\) (b) The \\(\\delta_H>c\\Leftrightarrow\\gamma_H>0\\) finite min-max equivalence. (c) The pointwise positive-definite converse and class-level minimax sharpness; no ambiguity is asserted for every fixed singular boundary nuisance."
+    },
+    "prop:generic-support-frontier": {
+      "lean_kind": "theorem",
+      "lean_name": "generic_support_frontier",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.MeasureSpace",
+        "Mathlib.Data.Finset.Powerset",
+        "Mathlib.LinearAlgebra.Matrix.PosDef"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TGenericSupportFrontier.lean",
+      "hyps": [
+        "ass:nonnegative-shifts",
+        "ass:honest-covariance-model",
+        "ass:support-factorization",
+        "ass:generic-active-amplitudes"
+      ],
+      "notes": "Assembly: apply `lem:generic-affine-occupancy` at \\(I=H,r=h,Z^\\circ=Z,a^\\circ=a\\) to get the a.s. identity \\(M_{k\\ell}=M^{\\mathrm{gen}}_{k\\ell}\\) simultaneously for all pairs on ONE probability-one event (the simultaneity matters and comes from the lemma, not from a union bound taken here), substitute into display (34), and feed both directions of `thm:sharp-replacement-radius`. Two fidelity points F2 must preserve: (i) the uniformity is over \\(D\\in\\mathcal D\\), \\(\\Omega\\in\\mathbb S_+^p\\) and every PSD replacement, and the probability-one event depends only on \\((Z,a)\\), so the quantifier order is 'a.s., for all \\(D,\\Omega,\\)replacements', not the reverse; (ii) the converse is CLASS-LEVEL, witnessed inside the PD subclass at \\(D=I_p,\\Omega=I_p\\), never a pointwise singular-boundary claim. The \\(m\\ge2c+3\\) floor and its attainment by the all-active pattern are finite arithmetic on `genericOccupancy`. Search trace: nothing to reuse (assembly of this paper's own results); `grep '^## '` ../doc/API.md §17/§18 confirmed no library design-frontier theorem. Build-inline, ~250 lines."
+    },
+    "thm:confidence-union-coverage": {
+      "lean_kind": "theorem",
+      "lean_name": "confidence_union_coverage",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.LinearAlgebra.Matrix.NonsingularInverse",
+        "Mathlib.Data.Finset.Powerset"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TConfidenceUnionCoverage.lean",
+      "hyps": [
+        "ass:backshift-normalization",
+        "ass:nonnegative-shifts",
+        "ass:honest-covariance-model"
+      ],
+      "notes": "NEW NODE (core revision): the revised core splits the set-theoretic coverage implication out of the deleted `thm:certified-inference-representation-obstruction` and states it on its own, for ARBITRARY nonempty covariance regions \\(\\mathcal C^{(n)}_{e,\\alpha}\\subseteq\\mathbb S_+^p\\), with no encoding, no quantifier elimination, no audit and no computability claim. It is therefore GATE-FREE and unconditionally build-inline: the previous version's only Defer-tier ingredient (the QE gate) is not used by this conjunct, which is exactly what the old plan already recorded ('this conjunct does NOT use the gate'). Proof, following the core verbatim: fix an outcome in \\(G_{n,\\alpha,H}\\); set \\(\\Gamma_e=\\Sigma_e\\) on \\(H\\) and pick any \\(\\Gamma_e\\in\\mathcal C^{(n)}_{e,\\alpha}\\) on the finite set \\(E\\setminus H\\) (possible by nonemptiness of each region — this is the ONLY place nonemptiness is used, and it is a finite choice, so `Finset` recursion or `Classical.choice` both work); then \\(K=H,A=D,\\Psi=\\Omega,t_e=s_e\\) satisfy every clause of `def:compatible-set` by `ass:backshift-normalization` (\\(D\\in\\mathcal D\\)), the theorem-local premise \\(\\Omega\\in\\mathbb S_+^p\\), `ass:nonnegative-shifts`, and `ass:honest-covariance-model`; hence \\(D\\in\\mathcal R_c(\\Gamma)\\) and, by `def:confidence-union`, \\(D\\in\\mathcal U^{(n)}_\\alpha\\). The probability consequence is `measure_mono` on the two events, and F2 must state it as the CONDITIONAL form the core uses ('whenever the displayed events are measurable'): the Lean statement is the set inclusion, with the probability implication as a separate corollary taking the two measurability hypotheses as explicit binders — never an unconditional probability claim, since the core supplies no measurable structure on the region family. Two fidelity points: (i) \\(\\Omega\\in\\mathbb S_+^p\\) is a THEOREM-LOCAL premise, not folded into `ass:honest-covariance-model` (which the core states without the cone), and no step may use positive definiteness of any \\(\\Gamma_e\\) — the core is explicit that PSD is exactly the domain required; (ii) `hyps` are the three assumption ids in `depends_on`; the definitional dependencies `def:admissible-matrices`, `def:compatible-set`, `def:confidence-union` are USED, not assumed. Search trace: `lean_local_search PosSemidef` (→ `Matrix.PosSemidef`, `Matrix.PosSemidef.diagonal`) and `lean_local_search` on `measure_mono`/`Set.iUnion` for the vocabulary; `grep '^## '` over ../doc/API.md then read of §9j2/§9j2sf (`PO/ID/Partial/`) — Causalean's set-valued identification layer covers real intervals and random convex bodies for potential-outcome estimands and has no union-of-matrix-solution-sets coverage lemma; Mathlib-side `lean_leansearch` \"a set containing a witness is contained in the union over selections\" returns only generic `Set.subset_iUnion` plumbing, which F2 uses directly. Build-inline, ~120 lines."
+    },
+    "lem:generic-affine-occupancy": {
+      "lean_kind": "lemma",
+      "lean_name": "generic_affine_occupancy",
+      "revision_notes": "F2 redirect: the lemma requires p >= 2 and `IsProbabilityMeasure mu`.",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.MeasureSpace",
+        "Mathlib.MeasureTheory.Measure.Lebesgue.Basic",
+        "Mathlib.MeasureTheory.Constructions.Pi",
+        "Mathlib.Algebra.MvPolynomial.Basic",
+        "Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/GenericAffineOccupancy.lean",
+      "hyps": [],
+      "notes": "Stated for a generic finite index set \\(I\\) with \\(|I|=r\\) exactly as the core does, so both `prop:generic-support-frontier` (\\(I=H,r=h\\)) and `prop:uniform-support-deletion-radius` (\\(I=E,r=m\\)) instantiate the same lemma — F2 must NOT specialize it to \\(H\\). Proof spine: the lower bound (22) is four explicit line witnesses; the upper bound removes, on one probability-one event, the finitely many non-forced polynomial coincidences — the two-point origin-collinearity form \\(x_ey_f-x_fy_e\\), the three-point affine minor, and the equal-active-coordinate linear forms — each of which is a NONZERO polynomial in the active coordinates except in the forced all-\\(10\\)/all-\\(01\\) cases the lemma's formula already accounts for. The single missing ingredient is 'the real zero set of a nonzero `MvPolynomial (Fin n) ℝ` is Lebesgue-null', supplied by the build-inline helper `Helpers/PolynomialNull.lean` (see the S2 world note for the Mathlib-side absence trace: `lean_leansearch` \"zero set of a nonzero multivariate polynomial has measure zero\" and \"nonzero polynomial vanishes on a set of Lebesgue measure zero in R^n\" return only `Polynomial.finite_setOf_isRoot`, `MvPolynomial.support_nonempty`, `MvPolynomial.zeroLocus_*`; `grep -rln 'MvPolynomial' ../Causalean/` gives only the Zariski-dimension development, which carries no measure). That helper is a small absent lemma with a written proof (induction in the last variable + `Measure.pi`/Fubini + `Polynomial.finite_setOf_isRoot` on sections), hence build-inline, not Defer. Absolute continuity then transfers the Lebesgue-null event to the amplitude law. Build-inline, ~300 lines across the two files."
+    },
+    "prop:uniform-support-deletion-radius": {
+      "lean_kind": "theorem",
+      "lean_name": "uniform_support_deletion_radius",
+      "revision_notes": "F2 redirect: the theorem requires `IsProbabilityMeasure mu`, matching the probability-space premise.",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.MeasureSpace",
+        "Mathlib.Data.Finset.Powerset"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TUniformSupportDeletionRadius.lean",
+      "hyps": [],
+      "notes": "The ex-ante planner corollary: apply `lem:generic-affine-occupancy` at \\(I=E,r=m\\), prove the restriction identity (37) \\(\\max_{|H|=m-c}M_{k\\ell}(H)=\\min\\{T_{k\\ell},m-c\\}\\) by the two explicit retained-set constructions, interchange the two finite universal quantifiers, and reduce to \\(T<m-2c\\); then the integer arithmetic (40) and the all-active specialization \\(T=2\\), \\(c_{\\max}=\\lfloor(m-3)/2\\rfloor\\). `hyps` is empty because the node's core `depends_on` carries no assumption id — its premises (\\(\\bar Z\\), \\(\\bar a\\), the joint density on the active subarray) are stated locally in the node text and F2 emits them as ordinary theorem binders, reusing the same absolute-continuity shape as `ass:generic-active-amplitudes` without depending on that atom (which is stated on \\(H\\), not on \\(E\\)). Search trace: nothing to reuse; `lean_local_search powersetCard` for the deletion-set enumeration vocabulary only. Build-inline, ~250 lines."
+    },
+  "lem:euclidean-heine-borel": {
+      "lean_kind": "lemma",
+      "lean_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.euclideanHeineBorel_mathlib",
+      "revision_notes": "F2 redirect: the signature includes the explicit positive-dimension premise `0 < d`.",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Topology.MetricSpace.Bounded",
+        "Mathlib.Analysis.InnerProductSpace.EuclideanDist"
+      ],
+    "defer_tier": false,
+      "source": "cite:rudin-1976-euclidean-heine-borel",
+      "target_file": "Helpers/CitedGates.lean",
+      "notes": "NEW NODE (core revision): the revised core replaces the single `lem:compact-continuous-minimum` gate by two separately cited Rudin nodes, and this is the Heine-Borel half. SUBSTRATE-GATE, tagged gate (never crux): closed-and-bounded implies compact in \\(\\mathbb R^d\\) is classical, named, externally established and not original to this paper, and it cannot make its consumer vacuous. `gate_class` is `cited` and `source.carrier` is `logical-claim`, both READ FROM D0 PROVENANCE and not re-judged, so per the carrier rule this is a named `Prop` threaded into every logical consumer's `hyps` (its one consumer is `thm:non-effective-four-margin-contraction`, whose `depends_on` lists it) and excluded from the theorems manifest. F2 emits it with unshadowable `Sort 0` syntax, never a shadowable `Prop` identifier: `def EuclideanHeineBorel : Sort 0 := ∀ {d : ℕ} (S : Set (EuclideanSpace ℝ (Fin d))), IsClosed S → Bornology.IsBounded S → IsCompact S`. This mirrors the established threaded-gate style of `CausalSmith.Experimentation.SaturationSkew.SemialgebraicOptimizationAlgorithms` (Helpers/Bridge/SemialgebraicSolver.lean:20). HONEST NOTE ON DISCHARGEABILITY, recorded because a reviewer will ask first: Mathlib proves it — `Metric.isCompact_of_isClosed_isBounded` (Mathlib/Topology/MetricSpace/Bounded.lean, confirmed present by `lean_local_search isCompact_of_isClosed_isBounded`, single exact hit) gives exactly this implication in any `ProperSpace`, and `EuclideanSpace ℝ (Fin d)` is proper. F1 nevertheless does NOT discharge it: the core node carries `status:\"cited\"`, and the plan may not emit a non-gate form for a cited statement. The supported route is `bin/gate.ts --discharge` against that declaration, which retains `source`, drops the gate keys and the consumer `hyp`, and re-reviews the consumer; that is a one-line discharge and should be among the first gates closed. `infrastructure_needed` item id = this node id, effort `small` for exactly that reason. Search trace: `lean_local_search isCompact_of_isClosed_isBounded` (project_root=CausalSmith) → `Metric.isCompact_of_isClosed_isBounded`; `grep -rn 'HeineBorel|isCompact_of_isClosed' ../Causalean/` under the sibling base → no Causalean restatement, so nothing at the Causalean layer to prefer.",
+      "citation_discharged": true
+    },
+  "lem:compact-extreme-value": {
+      "lean_kind": "lemma",
+      "lean_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.compactExtremeValueMinimum_mathlib",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Topology.Order.Compact",
+        "Mathlib.Analysis.InnerProductSpace.EuclideanDist"
+      ],
+    "defer_tier": false,
+      "source": "cite:rudin-1976-compact-extreme-value",
+      "target_file": "Helpers/CitedGates.lean",
+      "notes": "NEW NODE (core revision): the minimum-attainment half of the split that replaced `lem:compact-continuous-minimum`. SUBSTRATE-GATE, tagged gate (never crux): the extreme value theorem is classical, named, externally established, not original to this paper, and cannot make its consumer vacuous. `gate_class` is `cited` and `source.carrier` is `logical-claim`, both READ FROM D0 PROVENANCE and not re-judged, so it is a named `Prop` threaded into its one consumer `thm:non-effective-four-margin-contraction` (which lists it in `depends_on`) and excluded from the theorems manifest. F2 emits it with unshadowable `Sort 0` syntax: `def CompactExtremeValueMinimum : Sort 0 := ∀ {d : ℕ} (S : Set (EuclideanSpace ℝ (Fin d))), IsCompact S → S.Nonempty → ∀ f : EuclideanSpace ℝ (Fin d) → ℝ, ContinuousOn f S → ∃ x ∈ S, ∀ y ∈ S, f x ≤ f y`. Note the SPLIT is load-bearing for fidelity: the core now states compactness (`lem:euclidean-heine-borel`) and attainment (this node) as two separate cited facts, and the contraction proof uses them in that order — Heine-Borel to compactify \\(\\mathfrak T\\) and \\(\\mathfrak T_{\\mathrm{far}}\\), then attainment for \\(\\mu_0=\\min_{\\mathfrak T_{\\mathrm{far}}}\\mathfrak r\\) — so F2 must NOT re-merge them into one closed-and-bounded-implies-attained `Prop`. HONEST NOTE ON DISCHARGEABILITY: `IsCompact.exists_isMinOn` (Mathlib/Topology/Order/Compact.lean, confirmed by `lean_local_search IsCompact.exists_isMinOn`, which also returned `IsCompact.exists_isMinOn_mem_subset`) is exactly this statement modulo unfolding `IsMinOn`. F1 does not discharge it for the same reason as its sibling: the node is `status:\"cited\"`. Supported route `bin/gate.ts --discharge`; `infrastructure_needed` item id = this node id, effort `small`.",
+      "citation_discharged": true
+    },
+    "thm:non-effective-four-margin-contraction": {
+      "lean_kind": "theorem",
+      "lean_name": "non_effective_four_margin_contraction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Matrix.Spectrum",
+        "Mathlib.Analysis.CStarAlgebra.Matrix",
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.LinearAlgebra.Matrix.Determinant.Basic",
+        "Mathlib.GroupTheory.Perm.Cycle.Factors",
+        "Mathlib.Analysis.SpecialFunctions.Pow.Real",
+        "Mathlib.Topology.Order.Compact",
+        "Mathlib.Topology.MetricSpace.Bounded",
+        "Mathlib.Topology.EMetricSpace.Diam",
+        "Mathlib.Data.ENNReal.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TNonEffectiveFourMarginContraction.lean",
+      "hyps": [
+        "ass:backshift-normalization",
+        "ass:nonnegative-shifts",
+        "ass:honest-covariance-model"
+      ],
+      "notes": "REVISED (core revision) from the former `thm:audited-release-contraction`. THREE STRUCTURAL CHANGES, all forced by the revised core, none of which moves the build-inline verdict: (i) the audit/release-abstain layer, the dyadic \\(\\underline\\mu\\) search and the QE gate are GONE — the radius \\(r_0\\) is now openly NON-EFFECTIVE, obtained directly from the compact far-family minimum \\(\\mu_0\\) as \\(r_0=\\min\\{1,\\mu_0/(2\\sqrt p L_0^2)\\}\\), so `lem:effective-real-quantifier-elimination` is no longer a dependency and is dropped from `hyps`; (ii) the covariance-interiority margin \\(\\lambda_0\\) is GONE — the constraint list of \\(\\mathfrak T\\) now has \\(\\Omega,\\Psi,\\Sigma_e,\\Gamma_e\\in\\mathbb S_+^p\\) with NO \\(\\succeq\\lambda_0I_p\\) clause, and the candidate-side premise is the SINGLE declarative condition-number bound \\(\\|A\\|_{\\mathrm{op}}\\|A^{-1}\\|_{\\mathrm{op}}\\le\\overline\\kappa\\) (F2 must not re-add candidate affine-separation, normalization-slack, scale or interiority conditions — the core's closing sentence 'No candidate affine-separation, normalization-slack, scale, or covariance-interiority condition was used' is a scope commitment); (iii) the single compactness gate is replaced by the two threaded cited gates `lem:euclidean-heine-borel` and `lem:compact-extreme-value`, used in that order. It remains the heaviest chain in the plan and is still triaged AGAINST Defer: every step is written out in the core's proof and is elementary matrix analysis, so `defer_tier:false`, with the file split planned up front into `Helpers/MatrixMargins.lean` + `Helpers/ContractionCompactness.lean` + `Helpers/ContractionLocalInverse.lean` + this assembly file, and the gate-consumer rule keeps it in scope. Step map with the reuse for each: (1) UNIFORM MATRIX BOUNDS — \\(|\\det G|\\le p!\\) from `Matrix.det_apply` plus the disjoint-cycle decomposition of a permutation (`Equiv.Perm.cycleFactorsFinset`, `cycleFactorsFinset_eq_finset`, Mathlib.GroupTheory.Perm.Cycle.Factors, confirmed present by `lean_local_search cycleFactorsFinset`) and the cycle bound; then \\(\\sigma_1(G)^p/\\overline\\kappa^{p-1}\\le\\prod_j\\sigma_j(G)=|\\det G|\\) giving \\(\\|G\\|_{\\mathrm{op}}\\le L_0\\), and \\(\\|G^{-1}\\|_{\\mathrm{op}}\\le\\overline\\kappa\\) from \\(\\|G\\|_{\\mathrm{op}}\\ge1\\) (unit diagonal) — realized WITHOUT a singular-value API (Mathlib has none: `lean_local_search PosDef.eigenvalues` returned nothing and `det_eq_prod_eigenvalues` returned only the Hermitian form) by working with \\(G^{\\mathsf T}G\\) and REUSING `Matrix.IsHermitian.det_eq_prod_eigenvalues` (Mathlib.Analysis.Matrix.Spectrum) together with `Matrix.l2_opNorm_conjTranspose_mul_self` (Mathlib.Analysis.CStarAlgebra.Matrix) — the one nonobvious substrate choice, in `Helpers/MatrixMargins.lean`. Display (17)'s PSD-summand monotonicity (\\(P,Q\\succeq0\\Rightarrow\\|P\\|_{\\mathrm{op}}\\le\\|P+Q\\|_{\\mathrm{op}}\\)) is a small Rayleigh-quotient helper in the same file; it is what replaces the deleted interiority premise in bounding \\(\\Psi\\) and \\(t_e\\), so it is load-bearing and F2 must emit it. (2) COMPACTNESS of \\(\\mathfrak T\\) and \\(\\mathfrak T_{\\mathrm{far}}\\): every defining condition is closed (inverses encoded by the two-sided products \\(DU=UD=I_p\\), cycle slack and affine separation as finite Boolean combinations of weak polynomial inequalities, PSD as a closed cone condition, the radius-one restriction (14) as a closed norm inequality) and bounded by (1), (13), (15)-(17); the family is a FINITE DISJOINT UNION over the discrete index \\((H_1,S)\\), so F2 proves compactness per index and takes the finite union. `lem:euclidean-heine-borel` supplies compactness from closed+bounded; `lem:compact-extreme-value` then supplies the attaining minimum \\(\\mu_0\\) of the continuous residual \\(\\mathfrak r\\) (18) on \\(\\mathfrak T_{\\mathrm{far}}\\) (19), with the `if empty then 1` branch handled first. (3) GLOBAL RESIDUAL GAP \\(\\mu_0>0\\): at a zero-residual tuple, differencing at \\(e_0\\in S\\) (nonempty since \\(q\\ge3\\) by display (1)) cancels both nuisances and gives \\(Q\\operatorname{diag}(x_e)Q^{\\mathsf T}=\\operatorname{diag}(y_e)\\); the true-side affine separation on \\(S\\) makes every coordinate-pair projection of \\(W\\) onto \\(\\mathbb R^2\\) surjective, the generic \\(\\beta,\\alpha\\) selection yields pairwise distinct \\(\\rho_k\\), and \\(Q\\) is monomial. F2 should REUSE the same Causalean discharge as `lem:overlap-uniqueness` here: `Causalean.Mathlib.LinearAlgebra.genPerm_of_det_ne_zero_of_colSupport` (Causalean/Mathlib/LinearAlgebra/MonomialMatrix.lean:37, signature re-confirmed by `grep -n` on the sibling base) is verbatim display (25). The permutation is then killed by the ASYMMETRIC pair (28)/(29) — STRICT slack \\(\\mathrm{CP}(I_p-D)\\le1-\\zeta_0\\) on the true side and only WEAK \\(\\mathrm{CP}(I_p-A)\\le1\\) on the candidate side — which is the revised core's one-sided normalization closure and is NOT the two-sided strict argument of `lem:overlap-uniqueness`; F2 must keep them distinct rather than trying to invoke the lemma, since the candidate here is a compactness LIMIT point that retains only the weak bound. That asymmetry is also why the extra spare-label extension of the old plan's step (3) is no longer needed. (4) ENTRY INTO THE IDENTITY CHART: `thm:confidence-union-coverage` gives \\(D\\in\\mathcal U^{(n)}_\\alpha\\) (nonemptiness), `def:confidence-union` and `def:compatible-set` unpack an arbitrary \\(A\\), inclusion-exclusion (33) gives \\(|H\\cap K|\\ge q\\), and (35) places the tuple outside \\(\\mathfrak T_{\\mathrm{far}}\\), so \\(u=\\|Q-I_p\\|_{\\mathrm F}<\\rho_0\\). (5) LOCAL AFFINE-MINOR INVERSION: displays (37)-(45), the triangle-inequality reduction of the \\(3\\times3\\) minor to a \\(2\\times2\\) determinant of modulus \\(\\ge\\gamma_0/3\\), the exact identity (39), the two-by-two solve, the Cauchy-Schwarz column bound from the unit diagonals (42), and the quadratic rearrangement (43)-(44); pure `nlinarith`/`Finset.inner_mul_le_norm_mul_norm` work in `Helpers/ContractionLocalInverse.lean`. (6) ASSEMBLY: the outer-radius and diameter bounds through `def:operator-outer-radius` (local `opOuterRadius`) and `def:operator-diameter` (REVISED — now REUSED Mathlib `Metric.ediam`, so the diameter conclusion is literally `Metric.ediam (confidenceUnion …) ≤ ENNReal.ofReal (2 * C₀ * r)` under `open scoped Matrix.Norms.L2Operator`, and F2 must import `Mathlib.Topology.EMetricSpace.Diam` and discharge it with REUSED `Metric.ediam_le` from the pointwise display (45) bound plus `edist_triangle`, NOT by unfolding a local `⨆`), with the `ℝ≥0∞` comparison of D-plan-6 (the hypothesis is `honestRegionRadius … ≤ ENNReal.ofReal r₀` and the conclusions are `≤ ENNReal.ofReal (C₀ * r)`), and the convergence corollary along \\(r_{n,\\alpha,H}\\to0\\). FIDELITY: the statement must be the conditional 'on \\(G_{n,\\alpha,H}\\) AND under the declarative candidate premise AND when \\(r_{n,\\alpha,H}\\le r_0\\)' form with \\(r_0\\) EXISTENTIALLY quantified depending only on \\(p,m,c,\\gamma_0,\\zeta_0,\\overline\\kappa,\\overline M\\) — never a computed radius, never an unconditional bound, and with no executable/algorithmic/software claim (the core's non-effectivity disclaimer is part of the scope, enforced by the existential and by the absence of any `Decidable`/`Option` output). Search trace beyond the above: `lean_leansearch` \"product of singular values equals absolute value of determinant\" and \"operator norm bounded by largest singular value\" → only the Hermitian spectral API, no packaged singular-value decomposition, confirming step (1)'s route; `lean_local_search isCompact_of_isClosed_isBounded` and `IsCompact.exists_isMinOn` → both present in Mathlib and named in the two gates' discharge notes; `grep -rn 'opNorm|singular' ../Causalean/Mathlib/` → `OperatorSqrt.lean` (`posSqrt`, `eigVals`) at the `E →ₗ[ℝ] E` abstraction, surveyed and bypassed to avoid an operator/matrix transport (see the bypass survey)."
+    },
+    "oeq:certified-uniform-inference": {
+      "lean_kind": "def",
+      "lean_name": "openQuestion_certifiedUniformInference",
+      "revision_notes": "F2 redirect: the literal payload explicitly records the arbitrary nonempty PSD-region regime, formal verification of QE/sign-determination/root-isolation, and the four-margin audit's role in certifying unknown true-side margins.",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "OpenQuestions.lean",
+      "hyps": [],
+      "oeq_case": "B",
+      "carrier_type": "_root_.List _root_.String",
+      "notes": "NEW NODE (core revision): the revised core demotes the former headline `thm:certified-uniform-inference-audited-answer` to an UNRESOLVED open-ended question (`kind: openendedquestion`, `status: to-prove`), which the brief's `design_decisions.d0_open_oeq_residuals` confirms is the note's acknowledged open problem. It is therefore a `def`, NEVER a `theorem`, is excluded from any theorems manifest, and no delivered theorem `depends_on` it (checked against the revised core: nothing lists it). `defer_tier:false`, `gate:false`. TWO-CASE rule read off the frozen node text: Case (B). The node asks whether one can 'build and formally verify an executable real-closed-field quantifier-elimination, sign-determination, and root-isolation substrate' with four numbered capabilities, plus chart automation and a CRAN extension — and it states in terms that 'Every executable, effective, decision, chart-automation, and software item in this question is unresolved future work.' The truth conditions are therefore undefined in the core: no procedure, no release-or-abstain criterion, no effective radius functional, no classification algorithm, no chart-automation map and no software interface is defined anywhere in the revised core (the entire symbolic layer — `def:encoded-covariance-regions`, `def:certificate-inference-handle`, `def:audited-release-contraction`, `lem:effective-real-quantifier-elimination` — was DELETED by this revision), so the core prescribes a nonassertive carrier. F2 emits `def openQuestion_certifiedUniformInference : _root_.List _root_.String := [ … ]` — a direct literal list of `String` literals, never `PUnit`/`Unit`/`True`/`Prop`/`Sort`/a type alias/a helper-defined payload/an empty tag — recording verbatim: (a) the ESTABLISHED PARTIAL RESULTS the question builds on, namely the set-theoretic inclusion \\(G_{n,\\alpha,H}\\subseteq\\{D\\in\\mathcal U^{(n)}_\\alpha\\}\\) of `thm:confidence-union-coverage` with its measurability-conditional probability consequence, and the non-effective existential radius \\(r_0>0\\) with explicit modulus \\(L_0=(p!\\,\\overline\\kappa^{p-1})^{1/p}\\), \\(K_0=(6\\overline M/\\gamma_0)\\sqrt{p(p-1)(1+L_0^2)}\\), \\(C_0=16K_0L_0^3\\) of `thm:non-effective-four-margin-contraction`; (b) the QUANTIFIED REGIME — four true-side bounds \\(\\gamma_H\\ge\\gamma_0\\), \\(\\zeta_D\\ge\\zeta_0\\), \\(\\kappa_D\\le\\overline\\kappa\\), \\(M_H\\le\\overline M\\) and the SOLE candidate-side condition-number bound, over arbitrary nonempty regions \\(\\mathcal C^{(n)}_{e,\\alpha}\\subseteq\\mathbb S_+^p\\); (c) the four numbered DESIDERATA verbatim (terminating emission of a quantifier-free code whose realization is exactly \\(\\mathcal U^{(n)}_\\alpha\\) from finite rational-semialgebraic region codes; a decided release-or-abstain condition, with the conservative universal four-margin audit and its forced abstention at a feasible candidate of zero affine separation named as one possible route, explicitly distinguished from the analytic candidate-side condition-number premise; the rational empty/singleton/at-least-two classification of \\(\\mathcal R_c(\\Sigma)\\); and a certified positive lower bound for the compact far-family residual yielding an effective \\(r_0\\)), plus the two further asks (normalization-chart automation that preserves the represented matrix set, and a corruption-aware extension of the CRAN `backShift` workflow); and (d) the explicit NONASSERTION DISCLAIMERS: every executable, effective, decision, chart-automation and software item is unresolved future work; the compactness radius is existential with no computable lower bound; `def:subset-consensus` is a definitional reduction to a full-solution feasibility oracle and not a supplied terminating solver; and a feasible candidate with zero affine separation or small normalization slack may trigger the conservative operational audit but is NOT an analytic candidate-side obstruction to contraction around a fixed true instance with \\(\\gamma_H\\ge\\gamma_0>0\\) and \\(\\zeta_D\\ge\\zeta_0>0\\). The payload carries NO selector, procedure, rate, confidence, or lower-bound witness field, and it changes whenever the question's regimes, alternatives or desiderata change. `hyps` is empty by construction: the carrier is a non-`Prop` descriptive payload, so the node's `depends_on` assumptions (`ass:backshift-normalization`, `ass:nonnegative-shifts`, `ass:honest-covariance-model`) are recorded INSIDE the payload text as the stated regime rather than threaded as Lean hypotheses — threading them would manufacture a truth-valued claim the core explicitly declines to make. NO TAUTOLOGICAL CONJUNCTS: none of the question's clauses is promoted to a theorem conjunct anywhere in the plan. Search trace not required (no absence is asserted); nothing is claimed proved."
+    }
+  },
+  "decisions": [
+    {
+      "id": "D-plan-1",
+      "decision": "The whole ambient world is scaffolded over Mathlib matrices, and the declared exactid cluster substrate root (PO/ID/Exact, SCM/ID, GraphicalThms, PO, SCM/Do, Graph/SWIG) is bypassed as an abstraction mismatch.",
+      "rationale": "The paper's system is a CYCLIC linear equilibrium model whose observable is a family of covariance matrices and whose target is a matrix in \\(\\mathrm{GL}_p(\\mathbb R)\\). It states no graphical condition, forms no interventional kernel, and has no treatment/outcome pair, so `Identifiable`, `Overlap`, `Adjustment`, `Backdoor.*`, `Frontdoor.*`, `ATE.*`, `DID.*`, `DTR.*`, `LATE.*`, `GraphicalThms.*`, `SWIGGraph` and the whole `PO.*`/`SCM.Do.*` layer have no type-fitting declaration; `Graph/DAG.lean` additionally assumes acyclicity, which this world denies. What IS reused, at exactly the right abstraction, is Causalean's linear-causal-discovery matrix layer — `Causalean.Mathlib.LinearAlgebra.genPerm_of_det_ne_zero_of_colSupport` discharges the monomial-extraction step of the paper's core lemma verbatim. Recorded as `bypass_justified: true` on all three S-blocks with a per-module survey in `file_plan.bypass_survey`."
+    },
+    {
+      "id": "D-plan-2",
+      "decision": "REVISED (core revision) — the entire symbolic/executable layer is dropped from the plan; the two classical Rudin facts are the only threaded cited gates, and `thm:non-effective-four-margin-contraction` is planned IN SCOPE and conditional on them.",
+      "rationale": "The revised core deletes `lem:effective-real-quantifier-elimination`, `def:encoded-covariance-regions`, `def:certificate-inference-handle`, `def:audited-release-contraction`, `thm:certified-inference-representation-obstruction`, `lem:finite-membership-query-obstruction`, `thm:certified-uniform-inference-audited-answer` and `prop:covariance-interiority-audit-nonvacuity`, and moves every executable/effective/decision/chart/software item into the unresolved `oeq:certified-uniform-inference`. There is consequently no quantifier-elimination dependency anywhere in the plan and no first-order syntax to build. What remains gated is exactly the two `status:\"cited\"` nodes `lem:euclidean-heine-borel` and `lem:compact-extreme-value`, whose `gate_class:\"cited\"` and `source.carrier:\"logical-claim\"` are fixed by D0 provenance and not re-judged; both are threaded into `thm:non-effective-four-margin-contraction`'s `hyps`, which by the gate-consumer rule keeps that theorem `defer_tier:false` and its (long but elementary) matrix analysis build-inline. Both gates are one-line dischargeable against Mathlib (`Metric.isCompact_of_isClosed_isBounded`, `IsCompact.exists_isMinOn`) through `bin/gate.ts --discharge`, so `infrastructure_needed` records them at effort `small`."
+    },
+    {
+      "id": "D-plan-3",
+      "decision": "REVISED — no node is planned as a crux Defer; the plan now carries exactly TWO cited substrate gates (down from three) and no `deferred_conjecture`.",
+      "rationale": "The only two candidates for crux Defer were `lem:overlap-uniqueness` and the contraction theorem (now `thm:non-effective-four-margin-contraction`). Both are triaged as build-inline after reading their proofs: each is long (600-800 and ~1100 lines respectively) but every step is elementary and written out, the hardest single step of both has a verbatim Causalean discharge (`genPerm_of_det_ne_zero_of_colSupport`), and the contraction theorem's only Defer-tier ingredients — Heine-Borel and extreme-value attainment — are separately gated and threaded. Deferring either would drop the paper's population core or its analytic endpoint for length rather than for open mathematics, which the triage rule forbids. Two former gates disappear for different reasons: the QE gate because its whole consumer layer left the core, and `lem:randomized-sdc-complete-family-recovery` because the revised core no longer carries it as a node at all (He-Kressner now appears only in the `comparator_promise_table`, which is not a node set). The file plan compensates by pre-splitting both chains across dedicated `Helpers/` files."
+    },
+    {
+      "id": "D-plan-4",
+      "decision": "Maximum affine-line occupancy is realized as a `Finset.sup` over collinear INDEX subsets, not as a supremum over affine lines.",
+      "rationale": "A sup over the infinite set of affine lines is awkward in Lean and, worse, invites a set-of-points reading that would silently deduplicate the coincident type-\\(00\\) shift points at the origin — destroying the multiplicity that `prop:generic-support-frontier`'s four-term formula depends on ('This application counts indexed observations, so coincident zero-shift points contribute with their full multiplicity'). Ranging over subsets of the index set \\(H\\) preserves multiplicity by construction, is total and finite, and matches `def:affine-separation`'s minor-based collinearity criterion, so both consume one shared bridge lemma (a finite indexed family lies on a common affine line iff every triple has vanishing affine minor, the note's own display (16))."
+    },
+    {
+      "id": "D-plan-5",
+      "decision": "`def:subset-consensus` is emitted as a set-theoretic union over size-\\(h\\) subsets, not as an executable oracle-driven solver.",
+      "rationale": "The core is explicit that this is a 'definitional implementation note', that neither the \\(\\binom mh\\) query count nor the identity with \\(\\mathcal R_c(\\Sigma)\\) is a theorem contribution, and that no encoded terminating solver is supplied. A set-theoretic union keeps the definition faithful to that disclaimer, makes the query count a `Finset.card` fact, and makes the identity a `Set.ext` proved beside the definition rather than an exported claim."
+    },
+    {
+      "id": "D-plan-6",
+      "decision": "REVISED (F1.5 review, FLAG-missed-reuse) — `rRadius`, `diamOp` and `outerOp` are all `ℝ≥0∞`-valued, and `diamOp` is now REUSED Mathlib `Metric.ediam` rather than a local functional; only `rRadius` and `outerOp` remain local, and all three are written with `edist` under `open scoped Matrix.Norms.L2Operator`.",
+      "rationale": "The `ℝ≥0∞` value type is unchanged and still load-bearing: the core explicitly allows \\(+\\infty\\) for all three ('with value \\(+\\infty\\) allowed', '\\(\\in[0,+\\infty]\\)'), and Mathlib's real-valued `Metric.diam` returns 0 on an unbounded set, which would make the contraction hypothesis \\(r_{n,\\alpha,H}\\le r_0\\) vacuously satisfiable on an unbounded confidence region — a soundness bug, so `Metric.diam` stays rejected. What changes is the diameter: the previous entry rejected the extended-valued diameter for 'plumbing', citing `EMetric.diam` and a scoped `Matrix.L2OpNorm` instance. Both citations were wrong. The decl is `Metric.ediam` (`Mathlib/Topology/EMetricSpace/Diam.lean:32`), `⨆ (x ∈ s) (y ∈ s), edist x y` over a `PseudoEMetricSpace` — verbatim the core's supremum shape, `ℝ≥0∞`-valued, so it preserves the required infinite value on an unbounded set; the `EMetric.*` spellings are deprecated aliases in the same file, which is why the earlier index search came up empty. And the scope is `Matrix.Norms.L2Operator` (`Mathlib/Analysis/CStarAlgebra/Matrix.lean:172,183`), which exposes `Matrix.instL2OpMetricSpace` alongside the very `Matrix.instL2OpNormedAddCommGroup` this development already opens for `‖·‖` — so the metric structure comes for free with the norm, there is no second instance to plumb, and the only bridge is `edist x y = ENNReal.ofReal ‖x - y‖` by `edist_dist`/`dist_eq_norm`, i.e. simp. Reuse is therefore mandatory under Step 0, and it buys the consumer discharge `Metric.ediam_le` (:53) for free. `rRadius` and `outerOp` stay define-local because Mathlib has no per-index or one-sided sup-of-distances decl (`Metric.infDist`/`EMetric.infEdist` are infima), but they are re-expressed with `edist` in the same ambient structure so the whole `ℝ≥0∞` layer is uniform."
+    },
+    {
+      "id": "D-plan-7",
+      "decision": "REVISED — the local contraction radius \\(r_0\\) is emitted as an EXISTENTIAL, non-effective quantity inside `thm:non-effective-four-margin-contraction`; no constants bundle, no release/abstain handle, and no dyadic search is defined anywhere in the plan.",
+      "rationale": "This supersedes the former D-plan-7 (`certificateInferenceHandle`) and D-plan-8 (`Nat.sInf` dyadic \\(\\underline\\mu\\)), both of whose definitions were deleted from the core by this revision. The revised core states the radius as 'there exists a real number \\(r_0>0\\), depending only on \\(p,m,c,\\gamma_0,\\zeta_0,\\overline\\kappa,\\overline M\\)' and says in terms that 'The existence of \\(r_0\\) is non-effective: no procedure is asserted for checking the universal candidate premise or for computing \\(r_0\\)'. Emitting \\(L_0,K_0,\\rho_0,C_0\\) as ordinary `Real` expressions in the theorem statement (they ARE explicit and closed-form, so they stay in the statement) while binding \\(r_0\\) by `∃ r₀ > 0, …` is the only encoding faithful to that split: it makes the modulus checkable and the radius honestly non-constructive, and it removes any temptation to expose a `Decidable`/`Option` interface that the core disclaims. The compact family \\(\\mathfrak T\\), its far subfamily, the residual \\(\\mathfrak r\\) and \\(\\mu_0\\) are proof-local objects in `Helpers/ContractionCompactness.lean`, not core nodes, so they need no plan node."
+    },
+    {
+      "id": "D-plan-8",
+      "decision": "REVISED — the covariance-interiority margin is removed everywhere, and its role in bounding the candidate nuisance and shifts is taken over by a PSD-summand operator-norm monotonicity helper.",
+      "rationale": "The revised core deletes the symbols `lambda`/`lambda0` and the clause \\(\\Gamma_e\\succeq\\lambda_0I_p\\) from the constraint family, keeping only \\(\\Omega,\\Psi,\\Sigma_e,\\Gamma_e\\in\\mathbb S_+^p\\). The bound that previously came from interiority now comes from display (17): if \\(P,Q\\succeq0\\) then \\(\\|P\\|_{\\mathrm{op}}\\le\\|P+Q\\|_{\\mathrm{op}}\\), applied to \\(A\\Gamma_eA^{\\mathsf T}=\\Psi+\\operatorname{diag}(t_e)\\). F2 must emit that helper in `Helpers/MatrixMargins.lean` and must NOT reintroduce an interiority premise to shortcut it — doing so would silently strengthen the theorem's hypotheses relative to the core, which explicitly closes with 'No candidate affine-separation, normalization-slack, scale, or covariance-interiority condition was used.'"
+    },
+    {
+      "id": "D-plan-9",
+      "decision": "REVISED — the disclaimer clauses of the contraction theorem stay presentation-only narrative and are NOT formalized as theorem conjuncts; the whole executable programme is carried instead by the OEQ payload.",
+      "rationale": "The former D-plan-9 governed commentary in the deleted `thm:certified-inference-representation-obstruction`. The same discipline now applies to `thm:non-effective-four-margin-contraction`, whose closing sentences ('The existence of \\(r_0\\) is non-effective …', 'no executable, algorithmic, or software interface is asserted') are scope commentary: turning them into conjuncts would produce model-independent shells. They are enforced structurally instead — by the existential \\(r_0\\), by the conditional 'on \\(G_{n,\\alpha,H}\\) and when \\(r_{n,\\alpha,H}\\le r_0\\)' form, and by the absence of any computational output type. Everything the deleted layer used to claim is recorded, non-assertively, in the `_root_.List _root_.String` payload of `oeq:certified-uniform-inference`. NO TAUTOLOGICAL CONJUNCTS anywhere: in particular the OEQ's 'possibly using a conservative universal four-margin audit' clause is NOT promoted to a formal audit predicate, since no audit object exists in the revised core."
+    },
+    {
+      "id": "D-plan-10",
+      "decision": "REVISED — still no `theorems` manifest: the brief carries no paper manifest and `state.theorems` is absent.",
+      "rationale": "The paper-scoped preamble is explicitly inert when `state.theorems` is absent or empty, and no `theorem_local_id` values were supplied anywhere in the brief (confirmed against `state.json`, which carries no `theorems` key), so no statement node carries a `local_id`. If this run is later re-dispatched paper-scoped, the SEVEN delivered statements are `lem:overlap-uniqueness`, `thm:sharp-replacement-radius`, `prop:generic-support-frontier`, `lem:generic-affine-occupancy`, `prop:uniform-support-deletion-radius`, `thm:confidence-union-coverage` and `thm:non-effective-four-margin-contraction`; the two cited gates (`lem:euclidean-heine-borel`, `lem:compact-extreme-value`) are excluded by the gate rule and the unresolved `oeq:certified-uniform-inference` is excluded by the OEQ rule."
+    },
+    {
+      "id": "D-plan-11",
+      "decision": "REVISED — `lem:euclidean-heine-borel` and `lem:compact-extreme-value` are kept as TWO separate cited gates, and are not merged, even though Mathlib proves both.",
+      "rationale": "Both nodes carry `status:\"cited\"` with `source.carrier:\"logical-claim\"`, and F1 may not emit a non-gate form for a cited statement, so the previous single-gate merge (`lem:compact-continuous-minimum`, now deleted from the core) cannot be preserved: the revised core atomizes the two Rudin theorems, and the contraction proof consumes them in sequence — Heine-Borel to compactify \\(\\mathfrak T\\) and \\(\\mathfrak T_{\\mathrm{far}}\\), then extreme-value attainment for \\(\\mu_0\\). Re-merging them would silently re-atomize the author's provenance and would also break the one-to-one node mapping. The honest observation — `Metric.isCompact_of_isClosed_isBounded` (Mathlib/Topology/MetricSpace/Bounded.lean) and `IsCompact.exists_isMinOn` (Mathlib/Topology/Order/Compact.lean) each discharge one gate in about one line, both confirmed present by `lean_local_search` — is recorded in each node's notes, and both `infrastructure_needed` entries carry effort `small`, so the orchestrator can close them immediately through the supported `bin/gate.ts --discharge` path (which retains `source`, drops the gate keys and the consumer `hyps`, and re-reviews `thm:non-effective-four-margin-contraction`)."
+    },
+    {
+      "id": "D-plan-12",
+      "decision": "NEW (core revision) — `oeq:certified-uniform-inference` is a Case-(B) non-assertive `_root_.List _root_.String` payload, and no delivered theorem depends on it.",
+      "rationale": "The revised core turns the former headline into an unresolved open-ended question, which `design_decisions.d0_open_oeq_residuals` records as the note's acknowledged open problem. Every truth condition it asks about — an executable real-closed-field QE/sign-determination/root-isolation substrate, a release-or-abstain decision, a rational empty/singleton/multiple classifier, an effective radius, chart automation, a corruption-aware CRAN extension — is undefined in the revised core, which deleted the entire symbolic layer that used to define them, and the node states in terms that all of it is unresolved future work. Case (A) is therefore unavailable (there is no fully specified predicate to record as a `Prop`), and the carrier must be a descriptive non-`Prop` payload. A `List String` rather than a single `String` is chosen only because the question has four numbered desiderata plus two further asks plus four disclaimers, and one literal per clause keeps the payload legible and makes it obviously change when the question changes; it is still a direct literal of a permitted carrier type, with no selector, procedure, rate, confidence or lower-bound witness field."
+    }
+  ],
+  "external_substrate_assumptions": []
+}

@@ -214,7 +214,9 @@ namespace IIDSample
 variable [IsProbabilityMeasure μ] [IsProbabilityMeasure P]
   {g : X → X → ℝ} (S : IIDSample Ω X μ P)
 
-/-- `ζ = ∬ g² dP dP`, the second moment of the kernel. -/
+/-- For [a measurable observation space](hyp:X), [a measure on that space](hyp:P), and [a real-valued kernel of two observations](hyp:g), the [kernel second moment](goal) is $\iint g(x,y)^2\,dP(x)\,dP(y)$, evaluated under two independent draws from the given measure.
+
+This scalar is denoted $\zeta$ and supplies the order-two kernel's second-moment scale. -/
 noncomputable def zeta (P : Measure X) (g : X → X → ℝ) : ℝ :=
   ∫ p, (g p.1 p.2) ^ 2 ∂(P.prod P)
 

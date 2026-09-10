@@ -341,6 +341,12 @@ export interface FormalizationFlags {
   /** Set when any `d0_loop_counters` budget is exhausted. BLOCKS `--resume` until cleared
    *  via `--clear-gate d0_loop_cap_hit`. */
   d0_loop_cap_hit?: string;
+  /** How many D0 escalation-journal entries have been shown to a solver round
+   *  (see `discovery/escalation_log.ts`). Entries beyond it are pending. */
+  d0_directives_consumed?: number;
+  /** The graph's main commit when the current D0.5 invocation began; D0.R edits past
+   *  it are provisional until PASS and are reset on the next entry otherwise. */
+  d0_5_head_before?: string;
   /** D-0.5 producer env-failure retries, persisted for the same reason as the D0 counters:
    *  a process-local counter meant every resume re-granted the full retry budget while
    *  `last_draft_status` stayed "env-failure", looping forever. Reset by the
@@ -488,6 +494,16 @@ export interface DiscoveryState {
     bt_id: string;
   } | null;
   banked_open_ended_question_ids?: string[];
+  /** The proposal invocation, persisted at init so a bare `--resume` after a halt
+   * still knows the topic / tier / upgrade lineage (stage numbers alone cannot
+   * say that). `scout_refresh` marks a deliberate D-1.1 re-entry. */
+  pre_d0_intent?: {
+    cursor_version: 1;
+    topic: string;
+    novelty_target: NoveltyTarget;
+    upgrade_from?: UpgradeFrom;
+    scout_refresh?: boolean;
+  };
   /**
    * Open-problem substrate produced by Stage -1.1 (literature scout). Populated
    * before Stage -1.2 (proposer) runs, so the proposer's seed-generation step
@@ -558,7 +574,8 @@ export interface DiscoveryState {
     /** @deprecated Read-only compatibility for states written before the
      * compact version marker. `loadState` migrates it in memory. */
     last_draft_handoff?: string;
-    last_draft_status?: "completed" | "needs-pivot" | "invalid-draft" | "env-failure";
+    /** `producer-queued` is accepted on load only (migrated to `completed`). */
+    last_draft_status?: "completed" | "producer-queued" | "needs-pivot" | "invalid-draft" | "env-failure";
     exhausted_angles?: number[];
     last_reviewer_verdict?: string;
     iterations?: Array<{

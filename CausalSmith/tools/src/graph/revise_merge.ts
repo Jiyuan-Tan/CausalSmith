@@ -140,6 +140,9 @@ export function mergeStage1RevisionGraph(
     nodes,
     edges,
     symbolReview: previous.symbolReview,
+    // Receipts are evidence-bound: an entry whose target changed is inert (hash mismatch), and the
+    // `markUnreviewed` below also withdraws its delta clearance, so carrying the ledger is safe.
+    convergenceReview: previous.convergenceReview,
   };
   for (const id of dirty) {
     if (merged.nodes.some((node) => node.id === id)) merged = markUnreviewed(merged, id);

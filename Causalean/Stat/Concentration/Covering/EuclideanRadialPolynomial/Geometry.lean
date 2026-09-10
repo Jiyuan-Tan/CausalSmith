@@ -22,21 +22,21 @@ namespace Causalean.Stat.Concentration.EuclideanRadialPolynomial
 open Causalean.Stat.Concentration
 open scoped BigOperators
 
-/-- The `d`-dimensional real Euclidean space used by the radial classes. -/
+/-- Given [a natural dimension](hyp:d), [the Euclidean point space](goal) is the real Euclidean space of that dimension. -/
 abbrev EuclideanPoint (d : ℕ) := EuclideanSpace ℝ (Fin d)
 
-/-- A Euclidean point paired with a real radius threshold.  Negative thresholds
+/-- Given [a natural dimension](hyp:d), [the point-radius space](goal) is the set of pairs consisting of a point in the corresponding real Euclidean space and an arbitrary real radius threshold.
+
+A Euclidean point paired with a real radius threshold.  Negative thresholds
 are allowed; they give a constant ball or exterior label. -/
 abbrev RadiusPoint (d : ℕ) := EuclideanPoint d × ℝ
 
-/-- A moving center labels a point-radius pair when the point lies in the
-corresponding closed ball about that center. -/
+/-- Given [a natural dimension](hyp:d), [a center point](hyp:x), and [a point together with a radius threshold](hyp:zr), [the moving-center closed-ball classifier](goal) returns true exactly when the point lies at distance no greater than the threshold from the center. -/
 noncomputable def movingCenterClosedBallClassifier (d : ℕ)
     (x : EuclideanPoint d) (zr : RadiusPoint d) : Bool :=
   decide (dist zr.1 x ≤ zr.2)
 
-/-- A moving center labels a point-radius pair when it lies strictly outside
-the corresponding ball. -/
+/-- Given [a natural dimension](hyp:d), [a center point](hyp:x), and [a point together with a radius threshold](hyp:zr), [the moving-center exterior classifier](goal) returns true exactly when the point lies at distance strictly greater than the threshold from the center. -/
 noncomputable def movingCenterBallExteriorClassifier (d : ℕ)
     (x : EuclideanPoint d) (zr : RadiusPoint d) : Bool :=
   decide (zr.2 < dist zr.1 x)
@@ -202,12 +202,13 @@ theorem movingCenterBallExterior_hasVCAtMost (d : ℕ) :
     HasVCAtMost (movingCenterBallExteriorClassifier d) (d + 2) := by
   exact movingCenterExterior_vc d
 
-/-- A center and a nonnegative radius parameterize a genuine closed Euclidean
+/-- Given [a natural dimension](hyp:d), [the closed-ball parameter space](goal) is the set of pairs consisting of a point in that real Euclidean space and a nonnegative real radius.
+
+A center and a nonnegative radius parameterize a genuine closed Euclidean
 ball. -/
 abbrev ClosedBallParam (d : ℕ) := EuclideanPoint d × NNReal
 
-/-- The Boolean classifier of closed Euclidean balls in finite-dimensional
-real Euclidean space. -/
+/-- Given [a natural dimension](hyp:d), [a closed-ball parameter](hyp:cr), and [a point in the corresponding Euclidean space](hyp:z), [the closed-ball classifier](goal) returns true exactly when the point lies in the closed ball specified by that parameter. -/
 noncomputable def euclideanClosedBallClassifier (d : ℕ)
     (cr : ClosedBallParam d) (z : EuclideanPoint d) : Bool :=
   decide (dist z cr.1 ≤ (cr.2 : ℝ))
@@ -273,30 +274,30 @@ theorem euclideanClosedBall_hasVCAtMost (d : ℕ) :
   · simp [euclideanClosedBallClassifier, hlt, not_le_of_gt hlt]
   · simp [euclideanClosedBallClassifier, hlt, le_of_not_gt hlt]
 
-/-- The compactly supported radial monomial with center `x`, bandwidth `q`,
-relative annulus endpoints `a,b`, and natural degree `k`. -/
+/-- Given [a natural dimension](hyp:d), [a bandwidth](hyp:q), [two relative annulus endpoints](hyp:a), [a natural-number degree](hyp:k), [a center point](hyp:x), and [an evaluation point](hyp:z), [the radial annulus monomial](goal) equals $(\operatorname{dist}(z,x)/q)^k$ when the distance from the evaluation point to the center lies between $aq$ and $bq$, inclusive, and equals zero otherwise. -/
 noncomputable def radialAnnulusMonomial (d : ℕ)
     (q a b : ℝ) (k : ℕ) (x z : EuclideanPoint d) : ℝ :=
   if a * q ≤ dist z x ∧ dist z x ≤ b * q then
     (dist z x / q) ^ k
   else 0
 
-/-- The parameter space for a moving center and a degree between zero and
+/-- Given [a natural dimension](hyp:d) and [a maximal natural-number degree](hyp:p), [the radial-monomial parameter space](goal) consists of a center in that Euclidean space paired with a degree from zero through $p$.
+
+The parameter space for a moving center and a degree between zero and
 `p`, inclusive. -/
 abbrev RadialMonomialParam (d p : ℕ) :=
   EuclideanPoint d × Fin (p + 1)
 
-/-- The radial-monomial class in which the center and the degree up to `p`
-both vary. -/
+/-- Given [a natural dimension](hyp:d), [a maximal degree](hyp:p), [a bandwidth and two relative annulus endpoints](hyp:q), [a center-and-degree parameter](hyp:θ), and [a Euclidean evaluation point](hyp:z), [the radial-monomial class](goal) maps that parameter and point to the corresponding radial annulus monomial. -/
 noncomputable def radialMonomialClass (d p : ℕ) (q a b : ℝ)
     (θ : RadialMonomialParam d p) (z : EuclideanPoint d) : ℝ :=
   radialAnnulusMonomial d q a b θ.2.1 θ.1 z
 
-/-- An explicit trace bound for one fixed radial degree. -/
+/-- Given [a natural dimension](hyp:d), [the fixed-degree radial pseudo-dimension bound](goal) is the explicit Boolean-combination bound $2^{3(d+3)+1}$. -/
 def fixedRadialPseudoDimBound (d : ℕ) : ℕ :=
   booleanCombinationVCBound 3 (d + 2)
 
-/-- An explicit trace bound for all radial degrees from zero through `p`. -/
+/-- Given [a natural dimension](hyp:d) and [a maximal degree](hyp:p), [the radial pseudo-dimension bound](goal) is the explicit finite-union bound $2^{(p+1)(2^{3(d+3)+1}+1)+1}$ obtained by combining $p+1$ fixed-degree bounds. -/
 def radialPseudoDimBound (d p : ℕ) : ℕ :=
   finiteUnionVCBound (p + 1) (fixedRadialPseudoDimBound d)
 

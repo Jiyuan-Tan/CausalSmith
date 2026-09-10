@@ -32,7 +32,7 @@ namespace AdoptionPath
 
 open Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.CausalAssumptions
 
-/-- A finite adoption path, embedded in `WithTop (Fin T)`. -/
+/-- [For a panel with a finite horizon of $T$ periods](hyp:T) and [a finite adoption period $g$](hyp:g), [the finite adoption path](goal) is the path whose adoption date is $g$, rather than the never-treated date. -/
 def finite {T : ℕ} (g : Fin T) : WithTop (Fin T) :=
   (g : WithTop (Fin T))
 
@@ -41,7 +41,7 @@ definitionally the ordinary finite-period inclusion. -/
 @[simp] theorem finite_eq {T : ℕ} (g : Fin T) :
     finite g = (g : WithTop (Fin T)) := rfl
 
-/-- Adoption-date predicate `A ≤ t`, i.e. adoption has occurred by period `t`. -/
+/-- [For a finite-period horizon](hyp:T), [an adoption path $a$](hyp:a), and [a period $t$ in that horizon](hyp:t), [the treated-by-$t$ predicate](goal) holds exactly when the adoption date is no later than $t$. -/
 def le {T : ℕ} (a : WithTop (Fin T)) (t : Fin T) : Prop :=
   a ≤ (t : WithTop (Fin T))
 
@@ -50,7 +50,7 @@ finite period viewed as an adoption date. -/
 @[simp] theorem le_eq {T : ℕ} (a : WithTop (Fin T)) (t : Fin T) :
     le a t = (a ≤ (t : WithTop (Fin T))) := rfl
 
-/-- Adoption-date predicate `t < A`, i.e. the path is untreated at period `t`. -/
+/-- [For a finite-period horizon](hyp:T), [an adoption path $a$](hyp:a), and [a period $t$ in that horizon](hyp:t), [the untreated-at-$t$ predicate](goal) holds exactly when $t$ is strictly before the adoption date. -/
 def lt {T : ℕ} (a : WithTop (Fin T)) (t : Fin T) : Prop :=
   (t : WithTop (Fin T)) < a
 
@@ -59,7 +59,7 @@ comparison with the finite period viewed as an adoption date. -/
 @[simp] theorem lt_eq {T : ℕ} (a : WithTop (Fin T)) (t : Fin T) :
     lt a t = ((t : WithTop (Fin T)) < a) := rfl
 
-/-- The path is finite, i.e. eventually treated. -/
+/-- [For a finite-period horizon](hyp:T) and [an adoption path $a$](hyp:a), [the finite-path predicate](goal) holds exactly when its adoption date is not the never-treated date. -/
 def isFinite {T : ℕ} (a : WithTop (Fin T)) : Prop :=
   a ≠ ⊤
 
@@ -67,7 +67,7 @@ def isFinite {T : ℕ} (a : WithTop (Fin T)) : Prop :=
 @[simp] theorem isFinite_eq {T : ℕ} (a : WithTop (Fin T)) :
     isFinite a = (a ≠ ⊤) := rfl
 
-/-- The path is infinite, i.e. never treated. -/
+/-- [For a finite-period horizon](hyp:T) and [an adoption path $a$](hyp:a), [the infinite-path predicate](goal) holds exactly when its adoption date is the never-treated date. -/
 def isInfinite {T : ℕ} (a : WithTop (Fin T)) : Prop :=
   a = ⊤
 
@@ -75,7 +75,7 @@ def isInfinite {T : ℕ} (a : WithTop (Fin T)) : Prop :=
 @[simp] theorem isInfinite_eq {T : ℕ} (a : WithTop (Fin T)) :
     isInfinite a = (a = ⊤) := rfl
 
-/-- A path is never treated when its adoption date is infinite. -/
+/-- [For a finite-period horizon](hyp:T) and [an adoption path $h$](hyp:h), [the never-treated predicate](goal) holds exactly when $h$ has the never-treated adoption date. -/
 def isNeverTreated {T : ℕ} (h : WithTop (Fin T)) : Prop :=
   isInfinite h
 
@@ -84,7 +84,7 @@ predicate. -/
 @[simp] theorem isNeverTreated_eq {T : ℕ} (h : WithTop (Fin T)) :
     isNeverTreated h = (h = ⊤) := rfl
 
-/-- `h < ∞`, the path is eventually treated. -/
+/-- [For a finite-period horizon](hyp:T) and [an adoption path $h$](hyp:h), [the eventually-treated predicate](goal) holds exactly when $h$ has a finite adoption date. -/
 def isEventuallyTreated {T : ℕ} (h : WithTop (Fin T)) : Prop :=
   isFinite h
 
@@ -94,8 +94,9 @@ adoption-date predicate. -/
     isEventuallyTreated h = (h ≠ ⊤) := rfl
 
 open Classical in
-/-- Absorbing treatment path `1{h < ∞ and h ≤ t}`. Since `⊤ ≤ t` is false,
-the never-treated path is untreated in every finite period. -/
+/-- [For a finite-period horizon](hyp:T), [an adoption path $h$](hyp:h), and [a period $t$ in that horizon](hyp:t), [the absorbing treatment indicator](goal) equals one exactly when $h$ has adopted by $t$, and equals zero otherwise.
+
+Since the never-treated date is later than every finite period, the never-treated path is untreated in every finite period. -/
 noncomputable def absorbingTreatment {T : ℕ} (h : WithTop (Fin T)) (t : Fin T) : ℝ :=
   if le h t then 1 else 0
 

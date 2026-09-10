@@ -119,7 +119,20 @@ structure NuisanceDirDeriv {γ : Type*} [MeasurableSpace γ]
 
 /-! ## Closed-form mixed directional derivative for the DR-Learner loss -/
 
-/-- The closed-form `HasMixedDirDeriv` bundle for the DR-Learner orthogonal-learning
+/-- For a [potential-outcome system with a standard-Borel sample space and a finite
+measure](hyp:P), a [covariate space with its σ-algebra](hyp:γ), a
+[CATE estimation system](hyp:S), [its causal identification assumptions](hyp:_hA), a [strictly
+positive overlap bound](hyp:ε,_hε_pos), and [membership of the system's true nuisance in the
+corresponding overlap class](hyp:_h_overlap_η₀), together with a [target inner-product
+space](hyp:Θ), a [convex target-parameter set](hyp:Θ_set,Θ_convex), a [target parameter in that
+set](hyp:θ₀,θ₀_mem), a [measurable target-evaluation rule](hyp:eval,eval_meas) that [equals the
+true conditional treatment effect at the target parameter](hyp:eval_θ₀), [a statement that this
+parameter minimizes the doubly robust target criterion](hyp:θ₀_minimizes), an [evaluation-rule
+directional-derivative bundle](hyp:D), and a [nuisance directional-derivative bundle](hyp:ND),
+the [mixed directional-derivative bundle for the resulting doubly robust learning system](goal)
+is given by the displayed closed-form derivatives.
+
+The closed-form `HasMixedDirDeriv` bundle for the DR-Learner orthogonal-learning
 system.
 
 Computing by hand on `ℓ z θ g = (phi_eta z g - eval θ z.1)^2`:

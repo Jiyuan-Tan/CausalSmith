@@ -355,7 +355,20 @@ private lemma seqDRMomentFunctional_memLp_two
   exact (memLp_map_measure_iff hscore_meas.aestronglyMeasurable
     S.measurable_factualZ.aemeasurable).2 hscore_comp_L2
 
-/-- One-shot DML / sequential DR estimator of the DTR effect
+/-- For [a potential-outcome system whose sample space is standard Borel and whose
+measure is finite](hyp:P) with [a measurable treatment space in which every
+singleton is measurable](hyp:δ) and [measurable stage-specific covariate spaces](hyp:γ),
+[a two-stage dynamic treatment-regime estimation system](hyp:S), [an independent identically distributed
+sample whose observations comprise baseline covariates, first treatment, intermediate
+covariates, second treatment, and outcome](hyp:sample), [a one-shot sample split](hyp:split),
+[a sequence of stagewise nuisance-function estimates indexed by sample size and the
+underlying random outcome](hyp:η_hat), and [a sample-size index](hyp:n), the [one-shot
+double-machine-learning sequentially doubly robust estimator](goal) is the function of
+the underlying random outcome that averages, over the split's estimation fold, the
+sequential doubly robust moment at the target treatment regime, using the nuisance
+estimate at that sample size and target value zero.
+
+One-shot DML / sequential DR estimator of the DTR effect
 (`def:est-dml-dtr`).
 
 Inputs:

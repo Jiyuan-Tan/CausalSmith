@@ -54,7 +54,7 @@ structure ChoquetCapacity (Ω : Type*) [TopologicalSpace Ω] where
   exists_isOpen_superset_lt' : ∀ ⦃K : Set Ω⦄, IsCompact K → ∀ ⦃a : ℝ≥0∞⦄,
     toFun K < a → ∃ U, K ⊆ U ∧ IsOpen U ∧ toFun U < a
 
-/-- A Choquet capacity coerces to its underlying extended-nonnegative set function. -/
+/-- For every [topological sample space](hyp:Ω), [the coercion from a Choquet capacity on that space to an extended-nonnegative-valued set function](goal) is given by [the capacity's underlying set function](step:1). -/
 instance : CoeFun (ChoquetCapacity Ω) fun _ ↦ Set Ω → ℝ≥0∞ :=
   ⟨ChoquetCapacity.toFun⟩
 
@@ -74,8 +74,10 @@ theorem exists_isOpen_superset_lt (c : ChoquetCapacity Ω) {K : Set Ω} (hK : Is
     {a : ℝ≥0∞} (ha : c K < a) : ∃ U, K ⊆ U ∧ IsOpen U ∧ c U < a :=
   c.exists_isOpen_superset_lt' hK ha
 
-/-- A set is capacitable when its capacity is the supremum of the capacities of its compact
-subsets. -/
+/-- For every [topological sample space](hyp:Ω), [Choquet capacity on that space](hyp:c), and
+[subset of the sample space](hyp:s), the [property of being capacitable](goal) holds exactly when
+the capacity of the subset equals the supremum of the capacities of all compact subsets contained
+in it. -/
 def IsCapacitable (c : ChoquetCapacity Ω) (s : Set Ω) : Prop :=
   c s = ⨆ (K : Set Ω) (_ : K ⊆ s) (_ : IsCompact K), c K
 
@@ -295,8 +297,9 @@ theorem _root_.MeasureTheory.AnalyticSet.isCapacitable [PolishSpace Ω]
 
 end ChoquetCapacity
 
-/-- The outer-measure set function associated with a finite Borel measure on a Polish space is a
-Choquet capacity. -/
+/-- For every [Polish topological sample space equipped with its Borel σ-algebra](hyp:Ω) and
+[finite measure on that space](hyp:μ), the [Choquet capacity induced by the measure](goal) assigns
+each subset the measure’s value on that subset. -/
 noncomputable def Measure.toChoquetCapacity [PolishSpace Ω] [MeasurableSpace Ω]
     [BorelSpace Ω] (μ : Measure Ω) [IsFiniteMeasure μ] : ChoquetCapacity Ω where
   toFun := μ
@@ -313,4 +316,3 @@ theorem Measure.toChoquetCapacity_apply [PolishSpace Ω] [MeasurableSpace Ω]
     μ.toChoquetCapacity s = μ s := rfl
 
 end MeasureTheory
-

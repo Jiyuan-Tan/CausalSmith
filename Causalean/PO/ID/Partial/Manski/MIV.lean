@@ -55,23 +55,51 @@ The four envelopes are parameterized by the outcome bounds `lo, hi` and
 take a linear order on `α` as an explicit instance argument; downstream
 callers supply it via `letI := hMIV.inst`. -/
 
-/-- Lower envelope for arm `d = 1`:
-    `sSup { L_{1,u} | u ∈ supp, u ≤ z }`. -/
+/-- For [a potential-outcome system](hyp:P), [a measurable instrument-value space
+whose singleton values are measurable](hyp:α), [a Manski instrumental-variables
+system based on them](hyp:S), [its base assumptions,
+including an outcome floor](hyp:hA), and [an instrument value in a linearly
+ordered instrument space](hyp:z), [the lower monotone-instrument envelope for
+the treated potential outcome](goal) is the supremum of the treated-arm lower
+bounds over support values no greater than that value.
+
+Lower envelope for arm `d = 1`: `sSup { L_{1,u} | u ∈ supp, u ≤ z }`. -/
 noncomputable def mLower1 (hA : S.BaseAssumptions) [LinearOrder α] (z : α) : ℝ :=
   sSup {val : ℝ | ∃ u ∈ S.support, u ≤ z ∧ val = S.lowerBound1 hA.lo u}
 
-/-- Upper envelope for arm `d = 1`:
-    `sInf { U_{1,u} | u ∈ supp, z ≤ u }`. -/
+/-- For [a potential-outcome system](hyp:P), [a measurable instrument-value space
+whose singleton values are measurable](hyp:α), [a Manski instrumental-variables
+system based on them](hyp:S), [its base assumptions,
+including an outcome ceiling](hyp:hA), and [an instrument value in a linearly
+ordered instrument space](hyp:z), [the upper monotone-instrument envelope for
+the treated potential outcome](goal) is the infimum of the treated-arm upper
+bounds over support values no smaller than that value.
+
+Upper envelope for arm `d = 1`: `sInf { U_{1,u} | u ∈ supp, z ≤ u }`. -/
 noncomputable def mUpper1 (hA : S.BaseAssumptions) [LinearOrder α] (z : α) : ℝ :=
   sInf {val : ℝ | ∃ u ∈ S.support, z ≤ u ∧ val = S.upperBound1 hA.hi u}
 
-/-- Lower envelope for arm `d = 0`:
-    `sSup { L_{0,u} | u ∈ supp, u ≤ z }`. -/
+/-- For [a potential-outcome system](hyp:P), [a measurable instrument-value space
+whose singleton values are measurable](hyp:α), [a Manski instrumental-variables
+system based on them](hyp:S), [its base assumptions,
+including an outcome floor](hyp:hA), and [an instrument value in a linearly
+ordered instrument space](hyp:z), [the lower monotone-instrument envelope for
+the control potential outcome](goal) is the supremum of the control-arm lower
+bounds over support values no greater than that value.
+
+Lower envelope for arm `d = 0`: `sSup { L_{0,u} | u ∈ supp, u ≤ z }`. -/
 noncomputable def mLower0 (hA : S.BaseAssumptions) [LinearOrder α] (z : α) : ℝ :=
   sSup {val : ℝ | ∃ u ∈ S.support, u ≤ z ∧ val = S.lowerBound0 hA.lo u}
 
-/-- Upper envelope for arm `d = 0`:
-    `sInf { U_{0,u} | u ∈ supp, z ≤ u }`. -/
+/-- For [a potential-outcome system](hyp:P), [a measurable instrument-value space
+whose singleton values are measurable](hyp:α), [a Manski instrumental-variables
+system based on them](hyp:S), [its base assumptions,
+including an outcome ceiling](hyp:hA), and [an instrument value in a linearly
+ordered instrument space](hyp:z), [the upper monotone-instrument envelope for
+the control potential outcome](goal) is the infimum of the control-arm upper
+bounds over support values no smaller than that value.
+
+Upper envelope for arm `d = 0`: `sInf { U_{0,u} | u ∈ supp, z ≤ u }`. -/
 noncomputable def mUpper0 (hA : S.BaseAssumptions) [LinearOrder α] (z : α) : ℝ :=
   sInf {val : ℝ | ∃ u ∈ S.support, z ≤ u ∧ val = S.upperBound0 hA.hi u}
 

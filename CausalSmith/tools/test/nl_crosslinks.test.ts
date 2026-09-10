@@ -3,6 +3,7 @@ import {
   parseNlCrosslinks,
   stripNlCrosslinks,
   crosslinkNames,
+  crosslinkSteps,
   linksGoal,
   sourceBinders,
   sourceFieldNames,
@@ -46,6 +47,31 @@ describe("nl_crosslinks parsing", () => {
   });
 });
 
+describe("definition tokens", () => {
+  it("parses (step:N) as the ⊢N clause token, kept out of the binder-name list", () => {
+    const s = "the [law](goal) is the [pushforward](step:2) of the [reweighting](step:1) of [μ](hyp:μ)";
+    expect(parseNlCrosslinks(s).filter((g) => g.links).map((g) => g.links)).toEqual([
+      ["⊢"],
+      ["⊢2"],
+      ["⊢1"],
+      ["μ"],
+    ]);
+    expect(crosslinkSteps(s)).toEqual([2, 1]);
+    expect(crosslinkNames(s)).toEqual(["μ"]);
+    expect(linksGoal(s)).toBe(true);
+    expect(stripNlCrosslinks(s)).toBe("the law is the pushforward of the reweighting of μ");
+  });
+
+  it("sourceBinders flags explicit binders (a definition's coverage set) and accepts untyped groups", () => {
+    const b = sourceBinders("noncomputable def f {Ω} (d : Bool) [Fintype Ω] (μ : Measure Ω) : ℝ := 1")!;
+    expect(b.map((x) => [x.names.join(" "), x.isExplicit, x.isHyp])).toEqual([
+      ["Ω", false, false],
+      ["d", true, false],
+      ["μ", true, false],
+    ]);
+  });
+});
+
 describe("sourceBinders", () => {
   const src = `/-- doc with (parens) inside -/
 theorem msmUpper_eq (Λ : ℝ) (hΛ : 1 ≤ Λ)
@@ -69,7 +95,9 @@ theorem msmUpper_eq (Λ : ℝ) (hΛ : 1 ≤ Λ)
     expect(hyps).toEqual(["hΛ", "hoverlap", "henv"]);
   });
   it("returns null on shapes it cannot confidently scan", () => {
-    expect(sourceBinders("instance : Foo Bar := ⟨…⟩")).toBeNull();
+    expect(sourceBinders("example : Foo Bar := ⟨…⟩")).toBeNull();
+    // an anonymous instance scans (no binders) — it now structures like a definition
+    expect(sourceBinders("instance : Foo Bar := ⟨…⟩")).toEqual([]);
   });
 });
 

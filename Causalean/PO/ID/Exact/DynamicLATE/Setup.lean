@@ -87,30 +87,42 @@ variable (S : PODynLATESystem P γ₀ γ₁)
 
 /-! ### POVar wrappers and factual maps -/
 
-/-- The first encouragement is packaged as a binary potential-outcome variable. -/
+/-- For [a two-period dynamic LATE system](hyp:S), the [first binary encouragement
+potential-outcome variable](goal) is its first encouragement node. -/
 def z1Var : POVar P Bool := ⟨S.Z1, S.hZ1bool⟩
-/-- The second encouragement is packaged as a binary potential-outcome variable. -/
+/-- For [a two-period dynamic LATE system](hyp:S), the [second binary encouragement
+potential-outcome variable](goal) is its second encouragement node. -/
 def z2Var : POVar P Bool := ⟨S.Z2, S.hZ2bool⟩
-/-- The first treatment is packaged as a binary potential-outcome variable. -/
+/-- For [a two-period dynamic LATE system](hyp:S), the [first binary treatment
+potential-outcome variable](goal) is its first treatment node. -/
 def d1Var : POVar P Bool := ⟨S.D1, S.hD1bool⟩
-/-- The second treatment is packaged as a binary potential-outcome variable. -/
+/-- For [a two-period dynamic LATE system](hyp:S), the [second binary treatment
+potential-outcome variable](goal) is its second treatment node. -/
 def d2Var : POVar P Bool := ⟨S.D2, S.hD2bool⟩
-/-- The outcome is packaged as a real-valued potential-outcome variable. -/
+/-- For [a two-period dynamic LATE system](hyp:S), the [real-valued outcome
+potential-outcome variable](goal) is its outcome node. -/
 def yVar : POVar P ℝ := ⟨S.Y, S.hYreal⟩
 
-/-- The factual baseline state is the observed baseline covariate value. -/
+/-- For [a two-period dynamic LATE system](hyp:S), the [factual baseline-state function](goal)
+assigns each unit its observed baseline covariate. -/
 noncomputable def factualS0 : P.Ω → γ₀ := S.S0.factual
-/-- The factual intermediate state is the observed intermediate covariate value. -/
+/-- For [a two-period dynamic LATE system](hyp:S), the [factual intermediate-state function](goal)
+assigns each unit its observed intermediate covariate. -/
 noncomputable def factualS1 : P.Ω → γ₁ := S.S1.factual
-/-- The factual first encouragement is the observed first-stage instrument value. -/
+/-- For [a two-period dynamic LATE system](hyp:S), the [factual first-encouragement function](goal)
+assigns each unit its observed first-stage instrument. -/
 noncomputable def factualZ1 : P.Ω → Bool := S.z1Var.factual
-/-- The factual second encouragement is the observed second-stage instrument value. -/
+/-- For [a two-period dynamic LATE system](hyp:S), the [factual second-encouragement function](goal)
+assigns each unit its observed second-stage instrument. -/
 noncomputable def factualZ2 : P.Ω → Bool := S.z2Var.factual
-/-- The factual first treatment is the observed first-stage treatment value. -/
+/-- For [a two-period dynamic LATE system](hyp:S), the [factual first-treatment function](goal)
+assigns each unit its observed first-stage treatment. -/
 noncomputable def factualD1 : P.Ω → Bool := S.d1Var.factual
-/-- The factual second treatment is the observed second-stage treatment value. -/
+/-- For [a two-period dynamic LATE system](hyp:S), the [factual second-treatment function](goal)
+assigns each unit its observed second-stage treatment. -/
 noncomputable def factualD2 : P.Ω → Bool := S.d2Var.factual
-/-- The factual outcome is the observed outcome value. -/
+/-- For [a two-period dynamic LATE system](hyp:S), the [factual outcome function](goal)
+assigns each unit its observed outcome. -/
 noncomputable def factualY : P.Ω → ℝ := S.yVar.factual
 
 /-! ### Pairwise distinctness lemmas (extracted from `vars_inj`) -/
@@ -178,7 +190,8 @@ lemma Z2_ne_D2 : S.Z2 ≠ S.D2 := by
 
 /-! ### Two-target encouragement and treatment regimes (`Regime.ofList`) -/
 
-/-- Regime fixing both encouragements: `Z₁ ↦ z 0, Z₂ ↦ z 1`. -/
+/-- For [a two-period dynamic LATE system](hyp:S) and [a binary encouragement vector](hyp:z),
+the [joint encouragement regime](goal) fixes both encouragements to its two coordinates. -/
 noncomputable def encouragementRegime (z : Fin 2 → Bool) : Regime P.V P.X :=
   Regime.ofList
     [⟨S.Z1, S.hZ1bool.symm (z 0)⟩, ⟨S.Z2, S.hZ2bool.symm (z 1)⟩]
@@ -187,7 +200,8 @@ noncomputable def encouragementRegime (z : Fin 2 → Bool) : Regime P.V P.X :=
         List.not_mem_nil, not_false_eq_true, List.nodup_nil, and_true]
       exact S.Z1_ne_Z2)
 
-/-- Regime fixing both treatments: `D₁ ↦ d 0, D₂ ↦ d 1`. -/
+/-- For [a two-period dynamic LATE system](hyp:S) and [a binary treatment vector](hyp:d), the
+[joint treatment regime](goal) fixes both treatments to its two coordinates. -/
 noncomputable def treatmentRegime (d : Fin 2 → Bool) : Regime P.V P.X :=
   Regime.ofList
     [⟨S.D1, S.hD1bool.symm (d 0)⟩, ⟨S.D2, S.hD2bool.symm (d 1)⟩]
@@ -196,7 +210,10 @@ noncomputable def treatmentRegime (d : Fin 2 → Bool) : Regime P.V P.X :=
         List.not_mem_nil, not_false_eq_true, List.nodup_nil, and_true]
       exact S.D1_ne_D2)
 
-/-- Regime fixing only the stage-2 encouragement: `Z₂ ↦ z₂`.  Used in the
+/-- For [a two-period dynamic LATE system](hyp:S) and [a binary second-stage encouragement](hyp:z₂),
+the [second-stage-only encouragement regime](goal) fixes only that encouragement.
+
+Used in the
 stage-2 ignorability condition where `Z₁` remains factual. -/
 noncomputable def encZ2Regime (z₂ : Bool) : Regime P.V P.X :=
   Regime.single S.Z2 (S.hZ2bool.symm z₂)
@@ -225,7 +242,11 @@ lemma encouragementRegime_disjoint_treatmentRegime (z d : Fin 2 → Bool) :
     · exact (Finset.notMem_empty _ hv').elim
   · exact (Finset.notMem_empty _ hv).elim
 
-/-- Joint encouragement-and-treatment regime `r_z ⊔ r_d` fixing
+/-- For [a two-period dynamic LATE system](hyp:S), [an encouragement vector](hyp:z), and [a
+treatment vector](hyp:d), the [joint encouragement-and-treatment regime](goal) fixes all four
+variables to those values.
+
+Fixing
 `Z₁,Z₂,D₁,D₂` simultaneously. -/
 noncomputable def encTreatRegime (z d : Fin 2 → Bool) : Regime P.V P.X :=
   (S.encouragementRegime z).sqcup (S.treatmentRegime d)
@@ -233,30 +254,48 @@ noncomputable def encTreatRegime (z d : Fin 2 → Bool) : Regime P.V P.X :=
 
 /-! ### Counterfactual variables under encouragement / treatment regimes -/
 
-/-- `D₁(z) := D₁` evaluated under the encouragement regime fixing both `Z`'s.
+/-- For [a two-period dynamic LATE system](hyp:S) and [an encouragement vector](hyp:z), the
+[first-treatment potential-outcome function under encouragement](goal) assigns each unit its
+first treatment when both encouragements are fixed to that vector.
+
+`D₁(z) := D₁` evaluated under the encouragement regime fixing both `Z`'s.
 By exclusion (`D₁` has no `Z₂` parent in the primitive process), this equals
 `D₁(z 0)`; we keep the two-coordinate form to avoid splitting cases. -/
 noncomputable def D1ofZ (z : Fin 2 → Bool) : P.Ω → Bool :=
   S.d1Var.cf (S.encouragementRegime z)
 
-/-- `D₂(z)` under the encouragement regime fixing both `Z`'s. -/
+/-- For [a two-period dynamic LATE system](hyp:S) and [an encouragement vector](hyp:z), the
+[second-treatment potential-outcome function under encouragement](goal) assigns each unit its
+second treatment when both encouragements are fixed to that vector. -/
 noncomputable def D2ofZ (z : Fin 2 → Bool) : P.Ω → Bool :=
   S.d2Var.cf (S.encouragementRegime z)
 
-/-- Joint counterfactual treatment vector `D(z) = (D₁(z), D₂(z))`. -/
+/-- For [a two-period dynamic LATE system](hyp:S) and [an encouragement vector](hyp:z), the
+[joint treatment potential-outcome function](goal) assigns each unit the two-vector formed by
+its first and second treatment under that encouragement. -/
 noncomputable def DofZ (z : Fin 2 → Bool) : P.Ω → (Fin 2 → Bool) :=
   fun ω i => Fin.cases (S.D1ofZ z ω) (fun _ => S.D2ofZ z ω) i
 
-/-- `D₂(Z₁, z₂)`: stage-2 treatment when only `Z₂` is fixed (and `Z₁`
+/-- For [a two-period dynamic LATE system](hyp:S) and [a binary second-stage encouragement](hyp:z₂),
+the [second-treatment potential-outcome function under a stage-two intervention](goal) assigns
+each unit its second treatment when only the second encouragement is fixed.
+
+`D₂(Z₁, z₂)`: stage-2 treatment when only `Z₂` is fixed (and `Z₁`
 remains factual).  Used in the stage-2 ignorability bundle. -/
 noncomputable def D2ofZ2 (z₂ : Bool) : P.Ω → Bool :=
   S.d2Var.cf (S.encZ2Regime z₂)
 
-/-- `Y(d)` under the treatment regime fixing both `D`'s. -/
+/-- For [a two-period dynamic LATE system](hyp:S) and [a treatment vector](hyp:d), the [outcome
+potential-outcome function under treatment](goal) assigns each unit its outcome when both
+treatments are fixed to that vector. -/
 noncomputable def YofD (d : Fin 2 → Bool) : P.Ω → ℝ :=
   S.yVar.cf (S.treatmentRegime d)
 
-/-- `Y(D(z))` defined directly via the encouragement regime: under the
+/-- For [a two-period dynamic LATE system](hyp:S) and [an encouragement vector](hyp:z), the
+[outcome potential-outcome function under encouragement](goal) assigns each unit its outcome
+when both encouragements are fixed to that vector.
+
+`Y(D(z))` defined directly via the encouragement regime: under the
 two-target encouragement intervention, `D₁` and `D₂` are computed from `z`
 via the structural recursion, and `Y` is then computed from the resulting
 treatment vector.  This is the natural "outcome under encouragement `z`"
@@ -271,7 +310,11 @@ lemma YofDofZ_eq (z : Fin 2 → Bool) :
     S.YofDofZ z = S.yVar.cf (S.encouragementRegime z) :=
   rfl
 
-/-- `Y(D₁, D₂(Z₁, z₂))` realised as `Y` under the regime fixing only
+/-- For [a two-period dynamic LATE system](hyp:S) and [a binary second-stage encouragement](hyp:z₂),
+the [outcome potential-outcome function under a stage-two intervention](goal) assigns each unit
+its outcome when only the second encouragement is fixed.
+
+`Y(D₁, D₂(Z₁, z₂))` realised as `Y` under the regime fixing only
 `Z₂ = z₂`. -/
 noncomputable def YofZ2 (z₂ : Bool) : P.Ω → ℝ := S.yVar.cf (S.encZ2Regime z₂)
 
@@ -368,34 +411,50 @@ lemma integrable_factualY_of_consistency_integrable_YofZ2 [IsFiniteMeasure P.μ]
 
 /-! ### Regimed variables for ignorability bundles -/
 
-/-- `Y` under the two-target encouragement regime, as a `RegimedVar`. -/
+/-- For [a two-period dynamic LATE system](hyp:S) and [an encouragement vector](hyp:z), the
+[regimed outcome variable under encouragement](goal) packages the outcome with the regime
+fixing both encouragements to that vector. -/
 noncomputable def yUnderZ (z : Fin 2 → Bool) : RegimedVar P ℝ :=
   ⟨S.yVar, S.encouragementRegime z⟩
 
-/-- `D₁` under the two-target encouragement regime, as a `RegimedVar`. -/
+/-- For [a two-period dynamic LATE system](hyp:S) and [an encouragement vector](hyp:z), the
+[regimed first-treatment variable under encouragement](goal) packages the first treatment with
+the regime fixing both encouragements to that vector. -/
 noncomputable def d1UnderZ (z : Fin 2 → Bool) : RegimedVar P Bool :=
   ⟨S.d1Var, S.encouragementRegime z⟩
 
-/-- `D₂` under the two-target encouragement regime, as a `RegimedVar`. -/
+/-- For [a two-period dynamic LATE system](hyp:S) and [an encouragement vector](hyp:z), the
+[regimed second-treatment variable under encouragement](goal) packages the second treatment with
+the regime fixing both encouragements to that vector. -/
 noncomputable def d2UnderZ (z : Fin 2 → Bool) : RegimedVar P Bool :=
   ⟨S.d2Var, S.encouragementRegime z⟩
 
-/-- `Y` under the stage-2-only encouragement regime. -/
+/-- For [a two-period dynamic LATE system](hyp:S) and [a second-stage encouragement](hyp:z₂),
+the [regimed outcome variable under the stage-two intervention](goal) packages the outcome with
+the regime fixing that encouragement. -/
 noncomputable def yUnderZ2 (z₂ : Bool) : RegimedVar P ℝ :=
   ⟨S.yVar, S.encZ2Regime z₂⟩
 
-/-- `D₂` under the stage-2-only encouragement regime. -/
+/-- For [a two-period dynamic LATE system](hyp:S) and [a second-stage encouragement](hyp:z₂),
+the [regimed second-treatment variable under the stage-two intervention](goal) packages the
+second treatment with the regime fixing that encouragement. -/
 noncomputable def d2UnderZ2 (z₂ : Bool) : RegimedVar P Bool :=
   ⟨S.d2Var, S.encZ2Regime z₂⟩
 
 /-! ### History bundles (sequential conditioning σ-algebras) -/
 
-/-- Stage-1 history bundle: the singleton `(S₀,)`.  Conditioning on this
+/-- For [a two-period dynamic LATE system](hyp:S), the [first-stage history bundle](goal)
+is the singleton factual baseline-state bundle.
+
+Conditioning on this
 σ-algebra realises `· | S₀` in the outer regression. -/
 noncomputable def historyBundle1 : POCFBundle P :=
   POCFBundle.cons (RegimedVar.ofFactual S.S0) (POCFBundle.nil P)
 
-/-- Stage-2 history bundle: `(S₀, S₁, Z₁, D₁)`.  Conditioning on this
+/-- For [a two-period dynamic LATE system](hyp:S), the [second-stage history bundle](goal)
+contains the factual baseline state, intermediate state, first encouragement, and first treatment.
+
+Conditioning on this
 σ-algebra realises `· | S, D₁, Z₁` in the inner regression (the stage-2
 encouragement `Z₂` is *not* in the conditioning set; it is restricted via
 an indicator). -/
@@ -408,7 +467,11 @@ noncomputable def historyBundle2 : POCFBundle P :=
 
 /-! ### Counterfactual bundles for sequential ignorability -/
 
-/-- Stage-1 ignorability bundle `(Y(D(z)), D₁(z), D₂(z))`, the counterfactual
+/-- For [a two-period dynamic LATE system](hyp:S) and [an encouragement vector](hyp:z), the
+[first-stage counterfactual bundle](goal) contains the outcome, first treatment, and second
+treatment potential outcomes under that encouragement.
+
+Stage-1 ignorability bundle `(Y(D(z)), D₁(z), D₂(z))`, the counterfactual
 target of `Z₁ ⟂ · | S₀`. -/
 noncomputable def cfBundle1 (z : Fin 2 → Bool) : POCFBundle P :=
   POCFBundle.cons (S.yUnderZ z) <|
@@ -416,7 +479,11 @@ noncomputable def cfBundle1 (z : Fin 2 → Bool) : POCFBundle P :=
   POCFBundle.cons (S.d2UnderZ z) <|
   POCFBundle.nil P
 
-/-- Stage-2 ignorability bundle `(Y(D₁, D₂(Z₁, z₂)), D₂(Z₁, z₂))`, the
+/-- For [a two-period dynamic LATE system](hyp:S) and [a second-stage encouragement](hyp:z₂),
+the [second-stage counterfactual bundle](goal) contains the outcome and second-treatment
+potential outcomes under the corresponding stage-two intervention.
+
+Stage-2 ignorability bundle `(Y(D₁, D₂(Z₁, z₂)), D₂(Z₁, z₂))`, the
 counterfactual target of `Z₂ ⟂ · | S, D₁, Z₁`. -/
 noncomputable def cfBundle2 (z₂ : Bool) : POCFBundle P :=
   POCFBundle.cons (S.yUnderZ2 z₂) <|
@@ -425,11 +492,14 @@ noncomputable def cfBundle2 (z₂ : Bool) : POCFBundle P :=
 
 /-! ### Joint-treatment indicator and joint-encouragement indicator -/
 
-/-- Real-valued indicator of `{D = d}`, i.e. `1_{D₁=d 0} · 1_{D₂=d 1}`. -/
+/-- For [a two-period dynamic LATE system](hyp:S) and [a treatment vector](hyp:d), the [joint
+treatment indicator](goal) equals one exactly when both observed treatments equal that vector. -/
 noncomputable def indD (d : Fin 2 → Bool) : P.Ω → ℝ :=
   fun ω => S.d1Var.indicator (d 0) ω * S.d2Var.indicator (d 1) ω
 
-/-- Real-valued indicator of `{Z = z}`. -/
+/-- For [a two-period dynamic LATE system](hyp:S) and [an encouragement vector](hyp:z), the
+[joint encouragement indicator](goal) equals one exactly when both observed encouragements equal
+that vector. -/
 noncomputable def indZ (z : Fin 2 → Bool) : P.Ω → ℝ :=
   fun ω => S.z1Var.indicator (z 0) ω * S.z2Var.indicator (z 1) ω
 
@@ -448,40 +518,59 @@ lemma measurable_indZ (z : Fin 2 → Bool) : Measurable (S.indZ z) :=
 /-! ### Observable nested-regression functionals
     (def:po-dynamic-late-observable-functionals) -/
 
-/-- Inner regression `E[Y | S, D₁, Z = z]` realised as the bundle ratio
+/-- For [a two-period dynamic LATE system](hyp:S) and [an encouragement vector](hyp:z), the
+[inner observable outcome regression](goal) is the conditional mean of the factual outcome given
+the second-stage history and that encouragement vector.
+
+Inner regression `E[Y | S, D₁, Z = z]` realised as the bundle ratio
 `E[Y · 1_{Z=z} | history2] / E[1_{Z=z} | history2]`. -/
 noncomputable def innerCondY (z : Fin 2 → Bool) : P.Ω → ℝ :=
   S.historyBundle2.condExpRatio
     (fun ω => S.factualY ω * S.indZ z ω) (S.indZ z) P.μ
 
-/-- Inner regression `P(D = d | S, D₁, Z = z)` realised as the bundle ratio
+/-- For [a two-period dynamic LATE system](hyp:S), [an encouragement vector](hyp:z), and [a
+treatment vector](hyp:d), the [inner observable treatment-probability regression](goal) is the
+conditional probability of that treatment vector given the second-stage history and encouragement.
+
+Inner regression `P(D = d | S, D₁, Z = z)` realised as the bundle ratio
 `E[1_{D=d} · 1_{Z=z} | history2] / E[1_{Z=z} | history2]`. -/
 noncomputable def innerCondD (z d : Fin 2 → Bool) : P.Ω → ℝ :=
   S.historyBundle2.condExpRatio
     (fun ω => S.indD d ω * S.indZ z ω) (S.indZ z) P.μ
 
-/-- Outer regression of `innerCondY z` over `(S₀, Z₁ = z₁)`, as a function of
+/-- For [a two-period dynamic LATE system](hyp:S) and [an encouragement vector](hyp:z), the
+[conditional observable mean function](goal) is the baseline-state conditional outer regression
+of the inner outcome regression for that vector.
+
+Outer regression of `innerCondY z` over `(S₀, Z₁ = z₁)`, as a function of
 `S₀`.  This is `cObsMean(z; S₀)`. -/
 noncomputable def cObsMean (z : Fin 2 → Bool) : P.Ω → ℝ :=
   S.historyBundle1.condExpRatio
     (fun ω => S.innerCondY z ω * S.z1Var.indicator (z 0) ω)
     (S.z1Var.indicator (z 0)) P.μ
 
-/-- Outer regression of `innerCondD z d` over `(S₀, Z₁ = z₁)`. -/
+/-- For [a two-period dynamic LATE system](hyp:S), [an encouragement vector](hyp:z), and [a
+treatment vector](hyp:d), the [conditional observable treatment-probability function](goal) is
+the baseline-state conditional outer regression of the corresponding inner probability. -/
 noncomputable def cObsProb (z d : Fin 2 → Bool) : P.Ω → ℝ :=
   S.historyBundle1.condExpRatio
     (fun ω => S.innerCondD z d ω * S.z1Var.indicator (z 0) ω)
     (S.z1Var.indicator (z 0)) P.μ
 
-/-- Unconditional version `obsMean(z) := E[cObsMean(z; S₀)]`. -/
+/-- For [a two-period dynamic LATE system](hyp:S) and [an encouragement vector](hyp:z), the
+[observable mean](goal) is the probability-measure expectation of its conditional observable mean function. -/
 noncomputable def obsMean (z : Fin 2 → Bool) : ℝ := ∫ ω, S.cObsMean z ω ∂P.μ
 
-/-- Unconditional version `obsProb(z, d) := E[cObsProb(z, d; S₀)]`. -/
+/-- For [a two-period dynamic LATE system](hyp:S), [an encouragement vector](hyp:z), and [a
+treatment vector](hyp:d), the [observable treatment probability](goal) is the probability-measure
+expectation of its conditional observable treatment-probability function. -/
 noncomputable def obsProb (z d : Fin 2 → Bool) : ℝ := ∫ ω, S.cObsProb z d ω ∂P.μ
 
 /-! ### Target functionals (def:po-dynamic-late) -/
 
-/-- Indicator of the dynamic complier event `{ω | D(z)(ω) = d}`. -/
+/-- For [a two-period dynamic LATE system](hyp:S), [an encouragement vector](hyp:z), and [a
+treatment vector](hyp:d), the [dynamic-complier event](goal) is the set of units whose treatment
+vector under that encouragement equals that treatment vector. -/
 def DofZEq (z d : Fin 2 → Bool) : Set P.Ω := { ω | S.DofZ z ω = d }
 
 /-- The dynamic complier event is measurable. -/
@@ -489,13 +578,22 @@ lemma measurableSet_DofZEq (z d : Fin 2 → Bool) : MeasurableSet (S.DofZEq z d)
   have hsing : MeasurableSet ({d} : Set (Fin 2 → Bool)) := MeasurableSet.singleton _
   exact S.measurable_DofZ z hsing
 
-/-- Dynamic LATE `θ(z, d) := E[Y(d) - Y(0) | D(z) = d]`, totalised as
+/-- For [a two-period dynamic LATE system](hyp:S), [an encouragement vector](hyp:z), and [a
+treatment vector](hyp:d), the [dynamic local average treatment effect](goal) is the mean contrast
+between the outcome under that vector and under no treatment among its dynamic compliers, with a
+zero denominator totalized by real-valued division.
+
+Dynamic LATE `θ(z, d) := E[Y(d) - Y(0) | D(z) = d]`, totalised as
 `(∫_{D(z)=d} (Y(d) - Y(0)) dμ) / μ({D(z) = d}).toReal`. -/
 noncomputable def LATE (z d : Fin 2 → Bool) : ℝ :=
   (∫ ω in S.DofZEq z d, (S.YofD d ω - S.YofD ![false, false] ω) ∂P.μ) /
     (P.μ (S.DofZEq z d)).toReal
 
-/-- Heterogeneous dynamic LATE `θ(z, d, S₀)`: the bundle conditional version
+/-- For [a two-period dynamic LATE system](hyp:S), [an encouragement vector](hyp:z), and [a
+treatment vector](hyp:d), the [baseline-conditional dynamic local average treatment-effect
+function](goal) is the baseline-state conditional version of the dynamic LATE contrast.
+
+Heterogeneous dynamic LATE `θ(z, d, S₀)`: the bundle conditional version
 of `LATE z d`, realised as `historyBundle1.condExpRatio` of the
 indicator-weighted contrast. -/
 noncomputable def cLATE (z d : Fin 2 → Bool) : P.Ω → ℝ :=
@@ -504,19 +602,27 @@ noncomputable def cLATE (z d : Fin 2 → Bool) : P.Ω → ℝ :=
               (S.DofZEq z d).indicator (fun _ => (1 : ℝ)) ω)
     ((S.DofZEq z d).indicator (fun _ => (1 : ℝ))) P.μ
 
-/-- When-to-treat LATE `τ_d := θ(d, d)`. -/
+/-- For [a two-period dynamic LATE system](hyp:S) and [a treatment vector](hyp:d), the
+[when-to-treat local average treatment effect](goal) is the dynamic LATE using that vector both
+as encouragement and as treatment. -/
 noncomputable def whenToTreatLATE (d : Fin 2 → Bool) : ℝ := S.LATE d d
 
-/-- Heterogeneous when-to-treat LATE `τ_d(S₀)`. -/
+/-- For [a two-period dynamic LATE system](hyp:S) and [a treatment vector](hyp:d), the
+[baseline-conditional when-to-treat local average treatment-effect function](goal) is the
+baseline-state conditional dynamic LATE using that vector in both roles. -/
 noncomputable def cWhenToTreatLATE (d : Fin 2 → Bool) : P.Ω → ℝ := S.cLATE d d
 
-/-- Mixture LATE `β_z := E[Y(D(z)) - Y(0) | D(z) ≠ 0]`. -/
+/-- For [a two-period dynamic LATE system](hyp:S) and [an encouragement vector](hyp:z), the
+[mixture local average treatment effect](goal) is the mean contrast between the outcome induced
+by that encouragement and the no-treatment outcome among units induced to any nonzero treatment. -/
 noncomputable def mixtureLATE (z : Fin 2 → Bool) : ℝ :=
   (∫ ω in {ω | S.DofZ z ω ≠ ![false, false]},
       (S.YofDofZ z ω - S.YofD ![false, false] ω) ∂P.μ) /
     (P.μ {ω | S.DofZ z ω ≠ ![false, false]}).toReal
 
-/-- Heterogeneous mixture LATE `β_z(S₀)`. -/
+/-- For [a two-period dynamic LATE system](hyp:S) and [an encouragement vector](hyp:z), the
+[baseline-conditional mixture local average treatment-effect function](goal) is the baseline-state
+conditional version of the mixture LATE contrast. -/
 noncomputable def cMixtureLATE (z : Fin 2 → Bool) : P.Ω → ℝ :=
   S.historyBundle1.condExpRatio
     (fun ω => (S.YofDofZ z ω - S.YofD ![false, false] ω) *
@@ -525,7 +631,9 @@ noncomputable def cMixtureLATE (z : Fin 2 → Bool) : P.Ω → ℝ :=
 
 /-! ### Coordinate-wise order on `Fin 2 → Bool` -/
 
-/-- Coordinate-wise order `d ≼ z`: `d 0 ≤ z 0 ∧ d 1 ≤ z 1`. -/
+/-- For [a first binary vector](hyp:d) and [a second binary vector](hyp:z), the [coordinatewise
+order relation](goal) holds exactly when each coordinate of the first is no greater than the
+corresponding coordinate of the second. -/
 def Preceq (d z : Fin 2 → Bool) : Prop := d 0 ≤ z 0 ∧ d 1 ≤ z 1
 
 /-! ### Assumption bundle (def:po-dynamic-late-assumptions) -/

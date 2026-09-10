@@ -57,7 +57,7 @@ variable {m : C → ℝ} {g : Bool → C → ℝ}
 
 /-! ## Carrier regularity instances -/
 
-/-- The constructed potential-outcome system has a probability measure as its population law. -/
+/-- For [a finite, nonempty covariate space equipped with a measurable structure whose singletons are measurable, a propensity function, and an outcome-regression function for both treatment arms](hyp:C,m,g), [the population law of the constructed potential-outcome system is a probability measure](goal). -/
 instance dgpPO_isProb : IsProbabilityMeasure (dgpPO m g).μ := by
   change IsProbabilityMeasure (SCM.latentProduct (dgpSCM m g))
   infer_instance
@@ -69,17 +69,20 @@ theorem dgpPO_borel : StandardBorelSpace (dgpPO m g).Ω := by
     intro n; cases n <;> infer_instance
   exact StandardBorelSpace.pi_countable
 
-/-- The standard Borel structure for the constructed potential-outcome system is
-available as an instance. -/
+/-- For [a finite, nonempty covariate space equipped with a measurable structure whose singletons are measurable and a standard-Borel structure, a propensity function, and an outcome-regression function for both treatment arms](hyp:C,m,g), [the sample space of the constructed potential-outcome system has a standard-Borel structure](goal). -/
 noncomputable instance dgpPO_standardBorel : StandardBorelSpace (dgpPO m g).Ω :=
   dgpPO_borel
 
 /-! ## The causal estimand -/
 
-/-- The causal average treatment effect of the constructed finite backdoor system,
-namely `(dgpBackdoor m g).ATE`.  The theorem `causalATE_eq_ate` later identifies
-this potential-outcome estimand with the finite observed-data contrast `ate g`
-under validity and strict overlap. -/
+/-- For [a finite, nonempty covariate space equipped with a measurable structure whose
+singletons are measurable](hyp:C),
+[a propensity function](hyp:m), and [an outcome-regression function](hyp:g), [the causal average
+treatment effect](goal) is the average treatment effect of the constructed finite backdoor
+potential-outcome system.
+
+The theorem `causalATE_eq_ate` later identifies this potential-outcome estimand with the finite
+observed-data contrast `ate g` under validity and strict overlap. -/
 noncomputable def causalATE (m : C → ℝ) (g : Bool → C → ℝ) : ℝ :=
   (dgpBackdoor m g).ATE
 
@@ -1543,8 +1546,12 @@ theorem dgp_P_X_eq_covLaw :
 
 /-! ## The estimation system with value-space regressions `(g, m)` -/
 
-/-- This is the backdoor estimation system whose value-space regression and
-propensity are the supplied functions.
+/-- For [a finite, nonempty covariate space equipped with a measurable structure whose
+singletons are measurable and with a standard Borel structure](hyp:C),
+[a propensity function](hyp:m), [an outcome-regression function](hyp:g), [evidence that they
+form a valid data-generating process](hyp:hv), and [strict overlap of the propensity at every
+covariate value](hyp:hso), [the backdoor estimation system](goal) is the constructed
+potential-outcome system equipped with those supplied propensity and outcome-regression functions.
 
 Strict overlap supplies the pointwise positivity and upper-bound fields for the propensity. -/
 noncomputable def dgpBES (hv : ValidDGP m g) (hso : ∀ x, m x ∈ Set.Ioo (0 : ℝ) 1) :

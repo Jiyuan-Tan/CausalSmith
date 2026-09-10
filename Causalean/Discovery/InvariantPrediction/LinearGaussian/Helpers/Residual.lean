@@ -28,7 +28,9 @@ open scoped BigOperators
 
 variable {p : ℕ}
 
-/-- The **causal coefficient** `γ* = β₀,·` (row `0` of `β`). -/
+/-- For [an observational linear-Gaussian structural equation model](hyp:M), [the causal
+coefficient vector](goal) assigns to each variable its coefficient in the structural equation
+for the target outcome. -/
 def causalCoeff (M : ObsSEM p) : Fin (p + 1) → ℝ := fun k => M.β (target p) k
 
 /-- With the causal coefficient, the full-sum `Σ_k β₀ₖ X_k` equals the

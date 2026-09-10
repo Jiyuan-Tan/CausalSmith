@@ -40,7 +40,14 @@ namespace Causalean.SCM.PartialID
 variable {N : Type*} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-/-- The **compatible class** for a graphical partial-identification problem: the structural
+/-- For [a finite collection of distinguishable node labels with measurable
+value spaces](hyp:N), [a SWIG graph](hyp:G), [a predicate specifying structural assumptions](hyp:As),
+and [a reference structural causal model](hyp:M₀), the [compatible-model class](goal)
+is the collection of structural causal models that [have the given graph](step:1),
+satisfy the given assumptions, and are observationally equivalent to
+the reference model.
+
+The **compatible class** for a graphical partial-identification problem: the structural
 causal models `M` that share the SWIG graph `G`, satisfy the structural assumptions `As`, and
 are observationally equivalent to the reference model `M₀` (their derived observational
 kernels agree). This is the class over which a bound must hold to be *sound*. -/
@@ -65,7 +72,13 @@ theorem compatibleSCM_mono {G : SWIGGraph N} {As As' : Causalean.SCM N Ω → Pr
     ∀ M, CompatibleSCM G As' M₀ M → CompatibleSCM G As M₀ M :=
   fun _ hM => ⟨hM.1, h _ hM.2.1, hM.2.2⟩
 
-/-- The **compatible interval** of a real-valued causal query: its range over the compatible
+/-- For [a finite collection of distinguishable node labels with measurable
+value spaces](hyp:N), [a SWIG graph](hyp:G), [a predicate specifying structural assumptions](hyp:As),
+[a reference structural causal model](hyp:M₀), and [a real-valued causal query](hyp:obj),
+the [compatible interval](goal) is the set of all query values attained by
+structural causal models compatible with that graph, assumptions, and reference model.
+
+The **compatible interval** of a real-valued causal query: its range over the compatible
 class. This is the graphical identified set; a partial-identification bound `[L, U]` is *sound*
 exactly when this set is contained in `Set.Icc L U`, and *sharp* when they are equal. Built on
 the abstract `IdentifiedInterval`, so the order-convexity / sharpness lemmas of the

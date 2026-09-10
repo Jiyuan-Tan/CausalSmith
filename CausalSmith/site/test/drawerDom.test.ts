@@ -239,7 +239,8 @@ describe("structured statement", () => {
 
     expect([...bodyEl().querySelectorAll(".ds-label")].map((n) => n.textContent)).toEqual([
       "Parameters",
-      "Assumption clause 1",
+      "Assumes",
+      "Clause 1",
     ]);
     expect([...bodyEl().querySelectorAll(".ds-chip")].map((n) => n.textContent)).toEqual([
       "param",
@@ -270,8 +271,9 @@ describe("structured statement", () => {
 
     expect([...bodyEl().querySelectorAll(".ds-label")].map((n) => n.textContent)).toEqual([
       "Parameters",
-      "Defining clause 1",
-      "Defining clause 2",
+      "Given by",
+      "Clause 1",
+      "Clause 2",
     ]);
     expect(bodyEl().querySelector(".ds-chip")!.textContent).toBe("param");
   });
@@ -298,13 +300,13 @@ describe("structured statement", () => {
 
     expect([...bodyEl().querySelectorAll(".ds-label")].map((n) => n.textContent)).toEqual([
       "Parameters",
-      "Assumption clause",
+      "Assumes",
     ]);
     expect([...bodyEl().querySelectorAll(".ds-chip")].map((n) => n.textContent)).toEqual([
       "param",
       "for each",
     ]);
-    expect(bodyEl().querySelector(".ds-card .ds-code")!.textContent).toBe("Independent Q k a");
+    expect(bodyEl().querySelector(".ds-concl .ds-code")!.textContent).toBe("Independent Q k a");
   });
 
   it("renders a cited chip distinctly from a hyp chip", async () => {

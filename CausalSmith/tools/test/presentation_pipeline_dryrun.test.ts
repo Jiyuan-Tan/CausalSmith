@@ -1,9 +1,10 @@
 import { describe, it, expect, afterAll } from "vitest";
-import { rm, access, mkdtemp } from "node:fs/promises";
+import { rm, access, mkdtemp, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { runPaperPipeline, type PaperDeps } from "../src/presentation/pipeline.js";
-import { loadPaperState } from "../src/presentation/state.js";
+import { loadPaperState, savePaperState, freshPaperState } from "../src/presentation/state.js";
+import { recordP2Assembly } from "../src/presentation/assembly_freshness.js";
 import { acceptedBankEntry, causalSmithRoot, guardBankEntry } from "./helpers.js";
 
 const stubDeps: PaperDeps = {
@@ -42,6 +43,15 @@ describe("pipeline dry-run (integration)", () => {
     await access(join(dir, "p5.stub")); // P5 referee review runs as the terminal stage
     const s3 = await loadPaperState(dir, QID, SPEC);
     expect(s3!.stage_completed).toBe("P5");
+  });
+
+  it("refuses a flag-less re-run on a bundle with recorded state instead of restarting it", async () => {
+    const dir = await dirP; // carries the state the first test left behind
+    const before = await loadPaperState(dir, QID, SPEC);
+    const live: PaperDeps = { ...stubDeps, dryRun: false, runCodex: async () => { throw new Error("no stage may run"); } };
+    await expect(runPaperPipeline({ repoRoot: root, qid: QID, spec: SPEC, deps: live, outDir: dir }))
+      .rejects.toThrow(/already exists .*--resume/);
+    expect(await loadPaperState(dir, QID, SPEC)).toEqual(before);
   });
 
   it("--stop-after halts without checkpoint", async () => {
@@ -86,13 +96,59 @@ describe("pipeline dry-run (integration)", () => {
     }
   });
 
-  it("--max-p5-reviews counts the initial P5 pass", async () => {
+  it("a review that is not a clean accept halts for hand revision after one referee call", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "causalsmith-p5-receipt-"));
+    try {
+      const { mkdir } = await import("node:fs/promises");
+      for (const sub of ["sections", "proofs"]) await mkdir(join(dir, sub));
+      for (const [name, body] of Object.entries({
+        "paper.tex": "A submission.\n",
+        "appendix_proofs.tex": "",
+        "front_matter.tex": "A submission.",
+        "formal_layer.json": '{"commit":null,"blocks":[]}\n',
+        "lean_snippets.json": '{"commit":"","snippets":{}}\n',
+        "outline.md": "# Title\nExample\n# Sections\n",
+        "references.bib": "",
+        "equivalence_cache.json": "{}",
+      })) await writeFile(join(dir, name), body);
+      await recordP2Assembly(dir); // sources and assembly agree, as after a completed P4
+      const state = freshPaperState(QID, SPEC);
+      state.stage_completed = "P4";
+      await savePaperState(dir, state);
+      let codexCalls = 0;
+      const deps: PaperDeps = {
+        ...stubDeps,
+        dryRun: false,
+        runCodex: async () => {
+          codexCalls += 1;
+          return {
+            stdout: JSON.stringify({
+              recommendation: "major_revision", score: 6.4, score_rationale: "r", summary: "s", strengths: [],
+              findings: [{ finding_id: "x", severity: "major", kind: "prose", remedy: "rewrite", section: "Setup", issue: "i", fix: "f" }],
+              questions_for_authors: [],
+            }),
+            stderr: "",
+          };
+        },
+      };
+      const r = await runPaperPipeline({ repoRoot: root, qid: QID, spec: SPEC, deps, from: "P5", auto: true, outDir: dir });
+      expect(r.halt).toBe("p5:hand-revision");
+      expect(codexCalls).toBe(1); // the referee only — nothing revises unattended
+      const after = await loadPaperState(dir, QID, SPEC);
+      expect(after!.notes.some((n) => n.includes("routed in p5_revision_routing.md for hand revision"))).toBe(true);
+      await access(join(dir, "p5_revision_routing.md"));
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("a dry run scores once and ends without a revision loop", async () => {
     const dir = await mkdtemp(join(tmpdir(), "causalsmith-dryrun-p5-cap-"));
     try {
       const r = await runPaperPipeline({
-        repoRoot: root, qid: QID, spec: SPEC, deps: stubDeps, auto: true, maxP5Reviews: 1, outDir: dir,
+        repoRoot: root, qid: QID, spec: SPEC, deps: stubDeps, auto: true, outDir: dir,
       });
-      expect(r.halt).toBe("p5:review-cap");
+      expect(r.halt).toBe("done");
       const state = await loadPaperState(dir, QID, SPEC);
       expect(state!.stage_completed).toBe("P5");
     } finally {

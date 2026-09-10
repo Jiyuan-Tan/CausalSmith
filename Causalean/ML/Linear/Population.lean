@@ -22,8 +22,10 @@ open MeasureTheory BigOperators
 
 variable {X' K : Type*} [MeasurableSpace X'] [Fintype K]
 
-/-- Population normal equations: the residual of the linear predictor with
-coefficients `βstar` is uncorrelated with every feature `φ·ₖ`. -/
+/-- For [a measurable covariate space](hyp:X'), [a finite feature index set](hyp:K),
+[a joint covariate–response measure](hyp:P), [a feature map](hyp:φ), and [a coefficient vector](hyp:βstar),
+the [population ordinary-least-squares condition](goal) holds exactly when the integral of the product
+of the corresponding linear-predictor residual and each feature coordinate is zero. -/
 def IsPopulationOLS (P : Measure (X' × ℝ)) (φ : FeatureMap X' K) (βstar : K → ℝ) : Prop :=
   ∀ k, ∫ z, (z.2 - ∑ j, βstar j * φ.φ z.1 j) * φ.φ z.1 k ∂P = 0
 

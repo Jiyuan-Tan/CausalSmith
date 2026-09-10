@@ -31,10 +31,14 @@ open scoped ProbabilityTheory
 
 variable {β γ δ : Type*} [MeasurableSpace β] [MeasurableSpace γ] [MeasurableSpace δ]
 
-/-- The structural-mechanism kernel `κ o = νₗ.map (Φ (o, ·))`: at each value `o` of
-the first coordinate, push the `γ`-marginal `νₗ` through the slice `l ↦ Φ (o, l)`.
-Built as the deterministic-times-constant product kernel
-`(Kernel.id ×ₖ Kernel.const β νₗ)` mapped through `Φ`. -/
+/-- For [three measurable spaces serving respectively as predictor, exogenous-noise, and response
+spaces](hyp:β,γ,δ), [a measure on the exogenous-noise space](hyp:νₗ), and [a mechanism mapping a
+predictor--noise pair to a response](hyp:Φ), the [structural-mechanism kernel](goal) assigns to
+each predictor value the push-forward of the noise measure through the corresponding slice of the
+mechanism.
+
+Built as the deterministic-times-constant product kernel `(Kernel.id ×ₖ Kernel.const β νₗ)` mapped
+through `Φ`. -/
 noncomputable def mechanismKernel (νₗ : Measure γ) (Φ : β × γ → δ) :
     ProbabilityTheory.Kernel β δ :=
   ((ProbabilityTheory.Kernel.id : ProbabilityTheory.Kernel β β).prod

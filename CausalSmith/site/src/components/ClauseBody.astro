@@ -1,0 +1,41 @@
+---
+// One clause card's contents, recursively: its lifted hypothesis rows, then
+// its `∃` intro (a content line only when the card branches), then either
+// the `⊢` leaf or the inset sub-cards it splits into. See ClauseCards.astro.
+import { type ViewCard } from "../lib/leanDeclView.js";
+import { type StmtLine } from "../lib/leanStatement.js";
+import StmtBodyView from "./StmtBodyView.astro";
+import StmtRowList from "./StmtRowList.astro";
+import Self from "./ClauseBody.astro";
+
+interface Props {
+  card: ViewCard;
+  depth: number;
+}
+const { card, depth } = Astro.props as Props;
+const lineHtml = (l: StmtLine) => l.html ?? l.text;
+const isLeaf = card.code !== undefined;
+const subs = !isLeaf && depth < 8 ? (card.sub ?? []) : [];
+---
+
+{card.hyps.length > 0 && <StmtRowList items={card.hyps} />}
+{card.intro && (
+  <div class="stmt-intro" data-binder={isLeaf ? undefined : card.token}>
+    {card.intro.map((l) => <div class="stmt-line" set:html={lineHtml(l)} />)}
+  </div>
+)}
+{isLeaf ? (
+  <div class="stmt-concl-body" data-binder={card.token}>
+    <StmtBodyView body={card.code!} />
+  </div>
+) : (
+  subs.length > 0 && (
+    <div class="stmt-subs">
+      {subs.map((s) => (
+        <div class="stmt-sub">
+          <Self card={s} depth={depth + 1} />
+        </div>
+      ))}
+    </div>
+  )
+)}

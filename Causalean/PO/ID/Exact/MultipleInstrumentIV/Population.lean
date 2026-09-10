@@ -40,23 +40,21 @@ namespace ResponseTypeStats.PopulationBridge
 
 variable {Ω : Type*} [MeasurableSpace Ω] {K : ℕ}
 
-/-- Instrument cell `{ω | Z ω = k}`. -/
+/-- For [a sample space](hyp:Ω), [a finite instrument support of size $K$](hyp:K), [an instrument on that sample space](hyp:Z), and [a support point](hyp:k), the [instrument cell](goal) is the set of units whose instrument equals that point. -/
 def zEvent (Z : Ω → Fin K) (k : Fin K) : Set Ω :=
   Z ⁻¹' ({k} : Set (Fin K))
 
-/-- Observed reduced-form moment `E[h(Z)Y]`, where
-`h(zᵏ) = dhat_k − Σ_l ρ_l dhat_l`. -/
+/-- Given [a measurable sample space](hyp:Ω), [a finite instrument support of size $K$](hyp:K), [a measure](hyp:μ), [an instrument](hyp:Z), [a real outcome](hyp:Y), and [an ordered finite first-stage index](hyp:I), the [observed reduced-form moment](goal) is the integral of the centered first-stage index evaluated at the instrument times the outcome. -/
 noncomputable def observedReducedFormMoment
     (μ : Measure Ω) (Z : Ω → Fin K) (Y : Ω → ℝ) (I : FiniteIndex K) : ℝ :=
   ∫ ω, I.centeredIndex (Z ω) * Y ω ∂μ
 
-/-- Observed first-stage moment `E[h(Z)D]`, with binary treatment coerced to
-the real values `0` and `1`. -/
+/-- Given [a measurable sample space](hyp:Ω), [a finite instrument support of size $K$](hyp:K), [a measure](hyp:μ), [an instrument](hyp:Z), [a binary treatment](hyp:D), and [an ordered finite first-stage index](hyp:I), the [observed first-stage moment](goal) is the integral of the centered first-stage index evaluated at the instrument times the zero-one treatment indicator. -/
 noncomputable def observedFirstStageMoment
     (μ : Measure Ω) (Z : Ω → Fin K) (D : Ω → Bool) (I : FiniteIndex K) : ℝ :=
   ∫ ω, I.centeredIndex (Z ω) * boolToReal (D ω) ∂μ
 
-/-- Source population 2SLS ratio `E[h(Z)Y] / E[h(Z)D]`. -/
+/-- Given [a measurable sample space](hyp:Ω), [a finite instrument support of size $K$](hyp:K), [a measure](hyp:μ), [an instrument](hyp:Z), [a binary treatment](hyp:D), [a real outcome](hyp:Y), and [an ordered finite first-stage index](hyp:I), the [observed population 2SLS ratio](goal) is the observed reduced-form moment divided by the observed first-stage moment. -/
 noncomputable def observedBeta2SLS
     (μ : Measure Ω) (Z : Ω → Fin K) (D : Ω → Bool) (Y : Ω → ℝ)
     (I : FiniteIndex K) : ℝ :=

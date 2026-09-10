@@ -36,9 +36,12 @@ namespace DesignBased
 variable {K : Type*} [Fintype K] [DecidableEq K]
 variable {V : K → Type*} [∀ k, Fintype (V k)] [∀ k, DecidableEq (V k)]
 
-/-- The **stratified randomization design**: an independent complete randomization within each
-stratum `k`, treating exactly `n₁ k` of that stratum's units. Built as the product of the
-per-stratum complete-randomization designs. -/
+/-- For a [finite collection of strata](hyp:K), each with a [finite population of units](hyp:V),
+and [a specified number of treated units in every stratum](hyp:n₁) that [does not exceed that
+stratum's population size](hyp:hn), the [stratified randomization design](goal) independently
+selects exactly the specified number of units in each stratum.
+
+It is built as the product of the per-stratum complete-randomization designs. -/
 noncomputable def stratifiedDesign (n₁ : K → ℕ) (hn : ∀ k, n₁ k ≤ Fintype.card (V k)) :
     FiniteDesign (∀ k, {S : Finset (V k) // S.card = n₁ k}) :=
   prodDesign (fun k => completeRandomization (n₁ k) (hn k))

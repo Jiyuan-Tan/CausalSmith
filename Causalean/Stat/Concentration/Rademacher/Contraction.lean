@@ -53,10 +53,9 @@ namespace Causalean
 namespace Stat
 namespace Concentration
 
-/-- A real-valued function `φ` is "Lipschitz at 0" with constant `L` if
-    `φ 0 = 0` and `|φ x - φ y| ≤ L |x - y|` for all `x, y`. The "at 0"
-    pin-down is used by the absolute-value contraction theorem; the signed
-    theorem needs only the global Lipschitz inequality. -/
+/-- For [a real-valued transformation](hyp:φ) and [a real constant](hyp:L), [the transformation is Lipschitz at zero with constant $L$](goal) exactly when (1) [it maps zero to zero](step:1) and (2) [for every two real numbers $x$ and $y$, its increment has absolute value at most $L|x-y|$](step:2).
+
+The zero condition is used by the absolute-value contraction theorem; the signed theorem needs only the global Lipschitz inequality. -/
 def LipschitzAt0 (φ : ℝ → ℝ) (L : ℝ) : Prop :=
   φ 0 = 0 ∧ ∀ x y, |φ x - φ y| ≤ L * |x - y|
 

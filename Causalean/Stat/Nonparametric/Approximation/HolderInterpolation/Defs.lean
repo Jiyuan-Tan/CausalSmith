@@ -37,9 +37,10 @@ namespace Causalean.Stat.Nonparametric
 open MeasureTheory
 open scoped BigOperators
 
-/-- The closed coordinatewise neighbourhood of radius `r` around a point: the cube
-containing exactly the covariate values whose every coordinate is within `r` of the
-corresponding coordinate of the centre. -/
+/-- For [a nonnegative integer dimension](hyp:d), [a centre in that-dimensional real
+space](hyp:x0), and [a real radius](hyp:r), the [closed coordinatewise neighbourhood](goal) is
+the set of points whose every coordinate differs from the corresponding coordinate of the centre
+by at most the radius. -/
 def supBall {d : ℕ} (x0 : Fin d → ℝ) (r : ℝ) : Set (Fin d → ℝ) :=
   {x | ∀ i, |x i - x0 i| ≤ r}
 
@@ -94,9 +95,14 @@ lemma isCompact_cube {ι : Type*} [Finite ι] (a b : ℝ) :
   letI := Fintype.ofFinite ι
   exact isCompact_univ_pi (fun _ => isCompact_Icc)
 
-/-- The standard multivariate Hölder ball of a given smoothness order and radius on
-a region: derivatives through the conventional highest order are continuous and
-bounded, and the highest derivative changes at the Hölder rate set by that order. -/
+/-- For [a nonnegative integer dimension](hyp:d), [a real-valued function on that-dimensional
+real space](hyp:f), [a real smoothness order](hyp:order), [a real radius](hyp:M), and [a region
+of that space](hyp:S), the [standard multivariate Hölder ball condition](goal) requires that (1)
+[the function has continuous derivatives through order $\lceil\mathrm{order}\rceil-1$ on the
+region](step:1), (2) [every derivative of order at most $\lceil\mathrm{order}\rceil-1$ has norm at
+most the radius there](step:2), and (3) [the derivative of order
+$\lceil\mathrm{order}\rceil-1$ changes between any two points in the region by at most the radius
+times their distance to the power $\mathrm{order}-(\lceil\mathrm{order}\rceil-1)$](step:3). -/
 def HolderBallStd {d : ℕ} (f : (Fin d → ℝ) → ℝ) (order M : ℝ)
     (S : Set (Fin d → ℝ)) : Prop :=
   ContDiffOn ℝ (⌈order⌉₊ - 1) f S ∧
@@ -105,8 +111,9 @@ def HolderBallStd {d : ℕ} (f : (Fin d → ℝ) → ℝ) (order M : ℝ)
       ‖iteratedFDeriv ℝ (⌈order⌉₊ - 1) f x - iteratedFDeriv ℝ (⌈order⌉₊ - 1) f y‖
         ≤ M * ‖x - y‖ ^ (order - ((⌈order⌉₊ - 1 : ℕ) : ℝ)))
 
-/-- The multivariate product kernel obtained by multiplying the same one-dimensional
-kernel across all covariate coordinates. -/
+/-- For [a one-dimensional real-valued kernel](hyp:k) and [a nonnegative integer
+dimension](hyp:d), the [multivariate product kernel](goal) assigns to each point the product of
+the one-dimensional kernel evaluated at all of its coordinates. -/
 def prodKernel (k : ℝ → ℝ) (d : ℕ) : (Fin d → ℝ) → ℝ :=
   fun u => ∏ i : Fin d, k (u i)
 

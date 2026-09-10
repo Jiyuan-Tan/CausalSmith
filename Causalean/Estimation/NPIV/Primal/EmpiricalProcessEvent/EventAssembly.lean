@@ -185,7 +185,9 @@ theorem empirical_process_event_from_localized
     have hC_upper := (le_abs_self _).trans hC_abs
     nlinarith [hD, hC_upper]
 
-/-- **Per-`n` explicit rate** appearing on the RHS of
+/-- For [an NPIV operator system](hyp:S), [candidate and critic classes](hyp:TC), [an observation-law measure](hyp:P_W), [an independent sample](hyp:sample), [a one-shot split of that sample](hyp:split), [a real regularization level and source exponent](hyp:lambda,β), [a sequence of localization radii](hyp:delta), [a sequence of covariate estimators](hyp:h_hat), [a source condition](hyp:sc), [its Tikhonov bias-bound bundle](hyp:tb), [localized-regime bundles at every nuisance-fold sample size](hyp:regimes), [a TRAE primal estimator](hyp:_is_estimator), [a sample realization](hyp:_ω), [a sample-size index](hyp:n), and [a real confidence level](hyp:ζ), [the explicit rate is the sum of the localized empirical-process critical-radius and envelope terms, plus the regularization contribution, at that index and confidence level](goal).
+
+**Per-`n` explicit rate** appearing on the RHS of
 `empirical_process_event_from_localized`, packaged as a function of
 `(ω, n, ζ)` for use as the LHS of the absorption hypothesis below. -/
 noncomputable def explicitRate
@@ -219,7 +221,9 @@ noncomputable def explicitRate
               (2 * Real.log ((2 : ℝ) ^ (n + 2) / ζ)
                 / (split.n₁ n)))
 
-/-- **Population shape** appearing on the RHS of
+/-- For [an NPIV operator system](hyp:S), [candidate and critic classes](hyp:TC), [an observation-law measure](hyp:P_W), [an independent sample](hyp:sample), [a one-shot split of that sample](hyp:split), [a real regularization level and source exponent](hyp:lambda,β), [a sequence of localization radii](hyp:delta), [a sequence of covariate estimators](hyp:h_hat), [a source condition](hyp:sc), [its Tikhonov bias-bound bundle](hyp:tb), [a TRAE primal estimator](hyp:is_estimator), [a sample realization](hyp:ω), and [a sample-size index](hyp:n), [the population shape is $R^2+\delta_n y+\delta_n^2+\lambda\delta_n x+\lambda\delta_n^2$, where $R$ is the weak-norm discrepancy between the population Tikhonov solution and the structural function, $y$ is the weak-norm estimation discrepancy, and $x$ is its strong-norm counterpart](goal).
+
+**Population shape** appearing on the RHS of
 `TRAERatePrimalAbstractHyps.empirical_process_event` (`Rate.lean`, line 167):
 
     R² + δ_n · y + δ_n² + λ · δ_n · x + λ · δ_n²

@@ -22,20 +22,32 @@ open scoped MeasureTheory ProbabilityTheory
 variable {N : Type*} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-/-- Every random or fixed SWIG-node value space is nonempty when every base-node
+/-- For [a population of variables](hyp:N) with [nonempty value spaces](hyp:Ω) and
+[a SWIG node](hyp:w), [a witness that that node's value space is nonempty](goal) is provided.
+
+Every random or fixed SWIG-node value space is nonempty when every base-node
 value space is nonempty. -/
 noncomputable def swigValueNonempty [∀ n, Nonempty (Ω n)]
     (w : SWIGNode N) : Nonempty (swigΩ Ω w) := by
   cases w <;> infer_instance
 
-/-- A finite coordinate product of SWIG-node value spaces is nonempty when all
+/-- For [a population of variables](hyp:N) with [nonempty value spaces](hyp:Ω) and
+[a finite SWIG-node set](hyp:Y), [a witness that the corresponding joint value space
+is nonempty](goal) is provided.
+
+A finite coordinate product of SWIG-node value spaces is nonempty when all
 base-node value spaces are nonempty. -/
 noncomputable def valuesOnNonempty [∀ n, Nonempty (Ω n)]
     (Y : Finset (SWIGNode N)) :
     Nonempty (ValuesOn Y (swigΩ Ω)) :=
   ⟨fun y => Classical.choice (swigValueNonempty (Ω := Ω) y.val)⟩
 
-/-- This fixed fallback kernel is used only outside the standard identification
+/-- For [a population of variables](hyp:N) with [nonempty measurable value spaces](hyp:Ω),
+[an intervention set](hyp:X), and [an outcome-node set](hyp:Y), [the default
+interventional kernel](goal) is the constant kernel concentrated at an arbitrary
+outcome assignment.
+
+This fixed fallback kernel is used only outside the standard identification
 query domain. -/
 noncomputable def defaultInterventionalKernel [∀ n, Nonempty (Ω n)]
     (X : Finset N) (Y : Finset (SWIGNode N)) :
@@ -48,7 +60,11 @@ noncomputable def defaultInterventionalKernel [∀ n, Nonempty (Ω n)]
   exact ProbabilityTheory.Kernel.const _
     (MeasureTheory.Measure.dirac (Classical.choice inferInstance))
 
-/-- A standard structural causal model has a canonical fixed-value assignment.
+/-- For [a finite population of variables](hyp:N) with [measurable value spaces](hyp:Ω),
+[a structural causal model](hyp:M) that [is standard](hyp:hM), [the canonical
+fixed-value assignment](goal) is the unique assignment on its empty fixed-node set.
+
+A standard structural causal model has a canonical fixed-value assignment.
 
 When `M.fixed = ∅`, the fixed-value product has no coordinates, so it has a
 unique canonical inhabitant. -/
@@ -60,7 +76,13 @@ noncomputable def standardFixedValues (M : Causalean.SCM N Ω)
       simpa [hempty] using d.property
     exact Finset.notMem_empty d.val hd)
 
-/-- This predicate states when the interventional query is in its meaningful
+/-- For [a finite population of variables](hyp:N) with [measurable value spaces](hyp:Ω),
+[an intervention set](hyp:X), [an outcome-node set](hyp:Y), and [a structural causal
+model](hyp:M), [interventional-query validity](goal) holds exactly when [all intervention
+random nodes are observed](step:1), [their fixed nodes are absent](step:2), [all outcomes
+are observed](step:3), and [the model is standard](step:4).
+
+This predicate states when the interventional query is in its meaningful
 standard-model branch. -/
 def interventionalQueryValid
     (X : Finset N) (Y : Finset (SWIGNode N))
@@ -69,7 +91,12 @@ def interventionalQueryValid
     (∀ D ∈ X, SWIGNode.fixed D ∉ M.fixed) ∧
     (Y ⊆ M.observed) ∧ M.isStandard
 
-/-- The interventional query returns the post-intervention outcome law as a
+/-- For [a finite population of variables](hyp:N) with [nonempty measurable value spaces](hyp:Ω),
+[an intervention set](hyp:X), and [an outcome-node set](hyp:Y), [the interventional
+query](goal) maps each structural causal model to its post-intervention outcome kernel
+when the query is valid, and otherwise to the default constant kernel.
+
+The interventional query returns the post-intervention outcome law as a
 kernel indexed by treatment values.
 
 For standard SCMs in which the treatment random nodes and outcome nodes are

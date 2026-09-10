@@ -27,13 +27,15 @@ namespace Causalean.Stat.MomentProblems
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal NNReal BigOperators
 
-/-- The total weight that an indexed list of atoms places on a given point of the real line: the
-sum of the weights of all indices whose location is that point. -/
+/-- For [a natural number of atoms](hyp:n), [a list of their real locations](hyp:x), and [a matching
+list of real weights](hyp:p), the [weight assigned to a real point](goal) is the sum of the weights
+of precisely those atoms located at that point. -/
 noncomputable def atomicWeight (n : ℕ) (x : Fin n → ℝ) (p : Fin n → ℝ) : ℝ → ℝ :=
   fun t ↦ ∑ i : Fin n, if x i = t then p i else 0
 
-/-- The **finite atomic law** determined by a list of real locations and a matching list of
-weights: the measure that puts each weight as a point mass at its own location. -/
+/-- For [a natural number of atoms](hyp:n), [a list of their real locations](hyp:x), and [a matching
+list of real weights](hyp:p), the [finite atomic law](goal) is the measure that puts each weight
+as point mass at its corresponding location. -/
 noncomputable def atomicLaw (n : ℕ) (x : Fin n → ℝ) (p : Fin n → ℝ) : Measure ℝ :=
   Causalean.Mathlib.MeasureTheory.discreteMeasure (Finset.image x Finset.univ)
     (atomicWeight n x p)

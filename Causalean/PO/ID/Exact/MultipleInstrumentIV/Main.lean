@@ -33,15 +33,11 @@ namespace ResponseTypeStats
 
 variable {K : ℕ} (I : FiniteIndex K) (R : ResponseTypeStats K)
 
-/-- Signed adjacent reduced-form numerator in the finite response-type algebra:
-`Σ_g λ_g Δ_g`.  This is the response-type counterpart of
-`Σ_j B_j E[(Y(1)-Y(0)) Δ_jD]`. -/
+/-- For [an ordered finite first-stage index](hyp:I) and [finite response-type statistics](hyp:R), the [signed adjacent reduced-form numerator](goal) is the sum of each within-type causal effect multiplied by its unnormalized response-type weight. -/
 noncomputable def signedAdjacentNumerator : ℝ :=
   ∑ g : ResponseType K, R.unnormTypeWeight I g * R.effect g
 
-/-- Signed adjacent first-stage denominator in the finite response-type
-algebra: `Σ_g λ_g`, corresponding to
-`Σ_j B_j E[Δ_jD]`. -/
+/-- For [an ordered finite first-stage index](hyp:I) and [finite response-type statistics](hyp:R), the [signed adjacent first-stage denominator](goal) is the sum of all unnormalized response-type weights. -/
 noncomputable def signedAdjacentDenominator : ℝ :=
   R.typeWeightDenom I
 

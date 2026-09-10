@@ -38,7 +38,8 @@ open UniformTwoWayPanel (ddot unitMean timeMean grandMean inner finiteResidualiz
 
 variable {G T : Type*} [Fintype G] [Fintype T]
 
-/-- Uniform unit-period cell weight `1/(|G|·|T|)`. -/
+/-- For [a finite group set](hyp:G) and [a finite time set](hyp:T), the [uniform group-time
+cell weight](goal) is the reciprocal of the product of their cardinalities. -/
 noncomputable def uniformWeight (G T : Type*) [Fintype G] [Fintype T] : ℝ :=
   ((Fintype.card G : ℝ) * (Fintype.card T : ℝ))⁻¹
 
@@ -52,7 +53,16 @@ theorem uniformWeight_pos [Nonempty G] [Nonempty T] :
     by exact_mod_cast (Fintype.card_pos : 0 < Fintype.card T)
   exact inv_pos.mpr (mul_pos hG hT)
 
-/-- Builds the uniform balanced-panel DCDH structure whose residualized treatment
+/-- For [finite group and time sets](hyp:G,T), [a balanced panel with at least two groups
+and two time periods](hyp:balanced), [treatment, observed-outcome, untreated-outcome, and
+treatment-effect arrays](hyp:D,Y,Y0,tau), if [treatment is binary in every
+cell](hyp:hD_binary), [the observed outcome equals the untreated outcome plus treatment times
+the treatment effect in every cell](hyp:hconsistency), and [the weighted sum of squared
+double-demeaned treatment is strictly positive](hyp:hSD), then the [uniform balanced-panel
+DCDH structure](goal) assigns equal cell weights and uses double-demeaned treatment as its
+residualized treatment.
+
+Builds the uniform balanced-panel DCDH structure whose residualized treatment
 is the Frisch-Waugh-Lovell double-demeaned treatment.
 
 Builds a genuine `DCDHPanel` for the uniform balanced panel in which the

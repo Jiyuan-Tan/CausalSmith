@@ -16,6 +16,11 @@ import {
   isChain,
   normAwareDepths,
   parseBinderGroup,
+  scanDefinitionSignature,
+  scanInductiveSignature,
+  scanInstanceSignature,
+  scanPropDefinitionSignature,
+  splitWhereFields,
   scanPropositionSignature,
   structureRecordSource,
   stripLeadingQuantifier,
@@ -63,6 +68,12 @@ export interface ConclusionCard {
 export interface StructuredView {
   sharedHyps: HypRow[];
   conclusions: ConclusionCard[];
+  /** Definitions only: the `name params : type` row between the parameters
+   *  and the given-by clauses (`structureDefinitionView`). Carries an id /
+   *  crosslink token like any content row. */
+  defRow?: ConclusionCard;
+  /** What the name row declares — labels the drawer (`def` by default). */
+  role?: "def" | "instance" | "inductive";
 }
 
 /** Whether this is an explicitly Prop-valued `structure`/`class`. The final
@@ -184,6 +195,8 @@ function keywordAt(text: string, i: number, kw: string): boolean {
 }
 
 const SCOPE_KEYWORDS = ["let", "have", "fun", "match", "if", "do"];
+/** Big-operator binders (`∑ x : T, …`): like `∀`, they scope the rest of the clause. */
+const BIG_OPERATORS = new Set(["∑", "∏", "⨆", "⨅", "∫", "⨍", "⋃", "⋂", "⨁", "∮"]);
 
 /**
  * Index of the leading implication arrow — the `→` that separates a premise
@@ -198,7 +211,12 @@ function leadingImplicationIndex(text: string): number {
     if (depths[i] !== 0) continue;
     const c = text[i];
     if (c === "→") return i;
-    if (c === "∀" || c === "∃" || c === "," || c === ";" || c === "↦") return -1;
+    // Binders scope everything to their right: quantifiers, big operators, and
+    // — generically — anything that has opened a binder: a depth-0 `:` (not
+    // `:=`) can only be a binder's type colon (`∑ d : Fin n → κ × Bool, …`,
+    // `⨆ i : ι → ℝ, …`, `fun x : A → B => …`), so a later `→` is that type's.
+    if (c === "∀" || c === "∃" || c === "," || c === ";" || c === "↦" || BIG_OPERATORS.has(c)) return -1;
+    if (c === ":" && text[i + 1] !== "=") return -1;
     if (c === "=" && text[i + 1] === ">") return -1;
     if (SCOPE_KEYWORDS.some((kw) => keywordAt(text, i, kw))) return -1;
   }
@@ -223,7 +241,8 @@ function conjunctionSplitLimit(text: string): number {
   for (let i = 0; i < text.length; i++) {
     if (depths[i] !== 0) continue;
     const c = text[i];
-    if (c === "∀" || c === "∃") return text.length;
+    if (c === "∀" || c === "∃" || BIG_OPERATORS.has(c)) return text.length;
+    if (c === ":" && text[i + 1] !== "=") return text.length; // a binder opened: its body owns the rest
     if (c === "∧") {
       sawConjunction = true;
       continue;
@@ -608,15 +627,27 @@ export function structureStatementView(
  *  hypotheses first, then each conclusion card's own hypotheses and its content
  *  row (its `intro` when it nests, its `code` when it is a leaf), depth-first.
  *  Stamps `id` in place and returns the rows in the same order. */
-export function assignRowIds(view: StructuredView): Array<{ id: string; kind: "hyp" | "conclusion"; code: string }> {
-  const out: Array<{ id: string; kind: "hyp" | "conclusion"; code: string }> = [];
+export type RowKind = "hyp" | "conclusion" | "param" | "def" | "value";
+
+export function assignRowIds(view: StructuredView): Array<{ id: string; kind: RowKind; code: string }> {
+  const out: Array<{ id: string; kind: RowKind; code: string }> = [];
   let n = 0;
   const next = () => `r${++n}`;
+  // A definition's rows are named for what they are — parameters, the def row,
+  // its value clauses — so the assignment prompt reads them correctly; a
+  // theorem's keep hypothesis / conclusion.
+  const isDef = view.defRow !== undefined;
+  const hypKind: RowKind = isDef ? "param" : "hyp";
+  const clauseKind: RowKind = isDef ? "value" : "conclusion";
   const hyp = (row: HypRow) => {
     row.id = next();
-    out.push({ id: row.id, kind: "hyp", code: row.code });
+    out.push({ id: row.id, kind: hypKind, code: row.code });
   };
   for (const h of view.sharedHyps) hyp(h);
+  if (view.defRow) {
+    view.defRow.id = next();
+    out.push({ id: view.defRow.id, kind: "def", code: view.defRow.code ?? "" });
+  }
   const walk = (card: ConclusionCard) => {
     for (const h of card.hyps) hyp(h);
     // A purely BRANCHING card — one that only splits into `sub`, with neither an
@@ -625,10 +656,256 @@ export function assignRowIds(view: StructuredView): Array<{ id: string; kind: "h
     const content = card.intro ?? card.code;
     if (content !== undefined && content.length > 0) {
       card.id = next();
-      out.push({ id: card.id, kind: "conclusion", code: content });
+      out.push({ id: card.id, kind: clauseKind, code: content });
     }
     for (const c of card.sub ?? []) walk(c);
   };
   for (const c of view.conclusions) walk(c);
   return out;
+}
+
+
+/** A leaf that merely qualifies the binders an `∃` just introduced (`0 < a`):
+ *  no hyps, intro, or split. Mirrors the drawer's `isSideCondition`. */
+function isSideLeaf(c: ConclusionCard): boolean {
+  return c.hyps.length === 0 && !c.intro && !(c.sub?.length ?? 0) && typeof c.code === "string";
+}
+
+/**
+ * The clauses a reader sees NUMBERED — what a docstring's `[phrase](step:N)`
+ * counts. Normally the top-level clauses; for a statement that is one
+ * `∃ …, (1) ∧ … ∧ (k)` the numbering moves down onto those k claims (leading
+ * side conditions that only qualify the introduced binders are not counted,
+ * unless every clause looks like one). Mirrors the drawer's `structuredHtml`.
+ */
+export function numberedClauses(conclusions: readonly ConclusionCard[]): ConclusionCard[] {
+  const only = conclusions[0];
+  if (conclusions.length === 1 && only.intro && (only.sub?.length ?? 0) > 0) {
+    const subs = only.sub!;
+    let lead = 0;
+    while (lead < subs.length && isSideLeaf(subs[lead])) lead++;
+    if (lead === subs.length) lead = 0;
+    return subs.slice(lead);
+  }
+  return [...conclusions];
+}
+
+// ---------------------------------------------------------------------------
+// definitions: parameters · def · given by
+// ---------------------------------------------------------------------------
+
+/** A `def`/`abbrev` head (past docstring/attributes/modifiers). */
+export function isDefinitionLike(statement: string): boolean {
+  const head = statement
+    .replace(/\/--[\s\S]*?-\/|\/-[\s\S]*?-\//g, " ")
+    // leading `-- …` line comments (`-- @realizes …` markers) precede many
+    // composite components' declarations
+    .replace(/^(?:\s*--[^\n]*\n)+/, "")
+    .replace(/@\[[^\]]*\]/g, " ")
+    .trimStart();
+  return /^(private\s+|protected\s+|nonrec\s+|noncomputable\s+|unsafe\s+)*(def|abbrev)\b/.test(head);
+}
+
+/** Explicit binder names of a telescope, in order (`(x y : T)` → x, y). */
+function explicitNames(groups: readonly { raw: string }[]): string[] {
+  const out: string[] = [];
+  for (const g of groups) {
+    if (g.raw[0] !== "(") continue;
+    const inner = g.raw.slice(1, -1);
+    const colon = topLevelColonIndex(inner);
+    const names = (colon >= 0 ? inner.slice(0, colon) : inner).trim();
+    if (names) out.push(...names.split(/\s+/).filter(Boolean));
+  }
+  return out;
+}
+
+/**
+ * A definition as shared parameter rows, a `def` row (the declaration applied
+ * to its explicit parameters, with its type), and given-by clause(s):
+ *
+ *   `:= v`            a leading run of `let` steps becomes rows on the clause,
+ *                     the final expression its leaf; anything else one leaf;
+ *   `| pat => v`      one leaf per equation alternative;
+ *   `where …`         one leaf holding the block;
+ *   `def … : Prop`    the proposition split exactly as a theorem's goal is
+ *                     (`structureStatementView`), plus the `def` row.
+ *
+ * `result` (the index's elaborated result type) fills the type of an
+ * unannotated `abbrev Foo (V) := …`. Returns `null` — the caller shows the raw
+ * source — when the head is not confidently parsed or a split would lose text.
+ */
+export function structureDefinitionView(rawSource: string, result = ""): StructuredView | null {
+  const def = scanDefinitionSignature(rawSource);
+  if (!def) return null;
+  const leaf = def.name.split(".").pop() ?? def.name;
+  const head = [leaf, ...explicitNames(def.scan.groups)].join(" ");
+  const propView = scanPropDefinitionSignature(rawSource) ? structureStatementView(rawSource) : null;
+  if (propView) {
+    return { ...propView, defRow: { hyps: [], code: `${head} : Prop` } };
+  }
+  const sharedHyps: HypRow[] = [];
+  for (const g of def.scan.groups) {
+    const parsed = parseBinderGroup(g.raw);
+    if (!parsed) return null;
+    sharedHyps.push({ chip: parsed.chip, code: dedent(g.raw) });
+  }
+  const type = def.scan.conclusionText || result;
+  const defRow: ConclusionCard = { hyps: [], code: type ? `${head} : ${dedent(type)}` : head };
+  const conclusions: ConclusionCard[] = [];
+  if (def.body?.kind === "value") {
+    const lets = stripLetRun(def.body.text);
+    if (lets && squash(lets.prefix + lets.rest) === squash(def.body.text)) {
+      conclusions.push({ hyps: lets.rows, code: dedent(lets.rest) });
+    } else {
+      conclusions.push({ hyps: [], code: dedent(def.body.text) });
+    }
+  } else if (def.body?.kind === "alternatives") {
+    const alts: string[] = [];
+    for (const line of dedent(def.body.text).split("\n")) {
+      if (/^\s*\|/.test(line) || alts.length === 0) alts.push(line.trim());
+      else alts[alts.length - 1] += " " + line.trim();
+    }
+    if (squash(alts.join("")) !== squash(def.body.text)) return null;
+    for (const a of alts) conclusions.push({ hyps: [], code: a });
+  } else if (def.body?.kind === "where") {
+    const fields = splitWhereFields(def.body.text);
+    if (fields) for (const f of fields) conclusions.push({ hyps: [], code: `${f.head} := ${f.value}` });
+    else conclusions.push({ hyps: [], code: dedent(def.body.text) });
+  }
+  return { sharedHyps, conclusions, defRow };
+}
+
+/**
+ * A data-carrying `structure`/`class` (not Prop-valued) as parameters · def ·
+ * fields: the telescope as parameter rows, a `def` row naming the record and
+ * its sort, and one clause per field — the same shape a definition takes, so
+ * a paper's "Definition (model parameters)" block reads like its neighbours.
+ * Prop-valued records keep `structurePropRecordView`.
+ */
+export function structureDataRecordView(rawSource: string): StructuredView | null {
+  if (isPropRecord(rawSource)) return null;
+  const record = structureRecordSource(rawSource);
+  if (!record?.fields) return null;
+  const cleaned = stripLeanComments(rawSource);
+  const m = cleaned.match(/\b(?:structure|class)\s+([^\s({[⦃:]+)/);
+  if (!m) return null;
+  const sharedHyps: HypRow[] = [];
+  const explicit: string[] = [];
+  for (const item of record.rows) {
+    if (!isBinderRow(item) || item.names === "extends") continue;
+    const body = stmtBodyText(item.body);
+    const [open, close] = item.bracketKind === "explicit" ? ["(", ")"] : ["{", "}"];
+    sharedHyps.push({ chip: item.chip, code: item.names ? `${open}${item.names} : ${body}${close}` : `[${body}]` });
+    if (item.bracketKind === "explicit" && item.names) explicit.push(...item.names.split(/\s+/));
+  }
+  const conclusions: ConclusionCard[] = [];
+  for (const item of record.rows) {
+    if (isBinderRow(item) && item.names === "extends") conclusions.push({ hyps: [], code: `extends ${stmtBodyText(item.body)}` });
+  }
+  for (const item of record.fields) {
+    if (!isBinderRow(item)) continue;
+    const body = stmtBodyText(item.body);
+    if (!body) return null;
+    conclusions.push({ hyps: [], code: item.names ? `${item.names} : ${body}` : body });
+  }
+  const leaf = m[1].split(".").pop() ?? m[1];
+  const defRow: ConclusionCard = { hyps: [], code: `${[leaf, ...explicit].join(" ")} : Type` };
+  return conclusions.length > 0 ? { sharedHyps, conclusions, defRow } : null;
+}
+
+/** A `structure`/`class` head (past docstring/attributes/modifiers). */
+export function isRecordLike(statement: string): boolean {
+  const head = statement
+    .replace(/\/--[\s\S]*?-\/|\/-[\s\S]*?-\//g, " ")
+    // leading `-- …` line comments (`-- @realizes …` markers) precede many
+    // composite components' declarations
+    .replace(/^(?:\s*--[^\n]*\n)+/, "")
+    .replace(/@\[[^\]]*\]/g, " ")
+    .trimStart();
+  return /^(private\s+|protected\s+)*(structure|class)\b/.test(head);
+}
+
+// ---------------------------------------------------------------------------
+// instances: parameters · instance · given by · inductives: parameters · inductive · constructors
+// ---------------------------------------------------------------------------
+
+/** An `instance` head (past docstring/attributes/modifiers). */
+export function isInstanceLike(statement: string): boolean {
+  const head = statement
+    .replace(/\/--[\s\S]*?-\/|\/-[\s\S]*?-\//g, " ")
+    .replace(/^(?:\s*--[^\n]*\n)+/, "")
+    .replace(/@\[[^\]]*\]/g, " ")
+    .trimStart();
+  return /^(private\s+|protected\s+|noncomputable\s+|scoped\s+|local\s+)*instance\b/.test(head);
+}
+
+/** An `inductive` head (past docstring/attributes/modifiers). */
+export function isInductiveLike(statement: string): boolean {
+  const head = statement
+    .replace(/\/--[\s\S]*?-\/|\/-[\s\S]*?-\//g, " ")
+    .replace(/^(?:\s*--[^\n]*\n)+/, "")
+    .replace(/@\[[^\]]*\]/g, " ")
+    .trimStart();
+  return /^(private\s+|protected\s+)*inductive\b/.test(head);
+}
+
+/** The given-by clauses of a value: `let` steps + leaf, equation alternatives,
+ *  or one clause per `where` field. Lossless by construction of the scanners. */
+function valueClauses(body: { kind: "value" | "alternatives" | "where"; text: string } | null): ConclusionCard[] | null {
+  if (!body) return [];
+  if (body.kind === "value") {
+    const lets = stripLetRun(body.text);
+    if (lets && squash(lets.prefix + lets.rest) === squash(body.text)) return [{ hyps: lets.rows, code: dedent(lets.rest) }];
+    return [{ hyps: [], code: dedent(body.text) }];
+  }
+  if (body.kind === "alternatives") {
+    const alts: string[] = [];
+    for (const line of dedent(body.text).split("\n")) {
+      if (/^\s*\|/.test(line) || alts.length === 0) alts.push(line.trim());
+      else alts[alts.length - 1] += " " + line.trim();
+    }
+    if (squash(alts.join("")) !== squash(body.text)) return null;
+    return alts.map((a) => ({ hyps: [], code: a }));
+  }
+  const fields = splitWhereFields(body.text);
+  if (!fields) return [{ hyps: [], code: dedent(body.text) }];
+  return fields.map((f) => ({ hyps: [], code: `${f.head} := ${f.value}` }));
+}
+
+/**
+ * An `instance` as parameters · instance row (`name params : Class`) · given-by
+ * clauses — the definition layout, labelled by its own kind (`role`).
+ * `leafName` heads an anonymous instance's row (the compiler's name).
+ */
+export function structureInstanceView(rawSource: string, leafName = "instance"): StructuredView | null {
+  const inst = scanInstanceSignature(rawSource);
+  if (!inst) return null;
+  const sharedHyps: HypRow[] = [];
+  for (const g of inst.scan.groups) {
+    const parsed = parseBinderGroup(g.raw);
+    if (!parsed) return null;
+    sharedHyps.push({ chip: parsed.chip, code: dedent(g.raw) });
+  }
+  const head = [inst.name || leafName, ...explicitNames(inst.scan.groups)].join(" ");
+  const conclusions = valueClauses(inst.body);
+  if (!conclusions) return null;
+  return { sharedHyps, conclusions, defRow: { hyps: [], code: `${head} : ${dedent(inst.scan.conclusionText)}` }, role: "instance" };
+}
+
+/**
+ * An `inductive` as parameters · inductive row (`Name params : Sort`) · one
+ * clause per constructor (`name : type` / `name (args)`).
+ */
+export function structureInductiveView(rawSource: string, result = ""): StructuredView | null {
+  const ind = scanInductiveSignature(rawSource);
+  if (!ind) return null;
+  const sharedHyps: HypRow[] = [];
+  for (const g of ind.groups) {
+    const parsed = parseBinderGroup(g.raw);
+    if (!parsed) return null;
+    sharedHyps.push({ chip: parsed.chip, code: dedent(g.raw) });
+  }
+  const head = [ind.name.split(".").pop() ?? ind.name, ...explicitNames(ind.groups)].join(" ");
+  const conclusions: ConclusionCard[] = ind.constructors.map((c) => ({ hyps: [], code: c.sig ? `${c.name} ${c.sig}` : c.name }));
+  return { sharedHyps, conclusions, defRow: { hyps: [], code: `${head} : ${ind.sort || result || "Type"}` }, role: "inductive" };
 }

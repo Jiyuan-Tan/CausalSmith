@@ -437,7 +437,16 @@ private lemma deterministic_tendsto_isBigOp
   exact (Filter.limsup_le_of_le ⟨0, by intro _ _; exact bot_le⟩
     hzero_event).trans bot_le
 
-/-- **K-fold cross-fitted Chernozhukov DML estimator.**  At each fold k,
+/-- For [a measurable population space with a population measure, a measurable observed-data
+space with its observed-data law, and a real vector space of nuisance values](hyp:Ω,μ,Z,P_Z,H),
+[a general moment system](hyp:M), [an independent and identically distributed sample](hyp:sample),
+[a number of folds](hyp:K), [a K-fold split of that sample](hyp:split), [a sequence of
+fold-specific nuisance estimators](hyp:η_hat), and [a sample-size index](hyp:n), the [K-fold
+cross-fitted Chernozhukov double-machine-learning estimator](goal) maps each population state to
+the true target minus the inverse Jacobian times the average, across folds, of each fold's empirical
+mean moment evaluated at the true target and that fold's nuisance estimate.
+
+At each fold k,
 the nuisance estimator `η_hat n k ω : H` is trained on the complement of
 fold k.  The fold-k score is the empirical mean of `m(η̂^{(-k)}, ·, θ₀)`
 over fold k, rescaled by `−J₀⁻¹` and shifted by `θ₀`.  The final

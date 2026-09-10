@@ -19,7 +19,12 @@ open Matrix BigOperators
 
 variable {Obs Param : Type*} [Fintype Obs] [Fintype Param]
 
-/-- The OLS closed-form coefficient `(XᵀX)⁻¹ Xᵀy`. -/
+/-- For [a finite set of observations](hyp:Obs), [a finite coefficient index set whose equality
+can be decided](hyp:Param),
+[a design matrix](hyp:X), and [an outcome vector](hyp:y), the [closed-form ordinary
+least-squares coefficient vector](goal) is the product of the totalized inverse of the design
+matrix's cross-product matrix—equal to its ordinary inverse when that matrix is invertible—and
+the design matrix transposed times the outcome vector. -/
 noncomputable def olsCoef [DecidableEq Param]
     (X : Matrix Obs Param ℝ) (y : Obs → ℝ) : Param → ℝ :=
   (Xᵀ * X)⁻¹ *ᵥ (Xᵀ *ᵥ y)

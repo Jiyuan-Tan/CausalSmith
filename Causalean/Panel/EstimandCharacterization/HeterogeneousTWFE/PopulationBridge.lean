@@ -42,7 +42,9 @@ namespace HeterogeneousTWFE
 
 open MeasureTheory Causalean.PO
 
-/-- Builds a finite DCDH panel from a population model.
+/-- For [finite group and time sets](hyp:G,T), [a measurable sample space](hyp:Ω) with [a probability measure](hyp:μ), [group-time cell events](hyp:cellEvent), [factual, untreated-potential, and treated-potential outcome functions](hyp:Yfac,Y0pop,Y1pop), [a cell-level treatment array](hyp:d), and [a residualized-treatment array](hyp:Dtilde), if [the cells are measurable](hyp:hmeas), [pairwise disjoint](hyp:hdisj), and [cover the sample space](hyp:hcov), [every cell has strictly positive probability](hyp:hpos), [treatment is binary in every cell](hyp:hdbin), [pointwise potential-outcome consistency holds in every cell](hyp:hcons), [treatment minus the residualized array is additive in group and time](hyp:hDmem), [the residualized array is weighted-orthogonal to every group-plus-time additive array](hyp:hDorth), and [its weighted sum of squares is strictly positive](hyp:hSD), the [finite cell partition](step:1) supplies cell probabilities and cell means to the [finite DCDH panel](goal), whose treatment effects are treated-minus-untreated population cell means.
+
+Builds a finite DCDH panel from a population model.
 
 The construction starts from a probability model with a finite partition into
 group-time cells, factual and potential outcomes, and a binary cell-level

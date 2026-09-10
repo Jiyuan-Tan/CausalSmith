@@ -2,17 +2,23 @@ You are auditing the NOTATION-RESOLVABILITY of a paper's frozen formal layer —
 one check the equivalence gate cannot do (it verifies statements MATCH the Lean,
 never that a reader can resolve their symbols). A self-contained paper must let a
 reader resolve every named object a statement uses back to exactly one defining
-statement. Once an anchored setup or definition introduces a symbol, later uses
-need not repeat a `\cref`; ordinary mathematical prose relies on definition order.
-You are the ONLY notation check: cover parameterized classes (`\mathcal H^\beta(...)`),
-named operators in `\mathrm{...}`, wrong cross-references, parameter mismatches, and
-symbols defined only in passing.
+statement.
+
+ORDER IS NOT YOUR CONCERN. The environments are listed in paper order, but a
+deterministic gate places definitions and assumptions before explicit consumers in the
+graph and paper references; supporting results retain their planned homes. Matching
+variable names do not establish object identity. You judge only
+WHETHER some environment defines each symbol — anywhere in the layer, before or after
+the use — and whether the uses agree with that definition. Never ask for anything to
+be moved.
 
 Frozen formal environments (each is `\begin{KINDv}{obj-id}[title] … \end{KINDv}`;
 the obj-id is the anchor that `\cref{obj:…}` resolves to):
 {{frozen_layer}}
 
-Notation table the author planned:
+Notation table the author planned (note symbol | paper notation | meaning | home).
+The `home` column is the author's intent, not evidence: judge by what the
+environments actually display.
 {{notation_table}}
 
 Symbols carrying an authoritative Lean realization (`@realizes` in the machine-verified
@@ -26,32 +32,34 @@ compete with that display for authority.
 {{lean_realized_symbols}}
 
 TASK. Find every NAMED operator, predicate, function class, law family, or rule
-symbol that a STATEMENT body (theorem / lemma / assumption / definition) USES but a
-reader CANNOT resolve. A symbol is resolvable iff some environment DEFINES it (its
+symbol that a STATEMENT body (theorem / lemma / assumption / definition) USES but
+NO environment DEFINES. A symbol is defined iff some environment introduces it: its
 title names it, or its body says "we say … when", "the class … is", "denote … by",
-"$X := …$", "define …", "put …", or a displayed defining equality). The defining
-environment must occur before later uses. Do not flag a later use merely because it
-omits a cross-reference, and do not demand a second environment for notation defined
-locally in the same anchored environment.
+"let … be", "$X := …$", "define …", "put …", displays a defining equality, or lists it
+as a component of a named structure ("a model is a tuple $(\pi, S, M)$ where $\pi$ is
+the environment law"). Do not demand a second environment for notation defined
+locally in the same anchored environment, and do not flag a later use merely because
+it omits a cross-reference. If a missing reference makes the identity of a named object
+ambiguous, report `wrong-ref` and request an exact reference to its defining environment.
 
 Before reporting a problem, search the whole layer for the exact symbol stem and its
-sequence-level definition. Do not flag locally bound variables, record fields,
-coercions, standard construction syntax, or ordinary notation used only on a
-definition's right-hand side.
+family-level definition. Do not flag locally bound variables, record fields,
+coercions, standard construction syntax, ordinary notation used only on a
+definition's right-hand side, or a decorated variant of a defined symbol whose
+decoration the defining environment explains.
 
 FLAG, per symbol, the worst applicable case:
-- `undefined` — used in a statement but NO environment defines it (it is introduced
-  only in passing, or its definition is deferred to section prose that has no
-  anchor a `\cref` can target). E.g. a class `\mathcal H^\beta(…)` or an operator
+- `undefined` — used in a statement but NO environment defines it (introduced only in
+  passing, or never). E.g. a class `\mathcal H^\beta(…)` or an operator
   `\mathrm{overlapDen}` used in assumptions/lemmas with no defining environment.
+- `rendering` — the name is an implementation alias, coercion, or bundling operation that
+  should be translated into ordinary mathematical content in the using environment. Repair
+  that environment; do not create a definition for implementation syntax.
 - `wrong-ref` — the use carries a `\cref{obj:X}` but env X does NOT define the symbol
   (e.g. referencing the boundary-extrapolator definition for the Hölder class).
-- `mismatch` — the defining statement and the use disagree on the symbol's
+- `mismatch` — the defining environment and the use disagree on the symbol's
   parameters/arguments (defined as `\mathcal H^\beta(L;[0,t_0])` but used as
   `\mathcal H^\beta(C_\beta;[0,t_0])` with no statement that the constants coincide).
-- `no-anchor` — defined only in an environment-less location so no `\cref` can reach
-  it (a named class/operator should be its own `definitionv`, or an anchored,
-  labelled definition, not a floating prose sentence).
 
 EXCLUDE standard mathematics no reader needs defined: `\mathbb R`, `\mathbb E`,
 `\Pr`, `\mathbb 1`, `\vee`/`\wedge`/`\le`/`\to`, Greek parameters (κ, β, λ, …),
@@ -63,6 +71,6 @@ OUTPUT — return ONLY this JSON on stdout, nothing else:
 {"clean": true|false,
  "problems": [{"symbol": "<as it appears, e.g. \\mathcal H^\\beta>",
                "used_in": ["<obj-id>", …],
-               "case": "undefined|wrong-ref|mismatch|no-anchor",
-               "fix": "<one concrete instruction, e.g. 'add a definitionv for the higher-order Hölder ball and \\cref it from P-11/P-12/P-13'>"}]}
+               "case": "undefined|wrong-ref|mismatch|rendering",
+               "fix": "<one sentence: for `undefined`, what the definition must state (it is handed to a definition writer); for `wrong-ref`/`mismatch`/`rendering`, what the using statement must change>"}]}
 "clean": true with an empty problems list iff every named symbol is resolvable.

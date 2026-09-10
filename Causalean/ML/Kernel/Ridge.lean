@@ -20,8 +20,13 @@ namespace Causalean.ML
 
 open BigOperators
 
-/-- The kernel-ridge regularized empirical risk of an RKHS element `f`:
-`(1/n) ∑ᵢ (f(xᵢ) − yᵢ)² + λ‖f‖²`. -/
+/-- Given [an arbitrary covariate space](hyp:X), [a real inner-product space](hyp:H), [a rule
+for evaluating a candidate function at a covariate value](hyp:feval), [a nonnegative sample
+size](hyp:n), [a finite sample of covariates](hyp:x), [the corresponding real-valued
+responses](hyp:y), [a real regularization level](hyp:lam), and [a candidate function in that
+inner-product space](hyp:f), the
+[kernel-ridge regularized empirical risk](goal) is the average squared prediction error plus
+$\lambda$ times the squared norm of the candidate function. -/
 noncomputable def krrRisk {X H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H]
     (feval : H → X → ℝ) {n : ℕ} (x : Fin n → X) (y : Fin n → ℝ) (lam : ℝ) (f : H) : ℝ :=
   (n : ℝ)⁻¹ * ∑ i, (feval f (x i) - y i) ^ 2 + lam * ‖f‖ ^ 2

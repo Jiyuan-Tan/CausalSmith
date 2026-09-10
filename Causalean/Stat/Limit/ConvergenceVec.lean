@@ -46,9 +46,12 @@ open MeasureTheory Filter Topology
 
 /-! ## Vector convergence in distribution -/
 
-/-- `Tendsto_dist_vec Xn Q μ hXn` is convergence in distribution of an
-`E`-valued sequence `Xn : ℕ → Ω → E` to a probability measure
-`Q : Measure E`, formulated as weak convergence of pushforward measures.
+/-- For [a measurable sample space](hyp:Ω) and [a pseudo-metric outcome space whose open sets
+are measurable](hyp:E), [a sequence of random elements in the outcome space](hyp:Xn), [a
+probability measure on that outcome space](hyp:Q), [a probability measure on the sample space](hyp:μ), and
+[almost-everywhere measurability of every random element in the sequence](hyp:hXn), [convergence
+in distribution of the sequence to the outcome-space probability measure](goal) means weak
+convergence of its induced distributions.
 
 Vector analogue of `Causalean.Stat.Tendsto_dist`; works for any pseudo-metric
 space `E` carrying a `BorelSpace` instance. -/

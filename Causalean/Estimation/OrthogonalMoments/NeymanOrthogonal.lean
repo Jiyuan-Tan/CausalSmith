@@ -35,15 +35,20 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
          {Z : Type*} [MeasurableSpace Z] {P_Z : MeasureTheory.Measure Z}
          {H : Type*} [AddCommGroup H] [Module ℝ H]
 
-/-- Neyman orthogonality for the `(M, D)` pair: the population integral of the
-directional derivative vanishes at every nuisance perturbation. -/
+/-- Given [a general moment system](hyp:M) equipped with [a directional derivative
+of that moment](hyp:D), [Neyman orthogonality](goal) means that, for every nuisance
+value in its admissible perturbation set, the population integral of the directional
+derivative is zero. -/
 def NeymanOrthogonal
     (M : GeneralMoment Ω μ Z P_Z H) (D : HasDirDeriv M) : Prop :=
   ∀ η ∈ M.H_ε, ∫ z, D.dM η z ∂P_Z = 0
 
-/-- `DiffQuotientEnvelope M` asserts that, locally near `t = 0`, the
-difference quotient of `m` along the segment `η₀ → η` is dominated by a
-fixed L¹(P_Z) function. -/
+/-- For [a general moment system](hyp:M), the [difference-quotient envelope
+condition](goal) requires that, for every admissible nuisance value, there is
+[a positive radius](step:1) and an integrable envelope function such
+that, almost everywhere under the data distribution, every nonzero displacement
+within that radius has its moment difference quotient along the line from the
+true nuisance to that value bounded in norm by the envelope. -/
 def DiffQuotientEnvelope (M : GeneralMoment Ω μ Z P_Z H) : Prop :=
   ∀ η ∈ M.H_ε, ∃ δ : ℝ, 0 < δ ∧ ∃ g : Z → ℝ,
     Integrable g P_Z ∧

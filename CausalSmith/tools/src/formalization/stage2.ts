@@ -134,7 +134,10 @@ export function canonicalizeCitedPlanAfterF2(
     if (!rawNode || typeof rawNode !== "object" || Array.isArray(rawNode)) continue;
     const node = rawNode as Record<string, unknown>;
     if (node.citation_discharged === true) continue;
-    if (node.lean_kind !== "assumption" && node.lean_kind !== "def") continue;
+    const expectedKind = (statement.source?.carrier ?? "logical-claim") === "bibliographic-metadata"
+      ? "def"
+      : "assumption";
+    if (node.lean_kind !== expectedKind) continue;
     if (node.gate !== true) {
       node.gate = true;
       changed = true;
@@ -287,8 +290,8 @@ export function undeliveredBlockFromPlan(planText: string): string {
   }
 }
 
-/** Scaffold-side dual of the F2.5/F4 gated-review exemption: build a directive telling the producer
- *  to emit each registered `gate_class:"gated"` node (from bin/gate.ts) as an EXPLICIT `_of_gate`
+/** Scaffold-side dual of the F2.5/F4 logical-gate review exemption: build a directive telling the producer
+ *  to emit each registered `gate_class:"gated"` node and each cited logical assumption as an EXPLICIT `_of_gate`
  *  HYPOTHESIS on every consumer that threads it in `hyps` — NOT an in-proof `have … := by sorry`.
  *  Without this the producer treats a note-DERIVED gate as an in-proof obligation (the general bias),
  *  re-emits a `sorry`, and the filler escalates `build-substrate` on debt we chose to assume. Reading
@@ -297,11 +300,11 @@ export function undeliveredBlockFromPlan(planText: string): string {
 function gatedHypsBlockFromPlan(planText: string): string {
   const parsedPlan = parsePlanForDirective(planText, "gated-hypothesis directive");
   if (!parsedPlan) return "";
-  const plan = parsedPlan as { nodes?: Record<string, { gate?: boolean; gate_class?: string; lean_name?: string; hyps?: string[] }> };
+  const plan = parsedPlan as { nodes?: Record<string, { gate?: boolean; gate_class?: string; lean_kind?: string; lean_name?: string; hyps?: string[] }> };
   const nodes = plan.nodes ?? {};
   const gated: { leanName: string; consumers: string[] }[] = [];
   for (const [id, n] of Object.entries(nodes)) {
-    if (!n.gate || n.gate_class === "cited") continue; // only `gated` (cited is source-matched, not a hyp)
+    if (!n.gate || (n.gate_class === "cited" && n.lean_kind !== "assumption")) continue;
     const consumers = Object.entries(nodes)
       .filter(([, c]) => Array.isArray(c.hyps) && c.hyps.includes(id))
       .map(([cid, c]) => c.lean_name || cid);
@@ -311,9 +314,9 @@ function gatedHypsBlockFromPlan(planText: string): string {
   return [
     "=== GATED SUBSTRATE-GATES — EMIT AS HYPOTHESES (registered via bin/gate.ts) ===",
     "",
-    'The plan registers the DISCLOSED substrate-gate(s) below (`gate:true`, `gate_class:"gated"`). Each is',
-    "an ASSUMED input — a classical / research-level fact this paper does NOT prove here (tracked in",
-    "SUBSTRATE_DEBT.md). For EACH gate, emit it as an EXPLICIT `_of_gate`-style HYPOTHESIS on the signature",
+    'The plan registers the DISCLOSED logical gate(s) below (`gate:true`, either build-gated or a cited Prop assumption). Each is',
+    "an ASSUMED input this paper does NOT prove here (build-gated facts are tracked in SUBSTRATE_DEBT.md;",
+    "cited logical claims in CITED_DEPENDENCIES.md). For EACH gate, emit it as an EXPLICIT `_of_gate`-style HYPOTHESIS on the signature",
     "of every listed consumer, and pass it through. This OVERRIDES the general 'derive a note-fact in-proof'",
     "guidance for THESE nodes specifically: do NOT inline them as an in-proof `have … := by sorry`, and do",
     "NOT drop them. A gate held as a signature hypothesis makes the consumer a sorry-free CONDITIONAL (the",
@@ -497,10 +500,6 @@ export async function runStage2(args: {
           await readTypedCore(scaffoldCorePath),
           parsedPlan.data as Plan,
           revisionTargets,
-        );
-      } else if (parsedPlan.success) {
-        console.warn(
-          "[causalsmith] F2 prior scaffold is missing or lacks complete delivered @node/@env coverage; retaining full context.",
         );
       }
     } catch (err) {

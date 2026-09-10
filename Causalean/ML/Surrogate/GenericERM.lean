@@ -25,15 +25,16 @@ namespace Causalean.ML
 
 open MeasureTheory
 
-/-- A binary loss `L : ℝ → Bool → ℝ` is proper: for every true probability
-`η ∈ [0,1]`, the conditional expected loss `q ↦ η·L q true + (1−η)·L q false` is
-minimized over `[0,1]` at `q = η`. -/
+/-- For [a real-valued loss of a predicted probability and a binary outcome](hyp:L), the [property of being a proper binary loss](goal) means that, for every true probability $\eta$ in $[0,1]$ and every candidate probability $q$ in $[0,1]$, the conditional expected loss at $\eta$ is no greater than that at $q$: $\eta L(\eta,1)+(1-\eta)L(\eta,0) \le \eta L(q,1)+(1-\eta)L(q,0)$.
+
+Equivalently, the conditional expected loss is minimized over $[0,1]$ by reporting the true probability. -/
 def ProperBinaryLoss (L : ℝ → Bool → ℝ) : Prop :=
   ∀ η ∈ Set.Icc (0 : ℝ) 1,
     IsMinOn (fun q => η * L q true + (1 - η) * L q false) (Set.Icc (0 : ℝ) 1) η
 
-/-- A binary loss is strictly proper when it is proper and the true probability
-is the unique `[0,1]` minimizer of the conditional expected loss. -/
+/-- For [a real-valued loss of a predicted probability and a binary outcome](hyp:L), the [property of being a strictly proper binary loss](goal) means both that [the loss is proper](step:1) and that, for every true probability $\eta$ and every candidate probability $q$ in $[0,1]$, [equality between their conditional expected losses implies $q=\eta$](step:2).
+
+Thus truthful reporting is the unique minimizer of conditional expected loss on the unit interval. -/
 def StrictProperBinaryLoss (L : ℝ → Bool → ℝ) : Prop :=
   ProperBinaryLoss L ∧
     ∀ η ∈ Set.Icc (0 : ℝ) 1, ∀ q ∈ Set.Icc (0 : ℝ) 1,

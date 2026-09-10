@@ -24,8 +24,7 @@ namespace FiniteUniformExperiment
 
 variable (E : FiniteUniformExperiment Latent Allocation Observation Statistic)
 
-/-- Under a finite prior, the joint mass of a latent state and statistic value is prior mass
-times the statewise statistic mass. -/
+/-- For [a finite uniform-allocation experiment](hyp:E), [a finite prior design on latent states](hyp:prior), [a latent state](hyp:θ), and [a statistic value](hyp:s), the [prior joint state--statistic mass](goal) is the prior probability of the state multiplied by that state's statistic mass at the specified value. -/
 noncomputable def priorJointStatisticMass (prior : FiniteDesign Latent)
     (θ : Latent) (s : Statistic) : ℝ :=
   prior.p θ * E.statisticMass θ s
@@ -46,7 +45,7 @@ theorem priorJointStatisticMass_sum (prior : FiniteDesign Latent) :
   simp_rw [priorJointStatisticMass, ← Finset.mul_sum, E.statisticMass_sum, mul_one]
   exact prior.p_sum
 
-/-- The prior-predictive statistic mass is the latent-state marginal of the prior joint law. -/
+/-- For [a finite uniform-allocation experiment](hyp:E), [a finite prior design on latent states](hyp:prior), and [a statistic value](hyp:s), the [prior-predictive statistic mass](goal) is the sum of the prior joint state--statistic masses over all latent states. -/
 noncomputable def priorStatisticMass (prior : FiniteDesign Latent) (s : Statistic) : ℝ :=
   ∑ θ, E.priorJointStatisticMass prior θ s
 
@@ -66,8 +65,7 @@ theorem priorStatisticMass_sum (prior : FiniteDesign Latent) :
   rw [Finset.sum_comm]
   simpa only [Fintype.sum_prod_type] using E.priorJointStatisticMass_sum prior
 
-/-- The guarded posterior weight is Bayes' ratio on a positive prior-predictive fiber and the
-original prior on a null fiber. -/
+/-- For [a finite uniform-allocation experiment](hyp:E), [a finite prior design on latent states](hyp:prior), [a statistic value](hyp:s), and [a latent state](hyp:θ), the [guarded posterior weight](goal) is the prior joint state--statistic mass divided by the prior-predictive statistic mass when the latter is positive, and is the original prior probability of the state when it is zero. -/
 noncomputable def posteriorWeight (prior : FiniteDesign Latent)
     (s : Statistic) (θ : Latent) : ℝ :=
   if 0 < E.priorStatisticMass prior s then
@@ -140,14 +138,14 @@ theorem priorStatisticMass_mul_posteriorWeight (prior : FiniteDesign Latent)
       E.priorJointStatisticMass_nonneg prior θ' s)).mp hsum θ (Finset.mem_univ θ)
     exact hterm.symm
 
-/-- The guarded posterior weights define a finite latent-state design for every statistic value. -/
+/-- For [a finite uniform-allocation experiment](hyp:E), [a finite prior design on latent states](hyp:prior), and [a statistic value](hyp:s), the [guarded posterior design](goal) is the finite probability design on latent states whose probabilities are the guarded posterior weights. -/
 noncomputable def posteriorDesign (prior : FiniteDesign Latent) (s : Statistic) :
     FiniteDesign Latent where
   p := E.posteriorWeight prior s
   p_nonneg := E.posteriorWeight_nonneg prior s
   p_sum := E.posteriorWeight_sum prior s
 
-/-- The prior-predictive statistic masses define a finite statistic design. -/
+/-- For [a finite uniform-allocation experiment](hyp:E) and [a finite prior design on latent states](hyp:prior), the [prior-predictive statistic design](goal) is the finite probability design whose probabilities are the prior-predictive statistic masses. -/
 noncomputable def priorStatisticDesign (prior : FiniteDesign Latent) :
     FiniteDesign Statistic where
   p := E.priorStatisticMass prior

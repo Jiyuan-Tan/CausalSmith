@@ -374,27 +374,13 @@ export function substrateDebtPath(repoRoot: string): string {
 
 /**
  * Global, cross-run cited-dependencies registry. Holds `gate_class:"cited"`
- * assumptions — borrowed results NOT discharged at run time, formalized + assumed
- * + matched against an external `cite:` source. Unlike SUBSTRATE_DEBT.md these are
+ * carriers — either borrowed logical assumptions or closed bibliographic metadata,
+ * both matched against an external `cite:` source. Metadata is never assumed or threaded.
+ * Unlike SUBSTRATE_DEBT.md these are
  * never "owed a build"; they may graduate to a real lemma in a future run.
  */
 export function citedDependenciesPath(repoRoot: string): string {
   return path.join(formalizationRoot(repoRoot), "CITED_DEPENDENCIES.md");
-}
-
-export function proposalOutputJsonPath(
-  repoRoot: string,
-  qid: string,
-  specialization: string,
-): string {
-  const prefix = legacyRunPrefix(qid, specialization);
-  return artifactPath(
-    repoRoot,
-    qid,
-    "discovery",
-    "proposal_output_template.json",
-    [`${prefix}_proposal_output_template.json`],
-  );
 }
 
 export function proposalReviewOutputJsonPath(
@@ -555,17 +541,6 @@ export function researchBankRoot(repoRoot: string): string {
  */
 export function literatureBankRoot(repoRoot: string): string {
   return path.join(repoRoot, "doc", "study", "_literature_bank");
-}
-
-/**
- * Bank root keyed by formalization kind. Research-mode qids land in the
- * tiered `_bank/`; study-mode qids land in the flat `_literature_bank/`.
- * Callers that always want the research bank (novelty/upgrade machinery,
- * burned seeds, drift stat, legacy pointers) should call `researchBankRoot`
- * directly to make the constraint explicit.
- */
-export function bankRootFor(repoRoot: string, kind: FormalizationKind): string {
-  return kind === "research" ? researchBankRoot(repoRoot) : literatureBankRoot(repoRoot);
 }
 
 /**

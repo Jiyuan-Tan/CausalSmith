@@ -29,9 +29,9 @@ namespace DAG
 
 variable {V : Type*} [DecidableEq V] [Fintype V]
 
-/-- **Build a DAG from an acyclic edge relation.** Given `e : V → V → Prop` whose
-transitive closure is irreflexive (`hac`, i.e. `e` has no directed cycle), this is
-the directed acyclic graph with edge relation `e`. -/
+/-- Given [an edge relation on a finite vertex set](hyp:e) for which [no vertex can return to itself by a nonempty directed path](hyp:hac), the [directed acyclic graph constructed from that relation](goal) has precisely that edge relation.
+
+    The graph materializes the supplied relation directly. -/
 noncomputable def ofAcyclic (e : V → V → Prop)
     (hac : ∀ v, ¬ Relation.TransGen e v v) : DAG V where
   edge := e

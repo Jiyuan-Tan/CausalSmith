@@ -4,7 +4,7 @@ import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { dischargeStartStage, parseArgsForTest, tsxEsmSpecifier } from "../src/cli.js";
+import { dischargeStartStage, gateDischargeArgs, parseArgsForTest, tsxEsmSpecifier } from "../src/cli.js";
 
 describe("cli --reopen parsing", () => {
   it("parses --reopen <qid> <spec>", () => {
@@ -54,6 +54,14 @@ describe("cli --discharge-gate parsing", () => {
     expect(() =>
       parseArgsForTest(["--discharge-gate", "exp_foo", "v1", "node", "extra"]),
     ).toThrow();
+  });
+});
+
+describe("public discharge gate child arguments", () => {
+  it("marks the built substrate as a lemma so gate.ts preserves its completed graph helper", () => {
+    expect(gateDischargeArgs("exp_foo", "v1", "lem:helper", "built_helper")).toEqual([
+      "exp_foo", "v1", "lem:helper", "--ungate", "--lean-kind", "lemma", "--lean-name", "built_helper",
+    ]);
   });
 });
 

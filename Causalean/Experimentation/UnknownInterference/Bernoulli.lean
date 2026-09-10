@@ -41,8 +41,13 @@ open DesignBased
 
 variable {U : Type*} [Fintype U] [DecidableEq U]
 
-/-- The **Bernoulli randomization design**: each unit `i` is independently assigned treatment with
-probability `p i`.  Built as the product of the per-unit coin designs. -/
+/-- For every [finite population of units whose members can be compared for equality](hyp:U), every
+[unit-specific treatment-probability function](hyp:p), and every such function whose [values are
+nonnegative](hyp:hp0) and [at most one](hyp:hp1), the [Bernoulli randomization design](goal) is the
+probability design on all binary treatment assignments in which each unit is independently treated
+with its specified probability.
+
+Built as the product of the per-unit coin designs. -/
 noncomputable def bernoulliDesign (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1) :
     FiniteDesign (U → Bool) :=
   prodDesign (fun i => coinDesign (p i) (hp0 i) (hp1 i))

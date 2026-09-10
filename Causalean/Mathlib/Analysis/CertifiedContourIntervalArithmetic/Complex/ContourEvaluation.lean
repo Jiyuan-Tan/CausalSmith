@@ -287,8 +287,7 @@ theorem integrandNodes_width_le_propagation (program : ContourProgram)
     _ = program.nodePropagationBound bounds separation.1 scheduled.target.1 := by
       rfl
 
-/-- The executable contour result applies promoted deterministic quadrature
-and then spends the schedule's final symmetric quadrature budget. -/
+/-- For [a contour program](hyp:program), [a schedule](hyp:schedule), and [a certificate that its denominator is separated from zero at the scheduled endpoints](hyp:certificate), [the evaluated contour rectangle](goal) is the deterministic integral enclosure of its integrand-node rectangles, widened symmetrically by half the schedule's quadrature budget. -/
 def ContourProgram.evaluate (program : ContourProgram) (schedule : Schedule)
     (certificate : DenominatorCertificate program schedule) : ComplexRatInterval :=
   (CircleMesh.integralEnclosure
@@ -386,7 +385,7 @@ theorem certified_contour_evaluation (program : ContourProgram)
   · exact (le_max_left _ _).trans
       (evaluate_width program bounds separation scheduled certificate hseparation)
 
-/-- The canonical statistical tolerance is the positive rational reciprocal of `max n 1`. -/
+/-- For [a nonnegative integer](hyp:n), [the reciprocal-maximum tolerance](goal) is the positive rational number $1/\max(n,1)$. -/
 def inverseMaxTolerance (n : ℕ) : PosRat :=
   ⟨1 / (max n 1 : ℚ), by positivity⟩
 

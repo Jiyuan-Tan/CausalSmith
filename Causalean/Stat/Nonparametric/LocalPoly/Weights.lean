@@ -36,14 +36,12 @@ namespace Causalean.Stat.Nonparametric
 open scoped BigOperators
 open Matrix
 
-/-- The weighted design moment matrix `M_{jk} = ∑ᵢ wᵢ xᵢʲ xᵢᵏ` of a degree-`p`
-local-polynomial fit with design points `xᵢ` (typically `aᵢ − t`) and weights `wᵢ`. -/
+/-- Given a [nonnegative polynomial degree](hyp:p), a [sample indexed by a nonnegative number of observations](hyp:N), [real-valued centered design coordinates for those observations](hyp:x), and [real-valued observation weights](hyp:w), the [weighted design moment matrix](goal) is the matrix whose $(j,k)$ entry is $\sum_i w_i x_i^j x_i^k$. -/
 noncomputable def designMatrix (p : ℕ) {N : ℕ} (x w : Fin N → ℝ) :
     Matrix (Fin (p + 1)) (Fin (p + 1)) ℝ :=
   fun j k => ∑ i, w i * x i ^ (j : ℕ) * x i ^ (k : ℕ)
 
-/-- The local-polynomial equivalent-kernel weight `Sᵢ = ∑ₖ (M⁻¹)₀ₖ wᵢ xᵢᵏ` extracting the
-fitted intercept: the degree-`p` WLS intercept equals `∑ᵢ Sᵢ Yᵢ`. -/
+/-- Given a [nonnegative polynomial degree](hyp:p), a [sample indexed by a nonnegative number of observations](hyp:N), [real-valued centered design coordinates](hyp:x), [real-valued observation weights](hyp:w), and [an observation in that sample](hyp:i), the [local-polynomial equivalent-kernel weight for that observation](goal) is $\sum_k (M^{-1})_{0k}w_i x_i^k$, where $M$ is the corresponding weighted design moment matrix. This weight extracts the fitted intercept: the degree-$p$ weighted least-squares intercept is the outcome-weighted sum of these weights. -/
 noncomputable def equivKernelWeight (p : ℕ) {N : ℕ} (x w : Fin N → ℝ) (i : Fin N) : ℝ :=
   ∑ k, (designMatrix p x w)⁻¹ 0 k * (w i * x i ^ (k : ℕ))
 

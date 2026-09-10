@@ -40,17 +40,23 @@ structure IsCoupling (π : Measure (ℝ × ℝ)) (μ ν : Measure ℝ) : Prop wh
   /-- The second marginal of `π` is `ν`. -/
   map_snd : π.map Prod.snd = ν
 
-/-- The **comonotone (quantile) coupling** of `μ` and `ν`: the pushforward of
-the uniform measure on `(0,1)` under `u ↦ (quantile μ u, quantile ν u)`. Both
-coordinates are driven by the *same* uniform draw, giving the maximal positive
-dependence within `Π(μ, ν)`. -/
+/-- For [two measures on the real line](hyp:μ,ν), the [comonotone quantile
+coupling](goal) is the image of the uniform measure on the open unit interval
+under the pair of their quantile functions evaluated at the same uniform draw.
+Both coordinates are therefore driven by that common draw.
+
+For probability measures, this is the usual coupling associated with maximal
+positive dependence among couplings having the specified marginals. -/
 noncomputable def comonotoneCoupling (μ ν : Measure ℝ) : Measure (ℝ × ℝ) :=
   unifOI.map (fun u => (quantile μ u, quantile ν u))
 
-/-- The **countermonotone coupling** of `μ` and `ν`: the pushforward of the
-uniform measure on `(0,1)` under `u ↦ (quantile μ u, quantile ν (1 - u))`. The
-reflection `u ↦ 1 - u` on the second coordinate produces the maximal negative
-dependence within `Π(μ, ν)`. -/
+/-- For [two measures on the real line](hyp:μ,ν), the [countermonotone quantile
+coupling](goal) is the image of the uniform measure on the open unit interval
+under the first measure's quantile function at a uniform draw and the second
+measure's quantile function at one minus that draw.
+
+For probability measures, this is the usual coupling associated with maximal
+negative dependence among couplings having the specified marginals. -/
 noncomputable def countermonotoneCoupling (μ ν : Measure ℝ) : Measure (ℝ × ℝ) :=
   unifOI.map (fun u => (quantile μ u, quantile ν (1 - u)))
 

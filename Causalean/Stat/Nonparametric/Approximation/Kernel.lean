@@ -46,9 +46,7 @@ structure KernelOrder (K : ℝ → ℝ) (p : ℕ) : Prop where
   /-- The moments `1,…,p` of `K` vanish. -/
   moments : ∀ j : ℕ, 1 ≤ j → j ≤ p → ∫ u, u ^ j * K u = 0
 
-/-- Population kernel smoothing bias of estimating the value `f t` of a regression
-function `f` at point `t` with bandwidth `h` and kernel `K`:
-`∫ h⁻¹ K((u−t)/h) (f u − f t) du`. -/
+/-- Given a [real-valued regression function](hyp:f), a [real-valued kernel function](hyp:K), a [real target point](hyp:t), and a [real bandwidth](hyp:h), the [population kernel-smoothing bias](goal) is $\int h^{-1}K((u-t)/h)\{f(u)-f(t)\}\,du$. It is the bias of estimating the regression function's value at the target point by kernel smoothing with that bandwidth. -/
 noncomputable def kernelSmoothingBias (f K : ℝ → ℝ) (t h : ℝ) : ℝ :=
   ∫ u, h⁻¹ * K ((u - t) / h) * (f u - f t)
 

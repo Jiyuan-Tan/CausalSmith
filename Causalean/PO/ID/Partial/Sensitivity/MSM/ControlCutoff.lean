@@ -31,28 +31,33 @@ namespace POBackdoorSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 variable (S : POBackdoorSystem P γ)
 
-/-- The smallest admissible inverse-propensity weight for untreated units is the lower endpoint of
-the control odds-ratio box. -/
+/-- For [a potential-outcome backdoor system](hyp:S), [a sensitivity parameter](hyp:Λ), and [a sample point](hyp:ω), the [smallest admissible control inverse-propensity weight](goal) is $1+(1-e_0(\omega))/(\Lambda e_0(\omega))$, where $e_0(\omega)$ is the probability of the control arm conditional on the covariates.
+
+It is the lower endpoint of the control odds-ratio box. -/
 noncomputable def wMin0 (Λ : ℝ) (ω : P.Ω) : ℝ :=
   1 + (1 - S.propScore false ω) / (Λ * S.propScore false ω)
 
-/-- The largest admissible inverse-propensity weight for untreated units is the upper endpoint of
-the control odds-ratio box. -/
+/-- For [a potential-outcome backdoor system](hyp:S), [a sensitivity parameter](hyp:Λ), and [a sample point](hyp:ω), the [largest admissible control inverse-propensity weight](goal) is $1+\Lambda(1-e_0(\omega))/e_0(\omega)$, where $e_0(\omega)$ is the probability of the control arm conditional on the covariates.
+
+It is the upper endpoint of the control odds-ratio box. -/
 noncomputable def wMax0 (Λ : ℝ) (ω : P.Ω) : ℝ :=
   1 + Λ * (1 - S.propScore false ω) / S.propScore false ω
 
-/-- The control quantile-cutoff complete propensity uses the upper weight above the cutoff and the
-lower weight at or below it. -/
+/-- For [a potential-outcome backdoor system](hyp:S), [a sensitivity parameter](hyp:Λ), [a real-valued cutoff function on the sample space](hyp:c), and [a sample point](hyp:ω), the [control quantile-cutoff complete propensity](goal) is the reciprocal of the largest admissible control inverse-propensity weight when the factual outcome exceeds the cutoff and of the smallest such weight otherwise.
+
+Thus the upper weight applies above the cutoff and the lower weight at or below it. -/
 noncomputable def cutoffProp0 (Λ : ℝ) (c : P.Ω → ℝ) (ω : P.Ω) : ℝ :=
   1 / (if c ω < S.factualY ω then S.wMax0 Λ ω else S.wMin0 Λ ω)
 
-/-- The conditional control-survival at a cutoff is the conditional mean of untreated units whose
-outcome lies above the cutoff. -/
+/-- For [a potential-outcome backdoor system](hyp:S) and [a real-valued cutoff function on the sample space](hyp:c), the [conditional control-survival function](goal) assigns to each sample point the conditional expectation, given the covariates, of the control-arm indicator times the indicator that the factual outcome exceeds the cutoff at that point.
+
+It is the conditional mean of untreated units whose outcome lies above the cutoff. -/
 noncomputable def controlSurv (c : P.Ω → ℝ) : P.Ω → ℝ :=
   P.μ[fun ω => S.dVar.indicator false ω * (if c ω < S.factualY ω then (1 : ℝ) else 0) | S.sigmaX]
 
-/-- The target control survival is the conditional survival value that makes the cutoff
-calibrated. -/
+/-- For [a potential-outcome backdoor system](hyp:S), [a sensitivity parameter](hyp:Λ), and [a sample point](hyp:ω), the [target control-survival probability](goal) is $(1-w_{\min,0}(\Lambda,\omega)e_0(\omega))/(w_{\max,0}(\Lambda,\omega)-w_{\min,0}(\Lambda,\omega))$, where $e_0(\omega)$ is the control propensity score.
+
+This is the conditional survival value that calibrates the cutoff. -/
 noncomputable def survTarget0 (Λ : ℝ) (ω : P.Ω) : ℝ :=
   (1 - S.wMin0 Λ ω * S.propScore false ω) / (S.wMax0 Λ ω - S.wMin0 Λ ω)
 

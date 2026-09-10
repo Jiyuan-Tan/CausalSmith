@@ -10,7 +10,7 @@ import { bankAcceptedDir } from "../paths.js";
 import type { ReviewFinding } from "../revision_brief.js";
 import { buildVerificationContract } from "../verification_contract.js";
 import { loadBankNarrative } from "../bank.js";
-import { findingFingerprint } from "../revision_routing.js";
+import { findingFingerprint, renderRoutingPlan } from "../revision_routing.js";
 import { MODELS } from "../../models.js";
 
 interface Review {
@@ -145,6 +145,9 @@ export async function stageP5(io: StageIO): Promise<void> {
   await archivePriorReview(io.outDir);
   await writeFile(join(io.outDir, "p5_review.json"), JSON.stringify(review, null, 2) + "\n", "utf8");
   await writeFile(join(io.outDir, "p5_review.md"), renderReviewMd(review), "utf8");
+  // The routing plan (fix by hand / escalate / your call) travels with the review, whatever
+  // entry produced it.
+  await writeFile(join(io.outDir, "p5_revision_routing.md"), renderRoutingPlan(review), "utf8");
 
   // Sink 1 — the site's per-paper contract. P4 emits meta.json BEFORE P5 runs, so
   // inject the score by read-modify-write here; P4 preserves it across `--from P4`

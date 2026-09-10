@@ -21,7 +21,9 @@ open Module Filter Topology
 namespace Causalean.Stat
 
 -- @node: expCellUpdatedMean
-/-- Replace one cell mean by a positive exponential path. -/
+/-- Given [a finite index set with decidable equality](hyp:I), [a real-valued vector of cell means](hyp:m), [one cell index](hyp:j), [a real scale](hyp:B), and [a real path coordinate](hyp:x), [the exponentially updated cell-mean vector](goal) agrees with the original vector at every cell other than the selected one and assigns the selected cell the value $B\exp(x)$.
+
+Replace one cell mean by a positive exponential path. -/
 noncomputable def expCellUpdatedMean {I : Type*} [DecidableEq I]
     (m : I → ℝ) (j : I) (B x : ℝ) : I → ℝ :=
   Function.update m j (B * Real.exp x)

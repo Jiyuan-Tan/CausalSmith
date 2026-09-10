@@ -19,13 +19,11 @@ universe u v w
 
 variable {𝒳 : Type u} [MeasurableSpace 𝒳]
 
-/-- The box of coefficient vectors whose coordinates have absolute value at
-most `B`. -/
+/-- Given [an index set of coefficients](hyp:K) and [a real bound](hyp:B), [the coefficient box](goal) is the set of real coefficient vectors indexed by that set for which every coordinate has absolute value at most $B$. -/
 def CoeffBox (K : Type w) (B : ℝ) :=
   {θ : K → ℝ // ∀ k, |θ k| ≤ B}
 
-/-- Evaluation of a finite-dimensional linear parameter against a fixed
-feature family. -/
+/-- Given [a finite index set](hyp:K), [a real-valued feature family](hyp:φ), [a coefficient bound](hyp:B), [a coefficient vector in the corresponding box](hyp:θ), and [an evaluation point](hyp:x), [the linear parameter class evaluation](goal) is the sum of each coefficient times its corresponding feature value at that point. -/
 def linearParameterClass {K : Type w} [Fintype K]
     (φ : K → 𝒳 → ℝ) (B : ℝ) (θ : CoeffBox K B) (x : 𝒳) : ℝ :=
   ∑ k, θ.1 k * φ k x
@@ -166,8 +164,7 @@ theorem linearParameterClass_hasPolynomialL2Cover
         rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
         ring_nf
 
-/-- A Boolean family has VC dimension at most `d` when every finite sample
-growth family has VC dimension at most `d`. -/
+/-- Given [a Boolean classifier family](hyp:π) and [a natural number](hyp:d), [the property of having VC dimension at most that number](goal) means that, for every finite sample, the VC dimension of the label patterns realized on that sample is at most $d$. -/
 def HasVCAtMost {κ : Type w} (π : κ → 𝒳 → Bool) (d : ℕ) : Prop :=
   ∀ (n : ℕ) (S : Fin n → 𝒳), (growthFamily π S).vcDim ≤ d
 

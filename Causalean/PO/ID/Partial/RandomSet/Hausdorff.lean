@@ -56,14 +56,20 @@ open Metric
 
 namespace Causalean.PartialID.RandomSet
 
-/-- **Directed (one-sided) Hausdorff distance** from `A` to `B`: the supremum over
-points of `A` of their distance to `B`.  Real-valued (via `Metric.infDist`); on the
-empty image `sSup` returns `0`. -/
+/-- In [a pseudo-metric space](hyp:α), for [a set $A$](hyp:A) and [a set $B$](hyp:B), the
+[directed, one-sided Hausdorff distance from $A$ to $B$](goal) is the supremum, over points of
+$A$, of their distance to $B$; it is defined to be zero when $A$ is empty.
+
+Real-valued (via `Metric.infDist`); on the empty image `sSup` returns `0`. -/
 noncomputable def directedHausdorff {α : Type*} [PseudoMetricSpace α]
     (A B : Set α) : ℝ :=
   sSup ((fun a => Metric.infDist a B) '' A)
 
-/-- **Symmetric Hausdorff distance** `H(A,B) = max(dᴴ(A,B), dᴴ(B,A))`. -/
+/-- In [a pseudo-metric space](hyp:α), for [a set $A$](hyp:A) and [a set $B$](hyp:B), the
+[symmetric Hausdorff distance](goal) is the larger of the directed distance from $A$ to $B$ and
+the directed distance from $B$ to $A$.
+
+It is `H(A,B) = max(dᴴ(A,B), dᴴ(B,A))`. -/
 noncomputable def hausdorffDist {α : Type*} [PseudoMetricSpace α]
     (A B : Set α) : ℝ :=
   max (directedHausdorff A B) (directedHausdorff B A)

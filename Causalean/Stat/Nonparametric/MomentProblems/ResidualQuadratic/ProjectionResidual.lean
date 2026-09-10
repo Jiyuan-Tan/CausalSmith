@@ -40,7 +40,12 @@ open scoped Real
 open Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge
   (moment optIntercept optSlope l2ResidualQuadratic residualQuad FiniteMoment4)
 
-/-- The **L² projection residual function** of `y ↦ y²` onto `span{1, y}`:
+/-- For [a measure on the real line](hyp:μ), let $m_j$ denote its $j$-th raw moment. The
+[projection-residual function](goal) assigns to each real value $y$ the value
+$y^2-a-by$, where $a=(m_1m_3-m_2^2)/(m_1^2-m_2)$ and
+$b=(m_1m_2-m_3)/(m_1^2-m_2)$.
+
+It is the **L² projection residual function** of `y ↦ y²` onto `span{1, y}`:
 `q(y) = y² − (optIntercept μ + optSlope μ · y)`, i.e. `y²` minus its least-squares linear fit. -/
 noncomputable def projResidual (μ : Measure ℝ) : ℝ → ℝ :=
   fun y => y ^ 2 - (optIntercept μ + optSlope μ * y)

@@ -53,7 +53,13 @@ open BackdoorEstimationSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- AIPW instance of the abstract `GeneralMoment`.  The bilinear seminorms
+/-- Given [a potential-outcome system with a measurable covariate space](hyp:P), [a
+back-door estimation system](hyp:S), and [a real radius for which the system's true
+nuisance functions belong to its almost-everywhere $L^2$ nuisance class](hyp:ε,hη₀_mem),
+the [AIPW general-moment specification](goal) is the abstract moment model whose data are the
+observed covariate, treatment, and outcome and whose target is the back-door average treatment effect.
+
+The bilinear seminorms
 are the L²(P_X) norms of the `μ_fn` and `e_fn` differences; `ρ₁` aggregates
 both treatment arms of `μ_fn` (matching the `Σ_a ‖Δμ_a‖` factor produced by
 `aipw_remainder_bound`). -/

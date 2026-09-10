@@ -62,7 +62,9 @@ namespace SWIGGraph
 
 variable (G : SWIGGraph N)
 
-/-- `frontdoorCriterion` says that the base mediator set `W` satisfies Pearl's
+/-- For [a finite node population](hyp:N), [a SWIG graph](hyp:G), [a treatment-variable set](hyp:X) whose [random copies are observed](hyp:hX_obs) and whose [fixed copies are not already fixed](hyp:hX_fix), [a mediator-variable set](hyp:W) whose [random copies are observed](hyp:hW_obs) and whose [fixed copies are not already fixed](hyp:hW_fix), and [an outcome-node set](hyp:Y), the [frontdoor criterion](goal) holds exactly when [the mediator random copies d-separate the outcomes from the treatment fixed copies after intervening on the treatments](step:1), [the empty set satisfies the back-door criterion for treatment and mediator](step:2), [the treatment random copies satisfy the back-door criterion for mediator and outcome](step:3), and [the mediator random copies are disjoint from both treatment random copies and outcomes](step:4).
+
+    `frontdoorCriterion` says that the base mediator set `W` satisfies Pearl's
     frontdoor criterion for treatment variables `X` and outcome nodes `Y`: the
     mediator random nodes intercept every directed treatment-outcome path, have
     no open back-door path from treatment, admit treatment adjustment for the
@@ -129,7 +131,9 @@ open scoped MeasureTheory ProbabilityTheory
 -- § 1. The frontdoor-adjustment kernel in the treatment value
 -- ============================================================
 
-/-- Frontdoor-adjustment `Y`-marginal as a kernel in the treatment value `t`, at base
+/-- For [a finite node population](hyp:N) with [measurable, nonempty standard-Borel node-value spaces](hyp:Ω), [a structural causal model](hyp:M), [a treatment-variable set](hyp:X) whose [random copies are observed](hyp:hObs) and whose [fixed copies are not already fixed](hyp:hFix), [an outcome-node set](hyp:Y), [a mediator-node set](hyp:W), [the requirement that every outcome node is observed](hyp:hY), [the requirement that every mediator node is observed](hyp:hW), and [an assignment to the model's original fixed nodes](hyp:s0), the [frontdoor-adjustment conditional law of outcomes indexed by treatment values](goal) is the frontdoor-adjustment law evaluated after extending the fixed-node assignment by that treatment value. It is defined [by reindexing the graph-level frontdoor-adjustment law along this extension](step:1).
+
+    Frontdoor-adjustment `Y`-marginal as a kernel in the treatment value `t`, at base
     `s₀` — the frontdoor analogue of `adjustmentKernelY`.  Reindexes the graph-level
     `frontdoorAdjustment` (with mediator `Z := W.image SWIGNode.random`) along
     `fixSetExtend s₀`, so its input is the treatment value `t` rather than the full
@@ -144,7 +148,9 @@ noncomputable def frontdoorKernelY (M : Causalean.SCM N Ω) (X : Finset N)
   (M.frontdoorAdjustment X hObs hFix Y W hY hW).comap
     (M.fixSetExtend X hObs hFix s0) (M.measurable_fixSetExtend X hObs hFix s0)
 
-/-- The treatment-indexed frontdoor-adjustment `Y`-marginal kernel is finite. -/
+/-- For [a finite, distinguishable node population with measurable, standard-Borel, nonempty node-value spaces](hyp:N,Ω) and [a structural causal model](hyp:M), [a finite treatment set](hyp:X), [the requirement that every corresponding random treatment node is observed](hyp:hObs), [the requirement that no corresponding fixed treatment node is already fixed](hyp:hFix), [finite observed outcome and mediator-node sets](hyp:Y,W,hY,hW), and [a fixed-node assignment](hyp:s0), the [treatment-indexed frontdoor-adjustment outcome kernel](goal) is finite.
+
+The treatment-indexed frontdoor-adjustment outcome kernel is finite. -/
 instance instIsFiniteKernelFrontdoorKernelY (M : Causalean.SCM N Ω) (X : Finset N)
     (hObs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)
     (hFix : ∀ D ∈ X, SWIGNode.fixed D ∉ M.fixed)

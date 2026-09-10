@@ -102,7 +102,7 @@ async function main(): Promise<void> {
       `restored .tex=${result.restored ?? "(no archive)"}; restored proto_core=${result.restoredProtoCore ?? "(no archive)"}; ` +
       (result.freshAngle
         ? "cleared angle artifacts/cursor and preserved D-1.1 gaps; resume normally to start D-1.2 v1."
-        : "cleared stale draft handoff + set last_draft_status=completed. Resume with a raised CAUSALSMITH_NEG1_REVISE_CAP to give the angle more revise rounds."),
+        : "cleared stale draft receipts + queued the producer. Resume with a raised CAUSALSMITH_NEG1_REVISE_CAP to give the angle more revise rounds."),
   );
 }
 

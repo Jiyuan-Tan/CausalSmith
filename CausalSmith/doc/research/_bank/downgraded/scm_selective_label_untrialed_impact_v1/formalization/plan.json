@@ -1,0 +1,1131 @@
+{
+  "qid": "scm_selective_label_untrialed_impact",
+  "specialization": "v1",
+  "cluster": "scm",
+  "lean_root": "CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research",
+  "namespace": "CausalSmith.SCM.SelectiveLabelUntrialedImpact",
+  "status": "needs-new-infrastructure",
+  "env": [
+    {
+      "id": "S1",
+      "world": "A finite randomized selective-label decision system. A finite stratum set \\(\\mathcal S\\), a finite policy index set \\(J\\) containing an untrialed policy \\(e\\) with trial arms \\(J_0=J\\setminus\\{e\\}\\), a binary recommendation alphabet \\(\\mathcal R=\\{0,1\\}\\) with neutral value \\(r_{\\mathrm{neu}}=0\\), a finite totally ordered externally certified performance set \\(\\mathcal Q=\\{q_1<\\cdots<q_K\\}\\subset(0,1)\\), and the configuration set \\(\\mathcal C=\\mathcal R\\times\\mathcal Q\\). Each policy carries a known configuration map \\(c_j:\\mathcal S\\to\\mathcal C\\), \\(c_j(s)=(r_j(s),q_j(s))\\), and the trial arms carry known randomization probabilities \\(\\rho\\in\\operatorname{relint}(\\Delta_{|J_0|-1})\\). On a probability space carrying \\((D,S,Z,(A_c)_{c\\in\\mathcal C},(Y_c)_{c\\in\\mathcal C},A,Y,R,Z_{\\mathrm{obs}})\\) with \\(D\\) valued in \\(J_0\\), \\(S\\) in \\(\\mathcal S\\), \\(Z,A,Y,R\\) binary, the arrays \\((A_c),(Y_c)\\) binary-valued on \\(\\mathcal C\\), and \\(Z_{\\mathrm{obs}}\\) valued in \\(\\{0,1,\\star\\}\\), a unit's deterministic response type is \\(t=(s,z,(a_c)_{c\\in\\mathcal C},(y_c)_{c\\in\\mathcal C})\\) ranging in \\(\\mathcal T_{\\mathrm{raw}}=\\mathcal S\\times\\{0,1\\}\\times\\{0,1\\}^{\\mathcal C}\\times\\{0,1\\}^{\\mathcal C}\\), with legal subclass \\(\\mathcal T_{\\mathrm{SLCC}}\\) and model class \\(\\mathfrak M_{\\mathrm{SLCC}}\\). The observed record is \\(O_i=(D_i,S_i,A_i,Y_i,Z_{\\mathrm{obs},i})\\) valued in the finite cell set \\(\\mathcal O\\), where a revealed label appears exactly when \\(a=1\\) and \\(\\star\\) exactly when \\(a=0\\). The primitive bracket predicate \\(\\mathsf{Bracket}_{\\mathrm{SLCC}}\\) is a condition on \\((\\mathcal S,\\mathcal Q,c,e,J_0,\\rho)\\) alone.",
+      "binds_symbols": [
+        "J",
+        "e",
+        "J_0",
+        "S_set",
+        "R_set",
+        "r_neu",
+        "Q_set",
+        "C_set",
+        "c_j",
+        "rho",
+        "D",
+        "S",
+        "Z",
+        "A_c",
+        "Y_c",
+        "A",
+        "Y",
+        "R",
+        "Z_obs",
+        "t",
+        "T_raw",
+        "T_SLCC",
+        "M_SLCC",
+        "O_set",
+        "O_i",
+        "Bracket_SLCC"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.ProbabilityMassFunction.Basic",
+        "Mathlib.MeasureTheory.Measure.Typeclasses.Probability",
+        "Mathlib.Data.Fintype.Basic"
+      ],
+      "notes": "Search trace: surveyed `../doc/API.md` sections 6 (`SCM/Model/SCM.lean`), 7a/7a2 (`InterventionMono`/`InterventionSet`), 8h (`PO/`), 9j3 (`PO/ID/Partial/BalkePearl/`), 9i0a-MultipleInstrumentIV (`ResponseTypes.lean`), and grepped `../Causalean` for `ResponseType`, `latentProb`, `POBalkePearlSystem`, `SelectionDiagram`, `Monotonicity`. Findings: (i) `Causalean.SCM.Model.SCM` and `POSystem` are graph/do-calculus-indexed with a single treatment variable and give no configuration-indexed potential-response array \\((A_c),(Y_c)\\) over \\(\\mathcal R\\times\\mathcal Q\\), nor an action-dependent label-revelation channel; (ii) `POBalkePearlSystem` (`Causalean/PO/ID/Partial/BalkePearl/Setup.lean`) is the closest analogue but is hard-wired to three Bool variables `Z,D,Y` and a 16-cell latent table; (iii) `MultipleInstrumentIV.ResponseType K = Fin K -> Bool` is the closest response-type analogue but carries only a single monotone first-stage. bypass-justified: none of the three fits the abstraction (configuration-mediated dual response arrays + endogenous reveal). We therefore define a self-contained `SLCCDesign` (finite index data) + `SLCCModel` structure over a probability space, following the `POBalkePearlSystem`/`LatentTable` layering as the reference pattern F3 should adapt (`Causalean/PO/ID/Partial/BalkePearl/{Setup,LatentTable,Sharp}.lean`); gap to bridge = generalising the 16-cell Bool^4 table to \\(\\mathcal T_{\\mathrm{SLCC}}\\subseteq\\mathcal T_{\\mathrm{raw}}\\) and adding the masking channel. Mathlib check (`lean_leansearch`, `lean_local_search`): no selective-label / potential-response-array primitives.",
+      "bypass_justified": true
+    },
+    {
+      "id": "S2",
+      "world": "The finite observable-law geometry induced by the design. Latent mixing laws live in the probability simplex \\(\\Delta_{\\mathrm{SLCC}}=\\{w\\in\\mathbb R^{|\\mathcal T_{\\mathrm{SLCC}}|}:w\\ge0,\\ \\mathbf 1^{\\top}w=1\\}\\); the known nonnegative design-incidence matrix \\(B\\in\\mathbb R^{|\\mathcal O|\\times|\\mathcal T_{\\mathrm{SLCC}}|}\\) maps them to observable laws \\(p=Bw\\), and the observable-law polytope is \\(\\mathfrak O=B\\Delta_{\\mathrm{SLCC}}\\subseteq\\Delta_{|\\mathcal O|-1}\\). The binary target vector is \\(h_e(t)=y_{c_e(s)}\\) and the causal functional is \\(\\tau_e(w)=h_e^{\\top}w\\in[0,1]\\). The label-blind coarsening \\(K_{\\mathrm{blind}}(j,s,a,y,\\ell)=(j,s,a,y)\\) induces \\(B_{\\mathrm{blind}}=K_{\\mathrm{blind}}B\\) and \\(p_{\\mathrm{blind}}=K_{\\mathrm{blind}}p\\). The four endpoint value functions are \\(L(p)=\\min\\{h_e^{\\top}v:v\\in\\Delta_{\\mathrm{SLCC}},Bv=p\\}\\), \\(U(p)=\\max\\{\\cdots\\}\\) and their blind analogues \\(L_{\\mathrm{blind}},U_{\\mathrm{blind}}\\), packaged as \\(\\theta(p)=(L(p),U(p))\\). \\(\\mathbb R^{|\\mathcal O|}\\) carries the Euclidean inner product, with metric projection \\(\\Pi_{\\mathfrak O}\\) onto \\(\\mathfrak O\\) and polyhedral tangent cone \\(T_{\\mathfrak O}(p)=\\operatorname{cl}\\{a(v-p):a\\ge0,v\\in\\mathfrak O\\}\\). The dual side consists of \\(\\mathcal D_L=\\{(\\alpha,\\lambda):\\alpha\\mathbf 1+B^{\\top}\\lambda\\le h_e\\}\\), \\(\\mathcal D_U=\\{(\\alpha,\\lambda):\\alpha\\mathbf 1+B^{\\top}\\lambda\\ge h_e\\}\\), the unnormalized optimal faces \\(\\Lambda_L(p),\\Lambda_U(p)\\), the embedded blind-dual subspace \\(\\mathcal E_K=\\{(\\alpha,K_{\\mathrm{blind}}^{\\top}\\mu)\\}\\), the joint directional map \\(\\Gamma'_p\\), and the two-sided strict-refinement region \\(\\mathcal S_{\\mathrm{strict}}\\).",
+      "binds_symbols": [
+        "w",
+        "Delta_SLCC",
+        "B",
+        "p",
+        "O_poly",
+        "h_e",
+        "tau_e",
+        "K_blind",
+        "B_blind",
+        "p_blind",
+        "L",
+        "U",
+        "L_blind",
+        "U_blind",
+        "theta",
+        "Pi_O",
+        "T_O_p",
+        "D_L_dual",
+        "Lambda_L",
+        "D_U_dual",
+        "Lambda_U",
+        "Gamma_p_prime",
+        "E_K",
+        "S_strict"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.StdSimplex",
+        "Mathlib.Analysis.Convex.Basic",
+        "Mathlib.Analysis.InnerProductSpace.Projection.Minimal",
+        "Mathlib.Analysis.InnerProductSpace.EuclideanDist",
+        "Mathlib.Data.Matrix.Basic",
+        "Causalean.PO.ID.Partial.Basic",
+        "Causalean.Mathlib.Optimization.RationalLP"
+      ],
+      "notes": "REVISED (round 3, FLAG-world-misfit on the previous `disposition:\"reuse\", reuse:\"stdSimplex\"`): `stdSimplex` is only `Set (T_SLCC → ℝ)` — it hosts none of the incidence map, observable polytope, endpoint value functions, dual faces, metric projection, or polyhedral tangent cone that S2 binds, so it cannot be the world. S2 is now a DEFINE-LOCAL finite-incidence geometry world: F2 emits a local carrier `SLCCIncidence` bundling the finite index types \\((\\mathcal O,\\mathcal T_{\\mathrm{SLCC}})\\), the nonnegative column-stochastic matrix \\(B\\), the binary target \\(h_e\\), and the coarsening \\(K_{\\mathrm{blind}}\\), over which \\(\\mathfrak O\\), \\(L,U,L_{\\mathrm{blind}},U_{\\mathrm{blind}},\\theta\\), \\(\\mathcal D_L,\\mathcal D_U,\\Lambda_L,\\Lambda_U,\\mathcal E_K\\), \\(\\Pi_{\\mathfrak O}\\), \\(T_{\\mathfrak O}(p)\\), \\(\\Gamma'_p\\) and \\(\\mathcal S_{\\mathrm{strict}}\\) are all defined; every S2-bound symbol is a field or a def over that carrier. `stdSimplex` is retained only as an INTERNAL DEPENDENCY (the realisation of \\(\\Delta_{\\mathrm{SLCC}}\\) and \\(\\Delta_{|\\mathcal O|-1}\\) at `def:response-simplex`), not as the ambient world. Search trace (re-run for this edit): grepped `stdSimplex`, `convexHull`, `polytope`, `Polyhedron`, `incidence`, `tangent`, `IdentifiedInterval`, `ConicProgram` across `../doc/API.md` and `../Causalean`, plus Mathlib-side `lean_loogle`/`lean_local_search` for a finite-incidence / polytope-with-linear-value-function structure: ABSENT in both — Mathlib has `convexHull` and `stdSimplex` but no polytope carrier with an incidence matrix and value functions, and Causalean's nearest structures are single-treatment. Confirmed reusable INTERNAL pieces (verified in source): `stdSimplex`, `convex_stdSimplex`, `isCompact_stdSimplex`, `stdSimplex_eq_inter`, `stdSimplex_subset_Icc` (`Mathlib/Analysis/Convex/StdSimplex.lean`); `Convex.linear_image` and `Convex.ordConnected` (`Mathlib/Analysis/Convex/Basic.lean`) for the linear-image-is-an-interval step; `Causalean.PartialID.IdentifiedInterval` + `identifiedInterval_eq_Icc` (`Causalean/PO/ID/Partial/Basic.lean:27,74`) as the value-set vocabulary and the sharp-interval engine; `norm_eq_iInf_iff_real_inner_le_zero` and `exists_norm_eq_iInf_of_complete_convex` (`Mathlib/Analysis/InnerProductSpace/Projection/Minimal.lean`) for \\(\\Pi_{\\mathfrak O}\\). `Causalean.PartialID.ConicProgram` (`PO/ID/Partial/LP/ConicDuality.lean`) is at the wrong abstraction (Hilbert conic duality with a closedness CQ) where the paper needs finite polyhedral duality with unconditional attainment — bypass-justified, but `Causalean.Mathlib.Optimization.RationalLP.exists_rational_optimal_primal_dual` is the finite-LP attainment/strong-duality engine F3 should adapt for `lem:finite-incidence-duality-continuity` (gap to bridge: RationalLP is over \\(\\mathbb Q\\) in inequality form, the note needs the \\(\\mathbb R\\) equality-plus-simplex form). No Mathlib polyhedral tangent cone exists (`tangentConeAt` is the differentiation-theoretic notion, not the closed radial cone of a polytope): defined locally on the carrier.",
+      "bypass_justified": true
+    },
+    {
+      "id": "S3",
+      "world": "The three-performance balanced witness design. \\(\\mathcal S^{32}=\\{s_0\\}\\), \\(J^{32}=\\{j_\\ell,j_h,e_{32}\\}\\) with trial arms \\(J^{32}_0=\\{j_\\ell,j_h\\}\\) and untrialed \\(e_{32}\\notin J^{32}_0\\), performance grid \\(\\mathcal Q^{32}=\\{q_\\ell<q_m<q_h\\}\\subset(0,1)\\), balanced randomization \\(\\rho^{32}_{j_\\ell}=\\rho^{32}_{j_h}=1/2\\), and configurations \\(c^{32}_{j_\\ell}(s_0)=(1,q_\\ell)\\), \\(c^{32}_{e_{32}}(s_0)=(1,q_m)\\), \\(c^{32}_{j_h}(s_0)=(1,q_h)\\). Over the index set \\(\\mathcal I_{32}=\\{1,\\ldots,32\\}\\) the table \\((t^{32}_i)\\) lists full action and outcome arrays; it induces the twelve-row incidence matrix \\(B^{32}\\), the observable polytope \\(\\mathfrak O^{32}=B^{32}\\Delta_{31}\\), the binary target \\(h^{32}_i=Y_{(1,q_m)}(t^{32}_i)\\), and the label-coarsening \\(K^{32}\\). The witness parameter ranges over \\(\\mathcal P_{32}=\\{\\pi\\in\\operatorname{relint}(\\Delta_3):\\pi_2=\\pi_3,\\ \\pi_2>\\pi_4/8\\}\\), with weights \\(\\varepsilon_{32}(\\pi)=\\pi_4/24\\), \\(a_{32}(\\pi)=\\pi_2-\\pi_4/8\\), \\(b_{32}(\\pi)=\\pi_1+\\pi_2-\\pi_4/8\\), mixture \\(w^{32}(\\pi)\\), and the two rational laws \\(p^{32}=B^{32}w^{32}(\\pi^{32})\\) at \\(\\pi^{32}=(1,1,1,1)^{\\top}/4\\) and \\(p^{32,\\circ}=B^{32}w^{32}(\\pi^{32,\\circ})\\) at \\(\\pi^{32,\\circ}=(198,199,199,204)^{\\top}/800\\).",
+      "binds_symbols": [
+        "S_32_set",
+        "J_32",
+        "J_32_0",
+        "e_32",
+        "Q_32_set",
+        "c_32",
+        "rho_32",
+        "I_32",
+        "t_32",
+        "B_32",
+        "O_32_poly",
+        "h_32",
+        "K_32",
+        "pi_32",
+        "epsilon_32",
+        "a_32",
+        "b_32",
+        "w_32",
+        "pi_32_0",
+        "p_32",
+        "pi_32_circ",
+        "p_32_circ"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Fin.VecNotation",
+        "Mathlib.Data.Rat.Cast.Order",
+        "Mathlib.Tactic.NormNum",
+        "Causalean.Mathlib.Optimization.RationalLP"
+      ],
+      "notes": "Search trace: grepped `witness table`, `certificate`, `rational LP`, `dual certificate`, `exact rational` across `../doc/API.md` and `../Causalean`; also `SharpnessCertificate` from the cluster reuse list. Findings: `Causalean/PO/ID/Partial/BalkePearl/{Attainment,ClosedFormAttainment}.lean` is the exact analogous module — sixteen explicit witness tables checked directly against nonnegativity, normalisation and the marginal equations, with duality kept offline; that is the pattern F3 should adapt here for the thirty-two columns and twelve rows (gap to bridge: 32x12 rather than 16x8, and four programs — full/blind x lower/upper — rather than two). `Causalean.Mathlib.Optimization.RationalLP` supplies certified rational primal-dual arithmetic if `norm_num`/`decide` on `Fin 32` proves unwieldy. No table of this design exists in the library; entirely define-local.",
+      "bypass_justified": false
+    },
+    {
+      "id": "S4",
+      "world": "Independent multinomial sampling from an observable law and its Gaussian asymptotics. For \\(n\\ge1\\) the records \\(O_1,\\ldots,O_n\\) are independent and identically distributed with law \\(p\\in\\mathfrak O\\); \\(N=(N_o)_{o\\in\\mathcal O}\\), \\(N_o=\\sum_{i\\le n}\\mathbf 1\\{O_i=o\\}\\), and \\(\\widehat p=N/n\\). The projected law is \\(\\widetilde p=\\Pi_{\\mathfrak O}(\\widehat p)\\) and the plug-in endpoint estimator is \\(\\widehat\\theta=(\\widehat L,\\widehat U)=\\theta(\\widetilde p)\\). The multinomial covariance is \\(\\Sigma_p=\\operatorname{diag}(p)-pp^{\\top}\\) with centered Gaussian limit \\(G_p\\sim\\mathcal N(0,\\Sigma_p)\\) on \\(\\mathbb R^{|\\mathcal O|}\\). Inference is at nominal error \\(\\alpha\\in(0,1)\\): marginal intervals \\([\\ell_o(N_o),u_o(N_o)]\\) at level \\(\\alpha/|\\mathcal O|\\), the simultaneous box \\(\\mathcal C_{n,\\alpha}=\\{v\\in\\Delta_{|\\mathcal O|-1}:\\ell_o(N_o)\\le v_o\\le u_o(N_o)\\}\\), and the whole-identified-set interval \\(\\mathcal I_{n,\\alpha}\\), equal to \\(\\{h_e^{\\top}v:v\\in\\Delta_{\\mathrm{SLCC}},Bv\\in\\mathcal C_{n,\\alpha}\\}\\) when \\(\\mathcal C_{n,\\alpha}\\cap\\mathfrak O\\neq\\varnothing\\) and \\([0,1]\\) otherwise. The boundary procedure uses the explicit schedules \\(m_n=\\max\\{1,\\lfloor n^{1/3}\\rfloor\\}\\), \\(\\eta_n=\\min\\{\\alpha/2,n^{-1/12}\\}\\), and the lower conditional \\((1-\\alpha+\\eta_n)\\)-quantile \\(c^{\\mathrm{sub}}_{n,1-\\alpha+\\eta_n}\\) of \\(\\max\\{\\sqrt{m_n}(\\widehat L_{m_n}-\\widehat L_n),\\sqrt{m_n}(\\widehat U_n-\\widehat U_{m_n})\\}\\) over uniformly chosen size-\\(m_n\\) subsamples without replacement.",
+      "binds_symbols": [
+        "n",
+        "N",
+        "p_hat",
+        "p_tilde",
+        "theta_hat",
+        "Sigma_p",
+        "G_p",
+        "alpha",
+        "CI_o",
+        "C_n_alpha",
+        "I_n_alpha",
+        "m_n",
+        "eta_n",
+        "c_sub"
+      ],
+      "binds_sampling_model": true,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.CLT.GaussianLimit",
+        "Causalean.Stat.CLT.MultivariateCLT",
+        "Causalean.Mathlib.StandardGaussian",
+        "Causalean.Mathlib.OperatorSqrt",
+        "Causalean.PO.ID.Partial.Inference.Basic",
+        "Mathlib.Probability.Distributions.Gaussian.Basic"
+      ],
+      "notes": "REVISED (round 4, FLAG-world-misfit on the previous `disposition:\"reuse\", reuse:\"Causalean.Stat.IIDSample\"`): `IIDSample Ω X μ P` is only an i.i.d. sampling bundle (a sequence of measurable maps with a common law and independence). It hosts NONE of the fourteen symbols S4 actually binds beyond the raw sample: the multinomial count vector \\(N\\), the empirical law \\(\\widehat p\\), the projected law \\(\\widetilde p\\), the plug-in endpoint estimator \\(\\widehat\\theta\\), the multinomial covariance \\(\\Sigma_p\\), the Gaussian limit object \\(G_p\\), the marginal intervals \\(\\mathrm{CI}_o\\), the simultaneous box \\(\\mathcal C_{n,\\alpha}\\), the whole-set interval \\(\\mathcal I_{n,\\alpha}\\), or the boundary schedule objects \\(m_n,\\eta_n,c^{\\mathrm{sub}}\\). Naming it as the hosting world was an infidelity. S4 is now a DEFINE-LOCAL sampling/inference carrier: F2 emits a local `SLCCSampling` bundle in `Helpers/Inference.lean`, layered OVER an `IIDSample Ω 𝒪 μ p` field (with side conditions `p ∈ 𝔒` and law `= p`), and defines as local defs `multinomialCounts` (\\(N\\); REVISED round 9, D-N: this is NOT a fresh definition — it is DEFINED AS `iidCellCount S o n` from the already-built `Helpers/BinomialCountLaw.lean`, so the exact cell-count law is available by rewriting rather than by a new bridge proof), `empiricalLaw` (\\(\\widehat p = N/n\\)), `projectedLaw` (\\(\\widetilde p = \\Pi_{\\mathfrak O}\\widehat p\\)), `plugInEndpoints` (\\(\\widehat\\theta\\)), `multinomialCovariance` (\\(\\Sigma_p=\\operatorname{diag}(p)-pp^{\\top}\\)), `gaussianLimitLaw` (\\(G_p\\), realised as `Causalean.Stat.gaussianLimit` at \\(\\psi(o)=\\mathbf e_o-p\\)), `marginalConfidenceBox`/`simultaneousBox`/`wholeSetInterval`, and `subsampleSize`/`quantileSlack`/`subsamplingQuantile`. `Causalean.Stat.IIDSample` is retained ONLY as an internal sampling primitive — the field of that carrier and the reuse recorded at `ass:iid-finite-sampling` — exactly as `stdSimplex` is retained internally at `def:response-simplex` under the S2 rebind (D-F). No node disposition had to move: every S4-bound symbol was already realised by a define-local node (`def:whole-set-confidence-construction`, `def:projection-endpoint-estimator`, `def:projection-composed-derivative`, `def:atomic-tie-subsampling-handle`) except the iid atom itself. Search trace (re-run for this edit): grepped `IIDSample`, `clt_normalizedSum_vec`, `gaussianLimit`, `Tendsto_dist_vec`, `multinomial`, `empiricalLaw`, `plug-in`, `Berry`, `Esseen`, `Clopper`, `subsampling` across `../doc/API.md` and `../Causalean`, plus Mathlib-side `lean_leansearch`/`lean_local_search` for a multinomial-counts / empirical-law / plug-in-estimator carrier: ABSENT in both — Mathlib has `PMF`/`Measure` and binomial distributions but no multinomial-counts estimator bundle, and Causalean's inference layer (`PO/ID/Partial/Inference/Basic.lean`) carries interval-coverage vocabulary, not a sampling carrier. Confirmed present and reused INTERNALLY (verified in source): `Causalean.Stat.IIDSample` and `Causalean.Stat.IIDSample.clt_normalizedSum_vec` (`Causalean/Stat/CLT/GaussianLimit.lean:116` — multivariate CLT against the concrete `gaussianLimit`, whose covariance form `gaussianLimit_covarianceBilin` is `∫⟪s,ψ⟫⟪t,ψ⟫dP`, i.e. exactly \\(\\Sigma_p\\) at \\(\\psi(o)=\\mathbf e_o-p\\)); `Causalean.Stat.gaussianLimit`, `Causalean.Stat.Tendsto_dist_vec` and its Slutsky/continuous-mapping API; `Causalean.PartialID.Inference.RandomCoversIcc`/`honest_ci_set_cover` (`Causalean/PO/ID/Partial/Inference/Basic.lean:92,159`). REVISED (round 6, FLAG-silent-gate on `def:whole-set-confidence-construction`, decision D-K supersedes D-A): the symbols \\(\\mathrm{CI}_o\\) and \\(\\mathcal C_{n,\\alpha}\\) are now bound to a CONCRETE finite-binomial Clopper-Pearson construction, not to an abstract confidence-box record carrying its own coverage field. Re-run search trace for this edit: `lean_local_search binomial` and a grep of `.lake/packages/mathlib/Mathlib/Probability/` for `Bin(n, p)` / `binomial` show Mathlib DOES supply the exact binomial law `ProbabilityTheory.binomial` with notation `Bin(n, p)` (`Mathlib/Probability/Distributions/Binomial.lean`), its singleton mass `binomial_singleton`, and the support fact `ae_le_of_hasLaw_binomial` — but no interval construction, no test inversion, and no coverage theorem; a grep of `../Causalean` for `setBernoulli`/`Bin(`/`HasLaw` returns only one unrelated hit (`Causalean/Stat/CLT/AsymptoticLinearity.lean:192`). The construction is therefore LOCAL, and it is now BUILT: `CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/Helpers/ClopperPearson.lean` defines `binomialLowerTail`, `binomialUpperTail`, `clopperPearsonAcceptance`, `clopperPearsonLower`, `clopperPearsonUpper`, `clopperPearsonInterval`, `clopperPearsonIntervalAtError` and PROVES `binomial_miss_clopperPearsonInterval_le` and `binomial_miss_clopperPearsonIntervalAtError_le` (verified 2026-09-03 by `lean_diagnostic_messages` on that file: zero errors, zero warnings, no `sorry`). \\(\\mathrm{CI}_o=\\) `clopperPearsonIntervalAtError n (α/|O|) (N_o)` and \\(\\mathcal C_{n,\\alpha}=\\{v\\in\\Delta_{|\\mathcal O|-1}:\\forall o,\\ v_o\\in\\mathrm{CI}_o\\}\\). REVISED (round 9, FLAG-MISSED-REUSE, decision D-N): the count-law bridge previously recorded here as the residual sized gap `I-1` is NOT absent — it is already BUILT, `sorry`-free, in this artifact's own helper file `CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/Helpers/BinomialCountLaw.lean` (re-verified 2026-09-03 with `lean_diagnostic_messages`: zero errors, zero warnings, and no `sorry` in the source), which imports `Helpers/ClopperPearson.lean` and `Causalean.Stat.Sample` and supplies exactly the missing chain: `indicatorCount` / `hasLaw_indicatorCount_binomial` (independent identically distributed Bernoulli indicators, first-\\(n\\) count has law `Bin(n, p)`), `iidEventCount` / `hasLaw_iidEventCount_binomial` (the count of the first \\(n\\) draws of a `Causalean.Stat.IIDSample` landing in a measurable event of mass \\(p\\)), `iidCellCount` / `hasLaw_iidCellCount_binomial` (the singleton-cell specialisation, signature `(S : IIDSample Ω 𝒳 μ P) (o : 𝒳) (p : I) (hPo : P {o} = toNNReal p) (n : ℕ) : HasLaw (iidCellCount S o n) (Bin(n, p)) μ`), and the CP transport theorem `iidCellCount_miss_clopperPearsonIntervalAtError_le`, which pushes `binomial_miss_clopperPearsonIntervalAtError_le` forward from `Bin(n, p_o)` to the ambient sampling measure \\(\\mu\\). S4 therefore CONSUMES that file: the carrier sets \\(N_o :=\\) `iidCellCount S o n` on its `IIDSample` field, and F2 adds `import CausalSmith.SCM.SCM_SelectiveLabelUntrialedImpact_Research.Helpers.BinomialCountLaw` to `Helpers/Inference.lean`. The `I-1` infrastructure item is WITHDRAWN and `infrastructure_needed` no longer carries it. Lesson recorded for every later absence claim in this plan: the round-6/8 trace grepped Mathlib and `../Causalean` and correctly found nothing there, but never scanned this artifact's OWN Lean target subdirectory `CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/`, where an earlier build wave had already landed the fact — a define-local absence claim must scan that directory too before it is asserted. Confirmed ABSENT: multivariate Berry-Esseen with explicit constants (this is the cited gate `lem:raic-multivariate-berry-esseen-convex-sets`) and any subsampling/conditional-quantile substrate.",
+      "bypass_justified": true
+    }
+  ],
+  "citations": [
+    {
+      "id": "cite:duarte-2024-appE-multinomial-gaussian",
+      "key": "DuarteFinkelsteinKnoxMummoloShpitser2024",
+      "bibkey": "DuarteFinkelsteinKnoxMummoloShpitser2024",
+      "title": "An Automated Approach to Causal Inference in Discrete Settings",
+      "authors": "Guilherme Duarte, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser",
+      "year": 2024,
+      "bibliography": "G. Duarte, N. Finkelstein, D. Knox, J. Mummolo, and I. Shpitser (2024), An Automated Approach to Causal Inference in Discrete Settings, Journal of the American Statistical Association 119(547), 1778--1793. DOI 10.1080/01621459.2023.2216909; arXiv:2109.13471.",
+      "locator": "Appendix E, paragraph introducing the multivariate Gaussian limiting distribution of the multinomial proportion",
+      "arxiv": "2109.13471",
+      "doi": "10.1080/01621459.2023.2216909",
+      "url": "https://arxiv.org/abs/2109.13471",
+      "carrier": "logical-claim",
+      "node": "lem:finite-multinomial-clt",
+      "statement": "The multinomial proportion has the multivariate Gaussian limiting distribution \\(\\mathcal N(p,\\operatorname{diag}(p)-pp^{\\top})\\), i.e. \\(\\sqrt n(\\widehat p-p)\\rightsquigarrow G_p\\).",
+      "verbatim_statement": "Our second approach uses an asymptotic confidence region based on the multivariate Gaussian limiting distribution of the multinomial proportion, N(p, diag(p) - p p^T). Because the multinomial proportion must sum to unity, this distribution is degenerate, and it is often more convenient to work with its first K-1 elements.",
+      "attestation": {
+        "by": "main",
+        "note": "Verified directly from the official arXiv source archive 2109.13471, preprint.tex lines 1816 onward, downloaded 2026-09-03.",
+        "at": "2026-09-03T23:03:14.189Z"
+      }
+    },
+    {
+      "id": "cite:fang-santos-2019-thm21",
+      "key": "FangSantos2019",
+      "bibkey": "FangSantos2019",
+      "title": "Inference on Directionally Differentiable Functions",
+      "authors": "Zheng Fang and Andres Santos",
+      "year": 2019,
+      "bibliography": "Z. Fang and A. Santos (2019), Inference on Directionally Differentiable Functions, Review of Economic Studies 86(1), 377--412. DOI 10.1093/restud/rdy049; arXiv:1404.3763.",
+      "locator": "Theorem 2.1 (source label th:delta)",
+      "arxiv": "1404.3763",
+      "doi": "10.1093/restud/rdy049",
+      "url": "https://arxiv.org/abs/1404.3763",
+      "carrier": "logical-claim",
+      "node": "lem:hadamard-directional-delta-method",
+      "statement": "If \\(\\phi\\) is Hadamard directionally differentiable at \\(\\vartheta\\) tangentially to a set supporting a tight limit \\(G\\), and \\(r_n(\\widehat\\vartheta_n-\\vartheta)\\rightsquigarrow G\\), then \\(r_n\\{\\phi(\\widehat\\vartheta_n)-\\phi(\\vartheta)\\}\\rightsquigarrow\\phi'_{\\vartheta}(G)\\).",
+      "verbatim_statement": "If Assumptions 2.1(i)-(ii), 2.2 hold, then r_n{phi(theta_hat_n) - phi(theta_0)} converges in law to phi_prime_theta_0(G_0).",
+      "attestation": {
+        "by": "main",
+        "note": "Verified directly from the official arXiv source archive 1404.3763, HDDRev3.tex Theorem th:delta, downloaded 2026-09-03. The numbered assumptions state Hadamard directional differentiability, estimator weak convergence, tightness, and support in the tangential set.",
+        "at": "2026-09-03T23:03:16.372Z"
+      }
+    },
+    {
+      "id": "cite:raic-2019-thm11",
+      "key": "Raic2019",
+      "bibkey": "Raic2019",
+      "title": "A multivariate Berry--Esseen theorem with explicit constants",
+      "authors": "Martin Rai\\v{c}",
+      "year": 2019,
+      "bibliography": "M. Rai\\v{c} (2019), A multivariate Berry--Esseen theorem with explicit constants, Bernoulli 25(4A), 2824--2853. arXiv:1802.06475v4. DOI 10.3150/18-BEJ1072.",
+      "locator": "Theorem 1.1, p. 2825, formula (1.2), together with the identity-covariance setup immediately preceding formula (1.1)",
+      "arxiv": "1802.06475v4",
+      "doi": "10.3150/18-BEJ1072",
+      "url": "https://arxiv.org/html/1802.06475v4",
+      "carrier": "logical-claim",
+      "node": "lem:raic-multivariate-berry-esseen-convex-sets",
+      "statement": "For independent centered random vectors \\(X_i\\) in \\(\\mathbb R^d\\) with \\(W=\\sum_iX_i\\) and \\(\\sum_i\\operatorname{Var}(X_i)=I_d\\), every measurable convex \\(A\\subseteq\\mathbb R^d\\) satisfies \\(|\\Pr\\{W\\in A\\}-\\mathcal N(0,I_d)\\{A\\}|\\le(42d^{1/4}+16)\\sum_i\\mathbb E\\|X_i\\|_2^3\\).",
+      "verbatim_statement": "For \\(X_i\\) and \\(W\\) as above and all measurable convex sets \\(A\\subseteq\\mathbb R^d\\), we have \\[\\left|\\mathbb P(W\\in A)-\\mathcal N(0,I_d)\\{A\\}\\right|\\leq(42d^{1/4}+16)\\sum_i\\mathbb E|X_i|^3.\\]",
+      "attestation": {
+        "by": "d0-agent",
+        "note": "Verified against the official arXiv HTML for version 1802.06475v4, lines 41 and 53--58, on 2026-09-03.  The source assumes total identity covariance; the effective-range reduction for singular covariance is proved separately in this note."
+      }
+    }
+  ],
+  "nodes": {
+    "ass:randomized-policy-assignment": {
+      "lean_kind": "assumption",
+      "lean_name": "RandomizedPolicyAssignment",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Independence.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "Modeling assumption (design restriction): \\(D\\perp\\!\\!\\!\\perp(S,Z,(A_c),(Y_c))\\). Kept as a threaded/bundled Prop, never discharged. Search trace: grepped `IndepFun`, `Randomiz`, `assignment`, `exogeneity` in `../doc/API.md` (sections 10c `Mathlib/Indep.lean`, 9j3 `BalkePearl/Assumptions.lean`) and `../Causalean`; the closest fits (`BaseAssumptions.exogeneity`, `IndepCF`) are bound to the binary-IV triple, so the atom is stated locally as `ProbabilityTheory.IndepFun` of `D` against the response tuple. Mathlib check (`lean_local_search` `IndepFun`): the independence vocabulary is reused, the atom itself is new."
+    },
+    "ass:known-arm-law": {
+      "lean_kind": "assumption",
+      "lean_name": "KnownArmLaw",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Typeclasses.Probability"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "Modeling assumption: \\(\\Pr(D=j)=\\rho_j\\) for every \\(j\\in J_0\\). Search trace: grepped `arm law`, `propensity`, `assignmentProb`, `posZ` in `../doc/API.md` and `../Causalean`; `BalkePearl` carries only a positivity field `posZ`, not a known-value equality, so no fit. Mathlib check: nothing beyond `Measure.real` equalities."
+    },
+    "ass:common-action-response": {
+      "lean_kind": "assumption",
+      "lean_name": "CommonActionResponse",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Typeclasses.Probability"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "Modeling assumption (consistency along the configuration map): under policy \\(j\\) and \\(S=s\\), \\(A=A_{c_j(s)}\\). Search trace: grepped `Consistency`, `consistency`, `YofD`, `factual` in `../doc/API.md` (8h `PO/`, 9j3) and `../Causalean`; `Causalean.PO.Consistency` is indexed by a single treatment variable, not by \\(\\mathcal C=\\mathcal R\\times\\mathcal Q\\) through \\(c_j\\), so no exact fit. Mathlib check: not a Mathlib-shaped fact."
+    },
+    "ass:common-outcome-response": {
+      "lean_kind": "assumption",
+      "lean_name": "CommonOutcomeResponse",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Typeclasses.Probability"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "Modeling assumption: under policy \\(j\\) and \\(S=s\\), \\(Y=Y_{c_j(s)}\\). Same search trace as `ass:common-action-response`; `Causalean.PO.Consistency` is the analogous single-treatment fact, not a fit."
+    },
+    "ass:reveal-action": {
+      "lean_kind": "assumption",
+      "lean_name": "RevealAction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Typeclasses.Probability"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "Modeling assumption: \\(R=A\\) almost surely. Search trace: grepped `selective label`, `reveal`, `missing`, `censor`, `Lee` in `../doc/API.md` (9j5 `PO/ID/Partial/Lee/`) and `../Causalean`; the Lee-bounds sample-selection layer models selection of the OUTCOME by a separate selection indicator, not label revelation forced by the endogenous action, so no fit. Mathlib check: none."
+    },
+    "ass:masked-truth": {
+      "lean_kind": "assumption",
+      "lean_name": "MaskedTruth",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Typeclasses.Probability"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "Modeling assumption: \\(Z_{\\mathrm{obs}}=Z\\) on \\(\\{R=1\\}\\) and \\(Z_{\\mathrm{obs}}=\\star\\) on \\(\\{R=0\\}\\). Same search trace as `ass:reveal-action`; no masking-channel primitive in `Causalean/PO/ID/Partial/Lee/` or elsewhere."
+    },
+    "ass:counterfactual-correctness": {
+      "lean_kind": "assumption",
+      "lean_name": "CounterfactualCorrectness",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Order.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "Shape restriction, also a member of both classes: \\(r=Z\\) and \\(r'\\neq Z\\) imply \\(Y_{(r,q)}\\ge Y_{(r',q')}\\). Search trace: grepped `Monotonicity`, `monotone`, `shape restriction`, `MTR`, `MTS` in `../doc/API.md` (cluster reuse list `Monotonicity.*`, 9j2 `PartialID`) and `../Causalean`; the existing monotonicity predicates are single-treatment `D(1) >= D(0)` style, not a correctness-indexed dominance over \\(\\mathcal R\\times\\mathcal Q\\). Mathlib check (`lean_local_search` `Monotone`): only the generic order vocabulary is reused."
+    },
+    "ass:correct-performance-order": {
+      "lean_kind": "assumption",
+      "lean_name": "CorrectPerformanceOrder",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Order.Monotone.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "Shape restriction: on \\(\\{r=Z\\}\\), \\(q\\mapsto Y_{(r,q)}\\) is nondecreasing. Same search trace as `ass:counterfactual-correctness`; stated with Mathlib's `Monotone` on the finite ordered \\(\\mathcal Q\\)."
+    },
+    "ass:incorrect-performance-order": {
+      "lean_kind": "assumption",
+      "lean_name": "IncorrectPerformanceOrder",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Order.Monotone.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "Shape restriction: on \\(\\{r\\neq Z\\}\\), \\(q\\mapsto Y_{(r,q)}\\) is nonincreasing (`Antitone`). Same search trace as `ass:counterfactual-correctness`."
+    },
+    "ass:neutral-performance-invariance": {
+      "lean_kind": "assumption",
+      "lean_name": "NeutralPerformanceInvariance",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Order.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "Shape restriction: \\(Y_{(r_{\\mathrm{neu}},q)}=Y_{(r_{\\mathrm{neu}},q')}\\) for all \\(q,q'\\). Same search trace; no library analogue of a performance-invariant neutral arm."
+    },
+    "ass:iid-finite-sampling": {
+      "lean_kind": "assumption",
+      "lean_name": "IidFiniteSampling",
+      "disposition": "reuse",
+      "reuse": "Causalean.Stat.IIDSample",
+      "modules": [
+        "Causalean.Stat.CLT.GaussianLimit"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "Modeling assumption (sampling design), realised by the library's iid bundle: \\(O_1,\\ldots,O_n\\) iid with law \\(p\\in\\mathfrak O\\) is an instance of `Causalean.Stat.IIDSample Omega (cell type) mu P` together with the side condition `P = p` and `p \\in O_poly`. This is a REUSE of the sampling vocabulary, not a discharge of the assumption: the atom remains a threaded/bundled hypothesis on every consumer. REVISED (round 4, closure of the S4 world rebind, D-H): this node is precisely the RETAINED INTERNAL PRIMITIVE — the reuse of `Causalean.Stat.IIDSample` stands here, because the iid-sampling atom literally IS that bundle, whereas S4's ambient inference world (multinomial counts, empirical and projected laws, plug-in endpoint estimator, multinomial covariance, Gaussian limit object, confidence box and whole-set interval, subsample-size / slack / conditional-quantile schedules) is now define-local on the `SLCCSampling` carrier and no longer claims `IIDSample` as its world. The `SLCCSampling` carrier takes this atom's `IIDSample` as a field, so the reuse is consumed exactly once. Search trace: grepped `IIDSample`, `iid`, `independent multinomial` in `../doc/API.md` (12c, 12n''') and `../Causalean`; `Causalean.Stat.IIDSample` is the exact fit and is already the carrier of `clt_normalizedSum_vec`."
+    },
+    "def:legal-response-types": {
+      "lean_kind": "structure",
+      "lean_name": "LegalResponseType",
+      "members": [
+        "ass:counterfactual-correctness",
+        "ass:correct-performance-order",
+        "ass:incorrect-performance-order",
+        "ass:neutral-performance-invariance"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Fintype.Basic",
+        "Mathlib.Order.Monotone.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "Class bundling the four unit-level outcome restrictions, applied to a raw response type \\(t\\in\\mathcal T_{\\mathrm{raw}}\\); \\(\\mathcal T_{\\mathrm{SLCC}}\\) is its subtype (a `Fintype` with `DecidablePred`, so the thirty-two-row enumeration is decidable). Members are exactly the core's `by_member_properties`, each field typed by that member's Prop def instantiated at the type's coordinates rather than at random variables. Search trace: grepped `ResponseType`, `latentSet`, `legal type`, `principal stratum` in `../doc/API.md` (9j3 `LatentTable.lean`, 9i0a-MultipleInstrumentIV `ResponseTypes.lean`) and `../Causalean`; `MultipleInstrumentIV.ResponseType K = Fin K -> Bool` carries one monotone first stage and no correctness index, so no fit. Reference F3 should adapt: `Causalean/PO/ID/Partial/BalkePearl/LatentTable.lean` (finite latent-type partition + `latentProb_sum_eq_one`); gap to bridge = the legality subtype and the \\(\\mathcal C\\)-indexed arrays."
+    },
+    "def:slcc-scm-class": {
+      "lean_kind": "structure",
+      "lean_name": "SLCCModel",
+      "members": [
+        "ass:randomized-policy-assignment",
+        "ass:known-arm-law",
+        "ass:common-action-response",
+        "ass:common-outcome-response",
+        "ass:reveal-action",
+        "ass:masked-truth",
+        "ass:counterfactual-correctness",
+        "ass:correct-performance-order",
+        "ass:incorrect-performance-order",
+        "ass:neutral-performance-invariance"
+      ],
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Typeclasses.Probability",
+        "Mathlib.Probability.Independence.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "Class bundling all ten conditions over a fixed `SLCCDesign`; \\(\\mathfrak M_{\\mathrm{SLCC}}\\) is the type of its inhabitants. Members are exactly the core's `by_member_properties`. Search trace: see S1 notes (surveyed `SCM/Model/SCM.lean`, `PO/`, `BalkePearl/Setup.lean`, `SelectionDiagram`, `CanonicalModel`); bypass-justified because no library model structure carries a configuration-indexed dual response array plus an action-forced label channel. Reference F3 should adapt: `Causalean/PO/ID/Partial/BalkePearl/Setup.lean` + `Assumptions.lean` layering."
+    },
+    "def:response-simplex": {
+      "lean_kind": "def",
+      "lean_name": "responseSimplex",
+      "disposition": "reuse",
+      "reuse": "stdSimplex",
+      "modules": [
+        "Mathlib.Analysis.Convex.StdSimplex"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "Exact fit: \\(\\Delta_{\\mathrm{SLCC}} = \\mathtt{stdSimplex}\\ \\mathbb R\\ \\mathcal T_{\\mathrm{SLCC}}\\). Signature confirmed in source (`Mathlib/Analysis/Convex/StdSimplex.lean`), together with `isCompact_stdSimplex`, `stdSimplex_eq_inter` and `stdSimplex_subset_Icc`, which discharge the compactness/boundedness side conditions used by `lem:finite-incidence-duality-continuity` and `prop:sharp-selective-label-interval`. `responseSimplex` is a thin abbreviation fixing the index type. REVISED (round 3, closure of the S2 world change): this node is precisely the retained INTERNAL dependency on `stdSimplex` — the reuse stands here because \\(\\Delta_{\\mathrm{SLCC}}\\) IS the standard simplex, whereas S2's ambient geometry (incidence map, observable polytope, endpoint programs, dual faces, projection, tangent cone) is now define-local over the `SLCCIncidence` carrier and no longer claims `stdSimplex` as its world. `convex_stdSimplex` is added to the reused facts, since the sharp-interval route needs convexity of the fiber as well as its compactness."
+    },
+    "def:selective-label-incidence-map": {
+      "lean_kind": "def",
+      "lean_name": "incidence",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Matrix.Basic",
+        "Mathlib.Algebra.BigOperators.Fin"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "\\(B_{o,t}=\\rho_j\\mathbf 1\\{\\ldots\\}\\) as a `Matrix O_set T_SLCC ℝ`, with the derived facts `incidence_nonneg` and `colSum_incidence_eq_one` (each column sums to one, since \\(\\sum_{j}\\rho_j=1\\) and the cell is determined by \\((j,t)\\)) — these are what make \\(\\mathfrak O\\subseteq\\Delta_{|\\mathcal O|-1}\\) and drive (15) of `thm:general-dual-face-...`. Search trace: grepped `incidence`, `cellProb_eq_sum_latent`, `design matrix` in `../doc/API.md` and `../Causalean`; `BalkePearl.cellProb_eq_sum_latent` is the analogous statement in unmatrixed form (reference to adapt, gap = general finite cell set and the \\(\\star\\) label alphabet). Mathlib check: `Matrix.mulVec` vocabulary reused, the map itself is new."
+    },
+    "def:sharp-endpoint-programs": {
+      "lean_kind": "def",
+      "lean_name": "sharpEndpointPrograms",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Basic",
+        "Mathlib.Analysis.Convex.StdSimplex",
+        "Mathlib.Analysis.Convex.Basic",
+        "Mathlib.Topology.Order.Compact"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "One def returning the pair \\((L(p),U(p))\\), with `lowerEndpoint`/`upperEndpoint` as projections so the symbols `L` and `U` each have a name. Defined over the S2 carrier as `sInf`/`sSup` of `Causalean.PartialID.IdentifiedInterval (fun v => h_e ⬝ v) (fun v => v ∈ responseSimplex ∧ B *ᵥ v = p)` — the library set vocabulary is reused verbatim (`Causalean/PO/ID/Partial/Basic.lean:27`), attainment is supplied by `lem:finite-incidence-duality-continuity`. REVISED (round 3, closure of the `prop:sharp-selective-label-interval` engine change): the fiber facts this def is used with are factored once as `fiber_convex` (from `convex_stdSimplex` intersected with the affine \\(\\{Bv=p\\}\\)) and `fiber_isCompact` (from `isCompact_stdSimplex` and closedness of the `Matrix.mulVec` preimage), both in `Helpers/Duality.lean`, so the endpoint-attainment and order-connectedness premises of `identifiedInterval_eq_Icc` are available to every consumer without re-deriving them. Search trace: grepped `IdentifiedInterval`, `sInf`, `sSup`, `value function`, `LP value` in `../doc/API.md` (9j2) and `../Causalean`; the engine gives the SET, not the endpoint value functions, so the two named value functions are define-local on top of it. Mathlib check: `csInf`/`csSup` on a compact set (`IsCompact.sInf_mem`) and `Convex.linear_image`/`Convex.ordConnected` reused."
+    },
+    "def:z-blind-projection": {
+      "lean_kind": "def",
+      "lean_name": "blindEndpointPrograms",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Basic",
+        "Mathlib.Data.Matrix.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "notes": "Defines \\(K_{\\mathrm{blind}}\\) (a 0/1 aggregation matrix on cells), \\(B_{\\mathrm{blind}}=K_{\\mathrm{blind}}B\\), \\(p_{\\mathrm{blind}}=K_{\\mathrm{blind}}p\\) and re-runs the same two programs, returning \\((L_{\\mathrm{blind}},U_{\\mathrm{blind}})\\). Implemented by instantiating the generic endpoint constructor at \\((B_{\\mathrm{blind}},p_{\\mathrm{blind}})\\) so that every fact proved once for a finite incidence matrix applies to both. Search trace: grepped `coarsen`, `garbling`, `data processing`, `blind` in `../doc/API.md` and `../Causalean`: absent. Mathlib check (`lean_leansearch` `coarsening of a finite experiment`): no fit."
+    },
+    "def:whole-set-confidence-construction": {
+      "lean_kind": "def",
+      "lean_name": "wholeSetConfidenceInterval",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Inference.Basic",
+        "Mathlib.Probability.Distributions.Binomial",
+        "Mathlib.Analysis.Convex.StdSimplex"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/ClopperPearson.lean",
+      "notes": "REVISED (round 6, FLAG-silent-gate; decision D-K supersedes D-A): the abstract `MarginalConfidenceBox` input is REMOVED. It carried the per-cell miss bound \\(\\Pr_p\\{p_o\\notin[\\ell_o(N_o),u_o(N_o)]\\}\\le\\alpha/|\\mathcal O|\\) as a HYPOTHESIS FIELD — i.e. it assumed the quantitative coverage fact this construction is supposed to establish, and its trivial \\([0,1]\\) inhabitant realises no Clopper-Pearson interval at all. This node is now the CONCRETE Bonferroni simultaneous Clopper-Pearson construction the core specifies, in three layers. (1) EXACT BINOMIAL TEST INVERSION (`Helpers/ClopperPearson.lean`, ALREADY BUILT 0-sorry — see below): `binomialLowerTail n θ k = Bin(n,θ)(Iic k)`, `binomialUpperTail n θ k = Bin(n,θ)(Ici k)`, the acceptance set `clopperPearsonAcceptance n δ k = {θ | δ < binomialUpperTail n θ k ∧ δ < binomialLowerTail n θ k}`, its endpoints `clopperPearsonLower = sInf`, `clopperPearsonUpper = sSup` (these ARE the core's \\(\\ell_o,u_o\\)), the interval `clopperPearsonInterval n δ k = Icc (lower) (upper)`, and the equal-tailed `clopperPearsonIntervalAtError n β k = clopperPearsonInterval n (β/2) k` at total marginal error \\(\\beta\\). (2) SIMULTANEOUS BOX: \\(\\mathcal C_{n,\\alpha}=\\{v\\in\\Delta_{|\\mathcal O|-1}:\\forall o\\in\\mathcal O,\\ v_o\\in\\mathtt{clopperPearsonIntervalAtError}\\ n\\ (\\alpha/|\\mathcal O|)\\ (N_o)\\}\\) — the Bonferroni allocation is the explicit \\(\\alpha/|\\mathcal O|\\) per cell. (3) WHOLE-SET INTERVAL: \\(\\mathcal I_{n,\\alpha}=\\{h_e^{\\top}v:v\\in\\Delta_{\\mathrm{SLCC}},\\ Bv\\in\\mathcal C_{n,\\alpha}\\}\\) when \\(\\mathcal C_{n,\\alpha}\\cap\\mathfrak O\\neq\\varnothing\\), and \\([0,1]\\) otherwise. Layer (1) is self-contained in the binomial parameter and is emitted in this node's `target_file` `Helpers/ClopperPearson.lean` (no project dependencies, imports only `Mathlib.Probability.Distributions.Binomial`); layers (2)-(3) need \\(N\\), \\(B\\) and \\(h_e\\), so they are emitted at the tail of `Helpers/Inference.lean` next to the `SLCCSampling` carrier, which imports `Helpers/ClopperPearson.lean`. BUILD STATUS: layer (1) is ALREADY EMITTED AND COMPILES — `CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/Helpers/ClopperPearson.lean`, checked 2026-09-03 with `lean_diagnostic_messages`: zero errors, zero warnings, no `sorry`, and it already carries the coverage theorems `binomial_miss_clopperPearsonInterval_le` (miss probability \\(\\le 2\\delta\\)) and `binomial_miss_clopperPearsonIntervalAtError_le` (miss probability \\(\\le\\beta\\)), proved from the two finite rejection-set bounds (`Finset.max'`/`min'` over the support) and `ProbabilityTheory.ae_le_of_hasLaw_binomial` — with NO appeal to monotonicity or continuity of the binomial tail in \\(\\theta\\), which is why no such Mathlib result is needed. F2 should keep that file as written and add only layers (2)-(3). Search trace (re-run for this edit): `lean_local_search binomial` (hits `ProbabilityTheory.binomial`, `PMF.binomial`, and the local `binomialLowerTail`/`binomialUpperTail`); grep of `.lake/packages/mathlib/Mathlib/Probability/` for `binomial` / `Bin(n, p)` — only `Distributions/Binomial.lean`, `ProbabilityMassFunction/Binomial.lean`, `Poisson/PoissonLimitThm.lean`, `Combinatorics/BinomialRandomGraph/Defs.lean`, none of which contains an interval, a test inversion, or a coverage statement; `lean_local_search hasLaw_binomial` returns EMPTY; grep of `../Causalean` for `setBernoulli|Bin\\(|HasLaw` returns one unrelated hit. Two consequences recorded honestly rather than hidden: (a) Mathlib supplies the exact binomial LAW but no confidence-interval theory, so the whole inversion layer is local build work — done; (b) the COUNT-LAW BRIDGE is likewise already built — see the round-9 revision below. `Causalean.PartialID.Inference.RandomCoversIcc` (`Causalean/PO/ID/Partial/Inference/Basic.lean:92`) remains the coverage vocabulary and `honest_ci_set_cover` the reference for the union-bound step. RE-AFFIRMED (round 8, upstream directive item (3), decision D-M): no structural change is needed here — the round-6 re-plan already IS the actual finite-binomial Clopper-Pearson construction the directive asks for, and no `MarginalConfidenceBox` coverage-field premise remains anywhere in the plan. Re-verified in source on 2026-09-03/08 by reading `CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/Helpers/ClopperPearson.lean`: `binomialLowerTail` (l.17), `binomialUpperTail` (l.21), `clopperPearsonAcceptance` (l.25), `clopperPearsonLower` (l.30), `clopperPearsonUpper` (l.34), `clopperPearsonInterval` (l.39), `clopperPearsonIntervalAtError` (l.46), `mem_clopperPearsonInterval_of_tailError_lt` (l.108), `binomial_miss_clopperPearsonInterval_le` (l.119) and `binomial_miss_clopperPearsonIntervalAtError_le` (l.157) are all present with no `sorry`. The binomial-tail / test-inversion result is therefore NO LONGER ABSENT. REVISED (round 9, FLAG-MISSED-REUSE at this node, decision D-N — SUPERSEDES the round-6/8 `I-1` claim recorded above): the count-law bridge is NOT absent either, and the `I-1` infrastructure item is WITHDRAWN. The claimed-missing statement exists, `sorry`-free and compiling, in this artifact's own helper file `CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/Helpers/BinomialCountLaw.lean` (read in full and re-checked 2026-09-03 with `lean_diagnostic_messages`: zero errors, zero warnings, no `sorry`; it imports `Mathlib.Probability.Distributions.Binomial`, `Mathlib.Probability.Independence.InfinitePi`, `Causalean.Stat.Sample` and this node's `Helpers/ClopperPearson.lean`). It provides, in the namespace `CausalSmith.SCM.SelectiveLabelUntrialedImpact`: `indicatorCount X n = fun ω => Set.ncard {i | i < n ∧ X i ω}` with `hasLaw_indicatorCount_binomial` (an independent identically distributed family of Bernoulli indicators has first-\\(n\\) count law `Bin(n, p)`, proved through `hasLaw_infinitePi` and `setBernoulli_eq_map`); `iidEventCount S A n` with `hasLaw_iidEventCount_binomial` for a measurable event of mass `p` under a `Causalean.Stat.IIDSample Ω 𝒳 μ P`; `iidCellCount S o n := iidEventCount S {o} n` with **`hasLaw_iidCellCount_binomial (S) (o : 𝒳) (p : I) (hPo : P {o} = (unitInterval.toNNReal p : ℝ≥0∞)) (n : ℕ) : HasLaw (iidCellCount S o n) (Bin(n, p)) μ`** — this IS the bridge \\(N_o\\sim\\mathrm{Binomial}(n,p_o)\\); and `iidCellCount_miss_clopperPearsonIntervalAtError_le`, which transports this node's own `binomial_miss_clopperPearsonIntervalAtError_le` from `Bin(n, p_o)` to the ambient measure, i.e. \\(\\mu\\{\\omega:p_o\\notin\\mathrm{CI}_o(N_o(\\omega))\\}\\le\\alpha/|\\mathcal O|\\). CONSUMPTION (what F2 must do, and the reason no new bridge proof is needed): layer (2) sets \\(N_o :=\\) `iidCellCount S o n` on the `SLCCSampling` carrier's `IIDSample` field — i.e. `multinomialCounts` is DEFINED as `iidCellCount`, so the bridge holds by definitional unfolding rather than by an extra lemma — and `Helpers/Inference.lean` adds `import CausalSmith.SCM.SCM_SelectiveLabelUntrialedImpact_Research.Helpers.BinomialCountLaw`; the side condition `hPo : P {o} = p_o` is exactly the carrier's law field at the singleton cell (the cell type is a `Fintype` with `MeasurableSingletonClass`, so `measurableSet_singleton` is immediate) and \\(p_o\\in[0,1]\\) comes from \\(p\\in\\Delta_{|\\mathcal O|-1}\\). With that, this construction node has NO remaining absent substrate: layers (1)-(3) are either built or plain definitions. The whole-set construction that remains is legitimately define-local: the box \\(\\mathcal C_{n,\\alpha}\\), the constrained value set \\(\\mathcal I_{n,\\alpha}\\), and the \\([0,1]\\) fallback."
+    },
+    "def:projection-endpoint-estimator": {
+      "lean_kind": "def",
+      "lean_name": "projectionEndpointEstimator",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.InnerProductSpace.Projection.Minimal",
+        "Mathlib.Analysis.InnerProductSpace.EuclideanDist"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Inference.lean",
+      "notes": "\\(\\Pi_{\\mathfrak O}\\) (existence and uniqueness of the minimiser on the nonempty compact convex \\(\\mathfrak O\\)), \\(\\widetilde p=\\Pi_{\\mathfrak O}\\widehat p\\), \\(\\widehat\\theta=\\theta(\\widetilde p)\\). Search trace: grepped `orthogonalProjection`, `projection onto convex`, `metric projection` in `../doc/API.md` (10g `SemiInnerProjection`, 13eff `efficientIF`) and `../Causalean`: both library projections are onto SUBSPACES, not onto a convex polytope, so no fit. Mathlib check (`lean_leansearch` `metric projection onto a nonempty closed convex set variational inequality`): `exists_norm_eq_iInf_of_complete_convex` and `norm_eq_iInf_iff_real_inner_le_zero` (`Mathlib/Analysis/InnerProductSpace/Projection/Minimal.lean`) confirmed present and are exactly the two facts needed; uniqueness from strict convexity is a short local lemma."
+    },
+    "def:projection-composed-derivative": {
+      "lean_kind": "def",
+      "lean_name": "projectionComposedDerivative",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Inference.HadamardDeriv",
+        "Mathlib.Analysis.InnerProductSpace.Projection.Minimal"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Inference.lean",
+      "notes": "\\(T_{\\mathfrak O}(p)\\) (polyhedral tangent cone, defined locally as the closure of the radial cone) and \\(\\Gamma'_p(g)=(\\max_{\\Lambda_L(p)}\\lambda^{\\top}\\Pi_{T}g,\\ \\min_{\\Lambda_U(p)}\\lambda^{\\top}\\Pi_{T}g)\\). Search trace: grepped `tangent cone`, `tangentConeAt`, `polyhedral`, `radial cone`, `HasHadamardDirDerivAt` in `../doc/API.md` (12j') and `../Causalean` and Mathlib-side: Mathlib's `tangentConeAt` is the differentiation-theoretic cone of a set at a point along sequences, NOT the closed radial cone of a polytope, and does not carry the polyhedral facts needed, so the cone is define-local. `Causalean.Stat.HasHadamardDirDerivAt` (`Causalean/Stat/Inference/HadamardDeriv.lean`) IS the exact vocabulary the derivative is stated against and is reused."
+    },
+    "def:atomic-tie-subsampling-handle": {
+      "lean_kind": "def",
+      "lean_name": "atomicTieHandle",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Mathlib.OperatorSqrt",
+        "Causalean.Mathlib.SemiInnerProjection",
+        "Mathlib.LinearAlgebra.Matrix.PosDef"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Inference.lean",
+      "notes": "Packages the refined fan on \\(V_p\\), the finite matrix family \\(\\mathcal A_p\\), the fixed-law constant \\(C(p)\\), the schedules \\(m_n,\\eta_n\\), the conditional lower quantile \\(c^{\\mathrm{sub}}\\), and the witness law \\(p_\\dagger\\). Build-inline: the core introduces it and `thm:atomic-tie-...` is stated over it. Search trace: grepped `pseudo-inverse`, `Moore-Penrose`, `dagger`, `whiten`, `rank`, `posSqrt`, `subsample`, `conditional quantile` across `../doc/API.md` and `../Causalean`; `Causalean.Mathlib.OperatorSqrt` (positive operator square root) and `Causalean.Mathlib.SemiInnerProjection` (finite-dimensional semidefinite projection / support quotient) are the two reusable pieces for \\(\\Omega_M^{\\dagger/2}\\); no conditional-subsampling-quantile substrate exists anywhere (this is why `thm:atomic-tie-...` is Defer-tier crux). Mathlib check (`lean_leansearch` `Moore-Penrose pseudoinverse square root of a positive semidefinite matrix`): Mathlib has `Matrix.PosSemidef.sqrt` but no pseudo-inverse square root; the range-restriction route through `OperatorSqrt` avoids needing one."
+    },
+    "def:32-design-specialization": {
+      "lean_kind": "def",
+      "lean_name": "witness32Design",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Fin.VecNotation"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Witness32.lean",
+      "notes": "The concrete `SLCCDesign` instance with \\(|\\mathcal S|=1\\), \\(|J|=3\\), \\(|\\mathcal Q|=3\\), \\(\\rho^{32}=(1/2,1/2)\\) and the three configurations. Purely a term of the S1 design structure; nothing to reuse. Search trace: grepped `witness design`, `Examples`, `IV.lean`, `BackDoor.lean` in `../doc/API.md` (10, 10b, 10c) — the library's example DAGs are do-calculus fixtures at a different abstraction. Mathlib check: none applicable."
+    },
+    "def:complete-32-type-table": {
+      "lean_kind": "def",
+      "lean_name": "witness32TypeTable",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Fin.VecNotation",
+        "Mathlib.Tactic.FinCases",
+        "Mathlib.Tactic.NormNum"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Witness32.lean",
+      "notes": "The injective table \\(i\\mapsto t^{32}_i\\) on \\(\\mathcal I_{32}=\\mathtt{Fin}\\ 32\\), the fixed twelve-row cell order, the induced \\(B^{32}\\) (each column has value \\(1/2\\) at exactly two rows), \\(h^{32}\\), \\(K^{32}\\) and \\(\\mathfrak O^{32}\\). Written with `![...]` vector notation so `decide`/`fin_cases`/`norm_num` discharge the column identities. Search trace: grepped `Attainment`, `witness table`, `explicit table` in `../doc/API.md` (9j3 `BalkePearl/Attainment/{Basic,Lower,Upper}.lean`) and `../Causalean`; that file set is the analogous module and the reference pattern F3 should adapt (explicit tables checked directly, duality kept offline) — gap to bridge = 32 columns, 12 rows, four programs. Mathlib check: `Fin.VecNotation`/`Matrix.of` vocabulary reused."
+    },
+    "def:32-coordinate-mixture": {
+      "lean_kind": "def",
+      "lean_name": "witness32Mixture",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.StdSimplex",
+        "Mathlib.Tactic.NormNum"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Witness32.lean",
+      "notes": "\\(\\mathcal P_{32}\\), \\(\\varepsilon_{32},a_{32},b_{32}\\), the mixture \\(w^{32}(\\pi)\\) and the induced full and blind laws, plus the arithmetic fact \\(30\\varepsilon_{32}+a_{32}+b_{32}=1\\) placing \\(w^{32}(\\pi)\\in\\Delta_{31}\\). Search trace: grepped `mixture`, `stdSimplex`, `relint`, `relative interior` in `../doc/API.md` and `../Causalean`; Mathlib check (`lean_local_search` `intrinsicInterior`): Mathlib has `intrinsicInterior` but no polytope-generator characterisation of it, so the relative-interior argument is done by the explicit right-inverse construction of the note's proof rather than by an imported lemma. Nothing to reuse beyond `stdSimplex`."
+    },
+    "def:dual-refinement-faces": {
+      "lean_kind": "def",
+      "lean_name": "dualRefinementFaces",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Matrix.Basic",
+        "Causalean.Mathlib.Optimization.RationalLP"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Duality.lean",
+      "notes": "\\(\\mathcal D_L,\\mathcal D_U\\) (with the simplex mass multiplier \\(\\alpha\\) kept explicit), the unnormalized optimal faces \\(\\Lambda_L(p),\\Lambda_U(p)\\) as `argmax`/`argmin` sets, and the embedded blind-dual subspace \\(\\mathcal E_K\\). Search trace: grepped `dual`, `DualFeasible`, `innerDual`, `optimal face` in `../doc/API.md` (9j2 `LP/ConicDuality.lean`, 10j' `RationalLP`) and `../Causalean`: `ConicProgram.DualFeasible` is the Hilbert-cone form without a mass multiplier and `RationalLP.Program.DualFeasible` is the rational inequality form; neither matches the \\((\\alpha,\\lambda)\\) pair with an explicit simplex multiplier, so define-local. `RationalLP` is the reference for the attainment argument. Mathlib check: `Matrix.vecMul`/`transpose` vocabulary reused."
+    },
+    "def:strict-refinement-region": {
+      "lean_kind": "def",
+      "lean_name": "strictRefinementRegion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Topology.Order.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Duality.lean",
+      "notes": "\\(\\mathcal S_{\\mathrm{strict}}=\\{p\\in\\mathfrak O:L(p)>L_{\\mathrm{blind}}(K_{\\mathrm{blind}}p)\\ \\text{and}\\ U(p)<U_{\\mathrm{blind}}(K_{\\mathrm{blind}}p)\\}\\), stated as the intersection of two preimages of \\((0,\\infty)\\) under the gap functions so that relative openness is `IsOpen.preimage` on the subtype. Search trace: grepped `strict refinement`, `information gain`, `garbling` across `../doc/API.md` and `../Causalean`: absent. Mathlib check: only the generic `IsOpen`/`ContinuousOn` vocabulary applies."
+    },
+    "def:bracket-stratum-design": {
+      "lean_kind": "def",
+      "lean_name": "BracketSLCC",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Fintype.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Witness32.lean",
+      "notes": "The primitive predicate \\(\\mathsf{Bracket}_{\\mathrm{SLCC}}\\) on \\((\\mathcal S,\\mathcal Q,c,e,J_0,\\rho)\\): existence of \\(s_*\\) and \\(q_\\ell<q_m<q_h\\) with \\(c_e(s_*)=(1,q_m)\\), every trial arm at \\(s_*\\) using \\((1,q_\\ell)\\) or \\((1,q_h)\\), both used, and \\(\\rho_j>0\\) throughout. A `def ... : Prop` on the design only (no probability). Search trace: grepped `bracket`, `overlap`, `Overlap.lean`, `positivity` in `../doc/API.md` (9a `SCM/ID/Overlap.lean`) and `../Causalean`; the library overlap predicate is a propensity positivity condition on a measure, not a finite configuration-bracketing condition on a design — no fit. Mathlib check: none."
+    },
+    "thm:finite-response-converse": {
+      "lean_kind": "theorem",
+      "lean_name": "finite_response_converse",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Basic",
+        "Mathlib.Probability.ProbabilityMassFunction.Constructions",
+        "Mathlib.MeasureTheory.Measure.Prod"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T1_FiniteResponseConverse.lean",
+      "hyps": [
+        "def:slcc-scm-class"
+      ],
+      "notes": "Forward: every \\(M\\in\\mathfrak M_{\\mathrm{SLCC}}\\) induces \\(w_t=\\Pr_M(T=t)\\in\\Delta_{\\mathrm{SLCC}}\\) with \\(p=Bw\\) and \\(\\tau_e(M)=h_e^{\\top}w\\). Converse: the canonical model \\(M_w\\) on the finite product \\(\\mathcal T_{\\mathrm{SLCC}}\\times J_0\\) with product measure \\(w\\otimes\\rho\\). `hyps` lists the bundling class `def:slcc-scm-class`, which covers all ten assumption dependencies. Reference F3 should adapt: `Causalean/PO/ID/Partial/BalkePearl/Sharp.lean` (~750 lines: canonical sample space, product measure, cascade evaluator, `canonical_cellProb_eq`, `canonical_ATE_eq`) — the SAME proof pattern for a smaller table; gap to bridge = the response-type space is \\(\\mathcal T_{\\mathrm{SLCC}}\\) rather than `Bool^4`, the assignment is a general finite \\(\\rho\\) rather than a Bool marginal, and the masking channel \\(Z_{\\mathrm{obs}}\\) must be added. Build-inline: large in line count but entirely mechanical against that reference, so it is split into `T1_FiniteResponseConverse.lean` (forward + statement) with the canonical construction factored into `Helpers/Canonical.lean` if it exceeds ~600 lines."
+    },
+    "prop:sharp-selective-label-interval": {
+      "lean_kind": "theorem",
+      "lean_name": "sharp_selective_label_interval",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Basic",
+        "Mathlib.Analysis.Convex.StdSimplex",
+        "Mathlib.Analysis.Convex.Basic",
+        "Mathlib.Topology.Order.Compact"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T2_SharpInterval.lean",
+      "hyps": [],
+      "notes": "REVISED (round 3, FLAG-reuse-misfit): `Causalean.PartialID.identifiedInterval_param_Icc` is DROPPED as the proof engine. Its `hfeas` premise demands that the ENTIRE feasible set be the image of one path \\(\\gamma([0,1])\\); the LP fiber \\(F(p)=\\{v\\in\\Delta_{\\mathrm{SLCC}}:Bv=p\\}\\) is generally higher-dimensional, so the segment between endpoint witnesses cannot satisfy it and the reuse was unsound. New engine, matching the note's own proof: `Causalean.PartialID.identifiedInterval_eq_Icc` (`Causalean/PO/ID/Partial/Basic.lean:74`, signature verified — `hL`, `hU`, `hLmem`, `hUmem`, `hconn : OrdConnected`). Its five premises are discharged as follows. (i) `hL`/`hU`: definitional, \\(L(p)=\\inf\\), \\(U(p)=\\sup\\) of the value set (`def:sharp-endpoint-programs`) with the set bounded via `stdSimplex_subset_Icc`. (ii) `hLmem`/`hUmem` (endpoint ATTAINMENT): \\(F(p)\\) is nonempty (\\(p\\in\\mathfrak O\\)), closed (preimage of a point under the continuous `Matrix.mulVec`) inside the compact `isCompact_stdSimplex`, hence compact; `IsCompact.exists_isMinOn`/`exists_isMaxOn` on the continuous linear objective give the two witnesses. (iii) `hconn` (ORDER-CONNECTEDNESS, replacing the parameterization): \\(F(p)\\) is convex as the intersection of `convex_stdSimplex` with the affine set \\(\\{Bv=p\\}\\); the value set is its image under the linear \\(v\\mapsto h_e^{\\top}v\\), convex by `Convex.linear_image`, hence `OrdConnected` on \\(\\mathbb R\\) by `Convex.ordConnected` (`Mathlib/Analysis/Convex/Basic.lean`, both signatures verified). This subsumes the note's mixture argument (its \\(v_\\gamma\\) is one chord of the convex fiber) without asserting the fiber is one-dimensional. Small shared helper to emit alongside: `identifiedInterval_eq_image` (`IdentifiedInterval obj feasible = obj '' {x | feasible x}`, one `Set.image_eq_range`) plus `identifiedInterval_ordConnected_of_convex`, both placed in `Helpers/Duality.lean` so `prop:finite-sample-whole-set-implementation` reuses them verbatim. `hyps` stays empty: no assumption dependencies in `depends_on`, and the model-side content is carried by `thm:finite-response-converse`, which is USED, not assumed."
+    },
+    "lem:z-blind-coarsening": {
+      "lean_kind": "lemma",
+      "lean_name": "z_blind_coarsening",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Matrix.Basic",
+        "Mathlib.Order.SetNotation"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Duality.lean",
+      "hyps": [],
+      "notes": "One-line data-processing fact: \\(F(p)\\subseteq F_b(K_{\\mathrm{blind}}p)\\), hence \\(L_{\\mathrm{blind}}\\le L\\le U\\le U_{\\mathrm{blind}}\\). Build-inline (small). Search trace: grepped `data processing`, `monotone in constraint set`, `csInf_le_csInf`, `sSup_le_sSup` in `../doc/API.md` and `../Causalean`, and Mathlib-side `lean_local_search csInf_le_csInf`: the monotonicity half is `csInf_le_csInf`/`csSup_le_csSup` from Mathlib order theory (reused); the set inclusion itself is one application of the linear map, so nothing further is missing."
+    },
+    "thm:complete-32-type-refinement-certificate": {
+      "lean_kind": "theorem",
+      "lean_name": "complete_32_type_refinement_certificate",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Tactic.FinCases",
+        "Mathlib.Tactic.NormNum",
+        "Mathlib.Tactic.Linarith",
+        "Causalean.Mathlib.Optimization.RationalLP"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T3_Complete32Certificate.lean",
+      "hyps": [],
+      "notes": "Legality of all thirty-two rows, the quotient-generating cover, exhaustion of the twelve feasible cells, the four exact values \\(L=\\pi_1+\\pi_2\\), \\(U=\\pi_1+\\pi_2+\\pi_4\\), \\(L_{\\mathrm{blind}}=\\pi_1\\), \\(U_{\\mathrm{blind}}=1\\), the two rational laws, and their relative-interior membership. Build-inline: finite and fully certified. Legality and the (8)-(9) dual inequalities go by `decide`/`fin_cases` + `norm_num` on `Fin 32`; the cover argument follows the note's structured case split on \\(z\\) and the monotone path (four paths each) rather than a brute-force enumeration of the 8192 raw types, which keeps kernel work small. The primal certificates (11)-(14) are explicit nonnegative tables checked by `norm_num` — exactly the `Causalean/PO/ID/Partial/BalkePearl/ClosedFormAttainment.lean` pattern (reference to adapt). If `decide` blows up, `Causalean.Mathlib.Optimization.RationalLP.exists_rational_optimal_primal_dual` supplies certified rational primal-dual arithmetic instead. Projected length ~800 lines; split into `T3_Complete32Certificate.lean` (values + relative interior) and `Helpers/Witness32Cover.lean` (legality + cover) if it exceeds ~900."
+    },
+    "thm:relative-open-strict-refinement": {
+      "lean_kind": "theorem",
+      "lean_name": "relative_open_strict_refinement",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Topology.Order.Basic",
+        "Mathlib.Topology.Order.Compact"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T5_RelativeOpenStrictRefinement.lean",
+      "hyps": [],
+      "notes": "Nonempty relatively open \\(\\mathcal U\\subseteq\\operatorname{relint}(\\mathfrak O^{32})\\) on which both refinements are strict. Short: the two \\(199/800\\) gaps from `thm:complete-32-type-refinement-certificate` plus relative openness of \\(\\mathcal S_{\\mathrm{strict}}\\) from `thm:general-dual-face-strict-refinement-characterization`. Build-inline (small). Search trace: grepped `relatively open`, `IsOpen.inter`, `intrinsicInterior` in `../doc/API.md` and Mathlib-side; only the generic `IsOpen` API is needed and it is present."
+    },
+    "prop:finite-sample-whole-set-implementation": {
+      "lean_kind": "theorem",
+      "lean_name": "finite_sample_whole_set_implementation",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Inference.Basic",
+        "Mathlib.Probability.Distributions.Binomial",
+        "Mathlib.MeasureTheory.Measure.Typeclasses.Probability"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T6_WholeSetConfidence.lean",
+      "hyps": [
+        "ass:iid-finite-sampling"
+      ],
+      "notes": "\\(\\Pr_p\\{[L(p),U(p)]\\subseteq\\mathcal I_{n,\\alpha}\\}\\ge1-\\alpha\\) for every \\(n\\ge1\\) and \\(p\\in\\mathfrak O\\), plus nonemptiness and attainment on the event \\(p\\in\\mathcal C_{n,\\alpha}\\). REVISED (round 6, FLAG-silent-gate; decision D-K supersedes D-A): the statement is NO LONGER quantified over an abstract `MarginalConfidenceBox` whose coverage field assumed the per-cell miss bound. It is now stated at the CONCRETE Bonferroni Clopper-Pearson box of `def:whole-set-confidence-construction`, and the miss bound is PROVED, in four steps. (i) PER-CELL COVERAGE: `binomial_miss_clopperPearsonIntervalAtError_le n p_o (α/|O|)` (already built 0-sorry in `Helpers/ClopperPearson.lean`, verified 2026-09-03) gives \\(\\mathrm{Bin}(n,p_o)\\{k:p_o\\notin\\mathrm{CI}_o(k)\\}\\le\\alpha/|\\mathcal O|\\) — this is exactly the note's step (2), obtained by test inversion as the note's proof asserts, with the two rejection-set bounds standing in for the informal \"the two rejection probabilities sum to at most the marginal error\". (ii) COUNT-LAW BRIDGE — REVISED (round 9, FLAG-MISSED-REUSE, decision D-N; SUPERSEDES the round-6/8 `I-1` text): this step is NOT build work and NOT an open item. Under `ass:iid-finite-sampling`, \\(N_o=\\#\\{i<n:O_i=o\\}\\) is DEFINED as `iidCellCount S o n`, and `hasLaw_iidCellCount_binomial` — already proved `sorry`-free in `CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/Helpers/BinomialCountLaw.lean` (verified 2026-09-03, zero diagnostics) — gives `HasLaw (iidCellCount S o n) (Bin(n, p_o)) μ` from the carrier's `IIDSample` field plus the singleton-mass side condition `P {o} = p_o`. That is exactly the note's step (1). Moreover steps (i)+(ii) are ALREADY COMPOSED in that same file as `iidCellCount_miss_clopperPearsonIntervalAtError_le`, which delivers \\(\\mu\\{\\omega:p_o\\notin\\mathrm{CI}_o(N_o(\\omega))\\}\\le\\alpha/|\\mathcal O|\\) directly; this theorem is what F3 applies per cell, so no transport argument has to be re-run here. `T6_WholeSetConfidence.lean` (through `Helpers/Inference.lean`) imports `CausalSmith.SCM.SCM_SelectiveLabelUntrialedImpact_Research.Helpers.BinomialCountLaw`. (iii) UNION BOUND over the \\(|\\mathcal O|\\) cells (`measure_biUnion_finset_le`), giving \\(\\Pr_p\\{p\\in\\mathcal C_{n,\\alpha}\\}\\ge1-\\alpha\\) — the note's step (3); it reuses the structure of `Causalean.PartialID.Inference.honest_ci_set_cover` (`Causalean/PO/ID/Partial/Inference/Basic.lean:159`), whose coverage vocabulary `RandomCoversIcc` is reused verbatim. (iv) On \\(\\{p\\in\\mathcal C_{n,\\alpha}\\}\\) the fiber inclusion of the note's step (4) gives \\([L(p),U(p)]\\subseteq\\mathcal I_{n,\\alpha}\\), and on the complementary empty-intersection branch the \\([0,1]\\) fallback contains the identified set because \\(h_e\\) is binary and \\(v\\in\\Delta_{\\mathrm{SLCC}}\\). No premise of this theorem now asserts the coverage fact it establishes. REVISED (round 3, closure of the `prop:sharp-selective-label-interval` engine change): the note's last paragraph — the box-constrained feasible set \\(\\{v\\in\\Delta_{\\mathrm{SLCC}}:Bv\\in\\mathcal C_{n,\\alpha}\\}\\) has a compact-interval linear image, so \\(\\mathcal I_{n,\\alpha}=[\\underline C,\\overline C]\\) with both optima attained — is proved by the SAME route, not by a path parameterization: convexity/compactness of that fiber (\\(\\mathcal C_{n,\\alpha}\\) is a closed convex box, so its `Matrix.mulVec` preimage meets `convex_stdSimplex`/`isCompact_stdSimplex` in a compact convex set) feeding `identifiedInterval_eq_Icc` through the shared `identifiedInterval_eq_image` / `identifiedInterval_ordConnected_of_convex` helpers in `Helpers/Duality.lean`. `identifiedInterval_param_Icc` is NOT used here either: this fiber is likewise generally higher-dimensional. Build-inline (medium). RE-AFFIRMED (round 8, upstream directive item (3), decision D-M): unchanged and re-verified. This theorem is stated at the CONCRETE Bonferroni Clopper-Pearson box and PROVES the per-cell miss bound from `binomial_miss_clopperPearsonIntervalAtError_le` (confirmed present and `sorry`-free in `Helpers/ClopperPearson.lean` at line 157); it takes no `MarginalConfidenceBox`, no coverage-field premise, and no cited gate — its `hyps` remain exactly `[ass:iid-finite-sampling]`. REVISED (round 9, D-N): it now has NO outstanding substrate dependence at all — the former `I-1` count-law bridge of step (ii) is withdrawn as a false absence claim, since `hasLaw_iidCellCount_binomial` and its CP transport `iidCellCount_miss_clopperPearsonIntervalAtError_le` are already built and compile clean in `Helpers/BinomialCountLaw.lean`. This theorem is therefore fully build-inline (medium) against existing substrate: per-cell coverage by `iidCellCount_miss_clopperPearsonIntervalAtError_le`, union bound by `measure_biUnion_finset_le`, and the fiber-inclusion/attainment half by the shared `Helpers/Duality.lean` helpers."
+    },
+    "thm:projection-composed-directional-limit": {
+      "lean_kind": "theorem",
+      "lean_name": "projection_composed_directional_limit",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Inference.HadamardDeriv",
+        "Causalean.Stat.CLT.GaussianLimit",
+        "Mathlib.Analysis.InnerProductSpace.Projection.Minimal"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T7_ProjectionDirectionalLimit.lean",
+      "hyps": [
+        "ass:iid-finite-sampling"
+      ],
+      "notes": "Hadamard directional differentiability of \\(\\theta\\circ\\Pi_{\\mathfrak O}\\) at every \\(p\\in\\mathfrak O\\) with derivative \\(\\Gamma'_p\\), and \\(\\sqrt n\\{\\widehat\\theta-\\theta(p)\\}\\rightsquigarrow\\Gamma'_p(G_p)\\). Build-inline in three factored pieces, all with confirmed substrate: (i) the projection derivative \\(d_*=\\Pi_{T_{\\mathfrak O}(p)}g\\) from the Mathlib variational inequality `norm_eq_iInf_iff_real_inner_le_zero` plus density of radial directions (`Helpers/Projection.lean`); (ii) the finite piecewise-affine representation \\(L=\\max_r\\ell_r\\), \\(U=\\min_s u_s\\) and its active-index derivative, which IS `lem:finite-incidence-duality-continuity` and is proved once there; (iii) the weak-convergence step, where `Causalean.Stat.IIDSample.clt_normalizedSum_vec` (`Causalean/Stat/CLT/GaussianLimit.lean:116`, verified in source) discharges \\(\\sqrt n(\\widehat p-p)\\rightsquigarrow G_p\\) with \\(\\psi(o)=\\mathbf e_o-p\\) — REVISED (round 10, dependency-closure of FLAG-MIS-TAGGED-DEFER, decision D-O; supersedes the round-8 text): `lem:finite-multinomial-clt` is a LOCAL DISCHARGED LEMMA (`citation_discharged:true`, `defer_tier:false`, no gate keys) proved in `Helpers/Inference.lean`, which precedes `T7_ProjectionDirectionalLimit.lean` in `dependency_order`. This step is therefore discharged by APPLYING that lemma rather than by re-instantiating `clt_normalizedSum_vec` in place: the ~60-line duplicate the round-8 text scheduled into `Helpers/Projection.lean` is dropped. A lemma is USED, not assumed, so the fact that this node's `depends_on` does not list it is no obstacle and nothing enters `hyps`, which stays `[ass:iid-finite-sampling]`; this theorem remains UNCONDITIONAL on any cited gate. The uniform-on-compacts absorption uses `Tendsto_dist_vec.add_isLittleOp_one`/`map_continuous` from the same layer. The statement is phrased against `Causalean.Stat.HasHadamardDirDerivAt` and `Causalean.Stat.Tendsto_dist_vec`. Note that `lem:hadamard-directional-delta-method` is NOT in this node's `depends_on`, so the delta step is proved here from the library weak-convergence API rather than threaded. Projected ~700 lines across `T7_ProjectionDirectionalLimit.lean` + `Helpers/Projection.lean`."
+    },
+    "prop:trialed-policy-reduction": {
+      "lean_kind": "theorem",
+      "lean_name": "trialed_policy_reduction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Typeclasses.Probability",
+        "Mathlib.Tactic.NormNum"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T8_TrialedPolicyReduction.lean",
+      "hyps": [
+        "ass:randomized-policy-assignment",
+        "ass:known-arm-law",
+        "ass:common-action-response",
+        "ass:common-outcome-response",
+        "ass:reveal-action",
+        "ass:masked-truth",
+        "ass:counterfactual-correctness",
+        "ass:correct-performance-order",
+        "ass:incorrect-performance-order",
+        "ass:neutral-performance-invariance"
+      ],
+      "notes": "Two separate claims: point identification \\(L(p)=U(p)=\\mathbb E[Y\\mid D=j^\\star]\\) under configuration overlap, and a two-model counterexample showing full revelation alone does NOT identify a distinct untrialed configuration. `depends_on` lists the ten assumption atoms directly (no bundling class), so all ten are threaded individually. Build-inline (medium): the counterexample is two explicit legal response types in a one-stratum two-configuration design, checked by `decide`. Search trace: grepped `nonidentification`, `counterexample`, `two models`, `observationally equivalent` in `../doc/API.md` and `../Causalean`: the library has sharpness constructions (`balkePearl_sharp`) but no reusable nonidentification device; the two witnesses are explicit and local."
+    },
+    "lem:finite-multinomial-clt": {
+      "lean_kind": "lemma",
+      "lean_name": "finite_multinomial_clt",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.CLT.GaussianLimit",
+        "Mathlib.Probability.Distributions.Gaussian.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "citation_id": "cite:duarte-2024-appE-multinomial-gaussian",
+      "source": "cite:duarte-2024-appE-multinomial-gaussian",
+      "carrier": "logical-claim",
+      "target_file": "Helpers/Inference.lean",
+      "hyps": [
+        "ass:iid-finite-sampling"
+      ],
+      "consumers": [
+        "thm:atomic-tie-subsampling-validity-global-sign",
+        "thm:projection-composed-directional-limit"
+      ],
+      "notes": "REVISED (round 10, FLAG-MIS-TAGGED-DEFER, decision D-O — SUPERSEDES D-M on this node): this node is now planned COHERENTLY as the LOCAL DISCHARGED LEMMA it already is on disk. The `citation_discharged:true` stamp is present (written by `bin/gate.ts --discharge`, never by F1), and the round-8 gate shape D-M imposed is incompatible with it: the entry carried `defer_tier:true` and a `Helpers/CitedGates.lean` placement — a Defer-tier, assumption-file slot — for a lemma whose discharge is a bounded local specialisation of an existing library theorem. Shape now: `lean_kind:\"lemma\"`, `disposition:\"define-local\"`, `reuse:null`, `defer_tier:false`, `gate:false`, no `gate_class`, `source`/`citation_id` RETAINED (the Duarte et al. provenance survives the discharge, per the discharge contract), `citation_discharged:true` retained as stamped, `target_file` moved from `Helpers/CitedGates.lean` to `Helpers/Inference.lean` — the file that carries the `SLCCSampling` carrier (`empiricalLaw`, `multinomialCounts`, `gaussianLimitLaw`) the proof is stated over, and which precedes every consumer in `dependency_order`. It is excluded from `infrastructure_needed` (nothing is deferred) and from any `theorems` manifest (it is an `L`-block lemma, not a delivered headline). `hyps` stays `[ass:iid-finite-sampling]` — the one assumption atom in its `depends_on`, under which the statement is asserted. It is NOT threaded into any consumer's `hyps`: it is a proved lemma, so consumers USE it rather than assume it, which is why `thm:atomic-tie-subsampling-validity-global-sign` correctly carries `hyps:[ass:iid-finite-sampling]` alone. PROOF PLAN (the discharge, bounded and fully specified): `Causalean.Stat.IIDSample.clt_normalizedSum_vec` (`Causalean/Stat/CLT/GaussianLimit.lean:116`, verified in source) instantiated at the centered finite cell indicators \\(\\psi(o)=\\mathbf e_o-p\\) over the `IIDSample Ω 𝒪 μ p` field of the `SLCCSampling` carrier, plus exactly two lines of finite algebra: (i) the NORMALISED-SUM IDENTITY `normalizedSum S ψ (fun m => Finset.range m)` at index \\(n\\) \\(=n^{-1/2}\\sum_{i<n}(\\mathbf e_{O_i}-p)=\\sqrt n(\\widehat p-p)\\), using \\(\\widehat p=N/n\\) with \\(N_o=\\) `iidCellCount S o n`; and (ii) the COVARIANCE IDENTIFICATION, `gaussianLimit_covarianceBilin` (`GaussianLimit.lean:80`) expanded at that \\(\\psi\\) over the finite cell set giving \\(\\sum_o p_o(s_o-\\langle s,p\\rangle)(t_o-\\langle t,p\\rangle)=s^{\\top}(\\operatorname{diag}(p)-pp^{\\top})t=s^{\\top}\\Sigma_pt\\), i.e. `gaussianLimit` at this \\(\\psi\\) IS \\(G_p\\). Side conditions `hψ`/`hvar`/`hmean` are immediate on a finite type. `Causalean/PO/ID/Partial/RandomSet/IntervalCLT.lean:110` is the analogous in-library specialisation F3 should follow. Projected ~60 lines — build-inline small, not Defer-tier. Search trace (re-run for this edit, round 10): re-confirmed `IIDSample.clt_normalizedSum_vec` and `gaussianLimit_covarianceBilin` present in `Causalean/Stat/CLT/GaussianLimit.lean`; `lean_local_search` for a multinomial / categorical-proportion CLT returns nothing in Causalean and Mathlib-side (`lean_leansearch`/`lean_local_search`) has no multinomial CLT either, and — applying the D-N own-directory lesson — a scan of this artifact's own `CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/Helpers/` shows `BinomialCountLaw.lean`, `ClopperPearson.lean` and `AtomicTieSubsampling.lean` but no CLT statement yet, so the ~60-line specialisation is genuine (small) build work rather than an already-landed fact. (Former round-8 content, now void: RESTORED to the CITED-GATE form the core demands. D0 froze this node at `status:\"cited\"` with `source.carrier:\"logical-claim\"`, and `gate_class` plus carrier kind are fixed by D0 provenance and are not F1's to re-judge. The round-4/5/6/7 shape (`lean_kind:\"lemma\"`, `gate:false`, no `gate_class`, proved locally in `Helpers/Inference.lean`) is exactly the ordinary in-plan lemma the directive forbids: only two forms are admissible for a `status:\"cited\"` logical claim — (a) the assumption-shaped cited gate, or (b) a discharged `lemma` STAMPED `citation_discharged:true` by `bin/gate.ts --discharge`, a stamp F1 is forbidden to write. Since F1 cannot produce form (b), the node is planned in form (a) here. Shape now: `lean_kind:\"assumption\"`, `gate:true`, `gate_class:\"cited\"`, `defer_tier:true`, `citation_id`/`source` = `cite:duarte-2024-appE-multinomial-gaussian`, carrier `logical-claim`, encoded by F2 as a named proposition in the unshadowable `Sort 0` syntax in `Helpers/CitedGates.lean` alongside the two other cited gates, and THREADED into the `hyps` of its one logical consumer `thm:atomic-tie-subsampling-validity-global-sign` (directive item (2)). It is excluded from any `theorems` manifest and listed in `infrastructure_needed` under its own core node id. `hyps` here records the assumption dependency `ass:iid-finite-sampling` under which the cited statement is asserted (⊆ this node's `depends_on`, which is exactly that one atom). NOT crux: the claim is a classical, named, externally established multinomial CLT, not the paper's own content, and gating it cannot make any consumer vacuous — the consumer remains a substantive conditional statement about subsampling coverage. DISCHARGE PATH (recorded for the orchestrator, NOT executed by F1): the discharge is total and cheap, which is why this is a SUBSTRATE_DEBT candidate rather than permanent debt. `Causalean.Stat.IIDSample.clt_normalizedSum_vec` (`Causalean/Stat/CLT/GaussianLimit.lean:116`, verified in source) instantiated at the centered finite cell indicators \\(\\psi(o)=\\mathbf e_o-p\\) over the `IIDSample Ω 𝒪 μ p` field of the `SLCCSampling` carrier gives the statement, once two small local steps are done: (i) the NORMALISED-SUM IDENTITY `normalizedSum S ψ (fun m => Finset.range m)` at index \\(n\\) \\(=n^{-1/2}\\sum_{i<n}(\\mathbf e_{O_i}-p)=\\sqrt n(\\widehat p-p)\\), using \\(\\widehat p=N/n\\); and (ii) the COVARIANCE IDENTIFICATION, `gaussianLimit_covarianceBilin` (`GaussianLimit.lean:80`) expanded at that \\(\\psi\\) over the finite cell set giving \\(\\sum_o p_o(s_o-\\langle s,p\\rangle)(t_o-\\langle t,p\\rangle)=s^{\\top}(\\operatorname{diag}(p)-pp^{\\top})t=s^{\\top}\\Sigma_pt\\), i.e. `gaussianLimit` at this \\(\\psi\\) IS \\(G_p\\). Side conditions `hψ`/`hvar`/`hmean` are immediate on a finite type. `Causalean/PO/ID/Partial/RandomSet/IntervalCLT.lean:110` is the analogous in-library specialisation to follow. When main runs `bin/gate.ts --discharge` on this node it becomes the stamped `lemma` form (`citation_discharged:true`), the gate keys and the consumer `hyps` entry are removed, and every consumer is re-reviewed. Search trace (re-run for this edit, round 8): re-confirmed `IIDSample.clt_normalizedSum_vec` and `gaussianLimit_covarianceBilin` present in `Causalean/Stat/CLT/GaussianLimit.lean`; `lean_local_search` for a multinomial / categorical-proportion CLT returns nothing in Causalean, and Mathlib-side (`lean_leansearch`/`lean_local_search`) has no multinomial CLT either — so nothing in the library states this node verbatim, confirming it is a genuine cited gate rather than a reuse.)",
+      "citation_discharged": true
+    },
+    "lem:hadamard-directional-delta-method": {
+      "lean_kind": "assumption",
+      "lean_name": "HadamardDirectionalDeltaMethod",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Inference.HadamardDeriv"
+      ],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "citation_id": "cite:fang-santos-2019-thm21",
+      "source": "cite:fang-santos-2019-thm21",
+      "carrier": "logical-claim",
+      "target_file": "Helpers/CitedGates.lean",
+      "consumers": [],
+      "notes": "Frozen cited statement, carrier `logical-claim`, encoded as a named proposition. No core node lists it in `depends_on`, so there is no consumer to thread it into; it is carried as a declared conditional interface only. Related library substrate (not a discharge): `Causalean.Stat.HasHadamardDirDerivAt` and `Causalean.Stat.deltaMethod_max_tie`/`deltaMethod_min_tie` (`Causalean/Stat/Inference/{HadamardDeriv,FunctionalDelta}.lean`) give the directional-differentiability vocabulary and the max/min tie case, but NOT the general directional delta theorem, so the gate stands."
+    },
+    "lem:finite-incidence-duality-continuity": {
+      "lean_kind": "lemma",
+      "lean_name": "finite_incidence_duality_continuity",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Mathlib.Optimization.RationalLP",
+        "Mathlib.Analysis.Convex.StdSimplex",
+        "Mathlib.Topology.Order.Compact"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Duality.lean",
+      "hyps": [],
+      "notes": "Attainment of all four programs, the two dual representations with the mass multiplier explicit, nonemptiness of both optimal faces, and finite piecewise-affine continuity of the four value functions on their relative domains. This is the load-bearing shared lemma for `thm:general-dual-face-...`, `thm:relative-open-...` and `thm:projection-composed-directional-limit`. Build-inline (medium-large, one `Helpers/` file). REVISED (round 3, closure of the `prop:sharp-selective-label-interval` engine change): this file is also the home of the four small shared fiber helpers that the sharp-interval route now needs — `fiber_convex`, `fiber_isCompact`, `identifiedInterval_eq_image` (one `Set.image_eq_range`), and `identifiedInterval_ordConnected_of_convex` (`Convex.linear_image` then `Convex.ordConnected`) — since its own step (1) already establishes exactly the compactness and convexity of \\(\\{v\\in\\Delta_{\\mathrm{SLCC}}:Bv=p\\}\\) and of its linear image. They add a few lines here and remove duplicated work in `T2_SharpInterval.lean` and `T6_WholeSetConfidence.lean`. Search trace: grepped `Fourier-Motzkin`, `eliminate`, `strong duality`, `piecewise affine`, `polyhedral` across `../doc/API.md` (9j2 `LP/ConicDuality.lean`, 10j' `RationalLP`) and `../Causalean`. `Causalean.Mathlib.Optimization.RationalLP.eliminateAll_iff` is EXACTLY the certified Fourier-Motzkin elimination the note's proof performs to get the finite half-space representation (3), and `exists_rational_optimal_primal_dual` is the attainment + strong-duality engine — this is the analogous module F3 should adapt; gap to bridge = RationalLP is over \\(\\mathbb Q\\) in pure inequality form whereas the note needs \\(\\mathbb R\\) with an equality block and a simplex constraint, so either the rational engine is ported to an ordered field or the elimination is redone over \\(\\mathbb R\\). Attainment can alternatively be had directly from `isCompact_stdSimplex` + `IsCompact.sInf_mem`, which is the cheaper route for the attainment half. Mathlib check (`lean_leansearch` `linear programming duality finite`): Mathlib has no LP duality, confirming the RationalLP route."
+    },
+    "thm:general-dual-face-strict-refinement-characterization": {
+      "lean_kind": "theorem",
+      "lean_name": "general_dual_face_strict_refinement_characterization",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Topology.Order.Basic",
+        "Mathlib.Analysis.Convex.StdSimplex",
+        "Mathlib.Data.Matrix.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T4_DualFaceStrictRefinement.lean",
+      "hyps": [],
+      "notes": "The two optimal-face/blind-subspace equivalences, their linear-feasibility restatements, relative openness of \\(\\mathcal S_{\\mathrm{strict}}\\), and the arbitrary-finite bracket construction with the full-support perturbation. Build-inline (large but not open): the equivalences are three lines each given `lem:finite-incidence-duality-continuity`; the bulk is the legal extension (11) of the thirty-two rows to an arbitrary finite design, the stratum-isolation step (15), and the aggregation (16)-(17) reducing all four programs to their certified counterparts. Projected ~900 lines; split into `T4_DualFaceStrictRefinement.lean` (equivalences + openness) and `Helpers/BracketExtension.lean` (the extension, isolation and aggregation chain). Search trace: grepped `restricted dual`, `optimal face`, `blind dual`, `value of information` across `../doc/API.md` and `../Causalean`, and Mathlib-side `lean_leansearch` for LP-restriction equality criteria: absent everywhere; the equivalence is derived locally from attainment on both sides."
+    },
+    "lem:raic-multivariate-berry-esseen-convex-sets": {
+      "lean_kind": "assumption",
+      "lean_name": "RaicMultivariateBerryEsseenConvexSets",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Distributions.Gaussian.Basic"
+      ],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "citation_id": "cite:raic-2019-thm11",
+      "source": "cite:raic-2019-thm11",
+      "carrier": "logical-claim",
+      "target_file": "Helpers/CitedGates.lean",
+      "consumers": [
+        "lem:finite-alphabet-fan-berry-esseen-explicit-schedule"
+      ],
+      "notes": "Frozen cited statement, carrier `logical-claim`, encoded as a named proposition and threaded into `lem:finite-alphabet-fan-berry-esseen-explicit-schedule`'s `hyps`. Provenance read from D0. Confirmed absent from the library: grepped `Berry`, `Esseen`, `explicit constants`, `convex set approximation` across `../doc/API.md` and `../Causalean`, and Mathlib-side `lean_leansearch`/`lean_local_search` for a univariate or multivariate Berry-Esseen theorem: Mathlib has none (not even the scalar case). No discharge path exists today; this is genuinely infeasible to build here and is correctly a gate rather than crux."
+    },
+    "thm:atomic-tie-subsampling-validity-global-sign": {
+      "lean_kind": "theorem",
+      "lean_name": "atomic_tie_subsampling_validity_global_sign",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.CLT.GaussianLimit",
+        "Causalean.Mathlib.StandardGaussian",
+        "Mathlib.Probability.Distributions.Gaussian.Basic"
+      ],
+      "defer_tier": true,
+      "gate": false,
+      "defer_tag": "crux",
+      "target_file": "T11_AtomicTieSubsampling.lean",
+      "hyps": [
+        "ass:iid-finite-sampling"
+      ],
+      "notes": "REVISED (round 10, dependency closure of FLAG-MIS-TAGGED-DEFER, decision D-O — SUPERSEDES the round-8 D-M text here): `lem:finite-multinomial-clt` is NOT a hypothesis of this theorem. That node is planned as a LOCAL DISCHARGED LEMMA (`citation_discharged:true`, `lean_kind:\"lemma\"`, `defer_tier:false`, no gate keys, proved in `Helpers/Inference.lean` as the bounded specialisation of `Causalean.Stat.IIDSample.clt_normalizedSum_vec`), so it is USED here rather than assumed and no hyp-closure obligation arises. `hyps` is therefore exactly `[ass:iid-finite-sampling]` — the single `ass:` dependency, covered directly — which is what the entry already carries; no `hyps` edit was needed for this correction. Step (2) of the proof, \\(X_n=\\sqrt n(\\widehat p-p)\\rightsquigarrow G_p\\) with \\(X_n=O_{\\Pr}(1)\\), is discharged by applying that proved lemma (`Helpers/Inference.lean` precedes `T11_AtomicTieSubsampling.lean` in `dependency_order`). This theorem is consequently conditional on exactly ONE cited gate: the Rai\\v{c} Berry-Esseen gate reached through `lem:finite-alphabet-fan-berry-esseen-explicit-schedule`. Defer-tier CRUX (the paper's own novel inference content, feasible in principle but genuinely large: projected 4-6 files). Not dropped: it stays planned as a theorem and is listed in `infrastructure_needed`. What makes it large, each an independent sub-chain with NO library substrate: (a) the without-replacement/with-replacement coupling bound \\(m(m-1)/2n\\) and the total-variation coupling of \\(\\widehat p\\) against \\(p\\) with mismatch \\(\\tfrac m2\\|\\widehat p-p\\|_1\\); (b) conditional weak convergence of the subsampling law and the behaviour of its lower conditional \\((1-\\alpha+\\eta_n)\\)-quantile; (c) the exponential localisation bound (11); (d) the finite Boolean/inclusion-exclusion reduction of \\(\\{K_a(g)\\le x\\}\\) to lower orthants feeding the Berry-Esseen gate; (e) the global-sign implication (21) at the zero atom — REVISED (round 9, D-N, applying the same own-directory scan that withdrew I-1): sub-chain (e) is ALREADY BUILT and needs no new work. `CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/Helpers/AtomicTieSubsampling.lean` defines `endpointLimitStatistic DLower DUpper g` (\\(H\\)) and `centeredEndpointStatistic DLower DUpper a g` (\\(K_a\\)) and proves `atomic_tie_global_sign : H a = 0 → K_a g < 0 → H g < 0`, i.e. implication (21), with zero diagnostics and no `sorry` (verified 2026-09-03); F3 instantiates it at \\(a=a_n\\). This does NOT move the node off Defer-tier crux: sub-chains (a)-(d) remain unbuilt and are what make it large. Search trace: grepped `subsampl`, `Subsampl`, `without replacement`, `conditional quantile`, `coupling`, `total variation`, `bootstrap` across `../doc/API.md` and `../Causalean` — the only hits are `Stat/UStatistic` (Hoeffding decomposition, not subsampling), `IIDSample.bootstrapVar` (a conditional variance, not a quantile), and `Panel`/VC `subsamplePattern` (a coordinate restriction, unrelated); Mathlib-side `lean_leansearch` for sampling without replacement / exchangeable coupling: nothing usable. Reusable pieces that DO exist and should be adapted: `Causalean.Stat.Tendsto_dist_vec` + `add_isLittleOp_one` for the Slutsky steps, `Causalean.Stat.gaussian_tail_small` (`Causalean/Stat/CLT/GaussianTail.lean`) for the tail control, `Causalean.PartialID.Inference.gaussianMeasure_zero_one_frontier_Iic` for the continuity-point/portmanteau step, and `Causalean.Mathlib.StandardGaussian` for the density/full-support facts on \\(V_p\\)."
+    },
+    "lem:finite-alphabet-fan-berry-esseen-explicit-schedule": {
+      "lean_kind": "lemma",
+      "lean_name": "finite_alphabet_fan_berry_esseen_explicit_schedule",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Mathlib.OperatorSqrt",
+        "Causalean.Mathlib.SemiInnerProjection",
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.Analysis.SpecialFunctions.Pow.NNRpow"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T9_FanBerryEsseen.lean",
+      "hyps": [
+        "ass:iid-finite-sampling",
+        "lem:raic-multivariate-berry-esseen-convex-sets"
+      ],
+      "notes": "Effective-range whitening of a possibly singular \\(\\Omega_M=M\\Sigma_pM^{\\top}\\) onto \\(\\operatorname{range}(\\Omega_M)\\), the resulting \\(\\delta_m(p)\\le C(p)m^{-1/2}\\) with the explicit fixed-law constant, and the schedule comparisons \\(\\delta_{m_n}=O(n^{-1/6})\\), \\(m_n/\\sqrt n=O(n^{-1/6})\\), \\(m_n^2/n=O(n^{-1/3})\\), \\(e^{-cm_n}=O(e^{-c'n^{1/3}})\\), all \\(o(\\eta_n)\\). Build-inline (medium): the rank-zero branch is trivial, the positive-rank branch is an orthonormal-basis restriction plus a positive-definite square-root inverse, and the schedule half is exponent arithmetic. GATE-CONSUMER: its whole Defer-tier difficulty is the Berry-Esseen input, which is now gated, so the lemma itself is IN SCOPE and proved conditional on the gate. Search trace: grepped `posSqrt`, `OperatorSqrt`, `PosSemidef.sqrt`, `range`, `whiten` across `../doc/API.md` (10i, 10j, 10g) and `../Causalean`; `Causalean.Mathlib.OperatorSqrt` (positive operator square root) and `Causalean.Mathlib.exists_orthogonalProjection_of_posSemidef` (`Causalean/Mathlib/SemiInnerProjection.lean`) are the two reusable pieces. Mathlib check (`lean_leansearch` `positive semidefinite matrix square root`, `lean_local_search Matrix.PosSemidef`): `Matrix.PosSemidef.sqrt` and `Matrix.PosDef.sqrt` exist and cover the restricted positive-definite step."
+    },
+    "prop:32-nondegenerate-atomic-tie-certificate": {
+      "lean_kind": "theorem",
+      "lean_name": "nondegenerate_atomic_tie_certificate_32",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Tactic.FinCases",
+        "Mathlib.Tactic.NormNum",
+        "Mathlib.Tactic.Linarith",
+        "Causalean.Mathlib.StandardGaussian",
+        "Mathlib.Analysis.InnerProductSpace.Projection.Minimal"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T10_AtomicTieCertificate.lean",
+      "hyps": [],
+      "notes": "Exact certificate at \\(p_\\dagger=\\tfrac14(\\mathbf e_2+\\mathbf e_3+2\\mathbf e_7)\\): nontrivial projection face, tied lower and upper dual slopes, the two tangent projections \\(z_0,z_1\\) with all thirty-two polar inequalities and orthogonality, the derivative values \\((0,6/5,0)\\) and \\((12/5,0,12/5)\\), the open zero cone \\(\\mathcal C_0\\), Gaussian nondegeneracy on the two-dimensional \\(V_{p_\\dagger}\\), and \\(0<\\Pr\\{H(G_{p_\\dagger})=0\\}<1\\). Build-inline (large but mechanical): every arithmetic claim is rational and closes by `norm_num`/`linarith` after `fin_cases` on `Fin 32`; the projection identifications use the elementary sufficient condition (10) (\\(z\\in T\\), \\(g-z\\in T^\\circ\\), orthogonality) rather than any Mathlib projection theorem, and the uniqueness half is `norm_eq_iInf_iff_real_inner_le_zero` plus strict convexity. The Gaussian full-support step on a two-dimensional nondegenerate subspace reuses `Causalean.Mathlib.StandardGaussian` (positivity of Gaussian mass on nonempty open sets). Projected ~700 lines. Search trace: as for `def:complete-32-type-table`; nothing certificate-shaped exists in the library beyond the `BalkePearl/Attainment` pattern."
+    }
+  },
+  "file_plan": {
+    "Basic.lean": [
+      "def:legal-response-types",
+      "def:slcc-scm-class",
+      "def:response-simplex",
+      "def:selective-label-incidence-map",
+      "def:sharp-endpoint-programs",
+      "def:z-blind-projection",
+      "ass:randomized-policy-assignment",
+      "ass:known-arm-law",
+      "ass:common-action-response",
+      "ass:common-outcome-response",
+      "ass:reveal-action",
+      "ass:masked-truth",
+      "ass:counterfactual-correctness",
+      "ass:correct-performance-order",
+      "ass:incorrect-performance-order",
+      "ass:neutral-performance-invariance",
+      "ass:iid-finite-sampling"
+    ],
+    "Helpers/Duality.lean": [
+      "def:dual-refinement-faces",
+      "def:strict-refinement-region",
+      "lem:finite-incidence-duality-continuity",
+      "lem:z-blind-coarsening"
+    ],
+    "Helpers/Witness32.lean": [
+      "def:32-design-specialization",
+      "def:complete-32-type-table",
+      "def:32-coordinate-mixture",
+      "def:bracket-stratum-design"
+    ],
+    "Helpers/ClopperPearson.lean": [
+      "def:whole-set-confidence-construction"
+    ],
+    "Helpers/Inference.lean": [
+      "def:projection-endpoint-estimator",
+      "def:projection-composed-derivative",
+      "def:atomic-tie-subsampling-handle",
+      "lem:finite-multinomial-clt"
+    ],
+    "Helpers/CitedGates.lean": [
+      "lem:hadamard-directional-delta-method",
+      "lem:raic-multivariate-berry-esseen-convex-sets"
+    ],
+    "T1_FiniteResponseConverse.lean": [
+      "thm:finite-response-converse"
+    ],
+    "T2_SharpInterval.lean": [
+      "prop:sharp-selective-label-interval"
+    ],
+    "T3_Complete32Certificate.lean": [
+      "thm:complete-32-type-refinement-certificate"
+    ],
+    "T4_DualFaceStrictRefinement.lean": [
+      "thm:general-dual-face-strict-refinement-characterization"
+    ],
+    "T5_RelativeOpenStrictRefinement.lean": [
+      "thm:relative-open-strict-refinement"
+    ],
+    "T6_WholeSetConfidence.lean": [
+      "prop:finite-sample-whole-set-implementation"
+    ],
+    "T7_ProjectionDirectionalLimit.lean": [
+      "thm:projection-composed-directional-limit"
+    ],
+    "T8_TrialedPolicyReduction.lean": [
+      "prop:trialed-policy-reduction"
+    ],
+    "T9_FanBerryEsseen.lean": [
+      "lem:finite-alphabet-fan-berry-esseen-explicit-schedule"
+    ],
+    "T10_AtomicTieCertificate.lean": [
+      "prop:32-nondegenerate-atomic-tie-certificate"
+    ],
+    "T11_AtomicTieSubsampling.lean": [
+      "thm:atomic-tie-subsampling-validity-global-sign"
+    ],
+    "Helpers.lean": [],
+    "dependency_order": [
+      "Basic.lean",
+      "Helpers/CitedGates.lean",
+      "Helpers/Duality.lean",
+      "Helpers/Witness32.lean",
+      "T1_FiniteResponseConverse.lean",
+      "T2_SharpInterval.lean",
+      "T3_Complete32Certificate.lean",
+      "T4_DualFaceStrictRefinement.lean",
+      "T5_RelativeOpenStrictRefinement.lean",
+      "T8_TrialedPolicyReduction.lean",
+      "Helpers/ClopperPearson.lean",
+      "Helpers/Inference.lean",
+      "Helpers.lean",
+      "T6_WholeSetConfidence.lean",
+      "T7_ProjectionDirectionalLimit.lean",
+      "T9_FanBerryEsseen.lean",
+      "T10_AtomicTieCertificate.lean",
+      "T11_AtomicTieSubsampling.lean"
+    ],
+    "bypass_justified": [
+      {
+        "module": "Causalean/SCM/Model/SCM.lean",
+        "reason": "graph/do-calculus-indexed SCM with a single treatment variable; no configuration-indexed potential-response arrays (A_c),(Y_c) over R x Q and no action-forced label channel."
+      },
+      {
+        "module": "Causalean/SCM/Do/*.lean (do_rule1/2/3, DoCalculus)",
+        "reason": "the paper never performs a graphical identification step; the target is partially identified by an LP over response-type weights, not by a do-calculus derivation."
+      },
+      {
+        "module": "Causalean/SCM/ID/*.lean (Identifiable, Backdoor, Frontdoor, Adjustment, Overlap)",
+        "reason": "exact-identification criteria on DAGs; the untrialed policy has no observed assignment, so no adjustment/backdoor criterion applies."
+      },
+      {
+        "module": "Causalean/Graph/*.lean (DAG, DSep, SWIG, CComponents, MarkovEquiv)",
+        "reason": "the note fixes a single known finite design, never a graph; d-separation and c-components play no role."
+      },
+      {
+        "module": "Causalean/SCM/PartialID/, Causalean/PO/ID/Partial/BalkePearl/",
+        "reason": "closest structural analogue and reused as the reference PATTERN (canonical-model sharpness, explicit witness tables), but hard-wired to three Bool variables and a 16-cell latent table; not instantiable at this abstraction."
+      },
+      {
+        "module": "Causalean/PO/ID/Partial/LP/ConicDuality.lean",
+        "reason": "Hilbert conic duality gated on a closedness CQ; the note needs finite polyhedral duality with unconditional attainment and an explicit simplex mass multiplier. Causalean/Mathlib/Optimization/RationalLP.lean is used instead."
+      },
+      {
+        "module": "Causalean/Mathlib/SemiInnerProjection.lean, Causalean/Estimation/Efficiency (efficientIF)",
+        "reason": "projections onto SUBSPACES; Pi_O projects onto a convex polytope, so the Mathlib variational-inequality route is used for the projection itself (SemiInnerProjection is still reused for the singular-covariance whitening in T9)."
+      },
+      {
+        "module": "Causalean/PO/ID/Partial/Lee/",
+        "reason": "sample-selection of the OUTCOME by an exogenous selection indicator; here the LABEL is revealed by the endogenous action, a different channel."
+      }
+    ]
+  },
+  "decisions": [
+    {
+      "id": "D-A",
+      "decision": "WITHDRAWN, superseded by D-K. (Former content: def:whole-set-confidence-construction and prop:finite-sample-whole-set-implementation were stated over an abstract `MarginalConfidenceBox` carrying the per-cell miss bound as a field, with Clopper-Pearson recorded as non-blocking debt I-1.)",
+      "why": "Round-6 correction FLAG-silent-gate: that record's coverage field ASSUMED the quantitative fact the construction is required to establish, and its trivial [0,1] inhabitant realises no Clopper-Pearson interval, so the generality argument was hollow — the box was a content-bearing premise, not an abstraction. Replaced by the concrete construction and proved coverage of D-K."
+    },
+    {
+      "id": "D-B",
+      "decision": "The world is built as a self-contained finite SLCCDesign/SLCCModel layer rather than by instantiating Causalean.SCM.Model.SCM or POSystem.",
+      "why": "Recorded per module in file_plan.bypass_justified; the decisive mismatch is the configuration-indexed dual response arrays plus the action-forced label channel, which no library model structure carries."
+    },
+    {
+      "id": "D-C",
+      "decision": "thm:atomic-tie-subsampling-validity-global-sign is marked defer_tier:true with tag crux and is NOT dropped; no deferred_conjecture is emitted.",
+      "why": "It is the paper's own novel inference content and is feasible in principle, so tagging it as a substrate-gate would launder novel content. It is genuinely large (4-6 independent sub-chains with no library substrate: without-replacement coupling, conditional-quantile convergence, exponential localisation, Boolean orthant reduction, global-sign implication), so it is listed in infrastructure_needed as large crux work while staying planned."
+    },
+    {
+      "id": "D-D",
+      "decision": "def:sharp-endpoint-programs is one Lean def returning the pair (L,U), with lowerEndpoint/upperEndpoint projections; likewise def:z-blind-projection for (L_blind,U_blind).",
+      "why": "The core maps L and U to a single definition node; a pair-valued def keeps the node-to-def correspondence exactly one-to-one while still naming both symbols."
+    },
+    {
+      "id": "D-E",
+      "decision": "No `theorems` manifest is emitted.",
+      "why": "The brief carries no paper manifest / state.theorems, so the paper-scoped preamble is inert and there are no theorem_local_ids to attach."
+    },
+    {
+      "id": "D-F",
+      "decision": "S2 is re-planned as a define-local finite-incidence geometry world carried by a local `SLCCIncidence` bundle; `stdSimplex` is demoted from the S-block `reuse` to an internal dependency at `def:response-simplex`.",
+      "why": "Round-3 correction FLAG-world-misfit: `stdSimplex` is only `Set (T_SLCC → ℝ)` with nonnegative coordinates summing to one. It hosts none of the twenty-four symbols S2 actually binds — the incidence map B, the observable polytope, the four endpoint value functions, the dual polyhedra and optimal faces, the embedded blind-dual subspace, the metric projection, the polyhedral tangent cone, the directional map, or the strict-refinement region. Naming it as the world was an infidelity. The simplex reuse itself is sound and is kept exactly where it is true (def:response-simplex). No node disposition had to move: every S2-bound symbol was already define-local except the simplex."
+    },
+    {
+      "id": "D-G",
+      "decision": "prop:sharp-selective-label-interval is proved through `Causalean.PartialID.identifiedInterval_eq_Icc` (endpoint attainment by compactness + order-connectedness of the linear image of the convex fiber), not through `identifiedInterval_param_Icc`. The same route is used at prop:finite-sample-whole-set-implementation, and four small shared fiber helpers are factored into Helpers/Duality.lean.",
+      "why": "Round-3 correction FLAG-reuse-misfit: `identifiedInterval_param_Icc`'s `hfeas` premise requires the ENTIRE feasible set to equal one path image γ([0,1]). The LP fiber {v ∈ Δ_SLCC : Bv = p} is generally higher-dimensional, so the segment between the two endpoint witnesses cannot satisfy that premise and F3 would have escalated a false needs-substrate on the unprovable bridge. `identifiedInterval_eq_Icc` (signature verified at Causalean/PO/ID/Partial/Basic.lean:74) takes order-connectedness abstractly, which `Convex.linear_image` + `Convex.ordConnected` supply from convexity of the fiber — this is what the note's own mixture argument actually proves, and it covers the full fiber rather than a one-dimensional slice of it."
+    },
+    {
+      "id": "D-H",
+      "decision": "S4 is re-planned as a define-local sampling/inference world carried by a local `SLCCSampling` bundle (multinomial counts, empirical and projected laws, plug-in endpoint estimator, multinomial covariance, Gaussian limit object, marginal/simultaneous confidence box, whole-set interval, subsample-size and slack schedules, conditional subsampling quantile); `Causalean.Stat.IIDSample` is demoted from the S-block `reuse` to an internal sampling primitive, retained as the reuse at `ass:iid-finite-sampling` and as a field of that carrier.",
+      "why": "Round-4 correction (upstream directive item (2)), the exact analogue of D-F: `IIDSample Ω X μ P` is only an i.i.d. sampling bundle and hosts none of the thirteen other symbols S4 binds — N, p_hat, p_tilde, theta_hat, Sigma_p, G_p, CI_o, C_{n,alpha}, I_{n,alpha}, m_n, eta_n, c_sub. Naming it as the hosting world was an infidelity of the same kind the S2 flag caught. No node disposition had to move: every S4-bound symbol was already realised by a define-local node except the iid atom itself, whose reuse is sound and is kept exactly where it is true."
+    },
+    {
+      "id": "D-I",
+      "decision": "SUPERSEDED by D-M (round 8): the reclassification recorded here is REVERSED — the node is back in its core-mandated cited-gate form. (Former content: lem:finite-multinomial-clt is reclassified from a cited substrate gate (lean_kind assumption, gate true, gate_class cited, defer_tier true) to a DERIVED, LEAN-BACKED LEMMA: lean_kind lemma, defer_tier false, gate false, and it is removed from thm:atomic-tie-subsampling-validity-global-sign's hyps. Its `source` string is retained; `citation_id` and the gate keys are dropped; no `citation_discharged` stamp is emitted. SUPERSEDED IN PART by D-J: the round-4 shape recorded here was `disposition:\"reuse\"` pointing at Causalean.Stat.IIDSample.clt_normalizedSum_vec; the node is now `disposition:\"define-local\"` with `reuse:null`, that decl appearing only inside its PROOF.) Everything in this decision is now void; see D-M.",
+      "why": "Upstream directive item (4), and the named decl is an exact TOTAL fit rather than a partial one (verified in source at Causalean/Stat/CLT/GaussianLimit.lean:116 and :80): instantiating clt_normalizedSum_vec at psi(o) = e_o − p over the finite cell type gives measurability and square-integrability for free, mean zero by a finite sum identity, normalised sum literally equal to sqrt(n)(p_hat − p), and — via gaussianLimit_covarianceBilin — limiting covariance form s^T(diag(p) − p p^T)t, i.e. exactly G_p. There is no population-vs-empirical, norm, or regime mismatch and no un-built bridge, so this is a clean discharge and the delivered theorems become strictly less conditional. F1's standing rule is not to convert a status:'cited' statement to a non-gate form on its own initiative; this conversion is made solely on the explicit upstream directive, and the result is a proved lemma, not a laundered assumption. The Duarte et al. citation entry is kept in `citations` so the provenance of the claim survives."
+    },
+    {
+      "id": "D-J",
+      "decision": "SUPERSEDED by D-M (round 8): the local-proved-lemma shape is REVERSED; the node returns to the cited-gate form and its discharge path is recorded on the node for bin/gate.ts rather than executed in-plan. (Former content: lem:finite-multinomial-clt is planned as a LOCAL PROVED LEMMA, not a direct reuse node: disposition define-local, reuse null, lean_kind lemma, defer_tier false, gate false, target_file Helpers/Inference.lean, source cite:duarte-2024-appE-multinomial-gaussian retained. Causalean.Stat.IIDSample.clt_normalizedSum_vec moves from the node's `reuse` field into its PROOF PLAN, where the lemma is proved as the thin exact specialisation of that theorem at the centered finite cell indicators psi(o) = e_o − p, with the normalised-sum identity (normalizedSum S psi at index n = sqrt(n)(p_hat − p)) and the covariance identification (via gaussianLimit_covarianceBilin, s^T(diag(p) − p p^T) t = s^T Sigma_p t) carried out locally. It stays removed from every consumer's hyps, because the local lemma is proved rather than assumed. F1 emits no citation_discharged stamp; main applies the supported bin/gate.ts register→discharge stamp after this plan shape is persisted.)",
+      "why": "Round-5 upstream F2.5 fix-locus directive: the scaffolder rooted the defect in the plan, not the Lean. A `reuse` disposition tells F2 that the library decl IS the node, so it would emit an alias; but clt_normalizedSum_vec is the general multivariate CLT for an arbitrary measurable square-integrable mean-zero psi against the abstract gaussianLimit, whereas the node asserts the specific multinomial statement sqrt(n)(p_hat − p) ⇝ G_p with G_p ~ N(0, diag(p) − p p^T) in the paper's notation. The two type-differ by exactly the specialisation work — the normalised-sum identity and the covariance identification — which under a reuse disposition has nowhere to live, so the scaffold could not succeed. Planning it define-local gives that work a home while keeping the discharge total and honest: the lemma is fully proved from library substrate, the delivered theorems stay strictly less conditional, and no assumption is laundered. Both cited decls re-verified in source at Causalean/Stat/CLT/GaussianLimit.lean:116 and :80, with Causalean/PO/ID/Partial/RandomSet/IntervalCLT.lean:110 as the analogous in-library specialisation F3 should follow. Round-6 addendum: the discharge-stamp key F1 had written on this node is removed, per the upstream directive that F1 never emits that stamp; main applies the bin/gate.ts register→discharge stamp after this plan shape is persisted."
+    },
+    {
+      "id": "D-K",
+      "decision": "def:whole-set-confidence-construction is planned as the CONCRETE Bonferroni simultaneous Clopper-Pearson construction the core specifies — exact binomial test inversion (binomialLowerTail / binomialUpperTail / clopperPearsonAcceptance / clopperPearsonLower / clopperPearsonUpper / clopperPearsonInterval / clopperPearsonIntervalAtError) in Helpers/ClopperPearson.lean, the box C_{n,alpha} at per-cell error alpha/|O| and the whole-set interval I_{n,alpha} with the [0,1] fallback at the tail of Helpers/Inference.lean — and prop:finite-sample-whole-set-implementation is stated at that concrete box, PROVING the per-cell miss bound rather than receiving it. The abstract MarginalConfidenceBox record is deleted. SUPERSEDED IN PART by D-N (round 9): the residual substrate item this decision sized as I-1 (the count-law bridge HasLaw (multinomialCounts o) Bin(n, p_o) P) is withdrawn — it already exists sorry-free as hasLaw_iidCellCount_binomial in Helpers/BinomialCountLaw.lean. Everything else in this decision stands.",
+      "why": "Round-6 correction FLAG-silent-gate: the reviewer correctly held that a construction node cannot discharge its own obligation by taking the obligation as a premise field, and that a trivial [0,1] inhabitant does not realise the stated CP construction. The concrete route is available and largely already built: Mathlib supplies the exact binomial law Bin(n, p) with binomial_singleton and ae_le_of_hasLaw_binomial (Mathlib/Probability/Distributions/Binomial.lean) but no interval, inversion or coverage theory (lean_local_search binomial; grep of Mathlib/Probability for binomial; lean_local_search hasLaw_binomial empty; grep of ../Causalean for setBernoulli|Bin(|HasLaw returns one unrelated hit), so the inversion layer is local — and it EXISTS AND COMPILES 0-sorry at CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/Helpers/ClopperPearson.lean, carrying binomial_miss_clopperPearsonInterval_le and binomial_miss_clopperPearsonIntervalAtError_le (lean_diagnostic_messages on 2026-09-03: zero errors, zero warnings, no sorry). Notably its proof needs no monotonicity or continuity of the binomial tail in theta — the coverage follows from two finite rejection-set bounds via Finset.max'/min' — so the feared unbounded binomial-analysis dependency does not arise. What remained at round 6 was the classical count-law bridge; round 9 (D-N) establishes that this too is already built — hasLaw_iidCellCount_binomial in Helpers/BinomialCountLaw.lean does exactly the push through the IIDSample field onto setBer(Iio n, p_o) composed with ncard — so I-1 is withdrawn and nothing is hidden inside a premise."
+    },
+    {
+      "id": "D-L",
+      "decision": "SUPERSEDED by D-M (round 8): this decision refused P9/P4 on the reading that the accompanying directive prescribed the local-lemma shape; the round-8 directive states the opposite explicitly, so the refusal is withdrawn and both findings are applied. (Former content: The round-7 findings FLAG-P9 (at lem:finite-multinomial-clt) and FLAG-P4 (at thm:atomic-tie-subsampling-validity-global-sign) are resolved by PERSISTING the local-proved-lemma shape D-J prescribes, not by re-gating. lem:finite-multinomial-clt keeps disposition define-local, reuse null, lean_kind lemma, defer_tier false, gate false, no gate_class, source cite:duarte-2024-appE-multinomial-gaussian retained, target_file Helpers/Inference.lean, and the proof plan of the thin exact specialisation of Causalean.Stat.IIDSample.clt_normalizedSum_vec at the centered finite cell indicators (normalised-sum identity + covariance identification). F1 emits NO citation_discharged stamp; main applies the supported bin/gate.ts --discharge register→discharge stamp after this shape is persisted, which is the step that satisfies P9. It stays OUT of thm:atomic-tie-subsampling-validity-global-sign's hyps, which remain [ass:iid-finite-sampling]. No other node, S-block, disposition, defer_tier, target_file, file_plan entry or infrastructure_needed item is touched.)",
+      "why": "The upstream F2.5 fix-locus triage that accompanies these findings roots the defect in the FORMALIZATION PLAN and prescribes exactly this shape, explicitly instructing that F1 not set the discharge stamp itself and that the node be kept out of consumers' hyps because the local lemma is PROVED rather than assumed. Applying P4 literally — threading the node back into the consumer as a hypothesis — would re-assume a fact the plan discharges from library substrate and would make the delivered theorem strictly MORE conditional than the evidence warrants; applying P9 literally by re-minting a gate_class:'cited' assumption would undo D-I/D-J on F1's own initiative, which is exactly the move F1 is forbidden to make in either direction. Nothing is laundered: the discharge is TOTAL (verified in source — clt_normalizedSum_vec is the multivariate CLT against the concrete gaussianLimit, and gaussianLimit_covarianceBilin at psi(o) = e_o − p yields s^T(diag(p) − p p^T)t = s^T Sigma_p t, so the specialised conclusion type-matches the node statement in full with no population-vs-empirical, norm or regime mismatch and no un-built bridge), and the Duarte et al. citation entry stays in citations[] so the bibliographic provenance of the claim survives the discharge."
+    },
+    {
+      "id": "D-M",
+      "decision": "SUPERSEDED ON lem:finite-multinomial-clt by D-O (round 10): the cited-gate shape recorded here — defer_tier true, Helpers/CitedGates.lean, threaded into thm:atomic-tie-subsampling-validity-global-sign's hyps — is withdrawn now that bin/gate.ts has stamped citation_discharged:true on that node; everything this decision says about the OTHER two cited gates and about directive item (3) stands. (Former content: lem:finite-multinomial-clt is RESTORED to the cited-gate form the core demands — lean_kind assumption, gate true, gate_class 'cited', defer_tier true, citation_id/source cite:duarte-2024-appE-multinomial-gaussian, carrier logical-claim, target_file Helpers/CitedGates.lean, hyps [ass:iid-finite-sampling] — and is THREADED as an explicit hypothesis binder into its one logical consumer thm:atomic-tie-subsampling-validity-global-sign, whose hyps become [ass:iid-finite-sampling, lem:finite-multinomial-clt]. It is listed in infrastructure_needed under its own core node id and excluded from any theorems manifest. Dependency closure: (a) file_plan moves the node from Helpers/Inference.lean to Helpers/CitedGates.lean; (b) thm:projection-composed-directional-limit, which does NOT list this node in depends_on and therefore may neither thread it nor consume it as a local lemma, now proves its own weak-convergence step in place by instantiating Causalean.Stat.IIDSample.clt_normalizedSum_vec at the centered cell indicators (~60 lines in Helpers/Projection.lean), staying unconditional on any cited gate with hyps [ass:iid-finite-sampling]. D-I, D-J and D-L are superseded on this node. F1 emits NO citation_discharged stamp; the discharge PATH (normalised-sum identity + covariance identification, both verified against Causalean/Stat/CLT/GaussianLimit.lean) is recorded on the node so that bin/gate.ts --discharge can later convert it to the stamped lemma form, at which point the gate keys and the consumer hyps entry are removed and every consumer is re-reviewed.)",
+      "why": "Round-8 upstream F2.5 fix-locus directive item (1), which is explicit and supersedes the round-5/7 reading that D-J/D-L acted on: a status:'cited' statement with source.carrier:'logical-claim' has exactly two admissible plan forms — the assumption-shaped cited gate, or a discharged lemma STAMPED citation_discharged:true by bin/gate.ts --discharge — and the directive names re-deriving it as an ordinary in-plan lemma (the D-J shape) and routing it to a substrate builder as the two forbidden evasions. F1 is forbidden to write the discharge stamp, so form (a) is the only shape F1 can emit, and gate_class plus carrier kind are fixed by D0 provenance and are not F1's to re-judge in either direction. Directive item (2) then follows mechanically by hyp-closure over logical cited deps. The cost is honest and bounded: thm:atomic-tie-subsampling-validity-global-sign becomes conditional on one further classical, named, externally established fact that cannot make it vacuous, and the discharge remains cheap and fully specified on the node, so this is SUBSTRATE_DEBT the orchestrator can clear before banking rather than permanent conditionality. Directive item (3) needs no structural change: D-K (round 6) already deleted the MarginalConfidenceBox coverage-field premise and re-planned def:whole-set-confidence-construction / prop:finite-sample-whole-set-implementation around the concrete finite-binomial Clopper-Pearson construction whose inversion layer is BUILT 0-sorry at CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/Helpers/ClopperPearson.lean (re-verified round 8: binomialLowerTail, binomialUpperTail, clopperPearsonAcceptance, clopperPearsonLower, clopperPearsonUpper, clopperPearsonInterval, clopperPearsonIntervalAtError, mem_clopperPearsonInterval_of_tailError_lt, binomial_miss_clopperPearsonInterval_le, binomial_miss_clopperPearsonIntervalAtError_le all present, no sorry), so the binomial-tail / test-inversion result is no longer absent; the count-law bridge HasLaw (multinomialCounts o) Bin(n, p_o) P was re-affirmed here as the MARKED bounded-build item I-1, and D-N (round 9) then withdraws even that, having found it already built as hasLaw_iidCellCount_binomial in Helpers/BinomialCountLaw.lean."
+    },
+    {
+      "id": "D-N",
+      "decision": "The infrastructure item I-1 (the count-law bridge HasLaw (multinomialCounts o) Bin(n, p_o) P) is WITHDRAWN as a false absence claim, and S4, def:whole-set-confidence-construction and prop:finite-sample-whole-set-implementation are re-planned to IMPORT AND CONSUME CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/Helpers/BinomialCountLaw.lean. Concretely: the SLCCSampling carrier DEFINES multinomialCounts o := iidCellCount S o n on its IIDSample field, so the bridge holds definitionally; hasLaw_iidCellCount_binomial supplies HasLaw (iidCellCount S o n) (Bin(n, p_o)) mu from the singleton-mass side condition P {o} = p_o; and iidCellCount_miss_clopperPearsonIntervalAtError_le already composes that with this artifact's binomial_miss_clopperPearsonIntervalAtError_le to give the per-cell miss bound directly on the ambient measure, so step (ii) of prop:finite-sample-whole-set-implementation's proof plan is a citation rather than build work. Helpers/Inference.lean gains the import. infrastructure_needed no longer lists I-1; the only Defer items left are the two cited gates and the crux thm:atomic-tie-subsampling-validity-global-sign. No node's disposition, lean_kind, gate status, defer_tier, hyps, target_file or file_plan placement changes, and no previously cleared reuse is disturbed (stdSimplex at def:response-simplex and Causalean.Stat.IIDSample at ass:iid-finite-sampling both stand, the latter now additionally as the argument of iidCellCount).",
+      "why": "Round-9 correction FLAG-MISSED-REUSE at def:whole-set-confidence-construction: the plan asserted the count-law bridge was absent from both Mathlib and Causalean and sized it as I-1, but the reviewer identified it already present and sorry-free in this artifact's own Helpers/ directory. Re-verified independently before editing: Helpers/BinomialCountLaw.lean was read in full (indicatorCount, hasLaw_indicatorCount_binomial, iidEventCount, hasLaw_iidEventCount_binomial, iidCellCount, hasLaw_iidCellCount_binomial, iidCellCount_miss_clopperPearsonIntervalAtError_le; no sorry) and lean_diagnostic_messages returned zero errors and zero warnings on 2026-09-03. The earlier search trace was wrong in scope, not in method: it grepped Mathlib and ../Causalean for the bridge and correctly found nothing there, but never scanned the artifact's own Lean directory, where a prior build wave had already landed it. The lesson is recorded in the S4 note: a define-local absence claim must scan the artifact's own target subdirectory before it is asserted. Withdrawing I-1 makes the plan strictly less debt-bearing and leaves the remaining whole-set construction — the Bonferroni box, the constrained value set, and the [0,1] fallback — legitimately define-local with no absent substrate."
+    },
+    {
+      "id": "D-O",
+      "decision": "lem:finite-multinomial-clt is planned COHERENTLY AS THE LOCAL DISCHARGED LEMMA it already is on disk: lean_kind lemma, disposition define-local, reuse null, defer_tier FALSE, gate false, no gate_class, source/citation_id cite:duarte-2024-appE-multinomial-gaussian retained, citation_discharged:true retained exactly as stamped by bin/gate.ts --discharge (F1 neither writes nor removes that stamp), target_file moved from Helpers/CitedGates.lean to Helpers/Inference.lean, and the ~60-line discharge recorded on the node as its proof plan (clt_normalizedSum_vec at psi(o) = e_o − p, plus the normalised-sum identity and the covariance identification). D-M is superseded ON THIS NODE ONLY. Dependency closure, all of it already consistent or patched here: (a) file_plan moves the node out of Helpers/CitedGates.lean into Helpers/Inference.lean, which precedes T7 and T11 in dependency_order; (b) thm:atomic-tie-subsampling-validity-global-sign keeps hyps [ass:iid-finite-sampling] — no edit was needed, since the discharge stamp had already removed the threaded gate entry — and its notes are corrected to say the CLT step is discharged by APPLYING the proved lemma, leaving it conditional on exactly one cited gate (Raic, reached through lem:finite-alphabet-fan-berry-esseen-explicit-schedule); (c) thm:projection-composed-directional-limit likewise applies the proved lemma instead of re-instantiating clt_normalizedSum_vec in place, dropping the duplicate ~60 lines the round-8 text scheduled into Helpers/Projection.lean, with hyps unchanged at [ass:iid-finite-sampling]; (d) the node is excluded from infrastructure_needed, leaving only the two genuine cited gates (lem:hadamard-directional-delta-method, lem:raic-multivariate-berry-esseen-convex-sets) and the crux thm:atomic-tie-subsampling-validity-global-sign. No other node's disposition, lean_kind, gate status, defer_tier, hyps or target_file changes; the two reuse decisions the reviewer explicitly cleared this round — stdSimplex at def:response-simplex and Causalean.Stat.IIDSample at ass:iid-finite-sampling, neither sorry-backed — stand untouched.",
+      "why": "Round-10 correction FLAG-MIS-TAGGED-DEFER: the node carried defer_tier:true and a cited-gate file placement while ALSO carrying citation_discharged:true, which is incoherent — Defer tier is reserved for a large (3+ files / open math) or genuinely risky obligation, and this node's stated discharge is a bounded local specialisation of Causalean.Stat.IIDSample.clt_normalizedSum_vec plus finite normalized-sum and covariance algebra, roughly sixty lines against substrate verified present in source (GaussianLimit.lean:116 and :80). D-M's reasoning was right for an UNDISCHARGED cited logical claim — F1 may not convert one to a non-gate form on its own initiative, and only bin/gate.ts may stamp the discharge — but that stamp has since been applied, and the plan simply failed to follow it through; honouring the stamp is not F1 re-judging D0 provenance, it is F1 recording the state the supported discharge path put the node in. Nothing is laundered: the discharge is TOTAL (no population-vs-empirical, norm or regime mismatch, no un-built bridge), the Duarte et al. citation entry stays in citations[] so provenance survives, and the two delivered consumers become strictly LESS conditional rather than more."
+    }
+  ],
+  "external_substrate_assumptions": []
+}

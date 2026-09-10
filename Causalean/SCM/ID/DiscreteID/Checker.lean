@@ -33,7 +33,13 @@ open scoped MeasureTheory ProbabilityTheory
 variable {N : Type*} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-/-- **Computable fuel-bounded IDENTIFY reachability.**  Returns `true` when the
+/-- For [a finite population of variables](hyp:N), [a SWIG graph](hyp:G),
+a nonnegative fuel bound, a proposed containing node set, and
+a target node set, [the computable reachability checker](goal) returns false
+[at zero fuel](step:1), while [at positive fuel it accepts exactly the stated
+one-step or recursively reachable cases](step:2).
+
+**Computable fuel-bounded IDENTIFY reachability.**  Returns `true` when the
 c-factor `Q[C]` can be recovered from `Q[T]` within `fuel` IDENTIFY steps.  This
 is the executable mirror of the inductive `CFactorReachableRec`: it is choice-free
 (it searches `(G.induce A).cComponentSet` with `any` instead of naming the
@@ -109,14 +115,22 @@ theorem cFactorReachableRecB_sound (G : SWIGGraph N) :
               (G.induce (inducedAncestral G T C)) hne hC' hCC'
           exact CFactorReachableRec.step hne hCT hAC hAT (hcontain ▸ hrec)
 
-/-- Validity of an intervention split is decidable — enables the executable
+/-- For [a finite collection of distinguishable node labels](hyp:N), [an intervention-variable set](hyp:X), and [a SWIG graph](hyp:G), [decidability of intervention validity](goal) determines whether splitting the graph at that intervention set is valid.
+
+Validity of an intervention split is decidable — enables the executable
 `idAlgorithm` to branch on it. -/
 instance instDecidableInterventionValid
     (X : Finset N) (G : SWIGGraph N) : Decidable (interventionValid X G) := by
   unfold interventionValid
   infer_instance
 
-/-- **The executable ID checker.**  Runs the recursive Tian–Shpitser algorithm on
+/-- For [a finite population of variables](hyp:N), [a fuel bound](hyp:fuel),
+[a SWIG graph](hyp:G), [an intervention set](hyp:X), and [an outcome-node set](hyp:Y),
+[the executable ID checker](goal) returns true exactly when the intervention is valid,
+the outcomes are observed and disjoint from intervention random nodes, and every
+post-intervention ancestral c-component passes the fuel-bounded reachability check.
+
+**The executable ID checker.**  Runs the recursive Tian–Shpitser algorithm on
 `(G, X, Y)` with `fuel` reduction steps: it requires a valid intervention split, an
 observed query disjoint from `X`, and that every c-component of the
 post-intervention ancestral graph is recursively reachable from its containing

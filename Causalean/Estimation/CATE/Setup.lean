@@ -62,8 +62,9 @@ namespace CATEEstimationSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- Value-space CATE: `τ_val x := μ_val 1 x − μ_val 0 x`.  This is the
-"observable CATE regression" `τ_0` of `def:est-cate-system`. -/
+/-- For [a potential-outcomes system with a standard Borel sample space and finite probability measure](hyp:P), [a measurable covariate space](hyp:γ), [a CATE estimation system](hyp:S), and [a covariate value](hyp:x), the [value-space conditional average treatment effect](goal) is the conditional mean outcome under treatment at that covariate value minus the conditional mean outcome under control at that covariate value.
+
+This is the "observable CATE regression" `τ_0` of `def:est-cate-system`. -/
 def τ_val (S : CATEEstimationSystem P γ) (x : γ) : ℝ :=
   S.μ_val true x - S.μ_val false x
 

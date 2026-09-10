@@ -1,0 +1,35 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.Basic
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.Helpers
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.Helpers.BoundedClass
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.Helpers.Certificate
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.Helpers.Completion
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.Helpers.InformationDistance
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.Helpers.PivotRecursion
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.Helpers.PowerEnvelope
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.Helpers.Sampling
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.Helpers.Selector
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.Helpers.Semialgebraic
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.Helpers.Witnesses
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.TConsistencyAboveBoundary
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.TDesignRestrictionBoundary
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.TFourNodeCollision
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.TGeometryIndexedLocalPowerEnvelope
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.THonestFamilyConfidence
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.TImpossibilityBoundedInformation
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.TPositiveNoiseRealization
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.TRankOneReduction
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.TSharpTargetFiber
+import CausalSmith.ExactID.EID_CovshiftProfilequotientTargets_Research.TSubsetPivotCompleteness
+
+/-! # Run barrel (auto-generated)
+
+Aggregates every module of this causalsmith run so the whole run is ONE buildable target
+(`lake build <this module>`). Research modules are not reachable from the top-level
+`CausalSmith.lean` barrel, so the default lake target skips them and reports green on stale
+oleans. Rewritten from the run's module set on every F-stage entry — do not hand-edit. -/

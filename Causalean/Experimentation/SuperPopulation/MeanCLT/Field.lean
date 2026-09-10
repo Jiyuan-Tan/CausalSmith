@@ -38,10 +38,15 @@ variable (hmeasY : ∀ i, Measurable (Y i))
 variable (hindepY : ∀ A B : Finset V, (∀ a ∈ A, ∀ b ∈ B, ¬ adj a b) →
     IndepFun (fun ω => fun k : A => Y k ω) (fun ω => fun k : B => Y k ω) μ)
 
-/-- The **centered/normalized network field** for a super-population mean.  From raw outcomes
-`Y i : Ω → ℝ` carrying a reflexive/symmetric measurable m-dependent network and a normalizer `s`
-(intended `s = √Var(∑ᵢ Yᵢ)`), build the `NetworkDependence` whose summand is the standardized
-contribution `Xᵢ = (Yᵢ − E[Yᵢ]) / s`.
+/-- Given [a finite population of units](hyp:V), [a measurable sample space](hyp:Ω), [a measure on
+that space](hyp:μ), [a real-valued outcome for every unit and sample point](hyp:Y), [a decidable relation
+between units](hyp:adj), [the assumption that every unit is related to itself](hyp:hrefl), [the
+assumption that this relation is symmetric](hyp:hsymm), [the assumption that every outcome is
+measurable](hyp:hmeasY), [the assumption that outcome vectors for any two finite sets with no
+relation joining them are independent](hyp:hindepY), and [a real normalizing constant](hyp:s), the
+[centered and normalized network field](goal) has, for each unit, its outcome minus its expectation
+under the given measure, divided by that constant; it retains the supplied relation and has
+independent vectors on finite sets with no relation joining them.
 
 The network relation, its decidability, reflexivity, symmetry, and the per-summand measurability are
 inherited from the outcome-level data.  The independence field (non-adjacent standardized tuples are

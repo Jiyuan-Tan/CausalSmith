@@ -67,7 +67,11 @@ namespace DepGraph
 
 variable {X : ι → Ω → ℝ} (D : DepGraph X μ)
 
-/-- The closed dependency neighborhood `N i = {j | G i j}`. -/
+/-- For any finite index set and [a dependency graph for a real-valued random-variable
+family](hyp:D), and for [an index $i$](hyp:i), the [closed dependency neighborhood of $i$](goal)
+is the finite set of all indices adjacent to $i$ in that graph, including $i$ itself.
+
+The closed dependency neighborhood is `N i = {j | G i j}`. -/
 noncomputable def nbhd (i : ι) : Finset ι := by
   letI := D.decG; exact Finset.univ.filter (fun j => D.G i j)
 

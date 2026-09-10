@@ -27,13 +27,17 @@ namespace Causalean
 
 open scoped MeasureTheory
 
-/-- A value assignment over a finite node set gives one value in the appropriate space for each
-node in the set. -/
+/-- Given an [underlying collection of nodes](hyp:M), a [finite node set](hyp:I), and [a family
+of value spaces, one for each node](hyp:Ω), a [value assignment over that finite node set](goal)
+gives each node in the set one value from its associated value space. -/
 abbrev ValuesOn {M : Type*}
     (I : Finset M) (Ω : M → Type*) :=
   ∀ i : {i // i ∈ I}, Ω i.val
 
-/-- A value assignment can be restricted from a larger finite node set to a smaller one.
+/-- Given an [underlying collection of nodes](hyp:M), [finite node sets](hyp:I), [a family
+of measurable value spaces, one for each node](hyp:Ω), and [evidence that the second node set is
+contained in the first](hyp:hJI), the [coordinate-restriction map](goal) sends each assignment on
+the first set to its values on the second set.
 
     This coincides definitionally with Mathlib's `Finset.restrict₂`; we keep the explicit
     lambda body because a large number of downstream proofs `simp [valuesProjection]` and rely
@@ -69,8 +73,10 @@ theorem comap_valuesProjection_le {M : Type*}
       (inferInstance : MeasurableSpace (ValuesOn I Ω')) :=
   Measurable.comap_le (measurable_valuesProjection hW)
 
-/-- Value assignments over propositionally equal finite node sets are canonically measurably
-equivalent.
+/-- Given an [underlying collection of nodes](hyp:M), [finite node sets](hyp:I), [a family
+of measurable value spaces, one for each node](hyp:Ω), and [an equality of the two node
+sets](hyp:h), the [canonical measurable equivalence](goal) identifies assignments over the first
+set with assignments over the second set by retaining the corresponding coordinate values.
 
     `ValuesOn I Ω` and `ValuesOn J Ω` are canonically measurably-equivalent when the
     index `Finset`s agree propositionally.  Packages the `valuesProjection`
@@ -111,7 +117,11 @@ lemma measurePreserving_valuesEquivOfEq {M : Type*}
       = MeasureTheory.Measure.map id (MeasureTheory.Measure.pi μ) from by rw [hid]]
   rw [MeasureTheory.Measure.map_id]
 
-/-- This map combines two coordinate assignments into one assignment on their union.
+/-- Given an [underlying collection of nodes whose equality is decidable](hyp:M), [a family of
+measurable value spaces, one for each node](hyp:Ω), [finite node sets](hyp:A), and [value
+assignments on the first and second sets](hyp:a,b), the [combined assignment on their
+union](goal) uses the first assignment at nodes it contains and otherwise uses the second
+assignment.
 
 The first assignment takes priority on overlapping coordinates; the second
 assignment is used on the remaining coordinates. -/

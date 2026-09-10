@@ -62,20 +62,32 @@ theorem inClass_null (hεg : 0 ≤ εg) (hεm : 0 ≤ εm) :
   err_g d := by rw [l2sq_self]; exact hεg
   err_m := by rw [l2sq_self]; exact hεm
 
-/-- The `n`-sample law of the centered null data-generating process. -/
+/-- For every [positive number $K$ of paired cells](hyp:K) and [sample size $n$](hyp:n), the
+[null $n$-sample law](goal) is the independent-product distribution of $n$ observations from
+the centered null data-generating process. -/
 noncomputable def Qfalse (K n : ℕ) [NeZero K] : Measure (Fin n → Obs (Fin K × Bool)) :=
   productLaw (validDGP_hat (K := K)) n
 
-/-- Equal mixture weight on every Rademacher sign vector. -/
+/-- For every [number $K$ of paired cells](hyp:K), the [sign-mixture weight function](goal)
+assigns equal probability to each of the $2^K$ binary sign vectors. -/
 noncomputable def signWeight (K : ℕ) : (Fin K → Bool) → ℝ≥0∞ :=
   fun _ => (Fintype.card (Fin K → Bool) : ℝ≥0∞)⁻¹
 
-/-- The `n`-sample law for one perturbed data-generating process indexed by a sign vector. -/
+/-- For every [positive number $K$ of paired cells](hyp:K), [nonnegative treated-outcome bump
+$\alpha$](hyp:α,hα), [nonnegative propensity bump $\beta$](hyp:β,hβ) satisfying
+[the feasibility condition $\alpha+2\beta\leq 1/2$](hyp:hαβ), [sample size $n$](hyp:n), and
+[binary sign vector over the $K$ pairs](hyp:lam), the [sign-indexed perturbed $n$-sample
+law](goal) is the independent-product distribution of observations from the corresponding
+perturbed data-generating process. -/
 noncomputable def Qpert [NeZero K] (hα : 0 ≤ α) (hβ : 0 ≤ β) (hαβ : α + 2 * β ≤ 1 / 2)
     (n : ℕ) (lam : Fin K → Bool) : Measure (Fin n → Obs (Fin K × Bool)) :=
   productLaw (validDGP_perturbed hα hβ hαβ lam) n
 
-/-- Alternative `n`-sample law formed by uniformly mixing over all perturbation signs. -/
+/-- For every [positive number $K$ of paired cells](hyp:K), [nonnegative treated-outcome bump
+$\alpha$](hyp:α,hα), [nonnegative propensity bump $\beta$](hyp:β,hβ) satisfying
+[the feasibility condition $\alpha+2\beta\leq 1/2$](hyp:hαβ), and [sample size $n$](hyp:n),
+the [alternative $n$-sample law](goal) is the uniform mixture of the sign-indexed perturbed
+$n$-sample laws. -/
 noncomputable def Qtrue [NeZero K] (hα : 0 ≤ α) (hβ : 0 ≤ β) (hαβ : α + 2 * β ≤ 1 / 2) (n : ℕ) :
     Measure (Fin n → Obs (Fin K × Bool)) :=
   mixture (signWeight K) (fun lam => Qpert hα hβ hαβ n lam)
@@ -117,8 +129,15 @@ theorem real_le_minimaxMiss [NeZero K] {m : Fin K × Bool → ℝ} {g : Bool →
   simpa [nMiss] using
     nMiss_le_minimaxMiss (⟨(m, g), hin⟩ : InClassDGP mhat ghat εg εm) (est := est) (s := s)
 
-/-- Assemble the explicit Le Cam witness from the centered null and the uniform perturbation
-mixture.
+/-- For every [positive number $K$ of paired cells](hyp:K), [sample size $n$](hyp:n),
+[nonnegative treated-outcome bump $\alpha$](hyp:α,hα), [nonnegative propensity bump
+$\beta$](hyp:β,hβ) satisfying [the feasibility condition $\alpha+2\beta\leq 1/2$](hyp:hαβ),
+[outcome-error budget $\varepsilon_g$ at least $(\alpha+\beta)^2/(1-2\beta)^2$](hyp:εg,hg),
+[propensity-error budget $\varepsilon_m$ at least $\beta^2$](hyp:εm,hm), [nonnegative error
+budgets](hyp:hεg,hεm), and [total variation distance at most $1/2$ between the null and mixed
+alternative sample laws](hyp:htv), the [explicit two-point witness](goal) has the centered null
+and uniformly mixed perturbation as its two experiments and is valid for the stated nuisance
+budgets.
 
 The witness uses the supplied total-variation indistinguishability bound, the null ATE,
 and the common perturbed ATE shared by all sign vectors. -/

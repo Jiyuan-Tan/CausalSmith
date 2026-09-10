@@ -5,11 +5,11 @@ import { promisify } from "node:util";
 import type { StageIO } from "../pipeline.js";
 import { presentationPrompt } from "../prompt_io.js";
 import { parseOutline, reconcileXrefAdvisories } from "../stage_util.js";
-import { parseAnchoredEnvs, lintAnchors, lintClarity, lintDefinitionOrder, lintNegativeContributionFraming, lintNestedMathDelimiters, lintReferences, repairObjRefs } from "../tex_anchors.js";
+import { parseAnchoredEnvs, lintAnchors, lintClarity, lintEnvOrder, lintNegativeContributionFraming, lintNestedMathDelimiters, lintReferences, repairObjRefs } from "../tex_anchors.js";
 import { FormalLayerSource, normalizeCitedScopeFootnotes, paperEnvMismatches } from "../formal_layer.js";
 import { parseNoteBlocks } from "../note_parser.js";
 import { SYNTHETIC_COMPANION_RE, externallyConsumedModules, findOrphanPaperModules } from "../paper_index_orphans.js";
-import { parseBib, verifyEntry, defaultLookup, citedKeys, canonicalizeBibEntry, UNREACHABLE } from "../citations.js";
+import { parseBib, verifyEntry, defaultLookup, citedKeys } from "../citations.js";
 import { buildBundle, buildProseEntries, buildFormalLayer, buildSymbolRealizations, assumptionTable } from "../emit.js";
 import { discoverRealizedSymbols, buildSymbolClusters } from "../../formalization/crosswalk.js";
 import { auxiliaryNodes, isCitedNode } from "../graph_view.js";
@@ -18,13 +18,11 @@ import { ensureNlLinks } from "../nl_links.js";
 import { extractLeanrefIds } from "../tex2html.js";
 import { paperReferenceLabels, resolveObjCrefsPlain, tex2html } from "../tex2html.js";
 import { PresentationCrosswalk, LeanSnippets, FormalLayer, PaperMeta } from "../types.js";
-import { MODELS } from "../../models.js";
-import { assertP2AssemblyFresh, recordP2Assembly, texFilesUnder } from "../assembly_freshness.js";
+import { assertP2AssemblyFresh } from "../assembly_freshness.js";
 import { loadJsonCache } from "../cache.js";
 import { buildPaperGraph, lintIsolatedLemmas, type PaperGraphNode } from "../paper_graph.js";
 
 const execFileP = promisify(execFile);
-const COMPILE_ATTEMPTS = 3;
 
 type IndexedDecl = {
   name?: unknown;
@@ -120,8 +118,8 @@ export function blocksMissingEquivalence(
 }
 
 /**
- * P4 — emit the bundle: final lint, citation re-verification, PDF compile
- * loop (Terra fixes LaTeX errors, never frozen bodies), mechanical crosswalk
+ * P4 — emit the bundle: final lint, citation re-verification, PDF compilation
+ * (mechanical failures return to the orchestrator), mechanical crosswalk
  * join + Lean snippet extraction, assumption-faithfulness table with totality
  * check, tex→HTML fragment, meta.json. Site consumes only these artifacts.
  */
@@ -133,7 +131,7 @@ export async function stageP4(io: StageIO): Promise<void> {
   }
   // P4 is the supported deterministic re-emit entrypoint, so it must refresh template-owned
   // macros instead of inheriting the copy last written by P2. Otherwise a template change can
-  // spuriously enter the model-driven LaTeX repair loop and get patched into paper.tex itself.
+  // leave a compile failure that only a stale template copy caused.
   const macros = await readFile(join(import.meta.dirname, "..", "templates", "paper_macros.tex"), "utf8");
   await writeFile(join(io.outDir, "paper_macros.tex"), macros, "utf8");
   // Equivalence is the trust anchor, and the standard re-emit path `--from P4`
@@ -181,7 +179,7 @@ export async function stageP4(io: StageIO): Promise<void> {
   // reintroduce a prefix-dropped or dangling ref (silent "??"). Repair the unique-prefix case and
   // persist; a residual dangling ref fails the stage.
   const definedIds = new Set(parseAnchoredEnvs(paperTex).map((e) => e.obj_id));
-  const notation = parseOutline(await readFile(join(io.outDir, "outline.md"), "utf8")).notation;
+  const layerOrder = formalLayer.blocks.filter((b) => b.env !== null).map((b) => b.obj_id);
   const refRepair = repairObjRefs(paperTex, definedIds);
   if (refRepair.tex !== paperTex) {
     paperTex = refRepair.tex;
@@ -189,7 +187,7 @@ export async function stageP4(io: StageIO): Promise<void> {
   }
   const finalLint = [
     ...lintAnchors(paperTex, known, frozen),
-    ...lintDefinitionOrder(paperTex, notation),
+    ...lintEnvOrder(paperTex, layerOrder),
     ...lintClarity(paperTex),
     ...lintNestedMathDelimiters(paperTex),
     ...lintReferences(paperTex),
@@ -205,28 +203,21 @@ export async function stageP4(io: StageIO): Promise<void> {
   // dead entry (e.g. a pre-DOI classic that an external registry cannot match on
   // title) must not block the emit.
   const bibPath = join(io.outDir, "references.bib");
-  let bibText = await readFile(bibPath, "utf8");
-  let bib = parseBib(bibText);
+  const bib = parseBib(await readFile(bibPath, "utf8"));
   const cited = citedKeys(paperTex);
   const lookup = io.ctx.deps.lookup ?? defaultLookup;
   for (const entry of bib) {
     if (!cited.has(entry.key)) continue;
-    const rec = await lookup(entry);
-    let v = await verifyEntry(entry, async () => rec);
-    // Safe bibliography healing: an entry's own DOI/arXiv id resolved to exactly one
-    // authoritative record. Normalize canonical fields, then verify the repaired entry.
-    if (v.verdict === "minor" && rec !== null && rec !== UNREACHABLE && rec.authoritative) {
-      const fixed = canonicalizeBibEntry(bibText, entry.key, rec);
-      if (fixed !== null && fixed !== bibText) {
-        bibText = fixed;
-        await writeFile(bibPath, bibText, "utf8");
-        const repaired = parseBib(bibText).find((e) => e.key === entry.key)!;
-        v = await verifyEntry(repaired, async () => rec);
-        io.state.notes.push(`P4: normalized bib entry ${entry.key} from its authoritative DOI/arXiv record.`);
-      }
-    }
+    // An identifier can name a preprint of the cited journal article. It confirms the
+    // work, not interchangeable publication metadata: preserve the authored entry and
+    // leave discrepancies for source-grounded orchestrator review.
+    const v = await verifyEntry(entry, lookup);
     if (v.verdict === "major") {
-      throw new Error(`P4: bib entry ${entry.key} failed re-verification: ${v.detail}`);
+      throw new Error(
+        `P4: bib entry ${entry.key} failed re-verification: ${v.detail}. Correct the entry from the ` +
+        "right record, or — only when a primary source confirms it as written — add " +
+        "verifiedby = {<what confirmed it>} to the entry; otherwise remove the citation.",
+      );
     }
     if (v.verdict === "minor") {
       // A transient-unreachable or field-caveat entry is kept (not a hard fail), but surfaced so a
@@ -234,59 +225,25 @@ export async function stageP4(io: StageIO): Promise<void> {
       io.state.notes.push(`P4: bib entry ${entry.key} kept with caveat: ${v.detail}`);
     }
   }
-  bib = parseBib(bibText);
 
-  // compile loop
-  let lastLog = "";
-  let compiled = false;
-  for (let attempt = 1; attempt <= COMPILE_ATTEMPTS && !compiled; attempt++) {
-    try {
-      await execFileP("latexmk", ["-pdf", "-interaction=nonstopmode", "paper.tex"], {
-        cwd: io.outDir,
-        maxBuffer: 64 * 1024 * 1024,
-      });
-      compiled = true;
-    } catch (e: unknown) {
-      const err = e as { stdout?: string; stderr?: string; message?: string };
-      lastLog = [err.stdout, err.stderr, err.message].filter(Boolean).join("\n");
-      if (attempt === COMPILE_ATTEMPTS) break;
-      // codex edits paper.tex in place (user decision 2026-06-10: prefer codex
-      // credit; also avoids emitting the full source on stdout). Lint guards;
-      // restore on failure.
-      const before = paperTex;
-      await io.ctx.deps.runCodex({
-        prompt: await presentationPrompt("p4_latex_fix", {
-          compile_log: lastLog.slice(-8000),
-          paper_path: paperPath,
-          source_paths: await authoredTexSources(io.outDir),
-        }),
-        cwd: io.ctx.repoRoot,
-        reasoningEffort: "medium",
-        leanLsp: false,
-        model: MODELS.codexMechanical,
-      });
-      const fixed = await readFile(paperPath, "utf8");
-      const lint = [...lintAnchors(fixed, known, frozen), ...lintDefinitionOrder(fixed, notation)];
-      if (lint.length > 0) {
-        // Restore and RETRY rather than aborting the stage: the retry budget exists
-        // precisely for this. Feed the lint back so the next attempt knows why the
-        // previous edit was rejected instead of re-deriving the same illegal fix.
-        const detail = lint.map((p) => p.detail).join("; ");
-        await writeFile(paperPath, before, "utf8");
-        if (attempt === COMPILE_ATTEMPTS - 1) {
-          throw new Error(`P4 LaTeX fix broke the frozen layer on every attempt (restored): ${detail}`);
-        }
-        lastLog = `${lastLog}\n\nATTEMPT ${attempt} REJECTED AND REVERTED — your edit violated the frozen-layer lint: ${detail}\nDo not repeat that edit; fix the compile error a different way.`;
-        continue;
-      }
-      paperTex = fixed;
-    }
-  }
-  if (!compiled) {
-    throw new Error(`P4: paper.tex failed to compile after ${COMPILE_ATTEMPTS} attempts:\n${lastLog.slice(-2000)}`);
+  // Mechanical compile failures belong to the orchestrator, not a paid writer retry.
+  try {
+    await execFileP("latexmk", ["-pdf", "-interaction=nonstopmode", "paper.tex"], {
+      cwd: io.outDir,
+      maxBuffer: 64 * 1024 * 1024,
+    });
+  } catch (e: unknown) {
+    const err = e as { stdout?: string; stderr?: string; message?: string };
+    const log = [err.stdout, err.stderr, err.message].filter(Boolean).join("\n");
+    throw new Error(
+      "P4: paper.tex failed to compile; mechanical recovery required (no model retry). " +
+      "Inspect paper.log and repair the authored TeX source or shared template. " +
+      "After authored-source edits, use --from P2; otherwise re-enter P4.\n" +
+      log.slice(-2000),
+    );
   }
   // #5 — surface content that runs off the page. Overfull \hbox warnings are not
-  // compile errors (so the fix loop never sees them); read paper.log and report
+  // compile errors; read paper.log and report
   // the badly-overfull ones (> 15pt) so the orchestrator can shorten the notation
   // or wrap the wide display/table.
   try {
@@ -454,7 +411,7 @@ export async function stageP4(io: StageIO): Promise<void> {
   // its actual Lean pieces (component decls / theorem hypothesis binders) via
   // codex discovery, content-keyed cached in components_cache.json. By P4 the P1
   // audit has usually already populated the cache, so this is mostly cache hits.
-  const { components: componentsMap, moduleDecls } = await ensureComponentsForEnvs({
+  const { components: componentsMap, moduleDecls, resolvedDeclarations } = await ensureComponentsForEnvs({
     envs,
     crosswalk: io.bank.crosswalk,
     repoRoot: io.ctx.repoRoot,
@@ -469,11 +426,11 @@ export async function stageP4(io: StageIO): Promise<void> {
 
   // causalsmith review verdict per object (obj_id alias preferred, node id fallback) so the
   // bundle records the verified status honestly on every entry.
-  const verdictByObj = new Map<string, { status: string }>(
+  const verdictByObj = new Map<string, { status: string; lean?: { decl: string; file: string } | null }>(
     io.bank.graph.nodes.map((n) => [n.id, { status: n.review.status }]),
   );
   for (const block of formalLayer.blocks) {
-    if (!verdictByObj.has(block.obj_id)) verdictByObj.set(block.obj_id, { status: block.status });
+    if (!verdictByObj.has(block.obj_id)) verdictByObj.set(block.obj_id, { status: block.status, lean: block.lean });
   }
 
   const bundle = await buildBundle({
@@ -484,6 +441,7 @@ export async function stageP4(io: StageIO): Promise<void> {
     leanSubdir: io.bank.leanSubdir,
     commit,
     components: componentsMap,
+    resolvedDeclarations,
     moduleDecls: new Map([...moduleDecls].map(([k, v]) => [k, { file: v.file, line: v.line, kind: v.kind }])),
     verdictByObj,
   });
@@ -543,8 +501,8 @@ export async function stageP4(io: StageIO): Promise<void> {
   }
 
   // Cited gates are absent from the numbered paper environment layer, but the web formal panel
-  // exposes their exact proposition. Give each one a cited-result drawer entry so that panel row
-  // still opens the source-matched Lean `def : Prop` rather than becoming a dead target. Cited
+  // exposes their exact logical claim or metadata payload. Give each one a cited-result drawer
+  // entry so that the panel row still opens the source-matched Lean declaration. Cited
   // results are web-only dependency metadata: unlike narrative `prose` entries, they have no
   // paper-body block and must stay distinguishable from ordinary prose in the bundle contract.
   const citedIds = io.bank.graph.nodes
@@ -616,14 +574,21 @@ export async function stageP4(io: StageIO): Promise<void> {
     JSON.stringify(buildPaperGraph({ tex: paperTex, nodes: graphNodes, commit }), null, 2) + "\n",
     "utf8",
   );
-  // The extractor itself can exit successfully with structurally valid but
-  // wrong JSON. Run the independent snapshot + HEAD regression lint only after
-  // all three cache inputs exist, and make a failure visible to the pipeline.
+  // The extractor itself can exit successfully with structurally valid but wrong JSON. Run the
+  // independent SNAPSHOT lint (index vs the live Lean tree) once all three cache inputs exist.
+  // The git-ref regression (`--vs HEAD`) is deliberately NOT run here: this stage already refuses
+  // an index that drops or nulls what the previous on-disk index published
+  // (`validatePaperIndexReplacement`), and a comparison against git HEAD fails on any working
+  // tree whose Lean differs from HEAD — another window's uncommitted edits, a legitimately
+  // removed helper — with no bundle defect at all. CI keeps the `--vs` check.
   const idxLint = await execFileP(
     "npx",
-    ["tsx", "bin/check_paper_indexes.ts", "--strict", "--vs", "HEAD", "--bundle", basename(io.outDir)],
+    ["tsx", "bin/check_paper_indexes.ts", "--strict", "--no-vs", "--bundle", basename(io.outDir)],
     { cwd: join(io.ctx.repoRoot, "tools"), maxBuffer: 16 * 1024 * 1024 },
-  );
+  ).catch((err: { stdout?: string; stderr?: string; message?: string }) => {
+    // Surface the lint's own report: `execFile`'s message is only "Command failed: …".
+    throw new Error(`P4 paper-index lint failed:\n${[err.stdout, err.stderr].filter(Boolean).join("\n").slice(-4000) || err.message}`);
+  });
   // The check warns (stderr) for every git-untracked module it exempts from the orphan gate; on a
   // SUCCESSFUL run those lines would otherwise vanish with the captured buffer. Persist them so
   // the exemption is visible in the run record, not only on a hand-run of the lint.
@@ -763,9 +728,12 @@ export async function stageP4(io: StageIO): Promise<void> {
     });
     tldr = (out ?? "").trim().replace(/^["']+|["']+$/g, "").trim();
   }
+  // A one-line skim summary never fails the emit: on a contract violation the site folds to the
+  // abstract (PaperMeta defaults `tldr` to "") and the checkpoint reader sees the note.
   const tldrStyle = lintNegativeContributionFraming(tldr);
   if (tldrStyle.length > 0) {
-    throw new Error(`P4 TL;DR violates the affirmative prose contract: ${tldrStyle.map((p) => p.detail).join("; ")}`);
+    io.state.notes.push(`P4: TL;DR dropped (affirmative prose contract): ${tldrStyle.map((p) => p.detail).join("; ")}`);
+    tldr = "";
   }
   const meta = PaperMeta.parse({
     qid: io.ctx.qid,
@@ -781,14 +749,4 @@ export async function stageP4(io: StageIO): Promise<void> {
     score_rationale: scoreRationale,
   });
   await writeFile(join(io.outDir, "meta.json"), JSON.stringify(meta, null, 2) + "\n", "utf8");
-  // A successful compiler-repair pass may have applied the same mechanical fix
-  // to paper.tex and its authored cache. Preserve that synchronized baseline.
-  await recordP2Assembly(io.outDir);
-}
-
-/** Authored/cache TeX inputs that P2 uses to assemble paper.tex. Repairs must land here as
- * well as in the assembled file, otherwise a later P2 pass resurrects the compiler error. */
-async function authoredTexSources(outDir: string): Promise<string> {
-  const paths = [join(outDir, "front_matter.tex"), ...(await texFilesUnder(outDir, ["sections", "proofs"]))];
-  return paths.join("\n");
 }

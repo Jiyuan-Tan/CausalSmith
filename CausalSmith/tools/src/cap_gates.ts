@@ -122,7 +122,7 @@ export const CAP_GATES: CapGate[] = [
       f.d0_loop_counters = { solve_rounds: 0, revise_rounds: 0, consistency_heals: 0 };
     },
     guidance:
-      "a D-phase loop budget is exhausted (D0 solve rounds, D0.5 revise rounds, or the D0 consistency self-heal). Do NOT simply re-resume — the solver and referees are non-deterministic, so that is a re-roll rather than a retry. Diagnose the root cause first (solver stuck → `bin/d0_directive.ts` with an exact construction; a proposal needs adjudicating → `bin/d0_apply_change.ts`; the math is wrong → rewind to D-1.2). Once something at the root has CHANGED, resume with `--clear-gate d0_loop_cap_hit` (resets all D-phase loop counters).",
+      "a D-phase loop budget is exhausted (D0 solve rounds, D0.5 revise rounds, or the D0 consistency self-heal). Do NOT simply re-resume — the solver and referees are non-deterministic, so that is a re-roll rather than a retry. Diagnose the root cause first (solver stuck → `bin/d0_directive.ts` with an exact construction; a pull request awaits a verdict → `bin/d0_vc.ts <qid> <spec> pr show|merge|close`; the math is wrong → rewind to D-1.2). Once something at the root has CHANGED, resume with `--clear-gate d0_loop_cap_hit` (resets all D-phase loop counters).",
   },
 ];
 

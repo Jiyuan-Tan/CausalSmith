@@ -48,7 +48,7 @@ namespace Causalean.Estimation.MinimaxATE
 
 open scoped BigOperators
 
-/-- This maps a Boolean position to its plus-or-minus-one sign. -/
+/-- For [a Boolean-valued position](hyp:b), [the sign function](goal) equals $1$ when the position is true and $-1$ when it is false. -/
 def signOf (b : Bool) : ℝ := if b then 1 else -1
 
 /-- The sign of the true Boolean value is one. -/
@@ -66,7 +66,7 @@ theorem signOf_mem (b : Bool) : signOf b = 1 ∨ signOf b = -1 := by
 
 variable {K : ℕ}
 
-/-- Paired-cell Rademacher bump used to perturb the nuisance functions.
+/-- For [any natural number of pairs](hyp:K), [a choice of Boolean orientation for each pair](hyp:lam), and [a cell consisting of a pair and a Boolean position](hyp:x), [the paired-cell Rademacher bump](goal) is the product of the sign of the position and the sign chosen for that pair.
 
 Within each pair the two positions have opposite signs, and the sign vector chooses the
 orientation of each pair. -/
@@ -95,21 +95,17 @@ theorem neg_one_le_Δ (lam : Fin K → Bool) (x : Fin K × Bool) : -1 ≤ Δ lam
   · rw [h]; norm_num
   · rw [h]
 
-/-- Centered propensity estimate that assigns one half to every covariate
-value. -/
+/-- For [any natural number of pairs](hyp:K), [the centered propensity function](goal) assigns probability $1/2$ to every paired covariate cell. -/
 noncomputable def mhat : (Fin K × Bool) → ℝ := fun _ => 1 / 2
 
-/-- Centered outcome-regression estimate that assigns one half in both
-treatment arms. -/
+/-- For [any natural number of pairs](hyp:K), [the centered outcome-regression function](goal) assigns the value $1/2$ to every paired covariate cell in each of the two treatment arms. -/
 noncomputable def ghat : Bool → (Fin K × Bool) → ℝ := fun _ _ => 1 / 2
 
-/-- Perturbed propensity obtained by shifting the centered propensity along
-the Rademacher bump. -/
+/-- For [any natural number of pairs](hyp:K), [a real perturbation magnitude](hyp:β), and [a Boolean orientation chosen for each pair](hyp:lam), [the perturbed propensity function](goal) assigns to each cell $1/2$ minus the magnitude times that cell's paired-cell Rademacher bump. -/
 noncomputable def mPerturbed (β : ℝ) (lam : Fin K → Bool) : (Fin K × Bool) → ℝ :=
   fun x => 1 / 2 - β * Δ lam x
 
-/-- Perturbed outcome regression with an unchanged control arm and a
-nonlinear treated-arm shift.
+/-- For [any natural number of pairs](hyp:K), [real parameters governing the outcome and propensity perturbations](hyp:α), and [a Boolean orientation chosen for each pair](hyp:lam), [the perturbed outcome-regression function](goal) assigns $1/2$ in the control arm and, in the treated arm at each cell, the ratio of $1/2$ plus the outcome magnitude times that cell's bump to one minus twice the propensity magnitude times that bump.
 
 The treated arm divides by the corresponding propensity denominator, matching the asymmetric
 Case-1 construction. -/

@@ -98,7 +98,12 @@ namespace PLRSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ] [IsFiniteMeasure P.μ]
 variable (S : PLRSystem P γ)
 
-/-- The observed-data map returns the covariate, treatment, and outcome for each
+/-- For [a partially linear potential-outcomes system with a finite population measure and a
+measurable covariate space](hyp:P,γ) and [a partially linear estimation system built on it](hyp:S),
+the [observed-data map](goal) assigns every population unit its covariate, factual treatment, and
+factual outcome, in that order.
+
+The observed-data map returns the covariate, treatment, and outcome for each
 unit in the population space. -/
 noncomputable def factualZ : P.Ω → γ × ℝ × ℝ :=
   fun ω => (S.factualX ω, S.factualD ω, S.factualY ω)
@@ -108,11 +113,21 @@ noncomputable def factualZ : P.Ω → γ × ℝ × ℝ :=
 lemma measurable_factualZ : Measurable S.factualZ :=
   S.measurable_factualX.prodMk (S.measurable_factualD.prodMk S.measurable_factualY)
 
-/-- The joint observed-data law is the distribution of covariate, treatment, and
+/-- For [a partially linear potential-outcomes system with a finite population measure and a
+measurable covariate space](hyp:P,γ) and [a partially linear estimation system built on it](hyp:S),
+the [joint observed-data measure](goal) is the population measure transported through
+the map that records each unit's covariate, factual treatment, and factual outcome.
+
+The joint observed-data law is the distribution of covariate, treatment, and
 outcome induced by the population measure. -/
 noncomputable def P_Z : Measure (γ × ℝ × ℝ) := P.μ.map S.factualZ
 
-/-- The covariate marginal is the distribution of the observed covariate induced
+/-- For [a partially linear potential-outcomes system with a finite population measure and a
+measurable covariate space](hyp:P,γ) and [a partially linear estimation system built on it](hyp:S),
+the [covariate marginal measure](goal) is the population measure transported through the factual
+covariate map.
+
+The covariate marginal is the distribution of the observed covariate induced
 by the population measure. -/
 noncomputable def P_X : Measure γ := P.μ.map S.factualX
 
@@ -126,22 +141,42 @@ map. -/
 @[causal_defs_simps]
 lemma P_X_eq : S.P_X = P.μ.map S.factualX := rfl
 
-/-- The true nuisance is the pair of value-space outcome and treatment
+/-- For [a partially linear potential-outcomes system with a finite population measure and a
+measurable covariate space](hyp:P,γ) and [a partially linear estimation system built on it](hyp:S),
+the [true nuisance pair](goal) consists of that system's value-space outcome regression and
+treatment regression.
+
+The true nuisance is the pair of value-space outcome and treatment
 regressions. -/
 noncomputable def η₀ : PLRNuisance γ :=
   ⟨S.lVal, S.mVal, S.lVal_meas, S.mVal_meas⟩
 
-/-- The target parameter is the structural slope in the partially linear model. -/
+/-- For [a partially linear potential-outcomes system with a finite population measure and a
+measurable covariate space](hyp:P,γ) and [a partially linear estimation system built on it](hyp:S),
+the [target parameter](goal) is the structural slope of its partially linear model.
+
+The target parameter is the structural slope in the partially linear model. -/
 noncomputable def θ₀ : ℝ := S.θ
 
-/-- The residual second moment measures treatment variation left after
+/-- For [a partially linear potential-outcomes system with a finite population measure and a
+measurable covariate space](hyp:P,γ) and [a partially linear estimation system built on it](hyp:S),
+the [residual treatment second moment](goal) is the population integral of the squared difference
+between factual treatment and its value-space treatment regression evaluated at the factual covariate.
+
+The residual second moment measures treatment variation left after
 partialling out the covariate.
 
 It is the magnitude of the partialling-out Jacobian. -/
 noncomputable def residSecondMoment : ℝ :=
   ∫ ω, (S.factualD ω - S.mVal (S.factualX ω)) ^ 2 ∂P.μ
 
-/-- The partially linear moment instance plugs the Robinson partialling-out
+/-- For [a partially linear potential-outcomes system with a finite population measure and a
+measurable covariate space](hyp:P,γ) and [a partially linear estimation system built on it](hyp:S),
+the [partially linear general moment system](goal) is the abstract moment system with the Robinson
+partialling-out score, the system's true regression pair and structural slope, and a Jacobian equal
+to the negative residual treatment second moment.
+
+The partially linear moment instance plugs the Robinson partialling-out
 score into the abstract double-machine-learning framework.
 
 It uses the true regression pair as nuisance, the structural slope as target,

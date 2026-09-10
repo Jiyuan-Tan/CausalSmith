@@ -26,7 +26,7 @@ open Causalean
 variable {N : Type*} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-/-- The SWIG value spaces inherit the base-variable order.
+/-- For [a finite collection of variables whose members can be compared for equality and that have measurable ordered value spaces](hyp:N,Ω) and [each random or fixed copy of a variable](hyp:s), [an order on that copy's value space](goal) is provided by the order on the corresponding base-variable value space, with [the random-copy case](step:1) and [the fixed-copy case](step:2) treated identically.
 
 The random and fixed copies of a node use the same value space, so an order on
 each base-variable space also orders each SWIG coordinate. -/
@@ -35,7 +35,12 @@ instance instPreorderSwigΩ [∀ n, Preorder (Ω n)] :
   | .random _ => inferInstance
   | .fixed _ => inferInstance
 
-/-- Raising one parent coordinate cannot decrease the child equation.
+/-- For [a finite population of nodes with measurable ordered value spaces](hyp:N,Ω), [a child
+node](hyp:child), [a parent node](hyp:parent), and [a structural causal model](hyp:M), [the
+monotone-mechanism condition](goal) holds precisely when [the child is observed](step:1), the
+parent is a parent of that child, and for every two parent-value assignments that agree
+at all other parent coordinates and are ordered at the designated parent coordinate, the child's
+structural-function value is ordered in the same direction.
 
 `MonotoneMechanism child parent M` says that `child` is an observed node of the
 model, `parent` is a parent of that child in the model's DAG, and the structural
@@ -53,7 +58,7 @@ def MonotoneMechanism [∀ n, Preorder (Ω n)]
 
 /-! ## Concrete Boolean witnesses -/
 
-/-- Two variables for the Boolean monotonicity sanity check. -/
+/-- [The Boolean-chain node type](goal) consists of [the treatment node](hyp:d) and [the outcome node](hyp:y). -/
 inductive BoolChainNode
   | d
   | y
@@ -61,7 +66,7 @@ inductive BoolChainNode
 
 namespace BoolChainNode
 
-/-- The Boolean witness type has exactly the two elements `d` and `y`.
+/-- [A finite enumeration of the Boolean-chain node type](goal) is provided by [the two-element collection containing treatment and outcome](step:1) together with [the assertion that every Boolean-chain node belongs to that collection](step:2).
 
 Written out by hand rather than obtained from `deriving Fintype`: Mathlib's
 enum `Fintype` deriving handler currently emits a `Finset.mk` whose `nodup`
@@ -71,11 +76,13 @@ instance instFintype : Fintype BoolChainNode where
   elems := {d, y}
   complete := by intro x; cases x <;> decide
 
-/-- The Boolean witness has one directed edge, from treatment `d` to outcome `y`. -/
+/-- [The Boolean-chain edge relation](goal) holds for the ordered pair consisting of treatment
+$d$ and outcome $y$, and holds for no other ordered pair of Boolean-chain nodes. -/
 def edge : BoolChainNode → BoolChainNode → Prop
   | d, y => True
   | _, _ => False
 
+/-- For every ordered pair of Boolean-chain nodes, [a decision procedure for whether the pair is a directed edge](goal) is provided. -/
 instance edgeDecidable : DecidableRel edge := by
   intro a b
   cases a <;> cases b
@@ -84,7 +91,8 @@ instance edgeDecidable : DecidableRel edge := by
   · exact isFalse (fun h => h)
   · exact isFalse (fun h => h)
 
-/-- The topological order places the parent before the child. -/
+/-- [The Boolean-chain topological ranking](goal) assigns rank zero to treatment $d$ and rank one
+to outcome $y$. -/
 def topo : BoolChainNode → ℕ
   | d => 0
   | y => 1
@@ -97,7 +105,8 @@ private theorem topo_lt : ∀ a b, edge a b → topo a < topo b := by
   intro a b h
   cases a <;> cases b <;> simp [edge, topo] at h ⊢
 
-/-- The two-node DAG used by the Boolean monotonicity witnesses. -/
+/-- [The Boolean-chain directed acyclic graph](goal) is the two-node graph whose only directed
+edge is from treatment $d$ to outcome $y$. -/
 def dag : DAG BoolChainNode where
   edge := edge
   decEdge := edgeDecidable
@@ -107,7 +116,9 @@ end BoolChainNode
 
 open BoolChainNode
 
-/-- The standard SWIG graph for the two-node Boolean witness. -/
+/-- [The Boolean-chain single-world intervention graph](goal) has random observed treatment $d$
+and outcome $y$, no fixed nodes, and no unobserved nodes, with the Boolean-chain directed graph.
+-/
 def boolChainSWIG : SWIGGraph BoolChainNode where
   dag := initialSWIG BoolChainNode.dag
   fixed := ∅
@@ -132,23 +143,29 @@ def boolChainSWIG : SWIGGraph BoolChainNode where
     cases n <;> exact ⟨by decide, by decide⟩
   all_children_in_observed := by decide
 
-/-- Every variable in the Boolean witness has Boolean values. -/
+/-- [The Boolean-chain value-space assignment](goal) gives both treatment $d$ and outcome $y$
+the two-point Boolean value space. -/
 def boolChainΩ : BoolChainNode → Type := fun _ => Bool
 
+/-- For [each Boolean-chain node](hyp:n), [the measurable-space structure on its Boolean value space](goal) is the discrete measurable space, with [the treatment case](step:1) and [the outcome case](step:2) specified separately. -/
 instance boolChainMeasurableSpace : ∀ n, MeasurableSpace (boolChainΩ n)
   | d => ⊤
   | y => ⊤
 
+/-- For [each Boolean-chain node](hyp:n), [the preorder on its Boolean value space](goal) is the usual Boolean preorder, with [the treatment case](step:1) and [the outcome case](step:2) specified separately. -/
 instance boolChainPreorder : ∀ n, Preorder (boolChainΩ n)
   | d => inferInstanceAs (Preorder Bool)
   | y => inferInstanceAs (Preorder Bool)
 
-/-- The designated parent coordinate for the Boolean witness outcome. -/
+/-- [The designated Boolean-chain outcome-parent coordinate](goal) is the random treatment node
+$d$, the sole parent of the random outcome node $y$. -/
 def boolChainDParent :
     {w // w ∈ boolChainSWIG.dag.parents (SWIGNode.random y)} :=
   ⟨SWIGNode.random d, by decide⟩
 
-/-- The Boolean copying structural equation for the witness SCM.
+/-- For [an observed node of the Boolean-chain graph](hyp:v), [the Boolean copying structural
+equation](goal) returns false at treatment $d$ and, at outcome $y$, returns the value assigned to
+the treatment-parent coordinate.
 
 The treatment node is fixed at `false`; the outcome node copies the treatment
 parent coordinate. -/
@@ -164,7 +181,9 @@ def copyStructFun (v : {v // v ∈ boolChainSWIG.observed}) :
   | fixed n =>
       cases n <;> simp [boolChainSWIG] at hn
 
-/-- The Boolean reversing structural equation for the witness SCM.
+/-- For [an observed node of the Boolean-chain graph](hyp:v), [the Boolean reversing structural
+equation](goal) returns false at treatment $d$ and, at outcome $y$, returns the Boolean negation
+of the value assigned to the treatment-parent coordinate.
 
 The treatment node is fixed at `false`; the outcome node reverses the treatment
 parent coordinate. -/
@@ -210,7 +229,8 @@ theorem flipStructFun_measurable (v : {v // v ∈ boolChainSWIG.observed}) :
   | fixed n =>
       cases n <;> simp [boolChainSWIG] at hn
 
-/-- A Boolean SCM whose outcome equation copies the parent value.
+/-- [The monotone Boolean structural causal model](goal) is the Boolean-chain model with no
+fixed or latent nodes, nonparametric edge labels, and the copying structural equation.
 
 This concrete model witnesses that the structural monotonicity predicate is
 satisfiable. -/
@@ -227,7 +247,8 @@ noncomputable def monotoneBoolSCM : Causalean.SCM BoolChainNode boolChainΩ wher
     intro u
     exact (Finset.notMem_empty u.val u.property).elim
 
-/-- A Boolean SCM whose outcome equation reverses the parent value.
+/-- [The antitone Boolean structural causal model](goal) is the Boolean-chain model with no
+fixed or latent nodes, nonparametric edge labels, and the reversing structural equation.
 
 This concrete model witnesses that the structural monotonicity predicate is a
 nontrivial restriction: an otherwise well-formed SCM can violate it. -/
@@ -244,7 +265,9 @@ noncomputable def antitoneBoolSCM : Causalean.SCM BoolChainNode boolChainΩ wher
     intro u
     exact (Finset.notMem_empty u.val u.property).elim
 
-/-- The Boolean parent assignment that sets the designated parent to `b`.
+/-- For [a Boolean value](hyp:b), [the Boolean-chain outcome-parent assignment](goal) assigns
+that value to the designated treatment-parent coordinate and false to every other parent
+coordinate.
 
 All non-designated parent coordinates, if any, are fixed at `false`. In the
 two-node witness graph there are no such coordinates. -/

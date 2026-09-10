@@ -41,20 +41,35 @@ open scoped InnerProductSpace RealInnerProductSpace
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H]
 
-/-- `ψ` is a *gradient* of `g` relative to the tangent space `T` when its inner
+/-- Given [a real normed inner-product space](hyp:H), [a linear subspace designated as the tangent
+space](hyp:T), and [two vectors, a reference influence function and a candidate
+gradient](hyp:g,ψ), the [candidate is a gradient of the reference relative to the
+tangent space](goal) exactly when, for every vector in that subspace, its inner
+product with the candidate equals its inner product with the reference.
+
+`ψ` is a *gradient* of `g` relative to the tangent space `T` when its inner
 product against every tangent direction matches that of `g`. In semiparametric
 models `g` is a reference influence function and the gradients are exactly the
 influence functions of regular asymptotically linear estimators. -/
 def IsGradient (T : Submodule ℝ H) (g ψ : H) : Prop :=
   ∀ s ∈ T, ⟪ψ, s⟫_ℝ = ⟪g, s⟫_ℝ
 
-/-- The **efficient influence function**: the orthogonal projection of the
+/-- Given [a real normed inner-product space](hyp:H), [a tangent subspace admitting an orthogonal
+projection](hyp:T), and [a reference influence function](hyp:g), the [efficient
+influence function](goal) is the orthogonal projection of the reference influence
+function onto that tangent subspace.
+
+The **efficient influence function**: the orthogonal projection of the
 reference gradient `g` onto the tangent space `T`, coerced back into `H`. -/
 noncomputable def efficientIF (T : Submodule ℝ H) [T.HasOrthogonalProjection]
     (g : H) : H :=
   (T.orthogonalProjection g : H)
 
-/-- The **semiparametric efficiency bound**: the squared norm of the efficient
+/-- Given [a real normed inner-product space](hyp:H), [a tangent subspace admitting an orthogonal
+projection](hyp:T), and [a reference influence function](hyp:g), the [semiparametric
+efficiency bound](goal) is the squared norm of its efficient influence function.
+
+The **semiparametric efficiency bound**: the squared norm of the efficient
 influence function. -/
 noncomputable def effBound (T : Submodule ℝ H) [T.HasOrthogonalProjection]
     (g : H) : ℝ :=

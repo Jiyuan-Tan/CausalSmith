@@ -52,7 +52,8 @@ open MeasureTheory ProbabilityTheory Filter Topology
 
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} {P : Measure ℝ}
 
-/-- The indicator statistic `1{· ≤ y} : ℝ → ℝ` of the lower-ray event. -/
+/-- For [a real threshold](hyp:y), [the lower-ray indicator statistic](goal) assigns one to each
+real-valued observation no greater than that threshold and zero to every other observation. -/
 noncomputable def cdfStat (y : ℝ) : ℝ → ℝ :=
   Set.indicator (Set.Iic y) (fun _ => (1 : ℝ))
 
@@ -99,15 +100,22 @@ lemma integral_cdfStat [IsProbabilityMeasure P] (y : ℝ) :
   rw [MeasureTheory.integral_indicator measurableSet_Iic, setIntegral_const]
   simp [measureReal_def]
 
-/-- The empirical cumulative distribution function
-`F̂ₙ(y) = (1/n) Σ_{i<n} 1{Z_i ≤ y}`, the `sampleMean` of `cdfStat y`. -/
+/-- For [an independent and identically distributed real-valued sample](hyp:S) and [a real
+threshold](hyp:y), [the empirical cumulative distribution function](goal) maps each
+nonnegative integer sample size and sample-space outcome to the average of the indicators that
+the first $n$ observations do not exceed that threshold. -/
 noncomputable def IIDSample.empiricalCDF (S : IIDSample Ω ℝ μ P) (y : ℝ) :
     ℕ → Ω → ℝ :=
   S.sampleMean (cdfStat y)
 
 /-! ## Pointwise influence function of the empirical cdf -/
 
-/-- The fixed-`y` influence function of the empirical cdf:
+/-- For [a measure on the real line](hyp:P) and [a real threshold](hyp:y), [the
+pointwise influence function of the cumulative distribution function](goal) assigns to an
+observation the lower-ray indicator at that threshold minus the measure-assigned cumulative value
+at that threshold.
+
+The fixed-`y` influence function of the empirical cdf:
 `cdfIF P y z = 1{z ≤ y} − F(y)`. -/
 noncomputable def cdfIF (P : Measure ℝ) (y : ℝ) : ℝ → ℝ :=
   fun z => cdfStat y z - cdf P y

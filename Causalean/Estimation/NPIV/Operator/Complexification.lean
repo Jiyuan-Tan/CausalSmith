@@ -80,7 +80,9 @@ open MeasureTheory ContinuousLinearMap
 
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
 
-/-- Local disambiguation of the real-scalar algebra structure on the complex
+/-- For a measurable sample space equipped with a measure, the real-scalar algebra structure on the algebra of continuous complex-linear operators on complex-valued square-integrable functions is obtained by restricting the usual complex scalar algebra to real scalars.
+
+Local disambiguation of the real-scalar algebra structure on the complex
 operator algebra `Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ`.
 
 There are two definitionally equal but syntactically different ways to view this
@@ -100,8 +102,7 @@ noncomputable local instance (priority := 2000) instAlgebraRealLpCLM :
 
 /-! ## Section 1.  Real ↔ complex `L²` glue -/
 
-/-- Pointwise real part on `L²(Ω, ℂ)`, bundled as a continuous
-ℝ-linear map `Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ`.
+/-- For [a measurable sample space](hyp:Ω) equipped with [a measure](hyp:μ), [the real-part operator](goal) maps each complex-valued square-integrable function to its pointwise real part, viewed as a real-valued square-integrable function.
 
 Built from `RCLike.reCLM (K := ℂ) : ℂ →L[ℝ] ℝ` via
 `ContinuousLinearMap.compLpL 2 μ`, which lifts a CLM on the value
@@ -110,14 +111,15 @@ spaces to a CLM between the corresponding `Lp` spaces.  The `Fact
 noncomputable def reLp : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ :=
   ContinuousLinearMap.compLpL 2 μ (RCLike.reCLM (K := ℂ))
 
-/-- Pointwise imaginary part on `L²(Ω, ℂ)`, bundled as a continuous
+/-- For [a measurable sample space](hyp:Ω) equipped with [a measure](hyp:μ), [the imaginary-part operator](goal) maps each complex-valued square-integrable function to its pointwise imaginary part, viewed as a real-valued square-integrable function.
+
+Pointwise imaginary part on `L²(Ω, ℂ)`, bundled as a continuous
 ℝ-linear map `Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ`.  Same construction as
 `reLp` but with `RCLike.imCLM`. -/
 noncomputable def imLp : Lp ℂ 2 μ →L[ℝ] Lp ℝ 2 μ :=
   ContinuousLinearMap.compLpL 2 μ (RCLike.imCLM (K := ℂ))
 
-/-- Pointwise embedding of real-valued `L²` into complex-valued `L²`,
-bundled as a continuous ℝ-linear map `Lp ℝ 2 μ →L[ℝ] Lp ℂ 2 μ`.
+/-- For [a measurable sample space](hyp:Ω) equipped with [a measure](hyp:μ), [the real-to-complex embedding](goal) maps each real-valued square-integrable function to the complex-valued square-integrable function having that real part and zero imaginary part.
 
 Built from `RCLike.ofRealCLM (K := ℂ) : ℝ →L[ℝ] ℂ` via
 `ContinuousLinearMap.compLpL 2 μ`. -/
@@ -226,7 +228,9 @@ lemma reLp_add_smul_imLp (f : Lp ℂ 2 μ) :
 
 /-! ## Section 2.  Operator lift `complexLift` -/
 
-/-- The function-level definition of the complex lift.  Given a real
+/-- For [a measurable sample space](hyp:Ω) equipped with [a measure](hyp:μ), [a continuous real-linear operator on real-valued square-integrable functions](hyp:A), and [a complex-valued square-integrable function](hyp:f), [the function-level complex lift](goal) is the complex-valued function obtained by applying the operator separately to the real and imaginary parts and then combining the resulting real-valued functions as real part plus $i$ times imaginary part.
+
+The function-level definition of the complex lift.  Given a real
 CLM `A : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ` and a complex `L²` class `f`, the
 lift sends `f = (Re f) + i (Im f)` to `A(Re f) + i · A(Im f)` (with
 the real outputs re-embedded via `ιLp`).
@@ -350,7 +354,9 @@ private lemma complexLiftFun_map_smul
         rw [mul_comm]
         exact RCLike.re_add_im c, hM]
 
-/-- **Complex lift** of a real CLM.
+/-- For [a measurable sample space](hyp:Ω) equipped with [a measure](hyp:μ) and [a continuous real-linear operator on real-valued square-integrable functions](hyp:A), [the complex lift](goal) is the continuous complex-linear operator on complex-valued square-integrable functions that applies the original operator separately to real and imaginary parts. It [first forms the continuous real-linear operator that combines the separately transformed components](step:1), then bundles that operator as a complex-linear map.
+
+**Complex lift** of a real CLM.
 
 `complexLift A : Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ` is the unique ℂ-linear
 continuous extension of `A` to the complexified `L²`.  Its underlying
@@ -538,7 +544,9 @@ private lemma inner_reLp_left (u : Lp ℂ 2 μ) (v : Lp ℝ 2 μ) :
     _ = (inner ℂ u (ιLp v)).re := by
       simpa using (inner_re_symm (𝕜 := ℂ) (x := u) (y := ιLp v)).symm
 
-/-- **Real CFC by complexification.**
+/-- For [a measurable sample space](hyp:Ω) equipped with [a measure](hyp:μ), [a continuous real-linear operator on real-valued square-integrable functions](hyp:A), and [a real-valued function of a real argument](hyp:f), [the real continuous-functional-calculus operator](goal) applies the complex continuous functional calculus to the complex lift of the operator with the symbol extended from the real part, then restricts the result back to real-valued square-integrable functions. It [first constructs the complex functional-calculus operator](step:1), then bundles its real-valued restriction as a continuous real-linear operator.
+
+**Real CFC by complexification.**
 
 Given a real CLM `A : Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ` and a real-to-real
 continuous symbol `f : ℝ → ℝ`, this is the operator obtained by

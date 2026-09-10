@@ -143,7 +143,12 @@ lemma μ₀_compat (S : TreatedEstimationSystem P γ)
       =ᵐ[P.μ] (fun ω => S.μ₀_val (S.toPOBackdoorSystem.factualX ω)) :=
   (S.control_cate_backdoor hA).trans S.μ₀_reg_compat.symm
 
-/-- One-sided overlap predicate `propScore true ω ≤ 1 − ε` a.s., with
+/-- For [a potential-outcome system with a measurable covariate space](hyp:P), [a treated
+estimation system](hyp:S), and [a real margin](hyp:ε), the [one-sided overlap condition](goal)
+holds exactly when $0<ε≤1/2$ and the conditional probability of treatment given the covariates is
+at most $1-ε$ almost surely under the population measure.
+
+One-sided overlap predicate `propScore true ω ≤ 1 − ε` a.s., with
 `ε ∈ (0, 1/2]`.  The `0 < propScore true` half is implied at the PO level by
 `Assumptions.overlap`; for ATT only the upper bound matters because the IPW
 correction divides by `1 − e(X)`. -/
@@ -153,7 +158,9 @@ def OneSidedOverlap (S : TreatedEstimationSystem P γ) (ε : ℝ) : Prop :=
 
 /-! ## Marginal of the covariate and joint data law -/
 
-/-- Covariate marginal: `P_X := μ.map factualX`. -/
+/-- For [a potential-outcome system with a measurable covariate space](hyp:P) and [a
+treated estimation system](hyp:S), the [covariate distribution](goal) is the image of the
+population measure under the factual covariate. -/
 noncomputable def P_X (S : TreatedEstimationSystem P γ) : Measure γ :=
   P.μ.map S.toPOBackdoorSystem.factualX
 
@@ -164,7 +171,9 @@ lemma P_X_eq (S : TreatedEstimationSystem P γ) :
     S.P_X = P.μ.map S.toPOBackdoorSystem.factualX :=
   rfl
 
-/-- Data triple `(X, A, Y) : Ω → γ × Bool × ℝ`. -/
+/-- For [a potential-outcome system with a measurable covariate space](hyp:P) and [a
+treated estimation system](hyp:S), the [factual data-recording map](goal) sends every population
+unit to its observed covariate, observed treatment, and observed outcome. -/
 noncomputable def factualZ (S : TreatedEstimationSystem P γ) :
     P.Ω → γ × Bool × ℝ :=
   fun ω => (S.toPOBackdoorSystem.factualX ω,
@@ -179,7 +188,9 @@ lemma measurable_factualZ (S : TreatedEstimationSystem P γ) :
     ((S.toPOBackdoorSystem.measurable_factualD).prodMk
       S.toPOBackdoorSystem.measurable_factualY)
 
-/-- Joint data law `P_Z := μ.map (X, A, Y)`. -/
+/-- For [a potential-outcome system with a measurable covariate space](hyp:P) and [a
+treated estimation system](hyp:S), the [joint observable-data distribution](goal) is the image of
+the population measure under the factual map recording covariate, treatment, and outcome. -/
 noncomputable def P_Z (S : TreatedEstimationSystem P γ) :
     Measure (γ × Bool × ℝ) :=
   P.μ.map S.factualZ
@@ -203,12 +214,20 @@ lemma P_Z_map_projX_eq_P_X (S : TreatedEstimationSystem P γ) :
 
 /-! ## ATT estimand on the value space -/
 
-/-- Marginal treatment probability `π = P[A = 1]`, viewed at the value-space
+/-- For [a potential-outcome system with a measurable covariate space](hyp:P) and [a
+treated estimation system](hyp:S), the [marginal treatment probability](goal) is the population
+probability that the factual treatment equals one.
+
+Marginal treatment probability `π = P[A = 1]`, viewed at the value-space
 layer.  Delegates to the PO-level definition `POBackdoorSystem.propTreated`. -/
 noncomputable def π_val (S : TreatedEstimationSystem P γ) : ℝ :=
   S.toPOBackdoorSystem.propTreated
 
-/-- Value-space ATT estimand: delegates to the PO-level adjusted form
+/-- For [a potential-outcome system with a measurable covariate space](hyp:P) and [a
+treated estimation system](hyp:S), the [value-space average treatment effect on the treated](goal)
+is the system's adjusted control-regression functional.
+
+Value-space ATT estimand: delegates to the PO-level adjusted form
 `POBackdoorSystem.adjustedATT`. -/
 noncomputable def θ₀ (S : TreatedEstimationSystem P γ) : ℝ :=
   S.toPOBackdoorSystem.adjustedATT
@@ -230,7 +249,14 @@ end TreatedEstimationSystem
 /-! ## Derivability: the estimation system adds no assumptions beyond overlap -/
 
 open Classical in
-/-- **The compatibility/positivity fields are free.** From a `POBackdoorSystem` with
+/-- Given [a potential-outcome system with a measurable covariate space](hyp:P), [a
+potential-outcome back-door system](hyp:S), [the condition that its conditional probability of
+treatment lies strictly between zero and one almost surely](hyp:hov), and [an integrable factual
+outcome](hyp:hY), the [constructed treated estimation system](goal) extends that back-door system
+with a control-arm outcome regression and a propensity-score representative bounded strictly
+below one.
+
+**The compatibility/positivity fields are free.** From a `POBackdoorSystem` with
 two-sided overlap and an integrable observed outcome — and *no* unconfoundedness — one
 constructs a `TreatedEstimationSystem`: `μ₀_val` is the control-arm regression
 `regFn false` and `e_val` is the propensity lift `eLift` clamped below `1`. Every added

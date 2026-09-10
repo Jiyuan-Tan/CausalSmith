@@ -208,8 +208,12 @@ lemma μ₀_compat (S : DTREstimationSystem P δ γ)
 
 /-! ### Stage-1 observable regression `f₂` (target of `μ₁_val`) -/
 
-/-- This is the observable stage-1 regression of the outcome within the target final treatment arm.
+/-- For [a population outcome system](hyp:P), [a treatment space](hyp:δ), and [the pair of first- and second-period state spaces](hyp:γ), given [a two-stage dynamic treatment-regime estimation system](hyp:S), the [observable
+stage-1 regression](goal) assigns to each sample realization the conditional mean of the outcome
+multiplied by the indicator of the system's target second-period treatment, divided by the
+conditional mean of that indicator given the second-period history.
 
+This is the observable stage-1 regression of the outcome within the target final treatment arm.
 It is the nested-regression base case represented by the system's stage-1 value-space regression. -/
 noncomputable def stageOneReg (S : DTREstimationSystem P δ γ) : P.Ω → ℝ :=
   (S.toPODTRSystem.historyBundle 1 (by decide)).condExpRatio
@@ -382,8 +386,12 @@ lemma indD_mul_μ₁_val_comp_eq (S : DTREstimationSystem P δ γ)
 
 /-! ### Strict overlap (both stages) -/
 
-/-- This predicate requires both stagewise target-regime propensities to stay uniformly away from zero and one.
+/-- For [a population outcome system](hyp:P), [a treatment space](hyp:δ), and [the pair of first- and second-period state spaces](hyp:γ), given [a two-stage dynamic treatment-regime estimation system](hyp:S) and [a real number](hyp:ε),
+the [strict-overlap condition](goal) holds exactly when $0<ε≤1/2$ and, almost surely under the
+population measure, both conditional probabilities of the system's target treatment at their
+respective stages lie between ε and $1-ε$, inclusively.
 
+This predicate requires both stagewise target-regime propensities to stay uniformly away from zero and one.
 The overlap level is positive and at most one half, and the bounds hold almost surely. -/
 def StrictOverlap (S : DTREstimationSystem P δ γ) (ε : ℝ) : Prop :=
   0 < ε ∧ ε ≤ 1 / 2 ∧
@@ -454,11 +462,14 @@ lemma stageOneReg_memLp (S : DTREstimationSystem P δ γ) {ε : ℝ}
 
 /-! ### Stage-history marginals and joint data law -/
 
-/-- This is the marginal law of the stage-0 history. -/
+/-- For [a population outcome system](hyp:P), [a treatment space](hyp:δ), and [the pair of first- and second-period state spaces](hyp:γ), given [a two-stage dynamic treatment-regime estimation system](hyp:S), the [marginal law of
+the first-period state](goal) is the population distribution induced by that system's factual first-period state. -/
 noncomputable def P_H₀ (S : DTREstimationSystem P δ γ) : Measure (γ 0) :=
   P.μ.map (S.toPODTRSystem.factualS ⟨0, by decide⟩)
 
-/-- This is the marginal law of the stage-1 history in the DTR history ordering. -/
+/-- For [a population outcome system](hyp:P), [a treatment space](hyp:δ), and [the pair of first- and second-period state spaces](hyp:γ), given [a two-stage dynamic treatment-regime estimation system](hyp:S), the [marginal law of
+the second-period history](goal) is the population distribution of the second-period state,
+first-period treatment, and first-period state, in that order. -/
 noncomputable def P_H₁ (S : DTREstimationSystem P δ γ) :
     Measure (γ 1 × δ × γ 0) :=
   P.μ.map (fun ω =>
@@ -466,7 +477,9 @@ noncomputable def P_H₁ (S : DTREstimationSystem P δ γ) :
      S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
      S.toPODTRSystem.factualS ⟨0, by decide⟩ ω))
 
-/-- This map collects the full observed two-stage data tuple from the underlying outcome system. -/
+/-- For [a population outcome system](hyp:P), [a treatment space](hyp:δ), and [the pair of first- and second-period state spaces](hyp:γ), given [a two-stage dynamic treatment-regime estimation system](hyp:S), the [factual
+two-stage data map](goal) sends each sample realization to its factual first-period state,
+first-period treatment, second-period state, second-period treatment, and outcome, in that order. -/
 noncomputable def factualZ (S : DTREstimationSystem P δ γ) :
     P.Ω → γ 0 × δ × γ 1 × δ × ℝ :=
   fun ω =>
@@ -486,7 +499,9 @@ lemma measurable_factualZ (S : DTREstimationSystem P δ γ) :
   exact (S.toPODTRSystem.measurable_factualD ⟨1, by decide⟩).prodMk
     S.toPODTRSystem.measurable_factualY
 
-/-- This is the joint law of the full observed two-stage data tuple. -/
+/-- For [a population outcome system](hyp:P), [a treatment space](hyp:δ), and [the pair of first- and second-period state spaces](hyp:γ), given [a two-stage dynamic treatment-regime estimation system](hyp:S), the [joint law of
+the factual two-stage data tuple](goal) is the population distribution induced by its factual
+two-stage data map. -/
 noncomputable def P_Z (S : DTREstimationSystem P δ γ) :
     Measure (γ 0 × δ × γ 1 × δ × ℝ) :=
   P.μ.map S.factualZ
@@ -500,7 +515,9 @@ lemma P_Z_eq (S : DTREstimationSystem P δ γ) :
 
 /-! ### DTR estimand on the value space -/
 
-/-- This is the fixed-regime mean outcome targeted by the two-stage DTR estimation system. -/
+/-- For [a population outcome system](hyp:P), [a treatment space](hyp:δ), and [the pair of first- and second-period state spaces](hyp:γ), given [a two-stage dynamic treatment-regime estimation system](hyp:S), the [target regime
+mean outcome](goal) is the potential-outcome dynamic-treatment-regime effect for the treatment
+regime selected by that system. -/
 noncomputable def θ₀ (S : DTREstimationSystem P δ γ) : ℝ :=
   S.toPODTRSystem.dtrEffect S.dbar
 

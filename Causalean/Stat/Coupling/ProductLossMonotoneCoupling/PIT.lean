@@ -35,11 +35,13 @@ namespace Causalean.Stat
 open MeasureTheory ProbabilityTheory Set
 open Causalean.Stat
 
-/-- The uniform probability measure on the open unit interval `(0,1)`, realised
-as Lebesgue measure restricted to `Ioo 0 1`. -/
+/-- [The uniform probability measure on the open unit interval](goal) is Lebesgue measure restricted to the interval $(0,1)$.
+
+It is realised as Lebesgue measure restricted to `Ioo 0 1`. -/
 noncomputable def unifOI : Measure ℝ := volume.restrict (Ioo (0 : ℝ) 1)
 
-/-- `unifOI` is a probability measure: `volume (Ioo 0 1) = 1`. -/
+/-- [The uniform probability measure on the open unit interval is a probability
+law](goal). -/
 instance instIsProbabilityMeasure_unifOI : IsProbabilityMeasure unifOI := by
   constructor
   rw [unifOI, Measure.restrict_apply_univ, Real.volume_Ioo]

@@ -36,7 +36,17 @@ open scoped MeasureTheory ProbabilityTheory ENNReal
 variable {N : Type*} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-/-- The **one-node conditional density factor** at an observed coordinate.
+/-- For [a finite collection of distinguishable node labels with measurable
+value spaces](hyp:N), [a structural causal model](hyp:M), [a family of $\sigma$-finite reference measures for
+its node values](hyp:ref), [a fixed-node assignment](hyp:s), [an observed-node
+position](hyp:i), and assuming finite observational kernels, standard-Borel and
+nonempty one-node value spaces, and countably generated prefix value spaces,
+the [one-node conditional density factor](goal) maps each full observed assignment
+to the Radon--Nikodym derivative of the conditional law of the node at that
+position, given its preceding observed values, with respect to that node's
+reference measure.
+
+The **one-node conditional density factor** at an observed coordinate.
 
 Given a full observed assignment, this reads the prefix before coordinate `i`,
 applies the conditional kernel for the next observed node, and takes its
@@ -58,7 +68,15 @@ noncomputable def obsStepCondDensity
       (ref.μ (M.observedAt i).val)
       (x (M.observedAt i))
 
-/-- The **chain-rule density product** for the observational law.
+/-- For [a finite collection of distinguishable node labels with measurable
+value spaces](hyp:N), [a structural causal model](hyp:M), [a family of $\sigma$-finite reference measures for
+its node values](hyp:ref), and [a fixed-node assignment](hyp:s), assuming finite
+observational kernels, standard-Borel and nonempty one-node value spaces, and
+countably generated prefix value spaces, the [chain-rule density product](goal)
+maps each full observed assignment to the product of all one-node conditional
+density factors in the canonical observed topological order.
+
+The **chain-rule density product** for the observational law.
 
 This is the product, in observed topological order, of the one-node conditional
 density factors.  The product is scalar-valued, so later regrouping into
@@ -85,7 +103,17 @@ lemma prefixNodes_mono (M : Causalean.SCM N Ω) {m k : ℕ} (h : m ≤ k) :
   rcases (M.mem_prefixNodes_iff m v).mp hv with ⟨hobs, hlt⟩
   exact (M.mem_prefixNodes_iff k v).mpr ⟨hobs, lt_of_lt_of_le hlt h⟩
 
-/-- The recursive prefix density product matching `obsChainKernel`.
+/-- For [a finite collection of distinguishable node labels with measurable
+value spaces](hyp:N), [a structural causal model](hyp:M), [a family of $\sigma$-finite reference measures for
+its node values](hyp:ref), and [a fixed-node assignment](hyp:s), assuming finite
+observational kernels, standard-Borel and nonempty one-node value spaces, and
+countably generated prefix value spaces, the [recursive prefix-density product](goal)
+maps every prefix length and assignment on that prefix to [the value $1$ for the
+empty prefix](step:1), and otherwise [the preceding prefix density multiplied by
+the conditional density of the newly appended node, or by $1$ when that position
+is not observed](step:2).
+
+The recursive prefix density product matching `obsChainKernel`.
 
 At successor prefixes this multiplies the previous-prefix density by the
 one-node conditional RN derivative for the newly adjoined observed node. -/
@@ -118,7 +146,20 @@ noncomputable def prefixDensityProduct
         else
           1
 
-/-- Per-step analytic hypotheses needed to expose the fibre Radon--Nikodym
+/-- For [a finite collection of distinguishable node labels with measurable
+value spaces](hyp:N), [a structural causal model](hyp:M), [a family of $\sigma$-finite reference measures for
+its node values](hyp:ref), and [a fixed-node assignment](hyp:s), assuming finite
+observational kernels, standard-Borel and nonempty one-node value spaces, and
+countably generated prefix value spaces, the [stepwise fibre Radon--Nikodym
+condition](goal) requires that, at every observed position, [the next observed
+node is selected](step:1), the product reference measure on its preceding
+prefix is formed, the observational law of that prefix is formed,
+the conditional kernel of that next node given the prefix is formed,
+and that kernel is almost surely dominated by its reference measure under the
+prefix law while its fibre derivative is jointly almost-everywhere measurable
+under the product reference measure.
+
+Per-step analytic hypotheses needed to expose the fibre Radon--Nikodym
 derivative against a σ-finite one-node reference.
 
 The global domination assumption gives joint domination of each successor prefix.
@@ -276,7 +317,16 @@ lemma jointRef_extendObsPrefix
   · exact (measurable_valuesUnionMk (Ω := swigΩ Ω)).comp
       (measurable_id.prodMap (measurable_singletonValues (α := swigΩ Ω)))
 
-/-- The `i`-th one-step density factor read from a `k`-prefix assignment. -/
+/-- For [a finite collection of distinguishable node labels with measurable
+value spaces](hyp:N), [a structural causal model](hyp:M), [a family of $\sigma$-finite reference measures for
+its node values](hyp:ref), [a fixed-node assignment](hyp:s), [a prefix length
+$k$](hyp:k), [an assignment on its prefix](hyp:z), and [a natural-number
+position $i$](hyp:i), assuming finite observational kernels, standard-Borel
+and nonempty one-node value spaces, and countably generated prefix value
+spaces, the [prefix-read one-step
+density factor](goal) is [the conditional density factor at position $i$ when
+$i<k$ and that position is observed](step:1), the value $1$ when $i<k$ but the
+position is not observed, and the value $1$ when $i\ge k$. -/
 noncomputable def prefixStepDensityInPrefix
     (M : Causalean.SCM N Ω) (ref : ReferenceMeasures Ω) (s : M.FixedValues)
     [∀ s' : M.FixedValues, MeasureTheory.IsFiniteMeasure (M.obsKernel s')]

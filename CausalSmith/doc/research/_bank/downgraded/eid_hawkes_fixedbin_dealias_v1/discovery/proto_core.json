@@ -1,0 +1,3851 @@
+{
+  "qid": "eid_hawkes_fixedbin_dealias",
+  "specialization": "v1",
+  "cluster": "exactid",
+  "symbols": [
+    {
+      "name": "p",
+      "type": "integer",
+      "space": "\\(\\{2,3,\\ldots\\}\\)",
+      "def": "The number of labeled counting-process coordinates.",
+      "role": "Network dimension."
+    },
+    {
+      "name": "i",
+      "type": "integer index",
+      "space": "\\(\\{1,\\ldots,p\\}\\)",
+      "def": "A receiving-coordinate index.",
+      "role": "Row index.",
+      "refs": [
+        "p"
+      ]
+    },
+    {
+      "name": "j",
+      "type": "integer index",
+      "space": "\\(\\{1,\\ldots,p\\}\\)",
+      "def": "A sending-coordinate index.",
+      "role": "Column index.",
+      "refs": [
+        "p"
+      ]
+    },
+    {
+      "name": "k",
+      "type": "integer index",
+      "space": "\\(\\mathbb Z\\)",
+      "def": "A bin or covariance-lag index.",
+      "role": "Time index."
+    },
+    {
+      "name": "t",
+      "type": "real scalar",
+      "space": "\\(\\mathbb R\\)",
+      "def": "Continuous time.",
+      "role": "Time argument."
+    },
+    {
+      "name": "n",
+      "type": "integer",
+      "space": "\\(\\{3,4,\\ldots\\}\\)",
+      "def": "The number of consecutive observed bins.",
+      "role": "Sample size."
+    },
+    {
+      "name": "Delta",
+      "type": "real scalar",
+      "space": "\\((0,\\infty)\\)",
+      "def": "The known bin width \\(\\Delta\\).",
+      "role": "Observation resolution."
+    },
+    {
+      "name": "alpha",
+      "type": "real scalar",
+      "space": "\\((0,1)\\)",
+      "def": "The target familywise error level \\(\\alpha\\).",
+      "role": "Confidence level."
+    },
+    {
+      "name": "kappa",
+      "type": "real scalar",
+      "space": "\\((0,1/2)\\)",
+      "def": "A fixed conditioning margin \\(\\kappa\\).",
+      "role": "Uniformity margin."
+    },
+    {
+      "name": "kappa0",
+      "type": "real scalar",
+      "space": "\\((0,1/2)\\)",
+      "def": "A fixed nuisance-regularity margin \\(\\kappa_0\\) that is held away from zero while rank, edge strength, and the empty-network boundary may vary.",
+      "role": "Boundary-experiment regularity margin."
+    },
+    {
+      "name": "mu",
+      "type": "vector",
+      "space": "\\((0,\\infty)^p\\)",
+      "def": "The baseline vector \\(\\mu\\).",
+      "role": "Structural parameter.",
+      "refs": [
+        "p"
+      ]
+    },
+    {
+      "name": "beta",
+      "type": "real scalar",
+      "space": "\\((0,\\infty)\\)",
+      "def": "The common exponential decay \\(\\beta\\).",
+      "role": "Structural parameter."
+    },
+    {
+      "name": "A",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{p\\times p}\\)",
+      "def": "The excitation-amplitude matrix \\(A\\), where \\(A_{ij}\\) is the amplitude from label \\(j\\) to label \\(i\\).",
+      "role": "Structural parameter.",
+      "refs": [
+        "p",
+        "i",
+        "j"
+      ]
+    },
+    {
+      "name": "G",
+      "type": "directed graph",
+      "space": "Labeled directed graphs on \\(\\{1,\\ldots,p\\}\\) in which self-loops are admissible before acyclicity is imposed",
+      "def": "\\(G(A)=\\{j\\to i:A_{ij}>0\\}\\), including the case \\(i=j\\); a self-loop is a directed cycle of length one under the graph convention.",
+      "role": "Causal Hawkes graph.",
+      "refs": [
+        "A",
+        "p",
+        "i",
+        "j"
+      ]
+    },
+    {
+      "name": "N",
+      "type": "multivariate simple point process",
+      "space": "Counting measures on \\(\\mathbb R\\times\\{1,\\ldots,p\\}\\)",
+      "def": "The labeled process \\(N=(N_1,\\ldots,N_p)\\).",
+      "role": "Observed continuous-time process before binning.",
+      "refs": [
+        "p"
+      ]
+    },
+    {
+      "name": "ell",
+      "type": "predictable vector process",
+      "space": "\\((0,\\infty)^p\\)",
+      "def": "The conditional-intensity vector \\(\\ell(t)\\) of \\(N\\).",
+      "role": "Hawkes intensity.",
+      "refs": [
+        "N",
+        "p",
+        "t"
+      ]
+    },
+    {
+      "name": "lambda",
+      "type": "vector",
+      "space": "\\((0,\\infty)^p\\)",
+      "def": "The stationary intensity \\(\\lambda=\\mathbb E[\\ell(t)]\\).",
+      "role": "First-order observable.",
+      "refs": [
+        "ell",
+        "p",
+        "t"
+      ]
+    },
+    {
+      "name": "D",
+      "type": "diagonal matrix",
+      "space": "\\(\\mathbb R^{p\\times p}\\)",
+      "def": "\\(D=\\operatorname{diag}(\\lambda)\\).",
+      "role": "Innovation-intensity matrix.",
+      "refs": [
+        "lambda",
+        "p"
+      ]
+    },
+    {
+      "name": "X",
+      "type": "vector-valued stationary sequence",
+      "space": "\\(\\mathbb N_0^p\\)",
+      "def": "\\(X_k=N(((k+1)\\Delta))-N(k\\Delta)\\).",
+      "role": "Observed bin counts.",
+      "refs": [
+        "N",
+        "Delta",
+        "k",
+        "p"
+      ]
+    },
+    {
+      "name": "m",
+      "type": "vector",
+      "space": "\\((0,\\infty)^p\\)",
+      "def": "\\(m=\\mathbb E[X_0]=\\Delta\\lambda\\).",
+      "role": "Observable stationary mean count.",
+      "refs": [
+        "X",
+        "Delta",
+        "lambda",
+        "p"
+      ]
+    },
+    {
+      "name": "Gamma",
+      "type": "matrix-valued sequence",
+      "space": "\\(\\mathbb R^{p\\times p}\\)",
+      "def": "\\(\\Gamma_k=\\operatorname{Cov}(X_k,X_0)\\) for \\(k\\geq 0\\).",
+      "role": "Observable fixed-bin covariance lags.",
+      "refs": [
+        "X",
+        "k",
+        "p"
+      ]
+    },
+    {
+      "name": "B",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{p\\times p}\\)",
+      "def": "\\(B=A-\\beta I_p\\).",
+      "role": "Continuous-time generator.",
+      "refs": [
+        "A",
+        "beta",
+        "p"
+      ]
+    },
+    {
+      "name": "T",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{p\\times p}\\)",
+      "def": "\\(T=\\exp(B\\Delta)\\).",
+      "role": "One-bin transition.",
+      "refs": [
+        "B",
+        "Delta",
+        "p"
+      ]
+    },
+    {
+      "name": "J",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{p\\times p}\\)",
+      "def": "\\(J=\\int_0^\\Delta\\exp(Bu)\\,du=B^{-1}(T-I_p)\\).",
+      "role": "Bin-integration operator.",
+      "refs": [
+        "B",
+        "T",
+        "Delta",
+        "p"
+      ]
+    },
+    {
+      "name": "Ccov",
+      "type": "matrix-valued function",
+      "space": "\\((0,\\infty)\\to\\mathbb R^{p\\times p}\\)",
+      "def": "The positive-lag covariance density \\(C_{+}(t)\\) defined by \\(\\operatorname{Cov}(dN(t),dN(0))=C_{+}(t)\\,dt^2\\) for \\(t>0\\).",
+      "role": "Continuous-time second-order object.",
+      "refs": [
+        "N",
+        "t",
+        "p"
+      ]
+    },
+    {
+      "name": "Q",
+      "type": "symmetric matrix",
+      "space": "\\(\\mathbb R^{p\\times p}\\)",
+      "def": "\\(Q=\\int_0^\\infty\\exp(Bu)D\\exp(B^{\\mathsf T}u)\\,du\\).",
+      "role": "Positive-definite Lyapunov Gramian.",
+      "refs": [
+        "B",
+        "D",
+        "p"
+      ]
+    },
+    {
+      "name": "K",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{p\\times p}\\)",
+      "def": "\\(K=A(2\\beta I_p-A)Q\\).",
+      "role": "Positive-lag covariance jump.",
+      "refs": [
+        "A",
+        "beta",
+        "Q",
+        "p"
+      ]
+    },
+    {
+      "name": "S",
+      "type": "linear subspace",
+      "space": "Subspaces of \\(\\mathbb R^p\\)",
+      "def": "\\(S=\\operatorname{im}(\\Gamma_1)\\).",
+      "role": "Observable active image.",
+      "refs": [
+        "Gamma",
+        "p"
+      ]
+    },
+    {
+      "name": "r",
+      "type": "integer",
+      "space": "\\(\\{0,\\ldots,p\\}\\)",
+      "def": "\\(r=\\dim(S)=\\operatorname{rank}(\\Gamma_1)\\).",
+      "role": "Observable active rank.",
+      "refs": [
+        "S",
+        "Gamma",
+        "p"
+      ]
+    },
+    {
+      "name": "O",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{p\\times r}\\)",
+      "def": "An arbitrary orthonormal basis matrix for \\(S\\), so \\(O^{\\mathsf T}O=I_r\\) and \\(\\operatorname{im}(O)=S\\).",
+      "role": "Temporary image coordinate.",
+      "refs": [
+        "S",
+        "r",
+        "p"
+      ]
+    },
+    {
+      "name": "R",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{r\\times p}\\)",
+      "def": "\\(R=O^{\\mathsf T}\\Gamma_1\\).",
+      "role": "Full-row-rank coordinate factor.",
+      "refs": [
+        "O",
+        "Gamma",
+        "r",
+        "p"
+      ]
+    },
+    {
+      "name": "F",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{r\\times r}\\)",
+      "def": "\\(F=O^{\\mathsf T}\\Gamma_2R^{\\mathsf T}(RR^{\\mathsf T})^{-1}\\).",
+      "role": "Restricted observable transition.",
+      "refs": [
+        "O",
+        "Gamma",
+        "R",
+        "r"
+      ]
+    },
+    {
+      "name": "q",
+      "type": "real scalar",
+      "space": "\\((0,1)\\)",
+      "def": "\\(q=\\operatorname{tr}(F)/r\\).",
+      "role": "Observable decay factor.",
+      "refs": [
+        "F",
+        "r"
+      ]
+    },
+    {
+      "name": "E",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{r\\times r}\\)",
+      "def": "\\(E=q^{-1}F-I_r\\).",
+      "role": "Nilpotent transition increment.",
+      "refs": [
+        "q",
+        "F",
+        "r"
+      ]
+    },
+    {
+      "name": "L",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{r\\times r}\\)",
+      "def": "\\(L=-\\beta I_r+\\Delta^{-1}\\sum_{h=1}^{r-1}(-1)^{h+1}E^h/h\\).",
+      "role": "Finite logarithm of the restricted generator.",
+      "refs": [
+        "beta",
+        "r",
+        "Delta",
+        "E"
+      ]
+    },
+    {
+      "name": "H",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{r\\times r}\\)",
+      "def": "\\(H=L(F-I_r)^{-1}\\).",
+      "role": "Inverse restricted bin-integration operator.",
+      "refs": [
+        "L",
+        "F",
+        "r"
+      ]
+    },
+    {
+      "name": "Z",
+      "type": "skew-symmetric matrix",
+      "space": "\\(\\mathbb R^{p\\times p}\\)",
+      "def": "\\(Z=K-K^{\\mathsf T}\\).",
+      "role": "Directional covariance jump.",
+      "refs": [
+        "K",
+        "p"
+      ]
+    },
+    {
+      "name": "Phi",
+      "type": "map",
+      "sig": "\\(\\Phi_{\\Delta,r}:\\mathbb R^p\\times\\mathbb R^{p\\times p}\\times\\mathbb R^{p\\times p}\\to\\mathbb R_{+}\\times\\mathbb R^{p\\times p}\\times\\mathbb R^p\\)",
+      "def": "The explicit rank-\\(r\\) two-lag recovery map defined in \\(\\text{def:two-lag-inverse}\\).",
+      "role": "Identifying functional.",
+      "refs": [
+        "Delta",
+        "r",
+        "p"
+      ]
+    },
+    {
+      "name": "Psi",
+      "type": "map",
+      "sig": "\\(\\Psi_{\\Delta,r}:(\\mathbb R^{p\\times p})^3\\to\\mathbb R_{+}\\times\\mathbb R^{p\\times p}\\times\\mathbb R^p\\)",
+      "def": "The covariance-only recovery map defined in \\(\\text{def:covariance-only-inverse}\\).",
+      "role": "Secondary identifying functional.",
+      "refs": [
+        "Delta",
+        "r",
+        "p"
+      ]
+    },
+    {
+      "name": "theta",
+      "type": "parameter tuple",
+      "space": "\\(\\mathbb R_{+}\\times\\mathbb R^{p\\times p}\\times\\mathbb R^p\\)",
+      "def": "\\(\\theta=(\\beta,A,\\mu)\\).",
+      "role": "Full structural target.",
+      "refs": [
+        "beta",
+        "A",
+        "mu",
+        "p"
+      ]
+    },
+    {
+      "name": "eta",
+      "type": "centered moment tuple",
+      "space": "\\(\\mathbb R^p\\times(\\mathbb R^{p\\times p})^2\\)",
+      "def": "\\(\\eta=(m,\\Gamma_1,\\Gamma_2)\\).",
+      "role": "Population input to the identifying inverse.",
+      "refs": [
+        "m",
+        "Gamma",
+        "p"
+      ]
+    },
+    {
+      "name": "Y",
+      "type": "stationary vector sequence",
+      "space": "\\(\\mathbb R^{p+2p^2}\\)",
+      "def": "\\(Y_k=(X_k,\\operatorname{vec}(X_{k+1}X_k^{\\mathsf T}),\\operatorname{vec}(X_{k+2}X_k^{\\mathsf T}))\\).",
+      "role": "Moment process for dependent-data asymptotics.",
+      "refs": [
+        "X",
+        "k",
+        "p"
+      ]
+    },
+    {
+      "name": "xi",
+      "type": "raw moment vector",
+      "space": "\\(\\mathbb R^{p+2p^2}\\)",
+      "def": "\\(\\xi=\\mathbb E[Y_0]=(m,\\operatorname{vec}(M_1),\\operatorname{vec}(M_2))\\), where \\(M_h=\\mathbb E[X_hX_0^{\\mathsf T}]\\) for \\(h\\in\\{1,2\\}\\).",
+      "role": "Mean of the stationary raw-moment process.",
+      "refs": [
+        "Y",
+        "m",
+        "X",
+        "p"
+      ]
+    },
+    {
+      "name": "C",
+      "type": "smooth map",
+      "sig": "\\(\\mathcal C:\\mathbb R^{p+2p^2}\\to\\mathbb R^p\\times(\\mathbb R^{p\\times p})^2\\)",
+      "def": "The raw-to-centered moment map \\(\\mathcal C(m,\\operatorname{vec}(M_1),\\operatorname{vec}(M_2))=(m,M_1-mm^{\\mathsf T},M_2-mm^{\\mathsf T})\\), defined in \\(\\text{def:centering-map}\\).",
+      "role": "Centering transformation between the HAC coordinates and the identifying moments.",
+      "refs": [
+        "xi",
+        "eta",
+        "m",
+        "p"
+      ]
+    },
+    {
+      "name": "zeta",
+      "type": "smooth map",
+      "sig": "\\(\\zeta:\\mathbb R_{+}\\times\\mathbb R^{p\\times p}\\times\\mathbb R^p\\to\\mathbb R^{p(p-1)/2}\\)",
+      "def": "\\(\\zeta(\\beta,A,\\mu)=(\\lambda_jA_{ij}-\\lambda_iA_{ji})_{i<j}\\), where \\(\\lambda=(I_p-A/\\beta)^{-1}\\mu\\).",
+      "role": "Smooth signed-edge functional used before sign inversion.",
+      "refs": [
+        "beta",
+        "A",
+        "mu",
+        "lambda",
+        "i",
+        "j",
+        "p"
+      ]
+    },
+    {
+      "name": "Omega",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{(p+2p^2)\\times(p+2p^2)}\\)",
+      "def": "\\(\\Omega=\\sum_{h\\in\\mathbb Z}\\operatorname{Cov}(Y_0,Y_h)\\).",
+      "role": "Long-run covariance.",
+      "refs": [
+        "Y",
+        "p"
+      ]
+    },
+    {
+      "name": "tn",
+      "type": "positive sequence",
+      "space": "\\((0,\\infty)^{\\mathbb N}\\)",
+      "def": "A rank threshold \\(t_n\\downarrow0\\) with \\(\\sqrt n\\,t_n\\to\\infty\\).",
+      "role": "Rank-selection tuning.",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "edgeThreshold",
+      "type": "positive sequence",
+      "space": "\\((0,\\infty)^{\\mathbb N}\\)",
+      "def": "A support threshold \\(a_n\\downarrow0\\) with \\(\\sqrt n\\,a_n\\to\\infty\\).",
+      "role": "Support-selection tuning.",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "bn",
+      "type": "positive integer sequence",
+      "space": "\\(\\mathbb N^{\\mathbb N}\\)",
+      "def": "A long-run covariance bandwidth \\(b_n\\to\\infty\\) with \\(b_n=o(n^{1/2})\\).",
+      "role": "Heteroskedasticity-and-autocorrelation tuning.",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "xiHat",
+      "type": "random raw moment vector",
+      "space": "\\(\\mathbb R^{p+2p^2}\\)",
+      "def": "\\(\\widehat\\xi_n=(n-2)^{-1}\\sum_{k=0}^{n-3}Y_k\\).",
+      "role": "Empirical raw moments in the HAC coordinates.",
+      "refs": [
+        "Y",
+        "n",
+        "k",
+        "p"
+      ]
+    },
+    {
+      "name": "etaHat",
+      "type": "random moment tuple",
+      "space": "\\(\\mathbb R^p\\times(\\mathbb R^{p\\times p})^2\\)",
+      "def": "\\(\\widehat\\eta_n=\\mathcal C(\\widehat\\xi_n)=(\\widehat m_n,\\widehat\\Gamma_{1,n},\\widehat\\Gamma_{2,n})\\).",
+      "role": "Empirical identifying moments.",
+      "refs": [
+        "C",
+        "xiHat",
+        "n",
+        "p"
+      ]
+    },
+    {
+      "name": "rHat",
+      "type": "random integer",
+      "space": "\\(\\{0,\\ldots,p\\}\\)",
+      "def": "\\(\\widehat r_n=\\sum_{s=1}^p\\mathbf 1\\{\\sigma_s(\\widehat\\Gamma_{1,n})>t_n\\}\\).",
+      "role": "Estimated active rank.",
+      "refs": [
+        "etaHat",
+        "tn",
+        "n",
+        "p"
+      ]
+    },
+    {
+      "name": "OmegaHat",
+      "type": "random matrix",
+      "space": "\\(\\mathbb R^{(p+2p^2)\\times(p+2p^2)}\\)",
+      "def": "The Bartlett lag-window heteroskedasticity-and-autocorrelation estimator \\(\\widehat\\Omega_n\\) based on \\(Y_0,\\ldots,Y_{n-3}\\) and bandwidth \\(b_n\\); its finite-sample matrix is positive semidefinite.",
+      "role": "Positive-semidefinite long-run variance estimator.",
+      "refs": [
+        "Y",
+        "n",
+        "bn",
+        "p"
+      ]
+    },
+    {
+      "name": "Mbar",
+      "type": "class of laws",
+      "space": "Stationary laws of labeled point processes",
+      "def": "The acyclic common-decay model including the empty graph, defined in \\(\\text{def:closure-class}\\).",
+      "role": "Boundary model class.",
+      "ref": "def:closure-class",
+      "refs": [
+        "p",
+        "Delta",
+        "N",
+        "mu",
+        "beta",
+        "A"
+      ]
+    },
+    {
+      "name": "Mclass",
+      "type": "class of laws",
+      "space": "Stationary laws of labeled point processes",
+      "def": "The nonempty acyclic common-decay model, defined in \\(\\text{def:model-class}\\).",
+      "role": "Identification model class.",
+      "ref": "def:model-class",
+      "refs": [
+        "Mbar",
+        "A"
+      ]
+    },
+    {
+      "name": "Mmargin",
+      "type": "class of laws",
+      "space": "Subclasses of \\(Mclass\\)",
+      "def": "The fixed-margin class defined in \\(\\text{def:margin-class}\\).",
+      "role": "Uniform-inference class.",
+      "ref": "def:margin-class",
+      "refs": [
+        "Mclass",
+        "kappa"
+      ]
+    },
+    {
+      "name": "Mregular",
+      "type": "class of laws",
+      "space": "Subclasses of \\(\\overline{\\mathcal M}_{\\Delta,p}^{\\mathrm{DAG}}\\)",
+      "def": "The nuisance-regular closure class \\(\\overline{\\mathcal M}_{\\Delta,p}(\\kappa_0)\\) defined in \\(\\text{def:nuisance-regular-closure}\\); it includes \\(A=0\\) and imposes no rank or edge-separation margin.",
+      "role": "Common comparison class for boundary-honest inference.",
+      "ref": "def:nuisance-regular-closure",
+      "refs": [
+        "Mbar",
+        "Delta",
+        "p",
+        "kappa0",
+        "A"
+      ]
+    },
+    {
+      "name": "sRank",
+      "type": "integer rank index",
+      "space": "\\(\\{1,\\ldots,p\\}\\)",
+      "def": "A fixed rank-stratum index \\(s\\).",
+      "role": "Index for one-lag rank strata.",
+      "refs": [
+        "p"
+      ]
+    },
+    {
+      "name": "ThetaBar",
+      "type": "parameter space",
+      "space": "A subset of \\(\\mathbb R_{+}\\times\\mathbb R^{p\\times p}\\times\\mathbb R^p\\)",
+      "def": "\\(\\overline\\Theta_{\\Delta,p}\\) is the structural parameter space inducing \\(\\overline{\\mathcal M}_{\\Delta,p}^{\\mathrm{DAG}}\\), defined in \\(\\text{def:parameter-law-topologies}\\).",
+      "role": "Parameter domain including the empty graph.",
+      "refs": [
+        "Delta",
+        "p",
+        "Mbar",
+        "beta",
+        "A",
+        "mu"
+      ]
+    },
+    {
+      "name": "ThetaPlus",
+      "type": "parameter space",
+      "space": "A subset of \\(\\overline\\Theta_{\\Delta,p}\\)",
+      "def": "\\(\\Theta_{\\Delta,p}^{+}=\\{\\theta\\in\\overline\\Theta_{\\Delta,p}:A\\neq0\\}\\).",
+      "role": "Nonempty-network parameter domain.",
+      "refs": [
+        "ThetaBar",
+        "theta",
+        "A",
+        "Delta",
+        "p"
+      ]
+    },
+    {
+      "name": "rhoTheta",
+      "type": "metric",
+      "def": "\\(\\rho_{\\Theta}(\\theta,\\theta')=1\\wedge\\{|\\beta-\\beta'|+\\lVert A-A'\\rVert_{\\mathrm F}+\\lVert\\mu-\\mu'\\rVert_2\\}\\).",
+      "role": "Bounded metric inducing the Euclidean parameter topology.",
+      "refs": [
+        "ThetaBar",
+        "theta",
+        "beta",
+        "A",
+        "mu"
+      ]
+    },
+    {
+      "name": "Ptheta",
+      "type": "law map",
+      "sig": "\\(P_{\\bullet}:\\overline\\Theta_{\\Delta,p}\\to\\overline{\\mathcal M}_{\\Delta,p}^{\\mathrm{DAG}}\\)",
+      "def": "\\(P_{\\theta}\\) is the stationary labeled Hawkes law induced by \\(\\theta\\).",
+      "role": "Link from structural parameters to observable laws.",
+      "refs": [
+        "ThetaBar",
+        "Mbar",
+        "theta",
+        "Delta",
+        "p"
+      ]
+    },
+    {
+      "name": "betaLower",
+      "type": "positive real scalar",
+      "def": "\\(\\underline\\beta=-\\Delta^{-1}\\log(1-\\kappa)\\).",
+      "role": "Uniform lower decay bound implied by the decay margin.",
+      "refs": [
+        "Delta",
+        "kappa"
+      ]
+    },
+    {
+      "name": "aBar",
+      "type": "positive real scalar",
+      "def": "\\(\\overline a=\\sqrt p\\,\\kappa^{-1}\\).",
+      "role": "Uniform upper bound on every column sum of excitation amplitudes.",
+      "refs": [
+        "p",
+        "kappa"
+      ]
+    },
+    {
+      "name": "nuBar",
+      "type": "positive real scalar",
+      "def": "\\(\\overline\\nu=\\overline a/\\underline\\beta\\).",
+      "role": "Uniform upper bound on the total offspring mean of one event.",
+      "refs": [
+        "aBar",
+        "betaLower"
+      ]
+    },
+    {
+      "name": "muBar",
+      "type": "positive real scalar",
+      "def": "\\(\\overline\\mu=\\sqrt p\\,\\kappa^{-1}\\).",
+      "role": "Uniform upper bound on the total immigrant rate.",
+      "refs": [
+        "p",
+        "kappa"
+      ]
+    },
+    {
+      "name": "Dcl",
+      "type": "nonnegative cluster random variable",
+      "def": "\\(D_{\\mathrm{cl}}\\) is the elapsed time from a Hawkes immigrant to the latest event in its Poisson immigration--birth cluster, with value zero for an immigrant having no descendants.",
+      "role": "Cluster-duration variable used to control dependence across bins.",
+      "refs": [
+        "N",
+        "A",
+        "beta"
+      ]
+    },
+    {
+      "name": "cMix",
+      "type": "positive real scalar",
+      "def": "\\(c_{\\mathrm{mix}}=\\underline\\beta/2\\).",
+      "role": "Derived uniform exponential rate for cluster duration and mixing.",
+      "refs": [
+        "betaLower"
+      ]
+    },
+    {
+      "name": "Cmix",
+      "type": "positive real scalar",
+      "def": "\\(C_{\\mathrm{mix}}=1+\\{1+2\\overline\\mu c_{\\mathrm{mix}}^{-1}e^{c_{\\mathrm{mix}}\\Delta}\\}\\sum_{d=1}^{p-1}(2\\overline a/\\underline\\beta)^d\\).",
+      "role": "Derived uniform envelope for cluster-crossing and mixing probabilities.",
+      "refs": [
+        "muBar",
+        "cMix",
+        "Delta",
+        "p",
+        "aBar",
+        "betaLower"
+      ]
+    },
+    {
+      "name": "gBranch",
+      "type": "recursively defined function family",
+      "sig": "\\(g_d:\\mathbb R\\to(0,\\infty)\\) for \\(d\\in\\{0,\\ldots,p-1\\}\\)",
+      "def": "\\(g_0(z)=e^z\\) and \\(g_d(z)=\\exp[z+\\overline\\nu\\{g_{d-1}(z)-1\\}]\\) for \\(1\\leq d\\leq p-1\\).",
+      "role": "Probability-generating-function bound for a Poisson branching tree with at most \\(d\\) remaining generations.",
+      "refs": [
+        "nuBar",
+        "p"
+      ]
+    },
+    {
+      "name": "M8",
+      "type": "positive real scalar",
+      "def": "\\(M_8=M_8(p,\\Delta,\\kappa)<\\infty\\) is the explicit eighth-bin-count constant derived in \\(\\text{lem:uniform-bin-eighth-moment}\\) by differentiating \\(g_{p-1}\\) through order sixteen and the Poisson-cluster generating functional through order eight.",
+      "role": "Derived uniform eighth-moment envelope.",
+      "refs": [
+        "p",
+        "Delta",
+        "kappa",
+        "gBranch"
+      ]
+    },
+    {
+      "name": "alphaX",
+      "type": "mixing-coefficient family",
+      "sig": "\\(\\alpha_X:\\overline\\Theta_{\\Delta,p}\\times\\mathbb N_0\\to[0,1]\\)",
+      "def": "\\(\\alpha_{X,\\theta}(h)\\) is the strong-mixing coefficient at separation \\(h\\) of the stationary bin-count sequence \\(X\\) under \\(P_{\\theta}\\).",
+      "role": "Derived bin-count dependence measure.",
+      "refs": [
+        "ThetaBar",
+        "X",
+        "Ptheta",
+        "theta"
+      ]
+    },
+    {
+      "name": "alphaMix",
+      "type": "mixing-coefficient family",
+      "sig": "\\(\\alpha_Y:\\overline\\Theta_{\\Delta,p}\\times\\mathbb N_0\\to[0,1]\\)",
+      "def": "\\(\\alpha_{Y,\\theta}(h)\\) is the strong-mixing coefficient at separation \\(h\\) of the stationary raw-moment sequence \\(Y\\) under \\(P_{\\theta}\\).",
+      "role": "Uniform dependent-data regularity measure.",
+      "refs": [
+        "ThetaBar",
+        "Y",
+        "Ptheta",
+        "theta"
+      ]
+    },
+    {
+      "name": "dBL",
+      "type": "probability metric",
+      "def": "\\(d_{\\mathrm{BL}}(P,Q)=\\sup_{f:\\lVert f\\rVert_{\\infty}\\leq1,\\,\\operatorname{Lip}(f)\\leq1}|\\int f\\,dP-\\int f\\,dQ|\\).",
+      "role": "Bounded-Lipschitz metric for the uniform Gaussian approximation."
+    },
+    {
+      "name": "Wtheta",
+      "type": "covariance-matrix family",
+      "def": "\\(W(\\theta)=D(\\zeta\\circ\\Phi_{\\Delta,r(\\theta)}\\circ\\mathcal C)_{\\xi(\\theta)}\\Omega(\\theta)D(\\zeta\\circ\\Phi_{\\Delta,r(\\theta)}\\circ\\mathcal C)_{\\xi(\\theta)}^{\\mathsf T}\\), where \\(r(\\theta)=\\operatorname{rank}\\{\\Gamma_1(\\theta)\\}\\) and the derivative is evaluated through the signed jump before positive parts.",
+      "role": "Varying Gaussian covariance family for signed-edge calibration.",
+      "refs": [
+        "theta",
+        "zeta",
+        "Phi",
+        "Delta",
+        "r",
+        "C",
+        "xi",
+        "Omega",
+        "Gamma"
+      ]
+    },
+    {
+      "name": "rhoLaw",
+      "type": "metric",
+      "def": "\\(\\rho_{\\mathrm{law}}(P,P')=\\sum_{h=1}^{\\infty}2^{-h}\\{1\\wedge\\lVert P_{(X_0,\\ldots,X_{h-1})}-P'_{(X_0,\\ldots,X_{h-1})}\\rVert_{\\mathrm{TV}}\\}\\).",
+      "role": "Topology of total-variation convergence for every finite block of binned counts.",
+      "refs": [
+        "Ptheta",
+        "X"
+      ]
+    },
+    {
+      "name": "Oone",
+      "type": "observable map",
+      "sig": "\\(\\mathcal O_1:\\Theta_{\\Delta,p}^{+}\\to\\mathbb R^p\\times\\mathbb R^{p\\times p}\\)",
+      "def": "\\(\\mathcal O_1(\\theta)=(m(\\theta),\\Gamma_1(\\theta))\\).",
+      "role": "One-positive-lag observation map.",
+      "refs": [
+        "ThetaPlus",
+        "theta",
+        "m",
+        "Gamma",
+        "p"
+      ]
+    },
+    {
+      "name": "FiberOne",
+      "type": "set-valued map",
+      "def": "\\(\\mathfrak F_1(o)=\\{\\theta'\\in\\Theta_{\\Delta,p}^{+}:\\mathcal O_1(\\theta')=o\\}\\).",
+      "role": "One-lag compatibility fiber.",
+      "refs": [
+        "ThetaPlus",
+        "Oone",
+        "theta"
+      ]
+    },
+    {
+      "name": "RankStratum",
+      "type": "parameter subclass",
+      "def": "\\(\\Theta_s=\\{\\theta\\in\\Theta_{\\Delta,p}^{+}:\\operatorname{rank}(\\Gamma_1(\\theta))=s\\}\\) with the subspace topology inherited from \\(\\rho_{\\Theta}\\).",
+      "role": "Relatively topologized fixed-rank stratum.",
+      "refs": [
+        "ThetaPlus",
+        "sRank",
+        "Gamma",
+        "theta",
+        "rhoTheta"
+      ]
+    },
+    {
+      "name": "Gfamily3",
+      "type": "finite family of directed graphs",
+      "def": "\\(\\mathfrak G_3^{\\mathrm{cfd}}\\) is the family of all labelings of the three-node directed chain, fork, and diamond support motifs, with absent edges fixed at zero.",
+      "role": "Named support families for the unresolved one-lag fiber question.",
+      "refs": [
+        "G"
+      ]
+    },
+    {
+      "name": "G0",
+      "type": "directed graph index",
+      "space": "\\(\\mathfrak G_3^{\\mathrm{cfd}}\\)",
+      "def": "A fixed labeled chain, fork, or diamond support \\(G_0\\).",
+      "role": "One-lag support-stratum index.",
+      "refs": [
+        "Gfamily3"
+      ]
+    },
+    {
+      "name": "RankSupportStratum",
+      "type": "parameter subclass",
+      "def": "\\(\\Theta_{s,G_0}=\\{\\theta\\in\\Theta_{\\Delta,3}^{+}:G(A)=G_0,\\ \\operatorname{rank}(\\Gamma_1(\\theta))=s\\}\\) with the subspace topology inherited from \\(\\rho_{\\Theta}\\).",
+      "role": "Relatively topologized fixed-rank, fixed-support stratum.",
+      "refs": [
+        "ThetaPlus",
+        "sRank",
+        "G0",
+        "G",
+        "A",
+        "Gamma",
+        "theta",
+        "rhoTheta"
+      ]
+    },
+    {
+      "name": "boundaryIndex",
+      "type": "nonnegative functional",
+      "def": "The boundary-separation index \\(\\delta(\\theta)\\) defined in \\(\\text{def:boundary-risks}\\).",
+      "role": "Distance scale for rank, weak-edge, and empty-graph boundaries.",
+      "refs": [
+        "ThetaBar",
+        "theta"
+      ]
+    },
+    {
+      "name": "deltaSep",
+      "type": "nonnegative real scalar",
+      "space": "\\([0,1]\\)",
+      "def": "A boundary-separation level \\(\\delta\\).",
+      "role": "Index of the minimax comparison subclass."
+    },
+    {
+      "name": "deltaSequence",
+      "type": "nonnegative sequence",
+      "space": "\\([0,1]^{\\mathbb N}\\)",
+      "def": "A sequence \\(\\delta_n\\downarrow0\\) of boundary-separation levels.",
+      "role": "Local-to-boundary regime.",
+      "refs": [
+        "deltaSep",
+        "n"
+      ]
+    },
+    {
+      "name": "Mdelta",
+      "type": "class of laws",
+      "def": "\\(\\mathcal M_{\\kappa_0}(\\delta)=\\{P_{\\theta}\\in\\overline{\\mathcal M}_{\\Delta,p}(\\kappa_0):\\delta(\\theta)\\geq\\delta\\}\\).",
+      "role": "Boundary-separated minimax comparison class.",
+      "refs": [
+        "Ptheta",
+        "Mregular",
+        "kappa0",
+        "boundaryIndex",
+        "deltaSep",
+        "Delta",
+        "p"
+      ]
+    },
+    {
+      "name": "Un",
+      "type": "confidence procedure",
+      "def": "\\(\\mathfrak U_n=(\\mathcal G_n,\\mathcal T_n)\\), where \\(\\mathcal G_n\\) is a random graph set and \\(\\mathcal T_n\\subseteq\\overline\\Theta_{\\Delta,p}\\) is a random parameter set.",
+      "role": "Joint graph-and-parameter confidence procedure.",
+      "refs": [
+        "ThetaBar",
+        "n",
+        "p"
+      ]
+    },
+    {
+      "name": "GraphSpace",
+      "type": "finite graph space",
+      "def": "\\(\\mathfrak G_p\\) is the set of all labeled directed graphs on \\(\\{1,\\ldots,p\\}\\) that contain no directed cycle, where a self-loop counts as a cycle of length one.",
+      "role": "Range of graph confidence sets.",
+      "refs": [
+        "p"
+      ]
+    },
+    {
+      "name": "lossInc",
+      "type": "loss function",
+      "def": "\\(\\ell_{\\mathrm{inc}}(\\mathcal G,G)=|\\mathcal G\\setminus\\{G\\}|+|\\mathfrak G_p|\\mathbf1\\{G\\notin\\mathcal G\\}\\), where \\(\\mathfrak G_p\\) is the finite set of labeled directed acyclic graphs.",
+      "role": "Graph-inclusion loss penalizing false included graphs and noncoverage.",
+      "refs": [
+        "G",
+        "GraphSpace",
+        "p"
+      ]
+    },
+    {
+      "name": "diamTheta",
+      "type": "set functional",
+      "def": "\\(\\operatorname{diam}_{\\Theta}(\\mathcal T)=\\sup_{\\theta,\\theta'\\in\\mathcal T}\\rho_{\\Theta}(\\theta,\\theta')\\).",
+      "role": "Parameter-set diameter under the bounded Euclidean metric.",
+      "refs": [
+        "ThetaBar",
+        "rhoTheta",
+        "theta"
+      ]
+    },
+    {
+      "name": "HonestClass",
+      "type": "class of procedures",
+      "def": "\\(\\mathfrak H_{n,\\kappa_0}(\\alpha)=\\{\\mathfrak U_n:\\inf_{\\theta:P_{\\theta}\\in\\overline{\\mathcal M}_{\\Delta,p}(\\kappa_0)}P_{\\theta}\\{G(A)\\in\\mathcal G_n,\\ \\theta\\in\\mathcal T_n\\}\\geq1-\\alpha\\}\\).",
+      "role": "Finite-sample honest comparison class over the nuisance-regular closure.",
+      "refs": [
+        "Un",
+        "alpha",
+        "Mregular",
+        "kappa0",
+        "Ptheta",
+        "G",
+        "A",
+        "theta",
+        "Delta",
+        "p"
+      ]
+    },
+    {
+      "name": "AdaptFrontier",
+      "type": "pair of minimax risks",
+      "def": "The graph-inclusion and parameter-diameter frontier \\(\\mathfrak R_{n,\\kappa_0}(\\delta)=(R_{G,n,\\kappa_0}(\\delta),R_{\\Theta,n,\\kappa_0}(\\delta))\\) defined in \\(\\text{def:boundary-risks}\\).",
+      "role": "Focal adaptation modulus indexed by boundary separation.",
+      "refs": [
+        "HonestClass",
+        "Mdelta",
+        "lossInc",
+        "diamTheta",
+        "n",
+        "kappa0",
+        "deltaSep"
+      ]
+    },
+    {
+      "name": "Hone",
+      "type": "research handle",
+      "def": "The one-lag compatibility-fiber handle defined in \\(\\text{def:one-lag-handle}\\).",
+      "role": "Open information-order route.",
+      "ref": "def:one-lag-handle"
+    },
+    {
+      "name": "Hboundary",
+      "type": "research handle",
+      "def": "The rank-boundary local-experiment handle defined in \\(\\text{def:boundary-handle}\\).",
+      "role": "Open honest-inference route.",
+      "ref": "def:boundary-handle"
+    },
+    {
+      "name": "ValidEvent",
+      "type": "random event",
+      "space": "Events in the sigma-field generated by the observed bins",
+      "def": "\\(\\mathcal V_n\\) is the measurable valid empirical-inverse event defined in \\(\\text{def:rank-adaptive-estimator}\\); on its complement every downstream inference object uses its declared fallback.",
+      "role": "Shared finite-sample validity event.",
+      "refs": [
+        "X",
+        "n",
+        "rHat",
+        "etaHat",
+        "Phi"
+      ]
+    },
+    {
+      "name": "thetaHat",
+      "type": "random parameter tuple",
+      "space": "\\(\\mathbb R_{+}\\times\\mathbb R^{p\\times p}\\times\\mathbb R^p\\)",
+      "def": "\\(\\widehat\\theta_n=\\Phi_{\\Delta,\\widehat r_n}(\\widehat\\eta_n)\\) on \\(\\mathcal V_n\\), and \\(\\widehat\\theta_n=(1,0,\\mathbf1_p)\\) on \\(\\mathcal V_n^c\\); the accompanying report distinguishes an empty estimated rank from abstention.",
+      "role": "Total rank-adaptive estimator with sentinel fallback.",
+      "refs": [
+        "Phi",
+        "Delta",
+        "rHat",
+        "etaHat",
+        "ValidEvent",
+        "n",
+        "p"
+      ]
+    },
+    {
+      "name": "WHat",
+      "type": "random covariance matrix",
+      "space": "\\(\\mathbb R^{p(p-1)/2\\times p(p-1)/2}\\)",
+      "def": "On \\(\\mathcal V_n\\), \\(\\widehat W_n\\) is the Bartlett-HAC sandwich using the derivative of the smooth recovered signed jump; on \\(\\mathcal V_n^c\\), \\(\\widehat W_n=0\\). It is positive semidefinite on every sample.",
+      "role": "Total plug-in simultaneous signed-edge covariance.",
+      "refs": [
+        "ValidEvent",
+        "zeta",
+        "Phi",
+        "Delta",
+        "rHat",
+        "C",
+        "xiHat",
+        "OmegaHat",
+        "n",
+        "p"
+      ]
+    },
+    {
+      "name": "Ghat",
+      "type": "random directed graph",
+      "space": "Labeled directed graphs on \\(\\{1,\\ldots,p\\}\\)",
+      "def": "\\(\\widehat G_n=\\{j\\to i:\\widehat A_{ij}>a_n\\}\\).",
+      "role": "Estimated Hawkes support.",
+      "refs": [
+        "thetaHat",
+        "edgeThreshold",
+        "i",
+        "j",
+        "n",
+        "p"
+      ]
+    },
+    {
+      "name": "zHat",
+      "type": "random vector",
+      "space": "\\(\\mathbb R^{p(p-1)/2}\\)",
+      "def": "\\(\\widehat z\\) is the recovered upper-triangular signed jump on \\(\\mathcal V_n\\) and zero on \\(\\mathcal V_n^c\\), as defined in \\(\\text{def:graph-confidence-set}\\); under the sentinel convention, \\(\\widehat z=\\zeta(\\widehat\\theta_n)\\) on every sample.",
+      "role": "Total smooth signed-edge estimator.",
+      "refs": [
+        "p",
+        "ValidEvent",
+        "zeta",
+        "thetaHat",
+        "n"
+      ]
+    },
+    {
+      "name": "Iedge",
+      "type": "random interval family",
+      "space": "Intervals in \\(\\mathbb R\\) indexed by \\(1\\leq i<j\\leq p\\)",
+      "def": "On \\(\\mathcal V_n\\), \\(I_{ij,n}=[\\widehat z_{ij}-c_{n,1-\\alpha}/\\sqrt n,\\widehat z_{ij}+c_{n,1-\\alpha}/\\sqrt n]\\), where \\(c_{n,1-\\alpha}\\) is the generalized-inverse conditional \\((1-\\alpha)\\)-quantile of the unstudentized Gaussian maximum with covariance \\(\\widehat W_n\\), including when that covariance is singular; on \\(\\mathcal V_n^c\\), \\(I_{ij,n}=\\mathbb R\\).",
+      "role": "Total coordinatewise event underlying conservative graph inclusion.",
+      "refs": [
+        "ValidEvent",
+        "zHat",
+        "WHat",
+        "alpha",
+        "i",
+        "j",
+        "n",
+        "p"
+      ]
+    },
+    {
+      "name": "Cset",
+      "type": "random set of directed graphs",
+      "space": "Subsets of labeled directed graphs on \\(\\{1,\\ldots,p\\}\\) that are acyclic under the loop-inclusive convention",
+      "def": "\\(\\mathcal C_n(1-\\alpha)\\) is the simultaneous sign-inversion set on \\(\\mathcal V_n\\) and the set of all labeled acyclic graphs on \\(\\mathcal V_n^c\\), as defined in \\(\\text{def:graph-confidence-set}\\).",
+      "role": "Total graph uncertainty set with conservative fallback.",
+      "refs": [
+        "ValidEvent",
+        "Iedge",
+        "alpha",
+        "n",
+        "p"
+      ]
+    },
+    {
+      "name": "DiffEvent",
+      "type": "random event",
+      "space": "Events in the sigma-field generated by the observed bins",
+      "def": "\\(\\mathcal D_n=\\mathcal V_n\\cap\\{Z_{ij}^\\star\\neq0\\text{ for every }1\\leq i<j\\leq p\\}\\).",
+      "role": "Explicit measurable event on which the full positive-part parameter map is differentiable.",
+      "refs": [
+        "ValidEvent",
+        "Z",
+        "i",
+        "j",
+        "p",
+        "n"
+      ]
+    },
+    {
+      "name": "VHat",
+      "type": "random covariance matrix",
+      "space": "\\(\\mathbb R^{(1+p^2+p)\\times(1+p^2+p)}\\)",
+      "def": "On \\(\\mathcal D_n\\), \\(\\widehat V_n=D(\\Phi_{\\Delta,\\widehat r_n}\\circ\\mathcal C)_{\\widehat\\xi_n}\\widehat\\Omega_nD(\\Phi_{\\Delta,\\widehat r_n}\\circ\\mathcal C)_{\\widehat\\xi_n}^{\\mathsf T}\\); on \\(\\mathcal D_n^c\\), \\(\\widehat V_n=0\\). It is an optional numerical benchmark and is not used for signed-edge inference.",
+      "role": "Totalized optional full-parameter covariance away from positive-part boundaries.",
+      "refs": [
+        "DiffEvent",
+        "Phi",
+        "Delta",
+        "rHat",
+        "C",
+        "xiHat",
+        "OmegaHat",
+        "n",
+        "p"
+      ]
+    },
+    {
+      "name": "Tmargin",
+      "type": "random parameter set",
+      "space": "Subsets of \\(\\mathbb R_{+}\\times\\mathbb R^{p\\times p}\\times\\mathbb R^p\\)",
+      "def": "\\(\\mathcal T_n^{\\mathrm{fm}}(1-\\alpha)\\) is the optional full-parameter Wald ellipsoid only on \\(\\mathcal D_n\\) when the ellipsoid is well defined; otherwise it equals \\(\\overline\\Theta_{\\Delta,p}\\).",
+      "role": "Totalized fixed-margin benchmark for parameter diameter, separate from graph inference.",
+      "refs": [
+        "DiffEvent",
+        "thetaHat",
+        "VHat",
+        "ThetaBar",
+        "alpha",
+        "Delta",
+        "n",
+        "p"
+      ]
+    },
+    {
+      "name": "Mstable",
+      "type": "class of laws",
+      "space": "Stationary laws of labeled point processes",
+      "def": "The stable common-exponential Hawkes class \\(\\mathcal M_{\\Delta,p}^{\\mathrm{stab}}\\) defined in \\(\\text{def:stable-common-exponential-class}\\).",
+      "role": "Feedback-permitting companion identification class.",
+      "ref": "def:stable-common-exponential-class",
+      "refs": [
+        "Delta",
+        "p",
+        "N",
+        "mu",
+        "beta",
+        "A"
+      ]
+    },
+    {
+      "name": "Ifr",
+      "type": "population moment domain",
+      "space": "A subset of \\(\\mathbb R^p\\times(\\mathbb R^{p\\times p})^2\\)",
+      "def": "\\(\\mathfrak I_{\\Delta,p}^{\\mathrm{fr}}\\) is the population image of the stable full-rank no-alias class defined in \\(\\text{def:full-rank-stable-moment-image}\\).",
+      "role": "Exact domain of the feedback two-lag inverse.",
+      "ref": "def:full-rank-stable-moment-image",
+      "refs": [
+        "Delta",
+        "p",
+        "Mstable",
+        "m",
+        "Gamma"
+      ]
+    },
+    {
+      "name": "PhiFull",
+      "type": "map",
+      "sig": "\\(\\Phi^{\\mathrm{fr}}_{\\Delta,p}:\\mathfrak I_{\\Delta,p}^{\\mathrm{fr}}\\to\\mathbb R_+\\times\\mathbb R^{p\\times p}\\times\\mathbb R^p\\)",
+      "def": "The domain-restricted full-rank stable two-lag recovery map defined in \\(\\text{def:full-rank-two-lag-inverse}\\).",
+      "role": "Companion identifying functional for feedback networks.",
+      "ref": "def:full-rank-two-lag-inverse",
+      "refs": [
+        "Delta",
+        "p",
+        "Ifr",
+        "beta",
+        "A",
+        "mu"
+      ]
+    },
+    {
+      "name": "Irestricted",
+      "type": "population moment domain",
+      "space": "A subset of \\(\\mathbb R^p\\times(\\mathbb R^{p\\times p})^2\\)",
+      "def": "\\(\\mathfrak I_{\\Delta,p}^{0,+,\\mathrm{rs}}\\) is the population image of the stable positive-rank zero-diagonal restricted-no-alias class defined in \\(\\text{def:restricted-rank-stable-moment-image}\\).",
+      "role": "Exact domain of the singular-feedback two-lag inverse.",
+      "ref": "def:restricted-rank-stable-moment-image",
+      "refs": [
+        "Delta",
+        "p",
+        "Mstable",
+        "m",
+        "Gamma",
+        "A"
+      ]
+    },
+    {
+      "name": "PhiRestricted",
+      "type": "map",
+      "sig": "\\(\\Phi_{\\Delta,p}^{0,+,\\mathrm{rs}}:\\mathfrak I_{\\Delta,p}^{0,+,\\mathrm{rs}}\\to\\mathbb R_+\\times\\mathbb R^{p\\times p}\\times\\mathbb R^p\\)",
+      "def": "The domain-restricted singular-feedback two-lag recovery map defined in \\(\\text{def:restricted-rank-two-lag-inverse}\\).",
+      "role": "Companion identifying functional for positive-rank singular feedback networks.",
+      "ref": "def:restricted-rank-two-lag-inverse",
+      "refs": [
+        "Delta",
+        "p",
+        "Irestricted",
+        "beta",
+        "A",
+        "mu"
+      ]
+    },
+    {
+      "name": "Lrestricted",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{r\\times r}\\)",
+      "def": "\\(L^\\sharp=\\Delta^{-1}\\operatorname{Log}(F)\\).",
+      "role": "Recovered coordinate matrix of the generator restricted to the active image.",
+      "refs": [
+        "Delta",
+        "F",
+        "r"
+      ]
+    },
+    {
+      "name": "ASrestricted",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{r\\times r}\\)",
+      "def": "\\(A_S^\\sharp=L^\\sharp+\\beta^\\sharp I_r\\).",
+      "role": "Recovered coordinate matrix of excitation on the active image.",
+      "refs": [
+        "Lrestricted",
+        "beta",
+        "r"
+      ]
+    },
+    {
+      "name": "Hrestricted",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{r\\times r}\\)",
+      "def": "\\(H^\\sharp=L^\\sharp(F-I_r)^{-1}\\).",
+      "role": "Inverse restricted bin-integration operator for the singular-feedback branch.",
+      "refs": [
+        "Lrestricted",
+        "F",
+        "r"
+      ]
+    },
+    {
+      "name": "Prestricted",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{p\\times p}\\)",
+      "def": "\\(P^\\sharp=OO^{\\mathsf T}\\).",
+      "role": "Orthogonal projector onto the observable active image.",
+      "refs": [
+        "O",
+        "p"
+      ]
+    },
+    {
+      "name": "Wrestricted",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{r\\times r}\\)",
+      "def": "\\(W^\\sharp=O^{\\mathsf T}(D^\\sharp)^{-1}O\\).",
+      "role": "Positive-definite active-image intensity weight.",
+      "refs": [
+        "O",
+        "D",
+        "r"
+      ]
+    },
+    {
+      "name": "Cad",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{p\\times p}\\)",
+      "def": "\\(\\mathsf C^\\sharp=\\{OA_S^\\sharp-Z^\\sharp(I_p-P^\\sharp)(D^\\sharp)^{-1}O\\}(W^\\sharp)^{-1}O^{\\mathsf T}+Z^\\sharp(I_p-P^\\sharp)\\).",
+      "role": "Recovered intensity-weighted excitation matrix \\(AD\\).",
+      "refs": [
+        "O",
+        "ASrestricted",
+        "Z",
+        "Prestricted",
+        "D",
+        "Wrestricted",
+        "p"
+      ]
+    },
+    {
+      "name": "IfrCov",
+      "type": "population covariance domain",
+      "space": "A subset of \\(\\mathbb R^{p\\times p}\\)^3",
+      "def": "\\(\\mathfrak J_{\\Delta,p}^{\\mathrm{fr}}\\) is the population covariance image of the stable full-rank principal-strip class defined in \\(\\text{def:full-rank-stable-covariance-image}\\).",
+      "role": "Exact covariance-only domain of the full-rank feedback inverse.",
+      "ref": "def:full-rank-stable-covariance-image",
+      "refs": [
+        "Delta",
+        "p",
+        "Mstable",
+        "Gamma",
+        "A"
+      ]
+    },
+    {
+      "name": "PsiFullCov",
+      "type": "map",
+      "sig": "\\(\\Psi_{\\Delta,p}^{\\mathrm{fr},0}:\\mathfrak J_{\\Delta,p}^{\\mathrm{fr}}\\to\\mathbb R_+\\times\\mathbb R^{p\\times p}\\times\\mathbb R^p\\)",
+      "def": "The domain-restricted full-rank covariance-only recovery map defined in \\(\\text{def:full-rank-covariance-only-inverse}\\).",
+      "role": "Covariance-only identifying functional for full-rank stable feedback networks.",
+      "ref": "def:full-rank-covariance-only-inverse",
+      "refs": [
+        "Delta",
+        "p",
+        "IfrCov",
+        "beta",
+        "A",
+        "mu"
+      ]
+    },
+    {
+      "name": "IrestrictedCov",
+      "type": "population covariance domain",
+      "space": "A subset of \\(\\mathbb R^{p\\times p}\\)^3",
+      "def": "\\(\\mathfrak J_{\\Delta,p}^{0,+,\\mathrm{rs}}\\) is the population covariance image of the stable nonempty zero-diagonal restricted-strip class defined in \\(\\text{def:restricted-rank-stable-covariance-image}\\).",
+      "role": "Exact covariance-only domain of the singular-feedback inverse.",
+      "ref": "def:restricted-rank-stable-covariance-image",
+      "refs": [
+        "Delta",
+        "p",
+        "Mstable",
+        "Gamma",
+        "A"
+      ]
+    },
+    {
+      "name": "PsiRestrictedCov",
+      "type": "map",
+      "sig": "\\(\\Psi_{\\Delta,p}^{0,+,\\mathrm{rs},0}:\\mathfrak J_{\\Delta,p}^{0,+,\\mathrm{rs}}\\to\\mathbb R_+\\times\\mathbb R^{p\\times p}\\times\\mathbb R^p\\)",
+      "def": "The domain-restricted singular-feedback covariance-only recovery map defined in \\(\\text{def:restricted-rank-covariance-only-inverse}\\).",
+      "role": "Covariance-only identifying functional for positive-rank zero-diagonal stable feedback networks.",
+      "ref": "def:restricted-rank-covariance-only-inverse",
+      "refs": [
+        "Delta",
+        "p",
+        "IrestrictedCov",
+        "beta",
+        "A",
+        "mu"
+      ]
+    },
+    {
+      "name": "Iactive",
+      "type": "label subset",
+      "space": "Nonempty proper subsets of \\(\\{1,\\ldots,p\\}\\)",
+      "def": "The active observed-label set \\(I\\) in the isolated invertible-block regime.",
+      "role": "Coordinate support of the excitation mechanism.",
+      "refs": [
+        "p"
+      ]
+    },
+    {
+      "name": "EI",
+      "type": "ordered coordinate-selector matrix",
+      "space": "\\(\\{0,1\\}^{p\\times r}\\)",
+      "def": "For \\(I=\\{i_1<\\cdots<i_r\\}\\), \\(E_I=(e_{i_1},\\ldots,e_{i_r})\\), so \\(E_I^{\\mathsf T}E_I=I_r\\).",
+      "role": "Canonical coordinates for the active observed labels.",
+      "refs": [
+        "Iactive",
+        "p",
+        "r",
+        "i"
+      ]
+    },
+    {
+      "name": "AI",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{r\\times r}\\)",
+      "def": "The active excitation block \\(A_I\\) satisfying \\(A=E_IA_IE_I^{\\mathsf T}\\).",
+      "role": "Structural excitation matrix on the active coordinates.",
+      "refs": [
+        "A",
+        "EI",
+        "r"
+      ]
+    },
+    {
+      "name": "Lactive",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{r\\times r}\\)",
+      "def": "The active generator \\(L_I=A_I-\\beta I_r\\).",
+      "role": "Continuous-time generator on the active coordinate block.",
+      "refs": [
+        "AI",
+        "beta",
+        "r"
+      ]
+    },
+    {
+      "name": "Jactive",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{r\\times r}\\)",
+      "def": "The active bin-integration operator \\(J_I=\\int_0^\\Delta e^{L_Iu}\\,du\\).",
+      "role": "Bin aggregation on the active coordinate block.",
+      "refs": [
+        "Lactive",
+        "Delta",
+        "r"
+      ]
+    },
+    {
+      "name": "Qactive",
+      "type": "symmetric matrix",
+      "space": "\\(\\mathbb R^{r\\times r}\\)",
+      "def": "The active Lyapunov Gramian \\(Q_I=\\int_0^\\infty e^{L_Iu}D_Ie^{L_I^{\\mathsf T}u}\\,du\\), where \\(D_I=E_I^{\\mathsf T}DE_I\\).",
+      "role": "Positive-definite covariance Gramian on the active coordinates.",
+      "refs": [
+        "Lactive",
+        "D",
+        "EI",
+        "r"
+      ]
+    },
+    {
+      "name": "Kactive",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{r\\times r}\\)",
+      "def": "The active covariance jump \\(K_I=A_I(2\\beta I_r-A_I)Q_I\\).",
+      "role": "Positive-lag covariance jump in active coordinates.",
+      "refs": [
+        "AI",
+        "beta",
+        "Qactive",
+        "r"
+      ]
+    },
+    {
+      "name": "Iisolated",
+      "type": "population moment domain",
+      "space": "A subset of \\(\\mathbb R^p\\times(\\mathbb R^{p\\times p})^2\\)",
+      "def": "\\(\\mathfrak I_{\\Delta,p}^{\\mathrm{ib}}\\) is the population image of stable laws with an invertible excitation block on a nonempty proper coordinate subset, defined in \\(\\text{def:isolated-invertible-block-stable-moment-image}\\).",
+      "role": "Exact domain of the isolated invertible-block two-lag inverse.",
+      "ref": "def:isolated-invertible-block-stable-moment-image",
+      "refs": [
+        "Delta",
+        "p",
+        "Mstable",
+        "m",
+        "Gamma",
+        "A",
+        "Iactive",
+        "AI"
+      ]
+    },
+    {
+      "name": "PhiIsolated",
+      "type": "map",
+      "sig": "\\(\\Phi_{\\Delta,p}^{\\mathrm{ib}}:\\mathfrak I_{\\Delta,p}^{\\mathrm{ib}}\\to\\mathbb R_+\\times\\mathbb R^{p\\times p}\\times\\mathbb R^p\\)",
+      "def": "The isolated invertible-block mean-plus-two-lag recovery map defined in \\(\\text{def:isolated-invertible-block-two-lag-inverse}\\).",
+      "role": "Identifying functional for a proper active coordinate block with isolated labels.",
+      "ref": "def:isolated-invertible-block-two-lag-inverse",
+      "refs": [
+        "Delta",
+        "p",
+        "Iisolated",
+        "beta",
+        "A",
+        "mu"
+      ]
+    },
+    {
+      "name": "IisolatedCov",
+      "type": "population covariance domain",
+      "space": "A subset of \\(\\mathbb R^{p\\times p}\\)^3",
+      "def": "\\(\\mathfrak J_{\\Delta,p}^{\\mathrm{ib}}\\) is the population covariance image of the stable isolated invertible-block regime defined in \\(\\text{def:isolated-invertible-block-stable-covariance-image}\\).",
+      "role": "Exact covariance-only domain of the isolated invertible-block inverse.",
+      "ref": "def:isolated-invertible-block-stable-covariance-image",
+      "refs": [
+        "Delta",
+        "p",
+        "Mstable",
+        "Gamma",
+        "A",
+        "Iactive",
+        "AI"
+      ]
+    },
+    {
+      "name": "PsiIsolatedCov",
+      "type": "map",
+      "sig": "\\(\\Psi_{\\Delta,p}^{\\mathrm{ib},0}:\\mathfrak J_{\\Delta,p}^{\\mathrm{ib}}\\to\\mathbb R_+\\times\\mathbb R^{p\\times p}\\times\\mathbb R^p\\)",
+      "def": "The isolated invertible-block covariance-only recovery map defined in \\(\\text{def:isolated-invertible-block-covariance-only-inverse}\\).",
+      "role": "Covariance-only identifying functional for a proper active coordinate block with isolated labels.",
+      "ref": "def:isolated-invertible-block-covariance-only-inverse",
+      "refs": [
+        "Delta",
+        "p",
+        "IisolatedCov",
+        "beta",
+        "A",
+        "mu"
+      ]
+    },
+    {
+      "name": "phiKernel",
+      "type": "matrix-valued function",
+      "sig": "\\(\\phi:\\mathbb R\\to\\mathbb R^{p\\times p}\\)",
+      "def": "\\(\\phi(t)=Ae^{-\\beta t}\\mathbf 1_{\\{t>0\\}}\\), the causal common-exponential Hawkes kernel.",
+      "role": "Structural excitation kernel.",
+      "refs": [
+        "A",
+        "beta",
+        "t",
+        "p"
+      ]
+    },
+    {
+      "name": "gResponse",
+      "type": "matrix-valued function",
+      "sig": "\\(g:\\mathbb R\\to\\mathbb R^{p\\times p}\\)",
+      "def": "The complete nonsingular conditional-response matrix defined in \\(\\text{def:complete-hawkes-response}\\).",
+      "role": "Input to the Hawkes Wiener--Hopf equation.",
+      "ref": "def:complete-hawkes-response",
+      "refs": [
+        "Ccov",
+        "D",
+        "t",
+        "p"
+      ]
+    },
+    {
+      "name": "Ibroad",
+      "type": "population moment domain",
+      "space": "A subset of \\(\\mathbb R^p\\times(\\mathbb R^{p\\times p})^2\\)",
+      "def": "\\(\\mathfrak I_{\\Delta,p}^{\\mathrm{WH}}\\) is the population image of the stable nonzero restricted-strip class defined in \\(\\text{def:stable-nonzero-restricted-strip-moment-image}\\).",
+      "role": "Broad exact domain of the Wiener--Hopf two-lag inverse.",
+      "ref": "def:stable-nonzero-restricted-strip-moment-image",
+      "refs": [
+        "Delta",
+        "p",
+        "Mstable",
+        "m",
+        "Gamma",
+        "A"
+      ]
+    },
+    {
+      "name": "Jbroad",
+      "type": "population covariance domain",
+      "space": "A subset of \\(\\mathbb R^{p\\times p}\\)^3",
+      "def": "\\(\\mathfrak J_{\\Delta,p}^{\\mathrm{WH}}\\) is the covariance-only population image defined in \\(\\text{def:stable-nonzero-restricted-strip-covariance-image}\\).",
+      "role": "Broad exact domain of the covariance-only Wiener--Hopf inverse.",
+      "ref": "def:stable-nonzero-restricted-strip-covariance-image",
+      "refs": [
+        "Delta",
+        "p",
+        "Mstable",
+        "Gamma",
+        "A"
+      ]
+    },
+    {
+      "name": "Lwh",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{r\\times r}\\)",
+      "def": "\\(L^{\\mathrm{WH}}=\\Delta^{-1}\\operatorname{Log}(F)\\).",
+      "role": "Recovered coordinate matrix of the generator on the active image.",
+      "refs": [
+        "Delta",
+        "F",
+        "r"
+      ]
+    },
+    {
+      "name": "Hwh",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{r\\times r}\\)",
+      "def": "\\(H^{\\mathrm{WH}}=L^{\\mathrm{WH}}(F-I_r)^{-1}\\).",
+      "role": "Inverse bin-integration operator on the active image.",
+      "refs": [
+        "Lwh",
+        "F",
+        "r"
+      ]
+    },
+    {
+      "name": "Kwh",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{p\\times p}\\)",
+      "def": "\\(K^{\\mathrm{WH}}=O(H^{\\mathrm{WH}})^2R\\).",
+      "role": "Recovered positive-lag covariance jump.",
+      "refs": [
+        "O",
+        "Hwh",
+        "R",
+        "p"
+      ]
+    },
+    {
+      "name": "Cwh",
+      "type": "matrix-valued function",
+      "sig": "\\(C_{+}^{\\mathrm{WH}}:(0,\\infty)\\to\\mathbb R^{p\\times p}\\)",
+      "def": "\\(C_{+}^{\\mathrm{WH}}(t)=Oe^{L^{\\mathrm{WH}}t}(H^{\\mathrm{WH}})^2R\\) for \\(t>0\\).",
+      "role": "Two-lag reconstruction of the complete positive-lag covariance density.",
+      "refs": [
+        "O",
+        "Lwh",
+        "Hwh",
+        "R",
+        "t",
+        "p"
+      ]
+    },
+    {
+      "name": "Dwh",
+      "type": "diagonal matrix",
+      "space": "\\(\\mathbb R^{p\\times p}\\)",
+      "def": "\\(D^{\\mathrm{WH}}=\\operatorname{diag}(m/\\Delta)\\) for the mean input, and \\(D^{\\mathrm{WH},0}\\) is its zero-lag covariance reconstruction.",
+      "role": "Recovered innovation-intensity matrix.",
+      "refs": [
+        "m",
+        "Delta",
+        "D",
+        "p"
+      ]
+    },
+    {
+      "name": "gWh",
+      "type": "matrix-valued function",
+      "sig": "\\(g^{\\mathrm{WH}}:\\mathbb R\\to\\mathbb R^{p\\times p}\\)",
+      "def": "The complete response constructed from \\(C_{+}^{\\mathrm{WH}}\\) and \\(D^{\\mathrm{WH}}\\) in \\(\\text{def:wiener-hopf-two-lag-inverse}\\).",
+      "role": "Observable-input response used by the Wiener--Hopf inverse.",
+      "ref": "def:wiener-hopf-two-lag-inverse",
+      "refs": [
+        "Cwh",
+        "Dwh",
+        "t",
+        "p"
+      ]
+    },
+    {
+      "name": "Pwh",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{r\\times p}\\)",
+      "def": "\\(P^{\\mathrm{WH}}=(H^{\\mathrm{WH}})^2R\\).",
+      "role": "Active-coordinate positive-lag covariance-jump factor.",
+      "refs": [
+        "Hwh",
+        "R",
+        "r",
+        "p"
+      ]
+    },
+    {
+      "name": "RcalWh",
+      "type": "matrix-valued function",
+      "sig": "\\(\\mathcal R^{\\mathrm{WH}}:(0,\\infty)\\to\\mathbb R^{p\\times p}\\)",
+      "def": "\\(\\mathcal R^{\\mathrm{WH}}(x)=\\int_0^\\infty e^{-xt}C_{+}^{\\mathrm{WH}}(t)^{\\mathsf T}\\,dt=(P^{\\mathrm{WH}})^{\\mathsf T}(xI_r-(L^{\\mathrm{WH}})^{\\mathsf T})^{-1}O^{\\mathsf T}\\) for \\(x>0\\).",
+      "role": "Laplace response transform for the finite root-pair evaluator.",
+      "refs": [
+        "Cwh",
+        "Pwh",
+        "Lwh",
+        "O",
+        "r",
+        "p",
+        "t"
+      ]
+    },
+    {
+      "name": "OmegaWh",
+      "type": "set of real scalars",
+      "space": "Subsets of \\((0,\\infty)\\)",
+      "def": "\\(\\Omega^{\\mathrm{WH}}=\\{x>0:\\det[D^{\\mathrm{WH}}+\\mathcal R^{\\mathrm{WH}}(x)]\\neq0\\}\\).",
+      "role": "Nonsingular domain for the broad scalar-root equation.",
+      "refs": [
+        "Dwh",
+        "RcalWh"
+      ]
+    },
+    {
+      "name": "AcurveWh",
+      "type": "matrix-valued function",
+      "sig": "\\(\\mathcal A^{\\mathrm{WH}}:\\Omega^{\\mathrm{WH}}\\to\\mathbb R^{p\\times p}\\)",
+      "def": "\\(\\mathcal A^{\\mathrm{WH}}(x)=K^{\\mathrm{WH}}[D^{\\mathrm{WH}}+\\mathcal R^{\\mathrm{WH}}(x)]^{-1}\\).",
+      "role": "Candidate excitation matrix along the positive root domain.",
+      "refs": [
+        "OmegaWh",
+        "Kwh",
+        "Dwh",
+        "RcalWh",
+        "p"
+      ]
+    },
+    {
+      "name": "betaSharp",
+      "type": "real scalar",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(\\beta^{\\#}\\) is the unique \\(x\\in\\Omega^{\\mathrm{WH}}\\) satisfying \\(\\mathcal A^{\\mathrm{WH}}(x)O=O(L^{\\mathrm{WH}}+xI_r)\\).",
+      "role": "Recovered common exponential decay.",
+      "refs": [
+        "OmegaWh",
+        "AcurveWh",
+        "O",
+        "Lwh",
+        "r"
+      ]
+    },
+    {
+      "name": "ASharp",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{p\\times p}\\)",
+      "def": "\\(A^{\\#}=\\mathcal A^{\\mathrm{WH}}(\\beta^{\\#})\\).",
+      "role": "Recovered broad-class excitation matrix.",
+      "refs": [
+        "AcurveWh",
+        "betaSharp",
+        "p"
+      ]
+    },
+    {
+      "name": "muSharp",
+      "type": "vector",
+      "space": "\\(\\mathbb R^p\\)",
+      "def": "\\(\\mu^{\\#}=(I_p-A^{\\#}/\\beta^{\\#})\\lambda^{\\mathrm{WH}}\\).",
+      "role": "Recovered broad-class baseline vector.",
+      "refs": [
+        "ASharp",
+        "betaSharp",
+        "lambda",
+        "p"
+      ]
+    },
+    {
+      "name": "PhiBroad",
+      "type": "map",
+      "sig": "\\(\\Phi_{\\Delta,p}^{\\mathrm{WH}}:\\mathfrak I_{\\Delta,p}^{\\mathrm{WH}}\\to\\mathbb R_+\\times\\mathbb R^{p\\times p}\\times\\mathbb R^p\\)",
+      "def": "The finite-dimensional response-transform and unique-positive-root recovery map defined in \\(\\text{def:wiener-hopf-two-lag-inverse}\\).",
+      "role": "Population identifying functional for stable nonzero restricted-strip laws.",
+      "ref": "def:wiener-hopf-two-lag-inverse",
+      "refs": [
+        "Delta",
+        "p",
+        "Ibroad",
+        "betaSharp",
+        "ASharp",
+        "muSharp"
+      ]
+    },
+    {
+      "name": "PsiBroad",
+      "type": "map",
+      "sig": "\\(\\Psi_{\\Delta,p}^{\\mathrm{WH},0}:\\mathfrak J_{\\Delta,p}^{\\mathrm{WH}}\\to\\mathbb R_+\\times\\mathbb R^{p\\times p}\\times\\mathbb R^p\\)",
+      "def": "The covariance-only recovery map that reconstructs the mean and invokes the finite-dimensional map \\(\\Phi_{\\Delta,p}^{\\mathrm{WH}}\\), as defined in \\(\\text{def:wiener-hopf-covariance-only-inverse}\\).",
+      "role": "Covariance-only identifying functional for stable nonzero restricted-strip laws.",
+      "ref": "def:wiener-hopf-covariance-only-inverse",
+      "refs": [
+        "Delta",
+        "p",
+        "Jbroad",
+        "PhiBroad",
+        "betaSharp",
+        "ASharp",
+        "muSharp"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:dimension",
+      "kind": "regularity",
+      "condition": "\\(p\\geq2\\).",
+      "free_symbols": [
+        "p"
+      ],
+      "standard": {
+        "name": "Finite labeled Hawkes dimension",
+        "cite": "BacryMuzy2016"
+      },
+      "used_by": [
+        "def:closure-class",
+        "def:margin-class",
+        "def:model-class",
+        "def:nuisance-regular-closure"
+      ]
+    },
+    {
+      "id": "ass:fixed-bin",
+      "kind": "sampling",
+      "condition": "\\(\\Delta>0\\) is known.",
+      "free_symbols": [
+        "Delta"
+      ],
+      "standard": {
+        "name": "Known regular bin width",
+        "cite": "CheyssonLang2022"
+      },
+      "used_by": [
+        "def:closure-class",
+        "def:margin-class",
+        "def:model-class",
+        "def:nuisance-regular-closure"
+      ]
+    },
+    {
+      "id": "ass:stationarity",
+      "kind": "regularity",
+      "condition": "The law of \\(N\\) is invariant under time shifts.",
+      "free_symbols": [
+        "N"
+      ],
+      "standard": {
+        "name": "Stationary Hawkes law",
+        "cite": "Hawkes1971Spectra"
+      },
+      "used_by": [
+        "def:closure-class",
+        "def:margin-class",
+        "def:model-class",
+        "def:nuisance-regular-closure"
+      ]
+    },
+    {
+      "id": "ass:hawkes-intensity",
+      "kind": "causal-structural",
+      "condition": "\\(\\ell_i(t)=\\mu_i+\\sum_{j=1}^p\\int_{(-\\infty,t)}A_{ij}e^{-\\beta(t-s)}\\,N_j(ds)\\) almost surely.",
+      "free_symbols": [
+        "ell",
+        "i",
+        "t",
+        "mu",
+        "j",
+        "p",
+        "A",
+        "beta",
+        "N"
+      ],
+      "standard": {
+        "name": "Linear exponential multivariate Hawkes intensity",
+        "cite": "EtesamiZhangSinghalKiyavash2016"
+      },
+      "used_by": [
+        "def:closure-class",
+        "def:margin-class",
+        "def:model-class",
+        "def:nuisance-regular-closure"
+      ]
+    },
+    {
+      "id": "ass:positive-baseline",
+      "kind": "support",
+      "condition": "\\(\\min_{1\\leq i\\leq p}\\mu_i>0\\).",
+      "free_symbols": [
+        "i",
+        "p",
+        "mu"
+      ],
+      "standard": {
+        "name": "Strictly positive Hawkes baselines",
+        "cite": "BacryMuzy2016"
+      },
+      "used_by": [
+        "def:closure-class",
+        "def:margin-class",
+        "def:model-class",
+        "def:nuisance-regular-closure"
+      ]
+    },
+    {
+      "id": "ass:positive-decay",
+      "kind": "support",
+      "condition": "\\(\\beta>0\\).",
+      "free_symbols": [
+        "beta"
+      ],
+      "standard": {
+        "name": "Positive exponential decay",
+        "cite": "EtesamiZhangSinghalKiyavash2016"
+      },
+      "used_by": [
+        "def:closure-class",
+        "def:margin-class",
+        "def:model-class",
+        "def:nuisance-regular-closure",
+        "lem:covariance-semigroup"
+      ]
+    },
+    {
+      "id": "ass:nonnegative-excitation",
+      "kind": "shape-restriction",
+      "condition": "\\(A_{ij}\\geq0\\) for every \\(i,j\\in\\{1,\\ldots,p\\}\\).",
+      "free_symbols": [
+        "A",
+        "i",
+        "j",
+        "p"
+      ],
+      "standard": {
+        "name": "Excitatory Hawkes kernel",
+        "cite": "Hawkes1971Spectra"
+      },
+      "used_by": [
+        "def:closure-class",
+        "def:margin-class",
+        "def:model-class",
+        "def:nuisance-regular-closure",
+        "lem:covariance-semigroup"
+      ]
+    },
+    {
+      "id": "ass:acyclic-support",
+      "kind": "causal-structural",
+      "condition": "\\(G(A)\\) contains no directed cycle, with a self-loop counted as a directed cycle of length one.",
+      "free_symbols": [
+        "G",
+        "A"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This contribution-defining restriction describes labeled feed-forward alarm cascades along documented access, aggregation, and core-network dependencies, where propagation is modeled over a window short enough that slower remediation feedback is external to the Hawkes mechanism. Because self-loops are admissible in \\(G(A)\\) before the restriction is imposed, acyclicity itself forces \\(A_{ii}=0\\)."
+      },
+      "used_by": [
+        "def:closure-class",
+        "def:margin-class",
+        "def:model-class",
+        "def:nuisance-regular-closure",
+        "lem:covariance-semigroup",
+        "lem:finite-depth-geometric-mixing",
+        "lem:uniform-bin-eighth-moment"
+      ]
+    },
+    {
+      "id": "ass:nonempty-support",
+      "kind": "identification",
+      "condition": "\\(A\\neq0\\).",
+      "free_symbols": [
+        "A"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This identification-specific exclusion is necessary because \\(A=0\\) yields independent homogeneous Poisson coordinates whose observable law is unchanged for every \\(\\beta>0\\), as characterized separately in \\(\\text{prop:empty-graph-equivalence}\\). It is appropriate for scientific windows selected to contain at least one reproducible cross-label excitation channel."
+      },
+      "used_by": [
+        "def:margin-class",
+        "def:model-class",
+        "thm:two-lag-exact-recovery"
+      ]
+    },
+    {
+      "id": "ass:rank-gap",
+      "kind": "rank",
+      "condition": "\\(\\sigma_r(\\Gamma_1)\\geq\\kappa\\).",
+      "free_symbols": [
+        "r",
+        "Gamma",
+        "kappa"
+      ],
+      "standard": {
+        "name": "Fixed-rank singular-value gap",
+        "cite": "KoltchinskiiLounici2016Projectors"
+      },
+      "used_by": [
+        "def:margin-class",
+        "prop:thresholded-uniform-support",
+        "thm:rank-adaptive-estimation",
+        "thm:simultaneous-graph-coverage"
+      ]
+    },
+    {
+      "id": "ass:decay-margin",
+      "kind": "regularity",
+      "condition": "\\(e^{-\\beta\\Delta}\\in[\\kappa,1-\\kappa]\\).",
+      "free_symbols": [
+        "beta",
+        "Delta",
+        "kappa"
+      ],
+      "standard": {
+        "name": "Compact interior parameter restriction",
+        "cite": "CheyssonLang2022"
+      },
+      "used_by": [
+        "def:margin-class",
+        "lem:finite-depth-geometric-mixing",
+        "lem:uniform-bin-eighth-moment",
+        "thm:rank-adaptive-estimation",
+        "thm:simultaneous-graph-coverage"
+      ]
+    },
+    {
+      "id": "ass:parameter-envelope",
+      "kind": "regularity",
+      "condition": "\\(\\beta+\\lVert\\mu\\rVert_2+\\lVert A\\rVert_{\\mathrm{op}}\\leq\\kappa^{-1}\\).",
+      "free_symbols": [
+        "beta",
+        "mu",
+        "A",
+        "kappa"
+      ],
+      "standard": {
+        "name": "Compact Hawkes parameter envelope",
+        "cite": "CheyssonLang2022"
+      },
+      "used_by": [
+        "def:margin-class",
+        "lem:finite-depth-geometric-mixing",
+        "lem:uniform-bin-eighth-moment",
+        "thm:rank-adaptive-estimation",
+        "thm:simultaneous-graph-coverage"
+      ]
+    },
+    {
+      "id": "ass:intensity-gap",
+      "kind": "support",
+      "condition": "\\(\\min_{1\\leq i\\leq p}\\lambda_i\\geq\\kappa\\).",
+      "free_symbols": [
+        "i",
+        "p",
+        "lambda",
+        "kappa"
+      ],
+      "standard": {
+        "name": "Interior stationary-intensity restriction",
+        "cite": "BacryMuzy2016"
+      },
+      "used_by": [
+        "def:margin-class",
+        "thm:rank-adaptive-estimation",
+        "thm:simultaneous-graph-coverage"
+      ]
+    },
+    {
+      "id": "ass:variance-gap",
+      "kind": "empirical-process",
+      "condition": "\\(\\lambda_{\\min}\\{\\Omega(\\theta)\\}\\geq\\kappa\\).",
+      "free_symbols": [
+        "Omega",
+        "theta",
+        "kappa"
+      ],
+      "standard": {
+        "name": "Nonsingular long-run covariance",
+        "cite": "ZhangWu2017"
+      },
+      "used_by": [
+        "def:margin-class",
+        "lem:bin-moment-limit",
+        "thm:rank-adaptive-estimation",
+        "thm:simultaneous-graph-coverage"
+      ]
+    },
+    {
+      "id": "ass:closure-decay-margin",
+      "kind": "regularity",
+      "condition": "\\(e^{-\\beta\\Delta}\\in[\\kappa_0,1-\\kappa_0]\\).",
+      "free_symbols": [
+        "beta",
+        "Delta",
+        "kappa0"
+      ],
+      "standard": {
+        "name": "Compact interior decay restriction on the boundary comparison class",
+        "cite": "CheyssonLang2022"
+      },
+      "used_by": [
+        "def:nuisance-regular-closure",
+        "oeq:honest-boundary-adaptation"
+      ]
+    },
+    {
+      "id": "ass:closure-parameter-envelope",
+      "kind": "regularity",
+      "condition": "\\(\\beta+\\lVert\\mu\\rVert_2+\\lVert A\\rVert_{\\mathrm{op}}\\leq\\kappa_0^{-1}\\).",
+      "free_symbols": [
+        "beta",
+        "mu",
+        "A",
+        "kappa0"
+      ],
+      "standard": {
+        "name": "Compact Hawkes envelope on the boundary comparison class",
+        "cite": "CheyssonLang2022"
+      },
+      "used_by": [
+        "def:nuisance-regular-closure",
+        "oeq:honest-boundary-adaptation"
+      ]
+    },
+    {
+      "id": "ass:closure-intensity-gap",
+      "kind": "support",
+      "condition": "\\(\\min_{1\\leq i\\leq p}\\lambda_i\\geq\\kappa_0\\).",
+      "free_symbols": [
+        "i",
+        "p",
+        "lambda",
+        "kappa0"
+      ],
+      "standard": {
+        "name": "Interior intensity restriction on the boundary comparison class",
+        "cite": "BacryMuzy2016"
+      },
+      "used_by": [
+        "def:nuisance-regular-closure",
+        "oeq:honest-boundary-adaptation"
+      ]
+    },
+    {
+      "id": "ass:closure-variance-gap",
+      "kind": "empirical-process",
+      "condition": "\\(\\lambda_{\\min}\\{\\Omega(\\theta)\\}\\geq\\kappa_0\\).",
+      "free_symbols": [
+        "Omega",
+        "theta",
+        "kappa0"
+      ],
+      "standard": {
+        "name": "Nonsingular long-run covariance on the boundary comparison class",
+        "cite": "ZhangWu2017"
+      },
+      "used_by": [
+        "def:nuisance-regular-closure",
+        "oeq:honest-boundary-adaptation"
+      ]
+    },
+    {
+      "id": "ass:hac-bandwidth",
+      "kind": "smoothing",
+      "condition": "\\(b_n\\to\\infty\\) and \\(b_n=o(n^{1/2})\\).",
+      "free_symbols": [
+        "bn",
+        "n"
+      ],
+      "standard": {
+        "name": "Lag-window bandwidth condition",
+        "cite": "ZhangWu2017"
+      },
+      "used_by": [
+        "lem:bin-moment-limit",
+        "oeq:honest-boundary-adaptation",
+        "thm:rank-adaptive-estimation",
+        "thm:simultaneous-graph-coverage"
+      ]
+    },
+    {
+      "id": "ass:edge-gap",
+      "kind": "support",
+      "condition": "\\(\\min_{i\\neq j:Z_{ij}\\neq0}|Z_{ij}|\\geq\\kappa\\).",
+      "free_symbols": [
+        "i",
+        "j",
+        "Z",
+        "kappa"
+      ],
+      "standard": {
+        "name": "Beta-min network separation",
+        "cite": "WangXieCuozzoMakXie2020"
+      },
+      "used_by": [
+        "def:margin-class",
+        "prop:thresholded-uniform-support",
+        "thm:simultaneous-graph-coverage"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:closure-class",
+      "name": "Acyclic common-decay closure class",
+      "construction": "\\(\\overline{\\mathcal M}_{\\Delta,p}^{\\mathrm{DAG}}=\\{P_{N,\\mu,\\beta,A}:p\\geq2,\\ \\Delta>0,\\ N\\text{ is stationary with the stated exponential Hawkes intensity},\\ \\mu_i>0,\\ \\beta>0,\\ A_{ij}\\geq0,\\ G(A)\\text{ contains no directed cycle under the convention that a self-loop is a cycle of length one, for every }i,j\\in\\{1,\\ldots,p\\}\\}\\).",
+      "free_symbols": [
+        "Mbar",
+        "Delta",
+        "p",
+        "N",
+        "mu",
+        "beta",
+        "A",
+        "G",
+        "i",
+        "j"
+      ],
+      "by_member_properties": [
+        "ass:dimension",
+        "ass:fixed-bin",
+        "ass:stationarity",
+        "ass:hawkes-intensity",
+        "ass:positive-baseline",
+        "ass:positive-decay",
+        "ass:nonnegative-excitation",
+        "ass:acyclic-support"
+      ]
+    },
+    {
+      "id": "def:model-class",
+      "name": "Nonempty acyclic common-decay class",
+      "construction": "\\(\\mathcal M_{\\Delta,p}^{\\mathrm{DAG},+}=\\{P_{N,\\mu,\\beta,A}:P_{N,\\mu,\\beta,A}\\text{ satisfies every member property of }\\overline{\\mathcal M}_{\\Delta,p}^{\\mathrm{DAG}}\\text{ and }A\\neq0\\text{ for every }p\\geq2\\text{ and }\\Delta>0\\}\\).",
+      "free_symbols": [
+        "Mclass",
+        "Mbar",
+        "Delta",
+        "p",
+        "N",
+        "mu",
+        "beta",
+        "A"
+      ],
+      "by_member_properties": [
+        "ass:dimension",
+        "ass:fixed-bin",
+        "ass:stationarity",
+        "ass:hawkes-intensity",
+        "ass:positive-baseline",
+        "ass:positive-decay",
+        "ass:nonnegative-excitation",
+        "ass:acyclic-support",
+        "ass:nonempty-support"
+      ]
+    },
+    {
+      "id": "def:margin-class",
+      "name": "Fixed conditioning-margin class",
+      "construction": "\\(\\mathcal M_{\\Delta,p}(\\kappa)=\\{P_{N,\\mu,\\beta,A}:P_{N,\\mu,\\beta,A}\\text{ satisfies every member property of }\\mathcal M_{\\Delta,p}^{\\mathrm{DAG},+},\\ \\sigma_r(\\Gamma_1)\\geq\\kappa,\\ e^{-\\beta\\Delta}\\in[\\kappa,1-\\kappa],\\ \\beta+\\lVert\\mu\\rVert_2+\\lVert A\\rVert_{\\mathrm{op}}\\leq\\kappa^{-1},\\ \\min_i\\lambda_i\\geq\\kappa,\\ \\lambda_{\\min}\\{\\Omega(\\theta)\\}\\geq\\kappa,\\ \\min_{i\\neq j:Z_{ij}\\neq0}|Z_{ij}|\\geq\\kappa\\text{ for every }i,j\\in\\{1,\\ldots,p\\},\\ p\\geq2,\\text{ and }\\Delta>0\\}\\).",
+      "free_symbols": [
+        "Mmargin",
+        "Mclass",
+        "Delta",
+        "p",
+        "N",
+        "mu",
+        "beta",
+        "A",
+        "kappa",
+        "r",
+        "Gamma",
+        "lambda",
+        "theta",
+        "Omega",
+        "i",
+        "j",
+        "Z"
+      ],
+      "by_member_properties": [
+        "ass:dimension",
+        "ass:fixed-bin",
+        "ass:stationarity",
+        "ass:hawkes-intensity",
+        "ass:positive-baseline",
+        "ass:positive-decay",
+        "ass:nonnegative-excitation",
+        "ass:acyclic-support",
+        "ass:nonempty-support",
+        "ass:rank-gap",
+        "ass:decay-margin",
+        "ass:parameter-envelope",
+        "ass:intensity-gap",
+        "ass:variance-gap",
+        "ass:edge-gap"
+      ]
+    },
+    {
+      "id": "def:nuisance-regular-closure",
+      "name": "Nuisance-regular acyclic closure class",
+      "construction": "\\(\\overline{\\mathcal M}_{\\Delta,p}(\\kappa_0)=\\{P_{N,\\mu,\\beta,A}:P_{N,\\mu,\\beta,A}\\text{ satisfies every member property of }\\overline{\\mathcal M}_{\\Delta,p}^{\\mathrm{DAG}},\\ e^{-\\beta\\Delta}\\in[\\kappa_0,1-\\kappa_0],\\ \\beta+\\lVert\\mu\\rVert_2+\\lVert A\\rVert_{\\mathrm{op}}\\leq\\kappa_0^{-1},\\ \\min_{1\\leq i\\leq p}\\lambda_i\\geq\\kappa_0,\\ \\lambda_{\\min}\\{\\Omega(\\theta)\\}\\geq\\kappa_0\\text{ for every }p\\geq2\\text{ and }\\Delta>0\\}\\).",
+      "free_symbols": [
+        "Mregular",
+        "Mbar",
+        "Delta",
+        "p",
+        "N",
+        "mu",
+        "beta",
+        "A",
+        "kappa0",
+        "i",
+        "lambda",
+        "Omega",
+        "theta"
+      ],
+      "by_member_properties": [
+        "ass:dimension",
+        "ass:fixed-bin",
+        "ass:stationarity",
+        "ass:hawkes-intensity",
+        "ass:positive-baseline",
+        "ass:positive-decay",
+        "ass:nonnegative-excitation",
+        "ass:acyclic-support",
+        "ass:closure-decay-margin",
+        "ass:closure-parameter-envelope",
+        "ass:closure-intensity-gap",
+        "ass:closure-variance-gap"
+      ]
+    },
+    {
+      "id": "def:population-moments",
+      "name": "Fixed-bin mean and lag covariances",
+      "construction": "\\(X_k=N(((k+1)\\Delta))-N(k\\Delta),\\quad m=\\mathbb E[X_0],\\quad\\Gamma_k=\\mathbb E[(X_k-m)(X_0-m)^{\\mathsf T}]\\) for every \\(k\\geq0\\).",
+      "free_symbols": [
+        "X",
+        "k",
+        "N",
+        "Delta",
+        "m",
+        "Gamma"
+      ],
+      "inputs": [
+        "N",
+        "Delta"
+      ]
+    },
+    {
+      "id": "def:two-lag-inverse",
+      "name": "Basis-invariant two-lag inverse",
+      "construction": "For \\(r=\\operatorname{rank}(\\Gamma_1)>0\\), choose any orthonormal \\(O\\) spanning \\(S=\\operatorname{im}(\\Gamma_1)\\), set \\(R=O^{\\mathsf T}\\Gamma_1\\), \\(F=O^{\\mathsf T}\\Gamma_2R^{\\mathsf T}(RR^{\\mathsf T})^{-1}\\), \\(q=\\operatorname{tr}(F)/r\\), \\(\\beta^\\star=-\\Delta^{-1}\\log q\\), \\(E=q^{-1}F-I_r\\), \\(L^\\star=-\\beta^\\star I_r+\\Delta^{-1}\\sum_{h=1}^{r-1}(-1)^{h+1}E^h/h\\), \\(H^\\star=L^\\star(F-I_r)^{-1}\\), \\(K^\\star=O(H^\\star)^2R\\), \\(Z^\\star=K^\\star-(K^\\star)^{\\mathsf T}\\), \\(\\lambda^\\star=m/\\Delta\\), \\(A_{ii}^\\star=0\\), \\(A_{ij}^\\star=\\max\\{Z_{ij}^\\star,0\\}/\\lambda_j^\\star\\) for \\(i\\neq j\\), and \\(\\mu^\\star=(I_p-A^\\star/\\beta^\\star)\\lambda^\\star\\); define \\(\\Phi_{\\Delta,r}(m,\\Gamma_1,\\Gamma_2)=(\\beta^\\star,A^\\star,\\mu^\\star)\\).",
+      "free_symbols": [
+        "Phi",
+        "r",
+        "Gamma",
+        "O",
+        "S",
+        "R",
+        "F",
+        "q",
+        "Delta",
+        "beta",
+        "E",
+        "L",
+        "H",
+        "K",
+        "Z",
+        "lambda",
+        "m",
+        "A",
+        "i",
+        "j",
+        "p",
+        "mu"
+      ],
+      "inputs": [
+        "m",
+        "Gamma",
+        "Delta"
+      ]
+    },
+    {
+      "id": "def:covariance-only-inverse",
+      "name": "Covariance-only inverse",
+      "construction": "Apply the transition and logarithm steps of \\(\\Phi_{\\Delta,r}\\) to \\((\\Gamma_1,\\Gamma_2)\\), form \\(\\widetilde C_{+}(t)=Oe^{L^\\star t}(H^\\star)^2R\\), set \\(D^\\star=\\Delta^{-1}[\\Gamma_0-\\int_0^\\Delta(\\Delta-t)\\{\\widetilde C_{+}(t)+\\widetilde C_{+}(t)^{\\mathsf T}\\}\\,dt]\\), set \\(\\lambda^\\star=\\operatorname{diag}(D^\\star)\\), and complete the edge and baseline steps of \\(\\Phi_{\\Delta,r}\\); the output is \\(\\Psi_{\\Delta,r}(\\Gamma_0,\\Gamma_1,\\Gamma_2)\\).",
+      "free_symbols": [
+        "Psi",
+        "Phi",
+        "Delta",
+        "r",
+        "Gamma",
+        "Ccov",
+        "t",
+        "O",
+        "L",
+        "H",
+        "R",
+        "D",
+        "lambda"
+      ],
+      "inputs": [
+        "Gamma",
+        "Delta"
+      ]
+    },
+    {
+      "id": "def:centering-map",
+      "name": "Raw-moment centering map",
+      "construction": "For \\(\\xi=(m,\\operatorname{vec}(M_1),\\operatorname{vec}(M_2))\\), set \\(\\mathcal C(\\xi)=(m,M_1-mm^{\\mathsf T},M_2-mm^{\\mathsf T})=(m,\\Gamma_1,\\Gamma_2)=\\eta\\).",
+      "free_symbols": [
+        "C",
+        "xi",
+        "eta",
+        "m",
+        "Gamma"
+      ],
+      "inputs": [
+        "xi"
+      ]
+    },
+    {
+      "id": "def:rank-adaptive-estimator",
+      "name": "Rank-adaptive moment inverse",
+      "construction": "Set \\(\\widehat\\xi_n=(n-2)^{-1}\\sum_{k=0}^{n-3}Y_k\\), \\(\\widehat\\eta_n=\\mathcal C(\\widehat\\xi_n)=(\\widehat m_n,\\widehat\\Gamma_{1,n},\\widehat\\Gamma_{2,n})\\), and \\(\\widehat r_n=\\sum_{s=1}^p\\mathbf1\\{\\sigma_s(\\widehat\\Gamma_{1,n})>t_n\\}\\). Use a fixed Borel-measurable singular-value-decomposition rule to choose the truncated left singular subspace and its orthonormal basis. For \\(\\widehat r_n>0\\), compute every starred intermediate in \\(\\text{def:two-lag-inverse}\\), and let \\(\\mathcal V_n\\) be the event that \\(\\sigma_{\\widehat r_n}(\\widehat\\Gamma_{1,n})>\\sigma_{\\widehat r_n+1}(\\widehat\\Gamma_{1,n})\\), with \\(\\sigma_{p+1}=0\\), the resulting \\(q\\) lies in \\((0,1)\\), every inverse in that definition exists, every component of \\(\\lambda^\\star=\\widehat m_n/\\Delta\\) used as a divisor is positive, and \\(I_p-A^\\star/\\beta^\\star\\) is invertible; declare \\(\\mathcal V_n\\) false when \\(\\widehat r_n=0\\). Set \\(\\widehat\\theta_n=\\Phi_{\\Delta,\\widehat r_n}(\\mathcal C(\\widehat\\xi_n))\\) on \\(\\mathcal V_n\\), and set the measurable sentinel \\(\\widehat\\theta_n=(1,0,\\mathbf1_p)\\) on \\(\\mathcal V_n^c\\). When \\(\\widehat r_n=0\\), report the empty graph and leave \\(\\beta\\) set-valued over \\((0,\\infty)\\); when \\(\\widehat r_n>0\\) but \\(\\mathcal V_n\\) fails, report abstention. The sentinel is used only to make every numerical random object total.",
+      "free_symbols": [
+        "etaHat",
+        "xiHat",
+        "xi",
+        "C",
+        "Y",
+        "n",
+        "k",
+        "Gamma",
+        "rHat",
+        "p",
+        "tn",
+        "thetaHat",
+        "Phi",
+        "Delta",
+        "beta",
+        "q",
+        "ValidEvent",
+        "lambda",
+        "A"
+      ],
+      "inputs": [
+        "Y",
+        "Delta",
+        "tn",
+        "n"
+      ]
+    },
+    {
+      "id": "def:hac-estimator",
+      "name": "Lag-window and composite plug-in covariance estimators",
+      "construction": "For the Bartlett kernel \\(w(x)=(1-|x|)_+\\), set \\(\\overline Y_n=(n-2)^{-1}\\sum_{k=0}^{n-3}Y_k=\\widehat\\xi_n\\) and \\(\\widehat\\Omega_n=\\widehat\\Xi_0+\\sum_{h=1}^{b_n}w(h/b_n)(\\widehat\\Xi_h+\\widehat\\Xi_h^{\\mathsf T})\\), where \\(\\widehat\\Xi_h=(n-2)^{-1}\\sum_{k=0}^{n-h-3}(Y_k-\\overline Y_n)(Y_{k+h}-\\overline Y_n)^{\\mathsf T}\\), with an empty inner sum interpreted as zero. This Bartlett matrix is positive semidefinite for every sample. On \\(\\mathcal V_n\\), define \\(\\widehat W_n=D(\\zeta\\circ\\Phi_{\\Delta,\\widehat r_n}\\circ\\mathcal C)_{\\widehat\\xi_n}\\widehat\\Omega_nD(\\zeta\\circ\\Phi_{\\Delta,\\widehat r_n}\\circ\\mathcal C)_{\\widehat\\xi_n}^{\\mathsf T}\\), evaluating the derivative through the smooth representative \\(Z^\\star=K^\\star-(K^\\star)^{\\mathsf T}\\) before positive parts, and set \\(\\widehat W_n=0\\) on \\(\\mathcal V_n^c\\). Define the measurable event \\(\\mathcal D_n=\\mathcal V_n\\cap\\{Z_{ij}^\\star\\neq0\\text{ for every }1\\leq i<j\\leq p\\}\\). On \\(\\mathcal D_n\\), define \\(\\widehat V_n=D(\\Phi_{\\Delta,\\widehat r_n}\\circ\\mathcal C)_{\\widehat\\xi_n}\\widehat\\Omega_nD(\\Phi_{\\Delta,\\widehat r_n}\\circ\\mathcal C)_{\\widehat\\xi_n}^{\\mathsf T}\\); on \\(\\mathcal D_n^c\\), set \\(\\widehat V_n=0\\) as a numerical placeholder. The optional \\(\\widehat V_n\\) is not used to define \\(\\widehat W_n\\) or any graph interval.",
+      "free_symbols": [
+        "OmegaHat",
+        "n",
+        "bn",
+        "Y",
+        "xiHat",
+        "k",
+        "VHat",
+        "WHat",
+        "Phi",
+        "Delta",
+        "rHat",
+        "C",
+        "zeta",
+        "thetaHat",
+        "Z",
+        "K",
+        "ValidEvent",
+        "DiffEvent",
+        "i",
+        "j",
+        "p"
+      ],
+      "inputs": [
+        "Y",
+        "bn",
+        "n"
+      ]
+    },
+    {
+      "id": "def:graph-confidence-set",
+      "name": "Fixed-margin graph and parameter confidence sets",
+      "construction": "On \\(\\mathcal V_n\\), let \\(\\widehat z\\) be the vector of upper-triangular entries of the recovered signed jump \\(Z^\\star=K^\\star-(K^\\star)^{\\mathsf T}\\); on \\(\\mathcal V_n^c\\), set \\(\\widehat z=0\\). With the sentinel in \\(\\text{def:rank-adaptive-estimator}\\), this gives the total identity \\(\\widehat z=\\zeta(\\widehat\\theta_n)\\). Let \\(\\widehat W_n\\) be the total positive-semidefinite signed-score covariance in \\(\\text{def:hac-estimator}\\). Conditional on \\(\\widehat W_n\\), for \\(\\mathcal Z\\sim\\mathcal N(0,\\widehat W_n)\\), including singular \\(\\widehat W_n\\), define \\(c_{n,1-\\alpha}=\\inf\\{x\\in[0,\\infty):P(\\max_{i<j}|\\mathcal Z_{ij}|\\leq x\\mid\\widehat W_n)\\geq1-\\alpha\\}\\), with \\(\\inf\\varnothing=+\\infty\\). On \\(\\mathcal V_n\\), set \\(I_{ij,n}=[\\widehat z_{ij}-c_{n,1-\\alpha}/\\sqrt n,\\widehat z_{ij}+c_{n,1-\\alpha}/\\sqrt n]\\), and let \\(\\mathcal C_n(1-\\alpha)\\) be the set of labeled acyclic graphs which, for every \\(i<j\\), use no edge only if \\(0\\in I_{ij,n}\\), use \\(j\\to i\\) only if \\(I_{ij,n}\\cap(0,\\infty)\\neq\\varnothing\\), and use \\(i\\to j\\) only if \\(I_{ij,n}\\cap(-\\infty,0)\\neq\\varnothing\\). On \\(\\mathcal V_n^c\\), set every \\(I_{ij,n}=\\mathbb R\\) and let \\(\\mathcal C_n(1-\\alpha)\\) be the set of all labeled acyclic graphs. Define \\(\\mathcal T_n^{\\mathrm{fm}}(1-\\alpha)\\) as the full-parameter Wald ellipsoid only on \\(\\mathcal D_n\\) when \\(\\widehat V_n\\) makes that ellipsoid well defined; on every other sample set \\(\\mathcal T_n^{\\mathrm{fm}}(1-\\alpha)=\\overline\\Theta_{\\Delta,p}\\). This optional parameter benchmark is not used in signed-edge or graph coverage.",
+      "free_symbols": [
+        "Cset",
+        "Tmargin",
+        "K",
+        "Z",
+        "zeta",
+        "i",
+        "j",
+        "thetaHat",
+        "Phi",
+        "C",
+        "xiHat",
+        "lambda",
+        "A",
+        "beta",
+        "mu",
+        "Delta",
+        "rHat",
+        "OmegaHat",
+        "VHat",
+        "WHat",
+        "Iedge",
+        "alpha",
+        "n",
+        "p",
+        "ValidEvent",
+        "DiffEvent",
+        "zHat",
+        "ThetaBar"
+      ],
+      "inputs": [
+        "thetaHat",
+        "OmegaHat",
+        "xiHat",
+        "alpha"
+      ]
+    },
+    {
+      "id": "def:parameter-law-topologies",
+      "name": "Parameter and binned-law topologies",
+      "construction": "Set \\(\\overline\\Theta_{\\Delta,p}=\\{(\\beta,A,\\mu):P_{\\beta,A,\\mu}\\in\\overline{\\mathcal M}_{\\Delta,p}^{\\mathrm{DAG}}\\}\\) and \\(\\Theta_{\\Delta,p}^{+}=\\{\\theta\\in\\overline\\Theta_{\\Delta,p}:A\\neq0\\}\\). Equip \\(\\overline\\Theta_{\\Delta,p}\\) with \\(\\rho_{\\Theta}(\\theta,\\theta')=1\\wedge\\{|\\beta-\\beta'|+\\lVert A-A'\\rVert_{\\mathrm F}+\\lVert\\mu-\\mu'\\rVert_2\\}\\), and equip the induced binned laws with \\(\\rho_{\\mathrm{law}}(P,P')=\\sum_{h=1}^{\\infty}2^{-h}\\{1\\wedge\\lVert P_{(X_0,\\ldots,X_{h-1})}-P'_{(X_0,\\ldots,X_{h-1})}\\rVert_{\\mathrm{TV}}\\}\\).",
+      "free_symbols": [
+        "ThetaBar",
+        "ThetaPlus",
+        "rhoTheta",
+        "rhoLaw",
+        "Ptheta",
+        "Mbar",
+        "Delta",
+        "p",
+        "beta",
+        "A",
+        "mu",
+        "theta",
+        "X"
+      ],
+      "inputs": [
+        "Mbar"
+      ]
+    },
+    {
+      "id": "def:one-lag-fiber",
+      "name": "One-lag observable, fiber, and three-node support strata",
+      "construction": "For \\(\\theta\\in\\Theta_{\\Delta,p}^{+}\\), set \\(\\mathcal O_1(\\theta)=(m(\\theta),\\Gamma_1(\\theta))\\) and \\(\\mathfrak F_1(o)=\\{\\theta'\\in\\Theta_{\\Delta,p}^{+}:\\mathcal O_1(\\theta')=o\\}\\). Let \\(\\mathfrak G_3^{\\mathrm{cfd}}\\) contain every labeling of the three-node chain, fork, and diamond motifs. For \\(G_0\\in\\mathfrak G_3^{\\mathrm{cfd}}\\), set \\(\\Theta_{s,G_0}=\\{\\theta\\in\\Theta_{\\Delta,3}^{+}:G(A)=G_0,\\ \\operatorname{rank}(\\Gamma_1(\\theta))=s\\}\\). A subset \\(U\\subseteq\\Theta_{s,G_0}\\) is relatively open exactly when \\(U=V\\cap\\Theta_{s,G_0}\\) for some \\(\\rho_{\\Theta}\\)-open \\(V\\subseteq\\Theta_{\\Delta,3}^{+}\\).",
+      "free_symbols": [
+        "Oone",
+        "FiberOne",
+        "RankStratum",
+        "Gfamily3",
+        "G0",
+        "RankSupportStratum",
+        "G",
+        "A",
+        "ThetaPlus",
+        "theta",
+        "m",
+        "Gamma",
+        "sRank",
+        "rhoTheta",
+        "Delta",
+        "p"
+      ],
+      "inputs": [
+        "ThetaPlus",
+        "rhoTheta"
+      ]
+    },
+    {
+      "id": "def:one-lag-handle",
+      "name": "One-lag compatibility-fiber handle",
+      "construction": "For each \\(G_0\\in\\mathfrak G_3^{\\mathrm{cfd}}\\), eliminate \\((\\beta,A,\\mu)\\) from the polynomial-exponential equations defining \\(\\mathfrak F_1\\{\\mathcal O_1(\\theta)\\}\\); apply real-algebraic stratification within each \\(\\Theta_{s,G_0}\\), enforce Hawkes positivity, and compare distinct surviving parameters in \\(\\rho_{\\mathrm{law}}\\).",
+      "free_symbols": [
+        "Hone",
+        "beta",
+        "A",
+        "mu",
+        "m",
+        "Gamma",
+        "Oone",
+        "FiberOne",
+        "RankStratum",
+        "Gfamily3",
+        "G0",
+        "RankSupportStratum",
+        "sRank",
+        "rhoLaw",
+        "Ptheta",
+        "theta"
+      ],
+      "inputs": [
+        "m",
+        "Gamma"
+      ]
+    },
+    {
+      "id": "def:boundary-risks",
+      "name": "Boundary separation and adaptation frontier",
+      "construction": "For \\(r(\\theta)=\\operatorname{rank}(\\Gamma_1(\\theta))\\), set \\(\\delta(\\theta)=0\\) when \\(A=0\\), and otherwise set \\(\\delta(\\theta)=1\\wedge\\sigma_{r(\\theta)}(\\Gamma_1(\\theta))\\wedge\\min_{i\\neq j:Z_{ij}(\\theta)\\neq0}|Z_{ij}(\\theta)|\\). Inside \\(\\overline{\\mathcal M}_{\\Delta,p}(\\kappa_0)\\), let \\(\\mathcal M_{\\kappa_0}(\\delta)=\\{P_{\\theta}\\in\\overline{\\mathcal M}_{\\Delta,p}(\\kappa_0):\\delta(\\theta)\\geq\\delta\\}\\). For \\(\\mathfrak U_n=(\\mathcal G_n,\\mathcal T_n)\\in\\mathfrak H_{n,\\kappa_0}(\\alpha)\\), define \\(R_{G,n,\\kappa_0}(\\delta)=\\inf_{\\mathfrak U_n\\in\\mathfrak H_{n,\\kappa_0}(\\alpha)}\\sup_{P_{\\theta}\\in\\mathcal M_{\\kappa_0}(\\delta)}\\mathbb E_{\\theta}[\\ell_{\\mathrm{inc}}(\\mathcal G_n,G(A))]\\) and \\(R_{\\Theta,n,\\kappa_0}(\\delta)=\\inf_{\\mathfrak U_n\\in\\mathfrak H_{n,\\kappa_0}(\\alpha)}\\sup_{P_{\\theta}\\in\\mathcal M_{\\kappa_0}(\\delta)}\\mathbb E_{\\theta}[\\operatorname{diam}_{\\Theta}(\\mathcal T_n)]\\); the focal frontier is \\(\\mathfrak R_{n,\\kappa_0}(\\delta)=(R_{G,n,\\kappa_0}(\\delta),R_{\\Theta,n,\\kappa_0}(\\delta))\\).",
+      "free_symbols": [
+        "boundaryIndex",
+        "deltaSep",
+        "r",
+        "theta",
+        "Gamma",
+        "A",
+        "Z",
+        "i",
+        "j",
+        "Mdelta",
+        "Ptheta",
+        "Mregular",
+        "kappa0",
+        "Delta",
+        "p",
+        "Un",
+        "HonestClass",
+        "alpha",
+        "lossInc",
+        "G",
+        "diamTheta",
+        "AdaptFrontier",
+        "n",
+        "rhoTheta"
+      ],
+      "inputs": [
+        "Mregular",
+        "rhoTheta",
+        "alpha"
+      ]
+    },
+    {
+      "id": "def:boundary-handle",
+      "name": "Rank-boundary confidence-union handle",
+      "construction": "Within \\(\\overline{\\mathcal M}_{\\Delta,p}(\\kappa_0)\\), construct contiguous local experiments for the raw-moment process \\(Y\\) along sequences indexed by \\(\\delta_n=\\delta(\\theta_n)\\), while keeping the decay, parameter-envelope, intensity, long-run-variance, derived mixing, derived moment, and bandwidth conditions regular. Derive matching lower and upper bounds for \\(\\mathfrak R_{n,\\kappa_0}(\\delta_n)\\) under \\(\\ell_{\\mathrm{inc}}\\) and \\(\\operatorname{diam}_{\\Theta}\\), and invert rank-indexed signed-score tests without first selecting one rank.",
+      "free_symbols": [
+        "Hboundary",
+        "Gamma",
+        "r",
+        "Z",
+        "i",
+        "j",
+        "Y",
+        "boundaryIndex",
+        "theta",
+        "deltaSequence",
+        "AdaptFrontier",
+        "lossInc",
+        "diamTheta",
+        "n",
+        "Mregular",
+        "kappa0",
+        "bn"
+      ],
+      "inputs": [
+        "Y",
+        "Mregular",
+        "bn"
+      ]
+    },
+    {
+      "id": "def:stable-common-exponential-class",
+      "name": "Stable common-exponential Hawkes class",
+      "construction": "\\(\\mathcal M_{\\Delta,p}^{\\mathrm{stab}}=\\{P_{N,\\mu,\\beta,A}:p\\geq2,\\ \\Delta>0,\\ N\\text{ is stationary with the stated common-exponential Hawkes intensity},\\ \\mu_i>0,\\ \\beta>0,\\ A_{ij}\\geq0\\text{ for every }i,j\\in\\{1,\\ldots,p\\},\\ \\rho(A/\\beta)<1\\}\\), where \\(\\rho\\) denotes spectral radius. No acyclicity, zero-diagonal, orientation, or full-rank condition is part of this class definition.",
+      "free_symbols": [
+        "Mstable",
+        "Delta",
+        "p",
+        "N",
+        "mu",
+        "beta",
+        "A",
+        "i",
+        "j"
+      ],
+      "inputs": [
+        "N",
+        "Delta"
+      ]
+    },
+    {
+      "id": "def:full-rank-stable-moment-image",
+      "name": "Full-rank stable no-alias population moment image",
+      "construction": "Let \\(\\mathfrak I_{\\Delta,p}^{\\mathrm{fr}}\\) be the population moment image\n\\[\n \\left\\{(m,\\Gamma_1,\\Gamma_2):\\begin{array}{l}\n \\text{there exists }(\\beta,A,\\mu)\\text{ inducing a law in }\\mathcal M_{\\Delta,p}^{\\mathrm{stab}},\\\\\n \\det(A)\\neq0,\\quad\n \\operatorname{spec}\\{\\Delta(A-\\beta I_p)\\}\\subset\\{z\\in\\mathbb C:|\\operatorname{Im}z|<\\pi\\},\\\\\n \\text{and }m,\\Gamma_1,\\Gamma_2\\text{ are that law's population moments}\n \\end{array}\\right\\}.\n\\]\nThis is an image-defined domain, not an additional observable assumption.",
+      "free_symbols": [
+        "Ifr",
+        "Delta",
+        "p",
+        "Mstable",
+        "beta",
+        "A",
+        "mu",
+        "B",
+        "m",
+        "Gamma"
+      ],
+      "inputs": [
+        "Mstable",
+        "m",
+        "Gamma"
+      ]
+    },
+    {
+      "id": "def:full-rank-two-lag-inverse",
+      "name": "Domain-restricted full-rank stable two-lag inverse",
+      "construction": "For \\(\\eta=(m,\\Gamma_1,\\Gamma_2)\\in\\mathfrak I_{\\Delta,p}^{\\mathrm{fr}}\\), set\n\\[\n \\lambda^\\dagger=m/\\Delta,\\quad D^\\dagger=\\operatorname{diag}(\\lambda^\\dagger),\\quad\n T^\\dagger=\\Gamma_2\\Gamma_1^{-1},\\quad\n B^\\dagger=\\Delta^{-1}\\operatorname{Log}(T^\\dagger),\n\\]\n\\[\n J^\\dagger=(B^\\dagger)^{-1}(T^\\dagger-I_p),\\quad\n K^\\dagger=(J^\\dagger)^{-2}\\Gamma_1,\\quad\n Q^\\dagger=\\int_0^\\infty e^{B^\\dagger u}D^\\dagger e^{(B^\\dagger)^{\\mathsf T}u}\\,du,\n\\]\nand\n\\[\n s^\\dagger=p^{-1}\\operatorname{tr}\\!\\left\\{K^\\dagger(Q^\\dagger)^{-1}+(B^\\dagger)^2\\right\\},\\quad\n \\beta^\\dagger=(s^\\dagger)^{1/2},\\quad\n A^\\dagger=B^\\dagger+\\beta^\\dagger I_p,\\quad\n \\mu^\\dagger=(I_p-A^\\dagger/\\beta^\\dagger)\\lambda^\\dagger,\n\\]\nwhere the square root is the positive real square root. Define the domain-restricted map\n\\[\n \\Phi^{\\mathrm{fr}}_{\\Delta,p}:\\mathfrak I_{\\Delta,p}^{\\mathrm{fr}}\\longrightarrow\n \\mathbb R_+\\times\\mathbb R^{p\\times p}\\times\\mathbb R^p,\n \\qquad\n \\Phi^{\\mathrm{fr}}_{\\Delta,p}(\\eta)=(\\beta^\\dagger,A^\\dagger,\\mu^\\dagger).\n\\]",
+      "free_symbols": [
+        "PhiFull",
+        "Ifr",
+        "eta",
+        "m",
+        "Gamma",
+        "Delta",
+        "p",
+        "lambda",
+        "D",
+        "T",
+        "B",
+        "J",
+        "K",
+        "Q",
+        "beta",
+        "A",
+        "mu"
+      ],
+      "inputs": [
+        "Ifr",
+        "m",
+        "Gamma",
+        "Delta"
+      ]
+    },
+    {
+      "id": "def:restricted-rank-stable-moment-image",
+      "name": "Positive-rank zero-diagonal restricted-no-alias population moment image",
+      "construction": "Let \\(\\mathfrak I_{\\Delta,p}^{0,+,\\mathrm{rs}}\\) be the population moment image\n\\[\n \\left\\{(m,\\Gamma_1,\\Gamma_2):\\begin{array}{l}\n \\text{there exists }(\\beta,A,\\mu)\\text{ inducing a law in }\\mathcal M_{\\Delta,p}^{\\mathrm{stab}},\\\\\n A\\neq0,\\quad \\operatorname{diag}(A)=0,\\\\\n \\operatorname{spec}\\!\\left(\\left.\\Delta(A-\\beta I_p)\\right|_{\\operatorname{im}(A)}\\right)\n \\subset\\{z\\in\\mathbb C:|\\operatorname{Im}z|<\\pi\\},\\\\\n \\text{and }m,\\Gamma_1,\\Gamma_2\\text{ are that law's population moments}\n \\end{array}\\right\\}.\n\\]\nThe restriction is well defined because \\(\\operatorname{im}(A)\\) is invariant under \\(A-\\beta I_p\\).  This is an image-defined domain; it does not require \\(A\\) to be invertible, acyclic, or free of reciprocal pairs, and it does not encode a recovered parameter as an observable premise.",
+      "free_symbols": [
+        "Irestricted",
+        "Delta",
+        "p",
+        "Mstable",
+        "beta",
+        "A",
+        "mu",
+        "m",
+        "Gamma"
+      ],
+      "inputs": [
+        "Mstable",
+        "m",
+        "Gamma"
+      ]
+    },
+    {
+      "id": "def:restricted-rank-two-lag-inverse",
+      "name": "Domain-restricted singular-feedback two-lag inverse",
+      "construction": "For \\(\\eta=(m,\\Gamma_1,\\Gamma_2)\\in\\mathfrak I_{\\Delta,p}^{0,+,\\mathrm{rs}}\\), set\n\\[\n r=\\operatorname{rank}(\\Gamma_1),\\quad S=\\operatorname{im}(\\Gamma_1),\n\\]\nchoose any \\(O\\in\\mathbb R^{p\\times r}\\) with \\(O^{\\mathsf T}O=I_r\\) and \\(\\operatorname{im}(O)=S\\), and define\n\\[\n R=O^{\\mathsf T}\\Gamma_1,\\quad\n F=O^{\\mathsf T}\\Gamma_2R^{\\mathsf T}(RR^{\\mathsf T})^{-1},\n\\]\n\\[\n \\lambda^\\sharp=m/\\Delta,\\quad D^\\sharp=\\operatorname{diag}(\\lambda^\\sharp),\n \\quad L^\\sharp=\\Delta^{-1}\\operatorname{Log}(F),\n\\]\n\\[\n \\beta^\\sharp=-\\operatorname{tr}(L^\\sharp)/r,\\quad\n A_S^\\sharp=L^\\sharp+\\beta^\\sharp I_r,\\quad\n H^\\sharp=L^\\sharp(F-I_r)^{-1},\n\\]\n\\[\n K^\\sharp=O(H^\\sharp)^2R,\\quad\n Z^\\sharp=K^\\sharp-(K^\\sharp)^{\\mathsf T},\\quad\n P^\\sharp=OO^{\\mathsf T},\\quad\n W^\\sharp=O^{\\mathsf T}(D^\\sharp)^{-1}O,\n\\]\n\\[\n \\mathsf C^\\sharp=\n \\{OA_S^\\sharp-Z^\\sharp(I_p-P^\\sharp)(D^\\sharp)^{-1}O\\}\n (W^\\sharp)^{-1}O^{\\mathsf T}+Z^\\sharp(I_p-P^\\sharp),\n\\]\nand\n\\[\n A^\\sharp=\\mathsf C^\\sharp(D^\\sharp)^{-1},\\quad\n \\mu^\\sharp=(I_p-A^\\sharp/\\beta^\\sharp)\\lambda^\\sharp.\n\\]\nDefine the domain-restricted map\n\\[\n \\Phi_{\\Delta,p}^{0,+,\\mathrm{rs}}:\\mathfrak I_{\\Delta,p}^{0,+,\\mathrm{rs}}\n \\longrightarrow\\mathbb R_+\\times\\mathbb R^{p\\times p}\\times\\mathbb R^p,\n \\quad\n \\Phi_{\\Delta,p}^{0,+,\\mathrm{rs}}(\\eta)\n =(\\beta^\\sharp,A^\\sharp,\\mu^\\sharp).\n\\]",
+      "free_symbols": [
+        "PhiRestricted",
+        "Irestricted",
+        "eta",
+        "m",
+        "Gamma",
+        "Delta",
+        "p",
+        "r",
+        "S",
+        "O",
+        "R",
+        "F",
+        "lambda",
+        "D",
+        "Lrestricted",
+        "beta",
+        "ASrestricted",
+        "Hrestricted",
+        "K",
+        "Z",
+        "Prestricted",
+        "Wrestricted",
+        "Cad",
+        "A",
+        "mu"
+      ],
+      "inputs": [
+        "Irestricted",
+        "m",
+        "Gamma",
+        "Delta"
+      ]
+    },
+    {
+      "id": "def:full-rank-stable-covariance-image",
+      "name": "Full-rank stable covariance-only population image",
+      "construction": "Let \\(\\mathfrak J_{\\Delta,p}^{\\mathrm{fr}}\\) be the population covariance image\n\\[\n \\left\\{(\\Gamma_0,\\Gamma_1,\\Gamma_2):\\begin{array}{l}\n \\text{there exists }(\\beta,A,\\mu)\\text{ inducing a law in }\\mathcal M_{\\Delta,p}^{\\mathrm{stab}},\\\\\n \\det(A)\\neq0,\\quad\n \\operatorname{spec}\\{\\Delta(A-\\beta I_p)\\}\n \\subset\\{z\\in\\mathbb C:|\\operatorname{Im}z|<\\pi\\},\\\\\n \\text{and }\\Gamma_0,\\Gamma_1,\\Gamma_2\\text{ are that law's population covariances}\n \\end{array}\\right\\}.\n\\]\nThis is a population image under \\((\\Gamma_0,\\Gamma_1,\\Gamma_2)\\), not a collection defined by observable gate conditions.",
+      "free_symbols": [
+        "IfrCov",
+        "Delta",
+        "p",
+        "Mstable",
+        "beta",
+        "A",
+        "mu",
+        "Gamma"
+      ],
+      "inputs": [
+        "Mstable",
+        "Gamma"
+      ]
+    },
+    {
+      "id": "def:full-rank-covariance-only-inverse",
+      "name": "Domain-restricted full-rank covariance-only inverse",
+      "construction": "For \\(\\gamma=(\\Gamma_0,\\Gamma_1,\\Gamma_2)\\in\\mathfrak J_{\\Delta,p}^{\\mathrm{fr}}\\), set\n\\[\n T^0=\\Gamma_2\\Gamma_1^{-1},\\qquad\n B^0=\\Delta^{-1}\\operatorname{Log}(T^0),\\qquad\n J^0=(B^0)^{-1}(T^0-I_p),\\qquad\n K^0=(J^0)^{-2}\\Gamma_1,\n\\]\n\\[\n \\widetilde C_{+}^{\\mathrm{fr}}(t)=e^{B^0t}K^0,\\qquad\n D^0=\\Delta^{-1}\\!\\left[\n \\Gamma_0-\\int_0^\\Delta(\\Delta-t)\n \\{\\widetilde C_{+}^{\\mathrm{fr}}(t)\n   +\\widetilde C_{+}^{\\mathrm{fr}}(t)^{\\mathsf T}\\}\\,dt\\right],\n\\]\nand\n\\[\n \\lambda^0=\\operatorname{diag}(D^0),\\qquad m^0=\\Delta\\lambda^0.\n\\]\nDefine the domain-restricted covariance-only map by\n\\[\n \\Psi_{\\Delta,p}^{\\mathrm{fr},0}(\\gamma)\n =\\Phi_{\\Delta,p}^{\\mathrm{fr}}(m^0,\\Gamma_1,\\Gamma_2).\n\\]",
+      "free_symbols": [
+        "PsiFullCov",
+        "IfrCov",
+        "Gamma",
+        "Delta",
+        "p",
+        "T",
+        "B",
+        "J",
+        "K",
+        "Ccov",
+        "t",
+        "D",
+        "lambda",
+        "m",
+        "PhiFull"
+      ],
+      "inputs": [
+        "IfrCov",
+        "Gamma",
+        "Delta"
+      ]
+    },
+    {
+      "id": "def:restricted-rank-stable-covariance-image",
+      "name": "Restricted-rank stable covariance-only population image",
+      "construction": "Let \\(\\mathfrak J_{\\Delta,p}^{0,+,\\mathrm{rs}}\\) be the population covariance image\n\\[\n \\left\\{(\\Gamma_0,\\Gamma_1,\\Gamma_2):\\begin{array}{l}\n \\text{there exists }(\\beta,A,\\mu)\\text{ inducing a law in }\\mathcal M_{\\Delta,p}^{\\mathrm{stab}},\\\\\n A\\neq0,\\quad \\operatorname{diag}(A)=0,\\\\\n \\operatorname{spec}\\!\\left(\n \\left.\\Delta(A-\\beta I_p)\\right|_{\\operatorname{im}(A)}\\right)\n \\subset\\{z\\in\\mathbb C:|\\operatorname{Im}z|<\\pi\\},\\\\\n \\text{and }\\Gamma_0,\\Gamma_1,\\Gamma_2\\text{ are that law's population covariances}\n \\end{array}\\right\\}.\n\\]\nThis is a population image under \\((\\Gamma_0,\\Gamma_1,\\Gamma_2)\\), not a collection defined by observable gate conditions.  It permits singular excitation, directed cycles, reciprocal pairs, and isolated labels.",
+      "free_symbols": [
+        "IrestrictedCov",
+        "Delta",
+        "p",
+        "Mstable",
+        "beta",
+        "A",
+        "mu",
+        "Gamma"
+      ],
+      "inputs": [
+        "Mstable",
+        "Gamma"
+      ]
+    },
+    {
+      "id": "def:restricted-rank-covariance-only-inverse",
+      "name": "Domain-restricted singular-feedback covariance-only inverse",
+      "construction": "For \\(\\gamma=(\\Gamma_0,\\Gamma_1,\\Gamma_2)\\in\n\\mathfrak J_{\\Delta,p}^{0,+,\\mathrm{rs}}\\), set\n\\[\n r=\\operatorname{rank}(\\Gamma_1),\\qquad S=\\operatorname{im}(\\Gamma_1),\n\\]\nchoose any \\(O\\in\\mathbb R^{p\\times r}\\) with \\(O^{\\mathsf T}O=I_r\\) and \\(\\operatorname{im}(O)=S\\), and set\n\\[\n R=O^{\\mathsf T}\\Gamma_1,\\qquad\n F=O^{\\mathsf T}\\Gamma_2R^{\\mathsf T}(RR^{\\mathsf T})^{-1},\n\\]\n\\[\n L^\\sharp=\\Delta^{-1}\\operatorname{Log}(F),\\qquad\n H^\\sharp=L^\\sharp(F-I_r)^{-1},\\qquad\n \\widetilde C_{+}^{\\mathrm{rs}}(t)\n =Oe^{L^\\sharp t}(H^\\sharp)^2R,\n\\]\n\\[\n D^0=\\Delta^{-1}\\!\\left[\n \\Gamma_0-\\int_0^\\Delta(\\Delta-t)\n \\{\\widetilde C_{+}^{\\mathrm{rs}}(t)\n  +\\widetilde C_{+}^{\\mathrm{rs}}(t)^{\\mathsf T}\\}\\,dt\\right],\n \\qquad \\lambda^0=\\operatorname{diag}(D^0),\n \\qquad m^0=\\Delta\\lambda^0.\n\\]\nDefine\n\\[\n \\Psi_{\\Delta,p}^{0,+,\\mathrm{rs},0}(\\gamma)\n =\\Phi_{\\Delta,p}^{0,+,\\mathrm{rs}}(m^0,\\Gamma_1,\\Gamma_2).\n\\]",
+      "free_symbols": [
+        "PsiRestrictedCov",
+        "IrestrictedCov",
+        "Gamma",
+        "Delta",
+        "p",
+        "r",
+        "S",
+        "O",
+        "R",
+        "F",
+        "Lrestricted",
+        "Hrestricted",
+        "Ccov",
+        "t",
+        "D",
+        "lambda",
+        "m",
+        "PhiRestricted"
+      ],
+      "inputs": [
+        "IrestrictedCov",
+        "Gamma",
+        "Delta"
+      ]
+    },
+    {
+      "id": "def:isolated-invertible-block-stable-moment-image",
+      "name": "Isolated invertible-block stable population moment image",
+      "construction": "Let \\(\\mathfrak I_{\\Delta,p}^{\\mathrm{ib}}\\) be the population moment image\n\\[\n \\left\\{(m,\\Gamma_1,\\Gamma_2):\\begin{array}{l}\n \\text{there exist }(\\beta,A,\\mu)\\text{ inducing a law in }\\mathcal M_{\\Delta,p}^{\\mathrm{stab}}\\text{ and a set }I\\subsetneq\\{1,\\ldots,p\\},\\\\\n 1\\leq r=|I|\\leq p-1,\\quad E_I=(e_{i_1},\\ldots,e_{i_r})\\text{ for }i_1<\\cdots<i_r\\text{ the elements of }I,\\\\\n A=E_IA_IE_I^{\\mathsf T},\\quad A_I\\in\\mathbb R^{r\\times r},\\quad A_I\\geq0,\\quad \\det(A_I)\\neq0,\\quad \\rho(A_I)<\\beta,\\\\\n \\operatorname{spec}\\{\\Delta(A_I-\\beta I_r)\\}\\subset\\{z\\in\\mathbb C:|\\operatorname{Im}z|<\\pi\\},\\\\\n \\text{and }m,\\Gamma_1,\\Gamma_2\\text{ are that law's population moments}\n \\end{array}\\right\\}.\n\\]\nThe inequalities \\(A_I\\geq0\\) are entrywise.  Labels outside \\(I\\) retain their strictly positive baseline intensities but have no incoming or outgoing excitation.  This is an image-defined domain: no claim is made that membership in it can be certified from an arbitrary observed triple beyond the recovery statements proved on the image.",
+      "free_symbols": [
+        "Iisolated",
+        "Delta",
+        "p",
+        "m",
+        "Gamma",
+        "beta",
+        "A",
+        "mu",
+        "Mstable",
+        "Iactive",
+        "i",
+        "r",
+        "EI",
+        "AI"
+      ],
+      "inputs": [
+        "Mstable",
+        "m",
+        "Gamma"
+      ]
+    },
+    {
+      "id": "def:isolated-invertible-block-two-lag-inverse",
+      "name": "Isolated invertible-block two-lag inverse",
+      "construction": "For \\(\\eta=(m,\\Gamma_1,\\Gamma_2)\\in\\mathfrak I_{\\Delta,p}^{\\mathrm{ib}}\\), set\n\\[\n S=\\operatorname{im}(\\Gamma_1),\\qquad\n I^\\circ=\\{i\\in\\{1,\\ldots,p\\}:e_i\\in S\\},\\qquad\n r^\\circ=|I^\\circ|,\n\\]\nand let \\(E^\\circ=E_{I^\\circ}\\) be the ordered coordinate selector.  With \\(\\Gamma_1^\\dagger\\) denoting the Moore--Penrose inverse, define\n\\[\n F^\\circ=(E^\\circ)^{\\mathsf T}\\Gamma_2\\Gamma_1^\\dagger E^\\circ,\\qquad\n L^\\circ=\\Delta^{-1}\\operatorname{Log}(F^\\circ),\\qquad\n J^\\circ=\\int_0^\\Delta e^{L^\\circ u}\\,du,\n\\]\n\\[\n G_1^\\circ=(E^\\circ)^{\\mathsf T}\\Gamma_1E^\\circ,\\qquad\n K^\\circ=(J^\\circ)^{-2}G_1^\\circ,\\qquad\n \\lambda^\\circ=m/\\Delta,\\qquad\n D_I^\\circ=(E^\\circ)^{\\mathsf T}\\operatorname{diag}(\\lambda^\\circ)E^\\circ,\n\\]\n\\[\n Q^\\circ=\\int_0^\\infty e^{L^\\circ u}D_I^\\circ e^{(L^\\circ)^{\\mathsf T}u}\\,du,\\qquad\n s^\\circ=(r^\\circ)^{-1}\\operatorname{tr}\\{K^\\circ(Q^\\circ)^{-1}+(L^\\circ)^2\\},\n\\]\n\\[\n \\beta^\\circ=(s^\\circ)^{1/2},\\qquad\n A^\\circ=E^\\circ(L^\\circ+\\beta^\\circ I_{r^\\circ})(E^\\circ)^{\\mathsf T},\\qquad\n \\mu^\\circ=(I_p-A^\\circ/\\beta^\\circ)\\lambda^\\circ.\n\\]\nHere \\((J^\\circ)^{-2}=(J^\\circ)^{-1}(J^\\circ)^{-1}\\), as required by the positive-lag identity \\(\\Gamma_1=J^2K\\).  Define\n\\[\n \\Phi_{\\Delta,p}^{\\mathrm{ib}}:\\mathfrak I_{\\Delta,p}^{\\mathrm{ib}}\n \\longrightarrow\\mathbb R_+\\times\\mathbb R^{p\\times p}\\times\\mathbb R^p,\n \\qquad\n \\Phi_{\\Delta,p}^{\\mathrm{ib}}(\\eta)=(\\beta^\\circ,A^\\circ,\\mu^\\circ).\n\\]",
+      "free_symbols": [
+        "PhiIsolated",
+        "Iisolated",
+        "eta",
+        "m",
+        "Gamma",
+        "S",
+        "Iactive",
+        "i",
+        "p",
+        "r",
+        "EI",
+        "F",
+        "Lactive",
+        "Delta",
+        "Jactive",
+        "Kactive",
+        "lambda",
+        "D",
+        "Qactive",
+        "beta",
+        "A",
+        "mu"
+      ],
+      "inputs": [
+        "Iisolated",
+        "m",
+        "Gamma",
+        "Delta"
+      ]
+    },
+    {
+      "id": "def:isolated-invertible-block-stable-covariance-image",
+      "name": "Isolated invertible-block stable covariance population image",
+      "construction": "Let \\(\\mathfrak J_{\\Delta,p}^{\\mathrm{ib}}\\) be the population covariance image\n\\[\n \\left\\{(\\Gamma_0,\\Gamma_1,\\Gamma_2):\\begin{array}{l}\n \\text{there exist }(\\beta,A,\\mu)\\text{ inducing a law in }\\mathcal M_{\\Delta,p}^{\\mathrm{stab}}\\text{ and a set }I\\subsetneq\\{1,\\ldots,p\\},\\\\\n 1\\leq r=|I|\\leq p-1,\\quad E_I=(e_{i_1},\\ldots,e_{i_r})\\text{ for }i_1<\\cdots<i_r\\text{ the elements of }I,\\\\\n A=E_IA_IE_I^{\\mathsf T},\\quad A_I\\in\\mathbb R^{r\\times r},\\quad A_I\\geq0,\\quad \\det(A_I)\\neq0,\\quad \\rho(A_I)<\\beta,\\\\\n \\operatorname{spec}\\{\\Delta(A_I-\\beta I_r)\\}\\subset\\{z\\in\\mathbb C:|\\operatorname{Im}z|<\\pi\\},\\\\\n \\text{and }\\Gamma_0,\\Gamma_1,\\Gamma_2\\text{ are that law's population covariances}\n \\end{array}\\right\\}.\n\\]\nThe inequalities \\(A_I\\geq0\\) are entrywise.  This is a population image under \\((\\Gamma_0,\\Gamma_1,\\Gamma_2)\\), not an observable gate imposed on arbitrary covariance triples.",
+      "free_symbols": [
+        "IisolatedCov",
+        "Delta",
+        "p",
+        "Gamma",
+        "beta",
+        "A",
+        "mu",
+        "Mstable",
+        "Iactive",
+        "i",
+        "r",
+        "EI",
+        "AI"
+      ],
+      "inputs": [
+        "Mstable",
+        "Gamma"
+      ]
+    },
+    {
+      "id": "def:isolated-invertible-block-covariance-only-inverse",
+      "name": "Isolated invertible-block covariance-only inverse",
+      "construction": "For \\(\\gamma=(\\Gamma_0,\\Gamma_1,\\Gamma_2)\\in\\mathfrak J_{\\Delta,p}^{\\mathrm{ib}}\\), set\n\\[\n S=\\operatorname{im}(\\Gamma_1),\\qquad\n I^0=\\{i\\in\\{1,\\ldots,p\\}:e_i\\in S\\},\\qquad\n r^0=|I^0|,\n\\]\nand let \\(E^0=E_{I^0}\\) be the ordered coordinate selector.  Define\n\\[\n F^0=(E^0)^{\\mathsf T}\\Gamma_2\\Gamma_1^\\dagger E^0,\\qquad\n L^0=\\Delta^{-1}\\operatorname{Log}(F^0),\\qquad\n J^0=\\int_0^\\Delta e^{L^0u}\\,du,\n\\]\n\\[\n G_1^0=(E^0)^{\\mathsf T}\\Gamma_1E^0,\\qquad\n K^0=(J^0)^{-2}G_1^0,\\qquad\n \\widetilde C_{+}^{\\mathrm{ib}}(t)=E^0e^{L^0t}K^0(E^0)^{\\mathsf T},\n\\]\n\\[\n D^0=\\Delta^{-1}\\!\\left[\\Gamma_0-\n \\int_0^\\Delta(\\Delta-t)\n \\{\\widetilde C_{+}^{\\mathrm{ib}}(t)+\\widetilde C_{+}^{\\mathrm{ib}}(t)^{\\mathsf T}\\}\\,dt\\right],\n \\qquad \\lambda^0=\\operatorname{diag}(D^0),\n \\qquad m^0=\\Delta\\lambda^0.\n\\]\nDefine\n\\[\n \\Psi_{\\Delta,p}^{\\mathrm{ib},0}(\\gamma)\n =\\Phi_{\\Delta,p}^{\\mathrm{ib}}(m^0,\\Gamma_1,\\Gamma_2).\n\\]",
+      "free_symbols": [
+        "PsiIsolatedCov",
+        "IisolatedCov",
+        "Gamma",
+        "S",
+        "Iactive",
+        "i",
+        "p",
+        "r",
+        "EI",
+        "F",
+        "Lactive",
+        "Delta",
+        "Jactive",
+        "Kactive",
+        "Ccov",
+        "t",
+        "D",
+        "lambda",
+        "m",
+        "PhiIsolated"
+      ],
+      "inputs": [
+        "IisolatedCov",
+        "Gamma",
+        "Delta"
+      ]
+    },
+    {
+      "id": "def:complete-hawkes-response",
+      "name": "Complete Hawkes conditional response in future-row orientation",
+      "construction": "For a law in \\(\\mathcal M_{\\Delta,p}^{\\mathrm{stab}}\\), define its complete nonsingular conditional-response matrix by\n\\[\n g(t)=\n \\begin{cases}\n C_{+}(t)D^{-1},&t>0,\\\\\n C_{+}(-t)^{\\mathsf T}D^{-1},&t<0,\\\\\n 0,&t=0.\n \\end{cases}\n\\]\nThe value at zero is immaterial for convolution and integration.  The normalization is on the right because \\(C_{+}(t)_{ij}=\\operatorname{Cov}(dN_i(t),dN_j(0))/dt^2=g^{ij}(t)\\lambda_j\\).",
+      "free_symbols": [
+        "Mstable",
+        "Delta",
+        "p",
+        "gResponse",
+        "Ccov",
+        "t",
+        "D",
+        "i",
+        "j",
+        "N",
+        "lambda"
+      ],
+      "inputs": [
+        "Ccov",
+        "D"
+      ]
+    },
+    {
+      "id": "def:stable-nonzero-restricted-strip-moment-image",
+      "name": "Stable nonzero restricted-strip population moment image",
+      "construction": "Let \\(\\mathfrak I_{\\Delta,p}^{\\mathrm{WH}}\\) be the population moment image\n\\[\n \\left\\{(m,\\Gamma_1,\\Gamma_2):\\begin{array}{l}\n \\text{there exists }(\\beta,A,\\mu)\\text{ inducing a law in }\\mathcal M_{\\Delta,p}^{\\mathrm{stab}},\\\\\n A\\neq0,\\qquad\n \\operatorname{spec}\\!\\left(\\left.\\Delta(A-\\beta I_p)\\right|_{\\operatorname{im}(A)}\\right)\n \\subset\\{z\\in\\mathbb C:|\\operatorname{Im}z|<\\pi\\},\\\\\n \\text{and }m,\\Gamma_1,\\Gamma_2\\text{ are that law's population moments}\n \\end{array}\\right\\}.\n\\]\nThis image definition imposes no full-rank, zero-diagonal, coordinate-support, isolated-label, acyclicity, or invertible-active-block restriction.",
+      "free_symbols": [
+        "Ibroad",
+        "Delta",
+        "p",
+        "Mstable",
+        "beta",
+        "A",
+        "mu",
+        "B",
+        "m",
+        "Gamma"
+      ],
+      "inputs": [
+        "Mstable",
+        "m",
+        "Gamma"
+      ]
+    },
+    {
+      "id": "def:stable-nonzero-restricted-strip-covariance-image",
+      "name": "Stable nonzero restricted-strip covariance population image",
+      "construction": "Let \\(\\mathfrak J_{\\Delta,p}^{\\mathrm{WH}}\\) be the population covariance image\n\\[\n \\left\\{(\\Gamma_0,\\Gamma_1,\\Gamma_2):\\begin{array}{l}\n \\text{there exists }(\\beta,A,\\mu)\\text{ inducing a law in }\\mathcal M_{\\Delta,p}^{\\mathrm{stab}},\\\\\n A\\neq0,\\qquad\n \\operatorname{spec}\\!\\left(\\left.\\Delta(A-\\beta I_p)\\right|_{\\operatorname{im}(A)}\\right)\n \\subset\\{z\\in\\mathbb C:|\\operatorname{Im}z|<\\pi\\},\\\\\n \\text{and }\\Gamma_0,\\Gamma_1,\\Gamma_2\\text{ are that law's population covariances}\n \\end{array}\\right\\}.\n\\]\nThis is the covariance-only image of exactly the same nonempty stable restricted-strip regime as \\(\\mathfrak I_{\\Delta,p}^{\\mathrm{WH}}\\).",
+      "free_symbols": [
+        "Jbroad",
+        "Delta",
+        "p",
+        "Mstable",
+        "beta",
+        "A",
+        "mu",
+        "B",
+        "Gamma"
+      ],
+      "inputs": [
+        "Mstable",
+        "Gamma"
+      ]
+    },
+    {
+      "id": "def:wiener-hopf-two-lag-inverse",
+      "name": "Broad stable two-lag Wiener--Hopf inverse",
+      "construction": "For \\(\\eta=(m,\\Gamma_1,\\Gamma_2)\\in\\mathfrak I_{\\Delta,p}^{\\mathrm{WH}}\\), set\n\\[\n r=\\operatorname{rank}(\\Gamma_1),\\qquad S=\\operatorname{im}(\\Gamma_1),\n\\]\nchoose any \\(O\\in\\mathbb R^{p\\times r}\\) with \\(O^{\\mathsf T}O=I_r\\) and \\(\\operatorname{im}(O)=S\\), and define\n\\[\n R=O^{\\mathsf T}\\Gamma_1,\\quad\n F=O^{\\mathsf T}\\Gamma_2R^{\\mathsf T}(RR^{\\mathsf T})^{-1},\n\\]\n\\[\n L^{\\mathrm{WH}}=\\Delta^{-1}\\operatorname{Log}(F),\\quad\n H^{\\mathrm{WH}}=L^{\\mathrm{WH}}(F-I_r)^{-1},\\quad\n P^{\\mathrm{WH}}=(H^{\\mathrm{WH}})^2R,\n\\]\n\\[\n K^{\\mathrm{WH}}=OP^{\\mathrm{WH}},\\qquad\n C_{+}^{\\mathrm{WH}}(t)=Oe^{L^{\\mathrm{WH}}t}P^{\\mathrm{WH}},\\qquad t>0.\n\\]\nSet \\(\\lambda^{\\mathrm{WH}}=m/\\Delta\\), \\(D^{\\mathrm{WH}}=\\operatorname{diag}(\\lambda^{\\mathrm{WH}})\\), and\n\\[\n g^{\\mathrm{WH}}(t)=\n \\begin{cases}\n C_{+}^{\\mathrm{WH}}(t)(D^{\\mathrm{WH}})^{-1},&t>0,\\\\\n C_{+}^{\\mathrm{WH}}(-t)^{\\mathsf T}(D^{\\mathrm{WH}})^{-1},&t<0,\\\\\n 0,&t=0.\n \\end{cases}\n\\]\nFor \\(x>0\\), define the finite-dimensional response transform\n\\[\n \\mathcal R^{\\mathrm{WH}}(x)\n =\\int_0^\\infty e^{-xt}C_{+}^{\\mathrm{WH}}(t)^{\\mathsf T}\\,dt\n =(P^{\\mathrm{WH}})^{\\mathsf T}(xI_r-(L^{\\mathrm{WH}})^{\\mathsf T})^{-1}O^{\\mathsf T}.\n\\]\nDefine \\((\\beta^{\\#},A^{\\#})\\) as the unique pair \\((x,M)\\in(0,\\infty)\\times\\mathbb R^{p\\times p}\\) satisfying\n\\[\n MO=O(L^{\\mathrm{WH}}+xI_r),\\qquad\n M[D^{\\mathrm{WH}}+\\mathcal R^{\\mathrm{WH}}(x)]=K^{\\mathrm{WH}}.\n\\]\nEquivalently, put\n\\[\n \\Omega^{\\mathrm{WH}}\n =\\{x>0:\\det[D^{\\mathrm{WH}}+\\mathcal R^{\\mathrm{WH}}(x)]\\neq0\\},\n\\qquad\n \\mathcal A^{\\mathrm{WH}}(x)\n =K^{\\mathrm{WH}}[D^{\\mathrm{WH}}+\\mathcal R^{\\mathrm{WH}}(x)]^{-1},\n\\]\nlet \\(\\beta^{\\#}\\) be the unique \\(x\\in\\Omega^{\\mathrm{WH}}\\) such that\n\\[\n \\mathcal A^{\\mathrm{WH}}(x)O=O(L^{\\mathrm{WH}}+xI_r),\n\\]\nand set\n\\[\n A^{\\#}=\\mathcal A^{\\mathrm{WH}}(\\beta^{\\#}),\\qquad\n \\mu^{\\#}=(I_p-A^{\\#}/\\beta^{\\#})\\lambda^{\\mathrm{WH}}.\n\\]\nFinally define\n\\[\n \\Phi_{\\Delta,p}^{\\mathrm{WH}}(m,\\Gamma_1,\\Gamma_2)\n =(\\beta^{\\#},A^{\\#},\\mu^{\\#}).\n\\]",
+      "free_symbols": [
+        "PhiBroad",
+        "Ibroad",
+        "eta",
+        "m",
+        "Gamma",
+        "Delta",
+        "p",
+        "r",
+        "S",
+        "O",
+        "R",
+        "F",
+        "Lwh",
+        "Hwh",
+        "Pwh",
+        "Kwh",
+        "Cwh",
+        "t",
+        "lambda",
+        "Dwh",
+        "gWh",
+        "RcalWh",
+        "OmegaWh",
+        "AcurveWh",
+        "betaSharp",
+        "ASharp",
+        "muSharp"
+      ],
+      "inputs": [
+        "Ibroad",
+        "m",
+        "Gamma",
+        "Delta"
+      ]
+    },
+    {
+      "id": "def:wiener-hopf-covariance-only-inverse",
+      "name": "Broad stable covariance-only Wiener--Hopf inverse",
+      "construction": "For \\(\\gamma=(\\Gamma_0,\\Gamma_1,\\Gamma_2)\\in\\mathfrak J_{\\Delta,p}^{\\mathrm{WH}}\\), perform the \\(r,S,O,R,F,L^{\\mathrm{WH}},H^{\\mathrm{WH}},P^{\\mathrm{WH}},K^{\\mathrm{WH}}\\), and \\(C_{+}^{\\mathrm{WH}}\\) steps in \\(\\text{def:wiener-hopf-two-lag-inverse}\\) using \\((\\Gamma_1,\\Gamma_2)\\).  Set\n\\[\n D^{\\mathrm{WH},0}=\\Delta^{-1}\\!\\left[\n \\Gamma_0-\\int_0^\\Delta(\\Delta-t)\n \\{C_{+}^{\\mathrm{WH}}(t)+C_{+}^{\\mathrm{WH}}(t)^{\\mathsf T}\\}\\,dt\n \\right],\n\\]\n\\[\n \\lambda^{\\mathrm{WH},0}=\\operatorname{diag}(D^{\\mathrm{WH},0}),\n \\qquad m^{\\mathrm{WH},0}=\\Delta\\lambda^{\\mathrm{WH},0}.\n\\]\nUsing this reconstructed mean, evaluate the finite-dimensional response-transform and unique-positive-root steps of \\(\\Phi_{\\Delta,p}^{\\mathrm{WH}}\\), and define\n\\[\n \\Psi_{\\Delta,p}^{\\mathrm{WH},0}(\\Gamma_0,\\Gamma_1,\\Gamma_2)\n =\\Phi_{\\Delta,p}^{\\mathrm{WH}}(m^{\\mathrm{WH},0},\\Gamma_1,\\Gamma_2).\n\\]",
+      "free_symbols": [
+        "PsiBroad",
+        "PhiBroad",
+        "Jbroad",
+        "Gamma",
+        "Delta",
+        "p",
+        "r",
+        "S",
+        "O",
+        "R",
+        "F",
+        "Lwh",
+        "Hwh",
+        "Pwh",
+        "Kwh",
+        "Cwh",
+        "t",
+        "Dwh",
+        "lambda",
+        "m"
+      ],
+      "inputs": [
+        "Jbroad",
+        "Gamma",
+        "Delta"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:covariance-semigroup",
+      "kind": "lemma",
+      "statement": "For every law in \\(\\overline{\\mathcal M}_{\\Delta,p}^{\\mathrm{DAG}}\\), \\(Q\\succ0\\), \\(C_{+}(t)=e^{Bt}K\\) for \\(t>0\\), \\(K=A(2\\beta I_p-A)Q\\), \\(K-K^{\\mathsf T}=AD-DA^{\\mathsf T}\\), and \\(\\Gamma_k=T^{k-1}J^2K\\) for every \\(k\\geq1\\). Moreover, \\(\\operatorname{im}(\\Gamma_1)=\\operatorname{im}(K)=\\operatorname{im}(A)\\) and \\(\\operatorname{rank}(\\Gamma_1)=\\operatorname{rank}(A)\\), including singular, disconnected, repeated-pole, diamond, and proportional-row cases.",
+      "free_symbols": [
+        "Mbar",
+        "Delta",
+        "p",
+        "Q",
+        "Ccov",
+        "t",
+        "B",
+        "K",
+        "A",
+        "beta",
+        "D",
+        "Gamma",
+        "k",
+        "T",
+        "J"
+      ],
+      "depends_on": [
+        "def:closure-class",
+        "def:population-moments",
+        "def:stable-common-exponential-class",
+        "lem:stable-covariance-semigroup",
+        "ass:positive-decay",
+        "ass:nonnegative-excitation",
+        "ass:acyclic-support"
+      ],
+      "status": "to-prove",
+      "justification": "This identity is the algebraic compression that turns a full covariance function into an observable finite-dimensional semigroup without assuming \\(A\\) invertible.",
+      "gap": "BacryMuzy2016 derives the continuous Wiener--Hopf relation, while EtesamiZhangSinghalKiyavash2016 Section 4, Equations (13)--(16), works with the full lag-indexed covariance transform; neither states this exact fixed-bin factorization or the image equality for singular acyclic \\(A\\).",
+      "consumer": "The image equality supplies the observable state space on which the two-lag recovery theorem is defined."
+    },
+    {
+      "id": "thm:two-lag-exact-recovery",
+      "kind": "theorem",
+      "statement": "For every law in \\(\\mathcal M_{\\Delta,p}^{\\mathrm{DAG},+}\\), the map \\(\\Phi_{\\Delta,r}\\) is well defined and basis invariant, \\(r\\geq1\\), \\(F\\) represents \\(T|_S\\), \\(q=e^{-\\beta\\Delta}\\), \\(E^r=0\\), and \\(\\Phi_{\\Delta,r}(m,\\Gamma_1,\\Gamma_2)=(\\beta,A,\\mu)\\). In particular, \\((m,\\Gamma_1,\\Gamma_2)\\) identifies the labeled graph and every amplitude, decay, and baseline exactly even when \\(A\\) is singular, disconnected, or has repeated poles.",
+      "free_symbols": [
+        "Mclass",
+        "Delta",
+        "p",
+        "Phi",
+        "r",
+        "F",
+        "T",
+        "S",
+        "q",
+        "beta",
+        "E",
+        "m",
+        "Gamma",
+        "A",
+        "mu",
+        "G"
+      ],
+      "depends_on": [
+        "def:model-class",
+        "def:two-lag-inverse",
+        "lem:covariance-semigroup",
+        "ass:nonempty-support"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem isolates a finite sufficient statistic and an explicit inverse for a causal network observed only through coarse counts.",
+      "gap": "Koyama2025 Section 3.4, page 8, Theorem 2 and Equation (18), proves \\(F_{\\Delta t}^{(cg)}(\\nu\\Delta t)=F^{(hw)}(\\nu)\\Delta t+O(\\Delta t^3)\\) as \\(\\Delta t\\to0\\), and Corollary 1 compares that surrogate spectrum with the binned spectrum; Section 3.5, pages 8--9, Equations (19)--(20), defines a quadratic-form estimator. Kirchner2016 Section 3.2, Theorem 2 and Equation (21), proves \\(N^{(\\Delta)}\\Rightarrow N\\) only as \\(\\Delta\\to0\\), while Section 3.3, Equations (25)--(28), gives parallel INAR(\\(\\infty\\)) and Hawkes lag equations. EtesamiZhangSinghalKiyavash2016 Corollary 4 and Proposition 6 require full spectral zeros and Laplace transforms, and ZhouPapadogeorgou2025 Theorem 3.1 and Proposition 3.1 use the full aggregated-count law; none gives an exact finite-\\(\\Delta\\) inverse for the original labeled process from one mean and two covariance matrices.",
+      "consumer": "QiaoCaiWuXiangZhangHao2023's metropolitan cellular-alarm setting can recover within-bin direction at its native one-to-nine-second resolution without imputing latent event times."
+    },
+    {
+      "id": "prop:empty-graph-equivalence",
+      "kind": "proposition",
+      "statement": "Within \\(\\overline{\\mathcal M}_{\\Delta,p}^{\\mathrm{DAG}}\\), \\(\\Gamma_1=0\\) if and only if \\(A=0\\). On this stratum \\(N_1,\\ldots,N_p\\) are independent homogeneous Poisson processes with rates \\(\\mu_1,\\ldots,\\mu_p\\), every \\(\\beta>0\\) induces the same observable law, and \\(\\beta\\) is not identified.",
+      "free_symbols": [
+        "Mbar",
+        "Delta",
+        "p",
+        "Gamma",
+        "A",
+        "N",
+        "mu",
+        "beta"
+      ],
+      "depends_on": [
+        "def:closure-class",
+        "lem:covariance-semigroup"
+      ],
+      "status": "to-prove",
+      "justification": "The proposition states the exact boundary on which decay recovery must fail and prevents an estimator from fabricating information at the empty graph.",
+      "gap": "The finite-bin papers treat positive-excitation parameterizations or likelihood identifiability and do not state this complete two-lag observational-equivalence class.",
+      "consumer": "The proposition tells a graph-recovery pipeline when it must report a set-valued decay rather than a numerical estimate."
+    },
+    {
+      "id": "thm:covariance-only-recovery",
+      "kind": "theorem",
+      "statement": "For every law in \\(\\mathcal M_{\\Delta,p}^{\\mathrm{DAG},+}\\), \\(\\Psi_{\\Delta,r}(\\Gamma_0,\\Gamma_1,\\Gamma_2)=(\\beta,A,\\mu)\\). Equivalently, after the positive-lag inverse reconstructs \\(\\widetilde C_{+}(t)=C_{+}(t)\\) on \\((0,\\Delta]\\), the formula \\(D=\\Delta^{-1}[\\Gamma_0-\\int_0^\\Delta(\\Delta-t)\\{C_{+}(t)+C_{+}(t)^{\\mathsf T}\\}\\,dt]\\) recovers \\(\\lambda=\\operatorname{diag}(D)\\), so the mean is redundant.",
+      "free_symbols": [
+        "Mclass",
+        "Delta",
+        "p",
+        "Psi",
+        "r",
+        "Gamma",
+        "beta",
+        "A",
+        "mu",
+        "Ccov",
+        "t",
+        "D",
+        "lambda"
+      ],
+      "depends_on": [
+        "def:model-class",
+        "def:covariance-only-inverse",
+        "lem:covariance-semigroup",
+        "lem:zero-lag-bin-covariance",
+        "thm:two-lag-exact-recovery"
+      ],
+      "status": "to-prove",
+      "justification": "The result determines whether the diagonal jump in zero-lag bin covariance carries all missing first-order information.",
+      "gap": "Hawkes1971Spectra and BacryMuzy2016 keep intensity as a separate first-order input, while AchabBacryGaiffasMastromatteoMuzy2017 adds third-order cumulants rather than isolating intensity from \\(\\Gamma_0\\).",
+      "consumer": "Legacy alarm archives that retain covariance summaries but not reliable marginal count totals can still identify the directed Hawkes mechanism."
+    },
+    {
+      "id": "lem:finite-depth-geometric-mixing",
+      "kind": "lemma",
+      "statement": "For every fixed \\(P_{\\theta}\\in\\mathcal M_{\\Delta,p}^{\\mathrm{DAG},+}\\), the bin-count sequence \\(X\\) is strongly mixing at a geometric rate. Fix \\(p\\), \\(\\Delta\\), and \\(\\kappa\\in(0,1/2)\\). Uniformly over \\(P_{\\theta}\\in\\mathcal M_{\\Delta,p}(\\kappa)\\), the Poisson immigration--birth representation has genealogical depth at most \\(p-1\\): every child follows a directed edge of \\(G(A)\\), so a longer lineage would repeat a label and create a directed cycle. Conditional offspring delays have density \\(\\beta e^{-\\beta u}\\), \\(\\beta\\geq\\underline\\beta=-\\Delta^{-1}\\log(1-\\kappa)\\), every event has total offspring mean at most \\(\\overline\\nu=\\overline a/\\underline\\beta\\), and the total immigrant rate is at most \\(\\overline\\mu\\). Consequently the cluster duration has the uniform tail bound \\(P_{\\theta}(D_{\\mathrm{cl}}>u)\\leq C_{\\mathrm{mix}}e^{-c_{\\mathrm{mix}}u}\\), where \\(c_{\\mathrm{mix}}=\\underline\\beta/2\\) and \\(C_{\\mathrm{mix}}=1+\\{1+2\\overline\\mu c_{\\mathrm{mix}}^{-1}e^{c_{\\mathrm{mix}}\\Delta}\\}\\sum_{d=1}^{p-1}(2\\overline a/\\underline\\beta)^d\\). Coupling the restrictions of the immigrant Poisson measure on the two sides of a bin gap then gives \\(\\alpha_{X,\\theta}(h)\\leq C_{\\mathrm{mix}}e^{-c_{\\mathrm{mix}}h\\Delta}\\) for every integer \\(h\\geq1\\), and \\(\\alpha_{Y,\\theta}(h)\\leq C_{\\mathrm{mix}}e^{-c_{\\mathrm{mix}}(h-2)_{+}\\Delta}\\) for every integer \\(h\\geq1\\).",
+      "free_symbols": [
+        "p",
+        "Delta",
+        "kappa",
+        "Ptheta",
+        "theta",
+        "Mclass",
+        "Mmargin",
+        "G",
+        "A",
+        "beta",
+        "betaLower",
+        "nuBar",
+        "aBar",
+        "muBar",
+        "Dcl",
+        "cMix",
+        "Cmix",
+        "alphaX",
+        "X",
+        "alphaMix",
+        "Y"
+      ],
+      "depends_on": [
+        "def:model-class",
+        "def:margin-class",
+        "ass:acyclic-support",
+        "ass:decay-margin",
+        "ass:parameter-envelope"
+      ],
+      "status": "to-prove",
+      "justification": "This lemma turns feed-forward structure and bounded primitive parameters into the uniform dependence rate required by the HAC argument.",
+      "gap": "BolyCheyssonNguyen2024 provides compatible general multivariate Hawkes mixing background but does not state this geometric rate from finite genealogical depth; the rate and constants here come from the acyclic common-exponential cluster construction.",
+      "consumer": "The raw-moment central limit theorem can invoke a derived uniform geometric rate instead of assuming one as a separate model restriction."
+    },
+    {
+      "id": "lem:uniform-bin-eighth-moment",
+      "kind": "lemma",
+      "statement": "Every fixed law in \\(\\mathcal M_{\\Delta,p}^{\\mathrm{DAG},+}\\) has finite bin-count moments of every order. Fix \\(p\\), \\(\\Delta\\), and \\(\\kappa\\in(0,1/2)\\). Uniformly over \\(P_{\\theta}\\in\\mathcal M_{\\Delta,p}(\\kappa)\\), the total progeny of any immigrant cluster is dominated by a depth-\\(p-1\\) Poisson branching tree whose moment-generating functions obey \\(g_0(z)=e^z\\) and \\(g_d(z)=\\exp[z+\\overline\\nu\\{g_{d-1}(z)-1\\}]\\). For every integer \\(u\\in\\{1,\\ldots,16\\}\\), differentiating the stationary Poisson-cluster generating functional and using the duration bound in \\(\\text{lem:finite-depth-geometric-mixing}\\) gives \\[\\operatorname{cum}_u(\\lVert X_0\\rVert_1)\\leq\\overline\\mu\\left[\\Delta g_{p-1}^{(u)}(0)+2c_{\\mathrm{mix}}^{-1}\\{C_{\\mathrm{mix}}g_{p-1}^{(2u)}(0)\\}^{1/2}\\right].\\] The complete moment--cumulant formulas through order sixteen therefore yield the named finite constant \\(M_8=M_8(p,\\Delta,\\kappa)\\), the bound \\(\\sup_{\\theta:P_{\\theta}\\in\\mathcal M_{\\Delta,p}(\\kappa)}\\mathbb E_{\\theta}\\lVert X_0\\rVert_2^8\\leq M_8\\), and \\(\\sup_{\\theta:P_{\\theta}\\in\\mathcal M_{\\Delta,p}(\\kappa)}\\mathbb E_{\\theta}\\lVert X_0\\rVert_2^{16}<\\infty\\).",
+      "free_symbols": [
+        "p",
+        "Delta",
+        "kappa",
+        "Ptheta",
+        "theta",
+        "Mclass",
+        "Mmargin",
+        "gBranch",
+        "nuBar",
+        "X",
+        "muBar",
+        "cMix",
+        "Cmix",
+        "M8"
+      ],
+      "depends_on": [
+        "def:model-class",
+        "def:margin-class",
+        "lem:finite-depth-geometric-mixing",
+        "ass:acyclic-support",
+        "ass:decay-margin",
+        "ass:parameter-envelope"
+      ],
+      "status": "to-prove",
+      "justification": "The recursive cluster bound supplies eighth moments of the quadratic raw-moment process needed for explicit four-point cumulant summability and uniform long-run covariance estimation.",
+      "gap": "CheyssonLang2022 assumes moment regularity for its spectral limit theory; it does not derive a uniform sixteenth-bin-count envelope from bounded acyclic Hawkes primitives.",
+      "consumer": "Uniform HAC consistency and Gaussian calibration no longer depend on an unexplained independent moment assumption."
+    },
+    {
+      "id": "lem:bin-moment-limit",
+      "kind": "lemma",
+      "statement": "For every fixed law in \\(\\mathcal M_{\\Delta,p}^{\\mathrm{DAG},+}\\), \\(\\widehat\\xi_n\\to\\xi\\) and \\(\\widehat\\eta_n=\\mathcal C(\\widehat\\xi_n)\\to\\eta=(m,\\Gamma_1,\\Gamma_2)\\) in probability. Fix \\(p\\), \\(\\Delta\\), and \\(\\kappa\\in(0,1/2)\\). The derived geometric-mixing and sixteenth-bin-count bounds imply that \\(\\Omega(\\theta)\\) is finite uniformly over \\(P_{\\theta}\\in\\mathcal M_{\\Delta,p}(\\kappa)\\) and \\[\\sup_{\\theta:P_{\\theta}\\in\\mathcal M_{\\Delta,p}(\\kappa)}d_{\\mathrm{BL}}\\left(\\mathcal L_{\\theta}\\{\\sqrt n(\\widehat\\xi_n-\\xi(\\theta))\\},\\mathcal N\\{0,\\Omega(\\theta)\\}\\right)\\longrightarrow0.\\] Because \\(\\widehat\\eta_n=\\mathcal C(\\widehat\\xi_n)\\) and \\(\\eta=\\mathcal C(\\xi)=(m,\\Gamma_1,\\Gamma_2)\\), the same uniform statement holds for \\(\\sqrt n(\\widehat\\eta_n-\\eta(\\theta))\\) with covariance \\(D\\mathcal C_{\\xi(\\theta)}\\Omega(\\theta)D\\mathcal C_{\\xi(\\theta)}^{\\mathsf T}\\). If \\(b_n\\to\\infty\\) and \\(b_n=o(n^{1/2})\\), then for every \\(\\varepsilon>0\\), \\[\\sup_{\\theta:P_{\\theta}\\in\\mathcal M_{\\Delta,p}(\\kappa)}P_{\\theta}\\{\\lVert\\widehat\\Omega_n-\\Omega(\\theta)\\rVert_{\\mathrm{op}}>\\varepsilon\\}\\longrightarrow0.\\]",
+      "free_symbols": [
+        "Mclass",
+        "Mmargin",
+        "Delta",
+        "p",
+        "kappa",
+        "X",
+        "Omega",
+        "n",
+        "xiHat",
+        "xi",
+        "etaHat",
+        "eta",
+        "C",
+        "m",
+        "Gamma",
+        "OmegaHat",
+        "bn",
+        "theta",
+        "Ptheta",
+        "dBL"
+      ],
+      "depends_on": [
+        "def:model-class",
+        "def:population-moments",
+        "def:centering-map",
+        "def:hac-estimator",
+        "lem:finite-depth-geometric-mixing",
+        "lem:uniform-bin-eighth-moment",
+        "ass:variance-gap",
+        "ass:hac-bandwidth"
+      ],
+      "status": "to-prove",
+      "justification": "A joint dependent-data limit for precisely the moments entering the inverse is required before any graph-wide uncertainty statement is credible.",
+      "gap": "CheyssonLang2022 proves fixed-bin Whittle asymptotics, while BolyCheyssonNguyen2024 supplies general mixing background; neither derives the finite-depth uniform envelopes or the joint raw-lag-moment Gaussian and HAC limits in the coordinates of this inverse.",
+      "consumer": "The rank-adaptive inverse and simultaneous graph confidence set use this Gaussian moment experiment."
+    },
+    {
+      "id": "thm:rank-adaptive-estimation",
+      "kind": "theorem",
+      "statement": "For every fixed law in \\(\\mathcal M_{\\Delta,p}^{\\mathrm{DAG},+}\\), if \\(t_n\\downarrow0\\), \\(\\sqrt n\\,t_n\\to\\infty\\), \\(a_n\\downarrow0\\), and \\(\\sqrt n\\,a_n\\to\\infty\\), then \\(\\mathbb P(\\widehat r_n=r)\\to1\\), \\(\\widehat\\theta_n\\to(\\beta,A,\\mu)\\) in probability, and \\(\\mathbb P(\\widehat G_n=G(A))\\to1\\). Fix \\(p\\), \\(\\Delta\\), and \\(\\kappa\\in(0,1/2)\\). On \\(\\mathcal M_{\\Delta,p}(\\kappa)\\), under the long-run-covariance nonsingularity and bandwidth conditions, rank selection is uniformly consistent and the structural estimator is uniformly root-\\(n\\) tight: \\[\\sup_{\\theta:P_{\\theta}\\in\\mathcal M_{\\Delta,p}(\\kappa)}P_{\\theta}(\\widehat r_n\\neq r(\\theta))\\longrightarrow0,\\] \\[\\lim_{M\\to\\infty}\\limsup_{n\\to\\infty}\\sup_{\\theta:P_{\\theta}\\in\\mathcal M_{\\Delta,p}(\\kappa)}P_{\\theta}\\!\\left[\\sqrt n\\{ |\\widehat\\beta_n-\\beta|+\\lVert\\widehat A_n-A\\rVert_{\\mathrm F}+\\lVert\\widehat\\mu_n-\\mu\\rVert_2\\}>M\\right]=0.\\] For every \\(\\varepsilon>0\\), \\[\\sup_{\\theta:P_{\\theta}\\in\\mathcal M_{\\Delta,p}(\\kappa)}P_{\\theta}\\{\\lVert\\widehat\\Omega_n-\\Omega(\\theta)\\rVert_{\\mathrm{op}}>\\varepsilon\\}\\longrightarrow0.\\]",
+      "free_symbols": [
+        "Mclass",
+        "Delta",
+        "p",
+        "tn",
+        "n",
+        "edgeThreshold",
+        "rHat",
+        "r",
+        "thetaHat",
+        "beta",
+        "A",
+        "mu",
+        "Ghat",
+        "G",
+        "Mmargin",
+        "kappa",
+        "theta",
+        "Omega",
+        "bn",
+        "OmegaHat",
+        "Ptheta"
+      ],
+      "depends_on": [
+        "def:model-class",
+        "def:margin-class",
+        "def:rank-adaptive-estimator",
+        "def:centering-map",
+        "lem:bin-moment-limit",
+        "lem:finite-depth-geometric-mixing",
+        "lem:uniform-bin-eighth-moment",
+        "thm:two-lag-exact-recovery",
+        "ass:rank-gap",
+        "ass:decay-margin",
+        "ass:parameter-envelope",
+        "ass:intensity-gap",
+        "ass:variance-gap",
+        "ass:hac-bandwidth"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem converts exact identification into a rank-adaptive estimator while making every conditioning margin explicit.",
+      "gap": "CheyssonLang2022 differentiates a smooth Whittle criterion, KoltchinskiiLounici2016Projectors treats basis-free spectral projectors under independent Gaussian sampling, and existing Hawkes graph estimators do not differentiate a restricted logarithm after random image selection.",
+      "consumer": "The result gives consistent de-aliased weights and support for the low-resolution cellular-alarm network studied by QiaoCaiWuXiangZhangHao2023."
+    },
+    {
+      "id": "prop:thresholded-uniform-support",
+      "kind": "proposition",
+      "statement": "Fix \\(p\\), \\(\\Delta\\), and \\(\\kappa\\in(0,1/2)\\). If \\(t_n,a_n\\downarrow0\\), \\(\\sqrt n\\,t_n\\to\\infty\\), and \\(\\sqrt n\\,a_n\\to\\infty\\), then the separately thresholded graph \\(\\widehat G_n=\\{j\\to i:\\widehat A_{ij}>a_n\\}\\) satisfies \\[\\sup_{\\theta:P_{\\theta}\\in\\mathcal M_{\\Delta,p}(\\kappa)}P_{\\theta}\\{\\widehat G_n\\neq G(A)\\}\\longrightarrow0.\\]",
+      "free_symbols": [
+        "p",
+        "Delta",
+        "kappa",
+        "tn",
+        "edgeThreshold",
+        "n",
+        "Ghat",
+        "thetaHat",
+        "A",
+        "i",
+        "j",
+        "G",
+        "theta",
+        "Ptheta",
+        "Mmargin"
+      ],
+      "depends_on": [
+        "def:margin-class",
+        "def:rank-adaptive-estimator",
+        "lem:covariance-semigroup",
+        "thm:rank-adaptive-estimation",
+        "ass:rank-gap",
+        "ass:edge-gap"
+      ],
+      "status": "to-prove",
+      "justification": "Vanishing thresholds separate model selection from fixed-level confidence inversion and eliminate persistent false inclusions at null coordinates.",
+      "gap": "Fixed-level simultaneous intervals control graph inclusion but cannot make null-coordinate selection errors vanish; existing exact-event-time Hawkes selectors do not establish this uniform fixed-bin inverse result.",
+      "consumer": "Cellular-alarm analysts obtain a support-consistent point graph separately from the conservative graph confidence set."
+    },
+    {
+      "id": "thm:simultaneous-graph-coverage",
+      "kind": "theorem",
+      "statement": "For fixed \\(p\\), \\(\\Delta\\), and \\(\\kappa\\in(0,1/2)\\), the composite \\(\\zeta\\circ\\Phi_{\\Delta,r(\\theta)}\\circ\\mathcal C\\), evaluated through the signed jump before the positive-part edge map, is Fr\\'{e}chet differentiable at \\(\\xi(\\theta)\\). Let \\[W(\\theta)=D(\\zeta\\circ\\Phi_{\\Delta,r(\\theta)}\\circ\\mathcal C)_{\\xi(\\theta)}\\,\\Omega(\\theta)\\,D(\\zeta\\circ\\Phi_{\\Delta,r(\\theta)}\\circ\\mathcal C)_{\\xi(\\theta)}^{\\mathsf T}.\\] Under the derived geometric-mixing and eighth-moment lemmas and the long-run-covariance nonsingularity and bandwidth conditions of \\(\\text{thm:rank-adaptive-estimation}\\), \\[\\sup_{\\theta:P_{\\theta}\\in\\mathcal M_{\\Delta,p}(\\kappa)}d_{\\mathrm{BL}}\\left(\\mathcal L_{\\theta}\\left[\\sqrt n\\left\\{\\zeta(\\widehat\\theta_n)-\\zeta(\\theta)\\right\\}\\right],\\mathcal N\\{0,W(\\theta)\\}\\right)\\longrightarrow0,\\] and the direct composite estimator \\(\\widehat W_n\\) in the corrected \\(\\text{def:hac-estimator}\\) is uniformly consistent for \\(W(\\theta)\\). Gaussian-maximum calibration with \\(\\widehat W_n\\) yields \\[\\liminf_{n\\to\\infty}\\inf_{\\theta:P_{\\theta}\\in\\mathcal M_{\\Delta,p}(\\kappa)}P_{\\theta}\\left\\{\\zeta_{ij}(\\theta)\\in I_{ij,n}\\text{ for every }1\\leq i<j\\leq p\\right\\}\\geq1-\\alpha,\\] and consequently \\[\\liminf_{n\\to\\infty}\\inf_{\\theta:P_{\\theta}\\in\\mathcal M_{\\Delta,p}(\\kappa)}P_{\\theta}\\{G(A)\\in\\mathcal C_n(1-\\alpha)\\}\\geq1-\\alpha.\\]",
+      "free_symbols": [
+        "p",
+        "kappa",
+        "Cset",
+        "n",
+        "alpha",
+        "Mmargin",
+        "Delta",
+        "A",
+        "G",
+        "Phi",
+        "C",
+        "zeta",
+        "xi",
+        "Omega",
+        "theta",
+        "Ptheta",
+        "dBL",
+        "Wtheta",
+        "thetaHat",
+        "WHat",
+        "Iedge",
+        "i",
+        "j",
+        "r"
+      ],
+      "depends_on": [
+        "def:margin-class",
+        "def:graph-confidence-set",
+        "def:hac-estimator",
+        "lem:bin-moment-limit",
+        "lem:finite-depth-geometric-mixing",
+        "lem:uniform-bin-eighth-moment",
+        "thm:rank-adaptive-estimation",
+        "ass:rank-gap",
+        "ass:decay-margin",
+        "ass:parameter-envelope",
+        "ass:intensity-gap",
+        "ass:variance-gap",
+        "ass:hac-bandwidth",
+        "ass:edge-gap"
+      ],
+      "status": "to-prove",
+      "justification": "Conservative simultaneous sign inversion makes uncertainty about every directed edge visible without treating fixed-level exclusions as a support-consistent selector.",
+      "gap": "WangXieCuozzoMakXie2020 Section 2, Equations (2)--(5), and Theorem 3.2, Equations (7)--(8), use exact event-time likelihood scores and continuous-time martingale concentration; WangKolarShojaie2025 likewise uses exact histories. Neither provides simultaneous graph inclusion for a fixed-bin covariance inverse with unknown image rank.",
+      "consumer": "Alarm-network analysts can report which edges are compelled, excluded, or unresolved at a common familywise confidence level."
+    },
+    {
+      "id": "oeq:one-lag-minimality",
+      "kind": "openendedquestion",
+      "statement": "Using \\(H_{\\mathrm{one}}\\), fix \\(p=3\\) and determine the injectivity locus of \\(\\mathcal O_1\\) separately on every labeled chain, fork, and diamond support \\(G_0\\in\\mathfrak G_3^{\\mathrm{cfd}}\\): for which \\(\\theta\\in\\Theta_{s,G_0}\\) is \\(\\mathfrak F_1\\{\\mathcal O_1(\\theta)\\}\\cap\\Theta_{s,G_0}=\\{\\theta\\}\\)? For every \\(s\\in\\{1,2,3\\}\\) and \\(G_0\\in\\mathfrak G_3^{\\mathrm{cfd}}\\), determine whether there is a nonempty relatively open \\(U=V\\cap\\Theta_{s,G_0}\\), with \\(V\\) open under \\(\\rho_{\\Theta}\\), such that each \\(\\theta\\in U\\) admits \\(\\theta'\\in\\{\\mathfrak F_1\\{\\mathcal O_1(\\theta)\\}\\cap\\Theta_{s,G_0}\\}\\setminus\\{\\theta\\}\\) with \\(\\rho_{\\mathrm{law}}(P_{\\theta},P_{\\theta'})>0\\).",
+      "free_symbols": [
+        "Hone",
+        "m",
+        "Gamma",
+        "Mclass",
+        "Delta",
+        "p",
+        "beta",
+        "A",
+        "mu",
+        "Oone",
+        "ThetaPlus",
+        "FiberOne",
+        "RankStratum",
+        "Gfamily3",
+        "G0",
+        "RankSupportStratum",
+        "sRank",
+        "rhoTheta",
+        "rhoLaw",
+        "Ptheta",
+        "theta"
+      ],
+      "depends_on": [
+        "def:parameter-law-topologies",
+        "def:one-lag-fiber",
+        "def:one-lag-handle",
+        "def:model-class",
+        "lem:covariance-semigroup",
+        "thm:two-lag-exact-recovery"
+      ],
+      "status": "to-prove",
+      "justification": "The exact two-lag inverse does not itself decide whether one positive covariance lag is sufficient, so the smaller observable must be analyzed as an unresolved compatibility fiber.",
+      "gap": "BacryMuzy2016 Section II-B, Theorem 1 and Equation (19), with Corollary 1, identifies from the complete covariance-density function; Kirchner2016 Section 3.3, Equations (25)--(28), and Section 4, Equation (29), gives an INAR lag route and a small-bin approximation; CheyssonLang2022 Corollary 3 gives the full aliased binned spectrum, while Theorems 2--3 assume full-spectral injectivity in condition (A2). None establishes injectivity or noninjectivity of \\(m,\\Gamma_1\\) on the named legal three-node support strata.",
+      "consumer": "The answer determines whether archives for three-node chain, fork, and diamond alarm motifs must retain a second positive covariance lag."
+    },
+    {
+      "id": "oeq:honest-boundary-adaptation",
+      "kind": "openendedquestion",
+      "statement": "Using \\(H_{\\mathrm{boundary}}\\), fix \\(p\\), \\(\\Delta\\), \\(\\alpha\\), \\(\\kappa_0\\), and a bandwidth sequence satisfying \\(b_n\\to\\infty\\) and \\(b_n=o(n^{1/2})\\). Construct a data-only \\(\\mathfrak U_n=(\\mathcal G_n,\\mathcal T_n)\\in\\mathfrak H_{n,\\kappa_0}(\\alpha)\\) uniformly over the same nuisance-regular closure \\(\\overline{\\mathcal M}_{\\Delta,p}(\\kappa_0)\\), and characterize the sharp frontier \\(\\mathfrak R_{n,\\kappa_0}(\\delta_n)=(R_{G,n,\\kappa_0}(\\delta_n),R_{\\Theta,n,\\kappa_0}(\\delta_n))\\) for every sequence \\(\\delta_n\\downarrow0\\). Determine whether one honest procedure simultaneously attains both risks up to universal constants over every \\(\\mathcal M_{\\kappa_0}(\\delta_n)\\), and quantify its excess graph-inclusion loss \\(\\ell_{\\mathrm{inc}}\\) relative to \\(\\mathcal C_n(1-\\alpha)\\) and its excess \\(\\rho_{\\Theta}\\)-diameter relative to \\(\\mathcal T_n^{\\mathrm{fm}}(1-\\alpha)\\).",
+      "free_symbols": [
+        "Hboundary",
+        "Mregular",
+        "kappa0",
+        "Delta",
+        "p",
+        "r",
+        "Z",
+        "i",
+        "j",
+        "A",
+        "Cset",
+        "n",
+        "alpha",
+        "Un",
+        "HonestClass",
+        "AdaptFrontier",
+        "boundaryIndex",
+        "Mdelta",
+        "deltaSequence",
+        "lossInc",
+        "rhoTheta",
+        "diamTheta",
+        "Tmargin",
+        "bn"
+      ],
+      "depends_on": [
+        "def:parameter-law-topologies",
+        "def:boundary-risks",
+        "def:boundary-handle",
+        "def:closure-class",
+        "def:nuisance-regular-closure",
+        "def:graph-confidence-set",
+        "prop:empty-graph-equivalence",
+        "thm:simultaneous-graph-coverage",
+        "ass:hac-bandwidth",
+        "ass:closure-decay-margin",
+        "ass:closure-parameter-envelope",
+        "ass:closure-intensity-gap",
+        "ass:closure-variance-gap"
+      ],
+      "status": "to-prove",
+      "justification": "The empty graph destroys decay identification and weak singular values destroy rank selection, so honest adaptation is the substantive unresolved inference boundary.",
+      "gap": "WangXieCuozzoMakXie2020 Section 2 and Theorem 3.2 constructs exact-event-time likelihood-score confidence polyhedra, while CheyssonLang2022 Theorems 2--3 impose conditions (A1)--(A4), including full-spectral identifiability (A2), for fixed-model Whittle limits. Neither covers rank, edge, or empty-network approach inside one nuisance-regular closure. GleserHwang1987 Section 2, Theorem 1, supplies the general warning that a nuisance limit erasing an unbounded target forces infinite confidence sets with positive probability, but whether and at what rate that mechanism governs this bounded-metric Hawkes frontier is unresolved.",
+      "consumer": "The result would tell cellular-network operators when a wide graph set is statistically unavoidable rather than evidence of a failed algorithm."
+    }
+  ],
+  "sampling_model": {
+    "design": "One stationary labeled multivariate Hawkes trajectory observed only through consecutive bins of known width \\(\\Delta\\).",
+    "units": "The dependent observations are \\(X_0,\\ldots,X_{n-1}\\); the population identification result precedes sampling asymptotics.",
+    "treatment": "There is no designated treatment; the target is the directed excitation mechanism \\((\\beta,A,\\mu)\\) and its graph \\(G(A)\\).",
+    "overlap": "Not applicable; identification leverage comes from nonnegative acyclic excitation and a common exponential decay.",
+    "nuisance_estimation": "Estimate the raw mean and cross-moment vector \\(\\xi=\\mathbb E[Y_0]\\), apply \\(\\eta=\\mathcal C(\\xi)=(m,\\Gamma_1,\\Gamma_2)\\), select \\(\\operatorname{rank}(\\Gamma_1)\\) by singular-value thresholding, and estimate the raw-moment long-run covariance \\(\\Omega(\\theta)\\) by a lag-window estimator. The single composite Jacobian \\(\\mathcal J(\\theta)=D(\\Phi_{\\Delta,r(\\theta)}\\circ\\mathcal C)_{\\xi(\\theta)}\\) produces both \\(V(\\theta)\\) and the signed-edge covariance \\(W(\\theta)\\). Uniform geometric mixing and the eighth-bin-count envelope are derived from finite-depth Poisson branching on the bounded fixed-margin class; the remaining inference restrictions are long-run covariance nonsingularity and the stated bandwidth condition. Support selection uses the separate vanishing threshold \\(a_n\\), while fixed-level Gaussian-maximum inversion is used only for conservative simultaneous-coordinate and graph-inclusion coverage."
+  },
+  "estimand_functional": "On \\(\\mathfrak I_{\\Delta,p}^{\\mathrm{WH}}\\), \\((\\beta,A,\\mu)=\\Phi_{\\Delta,p}^{\\mathrm{WH}}(m,\\Gamma_1,\\Gamma_2)\\), where \\(\\Phi_{\\Delta,p}^{\\mathrm{WH}}\\) reconstructs the complete response from two positive lags, evaluates a finite matrix resolvent, and selects the unique positive scalar root; on \\(\\mathfrak J_{\\Delta,p}^{\\mathrm{WH}}\\), \\((\\beta,A,\\mu)=\\Psi_{\\Delta,p}^{\\mathrm{WH},0}(\\Gamma_0,\\Gamma_1,\\Gamma_2)\\), where \\(\\Psi_{\\Delta,p}^{\\mathrm{WH},0}\\) first reconstructs \\(D\\) and \\(m\\) and then invokes the same finite evaluator. These broad images contain every nonzero law in \\(\\mathcal M_{\\Delta,p}^{\\mathrm{stab}}\\) whose restricted generator \\(\\Delta(A-\\beta I_p)|_{\\operatorname{im}(A)}\\) lies in the principal-log strip. The four explicit algebraic branches remain: on \\(\\mathcal M_{\\Delta,p}^{\\mathrm{DAG},+}\\), \\((\\beta,A,\\mu)=\\Phi_{\\Delta,r}(m,\\Gamma_1,\\Gamma_2)=\\Psi_{\\Delta,r}(\\Gamma_0,\\Gamma_1,\\Gamma_2)\\) with \\(r=\\operatorname{rank}(\\Gamma_1)\\); on \\(\\mathfrak I_{\\Delta,p}^{0,+,\\mathrm{rs}}\\) and \\(\\mathfrak J_{\\Delta,p}^{0,+,\\mathrm{rs}}\\), the corresponding maps are \\(\\Phi_{\\Delta,p}^{0,+,\\mathrm{rs}}\\) and \\(\\Psi_{\\Delta,p}^{0,+,\\mathrm{rs},0}\\); on \\(\\mathfrak I_{\\Delta,p}^{\\mathrm{fr}}\\) and \\(\\mathfrak J_{\\Delta,p}^{\\mathrm{fr}}\\), they are \\(\\Phi_{\\Delta,p}^{\\mathrm{fr}}\\) and \\(\\Psi_{\\Delta,p}^{\\mathrm{fr},0}\\); and on \\(\\mathfrak I_{\\Delta,p}^{\\mathrm{ib}}\\) and \\(\\mathfrak J_{\\Delta,p}^{\\mathrm{ib}}\\), they are \\(\\Phi_{\\Delta,p}^{\\mathrm{ib}}\\) and \\(\\Psi_{\\Delta,p}^{\\mathrm{ib},0}\\). No sample-level theorem is asserted for the broad scalar-root map; the estimation, rate, support-recovery, and graph-confidence results remain acyclic-only.",
+  "target_estimand": "\\((\\beta,A,\\mu)\\), with the labeled causal graph \\(G(A)\\) recovered exactly",
+  "bibliography": [
+    {
+      "key": "Hawkes1971Spectra",
+      "citation": "Alan G. Hawkes (1971), Spectra of Some Self-Exciting and Mutually Exciting Point Processes, Biometrika 58, 83--90."
+    },
+    {
+      "key": "BacryMuzy2016",
+      "citation": "Emmanuel Bacry and Jean-Fran\\c{c}ois Muzy (2016), First- and Second-Order Statistics Characterization of Hawkes Processes and Non-Parametric Estimation, IEEE Transactions on Information Theory 62, 2184--2202, arXiv:1401.0903. Primary PDF: \\url{https://arxiv.org/pdf/1401.0903}. Section II-B, page 4 of the PDF, Proposition 2 and Equation (18), gives the Wiener--Hopf system; Theorem 1 and Equation (19) give its unique causal \\(L^1\\) kernel solution; Corollary 1 states identification from complete first- and second-order statistics."
+    },
+    {
+      "key": "EtesamiZhangSinghalKiyavash2016",
+      "citation": "Jalal Etesami, Negar Kiyavash, Kun Zhang, and Kushagra Singhal (2016), Learning Network of Multivariate Hawkes Processes: A Time Series Approach, Proceedings of UAI 2016, 162--171; Section 4, Definition 2 and Equations (10), (13)--(16), Corollary 4, Proposition 6, and Section 7.3 Equation (20)."
+    },
+    {
+      "key": "AchabBacryGaiffasMastromatteoMuzy2017",
+      "citation": "Massil Achab, Emmanuel Bacry, St\\'{e}phane Ga\\\"iffas, Iacopo Mastromatteo, and Jean-Fran\\c{c}ois Muzy (2017), Uncovering Causality from Multivariate Hawkes Integrated Cumulants, Proceedings of ICML 2017, 1--10, arXiv:1607.06333."
+    },
+    {
+      "key": "CheyssonLang2022",
+      "citation": "F\\'{e}lix Cheysson and Gabriel Lang (2022), Spectral Estimation of Hawkes Processes from Count Data, The Annals of Statistics 50, 1722--1746, arXiv:2003.04314. Primary PDF: \\url{https://arxiv.org/pdf/2003.04314}. Corollary 3, page 8, gives the aliased bin-count spectrum \\(f_d(\\omega)=\\sum_{k\\in\\mathbb Z}f_c(\\omega+2k\\pi)\\). Theorem 2, page 9, proves Whittle consistency under (A1)--(A3), with (A2) requiring distinct parameters to have distinct spectra almost everywhere; Theorem 3, page 10, adds (A4) and gives asymptotic normality."
+    },
+    {
+      "key": "Koyama2025",
+      "citation": "Shinsuke Koyama (2025), Coarse-Grained Hawkes Processes, Entropy 27, article 555, DOI: 10.3390/e27060555. Publisher PDF: \\url{https://mdpi-res.com/d_attachment/entropy/entropy-27-00555/article_deploy/entropy-27-00555-v2.pdf}. Page 8, Theorem 2 and Equation (18), states \\(F_{\\Delta t}^{(cg)}(\\nu\\Delta t)=F^{(hw)}(\\nu)\\Delta t+O(\\Delta t^3)\\) as \\(\\Delta t\\to0\\); page 8, Corollary 1, states \\(F_{\\Delta t}^{(cg)}(\\omega)=F_{\\Delta t}^{(hw)}(\\omega)+O(\\Delta t^3)\\); pages 8--9, Equations (19)--(20), define a quadratic-form loss, with the first term of Equation (20) a weighted quadratic loss and the second a regularization component."
+    },
+    {
+      "key": "Kirchner2016",
+      "citation": "Matthias Kirchner (2016), Hawkes and INAR(\\(\\infty\\)) Processes, Stochastic Processes and their Applications 126, 2494--2525, DOI: 10.1016/j.spa.2016.02.008. Primary open-access publication PDF: \\url{https://phrepo.phbern.ch/7802/1/hawkes_and_inar_infty_processes.pdf}. Section 3.2, Theorem 2 and Equation (21), journal pages 2503--2504 and PDF pages 9--10, construct \\(N^{(\\Delta)}\\) from an INAR(\\(\\infty\\)) sequence and prove \\(N^{(\\Delta)}\\Rightarrow N\\) as \\(\\Delta\\to0\\); Section 3.3, Equations (25)--(28), journal pages 2505--2506 and PDF pages 11--12, records the parallel autocovariance and Yule--Walker equations; Section 4, Equation (29), journal page 2507 and PDF page 13, describes the small-\\(\\Delta\\) bin-count approximation."
+    },
+    {
+      "key": "ShlomovichCohenAdamsPatel2022",
+      "citation": "Leigh Shlomovich, Edward A. K. Cohen, Niall Adams, and Lekha Patel (2022), Parameter Estimation of Binned Hawkes Processes from Incomplete Observations, Journal of Computational and Graphical Statistics 31, 990--1000."
+    },
+    {
+      "key": "ShlomovichCohenAdams2022",
+      "citation": "Leigh Shlomovich, Edward A. K. Cohen, and Niall Adams (2022), Binned Hawkes Process Estimation with Latent Event Times, Statistics and Computing 32, article 86, arXiv:2108.12357."
+    },
+    {
+      "key": "WangXieCuozzoMakXie2020",
+      "citation": "Haoyun Wang, Liyan Xie, Alex Cuozzo, Simon Mak, and Yao Xie (2020), Uncertainty Quantification for Inferring Hawkes Networks, Advances in Neural Information Processing Systems 33, arXiv:2006.07506. Primary proceedings PDF: \\url{https://proceedings.neurips.cc/paper_files/paper/2020/file/4f00921114932db3f8662a41b44ee68f-Paper.pdf}. Section 2, paper pages 2--3, Equations (2)--(5), defines the exact-event-time likelihood, score, history covariates, and Hessian. Theorem 3.2, paper page 5, Equations (7)--(8), gives a nonasymptotic score-based confidence polyhedron for one row of excitation weights."
+    },
+    {
+      "key": "GleserHwang1987",
+      "citation": "Leon Jay Gleser and Jiunn T. Hwang (1987), The Nonexistence of \\(100(1-\\alpha)\\) Percent Confidence Sets of Finite Expected Diameter in Errors-in-Variables and Related Models, The Annals of Statistics 15, 1351--1362, DOI: 10.1214/aos/1176350597. Primary article record: \\url{https://projecteuclid.org/euclid.aos/1176350597}. Section 2, Theorem 1, shows that when an unbounded target is erased in a nuisance-parameter limit, every positive-level confidence procedure has infinite diameter with positive probability."
+    },
+    {
+      "key": "WangKolarShojaie2025",
+      "citation": "Xu Wang, Mladen Kolar, and Ali Shojaie (2025), Statistical Inference for Networks of High-Dimensional Point Processes, Journal of the American Statistical Association 120, 669--681, arXiv:2007.07448."
+    },
+    {
+      "key": "QiaoCaiWuXiangZhangHao2023",
+      "citation": "Jie Qiao, Ruichu Cai, Siyu Wu, Yu Xiang, Keli Zhang, and Zhifeng Hao (2023), Causal Discovery from Event Sequences with Low Resolution Timestamps, Proceedings of IJCAI 2023, 5662--5670, arXiv:2305.05986."
+    },
+    {
+      "key": "ZhouPapadogeorgou2025",
+      "citation": "Lingxiao Zhou and Georgia Papadogeorgou (2025), Bayesian Inference for Aggregated Hawkes Processes, Bayesian Analysis 20, 1339--1366, arXiv:2211.16552; Section 3.3, Theorem 3.1 and Proposition 3.1, with the sparse-count probability argument in Appendix C.1."
+    },
+    {
+      "key": "BolyCheyssonNguyen2024",
+      "citation": "Ousmane Boly, F\\'{e}lix Cheysson, and Thi Hien Nguyen (2024), Mixing Properties for Multivariate Hawkes Processes, arXiv:2311.11730."
+    },
+    {
+      "key": "KoltchinskiiLounici2016Projectors",
+      "citation": "Vladimir Koltchinskii and Karim Lounici (2016), Normal Approximation and Concentration of Spectral Projectors of Sample Covariance, The Annals of Statistics 44, 121--157, arXiv:1408.4643."
+    },
+    {
+      "key": "ZhangWu2017",
+      "citation": "Danna Zhang and Wei Biao Wu (2017), Gaussian Approximation for High Dimensional Time Series, The Annals of Statistics 45, 1895--1919, arXiv:1508.07036."
+    },
+    {
+      "key": "JinHuang2026",
+      "citation": "Shiyu Jin and Biwei Huang (2026), Causal Discovery from Hawkes Process with Hidden Nodes, International Conference on Learning Representations 2026."
+    },
+    {
+      "key": "HighamAlMohy2010",
+      "citation": "Nicholas J. Higham and Awad H. Al-Mohy (2010), Computing Matrix Functions, Acta Numerica 19, 159--208. Primary PDF: \\url{https://eprints.maths.manchester.ac.uk/1451/1/paper8.pdf}. Section 2 records the principal logarithm and its open-strip characterization."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "BacryMuzy2016",
+      "comparator_claim": "Section II-B, Proposition 2 and Equation (18), gives the complete-response Wiener--Hopf system, and Theorem 1 and Equation (19) make the Hawkes kernel its unique causal entrywise-\\(L^1\\) solution.",
+      "matched_by": "lem:bacry-muzy-wiener-hopf-uniqueness and thm:stable-nonzero-two-lag-wiener-hopf-recovery",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "EtesamiZhangSinghalKiyavash2016",
+      "comparator_claim": "For exponential marked point processes, the causal graph is recovered from modes and transforms of the full covariance spectrum.",
+      "matched_by": "thm:stable-nonzero-two-lag-wiener-hopf-recovery, thm:two-lag-exact-recovery, thm:restricted-rank-stable-two-lag-recovery, thm:full-rank-stable-two-lag-recovery, and thm:isolated-invertible-block-two-lag-recovery",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Koyama2025",
+      "comparator_claim": "Page 8, Theorem 2 and Equation (18), gives \\(F_{\\Delta t}^{(cg)}(\\nu\\Delta t)=F^{(hw)}(\\nu)\\Delta t+O(\\Delta t^3)\\) as \\(\\Delta t\\to0\\); page 8, Corollary 1, gives third-order spectral approximation to the binned process, and pages 8--9, Equations (19)--(20), define a quadratic-form estimation loss.",
+      "matched_by": "thm:stable-nonzero-two-lag-wiener-hopf-recovery, thm:two-lag-exact-recovery, thm:restricted-rank-stable-two-lag-recovery, thm:full-rank-stable-two-lag-recovery, and thm:isolated-invertible-block-two-lag-recovery",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Kirchner2016",
+      "comparator_claim": "Section 3.2, Theorem 2 and Equation (21), proves weak convergence of an INAR(\\(\\infty\\))-based point-process family \\(N^{(\\Delta)}\\) to a Hawkes process as \\(\\Delta\\to0\\); Section 3.3, Equations (25)--(28), gives parallel autocovariance and Yule--Walker equations, and Section 4, Equation (29), interprets the INAR sequence as a small-bin approximation to Hawkes bin counts.",
+      "matched_by": "thm:stable-nonzero-two-lag-wiener-hopf-recovery, thm:two-lag-exact-recovery, and thm:isolated-invertible-block-two-lag-recovery",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ZhouPapadogeorgou2025",
+      "comparator_claim": "Under a finite-root condition, the full distribution of aggregated Hawkes counts identifies exponential specifications from at least three bins.",
+      "matched_by": "thm:stable-nonzero-two-lag-wiener-hopf-recovery, thm:two-lag-exact-recovery, and thm:isolated-invertible-block-two-lag-recovery",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ShlomovichCohenAdams2022",
+      "comparator_claim": "Latent-time Monte Carlo expectation maximization estimates multivariate binned Hawkes models with edge-specific amplitudes and decays.",
+      "matched_by": "thm:stable-nonzero-two-lag-wiener-hopf-recovery, thm:two-lag-exact-recovery, and thm:isolated-invertible-block-two-lag-recovery",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "QiaoCaiWuXiangZhangHao2023",
+      "comparator_claim": "Low-resolution timestamps create instantaneous-effect ambiguity, addressed through a discrete structural Hawkes model and orientation conditions.",
+      "matched_by": "thm:stable-nonzero-two-lag-wiener-hopf-recovery, thm:two-lag-exact-recovery, and thm:isolated-invertible-block-two-lag-recovery",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CheyssonLang2022",
+      "comparator_claim": "Corollary 3 gives the aliased binned spectrum; Theorem 2 proves Whittle consistency under (A1)--(A3), including full-spectral injectivity (A2), and Theorem 3 gives asymptotic normality under (A1)--(A4).",
+      "matched_by": "thm:rank-adaptive-estimation and thm:simultaneous-graph-coverage",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "WangXieCuozzoMakXie2020",
+      "comparator_claim": "Section 2, Equations (2)--(5), uses exact event times to define likelihood scores and histories; Theorem 3.2, Equations (7)--(8), gives a nonasymptotic confidence polyhedron for one row of excitation weights.",
+      "matched_by": "thm:simultaneous-graph-coverage",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "GleserHwang1987",
+      "comparator_claim": "Section 2, Theorem 1, shows that when a nuisance-parameter limit erases an unbounded target, every positive-level confidence procedure has infinite diameter with positive probability.",
+      "matched_by": "prop:empty-graph-honest-diameter-obstruction",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "WangKolarShojaie2025",
+      "comparator_claim": "Integrated-history martingale methods provide high-dimensional tests for Hawkes network edges observed at exact event times.",
+      "matched_by": "thm:simultaneous-graph-coverage",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "AchabBacryGaiffasMastromatteoMuzy2017",
+      "comparator_claim": "Second- and third-order integrated cumulants identify and estimate the integrated Hawkes influence matrix without parametric kernel shapes.",
+      "matched_by": "thm:stable-nonzero-covariance-only-wiener-hopf-recovery, thm:covariance-only-recovery, thm:restricted-rank-stable-covariance-only-recovery, thm:full-rank-stable-covariance-only-recovery, and thm:isolated-invertible-block-covariance-only-recovery",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "JinHuang2026",
+      "comparator_claim": "A vanishing-bin autoregressive approximation and covariance-rank conditions support causal discovery with hidden Hawkes nodes.",
+      "matched_by": "thm:stable-nonzero-two-lag-wiener-hopf-recovery, thm:two-lag-exact-recovery, and thm:isolated-invertible-block-two-lag-recovery",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "Coarse timestamping need not erase Hawkes direction when a labeled feed-forward network is acyclic and all edges share one unknown exponential decay. Acyclicity is the contribution-defining scientific restriction: self-loops are allowed by the graph convention and therefore excluded as cycles of length one, rather than by a separate zero-diagonal assumption. The core claim is that the stationary mean and exactly two positive fixed-bin covariance matrices determine the active image \\(\\operatorname{im}(A)\\), the decay through the restricted transition, the finite nilpotent logarithm, every directed amplitude through an antisymmetric covariance jump, and the baselines. Koyama2025 gives a third-order small-bin spectral approximation for a coarse-grained process, and Kirchner2016 gives an INAR(\\(\\infty\\)) approximation as the mesh vanishes; the inverse here is exact at every fixed known \\(\\Delta>0\\) for the original process and remains valid for singular excitation matrices, repeated poles, disconnected components, diamonds, and proportional rows. The empty graph is exactly the \\(\\beta\\)-nonidentified stratum. A covariance-only corollary and a bounded-Lipschitz uniform Gaussian theorem use the single composite Jacobian \\(D(\\Phi_{\\Delta,r}\\circ\\mathcal C)\\). The thresholded graph \\(\\widehat G_n\\), with vanishing thresholds slower than \\(n^{-1/2}\\), is support consistent; fixed-level sign inversion instead gives conservative simultaneous-coordinate and graph-inclusion coverage with asymptotic lower bound \\(1-\\alpha\\), not exact coverage or support recovery. One-lag injectivity on named three-node motifs and honest adaptation over a nuisance-regular closure remain open.",
+  "project_justification": {
+    "gap": "Published Hawkes identification results use the entire continuous covariance function, full spectral or Laplace-transform information, latent-time likelihood, higher cumulants, the full aggregated-count distribution, or a vanishing-mesh discrete approximation. Koyama2025 is the closest fixed-bin second-order method, but page 8, Theorem 2 and Equation (18), and Corollary 1 establish an \\(O(\\Delta t^3)\\) small-bin spectral approximation for a coarse-grained process rather than an exact finite-lag inverse for the original process. Kirchner2016 Section 3.2, Theorem 2 and Equation (21), establishes \\(N^{(\\Delta)}\\Rightarrow N\\) as \\(\\Delta\\to0\\), and Section 3.3, Equations (25)--(28), compares lag structures without furnishing a fixed-positive-bin inverse.",
+    "niche": "The contribution-defining acyclicity restriction targets labeled feed-forward excitation regimes and makes \\(A\\) nilpotent; under the loop-inclusive graph convention it also implies \\(A_{ii}=0\\). The observable transition remains visible only on the possibly singular image of \\(\\Gamma_1\\), creating a fixed-\\(\\Delta\\), finite-dimensional de-aliasing problem that approximation and full-spectrum methods do not solve.",
+    "fill": "The project derives the exact bin-covariance semigroup, proves the image identity, performs a basis-invariant restricted logarithm, recovers edge direction from the skew jump, and characterizes \\(A=0\\) as the exact reason for excluding the nonidentified decay stratum. Rank-adaptive estimation and simultaneous graph uncertainty propagate the raw-moment HAC law through the same correctly centered composite Jacobian \\(\\mathcal J(\\theta)=D(\\Phi_{\\Delta,r(\\theta)}\\circ\\mathcal C)_{\\xi(\\theta)}\\). The formal targets separate vanishing-threshold support selection from fixed-level sign inversion with a uniform \\(\\liminf\\) coverage lower bound. A finite-depth immigration--birth argument derives uniform geometric mixing and an explicit eighth-bin-count moment constant from primitive margins; boundary honesty remains open only over \\(\\overline{\\mathcal M}_{\\Delta,p}(\\kappa_0)\\), where decay, parameter, intensity, variance, mixing, moment, and HAC regularity remain controlled while rank, edge strength, and \\(A=0\\) may approach the boundary."
+  },
+  "related_work": "BacryMuzy2016 is the canonical identification ancestor. Section II-B, Proposition 2 and Equation (18), gives the complete-lag Wiener--Hopf system; Theorem 1 and Equation (19) give its unique causal \\(L^1\\) solution, and Corollary 1 identifies the process from complete first- and second-order statistics. Those results inform the semigroup derivation but do not state recovery from one mean and two fixed-bin covariances. Koyama2025 is the closest fixed-bin second-order comparator: Section 3.4, page 8, Theorem 2 and Equation (18), and Corollary 1 give third-order small-bin spectral approximations, while Section 3.5, Equations (19)--(20), defines a quadratic-form estimator for the coarse-grained representation; these results do not invert the original process exactly at fixed positive \\(\\Delta\\). Kirchner2016 Section 3.2, Theorem 2 and Equation (21), constructs an INAR(\\(\\infty\\))-based approximation converging as \\(\\Delta\\to0\\). Its Section 3.3, Equations (25)--(28), gives parallel autocovariance and Yule--Walker equations, and Section 4, Equation (29), interprets INAR counts as a small-bin approximation; this route neither provides nor contradicts an exact finite-lag inverse for the original process. EtesamiZhangSinghalKiyavash2016 Section 4, Equations (10) and (13)--(16), Corollary 4, Proposition 6, and Section 7.3, Equation (20), use full spectral zeros and covariance-density Laplace transforms. ZhouPapadogeorgou2025 Section 3.3, Theorem 3.1 and Proposition 3.1, with Appendix C.1, uses the full aggregated-count law from at least three bins. ShlomovichCohenAdams2022 uses latent-time Monte Carlo expectation maximization, and QiaoCaiWuXiangZhangHao2023 uses a separate discrete structural model for low-resolution cellular alarms. CheyssonLang2022 Corollary 3, page 8, gives the aliased full bin-count spectrum. Its Theorem 2, page 9, assumes full-spectral injectivity in (A2) for consistency under (A1)--(A3), and Theorem 3, page 10, gives asymptotic normality under (A1)--(A4); none of these results decides the \\(m,\\Gamma_1\\) compatibility fiber on three-node chain, fork, or diamond supports. BolyCheyssonNguyen2024 supplies general multivariate Hawkes mixing background, while the geometric rate here is derived from finite-depth acyclic clusters. Hawkes1971Spectra and AchabBacryGaiffasMastromatteoMuzy2017 inform the covariance-only theorem. WangXieCuozzoMakXie2020 Section 2, paper pages 2--3, Equations (2)--(5), constructs exact-event-time likelihood scores and histories; Theorem 3.2, paper page 5, Equations (7)--(8), gives a nonasymptotic confidence polyhedron for one excitation row. WangKolarShojaie2025 likewise uses exact event histories. Neither supplies graph-wide fixed-bin sign inversion or boundary-uniform validity. GleserHwang1987 Section 2, Theorem 1, shows that a nuisance limit erasing an unbounded target forces infinite confidence sets with positive probability; it motivates, but does not settle, the bounded-metric Hawkes adaptation frontier over \\(\\overline{\\mathcal M}_{\\Delta,p}(\\kappa_0)\\). KoltchinskiiLounici2016Projectors and ZhangWu2017 inform projector perturbation and dependent-data Gaussian calibration. JinHuang2026 uses covariance rank in a vanishing-bin autoregressive limit and does not subsume exact recovery at fixed \\(\\Delta\\).",
+  "technical_internal_limitation": "An independent double-precision audit reproduced the exact identities for a four-node diamond and a proportional-row singular graph. The maximum excitation-recovery errors were \\(4.45\\times10^{-16}\\) and \\(3.34\\times10^{-16}\\), and independent quadrature of the first bin covariance differed from \\(J^2K\\) by at most \\(4.17\\times10^{-17}\\). These calculations are diagnostics only; they do not establish the symbolic semigroup, rank, or asymptotic claims.",
+  "honest_scope": "The exact inverse is claimed only for stationary labeled linear Hawkes laws with known fixed \\(\\Delta\\), positive baselines, nonnegative excitation, the contribution-defining feed-forward acyclicity restriction, one common exponential decay, and at least one edge. The graph convention admits self-loops before acyclicity is imposed, so acyclicity implies both \\(A_{ii}=0\\) and stability because \\(A\\) is nilpotent; neither zero diagonal nor stability is imposed separately. In the two-node one-edge special case, \\(F=e^{-\\beta\\Delta}\\) and the sign of \\(K-K^{\\mathsf T}\\) recovers the familiar unique direction. At \\(A=0\\), the model reduces to independent Poisson counts and \\(\\beta\\) is left unidentified. The bounded-Lipschitz Gaussian approximation and HAC consistency are claimed only on \\(\\mathcal M_{\\Delta,p}(\\kappa)\\). The fixed-level graph set has only the conservative guarantees \\(\\liminf_n\\inf_{\\theta}P_{\\theta}\\{\\zeta_{ij}(\\theta)\\in I_{ij,n}\\text{ for all }i<j\\}\\geq1-\\alpha\\) and \\(\\liminf_n\\inf_{\\theta}P_{\\theta}\\{G(A)\\in\\mathcal C_n(1-\\alpha)\\}\\geq1-\\alpha\\); equality with \\(1-\\alpha\\) is not claimed, and its fixed-level sign decisions are not a support-recovery result. Uniform support recovery belongs only to the separately thresholded \\(\\widehat G_n\\), with \\(t_n,a_n\\downarrow0\\) and \\(\\sqrt n\\,t_n,\\sqrt n\\,a_n\\to\\infty\\). Uniform geometric mixing and the eighth-bin-count bound are derived conclusions. Boundary honesty remains open over the single nuisance-regular closure \\(\\overline{\\mathcal M}_{\\Delta,p}(\\kappa_0)\\), which keeps decay, parameter, intensity, variance, derived mixing, derived moment, and HAC bandwidth conditions regular while allowing rank, edges, and \\(A=0\\) to approach the boundary. One-lag injectivity or noninjectivity is not established; the open question is restricted to labeled three-node chain, fork, and diamond supports. Heterogeneous decays, feedback cycles, hidden labels, and growing \\(p\\) also remain unresolved."
+}

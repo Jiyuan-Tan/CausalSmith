@@ -25,13 +25,20 @@ open MeasureTheory BigOperators
 
 variable {X' K : Type*} [MeasurableSpace X'] [Fintype K]
 
-/-- The population ridge objective: population squared risk plus `λ‖β‖²`. -/
+/-- For [a measurable covariate space](hyp:X'), [a finite feature index set](hyp:K),
+[a joint covariate–response measure](hyp:P), [a feature map](hyp:φ), [a penalty level](hyp:lam), and
+[a coefficient vector](hyp:β), the [population ridge objective](goal) is the population squared
+prediction risk of the associated linear predictor plus the penalty level times the sum of squared
+coefficients. -/
 noncomputable def populationRidgeObjective
     (P : Measure (X' × ℝ)) (φ : FeatureMap X' K) (lam : ℝ) (β : K → ℝ) : ℝ :=
   populationRisk squaredLoss P (fun x => ∑ k, β k * φ.φ x k) + lam * ∑ k, β k ^ 2
 
-/-- The regularized population normal equations:
-`E[(Y − ⟪βstar,φ⟫) φₖ] = λ · βstarₖ` for every feature `k`. -/
+/-- For [a measurable covariate space](hyp:X'), [a finite feature index set](hyp:K),
+[a joint covariate–response measure](hyp:P), [a feature map](hyp:φ), [a penalty level](hyp:lam), and
+[a coefficient vector](hyp:βstar), the [regularized population normal-equation condition](goal)
+holds exactly when, for every feature coordinate, the integral of the product of the linear-predictor
+residual and that coordinate equals the penalty level times its coefficient. -/
 def IsPopulationRidge (P : Measure (X' × ℝ)) (φ : FeatureMap X' K)
     (lam : ℝ) (βstar : K → ℝ) : Prop :=
   ∀ k, ∫ z, (z.2 - ∑ j, βstar j * φ.φ z.1 j) * φ.φ z.1 k ∂P = lam * βstar k

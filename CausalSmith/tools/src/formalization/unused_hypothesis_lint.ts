@@ -411,34 +411,3 @@ export function lintUnusedHypotheses(source: string): LintResult {
 
   return { findings, skipped, theoremsInspected };
 }
-
-export function formatLintReport(result: LintResult): string {
-  const lines: string[] = [];
-  if (result.theoremsInspected === 0) return "no theorems found";
-  if (result.findings.length === 0 && result.skipped.length === 0) {
-    return `${result.theoremsInspected} theorem(s) inspected — no unused-hypothesis findings`;
-  }
-  const byTheorem = new Map<string, UnusedHypothesisFinding[]>();
-  for (const f of result.findings) {
-    const arr = byTheorem.get(f.theoremName) ?? [];
-    arr.push(f);
-    byTheorem.set(f.theoremName, arr);
-  }
-  for (const [thm, arr] of byTheorem) {
-    lines.push(`theorem ${thm} (line ${arr[0].declLine}):`);
-    for (const f of arr) {
-      const sev = f.severity === "advisory" ? " [advisory]" : "";
-      const transitive = f.transitive && f.viaTheorem ? ` [via ${f.viaTheorem}]` : "";
-      const note = f.note ? `  — ${f.note}` : "";
-      lines.push(`  - ${f.hypothesisName}${sev}${transitive}${note}`);
-    }
-  }
-  if (result.skipped.length > 0) {
-    lines.push("");
-    lines.push("skipped:");
-    for (const s of result.skipped) {
-      lines.push(`  - ${s.theoremName} (line ${s.declLine}): ${s.reason}`);
-    }
-  }
-  return lines.join("\n");
-}

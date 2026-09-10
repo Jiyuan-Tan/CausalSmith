@@ -22,7 +22,9 @@ open MeasureTheory ProbabilityTheory
 open scoped BigOperators ENNReal
 open Causalean.Mathlib.Probability
 
-/-- The finite set of product coordinates whose observations belong to a set. -/
+/-- Given [a finite index set](hyp:I), [an observation space](hyp:Omega), [an observation assigned
+to each index](hyp:z), and [a set of observations](hyp:S), the [sample index set](goal) is the finite set of precisely those
+indices whose assigned observation belongs to that set. -/
 noncomputable def sampleIndexSet {I Omega : Type*} [Fintype I]
     (z : I → Omega) (S : Set Omega) : Finset I := by
   classical

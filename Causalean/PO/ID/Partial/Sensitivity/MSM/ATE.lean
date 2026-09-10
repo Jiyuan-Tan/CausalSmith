@@ -45,21 +45,34 @@ namespace POBackdoorSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 variable (S : POBackdoorSystem P γ)
 
-/-- The **average treatment effect** `τ = E[Y(1)] − E[Y(0)]`. -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ), and
+[a back-door system on them](hyp:S), [the average treatment effect](goal) is the population mean
+of the potential outcome under treatment minus the population mean of the potential outcome under
+control. -/
 noncomputable def ate : ℝ := S.Y1mean - S.Y0mean
 
-/-- The **sharp ATE upper bound** `τ⁺(Λ) = ψ_T⁺(Λ) − ψ_C⁻(Λ)`: the treated sharp upper
-bound minus the control sharp *lower* bound. -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ),
+[a back-door system on them](hyp:S), and [a sensitivity level](hyp:Λ), [the sharp upper bound for
+the average treatment effect](goal) is the sharp treated-arm upper bound minus the sharp control-
+arm lower bound. -/
 noncomputable def ateUpperCalib (Λ : ℝ) : ℝ := S.msmUpperCalib Λ - S.msmLowerCalib0 Λ
 
-/-- The **sharp ATE lower bound** `τ⁻(Λ) = ψ_T⁻(Λ) − ψ_C⁺(Λ)`: the treated sharp lower
-bound minus the control sharp *upper* bound. -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ),
+[a back-door system on them](hyp:S), and [a sensitivity level](hyp:Λ), [the sharp lower bound for
+the average treatment effect](goal) is the sharp treated-arm lower bound minus the sharp control-
+arm upper bound. -/
 noncomputable def ateLowerCalib (Λ : ℝ) : ℝ := S.msmLowerCalib Λ - S.msmUpperCalib0 Λ
 
-/-- The **ZSB ATE upper bound** `ψ_T⁺ − ψ_C⁻` formed from the uncalibrated arm bounds. -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ),
+[a back-door system on them](hyp:S), and [a sensitivity level](hyp:Λ), [the uncalibrated upper
+bound for the average treatment effect](goal) is the uncalibrated treated-arm upper bound minus
+the uncalibrated control-arm lower bound. -/
 noncomputable def ateUpper (Λ : ℝ) : ℝ := S.msmUpper Λ - S.msmLower0 Λ
 
-/-- The **ZSB ATE lower bound** `ψ_T⁻ − ψ_C⁺` formed from the uncalibrated arm bounds. -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ),
+[a back-door system on them](hyp:S), and [a sensitivity level](hyp:Λ), [the uncalibrated lower
+bound for the average treatment effect](goal) is the uncalibrated treated-arm lower bound minus
+the uncalibrated control-arm upper bound. -/
 noncomputable def ateLower (Λ : ℝ) : ℝ := S.msmLower Λ - S.msmUpper0 Λ
 
 /-- **Interval subtraction.** If `a ∈ [aₗ, aᵤ]` and `b ∈ [bₗ, bᵤ]`, then

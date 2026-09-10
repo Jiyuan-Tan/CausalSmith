@@ -57,13 +57,17 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
     [MeasurableSpace E] [BorelSpace E]
   {ψ : X → E} (hψ : Measurable ψ) (hvar : Integrable (fun x => ‖ψ x‖ ^ 2) P)
 
-/-- The limiting Gaussian law of the multivariate CLT: the centered Gaussian on
-`E` with covariance the second-moment operator of `ψ`, realised as
-`(stdGaussian E).map √Σ`. -/
+/-- Given [a measurable observation space](hyp:X), [a measure on that space](hyp:P), [a finite-dimensional real inner-product outcome space equipped with its Borel σ-algebra](hyp:E), [a measurable vector-valued function of an observation](hyp:ψ,hψ), and [a finite integral of the squared norm of that function under the measure](hyp:hvar), [the Gaussian limit law](goal) is the centered Gaussian measure on the outcome space whose covariance operator is the function's second-moment operator under the given measure.
+
+It is constructed as the pushforward of a standard Gaussian law under the positive square root of that second-moment operator. -/
 noncomputable def gaussianLimit : Measure E :=
   (stdGaussian E).map (secondMomentLM_isPositive hψ hvar).posSqrtCLM
 
-/-- The limiting law is Gaussian. -/
+/-- Given [a measurable observation space](hyp:X), [a measure on that space](hyp:P), [a
+finite-dimensional real inner-product outcome space equipped with its Borel σ-algebra](hyp:E),
+[a measurable vector-valued function of an observation](hyp:ψ,hψ), and [a finite integral of
+the squared norm of that function under the measure](hyp:hvar), [the Gaussian limit law is
+Gaussian](goal). -/
 instance : IsGaussian (gaussianLimit hψ hvar) := by
   unfold gaussianLimit; infer_instance
 

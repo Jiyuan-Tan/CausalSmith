@@ -71,7 +71,9 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
 
 /-! ## The Tikhonov bilinear form on the ambient space -/
 
-/-- The **Tikhonov bilinear form** on the ambient `Lp ℝ 2 μ`:
+/-- For [an NPIV operator system](hyp:S) and [a real regularization level](hyp:lambda), [the ambient Tikhonov bilinear form sends two $L^2$ random variables $u,v$ to $\langle Tu,Tv\rangle+\lambda\langle u,v\rangle$](goal).
+
+The **Tikhonov bilinear form** on the ambient `Lp ℝ 2 μ`:
 
     `tikhonovBilin λ u v := ⟪T u, T v⟫_{L²(μ)} + λ · ⟪u, v⟫_{L²(μ)}`.
 
@@ -100,7 +102,9 @@ lemma tikhonovBilin_symm (S : OperatorSystem Ω μ) (lambda : ℝ)
     S.tikhonovBilin lambda u v = S.tikhonovBilin lambda v u := by
   simp [tikhonovBilin_apply, real_inner_comm]
 
-/-- The bilinear form, as a bilinear form **on the closed subspace**
+/-- For [an NPIV operator system](hyp:S) and [a real regularization level](hyp:lambda), [the restricted Tikhonov bilinear form is the ambient Tikhonov bilinear form evaluated on two elements of the closed primal candidate subspace](goal).
+
+The bilinear form, as a bilinear form **on the closed subspace**
 `Hbar_L2`.  We pre/post-compose `tikhonovBilin` with the subtype inclusion
 `Hbar_L2 →L[ℝ] Lp ℝ 2 μ` so the result lives on the Hilbert space
 `Hbar_L2` itself.  This is the form fed into Lax–Milgram. -/
@@ -130,7 +134,9 @@ lemma tikhonovBilinSub_isCoercive
 
 /-! ## The Tikhonov target functional -/
 
-/-- The **Tikhonov target functional** evaluated on the closed subspace
+/-- For [an NPIV operator system](hyp:S), [the Tikhonov target functional sends each element of the closed primal candidate subspace to the inner product of its transformed image with the transformed structural function](goal).
+
+The **Tikhonov target functional** evaluated on the closed subspace
 `Hbar_L2`:
 
     `tikhonovTargetSub v := ⟪T h₀, T v⟫_{L²(μ)}`
@@ -156,7 +162,9 @@ private lemma hbarL2_completeSpace
 
 /-! ## The L²-level Tikhonov minimiser via Lax–Milgram -/
 
-/-- The **population Tikhonov minimiser** at level `λ` (L² level).
+/-- For [an NPIV operator system whose closed primal candidate subspace admits orthogonal projection](hyp:S) and [a real regularization level](hyp:lambda), [the population Tikhonov minimiser is the unique variational solution in that subspace when $\lambda>0$, and is the zero $L^2$ element when $\lambda\le0$](goal). [It first equips the candidate subspace with its complete Hilbert-space structure](step:1); under $\lambda>0$, it obtains the coercive restricted Tikhonov form, constructs the associated variational equivalence, and maps the target functional to its representing candidate element, whose inverse image is returned as the minimiser; when $\lambda\le0$, it returns zero.
+
+The **population Tikhonov minimiser** at level `λ` (L² level).
 
 For `0 < λ`, defined as the unique `h*_λ ∈ Hbar_L2` such that
 

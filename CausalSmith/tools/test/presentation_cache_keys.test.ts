@@ -21,7 +21,7 @@ describe("cache key formulas are byte-stable", () => {
 
   it("sectionCacheKey (sections/_cache_keys.json)", () => {
     // Hex updated 2026-08-21: env bodies REMOVED from the key — an INTENTIONAL one-time
-    // section-cache miss per bundle (use `--from P2 --reassemble` on a live bundle to skip
+    // section-cache miss per bundle (use `--from P2` on a live bundle to skip
     // it), after which re-rendered env bodies no longer re-draft the prose that places them.
     expect(sectionCacheKey("Intro", ["a", "b"], "brief", "k1, k2", "rev"))
       .toBe("1f2779cca5fd936dea8d744426bc2c2a5f84b9483e6340966f65a31d67c0cbb2");
@@ -48,9 +48,11 @@ describe("cache key formulas are byte-stable", () => {
   // proofAuditCacheKey embeds PRESENTATION_PROSE_POLICY_VERSION, whose bumps are
   // INTENTIONAL whole-cache invalidations — so pin the composition, not raw hex.
   it("proofAuditCacheKey (proof_audit_cache.json) — layout pin", () => {
-    const parts = { proofTex: "P", leanPointer: "L", leanProofCacheSource: "S", notationTable: "| a | b | c | d |", auditPromptFp: "F", targetStatement: "T" };
+    // Layout changed 2026-09-09: `targetStatement` dropped (the closure-keyed formalContext carries
+    // the target) — rows under the old layout are honoured and re-stamped by runProofAudit.
+    const parts = { proofTex: "P", leanPointer: "L", leanProofCacheSource: "S", notationTable: "| a | b | c | d |", auditPromptFp: "F", formalContext: "C" };
     expect(proofAuditCacheKey(parts)).toBe(
-      hashEnvBody(`${PRESENTATION_PROSE_POLICY_VERSION}|F|T|P|L|S|${proofAuditSemanticNotation(parts.notationTable)}`),
+      hashEnvBody(`${PRESENTATION_PROSE_POLICY_VERSION}|F|C|P|L|S|${proofAuditSemanticNotation(parts.notationTable)}`),
     );
   });
 });

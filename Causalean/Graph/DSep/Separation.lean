@@ -49,9 +49,7 @@ variable (G : DAG V)
 -- d-Separation
 -- ============================================================
 
-/-- The source, target, and conditioning sets are d-separated when they are
-    pairwise disjoint and no target vertex is Bayes-Ball-reachable from the
-    source set after conditioning.
+/-- For [a finite directed acyclic graph](hyp:G), [a source set](hyp:X), [a target set](hyp:Y), and [a conditioning set](hyp:Z), the [d-separation relation](goal) holds exactly when [the source and target sets are disjoint](step:1), [the source and conditioning sets are disjoint](step:2), [the target and conditioning sets are disjoint](step:3), and [no target vertex is Bayes-Ball reachable from the source set after conditioning on the conditioning set](step:4).
 
     The query sets `X`, `Y`, and `Z` must be pairwise disjoint, and every
     Bayes-Ball active path from `X` to `Y` must be blocked by `Z`. -/
@@ -59,7 +57,7 @@ def dSep (X Y Z : Finset V) : Prop :=
   Disjoint X Y ∧ Disjoint X Z ∧ Disjoint Y Z ∧
     Disjoint (G.bbReachableVertices Z X) Y
 
-/-- D-separation is decidable by computing Bayes Ball reachability and checking disjointness. -/
+/-- For [a finite vertex population with decidable equality](hyp:V), [a directed acyclic graph on that population](hyp:G), [a source set, target set, and conditioning set](hyp:X,Y,Z), the [decision procedure for d-separation](goal) determines whether the source and target sets are d-separated conditional on the conditioning set. -/
 instance decDSep (X Y Z : Finset V) : Decidable (G.dSep X Y Z) :=
   by
     unfold dSep

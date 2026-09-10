@@ -79,6 +79,11 @@ describe("decision_log", () => {
       .toThrow(/lease-grant/);
   });
 
+  it("records a D0 pull-request verdict by the PR head id", () => {
+    const entry = appendEntry(root, QID, { type: "judgment", phase: "D", stage: "D0", subtype: "pr-verdict", pr_id: "a".repeat(64) });
+    expect(entry.pr_id).toBe("a".repeat(64));
+  });
+
   it("recovers prior receipts from a torn final journal append", () => {
     appendEntry(root, QID, { type: "judgment", phase: "D", round: 1 });
     appendFileSync(logPath(), '{"type":"escalation"');

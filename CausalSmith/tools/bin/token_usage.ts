@@ -25,10 +25,16 @@ async function main(): Promise<void> {
   const summary = await summarizeTokenUsage(absolute, tokens);
   await writeTokenUsageSummary(absolute, summary);
 
+  // Research runs carry state.json; presentation bundles do not. Both receive
+  // token_usage_summary.json, while only research state embeds the summary.
   const statePath = path.join(absolute, "state.json");
-  const state = JSON.parse(await readFile(statePath, "utf8"));
-  state.token_usage = summary;
-  await writeFile(statePath, `${JSON.stringify(state, null, 2)}\n`, "utf8");
+  try {
+    const state = JSON.parse(await readFile(statePath, "utf8"));
+    state.token_usage = summary;
+    await writeFile(statePath, `${JSON.stringify(state, null, 2)}\n`, "utf8");
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
+  }
 
   const readmePath = path.join(absolute, "README.md");
   try {

@@ -38,9 +38,13 @@ namespace Causalean.Mathlib.Analysis
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
-/-- The second directional derivative of `f` at `q` along `d`: the directional derivative,
-along `d`, of the map `x ↦ fderiv ℝ f x d`. For `C²` functions this is the value
-`Hess f q (d, d)` of the Hessian quadratic form. -/
+/-- For [a real normed vector space](hyp:E), [a real-valued function on that space](hyp:f), [a
+direction vector](hyp:d), and [a base point](hyp:q), the [second directional derivative](goal) is
+the directional derivative at the base point, in the given direction, of the function mapping a
+point to the directional derivative of the original function in that direction.
+
+For twice continuously differentiable functions this is the Hessian quadratic form evaluated on
+the direction twice. -/
 noncomputable def secondDirDeriv (f : E → ℝ) (d : E) (q : E) : ℝ :=
   fderiv ℝ (fun x => fderiv ℝ f x d) q d
 

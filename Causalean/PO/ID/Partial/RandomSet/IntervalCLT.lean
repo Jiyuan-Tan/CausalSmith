@@ -63,14 +63,18 @@ namespace Causalean.PartialID.RandomSet
 variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
   {μ : Measure Ω} {P : Measure X} [IsProbabilityMeasure μ] [IsProbabilityMeasure P]
 
-/-- A pair of real endpoint deviations is viewed as a two-dimensional Euclidean
-vector. -/
+/-- For [a pair of real endpoint deviations](hyp:v), the [associated two-dimensional Euclidean
+vector](goal) is that pair viewed as a vector in Euclidean space.
+
+A pair of real endpoint deviations is viewed as a two-dimensional Euclidean vector. -/
 noncomputable abbrev eucl₂ (v : Fin 2 → ℝ) : EuclideanSpace ℝ (Fin 2) :=
   (EuclideanSpace.equiv (Fin 2) ℝ).symm v
 
-/-- The **max-abs functional** `w ↦ max(|w₀|, |w₁|)` on `ℝ²`.  In the `d = 1`
-random-set picture this is the Hausdorff distance between the intervals whose
-endpoint gaps are `w₀` and `w₁` (cf. `hausdorffDist_Icc`). -/
+/-- For [a two-dimensional endpoint-deviation vector](hyp:w), the [maximum-absolute-deviation
+functional](goal) is $\max\{|w_0|,|w_1|\}$. In the scalar random-set setting, this is the
+Hausdorff distance between intervals whose lower- and upper-endpoint gaps are the two coordinates.
+
+In the `d = 1` random-set picture this is the Hausdorff distance between the intervals whose endpoint gaps are `w₀` and `w₁` (cf. `hausdorffDist_Icc`). -/
 noncomputable def maxAbs (w : EuclideanSpace ℝ (Fin 2)) : ℝ := max |w 0| |w 1|
 
 /-- The max-absolute-value functional on endpoint deviations is continuous. -/
@@ -86,8 +90,7 @@ section CLT
 variable {ψ : X → EuclideanSpace ℝ (Fin 2)} (hψ : Measurable ψ)
   (hvar : Integrable (fun x => ‖ψ x‖ ^ 2) P)
 
-/-- The limit law of the Hausdorff statistic is a probability measure (pushforward
-of the Gaussian limit by the continuous `maxAbs`). -/
+/-- For [a measurable sample space equipped with a measure](hyp:X,P) and [a two-dimensional vector-valued process on that space](hyp:ψ) that is [measurable](hyp:hψ) and has [an integrable squared norm under the measure](hyp:hvar), the [law obtained by applying the maximum absolute endpoint-deviation statistic to its Gaussian limit is a probability measure](goal). [This follows from taking the measurable pushforward of that Gaussian limit](step:1). -/
 instance : IsProbabilityMeasure ((gaussianLimit hψ hvar).map maxAbs) :=
   Measure.isProbabilityMeasure_map measurable_maxAbs.aemeasurable
 
@@ -129,13 +132,22 @@ lemma sqrt_inv_centered (n : ℕ) (s c : ℝ) :
     rw [← hsq]
     field_simp
 
-/-- Sample mean of `y` over the first `n` draws of the i.i.d. sample. -/
+/-- For [a measurable sample space](hyp:Ω) with [sampling measure](hyp:μ), [a measurable outcome
+space](hyp:X) with [outcome measure](hyp:P), [an independent and identically distributed sample](hyp:S),
+[a real-valued outcome function](hyp:y), [a nonnegative sample size](hyp:n), and [a realized sample
+point](hyp:ω), the [sample mean](goal) is the arithmetic average of the first $n$ observed outcome
+values, with the empty sum divided by zero interpreted by the library's real-number convention.
+
+Sample mean of `y` over the first `n` draws of the i.i.d. sample. -/
 noncomputable def sampleMean (S : IIDSample Ω X μ P) (y : X → ℝ) (n : ℕ) (ω : Ω) : ℝ :=
   (∑ i ∈ Finset.range n, y (S.Z i ω)) / n
 
-/-- The **centered interval-endpoint influence function**
-`ψ(z) = (y_L(z) − E y_L, y_U(z) − E y_U)`, valued in `ℝ²`.  Its vector normalised
-sum is the centered-and-scaled endpoint pair `√n((ȳ_{nL}, ȳ_{nU}) − (E y_L, E y_U))`. -/
+/-- For [a measurable outcome space](hyp:X), [a lower-endpoint outcome function](hyp:yL), [an
+upper-endpoint outcome function](hyp:yU), and [a measure on that outcome space](hyp:P), the
+[centered interval-endpoint influence function](goal) maps each observation to its lower and upper
+endpoints less their respective population means, viewed as a two-dimensional Euclidean vector.
+
+Its vector normalised sum is the centered-and-scaled endpoint pair `√n((ȳ_{nL}, ȳ_{nU}) − (E y_L, E y_U))`. -/
 noncomputable def intervalIFVec (yL yU : X → ℝ) (P : Measure X) :
     X → EuclideanSpace ℝ (Fin 2) :=
   fun z => eucl₂ ![yL z - ∫ x, yL x ∂P, yU z - ∫ x, yU x ∂P]

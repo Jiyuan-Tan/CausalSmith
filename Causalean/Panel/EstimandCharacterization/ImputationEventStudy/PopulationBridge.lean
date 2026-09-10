@@ -95,14 +95,11 @@ variable (E : BJSPopulation Treated Untreated Regressor)
 
 attribute [instance] BJSPopulation.measΩ BJSPopulation.probμ
 
-/-- The treated/untreated cell partition induced by the classifier. -/
+/-- For [a BJS population with finite treated-cell, untreated-cell, and regressor collections](hyp:E), the [treated-and-untreated cell partition](goal) partitions its sample space according to the population's treated/untreated cell classifier, using the population probability measure. -/
 noncomputable def cells : CellPartition E.μ (Treated ⊕ Untreated) :=
   cellPartitionOfClassifier E.μ E.cellOf E.cell_meas E.cell_pos
 
-/-- The BJS panel induced by a population: every mean field is a treated/untreated
-cell conditional mean of the appropriate potential-outcome slice, and the
-treated effect `tau c` is the genuine population contrast
-`E[Y(1) ∣ cell c] − E[Y(0) ∣ cell c]`. -/
+/-- For [a BJS population with finite treated-cell, untreated-cell, and regressor collections](hyp:E), the [induced BJS panel](goal) retains its regressor rows, target weights, and nuisance vector, and defines each outcome mean as the corresponding treated- or untreated-cell conditional mean. For every treated cell, its treatment effect is the conditional mean of the treated potential outcome minus that of the untreated potential outcome. -/
 noncomputable def toPanel : BJSPanel Treated Untreated Regressor where
   qT := E.qT
   qU := E.qU

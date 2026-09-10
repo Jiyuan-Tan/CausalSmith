@@ -26,12 +26,20 @@ namespace EnvFamily
 
 variable {ι : Type*} [Fintype ι]
 
-/-- The collection of **invariant predictor sets**, viewed as sets of nodes. -/
+/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
+environment index set](hyp:ι), and [an invariant-prediction environment family](hyp:F), [the
+collection of invariant predictor sets](goal) consists exactly of node sets that can be represented
+by a finite predictor set observed in every environment and that satisfy invariance for that
+environment family. -/
 def invariantSets (F : EnvFamily N Ω ι) : Set (Set (SWIGNode N)) :=
   { T | ∃ (S : Finset (SWIGNode N)) (hS : ∀ i, S ⊆ (F.M i).observed),
       (↑S : Set (SWIGNode N)) = T ∧ F.Invariant S hS }
 
-/-- The **identified set** `S(E)`: the intersection of all invariant predictor
+/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
+environment index set](hyp:ι), and [an invariant-prediction environment family](hyp:F), [the
+identified set](goal) is the intersection of all invariant predictor sets for that family.
+
+The **identified set** `S(E)`: the intersection of all invariant predictor
 sets across the environment family. -/
 def idSet (F : EnvFamily N Ω ι) : Set (SWIGNode N) := ⋂₀ F.invariantSets
 

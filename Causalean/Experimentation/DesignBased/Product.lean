@@ -42,8 +42,10 @@ namespace DesignBased
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 variable {α : ι → Type*} [∀ i, Fintype (α i)]
 
-/-- The **product design** of a finite family `D i : FiniteDesign (α i)`: each coordinate is
-randomized independently, with joint pmf `w ↦ ∏ i, (D i).p (w i)`. -/
+/-- For a finite, equality-comparable index set whose coordinate assignment spaces are finite,
+[a family of coordinate-specific randomization designs](hyp:D) defines [the product design](goal),
+which randomizes all coordinates independently: the probability of an assignment vector is the
+product of the probabilities assigned to its coordinate values by their respective designs. -/
 def prodDesign (D : ∀ i, FiniteDesign (α i)) : FiniteDesign (∀ i, α i) where
   p w := ∏ i, (D i).p (w i)
   p_nonneg w := Finset.prod_nonneg (fun i _ => (D i).p_nonneg (w i))

@@ -28,8 +28,9 @@ namespace MeasureTheory
 
 variable {Ω : Type*} [TopologicalSpace Ω] [MeasurableSpace Ω]
 
-/-- The outer integral of an extended-nonnegative function is the infimum of the lower
-integrals of all measurable pointwise majorants. -/
+/-- The [outer integral](goal) of [an extended-nonnegative-valued function on a measurable
+sample space](hyp:Ω,f), under [a measure on that sample space](hyp:μ), is the infimum of the
+lower Lebesgue integrals of all measurable functions that dominate the given function pointwise. -/
 noncomputable def outerLIntegral (μ : Measure Ω) (f : Ω → ℝ≥0∞) : ℝ≥0∞ :=
   ⨅ (g : Ω → ℝ≥0∞) (_ : Measurable g) (_ : f ≤ g), ∫⁻ ω, g ω ∂μ
 
@@ -122,8 +123,9 @@ theorem lintegral_completion_eq_of_measurable
   rw [htrim] at h
   exact h.symm
 
-/-- An extended-nonnegative function is upper-semi-analytic when every strict superlevel set is
-analytic. -/
+/-- [An extended-nonnegative-valued function on a topological sample space](hyp:Ω,f) is
+[upper-semi-analytic](goal) exactly when, for every extended-nonnegative threshold $a$, the set of
+sample points at which its value is strictly greater than $a$ is analytic. -/
 def UpperSemianalytic (f : Ω → ℝ≥0∞) : Prop :=
   ∀ a : ℝ≥0∞, AnalyticSet {ω | a < f ω}
 

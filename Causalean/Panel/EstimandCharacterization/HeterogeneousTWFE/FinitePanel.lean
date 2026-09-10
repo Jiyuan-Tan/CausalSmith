@@ -63,17 +63,9 @@ import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Positivity
 import Mathlib.Tactic.Ring
 
-/-! # DCDH Finite Panel Algebra
+/-! # Heterogeneous-effects finite-panel algebra
 
-This file formalizes the finite group-time algebra behind the
-de Chaisemartin-D'Haultfoeuille two-way fixed-effect estimand.  `DCDHPanel`
-packages weighted cells, binary treatment, potential untreated means, treatment
-effects, and a residualized-treatment witness.  The main results decompose
-`DCDHPanel.betaTWFE` into untreated bias plus treated-cell weighted effects
-(`twfe_eq_untreatedBias_add_treated_weighted_tau`), show that treated DCDH
-weights sum to one and have the sign of `Dtilde`, and prove finite sign-reversal
-constructions such as
-`exists_panel_with_positive_treated_effects_twfe_negative_of_negative_component`. -/
+This file develops finite group-by-period algebra for the two-way fixed-effects estimand with heterogeneous treatment effects. It defines weighted binary-treatment panels, their residualized-treatment coefficient, bias, and effect components, and establishes the decomposition, weight, and sign-reversal results; a companion module supplies their probability-model interpretation. -/
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
@@ -81,7 +73,11 @@ namespace HeterogeneousTWFE
 
 open Finset
 
-/-- Group-time fixed-effect span, represented as additive group and period
+/-- For [group and time index sets](hyp:G,T) and [a group-by-time array](hyp:h), the [group-time fixed-effect condition](goal) holds
+exactly when the array can be written as the sum of a group-specific component and a
+time-specific component.
+
+Group-time fixed-effect span, represented as additive group and period
 components.
 
 Compatibility alias for the shared additive-span predicate. -/
@@ -119,36 +115,49 @@ namespace DCDHPanel
 
 variable {G T : Type*} [Fintype G] [Fintype T]
 
-/-- Residualized-treatment denominator `S_D`. -/
+/-- For [finite group and time sets](hyp:G,T) and [a finite DCDH group-time panel](hyp:P), the [residualized-treatment denominator](goal)
+is the weighted finite sum of squared residualized treatment values over all group-time cells. -/
 def SD (P : DCDHPanel G T) : ℝ :=
   ∑ g, ∑ t, P.pi g t * (P.Dtilde g t)^2
 
-/-- Finite FWL/TWFE coefficient. -/
+/-- For [finite group and time sets](hyp:G,T) and [a finite DCDH group-time panel](hyp:P), the [finite TWFE coefficient](goal) is the
+weighted finite inner product of residualized treatment and observed outcome, divided by the
+residualized-treatment denominator. -/
 noncomputable def betaTWFE (P : DCDHPanel G T) : ℝ :=
   (∑ g, ∑ t, P.pi g t * P.Dtilde g t * P.Y g t) / P.SD
 
-/-- Untreated residual contrast divided by the residualized-treatment
-denominator. -/
+/-- For [finite group and time sets](hyp:G,T) and [a finite DCDH group-time panel](hyp:P), the [untreated residual contrast](goal) is
+the weighted finite inner product of residualized treatment and the untreated potential outcome,
+divided by the residualized-treatment denominator. -/
 noncomputable def untreatedBias (P : DCDHPanel G T) : ℝ :=
   (∑ g, ∑ t, P.pi g t * P.Dtilde g t * P.Y0 g t) / P.SD
 
-/-- Normalized DCDH cell weight, interpreted on treated cells. -/
+/-- For [finite group and time sets](hyp:G,T), [a finite DCDH group-time panel](hyp:P), [a group](hyp:g), and [a time period](hyp:t),
+the [normalized DCDH cell weight](goal) is that cell's weight times its residualized treatment,
+divided by the residualized-treatment denominator. -/
 noncomputable def omega (P : DCDHPanel G T) (g : G) (t : T) : ℝ :=
   (P.pi g t * P.Dtilde g t) / P.SD
 
-/-- Treated cells `{(g,t) | D_gt = 1}`. -/
+/-- For [finite group and time sets](hyp:G,T) and [a finite DCDH group-time panel](hyp:P), the [set of treated cells](goal) consists
+exactly of the group-time pairs whose binary treatment indicator equals one. -/
 noncomputable def treatedCells (P : DCDHPanel G T) : Finset (G × T) :=
   Finset.univ.filter (fun gt : G × T => P.D gt.1 gt.2 = 1)
 
-/-- All-cell treatment-effect component using the binary treatment indicator. -/
+/-- For [finite group and time sets](hyp:G,T) and [a finite DCDH group-time panel](hyp:P), the [all-cell treatment-effect component](goal)
+is the finite sum of each cell's treatment effect weighted by its cell weight, residualized
+treatment, and binary treatment indicator, normalized by the denominator. -/
 noncomputable def DWeightedTau (P : DCDHPanel G T) : ℝ :=
   ∑ g, ∑ t, ((P.pi g t * P.Dtilde g t * P.D g t) / P.SD) * P.tau g t
 
-/-- Treated-cell weighted treatment-effect component. -/
+/-- For [finite group and time sets](hyp:G,T) and [a finite DCDH group-time panel](hyp:P), the [treated-cell weighted treatment-effect
+component](goal) is the finite sum, over treated cells only, of each normalized DCDH cell weight
+times that cell's treatment effect. -/
 noncomputable def treatedWeightedTau (P : DCDHPanel G T) : ℝ :=
   ∑ gt ∈ P.treatedCells, P.omega gt.1 gt.2 * P.tau gt.1 gt.2
 
-/-- Zero untreated residual contrast, the bias-free DCDH condition. -/
+/-- For [finite group and time sets](hyp:G,T) and [a finite DCDH group-time panel](hyp:P), the [zero untreated residual-contrast
+condition](goal) holds exactly when the weighted finite inner product of residualized treatment
+and the untreated potential outcome is zero. -/
 def zeroUntreatedResidualContrast (P : DCDHPanel G T) : Prop :=
   ∑ g, ∑ t, P.pi g t * P.Dtilde g t * P.Y0 g t = 0
 

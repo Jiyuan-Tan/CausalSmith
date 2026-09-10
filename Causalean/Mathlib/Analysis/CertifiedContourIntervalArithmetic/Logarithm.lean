@@ -16,17 +16,15 @@ rational error target.
 namespace Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
 namespace Transcendental
 
-/-- The atanh coordinate sends every positive rational logarithm argument into
-the open interval from minus one to one. -/
+/-- For [a rational number](hyp:q), [the logarithm coordinate](goal) is $(q-1)/(q+1)$. -/
 def logCoordinate (q : ℚ) : ℚ := (q - 1) / (q + 1)
 
-/-- The rational logarithm polynomial retains the first requested number of
-terms of twice the atanh series. -/
+/-- For [a rational number](hyp:q) and [a nonnegative polynomial degree](hyp:n), [the logarithm Taylor partial sum](goal) is twice the sum, for every integer $k$ from zero through $n$, of the $(2k+1)$st power of the logarithm coordinate divided by $2k+1$. -/
 def logPartial (q : ℚ) (n : ℕ) : ℚ :=
   2 * ∑ k ∈ Finset.range (n + 1),
     (logCoordinate q) ^ (2 * k + 1) / ((2 * k + 1 : ℕ) : ℚ)
 
-/-- The rational logarithm remainder bounds the tail of the atanh series geometrically. -/
+/-- For [a rational number](hyp:q) and [a nonnegative polynomial degree](hyp:n), [the logarithm remainder bound](goal) is $2|z|^{2n+3}/((2n+3)(1-|z|^2))$, where $z=(q-1)/(q+1)$. -/
 def logRemainder (q : ℚ) (n : ℕ) : ℚ :=
   2 * |logCoordinate q| ^ (2 * n + 3) /
     (((2 * n + 3 : ℕ) : ℚ) * (1 - |logCoordinate q| ^ 2))
@@ -104,8 +102,7 @@ private theorem log_series_remainder_bound (z : ℝ) (hz : |z| < 1) (n : ℕ) :
     ring
   rw [hsum] at hbound
   simpa [C, r, div_eq_mul_inv, mul_inv, mul_assoc, mul_comm, mul_left_comm] using hbound
-/-- A positive rational logarithm argument is enclosed by its atanh polynomial
-plus or minus its tail bound. -/
+/-- For [a rational number](hyp:q) [that is strictly positive](hyp:hq) and [a nonnegative polynomial degree](hyp:n), [the raw logarithm enclosure](goal) has [lower endpoint equal to the logarithm partial sum minus its remainder bound](step:1), upper endpoint equal to the logarithm partial sum plus its remainder bound, and valid endpoint order. -/
 def logRaw (q : ℚ) (hq : 0 < q) (n : ℕ) : RatInterval :=
   ⟨logPartial q n - logRemainder q n,
     logPartial q n + logRemainder q n, by
@@ -118,13 +115,12 @@ def logRaw (q : ℚ) (hq : 0 < q) (n : ℕ) : RatInterval :=
         positivity
       linarith⟩
 
-/-- Successive positive-logarithm enclosures are intersected to make the sequence nested. -/
+/-- For [a strictly positive rational number](hyp:q,hq), [the scalar logarithm enclosure sequence](goal) assigns [the raw logarithm enclosure at degree zero](step:1) to index zero and [the conditional tightening of the preceding enclosure with the next raw enclosure](step:2) to each positive index. -/
 def logScalar (q : ℚ) (hq : 0 < q) : ℕ → RatInterval
   | 0 => logRaw q hq 0
   | n + 1 => RatInterval.tighten (logScalar q hq n) (logRaw q hq (n + 1))
 
-/-- The explicit logarithm precision is a natural function of the input
-numerator, denominator, and target width. -/
+/-- For [a rational number](hyp:q) and [a strictly positive rational target width](hyp:ε), [the logarithm precision index](goal) is the product of one plus the target-width denominator and two copies of one plus the sum of the absolute numerator and denominator of the rational number. -/
 def logPrecision (q : ℚ) (ε : PosRat) : ℕ :=
   (ε.1.den + 1) * (q.num.natAbs + q.den + 1) * (q.num.natAbs + q.den + 1)
 
@@ -290,7 +286,7 @@ theorem logScalar_width (q : ℚ) (hq : 0 < q) (ε : PosRat) :
       _ ≤ ε.1 := by simpa [D] using inv_den_le_of_pos ε.1 ε.2
   exact (RatInterval.width_mono (logScalar_subinterval_raw q hq N)).trans hraw
 
-/-- The logarithm of a positive rational is a certified real with fully rational endpoints. -/
+/-- For [a rational number](hyp:q) [that is strictly positive](hyp:hq), [the certified-real representation of its logarithm](goal) has [value equal to the real logarithm of that rational number](step:1), approximating intervals given by the scalar logarithm enclosure sequence, nested approximations, containment of the exact value, the logarithm precision index as its modulus, and the corresponding target-width guarantee. -/
 noncomputable def logName (q : ℚ) (hq : 0 < q) : CertifiedReal where
   value := Real.log (q : ℝ)
   approx := logScalar q hq

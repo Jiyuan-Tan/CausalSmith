@@ -93,11 +93,11 @@ export interface GeneralReviewResult {
   /** When `flagship_potential`, the one bounded step to attempt for flagship. */
   flagship_directive?: string;
   /**
-   * Highest score the RESULT could reach with perfect formalization and writing. Caps
+   * Projected P5 score for the delivered package after competent writing (legacy key). Caps
    * `tier` via `ceilingTierCap`; `undefined` when the referee omitted it (no cap applied).
    */
   paper_score_ceiling?: number;
-  /** When the ceiling caps the tier, the one move that would RAISE the ceiling. */
+  /** When the score caps the tier, one bounded improvement to the delivered package. */
   ceiling_directive?: string;
   /** Raw codex stdout, for logging. */
   raw: string;
@@ -159,31 +159,23 @@ export function decideGeneralReroute(args: {
 }
 
 /**
- * Paper-score ceiling thresholds — the highest tier a note may be graded at given the
- * score its RESULT could reach if formalization and writing went perfectly.
- *
- * Why a second gate at all: the tier ladder does not predict paper quality. Every entry
- * in `_bank/accepted/` ran at `novelty_target: field`, and the scores P5 assigned them
- * span 4.0–8.2 — so `tier=field` carries no information about whether the paper is worth
- * publishing. The ceiling does.
- *
- * Why the CEILING and not a predicted delivered score: D0.5.G sees a discovery note, no
- * manuscript, and nearly every P5 rationale in the bank docks for delivery (exposition,
- * positioning, empirical bridge). Delivery only ever subtracts, so a ceiling below the bar
- * cannot be recovered downstream — while a delivered-score prediction would be asking the
- * referee to forecast something it cannot see.
- *
- * Why hardcoded rather than derived from the bank: a threshold computed from the surviving
- * population RATCHETS (cull below the mean → the mean rises → cull more, converging on
- * nothing passing) and measures how lenient the pipeline used to be rather than the bar we
- * want. The bank is used for CALIBRATION ANCHORS instead — see `loadPaperScoreAnchors`.
+ * Projected P5 score thresholds for the completed research package after competent,
+ * faithful writing. The referee must count substantive limitations and missing evidence
+ * without crediting future research. Legacy ceiling names preserve stored-review compatibility.
+ * Fixed thresholds avoid a selection ratchet from recalculating the bar on surviving papers;
+ * existing paper reviews supply calibration anchors through `loadPaperScoreAnchors`.
  */
 export const CEILING_FOR_FLAGSHIP = 9.0;
-export const CEILING_FOR_FIELD = 7.0;
+// 2026-09-09: lowered 7.8 -> 7.2. Removing the cap table from the D0.5.G prompt (which the
+// referee had been anchoring on — 26% of scores landed on exactly 7.8) shifted the whole scale
+// down by ~1 point. Re-scoring all six mill-accepted papers under the no-cap prompt gave
+// 7.2/7.2/7.2/6.9/6.9/6.4, so 7.8 had become unreachable. 7.2 restores the intended meaning.
+export const CEILING_FOR_FIELD = 7.2;
 export const CEILING_FOR_SUBFIELD = 6.5;
 
 /**
- * Highest tier permitted by a paper-score ceiling. The cap only ever LOWERS the referee's
+ * Highest tier permitted by the projected paper score. Legacy names preserve saved reviews.
+ * The cap only ever LOWERS the referee's
  * own tier, never promotes.
  *
  * Fails OPEN (no cap) on an absent/unusable ceiling: the field is optional in the payload
@@ -548,8 +540,8 @@ export function normalizeGeneralReview(
   const gradedTier: GeneralTier = VALID_TIERS.has(tierRaw as GeneralTier)
     ? (tierRaw as GeneralTier)
     : "incremental";
-  // Paper-score ceiling cap. The referee grades the delivered math; the ceiling bounds what
-  // that math could ever be WORTH. Applied here rather than in the routing so the whole
+  // Projected P5 score cap, retained under the legacy ceiling field names. Applied here
+  // rather than in the routing so the whole
   // existing D0.5 boundary is reused unchanged: capped-below-floor + salvageable → REVISE
   // carrying the ceiling directive, capped-below-floor + not salvageable → REJECT.
   const ceilingRaw = Number(obj.paper_score_ceiling);
@@ -590,11 +582,12 @@ export function normalizeGeneralReview(
       : undefined;
   return {
     tier,
-    // When the ceiling caps the tier it also decides the route, overriding the referee's
-    // own `salvageable`: in [6.5, 7.0) the result can still be lifted, so REVISE on the
-    // ceiling directive; below 6.5 the topic cannot reach the bar however it is rewritten,
-    // so REJECT. Uncapped notes keep the pre-existing behaviour exactly.
-    salvageable: capped
+    // When the score caps the tier, retain the existing routing policy: in [6.5, 7.8)
+    // a bounded directive permits revision; below 6.5 this gate rejects.
+    // Uncapped notes keep the referee's salvageability judgment.
+    salvageable: paper_score_ceiling !== undefined && paper_score_ceiling < CEILING_FOR_SUBFIELD
+      ? false
+      : capped
       ? (paper_score_ceiling ?? 0) >= CEILING_FOR_SUBFIELD && !!(ceiling_directive ?? improvement_directive)
       : obj.salvageable === true,
     // The ceiling directive IS the fix a capped re-solve must attack, so it stands in when
@@ -602,9 +595,9 @@ export function normalizeGeneralReview(
     improvement_directive: improvement_directive ?? (capped ? ceiling_directive : undefined),
     flagged_conjecture_labels: labels,
     critique: capped
-      ? `${critique} [D0.5.G ceiling gate: paper_score_ceiling ${paper_score_ceiling} < ` +
+      ? `${critique} [D0.5.G projected paper-score gate: paper_score_ceiling ${paper_score_ceiling} < ` +
         `${CEILING_FOR_FIELD}, so the graded tier '${gradedTier}' is capped at '${cap}'. ` +
-        `The shortfall is what the result SETTLES, not how it is written.]`
+        `The score assesses the delivered research package without credit for unfinished work.]`
       : critique,
     // A ceiling below 9.0 forecloses flagship whatever the note claims.
     flagship_potential:

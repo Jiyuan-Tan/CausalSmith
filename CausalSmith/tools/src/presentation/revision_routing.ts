@@ -2,14 +2,14 @@
 // reviser or an explicit halt. The P5 referee remains pipeline-stage-independent.
 import type { FindingKind, ReviewFinding, PriorReview } from "./revision_brief.js";
 
-export const MAX_P5_REVISION_PASSES = 2;
-
+/** One unattended pass: it fixes sentence-level findings; what a referee repeats afterwards is
+ * structural (frozen placement, definitions, literature comparison) and is revised by hand. */
 export type RevisionAction =
-  | { type: "revise" }
+  | { type: "revise" } // prose or structure the orchestrator rewrites by hand in the sources
   | { type: "escalate" } // the math/statement itself — out of causalsmith scope
   | { type: "decide" }; // orchestrator judgement (other, or a kind with no single stage)
 
-/** kind → orchestrator action. Reframing and local rewrites go to one reviser. */
+/** kind → orchestrator action. Prose and structure rewrites are the orchestrator's hand work. */
 export const KIND_ACTION: Record<FindingKind, RevisionAction> = {
   prose: { type: "revise" },
   structure: { type: "revise" },
@@ -21,9 +21,12 @@ export const KIND_ACTION: Record<FindingKind, RevisionAction> = {
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
 /** A referee can identify a valid problem whose remedy is outside presentation
- * rewriting. Never ask the holistic reviser to synthesize research. */
+ * rewriting; it is escalated, never synthesized by a rewrite. */
 export function requiresNewResearch(f: ReviewFinding): boolean {
-  if (f.remedy && f.remedy !== "rewrite") return true;
+  // The referee's structured `remedy` is authoritative when present: a `rewrite` finding whose
+  // suggested fix merely mentions proving or simulating ("unless the authors add and prove …") is
+  // still a rewrite. The keyword scan below is only the fallback for a finding with no remedy.
+  if (f.remedy) return f.remedy !== "rewrite";
   const text = norm(`${f.issue} ${f.fix}`);
   return /\b(?:prove|new theorem|new lemma|derive a result|additional result|simulation|empirical exercise|experiment|implement|new data|collect data|literature search|find a citation|source formalization|change the lean|change the theorem)\b/.test(text);
 }
@@ -61,8 +64,8 @@ export function findingFingerprint(f: ReviewFinding): string {
   return `${f.kind ?? "other"}|${norm(f.section)}|${issue}`;
 }
 
-/** Only prose/structure rewrite findings are safe for unattended holistic revision. Everything else is
- * persisted for adjudication instead of being silently weakened or citation-laundered. */
+/** Only prose/structure rewrite findings are the orchestrator's to rewrite in the sources. Everything
+ * else is persisted for adjudication instead of being silently weakened or citation-laundered. */
 export function partitionFindings(findings: ReviewFinding[]): {
   repairable: ReviewFinding[];
   blocked: ReviewFinding[];
@@ -76,29 +79,16 @@ export function partitionFindings(findings: ReviewFinding[]): {
   return { repairable, blocked };
 }
 
-/** Whether the reviser may use paper-wide reframing rather than only local edits. */
-export function revisionMode(findings: ReviewFinding[]): "local" | "reframe" {
-  const text = norm(findings.map((f) => `${f.section} ${f.issue} ${f.fix}`).join(" "));
-  return findings.some((f) =>
-    f.kind === "structure" &&
-    f.severity === "major" &&
-    ["global", "title", "outline", "contribution", "paper structure"].includes(norm(f.section))
-  ) || /\b(?:contribution|significance|audience|positioning|econometric|reframe|retitle|paper organization|representation|law level)\b/.test(text)
-    ? "reframe"
-    : "local";
-}
-
-/** A human-readable routing plan grouped by holistic revision vs explicit halt. */
+/** A human-readable routing plan grouped by who acts: the orchestrator's hand revision of the
+ *  sources, an escalation out of scope, or its own call. */
 export function renderRoutingPlan(review: PriorReview): string {
   const byBucket = new Map<string, string[]>();
   const push = (k: string, s: string) => byBucket.set(k, [...(byBucket.get(k) ?? []), s]);
-  const repairable = partitionFindings(review.findings).repairable;
-  const mode = revisionMode(repairable);
   for (const f of review.findings) {
     const a = actionForFinding(f);
     const remedy = f.remedy ? `·${f.remedy}` : "";
     const line = `[${f.severity}·${f.kind ?? "other"}${remedy}] (${f.section}) ${f.issue}`;
-    if (a.type === "revise") push(`holistic revision (${mode})`, line);
+    if (a.type === "revise") push("fix by hand in the authored sources (prose/structure rewrite)", line);
     else if (a.type === "escalate") push("escalate — out of causalsmith scope (bank/causalsmith)", line);
     else push("your call — orchestrator decides", line);
   }
@@ -106,8 +96,6 @@ export function renderRoutingPlan(review: PriorReview): string {
   for (const [bucket, lines] of byBucket) {
     out.push(`## ${bucket}`, ...lines.map((l) => `- ${l}`), "");
   }
-  out.push(repairable.length > 0
-    ? `→ one holistic ${mode} pass; formal statements remain frozen`
-    : "→ no unattended revision (escalate/decide only)");
+  out.push("→ revise by hand at the level that owns each finding; formal statements remain frozen; then rescore once");
   return out.join("\n") + "\n";
 }

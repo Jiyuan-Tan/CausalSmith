@@ -54,7 +54,9 @@ private lemma double_sum_mul {K : Type*} [CommRing K] (a : ι → K) (b : κ →
 
 variable {ι : Type*} [Fintype ι]
 
-/-- Generic normalized finite weight `a_i / Σ_k a_k`. -/
+/-- For [a finite index set](hyp:ι), [a field of scalars](hyp:K), [a scalar-valued raw weight
+function](hyp:a), and [an index](hyp:i), the [normalized finite weight](goal) is that index's raw
+weight divided by the sum of all raw weights. -/
 noncomputable def normalizedWeight {K : Type*} [Field K] (a : ι → K) (i : ι) : K :=
   a i / ∑ k, a k
 

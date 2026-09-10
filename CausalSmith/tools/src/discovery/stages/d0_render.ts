@@ -17,8 +17,6 @@ import { renderCoreTex } from "../core/render_tex.js";
 import { assertCanonicalAlignedRowTerminators } from "../core/latex_serialization.js";
 import { runGates } from "../framework/gates.js";
 import { proseConsistencyGate } from "../framework/gate_registrations.js";
-import { loadWorkingState } from "./d0_working.js";
-import { pendingStatementSupersessions, readRoundProposals } from "../solve/proposals.js";
 import { readTypedCore } from "../core/core_io.js";
 import {
   loadSemanticManifest,
@@ -54,19 +52,6 @@ export async function runStage0Render(args: {
     throw new Error(`Stage 0-RENDER requires a core at ${corePath} (run D0-SOLVE first)`);
   }
   const core = await readTypedCore(corePath);
-  const working = await loadWorkingState(args.ctx);
-  const pendingSupersessions = pendingStatementSupersessions(await readRoundProposals(args.ctx, working));
-  const coreIds = new Set(core.statements.map((statement) => statement.id));
-  const duplicateChains = pendingSupersessions.filter(
-    ({ obsoleteId, replacementId }) => coreIds.has(obsoleteId) && coreIds.has(replacementId),
-  );
-  if (duplicateChains.length > 0) {
-    throw new Error(
-      `Stage 0-RENDER refuses a core containing both sides of ${duplicateChains.length} pending supersession(s): ` +
-        duplicateChains.map((s) => `${s.obsoleteId}→${s.replacementId}`).join(", ") + ". " +
-        "Adjudicate the gated deletion first; rendering both versions would publish duplicate headline chains.",
-    );
-  }
   const semanticManifest = await loadSemanticManifest(args.ctx);
   validateCoreManifest(semanticManifest, "core", core);
   const paths = artifactPaths(args.ctx, args.state);

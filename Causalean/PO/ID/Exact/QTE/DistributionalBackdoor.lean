@@ -60,14 +60,15 @@ variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 variable (S : POBackdoorSystem P γ)
 
 
-/-- Observable inverse-probability-weighting density for arm `d`:
-`1_{T=d} / e_d(X)`, where `e_d = P[T=d | σ(X)]` is the propensity score. -/
+/-- For [a potential-outcome backdoor system](hyp:S) and [a treatment arm](hyp:d), the [observable inverse-probability-weighting density](goal) assigns to each sample point the indicator that its factual treatment equals that arm divided by the conditional probability of that arm given the covariates.
+
+In conventional notation, this is $1\{T=d\}/e_d(X)$. -/
 noncomputable def ipwDensity (d : Bool) : P.Ω → ℝ :=
   fun ω => S.dVar.indicator d ω / S.propScore d ω
 
-/-- **Observable IPW law** of arm `d`: the factual outcome `Y` pushed forward
-through the reweighted measure `(1_{T=d}/e_d) · μ`.  Under the distributional
-backdoor assumption bundle used below, this is the law of `Y(d)`. -/
+/-- For [a potential-outcome backdoor system](hyp:S), [a treatment arm](hyp:d), and [a measure on the sample space](hyp:μ), the [observable inverse-probability-weighted outcome law](goal) is the distribution of the factual outcome under the measure obtained by weighting each sample point by the nonnegative version of its inverse-probability-weighting density for that arm.
+
+Under the distributional backdoor assumptions used below, this is the law of the potential outcome under that arm. -/
 noncomputable def ipwLaw (d : Bool) (μ : Measure P.Ω) : Measure ℝ :=
   (μ.withDensity (fun ω => ENNReal.ofReal (S.ipwDensity d ω))).map S.factualY
 

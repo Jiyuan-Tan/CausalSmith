@@ -12,11 +12,18 @@ import { runCodex } from "../src/shared/codex.js";
  * each batch by rebuilding the touched modules.
  *
  * Usage: npx tsx bin/library_nl_sweep.ts --area <Area> [--apply] [--all] [--module-docs-only]
+ *          [--kinds def,structure] [--model mechanical|kernel] [--files-per-call N] [--limit N]
  *   default: dry-run (prints target counts per file)
  *   --apply: dispatch codex batches + lake build verification
  *   --all:   include decls that already have a docstring (normalization pass)
  *   --module-docs-only: skip decl docstrings entirely; only add missing top-of-file
  *     module docstrings (fast pass, larger batches)
+ *   --kinds: restrict to these index kinds (default: every tier-1 decl). With a kind
+ *     list, a decl whose first paragraph already carries crosslinks is skipped unless
+ *     --all — the crosslink pass for definitions/structures ("re-annotation") is
+ *     `--kinds def --model mechanical`.
+ *   --model: codex tier (default kernel). --files-per-call: batch size (default 6).
+ *   --limit: stop after N files (trial run).
  */
 
 const args = process.argv.slice(2);
@@ -28,6 +35,14 @@ const moduleDocsOnly = args.includes("--module-docs-only");
 // --no-verify: skip the per-batch lake build (comment-only edit passes; verify
 // once at the end with a full build — useful when lake is contended).
 const noVerify = args.includes("--no-verify");
+const kindsIdx = args.indexOf("--kinds");
+const kinds = kindsIdx >= 0 ? new Set(args[kindsIdx + 1].split(",").map((k) => k.trim()).filter(Boolean)) : null;
+const modelIdx = args.indexOf("--model");
+const modelTier = modelIdx >= 0 ? args[modelIdx + 1] : "kernel";
+const fpcIdx = args.indexOf("--files-per-call");
+const filesPerCall = fpcIdx >= 0 ? Number(args[fpcIdx + 1]) : 6;
+const limitIdx = args.indexOf("--limit");
+const fileLimit = limitIdx >= 0 ? Number(args[limitIdx + 1]) : Infinity;
 if (!area) {
   console.error("usage: library_nl_sweep --area <Area> [--apply] [--all]");
   process.exit(1);
@@ -51,11 +66,29 @@ function missingModuleDoc(file: string): boolean {
   return !head.includes("/-!");
 }
 
+/** Compiler-generated companions and instances have nothing to annotate. */
+const isInstanceSource = (e: LibDecl) =>
+  /^\s*(?:@\[[^\]]*\]\s*)*(?:private\s+|protected\s+|noncomputable\s+|unsafe\s+)*instance\b/.test(
+    (e.source ?? "").replace(/^\s*\/--[\s\S]*?-\/\s*/, ""),
+  );
+const firstParaAnnotated = (e: LibDecl) =>
+  /\]\((?:hyp:|goal\)|step:)/.test((e.doc ?? "").trim().split(/\n\s*\n/)[0] ?? "");
 const targets = moduleDocsOnly
   ? []
-  : lib.entries.filter(
-      (e) => declArea(e) === area && isTier1(e, lib.sidecars) && (all || !e.doc?.trim()),
-    );
+  : kinds
+    ? lib.entries.filter(
+        (e) =>
+          declArea(e) === area &&
+          kinds.has(e.kind) &&
+          !!e.source &&
+          // instances are skipped unless asked for by kind; compiler-derived
+          // ones (`deriving …` is their whole source) have nothing to annotate
+          (kinds.has("instance") ? !/^\s*deriving\b/.test((e.source ?? "").replace(/^\s*\/--[\s\S]*?-\/\s*/, "")) : !isInstanceSource(e)) &&
+          (all || !firstParaAnnotated(e)),
+      )
+    : lib.entries.filter(
+        (e) => declArea(e) === area && isTier1(e, lib.sidecars) && (all || !e.doc?.trim()),
+      );
 const byFile = new Map<string, LibDecl[]>();
 for (const t of targets) byFile.set(t.file, [...(byFile.get(t.file) ?? []), t]);
 
@@ -78,18 +111,18 @@ for (const [f, ds] of byFile) {
 }
 if (!apply) process.exit(0);
 
-const FILES_PER_CALL = moduleDocsOnly ? 15 : 6;
+const FILES_PER_CALL = moduleDocsOnly ? 15 : filesPerCall;
 const promptTpl = readFileSync(
   resolve(import.meta.dirname, "..", "src", "library", "prompts", "nl_docstring.txt"),
   "utf8",
 );
-const files = [...byFile.keys()];
+const files = [...byFile.keys()].slice(0, fileLimit);
 for (let i = 0; i < files.length; i += FILES_PER_CALL) {
   const batch = files.slice(i, i + FILES_PER_CALL);
   const lines = batch.flatMap((f) =>
     byFile
       .get(f)!
-      .map((d) => `${d.file} : ${d.line} : ${d.name} : ${d.statement.replace(/\s+/g, " ")}`),
+      .map((d) => `${d.file} : ${d.line} : ${d.name} [${d.kind}] : ${d.statement.replace(/\s+/g, " ")}`),
   );
   const modDocLines = batch.filter((f) => noModDoc.has(f));
   const prompt = promptTpl
@@ -101,7 +134,7 @@ for (let i = 0; i < files.length; i += FILES_PER_CALL) {
   const out = await runCodex({
     prompt,
     cwd: root,
-    model: MODELS.codexKernel,
+    model: modelTier === "mechanical" ? MODELS.codexMechanical : MODELS.codexKernel,
     reasoningEffort: "medium",
     leanLsp: false,
     webSearch: false,

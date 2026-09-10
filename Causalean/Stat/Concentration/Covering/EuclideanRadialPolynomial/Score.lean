@@ -22,8 +22,7 @@ open scoped BigOperators
 
 universe u v
 
-/-- A bounded coefficient vector evaluated against all radial monomials from
-degree zero through `p`, with one center shared by every term. -/
+/-- Given [a natural dimension](hyp:d), [a maximal degree](hyp:p), [a bandwidth and two relative annulus endpoints](hyp:q), [a coefficient bound](hyp:B), [a center](hyp:x), [a boxed coefficient vector](hyp:β), and [an evaluation point](hyp:z), [the bounded radial polynomial](goal) is the sum, over degrees zero through $p$, of each coefficient times the corresponding radial annulus monomial about the shared center. -/
 noncomputable def boundedRadialPolynomial
     (d p : ℕ) (q a b B : ℝ)
     (x : EuclideanPoint d) (β : CoeffBox (Fin (p + 1)) B)
@@ -31,20 +30,21 @@ noncomputable def boundedRadialPolynomial
   ∑ k : Fin (p + 1), β.1 k *
     radialAnnulusMonomial d q a b k.1 x z
 
-/-- The parameter space for a shared center and a boxed radial-polynomial
+/-- Given [a natural dimension](hyp:d), [a maximal degree](hyp:p), and [a coefficient bound](hyp:B), [the radial-polynomial parameter space](goal) consists of a Euclidean center paired with a coefficient vector whose every coordinate has absolute value at most $B$.
+
+The parameter space for a shared center and a boxed radial-polynomial
 coefficient vector. -/
 abbrev RadialPolynomialParam (d p : ℕ) (B : ℝ) :=
   EuclideanPoint d × CoeffBox (Fin (p + 1)) B
 
-/-- A shared-center bounded radial polynomial evaluated after a Euclidean
-location map on a general observation space. -/
+/-- Given [an observation space equipped with a σ-algebra](hyp:Ω), [a natural dimension](hyp:d), [a maximal degree](hyp:p), [a Euclidean location map](hyp:loc), [a bandwidth and two relative annulus endpoints](hyp:q), [a coefficient bound](hyp:B), [a radial-polynomial parameter](hyp:θ), and [an observation](hyp:ω), [the observation-indexed bounded radial polynomial](goal) is the bounded radial polynomial evaluated at the Euclidean location of that observation. -/
 noncomputable def boundedRadialPolynomialOn
     {Ω : Type u} [MeasurableSpace Ω]
     (d p : ℕ) (loc : Ω → EuclideanPoint d) (q a b B : ℝ)
     (θ : RadialPolynomialParam d p B) (ω : Ω) : ℝ :=
   boundedRadialPolynomial d p q a b B θ.1 θ.2 (loc ω)
 
-/-- The constant envelope of a boxed degree-`p` radial polynomial. -/
+/-- Given [an outer relative radius](hyp:b), [a maximal degree](hyp:p), and [a coefficient bound](hyp:B), [the radial-polynomial envelope](goal) is $(p+1)B$ times the radial-monomial envelope at that outer radius and degree. -/
 def radialPolynomialEnvelope (b : ℝ) (p : ℕ) (B : ℝ) : ℝ :=
   ((p + 1 : ℕ) : ℝ) * B * radialMonomialEnvelope b p
 
@@ -148,13 +148,14 @@ theorem boundedRadialPolynomialOn_hasPolynomialL2Cover
   simpa only [Finset.sum_const, Finset.card_univ, Fintype.card_fin,
     nsmul_eq_mul, Nat.cast_add, Nat.cast_one, mul_assoc] using hpull
 
-/-- The parameter space of a moving center, a boxed polynomial coefficient
+/-- Given [a natural dimension](hyp:d), [a maximal degree](hyp:p), [a coefficient bound](hyp:B), and [an arm index set](hyp:A), [the radial residual-score parameter space](goal) consists of a radial-polynomial parameter paired with one arm index.
+
+The parameter space of a moving center, a boxed polynomial coefficient
 vector, and one member of a finite signed-arm family. -/
 abbrev RadialResidualScoreParam (d p : ℕ) (B : ℝ) (A : Type v) :=
   RadialPolynomialParam d p B × A
 
-/-- A finite-arm residual score: a radial monomial multiplies a bounded
-response minus a shared-center boxed radial polynomial. -/
+/-- Given [an observation space equipped with a σ-algebra](hyp:Ω), [an arm index set](hyp:A), [a natural dimension](hyp:d), [a maximal degree](hyp:p), [a Euclidean location map](hyp:loc), [an arm-valued function](hyp:arm), [a response function](hyp:response), [a bandwidth and two relative annulus endpoints](hyp:q), [a coefficient bound](hyp:B), [a degree index](hyp:j), [a residual-score parameter](hyp:θ), and [an observation](hyp:ω), [the radial residual score](goal) is the product of the arm value, the selected radial annulus monomial, and the residual obtained by subtracting the shared-center boxed radial-polynomial fit from the response. -/
 noncomputable def radialResidualScore
     {Ω : Type u} [MeasurableSpace Ω] {A : Type v}
     (d p : ℕ) (loc : Ω → EuclideanPoint d)
@@ -166,7 +167,7 @@ noncomputable def radialResidualScore
       (response ω -
         boundedRadialPolynomial d p q a b B θ.1.1 θ.1.2 (loc ω))
 
-/-- The constant envelope for a bounded finite-arm radial residual score. -/
+/-- Given [an outer relative radius](hyp:b), [a maximal degree](hyp:p), [a coefficient bound](hyp:B), and [a response bound](hyp:R), [the radial residual-score envelope](goal) is the radial-monomial envelope times the sum of $R$ and the radial-polynomial envelope. -/
 def radialResidualScoreEnvelope
     (b : ℝ) (p : ℕ) (B R : ℝ) : ℝ :=
   radialMonomialEnvelope b p *

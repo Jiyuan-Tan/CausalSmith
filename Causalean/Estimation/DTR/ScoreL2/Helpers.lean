@@ -48,9 +48,11 @@ variable {P : POSystem} {δ : Type} {γ : Fin 2 → Type}
   [∀ k, MeasurableSpace (γ k)]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- The sequential doubly robust Lipschitz constant combines the stagewise inverse-overlap bounds used in score continuity.
+/-- Given [a real overlap level](hyp:ε), the [sequential doubly robust Lipschitz constant](goal)
+is $1 + 2/ε + 4/ε^2 + 4/ε^3$.
 
-It is `1 + 2 / ε + 4 / ε² + 4 / ε³`, tracking the stage-0 inverse-overlap
+The sequential doubly robust Lipschitz constant combines the stagewise inverse-overlap bounds used in score continuity.
+It tracks the stage-0 inverse-overlap
 weight, the stage-0 cross term, the stage-1 product inverse-overlap weight,
 and the stage-1 cross terms. This exported envelope is used by the L² score
 bound and its helper inequalities. -/

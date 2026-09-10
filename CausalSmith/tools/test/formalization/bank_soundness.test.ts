@@ -54,13 +54,19 @@ describe("bankSoundnessIssues", () => {
     expect(issues.some((i) => i.startsWith("sorry in"))).toBe(true);
   });
 
-  it.each(["axiom foo : True", "opaque bar : Nat", "theorem t : True := by native_decide", "theorem t : True := by admit"])(
+  it.each(["axiom foo : True", "opaque bar : Nat", "theorem t : True := by admit", "theorem t : True := by exact sorryAx True true"])(
     "reports the cheat token in %j",
     async (line) => {
       await writeFile(join(leanDir, "T.lean"), `namespace D\n${line}\nend D\n`);
       expect(await bankSoundnessIssues(leanDir, root)).not.toEqual([]);
     },
   );
+
+  // `native_decide` was removed from the cheat-token list on 2026-09-04 (operator call).
+  it("does not flag native_decide", async () => {
+    await writeFile(join(leanDir, "T.lean"), "namespace D\ntheorem t : True := by native_decide\nend D\n");
+    expect(await bankSoundnessIssues(leanDir, root)).toEqual([]);
+  });
 
   // The paper's disposable agent workspace (`<leanDir>/tmp`) is excluded from the bank
   // inventory: agents are TOLD to leave sorry-laden Lean probes there, and a scratch file

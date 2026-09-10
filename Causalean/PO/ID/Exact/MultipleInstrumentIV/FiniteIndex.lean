@@ -41,9 +41,9 @@ namespace MultipleInstrumentIV
 open Finset
 open MeasureTheory
 
-/-- Adjacent threshold for the ordered support.  The value `j : Adj K`
-represents the source-paper threshold between support positions `j-1` and `j`
-in zero-based Lean indexing, i.e. source notation `2, ..., K`. -/
+/-- For [a finite ordered support with $K$ points](hyp:K), the [adjacent-threshold set](goal)
+consists of every strictly positive support position, each representing the boundary between its
+immediately preceding position and itself. -/
 abbrev Adj (K : ℕ) := {j : Fin K // 0 < j.val}
 
 namespace Adj
@@ -74,8 +74,10 @@ structure FiniteIndex (K : ℕ) where
   /-- The displayed support order is weakly increasing in the first-stage index. -/
   dhat_mono : ∀ {k l : Fin K}, k.val ≤ l.val → dhat k ≤ dhat l
 
-/-- Measure-backed finite support mass `P(Z = k)` for a `Fin K`-valued
-instrument. -/
+/-- Given [a sample space equipped with a σ-algebra](hyp:Ω), [a finite instrument support of
+size $K$](hyp:K), [a measure on that sample space](hyp:μ), [an instrument taking values in that
+support](hyp:Z), and [a support point](hyp:k), the [support mass](goal) is the real-valued measure
+of the event that the instrument equals that point. -/
 noncomputable def supportMass {Ω : Type*} [MeasurableSpace Ω] {K : ℕ}
     (μ : Measure Ω) (Z : Ω → Fin K) (k : Fin K) : ℝ :=
   (μ {ω | Z ω = k}).toReal
@@ -110,10 +112,11 @@ theorem supportMass_sum_eq_one {Ω : Type*} [MeasurableSpace Ω] {K : ℕ}
     fun _ => rfl
   simpa [supportMass, hpre, Set.preimage_univ] using hsum
 
-/-- Construct the ordered finite first-stage index from a probability-space
-instrument `Z : Ω → Fin K` and a finite support score `dhat`.  The support
-masses are the actual measure masses `P(Z = k)`; the only remaining
-first-stage input is the displayed-order monotonicity of the score. -/
+/-- Given [a measurable sample space](hyp:Ω), [a finite support of size $K$](hyp:K), [a
+probability measure](hyp:μ), [a measurable instrument with that support](hyp:Z,hZ), [a real
+first-stage score at each support point](hyp:dhat), and [the condition that this score is weakly
+increasing in support order](hyp:hdhat_mono), the [ordered finite first-stage index](goal) has
+support masses equal to the instrument probabilities and the supplied score. -/
 noncomputable def FiniteIndex.fromMeasureScore {Ω : Type*} [MeasurableSpace Ω]
     {K : ℕ} (μ : Measure Ω) [IsProbabilityMeasure μ]
     (Z : Ω → Fin K) (hZ : Measurable Z)
@@ -130,19 +133,25 @@ namespace FiniteIndex
 
 variable {K : ℕ} (I : FiniteIndex K)
 
-/-- Mean first-stage index `dbar = Σ_k ρ_k dhat_k`. -/
+/-- For [an ordered finite first-stage index](hyp:I), the [mean first-stage index](goal) is the
+support-mass-weighted average $\sum_k \rho_k\widehat d_k$. -/
 noncomputable def meanIndex : ℝ :=
   ∑ k, I.rho k * I.dhat k
 
-/-- Centered first-stage index `a_k = dhat_k - dbar`. -/
+/-- For [an ordered finite first-stage index](hyp:I) and [a support point](hyp:k), the [centered
+first-stage index at that point](goal) is its first-stage score minus the support-mass-weighted
+mean score. -/
 noncomputable def centeredIndex (k : Fin K) : ℝ :=
   I.dhat k - I.meanIndex
 
-/-- Ordered upper tail `T_j = {j, ..., K}` for an adjacent threshold. -/
+/-- For [a finite ordered support of size $K$](hyp:K) and [an adjacent threshold](hyp:j), the
+[upper-tail set](goal) contains exactly the support points at or above that threshold. -/
 noncomputable def upperTail (j : Adj K) : Finset (Fin K) :=
   Finset.univ.filter fun k => j.1.val ≤ k.val
 
-/-- MTW tail coefficient `B_j = Σ_{k ≥ j} ρ_k a_k`. -/
+/-- For [an ordered finite first-stage index](hyp:I) and [an adjacent threshold](hyp:j), the [MTW
+tail coefficient](goal) is the sum, over the corresponding upper tail, of each support mass times
+its centered first-stage index. -/
 noncomputable def tailCoeff (j : Adj K) : ℝ :=
   ∑ k ∈ upperTail j, I.rho k * I.centeredIndex k
 
@@ -349,8 +358,10 @@ end FiniteIndex
 
 /-! ### Matrix first-stage construction -/
 
-/-- Finite second-moment matrix `E[q(Z)q(Z)ᵀ]` for a score vector on finite
-instrument support. -/
+/-- Given [a finite instrument support of size $K$](hyp:K), [a score-vector dimension $L$](hyp:L),
+[a real mass assigned to each support point](hyp:rho), and [a real score vector at each support
+point](hyp:score), the [first-stage Gram matrix](goal) has entry $(a,b)$ equal to the
+mass-weighted sum of the products of score coordinates $a$ and $b$. -/
 noncomputable def firstStageGram {K L : ℕ}
     (rho : Fin K → ℝ) (score : Fin K → Fin L → ℝ) :
     Matrix (Fin L) (Fin L) ℝ :=
@@ -394,27 +405,35 @@ namespace MatrixFirstStage
 
 variable {K L : ℕ} (S : MatrixFirstStage K L)
 
-/-- Finite second-moment matrix `E[q(Z)q(Z)ᵀ]`. -/
+/-- For [a finite matrix first-stage specification](hyp:S), the [Gram matrix](goal) is its
+mass-weighted second-moment matrix of instrument score vectors. -/
 noncomputable def gram : Matrix (Fin L) (Fin L) ℝ :=
   firstStageGram S.rho S.score
 
-/-- The finite second-moment matrix is invertible by the matrix first-stage
+/-- For [a finite matrix first-stage specification](hyp:S), [the assertion that
+its mass-weighted second-moment (Gram) matrix is invertible](goal) holds.
+
+The finite second-moment matrix is invertible by the matrix first-stage
 assumption. -/
 noncomputable instance instInvertibleGram : Invertible S.gram := by
   change Invertible (firstStageGram S.rho S.score)
   exact S.gram_invertible
 
-/-- Population first-stage projection coefficient
-`(E[q(Z)q(Z)ᵀ])⁻¹ E[q(Z)D]`. -/
+/-- For [a finite matrix first-stage specification](hyp:S) and [a score-coordinate index](hyp:a),
+the [population first-stage projection coefficient at that coordinate](goal) is the corresponding
+entry of the inverse Gram matrix times the vector of first-stage moments. -/
 noncomputable def projectionCoeff (a : Fin L) : ℝ :=
   ∑ b : Fin L, (⅟S.gram) a b * S.firstStageMoment b
 
-/-- Fitted saturated first-stage value `dhat_k = q(zᵏ)'Π`. -/
+/-- For [a finite matrix first-stage specification](hyp:S) and [an instrument support point](hyp:k),
+the [fitted first-stage value](goal) is the inner product of that point's score vector and the
+population first-stage projection coefficients. -/
 noncomputable def fittedValue (k : Fin K) : ℝ :=
   ∑ a : Fin L, S.projectionCoeff a * S.score k a
 
-/-- The matrix first stage induces the ordered finite index consumed by the
-MTW tail-coefficient and response-type algebra. -/
+/-- For [a finite matrix first-stage specification](hyp:S), the [ordered finite first-stage
+index](goal) retains its support masses and uses its fitted first-stage values as the ordered
+score. -/
 noncomputable def toFiniteIndex : FiniteIndex K where
   rho := S.rho
   dhat := S.fittedValue

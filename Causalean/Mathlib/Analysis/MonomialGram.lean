@@ -18,18 +18,23 @@ open MeasureTheory Set
 
 namespace Causalean.Mathlib.Analysis
 
-/-- The closed sup-norm ball contains the vectors whose every coordinate lies within the stated
-radius of the corresponding coordinate of the center. -/
+/-- For a [coordinate index set](hyp:ι), [a real-valued center vector](hyp:x0), and [a real
+radius](hyp:r), the [closed sup-norm ball](goal) is the set of real-valued vectors whose every
+coordinate differs from the corresponding coordinate of the center by at most that radius. -/
 def supBall {ι : Type*} (x0 : ι → ℝ) (r : ℝ) : Set (ι → ℝ) :=
   {x | ∀ i, |x i - x0 i| ≤ r}
 
-/-- A multivariate monomial multiplies the coordinates of a vector after raising each coordinate
-to its assigned nonnegative integer exponent. -/
+/-- For a [finite coordinate index set](hyp:ι), [an assignment of a nonnegative integer exponent
+to each coordinate](hyp:e), and [a real-valued coordinate vector](hyp:u), the [multivariate
+monomial](goal) is the product of the coordinates after each has been raised to its assigned
+exponent. -/
 def monomial {ι : Type*} [Fintype ι] (e : ι → ℕ) (u : ι → ℝ) : ℝ :=
   ∏ j, (u j) ^ (e j)
 
-/-- The monomial Gram matrix records the integrals of every pairwise product of a finite family of
-multivariate monomials over a centered closed cube. -/
+/-- For [a coordinate dimension and a finite family size](hyp:d,p), [an assignment of a
+multivariate exponent vector to each member of that family](hyp:expo), and [a real radius](hyp:r),
+the [monomial Gram matrix](goal) has as its $(k,l)$ entry the integral of the product of the $k$th
+and $l$th associated monomials over the centered closed coordinate cube of that radius. -/
 noncomputable def monomialGram {d p : ℕ} (expo : Fin p → (Fin d → ℕ)) (r : ℝ) :
     Matrix (Fin p) (Fin p) ℝ :=
   Matrix.of fun k l => ∫ u in {u : Fin d → ℝ | ∀ j, |u j| ≤ r},

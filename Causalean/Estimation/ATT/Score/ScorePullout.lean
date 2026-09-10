@@ -42,7 +42,7 @@ namespace TreatedEstimationSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- Value-space IPW weight `e(x) / (1 − e(x))` used in the ATT correction. -/
+/-- For [a potential-outcomes system with a standard Borel sample space and finite probability measure](hyp:P), [a measurable covariate space](hyp:γ), [a treated estimation system based on that system and covariate space](hyp:S), and [a covariate value](hyp:x), the [control-arm inverse-probability weight used in the ATT correction](goal) is the propensity score at that covariate value divided by one minus that propensity score.  Equivalently, it is $e(x)/(1-e(x))$. -/
 noncomputable def ipwWeight_false (S : TreatedEstimationSystem P γ) (x : γ) :
     ℝ :=
   S.e_val x / (1 - S.e_val x)

@@ -22,14 +22,19 @@ open scoped BigOperators ENNReal
 
 namespace Causalean.Stat.Concentration
 
-/-- The centered empirical average is the sample average of a function minus
-its population integral. -/
+/-- Given [a measure $\mu$ on an observation space](hyp:μ,Ω), [a sample of $n$
+observations](hyp:w,n), and [a real-valued function](hyp:g), the [centered empirical
+average](goal) is its sample average minus its integral with respect to $\mu$. -/
 noncomputable def centeredEmpiricalAverage {Ω : Type*} [MeasurableSpace Ω]
     (μ : Measure Ω) {n : ℕ} (w : Fin n → Ω) (g : Ω → ℝ) : ℝ :=
   (n : ℝ)⁻¹ * ∑ i, g (w i) - ∫ z, g z ∂μ
 
-/-- A countable subfamily realizes the continuum empirical-process supremum
-almost surely under every finite product law. -/
+/-- Given [a measure $\mu$ on an observation space](hyp:μ,Ω) and [a family of
+real-valued functions indexed by a set $\iota$](hyp:g,ι), the [countable empirical-supremum
+reduction property](goal) holds exactly when [every member of the family is measurable](step:1)
+and [there is a sequence of indices whose associated countable subfamily has, for every sample
+size, the same supremum of absolute centered empirical averages as the full family almost surely
+under the corresponding product measure](step:2). -/
 def HasCountableEmpiricalSupReduction {Ω ι : Type*} [MeasurableSpace Ω]
     (μ : Measure Ω) (g : ι → Ω → ℝ) : Prop :=
   (∀ i, Measurable (g i)) ∧

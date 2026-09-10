@@ -54,8 +54,10 @@ structure BalancedPanel (Unit Time : Type*) [Fintype Unit] [Fintype Time] where
   unit_card_ge_two : 2 ≤ Fintype.card Unit
   time_card_ge_two : 2 ≤ Fintype.card Time
 
-/-- Uniform unit weights as a probability vector, used to view this module as
-the uniform specialization of `WeightedTwoWayPanel`. -/
+/-- For [a finite set of units](hyp:Unit) whose [cardinality is strictly positive](hyp:hU), the
+[uniform unit-weight vector](goal) assigns every unit the reciprocal of the number of units.
+
+It is used to view this module as the uniform specialization of `WeightedTwoWayPanel`. -/
 noncomputable def uniformWeights (hU : 0 < Fintype.card Unit) :
     WeightedTwoWayPanel.UnitWeights Unit :=
   ⟨fun _ => (Fintype.card Unit : ℝ)⁻¹,
@@ -72,25 +74,34 @@ noncomputable def uniformWeights (hU : 0 < Fintype.card Unit) :
           rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
         _ = 1 := mul_inv_cancel₀ hU_ne)⟩
 
-/-- Unit mean `\bar V_{i·}` under the uniform period measure. -/
+/-- For [a finite set of units](hyp:Unit), [a finite set of periods](hyp:Time), [a real-valued
+unit-period array](hyp:V), and [a unit](hyp:i), the [unit mean](goal) is the arithmetic average
+of that unit's array values over all periods. -/
 noncomputable def unitMean (V : Unit → Time → ℝ) (i : Unit) : ℝ :=
   (Fintype.card Time : ℝ)⁻¹ * ∑ t, V i t
 
-/-- Time mean `\bar V_{·t}` under the uniform unit measure. -/
+/-- For [a finite set of units](hyp:Unit), [a finite set of periods](hyp:Time), [a real-valued
+unit-period array](hyp:V), and [a period](hyp:t), the [time mean](goal) is the arithmetic average
+of that period's array values over all units. -/
 noncomputable def timeMean (V : Unit → Time → ℝ) (t : Time) : ℝ :=
   (Fintype.card Unit : ℝ)⁻¹ * ∑ i, V i t
 
-/-- Grand mean `\bar V` under the uniform unit-period measure. -/
+/-- For [a finite set of units](hyp:Unit), [a finite set of periods](hyp:Time), and [a real-valued
+unit-period array](hyp:V), the [grand mean](goal) is the arithmetic average of its values over
+all unit-period pairs. -/
 noncomputable def grandMean (V : Unit → Time → ℝ) : ℝ :=
   ((Fintype.card Unit : ℝ) * (Fintype.card Time : ℝ))⁻¹ *
     ∑ i, ∑ t, V i t
 
-/-- Two-way residual / double-demeaned array. -/
+/-- For [a finite set of units](hyp:Unit), [a finite set of periods](hyp:Time), [a real-valued
+unit-period array](hyp:V), [a unit](hyp:i), and [a period](hyp:t), the [double-demeaned value](goal)
+equals the array value minus its unit mean and period mean plus its grand mean. -/
 noncomputable def ddot (V : Unit → Time → ℝ) (i : Unit) (t : Time) : ℝ :=
   V i t - unitMean V i - timeMean V t + grandMean V
 
-/-- Uniform finite-panel inner product, without the harmless normalizing
-constant. -/
+/-- For [a finite set of units](hyp:Unit), [a finite set of periods](hyp:Time), and [two
+real-valued unit-period arrays](hyp:V,W), the [unnormalized uniform inner product](goal) is the
+sum, over all unit-period pairs, of the product of their values. -/
 noncomputable def inner (V W : Unit → Time → ℝ) : ℝ :=
   ∑ i, ∑ t, V i t * W i t
 
@@ -178,8 +189,10 @@ theorem inner_eq_card_smul_weighted (hU : 0 < Fintype.card Unit)
     sum_eq_card_mul_uniform_weighted (Unit := Unit) (Time := Time) hU
       (fun i t => V i t * W i t)
 
-/-- Finite scalar residualized coefficient for a supplied residualized
-regressor `Dtilde` and residualized outcome `Ytilde`. -/
+/-- For [a finite set of units](hyp:Unit), [a finite set of periods](hyp:Time), and [a
+residualized regressor and residualized outcome array](hyp:Dtilde,Ytilde), the [finite
+residualized coefficient](goal) is their unnormalized inner product divided by the regressor's
+unnormalized self-inner-product. -/
 noncomputable def finiteResidualizedCoefficient
     (Dtilde Ytilde : Unit → Time → ℝ) : ℝ :=
   inner Dtilde Ytilde / inner Dtilde Dtilde
@@ -280,13 +293,18 @@ theorem finite_residualized_coefficient_eq_of_normalEqs
     (eq_div_iff hden_ne).2 hcoeff
   simpa [finiteResidualizedCoefficient] using hβ_eq
 
-/-- Unit-time additive nuisance class `h_it = a_i + b_t`.
+/-- For [a set of units](hyp:Unit), [a set of periods](hyp:Time), and [a real-valued unit-period
+array](hyp:h), the [unit-time additive condition](goal) holds precisely when [there exist a
+real-valued unit function and a real-valued period function whose sum equals the array at every
+unit-period pair](step:1).
 
 Compatibility alias for the shared additive-span predicate. -/
 abbrev IsUnitTimeAdditive (h : Unit → Time → ℝ) : Prop :=
   Causalean.Panel.Weighted.IsUnitTimeAdditive h
 
-/-- The unit/time component removed by double demeaning. -/
+/-- For [a finite set of units](hyp:Unit), [a finite set of periods](hyp:Time), [a real-valued
+unit-period array](hyp:V), [a unit](hyp:i), and [a period](hyp:t), the [unit-time projection](goal)
+is that unit's mean plus that period's mean minus the grand mean. -/
 noncomputable def unitTimeProjection (V : Unit → Time → ℝ) (i : Unit) (t : Time) : ℝ :=
   unitMean V i + timeMean V t - grandMean V
 

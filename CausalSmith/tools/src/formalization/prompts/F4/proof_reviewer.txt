@@ -134,19 +134,36 @@ Unfold each non-cited added hypothesis; the paper's STATED assumption must be EQ
   judge it `faithful-refinement` or `regularity-bookkeeping`.
 - `content-gate` — a rate/bound/separation/identity the paper DERIVES (`lem:`/`thm:`/`prop:` node),
   assumed instead of proven: REJECT (laundering). Discriminator = the NOTE's node kind.
-- `cited` — only for a target carrying a "CITED SOURCE TO MATCH" block (`gate_class:"cited"`: an
-  EXTERNAL result the paper assumes). First require Lean to be equivalent to the
-  frozen paper/core node. Then verify source support by the rule above (specialized/one-directional
-  consequence OK when the source entails it under premises explicit in the node; no reverse implication,
-  no unused conjuncts; check quantifiers, constants, inequality direction, domain, no Lean-only vacuity).
+- `cited` — only for a target carrying a "CITED SOURCE TO MATCH" block (an EXTERNAL source dependency,
+  either deferred under `gate_class:"cited"` or locally proved with retained cited provenance). First
+  require Lean to be equivalent to the frozen paper/core node, using the carrier contract in that block.
+  A deferred logical `lean_kind:"assumption"` carrier is assumed and retains the full
+  logical-equivalence/self-containedness rubric. A locally discharged logical `lemma`/`theorem` is proved,
+  non-gated, and must still match the frozen node and source; never call it an assumption, content-gate, or
+  needs-substrate. A `lean_kind:"def"`
+  bibliographic-metadata carrier is intentionally non-Prop: equivalence means its closed payload
+  records every frozen scope/provenance/delivery clause exactly. Do NOT require such metadata to
+  imply a proposition, formalize the cited model, or acquire/supplement a Prop premise. Reject it if
+  a clause is missing or altered, caller-supplied rather than closed, unsupported by the source, or
+  used as a logical premise. For metadata, source support is clause-by-clause correspondence and never
+  a logical implication test. For a logical Prop carrier, apply the rule above: a specialized/one-directional
+  consequence is OK when the source entails it under premises explicit in the node; require no reverse
+  implication or unused conjuncts, and check quantifiers, constants, inequality direction, domain, and
+  Lean-only vacuity.
+  INDEPENDENT CARRIER AUDIT: the block's classification comes from frozen `source.carrier`, not mutable
+  Lean/plan convenience. Still audit that classification against the frozen statement itself. If a
+  metadata-classified node asserts a bound, rate, equality, existence, causal/quantitative result, or any
+  other truth-valued mathematical fact used as a proof premise, reject it as `derived` +
+  `cited-underspecified` and escalate `note-wrong`; do not grant the metadata exemption. Conversely, do
+  not force a genuinely scope/provenance/delivery-only record to become a Prop.
   Source implication fails ⇒ `derived` + `cited-mismatch` (Lean-vs-paper agreement is no substitute).
   Source text unavailable but Lean and paper self-contained and equivalent ⇒ `faithful-refinement` +
   `cited-source-unverifiable` (a flag, not a banking block). Always emit ONE `substrate_gates` entry with
   `gate_class:"cited"`, `source:{cite_id, locator}`, and `check_status` ∈ `cited-verified` (matches the
   FETCHED source) / `cited-verified-attested` / `cited-mismatch` (BLOCKS) / `cited-underspecified`
-  (BLOCKS) / `cited-source-unverifiable`. The block states which OK-status applies. A cited node is NEVER
-  `content-gate` or `needs-substrate`.
-  CITED EXTERNAL-OBJECT HANDLES: when the source names one specific external estimator/algorithm/object
+  (BLOCKS) / `cited-source-unverifiable`. The block states which OK-status applies. After the frozen carrier
+  classification passes the independent audit, a cited node is NEVER `content-gate` or `needs-substrate`.
+  CITED EXTERNAL-OBJECT HANDLES (logical cited propositions only): when the source names one specific external estimator/algorithm/object
   not formalized here, a single explicit NOMINAL handle parameter is a faithful cited boundary iff (i) a
   cited proposition about that same handle encodes the source statement, (ii) the identical handle is
   threaded unchanged through every conclusion and consumer, (iii) no consumer claims an unconditional
@@ -262,6 +279,6 @@ a faithful assumption is "faithful-refinement". `escalate` is a single object or
   "status": "ok" | "flagged",
   "statement_verdicts": [ { "obj_id": "<T-n/P-n/L-n/sym:x>", "verdict": "matched|derived|drift|untagged", "note": "<one line; for derived/drift say WHICH direction and the exact gap; for untagged name the tagging gap>" } ],
   "assumption_verdicts": [ { "obj_id": "<A-n>", "verdict": "faithful-refinement|derived|regularity-bookkeeping|substrate-gate|content-gate", "note": "<one line>" } ],
-  "substrate_gates": [ { "name": "<binder>", "statement": "<assumed prop>", "classical_fact": "<standard theorem>", "missing_infra": "<layer to build>", "gate_class": "gated|cited (optional; omit ⇒ gated)", "source": { "cite_id": "<cite:slug>", "locator": "<Thm/Lemma ref>" }, "check_status": "cited-verified|cited-verified-attested|cited-mismatch|cited-underspecified|cited-source-unverifiable (cited targets only)" } ],
+  "substrate_gates": [ { "name": "<binder>", "statement": "<assumed prop or recorded metadata>", "classical_fact": "<standard theorem or sourced bibliographic record>", "missing_infra": "<layer to build; empty for metadata>", "gate_class": "gated|cited (optional; omit ⇒ gated)", "source": { "cite_id": "<cite:slug>", "locator": "<Thm/Lemma ref>" }, "check_status": "cited-verified|cited-verified-attested|cited-mismatch|cited-underspecified|cited-source-unverifiable (cited targets only)" } ],
   "escalate": null | { "kind": "scaffold-mismatch|note-wrong|statement-wrong|claim-false|needs-substrate|unadjudicable", "obj_id": "<id>", "reason": "<one precise line>", "witness": null | { "type": "counterexample|hyps-insufficient|hyps-contradictory", "detail": "<the concrete refuting model/obstruction — REQUIRED for kind=claim-false>" } }
 }

@@ -31,11 +31,15 @@ namespace Causalean.ML
 
 open MeasureTheory ProbabilityTheory Real Causalean.Stat.Concentration
 
-/-- Feature × response data space: `Xb`-ball features paired with `[-Yb, Yb]` responses. -/
+/-- For [a feature dimension](hyp:d), [a feature-radius bound](hyp:Xb), and [a response-radius
+bound](hyp:Yb), the [feature–response data space](goal) consists of pairs whose feature component
+lies in the closed Euclidean ball of the stated feature radius centered at zero and whose real-valued
+response lies in the closed interval centered at zero with the stated response radius. -/
 abbrev KFeat (d : ℕ) (Xb Yb : ℝ) : Type :=
   Metric.closedBall (0 : EuclideanSpace ℝ (Fin d)) Xb × Metric.closedBall (0 : ℝ) Yb
 
-/-- The `W`-ball of weight vectors. -/
+/-- For [a feature dimension](hyp:d) and [a weight-radius bound](hyp:W), the [weight-vector
+space](goal) is the closed Euclidean ball centered at zero with the stated weight radius. -/
 abbrev KWeight (d : ℕ) (W : ℝ) : Type :=
   Metric.closedBall (0 : EuclideanSpace ℝ (Fin d)) W
 

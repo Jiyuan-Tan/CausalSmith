@@ -58,8 +58,11 @@ open scoped BigOperators
 variable {Ω : Type*} {mΩ : MeasurableSpace Ω}
   {Θ : Type*} [PseudoMetricSpace Θ] [MeasurableSpace Θ] [OpensMeasurableSpace Θ]
 
-/-- The acceptance region of an estimator for hypothesis value `θ`:
-the points it places strictly within `s` of `θ`. -/
+/-- For [a sample space](hyp:Ω), [a pseudo-metric parameter space](hyp:Θ), [an
+estimator from the sample space to the parameter space](hyp:est), [a parameter value](hyp:θ), and
+[a real radius](hyp:s), the [acceptance region](goal) is the set
+of sample points at which the estimator lies at distance strictly less than that radius from the
+parameter value. -/
 def acceptanceRegion (est : Ω → Θ) (θ : Θ) (s : ℝ) : Set Ω :=
   {ω | dist (est ω) θ < s}
 

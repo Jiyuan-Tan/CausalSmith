@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { frontMatterFromPaper, stageP3 } from "../src/presentation/stages/p3_gates.js";
@@ -55,14 +55,18 @@ async function writeFixture(dir: string, paper: string, front: string, withFroze
   ]);
 }
 
-const ioFor = (dir: string, runCodex: (arg: { prompt: string }) => Promise<{ stdout: string; stderr: string }>) => ({
+const ioFor = (
+  dir: string,
+  runCodex: (arg: { prompt: string }) => Promise<{ stdout: string; stderr: string }>,
+  runClaude: () => Promise<string> = async () => JSON.stringify({ scores: { rigor: 7 } }),
+) => ({
   ctx: {
     repoRoot: dir,
     qid: "q_front_sync",
     spec: "v1",
     deps: {
       dryRun: false,
-      runClaude: async () => JSON.stringify({ scores: { rigor: 7 } }),
+      runClaude,
       runCodex,
     },
   },
@@ -82,6 +86,12 @@ const cleanCodex = async ({ prompt }: { prompt: string }) => {
   }
   return { stdout: JSON.stringify({ scores: { rigor: 7 } }), stderr: "" };
 };
+
+const rubric = (defects: string[] = []) => JSON.stringify({
+  scores: { claims_vs_assumptions: 7, positioning: 7, assumption_discussion: 7, writing: 7 },
+  weaknesses: [],
+  defects,
+});
 
 describe("P3 front-matter cache synchronization", () => {
   it("preserves bytes between the abstract and Introduction in the cache extract", () => {
@@ -238,6 +248,42 @@ Results.
     }
   });
 
+  it("never propagates a patch that was skipped in paper.tex into a source file where it is unique", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "psmith-p3-skipped-propagation-"));
+    const paper = String.raw`\begin{abstract}
+Abstract cites \citep{ghost2020}.
+\end{abstract}
+\section{Introduction}
+Shared sentence cites \citep{ghost2020}.
+\section{Results}
+Shared sentence cites \citep{ghost2020}.
+\end{document}`;
+    try {
+      await writeFixture(dir, paper, "STALE FRONT\n");
+      await mkdir(join(dir, "sections"), { recursive: true });
+      await writeFile(join(dir, "sections", "01_intro.tex"), "\\section{Introduction}\nShared sentence cites \\citep{ghost2020}.\n", "utf8");
+      await writeFile(join(dir, "sections", "02_results.tex"), "\\section{Results}\nShared sentence cites \\citep{ghost2020}.\n", "utf8");
+      await stageP3(ioFor(dir, async ({ prompt }) => {
+        if (prompt.includes("p3_revision_patch")) {
+          return {
+            stdout: JSON.stringify({ replacements: [
+              { before: "Abstract cites \\citep{ghost2020}.", after: "Abstract cites \\citep{keep2021}." },
+              { before: "Shared sentence cites \\citep{ghost2020}.", after: "Shared sentence cites \\citep{keep2021}." },
+            ] }),
+            stderr: "",
+          };
+        }
+        return cleanCodex({ prompt });
+      })).catch(() => undefined); // the residual ghost cite may still fail the round — propagation is what is under test
+      const intro = await readFile(join(dir, "sections", "01_intro.tex"), "utf8");
+      const results = await readFile(join(dir, "sections", "02_results.tex"), "utf8");
+      expect(intro).toContain("ghost2020"); // skipped in paper.tex (non-unique) → untouched in the sources
+      expect(results).toContain("ghost2020");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it("syncs a successful revision before a later hard-gate failure can skip round-zero healing", async () => {
     const dir = await mkdtemp(join(tmpdir(), "psmith-p3-front-revision-write-"));
     const paper = String.raw`\begin{abstract}
@@ -264,7 +310,7 @@ Results still cite \citep{ghost2020}.
           };
         }
         return cleanCodex({ prompt });
-      }))).rejects.toThrow(/patch replacement is missing or non-unique/);
+      }))).rejects.toThrow(/every patch was missing, non-unique, or protected/);
       const front = await readFile(join(dir, "front_matter.tex"), "utf8");
       expect(front).toContain("\\citep{keep2021}");
       expect(front).not.toContain("STALE FRONT");
@@ -307,6 +353,90 @@ ${FROZEN_ENV}
       expect(await readFile(join(dir, "front_matter.tex"), "utf8")).toBe("STALE FRONT\n");
       const persisted = await readFile(join(dir, "q_front_sync_v1_paper_state.json"), "utf8");
       expect(JSON.parse(persisted).revision_round).toBe(0);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("propagates a mixed prose/proof revision without changing the audited proof or its source", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "psmith-p3-mixed-protected-"));
+    const proof = "\\begin{proof}\nAudited proof text.\n\\end{proof}";
+    const paper = `\\begin{abstract}\nAbstract.\n\\end{abstract}\n\\section{Introduction}\nIntroduction.\n\\section{Results}\nReader prose.\n${proof}\n\\end{document}`;
+    let rubricCalls = 0;
+    try {
+      await writeFixture(dir, paper, "STALE FRONT\n");
+      await mkdir(join(dir, "sections"), { recursive: true });
+      await mkdir(join(dir, "proofs"), { recursive: true });
+      await writeFile(join(dir, "sections", "02_results.tex"), "\\section{Results}\nReader prose.\n", "utf8");
+      await writeFile(join(dir, "proofs", "result.tex"), `${proof}\n`, "utf8");
+      const review = () => rubric(++rubricCalls <= 2 ? ["Repair the reader prose and audited proof text."] : []);
+      await stageP3(ioFor(dir, async ({ prompt }) => {
+        if (prompt.includes("p3_revision_patch")) return {
+          stdout: JSON.stringify({ replacements: [
+            { before: "Reader prose.", after: "Clear reader prose." },
+            { before: "Audited proof text.", after: "Altered proof text." },
+          ] }),
+          stderr: "",
+        };
+        if (prompt.includes("p3_rubric")) return { stdout: review(), stderr: "" };
+        return cleanCodex({ prompt });
+      }, async () => review()));
+
+      expect(await readFile(join(dir, "paper.tex"), "utf8")).toContain("Clear reader prose.");
+      expect(await readFile(join(dir, "paper.tex"), "utf8")).toContain("Audited proof text.");
+      expect(await readFile(join(dir, "proofs", "result.tex"), "utf8")).toBe(`${proof}\n`);
+      expect(await readFile(join(dir, "sections", "02_results.tex"), "utf8")).toContain("Clear reader prose.");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it.each([
+    ["protected replacement", { replacements: [{ before: "Audited proof text.", after: "Altered proof text." }] }],
+    ["empty replacement list", { replacements: [] }],
+  ])("records an all-protected rubric repair as standing and continues (%s)", async (_label, revision) => {
+    const dir = await mkdtemp(join(tmpdir(), "psmith-p3-rubric-protected-"));
+    const proof = "\\begin{proof}\nAudited proof text.\n\\end{proof}";
+    const paper = `\\begin{abstract}\nAbstract.\n\\end{abstract}\n\\section{Introduction}\nIntroduction.\n\\section{Results}\n${proof}\n\\end{document}`;
+    const defect = "Change the audited proof text.";
+    try {
+      await writeFixture(dir, paper, "STALE FRONT\n");
+      const io = ioFor(dir, async ({ prompt }) => {
+        if (prompt.includes("p3_revision_patch")) return { stdout: JSON.stringify(revision), stderr: "" };
+        if (prompt.includes("p3_rubric")) return { stdout: rubric([defect]), stderr: "" };
+        return cleanCodex({ prompt });
+      }, async () => rubric([defect]));
+
+      await stageP3(io);
+
+      expect(await readFile(join(dir, "paper.tex"), "utf8")).toBe(paper);
+      expect((io as unknown as { state: { notes: string[] } }).state.notes).toEqual(
+        expect.arrayContaining([expect.stringContaining("no editable prose change")]),
+      );
+      expect(await readFile(join(dir, "logs", "reviews.jsonl"), "utf8")).toContain("rubric-defects-unrepaired");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps an all-protected hard-gate repair fatal", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "psmith-p3-hard-protected-"));
+    const proof = "\\begin{proof}\nAudited proof text.\n\\end{proof}";
+    const paper = `\\begin{abstract}\nAbstract.\n\\end{abstract}\n\\section{Introduction}\n${proof}\n\\section{Results}\nResults.\n\\end{document}`;
+    try {
+      await writeFixture(dir, paper, "STALE FRONT\n");
+      await expect(stageP3(ioFor(dir, async ({ prompt }) => {
+        if (prompt.includes("p3_overclaim")) return {
+          stdout: JSON.stringify({ clean: false, flags: [{ id: 1, sentence: "Audited proof text.", fix: "Revise the proof." }] }),
+          stderr: "",
+        };
+        if (prompt.includes("p3_revision_patch")) return {
+          stdout: JSON.stringify({ replacements: [{ before: "Audited proof text.", after: "Altered proof text." }] }),
+          stderr: "",
+        };
+        return cleanCodex({ prompt });
+      }))).rejects.toThrow(/every patch was missing, non-unique, or protected/);
+      expect(await readFile(join(dir, "paper.tex"), "utf8")).toBe(paper);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

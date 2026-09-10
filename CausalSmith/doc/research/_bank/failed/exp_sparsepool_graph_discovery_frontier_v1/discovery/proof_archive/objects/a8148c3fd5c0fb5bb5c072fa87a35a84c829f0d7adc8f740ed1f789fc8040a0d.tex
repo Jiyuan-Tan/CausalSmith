@@ -1,0 +1,119 @@
+Fix \(P\in\mathcal M_s\).  For row \(i\), let \(T=T_i=\{i\}\cup S_i\), \(k=|T|\le s+1\), and define \(w\in\mathbb R^T\) by \(w_i=0\) and \(w_j=\operatorname{sign}(\Gamma_{ij})\) for \(j\in S_i\).  The estimator minimizes
+\[
+ \frac1{2m}\lVert H_mY_i-Xb\rVert_2^2
+ +\lambda_{\mathrm L}\lVert b_{-i}\rVert_1,
+ \qquad \lambda_{\mathrm L}=c_{\mathrm L}q\delta,
+ \tag{31}
+\]
+with \(c_{\mathrm L}>0\) chosen below.  A minimizer exists because the objective is a continuous convex quadratic plus a polyhedral coercive penalty modulo its flat null directions; among all minimizers the Euclidean norm has a unique minimizer, which supplies a measurable tie-break.  On the success event constructed below the minimizer of (31) itself is unique.
+
+We first derive the exact-budget population algebra required by the directive.  Write
+\[
+ a=p(1-p)\frac n{n-1},
+ \qquad \Sigma=a\left(I_n-\frac1n\mathbf1_n\mathbf1_n^{\mathsf T}\right).
+\]
+For every \(T\) of size \(k<n\), the Sherman--Morrison identity gives
+\[
+ \Sigma_{TT}^{-1}=a^{-1}\left(I_k+\frac{\mathbf1_k\mathbf1_k^{\mathsf T}}{n-k}\right).
+ \tag{32}
+\]
+For \(j\notin T\), \(\Sigma_{jT}=-(a/n)\mathbf1_k^{\mathsf T}\); hence
+\[
+ \left|\Sigma_{jT}\Sigma_{TT}^{-1}w\right|
+ =\frac{|\sum_{\ell\in S_i}w_\ell|}{n-k}
+ \le\frac{s}{n-s-1}\le\frac16.
+ \tag{33}
+\]
+The last inequality uses \(s\le n/8\), including the boundary \(n=8,s=1\).  Formula (33) is stronger than the sign-specific irrepresentability requirement.  Zhao and Yu, \emph{Journal of Machine Learning Research} 7 (2006), equation (2), record the stronger row-\(\ell_1\) version needed uniformly over all sign vectors.  We need only the \(n\) realized sign vectors and prove their empirical bounds below.  The primal--dual-witness architecture is the one isolated in Wainwright, Technical Report 709, Proposition 1 and conditions (14)--(15), but every specialization to the present dependent-coordinate design is derived here.  Lounici, \emph{Electronic Journal of Statistics} 2 (2008), Theorems 1--2, obtains sup-norm and thresholded-sign guarantees from a mutual-coherence condition; we do not invoke those theorems because empirically verifying their sign-uniform coherence condition would impose a different, stronger scaling.
+
+Let \(G_T=m^{-1}X_T^{\mathsf T}X_T\).  Apply the balanced-pool concentration lemma with failure probability \(\eta/8\).  Its sparse lower bound and column upper bound give an event \(E_0\), of probability at least \(1-\eta/8\), on which
+\[
+ \lambda_{\min}(G_T)\ge c_0q
+ \quad\text{for all the displayed row supports and their subsets},
+ \qquad \max_j\lVert Xe_j\rVert_2^2\le2mq.
+ \tag{34}
+\]
+
+We next prove the support-specific empirical bounds.  Let \(T_0\subsetneq\mathcal U\), \(|T_0|=k_0\le s+1\), let \(j\notin T_0\), and let \(c\in[-1,1]^{T_0}\).  On the part of \(E_0\) determined by \(X_{T_0}\), put
+\[
+ h=X_{T_0}(X_{T_0}^{\mathsf T}X_{T_0})^{-1}c.
+\]
+Because \(h\perp\mathbf1_m\), \(h^{\mathsf T}X_j=h^{\mathsf T}Z_j\).  Conditional on the raw assignment columns \(Z_{\cdot T_0}\), the variables \(Z_{tj}\) are independent over \(t\), with
+\[
+ \mathbb E(Z_{tj}\mid Z_{tT_0})
+ =\frac{B-\sum_{\ell\in T_0}Z_{t\ell}}{n-k_0}.
+\]
+Consequently,
+\[
+ \mathbb E(h^{\mathsf T}X_j\mid Z_{\cdot T_0})
+ =-\frac{\mathbf1_{k_0}^{\mathsf T}c}{n-k_0}.
+ \tag{35}
+\]
+Moreover the conditional Bernoulli variances are at most \(2q\): if \(p\le1/2\), their success probabilities are at most \(B/(n-k_0)\le2q\), while if \(p>1/2\), their failure probabilities are at most \((n-B)/(n-k_0)\le2q\); here \(k_0\le s+1\le n/4\).  Equation (34) gives
+\[
+ \lVert h\rVert_2^2\le\frac{k_0}{c_0mq},
+ \qquad
+ \lVert h\rVert_\infty\le\frac{k_0}{c_0mq}.
+ \tag{36}
+\]
+The second inequality uses \(\lVert (X_{tT_0})\rVert_2\le\sqrt{k_0}\).  Conditional Bernstein applied to (35)--(36) yields, for each fixed \(0<u\le1\),
+\[
+ \Pr\!\left(
+  \left|h^{\mathsf T}X_j+\frac{\mathbf1^{\mathsf T}c}{n-k_0}\right|>u
+  \middle|Z_{\cdot T_0}\right)
+ \le2\exp\!\left(-\frac{c_1mqu^2}{k_0}\right).
+ \tag{37}
+\]
+
+Use (37) first with \(T_0=T\), \(c=w\), and every \(j\notin T\).  Since \(|\mathbf1^{\mathsf T}w|/(n-k)\le1/6\), a union bound gives
+\[
+ \max_{i}\max_{j\notin T_i}
+ \left|m^{-1}X_j^{\mathsf T}X_{T_i}G_{T_i}^{-1}w\right|
+ \le\frac13
+ \tag{38}
+\]
+except on an event of probability at most \(\eta/8\).  Use (37) again with \(T_0=T\setminus\{\ell\}\) and \(c=w_{T_0}\).  The Schur-complement formula and \(\lambda_{\min}(G_T)\ge c_0q\) show, simultaneously for the at most \(n(s+1)\) relevant pairs,
+\[
+ \lVert G_T^{-1}w\rVert_\infty\le\frac{C_5}{q},
+ \tag{39}
+\]
+outside another event of probability at most \(\eta/8\).  Indeed, the numerator in the scalar Schur formula is bounded by
+\[
+ |w_\ell|+\frac{|\mathbf1^{\mathsf T}w_{T_0}|}{n-k+1}+\frac1{12}<2,
+\]
+whereas its denominator is the Schur complement of \(G_{T_0}\) in \(G_T\), which is at least \(\lambda_{\min}(G_T)\).  The assumed term \(mq\ge C(s+1)\log(8n^3/\eta)\) makes both union bounds valid.  This proves (38)--(39), rather than assuming empirical irrepresentability.
+
+Condition now on the design event (34), (38), and (39).  Since the pools are nonadaptive, every noise score below is a deterministic linear transform of the rowwise martingale innovations.  The candidate restricted solution is
+\[
+ \widetilde b_T=\theta_{i,T}
+ +G_T^{-1}\left(m^{-1}X_T^{\mathsf T}H_m\varepsilon_i
+                    -\lambda_{\mathrm L}w\right),
+ \qquad \widetilde b_{T^c}=0.
+ \tag{40}
+\]
+For \(\ell\in S_i\), the noise coordinate in (40) is conditionally sub-Gaussian with variance proxy at most
+\[
+ \frac{\sigma^2}{m}e_\ell^{\mathsf T}G_T^{-1}e_\ell
+ \le\frac{\sigma^2}{c_0mq}.
+ \tag{41}
+\]
+A union bound over at most \(n(s+1)\) coordinates, the noise-to-signal sample condition, (39), and a choice \(c_{\mathrm L}\le(8C_5)^{-1}\) imply
+\[
+ \max_{i}\max_{\ell\in S_i}|\widetilde b_\ell-\theta_{i,\ell}|
+ \le\frac\delta4+\lambda_{\mathrm L}\frac{C_5}{q}
+ \le\frac{3\delta}{8}<\delta.
+ \tag{42}
+\]
+Thus every spillover coordinate in \(T\) has its correct nonzero sign.
+
+Let \(P_T=X_T(X_T^{\mathsf T}X_T)^{-1}X_T^{\mathsf T}\).  For \(j\notin T\), the inactive KKT score at (40) equals
+\[
+ m^{-1}X_j^{\mathsf T}(I-P_T)H_m\varepsilon_i
+ +\lambda_{\mathrm L}m^{-1}X_j^{\mathsf T}X_TG_T^{-1}w.
+ \tag{43}
+\]
+The first term is conditionally sub-Gaussian with variance proxy at most \(2\sigma^2q/m\), by (34), and the second has absolute value at most \(\lambda_{\mathrm L}/3\), by (38).  The same noise-to-signal condition and a union bound over fewer than \(n^2\) scores therefore make the first term at most \(\lambda_{\mathrm L}/3\) simultaneously, except on an event of probability at most \(\eta/4\).  Hence every inactive dual coordinate is strictly smaller than one in absolute value.
+
+For the coordinates in \(T\), (40) makes the KKT equations hold with subgradient \(w\); in particular, the unpenalized coordinate \(i\) has subgradient zero.  Equation (42) supplies the required active signs, and (43) supplies strict dual feasibility.  Convexity now proves optimality.  It also proves uniqueness: any second optimum must have the same fitted values, strict dual feasibility forces its coordinates in \(T^c\) to vanish, and positive definiteness of \(G_T\) then forces equality on \(T\).  Thus the decoder recovers every \(S_i\), and hence \(A\), on the intersection of the displayed events.  Their failure probabilities sum to at most \(\eta\), uniformly in \(P\), which proves the lemma.
+
+The calculation also identifies the obstruction to the more ambitious scaling.  In (37), take \(c=w\): conditionally, the empirical inactive dual fluctuation has variance of order \(q\lVert h\rVert_2^2\), which can be of order \(s/m\).  Controlling its maximum over order \(n^2\) realized inactive coordinates by a constant margin therefore requires the displayed \(mq\gtrsim s\log(n/\eta)\) bound in this proof.  Population formula (33) alone does not remove that empirical maximum.

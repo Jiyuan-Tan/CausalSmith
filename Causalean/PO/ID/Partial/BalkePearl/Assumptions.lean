@@ -31,18 +31,23 @@ variable {P : POSystem} (S : POBalkePearlSystem P)
 
 /-! ### RegimedVar components -/
 
-/-- `D(z)` as a `RegimedVar`. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), and [a binary instrument value](hyp:z),
+the [treatment potential-outcome variable under that instrument value](goal) is the factual
+treatment variable evaluated in the intervention that fixes the instrument at that value. -/
 def dUnderZ (z : Bool) : RegimedVar P Bool :=
   ⟨S.dVar, Regime.single S.Z (S.hZbool.symm z)⟩
 
-/-- `Y(d)` as a `RegimedVar`. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), and [a binary treatment value](hyp:d),
+the [outcome potential-outcome variable under that treatment value](goal) is the factual
+outcome variable evaluated in the intervention that fixes treatment at that value. -/
 def yUnderD (d : Bool) : RegimedVar P Bool :=
   ⟨S.yVar, Regime.single S.D (S.hDbool.symm d)⟩
 
 /-! ### Counterfactual bundle (for the exogeneity assumption) -/
 
-/-- Bundle `(D(0), D(1), Y(0), Y(1))` for the exogeneity assumption
-`Z ⊥ (D(0), D(1), Y(0), Y(1))`. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), the [counterfactual bundle](goal)
+collects, in order, treatment under instrument values zero and one and outcome under treatment
+values zero and one. -/
 def cfBundle : POCFBundle P :=
   .cons (S.dUnderZ false) <|
   .cons (S.dUnderZ true) <|

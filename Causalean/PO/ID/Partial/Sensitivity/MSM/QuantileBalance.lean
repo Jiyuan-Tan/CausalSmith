@@ -50,9 +50,9 @@ namespace POBackdoorSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 variable (S : POBackdoorSystem P γ)
 
-/-- The **quantile-cutoff complete propensity** at cutoff function `c`: the candidate whose inverse
-weight is `wMax` above the cutoff and `wMin` at or below it,
-`1 / (wMax if Y > c(X) else wMin)`. -/
+/-- For [a potential-outcome backdoor system](hyp:S), [a sensitivity parameter](hyp:Λ), [a real-valued cutoff function on the sample space](hyp:c), and [a sample point](hyp:ω), the [treated-arm quantile-cutoff complete propensity](goal) is the reciprocal of the largest admissible treated inverse-propensity weight when the factual outcome exceeds the cutoff and of the smallest such weight otherwise.
+
+Its inverse weight is the upper endpoint above the cutoff and the lower endpoint at or below it. -/
 noncomputable def cutoffProp (Λ : ℝ) (c : P.Ω → ℝ) (ω : P.Ω) : ℝ :=
   1 / (if c ω < S.factualY ω then S.wMax Λ ω else S.wMin Λ ω)
 

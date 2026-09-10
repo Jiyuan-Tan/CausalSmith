@@ -42,12 +42,20 @@ variable {P : POSystem} (S : POBalkePearlSystem P)
 
 set_option linter.unusedSimpArgs false
 
-/-- Free-variable choice `t` in the witness attaining `bpLowerTerm 0`. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), the [first auxiliary free mass](goal)
+is $\max\{0,p_{001\mid 0}+p_{011\mid 0}-p_{000\mid 0}-p_{100\mid 0}\}$, where
+$p_{yd\mid z}$ denotes the observed probability of outcome $y$ and treatment $d$ at
+instrument value $z$. -/
 noncomputable def bpAux0t (S : POBalkePearlSystem P) : ℝ :=
   max 0 (S.cellProb false false true + S.cellProb false true true - S.cellProb false false false
     - S.cellProb true false false )
 
-/-- Latent table attaining `bpLowerTerm 0`. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), the [latent-type witness table for
+the first lower-bound expression](goal) assigns its displayed mass to each of the eight
+listed latent profiles [in the first case](step:1), [second case](step:2), [third
+case](step:3), [fourth case](step:4), [fifth case](step:5), [sixth case](step:6),
+[seventh case](step:7), and [eighth case](step:8), and assigns zero [in the remaining
+case](step:9). -/
 noncomputable def bpLowerWitness0 (S : POBalkePearlSystem P) :
     Bool → Bool → Bool → Bool → ℝ
   | false, false, false, false => S.cellProb false false true
@@ -133,12 +141,17 @@ theorem bpLowerWitness0_objective (hA : S.BaseAssumptions) :
   simp only [BPObjective, bpLowerWitness0, bpAux0t, bpLowerTerm, Fintype.sum_bool, boolToReal]
   linarith
 
-/-- Free-variable choice `v` in the witness attaining `bpLowerTerm 1`. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), the [second auxiliary free mass](goal)
+is $\max\{0,p_{000\mid0}-p_{001\mid0}+p_{010\mid0}-p_{101\mid0}\}$, where
+$p_{yd\mid z}$ is the observed outcome--treatment cell probability at instrument value $z$. -/
 noncomputable def bpAux1v (S : POBalkePearlSystem P) : ℝ :=
   max 0 (S.cellProb false false false - S.cellProb false false true +
     S.cellProb false true false - S.cellProb true false true )
 
-/-- Latent table attaining `bpLowerTerm 1`. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), the [latent-type witness table for
+the second lower-bound expression](goal) assigns its displayed mass in the [first](step:1),
+[second](step:2), [third](step:3), [fourth](step:4), [fifth](step:5), [sixth](step:6),
+[seventh](step:7), and [eighth](step:8) listed latent-profile cases, and zero [otherwise](step:9). -/
 noncomputable def bpLowerWitness1 (S : POBalkePearlSystem P) :
     Bool → Bool → Bool → Bool → ℝ
   | false, false, false, false => S.cellProb false false false
@@ -224,16 +237,24 @@ theorem bpLowerWitness1_objective (hA : S.BaseAssumptions) :
   simp only [BPObjective, bpLowerWitness1, bpAux1v, bpLowerTerm, Fintype.sum_bool, boolToReal]
   linarith
 
-/-- Free-variable choice `u` in the witness attaining `bpLowerTerm 2`. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), the [first auxiliary free mass for
+the third lower-bound witness](goal) is $\max\{0,p_{011\mid0}-p_{010\mid0}-p_{100\mid0}
++p_{101\mid0}\}$, where $p_{yd\mid z}$ is the observed outcome--treatment cell probability. -/
 noncomputable def bpAux2u (S : POBalkePearlSystem P) : ℝ :=
   max 0 (S.cellProb false true true - S.cellProb false true false - S.cellProb true false false
     + S.cellProb true false true )
 
-/-- Free-variable choice `v` in the witness attaining `bpLowerTerm 2`. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), the [second auxiliary free mass for
+the third lower-bound witness](goal) is $\max\{0,p_{011\mid0}-p_{100\mid0}\}$, where
+$p_{yd\mid z}$ is the observed outcome--treatment cell probability. -/
 noncomputable def bpAux2v (S : POBalkePearlSystem P) : ℝ :=
   max 0 (S.cellProb false true true - S.cellProb true false false )
 
-/-- Latent table attaining `bpLowerTerm 2`. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), the [latent-type witness table for
+the third lower-bound expression](goal) assigns its displayed mass in the [first](step:1),
+[second](step:2), [third](step:3), [fourth](step:4), [fifth](step:5), [sixth](step:6),
+[seventh](step:7), [eighth](step:8), and [ninth](step:9) listed latent-profile cases, and
+zero [otherwise](step:10). -/
 noncomputable def bpLowerWitness2 (S : POBalkePearlSystem P) :
     Bool → Bool → Bool → Bool → ℝ
   | false, false, false, false => S.cellProb false false false
@@ -324,16 +345,24 @@ theorem bpLowerWitness2_objective (hA : S.BaseAssumptions) :
     boolToReal]
   linarith
 
-/-- Free-variable choice `u` in the witness attaining `bpLowerTerm 3`. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), the [first auxiliary free mass for
+the fourth lower-bound witness](goal) is $\max\{0,p_{010\mid0}-p_{011\mid0}+p_{100\mid0}
+-p_{101\mid0}\}$, where $p_{yd\mid z}$ is the observed outcome--treatment cell probability. -/
 noncomputable def bpAux3u (S : POBalkePearlSystem P) : ℝ :=
   max 0 (S.cellProb false true false - S.cellProb false true true + S.cellProb true false false
     - S.cellProb true false true )
 
-/-- Free-variable choice `v` in the witness attaining `bpLowerTerm 3`. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), the [second auxiliary free mass for
+the fourth lower-bound witness](goal) is $\max\{0,p_{010\mid0}-p_{101\mid0}\}$, where
+$p_{yd\mid z}$ is the observed outcome--treatment cell probability. -/
 noncomputable def bpAux3v (S : POBalkePearlSystem P) : ℝ :=
   max 0 (S.cellProb false true false - S.cellProb true false true )
 
-/-- Latent table attaining `bpLowerTerm 3`. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), the [latent-type witness table for
+the fourth lower-bound expression](goal) assigns its displayed mass in the [first](step:1),
+[second](step:2), [third](step:3), [fourth](step:4), [fifth](step:5), [sixth](step:6),
+[seventh](step:7), [eighth](step:8), and [ninth](step:9) listed latent-profile cases, and
+zero [otherwise](step:10). -/
 noncomputable def bpLowerWitness3 (S : POBalkePearlSystem P) :
     Bool → Bool → Bool → Bool → ℝ
   | false, false, false, false => S.cellProb false false true
@@ -424,7 +453,10 @@ theorem bpLowerWitness3_objective (hA : S.BaseAssumptions) :
     boolToReal]
   linarith
 
-/-- Latent table attaining `bpLowerTerm 4`. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), the [latent-type witness table for
+the fifth lower-bound expression](goal) assigns its displayed mass in the [first](step:1),
+[second](step:2), [third](step:3), [fourth](step:4), [fifth](step:5), [sixth](step:6), and
+[seventh](step:7) listed latent-profile cases, and zero [otherwise](step:8). -/
 noncomputable def bpLowerWitness4 (S : POBalkePearlSystem P) :
     Bool → Bool → Bool → Bool → ℝ
   | false, false, false, false => S.cellProb false false false + S.cellProb false true false -
@@ -504,7 +536,10 @@ theorem bpLowerWitness4_objective (hA : S.BaseAssumptions) :
   simp only [BPObjective, bpLowerWitness4, bpLowerTerm, Fintype.sum_bool, boolToReal]
   linarith
 
-/-- Latent table attaining `bpLowerTerm 5`. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), the [latent-type witness table for
+the sixth lower-bound expression](goal) assigns its displayed mass in the [first](step:1),
+[second](step:2), [third](step:3), [fourth](step:4), [fifth](step:5), [sixth](step:6), and
+[seventh](step:7) listed latent-profile cases, and zero [otherwise](step:8). -/
 noncomputable def bpLowerWitness5 (S : POBalkePearlSystem P) :
     Bool → Bool → Bool → Bool → ℝ
   | false, false, false, false => S.cellProb false false true
@@ -582,7 +617,10 @@ theorem bpLowerWitness5_objective (hA : S.BaseAssumptions) :
   simp only [BPObjective, bpLowerWitness5, bpLowerTerm, Fintype.sum_bool, boolToReal]
   linarith
 
-/-- Latent table attaining `bpLowerTerm 6`. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), the [latent-type witness table for
+the seventh lower-bound expression](goal) assigns its displayed mass in the [first](step:1),
+[second](step:2), [third](step:3), [fourth](step:4), [fifth](step:5), [sixth](step:6), and
+[seventh](step:7) listed latent-profile cases, and zero [otherwise](step:8). -/
 noncomputable def bpLowerWitness6 (S : POBalkePearlSystem P) :
     Bool → Bool → Bool → Bool → ℝ
   | false, false, false, false => S.cellProb false false false
@@ -660,7 +698,10 @@ theorem bpLowerWitness6_objective (hA : S.BaseAssumptions) :
   simp only [BPObjective, bpLowerWitness6, bpLowerTerm, Fintype.sum_bool, boolToReal]
   linarith
 
-/-- Latent table attaining `bpLowerTerm 7`. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), the [latent-type witness table for
+the eighth lower-bound expression](goal) assigns its displayed mass in the [first](step:1),
+[second](step:2), [third](step:3), [fourth](step:4), [fifth](step:5), [sixth](step:6), and
+[seventh](step:7) listed latent-profile cases, and zero [otherwise](step:8). -/
 noncomputable def bpLowerWitness7 (S : POBalkePearlSystem P) :
     Bool → Bool → Bool → Bool → ℝ
   | false, false, false, false => S.cellProb false false true - S.cellProb false true false +

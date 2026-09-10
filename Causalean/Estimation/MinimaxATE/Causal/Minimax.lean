@@ -41,9 +41,7 @@ variable {C : Type} [Fintype C] [Nonempty C] [MeasurableSpace C]
 
 /-! ## Causal-centered miss probability -/
 
-/-- **Causal-centered minimax miss probability.**  This mirrors `minimaxMiss`, but
-centers each DGP's miss event at the potential-outcome estimand `causalATE m g`
-of the concrete backdoor system. -/
+/-- For [a finite nonempty covariate space, with a measurable structure in which every singleton is measurable](hyp:C), [centered propensity and outcome-regression functions](hyp:mhat,ghat), [two real radii with no sign restrictions](hyp:εg), [a sample size](hyp:n), [an estimator based on that many observed treatment--outcome--covariate records](hyp:est), and [a real error threshold](hyp:s), [the causal-centered minimax miss probability](goal) is the supremum, over all valid observed-data distributions in the nuisance-function class determined by those centers and radii, of the probability that the estimator's absolute error from that distribution's average potential-outcome treatment effect is at least the threshold. -/
 noncomputable def minimaxMissCausal (mhat : C → ℝ) (ghat : Bool → C → ℝ)
     (εg εm : ℝ) (n : ℕ) (est : (Fin n → Obs C) → ℝ) (s : ℝ) : ℝ :=
   ⨆ p : InClassDGP mhat ghat εg εm,

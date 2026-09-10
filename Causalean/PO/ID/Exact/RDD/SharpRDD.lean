@@ -47,16 +47,16 @@ namespace POSharpRDDSystem
 
 variable {P : POSystem} (S : POSharpRDDSystem P)
 
-/-- Factual running variable `X`. -/
+/-- For [a sharp regression-discontinuity system](hyp:S), the [factual running variable](goal) assigns to each unit its real-valued forcing variable under the factual regime. -/
 noncomputable def factualX : P.Ω → ℝ := S.Xvar.factual
 
-/-- Factual treatment `D`. -/
+/-- For [a sharp regression-discontinuity system](hyp:S), the [factual treatment](goal) assigns to each unit its binary treatment under the factual regime. -/
 noncomputable def factualD : P.Ω → Bool := S.Dvar.factual
 
-/-- Factual outcome `Y`. -/
+/-- For [a sharp regression-discontinuity system](hyp:S), the [factual outcome](goal) assigns to each unit its real-valued outcome under the factual regime. -/
 noncomputable def factualY : P.Ω → ℝ := S.Yvar.factual
 
-/-- Treatment-specific potential outcome `Y(d)`. -/
+/-- For [a sharp regression-discontinuity system](hyp:S) and [a binary treatment level](hyp:d), the [treatment-specific potential outcome](goal) assigns to each unit the outcome it would have under an intervention setting treatment to that level. -/
 noncomputable def YofD (d : Bool) : P.Ω → ℝ := S.Yvar.cfUnder S.Dvar d
 
 /-- The factual running variable is measurable. -/
@@ -73,7 +73,7 @@ lemma measurable_factualY : Measurable S.factualY := S.Yvar.measurable_factual
 lemma measurable_YofD (d : Bool) : Measurable (S.YofD d) :=
   S.Yvar.measurable_cfUnder S.Dvar d
 
-/-- Factual treatment event `{D = d}`. -/
+/-- For [a sharp regression-discontinuity system](hyp:S) and [a binary treatment level](hyp:d), the [factual-treatment event](goal) is the set of units whose factual treatment equals that level. -/
 def dEvent (d : Bool) : Set P.Ω := S.Dvar.event d
 
 /-- The factual treatment event is measurable. -/
@@ -112,18 +112,23 @@ structure Assumptions (S : POSharpRDDSystem P) where
   nu_right_limit_exists : ∃ L : ℝ, Tendsto nu (𝓝[>] S.c) (𝓝 L)
   nu_left_limit_exists : ∃ L : ℝ, Tendsto nu (𝓝[<] S.c) (𝓝 L)
 
-/-- Cutoff-local RDD estimand — by definition the difference of the
-treatment-specific regression representatives at the cutoff.  In the standard
+/-- For [a sharp regression-discontinuity system](hyp:S) satisfying [its sharp-RDD assumptions](hyp:hA), the [cutoff-local regression-discontinuity estimand](goal) is the treated treatment-specific regression representative at the cutoff minus the untreated representative there.
+
+By definition it is the difference of the treatment-specific regression representatives at the cutoff. In the standard
 reading of `μ_d c = E[Y(d) | X = c]`, this is `E[Y(1) - Y(0) | X = c]`. -/
 noncomputable def tau_RDD (hA : S.Assumptions) : ℝ :=
   hA.mu true S.c - hA.mu false S.c
 
-/-- The right-hand limit `lim_{x ↓ c} ν(x)` chosen from the existence witness
+/-- For [a sharp regression-discontinuity system](hyp:S) satisfying [its sharp-RDD assumptions](hyp:hA), the [chosen right-hand limit of the observable outcome regression at the cutoff](goal) is the real number supplied by the assumption that this one-sided limit exists.
+
+The right-hand limit `lim_{x ↓ c} ν(x)` chosen from the existence witness
 of `Assumptions`. -/
 noncomputable def nu_right_limit (hA : S.Assumptions) : ℝ :=
   Classical.choose hA.nu_right_limit_exists
 
-/-- The left-hand limit `lim_{x ↑ c} ν(x)` chosen from the existence witness
+/-- For [a sharp regression-discontinuity system](hyp:S) satisfying [its sharp-RDD assumptions](hyp:hA), the [chosen left-hand limit of the observable outcome regression at the cutoff](goal) is the real number supplied by the assumption that this one-sided limit exists.
+
+The left-hand limit `lim_{x ↑ c} ν(x)` chosen from the existence witness
 of `Assumptions`. -/
 noncomputable def nu_left_limit (hA : S.Assumptions) : ℝ :=
   Classical.choose hA.nu_left_limit_exists

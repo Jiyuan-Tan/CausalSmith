@@ -58,8 +58,7 @@ lemma hasDerivAt_bernEntropy (x : ℝ) (hx0 : x ≠ 0) (hx1 : 1 - x ≠ 0) :
   convert h using 1
   ring
 
-/-- The negative Bernoulli entropy at a probability is the sum of that probability times its
-logarithm and its complementary probability times the logarithm of the complement. -/
+/-- For [a real number](hyp:t), the [negative Bernoulli entropy](goal) is $t\log t + (1-t)\log(1-t)$. -/
 noncomputable def bernD (t : ℝ) : ℝ :=
   t * Real.log t + (1 - t) * Real.log (1 - t)
 

@@ -51,21 +51,20 @@ variable (G : SWIGGraph N)
 -- Induced edge relation and restricted DAG
 -- ============================================================
 
-/-- The edge relation of `G.dag` restricted to a given `active`
-    vertex set: keep an edge iff both endpoints are in `active`. -/
+/-- For [a single-world intervention graph](hyp:G), [a set of active split nodes](hyp:active), and [two split nodes](hyp:u,v), the [induced edge relation](goal) holds exactly when [the original graph has the directed edge](step:1), [the first endpoint belongs to the active set](step:2), and [the second endpoint belongs to the active set](step:3). -/
 def inducedEdge (active : Finset (SWIGNode N)) (u v : SWIGNode N) : Prop :=
   G.dag.edge u v ∧ u ∈ active ∧ v ∈ active
 
-/-- Whether an edge remains after restricting to an active vertex set is decidable. -/
+/-- For [a finite collection of base variables with decidable equality](hyp:N), [a single-world intervention graph](hyp:G), and [a set of active split nodes](hyp:active), the [decision procedure for the induced edge relation](goal) determines, for every ordered pair of split nodes, whether the original graph joins them by an edge and both endpoints are active. -/
 instance inducedEdge_decidable (active : Finset (SWIGNode N)) :
     DecidableRel (G.inducedEdge active) := by
   intro u v
   unfold inducedEdge
   infer_instance
 
-/-- The DAG obtained by filtering `G.dag`'s edges to those with both
-    endpoints in `active`. Acyclicity follows from the parent graph via the
-    parent's topological order (every restricted edge is an original edge). -/
+/-- For [a single-world intervention graph](hyp:G) and [a set of active split nodes](hyp:active), the [induced directed acyclic graph](goal) retains exactly the original directed edges whose two endpoints are active.
+
+    Acyclicity follows from the parent graph via the parent's topological order (every restricted edge is an original edge). -/
 def inducedDag (active : Finset (SWIGNode N)) : DAG (SWIGNode N) where
   edge := G.inducedEdge active
   decEdge := G.inducedEdge_decidable active
@@ -107,7 +106,9 @@ lemma inducedDag_isAncestor_mem_active (active : Finset (SWIGNode N)) {u v : SWI
 -- The induce operation
 -- ============================================================
 
-/-- **Induce a sub-SWIG on a subset `R`.** The new `observed` is
+/-- For [a single-world intervention graph](hyp:G) and [a retained set of split nodes](hyp:R), the [induced single-world intervention graph](goal) has as its [observed nodes the retained observed nodes](step:1), fixed nodes precisely those original fixed nodes whose random counterparts remain observed, unobserved nodes precisely those original unobserved nodes with an edge into the retained observed nodes, and directed edges precisely the original edges with both endpoints among these retained nodes.
+
+    **Induce a sub-SWIG on a subset `R`.** The new `observed` is
     `R ∩ observed`; the new `fixed` drops any fixed node whose
     `iotaMap` image was removed; the new `unobserved` keeps exactly the
     original latent roots with an edge into the retained observed set; the DAG

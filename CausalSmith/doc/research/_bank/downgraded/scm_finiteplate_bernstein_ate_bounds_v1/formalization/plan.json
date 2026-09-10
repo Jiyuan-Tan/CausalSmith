@@ -1,0 +1,1082 @@
+{
+  "qid": "scm_finiteplate_bernstein_ate_bounds",
+  "specialization": "v1",
+  "cluster": "scm",
+  "status": "needs-new-infrastructure",
+  "lean_root": "CausalSmith/SCM/SCM_FiniteplateBernsteinAteBounds_Research",
+  "namespace": "CausalSmith.SCM.FiniteplateBernsteinAteBounds",
+  "env": [
+    {
+      "id": "S1",
+      "world": "A positive fixed-plate hierarchical observational world. There are \\(n\\) independent clusters; cluster \\(i\\) carries a latent four-cell law \\(Q_i\\in K_{\\epsilon}=\\{q\\in\\Delta_3:\\epsilon\\le p(q)\\le1-\\epsilon\\}\\), where \\(p(q)=q_{10}+q_{11}\\) and \\(0<\\epsilon<1/2\\), drawn from an unknown mixing measure \\(\\mu\\in\\mathcal P(K_{\\epsilon})\\). Conditionally on \\(Q_i=q\\) the \\(m\\) individual causal vectors \\((A_{ij},Y_{ij}(0),Y_{ij}(1))\\in\\{0,1\\}^3\\) are mutually independent and identically distributed over \\(j\\), treatment is ignorable given \\(Q_i\\), outcomes satisfy \\(Y_{ij}=A_{ij}Y_{ij}(1)+(1-A_{ij})Y_{ij}(0)\\), and the observed pair \\(O_{ij}=(A_{ij},Y_{ij})\\) has conditional cell probabilities \\(\\Pr(O_{ij}=(a,y)\\mid Q_i)=Q_{i,ay}\\) almost surely. The analyst observes only the within-cluster four-cell count \\(C_i\\in\\mathcal I_m\\). The causal target is the cluster-equally-weighted ATE \\(\\tau(\\mu)=\\int_{K_{\\epsilon}}f\\,d\\mu\\) with \\(f(q)=q_{11}/p(q)-q_{01}/(1-p(q))\\in[-1,1]\\).",
+      "binds_symbols": [
+        "m",
+        "n",
+        "epsilon",
+        "A_ij",
+        "Y0_ij",
+        "Y1_ij",
+        "Y_ij",
+        "O_ij",
+        "q",
+        "p",
+        "K_epsilon",
+        "mu",
+        "Q_i",
+        "C_i",
+        "M_hscm",
+        "f",
+        "tau"
+      ],
+      "binds_sampling_model": true,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.StdSimplex",
+        "Mathlib.MeasureTheory.Measure.ProbabilityMeasure",
+        "Mathlib.MeasureTheory.Measure.Dirac",
+        "Mathlib.MeasureTheory.Integral.Bochner.Basic",
+        "Mathlib.Data.Nat.Choose.Multinomial",
+        "Causalean.Stat.Sample"
+      ],
+      "notes": "Encoding: `Cell := Bool × Bool` (the (a,y) pair); `q : Cell → ℝ` with `q ∈ stdSimplex ℝ Cell` (Mathlib `stdSimplex`, verified at Mathlib/Analysis/Convex/StdSimplex.lean, compact + convex lemmas available); `K_epsilon := stdSimplex ℝ Cell ∩ {q | ε ≤ p q ∧ p q ≤ 1-ε}`. Random variables `A Y0 Y1 Y : Fin n → Fin m → Ω → Bool` and `Q : Fin n → Ω → (Cell → ℝ)` on a single probability space; `mu : Measure (Cell → ℝ)` supported on `K_epsilon`. `C i ω : Cell → ℕ` is the within-cluster count. SUBSTRATE SURVEY (bypass-justified, one line each): (a) `Causalean.PO.POSystem` (Causalean/PO/Core/System.lean) — regime/graph-indexed PO operator over dependent value spaces; this note uses no intervention regime and no graph, only a two-arm plate of binary variables, so the regime machinery adds indexing overhead with no reused lemma; (b) `Causalean.SCM.PartialID.CompatibleSCM` / `IsSharp` (Causalean/SCM/PartialID/CanonicalModel.lean, SharpnessCertificate.lean) — require a `SWIGGraph N` and `SCM N Ω` structural-equation model; the hierarchical class here is a latent-mixture plate model with no structural equations over a node set, so the abstraction does not fit; (c) `Causalean/Graph/*`, `Causalean/SCM/Do/*`, `Causalean/SCM/ID/*` (dSep, backdoor, frontdoor, do-calculus, c-components) — graphical identification machinery; this note's identification content is a moment-fiber question at a FIXED, already-ignorable conditioning set, so no do-calculus rule is invoked. Search trace: read `../doc/API.md` §8h (PO/), §9j2 (PO/ID/Partial), §9j2sf (SupportFunction), §9j2rs, §9j2inf, §11 (SCM/ID); globbed `../Causalean/SCM/PartialID/**`; grepped `../Causalean` for `multinomial|pValue|deviance|likelihoodRatio` (11 hits, all unrelated proxy/bootstrap files). Analogous module for F3 to adapt: `CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/Basic.lean:293-317` (`observablePolytope`, `responseFiber`, `sharpEndpointPrograms = (sInf, sSup)` over a fiber) — same architecture with a FINITE latent simplex; the gap to bridge is that our latent parameter ranges over `P(K_ε)`, a continuum of Borel measures, not `stdSimplex ℝ T`."
+    },
+    {
+      "id": "S2",
+      "world": "The degree-\\(m\\) Bernstein moment geometry over the overlap-restricted simplex. Indexing counts by \\(\\mathcal I_m=\\{c\\in\\mathbb N_0^4:\\sum c_{ay}=m\\}\\) with \\(N_m=|\\mathcal I_m|=\\binom{m+3}{3}\\), the Bernstein coordinates are \\(B^{(m)}_c(q)=\\frac{m!}{\\prod c_{ay}!}\\prod q_{ay}^{c_{ay}}\\), the moment map is \\(g_m=(B^{(m)}_c)_{c\\in\\mathcal I_m}:K_{\\epsilon}\\to\\mathbb R^{N_m}\\), and \\(V_m=\\operatorname{span}\\{B^{(m)}_c\\}\\subset C(K_{\\epsilon})\\). The observable object is the count law \\(b=\\int g_m\\,d\\mu\\), ranging over the compact convex moment body \\(\\mathcal B_{m,\\epsilon}=\\operatorname{conv}g_m(K_{\\epsilon})\\); above each \\(b\\) sits the moment fiber \\(\\mathcal F_{m,\\epsilon}(b)=\\{\\nu\\in\\mathcal P(K_{\\epsilon}):\\int g_m\\,d\\nu=b\\}\\), whose image under \\(\\nu\\mapsto\\int f\\,d\\nu\\) is the sharp interval \\([L_m(b),U_m(b)]\\). Dual to it is the Bernstein majorant--minorant pair \\(D_m(b)\\), the valid envelope class \\(\\mathcal E_m\\), the scalar-reference limited-pooling family \\((\\ell_{m,p_*},u_{m,p_*})\\) with weights \\(w_m\\) and its intersection \\(I^{\\cap}_{LW,m}\\), and the uniform approximation modulus \\(d_m(\\epsilon)=\\inf_{v\\in V_m}\\|f-v\\|_{\\infty,K_{\\epsilon}}\\).",
+      "binds_symbols": [
+        "I_m",
+        "N_m",
+        "B_c",
+        "g_m",
+        "b",
+        "B_m_epsilon",
+        "F_m_epsilon",
+        "V_m",
+        "ell",
+        "u",
+        "E_m",
+        "D_m",
+        "L_m",
+        "U_m",
+        "Theta_m_epsilon",
+        "d_m",
+        "p_star",
+        "w_m",
+        "ell_LW",
+        "u_LW",
+        "I_LW",
+        "I_LW_cap"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.Caratheodory",
+        "Mathlib.Analysis.Convex.Combination",
+        "Mathlib.Analysis.Convex.Intrinsic",
+        "Mathlib.Analysis.Convex.Topology",
+        "Mathlib.Analysis.Convex.Exposed",
+        "Mathlib.Analysis.Convex.Extreme",
+        "Mathlib.Topology.ContinuousMap.Compact",
+        "Mathlib.Topology.MetricSpace.HausdorffDistance",
+        "Mathlib.Data.Nat.Choose.Multinomial",
+        "Causalean.PO.ID.Partial.Basic",
+        "Causalean.PO.ID.Partial.SupportFunction.Interval"
+      ],
+      "notes": "Reuse decisions verified by `lean_local_search`: `convexHull` + Carathéodory `convexHull_eq_union` (Mathlib/Analysis/Convex/Caratheodory.lean) realizes \\(\\mathcal B_{m,\\epsilon}\\) and the (N+1)-atom compression; `intrinsicInterior` / `intrinsicFrontier` (Mathlib/Analysis/Convex/Intrinsic.lean) realize relint/relbd verbatim — do NOT hand-roll a relative interior; `Nat.multinomial` (Mathlib/Data/Nat/Choose/Multinomial.lean) supplies the Bernstein normalisation; `Metric.infDist` in `C(K_ε, ℝ)` (Mathlib/Topology/ContinuousMap/Compact.lean sup-norm instance + Mathlib/Topology/MetricSpace/HausdorffDistance.lean) realizes \\(d_m(\\epsilon)\\); `Causalean.PartialID.IdentifiedInterval` realizes \\(\\Theta_{m,\\epsilon}(b)\\) exactly. Index type `I_m := {c : Cell → ℕ // ∑ c = m}` (a `Fintype`); `N_m := Fintype.card I_m` with the \\(\\binom{m+3}{3}\\) formula proved as a small helper. Search trace for the absent pieces: `lean_local_search \"bernstein\"` → only Mathlib's UNIVARIATE `bernsteinPolynomial` / `bernsteinApproximation` on `[0,1]` (Mathlib/RingTheory/Polynomial/Bernstein.lean, Mathlib/Analysis/SpecialFunctions/Bernstein.lean) — no multivariate simplex Bernstein basis, no moment body, no moment fiber; `lean_local_search \"Caratheodory\"` → empty by name, found via `convexHull_eq_union`; `lean_local_search \"multinomial\"` → `Nat.multinomial` only, no multinomial DISTRIBUTION; grep of `../Causalean` for `multinomial|deviance|likelihoodRatio` → no moment-body or fiber substrate. Analogous module for F3: `CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/Basic.lean:284-334` (`targetFunctional`, `observablePolytope`, `responseFiber`, `sharpEndpointPrograms`, `lowerEndpoint`/`upperEndpoint`) and `T2_SharpInterval.lean`, `T4_DualFaceStrictRefinement.lean`, `T5_RelativeOpenStrictRefinement.lean` — the finite-latent analogue of exactly the primal/dual/contact-face/strict-refinement chain needed here; those files contain `sorry`s, so they are a PATTERN reference, not a `reuse` target."
+    },
+    {
+      "id": "S3",
+      "world": "The exact finite-sample multinomial inversion world. With \\(m,n\\) and \\(0<\\alpha<1\\) fixed, the aggregate cluster-count vector \\(Z\\in\\mathcal H_n=\\{z\\in\\mathbb N_0^{N_m}:\\sum_c z_c=n\\}\\) is multinomial with size \\(n\\) and cell law \\(b\\); \\(\\widehat b=Z/n\\). For a candidate law \\(b'\\in\\Delta_{N_m-1}\\) the deviance is \\(T_n(z;b')=2\\sum_{c:z_c>0}z_c\\log\\{z_c/(nb'_c)\\}\\) (extended by \\(+\\infty\\) when \\(z_c>0=b'_c\\)), and \\(P_n(b';z)\\) is its exact tie-inclusive upper-tail probability under \\(b'\\). The nonrandomized test rejects exactly when \\(P_n\\le\\alpha\\); its inversion is the count-law region \\(\\mathcal R_{n,\\alpha}(z^{\\mathrm{obs}})=\\{b':P_n(b';z^{\\mathrm{obs}})>\\alpha\\}\\), and the reported causal object is \\(\\mathcal C_{n,\\alpha}(z^{\\mathrm{obs}})=\\bigcup_{b'\\in\\mathcal R_{n,\\alpha}\\cap\\mathcal B_{m,\\epsilon}}[L_m(b'),U_m(b')]\\subseteq[-1,1]\\).",
+      "binds_symbols": [
+        "alpha",
+        "hat_b",
+        "H_n",
+        "Z",
+        "z_obs",
+        "b_prime",
+        "T_n",
+        "P_n",
+        "R_n_alpha",
+        "C_n_alpha"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.StdSimplex",
+        "Mathlib.Data.Nat.Choose.Multinomial",
+        "Mathlib.MeasureTheory.Measure.ProbabilityMeasure",
+        "Causalean.PO.ID.Partial.Inference.Basic",
+        "Causalean.Stat.Sample"
+      ],
+      "notes": "`T_n` and `P_n` are total functions into `ℝ≥0∞` / `EReal` so the `+∞` branch is definitional rather than a side condition; `H_n` is a `Fintype` so `P_n` is a genuine `Finset.sum`. Search trace: `lean_local_search \"multinomial\"` → `Nat.multinomial`, `Finsupp.multinomial` (combinatorics only) and `CausalSmith.SCM.SelectiveLabelUntrialedImpact.multinomialCounts` / `multinomialCovariance` (a CausalSmith research module with `sorry`s, not reusable); `lean_local_search \"binomial\"` → `ProbabilityTheory.binomial`, `PMF.binomial` (Mathlib/Probability/Distributions/Binomial.lean) — the two-cell case only, no multinomial law and no exact-test p-value; grep `../Causalean` for `pValue|deviance|likelihoodRatio` → nothing statistical. So the multinomial pmf and the exact tie-inclusive p-value are build-inline (both are elementary finite sums). REUSED vocabulary: `Causalean.PartialID.Inference.RandomCoversIcc` (Causalean/PO/ID/Partial/Inference/Basic.lean:92) is the exact set-coverage event `[L,U] ⊆ [A ω, B ω]` used by `prop:whole-set-coverage`; its companion `honest_ci_set_cover` is NOT reusable here because our coverage comes from an exact finite-sample test, not a two-sided concentration union bound. Analogous module: `CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/T6_WholeSetConfidence.lean` states the same `Set.Icc L U ⊆ wholeSetConfidenceInterval …` shape."
+    },
+    {
+      "id": "S4",
+      "world": "The exact real-algebraic decision world. All data (\\(\\epsilon\\), \\(\\alpha\\), the count vectors, the candidate law \\(b\\)) are rational, and every constraint of the problem — the simplex and overlap inequalities cutting out \\(K_{\\epsilon}\\), the Bernstein moment equations, the objective equation after clearing the strictly positive factor \\(p(q)(1-p(q))\\), global Bernstein dual feasibility, complementary contact, and the deviance comparisons after exponentiation — is a polynomial equality or inequality with rational coefficients. The objects living in this world are the quantified first-order formulas whose elimination yields the endpoint functionals, the confidence set, and the boundary stratification: the finite-support recovery procedure \\(\\operatorname{CAD}_m(b,\\epsilon)\\), the confidence-set procedure \\(\\operatorname{CAD}^{\\mathrm{conf}}_{m,n}(z^{\\mathrm{obs}},\\epsilon,\\alpha)\\), and the boundary-atlas handle \\(\\mathcal A_{m,\\epsilon}\\).",
+      "binds_symbols": [
+        "CAD_m",
+        "CAD_conf",
+        "A_boundary"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.Intrinsic",
+        "Mathlib.Analysis.Convex.StdSimplex"
+      ],
+      "notes": "This world is the one that carries visible substrate debt: real-closed-field quantifier elimination / cylindrical algebraic decomposition is NOT in Mathlib, and building it is a major upstream contribution, so `lem:cad-quantifier-elimination` is a cited SUBSTRATE-GATE (never crux — a crux tag there would only yield a permanently-unbuildable `sorry`). The three procedures are encoded as named `def`s returning the specification they satisfy (endpoint values + witness atoms + certificate/flag), and every theorem about them is stated CONDITIONAL on the gate Prop. Search trace: `lean_local_search \"Semialgebraic\"` → the single hit `CausalSmith.Experimentation.SaturationSkew.SemialgebraicOptimizationAlgorithms` (CausalSmith/Experimentation/EXP_SaturationSkewThreshold_Research/Helpers/Bridge/SemialgebraicSolver.lean:20), which is itself a threaded `Prop` SUBSTRATE-GATE for the same Tarski–Seidenberg/CAD debt — this note follows that precedent exactly; `lean_leansearch \"real closed field quantifier elimination cylindrical algebraic decomposition\"`-class queries and `lean_local_search` for `Semialgebraic` return no Mathlib decision procedure. PRECEDENT FILE for F2 to copy the gate shape from: CausalSmith/Experimentation/EXP_SaturationSkewThreshold_Research/Helpers/Bridge/SemialgebraicSolver.lean."
+    }
+  ],
+  "citations": [
+    {
+      "id": "cite:collins1975",
+      "bibkey": "Collins1975",
+      "title": "Quantifier elimination for real closed fields by cylindrical algebraic decomposition",
+      "authors": "G. E. Collins",
+      "year": 1975,
+      "locator": "Section 3, algorithm ELIM, pp. 157--160; Section 4, Theorems 17--18, pp. 174--175; DECOMP and ISOL specifications, pp. 145--152",
+      "carrier": "logical-claim",
+      "citation": "G. E. Collins (1975), Quantifier elimination for real closed fields by cylindrical algebraic decomposition, Proceedings of the 2nd GI Conference on Automata Theory and Formal Languages, pp. 134--183. DOI 10.1007/3-540-07407-4_17.",
+      "doi": "10.1007/3-540-07407-4_17",
+      "url": "https://link.springer.com/content/pdf/10.1007/3-540-07407-4_17.pdf",
+      "node": "lem:cad-quantifier-elimination",
+      "verbatim_statement": "The quantifier elimination can be completed by constructing formulas which define these cells.",
+      "attestation": {
+        "by": "main",
+        "note": "Main retrieved the cited Collins 1975 Springer PDF on 2026-09-04; PDF page 2 states this sentence and describes finite sign-invariant cells, sample points, DECOMP, EVAL, and equivalent quantifier-free output.",
+        "at": "2026-09-04T05:53:23.695Z"
+      }
+    },
+    {
+      "id": "cite:encyclopedia-hahn-banach",
+      "bibkey": "EncyclopediaHahnBanach",
+      "title": "Hahn--Banach theorem",
+      "authors": "Encyclopedia of Mathematics",
+      "year": 2026,
+      "locator": "Article Hahn--Banach theorem, norm-preserving extension and quotient-separation formulation",
+      "carrier": "logical-claim",
+      "citation": "Encyclopedia of Mathematics, ``Hahn--Banach theorem,'' https://encyclopediaofmath.org/wiki/Hahn-Banach_theorem (accessed September 3, 2026).",
+      "url": "https://encyclopediaofmath.org/wiki/Hahn-Banach_theorem",
+      "node": "lem:hahn-banach-quotient-norm",
+      "verbatim_statement": "it can be extended, while preserving its linearity and continuity, onto the whole space X. Moreover, the extension can be made to have the same norm.",
+      "attestation": {
+        "by": "main",
+        "note": "Main retrieved the Encyclopedia of Mathematics Banach-space/Hahn--Banach entry through its indexed source cache on 2026-09-04; this is the exact norm-preserving extension text.",
+        "at": "2026-09-04T05:53:25.874Z"
+      }
+    },
+    {
+      "id": "cite:encyclopedia-riesz-representation",
+      "bibkey": "EncyclopediaRieszRepresentation",
+      "title": "Riesz representation theorem",
+      "authors": "Encyclopedia of Mathematics",
+      "year": 2026,
+      "locator": "Article Riesz representation theorem, representation of the dual of continuous functions on a compact space",
+      "carrier": "logical-claim",
+      "citation": "Encyclopedia of Mathematics, ``Riesz representation theorem,'' https://encyclopediaofmath.org/wiki/Riesz_representation_theorem (accessed September 3, 2026).",
+      "url": "https://encyclopediaofmath.org/wiki/Riesz_representation_theorem",
+      "node": "lem:riesz-markov-representation",
+      "verbatim_statement": "the dual of C(X) is the space of R-valued measures with finite total variation",
+      "attestation": {
+        "by": "main",
+        "note": "Main retrieved the cited Encyclopedia of Mathematics Riesz representation theorem entry through its indexed source cache on 2026-09-04; the entry states this duality for compact Hausdorff X.",
+        "at": "2026-09-04T05:53:27.597Z"
+      }
+    },
+    {
+      "id": "cite:encyclopedia-jordan-decomposition",
+      "bibkey": "EncyclopediaJordanDecomposition",
+      "title": "Signed measure",
+      "authors": "Encyclopedia of Mathematics",
+      "year": 2026,
+      "locator": "Article Signed measure, sections Total variation, Upper and lower variations, and Radon--Nikodym theorem and consequences",
+      "carrier": "logical-claim",
+      "citation": "Encyclopedia of Mathematics, ``Signed measure,'' https://encyclopediaofmath.org/wiki/Signed_measure (accessed September 3, 2026).",
+      "url": "https://encyclopediaofmath.org/wiki/Signed_measure",
+      "node": "lem:jordan-decomposition-signed-measure",
+      "verbatim_statement": "Observe that μ = μ+ - μ- and |μ| = μ+ + μ-.",
+      "attestation": {
+        "by": "main",
+        "note": "Main retrieved the cited Encyclopedia of Mathematics Signed measure entry through its indexed source cache on 2026-09-04; the upper/lower variations and following Jordan paragraph also state mutual singularity.",
+        "at": "2026-09-04T05:53:29.338Z"
+      }
+    }
+  ],
+  "nodes": {
+    "ass:clusters-iid": {
+      "lean_kind": "assumption",
+      "lean_name": "IndependentClusterSampling",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Independence.Basic",
+        "Causalean.Stat.Sample"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S1",
+      "target_file": "Basic.lean",
+      "notes": "MODELING ASSUMPTION (restriction on the design/data law) — stays a threaded Prop, never discharged. `def IndependentClusterSampling … : Prop := iIndepFun (fun i ω => (Q i ω, fun j => (A i j ω, Y0 i j ω, Y1 i j ω))) P ∧ (∀ i i', Measure.map (clusterVec i) P = Measure.map (clusterVec i') P)`. Search trace: `lean_local_search \"multinomial\"`/`\"binomial\"` and `../doc/API.md` §12 `Stat/` (`Causalean.Stat.IIDSample`, Causalean/Stat/Sample.lean) — `IIDSample` bundles an i.i.d. sample of a SINGLE observation type and does not carry the per-cluster latent pair, so it is a partial fit only; F2 may still state the cluster-level i.i.d. clause through `Causalean.Stat.IIDSample` if the latent `Q_i` is packed into the observation type, recorded here as optional non-blocking simplification."
+    },
+    "ass:environment-law": {
+      "lean_kind": "assumption",
+      "lean_name": "EnvironmentLaw",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.ProbabilityMeasure"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S1",
+      "target_file": "Basic.lean",
+      "notes": "MODELING ASSUMPTION. `def EnvironmentLaw … : Prop := ∀ i, Measure.map (Q i) P = mu`, together with `mu (K_epsilon)ᶜ = 0`. Search trace: `lean_local_search \"Measure.map\"`-family and `../doc/API.md` §10a/§12 — a pushforward-equals-mixing-law clause is a one-liner over Mathlib `Measure.map`; nothing to reuse beyond that."
+    },
+    "ass:conditional-iid-plate": {
+      "lean_kind": "assumption",
+      "lean_name": "ConditionalIidPlate",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Kernel.CondDistrib",
+        "Mathlib.Probability.Independence.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S1",
+      "target_file": "Basic.lean",
+      "notes": "MODELING ASSUMPTION. Stated as a regular-conditional-distribution clause: `condDistrib (fun ω => fun j => causalVec i j ω) (Q i) P = (kernel of the m-fold product of a common per-individual law)`, so the conditional law is a genuine product over `j`. Search trace: `../doc/API.md` §10a `Mathlib/CondDistrib.lean` (Causalean's missing-`condDistrib` stubs) and §10c `Mathlib/Indep.lean` (`IndepFun`/`CondIndepFun` plumbing) — Causalean supplies the conditional-independence PLUMBING (re-exports, drop-of-conditioning integral identity) but not a conditional-i.i.d.-plate predicate; F3 should adapt `Causalean/Mathlib/IndepIntegral.lean` (drop-of-conditioning integral identity) for the iterated-expectation step of `lem:scm-moment-reduction`."
+    },
+    "ass:observed-cell-calibration": {
+      "lean_kind": "assumption",
+      "lean_name": "ObservedCellCalibration",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Kernel.CondDistrib"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S1",
+      "target_file": "Basic.lean",
+      "notes": "MODELING ASSUMPTION. `∀ i j (c : Cell), (condDistrib (obs i j) (Q i) P) =ᵐ (fun q => q c)` in the pointwise-cell form `Pr((A,Y)=(a,y) ∣ Q_i) = Q_{i,ay}` a.s. This is the clause that makes the four-cell latent vector the observable conditional law, so it is load-bearing for BOTH directions of `lem:scm-moment-reduction`. Search trace: same as `ass:conditional-iid-plate`; no Causalean calibration predicate exists (grep `../Causalean` for `calibration` inside the PO/SCM tree returns nothing relevant)."
+    },
+    "ass:latent-ignorability": {
+      "lean_kind": "assumption",
+      "lean_name": "LatentIgnorability",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Independence.Conditional",
+        "Causalean.Mathlib.CondIndep"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S1",
+      "target_file": "Basic.lean",
+      "notes": "MODELING ASSUMPTION (conditional treatment ignorability given the latent cluster law). `CondIndepFun (σ-algebra of Q i) (fun ω => (Y0 i j ω, Y1 i j ω)) (A i j) P`. REUSE of vocabulary: Causalean re-exports the `CondIndepFun` graph-independence plumbing at `Causalean/Mathlib/CondIndep.lean` (`../doc/API.md` §10b) and `Causalean/Mathlib/Indep.lean` (§10c); F2 should state the assumption in that vocabulary so the drop-of-conditioning lemmas in `Causalean/Mathlib/IndepIntegral.lean` (§10d) apply verbatim. Search trace: `../doc/API.md` grep `^## ` → §10b/§10c/§10d read; `lean_local_search` for `CondIndepFun` family confirms Mathlib's `ProbabilityTheory.CondIndepFun`."
+    },
+    "ass:consistency": {
+      "lean_kind": "assumption",
+      "lean_name": "PlateConsistency",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S1",
+      "target_file": "Basic.lean",
+      "notes": "MODELING ASSUMPTION. `∀ i j ω, Y i j ω = if A i j ω then Y1 i j ω else Y0 i j ω` (the Boolean form of `Y = A·Y(1)+(1-A)·Y(0)`). Bypass-justified w.r.t. `Causalean.PO.POSystem.Consistency` (Causalean/PO/Assumptions/Consistency.lean): that predicate is the two-clause regime-composition axiom `FactualAgrees`/`IntermediateAgrees` over a `Regime`-indexed evaluation map; with a single binary treatment and no nested regimes it reduces to the displayed pointwise identity, and importing it would force the whole `Regime`/`POSystem` scaffolding for zero reused lemma. Search trace: `../doc/API.md` §8h `PO/Assumptions/Consistency.lean` table read in full."
+    },
+    "def:hierarchical-scm-class": {
+      "lean_kind": "structure",
+      "lean_name": "HierarchicalPlateModel",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.ProbabilityMeasure",
+        "Causalean.Stat.Sample"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S1",
+      "target_file": "Basic.lean",
+      "members": [
+        "ass:clusters-iid",
+        "ass:environment-law",
+        "ass:conditional-iid-plate",
+        "ass:observed-cell-calibration",
+        "ass:latent-ignorability",
+        "ass:consistency"
+      ],
+      "notes": "One structure field per member, each typed by that member's `Prop` def, plus the data fields (`Ω`, `P`, `mu`, `Q`, `A`, `Y0`, `Y1`, `Y`, measurability) and the standing side conditions `0 < m`, `0 < n`, `0 < ε < 1/2`, `mu (K_epsilon)ᶜ = 0`. Membership `(mu, M) ∈ 𝔐_{m,ε}` is `HierarchicalPlateModel m n ε` inhabitation. Bypass-justified w.r.t. `Causalean.SCM.PartialID.CompatibleSCM` (needs a `SWIGGraph`) and `Causalean.PO.POSystem` (regime-indexed) — see S1 notes. Search trace: globbed `../Causalean/SCM/PartialID/**` (2 files, both graph-typed); read `../doc/API.md` §8h and §11."
+    },
+    "def:bernstein-moment-body": {
+      "lean_kind": "def",
+      "lean_name": "bernsteinMomentBody",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.Caratheodory",
+        "Mathlib.Analysis.Convex.Combination",
+        "Mathlib.Analysis.Convex.Topology"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S2",
+      "target_file": "Helpers/MomentGeometry.lean",
+      "inputs": [
+        "m",
+        "epsilon",
+        "g_m",
+        "K_epsilon"
+      ],
+      "notes": "`bernsteinMomentBody m ε := convexHull ℝ (momentMap m '' overlapSimplex ε)`. The core's alternative presentation as `{∫ g_m dν : ν ∈ P(K_ε)}` is the CONTENT of `thm:sharp-primal-dual` (11), not a second definition — F2 must pick the `convexHull` form (the core's `def` field displays the integral form; the equality is proved, not assumed). REUSE: Mathlib `convexHull` + `convexHull_eq_union` (Carathéodory, Mathlib/Analysis/Convex/Caratheodory.lean, verified by `lean_local_search \"convexHull_eq_union\"`). Search trace for a ready-made moment body: `lean_local_search \"bernstein\"` → univariate only; `lean_local_search \"Caratheodory\"` → empty by name; `lean_leansearch` for truncated-moment / moment-body objects and grep of `../Causalean` for `moment` in the PartialID tree → nothing; the CausalSmith analogue `observablePolytope` (SCM_SelectiveLabelUntrialedImpact_Research/Basic.lean:293) is a FINITE `B · stdSimplex` image, not a convex hull of a continuum, so it is a pattern not a fit."
+    },
+    "def:sharp-ate-fiber": {
+      "lean_kind": "def",
+      "lean_name": "sharpAteFiber",
+      "disposition": "reuse",
+      "reuse": "Causalean.PartialID.IdentifiedInterval",
+      "modules": [
+        "Causalean.PO.ID.Partial.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S2",
+      "target_file": "Helpers/MomentGeometry.lean",
+      "inputs": [
+        "b",
+        "F_m_epsilon",
+        "tau"
+      ],
+      "notes": "TOTAL FIT verified by reading Causalean/PO/ID/Partial/Basic.lean:27-28 — `IdentifiedInterval (obj) (feasible) := Set.range (fun x : {x // feasible x} => obj x)`, i.e. exactly `{τ(ν) : ν ∈ F_{m,ε}(b)}` under `obj := fun ν => ∫ f ∂ν`, `feasible := (· ∈ momentFiber m ε b)`. So `sharpAteFiber m ε b := Causalean.PartialID.IdentifiedInterval (fun ν => ∫ q, f q ∂ν) (· ∈ momentFiber m ε b)`, with `L_m := sInf`, `U_m := sSup` of it. The node's SECOND clause `= [L_m(b),U_m(b)]` is proved in `thm:sharp-primal-dual` via `Causalean.PartialID.identifiedInterval_eq_Icc` (same file, line 74; needs outer bound + both endpoints attained + `OrdConnected`) — all four hypotheses are supplied by compactness of the moment--target hull. Also reusable downstream: `mem_identifiedInterval` (line 31), `identifiedInterval_subset_Icc` (line 57), `mem_Icc_csInf_csSup` (line 47)."
+    },
+    "def:bernstein-dual": {
+      "lean_kind": "def",
+      "lean_name": "bernsteinDual",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.SupportFunction.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S2",
+      "target_file": "Helpers/MomentGeometry.lean",
+      "inputs": [
+        "b",
+        "B_c",
+        "f",
+        "K_epsilon"
+      ],
+      "notes": "`bernsteinDual m ε b : ℝ × ℝ := (sSup {λ ⬝ b | λ minorant}, sInf {λ ⬝ b | λ majorant})` with feasibility `∀ q ∈ K_ε, ∑ c λ c * B c q ≤ f q` (resp. ≥). Search trace: `../doc/API.md` §9j2sf read in full — `Causalean.PartialID.supportFn C d = sSup ((⟪d,·⟫) '' C)` (Causalean/PO/ID/Partial/SupportFunction/Basic.lean:60) is a sup over a FEASIBLE SET in an inner-product space, while our dual sup is over a coefficient vector constrained by a UNIFORM inequality on `K_ε`; the two are the primal and dual sides of the same program, so `supportFn` is a partial fit only (a discharge here would create exactly the unprovable population-vs-uniform bridge the reuse rule warns about). §9j2 `LP/ConicDuality.lean` was also surveyed: its `ConicProgram` needs a `ProperCone` in a real HILBERT space, and the file's own module note records that the measure-cone (weak-* duality of measures against `C(X)`) case is out of scope because Mathlib gives `FiniteMeasure` no signed ℝ-module — that is precisely our primal cone, so `ConicProgram` is bypass-justified. The paper's proof does not need abstract conic duality: it derives `D_m(b) = (L_m(b),U_m(b))` by an elementary nearest-point/separating-hyperplane argument in `ℝ^{N_m+1}` (finite dimensional), which is build-inline over Mathlib convexity."
+    },
+    "def:valid-envelope-class": {
+      "lean_kind": "def",
+      "lean_name": "validEnvelopeClass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S2",
+      "target_file": "Helpers/MomentGeometry.lean",
+      "inputs": [
+        "m",
+        "V_m",
+        "f",
+        "K_epsilon"
+      ],
+      "notes": "`validEnvelopeClass m ε : Set ((I_m → ℝ) × (I_m → ℝ)) := {(ℓ,u) | ∀ q ∈ K_ε, bern ℓ q ≤ f q ∧ f q ≤ bern u q}`, carrying the COEFFICIENT vectors (so `ℓᵀb` is literally a finite dot product, matching the core's `ℓ^⊤ b` notation and avoiding a separate uniqueness-of-Bernstein-coefficients lemma at every use). Uniqueness of the degree-`m` Bernstein coefficient vector is a small build-inline lemma factored into `Helpers/BernsteinSpan.lean` (it is the linear-independence step of `thm:sharp-primal-dual` (4)). Search trace: `lean_local_search \"bernstein\"` (univariate only), `lean_leansearch` for envelope/majorant-minorant classes → nothing; no Causalean envelope class (grep `../Causalean` for `envelope` hits only `Stat/Concentration` uniform-envelope predicates, an unrelated notion)."
+    },
+    "def:limited-pooling-comparator": {
+      "lean_kind": "def",
+      "lean_name": "limitedPoolingIntersection",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Topology.Order.Compact"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S2",
+      "target_file": "Helpers/LimitedPooling.lean",
+      "inputs": [
+        "m",
+        "epsilon",
+        "p_star",
+        "b",
+        "ell_LW",
+        "u_LW"
+      ],
+      "notes": "Three defs in one file: `poolingWeight m r r✱` (the two-branch `w_m`, odd/even in `m`), the envelope pair `lowerLW`/`upperLW` (with the `r`- and `(1-r)`-divisibility cancellation proved so both are genuine degree-`m` polynomials), and `limitedPoolingIntersection m ε b := (⨆ p✱ ∈ [ε,1-ε], ℓ_{m,p✱}ᵀb, ⨅ p✱ ∈ [ε,1-ε], u_{m,p✱}ᵀb)`. Attainment of both extrema is `IsCompact.exists_isMinOn`/`exists_isMaxOn` on `[ε,1-ε]` (Mathlib/Topology/Order/Compact.lean) after joint continuity — build-inline. Search trace: grep `../Causalean` and `lean_local_search` for `pooling`/`LeeWeidner` → nothing; this is paper-specific construction, no library analogue expected."
+    },
+    "def:exact-multinomial-region": {
+      "lean_kind": "def",
+      "lean_name": "exactMultinomialRegion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Nat.Choose.Multinomial",
+        "Mathlib.Analysis.Convex.StdSimplex"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S3",
+      "target_file": "Helpers/ExactMultinomial.lean",
+      "inputs": [
+        "z_obs",
+        "n",
+        "alpha"
+      ],
+      "notes": "Bundles `aggregateSpace n` (= `H_n`, a `Fintype`), `multinomialPmf n b' z` (built from `Nat.multinomial`, verified present), the deviance `deviance n z b' : EReal` with the `+∞` branch, the tie-inclusive tail `exactPValue n b' z := ∑ w ∈ {w | deviance n w b' ≥ deviance n z b'}, multinomialPmf n b' w`, and `exactMultinomialRegion n α z✱ := {b' ∈ stdSimplex ℝ I_m | α < exactPValue n b' z✱}`. Every piece is a finite sum over a `Fintype`, so this is routine build-inline. Search trace: `lean_local_search \"multinomial\"` (only `Nat.multinomial` combinatorics + a `sorry`-carrying CausalSmith research helper), `lean_local_search \"binomial\"` (Mathlib has only the two-cell `ProbabilityTheory.binomial`), grep `../Causalean` for `pValue|deviance|likelihoodRatio` (no statistical hits) — a multinomial law and an exact p-value are genuinely absent from both libraries."
+    },
+    "def:whole-set-confidence": {
+      "lean_kind": "def",
+      "lean_name": "wholeSetConfidenceSet",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Inference.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S3",
+      "target_file": "Helpers/ExactMultinomial.lean",
+      "inputs": [
+        "R_n_alpha",
+        "B_m_epsilon",
+        "L_m",
+        "U_m"
+      ],
+      "notes": "`wholeSetConfidenceSet m n ε α z✱ : Set ℝ := ⋃ b' ∈ exactMultinomialRegion n α z✱ ∩ bernsteinMomentBody m ε, Set.Icc (lowerEndpoint m ε b') (upperEndpoint m ε b')`. Search trace: `../doc/API.md` §9j2inf read in full — Causalean's inference layer supplies the COVERAGE EVENT vocabulary (`RandomCoversIcc`, Causalean/PO/ID/Partial/Inference/Basic.lean:92, verified by grep) but its constructors (`honest_ci_set_cover`, `hoeffding_honest_ci_set_cover`) build the interval from a two-sided concentration union bound, which is a different construction from exact test inversion — vocabulary reuse only, no lemma discharge. Analogous module: `SCM_SelectiveLabelUntrialedImpact_Research/T6_WholeSetConfidence.lean` (identical `Set.Icc L U ⊆ …` shape over a simultaneous confidence box)."
+    },
+    "def:confidence-set-cad": {
+      "lean_kind": "def",
+      "lean_name": "confidenceSetCadProcedure",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S4",
+      "target_file": "Helpers/RealAlgebraic.lean",
+      "inputs": [
+        "z_obs",
+        "n",
+        "m",
+        "epsilon",
+        "alpha",
+        "R_n_alpha"
+      ],
+      "notes": "A `def` returning the OUTPUT SPECIFICATION of `CAD^conf_{m,n}` (a finite disjoint decomposition of a subset of `[-1,1]` into points and intervals, each boundary given by a defining polynomial + rational isolating interval + open/closed flag, or the certified endpoint hull with attainability flags), together with the first-order formula `(7)` it eliminates. The `def` itself is total and gate-free; every ASSERTION that the procedure terminates and returns this output is `thm:finite-complexity-inference`, which is threaded through `lem:cad-quantifier-elimination`. Search trace: `lean_local_search \"Semialgebraic\"` → only the CausalSmith gate precedent; no Mathlib CAD/QE. Encoding follows CausalSmith/Experimentation/EXP_SaturationSkewThreshold_Research/Helpers/Bridge/SemialgebraicSolver.lean."
+    },
+    "def:cad-recovery-procedure": {
+      "lean_kind": "def",
+      "lean_name": "cadRecoveryProcedure",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S4",
+      "target_file": "Helpers/RealAlgebraic.lean",
+      "inputs": [
+        "m",
+        "epsilon",
+        "b",
+        "N_m",
+        "B_c",
+        "f",
+        "D_m"
+      ],
+      "notes": "Two-branch output specification: the relative-interior primal--dual branch (≤ `N_m` atoms, simplex/overlap/mass/moment/objective + global dual feasibility + complementary contact, denominators `p(q)(1-p(q))` cleared) and the arbitrary-rational-boundary primal branch (no dual variables) followed by a SEPARATE dual-certificate decision returning a boundary/nonattainment flag. The `def` records the returned tuple type (algebraic endpoint values by minimal polynomial + isolating interval, endpoint atoms and weights, compatible endpoint models, certificate-or-flag); the termination/semantics claims live in `thm:exact-cad-recovery` under the CAD gate. Search trace: as `def:confidence-set-cad`."
+    },
+    "def:boundary-atlas-handle": {
+      "lean_kind": "def",
+      "lean_name": "boundaryAtlasHandle",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.Intrinsic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S4",
+      "target_file": "Helpers/RealAlgebraic.lean",
+      "inputs": [
+        "B_m_epsilon",
+        "f",
+        "B_c",
+        "CAD_m"
+      ],
+      "notes": "The stratification handle: the family of first-order predicates `Ψ`, `Aff`, `RI`, `RB`, `P₀`, `E_{e,k}`, `S_{e,k}` of the boundary proof, plus the output specification (defining sign formula, constant labels, one algebraic sample point with minimum-size endpoint witnesses per nonempty cell). REUSE: `intrinsicInterior ℝ` / `intrinsicFrontier ℝ` (Mathlib/Analysis/Convex/Intrinsic.lean, verified by `lean_local_search \"intrinsicFrontier\"`) give `relint`/`relbd` directly, so the `RI`/`RB` predicates have a Lean-side referent independent of their first-order encoding and the two can be proved to agree. Search trace: as `def:confidence-set-cad`; additionally `lean_local_search \"intrinsicFrontier\"` returned the full Mathlib intrinsic-topology API (`intrinsicFrontier_union_intrinsicInterior`, `intrinsicFrontier_subset`, …)."
+    },
+    "def:uniform-identification-modulus": {
+      "lean_kind": "def",
+      "lean_name": "uniformIdentificationModulus",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Topology.ContinuousMap.Compact",
+        "Mathlib.Topology.MetricSpace.HausdorffDistance"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S2",
+      "target_file": "Helpers/MomentGeometry.lean",
+      "inputs": [
+        "m",
+        "epsilon",
+        "V_m",
+        "f",
+        "K_epsilon"
+      ],
+      "notes": "SYNC-BACK (F2): encode the core formula literally as `sInf {r | ∃ v ∈ bernsteinSpan m, overlapUniformError ε causalIntegrand v = r}`, where `overlapUniformError` is the `sSup` of `|f-v|` over `K_ε`. This avoids introducing a global `CompactSpace` instance and continuity proof merely to package the same quantity as `Metric.infDist` on `C(K_ε,ℝ)`; the Hahn--Banach consumer proves the standard equality with quotient distance internally. The construction, disposition, target file, and theorem strength are unchanged. Search trace: `Metric.infDist` and finite-dimensional closedness remain available, but no ready-made best-approximation wrapper exists."
+    },
+    "lem:scm-moment-reduction": {
+      "lean_kind": "lemma",
+      "lean_name": "scm_moment_reduction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Mathlib.IndepIntegral",
+        "Causalean.Mathlib.CondIndep",
+        "Mathlib.Probability.Kernel.CondDistrib",
+        "Mathlib.Data.Nat.Choose.Multinomial"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S1",
+      "target_file": "Helpers/MomentReduction.lean",
+      "hyps": [
+        "def:hierarchical-scm-class"
+      ],
+      "notes": "BUILD-INLINE (`small`/`medium`: routine conditional-expectation algebra plus an explicit product-measure construction). Both directions: (forward) conditional cell law ⇒ `C_i ∣ Q_i=q ~ Multinomial(m,q)`, marginal `Pr(C_i=c)=∫B_c dμ`, and `E[Y(1)-Y(0)] = ∫f dμ`; (converse) an explicit `HierarchicalPlateModel` built from `Measure.bind mu (product of three Bernoulli kernels)`. REUSE: `Causalean/Mathlib/IndepIntegral.lean` (drop-of-conditioning integral identity, `../doc/API.md` §10d) is the exact tool for the `E[Y(a) ∣ Q]=E[Y(a) ∣ A=a,Q]` step; `Causalean/Mathlib/Probability/BernoulliMeasure.lean` (§10a''''''') supplies two-point Bernoulli laws for the converse construction; `Nat.multinomial` supplies the count coefficient. Search trace: `../doc/API.md` grep `^## ` then read §10a''''''' (BernoulliMeasure), §10c (Indep), §10d (IndepIntegral), §10k'' (FiniteAtomicMeasure); `lean_local_search \"multinomial\"`, `\"binomial\"`. The multinomial count law itself is NOT in Mathlib (only `ProbabilityTheory.binomial`), so the `C_i ∣ Q_i` clause is a small new lemma, not an absence claim about a standard fact."
+    },
+    "lem:finite-plate-nonpolynomial": {
+      "lean_kind": "lemma",
+      "lean_name": "finite_plate_nonpolynomial",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Nat.Choose.Multinomial",
+        "Mathlib.Analysis.Convex.StdSimplex"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S2",
+      "target_file": "Helpers/BernsteinSpan.lean",
+      "hyps": [],
+      "notes": "BUILD-INLINE (`small`). Two halves: (i) `V_m` = restrictions to `K_ε` of total-degree-≤`m` polynomials (homogenisation by `(∑ q_{ay})^{m-d}=1` on the simplex, then the multinomial expansion) — this also carries the linear-independence of the `B_c` on `K_ε` used by `thm:sharp-primal-dual` (4); (ii) `f ∉ V_m` by the explicit path `q(r)=(1-r,0,r-ε/2,ε/2)` on which `f=(ε/2)/r`, so `r·R(r)-ε/2` vanishes on an open interval and hence identically, contradicting evaluation at `r=0`. Both steps are `Polynomial.eq_zero_of_infinite_isRoot`-style facts. Search trace: `lean_local_search \"bernstein\"` → Mathlib's univariate `bernsteinPolynomial`/`bernsteinApproximation` only, no simplex Bernstein span; `lean_leansearch` for \"polynomial vanishing on an open set is zero\" → Mathlib `Polynomial.funext`/`eq_zero_of_infinite_isRoot` and `MvPolynomial` analogues available, so the vanishing step is reuse-backed."
+    },
+    "lem:full-support-perturbation": {
+      "lean_kind": "lemma",
+      "lean_name": "full_support_perturbation",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.Intrinsic",
+        "Mathlib.Analysis.InnerProductSpace.Projection",
+        "Mathlib.MeasureTheory.Measure.WithDensity"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S2",
+      "target_file": "Helpers/FullSupport.lean",
+      "hyps": [],
+      "notes": "BUILD-INLINE (`medium`, but every step is standard): a full-support `ρ = ∑ aⱼ δ_{xⱼ}` on the separable compact `K_ε`; the relative-interior segment `c_δ = (b-δa)/(1-δ) ∈ B_{m,ε}` (`intrinsicInterior` API); the `L²(ν_b)` projection onto the finite-dimensional `V_m` (Mathlib `orthogonalProjection` on a complete finite-dimensional subspace, with injectivity of `V_m → L²(ν_b)` from continuity + full support); and the density perturbation `dν± = (1 ± s r_b) dν_b` via `Measure.withDensity`. Search trace: `lean_local_search \"intrinsicFrontier\"` (full intrinsic-topology API), `lean_leansearch \"orthogonal projection onto finite dimensional subspace of L2\"` → Mathlib `orthogonalProjection` + `Submodule.HasOrthogonalProjection` for complete subspaces; `../doc/API.md` §10g `Mathlib/SemiInnerProjection.lean` (Causalean's semidefinite finite-dimensional projections) is the nearest Causalean helper and is the right analogue for the degenerate-inner-product bookkeeping if `ν_b`-a.e. equality bites — recorded as the F3 reference, gap: our form is nondegenerate because `ν_b` has full support."
+    },
+    "thm:sharp-primal-dual": {
+      "lean_kind": "theorem",
+      "lean_name": "sharp_primal_dual",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.Caratheodory",
+        "Mathlib.Analysis.Convex.Exposed",
+        "Mathlib.Analysis.Convex.Extreme",
+        "Mathlib.Analysis.Convex.Intrinsic",
+        "Mathlib.Analysis.Convex.Topology",
+        "Causalean.PO.ID.Partial.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S2",
+      "target_file": "T_SharpPrimalDual.lean",
+      "hyps": [],
+      "notes": "BUILD-INLINE (the paper's OWN crux content; heavy but every ingredient is in Mathlib). Chain: compactness of `H = conv h(K)` via Carathéodory (`convexHull_eq_union`) + continuity of `h`; the barycentre-image identity (11) by a nearest-point argument; the section `H_b = [L,U]` closed by `Causalean.PartialID.identifiedInterval_eq_Icc` (Causalean/PO/ID/Partial/Basic.lean:74); the `N_m`-atom endpoint bound by an exposed-face argument (`Mathlib/Analysis/Convex/Exposed.lean`, `IsExposed`); relative-interior strong duality by projecting onto the upward/downward closures `E∓` and reading off `λ∓`; the contact-rank `r+1` refinement by re-running Carathéodory inside `aff(g_m(T∓))`. Search trace: `lean_local_search \"convexHull_eq_union\"`, `\"intrinsicFrontier\"`; `lean_leansearch` for Winkler-style extreme-points-of-moment-sets → no Mathlib or Causalean moment-set extreme-point theorem, and the paper explicitly gives a SELF-CONTAINED exposed-face derivation, so no gate is warranted. Analogous module for F3 to adapt: `SCM_SelectiveLabelUntrialedImpact_Research/T2_SharpInterval.lean` and `T4_DualFaceStrictRefinement.lean` (same sharp-interval-plus-optimal-face skeleton over a finite latent simplex; the gap to bridge is replacing `stdSimplex ℝ T` by `P(K_ε)` and using Carathéodory compression to return to finitely many atoms)."
+    },
+    "thm:identification-frontier": {
+      "lean_kind": "theorem",
+      "lean_name": "identification_frontier",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.Intrinsic",
+        "Mathlib.Analysis.InnerProductSpace.Projection"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S2",
+      "target_file": "T_IdentificationFrontier.lean",
+      "hyps": [],
+      "notes": "BUILD-INLINE. The `⇐` direction is linearity of the integral against the fiber's moment equations; the `⇒` direction reuses the residual perturbation of `lem:full-support-perturbation` at a constructed relative-interior `b₀` (barycentre of an affine basis of `B_{m,ε}` — the `intrinsicInterior`-nonempty step), then specialises `h = f` through `lem:finite-plate-nonpolynomial`. Search trace: as `lem:full-support-perturbation`; no library iff-span criterion exists (`lean_leansearch` for \"functional determined by finitely many moments iff in the span\" returns nothing on point)."
+    },
+    "prop:boundary-dirac-regression": {
+      "lean_kind": "theorem",
+      "lean_name": "boundary_dirac_regression",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Dirac",
+        "Mathlib.Analysis.Convex.Extreme",
+        "Mathlib.Analysis.Convex.Intrinsic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S2",
+      "target_file": "T_BoundaryDiracRegression.lean",
+      "hyps": [],
+      "notes": "BUILD-INLINE (`small`): the two factorial-moment identities `∑ (c_k/m) B_c = q_k` and `∑ (c_k(c_k-1)/(m(m-1))) B_c = q_k²` (`m ≥ 2`) force `∫(q_k-q_k*)² dν = 0`, hence `ν = δ_{q*}`; extremality and injectivity of `g_m` then place `g_m(q*)` on `intrinsicFrontier`. REUSE: `MeasureTheory.Measure.dirac` + `integral_dirac`; `Causalean/Mathlib/MeasureTheory/FiniteAtomicMeasure.lean` (`../doc/API.md` §10k'') supplies `property_at_of_ae_of_singleton_pos` and the weighted-Dirac decomposition, useful for the a.s.-to-pointwise step. Search trace: `../doc/API.md` §10k'' read in full; `lean_local_search \"multinomial\"` for the factorial-moment identities → only combinatorial `Nat.multinomial`, so the two identities are new small lemmas. A closely analogous CausalSmith factorial-moment lift already exists at `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Helpers/MultinomialMoments.lean` (`multinomialFactorialCount`, `multinomialFactorialCount_eq_prod`) — F3 should adapt those; the gap is that theirs are for an i.i.d. finite-category sample, ours for a within-cluster plate of size `m`."
+    },
+    "thm:sharp-envelope-domination": {
+      "lean_kind": "theorem",
+      "lean_name": "sharp_envelope_domination",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.Caratheodory",
+        "Mathlib.Analysis.Convex.Topology",
+        "Mathlib.Analysis.Convex.Intrinsic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S2",
+      "target_file": "T_SharpEnvelopeDomination.lean",
+      "hyps": [],
+      "notes": "BUILD-INLINE. Weak domination is integration of the envelope inequalities against any fiber member; the contact-hull equality criterion is the `∫(f-ℓ)dν = 0` ⇒ `ν(T_ℓ)=1` step (nonnegative continuous integrand) plus compactness of `conv g_m(T_ℓ)`; properness for `m ≥ 2` uses `prop:boundary-dirac-regression` and `lem:finite-plate-nonpolynomial`; the relatively-open strict-improvement region comes from `intrinsicInterior` density (`intrinsicClosure`/`closure` API). Search trace: `lean_local_search \"intrinsicFrontier\"`, `\"convexHull_eq_union\"`. Analogous module: `SCM_SelectiveLabelUntrialedImpact_Research/T4_DualFaceStrictRefinement.lean` + `T5_RelativeOpenStrictRefinement.lean` — literally the same 'proper closed subset of a convex body cannot swallow its relative interior' argument in the finite-latent setting."
+    },
+    "prop:optimized-limited-pooling-intersection": {
+      "lean_kind": "theorem",
+      "lean_name": "optimized_limited_pooling_intersection",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Topology.Order.Compact",
+        "Mathlib.Analysis.Convex.Intrinsic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S2",
+      "target_file": "T_OptimizedLimitedPooling.lean",
+      "hyps": [],
+      "notes": "BUILD-INLINE. Three parts: envelope validity (the two pointwise identities (3) with nonnegative `a₀,a₁`), attainment of the `p✱`-extrema by compactness of `[ε,1-ε]` + joint continuity, and the simultaneous strict-improvement region via the two obstruction polynomials `D∓(b)` and the explicit feasible witness `b†` at which `D-(b†)>0>D+(b†)`. All algebraic/continuity work over Mathlib; `IsCompact.exists_isMaxOn` verified present in Mathlib/Topology/Order/Compact.lean (imported by the existing CausalSmith Experimentation gate file). Search trace: grep `../Causalean` and `lean_local_search` for `pooling`/`Weidner` → nothing; paper-specific."
+    },
+    "thm:growing-plate-identification-modulus": {
+      "lean_kind": "theorem",
+      "lean_name": "growing_plate_identification_modulus",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.RingTheory.Polynomial.Chebyshev",
+        "Mathlib.Analysis.SpecialFunctions.Trigonometric.Chebyshev.Basic",
+        "Mathlib.Analysis.SpecialFunctions.Arcosh",
+        "Mathlib.Topology.ContinuousMap.Compact",
+        "Mathlib.Topology.MetricSpace.HausdorffDistance",
+        "Mathlib.MeasureTheory.VectorMeasure.Decomposition.Jordan"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S2",
+      "target_file": "T_GrowingPlateModulus.lean",
+      "hyps": [
+        "lem:hahn-banach-quotient-norm",
+        "lem:riesz-markov-representation",
+        "lem:jordan-decomposition-signed-measure"
+      ],
+      "notes": "GATE-CONSUMER: in scope (`defer_tier:false`) and PROVED CONDITIONAL on the THREE cited analysis gates threaded above (per the gate-consumer rule its own remaining content is not open). ROUND-5 CORRECTION (consistency with the reverted Jordan node): `lem:jordan-decomposition-signed-measure` is back to its `gate_class:\"cited\"` SUBSTRATE-GATE form, because the discharged-lemma branch of P9 requires a `bin/gate.ts --discharge` stamp that F1 cannot apply (round 4's plan-authored stamp was flagged verbatim). It is therefore threaded here as an explicit hypothesis again, exactly like its two siblings, and the round-4 `deps` list is removed. P4 holds: all three hyps are cited-gate assumptions inside this node's core `depends_on`. The Jordan split of the norming functional's representing signed measure into `σ⁺, σ⁻` with `|σ| = σ⁺+σ⁻` is thus an assumed premise for now; once the orchestrator discharges that gate against `MeasureTheory.SignedMeasure.toJordanDecomposition` + `toJordanDecomposition_spec` + `totalVariation` (a `small` build — pointer recorded on the gate node), this hyp drops and `Mathlib.MeasureTheory.VectorMeasure.Decomposition.Jordan`, already in this node's `modules`, carries it. REUSE (all verified): `Polynomial.Chebyshev.T` (Mathlib/RingTheory/Polynomial/Chebyshev.lean); `Polynomial.Chebyshev.T_real_cosh : eval (cosh θ) (T ℝ n) = cosh (n*θ)` and `T_real_cos` (Mathlib/Analysis/SpecialFunctions/Trigonometric/Chebyshev/Basic.lean, confirmed by `lean_loogle \"Polynomial.Chebyshev.T, Real.cosh\"`) give identities (8) verbatim; `Real.arcosh`, `Real.cosh_arcosh`, `Real.arcosh_pos`, `Real.arcosh_le_arcosh` (Mathlib/Analysis/SpecialFunctions/Arcosh.lean, confirmed by `lean_local_search \"arcosh\"` and `\"cosh_arcosh\"`) give `a = arcosh(1/ρ)`, the `sech(ma)` form, and the plate-size condition monotonicity. So the whole Chebyshev/hyperbolic half is reuse-backed and only the shifted polynomial `R_m(p) = (-1)^m T_m((2p-1)/ρ)/T_m(1/ρ)` and the envelope `v_m ∈ V_m` are new. ANALOGOUS MODULE (same technique, adapt don't rebuild): `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Helpers/ShiftedChebyshev.lean` (`shiftedChebyshevExpansion : eval (1-2x) (T ℝ M) = …`) and `Helpers/ChebyshevCertificate.lean` (`chebyshev_gPolynomial_identity`, `gPolynomial_certificate`, `chebyshev_three_le`, `cellApproxPolynomial_error`) — a shifted-Chebyshev certificate for the SAME overlap-restricted four-cell reciprocal integrand; the gap to bridge is that those bound an estimation error at scale `M⁻²` for a finite-category i.i.d. experiment, while we need the uniform sup-norm certificate `|R_m| ≤ sech(m·arcosh(1/ρ))` on `[ε,1-ε]` and the `V_m`-membership of `v_m`. The width IDENTITY `max_b {U-L} = 2d_m(ε)` is the paper's own crux and is where the three cited gates enter (upper bound: total variation ≤ 2 against any `v ∈ V_m`; lower bound: a norming functional from Hahn--Banach, represented as a signed measure by Riesz--Markov, split by Jordan into two probability measures with a common moment vector). Search trace: `lean_local_search \"Chebyshev\"` (empty by bare name), `lean_local_search \"T_real_cosh\"`, `lean_loogle \"Polynomial.Chebyshev.T, Real.cosh\"`, `lean_local_search \"arcosh\"`, `lean_local_search \"cosh_arcosh\"`, glob of `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/**` + `lean_file_outline` on both Chebyshev helpers."
+    },
+    "thm:exact-cad-recovery": {
+      "lean_kind": "theorem",
+      "lean_name": "exact_cad_recovery",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.Intrinsic",
+        "Mathlib.Analysis.Convex.StdSimplex"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S4",
+      "target_file": "T_ExactCadRecovery.lean",
+      "hyps": [
+        "lem:cad-quantifier-elimination"
+      ],
+      "notes": "GATE-CONSUMER: `defer_tier:false`, IN SCOPE, proved conditional on the CAD gate threaded above. The paper-specific content that is NOT the gate — the `N_m`-atom reduction of `Φ_N` (from `thm:sharp-primal-dual`), the equivalence of the cleared-denominator objective equation (3) with `t = ∑ ω_k f(q^k)` using `d(q) ≥ ε(1-ε) > 0`, the compactness/attainment of the extrema over `Δ_{N-1} × K_ε^N`, the `G_L`/`G_U` characterisation, and the conversion of each atomic measure into a compatible `HierarchicalPlateModel` via `lem:scm-moment-reduction` — is all build-inline. Search trace: `lean_local_search \"Semialgebraic\"` → the single CausalSmith gate precedent; no Mathlib QE."
+    },
+    "thm:finite-complexity-inference": {
+      "lean_kind": "theorem",
+      "lean_name": "finite_complexity_inference",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Nat.Choose.Multinomial",
+        "Mathlib.Analysis.Convex.StdSimplex"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S3",
+      "target_file": "T_FiniteComplexityInference.lean",
+      "hyps": [
+        "lem:cad-quantifier-elimination"
+      ],
+      "notes": "GATE-CONSUMER: in scope, conditional on the CAD gate. LAYOUT DIRECTIVE FOR F2 (load-bearing, do not merge): state the theorem as THREE separate declarations in this file — (a) `finite_complexity_inference_size`: the level-α bound `Pr_{b'}{P_n(b';W) ≤ α} ≤ α` (the nested-tail argument `E₁ ⊆ … ⊆ E_J`, `π_{j*} ≤ α`), which is GATE-FREE and elementary; (b) `finite_complexity_inference_semialgebraic`: the zero-pattern-cell decomposition making `R_{n,α}` semialgebraic and the `[-1,1]` containment of `C_{n,α}`, also gate-free; (c) `finite_complexity_inference` : the CAD termination/output clause, which alone takes the gate hypothesis. This split is what lets `prop:whole-set-coverage` (whose `depends_on` does NOT include the gate) consume only (a). Search trace: as `def:exact-multinomial-region`; the exponentiation/positive-denominator-clearing step (5) is elementary `Real.exp`/`Real.log` monotonicity (`Real.exp_le_exp`, `Real.log_le_log_iff`), reuse-backed."
+    },
+    "prop:whole-set-coverage": {
+      "lean_kind": "theorem",
+      "lean_name": "whole_set_coverage",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Inference.Basic",
+        "Mathlib.MeasureTheory.Measure.ProbabilityMeasure"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S3",
+      "target_file": "T_WholeSetCoverage.lean",
+      "hyps": [],
+      "notes": "BUILD-INLINE (`small`: a two-line corollary). It consumes ONLY clause (a) of `thm:finite-complexity-inference` (the gate-free size bound) plus `lem:scm-moment-reduction` (which gives `Z ~ Multinomial(n,b)` and `b ∈ B_{m,ε}`) and the defining union of `def:whole-set-confidence`; hence it is NOT threaded through the CAD gate and stays unconditional. REUSE: state the conclusion event with `Causalean.PartialID.Inference.RandomCoversIcc` (Causalean/PO/ID/Partial/Inference/Basic.lean:92, verified by grep) so it reads in the library's set-coverage vocabulary; `randomCoversIcc_subset_randomCoversPoint` then gives the pointwise corollary for free. Search trace: `../doc/API.md` §9j2inf read in full; grep `../Causalean` for `RandomCoversIcc`/`honest_ci_set_cover`."
+    },
+    "prop:m-one-regression": {
+      "lean_kind": "theorem",
+      "lean_name": "m_one_regression",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Dirac"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S2",
+      "target_file": "T_MOneRegression.lean",
+      "hyps": [],
+      "notes": "BUILD-INLINE (`small`): a closed-form `m=1, ε=1/4, b=(1/4,1/4,1/4,1/4)` unit test. Weak duality from the two displayed affine certificates plus two explicit two-atom attaining measures; the arithmetic is `norm_num`/`ring`-shaped after `integral_dirac`. Reuse: `MeasureTheory.Measure.dirac`, `integral_dirac`, `Causalean/Mathlib/MeasureTheory/FiniteAtomicMeasure.lean` (`../doc/API.md` §10k'') for the two-point measure bookkeeping. Search trace: `../doc/API.md` §10k'' read; nothing else needed."
+    },
+    "thm:boundary-fiber-atlas": {
+      "lean_kind": "theorem",
+      "lean_name": "boundary_fiber_atlas",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Convex.Intrinsic",
+        "Mathlib.Analysis.Convex.Topology",
+        "Mathlib.Analysis.Convex.Caratheodory"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S4",
+      "target_file": "T_BoundaryFiberAtlas.lean",
+      "hyps": [
+        "lem:cad-quantifier-elimination"
+      ],
+      "notes": "GATE-CONSUMER: in scope, conditional on the CAD gate. Gate-free content that F3 must build: the first-order predicates `Ψ`, `Aff` (exactness of the ≤ `N+1`-point affine representation), `RI`/`RB` and their agreement with Mathlib's `intrinsicInterior ℝ` / `intrinsicFrontier ℝ` (verified present), the single-valuedness of the endpoint graphs `G_L`,`G_U` by compactness, the minimum-support ladder `S_{e,k} := E_{e,k} ∧ ¬E_{e,k-1}` with `E_{e,N}` always true (from `thm:sharp-primal-dual`), and the nonvacuity of the point-identified label via `prop:boundary-dirac-regression`. The honest-scope clause (no uniform symbolic witness map over a positive-dimensional cell; a fresh QE run per supplied algebraic `b`) must be preserved in the Lean statement, not silently strengthened. Search trace: `lean_local_search \"intrinsicFrontier\"`, `\"Semialgebraic\"`, `\"convexHull_eq_union\"`. Analogous module: `SCM_SelectiveLabelUntrialedImpact_Research/T5_RelativeOpenStrictRefinement.lean` (same `intrinsicInterior`-based cell bookkeeping)."
+    },
+    "lem:cad-quantifier-elimination": {
+      "lean_kind": "assumption",
+      "lean_name": "CylindricalAlgebraicDecompositionQE",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "env": "S4",
+      "target_file": "Helpers/RealAlgebraic.lean",
+      "hyps": [],
+      "source": "cite:collins1975",
+      "source_carrier": "logical-claim",
+      "source_bibkey": "Collins1975",
+      "source_locator": "Section 3, algorithm ELIM, pp. 157--160; Section 4, Theorems 17--18, pp. 174--175; DECOMP and ISOL specifications, pp. 145--152",
+      "source_verbatim_statement": "The quantifier elimination can be completed by constructing formulas which define these cells.",
+      "consumers": [
+        "thm:exact-cad-recovery",
+        "thm:finite-complexity-inference",
+        "thm:boundary-fiber-atlas"
+      ],
+      "notes": "SUBSTRATE-GATE, `gate_class:\"cited\"` fixed by D0 provenance (`status:\"cited\"`, `source.carrier:\"logical-claim\"`), so it MUST be a named `Prop` def and threaded into every logical consumer's `hyps`; it is excluded from any theorem manifest and is not a proof obligation. Tagged GATE, never crux, BY BUILDABILITY: real-closed-field quantifier elimination / cylindrical algebraic decomposition is a major upstream Mathlib contribution (Tarski--Seidenberg + a general decision procedure), explicitly named in the F1 contract as gate-only; a crux tag would yield a permanently-unbuildable `sorry`. F2 encoding: a `def … : Prop` quantifying over a finite block of rational-coefficient polynomial (in)equalities and asserting termination, an equivalent finite semialgebraic cell decomposition, and an algebraic sample point per nonempty cell with defining polynomial + rational isolating interval; emit the proposition universe with unshadowable `Sort 0` syntax, never a `Prop` identifier. PRECEDENT to copy: `CausalSmith/Experimentation/EXP_SaturationSkewThreshold_Research/Helpers/Bridge/SemialgebraicSolver.lean:20` (`SemialgebraicOptimizationAlgorithms : Prop`, the same Tarski--Seidenberg/CAD debt threaded into `thm:constructive-optimal-design-algorithm`). Search trace: `lean_local_search \"Semialgebraic\"` → 1 hit, the CausalSmith gate above; `lean_local_search` for a real-closed-field decision procedure and `lean_leansearch` for quantifier elimination over ordered fields → nothing in Mathlib; grep of `../Causalean` for `Semialgebraic|Tarski|CAD` → nothing."
+    },
+    "lem:hahn-banach-quotient-norm": {
+      "lean_kind": "assumption",
+      "lean_name": "HahnBanachQuotientNorm",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "env": "S2",
+      "target_file": "Helpers/CitedAnalysis.lean",
+      "hyps": [],
+      "source": "cite:encyclopedia-hahn-banach",
+      "source_carrier": "logical-claim",
+      "source_bibkey": "EncyclopediaHahnBanach",
+      "source_locator": "Article Hahn--Banach theorem, norm-preserving extension and quotient-separation formulation",
+      "source_verbatim_statement": "it can be extended, while preserving its linearity and continuity, onto the whole space X. Moreover, the extension can be made to have the same norm.",
+      "consumers": [
+        "thm:growing-plate-identification-modulus"
+      ],
+      "notes": "SUBSTRATE-GATE, `gate_class:\"cited\"` fixed by D0 provenance; encoded as a named `Prop` (real normed space `X`, closed subspace `M`, `x : X` ⊢ `∃ Λ : StrongDual ℝ X, (∀ z ∈ M, Λ z = 0) ∧ ‖Λ‖ ≤ 1 ∧ Λ x = Metric.infDist x M`, with `‖Λ‖ = 1` when `x ∉ M`) and threaded into `thm:growing-plate-identification-modulus`. DISCHARGE POINTER for the supported `bin/gate.ts --discharge` path (F1 must NOT discharge a `status:\"cited\"` node itself): Mathlib has the norm-preserving extension `Real.exists_extension_norm_eq` and `exists_extension_norm_eq` (Mathlib/Analysis/Normed/Module/HahnBanach.lean, confirmed via `lean_leansearch`) plus `exists_dual_vector`/`exists_dual_vector'` (same file, confirmed via `lean_local_search \"exists_dual_vector\"`); the quotient-norm form is the standard corollary obtained by applying the extension to the functional `x + M ↦ infDist x M` on the quotient, so a later discharge is a `medium` build, not open mathematics. Search trace: `lean_leansearch \"Hahn-Banach functional vanishing on subspace with norm one attaining distance to subspace\"` (6 results, none the exact quotient-norm statement), `lean_local_search \"exists_dual_vector\"`, `lean_local_search \"infDist_eq\"`."
+    },
+    "lem:riesz-markov-representation": {
+      "lean_kind": "assumption",
+      "lean_name": "RieszMarkovRepresentation",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "env": "S2",
+      "target_file": "Helpers/CitedAnalysis.lean",
+      "hyps": [],
+      "source": "cite:encyclopedia-riesz-representation",
+      "source_carrier": "logical-claim",
+      "source_bibkey": "EncyclopediaRieszRepresentation",
+      "source_locator": "Article Riesz representation theorem, representation of the dual of continuous functions on a compact space",
+      "source_verbatim_statement": "the dual of C(X) is the space of R-valued measures with finite total variation",
+      "consumers": [
+        "thm:growing-plate-identification-modulus"
+      ],
+      "notes": "SUBSTRATE-GATE, `gate_class:\"cited\"` fixed by D0 provenance; encoded as a named `Prop` (compact Hausdorff `K`; every `Λ ∈ StrongDual ℝ C(K,ℝ)` is `Λ u = ∫ u ∂σ` for a unique finite signed regular Borel `σ` with `‖Λ‖ = |σ|(K)`) and threaded into `thm:growing-plate-identification-modulus`. DISCHARGE POINTER: Mathlib currently has only the POSITIVE-functional half — `RealRMK.rieszMeasure`, `RealRMK.integral_rieszMeasure`, `RealRMK.rieszMeasure_integralPositiveLinearMap` on `CompactlySupportedContinuousMap X ℝ →ₚ[ℝ] ℝ` (Mathlib/MeasureTheory/Integral/RieszMarkovKakutani/Real.lean, confirmed via `lean_leansearch`); the SIGNED dual-of-`C(K)` statement with the total-variation norm identity is not present, so a discharge requires the Jordan/Hahn splitting of a bounded functional into positive parts and is a `large` upstream build. Search trace: `lean_leansearch \"Riesz Markov Kakutani representation theorem positive linear functional on continuous functions compact space measure\"` (6 results, all the positive-functional API), `lean_local_search \"rieszMarkovKakutani\"` (empty by that spelling)."
+    },
+    "lem:jordan-decomposition-signed-measure": {
+      "lean_kind": "assumption",
+      "lean_name": "JordanDecompositionSignedMeasure",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "env": "S2",
+      "target_file": "Helpers/CitedAnalysis.lean",
+      "hyps": [],
+      "source": "cite:encyclopedia-jordan-decomposition",
+      "source_carrier": "logical-claim",
+      "source_bibkey": "EncyclopediaJordanDecomposition",
+      "source_locator": "Article Signed measure, sections Total variation, Upper and lower variations, and Radon--Nikodym theorem and consequences",
+      "source_verbatim_statement": "Observe that μ = μ+ - μ- and |μ| = μ+ + μ-.",
+      "consumers": [
+        "thm:growing-plate-identification-modulus"
+      ],
+      "notes": "ROUND-5 CORRECTION (P9, deterministic plan gate). History: round 3 planned this node as an UNGATED PLAIN reuse `lemma` (P9 flagged: neither branch); round 4 followed the F2.5 fix-locus directive and planned it as the DISCHARGED form with a plan-authored `citation_discharged:true` stamp — and P9 flagged that too, reporting verbatim `got lean_kind=lemma, gate=false, gate_class=none, citation_discharged=true`. So the discharged-lemma branch is NOT reachable from F1: that branch requires the stamp to have been applied by `bin/gate.ts --discharge`, F1 has no way to invoke it, and the F1 contract states explicitly that F1 never emits that stamp nor a non-gate form for a `status:\"cited\"` statement. This round therefore takes the ONLY F1-authorable branch: the `gate_class:\"cited\"` SUBSTRATE-GATE assumption, encoded and threaded exactly like its two siblings `lem:hahn-banach-quotient-norm` and `lem:riesz-markov-representation`. Frozen D0 provenance (`status:\"cited\"`, `source.carrier:\"logical-claim\"`) is read, not re-judged: `lean_kind:\"assumption\"`, a named `Prop` def threaded into every logical consumer's `hyps`, excluded from any theorem manifest, not a proof obligation. F2 encoding: `def JordanDecompositionSignedMeasure : Sort 0 := ∀ {α} [MeasurableSpace α] (σ : SignedMeasure α), ∃ σ⁺ σ⁻ : Measure α, IsFiniteMeasure σ⁺ ∧ IsFiniteMeasure σ⁻ ∧ σ⁺ ⟂ₘ σ⁻ ∧ σ = σ⁺.toSignedMeasure - σ⁻.toSignedMeasure ∧ σ.totalVariation = σ⁺ + σ⁻` — proposition universe via unshadowable `Sort 0` syntax, never a `Prop` identifier. DISCHARGE POINTER for the supported `bin/gate.ts --discharge` path (an orchestrator action, not an F1 one, and the reason this gate is cheap upstream debt rather than open mathematics): Mathlib proves the whole statement sorry-free in Mathlib/MeasureTheory/VectorMeasure/Decomposition/Jordan.lean — `MeasureTheory.SignedMeasure.toJordanDecomposition (s : SignedMeasure α) : JordanDecomposition α` bundles `posPart`, `negPart`, `[IsFiniteMeasure posPart]`, `[IsFiniteMeasure negPart]` and the field `mutuallySingular : posPart ⟂ₘ negPart` (the mutually-singular finite positive split); `MeasureTheory.SignedMeasure.toJordanDecomposition_spec` and its packaged form `toSignedMeasure_toJordanDecomposition : s.toJordanDecomposition.toSignedMeasure = s` give `σ = σ⁺ - σ⁻`; and `MeasureTheory.SignedMeasure.totalVariation s := s.toJordanDecomposition.posPart + s.toJordanDecomposition.negPart` is DEFINITIONALLY `|σ| = σ⁺ + σ⁻`. Discharge effort: `small` (a thin re-export, `rfl`/`simp [SignedMeasure.totalVariation]` for the variation clause); no population-vs-empirical, norm, or regime mismatch and no un-built bridge. Until the orchestrator runs that path the node stays a visibly threaded gate, so `thm:growing-plate-identification-modulus` is proved CONDITIONAL on it and lists it in `hyps` (a gate consumer stays in scope, `defer_tier:false`). `source` is RETAINED for provenance (the Encyclopedia article stays in `citations[]` and the bibliography). Search trace (re-run this round): `lean_local_search \"toJordanDecomposition\"` → 8+ hits, all Mathlib/MeasureTheory/VectorMeasure/Decomposition/Jordan.lean, including `toJordanDecomposition` and `toJordanDecomposition_spec`; earlier rounds additionally ran `lean_local_search \"toSignedMeasure_toJordanDecomposition\"` (1 hit, same file), `lean_local_search \"totalVariation\"` (`MeasureTheory.SignedMeasure.totalVariation`, `totalVariation_mutuallySingular_iff`, `totalVariation_eq_variation`) and `lean_declaration_file` on `totalVariation` to read the definition body."
+    }
+  },
+  "substrate_survey": [
+    {
+      "module": "Causalean/PO/Core/System.lean (POSystem, poOperator)",
+      "verdict": "bypass-justified",
+      "reason": "Regime- and graph-indexed PO operator over dependent value spaces; this note has one binary treatment, no intervention regime and no graph, so the Regime/ValuesOn scaffolding buys no lemma."
+    },
+    {
+      "module": "Causalean/PO/Assumptions/Consistency.lean (POSystem.Consistency)",
+      "verdict": "bypass-justified",
+      "reason": "Two-clause regime-composition axiom; with a single binary treatment it collapses to the pointwise identity `Y = if A then Y1 else Y0`, which is stated directly."
+    },
+    {
+      "module": "Causalean/SCM/PartialID/{CanonicalModel,SharpnessCertificate}.lean (CompatibleSCM, compatibleInterval, IsSharp)",
+      "verdict": "bypass-justified",
+      "reason": "Typed over `SWIGGraph N` + `SCM N Ω` structural equations; the hierarchical plate class is a latent-mixture model with no node-indexed structural equations."
+    },
+    {
+      "module": "Causalean/Graph/*, Causalean/SCM/Do/*, Causalean/SCM/ID/* (dSep, backdoor, frontdoor, do-calculus, c-components, idAlgorithm)",
+      "verdict": "bypass-justified",
+      "reason": "Graphical identification machinery; identification here fails for a MOMENT-INFORMATION reason at a fixed already-ignorable conditioning set, so no do-calculus rule or graphical criterion is invoked."
+    },
+    {
+      "module": "Causalean/PO/ID/Partial/Basic.lean (IdentifiedInterval and its API)",
+      "verdict": "reused",
+      "reason": "`IdentifiedInterval` is a total fit for `def:sharp-ate-fiber`; `identifiedInterval_eq_Icc`, `identifiedInterval_subset_Icc`, `mem_identifiedInterval`, `mem_Icc_csInf_csSup` are consumed by `thm:sharp-primal-dual`."
+    },
+    {
+      "module": "Causalean/PO/ID/Partial/Inference/Basic.lean (RandomCoversIcc, honest_ci_set_cover)",
+      "verdict": "reused (vocabulary)",
+      "reason": "`RandomCoversIcc` states the set-coverage event of `prop:whole-set-coverage`; the concentration-based constructors do not apply because coverage here comes from an exact finite-sample test."
+    },
+    {
+      "module": "Causalean/PO/ID/Partial/SupportFunction/* (supportFn, linearImage_eq_Icc_of_isCompact, AffineBall)",
+      "verdict": "bypass-justified",
+      "reason": "Support-function engine needs the feasible set inside a real inner-product space with a LINEAR target; our feasible set is a fiber of Borel probability measures and the dual is constrained by a uniform inequality on `K_ε`, so only a partial fit — discharging it would create an unprovable population-vs-uniform bridge."
+    },
+    {
+      "module": "Causalean/PO/ID/Partial/LP/ConicDuality.lean (ConicProgram, strong_duality_zero_gap)",
+      "verdict": "bypass-justified",
+      "reason": "Needs a `ProperCone` in a real Hilbert space; the file's own module note records that the nonnegative-MEASURE cone against `C(X)` is out of scope in Mathlib. The paper's duality is an elementary finite-dimensional separation in `ℝ^{N_m+1}`, so no infinite-dimensional conic machinery is required."
+    },
+    {
+      "module": "Causalean/Mathlib/{CondIndep,Indep,IndepIntegral}.lean",
+      "verdict": "reused (vocabulary + lemma)",
+      "reason": "`CondIndepFun` plumbing states `ass:latent-ignorability`; the drop-of-conditioning integral identity is the tool for the iterated-expectation step of `lem:scm-moment-reduction`."
+    },
+    {
+      "module": "Causalean/Mathlib/MeasureTheory/FiniteAtomicMeasure.lean",
+      "verdict": "reused",
+      "reason": "Weighted-Dirac decomposition, a.s.-to-atom transfer and automatic integrability for the finite-atom endpoint measures of `thm:sharp-primal-dual`, `prop:boundary-dirac-regression`, `prop:m-one-regression`."
+    },
+    {
+      "module": "Causalean/Mathlib/Probability/BernoulliMeasure.lean",
+      "verdict": "reused",
+      "reason": "Two-point Bernoulli laws for the converse construction of `lem:scm-moment-reduction`."
+    },
+    {
+      "module": "CausalSmith/SCM/SCM_SelectiveLabelUntrialedImpact_Research/*",
+      "verdict": "analogous-module reference (not reuse — contains sorries)",
+      "reason": "Same architecture (observable polytope, response fiber, sharp endpoint programs as sInf/sSup, dual optimal faces, relatively-open strict-refinement region, whole-set confidence) in the FINITE-latent setting; F3 adapts the proof pattern, bridging `stdSimplex ℝ T` → `P(K_ε)` by Carathéodory compression."
+    },
+    {
+      "module": "CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Helpers/{ShiftedChebyshev,ChebyshevCertificate,MultinomialMoments}.lean",
+      "verdict": "analogous-module reference",
+      "reason": "Shifted-Chebyshev certificates and factorial-moment lifts for the SAME overlap-restricted four-cell reciprocal ATE integrand; gap: those target finite-category i.i.d. minimax MSE at scale `M⁻²`, we need the uniform `sech(m·arcosh(1/(1-2ε)))` sup-norm certificate for a population identified-set width."
+    },
+    {
+      "module": "Mathlib/MeasureTheory/VectorMeasure/Decomposition/Jordan.lean (SignedMeasure.toJordanDecomposition, toJordanDecomposition_spec, toSignedMeasure_toJordanDecomposition, JordanDecomposition.mutuallySingular, SignedMeasure.totalVariation)",
+      "verdict": "discharge pointer (not reused by F1 — round-5)",
+      "reason": "Clean, sorry-free Mathlib statement of the whole of `lem:jordan-decomposition-signed-measure`: the structure bundles finite `posPart`/`negPart` with `mutuallySingular`, `toJordanDecomposition_spec` / `toSignedMeasure_toJordanDecomposition` give `σ = σ⁺-σ⁻`, and `totalVariation` is definitionally `σ⁺+σ⁻`. F1 may NOT convert that into a reuse or a discharged lemma: the node is `status:\"cited\"` with `source.carrier:\"logical-claim\"`, so P9 admits only the `gate_class:\"cited\"` assumption branch or a `bin/gate.ts --discharge` stamp F1 cannot apply. The node is therefore planned as a threaded cited SUBSTRATE-GATE and these decls are recorded here as the orchestrator's `small`-effort discharge target."
+    },
+    {
+      "module": "CausalSmith/Experimentation/EXP_SaturationSkewThreshold_Research/Helpers/Bridge/SemialgebraicSolver.lean",
+      "verdict": "precedent (gate shape)",
+      "reason": "Existing threaded-`Prop` SUBSTRATE-GATE for the same Tarski--Seidenberg/CAD debt; `lem:cad-quantifier-elimination` copies its encoding."
+    },
+    {
+      "module": "Mathlib: stdSimplex, convexHull/Caratheodory, intrinsicInterior/intrinsicFrontier, Exposed/Extreme, Polynomial.Chebyshev.T (+T_real_cosh/T_real_cos), Real.arcosh (+cosh_arcosh), Nat.multinomial, Metric.infDist, C(K,ℝ) sup-norm, Measure.dirac",
+      "verdict": "reused",
+      "reason": "All verified present by `lean_local_search`/`lean_loogle`/`lean_leansearch`; they carry the simplex, convex-geometry, relative-interior, Chebyshev/hyperbolic, combinatorial and measure-theoretic layers so F2/F3 write only the paper-specific constructions."
+    }
+  ],
+  "file_plan": [
+    {
+      "file": "Basic.lean",
+      "contents": "Cell/simplex/K_ε/p/f/τ, plate random variables, the six assumption Props, the HierarchicalPlateModel structure, counts C_i.",
+      "projected_lines": 420
+    },
+    {
+      "file": "Helpers/BernsteinSpan.lean",
+      "contents": "I_m, N_m, B_c, g_m, V_m, Bernstein-coefficient uniqueness, lem:finite-plate-nonpolynomial.",
+      "projected_lines": 380
+    },
+    {
+      "file": "Helpers/MomentGeometry.lean",
+      "contents": "def:bernstein-moment-body, def:sharp-ate-fiber (reuse), L_m/U_m, def:bernstein-dual, def:valid-envelope-class, def:uniform-identification-modulus.",
+      "projected_lines": 320
+    },
+    {
+      "file": "Helpers/MomentReduction.lean",
+      "contents": "lem:scm-moment-reduction (both directions).",
+      "projected_lines": 520
+    },
+    {
+      "file": "Helpers/FullSupport.lean",
+      "contents": "lem:full-support-perturbation.",
+      "projected_lines": 400
+    },
+    {
+      "file": "Helpers/LimitedPooling.lean",
+      "contents": "w_m, ell_LW, u_LW, def:limited-pooling-comparator, I_LW_cap, envelope-validity algebra.",
+      "projected_lines": 420
+    },
+    {
+      "file": "Helpers/ExactMultinomial.lean",
+      "contents": "H_n, Z, hat_b, T_n, P_n, def:exact-multinomial-region, def:whole-set-confidence.",
+      "projected_lines": 380
+    },
+    {
+      "file": "Helpers/Chebyshev.lean",
+      "contents": "Shifted Chebyshev R_m, its sech bound on [ε,1-ε], the envelope v_m ∈ V_m, the cosh-vs-cosh^m strict comparison.",
+      "projected_lines": 450
+    },
+    {
+      "file": "Helpers/CitedAnalysis.lean",
+      "contents": "The three cited analysis SUBSTRATE-GATE Props (Hahn–Banach quotient norm, Riesz–Markov signed representation, Jordan decomposition of a finite signed measure), each a named `Sort 0` def threaded into `thm:growing-plate-identification-modulus`.",
+      "projected_lines": 80
+    },
+    {
+      "file": "Helpers/RealAlgebraic.lean",
+      "contents": "The CAD SUBSTRATE-GATE Prop plus def:cad-recovery-procedure, def:confidence-set-cad, def:boundary-atlas-handle output specifications.",
+      "projected_lines": 300
+    },
+    {
+      "file": "T_SharpPrimalDual.lean",
+      "contents": "thm:sharp-primal-dual.",
+      "projected_lines": 700
+    },
+    {
+      "file": "T_IdentificationFrontier.lean",
+      "contents": "thm:identification-frontier.",
+      "projected_lines": 380
+    },
+    {
+      "file": "T_BoundaryDiracRegression.lean",
+      "contents": "prop:boundary-dirac-regression.",
+      "projected_lines": 300
+    },
+    {
+      "file": "T_SharpEnvelopeDomination.lean",
+      "contents": "thm:sharp-envelope-domination.",
+      "projected_lines": 420
+    },
+    {
+      "file": "T_OptimizedLimitedPooling.lean",
+      "contents": "prop:optimized-limited-pooling-intersection.",
+      "projected_lines": 520
+    },
+    {
+      "file": "T_GrowingPlateModulus.lean",
+      "contents": "thm:growing-plate-identification-modulus.",
+      "projected_lines": 560
+    },
+    {
+      "file": "T_ExactCadRecovery.lean",
+      "contents": "thm:exact-cad-recovery.",
+      "projected_lines": 420
+    },
+    {
+      "file": "T_FiniteComplexityInference.lean",
+      "contents": "finite_complexity_inference_size / _semialgebraic / finite_complexity_inference (three declarations; only the last takes the CAD gate).",
+      "projected_lines": 560
+    },
+    {
+      "file": "T_WholeSetCoverage.lean",
+      "contents": "prop:whole-set-coverage.",
+      "projected_lines": 150
+    },
+    {
+      "file": "T_MOneRegression.lean",
+      "contents": "prop:m-one-regression.",
+      "projected_lines": 260
+    },
+    {
+      "file": "T_BoundaryFiberAtlas.lean",
+      "contents": "thm:boundary-fiber-atlas.",
+      "projected_lines": 520
+    }
+  ],
+  "decisions": [
+    "No paper manifest / `state.theorems` was supplied in the brief, so the paper-scoped preamble is inert: no `local_id` is set on statement nodes and no `theorems` manifest is emitted.",
+    "Exactly ONE node carries a TOTAL existing-decl fit and hence `disposition:\"reuse\"`: `def:sharp-ate-fiber` → `Causalean.PartialID.IdentifiedInterval` (the only Causalean total fit, sound and sorry-free). Every other Mathlib/Causalean fit is a component used inside a locally-defined node, or a discharge pointer on a cited gate, and is recorded in `notes` rather than as a `reuse` decl (a partial fit is not a discharge, and a `status:\"cited\"` node is not F1's to discharge at all).",
+    "ROUND-5 CORRECTION (P9, deterministic plan gate — supersedes rounds 3 and 4 on `lem:jordan-decomposition-signed-measure`): that node returns to the canonical cited SUBSTRATE-GATE form — `lean_kind:\"assumption\"`, `gate:true`, `gate_class:\"cited\"`, `defer_tier:true`, `disposition:\"define-local\"`, no `reuse`, no `citation_discharged` — encoded and threaded exactly like its siblings `lem:hahn-banach-quotient-norm` and `lem:riesz-markov-representation`. Why this and not the F2.5 directive's discharged form: P9 admits two branches for a `status:\"cited\"` + `source.carrier:\"logical-claim\"` node, and round 4 already tried the second one. The gate rejected it, reporting verbatim `got lean_kind=lemma, gate=false, gate_class=none, citation_discharged=true` — i.e. the discharged branch requires the stamp to have been applied by `bin/gate.ts --discharge`, which is an orchestrator action; F1 cannot run it, and the F1 contract states outright that F1 never emits that stamp nor a non-gate form for a cited statement. The `gate_class:\"cited\"` assumption branch is therefore the only state F1 can author that passes. The Mathlib discharge target (`SignedMeasure.toJordanDecomposition` + `toJordanDecomposition_spec` + `totalVariation`, re-verified this round) is preserved on the node as a `small`-effort discharge pointer so the orchestrator can run the supported path and drop the hyp. Consistency edit on its single consumer: `thm:growing-plate-identification-modulus` lists it in `hyps` again (three cited gates) and the round-4 `deps` list is removed; it remains `defer_tier:false` and IN SCOPE under the gate-consumer rule. Dependency closure of this edit is exactly {the node, that one consumer} plus the bookkeeping mirrors in `substrate_survey` and `file_plan`: no class `members`, no S-block world choice, no other gate tag, no module assignment, no other `defer_tier`, and no other node's disposition moved; the sole explicit reuse `Causalean.PartialID.IdentifiedInterval` and the Round-2 schema fixes (`cite:<slug>` string `source`s; `citations[]` with title/authors/year) are untouched.",
+    "All four `status:\"cited\"` statements (`lem:cad-quantifier-elimination`, `lem:hahn-banach-quotient-norm`, `lem:riesz-markov-representation`, `lem:jordan-decomposition-signed-measure`) are kept as `gate:true, gate_class:\"cited\", lean_kind:\"assumption\"` per frozen D0 provenance and threaded into their consumers; Mathlib discharge pointers with effort estimates are recorded in `notes` for the supported `bin/gate.ts --discharge` path, which F1 does not invoke. None is a proof obligation and none appears in a theorem manifest.",
+    "Round-2 schema fix (shape only, no disposition moved): each cited node's `source` is now the STRING `cite:<slug>` pointing at its `citations[]` entry, as the schema requires; the frozen D0 provenance it used to carry is preserved verbatim on the flat sibling string keys `source_carrier` / `source_bibkey` / `source_locator` / `source_verbatim_statement`, and the full record (locator, carrier, doi, url) remains in `citations[]`. Every `source.carrier` stays `logical-claim`; at round 2 all four were `lean_kind:\"assumption\"` threaded into their consumers' `hyps`, and that round changed nothing about gate/crux tagging, `defer_tier`, `hyps` closure, or reuse dispositions. The round-3 and round-4 attempts to move `lem:jordan-decomposition-signed-measure` off that shape are both superseded by the ROUND-5 correction above, which restores it; all four cited nodes are again `gate_class:\"cited\"` threaded assumptions, exactly as at round 2.",
+    "Round-2 schema fix: each `citations[]` entry now carries the required `title`, `authors`, `year`. For the three Encyclopedia of Mathematics articles `authors` is the corporate author \"Encyclopedia of Mathematics\" and `year` is the 2026 access year recorded in the D0 attestation (the articles carry no separate publication year); the full access-dated citation string is unchanged.",
+    "`thm:finite-complexity-inference` is planned as three declarations so that its GATE-FREE size clause can be consumed by `prop:whole-set-coverage`, whose `depends_on` does not contain the CAD gate; merging them would force an unthreadable hypothesis into the coverage corollary.",
+    "The CAD/QE dependency is tagged substrate-gate (never crux) by BUILDABILITY: real-closed-field quantifier elimination is a major upstream Mathlib contribution, and the repo already carries the identical gate at EXP_SaturationSkewThreshold_Research/Helpers/Bridge/SemialgebraicSolver.lean.",
+    "The three CAD consumers and `thm:growing-plate-identification-modulus` are IN SCOPE (`defer_tier:false`) under the gate-consumer rule: their Defer-tier difficulty is entirely due to gated dependencies, and their own remaining content is build-inline."
+  ]
+}

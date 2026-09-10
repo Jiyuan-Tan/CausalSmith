@@ -39,7 +39,8 @@ namespace Causalean
 namespace Stat
 namespace Concentration
 
-/-- The star hull of a function family `F : ι → 𝒳 → ℝ` around the origin.
+/-- Given [a real-valued family of functions on a covariate space](hyp:F), the [star hull of that family about zero](goal) is the set of all functions obtained by multiplying one member of the family by a real coefficient between zero and one, inclusive.
+
     Each element is an `α`-rescaling of some `F i` for `α ∈ [0, 1]`. -/
 def starHull {ι 𝒳 : Type*} (F : ι → 𝒳 → ℝ) : Set (𝒳 → ℝ) :=
   {f | ∃ (i : ι) (α : ℝ), 0 ≤ α ∧ α ≤ 1 ∧ f = α • F i}
@@ -73,7 +74,9 @@ lemma starHull_smul_mem {ι 𝒳 : Type*} (F : ι → 𝒳 → ℝ) (i : ι)
     (α • F i) ∈ starHull F := by
   exact ⟨i, α, h₀, h₁, rfl⟩
 
-/-- The star hull re-indexed as a `Type` (subtype carrier), suitable for
+/-- Given [a real-valued family of functions on a covariate space](hyp:F), the [star-hull index set](goal) is the collection of precisely those functions that belong to its star hull.
+
+    The star hull re-indexed as a `Type` (subtype carrier), suitable for
     the `ι`-parameter slot in `empiricalRademacherComplexity`,
     `rademacherComplexity`, etc.
 
@@ -86,7 +89,9 @@ lemma starHull_smul_mem {ι 𝒳 : Type*} (F : ι → 𝒳 → ℝ) (i : ι)
 noncomputable def starHullIndex {ι 𝒳 : Type*} (F : ι → 𝒳 → ℝ) : Type _ :=
   { f : 𝒳 → ℝ // f ∈ starHull F }
 
-/-- **Star-hull parameter type.** A pair `(α, i)` with `α ∈ [0, 1]` and
+/-- Given [an index set](hyp:ι), the [star-hull parameter set](goal) consists of every pair of an index from that set and a real scaling coefficient between zero and one, inclusive.
+
+    **Star-hull parameter type.** A pair `(α, i)` with `α ∈ [0, 1]` and
     `i : ι` parameterises the star-hull element `α • F i`. This is the
     preferred index for downstream Rademacher-complexity arguments: it
     carries the multiplicative parameter explicitly, and monotonicity in
@@ -94,7 +99,9 @@ noncomputable def starHullIndex {ι 𝒳 : Type*} (F : ι → 𝒳 → ℝ) : Ty
 def starHullParam (ι : Type*) : Type _ :=
   Set.Icc (0 : ℝ) 1 × ι
 
-/-- The star-hull element associated to a parameter `(α, i)`: pointwise
+/-- Given [a real-valued family of functions on a covariate space](hyp:F), the [star-hull evaluation map](goal) assigns to each admissible scaling coefficient and family index the corresponding rescaled function, whose value at each covariate point is the coefficient times that function's value.
+
+    The star-hull element associated to a parameter `(α, i)`: pointwise
     `α · F i x`. This is the "evaluation map" through which all
     star-hull arguments factor in the new `starHullParam` substrate. -/
 def starHullEval {ι 𝒳 : Type*} (F : ι → 𝒳 → ℝ) :

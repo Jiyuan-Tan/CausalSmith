@@ -18,8 +18,9 @@ namespace Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension
 
 noncomputable section
 
-/-- An irreducible affine-closed set is a nonempty polynomially closed set that
-cannot be expressed as the union of two smaller polynomially closed sets. -/
+/-- For [a coordinate index set](hyp:ι) and [a subset $Z$ of the corresponding complex affine space](hyp:Z), an [irreducible affine-closed set](goal) is a set that [equals its polynomial Zariski closure](step:1), [is nonempty](step:2), and [whenever it is the union of two affine-closed subsets, equals one of those two subsets](step:3).
+
+An irreducible affine-closed set is a nonempty polynomially closed set that cannot be expressed as the union of two smaller polynomially closed sets. -/
 def IsIrreducibleAffineClosed {ι : Type*} (Z : Set (ι → ℂ)) : Prop :=
   affineZariskiClosure Z = Z ∧ Z.Nonempty ∧
     ∀ Z₁ Z₂ : Set (ι → ℂ),

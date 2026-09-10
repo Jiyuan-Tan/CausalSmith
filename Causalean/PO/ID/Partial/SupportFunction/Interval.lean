@@ -122,8 +122,10 @@ theorem linearImage_eq_Icc_of_isCompact {C : Set E} {d : E}
     change ⟪d, xL⟫ = -supportFn C (-d)
     rw [hsup, inner_neg_left]; ring
 
-/-- The **width** of the identified set: `supportFn C d + supportFn C (-d)`, i.e.
-the upper endpoint minus the lower endpoint. -/
+/-- For [a real inner-product space](hyp:E), [a set of feasible vectors in that space](hyp:C),
+and [a direction in the same space](hyp:d), [the width of the associated identified interval](goal)
+is its upper endpoint minus its lower endpoint, equivalently the sum of the support values in the
+direction and its negative. -/
 noncomputable def width (C : Set E) (d : E) : ℝ := supportFn C d + supportFn C (-d)
 
 /-- The identified width is nonnegative. -/

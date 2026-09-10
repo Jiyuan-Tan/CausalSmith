@@ -24,7 +24,9 @@ open scoped BigOperators
 variable {𝒳 : Type v}
 variable {n : ℕ}
 
-/-- The empirical norm is the root mean square value of a function on a fixed
+/-- For [a sample of $n$ observations](hyp:n,S) and [a real-valued function on its observation space](hyp:f), the [empirical norm of the function on that sample](goal) is the square root of the average of its squared values at the sample observations.
+
+The empirical norm is the root mean square value of a function on a fixed
 sample. -/
 noncomputable def empiricalNorm (S : Fin n → 𝒳) (f : 𝒳 → ℝ) : ℝ :=
   Real.sqrt ((1 / n) * ∑ i : Fin n, (f (S i)^2))
@@ -36,7 +38,9 @@ lemma empiricalNorm_def (S : Fin n → 𝒳) (f : 𝒳 → ℝ) :
     empiricalNorm S f = Real.sqrt ((1 / n) * ∑ i : Fin n, (f (S i))^2) :=
   rfl
 
-/-- The empirical distance between two functions is the empirical norm of their
+/-- For [a sample of $n$ observations](hyp:n,S) and [two real-valued functions on its observation space](hyp:f,g), the [empirical distance between the functions](goal) is the empirical norm of their pointwise difference on that sample.
+
+The empirical distance between two functions is the empirical norm of their
 difference on the fixed sample. -/
 noncomputable def empiricalDist (S : Fin n → 𝒳) (f g : 𝒳 → ℝ) : ℝ :=
   empiricalNorm S (f - g)
@@ -49,7 +53,9 @@ lemma empiricalDist_def (S : Fin n → 𝒳) (f g : 𝒳 → ℝ) :
     empiricalDist S f g = empiricalNorm S (f - g) :=
   rfl
 
-/-- The empirical distance defines a pseudometric on functions evaluated on the
+/-- For [a sample of $n$ observations](hyp:n,S), the [empirical pseudometric on real-valued functions on the observation space](goal) is the pseudometric whose distance between two functions is their empirical distance on that sample.
+
+The empirical distance defines a pseudometric on functions evaluated on the
 fixed sample. -/
 noncomputable def empiricalPMet (S : Fin n → 𝒳) :
     PseudoMetricSpace (𝒳 → ℝ) where
@@ -141,8 +147,10 @@ structure EmpiricalFunctionSpace (F : ι → 𝒳 → ℝ) (S : Fin n → 𝒳) 
   /-- The index selecting a function from the class. -/
   index : ι
 
-/-- An empirical function-space element evaluates as the function selected by
-its index. -/
+/-- For every [observation space](hyp:𝒳), [sample size](hyp:n), [index set](hyp:ι),
+[real-valued function class on that space](hyp:F), and [sample of that size](hyp:S), the
+[function-evaluation coercion](goal) identifies each empirical-function-space element with
+the function selected by its index; [its evaluation rule](step:1) returns that selected function. -/
 instance : CoeFun (EmpiricalFunctionSpace F S) (fun _ ↦ 𝒳 → ℝ) where
   coe f := F f.index
 
@@ -152,14 +160,18 @@ stores. -/
     (q : EmpiricalFunctionSpace F S) :
     (q : 𝒳 → ℝ) = F q.index := rfl
 
-/-- The empirical function space inherits the empirical distance on the selected
-functions. -/
+/-- For every [observation space](hyp:𝒳), [sample size](hyp:n), [index set](hyp:ι),
+[real-valued function class on that space](hyp:F), and [sample of that size](hyp:S), the
+[distance structure on the empirical function space](goal) assigns to two selected functions
+their empirical distance on the sample; [its distance rule](step:1) is that empirical distance. -/
 @[simps!]
 noncomputable instance : Dist (EmpiricalFunctionSpace F S) where
   dist f g := empiricalDist S f g
 
-/-- The empirical function space is a pseudometric space under sample empirical
-distance. -/
+/-- For every [observation space](hyp:𝒳), [sample size](hyp:n), [index set](hyp:ι),
+[real-valued function class on that space](hyp:F), and [sample of that size](hyp:S), the
+[pseudometric-space structure on the empirical function space](goal) is the one induced by
+the empirical pseudometric of the selected functions on that sample. -/
 noncomputable instance : PseudoMetricSpace (EmpiricalFunctionSpace F S) :=
   PseudoMetricSpace.induced (fun f ↦ F f.index) (empiricalPMet S)
 

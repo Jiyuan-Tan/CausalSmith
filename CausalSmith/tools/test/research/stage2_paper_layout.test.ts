@@ -17,12 +17,16 @@ import {
   parseLeanNodeTags,
   undeliveredBlockFromPlan,
   blockingPostSyncPlanViolations,
+  canonicalizeCitedPlanAfterF2,
   restoreDeletedReviseFiles,
 } from "../../src/formalization/stage2.js";
 import { promptPath } from "../../src/paths.js";
 import type { PipelineContext, StateJson } from "../../src/types.js";
 import type { StageDeps } from "../../src/pipeline_support.js";
 import type { TheoremEntry } from "../../src/shared/paper_batch_types.js";
+import { buildGraphFromCorePlan } from "../../src/graph/from_core.js";
+import { graphDerivedSkeleton } from "../../src/graph/skeleton.js";
+import { convergenceTargets } from "../../src/graph/review_scope.js";
 
 let repoRoot: string;
 
@@ -35,6 +39,86 @@ describe("F2 post-sync plan gate", () => {
       { code: "P6", where: "thm:main", message: "module lookup" },
     ] as const;
     expect(blockingPostSyncPlanViolations(violations as never).map((v) => v.code)).toEqual(["P2", "P4"]);
+  });
+
+  it("canonicalizes null optional keys and restores cited provenance on Prop and metadata defs", () => {
+    const plan = {
+      nodes: {
+        "lem:prop-citation": { lean_kind: "assumption", gate: false, gate_class: null },
+        "lem:scope-citation": { lean_kind: "def", gate: false, gate_class: null },
+        "thm:unstamped-discharge": { lean_kind: "theorem", gate: false, gate_class: null },
+        "thm:ordinary": { lean_kind: "theorem", gate: null, gate_class: null },
+      },
+    };
+    const core = {
+      statements: [
+        { id: "lem:prop-citation", status: "cited", source: { carrier: "logical-claim" } },
+        { id: "lem:scope-citation", status: "cited", source: { carrier: "bibliographic-metadata" } },
+        { id: "thm:unstamped-discharge", status: "cited", source: { carrier: "logical-claim" } },
+        { id: "thm:ordinary", status: "proved" },
+      ],
+    } as never;
+
+    const result = canonicalizeCitedPlanAfterF2(plan, core);
+    expect(result.changed).toBe(true);
+    expect(plan.nodes["lem:prop-citation"]).toMatchObject({ gate: true, gate_class: "cited" });
+    expect(plan.nodes["lem:scope-citation"]).toMatchObject({ gate: true, gate_class: "cited" });
+    expect(plan.nodes["thm:unstamped-discharge"]).toEqual({ lean_kind: "theorem", gate: false });
+    expect(plan.nodes["thm:ordinary"]).toEqual({ lean_kind: "theorem" });
+  });
+
+  it("keeps a canonicalized cited metadata def on the graph and F4 source-review surface", () => {
+    const core = {
+      qid: "cited_metadata",
+      specialization: "v1",
+      cluster: "stat",
+      symbols: [],
+      assumptions: [],
+      definitions: [],
+      statements: [{
+        id: "lem:published-scope",
+        kind: "lemma",
+        statement: "The source is confined to its stated model and makes no broader claim.",
+        depends_on: [],
+        status: "cited",
+        source: { cite: "source", locator: "Theorem 1", carrier: "bibliographic-metadata" },
+      }],
+      target_estimand: "none",
+      bibliography: [],
+    } as never;
+    const plan = {
+      qid: "cited_metadata",
+      specialization: "v1",
+      env: [],
+      nodes: {
+        "lem:published-scope": {
+          lean_kind: "def",
+          lean_name: "PublishedScope",
+          disposition: "define-local",
+          gate: false,
+          gate_class: null,
+          source: "cite:source",
+        },
+      },
+      citations: [{
+        id: "cite:source",
+        title: "Source",
+        authors: "Author",
+        year: 2026,
+        locator: "Theorem 1",
+        verbatim_statement: "The source is confined to its stated model.",
+      }],
+    };
+
+    canonicalizeCitedPlanAfterF2(plan, core);
+    const graph = buildGraphFromCorePlan(core, "v1", plan as never);
+    const node = graph.nodes.find((candidate) => candidate.id === "lem:published-scope");
+    expect(node).toMatchObject({ kind: "gate", gate: { gate_class: "cited", source: "cite:source" } });
+    expect(graphDerivedSkeleton(graph)).toContainEqual(expect.objectContaining({
+      graph_node_id: "lem:published-scope",
+      kind: "assumption",
+    }));
+    expect(convergenceTargets(graph).assumptionTargets).toContain("lem:published-scope");
   });
 });
 

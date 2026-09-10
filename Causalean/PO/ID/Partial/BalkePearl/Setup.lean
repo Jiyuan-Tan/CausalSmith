@@ -55,26 +55,26 @@ variable {P : POSystem} (S : POBalkePearlSystem P)
 
 /-! ### POVar wrappers -/
 
-/-- Instrument packaged as a `POVar` valued in `Bool`. -/
+/-- For [a potential-outcomes system](hyp:P) and [a binary Balke--Pearl system on it](hyp:S), the [instrument variable](goal) is the system's instrument, packaged together with its binary measurement scale. -/
 def zVar : POVar P Bool := ⟨S.Z, S.hZbool⟩
 
-/-- Treatment packaged as a `POVar` valued in `Bool`. -/
+/-- For [a potential-outcomes system](hyp:P) and [a binary Balke--Pearl system on it](hyp:S), the [treatment variable](goal) is the system's treatment, packaged together with its binary measurement scale. -/
 def dVar : POVar P Bool := ⟨S.D, S.hDbool⟩
 
-/-- Outcome packaged as a `POVar` valued in `Bool`. -/
+/-- For [a potential-outcomes system](hyp:P) and [a binary Balke--Pearl system on it](hyp:S), the [outcome variable](goal) is the system's outcome, packaged together with its binary measurement scale. -/
 def yVar : POVar P Bool := ⟨S.Y, S.hYbool⟩
 
 /-! ### Single-target counterfactuals -/
 
-/-- The treatment value that would be observed for a unit if the instrument were set to `z`. -/
+/-- For [a potential-outcomes system](hyp:P), [a binary Balke--Pearl system on it](hyp:S), and [an instrument value](hyp:z), the [potential treatment function](goal) maps each unit to the treatment it would receive were the instrument set to that value. -/
 noncomputable def DofZ (z : Bool) : P.Ω → Bool := S.dVar.cfUnder S.zVar z
 
-/-- `Y(d) : P.Ω → Bool`. -/
+/-- For [a potential-outcomes system](hyp:P), [a binary Balke--Pearl system on it](hyp:S), and [a treatment value](hyp:d), the [potential outcome function](goal) maps each unit to the binary outcome it would have under that treatment value. -/
 noncomputable def YofD (d : Bool) : P.Ω → Bool := S.yVar.cfUnder S.dVar d
 
 /-! ### Two-target counterfactual Y(z,d) -/
 
-/-- Two-variable intervention regime `r_{z,d} = ({Z,D}, (z,d))`.
+/-- For [a potential-outcomes system](hyp:P), [a binary Balke--Pearl system on it](hyp:S), [an instrument value](hyp:z), and [a treatment value](hyp:d), the [joint intervention regime](goal) sets the instrument to the specified instrument value and the treatment to the specified treatment value.
 
 Built as a disjoint union of the singleton regimes `{Z ← z}` and `{D ← d}`;
 disjointness uses `S.hZD : Z ≠ D`. -/
@@ -83,39 +83,39 @@ noncomputable def regimeZD (z d : Bool) : Regime P.V P.X :=
     (Regime.single S.D (S.hDbool.symm d))
     (Regime.single_disjoint_single S.hZD _ _)
 
-/-- Two-variable counterfactual `Y(z,d) := yVar.cf (r_{z,d})`. -/
+/-- For [a potential-outcomes system](hyp:P), [a binary Balke--Pearl system on it](hyp:S), [an instrument value](hyp:z), and [a treatment value](hyp:d), the [joint-intervention potential outcome function](goal) maps each unit to its outcome when the instrument and treatment are set jointly to those values. -/
 noncomputable def YofZD (z d : Bool) : P.Ω → Bool := S.yVar.cf (S.regimeZD z d)
 
 /-! ### Factuals -/
 
-/-- Factual instrument. -/
+/-- For [a potential-outcomes system](hyp:P) and [a binary Balke--Pearl system on it](hyp:S), the [factual instrument function](goal) maps each unit to its observed binary instrument value. -/
 noncomputable def factualZ : P.Ω → Bool := S.zVar.factual
 
-/-- Factual treatment. -/
+/-- For [a potential-outcomes system](hyp:P) and [a binary Balke--Pearl system on it](hyp:S), the [factual treatment function](goal) maps each unit to its observed binary treatment value. -/
 noncomputable def factualD : P.Ω → Bool := S.dVar.factual
 
-/-- Factual outcome. -/
+/-- For [a potential-outcomes system](hyp:P) and [a binary Balke--Pearl system on it](hyp:S), the [factual outcome function](goal) maps each unit to its observed binary outcome value. -/
 noncomputable def factualY : P.Ω → Bool := S.yVar.factual
 
 /-! ### Real cast for integration -/
 
-/-- Canonical embedding of `Bool` into `ℝ`: `true ↦ 1`, `false ↦ 0`. -/
+/-- The [binary-to-real encoding](goal) maps every binary value to a real number: [for true](step:1), its value is one, and [for false](step:2), its value is zero. -/
 @[simp] noncomputable def boolToReal : Bool → ℝ
   | true  => 1
   | false => 0
 
-/-- `Y(d)` lifted to `ℝ` for integration. -/
+/-- For [a potential-outcomes system](hyp:P), [a binary Balke--Pearl system on it](hyp:S), and [a treatment value](hyp:d), the [real-valued potential outcome function](goal) maps each unit's binary potential outcome under that treatment to its zero--one real encoding. -/
 noncomputable def YofD_real (d : Bool) : P.Ω → ℝ := boolToReal ∘ S.YofD d
 
 /-! ### Events -/
 
-/-- The event `{Z = z}`. -/
+/-- For [a potential-outcomes system](hyp:P), [a binary Balke--Pearl system on it](hyp:S), and [an instrument value](hyp:z), the [instrument event](goal) is the set of units whose factual instrument equals that value. -/
 def zEvent (z : Bool) : Set P.Ω := S.zVar.event z
 
-/-- The event `{D = d}`. -/
+/-- For [a potential-outcomes system](hyp:P), [a binary Balke--Pearl system on it](hyp:S), and [a treatment value](hyp:d), the [treatment event](goal) is the set of units whose factual treatment equals that value. -/
 def dEvent (d : Bool) : Set P.Ω := S.dVar.event d
 
-/-- The event `{Y = y}`. -/
+/-- For [a potential-outcomes system](hyp:P), [a binary Balke--Pearl system on it](hyp:S), and [an outcome value](hyp:y), the [outcome event](goal) is the set of units whose factual outcome equals that value. -/
 def yEvent (y : Bool) : Set P.Ω := S.yVar.event y
 
 /-! ### Measurability -/
@@ -170,13 +170,13 @@ lemma measurable_YofD_real (d : Bool) : Measurable (S.YofD_real d) :=
 
 /-! ### Target parameter and cell probability -/
 
-/-- Average treatment effect `E[Y(1) - Y(0)]` (as a difference of Bool-in-ℝ integrals). -/
+/-- For [a potential-outcomes system](hyp:P) and [a binary Balke--Pearl system on it](hyp:S), the [average treatment effect](goal) is the expectation, under the system's probability measure, of the real-valued potential outcome under treatment minus that under control. -/
 noncomputable def ATE : ℝ :=
   ∫ ω, S.YofD_real true ω - S.YofD_real false ω ∂P.μ
 
-/-- Conditional cell probability `P(Y = y, D = d | Z = z)`.
+/-- For [a potential-outcomes system](hyp:P), [a binary Balke--Pearl system on it](hyp:S), [an outcome value](hyp:y), [a treatment value](hyp:d), and [an instrument value](hyp:z), the [conditional cell probability](goal) is the probability that the factual outcome and treatment equal the specified values conditional on the factual instrument equaling the specified instrument value.
 
-Defined as `μ(Z = z ∩ Y = y ∩ D = d) / μ(Z = z)`. -/
+It is defined as the probability of the joint instrument--outcome--treatment event divided by the probability of the instrument event. -/
 noncomputable def cellProb (y d z : Bool) : ℝ :=
   (P.μ (S.zEvent z ∩ S.yEvent y ∩ S.dEvent d)).toReal
     / (P.μ (S.zEvent z)).toReal

@@ -34,14 +34,11 @@ describe("paper state", () => {
       pinned_commit: null,
       revision_round: 3,
       p5_healing_rounds: 3,
-      p5_last_fingerprints: ["old"],
       p5_last_score: 6.2,
       hard_gate_failures: [],
       notes: [],
     }));
     const state = await loadPaperState(dir, "q", "v1");
-    expect(state!.p5_revision_passes).toBe(0);
-    expect(state!.p5_last_fingerprints).toEqual(["old"]);
     await rm(dir, { recursive: true, force: true });
   });
 });

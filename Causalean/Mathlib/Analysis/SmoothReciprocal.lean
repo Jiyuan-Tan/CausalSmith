@@ -17,7 +17,12 @@ by a `Real.smoothTransition` cutoff that is `1` on the feasible region and `0` p
 
 namespace Causalean.Mathlib
 
-/-- **Floored reciprocal.** The reciprocal `x⁻¹` multiplied by a smooth cutoff that is `1` once
+/-- Given [a real cutoff scale $\varepsilon$](hyp:ε) and [a real argument $x$](hyp:x), the
+[floored reciprocal](goal) is $x^{-1}$ multiplied by the smooth transition evaluated at
+$(x-\varepsilon/4)/(\varepsilon/4)$. This definition applies for every real cutoff scale,
+including zero and negative values.
+
+**Floored reciprocal.** The reciprocal `x⁻¹` multiplied by a smooth cutoff that is `1` once
 `x` is a definite distance above `0` and `0` near and below `0`. It coincides with `x⁻¹` on
 `x ≥ ε/2` (see `recipC_eq_inv`) yet is globally `C¹` (see `recipC_contDiff`). -/
 noncomputable def recipC (ε : ℝ) (x : ℝ) : ℝ :=

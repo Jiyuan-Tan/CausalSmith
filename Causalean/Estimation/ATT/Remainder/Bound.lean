@@ -47,7 +47,7 @@ namespace TreatedEstimationSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- **AIPW remainder constant for one-sided overlap `ε` (ATT version).**
+/-- For [a real number $\varepsilon$](hyp:ε), the [ATT augmented inverse-probability-weighting remainder constant](goal) is $1/\varepsilon$.
 
 Under `ê ≤ 1 − ε`, the IPW reweighting `1/(1 − ê)` is bounded by `1/ε`;
 combined with the single cross-product from `aipw_remainder_identity_ATT`,

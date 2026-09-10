@@ -42,21 +42,32 @@ open MeasureTheory
 
 variable {γ : Type*} [MeasurableSpace γ]
 
-/-- The treatment residual subtracts the nuisance treatment regression from the
-observed treatment value. -/
+/-- For [a measurable covariate space](hyp:γ), [a pair of outcome and treatment
+regression functions](hyp:η), and [an observed covariate, treatment, and outcome
+triple](hyp:z), the [partially linear treatment residual](goal) is the observed
+treatment minus its treatment-regression prediction. -/
 def plrResidual (η : PLRNuisance γ) (z : γ × ℝ × ℝ) : ℝ := z.2.1 - η.mFn z.1
 
-/-- The Robinson partialling-out score multiplies the structural residualized
-outcome by the treatment residual. -/
+/-- For [a measurable covariate space](hyp:γ), [a pair of outcome and treatment
+regression functions](hyp:η), [an observed covariate, treatment, and outcome
+triple](hyp:z), and [a real-valued structural slope](hyp:θ), the [Robinson
+partialling-out score](goal) is the product of the treatment residual and the
+outcome residual after subtracting that slope times the treatment residual. -/
 def plrMomentFunctional (η : PLRNuisance γ) (z : γ × ℝ × ℝ) (θ : ℝ) : ℝ :=
   (z.2.2 - η.lFn z.1 - θ * plrResidual η z) * plrResidual η z
 
-/-- The linear-score coefficient is minus the squared treatment residual. -/
+/-- For [a measurable covariate space](hyp:γ), [a pair of outcome and treatment
+regression functions](hyp:η), and [an observed covariate, treatment, and outcome
+triple](hyp:z), the [coefficient of the partially linear score that is linear in
+the structural slope](goal) is minus the squared treatment residual. -/
 def plrMomentA (η : PLRNuisance γ) (z : γ × ℝ × ℝ) : ℝ :=
   -(plrResidual η z) ^ 2
 
-/-- The linear-score constant term is the residualized outcome times the
-treatment residual. -/
+/-- For [a measurable covariate space](hyp:γ), [a pair of outcome and treatment
+regression functions](hyp:η), and [an observed covariate, treatment, and outcome
+triple](hyp:z), the [constant term in the partially linear score](goal) is the
+product of the treatment residual and the outcome minus its outcome-regression
+prediction. -/
 def plrMomentB (η : PLRNuisance γ) (z : γ × ℝ × ℝ) : ℝ :=
   (z.2.2 - η.lFn z.1) * plrResidual η z
 

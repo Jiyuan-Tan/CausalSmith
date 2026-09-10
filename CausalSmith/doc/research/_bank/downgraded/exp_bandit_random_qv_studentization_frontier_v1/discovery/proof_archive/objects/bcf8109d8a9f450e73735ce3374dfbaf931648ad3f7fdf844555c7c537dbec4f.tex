@@ -1,0 +1,220 @@
+Write \(\mu _1=1/2\), \(\mu _2=1/12\), \(p=99/100\), \(q=1/100\), and \(C_{t,a}=\mathbf 1\{A_t=a\}\).  The recursion in \(\textnormal{def:guoxu-recursion}\) gives, for every \(t\geq 1\),
+\[
+ D_{t,a}=1+\sum_{s=1}^t C_{s,a}X_s^2,\qquad
+ N_{t,a}=\eta_{0,a}+\sum_{s=1}^t C_{s,a}X_s(\mu_a+\sigma_aR_{s,a}),\qquad
+ \widehat\beta^{\mathrm{GX}}_{t,a}=\frac{N_{t,a}}{D_{t,a}}. \tag{1}
+\]
+The clipped randomization assigns either arm with conditional probability at least \(q\).  Because \(X_s\) is independent of \(\mathcal F_{s-1}\) and uniform on \(\{-4,1\}\),
+\[
+ E[C_{s,a}X_s^2\mid\mathcal F_{s-1}]
+ \geq qE[X_s^2]=\frac{17}{200}. \tag{2}
+\]
+We first record the elementary bounded-martingale argument used repeatedly below.  If \((U_s)\) is a scalar martingale-difference sequence with \(|U_s|\leq L\), expansion of the square and iterated conditional expectation make the cross terms zero, so \(E(\sum_{s\leq n}U_s)^2\leq L^2n\).  At \(n=k^2\), the pointwise inequality \(\mathbf 1\{|x|>a\}\leq x^2/a^2\) gives
+\[
+ P\left(\left|\sum_{s\leq k^2}U_s\right|>\epsilon k^2\right)
+ \leq \frac{L^2}{\epsilon^2k^2}.
+\]
+For every \(K\), the probability that one of these events occurs for some \(k\geq K\) is at most \(L^2\epsilon^{-2}\sum_{k\geq K}k^{-2}\), which tends to zero as \(K\to\infty\).  Thus only finitely many occur almost surely and \(k^{-2}\sum_{s\leq k^2}U_s\to0\).  The at most \(2k+1\) bounded increments between \(k^2\) and \((k+1)^2\) fill the gaps, proving \(n^{-1}\sum_{s\leq n}U_s\to0\) almost surely.
+
+Apply this result to \(C_{s,a}X_s^2-E[C_{s,a}X_s^2\mid\mathcal F_{s-1}]\).  Equations (1)--(2) yield
+\[
+ \liminf_{t\to\infty}\frac{D_{t,a}}t\geq\frac{17}{200},
+ \qquad q^{\mathrm{GX}}_{t,a}=D_{t,a}^{-1}=O(t^{-1})
+ \quad\text{almost surely}. \tag{3}
+\]
+The same argument applies to \(C_{s,a}X_sR_{s,a}\): by the ordering in \(\textnormal{def:guoxu-recursion}\), the action is randomized before the reward innovation is observed, and that innovation is conditionally centered.  Hence
+\[
+ t^{-1}\sum_{s=1}^tC_{s,a}X_sR_{s,a}\longrightarrow0
+ \quad\text{almost surely}. \tag{4}
+\]
+Moreover, (1) expresses each slope as a convex combination of its initial value \(\eta_{0,a}\) and the observed ratios \(Y_s(a)/X_s\), with weights \(1\) and \(C_{s,a}X_s^2\).  The envelope \(M_{\mathrm{GX}}\) therefore bounds both slopes.  Together with bounded \(X_s\) and bounded Rademacher rewards, this bounds every coordinate of \(\Psi_t\); by (3), both normalized Gram coordinates are eventually bounded away from zero.
+
+Define
+\[
+ U_{t+1}=\bigl(C_{t+1,1}X_{t+1}^2,C_{t+1,2}X_{t+1}^2,
+ C_{t+1,1}X_{t+1}Y_{t+1}(1),C_{t+1,2}X_{t+1}Y_{t+1}(2)\bigr).
+\]
+Dividing the four sufficient-statistic updates by \(t+1\) gives the exact stochastic-approximation recursion
+\[
+ \Psi_{t+1}-\Psi_t=\frac1{t+1}(U_{t+1}-\Psi_t). \tag{5}
+\]
+Conditional on \(\mathcal F_t\), let \(u_t\) and \(v_t\) be the arm-one assignment probabilities at contexts \(1\) and \(-4\), respectively.  Conditional centering of the rewards and direct averaging over the two equally likely contexts give
+\[
+ E[U_{t+1}\mid\mathcal F_t]=h(u_t,v_t), \tag{6}
+\]
+because the four coordinates on the right are
+\[
+ \frac{u_t+16v_t}{2},\qquad \frac{17-u_t-16v_t}{2},\qquad
+ \mu_1\frac{u_t-4v_t}{2},\qquad
+ \mu_2\frac{-3-u_t+4v_t}{2}.
+\]
+This is precisely the displayed formula for \(h\).
+
+For \(\psi=(d_1,d_2,n_1,n_2)\), put \(\Delta(\psi)=n_1/d_1-n_2/d_2\).  At the current normalized state,
+\[
+ b_t:=\sqrt{q^{\mathrm{GX}}_{t,1}}-\sqrt{q^{\mathrm{GX}}_{t,2}}
+ =t^{-1/2}\bigl(d_{t,1}^{-1/2}-d_{t,2}^{-1/2}\bigr). \tag{7}
+\]
+The arm-one minus arm-two UCB index has the sign of \(\Delta(\Psi_t)+b_t\) at context \(1\), and the sign of \(b_t-\Delta(\Psi_t)\) at context \(-4\).  Equation (3) gives \(|b_t|=O(t^{-1/2})\).  Consequently, away from \(\Delta=0\), the two greedy choices are eventually opposite: \((u_t,v_t)=(p,q)\) for \(\Delta>0\), and \((u_t,v_t)=(q,p)\) for \(\Delta<0\).  On \(\Delta=0\), equation (7) has the sign of \(d_2-d_1\).  Thus both contexts make arm one greedy when \(d_1<d_2\), both make arm two greedy when \(d_1>d_2\), and the specified deterministic tie rule makes arm one greedy when \(d_1=d_2\).  The corresponding conditional means are \(h_1,h_2,h_1\), respectively.
+
+This calculation gives the asserted closed convexified graph.  To verify the perturbation condition explicitly, observe that a same-arm mode can occur off the switching surface only if \(|\Delta(\Psi_t)|\leq |b_t|\).  On the eventual compact region already obtained, replace \(n_1\) by \(n_1-d_1\Delta(\Psi_t)\), leaving the other coordinates fixed.  The resulting point lies on \(\Delta=0\) and is within a fixed multiple of \(|\Delta(\Psi_t)|\) of \(\Psi_t\).  Therefore, for a deterministic \(c_0<\infty\) and all sufficiently large \(t\),
+\[
+ E[U_{t+1}\mid\mathcal F_t]-\Psi_t\in F^{\delta_t}(\Psi_t),
+ \qquad \delta_t=c_0t^{-1/2}\longrightarrow0, \tag{8}
+\]
+where \(F^\delta\) denotes the graph enlargement.  The atoms \(h_+\) and \(h_-\) at every switching point make the graph closed under approach from the two open half-spaces; the atom \(h_1\), respectively \(h_2\), records approach within the switching layer when \(d_1<d_2\), respectively \(d_1>d_2\); and all four atoms at \(d_1=d_2\) close the remaining approaches.  Hence the displayed graph has nonempty compact convex values and is closed.  Its velocities have linear growth because its four atoms are fixed.  Outside a compact convex region containing the eventual trajectory, compose the atom correspondence with metric projection and retain the term \(-\psi\); this supplies a global extension with the same properties without changing the eventual dynamics.
+
+Let \(M_{t+1}=U_{t+1}-E[U_{t+1}\mid\mathcal F_t]\) and \(\gamma_t=1/t\).  Each coordinate is a bounded martingale difference.  Stopping its weighted partial sum at the first crossing of \(\epsilon\) and using orthogonality of the stopped increments gives, for every coordinate and every \(j\),
+\[
+ P\left\{\sup_{k\geq2^j}\left|\sum_{s=2^j}^k\gamma_{s+1}M_{s+1}\right|>\epsilon\right\}
+ \leq \frac{C}{\epsilon^2}\sum_{s=2^j}^{\infty}\gamma_{s+1}^2
+ \leq\frac{C'}{\epsilon^22^j}. \tag{9}
+\]
+The probability that one of the events in (9) occurs for some \(j\geq J\) is at most \(C'\epsilon^{-2}\sum_{j\geq J}2^{-j}\), which tends to zero.  Thus the weighted martingale tails vanish almost surely, uniformly over every bounded interval of stochastic-approximation time.  Equations (5), (8), and (9), together with boundedness of \(\Psi_t\), verify the bounded-perturbed-solution hypotheses of \(\textnormal{lem:bhs-perturbed-limit-set}\).  That lemma makes the affine interpolation an asymptotic pseudotrajectory and makes its limit set internally chain transitive.
+
+Let
+\[
+ \mathcal C=h([q,p]^2)=\operatorname{co}\{h_+,h_-,h_1,h_2\}.
+\]
+Every velocity in \(F(\psi)\) is \(z-\psi\) for some \(z\in\mathcal C\).  If \(P_{\mathcal C}\psi\) is the Euclidean projection and \(V(\psi)=\operatorname{dist}(\psi,\mathcal C)^2\), the projection inequality gives, along every solution and for almost every time outside \(\mathcal C\),
+\[
+ \frac{d}{ds}V(\psi(s))
+ =2(\psi-P_{\mathcal C}\psi)^\top(z-\psi)
+ \leq-2\|\psi-P_{\mathcal C}\psi\|_2^2=-2V(\psi). \tag{10}
+\]
+If a solution starts in \(\mathcal C\), variation of constants writes it as a convex combination of its initial point and a weighted average of points \(z(s)\in\mathcal C\); hence \(\mathcal C\) is positively invariant.  Thus \(V\) is a continuous Lyapunov function for \(\mathcal C\), and \(V(\mathcal C)=\{0\}\) has empty interior.  By \(\textnormal{lem:bhs-lyapunov-ict}\), every internally chain-transitive normalized-state limit set lies in \(\mathcal C\).  Equation (3) keeps \(d_1,d_2\) positive on that limit set, so the slope projection \((d_1,d_2,n_1,n_2)\mapsto(n_1/d_1,n_2/d_2)\) is continuous there.  This proves the first paragraph of the claim.
+
+We next identify exactly what the tempting two-mode inclusion would imply.  Let \(\mathcal C_0=\operatorname{co}\{h_-,h_+\}\) and write its points uniquely as \(h_-+\lambda(h_+-h_-)\), \(0\leq\lambda\leq1\).  Equivalently,
+\[
+ u=q+(p-q)\lambda,\qquad v=p-(p-q)\lambda=1-u. \tag{11}
+\]
+Cross-multiplication is legitimate because both Gram coordinates are positive, and direct expansion gives
+\[
+ \Delta(h(u,v))=0
+ \quad\Longleftrightarrow\quad
+ f(u,v):=u^2+12uv-21u-64v^2+72v=0; \tag{12}
+\]
+indeed, after multiplication by the positive common denominator, the numerator of the slope difference is \(-5f(u,v)/48\).  Substitution of \(v=1-u\) yields \(f(u,1-u)=-75u^2+47u+8\).  Its unique root in \([q,p]\) is
+\[
+ u_0=\frac{47+\sqrt{4609}}{150},
+\]
+and substitution into either slope ratio gives \(b_0=(\sqrt{4609}-91)/1224\).
+
+On \(\mathcal C_0\), the two-mode inclusion reduces to
+\[
+ \dot\lambda=-\lambda\quad(\lambda<\lambda_0),\qquad
+ \dot\lambda=1-\lambda\quad(\lambda>\lambda_0),\qquad
+ \dot\lambda\in[-\lambda_0,1-\lambda_0]\quad(\lambda=\lambda_0), \tag{13}
+\]
+where \(u_0=q+(p-q)\lambda_0\).  Distance squared to \(\mathcal C_0\) first confines every internally chain-transitive set to the segment by the argument of (10).  On the segment, the continuous function
+\[
+ W(\lambda)=
+ \begin{cases}
+ \lambda/\lambda_0,&0\leq\lambda\leq\lambda_0,\\
+ (1-\lambda)/(1-\lambda_0),&\lambda_0\leq\lambda\leq1
+ \end{cases}
+\]
+strictly decreases along every nonconstant solution outside \(\{0,\lambda_0,1\}\) and never increases from those three points.  Since \(W(\{0,\lambda_0,1\})=\{0,1\}\) has empty interior, \(\textnormal{lem:bhs-lyapunov-ict}\) puts every internally chain-transitive set inside \(\{0,\lambda_0,1\}\) with \(W\) constant.  The set \(\{0,1\}\) is not internally chain transitive: for \(\epsilon<1/3\), the solutions from its endpoints are constant, so no \((\epsilon,S)\)-chain contained in that two-point set can travel from one endpoint to the other.  Thus only the three asserted singletons are internally chain transitive for the smaller inclusion.
+
+That smaller graph cannot approximate the recursion uniformly near the switching surface.  If \(\Delta=0\) and \(d_1<d_2\), equation (7) makes arm one greedy at both contexts and the conditional mean is \(h_1\).  But \(h_1\notin\mathcal C_0\): the affine map \((u,v)\mapsto h(u,v)\) is injective, every parameter pair on \(\mathcal C_0\) satisfies \(u+v=1\), and \(h_1\) corresponds to \((p,p)\), whose sum is \(2p\neq1\).  Compactness therefore gives \(\operatorname{dist}(h_1,\mathcal C_0)>0\).  The \(O(t^{-1/2})\) bonus cannot be discarded uniformly in the \(O(t^{-1/2})\) switching layer.
+
+The extra internally chain-transitive sets of the correct graph are computable.  Solving (12) for its smaller \(v\)-root gives
+\[
+ v(u)=\frac{3u+18-\sqrt{25u^2-228u+324}}{32}. \tag{14}
+\]
+For \(u\in[u_0,p]\), substitution verifies \(f(u,v(u))=0\) and \(v(u_0)=1-u_0\).  Direct differentiation gives
+\[
+ v'(u)=\frac1{32}\left(3+\frac{228-50u}{2\sqrt{25u^2-228u+324}}\right)>0, \tag{15}
+\]
+because \(u\leq p<1\).  The elementary bounds \(67<\sqrt{4609}<68\) and \(73<\sqrt{5457}<74\) imply
+\[
+ 0.23<v(u_0)<0.24,\qquad 0.308<v(p)<0.314.
+\]
+Consequently \(q<u,v(u)<p\), \(u+v(u)\geq1\), and
+\[
+ u+16v(u)\leq p+16v(p)<p+16(0.314)<6.014<\frac{17}{2}. \tag{16}
+\]
+The first two inequalities put \((u,v(u))\) in the triangle with vertices \((p,q),(q,p),(p,p)\), while (16) says that the first Gram coordinate of \(h(u,v(u))\) is smaller than the second.  Therefore
+\[
+ h(u,v(u))\in\operatorname{co}\{h_+,h_-,h_1\},\qquad
+ \Delta(h(u,v(u)))=0,\qquad 0\in F(h(u,v(u))). \tag{17}
+\]
+Each singleton in (17) is an equilibrium and hence internally chain transitive.  The map \(h\) is injective because the two linear forms \(u+16v\) and \(u-4v\) have nonzero determinant; the family is therefore uncountable.  At \(u=p\), equation (14) simplifies to
+\[
+ v(p)=\frac{2097}{3200}-\frac{3\sqrt{5457}}{640}=v_*,
+\]
+and the bounds above show that this equilibrium differs from the three two-mode candidates.  This proves the stated obstruction.
+
+It remains to separate what the exact recursion itself establishes from what the enlarged inclusion merely permits.  Put \(\Delta_t=\widehat\beta^{\mathrm{GX}}_{t,1}-\widehat\beta^{\mathrm{GX}}_{t,2}\).  On \(\mathcal L_+\), equation (3) makes the bonus vanish while \(\Delta_t\) is eventually bounded below by a positive constant.  Hence eventually arm one is greedy at context \(1\) and arm two at context \(-4\).  Applying the bounded martingale law proved above to the four context--action counts, and using (4) for the reward noise, gives
+\[
+ \frac1t(D_{t,1},D_{t,2},N_{t,1},N_{t,2})
+ \longrightarrow h_+=\left(\frac{23}{40},\frac{317}{40},\frac{19}{80},-\frac{79}{480}\right). \tag{18}
+\]
+Equations (1) and (18) yield the first displayed slope limit.  The identical argument on \(\mathcal L_-\) gives
+\[
+ \frac1t(D_{t,1},D_{t,2},N_{t,1},N_{t,2})
+ \longrightarrow h_-=\left(\frac{317}{40},\frac{23}{40},-\frac{79}{80},\frac{19}{480}\right), \tag{19}
+\]
+and hence the second displayed slope limit.  The limiting slope gaps are, respectively,
+\[
+ \frac{19}{46}+\frac{79}{3804}=
+ \frac{37955}{87492}>0,
+ \qquad
+ -\frac{79}{634}-\frac{19}{276}=-\frac{16925}{87492}<0. \tag{20}
+\]
+
+We now prove the uniform positive-probability assertion rather than infer it from the differential inclusion.  Fix a sufficiently large even \(n\).  For the positive regime, prescribe a length-\(2n\) history consisting first of \(n\) observations with \(X=1,A=1\), then \(n\) observations with \(X=-4,A=2\), and prescribe equally many positive and negative Rademacher signs for each selected arm.  Each prescribed context has probability \(1/2\), each prescribed action has conditional probability at least \(q\), and each prescribed relevant sign has probability \(1/2\).  Thus this history has probability at least \((q/4)^{2n}\), uniformly over \(\eta_0\in[-1,1]^2\).  At its end the slopes are exactly
+\[
+ \frac{\eta_{0,1}+n/2}{1+n},\qquad
+ \frac{\eta_{0,2}-n/3}{1+16n}, \tag{21}
+\]
+which converge uniformly in \(\eta_0\) to \(1/2\) and \(-1/48\), and both inverse Gram coordinates are \(O(n^{-1})\).
+
+Consider after this prefix the reference policy that makes arm one greedy at context \(1\) and arm two greedy at context \(-4\).  After \(k\) further steps, its conditional-mean sufficient statistics are obtained by adding \(kh_+\) to the four terminal statistics in (21).  Each resulting armwise slope is a denominator-weighted average of its terminal slope and the corresponding ratio in \(h_+\).  By (20)--(21), there are constants \(\gamma_0>0\) and \(n_0<\infty\), independent of \(\eta_0\), such that for \(n\geq n_0\) these two reference slopes differ by at least \(3\gamma_0\) for every \(k\geq0\).  Their Gram coordinates are at least a fixed positive multiple of \(n+k\), so the absolute difference of their UCB bonuses is at most \(C(n+k)^{-1/2}\).  Increasing \(n_0\) makes this bound at most \(\gamma_0\).
+
+Couple the actual rule and this reference rule with the same contexts, rewards, and randomization uniforms, and let \(\zeta\) be the first future occasion at which their greedy-arm maps differ.  If \(U^{\circ}_\ell\) is the sufficient-statistic increment at the \(\ell\)-th occasion after the prefix, define
+\[
+ M_k=\sum_{\ell=1}^k\mathbf 1\{\ell<\zeta\}\bigl(U^{\circ}_\ell-h_+\bigr).
+\]
+Because \(\{\ell<\zeta\}\) is known before the \(\ell\)-th post-prefix context and randomization, \((M_k)\) is a four-dimensional stopped martingale with a common bounded-increment constant depending only on the fixed \(\sigma_1,\sigma_2\).  The stopped-process maximal inequality and a union bound over the dyadic blocks \(2^jn\leq n+k<2^{j+1}n\) yield, for every fixed \(\gamma>0\),
+\[
+ P\left(\sup_{k\geq0}\frac{\|M_k\|_\infty}{n+k}>\gamma
+ \mathrel{\Big|}\text{the prescribed prefix}\right)
+ \leq \sum_{j=0}^{\infty}\frac{C}{\gamma^22^jn}
+ =\frac{C_\gamma}{n}. \tag{22}
+\]
+Indeed, a crossing on the \(j\)-th block requires a stopped partial sum of size at least \(\gamma2^jn\), whereas orthogonality bounds its second moment by a constant times \(2^{j+1}n\), which gives the displayed summand.
+
+Because all reference denominators are bounded below by a constant times \(n+k\), the ratio map is uniformly Lipschitz under the relative perturbation in (22).  Choose \(\gamma\) small enough both to preserve a positive constant lower bound for the perturbed denominators and to change the slope gap by at most \(\gamma_0\).  The same denominator bound makes the actual bonus difference \(O((n+k)^{-1/2})\); enlarge \(n_0\) once more so that it is at most \(\gamma_0\).  On the complementary event in (22), the actual slope gap is therefore at least \(2\gamma_0\), while its bonus difference is at most \(\gamma_0\).  At a putative first exit, the UCB index difference is consequently positive at context \(1\) and negative at context \(-4\), so the actual greedy arms still equal the reference greedy arms, a contradiction.  Thus \(\zeta=\infty\) on that event.  Equation (18), now applied under the reference policy, implies \(\mathcal L_+\).  Taking \(n\) still larger so that \(C_\gamma/n\leq1/2\) proves
+\[
+ \inf_{\eta_0\in\mathsf K_{\mathrm{GX}}}P_{\eta_0}(\mathcal L_+)
+ \geq \frac12(q/4)^{2n}>0. \tag{23}
+\]
+For the negative regime, prescribe first \(n\) observations with \(X=-4,A=1\), then \(n\) with \(X=1,A=2\), again balancing the selected Rademacher signs.  The terminal slopes converge uniformly to \(-1/8\) and \(1/12\); the conditional-mean continuation adds \(kh_-\), and the second strict gap in (20) supplies the same stopped-martingale bootstrap.  Consequently
+\[
+ \inf_{\eta_0\in\mathsf K_{\mathrm{GX}}}P_{\eta_0}(\mathcal L_-)>0. \tag{24}
+\]
+On either event the corresponding slope sequence converges.  If \(\beta^+\) and \(\beta^-\) denote the two displayed deterministic limits, split each average at a fixed index after which every summand is at most an arbitrary \(\epsilon>0\); the fixed prefix divided by \(T\) vanishes.  Therefore, respectively,
+\[
+ \frac1T\sum_{t=1}^T\left\|\bigl(\widehat\beta^{\mathrm{GX}}_{t,1},\widehat\beta^{\mathrm{GX}}_{t,2}\bigr)^\top-\beta^+\right\|_2\longrightarrow0,
+ \qquad
+ \frac1T\sum_{t=1}^T\left\|\bigl(\widehat\beta^{\mathrm{GX}}_{t,1},\widehat\beta^{\mathrm{GX}}_{t,2}\bigr)^\top-\beta^-\right\|_2\longrightarrow0.
+\]
+This is the asserted pathwise Cesaro-error conclusion.
+
+Finally, define the empirical context-specific arm-one rates
+\[
+ u_T=\frac{\sum_{t=1}^T\mathbf1\{X_t=1,A_t=1\}}
+ {\max\{1,\sum_{t=1}^T\mathbf1\{X_t=1\}\}},\qquad
+ v_T=\frac{\sum_{t=1}^T\mathbf1\{X_t=-4,A_t=1\}}
+ {\max\{1,\sum_{t=1}^T\mathbf1\{X_t=-4\}\}}.
+\]
+The conditional arm-one probability at either context is always in \([q,p]\).  Applying the bounded martingale law to each context--action indicator after subtracting its predictable mean, and applying the same law to the centered context indicators, shows that each context count divided by \(T\) tends to \(1/2\) and that every subsequential limit of \((u_T,v_T)\) lies in \([q,p]^2\).  If along a common subsequence both slopes tend to a common coordinate and \((u_T,v_T)\to(u,v)\), then (1), (4), and the context-count law give
+\[
+ \frac1T(D_{T,1},D_{T,2},N_{T,1},N_{T,2})\longrightarrow h(u,v).
+\]
+The denominators in this limit are positive because \((u,v)\in[q,p]^2\).  Equality of the two limiting slope ratios is therefore equivalent, by (12), to
+\[
+ u^2+12uv-21u-64v^2+72v=0.
+\]
+If same-arm switching-layer occupation is excluded, only the two opposite-context modes remain and (11) forces \(v=1-u\), producing \((u_0,b_0)\).  But (7) and the continuum in (14)--(17) show that this exclusion is not a consequence of the exact recursion or of the differential-inclusion theorem: same-arm modes survive throughout the shrinking switching layer.  The graph is discontinuous there, and the preceding argument supplies neither an avoidance estimate for switching-surface convergence nor a quantitative hitting, escape, or equicontinuity estimate uniform over compact initial sets.  It therefore establishes neither finite almost-sure tail selection nor zero switching-surface probability, and it does not establish compact-uniform moduli \(r_T(K_0),\delta_T(K_0)\).  Since membership in \(\mathfrak P_T\) requires precisely such tail-selection and uniform-attraction properties, no membership or inference conclusion is asserted.  This proves all parts of the theorem.

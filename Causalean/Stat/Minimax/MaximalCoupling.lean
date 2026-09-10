@@ -18,7 +18,7 @@ open scoped ENNReal ProbabilityTheory
 namespace Causalean.Stat
 
 -- @node: measurableEqOfStandardBorel
-/-- Equality is measurable on every standard Borel space. -/
+/-- For [a standard Borel measurable space](hyp:X), [the measurability of its equality relation](goal) is defined. -/
 noncomputable def measurableEqOfStandardBorel
     (X : Type*) [MeasurableSpace X] [StandardBorelSpace X] : MeasurableEq X := by
   let e : X → ℝ := MeasureTheory.embeddingReal X
@@ -106,7 +106,9 @@ lemma tvDist_eq_half_integral_abs_rnDeriv_sub
     rw [hgap, abs_of_nonneg hpos] at htv
     linarith
 
-/-- The common submeasure obtained by taking the pointwise minimum of two
+/-- Given [a measurable sample space](hyp:X) and [three measures on it, consisting of two target measures and a reference measure](hyp:mu,nu,xi), [the common Radon--Nikodym submeasure](goal) is the reference measure weighted by the pointwise minimum of the two target measures' Radon--Nikodym densities relative to that reference measure.
+
+The common submeasure obtained by taking the pointwise minimum of two
 Radon--Nikodym densities against a finite dominating measure. -/
 -- @node: rnCommonPart
 noncomputable def rnCommonPart
@@ -213,7 +215,9 @@ lemma measure_eq_of_tvDist_eq_zero
   rw [← ENNReal.toReal_eq_toReal_iff' (measure_ne_top mu A) (measure_ne_top nu A)]
   exact hre
 
-/-- A maximal coupling of two laws on the same standard Borel space. -/
+/-- Given [a measurable sample space](hyp:X) and [two probability measures on it](hyp:mu,nu), [the maximal coupling](goal) is the measure on pairs whose [first branch is the diagonal coupling when their total-variation distance is zero](step:1), and whose second branch otherwise combines their common part on the diagonal with the normalized product of their residual measures.
+
+A maximal coupling of two laws on the same standard Borel space. -/
 -- @node: maximalCoupling
 noncomputable def maximalCoupling
     {X : Type*} [MeasurableSpace X]
@@ -394,7 +398,9 @@ lemma maximalCoupling_eq_mass_ge
           ((ENNReal.ofReal (Causalean.Stat.tvDist mu nu))⁻¹ •
             ((mu - c).prod (nu - c))) D := le_add_right le_rfl
 
-/-- A maximal coupling of compressed laws, lifted through the two regular
+/-- Given [two standard Borel measurable spaces, an observation space and a compressed-state space](hyp:Z,S), [two probability measures on the observation space](hyp:Q0,Q1), and [a measurable compression map from observations to compressed states](hyp:compress,hcompress), [the compression coupling](goal) is the joint law obtained by maximally coupling the two compressed laws and then, conditional on each coupled compressed state, drawing each observation from its corresponding regular conditional distribution.
+
+A maximal coupling of compressed laws, lifted through the two regular
 conditional distributions back to the original observations. -/
 -- @node: compressionCoupling
 noncomputable def compressionCoupling

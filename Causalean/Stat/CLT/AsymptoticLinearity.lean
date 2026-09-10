@@ -47,13 +47,14 @@ open MeasureTheory ProbabilityTheory Filter Topology
 Real-typed alias for `ProbabilityTheory.gaussianReal`.  Negative variances
 collapse to `0` (Dirac mass at `m`) via `Real.toNNReal`. -/
 
-/-- Gaussian measure on `ℝ` with mean `m` and variance `v`.  Real-typed
-wrapper around `ProbabilityTheory.gaussianReal`; if `v < 0` the variance is
-clipped to `0` and the measure degenerates to `Measure.dirac m`. -/
+/-- For [a real-valued mean](hyp:m) and [a real-valued variance input](hyp:v), the [Gaussian probability measure on the real line](goal) has the specified mean and variance $max(v,0)$; thus a negative variance input is replaced by zero and yields a point mass at the mean.
+
+This is a real-valued wrapper around `ProbabilityTheory.gaussianReal`. -/
 noncomputable def gaussianMeasure (m v : ℝ) : Measure ℝ :=
   gaussianReal m v.toNNReal
 
-/-- `gaussianMeasure m v` is a probability measure for every real `m, v`. -/
+/-- For every [real-valued mean](hyp:m) and [real-valued variance input](hyp:v), the
+[Gaussian measure on the real line is a probability measure](goal). -/
 instance instIsProbabilityMeasureGaussianMeasure (m v : ℝ) :
     IsProbabilityMeasure (gaussianMeasure m v) := by
   unfold gaussianMeasure
@@ -99,7 +100,9 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
   {μ : Measure Ω} {P : Measure X} [IsProbabilityMeasure μ]
   {θn : ℕ → Ω → ℝ} {θ₀ : ℝ} {ψ : X → ℝ} {S : IIDSample Ω X μ P}
 
-/-- The normalised partial sum `(1/√|I n|) Σ_{i ∈ I n} ψ(Z_i)`. -/
+/-- For [a measurable sample space carrying a measure](hyp:Ω,μ), [a measurable observation space carrying a population measure](hyp:X,P), [an independent and identically distributed sample from that population](hyp:S), [a real-valued influence function](hyp:ψ), [a finite index set selected for every nonnegative integer](hyp:I), and [a nonnegative integer index](hyp:n), the [normalized partial sum](goal) maps each sample-space outcome to $|I_n|^{-1/2}\sum_{i\in I_n}\psi(Z_i)$.
+
+The normalization uses the reciprocal square root of the selected block's cardinality. -/
 noncomputable def normalizedSum (S : IIDSample Ω X μ P) (ψ : X → ℝ)
     (I : ℕ → Finset ℕ) (n : ℕ) : Ω → ℝ :=
   fun ω => (Real.sqrt ((I n).card : ℝ))⁻¹ * ∑ i ∈ I n, ψ (S.Z i ω)
@@ -114,7 +117,9 @@ lemma normalizedSum_def (S : IIDSample Ω X μ P) (ψ : X → ℝ)
       fun ω => (Real.sqrt ((I n).card : ℝ))⁻¹ * ∑ i ∈ I n, ψ (S.Z i ω) :=
   rfl
 
-/-- The rescaled estimator `√|I n| (θn n − θ₀)`. -/
+/-- For [a sample space](hyp:Ω), [a sequence of real-valued estimators on that space](hyp:θn), [a real-valued target parameter](hyp:θ₀), [a finite index set selected for every nonnegative integer](hyp:I), and [a nonnegative integer index](hyp:n), the [rescaled estimator](goal) maps each sample-space outcome to $\sqrt{|I_n|}\,[\widehat\theta_n-\theta_0]$ at that outcome.
+
+The scale is the square root of the selected block's cardinality. -/
 noncomputable def rescaledEstimator (θn : ℕ → Ω → ℝ) (θ₀ : ℝ)
     (I : ℕ → Finset ℕ) (n : ℕ) : Ω → ℝ :=
   fun ω => Real.sqrt ((I n).card : ℝ) * (θn n ω - θ₀)

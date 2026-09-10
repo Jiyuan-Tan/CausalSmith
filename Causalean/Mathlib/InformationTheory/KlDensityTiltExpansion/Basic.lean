@@ -39,10 +39,9 @@ namespace Causalean.Mathlib.InformationTheory.KlDensityTiltExpansion
 
 variable {Z : Type*} [MeasurableSpace Z]
 
-/-- The **linear density tilt** of `μ` by the score `s` at strength `h`:
-`tiltMeasure μ s h = μ.withDensity (y ↦ ENNReal.ofReal (1 + h · s y))`.  When
-`1 + h · s ≥ 0` a.e. and `s` is mean-zero this is again a probability measure
-(see `isProbabilityMeasure_tiltMeasure`). -/
+/-- On a [measurable sample space](hyp:Z), given [a base measure](hyp:μ), [a real-valued score function](hyp:s), and [a real tilt strength](hyp:h), the [linear density tilt](goal) is the measure having density $\max\{1+h s(z),0\}$ with respect to the base measure.
+
+When $1+h s$ is nonnegative almost everywhere and the score has mean zero, this is again a probability measure (see `isProbabilityMeasure_tiltMeasure`). -/
 noncomputable def tiltMeasure (μ : Measure Z) (s : Z → ℝ) (h : ℝ) : Measure Z :=
   μ.withDensity (fun y => ENNReal.ofReal (1 + h * s y))
 

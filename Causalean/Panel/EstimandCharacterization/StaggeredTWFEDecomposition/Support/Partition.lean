@@ -28,7 +28,9 @@ open scoped BigOperators
 variable {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 𝒢] [DecidableEq 𝒢]
   [MeasurableSpace 𝒢] [MeasurableSingletonClass 𝒢] {T : ℕ}
 
-/-- **B3. Residualization witness for `D`** against `panelClass`. With
+/-- On [a measurable sample space](hyp:Ω) with [a finite cohort label space whose members can be compared for equality and whose singleton sets are measurable](hyp:𝒢) and [a natural-number panel length](hyp:T), let [the probability measure](hyp:μ), [the treatment variable](hyp:D), [the cohort variable](hyp:G), and [the period variable](hyp:T_rv) be given. If [the cohort variable is measurable](hyp:G_meas), [the period variable is measurable](hyp:T_meas), [the treatment variable is measurable](hyp:D_meas), [the treatment variable equals either zero or one almost everywhere](hyp:D_binary), and [each cohort-period cell has probability equal to the product of its cohort and period marginal probabilities](hyp:B_balanced), then [the additive cohort-and-period treatment fit and its residual constitute a residualization witness for treatment with respect to the class of additive cohort-and-period functions](goal).
+
+**B3. Residualization witness for `D`** against `panelClass`. With
 `VH := panelPropensity μ D G T_rv` and `Vtilde ω := D ω - panelPropensity ω`,
 this packages the four witness obligations:
 
@@ -98,7 +100,9 @@ noncomputable def residWitnessD_panel
                 D_meas D_binary B_balanced t)
     }
 
-/-- **B3. Residualization witness for `Y`** against `panelClass`. -/
+/-- On [a measurable sample space](hyp:Ω) with [a finite cohort label space whose members can be compared for equality and whose singleton sets are measurable](hyp:𝒢) and [a natural-number panel length](hyp:T), let [the probability measure](hyp:μ), [the outcome variable](hyp:Y), [the cohort variable](hyp:G), and [the period variable](hyp:T_rv) be given. If [the cohort variable is measurable](hyp:G_meas), [the period variable is measurable](hyp:T_meas), [the outcome has a finite second moment](hyp:Y_memLp), and [each cohort-period cell has probability equal to the product of its cohort and period marginal probabilities](hyp:B_balanced), then [the additive cohort-and-period outcome fit and its residual constitute a residualization witness for the outcome with respect to the class of additive cohort-and-period functions](goal).
+
+**B3. Residualization witness for `Y`** against `panelClass`. -/
 noncomputable def residWitnessY_panel
     (μ : Measure Ω) [IsProbabilityMeasure μ]
     (Y : Ω → ℝ) (G : Ω → 𝒢) (T_rv : Ω → Fin T)

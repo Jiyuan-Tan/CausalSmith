@@ -83,6 +83,62 @@ describe("state schema", () => {
     );
   });
 
+  it("accepts a cluster-consistent proposal re-anchor", async () => {
+    const repoRoot = await mkdtemp(path.join(os.tmpdir(), "causalsmith-reanchored-state-"));
+    const qid = "stat_bounds_kernel";
+    const state = createInitialState(qid);
+    state.proposed_from = {
+      topic: "test",
+      novelty_target: "field",
+      pivot_budget_used: 0,
+      final_verdict: "ACCEPT",
+      proposal_path: "proto_core.json",
+      novelty_justification: "test",
+      chosen_qid: qid,
+      chosen_specialization: "v1",
+      cluster: "partialid",
+    };
+    state.lean_subdir = "CausalSmith/PartialID/STAT_BoundsKernel_Research";
+    await saveState(repoRoot, qid, "v1", state);
+    expect((await loadState(repoRoot, qid, "v1")).lean_subdir).toBe(state.lean_subdir);
+  });
+
+  // The re-anchor widening admits the DECLARED cluster's substrate and nothing
+  // else: the module name still comes from the qid, and the substrate still comes
+  // from a closed enum. Without this the widening has acceptance coverage only,
+  // and a later refactor of the name extraction could let any path through while
+  // the positive test stayed green.
+  it("still rejects a destination the re-anchored cluster does not license", async () => {
+    const repoRoot = await mkdtemp(path.join(os.tmpdir(), "causalsmith-reanchor-reject-"));
+    const qid = "stat_bounds_kernel";
+    const base = createInitialState(qid);
+    base.proposed_from = {
+      topic: "test",
+      novelty_target: "field",
+      pivot_budget_used: 0,
+      final_verdict: "ACCEPT",
+      proposal_path: "proto_core.json",
+      novelty_justification: "test",
+      chosen_qid: qid,
+      chosen_specialization: "v1",
+      cluster: "partialid",
+    };
+    for (const subdir of [
+      // a substrate the declared cluster does not name
+      "CausalSmith/SCM/STAT_BoundsKernel_Research",
+      // the right substrate, but a module name that is not this qid's
+      "CausalSmith/PartialID/PID_SomethingElse_Research",
+      // outside the package root
+      "CausalSmith/PartialID/../../etc/STAT_BoundsKernel_Research",
+    ]) {
+      const state = { ...base, lean_subdir: subdir } as typeof base;
+      await expect(
+        saveState(repoRoot, qid, "v1", state),
+        `${subdir} must not satisfy the invariant`,
+      ).rejects.toThrow(/invariant failed/);
+    }
+  });
+
   it("accepts proposed_from.final_verdict: null so hand-edited resumes load", () => {
     // Manual operators sometimes need to clear the verdict between resume
     // attempts (e.g. re-run D0 with an upgraded solver on a previously

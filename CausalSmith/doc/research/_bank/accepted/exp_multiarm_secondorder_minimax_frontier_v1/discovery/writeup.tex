@@ -1,0 +1,2107 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}multiarm\_\allowbreak{}secondorder\_\allowbreak{}minimax\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For a fixed \(K\)-arm binary finite population and a prespecified zero-sum contrast, the paper proves that the unrestricted game over complete labeled schedules is exactly the explicit finite orbit game on all \(2^K\) response types. The contrast-weighted allocation \(q_a^\star\propto|c_a|\) gives the first-order constant \(C_0(c)=(\sum_a|c_a|)^2/4\). An explicit clipped-shrinkage rule improves its risk by a positive multiple of \(n^{-4/3}\). A paper-local smooth-prior Bayesian information inequality, applied to a complete-schedule two-arm submodel and then lifted by the sign-group embedding, proves the matching coarse converse \(d_n(c)\leq43C_0(c)n^{-4/3}\); hence the universal second-order exponent is \(4/3\) without using the published Airy theorem. Exact-rational finite programs give matched procedure and prior certificates for rational contrasts, continuity transfers them to every real contrast, and the \(K=3\), \(c=(1,-1/2,-1/2)\), \(n\leq5\) calculations remain a finite diagnostic. The sharp normalized constant, convergence, second-order optimality of \(q^\star\), optimizer and prior convergence, and any limiting face--corner operator remain open, including for an ACTG 175 regimen-versus-average consumer.
+
+\section{Project justification}
+
+\paragraph{Gap.} Unrestricted finite-population binary minimax theory has a sharp published two-arm solution, but a delivered multi-arm theorem cannot obtain its own converse by importing that source's Airy expansion or least-favorable posterior-mean saddle. The cited scope comparators either restrict the estimator, change the adversary, concern inference rather than unrestricted minimax value, or use a different asymptotic experiment. Within that reviewed bibliography, none identifies the face-and-corner second-order frontier of the full \(2^K\)-response-type simplex.
+
+\paragraph{Niche.} The fixed-schedule problem admits two complementary internal reductions: unit-permutation symmetrization gives an exact finite orbit game for every fixed \(K\), while sign-group embedding turns any unrestricted multi-arm procedure into a two-arm procedure. A smooth complete-schedule prior and a data-dependent-target Bayesian information inequality then provide a paper-local coarse two-arm converse at the exact scale needed by the multi-arm rate theorem.
+
+\paragraph{Fill.} The paper proves the labeled-game-to-orbit-game equality, the first-order constant and contrast-weighted rule, the explicit universal clipped-shrinkage improvement, and an internal \(n^{-4/3}\) converse with a finite numerical constant. It also supplies exact-rational finite-program procedure and prior certificates, continuity transfer to real contrasts, the three-arm \(n\leq5\) showcase, and an explicit list of unresolved sharp-frontier questions. The published Airy and scalar-saddle results are retained only as secondary comparators.
+
+\section{Related work}
+
+The comparison is limited to the cited bibliography, not an assertion about all of the literature. Sudijono, Dobriban, and Tchetgen Tchetgen (2026) prove a sharp two-arm binary scalar reduction, posterior-mean saddle, and Airy correction. Those results are secondary calibration and method context here: no delivered theorem depends on their minimax value, optimizer, least-favorable prior, or exact Airy constant. The paper instead proves its required two-arm order lower bound from a generic Bayesian information inequality and a complete-schedule prior. Its \(K=2\) orbit likelihood still retains the four counts \(m_{(0,0)},m_{(0,1)},m_{(1,0)},m_{(1,1)}\); the generic ordered-partition kernel records exactly when scalar Rao--Blackwellization is valid for a chosen prior without asserting likelihood aggregation. Hull (2026) treats unrestricted design and estimation for two bounded-outcome arms, whereas the present strict extension is to fixed \(K\geq3\) only within the binary model. Bai (2023) studies permutation-invariant minimaxity and a linear-estimator allocation result; Kallus (2020) studies balanced, treatment-label-blinded two-arm designs with a fixed unbiased estimator and a conditional-mean class; and Aronow and Lopatto (2026) study design-unbiased bounded-total estimation under unit-inclusion sampling. Mukerjee, Dasgupta, and Rubin (2018) develop Neymanian finite-population inference for multiple-treatment contrasts, unequal replications, randomization restrictions, and variance estimation, rather than an unrestricted design--estimator minimax value or a second-order frontier. Levit (1981) concerns second-order asymptotic minimax estimation in bounded-parameter models, while Levit (1986) motivates the positive-solution and spectral perspective on second-order optimality; neither is a result for this finite response-type experiment. Rosenman and Hunter (2026) study sequential multi-arm adaptive allocation with a heteroscedastic Gaussian shrinkage-loss construction, rather than the fixed-schedule unrestricted binary game. Hammer et al. (1996) provide the four-regimen ACTG 175 application that motivates a regimen-versus-average binary contrast. Accordingly, within these reviewed comparators, none supplies the exact fixed-\(K\) binary \(2^K\)-response-type game together with the present full face/corner second-order frontier; the latter's sharp limiting features remain open in this note.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau_c(z)=n^{-1}\sum_{i=1}^n\sum_{a\in\mathcal A_K}c_at_{i,a}\).
+Primary functional / estimator / diagnostic: \(\rho_n(c)=\inf_{\mathcal D,\widehat\tau}\max_{z\in\mathcal T_K^n}\mathbb E_{\mathcal D}[(\widehat\tau-\tau_c(z))^2]=G_n(c)\).
+\begin{itemize}
+  \item \texttt{K} --- \texttt{number of treatment arms}; \(\{2,3,\ldots\}\); \texttt{design dimension}
+  \par\smallskip\noindent\emph{Definition.} A fixed number of arms that does not vary with \(n\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal A\_\allowbreak{}K} --- \texttt{arm index set}; \(2^{\mathbb N}\); \texttt{index set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A_K=\{1,\ldots,K\}\).
+  \item \texttt{n} --- \texttt{finite-\allowbreak{}population size}; \(\mathbb N\); \texttt{asymptotic index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of experimental units.}
+  \item \texttt{i} --- \texttt{unit index}; \(\{1,\ldots,n\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic unit label.}
+  \item \texttt{a} --- \texttt{arm index}; \(\mathcal A_K\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic treatment-\allowbreak{}arm label.}
+  \item \texttt{c} --- \texttt{nonzero treatment contrast}; \(\{u\in\mathbb R^K\setminus\{0\}:\sum_{a\in\mathcal A_K}u_a=0\}\); \texttt{estimand parameter}
+  \par\smallskip\noindent\emph{Definition.} Fixed coefficient vector \(c=(c_a)_{a\in\mathcal A_K}\).
+  \item \texttt{S\_\allowbreak{}c} --- \texttt{active-\allowbreak{}arm support}; \(2^{\mathcal A_K}\); \texttt{effective arm set}
+  \par\smallskip\noindent\emph{Definition.} \(S_c=\{a\in\mathcal A_K:c_a\ne0\}\).
+  \item \texttt{L\_\allowbreak{}c} --- contrast \(\ell_1\) norm; \((0,\infty)\); \texttt{risk scale}
+  \par\smallskip\noindent\emph{Definition.} \(L_c=\sum_{a\in\mathcal A_K}|c_a|\).
+  \item \texttt{q\textasciicircum{}\textbackslash{}\allowbreak{}star} --- \texttt{contrast-\allowbreak{}weighted allocation vector}; \(\Delta(\mathcal A_K)\); \texttt{candidate optimal design}
+  \par\smallskip\noindent\emph{Definition.} \(q_a^\star=|c_a|/L_c\) for \(a\in S_c\) and \(q_a^\star=0\) otherwise.
+  \item \texttt{t} --- \texttt{binary response type}; \(\{0,1\}^{\mathcal A_K}\); \texttt{nature state index}
+  \par\smallskip\noindent\emph{Definition.} Generic vector \(t=(t_a)_{a\in\mathcal A_K}\) of arm-specific binary potential outcomes.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal T\_\allowbreak{}K} --- \texttt{response-\allowbreak{}type space}; \(2^{\{0,1\}^{\mathcal A_K}}\); \texttt{finite state space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal T_K=\{0,1\}^{\mathcal A_K}\), with \(|\mathcal T_K|=2^K\).
+  \item \texttt{z} --- \texttt{complete labeled response schedule}; \(\mathcal T_K^n\); \texttt{primitive nature state}
+  \par\smallskip\noindent\emph{Definition.} \(z=(t_1,\ldots,t_n)\), where each labeled unit response type \(t_i=(t_{i,a})_{a\in\mathcal A_K}\) belongs to \(\mathcal T_K\).
+  \item \texttt{Y\_\allowbreak{}i(a)} --- \texttt{fixed binary potential outcome}; \(\{0,1\}\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} \(Y_i(a)=t_{i,a}\), the arm \(a\) coordinate of unit \(i\)'s response type in \(z\).
+  \item \texttt{A} --- \texttt{assignment vector}; \(\mathcal A_K^n\); \texttt{sole randomization}
+  \par\smallskip\noindent\emph{Definition.} \(A=(A_1,\ldots,A_n)\) is drawn from a design selected before the fixed potential outcomes are revealed.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal D} --- \texttt{randomized assignment design}; \(\Delta(\mathcal A_K^n)\); \texttt{decision variable}
+  \par\smallskip\noindent\emph{Definition.} Probability law of \(A\), chosen without knowledge of the response schedule.
+  \item \texttt{Y\_\allowbreak{}i\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{obs\}\allowbreak{}\}\allowbreak{}} --- \texttt{observed outcome}; \(\{0,1\}\); \texttt{observed data}
+  \par\smallskip\noindent\emph{Definition.} \(Y_i^{\mathrm{obs}}=Y_i(A_i)\).
+  \item \texttt{\textbackslash{}\allowbreak{}tau\_\allowbreak{}c(z)} --- \texttt{finite-\allowbreak{}population causal contrast}; \([-L_c/2,L_c/2]\); \texttt{target estimand}
+  \par\smallskip\noindent\emph{Definition.} \(\tau_c(z)=n^{-1}\sum_{i=1}^n\sum_{a\in\mathcal A_K}c_at_{i,a}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau} --- \texttt{arbitrary estimator}; \(\{f:(\mathcal A_K\times\{0,1\})^n\to[-L_c/2,L_c/2]\}\); \texttt{decision variable}
+  \par\smallskip\noindent\emph{Definition.} Any measurable, possibly biased function of \((A_i,Y_i^{\mathrm{obs}})_{i=1}^n\), clipped to the range of \(\tau_c(z)\).
+  \item \texttt{R\_\allowbreak{}n(\textbackslash{}\allowbreak{}mathcal D,\allowbreak{}\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau;\allowbreak{}z)} --- \texttt{design-\allowbreak{}based mean squared error}; \([0,L_c^2]\); \texttt{loss}
+  \par\smallskip\noindent\emph{Definition.} \(R_n(\mathcal D,\widehat\tau;z)=\mathbb E_{\mathcal D}[(\widehat\tau-\tau_c(z))^2]\), where the expectation is only over assignment from \(\mathcal D\).
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}n(c)} --- \texttt{unrestricted minimax risk}; \([0,L_c^2]\); \texttt{minimax value}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_n(c)=\inf_{\mathcal D,\widehat\tau}\max_{z\in\mathcal T_K^n}R_n(\mathcal D,\widehat\tau;z)\).
+  \item \texttt{m} --- \texttt{response-\allowbreak{}type count vector}; \(\mathbb Z_+^{\mathcal T_K}\); \texttt{symmetrized nature state}
+  \par\smallskip\noindent\emph{Definition.} For a labeled schedule \(z\), \(m=(m_t)_{t\in\mathcal T_K}\) is its unit-permutation orbit, with \(m_t=\#\{i:t_i=t\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}\{n,\allowbreak{}K\}\allowbreak{}} --- \texttt{response-\allowbreak{}type count simplex}; \(2^{\mathbb Z_+^{\mathcal T_K}}\); \texttt{finite orbit space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_{n,K}=\{m\in\mathbb Z_+^{\mathcal T_K}:\sum_{t\in\mathcal T_K}m_t=n\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}tau\_\allowbreak{}c(m)} --- \texttt{orbit form of the causal contrast}; \([-L_c/2,L_c/2]\); \texttt{symmetrized target}
+  \par\smallskip\noindent\emph{Definition.} \(\tau_c(m)=n^{-1}\sum_{t\in\mathcal T_K}m_t\sum_{a\in\mathcal A_K}c_at_a\).
+  \item \texttt{r} --- \texttt{arm-\allowbreak{}allocation count vector}; \(\mathbb Z_+^{\mathcal A_K}\); \texttt{design orbit}
+  \par\smallskip\noindent\emph{Definition.} \(r=(r_a)_{a\in\mathcal A_K}\), where \(r_a=\sum_{i=1}^n\mathbf 1\{A_i=a\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal R\_\allowbreak{}\{n,\allowbreak{}K\}\allowbreak{}} --- \texttt{allocation-\allowbreak{}count simplex}; \(2^{\mathbb Z_+^{\mathcal A_K}}\); \texttt{symmetrized design action space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal R_{n,K}=\{r\in\mathbb Z_+^{\mathcal A_K}:\sum_{a\in\mathcal A_K}r_a=n\}\).
+  \item \texttt{x} --- \texttt{observed arm-\allowbreak{}success count vector}; \(\prod_{a\in\mathcal A_K}\{0,\ldots,r_a\}\); \texttt{observation orbit}
+  \par\smallskip\noindent\emph{Definition.} \(x=(x_a)_{a\in\mathcal A_K}\), where \(x_a=\sum_{i=1}^n\mathbf 1\{A_i=a,Y_i^{\mathrm{obs}}=1\}\).
+  \item \texttt{h} --- \texttt{response-\allowbreak{}type by arm contingency table}; \(\mathbb Z_+^{\mathcal T_K\times\mathcal A_K}\); \texttt{likelihood summation index}
+  \par\smallskip\noindent\emph{Definition.} \(h=(h_{t,a})\) records how many units of response type \(t\) are assigned arm \(a\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal H(m,\allowbreak{}r,\allowbreak{}x)} --- \texttt{feasible contingency-\allowbreak{}table fiber}; \(2^{\mathbb Z_+^{\mathcal T_K\times\mathcal A_K}}\); \texttt{orbit fiber}
+  \par\smallskip\noindent\emph{Definition.} The set of \(h\) satisfying \(\sum_a h_{t,a}=m_t\), \(\sum_t h_{t,a}=r_a\), and \(\sum_{t:t_a=1}h_{t,a}=x_a\) for every \(t\) and \(a\).
+  \item \texttt{P\_\allowbreak{}m(x\textbackslash{}\allowbreak{}mid r)} --- \texttt{orbit likelihood}; \([0,1]\); \texttt{finite-\allowbreak{}experiment kernel}
+  \par\smallskip\noindent\emph{Definition.} Probability of observed success counts \(x\) under uniform assignment conditional on allocation counts \(r\) and response-type counts \(m\).
+  \item \texttt{\textbackslash{}\allowbreak{}pi} --- \texttt{mixture over allocation-\allowbreak{}count orbits}; \(\Delta(\mathcal R_{n,K})\); \texttt{symmetrized design}
+  \par\smallskip\noindent\emph{Definition.} \(\pi=(\pi_r)_{r\in\mathcal R_{n,K}}\) selects an allocation count and then assigns units uniformly conditional on that count.
+  \item \texttt{\textbackslash{}\allowbreak{}delta} --- \texttt{invariant estimator}; \(\{f:(r,x)\mapsto[-L_c/2,L_c/2]\}\); \texttt{symmetrized estimator}
+  \par\smallskip\noindent\emph{Definition.} Deterministic estimator based only on the allocation and observed-success orbits \((r,x)\).
+  \item \texttt{G\_\allowbreak{}n(c)} --- \texttt{finite response-\allowbreak{}type game value}; \([0,L_c^2]\); \texttt{finite-\allowbreak{}game representation}
+  \par\smallskip\noindent\emph{Definition.} Minimax value of the explicit orbit experiment over \(\pi\), \(\delta\), and \(m\).
+  \item \texttt{p\_\allowbreak{}+\allowbreak{}} --- \texttt{two-\allowbreak{}arm positive-\allowbreak{}effect count}; \(\{0,\ldots,n\}\); \texttt{binary-\allowbreak{}reduction parameter}
+  \par\smallskip\noindent\emph{Definition.} Parameter of the published two-arm scalar experiment; when related to the full four-count orbit vector, \(p_+=m_{(1,0)}\).
+  \item \texttt{p\_\allowbreak{}-\allowbreak{}} --- \texttt{two-\allowbreak{}arm negative-\allowbreak{}effect count}; \(\{0,\ldots,n\}\); \texttt{binary-\allowbreak{}reduction parameter}
+  \par\smallskip\noindent\emph{Definition.} Parameter of the published two-arm scalar experiment; when related to the full four-count orbit vector, \(p_-=m_{(0,1)}\).
+  \item \texttt{r\_\allowbreak{}0} --- \texttt{two-\allowbreak{}arm zero-\allowbreak{}effect count}; \(\{0,\ldots,n\}\); \texttt{binary-\allowbreak{}reduction parameter}
+  \par\smallskip\noindent\emph{Definition.} Parameter of the published two-arm scalar experiment; when related to the full four-count orbit vector, \(r_0=m_{(0,0)}+m_{(1,1)}\), with \(p_++p_-+r_0=n\). This aggregation does not replace the separate counts \(m_{(0,0)}\) and \(m_{(1,1)}\) in the orbit likelihood.
+  \item \texttt{X\_\allowbreak{}2} --- \texttt{two-\allowbreak{}arm reduced observation}; \(\{0,\ldots,n\}\); \texttt{binary-\allowbreak{}reduction observation}
+  \par\smallskip\noindent\emph{Definition.} The scalar observation \(X_2=p_++\operatorname{Binomial}(r_0,1/2)\) in the published two-arm reduced experiment.
+  \item \texttt{C\_\allowbreak{}A} --- \texttt{two-\allowbreak{}arm Airy constant}; \((0,\infty)\); \texttt{binary-\allowbreak{}reduction benchmark}
+  \par\smallskip\noindent\emph{Definition.} The published scalar Airy ground-state constant \(C_A=1.617\ldots\).
+  \item \texttt{C\_\allowbreak{}0(c)} --- \texttt{first-\allowbreak{}order minimax constant}; \((0,\infty)\); \texttt{risk frontier}
+  \par\smallskip\noindent\emph{Definition.} \(C_0(c)=L_c^2/4=(\sum_{a\in\mathcal A_K}|c_a|)^2/4\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{cHT\}\allowbreak{}\}\allowbreak{}\textasciicircum{}\textbackslash{}\allowbreak{}star} --- \texttt{projected contrast-\allowbreak{}weighted centered Horvitz-\allowbreak{}-\allowbreak{}Thompson estimator}; \([-L_c/2,L_c/2]\); \texttt{first-\allowbreak{}order attaining estimator}
+  \par\smallskip\noindent\emph{Definition.} Under independent assignment supported on \(S_c\) with probabilities \(q^\star\), \(\widehat\tau_{\mathrm{cHT}}^\star=\operatorname{proj}_{[-L_c/2,L_c/2]}\!\left[n^{-1}\sum_{i=1}^n\sum_{a\in S_c}c_a\mathbf 1\{A_i=a\}(Y_i^{\mathrm{obs}}-1/2)/q_a^\star\right]\).
+  \item \texttt{d\_\allowbreak{}n(c)} --- \texttt{second-\allowbreak{}order risk improvement}; \([0,\infty)\); \texttt{second-\allowbreak{}order focal sequence}
+  \par\smallskip\noindent\emph{Definition.} \(d_n(c)=C_0(c)/n-\rho_n(c)\).
+  \item \texttt{a\_\allowbreak{}n} --- \texttt{positive second-\allowbreak{}order normalizer}; \((0,\infty)\); \texttt{unknown asymptotic scale}
+  \par\smallskip\noindent\emph{Definition.} A deterministic positive sequence indexed by \(n\).
+  \item \texttt{C\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{so\}\allowbreak{}\}\allowbreak{}(c)} --- \texttt{conditional second-\allowbreak{}order limit constant}; \((0,\infty)\); \texttt{conditionally defined second-\allowbreak{}order frontier}
+  \par\smallskip\noindent\emph{Definition.} Conditional on the branch in which a normalizer \(a_n\) exists and \(a_nd_n(c)\) converges to a finite positive limit, \(C_{\mathrm{so}}(c)=\lim_{n\to\infty}a_nd_n(c)\).
+  \item \texttt{c\textasciicircum{}\textbackslash{}\allowbreak{}dagger} --- \texttt{three-\allowbreak{}arm diagnostic contrast}; \(\mathbb R^3\); \texttt{early-\allowbreak{}kill witness}
+  \par\smallskip\noindent\emph{Definition.} \(c^\dagger=(1,-1/2,-1/2)\).
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}n\textasciicircum{}\textbackslash{}\allowbreak{}dagger} --- \texttt{three-\allowbreak{}arm diagnostic minimax risk}; \([0,1]\); \texttt{computational diagnostic target}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_n^\dagger=\rho_n(c^\dagger)\), for which \(C_0(c^\dagger)=1\).
+  \item \texttt{M} --- \texttt{estimator-\allowbreak{}action grid resolution}; \(\mathbb N\); \texttt{computation index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Positive integer controlling the mesh of the rational action grid.}
+  \item \texttt{j} --- \texttt{action-\allowbreak{}grid index}; \(\{0,\ldots,2M\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic integer index for the rational action grid.}
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}M} --- \texttt{rational estimator-\allowbreak{}action grid}; \(2^{[-1,1]}\); \texttt{LP action set}
+  \par\smallskip\noindent\emph{Definition.} \(\Gamma_M=\{-1+j/M:j=0,\ldots,2M\}\).
+  \item \texttt{g} --- \texttt{grid-\allowbreak{}valued estimate}; \(\Gamma_M\); \texttt{LP action index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic estimator action in the rational grid.}
+  \item \texttt{u} --- \texttt{LP epigraph variable}; \(\mathbb R_+\); \texttt{LP decision variable}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Upper bound on every response-\allowbreak{}type risk in the grid-\allowbreak{}action LP.}
+  \item \texttt{w\_\allowbreak{}\{r,\allowbreak{}x,\allowbreak{}g\}\allowbreak{}} --- \texttt{joint design-\allowbreak{}-\allowbreak{}action weight}; \([0,1]\); \texttt{LP decision variable}
+  \par\smallskip\noindent\emph{Definition.} Nonnegative joint weight for allocation orbit \(r\), observation orbit \(x\), and randomized grid action \(g\).
+  \item \texttt{\textbackslash{}\allowbreak{}Lambda\_\allowbreak{}\{n,\allowbreak{}M\}\allowbreak{}\textasciicircum{}\textbackslash{}\allowbreak{}dagger} --- \texttt{rational grid-\allowbreak{}action game value}; \(\mathbb Q_+\); \texttt{certified LP diagnostic}
+  \par\smallskip\noindent\emph{Definition.} Value of the finite rational linear program that uses the exact three-arm orbit likelihood and permits randomized estimator actions in \(\Gamma_M\).
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}\{M,\allowbreak{}c\}\allowbreak{}} --- \texttt{rational contrast-\allowbreak{}scaled estimator-\allowbreak{}action grid}; \(2^{[-L_c/2,L_c/2]}\); \texttt{general LP action set}
+  \par\smallskip\noindent\emph{Definition.} For a rational nonzero zero-sum contrast \(c\), put \(h_c=L_c/2\) and \(\Gamma_{M,c}=\{-h_c+jh_c/M:j=0,\ldots,2M\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Lambda\_\allowbreak{}\{n,\allowbreak{}M\}\allowbreak{}(c)} --- \texttt{rational contrast grid-\allowbreak{}action game value}; \(\mathbb Q_+\); \texttt{general certified LP diagnostic}
+  \par\smallskip\noindent\emph{Definition.} Value of the finite exact-rational grid-action linear program for contrast \(c\) on \(\Gamma_{M,c}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\section{Definitions}
+
+\begin{definition}[def:labeled-schedule-game]\label{def:labeled-schedule-game}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Unrestricted labeled-\allowbreak{}schedule minimax game}
+\par\smallskip\noindent\emph{Construction.} \[\rho_n(c)=\inf_{\mathcal D\in\Delta(\mathcal A_K^n),\,\widehat\tau}\max_{z\in\mathcal T_K^n}\mathbb E_{\mathcal D}\left[\left\{\widehat\tau((A_i,Y_i^{\mathrm{obs}})_{i=1}^n)-\tau_c(z)\right\}^2\right].\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{z}; \texttt{\textbackslash{}\allowbreak{}mathcal D}; \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}tau}.
+\end{definition}
+
+\begin{definition}[def:orbit-likelihood]\label{def:orbit-likelihood}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Response-\allowbreak{}type orbit likelihood}
+\par\smallskip\noindent\emph{Construction.} \[P_m(x\mid r)=\frac{\prod_{a\in\mathcal A_K}r_a!}{n!}\sum_{h\in\mathcal H(m,r,x)}\prod_{t\in\mathcal T_K}\frac{m_t!}{\prod_{a\in\mathcal A_K}h_{t,a}!}.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{m}; \texttt{r}; \texttt{x}.
+\end{definition}
+
+\begin{definition}[def:finite-orbit-game]\label{def:finite-orbit-game}
+\par\smallskip\noindent\emph{Defined object.} Finite \(2^K\)-response-type minimax game
+\par\smallskip\noindent\emph{Construction.} \[G_n(c)=\inf_{\pi\in\Delta(\mathcal R_{n,K}),\,\delta}\max_{m\in\mathcal M_{n,K}}\sum_{r\in\mathcal R_{n,K}}\pi_r\sum_{x\in\prod_{a\in\mathcal A_K}\{0,\ldots,r_a\}}P_m(x\mid r)\{\delta(r,x)-\tau_c(m)\}^2.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}labeled-\allowbreak{}schedule-\allowbreak{}game}; \texttt{def:\allowbreak{}orbit-\allowbreak{}likelihood}.
+\end{definition}
+
+\begin{definition}[def:first-order-procedure]\label{def:first-order-procedure}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Contrast-\allowbreak{}weighted first-\allowbreak{}order procedure}
+\par\smallskip\noindent\emph{Construction.} Assign each \(A_i\) independently on \(S_c\) with \(\Pr(A_i=a)=q_a^\star\), and report \(\widehat\tau_{\mathrm{cHT}}^\star=\operatorname{proj}_{[-L_c/2,L_c/2]}\!\left[n^{-1}\sum_{i=1}^n\sum_{a\in S_c}c_a\mathbf 1\{A_i=a\}(Y_i^{\mathrm{obs}}-1/2)/q_a^\star\right]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{c}; \texttt{q\textasciicircum{}\textbackslash{}\allowbreak{}star}.
+\end{definition}
+
+\begin{definition}[def:k3-rational-lp]\label{def:k3-rational-lp}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Three-\allowbreak{}arm exact-\allowbreak{}rational grid-\allowbreak{}action LP}
+\par\smallskip\noindent\emph{Construction.} For \(K=3\) and \(c=c^\dagger\), minimize \(u\) over rational variables \(\pi_r\ge0\) and \(w_{r,x,g}\ge0\), subject to \(\sum_r\pi_r=1\), \(\sum_{g\in\Gamma_M}w_{r,x,g}=\pi_r\) for every \((r,x)\), and \(\sum_{r,x,g}P_m(x\mid r)w_{r,x,g}\{g-\tau_{c^\dagger}(m)\}^2\le u\) for every \(m\in\mathcal M_{n,3}\); its value is \(\Lambda_{n,M}^\dagger\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}orbit-\allowbreak{}likelihood}; \texttt{def:\allowbreak{}finite-\allowbreak{}orbit-\allowbreak{}game}.
+\end{definition}
+
+\begin{definition}[def:boundary-layer-handle]\label{def:boundary-layer-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Active-\allowbreak{}face boundary-\allowbreak{}layer handle}
+\par\smallskip\noindent\emph{Construction.} Starting from the exact orbit game, enumerate binding response-type and allocation faces, expand the discrete risk by a vector Stein identity within each stratum, use the certified \(c^\dagger\) LP sequence to select the normalizer, and pass the primal and dual games to a stratified diffusion-control or spectral value problem with face and corner compatibility conditions.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}finite-\allowbreak{}orbit-\allowbreak{}game}; \texttt{def:\allowbreak{}k3-\allowbreak{}rational-\allowbreak{}lp}.
+\end{definition}
+
+\begin{definition}[def:attainment-handle]\label{def:attainment-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Contrast-\allowbreak{}score feedback and converse handle}
+\par\smallskip\noindent\emph{Construction.} Begin with the vector of centered arm scores generated by \(q^\star\); derive an orbit-saddle posterior mean or feedback correction from the limiting value function, lift that correction to finite \(n\), and discretize the squared ground state or dual occupation measure into a least-favorable prior on response-type counts.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}first-\allowbreak{}order-\allowbreak{}procedure}; \texttt{def:\allowbreak{}boundary-\allowbreak{}layer-\allowbreak{}handle}.
+\end{definition}
+
+\begin{definition}[def:rational-contrast-grid-lp]\label{def:rational-contrast-grid-lp}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Rational-\allowbreak{}contrast exact grid-\allowbreak{}action LP}
+\par\smallskip\noindent\emph{Construction.} Fix \(K\geq2\), \(n,M\geq1\), and a rational nonzero zero-sum contrast \(c\in\mathbb Q^K\).  Put \(h_c=L_c/2\) and
+\[
+ \Gamma_{M,c}=\{-h_c+jh_c/M:j=0,\ldots,2M\}.
+\]
+Minimize \(u\) over \(\pi_r\geq0\) and \(w_{r,x,g}\geq0\), subject to
+\[
+ \sum_{r\in\mathcal R_{n,K}}\pi_r=1,
+ \qquad
+ \sum_{g\in\Gamma_{M,c}}w_{r,x,g}=\pi_r
+ \quad\text{for every }(r,x),
+\]
+and
+\[
+ \sum_{r\in\mathcal R_{n,K}}\sum_x\sum_{g\in\Gamma_{M,c}}
+ P_m(x\mid r)w_{r,x,g}\{g-\tau_c(m)\}^2\leq u
+ \quad\text{for every }m\in\mathcal M_{n,K}.
+\]
+The value of this finite grid-action linear program is \(\Lambda_{n,M}(c)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}orbit-\allowbreak{}likelihood}; \texttt{def:\allowbreak{}finite-\allowbreak{}orbit-\allowbreak{}game}; \texttt{c}; \texttt{M}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:exact-response-type-game]\label{thm:exact-response-type-game}
+For every fixed \(n\), \(K\ge2\), and contrast \(c\), begin with nature choosing a complete labeled schedule \(z\in\mathcal T_K^n\), an arbitrary assignment law \(\mathcal D\), and an arbitrary estimator \(\widehat\tau\). Averaging a procedure over common permutations of unit labels is lossless, and the symmetrized risk is constant on each unit-permutation orbit of schedules. Consequently, with \(m_t=\#\{i:t_i=t\}\), \(\tau_c(z)=\tau_c(m)\), and the labeled minimax risk equals the explicit orbit game: \(\rho_n(c)=G_n(c)\). A symmetrized design is exactly a mixture \(\pi\in\Delta(\mathcal R_{n,K})\) of uniform assignments conditional on \(r\), and a nonrandomized invariant estimator is \(\delta(r,x)\). The compact convex game admits a minimax procedure and a least-favorable prior on \(\mathcal M_{n,K}\) forming a saddle point.
+\end{theorem}
+\begin{proof}
+Let \(\mathfrak S_n\) act simultaneously on schedules, assignments, and observed outcome vectors by
+\[
+ (\gamma z)_i=t_{\gamma^{-1}(i)},\qquad
+ (\gamma A)_i=A_{\gamma^{-1}(i)},\qquad
+ (\gamma y)_i=y_{\gamma^{-1}(i)}.
+\]
+The causal contrast is invariant under this action, since
+\[
+ \tau_c(\gamma z)
+ =\frac1n\sum_{i=1}^n\sum_{a\in\mathcal A_K}c_at_{\gamma^{-1}(i),a}
+ =\tau_c(z).
+\]
+
+Fix a labeled procedure \(p=(\mathcal D,f)\).  Draw \(\Gamma\) uniformly from \(\mathfrak S_n\), draw \(B\sim\mathcal D\), assign \(A=\Gamma B\), and, after observing \(y\), use the randomized action
+\[
+ U=f(\Gamma^{-1}A,\Gamma^{-1}y).
+\]
+Under schedule \(z\), inverse-permuting the observed data produces exactly the data generated by \(p\) under \(\Gamma^{-1}z\).  Therefore
+\[
+ \mathbb E_z\!\left[\{U-\tau_c(z)\}^2\right]
+ =\frac1{n!}\sum_{\gamma\in\mathfrak S_n}
+ R_n(\mathcal D,f;\gamma^{-1}z).
+\]
+The marginal law of the symmetrized assignment is
+\[
+ \overline{\mathcal D}(A)
+ =\frac1{n!}\sum_{\gamma\in\mathfrak S_n}\mathcal D(\gamma^{-1}A).
+\]
+When \(\overline{\mathcal D}(A)>0\), define
+\[
+ \bar f(A,y)=
+ \frac{\sum_{\gamma\in\mathfrak S_n}\mathcal D(\gamma^{-1}A)
+ f(\gamma^{-1}A,\gamma^{-1}y)}
+ {\sum_{\gamma\in\mathfrak S_n}\mathcal D(\gamma^{-1}A)},
+\]
+and define \(\bar f\) arbitrarily in \([-L_c/2,L_c/2]\) when the denominator is zero.  The conditional weights in this average depend only on \(A\), and hence do not depend on the unknown schedule.  Conditional Jensen's inequality gives, for every \(z\),
+\[
+ R_n(\overline{\mathcal D},\bar f;z)
+ \le \frac1{n!}\sum_{\gamma\in\mathfrak S_n}
+ R_n(\mathcal D,f;\gamma^{-1}z)
+ \le \max_{z'}R_n(\mathcal D,f;z').
+\]
+A change of summation variable shows
+\(\overline{\mathcal D}(\eta A)=\overline{\mathcal D}(A)\) and
+\(\bar f(\eta A,\eta y)=\bar f(A,y)\) for every \(\eta\in\mathfrak S_n\).  Thus symmetrization is lossless for worst-case risk, produces a deterministic invariant estimator, and makes risk constant on unit-permutation orbits of schedules.
+
+The schedule orbits are exactly the response-type count vectors \(m\in\mathcal M_{n,K}\).  On the orbit indexed by \(m\),
+\[
+ \tau_c(z)=\frac1n\sum_{t\in\mathcal T_K}m_t
+ \sum_{a\in\mathcal A_K}c_at_a=\tau_c(m).
+\]
+The assignment orbits are exactly the allocation vectors \(r\in\mathcal R_{n,K}\).  An orbit with allocation \(r\) contains \(n!/\prod_a r_a!\) assignments.  Hence every invariant assignment law has the unique representation: first draw \(r\) with probabilities \(\pi_r\), then draw uniformly conditional on \(r\).  Conversely, every \(\pi\in\Delta(\mathcal R_{n,K})\) defines an invariant design.  The observed-data orbits are exactly \((r,x)\), because the counts of pairs \((A_i,Y_i^{\mathrm{obs}})=(a,1)\) and \((a,0)\) are \(x_a\) and \(r_a-x_a\).  Thus every deterministic invariant estimator is, and every map \(\delta(r,x)\) defines, an invariant estimator.
+
+Fix \(m,r,x\).  For any \(h\in\mathcal H(m,r,x)\), the number of assignments that send the \(m_t\) labeled units of type \(t\) to arms with cell counts \(h_{t,a}\) is
+\[
+ \prod_{t\in\mathcal T_K}\frac{m_t!}{\prod_{a\in\mathcal A_K}h_{t,a}!}.
+\]
+Summing this count over the fiber \(\mathcal H(m,r,x)\) and dividing by the orbit size \(n!/\prod_a r_a!\) gives
+\[
+ P_m(x\mid r)=\frac{\prod_{a\in\mathcal A_K}r_a!}{n!}
+ \sum_{h\in\mathcal H(m,r,x)}
+ \prod_{t\in\mathcal T_K}\frac{m_t!}{\prod_{a\in\mathcal A_K}h_{t,a}!},
+\]
+which is the frozen orbit likelihood.  Consequently, the risk of \((\pi,\delta)\) is exactly
+\[
+ \sum_{r\in\mathcal R_{n,K}}\pi_r
+ \sum_xP_m(x\mid r)\{\delta(r,x)-\tau_c(m)\}^2.
+\]
+Every orbit procedure is a labeled procedure, while the preceding symmetrization shows that every labeled procedure is weakly dominated in worst-case risk by an orbit procedure.  The two inequalities imply
+\[
+ \rho_n(c)=G_n(c).
+\]
+
+It remains to prove attainment and the saddle assertion.  The set \(\mathscr P\) of pairs \((\pi,\delta)\) is a finite product of compact simplexes and compact intervals.  If \(v_m(p)\) denotes the risk at \(m\), continuity and finiteness of \(\mathcal M_{n,K}\) imply that
+\[
+ V=\min_{p\in\mathscr P}\max_{m\in\mathcal M_{n,K}}v_m(p)
+\]
+is attained at some \(p^\star\).  Although the raw coordinates \((\pi,\delta)\) do not make the payoff jointly convex, the attainable upper risk set is convex.  Indeed, for \(p_j=(\pi_j,\delta_j)\), \(j\in\{0,1\}\), and \(\lambda\in[0,1]\), set
+\[
+ \pi_r=\lambda\pi_{0r}+(1-\lambda)\pi_{1r},
+ \qquad
+ \delta(r,x)=
+ \frac{\lambda\pi_{0r}\delta_0(r,x)+(1-\lambda)\pi_{1r}\delta_1(r,x)}{\pi_r}
+\]
+when \(\pi_r>0\), with arbitrary \(\delta(r,x)\) when \(\pi_r=0\).  Convexity of squared loss gives simultaneously for every \(m\)
+\[
+ v_m(p)\le\lambda v_m(p_0)+(1-\lambda)v_m(p_1).
+\]
+Therefore
+\[
+ \mathcal U=\left\{u\in[0,L_c^2]^{\mathcal M_{n,K}}:
+ \text{some }p\in\mathscr P\text{ satisfies }v_m(p)\le u_m
+ \text{ for all }m\right\}
+\]
+is nonempty, compact, convex, and coordinatewise upper comprehensive.
+
+We now derive a least-favorable prior by separation.  Let \(d=|\mathcal M_{n,K}|\), let \(\mathbf 1\in\mathbb R^d\), and, for \(\varepsilon>0\), put \(y_\varepsilon=(V-\varepsilon)\mathbf 1\).  By the definition of \(V\), \(y_\varepsilon\notin\mathcal U\).  Let \(u_\varepsilon\) be its Euclidean projection onto \(\mathcal U\) and set \(\eta_\varepsilon=u_\varepsilon-y_\varepsilon\).  Upper comprehensiveness implies \(\eta_\varepsilon\ge0\) coordinatewise: otherwise increasing a deficient coordinate to the corresponding coordinate of \(y_\varepsilon\) would stay in \(\mathcal U\) and shorten the distance.  The projection inequality gives
+\[
+ \eta_\varepsilon\mathbin{\cdot}(u-u_\varepsilon)\ge0
+ \qquad\text{for every }u\in\mathcal U.
+\]
+Since \(y_\varepsilon\notin\mathcal U\), \(\eta_\varepsilon\ne0\).  Normalize
+\(\mu_\varepsilon=\eta_\varepsilon/\sum_m\eta_{\varepsilon,m}\).  Along a convergent subsequence as \(\varepsilon\downarrow0\), \(\mu_\varepsilon\to\mu^\star\in\Delta(\mathcal M_{n,K})\), and the preceding inequality yields
+\[
+ \sum_m\mu_m^\star u_m\ge V
+ \qquad\text{for every }u\in\mathcal U.
+\]
+Applying this to every risk vector and to \(p^\star\), whose risk coordinates are at most \(V\), gives
+\[
+ \sum_m\mu_m^\star v_m(p)\ge V
+ =\sum_m\mu_m^\star v_m(p^\star),
+ \qquad v_m(p^\star)\le V.
+\]
+Consequently, for every prior \(\mu\) and procedure \(p\),
+\[
+ \sum_m\mu_m v_m(p^\star)
+ \le\sum_m\mu_m^\star v_m(p^\star)
+ \le\sum_m\mu_m^\star v_m(p).
+\]
+Thus \((p^\star,\mu^\star)\) is a saddle point and \(\mu^\star\) is least favorable.  No exposure-positivity, rank, or inverse condition is needed: zero allocation counts are permitted, \(0!=1\), and values of an estimator on zero-probability observations are immaterial.  As a boundary check, when \(n=1\) and \(r\) assigns the sole unit to arm \(a\), the contingency-table formula reduces to the point mass \(x_a=t_a\); the all-zero and all-one response types remain in the state space.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem converts an unrestricted and exponentially presented experimental decision problem into an explicit finite object that supports computation, asymptotics, and a matched converse. \textit{Gap.} Sudijono, Dobriban, and Tchetgen Tchetgen (2026, Theorems 1--3, proof of Theorem 2, and Sections 5--6) obtain their scalar two-arm reduction from a least-favorable prior and transformed variables \(S_i\) that are ancillary for the design under that prior. Hull (2026, Theorem 1, proof Steps 1--3) instead averages independent per-unit swaps of the two potential-outcome coordinates together with assignment-bit exclusive-or, and then averages over unit labels. Neither route supplies the fixed-contrast \(2^K\)-type orbit likelihood or a lossless multi-arm saddle point. \textit{Consumer.} The exact game supplies the finite benchmark needed to audit joint design and analysis choices for a four-arm binary endpoint such as ACTG 175.
+
+\begin{theorem}[thm:multiarm-strict-extension]\label{thm:multiarm-strict-extension}
+The exact response-type game is a strict treatment-domain extension of the unrestricted binary decision problem from two arms to every fixed \(K\geq3\); it is not a setwise extension of Hull's bounded-outcome model. When \(K=2\) and \(c=(1,-1)\), the orbit experiment retains the four distinct counts \(m_{(0,0)},m_{(0,1)},m_{(1,0)},m_{(1,1)}\) in \(P_m(x\mid r)\). Although
+\[
+ \tau_c(m)=\frac{m_{(1,0)}-m_{(0,1)}}n=\frac{p_+-p_-}{n},
+\]
+no aggregation by individual-effect class is asserted to identify the likelihood kernel. The exact orbit equality and the internal sign-group and Bayesian-information arguments give
+\[
+ \rho_n((1,-1))=G_n((1,-1)),
+ \qquad C_0((1,-1))=1,
+ \qquad d_n((1,-1))=\Theta(n^{-4/3}),
+\]
+with the explicit coarse ceiling \(d_n((1,-1))\leq43n^{-4/3}\) for \(n\geq8\), but no exact second-order constant or source-specific optimizer is delivered. Hull's theorem permits unrestricted designs and measurable estimators for two bounded-outcome arms. By contrast, for every fixed \(K\geq3\) and nonzero zero-sum \(c\), the present theorem assumes binary response schedules and proves equality of the unrestricted labeled-schedule risk and the explicit joint \(2^K\)-response-type orbit game, including arbitrary assignment dependence and possibly biased estimators. Thus the strict extension is on the number-of-arms axis within the binary model. This statement asserts neither a bounded-outcome \(K\geq3\) extension nor that the multi-arm game is scalar-nonrepresentable.
+\end{theorem}
+\begin{proof}
+\textbf{Proof.}
+For \(K=2\) and \(c=(1,-1)\), the orbit target is
+\[
+ \tau_c(m)=\frac1n\sum_{t\in\{0,1\}^2}m_t(t_1-t_2)
+ =\frac{m_{(1,0)}-m_{(0,1)}}n
+ =\frac{p_+-p_-}{n}.
+\]
+Also \(r_0=m_{(0,0)}+m_{(1,1)}\), so \(p_++p_-+r_0=n\). This is a target identity, not a likelihood identity. Indeed, the orbit likelihood is
+\[
+ P_m(x\mid r)=\frac{\prod_{a\in\mathcal A_2}r_a!}{n!}
+ \sum_{h\in\mathcal H(m,r,x)}
+ \prod_{t\in\mathcal T_2}\frac{m_t!}{\prod_{a\in\mathcal A_2}h_{t,a}!}.
+\]
+Both the factorial factors and the row constraints \(\sum_a h_{t,a}=m_t\) remain separately indexed by all four response types. Hence neither the likelihood definition nor the exact response-type theorem identifies \(P_m(x\mid r)\) from \((p_+,p_-,r_0)\) alone.
+
+The exact response-type game theorem gives \(\rho_n((1,-1))=G_n((1,-1))\). Here \(L_c=2\) and \(C_0(c)=1\). The internally proved support-two identity is tautologically consistent with this two-arm value, while the coarse two-arm converse and explicit clipped-shrinkage theorem give
+\[
+ 0<\liminf_{n\to\infty}n^{4/3}d_n((1,-1))
+ \leq\limsup_{n\to\infty}n^{4/3}d_n((1,-1))\leq43.
+\]
+This proves the asserted \(\Theta(n^{-4/3})\) regression clause without using the published Airy constant or optimizer.
+
+Now fix \(K\geq3\). The exact response-type theorem permits every \(\mathcal D\in\Delta(\mathcal A_K^n)\), including dependent assignments, and every measurable clipped estimator, including biased estimators. It proves
+\[
+ \rho_n(c)=G_n(c),
+\]
+where nature ranges over the full count simplex \(\mathcal M_{n,K}\) formed from all \(2^K\) binary response types and the payoff uses the explicit joint kernel \(P_m(x\mid r)\). This is the stated extension on the number-of-arms axis.
+
+The Hull scope lemma supplies the boundary comparison: its unrestricted design-and-estimation theorem concerns two bounded-outcome arms. The present multi-arm result assumes binary response schedules. Therefore it neither contains Hull's bounded-outcome model setwise nor proves a bounded-outcome result for \(K\geq3\). The orbit equality also does not rule out some other scalar representation. Allocation cells with \(r_a=0\), zero contrast coefficients, and the all-zero and all-one response types remain legal; no exposure-positivity, overlap, rank, or inverse condition is imposed. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem isolates the exact fixed-\(K\) binary orbit extension and retains a fully internal two-arm rate regression without collapsing the four-count likelihood. \textit{Gap.} The result extends the number of arms only for binary schedules and delivers no bounded-outcome \(K\geq3\) theorem, scalar nonrepresentability claim, exact Airy constant, or source-specific optimizer. \textit{Consumer.} The three-arm exact-rational showcase and a four-arm ACTG 175 contrast inherit a verified unrestricted binary decision problem.
+
+\begin{theorem}[thm:first-order-saddle]\label{thm:first-order-saddle}
+Under fixed \(K\), \[\lim_{n\to\infty}n\rho_n(c)=C_0(c)=\frac{1}{4}\left(\sum_{a\in\mathcal A_K}|c_a|\right)^2.\] Independent assignment supported on \(S_c\) with \(q_a^\star=|c_a|/L_c\) and the projected rule \(\widehat\tau_{\mathrm{cHT}}^\star\) satisfies \(\max_{z\in\mathcal T_K^n}R_n(\mathcal D,\widehat\tau_{\mathrm{cHT}}^\star;z)\le C_0(c)/n\). Because every target \(\tau_c(z)\) lies in \([-L_c/2,L_c/2]\), projection onto this interval cannot increase pointwise squared loss, so \(\widehat\tau_{\mathrm{cHT}}^\star\) belongs to the same minimax estimator action space. Conversely, every sequence of randomized designs and possibly biased estimators has asymptotic worst-case labeled-schedule risk at least \(C_0(c)/n+o(n^{-1})\).
+\end{theorem}
+\begin{proof}
+We first establish the finite-sample upper bound.  Write
+\[
+ \widetilde\tau=\frac1n\sum_{i=1}^n Z_i,
+ \qquad
+ Z_i=\sum_{a\in S_c}
+ \frac{c_a\mathbf 1\{A_i=a\}}{q_a^\star}
+ \left(Y_i^{\mathrm{obs}}-\frac12\right).
+\]
+The contrast is nonzero, so \(L_c>0\).  For every \(a\in S_c\),
+\(q_a^\star=|c_a|/L_c>0\); thus every displayed division is valid.  No
+division is made for \(a\notin S_c\), and the constructed design assigns
+such inactive arms probability zero.
+
+Fix a labeled response schedule \(z\).  Under the independent assignment
+in \(\mathrm{def:first\text{-}order\text{-}procedure}\),
+\[
+ \mathbb E_{\mathcal D}(Z_i\mid z)
+ =\sum_{a\in S_c}c_a(t_{i,a}-1/2)
+ =\sum_{a\in\mathcal A_K}c_at_{i,a}
+ =:\mu_i.
+\]
+The second equality uses \(c_a=0\) off \(S_c\) and
+\(\sum_{a\in\mathcal A_K}c_a=0\).  Hence
+\[
+ \mathbb E_{\mathcal D}(\widetilde\tau\mid z)
+ =\frac1n\sum_{i=1}^n\mu_i=\tau_c(z).
+\]
+Because every \(t_{i,a}\) is binary,
+\((t_{i,a}-1/2)^2=1/4\), and therefore
+\[
+ \begin{aligned}
+ \mathbb E_{\mathcal D}(Z_i^2\mid z)
+ &=\frac14\sum_{a\in S_c}\frac{c_a^2}{q_a^\star}
+ =\frac14\sum_{a\in S_c}L_c|c_a|\\
+ &=\frac{L_c^2}{4}=C_0(c).
+ \end{aligned}
+\]
+The assignments, and hence the variables \(Z_i\), are independent across
+units conditional on the fixed schedule.  It follows that
+\[
+ \begin{aligned}
+ R_n(\mathcal D,\widetilde\tau;z)
+ &=\frac1{n^2}\sum_{i=1}^n
+   \operatorname{Var}_{\mathcal D}(Z_i\mid z)\\
+ &=\frac1{n^2}\sum_{i=1}^n\{C_0(c)-\mu_i^2\}
+ \le \frac{C_0(c)}n.
+ \end{aligned}
+\]
+
+We next verify the relevant range and boundary condition.  Put
+\(P_c=\{a:c_a>0\}\) and \(N_c=\{a:c_a<0\}\).  The zero-sum identity gives
+\[
+ \sum_{a\in P_c}c_a=-\sum_{a\in N_c}c_a=\frac{L_c}{2}.
+\]
+For every binary response type \(t_i\),
+\[
+ -\frac{L_c}{2}
+ \le \sum_{a\in\mathcal A_K}c_at_{i,a}
+ \le \frac{L_c}{2}.
+\]
+Averaging over units yields
+\(\tau_c(z)\in[-L_c/2,L_c/2]\).  Metric projection onto this closed
+interval cannot increase squared distance from any point in the interval.
+Consequently the projected estimator \(\widehat\tau_{\mathrm{cHT}}^\star\)
+is an admissible action and satisfies
+\[
+ \max_{z\in\mathcal T_K^n}
+ R_n(\mathcal D,\widehat\tau_{\mathrm{cHT}}^\star;z)
+ \le \frac{C_0(c)}n.
+\]
+In particular, \(\rho_n(c)\le C_0(c)/n\).
+
+For the converse, we derive the required information inequality directly.
+This argument covers every assignment law, including laws with dependent
+assignments and zero exposure probabilities, and every admissible possibly
+biased estimator.  Since \(K\) is fixed, \(s:=|S_c|\) is fixed.  Define
+\[
+ \epsilon_n=\frac14n^{-1/4},
+ \qquad
+ w(u)=\frac{15}{16}(1-u^2)^2\mathbf 1\{|u|\le1\},
+ \qquad
+ J=\int_{-1}^1\frac{\{w'(u)\}^2}{w(u)}\,du.
+\]
+The density \(w\) integrates to one.  Both \(w\) and its one-sided
+derivative vanish at \(-1\) and \(1\), and direct cancellation gives
+\(\{w'(u)\}^2/w(u)=15u^2\) for \(|u|<1\); hence \(J=10<\infty\).
+For every \(a\in S_c\), independently draw \(P_a\) with density
+\[
+ p\longmapsto \epsilon_n^{-1}
+ w\!\left(\frac{p-1/2}{\epsilon_n}\right),
+\]
+and set \(P_a=1/2\) for \(a\notin S_c\).  Because
+\(0<\epsilon_n\le1/4\), every active \(P_a\) lies in \([1/4,3/4]\);
+all Bernoulli likelihood denominators below are therefore uniformly
+positive.  Independently draw \(U_1,\ldots,U_n\) identically and uniformly
+on \([0,1]\), and define
+\[
+ Y_i(a)=\mathbf 1\{U_i\le P_a\}.
+\]
+After \((P,U)\) is drawn, this is a fixed schedule in
+\(\mathcal T_K^n\).  The construction therefore induces a legitimate
+prior on the finite schedule space, independently of the design.
+
+Set
+\[
+ \vartheta(P)=\sum_{a\in S_c}c_aP_a,
+ \qquad
+ g_P(u)=\sum_{a\in S_c}c_a\mathbf 1\{u\le P_a\}.
+\]
+Conditional on \(P\),
+\[
+ \tau_c(z)=\frac1n\sum_{i=1}^ng_P(U_i),
+ \qquad
+ \mathbb E\{\tau_c(z)\mid P\}=\vartheta(P).
+\]
+The identity \(\sum_a c_a=0\) implies that \(g_P\) vanishes outside
+\([\min_{a\in S_c}P_a,\max_{a\in S_c}P_a]\), an interval of length at
+most \(2\epsilon_n\).  Moreover \(|g_P(u)|\le L_c/2\).  Independence of
+the \(U_i\)'s consequently gives
+\[
+ \begin{aligned}
+ e_n^2
+ &:=\mathbb E\{\tau_c(z)-\vartheta(P)\}^2\\
+ &=\frac1n\mathbb E\{\operatorname{Var}(g_P(U_1)\mid P)\}
+ \le\frac{L_c^2\epsilon_n}{2n}.
+ \end{aligned}
+\]
+Thus \(e_n=O(n^{-5/8})=o(n^{-1/2})\).
+
+Now fix an arbitrary assignment law \(\mathcal D\), chosen without
+knowledge of the schedule, and write
+\[
+ r_a=\sum_{i=1}^n\mathbf 1\{A_i=a\},
+ \qquad
+ s_a=\mathbb E_{\mathcal D}r_a.
+\]
+Conditional on \((P,A)\), the observed outcomes are independent and
+\(Y_i^{\mathrm{obs}}\) has the Bernoulli distribution with parameter
+\(P_{A_i}\).  By symmetry of \(w\) and the support bound,
+\[
+ \kappa_n
+ :=\mathbb E\!\left\{\frac1{P_a(1-P_a)}\right\}
+ =4+O(\epsilon_n^2)=4+O(n^{-1/2}),
+\]
+where the bound is uniform in \(a\in S_c\).  Indeed, after writing
+\(P_a=1/2+\epsilon_n V_a\), the integrand equals
+\(4/(1-4\epsilon_n^2V_a^2)\), and \(|V_a|\le1\).
+
+For \(a\in S_c\), let \(S_a\) be the score in coordinate \(P_a\) of the
+joint prior--likelihood density of \((P,A,Y^{\mathrm{obs}})\).  Conditional
+means of the Bernoulli likelihood scores are zero.  Independence of the arm
+priors, conditional independence of the observed outcomes, and independence
+of \(A\) from \(P\) show that the score covariance matrix is diagonal, with
+\[
+ I_a:=\mathbb E(S_a^2)
+ =\kappa_ns_a+\frac{J}{\epsilon_n^2}>0.
+\]
+The prior-information term makes \(I_a\) strictly positive even when
+\(s_a=0\); hence no exposure-positivity assumption is used.
+
+Let \(T=T(A,Y^{\mathrm{obs}})\) be any admissible estimator.  Its bounded
+range makes every following expectation finite.  Integration by parts in
+\(P_a\) has no boundary term because the scaled prior density vanishes at
+both endpoints.  Since \(T\) is independent of the integration variable
+once the observed data are fixed, while
+\(\partial\vartheta(P)/\partial P_a=c_a\), this gives
+\[
+ \mathbb E(TS_a)=0,
+ \qquad
+ \mathbb E\{\vartheta(P)S_a\}=-c_a,
+ \qquad
+ \mathbb E[\{T-\vartheta(P)\}S_a]=c_a.
+\]
+For every real vector \(v=(v_a)_{a\in S_c}\), Cauchy--Schwarz and score
+diagonality imply
+\[
+ \mathbb E\{T-\vartheta(P)\}^2
+ \ge
+ \frac{(\sum_{a\in S_c}v_ac_a)^2}
+ {\sum_{a\in S_c}v_a^2I_a}.
+\]
+Choosing \(v_a=c_a/I_a\) and then applying Cauchy--Schwarz to
+\((|c_a|/\sqrt{I_a})_a\) and \((\sqrt{I_a})_a\) yields
+\[
+ \begin{aligned}
+ \mathbb E\{T-\vartheta(P)\}^2
+ &\ge\sum_{a\in S_c}\frac{c_a^2}{I_a}
+ \ge\frac{L_c^2}{\sum_{a\in S_c}I_a}\\
+ &\ge\frac{L_c^2}{\kappa_n n+sJ/\epsilon_n^2}.
+ \end{aligned}
+\]
+The last inequality uses \(\sum_{a\in S_c}s_a\le n\).  This is the
+specialized Bayesian information inequality needed here, obtained only
+from integration by parts and Cauchy--Schwarz.
+
+The reverse triangle inequality in \(L^2\), followed by the preceding
+schedule-approximation bound, now gives uniformly over \(\mathcal D\) and
+\(T\),
+\[
+ \left[\mathbb E\{T-\tau_c(z)\}^2\right]^{1/2}
+ \ge
+ \frac{L_c}{\sqrt{\kappa_n n+sJ/\epsilon_n^2}}-e_n.
+\]
+The first term equals \(L_c/(2\sqrt n)+o(n^{-1/2})\), whereas
+\(e_n=o(n^{-1/2})\).  Taking the positive part and squaring therefore
+proves
+\[
+ \mathbb E\{T-\tau_c(z)\}^2
+ \ge \frac{C_0(c)}n+o(n^{-1}),
+\]
+with a remainder uniform over all allowed procedures.  The maximum risk
+over fixed schedules dominates the average risk under the constructed
+schedule prior.  Taking the infimum over \(\mathcal D\) and \(T\) gives
+\[
+ \rho_n(c)\ge\frac{C_0(c)}n+o(n^{-1}).
+\]
+Together with the finite-sample upper bound,
+\[
+ \lim_{n\to\infty}n\rho_n(c)
+ =C_0(c)=\frac{L_c^2}{4}
+ =\frac14\left(\sum_{a\in\mathcal A_K}|c_a|\right)^2.
+\]
+By \(\mathrm{thm:exact\text{-}response\text{-}type\text{-}game}\), the same
+value certificate applies to the explicit orbit game \(G_n(c)\).
+
+Finally, the allocation itself has an elementary optimality certificate
+within the displayed independent centered Horvitz--Thompson family.  For
+every allocation vector \(q\) satisfying \(q_a>0\) on \(S_c\),
+\[
+ \frac14\sum_{a\in S_c}\frac{c_a^2}{q_a}
+ \ge
+ \frac14\frac{(\sum_{a\in S_c}|c_a|)^2}
+ {\sum_{a\in S_c}q_a}
+ \ge\frac{L_c^2}{4}.
+\]
+Equality holds precisely when no probability is assigned outside \(S_c\)
+and \(q_a\) is proportional to \(|c_a|\) on \(S_c\), namely
+\(q=q^\star\).  At the finite boundary \(n=1\), the exact identity
+\[
+ R_1(\mathcal D,\widetilde\tau;z)=C_0(c)-\mu_1^2\le C_0(c)
+\]
+checks the upper bound directly.  Thus active-arm positivity is explicit
+for the attaining design, inactive arms create no division, and the
+converse imposes no positivity, overlap, rank, or invertibility condition
+on the arbitrary competing designs.  This completes the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem gives the explicit first-order robustness constant and an allocation certificate before the nonclassical second-order correction. \textit{Gap.} Aronow and Lopatto prove an exact bounded-total result under unit-inclusion sampling and design unbiasedness; Bai and Kallus use different adversaries or estimator classes; published unrestricted minimaxity remains two-arm.  None proves the present fixed-\(K\), mutually exclusive, arbitrary-estimator conclusion. \textit{Consumer.} For ACTG 175, it gives a worst-case allocation benchmark for a prespecified regimen-versus-average contrast rather than default equal allocation.
+
+\begin{proposition}[prop:k3-lp-certificate]\label{prop:k3-lp-certificate}
+For \(K=3\), \(c=c^\dagger=(1,-1/2,-1/2)\), and every \(n,M\ge1\), the grid-action program defining \(\Lambda_{n,M}^\dagger\) is a finite linear program with rational coefficients and \[\rho_n^\dagger\le\Lambda_{n,M}^\dagger\le\rho_n^\dagger+\frac{2}{M}+\frac{1}{M^2}.\] Consequently, choosing \(M=n^2\) yields exact-rational primal and dual certificates whose discretization error is \(o(n^{-4/3})\), so the sequence \(n^{4/3}\{n^{-1}-\Lambda_{n,n^2}^\dagger\}\) is a valid early diagnostic for, but not an assumption of, the \(4/3\) exponent. The LP retains the all-zero and all-one response types and every response-type count vector in \(\mathcal M_{n,3}\).
+\end{proposition}
+\begin{proof}
+For \(c^\dagger=(1,-1/2,-1/2)\), \(L_{c^\dagger}=2\), so both \(\tau_{c^\dagger}(m)\) and every admissible continuous estimate lie in \([-1,1]\).  Every indexing set in the program is finite.  The factorial formula makes \(P_m(x\mid r)\) rational, while \(\tau_{c^\dagger}(m)\) and every \(g\in\Gamma_M\) are rational.  Thus every objective and constraint coefficient is rational.  The action \(g=0\) is in \(\Gamma_M\) and gives a feasible rule with \(u\le1\); for minimization one may therefore restrict \(u\) to \([0,1]\).  All other variables lie in finite products of simplexes, so the relevant feasible set is a compact rational polytope.
+
+For completeness, rational primal and dual certificates follow by an elementary elimination argument.  Put the finite program in equality-and-inequality form and eliminate its variables one at a time by Fourier--Motzkin elimination, retaining the objective-coordinate variable.  At each step the new inequalities are nonnegative rational linear combinations of preceding inequalities.  The final feasible objective set is a one-dimensional rational polyhedron, whose finite attained lower endpoint is rational.  Back-substitution at rational endpoints produces a rational primal optimizer.  Recording the nonnegative rational combinations that produce the endpoint inequality gives feasible rational dual multipliers with that same objective value; weak duality then certifies optimality of both.  Hence the program admits exact-rational primal and dual certificates.
+
+We next compare it with the continuous orbit game.  Let \((\pi,w,u)\) be feasible.  If \(\pi_r>0\), define
+\[
+ \kappa_{r,x}(g)=\frac{w_{r,x,g}}{\pi_r},
+ \qquad
+ \bar\delta(r,x)=\sum_{g\in\Gamma_M}\kappa_{r,x}(g)g;
+\]
+when \(\pi_r=0\), choose \(\kappa_{r,x}\) arbitrarily.  The constraints
+\(\sum_gw_{r,x,g}=\pi_r\) make \(\kappa_{r,x}\) a probability kernel selected after observing \((r,x)\).  For every \(m,r,x\), the conditional variance identity gives
+\[
+ \sum_g\kappa_{r,x}(g)\{g-\tau_{c^\dagger}(m)\}^2
+ =\{\bar\delta(r,x)-\tau_{c^\dagger}(m)\}^2
+ +\sum_g\kappa_{r,x}(g)\{g-\bar\delta(r,x)\}^2.
+\]
+Because \(\bar\delta(r,x)\in[-1,1]\), it is an admissible deterministic continuous action.  Dropping the nonnegative variance term and using the exact-game equality gives
+\[
+ \rho_n^\dagger=G_n(c^\dagger)\le u.
+\]
+Taking the infimum over feasible grid programs proves
+\(\rho_n^\dagger\le\Lambda_{n,M}^\dagger\).
+
+Conversely, let \((\pi,\delta)\) be a minimax continuous orbit procedure, whose existence was proved in the exact response-type game theorem.  Let \(Q_M(v)\) be a nearest point of \(\Gamma_M\) to \(v\in[-1,1]\), with any fixed tie rule.  The mesh is \(1/M\), so
+\[
+ e(r,x)=Q_M(\delta(r,x))-\delta(r,x),
+ \qquad |e(r,x)|\le\frac1{2M}.
+\]
+Set
+\(w_{r,x,g}=\pi_r\mathbf 1\{g=Q_M(\delta(r,x))\}\).  This satisfies every normalization constraint.  For every \(m,r,x\),
+\[
+ \begin{aligned}
+ \{Q_M(\delta)-\tau_{c^\dagger}(m)\}^2
+ -\{\delta-\tau_{c^\dagger}(m)\}^2
+ &=2e\{\delta-\tau_{c^\dagger}(m)\}+e^2\\
+ &\le2|e|\,|\delta-\tau_{c^\dagger}(m)|+e^2\\
+ &\le\frac2M+\frac1{4M^2},
+ \end{aligned}
+\]
+because \(|\delta-\tau_{c^\dagger}(m)|\le2\).  Averaging against \(\pi_rP_m(x\mid r)\), using \(\sum_r\pi_r=1\) and \(\sum_xP_m(x\mid r)=1\), and maximizing over \(m\) gives
+\[
+ \Lambda_{n,M}^\dagger
+ \le\rho_n^\dagger+\frac2M+\frac1{4M^2}
+ \le\rho_n^\dagger+\frac2M+\frac1{M^2}.
+\]
+For \(M=n^2\),
+\[
+ \begin{aligned}
+ &n^{4/3}\left|\{n^{-1}-\Lambda_{n,n^2}^\dagger\}
+ -\{n^{-1}-\rho_n^\dagger\}\right|\\
+ &\qquad=n^{4/3}\{\Lambda_{n,n^2}^\dagger-\rho_n^\dagger\}
+ \le2n^{-2/3}+n^{-8/3}\longrightarrow0.
+ \end{aligned}
+\]
+Thus the certified sequence has the same \(n^{4/3}\)-scale behavior as the unrestricted improvement without presupposing that \(4/3\) is the correct exponent.  Finally, the LP constraints are indexed by every \(m\in\mathcal M_{n,3}\), and the likelihood uses every \(t\in\mathcal T_3\).  In particular, schedules concentrated on the all-zero or all-one response type remain present.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The certified sequence supplies concrete falsification evidence rather than only an abstract promise that such a sequence can be computed. \textit{Gap.} The finite exact-rational grid-value enclosures through \(n=5\) do not identify a stable limiting stratum or a sharp cross-\(n\) limit. \textit{Consumer.} The enclosures narrow the candidate \(n^{4/3}\)-scaled risk improvement and determine which response-count and allocation faces the next asymptotic comparison must control.
+
+\begin{lemma}[lem:published-two-arm-minimax-airy]\label{lem:published-two-arm-minimax-airy}
+For \(K=2\) and \(c=(1,-1)\), Sudijono, Dobriban, and Tchetgen Tchetgen's unrestricted binary finite-population minimax risk equals the scalar minimax value based on \(X_2=p_++\operatorname{Binomial}(r_0,1/2)\) for estimating \((p_+-p_-)/n\), where \(p_++p_-+r_0=n\).  They further prove \(\rho_n(c)=n^{-1}-C_A n^{-4/3}+o(n^{-4/3})\), with \(C_A=1.617\ldots\).
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This cited leaf records the published sharp two-arm scalar value and Airy expansion solely as secondary comparison context. \textit{Gap.} The delivered multi-arm rate theorem does not use this source-specific value or constant; its converse is proved internally with a smooth complete-schedule prior. \textit{Consumer.} No delivered theorem consumes this node. It remains available only for non-load-bearing comparison after the internal result is established.
+
+\begin{lemma}[lem:published-hull-two-arm-bounded-scope]\label{lem:published-hull-two-arm-bounded-scope}
+Hull's unrestricted minimax theorem concerns a finite population with two treatment arms and potential outcomes bounded in a known interval. Within that two-arm model it optimizes over arbitrary assignment mechanisms and measurable estimators. It does not state a fixed-\(K\geq3\) bounded-outcome orbit-game theorem.
+\end{lemma}
+
+\begin{lemma}[lem:published-kallus-msod-inference-scope]\label{lem:published-kallus-msod-inference-scope}
+Kallus's framework fixes \(K=2\), even \(n\), balanced assignments, treatment-label blinding, and a fixed unbiased sample-average-treatment-effect estimator. The ordinary mixed-strategy optimal design minimizes the worst-case variance contribution over a specified conditional-mean class. It may fail to give enough assignment-probability uniformity for Fisher randomization inference. Separately, the inference-constrained mixed-strategy optimal design is minimax for that variance criterion among designs satisfying the stated per-assignment probability cap.
+\end{lemma}
+
+\begin{lemma}[lem:published-aronow-lopatto-bounded-unbiased]\label{lem:published-aronow-lopatto-bounded-unbiased}
+For a finite population of \(N\) fixed values \(y_j\in[\ell_j,u_j]\), put \(r_j=(u_j-\ell_j)/2\). For every sampling design having inclusion probabilities \(\pi_j>0\) and every design-unbiased estimator of the finite-population total, the worst-case squared error is at least
+\[
+ \sum_{j=1}^N r_j^2\frac{1-\pi_j}{\pi_j}.
+\]
+The midpoint-differenced Horvitz--Thompson estimator attains equality exactly when the inclusion indicators are pairwise independent for coordinates with \(r_j>0\). When every \(r_j>0\), jointly over sampling designs with a stated expected-sample-size budget \(b\) and design-unbiased estimators, the value is the minimum of the displayed expression; it is attained by independent sampling with \(\pi_j^\star=\min\{1,\gamma r_j\}\), where \(\gamma\) is chosen so that \(\sum_j\pi_j^\star=b\). This result concerns unit-inclusion sampling and design-unbiased estimation of a bounded total, not mutually exclusive multi-arm assignment or a decision class containing possibly biased estimators.
+\end{lemma}
+\textbf{Fixed-coordinate reduction for the stated zero-range clause.}  Let \(J=\{j:r_j>0\}\) and \(J^c=\{j:r_j=0\}\).  For \(j\in J^c\), the interval degenerates, so \(y_j=\ell_j=u_j\) is known and its contribution to the total is deterministic.  Marginalize any sampling design to the coordinates in \(J\).  Its inclusion probabilities on \(J\) remain positive.  Given any design-unbiased estimator of the original total, subtract the known contribution \(\sum_{j\in J^c}y_j\) and condition on the induced sample on \(J\).  The resulting Rao--Blackwellized rule is a design-unbiased estimator of the positive-range sub-total under that marginal design, and conditional Jensen cannot increase its squared error.  Applying the cited all-positive-range lower theorem to this reduced problem yields
+\[
+ \sup_y R\geq\sum_{j\in J}r_j^2\frac{1-\pi_j}{\pi_j}
+ =\sum_{j=1}^Nr_j^2\frac{1-\pi_j}{\pi_j}.
+\]
+Conversely, extend the reduced midpoint-differenced Horvitz--Thompson rule by adding the known \(J^c\) contribution.  Its error is exactly the reduced rule's error.  The cited all-positive sharpness equivalence on \(J\) therefore shows that it attains the displayed bound exactly when the inclusion indicators are pairwise independent for pairs \(i\ne j\) in \(J\).  Thus the citation is used only on its stated all-positive-range scope; the zero-range formulation in this leaf is an internal fixed-coordinate reduction.
+\par\smallskip\noindent \textit{Justification.} This is the closest sharp bounded finite-population first-order analogue to midpoint centering and range-proportional weighting.  The source's sharpness equivalence is used only on its stated all-positive-range scope; the proof records the separate fixed-coordinate reduction that yields the displayed zero-range formulation. \textit{Gap.} Its decision class is design-unbiased estimation under unit-inclusion sampling, whereas the present causal game uses mutually exclusive arm assignment and permits biased estimators.  In particular, the source itself assumes \(r_i>0\) for every coordinate in its sharpness theorem; zero-range coordinates are handled here only by the internal reduction in this node's proof. \textit{Consumer.} It positions the first-order constant and contrast-weighted allocation theorem without being used as a proof premise.
+
+\begin{proposition}[prop:k3-scalar-score-not-minimax-preserving]\label{prop:k3-scalar-score-not-minimax-preserving}
+For \(K=3\), \(c=c^\dagger=(1,-1/2,-1/2)\), and independent assignment with \(q^\star=(1/2,1/4,1/4)\), define
+\[
+ Z_i=\operatorname{sign}(c_{A_i}^\dagger)(2Y_i^{\mathrm{obs}}-1),
+ \qquad
+ \mu_i=t_{i,1}-\frac{t_{i,2}+t_{i,3}}{2}.
+\]
+Then \(Z_i\in\{-1,1\}\),
+\[
+ \mathbb E(Z_i\mid t_i)=\mu_i,
+ \qquad
+ \operatorname{Var}(Z_i\mid t_i)=1-\mu_i^2,
+\]
+and
+\[
+ \mathbb E\!\left[\left\{\frac1n\sum_iZ_i-\tau_{c^\dagger}(z)\right\}^2\middle|z\right]
+ =\frac1n-\frac1{n^2}\sum_i\mu_i^2.
+\]
+The exact scalar minimax value at \(n=3\), when only \((Z_1,Z_2,Z_3)\) is retained and each \(\mu_i\) ranges over \(\{-1,-1/2,0,1/2,1\}\), is
+\[
+ V_3^Z=1-\frac{\sqrt3}{2}.
+\]
+Nevertheless, an explicit deterministic rule based on the full observed arm labels and outcomes under the same independent \(q^\star\) design has maximum risk
+\[
+ \frac{511653}{4000000}<\frac{18213}{136000}<V_3^Z.
+\]
+Thus the map from the full data to \((Z_i)_{i=1}^3\) is not minimax-preserving, even at the fixed \(q^\star\) design, and cannot itself be an exact scalar reduction of the unrestricted three-arm orbit game.  In addition, if \(M_\mu=\sum_i\mu_i\) and \(Q_\mu=\sum_i\mu_i^2\), then over feasible half-integer \(M_\mu\),
+\[
+ \min Q_\mu=
+ \begin{cases}
+ |M_\mu|/2,&|M_\mu|\leq n/2,\\
+ (3|M_\mu|-n)/2,&n/2\leq|M_\mu|\leq n.
+ \end{cases}
+\]
+Hence the coefficient \(\tfrac12|x|\) is the correct local wedge for the scalar relaxation, but this proposition does not establish that the discarded arm-label information is negligible at any second-order scale.
+\end{proposition}
+\begin{proof}
+Under the stated allocation,
+\[
+ \begin{aligned}
+ \mathbb E(Z_i\mid t_i)
+ &=\frac12(2t_{i,1}-1)-\frac14(2t_{i,2}-1)-\frac14(2t_{i,3}-1)\\
+ &=t_{i,1}-\frac{t_{i,2}+t_{i,3}}2=\mu_i.
+ \end{aligned}
+\]
+Because \(Z_i^2=1\), its conditional variance is \(1-\mu_i^2\).  The assignments are independent across units, and \(n^{-1}\sum_i\mu_i=\tau_{c^\dagger}(z)\), so summing the variances proves the mean-squared-error identity.
+
+We next solve the three-observation scalar game exactly.  Let \(N_+=\sum_{i=1}^3\mathbf1\{Z_i=1\}\), \(M_\mu=\sum_i\mu_i\), and \(Q_\mu=\sum_i\mu_i^2\).  Put
+\[
+ \alpha=\frac{3-\sqrt3}{6},
+ \qquad \delta_Z=\alpha(2N_+-3).
+\]
+Since \(2N_+-3=\sum_iZ_i\), independence and the preceding moment identities give
+\[
+ \begin{aligned}
+ \mathbb E\left\{\delta_Z-\frac{M_\mu}{3}\right\}^2
+ &=\alpha^2(3-Q_\mu)+(\alpha-1/3)^2M_\mu^2\\
+ &=\frac{2-\sqrt3}{18}\{9-3Q_\mu+M_\mu^2\}\\
+ &\leq\frac{2-\sqrt3}{2}=1-\frac{\sqrt3}{2},
+ \end{aligned}
+\]
+where the last step is Cauchy--Schwarz, \(M_\mu^2\leq3Q_\mu\).
+
+For the reverse inequality, put prior weights
+\[
+ a=\frac{-11+7\sqrt3}{12},\qquad
+ b=\frac{8-4\sqrt3}{3},\qquad
+ c=\frac{-5+3\sqrt3}{2}
+\]
+on the five homogeneous mean vectors \((-1,-1,-1)\), \((-1/2,-1/2,-1/2)\), \((0,0,0)\), \((1/2,1/2,1/2)\), and \((1,1,1)\), with respective weights \(a,b,c,b,a\).  These numbers are positive and sum to one.  Direct binomial expansion shows that the observation probabilities \(D_k\), numerator moments \(N_k\), and posterior means for \(N_+=k\) are
+\[
+ \begin{array}{c|c|c|c}
+ k&D_k&N_k&N_k/D_k\\ \hline
+ 0&(-1+3\sqrt3)/16&(6-5\sqrt3)/16&-3\alpha\\
+ 1&(9-3\sqrt3)/16&(-6+3\sqrt3)/16&-\alpha\\
+ 2&(9-3\sqrt3)/16&(6-3\sqrt3)/16&\alpha\\
+ 3&(-1+3\sqrt3)/16&(-6+5\sqrt3)/16&3\alpha.
+ \end{array}
+\]
+Thus \(\delta_Z\) is the posterior mean under this prior.  Completing the square gives its Bayes risk
+\[
+ \sum_jw_j\mu_j^2-\sum_{k=0}^3\frac{N_k^2}{D_k}
+ =1-\frac{\sqrt3}{2}.
+\]
+Maximum risk dominates Bayes risk, so the upper and lower bounds coincide and prove the formula for \(V_3^Z\).
+
+We now give the promised full-data witness.  Define
+\[
+ r_1=\sum_i\mathbf1\{A_i=1\},\qquad
+ s_1=\sum_{i:A_i=1}(2Y_i^{\mathrm{obs}}-1),\qquad
+ s_-=\sum_{i:A_i\in\{2,3\}}(1-2Y_i^{\mathrm{obs}}).
+\]
+Let \(1000\delta_F(r_1,s_1,s_-)\) be the following integer table:
+\[
+\begin{array}{c|r@{\qquad}c|r}
+(0,0,-3)&-623&(0,0,-1)&-183\\
+(0,0,1)&183&(0,0,3)&623\\
+(1,-1,-2)&-638&(1,-1,0)&-199\\
+(1,-1,2)&148&(1,1,-2)&-148\\
+(1,1,0)&199&(1,1,2)&638\\
+(2,-2,-1)&-648&(2,-2,1)&-210\\
+(2,0,-1)&-167&(2,0,1)&167\\
+(2,2,-1)&210&(2,2,1)&648\\
+(3,-3,0)&-660&(3,-1,0)&-167\\
+(3,1,0)&167&(3,3,0)&660.
+\end{array}
+\]
+This table is exhaustive: for \(0\leq r\leq3\), the compatible values are \(s\in\{-r,-r+2,\ldots,r\}\) and \(h\in\{-(3-r),-(3-r)+2,\ldots,3-r\}\), giving twenty triples.
+
+Here is an exact finite certificate for its risk.  For a response type \(t\), define the Laurent polynomial
+\[
+ F_t(U,V,W)=\frac12UV^{2t_1-1}
+ +\frac14W^{1-2t_2}+\frac14W^{1-2t_3}.
+\]
+For an orbit \(m\in\mathcal M_{3,3}\), the coefficient of \(U^rV^sW^h\) in \(\prod_tF_t(U,V,W)^{m_t}\) is exactly the probability of \((r_1,s_1,s_-)=(r,s,h)\).  Therefore every risk is the explicitly evaluable rational number
+\[
+ R_m=\sum_{r,s,h}[U^rV^sW^h]\prod_tF_t^{m_t}
+ \left\{\delta_F(r,s,h)-\frac13\sum_tm_t
+ \left(t_1-\frac{t_2+t_3}{2}\right)\right\}^2.
+\]
+Expanding the eight factors for the \(\binom{10}{7}=120\) response-count orbits and comparing integer numerators after clearing the common denominator gives
+\[
+ R_m\leq\frac{511653}{4000000}.
+\]
+Equality holds exactly at the count vectors \((1,0,0,0,0,0,0,2)\) and \((2,0,0,0,0,0,0,1)\), in lexicographic type order \(000,001,010,011,100,101,110,111\).  As a direct boundary check, for the schedule \((000,111,111)\), whose target is zero, the six nonzero orbit probabilities give
+\[
+ \begin{aligned}
+ R&=\frac18(183/1000)^2+\frac18(638/1000)^2
+ +\frac14(199/1000)^2+\frac14(167/1000)^2\\
+ &\quad+\frac18(648/1000)^2+\frac18(167/1000)^2
+ =\frac{511653}{4000000}.
+ \end{aligned}
+\]
+For a fully rational scalar lower certificate, use weights \((1/10,7/20,1/10,7/20,1/10)\) on the same five homogeneous scalar states.  Their observation masses are \((17,15,15,17)/64\), their numerator moments are \((-219,-63,63,219)/1280\), and their prior second moment is \(3/8\).  Completing the square gives
+\[
+ \frac38-\sum_{k=0}^3\frac{N_k^2}{D_k}
+ =\frac{18213}{136000}>\frac{13}{100}
+ >\frac{511653}{4000000}.
+\]
+The strict gap proves the asserted failure of minimax preservation without floating-point arithmetic.
+
+Finally, each feasible scalar mean belongs to \(\{-1,-1/2,0,1/2,1\}\).  Pointwise,
+\[
+ \mu^2\geq\frac{|\mu|}{2},
+ \qquad
+ \mu^2\geq\frac{3|\mu|-1}{2}.
+\]
+Summing and using \(\sum_i|\mu_i|\geq|M_\mu|\) gives the two lower branches for \(Q_\mu\).  If \(|M_\mu|\leq n/2\), equality is obtained by using \(2|M_\mu|\) entries equal to \(\operatorname{sign}(M_\mu)/2\) and all remaining entries zero.  If \(|M_\mu|\geq n/2\), equality is obtained with \(2|M_\mu|-n\) entries equal to \(\operatorname{sign}(M_\mu)\) and the remaining entries equal to \(\operatorname{sign}(M_\mu)/2\).  This proves the wedge formula, including its face junction at \(|M_\mu|=n/2\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition performs the mandated early-kill comparison against the natural contrast score and supplies an explicit finite law on which scalarization loses minimax-relevant information. \textit{Gap.} The two-arm Airy theory does not imply that the three-arm arm-label data can be discarded. The exact \(n=3\) rational risk gap falsifies that reduction while preserving the scalar wedge as a conditional asymptotic candidate. \textit{Consumer.} It prevents the ACTG 175 and three-arm analyses from importing a binary shrinkage correction without first proving asymptotic equivalence of the full and scalar experiments.
+
+\begin{theorem}[thm:embedded-two-arm-converse]\label{thm:embedded-two-arm-converse}
+For every integer \(n\geq1\), every \(K\geq2\), and every nonzero zero-sum contrast \(c\), write \(\rho_{n,2}=\rho_n((1,-1))\) for the unrestricted two-arm minimax risk with the same population size. Then
+\[
+ \rho_n(c)\geq C_0(c)\rho_{n,2}.
+\]
+If \(|S_c|=2\), this inequality is an equality. The contrast-weighted first-order procedure gives \(\rho_n(c)\leq C_0(c)/n\), and the internal Bayesian-information construction gives, for every \(n\geq8\),
+\[
+ \rho_{n,2}\geq n^{-1}-43n^{-4/3}.
+\]
+Consequently, for every \(n\geq8\),
+\[
+ 0\leq d_n(c)\leq C_0(c)\{n^{-1}-\rho_{n,2}\}
+ \leq43C_0(c)n^{-4/3}.
+\]
+When \(|S_c|=2\), the middle inequality is an equality, so \(d_n(c)=C_0(c)\{n^{-1}-\rho_{n,2}\}\). The finite-sample sign-group embedding permits arbitrary dependent assignment designs and arbitrary possibly biased estimators; no published two-arm optimizer, least-favorable prior, or Airy expansion is used.
+\end{theorem}
+\begin{proof}
+\textbf{Proof.}
+Put
+\[
+ P_c=\{a:c_a>0\},\qquad N_c=\{a:c_a<0\},\qquad I_c=\{a:c_a=0\}.
+\]
+Because \(c\) is nonzero and \(\sum_a c_a=0\), both \(P_c\) and \(N_c\) are nonempty and
+\[
+ \alpha:=\sum_{a\in P_c}c_a=-\sum_{a\in N_c}c_a
+ =\frac12\sum_a|c_a|=\frac{L_c}{2}>0.
+\]
+Thus division by \(\alpha\) is lawful and \(\alpha^2=C_0(c)\).
+
+Let \(y=((y_i^+,y_i^-))_{i=1}^n\in\{0,1\}^{2n}\) be an arbitrary binary two-arm response schedule. Embed it into a \(K\)-arm schedule \(E_c(y)\) by
+\[
+ t_{i,a}=y_i^+\quad(a\in P_c),\qquad
+ t_{i,a}=y_i^-\quad(a\in N_c),\qquad
+ t_{i,a}=0\quad(a\in I_c).
+\]
+If \(\tau_2(y)=n^{-1}\sum_i(y_i^+-y_i^-)\), then
+\[
+ \tau_c(E_c(y))
+ =\frac1n\sum_i\left(\sum_{a\in P_c}c_ay_i^+
+ +\sum_{a\in N_c}c_ay_i^-\right)
+ =\alpha\tau_2(y).
+\]
+
+Fix any legitimate \(K\)-arm procedure \((\mathcal D,f)\). Draw a latent \(A\sim\mathcal D\), independently of \(y\). Set \(B_i=+\) when \(A_i\in P_c\), set \(B_i=-\) when \(A_i\in N_c\), and, when \(A_i\in I_c\), draw \(B_i\) by an independent fair coin. This induces a two-arm design fixed before the schedule is revealed. From the observed binary outcome \(v_i=y_i^{B_i}\), form
+\[
+ \widetilde v_i(A,B,v)=
+ \begin{cases}
+ v_i,&A_i\in P_c\cup N_c,\\
+ 0,&A_i\in I_c.
+ \end{cases}
+\]
+For the embedded schedule, \((A_i,\widetilde v_i)_{i=1}^n\) is exactly the data supplied to the original procedure: active-arm outcomes agree, and inactive-arm outcomes were fixed at zero.
+
+The scaled latent action \(H=\alpha^{-1}f((A_i,\widetilde v_i)_{i=1}^n)\) can retain the latent \(A\). Remove it by defining
+\[
+ g(b,v)=\mathbb E\!\left[H\mid B=b,(y_i^{B_i})_{i=1}^n=v\right]
+\]
+on observations with positive probability, and define \(g\) arbitrarily in \([-1,1]\) otherwise. This is schedule-independent: conditional on \(B=b\), the law of \(A\) is determined only by \(\mathcal D\) and the inactive-arm coins, while \(v\) merely supplies the argument of \(f\). Since \(f\in[-\alpha,\alpha]\), one has \(g\in[-1,1]\). Conditional Jensen and the target identity give, schedule by schedule,
+\[
+ \mathbb E_y\{g(B,v)-\tau_2(y)\}^2
+ \leq\alpha^{-2}R_n(\mathcal D,f;E_c(y)).
+\]
+Taking the maximum over binary schedules and then the infimum over the arbitrary \(K\)-arm procedure proves
+\[
+ \rho_n(c)\geq\alpha^2\rho_{n,2}=C_0(c)\rho_{n,2}.
+\]
+Assignments to inactive arms cause no support problem: their two-arm outcomes are generated under the induced design and discarded, while the original procedure sees the fixed zero prescribed by the embedded schedule.
+
+If \(|S_c|=2\), the active coefficients are \(\alpha\) and \(-\alpha\). Lift any two-arm procedure by mapping its two arms to those active arms, assigning no unit to an inactive arm, and multiplying its action by \(\alpha\). Every \(K\)-arm schedule induces a binary schedule on the active coordinates, and
+\[
+ \tau_c(z)=\alpha\tau_2(y),
+ \qquad
+ R_n(\mathcal D_K,\alpha f_2;z)=\alpha^2R_{n,2}(\mathcal D_2,f_2;y).
+\]
+Worst-case risk and infimization give the reverse inequality, hence
+\[
+ \rho_n(c)=C_0(c)\rho_{n,2}
+ \qquad\text{when }|S_c|=2.
+\]
+
+For the universal upper bound, use the contrast-weighted independent design. Before projection, write the estimator as \(n^{-1}\sum_iW_i\), where
+\[
+ W_i=\sum_{a\in S_c}\frac{c_a\mathbf1\{A_i=a\}}{q_a^\star}
+ \left(t_{i,a}-\frac12\right).
+\]
+Since \(q_a^\star=|c_a|/L_c>0\) on \(S_c\), all divisions are defined. The zero-sum identity gives
+\[
+ \mathbb E(W_i\mid z)=\sum_ac_at_{i,a},
+\]
+and \(c_a/q_a^\star=L_c\operatorname{sign}(c_a)\), together with binary outcomes, gives
+\[
+ \mathbb E(W_i^2\mid z)=\frac{L_c^2}{4},
+ \qquad
+ \operatorname{Var}(W_i\mid z)\leq\frac{L_c^2}{4}.
+\]
+Independence across units makes the unprojected rule unbiased with risk at most \(C_0(c)/n\). Every target lies in \([-L_c/2,L_c/2]\), so projection cannot increase squared loss. Therefore \(\rho_n(c)\leq C_0(c)/n\), and
+\[
+ 0\leq d_n(c)\leq C_0(c)\{n^{-1}-\rho_{n,2}\}.
+\]
+The internal coarse two-arm theorem gives \(\rho_{n,2}\geq n^{-1}-43n^{-4/3}\) for \(n\geq8\), proving the final ceiling. Equality in the support-two branch follows from the exact risk identity already proved. All-zero and all-one schedules remain legal throughout, and no exposure positivity is imposed on inactive arms. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The sign-group embedding preserves the exact finite-sample lower envelope, and the internal Bayesian-information construction supplies the coarse \(n^{-4/3}\) rate input. \textit{Gap.} The finite-sample value comparison is exact; only the numerical second-order ceiling is coarse, and no exact two-arm constant is claimed. \textit{Consumer.} It supplies the unrestricted converse for the universal rate theorem and separates the genuinely multivariate support branch.
+
+\begin{theorem}[thm:universal-second-order-rate]\label{thm:universal-second-order-rate}
+For every fixed \(K\geq2\) and every nonzero zero-sum contrast \(c\), put
+\[
+ h_c=\frac{L_c}{2}=\sqrt{C_0(c)},
+ \qquad
+ \lambda_c=\min\left\{
+ \left|h_c^{-1}\sum_{a\in\mathcal A_K}c_at_a\right|:
+ t\in\mathcal T_K,\ \sum_{a\in\mathcal A_K}c_at_a\neq0
+ \right\}.
+\]
+Then \(0<\lambda_c\leq1\). Under independent assignment on \(S_c\) with \(\Pr(A_i=a)=q_a^\star\), define
+\[
+ W_i=\sum_{a\in S_c}\frac{c_a\mathbf 1\{A_i=a\}}{q_a^\star}
+ \left(Y_i^{\mathrm{obs}}-\frac12\right),
+ \qquad V_i=\frac{W_i}{h_c},
+ \qquad X_n=\frac1n\sum_{i=1}^nV_i.
+\]
+Let
+\[
+ b_n=n^{-1/3},\qquad
+ \varepsilon_n=\frac{\sqrt{\lambda_c}}4n^{-1/3},\qquad
+ g_n(x)=\max\{-b_n,\min(x,b_n)\},
+\]
+and report the explicit clipped-shrinkage rule
+\[
+ \widehat\tau_n^{\mathrm{sh}}=h_c\{X_n-\varepsilon_ng_n(X_n)\}.
+\]
+This rule is a map from the realized assignment and observed outcomes into \([-L_c/2,L_c/2]\). Define
+\[
+ A_c=\frac{\sqrt{\lambda_c}}2-\frac{\lambda_c}{16},
+ \qquad B_c=\frac{7\lambda_c}{16},
+ \qquad \kappa_c=\frac12\min\{A_c,B_c\}>0,
+\]
+and choose a finite integer \(N_c\) such that
+\[
+ 4\sqrt{\lambda_c}\,m\exp(-m^{1/3}/8)\leq A_c
+ \qquad\text{for every integer }m\geq N_c.
+\]
+Then, for every \(n\geq N_c\),
+\[
+ \max_{z\in\mathcal T_K^n}
+ R_n(\mathcal D^\star,\widehat\tau_n^{\mathrm{sh}};z)
+ \leq C_0(c)\{n^{-1}-\kappa_cn^{-4/3}\},
+\]
+where \(\mathcal D^\star\) is the displayed independent \(q^\star\) design. Consequently,
+\[
+ 0<C_0(c)\kappa_c
+ \leq\liminf_{n\to\infty}n^{4/3}d_n(c)
+ \leq\limsup_{n\to\infty}n^{4/3}d_n(c)
+ \leq43C_0(c),
+\]
+so \(d_n(c)=\Theta(n^{-4/3})\). Moreover, if a positive normalizer \(a_n\) is regularly varying with index \(\beta\), meaning \(a_{\lfloor xn\rfloor}/a_n\to x^\beta\) for every \(x>0\), and if \(a_nd_n(c)\) converges to a finite positive limit, then necessarily \(\beta=4/3\). The upper procedure and the matching-order converse are both derived internally and do not use a published Airy constant or optimizer.
+\end{theorem}
+\begin{proof}
+\textbf{Proof.}
+Fix \(c\) and a response schedule \(z\). Since \(c\neq0\), one has \(L_c>0\) and \(h_c>0\). For every \(a\in S_c\), \(q_a^\star=|c_a|/L_c>0\), so all inverse probabilities in the construction are defined. On \(A_i=a\), binary outcomes and \(c_a/q_a^\star=L_c\operatorname{sign}(c_a)\) give
+\[
+ W_i=L_c\operatorname{sign}(c_a)(t_{i,a}-1/2)\in\{-h_c,h_c\}.
+\]
+Put
+\[
+ \eta_i=h_c^{-1}\sum_{a\in\mathcal A_K}c_at_{i,a},
+ \qquad
+ \theta_n=\frac1n\sum_i\eta_i=\frac{\tau_c(z)}{h_c}.
+\]
+Independence and inverse-probability algebra give
+\[
+ V_i\in\{-1,1\},\qquad
+ \mathbb E(V_i\mid z)=\eta_i,
+ \qquad
+ \mathbb E(X_n\mid z)=\theta_n.
+\]
+The positive and negative coefficients each have absolute mass \(h_c\), so \(|\eta_i|\leq1\). The finite set of possible \(\eta_i\)'s contains a nonzero element, because a type supported on any single active arm has score \(c_a/h_c\neq0\). Hence \(0<\lambda_c\leq1\). If \(Q_n=\sum_i\eta_i^2\), then \(\eta_i^2\geq\lambda_c|\eta_i|\), including trivially at zero, and therefore
+\[
+ Q_n\geq\lambda_c\sum_i|\eta_i|
+ \geq\lambda_c n|\theta_n|.
+\]
+Also,
+\[
+ \operatorname{Var}(X_n\mid z)=\frac1n-\frac{Q_n}{n^2}.
+\]
+
+For admissibility, if \(|x|\leq b_n\) then \(x-\varepsilon_ng_n(x)=(1-\varepsilon_n)x\), while outside that interval the rule subtracts \(\varepsilon_nb_n\operatorname{sign}(x)\). Since \(0<\varepsilon_n\leq1/4\), both operations move \(x\in[-1,1]\) toward zero without crossing it. Thus the reported estimator lies in \([-h_c,h_c]=[-L_c/2,L_c/2]\) and is an observable function of the realized assignment and outcomes.
+
+Let
+\[
+ C_n=\operatorname{Cov}\{X_n,g_n(X_n)\mid z\}.
+\]
+For an independent conditional copy \(X_n'\), monotonicity of \(g_n\) gives
+\[
+ 2C_n=\mathbb E[(X_n-X_n')\{g_n(X_n)-g_n(X_n')\}\mid z]\geq0.
+\]
+We also derive the needed tail inequality. For
+\[
+ \psi_i(s)=\log\mathbb E[\exp\{s(V_i-\eta_i)\}\mid z],
+\]
+direct differentiation of the two-point moment generating function gives \(\psi_i(0)=\psi_i'(0)=0\) and \(\psi_i''(s)\leq1\). Taylor's formula, independence, exponential Markov, and minimization over the exponential tilt therefore give
+\[
+ \Pr(|X_n-\theta_n|\geq u\mid z)\leq2\exp(-nu^2/2).
+\]
+
+Suppose first that \(|\theta_n|\leq b_n/2\). On \(|X_n|\leq b_n\), one has \(g_n(X_n)=X_n\), while \(|X_n|>b_n\) implies \(|X_n-\theta_n|\geq b_n/2\). Since \(|X_n-\theta_n|\leq2\) and \(|g_n(X_n)-X_n|\leq1\),
+\[
+ C_n\geq\operatorname{Var}(X_n\mid z)-\Delta_n,
+ \qquad
+ \Delta_n=4\exp(-n^{1/3}/8).
+\]
+Define the normalized improvement
+\[
+ I_n(z)=\frac1n-
+ \mathbb E[\{X_n-\varepsilon_ng_n(X_n)-\theta_n\}^2\mid z].
+\]
+Expanding the square and using \(g_n(X_n)^2\leq b_n^2\) gives
+\[
+ I_n(z)\geq\frac{Q_n}{n^2}+2\varepsilon_nC_n-\varepsilon_n^2b_n^2.
+\]
+In the local region this implies
+\[
+ I_n(z)\geq A_cn^{-4/3}
+ -2\sqrt{\lambda_c}\,n^{-1/3}\exp(-n^{1/3}/8).
+\]
+The definition of \(N_c\) bounds the second term by \((A_c/2)n^{-4/3}\), so \(I_n(z)\geq\kappa_cn^{-4/3}\).
+
+If \(|\theta_n|>b_n/2\), use \(C_n\geq0\) and the score lower bound:
+\[
+ \begin{aligned}
+ I_n(z)&\geq\frac{Q_n}{n^2}-\varepsilon_n^2b_n^2\\
+ &\geq\lambda_c\frac{|\theta_n|}{n}-\frac{\lambda_c}{16}n^{-4/3}\\
+ &\geq\frac{7\lambda_c}{16}n^{-4/3}
+ =B_cn^{-4/3}\geq\kappa_cn^{-4/3}.
+ \end{aligned}
+\]
+The cases are exhaustive, \(A_c>0\), and a finite \(N_c\) exists because \(m\exp(-m^{1/3}/8)\to0\). Multiplying by \(h_c^2=C_0(c)\), maximizing over schedules, and using this procedure in the minimax infimum proves
+\[
+ d_n(c)\geq C_0(c)\kappa_cn^{-4/3}
+ \qquad(n\geq N_c).
+\]
+The internally proved embedded converse supplies, for \(n\geq8\),
+\[
+ d_n(c)\leq43C_0(c)n^{-4/3}.
+\]
+These bounds give the liminf--limsup display and \(d_n(c)=\Theta(n^{-4/3})\).
+
+Finally suppose \(a_n\) is regularly varying with index \(\beta\) and \(a_nd_n(c)\to C\in(0,\infty)\). The two-sided bounds imply that \(a_nn^{-4/3}\) is eventually bounded above and away from zero. This sequence is regularly varying with index \(\beta-4/3\). A positive index would force divergence along \(n,2n,4n,\ldots\), while a negative index would force convergence to zero along that subsequence. Both contradict the two-sided bounds, so \(\beta=4/3\). The all-zero and all-one types have normalized score zero and are covered by the local case; no boundary type has been removed. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit contrast-weighted clipped-shrinkage rule and the internal sign-group converse establish matching \(n^{-4/3}\) orders from primitive design conditions. \textit{Gap.} The theorem determines the exponent and explicit nonsharp constants, not convergence or the sharp normalized constant. \textit{Consumer.} An ACTG 175-style fixed four-arm binary contrast can use the displayed allocation and observed-data estimator as a certified minimax-order procedure.
+
+\begin{theorem}[thm:rational-contrast-grid-certificate-sandwich]\label{thm:rational-contrast-grid-certificate-sandwich}
+Fix \(K\geq2\) and a rational nonzero zero-sum contrast \(c\in\mathbb Q^K\), and put \(h_c=L_c/2\).  For every \(n,M\geq1\), the program defining \(\Lambda_{n,M}(c)\) has rational coefficients and admits exact rational optimal primal and dual certificates.  Let \((\pi^{n,M,c},w^{n,M,c},\Lambda_{n,M}(c))\) be such a primal certificate and let \(\nu_{n,M,c}\in\Delta(\mathcal M_{n,K})\) be the response-count multiplier in such a dual certificate.  For \(\pi_r^{n,M,c}>0\), define
+\[
+ \kappa_{r,x}^{n,M,c}(g)=\frac{w_{r,x,g}^{n,M,c}}{\pi_r^{n,M,c}},
+ \qquad
+ \delta_{n,M,c}(r,x)=\sum_{g\in\Gamma_{M,c}}g\kappa_{r,x}^{n,M,c}(g),
+\]
+and put \(\delta_{n,M,c}(r,x)=0\) when \(\pi_r^{n,M,c}=0\).  Define
+\[
+ U_{n,M}(c)=\max_{m\in\mathcal M_{n,K}}
+ \sum_{r\in\mathcal R_{n,K}}\pi_r^{n,M,c}\sum_xP_m(x\mid r)
+ \{\delta_{n,M,c}(r,x)-\tau_c(m)\}^2.
+\]
+For a rational prior \(\nu\in\Delta(\mathcal M_{n,K})\), put
+\[
+ D_{r,x,c}(\nu)=\sum_m\nu_mP_m(x\mid r),
+ \qquad
+ N_{r,x,c}(\nu)=\sum_m\nu_mP_m(x\mid r)\tau_c(m),
+\]
+and define
+\[
+ B_{n,c}(\nu)=\min_{r\in\mathcal R_{n,K}}
+ \left[
+ \sum_m\nu_m\tau_c(m)^2-
+ \sum_{x:D_{r,x,c}(\nu)>0}
+ \frac{N_{r,x,c}(\nu)^2}{D_{r,x,c}(\nu)}
+ \right].
+\]
+Then the computable finite-sample certificates satisfy
+\[
+ B_{n,c}(\nu_{n,M,c})\leq\rho_n(c)\leq U_{n,M}(c)
+ \leq\Lambda_{n,M}(c)
+ \leq B_{n,c}(\nu_{n,M,c})+\frac{C_0(c)}{4M^2}.
+\]
+The upper procedure draws \(r\) from \(\pi^{n,M,c}\), assigns uniformly conditional on \(r\), and reports \(\delta_{n,M,c}(r,x)\).  The lower certificate completes the rational prior by the unrestricted posterior mean \(N_{r,x,c}(\nu)/D_{r,x,c}(\nu)\), omitting zero-denominator observations.  There are \(\binom{n+2^K-1}{2^K-1}\) response-count risk constraints, \(\binom{n+K-1}{K-1}\) allocation orbits, and \(\binom{n+2K-1}{2K-1}\) allocation--observation orbits; hence one exact rational linear program with
+\[
+ 1+\binom{n+K-1}{K-1}
+ +(2M+1)\binom{n+2K-1}{2K-1}
+\]
+primal variables, followed by finite rational sums and maxima, evaluates the certificates.
+
+For every positive normalizer \(a_n\) and every integer sequence \((M_n)\) satisfying \(a_n/M_n^2\to0\),
+\[
+ a_n\{U_{n,M_n}(c)-B_{n,c}(\nu_{n,M_n,c})\}\longrightarrow0.
+\]
+If \(a_nd_n(c)\) has a finite limit, the upper- and lower-certificate improvements converge to that same limit.  At the universally established scale \(a_n=n^{4/3}\), the choice \(M_n=n\) is sufficient.  These conclusions neither assert convergence of primal optimizers or dual priors nor identify a sharp second-order constant or an analytic limiting feedback rule.
+\end{theorem}
+\begin{proof}
+\textbf{Proof.}
+Because \(c\neq0\), one has \(L_c>0\) and hence \(h_c>0\).  The positive and negative coefficients of a zero-sum contrast each have total absolute mass \(h_c\).  Thus every response-count target obeys
+\[
+ -h_c\leq\tau_c(m)\leq h_c.
+\]
+The grid \(\Gamma_{M,c}\) contains both endpoints and zero and has mesh \(h_c/M\).  Since \(c\) is rational, \(h_c\), every grid action, and every \(\tau_c(m)\) are rational.  The factorial formula in \(\mathrm{def:orbit\text{-}likelihood}\) makes every \(P_m(x\mid r)\) rational.  All indexing sets are finite, so the displayed construction is a finite linear program with rational coefficients.
+
+The program is feasible: choose any allocation orbit, put all action mass on \(g=0\), and take \(u=h_c^2\).  Since the loss of this rule is at most \(h_c^2\), minimization may be restricted to \(0\leq u\leq h_c^2\).  The remaining variables lie in finite products of compact simplexes, so an optimum is attained.  To make exact rational attainment explicit, place all constraints in rational equality-and-inequality form and eliminate the variables successively by Fourier--Motzkin elimination while retaining \(u\).  Every generated inequality is a nonnegative rational linear combination of earlier inequalities.  The attained lower endpoint of the final one-dimensional rational polyhedron is rational, and rational back-substitution supplies a rational primal optimizer.  Recording the nonnegative rational combinations that produce the endpoint inequality supplies rational dual multipliers of the same value.  Weak duality, obtained by multiplying and summing the primal inequalities by those nonnegative multipliers, certifies equality.  Thus both exact rational certificates asserted in the theorem exist; no limiting or positivity assumption has entered.
+
+We next identify the dual response-count multiplier.  The multiplier on each risk inequality is nonnegative, and the stationarity equation for the epigraph variable \(u\) makes these multipliers sum to one.  Write the resulting rational probability vector as \(\nu\in\Delta(\mathcal M_{n,K})\).  Fix \(\nu\) and an allocation orbit \(r\), and abbreviate
+\[
+ \tau_m=\tau_c(m),\qquad
+ D_{r,x}=D_{r,x,c}(\nu),\qquad
+ N_{r,x}=N_{r,x,c}(\nu),\qquad
+ Q_\nu=\sum_m\nu_m\tau_m^2.
+\]
+If \(D_{r,x}=0\), every nonnegative summand \(\nu_mP_m(x\mid r)\) is zero, and hence \(N_{r,x}=0\).  If \(D_{r,x}>0\), completing the square gives, for every real action \(v\),
+\[
+ \sum_m\nu_mP_m(x\mid r)(v-\tau_m)^2
+ =D_{r,x}\left(v-\frac{N_{r,x}}{D_{r,x}}\right)^2
+ +\sum_m\nu_mP_m(x\mid r)\tau_m^2
+ -\frac{N_{r,x}^2}{D_{r,x}}.
+\]
+Summing over \(x\) shows that the unrestricted posterior mean minimizes Bayes risk at fixed \(r\), with value
+\[
+ b_{r,c}(\nu)=Q_\nu-
+ \sum_{x:D_{r,x}>0}\frac{N_{r,x}^2}{D_{r,x}}.
+\]
+Minimization over an allocation mixture selects a minimizing orbit, because
+\[
+ \min_{\pi}\sum_r\pi_rb_{r,c}(\nu)=\min_rb_{r,c}(\nu)=B_{n,c}(\nu).
+\]
+
+Restricting the action to \(\Gamma_{M,c}\) instead gives
+\[
+ b^{\mathrm{grid}}_{r,c,M}(\nu)
+ =b_{r,c}(\nu)+
+ \sum_{x:D_{r,x}>0}D_{r,x}
+ \operatorname{dist}\!\left(
+ \frac{N_{r,x}}{D_{r,x}},\Gamma_{M,c}\right)^2,
+\]
+and therefore
+\[
+ B^{\mathrm{grid}}_{n,c,M}(\nu)
+ =\min_r b^{\mathrm{grid}}_{r,c,M}(\nu).
+\]
+Eliminating the occupancy-constraint dual variables, or equivalently minimizing their Lagrangian first over the action kernel and then over \(\pi\), yields the exact dual identity
+\[
+ \Lambda_{n,M}(c)
+ =\max_{\nu\in\Delta(\mathcal M_{n,K})}
+ B^{\mathrm{grid}}_{n,c,M}(\nu).
+\]
+This is precisely the dual recorded by the elimination argument above.  Let \(\nu_{n,M,c}\) be its rational maximizer.
+
+The posterior mean is a convex combination of targets \(\tau_m\in[-h_c,h_c]\), so it also lies in \([-h_c,h_c]\).  Every point of that interval lies within half a mesh of the grid:
+\[
+ \operatorname{dist}\!\left(
+ \frac{N_{r,x}}{D_{r,x}},\Gamma_{M,c}\right)
+ \leq\frac{h_c}{2M}.
+\]
+Furthermore,
+\[
+ \sum_xD_{r,x}
+ =\sum_m\nu_m\sum_xP_m(x\mid r)=1.
+\]
+Consequently, for every \(\nu\),
+\[
+ B_{n,c}(\nu)\leq B^{\mathrm{grid}}_{n,c,M}(\nu)
+ \leq B_{n,c}(\nu)+\frac{h_c^2}{4M^2}
+ =B_{n,c}(\nu)+\frac{C_0(c)}{4M^2}.
+\]
+At \(\nu=\nu_{n,M,c}\), the dual identity proves
+\[
+ \Lambda_{n,M}(c)
+ \leq B_{n,c}(\nu_{n,M,c})+\frac{C_0(c)}{4M^2}.
+\]
+This is the claimed scaled-mesh bound.  It is a squared posterior-rounding cost, not the coarser pointwise loss-difference bound obtained by rounding an arbitrary continuous rule.
+
+We now prove the other three inequalities.  First fix any rational prior \(\nu\) on response-count orbits and distribute its mass uniformly over the labeled schedules within each orbit.  For any labeled procedure, maximum risk dominates average risk under this invariant prior.  The symmetrization in \(\mathrm{thm:exact\text{-}response\text{-}type\text{-}game}\) cannot increase that invariant Bayes risk, so it is enough to minimize over orbit procedures.  The preceding square completion then gives
+\[
+ \inf_{\pi,\delta}\sum_m\nu_mR_m(\pi,\delta)
+ =\min_rb_{r,c}(\nu)=B_{n,c}(\nu).
+\]
+Taking the infimum of maximum risk over all labeled procedures proves
+\[
+ B_{n,c}(\nu)\leq\rho_n(c),
+\]
+in particular at \(\nu_{n,M,c}\).
+
+For the optimal primal certificate, all divisions by \(\pi_r^{n,M,c}\) are restricted to positive coordinates.  When \(\pi_r^{n,M,c}=0\), the chosen value zero is admissible and immaterial.  For positive coordinates, \(\kappa_{r,x}^{n,M,c}\) is a probability distribution on \(\Gamma_{M,c}\), so its barycenter \(\delta_{n,M,c}(r,x)\) lies in \([-h_c,h_c]\).  For every \(m,r,x\), the conditional variance identity gives
+\[
+ \sum_g\kappa_{r,x}^{n,M,c}(g)(g-\tau_m)^2
+ =\{\delta_{n,M,c}(r,x)-\tau_m\}^2
+ +\sum_g\kappa_{r,x}^{n,M,c}(g)
+ \{g-\delta_{n,M,c}(r,x)\}^2.
+\]
+The final term is nonnegative.  Multiplying by \(\pi_r^{n,M,c}P_m(x\mid r)\), summing over \((r,x)\), and maximizing over \(m\) proves
+\[
+ U_{n,M}(c)\leq\Lambda_{n,M}(c).
+\]
+The barycentered rule is an admissible labeled procedure: it draws \(r\), assigns uniformly conditional on \(r\), and uses only the observed orbit \((r,x)\).  The exact orbit equality therefore gives
+\[
+ \rho_n(c)\leq U_{n,M}(c).
+\]
+Combining the inequalities proves the finite-sample sandwich.
+
+The certificate is directly evaluable.  Stars-and-bars gives
+\[
+ |\mathcal M_{n,K}|=\binom{n+2^K-1}{2^K-1},
+ \qquad
+ |\mathcal R_{n,K}|=\binom{n+K-1}{K-1}.
+\]
+For a fixed allocation \(r\), there are \(\prod_a(r_a+1)\) possible observations.  The generating-function identity
+\[
+ \sum_{n\geq0}\left\{
+ \sum_{r_1+\cdots+r_K=n}\prod_{a=1}^K(r_a+1)
+ \right\}z^n
+ =\left(\sum_{s\geq0}(s+1)z^s\right)^K
+ =(1-z)^{-2K}
+\]
+shows that the total number of allocation--observation orbits is \(\binom{n+2K-1}{2K-1}\).  Counting \(u\), the \(\pi_r\)'s, and the \(w_{r,x,g}\)'s gives the displayed number of primal variables.  Thus, for fixed \(K\), the theorem supplies a finite exact-rational algorithm; zero allocation probabilities, zero posterior denominators, zero contrast coefficients, and every boundary response type are all retained, so no overlap, rank, or hidden support condition is required.
+
+Finally, the sandwich implies
+\[
+ \frac{C_0(c)}n-U_{n,M_n}(c)
+ \leq d_n(c)
+ \leq\frac{C_0(c)}n-B_{n,c}(\nu_{n,M_n,c}),
+\]
+and the two endpoints differ by at most \(C_0(c)/(4M_n^2)\).  Multiplication by \(a_n\) proves the scale-matching assertion and, if \(a_nd_n(c)\) converges, the conclusion for both certificate improvements by squeezing.  The established universal theorem fixes the second-order order at \(a_n=n^{4/3}\); with \(M_n=n\), the scaled gap is at most
+\[
+ \frac{C_0(c)}4n^{-2/3}\longrightarrow0.
+\]
+This proves every asserted conclusion without inferring convergence of the finite-program optimizers or priors. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Every rational contrast receives one explicit finite LP, a barycenter procedure, a rational dual prior, posterior completion, and the sharp mesh-gap calculation. \textit{Gap.} It certifies each finite-population game and matches any selected normalization, but does not imply convergence of optimizers, priors, or normalized values across population sizes. \textit{Consumer.} Prespecified rational multi-arm contrasts, including regimen-versus-average contrasts motivated by ACTG 175, can be evaluated and bracketed without reducing the response-type game to the three-arm showcase.
+
+\begin{theorem}[thm:contrast-risk-continuity]\label{thm:contrast-risk-continuity}
+For every integer \(n\geq1\), every \(K\geq2\), and every pair of nonzero zero-sum contrasts \(c,c'\in\mathbb R^K\), put
+\[
+ \eta(c,c')=\frac{L_{c-c'}}2
+ =\frac12\sum_{a\in\mathcal A_K}|c_a-c'_a|.
+\]
+Then
+\[
+ \left|\sqrt{\rho_n(c)}-\sqrt{\rho_n(c')}\right|
+ \leq \eta(c,c').
+\]
+The bound is finite-sample, permits arbitrary dependent assignment laws and arbitrary possibly biased estimators, and requires no positivity condition.
+\end{theorem}
+\begin{proof}
+\textbf{Proof.}
+Let \(d=c-c'\).  Since both contrasts have zero sum, \(\sum_a d_a=0\).  Write
+\[
+ P_d=\{a:d_a>0\},\qquad N_d=\{a:d_a<0\}.
+\]
+Then
+\[
+ \sum_{a\in P_d}d_a=-\sum_{a\in N_d}d_a
+ =\frac12\sum_{a\in\mathcal A_K}|d_a|=\eta(c,c').
+\]
+For every binary response type \(t\), selecting an arbitrary subset of the coordinates of a zero-sum vector gives
+\[
+ -\eta(c,c')\leq\sum_{a\in\mathcal A_K}d_at_a\leq\eta(c,c').
+\]
+Averaging this inequality over the \(n\) labeled units proves the uniform target bound
+\[
+ \sup_{z\in\mathcal T_K^n}|\tau_c(z)-\tau_{c'}(z)|
+ \leq\eta(c,c').
+\]
+This calculation includes every boundary schedule.  In particular, the all-zero and all-one schedules give target difference zero.
+
+Put \(I_c=[-L_c/2,L_c/2]\).  Fix any assignment law \(\mathcal D\) and any estimator \(f'\) admissible for contrast \(c'\), and define the estimator admissible for contrast \(c\) by
+\[
+ f=\operatorname{proj}_{I_c}(f').
+\]
+For a fixed schedule \(z\), the target \(\tau_c(z)\) belongs to \(I_c\), so projection cannot increase its pointwise distance.  The triangle inequality in \(L^2(\mathcal D)\), namely Minkowski's inequality, and the uniform target bound give
+\[
+ \begin{aligned}
+ \sqrt{R_n(\mathcal D,f;z)}
+ &\leq
+ \left\|f'-\tau_c(z)\right\|_{L^2(\mathcal D)}\\
+ &\leq
+ \left\|f'-\tau_{c'}(z)\right\|_{L^2(\mathcal D)}
+ +|\tau_{c'}(z)-\tau_c(z)|\\
+ &\leq \sqrt{R_n(\mathcal D,f';z)}+\eta(c,c').
+ \end{aligned}
+\]
+Taking the maximum over schedules, then the infimum over all procedures for \(c'\), yields
+\[
+ \sqrt{\rho_n(c)}\leq\sqrt{\rho_n(c')}+\eta(c,c').
+\]
+Interchanging \(c\) and \(c'\) gives the reverse one-sided inequality.  Combining them proves the displayed absolute-value bound.  Every projection and norm is well defined because both contrasts are nonzero, so both target intervals have positive finite radius. \(\square\)
+\end{proof}
+
+\begin{theorem}[thm:real-contrast-grid-certificate-transfer]\label{thm:real-contrast-grid-certificate-transfer}
+Fix \(K\geq2\) and a nonzero real zero-sum contrast \(c\in\mathbb R^K\).  Let \(c^{(n)}\in\mathbb Q^K\setminus\{0\}\) be zero-sum rational contrasts such that \(c^{(n)}\to c\), let \(M_n\geq1\) be integers, and put
+\[
+ \eta_n=\frac{L_{c-c^{(n)}}}{2}.
+\]
+For each \(n\), let
+\[
+ B_n=B_{n,c^{(n)}}(\nu_{n,M_n,c^{(n)}}),
+ \qquad
+ U_n=U_{n,M_n}(c^{(n)})
+\]
+be the exact rational prior and procedure certificates from the rational-contrast grid theorem, and define
+\[
+ R_n^-=\left\{\max(0,\sqrt{B_n}-\eta_n)\right\}^2,
+ \qquad
+ R_n^+=(\sqrt{U_n}+\eta_n)^2.
+\]
+Then
+\[
+ R_n^-\leq\rho_n(c)\leq R_n^+.
+\]
+The upper endpoint is attained as a valid worst-case-risk certificate by using the rational finite-program design and projecting its barycenter rule onto \([-L_c/2,L_c/2]\).  The lower endpoint is a valid Bayes-risk certificate against every design and estimator, obtained from the same rational response-count prior.  Moreover,
+\[
+ \begin{aligned}
+ 0\leq R_n^+-R_n^-
+ &\leq \frac{5C_0(c^{(n)})}{4M_n^2}
+ +4\sqrt{C_0(c^{(n)})}\,\eta_n n^{-1/2}
+ +3\eta_n^2\\
+ &=O\!\left(\frac{C_0(c^{(n)})}{M_n^2}
+ +\eta_n n^{-1/2}+\eta_n^2\right).
+ \end{aligned}
+\]
+For every fixed real \(c\), the rational zero-sum approximants may be chosen with \(\eta_n=o(n^{-5/6})\).  With that choice and \(M_n=n\),
+\[
+ R_n^+-R_n^-=o(n^{-4/3}).
+\]
+Equivalently, if
+\[
+ \underline d_n=\frac{C_0(c)}n-R_n^+,
+ \qquad
+ \overline d_n=\frac{C_0(c)}n-R_n^-,
+\]
+then
+\[
+ \underline d_n\leq d_n(c)\leq\overline d_n,
+ \qquad
+ \overline d_n-\underline d_n=o(n^{-4/3}).
+\]
+For rational \(c\), one may take \(c^{(n)}=c\); the certificates are then direct exact-rational finite programs and their gap for \(M_n=n\) is at most \(C_0(c)/(4n^2)\).  Thus scale-matched finite-program procedure and prior certificates exist directly for every rational contrast and, through the displayed approximation brackets, for every real contrast.  This conclusion does not assert convergence of \(n^{4/3}d_n(c)\), convergence of the finite-program optimizers or priors, sharp second-order optimality of \(q^\star\), a sharp constant, an analytic limiting rule, or a limiting operator.
+\end{theorem}
+\begin{proof}
+\textbf{Proof.}
+Fix \(n\) and abbreviate \(c_n=c^{(n)}\), \(M=M_n\), \(\eta=\eta_n\), \(B=B_n\), and \(U=U_n\).  The rational-contrast certificate theorem gives
+\[
+ 0\leq B\leq\rho_n(c_n)\leq U
+ \leq B+\Delta_n,
+ \qquad
+ \Delta_n=\frac{C_0(c_n)}{4M^2}.
+\]
+The contrast-risk continuity theorem therefore immediately gives
+\[
+ \sqrt{\rho_n(c)}
+ \leq\sqrt{\rho_n(c_n)}+\eta
+ \leq\sqrt U+\eta
+\]
+and
+\[
+ \sqrt{\rho_n(c)}
+ \geq\max\{0,\sqrt{\rho_n(c_n)}-\eta\}
+ \geq\max\{0,\sqrt B-\eta\}.
+\]
+Squaring proves \(R_n^-\leq\rho_n(c)\leq R_n^+\).
+
+We record why these are procedure and prior certificates, not merely inequalities between abstract minimax values.  Let \((\pi_n,\delta_n)\) be the rational finite-program procedure whose worst-case risk for \(c_n\) is \(U\), and put
+\[
+ \delta_n^c(r,x)=\operatorname{proj}_{[-L_c/2,L_c/2]}\{\delta_n(r,x)\}.
+\]
+The pointwise projection and Minkowski calculation from the continuity theorem gives, for every schedule \(z\),
+\[
+ \sqrt{R_n(\pi_n,\delta_n^c;z;c)}
+ \leq\sqrt{R_n(\pi_n,\delta_n;z;c_n)}+\eta
+ \leq\sqrt U+\eta.
+\]
+Thus the projected observed-data rule has worst-case risk at most \(R_n^+\).  No inverse probability or new overlap condition is introduced.
+
+For the lower endpoint, use the rational response-count prior \(\nu_{n,M,c_n}\).  Fix any procedure for contrast \(c\), and project its action onto \([-L_{c_n}/2,L_{c_n}/2]\) to obtain a legitimate procedure for contrast \(c_n\).  Apply Minkowski in the joint law of the response-count prior and the design assignment.  The target perturbation is uniformly at most \(\eta\), so
+\[
+ \sqrt{\operatorname{BR}_{c_n}}
+ \leq\sqrt{\operatorname{BR}_{c}}+\eta.
+\]
+The posterior-mean calculation in the rational certificate theorem says that every procedure for \(c_n\) has Bayes risk at least \(B\) under this prior, including procedures induced from arbitrary dependent designs.  Hence
+\[
+ \sqrt{\operatorname{BR}_{c}}
+ \geq\max(0,\sqrt B-\eta),
+\]
+and the same prior certifies the lower endpoint \(R_n^-\) against the unrestricted real-contrast game.
+
+It remains to bound the width.  Set \(b=\sqrt B\) and \(u=\sqrt U\).  For every \(b,\eta\geq0\),
+\[
+ B-(b-\eta)_+^2\leq2\eta b+\eta^2.
+\]
+Consequently, using \(b\leq u\),
+\[
+ \begin{aligned}
+ R_n^+-R_n^-
+ &=U-B+2\eta u+\eta^2+\bigl\{B-(b-\eta)_+^2\bigr\}\\
+ &\leq\Delta_n+4\eta u+2\eta^2.
+ \end{aligned}
+\]
+The embedded two-arm theorem includes \(\rho_n(c_n)\leq C_0(c_n)/n\).  Since \(U\leq B+\Delta_n\leq\rho_n(c_n)+\Delta_n\),
+\[
+ u\leq\sqrt{C_0(c_n)}\,n^{-1/2}
+ +\frac{\sqrt{C_0(c_n)}}{2M}.
+\]
+Substitution and \(2xy\leq x^2+y^2\), with \(x=\sqrt{C_0(c_n)}/M\) and \(y=\eta\), yield
+\[
+ R_n^+-R_n^-
+ \leq\frac{5C_0(c_n)}{4M^2}
+ +4\sqrt{C_0(c_n)}\,\eta n^{-1/2}
+ +3\eta^2.
+\]
+Because \(c_n\to c\neq0\), \(C_0(c_n)\to C_0(c)>0\); hence the exact display implies the asserted big-\(O\) form with a constant depending only on a fixed neighborhood of \(c\).
+
+We finally construct approximants at the required rate.  Choose any positive sequence \(e_n=o(n^{-5/6})\).  By density of \(\mathbb Q\), for \(a=1,\ldots,K-1\) choose \(q_{n,a}\in\mathbb Q\) so that
+\[
+ |q_{n,a}-c_a|<\frac{e_n}{2(K-1)},
+\]
+and set \(q_{n,K}=-\sum_{a=1}^{K-1}q_{n,a}\).  Then \(c_n=(q_{n,1},\ldots,q_{n,K})\) is rational and zero-sum, and
+\[
+ L_{c-c_n}\leq2\sum_{a=1}^{K-1}|c_a-q_{n,a}|<e_n.
+\]
+Since \(c\neq0\), the approximants are nonzero for all sufficiently large \(n\); altering finitely many initial approximants makes every \(c_n\) nonzero without affecting the rate.  Thus \(\eta_n<e_n/2=o(n^{-5/6})\).
+
+With \(M_n=n\), the three terms in the exact width bound are respectively \(O(n^{-2})\), \(o(n^{-4/3})\), and \(o(n^{-5/3})\).  Their sum is \(o(n^{-4/3})\).  Subtracting the risk bracket from \(C_0(c)/n\) proves the improvement bracket.  If \(c\) is rational, taking \(c_n=c\) makes \(\eta_n=0\), and the sharper rational sandwich gives gap at most \(C_0(c)/(4n^2)\). \(\square\)
+\end{proof}
+
+\begin{theorem}[thm:k3-grid-certificate-sandwich]\label{thm:k3-grid-certificate-sandwich}
+For \(K=3\), \(c=c^\dagger\), and integers \(n,M\geq1\), let \((\pi^{n,M},w^{n,M},\Lambda_{n,M}^\dagger)\) be an exact rational optimal primal certificate for the grid-action program, and let \(\nu_{n,M}\in\Delta(\mathcal M_{n,3})\) be the response-count multiplier in a complete exact rational optimal dual certificate.  For \(\pi_r^{n,M}>0\), define
+\[
+ \kappa_{r,x}^{n,M}(g)=\frac{w_{r,x,g}^{n,M}}{\pi_r^{n,M}},
+ \qquad
+ \delta_{n,M}(r,x)=\sum_{g\in\Gamma_M}g\kappa_{r,x}^{n,M}(g),
+\]
+and put \(\delta_{n,M}(r,x)=0\) when \(\pi_r^{n,M}=0\).  Define the computable upper certificate
+\[
+ U_{n,M}=\max_{m\in\mathcal M_{n,3}}
+ \sum_{r\in\mathcal R_{n,3}}\pi_r^{n,M}\sum_xP_m(x\mid r)
+ \{\delta_{n,M}(r,x)-\tau_{c^\dagger}(m)\}^2.
+\]
+For any rational prior \(\nu\in\Delta(\mathcal M_{n,3})\), put
+\[
+ D_{r,x}(\nu)=\sum_m\nu_mP_m(x\mid r),
+ \qquad
+ N_{r,x}(\nu)=\sum_m\nu_mP_m(x\mid r)\tau_{c^\dagger}(m),
+\]
+and define the computable lower certificate
+\[
+ B_n(\nu)=\min_{r\in\mathcal R_{n,3}}
+ \left[
+ \sum_m\nu_m\tau_{c^\dagger}(m)^2-
+ \sum_{x:D_{r,x}(\nu)>0}\frac{N_{r,x}(\nu)^2}{D_{r,x}(\nu)}
+ \right].
+\]
+Then
+\[
+ B_n(\nu_{n,M})\leq\rho_n^\dagger\leq U_{n,M}
+ \leq\Lambda_{n,M}^\dagger
+ \leq B_n(\nu_{n,M})+\frac{1}{4M^2}.
+\]
+The upper procedure first draws \(r\) from \(\pi^{n,M}\), assigns uniformly conditional on \(r\), and reports \(\delta_{n,M}(r,x)\); the lower certificate uses the unrestricted posterior mean \(N_{r,x}(\nu)/D_{r,x}(\nu)\), with zero-denominator observations omitted.  Consequently, for any positive normalizer \(a_n\) and integers \(M_n\) satisfying \(a_n/M_n^2\to0\),
+\[
+ a_n\{U_{n,M_n}-B_n(\nu_{n,M_n})\}\longrightarrow0.
+\]
+If \(a_nd_n(c^\dagger)\) has a finite limit, both certificate improvements converge to that same limit.  This theorem supplies a finite-\(n\) multivariate rule and an unrestricted rational-prior converse at every such selected normalization; it does not select the normalization, decide whether the independent \(q^\star\) design is second-order optimal, or produce an analytic Hamilton--Jacobi--Bellman feedback formula.
+\end{theorem}
+\begin{proof}
+\textbf{Proof.}
+For \(c^\dagger=(1,-1/2,-1/2)\),
+\[
+ L_{c^\dagger}=|1|+|-1/2|+|-1/2|=2,
+ \qquad h_{c^\dagger}=1,
+ \qquad C_0(c^\dagger)=1.
+\]
+Consequently,
+\[
+ \Gamma_{M,c^\dagger}
+ =\{-1+j/M:j=0,\ldots,2M\}
+ =\Gamma_M.
+\]
+After substituting \(K=3\) and \(c=c^\dagger\), every variable, normalization constraint, and response-count risk constraint in the rational-contrast grid program is therefore identical to its counterpart in the three-arm grid program.  The likelihood kernel is the same \(P_m(x\mid r)\), and the target is the same \(\tau_{c^\dagger}(m)\).  Hence
+\[
+ \Lambda_{n,M}(c^\dagger)=\Lambda_{n,M}^\dagger.
+\]
+
+The rational-contrast grid-certificate theorem supplies exact rational optimal primal and dual certificates.  Specialize one such pair at \(c=c^\dagger\), denote its primal variables by \((\pi^{n,M},w^{n,M})\), and denote the response-count component of its dual certificate by \(\nu_{n,M}\).  Under this specialization, the general quantities \(\kappa_{r,x}^{n,M,c}\), \(\delta_{n,M,c}\), \(U_{n,M}(c)\), \(D_{r,x,c}\), \(N_{r,x,c}\), and \(B_{n,c}\) become exactly the quantities displayed in the present theorem.  Since \(C_0(c^\dagger)=1\), the general finite-sample certificate sandwich becomes
+\[
+ B_n(\nu_{n,M})
+ \leq \rho_n^\dagger
+ \leq U_{n,M}
+ \leq \Lambda_{n,M}^\dagger
+ \leq B_n(\nu_{n,M})+\frac{1}{4M^2}.
+\]
+This specialization also preserves all boundary conventions.  Division by \(\pi_r^{n,M}\) occurs only when \(\pi_r^{n,M}>0\); a value assigned to \(\delta_{n,M}(r,x)\) when \(\pi_r^{n,M}=0\) has zero risk weight; and terms with \(D_{r,x}(\nu)=0\) are omitted from the posterior-mean formula.  No positivity or overlap condition is needed.  Every \(m\in\mathcal M_{n,3}\), including schedules supported on the all-zero or all-one response type, remains a risk constraint.  The upper certificate is implemented by drawing \(r\) according to \(\pi^{n,M}\), assigning uniformly conditional on \(r\), and applying the barycentered rule \(\delta_{n,M}(r,x)\).  The square-completion argument in the general theorem shows that the unrestricted posterior mean \(N_{r,x}(\nu)/D_{r,x}(\nu)\) gives the asserted Bayes-risk lower certificate.
+
+For the scale statement, the finite-sample sandwich gives
+\[
+ 0\leq U_{n,M_n}-B_n(\nu_{n,M_n})
+ \leq \frac{1}{4M_n^2}.
+\]
+Thus \(a_n/M_n^2\to0\) implies
+\[
+ a_n\{U_{n,M_n}-B_n(\nu_{n,M_n})\}\longrightarrow0.
+\]
+Because \(C_0(c^\dagger)=1\), the same sandwich also yields
+\[
+ a_n\{n^{-1}-U_{n,M_n}\}
+ \leq a_nd_n(c^\dagger)
+ \leq a_n\{n^{-1}-B_n(\nu_{n,M_n})\}.
+\]
+The two outer sequences differ by at most \(a_n/(4M_n^2)\).  If the middle sequence has a finite limit, squeezing proves that both certificate improvements have that same limit.
+
+For the promised finite diagnostic, take \(M=n^2\).  The archived computation reports the following outward exact-rational enclosures of the grid value \(\Lambda_{n,n^2}^\dagger\):
+\[
+\begin{array}{c|c|c}
+n&M&\text{outward exact-rational enclosure}\\ \hline
+1&1&[1/2,1/2]\\
+2&4&[2/11,2/11]\\
+3&9&[128984706099133/10^{15},\,128984706099139/10^{15}]\\
+4&16&[105286083633093/10^{15},\,105286083633094/10^{15}]\\
+5&25&[89011550888241/10^{15},\,89011550888250/10^{15}].
+\end{array}
+\]
+These rational enclosures were independently corroborated numerically.  They are reported as finite diagnostics only.  In particular, the \(n=3,4,5\) rows are not asserted here to be complete auditable primal--dual certificate artifacts, and the table does not establish convergence, a sharp second-order constant, second-order optimality of \(q^\star\), convergence of optimizers or priors, or an analytic Hamilton--Jacobi--Bellman feedback rule.  Those conclusions also do not follow from the preceding same-\(n\) specialization argument.  This proves exactly the certificate sandwich and its stated scale-transfer consequences. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The \(c^\dagger\) theorem is the \(h_c=1\), \(C_0(c)=1\) specialization of the rational-contrast theorem and is the home of the exact small-\(n\) grid-value calculations. \textit{Gap.} The five outward rational enclosures and finite certificate sandwich do not extrapolate optimizer support, a sharp limit, or a continuum feedback law; the \(n=3,4,5\) rows are not claimed as complete auditable primal--dual artifacts. \textit{Consumer.} It is the early-kill computational showcase for detecting incorrect scaling or scalar-separability conjectures.
+
+\begin{theorem}[thm:second-order-rate-and-certificate-frontier]\label{thm:second-order-rate-and-certificate-frontier}
+Fix \(K\geq2\) and a nonzero zero-sum contrast \(c\) with \(|S_c|\geq3\), and define \(x_n(c)=n^{4/3}d_n(c)\). Then
+\[
+ 0<\liminf_{n\to\infty}x_n(c)
+ \leq\limsup_{n\to\infty}x_n(c)
+ \leq43C_0(c)<\infty.
+\]
+Consequently, \(d_n(c)=\Theta(n^{-4/3})\), and the subsequential-limit set of \(x_n(c)\) is a nonempty compact subset of a compact interval contained in \((0,\infty)\). If a positive regularly varying normalizer \((a_n)\) makes \(a_nd_n(c)\) converge to a finite positive limit, then its index is \(4/3\). Such a normalizer exists if and only if \(x_n(c)\) is slowly varying. In the branch where \(x_n(c)\) does not converge, this is equivalent to the existence of a nonconvergent slowly varying correction multiplying \(n^{4/3}\).
+
+If \(c\) is rational, take \(M=n\) in the exact-rational grid certificate. The normalized grid-value improvement, barycenter-procedure improvement, prior-lower-bound improvement, and \(x_n(c)\) have pairwise distance \(o(1)\). They therefore have the same subsequential-limit set and converge simultaneously, with a common limit whenever any one converges. If \(c\) is real, there are rational zero-sum contrasts \(c^{(n)}\) with
+\[
+ \eta_n=\frac{L_{c-c^{(n)}}}{2}=o(n^{-5/6})
+\]
+such that, again with \(M=n\), the transferred risk bracket has width \(o(n^{-4/3})\). The two corresponding normalized improvement endpoints and \(x_n(c)\) have the same subsequential-limit set and convergence behavior. These certificates retain every response-type count vector and require no exposure-positivity, allocation-support, rank, or overlap restriction on the unrestricted minimax design.
+
+For \(K=3\) and \(c=c^\dagger\), the general rational certificates specialize to the exact three-arm certificates, while the displayed scalar sign-score compression is not minimax-preserving even at \(n=3\). Thus the established results determine the second-order exponent through an internal coarse two-arm converse and give scale-matched computable procedures and prior converses, but they do not determine whether \(x_n(c)\) converges, its sharp limit or exact subsequential-limit set, whether a nonconvergent \(x_n(c)\) is slowly varying, sharp second-order optimality of \(q^\star\), convergence of optimizers or priors, or a limiting face--corner Hamilton--Jacobi--Bellman, cone-spectral, separable, or other operator.
+\end{theorem}
+\begin{proof}
+\textbf{Proof.}
+Put \(x_n=x_n(c)=n^{4/3}d_n(c)\). The internally proved universal second-order theorem gives, for all sufficiently large \(n\),
+\[
+ C_0(c)\kappa_c\leq x_n\leq43C_0(c).
+\]
+Therefore
+\[
+ 0<C_0(c)\kappa_c
+ \leq\liminf_nx_n\leq\limsup_nx_n\leq43C_0(c)<\infty,
+\]
+which is equivalent to \(d_n(c)=\Theta(n^{-4/3})\). Choose \(0<\alpha<C_0(c)\kappa_c\) and \(\beta>43C_0(c)\). Eventually \(x_n\in[\alpha,\beta]\). Bolzano--Weierstrass gives a subsequential limit. The set of all subsequential limits is closed: if \(y_j\to y\) and each \(y_j\) is a subsequential limit, choose recursively \(n_j>n_{j-1}\) with \(|x_{n_j}-y_j|<1/j\); then \(x_{n_j}\to y\). Hence the limit set is a nonempty compact subset of \([\alpha,\beta]\subset(0,\infty)\).
+
+Suppose a positive regularly varying \(a_n\) makes \(a_nd_n(c)\to C\in(0,\infty)\). The universal theorem gives its index as \(4/3\). Thus \(\ell_n=a_nn^{-4/3}\) is slowly varying and \(\ell_nx_n\to C\). For every \(y>0\),
+\[
+ \frac{x_{\lfloor yn\rfloor}}{x_n}
+ =\frac{\ell_n}{\ell_{\lfloor yn\rfloor}}
+ \frac{\ell_{\lfloor yn\rfloor}x_{\lfloor yn\rfloor}}{\ell_nx_n}
+ \longrightarrow1,
+\]
+so \(x_n\) is slowly varying. Conversely, if \(x_n\) is slowly varying, its positive lower limit makes it positive eventually. Put \(a_n=n^{4/3}/x_n\) eventually and assign arbitrary positive values at the finitely many remaining indices. Then \(a_n\) is regularly varying with index \(4/3\) and \(a_nd_n(c)=1\) eventually. On the nonconvergent branch, \(1/x_n\) is itself a nonconvergent slowly varying correction; the reverse implication follows from the same displayed ratio identity.
+
+Now suppose \(c\) is rational and take \(M=n\). Write
+\[
+ \Lambda_n=\Lambda_{n,n}(c),\quad U_n=U_{n,n}(c),\quad
+ B_n=B_{n,c}(\nu_{n,n,c}).
+\]
+The exact rational sandwich gives
+\[
+ B_n\leq\rho_n(c)\leq U_n\leq\Lambda_n
+ \leq B_n+\frac{C_0(c)}{4n^2}.
+\]
+Subtracting each term from \(C_0(c)/n\) and multiplying by \(n^{4/3}\) shows that the largest and smallest among the four normalized improvements differ by at most
+\[
+ \frac{C_0(c)}4n^{-2/3}=o(1).
+\]
+Thus they have pairwise distance \(o(1)\), the same subsequential-limit set, and simultaneous convergence with a common limit whenever any one converges.
+
+For real \(c\), the real-contrast transfer theorem supplies rational zero-sum \(c^{(n)}\) with \(\eta_n=o(n^{-5/6})\) and, at \(M=n\), a bracket \(R_n^-\leq\rho_n(c)\leq R_n^+\) of width \(o(n^{-4/3})\). Hence
+\[
+ n^{4/3}\left\{\frac{C_0(c)}n-R_n^+\right\}
+ \leq x_n\leq
+ n^{4/3}\left\{\frac{C_0(c)}n-R_n^-\right\},
+\]
+and the endpoints differ by \(o(1)\). Each endpoint is therefore at distance \(o(1)\) from \(x_n\), proving the asserted shared convergence and subsequential-limit behavior. The finite programs retain every \(m\in\mathcal M_{n,K}\), permit zero allocation mass, omit only zero-denominator posterior terms, and contain no inverse exposure probability. Thus no exposure-positivity, allocation-support, rank, or overlap restriction is introduced.
+
+For \(K=3\) and \(c=c^\dagger\), the specialized grid theorem identifies the general rational certificates with the exact three-arm certificates. The scalar-score proposition supplies an explicit \(n=3\) full-data rule with risk strictly below a valid lower bound for the compressed scalar experiment, so that compression cannot replace the full orbit game. None of these same-\(n\) comparisons relates optimizers or priors across population sizes or derives a limiting equation. The convergence, sharp-constant, slow-variation, second-order-design, optimizer, prior, feedback, and limiting-operator questions listed in the statement therefore remain unresolved. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem combines the internal rate bracket with exact-rational and continuity-transfer certificates to characterize everything currently resolved at the \(n^{-4/3}\) scale.  Its frontier positioning is relative to the explicitly reviewed bibliography and not a claim of an exhaustive literature search. \textit{Gap.} The sharp constant, convergence, optimizer and prior limits, second-order design optimality, and limiting operator remain explicit open questions for the delivered theorem.  The related-work discussion compares the cited sources by their stated scopes; it does not infer their absence from the broader literature. \textit{Consumer.} The certificates let downstream readers test any proposed sharp frontier against finite exact-rational games without assuming its continuum form.
+
+\begin{theorem}[thm:attainment-and-k3-certified-converse]\label{thm:attainment-and-k3-certified-converse}
+Fix \(K\geq2\) and a nonzero zero-sum contrast \(c\).
+
+First, if \(|S_c|=2\) and \(\rho_{n,2}=\rho_n((1,-1))\), then
+\[
+ \rho_n(c)=C_0(c)\rho_{n,2}.
+\]
+An exact finite-\(n\) saddle exists: take any minimax procedure and least-favorable complete-schedule prior supplied internally by the finite two-arm orbit game, map its two arms to the active sign pair, scale the estimator by \(\sqrt{C_0(c)}\), and push the prior forward by the sign-group schedule embedding. This existence statement does not specify the published scalar posterior mean or least-favorable prior. Moreover,
+\[
+ C_0(c)\kappa_c
+ \leq\liminf_{n\to\infty}n^{4/3}d_n(c)
+ \leq\limsup_{n\to\infty}n^{4/3}d_n(c)
+ \leq43C_0(c),
+\]
+where \(\kappa_c>0\) is the explicit constant in the universal clipped-shrinkage theorem.
+
+Second, for arbitrary support, the independent \(q^\star\) design and the explicit clipped-shrinkage estimator satisfy, for every sufficiently large \(n\),
+\[
+ \max_zR_n(\mathcal D^\star,\widehat\tau_n^{\mathrm{sh}};z)
+ \leq C_0(c)\{n^{-1}-\kappa_cn^{-4/3}\}.
+\]
+Together with the internal coarse two-arm converse and sign-group embedding, this proves
+\[
+ 0<C_0(c)\kappa_c
+ \leq\liminf_{n\to\infty}n^{4/3}d_n(c)
+ \leq\limsup_{n\to\infty}n^{4/3}d_n(c)
+ \leq43C_0(c).
+\]
+
+Third, choose rational nonzero zero-sum contrasts \(c^{(n)}\in\mathbb Q^K\) with \(c^{(n)}\to c\), put
+\[
+ \eta_n=\frac{L_{c-c^{(n)}}}{2},
+\]
+and choose integers \(M_n\geq1\). Let
+\[
+ B_n=B_{n,c^{(n)}}(\nu_{n,M_n,c^{(n)}}),
+ \qquad U_n=U_{n,M_n}(c^{(n)}),
+\]
+and define
+\[
+ R_n^-=\{\max(0,\sqrt{B_n}-\eta_n)\}^2,
+ \qquad R_n^+=(\sqrt{U_n}+\eta_n)^2.
+\]
+Then
+\[
+ R_n^-\leq\rho_n(c)\leq R_n^+.
+\]
+The projected rational-certificate procedure has worst-case risk at most \(R_n^+\), while the transferred rational prior certifies \(R_n^-\) against every design and estimator. If
+\[
+ \underline d_n=\frac{C_0(c)}n-R_n^+,
+ \qquad \overline d_n=\frac{C_0(c)}n-R_n^-,
+\]
+then \(\underline d_n\leq d_n(c)\leq\overline d_n\) and
+\[
+ \begin{aligned}
+ 0\leq\overline d_n-\underline d_n
+ &=R_n^+-R_n^-\\
+ &\leq\frac{5C_0(c^{(n)})}{4M_n^2}
+ +4\sqrt{C_0(c^{(n)})}\,\eta_nn^{-1/2}
+ +3\eta_n^2.
+ \end{aligned}
+\]
+One may choose \(\eta_n=o(n^{-5/6})\); with \(M_n=n\), the bracket has width \(o(n^{-4/3})\). If \(c\) is rational, one may take \(c^{(n)}=c\), and the direct exact-rational gap is at most \(C_0(c)/(4n^2)\).
+
+For \(c=c^\dagger\), \(C_0(c^\dagger)=1\), and for every \(n,M\geq1\),
+\[
+ B_n(\nu_{n,M})\leq\rho_n(c^\dagger)\leq U_{n,M}
+ \leq B_n(\nu_{n,M})+\frac1{4M^2}.
+\]
+The available exact-rational calculations through \(n=5\) are a finite three-arm showcase for this formula and do not infer a cross-\(n\) limit.
+
+These conclusions establish exact value and saddle transfer for two active arms, explicit order attainment for every fixed support, and scale-matched computable procedure and converse certificates for every real zero-sum contrast, directly exact-rational for rational contrasts. They do not determine, when \(|S_c|\geq3\), convergence or the sharp constant of \(n^{4/3}d_n(c)\), sharp second-order optimality of \(q^\star\), convergence of finite-program optimizers or priors, an analytic limiting feedback rule, or a limiting Hamilton--Jacobi--Bellman, spectral, separable, or other operator.
+\end{theorem}
+\begin{proof}
+\textbf{Proof.}
+Suppose first that \(|S_c|=2\). Its active coefficients are \(\alpha\) and \(-\alpha\), where
+\[
+ \alpha=\frac{L_c}{2}=\sqrt{C_0(c)}>0.
+\]
+The exact response-type game theorem, specialized to \(K=2\), supplies an attained minimax procedure \(p_{n,2}^\star\) and a least-favorable prior \(\mu_{n,2}^\star\) on two-arm response-count orbits forming a saddle at value \(\rho_{n,2}\). Distribute the mass of each orbit uniformly over its labeled schedules; the resulting invariant complete-schedule prior has the same Bayes risks because both target and symmetrized procedure risk are orbit-constant. Lift \(p_{n,2}^\star\) by mapping its two assignment labels to the two active arms, assigning no unit to inactive arms, and multiplying its estimator by \(\alpha\). Every \(K\)-arm schedule induces a binary schedule on the active coordinates, so the reverse-reduction calculation in the embedded theorem gives maximum risk at most \(\alpha^2\rho_{n,2}\).
+
+Push \(\mu_{n,2}^\star\) forward through the sign-group embedding \(E_c\). For an arbitrary \(K\)-arm procedure, the conditional-Jensen construction in the embedded theorem produces a legitimate two-arm procedure and proves schedule by schedule
+\[
+ R_{n,2}(p_2;y)\leq\alpha^{-2}R_n(p_K;E_c(y)).
+\]
+Integrating under \(\mu_{n,2}^\star\) shows that the Bayes risk of every \(K\)-arm procedure under the pushed-forward prior is at least \(\alpha^2\rho_{n,2}\). Thus the lifted procedure and pushed-forward prior form an exact finite-\(n\) saddle, and
+\[
+ \rho_n(c)=C_0(c)\rho_{n,2}.
+\]
+This construction uses only internal finite-game attainment; it names no particular published optimizer or prior.
+
+For every support size, the universal theorem constructs the independent \(q^\star\) design and observable clipped-shrinkage estimator and proves, for all \(n\geq N_c\),
+\[
+ \max_zR_n(\mathcal D^\star,\widehat\tau_n^{\mathrm{sh}};z)
+ \leq C_0(c)\{n^{-1}-\kappa_cn^{-4/3}\}.
+\]
+The same theorem combines this procedure with the internal embedded converse to give
+\[
+ 0<C_0(c)\kappa_c
+ \leq\liminf_n n^{4/3}d_n(c)
+ \leq\limsup_n n^{4/3}d_n(c)
+ \leq43C_0(c).
+\]
+This also proves the corresponding support-two display.
+
+For the certificate assertion, choose rational zero-sum approximants and define \(\eta_n,B_n,U_n,R_n^-\), and \(R_n^+\) as in the statement. The real-contrast certificate-transfer theorem supplies an observed-data procedure with worst-case risk at most \(R_n^+\) and a response-count prior whose Bayes risk against the unrestricted decision class is at least \(R_n^-\). Therefore
+\[
+ R_n^-\leq\rho_n(c)\leq R_n^+,
+ \qquad
+ \underline d_n\leq d_n(c)\leq\overline d_n.
+\]
+That theorem also proves
+\[
+ R_n^+-R_n^-
+ \leq\frac{5C_0(c^{(n)})}{4M_n^2}
+ +4\sqrt{C_0(c^{(n)})}\,\eta_nn^{-1/2}+3\eta_n^2.
+\]
+It constructs approximants with \(\eta_n=o(n^{-5/6})\). With \(M_n=n\), the three terms are respectively \(O(n^{-2})\), \(o(n^{-4/3})\), and \(o(n^{-5/3})\), so the improvement bracket has width \(o(n^{-4/3})\). For rational \(c\), take \(c^{(n)}=c\); then \(\eta_n=0\), and the direct rational sandwich gives the sharper gap \(C_0(c)/(4n^2)\).
+
+Finally, for \(c^\dagger=(1,-1/2,-1/2)\),
+\[
+ L_{c^\dagger}=2,
+ \qquad C_0(c^\dagger)=1.
+\]
+The three-arm certificate theorem specializes the rational sandwich to
+\[
+ B_n(\nu_{n,M})\leq\rho_n(c^\dagger)\leq U_{n,M}
+ \leq B_n(\nu_{n,M})+\frac1{4M^2}.
+\]
+Its calculations through \(n=5\) are exact-rational same-population diagnostics only. None supplies a relation between population sizes, a sharp normalized limit, convergence of designs or priors, or an analytic limiting equation. This proves exactly the stated attainment and certificate conclusions and leaves the listed frontier questions open. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem combines internal support-two saddle transfer, the explicit order-attaining rule, and computable upper and prior-lower certificates for every real contrast. \textit{Gap.} No closed-form support-two optimizer or exact second-order constant is delivered; for at least three active arms the sharp limiting frontier remains open. \textit{Consumer.} A four-arm ACTG 175 binary endpoint contrast can use the explicit rule and audit its finite-sample worst-case risk with matched certificates.
+
+\begin{lemma}[lem:published-two-arm-scalar-attainment-scope]\label{lem:published-two-arm-scalar-attainment-scope}
+For \(K=2\) and \(c=(1,-1)\), the published reduced scalar minimax problem has a unique minimizer \(f_n^\star\), which is the posterior mean of \((p_+-p_-)/n\) given \(X_2\) under a least-favorable prior \(\pi_n^\star\) on \((p_+,p_-,r_0)\), and the Bayes risk of \(\pi_n^\star\) equals the scalar minimax value. A separate published reduction theorem equates the unrestricted full binary two-arm minimax value to that scalar value and proves that balanced Bernoulli assignment with \(f_n^\star(\sum_i S_i)\) attains the full-game value and is admissible. The published Airy theorems give an explicit scalar nonlinear-shrinkage upper sequence and an asymptotically least-favorable scalar prior sequence at scale \(n^{-4/3}\). The cited source does not lift \(\pi_n^\star\) to a prior on complete response schedules.
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This cited leaf records the published scalar posterior-mean, balanced-assignment attainment, admissibility, and Airy constructions as secondary context. \textit{Gap.} The source-specific optimizer and least-favorable prior are not premises of any delivered claim; the paper-local generic schedule kernel assumes no least-favorability. \textit{Consumer.} No delivered theorem consumes this node. It is retained only to state the literature comparison accurately.
+
+\begin{lemma}[lem:two-arm-scalar-prior-schedule-kernel]\label{lem:two-arm-scalar-prior-schedule-kernel}
+For \(K=2\) and \(c=(1,-1)\), let \(\nu\) be any probability distribution on triples \(\vartheta=(p_+,p_-,r_0)\) of nonnegative integers satisfying \(p_++p_-+r_0=n\). Conditional on \(\vartheta\), choose uniformly an ordered partition \((P,N,R)\) of \(\{1,\ldots,n\}\) with sizes \((p_+,p_-,r_0)\), assign response type \((1,0)\) on \(P\) and \((0,1)\) on \(N\), and, independently over \(i\in R\), draw \(H_i\sim\operatorname{Bernoulli}(1/2)\) and assign type \((H_i,H_i)\). For every assignment law \(\mathcal D\), including laws dependent across units and chosen independently of the schedule draw, put \(S_i=Y_i^{\mathrm{obs}}\) on arm \(1\), put \(S_i=1-Y_i^{\mathrm{obs}}\) on arm \(2\), and put \(X=\sum_iS_i\). Conditional on \(\vartheta\),
+\[
+ X=p_++\operatorname{Binomial}(r_0,1/2);
+\]
+the assignment \(A\) is ancillary; and, conditional on \(X=x\), \(S\) is uniform over the binary vectors of sum \(x\), with a kernel independent of \(\vartheta\) and \(A\). Consequently every full-data estimator can be Rao--Blackwellized first over \(A\) and then over \(S\) conditional on \(X\), without increasing squared Bayes risk. The Bayes risk of the lifted complete-schedule prior therefore equals
+\[
+ \inf_f\sum_\vartheta\nu_\vartheta
+ \mathbb E_\vartheta\!\left[
+ \left\{f\!\left(p_++\operatorname{Binomial}(r_0,1/2)\right)
+ -\frac{p_+-p_-}{n}\right\}^2\right].
+\]
+These conclusions include every boundary case in which one or more of \(p_+\), \(p_-\), and \(r_0\) is zero; no least-favorability or published optimizer is assumed.
+\end{lemma}
+\begin{proof}
+\textbf{Proof.}
+Write
+\[
+ \psi(\vartheta)=\frac{p_+-p_-}{n},
+ \qquad
+ N_\vartheta=\binom{n}{p_+,p_-,r_0}
+ =\frac{n!}{p_+!p_-!r_0!}.
+\]
+The three counts are nonnegative integers with sum \(n\), so \(N_\vartheta\) is finite and positive, including when any count is zero. By the design requirement, \(A\sim\mathcal D\) is independent of \(\vartheta\), the ordered partition, and the fair bits \((H_i)_{i\in R}\); dependence among the coordinates of \(A\) remains unrestricted.
+
+Fix \(\vartheta\) and \(A=a\). If \(i\in P\), its response type is \((1,0)\), and hence \(S_i=1\) under either assigned arm. If \(i\in N\), its type is \((0,1)\), and hence \(S_i=0\). If \(i\in R\), then the transformation either leaves the fair bit \(H_i\) unchanged or replaces it by \(1-H_i\). Thus the variables \((S_i)_{i\in R}\) are independent fair bits conditional on \((\vartheta,P,N,R,A=a)\), and
+\[
+ X=p_++\operatorname{Binomial}(r_0,1/2)
+\]
+conditional on \(\vartheta\), with a law independent of \(a\).
+
+For the stronger kernel assertion, fix \(s\in\{0,1\}^n\), put \(x=\sum_i s_i\), and suppose \(p_+\leq x\leq p_++r_0\). A partition can generate \(S=s\) only if \(P\) is a \(p_+\)-element subset of \(\{i:s_i=1\}\) and \(N\) is a \(p_-\)-element subset of \(\{i:s_i=0\}\); after those choices, \(R\) is forced. There are
+\[
+ \binom{x}{p_+}\binom{n-x}{p_-}
+\]
+such ordered partitions, and for each one exactly one realization of its \(r_0\) fair bits produces \(s\). Therefore
+\[
+ \Pr(S=s\mid\vartheta,A=a)
+ =\frac{\binom{x}{p_+}\binom{n-x}{p_-}}
+ {N_\vartheta2^{r_0}}.
+\]
+The right side depends on \(s\) only through \(x\) and not on \(a\). The factorial identity
+\[
+ \binom nx\binom{x}{p_+}\binom{n-x}{p_-}
+ =N_\vartheta\binom{r_0}{x-p_+}
+\]
+then gives the displayed binomial law and
+\[
+ \Pr(S=s\mid X=x,\vartheta,A=a)
+ =\binom nx^{-1}\mathbf 1\!\left\{\sum_i s_i=x\right\}.
+\]
+Values outside the support may be defined arbitrarily. The factorization also proves that \(A\) is ancillary and independent of \((S,X,\vartheta)\) under every mixture \(\nu\).
+
+Given \(A\), the maps between \(Y^{\mathrm{obs}}\) and \(S\) are inverse. Thus a full-data estimator is a function \(T(A,S)\). Define
+\[
+ T_1(s)=\mathbb E_\mathcal D\{T(A,s)\},
+ \qquad
+ T_2(x)=\binom nx^{-1}\sum_{s:\,\sum_i s_i=x}T_1(s).
+\]
+Independence of \(A\), the parameter-free conditional law of \(S\) given \(X\), and two applications of conditional Jensen yield
+\[
+ \mathbb E_\nu\{T_2(X)-\psi(\vartheta)\}^2
+ \leq \mathbb E_\nu\{T(A,S)-\psi(\vartheta)\}^2.
+\]
+Conversely every scalar rule \(f(X)\) is a legitimate full-data rule under every design, because \(X\) is observable from \((A,Y^{\mathrm{obs}})\). Infimizing the two sides proves equality of the full-data and scalar Bayes risks. All factorial and conditional-probability conventions used above remain valid at the stated boundary counts. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The ordered-partition calculation is a paper-local Rao--Blackwell interface valid for every prior on two-arm effect-class counts. \textit{Gap.} It proves scalar Bayes-risk equivalence for a chosen prior but asserts neither least-favorability nor equality with the unrestricted minimax value. \textit{Consumer.} The internal coarse two-arm construction uses it to place its smooth mixture on complete fixed response schedules and to remove assignment ancillary information.
+
+\begin{lemma}[lem:bayesian-information-inequality]\label{lem:bayesian-information-inequality}
+Let \(\Theta=(\ell,u)\subseteq\mathbb R\), let \(w\) be a continuously differentiable probability density with compact support in \(\Theta\), positive on the interior of its support, and put
+\[
+ J(w)=\int_{\{w>0\}}\frac{\{w'(\theta)\}^2}{w(\theta)}\,d\theta<\infty.
+\]
+Let \(P_\theta\) be dominated by a \(\sigma\)-finite measure with density \(p_\theta(x)\). Assume that for almost every \(x\), \(p_\theta(x)\) is absolutely continuous in \(\theta\), that differentiation under the integral is valid, that
+\[
+ \int \partial_\theta p_\theta(x)\,dx=0,
+ \qquad
+ I(\theta)=\int_{\{p_\theta>0\}}
+ \frac{\{\partial_\theta p_\theta(x)\}^2}{p_\theta(x)}\,dx<\infty,
+\]
+and that \(0<J(w)+\int I(\theta)w(\theta)\,d\theta<\infty\). Let \(g(\theta,x)\) be absolutely continuous in \(\theta\), and let \(T(x)\) be any estimator. Assume that all quantities below are integrable, that the product \(w(\theta)p_\theta(x)\{T(x)-g(\theta,x)\}\) is absolutely continuous in \(\theta\), and that its boundary values vanish. Then
+\[
+ \mathbb E\{T(X)-g(\theta,X)\}^2
+ \geq
+ \frac{\left[\mathbb E\{\partial_\theta g(\theta,X)\}\right]^2}
+ {J(w)+\mathbb E\{I(\theta)\}},
+\]
+where the expectation is under \(w(\theta)p_\theta(x)\,d\theta\,dx\). The statement allows the target \(g\) to depend on the observation and includes the ordinary Bayesian Cram\'er--Rao inequality as the special case \(g(\theta,x)=g(\theta)\).
+\end{lemma}
+\begin{proof}
+\textbf{Proof.}
+On \(\{w(\theta)p_\theta(x)>0\}\), define the joint score
+\[
+ Z(\theta,x)=\frac{w'(\theta)}{w(\theta)}+
+ \frac{\partial_\theta p_\theta(x)}{p_\theta(x)}.
+\]
+The likelihood-score centering condition follows from the displayed differentiation assumption:
+\[
+ \mathbb E_\theta\!\left[
+ \frac{\partial_\theta p_\theta(X)}{p_\theta(X)}
+ \right]
+ =\int\partial_\theta p_\theta(x)\,dx=0.
+\]
+Consequently the cross term between the prior score and likelihood score vanishes, and
+\[
+ \mathbb E\{Z(\theta,X)^2\}
+ =J(w)+\mathbb E\{I(\theta)\}.
+\]
+By the absolute-continuity, integrability, compact-support, and boundary hypotheses, integration by parts is legitimate and has no boundary contribution. Since \(T(x)\) does not depend on \(\theta\),
+\[
+ \begin{aligned}
+ \mathbb E[\{T(X)-g(\theta,X)\}Z(\theta,X)]
+ &=\iint \{T(x)-g(\theta,x)\}
+ \partial_\theta\{w(\theta)p_\theta(x)\}\,d\theta\,dx\\
+ &=\iint \partial_\theta g(\theta,x)
+ w(\theta)p_\theta(x)\,d\theta\,dx\\
+ &=\mathbb E\{\partial_\theta g(\theta,X)\}.
+ \end{aligned}
+\]
+Cauchy--Schwarz now gives
+\[
+ \left[\mathbb E\{\partial_\theta g(\theta,X)\}\right]^2
+ \leq \mathbb E\{T(X)-g(\theta,X)\}^2
+ \left[J(w)+\mathbb E\{I(\theta)\}\right].
+\]
+The denominator is positive and finite by hypothesis, so division proves the claim. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A paper-agnostic information inequality is the reusable interface needed to obtain a design-unrestricted two-arm Bayes lower bound. \textit{Gap.} The target may depend on the observed data, so the proof states the integration-by-parts boundary and regularity conditions explicitly. \textit{Consumer.} The coarse two-arm converse applies the lemma to the conditional mean of the realized finite-population contrast.
+
+\begin{theorem}[thm:coarse-two-arm-minimax-lower]\label{thm:coarse-two-arm-minimax-lower}
+For every integer \(n\geq8\), the unrestricted two-arm binary finite-population minimax risk satisfies the fully internal lower bound
+\[
+ \rho_n((1,-1))
+ \geq
+ \frac{(1-n^{-1/3})^2}
+ {n/(1-n^{-2/3}/4)+40n^{2/3}}
+ \geq \frac1n-43n^{-4/3}.
+\]
+The bound holds against every assignment law, including dependent assignments, and every possibly biased estimator. It is obtained from a prior on complete fixed response schedules and does not use a published two-arm minimax value, Airy expansion, optimizer, or least-favorable prior.
+\end{theorem}
+\begin{proof}
+\textbf{Proof.}
+Fix \(n\geq8\) and set \(a=n^{-1/3}\), so \(0<a\leq1/2\). Define
+\[
+ w_0(u)=\frac{15}{8}(1-4u^2)^2\mathbf 1\{|u|\leq1/2\},
+ \qquad
+ w_a(\theta)=a^{-1}w_0(\theta/a).
+\]
+The extension of \(w_0\) by zero is continuously differentiable, is positive on \((-1/2,1/2)\), and vanishes together with its derivative at the endpoints. Direct integration gives
+\[
+ \int_{-1/2}^{1/2}(1-4u^2)^2\,du=\frac8{15},
+ \qquad
+ J(w_0)=\int\frac{\{w_0'(u)\}^2}{w_0(u)}\,du=40.
+\]
+Hence \(w_a\) is a smooth compactly supported probability density on \((-a/2,a/2)\) with
+\[
+ J(w_a)=\frac{40}{a^2}.
+\]
+
+Conditional on \(\theta\sim w_a\), draw the response types of the \(n\) labeled units independently with probabilities
+\[
+ \Pr_\theta\{(1,0)\}=\frac{a+\theta}{2},\qquad
+ \Pr_\theta\{(0,1)\}=\frac{a-\theta}{2},\qquad
+ \Pr_\theta\{(0,0)\}=\Pr_\theta\{(1,1)\}=\frac{1-a}{2}.
+\]
+All four probabilities are nonnegative and sum to one because \(|\theta|<a/2\) and \(a\leq1/2\). This is a probability distribution on complete fixed labeled schedules. Conditional on its three effect-class counts, it is exactly the ordered-partition schedule kernel of the preceding lemma, with the two zero-effect types generated by independent fair bits. It is therefore a lawful Bayes prior for the unrestricted design game, including all boundary schedules in its finite support.
+
+Fix an arbitrary assignment law \(\mathcal D\), chosen independently of the schedule, and any estimator \(T\). Define \(S_i=Y_i^{\mathrm{obs}}\) on arm \(1\), \(S_i=1-Y_i^{\mathrm{obs}}\) on arm \(2\), and \(R_i=2S_i-1\). Given \(\theta\), the preceding probabilities imply, under either assigned arm,
+\[
+ \Pr_\theta(S_i=1)=\frac{a+\theta}{2}+\frac{1-a}{2}
+ =\frac{1+\theta}{2}.
+\]
+Conditional on any realized assignment vector, the response types are independent, so \(S_1,\ldots,S_n\) are independent Bernoulli variables with success probability \((1+\theta)/2\). Their conditional law does not depend on the assignment vector. Thus \(A\) is ancillary even when its coordinates are dependent, and the Fisher information in the full observed data is
+\[
+ I_n(\theta)=\frac{n}{1-\theta^2}.
+\]
+The success probabilities stay in \([3/8,5/8]\), so the likelihood is differentiable with common finite support and satisfies all score and differentiation conditions of the Bayesian information lemma.
+
+Let \(U_i=Y_i(1)-Y_i(2)\in\{-1,0,1\}\), so the finite-population target is \(\tau=n^{-1}\sum_iU_i\). Bayes' rule gives
+\[
+ \mathbb E_\theta(U_i\mid S_i=1)=\frac{a+\theta}{1+\theta},
+ \qquad
+ \mathbb E_\theta(U_i\mid S_i=0)=-\frac{a-\theta}{1-\theta}.
+\]
+With
+\[
+ b(\theta)=\frac{a-\theta^2}{1-\theta^2},
+ \qquad
+ \overline R=n^{-1}\sum_iR_i,
+\]
+both cases are summarized by
+\[
+ g(\theta,A,S):=\mathbb E_\theta(\tau\mid A,S)
+ =\theta+b(\theta)(\overline R-\theta).
+\]
+Because \(|\theta|<a/2\) and \(0<a<1\),
+\[
+ 0\leq b(\theta)\leq a.
+\]
+Moreover, \(\mathbb E_\theta(\overline R)=\theta\), and differentiation at fixed observed \((A,S)\) yields
+\[
+ \mathbb E_\theta\{\partial_\theta g(\theta,A,S)\}
+ =1-b(\theta).
+\]
+The target and estimator are bounded, the parameter support is compactly inside the regular Bernoulli region, and the prior and its derivative vanish at the endpoints. Thus the boundary, integrability, and absolute-continuity conditions of the Bayesian information lemma hold.
+
+Conditional square completion gives
+\[
+ \mathbb E_\theta[(T-\tau)^2\mid A,S]
+ =(T-g(\theta,A,S))^2+\operatorname{Var}_\theta(\tau\mid A,S)
+ \geq(T-g(\theta,A,S))^2.
+\]
+Applying the Bayesian information lemma to the data-dependent target \(g\), then using \(b\leq a\), \(|\theta|\leq a/2\), and the information calculations above, gives the Bayes-risk lower bound
+\[
+ \begin{aligned}
+ \mathbb E(T-\tau)^2
+ &\geq
+ \frac{\left[\mathbb E\{1-b(\theta)\}\right]^2}
+ {40/a^2+\mathbb E\{n/(1-\theta^2)\}}\\
+ &\geq\frac{(1-a)^2}{40/a^2+n/(1-a^2/4)}.
+ \end{aligned}
+\]
+Maximum risk over fixed schedules dominates Bayes risk under every schedule prior. Since \((\mathcal D,T)\) was arbitrary, infimizing proves the first displayed minimax lower bound.
+
+For the coarse closed form, divide its denominator by \(n\) and use \(na^2=n^{1/3}=a^{-1}\):
+\[
+ \frac{(1-a)^2}{40/a^2+n/(1-a^2/4)}
+ =\frac1n\frac{(1-a)^2}{40a+(1-a^2/4)^{-1}}.
+\]
+For \(0<a\leq1/2\), one has \((1-a^2/4)^{-1}\leq1+a\) and \((1-a)^2\geq1-2a\). Therefore
+\[
+ \frac{(1-a)^2}{40a+(1-a^2/4)^{-1}}
+ \geq\frac{1-2a}{1+41a}
+ =1-\frac{43a}{1+41a}
+ \geq1-43a.
+\]
+Substitution of \(a=n^{-1/3}\) proves \(\rho_n((1,-1))\geq n^{-1}-43n^{-4/3}\). No property of a published optimizer or asymptotic expansion was used. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This internal complete-schedule Bayes construction supplies the rate input that replaces the published Airy theorem in the delivered converse. \textit{Gap.} The constant is deliberately coarse; the theorem proves the exact order needed for the multi-arm frontier without claiming the sharp two-arm expansion. \textit{Consumer.} The embedded converse transfers this lower bound to every fixed multi-arm contrast.
+
+\section{Interpretation}
+
+The causal target is the fixed finite-population contrast \(\tau_c(z)\); the randomness is only treatment assignment. The minimax functional \(\rho_n(c)\) is a design criterion, not an identification formula. The result says that one can choose a concrete allocation and observed-data shrinkage rule whose worst-case design-based mean squared error improves on \(C_0(c)/n\) by order \(n^{-4/3}\), and that no unrestricted design-estimator pair can improve by a larger order. Exact-rational certificates can audit the finite-population value at this scale. For an ACTG 175-style four-arm binary endpoint, the same construction applies to any prespecified zero-sum regimen contrast, but it does not select the scientific contrast or supply sampling-based inference.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The continuous-action squared-loss orbit game is a finite convex quadratically constrained game, not literally a finite linear program. The exact-rational computational result therefore uses a rational action grid and proves a squared-mesh certificate gap. The mathematical D-stage theorem establishes exact rational primal and dual certificates by finite elimination and duality; a reusable exact-rational LP certificate object remains separate headline-critical formalization substrate debt rather than an assumption of the discovery proof. The coarse constant \(43\) is explicit but not claimed sharp.
+
+\section{Honest scope}
+
+The theorem-level contributions are the exact labeled-to-orbit equality, the strict fixed-\(K\) binary scope extension, the first-order constant, the explicit clipped-shrinkage upper rule, the internal matching-order converse, and the rational and continuity-transfer certificates. The two published source-specific Airy and scalar-saddle nodes remain cited secondary context with no delivered reverse consumer. No exact Airy constant, published optimizer, or published least-favorable prior is used in the delivered proof spine. For \(|S_c|=2\), the internal finite game gives exact value and saddle transfer but does not identify a closed-form optimizer. For \(|S_c|\geq3\), the exponent \(4/3\) is settled, while convergence of \(n^{4/3}d_n(c)\), its sharp constant or subsequential-limit set, slow variation in a nonconvergent branch, sharp second-order optimality of \(q^\star\), optimizer or prior convergence, an analytic feedback rule, and any face--corner Hamilton--Jacobi--Bellman, spectral, separable, or other limiting operator remain open. The \(n\leq5\) three-arm calculations are same-population diagnostics and do not establish a cross-\(n\) limit.
+
+\begin{thebibliography}{99}
+
+  \bibitem{sudijono_dobriban_tchetgen_2026_sharp} Timothy Sudijono, Edgar Dobriban, and Eric Tchetgen Tchetgen (2026). Sharp Minimax Theory for Randomized Experiments. arXiv:2608.13822.
+
+  \bibitem{hull_2026_bounded} Peter Hull (2026). Optimal Experimental Design and Estimation when Potential Outcomes are Bounded. arXiv:2608.09812.
+
+  \bibitem{bai_2023_why} Yuehao Bai (2023). Why Randomize? Minimax Optimality under Permutation Invariance. Journal of Econometrics 232(2), 565--575.
+
+  \bibitem{levit_1986_schrodinger} B. Ya. Levit (1986). Second-Order Asymptotic Optimality and Positive Solutions of Schrödinger's Equation. Theory of Probability and Its Applications 30(2), 333--363.
+
+  \bibitem{levit_1981_second_order} B. Ya. Levit (1981). On Asymptotically Efficient Estimation of the Second Order. Theory of Probability and Its Applications 25, 552--568.
+
+  \bibitem{rosenman_hunter_2026_shrinkage} Evan T. R. Rosenman and Kristen B. Hunter (2026). Adaptive Experimental Design Using Shrinkage Estimators. arXiv:2602.07404.
+
+  \bibitem{mukerjee_dasgupta_rubin_2018} Rahul Mukerjee, Tirthankar Dasgupta, and Donald B. Rubin (2018). Using Standard Tools From Finite Population Sampling to Improve Causal Inference for Complex Experiments. Journal of the American Statistical Association 113(522), 868--881.
+
+  \bibitem{hammer_et_al_1996_actg175} Scott M. Hammer et al. for the ACTG 175 Study Team (1996). A Trial Comparing Nucleoside Monotherapy with Combination Therapy in HIV-Infected Adults with CD4 Cell Counts from 200 to 500 per Cubic Millimeter. New England Journal of Medicine 335(15), 1081--1090.
+
+  \bibitem{kallus_2020_optimality} Nathan Kallus (2020). On the Optimality of Randomization in Experimental Design: How to Randomize for Minimax Variance and Design-Based Inference. arXiv:2005.03151.
+
+  \bibitem{aronow_lopatto_2026_minimax_unbiased} P. M. Aronow and Patrick Lopatto (2026). Minimax unbiased estimation for finite populations with bounded outcomes. arXiv:2605.20572.
+
+\end{thebibliography}
+
+\end{document}

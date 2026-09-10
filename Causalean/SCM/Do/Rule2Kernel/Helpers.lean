@@ -40,7 +40,7 @@ open scoped MeasureTheory ProbabilityTheory
 -- Their composition is `fillZrW`.
 -- ============================================================
 
-/-- This map reads intervention values as values of the corresponding observed random variables.
+/-- For [a set of treatment-variable names](hyp:Z) and [an assignment to their intervention copies](hyp:z), the [intervention-to-random value map](goal) is the assignment to the corresponding observed random copies that [for a random copy returns the value of its matching intervention copy](step:1) and has no possible fixed-copy case](step:2).
 
 It reuses the shared base-node value space of each fixed and random copy; the
 fixed-node branch is unreachable for the requested random-node output. -/
@@ -77,7 +77,7 @@ lemma measurable_zFixedAsRandom {Z : Finset N} :
   -- v = SWIGNode.random D; output is `z ⟨.fixed D, _⟩`
   exact measurable_pi_apply _
 
-/-- The Rule 2 filler inserts intervention values into a conditioning assignment.
+/-- For [a structural causal model](hyp:M'), [a set of treatment-variable names](hyp:Z), [the condition that each corresponding random copy is observed](hyp:hZ_obs), [the condition that none of their fixed copies is already fixed](hyp:hZ_fixed), [a set of free conditioning nodes](hyp:W), and [a fixed-value assignment for the model after fixing those treatments](hyp:s'), the [Rule 2 filler](goal) maps each free conditioning assignment to an assignment on the union of the treatment random copies and free nodes, inserting the treatment values from the fixed-value assignment.
 
 It reads the fixed treatment values from the post-intervention fixed slice,
 relabels them as observed random treatment values, and combines them with the
@@ -97,7 +97,7 @@ noncomputable def fillZrW
           (fixSet_image_fixed_subset M' Z hZ_obs hZ_fixed) s'))
       w
 
-/-- A value assignment on a disjoint union is measurably equivalent to the pair of assignments on the two parts.
+/-- For [two sets of graph nodes](hyp:A) that are [disjoint](hyp:hDisj), the [value-assignment equivalence for their union](goal) is a measurable bijection between assignments on their union and pairs consisting of an assignment on each set.
 
 The forward map projects to each part and the inverse recombines them; disjointness
 ensures the first part's priority cannot overwrite the second part. -/
@@ -193,8 +193,7 @@ theorem measurable_fillZrW_prod (M' : Causalean.SCM N Ω) (Z : Finset N)
   exact measurable_zFixedAsRandom.comp
     ((measurable_valuesProjection _).comp measurable_fst)
 
-/-- This map reads observed treatment values as values for the corresponding
-intervention coordinates.
+/-- For [a set of treatment-variable names](hyp:X) and [an assignment to their observed random copies](hyp:t), the [random-to-intervention value map](goal) is the assignment to the corresponding intervention copies that [for an intervention copy returns the value of its matching observed random copy](step:1) and has no possible random-copy case](step:2).
 
 It is the mirror image of the map from fixed intervention values to random
 observed values. -/
@@ -219,7 +218,7 @@ lemma measurable_xRandomAsFixed {X : Finset N} :
   obtain ⟨D, hD, rfl⟩ := Finset.mem_image.mp hv
   exact measurable_pi_apply _
 
-/-- This map extends a base fixed-value assignment with treatment values for a post-intervention model.
+/-- For [a structural causal model](hyp:M), [a set of treatment-variable names](hyp:X), [the condition that each corresponding random copy is observed](hyp:hObs), [the condition that none of their fixed copies is already fixed](hyp:hFix), [an assignment on the model's original fixed nodes](hyp:s0), and [an assignment to the treatment random copies](hyp:t), the [extended fixed-value assignment](goal) is the fixed-value assignment for the model after those treatments are fixed, retaining original fixed values and using the matching treatment values for newly fixed copies.
 
 Existing fixed coordinates are read from the base assignment, while newly fixed
 treatment coordinates are read from the treatment assignment after relabeling. -/

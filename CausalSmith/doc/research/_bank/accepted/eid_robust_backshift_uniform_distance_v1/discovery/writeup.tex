@@ -1,0 +1,1281 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{eid\_\allowbreak{}robust\_\allowbreak{}backshift\_\allowbreak{}uniform\_\allowbreak{}distance}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Unknown diagonal shift interventions identify a cyclic linear causal system because covariance differences share a non-unitary congruence diagonalizer. With as many as \(c\) arbitrary positive-semidefinite covariance slots, the BACKSHIFT-normalized structural matrix is uniquely recovered for every contamination exactly when deleting the largest affine-line subset from each pairwise honest shift cloud costs more than \(c\) environments; failure has a positive-definite ambiguity witness when the invariant noise lies in the positive-definite interior. The generic sparse-support frontier is an exact four-term incidence formula. Arbitrary nonempty positive-semidefinite covariance regions yield a set-theoretic simultaneous-coverage implication, and four true-side margins plus only candidate conditioning yield a non-effective local radius and an explicit linear contraction modulus. Executable quantifier elimination, exact generated union codes, effective radii, release-or-abstain decisions, normalization-chart automation, and a corruption-aware CRAN implementation remain open.
+
+\section{Project justification}
+
+\paragraph{Gap.} Published BACKSHIFT identifies from an entirely honest environment family, general joint-diagonalization theory studies one complete matrix family, and existing outlier-aware joint diagonalization uses a tuning threshold without an exact adversarial whole-environment radius. Existing sensitivity results do not supply set-theoretic confidence-union coverage or a corruption-aware compactness argument over competing honest subsets.
+
+\paragraph{Niche.} Whole-environment replacement creates a discrete overlap geometry: two explanations may discard different slots and therefore share only \(m-2c\) covariance matrices. Affine rather than linear collinearity is the invariant obstruction because the common nondiagonal noise covariance disappears only after differencing. For inference, one-sided normalization closure is enough: strict cycle-product slack is needed on the true matrix, while feasible candidates require only a uniform condition-number bound.
+
+\paragraph{Fill.} The project derives the necessary-and-sufficient distance \(\delta_H>c\), a matching positive-definite contamination witness under interior invariant noise, the exact generic support-incidence formula, and the exact sparse-support deletion threshold. It defines finite subset consensus only as a reduction to a full-solution feasibility oracle. It also proves the quantifier-elimination-free coverage implication and a non-effective local contraction theorem under four true-side margins and only candidate conditioning. The remaining open program is exclusively executable and effective: exact semialgebraic union codes, release-or-abstain and rational classification decisions, effective radius computation, chart automation, and corruption-aware software.
+
+\section{Related work}
+
+The field-tier radius result is informed by RothenhauslerEtAl2015BackShift, Theorem 1 and its appendix proof, which supplies the all-honest model, pairwise profile reduction, and cycle-product normalization; its generic-amplitude result is Corollary 2(ii). KleinsteuberShen2013NUJDUniqueness, Theorem 1, informs the complete-family uniqueness step through profile collinearity. AkhavanEtAl2019GeometryJD, Section 4.2 and equation (42), informs the robust joint-diagonalization setting by trimming outlier target matrices with a chosen residual threshold, but it does not state a worst-case replacement radius. ShenEtAl2020RJDSEM, Section III.C and equations (27)--(28), defines R-JDSEM through an elementwise \(\ell_1\) joint-diagonalization loss for sparse node- or entry-level outlier components within local covariance matrices, rather than replacement of whole covariance slabs. Its noiseless anchored or known-edge Theorem 1 establishes a sufficient uniqueness result under prior edge information; it gives neither an adversarial whole-environment replacement radius, the criterion \(\delta_H>c\), nor a legal two-explanation BACKSHIFT converse. PerryVonKugelgenScholkopf2022SparseShift, Corollary 4.2, Theorem 5.3, and Corollary 5.4, shows how pairwise environment comparisons and sparse mechanism changes support detection and graph recovery, while PfisterPeters2022SparseIV, Theorem 3, illustrates how a support pattern can control generic causal identifiability. LeNguyen2022HermitianSDC, Theorem 7 and Algorithm 5, supplies a complete-family congruence-feasibility primitive; this proposal uses it only to motivate an oracle reduction and does not claim a terminating exact solver. HeKressner2024RandomizedSDC supplies exact and perturbative results for a complete approximately diagonalizable family, rather than adversarial selection among competing size-\(h\) subsets. Afsari2008JDSensitivity relates local joint-diagonalization error to conditioning and a uniqueness modulus; the present contraction instead combines a global compact residual gap with local affine-minor inversion, using four true-side margins and only candidate conditioning. AndrewsCheng2013SporadicID motivates confidence procedures that remain valid as identification disappears; the present coverage claim is instead a finite-sample set-theoretic implication for arbitrary supplied covariance regions. None of these sources characterizes adversarial positive-definite replacement under BACKSHIFT normalization and nonnegative raw shifts or provides the exact executable program left open here.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(B=I_p-D\)..
+Primary functional / estimator / diagnostic: For a fixed honest design \(D,H,s\) and \(\Sigma\in(\mathbb S_+^p)^E\), let robust recovery mean that \(\mathcal R_c(\Sigma)=\{D\}\) for every positive-semidefinite assignment to the \(c\) slots in \(E\setminus H\). For every \(\Omega\in\mathbb S_+^p\), \(\delta_H>c\) implies robust recovery without an invertibility condition on the honest covariances. If the fixed instance has \(\Omega\in\mathbb S_{++}^p\), robust recovery holds if and only if \(\delta_H>c\), and failure is realized by positive-definite replacements. Thus \(\delta_H>c\) is minimax sharp over the published positive-semidefinite covariance and invariant-noise class, with failure witnessed in its positive-definite subclass..
+\begin{itemize}
+  \item \texttt{p} --- \texttt{positive integer}; \(\{2,3,\ldots\}\); \texttt{System dimension.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of endogenous variables.}
+  \item \texttt{m} --- \texttt{positive integer}; \(\{1,2,\ldots\}\); \texttt{Environment count.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of observed environment slots.}
+  \item \texttt{c} --- \texttt{nonnegative integer}; \(\{0,\ldots,m-1\}\); \texttt{Adversarial contamination budget.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Maximum number of arbitrarily replaced covariance slots.}
+  \item \texttt{h} --- \texttt{positive integer}; \texttt{Number of honest slots.}
+  \par\smallskip\noindent\emph{Definition.} \(h=m-c\).
+  \item \texttt{E} --- \texttt{finite index set}; \(E=\{1,\ldots,m\}\); \texttt{Slot index set.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Set of observed environment labels.}
+  \item \texttt{H} --- \texttt{subset of environment labels}; \(H\subseteq E\); \texttt{Honest environment design.}
+  \par\smallskip\noindent\emph{Definition.} Unknown honest set with \(\lvert H\rvert=h\).
+  \item \texttt{PSDp} --- \texttt{matrix cone}; \(\mathbb S_{+}^{p}\); \texttt{Standard BACKSHIFT invariant-\allowbreak{}noise cone.}
+  \par\smallskip\noindent\emph{Definition.} Cone of real symmetric positive-semidefinite \(p\times p\) matrices.
+  \item \texttt{SPDp} --- \texttt{matrix cone}; \(\mathbb S_{++}^{p}\); \texttt{Covariance space.}
+  \par\smallskip\noindent\emph{Definition.} Cone of real symmetric positive-definite \(p\times p\) matrices.
+  \item \texttt{Sigma} --- \texttt{matrix-\allowbreak{}valued family}; \((\mathbb S_{+}^{p})^{E}\); \texttt{Observable input and replacement domain.}
+  \par\smallskip\noindent\emph{Definition.} Observed population covariance family \(\Sigma=(\Sigma_e:e\in E)\), with every honest or replaced slot chosen from the positive-semidefinite covariance domain.
+  \item \texttt{D} --- \texttt{invertible real matrix}; \(\mathrm{GL}_{p}(\mathbb R)\); \texttt{Primary structural target.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Structural demixing matrix in the equilibrium equation.}
+  \item \texttt{H1} --- \texttt{subset of environment labels}; \(H_1\subseteq E\); \texttt{First explanation's candidate honest set.}
+  \par\smallskip\noindent\emph{Definition.} Fitted slot set of the first competing BACKSHIFT explanation, with \(\lvert H_1\rvert\ge h\).
+  \item \texttt{H2} --- \texttt{subset of environment labels}; \(H_2\subseteq E\); \texttt{Second explanation's candidate honest set.}
+  \par\smallskip\noindent\emph{Definition.} Fitted slot set of the second competing BACKSHIFT explanation, with \(\lvert H_2\rvert\ge h\).
+  \item \texttt{J} --- \texttt{subset of environment labels}; \(J\subseteq E\); \texttt{Common slots used by the overlap lemma.}
+  \par\smallskip\noindent\emph{Definition.} Overlap \(J=H_1\cap H_2\) of the two fitted slot sets.
+  \item \texttt{D1} --- \texttt{invertible real matrix}; \(\mathrm{GL}_{p}(\mathbb R)\); \texttt{First overlap-\allowbreak{}lemma explanation.}
+  \par\smallskip\noindent\emph{Definition.} Structural matrix \(D^{(1)}\) in the first competing explanation.
+  \item \texttt{D2} --- \texttt{invertible real matrix}; \(\mathrm{GL}_{p}(\mathbb R)\); \texttt{Second overlap-\allowbreak{}lemma explanation.}
+  \par\smallskip\noindent\emph{Definition.} Structural matrix \(D^{(2)}\) in the second competing explanation.
+  \item \texttt{B} --- \texttt{real matrix}; \(\mathbb R^{p\times p}\); \texttt{Causal connectivity target reported by BACKSHIFT.}
+  \par\smallskip\noindent\emph{Definition.} Connectivity matrix \(B=I_p-D\).
+  \item \texttt{CP} --- \texttt{matrix functional}; \(\operatorname{CP}:\mathbb R^{p\times p}\to[0,\infty)\); \texttt{BACKSHIFT cycle-\allowbreak{}product normalization.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Maximum absolute product along a directed simple cycle of length at least two.}
+  \item \texttt{Dcal} --- \texttt{matrix set}; \(\mathrm{GL}_{p}(\mathbb R)\); \texttt{Admissible structural parameter space.}
+  \par\smallskip\noindent\emph{Definition.} Matrix set satisfying the BACKSHIFT unit-diagonal and cycle-product normalization defined in \(\text{def:admissible-matrices}\).
+  \item \texttt{Omega} --- \texttt{symmetric matrix}; \(\mathbb S^{p}\); \texttt{Invariant latent-\allowbreak{}confounding nuisance.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Invariant disturbance covariance,\allowbreak{} permitted to be nondiagonal.}
+  \item \texttt{s} --- \texttt{nonnegative array}; \(\mathbb R^{H\times p}\); \texttt{Shift-\allowbreak{}design nuisance.}
+  \par\smallskip\noindent\emph{Definition.} Honest intervention-variance levels \(s=(s_{ek}:e\in H,1\le k\le p)\).
+  \item \texttt{s1} --- \texttt{nonnegative array}; \(\mathbb R^{H_1\times p}\); \texttt{First explanation's shifts on the overlap.}
+  \par\smallskip\noindent\emph{Definition.} Shift levels \(s^{(1)}=(s^{(1)}_{ek}:e\in H_1,1\le k\le p)\) in the first competing explanation.
+  \item \texttt{s2} --- \texttt{nonnegative array}; \(\mathbb R^{H_2\times p}\); \texttt{Second explanation's shifts on the overlap.}
+  \par\smallskip\noindent\emph{Definition.} Shift levels \(s^{(2)}=(s^{(2)}_{ek}:e\in H_2,1\le k\le p)\) in the second competing explanation.
+  \item \texttt{L} --- \texttt{affine line}; \(\{L:L\text{ is an affine line in }\mathbb R^2\}\); \texttt{Geometric deletion object.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic affine line used to measure concentration of a pairwise shift cloud.}
+  \item \texttt{Mkl} --- \texttt{nonnegative integer family}; \(\{0,\ldots,h\}^{\binom p2}\); \texttt{Pairwise degeneracy statistic.}
+  \par\smallskip\noindent\emph{Definition.} Maximum affine-line occupancy \(M_{k\ell}=\max_L\#\{e\in H:(s_{ek},s_{e\ell})\in L\}\).
+  \item \texttt{delta} --- \texttt{nonnegative integer}; \(\{0,\ldots,h\}\); \texttt{Exact corruption radius.}
+  \par\smallskip\noindent\emph{Definition.} Environment deletion distance \(\delta_H=\min_{1\le k<\ell\le p}(h-M_{k\ell})\).
+  \item \texttt{Z} --- \texttt{binary array}; \(\{0,1\}^{H\times p}\); \texttt{Prespecified sparse intervention design.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Proposal-\allowbreak{}specific prespecified support pattern for shift amplitudes.}
+  \item \texttt{a} --- \texttt{positive random array}; \((0,\infty)^{H\times p}\); \texttt{Generic shift amplitudes.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Random positive amplitudes indexed by the honest environment and coordinate.}
+  \item \texttt{nab} --- \texttt{nonnegative integer family}; \texttt{Pairwise support-\allowbreak{}incidence counts.}
+  \par\smallskip\noindent\emph{Definition.} For \(u,v\in\{0,1\}\), \(n_{uv}^{k\ell}=\#\{e\in H:(Z_{ek},Z_{e\ell})=(u,v)\}\).
+  \item \texttt{Mgen} --- \texttt{nonnegative integer family}; \texttt{Closed-\allowbreak{}form sparse-\allowbreak{}support frontier.}
+  \par\smallskip\noindent\emph{Definition.} Generic occupancy formula \(M_{k\ell}^{\mathrm{gen}}=\max\{n_{00}^{k\ell}+n_{10}^{k\ell},n_{00}^{k\ell}+n_{01}^{k\ell},n_{00}^{k\ell}+\mathbf 1\{n_{11}^{k\ell}>0\},\min(2,h)\}\).
+  \item \texttt{Rc} --- \texttt{set-\allowbreak{}valued map}; \(2^{\mathcal D}\); \texttt{Recovery map for the structural target.}
+  \par\smallskip\noindent\emph{Definition.} Population \(c\)-replacement compatibility set defined in \(\text{def:compatible-set}\).
+  \item \texttt{SubsetConsensus} --- \texttt{set-\allowbreak{}valued oracle reduction}; \texttt{Definitional computational interface,\allowbreak{} not a supplied terminating solver.}
+  \par\smallskip\noindent\emph{Definition.} Finite reduction of \(\mathcal R_c(\Sigma)\) to exact feasibility-oracle queries over subsets of size \(h\), defined in \(\text{def:subset-consensus}\).
+  \item \texttt{gamma} --- \texttt{nonnegative scalar}; \texttt{Strong-\allowbreak{}identification margin.}
+  \par\smallskip\noindent\emph{Definition.} Worst-overlap affine-minor separation, equal to zero when \(h-c<3\) and otherwise \(\gamma_H=\min_{k<\ell}\min_{S\subseteq H,\,|S|=h-c}\max_{e<f<g\in S}|\det[(1,s_{rk},s_{r\ell})_{r\in\{e,f,g\}}]|\).
+  \item \texttt{kappa} --- \texttt{positive scalar}; \texttt{Diagonalizer conditioning margin.}
+  \par\smallskip\noindent\emph{Definition.} Condition number \(\kappa_D=\|D\|_{\mathrm{op}}\|D^{-1}\|_{\mathrm{op}}\).
+  \item \texttt{zeta} --- \texttt{positive scalar}; \texttt{Distance from the normalization boundary.}
+  \par\smallskip\noindent\emph{Definition.} Cycle-product normalization slack \(\zeta_D=1-\operatorname{CP}(I_p-D)\).
+  \item \texttt{Mbound} --- \texttt{positive scalar}; \texttt{Finite-\allowbreak{}sample scale margin.}
+  \par\smallskip\noindent\emph{Definition.} Operator-norm scale bound \(M_H=1+\|\Omega\|_{\mathrm{op}}+\max_{e\in H}\|\Sigma_e\|_{\mathrm{op}}+\max_{e\in H}\|\operatorname{diag}(s_e)\|_{\mathrm{op}}\).
+  \item \texttt{n} --- \texttt{positive integer}; \(\{1,2,\ldots\}\); \texttt{Asymptotic index for the inference layer.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Common within-\allowbreak{}environment sample-\allowbreak{}size index.}
+  \item \texttt{alpha} --- \texttt{probability level}; \((0,1)\); \texttt{Confidence level.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Nominal noncoverage probability.}
+  \item \texttt{diamOp} --- \texttt{extended nonnegative set functional}; \(\operatorname{diam}_{\mathrm{op}}(\mathcal A)=\sup_{A_1,A_2\in\mathcal A}\|A_1-A_2\|_{\mathrm{op}}\); \texttt{Size of a set-\allowbreak{}valued structural output.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Operator-\allowbreak{}norm diameter of a nonempty matrix set.}
+  \item \texttt{outerOp} --- \texttt{extended nonnegative set-\allowbreak{}point functional}; \(\operatorname{outer}_{\mathrm{op}}(\mathcal A,D)=\sup_{A_1\in\mathcal A}\|A_1-D\|_{\mathrm{op}}\); \texttt{One-\allowbreak{}sided contraction criterion for the confidence union.}
+  \par\smallskip\noindent\emph{Definition.} Operator-norm outer radius of a nonempty matrix set around \(D\).
+  \item \texttt{gamma0} --- \texttt{positive rational}; \(\mathbb Q_{>0}\); \texttt{Declarative true-\allowbreak{}side uniform affine-\allowbreak{}separation bound.}
+  \par\smallskip\noindent\emph{Definition.} Fixed rational lower bound \(\gamma_0\) for the true honest-design affine-minor separation.
+  \item \texttt{zeta0} --- \texttt{positive rational at most one}; \(\mathbb Q\cap(0,1]\); \texttt{Declarative true-\allowbreak{}side normalization-\allowbreak{}slack bound.}
+  \par\smallskip\noindent\emph{Definition.} Fixed rational lower bound \(\zeta_0\) for the true structural matrix's cycle-product normalization slack.
+  \item \texttt{kappabar} --- \texttt{rational bound at least one}; \(\mathbb Q\cap[1,\infty)\); \texttt{Declarative true-\allowbreak{}side and candidate-\allowbreak{}side uniform conditioning bound.}
+  \par\smallskip\noindent\emph{Definition.} Fixed rational upper bound \(\overline\kappa\) for the true and every feasible-candidate structural condition number.
+  \item \texttt{Mbar} --- \texttt{rational bound at least one}; \(\mathbb Q\cap[1,\infty)\); \texttt{Declarative true-\allowbreak{}side uniform scale bound.}
+  \par\smallskip\noindent\emph{Definition.} Fixed rational upper bound \(\overline M\) for the true honest-design scale functional.
+  \item \texttt{Calpha} --- \texttt{indexed nonempty random positive-\allowbreak{}semidefinite matrix-\allowbreak{}region family}; \(((2^{\mathbb S_{+}^{p}}\setminus\{\varnothing\})^E)^{\mathbb N_{+}}\); \texttt{Set-\allowbreak{}theoretic simultaneous covariance uncertainty input.}
+  \par\smallskip\noindent\emph{Definition.} Nonempty simultaneous covariance regions \(\mathcal C^{(n)}_{\alpha}=(\mathcal C^{(n)}_{e,\alpha}:e\in E)\), with each \(\mathcal C^{(n)}_{e,\alpha}\subseteq\mathbb S_{+}^p\) arbitrary and nonempty.
+  \item \texttt{rRadius} --- \texttt{extended nonnegative scalar}; \([0,+\infty]\); \texttt{Observable-\allowbreak{}region error radius around the honest population covariances.}
+  \par\smallskip\noindent\emph{Definition.} Honest-slot simultaneous operator-norm radius \(r_{n,\alpha,H}=\max_{e\in H}\sup_{\Gamma\in\mathcal C^{(n)}_{e,\alpha}}\|\Gamma-\Sigma_e\|_{\mathrm{op}}\), with value \(+\infty\) allowed.
+  \item \texttt{Ualpha} --- \texttt{random matrix set}; \(2^{\mathcal D}\); \texttt{Set-\allowbreak{}valued compatibility functional and identification-\allowbreak{}robust confidence union.}
+  \par\smallskip\noindent\emph{Definition.} Indexed set-theoretic confidence union \(\mathcal U^{(n)}_{\alpha}\) defined in \(\text{def:confidence-union}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:backshift-normalization]\label{ass:backshift-normalization}
+\(D\in\mathcal D=\{A\in\mathrm{GL}_p(\mathbb R):\operatorname{diag}(A)=\mathbf 1,\ \operatorname{CP}(I_p-A)<1\}\).
+\par\smallskip\noindent\emph{Standard} (BACKSHIFT unit-diagonal and cycle-product normalization., \cite{RothenhauslerEtAl2015BackShift}).
+\end{assumption}
+
+\begin{assumption}[ass:nonnegative-shifts]\label{ass:nonnegative-shifts}
+\(s_{ek}\ge0\) for every \(e\in H\) and \(1\le k\le p\).
+\par\smallskip\noindent\emph{Standard} (Nonnegative diagonal intervention variances., \cite{RothenhauslerEtAl2015BackShift}).
+\end{assumption}
+
+\begin{assumption}[ass:honest-covariance-model]\label{ass:honest-covariance-model}
+\(\Sigma_e=D^{-1}(\Omega+\operatorname{diag}(s_e))D^{-\mathsf T}\) for every \(e\in H\).
+\par\smallskip\noindent\emph{Standard} (Population BACKSHIFT covariance equation, with the invariant-noise cone stated separately., \cite{RothenhauslerEtAl2015BackShift}).
+\end{assumption}
+
+\begin{assumption}[ass:support-factorization]\label{ass:support-factorization}
+\(s_{ek}=Z_{ek}a_{ek}\) for every \(e\in H\) and \(1\le k\le p\).
+\par\smallskip\noindent\emph{Novel.} The prespecified-support factorization is a proposal-specific restriction that conditions on an investigator-chosen sparse intervention design. It is realistic in multi-environment experiments whose intervention targets are fixed before continuously distributed positive doses are assigned.
+\end{assumption}
+
+\begin{assumption}[ass:generic-active-amplitudes]\label{ass:generic-active-amplitudes}
+The joint law of \((a_{ek}:e\in H,1\le k\le p,Z_{ek}=1)\) is absolutely continuous with respect to Lebesgue measure on its positive orthant.
+\par\smallskip\noindent\emph{Novel.} Joint absolute continuity conditional on a fixed sparse support pattern is a genericity condition for nonzero intervention strengths. It is satisfied when active intervention variances have a joint density on the positive orthant, including independently randomized positive strengths and correlated continuously distributed dose designs.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:admissible-matrices]\label{def:admissible-matrices}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Dcal}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal D=\{A\in\mathrm{GL}_p(\mathbb R):\operatorname{diag}(A)=\mathbf 1,\ \operatorname{CP}(I_p-A)<1\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{p}; \texttt{CP}.
+\end{definition}
+
+\begin{definition}[def:max-line-occupancy]\label{def:max-line-occupancy}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Mkl}
+\par\smallskip\noindent\emph{Construction.} For \(1\le k<\ell\le p\), \(M_{k\ell}=\max_{L\subset\mathbb R^2\,\mathrm{affine\ line}}\#\{e\in H:(s_{ek},s_{e\ell})\in L\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{H}; \texttt{s}.
+\end{definition}
+
+\begin{definition}[def:environment-distance]\label{def:environment-distance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{delta}
+\par\smallskip\noindent\emph{Construction.} \(\delta_H=\min_{1\le k<\ell\le p}(h-M_{k\ell})\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{H}; \texttt{Mkl}.
+\end{definition}
+
+\begin{definition}[def:compatible-set]\label{def:compatible-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Rc}
+\par\smallskip\noindent\emph{Construction.} For \(\Sigma\in(\mathbb S_{+}^{p})^{E}\), \(\mathcal R_c(\Sigma)=\{A\in\mathcal D:\exists K\subseteq E,\ |K|\ge h,\ \exists\Psi\in\mathbb S_{+}^p,\ \exists t_e\in[0,\infty)^p,\ \Sigma_e=A^{-1}(\Psi+\operatorname{diag}(t_e))A^{-\mathsf T}\ \forall e\in K\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Sigma}; \texttt{c}; \texttt{Dcal}.
+\end{definition}
+
+\begin{definition}[def:generic-occupancy]\label{def:generic-occupancy}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Mgen}
+\par\smallskip\noindent\emph{Construction.} For each \(k<\ell\), \(M_{k\ell}^{\mathrm{gen}}=\max\{n_{00}^{k\ell}+n_{10}^{k\ell},n_{00}^{k\ell}+n_{01}^{k\ell},n_{00}^{k\ell}+\mathbf 1\{n_{11}^{k\ell}>0\},\min(2,h)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{nab}; \texttt{h}.
+\end{definition}
+
+\begin{definition}[def:affine-separation]\label{def:affine-separation}
+\par\smallskip\noindent\emph{Defined object.} \texttt{gamma}
+\par\smallskip\noindent\emph{Construction.} Set \(\gamma_H=0\) when \(h-c<3\); otherwise set \(\gamma_H=\min_{1\le k<\ell\le p}\min_{S\subseteq H,\,|S|=h-c}\max_{e<f<g\in S}\left|\det\begin{pmatrix}1&s_{ek}&s_{e\ell}\\1&s_{fk}&s_{f\ell}\\1&s_{gk}&s_{g\ell}\end{pmatrix}\right|\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{H}; \texttt{s}; \texttt{c}.
+\end{definition}
+
+\begin{definition}[def:subset-consensus]\label{def:subset-consensus}
+\par\smallskip\noindent\emph{Defined object.} \texttt{SubsetConsensus}
+\par\smallskip\noindent\emph{Construction.} Definitional implementation note: given a feasibility oracle that returns the full solution set for each queried semialgebraic system, query every \(K\subseteq E\) with \(|K|=h\) for all \(A\in\mathcal D\) satisfying \(\operatorname{offdiag}(A(\Sigma_e-\Sigma_f)A^{\mathsf T})=0\) for \(e,f\in K\) and admitting one \(\Psi\in\mathbb S_{+}^p\) with nonnegative diagonal shifts for the transformed raw covariances. Define \(\text{SubsetConsensus}(\Sigma,c)\) as the union of the oracle-returned solution sets. This enumeration makes exactly \(\binom{m}{h}\) oracle queries and, by expansion of \(\text{def:compatible-set}\), its returned union equals \(\mathcal R_c(\Sigma)\); neither fact is a theorem contribution or a claim that an encoded terminating solver is supplied.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Sigma}; \texttt{c}; \texttt{Dcal}.
+\end{definition}
+
+\begin{definition}[def:honest-region-radius]\label{def:honest-region-radius}
+\par\smallskip\noindent\emph{Defined object.} \texttt{rRadius}
+\par\smallskip\noindent\emph{Construction.} \(r_{n,\alpha,H}=\max_{e\in H}\sup_{\Gamma\in\mathcal C^{(n)}_{e,\alpha}}\|\Gamma-\Sigma_e\|_{\mathrm{op}}\in[0,+\infty]\), where the supremum and hence the maximum may equal \(+\infty\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Calpha}; \texttt{Sigma}; \texttt{H}; \texttt{n}; \texttt{alpha}.
+\end{definition}
+
+\begin{definition}[def:operator-diameter]\label{def:operator-diameter}
+\par\smallskip\noindent\emph{Defined object.} \texttt{diamOp}
+\par\smallskip\noindent\emph{Construction.} For every nonempty matrix set \(\mathcal A\), \(\operatorname{diam}_{\mathrm{op}}(\mathcal A)=\sup_{A_1,A_2\in\mathcal A}\|A_1-A_2\|_{\mathrm{op}}\in[0,+\infty]\).
+\end{definition}
+
+\begin{definition}[def:operator-outer-radius]\label{def:operator-outer-radius}
+\par\smallskip\noindent\emph{Defined object.} \texttt{outerOp}
+\par\smallskip\noindent\emph{Construction.} For every nonempty matrix set \(\mathcal A\) and matrix \(D\), \(\operatorname{outer}_{\mathrm{op}}(\mathcal A,D)=\sup_{A_1\in\mathcal A}\|A_1-D\|_{\mathrm{op}}\in[0,+\infty]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{D}.
+\end{definition}
+
+\begin{definition}[def:confidence-union]\label{def:confidence-union}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Ualpha}
+\par\smallskip\noindent\emph{Construction.} For every \(n\geq1\), \(\alpha\in(0,1)\), and indexed family of nonempty sets \(\mathcal C^{(n)}_{e,\alpha}\subseteq\mathbb S_{+}^{p}\), define the set-theoretic confidence union
+\[
+\mathcal U^{(n)}_{\alpha}
+=\bigcup_{\Gamma\in\prod_{e\in E}\mathcal C^{(n)}_{e,\alpha}}
+\mathcal R_c(\Gamma).
+\]
+Thus \(\mathcal U^{(n)}_{\alpha}\) is the union of the population replacement-compatibility sets over all simultaneous selections from the covariance regions. This definition asserts neither computability nor a coverage property.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Calpha}; \texttt{Rc}; \texttt{n}; \texttt{alpha}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:overlap-uniqueness]\label{lem:overlap-uniqueness}
+Let the first explanation \(D^{(1)},H_1,s^{(1)}\) and the second explanation \(D^{(2)},H_2,s^{(2)}\) fit the same \(\Sigma\), each through a BACKSHIFT covariance equation satisfying the unit-diagonal and cycle-product normalization, with its own invariant positive-semidefinite nuisance, nonnegative shifts, and \(|H_r|\ge h=m-c\). Set \(J=H_1\cap H_2\). Then \(|J|\ge m-2c=h-c\). If, for every \(k<\ell\), the first explanation's cloud \(\{(s^{(1)}_{ek},s^{(1)}_{e\ell}):e\in J\}\) is not contained in an affine line, then \(D^{(1)}=D^{(2)}\).
+\end{lemma}
+\begin{proof}
+For \(r\in\{1,2\}\), let \(\Psi^{(r)}\in\mathbb S_+^p\) be the invariant nuisance in the \(r\)-th fitted BACKSHIFT equation.  The fitting hypotheses give
+\[
+ D^{(r)}\Sigma_eD^{(r)\mathsf T}
+ =\Psi^{(r)}+\operatorname{diag}(s^{(r)}_e),
+ \qquad e\in H_r.
+ \tag{1}
+\]
+Because \(H_1,H_2\subseteq E\), \(|E|=m\), and \(|H_r|\ge h=m-c\), inclusion--exclusion gives
+\[
+ |J|=|H_1\cap H_2|
+ =|H_1|+|H_2|-|H_1\cup H_2|
+ \ge 2h-m=m-2c=h-c.
+ \tag{2}
+\]
+
+Set \(Q=D^{(2)}(D^{(1)})^{-1}\).  The noncollinearity hypothesis implies that \(J\) is nonempty, since every set of at most two points in \(\mathbb R^2\) is contained in an affine line.  Fix \(e_0\in J\).  For \(e\in J\), subtract (1) at \(e_0\) from (1) at \(e\) in each explanation and use \(D^{(2)}=QD^{(1)}\).  With
+\[
+ x_e=s^{(1)}_e-s^{(1)}_{e_0},
+ \qquad
+ y_e=s^{(2)}_e-s^{(2)}_{e_0},
+\]
+this gives
+\[
+ Q\operatorname{diag}(x_e)Q^{\mathsf T}
+ =\operatorname{diag}(y_e),
+ \qquad e\in J.
+ \tag{3}
+\]
+Let \(W=\operatorname{span}\{x_e:e\in J\}\subseteq\mathbb R^p\).  By linearity of (3),
+\[
+ Q\operatorname{diag}(w)Q^{\mathsf T}
+ \text{ is diagonal for every }w\in W.
+ \tag{4}
+\]
+
+For each \(k<\ell\), the coordinate projection of \(W\) onto coordinates \(k,\ell\) is all of \(\mathbb R^2\).  Otherwise that projection would have dimension at most one, so there would be a nonzero \((u,v)\in\mathbb R^2\) satisfying
+\[
+ u(s^{(1)}_{ek}-s^{(1)}_{e_0k})
+ +v(s^{(1)}_{e\ell}-s^{(1)}_{e_0\ell})=0
+ \quad\text{for every }e\in J.
+ \tag{5}
+\]
+Equation (5) would put the entire \((k,\ell)\)-cloud on the affine line through \((s^{(1)}_{e_0k},s^{(1)}_{e_0\ell})\) with normal \((u,v)\), contradicting the hypothesis.
+
+Choose a basis \(w^1,\ldots,w^d\) of \(W\), where \(d=\dim(W)\), and define the coordinate profiles
+\[
+ u_k=(w^1_k,\ldots,w^d_k)^{\mathsf T}\in\mathbb R^d,
+ \qquad 1\le k\le p.
+\]
+The projection conclusion says that \(u_k,u_\ell\) are linearly independent whenever \(k\ne\ell\); in particular, each \(u_k\) is nonzero.  Choose \(\beta\in\mathbb R^d\) outside the finitely many proper hyperplanes \(\{\beta:\beta^{\mathsf T}u_k=0\}\).  Having fixed \(\beta\), choose \(\alpha\in\mathbb R^d\) outside the finitely many hyperplanes
+\[
+ \left\{\alpha:
+ \alpha^{\mathsf T}\bigl((\beta^{\mathsf T}u_\ell)u_k
+ -(\beta^{\mathsf T}u_k)u_\ell\bigr)=0\right\},
+ \qquad k<\ell.
+ \tag{6}
+\]
+Each normal vector in (6) is nonzero: if it vanished, the nonzero scalars \(\beta^{\mathsf T}u_k\) and \(\beta^{\mathsf T}u_\ell\) would make \(u_k,u_\ell\) proportional.  These choices exist because a finite union of proper linear hyperplanes cannot cover \(\mathbb R^d\).  For completeness, the product of their nonzero defining linear forms is a nonzero polynomial; induction on the number of variables, using the one-variable root bound, shows that a nonzero real polynomial cannot vanish everywhere.
+
+Put
+\[
+ b=\sum_{j=1}^d\beta_jw^j,
+ \qquad
+ a=\sum_{j=1}^d\alpha_jw^j,
+ \qquad
+ \rho_k=\frac{a_k}{b_k}.
+\]
+The choice of \(\beta\) gives \(b_k\ne0\) for every \(k\), and (6) gives \(\rho_k\ne\rho_\ell\) for \(k\ne\ell\).  By (4), both
+\[
+ G=Q\operatorname{diag}(a)Q^{\mathsf T}
+ \quad\text{and}\quad
+ K=Q\operatorname{diag}(b)Q^{\mathsf T}
+\]
+are diagonal.  Moreover, \(K\) is invertible because \(Q\) and \(\operatorname{diag}(b)\) are invertible.  Hence
+\[
+ GK^{-1}
+ =Q\operatorname{diag}(\rho_1,\ldots,\rho_p)Q^{-1}
+ \tag{7}
+\]
+is diagonal.  Its eigenvalues are the pairwise distinct numbers \(\rho_1,\ldots,\rho_p\), so every eigenspace of the diagonal matrix on the left of (7) is a coordinate axis.  The columns of \(Q\), which are the corresponding eigenvectors on the right, are therefore supported on coordinate axes.  Invertibility then makes \(Q\) monomial: there are a permutation \(\pi\) and nonzero scalars \(q_i\) such that
+\[
+ Q_{i,\pi(i)}=q_i,
+ \qquad Q_{ij}=0\quad(j\ne\pi(i)).
+ \tag{8}
+\]
+
+It remains to remove this monomial ambiguity.  By \(\text{def:admissible-matrices}\), both fitted structural matrices have unit diagonal and satisfy the strict cycle-product bound.  From \(D^{(2)}=QD^{(1)}\), (8), and the unit diagonals,
+\[
+ 1=D^{(2)}_{ii}=q_iD^{(1)}_{\pi(i),i}.
+ \tag{9}
+\]
+If \(\pi\) had a nontrivial cycle \(i_1,\ldots,i_r\), where \(r\ge2\) and \(\pi(i_t)=i_{t+1}\) cyclically, (9) would imply
+\[
+ \prod_{t=1}^r\left|D^{(1)}_{i_{t+1},i_t}\right|
+ =\prod_{t=1}^r|q_{i_t}|^{-1}.
+ \tag{10}
+\]
+The entries on the left of (10), up to signs, form a directed simple cycle of \(I_p-D^{(1)}\).  On the other hand,
+\[
+ D^{(2)}_{i_t,i_{t+1}}
+ =q_{i_t}D^{(1)}_{i_{t+1},i_{t+1}}=q_{i_t},
+\]
+so these entries, again up to signs, form the reverse directed simple cycle of \(I_p-D^{(2)}\).  The two strict cycle-product inequalities in \(\text{def:admissible-matrices}\) would therefore give
+\[
+ \prod_{t=1}^r|q_{i_t}|^{-1}<1
+ \quad\text{and}\quad
+ \prod_{t=1}^r|q_{i_t}|<1,
+\]
+whose product is the contradiction \(1<1\).  Thus \(\pi\) is the identity.  Equation (9) and \(D^{(1)}_{ii}=1\) then give \(q_i=1\) for every \(i\).  Hence \(Q=I_p\) and \(D^{(1)}=D^{(2)}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This isolates the new robust step: competing explanations share only \(m-2c\) slots, on which ordinary congruence-diagonalizer uniqueness must be normalized causally. \textit{Gap.} RothenhauslerEtAl2015BackShift, Theorem 1, and KleinsteuberShen2013NUJDUniqueness, Theorem 1, treat a fixed complete diagonalizable family rather than the intersection of two adversarially selected families. \textit{Consumer.} The lemma supplies the sufficiency half of the exact replacement-radius theorem after two candidate honest sets lose different slots.
+
+\begin{theorem}[thm:sharp-replacement-radius]\label{thm:sharp-replacement-radius}
+Fix an honest BACKSHIFT instance \(D,H,s,\Omega\) with \(D\in\mathcal D\), nonnegative shifts, \(\Omega\in\mathbb S_{+}^{p}\), and \(\Sigma_e=D^{-1}(\Omega+\operatorname{diag}(s_e))D^{-\mathsf T}\) for every \(e\in H\). If \(\delta_H>c\), equivalently \(\gamma_H>0\), then \(\mathcal R_c(\Sigma)=\{D\}\) for every assignment of matrices in \(\mathbb S_{+}^{p}\) to the \(c\) slots in \(E\setminus H\). If, in addition, this fixed instance has \(\Omega\in\mathbb S_{++}^{p}\) and \(\delta_H\le c\), then there are positive-definite values for all slots in \(E\setminus H\), a matrix \(D'\in\mathcal D\) with \(D'\ne D\), an invariant \(\Omega'\in\mathbb S_{++}^{p}\), and nonnegative shifts on a set \(H'\subseteq E\) with \(|H'|=h\) such that \(D,D'\in\mathcal R_c(\Sigma)\). Consequently, over the published class allowing \(\Omega\in\mathbb S_{+}^{p}\) and positive-semidefinite covariance slots, the threshold \(\delta_H>c\) is minimax sharp: whenever \(\delta_H\le c\), the class contains an ambiguity witness in its positive-definite invariant-noise and covariance subclass. No ambiguity is asserted for every fixed singular boundary value of \(\Omega\). On the positive-definite invariant-noise interior and at \(c=0\), the equivalence is exactly the BACKSHIFT pairwise noncollinearity criterion.
+\end{theorem}
+\begin{proof}
+The causal substrate is the linear equilibrium model encoded by \(\text{ass:honest-covariance-model}\).  Its structural target is \(D\), and hence \(B=I_p-D\); the observed-law recovery map is the set \(\mathcal R_c(\Sigma)\) in \(\text{def:compatible-set}\).  We prove their equality under the stated conditions rather than defining the causal target through that observable map.
+
+First suppose \(\delta_H>c\), and fix an arbitrary assignment of positive-semidefinite matrices to the \(c\) slots in \(E\setminus H\).  By \(\text{ass:honest-covariance-model}\), \(\text{ass:nonnegative-shifts}\), the premise \(\Omega\in\mathbb S_+^p\), and \(D\in\mathcal D\) from \(\text{ass:backshift-normalization}\), the choices
+\[
+ K=H,
+ \qquad \Psi=\Omega,
+ \qquad t_e=s_e
+\]
+satisfy every constraint in \(\text{def:compatible-set}\).  Thus \(D\in\mathcal R_c(\Sigma)\).  This step uses neither invertibility of an honest covariance nor invertibility of a replacement covariance.
+
+Take any \(A\in\mathcal R_c(\Sigma)\).  By \(\text{def:compatible-set}\), there are \(K\subseteq E\), \(|K|\ge h\), \(\Psi\in\mathbb S_+^p\), and \(t_e\in[0,\infty)^p\) such that
+\[
+ \Sigma_e=A^{-1}\bigl(\Psi+\operatorname{diag}(t_e)\bigr)A^{-\mathsf T},
+ \qquad e\in K.
+ \tag{11}
+\]
+For \(J=H\cap K\), inclusion--exclusion, \(|E|=m\), and \(|H|=h=m-c\) give
+\[
+ |J|\ge |H|+|K|-m\ge2h-m=h-c.
+ \tag{12}
+\]
+By \(\text{def:environment-distance}\) and \(\text{def:max-line-occupancy}\),
+\[
+ \delta_H>c
+ \quad\Longleftrightarrow\quad
+ M_{k\ell}<h-c
+ \quad\text{for every }1\le k<\ell\le p.
+ \tag{13}
+\]
+If the indexed points \(\{(s_{ek},s_{e\ell}):e\in J\}\) lay on an affine line for some \(k<\ell\), that line would contain at least \(|J|\ge h-c\) honest indices, contradicting (13).  Thus every pairwise cloud on \(J\) is noncollinear.  Equations (11) and \(\text{ass:honest-covariance-model}\), together with the positive-semidefinite nuisances \(\Psi,\Omega\), the nonnegative shifts \(t_e,s_e\), and \(A,D\in\mathcal D\), verify the premises of \(\text{lem:overlap-uniqueness}\).  That lemma yields \(A=D\).  Hence
+\[
+ \mathcal R_c(\Sigma)=\{D\}.
+ \tag{14}
+\]
+No value of a slot outside \(H\) entered the argument, so (14) holds for every positive-semidefinite replacement assignment, including singular assignments.
+
+We next compare the deletion distance with the affine-minor margin.  Put \(q=h-c\).  Any indexed family of \(h\) points has at least \(\min(2,h)\) indices on one affine line, so
+\[
+ M_{k\ell}\ge\min(2,h).
+ \tag{15}
+\]
+Consequently (13) is impossible when \(q<3\), exactly the regime in which \(\text{def:affine-separation}\) sets \(\gamma_H=0\).  Suppose \(q\ge3\).  For fixed \(S\subseteq H\) with \(|S|=q\), the points \((s_{ek},s_{e\ell})\), \(e\in S\), lie on an affine line if and only if the matrix having rows \((1,s_{ek},s_{e\ell})\) has rank at most two.  By the elementary rank criterion, this is equivalent to vanishing of every minor
+\[
+ \det\begin{pmatrix}
+ 1&s_{ek}&s_{e\ell}\\
+ 1&s_{fk}&s_{f\ell}\\
+ 1&s_{gk}&s_{g\ell}
+ \end{pmatrix},
+ \qquad e<f<g,\quad e,f,g\in S.
+ \tag{16}
+\]
+All sets of indices involved are finite.  Therefore the finite minimum in \(\text{def:affine-separation}\) is positive exactly when, for every pair \(k<\ell\), every \(q\)-element subset contains a triple with nonzero determinant.  Equivalently, no affine line contains \(q\) honest indices.  Thus
+\[
+ \gamma_H>0
+ \quad\Longleftrightarrow\quad
+ M_{k\ell}<q\ \text{for every }k<\ell
+ \quad\Longleftrightarrow\quad
+ \delta_H>c.
+ \tag{17}
+\]
+
+It remains to prove the pointwise converse under the additional local condition \(\Omega\in\mathbb S_{++}^p\).  Assume \(\delta_H\le c\) and retain \(q=h-c=m-2c\).
+
+First suppose \(q\le0\).  Then \(|E\setminus H|=c\ge h\), so choose \(H'\subseteq E\setminus H\) with \(|H'|=h\).  Fix \(k<\ell\), let \(F_{k\ell}\) be the matrix whose only nonzero entry is a one in position \((k,\ell)\), and put
+\[
+ D'_{\varepsilon}=D+\varepsilon F_{k\ell}.
+ \tag{18}
+\]
+For every nonzero \(\varepsilon\), this matrix differs from \(D\) and retains unit diagonal.  Since the determinant is continuous and \(D\) is invertible, \(D'_{\varepsilon}\) remains invertible for all sufficiently small \(|\varepsilon|\).  Moreover, \(\operatorname{CP}(I_p-A)\) is the maximum of finitely many absolute cycle-product polynomials in the entries of \(A\), hence is continuous.  The strict bound \(\operatorname{CP}(I_p-D)<1\) therefore persists for sufficiently small \(|\varepsilon|\).  Choose such a nonzero \(\varepsilon\), set \(D'=D'_{\varepsilon}\in\mathcal D\), and set \(\Omega'=I_p\in\mathbb S_{++}^p\).  For every \(e\in E\setminus H\), assign
+\[
+ \Sigma_e=(D')^{-1}\Omega'(D')^{-\mathsf T}.
+ \tag{19}
+\]
+Each matrix in (19) is positive definite by invertible congruence.  The original explanation fits \(H\), while \((D',\Omega')\) with zero shifts fits \(H'\).  Hence \(D,D'\in\mathcal R_c(\Sigma)\).
+
+Now suppose \(q>0\).  By \(\delta_H\le c\), \(\text{def:environment-distance}\), and \(\text{def:max-line-occupancy}\), there exist \(k<\ell\), an affine line \(L\), and a set \(S\subseteq H\) with \(|S|=q\) such that all \((s_{ek},s_{e\ell})\), \(e\in S\), lie on \(L\).  Choose a nonzero direction \(v=(v_k,v_\ell)\) of \(L\), fix \(e_0\in S\), and define \(\tau_e\in\mathbb R\) by
+\[
+ (s_{ek}-s_{e_0k},s_{e\ell}-s_{e_0\ell})
+ =\tau_e(v_k,v_\ell),
+ \qquad e\in S.
+ \tag{20}
+\]
+For real \(\varepsilon\), put
+\[
+ \eta_k(\varepsilon)=1+\varepsilon v_kD_{\ell k},
+ \qquad
+ \eta_\ell(\varepsilon)=1-\varepsilon v_\ell D_{k\ell},
+ \tag{21}
+\]
+and let \(Q_\varepsilon\) equal the identity outside its \(k,\ell\) principal block, where
+\[
+ (Q_\varepsilon)_{\{k,\ell\},\{k,\ell\}}
+ =\begin{pmatrix}
+ \eta_k(\varepsilon)^{-1}&\varepsilon v_k\eta_k(\varepsilon)^{-1}\\
+ -\varepsilon v_\ell\eta_\ell(\varepsilon)^{-1}&\eta_\ell(\varepsilon)^{-1}
+ \end{pmatrix}.
+ \tag{22}
+\]
+At \(\varepsilon=0\), both denominators and \(\det(Q_\varepsilon)\) equal one, so all are nonzero in a neighborhood of zero.  Define \(D'_{\varepsilon}=Q_\varepsilon D\).  Since \(D_{kk}=D_{\ell\ell}=1\), direct multiplication gives
+\[
+ (D'_{\varepsilon})_{kk}
+ =\frac{1+\varepsilon v_kD_{\ell k}}{\eta_k(\varepsilon)}=1,
+ \qquad
+ (D'_{\varepsilon})_{\ell\ell}
+ =\frac{1-\varepsilon v_\ell D_{k\ell}}{\eta_\ell(\varepsilon)}=1,
+ \tag{23}
+\]
+and all other diagonal entries remain one.  The determinant and cycle-product continuity argument used after (18) shows that \(D'_{\varepsilon}\in\mathcal D\) for all sufficiently small \(|\varepsilon|\).  Because \(v\ne0\), at least one off-diagonal entry in (22) is nonzero for every sufficiently small nonzero \(\varepsilon\); hence \(Q_\varepsilon\ne I_p\) and \(D'_{\varepsilon}\ne D\).
+
+For \(x_e=s_e-s_{e_0}\), direct multiplication of the block in (22), followed by (20), gives
+\[
+ \begin{aligned}
+ \relax[Q_\varepsilon\operatorname{diag}(x_e)Q_\varepsilon^{\mathsf T}]_{k\ell}
+ &=\frac{-\varepsilon v_\ell x_{ek}+\varepsilon v_kx_{e\ell}}
+ {\eta_k(\varepsilon)\eta_\ell(\varepsilon)}\\
+ &=\frac{-\varepsilon v_\ell\tau_ev_k+\varepsilon v_k\tau_ev_\ell}
+ {\eta_k(\varepsilon)\eta_\ell(\varepsilon)}=0.
+ \end{aligned}
+ \tag{24}
+\]
+Every other off-diagonal entry vanishes because \(Q_\varepsilon\) is block diagonal with an identity complement.  Consequently, with \(\operatorname{off}(G)=G-\operatorname{diag}(\operatorname{diag}(G))\), the symmetric matrix
+\[
+ C_\varepsilon
+ =\operatorname{off}\!\left(Q_\varepsilon
+ \operatorname{diag}(s_e)Q_\varepsilon^{\mathsf T}\right)
+ \tag{25}
+\]
+is independent of the choice of \(e\in S\).  Define
+\[
+ \Omega'_\varepsilon
+ =Q_\varepsilon\Omega Q_\varepsilon^{\mathsf T}+C_\varepsilon.
+ \tag{26}
+\]
+This matrix is symmetric and depends continuously on \(\varepsilon\); at zero it equals \(\Omega\in\mathbb S_{++}^p\).  Openness of the positive-definite cone therefore permits a sufficiently small nonzero \(\varepsilon\) for which, simultaneously,
+\[
+ D'=D'_{\varepsilon}\in\mathcal D,
+ \qquad D'\ne D,
+ \qquad \Omega'=\Omega'_\varepsilon\in\mathbb S_{++}^p.
+ \tag{27}
+\]
+For \(e\in S\) and \(1\le i\le p\), set
+\[
+ t_{ei}
+ =[Q_\varepsilon\operatorname{diag}(s_e)Q_\varepsilon^{\mathsf T}]_{ii}
+ =\sum_{j=1}^p(Q_\varepsilon)_{ij}^2s_{ej}\ge0,
+ \tag{28}
+\]
+where the inequality uses \(\text{ass:nonnegative-shifts}\).  Equations (25)--(28) and \(\text{ass:honest-covariance-model}\) imply
+\[
+ \begin{aligned}
+ D'\Sigma_eD'^{\mathsf T}
+ &=Q_\varepsilon\bigl(\Omega+\operatorname{diag}(s_e)\bigr)Q_\varepsilon^{\mathsf T}\\
+ &=\Omega'+\operatorname{diag}(t_e),
+ \qquad e\in S.
+ \end{aligned}
+ \tag{29}
+\]
+Let \(H'=S\cup(E\setminus H)\).  This union is disjoint and
+\[
+ |H'|=q+c=h.
+ \tag{30}
+\]
+For every \(e\in E\setminus H\), assign
+\[
+ \Sigma_e=(D')^{-1}\Omega'(D')^{-\mathsf T}.
+ \tag{31}
+\]
+These replacements are positive definite by (27) and invertible congruence.  Equations (28)--(31) show that \(D'\) fits every slot of \(H'\), with zero shifts on \(E\setminus H\), while \(D\) fits \(H\).  Thus \(D,D'\in\mathcal R_c(\Sigma)\), proving the fixed-interior-instance converse.
+
+The published class permits \(\Omega\in\mathbb S_+^p\) and every positive-semidefinite covariance family, and it contains the strict subclass with \(\Omega\in\mathbb S_{++}^p\) and positive-definite covariances.  For any shift design with \(\delta_H\le c\), take, for example, \(D=I_p\) and \(\Omega=I_p\); then the preceding construction supplies positive-definite replacements and a second admissible structural matrix.  Thus a uniform guarantee over the published class fails below the threshold.  This proves minimax sharpness without asserting ambiguity for a preassigned singular \(\Omega\).  Finally, when \(c=0\), one has \(h=m\), and
+\[
+ \delta_H>0
+ \quad\Longleftrightarrow\quad
+ M_{k\ell}<h\ \text{for every }k<\ell.
+\]
+This is exactly the condition that no complete pairwise shift cloud is contained in an affine line.  Combining this observation with (14) and the fixed-interior converse proves the stated equivalence on the positive-definite invariant-noise interior.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem gives full positive-semidefinite published-class sufficiency and the exact minimax number of whole covariance environments that population BACKSHIFT can lose, with pointwise necessity stated only where its positive-definite interior deformation is valid. \textit{Gap.} Published BACKSHIFT gives the all-honest criterion, while threshold-trimming joint diagonalization does not provide a worst-case whole-slot replacement radius, a legal contamination, or the distinction between positive-semidefinite boundary sufficiency and positive-definite-interior pointwise necessity. \textit{Consumer.} Investigators obtain an exact design audit: passing the distance test certifies every positive-semidefinite covariance assignment, while failing it rules out a uniform published-class guarantee through an explicit positive-definite ambiguity witness.
+
+\begin{proposition}[prop:generic-support-frontier]\label{prop:generic-support-frontier}
+Under the prespecified support pattern \(Z\) and absolutely continuous active amplitudes, simultaneously for every \(k<\ell\), \(M_{k\ell}=M_{k\ell}^{\mathrm{gen}}\) almost surely. Consequently, the pattern guarantees \(\mathcal R_c(\Sigma)=\{D\}\) uniformly for all admissible \(D\in\mathcal D\), all \(\Omega\in\mathbb S_{+}^{p}\), and every positive-semidefinite assignment to the \(c\) replacement slots if and only if, for every \(k<\ell\), \(\max\{n_{00}^{k\ell}+n_{10}^{k\ell},n_{00}^{k\ell}+n_{01}^{k\ell},n_{00}^{k\ell}+\mathbf 1\{n_{11}^{k\ell}>0\},\min(2,h)\}<h-c\). Failure of this inequality has an ambiguity witness with positive-definite invariant noise and positive-definite covariance slots; it is not a claim that every fixed singular boundary instance is ambiguous. In particular, any uniformly robustly identifying support pattern satisfies \(m\ge2c+3\), and this environment-count lower bound is attained by support patterns with no larger forced affine incidence.
+\end{proposition}
+\begin{proof}
+By \(\text{ass:support-factorization}\), for every \(e\in H\) and \(k<\ell\),
+\[
+ (s_{ek},s_{e\ell})
+ =(Z_{ek}a_{ek},Z_{e\ell}a_{e\ell}).
+ \tag{32}
+\]
+Apply \(\text{lem:generic-affine-occupancy}\) with \(I=H\), \(r=h\), \(Z^\circ=Z\), and \(a^\circ=a\).  Its absolute-continuity premise is exactly \(\text{ass:generic-active-amplitudes}\).  Hence, on one probability-one event and simultaneously for all \(k<\ell\),
+\[
+ \begin{aligned}
+ M_{k\ell}
+ &=\max\!\left\{
+ n_{00}^{k\ell}+n_{10}^{k\ell},
+ n_{00}^{k\ell}+n_{01}^{k\ell},
+ n_{00}^{k\ell}+\mathbf 1\{n_{11}^{k\ell}>0\},
+ \min(2,h)
+ \right\}\\
+ &=M_{k\ell}^{\mathrm{gen}}.
+ \end{aligned}
+ \tag{33}
+\]
+This application counts indexed observations, so coincident zero-shift points contribute with their full multiplicity.
+
+By \(\text{def:environment-distance}\),
+\[
+ \delta_H>c
+ \quad\Longleftrightarrow\quad
+ M_{k\ell}<h-c\quad\text{for every }k<\ell.
+ \tag{34}
+\]
+Substitution of (33) into (34) gives exactly the displayed four-term support criterion.  The factorization in \(\text{ass:support-factorization}\), together with \(Z_{ek}\in\{0,1\}\) and \(a_{ek}>0\), also verifies \(s_{ek}\ge0\), consistently with \(\text{ass:nonnegative-shifts}\).  If the criterion holds, the positive-semidefinite sufficiency part of \(\text{thm:sharp-replacement-radius}\), together with \(\text{ass:honest-covariance-model}\), proves \(\mathcal R_c(\Sigma)=\{D\}\) for every \(D\in\mathcal D\), every \(\Omega\in\mathbb S_+^p\), and every positive-semidefinite replacement assignment.  The probability-one event in (33) depends only on the amplitudes and support, so this conclusion is uniform over those structural and nuisance choices.
+
+Conversely, if the support criterion fails, (33)--(34) give \(\delta_H\le c\).  Choose \(D=I_p\), which belongs to \(\mathcal D\) because it is invertible, has unit diagonal, and satisfies \(\operatorname{CP}(0)=0<1\), and choose \(\Omega=I_p\in\mathbb S_{++}^p\).  The honest covariances \(I_p+\operatorname{diag}(s_e)\) are positive definite.  The fixed-interior converse in \(\text{thm:sharp-replacement-radius}\) supplies positive-definite replacements and a second admissible structural matrix.  Therefore a uniform guarantee over the full positive-semidefinite class fails.  This proves necessity at the class level through its positive-definite subclass, without making a pointwise assertion at a singular invariant-noise boundary.
+
+The term \(\min(2,h)\) makes the strict inequality in (34) possible only if \(h-c\ge3\).  Since \(h=m-c\), every uniformly robustly identifying support pattern must satisfy
+\[
+ m\ge2c+3.
+ \tag{35}
+\]
+The bound is attained.  When \(m=2c+3\), choose the all-active pattern \(Z_{ek}=1\).  Then, for every \(k<\ell\),
+\[
+ n_{11}^{k\ell}=h,
+ \qquad
+ n_{00}^{k\ell}=n_{10}^{k\ell}=n_{01}^{k\ell}=0,
+ \qquad
+ M_{k\ell}^{\mathrm{gen}}=2<h-c=3.
+ \tag{36}
+\]
+Thus all-active support attains the smallest possible environment count and has no forced affine incidence larger than the unavoidable two-point term.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact four-term formula turns a support hypergraph into a uniform positive-semidefinite-class design threshold and exposes the unavoidable \(2c+3\) environment floor. \textit{Gap.} Existing generic-amplitude and sparse-shift results do not compute affine-line occupancy under whole-environment replacement or distinguish full-class uniform necessity from pointwise behavior at singular invariant-noise boundaries. \textit{Consumer.} Experimental planners can select intervention targets so the realized sparse design tolerates a prespecified number of arbitrary positive-semidefinite failed environments uniformly over the published second-moment class.
+
+\begin{openendedquestion}[oeq:certified-uniform-inference]\label{oeq:certified-uniform-inference}
+The set-theoretic simultaneous-coverage implication for arbitrary nonempty positive-semidefinite covariance regions is established by \(\text{thm:confidence-union-coverage}\). The result \(\text{thm:non-effective-four-margin-contraction}\) establishes a non-effective existential local radius and an explicit linear modulus under four bounds on the true instance---affine separation, normalization slack, structural conditioning, and scale---and only a condition-number bound on every feasible candidate. Can one additionally build and formally verify an executable real-closed-field quantifier-elimination, sign-determination, and root-isolation substrate which, from finite rational-semialgebraic covariance-region codes, (i) terminates and emits a quantifier-free code whose realization is exactly \(\mathcal U^{(n)}_\alpha\), (ii) decides a release-or-abstain condition, possibly using a conservative universal four-margin audit to certify unknown true-side margins and forcing abstention within that audit whenever it finds a feasible candidate with zero affine separation, while distinguishing that operational sufficient audit from the sole candidate-side condition-number bound required by the analytic contraction theorem, (iii) decides for every rational population covariance family whether \(\mathcal R_c(\Sigma)\) is empty, is a singleton, or contains at least two matrices, and (iv) computes a certified positive lower bound for the compact far-family residual and hence an effective positive radius \(r_0\)? Can the same verified program automate normalization-chart changes without altering the represented matrix set and support a corruption-aware extension of the CRAN \(\texttt{backShift}\) workflow? Every executable, effective, decision, chart-automation, and software item in this question is unresolved future work. A feasible candidate with zero affine separation or a small normalization slack may trigger that conservative operational audit, but neither is an analytic candidate-side obstruction to contraction around a fixed true instance satisfying \(\gamma_H\geq\gamma_0>0\) and \(\zeta_D\geq\zeta_0>0\).
+\end{openendedquestion}
+For arbitrary nonempty positive-semidefinite covariance regions, \(\text{thm:confidence-union-coverage}\) proves the set inclusion
+\[
+G_{n,\alpha,H}\subseteq\{D\in\mathcal U^{(n)}_\alpha\}.
+\]
+Therefore, whenever the two events are measurable,
+\[
+\Pr(G_{n,\alpha,H})\geq 1-\alpha
+\quad\Longrightarrow\quad
+\Pr\{D\in\mathcal U^{(n)}_\alpha\}\geq 1-\alpha.
+\]
+Under the four true-instance bounds
+\[
+\gamma_H\geq\gamma_0,
+\qquad
+\zeta_D\geq\zeta_0,
+\qquad
+\kappa_D\leq\overline\kappa,
+\qquad
+M_H\leq\overline M,
+\]
+and the sole candidate-side condition-number premise stated in \(\text{thm:non-effective-four-margin-contraction}\), that theorem gives constants
+\[
+L_0=(p!\,\overline\kappa^{p-1})^{1/p},
+\qquad
+K_0=\frac{6\overline M}{\gamma_0}
+\sqrt{p(p-1)(1+L_0^2)},
+\qquad
+C_0=16K_0L_0^3,
+\]
+and asserts the existence of \(r_0>0\) such that, on \(G_{n,\alpha,H}\),
+\[
+r_{n,\alpha,H}\leq r_0
+\quad\Longrightarrow\quad
+\operatorname{outer}_{\mathrm{op}}(\mathcal U^{(n)}_\alpha,D)
+\leq C_0r_{n,\alpha,H},
+\qquad
+\operatorname{diam}_{\mathrm{op}}(\mathcal U^{(n)}_\alpha)
+\leq 2C_0r_{n,\alpha,H}.
+\]
+Hence along covered outcomes for which the same candidate-side condition-number premise holds and \(r_{n,\alpha,H}\to0\), both set radii converge to zero. This is the strongest established partial result: it is set-theoretic and non-effective and therefore does not provide any of the executable or effective interfaces asked for in the open-ended question.
+\par\smallskip\noindent \textit{Justification.} Positive-semidefinite set-theoretic coverage and non-effective contraction under four true-side margins and only candidate conditioning are established. The remaining question is a formally verified executable algebraic and software interface. \textit{Gap.} Every code-generation, exact-decision, effective-radius, normalization-chart automation, release-or-abstain, and CRAN implementation item remains unresolved. A universal four-margin audit is only a possible conservative operational certificate; analytically, feasible candidates require only the condition-number bound. \textit{Consumer.} A future corruption-aware implementation must solve this question before claiming terminating exact inversion, certified release-or-abstain behavior, rational empty/singleton/multiple classification, chart automation, or an effectively computed local radius.
+
+\begin{lemma}[lem:generic-affine-occupancy]\label{lem:generic-affine-occupancy}
+Let \(I\) be a finite index set of cardinality \(r\), let \(Z^\circ\in\{0,1\}^{I\times p}\), and let \(a^\circ\in(0,\infty)^{I\times p}\). Suppose the subarray \((a^\circ_{ek}:Z^\circ_{ek}=1)\) has a joint distribution absolutely continuous on its positive orthant. Define \(P_e^{k\ell}=(Z^\circ_{ek}a^\circ_{ek},Z^\circ_{e\ell}a^\circ_{e\ell})\), \(N_{uv}^{k\ell}=\#\{e\in I:(Z^\circ_{ek},Z^\circ_{e\ell})=(u,v)\}\), and \(M_I^{k\ell}=\max_{L\text{ affine line}}\#\{e\in I:P_e^{k\ell}\in L\}\). Then, simultaneously for all \(k<\ell\), almost surely
+\[
+ M_I^{k\ell}=\max\{N_{00}^{k\ell}+N_{10}^{k\ell},N_{00}^{k\ell}+N_{01}^{k\ell},N_{00}^{k\ell}+\mathbf 1\{N_{11}^{k\ell}>0\},\min(2,r)\}.
+\]
+\end{lemma}
+\begin{proof}
+Fix \(k<\ell\) and abbreviate \(P_e^{k\ell}=(x_e,y_e)\).  Type \(00\) gives the origin, types \(10\) and \(01\) give the two positive coordinate axes, and type \(11\) gives the open positive quadrant.  The horizontal axis, vertical axis, a line through the origin and one type \(11\) point when such a point exists, and a line through any two indexed points show
+\[
+ M_I^{k\ell}\ge
+ \max\!\left\{
+ N_{00}^{k\ell}+N_{10}^{k\ell},
+ N_{00}^{k\ell}+N_{01}^{k\ell},
+ N_{00}^{k\ell}+\mathbf 1\{N_{11}^{k\ell}>0\},
+ \min(2,r)
+ \right\}. \tag{22}
+\]
+
+For two nonzero-support points, collinearity with the origin is the polynomial equation
+\[
+ x_ey_f-x_fy_e=0. \tag{23}
+\]
+Unless both types are \(10\), or both are \(01\), this polynomial is not identically zero in the active coordinates: the mixed axis and axis--interior cases contain a nonzero product, while the interior--interior case contains two distinct monomials.  For three nonzero-support points, collinearity is the equation
+\[
+ \det\!\begin{pmatrix}
+ 1&x_e&y_e\\
+ 1&x_f&y_f\\
+ 1&x_g&y_g
+ \end{pmatrix}=0. \tag{24}
+\]
+Except when all three types are \(10\), or all three are \(01\), this is not the zero polynomial.  To verify this, choose two distinct horizontal points and a vertical or interior point, use the coordinate-swapped construction, put one point off the line through the other two in the remaining mixed cases, and use \((1,1),(1,2),(2,1)\) for three interior points.  Equality of the active coordinates of two distinct type \(10\) points, and its type \(01\) analogue, is also the zero set of a nonzero linear polynomial.
+
+The zero set of a nonzero polynomial in finitely many real variables has Lebesgue measure zero.  An induction proves this directly: a nonzero univariate polynomial has finitely many roots; after expansion in the last variable, the induction hypothesis removes the null set on which all coefficient polynomials vanish, every remaining section has finitely many roots, and integration of the null sections gives the result.  There are finitely many coordinate pairs and indexed pairs and triples.  Joint absolute continuity therefore gives a single probability-one event on which none of the non-forced equations (23)--(24) or coordinate equalities occurs, simultaneously for all \(k<\ell\).
+
+On that event, a line through the origin containing type \(10\) is the horizontal axis, and the coordinate-swapped statement holds for type \(01\).  A line through the origin containing neither axis type has at most one type \(11\) point by (23).  A line not through the origin has no type \(00\) point; if it contained three indices, (24) would force all three to be type \(10\) or all three to be type \(01\), but the resulting coordinate axis passes through the origin.  Thus every line is bounded by one of the four quantities in (22), proving equality.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This finite-index lemma isolates the generic incidence calculation so both realized-set and ex-ante full-array design results use the same declared proof spine. \textit{Gap.} Sparse-support results do not provide this exact affine-line occupancy formula with repeated origin points and two forced coordinate axes. \textit{Consumer.} The full-array deletion-radius corollary applies the lemma before taking the worst retained subset.
+
+\begin{proposition}[prop:uniform-support-deletion-radius]\label{prop:uniform-support-deletion-radius}
+Let \(\bar Z\in\{0,1\}^{E\times p}\) be a planned full-environment support array and let \(\bar a\in(0,\infty)^{E\times p}\). Suppose the active subarray \((\bar a_{ek}:\bar Z_{ek}=1)\) has a joint density on its positive orthant, and put \(\bar s_{ek}=\bar Z_{ek}\bar a_{ek}\). For \(u,v\in\{0,1\}\), define \(N_{uv}^{k\ell}=\#\{e\in E:(\bar Z_{ek},\bar Z_{e\ell})=(u,v)\}\), and set \(T=\max_{k<\ell}\max\{N_{00}^{k\ell}+N_{10}^{k\ell},N_{00}^{k\ell}+N_{01}^{k\ell},N_{00}^{k\ell}+\mathbf 1\{N_{11}^{k\ell}>0\},\min(2,m)\}\). Almost surely, the following are equivalent: (i) for every failed set \(F\subseteq E\) with \(|F|=c\), the retained set \(H=E\setminus F\) and shifts \((\bar s_e:e\in H)\) give a design that guarantees \(\mathcal R_c(\Sigma)=\{D\}\) uniformly over all admissible \(D\in\mathcal D\), all \(\Omega\in\mathbb S_+^p\), and all positive-semidefinite replacements; (ii) \(T<m-2c\). If \(T<m\), condition (ii) is equivalent to \(c\le\lfloor(m-T-1)/2\rfloor\); if \(T=m\), no nonnegative corruption budget is certified. For the all-active design and \(m\ge3\), the largest certified budget is \(c_{\max}=\lfloor(m-3)/2\rfloor\).
+\end{proposition}
+\begin{proof}
+For a coordinate pair \(k<\ell\), let
+\[
+ T_{k\ell}
+ =\max\!\left\{
+ N_{00}^{k\ell}+N_{10}^{k\ell},
+ N_{00}^{k\ell}+N_{01}^{k\ell},
+ N_{00}^{k\ell}+\mathbf 1\{N_{11}^{k\ell}>0\},
+ \min(2,m)
+ \right\},
+\]
+so that \(T=\max_{k<\ell}T_{k\ell}\).  Apply \(\text{lem:generic-affine-occupancy}\) with \(I=E\), \(r=m\), \(Z^\circ=\bar Z\), and \(a^\circ=\bar a\).  Its absolute-continuity premise is the stated joint-density premise.  Hence, on one probability-one event and simultaneously for every pair, the full \((k,\ell)\)-cloud has maximum indexed affine-line occupancy \(T_{k\ell}\).
+
+Fix \(k<\ell\).  For a retained set \(H\subseteq E\) of size \(m-c\), write \(M_{k\ell}(H)\) for the maximum line occupancy after restriction to \(H\).  Then
+\[
+ \max_{H\subseteq E:\,|H|=m-c}M_{k\ell}(H)
+ =\min\{T_{k\ell},m-c\}.
+ \tag{37}
+\]
+Indeed, restriction cannot increase the full occupancy and a retained set has only \(m-c\) indices, proving the upper bound.  For the reverse bound, choose a line attaining the full occupancy \(T_{k\ell}\).  If \(T_{k\ell}\ge m-c\), retain any \(m-c\) indexed points on that line.  If \(T_{k\ell}<m-c\), retain all its \(T_{k\ell}\) indices and add any \(m-c-T_{k\ell}\) other indices.  These two constructions prove (37).
+
+For every retained set, \(h=m-c\).  The class-uniform consequence of \(\text{thm:sharp-replacement-radius}\) says that this retained design guarantees recovery for all positive-semidefinite invariant nuisances and all positive-semidefinite replacements if and only if
+\[
+ M_{k\ell}(H)<h-c=m-2c
+ \quad\text{for every }k<\ell.
+ \tag{38}
+\]
+For clarity, sufficiency in this equivalence is the theorem's positive-semidefinite conclusion.  If (38) fails, choosing \(D=I_p\) and \(\Omega=I_p\) lets the theorem's fixed-interior converse provide a positive-definite replacement assignment witnessing failure of the class-uniform guarantee.
+
+Since \(m-2c\le m-c\), equation (37) implies
+\[
+ \min\{T_{k\ell},m-c\}<m-2c
+ \quad\Longleftrightarrow\quad
+ T_{k\ell}<m-2c.
+ \tag{39}
+\]
+The choices of retained set and coordinate pair range over finite sets, so their universal quantifiers may be interchanged.  Equations (37)--(39) therefore show that (38) holds for every retained set if and only if
+\[
+ T_{k\ell}<m-2c\quad\text{for every }k<\ell,
+\]
+which is equivalent to \(T<m-2c\).
+
+Because \(c\) is an integer, when \(T<m\) this strict inequality is equivalent to
+\[
+ 2c\le m-T-1
+ \quad\Longleftrightarrow\quad
+ c\le\left\lfloor\frac{m-T-1}{2}\right\rfloor.
+ \tag{40}
+\]
+If \(T=m\), even \(c=0\) violates the strict inequality, so no nonnegative corruption budget is certified.  For the all-active design, \(N_{11}^{k\ell}=m\) and \(N_{00}^{k\ell}=N_{10}^{k\ell}=N_{01}^{k\ell}=0\), so \(T=2\) whenever \(m\ge2\).  In particular, for \(m\ge3\), (40) gives
+\[
+ c_{\max}=\left\lfloor\frac{m-3}{2}\right\rfloor,
+\]
+as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This corollary converts the realized honest-set radius into the exact ex-ante guarantee against every choice of failed environments on the positive-semidefinite population class. \textit{Gap.} The realized-design occupancy formula alone does not tell a planner whether every possible deletion set remains safe; the full-array statistic \(T\) closes that quantifier exactly. \textit{Consumer.} An experimental planner computes \(T\) once and certifies every \(c\)-environment failure set exactly when \(T<m-2c\), before collecting outcomes.
+
+\begin{theorem}[thm:confidence-union-coverage]\label{thm:confidence-union-coverage}
+Fix \(n\geq1\), \(\alpha\in(0,1)\), and an arbitrary indexed family of nonempty covariance regions \(\mathcal C^{(n)}_{e,\alpha}\subseteq\mathbb S_{+}^{p}\), \(e\in E\). Under \(\text{ass:backshift-normalization}\), \(\text{ass:nonnegative-shifts}\), and \(\text{ass:honest-covariance-model}\), suppose additionally that \(\Omega\in\mathbb S_+^p\), and define
+\[
+G_{n,\alpha,H}
+=\{\Sigma_e\in\mathcal C^{(n)}_{e,\alpha}\text{ for every }e\in H\}.
+\]
+Then
+\[
+G_{n,\alpha,H}\subseteq\{D\in\mathcal U^{(n)}_\alpha\}.
+\]
+Consequently, whenever the displayed events are measurable,
+\[
+\Pr(G_{n,\alpha,H})\geq1-\alpha
+\quad\Longrightarrow\quad
+\Pr\{D\in\mathcal U^{(n)}_\alpha\}\geq1-\alpha.
+\]
+This is a set-theoretic coverage implication and makes no representation or computability claim.
+\end{theorem}
+\begin{proof}
+Fix an outcome in \(G_{n,\alpha,H}\). For every \(e\in H\), set \(\Gamma_e=\Sigma_e\). For every \(e\in E\setminus H\), choose one \(\Gamma_e\in\mathcal C^{(n)}_{e,\alpha}\); this finite collection of choices exists because \(E\setminus H\) is finite and each region is nonempty. Define
+\[
+K=H,\qquad A=D,\qquad \Psi=\Omega,
+\qquad t_e=s_e\quad(e\in H).
+\tag{1}
+\]
+By the definition of \(H\), \(|K|=h\). Assumption \(\text{ass:backshift-normalization}\) gives \(A=D\in\mathcal D\). The theorem-local premise gives \(\Psi=\Omega\in\mathbb S_+^p\), and \(\text{ass:nonnegative-shifts}\) gives \(t_e=s_e\in[0,\infty)^p\). Assumption \(\text{ass:honest-covariance-model}\) and the choice \(\Gamma_e=\Sigma_e\) on \(H\) give, for every \(e\in K\),
+\[
+\Gamma_e
+=D^{-1}\bigl(\Omega+\operatorname{diag}(s_e)\bigr)D^{-\mathsf T}
+=A^{-1}\bigl(\Psi+\operatorname{diag}(t_e)\bigr)A^{-\mathsf T}.
+\tag{2}
+\]
+Thus (1)--(2) are exactly the witnesses required by \(\text{def:compatible-set}\), and hence \(D\in\mathcal R_c(\Gamma)\). The selected family \(\Gamma\) belongs to \(\prod_{e\in E}\mathcal C^{(n)}_{e,\alpha}\); therefore \(\text{def:confidence-union}\) gives \(D\in\mathcal U^{(n)}_\alpha\). The outcome was arbitrary, so
+\[
+G_{n,\alpha,H}\subseteq\{D\in\mathcal U^{(n)}_\alpha\}.
+\tag{3}
+\]
+If the two events in (3) are measurable, monotonicity of probability yields the stated probability implication. No step used positive definiteness of any \(\Gamma_e\): positive semidefiniteness is exactly the domain required by \(\text{def:compatible-set}\). Finally, the causal target \(B=I_p-D\) is fixed by the structural model, whereas \(\mathcal U^{(n)}_\alpha\) is an observed-region compatibility functional; inclusion (3), rather than a definition, proves their coverage relationship.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A single compatible witness proves simultaneous coverage for arbitrary nonempty positive-semidefinite covariance regions; no matrix inversion or encoding of a region is used. \textit{Gap.} The result is purely set-theoretic and does not construct covariance regions, project semialgebraic systems, or supply a decision procedure. \textit{Consumer.} Any method supplying nonempty positive-semidefinite covariance regions with simultaneous honest-slot coverage may pass them through the compatibility union while retaining coverage of the structural matrix.
+
+\begin{theorem}[thm:non-effective-four-margin-contraction]\label{thm:non-effective-four-margin-contraction}
+Fix \(p\geq2\), \(m\geq1\), and \(0\leq c\leq m-1\), put \(h=m-c\) and \(q=m-2c=h-c\), and fix \(\gamma_0\in\mathbb Q_{>0}\), \(\zeta_0\in\mathbb Q\cap(0,1]\), and \(\overline\kappa,\overline M\in\mathbb Q\cap[1,\infty)\). Define
+\[
+L_0=\bigl(p!\,\overline\kappa^{p-1}\bigr)^{1/p},
+\qquad
+K_0=\frac{6\overline M}{\gamma_0}
+\sqrt{p(p-1)(1+L_0^2)},
+\qquad
+C_0=16K_0L_0^3.
+\]
+Under \(\text{ass:backshift-normalization}\), \(\text{ass:nonnegative-shifts}\), and \(\text{ass:honest-covariance-model}\), suppose that \(\Omega\in\mathbb S_+^p\) and that the true instance satisfies
+\[
+\gamma_H\geq\gamma_0,\qquad
+\zeta_D\geq\zeta_0,\qquad
+\kappa_D\leq\overline\kappa,\qquad
+M_H\leq\overline M.
+\]
+Fix \(n\geq1\), \(\alpha\in(0,1)\), and an arbitrary indexed family of nonempty covariance regions \(\mathcal C^{(n)}_{e,\alpha}\subseteq\mathbb S_{+}^p\). Assume declaratively that every tuple consisting of \(K\subseteq E\) with \(|K|=h\), \(A\in\mathcal D\), \(\Psi\in\mathbb S_+^p\), \(t_e\in[0,\infty)^p\), and \(\Gamma_e\in\mathcal C^{(n)}_{e,\alpha}\) for \(e\in K\), satisfying
+\[
+A\Gamma_eA^{\mathsf T}=\Psi+\operatorname{diag}(t_e)
+\qquad(e\in K),
+\]
+also satisfies the single bound
+\[
+\|A\|_{\mathrm{op}}\|A^{-1}\|_{\mathrm{op}}
+\leq\overline\kappa.
+\]
+Then there exists a real number \(r_0>0\), depending only on \(p,m,c,\gamma_0,\zeta_0,\overline\kappa,\overline M\), such that on the event
+\[
+G_{n,\alpha,H}
+=\{\Sigma_e\in\mathcal C^{(n)}_{e,\alpha}\text{ for every }e\in H\},
+\]
+one has
+\[
+r_{n,\alpha,H}\leq r_0
+\quad\Longrightarrow\quad
+\operatorname{outer}_{\mathrm{op}}(\mathcal U^{(n)}_\alpha,D)
+\leq C_0r_{n,\alpha,H},
+\]
+\[
+\operatorname{diam}_{\mathrm{op}}(\mathcal U^{(n)}_\alpha)
+\leq2C_0r_{n,\alpha,H}.
+\]
+Consequently, along any sequence of covered outcomes satisfying the same declarative candidate-side condition-number bound and \(r_{n,\alpha,H}\to0\), both displayed set radii converge to zero. The existence of \(r_0\) is non-effective: no procedure is asserted for checking the universal candidate premise or for computing \(r_0\), and no executable, algorithmic, or software interface is asserted.
+\end{theorem}
+\begin{proof}
+Put \(q=m-2c=h-c\). By \(\text{def:affine-separation}\), if \(q<3\), then \(\gamma_H=0\), contradicting \(\gamma_H\geq\gamma_0>0\). Hence
+\[
+q\geq3.
+\tag{1}
+\]
+
+\textbf{Uniform structural bounds.}
+Let \(G\) be a real invertible matrix with unit diagonal, \(\operatorname{CP}(I_p-G)\leq1\), and
+\[
+\|G\|_{\mathrm{op}}\|G^{-1}\|_{\mathrm{op}}
+\leq\overline\kappa.
+\tag{2}
+\]
+In the Leibniz expansion of \(\det G\), the identity-permutation term has absolute value one. Every other permutation is a disjoint union of fixed points and directed simple cycles of length at least two. A fixed point contributes \(G_{ii}=1\); up to sign, the product contributed by each nontrivial cycle is a cycle product in \(I_p-G\), and therefore has absolute value at most one. Thus every Leibniz term has absolute value at most one, so
+\[
+|\det G|\leq p!.
+\tag{3}
+\]
+Writing the singular values in decreasing order as \(\sigma_1(G),\ldots,\sigma_p(G)\), (2) gives
+\[
+\sigma_j(G)\geq\sigma_p(G)
+\geq\frac{\sigma_1(G)}{\overline\kappa}
+\qquad(2\leq j\leq p).
+\]
+Together with (3), this yields
+\[
+\frac{\sigma_1(G)^p}{\overline\kappa^{p-1}}
+\leq\prod_{j=1}^p\sigma_j(G)
+=|\det G|
+\leq p!,
+\]
+and consequently
+\[
+\|G\|_{\mathrm{op}}
+\leq\bigl(p!\,\overline\kappa^{p-1}\bigr)^{1/p}
+=L_0.
+\tag{4}
+\]
+Since a unit diagonal entry has absolute value one, \(\|G\|_{\mathrm{op}}\geq1\); (2) therefore also gives
+\[
+\|G^{-1}\|_{\mathrm{op}}\leq\overline\kappa.
+\tag{5}
+\]
+The true matrix \(D\) satisfies the premises above because \(\zeta_D\geq\zeta_0>0\), while every actual feasible candidate \(A\in\mathcal D\) satisfies \(\operatorname{CP}(I_p-A)<1\) by \(\text{def:admissible-matrices}\). The same bounds will also apply to candidate limit points for which only \(\operatorname{CP}(I_p-A)\leq1\) is retained.
+
+\textbf{Compact one-sided normalization closure.}
+Define
+\[
+\rho_0=\min\left\{1,\frac{1}{2K_0\overline M}\right\}>0.
+\tag{6}
+\]
+For every \(H_1\subseteq E\) with \(|H_1|=h\) and every \(S\subseteq H_1\) with \(|S|=q\), consider tuples
+\[
+\tau=\bigl(D,U,\Omega,(s_e,\Sigma_e)_{e\in H_1},
+A,V,\Psi,(t_e,\Gamma_e)_{e\in S}\bigr)
+\tag{7}
+\]
+satisfying the following conditions:
+\[
+DU=UD=I_p,
+\qquad
+AV=VA=I_p;
+\tag{8}
+\]
+\[
+\operatorname{diag}(D)=\operatorname{diag}(A)=\mathbf 1,
+\qquad
+\operatorname{CP}(I_p-D)\leq1-\zeta_0,
+\qquad
+\operatorname{CP}(I_p-A)\leq1;
+\tag{9}
+\]
+\[
+\|D\|_{\mathrm{op}}\|U\|_{\mathrm{op}}
+\leq\overline\kappa,
+\qquad
+\|A\|_{\mathrm{op}}\|V\|_{\mathrm{op}}
+\leq\overline\kappa;
+\tag{10}
+\]
+\[
+\Omega,\Sigma_e\in\mathbb S_+^p,\quad
+s_e\in[0,\infty)^p\quad(e\in H_1),
+\]
+\[
+\Psi,\Gamma_e\in\mathbb S_+^p,\quad
+t_e\in[0,\infty)^p\quad(e\in S);
+\tag{11}
+\]
+\[
+D\Sigma_eD^{\mathsf T}=\Omega+\operatorname{diag}(s_e)
+\quad(e\in H_1),
+\qquad
+A\Gamma_eA^{\mathsf T}=\Psi+\operatorname{diag}(t_e)
+\quad(e\in S);
+\tag{12}
+\]
+the true-side affine-separation quantity from \(\text{def:affine-separation}\), with \(H_1\) in place of \(H\), is at least \(\gamma_0\), and
+\[
+1+\|\Omega\|_{\mathrm{op}}
++\max_{e\in H_1}\|\Sigma_e\|_{\mathrm{op}}
++\max_{e\in H_1}\|\operatorname{diag}(s_e)\|_{\mathrm{op}}
+\leq\overline M;
+\tag{13}
+\]
+finally,
+\[
+\|\Gamma_e-\Sigma_e\|_{\mathrm{op}}\leq1
+\qquad(e\in S).
+\tag{14}
+\]
+Let \(\mathfrak T\) be the finite disjoint union of these families, retaining \((H_1,S)\) as a discrete index.
+
+Equations (4)--(5), applied using (9)--(10), bound \(D,U,A,V\). Equation (13) gives \(\|\Sigma_e\|_{\mathrm{op}}\leq\overline M-1\), so (14) implies
+\[
+\|\Gamma_e\|_{\mathrm{op}}
+\leq\|\Sigma_e\|_{\mathrm{op}}
++\|\Gamma_e-\Sigma_e\|_{\mathrm{op}}
+\leq\overline M
+\qquad(e\in S).
+\tag{15}
+\]
+Using (4), (12), and (15),
+\[
+\|\Psi+\operatorname{diag}(t_e)\|_{\mathrm{op}}
+=\|A\Gamma_eA^{\mathsf T}\|_{\mathrm{op}}
+\leq L_0^2\overline M.
+\tag{16}
+\]
+The two summands on the left of (16) are positive semidefinite. If \(P,Q\succeq0\), then for each unit vector \(v\),
+\[
+0\leq v^{\mathsf T}Pv\leq v^{\mathsf T}(P+Q)v,
+\]
+so the Rayleigh-quotient characterization of the operator norm gives \(\|P\|_{\mathrm{op}}\leq\|P+Q\|_{\mathrm{op}}\), and similarly for \(Q\). Hence
+\[
+\|\Psi\|_{\mathrm{op}}
+\leq L_0^2\overline M,
+\qquad
+\|\operatorname{diag}(t_e)\|_{\mathrm{op}}
+\leq L_0^2\overline M
+\qquad(e\in S).
+\tag{17}
+\]
+Thus every variable in (7) is bounded. These candidate covariance, nuisance, and shift bounds were derived from the true scale bound, the local radius-one restriction, and candidate conditioning; they were not assumed.
+
+For fixed \((H_1,S)\), the family is closed: (8) and (12) are polynomial equalities; the positive-semidefinite cones and nonnegative orthants in (11) are closed; every norm inequality is closed; \(\operatorname{CP}\) is the maximum of finitely many continuous absolute cycle-product functions; and the affine-separation quantity is a finite minimum of finite maxima of continuous absolute determinants. By \(\text{lem:euclidean-heine-borel}\), each fixed-index family is compact. The finite disjoint union \(\mathfrak T\) is therefore compact.
+
+Define the continuous residual
+\[
+\mathfrak r(\tau)=
+\max_{e\in S}
+\left\|A\Sigma_eA^{\mathsf T}
+-\Psi-\operatorname{diag}(t_e)\right\|_{\mathrm F}
+\tag{18}
+\]
+and the closed subfamily
+\[
+\mathfrak T_{\mathrm{far}}
+=\{\tau\in\mathfrak T:\|AU-I_p\|_{\mathrm F}\geq\rho_0\}.
+\tag{19}
+\]
+It is compact. If it is empty, set \(\mu_0=1\). Otherwise, \(\text{lem:compact-extreme-value}\) gives an attaining minimum
+\[
+\mu_0=\min_{\tau\in\mathfrak T_{\mathrm{far}}}\mathfrak r(\tau).
+\tag{20}
+\]
+
+We next prove \(\mu_0>0\). Suppose, to the contrary in the nonempty case, that an attaining tuple has \(\mathfrak r(\tau)=0\). Then for every \(e\in S\),
+\[
+D\Sigma_eD^{\mathsf T}=\Omega+\operatorname{diag}(s_e),
+\qquad
+A\Sigma_eA^{\mathsf T}=\Psi+\operatorname{diag}(t_e).
+\tag{21}
+\]
+Fix \(e_0\in S\), which is possible by (1), and set
+\[
+Q=AD^{-1}=AU,
+\qquad
+x_e=s_e-s_{e_0},
+\qquad
+y_e=t_e-t_{e_0}.
+\]
+Subtracting (21) at \(e_0\) from (21) at \(e\) cancels both invariant nuisances and gives
+\[
+Q\operatorname{diag}(x_e)Q^{\mathsf T}
+=\operatorname{diag}(y_e)
+\qquad(e\in S).
+\tag{22}
+\]
+Let \(W=\operatorname{span}\{x_e:e\in S\}\). The affine-separation condition in (13), applied to this particular \(q\)-element set \(S\), says that for each \(k<\ell\) some triple has a nonzero affine determinant in coordinates \((k,\ell)\). Therefore the projection of \(W\) onto coordinates \((k,\ell)\) is all of \(\mathbb R^2\): otherwise a nonzero linear functional annihilating that projection would place the entire \((k,\ell)\)-cloud on an affine line through the point indexed by \(e_0\), making every such determinant zero.
+
+Choose a basis \(w^1,\ldots,w^d\) of \(W\), and define the coordinate profiles
+\[
+u_k=(w^1_k,\ldots,w^d_k)^{\mathsf T}
+\qquad(1\leq k\leq p).
+\]
+The preceding projection property says that \(u_k,u_\ell\) are linearly independent whenever \(k\ne\ell\); in particular, every \(u_k\ne0\). Choose \(\beta\in\mathbb R^d\) outside the finitely many proper hyperplanes \(\{\beta:\beta^{\mathsf T}u_k=0\}\). Then choose \(\alpha\in\mathbb R^d\) outside the finitely many proper hyperplanes
+\[
+\left\{\alpha:
+\alpha^{\mathsf T}\bigl((\beta^{\mathsf T}u_\ell)u_k
+-(\beta^{\mathsf T}u_k)u_\ell\bigr)=0\right\},
+\qquad k<\ell.
+\tag{23}
+\]
+Each displayed normal is nonzero, since otherwise the nonzero scalars \(\beta^{\mathsf T}u_k\) and \(\beta^{\mathsf T}u_\ell\) would make \(u_k,u_\ell\) proportional. A finite union of proper hyperplanes cannot cover \(\mathbb R^d\): the product of their nonzero defining linear forms is a nonzero polynomial, and induction on \(d\), using the one-variable root bound, shows that a nonzero real polynomial cannot vanish everywhere. Thus both choices exist.
+
+Set
+\[
+b=\sum_{j=1}^d\beta_jw^j,
+\qquad
+a=\sum_{j=1}^d\alpha_jw^j,
+\qquad
+\rho_k=\frac{a_k}{b_k}.
+\]
+The choice of \(\beta\) gives \(b_k\ne0\), and (23) gives pairwise distinct \(\rho_k\). By linearity of (22), both
+\[
+G=Q\operatorname{diag}(a)Q^{\mathsf T}
+\quad\text{and}\quad
+K=Q\operatorname{diag}(b)Q^{\mathsf T}
+\]
+are diagonal. Moreover, \(K\) is invertible. Hence
+\[
+GK^{-1}
+=Q\operatorname{diag}(\rho_1,\ldots,\rho_p)Q^{-1}
+\tag{24}
+\]
+is diagonal. Its eigenvalues are pairwise distinct, so its eigenspaces are the coordinate axes. The columns of \(Q\), which are the corresponding eigenvectors on the right of (24), are therefore supported on coordinate axes. Since \(Q\) is invertible, it is monomial: there are a permutation \(\pi\) and nonzero numbers \(q_i\) such that
+\[
+Q_{i,\pi(i)}=q_i,
+\qquad
+Q_{ij}=0\quad(j\ne\pi(i)).
+\tag{25}
+\]
+
+It remains to eliminate the permutation using the one-sided normalization closure. From \(A=QD\), (25), and the unit diagonals of \(A,D\),
+\[
+1=A_{ii}=q_iD_{\pi(i),i}.
+\tag{26}
+\]
+If \(\pi\) had a nontrivial cycle \(i_1,\ldots,i_r\), with \(r\geq2\) and \(\pi(i_t)=i_{t+1}\) cyclically, then (26) would imply
+\[
+\prod_{t=1}^r|D_{i_{t+1},i_t}|
+=\prod_{t=1}^r|q_{i_t}|^{-1}.
+\tag{27}
+\]
+The left side of (27) is the absolute product on a directed simple cycle of \(I_p-D\), so (9) and \(\zeta_0>0\) give
+\[
+\prod_{t=1}^r|q_{i_t}|^{-1}<1.
+\tag{28}
+\]
+Also,
+\[
+A_{i_t,i_{t+1}}
+=q_{i_t}D_{i_{t+1},i_{t+1}}
+=q_{i_t},
+\]
+so these entries form the reverse directed simple cycle of \(I_p-A\), up to signs. The weak candidate bound in (9) gives
+\[
+\prod_{t=1}^r|q_{i_t}|\leq1.
+\tag{29}
+\]
+Multiplying (28) and (29) gives a strict upper bound below one, whereas the two reciprocal products multiply to one, a contradiction. Thus \(\pi\) is the identity. Equation (26) and \(D_{ii}=1\) then give \(q_i=1\) for every \(i\), whence \(Q=I_p\) and \(A=D\). This contradicts (19). Therefore
+\[
+\mu_0>0.
+\tag{30}
+\]
+Set, non-effectively,
+\[
+r_0=\min\left\{1,\frac{\mu_0}{2\sqrt p\,L_0^2}\right\}>0.
+\tag{31}
+\]
+All continuous constraints defining \(\mathfrak T\), as well as \(\rho_0\), use only \(p,m,c,\gamma_0,\zeta_0,\overline\kappa,\overline M\). Thus \(r_0\) has exactly the asserted dependence. The compactness argument supplies no method for evaluating \(\mu_0\) or \(r_0\).
+
+\textbf{Entry into the local neighborhood.}
+Fix an outcome in \(G_{n,\alpha,H}\), write \(r=r_{n,\alpha,H}\), and assume \(r\leq r_0\). By \(\text{thm:confidence-union-coverage}\), \(D\in\mathcal U^{(n)}_\alpha\), so the union is nonempty. Let \(A\in\mathcal U^{(n)}_\alpha\) be arbitrary. By \(\text{def:confidence-union}\), there is a simultaneous selection \(\Gamma_e\in\mathcal C^{(n)}_{e,\alpha}\), \(e\in E\), for which \(A\in\mathcal R_c(\Gamma)\). By \(\text{def:compatible-set}\), there are a fitted set of cardinality at least \(h\), a matrix \(\Psi\in\mathbb S_+^p\), and nonnegative shifts satisfying the candidate covariance equations. Restricting the fitted set and its witnesses, choose \(K\subseteq E\) with \(|K|=h\). The sole declarative candidate premise gives
+\[
+\|A\|_{\mathrm{op}}\|A^{-1}\|_{\mathrm{op}}
+\leq\overline\kappa.
+\tag{32}
+\]
+Because \(A\in\mathcal D\), \(\text{def:admissible-matrices}\) gives its unit diagonal and \(\operatorname{CP}(I_p-A)<1\). Inclusion--exclusion gives
+\[
+|H\cap K|
+\geq|H|+|K|-|E|
+=2h-m=q.
+\tag{33}
+\]
+Choose \(S\subseteq H\cap K\) with \(|S|=q\), and set \(U=D^{-1}\), \(V=A^{-1}\). For \(e\in S\subseteq H\), \(\text{def:honest-region-radius}\) and the event \(G_{n,\alpha,H}\) give
+\[
+\|\Gamma_e-\Sigma_e\|_{\mathrm{op}}
+\leq r\leq r_0\leq1.
+\tag{34}
+\]
+The true assumptions and four true-side bounds, the candidate equations and (32), membership \(A\in\mathcal D\), and (34) put this tuple in \(\mathfrak T\). By the candidate equation, (4), (31), (34), submultiplicativity, and \(\|X\|_{\mathrm F}\leq\sqrt p\|X\|_{\mathrm{op}}\), for every \(e\in S\),
+\[
+\begin{aligned}
+\left\|A\Sigma_eA^{\mathsf T}
+-\Psi-\operatorname{diag}(t_e)\right\|_{\mathrm F}
+&=\left\|A(\Sigma_e-\Gamma_e)A^{\mathsf T}\right\|_{\mathrm F}\\
+&\leq\sqrt p\,L_0^2r
+\leq\mu_0/2.
+\end{aligned}
+\tag{35}
+\]
+Thus the tuple is not in \(\mathfrak T_{\mathrm{far}}\), whether that family is nonempty or empty. With
+\[
+Q=AD^{-1}=I_p+R,
+\qquad
+u=\|R\|_{\mathrm F},
+\]
+we consequently have
+\[
+u<\rho_0\leq1,
+\qquad
+K_0\overline M u<\frac12.
+\tag{36}
+\]
+
+\textbf{Local affine-minor inversion.}
+Fix \(e_0\in S\) and put \(x_e=s_e-s_{e_0}\). For each \(i<j\), true-side affine separation on \(S\) supplies distinct \(a,b,d\in S\) such that the absolute affine determinant in coordinates \((i,j)\) is at least \(\gamma_0\). Translating the three points by the point indexed by \(e_0\) preserves that determinant, and direct expansion gives
+\[
+\det(\widetilde x_a-\widetilde x_b,
+\widetilde x_d-\widetilde x_b)
+=\det(\widetilde x_a,\widetilde x_d)
++\det(\widetilde x_d,\widetilde x_b)
++\det(\widetilde x_b,\widetilde x_a),
+\tag{37}
+\]
+where \(\widetilde x_e=(x_{ei},x_{ej})\). By the triangle inequality, some \(e,f\in S\) satisfy
+\[
+|x_{ei}x_{fj}-x_{ej}x_{fi}|\geq\gamma_0/3.
+\tag{38}
+\]
+Let \(E_e=\Gamma_e-\Sigma_e\). Subtract the true covariance equation at \(e_0\) from the equation at \(e\), do the same for the candidate equations, use \(A=QD\), and take the \((i,j)\) off-diagonal entry. The invariant nuisances cancel, giving the exact identity
+\[
+R_{ij}x_{ej}+R_{ji}x_{ei}
+=-\sum_{k=1}^pR_{ik}R_{jk}x_{ek}
+-[A(E_e-E_{e_0})A^{\mathsf T}]_{ij}.
+\tag{39}
+\]
+The true scale bound in (13) and nonnegativity from \(\text{ass:nonnegative-shifts}\) imply \(|x_{ek}|\leq\overline M\). Equation (34) gives \(\|E_e-E_{e_0}\|_{\mathrm{op}}\leq2r\), while (4) gives \(\|A\|_{\mathrm{op}}\leq L_0\). Since each row of \(R\) has Euclidean norm at most \(u\), Cauchy--Schwarz in (39) yields
+\[
+|R_{ij}x_{ej}+R_{ji}x_{ei}|
+\leq\overline M u^2+2L_0^2r.
+\tag{40}
+\]
+Apply (40) at the two labels supplied by (38), and call the two right sides of (39) \(b_e,b_f\). Both have absolute value at most \(\beta=\overline M u^2+2L_0^2r\). The determinant \(\Delta=x_{ej}x_{fi}-x_{fj}x_{ei}\) of the coefficient matrix for \((R_{ij},R_{ji})\) satisfies \(|\Delta|\geq\gamma_0/3\), and each coefficient has absolute value at most \(\overline M\). Direct elimination gives
+\[
+R_{ij}=\frac{b_ex_{fi}-b_fx_{ei}}{\Delta},
+\qquad
+R_{ji}=\frac{x_{ej}b_f-x_{fj}b_e}{\Delta}.
+\]
+Therefore, for every ordered pair \(i\ne j\),
+\[
+|R_{ij}|
+\leq\frac{6\overline M}{\gamma_0}
+\left(\overline M u^2+2L_0^2r\right).
+\tag{41}
+\]
+The unit diagonals of \(A\) and \(D\) imply
+\[
+0=(A-D)_{ii}=(RD)_{ii}
+=R_{ii}+\sum_{k\ne i}R_{ik}D_{ki}.
+\tag{42}
+\]
+For each \(i\), the squared Euclidean norm of the \(i\)-th column of \(D\) is at most \(L_0^2\) by (4). Squaring (41), summing over the \(p(p-1)\) ordered off-diagonal entries, applying Cauchy--Schwarz to (42), and taking square roots gives
+\[
+u\leq K_0\left(\overline M u^2+2L_0^2r\right).
+\tag{43}
+\]
+If \(u=0\), the next bound is immediate. If \(u>0\), (36) makes the quadratic term on the right of (43) strictly less than \(u/2\). Rearrangement gives, in either case,
+\[
+u\leq4K_0L_0^2r.
+\tag{44}
+\]
+Using (4), (44), and \(C_0=16K_0L_0^3\),
+\[
+\|A-D\|_{\mathrm{op}}
+=\|RD\|_{\mathrm{op}}
+\leq uL_0
+\leq4K_0L_0^3r
+\leq C_0r.
+\tag{45}
+\]
+Since \(A\in\mathcal U^{(n)}_\alpha\) was arbitrary, (45) and \(\text{def:operator-outer-radius}\) give
+\[
+\operatorname{outer}_{\mathrm{op}}(\mathcal U^{(n)}_\alpha,D)
+\leq C_0r.
+\]
+For \(A_1,A_2\in\mathcal U^{(n)}_\alpha\), the triangle inequality and (45) give
+\[
+\|A_1-A_2\|_{\mathrm{op}}
+\leq\|A_1-D\|_{\mathrm{op}}+\|A_2-D\|_{\mathrm{op}}
+\leq2C_0r.
+\]
+Taking the supremum and using \(\text{def:operator-diameter}\) proves the diameter bound. Finally, along any sequence covered by the theorem with \(r_{n,\alpha,H}\to0\), eventually \(r_{n,\alpha,H}\leq r_0\); the two displayed bounds then force both asserted radii to converge to zero. No candidate affine-separation, normalization-slack, scale, or covariance-interiority condition was used.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Four true-side margins make the one-sided normalization-closure comparison family compact. Local candidate covariance, nuisance, and shift bounds follow from radius at most one, the true scale bound, and candidate conditioning. At zero residual, true affine separation forces a monomial change of basis; strict true cycle-product control together with weak candidate closure removes every nontrivial permutation. A positive far-family residual and affine-minor inversion then give the displayed linear modulus. \textit{Gap.} The radius is an existential compactness minimum. The theorem supplies neither a test of the universal candidate condition-number premise nor an effective way to evaluate the radius, and it supplies no executable union representation, exact classifier, normalization-chart routine, or software. \textit{Consumer.} The theorem is the analytic contraction endpoint used by \(\text{oeq:certified-uniform-inference}\): that open program must turn the set-theoretic union and compact residual into verified executable codes, decisions, and an effective radius without adding those capabilities to the present claim.
+
+\begin{lemma}[lem:euclidean-heine-borel]\label{lem:euclidean-heine-borel}
+For every positive integer \(d\), every closed and bounded subset of \(\mathbb R^d\) is compact.
+\end{lemma}
+
+\begin{lemma}[lem:compact-extreme-value]\label{lem:compact-extreme-value}
+If \(X\) is a nonempty compact subset of a finite-dimensional Euclidean space and \(f:X\to\mathbb R\) is continuous, then there exists \(x_\star\in X\) such that \(f(x_\star)=\inf_{x\in X}f(x)\).
+\end{lemma}
+
+\section{Interpretation}
+
+The population target is the connectivity matrix \(B=I_p-D\), not the compatibility set itself. The sharp identification theorem proves when the observable recovery map \(\mathcal R_c(\Sigma)\) equals the singleton \(\{D\}\) for every legal replacement. The confidence union then propagates arbitrary simultaneous covariance regions through that same observable map. On covered outcomes it contains \(D\); under positive true affine separation and normalization slack, bounded true conditioning and scale, and bounded conditioning of every feasible candidate, its outer radius and diameter contract linearly once the region radius is below an existential threshold. Candidate affine separation, normalization slack, scale, and covariance interiority are not analytic premises of this contraction.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The exact \(p=2,c=1,m=3\) ambiguity check uses \(D=I_2\), \(D'=\begin{psmallmatrix}1&1/2\\1/2&1\end{psmallmatrix}\), \(\Sigma_1=I_2\), \(\Sigma_2=\operatorname{diag}(2,3)\), and \(\Sigma_3=I_2+D'^{-1}D'^{-\mathsf T}\). Both explanations fit two slots, \(\operatorname{CP}(I_2-D')=1/4\), and \(\Sigma_3\) has positive principal minors \(29/9\) and \(65/9\). This diagnostic is not itself a contribution and does not establish the general converse. Analytically, the local contraction radius is the minimum of one and a positive compact far-family residual divided by \(2\sqrt p\,L_0^2\); compactness proves positivity but supplies no computable lower bound. Candidate normalization closure is handled only in the proof: strict true cycle-product control and weak candidate control exclude a nontrivial monomial permutation, so no uniform candidate normalization slack is assumed. The universal candidate-conditioning premise itself is declarative and no procedure for checking it is supplied.
+
+\section{Honest scope}
+
+The exact population radius, positive-definite converse witness, generic sparse-support frontier, exact support-deletion budget, set-theoretic coverage implication, and non-effective local contraction are closed mathematical results. The invariant nuisance is positive semidefinite throughout the standard identification and contraction layers and is required to be positive definite only for the matching converse witness and the stated positive-definite special reductions. The contraction theorem retains all four true-side bounds \(\gamma_H\geq\gamma_0\), \(\zeta_D\geq\zeta_0\), \(\kappa_D\leq\overline\kappa\), and \(M_H\leq\overline M\), but requires only \(\|A\|_{\mathrm{op}}\|A^{-1}\|_{\mathrm{op}}\leq\overline\kappa\) for every feasible candidate. Its radius is supplied by compactness and is non-effective. Finite subset enumeration remains a definitional reduction to a full-solution feasibility oracle, not an encoded solver. No terminating quantifier elimination, exact union code, rational empty/singleton/multiple classifier, computable positive radius, normalization-chart automation, release-or-abstain implementation, or corruption-aware CRAN extension is claimed.
+
+\begin{thebibliography}{99}
+
+  \bibitem{RothenhauslerEtAl2015BackShift} Dominik Rothenhäusler, Christina Heinze, Jonas Peters, and Nicolai Meinshausen (2015). \(\textit{backShift: Learning causal cyclic graphs from unknown shift interventions}\). Advances in Neural Information Processing Systems 28. arXiv:1506.02494.
+
+  \bibitem{KleinsteuberShen2013NUJDUniqueness} Martin Kleinsteuber and Hao Shen (2013). \(\textit{Uniqueness Analysis of Non-Unitary Matrix Joint Diagonalization}\). IEEE Transactions on Signal Processing 61(7), 1786--1796. arXiv:1111.7088.
+
+  \bibitem{Afsari2008JDSensitivity} Bijan Afsari (2008). \(\textit{Sensitivity Analysis for the Problem of Matrix Joint Diagonalization}\). SIAM Journal on Matrix Analysis and Applications 30(3), 1148--1171. doi:10.1137/060655997.
+
+  \bibitem{PerryVonKugelgenScholkopf2022SparseShift} Ronan Perry, Julius von Kügelgen, and Bernhard Schölkopf (2022). \(\textit{Causal Discovery in Heterogeneous Environments Under the Sparse Mechanism Shift Hypothesis}\). Advances in Neural Information Processing Systems 35. arXiv:2206.02013.
+
+  \bibitem{PfisterPeters2022SparseIV} Niklas Pfister and Jonas Peters (2022). \(\textit{Identifiability of Sparse Causal Effects using Instrumental Variables}\). Proceedings of UAI, PMLR 180, 1613--1622. arXiv:2203.09380.
+
+  \bibitem{LeNguyen2022HermitianSDC} Thanh Hieu Le and Thi Ngan Nguyen (2022). \(\textit{Simultaneous Diagonalization via Congruence of Hermitian Matrices: Some Equivalent Conditions and a Numerical Solution}\). SIAM Journal on Matrix Analysis and Applications 43(2), 882--911. arXiv:2007.14034.
+
+  \bibitem{AkhavanEtAl2019GeometryJD} Saeed Akhavan, Samaneh Esmaeili, and Hamid Soltanian-Zadeh (2019). \(\textit{Geometry-based solution of joint diagonalisation in blind source separation}\). IET Signal Processing 13(9), 755--765. doi:10.1049/iet-spr.2019.0175.
+
+  \bibitem{ShenEtAl2020RJDSEM} Yanning Shen, Xiao Fu, Georgios B. Giannakis, and Nicholas D. Sidiropoulos (2020). \(\textit{Topology Identification of Directed Graphs via Joint Diagonalization of Correlation Matrices}\). IEEE Transactions on Signal and Information Processing over Networks 6, 271--283. doi:10.1109/TSIPN.2020.2984131.
+
+  \bibitem{AndrewsCheng2013SporadicID} Donald W. K. Andrews and Xu Cheng (2013). \(\textit{Maximum Likelihood Estimation and Uniform Inference with Sporadic Identification Failure}\). Journal of Econometrics 173(1), 36--56. doi:10.1016/j.jeconom.2012.10.003.
+
+  \bibitem{CRANbackShift} Christina Heinze-Deml and coauthors. \(\textit{backShift: Learning Causal Cyclic Graphs from Unknown Shift Interventions}\), CRAN package documentation, function \(\texttt{backShift}\).
+
+  \bibitem{Basu2014AlgorithmsRealAlgebraicGeometrySurvey} Saugata Basu (2014). \(\textit{Algorithms in Real Algebraic Geometry: A Survey}\). arXiv:1409.1534.
+
+  \bibitem{Rudin1976Principles} Walter Rudin (1976). \(\textit{Principles of Mathematical Analysis}\), third edition. McGraw--Hill. Theorems 2.41 and 4.16. ISBN 9780070542358.
+
+  \bibitem{HeKressner2024RandomizedSDC} Haoze He and Daniel Kressner (2024). \(\textit{A randomized algorithm for simultaneously diagonalizing symmetric matrices by congruence}\). arXiv:2402.16557v3.
+
+\end{thebibliography}
+
+\end{document}

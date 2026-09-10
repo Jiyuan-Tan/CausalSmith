@@ -40,9 +40,11 @@ namespace Causalean.Mathlib.Analysis.FiniteDimL1LinfDuality
 
 variable {k β : ℕ} {p : Fin (k + 1) → ℝ}
 
-/-- The degree-`≤ β` polynomial `∑ i, b i * X^i` associated to a coefficient
-vector `b : Fin (β+1) → ℝ`.  Its node values are `Ev p β b` and its endpoint
-contrast is `contrastL β b`. -/
+/-- For [a nonnegative degree bound](hyp:β) and [a real coefficient vector indexed from zero
+through that bound](hyp:b), the [associated coefficient polynomial](goal) is the sum of each
+coefficient times the corresponding monomial.  Its degree is at most the stated bound.
+
+Its node values are given by `Ev`, and its endpoint contrast is given by `contrastL`. -/
 noncomputable def coeffPoly (b : Fin (β + 1) → ℝ) : Polynomial ℝ :=
   ∑ i, Polynomial.C (b i) * Polynomial.X ^ (i : ℕ)
 
@@ -62,9 +64,12 @@ theorem coeffPoly_eval (b : Fin (β + 1) → ℝ) (t : ℝ) :
   rw [coeffPoly, Polynomial.eval_finset_sum]
   simp only [Polynomial.eval_mul, Polynomial.eval_C, Polynomial.eval_pow, Polynomial.eval_X]
 
-/-- **Node evaluation** as a linear map: `Ev p β b` is the vector of values of
-the degree-`≤ β` polynomial with coefficients `b`, sampled at the nodes,
-`(Ev p β b) j = ∑ i, b i * (p j)^i`.  This is the transpose of the moment map. -/
+/-- For [a nonnegative number of sampled coordinates minus one](hyp:k), [a collection of real
+sampling nodes indexed from zero through that number](hyp:p), and [a nonnegative degree bound](hyp:β),
+the [node-evaluation linear map](goal) sends a coefficient vector to the values at all sampling
+nodes of its polynomial of degree at most that bound.
+
+This map is the transpose of the moment map. -/
 def Ev (p : Fin (k + 1) → ℝ) (β : ℕ) :
     (Fin (β + 1) → ℝ) →ₗ[ℝ] (Fin (k + 1) → ℝ) where
   toFun b := fun j => ∑ i, b i * p j ^ (i : ℕ)
@@ -87,9 +92,11 @@ theorem coeffPoly_eval_node (b : Fin (β + 1) → ℝ) (j : Fin (k + 1)) :
     (coeffPoly b).eval (p j) = Ev p β b j := by
   rw [coeffPoly_eval, Ev_apply]
 
-/-- **Endpoint-contrast** functional on coefficient vectors:
-`contrastL β b = ∑ i, b i * (if i = 0 then 0 else 1) = r.eval 1 - r.eval 0`
-for `r = coeffPoly b`. -/
+/-- For [a nonnegative degree bound](hyp:β), the [endpoint-contrast linear functional](goal) maps
+a coefficient vector to the value at one minus the value at zero of its associated polynomial.
+
+Equivalently, it sums every nonconstant coefficient and assigns zero contribution to the constant
+coefficient. -/
 def contrastL (β : ℕ) : (Fin (β + 1) → ℝ) →ₗ[ℝ] ℝ where
   toFun b := ∑ i, b i * (if (i : ℕ) = 0 then (0 : ℝ) else 1)
   map_add' := by
@@ -187,8 +194,10 @@ theorem contrastL_single (ℓ : Fin (β + 1)) :
   · intro h
     exact (h (Finset.mem_univ ℓ)).elim
 
-/-- The **sup norm** `maxⱼ |x j|` on `Fin (k+1) → ℝ` (a `Finset.sup'` over the
-nonempty index set).  Used as the majorant `M · ninf` in Hahn–Banach. -/
+/-- For [a nonnegative number of coordinates minus one](hyp:k) and [a real vector indexed from
+zero through that number](hyp:x), the [sup norm](goal) is the largest absolute coordinate value.
+
+The finite index set is nonempty; this quantity is used as the majorant in the Hahn–Banach argument. -/
 def ninf (x : Fin (k + 1) → ℝ) : ℝ :=
   Finset.univ.sup' ⟨0, Finset.mem_univ 0⟩ (fun j => |x j|)
 

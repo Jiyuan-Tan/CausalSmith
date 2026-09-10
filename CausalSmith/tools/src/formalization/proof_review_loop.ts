@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { frozenClosuresComplete, frozenTheoremsProven, progressed } from "../graph/progress.js";
@@ -133,8 +134,10 @@ function planRedoMath(graph: FormalizationGraph, brokenId: string): { dependents
 }
 
 /** Research-file forbidden proof cheats (comment-stripped). The filler is FORBIDDEN to
- *  axiomatize/admit or use opaque/native/unsafe escapes: those assert claims UNPROVEN while
- *  evading the real-sorry completion check and faking node `complete`. */
+ *  axiomatize/admit or use opaque/unsafe escapes: those assert claims UNPROVEN while
+ *  evading the real-sorry completion check and faking node `complete`. `native_decide` was
+ *  removed from this list on 2026-09-04 (operator call) — do not re-add. Keep aligned with
+ *  the bank gate. */
 async function scanResearchCheatTokens(leanDir: string): Promise<string[]> {
   const out: string[] = [];
   let files: string[];
@@ -153,7 +156,7 @@ async function scanResearchCheatTokens(leanDir: string): Promise<string[]> {
     const stripped = stripLeanComments(text);
     for (const [i, line] of stripped.split(/\r?\n/).entries()) {
       // Keep this aligned with the bank gate so F3 rejects proof-laundering before banking.
-      const m = line.match(/\b(axiom|opaque|native_decide|unsafe|admit)\b/);
+      const m = line.match(/\b(axiom|opaque|unsafe|admit)\b/);
       if (m) out.push(`${f}:${i + 1}:${m[1]}`);
     }
   }
@@ -313,6 +316,71 @@ export async function resolveLiveFillerDirective(
  * escalates (filler-stuck / reviewer-blocked / no-progress) for the orchestrator. The `refresh`,
  * `fill`, `review` deps are injectable for testing; production defaults wire the real agents.
  */
+/** The Lean source root of the package containing `leanDir`: the directory directly under
+ *  the nearest ancestor that holds a lakefile (`<pkg>/CausalSmith` for a research run), or
+ *  null when no lakefile is above it (fixtures, ad-hoc trees). */
+export function packageSourceRoot(leanDir: string): string | null {
+  let dir = path.resolve(leanDir);
+  for (;;) {
+    const parent = path.dirname(dir);
+    if (parent === dir) return null;
+    if (existsSync(path.join(parent, "lakefile.toml")) || existsSync(path.join(parent, "lakefile.lean"))) return dir;
+    dir = parent;
+  }
+}
+
+/** Drop filler-disclosed assumptions that an F2 reroute was explicitly asked to
+ * remove or replace. These nodes are a ledger of the old Lean surface, not part
+ * of the frozen graph: once F2 has successfully regenerated the affected target,
+ * retaining them makes F2.5 review premises that no longer exist in source.
+ * The regenerated from-note declaration itself remains dirty and is re-reviewed,
+ * so an assumption that F2 failed to remove is still caught from its statement. */
+export function discardReroutedAgentAssumptions(
+  graph: FormalizationGraph,
+  targets: readonly string[],
+): FormalizationGraph {
+  const targetSet = new Set(targets);
+  const resolved = new Set(
+    graph.nodes
+      .filter((n) => targetSet.has(n.id) || (n.obj_id != null && targetSet.has(n.obj_id)))
+      .map((n) => n.id),
+  );
+  const stale = new Set(
+    graph.nodes
+      .filter((n) => n.kind === "assumption" && n.provenance === "agent-introduced" && resolved.has(n.id))
+      .map((n) => n.id),
+  );
+  for (const edge of graph.edges) {
+    if (edge.kind !== "proof-uses" || !resolved.has(edge.from)) continue;
+    const node = graph.nodes.find((n) => n.id === edge.to);
+    if (node?.kind === "assumption" && node.provenance === "agent-introduced") stale.add(node.id);
+  }
+  if (stale.size === 0) return graph;
+  const hosts = new Set(
+    graph.edges
+      .filter((e) => e.kind === "proof-uses" && stale.has(e.to))
+      .map((e) => e.from),
+  );
+  // A filler id is parent-scoped, but malformed/legacy graphs may share the node.
+  // Do not erase such a disclosure globally for a localized parent reroute.
+  const deletable = new Set([...stale].filter((id) => {
+    const consumers = graph.edges.filter((e) => e.kind === "proof-uses" && e.to === id).map((e) => e.from);
+    return resolved.has(id) ? consumers.length <= 1 : consumers.every((parent) => resolved.has(parent));
+  }));
+  return {
+    ...graph,
+    nodes: graph.nodes
+      .filter((n) => !deletable.has(n.id))
+      .map((n) => hosts.has(n.id)
+        ? { ...n, review: { status: "unreviewed" as const, passed_hash: null } }
+        : n),
+    edges: graph.edges.filter((e) =>
+      !deletable.has(e.from) &&
+      !deletable.has(e.to) &&
+      !(e.kind === "proof-uses" && stale.has(e.to) && resolved.has(e.from))),
+  };
+}
+
 export async function runProofReviewLoop(args: {
   ctx: { repoRoot: string; qid: string; specialization: string };
   deps: {
@@ -563,7 +631,19 @@ export async function runProofReviewLoop(args: {
       if (!args.scaffold) return false;
       try {
         await args.scaffold({ redirect, targets });
+        // Stage 2 persists its own refreshed graph, including invalidations that
+        // declaration hashes cannot reconstruct. Load that new graph first; a
+        // transform of the pre-scaffold snapshot would overwrite those updates.
         state = await refresh();
+        // F2 has now regenerated these targets from the frozen plan. Retire any
+        // filler-authored assumption disclosures for the old source before refresh;
+        // otherwise their NL-hash fallback keeps nonexistent premises permanently dirty.
+        const pruned = discardReroutedAgentAssumptions(state.graph, targets);
+        if (pruned !== state.graph) {
+          state = { ...state, graph: pruned };
+          await persist(pruned);
+          state = await refresh();
+        }
         return true;
       } catch (err) {
         scaffoldFailure = err instanceof Error ? err.message : String(err);
@@ -863,8 +943,10 @@ export async function runProofReviewLoop(args: {
           state.graph.nodes.map((n) => n.lean?.decl_name).filter((d): d is string => d != null),
         ),
         // Consumers are counted package-wide (runs share substrate: a sibling run's modules may
-        // be this run's helpers' only callers); candidates still come from leanDir alone.
-        { searchRoot: path.resolve(leanDir, "../..") },
+        // be this run's helpers' only callers); candidates still come from leanDir alone. The
+        // package is the Lean source root under the nearest lakefile — never an arbitrary
+        // ancestor (a bare `../..` walked the whole temp tree when leanDir is a fixture).
+        { searchRoot: packageSourceRoot(leanDir) ?? leanDir },
       );
       if (deadDecls.length > 0) {
         return {

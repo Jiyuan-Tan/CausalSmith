@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isAssumeTheCruxNarrowing, isResultClassDegradation } from "../../src/discovery/stages/d0.js";
+import { isAssumeTheCruxNarrowing, isResultClassDegradation } from "../../src/discovery/narrowing_heuristics.js";
 
 // 2026-08-01 TeX audit: these heuristics run on LaTeX-bearing statement text.
 // Abbreviation/decimal periods must not truncate the clause scan, the regime

@@ -97,6 +97,5 @@ describe("D0 frozen-core local projection", () => {
     expect(snapshot.tldr).toContain("retained only in the snapshot");
     expect(snapshot.bibliography).toEqual([{ key: "Ref", citation: "Reference" }]);
     expect(snapshot.statements[0].proof_tex).toBe("Immediate.");
-    expect(snapshot.statements[0].revision).toMatch(/^rev:[a-f0-9]{64}$/);
   });
 });

@@ -30,13 +30,11 @@ structure ContourProgram where
   /-- The contour radius is strictly positive. -/
   radius_pos : 0 < radius
 
-/-- The structural operation count of one contour node includes both certified
-map programs, guarded division, and multiplication by the circle node. -/
+/-- For [a contour program](hyp:program), [the structural operation count of one contour node](goal) is the sum of the operation counts of its numerator and denominator maps plus two operations for guarded division and multiplication by the circle point. -/
 def ContourProgram.operationCount (program : ContourProgram) : ℕ :=
   program.numerator.operationCount + program.denominator.operationCount + 2
 
-/-- A concrete canonical rational program uses a rational constant numerator,
-the unit denominator, and a positive rational circle radius. -/
+/-- Given [a rational real numerator coordinate](hyp:numeratorRe), [a rational imaginary numerator coordinate](hyp:numeratorIm), [a rational circle radius](hyp:radius), and [the condition that the radius is strictly positive](hyp:hradius), [the constant-over-unit contour program](goal) has the indicated constant numerator, unit denominator, and radius. -/
 def ContourProgram.constantUnit (numeratorRe numeratorIm radius : ℚ)
     (hradius : 0 < radius) : ContourProgram where
   numerator := CertifiedComplexMap.constant numeratorRe numeratorIm
@@ -44,7 +42,7 @@ def ContourProgram.constantUnit (numeratorRe numeratorIm radius : ℚ)
   radius := radius
   radius_pos := hradius
 
-/-- The scheduled rational rectangle fed to both function interval extensions. -/
+/-- For [a contour program](hyp:program), [a schedule](hyp:schedule), and [a nonnegative node index](hyp:k), [the node rectangle](goal) is the scheduled rational rectangle for the circle point at that index. -/
 def ContourProgram.nodeBox (program : ContourProgram) (schedule : Schedule)
     (k : ℕ) : ComplexRatInterval :=
   circleNode program.radius schedule k
@@ -78,15 +76,12 @@ structure ContourValueBounds (program : ContourProgram) where
       ((program.radius : ℂ) * Complex.exp (((2 : ℝ) * Real.pi * u) * Complex.I))).im| ≤
         (denominator : ℝ)
 
-/-- A common leaf-error and circle-input target gives these numerator and
-denominator rectangle width bounds by `CertifiedComplexMap.width_le`. -/
+/-- For [a contour program](hyp:program) and [a rational common error target](hyp:target), [the pair of map-width bounds](goal) consists of the target plus the target multiplied by the numerator map's width amplification, and the analogous quantity for the denominator map. -/
 def ContourProgram.mapWidthBounds (program : ContourProgram) (target : ℚ) : ℚ × ℚ :=
   (target + program.numerator.amplification * target,
     target + program.denominator.amplification * target)
 
-/-- The explicit arithmetic propagation bound for one guarded contour node
-combines map errors, input refinement, magnitude amplification, separation,
-division, and the final multiplication by the circle point. -/
+/-- For [a contour program](hyp:program), [uniform bounds on its numerator and denominator values](hyp:bounds), [a rational separation bound](hyp:separation), and [a rational common error target](hyp:target), [the node-error propagation bound](goal) is obtained by [forming the two map-width bounds](step:1), adding the numerator bound to its width bound, adding the denominator bound to its width bound, forming a bound for the division numerator, forming its width bound, forming the denominator squared-modulus width bound, forming the quotient width bound, forming the quotient magnitude bound, and combining quotient and circle-point errors. -/
 def ContourProgram.nodePropagationBound (program : ContourProgram)
     (bounds : ContourValueBounds program) (separation target : ℚ) : ℚ :=
   let widths := program.mapWidthBounds target
@@ -102,14 +97,12 @@ def ContourProgram.nodePropagationBound (program : ContourProgram)
   let quotientMax := divisionNumeratorMax / separation
   2 * (quotientMax * target + (program.radius + target) * quotientWidth)
 
-/-- A conservative positive scale controls every coefficient in the node
-propagation polynomial on targets no larger than one. -/
+/-- For [a contour program](hyp:program), [uniform bounds on its numerator and denominator values](hyp:bounds), and [a positive rational separation bound](hyp:separation), [the node-error scale](goal) is one plus the absolute value of the node-error propagation bound evaluated at target one. -/
 def ContourProgram.nodeScale (program : ContourProgram)
     (bounds : ContourValueBounds program) (separation : PosRat) : ℚ :=
   |program.nodePropagationBound bounds separation.1 1| + 1
 
-/-- The canonical common target spends the node budget after accounting for
-all program operations, map amplification, magnitudes, and denominator separation. -/
+/-- For [a contour program](hyp:program), [uniform bounds on its numerator and denominator values](hyp:bounds), [a positive rational separation bound](hyp:separation), and [a positive rational tolerance](hyp:tolerance), [the canonical node target](goal) is the smaller of one and the tolerance divided by three times the node-error scale. -/
 def ContourProgram.canonicalNodeTarget (program : ContourProgram)
     (bounds : ContourValueBounds program) (separation tolerance : PosRat) : PosRat :=
   ⟨min 1 (tolerance.1 / (3 * program.nodeScale bounds separation)), by
@@ -308,8 +301,7 @@ private theorem ContourProgram.nodePropagationBound_le_scale_mul
       rw [ContourProgram.nodeScale, abs_of_nonneg hpropagationOne0]
       nlinarith
 
-/-- The canonical constant-over-unit program has explicit global coordinate
-magnitude bounds computed only from its rational numerator coordinates. -/
+/-- Given [a rational real numerator coordinate](hyp:numeratorRe), [a rational imaginary numerator coordinate](hyp:numeratorIm), [a rational circle radius](hyp:radius), and [the condition that the radius is strictly positive](hyp:hradius), [the value bounds for the constant-over-unit contour program](goal) bound its numerator coordinates by the larger absolute numerator coordinate and its denominator coordinates by one. -/
 def ContourProgram.constantUnitBounds (numeratorRe numeratorIm radius : ℚ)
     (hradius : 0 < radius) :
     ContourValueBounds
@@ -377,8 +369,7 @@ structure CertifiedProgramSchedule (program : ContourProgram)
   propagation_le : program.nodePropagationBound bounds separation.1 target.1 ≤
     schedule.nodeBudget
 
-/-- The finite trace for one scheduled node has one event for each structural
-primitive operation and every event retains the exact execution schedule. -/
+/-- For [a contour program](hyp:program), [its value bounds](hyp:bounds), [a positive separation target](hyp:separation), [a certified schedule](hyp:scheduled), and [a nonnegative node index](hyp:k), [the node trace](goal) lists one scheduled trace event for each structural operation of the program. -/
 def ContourProgram.nodeTrace (program : ContourProgram)
     {bounds : ContourValueBounds program} {separation : PosRat}
     (scheduled : CertifiedProgramSchedule program bounds separation) (k : ℕ) :
@@ -405,8 +396,7 @@ theorem ContourProgram.nodeTrace_spec (program : ContourProgram)
     obtain ⟨operation, rfl⟩ := hevent
     exact ⟨rfl, scheduled.operationCount_eq⟩
 
-/-- The canonical certified schedule derives operation count, input precision,
-fuel, mesh, and all three budgets from the program and rational bounds. -/
+/-- Given [a contour program](hyp:program), [uniform bounds on its numerator and denominator values](hyp:bounds), [a positive rational separation bound](hyp:separation), [a positive rational tolerance](hyp:tolerance), [a rational magnitude bound](hyp:magnitude), and [the condition that this magnitude bound is nonnegative](hyp:hmagnitude), [the canonical certified schedule](goal) derives the operation count, input precision, fuel, mesh, and error budgets from these quantities. -/
 def ContourProgram.canonicalScheduled (program : ContourProgram)
     (bounds : ContourValueBounds program) (separation tolerance : PosRat)
     (magnitude : ℚ) (hmagnitude : 0 ≤ magnitude) :
@@ -457,8 +447,7 @@ def ContourProgram.canonicalScheduled (program : ContourProgram)
         _ = tolerance.1 / 3 := by field_simp
         _ = schedule.nodeBudget := by rfl }
 
-/-- The concrete unit-denominator program has an executable separation
-certificate with squared-modulus lower bound one at every endpoint. -/
+/-- Given [a rational real numerator coordinate](hyp:numeratorRe), [a rational imaginary numerator coordinate](hyp:numeratorIm), [a rational circle radius](hyp:radius), [the condition that the radius is strictly positive](hyp:hradius), and [a schedule](hyp:schedule), [the constant-over-unit denominator certificate](goal) certifies separation one and a squared-modulus lower bound of one at every scheduled endpoint. -/
 def ContourProgram.constantUnitCertificate (numeratorRe numeratorIm radius : ℚ)
     (hradius : 0 < radius) (schedule : Schedule) :
     DenominatorCertificate
@@ -477,8 +466,7 @@ def ContourProgram.constantUnitCertificate (numeratorRe numeratorIm radius : ℚ
       ComplexRatInterval.normSq, RatInterval.sq, RatInterval.add,
       ComplexRatInterval.point, RatInterval.point]
 
-/-- The node function with an explicit endpoint-bound argument avoids ever
-constructing a division guard outside the scheduled finite endpoint range. -/
+/-- For [a contour program](hyp:program), [a schedule](hyp:schedule), [a certificate that its denominator is separated from zero at the scheduled endpoints](hyp:certificate), and [an endpoint index among the mesh plus one endpoints](hyp:k), [the finite-index integrand node rectangle](goal) is the guarded quotient of the evaluated numerator and denominator rectangles multiplied by the node rectangle. -/
 def ContourProgram.integrandNodeFin (program : ContourProgram) (schedule : Schedule)
     (certificate : DenominatorCertificate program schedule)
     (k : Fin (schedule.mesh + 1)) : ComplexRatInterval :=
@@ -487,8 +475,7 @@ def ContourProgram.integrandNodeFin (program : ContourProgram) (schedule : Sched
   let denominator := program.denominator.eval node schedule.fuel
   (numerator.div denominator (certificate.away k (Nat.le_of_lt_succ k.isLt))).mul node
 
-/-- A total natural-indexed node family agrees with certified endpoints and
-uses the terminal endpoint outside the range, which quadrature never queries. -/
+/-- For [a contour program](hyp:program), [a schedule](hyp:schedule), [a certificate that its denominator is separated from zero at the scheduled endpoints](hyp:certificate), and [a nonnegative index](hyp:k), [the total integrand-node rectangle](goal) is the guarded evaluated quotient times the node rectangle when the index is at most the mesh size, and otherwise is the terminal finite-index node rectangle. -/
 def ContourProgram.integrandNodes (program : ContourProgram) (schedule : Schedule)
     (certificate : DenominatorCertificate program schedule) (k : ℕ) :
     ComplexRatInterval :=
@@ -500,16 +487,14 @@ def ContourProgram.integrandNodes (program : ContourProgram) (schedule : Schedul
   else
     program.integrandNodeFin schedule certificate ⟨schedule.mesh, Nat.lt_succ_self _⟩
 
-/-- The exact normalized integrand after cancellation of the circle tangent's
-`2 * π * i` factor is the quotient times the circle point. -/
+/-- For [a contour program](hyp:program), [a schedule](hyp:schedule), and [a real circle parameter](hyp:u), [the normalized integrand](goal) is the quotient of the exact numerator and denominator at the corresponding circle point, multiplied by that point. -/
 noncomputable def ContourProgram.normalizedIntegrand (program : ContourProgram)
     (schedule : Schedule) (u : ℝ) : ℂ :=
   let z : ℂ := (program.radius : ℂ) *
     Complex.exp (((2 : ℝ) * Real.pi * u) * Complex.I)
   (program.numerator.value z / program.denominator.value z) * z
 
-/-- The normalized exact contour integral is the usual circle contour integral
-divided by `2 * π * i`; it is used only as the semantic target. -/
+/-- For [a contour program](hyp:program), [the normalized contour integral](goal) is its circle contour integral for the exact numerator-to-denominator quotient, divided by $2\pi i$. -/
 noncomputable def ContourProgram.normalizedContourIntegral
     (program : ContourProgram) : ℂ :=
   CircleMesh.circleContourIntegral

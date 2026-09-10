@@ -1,0 +1,1173 @@
+{
+  "qid": "scm_partialdiff_uniform_singledoor",
+  "specialization": "v5",
+  "cluster": "scm",
+  "lean_namespace": "CausalSmith.SCM.SCM_PartialdiffUniformSingledoor_Research",
+  "lean_target_subdirectory": "CausalSmith/SCM/SCM_PartialdiffUniformSingledoor_Research",
+  "feasibility": "needs-new-infrastructure",
+
+  "env": [
+    {
+      "id": "S1",
+      "world": "A paired linear Gaussian structural causal model on the fixed vertex set \\(\\mathbb V=\\{1,\\ldots,p\\}\\), \\(p\\ge3\\), with two environments \\(\\mathbb E=\\{1,2\\}\\). A model \\(M=(G^*,B^*,\\mathcal I,G,B,\\omega,\\pi)\\) consists of a baseline directed acyclic graph \\(G^*\\) with coefficient matrix \\(B^*\\in\\mathbb R^{p\\times p}\\), intervention targets \\(\\mathcal I=(\\mathcal I_1,\\mathcal I_2)\\subseteq\\mathbb V\\), environment graphs \\(G=(G_1,G_2)\\) with coefficient matrices \\(B=(B_1,B_2)\\) (edge \\(u\\to v\\) in \\(G_e\\) exactly when \\(B_{e,uv}\\neq0\\)), a single innovation-variance vector \\(\\omega\\in(0,\\infty)^p\\) shared by both environments, and a common topological order \\(\\pi\\) of \\(G^*\\). In environment \\(e\\) the observables satisfy \\(Z_e=B_e^{\\mathsf T}Z_e+\\varepsilon_e\\) with \\(\\varepsilon_e\\sim\\mathcal N(0,\\operatorname{diag}(\\omega))\\). The exposure is a vertex \\(X\\), the outcome a vertex \\(Y\\neq X\\), and the direct effects are \\(\\alpha_e(M)=B_{e,XY}\\) with target triple \\(\\tau(M)=(\\alpha_1,\\alpha_2,\\alpha_1-\\alpha_2)\\). Paths, colliders and blocking are read in the union graph \\(G_1\\cup G_2\\); the baseline-oriented difference DAG \\(D(M)\\) keeps an edge \\(u\\to v\\) exactly when \\(u\\in\\operatorname{Pa}_{G^*}(v)\\) and \\(B_{1,uv}\\neq B_{2,uv}\\). Distinguished witness families are the rescaled chain--fork pair indexed by \\((a,b)\\), \\(a\\neq0\\), \\(b\\neq0\\), and, when \\(p=3\\), the invariant-noise collider pair at a fixed covariance pair \\(\\boldsymbol\\Sigma^{\\mathrm{col}}\\). Bounded subclasses fix \\(B\\ge1\\), \\(K_B=2B^2+4\\), \\(\\kappa_B=K_B^{-2}\\).",
+      "binds_symbols": [
+        "p", "VertexSet", "EnvironmentSet", "EnvironmentIndex", "Exposure", "Outcome",
+        "RandomVector", "CoefficientPair", "InnovationPair", "InnovationVariance",
+        "EnvironmentDAGPair", "BaselineGraph", "BaselineCoefficientMatrix",
+        "InterventionTargetPair", "CommonOrder", "SCMPair",
+        "DifferenceDAG", "DiffRelevantPath", "ConditionallyDiffRelevantPath", "DiffSeparation",
+        "BoundaryModelClass", "PublishedAnchorModelClass",
+        "DirectEffectPair", "DirectEffectTriple",
+        "ChainForkParameter", "ChainForkCovariance", "ColliderVertex", "ColliderCovariancePair",
+        "CoefficientBound", "BoundedCovarianceScale", "BoundedCovarianceFloor", "BoundedModelClass"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG",
+        "Causalean.Graph.DSep.ActivePath",
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.Analysis.Matrix.PosDef"
+      ],
+      "notes": "Search trace: grepped '../doc/API.md' section index for 'SCM/Model/SCM', 'Graph/DAG', 'Discovery/LiNGAM', 'Discovery/LinearDisentanglement', 'Discovery/InvariantPrediction/LinearGaussian', 'SCM/PartialID'; scanned Causalean/Graph/, Causalean/SCM/Model/, Causalean/SCM/PartialID/, Causalean/Discovery/ on disk. Result: no paired two-environment baseline-indexed linear-Gaussian SCM world exists. `Causalean.SCM` (SCM/Model/SCM.lean) is the generalized measure-theoretic kernel SCM over arbitrary value spaces with a SWIGGraph -- a strictly higher abstraction than the matrix-level pair needed here (no coefficient matrix, no innovation-variance vector, no environment pairing); bypass-justified. `Causalean.Discovery.InvariantPrediction.LinearGaussian.ObsSEM` is single-environment, random-variable-encoded, with per-node noise and a do-intervention `Env`, so it carries neither the invariant-innovation-variance constraint nor the baseline-parent/modularity pairing; bypass-justified. `Causalean.Discovery.LinearDisentanglement.Solution` is a latent matrix SEM with a mixing map and per-context single-node interventions; wrong estimand and wrong intervention grammar; bypass-justified. REUSED INSIDE this world: `Causalean.DAG` (with `parents`, `ancestors`, `descendants`, `topoOrder`, `isAncestor`) for \\(G^*, G_1, G_2, D(M)\\) and for the union graph, and `Causalean.DAG.UAdj` / `Causalean.DAG.IsCollider` / `Causalean.DAG.IsActivePath` (Causalean/Graph/DSep/ActivePath.lean) for the path, collider and 'active given S' vocabulary of Definitions 2--4; `Matrix.PosDef` for the covariance side. Environment pairing is a plain `Fin 2` index, not a new type."
+    },
+    {
+      "id": "S2",
+      "world": "The observable Gaussian covariance experiment attached to a paired model. Each environment law is \\(P_{M,e}=\\mathcal N(0,\\Sigma_{M,e})\\) with \\(\\Sigma_{M,e}\\) symmetric positive definite, and the observed parameter is the stacked half-vector \\(s(M)=\\operatorname{vech}(\\boldsymbol\\Sigma_M)\\in\\Omega_p=\\operatorname{vech}(\\operatorname{PD}_p)^2\\subseteq\\mathbb R^{d}\\), \\(d=p(p+1)\\). Partial regression coefficients are \\(r_e(A,B\\mid S)=\\Sigma_{e,AB\\cdot S}/\\Sigma_{e,BB\\cdot S}\\); recording, for every ordered pair \\(A,B\\) and every \\(S\\subseteq\\mathbb V\\setminus\\{A,B\\}\\), whether \\(r_1=r_2\\), together with the separating sets used by population LDiffPC, gives the complete ledger \\(\\mathcal L(s)\\) and the population output graph \\(H(s)\\); the compatible-completion fiber is \\(\\mathfrak F(s)\\) and its effect fiber is \\(\\Psi(s)=\\overline{\\{\\tau(M):M\\in\\mathfrak F(s)\\}}\\subseteq\\mathbb R^3\\). Sampling: conditionally on \\(M\\), the data are \\(\\mathcal Z_n=((Z_{ei})_{i\\le n_e})_{e=1,2}\\) with joint law \\(P_{M,1}^{n_1}\\otimes P_{M,2}^{n_2}\\), \\(n_1,n_2>p\\); with \\(\\nu_e=n_e-1\\) the sample covariances are \\(\\widehat\\Sigma_e=\\nu_e^{-1}\\sum_i(Z_{ei}-\\overline Z_e)(Z_{ei}-\\overline Z_e)^{\\mathsf T}\\). The exact pivot is \\(T_{e,n}(S)=\\nu_e\\{\\operatorname{tr}(S^{-1}\\widehat\\Sigma_e)-\\log\\det(S^{-1}\\widehat\\Sigma_e)-p\\}\\), calibrated by the \\(a\\)-quantile \\(q_{p,\\nu}(a)\\) of the same functional of a \\(\\operatorname{Wishart}_p(I_p,\\nu)\\) matrix; at miscoverage \\(\\gamma\\in(0,1/2)\\) and \\(a_\\gamma=\\sqrt{1-\\gamma}\\) the region is \\(\\mathcal R_{n,\\gamma}=\\prod_{e}\\{S_e\\succ0:T_{e,n}(S_e)\\le q_{p,\\nu_e}(a_\\gamma)\\}\\) and the reported set is \\(\\widehat{\\mathcal C}_{n,\\gamma}=\\overline{\\bigcup_{s:\\operatorname{vech}^{-1}(s)\\in\\mathcal R_{n,\\gamma}}\\Psi(s)}\\), with the bounded-subclass analogue \\(\\widehat{\\mathcal C}^{B}_{n,\\gamma}\\) obtained by projecting the same region through \\(\\Psi_B\\). A competitor is any sequence \\((D_N)\\) of closed random subsets of \\(\\mathbb R^3\\) measurable with respect to \\(\\mathcal Z_n\\).",
+      "binds_symbols": [
+        "DistributionPair", "CovariancePair", "CovarianceCoordinate", "RegressionCoefficient",
+        "EqualitySepsetLedger", "LDiffPCOutput", "CompletionFiber", "IdentifiedEffectSet",
+        "ThreeVariableIdentifiedEffectSet", "BoundedIdentifiedEffectSet",
+        "SampleSizes", "TotalSampleSize", "SampleShare", "MiscoverageLevel",
+        "SampleData", "DegreesOfFreedom", "SampleCovariancePair",
+        "WishartPivot", "WishartCriticalValue",
+        "CovarianceConfidenceRegion", "ConfidenceUnion", "BoundedConfidenceUnion",
+        "GenericConfidenceProcedure"
+      ],
+      "binds_sampling_model": true,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Quantile.Quantile",
+        "Causalean.Mathlib.LinearAlgebra.Cholesky",
+        "Mathlib.LinearAlgebra.Matrix.PosDef",
+        "Mathlib.Analysis.Matrix.PosDef",
+        "Mathlib.Probability.Distributions.Gaussian.Basic"
+      ],
+      "notes": "Search trace: leansearch 'Wishart distribution sample covariance matrix law' -> only `ProbabilityTheory.covariance` / `covarianceBilin`, no Wishart law anywhere in Mathlib; grepped '../doc/API.md' for 'Wishart' -> zero hits, so Causalean has none either. The Wishart law and its trace-log-det pivot must therefore be constructed locally (build-inline, inside `def:wishart-pivot`) as the law of \\(\\sum_{j\\le\\nu}U_jU_j^{\\mathsf T}\\) for i.i.d. \\(\\mathcal N(0,\\Sigma)\\) columns -- the Gaussian-sum construction the paper's own proof uses. REUSED: `Causalean.Stat.quantile` (Causalean/Stat/Quantile/Quantile.lean, `sInf {x | tau <= cdf mu x}`) for \\(q_{p,\\nu}(a)\\) and for the limiting chi-square quantile; `Causalean.Mathlib.LinearAlgebra.cholesky_exists` / `cholesky_unique` for the ordered predecessor (Cholesky) factorization that pins \\(B_e\\) and \\(\\omega\\) from \\((s,\\pi)\\); `Matrix.PosDef` + `Matrix.PosDef.det_pos` for the principal-minor positivity used throughout. Scanned Causalean/PO/ID/Partial/ for an existing 'identified set from a covariance region' engine: `Causalean.SCM.PartialID.CompatibleSCM` / `compatibleInterval` (SCM/PartialID/CanonicalModel.lean) is the right shape but takes a `SWIGGraph` and a predicate on measure-theoretic `Causalean.SCM`, and returns an interval hull of a scalar functional; our fiber is indexed by a covariance coordinate and valued in closed subsets of \\(\\mathbb R^3\\) -- bypass-justified. `Causalean.PO.ID.Partial.SupportFunction` is convex-body/support-function based, while \\(\\Psi(s)\\) is a finite union of rational branch points and is not convex -- bypass-justified."
+    },
+    {
+      "id": "S3",
+      "world": "The local covariance experiment at a boundary point. Fix \\(s_0\\in\\Omega_p\\) and let \\(\\{\\mathcal S_b\\}_{b\\in\\mathbb B_p}\\) be the finite family of semialgebraic covariance cells produced by enumerating baseline graphs, target sets, common orders, difference DAGs, exact-ledger sign patterns, LDiffPC-compatible orientations and Cholesky cases, each carrying its rational predecessor-regression target map \\(\\theta_b:\\mathcal S_b\\to\\mathbb R^3\\). The accessible branches are \\(\\mathbb B(s_0)=\\{b:s_0\\in\\overline{\\mathcal S_b}\\}\\), their tangent cones are \\(T_b(s_0)=\\operatorname{Tan}(\\overline{\\mathcal S_b},s_0)\\), and \\(\\Gamma(s_0)=\\{\\theta_b(s_0):b\\in\\mathbb B(s_0)\\}\\). Local alternatives are indexed by \\(h\\in\\mathbb R^d\\) along \\(N^{-1/2}\\)-local model sequences \\((M_N)\\) with \\(s(M_N)=s_0+h/\\sqrt N+o(N^{-1/2})\\) inside one branch. Writing \\(\\lambda=\\lim n_1/N\\in(0,1)\\) and \\(V(\\Sigma)_{AB,CD}=\\Sigma_{AC}\\Sigma_{BD}+\\Sigma_{AD}\\Sigma_{BC}\\) in half-vector coordinates, the limit noise is \\(\\mathbb Z_0\\sim\\mathcal N(0,V_0)\\) with \\(V_0=\\operatorname{diag}(\\lambda^{-1}V(\\Sigma_{0,1}),(1-\\lambda)^{-1}V(\\Sigma_{0,2}))\\), and the acceptance body \\(\\mathcal A_\\gamma(h+\\mathbb Z_0)\\) is the product over \\(e=1,2\\) of covariance-score ellipsoids centred at the corresponding block, each of \\(\\chi^2_{p(p+1)/2,\\sqrt{1-\\gamma}}\\) radius. The zeroth- and first-order limits are \\(\\mathcal K^{(0)}_h=\\{\\theta_b(s_0):b\\in\\mathbb B(s_0),\\ T_b(s_0)\\cap\\mathcal A_\\gamma\\neq\\varnothing\\}\\) and \\(\\mathcal K^{(1)}_h=\\bigcup_b D\\theta_b(s_0)\\bigl(T_b(s_0)\\cap\\mathcal A_\\gamma\\bigr)\\), with the regular-stratum image \\(\\mathcal P_\\gamma(y;b_0,s_0)=J(T_{b_0}(s_0)\\cap\\mathcal A_\\gamma(y))\\), \\(J=D\\theta_{b_0}(s_0)\\). When \\(\\Gamma(s_0)=\\{\\tau_0\\}\\), \\(\\tau_0\\) is the common accessible-branch target. Convergence of random closed sets is taken in the Fell topology.",
+      "binds_symbols": [
+        "BranchIndexSet", "BranchCell", "BranchEffectMap",
+        "BoundaryPoint", "AccessibleBranchSet", "BoundaryLimitSet",
+        "TangentCone", "LocalDirection",
+        "GaussianCovarianceLimit", "GaussianLimit", "GaussianAcceptanceBody",
+        "ZerothOrderRandomSet", "FirstOrderRandomSet", "RegularProductScoreImage",
+        "LocalModelSequence", "BoundaryCommonTarget"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Calculus.TangentCone.Defs",
+        "Causalean.Stat.CLT.GaussianLimit",
+        "Causalean.Stat.CLT.ChiSquared",
+        "Causalean.Mathlib.StandardGaussian",
+        "Causalean.Stat.Quantile.Quantile"
+      ],
+      "notes": "Search trace: leansearch 'tangent cone at a point of a set in a normed space' -> `tangentConeAt` (Mathlib.Analysis.Calculus.TangentCone.Defs) with `mem_tangentConeAt_iff_exists_seq_norm_tendsto_atTop`; REUSED verbatim as \\(T_b(s_0)=\\)`tangentConeAt R (closure (branchCell b)) s0`. leansearch 'semialgebraic set Tarski Seidenberg quantifier elimination real closed field projection' -> only `IsSemilinearSet` (Presburger arithmetic over add-comm monoids), i.e. Mathlib has NO real semialgebraic geometry; grepped '../doc/API.md' for 'semialgebraic' -> one unrelated hit in Stat/Concentration. `Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension` is complex Zariski geometry (affine closure, prime spectra), not real semialgebraic sets -- bypass-justified. Consequently the semialgebraic vocabulary is defined locally as an explicit finite boolean combination of polynomial equalities and strict inequalities (which is all the paper's cells ever need), with Tarski-Seidenberg / Whitney-Sard / boundary-null taken as cited gates. REUSED: `Causalean.Stat.gaussianLimit` (Causalean/Stat/CLT/GaussianLimit.lean, `(stdGaussian E).map sqrt-Sigma`) for \\(\\mathbb Z_0\\); `Causalean.Stat.chiSqDist` and `Causalean.Stat.noAtoms_chiSqDist` (Causalean/Stat/CLT/ChiSquared.lean) for the acceptance-body radius and the continuity of the limiting pivot law; `Causalean.Stat.quantile` for its \\(\\sqrt{1-\\gamma}\\) quantile; `Causalean.Mathlib.stdGaussian` underneath. No Fell-topology or Painleve-Kuratowski hyperspace convergence exists in Mathlib or Causalean (leansearch returned nothing under 'Fell topology' vocabulary and '../doc/API.md' has no hit); set convergence is expressed locally through `Metric.ediam`, `Metric.infDist` and explicit upper/lower set limits, which is what the proofs actually use."
+    },
+    {
+      "id": "S4",
+      "world": "The bounded Gaussian tangent decision problem at a boundary point with \\(\\Gamma(s_0)=\\{\\tau_0\\}\\). Fix a localization radius \\(R\\in(0,\\infty)\\) and set \\(\\Lambda_R=\\{(b,h):b\\in\\mathbb B(s_0),\\ h\\in T_b(s_0),\\ \\|h\\|_2\\le R\\}\\). Under local direction \\(h\\) one observes \\(\\mathbb Y_h=h+\\mathbb Z_0\\sim\\mathcal N(h,V_0)\\), and the branch target is the linear functional \\(\\eta_b(h)=D\\theta_b(s_0)h\\in\\mathbb R^3\\). A decision rule is an Effros-measurable randomized map \\(\\delta:\\mathbb R^d\\times[0,1]\\to\\mathcal F(\\mathbb R^3)\\) into the closed subsets of \\(\\mathbb R^3\\), where \\(U\\sim\\operatorname{Unif}[0,1]\\) is independent of \\(\\mathbb Y_h\\) for every \\(h\\). The loss is the extended diameter, with \\(\\operatorname{diam}(C)=0\\) when \\(C\\) is empty or a singleton and \\(\\operatorname{diam}(C)=\\sup_{x,y\\in C}\\|x-y\\|_2\\in[0,\\infty]\\) otherwise. The admissible class is \\(\\mathfrak D_R=\\{\\delta:\\inf_{(b,h)\\in\\Lambda_R}\\Pr_h[\\eta_b(h)\\in\\delta(\\mathbb Y_h,U)]\\ge1-\\gamma\\}\\), the risk is \\(\\mathfrak R_R(\\delta)=\\sup_{(b,h)\\in\\Lambda_R}\\mathbb E_h[\\operatorname{diam}(\\delta(\\mathbb Y_h,U))]\\), and the value is \\(v_R=\\inf_{\\delta\\in\\mathfrak D_R}\\mathfrak R_R(\\delta)\\).",
+      "binds_symbols": [
+        "TangentRadius", "LocalParameterSet", "TangentObservation", "BranchLocalTarget",
+        "AuxiliaryRandomizer", "RandomizedConfidenceRule", "ExtendedDiameter",
+        "CoverageAdmissibleRuleSet", "LocalDiameterRisk", "LocalMinimaxValue"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Topology.EMetricSpace.Diam",
+        "Mathlib.Topology.MetricSpace.Closeds",
+        "Mathlib.Probability.Kernel.Disintegration.StandardBorel",
+        "Causalean.PO.ID.Partial.RandomSet.Hausdorff"
+      ],
+      "notes": "Search trace: leansearch 'extended diameter of a set in an emetric space, diam of empty set is zero' -> `Metric.ediam : Set X -> ENNReal` with `Metric.ediam_empty`; REUSED verbatim for `ExtendedDiameter` (it already gives 0 on the empty set and on singletons and admits the value +infinity, matching the frozen convention exactly, so no local diameter is defined). leansearch 'space of nonempty compact subsets with Hausdorff distance is compact when the space is compact' -> `TopologicalSpace.Closeds` with `TopologicalSpace.Closeds.instCompactSpace` ([EMetricSpace][CompactSpace] -> CompactSpace (Closeds a)); REUSED as the action space \\(\\mathcal H_R\\) (Mathlib's `Closeds` already contains the empty set and isolates it under the Hausdorff edist, which is exactly the frozen hyperspace). `ProbabilityTheory.Kernel` (Mathlib.Probability.Kernel.Basic, re-exported through the Disintegration modules) is REUSED for the randomized-rule kernels \\(Q(\\cdot\\mid y)\\). `Causalean.PO.ID.Partial.RandomSet.hausdorffDist` / `directedHausdorff` scanned and available if a Hausdorff distance is needed on nonempty values; the Effros sigma-field itself has no Mathlib entry (searched 'Effros measurable random closed set' -> nothing) and is defined locally through the compact-hit events, which is the only form the proof uses."
+    }
+  ],
+
+  "nodes": {
+    "ass:linear-structural-equations": {
+      "lean_kind": "assumption",
+      "lean_name": "LinearStructuralEquations",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.PosDef"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "assumption_class": "modeling",
+      "notes": "Modeling assumption (restriction on the structural law), kept as a threaded hypothesis. Search trace: grepped '../doc/API.md' for 'linear structural equation', 'ObsSEM', 'linear SEM' -> `Causalean.Discovery.InvariantPrediction.LinearGaussian.ObsSEM` and `Causalean.Discovery.LinearDisentanglement.Solution` are the only linear-SEM carriers; both are single-environment / latent-mixing and neither exposes a two-environment predicate `Z_e = B_e^T Z_e + eps_e`, so no exact-condition discharge exists. Encoded as `Prop` over the S1 world; no Mathlib-side check needed (this is a model restriction, not a standard mathematical fact)."
+    },
+    "ass:baseline-parent-containment": {
+      "lean_kind": "assumption",
+      "lean_name": "BaselineParentContainment",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Graph.DAG"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "assumption_class": "modeling",
+      "notes": "Modeling assumption; threaded. Stated as `forall e v, (G_e).parents v subseteq (G_star).parents v` reusing `Causalean.DAG.parents`. Search trace: grepped Causalean/Graph/ and Causalean/SCM/Model/ for 'parents subset' / 'parent containment' / 'subgraph' -> only `DAG.dSep_mono_conditioningSet` (edge-subset transport of d-separation), which is a consequence, not the atom; no decl states this containment, so it stays an assumption."
+    },
+    "ass:modular-interventions": {
+      "lean_kind": "assumption",
+      "lean_name": "ModularInterventions",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Graph.DAG"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "assumption_class": "modeling",
+      "notes": "Modeling assumption; threaded. Search trace: grepped '../doc/API.md' for 'modular', 'InterventionSet', 'fixSet' -> `Causalean.SCM.fixSet`/`fixMono` implement do-interventions on the kernel SCM, a different grammar (value-fixing, not mechanism-preservation off a target set) at a different abstraction; bypass-justified, no discharge."
+    },
+    "ass:independent-gaussian-innovations": {
+      "lean_kind": "assumption",
+      "lean_name": "IndependentGaussianInnovations",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Probability.Distributions.Gaussian.Basic"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "assumption_class": "modeling",
+      "notes": "Modeling assumption; threaded. Encoded as `HasLaw eps_e (multivariate centered Gaussian with diagonal covariance diag omega)` over Mathlib's Gaussian layer. Search trace: leansearch 'multivariate centered Gaussian with diagonal covariance independent coordinates' -> `ProbabilityTheory.IsGaussian`, `gaussianReal`, `Measure.pi`; Causalean `Causalean.Mathlib.stdGaussian` gives the standard case. These realize the law but do not discharge the assumption (which asserts the model's noise has that law)."
+    },
+    "ass:invariant-innovation-variances": {
+      "lean_kind": "assumption",
+      "lean_name": "InvariantInnovationVariances",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "assumption_class": "modeling",
+      "notes": "Modeling assumption; threaded. Structurally this is already forced by the S1 encoding (a single `omega` field shared by both environments), so the `Prop` is the explicit restatement the core requires and is discharged by `rfl` at every consumer that carries the S1 world; recorded so the assumption table stays faithful to the note. Search trace: grepped Causalean/Discovery/InvariantPrediction/ for 'invariant noise' -> `EnvFamily.hLatent` shares the latent law across environments but as an `HEq` field of a kernel-SCM family, wrong abstraction; bypass-justified."
+    },
+    "ass:positive-innovation-variances": {
+      "lean_kind": "assumption",
+      "lean_name": "PositiveInnovationVariances",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "assumption_class": "modeling",
+      "notes": "Support assumption `0 < omega v` for every v; threaded. Search trace: leansearch 'positive variance nondegenerate Gaussian' -> only generic `0 < sigma` side conditions attached to `gaussianReal`; nothing states this for a structural model. Trivial `Prop`, no reuse target."
+    },
+    "ass:diff-faithfulness": {
+      "lean_kind": "assumption",
+      "lean_name": "DiffFaithfulness",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Graph.DSep.ActivePath"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "assumption_class": "modeling",
+      "notes": "The paper's named faithfulness assumption (Bystrova--Devijver, arXiv:2606.13947v1); a modeling assumption in the strict sense and threaded everywhere, never discharged. Encoded as the biconditional `r_1(A,B|S) = r_2(A,B|S) <-> DiffSeparated M A B S` quantified over all ordered pairs and eligible S. Search trace: grepped '../doc/API.md' and Causalean/Graph/DSep/ for 'faithful', 'faithfulness' -> only `Causalean.Discovery.InvariantPrediction.RichEnv` (a richness/faithfulness primitive for ICP completeness, a different statement); no diff-faithfulness anywhere. Reuses the S1 union-graph `DiffSeparated` predicate, itself built on `Causalean.DAG.IsActivePath`."
+    },
+    "ass:independent-gaussian-sampling": {
+      "lean_kind": "assumption",
+      "lean_name": "IndependentGaussianSampling",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Probability.Distributions.Gaussian.Basic"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "assumption_class": "modeling",
+      "notes": "Sampling assumption: the joint data law is the product `P_{M,1}^{n_1} tensor P_{M,2}^{n_2}`; threaded into every finite-sample statement. Search trace: grepped '../doc/API.md' for 'IIDSample' -> `Causalean.Stat.IIDSample` is a one-sample i.i.d. structure with a normalized-sum CLT; it is the right vocabulary for one environment but does not state the two-sample product, and it is a structure carrying the assumption rather than a theorem proving it, so no discharge. Encoded over `Measure.pi` / `Measure.prod`."
+    },
+    "ass:asymptotic-sample-balance": {
+      "lean_kind": "assumption",
+      "lean_name": "AsymptoticSampleBalance",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "assumption_class": "modeling",
+      "notes": "Regularity assumption `Tendsto (fun N => n_1 N / N) atTop (nhds lambda)` with `lambda in (0,1)`; threaded. Search trace: leansearch 'two sample allocation fraction converges' and grep of '../doc/API.md' for 'sample share', 'allocation' -> nothing; a plain Mathlib `Filter.Tendsto` statement, no reuse target beyond `Filter.Tendsto` itself."
+    },
+    "ass:tangent-cone-regularity": {
+      "lean_kind": "assumption",
+      "lean_name": "TangentConeRegularity",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Analysis.Calculus.TangentCone.Defs"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "assumption_class": "modeling",
+      "notes": "Chernoff/Geyer regularity: the rescalings `t^{-1} (closure (branchCell b) - s0)` converge locally in the Painleve--Kuratowski sense to `tangentConeAt R (closure (branchCell b)) s0` as `t -> 0+`. Declared as an `ass:` node by the author, so it is kept as a threaded hypothesis and never escalated. Search trace: leansearch 'tangent cone at a point of a set in a normed space' -> `tangentConeAt` exists and is REUSED as the cone itself; leansearch 'Painleve Kuratowski convergence of sets, set limit inferior superior' -> no Mathlib hyperspace-convergence API; grepped '../doc/API.md' for 'tangent cone', 'Chernoff', 'Kuratowski' -> zero hits. The local convergence is therefore written out explicitly (upper and lower set limits) inside the assumption `Prop`."
+    },
+
+    "def:difference-dag": {
+      "lean_kind": "def",
+      "lean_name": "differenceDAG",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Graph.DAG"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/DiffGraph.lean",
+      "inputs": ["SCMPair"],
+      "notes": "Construction: `D(M)` with edge relation `u in (G_star).parents v and B_1 u v != B_2 u v`, packaged as a `Causalean.DAG (Fin p)` whose acyclicity witness is inherited from the baseline order `pi` (edges of D are baseline edges). REUSES `Causalean.DAG` and `Causalean.DAG.parents`. Search trace: grepped '../doc/API.md' section index and Causalean/Graph/ for 'difference graph', 'DiffPC', 'difference DAG' -> zero hits (Causalean has `markovEquiv`, `cComponentSet`, `SelectionDiagram`, none of which is a cross-environment difference graph); no Mathlib-side analogue applies (this is causal-graph vocabulary, not a standard mathematical fact)."
+    },
+    "def:diff-relevant-path": {
+      "lean_kind": "def",
+      "lean_name": "DiffRelevantPath",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Graph.DAG", "Causalean.Graph.DSep.ActivePath"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/DiffGraph.lean",
+      "inputs": ["SCMPair", "DifferenceDAG"],
+      "notes": "Definition 2 predicate on a list of vertices forming a path in the union graph `G_1 cup G_2`. REUSES `Causalean.DAG.UAdj` for consecutive adjacency in the union DAG and `Causalean.DAG.isAncestor` / `ancestors` for the 'has an ancestor with an incoming D-edge' clause. Search trace: grepped Causalean/Graph/DSep/ActivePath.lean and Separation.lean for 'relevant', 'diff' -> only `IsActivePath`, `IsCollider`, `HasActivePath`, `dSep`; the diff-relevance clauses (an edge of D on the path, or a non-endpoint with a D-in-edged ancestor) have no counterpart, so this is new but small and sits directly on the reused vocabulary."
+    },
+    "def:conditionally-diff-relevant-path": {
+      "lean_kind": "def",
+      "lean_name": "ConditionallyDiffRelevantPath",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Graph.DAG", "Causalean.Graph.DSep.ActivePath"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/DiffGraph.lean",
+      "inputs": ["SCMPair", "DifferenceDAG", "DiffRelevantPath"],
+      "notes": "Definition 3: the three-clause disjunction (collider with a D-in-edged descendant in S; non-collider joined to a D-in-edged vertex of S\\\\rho by a path active given S; endpoint with an incoming path-edge and a D-in-edged descendant in S), conjoined with 'not diff-relevant'. REUSES `Causalean.DAG.IsCollider` for the collider clause and `Causalean.DAG.IsActivePath` verbatim for the 'connected by a path active given S' clause -- that is the single most valuable reuse in this file, since it supplies the collider/non-collider blocking bookkeeping already proved sound against Bayes-ball reachability. Also reuses `DAG.descendants`. Search trace as in `def:diff-relevant-path`."
+    },
+    "def:diff-separation": {
+      "lean_kind": "def",
+      "lean_name": "DiffSeparated",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Graph.DAG", "Causalean.Graph.DSep.ActivePath"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/DiffGraph.lean",
+      "inputs": ["SCMPair", "DiffRelevantPath", "ConditionallyDiffRelevantPath"],
+      "notes": "Definition 4: S blocks every diff-relevant and every conditionally-diff-relevant path between A and B in the union graph. Blocking is expressed through the negation of `Causalean.DAG.IsActivePath` on the union DAG, so the relation is definitionally comparable with `Causalean.DAG.dSep` on the same graph. Search trace: `Causalean.DAG.dSep X Y Z` (Graph/DSep/Separation.lean) is ordinary d-separation and is NOT this relation (it blocks all paths, not just the diff-relevant ones), so it cannot be reused as the definition; it is reused as the blocking primitive only. Confirmed by reading Causalean/Graph/DSep/ActivePath.lean lines 57-95."
+    },
+    "def:boundary-model-class": {
+      "lean_kind": "structure",
+      "lean_name": "BoundaryModelClass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Graph.DAG", "Mathlib.LinearAlgebra.Matrix.PosDef"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "members": [
+        "ass:linear-structural-equations",
+        "ass:baseline-parent-containment",
+        "ass:modular-interventions",
+        "ass:independent-gaussian-innovations",
+        "ass:invariant-innovation-variances",
+        "ass:positive-innovation-variances",
+        "ass:diff-faithfulness"
+      ],
+      "notes": "The class \\(\\mathcal M_p^{\\mathrm{df}}\\): one structure field per member `Prop`, in the frozen order. Search trace: grepped '../doc/API.md' for 'model class', 'CompatibleSCM', 'SelectionDiagram' -> `Causalean.SCM.PartialID.CompatibleSCM` is a predicate on kernel SCMs given a SWIGGraph and an assumption predicate; different abstraction and no innovation-variance invariance; bypass-justified. Build-inline."
+    },
+    "def:exact-ledger": {
+      "lean_kind": "def",
+      "lean_name": "exactLedger",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.PosDef", "Mathlib.Analysis.Matrix.PosDef"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Ledger.lean",
+      "inputs": ["CovarianceCoordinate"],
+      "notes": "Defines the partial regression functional `r_e(A,B|S) = Sigma_{e,AB.S} / Sigma_{e,BB.S}` (the `RegressionCoefficient` symbol) via Schur complements of `Matrix.submatrix`, then the complete finite record over all ordered pairs and all conditioning sets, together with the separating sets. Positivity of every denominator comes from `Matrix.PosDef` on principal submatrices. Search trace: leansearch 'partial correlation partial regression coefficient conditional covariance Schur complement' -> Mathlib has `Matrix.schurComplement` style lemmas under `Matrix.PosDef` but no partial-regression functional; grepped '../doc/API.md' for 'partial regression', 'residualization' -> `Causalean.Panel.Analysis.Residualization` and `Causalean.Mathlib.FWL` are L^2(mu) population-residualization engines over a measure, not covariance-matrix algebra over `PD_p`; bypass-justified (the artifact here is purely algebraic in the covariance entries)."
+    },
+    "def:ldiffpc-output": {
+      "lean_kind": "def",
+      "lean_name": "ldiffpcOutput",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Graph.DAG"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Ledger.lean",
+      "inputs": ["EqualitySepsetLedger"],
+      "notes": "The deterministic population LDiffPC map: delete an adjacency on a recorded equality (storing its sepset), orient unshielded colliders, close under Meek rules; the value is a partially directed graph on `Fin p`. Search trace: grepped '../doc/API.md' and Causalean/ for 'PC algorithm', 'Meek', 'unshielded collider', 'CPDAG', 'markovEquiv' -> `Causalean.Graph.MarkovEquiv` provides Verma--Pearl Markov equivalence (same skeleton + same v-structures) but no PC/Meek orientation procedure and no partially-directed-graph type; bypass-justified. Only the skeleton and the recorded orientations are ever consumed downstream, so the local encoding is a pair (adjacency `Prop`, oriented-edge `Prop`) plus a sepset map, which keeps this build-inline and small."
+    },
+    "def:completion-fiber": {
+      "lean_kind": "def",
+      "lean_name": "completionFiber",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Ledger.lean",
+      "inputs": ["CovarianceCoordinate", "EqualitySepsetLedger", "LDiffPCOutput"],
+      "notes": "`F(s) = {M in BoundaryModelClass | s(M) = s and skel (D M) = skel (H s) and every orientation of H s is an orientation of D M}`. Search trace: `Causalean.SCM.PartialID.CompatibleSCM` (SCM/PartialID/CanonicalModel.lean line 47) is the closest analogue -- 'all SCMs compatible with a graph and a set of assumptions' -- but is parameterized by a `SWIGGraph` and a predicate on measure-theoretic `Causalean.SCM N Omega`, with no covariance-coordinate constraint; recorded as the module F3 should imitate structurally, bypass-justified for reuse. Build-inline."
+    },
+    "def:identified-effect-set": {
+      "lean_kind": "def",
+      "lean_name": "identifiedEffectSet",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Ledger.lean",
+      "inputs": ["CompletionFiber", "DirectEffectTriple"],
+      "notes": "`Psi s = closure ((fun M => tau M) '' completionFiber s)` in `EuclideanSpace R (Fin 3)`. Also fixes the `ThreeVariableIdentifiedEffectSet` symbol as the `p = 3` instance (no separate node; the core marks it as a dimension-scoped notation for the same functional). Search trace: leansearch 'closure of the image of a set under a map' -> `closure (f '' s)`, elementary; `Causalean.SCM.PartialID.compatibleInterval` returns an interval hull of a scalar functional and cannot represent a non-convex subset of R^3; bypass-justified."
+    },
+    "def:wishart-pivot": {
+      "lean_kind": "def",
+      "lean_name": "wishartPivot",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Stat.Quantile.Quantile", "Mathlib.Analysis.Matrix.PosDef"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/WishartRegion.lean",
+      "inputs": ["SampleCovariancePair", "DegreesOfFreedom"],
+      "notes": "Defines `T_{e,n}(S) = nu_e * (trace (S^{-1} Sigma-hat_e) - log (det (S^{-1} Sigma-hat_e)) - p)` via `Matrix.trace`, `Matrix.det`, `Real.log`, and the critical value `q_{p,nu}(a) = Causalean.Stat.quantile (law of the same functional of Wishart_p(I_p,nu)) a`. The `Wishart_p(I_p,nu)` law is constructed locally as the law of `sum_{j < nu} U_j * U_j^T` for i.i.d. standard Gaussian columns -- the paper's own defining construction. Search trace: leansearch 'Wishart distribution sample covariance matrix law' -> no Wishart anywhere in Mathlib (only `ProbabilityTheory.covariance`/`covarianceBilin`); grep of '../doc/API.md' for 'Wishart' -> zero hits. REUSED: `Causalean.Stat.quantile` for the quantile, `Causalean.Mathlib.stdGaussian` for the Gaussian columns. Build-inline (a definition plus a Gaussian-sum construction), not Defer."
+    },
+    "def:covariance-region": {
+      "lean_kind": "def",
+      "lean_name": "covarianceRegion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Analysis.Matrix.PosDef"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/WishartRegion.lean",
+      "inputs": ["SampleCovariancePair", "MiscoverageLevel"],
+      "notes": "`R_{n,gamma} = prod_e {S_e | S_e.PosDef and wishartPivot e S_e <= q (sqrt (1 - gamma))}`. Search trace: grepped '../doc/API.md' for 'confidence region', 'test inversion' -> `Causalean.PO.ID.Partial.Inference` builds intervals for interval-identified scalars and `CriterionSet` builds level-set estimators of an argmin; neither is a matrix-pivot sublevel set on the positive-definite cone; bypass-justified. Elementary set former, build-inline."
+    },
+    "def:confidence-union": {
+      "lean_kind": "def",
+      "lean_name": "confidenceUnion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/WishartRegion.lean",
+      "inputs": ["CovarianceConfidenceRegion", "IdentifiedEffectSet"],
+      "notes": "`closure (union over s with vech^{-1} s in R_{n,gamma} of Psi s)`. Search trace: leansearch 'closure of an indexed union of sets' -> `closure (iUnion ...)`, elementary Mathlib; no causal-library analogue needed. Build-inline."
+    },
+    "def:semialgebraic-branches": {
+      "lean_kind": "def",
+      "lean_name": "branchStratification",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Mathlib.LinearAlgebra.Cholesky", "Mathlib.Analysis.Matrix.PosDef"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Branches.lean",
+      "inputs": ["BoundaryModelClass", "EqualitySepsetLedger", "CompletionFiber"],
+      "notes": "Fixes the finite branch index `BranchIndexSet` (a `Fintype` of discrete tuples: baseline DAG, target sets, common order, difference DAG, ledger sign table, compatible orientation, Cholesky case), the cell `branchCell b : Set (covariance coordinates)` as an explicit finite boolean combination of polynomial equalities and strict inequalities after clearing positive principal-minor denominators, and the rational target map `branchEffectMap b`. Search trace: leansearch 'semialgebraic set Tarski Seidenberg quantifier elimination real closed field projection' -> only Presburger `IsSemilinearSet`; no real semialgebraic API in Mathlib. grepped '../doc/API.md' for 'semialgebraic' -> one unrelated hit (Stat/Concentration finite-trace certificates). `Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension` is complex Zariski geometry; bypass-justified. REUSED: `Causalean.Mathlib.LinearAlgebra.cholesky_exists` / `cholesky_unique` for the ordered predecessor factorization that makes `branchEffectMap` well defined, and `Matrix.PosDef.det_pos` for denominator positivity. Build-inline: the cells are written as explicit polynomial systems, so no projection/quantifier-elimination machinery is needed to DEFINE them (only `lem:tarski-seidenberg-projection`, a cited gate, is needed to conclude that a projected tangent section is again semialgebraic)."
+    },
+    "def:boundary-limit-sets": {
+      "lean_kind": "def",
+      "lean_name": "boundaryLimitSets",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Analysis.Calculus.TangentCone.Defs", "Causalean.Stat.CLT.GaussianLimit", "Causalean.Stat.CLT.ChiSquared"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Branches.lean",
+      "inputs": ["BranchCell", "BranchEffectMap", "BoundaryPoint", "LocalDirection"],
+      "notes": "Fixes `AccessibleBranchSet`, `TangentCone` (= `tangentConeAt R (closure (branchCell b)) s0`, REUSED from Mathlib), `GaussianCovarianceLimit` V_0, `GaussianLimit` (= `Causalean.Stat.gaussianLimit`, REUSED), `GaussianAcceptanceBody` (a product of two ellipsoids of `Causalean.Stat.chiSqDist`-quantile radius, REUSED via `Causalean.Stat.quantile`), and then `K^{(0)}_h`, `K^{(1)}_h`. Search trace: leansearch 'tangent cone at a point of a set in a normed space' -> `tangentConeAt`; leansearch 'chi squared distribution quantile' + grep of Causalean/Stat/CLT/ChiSquared.lean -> `Causalean.Stat.chiSqDist`, `Causalean.Stat.noAtoms_chiSqDist`. Build-inline."
+    },
+    "def:regular-product-score-image": {
+      "lean_kind": "def",
+      "lean_name": "regularProductScoreImage",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Analysis.Calculus.TangentCone.Defs"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Branches.lean",
+      "inputs": ["BoundaryPoint", "BranchCell", "BranchEffectMap", "GaussianAcceptanceBody"],
+      "notes": "`P_gamma(y; b0, s0) = J '' (tangentCone b0 s0 inter acceptanceBody y)` with `J = D theta_{b0}(s0)` split into its two covariance blocks. Search trace: leansearch 'Minkowski sum of images of sets under a linear map' -> `Set.image2 (+)` / `Set.add` and `Set.image_add`, elementary Mathlib; grep of '../doc/API.md' for 'Minkowski' -> `Causalean.PO.ID.Partial.RandomSet.SetValued.minkowskiMean` and `dilate` (Minkowski dilation of an interval), which are the convex-body versions and do not fit a cone-intersected linear image; bypass-justified. Build-inline."
+    },
+    "def:chain-fork-witness": {
+      "lean_kind": "def",
+      "lean_name": "chainForkWitness",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Graph.DAG"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Witnesses.lean",
+      "inputs": ["ChainForkParameter"],
+      "notes": "Explicit construction of the two paired SCMs M^ch and M^fk for every p >= 3 and every (a,b) with a != 0, b != 0, including the p-3 appended isolated standard-Gaussian vertices and the two common orders. Search trace: grepped Causalean/SCM/Examples/ (IV.lean, BackDoor.lean, Frontdoor.lean, ContinuousBackdoor.lean) for a chain/fork observational-equivalence witness -> those are 4-node kernel-SCM examples with a fixed node inductive type, not a p-indexed parametric family of paired linear-Gaussian models; bypass-justified. REUSES the `Causalean.DAG` construction pattern documented in '../doc/API.md' section 1. Build-inline; the covariance identity `Sigma^cf(a,b) = L L^T` makes every check a finite matrix computation."
+    },
+    "def:collider-witness": {
+      "lean_kind": "def",
+      "lean_name": "colliderWitness",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Mathlib.LinearAlgebra.Cholesky", "Causalean.Graph.DAG"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Witnesses.lean",
+      "inputs": ["ColliderCovariancePair"],
+      "notes": "The p = 3 invariant-noise collider family: the two explicit rational covariance matrices, the two surviving common orders X < W < Y and W < X < Y, environment 1 as baseline, I_1 = empty, I_2 = {Y}. REUSES `Causalean.Mathlib.LinearAlgebra.cholesky_exists` for the ordered factorization. Search trace: grepped Causalean/SCM/Examples/ and Causalean/Graph/MarkovEquiv/ for an explicit rational three-variable collider covariance witness -> none; the closest is `SCM/Examples/BackDoor.lean`, a 4-node discrete example; bypass-justified. Build-inline; all arithmetic is exact rational (`norm_num` / `decide` territory)."
+    },
+    "def:local-minimax-handle": {
+      "lean_kind": "def",
+      "lean_name": "localMinimaxHandle",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Topology.EMetricSpace.Diam", "Mathlib.Topology.MetricSpace.Closeds", "Mathlib.Probability.Kernel.Disintegration.StandardBorel"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/LocalExperiment.lean",
+      "inputs": ["GaussianCovarianceLimit", "LocalParameterSet", "BranchLocalTarget", "CoverageAdmissibleRuleSet", "LocalDiameterRisk", "LocalMinimaxValue"],
+      "notes": "Fixes `Lambda_R`, `Y_h ~ N(h, V_0)`, `eta_b(h) = D theta_b(s0) h`, the Effros-measurable randomized rule type, the coverage class `D_R`, the risk `R_R` and the value `v_R`. REUSED: `Metric.ediam` verbatim for `ExtendedDiameter` (leansearch 'extended diameter of a set in an emetric space, diam of empty set is zero' -> `Metric.ediam`, `Metric.ediam_empty`); `TopologicalSpace.Closeds` for the action space; `ProbabilityTheory.Kernel` for the randomized rules. Search trace for the Effros sigma-field: leansearch 'Effros measurable random closed set hit-or-miss sigma algebra' -> nothing in Mathlib; grep of '../doc/API.md' for 'Effros' -> zero hits, so the hit-events sigma-field is generated locally (the proof of `thm:local-minimax-attainment-characterization` only ever uses compact-hit and containment events, both written out explicitly). Build-inline."
+    },
+    "def:bystrova-devijver-anchor-class": {
+      "lean_kind": "structure",
+      "lean_name": "AnchorModelClass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Graph.DAG"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "members": [
+        "ass:linear-structural-equations",
+        "ass:baseline-parent-containment",
+        "ass:modular-interventions",
+        "ass:diff-faithfulness"
+      ],
+      "notes": "\\(\\mathcal M_p^{\\mathrm{BD}}\\): four member `Prop` fields exactly as frozen, plus two non-atomized structure fields carried directly by the definition (mutual independence of the coordinates of eps_e for each e, and `Law(eps_1) = Law(eps_2)`) with NO Gaussian restriction. The two extra fields are part of the definition text, not separate `ass:` nodes, so they are structure fields rather than assumption nodes. Search trace: as for `def:boundary-model-class`; no library class carries a non-Gaussian environment-invariant exogenous law. Build-inline."
+    },
+    "def:bounded-boundary-model-class": {
+      "lean_kind": "structure",
+      "lean_name": "BoundedModelClass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.LinearAlgebra.Matrix.PosDef", "Mathlib.Analysis.Matrix.PosDef"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "members": [
+        "ass:linear-structural-equations",
+        "ass:baseline-parent-containment",
+        "ass:modular-interventions",
+        "ass:independent-gaussian-innovations",
+        "ass:invariant-innovation-variances",
+        "ass:positive-innovation-variances",
+        "ass:diff-faithfulness"
+      ],
+      "notes": "\\(\\mathcal M_{p,B}^{\\mathrm{df}}\\): the seven frozen member `Prop` fields plus two bounding fields carried by the definition text (`|B_{e,uv}| <= B` for all e,u,v, and `kappa_B I <= Sigma_{M,e} <= K_B I` in the Loewner order, with `K_B = 2 B^2 + 4`, `kappa_B = K_B^{-2}`). The `BoundedCovarianceScale` and `BoundedCovarianceFloor` symbols are abbreviations bound here. No separation or beta-min field. Loewner order via `Matrix.PosSemidef` on the differences. Search trace: leansearch 'Loewner order between symmetric matrices, A <= B positive semidefinite difference' -> `Matrix.PosSemidef`, `Matrix.PosDef` (Mathlib.LinearAlgebra.Matrix.PosDef); REUSED. Build-inline."
+    },
+    "def:bounded-identified-effect-set": {
+      "lean_kind": "def",
+      "lean_name": "boundedIdentifiedEffectSet",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Ledger.lean",
+      "inputs": ["CompletionFiber", "BoundedModelClass", "DirectEffectTriple"],
+      "notes": "`Psi_B s = closure ((fun M => tau M) '' (completionFiber s inter BoundedModelClass B))`. Search trace: identical to `def:identified-effect-set`; elementary `closure`/`image`/`inter` Mathlib vocabulary, nothing to reuse beyond that. Build-inline."
+    },
+    "def:bounded-confidence-union": {
+      "lean_kind": "def",
+      "lean_name": "boundedConfidenceUnion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/WishartRegion.lean",
+      "inputs": ["CovarianceConfidenceRegion", "BoundedIdentifiedEffectSet", "CoefficientBound"],
+      "notes": "The same exact paired Wishart region projected through `Psi_B` instead of `Psi`. Search trace: identical to `def:confidence-union`. Build-inline."
+    },
+
+    "lem:true-completion-retention": {
+      "lean_kind": "lemma",
+      "lean_name": "true_completion_retention",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Retention.lean",
+      "hyps": ["def:boundary-model-class", "lem:ldiffpc-population-soundness"],
+      "notes": "Paper-owned, status proved -> in scope, `defer_tier:false`, `gate:false`. The three assumption dependencies (baseline-parent containment, modularity, diff-faithfulness) are covered by the bundled class hypothesis `def:boundary-model-class`. The cited gate `lem:ldiffpc-population-soundness` is threaded as an explicit hypothesis, so the lemma is conditional on it; every downstream consumer (`thm:finite-sample-honesty`, `thm:bounded-projected-wishart-constant-factor-minimax`) inherits that conditioning through this lemma's own binder rather than through a new `hyps` entry, since the gate is not in their `depends_on`. Search trace: grepped '../doc/API.md' for 'retention', 'true model in the identified set', 'compatibleSCM_self' -> `Causalean.SCM.PartialID.compatibleSCM_self` (CanonicalModel.lean line 54) is the structurally analogous fact 'the true SCM is compatible with its own graph'; recorded as the reference F3 should adapt, but it is stated for kernel SCMs against a SWIGGraph with no ledger and no covariance coordinate, so the gap to bridge is the whole ledger/skeleton-agreement argument -- build-inline, not reuse."
+    },
+    "lem:wishart-pivot": {
+      "lean_kind": "lemma",
+      "lean_name": "wishart_pivot_exact_coverage",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Stat.CLT.ChiSquared", "Causalean.Stat.Quantile.Quantile", "Causalean.Mathlib.StandardGaussian"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/WishartPivot.lean",
+      "hyps": ["def:boundary-model-class", "ass:independent-gaussian-sampling"],
+      "notes": "Paper-owned, proved -> in scope. Covers `ass:linear-structural-equations`, `ass:independent-gaussian-innovations`, `ass:positive-innovation-variances` through the bundled class. Analogous-module reference for F3: `Causalean.Stat.noAtoms_chiSqDist` and `Causalean.Stat.stdGaussian_map_normSq` (Causalean/Stat/CLT/ChiSquared.lean lines 95-165) carry exactly the 'quadratic functional of a Gaussian has no atoms, hence the pivot event has exact probability' pattern that the second half of this proof needs; the gap to bridge is the matrix (rather than scalar-norm) pivot and the orthogonal-rotation reduction to `Wishart_p(I_p, nu)`. Search trace: leansearch 'Wishart distribution sample covariance matrix law' -> nothing; grep '../doc/API.md' 'Wishart' -> nothing; so both the law and the pivot are built here. Build-inline (long but routine matrix algebra plus a Gaussian rotation argument), not Defer."
+    },
+    "thm:finite-branch-representation": {
+      "lean_kind": "theorem",
+      "lean_name": "finite_branch_representation",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Mathlib.LinearAlgebra.Cholesky", "Mathlib.Analysis.Matrix.PosDef"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TFiniteBranchRepresentation.lean",
+      "hyps": ["def:boundary-model-class"],
+      "notes": "Paper-owned, proved -> in scope. `ass:independent-gaussian-innovations` is covered by the bundled class. REUSES `Causalean.Mathlib.LinearAlgebra.cholesky_exists`/`cholesky_unique` for the ordered predecessor factorization and `Matrix.PosDef.det_pos` / Cramer's rule for the rationality of `beta_{e,v}^pi` and `q_{e,v}^pi`. Note that the proof explicitly eliminates every continuous existential variable before splitting signs, so it needs NO quantifier-elimination machinery -- the Tarski-Seidenberg gate is used only later, in `thm:boundary-random-set-limit`, for the tangent section. Search trace: leansearch 'ordered regression normal equations covariance recursive factorization DAG' -> nothing beyond the Cholesky/LDL layer; grep '../doc/API.md' for 'predecessor regression', 'trek rule' -> zero hits."
+    },
+    "thm:finite-sample-honesty": {
+      "lean_kind": "theorem",
+      "lean_name": "finite_sample_honesty",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TFiniteSampleHonesty.lean",
+      "hyps": ["def:boundary-model-class", "ass:independent-gaussian-sampling"],
+      "notes": "Paper-owned, proved -> in scope. Conditional on the cited gate `lem:ldiffpc-population-soundness` transitively, through `lem:true-completion-retention`'s own binder (the gate is not in this node's `depends_on`, so it is not added to `hyps`; F2 must thread the gate binder through when instantiating the retention lemma). The proof is short: the pivotal event from `lem:wishart-pivot` plus retention plus monotonicity of closure. Search trace: no library analogue searched for beyond `Causalean.PO.ID.Partial.RandomSet.directedRegion_coverage` (asymptotic coverage of an interval-identified set via portmanteau), recorded as the closest coverage-argument analogue; the gap is that ours is exact and finite-sample, so nothing transfers."
+    },
+    "thm:boundary-random-set-limit": {
+      "lean_kind": "theorem",
+      "lean_name": "boundary_random_set_limit",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Stat.CLT.GaussianLimit", "Causalean.Stat.CLT.MultivariateCLT", "Causalean.Stat.CLT.ChiSquared", "Mathlib.Analysis.Calculus.TangentCone.Defs"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TBoundaryRandomSetLimit.lean",
+      "hyps": [
+        "ass:independent-gaussian-sampling",
+        "ass:asymptotic-sample-balance",
+        "ass:tangent-cone-regularity",
+        "lem:multivariate-lindeberg-feller",
+        "lem:tarski-seidenberg-projection",
+        "lem:semialgebraic-boundary-null",
+        "lem:skorokhod-representation"
+      ],
+      "notes": "Paper-owned, proved -> in scope and `defer_tier:false` even though four cited gates are threaded into it (gate-consumer rule: the difficulty that is Defer-tier is entirely in the gated dependencies, so the theorem is proved CONDITIONAL on them). Analogous-module reference for F3: `Causalean.Stat.IIDSample.clt_normalizedSum_vec` (Causalean/Stat/CLT/GaussianLimit.lean line 116) is the i.i.d. multivariate CLT against the concrete `Causalean.Stat.gaussianLimit`; it carries exactly the proof pattern of step (3) but for a FIXED law, whereas the local sequence gives a triangular array -- the gap to bridge is the array/Lindeberg step, which is why `lem:multivariate-lindeberg-feller` is threaded rather than discharged against it. `Causalean.Stat.noAtoms_chiSqDist` supplies the quantile-convergence continuity in step (9). Search trace (for the set-limit machinery): leansearch 'Fell topology on closed sets, Painleve Kuratowski set convergence' -> nothing in Mathlib; grep '../doc/API.md' for 'Fell', 'Kuratowski' -> zero hits; `TopologicalSpace.Closeds` (Mathlib.Topology.MetricSpace.Closeds) carries the Hausdorff edist but not the Fell topology, so the upper/lower set limits are written out explicitly here."
+    },
+    "prop:regular-stratum-product-score-reduction": {
+      "lean_kind": "theorem",
+      "lean_name": "regular_stratum_product_score_reduction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Analysis.Calculus.TangentCone.Defs"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TRegularStratumProductScore.lean",
+      "hyps": ["ass:asymptotic-sample-balance", "ass:tangent-cone-regularity"],
+      "notes": "Paper-owned, proved -> in scope. A `prop:` node maps to `lean_kind:\"theorem\"` (T-block). No cited gate appears directly in its `depends_on`; it inherits the gating of `thm:boundary-random-set-limit` through that theorem's binders. The content is linearity of `J` across the product acceptance body plus `tangentConeAt R s x = univ` at an interior point. Search trace: leansearch 'tangent cone of a set at an interior point is the whole space' -> `tangentConeAt` neighbourhood lemmas in Mathlib.Analysis.Calculus.TangentCone.Basic; REUSED for the ambient-interior clause. leansearch 'image of a product set under a linear map is the Minkowski sum of the block images' -> `Set.image_add`/`Set.add_image` style lemmas, elementary."
+    },
+    "thm:honesty-noncontraction-lower-bound": {
+      "lean_kind": "theorem",
+      "lean_name": "honesty_noncontraction_lower_bound",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Mathlib.LinearAlgebra.Cholesky", "Mathlib.Topology.EMetricSpace.Diam"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "THonestyNoncontractionLowerBound.lean",
+      "hyps": [
+        "def:boundary-model-class",
+        "ass:independent-gaussian-sampling",
+        "lem:ldiffpc-population-soundness"
+      ],
+      "notes": "Paper-owned, proved -> in scope. IMPORTANT reading of the `def:boundary-model-class` entry in `hyps`: here the class is not a premise restricting an arbitrary model but the CONCLUSION-side membership predicate -- the theorem PROVES `M^ch, M^fk in BoundaryModelClass p`, which is what discharges the seven bundled assumption dependencies rather than assuming them. It is listed in `hyps` so the deterministic P4 coverage check sees every assumption dependency accounted for; F2 should emit the class as part of the conclusion, not as a binder. `ass:independent-gaussian-sampling` and the cited gate `lem:ldiffpc-population-soundness` ARE genuine binders. Uses `Metric.ediam` for the diameter conclusion. Search trace: leansearch 'two point lower bound observational equivalence confidence set diameter' -> nothing; grep '../doc/API.md' for 'two-point', 'Le Cam' -> `Causalean.Mathlib.InformationTheory.ProductKLLeCam` and `CausalSmith.Mathlib.ProductChiSquared` are divergence-tensorization tools for two-point testing lower bounds; recorded as the technique-neighbours, but here the two witnesses have the SAME law exactly, so no divergence bound is needed at all and nothing transfers."
+    },
+    "thm:collider-witness-audit": {
+      "lean_kind": "theorem",
+      "lean_name": "collider_witness_audit",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Mathlib.LinearAlgebra.Cholesky", "Mathlib.Analysis.Matrix.PosDef"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TColliderWitnessAudit.lean",
+      "hyps": ["def:boundary-model-class"],
+      "notes": "Paper-owned, proved -> in scope. `p = 3` only. Entirely exact rational arithmetic (determinants 4277/6250, the six-order innovation-variance table, the coefficients (2/5,1/5) and (-1/10,3/5), the ledger table) plus a finite case analysis over the six topological orders; `norm_num`/`decide` territory once the covariance entries are literals. REUSES `Causalean.Mathlib.LinearAlgebra.cholesky_unique` for the 'every fiber member has one of these two ordered factorizations' exhaustion. Search trace: grepped Causalean/SCM/Examples/ and Causalean/Graph/MarkovEquiv/ for a worked rational collider example -> none at this abstraction; bypass-justified. `def:boundary-model-class` appears in `hyps` in the same conclusion-side sense as in `thm:honesty-noncontraction-lower-bound`: the theorem proves membership of the displayed completions."
+    },
+    "lem:ldiffpc-population-soundness": {
+      "lean_kind": "assumption",
+      "lean_name": "LDiffPCPopulationSoundness",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": ["ass:diff-faithfulness"],
+      "source": {
+        "cite": "BystrovaDevijver2026LDiffPC",
+        "locator": "Theorem 1 in Section 5 and Appendix D",
+        "carrier": "logical-claim",
+        "citation_id": "cite:bystrova-devijver-2026-ldiffpc-thm1"
+      },
+      "notes": "Frozen cited logical-claim -> named `Prop` (emitted with the unshadowable `Sort 0` proposition universe, never a `Prop` identifier), threaded into `lem:true-completion-retention` and `thm:honesty-noncontraction-lower-bound` (its two direct consumers). Carries `ass:diff-faithfulness` as a hypothesis, matching the cited theorem's own premise ('Under Assumption 3 and access to perfect conditional equality information'). Search trace: grepped '../doc/API.md' section index and all of Causalean/ for 'DiffPC', 'difference graph discovery', 'constraint-based discovery', 'PC algorithm' -> zero hits; `Causalean.Discovery.` contains only LiNGAM, LinearDisentanglement and InvariantPrediction, none of which recovers a difference-graph skeleton. Mathlib-side check not applicable (this is a causal-discovery theorem, not a standard mathematical fact). Genuinely large to formalize (the full skeleton + orientation soundness argument of an unformalized 2026 paper), so it stays a cited gate."
+    },
+    "lem:multivariate-lindeberg-feller": {
+      "lean_kind": "assumption",
+      "lean_name": "MultivariateLindebergFeller",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "source": {
+        "cite": "VanDerVaart1998Asymptotic",
+        "locator": "Proposition 2.27, Lindeberg--Feller central limit theorem",
+        "carrier": "logical-claim",
+        "citation_id": "cite:van-der-vaart-1998-prop-2-27"
+      },
+      "notes": "Frozen cited logical-claim -> named `Prop`, threaded into `thm:boundary-random-set-limit`. Search trace: leansearch 'Lindeberg Feller central limit theorem triangular array' and 'multivariate central limit theorem independent not identically distributed' -> Mathlib has the i.i.d. CLT (`ProbabilityTheory.central_limit_theorem` family) but no triangular-array Lindeberg--Feller; grepped '../doc/API.md' for 'Lindeberg' -> zero hits. CLOSEST LIBRARY FIT (recorded for the later `bin/gate.ts --discharge` path, NOT applied here): `Causalean.Stat.IIDSample.clt_normalizedSum_vec` (Causalean/Stat/CLT/GaussianLimit.lean line 116) proves the multivariate CLT against the concrete `Causalean.Stat.gaussianLimit` for a FIXED i.i.d. law -- a partial fit only, since the local model sequence makes the summands a triangular array with drifting covariance. Discharging against it would be exactly the partial-fit mistake the plan rules forbid."
+    },
+    "lem:tarski-seidenberg-projection": {
+      "lean_kind": "assumption",
+      "lean_name": "TarskiSeidenbergProjection",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "source": {
+        "cite": "BochnakCosteRoy1998RealAlgebraicGeometry",
+        "locator": "Theorem 2.2.1, Tarski--Seidenberg theorem",
+        "carrier": "logical-claim",
+        "citation_id": "cite:bochnak-coste-roy-1998-thm-2-2-1"
+      },
+      "notes": "Frozen cited logical-claim -> named `Prop`, threaded into `thm:boundary-random-set-limit`. Search trace: leansearch 'semialgebraic set Tarski Seidenberg quantifier elimination real closed field projection' -> only `IsSemilinearSet.proj` for Presburger arithmetic over add-comm monoids, which is a different theory; grepped '../doc/API.md' for 'semialgebraic', 'Tarski', 'real closed' -> one unrelated hit. Mathlib has no real semialgebraic sets. Formalizing this is a major upstream Mathlib contribution (real-closed fields / cylindrical decomposition), so it is a genuine Defer-tier gate by buildability, not by novelty."
+    },
+    "lem:semialgebraic-boundary-null": {
+      "lean_kind": "assumption",
+      "lean_name": "SemialgebraicBoundaryNull",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "source": {
+        "cite": "BochnakCosteRoy1998RealAlgebraicGeometry",
+        "locator": "Section 2.8, dimension of semialgebraic sets, especially Proposition 2.8.13",
+        "carrier": "logical-claim",
+        "citation_id": "cite:bochnak-coste-roy-1998-prop-2-8-13"
+      },
+      "notes": "Frozen cited logical-claim -> named `Prop`, threaded into `thm:boundary-random-set-limit` and `lem:generic-ellipsoid-intersection-stability`. Search trace: leansearch 'boundary of a semialgebraic set has measure zero, lower dimensional set is Lebesgue null' -> Mathlib has `MeasureTheory.Measure.addHaar_submodule` (proper subspaces are null) and `Measure.addHaar_smul`, but nothing about semialgebraic dimension; grep '../doc/API.md' 'semialgebraic' -> one unrelated hit. Depends on the same absent real-semialgebraic dimension theory as `lem:tarski-seidenberg-projection`; genuine Defer-tier gate."
+    },
+    "lem:skorokhod-representation": {
+      "lean_kind": "assumption",
+      "lean_name": "SkorokhodRepresentation",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "source": {
+        "cite": "Billingsley1999Convergence",
+        "locator": "Theorem 6.7, Skorohod representation theorem",
+        "carrier": "logical-claim",
+        "citation_id": "cite:billingsley-1999-thm-6-7"
+      },
+      "notes": "Frozen cited logical-claim -> named `Prop`, threaded into `thm:boundary-random-set-limit`. Search trace: leansearch 'Skorokhod representation theorem almost sure convergence realization of weak convergence' -> returned only the Portmanteau / `tendsto_iff_forall_lintegral_tendsto` family, no Skorokhod representation; grep '../doc/API.md' for 'Skorokhod', 'Skorohod' -> zero hits. Absent from both libraries; medium-to-large upstream contribution."
+    },
+    "lem:prokhorov-tightness": {
+      "lean_kind": "assumption",
+      "lean_name": "ProkhorovTightness",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "source": {
+        "cite": "Billingsley1999Convergence",
+        "locator": "Theorem 5.1, Prokhorov's theorem, direct implication",
+        "carrier": "logical-claim",
+        "citation_id": "cite:billingsley-1999-thm-5-1"
+      },
+      "notes": "Frozen cited logical-claim -> named `Prop`, threaded into `thm:local-minimax-attainment-characterization`. Search trace: leansearch 'Prokhorov theorem tight family of measures is relatively compact' -> `isCompact_closure_of_isTightMeasureSet` (Mathlib.MeasureTheory.Measure.Prokhorov) plus `MeasureTheory.IsTightMeasureSet` and `isTightMeasureSet_iff_exists_isCompact_measure_compl_le` (Mathlib.MeasureTheory.Measure.Tight) -- Mathlib DOES have the direct implication. Recorded as a strong candidate for the later citation-discharge path (`bin/gate.ts --discharge`), effort small; per the F1 rules a frozen `status:\"cited\"` node is NOT relabelled or discharged here and stays a gate."
+    },
+    "lem:portmanteau-usc": {
+      "lean_kind": "assumption",
+      "lean_name": "PortmanteauUSC",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "source": {
+        "cite": "Billingsley1999Convergence",
+        "locator": "Theorem 2.1, Portmanteau theorem",
+        "carrier": "logical-claim",
+        "citation_id": "cite:billingsley-1999-thm-2-1"
+      },
+      "notes": "Frozen cited logical-claim -> named `Prop`, threaded into `thm:local-minimax-attainment-characterization`. Search trace: leansearch 'portmanteau limsup measure of closed set weak convergence' -> `MeasureTheory.ProbabilityMeasure.limsup_measure_closed_le_of_tendsto` and `tendsto_of_forall_isClosed_limsup_le` (Mathlib.MeasureTheory.Measure.Portmanteau). Mathlib has the CLOSED-SET form; the bounded upper-semicontinuous-function form used here follows from it by sup-approximation, so this is a small discharge candidate for the later citation-discharge path. Kept a gate at F1 per the frozen-cited rule."
+    },
+    "lem:standard-borel-disintegration": {
+      "lean_kind": "assumption",
+      "lean_name": "StandardBorelDisintegration",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "source": {
+        "cite": "Kallenberg2021Foundations",
+        "locator": "Theorem 3.4, disintegration",
+        "carrier": "logical-claim",
+        "citation_id": "cite:kallenberg-2021-thm-3-4"
+      },
+      "notes": "Frozen cited logical-claim -> named `Prop`, threaded into `thm:local-minimax-attainment-characterization`. Search trace: leansearch 'disintegration of a measure on a product with a standard Borel space into a probability kernel' -> `MeasureTheory.Measure.condKernel` and `MeasureTheory.Measure.disintegrate` (Mathlib.Probability.Kernel.Disintegration.{StandardBorel,Basic}). Mathlib HAS this; small discharge candidate for the later citation-discharge path. Kept a gate at F1."
+    },
+    "lem:kernel-uniform-randomization": {
+      "lean_kind": "assumption",
+      "lean_name": "KernelUniformRandomization",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "source": {
+        "cite": "Kallenberg2021Foundations",
+        "locator": "Lemma 4.22, kernels and randomization",
+        "carrier": "logical-claim",
+        "citation_id": "cite:kallenberg-2021-lem-4-22"
+      },
+      "notes": "Frozen cited logical-claim -> named `Prop`, threaded into `thm:local-minimax-attainment-characterization`. Search trace: leansearch 'every probability kernel to a standard Borel space is a measurable function of the source and an independent uniform variable, randomization lemma' -> Mathlib has `ProbabilityTheory.Kernel`, `MeasurableEquiv` transfers to `[0,1]` and the inverse-CDF `Measure.map` constructions, but no packaged kernel-randomization lemma; grep '../doc/API.md' for 'randomization', 'Kernel' -> `Causalean.Mathlib.Probability.Kernel.GraphMapProd` (graph push-forward of a product measure) only, a partial ingredient not the statement. Medium upstream effort; gate retained."
+    },
+    "lem:hyperspace-compactness": {
+      "lean_kind": "lemma",
+      "lean_name": "hyperspace_compact_ediam_continuous",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Topology.MetricSpace.Closeds", "Mathlib.Topology.EMetricSpace.Diam"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/LocalExperiment.lean",
+      "hyps": [],
+      "notes": "Paper-owned, proved -> in scope, build-inline (small). HALF OF THIS NODE IS AN EXACT LIBRARY FIT: leansearch 'space of nonempty compact subsets with Hausdorff distance is compact when the space is compact' -> `TopologicalSpace.Closeds.instCompactSpace : [EMetricSpace a] [CompactSpace a] -> CompactSpace (TopologicalSpace.Closeds a)` (Mathlib.Topology.MetricSpace.Closeds) gives compactness of the closed-subset hyperspace with the empty set included and isolated -- exactly the frozen `H(K)`. The remaining half (continuity of `Metric.ediam` on that hyperspace, via `|ediam C - ediam D| <= 2 * hausdorffEdist C D`) is NOT in Mathlib: leansearch 'diameter is Lipschitz with respect to Hausdorff distance' returned only `Metric.diam` monotonicity and `EMetric.diam_union` style lemmas. So the node is `define-local` with the compactness half discharged by the library instance and only the Lipschitz-diameter half written here. This is why the disposition is not `reuse`: the node as stated is a conjunction and only one conjunct type-matches a decl."
+    },
+    "thm:local-minimax-attainment-characterization": {
+      "lean_kind": "theorem",
+      "lean_name": "local_minimax_attainment_characterization",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Topology.MetricSpace.Closeds", "Mathlib.Topology.EMetricSpace.Diam", "Mathlib.Probability.Kernel.Disintegration.StandardBorel", "Mathlib.MeasureTheory.Measure.Prokhorov", "Mathlib.MeasureTheory.Measure.Portmanteau"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TLocalMinimaxAttainment.lean",
+      "hyps": [
+        "lem:prokhorov-tightness",
+        "lem:standard-borel-disintegration",
+        "lem:kernel-uniform-randomization",
+        "lem:portmanteau-usc"
+      ],
+      "notes": "Paper-owned, proved -> in scope and `defer_tier:false` (gate-consumer rule) with four cited gates threaded as binders. The genuinely new content is: measurability of the truncation `C |-> C inter K_R` from the Effros sigma-field to the Borel sigma-field of `TopologicalSpace.Closeds K_R`; positive definiteness of `V_0` via the trace identity; the change-of-measure Gaussian likelihood ratio; and the epigraph/semi-infinite-program equivalence with attainment. Search trace: leansearch 'semi infinite linear program minimax attainment randomized decision rule' and 'Bayes risk attainment compact action space statistical decision theory' -> nothing in Mathlib; grep '../doc/API.md' for 'minimax' -> `Causalean.Estimation.MinimaxATE` (Jin--Syrgkanis structure-agnostic ATE optimality) and section 10z 'Reusable minimax and nonparametric reduction substrate'; those are two-point/reduction lower-bound tools for a scalar functional, not an existence-of-minimizer argument over randomized closed-set-valued rules -- recorded as technique neighbours, bypass-justified. `Metric.ediam` and `TopologicalSpace.Closeds` are reused as the loss and the action space; `Causalean.Mathlib.stdGaussian` underlies the density `phi_h`. Projected to be the longest file in the run; if it exceeds ~900 lines F2 should split the truncation-measurability block into `Helpers/EffrosTruncation.lean`."
+    },
+    "lem:gaussian-subclass-of-anchor": {
+      "lean_kind": "lemma",
+      "lean_name": "gaussian_subclass_of_anchor",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Probability.Distributions.Gaussian.Basic"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Retention.lean",
+      "hyps": ["def:boundary-model-class"],
+      "notes": "Paper-owned, proved -> in scope, small. All seven assumption dependencies are covered by the bundled class. The only real content is that a product Gaussian density factorizes (mutual independence of coordinates) and is determined by `omega`, hence `Law(eps_1) = Law(eps_2)`. Search trace: leansearch 'product of independent Gaussian coordinates, multivariate Gaussian with diagonal covariance has independent coordinates' -> `ProbabilityTheory.iIndepFun` + `Measure.pi` and `IsGaussian` transfer lemmas; `Causalean.Mathlib.stdGaussian` builds exactly such a product. Those are reused inside the proof; the class-inclusion statement itself has no library counterpart."
+    },
+    "thm:anchor-class-honesty-noncontraction": {
+      "lean_kind": "theorem",
+      "lean_name": "anchor_class_honesty_noncontraction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Topology.EMetricSpace.Diam"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TAnchorClassNoncontraction.lean",
+      "hyps": ["ass:independent-gaussian-sampling"],
+      "notes": "Paper-owned, proved -> in scope, short (class inclusion + reapplication of the two-model bound). Search trace: no separate library search needed beyond that recorded for `thm:honesty-noncontraction-lower-bound`; the only Mathlib content is `Metric.ediam` and a union bound (`measure_union_le`)."
+    },
+    "prop:global-unbounded-local-finite-elbow": {
+      "lean_kind": "theorem",
+      "lean_name": "global_unbounded_local_finite_elbow",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Topology.EMetricSpace.Diam"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TGlobalUnboundedLocalFiniteElbow.lean",
+      "hyps": [],
+      "notes": "Paper-owned, proved -> in scope, short. A `prop:` node maps to `lean_kind:\"theorem\"`. Content: Markov's inequality `E[T] >= t * P(T >= t)` for a nonnegative extended random variable, then `|a| -> infinity`. Search trace: leansearch 'Markov inequality expectation lower bound by tail probability, nonnegative extended real random variable' -> `MeasureTheory.mul_meas_ge_le_lintegral` / `ProbabilityTheory.measure_ge_le_...` families in Mathlib; REUSED inside the proof. The elbow statement itself (global infinite value versus finite bounded-radius value) has no library counterpart."
+    },
+    "lem:semialgebraic-stratification-sard": {
+      "lean_kind": "assumption",
+      "lean_name": "SemialgebraicStratificationSard",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "source": {
+        "cite": "BochnakCosteRoy1998RealAlgebraicGeometry",
+        "locator": "Sections 2.8, 9.1, 9.6, and 9.7, dimension, Sard, and Whitney-stratification results",
+        "carrier": "logical-claim",
+        "citation_id": "cite:bochnak-coste-roy-1998-whitney-sard"
+      },
+      "notes": "Frozen cited logical-claim -> named `Prop`, threaded into `lem:generic-ellipsoid-intersection-stability`. Search trace: leansearch 'Whitney stratification Nash manifold semialgebraic Sard critical values' -> nothing (Mathlib has `MeasureTheory.addHaar_image_...` and a smooth-Sard-adjacent `measure_zero` result for `C^1` maps between manifolds of equal dimension, but no Nash/semialgebraic stratification theory); grep '../doc/API.md' for 'stratification', 'Whitney', 'Nash' -> zero hits. Requires the same absent real-semialgebraic theory as the other two Bochnak--Coste--Roy gates; genuine Defer-tier gate."
+    },
+    "lem:generic-ellipsoid-intersection-stability": {
+      "lean_kind": "lemma",
+      "lean_name": "generic_ellipsoid_intersection_stability",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Topology.MetricSpace.Closeds"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/GenericIntersection.lean",
+      "hyps": [
+        "lem:semialgebraic-boundary-null",
+        "lem:semialgebraic-stratification-sard"
+      ],
+      "notes": "Paper-owned, proved -> in scope and `defer_tier:false` (gate-consumer rule): the Defer-tier difficulty is entirely in the two threaded semialgebraic-geometry gates, and the remaining argument (regular-value transversality gives `C inter D = closure (C inter int D)`; then upper/lower set-limit bookkeeping plus a common compact bound) is ordinary point-set topology. Search trace: leansearch 'intersection of converging closed sets converges, stability of set intersection under Painleve Kuratowski convergence' -> nothing in Mathlib; leansearch 'regular closed set equals closure of its interior' -> `IsRegularClosed`-style predicates are absent, so the condition is spelled out as `E = closure (interior E)`. `Metric.infDist` and `EMetric.hausdorffEdist` are reused for the Hausdorff half of the conclusion."
+    },
+    "lem:branch-target-rational-smooth-extension": {
+      "lean_kind": "lemma",
+      "lean_name": "branch_target_rational_smooth_extension",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Analysis.Matrix.PosDef"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/BranchSmooth.lean",
+      "hyps": [],
+      "notes": "Paper-owned, proved -> in scope, small. The whole content is: an adjugate/determinant quotient with a nowhere-vanishing denominator on the open set `Omega_p` is `C^infinity` there, plus the uniform first-order Taylor expansion on compacts. Search trace: leansearch 'smoothness of a rational function with nonvanishing denominator, ContDiff of matrix inverse' -> `ContDiffAt.div`, `Matrix.contDiffAt_inv`/`contDiffOn_inv` and `Matrix.det_ne_zero` conditions in Mathlib.Analysis.Matrix and Mathlib.Analysis.Calculus.ContDiff; REUSED directly. `Matrix.PosDef.det_pos` supplies the nonvanishing. Depends on `thm:finite-branch-representation`, so this helper file imports `TFiniteBranchRepresentation.lean` (helper-after-theorem is deliberate; F2 may relocate)."
+    },
+    "thm:bounded-projected-wishart-constant-factor-minimax": {
+      "lean_kind": "theorem",
+      "lean_name": "bounded_projected_wishart_constant_factor_minimax",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Topology.EMetricSpace.Diam", "Mathlib.Analysis.Matrix.PosDef"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TBoundedConstantFactorMinimax.lean",
+      "hyps": ["def:boundary-model-class", "ass:independent-gaussian-sampling"],
+      "notes": "Paper-owned, proved -> in scope. `def:bounded-boundary-model-class` is NOT in this node's `depends_on` (the theorem re-declares the bounded class inline in its own statement), so it is not listed in `hyps`; F2 should nonetheless state it against the `BoundedModelClass` structure from `Basic.lean` so the two agree definitionally. Content: the coverage half reruns the exact-pivot argument of `thm:finite-sample-honesty` inside the restricted fiber; the lower half specializes the chain--fork witness at `a = B`, `b = 1` and checks `kappa_B I <= Sigma <= K_B I` from `det = 1`, `trace = K_B`; the upper half bounds `Metric.ediam` of the target parallelogram by `2 * sqrt 6 * B`. Search trace: leansearch 'diameter of a parallelogram, supremum of a quadratic form on a box' -> elementary `Metric.ediam_le_of_forall_dist_le` style lemmas, REUSED; leansearch 'eigenvalue bounds from trace and determinant of a positive definite matrix' -> `Matrix.PosDef` spectral lemmas and `Matrix.det_eq_prod_eigenvalues`, REUSED for the `kappa_B` floor."
+    }
+  },
+
+  "citations": [
+    {
+      "id": "cite:bystrova-devijver-2026-ldiffpc-thm1",
+      "key": "BystrovaDevijver2026LDiffPC",
+      "locator": "Theorem 1 in Section 5 and Appendix D",
+      "carrier": "logical-claim",
+      "arxiv": "2606.13947v1",
+      "citation": "Daria Bystrova and Emilie Devijver (2026), Constraint-based difference graph discovery in a linear setting, arXiv:2606.13947v1; Definition 1, Definitions 2--4, diff-faithfulness assumption, and Theorem 1.",
+      "gates": ["lem:ldiffpc-population-soundness"]
+    },
+    {
+      "id": "cite:van-der-vaart-1998-prop-2-27",
+      "key": "VanDerVaart1998Asymptotic",
+      "locator": "Proposition 2.27, Lindeberg--Feller central limit theorem",
+      "carrier": "logical-claim",
+      "doi": "10.1017/CBO9780511802256",
+      "citation": "Aad W. van der Vaart (1998), Asymptotic Statistics, Cambridge University Press.",
+      "gates": ["lem:multivariate-lindeberg-feller"]
+    },
+    {
+      "id": "cite:bochnak-coste-roy-1998-thm-2-2-1",
+      "key": "BochnakCosteRoy1998RealAlgebraicGeometry",
+      "locator": "Theorem 2.2.1, Tarski--Seidenberg theorem",
+      "carrier": "logical-claim",
+      "doi": "10.1007/978-3-662-03718-8",
+      "citation": "Jacek Bochnak, Michel Coste, and Marie-Francoise Roy (1998), Real Algebraic Geometry, Ergebnisse der Mathematik und ihrer Grenzgebiete, volume 36, Springer.",
+      "gates": ["lem:tarski-seidenberg-projection"]
+    },
+    {
+      "id": "cite:bochnak-coste-roy-1998-prop-2-8-13",
+      "key": "BochnakCosteRoy1998RealAlgebraicGeometry",
+      "locator": "Section 2.8, dimension of semialgebraic sets, especially Proposition 2.8.13",
+      "carrier": "logical-claim",
+      "doi": "10.1007/978-3-662-03718-8",
+      "citation": "Jacek Bochnak, Michel Coste, and Marie-Francoise Roy (1998), Real Algebraic Geometry, Ergebnisse der Mathematik und ihrer Grenzgebiete, volume 36, Springer.",
+      "gates": ["lem:semialgebraic-boundary-null"]
+    },
+    {
+      "id": "cite:bochnak-coste-roy-1998-whitney-sard",
+      "key": "BochnakCosteRoy1998RealAlgebraicGeometry",
+      "locator": "Sections 2.8, 9.1, 9.6, and 9.7, dimension, Sard, and Whitney-stratification results",
+      "carrier": "logical-claim",
+      "doi": "10.1007/978-3-662-03718-8",
+      "citation": "Jacek Bochnak, Michel Coste, and Marie-Francoise Roy (1998), Real Algebraic Geometry, Ergebnisse der Mathematik und ihrer Grenzgebiete, volume 36, Springer.",
+      "gates": ["lem:semialgebraic-stratification-sard"]
+    },
+    {
+      "id": "cite:billingsley-1999-thm-6-7",
+      "key": "Billingsley1999Convergence",
+      "locator": "Theorem 6.7, Skorohod representation theorem",
+      "carrier": "logical-claim",
+      "doi": "10.1002/9780470316962",
+      "citation": "Patrick Billingsley (1999), Convergence of Probability Measures, second edition, Wiley.",
+      "gates": ["lem:skorokhod-representation"]
+    },
+    {
+      "id": "cite:billingsley-1999-thm-5-1",
+      "key": "Billingsley1999Convergence",
+      "locator": "Theorem 5.1, Prokhorov's theorem, direct implication",
+      "carrier": "logical-claim",
+      "doi": "10.1002/9780470316962",
+      "citation": "Patrick Billingsley (1999), Convergence of Probability Measures, second edition, Wiley.",
+      "gates": ["lem:prokhorov-tightness"]
+    },
+    {
+      "id": "cite:billingsley-1999-thm-2-1",
+      "key": "Billingsley1999Convergence",
+      "locator": "Theorem 2.1, Portmanteau theorem",
+      "carrier": "logical-claim",
+      "doi": "10.1002/9780470316962",
+      "citation": "Patrick Billingsley (1999), Convergence of Probability Measures, second edition, Wiley.",
+      "gates": ["lem:portmanteau-usc"]
+    },
+    {
+      "id": "cite:kallenberg-2021-thm-3-4",
+      "key": "Kallenberg2021Foundations",
+      "locator": "Theorem 3.4, disintegration",
+      "carrier": "logical-claim",
+      "doi": "10.1007/978-3-030-61871-1",
+      "citation": "Olav Kallenberg (2021), Foundations of Modern Probability, third edition, Probability Theory and Stochastic Modelling 99, Springer.",
+      "gates": ["lem:standard-borel-disintegration"]
+    },
+    {
+      "id": "cite:kallenberg-2021-lem-4-22",
+      "key": "Kallenberg2021Foundations",
+      "locator": "Lemma 4.22, kernels and randomization",
+      "carrier": "logical-claim",
+      "doi": "10.1007/978-3-030-61871-1",
+      "citation": "Olav Kallenberg (2021), Foundations of Modern Probability, third edition, Probability Theory and Stochastic Modelling 99, Springer.",
+      "gates": ["lem:kernel-uniform-randomization"]
+    }
+  ],
+
+  "file_plan": [
+    {
+      "file": "Basic.lean",
+      "contents": ["S1 world (paired linear-Gaussian SCM over Causalean.DAG)", "the ten ass:* Prop defs", "def:boundary-model-class", "def:bystrova-devijver-anchor-class", "def:bounded-boundary-model-class", "DirectEffectTriple"],
+      "imports": ["Causalean.Graph.DAG", "Causalean.Graph.DSep.ActivePath", "Helpers/DiffGraph.lean"],
+      "bypass_justified": [
+        "Causalean.SCM.Model.SCM: measure-theoretic kernel SCM over a SWIGGraph and arbitrary value spaces; this artifact is a matrix-level linear-Gaussian PAIR with a shared innovation-variance vector, a strictly lower abstraction.",
+        "Causalean.Discovery.InvariantPrediction.LinearGaussian.ObsSEM: single-environment linear-Gaussian SEM with do-intervention environments; no environment pairing, no baseline-parent containment, no invariant-noise constraint.",
+        "Causalean.Discovery.LinearDisentanglement.Solution: latent matrix SEM behind a full-row-rank mixing map with single-node perfect interventions; different observables and different estimand.",
+        "Causalean.SCM.PartialID.CanonicalModel / SharpnessCertificate: compatible-SCM and sharpness predicates over kernel SCMs and a SWIGGraph, with an interval-hull functional; our fiber is covariance-coordinate-indexed and valued in closed subsets of R^3."
+      ]
+    },
+    {
+      "file": "Helpers/DiffGraph.lean",
+      "contents": ["union DAG of G_1 and G_2", "def:difference-dag", "def:diff-relevant-path", "def:conditionally-diff-relevant-path", "def:diff-separation"],
+      "imports": ["Causalean.Graph.DAG", "Causalean.Graph.DSep.ActivePath"],
+      "bypass_justified": [
+        "Causalean.DAG.dSep: ordinary d-separation, blocks ALL paths; diff-separation blocks only diff-relevant and conditionally-diff-relevant paths, so dSep is reused as the blocking primitive but cannot be the definition.",
+        "Causalean.Graph.MarkovEquiv: Verma-Pearl equivalence (skeleton + v-structures); no difference-graph or ledger notion."
+      ]
+    },
+    {
+      "file": "Helpers/Ledger.lean",
+      "contents": ["RegressionCoefficient", "def:exact-ledger", "def:ldiffpc-output", "def:completion-fiber", "def:identified-effect-set", "def:bounded-identified-effect-set"],
+      "imports": ["Basic.lean", "Mathlib.Analysis.Matrix.PosDef"],
+      "bypass_justified": [
+        "Causalean.Panel.Analysis.Residualization / Causalean.Mathlib.FWL: L^2(mu) population residualization; the ledger is pure covariance-entry algebra with no measure.",
+        "Causalean.SCM.PartialID.compatibleInterval: returns an interval hull of a scalar functional; Psi(s) is a non-convex subset of R^3."
+      ]
+    },
+    {
+      "file": "Helpers/CitedGates.lean",
+      "contents": ["the ten cited substrate-gate Prop defs, each emitted in the unshadowable Sort 0 proposition universe"],
+      "imports": ["Basic.lean", "Helpers/Ledger.lean"],
+      "bypass_justified": []
+    },
+    {
+      "file": "Helpers/WishartRegion.lean",
+      "contents": ["local Wishart_p(Sigma, nu) law as a Gaussian sum", "def:wishart-pivot", "def:covariance-region", "def:confidence-union", "def:bounded-confidence-union"],
+      "imports": ["Helpers/Ledger.lean", "Causalean.Stat.Quantile.Quantile", "Causalean.Mathlib.StandardGaussian"],
+      "bypass_justified": [
+        "Causalean.PO.ID.Partial.Inference / CriterionSet: scalar interval and argmin-level-set inference; neither is a matrix-pivot sublevel set on PD_p."
+      ]
+    },
+    {
+      "file": "Helpers/WishartPivot.lean",
+      "contents": ["lem:wishart-pivot"],
+      "imports": ["Helpers/WishartRegion.lean", "Causalean.Stat.CLT.ChiSquared"],
+      "bypass_justified": []
+    },
+    {
+      "file": "Helpers/Retention.lean",
+      "contents": ["lem:true-completion-retention", "lem:gaussian-subclass-of-anchor"],
+      "imports": ["Helpers/Ledger.lean", "Helpers/CitedGates.lean"],
+      "bypass_justified": []
+    },
+    {
+      "file": "TFiniteBranchRepresentation.lean",
+      "contents": ["def:semialgebraic-branches is imported from Helpers/Branches.lean; this file holds thm:finite-branch-representation"],
+      "imports": ["Helpers/Branches.lean", "Causalean.Mathlib.LinearAlgebra.Cholesky"],
+      "bypass_justified": [
+        "Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension: complex Zariski image dimension; the branch cells are real semialgebraic and the argument is elimination-free."
+      ]
+    },
+    {
+      "file": "Helpers/Branches.lean",
+      "contents": ["def:semialgebraic-branches", "def:boundary-limit-sets", "def:regular-product-score-image"],
+      "imports": ["Helpers/Ledger.lean", "Mathlib.Analysis.Calculus.TangentCone.Defs", "Causalean.Stat.CLT.GaussianLimit", "Causalean.Stat.CLT.ChiSquared"],
+      "bypass_justified": []
+    },
+    {
+      "file": "Helpers/BranchSmooth.lean",
+      "contents": ["lem:branch-target-rational-smooth-extension"],
+      "imports": ["TFiniteBranchRepresentation.lean"],
+      "bypass_justified": []
+    },
+    {
+      "file": "Helpers/GenericIntersection.lean",
+      "contents": ["lem:generic-ellipsoid-intersection-stability"],
+      "imports": ["Helpers/CitedGates.lean", "Mathlib.Topology.MetricSpace.Closeds"],
+      "bypass_justified": []
+    },
+    {
+      "file": "TFiniteSampleHonesty.lean",
+      "contents": ["thm:finite-sample-honesty"],
+      "imports": ["Helpers/Retention.lean", "Helpers/WishartPivot.lean", "TFiniteBranchRepresentation.lean"],
+      "bypass_justified": []
+    },
+    {
+      "file": "TBoundaryRandomSetLimit.lean",
+      "contents": ["thm:boundary-random-set-limit"],
+      "imports": ["Helpers/BranchSmooth.lean", "Helpers/GenericIntersection.lean", "Helpers/WishartPivot.lean", "Causalean.Stat.CLT.GaussianLimit"],
+      "bypass_justified": []
+    },
+    {
+      "file": "TRegularStratumProductScore.lean",
+      "contents": ["prop:regular-stratum-product-score-reduction"],
+      "imports": ["TBoundaryRandomSetLimit.lean"],
+      "bypass_justified": []
+    },
+    {
+      "file": "Helpers/Witnesses.lean",
+      "contents": ["def:chain-fork-witness", "def:collider-witness"],
+      "imports": ["Basic.lean", "Causalean.Mathlib.LinearAlgebra.Cholesky"],
+      "bypass_justified": [
+        "Causalean.SCM.Examples.{IV,BackDoor,Frontdoor,ContinuousBackdoor}: fixed 4-node kernel-SCM examples over bespoke node inductives; these witnesses are p-indexed parametric families of paired linear-Gaussian models."
+      ]
+    },
+    {
+      "file": "THonestyNoncontractionLowerBound.lean",
+      "contents": ["thm:honesty-noncontraction-lower-bound"],
+      "imports": ["Helpers/Witnesses.lean", "Helpers/CitedGates.lean"],
+      "bypass_justified": []
+    },
+    {
+      "file": "TColliderWitnessAudit.lean",
+      "contents": ["thm:collider-witness-audit"],
+      "imports": ["Helpers/Witnesses.lean", "Helpers/Ledger.lean"],
+      "bypass_justified": []
+    },
+    {
+      "file": "Helpers/LocalExperiment.lean",
+      "contents": ["def:local-minimax-handle", "lem:hyperspace-compactness"],
+      "imports": ["Helpers/Branches.lean", "Mathlib.Topology.MetricSpace.Closeds", "Mathlib.Topology.EMetricSpace.Diam"],
+      "bypass_justified": [
+        "Causalean.Estimation.MinimaxATE and the section-10z minimax substrate: two-point / reduction lower bounds for a scalar functional; here the object is existence of a minimizing randomized closed-set-valued rule."
+      ]
+    },
+    {
+      "file": "TLocalMinimaxAttainment.lean",
+      "contents": ["thm:local-minimax-attainment-characterization"],
+      "imports": ["Helpers/LocalExperiment.lean", "Helpers/CitedGates.lean"],
+      "bypass_justified": []
+    },
+    {
+      "file": "TAnchorClassNoncontraction.lean",
+      "contents": ["thm:anchor-class-honesty-noncontraction"],
+      "imports": ["THonestyNoncontractionLowerBound.lean", "Helpers/Retention.lean"],
+      "bypass_justified": []
+    },
+    {
+      "file": "TGlobalUnboundedLocalFiniteElbow.lean",
+      "contents": ["prop:global-unbounded-local-finite-elbow"],
+      "imports": ["TAnchorClassNoncontraction.lean", "TLocalMinimaxAttainment.lean"],
+      "bypass_justified": []
+    },
+    {
+      "file": "TBoundedConstantFactorMinimax.lean",
+      "contents": ["thm:bounded-projected-wishart-constant-factor-minimax"],
+      "imports": ["TFiniteSampleHonesty.lean", "THonestyNoncontractionLowerBound.lean", "Helpers/WishartRegion.lean"],
+      "bypass_justified": []
+    }
+  ],
+
+  "decisions": [
+    "No paper manifest (`state.theorems`) was supplied in the brief, so no `theorem_local_id` was set on any statement node and no `theorems` manifest is emitted.",
+    "`design_decisions` was empty and `Added assumptions` was empty, so no scope simplification was applied; every core node is mapped.",
+    "`ThreeVariableIdentifiedEffectSet` is a dimension-scoped notation for `IdentifiedEffectSet` at p = 3 (the core describes it that way and gives it no definition node), so it is bound in S2 and realized as the p = 3 instance of `identifiedEffectSet` rather than as a separate Lean object.",
+    "`RegressionCoefficient` has no definition node of its own; it is introduced inside `def:exact-ledger`, which is the only place the core defines it.",
+    "For `thm:honesty-noncontraction-lower-bound` and `thm:collider-witness-audit`, `def:boundary-model-class` is listed in `hyps` to satisfy the deterministic assumption-coverage check, but semantically it is a conclusion-side membership predicate (the theorems PROVE their witnesses belong to the class). This is flagged in each node's `notes` so F2 does not emit it as a binder.",
+    "Cited gates are threaded only into consumers that list them in `depends_on` (P4 forbids `hyps` outside `depends_on`). Transitive consumers -- notably `thm:finite-sample-honesty` and `thm:bounded-projected-wishart-constant-factor-minimax`, which use `lem:true-completion-retention` -- inherit the gate through that lemma's own binder; F2 must thread it when instantiating.",
+    "`lem:prokhorov-tightness`, `lem:portmanteau-usc` and `lem:standard-borel-disintegration` have exact or near-exact Mathlib counterparts (`isCompact_closure_of_isTightMeasureSet`, `ProbabilityMeasure.limsup_measure_closed_le_of_tendsto`, `Measure.condKernel`/`disintegrate`). Per the F1 rules a frozen `status:\"cited\"` node is never converted to a non-gate form here; the counterparts are recorded in `notes` as small-effort candidates for the later `bin/gate.ts --discharge` path.",
+    "`lean_local_search` returned empty results for every query in this session (index unavailable), so the Causalean survey was carried out by reading `../doc/API.md` and grepping `../Causalean/` on disk; Mathlib-side checks used `lean_leansearch`. Every trace in `notes` records which of the two routes produced the result."
+  ]
+}

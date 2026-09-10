@@ -42,19 +42,32 @@ open scoped MeasureTheory ProbabilityTheory
 variable {N : Type*} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-/-- The graph-level precondition that the SWIG split by `X` is valid. -/
+/-- For [a finite population of variables](hyp:N), [an intervention set](hyp:X) in
+[a SWIG graph](hyp:G) is [valid](goal) exactly when [every intervention variable's
+random node is observed](step:1) and [its fixed node is not already fixed](step:2).
+
+The graph-level precondition that the SWIG split by `X` is valid. -/
 def interventionValid (X : Finset N) (G : SWIGGraph N) : Prop :=
   (∀ D ∈ X, SWIGNode.random D ∈ G.observed) ∧
     (∀ D ∈ X, SWIGNode.fixed D ∉ G.fixed)
 
-/-- The c-component of `G` containing the finite set `S`, seeded by an arbitrary
+/-- For [a finite population of variables](hyp:N), [a SWIG graph](hyp:G), and
+[a finite node set](hyp:S), [the containing c-component](goal) is the c-component
+containing an arbitrary member of that set when it is nonempty, and is empty otherwise.
+
+The c-component of `G` containing the finite set `S`, seeded by an arbitrary
 member of `S`; empty `S` has no containing component and returns `∅`. -/
 noncomputable def containingCComponent
     (G : SWIGGraph N) (S : Finset (SWIGNode N)) :
     Finset (SWIGNode N) :=
   if hS : S.Nonempty then G.cComponentOf hS.choose else ∅
 
-/-- Structural c-factor reachability, no-fixing approximation.
+/-- For [a finite population of variables](hyp:N), [a SWIG graph](hyp:G),
+[a proposed containing node set](hyp:T), and [a target node set](hyp:S),
+[structural c-factor reachability](goal) holds exactly when [the target is nonempty](step:1),
+[is contained in the proposed set](step:2), and [is a c-component of the graph](step:3).
+
+Structural c-factor reachability, no-fixing approximation.
 
 This captures the certified case where the target district `S` is already an
 entire c-component of the original graph and lies in the component `T` that
@@ -65,7 +78,15 @@ noncomputable def cFactorReachable
     (G : SWIGGraph N) (T S : Finset (SWIGNode N)) : Prop :=
   S.Nonempty ∧ S ⊆ T ∧ S ∈ G.cComponentSet
 
-/-- Structural success certificate for the **no-additional-fixing (full-district)
+/-- For [a finite population of variables](hyp:N), [an intervention set](hyp:X),
+[an outcome-node set](hyp:Y), and [a SWIG graph](hyp:G), [the no-additional-fixing
+ID success certificate](goal) holds when [the intervention is valid](step:1),
+the outcome nodes are observed, no intervention variable's random node is an
+outcome node, and every c-component of the post-intervention ancestral
+induced graph is structurally c-factor reachable from its containing original
+c-component.
+
+Structural success certificate for the **no-additional-fixing (full-district)
 fragment** of the Tian–Shpitser ID algorithm.
 
 Split the graph on treatment variables `X`, form `Ystar = An_{G_X}(Y) ∪ Y`,
@@ -89,7 +110,13 @@ noncomputable def idSucceeds
         ∀ S ∈ (GX.induce Ystar).cComponentSet,
           cFactorReachable G (containingCComponent G S) S
 
-/-- **The post-intervention ancestral set of the query.**  In the graph obtained by
+/-- For [a finite population of variables](hyp:N) with [measurable value spaces](hyp:Ω),
+[a structural causal model](hyp:M), [an intervention set](hyp:X) whose [random nodes are
+observed](hyp:hObs) and whose [fixed nodes are not already fixed](hyp:hFix), and
+[a query-node set](hyp:Y), [the post-intervention ancestral set](goal) is the query
+set together with all of its ancestors in the intervened graph.
+
+**The post-intervention ancestral set of the query.**  In the graph obtained by
 intervening on the treatment set `X`, this is the set consisting of the query nodes
 `Y` together with all of their ancestors.  It is the support of the part of the
 do-law that Tian's algorithm identifies: nodes outside it do not influence
@@ -101,7 +128,13 @@ noncomputable def fixAncestralSet
     (Y : Finset (SWIGNode N)) : Finset (SWIGNode N) :=
   (M.fixSet X hObs hFix).toSWIGGraph.dag.ancestralSet Y
 
-/-- **The truncated c-component index set.**  The c-components of the mutilated
+/-- For [a finite population of variables](hyp:N) with [measurable value spaces](hyp:Ω),
+[a structural causal model](hyp:M), [an intervention set](hyp:X) whose [random nodes are
+observed](hyp:hObs) and whose [fixed nodes are not already fixed](hyp:hFix), and
+[a query-node set](hyp:Y), [the truncated c-component index set](goal) is the set of
+c-components of the intervened graph induced on the query's post-intervention ancestors.
+
+**The truncated c-component index set.**  The c-components of the mutilated
 graph `G_X` after inducing on the post-intervention ancestral set of the query.
 This is the index set of the truncated product in the do-law g-formula: the do-law
 `Y`-marginal factorizes into one c-factor per element of this set. -/
@@ -122,7 +155,13 @@ theorem subset_fixAncestralSet
     Y ⊆ fixAncestralSet M X hObs hFix Y :=
   (M.fixSet X hObs hFix).toSWIGGraph.dag.subset_ancestralSet Y
 
-/-- The **observed part of the post-intervention ancestral support** of the query.
+/-- For [a finite population of variables](hyp:N) with [measurable value spaces](hyp:Ω),
+[a structural causal model](hyp:M), [an intervention set](hyp:X) whose [random nodes are
+observed](hyp:hObs) and whose [fixed nodes are not already fixed](hyp:hFix), and
+[a query-node set](hyp:Y), [the observed post-intervention ancestral set](goal) is the
+intersection of its post-intervention ancestors with the observed nodes of the intervened model.
+
+The **observed part of the post-intervention ancestral support** of the query.
 The post-intervention ancestral set `An_{G_X}(Y)` is a SWIG-node set and may
 include fixed intervention nodes, but the observational law is carried only on
 observed coordinates, so the measure-theoretic support is its intersection with
@@ -134,7 +173,14 @@ noncomputable def fixObservedAncestralSet
     (Y : Finset (SWIGNode N)) : Finset (SWIGNode N) :=
   fixAncestralSet M X hObs hFix Y ∩ (M.fixSet X hObs hFix).observed
 
-/-- Extend an assignment on the post-intervention observed ancestral support to
+/-- For [a finite population of variables](hyp:N) with [nonempty measurable value spaces](hyp:Ω),
+[a structural causal model](hyp:M), [an intervention set](hyp:X) whose [random nodes are
+observed](hyp:hObs) and whose [fixed nodes are not already fixed](hyp:hFix), [a query-node
+set](hyp:Y), and [a fixed-value intervention slice](hyp:sDo), [the pinned extension](goal)
+maps each assignment on the observed post-intervention ancestors to an assignment on all
+original observed nodes, using the slice's fixed value at intervened random coordinates.
+
+Extend an assignment on the post-intervention observed ancestral support to
 the original observed coordinates, pinning intervened random coordinates to the
 fixed values of the do-slice. -/
 noncomputable def pinnedExtend
@@ -390,7 +436,13 @@ lemma fixObservedAncestralSet_obsParent_closed
       (M.fixSet X hObs hFix).toSWIGGraph.dag hEdge hvAnc
   exact Finset.mem_inter.mpr ⟨hwAnc, hw⟩
 
-/-- The **post-intervention marginal on the observed ancestors of the query**: the
+/-- For [a finite population of variables](hyp:N) with [measurable value spaces](hyp:Ω),
+[a structural causal model](hyp:M), [an intervention set](hyp:X) whose [random nodes are
+observed](hyp:hObs) and whose [fixed nodes are not already fixed](hyp:hFix), and
+[a query-node set](hyp:Y), [the post-intervention observed-ancestral marginal kernel](goal)
+maps fixed intervention values to the distribution of the observed ancestors of the query.
+
+The **post-intervention marginal on the observed ancestors of the query**: the
 do-observational law pushed forward to the observed part of `Ystar = An_{G_X}(Y)`.
 This is the object the truncated g-formula identifies first; the requested
 `Y`-marginal is a further projection of it along `Y ⊆ Ystar`. -/
@@ -403,7 +455,9 @@ noncomputable def doObsKernelAncestralMarginal
       (ValuesOn (fixObservedAncestralSet M X hObs hFix Y) (swigΩ Ω)) :=
   (M.fixSet X hObs hFix).obsKernel.map (valuesProjection Finset.inter_subset_right)
 
-/-- The post-intervention ancestral marginal is a Markov kernel: it is the
+/-- For [a finite collection of distinguishable node labels](hyp:N), [measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), [an intervention set](hyp:X) whose [random intervention nodes are observed](hyp:hObs) and whose [fixed intervention nodes are not already fixed](hyp:hFix), and [a query-node set](hyp:Y), [the observed-ancestral post-intervention marginal](goal) is a Markov kernel.
+
+The post-intervention ancestral marginal is a Markov kernel: it is the
 coordinate pushforward of the (Markov) do-observational kernel, so each slice is a
 probability measure. -/
 instance instIsMarkovKernel_doObsKernelAncestralMarginal

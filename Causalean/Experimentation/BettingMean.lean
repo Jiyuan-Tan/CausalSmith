@@ -33,8 +33,10 @@ open Sequential
 
 variable {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω} {ℱ : Filtration ℕ m0}
 
-/-- The **betting capital process** for testing that the mean is `m`, with observations `X` and
-predictable betting fractions `lam`: `K₀ = 1` and `Kₙ₊₁ = Kₙ · (1 + lamₙ·(Xₙ − m))`. -/
+/-- For [any sample space](hyp:Ω), [a real-valued sequence of observations](hyp:X), [a sequence
+of real-valued betting fractions](hyp:lam), and [a candidate mean](hyp:m), the [betting capital
+process](goal) is the process whose [initial capital is one](step:1) and whose [capital after
+observation $n$ is the preceding capital multiplied by $1+\lambda_n(X_n-m)$](step:2). -/
 noncomputable def capital (X lam : ℕ → Ω → ℝ) (m : ℝ) : ℕ → Ω → ℝ
   | 0 => fun _ => 1
   | (n + 1) => fun ω => capital X lam m n ω * (1 + lam n ω * (X n ω - m))

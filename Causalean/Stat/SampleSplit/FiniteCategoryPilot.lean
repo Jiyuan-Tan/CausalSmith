@@ -31,13 +31,16 @@ variable {Omega X Iota : Type*} [MeasurableSpace Omega] [MeasurableSpace X]
   [MeasurableSpace Iota]
   {mu : Measure Omega} {P : Measure X}
 
-/-- A category's population mass is the probability that the observation's
-label equals that category, represented as a real number. -/
+/-- Given [a measurable observation space](hyp:X), [a category-label space](hyp:Iota),
+[a measure on the observation space](hyp:P), [a category-label map](hyp:label), and [a category](hyp:k),
+the [category mass](goal) is the measure of observations assigned to that category, represented
+as a real number. -/
 def categoryMass (P : Measure X) (label : X -> Iota) (k : Iota) : Real :=
   P.real (label ⁻¹' {k})
 
-/-- A category indicator is one when an observation has the designated label
-and zero otherwise. -/
+/-- Given [an observation space](hyp:X), [a category-label space whose labels can be compared for equality](hyp:Iota),
+[a category-label map](hyp:label), [a category](hyp:k), and [an observation](hyp:x), the
+[category indicator](goal) is one when that observation has the designated category and zero otherwise. -/
 def categoryIndicator [DecidableEq Iota] (label : X -> Iota) (k : Iota) (x : X) : Real :=
   if label x = k then 1 else 0
 
@@ -64,8 +67,12 @@ lemma integral_categoryIndicator [DecidableEq Iota] [MeasurableSingletonClass Io
   rw [integral_indicator (hlabel (measurableSet_singleton k)), integral_const]
   simp [categoryMass]
 
-/-- A pilot category count is the number of coordinates in a chosen finite
-block whose observed label equals the designated category. -/
+/-- Given [a measurable sample space and observation space](hyp:Omega,X), [a
+category-label space whose labels can be compared for equality](hyp:Iota), [a sample-space measure and population observation measure](hyp:mu,P),
+[an independent and identically distributed sample](hyp:S),
+[a category-label map](hyp:label), [a finite set of sample coordinates](hyp:block), [a category](hyp:k),
+and [a sample-space outcome](hyp:omega), the [pilot category count](goal) is the number of selected
+coordinates whose observed label equals that category. -/
 def pilotCategoryCount (S : Causalean.Stat.IIDSample Omega X mu P)
     [DecidableEq Iota] (label : X -> Iota) (block : Finset Nat)
     (k : Iota) (omega : Omega) : Nat :=
@@ -317,16 +324,24 @@ theorem pilotCategoryCount_lower_tail_of_tilt
         (block.card : Real) * (p * (Real.exp s - 1))) :=
       (Real.exp_add _ _).symm
 
-/-- Pilot thresholding selects exactly the categories whose finite-block count
-is strictly larger than the threshold. -/
+/-- Given [a measurable sample space and observation space](hyp:Omega,X), [a
+finite category-label space whose labels can be compared for equality](hyp:Iota), [a sample-space
+measure and population observation measure](hyp:mu,P), [an independent and identically distributed sample](hyp:S),
+[a category-label map](hyp:label), [a finite pilot-coordinate block](hyp:block), [a real threshold](hyp:t),
+and [a sample-space outcome](hyp:omega), the [selected pilot categories](goal) are exactly the categories
+whose pilot counts strictly exceed the threshold. -/
 def pilotSelected [Fintype Iota] [DecidableEq Iota]
     (S : Causalean.Stat.IIDSample Omega X mu P) (label : X -> Iota)
     (block : Finset Nat) (t : Real) (omega : Omega) : Finset Iota :=
   Finset.univ.filter (fun k => t < (pilotCategoryCount S label block k omega : Real))
 
-/-- The finite-category pilot good event requires every selected category to
-have at least the lower population-mass band and every rejected category to
-have at most the upper band. -/
+/-- Given [a measurable sample space and observation space](hyp:Omega,X), [a
+finite category-label space whose labels can be compared for equality](hyp:Iota), [a sample-space
+measure and population observation measure](hyp:mu,P), [an independent and identically distributed sample](hyp:S),
+[a category-label map](hyp:label), [a finite pilot-coordinate block](hyp:block), and [real threshold,
+lower-band, and upper-band values](hyp:t,lowerBand,upperBand), the [finite-category pilot good event](goal)
+consists exactly of outcomes for which [each selected category has population mass at least the lower band](step:1)
+and each unselected category has population mass at most the upper band. -/
 def finiteCategoryPilotGood [Fintype Iota] [DecidableEq Iota]
     (S : Causalean.Stat.IIDSample Omega X mu P) (label : X -> Iota)
     (block : Finset Nat) (t lowerBand upperBand : Real) : Set Omega :=

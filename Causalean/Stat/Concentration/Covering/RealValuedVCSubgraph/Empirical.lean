@@ -20,7 +20,9 @@ universe u v
 
 variable {𝒳 : Type u} [MeasurableSpace 𝒳] {ι : Type v}
 
-/-- The empirical probability law of a nonempty sample is the normalized sum
+/-- For [a sample of $n$ observations in a measurable space](hyp:n,S), the [finite-sample measure](goal) assigns equal mass $1/n$ to each observation, equivalently forming the normalized sum of point masses at the observations (with the displayed formula also determining the value when $n=0$).
+
+The empirical probability law of a nonempty sample is the normalized sum
 of Dirac masses at its observations. -/
 noncomputable def finiteSampleMeasure {n : ℕ} (S : Fin n → 𝒳) : Measure 𝒳 :=
   (ENNReal.ofReal (n : ℝ))⁻¹ • ∑ i : Fin n, Measure.dirac (S i)

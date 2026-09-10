@@ -419,7 +419,7 @@ open scoped InnerProductSpace RealInnerProductSpace
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- The observed data law of a backdoor estimation system is a probability measure. -/
+/-- For [a potential-outcome system with a standard-Borel sample space and finite population measure, a measurable covariate space, and a back-door estimation system](hyp:P,γ,S), [the system's observed-data law is a probability measure](goal). -/
 instance instIsProbabilityMeasure_P_Z (S : ATE.BackdoorEstimationSystem P γ) :
     IsProbabilityMeasure S.P_Z := by
   rw [ATE.BackdoorEstimationSystem.P_Z]
@@ -437,7 +437,7 @@ theorem aipw_memLp (S : ATE.BackdoorEstimationSystem P γ) {ε : ℝ}
   (memLp_two_iff_integrable_sq S.measurable_ψ_AIPW.aestronglyMeasurable).2
     (S.aipw_finite_var_of_counterfactual_sq h_overlap hA h_y2 h_yd2)
 
-/-- This is the AIPW influence function represented as a point of the square-integrable Hilbert space. -/
+/-- Given a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), [a back-door estimation system](hyp:S), [a real overlap level](hyp:ε) satisfying [strict overlap](hyp:h_overlap), [the back-door identification assumptions](hyp:hA), [an integrable squared factual outcome](hyp:h_y2), and [integrable squared potential outcomes under each treatment](hyp:h_yd2), the [square-integrable AIPW influence function](goal) is the equivalence class of that influence function in the observed-data $L^2$ space. -/
 noncomputable def aipwLp (S : ATE.BackdoorEstimationSystem P γ) {ε : ℝ}
     (h_overlap : S.StrictOverlap ε)
     (hA : S.toPOBackdoorSystem.Assumptions)
@@ -447,26 +447,24 @@ noncomputable def aipwLp (S : ATE.BackdoorEstimationSystem P γ) {ε : ℝ}
     Lp ℝ 2 S.P_Z :=
   (S.aipw_memLp h_overlap hA h_y2 h_yd2).toLp _
 
-/-- This is the constant-one function represented in the square-integrable Hilbert space. -/
+/-- Given a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), and [a back-door estimation system](hyp:S), the [constant-one element of the observed-data $L^2$ space](goal) is the equivalence class of the function that equals one everywhere. -/
 noncomputable def oneLp (S : ATE.BackdoorEstimationSystem P γ) :
     Lp ℝ 2 S.P_Z :=
   (memLp_const (1 : ℝ)).toLp _
 
-/-- This is the mean-zero tangent space for the backdoor average treatment effect.
-
-It is the orthogonal complement of the constant functions in the square-integrable Hilbert space. -/
+/-- Given a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), and [a back-door estimation system](hyp:S), the [full mean-zero tangent space](goal) is the orthogonal complement of the constant functions in the observed-data $L^2$ space. -/
 noncomputable def Tfull (S : ATE.BackdoorEstimationSystem P γ) :
     Submodule ℝ (Lp ℝ 2 S.P_Z) :=
   (ℝ ∙ S.oneLp)ᗮ
 
-/-- The span of the constant-one function has an orthogonal projection. -/
+/-- For [a potential-outcome system with a standard-Borel sample space and finite population measure, a measurable covariate space, and a back-door estimation system](hyp:P,γ,S), [the one-dimensional subspace spanned by the constant-one observed-data function admits an orthogonal projection](goal). -/
 instance instHasOrthogonalProjection_span_oneLp
     (S : ATE.BackdoorEstimationSystem P γ) :
     (ℝ ∙ S.oneLp).HasOrthogonalProjection := by
   have : FiniteDimensional ℝ (ℝ ∙ S.oneLp) := inferInstance
   exact inferInstance
 
-/-- The mean-zero tangent space has an orthogonal projection. -/
+/-- For [a potential-outcome system with a standard-Borel sample space and finite population measure, a measurable covariate space, and a back-door estimation system](hyp:P,γ,S), [the full mean-zero tangent space admits an orthogonal projection](goal). -/
 instance instHasOrthogonalProjection_Tfull
     (S : ATE.BackdoorEstimationSystem P γ) :
     (S.Tfull).HasOrthogonalProjection := by

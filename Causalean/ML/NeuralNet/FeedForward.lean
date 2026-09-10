@@ -18,12 +18,20 @@ namespace Causalean.ML
 
 open BigOperators
 
-/-- One network layer: the affine map followed by coordinatewise activation. -/
+/-- For [a nonnegative network width](hyp:n), [an activation function](hyp:σ), [a dense layer
+with that finite input and output width](hyp:L), and [an input vector of that width](hyp:x), the
+[one-layer network map](goal)
+applies the layer's affine transformation and then applies the activation function to each
+coordinate. -/
 def layerMap {n : ℕ} (σ : Activation) (L : DenseLayer n n) (x : Fin n → ℝ) : Fin n → ℝ :=
   σ.applyVec (L.eval x)
 
-/-- Evaluate a uniform-width feedforward network (a list of layers), folding
-left-to-right. -/
+/-- For [a nonnegative network width](hyp:n) and [an activation function](hyp:σ), the
+[evaluation of a uniform-width feedforward network](goal) maps a finite ordered list of
+equal-width dense layers and an input vector to its output vector. [For an empty list, the output
+is the input itself](step:1); [for a list whose
+first layer is followed by further layers, the output applies the first layer and then evaluates
+the remaining layers](step:2). -/
 def evalLayers {n : ℕ} (σ : Activation) : List (DenseLayer n n) → (Fin n → ℝ) → (Fin n → ℝ)
   | [], x => x
   | L :: Ls, x => evalLayers σ Ls (layerMap σ L x)

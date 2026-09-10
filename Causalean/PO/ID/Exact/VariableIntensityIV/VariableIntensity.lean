@@ -79,34 +79,36 @@ variable {P : POSystem} {𝒵 : Type*} [MeasurableSpace 𝒵]
 variable [Fintype 𝒵] [MeasurableSingletonClass 𝒵]
 variable {J : ℕ} (S : VariableIntensityIVSystem P 𝒵 J)
 
-/-- Instrument packaged as a `POVar` valued in `𝒵`. -/
+/-- Given [a variable-intensity IV system](hyp:S), the [instrument potential-outcome variable](goal) is that system's instrument, represented with its finite instrument-value space. -/
 def zVar : POVar P 𝒵 := ⟨S.Z, S.hZ𝒵⟩
 
-/-- Treatment intensity packaged as a `POVar` valued in `Fin (J+1)`. -/
+/-- Given [a variable-intensity IV system](hyp:S), the [treatment-intensity potential-outcome variable](goal) is its ordered treatment, whose admissible levels run from zero through $J$. -/
 def dVar : POVar P (Fin (J + 1)) := ⟨S.D, S.hDintensity⟩
 
-/-- Outcome packaged as a `POVar` valued in `ℝ`. -/
+/-- Given [a variable-intensity IV system](hyp:S), the [outcome potential-outcome variable](goal) is its real-valued outcome. -/
 def yVar : POVar P ℝ := ⟨S.Y, S.hYreal⟩
 
-/-- Potential treatment intensity `D(z)`: the intensity that would be observed if
-the instrument were fixed to `z`.  A genuine single-intervention counterfactual. -/
+/-- Given [a variable-intensity IV system](hyp:S) and [an instrument value](hyp:z), the [potential treatment intensity](goal) assigns every unit the ordered treatment level that would be observed if the instrument were fixed to that value.
+
+It is a genuine single-intervention counterfactual. -/
 def DofZ (z : 𝒵) : P.Ω → Fin (J + 1) := S.dVar.cfUnder S.zVar z
 
-/-- Treatment-indexed potential outcome `Y(d)`: the outcome that would be observed
-if the treatment intensity were fixed to `d`.  No instrument argument enters, so
+/-- Given [a variable-intensity IV system](hyp:S) and [a treatment level](hyp:d), the [treatment-indexed potential outcome](goal) assigns every unit the outcome that would be observed if treatment intensity were fixed to that level.
+
+No instrument argument enters, so
 exclusion is structural. -/
 def YofD (d : Fin (J + 1)) : P.Ω → ℝ := S.yVar.cfUnder S.dVar d
 
-/-- Factual instrument `Z`. -/
+/-- Given [a variable-intensity IV system](hyp:S), the [factual instrument](goal) assigns each unit its observed instrument value. -/
 def factualZ : P.Ω → 𝒵 := S.zVar.factual
 
-/-- Factual treatment intensity `D`. -/
+/-- Given [a variable-intensity IV system](hyp:S), the [factual treatment intensity](goal) assigns each unit its observed ordered treatment level. -/
 def factualD : P.Ω → Fin (J + 1) := S.dVar.factual
 
-/-- Factual outcome `Y`. -/
+/-- Given [a variable-intensity IV system](hyp:S), the [factual outcome](goal) assigns each unit its observed real-valued outcome. -/
 def factualY : P.Ω → ℝ := S.yVar.factual
 
-/-- Factual instrument cell `{Z = z}`. -/
+/-- Given [a variable-intensity IV system](hyp:S) and [an instrument value](hyp:z), the [instrument cell](goal) is the set of units whose factual instrument equals that value. -/
 def zEvent (z : 𝒵) : Set P.Ω := S.zVar.event z
 
 /-- The potential treatment under a fixed instrument value is measurable. -/
@@ -142,37 +144,38 @@ We package the right-hand side as a `POCFBundle`: two `Fin (J+1)`-valued
 components `D(z0), D(z1)` at indices `0, 1`, followed by `J+1` real-valued
 outcome components `Y(0),…,Y(J)` at indices `2,…,J+2`. -/
 
-/-- Regimed variable for `D(z)` (treatment intensity under instrument set to `z`). -/
+/-- Given [a variable-intensity IV system](hyp:S) and [an instrument value](hyp:z), the [regimed treatment variable](goal) is the treatment variable under the regime that fixes the instrument to that value. -/
 def dUnderZ (z : 𝒵) : RegimedVar P (Fin (J + 1)) :=
   ⟨S.dVar, Regime.single S.Z (S.hZ𝒵.symm z)⟩
 
-/-- Regimed variable for `Y(d)` (outcome under treatment intensity set to `d`). -/
+/-- Given [a variable-intensity IV system](hyp:S) and [a treatment level](hyp:d), the [regimed outcome variable](goal) is the outcome variable under the regime that fixes treatment to that level. -/
 def yUnderD (d : Fin (J + 1)) : RegimedVar P ℝ :=
   ⟨S.yVar, Regime.single S.D (S.hDintensity.symm d)⟩
 
-/-- Homogeneous bundle of the `J+1` treatment-indexed potential outcomes
-`Y(0),…,Y(J)`. -/
+/-- Given [a variable-intensity IV system](hyp:S), the [outcome counterfactual bundle](goal) contains the potential outcomes at every one of the $J+1$ ordered treatment levels. -/
 def outcomeBundle : POCFBundle P where
   n := J + 1
   type := fun _ => ℝ
   inst := fun _ => inferInstance
   vars := fun d => S.yUnderD d
 
-/-- Counterfactual bundle `(D(z0), D(z1), Y(0),…,Y(J))` for the contrast
+/-- Given [a variable-intensity IV system](hyp:S) and [two instrument values](hyp:z0,z1), the [contrast counterfactual bundle](goal) contains the potential treatments under those values and all treatment-indexed potential outcomes.
+
+For the contrast
 `(z0, z1)`.  Index `0` is `D(z0)`, index `1` is `D(z1)`, index `d+2` is `Y(d)`. -/
 def cfContrastBundle (z0 z1 : 𝒵) : POCFBundle P :=
   POCFBundle.cons (S.dUnderZ z0) (POCFBundle.cons (S.dUnderZ z1) S.outcomeBundle)
 
-/-- Unit causal response on margin `j → j+1`: `Δ_jY = Y(j+1) - Y(j)`. -/
+/-- Given [a variable-intensity IV system](hyp:S) and [a treatment margin](hyp:j), the [unit-level margin response](goal) assigns each unit the difference between its potential outcomes at the upper and lower levels of that margin. -/
 def marginResponse (j : Fin J) : P.Ω → ℝ :=
   fun ω => S.YofD (OrderedTreatment.upperLevel j) ω -
     S.YofD (OrderedTreatment.lowerLevel j) ω
 
-/-- Crossing event `C_j(z0,z1) = {D(z1) ≥ j+1 > D(z0)}`. -/
+/-- Given [a variable-intensity IV system](hyp:S), [two instrument values](hyp:z0,z1), and [a treatment margin](hyp:j), the [crossing event](goal) is the set of units whose potential treatment moves across that margin when the instrument changes from the first value to the second. -/
 def crossingEvent (z0 z1 : 𝒵) (j : Fin J) : Set P.Ω :=
   {ω | OrderedTreatment.Crossing (S.DofZ z0 ω) (S.DofZ z1 ω) j}
 
-/-- Crossing probability for a directed instrument contrast and margin. -/
+/-- Given [a variable-intensity IV system](hyp:S), [two instrument values](hyp:z0,z1), and [a treatment margin](hyp:j), the [crossing probability](goal) is the probability of the corresponding crossing event. -/
 def crossingProb (z0 z1 : 𝒵) (j : Fin J) : ℝ :=
   (P.μ (S.crossingEvent z0 z1 j)).toReal
 
@@ -243,43 +246,48 @@ private lemma marginResponse_mul_crossingIndicator_eq_indicator (z0 z1 : 𝒵)
     simp [OrderedTreatment.crossingIndicator, hC,
       Set.indicator_of_notMem hω]
 
-/-- Total crossing probability, equivalently the first-stage denominator under
+/-- Given [a variable-intensity IV system](hyp:S) and [two instrument values](hyp:z0,z1), the [total crossing probability](goal) is the sum of the crossing probabilities over all treatment margins.
+
+It is equivalently the first-stage denominator under
 directed monotonicity. -/
 def totalCrossingProb (z0 z1 : 𝒵) : ℝ :=
   ∑ j : Fin J, S.crossingProb z0 z1 j
 
-/-- Normalized Angrist-Imbens margin-crossing weight. -/
+/-- Given [a variable-intensity IV system](hyp:S), [two instrument values](hyp:z0,z1), and [a treatment margin](hyp:j), the [normalized margin-crossing weight](goal) is that margin's crossing probability divided by total crossing probability. -/
 def crossingWeight (z0 z1 : 𝒵) (j : Fin J) : ℝ :=
   OrderedTreatment.normalizedWeight (S.crossingProb z0 z1) j
 
-/-- Indicator-weighted margin effect `E[Δ_jY · 1_{C_j}]`, represented as a set
+/-- Given [a variable-intensity IV system](hyp:S), [two instrument values](hyp:z0,z1), and [a treatment margin](hyp:j), the [indicator-weighted margin effect](goal) is the population mean of the unit-level margin response restricted to the corresponding crossing event.
+
+It is represented as a set
 integral over the crossing event. -/
 def indicatorWeightedEffect (z0 z1 : 𝒵) (j : Fin J) : ℝ :=
   ∫ ω in S.crossingEvent z0 z1 j, S.marginResponse j ω ∂P.μ
 
-/-- Unnormalized sum of indicator-weighted crossing effects. -/
+/-- Given [a variable-intensity IV system](hyp:S) and [two instrument values](hyp:z0,z1), the [unnormalized average-causal-response contrast](goal) is the sum of indicator-weighted margin effects over all treatment margins. -/
 def unnormalizedACRContrast (z0 z1 : 𝒵) : ℝ :=
   ∑ j : Fin J, S.indicatorWeightedEffect z0 z1 j
 
-/-- Indicator-weighted ACR ratio, avoiding partial conditional means in the
+/-- Given [a variable-intensity IV system](hyp:S) and [two instrument values](hyp:z0,z1), the [indicator-weighted average causal response](goal) is the unnormalized contrast divided by total crossing probability.
+
+This ratio avoids partial conditional means in the
 core algebra. -/
 def indicatorWeightedACR (z0 z1 : 𝒵) : ℝ :=
   S.unnormalizedACRContrast z0 z1 / S.totalCrossingProb z0 z1
 
-/-- The conditional margin response is the average unit-level causal response
-among units whose potential treatment crosses a selected treatment margin when
-the instrument changes along a selected ordered contrast.
+/-- Given [a variable-intensity IV system](hyp:S), [two instrument values](hyp:z0,z1), and [a treatment margin](hyp:j), the [conditional margin response](goal) is the average unit-level causal response among units whose potential treatment crosses that margin when the instrument changes from the first value to the second.
 
 No positivity or integrability side condition is required for this definition. -/
 def conditionalMarginResponse (z0 z1 : 𝒵) (j : Fin J) : ℝ :=
   PO.eventCondExp P.μ (S.crossingEvent z0 z1 j) (S.marginResponse j)
 
-/-- Angrist-Imbens average causal response:
-`Σ_j ω_j E[Δ_jY | C_j]`. -/
+/-- Given [a variable-intensity IV system](hyp:S) and [two instrument values](hyp:z0,z1), the [Angrist--Imbens average causal response](goal) is the crossing-probability-weighted sum of conditional margin responses. -/
 def averageCausalResponse (z0 z1 : 𝒵) : ℝ :=
   ∑ j : Fin J, S.crossingWeight z0 z1 j * S.conditionalMarginResponse z0 z1 j
 
-/-- Potential outcome `Y(D(z))`: the outcome if the instrument were set to `z`.
+/-- Given [a variable-intensity IV system](hyp:S) and [an instrument value](hyp:z), the [instrument-induced potential outcome](goal) assigns each unit the potential outcome at the treatment level induced by that instrument value.
+
+It is the potential outcome `Y(D(z))`: the outcome if the instrument were set to `z`.
 Equals `Y(d)` at `d = D(z)(ω)`.  No direct instrument effect enters because
 `YofD` fixes only the treatment intensity `d`, not `z` (structural exclusion). -/
 def YofDofZ (z : 𝒵) : P.Ω → ℝ :=
@@ -315,28 +323,32 @@ lemma measurable_YofDofZ (z : 𝒵) :
   exact (S.measurable_YofD d).indicator
     ((MeasurableSet.singleton d).preimage (S.measurable_DofZ z))
 
-/-- Potential first-stage contrast `E[D(z1) − D(z0)]` using potential
+/-- Given [a variable-intensity IV system](hyp:S) and [two instrument values](hyp:z0,z1), the [potential first-stage contrast](goal) is the population mean of the difference between the real-valued potential treatment intensities under the second and first values.
+
+It is `E[D(z1) − D(z0)]` using potential
 treatment intensities. -/
 def firstStageContrast (z0 z1 : 𝒵) : ℝ :=
   ∫ ω, (OrderedTreatment.intensityValue (S.DofZ z1 ω) -
     OrderedTreatment.intensityValue (S.DofZ z0 ω)) ∂P.μ
 
-/-- Potential reduced-form contrast `E[Y(D(z1)) − Y(D(z0))]`. -/
+/-- Given [a variable-intensity IV system](hyp:S) and [two instrument values](hyp:z0,z1), the [potential reduced-form contrast](goal) is the population mean of the difference between instrument-induced potential outcomes under the second and first values. -/
 def reducedFormContrast (z0 z1 : 𝒵) : ℝ :=
   ∫ ω, (S.YofDofZ z1 ω - S.YofDofZ z0 ω) ∂P.μ
 
-/-- `E[D | Z = z]` — observed first-stage conditional mean at instrument value
-`z`, defined via `eventCondExp` over the cell `{Z = z}`. -/
+/-- Given [a variable-intensity IV system](hyp:S) and [an instrument value](hyp:z), the [observed first-stage conditional mean](goal) is the conditional mean of factual treatment intensity in the instrument cell at that value.
+
+It is `E[D | Z = z]`, defined via `eventCondExp` over the cell `{Z = z}`. -/
 def condExpDZ (z : 𝒵) : ℝ :=
   PO.eventCondExp P.μ (S.zEvent z)
     (fun ω => OrderedTreatment.intensityValue (S.factualD ω))
 
-/-- `E[Y | Z = z]` — observed reduced-form conditional mean at instrument value
-`z`, defined via `eventCondExp` over the cell `{Z = z}`. -/
+/-- Given [a variable-intensity IV system](hyp:S) and [an instrument value](hyp:z), the [observed reduced-form conditional mean](goal) is the conditional mean of the factual outcome in the instrument cell at that value.
+
+It is `E[Y | Z = z]`, defined via `eventCondExp` over the cell `{Z = z}`. -/
 def condExpYZ (z : 𝒵) : ℝ :=
   PO.eventCondExp P.μ (S.zEvent z) S.factualY
 
-/-- Directed Wald estimand for two instrument cells. -/
+/-- Given [a variable-intensity IV system](hyp:S) and [two instrument values](hyp:z0,z1), the [directed Wald estimand](goal) is the difference in observed conditional outcome means divided by the corresponding difference in observed conditional treatment-intensity means. -/
 def wald (z0 z1 : 𝒵) : ℝ :=
   (S.condExpYZ z1 - S.condExpYZ z0) /
     (S.condExpDZ z1 - S.condExpDZ z0)
@@ -803,7 +815,7 @@ theorem wald_eq_averageCausalResponse {z0 z1 : 𝒵}
 
 namespace SpecialCases
 
-/-- Canonical single treatment margin transported from `Fin 1` under `J = 1`. -/
+/-- Given [the condition that there is exactly one treatment margin](hyp:hBinaryIntensity), the [unique binary-treatment margin](goal) is the sole margin of the ordered treatment scale. -/
 def binaryMargin (hBinaryIntensity : J = 1) : Fin J :=
   hBinaryIntensity.symm ▸ (0 : Fin 1)
 
@@ -921,12 +933,15 @@ namespace PopulationTwoSLSScore
 
 variable {S} (T : S.PopulationTwoSLSScore k)
 
-/-- First-stage fitted treatment `D_S(ω) = γ_D^T S(Z(ω))`; the linear projection
+/-- Given [a population 2SLS score](hyp:T), the [first-stage fitted treatment](goal) assigns each unit the linear projection of its factual treatment intensity onto that score.
+
+It is `D_S(ω) = γ_D^T S(Z(ω))`; the linear projection
 of `D` onto the instrument score. -/
 def fittedTreatment : P.Ω → ℝ :=
   fun ω => ∑ r : Fin k, T.gammaD r * T.score (S.factualZ ω) r
 
-/-- Population 2SLS estimand `β_2SLS(S) = E[D_S Y] / E[D_S D]`.
+/-- Given [a population 2SLS score](hyp:T), the [population 2SLS estimand](goal) is the ratio of the population mean fitted-treatment--outcome product to the population mean fitted-treatment--treatment product.
+
 This declaration is only the population ratio interface: the file does not
 derive the binary-instrument bridge `beta2SLS T = wald z0 z1`. Such a bridge
 would require centering algebra and the scalar FWL identity for a score of the

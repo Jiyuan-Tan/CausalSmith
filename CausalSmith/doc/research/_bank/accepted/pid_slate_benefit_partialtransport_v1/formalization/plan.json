@@ -1,0 +1,954 @@
+{
+  "qid": "pid_slate_benefit_partialtransport",
+  "specialization": "v1",
+  "cluster": "partialid",
+  "lean_target_subdirectory": "CausalSmith/PartialID/PID_SlateBenefitPartialtransport_Research",
+  "lean_namespace": "CausalSmith.PartialID.SlateBenefitPartialTransport",
+  "env": [
+    {
+      "id": "S1",
+      "world": "A potential-outcome system for a binary instrument with treatment-induced sample selection and a finite ordered outcome. Each unit carries a covariate cell \\(X\\in\\mathcal X\\) on a finite set equipped with the discrete measurable structure \\(2^{\\mathcal X}\\), so that every singleton \\(\\{x\\}\\) is measurable, a binary instrument \\(Z\\), potential treatments \\(D_0,D_1\\in\\{0,1\\}\\), potential selection indicators \\(S_0,S_1\\in\\{0,1\\}\\), and potential outcomes \\(Y_0,Y_1\\in\\mathcal Y=\\{0,1,\\ldots,K-1\\}\\) with \\(K\\ge3\\) ordered levels. The received treatment is \\(D=D_Z\\), selection is \\(S=S_D\\), and the outcome \\(Y=Y_D\\) is recorded only on \\(\\{S=1\\}\\); the observed element is \\(O=(X,Z,D,S,SY)\\), which is measurable into the finite discrete observed carrier \\(\\mathcal X\\times\\{0,1\\}^3\\times(\\mathcal Y\\cup\\{\\star\\})\\), so its pushforward law \\(P_{\\mathrm{obs}}=\\mathcal L(O)\\) is a probability law and every observed atomic event is the pushforward of a measurable event. The five system variables \\(X,Z,D,S,Y\\) occupy pairwise distinct nodes of the system, and the ambient sample space carrying the unit-level randomness is standard Borel, so that conditional independence given \\(X\\) is well posed. The latent law \\(P\\) is the joint law of \\((X,Z,D_0,D_1,S_0,S_1,Y_0,Y_1)\\); \\(C=\\{D_1>D_0\\}\\) is the complier stratum, \\(\\pi(x)=P_{\\mathrm{obs}}(Z=1\\mid X=x)\\) the instrument propensity, and \\(p_x=P_{\\mathrm{obs}}(X=x)\\) the cell probability. The target is the survivor-complier probability of benefit \\(\\theta=P(Y_1>Y_0\\mid S_1=S_0=1,C)\\), and \\(\\gamma_{ij,x}=P(Y_0=i,Y_1=j,S_0=S_1=1,C\\mid X=x)\\) is the survivor-complier outcome subcoupling. A latent cellwise direction \\(d(x)\\in\\{-1,+1\\}\\) indexes the permitted weak selection-monotonicity direction. \\(\\mathcal M\\) is the class of latent laws satisfying the maintained restrictions, \\(\\mathcal X_+(P)=\\{x:p_xm(x)>0\\}\\) its positive-survivor support, and \\(\\varepsilon_Z,\\kappa_\\sigma,m_\\star\\) are the overlap, direction-separation, and aggregate survivor-mass constants.",
+      "binds_symbols": [
+        "K",
+        "\\mathcal Y",
+        "\\mathcal X",
+        "X",
+        "x^{\\star}",
+        "Z",
+        "D",
+        "S",
+        "Y",
+        "D_0",
+        "D_1",
+        "S_0",
+        "S_1",
+        "Y_0",
+        "Y_1",
+        "O",
+        "P_{\\mathrm{obs}}",
+        "P_{\\mathrm{obs}}^{\\star}",
+        "P",
+        "P^{\\star}",
+        "P^L",
+        "P^U",
+        "C",
+        "\\pi",
+        "p_x",
+        "d(x)",
+        "\\gamma_x",
+        "\\theta",
+        "\\mathcal M",
+        "\\mathcal X_+(P)",
+        "\\varepsilon_Z",
+        "\\kappa_{\\sigma}",
+        "m_{\\star}"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "reuse",
+      "reuse": "Causalean.PO.POSystem",
+      "modules": [
+        "Causalean.PO.Core.System",
+        "Causalean.PO.Core.Variable",
+        "Causalean.PO.Core.Regime",
+        "Causalean.PO.Assumptions.Consistency",
+        "Causalean.PO.Assumptions.ConsistencyLemmas",
+        "Causalean.PO.Assumptions.IndepCF",
+        "Causalean.PO.Conditioning.Bundle",
+        "Causalean.PO.Conditioning.EventCondExpBundle",
+        "Causalean.PO.ID.Exact.LATE",
+        "Causalean.PO.ID.Partial.Lee.Setup",
+        "Causalean.PO.ID.Partial.BalkePearl.Setup",
+        "Causalean.PO.Conditioning.EventCondExp",
+        "Mathlib.MeasureTheory.MeasurableSpace.Defs",
+        "Mathlib.MeasureTheory.MeasurableSpace.Constructions",
+        "Mathlib.MeasureTheory.Constructions.Polish.Basic"
+      ],
+      "notes": "World choice: this is a genuine potential-outcome / IV result (compliers, principal strata, exclusion), so the ambient world is Causalean's `Causalean.PO.POSystem` carrier with `Causalean.PO.POVar` variables, `POVar.cfUnder` counterfactuals, `POSystem.CondIndepCF` for conditional instrument independence, and the bundle-conditional expectation layer `POCFBundle.condExpGiven`/`condExpRatio` (Causalean/PO/Conditioning/{Bundle,EventCondExpBundle}.lean) for cell-conditional stratum quantities. REVISED (F2.5 fix-locus): the world does NOT assume the system-wide axiom `POSystem.Consistency` — consistency and exclusion enter only as the three narrow local atoms `ass:treatment-consistency`, `ass:selection-exclusion-consistency`, and `ass:outcome-exclusion-consistency` (see `ass:treatment-consistency` for the bypass justification); and the identification workhorse is the CONDITIONAL bundle ratio form, not the unconditional `eventCondExp_of_consistency_IndepCF`. Following the established per-paper pattern (`Causalean.PO.POIVSystem` in PO/ID/Exact/LATE.lean:41, `POLeeSystem` in PO/ID/Partial/Lee/Setup.lean, `POBalkePearlSystem` in PO/ID/Partial/BalkePearl/Setup.lean), F2 layers a paper-specific record `POSlateSystem` on top. REVISED (F1 round-3 fix-locus, the flagged defect): the record is planned in the library's own node-plus-equivalence-plus-distinctness shape, NOT as a bare list of five `POVar`s. Its fields are (i) five UNDERLYING NODES `xNode zNode dNode sNode yNode : P.V`; (ii) the five measurable identifications `hX : P.X xNode ≃ᵐ 𝒳` (`Fintype` cell), `hZ : P.X zNode ≃ᵐ Bool`, `hD : P.X dNode ≃ᵐ Bool`, `hS : P.X sNode ≃ᵐ Bool`, `hY : P.X yNode ≃ᵐ Fin K`; (iii) the TEN pairwise-distinctness fields `hXZ : xNode ≠ zNode`, `hXD`, `hXS`, `hXY`, `hZD`, `hZS`, `hZY`, `hDS`, `hDY`, `hSY` — required exactly as `POIVSystem` requires `hZD, hDY, hZY` (LATE.lean:38-47) and `POLeeSystem` requires `hASel, hAY, hSelY` (Lee/Setup.lean:62-67), and NOT derivable from `Fintype 𝒳`, from `Fin K`, or from any constructed witness, so aliasing (e.g. `dNode = sNode`) would otherwise silently collapse the received treatment into the selection indicator and make the eval cascade `Z → D → S → Y`, the complier stratum, and the two capacity contrasts malformed; and (iv) the ambient regularity field `[borel : StandardBorelSpace P.Ω]`, carried instance-implicitly on the record because `POSystem.CondIndepCF` (Assumptions/IndepCF.lean:105-106) takes `[StandardBorelSpace P.Ω]` as an instance argument and `POSystem` (Core/System.lean:35-47) supplies only `Ω : Type*` with `[measΩ : MeasurableSpace Ω]` and `[isProb]` — standard Borel-ness of `Ω` is an EXTRA requirement that follows neither from finiteness of `𝒳`/`Fin K` (which constrain the value spaces `P.X v`, not `Ω`) nor from any constructed witness. `StandardBorelSpace` is a `Prop`-valued class, so carrying it as a record field and additionally opening it with `letI := Sys.borel` (or restating it as a redundant `[StandardBorelSpace P.Ω]` instance binder) at any declaration that mentions `CondIndepCF`/`CondIndepCFBundle` is diamond-free by proof irrelevance; every such declaration in this plan does so explicitly rather than relying on ambient inference. The derived layer is then `xVar : POVar P 𝒳 := ⟨xNode, hX⟩` and likewise `zVar, dVar, sVar, yVar`, with `DofZ z := dVar.cfUnder zVar z`, `SofD d := sVar.cfUnder dVar d`, `YofD d := yVar.cfUnder dVar d`, and `complierEvent` mirroring `POIVSystem.complierEvent` (LATE.lean:97). Any model-constructing node (`def:three-level-witness`, `thm:full-law-endpoint-attainment`) must SUPPLY all ten distinctness proofs and DISCHARGE `borel`; on their finite/countable discrete sample spaces the latter is Mathlib's `standardBorelSpace_of_discreteMeasurableSpace` (`Mathlib.MeasureTheory.Constructions.Polish.Basic`, `[MeasurableSpace α] [DiscreteMeasurableSpace α] [Countable α] → StandardBorelSpace α`), found by `lean_leansearch` \"countable discrete measurable space is a standard Borel space instance\". Search trace for the subsystem record itself: `lean_local_search` on `POSystem`, `POVar`, `Consistency`, `CondIndepCF` over Causalean/PO/** plus reads of Core/System.lean:35-52, Core/Variable.lean:29-90, Assumptions/IndepCF.lean:99-195, ID/Exact/LATE.lean:38-47, ID/Partial/Lee/Setup.lean:37-68 and `grep '^## '` of ../doc/API.md §8h/§9j3/§9j5 — Causalean carries no five-node (X,Z,D,S,Y) selection-IV subsystem with an ordinal outcome; `POIVSystem` fixes `Y : POVar P ℝ`, has no selection and no covariate node, and declares only three distinctness fields, while `POLeeSystem` has selection but no instrument and only three distinctness fields, so the record is new while every field type, the node-plus-equivalence-plus-distinctness shape, and every counterfactual/consistency/independence primitive are reused verbatim. Mathlib side checked for the ambient regularity (`lean_leansearch` \"countable discrete measurable space is a standard Borel space instance\") → `standardBorelSpace_of_discreteMeasurableSpace` is the discharge route for constructed models; there is no route that derives `StandardBorelSpace P.Ω` from a general `POSystem`, which is why the record requires it. REVISED (F1 round-4 fix-locus, the upstream `sym:\\mathcal X` core repair): the covariate carrier is no longer a bare finite set but a FINITE DISCRETE MEASURABLE space, and the world states that regularity explicitly. Every declaration in this plan that mentions `𝒳` carries `[Fintype 𝒳] [DecidableEq 𝒳] [MeasurableSpace 𝒳] [MeasurableSingletonClass 𝒳]`; `MeasurableSingletonClass` is the smallest faithful encoding of the core's `2^{\\mathcal X}` clause and, with `Countable 𝒳` from `Fintype`, upgrades to `DiscreteMeasurableSpace 𝒳` through Mathlib's instance `MeasurableSingletonClass.toDiscreteMeasurableSpace` (`Mathlib.MeasureTheory.MeasurableSpace.Defs`, `[MeasurableSingletonClass α] [Countable α] → DiscreteMeasurableSpace α`), so EVERY subset of `𝒳` is measurable. Three previously-implicit steps become available and are load-bearing: (i) `MeasurableSet ({x} : Set 𝒳)` by `MeasurableSet.singleton`, hence `MeasurableSet (S.xEvent x)` as the preimage under the measurable `S.xVar.value` — this is exactly the `hx : MeasurableSet ({x} : Set α)` premise that every `eventCondExp`/`condExpGiven` workhorse in `Causalean/PO/Conditioning/{EventCondExp,EventCondExpBundle}.lean` already demands (EventCondExp.lean:291,318,395; EventCondExpBundle.lean:96,178), and without which `xBundle` cannot even condition on the cell; (ii) measurability of `observedDatum : P.Ω → 𝒪` into the finite discrete observed carrier by `measurable_to_countable` (`Mathlib.MeasureTheory.MeasurableSpace.Constructions`, `[Countable α] (∀ y, MeasurableSet (f ⁻¹' {f y})) → Measurable f`) applied to the finitely many singleton fibres, each a finite intersection of measurable coordinate events; (iii) consequently `observedLaw = P.μ.map observedDatum` does NOT collapse to zero, `IsProbabilityMeasure observedLaw` holds, and `Measure.map_apply` rewrites every observed atomic event back to a measurable event of `P.Ω`. This is ambient type regularity, NOT a new assumption: no `ass:` node is added, and neither `def:structural-law-class` nor `def:uniform-law-class` gains a member. Search trace for the encoding: `lean_local_search DiscreteMeasurableSpace` (Mathlib `MeasureTheory/MeasurableSpace/Defs.lean`), `lean_leansearch` \"countable type with measurable singletons has discrete measurable space instance\" → `MeasurableSingletonClass.toDiscreteMeasurableSpace`, `lean_loogle measurable_to_countable` → the countable-codomain measurability criterion, plus `grep -n 'singleton' Causalean/PO/Conditioning/*.lean` confirming the library's conditioning layer already takes singleton-measurability as an explicit premise rather than deriving it; Causalean has no finite-discrete covariate-carrier bundle of its own, so the binders are written directly on the paper's declarations.",
+      "bypass_justified": false
+    },
+    {
+      "id": "S2",
+      "world": "A finite capacity-and-transport world. For each covariate cell \\(x\\) on a finite set \\(\\mathcal X\\) and each level of the finite ordered support \\(\\mathcal Y=\\{0,\\ldots,K-1\\}\\), two nonnegative capacity arrays \\(\\ell_i(x)\\) and \\(h_j(x)\\) are given, with totals \\(q_0(x)=\\sum_i\\ell_i(x)\\), \\(q_1(x)=\\sum_jh_j(x)\\), gap \\(\\Delta q(x)=q_1(x)-q_0(x)\\), exact mass \\(m(x)=\\min\\{q_0(x),q_1(x)\\}\\), and prefix/tail aggregates \\(\\ell_{\\le t},\\ell_{<t},\\ell_{>t},h_{\\le t},h_{>t}\\). The branch-free exact-mass partial-transport polytope is \\(\\Gamma_x^{\\ast}=\\{\\gamma_x\\ge0:\\sum_j\\gamma_{ij,x}\\le\\ell_i(x),\\ \\sum_i\\gamma_{ij,x}\\le h_j(x),\\ \\sum_{i,j}\\gamma_{ij,x}=m(x)\\}\\), with the exact-row, exact-column, and doubly-exact variants \\(\\Gamma_x^{+},\\Gamma_x^{-},\\Gamma_x^{0}\\) retained for comparison and \\(\\Gamma_x=\\Gamma_x^{\\ast}\\). The benefit functional is \\(b_x(\\gamma_x)=\\sum_{i<j}\\gamma_{ij,x}\\), and the threshold cuts are \\(B_L(x)=\\max\\{0,\\max_t[\\ell_{\\le t}(x)-h_{\\le t}(x)]+\\min\\{\\Delta q(x),0\\}\\}\\) and \\(B_U(x)=\\min\\{m(x),\\min_t[\\ell_{<t}(x)+h_{>t}(x)]\\}\\), with active faces \\(\\mathcal A_L(x)\\) and \\(\\mathcal A_U(x)\\). Aggregating with weights \\(p_x\\) gives \\(M=\\sum_xp_xm(x)\\), \\(\\theta_L=\\sum_xp_xB_L(x)/M\\), \\(\\theta_U=\\sum_xp_xB_U(x)/M\\), the endpoint map \\(\\Psi=(\\theta_L,\\theta_U)\\), and the interval \\(\\Theta_I=[\\theta_L,\\theta_U]\\).",
+      "binds_symbols": [
+        "\\ell_i(x)",
+        "h_j(x)",
+        "q_0(x)",
+        "q_1(x)",
+        "\\ell_{\\le t}(x)",
+        "\\ell_{<t}(x)",
+        "\\ell_{>t}(x)",
+        "h_{\\le t}(x)",
+        "h_{>t}(x)",
+        "\\Delta q(x)",
+        "m(x)",
+        "\\Gamma_x^{+}",
+        "\\Gamma_x^{-}",
+        "\\Gamma_x^{0}",
+        "\\Gamma_x",
+        "\\Gamma_x^{\\ast}",
+        "b_x(\\gamma_x)",
+        "B_L(x)",
+        "B_U(x)",
+        "M",
+        "\\theta_L",
+        "\\theta_U",
+        "\\Theta_I(P_{\\mathrm{obs}})",
+        "\\Psi(P_{\\mathrm{obs}})",
+        "\\mathcal A_L(x)",
+        "\\mathcal A_U(x)"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Basic",
+        "Mathlib.Data.Fintype.Basic",
+        "Mathlib.Analysis.Convex.DoublyStochasticMatrix"
+      ],
+      "notes": "bypass-justified (partially): the sharp-interval vocabulary IS reused — `Causalean.PartialID.IdentifiedInterval`, `identifiedInterval_eq_Icc`, `mem_Icc_of_sandwich`, `mem_Icc_csInf_csSup` (Causalean/PO/ID/Partial/Basic.lean) are the target shape for \\(\\Theta_I\\) and for the sharpness assembly, exactly as `BalkePearl/Main.lean` uses them (`BPIdentifiedInterval := IdentifiedInterval BPObjective (BPFeasible ..)`). What is genuinely absent is the capacity-constrained transport layer, which is therefore scaffolded over Mathlib finite algebra (`Finset.sum`, `Matrix`, `max`/`min`) at a purely algebraic level over `Fintype 𝒳` and `Fin K` — no measure theory is needed for it. Search trace: `lean_local_search maxFlow` and `lean_local_search transport` over the whole workspace (project_root=<repo-root>) → no flow/min-cut/optimal-transport declaration in Causalean at all; scanned Causalean/PO/ID/Partial/{Basic,Frechet,LP/ConicDuality,SupportFunction/*,BalkePearl/*,Manski/*,Lee/*}.lean via `grep '^## '` + section reads of ../doc/API.md §9j2, §9j2sf, §9j3, §9j5 → `Frechet.lean` gives only fixed-joint-law Frechet–Hoeffding CDF bounds (no capacity constraints, no sharpness), `LP/ConicDuality.lean` gives abstract Hilbert conic duality (value form, CQ-gated strong duality) but no finite bipartite min-cut. Mathlib-side check (`lean_leansearch` \"max-flow min-cut theorem for a finite network\" and \"existence of a coupling matrix with prescribed row and column marginals\") → Mathlib has `doublyStochastic`/Birkhoff (`Mathlib.Analysis.Convex.Birkhoff`, `Mathlib.Analysis.Convex.DoublyStochasticMatrix`, incl. `exists_mem_doublyStochastic_eq_smul_iff` for the equal-total-scaled case) but NO max-flow/min-cut and no capacity-inequality transport polytope. Conclusion: build-inline; the note's own proof is an elementary finite two-pointer/greedy argument on the nested Ferrers graphs \\(i<j\\) and \\(j\\le i\\), so no general min-cut theory is required.",
+      "bypass_justified": true
+    },
+    {
+      "id": "S3",
+      "sync_back_note": "F2 redirect supersedes the older infinite-IIDSample prose below: the observed sequence is shared across n, while IidSampling n states probability-space status, measurability, mutual independence, and common Pobs law only for the first n coordinates. Asymptotic consumers assume this finite-prefix proposition for every n; no infinite IIDSample extension on the same carrier is required.",
+      "world": "An i.i.d. sampling and asymptotic-inference world on the fixed finite observed support. A single sampling probability space \\((\\Omega,\\mu)\\) carries an infinite sequence of observations \\(O_1,O_2,\\ldots\\), each measurable into the finite discrete observed carrier, mutually independent under \\(\\mu\\), and each distributed as \\(P_{\\mathrm{obs}}\\); the sample at size \\(n\\) is the initial segment \\(\\mathbf O_n=(O_1,\\ldots,O_n)\\) of that one sequence, so that every sample size is realized on the same space and the objects indexed by \\(n\\) below form a single stochastic process rather than an unrelated family of finite experiments. The empirical law is \\(\\widehat P_n=n^{-1}\\sum_{r\\le n}\\delta_{O_r}\\), with empirical cell masses \\(\\widehat p_x\\). Empirical conditional probabilities given \\((X=x,Z=z)\\) use the empirical ratio when the denominator is positive and the value zero otherwise; they form the raw contrasts \\(\\widetilde\\ell_i(x),\\widetilde h_j(x)\\), stacked as \\(\\widetilde c_n\\), which are projected onto \\(\\mathfrak C=\\prod_{x}\\mathbb R_+^{2K}\\) by the coordinatewise positive part \\(\\widehat c_n=\\Pi_{\\mathfrak C}(\\widetilde c_n)\\), giving \\(\\widehat\\ell_i(x),\\widehat h_j(x)\\) and hence \\(\\widehat q_0(x),\\widehat q_1(x),\\widehat{\\Delta q}(x),\\widehat m(x),\\widehat B_L(x),\\widehat B_U(x)\\). Cells are screened by \\(\\widehat r_x=\\widehat p_x\\widehat m(x)>\\eta_n\\) with \\(\\eta_n>0\\), \\(\\eta_n\\to0\\) in the ordinary sense, and \\(\\sqrt n\\eta_n\\to\\infty\\) — the screening sequence is NOT assumed monotone in \\(n\\) — giving \\(\\widehat M_n,\\widehat N_{L,n},\\widehat N_{U,n}\\) and the endpoint estimator \\(\\widehat\\Psi_n\\), with fallback \\((0,1)\\) when \\(\\widehat M_n=0\\). Asymptotics use the multinomial Gaussian limit \\(\\mathbb Z_{P_{\\mathrm{obs}}}\\) of the empirical cell-probability vector, the localization tolerance \\(a_n=(n\\eta_n)^{-1/4}\\) with estimated near-active faces \\(\\widehat{\\mathcal A}_{L,n}(x;a_n),\\widehat{\\mathcal A}_{U,n}(x;a_n)\\), a conditional multiplier process \\(\\mathbb G_n^{\\xi}=n^{-1/2}\\sum_r\\xi_r\\{\\delta_{O_r}-\\widehat P_n\\}\\) built from mean-zero unit-variance multipliers \\(\\xi_r\\) (diagnostic only, never a calibrated critical value), and — for the finite-sample guard — the finite observable event class \\(\\mathcal E=\\{\\{X=x\\}\\}\\cup\\{\\{X=x,Z=z\\}\\}\\cup\\{\\{X=x,Z=z,D=d,S=1,Y=k\\}\\}\\), its maximal empirical deviation \\(\\delta_n=\\max_{E\\in\\mathcal E}|\\widehat P_n(E)-P_{\\mathrm{obs}}(E)|\\), the union second-moment threshold \\(b_{n,\\alpha}=\\sqrt{|\\mathcal E|/(4n\\alpha)}\\), the capacity-and-screening envelope \\(A_{n,\\alpha}=64K|\\mathcal X|b_{n,\\alpha}/\\varepsilon_Z^2+|\\mathcal X|\\eta_n\\), the alpha-indexed deterministic guard \\(g_{n,\\alpha}=\\min\\{1,4A_{n,\\alpha}/m_\\star\\}\\), the guarded confidence set \\(\\mathcal C_{1-\\alpha,n}=[\\max\\{0,\\widehat\\Psi_{n,L}-g_{n,\\alpha}\\},\\min\\{1,\\widehat\\Psi_{n,U}+g_{n,\\alpha}\\}]\\) at level \\(\\alpha\\in(0,1)\\), and the triangular-array law class \\(\\mathcal P_n\\).",
+      "binds_symbols": [
+        "n",
+        "\\mathbf O_n",
+        "\\widehat P_n",
+        "\\widehat p_x",
+        "\\widetilde\\ell_i(x)",
+        "\\widetilde h_j(x)",
+        "\\widetilde c_n",
+        "\\mathfrak C",
+        "\\widehat c_n",
+        "\\widehat\\ell_i(x)",
+        "\\widehat h_j(x)",
+        "\\widehat q_0(x)",
+        "\\widehat q_1(x)",
+        "\\widehat{\\Delta q}(x)",
+        "\\widehat m(x)",
+        "\\widehat B_L(x)",
+        "\\widehat B_U(x)",
+        "\\widehat r_x",
+        "\\eta_n",
+        "\\widehat M_n",
+        "\\widehat N_{L,n}",
+        "\\widehat N_{U,n}",
+        "a_n",
+        "\\widehat\\Psi_n",
+        "\\widehat{\\mathcal A}_{L,n}(x;a_n)",
+        "\\widehat{\\mathcal A}_{U,n}(x;a_n)",
+        "\\xi_r",
+        "\\mathbb G_n^{\\xi}",
+        "\\alpha",
+        "\\mathcal C_{1-\\alpha,n}",
+        "\\mathbb Z_{P_{\\mathrm{obs}}}",
+        "\\mathcal E",
+        "\\delta_n",
+        "b_{n,\\alpha}",
+        "A_{n,\\alpha}",
+        "g_{n,\\alpha}",
+        "\\mathcal P_n"
+      ],
+      "binds_sampling_model": true,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Sample",
+        "Causalean.Stat.EmpiricalProcess.CrossFitRate",
+        "Causalean.Stat.CLT.GaussianLimit",
+        "Causalean.Stat.Limit.ConvergenceVec",
+        "Causalean.Stat.Inference.HadamardDeriv",
+        "Causalean.Stat.Inference.FunctionalDelta",
+        "Causalean.PO.ID.Partial.Inference.Basic"
+      ],
+      "notes": "REVISED (F1 round-5 fix-locus, the flagged defect — the sampling world is now stated CONSISTENTLY as an infinite i.i.d. sequence). The previous version of this block asserted two incompatible things: the notes bound `(S : Causalean.Stat.IIDSample Ω 𝒪 μ P_obs)`, whose `Z : ℕ → Ω → 𝒪` field with `iIndepFun Z μ`, `∀ i, IdentDistrib (Z 0) (Z i) μ μ`, and `μ.map (Z 0) = P_obs` (Sample.lean:44-50, re-read this round) is an ℕ-INDEXED sequence on one sampling space, while a sync-back note claimed a finite-\\(n\\) sampling structure needing 'no countably infinite IIDSample extension'. The infinite reading is the one every consumer actually uses, so the finite-\\(n\\) claim is WITHDRAWN and DELETED (from this block, from `ass:iid-sampling`, from `def:uniform-law-class`, and from `lem:finite-multinomial-central-limit`); the world text now states the infinite sequence explicitly and it is recorded as the stronger sampling world it is. Why the ℕ-indexed sequence rather than a genuinely finite-\\(n\\) local structure: (i) every asymptotic consumer is a statement ABOUT the sequence — `thm:branch-free-pointwise-directional-limit` asserts \\(P\\{\\{x:\\widehat r_x>\\eta_n\\}=\\mathcal X_+(P)\\}\\to1\\), \\(\\widehat\\Psi_n\\to_P\\Psi\\), and a \\(\\sqrt n\\) limit in law; `thm:uniform-deterministic-guard` conclusion (II) is a `Tendsto … atTop (𝓝 0)`; the cited gate `lem:finite-multinomial-central-limit` is a convergence-in-law statement — and a limit in \\(n\\) is well posed only when the \\(n\\)-indexed statistics live on ONE space, i.e. are functionals of one sequence; (ii) every reused Causalean asymptotic decl is stated about `S.Z` at all indices (`IIDSample.sampleMean`, Sample.lean:68, sums `i ∈ Finset.range n` of `S.Z i`; `sampleMean_sub_meas_ge_le` / `sampleMean_sub_sq_lintegral_le`, CrossFitRate.lean:655,532; `clt_normalizedSum_vec`, CLT/GaussianLimit.lean), so a finite-\\(n\\) local structure would need a per-\\(n\\) embedding bridge into `IIDSample` for EACH of them — an un-built bridge of exactly the kind this plan withdraws elsewhere (D-plan-11); and (iii) the strengthening does not restrict the paper's law class: on the finite discrete carrier `𝒪` an i.i.d. sequence with any given marginal always exists (product measure / Ionescu–Tulcea), so requiring one constrains only the ambient \\((\\Omega,\\mu)\\) the results are stated over, not the set of observed-data laws \\(P_{\\mathrm{obs}}\\) covered. The FINITE-SAMPLE character of `thm:uniform-deterministic-guard` conclusion (I) is untouched by this: it remains an every-\\(n\\), no-filter statement proved from the second-moment union bound at that fixed \\(n\\); it is merely stated inside a world where the remaining indices of the sequence also exist. Adaptedness of the size-\\(n\\) statistics to \\(\\sigma(O_1,\\ldots,O_n)\\) is true here but is used by no conclusion, so no such σ-algebra claim is planned. With that settled: the sampling model is `Causalean.Stat.IIDSample Ω 𝒪 μ P_obs` (Causalean/Stat/Sample.lean:44) verbatim, carried as an explicit binder `(S : IIDSample Ω 𝒪 μ Pobs)` and PINNED to the declared observation sequence by `∀ i, S.Z i = O i` (see `ass:iid-sampling`, revised); every empirical object in this world (\\(\\widehat P_n\\), \\(\\widehat p_x\\), \\(\\widetilde c_n\\), \\(\\widehat\\Psi_n\\)) is therefore built from the same sequence the library asymptotics are stated about. REVISED (F1 round-2 type-fit fix): the world's empirical-frequency primitive is `Causalean.Stat.IIDSample.sampleMean` (Causalean/Stat/Sample.lean:68, `S.sampleMean f n ω = (n:ℝ)⁻¹ * ∑ i ∈ Finset.range n, f (S.Z i ω)`) EVALUATED AT AN EVENT INDICATOR: for a set `E ⊆ 𝒪`, \\(\\widehat P_n(E) := S.sampleMean (fun o => if o ∈ E then 1 else 0) n\\). This is generic in the observation type `X`, hence available at the finite `𝒪` used here. Two library objects previously named in this block are DROPPED as type-misfits, verified by reading their sources: (i) `Causalean.Stat.IIDSample.empiricalMeasure` (Causalean/Stat/Quantile/EmpiricalQuantile.lean:58) is declared `(S : IIDSample Ω ℝ μ P) (n) (ω) : Measure ℝ` — hard-wired to a REAL observation type and returning a `Measure ℝ`, so it cannot represent \\(\\widehat P_n\\) on the finite `𝒪`; (ii) `Causalean.Stat.empiricalMass` and its moment lemmas `Stat.integral_empiricalMass` / `_sq` (Causalean/Stat/Sample/EmpiricalMass.lean:25,62,98) are stated about a deterministic `sample : Fin m → 𝒳` integrated against the PRODUCT measure `Measure.pi (fun _ : Fin m => μ)`, not about an `IIDSample Ω 𝒪 μ Pobs` on `(Ω, μ)`; using them on the pinned sample `S.Z` would require an un-built pushforward-to-product bridge (`μ.map (fun ω i => S.Z i ω) = Measure.pi …`, which the library derives only INSIDE the CrossFitRate proofs and does not export). The replacement moment substrate is stated directly for `IIDSample`: `Causalean.Stat.IIDSample.sampleMean_sub_sq_lintegral_le` and `Causalean.Stat.IIDSample.sampleMean_sub_meas_ge_le` (Causalean/Stat/EmpiricalProcess/CrossFitRate.lean:532,655), the second giving verbatim the Chebyshev tail \\(\\mu\\{t\\le|\\widehat P_n(E)-P_{\\mathrm{obs}}(E)|\\}\\le(\\int f^2\\,dP)/(nt^2)\\) for any `MemLp f 2 P`; at an indicator `f=1_E` on a finite type, `∫ f dP = P_obs(E)` and `∫ f² dP = P_obs(E) ≤ 1`, so the bound is \\(\\le1/(nt^2)\\) uniformly in the law. Search trace for the replacement: `grep -n 'sampleMean_sub_sq_lintegral_le|sampleMean_sub_meas_ge_le|empiricalMeasure|def sampleMean'` over Causalean/Stat/** and Causalean/PO/** plus reads of Sample.lean:38-77, Sample/EmpiricalMass.lean:25-159, Quantile/EmpiricalQuantile.lean:53-71, EmpiricalProcess/CrossFitRate.lean:515-670 → the `IIDSample`-native centered-mean second-moment and Chebyshev-tail pair is the only moment substrate stated on `(Ω, μ)` for a general observation type; Mathlib side checked (`lean_leansearch` \"Chebyshev inequality for the empirical frequency of an event under i.i.d. sampling\") → only the generic `ProbabilityTheory.measure_ge_le_variance_div_sq` / Markov forms, strictly weaker than the Causalean pair, so nothing further is needed. Other reused inference substrate is unchanged: `Causalean.Stat.Tendsto_dist_vec` (Causalean/Stat/Limit/ConvergenceVec.lean) is the weak-convergence vocabulary; `Causalean.Stat.gaussianLimit` + `Causalean.Stat.IIDSample.clt_normalizedSum_vec` (Causalean/Stat/CLT/GaussianLimit.lean) is the concrete multivariate Gaussian limit; `Causalean.Stat.HasHadamardDirDerivAt`, `maxDirDeriv`, `minDirDeriv`, `hasHadamardDirDerivAt_max`, `hasHadamardDirDerivAt_min` (Causalean/Stat/Inference/HadamardDeriv.lean) are exactly the tie-case directional-derivative primitives the branch-free lower/upper functionals need at \\(\\Delta q(x)=0\\) and at the mass cap, and `Causalean.Stat.deltaMethod_max_tie` / `deltaMethod_min_tie` (Causalean/Stat/Inference/FunctionalDelta.lean) are the scalar tie delta methods; `Causalean.PartialID.Inference.RandomCoversIcc` and `honest_ci_set_cover` (Causalean/PO/ID/Partial/Inference/Basic.lean) are the set-coverage vocabulary for the guarded confidence set. REVISED (F1 round-4 fix-locus, the upstream guard strengthening): the world's guard objects are now the ALPHA-INDEXED family \\(\\mathcal E,\\delta_n,b_{n,\\alpha},A_{n,\\alpha},g_{n,\\alpha}\\) and the deleted symbol \\(g_n\\) appears nowhere in this plan; \\(a_n=(n\\eta_n)^{-1/4}\\) survives only as the diagnostic near-active-face tolerance and enters no delivered conclusion. \\(\\mathcal E\\) is a `Finset` of subsets of the `Fintype` `𝒪`, each measurable because the observed carrier is finite and discrete (see S1), so `δ_n` is a finite `Finset.sup'` of `|empFreq E n − Pobs.real E|` and needs no empirical-process machinery. CONSTANT REPAIR, now load-bearing (supersedes the factor-of-four concession recorded in D-plan-11): the α-indexed guard is valid only with the note's sharp \\(P(\\delta_n>b_{n,\\alpha})\\le|\\mathcal E|/(4nb_{n,\\alpha}^2)=\\alpha\\), so F2/F3 instantiate `Causalean.Stat.IIDSample.sampleMean_sub_meas_ge_le` (Causalean/Stat/EmpiricalProcess/CrossFitRate.lean:655, bound `(∫ f² dP)/(n t²)`) at the CENTERED indicator `g_E := fun o => (if o ∈ E then (1:ℝ) else 0) - Pobs.real E` rather than at the bare indicator: then `∫ g_E dP = 0`, `∫ g_E² dP = Pobs.real E * (1 - Pobs.real E) ≤ 1/4` (Bernoulli variance), and `S.sampleMean g_E n = S.sampleMean f_E n - Pobs.real E` for `0 < n` because `sampleMean` of a constant is that constant (`(n:ℝ)⁻¹ * ∑ i ∈ Finset.range n, c = c`, one `Finset.sum_const`/`field_simp` line), so the tail is exactly \\(\\le1/(4nt^2)\\) uniformly in the law and the union bound over `\\mathcal E` gives the note's display (1) verbatim. `MemLp g_E 2 Pobs` is `MemLp.of_bound` with bound `1` and `Measurable g_E` is `(measurable_const.ite (MeasurableSet.of_discrete) measurable_const).sub measurable_const` on the discrete `𝒪`, the same two-line pattern used at Sample/EmpiricalMass.lean:71-76. Mathlib side re-checked for the sharper form (`lean_leansearch` \"variance of a Bernoulli indicator is at most one quarter\" / \"Chebyshev bound for an empirical frequency\") → only the generic Markov/variance forms, so the centered-instantiation route above is the plan of record and nothing new is needed. REVISED (F1 round-6 fix-locus, THE FLAGGED DEFECT — the screening sequence is NOT monotone). The upstream repair route was `fix-source`, and the frozen core now declares \\(\\eta_n\\) as nothing more than a positive deterministic sequence with \\(\\eta_n\\to0\\) and \\(\\sqrt n\\eta_n\\to\\infty\\): `sampling_model.nuisance_estimation` says verbatim 'no monotonicity in \\(n\\) is assumed', `thm:branch-free-pointwise-directional-limit`'s proof says 'no monotonicity of \\(n\\mapsto\\eta_n\\) is used', and `thm:uniform-deterministic-guard` says 'No monotonicity of \\((\\eta_n)\\) or \\((L_n)\\) is used or asserted'. The previous world text wrote \\(\\eta_n\\downarrow0\\), which asserts a monotone decrease the core never granted; F2 read that as an `Antitone η` binder on BOTH asymptotic theorems (TUniformDeterministicGuard.lean:56, TBranchFreePointwiseDirectionalLimit.lean:41) and, worse, as an `Antitone ηL` CONJUNCT inside the guard's \\(L_n\\) corollary (TUniformDeterministicGuard.lean:100), which is outright FALSE under the stated premises — take \\(L_n=(n+1)^{1/4}\\) multiplied by 2 on even \\(n\\) and by 1 on odd \\(n\\), which is positive, tends to infinity, and is \\(o(\\sqrt n)\\), yet makes \\(\\eta_n=n^{-1/2}L_n\\) increase infinitely often — and that is exactly the `statement-wrong` blocker F3 recorded at TUniformDeterministicGuard.lean:111. The world text above is corrected accordingly, and the encoding directive is: F2 carries the screening sequence as `(η : ℕ → ℝ)` with EXACTLY three side conditions — `∀ n, 0 < η n`, `Tendsto η atTop (𝓝 0)`, and `Tendsto (fun n : ℕ => Real.sqrt n * η n) atTop atTop` — and must NOT emit `Antitone η`, `StrictAnti η`, or any pointwise `m ≤ n → η n ≤ η m` hypothesis anywhere, nor an `Antitone ηL` conclusion. Scope of the repair: monotonicity was never an `ass:` node, so nothing is added to or removed from `def:structural-law-class` or `def:uniform-law-class`, no disposition, `reuse`, `defer_tier`, member list, or `hyps` list moves, and the only affected declarations are the two consumers that carried the binder plus this world block. No new absence is asserted, so no additional search trace is required: the three retained side conditions are Mathlib `Filter.Tendsto`/`Real.sqrt` vocabulary already reachable from this block's `modules`.",
+      "bypass_justified": false
+    }
+  ],
+  "file_plan": {
+    "root": "CausalSmith/PartialID/PID_SlateBenefitPartialtransport_Research",
+    "order": [
+      "Helpers/Capacities.lean",
+      "Helpers/Transport.lean",
+      "Basic.lean",
+      "Helpers/Estimator.lean",
+      "Helpers/CitedGates.lean",
+      "Helpers/CondIndepBridge.lean",
+      "TCapacityIdentification.lean",
+      "TTieFaceCollapse.lean",
+      "TSharpExactMassThresholdInterval.lean",
+      "TFullLawEndpointAttainment.lean",
+      "TThreeLevelWitness.lean",
+      "TNoSelectionReduction.lean",
+      "TLinearSparseThresholdFlow.lean",
+      "TBranchFreePointwiseDirectionalLimit.lean",
+      "TUniformDeterministicGuard.lean",
+      "OpenQuestions.lean"
+    ],
+    "notes": "Layout planned from the start for 11 delivered results plus 3 cited gates and 1 open question. `Helpers/Capacities.lean` and `Helpers/Transport.lean` are the pure finite-algebra spine (S2) and carry no PO or measure-theoretic import, so they compile fast and are reusable by the estimator layer. `Basic.lean` introduces the `POSlateSystem` record (S1), the eleven assumption `Prop` definitions, and the two law-class structures; it imports `Helpers/Capacities.lean` because the overlap, direction-margin, and survivor-mass assumptions are stated in the capacity vocabulary. Each theorem gets its own `T*.lean`, since the proof chains are independent topics (identification algebra / transport min-cut / full-law construction / explicit witness / complexity / asymptotics). Projected post-proof sizes: `Helpers/Transport.lean` and `TSharpExactMassThresholdInterval.lean` are the two large ones (~500-800 lines each, the greedy-flow and cut-equality arguments); `TFullLawEndpointAttainment.lean` is projected largest (~700-900 lines) by analogy with the fully-proved `Causalean/PO/ID/Partial/BalkePearl/Sharp.lean` canonical-model construction (~750 lines) and may be split into `TFullLawEndpointAttainment/{Construction,Compatibility,Main}.lean` if it crosses ~900. F2 may refine the split. REVISED (F2.5 fix-locus): `Helpers/CondIndepBridge.lean` is added between the cited gates and the first theorem file — a ~40-line helper carrying the singleton conditioning bundle `xBundle` and the `CondIndepCF → CondIndepCFBundle` σ-algebra bridge that `prop:capacity-identification` needs to apply `POCFBundle.condExpRatio_of_consistency_CondIndepCFBundle`; it imports only `Causalean.PO.Conditioning.{Bundle,EventCondExpBundle}` and `Basic.lean`, and every declaration in it carries an explicit `[StandardBorelSpace P.Ω]` binder (both `CondIndepCF` and `CondIndepCFBundle` take it as an instance argument). REVISED (F1 round-3 fix-locus): `Basic.lean` now opens with the `POSlateSystem` record in its node-plus-equivalence-plus-distinctness shape — five `P.V` nodes, five measurable equivalences, ten pairwise-distinctness fields, and the instance-implicit `[borel : StandardBorelSpace P.Ω]` field (see S1) — and the assumption `def`s and the two law-class structures are stated after it, with the `[StandardBorelSpace P.Ω]` binder written explicitly on `IVIndependence`, `TieSafeSurvivorModel`, and `UniformInferenceLawClass`; this adds ~25 lines to `Basic.lean` and changes no file boundary. REVISED (F1 round-4 fix-locus): two source-level repairs land without moving any file boundary. (i) `sym:\\mathcal X` is now a finite DISCRETE measurable carrier, so `Basic.lean` writes `[Fintype 𝒳] [DecidableEq 𝒳] [MeasurableSpace 𝒳] [MeasurableSingletonClass 𝒳]` in its variable block and every downstream file inherits it, and `Helpers/CondIndepBridge.lean` grows from ~40 to ~90 lines by absorbing the finite-atom evaluation cluster (cell-atom measurability, `observedDatum` measurability and the `Measure.map_apply` observed-event rewrites, and the two lemmas taking a `comap`-conditional a.e. identity to an `eventCondExp` value on a positive atom) — the bridge stays a helper file feeding `TCapacityIdentification.lean`, which is where the F3 `build-substrate` halt pointed. (ii) The guard family in `Helpers/Estimator.lean` becomes alpha-indexed (`guardEvents`, `maxDeviation`, `unionThreshold`, `errorEnvelope`, `guardRadius n α`), adding ~30 lines there, and `TUniformDeterministicGuard.lean` grows by the retained-consistency conclusion (II) and its auxiliary event `𝒟ₙ`, projecting ~450-600 lines — still comfortably inside one file.",
+    "bypass_survey": [
+      {
+        "module": "Causalean/PO/ID/Partial/Manski/*.lean",
+        "verdict": "surveyed, not applicable",
+        "reason": "Manski/MTR/MTS/MIV bound the ATE under a discrete IV via `eventCondExp` sandwiches on real outcomes; there is no selection node, no principal-stratum coupling, and no ordinal transport, so nothing in the reuse list (`manski_bounds_ATE`, `lowerBound1`, `upperBound1`, `Manski.Combined.*`) type-fits any node here."
+      },
+      {
+        "module": "Causalean/PO/ID/Partial/Lee/*.lean",
+        "verdict": "surveyed, template reused, decls not applicable",
+        "reason": "Lee gives the closest structural analogue (`MonotoneSelection`, `alwaysSelected`/`helpedSelected`/`harmedSelected`, `harmedSelected_ae_empty`) but for a randomized binary treatment with real outcomes and one-directional selection monotonicity; our monotonicity is cellwise, two-directional, and conditional on the complier stratum, and the target is an ordinal same-unit benefit probability rather than a trimmed mean. The stratum-collapse proof pattern is adapted, no Lee declaration is reused verbatim."
+      },
+      {
+        "module": "Causalean/PO/ID/Partial/BalkePearl/*.lean",
+        "verdict": "surveyed, template reused, decls not applicable",
+        "reason": "Balke-Pearl is the architectural template (latent table -> LP feasible set -> `IdentifiedInterval` -> canonical-model sharpness -> closed-form attainment) and `BalkePearl/Sharp.lean` is the reference construction for `thm:full-law-endpoint-attainment`. Its declarations are hard-wired to three binary nodes with no covariate cell, no selection, and a binary outcome, so none type-fits."
+      },
+      {
+        "module": "Causalean/PO/ID/Partial/Proxy/*.lean, Sensitivity/MSM/*, SupportFunction/*, RandomSet/*, CriterionSet/*",
+        "verdict": "surveyed, not applicable",
+        "reason": "Proximal bridge functions, marginal sensitivity models, support-function/random-set geometry, and criterion-set inference address different identification geometries; `SupportFunction/*` and `RandomSet/*` are convex-geometry engines for set-valued means, not for a cellwise capacity polytope with an exact-mass constraint."
+      },
+      {
+        "module": "Causalean/PO/ID/Partial/Basic.lean, Frechet.lean, LP/ConicDuality.lean, Inference/*",
+        "verdict": "reused",
+        "reason": "`IdentifiedInterval` / `identifiedInterval_eq_Icc` / `mem_Icc_of_sandwich` / `mem_Icc_csInf_csSup` express the sharp interval and its assembly; `Inference/Basic.lean`'s `RandomCoversIcc` / `honest_ci_set_cover` express set coverage for the guarded confidence set. `Frechet.lean` and `LP/ConicDuality.lean` were checked and do not cover capacity-constrained transport (see S2 notes)."
+      },
+      {
+        "module": "Causalean/PO/**, Causalean/SCM/**",
+        "verdict": "reused (PO), bypassed (SCM)",
+        "reason": "The PO layer is the ambient world (S1). The SCM layer is bypassed: the paper never uses a graph, d-separation, or do-calculus; every restriction is stated directly on potential outcomes, so `POSystem.ofSCM` and the graphical machinery add nothing."
+      }
+    ]
+  },
+  "citations": [
+    {
+      "id": "cite:van-der-vaart-1998-multivariate-clt",
+      "bibkey": "vanDerVaart1998",
+      "title": "Asymptotic Statistics",
+      "authors": "van der Vaart, A. W.",
+      "year": 1998,
+      "doi": "10.1017/CBO9780511802256",
+      "url": "https://doi.org/10.1017/CBO9780511802256",
+      "locator": "Chapter 2, multivariate central limit theorem and Cramer--Wold device",
+      "verbatim_statement": "Example 2.18 (Multivariate central limit theorem). Let Y1, Y2, ... be i.i.d. random vectors in R^k with mean vector mu = E Y1 and covariance matrix Sigma = E(Y1 - mu)(Y1 - mu)^T. Then sqrt(n)(Ybar_n - mu) converges in distribution to N_k(0, Sigma).",
+      "attestation": {
+        "by": "main",
+        "note": "Source-of-record text verified at van der Vaart (1998), Chapter 2, Example 2.18, lines 1241-1256 of the digitized book text; bibliographic identity and Cambridge ownership cross-checked via the UCF library-owned Cambridge ebook catalog.",
+        "at": "2026-09-03T21:11:18.769Z"
+      },
+      "node": "lem:finite-multinomial-central-limit"
+    },
+    {
+      "id": "cite:lu-ding-dasgupta-2018-ordinal-benefit-bounds",
+      "bibkey": "LuDingDasgupta2018",
+      "title": "Treatment effects on ordinal outcomes: Causal estimands and sharp bounds",
+      "authors": "Lu, J., Ding, P., and Dasgupta, T.",
+      "year": 2018,
+      "url": "https://files.eric.ed.gov/fulltext/EJ1190295.pdf",
+      "locator": "Proposition 2, equation (6), page 546",
+      "verbatim_statement": "Proposition 2: The sharp lower and upper bounds of \\(\\eta\\) are \\(\\eta_L=\\max_j\\Delta_j\\) and \\(\\eta_U=1+\\min_j(\\Delta_j-p_{j+})\\).",
+      "attestation": {
+        "by": "d0-agent",
+        "note": "Transcribed from Proposition 2, equation (6), in the publisher-distributed article PDF at https://files.eric.ed.gov/fulltext/EJ1190295.pdf; the emitted lemma rewrites the formula in the note's row-column and cumulative notation."
+      },
+      "node": "lem:ordinal-fixed-marginal-strict-benefit"
+    },
+    {
+      "id": "cite:fang-santos-2019-directional-delta-method",
+      "bibkey": "FangSantos2019",
+      "title": "Inference on directionally differentiable functions",
+      "authors": "Fang, Z., and Santos, A.",
+      "year": 2019,
+      "doi": "10.1093/restud/rdy049",
+      "url": "https://doi.org/10.1093/restud/rdy049",
+      "locator": "Section 2.3, Assumptions 1--2, Theorem 2.1, equation (10), and Remark 2.1",
+      "verbatim_statement": "Assumption 1: \\(\\mathbb D\\) and \\(\\mathbb E\\) are Banach spaces, and \\(\\phi:\\mathbb D_\\phi\\subseteq\\mathbb D\\to\\mathbb E\\) is Hadamard directionally differentiable at \\(\\theta_0\\) tangentially to \\(\\mathbb D_0\\). Assumption 2: \\(\\theta_0\\in\\mathbb D_\\phi\\), the \\(\\mathbb D_\\phi\\)-valued estimator \\(\\widehat\\theta_n\\) satisfies \\(r_n\\{\\widehat\\theta_n-\\theta_0\\}\\rightsquigarrow\\mathbb G_0\\) in \\(\\mathbb D\\) for some \\(r_n\\uparrow\\infty\\), and \\(\\mathbb G_0\\) is tight with support included in \\(\\mathbb D_0\\). Theorem 2.1: under Assumptions 1--2, \\(r_n\\{\\phi(\\widehat\\theta_n)-\\phi(\\theta_0)\\}=\\phi'_{\\theta_0}(r_n\\{\\widehat\\theta_n-\\theta_0\\})+o_p(1)\\), and consequently the left side converges in law in \\(\\mathbb E\\) to \\(\\phi'_{\\theta_0}(\\mathbb G_0)\\).",
+      "attestation": {
+        "by": "d0-agent",
+        "note": "Transcribed and revalidated directly against the publisher-hosted Review of Economic Studies article, Fang and Santos (2019), Section 2.3, Assumptions 1--2, Theorem 2.1, equation (10), and Remark 2.1.",
+        "at": "2026-09-03T21:35:41Z"
+      },
+      "node": "lem:hadamard-directional-delta-method"
+    }
+  ],
+  "nodes": {
+    "ass:iv-independence": {
+      "lean_kind": "assumption",
+      "lean_name": "IVIndependence",
+      "disposition": "reuse",
+      "reuse": "Causalean.PO.POSystem.CondIndepCF",
+      "modules": [
+        "Causalean.PO.Assumptions.IndepCF",
+        "Mathlib.MeasureTheory.Constructions.Polish.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "notes": "`def IVIndependence [StandardBorelSpace P.Ω] (S : POSlateSystem P) : Prop := P.CondIndepCF (RegimedVar.ofFactual S.zVar) S.cfBundle (RegimedVar.ofFactual S.xVar) P.μ`, where `cfBundle` bundles `(D_0,D_1,S_0,S_1,Y_0,Y_1)` via `POCFBundle.cons` exactly as `POIVSystem.cfBundle` (LATE.lean:166) does for `(D(1),D(0),Y(1),Y(0))`, and `S.zVar`/`S.xVar` are the derived `POVar`s over the record's DISTINCT nodes `zNode ≠ xNode` (field `hXZ`; see S1). The Causalean predicate is the atom verbatim, so this is a pure encoding reuse; `CondIndepCF.project` / `.component` (PO/Assumptions/IndepCF.lean) give the per-coordinate consequences the identification proof needs. REVISED (F1 round-3 fix-locus, the flagged defect): the previous claim that the `StandardBorelSpace P.Ω` side condition is 'discharged' because `𝒳` is a `Fintype` and constructed models are standard Borel is WITHDRAWN as unsound. Reading the declaration (Causalean/PO/Assumptions/IndepCF.lean:104-106, `def POSystem.CondIndepCF … (P : POSystem) [StandardBorelSpace P.Ω] …`, doc-string 'Requires `StandardBorelSpace P.Ω` for `CondIndepFun` to make sense') confirms it is an INSTANCE ARGUMENT of the reused predicate, and `POSystem` (Core/System.lean:35-47) carries only `[measΩ : MeasurableSpace Ω]`, so nothing about the finiteness of the covariate set or of `Fin K` — which constrain the value spaces `P.X v`, not the ambient `Ω` — supplies it, and a hypothesis that happens to hold in the models this paper later constructs is not a discharge for the general theorems stated over an arbitrary `P`. It is therefore REQUIRED EXPLICITLY: carried as the instance-implicit field `[borel]` of `POSlateSystem` and additionally written as an explicit `[StandardBorelSpace P.Ω]` binder on this def and on every declaration whose statement mentions it (harmless duplication — the class is `Prop`-valued, so proof irrelevance makes the two instances interchangeable and no diamond arises); the model-constructing nodes discharge it by `standardBorelSpace_of_discreteMeasurableSpace` on their countable discrete sample spaces. The previously recorded fallback (the cellwise `POSystem.IndepCF` restricted to `xVar.event x`) is likewise NOT a way around the requirement: `IndepCF` is the unconditional predicate and the paper's atom is conditional, so the fallback is withdrawn and `prop:capacity-identification`'s planned bridge to `CondIndepCFBundle` (which also carries `[StandardBorelSpace P.Ω]`) is the single route. Search trace for the requirement: `grep -n 'StandardBorel' Causalean/PO/Assumptions/IndepCF.lean` (hits at :104, :131, :144, :177, :190 — every `CondIndepCF` lemma carries it) plus `lean_leansearch` \"countable discrete measurable space is a standard Borel space instance\" → `standardBorelSpace_of_discreteMeasurableSpace` (`Mathlib.MeasureTheory.Constructions.Polish.Basic`) is the only discharge route and applies only to countable discrete `Ω`."
+    },
+    "ass:treatment-consistency": {
+      "lean_kind": "assumption",
+      "lean_name": "TreatmentConsistency",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.Core.Variable",
+        "Causalean.PO.Assumptions.ConsistencyLemmas"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "notes": "REVISED (F2.5 fix-locus): the reuse of `Causalean.PO.POSystem.Consistency` is DROPPED. F2 emits the narrow local atom `def TreatmentConsistency (S : POSlateSystem P) : Prop := ∀ᵐ ω ∂P.μ, S.factualD ω = S.DofZ (S.factualZ ω) ω` — literally \\(D=D_Z\\) at the realized instrument — threaded as an ordinary theorem-local hypothesis exactly like the three exclusion atoms beside it. bypass-justified (`Causalean/PO/Assumptions/Consistency.lean:53`, `POSystem.Consistency`): ABSTRACTION MISMATCH. The library predicate is a two-clause UNIVERSAL axiom — `factual` quantified over every regime `r` and every variable set `Y` disjoint from `r.target`, plus `composition` quantified over every disjoint regime pair — i.e. full system-wide SUTVA over all regimes and variables. The core's atom is one instance of that axiom at a single variable. Assuming the library structure would silently import factual-plus-composition consistency for `S` and `Y` as well, which collapses the paper's separately atomized `ass:selection-exclusion-consistency` and `ass:outcome-exclusion-consistency` into a consequence of this one field and over-strengthens \\(\\mathcal M\\) and \\(\\mathcal P_n\\) relative to the frozen core. Confirmation that no weaker library route exists: the two pointwise lemmas the identification proof would want, `POVar.factual_eq_cfUnder_self_selected` (ConsistencyLemmas.lean:137) and `POVar.factual_mul_indicator_eq_cfUnder_mul_indicator_fn` (:191), both take `hC : P.Consistency` as a premise, so every reuse path runs through the over-strong axiom. F2/F3 instead derive the indicator rewrite `factualD · 1_{Z=z} =ᵐ DofZ z · 1_{Z=z}` in one line from this local atom, copying those lemmas' two-case `Set.indicator_of_mem`/`_notMem` proof shape (ConsistencyLemmas.lean:174-183) rather than their statements. Search trace: `grep -n 'Consistency|consistency'` over Causalean/PO/Assumptions/*.lean and Causalean/PO/ID/{Exact/LATE.lean, Partial/Lee/Assumptions.lean, Partial/BalkePearl/Assumptions.lean}, plus reads of Consistency.lean:30-66 and ConsistencyLemmas.lean:101-199 → the library carries exactly one consistency predicate (the universal structure) and no narrow `factual = cfUnder-at-realized-value` named `Prop`; every downstream user (`POIVSystem.Assumptions.consistency`, `BalkePearl.BaseAssumptions.consistency`) stores the full structure because those systems genuinely assume system-wide SUTVA. Mathlib side not applicable (a causal-structural restriction, not a standard mathematical fact). Build-inline, one-line `Prop`; no member list and no consumer `hyps` list moves, since the atom's id and its role in `def:structural-law-class`, `def:uniform-law-class`, and `prop:capacity-identification` are unchanged."
+    },
+    "ass:selection-exclusion-consistency": {
+      "lean_kind": "assumption",
+      "lean_name": "SelectionExclusion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.Core.Variable",
+        "Causalean.PO.Assumptions.ConsistencyLemmas"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "notes": "`def SelectionExclusion (S : POSlateSystem P) : Prop := ∀ᵐ ω ∂P.μ, S.factualS ω = S.SofD (S.factualD ω) ω` — selection responds only to received treatment. Search trace: `lean_local_search` on `Consistency` and grep of `Causalean/PO/Assumptions/*.lean`, `Causalean/PO/ID/Partial/Lee/Assumptions.lean`, `Causalean/PO/ID/Partial/BalkePearl/{Assumptions,Sharp}.lean` for `exclusion` → Causalean states exclusion only as the *derived* pointwise identity `POBalkePearlSharp.canonical_exclusion : YofZD z d = YofD d` inside the canonical model, never as a reusable named assumption `Prop`; Mathlib side not applicable (this is a causal-structural restriction, not a standard mathematical fact). Build-inline, one-line `Prop`."
+    },
+    "ass:outcome-exclusion-consistency": {
+      "lean_kind": "assumption",
+      "lean_name": "OutcomeExclusion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.Core.Variable",
+        "Causalean.PO.Assumptions.ConsistencyLemmas"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "notes": "`def OutcomeExclusion (S : POSlateSystem P) : Prop := ∀ᵐ ω ∂P.μ, S.factualS ω = true → S.factualY ω = S.YofD (S.factualD ω) ω` — the outcome is recorded only on the selected event and responds only to received treatment. Search trace: same scan as `ass:selection-exclusion-consistency` (`grep exclusion` over Causalean/PO/Assumptions/** and Causalean/PO/ID/Partial/**; `lean_local_search Consistency`) → no reusable named exclusion `Prop`; Mathlib side not applicable. Build-inline."
+    },
+    "ass:instrument-overlap": {
+      "lean_kind": "assumption",
+      "lean_name": "InstrumentOverlap",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.SCM.ID.Overlap"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "notes": "`def InstrumentOverlap (S : POSlateSystem P) (εZ : ℝ) : Prop := ∀ x, 0 < S.p x → εZ ≤ S.π x ∧ S.π x ≤ 1 - εZ`. Search trace: read ../doc/API.md §9a `SCM/ID/Overlap.lean` (Rule 2 / backdoor overlap predicate) and §9j5 Lee `BaseAssumptions.posSelectedTreated/posATrue` → Causalean's overlap predicates are either graph/Rule-2-shaped (a.e. positivity of a conditional density on a SWIG regime) or bare positivity of a single event, neither of which is a two-sided margin bound on a finite-cell propensity indexed by a constant \\(\\varepsilon_Z\\); no `ε ≤ π ≤ 1-ε` predicate exists. Mathlib side not applicable (a modeling restriction). Build-inline, one-line `Prop`."
+    },
+    "ass:no-defiers": {
+      "lean_kind": "assumption",
+      "lean_name": "NoDefiers",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Exact.LATE"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "notes": "`def NoDefiers (S : POSlateSystem P) : Prop := ∀ᵐ ω ∂P.μ, S.DofZ false ω = true → S.DofZ true ω = true` — the Bool form of \\(D_1\\ge D_0\\). Search trace: `grep 'Monoton|defier|noDefiers'` over Causalean/PO/ID/Exact/LATE.lean → the identical condition exists only as the *field* `POIVSystem.Assumptions.monotonicity` (LATE.lean:201), not as a standalone named `Prop`, and `POIVSystem` fixes `yVar : POVar P ℝ` with no selection node so its `Assumptions` bundle cannot be instantiated here; `Causalean.PO.Lee.MonotoneSelection` is the selection analogue, not the treatment one. Mathlib side not applicable. Build-inline as a one-line `Prop` matching LATE.lean:201 verbatim so the two are interchangeable."
+    },
+    "ass:weak-selection-monotonicity": {
+      "lean_kind": "assumption",
+      "lean_name": "WeakSelectionMonotonicity",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Lee.Assumptions",
+        "Causalean.PO.ID.Partial.Lee.PrincipalStrata"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "notes": "`def WeakSelectionMonotonicity (S : POSlateSystem P) (d : 𝒳 → Bool) : Prop := ∀ x, 0 < P.μ (S.complierEvent ∩ S.xEvent x) → ∀ᵐ ω ∂(P.μ.restrict (S.complierEvent ∩ S.xEvent x)), (d x = true → S.SofD false ω ≤ S.SofD true ω) ∧ (d x = false → S.SofD true ω ≤ S.SofD false ω)`, with `d : 𝒳 → Bool` encoding the latent direction \\(d(x)\\in\\{-1,+1\\}\\). Search trace: `Causalean.PO.Lee.MonotoneSelection` (Causalean/PO/ID/Partial/Lee/Assumptions.lean, `Sel(0) ≤ Sel(1)` a.s.) is the *one-directional, unconditional* analogue — the closest fit in the library, found via ../doc/API.md §9j5 plus `grep Monoton` over Causalean/PO/ID/Partial/Lee/*.lean; it does not type-fit because it is neither covariate-indexed, nor conditional on the complier stratum, nor direction-parameterised, so instantiating it would silently strengthen the paper's Assumption 3.2 into a global increasing-selection restriction. Mathlib side not applicable. Build-inline; `Lee/PrincipalStrata.lean`'s `harmedSelected_ae_empty` / `selOfAFalseSet_ae_eq_alwaysSelected` are the proof pattern F3 adapts for the cellwise stratum collapse (gap to bridge: restrict to \\(C\\cap\\{X=x\\}\\) and branch on `d x`)."
+    },
+    "ass:direction-margin": {
+      "lean_kind": "assumption",
+      "lean_name": "DirectionMargin",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "notes": "`def DirectionMargin (c : Capacities 𝒳 K) (p : 𝒳 → ℝ) (κσ : ℝ) : Prop := ∀ x, 0 < p x → 0 < c.m x → κσ ≤ |c.Δq x|`. Search trace: `lean_local_search` for `margin` / `separation` over the workspace and section reads of ../doc/API.md §9j2, §9j5, §12 → no sign-separation margin predicate in Causalean; Mathlib side not applicable (a modeling restriction on a law). Build-inline. Note: this atom is used ONLY by the open question `oeq:uniform-face-multiplier`; the delivered uniform theorem `thm:uniform-deterministic-guard` deliberately does not impose it, which is one of the paper's claims, so it must be defined but must not be threaded into any delivered theorem's hypotheses."
+    },
+    "ass:positive-aggregate-survivors": {
+      "lean_kind": "assumption",
+      "lean_name": "PositiveAggregateSurvivors",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "notes": "`def PositiveAggregateSurvivors (c : Capacities 𝒳 K) (p : 𝒳 → ℝ) : Prop := 0 < aggregateMass c p` where `aggregateMass c p = ∑ x, p x * c.m x` is \\(M\\). Search trace: `lean_local_search` for `positivity`/`relevance` and read of LATE.lean:202-205 → the analogue is the field `POIVSystem.Assumptions.relevance` (`0 < (P.μ S.complierEvent).toReal`), a bare event-positivity field on a different aggregate, not a reusable named `Prop`; Mathlib side not applicable. Build-inline, one line."
+    },
+    "ass:uniform-aggregate-survivor-bound": {
+      "lean_kind": "assumption",
+      "lean_name": "UniformAggregateSurvivorBound",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "notes": "`def UniformAggregateSurvivorBound (c : Capacities 𝒳 K) (p : 𝒳 → ℝ) (m★ : ℝ) : Prop := m★ ≤ aggregateMass c p`. Search trace: same scan as `ass:positive-aggregate-survivors`; no uniform-in-law positivity predicate exists in Causalean (the closest, `Stat/EmpiricalProcess` uniformity bundles, are about function classes, not about a scalar aggregate lower bound). Mathlib side not applicable. Build-inline, one line. Kept as a separate atom from the pointwise positivity above because the frozen core atomizes them separately and only this one enters the uniform class."
+    },
+    "ass:iid-sampling": {
+      "lean_kind": "assumption",
+      "lean_name": "IidSampling",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Sample"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "sync_back_note": "Redirected encoding: IidSampling n μ Pobs O is FiniteIidSampling n μ Pobs O, whose fields assert IsProbabilityMeasure μ, prefix measurability, iIndepFun over Fin n, and the Pobs pushforward law for every i<n. It contains no IIDSample witness and makes no infinite-continuation claim.",
+      "notes": "REVISED (F1 round-5 fix-locus, THE FLAGGED NODE — the sampling world is an infinite i.i.d. sequence, stated as such). The previous entry carried a sync-back note claiming that 'finite-n independence, measurability, and common marginal law are stated directly for O i with i<n' and that 'no countably infinite IIDSample extension is required', while the plan body simultaneously bound `(S : Causalean.Stat.IIDSample Ω 𝒪 μ P_obs)` — an ℕ-indexed sequence — and reused its all-index CLT and moment results. That is an unrecorded stronger sampling world, and the contradictory finite-n claim is now DELETED. The world chosen and recorded (see S3 for the full rationale) is the INFINITE one: F2 binds `(O : ℕ → Ω → 𝒪)` and `(S : Causalean.Stat.IIDSample Ω 𝒪 μ P_obs)`, and the atom is `def IidSampling (μ : Measure Ω) (P_obs : Measure 𝒪) (O : ℕ → Ω → 𝒪) (S : Causalean.Stat.IIDSample Ω 𝒪 μ P_obs) : Prop := ∀ i, S.Z i = O i`. Its content is therefore, verbatim from the reused structure (Sample.lean:44-50, re-read this round): `Z : ℕ → Ω → 𝒪`, `meas : ∀ i, Measurable (Z i)`, `indep : iIndepFun Z μ`, `identDist : ∀ i, IdentDistrib (Z 0) (Z i) μ μ`, `law : μ.map (Z 0) = P_obs` — i.e. the WHOLE sequence \\(O_1,O_2,\\ldots\\) is i.i.d. \\(P_{\\mathrm{obs}}\\), not merely its first \\(n\\) terms. Fidelity to the frozen core: the core atom reads '\\(O_1,\\ldots,O_n\\) are independent draws from \\(P_{\\mathrm{obs}}\\)' at each \\(n\\), and its own consumers take \\(n\\to\\infty\\) (`thm:branch-free-pointwise-directional-limit`, `lem:finite-multinomial-central-limit`, conclusion (II) of `thm:uniform-deterministic-guard`, and the \\(\\liminf_n\\) in `oeq:uniform-face-multiplier`), so the sequence reading is the faithful one and the all-\\(n\\)-simultaneously form is the honest encoding of it; the extra strength (one sequence on one \\((\\Omega,\\mu)\\) rather than a separate finite experiment per \\(n\\)) is now stated in the S3 world text and in this note rather than left implicit. It costs no generality in the observed-data law, since on the finite discrete carrier such a sequence exists for every \\(P_{\\mathrm{obs}}\\). No consumer's `hyps` list moves and no member list moves: `def:uniform-law-class` still lists this atom, `thm:branch-free-pointwise-directional-limit` and `thm:uniform-deterministic-guard` still list it in `hyps` with `O`, `S`, and the pinning in scope, `lem:finite-multinomial-central-limit` still carries it as an internal antecedent (D-plan-7), and `oeq:uniform-face-multiplier` still records it inside its descriptive payload — which is updated to say 'infinite i.i.d. sequence'. Search trace for this round: re-read Causalean/Stat/Sample.lean:32-77 (the structure and `map_eq`), `grep -n 'Finset.range n' Causalean/Stat/Sample.lean Causalean/Stat/EmpiricalProcess/CrossFitRate.lean` (every `sampleMean`-based bound is an initial-segment average of the same ℕ-indexed `S.Z`), plus a Mathlib-side check for a finite-index i.i.d. bundle usable as a local alternative (`lean_leansearch` \"finitely many independent identically distributed random variables indexed by Fin n\" and `lean_loogle iIndepFun`) → Mathlib offers `iIndepFun` over an arbitrary index type but Causalean's asymptotic layer is stated only for the ℕ-indexed `IIDSample`, so a `Fin n` variant would be a new local structure PLUS an un-built per-`n` bridge to every reused result; the ℕ-indexed reuse is kept. PRIOR REVISION RETAINED (F2.5 fix-locus): the existential encoding `Nonempty (Causalean.Stat.IIDSample Ω 𝒪 μ Pobs)` is DROPPED. `Nonempty` asserts only that SOME i.i.d. sequence exists somewhere on `(Ω, μ)`; it does not tie that sequence to the declared sample `O`, so every empirical object the paper builds from `O` (\\(\\widehat p_x\\), \\(\\widetilde c_n\\), \\(\\widehat c_n\\), \\(\\widehat\\Psi_n\\)) would have been formally unrelated to the assumed structure and the inference theorems would have been vacuous in the wrong direction. F2 instead PINS the witness: the sample structure is carried as an explicit binder `(S : Causalean.Stat.IIDSample Ω 𝒪 μ Pobs)` and the atom is `def IidSampling (μ : Measure Ω) (Pobs : Measure 𝒪) (O : ℕ → Ω → 𝒪) (S : Causalean.Stat.IIDSample Ω 𝒪 μ Pobs) : Prop := ∀ i, S.Z i = O i` (equivalently the funext form `S.Z = O`). `Causalean.Stat.IIDSample` (Causalean/Stat/Sample.lean:44, `def:est-iid-sample`) is still reused verbatim and supplies the entire content of the atom — field `Z : ℕ → Ω → 𝒪`, `meas : ∀ i, Measurable (Z i)`, `indep : iIndepFun Z μ`, `identDist : ∀ i, IdentDistrib (Z 0) (Z i) μ μ`, and `law : μ.map (Z 0) = Pobs` — so nothing is rebuilt; the revision only fixes WHICH sequence the structure describes. Payoff: the whole Causalean asymptotic layer now applies to `O` after a rewrite along the pinning equation. REVISED (F1 round-2 type-fit fix): the named payoff decls are corrected to the ones actually stated about an `IIDSample Ω X μ P` for a GENERAL observation type `X` — `Stat.IIDSample.sampleMean` (Sample.lean:68) evaluated at event indicators supplies \\(\\widehat P_n(E)\\) and hence \\(\\widehat p_x\\) and every empirical conditional numerator/denominator; `Stat.IIDSample.sampleMean_sub_meas_ge_le` and `sampleMean_sub_sq_lintegral_le` (Causalean/Stat/EmpiricalProcess/CrossFitRate.lean:655,532) supply the Chebyshev step of `thm:uniform-deterministic-guard`; `Stat.IIDSample.clt_normalizedSum_vec` (Causalean/Stat/CLT/GaussianLimit.lean), whose `normalizedSum` (CLT/AsymptoticLinearityVec.lean:100) is likewise generic in `X`, supplies the multinomial limit; and `Stat.IIDSample.measurable_Z` (Sample.lean:64) the measurability side conditions. Two decls named in the previous round are withdrawn as type-misfits and must NOT be used: `Stat.IIDSample.empiricalMeasure` is fixed to `X = ℝ` and returns a `Measure ℝ` (Quantile/EmpiricalQuantile.lean:58), and `Stat.empiricalMass`'s moment lemmas live over `Measure.pi (fun _ : Fin m => μ)` rather than over `(Ω, μ)` (Sample/EmpiricalMass.lean:62,98); see the S3 note for the full trace. The pinning itself is unaffected — it is exactly what lets the `sampleMean`-based bounds, stated about `S.Z`, be rewritten onto the estimator's own sequence `O`. No consumer's `hyps` list moves: `def:uniform-law-class` still lists this atom as a member, `thm:branch-free-pointwise-directional-limit` and `thm:uniform-deterministic-guard` still list it in `hyps` (now with `S` and the pinning equation in scope, which is exactly what lets them rewrite the library asymptotics onto `O`), `lem:finite-multinomial-central-limit` still carries it as an internal antecedent of its named proposition (D-plan-7), and `oeq:uniform-face-multiplier` still records it inside the descriptive payload."
+    },
+    "def:structural-law-class": {
+      "lean_kind": "structure",
+      "lean_name": "TieSafeSurvivorModel",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.Core.System",
+        "Causalean.PO.ID.Partial.Lee.Assumptions",
+        "Causalean.PO.ID.Exact.LATE"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "members": [
+        "ass:iv-independence",
+        "ass:treatment-consistency",
+        "ass:selection-exclusion-consistency",
+        "ass:outcome-exclusion-consistency",
+        "ass:instrument-overlap",
+        "ass:no-defiers",
+        "ass:weak-selection-monotonicity",
+        "ass:positive-aggregate-survivors"
+      ],
+      "notes": "`structure TieSafeSurvivorModel [StandardBorelSpace P.Ω] (S : POSlateSystem P) (εZ : ℝ) (d : 𝒳 → Bool) : Prop where` with exactly eight fields, one per member, each typed by that member's `Prop` definition — the same shape as `POIVSystem.Assumptions` (LATE.lean:186), `Lee.BaseAssumptions`, and `BalkePearl.BaseAssumptions`. Search trace: `grep '^structure'` over Causalean/PO/ID/Exact/LATE.lean, Causalean/PO/ID/Partial/{Lee,BalkePearl,Manski}/Assumptions.lean and read of ../doc/API.md §9f/§9j3/§9j5 → every existing bundle is a fixed field list for a different subsystem shape (no selection node, or no instrument, or a real outcome), so none can be reused as-is; the *pattern* is reused verbatim. Mathlib side not applicable. Membership in \\(\\mathcal M\\) is the class; the note's remark that cells with \\(P(C\\mid X=x)=0\\) carry zero capacities is a derived lemma in `TCapacityIdentification.lean`, not a field. REVISED (F2.5 fix-locus, dependency closure of `ass:treatment-consistency`): the member list is UNCHANGED, but the `consistency` field is now typed by the narrow local `TreatmentConsistency` (\\(D=D_Z\\) a.s.) instead of `P.Consistency`, so the three consistency/exclusion fields are genuinely independent restrictions and the class is exactly the frozen core's \\(\\mathcal M\\), not a strengthening of it. REVISED (F1 round-3 fix-locus, dependency closure of `ass:iv-independence`): the class quantifies `[StandardBorelSpace P.Ω]` explicitly, because its `ivIndependence` field is typed by `IVIndependence`, which is typed by the reused `POSystem.CondIndepCF` and therefore cannot even be ELABORATED without that instance; the `S : POSlateSystem P` parameter independently carries the five pairwise-distinct nodes and the same regularity in its `borel` field, so `letI := S.borel` is available inside every proof that unfolds the class. REVISED (F1 round-4 fix-locus, dependency closure of `sym:\\mathcal X`): the class section also carries `[MeasurableSingletonClass 𝒳]` beside `[Fintype 𝒳]`, which is load-bearing for two of its own fields — `InstrumentOverlap` is stated in terms of `S.p x` and `S.π x`, i.e. of the pushforward `observedLaw`, and `WeakSelectionMonotonicity` conditions on `S.xEvent x`, both of which require the cell atom to be measurable and the pushforward not to collapse (see S1). Member list unchanged; no new member and no new assumption node is introduced, because the core routes this as ambient carrier regularity rather than as a maintained condition."
+    },
+    "def:uniform-law-class": {
+      "lean_kind": "structure",
+      "lean_name": "UniformInferenceLawClass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Sample"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "sync_back_note": "The iidSampling field is IidSampling n μ Sys.observedLaw O, so class membership supplies the finite-prefix probability, measurability, independence, and common-law facts at the class index without requiring an infinite IIDSample extension.",
+      "members": [
+        "ass:iv-independence",
+        "ass:treatment-consistency",
+        "ass:selection-exclusion-consistency",
+        "ass:outcome-exclusion-consistency",
+        "ass:instrument-overlap",
+        "ass:no-defiers",
+        "ass:weak-selection-monotonicity",
+        "ass:uniform-aggregate-survivor-bound",
+        "ass:iid-sampling"
+      ],
+      "notes": "REVISED (F1 round-5 fix-locus, dependency closure of `ass:iid-sampling`): the class's contradictory sync-back note — 'its sampling member is IidSampling n O μ Sys.observedLaw; there is no … IIDSample extension' — is DELETED. The `iidSampling` field is typed by the atom as revised, i.e. the pinning `∀ i, S.Z i = O i` of the ℕ-indexed `Causalean.Stat.IIDSample`, so \\(\\mathcal P_n\\) is the class of laws for which the WHOLE observation sequence on \\((\\Omega,\\mu)\\) is i.i.d. \\(P_{\\mathrm{obs}}\\); the index \\(n\\) survives as a class parameter only because the core's \\(\\mathcal P_n\\) is a triangular array whose OTHER conditions (the uniform survivor bound and the screening level \\(\\eta_n\\)) are indexed by \\(n\\) — the sampling member itself is not \\(n\\)-truncated, and F2 must not write an \\(n\\)-truncated variant of it. This is exactly the strengthening now recorded in S3 and in the atom, and it is what makes `thm:uniform-deterministic-guard`'s uniform-in-\\(P\\in\\mathcal P_n\\) statements quantify over a class on which the reused all-index moment bounds are available. Member list unchanged (nine members, `ass:iid-sampling` among them). PRIOR TEXT RETAINED: `structure UniformInferenceLawClass [StandardBorelSpace P.Ω] (Sys : POSlateSystem P) (εZ m★ : ℝ) (d : 𝒳 → Bool) (n : ℕ) (O : ℕ → Ω → 𝒪) (S : Causalean.Stat.IIDSample Ω 𝒪 μ Pobs) : Prop where` with exactly nine fields, one per member. REVISED (F1 round-3 fix-locus, dependency closure of `ass:iv-independence`): like `TieSafeSurvivorModel`, the class quantifies `[StandardBorelSpace P.Ω]` explicitly because its `ivIndependence` field is typed by `IVIndependence` over the reused `POSystem.CondIndepCF`; its `Sys` parameter supplies the five pairwise-distinct nodes and the record-level `borel` field. Note this is the ambient space of the PO system `P.Ω`, a different space from the sampling space `Ω` carrying the i.i.d. sequence, and F2 must keep the two binders distinct. REVISED (F2.5 fix-locus, dependency closure of the two flagged assumption atoms): the sampling structure `S` and the observation sequence `O` are now explicit parameters of the class, so its `iidSampling` field is the PINNED `∀ i, S.Z i = O i` rather than a `Nonempty` existential; and its `consistency` field is typed by the narrow local `TreatmentConsistency`. Member list unchanged. Note the deliberate differences from `TieSafeSurvivorModel`: the pointwise `ass:positive-aggregate-survivors` is replaced by the uniform `ass:uniform-aggregate-survivor-bound`, `ass:iid-sampling` is added, and `ass:direction-margin` is deliberately ABSENT — the paper's headline uniform claim is exactly that no direction-separation condition is needed, so F2 must not add it. REVISED (F1 round-4 fix-locus, dependency closure of `sym:\\mathcal X`): like `TieSafeSurvivorModel`, the class section carries `[MeasurableSingletonClass 𝒳]`, needed for the same overlap/cell-atom fields and additionally so that `Pobs = Sys.observedLaw` in the `iidSampling` field is a genuine probability measure on the finite discrete `𝒪`. Member list unchanged. Same search trace as `def:structural-law-class`; no library bundle fits. Build-inline."
+    },
+    "def:observable-capacities": {
+      "lean_kind": "def",
+      "lean_name": "observableCapacities",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Fintype.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Capacities.lean",
+      "sync_back_note": "observableCapacities has no compatibility proof argument and returns the raw displayed contrasts for every observed-data measure; ValidCapacities is derived separately.",
+      "inputs": [
+        "P_{\\mathrm{obs}}"
+      ],
+      "notes": "A record `Capacities 𝒳 K` with fields `ℓ h : 𝒳 → Fin K → ℝ` and derived defs `q₀ x = ∑ i, ℓ x i`, `q₁ x = ∑ j, h x j`, `Δq x = q₁ x - q₀ x`, `m x = min (q₀ x) (q₁ x)`, together with the prefix/tail aggregates `ℓLe/ℓLt/ℓGt/hLe/hGt` as `Finset.sum` over `Finset.filter` on `Fin K`. `observableCapacities` is the single `def` mapping \\(P_{\\mathrm{obs}}\\) to that record via the two displayed instrument contrasts. F2 SYNC-BACK: nonnegativity is represented by the separate predicate `ValidCapacities c`, not proof fields on `Capacities`; an arbitrary observed measure can always be mapped to its real-valued contrast arrays, while nonnegativity follows only under the maintained causal model. This prevents the definition from requiring an unlicensed proof that arbitrary IV contrasts are nonnegative and leaves all downstream transport results explicitly scoped by `ValidCapacities`. Search trace: `lean_local_search` for `transport`, `maxFlow`, `capacity` over project_root=<repo-root> and section reads of ../doc/API.md §9j2/§9j3/§9j5 → no capacity/submeasure record anywhere in Causalean (`BalkePearl.latentProb` is a 16-cell Bool table, `Lee.f1` is a scalar observable density); Mathlib side checked via `lean_leansearch` \"coupling matrix with prescribed row and column marginals\" → only `doublyStochastic`/Birkhoff, which fixes both marginals to a common total and so cannot express \\(q_0\\ne q_1\\). Build-inline; small, pure `Finset.sum` algebra."
+    },
+    "def:partial-transport-polytope": {
+      "lean_kind": "def",
+      "lean_name": "exactMassPolytope",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Fintype.Basic",
+        "Mathlib.Analysis.Convex.DoublyStochasticMatrix"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Transport.lean",
+      "sync_back_note": "The tagged exactMassPolytope returns a PartialTransportPolytopes bundle containing Gamma-star, Gamma-plus, Gamma-minus, and Gamma-zero; public projections expose each set.",
+      "inputs": [
+        "def:observable-capacities"
+      ],
+      "notes": "Four `Set (Matrix (Fin K) (Fin K) ℝ)` definitions in one node's file: `exactMassPolytope` (\\(\\Gamma_x^{\\ast}\\), the headline, with `Γ x := exactMassPolytope`), `incPolytope` (\\(\\Gamma_x^{+}\\), exact rows), `decPolytope` (\\(\\Gamma_x^{-}\\), exact columns), `tiePolytope` (\\(\\Gamma_x^{0}\\), both exact); plus the benefit functional `benefitMass γ = ∑ i, ∑ j ∈ filter (i < ·), γ i j`. Search trace: as in the S2 notes — `lean_local_search maxFlow` / `transport` (workspace-wide) returns nothing causal-relevant; `Causalean/PO/ID/Partial/Frechet.lean` gives only fixed-joint-law Frechet--Hoeffding CDF inequalities; `LP/ConicDuality.lean` gives abstract Hilbert conic duality with a closedness CQ, not a finite bipartite polytope; Mathlib checked via `lean_leansearch` (\"max-flow min-cut theorem for a finite network\": no result; \"coupling matrix with prescribed row and column marginals\": `Mathlib.Analysis.Convex.{Birkhoff,DoublyStochasticMatrix}` only, equal totals). Build-inline; compactness/convexity of the polytope, needed by the sharpness assembly, is elementary `Finset`-indexed real algebra plus `IsCompact` on a closed bounded subset of a finite-dimensional space."
+    },
+    "def:threshold-cuts": {
+      "lean_kind": "def",
+      "lean_name": "thresholdCuts",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Fintype.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Capacities.lean",
+      "inputs": [
+        "def:observable-capacities"
+      ],
+      "notes": "`benefitLower c x = max 0 ((Finset.univ.sup' _ fun t => c.ℓLe x t - c.hLe x t) + min (c.Δq x) 0)` and `benefitUpper c x = min (c.m x) (Finset.univ.inf' _ fun t => c.ℓLt x t + c.hGt x t)`, plus the active faces `activeLower c x = {t | ℓLe - hLe = sup'}` and `activeUpper c x = {★} ∪ {t | ℓLt + hGt = benefitUpper}` (\\(\\mathcal A_L(x)\\), \\(\\mathcal A_U(x)\\); `Finset` over `Option (Fin K)`). Branch-free by construction, so they are total and need no positivity side condition. Search trace: `lean_local_search` for `thresholdCut`, `prefixSum` and reads of ../doc/API.md §9j3 `BalkePearl/ClosedForm.lean` (`bpLower`/`bpUpper` as `max`/`min` of eight affine expressions) → the *shape* (a closed-form endpoint as a finite `max`/`min` of affine expressions in observed cell probabilities) is the exact analogue and is the pattern F3 adapts, but the expressions are Balke-Pearl's eight dual vertices for a binary outcome and do not type-fit an ordinal prefix/tail cut family. Mathlib side: `Finset.sup'`/`inf'` supply the lattice vocabulary; no domain lemma needed. Build-inline."
+    },
+    "def:identified-interval": {
+      "lean_kind": "def",
+      "lean_name": "endpointMap",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Capacities.lean",
+      "sync_back_note": "The tagged endpointMap binds an observed law Pobs and requires the explicit linkages c = observableCapacities Pobs and p = observedCellWeights Pobs. Its ObservedLawDomain premise now enforces the paper's intrinsic K >= 3 restriction, IsProbabilityMeasure Pobs, and support on valid observed tuples (an outcome is present exactly when selection is true). It retains separate ValidCapacities c, nonnegative weights p, and 0 < aggregateMass c p premises, and returns EndpointMapResult containing the endpoint pair and its Set.Icc identified set. identifiedIcc takes the same law-linkage and domain premises. The helper observedCellWeights is the observed-law cell-probability vector, and observedLawDomain plus p_eq_observedCellWeights discharge these conditions for POSlateSystem pushforward laws. This repairs the Lean-to-paper direction while preserving the resolved validity, weight, and positive-mass conditions.",
+      "inputs": [
+        "def:threshold-cuts"
+      ],
+      "notes": "`aggregateMass c p = ∑ x, p x * c.m x` (\\(M\\)), `endpointMap c p : ℝ × ℝ := (∑ x, p x * benefitLower c x / aggregateMass c p, ∑ x, p x * benefitUpper c x / aggregateMass c p)` (\\(\\Psi\\)), and `identifiedIcc c p = Set.Icc (endpointMap c p).1 (endpointMap c p).2` (\\(\\Theta_I\\)). Reuse recorded but not a full fit: `Causalean.PartialID.IdentifiedInterval obj feasible` (Causalean/PO/ID/Partial/Basic.lean) is the sharp-identified-set *engine*, and `thm:sharp-exact-mass-threshold-interval` is stated as an equality between `IdentifiedInterval` at the survivor-complier objective and `identifiedIcc`, closed by `identifiedInterval_eq_Icc` — the same assembly `BalkePearl/Main.lean` uses (`BPIdentifiedInterval := IdentifiedInterval BPObjective (BPFeasible ..)`). The node itself is the observable endpoint *map*, which the engine does not provide, so the node is define-local. Search trace: `lean_local_search IdentifiedInterval` / `mem_Icc_of_sandwich` (both found, Causalean/PO/ID/Partial/Basic.lean) plus ../doc/API.md §9j2; no observable ratio-of-summed-cuts functional exists. Mathlib side not applicable. Build-inline, small."
+    },
+    "def:threshold-flow-construction": {
+      "lean_kind": "def",
+      "lean_name": "thresholdFlow",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Fintype.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Transport.lean",
+      "sync_back_note": "thresholdFlow takes a CompatibleBaseline witness tied to the same observed law and capacities, with an exposed conditional complier mass dominating max(q0,q1) and explicit never-taker/always-taker components. It returns endpoint survivor couplings, one-sided residual strata, neverSelectedMass = baselineComplierMass - max(q0,q1), and preserves both noncomplier components definitionally.",
+      "inputs": [
+        "def:partial-transport-polytope",
+        "def:threshold-cuts"
+      ],
+      "notes": "Two greedy constructions plus a completion: `maxBenefitSubflow` (columns increasing, supplied from the largest-index eligible residual row, `i < j`), `maxNonBenefitSubflow` (columns decreasing, smallest-index eligible residual row, `j ≤ i`), and `completeToMass` (two-pointer allocation on the residual complete bipartite graph to total mass `m x`), yielding `thresholdFlowUpper`/`thresholdFlowLower : Matrix (Fin K) (Fin K) ℝ` with membership in `exactMassPolytope` as accompanying lemmas. The latent-completion half (allocate row/column residuals to the one-sided selected-complier stratum forced by `sign (Δq x)`, the remainder to the never-selected stratum, and adjoin the unchanged never-taker/always-taker components of a baseline compatible law) lives with `thm:full-law-endpoint-attainment` and is recorded there. Search trace: as in `def:partial-transport-polytope`; additionally `lean_local_search` for `greedy`, `twoPointer` → nothing. Analogous-module reference for F3: `Causalean/PO/ID/Partial/BalkePearl/Attainment/{Basic,Lower,Upper}.lean` — the pattern of exhibiting an explicit feasible table per region and checking nonnegativity + margins directly, with no duality theory in the Lean; gap to bridge: our witnesses are `Fin K`-indexed and produced by a recursion rather than enumerated, so feasibility is proved by induction on the residual capacities instead of by `decide`. Build-inline; this is the paper's own algorithmic content."
+    },
+    "def:three-level-witness": {
+      "lean_kind": "def",
+      "lean_name": "threeLevelWitness",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.BalkePearl.Sharp",
+        "Causalean.PO.Core.System",
+        "Mathlib.MeasureTheory.Constructions.Polish.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TThreeLevelWitness.lean",
+      "sync_back_note": "The tagged threeLevelWitness returns the specified observed measure together with the full set of latent measures whose pushforward under the visible-coordinate quotient equals the canonical listed allocation. The quotient masks Y0 when S0=false and Y1 when S1=false, so off-selection latent outcomes remain arbitrary as required by the note.",
+      "inputs": [
+        "def:structural-law-class"
+      ],
+      "notes": "The fully specified one-cell \\(K=3\\) pair \\((P_{\\mathrm{obs}}^{\\star},P^{\\star})\\): `witnessObs : 𝒪 → ℝ≥0` given by the listed conditional masses (`0.075, 0.10, 0.075` and unselected `0.75` under \\(Z=0\\); `0.10, 0.25, 0.15` and unselected `0.50` under \\(Z=1\\); fair instrument), and `witnessLatent` given by the listed allocation (all units compliers; survivor masses `0.075, 0.10, 0.075` on the diagonal; helped mass `0.25` with \\(Y_1\\) residuals `(0.025, 0.15, 0.075)`; never-selected mass `0.50`). Encoded with exact rational literals (`(3:ℝ)/40` etc.), not decimals, so `norm_num` closes every arithmetic obligation. Analogous-module reference: `Causalean/PO/ID/Partial/BalkePearl/Sharp.lean` — `canonicalMeasure`, `canonicalPOSystem`, `canonical_consistency`, `canonical_exogeneity` build a genuine `POSystem` from an explicit finite weight vector on a product sample space (`Ω' = Bool × Bool⁴`, `μ' = zMeasure ⊗ piMeasure`); F3 adapts it with `Ω' = Bool × (latent type)` where the latent type is `Bool⁴ × Fin 3 × Fin 3` and the cell type is `Unit`. Gap to bridge: an extra selection coordinate in the eval cascade `Z → D → S → Y` and an ordinal rather than Bool outcome. Search trace: `lean_local_search` for `witness`, `canonicalPOSystem` and ../doc/API.md §9j3 → the only finite canonical-model builder is BalkePearl's, hard-wired to three binary nodes. REVISED (F1 round-3 fix-locus, dependency closure of the `POSlateSystem` shape): the witness must SUPPLY, not assume, the record's new obligations — the node type is the five-element `Fintype` `SV := {vX, vZ, vD, vS, vY}` with `DecidableEq`, so the ten pairwise-distinctness fields (`hXZ … hSY`) are discharged by `decide`, and the sample space `Ω' = Bool × (Bool² × Bool² × Fin 3 × Fin 3)` (cell type `Unit`) is a finite type with the discrete σ-algebra, so the `[borel : StandardBorelSpace P.Ω]` field is discharged by `standardBorelSpace_of_discreteMeasurableSpace` (`Mathlib.MeasureTheory.Constructions.Polish.Basic`). REVISED (F1 round-4 fix-locus, dependency closure of `sym:\\mathcal X`): the witness likewise SUPPLIES the finite-discrete carrier regularity — its cell type is `Unit` (the single cell \\(x^{\\star}\\)), for which `Fintype`, `DecidableEq`, and `MeasurableSingletonClass` are all Mathlib instances found by inference, so `[MeasurableSingletonClass 𝒳]` is discharged rather than assumed, and the observed pushforward `witnessObs` is manifestly a probability measure on the finite discrete `𝒪` (its listed masses sum to one by `norm_num`). Build-inline."
+    },
+    "def:plugin-endpoint-estimator": {
+      "lean_kind": "def",
+      "lean_name": "plugInEndpoints",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Sample"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Estimator.lean",
+      "inputs": [
+        "def:observable-capacities",
+        "def:identified-interval"
+      ],
+      "notes": "A total map from a finite empirical probability vector to \\(\\widehat\\Psi_n\\in\\mathbb R^2\\): empirical conditional ratios with the fixed value `0` at a zero denominator; raw contrasts `ℓ̃, h̃`; `projC = fun u => max u 0` coordinatewise (the note proves \\(\\Pi_{\\mathfrak C}\\) IS the positive part, so the projection is *defined* as `max · 0` and the argmin characterisation is a lemma, keeping every later Lipschitz step elementary); then `q̂₀, q̂₁, Δq̂, m̂`, the same branch-free `benefitLower`/`benefitUpper` formulas as the population ones (reusing `Helpers/Capacities.lean` — one formula, two instantiations, which is what makes the plug-in analysis a Lipschitz argument rather than a case analysis), the screening indicator `ṙ x > η n`, the three screened sums, and the quotient with fixed fallback `(0,1)` when `M̂ = 0`. REVISED (F1 round-2 type-fit fix — this is the flagged node): the claimed generic use of `Causalean.Stat.IIDSample.empiricalMeasure` is DROPPED. Reading its declaration (Causalean/Stat/Quantile/EmpiricalQuantile.lean:58) confirms the signature `noncomputable def IIDSample.empiricalMeasure (S : IIDSample Ω ℝ μ P) (n : ℕ) (ω : Ω) : Measure ℝ` — specialised to a REAL observation type and returning a `Measure ℝ` — so it cannot supply the empirical law or the empirical frequencies for the finite observed type `𝒪 = 𝒳 × Bool³ × Option (Fin K)` used here, and no `𝒪`-valued analogue exists in the library. `Causalean.Stat.empiricalMass` (Sample/EmpiricalMass.lean:25) IS generic in the point type, but it is indexed by a deterministic `sample : Fin N → 𝒳` and its only moment lemmas are product-space (see `thm:uniform-deterministic-guard`), so it is not the right primitive either. REPLACEMENT (the one primitive the whole estimator is built from): the finite empirical frequency of a set `E ⊆ 𝒪` is defined as a plain finite sum along the declared sequence, `empFreq E n ω := (n:ℝ)⁻¹ * ∑ i ∈ Finset.range n, (if O i ω ∈ E then (1:ℝ) else 0)`, which is DEFINITIONALLY `Causalean.Stat.IIDSample.sampleMean (fun o => if o ∈ E then 1 else 0) n ω` after the pinning rewrite `∀ i, S.Z i = O i` — `IIDSample.sampleMean` (Causalean/Stat/Sample.lean:68) is generic in the observation type `X`, hence applies verbatim at `𝒪`. F2 emits `empFreq` in this form and proves the one-line bridge lemma `empFreq E n = S.sampleMean (Set.indicator E 1) n` by `rfl`/`simp` under the pinning hypothesis; that bridge is what makes the `IIDSample`-native moment bounds available downstream. Every estimator input is then a finite `Finset.sum` of such frequencies: `p̂_x = empFreq {o | o.X = x}`, and each empirical conditional ratio is `empFreq (cell ∩ arm) / empFreq arm` with the fixed value `0` at a zero denominator, so `𝒪` being a `Fintype` makes all of it elementary finite algebra with no measure-valued object anywhere. Search trace for the replacement: `grep -n 'def sampleMean|empiricalMeasure|def empiricalMass'` over Causalean/Stat/** plus `lean_local_search sampleMean` (hits `Causalean.Stat.IIDSample.sampleMean`, `Causalean.PartialID.RandomSet.sampleMean`, `Causalean.Experimentation.FinitePopulationMoments.sampleMean`) and reads of Sample.lean:38-77, Sample/EmpiricalMass.lean:25-105, Quantile/EmpiricalQuantile.lean:53-71 → `IIDSample.sampleMean` is the only observation-type-generic empirical-average primitive on `(Ω, μ)`; no screened ratio-of-summed-cuts estimator and no finite-support empirical-measure constructor exist. Mathlib side: `max · 0`, `Finset.sum`, `Set.indicator` only. Retained from the F2.5 revision: the empirical inputs are formed from the DECLARED sequence `O` (equivalently from `S.Z` after the pinning rewrite), and the estimator itself remains a total map of the empirical probability vector and takes no sampling hypothesis. REVISED (F1 round-5 fix-locus, dependency closure of `ass:iid-sampling`): `O` is the ℕ-indexed sequence of the revised world, so `empFreq E n ω := (n:ℝ)⁻¹ * ∑ i ∈ Finset.range n, (if O i ω ∈ E then (1:ℝ) else 0)` is the initial-segment average of ONE sequence and is definitionally `S.sampleMean (indicator E) n ω` after the pinning rewrite — the estimator is defined at every `n` on the same space, which is what makes the `rfl` bridge usable simultaneously by the finite-sample guard at a fixed `n` and by the `n → ∞` conclusions. The definition still takes no sampling hypothesis and is unchanged otherwise. Build-inline."
+    },
+    "def:face-aware-inference-handle": {
+      "lean_kind": "def",
+      "lean_name": "guardedConfidenceSet",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Inference.Basic",
+        "Causalean.Stat.Sample"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Estimator.lean",
+      "sync_back_note": "All diagnostic face fields and the multiplier envelope use the same screenedCell rule. maxDeviation requires IsProbabilityMeasure Pobs; guardRadius and guardedConfidenceSet require a nonempty cell carrier, positive eta_n and mstar, and the stated epsilon_Z and alpha domains, so the exact capped formula lies in (0,1].",
+      "inputs": [
+        "def:plugin-endpoint-estimator"
+      ],
+      "notes": "REVISED (F1 round-4 fix-locus, the flagged node — the upstream replacement of this definition): the guard is now ALPHA-INDEXED and finite-sample, and the old radius `guardRadius = 512 * K * |𝒳| * (a n + η n) / (m★ * εZ^2)` (\\(g_n\\)) is DELETED along with its symbol. F2 emits, in order: the finite guard event class `guardEvents : Finset (Set 𝒪)` (\\(\\mathcal E\\)) as the union of the cell events `{o | o.X = x}`, the arm events `{o | o.X = x ∧ o.Z = z}`, and the selected-outcome events `{o | o.X = x ∧ o.Z = z ∧ o.D = d ∧ o.S = true ∧ o.Y = some k}` — every subset of the `Fintype` `𝒪` is measurable because the observed carrier is finite and discrete (see S1), so no measurability side condition is carried; `maxDeviation n ω = guardEvents.sup' _ (fun E => |empFreq E n ω - Pobs.real E|)` (\\(\\delta_n\\)); `unionThreshold n α = Real.sqrt (guardEvents.card / (4 * n * α))` (\\(b_{n,\\alpha}\\)); `errorEnvelope n α = 64 * K * |𝒳| * unionThreshold n α / εZ^2 + |𝒳| * η n` (\\(A_{n,\\alpha}\\)); `guardRadius n α = min 1 (4 * errorEnvelope n α / m★)` (\\(g_{n,\\alpha}\\)); and `guardedConfidenceSet = Set.Icc (max 0 (Ψ̂.1 - guardRadius n α)) (min 1 (Ψ̂.2 + guardRadius n α))` (\\(\\mathcal C_{1-\\alpha,n}\\)). All five are closed-form deterministic expressions in `(n, α, K, |𝒳|, εZ, m★, η n)` apart from `δ_n`, which is a statistic; none involves the multiplier process, so the definition is total and needs no positivity side condition (`guardRadius` is capped at 1, which is exactly what makes the \\(g_{n,\\alpha}=1\\) branch of the theorem return the whole interval \\([0,1]\\)). RETAINED, now purely diagnostic: `localizationTol n η = (n * η n) ^ (-(1:ℝ)/4)` (\\(a_n\\)), the estimated near-active faces `̂𝒠_{L,n}(x;a_n)`, `̂𝒠_{U,n}(x;a_n)` as `Finset` filters within `a n` of the estimated optimum, and the multiplier process `𝕾_n^ξ` as a finite weighted empirical sum — the core keeps `a_n` \"solely as its near-active-face localization tolerance\", so F2 emits these as computable objects that appear in NO delivered theorem's statement or conclusion. Reuse recorded: coverage is stated with `Causalean.PartialID.Inference.RandomCoversIcc` (Causalean/PO/ID/Partial/Inference/Basic.lean), and `randomCoversIcc_compl_subset` / `honest_ci_set_cover` are the union-bound devices available if F3 wants the two-sided-miss decomposition. NO TAUTOLOGICAL CONJUNCTS: the note is explicit that the multiplier envelope is diagnostic only and is not a calibrated critical value, so the faces and `𝕾_n^ξ` are defined as computable objects but NEVER appear in any delivered theorem's conclusion — the only coverage claim is the deterministic-guard one. Search trace: `lean_local_search RandomCoversIcc` (found) plus ../doc/API.md §9j2inf; no face-envelope or multiplier-bootstrap construction exists in Causalean (`Stat/EmpiricalProcess/` is a uniform-LLN layer, not a multiplier-bootstrap layer). Build-inline."
+    },
+    "prop:capacity-identification": {
+      "lean_kind": "theorem",
+      "lean_name": "capacity_identification",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.Assumptions.IndepCF",
+        "Causalean.PO.Assumptions.ConsistencyLemmas",
+        "Causalean.PO.Conditioning.Bundle",
+        "Causalean.PO.Conditioning.EventCondExp",
+        "Causalean.PO.Conditioning.EventCondExpBundle",
+        "Causalean.PO.Conditioning.CondExpTooling",
+        "Mathlib.MeasureTheory.MeasurableSpace.Constructions",
+        "Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic",
+        "Mathlib.MeasureTheory.Function.FactorsThrough"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TCapacityIdentification.lean",
+      "sync_back_note": "Zero-gap nonidentification is represented substantively: both Bool direction labels are observationally admissible via full-law witnesses satisfying exactly the seven identification assumptions and inducing the same observed law. Cellwise admissibility does not require positive aggregate survivor mass, and no additional hypothesis is introduced.",
+      "hyps": [
+        "ass:iv-independence",
+        "ass:treatment-consistency",
+        "ass:selection-exclusion-consistency",
+        "ass:outcome-exclusion-consistency",
+        "ass:instrument-overlap",
+        "ass:no-defiers",
+        "ass:weak-selection-monotonicity"
+      ],
+      "notes": "The identification core: \\(\\ell_i(x)=P(Y_0=i,S_0=1,C\\mid X=x)\\), \\(h_j(x)=P(Y_1=j,S_1=1,C\\mid X=x)\\), the \\(\\Delta q\\) and \\(m\\) consequences, and the one-way direction reading (positive gap forces `d x = true`, negative forces `d x = false`, zero identifies nothing). REVISED (F2.5 fix-locus): the reuse of `POSystem.eventCondExp_of_consistency_IndepCF` is DROPPED — that workhorse demands UNCONDITIONAL `P.IndepCF`, whereas the paper's `ass:iv-independence` is instrument independence CONDITIONAL on the covariate cell \\(X\\), so applying it would have required an unavailable unconditional-independence premise. The reused engine is instead `Causalean.PO.POCFBundle.condExpRatio_of_consistency_CondIndepCFBundle` (Causalean/PO/Conditioning/EventCondExpBundle.lean:170), the conditional/ratio-form analogue: instantiate `a := S.zVar` (the factual instrument), `B := S.cfBundle` (the counterfactual bundle \\((D_0,D_1,S_0,S_1,Y_0,Y_1)\\)), `h :=` the indicator of the latent cell \\(\\{Y_0=i,S_0=1,D_0=0\\}\\) (resp. \\(\\{Y_1=j,S_1=1,D_1=1\\}\\)) read off `B.jointValue`, `x := z`, `hF_eq :=` the consistency-on-event product identity assembled from the three narrow local atoms `ass:treatment-consistency`, `ass:selection-exclusion-consistency`, `ass:outcome-exclusion-consistency` (the `Set.indicator_of_mem`/`_notMem` two-case argument of ConsistencyLemmas.lean:174-183, done directly on the local atoms rather than through the `hC : P.Consistency` versions), and `hOver :=` a.e. nonvanishing of the conditional probability of \\(\\{Z=z\\}\\) given the cell, which is exactly `ass:instrument-overlap`. The conclusion `C.condExpRatio (factualF · 1_{Z=z}) (1_{Z=z}) =ᵐ C.condExpGiven (h ∘ B.jointValue)` is the note's `P_obs(Y=i,S=1,D=0 | Z=z,X=x) = P(Y_0=i,S_0=1,D_z=0 | X=x)` step with the drop-of-conditioning already performed; the remaining steps (no-defier set inclusion \\(\\{D_1=0\\}\\subseteq\\{D_0=0\\}\\), the difference of the two arms, finite summation over \\(\\mathcal Y\\), and the monotonicity branch for \\(m(x)\\)) are elementary and stay local. SIGNATURE GAP + LOCAL BRIDGE LEMMA (planned explicitly per the F2.5 directive, NOT routed through `CondIndepCF.project`): the bundle theorem's independence premise is `P.CondIndepCFBundle (RegimedVar.ofFactual a) B C P.μ`, which unfolds (Conditioning/Bundle.lean:288) to `CondIndepFun C.sigma …` with `C.sigma = MeasurableSpace.comap C.jointValue` (Bundle.lean:51) for a CONDITIONING BUNDLE `C : POCFBundle P`, whereas `ass:iv-independence` is `P.CondIndepCF a B (RegimedVar.ofFactual S.xVar) P.μ`, which unfolds (Assumptions/IndepCF.lean:105) to `CondIndepFun (MeasurableSpace.comap S.xVar.value) …`. The two σ-algebras are equal only up to the singleton-bundle tupling isomorphism, so the signatures do NOT match definitionally, and `CondIndepCF.project` cannot close the gap — it projects the `B` side along a measurable `ψ` and never moves the conditioning σ-algebra. F2 therefore emits a small local bridge lemma in a new `Helpers/CondIndepBridge.lean`: `def xBundle (S : POSlateSystem P) : POCFBundle P := POCFBundle.cons (RegimedVar.ofFactual S.xVar) (POCFBundle.nil P)` (constructors at Assumptions/IndepCF.lean:75,83) together with `lemma sigma_xBundle : (xBundle S).sigma = MeasurableSpace.comap S.xVar.value inferInstance` (the one-element `jointValue` is `S.xVar.value` composed with a measurable equivalence, so the two comaps coincide) and `lemma condIndepCFBundle_of_condIndepCF (h : P.CondIndepCF a B (RegimedVar.ofFactual S.xVar) P.μ) : P.CondIndepCFBundle a B (xBundle S) P.μ`, proved by `unfold` + `convert h using 1` + `sigma_xBundle`, i.e. the same σ-algebra-transport move already used by `condIndepCF_congr_cond` (IndepCF.lean:142-152). This is a helper INSIDE this node's plan (like the greedy-flow helpers inside `def:threshold-flow-construction`), not a new core node — the plan stays one-to-one with the core. Precedent for the whole pattern: `Causalean/PO/ID/Exact/DynamicLATE/{Setup.lean:573, Bridges.lean:141,293}` state their per-stage assumptions as `CondIndepCFBundle` and drive them through `condExpRatio_of_consistency_CondIndepCFBundle` exactly as planned here. Search trace: `grep -n 'CondIndepCFBundle|condExpRatio_of_consistency|def CondIndepCF'` over Causalean/PO/** (hits: Conditioning/{Bundle,EventCondExpBundle}.lean, Assumptions/IndepCF.lean, ID/Exact/DynamicLATE/{Setup,Bridges}.lean, ID/Exact/DTR/Setup.lean) plus reads of EventCondExpBundle.lean:88-190, Bundle.lean:240-324, IndepCF.lean:99-160 → the conditional bundle ratio workhorse exists and is the right abstraction, but NO lemma bridging `CondIndepCF` (single conditioning variable) to `CondIndepCFBundle` (conditioning bundle) exists in the library, which is why the bridge is planned locally; nothing anywhere states the capacity identity itself. Mathlib side not applicable (a causal identification claim). REVISED (F1 round-3 fix-locus, dependency closure of `ass:iv-independence`): the theorem and BOTH bridge declarations in `Helpers/CondIndepBridge.lean` carry an explicit `[StandardBorelSpace P.Ω]` binder. This is load-bearing on both sides of the bridge: `POSystem.CondIndepCF` (Assumptions/IndepCF.lean:105) and `POSystem.CondIndepCFBundle` (Conditioning/Bundle.lean:288) each take it as an instance argument, and `condExpRatio_of_consistency_CondIndepCFBundle` (EventCondExpBundle.lean:170) inherits it, so neither `condIndepCFBundle_of_condIndepCF` nor this theorem elaborates without it; it is NOT implied by `Fintype 𝒳`, by `Fin K`, or by the existence of the paper's own witness models (see `ass:iv-independence`). The five-node distinctness fields of `POSlateSystem` are equally load-bearing here: the proof reads the latent cells \\(\\{Y_0=i,S_0=1,D_0=0\\}\\) and \\(\\{Y_1=j,S_1=1,D_1=1\\}\\) off `B.jointValue` for the bundle `B` over `dNode, sNode, yNode` while conditioning on the σ-algebra generated by `xNode` and slicing by the arm `zNode`, so `hZD, hZS, hZY, hXD, hXS, hXY, hDS, hDY, hSY, hXZ` are what prevent an aliased node from making the instrument, the cell, the treatment, the selection indicator, or the outcome the same system variable — which would make the two capacity contrasts identically zero and the identification statement vacuous rather than false. F2 destructures them from the record (`S.hZD`, …) exactly as `POIVSystem`/`POLeeSystem` consumers do. No hypothesis of this theorem moves. REVISED (F1 round-4 fix-locus — this is the ROOT of the upstream `sym:\\mathcal X` repair, and it closes the F3 `build-substrate` halt that asked for \"a conditional finite-atom IV identification bridge converting the bundle-ratio a.e. identity into `conditionalReal` equalities for positive covariate cells and rewriting observed pushforward events\"): the covariate carrier is now finite DISCRETE, so the theorem carries `[MeasurableSingletonClass 𝒳]` next to `[Fintype 𝒳]` and the three previously-implicit steps are made explicit and are all build-inline. STEP 1 (atom measurability): `MeasurableSet ({x} : Set 𝒳)` is `MeasurableSet.singleton x`, hence `MeasurableSet (S.xEvent x)` since `xEvent x = S.xVar.value ⁻¹' {x}` and `S.xVar.value` is measurable; this is precisely the `hx : MeasurableSet ({x} : Set α)` premise every conditioning workhorse already demands (`EventCondExpBundle.lean:96,178`; `EventCondExp.lean:291,318,395`), and it is what lets `xBundle` (the singleton conditioning bundle of `Helpers/CondIndepBridge.lean`) condition on the cell at all. STEP 2 (observed pushforward): `observedDatum : P.Ω → 𝒪` is measurable by `measurable_to_countable` on the finite discrete `𝒪` — each singleton fibre is a finite intersection of measurable coordinate events, with the last coordinate's fibres `{S = 1, Y = i}` and `{S = 0}` — so `observedLaw = P.μ.map observedDatum` does not collapse, `IsProbabilityMeasure observedLaw` holds, and every observed atomic probability rewrites to a `P.μ`-event by `Measure.map_apply`; this discharges the first conjunct `IsProbabilityMeasure S.observedLaw` of `CompatibleObservedLaw` that the F3 receipt showed could be FALSE under the old bare-finite declaration. STEP 3 (atom evaluation of the a.e. identity): the conclusion of `condExpRatio_of_consistency_CondIndepCFBundle` is an `=ᵐ[P.μ]` identity of `xBundle`-measurable functions; to read it as the displayed conditional real number on a positive atom, F2 emits two short local lemmas in `Helpers/CondIndepBridge.lean` — (a) `condExpGiven` w.r.t. `comap S.xVar.value` is a.e. constant on `S.xEvent x`, from Mathlib's `Measurable.factorsThrough` (`Mathlib.MeasureTheory.Function.FactorsThrough`, `Measurable[comap f] g → Function.FactorsThrough g f`, with `[MeasurableSingletonClass ℝ]` on the codomain) applied to the (strongly) measurable version of the conditional expectation, and (b) that constant equals `eventCondExp P.μ (S.xEvent x) ·` (Causalean/PO/Conditioning/EventCondExp.lean) whenever `P.μ (S.xEvent x) ≠ 0, ≠ ⊤`, from Mathlib's defining property `MeasureTheory.setIntegral_condExp` (`Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic`, `∫ x in s, μ[f|m] = ∫ x in s, f` for `MeasurableSet[m] s`) at `s := S.xEvent x`, which IS `m`-measurable by STEP 1, divided by `(P.μ (S.xEvent x)).toReal`. Positivity of the atom is supplied by `0 < S.p x`, which is now a genuine statement about the non-collapsed pushforward, and finiteness by `IsProbabilityMeasure`. Search trace for STEP 3 (an absence is asserted, so it is recorded): `grep -n 'conditionalReal|condProb|condExpGiven.*eventCondExp|eventCondExp.*condExpGiven|atom' Causalean/PO/Conditioning/*.lean` and `lean_local_search condExp_atom` (no hits) → Causalean has the `eventCondExp` vocabulary and the drop-of-conditioning family (`POSystem.eventCondExp_eq_integral_of_IndepCF`, `eventCondExp_event_eq_integral_of_IndepCF`, EventCondExp.lean:311,332) but NO lemma converting a σ-algebra-conditional a.e. identity into an atomwise `eventCondExp` value, so the two-line bridge is paper-local; Mathlib side checked (`lean_loogle MeasureTheory.setIntegral_condExp`, `lean_leansearch` \"function measurable with respect to comap of a map is constant on fibers\") → `setIntegral_condExp` and `Measurable.factorsThrough` are exactly the two ingredients and nothing further is missing. This is a small build-inline helper cluster, NOT new substrate: the escalation route recorded in `state.flags.proof_review_escalation_pending` is resolved at the source by the regularity repair and should be cleared rather than re-raised. Build-inline, medium; this is the paper's own content."
+    },
+    "prop:tie-face-collapse": {
+      "lean_kind": "theorem",
+      "lean_name": "tie_face_collapse",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Fintype.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TTieFaceCollapse.lean",
+      "hyps": [
+        "ass:weak-selection-monotonicity"
+      ],
+      "notes": "The iff \\(\\Gamma_x^{+}=\\Gamma_x^{-}=\\Gamma_x^{0}\\iff\\Delta q(x)=0\\), the a.s. stratum collapse \\(P(S_0=S_1,C\\mid X=x)=P(C\\mid X=x)\\) on the tie face, and the prefix identity \\(\\ell_{\\le t}-h_{\\le t}=h_{>t}-\\ell_{>t}\\). The polytope half is pure finite algebra (nonnegative slack sums vanish termwise, via `Finset.sum_eq_zero_iff_of_nonneg`); the stratum half consumes `prop:capacity-identification` and the `Lee/PrincipalStrata.lean` collapse pattern. Search trace: `lean_local_search` for `sum_eq_zero_iff_of_nonneg` (Mathlib, present) and for any transport-face lemma in Causalean (none, see S2). REVISED (F1 round-3 fix-locus, dependency closure of `ass:iv-independence` through `prop:capacity-identification`): the stratum half is stated over `POSlateSystem` and instantiates `prop:capacity-identification`, so the section fixing it carries an explicit `[StandardBorelSpace P.Ω]` binder and the record's five pairwise-distinct nodes; the polytope half is pure `Capacities` algebra and needs neither. REVISED (F1 round-4 fix-locus, dependency closure of `sym:\\mathcal X` through `prop:capacity-identification`): that same section carries `[MeasurableSingletonClass 𝒳]`, since the stratum half conditions on the cell atom \\(\\{X=x\\}\\) and instantiates the repaired capacity proposition; the polytope half is untouched by the repair. No hypothesis moves. Build-inline, small-to-medium."
+    },
+    "thm:sharp-exact-mass-threshold-interval": {
+      "lean_kind": "theorem",
+      "lean_name": "sharp_exact_mass_threshold_interval",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Basic",
+        "Causalean.PO.ID.Partial.BalkePearl.Main"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TSharpExactMassThresholdInterval.lean",
+      "hyps": [
+        "ass:positive-aggregate-survivors",
+        "def:structural-law-class"
+      ],
+      "notes": "The headline sharpness theorem, in three parts: (a) the exact-projection claim (\\(\\Gamma_x^{\\ast}\\) is exactly the image of compatible laws under the survivor-complier subcoupling, both directions), (b) the min-cut equalities \\(\\inf b_x=B_L(x)\\), \\(\\sup b_x=B_U(x)\\), (c) the aggregate identity \\(\\Theta_I(P_{\\mathrm{obs}})=[\\theta_L,\\theta_U]\\) with sharpness. Reused engine: `Causalean.PartialID.IdentifiedInterval` for \\(\\Theta_I\\) and `identifiedInterval_eq_Icc` for the final assembly (outer bound + both endpoints attained + order-connectedness); order-connectedness comes from convexity of the finite product of the \\(\\Gamma_x^{\\ast}\\) plus linearity of the numerator, which is `identifiedInterval_param_Icc`'s mixing pattern. Analogous module: `BalkePearl/Main.lean` (`BPFeasible`/`BPObjective`/`BPIdentifiedInterval`, `latentProb_feasible`, `ATE_mem_BPIdentifiedInterval`) is the exact assembly template; gap to bridge — our feasible set is a cellwise capacity polytope with an exact-mass equality rather than a 16-cell simplex with linear margin equations, and part (b) needs the two greedy flow constructions from `Helpers/Transport.lean` in place of Balke-Pearl's eight enumerated dual vertices. Search trace as in S2 (no min-cut in Causalean or Mathlib). REVISED (F1 round-3 fix-locus, dependency closure of `ass:iv-independence` through `def:structural-law-class`): the theorem's `hyps` list `def:structural-law-class`, whose `ivIndependence` field is typed by the reused `POSystem.CondIndepCF`, so the statement carries an explicit `[StandardBorelSpace P.Ω]` binder alongside the `POSlateSystem P` parameter with its ten pairwise-distinctness fields; part (a), the exact-projection claim, is exactly where an aliased node would corrupt the survivor-complier subcoupling, so F3 destructures the distinctness fields rather than assuming them ambiently. `hyps` unchanged. REVISED (F1 round-4 fix-locus, dependency closure of `sym:\\mathcal X`): the statement also carries `[MeasurableSingletonClass 𝒳]`, both because `def:structural-law-class` in its `hyps` now quantifies it and because part (a)'s \"projection of all compatible laws\" quantifier ranges over laws inducing the pushforward `observedLaw`, which is only a probability measure under the discrete carrier; the cellwise product/aggregation algebra of parts (b)-(c) is unaffected. `hyps` still unchanged. Build-inline, large but feasible; this is the paper's own content and the note's proof is fully explicit."
+    },
+    "thm:full-law-endpoint-attainment": {
+      "lean_kind": "theorem",
+      "lean_name": "full_law_endpoint_attainment",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.BalkePearl.Sharp",
+        "Causalean.PO.Core.System",
+        "Causalean.PO.Assumptions.Consistency",
+        "Mathlib.MeasureTheory.Constructions.Polish.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TFullLawEndpointAttainment.lean",
+      "hyps": [
+        "ass:iv-independence",
+        "ass:no-defiers",
+        "ass:weak-selection-monotonicity",
+        "ass:positive-aggregate-survivors"
+      ],
+      "notes": "Existence of full laws \\(P^L,P^U\\in\\mathcal M\\) inducing exactly \\(P_{\\mathrm{obs}}\\) and attaining \\(\\theta_L,\\theta_U\\), stated in the `∃ P' S' hA', (∀ cells, observed match) ∧ (target = value)` shape of `balkePearl_sharp`. Analogous module (the reference F3 adapts): `Causalean/PO/ID/Partial/BalkePearl/Sharp.lean` — `SOmega`/`SV`/`SX`, the eval cascade respecting interventions, `zMeasure ⊗ piMeasure`, `canonicalPOSystem`, `canonical_consistency`, `canonical_exclusion`, `canonical_exogeneity`, `canonical_cellProb_eq`, and the packaging into `balkePearl_sharp` (~750 lines, fully proved, zero sorry). Gaps to bridge: (i) an added covariate cell coordinate, so the canonical measure is a `Fintype`-indexed mixture over \\(x\\) of `zMeasure x ⊗ latentMeasure x` rather than a single product; (ii) an added selection coordinate, so the eval cascade is `Z → D → S → Y` and `canonical_exclusion` must be proved twice (for `S` and for `Y`); (iii) the ordinal outcome `Fin K` in place of `Bool`; (iv) weak selection monotonicity must be *verified* on the construction, which holds because the completion uses only the selection types `(1,1),(0,1),(0,0)` when \\(q_1>q_0\\), only `(1,1),(1,0),(0,0)` when \\(q_0>q_1\\), and only `(1,1),(0,0)` at a tie — exactly the branch structure the note supplies. Search trace: `lean_local_search canonicalPOSystem` / `POSystem` and ../doc/API.md §9j3 → BalkePearl's is the only canonical finite PO-model construction in the library; Mathlib side not applicable. REVISED (F2.5 fix-locus, dependency closure of `ass:treatment-consistency`): because the model class no longer carries the system-wide `POSystem.Consistency` axiom, the constructed laws \\(P^L,P^U\\) must be shown to satisfy the FOUR narrow local atoms (`TreatmentConsistency`, `SelectionExclusion`, `OutcomeExclusion`, plus the independence/monotonicity fields) directly on the canonical measure — which is strictly easier than BalkePearl's `canonical_consistency`, since each is a pointwise identity read straight off the `Z → D → S → Y` eval cascade by `rfl`/`simp` rather than a universally quantified regime statement. `canonical_exclusion` (BalkePearl/Sharp.lean) remains the shape template for the two exclusion atoms. REVISED (F1 round-3 fix-locus, dependency closure of `ass:iv-independence`): the theorem carries an explicit `[StandardBorelSpace P.Ω]` binder for the AMBIENT system it starts from (its `hyps` include `ass:iv-independence`, hence `POSystem.CondIndepCF`), and — because it is a model-CONSTRUCTING node — it must additionally DISCHARGE the same requirement for the systems it builds: the constructed node type `SV` is a five-element `Fintype` with distinct constructors, so the ten `POSlateSystem` distinctness fields are closed by `decide`, and the constructed sample space (a finite product `Bool × (Bool⁴ × Fin K × Fin K)` per cell, mixed over the `Fintype` cell set) is countable with the discrete σ-algebra, so `borel` is closed by Mathlib's `standardBorelSpace_of_discreteMeasurableSpace` (`Mathlib.MeasureTheory.Constructions.Polish.Basic`) — the instance is genuinely available for the witnesses even though it is NOT derivable for a general `P`, which is precisely why the ambient version has to be assumed. REVISED (F1 round-4 fix-locus, the upstream dependency repair on this node): the frozen `depends_on` now declares `prop:capacity-identification` and `ass:positive-aggregate-survivors` DIRECTLY, matching the proof's two direct uses — capacity identification supplies \\(q_d(x)\\le c_x=\\bar P(C\\mid X=x)\\), which is what makes the residual complier masses \\(c_x-q_1(x)\\) and \\(c_x-q_0(x)\\) nonnegative in displays (2)-(3), and positive aggregate survivors licenses the final division by \\(M\\). Accordingly `ass:positive-aggregate-survivors` is ADDED to this node's `hyps` (an assumption dependency must surface directly), while `prop:capacity-identification` is USED, not assumed: F2 instantiates it from the same `TieSafeSurvivorModel` bundle in scope, exactly as `thm:no-selection-reduction` does. No other hypothesis moves, the statement is unchanged, and the construction is unchanged. REVISED (F1 round-4, dependency closure of `sym:\\mathcal X`): as a model-CONSTRUCTING node this must now also DISCHARGE the finite-discrete carrier regularity for the systems it builds — its covariate type is the ambient `Fintype 𝒳`, whose `MeasurableSingletonClass` instance is carried in by the theorem's binder, and the constructed observed law is a pushforward along a measurable `observedDatum`, so `IsProbabilityMeasure` and the atomwise `Measure.map_apply` rewrites needed for \"induces exactly \\(P_{\\mathrm{obs}}\\)\" are available by the STEP 1/STEP 2 route recorded at `prop:capacity-identification` rather than assumed. Build-inline: large but demonstrated feasible by the analogue. Projected as the file most likely to need a `TFullLawEndpointAttainment/{Construction,Compatibility,Main}.lean` split."
+    },
+    "prop:three-level-witness": {
+      "lean_kind": "theorem",
+      "lean_name": "three_level_witness_sharp",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.BalkePearl.Sharp"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TThreeLevelWitness.lean",
+      "hyps": [],
+      "notes": "\\(P^{\\star}\\in\\mathcal M\\), \\(P^{\\star}\\) induces \\(P_{\\mathrm{obs}}^{\\star}\\), the capacity readings \\(\\ell=(0.075,0.10,0.075)\\), \\(h=(0.10,0.25,0.15)\\), \\(q_0=m=0.25\\), \\(q_1=0.50\\), \\(\\Delta q=0.25\\), the cuts \\(B_L=0\\), \\(B_U=0.175\\), and hence \\(\\Theta_I(P_{\\mathrm{obs}}^{\\star})=[0,0.7]\\) with both endpoints attained. Takes no hypotheses: it *proves* class membership rather than assuming it, so `def:structural-law-class` is used, not threaded. All arithmetic is over exact rationals and closes by `norm_num`/`decide` on the `Fin 3` index; the two endpoint-attaining couplings (the diagonal one and the explicit cyclic shift with row margin \\(\\ell\\), column usage \\((0.075,0.075,0.10)\\le h\\), total \\(m\\), benefit \\(0.175\\)) are written out literally. REVISED (F1 round-3 fix-locus, dependency closure of the `POSlateSystem` shape): membership \\(P^{\\star}\\in\\mathcal M\\) is a `TieSafeSurvivorModel` obligation on the constructed system, so this theorem instantiates the class at the witness — the `[StandardBorelSpace P.Ω]` binder is DISCHARGED (finite discrete `Ω'`, via `standardBorelSpace_of_discreteMeasurableSpace`) rather than assumed, and the ten distinctness fields come from `def:three-level-witness` by `decide`; `hyps` stays empty exactly because every such obligation is proved, not threaded. REVISED (F1 round-4 fix-locus, dependency closure of `sym:\\mathcal X`): the same holds for the new carrier regularity — at the one-cell witness `𝒳 = Unit`, so `[MeasurableSingletonClass 𝒳]` is an inferred instance and the atomwise identification steps of the repaired `prop:capacity-identification` apply with `P.μ (xEvent x⋆) = 1 > 0`; `hyps` remains empty. Build-inline, medium; depends on `def:three-level-witness` and on the two headline theorems being available."
+    },
+    "thm:no-selection-reduction": {
+      "lean_kind": "theorem",
+      "lean_name": "no_selection_reduction",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.Conditioning.Bundle",
+        "Causalean.PO.Conditioning.EventCondExpBundle"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TNoSelectionReduction.lean",
+      "sync_back_note": "The zero-gap and branchFreePolytope = tiePolytope conclusions hold in every supported cell, including zero-complier-mass cells. Only the normalized endpoint identities are guarded by 0 < c.mass x.",
+      "hyps": [
+        "ass:iv-independence",
+        "ass:no-defiers",
+        "lem:ordinal-fixed-marginal-strict-benefit"
+      ],
+      "notes": "On the no-selection submodel, \\(\\Delta q(x)=0\\), \\(\\Gamma_x=\\Gamma_x^{0}\\), and after division by \\(m(x)\\) the two cut formulas coincide cellwise with the cited Lu--Ding--Dasgupta fixed-marginal strict-benefit endpoints. The cited gate `lem:ordinal-fixed-marginal-strict-benefit` is threaded as a hypothesis, so the theorem is delivered conditional on it (gate-consumer rule). Note on hypothesis threading: the frozen `depends_on` lists only `ass:iv-independence` and `ass:no-defiers` among assumptions, but the note's proof invokes `prop:capacity-identification`, whose own premises additionally include consistency, the two exclusion restrictions, overlap, and weak selection monotonicity. F2 must therefore state this theorem inside the section that fixes the `TieSafeSurvivorModel` bundle from `Basic.lean` and instantiate `prop:capacity-identification` from that bundle: the extra premises are covered transitively through the `prop:capacity-identification` dependency edge and must NOT be silently dropped or re-derived. REVISED (F2.5 fix-locus, dependency closure of `prop:capacity-identification`): the transitively supplied consistency premise is now the narrow local atom `TreatmentConsistency` (\\(D=D_Z\\) a.s.), not `POSystem.Consistency`, and the cell-conditional quantities are read through the bundle-conditional layer (`POCFBundle.condExpGiven`/`condExpRatio`), so this file's modules follow `TCapacityIdentification.lean` to `Conditioning/{Bundle,EventCondExpBundle}.lean`. REVISED (F1 round-3 fix-locus, dependency closure of `ass:iv-independence`): the theorem lists `ass:iv-independence` in its own `hyps`, so its statement carries an explicit `[StandardBorelSpace P.Ω]` binder — required to elaborate `IVIndependence` and to apply `prop:capacity-identification` and the `CondIndepCFBundle` bridge — and the `POSlateSystem P` parameter supplies the five pairwise-distinct nodes used by the no-selection submodel restriction \\(P(S_0=S_1=1\\mid C,X=x)=1\\), which is meaningless if `sNode` aliases `dNode` or `xNode`. No hypothesis of this theorem moves. REVISED (F1 round-4 fix-locus, dependency closure of `sym:\\mathcal X` through `prop:capacity-identification`): the statement carries `[MeasurableSingletonClass 𝒳]` as well, since the no-selection restriction \\(P(S_0=S_1=1\\mid C,X=x)=1\\) conditions on the cell atom and the reduction instantiates the repaired capacity proposition; the normalized cut identities themselves stay pure `Capacities` algebra. `hyps` unchanged. Build-inline, medium."
+    },
+    "thm:linear-sparse-threshold-flow": {
+      "lean_kind": "theorem",
+      "lean_name": "linear_sparse_threshold_flow",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Data.Fintype.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TLinearSparseThresholdFlow.lean",
+      "sync_back_note": "Residual-carrying greedy passes eliminate the omitted usedRow/usedColumn fold family, and linear prefix/tail scans avoid repeated prefix sums. The cost model covers all arithmetic/comparison work with a capacity-magnitude-independent padded schedule; the theorem also states the 2*K-1 positive-support bound for both emitted couplings and exact magnitude invariance of charged sparse and dense counts.",
+      "hyps": [],
+      "notes": "Encoding decision (recorded so it is not silent): Lean has no ambient cost model, so `Helpers/Transport.lean` gives each construction a `ℕ`-valued step counter threaded through the recursion (`thresholdFlowCost`, counting arithmetic operations and comparisons), and this theorem is the conjunction of (a) `thresholdFlowCost c ≤ C * |𝒳| * K` for an explicit constant `C`, (b) the dense-materialisation variant `≤ C' * |𝒳| * K^2`, (c) sparsity: the support of each emitted coupling has at most `2*K - 1` positive entries per cell, and (d) magnitude-freeness, encoded as `∀ c c' : Capacities, thresholdFlowCost c = thresholdFlowCost c'` — the counter depends only on `(|𝒳|, K)`, which is exactly the note's \"no loop count depends on any capacity magnitude\" and is what makes the bound strongly polynomial in the stated arithmetic/comparison model. The correctness half (the completions attain \\(B_U\\) and leave exactly \\(B_L\\)) is inherited from `thm:sharp-exact-mass-threshold-interval` and not reproved. Search trace: `lean_local_search` for `complexity`, `cost`, `stronglyPolynomial` over the workspace and reads of ../doc/API.md §10j' (`Mathlib/Optimization/RationalLP.lean`, exact finite rational LP) → no operation-count or cost-model substrate anywhere in Causalean; Mathlib side checked — Mathlib has no complexity-theory layer. Build-inline, medium: the counter bounds are structural induction on the same recursion, with no new mathematics."
+    },
+    "thm:branch-free-pointwise-directional-limit": {
+      "lean_kind": "theorem",
+      "lean_name": "branch_free_pointwise_directional_limit",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Inference.HadamardDeriv",
+        "Causalean.Stat.Inference.FunctionalDelta",
+        "Causalean.Stat.CLT.GaussianLimit",
+        "Causalean.Stat.Limit.ConvergenceVec",
+        "Causalean.Stat.Sample",
+        "Causalean.Stat.EmpiricalProcess.CrossFitRate"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TBranchFreePointwiseDirectionalLimit.lean",
+      "sync_back_note": "The sampling premise is ∀ n, IidSampling n μ Sys.observedLaw O, supplying every finite-prefix probability, measurability, independence, and common-law fact needed by the asymptotic sequence without an IIDSample extension. FiniteMultinomialCLT and HadamardDirectionalDeltaMethod remain explicit _of_gate hypotheses, as required by the registered substrate-gate directive. Endpoint-map uses receive validity, nonnegative-weight, and positive-mass proofs from capacity identification.",
+      "hyps": [
+        "ass:iid-sampling",
+        "ass:instrument-overlap",
+        "ass:positive-aggregate-survivors",
+        "lem:finite-multinomial-central-limit",
+        "lem:hadamard-directional-delta-method"
+      ],
+      "notes": "Three conclusions: exact recovery of the fixed reduced support \\(\\{x:\\widehat r_x>\\eta_n\\}=\\mathcal X_+(P)\\) w.p. →1, consistency \\(\\widehat\\Psi_n\\to_P\\Psi\\), and the \\(\\sqrt n\\) directional limit through the Hadamard derivative of the composite map. Delivered conditional on the two cited gates (gate-consumer rule): the multinomial CLT gate supplies (1) and the Fang--Santos gate supplies the expansion (16). Highest-value reuse in the paper: `Causalean.Stat.HasHadamardDirDerivAt` (Causalean/Stat/Inference/HadamardDeriv.lean) is the definition the composite map's derivative is stated against, and `Causalean.Stat.minDirDeriv`/`maxDirDeriv` with `hasHadamardDirDerivAt_min`/`_max` are EXACTLY the active-face maps the note derives by hand for \\(\\min\\{\\Delta q(x),0\\}\\) at \\(\\Delta q(x)=0\\) and for \\(\\min\\{q_0(x),q_1(x)\\}\\) at \\(q_0=q_1\\) — F3 should compose those, not re-derive them; `deltaMethod_min_tie`/`deltaMethod_max_tie` (Causalean/Stat/Inference/FunctionalDelta.lean) give the scalar tie delta method and `isLittleOp_one_of_measure_ne_tendsto_zero` is the device for the off-diagonal (strict-sign) cells; `Causalean.Stat.Tendsto_dist_vec` is the weak-convergence vocabulary; `Causalean.Stat.gaussianLimit` is the concrete Gaussian limit \\(\\mathbb Z_{P_{\\mathrm{obs}}}\\). REVISED (F1 round-2 type-fit fix, dependency closure of the flagged `thm:uniform-deterministic-guard` and `def:plugin-endpoint-estimator`): the \\(O_P(n^{-1/2})\\) bound (18) on the zero-survivor cells is NO LONGER routed through `Stat.integral_empiricalMass`/`_sq`, which are product-space lemmas over `Measure.pi (fun _ : Fin m => Pobs)` and do not apply to the pinned sample `S.Z` without an un-built pushforward bridge (see that theorem's note for the reading of EmpiricalMass.lean:62,98). It is routed instead through `Causalean.Stat.IIDSample.sampleMean_sub_isBigOp` / `sampleMean_sub_meas_ge_le` (Causalean/Stat/EmpiricalProcess/CrossFitRate.lean, the `IIDSample`-native corollaries) applied to the same event indicators `f_E` used by the guard theorem, which give directly `\\widehat P_n(E) - P_{\\mathrm{obs}}(E) = O_P(n^{-1/2})` for every `E ∈ 𝓔`; the raw contrasts are smooth functions of finitely many such frequencies near `v` with positive denominators by overlap, so (18) follows by the finite algebra already planned. Everything else in the asymptotic chain is unchanged: `clt_normalizedSum_vec` and its `normalizedSum` (Causalean/Stat/CLT/AsymptoticLinearityVec.lean:100) are generic in the observation type `X`, so step (1) applies at the finite `𝒪` as planned and needs no revision. What is new here and must be built: the finite active-set expansions (7) and (12) for `Finset.sup'`/`inf'` over a finite family — the library has the two-argument `max`/`min` tie case only, and the note flags the finite-family form as the natural follow-up (../doc/API.md §12j', closing remark). Search trace: `lean_local_search HasHadamardDirDerivAt`, `maxDirDeriv`, `hasHadamardDirDerivAt_min`, `Tendsto_dist_vec`, `gaussianLimit`, `clt_normalizedSum_vec` (all found) plus ../doc/API.md §12j/§12j'/§12n''' ; Mathlib side checked for a `sup'`-over-finite-family Hadamard derivative via `lean_leansearch` (nothing — Mathlib has no directional-differentiability layer at all). REVISED (F2.5 fix-locus, dependency closure of `ass:iid-sampling`): the theorem takes the sampling structure `(S : Causalean.Stat.IIDSample Ω 𝒪 μ Pobs)` as an explicit binder together with the pinning hypothesis `∀ i, S.Z i = O i`; this is what lets `IIDSample.clt_normalizedSum_vec` and `Stat.integral_empiricalMass(_sq)` — stated about `S.Z` — be rewritten onto the estimator's own sequence `O`, and hence what makes step (1) and the \\(O_P(n^{-1/2})\\) bound (18) apply to \\(\\widehat v_n\\) as actually defined. `hyps` unchanged. REVISED (F1 round-3 fix-locus, `POSlateSystem` record-shape ripple): this theorem's only PO-side hypothesis is `ass:instrument-overlap`, which is stated over `POSlateSystem P` but never touches conditional independence, so it needs the record's five pairwise-distinct nodes (to name the cell and instrument variables in \\(\\pi(x)\\)) and inherits the record's `borel` field, but the statement needs NO `[StandardBorelSpace P.Ω]` binder of its own and none is added. REVISED (F1 round-4 fix-locus, dependency closure of `sym:\\mathcal X`): the statement DOES carry `[MeasurableSingletonClass 𝒳]`, because its first conclusion is about the empirical screening set \\(\\{x:\\widehat r_x>\\eta_n\\}\\) versus the population support \\(\\mathcal X_+(P)\\) and its whole asymptotic chain runs on the empirical-vs-population frequencies of events in the finite discrete observed carrier — both require `observedLaw` to be a non-collapsed pushforward and every cell event to be measurable (see S1). The upstream guard strengthening does not touch this node: it consumes no guard symbol, `a_n` never entered its statement, and `hyps` is unchanged. REVISED (F1 round-5 fix-locus, dependency closure of `ass:iid-sampling`): the sampling binder is the ℕ-indexed `(S : Causalean.Stat.IIDSample Ω 𝒪 μ Pobs)` with the pinning `∀ i, S.Z i = O i`, and no finite-\\(n\\) sampling variant is planned anywhere in the chain — which is the honest reading for this node in particular, since all three of its conclusions are \\(n\\to\\infty\\) statements (support recovery w.p. →1, \\(\\to_P\\) consistency, and a \\(\\sqrt n\\) limit in law) and every step that carries them — `clt_normalizedSum_vec` for (1), `sampleMean_sub_isBigOp`/`sampleMean_sub_meas_ge_le` for the \\(O_P(n^{-1/2})\\) bound (18), and the cited Fang–Santos gate for the expansion (16) — is stated about the whole sequence `S.Z`. `hyps` unchanged (`ass:iid-sampling` still listed, now unambiguously the sequence atom, which is also what discharges the internal antecedent of the CLT gate at its application site). REVISED (F1 round-6 fix-locus, dependency closure of the S3 screening-sequence repair): F2 emitted `(_hEtaAntitone : Antitone η)` on this theorem as well (TBranchFreePointwiseDirectionalLimit.lean:41), and it must be DELETED here too. The core's own proof of THIS theorem is now explicit that the hypothesis is unused — 'Ordinary convergence \\(\\eta_n\\to0\\) implies that eventually \\(0<\\eta_n<\\rho/2\\) … no monotonicity of \\(n\\mapsto\\eta_n\\) is used' — and the two places the screening level enters are both `atTop`-eventual: support recovery needs only that \\(\\eta_n\\) eventually falls below \\(\\rho/2=\\tfrac12\\min_{x\\in\\mathcal X_+(P)}p_xm(x)\\), which is `Tendsto η atTop (𝓝 0)` at the positive constant \\(\\rho\\) supplied by finiteness of \\(\\mathcal X_+(P)\\) and \\(M>0\\); and the zero-survivor cells need \\(\\widehat r_x=O_P(n^{-1/2})=o_P(\\eta_n)\\), which is `Tendsto (fun n : ℕ => Real.sqrt n * η n) atTop atTop`. The planned side conditions on the screening sequence are therefore exactly `∀ n, 0 < η n`, `Tendsto η atTop (𝓝 0)`, and `Tendsto (fun n : ℕ => Real.sqrt n * η n) atTop atTop`, with no order relation between consecutive terms. `hyps`, `disposition`, `defer_tier`, `gate`, `modules`, and `target_file` are unchanged, and none of the three conclusions (support recovery w.p. →1, \\(\\to_P\\) consistency, the \\(\\sqrt n\\) directional limit) is weakened by the deletion — it removes a hypothesis, so each conclusion is delivered over a strictly larger class of screening sequences. Build-inline, large but feasible; the finite-family extension is a routine generalisation of the proved two-argument case."
+    },
+    "thm:uniform-deterministic-guard": {
+      "lean_kind": "theorem",
+      "lean_name": "uniform_deterministic_guard",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Sample",
+        "Causalean.Stat.EmpiricalProcess.CrossFitRate",
+        "Causalean.PO.ID.Partial.Inference.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "TUniformDeterministicGuard.lean",
+      "sync_back_note": "The emitted conclusion contains every-n infimum coverage, fixed-alpha uniform endpoint-error convergence above the alpha-indexed capped guard, the O(n^(-1/2)+eta_n) rate, and the exact etaL=n^(-1/2)L_n specialization, with no Antitone premise or conclusion. It consumes finite-prefix IidSampling at each n, and every endpointMap/identifiedIcc occurrence receives validity, nonnegative-weight, and positive-mass proofs from capacity identification and the uniform aggregate bound.",
+      "hyps": [
+        "ass:iid-sampling",
+        "ass:instrument-overlap",
+        "ass:uniform-aggregate-survivor-bound",
+        "def:uniform-law-class"
+      ],
+      "notes": "REVISED (F1 round-4 fix-locus, the flagged node — the upstream alpha-indexed guard strengthening): the theorem now has TWO conclusions, and F2 must emit both. (I) FINITE-SAMPLE UNIFORM CONTAINMENT, for every `n ≥ 1` and every `α ∈ (0,1)`: `∀ P ∈ 𝒫ₙ, (1 - α) ≤ P {ω | Θ_I(Pobs) ⊆ guardedConfidenceSet n α ω}` — an every-sample statement, NOT a limit, so it is stated with the `Finset`-indexed `δ_n ≤ b_{n,α}` event and no filter. (II) RETAINED UNIFORM ENDPOINT CONSISTENCY, for each fixed `α`: `Tendsto (fun n => ⨆ P ∈ 𝒫ₙ, P {ω | guardRadius n α < ‖Ψ̂ n ω - Ψ(Pobs)‖_∞}) atTop (𝓝 0)`, plus the rate statement `guardRadius n α = O(n^(-1/2) + η n)` and the corollary that `η n = n^(-1/2) * L n` with `L n → ∞`, `L n = o(n^(1/2))` satisfies the screening conditions and gives padding `O(n^(-1/2) * L n)`. Conclusion (II) is proved on the auxiliary event `𝒟ₙ = {δ_n ≤ |𝒳| * η n / (2 * C₀)}` with `C₀ = 64 * K * |𝒳| / εZ^2`: there `R_n ≤ 3|𝒳|η n/2 ≤ 3A_{n,α}/2`, so the same quotient step gives `‖Ψ̂ n - Ψ‖_∞ ≤ 8R_n/(3m★) ≤ 4A_{n,α}/m★ = guardRadius n α` eventually, while the SAME second-moment union bound at the positive threshold `|𝒳|η n/(2C₀)` gives `P(𝒟ₙᶜ) ≤ |𝒠|C₀²/(n|𝒳|²η n²) → 0` uniformly by `√n η n → ∞`. Dropping (II) would be a narrowing the upstream adjudication explicitly rejected, so F2/F3 must not deliver (I) alone. Everything else about the proof shape is unchanged and still fully unconditional: no cited gate is threaded, because the argument uses only the second-moment/Chebyshev bound, the overlap-based ratio expansion (4), the positive-homogeneity Lipschitz step, the `0 ≤ B_e(x) ≤ m(x)` bound, the screening bound, and quotient algebra (7)-(9) — no CLT and no delta method. REVISED (F1 round-2 type-fit fix — this is the flagged node): the planned use of `Stat.integral_empiricalMass` / `_sq` is DROPPED. Reading Causalean/Stat/Sample/EmpiricalMass.lean:62,98 confirms both are stated as `∫ sample : Fin m → 𝒳, empiricalMass sample a ∂Measure.pi (fun _ : Fin m => μ) = …` — moments over the PRODUCT sampling space, about a deterministic `sample : Fin m → 𝒳`, not moments of a statistic of the pinned `IIDSample Ω 𝒪 μ Pobs` on `(Ω, μ)`. Applying them to `S.Z` would first require the pushforward identity `μ.map (fun ω (i : Finset.range n) => S.Z i ω) = Measure.pi (fun _ => Pobs)`, which the library establishes only INSIDE the CrossFitRate proofs (CrossFitRate.lean:539-551) and does not export — a nontrivial un-built bridge, exactly the kind of partial fit that turns into a false `needs-substrate` escalation later. REPLANNED CHEBYSHEV STEP (the reviewer's route, verified): the step is `Causalean.Stat.IIDSample.sampleMean_sub_meas_ge_le` (Causalean/Stat/EmpiricalProcess/CrossFitRate.lean:655), which is stated for a general `IIDSample Ω X μ P` and reads `μ {ω | t ≤ |S.sampleMean f n ω - ∫ x, f x ∂P|} ≤ ENNReal.ofReal ((∫ x, (f x)^2 ∂P) / (n * t^2))` for `Measurable f`, `MemLp f 2 P`, `0 < n`, `0 < t`; its second-moment engine `sampleMean_sub_sq_lintegral_le` (:532) is available if F3 prefers the `∫⁻` form. F2/F3 instantiate it at the SINGLETON/EVENT INDICATORS `f_E = fun o => if o ∈ E then (1:ℝ) else 0`, one for each member of the fixed finite collection \\(\\mathcal E\\) of observed atomic and aggregate cell events. Side conditions are trivial on the `Fintype` `𝒪` with its discrete σ-algebra: `Measurable f_E` by `measurable_of_countable`/`Measurable.ite` on a measurable set, and `MemLp f_E 2 Pobs` by `MemLp.of_bound` with bound `1` (the same two-line pattern EmpiricalMass.lean:71-76 uses). The instantiated identities are `∫ f_E dPobs = Pobs.real E` and `∫ f_E² dPobs = Pobs.real E ≤ 1` (since `f_E² = f_E` pointwise), and `S.sampleMean f_E n` is exactly the estimator's own `empFreq E n` by the `rfl` bridge planned in `def:plugin-endpoint-estimator`. CONSTANT REPAIR (F1 round-4; this REPLACES and supersedes the factor-of-four concession recorded here in round 2 and in D-plan-11, which is no longer admissible): under the alpha-indexed guard the sharp constant is LOAD-BEARING, because coverage `≥ 1 - α` is obtained by choosing `b_{n,α}` to make the union bound equal `α` exactly — with the weaker `|𝒠|/(n u²)` the same threshold yields only `1 - 4α`. F2/F3 therefore instantiate `sampleMean_sub_meas_ge_le` at the CENTERED indicator `g_E := fun o => (if o ∈ E then (1:ℝ) else 0) - Pobs.real E` instead of at the bare indicator `f_E`. Then `∫ g_E dPobs = 0`; `∫ g_E² dPobs = Pobs.real E * (1 - Pobs.real E) ≤ 1/4` by the Bernoulli-variance bound (`u(1-u) ≤ 1/4`, closed by `nlinarith`); and `S.sampleMean g_E n ω = S.sampleMean f_E n ω - Pobs.real E` for `0 < n`, since `sampleMean` is `(n:ℝ)⁻¹ * ∑ i ∈ Finset.range n, ·` and `(n:ℝ)⁻¹ * ∑ i ∈ Finset.range n, c = c` (`Finset.sum_const`, `Finset.card_range`, `field_simp`). Hence the per-event tail is exactly \\(\\mu\\{t\\le|\\widehat P_n(E)-P_{\\mathrm{obs}}(E)|\\}\\le1/(4nt^2)\\), uniformly in `P ∈ 𝒫ₙ`, and the union bound over the `Finset` `𝒠` gives the core's display (1)/(2) verbatim, `P(δ_n > b_{n,α}) ≤ |𝒠|/(4n b_{n,α}²) = α`. Side conditions on the discrete `Fintype` `𝒪` are unchanged in difficulty: `Measurable g_E` is `(measurable_const.ite (MeasurableSet.of_discrete) measurable_const).sub measurable_const` and `MemLp g_E 2 Pobs` is `MemLp.of_bound` with bound `1`. Note this is a change of INSTANTIATION, not of substrate: the same library lemma at CrossFitRate.lean:655 is used, with its second-moment engine `sampleMean_sub_sq_lintegral_le` (:532) available if the `∫⁻` form is preferred; nothing new is escalated. The same centered instantiation at the threshold `|𝒳| η n / (2 C₀)` supplies the `P(𝒟ₙᶜ) → 0` half of conclusion (II). Retained reuse: `Causalean.PartialID.Inference.RandomCoversIcc` (Causalean/PO/ID/Partial/Inference/Basic.lean) is the conclusion's coverage vocabulary and `randomCoversIcc_compl_subset` the geometric step if the two-sided decomposition is wanted. Search trace: `grep -n 'sampleMean_sub_meas_ge_le|sampleMean_sub_sq_lintegral_le|of_sq_lintegral_le'` over Causalean/Stat/EmpiricalProcess/CrossFitRate.lean (found at :655, :532, :321) with reads of :515-670, plus reads of Sample/EmpiricalMass.lean:58-105 that established the product-space misfit, plus `lean_local_search RandomCoversIcc` / `honest_ci_set_cover` (both found) and ../doc/API.md §12a2, §9j2inf; Mathlib side checked (`lean_leansearch` \"Chebyshev inequality bounding the probability that a sample mean deviates from its expectation\") → only the generic Markov/variance forms, which the Causalean `IIDSample` pair already specialises, so no Mathlib lemma is needed beyond `Finset.sum`, `abs`, and `ENNReal.ofReal` algebra. The key structural reason this is only medium effort: the branch-free formulas are used verbatim at both population and empirical arguments, so the whole proof is one Lipschitz estimate with NO sign case analysis, exactly as the note stresses. REVISED (F2.5 fix-locus, dependency closure of `ass:iid-sampling`): the theorem takes `(S : Causalean.Stat.IIDSample Ω 𝒪 μ Pobs)` as an explicit binder with the pinning hypothesis `∀ i, S.Z i = O i`, so the Chebyshev step (1) — which is `Stat.integral_empiricalMass`/`_sq` applied to `S` — bounds the deviation of the SAME empirical frequencies the estimator uses. REVISED (F1 round-3 fix-locus, dependency closure of `ass:iv-independence` through `def:uniform-law-class`): the theorem's `hyps` list `def:uniform-law-class`, whose `ivIndependence` field is typed over the reused `POSystem.CondIndepCF`, so the statement carries an explicit `[StandardBorelSpace P.Ω]` binder for the PO system's ambient space — kept notationally distinct from the sampling space `Ω` of the `IIDSample` binder, which needs no such instance — and the `POSlateSystem P` parameter supplies the five pairwise-distinct nodes. The instance and the distinctness fields are inert in the proof itself (the whole argument runs on `Capacities` and empirical frequencies, with no conditional-independence step), but they must be present for the class in `hyps` to elaborate. `hyps` unchanged; still fully unconditional on any cited gate. REVISED (F1 round-4 fix-locus, dependency closure of `sym:\\mathcal X`): the statement additionally carries `[MeasurableSingletonClass 𝒳]` alongside `[Fintype 𝒳]`. It is load-bearing twice here even though no conditional-expectation step occurs: the guard event class `𝒠` is a `Finset` of subsets of `𝒪` whose members must be measurable for `Pobs.real E` and the Chebyshev step to mean anything, and `Pobs = observedLaw` must be a genuine probability measure (a non-collapsed `Measure.map`) for `Pobs.real E ≤ 1` and for `p_x = Pobs.real {X = x}` — both of which fail without the discrete carrier (see S1). `hyps` still unchanged. REVISED (F1 round-5 fix-locus, dependency closure of `ass:iid-sampling` and of `def:uniform-law-class`): the theorem's sampling binder is the ℕ-indexed `(S : Causalean.Stat.IIDSample Ω 𝒪 μ Pobs)` with the pinning `∀ i, S.Z i = O i`, and the `UniformInferenceLawClass` in its `hyps` takes the same `O` and `S`; no finite-\\(n\\) sampling structure is planned. This does NOT soften conclusion (I): the containment bound is still asserted for EVERY `n ≥ 1` and every `α ∈ (0,1)` with no filter, because its only probabilistic input is the centered-indicator Chebyshev bound `sampleMean_sub_meas_ge_le` (CrossFitRate.lean:655) applied at that single `n` — the surrounding sequence world merely makes the same statistic available at all `n` at once, which is what conclusion (II)'s `Tendsto … atTop (𝓝 0)` and the uniform-in-`P ∈ 𝒫ₙ` supremum need in order to be well posed on one space. `hyps` unchanged. REVISED (F1 round-6 fix-locus, THE FLAGGED NODE — the `Antitone` screening hypothesis and the `Antitone ηL` conclusion conjunct are DELETED). F2's emitted statement carried `(_hEtaAntitone : Antitone η)` (TUniformDeterministicGuard.lean:56) and asserted `Antitone ηL ∧ …` inside the \\(L_n\\) corollary (:100); F3 correctly refused to prove it and left `sorry -- BLOCKER: statement-wrong (the stated hypotheses on L do not imply Antitone ηL)` (:111). The escalation was routed `fix-source` and upstream repaired the core, which now states 'No monotonicity of \\((\\eta_n)\\) or \\((L_n)\\) is used or asserted', so BOTH occurrences are removed rather than repaired by strengthening a premise: re-adding `Antitone L` (or `Antitone η`) as a hypothesis would narrow the delivered corollary below what the core now grants, which is the narrowing the upstream adjudication rejected. STATEMENT OF RECORD after the repair (everything else is unchanged). Screening side conditions: exactly `∀ n, 0 < η n`, `Tendsto η atTop (𝓝 0)`, and `Tendsto (fun n : ℕ => Real.sqrt n * η n) atTop atTop`. Conclusion (I) unchanged: for every `n ≥ 1` and every `α ∈ (0,1)`, `∀ P ∈ 𝒫ₙ, (1 - α) ≤ P {ω | Θ_I(Pobs) ⊆ guardedConfidenceSet n α ω}`, still a no-filter finite-sample bound proved from the centered-indicator union bound at that single `n` (D-plan-14). Conclusion (II) unchanged: fixed-α uniform endpoint-error convergence to zero plus the rate `guardRadius n α = O(n^{-1/2} + η n)`. The \\(L_n\\) corollary now asserts EXACTLY the core's four clauses — for every `L : ℕ → ℝ` with `∀ n, 0 < L n`, `Tendsto L atTop atTop`, and `L =o[atTop] (fun n : ℕ => Real.sqrt n)`, setting `ηL n = (n:ℝ)^(-(1:ℝ)/2) * L n` gives (a) `∀ n, 1 ≤ n → 0 < ηL n`, (b) `Tendsto ηL atTop (𝓝 0)`, (c) `Tendsto (fun n => Real.sqrt n * ηL n) atTop atTop`, and (d) `guardRadius … =O[atTop] (fun n => (n:ℝ)^(-(1:ℝ)/2) * L n)`. All four are true and elementary: (c) is `Real.mul_self_sqrt` on `√n * n^(-1/2) = 1`, so `√n * ηL n = L n` and the hypothesis `Tendsto L atTop atTop` closes it verbatim; (b) is immediate from `L =o[atTop] √n` (equivalently `ηL = o(1)`); (a) is `Real.rpow_pos_of_pos` times `hLPositive`; (d) is the already-planned rate statement instantiated at `η := ηL`. Only the `Antitone ηL` conjunct is struck. Why nothing else moves: monotonicity of the screening sequence was never used by the proof — the screening bound `|screened − unscreened| ≤ |𝒳| η n` and the auxiliary event `𝒟ₙ = {δ_n ≤ |𝒳| η n / (2 C₀)}` are both pointwise-at-`n` estimates, and the only `atTop` facts consumed are `η n → 0` (to get `A_{n,α}` eventually below `m★/4`) and `√n η n → ∞` (to get `P(𝒟ₙᶜ) ≤ |𝒠| C₀² / (n |𝒳|² η n²) → 0`), neither of which needs an order relation between consecutive terms. So `hyps`, `disposition`, `defer_tier`, `gate`, `modules`, and `target_file` are all unchanged, no assumption node is added or removed, and re-emission is the deletion of one binder and one conjunct. Build-inline, medium."
+    },
+    "lem:finite-multinomial-central-limit": {
+      "lean_kind": "assumption",
+      "lean_name": "FiniteMultinomialCLT",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.CLT.GaussianLimit",
+        "Causalean.Stat.Limit.ConvergenceVec"
+      ],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "source": "cite:van-der-vaart-1998-multivariate-clt",
+      "target_file": "Helpers/CitedGates.lean",
+      "sync_back_note": "The proposition is specialized to the discrete measurable ObservedDatum carrier and explicitly assumes IsProbabilityMeasure μ and IsProbabilityMeasure Pobs. Its antecedent is ∀ n, IidSampling n μ Pobs O, matching the finite-prefix atom while supporting the sequence-level CLT without asserting an infinite extension on the same carrier.",
+      "notes": "REVISED (F1 round-5 fix-locus, dependency closure of `ass:iid-sampling`): the sync-back claim that this proposition 'consumes finite-n IidSampling directly' is DELETED. Its frozen `depends_on` edge is `ass:iid-sampling`, which is now unambiguously the ℕ-indexed pinning atom, and that is the honest antecedent here: the cited statement (van der Vaart, Example 2.18) is a convergence in law as \\(n\\to\\infty\\) of \\(\\sqrt n(\\bar Y_n-\\mu)\\) for an i.i.d. SEQUENCE \\(Y_1,Y_2,\\ldots\\), so its Lean rendering must quantify over the same sequence at every index, not over a per-\\(n\\) finite family. F2 accordingly writes the antecedent as `IidSampling μ P_obs O S →` with `(S : Causalean.Stat.IIDSample Ω 𝒪 μ P_obs)` an explicit parameter, and the conclusion about the empirical probability vector of that one sequence. The carrier kind (`logical-claim`), the gate keys, the `defer_tier`, and the absence of a plan-level `hyps` list (D-plan-7) are all unchanged; nothing about the discharge route moves. PRIOR TEXT RETAINED: matched against `cite:van-der-vaart-1998-multivariate-clt` (vanDerVaart1998, Chapter 2, Example 2.18 and the Cramer--Wold device, https://doi.org/10.1017/CBO9780511802256); the citation entry carries the locator, verbatim statement, and attestation. Frozen cited node with `carrier: logical-claim`, so it MUST be a named proposition threaded as a hypothesis, not a proved lemma and not metadata. F2 emits `def FiniteMultinomialCLT (…) : Sort 0 := …` (unshadowable `Sort 0` syntax, semantically `Prop`) stating that under independent sampling from a law on a fixed finite support the \\(\\sqrt n\\)-scaled centered empirical probability vector converges in law to a mean-zero Gaussian with the multinomial covariance, and threads it into `thm:branch-free-pointwise-directional-limit`. Encoding of its own `ass:iid-sampling` dependency (revised): a `lean_kind:\"assumption\"` node is ONE named `Prop` def and carries no plan-level `hyps` list, so the independent-sampling premise is NOT threaded as a separate plan hypothesis of this gate; it is an explicit ANTECEDENT inside the named proposition itself — F2 writes `def FiniteMultinomialCLT (μ : Measure Ω) (Pobs : Measure 𝒪) (O : ℕ → Ω → 𝒪) (S : Causalean.Stat.IIDSample Ω 𝒪 μ Pobs) … : Sort 0 := IidSampling μ Pobs O S → (the multinomial Gaussian-limit conclusion about the empirical probability vector of `O`)`, so the frozen `depends_on` edge `ass:iid-sampling` is preserved verbatim in the Lean statement and the gate stays vacuity-safe. REVISED (F2.5 fix-locus, dependency closure of `ass:iid-sampling`): that antecedent is now the PINNED atom — the sample structure `S` is an explicit parameter of the proposition and the antecedent says `∀ i, S.Z i = O i` — so the gate's conclusion is about the empirical vector of the declared sequence `O`, not of some unrelated existential sequence. This node still carries NO plan-level `hyps` (a `lean_kind:\"assumption\"` node is exactly one named proposition; see D-plan-7). The consumer `thm:branch-free-pointwise-directional-limit` independently lists `ass:iid-sampling` in its own `hyps` (it is in that theorem's `depends_on`), so it can discharge this antecedent when it applies the gate; no consumer hypothesis moves as a result of this revision. Close-fit substrate recorded for the eventual discharge (which is the orchestrator's `bin/gate.ts --discharge` path, NOT F1's): `Causalean.Stat.IIDSample.clt_normalizedSum_vec` (Causalean/Stat/CLT/GaussianLimit.lean) gives the multivariate CLT against the concrete `Causalean.Stat.gaussianLimit`, for a centered square-integrable \\(\\psi\\) on an inner-product space; the remaining gap is instantiating \\(\\psi\\) at the finite-support indicator vector and identifying the resulting covariance operator with the multinomial matrix \\(\\mathrm{diag}(v)-vv^{\\top}\\). Search trace: `lean_local_search clt_normalizedSum_vec` / `gaussianLimit` (found) and reads of ../doc/API.md §12n''', §12n'''c; Mathlib side checked via `lean_leansearch` for a multinomial CLT — Mathlib has the scalar CLT (upstream `ProbabilityTheory.central_limit`) but no multinomial/multivariate statement, which is why Causalean vendored one."
+    },
+    "lem:ordinal-fixed-marginal-strict-benefit": {
+      "lean_kind": "assumption",
+      "lean_name": "OrdinalFixedMarginalStrictBenefit",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.PO.ID.Partial.Frechet",
+        "Causalean.PO.ID.Partial.Basic"
+      ],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "source": "cite:lu-ding-dasgupta-2018-ordinal-benefit-bounds",
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "notes": "Matched against `cite:lu-ding-dasgupta-2018-ordinal-benefit-bounds` (LuDingDasgupta2018, Proposition 2, equation (6), page 546; publisher-distributed PDF at https://files.eric.ed.gov/fulltext/EJ1190295.pdf), whose entry carries the locator, verbatim statement, and d0-agent attestation. Frozen cited node with `carrier: logical-claim` → named proposition (`Sort 0` syntax), threaded into `thm:no-selection-reduction` only. It states that for two probability mass functions on the finite ordered support \\(\\mathcal Y\\) the sharp lower and upper strict-benefit probabilities over ALL couplings are \\(\\max\\{0,\\max_t(F_0(t)-F_1(t))\\}\\) and \\(\\min_t(F_0(t-1)+1-F_1(t))\\). Deliberately NOT reconstructed as sub-lemmas of the paper's own transport results even though the tie-face specialisation of `thm:sharp-exact-mass-threshold-interval` would come close: the frozen provenance is a citation, and reconstructing a still-deferred cited node is prohibited. Close-fit substrate for the eventual discharge: `Causalean/PO/ID/Partial/Frechet.lean` supplies the easy fixed-joint-law Frechet--Hoeffding directions (`frechet_upper`, `frechet_lower`) with no sharpness claim, and `Causalean.PartialID.mem_Icc_csInf_csSup` the inf/sup packaging; the gap is the attainment half. Search trace: `lean_local_search` for `frechet`, `benefit`, `ordinal` (project_root=<repo-root>) plus ../doc/API.md §9j2 `Frechet.lean` row (\"only the *easy* (fixed-joint-law) directions are asserted — no sharpness claim\"); Mathlib side checked via `lean_leansearch` \"coupling matrix with prescribed row and column marginals\" → Birkhoff / `doublyStochastic` only, no strict-benefit endpoint."
+    },
+    "lem:hadamard-directional-delta-method": {
+      "lean_kind": "assumption",
+      "lean_name": "HadamardDirectionalDeltaMethod",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Inference.HadamardDeriv",
+        "Causalean.Stat.Inference.FunctionalDelta",
+        "Causalean.Stat.Limit.ConvergenceVec"
+      ],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "source": "cite:fang-santos-2019-directional-delta-method",
+      "target_file": "Helpers/CitedGates.lean",
+      "sync_back_note": "The tight abstract limit is represented by its probability law Q, without a same-Ω random element or Q = μ.map G0. Probability-measure and estimator a.e.-measurability hypotheses are explicit.",
+      "hyps": [],
+      "notes": "Matched against `cite:fang-santos-2019-directional-delta-method` (FangSantos2019, Section 2.3, Assumptions 1--2, Theorem 2.1, equation (10), and Remark 2.1, https://doi.org/10.1093/restud/rdy049), whose entry carries the locator, verbatim statement, and d0-agent attestation. Frozen cited node with `carrier: logical-claim` → named proposition (`Sort 0` syntax), threaded into `thm:branch-free-pointwise-directional-limit` only. It states the general Banach-space directional delta method: Hadamard directional differentiability tangentially to \\(\\mathbb D_0\\) plus \\(r_n(\\widehat\\theta_n-\\theta_0)\\rightsquigarrow\\mathbb G_0\\) tight with support in \\(\\mathbb D_0\\) gives the expansion \\(r_n\\{\\phi(\\widehat\\theta_n)-\\phi(\\theta_0)\\}=\\phi'_{\\theta_0}(r_n\\{\\widehat\\theta_n-\\theta_0\\})+o_P(1)\\) and hence the limit \\(\\phi'_{\\theta_0}(\\mathbb G_0)\\), with the Remark 2.1 continuous-extension convention. Close-fit substrate for the eventual discharge: `Causalean.Stat.HasHadamardDirDerivAt` (the definition, verbatim) is already there and `deltaMethod_max_tie`/`deltaMethod_min_tie` (Causalean/Stat/Inference/FunctionalDelta.lean) are proved *instances* of the conclusion for the two-argument lattice maps; the gap is the general theorem for an arbitrary Hadamard-directionally-differentiable \\(\\phi\\), which the library's own note (../doc/API.md §12j', closing remark) flags as the open follow-up. Search trace: `lean_local_search HasHadamardDirDerivAt`, `hasHadamardDirDerivAt_min`, `Tendsto_dist_vec` (all found), read of ../doc/API.md §12j and §12j'; Mathlib side checked — Mathlib has `HasFDerivAt`/`HasDerivAt` only and no directional (Hadamard) delta method, so this is a genuine upstream gap. Effort is large because the general statement is over arbitrary Banach spaces with a tangent set."
+    },
+    "oeq:uniform-face-multiplier": {
+      "lean_kind": "def",
+      "lean_name": "openQuestion_uniformFaceMultiplierCalibration",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "OpenQuestions.lean",
+      "hyps": [],
+      "oeq_case": "B",
+      "carrier_type": "_root_.String",
+      "notes": "Unresolved open-ended question (`status: to-prove`), so it is a `def`, never a `theorem`, is excluded from any theorems manifest, and no delivered theorem depends on it. TWO-CASE rule read off the frozen node text: Case (B). The requested truth condition is whether the near-active-face directional-multiplier handle CAN BE CALIBRATED to achieve the displayed uniform coverage, but no calibration map is defined anywhere in the core — `def:face-aware-inference-handle` states in terms that the multiplier envelope \"is not used as a calibrated critical value in the present uniform theorem\" and that \"first-order exact calibration of an unguarded face-aware multiplier region remains outside this construction\", i.e. the core explicitly prescribes a nonassertive carrier for the critical-value procedure. F2 therefore emits `def openQuestion_uniformFaceMultiplierCalibration : _root_.String := \"…\"` — a direct `String` literal, never `PUnit`/`Unit`/`True`/an empty tag — recording verbatim: the coverage criterion \\(\\liminf_n\\inf_{P\\in\\mathcal P_n}P\\{\\Theta_I(P_{\\mathrm{obs}})\\subseteq\\mathcal C_{1-\\alpha,n}\\}\\ge1-\\alpha\\); the quantified domain (direction-separated triangular arrays \\(\\mathcal P_n\\), i.e. the uniform class together with the separation margin \\(|\\Delta q(x)|\\ge\\kappa_\\sigma\\), under independent sampling, instrument overlap \\(\\varepsilon_Z\\), and the uniform aggregate bound \\(M\\ge m_\\star\\)); the two regimes that must be allowed (arbitrary simultaneous threshold-cut ties, and covariate cells whose survivor mass approaches zero and is omitted at the unnormalized screening threshold \\(\\eta_n\\)); the four comparators that do not settle it (FangSantos2019 estimated directional derivatives, ChernozhukovLeeRosen2013 localized contact sets, Semenova2025 covariate-specific Lee directions, deAguasEtAl2025 equations (17)--(18) pointwise stabilized tier-benefit coverage); and the explicit nonassertion disclaimers (the multiplier envelope is diagnostic only, no first-order exact calibration of an unguarded face-aware region is claimed, and the delivered uniform result obtains containment solely through the alpha-indexed deterministic guard \\(g_{n,\\alpha}=\\min\\{1,4A_{n,\\alpha}/m_\\star\\}\\), whose finite-sample validity comes from a second-moment union bound over the finite event class \\(\\mathcal E\\) rather than from any calibration). REVISED (F1 round-4 fix-locus, dependency closure of `def:face-aware-inference-handle`): the payload string is updated to name the alpha-indexed guard family \\(\\mathcal E,\\delta_n,b_{n,\\alpha},A_{n,\\alpha},g_{n,\\alpha}\\) in place of the deleted \\(g_n\\), and to record that the delivered guard is an every-sample \\(\\ge1-\\alpha\\) containment statement while the question asks for the strictly different \\(\\liminf\\) coverage of an UNGUARDED face-aware multiplier region; the carrier kind, case (B), and the empty `hyps` are unchanged. The payload carries NO selector, procedure, critical-value, rate, confidence, or lower-bound witness field, and changes whenever the question's regimes, alternatives, or desiderata change. `hyps` is empty by construction: the OEQ carrier is a non-`Prop` descriptive payload, so its `depends_on` assumptions (`ass:iid-sampling`, `ass:instrument-overlap`, `ass:direction-margin`, `ass:uniform-aggregate-survivor-bound`) are recorded inside the payload text as the stated regime rather than threaded as Lean hypotheses — threading them would manufacture a truth-valued claim the core explicitly declines to make. REVISED (F1 round-5 fix-locus, dependency closure of `ass:iid-sampling`): the payload's statement of the regime is updated to say that the sampling condition is an INFINITE i.i.d. sequence \\(O_1,O_2,\\ldots\\) from \\(P_{\\mathrm{obs}}\\) on one sampling space (the same world S3 now states), rather than an unqualified 'independent sampling' — which matters for this node because the question's criterion is a \\(\\liminf_{n\\to\\infty}\\) over a triangular array and is only well posed in that world. Case (B), the `_root_.String` carrier, the empty `hyps`, and the absence of any selector/procedure/rate/confidence/lower-bound witness field are all unchanged. Search trace not required (no absence is asserted); nothing is claimed proved."
+    }
+  },
+  "decisions": [
+    {
+      "id": "D-plan-1",
+      "decision": "Three ambient worlds rather than one.",
+      "rationale": "The paper's content splits cleanly: a potential-outcome/IV world for identification and attainment (reusing `Causalean.PO.POSystem`), a finite capacity/transport world that is pure real algebra over `Fintype 𝒳` and `Fin K`, and an i.i.d. sampling/asymptotics world (reusing `Causalean.Stat.IIDSample`). Forcing the transport layer into the measure-theoretic PO world would add no fidelity and would make every threshold-cut manipulation carry irrelevant measurability side conditions."
+    },
+    {
+      "id": "D-plan-2",
+      "decision": "`Π_𝔠` is DEFINED as the coordinatewise positive part, with the argmin characterisation proved as a lemma.",
+      "rationale": "The note itself proves the two agree and uses the positive-part form in every subsequent estimate. Defining the projection by the closed form keeps `thm:uniform-deterministic-guard` a one-line Lipschitz argument and keeps the Hadamard derivative (4) available from the two-argument `max` tie case in `Causalean/Stat/Inference/HadamardDeriv.lean`."
+    },
+    {
+      "id": "D-plan-3",
+      "decision": "`thm:linear-sparse-threshold-flow` is encoded with an explicit ℕ-valued step counter threaded through the construction, plus a magnitude-independence statement.",
+      "rationale": "Lean carries no ambient cost model and neither Causalean nor Mathlib has a complexity layer. An explicit counter with a bound in `|𝒳|` and `K`, together with `∀ c c', cost c = cost c'`, is a faithful and checkable rendering of 'strongly polynomial in the arithmetic/comparison model' and of the note's claim that no loop count depends on a capacity magnitude."
+    },
+    {
+      "id": "D-plan-4",
+      "decision": "The open question is Case (B) with a `_root_.String` payload.",
+      "rationale": "The calibration procedure whose validity is asked about is undefined in the core, and `def:face-aware-inference-handle` explicitly prescribes a nonassertive carrier for it. Encoding it as a `Prop` would assert a truth condition that the core declines to specify."
+    },
+    {
+      "id": "D-plan-5",
+      "decision": "`ass:direction-margin` is defined but threaded into nothing delivered.",
+      "rationale": "It is used only by the open question. The paper's headline uniform claim is precisely that no direction-separation condition is imposed, so adding it to `def:uniform-law-class` or to `thm:uniform-deterministic-guard` would silently weaken the result."
+    },
+    {
+      "id": "D-plan-6",
+      "decision": "All three `status: cited` lemma nodes stay substrate gates.",
+      "rationale": "Their frozen provenance is `carrier: logical-claim`, so F1 may not emit a non-gate form, may not relabel them as metadata, and may not reconstruct them as sub-lemmas. Each is encoded as a named proposition and threaded into every logical consumer; each is listed in `infrastructure_needed` under its own core node id."
+    },
+    {
+      "id": "D-plan-7",
+      "decision": "A cited gate's own `depends_on` assumptions are encoded as antecedents inside its named proposition, not as a plan-level `hyps` list.",
+      "rationale": "A `lean_kind:\"assumption\"` node is exactly ONE named `Prop` def, so it carries no `hyps` field (that field belongs to statement nodes mapped to `theorem`/`lemma`). Applied to `lem:finite-multinomial-central-limit`, whose frozen `depends_on` is `ass:iid-sampling`: the premise moves inside the proposition as `IidSampling … → (Gaussian-limit conclusion)`, which preserves the dependency edge verbatim in Lean and keeps the gate vacuity-safe, while its only consumer `thm:branch-free-pointwise-directional-limit` already lists `ass:iid-sampling` in its own `hyps` and can therefore discharge the antecedent at the application site. No consumer hypothesis and no disposition moves; the other two cited gates (`lem:ordinal-fixed-marginal-strict-benefit`, `lem:hadamard-directional-delta-method`) have no assumption dependencies and are unaffected."
+    },
+    {
+      "id": "D-plan-8",
+      "decision": "`ass:treatment-consistency` is a narrow local atom, not `Causalean.PO.POSystem.Consistency` (F2.5 revision).",
+      "rationale": "The library predicate (Consistency.lean:53) is a universal factual-plus-composition axiom over all regimes and all variable sets — system-wide SUTVA. The core's atom is the single instance \\(D=D_Z\\). Reusing the structure would import consistency for `S` and `Y` too, making `ass:selection-exclusion-consistency` and `ass:outcome-exclusion-consistency` derived rather than assumed and strengthening \\(\\mathcal M\\) beyond the frozen core. Recorded as bypass-justified on that module; the pointwise library lemmas (`POVar.factual_eq_cfUnder_self_selected`, `POVar.factual_mul_indicator_eq_cfUnder_mul_indicator_fn`) all take `hC : P.Consistency`, so their proof shape is copied, not their statements. Closure: `def:structural-law-class`, `def:uniform-law-class`, `prop:capacity-identification`, `thm:no-selection-reduction`, `thm:full-law-endpoint-attainment`, and the S1 world note were updated; no member list and no `hyps` list moved."
+    },
+    {
+      "id": "D-plan-9",
+      "decision": "`ass:iid-sampling` pins the sample structure to the declared sequence instead of asserting `Nonempty` (F2.5 revision).",
+      "rationale": "`Nonempty (IIDSample Ω 𝒪 μ Pobs)` says an i.i.d. sequence exists somewhere and says nothing about `O`; every empirical object in the paper is built from `O`, so the inference theorems would have been stated over an unconstrained sequence. The atom is now `(S : IIDSample Ω 𝒪 μ Pobs)` carried as an explicit binder plus `∀ i, S.Z i = O i`. `Causalean.Stat.IIDSample` (Sample.lean:44) remains the reuse and supplies all the content; the pinning is what makes `IIDSample.sampleMean`, `clt_normalizedSum_vec`, and the `IIDSample`-native moment bounds rewrite onto the estimator's own sequence (the specific decls were corrected in round 2 — see D-plan-11). Closure: `def:uniform-law-class`, `def:plugin-endpoint-estimator`, `lem:finite-multinomial-central-limit` (antecedent), `thm:branch-free-pointwise-directional-limit`, `thm:uniform-deterministic-guard`, and the S3 world note were updated; no `hyps` list moved."
+    },
+    {
+      "id": "D-plan-10",
+      "decision": "`prop:capacity-identification` uses the CONDITIONAL bundle ratio workhorse plus a local σ-algebra bridge lemma (F2.5 revision).",
+      "rationale": "`POSystem.eventCondExp_of_consistency_IndepCF` demands unconditional `P.IndepCF`, which the paper never assumes — its instrument independence is conditional on the covariate cell. `POCFBundle.condExpRatio_of_consistency_CondIndepCFBundle` (EventCondExpBundle.lean:170) is the conditional analogue and matches every other premise (consistency-on-event product identity from the local atoms; a.e. nonzero conditional event probability from `ass:instrument-overlap`). Its independence premise conditions on a bundle σ-algebra `C.sigma = comap C.jointValue`, while `ass:iv-independence` conditions on `comap xVar.value`, so the signatures differ; per the F2.5 directive the gap is closed by an explicit local bridge lemma in `Helpers/CondIndepBridge.lean` (singleton conditioning bundle + σ-algebra transport, the `condIndepCF_congr_cond` move) rather than by `CondIndepCF.project`, which projects the bundle side and cannot change the conditioning σ-algebra. The bridge is a helper inside this node's plan, not a new core node: the plan stays one-to-one with the core."
+    },
+    {
+      "id": "D-plan-11",
+      "decision": "The empirical layer is built from `IIDSample.sampleMean` at event indicators; `IIDSample.empiricalMeasure` and the `empiricalMass` moment lemmas are withdrawn as type-misfits (F1 round-2 revision).",
+      "rationale": "Two reuse claims failed a type-fit check against their sources. (i) `Causalean.Stat.IIDSample.empiricalMeasure` (Quantile/EmpiricalQuantile.lean:58) is declared only for `IIDSample Ω ℝ μ P` and returns a `Measure ℝ`, so it cannot carry the empirical law or the empirical frequencies of the finite observed type `𝒪`. (ii) `Causalean.Stat.integral_empiricalMass` and `_sq` (Sample/EmpiricalMass.lean:62,98) are moments over the product measure `Measure.pi (fun _ : Fin m => μ)` of a deterministic `sample : Fin m → 𝒳`, not moments of a statistic of an `IIDSample Ω 𝒪 μ Pobs` on `(Ω, μ)`; the pushforward bridge `μ.map (fun ω i => S.Z i ω) = Measure.pi …` exists only inside the CrossFitRate proofs (:539-551) and is not exported, so relying on them would have left F3 to build an un-planned bridge. Replacement, chosen because it is stated for a GENERAL observation type and therefore applies at `𝒪` verbatim: the single empirical primitive is `Causalean.Stat.IIDSample.sampleMean` (Sample.lean:68) evaluated at event indicators `f_E = fun o => if o ∈ E then 1 else 0`, with the estimator's own `empFreq E n` equal to it by `rfl` under the pinning `∀ i, S.Z i = O i`; the Chebyshev step of `thm:uniform-deterministic-guard` is `Causalean.Stat.IIDSample.sampleMean_sub_meas_ge_le` (EmpiricalProcess/CrossFitRate.lean:655), whose second-moment engine is `sampleMean_sub_sq_lintegral_le` (:532); the \\(O_P(n^{-1/2})\\) cell bound in `thm:branch-free-pointwise-directional-limit` uses the same pair via `sampleMean_sub_isBigOp`. Recorded consequence: at an indicator the library bounds the second moment by \\(E_P[f^2]=P(E)\\) rather than by the variance \\(P(E)(1-P(E))\\le1/4\\), so display (1) of the guard proof weakens from \\(|\\mathcal E|/(4nu^2)\\) to \\(|\\mathcal E|/(nu^2)\\). The theorem is unaffected: (1) is used only to make \\(\\{\\delta_n\\le a_n\\}\\) have probability tending to one uniformly, which still holds since \\(na_n^2\\to\\infty\\), and the guard radius \\(g_n\\) with its constant 512 is fixed by the deterministic displays (2)-(6) on that event. SUPERSEDED IN ROUND 4 — see D-plan-14: under the upstream alpha-indexed guard the sharp \\(1/4\\) constant became load-bearing, so the factor-of-four concession recorded in this sentence is withdrawn and the same library lemma is instead instantiated at the CENTERED indicator, which recovers \\(|\\mathcal E|/(4nt^2)\\) exactly; the substrate choice made here is otherwise unchanged. Closure: the S3 world note, `ass:iid-sampling`, `def:plugin-endpoint-estimator`, `thm:uniform-deterministic-guard`, and `thm:branch-free-pointwise-directional-limit` were updated (notes and `modules`, swapping `Causalean.Stat.Sample.EmpiricalMass` for `Causalean.Stat.Sample` + `Causalean.Stat.EmpiricalProcess.CrossFitRate`). No disposition, no `defer_tier`, no member list, and no `hyps` list moved; `def:face-aware-inference-handle` needed no change because it never named either withdrawn decl."
+    },
+    {
+      "id": "D-plan-12",
+      "decision": "`POSlateSystem` carries five pairwise-distinct underlying nodes and an explicit `StandardBorelSpace P.Ω` requirement (F1 round-3 revision).",
+      "rationale": "The reviewer flagged two world-incompleteness defects in the S1 record, both confirmed against the sources. (i) DISTINCTNESS: the record was planned as five bare `POVar`s, but a `POVar P α` is a node `v : P.V` plus a measurable equivalence (Core/Variable.lean:37-39), so nothing prevented two of `X,Z,D,S,Y` from being the SAME system variable — which would collapse the eval cascade `Z → D → S → Y`, the complier stratum, and the two capacity contrasts into malformed objects. Both library precedents require distinctness explicitly (`POIVSystem.hZD/hDY/hZY`, LATE.lean:38-47; `POLeeSystem.hASel/hAY/hSelY`, Lee/Setup.lean:62-67), so the record now carries five nodes, five equivalences, and all ten pairwise-distinctness fields, with the `POVar`s derived. (ii) STANDARD BOREL: `POSystem.CondIndepCF` takes `[StandardBorelSpace P.Ω]` as an instance argument (Assumptions/IndepCF.lean:104-106, doc-string 'Requires `StandardBorelSpace P.Ω` for `CondIndepFun` to make sense'), as do `CondIndepCFBundle` (Bundle.lean:288) and `condExpRatio_of_consistency_CondIndepCFBundle` (EventCondExpBundle.lean:170), while `POSystem` supplies only `[measΩ]` (Core/System.lean:41-44). The previous plan's claim that this side condition is discharged by `Fintype 𝒳` plus standard Borel-ness of the constructed models is withdrawn: finiteness constrains the value spaces `P.X v`, not `Ω`, and a property of the paper's own witnesses does not discharge an instance argument in theorems stated over an arbitrary `P`. It is now required explicitly — an instance-implicit `[borel]` field on the record plus an explicit `[StandardBorelSpace P.Ω]` binder on every declaration mentioning it (diamond-free: the class is `Prop`-valued) — and DISCHARGED, not assumed, in the model-constructing nodes via Mathlib's `standardBorelSpace_of_discreteMeasurableSpace` on their countable discrete sample spaces. Closure: the S1 world text, notes and modules; `ass:iv-independence`; `def:structural-law-class`; `def:uniform-law-class`; `prop:capacity-identification` (and the `Helpers/CondIndepBridge.lean` entry in the file plan); `prop:tie-face-collapse`; `thm:sharp-exact-mass-threshold-interval`; `thm:full-law-endpoint-attainment`; `def:three-level-witness`; `prop:three-level-witness`; `thm:no-selection-reduction`; `thm:uniform-deterministic-guard`; and a record-shape note on `thm:branch-free-pointwise-directional-limit`. No disposition, no `defer_tier`, no member list, and no `hyps` list moved, and no purely algebraic node (`Capacities`, transport, estimator, guarded set, the three cited gates, the OEQ) was touched."
+    },
+    {
+      "id": "D-plan-13",
+      "decision": "The covariate carrier is a FINITE DISCRETE measurable space: every declaration mentioning `𝒳` carries `[MeasurableSingletonClass 𝒳]` beside `[Fintype 𝒳]` (F1 round-4 revision, tracking the upstream `sym:\\mathcal X` repair).",
+      "rationale": "The formalization exposed a genuine source defect and the core was repaired: `Fintype 𝒳` does NOT imply that singletons are measurable, so under the old bare-finite declaration `{x}` and `S.xEvent x` need not be measurable, `observedDatum` need not be measurable into the discrete observed carrier, and `Measure.map` can collapse to zero — making even the first conjunct `IsProbabilityMeasure S.observedLaw` false in a countermodel. `MeasurableSingletonClass` is the smallest faithful encoding of the core's `2^{\\mathcal X}` clause and upgrades to `DiscreteMeasurableSpace` via `MeasurableSingletonClass.toDiscreteMeasurableSpace` given `Countable` from `Fintype`. This is ambient TYPE REGULARITY, not a maintained condition: no `ass:` node is created, no member is added to `def:structural-law-class` or `def:uniform-law-class`, and no claim is narrowed. It also resolves the pending F3 `build-substrate` escalation at the source — the requested \"conditional finite-atom IV identification bridge\" is now a small build-inline helper cluster in `Helpers/CondIndepBridge.lean` built from `MeasurableSet.singleton`, `measurable_to_countable`, `Measure.map_apply`, Mathlib's `MeasureTheory.setIntegral_condExp`, and `Measurable.factorsThrough`, feeding the library's existing `eventCondExp` vocabulary; the escalation flag should be cleared, not re-raised. Closure: the S1 world text, notes and modules; `prop:capacity-identification` (root, with its modules); `def:structural-law-class`; `def:uniform-law-class`; `prop:tie-face-collapse`; `thm:sharp-exact-mass-threshold-interval`; `thm:full-law-endpoint-attainment`; `def:three-level-witness` and `prop:three-level-witness` (which DISCHARGE the instance at `𝒳 = Unit` rather than assume it); `thm:branch-free-pointwise-directional-limit`; `thm:uniform-deterministic-guard`; and the file plan. No disposition, no `defer_tier`, no member list and no `hyps` list moved on account of this decision, and every purely algebraic node (`Capacities`, transport, threshold cuts, flow, complexity, the three cited gates) was left untouched."
+    },
+    {
+      "id": "D-plan-14",
+      "decision": "The guard is ALPHA-INDEXED and finite-sample, and its Chebyshev step is instantiated at the CENTERED event indicator so that the sharp `1/4` variance constant is available (F1 round-4 revision, tracking the upstream replacement of `def:face-aware-inference-handle` and `thm:uniform-deterministic-guard`).",
+      "rationale": "Upstream deleted the symbol `g_n` and the asymptotic radius `512K|𝒳|(a_n+η_n)/(m★εZ²)`, replacing them with the finite event class `𝒠`, its deviation `δ_n`, the threshold `b_{n,α}=√(|𝒠|/(4nα))`, the envelope `A_{n,α}`, and `g_{n,α}=min{1,4A_{n,α}/m★}`; the theorem now asserts BOTH every-sample uniform containment at level `≥ 1-α` AND the retained fixed-α uniform endpoint-error convergence with rate `O(n^{-1/2}+η_n)`, and `a_n` survives only as the diagnostic face tolerance. Two consequences for the plan. (i) F2 must emit both conclusions: the upstream adjudication explicitly rejected a version that kept only the finite-sample bound, so delivering (I) alone would be an avoidable narrowing. (ii) The constant matters. D-plan-11 had accepted a factor-of-four loss because `IIDSample.sampleMean_sub_meas_ge_le` (CrossFitRate.lean:655) bounds by `∫f²dP = P(E)` rather than by the variance; with an α-indexed threshold that loss degrades coverage from `1-α` to `1-4α` and is no longer admissible. The repair needs no new substrate: instantiate the SAME lemma at the centered indicator `g_E = 1_E - Pobs.real E`, for which `∫g_E dPobs = 0`, `∫g_E² dPobs = P(E)(1-P(E)) ≤ 1/4`, and `sampleMean g_E n = sampleMean 1_E n - Pobs.real E` because the sample mean of a constant is that constant. Measurability and `MemLp … 2` are immediate on the finite discrete observed carrier (a consequence of D-plan-13). Closure: the S3 world text, `binds_symbols` and notes; `def:face-aware-inference-handle`; `thm:uniform-deterministic-guard`; the superseding pointer inside D-plan-11; the `oeq:uniform-face-multiplier` payload text; and the file plan's size projection. `thm:branch-free-pointwise-directional-limit` is NOT affected — it consumes no guard symbol. No disposition, no `defer_tier`, and no `hyps` list moved. Unaffected by the round-5 sampling-world resolution (D-plan-15): the centered-indicator Chebyshev step is applied at a single `n` and does not depend on how the surrounding sequence world is stated."
+    },
+    {
+      "id": "D-plan-15",
+      "decision": "The sampling world is an INFINITE i.i.d. sequence, stated as such; the contradictory finite-\\(n\\) claims are deleted (F1 round-5 revision, the flagged defect).",
+      "rationale": "The reviewer found S3 and `ass:iid-sampling` inconsistent: the plan bound `(S : Causalean.Stat.IIDSample Ω 𝒪 μ Pobs)` — whose `Z : ℕ → Ω → 𝒪` with `iIndepFun Z μ`, `∀ i, IdentDistrib (Z 0) (Z i) μ μ`, `μ.map (Z 0) = Pobs` (Sample.lean:44-50) is an ℕ-indexed sequence on ONE sampling space — and reused its all-index CLT and moment results, while sync-back notes on S3, `ass:iid-sampling`, `def:uniform-law-class`, and `lem:finite-multinomial-central-limit` simultaneously claimed a finite-\\(n\\) sampling model requiring 'no countably infinite IIDSample extension'. Of the two repairs the correction allows, the plan takes the FIRST: model the sample explicitly as an infinite i.i.d. sequence and remove the contrary claims. Reasons. (i) Fidelity: the core atom is stated at each \\(n\\), but its consumers are limits in \\(n\\) — support recovery w.p. →1, \\(\\to_P\\) consistency and a \\(\\sqrt n\\) limit in law (`thm:branch-free-pointwise-directional-limit`), `Tendsto … atTop (𝓝 0)` (conclusion (II) of `thm:uniform-deterministic-guard`), a convergence in law (`lem:finite-multinomial-central-limit`), and a \\(\\liminf_n\\) (`oeq:uniform-face-multiplier`) — all of which require the \\(n\\)-indexed statistics to be functionals of one sequence on one space. (ii) Cost of the alternative: a genuinely finite-\\(n\\) local structure would need a sound per-\\(n\\) bridge into `IIDSample` for EVERY reused asymptotic decl (`IIDSample.sampleMean` Sample.lean:68, `sampleMean_sub_meas_ge_le`/`sampleMean_sub_sq_lintegral_le` CrossFitRate.lean:655,532, `clt_normalizedSum_vec` CLT/GaussianLimit.lean), i.e. exactly the un-built-bridge pattern D-plan-11 withdrew; Mathlib offers `iIndepFun` over a general index type but Causalean's asymptotic layer is ℕ-indexed only. (iii) Honest cost of the choice: it is a genuinely stronger SAMPLING WORLD and is now recorded as one in the S3 world text (reader-facing) and in the atom's note; it restricts only the ambient \\((\\Omega,\\mu)\\) the results are stated over, not the observed-data laws covered, since an i.i.d. sequence with any marginal exists on the finite discrete carrier. (iv) Nothing is narrowed: conclusion (I) of `thm:uniform-deterministic-guard` remains an every-\\(n\\), no-filter finite-sample containment bound proved at a single \\(n\\). Closure applied: the S3 world text and notes (sync-back note deleted); `ass:iid-sampling` (sync-back note deleted, note rewritten); `def:uniform-law-class` (sync-back note deleted, note updated — the class's \\(n\\) parameter indexes the uniform survivor bound and \\(\\eta_n\\), never a truncation of the sampling member); `lem:finite-multinomial-central-limit` (sync-back note corrected, antecedent recorded as the sequence atom); `def:plugin-endpoint-estimator`; `thm:branch-free-pointwise-directional-limit`; `thm:uniform-deterministic-guard`; and `oeq:uniform-face-multiplier` (payload text). No disposition, no `reuse`, no `defer_tier`, no member list, and no `hyps` list moved; every non-sampling node was left untouched."
+    },
+    {
+      "id": "D-plan-16",
+      "decision": "The screening sequence \\(\\eta_n\\) is positive with \\(\\eta_n\\to0\\) and \\(\\sqrt n\\eta_n\\to\\infty\\) and is NOT monotone: every `Antitone η` hypothesis and the `Antitone ηL` conclusion conjunct are deleted (F1 round-6 revision, tracking the upstream `fix-source` repair).",
+      "rationale": "F3 halted `thm:uniform-deterministic-guard` with `sorry -- BLOCKER: statement-wrong (the stated hypotheses on L do not imply Antitone ηL)` (TUniformDeterministicGuard.lean:111) and the escalation was routed `fix-source`. The counterexample stands: \\(L_n=(n+1)^{1/4}\\) times 2 on even \\(n\\) and 1 on odd \\(n\\) is positive, tends to infinity, and is \\(o(\\sqrt n)\\), yet \\(\\eta_n=n^{-1/2}L_n\\) increases infinitely often, so `Antitone ηL` is false, not merely unproved. Upstream repaired the source rather than the proof, and the frozen core now grants \\(\\eta_n\\) only positivity, \\(\\eta_n\\to0\\), and \\(\\sqrt n\\eta_n\\to\\infty\\), saying in three separate places that no monotonicity in \\(n\\) is assumed or used. The plan's defect was in the S3 world text, which wrote \\(\\eta_n\\downarrow0\\) and thereby licensed F2 to add an `Antitone η` binder to both asymptotic theorems and an `Antitone ηL` conjunct to the guard's \\(L_n\\) corollary. Repair by DELETION, not by strengthening a premise: adding `Antitone L` would make the delivered corollary narrower than what upstream now states, and no delivered conclusion needs monotonicity — both theorems consume the screening level only through `atTop`-eventual facts (\\(\\eta_n\\) eventually below the positive constant \\(\\rho/2\\), and \\(n^{-1/2}=o(\\eta_n)\\)), while the finite-sample containment bound is a pointwise-at-`n` estimate. Deleting a hypothesis strictly widens both theorems, so nothing is narrowed. Closure applied: the S3 world text and notes (\\(\\eta_n\\downarrow0\\) corrected, encoding directive added); `thm:uniform-deterministic-guard` (stale `Antitone etaL` sync-back superseded, statement of record restated with the corollary's four surviving clauses and their one-line proofs); and `thm:branch-free-pointwise-directional-limit` (the same binder deleted, with the core's own 'no monotonicity … is used' sentence recorded). Not touched, because they neither carry nor imply a monotonicity side condition: `def:plugin-endpoint-estimator` and `def:face-aware-inference-handle` take `η` as a plain parameter and require only positivity where the guard radius is formed; `oeq:uniform-face-multiplier`'s payload records the screening threshold \\(\\eta_n\\) without any monotonicity clause, matching the core's OEQ text verbatim; and every purely algebraic or PO-side node is unaffected. No disposition, `reuse`, `defer_tier`, `gate`, member list, or `hyps` list moved, and no `ass:` node was added or removed — monotonicity was never atomized as an assumption in the core."
+    }
+  ]
+}

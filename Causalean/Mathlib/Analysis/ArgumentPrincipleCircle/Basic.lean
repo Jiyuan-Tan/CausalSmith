@@ -27,20 +27,26 @@ open scoped Topology
 
 namespace Causalean.Mathlib.Analysis.ArgumentPrincipleCircle
 
-/-- This quantity is the winding count obtained by integrating the logarithmic derivative of a
+/-- For [a complex-valued function](hyp:f), [a complex center](hyp:c), and [a real radius](hyp:R), [the normalized logarithmic-derivative circle integral](goal) is the integral of the function's logarithmic derivative around the positively oriented circle with that center and radius, divided by $2\pi i$.
+
+This quantity is the winding count obtained by integrating the logarithmic derivative of a
 complex-valued function around a positively oriented circle and scaling so that one enclosed
 simple zero contributes one. -/
 def normalizedLogDerivCircleIntegral (f : ℂ → ℂ) (c : ℂ) (R : ℝ) : ℂ :=
   (2 * (Real.pi : ℂ) * Complex.I)⁻¹ * circleIntegral (logDeriv f) c R
 
 open Classical in
-/-- This count adds the analytic multiplicity of every zero strictly inside a given open disk;
+/-- For [a complex-valued function](hyp:f), [a complex center](hyp:c), and [a real radius](hyp:R), [the zero-multiplicity count](goal) is the sum of the analytic multiplicities of all zeros of the function lying strictly inside the open disk with that center and radius, with the standard totalized finite sum used when the support is not finite.
+
+This count adds the analytic multiplicity of every zero strictly inside a given open disk;
 outside finite-support settings it uses the standard totalized finite sum. -/
 def zeroMultiplicityCount (f : ℂ → ℂ) (c : ℂ) (R : ℝ) : ℕ :=
   ∑ᶠ z : ℂ, if z ∈ ball c R then analyticOrderNatAt f z else 0
 
 open Classical in
-/-- This set comprises exactly the zeros of a complex-valued function that lie strictly inside a
+/-- For [a complex-valued function](hyp:f), [a complex center](hyp:c), and [a real radius](hyp:R), [the interior-zero set](goal) consists exactly of the complex numbers that are zeros of the function and lie strictly inside the open disk with that center and radius.
+
+This set comprises exactly the zeros of a complex-valued function that lie strictly inside a
 given open disk. -/
 def interiorZeros (f : ℂ → ℂ) (c : ℂ) (R : ℝ) : Set ℂ :=
   {z | z ∈ ball c R ∧ f z = 0}

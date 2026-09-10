@@ -228,8 +228,7 @@ private lemma wordEquiv_fst {n : ℕ} (w : Fin n → ι) (k : Fin n) :
   rw [hu] at hp
   exact hp.symm
 
-/-- Regroup an `n`-tuple of points according to the word `w`, which assigns each position a
-cell index, into one tuple per cell. -/
+/-- Given [an assignment of each of $n$ positions to a cell index](hyp:w) and [an $n$-tuple of points](hyp:z), the [cell-wise regrouping](goal) assigns to each cell the tuple of points at positions assigned to that cell, ordered by their original positions. -/
 noncomputable def gatherWord {Y : Type*} [MeasurableSpace Y]
     {n : ℕ} (w : Fin n → ι) (z : Fin n → Y) :
     ∀ j, Fin (wordHistogram w j) → Y :=
@@ -319,8 +318,7 @@ private lemma restrict_prod_cellSet
     rw [hcoe, Measure.prod_smul_left, smul_smul,
       ENNReal.mul_inv_cancel hj (measure_ne_top P _), one_smul]
 
-/-- Turn one point tuple per cell, of the sizes recorded by `c`, into one finite sample per
-cell. -/
+/-- Given [a nonnegative integer count for every cell index](hyp:c) and [for each cell index, a tuple of points having its specified count](hyp:z), the [fixed partition embedding](goal) assigns to every cell index the finite sample with that count and that tuple of points. -/
 noncomputable def fixedPartitionEmbed {Y : Type*} [MeasurableSpace Y]
     (c : ι → ℕ) (z : ∀ j, Fin (c j) → Y) :
     ι → FiniteSample Y :=

@@ -54,15 +54,14 @@ namespace MultipleInstrumentIV
 
 open Finset
 
-/-- A response type is the binary vector
-`g = (D(z^1), ..., D(z^K))`. -/
+/-- For [a finite instrument support of size $K$](hyp:K), a [response type](goal) is a binary treatment response specified for every instrument support point. -/
 abbrev ResponseType (K : ℕ) := Fin K → Bool
 
-/-- Coerce a binary treatment indicator to the real values `0` and `1`. -/
+/-- For [a binary treatment indicator](hyp:b), the [real-valued treatment indicator](goal) equals one for treatment and zero otherwise. -/
 def boolToReal (b : Bool) : ℝ :=
   if b then 1 else 0
 
-/-- Adjacent response increment `d_j - d_{j-1}` for a response type. -/
+/-- For [a finite instrument support of size $K$](hyp:K), [a response type](hyp:g), and [an adjacent threshold](hyp:j), the [adjacent treatment-response increment](goal) is the real-valued treatment response at the upper support point minus that at the preceding point. -/
 def typeStep {K : ℕ} (g : ResponseType K) (j : Adj K) : ℝ :=
   boolToReal (g (Adj.upper j)) - boolToReal (g (Adj.lower j))
 
@@ -86,28 +85,25 @@ namespace ResponseTypeStats
 
 variable {K : ℕ} (I : FiniteIndex K) (R : ResponseTypeStats K)
 
-/-- Unnormalized MTW response-type weight
-`λ_g = π_g Σ_j B_j (d_j - d_{j-1})`. -/
+/-- For [an ordered finite first-stage index](hyp:I), [finite response-type statistics](hyp:R), and [a response type](hyp:g), the [unnormalized MTW response-type weight](goal) is that type's mass times the sum of each tail coefficient times its adjacent treatment-response increment. -/
 noncomputable def unnormTypeWeight (g : ResponseType K) : ℝ :=
   R.mass g * ∑ j : Adj K, I.tailCoeff j * typeStep g j
 
-/-- First-stage denominator in response-type form, `Σ_g λ_g`. -/
+/-- For [an ordered finite first-stage index](hyp:I) and [finite response-type statistics](hyp:R), the [response-type weight denominator](goal) is the sum of the unnormalized weights over all response types. -/
 noncomputable def typeWeightDenom : ℝ :=
   ∑ g : ResponseType K, R.unnormTypeWeight I g
 
-/-- Normalized response-type weight `ω_g = λ_g / Σ_g' λ_g'`. -/
+/-- For [an ordered finite first-stage index](hyp:I), [finite response-type statistics](hyp:R), and [a response type](hyp:g), the [normalized response-type weight](goal) is that type's unnormalized weight divided by the sum of all unnormalized weights. -/
 noncomputable def normalizedTypeWeight (g : ResponseType K) : ℝ :=
   Causalean.Panel.Weighted.NormalizedWeights.normalizedWeight (R.unnormTypeWeight I) g
 
-/-- Signed response-type weighted estimand
-`Σ_g ω_g Δ_g`. -/
+/-- For [an ordered finite first-stage index](hyp:I) and [finite response-type statistics](hyp:R), the [response-type estimand](goal) is the sum of each within-type causal effect weighted by its normalized response-type weight. -/
 noncomputable def responseTypeEstimand : ℝ :=
   ∑ g : ResponseType K, R.normalizedTypeWeight I g * R.effect g
 
-/-- Finite-algebra ratio after the MTW response-type partition: numerator
-`Σ_g λ_g Δ_g`, denominator `Σ_g λ_g`.  The saturated finite-support
-population bridge below proves when the population 2SLS moment ratio reduces to
-this finite algebraic ratio. -/
+/-- For [an ordered finite first-stage index](hyp:I) and [finite response-type statistics](hyp:R), the [finite-algebra 2SLS estimand](goal) is the unnormalized response-type-weighted sum of causal effects divided by the sum of unnormalized response-type weights.
+
+The saturated finite-support population bridge below proves when the population 2SLS moment ratio reduces to this finite algebraic ratio. -/
 noncomputable def beta2SLSFiniteAlgebra : ℝ :=
   (∑ g : ResponseType K, R.unnormTypeWeight I g * R.effect g) /
     R.typeWeightDenom I
@@ -128,36 +124,29 @@ namespace PopulationBridge
 
 variable {K : ℕ} (I : FiniteIndex K) (P : PopulationBridge K)
 
-/-- Telescoped adjacent treatment response for support point `k`, i.e.
-`Σ_{j≤k} (d_j - d_{j-1})` in zero-based Lean indexing. -/
+/-- For [a finite instrument support of size $K$](hyp:K), [a response type](hyp:g), and [a support point](hyp:k), the [telescoped adjacent treatment response](goal) is the sum of that type's adjacent treatment-response increments from the first support point through that point. -/
 noncomputable def telescopedTypeStep (g : ResponseType K) (k : Fin K) : ℝ :=
   ∑ j : Adj K, if j.1.val ≤ k.val then typeStep g j else 0
 
-/-- Response-type expansion of the potential outcome at support point `k`
-after consistency, exogeneity, and exclusion have replaced conditioning on
-`Z = zᵏ` by response-type averages. -/
+/-- For [a finite instrument support of size $K$](hyp:K), [a saturated finite-support population bridge](hyp:P), and [a support point](hyp:k), the [response-type outcome expansion](goal) is the baseline outcome plus the response-type-mass-weighted sum of within-type effects times telescoped treatment responses. -/
 noncomputable def outcomeAtSupport (P : PopulationBridge K) (k : Fin K) : ℝ :=
   ∑ g : ResponseType K,
     P.stats.mass g *
       (P.baseOutcome g + telescopedTypeStep g k * P.stats.effect g)
 
-/-- Response-type expansion of the potential treatment at support point `k`,
-written in the baseline-subtracted telescoped form used by the centered-index
-argument. -/
+/-- For [a finite instrument support of size $K$](hyp:K), [a saturated finite-support population bridge](hyp:P), and [a support point](hyp:k), the [response-type treatment expansion](goal) is the response-type-mass-weighted sum of telescoped treatment responses at that point. -/
 noncomputable def treatmentAtSupport (P : PopulationBridge K) (k : Fin K) : ℝ :=
   ∑ g : ResponseType K, P.stats.mass g * telescopedTypeStep g k
 
-/-- Population reduced-form moment `E[h(Z)Y]` after the finite-support
-identification reductions. -/
+/-- For [a finite instrument support of size $K$](hyp:K), [a saturated finite-support population bridge](hyp:P), and [an ordered finite first-stage index](hyp:I), the [population reduced-form moment](goal) is the support-mass-weighted sum of centered first-stage indices times response-type outcome expansions. -/
 noncomputable def reducedFormMoment (P : PopulationBridge K) (I : FiniteIndex K) : ℝ :=
   ∑ k : Fin K, I.rho k * I.centeredIndex k * P.outcomeAtSupport k
 
-/-- Population first-stage moment `E[h(Z)D]` after the same finite-support
-identification reductions. -/
+/-- For [a finite instrument support of size $K$](hyp:K), [a saturated finite-support population bridge](hyp:P), and [an ordered finite first-stage index](hyp:I), the [population first-stage moment](goal) is the support-mass-weighted sum of centered first-stage indices times response-type treatment expansions. -/
 noncomputable def firstStageMoment (P : PopulationBridge K) (I : FiniteIndex K) : ℝ :=
   ∑ k : Fin K, I.rho k * I.centeredIndex k * P.treatmentAtSupport k
 
-/-- Population multiple-IV 2SLS ratio in the saturated finite-support bridge. -/
+/-- For [a finite instrument support of size $K$](hyp:K), [a saturated finite-support population bridge](hyp:P), and [an ordered finite first-stage index](hyp:I), the [population multiple-IV 2SLS ratio](goal) is its reduced-form moment divided by its first-stage moment. -/
 noncomputable def beta2SLSPopulationBridge (P : PopulationBridge K) (I : FiniteIndex K) : ℝ :=
   P.reducedFormMoment I / P.firstStageMoment I
 
@@ -296,8 +285,7 @@ theorem beta2SLSPopulationBridge_eq_beta2SLSFiniteAlgebra :
 
 end PopulationBridge
 
-/-- MTW sign alignment: every positive-mass response type has a nonnegative
-tail-weighted step contrast. -/
+/-- For [an ordered finite first-stage index](hyp:I) and [finite response-type statistics](hyp:R), [sign alignment](goal) means that every response type with strictly positive mass has a nonnegative tail-coefficient-weighted sum of adjacent treatment-response increments. -/
 def SignAligned : Prop :=
   ∀ g : ResponseType K, 0 < R.mass g →
     0 ≤ ∑ j : Adj K, I.tailCoeff j * typeStep g j

@@ -55,7 +55,9 @@ open MeasureTheory Causalean.PO
 variable {Cohort Time Covar : Type*}
   [Fintype Cohort] [Fintype Time] [Fintype Covar]
 
-/-- Builds a finite staggered-DID cell system from a population model.
+/-- For [finite cohort, time-period, and covariate sets](hyp:Cohort,Time,Covar), [a measurable sample space](hyp:Ω) with [a measure](hyp:μ), [cohort-time-covariate cell events](hyp:cellEvent), [untreated, cohort-specific, and observed population outcome functions](hyp:Y0pop,Ygpop,Yobspop), [treated and untreated cell indicators](hyp:treatedCell,untreatedCell), [cohort shares](hyp:cohortShare), and [within-cohort covariate weights](hyp:covarWeight), if [every cell event is measurable](hyp:hmeas), [every cell has strictly positive measure](hyp:hcell_pos), [each of the three outcome functions is integrable on every cell](hyp:hY0_int,hYg_int,hYobs_int), [cohort shares are strictly positive on treated cells](hyp:cohortShare_pos_on_treated), [covariate weights are nonnegative and sum to one within every cohort](hyp:covarWeight_nonneg,covarWeight_sum_one), and [the observed outcome agrees pointwise with the cohort-specific outcome on treated cells and with the untreated outcome on untreated cells](hyp:hcons_tr,hcons_ut), the [finite staggered-DID cell system](goal) uses the supplied shares, weights, and indicators and defines each outcome mean as its population event-conditional mean.
+
+Builds a finite staggered-DID cell system from a population model.
 
 The probability model has a sample space `Ω` with cell
 events `cellEvent g t c` and population potential / factual outcomes
@@ -116,7 +118,9 @@ noncomputable def StaggeredATTCells.ofMeasure
     have _ := hYobs_int g t c
     eventCondExp_congr_on μ (hmeas g t c) (hcons_ut hut c)
 
-/-- Probability-measure specialization of `StaggeredATTCells.ofMeasure`. -/
+/-- For [finite cohort, time-period, and covariate sets](hyp:Cohort,Time,Covar), [a measurable sample space](hyp:Ω) with [a probability measure](hyp:μ), [cohort-time-covariate cell events](hyp:cellEvent), [untreated, cohort-specific, and observed population outcome functions](hyp:Y0pop,Ygpop,Yobspop), [treated and untreated cell indicators](hyp:treatedCell,untreatedCell), [cohort shares](hyp:cohortShare), and [within-cohort covariate weights](hyp:covarWeight), if [every cell event is measurable](hyp:hmeas), [every cell has strictly positive probability](hyp:hcell_pos), [each outcome function is integrable on every cell](hyp:hY0_int,hYg_int,hYobs_int), [cohort shares are strictly positive on treated cells](hyp:cohortShare_pos_on_treated), [covariate weights are nonnegative and sum to one within every cohort](hyp:covarWeight_nonneg,covarWeight_sum_one), and [pointwise consistency holds on treated and untreated cells](hyp:hcons_tr,hcons_ut), the [finite staggered-DID cell system](goal) is the system constructed from the same data by the measure-based constructor.
+
+Probability-measure specialization of `StaggeredATTCells.ofMeasure`. -/
 noncomputable def StaggeredATTCells.ofPopulation
     {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω) [IsProbabilityMeasure μ]
     (cellEvent : Cohort → Time → Covar → Set Ω)

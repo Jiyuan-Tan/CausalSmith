@@ -1,0 +1,30 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+import CausalSmith.Experimentation.EXP_MultigroupStudentizedSrsbJointInference_Research.Basic
+import CausalSmith.Experimentation.EXP_MultigroupStudentizedSrsbJointInference_Research.Helpers
+import CausalSmith.Experimentation.EXP_MultigroupStudentizedSrsbJointInference_Research.Helpers.AdaptiveWitness
+import CausalSmith.Experimentation.EXP_MultigroupStudentizedSrsbJointInference_Research.Helpers.BlockMoments
+import CausalSmith.Experimentation.EXP_MultigroupStudentizedSrsbJointInference_Research.Helpers.BlockScore
+import CausalSmith.Experimentation.EXP_MultigroupStudentizedSrsbJointInference_Research.Helpers.CitedGates
+import CausalSmith.Experimentation.EXP_MultigroupStudentizedSrsbJointInference_Research.Helpers.PairProbability
+import CausalSmith.Experimentation.EXP_MultigroupStudentizedSrsbJointInference_Research.Helpers.PerfectMatching
+import CausalSmith.Experimentation.EXP_MultigroupStudentizedSrsbJointInference_Research.Helpers.Studentizer
+import CausalSmith.Experimentation.EXP_MultigroupStudentizedSrsbJointInference_Research.TAdaptiveFullRankWitness
+import CausalSmith.Experimentation.EXP_MultigroupStudentizedSrsbJointInference_Research.TCompleteRandomizationReduction
+import CausalSmith.Experimentation.EXP_MultigroupStudentizedSrsbJointInference_Research.TExactUnbiasedness
+import CausalSmith.Experimentation.EXP_MultigroupStudentizedSrsbJointInference_Research.TJointDesignClt
+import CausalSmith.Experimentation.EXP_MultigroupStudentizedSrsbJointInference_Research.TProjectionCovariance
+import CausalSmith.Experimentation.EXP_MultigroupStudentizedSrsbJointInference_Research.TStudentizer
+import CausalSmith.Experimentation.EXP_MultigroupStudentizedSrsbJointInference_Research.TWaldCoverage
+import CausalSmith.Experimentation.EXP_MultigroupStudentizedSrsbJointInference_Research.TWeightedGaussianTransport
+
+/-! # Run barrel (auto-generated)
+
+Aggregates every module of this causalsmith run so the whole run is ONE buildable target
+(`lake build <this module>`). Research modules are not reachable from the top-level
+`CausalSmith.lean` barrel, so the default lake target skips them and reports green on stale
+oleans. Rewritten from the run's module set on every F-stage entry — do not hand-edit. -/

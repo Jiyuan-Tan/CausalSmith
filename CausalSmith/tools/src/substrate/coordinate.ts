@@ -232,6 +232,34 @@ function assertLibraryOnlyLeanContent(content: string, target: string): void {
   }
 }
 
+/** Every Causalean import in a newly-created file must already exist or name
+ * another module created by the same manifest.  Without this preflight, a
+ * coordinator can accidentally shorten sibling imports after choosing a deep
+ * placement (for example `Causalean.Stat.Basic` instead of
+ * `Causalean.Stat.CLT.MartingaleArray.Basic`).  The mistake otherwise burns a
+ * full build/index/embedding attempt before Lean reports the missing module.
+ */
+async function assertCreatedFileImportsResolve(
+  content: string,
+  target: string,
+  createdModules: ReadonlySet<string>,
+  cRoot: string,
+  d: CoordinateApplyDeps,
+): Promise<void> {
+  const code = leanCodeOnly(content);
+  for (const match of code.matchAll(/^\s*import\s+(Causalean(?:\.[A-Za-z0-9_']+)+)\s*$/gm)) {
+    const imported = match[1];
+    if (createdModules.has(imported)) continue;
+    const importedPath = path.join(cRoot, ...imported.split(".")) + ".lean";
+    if (await d.exists(importedPath)) continue;
+
+    const leaf = imported.slice(imported.lastIndexOf(".") + 1);
+    const candidates = [...createdModules].filter((m) => m.endsWith(`.${leaf}`));
+    const hint = candidates.length === 1 ? `; did you mean ${candidates[0]}?` : "";
+    throw new Error(`unresolved Causalean import in ${target}: ${imported}${hint}`);
+  }
+}
+
 function isCausaleanLeanPath(target: string): boolean {
   const parts = target.replace(/\\/g, "/").split("/");
   return parts[0] === "Causalean" && parts.length >= 3 && parts.at(-1)?.endsWith(".lean") === true;
@@ -347,6 +375,12 @@ export async function applyManifest(
   const logs: string[] = [];
   // abs path → original content (null = file did not exist, so rollback deletes).
   const snapshots = new Map<string, string | null>();
+  // Record surfaces are full-file writes shared by every promotion. The
+  // promotion mutex protects cooperating study runs, but an older/manual
+  // process can still overwrite one while the long library-index gate runs.
+  // Keep the exact staged bytes and fail at the first gate boundary where they
+  // differ, instead of later misreporting the symptom as missing curation.
+  const expectedRecordWrites = new Map<string, string>();
   const snap = async (abs: string) => {
     if (!snapshots.has(abs)) snapshots.set(abs, (await d.exists(abs)) ? await d.readFile(abs) : null);
   };
@@ -356,6 +390,12 @@ export async function applyManifest(
       else await d.writeFile(abs, orig);
     }
   };
+  const manifestNewModules = new Set(
+    manifest.ops
+      .filter((op): op is Extract<CoordinationManifest["ops"][number], { kind: "create_file" }> =>
+        op.kind === "create_file" && isLeanWriteTarget(op.target) && op.newModule != null)
+      .map((op) => op.newModule as string),
+  );
   const newModules: string[] = [];
   try {
     await snap(rootPath);
@@ -366,7 +406,10 @@ export async function applyManifest(
         // The op body lives in a staged file; read it (never inline in the JSON).
         const content = await d.readFile(resolveInside(stagingDir, op.from));
         await assertCreatePlacement(cRoot, op.target, op.newModule, d);
-        if (isLeanWriteTarget(op.target)) assertLibraryOnlyLeanContent(content, op.target);
+        if (isLeanWriteTarget(op.target)) {
+          assertLibraryOnlyLeanContent(content, op.target);
+          await assertCreatedFileImportsResolve(content, op.target, manifestNewModules, cRoot, d);
+        }
         if (await d.exists(abs)) {
           // Recovery after an interrupted verification pass: the promotion may
           // already have written this new file even though study state did not
@@ -397,6 +440,7 @@ export async function applyManifest(
         const content = await d.readFile(resolveInside(stagingDir, op.from));
         await snap(abs);
         await d.writeFile(abs, content);
+        expectedRecordWrites.set(abs, content);
       }
     }
     // Root-wire every new module into Causalean.lean.
@@ -420,6 +464,14 @@ export async function applyManifest(
       { cmd: "npm run doc:check", cwd: toolsDir },
     ];
     for (const s of steps) {
+      for (const [record, expected] of expectedRecordWrites) {
+        const actual = await d.readFile(record);
+        if (actual !== expected) {
+          throw new Error(
+            `promoted record changed before verify step '${s.cmd}': ${record}`,
+          );
+        }
+      }
       const r = await d.run(s.cmd, s.cwd);
       logs.push(`$ (${s.cwd}) ${s.cmd}\n${r.log}`);
       if (r.timedOut) {

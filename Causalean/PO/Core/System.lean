@@ -58,7 +58,9 @@ attribute [fun_prop] POSystem.measurable_eval
 
 variable (P : POSystem)
 
-/-- A coordinate potential outcome maps each unit to the value a selected
+/-- For [a potential-outcome system](hyp:P), [an intervention regime](hyp:r), and [a variable](hyp:v), the [coordinate potential outcome](goal) assigns to each unit the value that variable would take under that intervention.
+
+A coordinate potential outcome maps each unit to the value a selected
 variable would take under a selected intervention regime.
 
 Implements the per-coordinate part of def:po-operator. -/
@@ -85,7 +87,9 @@ lemma measurable_component (r : Regime P.V P.X) (v : P.V) :
     Measurable (P.component r v) :=
   (measurable_pi_apply v).comp (P.measurable_eval r)
 
-/-- A joint potential outcome maps each unit to the vector of values a selected
+/-- For [a potential-outcome system](hyp:P), [an intervention regime](hyp:r), and [a finite set of variables](hyp:Y), the [joint potential outcome](goal) assigns to each unit the vector of values that all variables in the set would take under that intervention.
+
+A joint potential outcome maps each unit to the vector of values a selected
 finite set of variables would take under a selected intervention regime.
 
 Implements the subset-valued variable in def:po-operator. -/
@@ -115,7 +119,9 @@ lemma measurable_poVariable (r : Regime P.V P.X) (Y : Finset P.V) :
   intro v
   exact (measurable_pi_apply v.val).comp (P.measurable_eval r)
 
-/-- A potential-outcome law is the distribution of a selected finite set of
+/-- For [a potential-outcome system](hyp:P), [an intervention regime](hyp:r), and [a finite set of variables](hyp:Y), the [potential-outcome law](goal) is the distribution of those variables' joint potential outcome under that intervention, induced by the system's probability measure.
+
+A potential-outcome law is the distribution of a selected finite set of
 variables under a selected intervention regime.
 
 Implements def:po-operator. -/
@@ -135,7 +141,11 @@ lemma poOperator_eq (r : Regime P.V P.X) (Y : Finset P.V) :
     P.poOperator r Y = (P.μ).map (P.poVariable r Y) :=
   rfl
 
-/-- The potential-outcome law of a finite set of variables under a regime is a
+/-- For [a potential-outcomes system](hyp:P), [an intervention regime](hyp:r),
+and [a finite set of variables](hyp:Y), [the distribution of those variables'
+joint potential outcome under that regime](goal) is a probability measure.
+
+The potential-outcome law of a finite set of variables under a regime is a
 probability measure. -/
 instance (r : Regime P.V P.X) (Y : Finset P.V) :
     IsProbabilityMeasure (P.poOperator r Y) := by

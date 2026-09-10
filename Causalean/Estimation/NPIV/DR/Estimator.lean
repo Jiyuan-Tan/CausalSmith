@@ -44,25 +44,24 @@ instances so the rest of the `DR` namespace can use plain (non-`@`)
 syntax for `Measure S.𝒲`, `Integrable`, `IIDSample`, `OneShotSplit`,
 `IsAsymLinear`, and `IsProbabilityMeasure`. -/
 
-/-- The observation space carries the measurable space stored in the inverse
-problem system. -/
+/-- For a measurable sample space with a measure and an inverse-problem system, the measurable structure on the observation space is the measurable structure specified by that system. -/
 scoped instance instMeasurableSpace_𝒲
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
     (S : InverseProblemSystem Ω μ) : MeasurableSpace S.𝒲 := S.inst𝒲
 
-/-- The covariate space carries the measurable space stored in the inverse
-problem system. -/
+/-- For a measurable sample space with a measure and an inverse-problem system, the measurable structure on the covariate space is the measurable structure specified by that system. -/
 scoped instance instMeasurableSpace_𝒳
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
     (S : InverseProblemSystem Ω μ) : MeasurableSpace S.𝒳 := S.inst𝒳
 
-/-- The instrument space carries the measurable space stored in the inverse
-problem system. -/
+/-- For a measurable sample space with a measure and an inverse-problem system, the measurable structure on the instrument space is the measurable structure specified by that system. -/
 scoped instance instMeasurableSpace_𝒵
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
     (S : InverseProblemSystem Ω μ) : MeasurableSpace S.𝒵 := S.inst𝒵
 
-/-- One-shot **TRAE doubly robust estimator** (`def:est-trae-dr-estimator`):
+/-- For [a measurable sample space](hyp:Ω) with [a measure](hyp:μ), [an inverse-problem system](hyp:S), [a probability law on its observation space](hyp:P_W), [an independent and identically distributed sample under the two measures](hyp:sample), [a one-shot split of that sample](hyp:split), [a sequence of data-dependent primal nuisance estimators](hyp:h_hat), [a sequence of data-dependent dual nuisance estimators](hyp:q_hat), [a sample size](hyp:n), and [a realization of the underlying sample space](hyp:ω), [the one-shot TRAE doubly robust estimator](goal) is the average over the split's evaluation fold of the system's doubly robust pseudo-outcome evaluated using the two nuisance estimators at that sample size and realization.
+
+One-shot **TRAE doubly robust estimator** (`def:est-trae-dr-estimator`):
 
     θ̂ⁿ_TRAE-DR := (1/|B(n)|) Σ_{i ∈ B(n)} φ_{ĥ_n, q̂_n}(W_i),
 

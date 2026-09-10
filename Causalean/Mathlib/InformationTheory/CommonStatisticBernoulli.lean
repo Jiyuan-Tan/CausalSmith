@@ -35,8 +35,7 @@ theorem one_add_mul_one_sub_mem_Icc {p : ℝ}
     linarith
   · nlinarith [sq_nonneg (p - 1 / 2)]
 
-/-- A measurable success-probability function determines the Markov kernel
-that returns the corresponding real-valued Bernoulli law at each input. -/
+/-- For [a measurable input space](hyp:S), [a real-valued function of the input](hyp:p), and [the hypothesis that this function is measurable](hyp:hp), the [common-statistic Bernoulli kernel](goal) assigns to every input the Bernoulli probability measure on the real line with success probability given by that function at the input. -/
 -- @node: commonStatisticBernoulliKernel
 noncomputable def commonStatisticBernoulliKernel
     {S : Type*} [MeasurableSpace S] (p : S → ℝ) (hp : Measurable p) :
@@ -152,14 +151,13 @@ lemma commonStatisticBernoulliOutcome_klDiv_le_of_localized_parameter
     hp0 hp1 hq0 hq1 hD hE hdiff
 
 
-/-- The success-weighted pushforward associated with a real statistic. -/
+/-- For [a measurable sample space](hyp:A), [a measure on that space](hyp:nu), [a real-valued success-weight function](hyp:p), and [a real-valued statistic](hyp:stat), the [success-weighted statistic law](goal) is the pushforward along the statistic of the base measure weighted by $\max\{p(x),0\}$. -/
 -- @node: statisticSuccessMeasure
 noncomputable def statisticSuccessMeasure {A : Type*} [MeasurableSpace A]
     (nu : Measure A) (p : A → ℝ) (stat : A → ℝ) : Measure ℝ :=
   Measure.map stat (nu.withDensity fun x => ENNReal.ofReal (p x))
 
-/-- A measurable version of the Bernoulli success probability conditional on
-the statistic. -/
+/-- For [a measurable sample space](hyp:A), [a measure on that space](hyp:nu), [a real-valued success-weight function](hyp:p), and [a real-valued statistic](hyp:stat), the [statistic-level success parameter](goal) is the Radon--Nikodym derivative of the success-weighted statistic law with respect to the statistic's pushforward law under the base measure, converted to a real number. -/
 -- @node: statisticSuccessParameter
 noncomputable def statisticSuccessParameter {A : Type*} [MeasurableSpace A]
     (nu : Measure A) (p : A → ℝ) (stat : A → ℝ) : ℝ → ℝ :=
@@ -310,7 +308,7 @@ lemma statisticSuccessParameter_mem_Icc_ae
   filter_upwards [hlo, hhi] with r hr0 hr1
   exact ⟨hr0, hr1⟩
 
-/-- Globally clip the conditional parameter to the middle half. -/
+/-- For [a measurable sample space](hyp:A), [a measure on that space](hyp:nu), [a real-valued success-weight function](hyp:p), and [a real-valued statistic](hyp:stat), the [clipped statistic-level success parameter](goal) is the statistic-level success parameter truncated below at $1/4$ and above at $3/4$. -/
 -- @node: clippedStatisticSuccessParameter
 noncomputable def clippedStatisticSuccessParameter
     {A : Type*} [MeasurableSpace A]

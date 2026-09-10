@@ -40,8 +40,8 @@ universe uN uΩ
 variable {N : Type uN} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type uΩ} [∀ n, MeasurableSpace (Ω n)]
 
-/-- A measure `μ` on the random values of `M` is a **global I-map** of a DAG `G` (on the
-same node set) when every d-separation in `G` is a conditional independence under `μ`.
+/-- For [a directed acyclic graph on the split nodes](hyp:G), [a structural causal model](hyp:M), and [a finite measure on that model's random-value space](hyp:μ), the [global I-map property](goal) means that, for every three finite sets of random nodes contained respectively in the model's random variables, d-separation of the first and second sets given the third in the graph implies their conditional independence under the measure.
+
 The required pairwise disjointness is already part of d-separation. -/
 def IsGlobalIMap (G : DAG (SWIGNode N)) (M : Causalean.SCM N Ω)
     [StandardBorelSpace M.RandomValues]
@@ -50,11 +50,9 @@ def IsGlobalIMap (G : DAG (SWIGNode N)) (M : Causalean.SCM N Ω)
     (hZ : Z ⊆ M.randomVars),
     G.dSep X Y Z → FullCondIndep M X Y Z hX hY hZ μ
 
-/-- A measure `μ` is **faithful** to a DAG `G` when every conditional independence of `μ`
-reflects a genuine d-separation of `G` (the converse of being an I-map): for
-pairwise-disjoint `X, Y, Z`, `X ⟂ Y | Z` under `μ` forces `G` to d-separate `X` and `Y`
-given `Z`. A measure that is both an I-map of and faithful to `G` has conditional
-independences exactly matching `G`'s d-separations. -/
+/-- For [a directed acyclic graph on the split nodes](hyp:G), [a structural causal model](hyp:M), and [a finite measure on that model's random-value space](hyp:μ), the [faithfulness property](goal) means that, for every three pairwise-disjoint finite sets of random nodes contained respectively in the model's random variables, their conditional independence under the measure implies that the graph d-separates the first and second sets given the third.
+
+A measure that is both an I-map of and faithful to a graph has conditional independences exactly matching that graph's d-separations. -/
 def IsFaithful (G : DAG (SWIGNode N)) (M : Causalean.SCM N Ω)
     [StandardBorelSpace M.RandomValues]
     (μ : MeasureTheory.Measure M.RandomValues) [MeasureTheory.IsFiniteMeasure μ] : Prop :=
@@ -63,10 +61,9 @@ def IsFaithful (G : DAG (SWIGNode N)) (M : Causalean.SCM N Ω)
     Disjoint X Y → Disjoint X Z → Disjoint Y Z →
     FullCondIndep M X Y Z hX hY hZ μ → G.dSep X Y Z
 
-/-- Two DAGs are **distributionally Markov equivalent** (over value spaces `Ω`) when they
-are global I-maps of exactly the same distributions over every structural causal model on
-the same node set. The value-space family `Ω` is an explicit parameter since it is not
-determined by the graphs. -/
+/-- For [a family of value spaces indexed by the base variables](hyp:Ω) and [two directed acyclic graphs on the same split-node set](hyp:G₁,G₂), [distributional Markov equivalence](goal) means that, for every structural causal model with those value spaces and every finite measure on its random-value space, the measure is a global I-map of the first graph if and only if it is a global I-map of the second.
+
+The value-space family is explicit because the graphs do not determine it. -/
 def DistMarkovEquiv (Ω : N → Type uΩ) [∀ n, MeasurableSpace (Ω n)]
     (G₁ G₂ : DAG (SWIGNode N)) : Prop :=
   ∀ (M : Causalean.SCM N Ω) [StandardBorelSpace M.RandomValues]

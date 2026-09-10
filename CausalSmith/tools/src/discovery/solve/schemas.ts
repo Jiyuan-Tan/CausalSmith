@@ -1,9 +1,8 @@
 // Solve-unit payload shapes: the interfaces a D0 solve unit may emit, and the zod
 // schemas that validate them at the file boundary.
 //
-// Split out of `stage0_solve.ts` (2181 lines) so the payload contract is readable on
-// its own. These are pure declarations — no I/O, no policy. The policy that decides
-// WHO may emit each of these lives in `ownership.ts`.
+// Pure declarations — no I/O, no policy. Which unit may emit what (its targets and the
+// paper-wide prose lease) is decided by the round planner in `vcs/round.ts`.
 
 import { z } from "zod";
 import {
@@ -16,11 +15,10 @@ import {
   SymbolSchema,
   type CoreStatement,
 } from "../core/schema.js";
-import type { RawCoreEdit } from "../stages/d0_apply.js";
 
 export interface ProposedStatementChange {
   id: string;
-  current: string;
+  current?: string;
   /** Revision stamp of the displayed statement view. Optional for legacy output. */
   based_on_revision?: string;
   proposed: string;
@@ -37,7 +35,7 @@ export interface ProposedStatementChange {
  *  to the proof's own objects is laundering). */
 export interface ProposedDefinitionChange {
   id: string;
-  current: string;
+  current?: string;
   /** Revision stamp of the displayed constructed-definition view. */
   based_on_revision?: string;
   proposed: string;
@@ -86,7 +84,8 @@ export interface ProposedAssumption {
 }
 
 export interface SolveUnitOutput {
-  /** `argues_proposed`: this proof argues the PROPOSED statement text emitted for the
+  /** `argues_proposed`: LEGACY (pre graph-store), accepted and ignored — a proof in the same
+   *  bundle as a claim change argues the proposed claim by construction. Old contract: the proof argues the PROPOSED statement text emitted for the
    *  same id in this round's bundle (not the current frozen text). Apply uses it to
    *  promote the proof in the same adjudication when the proposal lands verbatim. */
   proofs: Array<{ id: string; proof_tex: string; argues_proposed?: boolean }>;
@@ -123,8 +122,9 @@ export type ProseUpdates = z.infer<typeof ProseUpdatesSchema>;
 
 const ProposedStatementChangeSchema = z.object({
   id: z.string(),
-  current: z.string(),
-  based_on_revision: z.string().regex(/^rev:[a-f0-9]{64}$/).optional(),
+  /** Legacy echo of the claim being changed; ignored (the PR's base is the basis). */
+  current: z.string().optional(),
+  based_on_revision: z.string().optional(), // legacy echo, ignored: the PR base is the basis
   proposed: z.string(),
   reason: z.string(),
   direction: z.string(),
@@ -132,8 +132,9 @@ const ProposedStatementChangeSchema = z.object({
 
 const ProposedDefinitionChangeSchema = z.object({
   id: z.string(),
-  current: z.string(),
-  based_on_revision: z.string().regex(/^rev:[a-f0-9]{64}$/).optional(),
+  /** Legacy echo of the construction being changed; ignored. */
+  current: z.string().optional(),
+  based_on_revision: z.string().optional(), // legacy echo, ignored: the PR base is the basis
   proposed: z.string(),
   reason: z.string(),
   direction: z.string(),
@@ -193,12 +194,7 @@ export const ProposedCoreEditSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("statement-replace"), id: z.string().regex(/^(?:thm|lem|prop|conj|oeq):[a-z0-9-]+$/),
     proposed: StatementReplacementSchema, reason: z.string(), direction: z.literal("correct"),
-    /** Phase 2 (reference-by-revision-hash): the `revision` stamp of the node
-     *  view this edit was authored against, as shown in the dispatch context /
-     *  review packet. When present, the apply matches it against the revisions
-     *  of its legal views instead of running the byte-echo view-selection; an
-     *  unknown hash skips fail-safe. Absent on old artifacts → echo fallback. */
-    based_on_revision: z.string().regex(/^rev:[a-f0-9]{64}$/).optional(),
+    based_on_revision: z.string().optional(), // legacy echo, ignored // legacy echo, ignored: the PR base is the basis
   }),
   z.object({
     kind: z.literal("statement-delete"), id: z.string().regex(/^(?:thm|lem|prop|conj|oeq):[a-z0-9-]+$/),
@@ -212,7 +208,7 @@ export const ProposedCoreEditSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("definition-replace"), id: z.string().regex(/^def:[a-z0-9-]+$/),
     proposed: DefinitionSchema, reason: z.string(), direction: z.literal("correct"),
-    based_on_revision: z.string().regex(/^rev:[a-f0-9]{64}$/).optional(),
+    based_on_revision: z.string().optional(), // legacy echo, ignored // legacy echo, ignored: the PR base is the basis
   }),
   z.object({
     kind: z.literal("definition-delete"), id: z.string().regex(/^def:[a-z0-9-]+$/),
@@ -231,7 +227,8 @@ export const ProposedCoreEditSchema = z.discriminatedUnion("kind", [
   // claim into class membership) is laundering, because E[Y(t₀)] then stops being a
   // functional of the observed law.
   //
-  // `current` is a MANDATORY byte-for-byte echo of the estimand being replaced. This is
+  // `current` was a mandatory byte-for-byte echo before the graph store; it is optional and
+  // ignored now (the PR base is the basis). Historical rationale: this was
   // what keeps the field's anti-drift guarantee: the estimand is the anchor of what the
   // run committed to deliver, so an edit must prove it saw the text it is overwriting and
   // can never be applied blind to a core the author never read. Qualifying the causal
@@ -240,7 +237,7 @@ export const ProposedCoreEditSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("target-estimand-replace"),
     id: z.literal("metadata:target-estimand"),
-    current: z.string(),
+    current: z.string().optional(),
     proposed: z.string(),
     reason: z.string(), direction: z.literal("correct"),
   }),
@@ -254,7 +251,7 @@ export const ProposedCoreEditSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("estimand-functional-replace"),
     id: z.literal("metadata:estimand-functional"),
-    current: z.string(),
+    current: z.string().optional(),
     proposed: z.string(),
     reason: z.string(), direction: z.literal("correct"),
   }),
@@ -305,7 +302,7 @@ export const SolveUnitOutputSchema = z.strictObject({
     proof_tex: z.string().refine((proof) => proof.trim().length > 0, {
       message: "proof_tex must contain a substantive proof",
     }),
-    argues_proposed: z.boolean().optional(),
+    argues_proposed: z.boolean().optional(), // legacy, ignored
   })).default([]),
   resolved_oeqs: z.array(z.object({
     source_id: z.string().regex(/^oeq:[a-z0-9-]+$/),
@@ -321,54 +318,6 @@ export const SolveUnitOutputSchema = z.strictObject({
   proposed_core_edits: z.array(ProposedCoreEditSchema).default([]),
   open_obligations: z.array(OpenObligationSchema).default([]),
   prose_updates: ProseUpdatesSchema.optional(),
-}).superRefine((output, ctx) => {
-  for (const change of output.proposed_definition_changes) {
-    const paired = output.proposed_core_edits.filter(
-      (edit): edit is Extract<(typeof output.proposed_core_edits)[number], { kind: "definition-replace" }> =>
-        edit.kind === "definition-replace" && edit.id === change.id,
-    );
-    if (paired.length !== 1) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["proposed_definition_changes"],
-        message:
-          `${change.id} formula correction requires exactly one paired definition-replace ` +
-          `with complete post-image metadata; found ${paired.length}`,
-      });
-      continue;
-    }
-    if (paired[0].proposed.construction !== change.proposed || paired[0].proposed.free_symbols === undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["proposed_core_edits"],
-        message:
-          `${change.id} paired definition-replace must match the proposed formula and declare free_symbols`,
-      });
-    }
-  }
-
-  for (const change of output.proposed_statement_changes) {
-    const paired = output.proposed_core_edits.filter(
-      (edit): edit is Extract<(typeof output.proposed_core_edits)[number], { kind: "statement-replace" }> =>
-        edit.kind === "statement-replace" && edit.id === change.id,
-    );
-    if (paired.length !== 1) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["proposed_statement_changes"],
-        message:
-          `${change.id} claim correction requires exactly one paired statement-replace ` +
-          `whose metadata describes the post-change claim; found ${paired.length}`,
-      });
-      continue;
-    }
-    if (paired[0].proposed.statement !== change.proposed || paired[0].proposed.free_symbols === undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["proposed_core_edits"],
-        message:
-          `${change.id} paired statement-replace must match the proposed claim and declare free_symbols`,
-      });
-    }
-  }
 });
+
+export type RawCoreEdit = z.infer<typeof ProposedCoreEditSchema>;

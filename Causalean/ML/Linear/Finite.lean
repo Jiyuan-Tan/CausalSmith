@@ -23,11 +23,15 @@ open Matrix BigOperators
 
 variable {Obs Param : Type*} [Fintype Obs] [Fintype Param]
 
-/-- The linear prediction vector `X β` for a design matrix `X` and coefficients `β`. -/
+/-- For [a set of observations](hyp:Obs), [a finite coefficient index set](hyp:Param),
+[a design matrix](hyp:X), and [a coefficient vector](hyp:β), the [linear prediction](goal)
+assigns to each observation its design-row weighted sum of coefficients. -/
 def linearPredict (X : Matrix Obs Param ℝ) (β : Param → ℝ) : Obs → ℝ := X *ᵥ β
 
-/-- The ordinary-least-squares objective: the sum of squared residuals
-`∑ᵢ (yᵢ − (Xβ)ᵢ)²`. -/
+/-- For [a finite set of observations](hyp:Obs), [a finite coefficient index set](hyp:Param),
+[a design matrix](hyp:X), [an outcome vector](hyp:y), and [a coefficient vector](hyp:β), the
+[ordinary least-squares objective](goal) is the sum over observations of squared differences
+between the observed outcome and its linear prediction. -/
 noncomputable def olsObjective (X : Matrix Obs Param ℝ) (y : Obs → ℝ) (β : Param → ℝ) : ℝ :=
   ∑ i, (y i - (X *ᵥ β) i) ^ 2
 

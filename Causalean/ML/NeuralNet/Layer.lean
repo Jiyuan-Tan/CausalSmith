@@ -26,7 +26,7 @@ structure DenseLayer (m n : ℕ) where
   /-- The bias vector. -/
   b : Fin n → ℝ
 
-/-- The affine map computed by a dense layer. -/
+/-- For [an input dimension](hyp:m), [an output dimension](hyp:n), [a dense affine layer](hyp:L), and [an input vector](hyp:x), [the layer evaluation](goal) is the output vector whose $j$th coordinate is the weighted sum of the input coordinates plus the $j$th bias. -/
 def DenseLayer.eval {m n : ℕ} (L : DenseLayer m n) (x : Fin m → ℝ) : Fin n → ℝ :=
   fun j => (L.W *ᵥ x) j + L.b j
 
@@ -41,7 +41,7 @@ structure Activation where
   /-- Proof that `act` is `lip`-Lipschitz. -/
   isLipschitz : LipschitzWith lip act
 
-/-- Apply an activation coordinatewise to a vector. -/
+/-- For [a vector dimension](hyp:n), [an activation-function bundle](hyp:σ), and [an input vector](hyp:x), [the coordinatewise activation](goal) is the vector obtained by applying the bundle's scalar activation to each coordinate of the input. -/
 def Activation.applyVec {n : ℕ} (σ : Activation) (x : Fin n → ℝ) : Fin n → ℝ :=
   fun j => σ.act (x j)
 

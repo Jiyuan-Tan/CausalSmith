@@ -118,16 +118,22 @@ theorem E_popEst_pick (D₁ : FiniteDesign (StratAssign ι))
 
 /-! ### Effect estimators -/
 
-/-- The HT-effect estimator of the **indirect (spillover)** effect:
-`Ŷ(0;φ) − Ŷ(0;ψ)`, the control-treatment population estimators on the φ-groups minus on the
-ψ-groups. -/
+/-- For [a finite collection of groups](hyp:ι) with [their respective unit counts](hyp:n), [a
+potential-outcome schedule](hyp:Y), [the control-arm counts for the $\phi$ and $\psi$
+strategies](hyp:m0φ,m0ψ), [the corresponding stage-one normalizing counts](hyp:dφ,dψ), and [a
+realized two-stage assignment](hyp:sw), the [Horvitz--Thompson estimator of the indirect
+(spillover) effect](goal) is the control-outcome population estimator among $\phi$-assigned groups
+minus that among $\psi$-assigned groups. -/
 noncomputable def estIndirect (Y : ∀ i, Fin (n i) → WAssign n i → ℝ)
     (m0φ m0ψ : ι → ℝ) (dφ dψ : ℝ) (sw : StratAssign ι × ∀ i, WAssign n i) : ℝ :=
   popEst Y false false m0φ dφ sw - popEst Y false true m0ψ dψ sw
 
-/-- The HT-effect estimator of the **total** effect:
-`Ŷ(0;φ) − Ŷ(1;ψ)`, the control-treatment population estimator on the φ-groups minus the
-treatment population estimator on the ψ-groups. -/
+/-- For [a finite collection of groups](hyp:ι) with [their respective unit counts](hyp:n), [a
+potential-outcome schedule](hyp:Y), [the $\phi$-control and $\psi$-treatment arm counts](hyp:m0φ,m1ψ),
+[the corresponding stage-one normalizing counts](hyp:dφ,dψ), and [a realized two-stage
+assignment](hyp:sw), the [Horvitz--Thompson estimator of the total effect](goal) is the
+control-outcome population estimator among $\phi$-assigned groups minus the treatment-outcome
+population estimator among $\psi$-assigned groups. -/
 noncomputable def estTotal (Y : ∀ i, Fin (n i) → WAssign n i → ℝ)
     (m0φ m1ψ : ι → ℝ) (dφ dψ : ℝ) (sw : StratAssign ι × ∀ i, WAssign n i) : ℝ :=
   popEst Y false false m0φ dφ sw - popEst Y true true m1ψ dψ sw

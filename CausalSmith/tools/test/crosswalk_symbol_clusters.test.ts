@@ -6,7 +6,6 @@ import {
   parseRealizesTags,
   buildSymbolClusters,
   realizedNotationKey,
-  buildRealizedNotationMatcher,
   canonicalSymbolTagKey,
   discoverRealizedSymbols,
 } from "../src/formalization/crosswalk.js";
@@ -32,19 +31,6 @@ describe("realizedNotationKey", () => {
     expect(realizedNotationKey(String.raw`\mathcal R_4`)).toBe(realizedNotationKey("Rcal_4"));
   });
 
-  it("resolves exact Lean symbol families and rejects unrelated missing notation", () => {
-    const isRealized = buildRealizedNotationMatcher([
-      "Ecal(delta)",
-      "m_gt(delta)",
-      "Z",
-      "Rcal_4",
-    ]);
-    expect(isRealized(String.raw`\mathcal E`)).toBe(true);
-    expect(isRealized(String.raw`m_{gt}`)).toBe(true);
-    expect(isRealized("Z")).toBe(true);
-    expect(isRealized(String.raw`\mathcal R_4`)).toBe(true);
-    expect(isRealized("unformalized_target")).toBe(false);
-  });
 });
 
 describe("parseRealizesTags (@realizes docstring parser)", () => {
@@ -63,6 +49,15 @@ describe("parseRealizesTags (@realizes docstring parser)", () => {
 
   it("strips a trailing -/ glued to the list", () => {
     expect(parseRealizesTags("/-- x. @realizes A(A:Bool) -/")).toEqual([{ symbol: "A", hint: "A:Bool" }]);
+    // A tag written with math delimiters names the bare symbol: ids like `sym:\(Y(a)\)` broke
+    // every delimiter scan downstream.
+    expect(parseRealizesTags("/-- @realizes \\(P\\)(full-data law) -/")).toEqual([{ symbol: "P", hint: "full-data law" }]);
+    expect(parseRealizesTags("/-- @realizes $\\epsilon$(strictly positive) -/")).toEqual([{ symbol: "\\epsilon", hint: "strictly positive" }]);
+    // Hint-less delimited tags, and a symbol whose own parentheses would otherwise read as a hint.
+    expect(parseRealizesTags("/-- @realizes \\(P\\) -/")).toEqual([{ symbol: "P" }]);
+    expect(parseRealizesTags("/-- @realizes \\(Y(a)\\) -/")).toEqual([{ symbol: "Y(a)" }]);
+    expect(parseRealizesTags("/-- @realizes \\(Y(a)\\)(potential outcome); @realizes $d$ -/")).toEqual([{ symbol: "Y(a)", hint: "potential outcome" }, { symbol: "d" }]);
+    expect(parseRealizesTags("/-- @realizes \\(\\) -/")).toEqual([]);
   });
 
   it("parses EVERY `; @realizes`-separated tag on ONE line (regression: only the first used to survive)", () => {

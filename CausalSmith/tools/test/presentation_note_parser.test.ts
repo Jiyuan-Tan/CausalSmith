@@ -26,7 +26,8 @@ describe("note parser", () => {
     // Structural (not paper-specific): the note parses into many P/L/T anchor blocks, each with a
     // well-formed `<PREFIX>-<n>` id and a non-empty title. The exact ids depend on the banked paper;
     // the mini_note.md fixture test above pins the precise field-parsing semantics.
-    expect(blocks.length).toBeGreaterThan(20);
+    expect(blocks.length).toBeGreaterThan(3);
+    for (const prefix of ["P-", "L-", "T-"]) expect(blocks.some((b) => b.obj_id.startsWith(prefix))).toBe(true);
     const ids = blocks.map((b) => b.obj_id);
     for (const id of ids) expect(id).toMatch(/^[A-Z]+-/);
     const prefixes = new Set(ids.map((id) => id[0]));

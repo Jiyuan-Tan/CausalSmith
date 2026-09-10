@@ -261,9 +261,12 @@ left to a follow-up; here we expose the wrapper that lifts the deterministic
 guarantee to the high-probability statement once such a tail bound is supplied.
 -/
 
-/-- High-probability ℓ∞ tail bound for an `Ω`-indexed deviation field
-`dev : Ω → EuclideanSpace ℝ (Fin p)`: there is a measurable event `E ⊆ Ω`
-of `μ`-mass at least `1 - δ` on which `linftyDev hp (dev ω) ≤ ρ`.
+/-- Given [a measure on a sample space](hyp:μ), [a nonempty finite coordinate set](hyp:hp), [a
+sample-indexed vector-valued deviation field](hyp:dev), [a deviation threshold](hyp:ρ), and [a
+confidence tolerance](hyp:δ), the [high-probability sup-norm tail-bound condition](goal) holds
+exactly when there exists an event that is [measurable](step:1), has measure at least
+$1-\delta^+$, with subtraction truncated at zero, and on which the maximum absolute coordinate of the deviation field is at
+most the threshold.
 
 This is the gradient-deviation analogue of
 `Causalean.Estimation.OrthogonalLearning.LocalEmpProcessModulus`. Concrete

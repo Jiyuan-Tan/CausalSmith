@@ -10,19 +10,21 @@ import { statePath } from "./paths.js";
 import { createInitialState, loadState, saveState } from "./state.js";
 import { dryRunStageHandler, liveStageHandler, type StageHandler } from "./pipeline_stages.js";
 import { withRunHeartbeat } from "./shared/run_heartbeat.js";
-import { assembleCore } from "./discovery/core/assemble.js";
 import { readTypedCore } from "./discovery/core/core_io.js";
 import { coreJsonPath } from "./discovery/stages/d0_core.js";
 import { hasValidD05AcceptanceReceipt } from "./discovery/stages/d0_acceptance.js";
-import { protoCoreJsonPath } from "./discovery/stages/neg1_2_author.js";
-import {
-  loadWorkingState,
-  proposalRevision,
-  readEscalationLog,
-} from "./discovery/stages/d0_working.js";
+import { proposalRevision } from "./discovery/proposal_revision.js";
+import { directivesConsumed, pendingDirectives, readEscalationLog } from "./discovery/escalation_log.js";
 import type { PipelineContext, Stage, StateJson } from "./types.js";
 import { legacyCrossBoundaryRewindGuard } from "./discovery/stages/d0_cross_boundary_rewind.js";
-import { clearOrphanSolvePathLeases } from "./discovery/solve/dispatch.js";
+import { clearOrphanSolvePathLeases } from "./discovery/solve/unit_io.js";
+import { MAIN_REF } from "./discovery/vcs/store.js";
+import { ensureStore } from "./discovery/vcs/round.js";
+import { loadGraph } from "./discovery/vcs/graph.js";
+import { renderCore } from "./discovery/vcs/render.js";
+import { listPrs } from "./discovery/vcs/pr.js";
+import { stableJson } from "./shared/stable_json.js";
+import { ensurePreD0Intent } from "./discovery/pre_d0_boundary.js";
 
 export function nextStage(stage: Stage): Stage | null {
   const index = STAGE_ORDER.indexOf(stage);
@@ -34,16 +36,8 @@ export function nextStage(stage: Stage): Stage | null {
  * next stage that plain resume would otherwise choose. This guard prevents a
  * resume from D0/D0.5 from repeatedly reviewing stale core/prose while queued
  * corrections remain beyond the working cursor. */
-async function hasPendingD0Directive(ctx: PipelineContext): Promise<boolean> {
-  const [working, entries] = await Promise.all([
-    loadWorkingState(ctx),
-    readEscalationLog(ctx),
-  ]);
-  // Only an ACTIONABLE directive should pull a resume back to D0. A provenance-only
-  // entry (a paid verdict recorded so a resume does not re-buy it) carries no targets,
-  // so routing on it would re-enter D0 and force the whole paper open.
-  const unconsumed = entries.slice(working?.escalation_entries_consumed ?? 0);
-  return unconsumed.some((entry) => entry.provenance_only !== true);
+async function hasPendingD0Directive(ctx: PipelineContext, state: StateJson): Promise<boolean> {
+  return pendingDirectives(await readEscalationLog(ctx), directivesConsumed(state)).length > 0;
 }
 
 function isFStage(stage: Stage): boolean {
@@ -70,7 +64,7 @@ function canonicalJson(value: unknown): string {
  *
  * `--from-stage F1` used to override the stage cursor without proving that the
  * accepted D store belonged to the proposal revision named by state.json.  A
- * real run therefore entered F1 with state/proto at v8 while d0_working/core
+ * real run therefore entered F1 with state/proto at v8 while the working cursor/core (pre graph-store)
  * still described v7.  This check is deliberately read-only and runs before
  * resume-preflight state is saved.
  */
@@ -105,65 +99,44 @@ export async function assertFStageDStoreCoherence(
     pf.last_draft_status === "completed" && pf.last_draft_version === version &&
     acceptedReview && pf.final_verdict === "ACCEPT";
 
-  const working = await loadWorkingState(ctx);
-  if (!working) {
+  const store = await ensureStore(ctx, state);
+  const main = await store.readRef(MAIN_REF);
+  if (main === null) {
     throw new Error(
-      `refusing ${formatStageLabel(targetStage)} entry: no accepted d0_working store exists for ${stateRevision}; ` +
-        `re-enter D0/D0.5 first`,
-    );
-  }
-  if (working.proposal_revision !== stateRevision) {
-    throw new Error(
-      `refusing ${formatStageLabel(targetStage)} entry: split D revision ` +
-        `(state/proto=${stateRevision}, d0_working=${working.proposal_revision ?? "<none>"}); ` +
-        `rebase or re-run D0/D0.5 before formalization`,
+      `refusing ${formatStageLabel(targetStage)} entry: no D0 graph store exists for ${stateRevision}; re-enter D0/D0.5 first`,
     );
   }
 
   // A typed-D0.5 receipt is the direct authority. Keep the proposal-review
-  // predicate as a compatibility path for pre-receipt runs, but do not confuse
-  // D-0.5 with D0.5 for sanctioned transactional rebases.
+  // predicate as a compatibility path for pre-receipt runs.
   const acceptedD05Store = await hasValidD05AcceptanceReceipt(ctx, state);
   if (!acceptedProposalRevision && !acceptedD05Store) {
     throw new Error(
       `refusing ${formatStageLabel(targetStage)} entry: ${stateRevision} has neither a current accepted ` +
-        `D-0.5 proposal review nor an exact-byte typed D0.5 acceptance receipt; re-run D0/D0.5`,
+        `D-0.5 proposal review nor a typed D0.5 acceptance receipt for main ${main.slice(0, 12)}; re-run D0/D0.5`,
     );
   }
 
-  const proposals = working.proposals;
-  const proposalCount = proposals
-    ? proposals.statements.length + proposals.definitions.length + proposals.assumptions.length +
-      proposals.coreEdits.length + proposals.proofs.length
-    : 0;
-  if (proposalCount > 0 || (working.required_core_edit_mandates ?? []).length > 0) {
+  const open = await listPrs(store, "open");
+  if (open.length > 0) {
     throw new Error(
-      `refusing ${formatStageLabel(targetStage)} entry: accepted D store is not quiescent ` +
-        `(${proposalCount} unadjudicated proposal item(s), ` +
-        `${working.required_core_edit_mandates?.length ?? 0} outstanding mandate(s)); re-enter D0`,
+      `refusing ${formatStageLabel(targetStage)} entry: ${open.length} pull request(s) await a verdict ` +
+        `(${open.map((pr) => pr.id.slice(0, 12)).join(", ")}); merge or close them (d0_vc pr …) and re-enter D0`,
     );
   }
 
-  // Legacy cursors predate the pure-render store contract.  Their revision and
-  // review checks above still apply; format >=2 additionally promises exact
-  // proto+working -> core reproducibility and is rejected if that promise broke.
-  if ((working.store_format ?? 0) >= 2) {
-    const protoPath = protoCoreJsonPath(ctx);
-    const corePath = coreJsonPath(ctx);
-    if (!existsSync(protoPath) || !existsSync(corePath)) {
-      throw new Error(
-        `refusing ${formatStageLabel(targetStage)} entry: modern accepted D store is missing ` +
-          `${!existsSync(protoPath) ? "proto_core.json" : "core.json"}; re-enter D0/D0.5`,
-      );
-    }
-    const [proto, core] = await Promise.all([readTypedCore(protoPath), readTypedCore(corePath)]);
-    const rendered = assembleCore(proto, working);
-    if (canonicalJson(rendered) !== canonicalJson(core) && !acceptedD05Store) {
-      throw new Error(
-        `refusing ${formatStageLabel(targetStage)} entry: frozen proto + d0_working do not render ` +
-          `the committed core.json for ${stateRevision}; rebase or re-run D0/D0.5`,
-      );
-    }
+  // core.json is the F stages' input and the orchestrator's working copy: it must
+  // be exactly the rendering of main, not an uncommitted edit.
+  const corePath = coreJsonPath(ctx);
+  if (!existsSync(corePath)) {
+    throw new Error(`refusing ${formatStageLabel(targetStage)} entry: core.json is missing; run d0_vc render`);
+  }
+  const rendered = renderCore(await loadGraph(store, main));
+  if (stableJson(rendered) !== stableJson(await readTypedCore(corePath))) {
+    throw new Error(
+      `refusing ${formatStageLabel(targetStage)} entry: core.json differs from the rendering of main ${main.slice(0, 12)}; ` +
+        "commit it (d0_vc commit --note …) or discard it (d0_vc render), then re-run D0.5",
+    );
   }
 }
 
@@ -214,6 +187,14 @@ export async function initializeOrLoadState(ctx: PipelineContext): Promise<State
   }
 
   const state = createInitialState(ctx.qid);
+  if (ctx.proposeTopic) {
+    state.pre_d0_intent = {
+      cursor_version: 1,
+      topic: ctx.proposeTopic,
+      novelty_target: ctx.noveltyTarget ?? "field",
+      upgrade_from: ctx.upgradeFrom,
+    };
+  }
   await saveState(ctx.repoRoot, ctx.qid, ctx.specialization, state);
   await appendPipelineLog(ctx, {
     stage: "init",
@@ -259,6 +240,7 @@ async function runPipelineInner(
   }
 
   const state = await initializeOrLoadState(ctx);
+  const hasPreD0Intent = await ensurePreD0Intent(ctx, state);
 
   // Pre-fix F→D rewinds carry only `rewound_from_stage0`; that does not prove
   // whether the operator intended an incremental repair, additive extension,
@@ -276,7 +258,7 @@ async function runPipelineInner(
   const pendingD0DirectiveAtLoad =
     ctx.resume &&
     (state.stage_completed === "0" || state.stage_completed === "0.5") &&
-    await hasPendingD0Directive(ctx);
+    await hasPendingD0Directive(ctx, state);
   const preflightFStage = options.startStage && isFStage(options.startStage)
     ? options.startStage
     : !options.startStage && ctx.resume && !pendingD0DirectiveAtLoad
@@ -284,6 +266,13 @@ async function runPipelineInner(
       : null;
   if (preflightFStage && isFStage(preflightFStage)) {
     await assertFStageDStoreCoherence(ctx, state, preflightFStage);
+  }
+
+  // The invocation is now part of the state-machine boundary, not ephemeral
+  // CLI memory. Persist it (or its legacy migration) after read-only boundary
+  // checks but before any worker can be dispatched.
+  if (hasPreD0Intent) {
+    await saveState(ctx.repoRoot, ctx.qid, ctx.specialization, state);
   }
 
   // Persist `--auto` onto state so a run stays autonomous across resumes even if
@@ -320,23 +309,10 @@ async function runPipelineInner(
   // makes the handler immediately report "already complete" and feeds the
   // stale gaps into D-1.2. Invalidate the whole proposal-side derivative state
   // here so the fresh scout is followed by a genuinely cold D-1.2 draft.
-  let resetProposalForDNeg11 = false;
-  if (ctx.resume && options.startStage === "-1.1") {
-    const persistedProposal = state.proposed_from;
-    const topic = ctx.proposeTopic ?? persistedProposal?.topic;
-    if (topic) {
-      // A normal resume does not repeat `--propose <topic>`. Rehydrate the
-      // scout input (and upgrade lineage) before deleting the derivative
-      // proposal cache, otherwise explicit D-1.1 re-entry silently skips.
-      if (!ctx.proposeTopic) {
-        (ctx as { proposeTopic?: string }).proposeTopic = topic;
-      }
-      if (!ctx.upgradeFrom && persistedProposal?.upgrade_from) {
-        (ctx as { upgradeFrom?: PipelineContext["upgradeFrom"] }).upgradeFrom =
-          persistedProposal.upgrade_from;
-      }
-      resetProposalForDNeg11 = true;
-    }
+  // `ensurePreD0Intent` already rehydrated the scout input; the flag makes the
+  // D-1.1 handler run again and, on success, drop the stale proposal.
+  if (ctx.resume && options.startStage === "-1.1" && state.pre_d0_intent) {
+    state.pre_d0_intent.scout_refresh = true;
   }
 
   // Protect an authored-but-unreviewed proposal from accidental overwrite.
@@ -378,16 +354,6 @@ async function runPipelineInner(
   // lived in memory until that handler returned, the next resume resurrected
   // stale state and repeated already-authorized work.
   await saveState(ctx.repoRoot, ctx.qid, ctx.specialization, state);
-
-  // Invalidate the D-1.1 derivatives only after the durable preflight snapshot.
-  // If the scout process crashes, the old proposal/topic remains resumable on
-  // disk; once the handler returns, the normal post-stage save commits this
-  // invalidation together with the new scout result.
-  if (resetProposalForDNeg11) {
-    delete state.gaps;
-    delete state.proposed_from;
-    console.warn("[causalsmith] D-1.1 re-entry: cleared cached gaps and proposal state.");
-  }
 
   // An explicit `--from-stage` re-entry OVERRIDES the "already complete" short-circuit: the operator
   // is deliberately re-running a stage on a finished run (e.g. to re-review after a reviewer fix), so
@@ -464,7 +430,7 @@ async function runPipelineInner(
     // Re-check at every transition, not just process startup. A D-stage action
     // can append a directive while this process is alive; D0.5 must never review
     // a core whose durable repair request is still beyond the working cursor.
-    if (stage === "0.5" && await hasPendingD0Directive(ctx)) {
+    if (stage === "0.5" && await hasPendingD0Directive(ctx, state)) {
       stage = "0";
       console.warn("[causalsmith] unconsumed D0 escalation detected before D0.5; re-entering D0 fail-closed.");
     }

@@ -28,16 +28,19 @@ namespace PanelPOSystem
 
 variable (P : PanelPOSystem)
 
-/-- Pointwise consistency at a given observed cell is the equality between the
-factual observed outcome and the potential outcome indexed by the realized exposure. -/
+/-- For [a panel potential-outcomes system](hyp:P), [an observed unit-period cell](hyp:r,hr),
+and [a sample point](hyp:ω), [pointwise consistency is the assertion that the factual observed
+outcome equals the potential outcome at that cell under the exposure realized at that sample
+point](goal). -/
 def observedY_eq_potentialOutcome (r : P.I × P.T) (hr : r ∈ P.cells.observed)
     (ω : P.Ω) : Prop :=
   P.observedY r hr ω = P.Y r hr (P.observedExposure r hr ω) ω
 
 end PanelPOSystem
 
-/-- Panel consistency says that on every observed unit-period cell, the factual
-outcome equals the potential outcome evaluated at the realized exposure. -/
+/-- For [a panel potential-outcomes system](hyp:P), [the panel consistency condition](goal)
+requires that, for every observed unit-period cell and every sample point, the factual observed
+outcome equals the potential outcome at that cell under the exposure realized at that sample point. -/
 def PanelConsistency (P : PanelPOSystem) : Prop :=
   ∀ (r : P.I × P.T) (hr : r ∈ P.cells.observed) (ω : P.Ω),
     P.observedY_eq_potentialOutcome r hr ω

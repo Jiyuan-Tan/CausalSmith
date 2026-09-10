@@ -31,7 +31,8 @@ namespace EventStudySystem
 
 variable {T : ℕ}
 
-/-- Included-event-time indicator on a cohort-relative-time cell. -/
+/-- For [two relative times](hyp:k,e), the [event-time indicator](goal) equals
+one when they are equal and zero otherwise. -/
 noncomputable def eventIndicator (k e : ℤ) : ℝ :=
   if e = k then 1 else 0
 
@@ -51,8 +52,12 @@ structure ConventionalDesign (P : EventStudySystem T) where
   /-- Conventional population TWFE event-study coefficient `mu_l`. -/
   mu : ℝ
 
-/-- Finite-span nuisance class for the coefficient on `R^l`: cohort effects,
-period effects, and other included relative-time indicators. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), [a
+conventional design](hyp:D), and [a cohort-period function](hyp:h), the
+[event-study nuisance condition](goal) holds exactly when the function is the
+sum of a cohort-and-period additive component and a linear combination of the
+included relative-time indicators other than the displayed indicator, for every
+cohort in the system and every period. -/
 def IsEventStudyNuisance (P : EventStudySystem T) (D : P.ConventionalDesign)
     (h : Fin T → Fin T → ℝ) : Prop :=
   ∃ hAdd : Fin T → Fin T → ℝ, Causalean.Panel.Weighted.IsUnitTimeAdditive hAdd ∧
@@ -62,8 +67,10 @@ def IsEventStudyNuisance (P : EventStudySystem T) (D : P.ConventionalDesign)
           ∑ k ∈ D.includedEvents.filter (fun k => k ≠ D.displayedEvent),
             gamma k * eventIndicator k (P.relTime g t)
 
-/-- Average of a cohort-period nuisance function over the finite periods that
-realize cell `(g,e)`. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), [a
+cohort-period function](hyp:h), [a cohort](hyp:g), and [a relative time](hyp:e),
+the [cell average](goal) is the average of that function over the periods in
+which the cohort has the given relative time. -/
 noncomputable def cellAverage (P : EventStudySystem T)
     (h : Fin T → Fin T → ℝ) (g : Fin T) (e : ℤ) : ℝ :=
   ((P.targetPeriods g e).card : ℝ)⁻¹ *
@@ -96,21 +103,29 @@ structure ConventionalResidualization (P : EventStudySystem T)
       ∑ g ∈ P.cohortsAtEvent D.eventSupport e,
         P.cellMassAtEvent g e * D.Rdot g e = 0
 
-/-- Finite residualized denominator `E[Rdot^l R^l]`. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
+conventional design](hyp:D), the [residualized denominator](goal) is the sum
+over admissible cells of cell mass times the design residual times the
+indicator for the displayed event time. -/
 noncomputable def residualDenom (P : EventStudySystem T)
     (D : P.ConventionalDesign) : ℝ :=
   ∑ ge ∈ P.admissibleCells D.eventSupport,
     P.cellMassAtEvent ge.1 ge.2 * D.Rdot ge.1 ge.2 *
       eventIndicator D.displayedEvent ge.2
 
-/-- Finite residualized numerator `E[Rdot^l Y]`. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
+conventional design](hyp:D), the [residualized numerator](goal) is the sum over
+admissible cells of cell mass times the design residual times the observed cell
+mean. -/
 noncomputable def residualNumerator (P : EventStudySystem T)
     (D : P.ConventionalDesign) : ℝ :=
   ∑ ge ∈ P.admissibleCells D.eventSupport,
     P.cellMassAtEvent ge.1 ge.2 * D.Rdot ge.1 ge.2 *
       P.observedCellMean ge.1 ge.2
 
-/-- Residualized-ratio form of the conventional event-study coefficient. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
+conventional design](hyp:D), the [conventional coefficient ratio](goal) is the
+residualized numerator divided by the residualized denominator. -/
 noncomputable def conventionalMuRatio (P : EventStudySystem T)
     (D : P.ConventionalDesign) : ℝ :=
   P.residualNumerator D / P.residualDenom D
@@ -126,8 +141,10 @@ structure ConventionalFiniteSupport (P : EventStudySystem T)
   hCellsSupported :
     ∀ ge ∈ P.admissibleCells D.eventSupport, ge.1 ∈ P.cohorts ∧ ge.2 ∈ D.eventSupport
 
-/-- Sun-Abraham contamination weight for the conventional event-study
-coefficient. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), [a
+conventional design](hyp:D), [a cohort](hyp:g), and [a relative time](hyp:e),
+the [Sun--Abraham contamination weight](goal) is that cell's mass times its
+design residual, divided by the residualized denominator. -/
 noncomputable def omega (P : EventStudySystem T) (D : P.ConventionalDesign)
     (g : Fin T) (e : ℤ) : ℝ :=
   (P.cellMassAtEvent g e * D.Rdot g e) / P.residualDenom D

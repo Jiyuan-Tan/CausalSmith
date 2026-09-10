@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { presentationPrompt } from "../src/presentation/prompt_io.js";
 
 describe("global presentation prose contract", () => {
-  it("is injected into drafting, TLDR, review, and holistic revision prompts", async () => {
+  it("is injected into drafting, TLDR, and review prompts", async () => {
     const prompts = await Promise.all([
       presentationPrompt("p2_intro_abstract", {
         outline: "O", frozen_layer: "F", references: "R", assumption_citation_guidance: "A",
@@ -11,10 +11,6 @@ describe("global presentation prose contract", () => {
       presentationPrompt("p4_tldr", { title: "T", abstract: "A" }),
       presentationPrompt("p5_review", {
         paper_tex: "P", related_work_brief: "R", verification_contract: "V",
-      }),
-      presentationPrompt("p5_holistic_revision", {
-        out_dir: "/tmp/p", revision_pass: "1", revision_mode: "local", p5_review: "{}",
-        verification_contract: "{}", related_work_brief: "", editable_files: "- paper.tex",
       }),
     ]);
     for (const prompt of prompts) {
@@ -46,14 +42,11 @@ describe("appendix proofs must be self-contained, not an outline of the Lean rou
   // Lean helpers ("X is the centered fixed-light term", "the ratio arm error is bounded by a
   // residual term") — faithful to Lean, unreadable on paper. Nothing caught it: the drafting
   // prompts capped lemma proofs at "half a page" and the audit only checked over/under-claiming.
-  it("tells both drafting prompts to define every symbol and display every step", async () => {
+  it("tells the shared proof writer to define every symbol and display every step", async () => {
     const prompts = await Promise.all([
       presentationPrompt("p2_proof", {
         theorem_env: "T", lean_proof_source: "L", helper_lemma_envs: "H",
         cited_dependencies: "C", informal_derivation: "D", notation_table: "N", revision_brief: "none",
-      }),
-      presentationPrompt("p2_lemma_proofs_batch", {
-        lemmas_block: "L", citable_envs: "C", notation_table: "N", revision_brief: "none",
       }),
     ]);
     for (const prompt of prompts) {
@@ -76,12 +69,18 @@ describe("appendix proofs must be self-contained, not an outline of the Lean rou
     });
     expect(audit).toContain("SELF-CONTAINEDNESS");
     expect(audit).toContain('"faithful" | "unfaithful" | "incomplete"');
-    const refine = await presentationPrompt("refine_proof", {
-      obj_id: "lem:x", proof_tex: "P", lean_proof_source: "L",
-      referenced_defs: "D", audit_issues: "I", notation_table: "N",
+    expect(audit).toMatch(/\[missing-step\]/);
+    const render = await presentationPrompt("p2_proof", {
+      theorem_env: "T", lean_proof_source: "L", helper_lemma_envs: "H", cited_dependencies: "C",
+      informal_derivation: "I", notation_table: "N", revision_brief: "B",
+      prior_and_defects: "prior_proof:\nP\n\ndefects:\n- [missing-step] step 2",
     });
-    expect(refine).toMatch(/EXPAND when the audit flags the proof as `incomplete`/);
-    expect(refine).toMatch(/REPAIR THE REASON/);
+    expect(render).toMatch(/`\[missing-step\]`[\s\S]*DERIVE it as a display/);
+    expect(render).toMatch(/never delete mathematics\s+to evade a finding/);
+    expect(render).toContain("Every other byte is preserved mechanically");
+    expect(render).toContain("Earlier findings");
+    expect(render).not.toContain("never emit `\\label` yourself");
+    expect(render).toContain("never emit `\\label{obj:...}` yourself");
   });
 
   // Every defect the post-hoc review found was content-correct, so the audit's calibration
@@ -106,28 +105,15 @@ describe("appendix proofs must be self-contained, not an outline of the Lean rou
     expect(audit).toMatch(/CLAIMS ABOUT OTHER OBJECTS/);
     expect(audit).toContain("{{paper_path}}".replace("{{paper_path}}", "/tmp/p/paper.tex"));
   });
-
-  // The proof audit runs at P2, so a P5 pass that rewrites an appendix proof is never re-audited.
-  // The transported-LATE bundle shipped that way: P5 expanded two proofs and deleted every
-  // `% lean:` marker, severing each step from the declaration certifying it.
-  it("lets the P5 reviser expand a proof but not drop its audit markers", async () => {
-    const prompt = await presentationPrompt("p5_holistic_revision", {
-      out_dir: "/tmp/p", revision_pass: "1", revision_mode: "local", p5_review: "{}",
-      verification_contract: "{}", related_work_brief: "", editable_files: "- paper.tex",
-    });
-    expect(prompt).toMatch(/appendix proof may be expanded or reorganized for readability/);
-    expect(prompt).toMatch(/`% lean:` comments must survive verbatim/);
-  });
 });
 
 describe("notation-check reviewer is told which symbols Lean already resolves", () => {
-  // Two regressions pin this paragraph's shape. (1) `isLeanRealizedNotation` (p1_plan.ts)
-  // suppresses synthesize-def findings for @realizes-tagged symbols whose defining equality
-  // the layer already displays; when that was never communicated, the reviewer re-derived
-  // the same gaps every round (q_k/p_k/\pi_k/\mu_{ak} re-reported 7/6/6/5 times across 10
-  // calls). (2) The instruction must NOT be an unconditional "never report" — under that
-  // rule the transported-LATE paper shipped with its central estimand θ_T Lean-linked but
-  // never defined anywhere a PDF reader can see.
+  // Two regressions pin this paragraph's shape. (1) The reviewer must be told that a symbol
+  // whose defining equality the layer already displays is resolved; when that was never
+  // communicated, it re-derived the same gaps every round (q_k/p_k/\pi_k/\mu_{ak} re-reported
+  // 7/6/6/5 times across 10 calls). (2) The instruction must NOT be an unconditional "never
+  // report" — under that rule the transported-LATE paper shipped with its central estimand θ_T
+  // Lean-linked but never defined anywhere a PDF reader can see.
   it("renders the Lean-realized symbol list with no unreplaced placeholders", async () => {
     const prompt = await presentationPrompt("p1_notation_check", {
       frozen_layer: "\\begin{definitionv}{P-1}[Setup]body\\end{definitionv}",

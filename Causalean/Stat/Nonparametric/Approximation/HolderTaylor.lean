@@ -33,9 +33,7 @@ namespace Causalean.Stat.Nonparametric
 
 open scoped BigOperators
 
-/-- The standard Hölder derivative order for smoothness `β`: the largest natural
-number strictly below `β`. For positive noninteger `β` this is `⌊β⌋`; for a
-positive integer `β = m` this is `m - 1`. -/
+/-- Given a [real smoothness index](hyp:β), the [Hölder derivative order](goal) is the nonnegative integer obtained by subtracting one, with truncation at zero, from the least nonnegative integer that is at least the smoothness index. For positive noninteger $\beta$ this equals $\lfloor\beta\rfloor$, and for positive integer $\beta=m$ it equals $m-1$. -/
 noncomputable def holderDerivOrder (β : ℝ) : ℕ := ⌈β⌉₊ - 1
 
 lemma holderDerivOrder_lt {β : ℝ} (hβ : 0 < β) : (holderDerivOrder β : ℝ) < β := by
@@ -45,8 +43,7 @@ lemma holderDerivOrder_lt {β : ℝ} (hβ : 0 < β) : (holderDerivOrder β : ℝ
   rw [holderDerivOrder, hcast]
   linarith [Nat.ceil_lt_add_one hβ.le]
 
-/-- Degree-`p` Taylor polynomial of `f` at base point `t`, evaluated at `a`:
-`∑_{k ≤ p} f⁽ᵏ⁾(t)/k! · (a − t)^k`. -/
+/-- Given a [nonnegative degree](hyp:p), a [real-valued function](hyp:f), a [real base point](hyp:t), and a [real evaluation point](hyp:a), the [degree-$p$ Taylor polynomial evaluated at the evaluation point](goal) is $\sum_{k=0}^{p} f^{(k)}(t)(a-t)^k/k!$. -/
 noncomputable def taylorPoly (p : ℕ) (f : ℝ → ℝ) (t a : ℝ) : ℝ :=
   ∑ k ∈ Finset.range (p + 1), iteratedDeriv k f t / (k.factorial : ℝ) * (a - t) ^ k
 

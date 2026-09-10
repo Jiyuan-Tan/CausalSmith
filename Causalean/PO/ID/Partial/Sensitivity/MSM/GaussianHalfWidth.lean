@@ -44,9 +44,9 @@ namespace POBackdoorSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 variable (S : POBackdoorSystem P γ)
 
-/-- **Dorn–Guo Gaussian half-width factor.** For `τ = Λ/(Λ+1)` with `Λ ≥ 1`, the per-stratum
-MSM sharp half-width factor is `(Λ²−1)/Λ · φ(Φ⁻¹(τ))`. This packages the scalar appearing in
-the Gaussian ATE interval `[ψ ± (Λ²−1)/Λ · φ(Φ⁻¹(Λ/(Λ+1))) · E[σ(X)]]`. -/
+/-- For [a real sensitivity parameter](hyp:Λ), the [Dorn–Guo Gaussian half-width factor](goal) is $(\Lambda^2-1)/\Lambda\,\phi(\Phi^{-1}(\Lambda/(\Lambda+1)))$, where $\Phi$ and $\phi$ are the standard normal distribution and density functions, respectively.
+
+For $\Lambda\geq1$, this is the per-stratum factor in the Gaussian MSM sharp half-width and packages the scalar in the Gaussian ATE interval $[\psi\pm(\Lambda^2-1)\phi(\Phi^{-1}(\Lambda/(\Lambda+1)))E[\sigma(X)]/\Lambda]$. -/
 noncomputable def gaussianMSMHalfWidthFactor (Λ : ℝ) : ℝ :=
   (Λ ^ 2 - 1) / Λ * Causalean.Mathlib.stdNormalPDF
     (Causalean.Mathlib.probit (Λ / (Λ + 1)))

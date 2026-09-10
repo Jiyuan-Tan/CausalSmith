@@ -23,11 +23,16 @@ open scoped BigOperators Topology
 
 namespace Causalean.Stat
 
-/-- A point is the unique global maximizer of a real-valued criterion. -/
+/-- Given [a real-valued criterion on a domain](hyp:f) and [a point in that domain](hyp:x),
+[the assertion that the point is its unique global maximizer](goal) means that [every domain point
+has criterion value no larger than this point's value](step:1), and that [equality can occur only
+at this point](step:2). -/
 def IsUniqueGlobalMax {A : Type*} (f : A → ℝ) (x : A) : Prop :=
   (∀ y, f y ≤ f x) ∧ ∀ y, f y = f x → y = x
 
-/-- A total choice of a global maximizer, defaulting to zero when none exists. -/
+/-- Given [a domain equipped with a distinguished zero](hyp:A) and [a real-valued criterion on that
+domain](hyp:f), [the selected maximizer or zero](goal) is a global maximizer when one exists and
+is the distinguished zero otherwise. -/
 noncomputable def maximizerOrZero {A : Type*} [Zero A] (f : A → ℝ) : A :=
   by
     classical
@@ -74,7 +79,10 @@ lemma poissonCell_strictConcave_midpoint (q m x y : ℝ) (hq : 0 < q) (hxy : x �
       nlinarith
 
 -- @node: finitePoissonObjective
-/-- A finite positive-mean Poisson criterion composed with a linear design. -/
+/-- Given [a finite index set](hyp:I), [cell weights](hyp:q), [cell means](hyp:m), [a real-linear
+map from the parameter space to cell predictors](hyp:A), and [a parameter value](hyp:x), [the finite
+Poisson objective](goal) is the sum over cells of each weight times its mean times its predictor
+minus its predictor's exponential. -/
 noncomputable def finitePoissonObjective {E I : Type*} [AddCommGroup E] [Module ℝ E]
     [Fintype I] (q m : I → ℝ) (A : E →ₗ[ℝ] (I → ℝ)) (x : E) : ℝ :=
   ∑ i, q i * (m i * A x i - Real.exp (A x i))

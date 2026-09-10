@@ -28,7 +28,9 @@ open scoped BigOperators
 variable {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 𝒢] [DecidableEq 𝒢]
   [MeasurableSpace 𝒢] [MeasurableSingletonClass 𝒢] {T : ℕ}
 
-/-- The "panel-residualized treatment hat" `Dtilde_{gt}` value of the
+/-- For [a measurable sample space](hyp:Ω), [a finite cohort label space whose members can be compared for equality and whose singleton sets are measurable](hyp:𝒢), [a natural-number panel length](hyp:T), [a measure on that sample space](hyp:μ), [a treatment variable](hyp:D), [a cohort variable](hyp:G), [a period variable](hyp:T_rv), [a cohort label](hyp:g), and [a period](hyp:t), [the cell-specific residualized treatment value](goal) is the treatment integral over the cohort-period cell divided by that cell's mass, minus the additive cohort-and-period fitted treatment value for that cell.
+
+The "panel-residualized treatment hat" `Dtilde_{gt}` value of the
 in-class residual on cell `(g, t)`: equals
 `D_{gt} - barD_g - (E[D | T=t] - E[D])`, the LaTeX double-demeaning
 formula.

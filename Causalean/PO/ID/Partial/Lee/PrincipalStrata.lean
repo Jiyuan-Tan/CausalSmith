@@ -34,22 +34,28 @@ namespace POLeeSystem
 
 variable {P : POSystem} (S : POLeeSystem P)
 
-/-- The always-selected stratum contains units who would be selected under both
-control and treatment.
+/-- For [a potential-outcome system](hyp:P) and [a Lee potential-outcome system
+based on it](hyp:S), [the always-selected stratum](goal)
+is the set of units whose potential selection indicator equals true both under
+control and under treatment.
 
 Equivalently, it is the counterfactual event `Sel(0) = true ∧ Sel(1) = true`. -/
 def alwaysSelected : Set P.Ω :=
   {ω | S.SelOfA false ω = true ∧ S.SelOfA true ω = true}
 
-/-- The helped-selected stratum contains units selected under treatment but not
-under control.
+/-- For [a potential-outcome system](hyp:P) and [a Lee potential-outcome system
+based on it](hyp:S), [the treatment-induced-selected
+stratum](goal) is the set of units whose potential selection indicator equals
+false under control and true under treatment.
 
 Equivalently, it is the counterfactual event `Sel(0) = false ∧ Sel(1) = true`. -/
 def helpedSelected : Set P.Ω :=
   {ω | S.SelOfA false ω = false ∧ S.SelOfA true ω = true}
 
-/-- The harmed-selected stratum contains units selected under control but not
-under treatment.
+/-- For [a potential-outcome system](hyp:P) and [a Lee potential-outcome system
+based on it](hyp:S), [the harmed-selected stratum](goal)
+is the set of units whose potential selection indicator equals true under
+control and false under treatment.
 
 Under monotone sample selection, this stratum has probability zero. -/
 def harmedSelected : Set P.Ω :=
@@ -75,8 +81,10 @@ lemma measurableSet_harmedSelected : MeasurableSet S.harmedSelected := by
   · exact (S.measurable_SelOfA false) (measurableSet_singleton true)
   · exact (S.measurable_SelOfA true) (measurableSet_singleton false)
 
-/-- The latent selected-under-treatment set contains units who would be selected
-if treated.
+/-- For [a potential-outcome system](hyp:P) and [a Lee potential-outcome system
+based on it](hyp:S), [the latent selected-under-treatment
+set](goal) is the set of units whose potential selection indicator would equal
+true if treated.
 
 This is the set `{Sel(1) = true}` as a measurable set. -/
 def selOfATrueSet : Set P.Ω := {ω | S.SelOfA true ω = true}
@@ -85,8 +93,10 @@ def selOfATrueSet : Set P.Ω := {ω | S.SelOfA true ω = true}
 lemma measurableSet_selOfATrueSet : MeasurableSet S.selOfATrueSet :=
   (S.measurable_SelOfA true) (measurableSet_singleton true)
 
-/-- The latent selected-under-control set contains units who would be selected
-if untreated.
+/-- For [a potential-outcome system](hyp:P) and [a Lee potential-outcome system
+based on it](hyp:S), [the latent selected-under-control
+set](goal) is the set of units whose potential selection indicator would equal
+true if untreated.
 
 This is the set `{Sel(0) = true}` as a measurable set. -/
 def selOfAFalseSet : Set P.Ω := {ω | S.SelOfA false ω = true}

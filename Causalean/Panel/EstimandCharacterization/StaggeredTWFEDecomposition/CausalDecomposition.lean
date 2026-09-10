@@ -44,7 +44,9 @@ open Finset
 variable {𝒢 : Type*} [Fintype 𝒢] [DecidableEq 𝒢] {T : ℕ}
 
 open Classical in
-/-- The **causal** 2x2 contrast on the full index `CompTag × 𝒢 × 𝒢`: on an
+/-- For [a finite collection of cohorts whose members can be compared for equality](hyp:𝒢), [a natural-number panel length](hyp:T), [a cohort panel](hyp:P), [two potential-outcome paths, respectively under no treatment and under treatment at the cohort's own adoption date](hyp:Y0,Y1), and [a labelled ordered pair of cohorts](hyp:k), [the causal two-by-two contrast](goal) is zero when that comparison is inadmissible; otherwise, it is the relevant window average treatment effect for a treated-versus-never-treated or early-versus-late comparison, and for a late-versus-early comparison it is the late cohort's window average treatment effect minus the early cohort's corresponding treated-period effect net of its pre-period effect.
+
+The **causal** 2x2 contrast on the full index `CompTag × 𝒢 × 𝒢`: on an
 admissible comparison it returns the potential-outcome window contrast identified
 by the Layer C corollaries — `ATT_window` for TN/EL and the bad-comparison
 adjustment for LE — and `0` otherwise. This is the causal counterpart of the

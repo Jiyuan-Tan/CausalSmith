@@ -55,14 +55,18 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
          {Θ : Type*} [NormedAddCommGroup Θ] [InnerProductSpace ℝ Θ]
          {G : Type*} [AddCommGroup G] [Module ℝ G]
 
-/-- Neyman orthogonality of the loss: for every admissible target and
+/-- For [an orthogonal statistical-learning system](hyp:S) and [a bundle of mixed target--nuisance directional derivatives of its loss](hyp:M), the [Neyman-orthogonality condition for the loss](goal) states that, for every target in the candidate target set and every nuisance function in the admissible nuisance set, the observation-law integral of the mixed directional derivative at those target and nuisance directions equals zero.
+
+Neyman orthogonality of the loss: for every admissible target and
 nuisance direction, the integrated mixed directional derivative at
 `(θ₀, g₀)` vanishes. -/
 def NeymanOrthogLoss
     (S : LearningSystem Ω μ Z P_Z Θ G) (M : HasMixedDirDeriv S) : Prop :=
   ∀ θ ∈ S.Θ_set, ∀ g ∈ S.G_set, ∫ z, M.dℓ_θg θ g z ∂P_Z = 0
 
-/-- L¹(P_Z) envelope dominating the *target-direction* difference quotient
+/-- For [an orthogonal statistical-learning system](hyp:S) and [a nuisance function](hyp:g), the [target-direction difference-quotient envelope condition](goal) states that every candidate target has [a positive neighborhood radius](step:1) and an integrable envelope such that for almost every observation and every nonzero perturbation smaller than that radius, the absolute target-direction loss difference quotient is bounded by the envelope.
+
+L¹(P_Z) envelope dominating the *target-direction* difference quotient
 of the loss locally near `t = 0`, uniformly in `θ ∈ Θ_set`.  Mirrors
 `Estimation.OrthogonalMoments.DiffQuotientEnvelope`. -/
 def DiffQuotientEnvelopeTheta
@@ -72,7 +76,9 @@ def DiffQuotientEnvelopeTheta
     ∀ᵐ z ∂P_Z, ∀ t : ℝ, t ∈ Set.Ioo (-δ) δ → t ≠ 0 →
       ‖(S.ℓ z (S.θ₀ + t • (θ - S.θ₀)) g - S.ℓ z S.θ₀ g) / t‖ ≤ env z
 
-/-- L¹(P_Z) envelope dominating the *nuisance-direction* difference quotient
+/-- For [an orthogonal statistical-learning system](hyp:S), the [nuisance-direction difference-quotient envelope condition](goal) states that every admissible nuisance function has [a positive neighborhood radius](step:1) and an integrable envelope such that for almost every observation and every nonzero perturbation smaller than that radius, the absolute nuisance-direction loss difference quotient is bounded by the envelope.
+
+L¹(P_Z) envelope dominating the *nuisance-direction* difference quotient
 of the loss locally near `t = 0`, uniformly in `g ∈ G_set`.  Mirrors
 `Estimation.OrthogonalMoments.DiffQuotientEnvelope`. -/
 def DiffQuotientEnvelopeG
@@ -82,7 +88,9 @@ def DiffQuotientEnvelopeG
     ∀ᵐ z ∂P_Z, ∀ t : ℝ, t ∈ Set.Ioo (-δ) δ → t ≠ 0 →
       ‖(S.ℓ z S.θ₀ (S.g₀ + t • (g - S.g₀)) - S.ℓ z S.θ₀ S.g₀) / t‖ ≤ env z
 
-/-- DCT-bridge hypothesis for the score reformulation: for every admissible
+/-- For [an orthogonal statistical-learning system](hyp:S) and [a bundle of mixed target--nuisance directional derivatives of its loss](hyp:M), the [mixed-score dominated-convergence bridge](goal) states that, for every candidate target and admissible nuisance function, the integrated centered difference quotient of the target-direction derivative along the nuisance perturbation converges, as the nonzero perturbation tends to zero, to the observation-law integral of the corresponding mixed directional derivative.
+
+DCT-bridge hypothesis for the score reformulation: for every admissible
 target direction `ν_θ = θ - θ₀` and nuisance direction `ν_g = g - g₀`,
 the integrated centred difference quotient of the target dir derivatives
 along the nuisance perturbation tends to the integrated mixed dir

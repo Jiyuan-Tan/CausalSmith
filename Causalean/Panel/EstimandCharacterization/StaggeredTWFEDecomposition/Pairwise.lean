@@ -116,11 +116,11 @@ lemma pairwise_sum_normalize
     _ = ∑ g, ∑ u, (P.p g * P.p u / (2 * (T : ℝ))) * ∑ t, f g u t := by
           simp [div_eq_mul_inv, Finset.mul_sum, Finset.sum_mul, mul_assoc, mul_left_comm, mul_comm]
 
-/-- Cohort-demeaned treatment path `D_{gt} − \overline D_g`. -/
+/-- For [a cohort panel](hyp:P), [a cohort](hyp:g), and [a period](hyp:t), [the cohort-demeaned treatment path](goal) is that cohort's treatment indicator in the period minus its average treatment indicator across all periods. -/
 noncomputable def centeredD (P : CohortPanel 𝒢 T) (g : 𝒢) (t : Fin T) : ℝ :=
   D P g t - barD P g
 
-/-- Ordered-pair contribution in the pairwise representation of `V_D`.
+/-- For [a cohort panel](hyp:P) and [two cohorts](hyp:g,u), [the ordered-pair contribution to residualized-treatment variance](goal) is one half of their share product divided by the number of periods, multiplied by the sum of squared differences between their cohort-demeaned treatment paths.
 
 The factor `1/2` is deliberate: the generic finite weighted variance identity
 sums over ordered pairs. The Goodman-Bacon denominator later combines the two
@@ -130,8 +130,9 @@ noncomputable def vdPairContribution (P : CohortPanel 𝒢 T) (g u : 𝒢) : ℝ
   (P.p g * P.p u / (2 * (T : ℝ))) *
     ∑ t, (centeredD P g t - centeredD P u t)^2
 
-/-- Ordered-pair contribution in the pairwise representation of the TWFE
-numerator. As for `vdPairContribution`, the two orders of each cohort pair are
+/-- For [a cohort panel](hyp:P) and [two cohorts](hyp:g,u), [the ordered-pair contribution to the two-way-fixed-effects numerator](goal) is one half of their share product divided by the number of periods, multiplied by the sum of the product of their demeaned-treatment difference and factual-outcome difference.
+
+As for `vdPairContribution`, the two orders of each cohort pair are
 combined by the Goodman-Bacon-specific window lemmas below. -/
 noncomputable def numPairContribution (P : CohortPanel 𝒢 T) (g u : 𝒢) : ℝ :=
   (P.p g * P.p u / (2 * (T : ℝ))) *

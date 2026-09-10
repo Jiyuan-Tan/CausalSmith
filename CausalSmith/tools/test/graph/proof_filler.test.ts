@@ -4,7 +4,9 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createEmptyGraph } from "../../src/graph/store.js";
-import { addNode, addEdge, setProof } from "../../src/graph/mutate.js";
+import { addNode, addEdge, addAssumption, setProof } from "../../src/graph/mutate.js";
+import { nodeIdToObjId } from "../../src/graph/from_note.js";
+import { graphDerivedSkeleton } from "../../src/graph/skeleton.js";
 import { runFiller, renderFillerContext } from "../../src/formalization/proof_filler.js";
 
 // The filler dispatches a WRITE-CAPABLE agent, so it must never run on a degraded prompt: the
@@ -120,12 +122,153 @@ describe("runFiller", () => {
         summary: "added boundedness; closed 1 sorry",
       }),
     });
-    const a9 = r.graph.nodes.find((n) => n.id === "a9")!;
+    const id = "ass:filler:2:t1:2:a9";
+    const a9 = r.graph.nodes.find((n) => n.id === id)!;
     expect(a9.kind).toBe("assumption");
     expect(a9.provenance).toBe("agent-introduced");
-    expect(r.graph.edges).toContainEqual({ kind: "proof-uses", from: "t1", to: "a9", source: "declared" });
+    expect(r.graph.edges).toContainEqual({ kind: "proof-uses", from: "t1", to: id, source: "declared" });
     expect(r.graph.nodes.find((n) => n.id === "t1")!.review.status).toBe("unreviewed");
     expect(r.escalate).toBeNull();
+  });
+
+  it("namespaces a filler assumption whose legacy reviewer alias is already owned", async () => {
+    let graph = fixtureWithObjAlias();
+    graph = addNode(graph, {
+      id: "ass:frozen",
+      kind: "assumption",
+      provenance: "from-note",
+      nl_statement: "the frozen assumption",
+      tex_anchor: "A-1",
+    });
+    graph = {
+      ...graph,
+      nodes: graph.nodes.map((n) => n.id === "ass:frozen" ? { ...n, obj_id: "A-1" } : n),
+    };
+
+    const r = await runFiller({
+      ctx,
+      promptPath: realPromptPath,
+      leanDir: "/repo/lean",
+      graph,
+      deps: codexStub({
+        worked_on: ["thm:main"],
+        added_assumptions: [
+          { id: "a1", statement: "the band event is measurable", classification: "regularity-bookkeeping", attached_to: "T-1" },
+        ],
+        escalate: null,
+        summary: "added event measurability",
+      }),
+    });
+
+    const id = "ass:filler:8:thm:main:2:a1";
+    expect(r.graph.nodes.some((n) => n.id === id)).toBe(true);
+    expect(r.graph.nodes.some((n) => n.id === "a1")).toBe(false);
+    expect(r.graph.edges).toContainEqual({ kind: "proof-uses", from: "thm:main", to: id, source: "declared" });
+    const a1Owners = r.graph.nodes.filter((n) => [n.id, n.obj_id, nodeIdToObjId(n.id)].includes("A-1"));
+    expect(a1Owners).toHaveLength(1);
+    expect(nodeIdToObjId(id)).toBe(id);
+  });
+
+  it("does not silently reuse an exact filler id owned by a different premise", async () => {
+    let graph = fixtureWithObjAlias();
+    graph = addNode(graph, {
+      id: "a1",
+      kind: "assumption",
+      provenance: "agent-introduced",
+      nl_statement: "a different premise",
+      tex_anchor: "",
+    });
+    const r = await runFiller({
+      ctx, promptPath: realPromptPath, leanDir: "/repo/lean", graph,
+      deps: codexStub({
+        added_assumptions: [
+          { id: "a1", statement: "the new premise", classification: "regularity-bookkeeping", attached_to: "T-1" },
+        ],
+        escalate: null, summary: "added distinct premise",
+      }),
+    });
+    const id = "ass:filler:8:thm:main:2:a1";
+    expect(r.graph.nodes.find((n) => n.id === id)?.nl.statement).toBe("the new premise");
+    expect(r.graph.edges).toContainEqual({ kind: "proof-uses", from: "thm:main", to: id, source: "declared" });
+  });
+
+  it("suffixes a collision in the generated filler namespace", async () => {
+    let graph = fixtureWithObjAlias();
+    const base = "ass:filler:8:thm:main:2:a1";
+    graph = addNode(graph, {
+      id: base,
+      kind: "assumption",
+      provenance: "agent-introduced",
+      nl_statement: "occupied generated id",
+      tex_anchor: "",
+    });
+    graph = addNode(graph, {
+      id: "ass:frozen",
+      kind: "assumption",
+      provenance: "from-note",
+      nl_statement: "the frozen assumption",
+      tex_anchor: "A-1",
+    });
+    graph = { ...graph, nodes: graph.nodes.map((n) => n.id === "ass:frozen" ? { ...n, obj_id: "A-1" } : n) };
+    const r = await runFiller({
+      ctx, promptPath: realPromptPath, leanDir: "/repo/lean", graph,
+      deps: codexStub({
+        added_assumptions: [
+          { id: "a1", statement: "the new premise", classification: "regularity-bookkeeping", attached_to: "T-1" },
+        ],
+        escalate: null, summary: "added collision-safe premise",
+      }),
+    });
+    expect(r.graph.nodes.find((n) => n.id === `${base}:1`)?.nl.statement).toBe("the new premise");
+    expect(r.graph.edges).toContainEqual({ kind: "proof-uses", from: "thm:main", to: `${base}:1`, source: "declared" });
+  });
+
+  it("does not reuse a premise when tier or anchor metadata changed", async () => {
+    let graph = fixtureWithObjAlias();
+    graph = addAssumption(graph, {
+      node: "thm:main", id: "a9", statement: "bounded", tier: 1,
+      classification: "regularity-bookkeeping", anchor: "old", provenance: "agent-introduced",
+    });
+    const r = await runFiller({
+      ctx, promptPath: realPromptPath, leanDir: "/repo/lean", graph,
+      deps: codexStub({
+        added_assumptions: [
+          { id: "a9", statement: "bounded", tier: 2, anchor: "new", classification: "regularity-bookkeeping", attached_to: "T-1" },
+        ],
+        escalate: null, summary: "corrected metadata",
+      }),
+    });
+    const id = "ass:filler:8:thm:main:2:a9";
+    expect(r.graph.nodes.find((n) => n.id === id)?.assumption?.tier).toBe(2);
+    expect(r.graph.nodes.find((n) => n.id === id)?.nl.tex_anchor).toBe("new");
+  });
+
+  it("reserves auxiliary and synthetic reviewer identities", async () => {
+    let graph = fixtureWithObjAlias();
+    graph = addNode(graph, {
+      id: "aux_hidden", kind: "definition", provenance: "agent-introduced",
+      nl_statement: "hidden helper", tex_anchor: "",
+    });
+    graph = { ...graph, nodes: graph.nodes.map((n) => n.id === "aux_hidden"
+      ? { ...n, lean: { decl_name: "foo", file: "Foo.lean" } } : n) };
+    const r = await runFiller({
+      ctx, promptPath: realPromptPath, leanDir: "/repo/lean", graph,
+      deps: codexStub({
+        added_assumptions: [
+          { id: "AUX-foo", statement: "aux premise", classification: "regularity-bookkeeping", attached_to: "T-1" },
+          { id: "aux_fresh", statement: "raw auxiliary premise", classification: "regularity-bookkeeping", attached_to: "T-1" },
+          { id: "sym:sigma", statement: "symbol premise", classification: "regularity-bookkeeping", attached_to: "T-1" },
+        ],
+        escalate: null, summary: "reserved namespaces",
+      }),
+    });
+    expect(r.graph.nodes.some((n) => n.id === "AUX-foo")).toBe(false);
+    expect(r.graph.nodes.some((n) => n.id === "aux_fresh")).toBe(false);
+    expect(r.graph.nodes.some((n) => n.id === "sym:sigma")).toBe(false);
+    expect(r.graph.nodes.some((n) => n.id.includes(":AUX-foo"))).toBe(true);
+    const rawAux = r.graph.nodes.find((n) => n.id.includes(":aux_fresh"))!;
+    expect(graphDerivedSkeleton(r.graph).find((row) => row.graph_node_id === rawAux.id)?.obj_id).toBe(rawAux.id);
+    expect(r.graph.nodes.some((n) => n.id.includes(":sym:sigma"))).toBe(true);
   });
 
   it("attaches filler assumptions to a parent's obj_id alias", async () => {
@@ -143,8 +286,9 @@ describe("runFiller", () => {
         summary: "added alias-attached assumption",
       }),
     });
-    expect(r.graph.nodes.some((n) => n.id === "a10")).toBe(true);
-    expect(r.graph.edges).toContainEqual({ kind: "proof-uses", from: "thm:main", to: "a10", source: "declared" });
+    const id = "ass:filler:8:thm:main:3:a10";
+    expect(r.graph.nodes.some((n) => n.id === id)).toBe(true);
+    expect(r.graph.edges).toContainEqual({ kind: "proof-uses", from: "thm:main", to: id, source: "declared" });
     expect(r.graph.nodes.find((n) => n.id === "thm:main")!.review.status).toBe("unreviewed");
   });
 

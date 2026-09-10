@@ -115,6 +115,47 @@ describe("F1 plan gate — P1 coverage", () => {
   });
 });
 
+describe("F1 plan gate — paper-owned proof obligations", () => {
+  it("rejects a proved paper statement deferred without an external gate", () => {
+    const plan = makePlan();
+    (plan.nodes["thm:main"] as Record<string, unknown>).defer_tier = true;
+    plan.feasibility = "needs-new-infrastructure";
+    expect(runPlanGate(plan, makeCore()).violations).toContainEqual(
+      expect.objectContaining({
+        code: "P8",
+        where: "thm:main",
+        message: expect.stringContaining("paper-owned proved/to-prove statement"),
+      }),
+    );
+  });
+  it("rejects a paper-owned statement relabeled as an external gate", () => {
+    const plan = makePlan();
+    Object.assign(plan.nodes["thm:main"], {
+      lean_kind: "assumption",
+      defer_tier: true,
+      gate: true,
+      gate_class: "gated",
+    });
+    plan.feasibility = "needs-new-infrastructure";
+    expect(runPlanGate(plan, makeCore()).violations).toContainEqual(
+      expect.objectContaining({ code: "P8", where: "thm:main", message: expect.stringContaining("planner-authored external gate") }),
+    );
+  });
+  it("rejects deferred paper work even when the planner marks it undelivered", () => {
+    const plan = makePlan();
+    Object.assign(plan.nodes["thm:main"], {
+      defer_tier: true,
+      delivery_status: "undelivered",
+      delivery_role: "secondary",
+      delivery_reason: "too difficult",
+    });
+    plan.feasibility = "formalizable-now";
+    expect(runPlanGate(plan, makeCore()).violations).toContainEqual(
+      expect.objectContaining({ code: "P8", where: "thm:main", message: expect.stringContaining("paper-owned proved/to-prove statement") }),
+    );
+  });
+});
+
 describe("F1 plan gate — P2/P3 structure", () => {
   it("flags a class whose members disagree with by_member_properties", () => {
     const plan = makePlan();
@@ -151,10 +192,13 @@ describe("F1 plan gate — P4 hyp closure", () => {
     plan.nodes["thm:main"].hyps = ["ass:overlap", "def:overlap-class", "ass:phantom"];
     expect(codes(runPlanGate(plan, makeCore()).violations)).toContain("P4");
   });
-  it("flags an assumption dependency reachable through no hyp or bundled class", () => {
+  it("does not infer top-level hypothesis placement from assumption dependencies", () => {
     const plan = makePlan();
-    plan.nodes["thm:main"].hyps = ["ass:overlap"]; // drops the class → consistency/ignorability uncovered
-    expect(codes(runPlanGate(plan, makeCore()).violations)).toContain("P4");
+    // `consistency` and `ignorability` can occur under quantified implications in
+    // the theorem conclusion. Their dependency edges alone do not imply that the
+    // plan must expose them (or their class) as top-level Lean hypotheses.
+    plan.nodes["thm:main"].hyps = ["ass:overlap"];
+    expect(runPlanGate(plan, makeCore()).violations.filter((v) => v.code === "P4")).toEqual([]);
   });
 });
 
@@ -345,14 +389,20 @@ function makeCitedPlan() {
 }
 
 describe("F1 plan gate — P9 cited mapping", () => {
-  it("the F1 prompt preserves cited provenance and requires headline citations to be discharged", () => {
+  it("the F1 prompt separates borrowed cited inputs from paper-owned proof work", () => {
     const prompt = readFileSync(
       new URL("../../src/formalization/prompts/F1/stage1_template.txt", import.meta.url),
       "utf8",
     );
     expect(prompt).toMatch(/supported citation-discharge path/);
-    expect(prompt).toMatch(/Formalize every cited node needed by a delivered headline or headline-support result/);
-    expect(prompt).toMatch(/only a secondary cited node with no delivered main-contribution consumer may remain conditional/);
+    expect(prompt).toMatch(/source-matched result outside this paper's contribution may remain cited even when a delivered headline invokes it/);
+    expect(prompt).toMatch(/Every paper-owned\/new adaptation, embedding, normalization or experiment transfer, regime splice, and theorem step MUST be formalized/);
+    expect(prompt).toMatch(/proof difficulty never makes it cited/);
+    expect(prompt).toContain('source.carrier:"bibliographic-metadata"');
+    expect(prompt).toContain('lean_kind:"def"');
+    expect(prompt).toContain("NEVER threaded into `hyps`");
+    expect(prompt).toContain("plan cannot relabel one as metadata");
+    expect(prompt).not.toMatch(/status:"cited"[^\n]*encode the statement as a named Prop, and thread it into every consumer/);
     expect(prompt).not.toMatch(/Headline carve-out/);
   });
 
@@ -362,7 +412,7 @@ describe("F1 plan gate — P9 cited mapping", () => {
     expect(res.ok).toBe(true);
   });
 
-  it("accepts a source-reviewed non-Prop metadata carrier without threading it as a hypothesis", () => {
+  it("rejects relabeling a frozen logical quantitative citation as unthreaded metadata", () => {
     const plan = makeCitedPlan();
     Object.assign(plan.nodes["lem:borrowed-upper"], {
       lean_kind: "def",
@@ -371,7 +421,132 @@ describe("F1 plan gate — P9 cited mapping", () => {
       gate_class: "cited",
     });
     plan.nodes["thm:main"].hyps = ["ass:reg"];
-    expect(runPlanGate(plan, makeCitedCore()).violations).toEqual([]);
+    expect(runPlanGate(plan, makeCitedCore()).violations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: "P3", where: "lem:borrowed-upper" }),
+      expect.objectContaining({ code: "P9", where: "lem:borrowed-upper" }),
+      expect.objectContaining({ code: "P4", where: "thm:main" }),
+    ]));
+  });
+
+  it("accepts frozen bibliographic metadata as a closed def without threading it", () => {
+    const core = makeCitedCore();
+    const cited = core.statements.find((statement) => statement.id === "lem:borrowed-upper")!;
+    cited.statement = "The source is confined to a two-arm model and states no multi-arm theorem.";
+    cited.source!.carrier = "bibliographic-metadata";
+    const plan = makeCitedPlan();
+    Object.assign(plan.nodes["lem:borrowed-upper"], {
+      lean_kind: "def",
+      lean_name: "borrowedScopeMetadata",
+      gate: true,
+      gate_class: "cited",
+    });
+    plan.nodes["thm:main"].hyps = ["ass:reg"];
+    expect(runPlanGate(plan, core).violations).toEqual([]);
+    expect(runPlanGate(plan, core, { annotatedDecls: [{
+      nodeId: "lem:borrowed-upper",
+      declKind: "def",
+      declName: "borrowedScopeMetadata",
+      namespace: "",
+      file: "Basic.lean",
+      statement: "def borrowedScopeMetadata : _root_.List _root_.String",
+      sourceText: "def borrowedScopeMetadata : _root_.List _root_.String := [\"two arm\", \"bounded\"]",
+      hasSorry: false,
+    }] }).violations).toEqual([]);
+    expect(runPlanGate(plan, core, { annotatedDecls: [{
+      nodeId: "lem:borrowed-upper",
+      declKind: "def",
+      declName: "Demo.borrowedScopeMetadata",
+      namespace: "Demo",
+      file: "Basic.lean",
+      statement: "def borrowedScopeMetadata : _root_.String",
+      sourceText: "def borrowedScopeMetadata : _root_.String := \"two arm\"\n\nend Demo",
+      hasSorry: false,
+    }] }).violations).toEqual([]);
+  });
+
+  it("rejects discharging frozen bibliographic metadata into a theorem", () => {
+    const core = makeCitedCore();
+    core.statements.find((statement) => statement.id === "lem:borrowed-upper")!.source!.carrier = "bibliographic-metadata";
+    const plan = makeCitedPlan();
+    Object.assign(plan.nodes["lem:borrowed-upper"], {
+      lean_kind: "theorem",
+      gate: false,
+      gate_class: undefined,
+      citation_discharged: true,
+      target_file: "Borrowed.lean",
+      hyps: [],
+    });
+    plan.nodes["thm:main"].hyps = ["ass:reg"];
+    expect(runPlanGate(plan, core).violations).toContainEqual(
+      expect.objectContaining({ code: "P9", where: "lem:borrowed-upper" }),
+    );
+  });
+
+  it("rejects threading frozen bibliographic metadata as a theorem hypothesis", () => {
+    const core = makeCitedCore();
+    core.statements.find((statement) => statement.id === "lem:borrowed-upper")!.source!.carrier = "bibliographic-metadata";
+    const plan = makeCitedPlan();
+    Object.assign(plan.nodes["lem:borrowed-upper"], { lean_kind: "def" });
+    expect(runPlanGate(plan, core).violations).toContainEqual(
+      expect.objectContaining({ code: "P4", where: "thm:main", message: expect.stringContaining("cannot be a logical hyp") }),
+    );
+  });
+
+  it("rejects an emitted theorem or Prop-valued def behind a metadata plan entry", () => {
+    const core = makeCitedCore();
+    core.statements.find((statement) => statement.id === "lem:borrowed-upper")!.source!.carrier = "bibliographic-metadata";
+    const plan = makeCitedPlan();
+    Object.assign(plan.nodes["lem:borrowed-upper"], { lean_kind: "def", lean_name: "borrowedScopeMetadata" });
+    plan.nodes["thm:main"].hyps = ["ass:reg"];
+    const base = {
+      nodeId: "lem:borrowed-upper", declName: "borrowedScopeMetadata", namespace: "",
+      file: "Basic.lean", hasSorry: false,
+    };
+    for (const bad of [
+      { ...base, declKind: "theorem", statement: "theorem borrowedScopeMetadata : True" },
+      { ...base, declKind: "def", statement: "def borrowedScopeMetadata : Prop" },
+      { ...base, declKind: "def", statement: "def borrowedScopeMetadata : (Prop)" },
+      { ...base, declKind: "def", statement: "def borrowedScopeMetadata : Prop -- still logical" },
+      { ...base, declKind: "def", statement: "def borrowedScopeMetadata : Sort 0" },
+      { ...base, declKind: "def", statement: "def borrowedScopeMetadata : BibliographicCarrier" },
+      { ...base, declKind: "def", statement: "def borrowedScopeMetadata : String" },
+    ]) {
+      expect(runPlanGate(plan, core, { annotatedDecls: [bad] }).violations).toContainEqual(
+        expect.objectContaining({ code: "P9", where: "lem:borrowed-upper" }),
+      );
+    }
+  });
+
+  it("requires a fully-qualified plan name to match the emitted namespace", () => {
+    const core = makeCitedCore();
+    core.statements.find((statement) => statement.id === "lem:borrowed-upper")!.source!.carrier = "bibliographic-metadata";
+    const plan = makeCitedPlan();
+    Object.assign(plan.nodes["lem:borrowed-upper"], {
+      lean_kind: "def", lean_name: "Expected.borrowedScopeMetadata",
+    });
+    plan.nodes["thm:main"].hyps = ["ass:reg"];
+    expect(runPlanGate(plan, core, { annotatedDecls: [{
+      nodeId: "lem:borrowed-upper", declKind: "def", declName: "Wrong.borrowedScopeMetadata",
+      namespace: "Wrong", file: "Basic.lean", statement: "def borrowedScopeMetadata : _root_.List _root_.String", hasSorry: false,
+    }] }).violations).toContainEqual(expect.objectContaining({ code: "P9", where: "lem:borrowed-upper" }));
+  });
+
+  it("rejects hyps on a non-theorem plan node", () => {
+    const plan = makeCitedPlan();
+    (plan.nodes["lem:borrowed-upper"] as typeof plan.nodes["lem:borrowed-upper"] & { hyps?: string[] }).hyps = ["ass:reg"];
+    expect(runPlanGate(plan, makeCitedCore()).violations).toContainEqual(
+      expect.objectContaining({ code: "P4", where: "lem:borrowed-upper", message: expect.stringContaining("cannot carry hyps") }),
+    );
+  });
+
+  it("rejects hyps on a core assumption promoted to a lemma", () => {
+    const plan = makePlan();
+    Object.assign(plan.nodes["ass:overlap"], {
+      lean_kind: "lemma", target_file: "Basic.lean", hyps: ["ass:overlap"],
+    });
+    expect(runPlanGate(plan, makeCore()).violations).toContainEqual(
+      expect.objectContaining({ code: "P4", where: "ass:overlap", message: expect.stringContaining("only a core statement") }),
+    );
   });
 
   it("rejects the proved shape without the gate.ts discharge stamp (F1 cannot self-discharge)", () => {
@@ -405,6 +580,18 @@ describe("F1 plan gate — P9 cited mapping", () => {
     const res = runPlanGate(plan, makeCitedCore());
     expect(res.violations).toEqual([]);
     expect(res.ok).toBe(true);
+  });
+
+  it("rejects citation discharge through an unverified reuse shortcut", () => {
+    const plan = makeCitedPlan();
+    Object.assign(plan.nodes["lem:borrowed-upper"], {
+      lean_kind: "theorem", gate: false, gate_class: undefined,
+      citation_discharged: true, disposition: "reuse", reuse: "Does.Not.Exist", hyps: [],
+    });
+    plan.nodes["thm:main"].hyps = ["ass:reg"];
+    expect(runPlanGate(plan, makeCitedCore()).violations).toContainEqual(
+      expect.objectContaining({ code: "P9", where: "lem:borrowed-upper" }),
+    );
   });
 
   it("requires the discharged cited node to match one sorry-free emitted declaration at F2", () => {
@@ -468,7 +655,7 @@ describe("F1 plan gate — P9 cited mapping", () => {
 });
 
 describe("F1 plan gate — P10 undelivered guard", () => {
-  it("allows an isolated secondary theorem and requires no emitted @node tag", () => {
+  it("rejects a planner-authored undelivered secondary theorem before downstream role review", () => {
     const core = makeCore();
     core.statements.find((s) => s.id === "oeq:tight")!.depends_on = [];
     const plan = makePlan();
@@ -481,7 +668,9 @@ describe("F1 plan gate — P10 undelivered guard", () => {
       nodes: new Set(Object.keys(plan.nodes).filter((id) => id !== "thm:main")),
       envs: new Set(["S1"]),
     };
-    expect(runPlanGate(plan, core, { leanTags }).violations).toEqual([]);
+    expect(runPlanGate(plan, core, { leanTags }).violations).toContainEqual(
+      expect.objectContaining({ code: "P10", where: "thm:main" }),
+    );
   });
 
   it("rejects undelivered headline/support roles and delivered consumers", () => {

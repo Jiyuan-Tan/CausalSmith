@@ -53,28 +53,25 @@ section Group
 
 variable {n : ℕ} (K : ℕ) (a b : Fin n → ℝ)
 
-/-- Empirical mean of the treated-state outcomes among the units observed treated under the
-realized assignment `w`: `(1/K)∑_{j: wⱼ=1} a j`, written with the treatment indicators. -/
+/-- For [a population of $n$ units](hyp:n), [a treated-unit count $K$](hyp:K), [their treated potential outcomes](hyp:a), and [a realized assignment](hyp:w), the [observed mean among treated units](goal) is $K^{-1}\sum_j T_j a_j$. -/
 noncomputable def obsMeanTreated (w : Fin n → Bool) : ℝ :=
   (∑ j, T j w * a j) / K
 
-/-- Empirical mean of the untreated-state outcomes among the units observed in control under the
-realized assignment `w`: `(1/(n−K))∑_{j: wⱼ=0} b j`. -/
+/-- For [a population of $n$ units](hyp:n), [a treated-unit count $K$](hyp:K), [their control potential outcomes](hyp:b), and [a realized assignment](hyp:w), the [observed mean among control units](goal) is $(n-K)^{-1}\sum_j(1-T_j)b_j$. -/
 noncomputable def obsMeanControl (w : Fin n → Bool) : ℝ :=
   (∑ j, (1 - T j w) * b j) / (n - K : ℝ)
 
-/-- Observed sample variance among the `K` treated units, `Ŝ₁`, with `K−1` denominator:
-`(1/(K−1))∑_{j: wⱼ=1}(a j − ā_obs)²`. -/
+/-- For [a population of $n$ units](hyp:n), [a treated-unit count $K$](hyp:K), [their treated potential outcomes](hyp:a), and [a realized assignment](hyp:w), the [observed sample variance among treated units](goal) is $(K-1)^{-1}\sum_jT_j(a_j-\bar a_{\mathrm{obs}})^2$. -/
 noncomputable def ShatTreated (w : Fin n → Bool) : ℝ :=
   (∑ j, T j w * (a j - obsMeanTreated K a w) ^ 2) / (K - 1 : ℝ)
 
-/-- Observed sample variance among the `n−K` control units, `Ŝ₀`, with `n−K−1` denominator:
-`(1/(n−K−1))∑_{j: wⱼ=0}(b j − b̄_obs)²`. -/
+/-- For [a population of $n$ units](hyp:n), [a treated-unit count $K$](hyp:K), [their control potential outcomes](hyp:b), and [a realized assignment](hyp:w), the [observed sample variance among control units](goal) is $(n-K-1)^{-1}\sum_j(1-T_j)(b_j-\bar b_{\mathrm{obs}})^2$. -/
 noncomputable def ShatControl (w : Fin n → Bool) : ℝ :=
   (∑ j, (1 - T j w) * (b j - obsMeanControl K b w) ^ 2) / (n - K - 1 : ℝ)
 
-/-- **Conservative variance estimator** `v̂ar = Ŝ₁/K + Ŝ₀/(n−K)`, the empirical analogue of the
-first two terms of the Neyman variance.  Computable from a single realized assignment. -/
+/-- For [a population of $n$ units](hyp:n), [a treated-unit count $K$](hyp:K), [their treated potential outcomes](hyp:a), [their control potential outcomes](hyp:b), and [a realized assignment](hyp:w), the [conservative variance estimator](goal) is the treated observed sample variance divided by $K$ plus the control observed sample variance divided by $n-K$.
+
+It is the empirical analogue of the first two terms of the Neyman variance and is computable from a single realized assignment. -/
 noncomputable def varHat (w : Fin n → Bool) : ℝ :=
   ShatTreated K a w / K + ShatControl K b w / (n - K : ℝ)
 

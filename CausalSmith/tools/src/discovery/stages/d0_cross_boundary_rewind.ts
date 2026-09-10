@@ -1,27 +1,32 @@
-/** Typed, fail-closed completion of F→D0 rewind intents. */
+/** Typed, fail-closed completion of F→D0 rewind intents, on the graph store.
+ *
+ *   incremental_repair — the accepted paper is repaired in place: a directive.
+ *   extension          — a new D-1.2 proposal revision extends the accepted paper:
+ *                        every accepted node must survive unchanged; the new nodes
+ *                        are committed onto main and opened for solving.
+ *   replacement        — handled by the ordinary D-1.2 path (no carry).
+ */
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import type { PipelineContext, StateJson } from "../../types.js";
 import { coreNodeIds } from "../core/schema.js";
 import { readTypedCore } from "../core/core_io.js";
 import { coreJsonPath } from "./d0_core.js";
-import { commitD0StoreReplacement } from "./d0_apply.js";
-import { prepareD0ExtensionRebase } from "./d0_rebase_baseline.js";
 import { protoCoreJsonPath } from "./neg1_2_author.js";
-import {
-  appendEscalationLog,
-  loadWorkingState,
-  proposalRevision,
-  readEscalationLog,
-} from "./d0_working.js";
+import { appendEscalationLog, readEscalationLog } from "../escalation_log.js";
+import { proposalRevision } from "../proposal_revision.js";
+import { commitGraph, headGraph, publishCore } from "../vcs/commit.js";
+import { ensureStore } from "../vcs/round.js";
+import { graphFromCore } from "../vcs/render.js";
+import { formatViolations } from "../vcs/checks.js";
+import { contentKey, nodeTypeOf } from "../vcs/node.js";
 
 const sha256 = (text: string): string => createHash("sha256").update(text).digest("hex");
 
 /**
  * Detect a pre-fix F→D state already parked at D-1.2. The old receipt records
  * only that `stage_0` was requested, not whether it meant repair, extension, or
- * replacement, so no conversion is logically justified. Stop before D-0.5 can
- * review the stale proto and require the operator to classify the intent.
+ * replacement, so no conversion is logically justified.
  */
 export function legacyCrossBoundaryRewindGuard(state: StateJson): string | null {
   if (
@@ -38,10 +43,7 @@ export function legacyCrossBoundaryRewindGuard(state: StateJson): string | null 
 }
 
 /** Seal the accepted source before the extension author sees it. Idempotent on resume. */
-export async function sealPendingExtensionSource(args: {
-  ctx: PipelineContext;
-  state: StateJson;
-}): Promise<void> {
+export async function sealPendingExtensionSource(args: { ctx: PipelineContext; state: StateJson }): Promise<void> {
   const receipt = args.state.flags.d0_cross_boundary_rewind;
   if (!receipt || receipt.intent !== "extension" || receipt.status !== "pending") return;
   const revision = proposalRevision(args.state);
@@ -59,29 +61,17 @@ export async function sealPendingExtensionSource(args: {
   receipt.source_ids = ids;
 }
 
-/**
- * Pick D-1.2's edit base. The first extension draft edits the accepted D0 core,
- * never the stale pre-D0 proto; later revise rounds edit their immediately prior
- * extension proposal.
- */
-export function extensionEditBasePath(args: {
-  ctx: PipelineContext;
-  state: StateJson;
-  ordinaryProtoPath: string;
-}): string {
+/** D-1.2's edit base: the first extension draft edits the accepted D0 core, never
+ *  the stale pre-D0 proto; later revise rounds edit their prior extension proposal. */
+export function extensionEditBasePath(args: { ctx: PipelineContext; state: StateJson; ordinaryProtoPath: string }): string {
   const receipt = args.state.flags.d0_cross_boundary_rewind;
-  return receipt?.intent === "extension" &&
-      receipt.status === "pending" &&
-      proposalRevision(args.state) === receipt.source_revision
+  return receipt?.intent === "extension" && receipt.status === "pending" && proposalRevision(args.state) === receipt.source_revision
     ? coreJsonPath(args.ctx)
     : args.ordinaryProtoPath;
 }
 
-/** Consume an incremental repair as a D0 directive without touching proto/cursor. */
-export async function consumePendingIncrementalRewind(args: {
-  ctx: PipelineContext;
-  state: StateJson;
-}): Promise<void> {
+/** Consume an incremental repair as a D0 directive. */
+export async function consumePendingIncrementalRewind(args: { ctx: PipelineContext; state: StateJson }): Promise<void> {
   const receipt = args.state.flags.d0_cross_boundary_rewind;
   if (!receipt || receipt.intent !== "incremental_repair" || receipt.status !== "pending") return;
   if (proposalRevision(args.state) !== receipt.source_revision) {
@@ -90,34 +80,23 @@ export async function consumePendingIncrementalRewind(args: {
   const marker = `[CROSS-BOUNDARY D0 INCREMENTAL ${sha256(JSON.stringify(receipt)).slice(0, 16)}]`;
   const journal = await readEscalationLog(args.ctx);
   if (!journal.some((entry) => entry.directive?.includes(marker))) {
-    const working = await loadWorkingState(args.ctx);
-    if (!working || working.proposal_revision !== receipt.source_revision) {
-      throw new Error("incremental D0 rewind requires the accepted working cursor at its source revision");
-    }
     await appendEscalationLog(args.ctx, {
-      round: working.round,
-      changed: [],
+      round: args.state.flags.d0_loop_counters?.solve_rounds ?? 0,
       directive:
-        `${marker} Repair the accepted D0 paper in place. Preserve its proto and working cursor; ` +
-        `do not replace the accepted claim catalogue. Root-cause directive: ${receipt.reason}`,
+        `${marker} Repair the accepted D0 paper in place; do not replace the accepted claim catalogue. ` +
+        `Root-cause directive: ${receipt.reason}`,
     });
   }
   delete args.state.flags.d0_cross_boundary_rewind;
-  // The journal entry above is now the durable provenance. The old routing
-  // marker must not survive without its typed receipt: a later legitimate
-  // angle pivot would otherwise be mistaken for a pre-fix ambiguous rewind.
   args.state.flags.rewound_from_stage0 = null;
 }
 
 /**
- * Before the first D0 solve of an extension, atomically carry every accepted
- * proof onto the new additive proposal revision. Omission or mutation of any
- * accepted node aborts before either authoritative store is changed.
+ * Before the first D0 solve of an extension, commit the extension proposal's new
+ * nodes onto main. Every accepted node must be present and content-identical in the
+ * extension proto; omission or mutation aborts before main is touched.
  */
-export async function finalizePendingExtensionRebase(args: {
-  ctx: PipelineContext;
-  state: StateJson;
-}): Promise<void> {
+export async function finalizePendingExtensionRebase(args: { ctx: PipelineContext; state: StateJson }): Promise<void> {
   const receipt = args.state.flags.d0_cross_boundary_rewind;
   if (!receipt || receipt.intent !== "extension" || receipt.status !== "pending") return;
   const extensionRevision = proposalRevision(args.state);
@@ -128,61 +107,42 @@ export async function finalizePendingExtensionRebase(args: {
   if (!receipt.source_core_sha256 || sha256(sourceCoreBytes) !== receipt.source_core_sha256) {
     throw new Error("extension D0 rewind accepted-core basis changed; refusing rebase");
   }
-  const sourceCore = await readTypedCore(coreJsonPath(args.ctx));
-  const sourceIds = [...coreNodeIds(sourceCore)].sort();
-  if (!receipt.source_ids || JSON.stringify(sourceIds) !== JSON.stringify(receipt.source_ids)) {
-    throw new Error("extension D0 rewind accepted node set changed; refusing rebase");
+  const store = await ensureStore(args.ctx, args.state);
+  const { head, graph: accepted } = await headGraph(store);
+  const extension = graphFromCore(await readTypedCore(protoCoreJsonPath(args.ctx)), accepted);
+  const missing: string[] = [];
+  const mutated: string[] = [];
+  for (const [id, blob] of accepted.nodes) {
+    if (nodeTypeOf(id) === "meta" || nodeTypeOf(id) === "bib") continue;
+    if (blob.node_type === "statement" && blob.body.resolved_by !== undefined) continue;
+    const ext = extension.nodes.get(id);
+    if (ext === undefined) missing.push(id);
+    else if (contentKey(ext) !== contentKey(blob)) mutated.push(id);
   }
-  const sourceWorking = await loadWorkingState(args.ctx);
-  if (!sourceWorking) throw new Error("extension D0 rewind has no accepted working cursor");
-  const protoPath = protoCoreJsonPath(args.ctx);
-  const protoBytes = await readFile(protoPath, "utf8");
-  const extensionProto = await readTypedCore(protoPath);
-  const journal = await readEscalationLog(args.ctx);
-  const consumed = sourceWorking.escalation_entries_consumed ?? 0;
-  if (consumed > journal.length) {
-    throw new Error("extension D0 rewind cursor is ahead of its escalation journal");
-  }
-  const actionableTail = journal.slice(consumed).filter((entry) =>
-    entry.provenance_only !== true &&
-    (entry.changed.length > 0 || !!entry.directive || !!entry.require_core_changes ||
-      (entry.required_core_targets ?? []).length > 0 ||
-      (entry.required_core_edits ?? []).length > 0 ||
-      (entry.required_core_edit_mandates ?? []).length > 0 ||
-      (entry.cancelled_core_edit_mandates ?? []).length > 0 ||
-      !!entry.cancel_require_core_changes ||
-      (entry.cancelled_core_targets ?? []).length > 0));
-  if (actionableTail.length > 0) {
+  if (missing.length > 0 || mutated.length > 0) {
     throw new Error(
-      `extension D0 rewind has ${actionableTail.length} unconsumed actionable directive(s); ` +
-      `repair/adjudicate them before rebasing`,
+      `extension D0 rewind refuses the extension proposal: ` +
+        `${missing.length > 0 ? `accepted node(s) omitted: ${missing.join(", ")}` : ""}` +
+        `${missing.length > 0 && mutated.length > 0 ? "; " : ""}` +
+        `${mutated.length > 0 ? `accepted node(s) mutated: ${mutated.join(", ")}` : ""}`,
     );
   }
-  const plan = prepareD0ExtensionRebase({
-    sourceCore,
-    sourceWorking,
-    extensionProto,
-    sourceRevision: receipt.source_revision,
-    extensionRevision,
-    escalationEntries: journal.length,
+  // Accepted nodes keep their accepted versions (proofs included); everything else
+  // comes from the extension proposal.
+  const nodes = new Map(extension.nodes);
+  const tree = { ...extension.tree };
+  for (const [id, blob] of accepted.nodes) {
+    if (nodes.has(id)) { nodes.set(id, blob); tree[id] = { ...tree[id], blob: accepted.tree[id].blob }; }
+  }
+  const added = [...nodes.keys()].filter((id) => !accepted.nodes.has(id));
+  const result = await commitGraph({
+    store, graph: { tree, nodes }, parents: [head], author: "pipeline", kind: "direct",
+    message: `extension rebase: ${added.length} new node(s) onto the accepted paper — ${receipt.reason}`, expectedHead: head,
+    meta: { added, extension_revision: extensionRevision, source_revision: receipt.source_revision },
   });
-  const stateAfter = structuredClone(args.state);
-  delete stateAfter.flags.d0_cross_boundary_rewind;
-  stateAfter.flags.rewound_from_stage0 = null;
-  const transactionId = await commitD0StoreReplacement({
-    ctx: args.ctx,
-    expectedProtoBytes: protoBytes,
-    protoAfter: plan.proto,
-    workingAfter: plan.working,
-    stateAfter,
-    note:
-      `CROSS-BOUNDARY EXTENSION REBASE: preserved ${plan.preservedIds.length} accepted node(s); ` +
-      `opened ${plan.addedIds.length} additive node(s); directive=${receipt.reason}`,
-  });
+  if (!result.ok) throw new Error(`extension rebase refused:\n${formatViolations(result.violations)}`);
+  await publishCore(args.ctx, store);
   delete args.state.flags.d0_cross_boundary_rewind;
   args.state.flags.rewound_from_stage0 = null;
-  console.warn(
-    `[D0] completed extension rebase ${transactionId}: preserved ${plan.preservedIds.length}, ` +
-      `added ${plan.addedIds.length}`,
-  );
+  console.warn(`[D0] completed extension rebase ${result.id.slice(0, 12)}: preserved ${accepted.nodes.size}, added ${added.length}`);
 }

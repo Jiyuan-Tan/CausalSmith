@@ -62,7 +62,9 @@ open MeasureTheory ProbabilityTheory Filter Topology Causalean.Stat
 
 /-! ## Oracle score -/
 
-/-- Oracle score `ρ₀(w) := φ_{h₀, q₀}(w) − θ₀`.
+/-- For [a measurable sample space](hyp:Ω) with [a measure](hyp:μ), [an inverse-problem system](hyp:S), [a dual nuisance function on the instrument space](hyp:q₀), and [an observation](hyp:w), [the oracle score](goal) is the doubly robust pseudo-outcome formed from the system's primal nuisance function and the supplied dual nuisance function at that observation, minus the system's scalar target.
+
+Oracle score `ρ₀(w) := φ_{h₀, q₀}(w) − θ₀`.
 
 This is the influence function in `thm:est-trae-dr-al-criterion`. -/
 noncomputable def ρ₀

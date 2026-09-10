@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { placeSynthesizedDefinitions } from "../src/presentation/stages/p1_plan.js";
+import { rewriteOutlineObjs } from "../src/presentation/p1_order.js";
 import { parseOutline } from "../src/presentation/stage_util.js";
 
 // The outline `# Title` block is `**<Title>.** <one-line gloss/description>`.
@@ -39,15 +39,16 @@ describe("outline title extraction", () => {
   });
 });
 
-describe("synthesized-definition placement", () => {
-  it("prepends synthetic env ids to the setup section exactly once", () => {
+describe("outline objs rewrite (P1 writes the computed paper order back)", () => {
+  it("replaces each section's objs line and round-trips through parseOutline", () => {
     const md = [
       "# Title", "**T.**", "# Notation", "| a | b | c |", "# Sections",
       "## section: Introduction", "brief", "objs: none", "bib: none",
       "## section: Setup and Assumptions", "brief", "objs: ass:x, def:y", "bib: smith2020",
     ].join("\n");
-    const placed = placeSynthesizedDefinitions(md, ["synth_2", "synth_1", "synth_2"]);
-    expect(parseOutline(placed).sections[1].objs).toEqual(["synth_2", "synth_1", "ass:x", "def:y"]);
+    const placed = rewriteOutlineObjs(md, new Map([["Setup and Assumptions", ["synth_2", "synth_1", "ass:x", "def:y"]]]));
+    expect(parseOutline(placed).sections.map((s) => s.objs)).toEqual([[], ["synth_2", "synth_1", "ass:x", "def:y"]]);
+    expect(parseOutline(placed).sections[1].bib).toEqual(["smith2020"]);
   });
 });
 

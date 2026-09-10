@@ -1,0 +1,1251 @@
+{
+  "qid": "exp_dense_group_partition_projection_phase",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "target_estimand": "\\(\\tau_n=\\mathbb E_n[h_{1,n}(A)-h_{0,n}(A)]\\)",
+  "estimand_functional": "\\(\\widehat\\tau_n=G_{1n}^{-1}\\sum_gZ_{ng}h_{1,n}(A_{ng})-G_{0n}^{-1}\\sum_g(1-Z_{ng})h_{0,n}(A_{ng}),\\quad G_n\\operatorname{Var}(\\widehat\\tau_n)=R_n-\\rho E_{\\tau,1,n}+o(1)\\)",
+  "sampling_model": {
+    "design": "Uniformly draw an ordered tuple of \\(G_n\\) pairwise-disjoint \\(M\\)-subsets of \\(\\mathcal U_n\\), then independently and completely randomize exactly \\(G_{1n}\\) group labels to treatment.",
+    "units": "The \\(n\\) labeled units and every composition-indexed potential outcome are fixed; assignment is the only randomness.",
+    "treatment": "Treatment is shared within each realized group, with \\(p_n=G_{1n}/G_n\\to p\\in(0,1)\\).",
+    "overlap": "The grouped-unit fraction satisfies \\(N_n/n\\to\\rho\\in[0,1]\\); no birthday-scale condition on \\(N_n^2/n\\) is imposed.",
+    "nuisance_estimation": "There are no superpopulation nuisances. The latent object affecting exact variance is \\(E_{\\tau,1,n}\\), the degree-one Johnson energy of the arm difference."
+  },
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "FuSamiiWang2026",
+      "comparator_claim": "Theorems 1--2 give asymptotic normality and CR2 ratio consistency for a fixed finite menu of admissible group sizes under shared boundedness, their Assumption 1, and \\(N_n^2/n\\to0\\).",
+      "matched_by": "The dense CR2 frontier and sparse CR2-ratio theorem give unconditional variance-estimation comparisons for the homogeneous fixed-size design; no Gaussian counterpart is claimed.",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Filmus2016",
+      "comparator_claim": "Theorem 3 and the Johnson-scheme discussion provide an orthogonal harmonic basis and common eigenspaces for functions on a slice.",
+      "matched_by": "The exact Kneser identity",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BrouwerEtAl2018",
+      "comparator_claim": "Proposition 3.1 records the classical eigenvalues for distance graphs in the Johnson scheme, including the Kneser relation.",
+      "matched_by": "The exact Kneser identity",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "LiDing2017",
+      "comparator_claim": "Theorems 3--4 establish finite-population Gaussian limits for complete randomization on fixed experimental units.",
+      "matched_by": "The exact PAME variance proof uses complete-randomization algebra, but this note claims no Gaussian analogue.",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Ohlsson1989",
+      "comparator_claim": "The paper proves asymptotic normality for conventional two-stage finite-population sampling with fixed stage-specific values.",
+      "matched_by": "No Gaussian analogue is claimed because randomly assembled disjoint groups generate composition-indexed scores rather than fixed stage-specific values.",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "PustejovskyTipton2018",
+      "comparator_claim": "Theorem 1 makes CR2 exactly unbiased under a specified independent-cluster working covariance model.",
+      "matched_by": "The dense CR2 frontier shows the nonextension to positive-density finite-pool competition; it does not refute the working-model guarantee.",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "SuDing2021",
+      "comparator_claim": "Theorem 1 relates regression sandwich estimators to conservative Neyman variances when clusters are fixed.",
+      "matched_by": "The dense CR2 frontier treats randomly formed disjoint groups and identifies the additional projection correction.",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HarshawMiddletonSavje2026",
+      "comparator_claim": "The paper characterizes optimized estimable conservative quadratic variance bounds under interference and complex designs because exact variance is generally unavailable.",
+      "matched_by": "The one-realization lower bound supplies a new positive-density nonextension certificate for exact variance estimation.",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BasseAiroldi2018",
+      "comparator_claim": "Theorems 1--2 show that design-unbiased estimators can fail to concentrate under arbitrary or network interference.",
+      "matched_by": "The one-realization lower bound instead uses equal observation mixtures and separated dense PAME variance limits.",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "When a positive fraction of eligible units is partitioned, randomly formed groups do not behave as independent regression clusters. The normalized Kneser operator gives an exact design variance identity and a schedule-uniform expansion in which only the degree-one Johnson projection of the arm difference survives at first order. Unconditionally, scalar equal-group CR2 converges to the independent-group variance: it is conservative at positive density and ratio-consistent exactly when the projection correction is negligible; at zero density it is ratio-consistent under \\(N_n/n\\to0\\), without \\(N_n^2/n\\to0\\). No Gaussian, studentization, or Wald-coverage result is claimed. The versioned \\({\\tt clubSandwich}\\) call returns this scalar CR2 formula exactly, and the eight-unit witness has true variance \\(1/7\\) but expected CR2 \\(2/7\\). An equal-observation Rademacher construction yields a new positive-density nonextension lower bound: no one-realization estimator is uniformly ratio-consistent for exact variance over the full dense class, already on an additive no-interference subclass.",
+  "project_justification": {
+    "gap": "\\cite{FuSamiiWang2026} obtains PAME inference by coupling the disjoint group tuple to independent draws under its Assumption 1 and \\(N_n^2/n\\to0\\). That approximation omits the first-order finite-pool covariance present when \\(N_n/n\\to\\rho>0\\), and an independent-cluster CR2 calculation does not restore it. Existing independent-cluster and conventional two-stage sampling central-limit theorems do not provide an unconditional Gaussian result for arbitrary bounded composition-indexed schedules.",
+    "niche": "Disjointness is a Kneser operator on the uniform \\(M\\)-slice. This makes the exact causal variance and the CR2 discrepancy computable degree by degree under the assignment law, without introducing a superpopulation or a Gaussian approximation. The same geometry isolates the unobserved degree-one cross-arm energy that obstructs uniform exact-variance recovery from one partition.",
+    "fill": "The project derives the exact spectrum-weighted PAME variance, a schedule-uniform \\(O(n^{-1})\\) dense projection expansion, the unconditional scalar CR2 probability limit and its sharp ratio-consistency frontier, and the zero-density CR2 ratio result without a birthday-scale condition. It verifies the precise versioned software consumer and the \\(n=8\\) witness. Finally, equal observed-data mixtures with separated positive-density variance limits and a nondegenerate first-sign certificate prove an all-statistic nonextension lower bound. The paper deliberately makes no Gaussian, studentization, or Wald-coverage claim."
+  },
+  "related_work": "\\cite{FuSamiiWang2026} is the closest theorem-level comparator: its Section 3 allows a fixed finite menu of group sizes, and its Theorems 1--2 obtain asymptotic normality and CR2 ratio consistency under shared boundedness, its Assumption 1, and \\(N_n^2/n\\to0\\). The present positive results concern the homogeneous fixed-size subcase and are unconditional variance statements: exact Kneser covariance, the dense projection expansion, the CR2 ratio frontier, and zero-density CR2 ratio consistency under only \\(N_n/n\\to0\\). They do not import or claim a Gaussian extension. \\cite{Ohlsson1989} proves a conventional two-stage finite-population sampling central limit theorem with fixed stage-specific values; it does not cover composition-indexed scores generated by randomly assembling disjoint groups, and no Gaussian theorem is imported from it here. The slice-harmonic architecture comes from \\cite{Filmus2016}, while Proposition 3.1 of \\cite{BrouwerEtAl2018} supplies the classical Kneser spectrum; the causal covariance quadratic form and dense projection limit are derived here. Complete-randomization algebra is informed by \\cite{LiDing2017}, without invoking its finite-population central limit theorem. The versioned \\({\\tt clubSandwich}\\) 0.7.0 and \\({\\tt sandwich}\\) 3.1-3 source contracts supply the exact software assembly, adjustment, bread, and scaling semantics. \\cite{PustejovskyTipton2018} calibrates CR2 under an independent-cluster working covariance model, and \\cite{SuDing2021} gives a fixed-cluster design-based regression comparison; neither model includes positive-density competition among disjoint random groups. Accordingly, the lower bound here is a new positive-density nonextension result, not a contradiction of the \\cite{PustejovskyTipton2018} guarantee on its stated domain or of the birthday-sparse \\cite{FuSamiiWang2026} theorem. \\cite{HarshawMiddletonSavje2026} studies optimized estimable conservative quadratic variance bounds when exact variance is inaccessible, and \\cite{BasseAiroldi2018} supplies general interference nonconcentration logic; neither gives the equal-observation dense-PAME lower bound here. \\cite{AronowGreenLee2014} gives sharp variance bounds for ordinary complete randomization, while global completion of a composition-indexed group table is distinct. \\cite{BasseDingFellerToulis2024} and \\cite{PuelzBasseFellerToulis2022} obtain exact tests by making peer-effect nulls sharp through symmetry or conditioning; PAME remains non-sharp from one random partition.",
+  "technical_internal_limitation": "Finite-sample CR2 conservativeness is not asserted: its exact bias is \\(-C_{\\tau\\tau,n}\\), and the higher Johnson eigenvalues alternate in sign. Conservativeness emerges only at the \\(G_n\\)-scale, where the negative degree-one eigenvalue is the sole surviving correction. The results establish variance expansions and variance-estimator ratios, not a central limit theorem, studentized limit, or Wald coverage. The Rademacher variance limits separate only when \\(\\rho>0\\); at \\(\\rho=0\\) their gap vanishes. The impossibility certificate is proved on additive no-interference schedules and transfers upward to the arbitrary bounded composition class, but it does not identify an optimal conservative variance bound. The \\(O_{\\mathbb P}(G_n^{-1/2})\\) CR2 fluctuation statement is an upper bound, so \\(N_n\\asymp n^{2/3}\\) is only a benchmark crossover rather than a proved exact noise-order elbow. Positive results remain restricted to homogeneous fixed group size.",
+  "honest_scope": "The exact Kneser covariance, finite-sample PAME variance, schedule-uniform dense projection expansion, and CR2 variance and ratio expansions are design-based conclusions for fixed composition-indexed potential outcomes under the stated homogeneous random-partition design. At \\(\\rho=0\\), CR2 is ratio-consistent under \\(N_n/n\\to0\\) without requiring \\(N_n^2/n\\to0\\); this is a variance-estimation result only. No centered Gaussian limit, CR2 studentization law, or Wald-coverage claim remains. The software identity is confined to the stated unweighted equal-group intercept-plus-binary-treatment fit and the versioned package semantics. The one-realization impossibility theorem assumes \\(G_n\\to\\infty\\), \\(p_n\\to p\\in(0,1)\\), and \\(N_n/n\\to\\rho\\in(0,1]\\). It is a positive-density nonextension lower bound proved on additive no-interference schedules, with a high-probability design region where the first observed sign has both support probabilities bounded below and conditional variance bounded away from zero; it therefore transfers to the full arbitrary bounded composition class. It does not contradict \\cite{FuSamiiWang2026} in its birthday-sparse regime or \\cite{PustejovskyTipton2018} under its independent-cluster working model. No finite-sample CR2 conservativeness or variable-group-size extension is asserted.",
+  "symbols": [
+    {
+      "name": "n",
+      "type": "ambient finite-population size",
+      "space": "\\(\\mathbb N\\)",
+      "def": "The number of labeled units in the finite population at row \\(n\\).",
+      "role": "asymptotic index"
+    },
+    {
+      "name": "M",
+      "type": "common group size",
+      "space": "\\(\\{2,3,\\ldots\\}\\)",
+      "def": "A fixed group size that does not vary with \\(n\\).",
+      "role": "design constant"
+    },
+    {
+      "name": "G_n",
+      "type": "number of realized groups",
+      "space": "\\(\\mathbb N\\)",
+      "def": "The number of disjoint groups formed at row \\(n\\).",
+      "role": "design size",
+      "refs": [
+        "n",
+        "M"
+      ]
+    },
+    {
+      "name": "G_{1n}",
+      "type": "number of treated groups",
+      "space": "\\(\\{1,\\ldots,G_n-1\\}\\)",
+      "def": "The fixed number of realized groups assigned treatment.",
+      "role": "treatment allocation",
+      "refs": [
+        "G_n"
+      ]
+    },
+    {
+      "name": "G_{0n}",
+      "type": "number of control groups",
+      "space": "\\(\\mathbb N\\)",
+      "def": "\\(G_{0n}=G_n-G_{1n}\\).",
+      "role": "control allocation",
+      "refs": [
+        "G_n",
+        "G_{1n}"
+      ]
+    },
+    {
+      "name": "N_n",
+      "type": "number of grouped units",
+      "space": "\\(\\{M,2M,\\ldots,n\\}\\)",
+      "def": "\\(N_n=MG_n\\le n\\).",
+      "role": "first-stage sample size",
+      "refs": [
+        "n",
+        "M",
+        "G_n"
+      ]
+    },
+    {
+      "name": "p_n",
+      "type": "treated-group fraction",
+      "space": "\\((0,1)\\)",
+      "def": "\\(p_n=G_{1n}/G_n\\).",
+      "role": "allocation fraction",
+      "refs": [
+        "G_n",
+        "G_{1n}"
+      ]
+    },
+    {
+      "name": "p",
+      "type": "limiting treated-group fraction",
+      "space": "\\((0,1)\\)",
+      "def": "The limit of \\(p_n\\).",
+      "role": "asymptotic design parameter",
+      "refs": [
+        "p_n"
+      ]
+    },
+    {
+      "name": "\\rho",
+      "type": "limiting grouped-unit fraction",
+      "space": "\\([0,1]\\)",
+      "def": "The limit of \\(N_n/n\\).",
+      "role": "dense-regime parameter",
+      "refs": [
+        "n",
+        "N_n"
+      ]
+    },
+    {
+      "name": "B",
+      "type": "outcome envelope",
+      "space": "\\((0,\\infty)\\)",
+      "def": "A constant uniform over units, compositions, treatment arms, and rows.",
+      "role": "regularity constant"
+    },
+    {
+      "name": "c_\\sigma",
+      "type": "scaled-variance lower bound",
+      "space": "\\((0,\\infty)\\)",
+      "def": "A constant uniform over rows of the triangular array.",
+      "role": "nondegeneracy constant"
+    },
+    {
+      "name": "\\mathcal U_n",
+      "type": "labeled unit set",
+      "space": "\\(2^{\\mathbb N}\\)",
+      "def": "\\(\\mathcal U_n=\\{1,\\ldots,n\\}\\).",
+      "role": "finite population",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "\\Omega_{n,M}",
+      "type": "uniform slice of candidate groups",
+      "space": "\\(2^{2^{\\mathcal U_n}}\\)",
+      "def": "\\(\\Omega_{n,M}=\\{A\\subseteq\\mathcal U_n:|A|=M\\}\\), equipped with the uniform law.",
+      "role": "potential-group population",
+      "refs": [
+        "M",
+        "\\mathcal U_n"
+      ]
+    },
+    {
+      "name": "\\mathcal Z",
+      "type": "group-treatment menu",
+      "space": "\\(2^{\\{0,1\\}}\\)",
+      "def": "\\(\\mathcal Z=\\{0,1\\}\\).",
+      "role": "treatment domain"
+    },
+    {
+      "name": "Y_{i,n}(z,A)",
+      "type": "fixed composition-indexed potential outcome",
+      "space": "\\(\\mathbb R\\)",
+      "sig": "\\(Y_{i,n}:\\{(z,A):z\\in\\mathcal Z,\\ A\\in\\Omega_{n,M},\\ i\\in A\\}\\to\\mathbb R\\)",
+      "def": "The outcome of unit \\(i\\) if its realized group is \\(A\\) and that group receives arm \\(z\\); the complete schedule is deterministic.",
+      "role": "finite-population primitive",
+      "refs": [
+        "n",
+        "\\mathcal U_n",
+        "\\Omega_{n,M}",
+        "\\mathcal Z"
+      ]
+    },
+    {
+      "name": "h_{z,n}",
+      "type": "arm-specific potential-group mean",
+      "space": "\\(L^2(\\Omega_{n,M})\\)",
+      "sig": "\\(h_{z,n}:\\Omega_{n,M}\\to\\mathbb R\\)",
+      "def": "\\(h_{z,n}(A)=M^{-1}\\sum_{i\\in A}Y_{i,n}(z,A)\\).",
+      "role": "group-level schedule",
+      "refs": [
+        "M",
+        "\\Omega_{n,M}",
+        "\\mathcal Z",
+        "Y_{i,n}(z,A)"
+      ]
+    },
+    {
+      "name": "\\mathbb E_n",
+      "type": "uniform-slice expectation",
+      "sig": "\\(\\mathbb E_n f=\\binom nM^{-1}\\sum_{A\\in\\Omega_{n,M}}f(A)\\)",
+      "def": "Expectation under a uniform candidate group in \\(\\Omega_{n,M}\\).",
+      "role": "slice averaging operator",
+      "refs": [
+        "n",
+        "M",
+        "\\Omega_{n,M}"
+      ]
+    },
+    {
+      "name": "\\langle\\cdot,\\cdot\\rangle_n",
+      "type": "uniform-slice inner product",
+      "sig": "\\(\\langle f,g\\rangle_n=\\mathbb E_n[f(A)g(A)]\\)",
+      "def": "The \\(L^2\\) inner product on the uniform \\(M\\)-slice.",
+      "role": "spectral geometry",
+      "refs": [
+        "\\mathbb E_n",
+        "\\Omega_{n,M}"
+      ]
+    },
+    {
+      "name": "\\|\\cdot\\|_n",
+      "type": "uniform-slice norm",
+      "sig": "\\(\\|f\\|_n^2=\\langle f,f\\rangle_n\\)",
+      "def": "The norm induced by the uniform-slice inner product.",
+      "role": "spectral energy",
+      "refs": [
+        "\\langle\\cdot,\\cdot\\rangle_n"
+      ]
+    },
+    {
+      "name": "h_{z,n}^{\\circ}",
+      "type": "centered potential-group mean",
+      "space": "\\(L^2_0(\\Omega_{n,M})\\)",
+      "def": "\\(h_{z,n}^{\\circ}=h_{z,n}-\\mathbb E_n h_{z,n}\\).",
+      "role": "centered arm table",
+      "refs": [
+        "h_{z,n}",
+        "\\mathbb E_n",
+        "\\Omega_{n,M}"
+      ]
+    },
+    {
+      "name": "\\mathcal H_{n,k}",
+      "type": "Johnson harmonic subspace of degree \\(k\\)",
+      "space": "\\(L^2(\\Omega_{n,M})\\)",
+      "def": "The degree-\\(k\\) common eigenspace in the Johnson association scheme on \\(\\Omega_{n,M}\\), for \\(k=0,\\ldots,M\\).",
+      "role": "slice eigenspace",
+      "refs": [
+        "M",
+        "\\Omega_{n,M}"
+      ]
+    },
+    {
+      "name": "\\Pi_{n,k}",
+      "type": "Johnson harmonic projection",
+      "sig": "\\(\\Pi_{n,k}:L^2(\\Omega_{n,M})\\to\\mathcal H_{n,k}\\)",
+      "def": "The orthogonal projection under \\(\\langle\\cdot,\\cdot\\rangle_n\\) onto \\(\\mathcal H_{n,k}\\).",
+      "role": "spectral projection",
+      "refs": [
+        "\\Omega_{n,M}",
+        "\\mathcal H_{n,k}",
+        "\\langle\\cdot,\\cdot\\rangle_n"
+      ]
+    },
+    {
+      "name": "\\mathsf K_n",
+      "type": "normalized Kneser disjointness operator",
+      "sig": "\\((\\mathsf K_nf)(A)=\\binom{n-M}{M}^{-1}\\sum_{C\\in\\Omega_{n,M}:C\\cap A=\\varnothing}f(C)\\)",
+      "def": "The conditional expectation of a slice function at a uniform group disjoint from the argument.",
+      "role": "first-stage covariance operator",
+      "refs": [
+        "n",
+        "M",
+        "\\Omega_{n,M}"
+      ]
+    },
+    {
+      "name": "\\lambda_{n,k}",
+      "type": "normalized Kneser eigenvalue",
+      "space": "\\(\\mathbb R\\)",
+      "def": "The eigenvalue of \\(\\mathsf K_n\\) on \\(\\mathcal H_{n,k}\\).",
+      "role": "spectral multiplier",
+      "refs": [
+        "\\mathsf K_n",
+        "\\mathcal H_{n,k}"
+      ]
+    },
+    {
+      "name": "V_{z,n}",
+      "type": "uniform-slice arm variance",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(V_{z,n}=\\langle h_{z,n}^{\\circ},h_{z,n}^{\\circ}\\rangle_n\\).",
+      "role": "leading arm variation",
+      "refs": [
+        "h_{z,n}^{\\circ}",
+        "\\langle\\cdot,\\cdot\\rangle_n",
+        "\\mathcal Z"
+      ]
+    },
+    {
+      "name": "E_{\\tau,1,n}",
+      "type": "degree-one arm-difference energy",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(E_{\\tau,1,n}=\\|\\Pi_{n,1}(h_{1,n}-h_{0,n})\\|_n^2\\).",
+      "role": "dense projection correction",
+      "refs": [
+        "h_{z,n}",
+        "\\Pi_{n,k}",
+        "\\|\\cdot\\|_n"
+      ]
+    },
+    {
+      "name": "C_{ab,n}",
+      "type": "ordered-disjoint group covariance",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(C_{ab,n}=\\operatorname{Cov}(h_{a,n}(A),h_{b,n}(C))\\) when \\((A,C)\\) is uniform over ordered disjoint members of \\(\\Omega_{n,M}\\), for \\(a,b\\in\\mathcal Z\\).",
+      "role": "exact cross-group covariance",
+      "refs": [
+        "h_{z,n}",
+        "\\Omega_{n,M}",
+        "\\mathcal Z"
+      ]
+    },
+    {
+      "name": "C_{\\tau\\tau,n}",
+      "type": "ordered-disjoint arm-difference covariance",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(C_{\\tau\\tau,n}=C_{11,n}+C_{00,n}-2C_{10,n}\\).",
+      "role": "exact finite-pool correction",
+      "refs": [
+        "C_{ab,n}"
+      ]
+    },
+    {
+      "name": "\\mathbf A_n",
+      "type": "ordered random group tuple",
+      "space": "\\(\\Omega_{n,M}^{G_n}\\)",
+      "def": "\\(\\mathbf A_n=(A_{n1},\\ldots,A_{nG_n})\\) is uniform over ordered tuples of pairwise disjoint groups.",
+      "role": "first-stage randomization",
+      "refs": [
+        "G_n",
+        "\\Omega_{n,M}"
+      ]
+    },
+    {
+      "name": "\\mathbf Z_n",
+      "type": "complete group-treatment assignment",
+      "space": "\\(\\mathcal Z^{G_n}\\)",
+      "def": "\\(\\mathbf Z_n=(Z_{n1},\\ldots,Z_{nG_n})\\) is uniform over vectors with \\(\\sum_g Z_{ng}=G_{1n}\\), independently of \\(\\mathbf A_n\\).",
+      "role": "second-stage randomization",
+      "refs": [
+        "G_n",
+        "G_{1n}",
+        "\\mathcal Z",
+        "\\mathbf A_n"
+      ]
+    },
+    {
+      "name": "H^{\\mathrm{obs}}_{ng}",
+      "type": "observed group mean",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(H^{\\mathrm{obs}}_{ng}=Z_{ng}h_{1,n}(A_{ng})+(1-Z_{ng})h_{0,n}(A_{ng})\\).",
+      "role": "observed outcome summary",
+      "refs": [
+        "h_{z,n}",
+        "\\mathbf A_n",
+        "\\mathbf Z_n"
+      ]
+    },
+    {
+      "name": "\\tau_n",
+      "type": "finite-population PAME",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(\\tau_n=\\mathbb E_n h_{1,n}-\\mathbb E_n h_{0,n}\\).",
+      "role": "causal estimand",
+      "refs": [
+        "h_{z,n}",
+        "\\mathbb E_n"
+      ]
+    },
+    {
+      "name": "\\widehat\\tau_n",
+      "type": "group difference-in-means estimator",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(\\widehat\\tau_n=G_{1n}^{-1}\\sum_gZ_{ng}h_{1,n}(A_{ng})-G_{0n}^{-1}\\sum_g(1-Z_{ng})h_{0,n}(A_{ng})\\).",
+      "role": "design-based estimator",
+      "refs": [
+        "G_n",
+        "G_{1n}",
+        "G_{0n}",
+        "h_{z,n}",
+        "\\mathbf A_n",
+        "\\mathbf Z_n"
+      ]
+    },
+    {
+      "name": "\\sigma_n^2",
+      "type": "exact design variance",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(\\sigma_n^2=\\operatorname{Var}_{\\mathbf A_n,\\mathbf Z_n}(\\widehat\\tau_n)\\).",
+      "role": "inference target",
+      "refs": [
+        "\\widehat\\tau_n",
+        "\\mathbf A_n",
+        "\\mathbf Z_n"
+      ]
+    },
+    {
+      "name": "R_n",
+      "type": "independent-group leading variance",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(R_n=V_{1,n}/p_n+V_{0,n}/(1-p_n)\\).",
+      "role": "CR2 probability limit",
+      "refs": [
+        "p_n",
+        "V_{z,n}"
+      ]
+    },
+    {
+      "name": "s_{z,n}^2",
+      "type": "within-arm sample variance of observed group means",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(s_{z,n}^2=(G_{zn}-1)^{-1}\\sum_{g:Z_{ng}=z}(H^{\\mathrm{obs}}_{ng}-\\bar H_{z,n})^2\\), where \\(G_{zn}=G_{1n}\\) for \\(z=1\\), \\(G_{zn}=G_{0n}\\) for \\(z=0\\), and \\(\\bar H_{z,n}=G_{zn}^{-1}\\sum_{g:Z_{ng}=z}H^{\\mathrm{obs}}_{ng}\\).",
+      "role": "arm dispersion statistic",
+      "refs": [
+        "G_n",
+        "G_{1n}",
+        "G_{0n}",
+        "\\mathbf Z_n",
+        "H^{\\mathrm{obs}}_{ng}",
+        "\\mathcal Z"
+      ]
+    },
+    {
+      "name": "\\mathcal C_{\\mathrm{dense}}",
+      "type": "dense bounded schedule-array class",
+      "def": "The class defined in \\(\\mathrm{Definition}~\\ref{def:dense-schedule-class}\\).",
+      "role": "uniformity class",
+      "refs": [
+        "M",
+        "B",
+        "p",
+        "\\rho",
+        "c_\\sigma",
+        "\\sigma_n^2"
+      ]
+    },
+    {
+      "name": "\\widehat V_{\\mathrm{CR2},n}",
+      "type": "scalar equal-group CR2 variance estimator",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(\\widehat V_{\\mathrm{CR2},n}=s_{1,n}^2/G_{1n}+s_{0,n}^2/G_{0n}\\).",
+      "role": "studentizing variance estimator",
+      "refs": [
+        "G_{1n}",
+        "G_{0n}",
+        "s_{z,n}^2"
+      ]
+    },
+    {
+      "name": "\\mathcal O_n",
+      "type": "one-realization observed data",
+      "def": "\\(\\mathcal O_n=(\\mathcal U_n,\\mathbf A_n,\\mathbf Z_n,\\{Y_{i,n}(Z_{ng},A_{ng}):i\\in A_{ng},1\\le g\\le G_n\\})\\).",
+      "role": "variance-estimation observation channel",
+      "refs": [
+        "G_n",
+        "\\mathcal U_n",
+        "Y_{i,n}(z,A)",
+        "\\mathbf A_n",
+        "\\mathbf Z_n"
+      ]
+    },
+    {
+      "name": "\\widehat S_n",
+      "type": "generic one-realization exact-variance estimator",
+      "space": "\\(\\mathbb R^{\\mathcal O_n}\\)",
+      "sig": "\\(\\widehat S_n=\\widehat S_n(\\mathcal O_n)\\)",
+      "def": "An arbitrary measurable statistic of the single observed partition and treatment assignment.",
+      "role": "lower-bound competitor",
+      "refs": [
+        "\\mathcal O_n"
+      ]
+    },
+    {
+      "name": "\\mathbb H_n^{\\mathrm{same}}",
+      "type": "common-Rademacher prior on additive schedules",
+      "def": "Under independent Rademacher signs \\(U_1,\\ldots,U_n\\), set \\(Y_{i,n}(1,A)=Y_{i,n}(0,A)=U_i\\) for every admissible \\((i,A)\\).",
+      "role": "fuzzy-hypothesis construction",
+      "refs": [
+        "n",
+        "Y_{i,n}(z,A)"
+      ]
+    },
+    {
+      "name": "\\mathbb H_n^{\\mathrm{ind}}",
+      "type": "independent-Rademacher prior on additive schedules",
+      "def": "Under independent Rademacher pairs \\((U_i,V_i)\\), set \\(Y_{i,n}(1,A)=U_i\\) and \\(Y_{i,n}(0,A)=V_i\\) for every admissible \\((i,A)\\).",
+      "role": "fuzzy-hypothesis construction",
+      "refs": [
+        "n",
+        "Y_{i,n}(z,A)"
+      ]
+    },
+    {
+      "name": "\\mathbf a_8",
+      "type": "balanced eight-unit sign vector",
+      "space": "\\(\\{-1,1\\}^8\\)",
+      "def": "\\(\\mathbf a_8=(1,1,1,1,-1,-1,-1,-1)\\).",
+      "role": "finite witness"
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:group-count-growth",
+      "kind": "design asymptotics",
+      "condition": "\\(G_n\\to\\infty\\).",
+      "free_symbols": [
+        "G_n"
+      ],
+      "standard": {
+        "name": "Growing number of randomized groups",
+        "cite": "FuSamiiWang2026"
+      },
+      "used_by": [
+        "def:dense-schedule-class",
+        "prop:rademacher-mixture-separation",
+        "thm:dense-projection-limit",
+        "thm:qv-diagonal-impossibility"
+      ]
+    },
+    {
+      "id": "ass:stable-treatment-fraction",
+      "kind": "design asymptotics",
+      "condition": "\\(p_n\\to p\\in(0,1)\\).",
+      "free_symbols": [
+        "p_n",
+        "p"
+      ],
+      "standard": {
+        "name": "Stable complete-randomization arm fractions",
+        "cite": "LiDing2017"
+      },
+      "used_by": [
+        "def:dense-schedule-class",
+        "prop:rademacher-mixture-separation",
+        "thm:dense-projection-limit",
+        "thm:qv-diagonal-impossibility"
+      ]
+    },
+    {
+      "id": "ass:sampling-fraction",
+      "kind": "design asymptotics",
+      "condition": "\\(N_n/n\\to\\rho\\in[0,1]\\).",
+      "free_symbols": [
+        "n",
+        "N_n",
+        "\\rho"
+      ],
+      "standard": {
+        "name": "Finite-population sampling-fraction limit",
+        "cite": "Ohlsson1989"
+      },
+      "used_by": [
+        "def:dense-schedule-class",
+        "prop:rademacher-mixture-separation",
+        "thm:dense-projection-limit",
+        "thm:qv-diagonal-impossibility",
+        "thm:sparse-beyond-birthday"
+      ]
+    },
+    {
+      "id": "ass:bounded-potential-outcomes",
+      "kind": "support",
+      "condition": "\\(\\sup_{n,i,z,A}|Y_{i,n}(z,A)|\\le B<\\infty\\).",
+      "free_symbols": [
+        "n",
+        "B",
+        "\\mathcal Z",
+        "\\Omega_{n,M}",
+        "Y_{i,n}(z,A)"
+      ],
+      "standard": {
+        "name": "Uniformly bounded composition potential outcomes",
+        "cite": "FuSamiiWang2026"
+      },
+      "used_by": [
+        "def:dense-schedule-class",
+        "thm:dense-projection-limit"
+      ]
+    },
+    {
+      "id": "ass:scaled-variance-nondegeneracy",
+      "kind": "regularity",
+      "condition": "\\(\\liminf_{n\\to\\infty}G_n\\sigma_n^2\\ge c_\\sigma\\).",
+      "free_symbols": [
+        "n",
+        "G_n",
+        "\\sigma_n^2",
+        "c_\\sigma"
+      ],
+      "standard": {
+        "name": "Nondegenerate scaled design variance",
+        "cite": "LiDing2017"
+      },
+      "used_by": [
+        "def:dense-schedule-class",
+        "thm:cr2-phase-frontier",
+        "thm:sparse-beyond-birthday"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:random-partition-design",
+      "name": "two-stage dense random-group design",
+      "construction": "Draw \\(\\mathbf A_n\\) uniformly from ordered pairwise-disjoint \\(G_n\\)-tuples in \\(\\Omega_{n,M}\\), then independently draw \\(\\mathbf Z_n\\) uniformly from assignments with exactly \\(G_{1n}\\) treated groups.",
+      "free_symbols": [
+        "n",
+        "M",
+        "G_n",
+        "G_{1n}",
+        "\\Omega_{n,M}",
+        "\\mathbf A_n",
+        "\\mathbf Z_n"
+      ],
+      "inputs": [
+        "n",
+        "M",
+        "G_n",
+        "G_{1n}"
+      ]
+    },
+    {
+      "id": "def:group-table",
+      "name": "potential-group arm table",
+      "construction": "For every \\(z\\in\\mathcal Z\\) and \\(A\\in\\Omega_{n,M}\\), set \\(h_{z,n}(A)=M^{-1}\\sum_{i\\in A}Y_{i,n}(z,A)\\).",
+      "free_symbols": [
+        "n",
+        "M",
+        "\\mathcal Z",
+        "\\Omega_{n,M}",
+        "Y_{i,n}(z,A)",
+        "h_{z,n}"
+      ],
+      "inputs": [
+        "Y_{i,n}(z,A)"
+      ]
+    },
+    {
+      "id": "def:pame-estimator",
+      "name": "PAME and its difference-in-means estimator",
+      "construction": "Set \\(\\tau_n=\\mathbb E_n[h_{1,n}-h_{0,n}]\\) and \\(\\widehat\\tau_n=G_{1n}^{-1}\\sum_gZ_{ng}h_{1,n}(A_{ng})-G_{0n}^{-1}\\sum_g(1-Z_{ng})h_{0,n}(A_{ng})\\).",
+      "free_symbols": [
+        "G_n",
+        "G_{1n}",
+        "G_{0n}",
+        "h_{z,n}",
+        "\\mathbb E_n",
+        "\\mathbf A_n",
+        "\\mathbf Z_n",
+        "\\tau_n",
+        "\\widehat\\tau_n"
+      ],
+      "inputs": [
+        "h_{z,n}",
+        "\\mathbf A_n",
+        "\\mathbf Z_n"
+      ]
+    },
+    {
+      "id": "def:johnson-decomposition",
+      "name": "centered Johnson decomposition",
+      "construction": "For every \\(f\\in L^2(\\Omega_{n,M})\\), write \\(f-\\mathbb E_nf=\\sum_{k=1}^M\\Pi_{n,k}f\\) orthogonally under \\(\\langle\\cdot,\\cdot\\rangle_n\\).",
+      "free_symbols": [
+        "M",
+        "\\Omega_{n,M}",
+        "\\mathbb E_n",
+        "\\langle\\cdot,\\cdot\\rangle_n",
+        "\\Pi_{n,k}"
+      ],
+      "inputs": [
+        "f"
+      ]
+    },
+    {
+      "id": "def:kneser-covariance",
+      "name": "normalized disjointness covariance",
+      "construction": "Use \\((\\mathsf K_nf)(A)=\\binom{n-M}{M}^{-1}\\sum_{C:C\\cap A=\\varnothing}f(C)\\) and \\(C_{ab,n}=\\langle h_{a,n}^{\\circ},\\mathsf K_nh_{b,n}^{\\circ}\\rangle_n\\).",
+      "free_symbols": [
+        "n",
+        "M",
+        "h_{z,n}^{\\circ}",
+        "\\langle\\cdot,\\cdot\\rangle_n",
+        "\\mathsf K_n",
+        "C_{ab,n}"
+      ],
+      "inputs": [
+        "h_{z,n}^{\\circ}"
+      ]
+    },
+    {
+      "id": "def:dense-correction",
+      "name": "degree-one dense correction",
+      "construction": "Set \\(E_{\\tau,1,n}=\\|\\Pi_{n,1}(h_{1,n}-h_{0,n})\\|_n^2\\) and \\(R_n=V_{1,n}/p_n+V_{0,n}/(1-p_n)\\).",
+      "free_symbols": [
+        "p_n",
+        "h_{z,n}",
+        "\\Pi_{n,k}",
+        "\\|\\cdot\\|_n",
+        "V_{z,n}",
+        "E_{\\tau,1,n}",
+        "R_n"
+      ],
+      "inputs": [
+        "h_{z,n}"
+      ]
+    },
+    {
+      "id": "def:cr2-statistic",
+      "name": "equal-group scalar CR2 statistic",
+      "construction": "Compute the within-arm sample variances \\(s_{z,n}^2\\) with denominator \\(G_{zn}-1\\), then set \\(\\widehat V_{\\mathrm{CR2},n}=s_{1,n}^2/G_{1n}+s_{0,n}^2/G_{0n}\\).",
+      "free_symbols": [
+        "G_{1n}",
+        "G_{0n}",
+        "s_{z,n}^2",
+        "\\widehat V_{\\mathrm{CR2},n}"
+      ],
+      "inputs": [
+        "H^{\\mathrm{obs}}_{ng}",
+        "\\mathbf Z_n"
+      ]
+    },
+    {
+      "id": "def:dense-schedule-class",
+      "name": "\\(\\mathcal C_{\\mathrm{dense}}\\)",
+      "construction": "\\(\\mathcal C_{\\mathrm{dense}}=\\{(Y_{i,n},G_n,G_{1n})_{n\\ge1}:G_n\\to\\infty,\\ p_n\\to p,\\ N_n/n\\to\\rho,\\ \\sup_{n,i,z,A}|Y_{i,n}(z,A)|\\le B,\\ \\liminf_nG_n\\sigma_n^2\\ge c_\\sigma\\}\\).",
+      "free_symbols": [
+        "n",
+        "M",
+        "G_n",
+        "G_{1n}",
+        "N_n",
+        "p_n",
+        "p",
+        "\\rho",
+        "B",
+        "c_\\sigma",
+        "Y_{i,n}(z,A)",
+        "\\sigma_n^2",
+        "\\mathcal C_{\\mathrm{dense}}"
+      ],
+      "by_member_properties": [
+        "ass:group-count-growth",
+        "ass:stable-treatment-fraction",
+        "ass:sampling-fraction",
+        "ass:bounded-potential-outcomes",
+        "ass:scaled-variance-nondegeneracy"
+      ]
+    },
+    {
+      "id": "def:eight-unit-witness",
+      "name": "balanced \\(n=8\\) additive witness",
+      "construction": "Take \\(n=N_n=8\\), \\(M=2\\), \\(G_n=4\\), \\(G_{1n}=2\\), \\(Y_{i,n}(0,A)=0\\), and \\(Y_{i,n}(1,A)=(a_j+a_k)/2\\) for every \\(i\\in A=\\{j,k\\}\\), where \\(\\mathbf a_8=(a_1,\\ldots,a_8)\\).",
+      "free_symbols": [
+        "n",
+        "M",
+        "G_n",
+        "G_{1n}",
+        "N_n",
+        "Y_{i,n}(z,A)",
+        "\\mathbf a_8"
+      ],
+      "inputs": [
+        "\\mathbf a_8"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "thm:exact-kneser-identity",
+      "kind": "theorem",
+      "statement": "For every \\(n\\ge2M\\), \\(\\mathsf K_n\\) acts on \\(\\mathcal H_{n,k}\\) by \\(\\lambda_{n,k}=(-1)^k(M)_k/(n-M)_k\\). Consequently, for centered \\(f,g\\in L^2(\\Omega_{n,M})\\) and a uniform ordered disjoint pair \\((A,C)\\), \\(\\operatorname{Cov}(f(A),g(C))=\\sum_{k=1}^M\\lambda_{n,k}\\langle\\Pi_{n,k}f,\\Pi_{n,k}g\\rangle_n\\), and \\(C_{\\tau\\tau,n}=\\sum_{k=1}^M\\lambda_{n,k}\\|\\Pi_{n,k}(h_{1,n}-h_{0,n})\\|_n^2\\).",
+      "free_symbols": [
+        "n",
+        "M",
+        "\\Omega_{n,M}",
+        "h_{z,n}",
+        "\\langle\\cdot,\\cdot\\rangle_n",
+        "\\|\\cdot\\|_n",
+        "\\mathcal H_{n,k}",
+        "\\Pi_{n,k}",
+        "\\mathsf K_n",
+        "\\lambda_{n,k}",
+        "C_{ab,n}",
+        "C_{\\tau\\tau,n}"
+      ],
+      "depends_on": [
+        "def:johnson-decomposition",
+        "def:kneser-covariance",
+        "lem:classical-johnson-decomposition",
+        "lem:classical-kneser-spectrum"
+      ],
+      "justification": "This identity converts the global dependence from disjoint group formation into auditable harmonic energies with exact signs and finite-sample constants.",
+      "gap": "Filmus2016, Theorem 3 and the Johnson-scheme discussion, supplies the common eigenspaces, while BrouwerEtAl2018 supplies the classical Kneser spectrum; neither derives a causal design variance for random groups.",
+      "consumer": "The identity is the input for the dense PAME variance correction and every subsequent comparison with CR2.",
+      "proof_tex": "Lemma~\\ref{lem:classical-johnson-decomposition} supplies the orthogonal Johnson-degree decomposition of the uniform slice.  Let \\(\\mathsf A_n\\) denote the unnormalized adjacency operator of the Kneser graph on \\(\\Omega_{n,M}\\).  By Lemma~\\ref{lem:classical-kneser-spectrum}, its eigenvalue on \\(\\mathcal H_{n,k}\\) is\n\\[\n \\mu_{n,k}=(-1)^k\\binom{n-M-k}{M-k}.\n\\]\nEvery vertex has \\(\\binom{n-M}{M}\\) disjoint neighbors, so Definition~\\ref{def:kneser-covariance} gives \\(\\mathsf K_n=\\binom{n-M}{M}^{-1}\\mathsf A_n\\).  Since \\(n\\ge 2M\\), all factorials below are defined, and hence\n\\[\n \\lambda_{n,k}\n =\\frac{\\mu_{n,k}}{\\binom{n-M}{M}}\n =(-1)^k\\frac{M!}{(M-k)!}\\frac{(n-M-k)!}{(n-M)!}\n =(-1)^k\\frac{(M)_k}{(n-M)_k}.\n\\]\nThe disjointness relation is symmetric and the slice law is uniform, so \\(\\mathsf K_n\\) is self-adjoint under \\(\\langle\\cdot,\\cdot\\rangle_n\\).  If \\(f\\) and \\(g\\) are centered, Definition~\\ref{def:johnson-decomposition}, orthogonality of the \\(\\mathcal H_{n,k}\\), and the displayed eigenvalue give\n\\[\n \\operatorname{Cov}(f(A),g(C))\n =\\langle f,\\mathsf K_ng\\rangle_n\n =\\sum_{k=1}^M\\lambda_{n,k}\n   \\langle\\Pi_{n,k}f,\\Pi_{n,k}g\\rangle_n.\n\\]\nApply this identity to each ordered pair \\((h_{a,n}^{\\circ},h_{b,n}^{\\circ})\\).  Self-adjointness gives \\(C_{01,n}=C_{10,n}\\), while linearity of \\(\\Pi_{n,k}\\) gives\n\\[\n C_{11,n}+C_{00,n}-2C_{10,n}\n =\\sum_{k=1}^M\\lambda_{n,k}\n   \\|\\Pi_{n,k}(h_{1,n}-h_{0,n})\\|_n^2.\n\\]\nThis is the asserted formula for \\(C_{\\tau\\tau,n}\\).",
+      "status": "proved"
+    },
+    {
+      "id": "thm:exact-pame-variance",
+      "kind": "theorem",
+      "statement": "Under the two-stage design, \\(\\mathbb E[\\widehat\\tau_n]=\\tau_n\\) and the exact finite-sample variance is \\[\\sigma_n^2=\\frac{R_n}{G_n}+C_{\\tau\\tau,n}-\\frac{C_{11,n}}{G_{1n}}-\\frac{C_{00,n}}{G_{0n}}.\\] Moreover, \\(\\mathbb E[\\widehat V_{\\mathrm{CR2},n}]=(V_{1,n}-C_{11,n})/G_{1n}+(V_{0,n}-C_{00,n})/G_{0n}\\), so \\(\\mathbb E[\\widehat V_{\\mathrm{CR2},n}]-\\sigma_n^2=-C_{\\tau\\tau,n}\\) exactly.",
+      "free_symbols": [
+        "G_n",
+        "G_{1n}",
+        "G_{0n}",
+        "V_{z,n}",
+        "C_{ab,n}",
+        "C_{\\tau\\tau,n}",
+        "\\mathbf A_n",
+        "\\mathbf Z_n",
+        "\\tau_n",
+        "\\widehat\\tau_n",
+        "\\sigma_n^2",
+        "R_n",
+        "\\widehat V_{\\mathrm{CR2},n}"
+      ],
+      "depends_on": [
+        "def:random-partition-design",
+        "def:pame-estimator",
+        "def:kneser-covariance",
+        "def:dense-correction",
+        "def:cr2-statistic",
+        "thm:exact-kneser-identity"
+      ],
+      "justification": "The formula separates treatment randomization from the covariance retained by forming groups without replacement and gives an exact finite-sample bias identity for CR2.",
+      "gap": "FuSamiiWang2026, Section 4.1, discards the disjoint-pair covariance under birthday sparsity; its Theorems 1--2 do not state this exact variance or bias formula.",
+      "consumer": "Researchers can diagnose whether a familiar group-level sandwich omits first-order random-partition dependence.",
+      "proof_tex": "Write \\(q_n=1-p_n=G_{0n}/G_n\\) and \\(x_{zg}=h_{z,n}^{\\circ}(A_{ng})\\).  Each \\(A_{ng}\\) is uniform on \\(\\Omega_{n,M}\\), each \\(Z_{ng}\\) has mean \\(p_n\\), and the two randomizations are independent by Definition~\\ref{def:random-partition-design}.  Therefore Definition~\\ref{def:pame-estimator} yields\n\\[\n \\mathbb E\\widehat\\tau_n\n =\\mathbb E_nh_{1,n}-\\mathbb E_nh_{0,n}=\\tau_n\n\\]\nand\n\\[\n \\widehat\\tau_n-\\tau_n\n =\\frac1{G_n}\\sum_{g=1}^{G_n}\n \\left\\{\\frac{Z_{ng}}{p_n}x_{1g}\n -\\frac{1-Z_{ng}}{q_n}x_{0g}\\right\\}.\n\\]\nThe diagonal terms in the second moment of this sum equal \\(R_n/G_n\\).  For distinct \\(g,g'\\), complete randomization gives\n\\[\n \\frac{\\mathbb E(Z_{ng}Z_{ng'})}{p_n^2}\n =\\frac{G_n(G_{1n}-1)}{G_{1n}(G_n-1)},\\qquad\n \\frac{\\mathbb E((1-Z_{ng})(1-Z_{ng'}))}{q_n^2}\n =\\frac{G_n(G_{0n}-1)}{G_{0n}(G_n-1)},\n\\]\nand\n\\[\n \\frac{\\mathbb E(Z_{ng}(1-Z_{ng'}))}{p_nq_n}\n =\\frac{G_n}{G_n-1}.\n\\]\nThe corresponding group pairs are uniform ordered disjoint pairs, so Definition~\\ref{def:kneser-covariance} identifies their products with \\(C_{ab,n}\\).  Summing the \\(G_n(G_n-1)\\) ordered off-diagonal terms and using \\(C_{01,n}=C_{10,n}\\), proved in Theorem~\\ref{thm:exact-kneser-identity}, gives\n\\[\n \\begin{aligned}\n \\sigma_n^2\n &=\\frac{R_n}{G_n}\n   +\\frac{G_{1n}-1}{G_{1n}}C_{11,n}\n   +\\frac{G_{0n}-1}{G_{0n}}C_{00,n}-2C_{10,n}\\\\\n &=\\frac{R_n}{G_n}+C_{\\tau\\tau,n}\n   -\\frac{C_{11,n}}{G_{1n}}-\\frac{C_{00,n}}{G_{0n}}.\n \\end{aligned}\n\\]\n\nFor the CR2 expectation, let \\(X_1,\\ldots,X_m\\) be the observed group means in arm \\(z\\), where \\(m=G_{zn}\\).  Marginally \\(\\operatorname{Var}(X_j)=V_{z,n}\\) and, for \\(j\\ne\\ell\\), \\(\\operatorname{Cov}(X_j,X_\\ell)=C_{zz,n}\\).  Expanding the denominator-\\(m-1\\) sample variance gives\n\\[\n \\mathbb E s_{z,n}^2\n =\\frac1{m-1}\\left\\{mV_{z,n}-m\\operatorname{Var}(\\bar X)\\right\\}\n =V_{z,n}-C_{zz,n}.\n\\]\nDivision by \\(G_{1n}\\) and \\(G_{0n}\\) proves the asserted expectation formula.  Finally, \\(R_n/G_n=V_{1,n}/G_{1n}+V_{0,n}/G_{0n}\\); subtracting the exact variance identity therefore gives\n\\[\n \\mathbb E\\widehat V_{\\mathrm{CR2},n}-\\sigma_n^2=-C_{\\tau\\tau,n}.\n\\]",
+      "status": "proved"
+    },
+    {
+      "id": "thm:dense-projection-limit",
+      "kind": "theorem",
+      "statement": "For every array satisfying group-count growth, stable treatment and sampling fractions, and bounded potential outcomes, \\[G_n\\sigma_n^2=R_n-\\rho E_{\\tau,1,n}+o(1).\\] More precisely, \\(G_nC_{\\tau\\tau,n}+\\rho E_{\\tau,1,n}\\to0\\) and \\(C_{11,n}/p_n+C_{00,n}/(1-p_n)\\to0\\); all Johnson degrees \\(k\\ge2\\) vanish at the \\(G_n\\)-scale uniformly over the bounded schedules.",
+      "free_symbols": [
+        "n",
+        "M",
+        "G_n",
+        "p_n",
+        "\\rho",
+        "B",
+        "V_{z,n}",
+        "E_{\\tau,1,n}",
+        "C_{ab,n}",
+        "C_{\\tau\\tau,n}",
+        "\\sigma_n^2",
+        "R_n"
+      ],
+      "depends_on": [
+        "ass:group-count-growth",
+        "ass:stable-treatment-fraction",
+        "ass:sampling-fraction",
+        "ass:bounded-potential-outcomes",
+        "def:random-partition-design",
+        "def:dense-correction",
+        "def:cr2-statistic",
+        "thm:exact-kneser-identity",
+        "thm:exact-pame-variance",
+        "def:johnson-decomposition"
+      ],
+      "proof_tex": "Put \\(d_n=h_{1,n}-h_{0,n}\\) and\n\\[\ne_{k,n}=\\|\\Pi_{n,k}d_n\\|_n^2,\n\\qquad k=1,\\ldots,M.\n\\]\nThe complete potential-outcome schedule is fixed throughout; every probability, covariance, and variance without the subscript \\(n\\) is taken only over the two-stage assignment in Definition~\\ref{def:random-partition-design}.\nAssumption~\\ref{ass:bounded-potential-outcomes} and the definition of \\(h_{z,n}\\) imply\n\\[\n|h_{z,n}(A)|\n\\leq \\frac{1}{M}\\sum_{i\\in A}|Y_{i,n}(z,A)|\n\\leq B.                                                     \\tag{1}\n\\]\nConsequently,\n\\[\nV_{z,n}\n=\\mathbb E_n\\!\\left[(h_{z,n}-\\mathbb E_nh_{z,n})^2\\right]\n\\leq \\mathbb E_n[h_{z,n}^2]\n\\leq B^2.                                                   \\tag{2}\n\\]\nBy the orthogonal decomposition in Definition~\\ref{def:johnson-decomposition},\n\\[\n\\sum_{k=1}^M e_{k,n}\n=\\operatorname{Var}_n\\{d_n(A)\\}\n\\leq \\mathbb E_n[d_n(A)^2]\n\\leq 4B^2.                                                  \\tag{3}\n\\]\nSince \\(N_n=MG_n\\leq n\\), fixed \\(M\\), and \\(G_n\\to\\infty\\) by Assumption~\\ref{ass:group-count-growth}, we have \\(n\\to\\infty\\).  Thus it suffices to consider \\(n\\geq4M\\).\n\nTheorem~\\ref{thm:exact-kneser-identity} gives, for \\(1\\leq k\\leq M\\),\n\\[\n|\\lambda_{n,k}|\n=\\frac{(M)_k}{(n-M)_k}\n=\\prod_{j=0}^{k-1}\\frac{M-j}{n-M-j}.\n\\]\nWhen \\(n\\geq4M\\), each numerator is at most \\(M\\), and each denominator is at least \\(n-2M+1\\geq n/2\\).  Hence\n\\[\n|\\lambda_{n,k}|\\leq\\left(\\frac{2M}{n}\\right)^k.            \\tag{4}\n\\]\nFor the degrees \\(k\\geq2\\), equations (3)--(4) and \\(G_n=N_n/M\\leq n/M\\) yield\n\\[\n\\begin{aligned}\n\\left|G_n\\sum_{k=2}^M\\lambda_{n,k}e_{k,n}\\right|\n&\\leq G_n\\left(\\frac{2M}{n}\\right)^2\n       \\sum_{k=2}^M e_{k,n}\\\\\n&\\leq \\frac{n}{M}\\frac{4M^2}{n^2}\\,4B^2\n=\\frac{16MB^2}{n}.                                         \\tag{5}\n\\end{aligned}\n\\]\nThis proves, uniformly over all schedules obeying Assumption~\\ref{ass:bounded-potential-outcomes}, that the combined contribution of all Johnson degrees at least two is \\(O(n^{-1})\\) after multiplication by \\(G_n\\).\n\nFor degree one, Theorem~\\ref{thm:exact-kneser-identity} gives \\(\\lambda_{n,1}=-M/(n-M)\\).  Combining this identity with (5) and \\(e_{1,n}=E_{\\tau,1,n}\\) gives the sharper deterministic expansion\n\\[\nG_nC_{\\tau\\tau,n}\n=-\\frac{MG_n}{n-M}e_{1,n}+O(n^{-1})\n=-\\frac{N_n}{n-M}E_{\\tau,1,n}+O(n^{-1}).                   \\tag{6}\n\\]\n\nThe same argument controls the arm-specific disjoint covariances.  Indeed, orthogonality and (2) give\n\\[\nC_{zz,n}\n=\\sum_{k=1}^M\\lambda_{n,k}\n  \\|\\Pi_{n,k}h_{z,n}\\|_n^2,\n\\qquad\n\\sum_{k=1}^M\\|\\Pi_{n,k}h_{z,n}\\|_n^2=V_{z,n}\\leq B^2.\n\\]\nBecause \\(2M/n\\leq1/2\\), equation (4) implies \\(|\\lambda_{n,k}|\\leq2M/n\\) for every \\(k\\geq1\\).  Therefore\n\\[\n|C_{zz,n}|\\leq\\frac{2MB^2}{n}.                              \\tag{7}\n\\]\nAssumption~\\ref{ass:stable-treatment-fraction} supplies constants \\(\\delta>0\\) and \\(n_0\\) such that \\(p_n\\geq\\delta\\) and \\(1-p_n\\geq\\delta\\) for \\(n\\geq n_0\\).  Thus (7) implies\n\\[\n\\left|\\frac{C_{11,n}}{p_n}+\n       \\frac{C_{00,n}}{1-p_n}\\right|\n\\leq\\frac{4MB^2}{\\delta n}=O(n^{-1}).                      \\tag{8}\n\\]\n\nMultiplying the exact identity in Theorem~\\ref{thm:exact-pame-variance} by \\(G_n\\), and using \\(G_{1n}=p_nG_n\\) and \\(G_{0n}=(1-p_n)G_n\\), gives\n\\[\nG_n\\sigma_n^2\n=R_n+G_nC_{\\tau\\tau,n}\n -\\frac{C_{11,n}}{p_n}-\\frac{C_{00,n}}{1-p_n}.\n\\]\nSubstitution of (6) and (8) proves the schedule-uniform finite-density expansion\n\\[\nG_n\\sigma_n^2\n=R_n-\\frac{N_n}{n-M}E_{\\tau,1,n}+O(n^{-1}).                \\tag{9}\n\\]\nNo scaled-variance lower bound has been used.\n\nAssumption~\\ref{ass:sampling-fraction} and fixed \\(M\\) imply\n\\[\n\\frac{N_n}{n-M}\n=\\frac{N_n/n}{1-M/n}\\longrightarrow\\rho.                  \\tag{10}\n\\]\nMoreover, (3) gives \\(0\\leq E_{\\tau,1,n}\\leq4B^2\\).  It follows from (6) and (10) that\n\\[\nG_nC_{\\tau\\tau,n}+\\rho E_{\\tau,1,n}\n=O(n^{-1})+\n \\left(\\rho-\\frac{N_n}{n-M}\\right)E_{\\tau,1,n}\n\\longrightarrow0.                                         \\tag{11}\n\\]\nEquation (8) proves the second asserted vanishing relation, while (9)--(10) prove\n\\[\nG_n\\sigma_n^2=R_n-\\rho E_{\\tau,1,n}+o(1).\n\\]\nTogether with (5), these equations prove every assertion of the theorem using only group-count growth, stable treatment and sampling fractions, fixed \\(M\\), and bounded potential outcomes.\n\nFor the unconditional CR2 comparison used downstream, fix \\(z\\in\\{0,1\\}\\), put \\(m=G_{zn}\\), and let \\(f\\) be either \\(h_{z,n}\\) or \\(h_{z,n}^2\\).  Under Definition~\\ref{def:random-partition-design}, the groups selected into arm \\(z\\) are an exchangeable ordered disjoint \\(m\\)-tuple.  If \\(f^\\circ=f-\\mathbb E_nf\\), direct expansion of the variance of their average gives\n\\[\n\\operatorname{Var}\\!\\left\\{\\frac1m\\sum_{j=1}^m f(A_j)\\right\\}\n=\\frac{\\operatorname{Var}_n(f)}m\n+\\frac{m-1}{m}\\langle f^\\circ,\\mathsf K_nf^\\circ\\rangle_n. \\tag{12}\n\\]\nBy Theorem~\\ref{thm:exact-kneser-identity}, orthogonality, and (4),\n\\[\n\\left|\\langle f^\\circ,\\mathsf K_nf^\\circ\\rangle_n\\right|\n\\leq\\frac{2M}{n}\\operatorname{Var}_n(f).                  \\tag{13}\n\\]\nStable treatment fractions give \\(m\\asymp G_n\\), so \\(m\\to\\infty\\) and \\(m\\geq2\\) eventually; also \\(G_n\\leq n/M\\).  Since (1) bounds both \\(f=h_{z,n}\\) and \\(f=h_{z,n}^2\\), equations (12)--(13) give a constant \\(K<\\infty\\), independent of the schedule, such that\n\\[\n\\operatorname{Var}\\!\\left\\{m^{-1}\\sum_{j=1}^m f(A_j)\\right\\}\n\\leq\\frac{K}{G_n}.                                         \\tag{14}\n\\]\nFor every \\(L>0\\), the elementary inequality\n\\[\n\\mathbb E[X^2]\\geq \\frac{L^2}{G_n}\n \\Pr\\!\\left\\{|X|>\\frac{L}{\\sqrt{G_n}}\\right\\}\n\\]\napplied to the centered empirical average and (14) proves an \\(O_{\\mathbb P}(G_n^{-1/2})\\) error for both its first and second moments.  Since \\(m/(m-1)=1+O(G_n^{-1})\\), the sample-variance identity in Definition~\\ref{def:cr2-statistic} therefore gives\n\\[\ns_{z,n}^2-V_{z,n}=O_{\\mathbb P}(G_n^{-1/2}).                \\tag{15}\n\\]\nConsequently,\n\\[\nG_n\\widehat V_{\\mathrm{CR2},n}-R_n\n=O_{\\mathbb P}(G_n^{-1/2}),                                \\tag{16}\n\\]\nand combining (9) with (16) yields the entirely unconditional comparison\n\\[\nG_n\\bigl(\\widehat V_{\\mathrm{CR2},n}-\\sigma_n^2\\bigr)\n=\\frac{N_n}{n-M}E_{\\tau,1,n}\n +O_{\\mathbb P}(G_n^{-1/2}+n^{-1}).                        \\tag{17}\n\\]\nNeither predictable quadratic-variation stabilization nor scaled-variance nondegeneracy is used in (12)--(17).  When \\(N_n=o(n)\\) and \\(E_{\\tau,1,n}\\to e>0\\), the deterministic term in (17) has order \\(N_n/n\\), whereas the proved stochastic remainder is bounded by order \\(G_n^{-1/2}\\asymp N_n^{-1/2}\\).  These rates agree at \\(N_n\\asymp n^{2/3}\\).  Because (15) is only an upper bound, this identifies a benchmark crossover and does not assert a matching stochastic lower bound.",
+      "justification": "The degree-one Johnson projection is the unique first-order memory of finite-pool competition, and the exact coefficient \\(N_n/(n-M)\\) yields a schedule-uniform \\(O(n^{-1})\\) remainder without any scaled-variance lower bound.",
+      "gap": "\\cite{FuSamiiWang2026} covers this design as the homogeneous \\(K=1\\) member of a broader fixed finite group-size menu and obtains inference using \\(N_n^2/n\\to0\\) plus its Assumption 1. The Kneser calculation here is an unconditional exact-variance result; only the downstream Gaussian conclusions use the separate predictable-QV premise.",
+      "consumer": "The exact coefficient determines the positive-density standard-error comparison. The unconditional \\(O_{\\mathbb P}(G_n^{-1/2})\\) CR2 fluctuation upper bound yields \\(N_n\\asymp n^{2/3}\\) as a benchmark crossover when \\(E_{\\tau,1,n}\\to e>0\\), without asserting a matching noise-order lower bound.",
+      "status": "proved"
+    },
+    {
+      "id": "thm:cr2-phase-frontier",
+      "kind": "theorem",
+      "statement": "For every array in \\(\\mathcal C_{\\mathrm{dense}}\\),\n\\[\n G_n\\widehat V_{\\mathrm{CR2},n}-R_n\\xrightarrow{p}0\n \\quad\\text{and}\\quad\n G_n\\bigl(\\widehat V_{\\mathrm{CR2},n}-\\sigma_n^2\\bigr)\n   -\\rho E_{\\tau,1,n}\\xrightarrow{p}0.\n\\]\nConsequently, CR2 is asymptotically conservative in the sense that, for every \\(\\varepsilon>0\\),\n\\[\n \\Pr\\!\\left\\{\n   \\widehat V_{\\mathrm{CR2},n}/\\sigma_n^2<1-\\varepsilon\n \\right\\}\\longrightarrow0,\n\\]\nand it is ratio-consistent if and only if\n\\[\n \\frac{\\rho E_{\\tau,1,n}}{R_n-\\rho E_{\\tau,1,n}}\\longrightarrow0.\n\\]\nThese conclusions are unconditional over \\(\\mathcal C_{\\mathrm{dense}}\\) and use no predictable quadratic-variation premise.",
+      "free_symbols": [
+        "n",
+        "G_n",
+        "\\rho",
+        "E_{\\tau,1,n}",
+        "\\sigma_n^2",
+        "R_n",
+        "\\widehat V_{\\mathrm{CR2},n}",
+        "\\mathcal C_{\\mathrm{dense}}"
+      ],
+      "depends_on": [
+        "ass:scaled-variance-nondegeneracy",
+        "def:random-partition-design",
+        "def:johnson-decomposition",
+        "def:dense-correction",
+        "def:cr2-statistic",
+        "def:dense-schedule-class",
+        "thm:exact-kneser-identity",
+        "thm:dense-projection-limit"
+      ],
+      "proof_tex": "We first prove the two stochastic expansions.  Put \\(\\pi_{1n}=p_n\\) and \\(\\pi_{0n}=1-p_n\\).  Fix \\(z\\in\\{0,1\\}\\), and set \\(m_n=G_{zn}=\\pi_{zn}G_n\\).  By Definition~\\ref{def:dense-schedule-class}, group-count growth and stable treatment fractions hold, so \\(m_n\\to\\infty\\) and \\(m_n\\asymp G_n\\).  Since \\(N_n=MG_n\\le n\\), group-count growth also implies that \\(n\\ge2M\\) for all sufficiently large \\(n\\).\n\nFor a deterministic function \\(f:\\Omega_{n,M}\\to\\mathbb R\\), define\n\\[\n \\mu_n(f)=\\mathbb E_nf,\n \\qquad\n W_n(f)=\\mathbb E_n\\!\\left[(f-\\mu_n(f))^2\\right],\n \\qquad\n C_n(f)=\\operatorname{Cov}(f(A),f(C)),\n \\tag{1}\n\\]\nwhere \\((A,C)\\) is uniform over ordered disjoint pairs.  Under Definition~\\ref{def:random-partition-design}, conditional on any set of \\(m_n\\) arm-\\(z\\) positions, the groups in those positions are uniform over ordered pairwise-disjoint \\(m_n\\)-tuples.  Independence and uniformity of the complete label assignment therefore give the same marginal statement without conditioning: each selected group is uniform on \\(\\Omega_{n,M}\\), and every two distinct selected groups form a uniform ordered disjoint pair.  Expanding the variance of their mean yields\n\\[\n \\operatorname{Var}\\!\\left(\\frac1{m_n}\\sum_{j=1}^{m_n}f(A_j)\\right)\n =\\frac{W_n(f)}{m_n}+\\frac{m_n-1}{m_n}C_n(f).\n \\tag{2}\n\\]\n\nBy Theorem~\\ref{thm:exact-kneser-identity} and the orthogonal decomposition in Definition~\\ref{def:johnson-decomposition},\n\\[\n C_n(f)=\\sum_{k=1}^M\\lambda_{n,k}\\|\\Pi_{n,k}f\\|_n^2,\n \\qquad\n W_n(f)=\\sum_{k=1}^M\\|\\Pi_{n,k}f\\|_n^2.\n \\tag{3}\n\\]\nFor \\(1\\le k\\le M\\), \\(0\\le j<k\\), and \\(n\\ge2M\\), every denominator below is positive and\n\\[\n 0\\le\\frac{M-j}{n-M-j}\\le\\frac{M}{n-M}\\le1.\n\\]\nThe exact Kneser eigenvalue formula consequently gives\n\\[\n |\\lambda_{n,k}|\n =\\prod_{j=0}^{k-1}\\frac{M-j}{n-M-j}\n \\le\\frac{M}{n-M}.\n\\]\nUsing (3) and then \\(MG_n\\le n\\), we obtain\n\\[\n |C_n(f)|\\le\\frac{M}{n-M}W_n(f)\n \\le\\frac{W_n(f)}{G_n-1}.\n \\tag{4}\n\\]\nEquations (2)--(4) imply\n\\[\n \\operatorname{Var}\\!\\left(\\frac1{m_n}\\sum_{j=1}^{m_n}f(A_j)\\right)\n \\le W_n(f)\\left(\\frac1{m_n}+\\frac1{G_n-1}\\right).\n \\tag{5}\n\\]\n\nBounded potential outcomes, inherited from membership in \\(\\mathcal C_{\\mathrm{dense}}\\), imply \\(|h_{z,n}(A)|\\le B\\).  Thus \\(W_n(h_{z,n})\\le B^2\\) and \\(W_n(h_{z,n}^2)\\le B^4\\).  Since \\(m_n\\asymp G_n\\to\\infty\\), (5) and Chebyshev's inequality give\n\\[\n \\frac1{m_n}\\sum_{j=1}^{m_n}h_{z,n}(A_j)\n   =\\mathbb E_nh_{z,n}+o_p(1),\n \\qquad\n \\frac1{m_n}\\sum_{j=1}^{m_n}h_{z,n}(A_j)^2\n   =\\mathbb E_nh_{z,n}^2+o_p(1).\n \\tag{6}\n\\]\nThe means in (6) are uniformly bounded by \\(B\\), so squaring the first convergence preserves its \\(o_p(1)\\) remainder.  The exact sample-variance identity and \\(m_n\\to\\infty\\) therefore yield\n\\[\n \\begin{aligned}\n s_{z,n}^2\n &=\\frac{m_n}{m_n-1}\\left\\{\n   \\frac1{m_n}\\sum_{j=1}^{m_n}h_{z,n}(A_j)^2\n   -\\left(\\frac1{m_n}\\sum_{j=1}^{m_n}h_{z,n}(A_j)\\right)^2\n   \\right\\}\\\\\n &=\\mathbb E_nh_{z,n}^2-(\\mathbb E_nh_{z,n})^2+o_p(1)\n =V_{z,n}+o_p(1).\n \\end{aligned}\n \\tag{7}\n\\]\nStable treatment fractions make both \\(p_n\\) and \\(1-p_n\\) eventually bounded away from zero.  Definition~\\ref{def:cr2-statistic}, (7), and Definition~\\ref{def:dense-correction} now give\n\\[\n G_n\\widehat V_{\\mathrm{CR2},n}\n =\\frac{s_{1,n}^2}{p_n}+\\frac{s_{0,n}^2}{1-p_n}\n =R_n+o_p(1).\n \\tag{8}\n\\]\n\nSet \\(\\Delta_n=R_n-\\rho E_{\\tau,1,n}\\).  The unconditional expansion in Theorem~\\ref{thm:dense-projection-limit} gives\n\\[\n G_n\\sigma_n^2=\\Delta_n+o(1).\n \\tag{9}\n\\]\nSubtracting (9) from (8) proves\n\\[\n G_n\\bigl(\\widehat V_{\\mathrm{CR2},n}-\\sigma_n^2\\bigr)\n   -\\rho E_{\\tau,1,n}=o_p(1),\n \\tag{10}\n\\]\nwhich is the second asserted expansion.\n\nIt remains to derive, rather than assume, the two ratio conclusions.  Scaled-variance nondegeneracy in Definition~\\ref{def:dense-schedule-class} and (9) imply that \\(\\Delta_n\\ge c_\\sigma/2>0\\) for all sufficiently large \\(n\\).  Also \\(V_{z,n}\\le B^2\\), so stable treatment fractions give \\(R_n\\le C\\) eventually for some finite constant \\(C\\).  Since \\(E_{\\tau,1,n}\\ge0\\), eventual positivity of \\(\\Delta_n=R_n-\\rho E_{\\tau,1,n}\\) also gives \\(0\\le\\rho E_{\\tau,1,n}\\le R_n\\le C\\).  Write\n\\[\n u_n=G_n\\widehat V_{\\mathrm{CR2},n}-R_n=o_p(1),\n \\qquad\n v_n=G_n\\sigma_n^2-\\Delta_n=o(1).\n\\]\nThe denominator \\(\\Delta_n+v_n=G_n\\sigma_n^2\\) is eventually bounded below by a positive constant.  Direct algebra, followed by the preceding deterministic bounds, gives\n\\[\n \\frac{\\widehat V_{\\mathrm{CR2},n}}{\\sigma_n^2}-1\n =\\frac{\\rho E_{\\tau,1,n}+u_n-v_n}{\\Delta_n+v_n}\n =\\frac{\\rho E_{\\tau,1,n}}{\\Delta_n}+o_p(1).\n \\tag{11}\n\\]\nThe deterministic leading term in (11) is nonnegative.  Hence, for every \\(\\varepsilon>0\\),\n\\[\n \\Pr\\!\\left\\{\n   \\widehat V_{\\mathrm{CR2},n}/\\sigma_n^2<1-\\varepsilon\n \\right\\}\\longrightarrow0,\n\\]\nwhich is the stated asymptotic conservativeness.  If \\(\\rho E_{\\tau,1,n}/\\Delta_n\\to0\\), (11) gives ratio consistency.  Conversely, if this deterministic nonnegative sequence does not converge to zero, some subsequence is bounded below by a positive constant; (11) then rules out convergence of the variance ratio to one on that subsequence.  This proves the ``if and only if'' assertion.  No predictable quadratic variation, martingale limit, Gaussian approximation, studentization, or coverage claim is used anywhere in the proof.",
+      "justification": "The theorem gives the exact dense projection-energy frontier between valid conservative studentization and ratio consistency.",
+      "gap": "FuSamiiWang2026, Theorem 2, proves CR2 ratio consistency only under \\(N_n^2/n\\to0\\); PustejovskyTipton2018 calibrates CR2 under independent-cluster working models rather than finite-pool competition.",
+      "consumer": "The result tells users of equal-group cluster-robust regression exactly when the reported standard error is sharp and when it is conservative.",
+      "status": "to-prove"
+    },
+    {
+      "id": "thm:sparse-beyond-birthday",
+      "kind": "theorem",
+      "statement": "For every array in \\(\\mathcal C_{\\mathrm{dense}}\\) with \\(\\rho=0\\), equivalently \\(N_n/n\\to0\\),\n\\[\n \\frac{\\widehat V_{\\mathrm{CR2},n}}{\\sigma_n^2}\\xrightarrow{p}1.\n\\]\nNo condition \\(N_n^2/n\\to0\\) is imposed.  In particular, the conclusion applies whenever the remaining defining conditions of \\(\\mathcal C_{\\mathrm{dense}}\\) hold with \\(N_n=M\\lfloor n^{3/4}/M\\rfloor\\); these grouped-unit counts satisfy \\(N_n/n\\to0\\) but \\(N_n^2/n\\to\\infty\\).",
+      "free_symbols": [
+        "n",
+        "M",
+        "N_n",
+        "\\rho",
+        "\\sigma_n^2",
+        "\\widehat V_{\\mathrm{CR2},n}",
+        "\\mathcal C_{\\mathrm{dense}}"
+      ],
+      "depends_on": [
+        "ass:sampling-fraction",
+        "ass:scaled-variance-nondegeneracy",
+        "def:dense-correction",
+        "def:cr2-statistic",
+        "def:dense-schedule-class",
+        "thm:dense-projection-limit",
+        "thm:cr2-phase-frontier"
+      ],
+      "proof_tex": "Assume \\(\\rho=0\\).  By Assumption~\\ref{ass:sampling-fraction}, this is equivalent to \\(N_n/n\\to0\\).  Theorem~\\ref{thm:dense-projection-limit} gives the unconditional variance expansion\n\\[\n G_n\\sigma_n^2=R_n+o(1),\n \\tag{1}\n\\]\nbecause the degree-one correction is multiplied by \\(\\rho\\).  Independently, Theorem~\\ref{thm:cr2-phase-frontier} gives\n\\[\n G_n\\widehat V_{\\mathrm{CR2},n}=R_n+o_p(1).\n \\tag{2}\n\\]\nScaled-variance nondegeneracy, which is one of the conditions in Definition~\\ref{def:dense-schedule-class}, states\n\\[\n \\liminf_{n\\to\\infty}G_n\\sigma_n^2\\ge c_\\sigma>0.\n\\]\nThus the deterministic denominator \\(G_n\\sigma_n^2\\) is bounded away from zero for all sufficiently large \\(n\\).  Subtracting (1) from (2) and dividing by that denominator yields\n\\[\n \\frac{\\widehat V_{\\mathrm{CR2},n}}{\\sigma_n^2}\n =\\frac{G_n\\widehat V_{\\mathrm{CR2},n}}{G_n\\sigma_n^2}\n \\xrightarrow{p}1.\n \\tag{3}\n\\]\nThis proof used only the vanishing sampling fraction \\(N_n/n\\to0\\), not the stronger birthday-scale condition \\(N_n^2/n\\to0\\).  To verify that the distinction is nonempty, take\n\\[\n G_n=\\left\\lfloor\\frac{n^{3/4}}M\\right\\rfloor,\n \\qquad\n N_n=MG_n,\n\\]\nand choose integers \\(G_{1n}\\) with \\(G_{1n}/G_n\\to p\\in(0,1)\\).  Then, for all sufficiently large \\(n\\), the design constraints \\(G_n\\to\\infty\\), \\(N_n=MG_n\\le n\\), and \\(1\\le G_{1n}\\le G_n-1\\) hold, while\n\\[\n \\frac{N_n}{n}=n^{-1/4}(1+o(1))\\to0,\n \\qquad\n \\frac{N_n^2}{n}=n^{1/2}(1+o(1))\\to\\infty.\n\\]\nTherefore every schedule array with these counts that satisfies the remaining conditions of \\(\\mathcal C_{\\mathrm{dense}}\\) is covered by (3), even though whole-tuple birthday sparsity fails.  No Gaussian or Wald conclusion is asserted.",
+      "justification": "Scalar PAME inference needs a vanishing sampling fraction, not a vanishing whole-tuple collision probability.",
+      "gap": "FuSamiiWang2026 imposes the birthday-scale restriction \\(N_n^2/n\\to0\\) because its proof couples the entire group tuple, while this theorem targets only the scalar statistic.",
+      "consumer": "Experiments grouping \\(n^{3/4}\\) of \\(n\\) eligible units obtain ratio-consistent CR2 variance estimation despite failure of whole-design coupling.",
+      "status": "to-prove"
+    },
+    {
+      "id": "prop:clubsandwich-consumer",
+      "kind": "proposition",
+      "statement": "Suppose \\(G_{1n}\\ge 2\\) and \\(G_{0n}\\ge 2\\). Let \\({\\tt fit}={\\tt lm}(Y^{\\mathrm{obs}}\\sim Z)\\) be unweighted, with only an intercept and numeric binary group treatment, equal group size \\(M\\), and clusters equal the realized groups. With the default identity target, the treatment-coordinate entry of \\({\\tt clubSandwich::vcovCR}({\\tt fit},\\ {\\tt cluster}={\\tt group},\\ {\\tt type}={\\tt 'CR2'})\\) equals \\(\\widehat V_{\\mathrm{CR2},n}=s_{1,n}^2/G_{1n}+s_{0,n}^2/G_{0n}\\) exactly.",
+      "free_symbols": [
+        "M",
+        "G_{1n}",
+        "G_{0n}",
+        "H^{\\mathrm{obs}}_{ng}",
+        "s_{z,n}^2",
+        "\\widehat V_{\\mathrm{CR2},n}"
+      ],
+      "depends_on": [
+        "def:random-partition-design",
+        "def:cr2-statistic",
+        "lem:clubsandwich-cr2-software-contract",
+        "lem:sandwich-lm-bread-contract"
+      ],
+      "justification": "Freezing the exact software call prevents a theoretical group-HC2 formula from being misapplied to a different sandwich specification.",
+      "gap": "FuSamiiWang2026 states the equal-group formula and an implementation call, but it does not connect that software output to the dense projection correction.",
+      "consumer": "The proposition identifies the exact coefficient variance returned to users of \\({\\tt clubSandwich}\\) in the design studied here.",
+      "proof_tex": "Fix one realized data set and suppress the row index \\(n\\).  The assertion is deterministic conditional on this realization.  By \\({\\rm def:random\\text{-}partition\\text{-}design}\\), every realized group has exactly \\(M\\) units.  For a group \\(g\\) assigned arm \\(z\\in\\{0,1\\}\\), let \\(y_g\\in\\mathbb R^M\\) collect its individual observed outcomes, let \\(\\mathbf 1_M\\) be the \\(M\\)-vector of ones, and define\n\\[\n H_g:=M^{-1}\\mathbf 1_M^{\\mathsf T}y_g=H^{\\mathrm{obs}}_{ng},\n \\qquad\n x_z:=\\begin{pmatrix}1\\\\ z\\end{pmatrix},\n \\qquad\n X_g:=\\mathbf 1_Mx_z^{\\mathsf T}.\n \\tag{1}\n\\]\nWrite \\(G_z:=G_{zn}\\), so \\(G_1=G_{1n}\\) and \\(G_0=G_{0n}\\), and let \\(X\\) be the matrix obtained by stacking the \\(X_g\\)'s.  Both treatment values occur because \\(G_1,G_0\\ge2\\); hence the two columns of \\(X\\) are linearly independent, so \\(X\\) has rank two.  Since \\(M\\ge2\\), in particular \\(M>0\\).  Direct multiplication and inversion therefore give\n\\[\n X^{\\mathsf T}X\n =M\\begin{pmatrix}G_0+G_1&G_1\\\\G_1&G_1\\end{pmatrix},\n \\qquad\n B:=(X^{\\mathsf T}X)^{-1}\n =\\frac1M\\begin{pmatrix}\n G_0^{-1}&-G_0^{-1}\\\\\n -G_0^{-1}&G_0^{-1}+G_1^{-1}\n \\end{pmatrix}.\n \\tag{2}\n\\]\nThe determinant inverted in (2) is \\(M^2G_0G_1>0\\).  If \\(c=(0,1)^{\\mathsf T}\\) selects the treatment coordinate, (2) yields\n\\[\n c^{\\mathsf T}Bx_1=\\frac1{MG_1},\n \\qquad\n c^{\\mathsf T}Bx_0=-\\frac1{MG_0}.\n \\tag{3}\n\\]\n\nThe cited software contract \\({\\rm lem:clubsandwich\\text{-}cr2\\text{-}software\\text{-}contract}\\), together with the cited \\({\\tt lm}\\)-bread contract \\({\\rm lem:sandwich\\text{-}lm\\text{-}bread\\text{-}contract}\\), says that the returned matrix is\n\\[\n \\widehat\\Sigma_{\\mathrm{CR2}}\n =B\\sum_gX_g^{\\mathsf T}A_ge_ge_g^{\\mathsf T}A_g^{\\mathsf T}X_gB,\n \\qquad\n A_g=\\left(I_M-X_gBX_g^{\\mathsf T}\\right)^{-1/2},\n \\tag{4}\n\\]\nprovided the matrices inside the inverse square roots are positive definite.  Here \\(e_g=y_g-X_g\\widehat\\beta\\) is the ordinary-least-squares residual block.  To verify the required positivity rather than assume it, set\n\\[\n P_M:=M^{-1}\\mathbf 1_M\\mathbf 1_M^{\\mathsf T}.\n\\]\nFor a group in arm \\(z\\), (1)--(2) give\n\\[\n X_gBX_g^{\\mathsf T}\n =\\mathbf 1_M(x_z^{\\mathsf T}Bx_z)\\mathbf 1_M^{\\mathsf T}\n =G_z^{-1}P_M.\n \\tag{5}\n\\]\nThe matrix \\(P_M\\) is the orthogonal projection onto the span of \\(\\mathbf 1_M\\).  Thus \\(I_M-G_z^{-1}P_M\\) has eigenvalue \\(1-G_z^{-1}>0\\) on that span, because \\(G_z\\ge2\\), and eigenvalue \\(1\\) on its orthogonal complement.  This proves the positivity required in (4).  Spectral calculus applied to (5) then gives\n\\[\n A_g=(I_M-P_M)+a_zP_M,\n \\qquad\n a_z:=\\left(1-\\frac1{G_z}\\right)^{-1/2}\n =\\sqrt{\\frac{G_z}{G_z-1}}.\n \\tag{6}\n\\]\n\nUsing (2) in \\(\\widehat\\beta=BX^{\\mathsf T}y\\), and using equal group size to replace each group total by \\(MH_g\\), gives\n\\[\n \\widehat\\beta\n =\\begin{pmatrix}\\bar H_0\\\\ \\bar H_1-\\bar H_0\\end{pmatrix},\n \\qquad\n \\bar H_z:=G_z^{-1}\\sum_{g:Z_{ng}=z}H_g.\n \\tag{7}\n\\]\nConsequently the mean residual in a group \\(g\\) assigned arm \\(z\\) is\n\\[\n M^{-1}\\mathbf 1_M^{\\mathsf T}e_g=H_g-\\bar H_z=:d_g.\n \\tag{8}\n\\]\nEquations (6)--(8) imply that the component of \\(e_g\\) orthogonal to \\(\\mathbf 1_M\\) contributes nothing to the cluster score and that\n\\[\n \\mathbf 1_M^{\\mathsf T}A_ge_g\n =a_z\\mathbf 1_M^{\\mathsf T}e_g\n =Ma_zd_g.\n \\tag{9}\n\\]\nCombining (1), (3), and (9), the treatment-coordinate adjusted score is\n\\[\n q_g:=c^{\\mathsf T}BX_g^{\\mathsf T}A_ge_g\n =\\begin{cases}\n a_1d_g/G_1,&Z_{ng}=1,\\\\\n -a_0d_g/G_0,&Z_{ng}=0.\n \\end{cases}\n \\tag{10}\n\\]\nTaking the treatment-coordinate entry of (4), substituting (10), then using (6) and \\({\\rm def:cr2\\text{-}statistic}\\), yields the equation-by-equation identity\n\\[\n \\begin{aligned}\n c^{\\mathsf T}\\widehat\\Sigma_{\\mathrm{CR2}}c\n &=\\sum_gq_g^2\\\\\n &=\\sum_{z=0}^1\\frac{a_z^2}{G_z^2}\n   \\sum_{g:Z_{ng}=z}(H_g-\\bar H_z)^2\\\\\n &=\\sum_{z=0}^1\n   \\frac{G_z}{G_z-1}\\frac{(G_z-1)s_{z,n}^2}{G_z^2}\\\\\n &=\\frac{s_{1,n}^2}{G_{1n}}+\\frac{s_{0,n}^2}{G_{0n}}\\\\\n &=\\widehat V_{\\mathrm{CR2},n}.\n \\end{aligned}\n \\tag{11}\n\\]\nNo randomization, independence, moment, or limiting premise is used after fixing the realized data.  The restrictions \\(G_{1n},G_{0n}\\ge2\\) are used exactly to make the CR2 adjustment in (6) finite and the sample variances in \\({\\rm def:cr2\\text{-}statistic}\\) well defined.  Equation (11) proves the claimed exact consumer identity.",
+      "status": "proved"
+    },
+    {
+      "id": "prop:eight-unit-witness",
+      "kind": "proposition",
+      "statement": "For the balanced \\(n=N_n=8\\), \\(M=2\\), \\(G_n=4\\), \\(G_{1n}=2\\) witness, \\(V_{1,n}=E_{\\tau,1,n}=3/7\\), \\(C_{11,n}=-1/7\\), \\(\\sigma_n^2=1/7\\), and \\(\\mathbb E[\\widehat V_{\\mathrm{CR2},n}]=2/7\\). Exhaustive enumeration over the \\(105\\) perfect matchings and the \\(6\\) balanced treatment allocations, totaling \\(630\\) design points, reproduces both moments.",
+      "free_symbols": [
+        "n",
+        "M",
+        "G_n",
+        "G_{1n}",
+        "N_n",
+        "V_{z,n}",
+        "E_{\\tau,1,n}",
+        "C_{ab,n}",
+        "\\sigma_n^2",
+        "\\widehat V_{\\mathrm{CR2},n}",
+        "\\mathbf a_8"
+      ],
+      "depends_on": [
+        "def:eight-unit-witness",
+        "thm:exact-kneser-identity",
+        "thm:exact-pame-variance"
+      ],
+      "justification": "A fully enumerable dense design fixes the sign, normalization, and magnitude of the projection correction.",
+      "gap": "No cited random-group inference result reports this finite dense witness or the factor-two CR2 excess.",
+      "consumer": "The witness is a regression test for symbolic derivations and for a design-aware \\({\\tt vcovCR}\\) diagnostic.",
+      "proof_tex": "For a pair \\(A=\\{j,k\\}\\), write \\(h(A)=(a_j+a_k)/2\\).  Among the \\(\\binom82=28\\) pairs, six have value \\(1\\), six have value \\(-1\\), and sixteen have value zero.  Thus \\(\\mathbb E_8h=0\\) and\n\\[\n V_{1,n}=\\mathbb E_8h^2=\\frac{12}{28}=\\frac37.\n\\]\nMoreover \\(h(A)=2^{-1}\\sum_{i\\in A}a_i\\) is degree one: averaging it over a disjoint pair gives\n\\[\n (\\mathsf K_8h)(A)=\\frac1{6}\\sum_{i\\notin A}a_i\n =-\\frac1{6}\\sum_{i\\in A}a_i=-\\frac13h(A).\n\\]\nThus \\(E_{\\tau,1,n}=\\|h\\|_8^2=3/7\\).  Theorem~\\ref{thm:exact-kneser-identity} gives \\(C_{11,n}=(-1/3)(3/7)=-1/7\\), while all control quantities vanish.  Since \\(p_n=1/2\\), Theorem~\\ref{thm:exact-pame-variance} gives\n\\[\n \\sigma_n^2=\\frac{(3/7)/(1/2)}4-\\frac17-\\frac{-1/7}{2}=\\frac17\n\\]\nand\n\\[\n \\mathbb E\\widehat V_{\\mathrm{CR2},n}\n =\\frac{V_{1,n}-C_{11,n}}{G_{1n}}\n =\\frac{3/7+1/7}{2}=\\frac27.\n\\]\nThere are \\((8-1)!!=105\\) perfect matchings and \\(\\binom42=6\\) treated-pair choices per matching.  Directly summing \\(\\widehat\\tau_n^2\\) and \\(\\widehat V_{\\mathrm{CR2},n}\\) over these \\(630\\) equally likely points gives respectively \\(630/7\\) and \\(1260/7\\); division by \\(630\\) reproduces \\(1/7\\) and \\(2/7\\).  The estimator mean is zero by sign balance (or by Theorem~\\ref{thm:exact-pame-variance}), so the first moment calculation is the variance.",
+      "status": "proved"
+    },
+    {
+      "id": "prop:rademacher-mixture-separation",
+      "kind": "proposition",
+      "statement": "Under \\(\\mathbb H_n^{\\mathrm{same}}\\) and \\(\\mathbb H_n^{\\mathrm{ind}}\\), the induced laws of \\(\\mathcal O_n\\) are exactly equal for every \\(n\\). Suppose \\(G_n\\to\\infty\\), \\(p_n\\to p\\in(0,1)\\), and \\(N_n/n\\to\\rho\\in(0,1]\\). With prior probability tending to one, \\(V_{1,n}\\to1/M\\), \\(V_{0,n}\\to1/M\\), and \\(E_{\\tau,1,n}\\to0\\) under \\(\\mathbb H_n^{\\mathrm{same}}\\), whereas \\(E_{\\tau,1,n}\\to2/M\\) under \\(\\mathbb H_n^{\\mathrm{ind}}\\). Hence \\(G_n\\sigma_n^2\\to1/(Mp(1-p))\\) under the first prior and \\(G_n\\sigma_n^2\\to1/(Mp(1-p))-2\\rho/M\\) under the second. The limit gap is \\(2\\rho/M>0\\), and the smaller limit satisfies \\(1/(Mp(1-p))-2\\rho/M\\ge2/M\\). Consequently, for every fixed \\(c_\\sigma\\) with \\(0<c_\\sigma<1/(Mp(1-p))-2\\rho/M\\), the probability of \\(G_n\\sigma_n^2\\ge c_\\sigma\\) tends to one under each prior; the separated-limit claim is therefore confined to dense rows \\(\\rho>0\\) that satisfy scaled-variance nondegeneracy with high prior probability.",
+      "free_symbols": [
+        "n",
+        "M",
+        "G_n",
+        "N_n",
+        "p_n",
+        "p",
+        "\\rho",
+        "c_\\sigma",
+        "V_{z,n}",
+        "E_{\\tau,1,n}",
+        "\\sigma_n^2",
+        "\\mathcal O_n",
+        "\\mathbb H_n^{\\mathrm{same}}",
+        "\\mathbb H_n^{\\mathrm{ind}}"
+      ],
+      "depends_on": [
+        "ass:group-count-growth",
+        "ass:stable-treatment-fraction",
+        "ass:sampling-fraction",
+        "def:random-partition-design",
+        "def:dense-correction",
+        "thm:exact-kneser-identity",
+        "thm:exact-pame-variance"
+      ],
+      "justification": "The equal observation mixtures isolate the unobserved degree-one cross-arm energy as the obstruction to exact variance recovery.",
+      "gap": "BasseAiroldi2018 gives broad nonconcentration examples and HarshawMiddletonSavje2026 explains variance nonidentification, but neither constructs equal-law priors with separated dense PAME variance limits.",
+      "consumer": "This is the quantitative input to a Le Cam lower bound for every one-realization variance statistic.",
+      "proof_tex": "For an additive schedule write \\(x_{iz}=Y_{i,n}(z,A)\\), independently of \\(A\\), and \\(\\bar x_z=n^{-1}\\sum_i x_{iz}\\).  Then\n\\[\n h_{z,n}(A)-\\bar x_z=\\frac1M\\sum_{i\\in A}(x_{iz}-\\bar x_z).\n\\]\nIf \\(w_i=x_{iz}-\\bar x_z\\), then \\(\\sum_iw_i=0\\), and direct sampling-without-replacement algebra gives\n\\[\n \\begin{aligned}\n \\|h_{z,n}^{\\circ}\\|_n^2\n &=\\frac1{M^2}\\left\\{\\frac Mn\\sum_iw_i^2\n +\\frac{M(M-1)}{n(n-1)}\\sum_{i\\ne j}w_iw_j\\right\\}\\\\\n &=\\frac{n-M}{M(n-1)}\\frac1n\\sum_iw_i^2. \\qquad\\text{(1)}\n \\end{aligned}\n\\]\nAlso, conditioning on \\(A\\), the mean of this centered function over a disjoint \\(M\\)-set is\n\\[\n \\frac1{n-M}\\sum_{i\\notin A}w_i\n =-\\frac M{n-M}\\left(\\frac1M\\sum_{i\\in A}w_i\\right).\n\\]\nThus it lies in Johnson degree one.  Formula (1) consequently applies to the degree-one energy of every additive arm difference.\n\nUnder \\(\\mathbb H_n^{\\mathrm{same}}\\), the empirical variances of both arm arrays converge in prior probability to one, while the arm difference is identically zero.  Under \\(\\mathbb H_n^{\\mathrm{ind}}\\), the two empirical variances converge to one and the empirical variance of \\(U_i-V_i\\) converges to two.  These conclusions follow directly from Chebyshev's inequality because the relevant iid variables are bounded and have the stated expectations.  Since \\((n-M)/(n-1)\\to1\\), (1) proves\n\\[\n V_{1,n},V_{0,n}\\longrightarrow\\frac1M,\\qquad\n E_{\\tau,1,n}\\longrightarrow\n \\begin{cases}0,&\\mathbb H_n^{\\mathrm{same}},\\\\2/M,&\\mathbb H_n^{\\mathrm{ind}},\\end{cases}\n\\]\nin prior probability.  Because all these additive functions are degree one, Theorem~\\ref{thm:exact-kneser-identity} gives \\(C_{\\tau\\tau,n}=\\lambda_{n,1}E_{\\tau,1,n}\\) and \\(C_{zz,n}=\\lambda_{n,1}V_{z,n}\\).  The exact variance identity therefore gives, without invoking nondegeneracy,\n\\[\n G_n\\sigma_n^2\n =R_n+G_n\\lambda_{n,1}E_{\\tau,1,n}\n -\\frac{\\lambda_{n,1}V_{1,n}}{p_n}\n -\\frac{\\lambda_{n,1}V_{0,n}}{1-p_n}.\n\\]\nNow \\(\\lambda_{n,1}\\to0\\) and \\(G_n\\lambda_{n,1}=-N_n/(n-M)\\to-\\rho\\).  Substitution of the preceding prior limits proves the two asserted limits for \\(G_n\\sigma_n^2\\).  Their difference is \\(2\\rho/M\\), and\n\\[\n \\frac1{Mp(1-p)}-\\frac{2\\rho}{M}\n \\ge\\frac4M-\\frac2M=\\frac2M,\n\\]\nusing \\(p(1-p)\\le1/4\\) and \\(\\rho\\le1\\).  This also proves the stated high-prior-probability nondegeneracy whenever \\(c_\\sigma\\) is strictly below the smaller limit.\n\nIt remains to compare observations.  Conditional on any realized \\((\\mathbf A_n,\\mathbf Z_n)\\), each sampled unit is observed in exactly one arm.  Under the common prior its observation is its independent sign \\(U_i\\); under the independent prior it is \\(U_i\\) in a treated group and \\(V_i\\) in a control group.  In either case the entire vector of observed individual outcomes consists of independent Rademacher variables and is independent of the design.  Unit labels, groups, and treatment labels have the same design law under both priors.  Hence the induced laws of \\(\\mathcal O_n\\) are exactly equal.",
+      "status": "proved"
+    },
+    {
+      "id": "thm:qv-diagonal-impossibility",
+      "kind": "theorem",
+      "statement": "Fix \\(M\\ge2\\), \\(p\\in(0,1)\\), \\(\\rho\\in(0,1]\\), \\(B\\ge1\\), and design sequences satisfying the three fraction and growth assumptions.  Put\n\\[\n d_{\\mathrm{same}}=\\frac1{Mp(1-p)},\\qquad\n d_{\\mathrm{ind}}=\\frac1{Mp(1-p)}-\\frac{2\\rho}{M},\n\\]\nand suppose \\(0<c_\\sigma<d_{\\mathrm{ind}}\\).  There are high-prior-probability sets of deterministic Rademacher schedule rows whose Cartesian diagonal selections all belong to \\(\\mathcal C_{\\mathrm{dense}}\\); after conditioning \\(\\mathbb H_n^{\\mathrm{same}}\\) and \\(\\mathbb H_n^{\\mathrm{ind}}\\) on these sets, their induced one-realization mixture laws have total-variation distance tending to zero, while \\(G_n\\sigma_n^2\\) converges uniformly on the respective supports to \\(d_{\\mathrm{same}}\\) and \\(d_{\\mathrm{ind}}\\).  Consequently there exists \\(\\varepsilon>0\\) such that every measurable \\(\\widehat S_n(\\mathcal O_n)\\) obeys\n\\[\n \\liminf_{n\\to\\infty}\\sup_{Y\\in\\mathcal C_{\\mathrm{dense}}}\n \\Pr_Y\\left(\\left|\\frac{\\widehat S_n}{\\sigma_n^2}-1\\right|>\\varepsilon\\right)\n \\ge\\frac12.\n\\]\nThus no estimator from one realization is uniformly ratio-consistent for the exact variance over the full dense class.  The deterministic support arrays, rather than a generally unavailable pair of deterministic arrays with close laws, are the valid diagonal certificate.",
+      "free_symbols": [
+        "n",
+        "M",
+        "G_n",
+        "N_n",
+        "p_n",
+        "p",
+        "\\rho",
+        "B",
+        "c_\\sigma",
+        "\\sigma_n^2",
+        "\\mathcal O_n",
+        "\\widehat S_n",
+        "\\mathcal C_{\\mathrm{dense}}",
+        "\\mathbb H_n^{\\mathrm{same}}",
+        "\\mathbb H_n^{\\mathrm{ind}}"
+      ],
+      "depends_on": [
+        "ass:group-count-growth",
+        "ass:stable-treatment-fraction",
+        "ass:sampling-fraction",
+        "def:random-partition-design",
+        "def:dense-schedule-class",
+        "prop:rademacher-mixture-separation"
+      ],
+      "proof_tex": "Let \\(j\\in\\{\\mathrm{same},\\mathrm{ind}\\}\\), and write \\(d_j\\) for the corresponding constant in the theorem. Proposition~\\ref{prop:rademacher-mixture-separation} gives\n\\[\nG_n\\sigma_n^2\\xrightarrow{p}d_j\n\\tag{1}\n\\]\nunder the schedule prior \\(\\mathbb H_n^j\\). For an integer \\(k\\ge1\\), define the schedule event\n\\[\nE_{n,k}^j=\n\\left\\{Y:\\left|G_n\\sigma_n^2(Y)-d_j\\right|\\le k^{-1}\\right\\}.\n\\tag{2}\n\\]\nEquation~(1) implies \\(\\mathbb H_n^j(E_{n,k}^j)\\to1\\) for every fixed \\(k\\) and each \\(j\\).\n\nWe first turn these rowwise prior statements into deterministic array supports. Choose strictly increasing integers \\(m_k\\) so that, simultaneously for \\(j=\\mathrm{same}\\) and \\(j=\\mathrm{ind}\\),\n\\[\nn\\ge m_k\n\\quad\\Longrightarrow\\quad\n\\mathbb H_n^j(E_{n,k}^j)\\ge1-k^{-1}.\n\\tag{3}\n\\]\nFor \\(n\\ge m_1\\), put \\(k_n=\\max\\{k:m_k\\le n\\}\\), and put \\(k_n=1\\) for \\(n<m_1\\). Then \\(k_n\\to\\infty\\). Define\n\\[\n\\Gamma_n^j=\n\\begin{cases}\nE_{n,k_n}^j,&n\\ge m_1,\\\\\n\\operatorname{supp}(\\mathbb H_n^j),&n<m_1.\n\\end{cases}\n\\tag{4}\n\\]\nBy (3)--(4),\n\\[\n\\mathbb H_n^j(\\Gamma_n^j)\\longrightarrow1,\n\\qquad\n\\sup_{Y\\in\\Gamma_n^j}\n\\left|G_n\\sigma_n^2(Y)-d_j\\right|\\le k_n^{-1}\\longrightarrow0.\n\\tag{5}\n\\]\n\nEvery row in \\(\\Gamma_n^j\\) is additive and has \\(|Y_{i,n}(z,A)|=1\\le B\\). The deterministic design sequences obey Assumptions~\\ref{ass:group-count-growth}, \\ref{ass:stable-treatment-fraction}, and \\ref{ass:sampling-fraction}. The theorem assumes \\(0<c_\\sigma<d_{\\mathrm{ind}}\\), and \\(d_{\\mathrm{same}}>d_{\\mathrm{ind}}\\); hence (5) gives\n\\[\n\\liminf_{n\\to\\infty}G_n\\sigma_n^2(Y_n)=d_j>c_\\sigma\n\\tag{6}\n\\]\nfor every Cartesian selection \\((Y_n)_{n\\ge1}\\in\\prod_n\\Gamma_n^j\\). Definition~\\ref{def:dense-schedule-class} and (6) therefore show that every such selection belongs to \\(\\mathcal C_{\\mathrm{dense}}\\). This verifies support, boundedness, fraction, and scaled-variance conditions without imposing any filtration-side premise.\n\nLet \\(P_n^{j,0}\\) be the law of \\(\\mathcal O_n\\) after drawing the schedule from \\(\\mathbb H_n^j\\) and then applying the two-stage design. Let \\(\\widetilde{\\mathbb H}_n^j=\\mathbb H_n^j(\\mathord\\cdot\\mid\\Gamma_n^j)\\), and let \\(P_n^j\\) be the corresponding conditioned observation law. For any event \\(A\\) in the schedule space, direct decomposition over \\(\\Gamma_n^j\\) and its complement gives\n\\[\n\\left|\\widetilde{\\mathbb H}_n^j(A)-\\mathbb H_n^j(A)\\right|\n\\le \\mathbb H_n^j((\\Gamma_n^j)^c).\n\\tag{7}\n\\]\nApplying the observation kernel cannot increase this bound. Indeed, for any observed-data event \\(C\\), let \\(K_C(Y)\\in[0,1]\\) be its conditional probability given the schedule. The layer-cake identity\n\\[\nK_C(Y)=\\int_0^1\\mathbf 1\\{K_C(Y)>t\\}\\,\\mathrm dt\n\\]\nand (7), applied at each \\(t\\), give\n\\[\n\\left|\\int K_C\\,\\mathrm d\\widetilde{\\mathbb H}_n^j\n-\\int K_C\\,\\mathrm d\\mathbb H_n^j\\right|\n\\le\\mathbb H_n^j((\\Gamma_n^j)^c).\n\\]\nTaking the supremum over \\(C\\), with total variation defined as the supremum over measurable events, proves\n\\[\n\\delta_{n,j}:=\\lVert P_n^j-P_n^{j,0}\\rVert_{\\mathrm{TV}}\n\\le \\mathbb H_n^j((\\Gamma_n^j)^c)=o(1).\n\\tag{8}\n\\]\nProposition~\\ref{prop:rademacher-mixture-separation} states that \\(P_n^{\\mathrm{same},0}=P_n^{\\mathrm{ind},0}\\) exactly. Calling this common law \\(P_n^*\\), the triangle inequality and (8) give\n\\[\n\\lVert P_n^{\\mathrm{same}}-P_n^{\\mathrm{ind}}\\rVert_{\\mathrm{TV}}\n\\le\\delta_{n,\\mathrm{same}}+\\delta_{n,\\mathrm{ind}}=o(1).\n\\tag{9}\n\\]\n\nWe next verify that the indistinguishability in (9) is not generated by a degenerate observable law. Write \\(D_n=(\\mathbf A_n,\\mathbf Z_n)\\), let \\(i_n=\\min A_{n1}\\), and define the first observed sign\n\\[\nW_n=Y_{i_n,n}(Z_{n1},A_{n1})\\in\\{-1,+1\\}.\n\\tag{10}\n\\]\nUnder either unconditioned prior, the schedule signs are independent of \\(D_n\\). Under \\(\\mathbb H_n^{\\mathrm{same}}\\), \\(W_n=U_{i_n}\\); under \\(\\mathbb H_n^{\\mathrm{ind}}\\), it is \\(U_{i_n}\\) if \\(Z_{n1}=1\\) and \\(V_{i_n}\\) if \\(Z_{n1}=0\\). The signs involved are Rademacher in every case. Consequently, if \\(\\mu_n\\) denotes the common design law of \\(D_n\\), then\n\\[\nP_n^*(W_n=+1\\mid D_n)=P_n^*(W_n=-1\\mid D_n)=\\frac12,\n\\qquad\n\\operatorname{Var}_{P_n^*}(W_n\\mid D_n)=1\n\\tag{11}\n\\]\nat every design point in the support of \\(\\mu_n\\).\n\nBecause \\(\\Gamma_n^j\\) is a schedule event and schedules are drawn independently of the design, conditioning on \\(\\Gamma_n^j\\) leaves the marginal law of \\(D_n\\) equal to \\(\\mu_n\\). On the finite design space define\n\\[\nq_{n,j}(d)=P_n^j(W_n=+1\\mid D_n=d).\n\\tag{12}\n\\]\nProjection from \\(\\mathcal O_n\\) to \\((D_n,W_n)\\) cannot increase total variation, for the same event-supremum reason used in (8). Since the two compared laws have the same \\(D_n\\)-marginal, direct summation over \\(d\\) and \\(W_n\\in\\{-1,+1\\}\\) gives\n\\[\n\\int\\left|q_{n,j}(d)-\\frac12\\right|\\,\\mu_n(\\mathrm d d)\n=\\left\\lVert\n\\mathcal L_{P_n^j}(D_n,W_n)-\\mu_n\\otimes\\operatorname{Rad}(1/2)\n\\right\\rVert_{\\mathrm{TV}}\n\\le\\delta_{n,j}.\n\\tag{13}\n\\]\nSet\n\\[\n\\mathcal R_n=\n\\bigcap_{j\\in\\{\\mathrm{same},\\mathrm{ind}\\}}\n\\left\\{d:\\left|q_{n,j}(d)-\\frac12\\right|\\le\\frac14\\right\\}.\n\\tag{14}\n\\]\nThe pointwise inequality\n\\(\\mathbf 1\\{|q-1/2|>1/4\\}\\le4|q-1/2|\\), followed by (13), yields\n\\[\n\\mu_n(\\mathcal R_n^c)\n\\le4(\\delta_{n,\\mathrm{same}}+\\delta_{n,\\mathrm{ind}})=o(1).\n\\tag{15}\n\\]\nFor every \\(d\\in\\mathcal R_n\\) and either \\(j\\), both conditional support probabilities are bounded below:\n\\[\nP_n^j(W_n=+1\\mid D_n=d)\\ge\\frac14,\n\\qquad\nP_n^j(W_n=-1\\mid D_n=d)\\ge\\frac14.\n\\tag{16}\n\\]\nMoreover, because \\(W_n^2=1\\), equations (12) and (16) imply\n\\[\n\\operatorname{Var}_{P_n^j}(W_n\\mid D_n=d)\n=4q_{n,j}(d)(1-q_{n,j}(d))\n\\ge\\frac34.\n\\tag{17}\n\\]\nThus the design region has probability \\(1-o(1)\\), both observable support points retain probabilities uniformly bounded away from zero there, and their conditional variance is uniformly nondegenerate. Meanwhile (5) preserves the failure-relevant separation\n\\[\n\\Delta:=d_{\\mathrm{same}}-d_{\\mathrm{ind}}=\\frac{2\\rho}{M}>0.\n\\tag{18}\n\\]\n\nIt remains to convert (5), (9), and (18) into the all-statistic lower bound. Put \\(a=d_{\\mathrm{same}}\\), \\(b=d_{\\mathrm{ind}}\\), and choose\n\\[\n0<\\varepsilon<\\frac{a-b}{4a}.\n\\tag{19}\n\\]\nSince the uniform error in (5) vanishes, for all sufficiently large \\(n\\) the event\n\\[\n\\left|\\frac{\\widehat S_n}{\\sigma_n^2}-1\\right|\\le\\varepsilon\n\\tag{20}\n\\]\nimplies\n\\[\nG_n\\widehat S_n>\\frac{a+b}{2}\n\\quad\\text{on }\\Gamma_n^{\\mathrm{same}},\n\\qquad\nG_n\\widehat S_n<\\frac{a+b}{2}\n\\quad\\text{on }\\Gamma_n^{\\mathrm{ind}}.\n\\tag{21}\n\\]\nIndeed, writing the error in (5) as \\(o(1)\\), the respective margins are bounded below by\n\\[\n(1-\\varepsilon)(a-o(1))-\\frac{a+b}{2}\n\\ge\\frac{a-b}{2}-\\varepsilon a-o(1)>0\n\\tag{22}\n\\]\nand\n\\[\n\\frac{a+b}{2}-(1+\\varepsilon)(b+o(1))\n\\ge\\frac{a-b}{2}-\\varepsilon a-o(1)>0.\n\\tag{23}\n\\]\n\nLet \\(T_n=\\{G_n\\widehat S_n>(a+b)/2\\}\\), interpreted as the decision ``same.'' By (20)--(21), a wrong decision under either conditioned prior entails relative estimation error greater than \\(\\varepsilon\\). Furthermore, directly from the event-supremum definition of total variation,\n\\[\nP_n^{\\mathrm{same}}(T_n^c)+P_n^{\\mathrm{ind}}(T_n)\n=1-P_n^{\\mathrm{same}}(T_n)+P_n^{\\mathrm{ind}}(T_n)\n\\ge1-\\lVert P_n^{\\mathrm{same}}-P_n^{\\mathrm{ind}}\\rVert_{\\mathrm{TV}}.\n\\tag{24}\n\\]\nCombining (9), (21), and (24) shows\n\\[\n\\max_{j\\in\\{\\mathrm{same},\\mathrm{ind}\\}}\n\\int\n\\mathbb P_{\\mathbf A_n,\\mathbf Z_n}\\!\\left(\n\\left.\\left|\\frac{\\widehat S_n}{\\sigma_n^2}-1\\right|>\\varepsilon\n\\,\\right|Y\\right)\n\\,\\mathrm d\\widetilde{\\mathbb H}_n^j(Y)\n\\ge\\frac12-o(1).\n\\tag{25}\n\\]\n\nFinally, every row in \\(\\Gamma_n^j\\) can be extended to an infinite array in \\(\\mathcal C_{\\mathrm{dense}}\\): retain that row at index \\(n\\), select an arbitrary member of each nonempty \\(\\Gamma_m^j\\) at every sufficiently large \\(m\\ne n\\), and use arbitrary bounded rows at the finitely many earlier indices. Nonemptiness eventually follows from (5), and membership follows from (6). Therefore each mixture risk in (25) is bounded above by\n\\[\n\\sup_{Y\\in\\mathcal C_{\\mathrm{dense}}}\n\\Pr_Y\\left(\\left|\\frac{\\widehat S_n}{\\sigma_n^2}-1\\right|>\\varepsilon\\right).\n\\tag{26}\n\\]\nTaking lower limits in (25)--(26) proves the asserted bound \\(1/2\\). The schedules used above are additive and have no composition interference, so they form a subclass of the arbitrary bounded composition-interference class. Failure on this subclass transfers to the full class. The conclusion is a positive-density nonextension result: it does not contradict a birthday-sparse theorem or an independent-cluster working-model guarantee on its own stated domain.",
+      "justification": "Equal observed-data mixtures with two uniformly separated scaled variance limits yield an all-statistic testing lower bound after conditioning on high-probability deterministic support sets.",
+      "gap": "This is a new positive-density nonextension lower bound on an additive no-interference subclass. It neither contradicts the birthday-sparse theorem of \\cite{FuSamiiWang2026} nor the independent-cluster working-model guarantee of \\cite{PustejovskyTipton2018}.",
+      "consumer": "The theorem rules out extending one-realization exact-variance ratio consistency uniformly to the full positive-density class. Its construction supplies a design region of probability \\(1-o(1)\\) on which the first observed sign has both conditional support probabilities at least \\(1/4\\), conditional variance at least \\(3/4\\), and variance-target separation \\(2\\rho/M\\).",
+      "status": "proved"
+    },
+    {
+      "id": "lem:classical-kneser-spectrum",
+      "kind": "lemma",
+      "statement": "For the Kneser graph on the \\(M\\)-subsets of an \\(n\\)-set, where adjacency means disjointness and \\(n\\ge2M\\), the unnormalized adjacency eigenvalue on \\(\\mathcal H_{n,k}\\) is \\((-1)^k\\binom{n-M-k}{M-k}\\), for \\(0\\le k\\le M\\).",
+      "free_symbols": [
+        "n",
+        "M",
+        "\\Omega_{n,M}",
+        "\\mathcal H_{n,k}"
+      ],
+      "depends_on": [
+        "def:johnson-decomposition"
+      ],
+      "source": {
+        "cite": "BrouwerEtAl2018",
+        "locator": "Proposition 3.1, page 10",
+        "carrier": "logical-claim",
+        "verbatim_statement": "Proposition 3.1. (Lovasz [23]) The eigenvalues of the Kneser graph are \\(P_{id}=(-1)^i\\binom{n-d-i}{d-i}=(-1)^i\\binom{n-d-i}{n-2d}\\).",
+        "url": "https://arxiv.org/abs/1709.09011",
+        "attestation": {
+          "by": "d0-agent",
+          "note": "Transcribed from the arXiv PDF of Brouwer, Cioaba, Ihringer, and McGinnis (2018), Proposition 3.1, page 10; accents in author names are omitted in this plain source carrier."
+        }
+      },
+      "status": "cited"
+    },
+    {
+      "id": "lem:classical-johnson-decomposition",
+      "kind": "lemma",
+      "statement": "On the uniform \\(M\\)-slice with \\(n\\ge2M\\), the Johnson harmonic degree spaces \\(\\mathcal H_{n,0},\\ldots,\\mathcal H_{n,M}\\) form an orthogonal direct-sum decomposition of \\(L^2(\\Omega_{n,M})\\).",
+      "free_symbols": [
+        "n",
+        "M",
+        "\\Omega_{n,M}",
+        "\\mathcal H_{n,k}"
+      ],
+      "depends_on": [
+        "def:johnson-decomposition"
+      ],
+      "source": {
+        "cite": "Filmus2016",
+        "locator": "Theorem 4.1 and Lemma 4.3, pages 10 and 12 of arXiv:1406.0142v2",
+        "carrier": "logical-claim",
+        "url": "https://arxiv.org/abs/1406.0142",
+        "verbatim_statement": "Theorem 4.1. Let n and k ≤ n/2 be integers, and put p = k/n. The set {χ_B : B ∈ B_{n,d} for some d ≤ k} is an orthogonal basis for the vector space of functions on the slice. Lemma 4.3. Let n, k be integers such that k ≤ n/2, and let M belong to the Bose–Mesner algebra of the (n, k) Johnson association scheme. The bases Y_{n,0}, …, Y_{n,k} span the eigenspaces of M.",
+        "attestation": {
+          "by": "main",
+          "note": "Direct transcription from the source-of-record arXiv:1406.0142v2 PDF, printed pp. 10 and 12, downloaded from https://arxiv.org/pdf/1406.0142v2 on 2026-09-08; notation normalized only by Unicode subscripts.",
+          "at": "2026-09-09T00:50:10.220Z"
+        }
+      },
+      "status": "cited"
+    },
+    {
+      "id": "lem:clubsandwich-cr2-software-contract",
+      "kind": "lemma",
+      "statement": "Let \\({\\tt fit}\\) be an unweighted, full-column-rank \\({\\tt lm}\\) fit with \\(N_{\\rm obs}\\) fitted observations, model matrix \\(X\\), cluster-row blocks \\(X_g\\), and ordinary-least-squares residual blocks \\(e_g\\).  Suppose that \\(I-X_g(X^{\\mathsf T}X)^{-1}X_g^{\\mathsf T}\\) is positive definite for every cluster.  In \\({\\tt clubSandwich}\\) version \\(0.7.0\\), the call \\({\\tt vcovCR}({\\tt fit},\\ {\\tt cluster},\\ {\\tt type}={\\tt 'CR2'})\\), with \\({\\tt target}\\), \\({\\tt inverse\\_var}\\), and \\({\\tt form}\\) omitted, uses the identity working target and returns\n\\[\n \\widetilde B\n \\sum_gX_g^{\\mathsf T}A_ge_ge_g^{\\mathsf T}A_g^{\\mathsf T}X_g\n \\widetilde B,\n \\qquad\n \\widetilde B=\\frac{{\\tt sandwich::bread}({\\tt fit})}{N_{\\rm obs}},\n \\qquad\n A_g=\\left\\{I-X_g(X^{\\mathsf T}X)^{-1}X_g^{\\mathsf T}\\right\\}^{-1/2},\n\\]\nwhere the inverse square root is the symmetric positive-definite one.",
+      "free_symbols": [],
+      "depends_on": [],
+      "source": {
+        "cite": "ClubSandwich2026",
+        "locator": "Version 0.7.0 source package: R/lm.R lines 47--52 and 70--72; R/S3-methods.R lines 21--33 and 63--65; R/clubSandwich.R lines 167--175, 216--225, 237--287; R/CR-adjustments.R lines 5--7 and 22--42",
+        "carrier": "logical-claim",
+        "verbatim_statement": "\\begin{verbatim}\nvcovCR.lm <- function(obj, cluster, type, target = NULL, inverse_var = NULL, form = \"sandwich\", ...) {\n  if (missing(cluster)) stop(\"You must specify a clustering variable.\")\n  if (is.null(inverse_var)) inverse_var <- is.null(weights(obj)) & is.null(target)\n  vcov_CR(obj, cluster = cluster, type = type, \n          target = target, inverse_var = inverse_var, form = form)\n}\n\\end{verbatim}\n\\begin{verbatim}\nv_scale.lm <- function(obj) {\n  as.vector(sum(summary(obj)$df[1:2])) \n}\n\\end{verbatim}\n\\begin{verbatim}\nweightMatrix.default <- function(obj, cluster) {\n  weights <- weights(obj)\n  if (is.null(weights)) {\n    weights <- w_scale <- 1\n  } else {\n    weights <- weights[weights > 0]\n    w_scale <- mean(weights)\n    weights <- weights / w_scale\n  }\n  W <- rep(weights, length.out = length(cluster))\n  W_list <- matrix_list(W, cluster, \"both\")\n  attr(W_list, \"w_scale\") <- w_scale\n  W_list\n}\n\\end{verbatim}\n\\begin{verbatim}\naugmented_model_matrix.default <- function(obj, cluster, inverse_var, ignore_FE) {\n  NULL\n}\n\\end{verbatim}\n\\begin{verbatim}\nadjust_est_mats <- function(type, est_mats, adjustments) {\n  switch(type,\n         CR0 = est_mats,\n         CR1 = lapply(est_mats, function(e) e * adjustments),\n         CR1p = lapply(est_mats, function(e) e * adjustments),\n         CR1S = lapply(est_mats, function(e) e * adjustments),\n         CR2 = Map(function(e, a) e %*% a, e = est_mats, a = adjustments),\n         CR3 = Map(function(e, a) e %*% a, e = est_mats, a = adjustments),\n         CR4 = Map(function(e, a) a %*% e, e = est_mats, a = adjustments))\n}\n\\end{verbatim}\n\\begin{verbatim}\nX_list <- matrix_list(X, cluster, \"row\")\nW_list <- weightMatrix(obj, cluster)\nXW_list <- Map(function(x, w) as.matrix(t(x) %*% w), x = X_list, w = W_list)\n\\end{verbatim}\n\\begin{verbatim}\nif (is.null(target)) {\n  if (inverse_var) {\n    Theta_list <- lapply(W_list, function(w) chol2inv(chol(w)))\n  } else {\n    Theta_list <- targetVariance(obj, cluster)\n  }\n}\n\\end{verbatim}\n\\begin{verbatim}\nif (is.null(S)) {\n  rm(S)\n  U_list <- X_list\n  UW_list <- XW_list\n}\n\\end{verbatim}\n\\begin{verbatim}\nUWU_list <- Map(function(uw, u) uw %*% u, uw = UW_list, u = U_list)\nM_U <- matrix_power(Reduce(\"+\",UWU_list), p = -1)\n\\end{verbatim}\n\\begin{verbatim}\nadjustments <- do.call(type, args = mget(names(formals(type))))\nE_list <- adjust_est_mats(type = type, est_mats = XW_list, adjustments = adjustments)\nresid <- residuals_CS(obj)\nres_list <- split(resid, cluster)\ncomponents <- do.call(cbind, Map(function(e, r) e %*% r, e = E_list, r = res_list))\nv_scale <- v_scale(obj)\nw_scale <- attr(W_list, \"w_scale\")\nif (is.null(w_scale)) w_scale <- 1L\nmeat <- tcrossprod(components) * w_scale^2 / v_scale\nif (form == \"sandwich\") {\n  bread <- sandwich::bread(obj)\n}\nvcov <- switch(form, \n               sandwich = bread %*% meat %*% bread / v_scale,\n               meat = meat)\n\\end{verbatim}\n\\begin{verbatim}\nIH_jj_list <- function(M, X_list, XW_list) {\n  Map(function(x, xw) diag(nrow = nrow(x)) - x %*% M %*% xw,\n         x = X_list, xw = XW_list)\n}\n\\end{verbatim}\n\\begin{verbatim}\nCR2 <- function(M_U, U_list, UW_list, Theta_list, inverse_var = FALSE) {\n  \n  Theta_chol <- lapply(Theta_list, chol)\n  \n  if (inverse_var) {\n    IH_jj <- IH_jj_list(M_U, U_list, UW_list)\n    G_list <- Map(function(a,b,ih) as.matrix(a %*% ih %*% b %*% t(a)), \n                     a = Theta_chol, b = Theta_list, ih = IH_jj)\n  }\n  \n  Map(function(v, g) as.matrix(t(v) %*% matrix_power(g, -1/2) %*% v), \n                   v = Theta_chol, g = G_list)\n}\n\\end{verbatim}",
+        "url": "https://cran.r-project.org/src/contrib/clubSandwich_0.7.0.tar.gz",
+        "attestation": {
+          "by": "d0-agent",
+          "note": "Exact relevant code lines transcribed from the pinned CRAN clubSandwich 0.7.0 source tarball; SHA-256 f3cd9cd5840022b8d1354dce3e7e4a820edcd47411b9f95bdd200c4e040032ed. The mathematical statement only specializes these lines to an unweighted full-rank lm object and a positive-definite CR2 adjustment."
+        }
+      },
+      "status": "cited"
+    },
+    {
+      "id": "lem:sandwich-lm-bread-contract",
+      "kind": "lemma",
+      "statement": "Let \\({\\tt fit}\\) be a full-column-rank, unweighted \\({\\tt lm}\\) fit with \\(N_{\\rm obs}\\) fitted observations and model matrix \\(X\\).  In \\({\\tt sandwich}\\) version \\(3.1\\text{-}3\\),\n\\[\n {\\tt sandwich::bread}({\\tt fit})=N_{\\rm obs}(X^{\\mathsf T}X)^{-1}.\n\\]",
+      "free_symbols": [],
+      "depends_on": [],
+      "source": {
+        "cite": "Sandwich2026",
+        "locator": "Version 3.1-3 source package, R/bread.R lines 10--15",
+        "carrier": "logical-claim",
+        "verbatim_statement": "\\begin{verbatim}\nbread.lm <- function(x, ...)\n{\n  if(!is.null(x$na.action)) class(x$na.action) <- \"omit\"\n  sx <- summary.lm(x)\n  return(sx$cov.unscaled * as.vector(sum(sx$df[1L:2L])))\n}\n\\end{verbatim}",
+        "url": "https://cran.r-project.org/src/contrib/sandwich_3.1-3.tar.gz",
+        "attestation": {
+          "by": "d0-agent",
+          "note": "Exact code lines transcribed from the pinned CRAN sandwich 3.1-3 source tarball; SHA-256 960006cf4fcbada936b43acd04ddd8c0d1255570f41dda046ce778873f546134. For a full-rank unweighted lm fit, summary.lm's unscaled covariance is the inverse Gram matrix and its model plus residual degrees of freedom equal the fitted observation count."
+        }
+      },
+      "status": "cited"
+    }
+  ],
+  "bibliography": [
+    {
+      "key": "FuSamiiWang2026",
+      "citation": "Jiawei Fu, Cyrus Samii, and Ye Wang (2026), ``Inference for Group Interaction Experiments,'' arXiv:2607.02385v2, especially Sections 3--4, Theorems 1--2, Appendix A.1, and Section 8."
+    },
+    {
+      "key": "Filmus2016",
+      "citation": "Yuval Filmus (2016), ``An Orthogonal Basis for Functions over a Slice of the Boolean Hypercube,'' Electronic Journal of Combinatorics 23(1), Paper 1.23, arXiv:1406.0142, especially Theorems 1 and 3 and the Johnson association-scheme discussion."
+    },
+    {
+      "key": "BrouwerEtAl2018",
+      "citation": "Andries E. Brouwer, Sebastian M. Cioabă, Ferdinand Ihringer, and Matt McGinnis (2018), ``The Smallest Eigenvalues of Hamming Graphs, Johnson Graphs and Other Distance-Regular Graphs with Classical Parameters,'' Journal of Combinatorial Theory, Series B 133, 88--121, arXiv:1709.09011, especially Proposition 3.1."
+    },
+    {
+      "key": "LiDing2017",
+      "citation": "Xinran Li and Peng Ding (2017), ``General Forms of Finite Population Central Limit Theorems with Applications to Causal Inference,'' Journal of the American Statistical Association 112(520), 1759--1769, arXiv:1610.04821, especially Section 2.2 and Theorems 3--4."
+    },
+    {
+      "key": "Ohlsson1989",
+      "citation": "Esbjörn Ohlsson (1989), ``Asymptotic Normality for Two-Stage Sampling from a Finite Population,'' Probability Theory and Related Fields 81, 341--352."
+    },
+    {
+      "key": "PustejovskyTipton2018",
+      "citation": "James E. Pustejovsky and Elizabeth Tipton (2018), ``Small-Sample Methods for Cluster-Robust Variance Estimation and Hypothesis Testing in Fixed Effects Models,'' Journal of Business and Economic Statistics 36(4), 672--683, arXiv:1601.01981v2, especially Section 2, Theorem 1, and Appendix A."
+    },
+    {
+      "key": "SuDing2021",
+      "citation": "Fangzhou Su and Peng Ding (2021), ``Model-Assisted Analyses of Cluster-Randomized Experiments,'' Journal of the Royal Statistical Society, Series B 83, 994--1015, arXiv:2104.04647v2, especially Theorem 1 and its appendix."
+    },
+    {
+      "key": "HarshawMiddletonSavje2026",
+      "citation": "Christopher Harshaw, Joel A. Middleton, and Fredrik Sävje (2026), ``Optimized Variance Estimation under Interference and Complex Experimental Designs,'' Journal of the American Statistical Association, doi:10.1080/01621459.2026.2627027, arXiv:2112.01709, especially Proposition 1, Theorems 1 and 3, and the concluding remarks."
+    },
+    {
+      "key": "BasseAiroldi2018",
+      "citation": "Guillaume W. Basse and Edoardo M. Airoldi (2018), ``Limitations of Design-Based Causal Inference and A/B Testing under Arbitrary and Network Interference,'' Sociological Methodology 48(1), 136--151, arXiv:1705.05752, especially Theorems 1--2 and Section 5."
+    },
+    {
+      "key": "AronowGreenLee2014",
+      "citation": "Peter M. Aronow, Donald P. Green, and Donald K. K. Lee (2014), ``Sharp Bounds on the Variance in Randomized Experiments,'' Annals of Statistics 42(3), 850--871, arXiv:1405.6555, especially Section 3 and Proposition 1."
+    },
+    {
+      "key": "BasseDingFellerToulis2024",
+      "citation": "Guillaume Basse, Peng Ding, Avi Feller, and Panos Toulis (2024), ``Randomization Tests for Peer Effects in Group Formation Experiments,'' Econometrica 92(2), 567--590, arXiv:1904.02308."
+    },
+    {
+      "key": "PuelzBasseFellerToulis2022",
+      "citation": "David Puelz, Guillaume Basse, Avi Feller, and Panos Toulis (2022), ``A Graph-Theoretic Approach to Randomization Tests of Causal Effects under General Interference,'' Journal of the Royal Statistical Society, Series B 84(1), 174--204, arXiv:1910.10862."
+    },
+    {
+      "key": "ClubSandwich2026",
+      "citation": "James E. Pustejovsky (2026), \\({\\tt clubSandwich}\\) version 0.7.0 source package, CRAN, published May 4, 2026, especially \\({\\tt R/lm.R}\\), \\({\\tt R/S3-methods.R}\\), \\({\\tt R/clubSandwich.R}\\), and \\({\\tt R/CR-adjustments.R}\\)."
+    },
+    {
+      "key": "Sandwich2026",
+      "citation": "Achim Zeileis and Thomas Lumley (2026), \\({\\tt sandwich}\\) version 3.1-3 source package, CRAN, published August 3, 2026, especially \\({\\tt R/bread.R}\\)."
+    }
+  ]
+}

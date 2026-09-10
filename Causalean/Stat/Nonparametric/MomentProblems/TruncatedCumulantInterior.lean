@@ -37,10 +37,12 @@ namespace Causalean.Stat.MomentProblems
 open MeasureTheory ProbabilityTheory
 open scoped BigOperators ENNReal NNReal
 
-/-- **Interior of the truncated cumulant range at order `L`.** There is a cumulant target and a
-strictly positive radius such that every cumulant sequence within that radius of the target, in
-orders two through `L`, is realized by a probability law on the real line that is centered, is not
-a Gaussian law, and has finite `L`-th moment.
+/-- For [a nonnegative truncation order](hyp:L), the [interior-of-the-truncated-cumulant-range
+condition](goal) says that [there exist a real cumulant sequence and a strictly positive real
+radius](step:1) such that every real sequence whose entries of every order from two through the
+truncation order differ from the corresponding target entries by less than that radius is the
+cumulant sequence, at each of those orders, of some centered non-Gaussian probability law on the
+real line with finite moment of the truncation order.
 
 Equivalently: the set of truncated cumulant sequences of orders `2, …, L` attainable by centered
 non-Gaussian laws with `L` moments has nonempty interior.  This is what one needs in order to

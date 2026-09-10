@@ -35,23 +35,30 @@ namespace Causalean.Stat.Nonparametric
 
 open scoped BigOperators
 
-/-- The width `δ = (hi − lo)/J` of a uniform `J`-cell partition of `[lo, hi]`. -/
+/-- For [a real left endpoint](hyp:lo), [a real right endpoint](hyp:hi), and [a nonnegative
+integer number of cells](hyp:J), the [width of each cell in the uniform partition](goal) is
+$(\mathrm{hi}-\mathrm{lo})/J$. -/
 noncomputable def cellWidth (lo hi : ℝ) (J : ℕ) : ℝ := (hi - lo) / (J : ℝ)
 
-/-- The cell index of `x` in a uniform `J`-cell partition of `[lo, hi]`: the floor
-`⌊(x − lo)/δ⌋`, clamped to the last cell `J − 1` (so the right endpoint `hi` lands in the
-final cell). -/
+/-- For [a real left endpoint](hyp:lo), [a real right endpoint](hyp:hi), [a nonnegative integer
+number of cells](hyp:J), and [a real point](hyp:x), the [uniform-partition cell index](goal) is
+the nonnegative floor of the point's displacement from the left endpoint divided by the cell
+width, capped at $J-1$ so that the right endpoint belongs to the final cell. -/
 noncomputable def cellIdx (lo hi : ℝ) (J : ℕ) (x : ℝ) : ℕ :=
   min (J - 1) ⌊(x - lo) / cellWidth lo hi J⌋₊
 
-/-- The left endpoint `lo + (cellIdx x)·δ` of the cell containing `x`. The piecewise-Taylor
-approximant expands `f` around this base point. -/
+/-- For [a real left endpoint](hyp:lo), [a real right endpoint](hyp:hi), [a nonnegative integer
+number of cells](hyp:J), and [a real point](hyp:x), the [base point of the point's cell](goal) is
+the left endpoint plus the cell index times the uniform cell width. The piecewise-Taylor
+approximant expands its function around this point. -/
 noncomputable def cellBase (lo hi : ℝ) (J : ℕ) (x : ℝ) : ℝ :=
   lo + (cellIdx lo hi J x : ℝ) * cellWidth lo hi J
 
-/-- The **piecewise-Taylor sieve approximant**: on the cell containing `x`, the value of the
-degree-`p` Taylor polynomial of `f` expanded at the cell's left endpoint. This is a piecewise
-polynomial of degree `≤ p` on the uniform `J`-cell partition of `[lo, hi]`. -/
+/-- For [a nonnegative Taylor degree](hyp:p), [a real-valued function](hyp:f), [a real left
+endpoint](hyp:lo), [a real right endpoint](hyp:hi), [a nonnegative integer number of
+cells](hyp:J), and [a real evaluation point](hyp:x), the [piecewise-Taylor sieve approximant](goal)
+is the degree-$p$ Taylor polynomial of the function, expanded at the left endpoint of the
+uniform-partition cell containing the evaluation point and evaluated at that point. -/
 noncomputable def piecewiseTaylorApprox (p : ℕ) (f : ℝ → ℝ) (lo hi : ℝ) (J : ℕ) (x : ℝ) : ℝ :=
   taylorPoly p f (cellBase lo hi J x) x
 

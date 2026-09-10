@@ -7,10 +7,17 @@ import { addEdge, addNode, addAssumption, setLean } from "../../src/graph/mutate
 import { graphDerivedSkeleton } from "../../src/graph/skeleton.js";
 import { runReviewer, gradeReviewerOutput, parseJsonObject } from "../../src/formalization/proof_reviewer.js";
 import { planPath } from "../../src/paths.js";
-import { auditCitedReview } from "../../src/formalization/delivery_audit.js";
+import { auditCitedReview, citedLeanEvidence } from "../../src/formalization/delivery_audit.js";
+import { readTypedCore } from "../../src/discovery/core/core_io.js";
 import { PlanSchema } from "../../src/formalization/plan/schema.js";
 import { buildSymbolClusters } from "../../src/formalization/crosswalk.js";
 import { statementHash } from "../../src/graph/hash.js";
+import {
+  buildLeanEvidenceIndex,
+  buildSymbolReviewRows,
+  nodeConvergenceEvidence,
+  reviewerRubricHash,
+} from "../../src/formalization/convergence_evidence.js";
 
 function fixture() {
   let g = createEmptyGraph("q", "v1");
@@ -61,6 +68,44 @@ afterAll(async () => {
 });
 
 describe("runReviewer", () => {
+  it("prefers a stamped from-note target over an agent-introduced legacy alias", async () => {
+    let g = createEmptyGraph("q", "v1");
+    g = addNode(g, { id: "S1", kind: "setup", provenance: "from-note", nl_statement: "PO world", tex_anchor: "" });
+    g = addNode(g, { id: "s1", kind: "definition", provenance: "agent-introduced", nl_statement: "selection under treatment", tex_anchor: "" });
+    g = {
+      ...g,
+      nodes: g.nodes.map((n) => n.id === "S1" ? { ...n, obj_id: "S-1" } : n),
+    };
+    g = setLean(g, "S1", "d1_def", "T1.lean");
+
+    let calls = 0;
+    const r = await runReviewer({
+      ctx,
+      deps: { runCodex: async () => {
+        calls += 1;
+        return { stdout: JSON.stringify({
+          status: "ok",
+          statement_verdicts: [{ obj_id: "S-1", verdict: "matched", note: "setup matches" }],
+          assumption_verdicts: [],
+          substrate_gates: [],
+          escalate: null,
+        }), stderr: "" };
+      } },
+      graph: g,
+      skeleton: graphDerivedSkeleton(g),
+      dirty: ["S1"],
+      hashes: { S1: "setup-hash" },
+      mode: "delta",
+      corePath: sharedCorePath,
+      promptPath: sharedPromptPath,
+      leanDir: sharedCoreRoot,
+    });
+
+    expect(r.ok).toBe(true);
+    expect(r.escalate).toBeNull();
+    expect(calls).toBe(0); // setup rows are audited through symbol clusters, not direct calls
+  });
+
   it("fails before dispatch when a non-exact reviewer alias has multiple graph owners", async () => {
     let g = createEmptyGraph("q", "v1");
     g = addNode(g, { id: "t1", kind: "theorem", provenance: "from-note", nl_statement: "rate", tex_anchor: "" });
@@ -341,6 +386,7 @@ describe("runReviewer", () => {
     await writeFile(corePath, JSON.stringify(minimalCore([{ name: "sigma", type: "scale", space: "[0,1]" }])));
     await writeFile(join(root, "Tagged.lean"), "/-- @realizes sigma(scale carrier) -/\ndef d1_def : Nat := 1\n");
     const cluster = (await buildSymbolClusters(root, [{ name: "sigma", space: "[0,1]" }]))[0];
+    const reviewRow = (await buildSymbolReviewRows(root, [{ name: "sigma", space: "[0,1]" }]))[0];
     const row = `- sym:${cluster.symbol} : ${cluster.space}\n    realized_by (judge the CONJUNCTION of these):\n${cluster.members
       .map((m) => `      • ${m.decl} (${m.declKind}) in ${m.file}${m.hint ? `  — ${m.hint}` : ""}`)
       .join("\n")}`;
@@ -348,7 +394,7 @@ describe("runReviewer", () => {
     g = addNode(g, { id: nodeId, kind: "definition", provenance: "from-note", nl_statement: "scale", tex_anchor: "" });
     if (stamp) g = { ...g, nodes: g.nodes.map((n) => n.id === nodeId ? { ...n, obj_id: "sym:sigma" } : n) };
     g = setLean(g, nodeId, "d1_def", "Tagged.lean");
-    g = { ...g, symbolReview: { "sym:sigma": { verdict: "matched", hash: statementHash(row) } } };
+    g = { ...g, symbolReview: { "sym:sigma": { verdict: "matched", hash: reviewRow.hash } } };
     const graphBefore = JSON.stringify(g);
     let calls = 0;
 
@@ -400,13 +446,14 @@ describe("runReviewer", () => {
     await writeFile(corePath, JSON.stringify(minimalCore(symbols)));
     await writeFile(join(root, "Tagged.lean"), "/-- @realizes sigma(scale carrier) -/\ndef sigmaDef : Nat := 1\n");
     const cluster = (await buildSymbolClusters(root, [{ name: "sigma", space: symbols[0].space }]))[0];
+    const reviewRow = (await buildSymbolReviewRows(root, [{ name: "sigma", space: symbols[0].space }]))[0];
     const head = `- sym:${cluster.symbol} : ${cluster.space}`;
     const row = `${head}\n    realized_by (judge the CONJUNCTION of these):\n${cluster.members
       .map((m) => `      • ${m.decl} (${m.declKind}) in ${m.file}${m.hint ? `  — ${m.hint}` : ""}`)
       .join("\n")}`;
     const graph = {
       ...createEmptyGraph("q", "v1"),
-      symbolReview: { "sym:sigma": { verdict: "matched", hash: statementHash(row) } },
+      symbolReview: { "sym:sigma": { verdict: "matched", hash: reviewRow.hash } },
     };
     const graphBefore = JSON.stringify(graph);
     let calls = 0;
@@ -447,8 +494,14 @@ describe("runReviewer", () => {
 
     expect(scaffoldPrompt).toContain("exactly equivalent to the frozen core statement");
     expect(scaffoldPrompt).toContain("fetched/attested source logically entails that exact consequence");
+    expect(scaffoldPrompt).toContain('lean_kind:"def"');
+    expect(scaffoldPrompt).toContain("CLOSED NON-PROP bibliographic metadata carrier");
+    expect(scaffoldPrompt).toContain("never thread it as a hypothesis");
     expect(reviewerPrompt).toContain("source to that exact frozen consequence");
-    expect(reviewerPrompt).toContain("First require Lean to be equivalent to the");
+    // Prompt paragraphs are hard-wrapped; assert on the sentence, not on its line breaks.
+    expect(reviewerPrompt).toMatch(/First\s+require Lean to be equivalent to the\s+frozen paper\/core node/);
+    expect(reviewerPrompt).toContain('A `lean_kind:"def"`');
+    expect(reviewerPrompt).toContain("Do NOT require such metadata to");
 
     for (const prompt of [reviewerPrompt, scaffoldPrompt]) {
       expect(prompt).toMatch(/Do NOT require the consequence to imply the whole\s+source theorem/);
@@ -679,6 +732,103 @@ describe("runReviewer", () => {
     }
   });
 
+  it("reviews a cited non-Prop def by closed payload/source correspondence, not Prop implication", async () => {
+    const root = await mkdtemp(join(tmpdir(), "proof-reviewer-cited-metadata-"));
+    const localCtx = { repoRoot: root, qid: "q", specialization: "v1" };
+    const pp = planPath(root, "q", "v1");
+    const corePath = join(root, "core.json");
+    await mkdir(join(pp, ".."), { recursive: true });
+    await writeFile(corePath, JSON.stringify({
+      ...minimalCore(),
+      statements: [{
+        id: "lem:source-scope", kind: "lemma", statement: "The source studies model X only.",
+        depends_on: [], status: "cited",
+        source: {
+          cite: "source", locator: "Theorem 2", carrier: "bibliographic-metadata",
+          verbatim_statement: "The source studies model X only.",
+        },
+      }],
+      bibliography: [{ key: "source", citation: "A (2020), Source" }],
+    }));
+    await writeFile(pp, JSON.stringify({
+      qid: "q",
+      specialization: "v1",
+      env: [],
+      nodes: {
+        "lem:source-scope": {
+          lean_kind: "def",
+          lean_name: "SourceScope",
+          disposition: "define-local",
+          gate: true,
+          gate_class: "cited",
+          source: "cite:source",
+        },
+      },
+      citations: [{
+        id: "cite:source", title: "Source", authors: "A", year: 2020,
+        locator: "Theorem 2", verbatim_statement: "The source studies model X only.",
+      }],
+      feasibility: "formalizable-now",
+    }));
+    await writeFile(join(root, "Basic.lean"), 'def SourceScope : List String := ["The source studies model X only"]\n');
+    let g = createEmptyGraph("q", "v1");
+    g = addNode(g, {
+      id: "lem:source-scope",
+      kind: "gate",
+      provenance: "from-note",
+      nl_statement: "The source studies model X only.",
+      tex_anchor: "",
+    });
+    g = setLean(g, "lem:source-scope", "SourceScope", "Basic.lean");
+    g.nodes[0].gate = { gate_class: "cited", source: "cite:source" };
+    const prompts: string[] = [];
+
+    try {
+      const result = await runReviewer({
+        ctx: localCtx,
+        deps: {
+          runCodex: async ({ prompt }) => {
+            prompts.push(prompt);
+            return { stdout: JSON.stringify({
+              status: "ok",
+              statement_verdicts: [],
+              assumption_verdicts: [{
+                obj_id: "lem:source-scope",
+                verdict: "faithful-refinement",
+                note: "closed payload records the frozen scope",
+              }],
+              substrate_gates: [{
+                name: "SourceScope",
+                gate_class: "cited",
+                source: { cite_id: "cite:source", locator: "Theorem 2" },
+                check_status: "cited-verified-attested",
+              }],
+              escalate: null,
+            }), stderr: "" };
+          },
+        },
+        graph: g,
+        skeleton: graphDerivedSkeleton(g),
+        dirty: ["lem:source-scope"],
+        hashes: { "lem:source-scope": "metadata-hash" },
+        mode: "delta",
+        leanDir: root,
+        corePath,
+        promptPath: sharedPromptPath,
+      });
+
+      expect(prompts).toHaveLength(1);
+      expect(prompts[0]).toContain("CARRIER CONTRACT — BIBLIOGRAPHIC METADATA");
+      expect(prompts[0]).toContain("intentionally a closed NON-PROP payload");
+      expect(prompts[0]).toContain("Do NOT demand that this payload logically imply a proposition");
+      expect(prompts[0]).toContain("CLOSEDNESS: the metadata payload must be fixed");
+      expect(result.ok).toBe(true);
+      expect(result.citedReviewReceipts?.[0]?.check_status).toBe("cited-verified-attested");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   it("fails closed when either F4 peer omits the source-and-locator row for a delivered cited node", async () => {
     const root = await mkdtemp(join(tmpdir(), "proof-reviewer-cited-"));
     const localCtx = { repoRoot: root, qid: "q", specialization: "v1" };
@@ -806,11 +956,100 @@ describe("runReviewer", () => {
       expect(result.ok).toBe(true);
       expect(result.graph.nodes[0].review.passed_hash).toBe("current-hash");
       const parsedPlan = PlanSchema.parse(JSON.parse(await readFile(pp, "utf8")));
+      const parsedCore = await readTypedCore(sharedCorePath);
       expect(auditCitedReview({
+        core: parsedCore,
         plan: parsedPlan,
         graph: result.graph,
+        leanEvidence: await citedLeanEvidence(root, parsedPlan, result.graph),
         receipts: result.citedReviewReceipts,
       })).toEqual([]);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("does not let ordinary dual receipts skip source review of a discharged citation", async () => {
+    const root = await mkdtemp(join(tmpdir(), "proof-reviewer-discharged-cited-cache-"));
+    const localCtx = { repoRoot: root, qid: "q", specialization: "v1" };
+    const pp = planPath(root, "q", "v1");
+    const corePath = join(root, "core.json");
+    await mkdir(join(pp, ".."), { recursive: true });
+    await writeFile(corePath, JSON.stringify({
+      ...minimalCore(),
+      statements: [{
+        id: "lem:source", kind: "lemma", statement: "True.", depends_on: [], status: "cited",
+        source: {
+          cite: "source", locator: "Theorem 2", carrier: "logical-claim",
+          verbatim_statement: "True.",
+        },
+      }],
+      bibliography: [{ key: "source", citation: "A (2020), Source" }],
+    }));
+    await writeFile(pp, JSON.stringify({
+      qid: "q", specialization: "v1", env: [],
+      nodes: {
+        "lem:source": {
+          lean_kind: "lemma", lean_name: "sourceLemma", disposition: "define-local",
+          reuse: null, modules: [], defer_tier: false, citation_discharged: true,
+          source: "cite:source", target_file: "Basic.lean",
+        },
+      },
+      citations: [{
+        id: "cite:source", title: "Source", authors: "A", year: 2020,
+        locator: "Theorem 2", verbatim_statement: "True.",
+      }],
+      feasibility: "formalizable-now",
+    }));
+    await writeFile(join(root, "Basic.lean"), "lemma sourceLemma : True := by trivial\n");
+    let g = createEmptyGraph("q", "v1");
+    g = addNode(g, { id: "lem:source", kind: "lemma", provenance: "from-note", nl_statement: "True.", tex_anchor: "" });
+    g = setLean(g, "lem:source", "sourceLemma", "Basic.lean");
+    g.nodes[0].review = { status: "matched", passed_hash: "prior" };
+    const core = await readTypedCore(corePath);
+    const index = await buildLeanEvidenceIndex(root);
+    const rubricHash = await reviewerRubricHash(await readFile(sharedPromptPath, "utf8"));
+    const evidence = nodeConvergenceEvidence({ graph: g, index, core, rubricHash, nodeId: "lem:source" });
+    g.convergenceReview = {
+      "lem:source": {
+        codex: { verdict: "matched", evidence_hash: evidence },
+        claude: { verdict: "matched", evidence_hash: evidence },
+      },
+    };
+    let codexCalls = 0;
+    let claudeCalls = 0;
+    const peerOutput = JSON.stringify({
+      status: "ok",
+      statement_verdicts: [{ obj_id: "lem:source", verdict: "matched", note: "matches" }],
+      assumption_verdicts: [],
+      substrate_gates: [{
+        name: "sourceLemma", gate_class: "cited",
+        source: { cite_id: "cite:source", locator: "Theorem 2" },
+        check_status: "cited-verified-attested",
+      }],
+      escalate: null,
+    });
+
+    try {
+      const result = await runReviewer({
+        ctx: localCtx,
+        deps: {
+          runCodex: async () => { codexCalls += 1; return { stdout: peerOutput, stderr: "" }; },
+          runClaude: async () => { claudeCalls += 1; return peerOutput; },
+        },
+        graph: g,
+        skeleton: graphDerivedSkeleton(g),
+        dirty: [],
+        hashes: { "lem:source": "prior" },
+        mode: "convergence",
+        leanDir: root,
+        corePath,
+        promptPath: sharedPromptPath,
+      });
+      expect(result.ok).toBe(true);
+      expect(codexCalls).toBe(1);
+      expect(claudeCalls).toBe(1);
+      expect(result.citedReviewReceipts).toHaveLength(2);
     } finally {
       await rm(root, { recursive: true, force: true });
     }
@@ -1009,5 +1248,115 @@ describe("gradeReviewerOutput — tolerates the schema codex actually emits", ()
   it("parseJsonObject strips fences and slices the object", () => {
     const out = parseJsonObject('noise ```json\n{"status":"ok","statement_verdicts":[]}\n``` trailer');
     expect(out.status).toBe("ok");
+  });
+});
+
+describe("F4 convergence receipts", () => {
+  const LEAN = [
+    "def helperBound (n : Nat) : Nat := n + 1",
+    "-- @node: t1",
+    "theorem t1_thm (n : Nat) : helperBound n = n + 1 := by rfl",
+    "-- @node: l1",
+    "lemma l1_lemma : True := by trivial",
+    "-- @node: d1",
+    "def d1_def : Prop := True",
+  ].join("\n");
+  const okVerdict = (prompt: string) => {
+    const objId = prompt.match(/### ([^\s(]+) \(/)?.[1];
+    return JSON.stringify({ status: "ok", statement_verdicts: objId ? [{ obj_id: objId, verdict: "matched", note: "ok" }] : [], assumption_verdicts: [], substrate_gates: [], escalate: null });
+  };
+  function graph() {
+    let g = createEmptyGraph("q", "v1");
+    g = addNode(g, { id: "t1", kind: "theorem", provenance: "from-note", nl_statement: "headline claim", tex_anchor: "" });
+    g = addNode(g, { id: "l1", kind: "lemma", provenance: "from-note", nl_statement: "routine lemma", tex_anchor: "" });
+    g = addNode(g, { id: "d1", kind: "definition", provenance: "from-note", nl_statement: "model-class definition", tex_anchor: "" });
+    g = setLean(g, "t1", "t1_thm", "T1.lean");
+    g = setLean(g, "l1", "l1_lemma", "T1.lean");
+    g = setLean(g, "d1", "d1_def", "T1.lean");
+    return g;
+  }
+  async function round(g: ReturnType<typeof graph>, root: string, verdict: (prompt: string, peer: "codex" | "claude") => string = okVerdict) {
+    const seen: string[] = [];
+    const r = await runReviewer({
+      ctx: { repoRoot: root, qid: "q", specialization: "v1" },
+      deps: {
+        runCodex: async ({ prompt }) => { seen.push(`codex:${prompt.match(/### ([^\s(]+) \(/)?.[1]}`); return { stdout: verdict(prompt, "codex"), stderr: "" }; },
+        runClaude: async ({ prompt }) => { seen.push(`claude:${prompt.match(/### ([^\s(]+) \(/)?.[1]}`); return verdict(prompt, "claude"); },
+      },
+      graph: g,
+      skeleton: graphDerivedSkeleton(g),
+      dirty: [],
+      hashes: { t1: "h1", l1: "h2", d1: "h3" },
+      mode: "convergence",
+      corePath: join(root, "core.json"),
+      promptPath: sharedPromptPath,
+      leanDir: root,
+    });
+    return { r, seen: seen.sort() };
+  }
+  let root = "";
+  beforeAll(async () => {
+    root = await mkdtemp(join(tmpdir(), "proof-reviewer-receipts-"));
+    await writeFile(join(root, "core.json"), JSON.stringify(minimalCore()));
+  });
+  afterAll(async () => { await rm(root, { recursive: true, force: true }); });
+
+  it("round 1 dual-reviews everything and writes both receipts; an unchanged round 2 spends no model call", async () => {
+    await writeFile(join(root, "T1.lean"), LEAN);
+    const one = await round(graph(), root);
+    expect(one.r.ok).toBe(true);
+    expect(one.seen).toEqual(["claude:L-1", "claude:T-1", "claude:d1", "codex:L-1", "codex:T-1", "codex:d1"]);
+    const ledger = one.r.graph.convergenceReview!;
+    expect(Object.keys(ledger).sort()).toEqual(["d1", "l1", "t1"]);
+    for (const id of ["t1", "l1", "d1"]) {
+      expect(ledger[id].codex?.verdict).toBe("matched");
+      expect(ledger[id].claude?.verdict).toBe("matched");
+      expect(ledger[id].codex?.evidence_hash).toBe(ledger[id].claude?.evidence_hash);
+    }
+    const two = await round(one.r.graph, root);
+    expect(two.seen).toEqual([]);
+    expect(two.r.ok).toBe(true);
+    expect(two.r.graph.convergenceReview).toEqual(ledger);
+  });
+
+  it("re-reviews only the target whose UNTAGGED dependency changed", async () => {
+    await writeFile(join(root, "T1.lean"), LEAN);
+    const one = await round(graph(), root);
+    await writeFile(join(root, "T1.lean"), LEAN.replace("n + 1\n", "n + 2\n"));
+    const two = await round(one.r.graph, root);
+    expect(two.seen).toEqual(["claude:T-1", "codex:T-1"]);
+    expect(two.r.ok).toBe(true);
+    expect(two.r.graph.convergenceReview!.t1.codex?.evidence_hash).not.toBe(one.r.graph.convergenceReview!.t1.codex?.evidence_hash);
+    expect(two.r.graph.convergenceReview!.l1).toEqual(one.r.graph.convergenceReview!.l1);
+  });
+
+  it("a target one peer flagged is re-reviewed next round; a delta `matched` with no ledger never clears", async () => {
+    await writeFile(join(root, "T1.lean"), LEAN);
+    const one = await round(graph(), root, (prompt, peer) => {
+      const objId = prompt.match(/### ([^\s(]+) \(/)?.[1];
+      const bad = peer === "claude" && objId === "L-1";
+      return JSON.stringify({ status: bad ? "flagged" : "ok", statement_verdicts: [{ obj_id: objId, verdict: bad ? "drift" : "matched", note: bad ? "weaker" : "ok" }], assumption_verdicts: [], substrate_gates: [], escalate: null });
+    });
+    expect(one.r.ok).toBe(false);
+    expect(one.r.blocking).toEqual(["L-1"]);
+    expect(one.r.graph.convergenceReview!.l1.claude?.verdict).toBe("drift");
+    // Delta later re-marks l1 matched at the same text (a reviewer flip); F4 must still dual-review it.
+    let g = one.r.graph;
+    g = { ...g, nodes: g.nodes.map((n) => (n.id === "l1" ? { ...n, review: { status: "matched" as const, passed_hash: "h2" } } : n)) };
+    const two = await round(g, root);
+    expect(two.seen).toEqual(["claude:L-1", "codex:L-1"]);
+    expect(two.r.ok).toBe(true);
+    // And a graph that carries no ledger at all reviews everything, whatever delta says.
+    const fresh = await round(graph(), root);
+    expect(fresh.seen).toHaveLength(6);
+  });
+
+  it("a receipt is inert while the node is not delta-cleared", async () => {
+    await writeFile(join(root, "T1.lean"), LEAN);
+    const one = await round(graph(), root);
+    let g = one.r.graph;
+    g = { ...g, nodes: g.nodes.map((n) => (n.id === "t1" ? { ...n, review: { status: "unreviewed" as const, passed_hash: null } } : n)) };
+    const two = await round(g, root);
+    expect(two.seen).toEqual(["claude:T-1", "codex:T-1"]);
   });
 });

@@ -61,9 +61,14 @@ are the "short" family `p 0 0 z + p 1 1 z' - 1` over the four instrument pairs;
 the last four are the "long" vertices, in which one cell probability enters with
 weight two. -/
 
-/-- The `i`-th of the eight affine lower expressions in the Balke-Pearl closed
-form for the average treatment effect. Each is a valid lower bound on the effect,
-and their maximum is exactly the smallest effect compatible with the data. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), and [one of the eight indices](hyp:i),
+the [corresponding affine lower-bound expression](goal) is calculated from the observed
+outcome--treatment cell probabilities by [naming those probabilities](step:1) and applying
+the appropriate first, second, third, fourth,
+fifth, sixth, seventh, or eighth displayed formula.
+
+Each expression is a valid lower bound on the average treatment effect, and their maximum is
+the smallest effect compatible with the data. -/
 noncomputable def bpLowerTerm (i : Fin 8) : ℝ :=
   let p := S.cellProb
   match i with
@@ -80,9 +85,14 @@ noncomputable def bpLowerTerm (i : Fin 8) : ℝ :=
   | 7 => -p true false false - p true true false
            + p false false true + 2 * p true true true - 1
 
-/-- The `i`-th of the eight affine upper expressions in the Balke-Pearl closed
-form for the average treatment effect. Each is a valid upper bound on the effect,
-and their minimum is exactly the largest effect compatible with the data. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), and [one of the eight indices](hyp:i),
+the [corresponding affine upper-bound expression](goal) is calculated from the observed
+outcome--treatment cell probabilities by [naming those probabilities](step:1) and applying
+the appropriate first, second, third, fourth,
+fifth, sixth, seventh, or eighth displayed formula.
+
+Each expression is a valid upper bound on the average treatment effect, and their minimum is
+the largest effect compatible with the data. -/
 noncomputable def bpUpperTerm (i : Fin 8) : ℝ :=
   let p := S.cellProb
   match i with
@@ -99,15 +109,19 @@ noncomputable def bpUpperTerm (i : Fin 8) : ℝ :=
   | 7 => 1 + p false false false + p false true false
            - p true false true - 2 * p false true true
 
-/-- The Balke-Pearl closed-form lower endpoint: the largest of the eight lower
-expressions. This is the smallest average treatment effect compatible with the
-observed distribution under a valid binary instrument. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), the [closed-form lower endpoint](goal)
+is the largest of its eight affine lower-bound expressions.
+
+This is the smallest average treatment effect compatible with the observed distribution under a
+valid binary instrument. -/
 noncomputable def bpLower : ℝ :=
   Finset.univ.sup' Finset.univ_nonempty S.bpLowerTerm
 
-/-- The Balke-Pearl closed-form upper endpoint: the smallest of the eight upper
-expressions. This is the largest average treatment effect compatible with the
-observed distribution under a valid binary instrument. -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S), the [closed-form upper endpoint](goal)
+is the smallest of its eight affine upper-bound expressions.
+
+This is the largest average treatment effect compatible with the observed distribution under a
+valid binary instrument. -/
 noncomputable def bpUpper : ℝ :=
   Finset.univ.inf' Finset.univ_nonempty S.bpUpperTerm
 

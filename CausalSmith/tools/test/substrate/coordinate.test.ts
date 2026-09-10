@@ -134,6 +134,32 @@ describe("applyManifest", () => {
     expect(fs.files.get(ROOT_LEAN)).toBe(origRoot);
   });
 
+  it("detects a concurrent overwrite of a promoted record before the next gate", async () => {
+    const fs = memFs({
+      ...base(),
+      "/stage/stat.json": "{\"headline_theorems\":[],\"reviews\":[],\"flags\":[]}",
+      "/c/doc/library_review/Stat.json": "old",
+    });
+    const baseRun = fs.deps.run;
+    fs.deps.run = async (cmd, cwd) => {
+      const result = await baseRun(cmd, cwd);
+      if (cmd === "lake build") fs.files.set("/c/doc/library_review/Stat.json", "concurrent");
+      return result;
+    };
+    const manifest: CoordinationManifest = {
+      notes: "",
+      ops: [{ kind: "write_file", target: "doc/library_review/Stat.json", from: "stat.json" }],
+    };
+    const res = await applyManifest(
+      { cRoot: C_ROOT, repoRoot: "/c/CausalSmith", stagingDir: STAGING, leanFiles: [], manifest },
+      fs.deps,
+    );
+    expect(res.ok).toBe(false);
+    expect(res.log).toMatch(/promoted record changed before verify step/);
+    expect(fs.files.get("/c/doc/library_review/Stat.json")).toBe("old");
+    expect(fs.runLog).toEqual(["lake build"]);
+  });
+
   it("does NOT roll back when a gate step times out — preserves files and flags timedOut", async () => {
     const fs = memFs(base());
     fs.setTimeout("lake build"); // watchdog-killed verify step, not a real failure
@@ -206,6 +232,65 @@ describe("applyManifest", () => {
     expect(res.log).toMatch(/retains a CausalSmith dependency/);
     expect(fs.files.has("/c/Causalean/Mathlib/Bar.lean")).toBe(false);
     expect(fs.runLog).toEqual([]);
+  });
+
+  it("rejects a shortened unresolved import of a sibling created module before the gate", async () => {
+    const fs = memFs({
+      ...base(),
+      "/c/Causalean/Stat/Existing.lean": "namespace Causalean.Stat\n",
+      "/stage/basic.lean": "namespace Causalean.Stat\n",
+      "/stage/uses.lean": "import Causalean.Stat.Basic\nnamespace Causalean.Stat\n",
+    });
+    const manifest: CoordinationManifest = {
+      notes: "",
+      ops: [
+        {
+          kind: "create_file", target: "Causalean/Stat/CLT/MartingaleArray/Basic.lean",
+          from: "basic.lean", newModule: "Causalean.Stat.CLT.MartingaleArray.Basic",
+        },
+        {
+          kind: "create_file", target: "Causalean/Stat/CLT/MartingaleArray/Uses.lean",
+          from: "uses.lean", newModule: "Causalean.Stat.CLT.MartingaleArray.Uses",
+        },
+      ],
+    };
+    const res = await applyManifest(
+      { cRoot: C_ROOT, repoRoot: "/c/CausalSmith", stagingDir: STAGING, leanFiles: [], manifest },
+      fs.deps,
+    );
+    expect(res.ok).toBe(false);
+    expect(res.log).toMatch(/unresolved Causalean import.*Causalean\.Stat\.Basic/);
+    expect(res.log).toContain("did you mean Causalean.Stat.CLT.MartingaleArray.Basic?");
+    expect(fs.files.has("/c/Causalean/Stat/CLT/MartingaleArray/Basic.lean")).toBe(false);
+    expect(fs.runLog).toEqual([]);
+  });
+
+  it("allows an exact import of a sibling created later in the manifest", async () => {
+    const fs = memFs({
+      ...base(),
+      "/c/Causalean/Stat/Existing.lean": "namespace Causalean.Stat\n",
+      "/stage/uses.lean": "import Causalean.Stat.CLT.MartingaleArray.Basic\nnamespace Causalean.Stat\n",
+      "/stage/basic.lean": "namespace Causalean.Stat\n",
+    });
+    const manifest: CoordinationManifest = {
+      notes: "",
+      ops: [
+        {
+          kind: "create_file", target: "Causalean/Stat/CLT/MartingaleArray/Uses.lean",
+          from: "uses.lean", newModule: "Causalean.Stat.CLT.MartingaleArray.Uses",
+        },
+        {
+          kind: "create_file", target: "Causalean/Stat/CLT/MartingaleArray/Basic.lean",
+          from: "basic.lean", newModule: "Causalean.Stat.CLT.MartingaleArray.Basic",
+        },
+      ],
+    };
+    const res = await applyManifest(
+      { cRoot: C_ROOT, repoRoot: "/c/CausalSmith", stagingDir: STAGING, leanFiles: [], manifest },
+      fs.deps,
+    );
+    expect(res.ok).toBe(true);
+    expect(fs.runLog.some((c) => c.includes("lake build"))).toBe(true);
   });
 
   it("rejects namespace/open CausalSmith references even without an import", async () => {

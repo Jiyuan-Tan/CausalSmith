@@ -28,8 +28,7 @@ namespace FiniteUniformExperiment
 
 variable (E : FiniteUniformExperiment Latent Allocation Observation Statistic)
 
-/-- The conditional mean of a full-data estimator is its finite expectation under the guarded
-conditional design at a state and statistic value. -/
+/-- For [a finite uniform-allocation experiment](hyp:E), [a real-valued full-data estimator](hyp:est), [a latent state](hyp:θ), and [a statistic value](hyp:s), the [conditional mean](goal) is the estimator's finite expectation under the guarded conditional design given that state and statistic value. -/
 noncomputable def conditionalMean (est : Allocation × Observation → ℝ)
     (θ : Latent) (s : Statistic) : ℝ :=
   ∑ z, E.conditionalWeight θ s z * est z
@@ -42,13 +41,12 @@ theorem measurable_conditionalMean
     Measurable (E.conditionalMean est θ) := by
   exact measurable_of_finite _
 
-/-- The full-data squared-error risk is joint expected squared loss at a fixed latent state. -/
+/-- For [a finite uniform-allocation experiment](hyp:E), [a real-valued target indexed by latent state](hyp:target), [a real-valued full-data estimator](hyp:est), and [a latent state](hyp:θ), the [full-data squared-error risk](goal) is the joint expected value of the estimator's squared error relative to the target at that state. -/
 noncomputable def fullRisk (target : Latent → ℝ)
     (est : Allocation × Observation → ℝ) (θ : Latent) : ℝ :=
   ∑ z, E.jointMass θ z * (est z - target θ) ^ 2
 
-/-- The squared-error risk of a statistic-only estimator is evaluated by composing it with the
-sample statistic under the original joint law. -/
+/-- For [a finite uniform-allocation experiment](hyp:E), [a real-valued target indexed by latent state](hyp:target), [a real-valued statistic-only estimator](hyp:est), and [a latent state](hyp:θ), the [statistic-only squared-error risk](goal) is the joint expected squared error after applying the estimator to the sample statistic. -/
 noncomputable def statisticRisk (target : Latent → ℝ)
     (est : Statistic → ℝ) (θ : Latent) : ℝ :=
   ∑ z, E.jointMass θ z * (est (E.sampleStatistic z) - target θ) ^ 2
@@ -113,8 +111,7 @@ theorem statisticRisk_conditionalMean_le_fullRisk
       (E.conditionalMean_sq_le (target θ) est θ s)
       (E.statisticMass_nonneg θ s)
 
-/-- Given a common conditional kernel, the Rao--Blackwell estimator averages the full-data
-estimator with its state-independent weights and therefore depends only on the statistic. -/
+/-- For [a finite uniform-allocation experiment](hyp:E), [a common conditional kernel](hyp:K), and [a real-valued full-data estimator](hyp:est), the [common Rao--Blackwell estimator](goal) assigns to each statistic value the finite weighted average of the full-data estimator under that kernel. -/
 noncomputable def commonRaoBlackwellEstimator
     (K : E.CommonConditionalKernel)
     (est : Allocation × Observation → ℝ) : Statistic → ℝ :=
@@ -228,8 +225,7 @@ theorem minimaxValue_statistic_le_full_of_commonConditionalKernel
 
 /-! ## Primary factorization-based Rao--Blackwell API -/
 
-/-- The Rao--Blackwell estimator supplied by a sufficient factorization is one real-valued
-function of the statistic, obtained from the factorization's derived common conditional law. -/
+/-- For [a finite uniform-allocation experiment](hyp:E), [a sufficient factorization](hyp:F), and [a real-valued full-data estimator](hyp:est), the [Rao--Blackwell estimator](goal) is the statistic-only estimator obtained by averaging the full-data estimator with the factorization's derived common conditional law. -/
 noncomputable def raoBlackwellEstimator
     (F : E.SufficientFactorization)
     (est : Allocation × Observation → ℝ) : Statistic → ℝ :=

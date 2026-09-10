@@ -78,6 +78,12 @@ interface ConclusionCard {
 interface StructuredView {
   sharedHyps: HypRow[];
   conclusions: ConclusionCard[];
+  /** Definitions only: the `name params : type` row between the parameters
+   *  and the given-by clauses. A content row like any other (id / xl /
+   *  unstated). */
+  defRow?: ConclusionCard;
+  /** What the name row declares; labels the row and the clause section. */
+  role?: "def" | "instance" | "inductive";
 }
 /** One declaration's source, held once in the payload's shared side table
  *  (`declSources`) instead of being repeated in every drawer that cites it. */
@@ -321,7 +327,10 @@ function highlightLean(src: string, decl: string): string {
 
 /** A structured view is usable only if it actually has a conclusion to show. */
 function usableStructured(sv: StructuredView | undefined): sv is StructuredView {
-  return !!sv && Array.isArray(sv.conclusions) && sv.conclusions.length > 0;
+  if (!sv || !Array.isArray(sv.conclusions)) return false;
+  // A definition given by a `where` block / equations the producer could not
+  // split still has its parameters and `def` row to show.
+  return sv.conclusions.length > 0 || (sv.defRow !== undefined && isLeaf(sv.defRow));
 }
 
 /** `data-xl="…"` when the payload carries crosslink tokens; inert otherwise.
@@ -335,7 +344,7 @@ function xlAttr(r: { xl?: string }): string {
  *  `⊢` leaf. Component heads and `<summary>`s are carriers too, but they name a
  *  DECLARATION rather than a step of the statement, so a click that could mean
  *  either should land on the step. */
-const STMT_ROW_SEL = ".ds-row, .ds-concl, .ds-intro";
+const STMT_ROW_SEL = ".ds-row, .ds-concl, .ds-intro, .ds-def";
 
 /** Why a row can have no highlighted counterpart, said out loud. Without it an
  *  unpaired row is indistinguishable from a broken crosslink. */
@@ -356,7 +365,12 @@ type StatementRole = "theorem" | "assumption" | "definition";
 interface StatementTerms {
   role: StatementRole;
   shared: string;
+  /** Label above the clause side; "" for a theorem (its cards say "Conclusion"). */
+  section: string;
+  /** Kicker on a numbered clause card. */
   clause: string;
+  /** Mark on a leaf: `⊢` states, `≔` gives a value. */
+  leafMark: string;
   hypChip: string;
   declChip: string;
   sideChip: string;
@@ -366,7 +380,9 @@ const STATEMENT_TERMS: Record<StatementRole, StatementTerms> = {
   theorem: {
     role: "theorem",
     shared: "Hypotheses",
+    section: "",
     clause: "Conclusion",
+    leafMark: "⊢",
     hypChip: "hyp",
     declChip: "decl",
     sideChip: "side",
@@ -374,7 +390,9 @@ const STATEMENT_TERMS: Record<StatementRole, StatementTerms> = {
   assumption: {
     role: "assumption",
     shared: "Parameters",
-    clause: "Assumption clause",
+    section: "Assumes",
+    clause: "Clause",
+    leafMark: "⊢",
     hypChip: "premise",
     declChip: "param",
     sideChip: "condition",
@@ -382,7 +400,9 @@ const STATEMENT_TERMS: Record<StatementRole, StatementTerms> = {
   definition: {
     role: "definition",
     shared: "Parameters",
-    clause: "Defining clause",
+    section: "Given by",
+    clause: "Clause",
+    leafMark: "≔",
     hypChip: "premise",
     declChip: "param",
     sideChip: "condition",
@@ -390,9 +410,9 @@ const STATEMENT_TERMS: Record<StatementRole, StatementTerms> = {
 };
 
 /** Reader-facing vocabulary follows the paper environment, not the parser's
- * theorem-shaped internal schema. A Prop-valued definition still decomposes
- * into inputs and logical clauses, but calling those clauses "conclusions"
- * makes an assumption read as though it were a theorem. */
+ * theorem-shaped internal schema — the same words the library page uses:
+ * a definition is parameters · def · given by, an assumption bundle
+ * parameters · assumes, a theorem hypotheses · conclusion. */
 function statementTerms(env?: string): StatementTerms {
   if (env === "assumptionv") return STATEMENT_TERMS.assumption;
   if (env === "definitionv") return STATEMENT_TERMS.definition;
@@ -425,11 +445,12 @@ function hypRowsHtml(rows: HypRow[] | undefined, decl: string, terms: StatementT
   return `<div class="ds-rows">${rows.map((r) => hypRowHtml(r, decl, terms)).join("")}</div>`;
 }
 
-/** A leaf conclusion: the `⊢`-marked block that actually states something. */
-function conclusionHtml(c: ConclusionCard, decl: string): string {
+/** A leaf conclusion: the `⊢`-marked block that actually states something
+ *  (`≔` on a definition's value). */
+function conclusionHtml(c: ConclusionCard, decl: string, mark = "⊢"): string {
   return (
     `<div class="ds-concl"${xlAttr(c)}>` +
-    `<span class="ds-turnstile" aria-hidden="true">⊢</span>` +
+    `<span class="ds-turnstile" aria-hidden="true">${mark}</span>` +
     `<div class="ds-code">${highlightLean(c.code ?? "", decl)}</div>` +
     unstatedMark(c) +
     `</div>`
@@ -470,7 +491,7 @@ function conclusionBodyHtml(c: ConclusionCard, decl: string, depth: number, term
   if (isLeaf(c) || subs.length === 0 || depth >= MAX_CONCL_DEPTH) {
     // Leaf, or a malformed card with neither branch — render whatever code it
     // has (possibly none) rather than throwing.
-    if (isLeaf(c)) parts.push(conclusionHtml(c, decl));
+    if (isLeaf(c)) parts.push(conclusionHtml(c, decl, terms.leafMark));
   } else {
     parts.push(
       `<div class="ds-subs">` +
@@ -505,33 +526,44 @@ function sideRowHtml(c: ConclusionCard, decl: string, terms: StatementTerms): st
   );
 }
 
-/** The whole structured statement: shared hypotheses, then the conclusion(s). */
+/** The `def` row of a definition: the declaration applied to its parameters,
+ *  with its type — the thing the given-by clauses define. */
+function defRowHtml(c: ConclusionCard, decl: string, label = "def"): string {
+  return (
+    `<div class="ds-concl ds-def"${xlAttr(c)}>` +
+    `<span class="ds-turnstile" aria-hidden="true">${label}</span>` +
+    `<div class="ds-code">${highlightLean(c.code ?? "", decl)}</div>` +
+    unstatedMark(c) +
+    `</div>`
+  );
+}
+
+/** The whole structured statement: shared hypotheses / parameters, a
+ *  definition's `def` row, then the conclusion(s) / given-by clause(s). */
 function structuredHtml(
   sv: StructuredView,
   decl: string,
   terms: StatementTerms = STATEMENT_TERMS.theorem,
 ): string {
+  // A payload with a `def` row IS a definition, whatever environment shows it
+  // (a helper pulled into another block's drawer has no env of its own).
+  if (sv.defRow && terms.role === "theorem") terms = STATEMENT_TERMS.definition;
   const parts: string[] = [];
   if (sv.sharedHyps && sv.sharedHyps.length > 0) {
     parts.push(
       `<div class="ds-sect"><div class="ds-label">${terms.shared}</div>${hypRowsHtml(sv.sharedHyps, decl, terms)}</div>`,
     );
   }
+  if (sv.defRow && isLeaf(sv.defRow)) {
+    parts.push(`<div class="ds-sect ds-sect-def">${defRowHtml(sv.defRow, decl, sv.role ?? "def")}</div>`);
+  }
   const cs = sv.conclusions;
+  const section = sv.role === "inductive" ? "Constructors" : terms.section;
+  if (cs.length > 0 && section) parts.push(`<div class="ds-label ds-label-section">${section}</div>`);
   const only = cs[0];
   const lone = cs.length === 1;
-  if (
-    terms.role === "theorem" &&
-    lone &&
-    (only.hyps?.length ?? 0) === 0 &&
-    !only.intro &&
-    isLeaf(only) &&
-    !(only.sub?.length ?? 0)
-  ) {
-    // A single unconditional, unsplit clause needs no card header — it IS the
-    // theorem's statement. Prop-valued assumptions/definitions keep an explicit
-    // clause label so their body cannot be mistaken for another parameter row.
-    parts.push(conclusionHtml(only, decl));
+  if (cs.length === 0) {
+    // nothing to say beyond the def row
   } else if (
     lone &&
     (only.hyps?.length ?? 0) === 0 &&
@@ -539,11 +571,9 @@ function structuredHtml(
     isLeaf(only) &&
     !(only.sub?.length ?? 0)
   ) {
-    parts.push(
-      `<div class="ds-card"><div class="ds-label">${terms.clause}</div>` +
-        conclusionHtml(only, decl) +
-        `</div>`,
-    );
+    // A single unconditional, unsplit clause needs no card header — it IS the
+    // statement (the section label above already says what it is).
+    parts.push(conclusionHtml(only, decl, terms.leafMark));
   } else if (lone && only.intro && (only.sub?.length ?? 0) > 0) {
     // ∃-HEADED STATEMENT. The whole theorem is one `∃ …, …` clause, so numbering
     // it "Conclusion 1" names the existential rather than the claims — the paper

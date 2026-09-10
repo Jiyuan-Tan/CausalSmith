@@ -26,12 +26,12 @@ open scoped BigOperators ENNReal NNReal
 
 noncomputable section
 
-/-- The centered Laplace density at a real value decays exponentially with its absolute distance
-from zero and is normalized by twice its positive scale. -/
+/-- For [a real scale parameter](hyp:b) and [a real evaluation point](hyp:x), the [centered
+Laplace density](goal) is $(2b)^{-1}\exp(-|x|/b)$. -/
 def laplacePDF (b x : ℝ) : ℝ := (2 * b)⁻¹ * Real.exp (-|x| / b)
 
-/-- The centered Laplace distribution is obtained by weighting Lebesgue measure with the centered
-Laplace density at the chosen scale. -/
+/-- For [a real scale parameter](hyp:b), the [centered Laplace measure](goal) is Lebesgue
+measure weighted by the nonnegative part of the centered Laplace density at that scale. -/
 def laplaceMeasure (b : ℝ) : Measure ℝ :=
   volume.withDensity (fun x => ENNReal.ofReal (laplacePDF b x))
 
@@ -148,8 +148,9 @@ theorem laplacePDF_shift_le (b u v z : ℝ) (hb : 0 < b) :
     _ = Real.exp (|u - v| / b) *
         ((2 * b)⁻¹ * Real.exp (-|z - v| / b)) := by ring
 
-/-- The scalar Laplace mechanism releases a real-valued query after adding independent centered
-Laplace noise at the chosen scale. -/
+/-- For [a dataset domain](hyp:D), [a real noise scale](hyp:b), and [a real-valued query on that
+domain](hyp:q), the [scalar Laplace mechanism](goal) assigns to each dataset the distribution of
+the query evaluated at that dataset plus an independent centered Laplace draw with that scale. -/
 def laplaceMech {D : Type*} (b : ℝ) (q : D → ℝ) : D → Measure ℝ :=
   fun d => (laplaceMeasure b).map (fun z => z + q d)
 
@@ -246,8 +247,10 @@ theorem laplaceMech_pure_dp {D : Type*} (Adj : D → D → Prop) (q : D → ℝ)
       (ENNReal.mul_ne_top ENNReal.ofReal_ne_top
         (measure_ne_top (laplaceMech (Δ / ε) q d') s)) hle
 
-/-- The finite-dimensional Laplace mechanism releases a vector-valued query after adding mutually
-independent centered Laplace noise to its coordinates. -/
+/-- For [a dataset domain](hyp:D), [a finite coordinate index set](hyp:ι), [a real noise
+scale](hyp:b), and [a coordinate-indexed real-valued query on the dataset domain](hyp:q), the
+[finite-dimensional Laplace mechanism](goal) assigns to each dataset the distribution obtained by
+adding independent centered Laplace draws with that scale to all query coordinates. -/
 def laplaceMechPi {D ι : Type*} [Fintype ι] (b : ℝ) (q : D → (ι → ℝ)) :
     D → Measure (ι → ℝ) :=
   fun d => (Measure.pi (fun _ : ι => laplaceMeasure b)).map (fun z => z + q d)

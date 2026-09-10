@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { extractBalancedEnv } from "../shared/tex_text.js";
-import { parseAnchoredEnvs } from "./tex_anchors.js";
+import { normalizeCrefs, parseAnchoredEnvs } from "./tex_anchors.js";
 import { paperLabels } from "./emit.js";
 import { citedKeys, type BibEntry } from "./citations.js";
 
@@ -110,7 +110,9 @@ export async function tex2html(
 ): Promise<string> {
   const cited = citedKeys(paperTex);
   const body = paperTex.match(/\\begin\{document\}([\s\S]*)\\end\{document\}/)?.[1] ?? paperTex;
-  let tex = body
+  // Normalize only this derived view: reference-only math must become ordinary
+  // links before Pandoc/KaTeX, while the frozen TeX source remains untouched.
+  let tex = normalizeCrefs(body)
     .replace(/\\maketitle/g, "")
     .replace(/\\bibliographystyle\{[^}]*\}/g, "")
     .replace(/\\bibliography\{[^}]*\}/g, "")
@@ -147,6 +149,15 @@ export async function tex2html(
   // cleveref object references → the target env's kind + printed number, linked to its block.
   // Pandoc cannot resolve these (no aux file), so swap in tokens pre-conversion and patch HTML.
   const refLabels = paperReferenceLabels(body);
+  // Equation labels number the display for \cref (map above); the label command itself must not
+  // reach KaTeX, which has no \label.
+  tex = tex.replace(/\\begin\{(?:equation|align|gather|multline)\*?\}[\s\S]*?\\end\{(?:equation|align|gather|multline)\*?\}|\\\[[\s\S]*?\\\]/g,
+    (env) => env.replace(/\\label\{[^}]*\}/g, ""));
+  // mathtools' delimited small matrices compile in the PDF; KaTeX knows only `smallmatrix`, so
+  // spell the delimiters out for the page.
+  const SMALL: Record<string, [string, string]> = { psmallmatrix: ["(", ")"], bsmallmatrix: ["[", "]"], vsmallmatrix: ["|", "|"], Bsmallmatrix: ["\\{", "\\}"] };
+  tex = tex.replace(/\\begin\{([pbvB]smallmatrix)\}([\s\S]*?)\\end\{\1\}/g,
+    (_m, env: string, inner: string) => `\\left${SMALL[env][0]}\\begin{smallmatrix}${inner}\\end{smallmatrix}\\right${SMALL[env][1]}`);
   const refTokens: { token: string; html: string }[] = [];
   tex = tex.replace(/\\(Cref|cref)\{([^}]+)\}/g, (whole, _command: string, raw: string) => {
     const parts = objLabelParts(raw, refLabels);

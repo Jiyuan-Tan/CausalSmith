@@ -12,7 +12,6 @@ import { readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import type { PipelineContext, StageResult, StateJson } from "../../types.js";
 import { appendReview, artifactPaths, type StageDeps } from "../../pipeline_support.js";
-import { runStage0Solve } from "./d0_solve.js";
 import { runStage0Render } from "./d0_render.js";
 import { runStage0_5Core } from "./d0_5_core.js";
 import type { Stage0_5CoreResult } from "./d0_5_core.js";
@@ -30,37 +29,23 @@ import {
 import { proposalFindingRoute, runStage0RCore } from "./d0_r_core.js";
 import { coreJsonPath } from "./d0_core.js";
 import { d05AcceptanceReceiptPath, writeD05AcceptanceReceipt } from "./d0_acceptance.js";
-import { protoCoreJsonPath } from "./neg1_2_author.js";
-import { resolveInDir } from "../../paths.js";
 import { saveState } from "../../state.js";
-import {
-  readProposedChanges,
-  coreEditTarget,
-  type RawChange,
-  type RawAssumption,
-  type RawCoreEdit,
-} from "./d0_apply.js";
-import {
-  loadWorkingState,
-  saveWorkingState,
-  pruneOrphanLemmas,
-  findDanglingCitations,
-  appendEscalationLog,
-  readEscalationLog,
-  WORKING_STORE_FORMAT,
-  type WorkingState,
-} from "./d0_working.js";
-import { type Core, CoreSchema } from "../core/schema.js";
-import { assembleCore, mergeProseOverlay, type ProseUpdates } from "../core/assemble.js";
+import { appendEscalationLog, readEscalationLog } from "../escalation_log.js";
 import { readTypedCore } from "../core/core_io.js";
-import { writeJsonAtomic, writeTextAtomic } from "../../shared/json_atomic.js";
-import { maskNonBoundaryPeriods } from "../../shared/tex_text.js";
+import { writeTextAtomic } from "../../shared/json_atomic.js";
+import { resolveInDir } from "../../paths.js";
 import {
   loadSemanticManifest,
   validateCoreManifest,
   validateRenderedManifest,
-  validateWorkingManifest,
 } from "../semantic_manifest.js";
+import { runVcsSolveRound, ensureStore } from "../vcs/round.js";
+import { commitGraph, headGraph, publishCore } from "../vcs/commit.js";
+import { graphFromCore } from "../vcs/render.js";
+import { blobId } from "../vcs/node.js";
+import { orphanLemmas, danglingCitations } from "../vcs/hygiene.js";
+import { formatViolations } from "../vcs/checks.js";
+import { loadGraph } from "../vcs/graph.js";
 import {
   consumePendingIncrementalRewind,
   finalizePendingExtensionRebase,
@@ -104,6 +89,7 @@ export { GENERAL_REROUTE_CAP } from "./d0_5_general.js";
  * ids keep the next D0 solve off unrelated valid nodes. */
 async function injectD0ReviewDirective(args: {
   ctx: PipelineContext;
+  state: StateJson;
   reason: string;
   payload: unknown;
   targetIds?: string[];
@@ -122,12 +108,12 @@ async function injectD0ReviewDirective(args: {
   // signal in the system ("this survived a full re-derivation") was the one most
   // certain to be dropped. Including reason, targets and round keeps genuine
   // re-delivery while still collapsing a true duplicate append.
-  const working = await loadWorkingState(args.ctx);
+  const round = d0Counters(args.state).solve_rounds;
   const encoded = JSON.stringify({
     payload: args.payload,
     reason: args.reason,
     targets: [...(args.targetIds ?? [])].sort(),
-    round: working?.round ?? 0,
+    round,
   });
   const fingerprint = createHash("sha256").update(encoded).digest("hex").slice(0, 16);
   const marker = `[D0.5 REVIEW ${fingerprint}]`;
@@ -138,8 +124,7 @@ async function injectD0ReviewDirective(args: {
   const targets = partitionReviewTargets([...(args.targetIds ?? [])], core);
   const requiredCoreTargets = targets.required;
   await appendEscalationLog(args.ctx, {
-    round: working?.round ?? 0,
-    changed: [],
+    round,
     directive: [
       `${marker} ${args.reason}`,
       "The following is the complete current reviewer payload. Treat every finding as directed D0 input;",
@@ -179,376 +164,136 @@ export const D0_SOLVE_CAP = (() => {
   return Number.isFinite(v) && v > 0 ? v : 15;
 })();
 
-/** Heuristic: does a proposed statement REWRITE convert the node's own load-bearing
- *  claim into an ASSUMED hypothesis of itself — "X holds" → "Suppose X (or the hard
- *  property that delivers X). Then [a now-trivial reduction]"? That is an assume-the-crux
- *  narrowing (a laundering-adjacent move): it promotes the open proof obligation into a
- *  premise instead of restricting scope/regime. Detected by a new leading conditional
- *  premise ("Suppose/Assume … such that / with …", or a new leading Assume/Suppose clause)
- *  that the prior statement did not have. Conservative — false positives route to review. */
-export function isAssumeTheCruxNarrowing(c: RawChange): boolean {
-  // Every `[^.]*` below runs on PERIOD-MASKED text: an abbreviation or decimal
-  // ("… are i.i.d. across …", "\(\alpha \le 0.05\)") otherwise ends the clause
-  // scan mid-premise — truncating `addedPremise` inside a TeX group, blinding
-  // the crux-word test, and making the i.i.d. whitelist entry unreachable.
-  const mask = (s: string | undefined) => maskNonBoundaryPeriods(s ?? "");
-  const prem = /\b(suppose|assume)\b[^.]*\b(such that|with|so that)\b/i;
-  const leadingPrem = /^\s*(suppose|assume)\b[^.]*\./i;
-  const leadingClause = (s: string | undefined) => mask(s).match(/^\s*(?:suppose|assume)\b[^.]*\./i)?.[0] ?? "";
-  const addedPremise = leadingClause(c.proposed).trim();
-  const currentText = mask(c.current);
-  const cruxProofObject = /\b(chi[-\s]?square|χ²|least[-\s]?favo[u]?rable|separation|le\s*cam|fano|two[-\s]?point|packing|testing|witness|construction|family)\b/i;
-  // `i[.․]i[.․]d[.․]?` — the masked spelling of `i.i.d.` (mask sentinel ․) must
-  // stay whitelisted alongside the plain `iid`.
-  const REGIME_WORDS =
-    /\b(regime|setting|case|class|model|iid|i[.․]i[.․]d[.․]?|independent|compact|finite|measurable|overlap|positivity|regularity|smooth|margin|sparsity|sub-?gaussian|well-specified|realizable|bounded|support|moment|integrable|dominated|tail|continuous|differentiable)\b/i;
-  const regimeWhitelist = new RegExp(String.raw`^\s*(suppose|assume)\b[^.]*${REGIME_WORDS.source}[^.]*\.`, "i");
-  const hadPremise = c.current !== undefined && prem.test(mask(c.current));
-  const hasPremise = prem.test(mask(c.proposed));
-  const hadLeadingPremise = c.current !== undefined && leadingPrem.test(mask(c.current));
-  const hasLeadingPremise = leadingPrem.test(mask(c.proposed));
-  const addedCruxPremise = addedPremise.length > 0 && !currentText.includes(addedPremise) && cruxProofObject.test(addedPremise);
-  if (addedCruxPremise) return true; // why: generic words like bounded/family cannot whitelist proof-object premises that buy the crux.
-  // AUDIT-B: whitelist only obvious regime restrictions; uncertain leading assumptions gate for review.
-  // The whitelist is consulted on BOTH branches for the mid-text case: masking
-  // widened `prem`'s reach across decimals/abbreviations (its purpose), which
-  // otherwise flipped previously whitelisted regime narrowings ("overlap at
-  // level 0.05 with margin …") into gated findings via the un-whitelisted
-  // `hasPremise` branch. Suppression is deliberately narrow — EVERY
-  // suppose/assume clause must read as a pure regime restriction, and a crux
-  // word ANYWHERE in a clause vetoes it ("least-favorable family with bounded
-  // variance" is a crux premise even though "bounded" is a regime word; a crux
-  // in a SECOND premise must not hide behind a regime-only first one). False
-  // positives route to review; false negatives launder the crux.
-  const premiseClauses = [...mask(c.proposed).matchAll(/\b(?:suppose|assume)\b[^.]*/gi)].map((m) => m[0]);
-  const allPremisesPureRegime =
-    premiseClauses.length > 0 &&
-    premiseClauses.every((clause) => REGIME_WORDS.test(clause) && !cruxProofObject.test(clause));
-  return (
-    (hasPremise && !hadPremise && !allPremisesPureRegime) ||
-    (hasLeadingPremise && !hadLeadingPremise && !regimeWhitelist.test(mask(c.proposed)))
-  );
-}
-
-/** The DUAL of assume-the-crux: a narrowing that DROPS the node's load-bearing RESULT
- *  (a minimax/lower-bound risk assertion, an equivalence, or an iff) — keeping only an
- *  easy surviving fragment — and would then be marked "proved". This degrades the result
- *  class (the anti-laundering case in the open-kernel re-tiering rule) and must be gated:
- *  the result belongs in the node (open if unproven), not silently removed to discharge.
- *  Detects a load-bearing construct present in `current` but absent in `proposed`. */
-export function isResultClassDegradation(c: RawChange): boolean {
-  if (c.current === undefined) return false;
-  // load-bearing result constructs (minimax risk bound, equivalence, iff).
-  // `[\s\S]` (not `.`): these assertions are routinely typeset across lines in
-  // an `aligned` block, and a `.`-based scan missed every multi-line instance.
-  // `\ge`/`\geq` are the TeX spellings of the lower-bound comparator — the
-  // ASCII `>=` never occurs in real TeX, which made that construct a dead guard.
-  const constructs: RegExp[] = [
-    /inf[_{\s][\s\S]*sup[_{\s][\s\S]*\bE_?P?\b/i, // inf_hat sup_P E|...|  (a minimax-risk assertion)
-    /(?:>=|\\geq?\b)\s*c[_0-9]*\s*R_?n?\^?\*/i, //  >= c R_n^*  (a lower-bound on the rate)
-    /\bequivalent\b[\s\S]*\bR_?n?\^?\*/i, // "equivalent ... to R_n^*"
-    // ONE alternation for every equivalence spelling: with `\iff` matched only
-    // via the English-word branch (backslash is a \b boundary), a pure notation
-    // swap `\iff` → `\Leftrightarrow` read as "construct dropped" and falsely
-    // gated a meaning-preserving rewrite.
-    /\bif and only if\b|(?<!\\)\biff\b|\\iff\b|\\Longleftrightarrow\b|\\Leftrightarrow\b|\\equiv\b/i,
-  ];
-  for (const re of constructs) {
-    if (re.test(c.current) && !re.test(c.proposed)) return true;
-  }
-  return false;
-}
-
-/** Classify D0-SOLVE proposed changes for a checkpoint message.
- * Every proposed change is gated; only the orchestrator may adjudicate and
- * explicitly apply it with d0_apply_change. */
-export function partitionProposedChanges(
-  proto: Core,
-  statements: RawChange[],
-  definitions: RawChange[],
-  assumptions: RawAssumption[] = [],
-  coreEdits: RawCoreEdit[] = [],
-): { auto: Set<string>; gated: Array<{ id: string; why: string }> } {
-  void proto;
-  const auto = new Set<string>();
-  const gated: Array<{ id: string; why: string }> = [];
-  for (const c of definitions) {
-    gated.push({
-      id: c.id,
-      why: c.direction === "correct"
-        ? "constructed-object definition correction requires orchestrator adjudication"
-        : `definition change direction='${c.direction ?? "?"}' (expected 'correct')`,
-    });
-  }
-  for (const c of statements) {
-    if (c.direction !== "narrow") {
-      gated.push({ id: c.id, why: `statement change direction='${c.direction ?? "?"}' (expected 'narrow')` });
-    } else if (isAssumeTheCruxNarrowing(c)) {
-      gated.push({ id: c.id, why: `assume-the-crux narrowing (${c.id}) — adds a new assume/suppose premise that may promote the open obligation into a hypothesis; review (state the result + leave the construction an open obligation, do not assume it)` });
-    } else if (isResultClassDegradation(c)) {
-      gated.push({ id: c.id, why: `result-class degradation (${c.id}) — drops the node's load-bearing result (minimax/lower-bound/equivalence/iff) to a surviving fragment; review + tier honestly (keep the result, mark it open if unproven, do not silently discharge a weaker claim)` });
-    } else {
-      gated.push({ id: c.id, why: "statement narrowing requires orchestrator adjudication" });
-    }
-  }
-  for (const a of assumptions) {
-    gated.push({ id: a.id, why: "new assumption requires orchestrator adjudication" });
-  }
-  for (const edit of coreEdits) {
-    gated.push({ id: coreEditTarget(edit), why: `structured core edit '${edit.kind}' requires orchestrator adjudication` });
-  }
-  return { auto, gated };
-}
-
-async function renderAndComplete(args: { ctx: PipelineContext; state: StateJson; message: string; corePath: string }): Promise<StageResult> {
-  // Orphan-lemma prune (safe ONLY here, on the clean discharge): drop lemmas no longer
-  // reachable from any non-lemma claim — an abandoned proof route's helper lemmas would
-  // otherwise leak into the rendered paper. Done BEFORE render so the .tex is clean.
+async function renderAndComplete(args: { ctx: PipelineContext; state: StateJson; message: string }): Promise<StageResult> {
+  const store = await ensureStore(args.ctx, args.state);
+  let { head, graph } = await headGraph(store);
+  // Orphan-lemma prune (safe ONLY here, on the clean discharge): a lemma no non-lemma
+  // claim reaches is an abandoned proof route's helper. Deleted by a pipeline commit —
+  // reversible, journaled, and visible in `d0_vc log`.
   let pruneNote = "";
-  // The working state is read FAIL-LOUD, outside the best-effort prune below.
-  // The gate core is DERIVED from (proto, working) through the pure render
-  // (Phase 1) — the same function that produced the committed core.json — so the
-  // gate checks the store truth, not a disk read-back. Only when the proto is
-  // unreadable or there is no cursor does it fall back to the published file.
-  const workingForGate: WorkingState | null = await loadWorkingState(args.ctx);
-  let protoForPrune: Core | null = null;
-  try {
-    protoForPrune = await readTypedCore(protoCoreJsonPath(args.ctx));
-  } catch (err) {
-    console.warn(`[D0] proto unreadable; orphan prune skipped, gate falls back to published core: ${err instanceof Error ? err.message : String(err)}`);
-  }
-  let coreForGate: Core =
-    protoForPrune !== null && workingForGate !== null
-      ? CoreSchema.parse(assembleCore(protoForPrune, workingForGate))
-      : await readTypedCore(args.corePath);
-  const mandateJournal = await readEscalationLog(args.ctx);
-  const pendingMandates = mandateJournal
-    .slice(Math.min(workingForGate?.escalation_entries_consumed ?? 0, mandateJournal.length))
-    .flatMap((entry) => entry.required_core_edit_mandates ?? []);
-  if ((workingForGate?.required_core_edit_mandates?.length ?? 0) > 0 || pendingMandates.length > 0) {
-    return {
-      stage: "0",
-      status: "checkpoint",
-      advance: false,
-      message:
-        "D0 cannot render or advance while independently adjudicated required core-edit mandates remain. " +
-        "Regenerate and apply the complete exact bundle first.",
-    };
-  }
-  try {
-    const proto = protoForPrune;
-    const working = workingForGate;
-    if (proto && working) {
-      const { pruned, protoOrphans } = pruneOrphanLemmas(coreForGate, working, proto);
-      if (pruned.length > 0) {
-        // Publication state is data (Phase 1): a pruned PROTO-resident lemma
-        // stays in the frozen proto until the orchestrator edits it out, so the
-        // durable prune record is what keeps every later render from
-        // resurrecting it. Agent lemmas are pruned by deleting their records.
-        if (protoOrphans.length > 0) {
-          working.pruned_proto_orphans = [
-            ...new Set([...(working.pruned_proto_orphans ?? []), ...protoOrphans]),
-          ];
-        }
-        coreForGate = CoreSchema.parse(assembleCore(proto, working));
-        working.store_format = WORKING_STORE_FORMAT;
-        await writeJsonAtomic(args.corePath, coreForGate);
-        await saveWorkingState(args.ctx, working);
-        pruneNote =
-          `\nPruned ${pruned.length} orphan lemma(s) no longer reachable from any result: ${pruned.join(", ")}.` +
-          (protoOrphans.length > 0
-            ? ` Of these, ${protoOrphans.join(", ")} also live in the frozen proto (recorded in the working ` +
-              `state's pruned_proto_orphans so no render resurrects them; remove them from the proto to retire the record).`
-            : "");
-      }
+  const orphans = orphanLemmas(graph);
+  if (orphans.length > 0) {
+    const nodes = new Map(graph.nodes);
+    const tree = { ...graph.tree };
+    for (const id of orphans) { nodes.delete(id); delete tree[id]; }
+    const pruned = await commitGraph({
+      store, graph: { tree, nodes }, parents: [head], author: "pipeline", kind: "direct",
+      message: `prune ${orphans.length} orphan lemma(s): ${orphans.join(", ")}`, expectedHead: head,
+    });
+    if (pruned.ok) {
+      ({ head, graph } = { head: pruned.id, graph: pruned.graph });
+      await publishCore(args.ctx, store);
+      pruneNote = `\nPruned ${orphans.length} orphan lemma(s) no longer reachable from any result: ${orphans.join(", ")} (commit ${pruned.id.slice(0, 12)}; \`d0_vc reset\` restores them).`;
+    } else {
+      console.warn(`[D0] orphan-lemma prune refused: ${pruned.violations.map((v) => `${v.code}@${v.where}`).join(", ")}`);
     }
-  } catch (err) {
-    // Genuinely best-effort: this catch covers ONLY the orphan prune. The gate
-    // below runs regardless, on an already-parsed core.
-    console.warn(`[D0] orphan-lemma prune skipped: ${err instanceof Error ? err.message : String(err)}`);
   }
 
-  // CONSISTENCY GATE (deterministic, ~0 cost): catch "cite-without-emit" dangling citations
-  // — a proof that INVOKES a helper the solver never EMITTED as a member — at the cheapest
-  // point, BEFORE the expensive D0.5 panel. Such a core reads as "fully proved" yet carries
-  // an unproven step; without this gate it fails D0.5 and triggers a full repair re-solve
-  // (PIPELINE_NOTES 2026-06-30). On detection: ONE capped, targeted self-heal (re-solve only
-  // the citing node(s) with a directive to emit the missing member); if that does not clear
-  // it, HALT with a precise defect — never loop / burn unbounded re-solves.
-  {
-    const dangling = findDanglingCitations(coreForGate, {
-      alsoKnown: Object.keys(workingForGate?.resolved_oeqs ?? {}),
-    });
-    if (dangling.length > 0) {
-      const citers = [...new Set(dangling.map((d) => d.node))];
-      const missing = [...new Set(dangling.map((d) => d.ref))];
-      const pairs = dangling.map((d) => `${d.node}→${d.ref}`).join(", ");
-      // Counter lives in `flags.d0_loop_counters` (not `design_decisions`) so the
-      // `d0_loop_cap_hit` cap gate can reset it. It was previously wedge-only: capped at 1,
-      // stored where no CapGate `clear` could reach it, so once tripped the ONLY escape was
-      // hand-editing state.json. `Number(dd[...])` also yielded NaN on a non-numeric value,
-      // and `NaN < 1` is false — silently skipping the heal and going straight to the halt.
-      const heals = d0Counters(args.state).consistency_heals;
-      if (workingForGate && heals < 1) {
-        // Invalidate the citing nodes by marking their records PARTIAL, not by
-        // deleting them (audit F2). Deleting an OEQ answer's record leaves its
-        // `resolved_oeqs` entry dangling — exactly the unrepairable state
-        // `saveWorkingState` refuses — and deleting an agent node's record erased
-        // its statement definition outright. Partial keeps the catalog and the
-        // resolution while forcing a re-derivation under the SAME id (the
-        // anti-churn rule that keeps an answered question answered).
-        for (const id of citers) {
-          const rec = workingForGate.solved[id];
-          if (rec !== undefined) rec.partial = true;
-        }
-        await saveWorkingState(args.ctx, workingForGate);
-        await appendEscalationLog(args.ctx, {
-          round: 0,
-          changed: [],
-          directive:
-            `D0 CONSISTENCY GATE (auto-heal). The following proofs CITE ids that are NOT defined ` +
-            `members of the core (cite-without-emit): ${dangling.map((d) => `${d.node} -> ${d.ref}`).join("; ")}. ` +
-            `Re-prove the citing node(s) [${citers.join(", ")}] and EMIT every cited helper as a defined ` +
-            `member (a lemma with its own proof), AND list it in the citing node's depends_on. Do NOT delete ` +
-            `the citation to make it parse — supply the missing member. No proof may reference an id absent from the core.`,
-          // TARGETED heal, structurally. Without explicit targets, the dispatcher's
-          // untargeted-directive branch forces EVERY core statement open — a whole-paper
-          // re-derivation for a defect this gate has already localized to `citers`
-          // (observed: 3 whole-paper reopens in one run, each "reused 0 carried member
-          // proof(s)"). The citing nodes are the exact repair frontier; the missing
-          // helpers are emitted as additions under them.
-          required_core_targets: citers,
-          note: "auto-heal: cite-without-emit dangling citations detected at D0 discharge",
-        });
-        args.state.flags.d0_loop_counters = { ...d0Counters(args.state), consistency_heals: heals + 1 };
-        args.state.stage_completed = "-0.5"; // rewind to D0-SOLVE (advance:false keeps this reset)
-        return {
-          stage: "0",
-          status: "rewound",
-          advance: false,
-          completedStage: "-0.5",
-          message:
-            `D0 CONSISTENCY GATE — ${dangling.length} dangling citation(s) (${pairs}); auto-invalidated citing ` +
-            `node(s) [${citers.join(", ")}] + emit-directive, re-solving BEFORE the D0.5 panel.`,
-        };
+  // CONSISTENCY GATE (deterministic, ~0 cost): a proof that INVOKES a helper the solver
+  // never EMITTED reads as "fully proved" yet carries an unproven step. ONE capped,
+  // targeted self-heal: delete the citing proofs (a pipeline commit) and direct a
+  // re-solve of exactly those nodes; then halt if it recurs.
+  const dangling = danglingCitations(graph);
+  if (dangling.length > 0) {
+    const citers = [...new Set(dangling.map((d) => d.node))];
+    const pairs = dangling.map((d) => `${d.node}→${d.ref}`).join(", ");
+    const heals = d0Counters(args.state).consistency_heals;
+    if (heals < 1) {
+      const nodes = new Map(graph.nodes);
+      const tree = { ...graph.tree };
+      for (const id of citers) {
+        const blob = nodes.get(id);
+        if (blob?.node_type !== "statement") continue;
+        const { proof_tex: _p, proof_basis: _b, ...body } = blob.body;
+        const next = { node_type: "statement" as const, body };
+        nodes.set(id, next);
+        tree[id] = { ...tree[id], blob: blobId(next) };
       }
-      // Cap reached (or no working state to target): do NOT loop. Halt for the orchestrator.
-      // Raise the cap gate so the halt is a real circuit breaker with a CLI escape. Without
-      // it this state was a permanent wedge: the cursor is pinned at "-0.5", so every resume
-      // re-entered D0 and returned this identical checkpoint, and the counter lived where no
-      // `--clear-gate` could reach it.
-      args.state.flags.d0_loop_cap_hit = "D0 consistency-gate self-heal exhausted";
+      const reopened = await commitGraph({
+        store, graph: { tree, nodes }, parents: [head], author: "pipeline", kind: "direct",
+        message: `consistency gate: reopen ${citers.join(", ")} (dangling citations ${pairs})`, expectedHead: head,
+      });
+      if (!reopened.ok) throw new Error(`consistency gate could not reopen the citing nodes: ${reopened.violations.map((v) => `${v.code}@${v.where}`).join(", ")}`);
+      await publishCore(args.ctx, store);
+      await appendEscalationLog(args.ctx, {
+        round: d0Counters(args.state).solve_rounds,
+        directive:
+          `D0 CONSISTENCY GATE (auto-heal). The following proofs CITE ids that are NOT defined ` +
+          `members of the core (cite-without-emit): ${dangling.map((d) => `${d.node} -> ${d.ref}`).join("; ")}. ` +
+          `Re-prove the citing node(s) [${citers.join(", ")}] and EMIT every cited helper as a defined ` +
+          `member (a lemma with its own proof), AND list it in the citing node's depends_on. Do NOT delete ` +
+          `the citation to make it parse — supply the missing member. No proof may reference an id absent from the core.`,
+        required_core_targets: citers,
+        note: "auto-heal: cite-without-emit dangling citations detected at D0 discharge",
+      });
+      args.state.flags.d0_loop_counters = { ...d0Counters(args.state), consistency_heals: heals + 1 };
+      args.state.stage_completed = "-0.5";
       return {
-        stage: "0",
-        status: "checkpoint",
-        advance: false,
-        message:
-          `D0 CONSISTENCY GATE — dangling citation(s) persist after auto-heal: ${pairs}. The solver keeps ` +
-          `citing un-emitted member(s) ${missing.join(", ")}. Orchestrator: invalidate the citing node(s) ` +
-          `[${citers.join(", ")}] and inject a directive to EMIT the missing member(s), or rewind D0. Do NOT ` +
-          `advance to D0.5 with a dangling core (it will fail the panel and force a full repair re-solve). ` +
-          `Once repaired, resume with --clear-gate d0_loop_cap_hit.`,
+        stage: "0", status: "rewound", advance: false, completedStage: "-0.5",
+        message: `D0 CONSISTENCY GATE — ${dangling.length} dangling citation(s) (${pairs}); reopened [${citers.join(", ")}] with an emit-directive, re-solving BEFORE the D0.5 panel.`,
       };
     }
+    args.state.flags.d0_loop_cap_hit = "D0 consistency-gate self-heal exhausted";
+    return {
+      stage: "0", status: "checkpoint", advance: false,
+      message:
+        `D0 CONSISTENCY GATE — dangling citation(s) persist after auto-heal: ${pairs}. Inject a directive to EMIT the ` +
+        `missing member(s), or edit core.json and \`d0_vc commit\`; then resume with --clear-gate d0_loop_cap_hit.`,
+    };
   }
 
   const rendered = await runStage0Render({ ctx: args.ctx, state: args.state });
-  // D0 → D0.5 MAXIMALITY CHECKPOINT. A clean discharge means the paper is PROVED, not
-  // that it is the BEST paper — so HALT here (status "checkpoint") for the orchestrator
-  // to review whole-paper maximality before the (expensive) D0.5 review. `advance` is
-  // left default (true) so `stage_completed` becomes "0" and `--resume` proceeds to D0.5;
-  // this is NOT a defect checkpoint (no proposed change / open gap) — it is the review gate.
+  // D0 → D0.5 MAXIMALITY CHECKPOINT. `advance` is left default (true) so
+  // `stage_completed` becomes "0" and `--resume` proceeds to D0.5.
   return {
     stage: "0",
     status: "checkpoint",
     message:
-      `${args.message}; ${rendered.message}.${pruneNote}\nD0 MAXIMALITY CHECKPOINT — the paper is fully proved/discharged. ` +
-      `Review whether the WHOLE paper is maximized (no room to improve) BEFORE D0.5; iterate D0 if not, ` +
-      `else --resume to proceed to the D0.5 review. (No defect — this is the review gate, not an escalation.)`,
-    artifacts: [args.corePath, rendered.texPath],
+      `${args.message}; ${rendered.message}.${pruneNote}\nD0 MAXIMALITY CHECKPOINT — the paper is fully proved/discharged (main ${head.slice(0, 12)}). ` +
+      `Review whether the WHOLE paper is maximized BEFORE D0.5; iterate D0 if not, else --resume to proceed to the D0.5 review.`,
+    artifacts: [coreJsonPath(args.ctx), rendered.texPath],
   };
 }
 
-/** Stage "0" (typed): the D0 SOLVE-REVISE loop. Solve → if it discharges cleanly,
- * render and complete. An incomplete proof-only round carries progress and retries;
- * every proposed change checkpoints for orchestrator adjudication before mutation. */
+/** Stage "0" (typed): the D0 SOLVE loop on the versioned graph. Each round is a pull
+ * request; an additive round merges itself and the loop continues; a round that needs
+ * a verdict, isolates an open gap, or exhausts the cap halts for the orchestrator. */
 export async function runStage0Typed(args: {
   ctx: PipelineContext;
   state: StateJson;
   deps: StageDeps;
 }): Promise<StageResult> {
-  // Cross-boundary intent is consumed before any solve context is assembled.
-  // Incremental repair preserves the accepted stores and adds a directive;
-  // extension performs the guarded, replayable proof-carry transaction.
   await consumePendingIncrementalRewind({ ctx: args.ctx, state: args.state });
   await finalizePendingExtensionRebase({ ctx: args.ctx, state: args.state });
-  // Budget is CARRIED across resumes: `round` starts where the last invocation stopped.
+  // A D0 round after an interrupted D0.5 means the orchestrator moved on: D0.R's
+  // commits are part of history now, not a pending rollback.
+  delete args.state.flags.d0_5_head_before;
   const solveStart = d0Counters(args.state).solve_rounds;
   for (let round = solveStart; round < D0_SOLVE_CAP; round++) {
     args.state.flags.d0_loop_counters = { ...d0Counters(args.state), solve_rounds: round + 1 };
-    // Persist the increment BEFORE dispatch: a merge-gate throw escapes this loop and
-    // the driver saves state only after a handler returns, so an in-memory-only
-    // counter made every thrown round budget-free — a repeated mechanical abort
-    // (e.g. an unsatisfiable exact-target directive) re-dispatched forever without
-    // ever tripping the d0_loop_cap_hit circuit breaker.
+    // Persist the increment BEFORE dispatch so a thrown round still costs budget.
     await saveState(args.ctx.repoRoot, args.ctx.qid, args.ctx.specialization, args.state);
-    const solved = await runStage0Solve(args);
-    // Clean discharge (Stage0SolveResult has no `status` field).
-    if (!("status" in solved)) {
-      return renderAndComplete({ ctx: args.ctx, state: args.state, message: solved.message, corePath: solved.coreJsonPath });
-    }
-    // GENUINE OPEN GAP — the solver isolated an obstruction it cannot close and asked
-    // for guidance. Do NOT auto-loop (a blind re-solve reproduces it); return the
-    // checkpoint so the orchestrator supplies a direction via the D0 directive.
-    if ((solved.artifacts ?? []).some((a) => a.endsWith("open_obligations.json"))) {
-      return solved;
-    }
-    // An incomplete-round checkpoint (some targets unproved, no proposed change) just
-    // needs another solve pass — progress is saved, so continue the loop.
-    // WITHHELD CONTENT halts, even with no proposals. A round can withhold a colliding
-    // helper or an OEQ answer and emit no proposal at all;
-    // the emptiness test below then continued the loop and the diagnostic was discarded,
-    // so the run could later advance on a core the solver had already flagged.
-    if ((solved.artifacts ?? []).some((a) => a.endsWith("withheld_content.json"))) {
-      return solved;
-    }
-    // NOT a marker reason: a class-targeted definition change rejected by the A6 firewall.
-    // That is a documented contract, not withheld content -- the change is refused, the
-    // round discharges cleanly, and the completion message says it was ignored. An earlier
-    // comment here wrongly listed it alongside the withheld cases.
-    const { statements, definitions, assumptions, coreEdits } = await readProposedChanges(args.ctx);
-    if (statements.length === 0 && definitions.length === 0 && assumptions.length === 0 && coreEdits.length === 0) {
-      if (round + 1 < D0_SOLVE_CAP) continue;
-      return solved; // cap hit on an incomplete round
-    }
-    // Proposed changes always halt. The orchestrator reads the mathematical
-    // proposal, then explicitly applies accepted ids with d0_apply_change.
-    const proto = await readTypedCore(protoCoreJsonPath(args.ctx));
-    const { auto, gated } = partitionProposedChanges(proto, statements, definitions, assumptions, coreEdits);
-    if (auto.size !== 0 || gated.length === 0) {
-      throw new Error("D0 proposed-change classifier invariant failed: every proposal must be gated");
-    }
-    // A round that surfaced adjudicable proposals is PROGRESS, not a stuck solver, so it
-    // must not consume the circuit breaker's budget. That breaker exists to stop a
-    // RE-ROLL — blindly re-dispatching a non-deterministic solver at an unchanged root —
-    // but gating a proposal hands control to the orchestrator, which adjudicates and
-    // applies it, and the root therefore changes before the next dispatch. Charging both
-    // outcomes alike mislabelled this run 20-to-1: 20 adjudication halts against a single
-    // genuinely incomplete round, and a well-behaved run that correctly gated every change
-    // tripped a breaker meant for a solver making no progress.
-    //
-    // Roll back only on this path. The increment is deliberately persisted BEFORE dispatch
-    // so that a round dying in a merge-gate throw still costs budget (otherwise a repeated
-    // mechanical abort re-dispatches forever), and an incomplete round below still costs
-    // budget too — both protections are untouched.
-    args.state.flags.d0_loop_counters = { ...d0Counters(args.state), solve_rounds: round };
+    const outcome = await runVcsSolveRound({ ctx: args.ctx, state: args.state, deps: args.deps, round: round + 1 });
     await saveState(args.ctx.repoRoot, args.ctx.qid, args.ctx.specialization, args.state);
-    return {
-      ...solved,
-      message:
-        `${solved.message}\nD0 revise loop GATED ${gated.length} change(s) for orchestrator review; ` +
-        `no proposal was auto-applied:\n` + gated.map((g) => `  - ${g.id}: ${g.why}`).join("\n"),
-    };
+    switch (outcome.kind) {
+      case "clean":
+        return renderAndComplete({ ctx: args.ctx, state: args.state, message: outcome.message });
+      case "incomplete":
+        if (round + 1 < D0_SOLVE_CAP) continue;
+        return { stage: "0", status: "checkpoint", advance: false, message: `${outcome.message}\n(cap reached on an incomplete round)` };
+      case "open-gap":
+        // A blind re-solve reproduces an isolated obstruction: halt for a directive.
+        return {
+          stage: "0", status: "checkpoint", advance: false,
+          message: `${outcome.message}\nSupply a direction with d0_directive.ts (a construction, a paper to adapt, a reframing), then --resume.`,
+        };
+      case "pr-open":
+      case "blocked":
+        // Adjudication is progress, not a stuck solver: give the budget back.
+        args.state.flags.d0_loop_counters = { ...d0Counters(args.state), solve_rounds: round };
+        await saveState(args.ctx.repoRoot, args.ctx.qid, args.ctx.specialization, args.state);
+        return { stage: "0", status: "checkpoint", advance: false, message: outcome.message };
+    }
   }
   args.state.flags.d0_loop_cap_hit = `D0 solve cap (${D0_SOLVE_CAP} rounds) exhausted`;
   return {
@@ -595,63 +340,64 @@ export async function runStage0_5Typed(args: {
   ]);
   const semanticManifest = await loadSemanticManifest(args.ctx);
   if (semanticManifest) {
-    const proto = await readTypedCore(protoCoreJsonPath(args.ctx));
     const core = await readTypedCore(corePath);
-    const working = await loadWorkingState(args.ctx);
-    validateCoreManifest(semanticManifest, "proto", proto);
     validateCoreManifest(semanticManifest, "core", core);
-    if (!working) throw new Error("Stage 0 semantic manifest working: d0_working.json is absent");
-    validateWorkingManifest(semanticManifest, working);
     if (!existsSync(texPath)) throw new Error("Stage 0 semantic manifest render: writeup.tex is absent");
     validateRenderedManifest(semanticManifest, await readFile(texPath, "utf8"));
   }
+  // D0.R edits are provisional until a subsequent core panel passes. They are
+  // committed to main as they are made (so history keeps them); a D0.5 exit
+  // without PASS resets main to the head this invocation started from.
+  const store = await ensureStore(args.ctx, args.state);
+  {
+    // A previous D0.5 invocation that died without PASS (kill, timeout) left its
+    // provisional D0.R commits on main; reconcile before reviewing anything.
+    const prior = args.state.flags.d0_5_head_before;
+    const { head } = await headGraph(store);
+    // Only D0.R's own commits are provisional. Anything else on top of `prior` (a
+    // merged solver round, an orchestrator commit) is accepted work; then the flag is
+    // simply stale and the D0.R edits below it stand.
+    const onlyD0r = prior !== undefined && prior !== head && store.hasCommit(prior) &&
+      (await store.history(head)).every((c) => c.id === prior || c.author === "d0r" || (c.kind === "reset" && c.author === "pipeline"));
+    if (prior !== undefined && prior !== head && store.hasCommit(prior) && !onlyD0r) {
+      console.warn(`[D0.5] stale d0_5_head_before ${prior.slice(0, 12)}: later non-D0.R commits exist on main; the earlier D0.R edits stand`);
+    }
+    if (onlyD0r) {
+      const reset = await commitGraph({
+        store, graph: await loadGraph(store, prior), parents: [head], author: "pipeline", kind: "reset",
+        message: `D0.5 interrupted without PASS: discard unvetted D0.R edits (back to ${prior.slice(0, 12)})`, expectedHead: head, meta: { target: prior },
+      });
+      if (!reset.ok) throw new Error(`D0.R rollback refused: ${formatViolations(reset.violations)}`);
+      await publishCore(args.ctx, store);
+    }
+  }
+  const headBefore = (await headGraph(store)).head;
+  args.state.flags.d0_5_head_before = headBefore;
+  await saveState(args.ctx.repoRoot, args.ctx.qid, args.ctx.specialization, args.state);
   const transaction = {
-    core: await readFile(corePath, "utf8"),
     pending: existsSync(pendingPath) ? await readFile(pendingPath, "utf8") : null,
     designDecisions: structuredClone(args.state.design_decisions),
     addedAssumptions: structuredClone(args.state.added_assumptions),
   };
-  // The worker edits core.json through the path embedded in its prompt. Treat the
-  // transaction as dirty BEFORE dispatch: it may write the file and then return
-  // malformed output, time out, or leave a schema-invalid core. Waiting until a
-  // successful return to arm rollback lets exactly those failure paths leak an
-  // unvetted edit into the next resume.
   let d0rTouched = false;
   let d0_5Passed = false;
-  let promotedClearedProse = false;
-  let pendingD0RProse: ProseUpdates | null = null;
-  const promoteClearedD0RProse = async (): Promise<void> => {
-    if (!pendingD0RProse) return;
-    const working = await loadWorkingState(args.ctx);
-    if (!working) {
-      // Pre-store fixtures and legacy runs have no durable overlay carrier. Do
-      // not turn an otherwise passing in-memory transaction into a fault; real
-      // semantic-store runs are guarded above and always require this file.
-      return;
-    }
-    working.prose_overlay = mergeProseOverlay(working.prose_overlay, pendingD0RProse);
-    working.store_format = WORKING_STORE_FORMAT;
-    await saveWorkingState(args.ctx, working);
-    pendingD0RProse = null;
-    promotedClearedProse = true;
-  };
   const rollbackUnvettedD0R = async (): Promise<void> => {
     if (!d0rTouched || d0_5Passed) return;
-    await writeTextAtomic(corePath, transaction.core);
+    const { head } = await headGraph(store);
+    if (head !== headBefore) {
+      const reset = await commitGraph({
+        store, graph: await loadGraph(store, headBefore), parents: [head], author: "pipeline", kind: "reset",
+        message: `D0.5 exited without PASS: discard unvetted D0.R edits (back to ${headBefore.slice(0, 12)})`, expectedHead: head,
+        meta: { target: headBefore },
+      });
+      if (!reset.ok) throw new Error(`D0.R rollback refused: ${formatViolations(reset.violations)}`);
+    }
+    await publishCore(args.ctx, store);
+    delete args.state.flags.d0_5_head_before;
     if (transaction.pending === null) await rm(pendingPath, { force: true });
     else await writeTextAtomic(pendingPath, transaction.pending);
     args.state.design_decisions = transaction.designDecisions;
     args.state.added_assumptions = transaction.addedAssumptions;
-    if (promotedClearedProse) {
-      // Re-publish from the two authoritative stores. This keeps only prose the
-      // next panel actually cleared; every unvetted proof/formal edit remains
-      // rolled back with the transaction.
-      const proto = await readTypedCore(protoCoreJsonPath(args.ctx));
-      const working = await loadWorkingState(args.ctx);
-      if (!working) throw new Error("D0.R cleared prose promotion lost d0_working.json");
-      await writeJsonAtomic(corePath, CoreSchema.parse(assembleCore(proto, working)));
-      await runStage0Render({ ctx: args.ctx, state: args.state });
-    }
   };
 
   try {
@@ -735,13 +481,6 @@ export async function runStage0_5Typed(args: {
     // that edit cleared its assigned findings. Bank cleared prose before ANY
     // panel-result branch can return (citation, pass/tier, fail, proposal route,
     // or convergence), while formal bytes remain inside the transaction.
-    if (
-      pendingD0RProse &&
-      round > reviseStart &&
-      [...prevKeys].every((key) => !curKeys.has(key))
-    ) {
-      await promoteClearedD0RProse();
-    }
     const citationCheckpoint = citationVerificationCheckpoint(review);
     if (citationCheckpoint) {
       // Source access failure is not evidence that the cited claim is false and
@@ -759,6 +498,7 @@ export async function runStage0_5Typed(args: {
       // no targets.
       await injectD0ReviewDirective({
         ctx: args.ctx,
+        state: args.state,
         reason:
           "D0.5 halted on citation source-access, not on mathematics. These panel verdicts are recorded for " +
           "provenance so a resume does not re-pay for them; do not re-solve on this entry alone.",
@@ -792,6 +532,12 @@ export async function runStage0_5Typed(args: {
         // D0.R edits core.json only. Publish the revised source preview once,
         // after the complete D0.5 panel and tier gate have accepted the edit.
         if (d0rTouched) await runStage0Render({ ctx: args.ctx, state: args.state });
+        // The accepted core.json (with D0.R's in-place edits) becomes what the stores
+        // render, so a later re-solve keeps those edits instead of dropping them.
+        // Fail-safe: a refusal leaves the pass exactly as before.
+        const foldNote = `accepted main=${(await headGraph(store)).head.slice(0, 12)}`;
+        d0rTouched = false;
+        delete args.state.flags.d0_5_head_before;
         // D0.R is transactional across the ENTIRE D0.5 gate. Core-panel approval
         // alone is insufficient: a below-floor cold review leaves the run at D0,
         // so its provisional edits must not replace the authoritative package.
@@ -805,7 +551,7 @@ export async function runStage0_5Typed(args: {
           status: "pass",
           notes:
             `D0.5.G cold referee tier=${gen.tier} ≥ floor=${floor} (target=${target})` +
-            `${gen.flagship_potential ? " | flagship_potential" : ""}`,
+            `${gen.flagship_potential ? " | flagship_potential" : ""} | ${foldNote}`,
         }).catch(() => {});
         // CKPT (D0.5 → F1 go/no-go). A passing D0.5 (math panel + novelty floor BOTH
         // cleared) does NOT auto-flow into the expensive F1–F5 formalization. Return a
@@ -822,6 +568,7 @@ export async function runStage0_5Typed(args: {
             `D0.5.G tier=${gen.tier} ≥ floor=${floor} (target=${target}). ` +
             `CKPT (D0.5→F1 go/no-go): the maximized note cleared the panel AND the novelty floor; ` +
             `decide whether to commit to F1–F5, then \`--resume\` to enter F1.` +
+            ` [${foldNote}]` +
             (gen.flagship_potential && gen.flagship_directive
               ? ` Flagship upside (not auto-pursued): ${gen.flagship_directive}`
               : ""),
@@ -852,6 +599,7 @@ export async function runStage0_5Typed(args: {
       // would vanish the same way.
       await injectD0ReviewDirective({
         ctx: args.ctx,
+        state: args.state,
         reason: canReroute
           ? "The cold whole-paper referee placed the current paper below the requested novelty floor and supplied this directed improvement."
           : capExhausted
@@ -893,6 +641,7 @@ export async function runStage0_5Typed(args: {
       // and the operator should not commit to one without knowing the note's ceiling.
       await injectD0ReviewDirective({
         ctx: args.ctx,
+        state: args.state,
         reason: "The D0.5 whole-paper/core panel found a load-bearing defect that requires D0 re-derivation.",
         payload: { stage: "D0.5", overall: review.overall, verdicts: review.verdicts },
         targetIds: reviewTargetIds(review),
@@ -915,6 +664,7 @@ export async function runStage0_5Typed(args: {
     if (proposalRoute) {
       await injectD0ReviewDirective({
         ctx: args.ctx,
+        state: args.state,
         reason:
           `D0.5 proposal/statement finding is outside D0.R scope: ${proposalRoute.labels.join(", ")}. ` +
           proposalRoute.action,
@@ -952,6 +702,7 @@ export async function runStage0_5Typed(args: {
         const persistent = convergence.persistent;
         await injectD0ReviewDirective({
           ctx: args.ctx,
+          state: args.state,
           reason: `D0.R did not clear persistent finding(s): ${persistent.join(", ")}. Re-derive them in D0 from the complete review below.`,
           payload: { stage: "D0.5", overall: review.overall, verdicts: review.verdicts },
           targetIds: reviewTargetIds(review),
@@ -972,6 +723,7 @@ export async function runStage0_5Typed(args: {
       if (convergence.kind === "no-net-progress") {
         await injectD0ReviewDirective({
           ctx: args.ctx,
+          state: args.state,
           reason: `D0.R made no net progress (${prevKeys.size} to ${curKeys.size} findings). Apply the complete review at D0 rather than another in-place edit.`,
           payload: { stage: "D0.5", overall: review.overall, verdicts: review.verdicts },
           targetIds: reviewTargetIds(review),
@@ -1023,6 +775,7 @@ export async function runStage0_5Typed(args: {
       await appendReview(args.ctx, "stage_0.5.G", round + 1, verdict).catch(() => {});
       await injectD0ReviewDirective({
         ctx: args.ctx,
+        state: args.state,
         reason:
           "D0.5.G triage placed the paper below the novelty floor with NO bounded fix in scope, before the " +
           "directed-revise loop spent its budget. Recorded for provenance alongside the still-open panel " +
@@ -1073,13 +826,38 @@ export async function runStage0_5Typed(args: {
     await saveState(args.ctx.repoRoot, args.ctx.qid, args.ctx.specialization, args.state);
     d0rTouched = true;
     const revised = await runStage0RCore({ ctx: args.ctx, state: args.state, deps: args.deps, review });
-    pendingD0RProse = revised.proseUpdates ?? null;
+    {
+      // D0.R edited core.json in place: commit it to main (author d0r). A refusal is
+      // a broken edit — restore the file from main and escalate instead of reviewing it.
+      const { head, graph } = await headGraph(store);
+      const edited = graphFromCore(await readTypedCore(corePath), graph);
+      const committed = await commitGraph({
+        store, graph: edited, parents: [head], author: "d0r", kind: "direct",
+        message: `D0.R round ${round + 1}: directed revise`, expectedHead: head,
+      });
+      if (!committed.ok) {
+        await publishCore(args.ctx, store);
+        await injectD0ReviewDirective({
+          ctx: args.ctx,
+          state: args.state,
+          reason: `D0.R produced a core that fails the structural gate; its edit was discarded. Re-derive the reviewed targets in D0.`,
+          payload: { stage: "D0.5", overall: review.overall, verdicts: review.verdicts, violations: committed.violations },
+          targetIds: reviewTargetIds(review),
+        });
+        return {
+          stage: "0.5", status: "checkpoint", advance: false,
+          message: `Stage 0.5 (typed) D0.R round ${round + 1} produced an invalid core (discarded):\n${formatViolations(committed.violations)}`,
+        };
+      }
+      await publishCore(args.ctx, store);
+    }
     // D0.R early-escalation: if the directed edit reports the findings are NOT fixable
     // in place (needs real math / re-derivation / substrate), checkpoint NOW — do not
     // burn the rest of the revise cap thrashing on something it cannot solve.
     if (revised.escalate) {
       await injectD0ReviewDirective({
         ctx: args.ctx,
+        state: args.state,
         reason: `D0.R escalated: ${revised.escalate.reason}. Re-derive the reviewed targets in D0.`,
         payload: { stage: "D0.5", overall: review.overall, verdicts: review.verdicts },
         targetIds: reviewTargetIds(review),
@@ -1099,6 +877,7 @@ export async function runStage0_5Typed(args: {
   if (lastReview) {
     await injectD0ReviewDirective({
       ctx: args.ctx,
+      state: args.state,
       reason: `The D0.R revise cap (${D0_REVISE_CAP}) was exhausted. Re-derive the remaining reviewed targets in D0.`,
       payload: { stage: "D0.5", overall: lastReview.overall, verdicts: lastReview.verdicts },
       targetIds: reviewTargetIds(lastReview),

@@ -43,7 +43,9 @@ namespace Causalean
 namespace Mathlib
 namespace TwoStateMarkov
 
-/-- Transition matrix with rows `(1 - a, a)` and `(b, 1 - b)`. -/
+/-- For [two transition parameters in an arbitrary field](hyp:a,b), [the two-state transition
+matrix](goal) is the $2\times2$ matrix whose first row is $(1-a,a)$ and whose second row is
+$(b,1-b)$. -/
 noncomputable def transitionMatrix {K : Type*} [Field K]
     (a b : K) : Matrix (Fin 2) (Fin 2) K :=
   fun i j =>
@@ -52,7 +54,9 @@ noncomputable def transitionMatrix {K : Type*} [Field K]
     else
       if j = (0 : Fin 2) then b else 1 - b
 
-/-- Stationary projection with both rows equal to `(b/(a+b), a/(a+b))`. -/
+/-- For [two transition parameters in an arbitrary field](hyp:a,b), [the stationary
+projection matrix](goal) is the $2\times2$ matrix whose two rows both equal
+$(b/(a+b),a/(a+b))$. -/
 noncomputable def stationaryProjection {K : Type*} [Field K]
     (a b : K) : Matrix (Fin 2) (Fin 2) K :=
   fun _ j => if j = (0 : Fin 2) then b / (a + b) else a / (a + b)

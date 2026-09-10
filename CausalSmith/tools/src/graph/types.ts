@@ -45,6 +45,9 @@ const NlSchema = z.object({
 const LeanSchema = z.object({
   decl_name: z.string().nullable(),
   file: z.string().nullable(),
+  /** Explicit additional declarations certifying clauses of this same paper statement.
+   * These are source mappings, not prerequisite edges or new paper environments. */
+  supporting_decls: z.array(z.string().trim().min(1)).optional(),
 });
 
 const ReviewSchema = z.object({
@@ -101,7 +104,8 @@ export const NodeSchema = z.object({
     .optional(),
   /** For a `kind:"gate"` node: its discharge fate and (for cited) the citation it is
    *  matched against, carried from the plan node's `gate_class`/`source`. `gated` =
-   *  discharged before banking; `cited` = borrowed, assumed + source-matched. Absent
+   *  discharged before banking; `cited` = source-matched logical assumption or closed
+   *  non-logical metadata carrier. Metadata carriers are not proof hypotheses. Absent
    *  ⇒ legacy gate (treat as `gated`). Lets graph-based logic distinguish the two
    *  without re-reading plan.json. */
   gate: z
@@ -126,6 +130,21 @@ export const EdgeSchema = z.object({
 });
 export type GraphEdge = z.infer<typeof EdgeSchema>;
 
+/** One F4 peer's verdict on one convergence target, bound to the evidence it was judged at. */
+export const ConvergenceReceiptSchema = z.object({
+  verdict: z.enum(["matched", "drift"]),
+  evidence_hash: z.string().min(1),
+  note: z.string().optional(),
+});
+export type ConvergenceReceipt = z.infer<typeof ConvergenceReceiptSchema>;
+export const CONVERGENCE_PEERS = ["codex", "claude"] as const;
+export type ConvergencePeer = (typeof CONVERGENCE_PEERS)[number];
+export const ConvergenceLedgerSchema = z.record(
+  z.string(),
+  z.object({ codex: ConvergenceReceiptSchema.optional(), claude: ConvergenceReceiptSchema.optional() }),
+);
+export type ConvergenceLedger = z.infer<typeof ConvergenceLedgerSchema>;
+
 export const GraphSchema = z
   .object({
     qid: z.string().min(1),
@@ -137,10 +156,18 @@ export const GraphSchema = z
      *  {verdict, hash}: the last reviewer verdict and a hash of the symbol's `@realizes` cluster.
      *  A delta pass skips a symbol whose cluster hash is UNCHANGED and last verdict PASSED (matched /
      *  untagged) — mirroring node-level incrementality; a re-tagged symbol (cluster changed → hash
-     *  changed) re-reviews. Convergence (F4) ignores this and re-verifies every symbol. */
+     *  changed) re-reviews. Convergence (F4) additionally requires a current dual receipt
+     *  (`convergenceReview`) before it skips a symbol. */
     symbolReview: z
       .record(z.string(), z.object({ verdict: z.string(), hash: z.string() }))
       .optional(),
+    /** F4 convergence receipts, keyed by review target (graph node id, or `sym:<symbol>`): each
+     *  peer's verdict bound to the evidence hash it was judged at (target NL + Lean + the transitive
+     *  Lean dependency closure + the reviewer rubric — see `convergence_evidence.ts`). A target is
+     *  skipped by a later F4 round only when BOTH peers hold a `matched` receipt at its CURRENT
+     *  evidence hash; a single-peer pass or any evidence change forces a fresh dual review. Banking
+     *  re-verifies this ledger against the current tree, so it is a certificate, not a cache hint. */
+    convergenceReview: ConvergenceLedgerSchema.optional(),
   })
   .superRefine((graph, ctx) => {
     // why: duplicate ids/triples parse as arrays but desync graph lookups later.

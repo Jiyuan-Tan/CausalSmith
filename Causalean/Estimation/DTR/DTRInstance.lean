@@ -59,7 +59,17 @@ variable {P : POSystem} {δ : Type} {γ : Fin 2 → Type}
   [∀ k, MeasurableSpace (γ k)]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- Sequential DR (DTR, n = 2) instance of the abstract `GeneralMoment`.
+/-- For [a potential-outcome system whose sample space is standard Borel and whose
+measure is finite](hyp:P) with [a measurable treatment space in which every
+singleton is measurable](hyp:δ) and [measurable stage-specific covariate spaces](hyp:γ),
+[a two-stage dynamic treatment-regime estimation system](hyp:S), and [a real number for which every
+stage-0 and stage-1 true propensity score lies between that number and one minus that
+number, inclusive](hyp:ε,h_e_pointwise), the [abstract general moment associated with
+the two-stage sequential doubly robust score](goal) has the system's true nuisance
+functions and target value, its two stagewise aggregate error seminorms, and that score
+as its moment function.
+
+Sequential DR (DTR, n = 2) instance of the abstract `GeneralMoment`.
 
 The bilinear seminorms aggregate over the two stages: `ρ₁` sums the
 stagewise L²(P_H_k) norms of the outcome-regression differences, `ρ₂` the

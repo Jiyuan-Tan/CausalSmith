@@ -37,24 +37,21 @@ namespace DAG
 
 variable (G : DAG V)
 
-/-- **Moral adjacency** within a ground set `S`: distinct vertices `u, v ∈ S` that are
-either skeleton-adjacent or share a common child inside `S` ("married parents"). This is the
-undirected edge relation of the moral graph of `G` restricted to `S`. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G), [a ground set of vertices](hyp:S), and [two vertices](hyp:u,v), [moral adjacency](goal) holds exactly when the vertices are distinct members of the ground set and either a directed edge joins them in one direction or the other, or they have a common child in the ground set.
+
+This is the undirected edge relation of the moral graph restricted to the ground set. -/
 def MoralAdj (S : Finset V) (u v : V) : Prop :=
   u ≠ v ∧ u ∈ S ∧ v ∈ S ∧ (G.UAdj u v ∨ ∃ c ∈ S, G.edge u c ∧ G.edge v c)
 
-/-- A single moral step inside `S` that avoids the conditioning set `Z` (both endpoints
-outside `Z`). -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G), [a ground set](hyp:S), [a conditioning set](hyp:Z), and [two vertices](hyp:u,v), [a moral step](goal) holds exactly when the vertices are morally adjacent in the ground set and neither belongs to the conditioning set. -/
 def MoralStep (S Z : Finset V) (u v : V) : Prop :=
   G.MoralAdj S u v ∧ u ∉ Z ∧ v ∉ Z
 
-/-- **Moral connectivity**: `u` reaches `v` by a (possibly empty) sequence of moral steps
-inside `S`, every vertex of which avoids `Z`. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G), [a ground set](hyp:S), [a conditioning set](hyp:Z), and [two vertices](hyp:u,v), [moral connectivity](goal) holds exactly when the first vertex reaches the second by a possibly empty sequence of moral-adjacent steps within the ground set, each of whose endpoints lies outside the conditioning set. -/
 def MoralConn (S Z : Finset V) (u v : V) : Prop :=
   Relation.ReflTransGen (G.MoralStep S Z) u v
 
-/-- **Moral separation**: no vertex of `X` is moral-connected to a vertex of `Y` inside the
-ancestral set `An(X ∪ Y ∪ Z)` while avoiding `Z`. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G), [a first vertex set](hyp:X), [a second vertex set](hyp:Y), and [a conditioning set](hyp:Z), [moral separation](goal) holds exactly when no member of the first set is morally connected to any member of the second within the ancestral closure of the union of all three sets, while avoiding the conditioning set. -/
 def MoralSep (X Y Z : Finset V) : Prop :=
   ∀ x ∈ X, ∀ y ∈ Y, ¬ G.MoralConn (G.ancestralSet (X ∪ Y ∪ Z)) Z x y
 

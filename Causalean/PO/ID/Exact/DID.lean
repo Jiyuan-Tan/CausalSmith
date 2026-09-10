@@ -51,31 +51,42 @@ namespace PODIDSystem
 
 variable {P : POSystem} (S : PODIDSystem P)
 
-/-- The treatment node is packaged as a binary potential-outcome variable. -/
+/-- For [a two-period DID system](hyp:S), the [binary treatment potential-outcome
+variable](goal) is its treatment node with values represented as false or true. -/
 def dVar : POVar P Bool := ⟨S.D, S.hDbool⟩
 
-/-- The pre-period outcome node is packaged as a real-valued potential-outcome variable. -/
+/-- For [a two-period DID system](hyp:S), the [real-valued pre-period outcome
+potential-outcome variable](goal) is its pre-period outcome node. -/
 def y0Var : POVar P ℝ := ⟨S.Y₀, S.hY0real⟩
 
-/-- The post-period outcome node is packaged as a real-valued potential-outcome variable. -/
+/-- For [a two-period DID system](hyp:S), the [real-valued post-period outcome
+potential-outcome variable](goal) is its post-period outcome node. -/
 def y1Var : POVar P ℝ := ⟨S.Y₁, S.hY1real⟩
 
-/-- The pre-period potential outcome is evaluated under the intervention that fixes treatment. -/
+/-- For [a two-period DID system](hyp:S) and [a binary treatment arm](hyp:d), the
+[pre-period potential-outcome function](goal) gives each unit's pre-period outcome
+when treatment is fixed to that arm. -/
 noncomputable def Y0ofD (d : Bool) : P.Ω → ℝ := S.y0Var.cfUnder S.dVar d
 
-/-- The post-period potential outcome is evaluated under the intervention that fixes treatment. -/
+/-- For [a two-period DID system](hyp:S) and [a binary treatment arm](hyp:d), the
+[post-period potential-outcome function](goal) gives each unit's post-period outcome
+when treatment is fixed to that arm. -/
 noncomputable def Y1ofD (d : Bool) : P.Ω → ℝ := S.y1Var.cfUnder S.dVar d
 
-/-- The factual treatment is the observed binary treatment value. -/
+/-- For [a two-period DID system](hyp:S), the [factual treatment function](goal)
+assigns each unit its observed binary treatment. -/
 noncomputable def factualD : P.Ω → Bool := S.dVar.factual
 
-/-- The factual pre-period outcome is the observed pre-period outcome value. -/
+/-- For [a two-period DID system](hyp:S), the [factual pre-period outcome function](goal)
+assigns each unit its observed pre-period outcome. -/
 noncomputable def factualY₀ : P.Ω → ℝ := S.y0Var.factual
 
-/-- The factual post-period outcome is the observed post-period outcome value. -/
+/-- For [a two-period DID system](hyp:S), the [factual post-period outcome function](goal)
+assigns each unit its observed post-period outcome. -/
 noncomputable def factualY₁ : P.Ω → ℝ := S.y1Var.factual
 
-/-- The treatment event contains the units whose observed treatment equals the chosen arm. -/
+/-- For [a two-period DID system](hyp:S) and [a binary treatment arm](hyp:d), the
+[treatment event](goal) is the set of units whose observed treatment equals that arm. -/
 def dEvent (d : Bool) : Set P.Ω := S.dVar.event d
 
 /-- The pre-period potential outcome under a fixed treatment arm is measurable. -/
@@ -104,8 +115,9 @@ lemma measurable_factualY₁ : Measurable S.factualY₁ := S.y1Var.measurable_fa
 lemma measurableSet_dEvent (d : Bool) : MeasurableSet (S.dEvent d) :=
   S.dVar.measurableSet_event _ (measurableSet_singleton _)
 
-/-- The ATT is the treated-group mean difference between treated and untreated
-post-period potential outcomes. -/
+/-- For [a two-period DID system](hyp:S), the [average treatment effect on the
+treated](goal) is the mean, conditional on observed treatment, of the difference
+between each treated unit's post-period potential outcomes under treatment and no treatment. -/
 noncomputable def ATT : ℝ :=
   eventCondExp P.μ (S.dEvent true) (fun ω => S.Y1ofD true ω - S.Y1ofD false ω)
 

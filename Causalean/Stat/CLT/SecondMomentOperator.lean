@@ -69,7 +69,15 @@ theorem integrable_inner_smul (hψ : Measurable ψ)
 
 variable (hψ : Measurable ψ) (hvar : Integrable (fun x => ‖ψ x‖ ^ 2) P)
 
-/-- The second-moment operator `Σ t = ∫ ⟪t, ψ x⟫ • ψ x ∂P`, as a linear map. -/
+/-- Let $P$ be a measure on a measurable sample space, and let a function take
+values in a second-countable real inner-product space equipped with its Borel
+σ-algebra and measurable scalar multiplication. Given [that function is
+measurable](hyp:hψ) and [its squared norm is integrable under $P$](hyp:hvar),
+[the second-moment operator](goal) maps each vector $t$ to the integral of the
+vector-valued function that multiplies the function value by its inner product
+with $t$.
+
+The second-moment operator `Σ t = ∫ ⟪t, ψ x⟫ • ψ x ∂P`, as a linear map. -/
 noncomputable def secondMomentLM : E →ₗ[ℝ] E where
   toFun t := ∫ x, ⟪t, ψ x⟫ • ψ x ∂P
   map_add' t₁ t₂ := by

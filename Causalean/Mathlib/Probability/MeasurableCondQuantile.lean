@@ -28,7 +28,13 @@ open MeasureTheory ProbabilityTheory Filter Topology
 
 variable {α : Type*} [MeasurableSpace α]
 
-/-- The **conditional quantile** at level `τ`: the generalized inverse of the conditional CDF,
+/-- For any measurable parameter space, [a measure on the product of that
+space and the real line](hyp:ρ), [a real-valued target-level function on the parameter space](hyp:τ),
+and [a parameter value](hyp:a), the [conditional quantile](goal) is the infimum of the real
+response values at which the conditional cumulative distribution function reaches the target
+level at that parameter value.
+
+The conditional quantile at level `τ` is the generalized inverse of the conditional CDF,
 `q(a) = inf { x : ℝ | τ(a) ≤ condCDF ρ a x }`. -/
 noncomputable def condQuantile (ρ : Measure (α × ℝ)) (τ : α → ℝ) (a : α) : ℝ :=
   sInf {x : ℝ | τ a ≤ condCDF ρ a x}

@@ -32,8 +32,11 @@ open Causalean.Stat
 
 variable {π : Measure (ℝ × ℝ)} {μ ν : Measure ℝ}
 
-/-- The **joint cdf** of a measure `π` on `ℝ × ℝ`: the mass of the lower-left
-quadrant `Iic x ×ˢ Iic y`, as a real number. -/
+/-- For a measure [on pairs of real-valued quantities](hyp:π) and
+[real thresholds](hyp:x,y), the [joint cumulative distribution function](goal) is the
+real-valued mass that the measure assigns to the lower-left quadrant consisting of pairs whose
+first coordinate is at most the first threshold and whose second coordinate is at most the
+second threshold. -/
 noncomputable def jointCdf (π : Measure (ℝ × ℝ)) (x y : ℝ) : ℝ :=
   (π (Iic x ×ˢ Iic y)).toReal
 

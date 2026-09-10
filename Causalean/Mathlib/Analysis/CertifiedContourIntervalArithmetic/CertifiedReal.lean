@@ -12,7 +12,7 @@ that target.
 
 namespace Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
 
-/-- A positive rational is a rational number bundled with a proof that it is strictly positive. -/
+/-- A [positive rational number](goal) is a rational number that is strictly greater than zero. -/
 abbrev PosRat := {q : ℚ // 0 < q}
 
 /-- A certified real name represents [a real number](hyp:value) by [a sequence of rational
@@ -45,7 +45,9 @@ theorem approx_mono (x : CertifiedReal) {m n : ℕ} (hmn : m ≤ n) :
   | succ n hmn ih =>
       exact RatInterval.subinterval_trans (x.nested n) ih
 
-/-- Refinement evaluates the certified modulus and returns its rational enclosure. -/
+/-- For [a certified real number](hyp:x) and [a requested positive rational tolerance](hyp:ε), [its refinement](goal) is the rational interval returned at the precision selected by that certificate's modulus for the requested tolerance.
+
+Refinement evaluates the certified modulus and returns its rational enclosure. -/
 def refine (x : CertifiedReal) (ε : PosRat) : RatInterval :=
   x.approx (x.modulus ε)
 
@@ -67,7 +69,9 @@ theorem exists_refinement (x : CertifiedReal) (ε : ℚ) (hε : 0 < ε) :
     ∃ n : ℕ, (x.approx n).Contains x.value ∧ (x.approx n).width ≤ ε := by
   exact ⟨x.modulus ⟨ε, hε⟩, x.contains _, x.width_modulus ⟨ε, hε⟩⟩
 
-/-- A rational number has the constant point interval as a certified real name. -/
+/-- For [a rational number](hyp:q), [its certified real name](goal) denotes that rational number and uses its degenerate one-point rational interval at every precision.
+
+A rational number has the constant point interval as a certified real name. -/
 def ofRat (q : ℚ) : CertifiedReal where
   value := q
   approx := fun _ => RatInterval.point q
@@ -82,7 +86,9 @@ def ofRat (q : ℚ) : CertifiedReal where
     intro ε
     simpa [RatInterval.width, RatInterval.point] using ε.2.le
 
-/-- Negating a certified name negates every rational enclosure and preserves its modulus. -/
+/-- For [a certified real number](hyp:x), [its certified negation](goal) denotes the negative of the real number named by the certificate, negates every rational interval enclosure, and retains the same precision-selection rule.
+
+Negating a certified name negates every rational enclosure and preserves its modulus. -/
 def neg (x : CertifiedReal) : CertifiedReal where
   value := -x.value
   approx := fun n => (x.approx n).neg
@@ -97,7 +103,9 @@ def neg (x : CertifiedReal) : CertifiedReal where
     intro ε
     simpa [RatInterval.width_neg] using x.width_modulus ε
 
-/-- Adding certified names adds equal-precision interval enclosures and uses
+/-- For [two certified real numbers](hyp:x,y), [their certified sum](goal) denotes the sum of their named real numbers, adds their rational interval enclosures at each common precision, and selects a precision sufficient to make each input enclosure no wider than half the requested tolerance.
+
+Adding certified names adds equal-precision interval enclosures and uses
 half of the requested tolerance for each input. -/
 def add (x y : CertifiedReal) : CertifiedReal where
   value := x.value + y.value
@@ -124,7 +132,9 @@ def add (x y : CertifiedReal) : CertifiedReal where
     dsimp [δ] at hx hy ⊢
     linarith
 
-/-- Subtracting certified names adds the first enclosure to the negation of the second. -/
+/-- For [two certified real numbers](hyp:x,y), [their certified difference](goal) is their certified sum after negating the second certificate; it therefore denotes the first named real number minus the second.
+
+Subtracting certified names adds the first enclosure to the negation of the second. -/
 def sub (x y : CertifiedReal) : CertifiedReal := add x (neg y)
 
 /-- Certified subtraction denotes the difference of the two named real values. -/
@@ -166,4 +176,3 @@ theorem value_eq_of_common_approximations (x y : CertifiedReal)
 end CertifiedReal
 
 end Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
-

@@ -2,9 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   structuralGate,
   proposalGate,
-  symbolPreflightGate,
-  symbolDriftGate,
-  roundInvariantsGate,
   proseConsistencyGate,
 } from "../../../src/discovery/framework/gate_registrations.js";
 
@@ -13,9 +10,6 @@ describe("gate registrations", () => {
     const gates = [
       structuralGate,
       proposalGate,
-      symbolPreflightGate,
-      symbolDriftGate,
-      roundInvariantsGate,
       proseConsistencyGate,
     ];
     const ids = gates.map((g) => g.id);
@@ -40,18 +34,7 @@ describe("gate registrations", () => {
   // (Retired, Phase 1: the proposal-closure gate — closure holds by construction
   // of assembleCore; see test/discovery/assemble.test.ts.)
 
-  it("symbol-preflight fires on an undeclared free symbol (firing fixture)", () => {
-    const violations = symbolPreflightGate.check({
-      symbols: [{ name: "tau" }],
-      assumptions: [{ id: "ass:x", free_symbols: ["tau", "undeclared_sym"] }],
-      definitions: [],
-    });
-    expect(violations.length).toBeGreaterThan(0);
-    expect(violations[0].gateId).toBe("symbol-preflight");
-  });
-
   it("warn-tier gates are registered with warn tier (policy: detect, not throw)", () => {
-    expect(roundInvariantsGate.tier).toBe("warn");
     expect(proseConsistencyGate.tier).toBe("warn");
   });
 });

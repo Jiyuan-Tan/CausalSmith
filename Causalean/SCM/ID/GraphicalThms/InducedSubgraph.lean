@@ -43,7 +43,8 @@ namespace SWIGGraph
 
 variable (G : SWIGGraph N)
 
-/-- A graph is ancestrally closed when every observed parent of an observed node is also observed.
+/-- For [a single-world intervention graph](hyp:G), [ancestral closure](goal) holds exactly when
+every observed node's parent that is a random node is itself observed.
 
 This is the graph condition used when restricting identification arguments to an
 induced observed subgraph. -/
@@ -51,14 +52,18 @@ def isAncestrallyClosed : Prop :=
   ∀ v ∈ G.observed, ∀ u ∈ G.dag.parents v,
     (∃ n : N, u = SWIGNode.random n) → u ∈ G.observed
 
-/-- Ancestral closure of a finite SWIG graph is decidable. -/
+/-- For [a finite single-world intervention graph](hyp:N,G), [the decision procedure for ancestral
+closure](goal) determines whether every parent of an observed node that is itself a random node is
+also observed. -/
 instance decIsAncestrallyClosed : Decidable G.isAncestrallyClosed := by
   unfold isAncestrallyClosed
   infer_instance
 
 end SWIGGraph
 
-/-- The induced subgraph restricts a SWIG graph to the selected observed nodes.
+/-- For [a single-world intervention graph](hyp:G) and [a selected finite set of nodes](hyp:R),
+[the induced subgraph](goal) is the graph obtained by restricting the original graph to those
+selected nodes.
 
 This is the graph restriction used for identification subproblems. -/
 abbrev InducedFrom (G : SWIGGraph N) (R : Finset (SWIGNode N)) : SWIGGraph N :=
@@ -68,7 +73,9 @@ namespace SWIGGraph
 
 variable (G : SWIGGraph N)
 
-/-- This set contains the proper descendants of a node inside an induced SWIG subgraph.
+/-- For [a single-world intervention graph](hyp:G), [a selected finite node set](hyp:R), and [a
+target node](hyp:v₀), [the proper-descendant set within the induced graph](goal) is the finite
+set of descendants of the target in the graph induced by the selected nodes.
 
 The descendant relation used here is already irreflexive, so the node itself is
 not included. -/
@@ -76,7 +83,9 @@ def properDescIn (R : Finset (SWIGNode N)) (v₀ : SWIGNode N) :
     Finset (SWIGNode N) :=
   (G.induce R).dag.descendants v₀
 
-/-- This set contains selected nodes excluding the target and its proper descendants.
+/-- For [a single-world intervention graph](hyp:G), [a selected finite node set](hyp:R), and [a
+target node](hyp:v₀), [the induced non-descendant set](goal) is the selected set with the target
+and all of its proper descendants in the induced graph removed.
 
 It is the non-descendant conditioning set used in Tian's Lemma 1 convention. -/
 def nonDescIn (R : Finset (SWIGNode N)) (v₀ : SWIGNode N) :

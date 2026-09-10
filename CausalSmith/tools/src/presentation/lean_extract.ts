@@ -4,15 +4,8 @@
  * to the proof-delimiting `:=`. Defs/structures: full source capped at 40 lines.
  */
 
+import { leanNameLeaf, leanSourceDeclarations } from "./lean_decl_name.js";
 import { findProofStart } from "./lean_statement.js";
-
-const DECL_RE = (decl: string) =>
-  new RegExp(
-    // Modifiers (private/protected/noncomputable/scoped) are a repeatable prefix —
-    // NOT just `noncomputable def`, so `noncomputable abbrev`/`noncomputable
-    // structure` (e.g. the `p10_triangularClass` alias) also match.
-    `^\\s*(?:@\\[[^\\]]*\\]\\s*)?(?:(?:private|protected|noncomputable|scoped|unsafe)\\s+)*(theorem|lemma|def|abbrev|structure|class)\\s+${decl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
-  );
 
 const DECL_LINE_RE =
   /^\s*(?:@\[[^\]]*\]\s*)?(?:(?:private|protected|noncomputable|scoped|unsafe)\s+)*(def|abbrev|structure|class|theorem|lemma)\s+([A-Za-z_][\w'.]*)/;
@@ -55,18 +48,17 @@ function visibleLeanCode(line: string, state: LeanLexState): string {
 }
 
 function findDeclStart(lines: string[], decl: string, line: number): number {
-  const leaf = decl.includes(".") ? decl.slice(decl.lastIndexOf(".") + 1) : decl;
-  for (const cand of leaf === decl ? [decl] : [decl, leaf]) {
-    const re = DECL_RE(cand);
-    const probe = (i: number) => i >= 0 && i < lines.length && re.test(lines[i]);
-    for (let d = 0; d <= 40; d++) {
-      if (probe(line - 1 + d)) return line - 1 + d;
-      if (probe(line - 1 - d)) return line - 1 - d;
-    }
-    const start = lines.findIndex((l) => re.test(l));
-    if (start >= 0) return start;
-  }
-  throw new Error(`declaration ${decl} not found`);
+  const declarations = leanSourceDeclarations(lines.join("\n"));
+  // The resolver authenticates the full identity first. Prefer its exact line, which handles
+  // relative dotted names and repeated leaves in different namespaces without guessing.
+  const leaf = leanNameLeaf(decl);
+  const candidates = declarations.filter((d) => leanNameLeaf(d.name) === leaf);
+  const exactLine = candidates.find((d) => d.line === line);
+  if (exactLine) return exactLine.line - 1;
+  const exact = candidates.filter((d) => d.name === decl);
+  if (exact.length === 1) return exact[0].line - 1;
+  if (candidates.length === 1) return candidates[0].line - 1;
+  throw new Error(`declaration ${decl} ${candidates.length ? "is ambiguous without an exact line" : "not found"}`);
 }
 
 /** Pop a declaration snippet's trailing preamble that actually belongs to the NEXT declaration:
@@ -94,14 +86,10 @@ function stripTrailingPreamble(out: string[]): void {
   }
 }
 
-/** `line` is a 1-indexed hint (crosswalk line); search ±40 lines around it, then the whole file. */
+/** Prefer the authenticated 1-indexed declaration line; otherwise require a unique name match. */
 export function extractDeclSnippet(source: string, decl: string, line: number): string {
   const lines = source.split("\n");
-  // A crosswalk row records the Lean name as a fully-qualified path
-  // (`Ns.Sub.FeasibleDesign`), but the source declares only the LEAF (`structure
-  // FeasibleDesign`). Try the full name first, then fall back to the leaf — the by-leaf
-  // resolution the caller relies on. Both are anchored `^…keyword <name>\b`, so a leaf never
-  // matches an unrelated longer identifier.
+  // Qualified names may be relative in source; the resolver supplies their exact line.
   const start = findDeclStart(lines, decl, line);
   // Include the declaration's OWN preceding doc-comment — whole `/-- … -/` blocks, not just
   // the last line. A multi-line docstring's interior lines don't individually look like a
@@ -236,13 +224,7 @@ export function tryExtractDeclSnippet(source: string, decl: string, line: number
  * being a separate crosswalk entry.
  */
 export function parseSourceDecls(source: string): { name: string; line: number; kind: string }[] {
-  const out: { name: string; line: number; kind: string }[] = [];
-  const lines = source.split("\n");
-  for (let i = 0; i < lines.length; i++) {
-    const m = DECL_LINE_RE.exec(lines[i]);
-    if (m) out.push({ name: m[2], line: i + 1, kind: m[1] });
-  }
-  return out;
+  return leanSourceDeclarations(source);
 }
 
 /**

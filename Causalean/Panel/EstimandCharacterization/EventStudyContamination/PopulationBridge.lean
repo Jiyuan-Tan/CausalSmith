@@ -99,16 +99,17 @@ variable {T : ℕ}
 
 attribute [instance] EventStudyPopulation.measΩ EventStudyPopulation.probμ
 
-/-- The event `{ω | G ω = h}` for an adoption path. -/
+/-- [For an event-study population $E$](hyp:E) and [an adoption path $h$](hyp:h), [the adoption-path cell](goal) is the event consisting exactly of units whose realized adoption path is $h$. -/
 def cell (E : EventStudyPopulation T) (h : WithTop (Fin T)) : Set E.Ω :=
   E.G ⁻¹' {h}
 
-/-- The population mass of an adoption-path event, as a real number. -/
+/-- [For an event-study population $E$](hyp:E) and [an adoption path $h$](hyp:h), [the adoption-path cell mass](goal) is the real-valued probability mass of the units whose realized adoption path is $h$. -/
 def cellMass (E : EventStudyPopulation T) (h : WithTop (Fin T)) : ℝ :=
   (E.μ (E.cell h)).toReal
 
-/-- Event-level conditional mean on an adoption-path cell. This is totalized by
-`eventCondExp`, so zero-mass paths are allowed at the population-bridge layer. -/
+/-- [For an event-study population $E$](hyp:E), [a real-valued unit-level function $f$](hyp:f), and [an adoption path $h$](hyp:h), [the adoption-path cell mean](goal) is the conditional mean of $f$ on the event that the realized adoption path equals $h$, with value zero when that event has zero probability.
+
+The conditional-mean operation is totalized, so zero-mass paths are allowed at the population-bridge layer. -/
 noncomputable def cellMean (E : EventStudyPopulation T) (f : E.Ω → ℝ)
     (h : WithTop (Fin T)) : ℝ :=
   eventCondExp E.μ (E.cell h) f
@@ -127,13 +128,13 @@ theorem cellMean_sub (E : EventStudyPopulation T) {f g : E.Ω → ℝ}
     E.cellMean (f - g) h = E.cellMean f h - E.cellMean g h :=
   eventCondExp_sub E.μ (E.cell h) hf hg
 
-/-- The observed outcome at period `t`: the potential outcome under the unit's
-realized adoption path. Consistency is thus definitional. -/
+/-- [For an event-study population $E$](hyp:E), [a finite period $t$](hyp:t), and [a unit $ω$](hyp:ω), [the observed outcome](goal) is that unit's potential outcome at $t$ under its realized adoption path.
+
+Consistency is therefore definitional. -/
 def observed (E : EventStudyPopulation T) (t : Fin T) (ω : E.Ω) : ℝ :=
   E.Ypath t (E.G ω) ω
 
-/-- The event-study system induced by a population: every mean field is the
-cohort-cell conditional mean of the appropriate potential-outcome slice.
+/-- [For an event-study population $E$](hyp:E), [the induced event-study system](goal) has the population's calendar-time map and supported cohorts, and defines every cohort share, cell mass, and outcome-mean field as the corresponding adoption-path cell probability or conditional mean.
 
 `cellMass g t` is period-independent, equal to the cross-sectional cohort mass
 `ℙ(G = g)`: in the balanced unit-period population the abstract system targets,
@@ -209,8 +210,9 @@ theorem toSystem_pathConsistency (E : EventStudyPopulation T) :
         rw [h1]
         exact E.hNoAnt h t ω huntreated)
 
-/-- **Outcome integrability (Sun-Abraham assumption H5).** Every
-potential-outcome slice `Ypath t h` is `μ`-integrable. This is the population
+/-- [For an event-study population $E$](hyp:E), [the outcome-integrability condition](goal) states that the potential outcome under every finite period and every adoption path is integrable with respect to the population measure.
+
+This is the population
 content of the source theorem's integrability hypothesis: it is exactly the
 condition under which each cohort-cell mean
 `E.cellMean (Ypath t h) · = E[Y_{·t}(h) ∣ G = ·]` is a genuine finite expectation

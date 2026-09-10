@@ -31,12 +31,15 @@ namespace Causalean.ML
 
 open MeasureTheory ProbabilityTheory Real Causalean.Stat.Concentration
 
-/-- Feature × response data space: `Xinf`-bounded coordinates paired with `[-Yb,Yb]`
-responses. -/
+/-- For [a dimension $d$](hyp:d), [a coordinate bound $X_{\infty}$](hyp:Xinf), and [a response bound $Y_b$](hyp:Yb), the [lasso feature--response space](goal) consists of pairs whose $d$ feature coordinates have absolute value at most $X_{\infty}$ and whose response lies in the closed interval $[-Y_b,Y_b]$.
+
+This is the data domain used by the lasso squared-loss results. -/
 abbrev LassoFeat (d : ℕ) (Xinf Yb : ℝ) : Type :=
   LinftyBall (d := d) Xinf × Metric.closedBall (0 : ℝ) Yb
 
-/-- The `W`-ball of weight vectors in coordinate `ℓ¹` norm. -/
+/-- For [a dimension $d$](hyp:d) and [a radius $W$](hyp:W), the [lasso weight space](goal) is the set of $d$-dimensional real weight vectors whose coordinate $\ell^1$ norm is at most $W$.
+
+This is the parameter domain for the lasso linear predictors. -/
 abbrev LassoWeight (d : ℕ) (W : ℝ) : Type :=
   L1Ball (d := d) W
 

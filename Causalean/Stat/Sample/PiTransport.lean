@@ -49,8 +49,9 @@ open MeasureTheory ProbabilityTheory
 variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
   {μ : Measure Ω} {P : Measure X}
 
-/-- The coordinate projections on an infinite product probability space form
-an i.i.d. sample with the common marginal law. -/
+/-- Given [a measurable observation space](hyp:X) and [a probability measure on it](hyp:P), the [independent,
+identically distributed sample on the infinite product space](goal) is formed by coordinate
+projections, and every coordinate has the given probability measure as its marginal law. -/
 noncomputable def iidSample_infinitePi (P : Measure X) [IsProbabilityMeasure P] :
     IIDSample (ℕ → X) X (Measure.infinitePi (fun _ : ℕ => P)) P where
   Z i ω := ω i
@@ -231,9 +232,10 @@ end Restrict
 Papers routinely list "there exists an i.i.d. sample from `P`" among their
 assumptions.  The two theorems below record that this assumption is vacuous. -/
 
-/-- Existence of an i.i.d. sample with a given law: the assertion that some probability space
-carries an independent, identically distributed sample whose common marginal law is a given
-measure. -/
+/-- Given [a measurable observation space](hyp:X) and [a measure on it](hyp:P), the [existence-of-an-independent,
+identically distributed-sample assertion](goal) states that there is a sample space with a
+measurable structure and a measure carrying a nonempty collection of independent, identically
+distributed samples whose common marginal law is the given measure. -/
 def HasIIDSample {X : Type u} [MeasurableSpace X] (P : Measure X) : Prop :=
   ∃ (Ω : Type u) (mΩ : MeasurableSpace Ω) (μ : @Measure Ω mΩ),
     Nonempty (@IIDSample Ω X mΩ _ μ P)

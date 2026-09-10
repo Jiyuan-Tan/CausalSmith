@@ -18,15 +18,15 @@ set_option maxSynthPendingDepth 16
 
 noncomputable section
 
-/-- The polynomial coordinate subalgebra inherits its usual complex-algebra
-structure, allowing the Jacobian argument to use its transcendence degree. -/
+/-- For two index sets and a family of complex coordinate polynomials, the coordinate subalgebra inherits its complex-algebra structure, namely the structure induced by its inclusion in the polynomial ring in the input coordinates.
+
+This local structure allows the Jacobian argument to use the subalgebra's transcendence degree. -/
 local instance jacobianCoordinateSubalgebraAlgebra {ι κ : Type*}
     (f : κ → MvPolynomial ι ℂ) :
     Algebra ℂ (polynomialCoordinateSubalgebra f) :=
   Subalgebra.algebra (polynomialCoordinateSubalgebra f)
 
-/-- A polynomial Jacobian minor records the determinant of selected derivative
-coordinates of a polynomial parameterization before evaluating it at any point. -/
+/-- For [a commutative coefficient ring](hyp:R), [two index sets](hyp:ι,κ), [a nonnegative integer determining the minor size](hyp:d), [a family of polynomials indexed by the output coordinates](hyp:f), [a selection of that many output coordinates](hyp:rows), and [a selection of that many input coordinates](hyp:cols), [the polynomial Jacobian minor](goal) is the determinant of the square matrix whose entry in each selected row and column is the corresponding formal partial derivative, before evaluation at any point. -/
 def polynomialJacobianMinor {R ι κ : Type*} [CommRing R] {d : ℕ}
     (f : κ → MvPolynomial ι R) (rows : Fin d → κ) (cols : Fin d → ι) :
     MvPolynomial ι R :=

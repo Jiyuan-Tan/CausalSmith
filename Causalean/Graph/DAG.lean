@@ -75,11 +75,11 @@ variable (G : DAG V)
 -- Parents, Children
 -- ============================================================
 
-/-- The parents of `v` in `G`: all vertices `u` such that `(u, v) ∈ E`. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [a vertex](hyp:v), [the parent set](goal) is the finite set of all vertices having a directed edge into that vertex. -/
 def parents (v : V) : Finset V :=
   Finset.univ.filter (fun u => G.edge u v)
 
-/-- The children of `v` in `G`: all vertices `w` such that `(v, w) ∈ E`. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [a vertex](hyp:v), [the child set](goal) is the finite set of all vertices to which that vertex has a directed edge. -/
 def children (v : V) : Finset V :=
   Finset.univ.filter (fun w => G.edge v w)
 
@@ -95,8 +95,7 @@ theorem mem_children {v w : V} : w ∈ G.children v ↔ G.edge v w := by
 -- Ancestors, Descendants (via transitive closure)
 -- ============================================================
 
-/-- `isAncestor G u v` means `u` is an ancestor of `v`: there is a directed path from `u` to `v`.
-    Defined inductively as the transitive closure of the edge relation. -/
+/-- For [a finite vertex population with decidable equality](hyp:V) and [a directed acyclic graph on that population](hyp:G), the [ancestor relation](goal) holds from one vertex to another exactly when there is a directed path from the former to the latter. It is established either by [a directed edge from the former vertex to the latter](hyp:edge) or by [an existing ancestor path followed by a directed edge](hyp:trans). -/
 inductive isAncestor : V → V → Prop
   | edge {u v : V} : G.edge u v → isAncestor u v
   | trans {u w v : V} : isAncestor u w → G.edge w v → isAncestor u v
@@ -150,22 +149,17 @@ theorem isAncestor_child {u v : V} (h : G.isAncestor u v) :
     · exact Or.inr ⟨_, he, isAncestor.edge he'⟩
     · exact Or.inr ⟨c, huc, isAncestor.trans hcw he'⟩
 
-/-- `u` is a descendant of `v` in the DAG exactly when there is a directed path
-from `v` to `u`, equivalently when `v` is an ancestor of `u`. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [two vertices, the first and the second](hyp:u,v), [the descendant relation](goal) holds precisely when there is a directed path from the second vertex to the first. -/
 def isDescendant (u v : V) : Prop := G.isAncestor v u
 
 -- ============================================================
 -- Backward reachability fixpoint (order-free decidable ancestry)
 -- ============================================================
 
-/-- One backward reachability step: enlarge `S` by the parents of every vertex in
-`S`. Iterating this from `G.parents v` accumulates all strict ancestors of `v`. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [a finite vertex set](hyp:S), [one backward ancestor-expansion step](goal) returns that set together with every parent of every member of the set. -/
 def ancStep (S : Finset V) : Finset V := S ∪ S.biUnion G.parents
 
-/-- The strict ancestors of `v`: all vertices `u` with a directed path `u ⇝ v`,
-computed by iterating the backward-parent step `|V|` times starting from `v`'s
-parents. `|V|` iterations suffice because the accumulating set is an increasing
-chain of subsets of a `|V|`-element type, hence reaches its fixpoint. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [a vertex](hyp:v), [the strict-ancestor set](goal) is obtained by starting with the vertex’s parents and applying backward ancestor expansion once for each vertex in the population. -/
 def ancClosure (v : V) : Finset V :=
   (G.ancStep)^[Fintype.card V] (G.parents v)
 
@@ -298,16 +292,17 @@ theorem mem_ancClosure {u v : V} : u ∈ G.ancClosure v ↔ G.isAncestor u v := 
     | edge e => exact hpar (G.mem_parents.mpr e)
     | trans h' e => exact G.isAncestor_mem_of_closed hclosed h' (hpar (G.mem_parents.mpr e))
 
-/-- Decidability of the ancestor relation, computed from the edge relation alone
-via the backward-reachability fixpoint `ancClosure`. -/
+/-- For [a finite vertex population with decidable equality](hyp:V) and [a directed acyclic graph on that population](hyp:G), the [decision procedure for the ancestor relation](goal) determines, for every ordered pair of vertices, whether the first is an ancestor of the second.
+
+    It is computed from the edge relation alone via the backward-reachability fixpoint `ancClosure`. -/
 instance decIsAncestor : DecidableRel G.isAncestor :=
   fun u v => decidable_of_iff _ (G.mem_ancClosure (u := u) (v := v))
 
-/-- The ancestors of `v` in `G`: all vertices `u` such that `u` is an ancestor of `v`. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [a vertex](hyp:v), [the ancestor set](goal) is the finite set of all vertices from which a directed path reaches that vertex. -/
 def ancestors (v : V) : Finset V :=
   Finset.univ.filter (fun u => G.isAncestor u v)
 
-/-- The descendants of `v` in `G`: all vertices `w` such that `v` is an ancestor of `w`. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [a vertex](hyp:v), [the descendant set](goal) is the finite set of all vertices reachable from that vertex by a directed path. -/
 def descendants (v : V) : Finset V :=
   Finset.univ.filter (fun w => G.isAncestor v w)
 
@@ -335,21 +330,19 @@ theorem children_subset_descendants (v : V) : G.children v ⊆ G.descendants v :
 -- Ancestors/Descendants of a set
 -- ============================================================
 
-/-- The ancestors of a set `S`: all vertices that are ancestors of some vertex in `S`. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [a finite vertex set](hyp:S), [the set of its strict ancestors](goal) contains exactly the vertices from which a directed path reaches at least one member of the given set. -/
 def ancestorsSet (S : Finset V) : Finset V :=
   Finset.univ.filter (fun u => ∃ v ∈ S, G.isAncestor u v)
 
-/-- The ancestral set of `S`: the set `S` together with all its ancestors
-(`S ∪ G.ancestorsSet S`). -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [a finite vertex set](hyp:S), [its ancestral closure](goal) is that set together with every vertex from which a directed path reaches one of its members. -/
 def ancestralSet (S : Finset V) : Finset V :=
   S ∪ G.ancestorsSet S
 
-/-- The descendants of a set `S`: all vertices that are descendants of some vertex in `S`. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [a finite vertex set](hyp:S), [the set of its strict descendants](goal) contains exactly the vertices reachable by a directed path from at least one member of the given set. -/
 def descendantsSet (S : Finset V) : Finset V :=
   Finset.univ.filter (fun w => ∃ v ∈ S, G.isAncestor v w)
 
-/-- The non-descendants of `v`: all vertices that are NOT descendants
-    of `v` (and not `v` itself). -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [a vertex](hyp:v), [the non-descendant set](goal) contains exactly the vertices other than that vertex which cannot be reached from it by a directed path. -/
 def nonDescendants (v : V) : Finset V :=
   Finset.univ.filter (fun w => ¬G.isAncestor v w ∧ w ≠ v)
 
@@ -357,9 +350,7 @@ def nonDescendants (v : V) : Finset V :=
 -- Canonical topological order (derived)
 -- ============================================================
 
-/-- The rank of `v`: the number of strict ancestors of `v`. Along an edge the
-strict-ancestor set strictly grows, so the rank strictly increases; this makes it
-the basis of a topological numbering. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [a vertex](hyp:v), [its ancestor rank](goal) is the number of that vertex’s strict ancestors. -/
 def ancestorRank (v : V) : ℕ := (G.ancClosure v).card
 
 /-- Along an edge the strict-ancestor count strictly increases. -/
@@ -375,11 +366,7 @@ theorem ancestorRank_lt_of_edge {a b : V} (hab : G.edge a b) :
     rw [mem_ancClosure] at hw ⊢
     exact G.isAncestor_trans hw (isAncestor.edge hab)
 
-/-- The topological order derived from the DAG: assign each vertex the value
-`rank v * |V| + enum v`, where `rank v` counts the strict ancestors of `v` (the
-computable `ancestorRank`) and `enum : V ↪ Fin |V|` breaks ties. The
-result is a natural number that strictly increases along edges (`topoOrder_lt`)
-and is injective (`topoOrder_injective`).
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [a vertex](hyp:v), [the derived topological number](goal) is its number of strict ancestors times the population size, plus a fixed tie-breaking enumeration number. This number is injective across vertices and strictly increases along every directed edge.
 
 This is `noncomputable` because the tie-breaking enumeration of a bare finite
 type requires a choice of ordering (there is no computable enumeration of an
@@ -431,14 +418,16 @@ theorem isAncestor_topoOrder_lt {u v : V} (h : G.isAncestor u v) :
 -- Root nodes
 -- ============================================================
 
-/-- A vertex is a root if it has no parents (`G.parents v = ∅`). -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [a vertex](hyp:v), [the root condition](goal) holds exactly when no directed edge enters that vertex. -/
 def isRoot (v : V) : Prop := G.parents v = ∅
 
-/-- Decidability of `isRoot v` (reduces to deciding `G.parents v = ∅`). -/
+/-- For [a finite vertex population with decidable equality](hyp:V), [a directed acyclic graph on that population](hyp:G), and [a vertex](hyp:v), the [decision procedure for the root condition](goal) determines whether no directed edge enters that vertex.
+
+    It reduces to deciding whether the parent set is empty. -/
 instance decIsRoot (v : V) : Decidable (G.isRoot v) :=
   inferInstanceAs (Decidable (G.parents v = ∅))
 
-/-- The set of all root nodes. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G), [the root set](goal) is the finite set of all vertices with no incoming directed edge. -/
 def roots : Finset V :=
   Finset.univ.filter (fun v => G.isRoot v)
 

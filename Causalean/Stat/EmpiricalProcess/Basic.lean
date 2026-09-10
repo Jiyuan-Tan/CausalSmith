@@ -55,27 +55,36 @@ variable {Ω X ι : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
 
 namespace IIDSample
 
-/-- **Empirical process** of the class member `f i` at sample size `n`:
-`√n · ((1/n) Σ_{k<n} f_i(Z_k) − ∫ f_i dP)`.  The object whose weak limit
-(a Gaussian process) is the subject of Donsker theory. -/
+/-- For [a measurable sample space, measurable observation space, index set, sample-space measure,
+and observation-space measure](hyp:Ω,X,ι,μ,P), [an independent, identically distributed sample](hyp:S), [a class of real-valued
+functions](hyp:f), [one member of that class](hyp:i), and [a sample size](hyp:n), the [empirical
+process](goal) is the random variable $\sqrt n\{n^{-1}\sum_{k<n}f_i(Z_k)-\int f_i\,dP\}$.
+
+The object whose weak limit (a Gaussian process) is the subject of Donsker theory. -/
 noncomputable def empiricalProcess (S : IIDSample Ω X μ P) (f : ι → X → ℝ)
     (i : ι) (n : ℕ) : Ω → ℝ :=
   fun ω => Real.sqrt (n : ℝ) * (S.sampleMean (f i) n ω - ∫ x, f i x ∂P)
 
-/-- **Finite-class sup deviation**: `⨆ i, |Pₙ f_i − P f_i|`.  Meaningful as a
-real-valued statistic when the class `ι` is finite (otherwise the `⨆` may
-collapse to `0` on an unbounded family, which is why `GlivenkoCantelli` is
-stated existentially instead). -/
+/-- For [a measurable sample space, measurable observation space, index set, sample-space measure,
+and observation-space measure](hyp:Ω,X,ι,μ,P), [an independent, identically distributed sample](hyp:S), [a class of real-valued
+functions](hyp:f), and [a sample size](hyp:n), the [supremum deviation statistic](goal) is the
+supremum, over all class members, of the absolute difference between its empirical and population
+means.
+
+Meaningful as a real-valued statistic when the class is finite (otherwise the supremum may
+collapse to zero on an unbounded family, which is why `GlivenkoCantelli` is stated existentially
+instead). -/
 noncomputable def supDeviation (S : IIDSample Ω X μ P) (f : ι → X → ℝ)
     (n : ℕ) : Ω → ℝ :=
   fun ω => ⨆ i, |S.sampleMean (f i) n ω - ∫ x, f i x ∂P|
 
 end IIDSample
 
-/-- **(Weak) Glivenko–Cantelli property.**  The class `f : ι → X → ℝ` obeys a
-uniform law of large numbers for the sample `S`: for every `ε > 0`, the
-probability that some class member's empirical mean deviates from its
-population mean by at least `ε` tends to `0`.
+/-- For [a measurable sample space, measurable observation space, index set, sample-space measure,
+and observation-space measure](hyp:Ω,X,ι,μ,P), [an independent, identically distributed sample](hyp:S) and [a class of real-valued
+functions](hyp:f), the [weak Glivenko--Cantelli property](goal) holds exactly when, for every
+positive real tolerance, the probability that some class member's empirical mean differs from its
+population mean by at least that tolerance converges to zero as the sample size tends to infinity.
 
 The existential formulation `{ω | ∃ i, ε ≤ |Pₙ f_i − P f_i|}` (rather than
 `{ω | ε ≤ supDeviation}`) is robust to infinite classes and matches how the
@@ -117,14 +126,14 @@ structure L1Bracketing (f : ι → X → ℝ) (P : Measure X) (ε : ℝ) where
   /-- Each bracket has `L¹(P)` width at most `ε`. -/
   mesh : ∀ j, ∫ x, |hi j x - lo j x| ∂P ≤ ε
 
-/-- A real-valued function class has finite `L¹(P)` brackets of arbitrarily
-small width.
+/-- For [a measurable observation space and an index set](hyp:X,ι), [a class of real-valued
+functions](hyp:f), and [a measure on its domain](hyp:P), the
+[arbitrarily fine finite $L^1$-bracketing property](goal) holds exactly when every positive real
+tolerance admits a finite collection of integrable lower and upper functions whose absolute gaps
+have integral at most that tolerance and which bracket every class member on one common set of
+full measure.
 
-For every positive tolerance, there is a finite collection of integrable lower
-and upper endpoints whose absolute gap has `P`-integral at most that tolerance,
-and every class member is sandwiched by one bracket on a common full-measure
-support. This is the standard bracketing hypothesis for the
-Glivenko-Cantelli theorem. -/
+This is the standard bracketing hypothesis for the Glivenko-Cantelli theorem. -/
 def HasL1Bracketing (f : ι → X → ℝ) (P : Measure X) : Prop :=
   ∀ ε : ℝ, 0 < ε → Nonempty (L1Bracketing f P ε)
 

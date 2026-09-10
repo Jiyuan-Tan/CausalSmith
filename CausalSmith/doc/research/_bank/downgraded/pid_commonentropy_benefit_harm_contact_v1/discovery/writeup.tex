@@ -1,0 +1,1087 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}commonentropy\_\allowbreak{}benefit\_\allowbreak{}harm\_\allowbreak{}contact}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Average effects conceal simultaneous benefit and harm, while existing low-entropy-confounding work studies scalar causal restrictions. The focal object is the exact joint set \(\Theta_\kappa(P)\) of benefit and harm over factual-compatible common-latent SCMs. The proved population kernel is a global exact three-state representation, an iff common-entropy threshold for universal no individual effect, a full-support law showing that the entropy-implied observed mutual-information inequality is necessary but not sufficient for origin feasibility, and, under treatment positivity, the zero-budget Fréchet segment, high-budget factual rectangle, and a star kernel at every intermediate budget. A finite-sample proposition maps an exact multinomial region into conservative whole-set coverage. Rank-free BH-CERT termination and the regular-versus-contact Hausdorff law remain explicit open questions.
+
+\section{Project justification}
+
+\paragraph{Gap.} JiangWeiKocaoglu2023 uses mutual-information consequences of low latent entropy for scalar causal bounds; JiangKocaoglu2024 studies graph-specific conditional common entropy in an instrumental-variable graph; Zhang2024 conditions on a specified full marginal law \(P(U)\); and CiocaneaTeodorescuGabrielSjolander2025 studies probability of benefit in randomized trials under a cross-world sensitivity parameter. None identifies the joint benefit--harm plane for a no-instrument binary factual law with unknown finite \(U\) constrained only by \(\operatorname{Ent}_Q(U)\leq\kappa\). Existing interval and Pareto methods do not provide the proposed exact witness/exclusion contract at zero masses and entropy contact.
+
+\paragraph{Niche.} At the no-effect origin, exact feasibility is a common-entropy factorization problem. The observed-law inequality \(I_P(A;Y)\leq\kappa\) follows necessarily by data processing from any origin witness, but the balanced law shows that it is not sufficient. Away from the origin, factual compatibility, cross-world response types, and the nonconvex Shannon sublevel set determine a two-dimensional sharp object with singular support changes.
+
+\paragraph{Fill.} The project proves a global support-three equality and the exact origin frontier, separates that frontier from its necessary mutual-information relaxation without attributing a sufficient test to any published workflow, and establishes endpoint and star-kernel geometry on the positive-arm domain. It also proves conservative whole-set coverage by deterministic inversion of an exact multinomial region, while retaining BH-CERT and contact asymptotics as open strengthening paths.
+
+\section{Related work}
+
+KumarLiElGamal2014 defines one-shot common entropy over arbitrary finite auxiliaries and supplies the finite-alphabet cardinality result used to compress the joint law of treatment and the four-valued response type; the present theorem adds the causal preservation argument for all factual cells and both benefit--harm coordinates. KocaogluShakkottaiDimakisCaramanisVishwanath2020 uses common entropy for causal-graph discovery, not joint counterfactual benefit and harm. JiangWeiKocaoglu2023 motivates low-entropy confounding and derives scalar causal outer programs from mutual-information consequences. The present strict-separation proposition only proves that the entropy-implied observed-law inequality \(I_P(A;Y)\leq\kappa\) can hold while the causal origin is infeasible; it neither evaluates nor refutes a published estimator or origin-feasibility workflow in JiangWeiKocaoglu2023. JiangKocaoglu2024 develops graph-specific conditional common entropy for instrumental-variable testing and scalar partial identification in an instrumental-variable graph. The support-three theorem instead concerns a no-instrument binary factual law and the joint response-type image \((B,H)\) under an unconditional entropy budget; neither result implies the other. CiocaneaTeodorescuGabrielSjolander2025 studies probability of benefit as one coordinate in randomized trials under a cross-world sensitivity parameter and supplies confidence intervals at fixed sensitivity values. This paper gives a population joint benefit--harm set under latent-entropy confounding and does not supply that sampling-inference result. Zhang2024 gives tight binary causal partial identification conditional on a specified full marginal law \(P(U)\), so neither its results nor the present unknown-\(U\) theorem subsume the other. TianPearl2000 supplies the unrestricted probabilities-of-causation benchmark; Pena2023 and GabrielSachsJensen2024 study benefit or harm under different restrictions. JonzonSachsGabriel2023 supplies causaloptim's polyhedral response-function workflow as a computational contrast, not a method claimed to be extended here. ArayaReyes2016 surveys generic interval branch-and-bound without exact singular causal witnesses; FernandezGoth2009 gives an outer efficient-set method rather than full causal-image certification; and AudetMessineNinin2022 certifies Pareto proximity rather than exact SCM witness and exclusion sections. None settles the rank-free BH-CERT question. ChafaiConcordet2009 informs the exact multinomial coverage event; the whole-set proposition is its deterministic image-containment consequence. ChernozhukovHongTamer2007, FangSantos2019, and MastenPoirier2020 motivate, without settling, the moving-center Hausdorff derivative and entropy-contact law.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \((B(Q),H(Q))=(Q\{Y(0)=0,Y(1)=1\},Q\{Y(0)=1,Y(1)=0\})\).
+Primary functional / estimator / diagnostic: \(\Theta_\kappa(P)=\Phi_3(\mathcal F_{3,\kappa}(P))\).
+\begin{itemize}
+  \item \(\mathcal A\) --- \texttt{finite set}; \(\{0,1\}\); \texttt{alphabet}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Treatment alphabet.}
+  \item \(\mathcal Y\) --- \texttt{finite set}; \(\{0,1\}\); \texttt{alphabet}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Outcome alphabet.}
+  \item \(a\) --- \texttt{index}; \(\mathcal A\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Treatment level.}
+  \item \(y\) --- \texttt{index}; \(\mathcal Y\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Outcome level.}
+  \item \(A\) --- \texttt{random variable}; \(\mathcal A\); \texttt{observed variable}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Binary treatment.}
+  \item \(Y(0)\) --- \texttt{random variable}; \(\mathcal Y\); \texttt{counterfactual}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Potential outcome under control.}
+  \item \(Y(1)\) --- \texttt{random variable}; \(\mathcal Y\); \texttt{counterfactual}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Potential outcome under treatment.}
+  \item \(Y\) --- \texttt{random variable}; \(\mathcal Y\); \texttt{observed variable}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed outcome.}
+  \item \(\mathcal U\) --- \texttt{finite set}; \texttt{an arbitrary finite alphabet}; \texttt{latent alphabet}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Latent-\allowbreak{}factor alphabet.}
+  \item \(U\) --- \texttt{random variable}; \(\mathcal U\); \texttt{latent confounder}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Common latent factor that may affect treatment and the response-\allowbreak{}type distribution.}
+  \item \(P\) --- \texttt{probability law}; \(\mathcal P(\mathcal A\times\mathcal Y)\); \texttt{observed law}
+  \par\smallskip\noindent\emph{Definition.} Observed factual law of \((A,Y)\).
+  \item \(p_{ay}\) --- \texttt{number}; \([0,1]\); \texttt{observed primitive}
+  \par\smallskip\noindent\emph{Definition.} Observed cell probability \(p_{ay}=P(A=a,Y=y)\).
+  \item \(p_1\) --- \texttt{number}; \([0,1]\); \texttt{observed primitive}
+  \par\smallskip\noindent\emph{Definition.} Observed treatment probability \(p_1=P(A=1)\).
+  \item \(\mu_a\) --- \texttt{number}; \([0,1]\); \texttt{observed primitive}
+  \par\smallskip\noindent\emph{Definition.} Observed arm risk \(\mu_a=P(Y=1\mid A=a)\), defined whenever \(P(A=a)>0\).
+  \item \(\kappa\) --- \texttt{number}; \([0,\log 2]\); \texttt{sensitivity index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Shannon-\allowbreak{}entropy budget in nats.}
+  \item \(Q\) --- \texttt{probability law}; \(\mathcal P(\mathcal A\times\mathcal Y^3\times\mathcal U)\) for some finite \(\mathcal U\); \texttt{latent causal law}
+  \par\smallskip\noindent\emph{Definition.} Full-data law of \((A,Y(0),Y(1),Y,U)\).
+  \item \(\widetilde P\) --- \texttt{probability law}; joint extensions of \(P\) to \((A,Y,U)\); \texttt{common-\allowbreak{}entropy factor law}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Auxiliary product-\allowbreak{}mixture extension used to define observed common entropy.}
+  \item \(\operatorname{Ent}_Q(U)\) --- \texttt{number}; \([0,\infty)\); \texttt{latent complexity}
+  \par\smallskip\noindent\emph{Definition.} Shannon entropy \(\operatorname{Ent}_Q(U)=-\sum_u Q(U=u)\log Q(U=u)\), with \(0\log 0=0\).
+  \item \(B(Q)\) --- \texttt{number}; \([0,1]\); \texttt{causal coordinate}
+  \par\smallskip\noindent\emph{Definition.} Benefit probability \(B(Q)=Q\{Y(0)=0,Y(1)=1\}\).
+  \item \(H(Q)\) --- \texttt{number}; \([0,1]\); \texttt{causal coordinate}
+  \par\smallskip\noindent\emph{Definition.} Harm probability \(H(Q)=Q\{Y(0)=1,Y(1)=0\}\).
+  \item \(\mathfrak M_\kappa(P)\) --- \texttt{set of probability laws}; \texttt{full-\allowbreak{}data SCM laws}; \texttt{causal model}
+  \par\smallskip\noindent\emph{Definition.} Factual-compatible common-latent model fiber defined in \(\texttt{def:model-fiber}\).
+  \item \(\Theta_\kappa(P)\) --- \texttt{set}; \([0,1]^2\); \texttt{identified set}
+  \par\smallskip\noindent\emph{Definition.} Sharp joint benefit--harm set defined in \(\texttt{def:identified-set}\).
+  \item \(\theta=(B,H)\) --- \texttt{vector}; \([0,1]^2\); \texttt{identified-\allowbreak{}set point}
+  \par\smallskip\noindent\emph{Definition.} Generic benefit--harm point with coordinates evaluated by \((B(Q),H(Q))\) under a causal law.
+  \item \(\theta_0\) --- \texttt{vector}; \([0,1]^2\); \texttt{star center}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A point in the zero-\allowbreak{}budget star kernel.}
+  \item \(t\) --- \texttt{number}; \([0,1]\); \texttt{path index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Interpolation weight.}
+  \item \(m\) --- \texttt{integer}; \(\mathbb N\); \texttt{dimension index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Candidate latent support size.}
+  \item \(u\) --- \texttt{index}; \(\mathcal U\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Latent-\allowbreak{}state index.}
+  \item \((i,j)\) --- \texttt{index pair}; \(\{0,1\}^2\); \texttt{response-\allowbreak{}type index}
+  \par\smallskip\noindent\emph{Definition.} Potential-outcome response type \((Y(0),Y(1))=(i,j)\).
+  \item \(\pi_u\) --- \texttt{number}; \([0,1]\); \texttt{program variable}
+  \par\smallskip\noindent\emph{Definition.} Latent mass \(Q(U=u)\) in an \(m\)-state factorization.
+  \item \(e_u\) --- \texttt{number}; \([0,1]\); \texttt{program variable}
+  \par\smallskip\noindent\emph{Definition.} Latent-specific propensity \(Q(A=1\mid U=u)\).
+  \item \(r_{ij\mid u}\) --- \texttt{number}; \([0,1]\); \texttt{program variable}
+  \par\smallskip\noindent\emph{Definition.} Conditional response-type probability \(Q(Y(0)=i,Y(1)=j\mid U=u)\), for \(i,j\in\{0,1\}\).
+  \item \(\mathcal F_{m,\kappa}(P)\) --- \texttt{set}; finite-dimensional compact subset of \(\Delta_m\times[0,1]^m\times(\Delta_4)^m\); \texttt{optimization domain}
+  \par\smallskip\noindent\emph{Definition.} Entropy-constrained factor program defined in \(\texttt{def:finite-factor-program}\).
+  \item \(\Phi_m\) --- \texttt{map}; \(\Phi_m:\mathcal F_{m,\kappa}(P)\to[0,1]^2\); \texttt{identified-\allowbreak{}set map}
+  \par\smallskip\noindent\emph{Definition.} Benefit--harm projection \(\Phi_m(\pi,e,r)=(\sum_u\pi_u r_{01\mid u},\sum_u\pi_u r_{10\mid u})\).
+  \item \(G_P(A;Y)\) --- \texttt{number}; \([0,\log 2]\); \texttt{exact breakdown budget}
+  \par\smallskip\noindent\emph{Definition.} One-shot common entropy of the observed binary pair, defined by an infimum over every finite auxiliary alphabet in \(\texttt{def:common-entropy}\); for binary \(A\) and \(Y\), the support-two cardinality bound makes this infimum a minimum.
+  \item \(I_P(A;Y)\) --- \texttt{number}; \([0,\log 2]\); \texttt{relaxation threshold}
+  \par\smallskip\noindent\emph{Definition.} Observed mutual information \(I_P(A;Y)=\sum_{a,y}p_{ay}\log\{p_{ay}/(p_{a+}p_{+y})\}\).
+  \item \(h(t)\) --- \texttt{function}; \(h:[0,1]\to[0,\log 2]\); \texttt{entropy function}
+  \par\smallskip\noindent\emph{Definition.} Binary entropy \(h(t)=-t\log t-(1-t)\log(1-t)\), with \(0\log0=0\).
+  \item \(\mathcal S_0(P)\) --- \texttt{set}; \([0,1]^2\); \texttt{benchmark set}
+  \par\smallskip\noindent\emph{Definition.} Zero-budget Fréchet segment defined in \(\texttt{def:zero-budget-segment}\).
+  \item \(\theta_c(P)\) --- \texttt{vector}; \([0,1]^2\); \texttt{canonical star center}
+  \par\smallskip\noindent\emph{Definition.} Midpoint of the zero-budget Fréchet segment \(\mathcal S_0(P)\).
+  \item \(\mathcal R(P)\) --- \texttt{set}; \([0,1]^2\); \texttt{benchmark set}
+  \par\smallskip\noindent\emph{Definition.} Unrestricted factual rectangle defined in \(\texttt{def:factual-rectangle}\).
+  \item \(P^\star\) --- \texttt{probability law}; \(\mathcal P(\mathcal A\times\mathcal Y)\); \texttt{analytic witness}
+  \par\smallskip\noindent\emph{Definition.} Balanced binary channel defined in \(\texttt{def:balanced-channel}\).
+  \item \(\kappa^\star\) --- \texttt{number}; \((0,\log 2)\); \texttt{counterexample constant}
+  \par\smallskip\noindent\emph{Definition.} Witness budget \(\kappa^\star=1/2\) nat.
+  \item \(v\) --- \texttt{vector}; \(\mathbb S^1\); \texttt{support direction}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Unit direction in the benefit-\allowbreak{}-\allowbreak{}harm plane.}
+  \item \(\rho_\kappa(v;P)\) --- \texttt{number}; \([0,\sqrt2]\); \texttt{star-\allowbreak{}set functional}
+  \par\smallskip\noindent\emph{Definition.} Radial reach \(\rho_\kappa(v;P)=\sup\{r\geq0:\theta_c(P)+rv\in\Theta_\kappa(P)\}\).
+  \item \(\varepsilon\) --- \texttt{number}; \((0,1)\); \texttt{accuracy index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Requested Hausdorff tolerance.}
+  \item \(\mathsf{BH\mbox{-}CERT}\) --- \texttt{algorithmic object}; \texttt{certified set-\allowbreak{}inversion procedures}; \texttt{computational focal object}
+  \par\smallskip\noindent\emph{Definition.} Singularity-aware certification handle defined in \(\texttt{def:bh-cert-handle}\).
+  \item \(K^-_\varepsilon(P,\kappa)\) --- \texttt{finite complex}; compact subsets of \([0,1]^2\); \texttt{certified inner set}
+  \par\smallskip\noindent\emph{Definition.} Inner complex returned by \(\mathsf{BH\mbox{-}CERT}\).
+  \item \(K^+_\varepsilon(P,\kappa)\) --- \texttt{finite complex}; compact subsets of \([0,1]^2\); \texttt{certified outer set}
+  \par\smallskip\noindent\emph{Definition.} Outer complex returned by \(\mathsf{BH\mbox{-}CERT}\).
+  \item \(d_{\mathrm H}\) --- \texttt{metric}; nonempty compact subsets of \([0,1]^2\); \texttt{set distance}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Hausdorff metric induced by the Euclidean norm.}
+  \item \(N\) --- \texttt{integer}; \(\mathbb N\); \texttt{sample index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Sample size.}
+  \item \(\alpha\) --- \texttt{number}; \((0,1)\); \texttt{confidence level}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Noncoverage probability.}
+  \item \(q\) --- \texttt{probability vector}; \(\Delta_4\); \texttt{confidence-\allowbreak{}region argument}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Candidate four-\allowbreak{}cell factual law in multinomial inversion.}
+  \item \(c\) --- \texttt{count vector}; \(\{c\in\mathbb N^4:\sum_{a,y}c_{ay}=N\}\); \texttt{sample-\allowbreak{}space index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic multinomial count vector.}
+  \item \(L_q(c)\) --- \texttt{number}; \([0,1]\); \texttt{ordering score}
+  \par\smallskip\noindent\emph{Definition.} Multinomial likelihood mass on the closed simplex, \(L_q(c)=N!\prod_{a,y}q_{ay}^{c_{ay}}/\prod_{a,y}c_{ay}!\), with the convention \(0^0=1\).
+  \item \(u(q,\alpha)\) --- \texttt{number}; \([0,1]\); \texttt{coverage threshold}
+  \par\smallskip\noindent\emph{Definition.} Largest likelihood level whose upper level set has \(q\)-probability at least \(1-\alpha\).
+  \item \(C_N\) --- \texttt{random vector}; \(\{c\in\mathbb N^4:\sum_{a,y}c_{ay}=N\}\); \texttt{sample statistic}
+  \par\smallskip\noindent\emph{Definition.} Multinomial count vector for the four observed \((A,Y)\) cells.
+  \item \(\widehat P_N\) --- \texttt{random probability law}; \(\Delta_4\); \texttt{plug-\allowbreak{}in law}
+  \par\smallskip\noindent\emph{Definition.} Empirical factual law with cells \(\widehat p_{ay}=C_{N,ay}/N\).
+  \item \(\mathcal C_{N,\alpha}(C_N)\) --- \texttt{random set}; subsets of \(\Delta_4\); \texttt{confidence region}
+  \par\smallskip\noindent\emph{Definition.} Exact likelihood-ordered multinomial confidence region defined in \(\texttt{def:exact-multinomial-region}\).
+  \item \(\widehat{\mathcal T}_{N,\alpha,\kappa}\) --- \texttt{random set}; subsets of \([0,1]^2\); \texttt{confidence random set}
+  \par\smallskip\noindent\emph{Definition.} Whole-set confidence envelope defined in \(\texttt{def:whole-set-confidence-envelope}\).
+  \item \(P^\dagger\) --- \texttt{probability law}; \(\mathcal P(\mathcal A\times\mathcal Y)\); \texttt{support-\allowbreak{}sharpness witness}
+  \par\smallskip\noindent\emph{Definition.} Balanced reverse-channel witness law with \(p^\dagger_{00}=p^\dagger_{11}=1/20\) and \(p^\dagger_{01}=p^\dagger_{10}=9/20\).
+  \item \(\theta^\dagger\) --- \texttt{ordered pair}; \([0,1]^2\); \texttt{support-\allowbreak{}sharpness witness}
+  \par\smallskip\noindent\emph{Definition.} Support-sharpness benefit--harm point \(\theta^\dagger=(B(Q),H(Q))=(0,9/10)\) for the witness law.
+  \item \(\kappa^\dagger\) --- \texttt{number}; \((0,\log2)\); \texttt{support-\allowbreak{}sharpness witness}
+  \par\smallskip\noindent\emph{Definition.} Support-sharpness entropy budget \(\kappa^\dagger=h(9/10)+(1/10)\log2\).
+  \item \(P_q\) --- \texttt{probability law}; \(\mathcal P(\mathcal A\times\mathcal Y)\); \texttt{confidence-\allowbreak{}envelope candidate law}
+  \par\smallskip\noindent\emph{Definition.} Factual law induced by a candidate cell vector, \(P_q(A=a,Y=y)=q_{ay}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:factual-compatibility]\label{ass:factual-compatibility}
+The \((A,Y)\)-marginal of \(Q\) equals \(P\).
+\par\smallskip\noindent\emph{Standard} (Observed-law compatibility for a discrete SCM, \cite{DuarteFinkelsteinKnoxMummoloShpitser2024}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+Under \(Q\), \(Y=Y(A)\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Counterfactual consistency, \cite{TianPearl2000}).
+\end{assumption}
+
+\begin{assumption}[ass:latent-exchangeability]\label{ass:latent-exchangeability}
+Under \(Q\), \(A\perp (Y(0),Y(1))\mid U\).
+\par\smallskip\noindent\emph{Standard} (Latent conditional exchangeability in the common-cause SCM, \cite{JiangWeiKocaoglu2023}).
+\end{assumption}
+
+\begin{assumption}[ass:entropy-budget]\label{ass:entropy-budget}
+The latent factor satisfies \(\operatorname{Ent}_Q(U)\leq\kappa\).
+\par\smallskip\noindent\emph{Standard} (Shannon low-entropy confounding restriction, \cite{JiangWeiKocaoglu2023}).
+\end{assumption}
+
+\begin{assumption}[ass:treatment-positivity]\label{ass:treatment-positivity}
+The observed treatment probability satisfies \(0<p_1<1\).
+\par\smallskip\noindent\emph{Standard} (Binary treatment positivity, \cite{TianPearl2000}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-fiber]\label{def:model-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Common-\allowbreak{}entropy SCM fiber}
+\par\smallskip\noindent\emph{Construction.} \[\mathfrak M_\kappa(P)=\left\{Q:Q_{A,Y}=P,\ Y=Y(A)\ Q\text{-a.s.},\ A\perp(Y(0),Y(1))\mid U,\ U\text{ finite},\ \operatorname{Ent}_Q(U)\leq\kappa\right\}.\]
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}factual-\allowbreak{}compatibility}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}latent-\allowbreak{}exchangeability}; \texttt{ass:\allowbreak{}entropy-\allowbreak{}budget}.
+\end{definition}
+
+\begin{definition}[def:identified-set]\label{def:identified-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Sharp joint benefit-\allowbreak{}-\allowbreak{}harm set}
+\par\smallskip\noindent\emph{Construction.} \[\Theta_\kappa(P)=\left\{(B(Q),H(Q)):Q\in\mathfrak M_\kappa(P)\right\}.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}model-\allowbreak{}fiber}.
+\end{definition}
+
+\begin{definition}[def:finite-factor-program]\label{def:finite-factor-program}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite latent-\allowbreak{}factor program}
+\par\smallskip\noindent\emph{Construction.} \[\mathcal F_{m,\kappa}(P)=\left\{(\pi,e,r):\pi\in\Delta_m,\ e\in[0,1]^m,\ r_{\cdot\cdot\mid u}\in\Delta_4,\ -\sum_{u=1}^m\pi_u\log\pi_u\leq\kappa,\ p_{ay}=\sum_{u=1}^m\pi_u e_u^a(1-e_u)^{1-a}\sum_{i,j=0}^1r_{ij\mid u}\mathbf 1\{(1-a)i+aj=y\}\text{ for all }a,y\right\}.\]
+\par\smallskip\noindent\emph{Inputs.} \(P\); \(\kappa\); \(m\).
+\end{definition}
+
+\begin{definition}[def:common-entropy]\label{def:common-entropy}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed common entropy}
+\par\smallskip\noindent\emph{Construction.} Let the auxiliary range over every finite alphabet. Define
+\[
+G_P(A;Y)=\inf_{\substack{m\geq1,\ \widetilde P\in\mathcal P(\mathcal A\times\mathcal Y\times\{1,\ldots,m\}):\\ \widetilde P_{A,Y}=P,\ A\perp_{\widetilde P}Y\mid U}}
+\left\{-\sum_{u=1}^m\widetilde P(U=u)\log\widetilde P(U=u)\right\}.
+\]
+For binary \(A\) and \(Y\), the binary specialization of the finite-cardinality theorem permits the convention \(1\leq m\leq2\) without changing the value; the resulting finite union of compact feasible sets attains the infimum, so \(G_P(A;Y)\) is a minimum. Zero-mass auxiliary states are allowed, with \(0\log0=0\).
+\par\smallskip\noindent\emph{Inputs.} \(P\).
+\end{definition}
+
+\begin{definition}[def:zero-budget-segment]\label{def:zero-budget-segment}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Zero-\allowbreak{}budget Fréchet segment}
+\par\smallskip\noindent\emph{Construction.} \[\mathcal S_0(P)=\left\{(b,h)\in[0,1]^2:b-h=\mu_1-\mu_0,\ 0\leq b\leq\min\{\mu_1,1-\mu_0\},\ 0\leq h\leq\min\{\mu_0,1-\mu_1\}\right\}.\]
+\par\smallskip\noindent\emph{Inputs.} \(P\).
+\end{definition}
+
+\begin{definition}[def:factual-rectangle]\label{def:factual-rectangle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Unrestricted factual rectangle}
+\par\smallskip\noindent\emph{Construction.} \[\mathcal R(P)=[0,p_{00}+p_{11}]\times[0,p_{01}+p_{10}].\]
+\par\smallskip\noindent\emph{Inputs.} \(P\).
+\end{definition}
+
+\begin{definition}[def:balanced-channel]\label{def:balanced-channel}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Balanced full-\allowbreak{}support witness law}
+\par\smallskip\noindent\emph{Construction.} \[P^\star(A=0)=P^\star(A=1)=\tfrac12,\qquad P^\star(Y=A\mid A)=\tfrac9{10},\] so \(p^\star_{00}=p^\star_{11}=9/20\) and \(p^\star_{01}=p^\star_{10}=1/20\).
+\par\smallskip\noindent\emph{Inputs.} \(\mathcal A\); \(\mathcal Y\).
+\end{definition}
+
+\begin{definition}[def:bh-cert-handle]\label{def:bh-cert-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{BH-\allowbreak{}CERT construction handle}
+\par\smallskip\noindent\emph{Construction.} Start from the three-state factor program, stratify the latent simplex by its support faces, use the continuous extension \(x\mapsto-x\log x\) with value zero at \(x=0\), propagate convergent interval enclosures through the factual and benefit--harm maps, use the star-kernel homotopy for certified inner fans, and use rigorous positive lower bounds on the constrained feasibility residual for exclusion. The construction must determine the subdivision, witness sections, and separation certificates rather than presuppose them.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}finite-\allowbreak{}factor-\allowbreak{}program}; \texttt{def:\allowbreak{}zero-\allowbreak{}budget-\allowbreak{}segment}.
+\end{definition}
+
+\begin{definition}[def:exact-multinomial-region]\label{def:exact-multinomial-region}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact multinomial region}
+\par\smallskip\noindent\emph{Construction.} For every candidate cell vector \(q\) in the closed simplex \(\Delta_4=\{q\in[0,1]^4:\sum_{a,y}q_{ay}=1\}\), define \(L_q(c)=N!\prod_{a,y}q_{ay}^{c_{ay}}/\prod_{a,y}c_{ay}!\) with \(0^0=1\), including zero-count and zero-cell boundary cases. Let \(u(q,\alpha)=\sup\{u:\sum_{c:L_q(c)\geq u}L_q(c)\geq1-\alpha\}\). Define \[\mathcal C_{N,\alpha}(C_N)=\{q\in\Delta_4:L_q(C_N)\geq u(q,\alpha)\}.\]
+\par\smallskip\noindent\emph{Inputs.} \(C_N\); \(\alpha\).
+\end{definition}
+
+\begin{definition}[def:whole-set-confidence-envelope]\label{def:whole-set-confidence-envelope}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Whole-\allowbreak{}set confidence envelope}
+\par\smallskip\noindent\emph{Construction.} For each \(q\in\Delta_4\), let \(P_q\) be the factual law satisfying \(P_q(A=a,Y=y)=q_{ay}\). Define
+\[\widehat{\mathcal T}_{N,\alpha,\kappa}=\bigcup_{q\in\mathcal C_{N,\alpha}(C_N)}\Theta_\kappa(P_q).\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}exact-\allowbreak{}multinomial-\allowbreak{}region}; \texttt{def:\allowbreak{}identified-\allowbreak{}set}.
+\end{definition}
+
+\begin{definition}[def:contact-inference-handle]\label{def:contact-inference-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Regular-\allowbreak{}versus-\allowbreak{}contact inference handle}
+\par\smallskip\noindent\emph{Construction.} Use the star-kernel theorem to represent the set by radial reaches from \(\theta_c(P)\), analyze \((P,\kappa)\mapsto\rho_\kappa(v;P)\) through the KKT strata of the three-state factor program, retain zero-mass strata, and estimate its directional derivative before reconstructing the set in Hausdorff metric. The analysis must derive the normalization and limit on regular, active-entropy, and support-changing strata.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}finite-\allowbreak{}factor-\allowbreak{}program}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:factor-program-equivalence]\label{lem:factor-program-equivalence}
+For every \(m\geq1\), the image \(\Phi_m(\mathcal F_{m,\kappa}(P))\) is exactly the set of benefit--harm pairs generated by laws in \(\mathfrak M_\kappa(P)\) whose latent factor has at most \(m\) states. Consequently, \(\Theta_\kappa(P)=\bigcup_{m\geq1}\Phi_m(\mathcal F_{m,\kappa}(P))\), and both directions are constructive.
+\end{lemma}
+\begin{proof}
+Put \(R=(Y(0),Y(1))\).  The technique is direct finite-kernel factorization: we prove the two inclusions by explicit constructions.
+
+First let \(Q\in\mathfrak M_\kappa(P)\) and suppose that the support of \(U\) has size at most \(m\).  Relabel its positive-mass states by a subset of \(\{1,\ldots,m\}\), pad with zero-mass states if necessary, and define, for every positive-mass state,
+\[
+ \pi_u=Q(U=u),\qquad e_u=Q(A=1\mid U=u),\qquad
+ r_{ij\mid u}=Q(R=(i,j)\mid U=u).
+\]
+At a zero-mass state choose \(e_u\in[0,1]\) and \(r_{\cdot\cdot\mid u}\in\Delta_4\) arbitrarily.  Conditional exchangeability, namely \(\texttt{ass:latent-exchangeability}\), gives, for every positive-mass state,
+\[
+ Q(A=a,R=(i,j),U=u)
+ =\pi_u e_u^a(1-e_u)^{1-a}r_{ij\mid u}.
+\]
+By consistency \(\texttt{ass:consistency}\) and factual compatibility \(\texttt{ass:factual-compatibility}\),
+\[
+ \begin{aligned}
+ p_{ay}
+ &=Q(A=a,Y=y)\\
+ &=\sum_{u=1}^m\sum_{i,j=0}^1
+ \pi_u e_u^a(1-e_u)^{1-a}r_{ij\mid u}
+ \mathbf 1\{(1-a)i+aj=y\}.
+ \end{aligned}
+\]
+Moreover, the entropy restriction \(\texttt{ass:entropy-budget}\) is exactly
+\[
+ -\sum_{u=1}^m\pi_u\log\pi_u=\operatorname{Ent}_Q(U)\leq\kappa,
+\]
+with the stipulated convention at zero.  Hence \((\pi,e,r)\in\mathcal F_{m,\kappa}(P)\).  Direct summation also gives
+\[
+ B(Q)=\sum_{u=1}^m\pi_u r_{01\mid u},\qquad
+ H(Q)=\sum_{u=1}^m\pi_u r_{10\mid u},
+\]
+so the pair generated by \(Q\) is \(\Phi_m(\pi,e,r)\).
+
+Conversely, let \((\pi,e,r)\in\mathcal F_{m,\kappa}(P)\).  On the finite space \(\{1,\ldots,m\}\times\{0,1\}\times\{0,1\}^2\), put
+\[
+ Q\{U=u,A=a,R=(i,j)\}
+ =\pi_u e_u^a(1-e_u)^{1-a}r_{ij\mid u},
+\]
+and define \(Y=(1-A)Y(0)+AY(1)\).  The displayed masses are nonnegative and sum to one.  Their factorization proves \(A\perp R\mid U\), the definition of \(Y\) proves consistency, and the factual equations in \(\texttt{def:finite-factor-program}\) prove \(Q_{A,Y}=P\).  The entropy is \(-\sum_u\pi_u\log\pi_u\leq\kappa\), and the two response-type sums are precisely \(\Phi_m(\pi,e,r)\).  Thus \(Q\in\mathfrak M_\kappa(P)\) and realizes the proposed pair.  Taking the union over all finite \(m\), as required by \(\texttt{def:model-fiber}\) and \(\texttt{def:identified-set}\), proves the final equality and the asserted constructive equivalence.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This lemma makes sharpness causal: every numerical factor is completed to an SCM, and every admissible SCM is represented by the program. \textit{Gap.} DuarteFinkelsteinKnoxMummoloShpitser2024 gives a general response-function polynomialization, while JiangWeiKocaoglu2023 uses mutual-information consequences; neither gives this exact Shannon-entropy factor fiber for the joint cross-world coordinates. \textit{Consumer.} The equivalence is the soundness contract for every subsequent geometric statement and for BH-CERT witnesses.
+
+\begin{theorem}[thm:three-state-reduction]\label{thm:three-state-reduction}
+For every binary observed law \(P\) and every \(\kappa\in[0,\log2]\), \[\Theta_\kappa(P)=\Phi_3(\mathcal F_{3,\kappa}(P)).\] Thus every feasible \((B,H)\) has a factual-compatible causal witness with at most three latent states and no larger Shannon entropy.
+\end{theorem}
+\begin{proof}
+Fix a binary observed law \(P\), a budget \(\kappa\in[0,\log2]\), and \(\theta\in\Theta_\kappa(P)\).  The first technique is exact finite-mixture compression at a fixed joint law.  By \(\texttt{lem:factor-program-equivalence}\), there are an integer \(m\geq1\) and \((\pi,e,r)\in\mathcal F_{m,\kappa}(P)\) such that \(\Phi_m(\pi,e,r)=\theta\).  Let \(\mathcal R_0=\{0,1\}^2\), write \(R=(Y(0),Y(1))\), and define a mass function on \(\mathcal A\times\mathcal R_0\) by
+\[
+J\bigl(a,(i,j)\bigr)=\sum_{u=1}^m\pi_u e_u^a(1-e_u)^{1-a}r_{ij\mid u}.
+\tag{1}
+\]
+The right side is nonnegative, and
+\[
+\sum_{a,i,j}J\bigl(a,(i,j)\bigr)
+=\sum_{u=1}^m\pi_u\{(1-e_u)+e_u\}
+ \sum_{i,j=0}^1r_{ij\mid u}
+=\sum_{u=1}^m\pi_u=1,
+\tag{2}
+\]
+so \(J\) is a probability mass function.  Equation (1) itself gives an extension of \(J\) by the original state index: conditional on \(U=u\), \(A\) is Bernoulli with success probability \(e_u\), \(R\) has mass function \(r_{\cdot\cdot\mid u}\), and \(A\perp R\mid U\).  Its entropy satisfies
+\[
+\operatorname{Ent}(U)=-\sum_{u=1}^m\pi_u\log\pi_u\leq\kappa
+\tag{3}
+\]
+by \(\texttt{def:finite-factor-program}\).  Consequently the common entropy of this fixed joint law obeys
+\[
+G_J(A;R)\leq-\sum_{u=1}^m\pi_u\log\pi_u\leq\kappa.
+\tag{4}
+\]
+
+Apply the published finite-alphabet common-entropy result recorded as \(\texttt{lem:binary-common-entropy-cardinality}\) with \(\mathcal X=\mathcal A\) and \(\mathcal Z=\mathcal R_0\).  Since their cardinalities are two and four, respectively, it supplies an entropy-minimizing exact product-mixture extension \(\widetilde J\) with auxiliary \(W\) satisfying
+\[
+A\perp_{\widetilde J}R\mid W,\qquad
+\operatorname{Ent}_{\widetilde J}(W)=G_J(A;R),\qquad
+|\operatorname{supp}(W)|\leq2^{\min\{2,4\}}-1=3.
+\tag{5}
+\]
+This is the sole borrowed compression step.
+
+Enumerate only the positive-mass states in (5), and for each define
+\[
+\pi'_w=\widetilde J(W=w),\qquad
+e'_w=\widetilde J(A=1\mid W=w),\qquad
+r'_{ij\mid w}=\widetilde J(R=(i,j)\mid W=w).
+\tag{6}
+\]
+All conditionals in (6) are taken at \(\pi'_w>0\), so no division by zero occurs.  If fewer than three states have positive mass, pad with zero-mass states and choose their propensity and response distribution arbitrarily in the declared cube and simplices.  Because \(0\log0=0\), padding does not alter entropy.  Conditional independence in (5), preservation of the \((A,R)\)-marginal, and (1) imply, for every \(a,y\in\{0,1\}\),
+\[
+\begin{aligned}
+&\sum_w\pi'_w(e'_w)^a(1-e'_w)^{1-a}
+ \sum_{i,j=0}^1r'_{ij\mid w}\mathbf 1\{(1-a)i+aj=y\}\\
+&\quad=\sum_{i,j=0}^1J\bigl(a,(i,j)\bigr)\mathbf 1\{(1-a)i+aj=y\}\\
+&\quad=\sum_{u=1}^m\pi_u e_u^a(1-e_u)^{1-a}
+ \sum_{i,j=0}^1r_{ij\mid u}\mathbf 1\{(1-a)i+aj=y\}
+=p_{ay}.
+\end{aligned}
+\tag{7}
+\]
+Thus all factual cells are preserved, including when an observed arm has probability zero; treatment positivity is not used.  Equations (4)--(6) also give the entropy bound.
+
+The second technique is preservation of linear response-type marginals under fixed-joint compression.  Summing (1) over \(a\) and using \((1-e_u)+e_u=1\) yields
+\[
+\begin{aligned}
+\sum_w\pi'_wr'_{01\mid w}
+&=\sum_{a=0}^1J(a,(0,1))
+=\sum_{u=1}^m\pi_ur_{01\mid u},\\
+\sum_w\pi'_wr'_{10\mid w}
+&=\sum_{a=0}^1J(a,(1,0))
+=\sum_{u=1}^m\pi_ur_{10\mid u}.
+\end{aligned}
+\tag{8}
+\]
+By (5)--(8), the padded tuple belongs to \(\mathcal F_{3,\kappa}(P)\) and has \(\Phi_3\)-image \(\theta\).  Hence
+\[
+\Theta_\kappa(P)\subseteq\Phi_3(\mathcal F_{3,\kappa}(P)).
+\tag{9}
+\]
+Conversely, \(\texttt{lem:factor-program-equivalence}\) constructs from every tuple in \(\mathcal F_{3,\kappa}(P)\) a factual-compatible full-data law satisfying consistency, conditional exchangeability, and the same entropy bound, with the same benefit--harm coordinates.  Therefore
+\[
+\Phi_3(\mathcal F_{3,\kappa}(P))\subseteq\Theta_\kappa(P).
+\tag{10}
+\]
+Equations (9) and (10) prove the asserted equality and the constructive at-most-three-state conclusion for every binary observed law, including boundary laws.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem converts the infinite union of latent-factor programs into one fixed three-state sharp representation for every binary factual law, including boundary laws. \textit{Gap.} KumarLiElGamal2014 supplies finite attainment and the general support bound for an exact common-entropy factor of a fixed finite joint law. The new causal step preserves factual cells and both benefit--harm coordinates when compressing treatment jointly with the response type. JiangKocaoglu2024 instead concerns graph-specific conditional common entropy in an instrumental-variable graph, and CiocaneaTeodorescuGabrielSjolander2025 concerns one benefit coordinate under cross-world sensitivity in randomized trials with fixed-sensitivity confidence intervals; neither comparator implies this population joint unknown-\(U\) theorem, and this theorem implies neither comparator's result. \textit{Consumer.} The global fixed three-state domain yields one sharp finite-dimensional representation for exact population set inversion; it does not itself provide the open BH-CERT algorithm or fixed-sensitivity confidence intervals.
+
+\begin{theorem}[thm:origin-common-entropy-frontier]\label{thm:origin-common-entropy-frontier}
+The no-individual-effect point obeys the exact equivalence
+\[
+(0,0)\in\Theta_\kappa(P)\quad\Longleftrightarrow\quad G_P(A;Y)\leq\kappa.
+\]
+Here \(G_P(A;Y)\) optimizes over all finite auxiliary alphabets. When these equivalent conditions hold, its minimum is attained by an exact product-mixture factor with at most two positive latent states, and the explicit diagonal completion gives a causal witness \(Q\in\mathfrak M_\kappa(P)\) whose \(U\) also has at most two positive states and for which \(B(Q)=H(Q)=0\) and \(Y(0)=Y(1)\) almost surely. Conversely, every causal origin witness induces a feasible product-mixture factor with the same latent entropy.
+\end{theorem}
+\begin{proof}
+By \(\texttt{def:identified-set}\), membership of the origin means that there is a law \(Q\in\mathfrak M_\kappa(P)\) with \(B(Q)=H(Q)=0\).  Because the potential outcomes are binary, the two off-diagonal response-type events partition the event on which the potential outcomes differ.  Hence, using the definitions of \(B(Q)\) and \(H(Q)\),
+\[
+ Q\{Y(0)\ne Y(1)\}
+ =Q\{Y(0)=0,Y(1)=1\}+Q\{Y(0)=1,Y(1)=0\}
+ =B(Q)+H(Q)=0.
+\]
+Put \(V=Y(0)\).  The preceding equality gives \(V=Y(1)\) \(Q\)-almost surely.  By \(\texttt{ass:consistency}\),
+\[
+ Y=Y(A)=V\qquad Q\text{-almost surely}.
+\]
+Moreover, \(\texttt{ass:latent-exchangeability}\) implies, for every positive-mass state \(u\),
+\[
+ Q(A=a,V=v\mid U=u)
+ =\sum_{j\in\{0,1\}}Q(A=a,Y(0)=v,Y(1)=j\mid U=u)
+ =Q(A=a\mid U=u)Q(V=v\mid U=u).
+\]
+Thus \(A\perp V\mid U\), and therefore \(A\perp Y\mid U\).  Let \(\widetilde P\) be the \((A,Y,U)\)-marginal of \(Q\).  The alphabet of \(U\) is finite by \(\texttt{def:model-fiber}\), \(\widetilde P_{A,Y}=P\) by \(\texttt{ass:factual-compatibility}\), and \(A\perp_{\widetilde P}Y\mid U\).  Thus \(\widetilde P\) is feasible in \(\texttt{def:common-entropy}\).  Its mixing entropy is unchanged by marginalization, so \(\texttt{ass:entropy-budget}\) yields
+\[
+ G_P(A;Y)\leq \operatorname{Ent}_{\widetilde P}(U)
+ =\operatorname{Ent}_Q(U)\leq\kappa.
+\]
+This proves necessity and also proves the asserted entropy-preserving map from every causal origin witness to an observed product-mixture factor.
+
+Conversely, suppose \(G_P(A;Y)\leq\kappa\).  By \(\texttt{lem:binary-common-entropy-two-state}\), the minimum in \(\texttt{def:common-entropy}\) is attained by an extension \(\widetilde P^\circ\) for which \(A\perp_{\widetilde P^\circ}Y\mid U\) and \(U\) has at most two positive-mass states.  In particular,
+\[
+ \operatorname{Ent}_{\widetilde P^\circ}(U)=G_P(A;Y)\leq\kappa.
+\]
+Define a full-data law explicitly by
+\[
+ Q^\circ\{A=a,Y(0)=i,Y(1)=j,Y=y,U=u\}
+ =\widetilde P^\circ(A=a,Y=y,U=u)\mathbf 1\{i=y\}\mathbf 1\{j=y\}.
+\]
+Summing over \((i,j,u)\) shows \(Q^\circ_{A,Y}=P\).  The displayed construction puts all mass on \(Y(0)=Y(1)=Y\), so consistency holds and
+\[
+ B(Q^\circ)=H(Q^\circ)=0.
+\]
+For every \(u\) of positive mass, conditional product structure under \(\widetilde P^\circ\) gives
+\[
+\begin{aligned}
+ &Q^\circ\{A=a,Y(0)=i,Y(1)=j\mid U=u\}\\
+ &\quad=\widetilde P^\circ(A=a\mid U=u)
+ \sum_{y\in\{0,1\}}\widetilde P^\circ(Y=y\mid U=u)
+ \mathbf 1\{i=y\}\mathbf 1\{j=y\}.
+\end{aligned}
+\]
+The right-hand side is the product of the conditional law of \(A\) and the conditional law of \((Y(0),Y(1))\), proving \(A\perp (Y(0),Y(1))\mid U\).  Finally,
+\[
+ \operatorname{Ent}_{Q^\circ}(U)=\operatorname{Ent}_{\widetilde P^\circ}(U)\leq\kappa.
+\]
+Thus all four restrictions in \(\texttt{def:model-fiber}\) hold, so \(Q^\circ\in\mathfrak M_\kappa(P)\).  By \(\texttt{def:identified-set}\), \((0,0)\in\Theta_\kappa(P)\).  The same construction preserves the at-most-two positive states of \(U\), completing both sufficiency and the support claim.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The equivalence gives the exact entropy breakdown budget and constructively realizes the origin with at most two positive latent states. \textit{Gap.} Proposition 8 of KumarLiElGamal2014 supplies binary product-mixture compression, not the necessity map from a causal origin witness or the diagonal full-data completion proved here. \textit{Consumer.} The balanced contact test and BH-CERT origin face use the exact support-two witness rather than the full image's three-state domain.
+
+\begin{proposition}[prop:strict-mi-false-inclusion]\label{prop:strict-mi-false-inclusion}
+For every binary observed law \(P\) and entropy budget \(\kappa\), \((0,0)\in\Theta_\kappa(P)\) implies the entropy-induced observed-law inequality \(I_P(A;Y)\leq\kappa\); this inequality is necessary, but it is not sufficient. For the balanced law \(P^\star\), using natural logarithms, \[I_{P^\star}(A;Y)=\log2-h(1/10)=0.368064\ldots<\kappa^\star=1/2<h(4/9)=0.686962\ldots=G_{P^\star}(A;Y).\] Thus \(I_{P^\star}(A;Y)\leq\kappa^\star\), while \((0,0)\notin\Theta_{\kappa^\star}(P^\star)\). The strict inequalities persist on a relative neighborhood of \(P^\star\) in the positive binary-law simplex.
+\end{proposition}
+\begin{proof}
+First consider an arbitrary \(Q\in\mathfrak M_\kappa(P)\) with \(B(Q)=H(Q)=0\).  The first part of the proof of \(\texttt{thm:origin-common-entropy-frontier}\) gives \(Y(0)=Y(1)=Y\) almost surely and therefore the conditional Markov relation \(A\perp Y\mid U\).  Since \(Q_{A,Y}=P\), finite-alphabet entropy identities give
+\[
+\begin{aligned}
+ I_P(A;Y)&=I_Q(A;Y)\\
+ &\leq I_Q(A;U)\\
+ &=\operatorname{Ent}_Q(U)-\operatorname{Ent}_Q(U\mid A)\\
+ &\leq\operatorname{Ent}_Q(U)\\
+ &\leq\kappa.
+\end{aligned}
+\]
+For completeness, the data-processing inequality in the second line follows here directly from
+\[
+ I_Q(A;U,Y)=I_Q(A;U)+I_Q(A;Y\mid U)=I_Q(A;U)
+\]
+and
+\[
+ I_Q(A;U,Y)=I_Q(A;Y)+I_Q(A;U\mid Y)\geq I_Q(A;Y).
+\]
+The two conditional mutual informations are finite sums of conditional Kullback--Leibler divergences; their nonnegativity follows termwise from \(\log x\leq x-1\).  Also \(\operatorname{Ent}_Q(U\mid A)\geq0\) because every summand is a nonnegative multiple of \(-\log Q(U=u\mid A=a)\).  Thus \(I_P(A;Y)\leq\kappa\) is indeed necessary for origin feasibility.
+
+We next calculate the two information quantities for \(P^\star\).  Its two margins are uniform, and its crossover probability is \(1/10\).  Therefore
+\[
+ I_{P^\star}(A;Y)=\operatorname{Ent}_{P^\star}(Y)-
+ \operatorname{Ent}_{P^\star}(Y\mid A)=\log2-h(1/10).
+\]
+It remains to calculate the common entropy.  By \(\texttt{lem:binary-common-entropy-two-state}\), choose an entropy-minimizing product-mixture factor with at most two positive states.  One state cannot represent \(P^\star\), since under \(P^\star\)
+\[
+ \operatorname{Cov}(A,Y)=P^\star(A=1,Y=1)-P^\star(A=1)P^\star(Y=1)
+ =\frac9{20}-\frac14=\frac15\ne0.
+\]
+Consequently there are exactly two positive weights.  Relabel them as \(q\) and \(1-q\), where \(0<q\leq1/2\), and write
+\[
+ \alpha_i=P(A=1\mid U=i),\qquad
+ \beta_i=P(Y=1\mid U=i),\qquad i\in\{0,1\},
+\]
+with state \(1\) having weight \(q\).  Conditional independence and the uniform margins imply
+\[
+ \frac15=q(1-q)(\alpha_1-\alpha_0)(\beta_1-\beta_0),
+ \qquad q\alpha_1+(1-q)\alpha_0=q\beta_1+(1-q)\beta_0=\frac12.
+\]
+Let \(d_\alpha=\alpha_1-\alpha_0\).  Solving the first marginal equation for the component probabilities gives
+\[
+ \alpha_1=\frac12+(1-q)d_\alpha,
+ \qquad \alpha_0=\frac12-qd_\alpha.
+\]
+Since \(0\leq\alpha_1\leq1\), one has \(|d_\alpha|\leq\{2(1-q)\}^{-1}\).  The identical argument gives \(|\beta_1-\beta_0|\leq\{2(1-q)\}^{-1}\).  The covariance product is positive, and hence
+\[
+ \frac15\leq q(1-q)\frac1{4(1-q)^2}=\frac{q}{4(1-q)}.
+\]
+Solving this inequality yields \(q\geq4/9\).  Since \(h'(q)=\log\{(1-q)/q\}\geq0\) for \(0<q\leq1/2\), every minimizing two-state factor has entropy
+\[
+ h(q)\geq h(4/9).
+\]
+This lower bound is attained.  Give state \(1\) weight \(4/9\) and set \(\alpha_1=\beta_1=1\); give state \(0\) weight \(5/9\) and set \(\alpha_0=\beta_0=1/10\).  The resulting product mixture has cells
+\[
+ \frac59\left(\frac9{10}\right)^2=\frac9{20},\quad
+ \frac59\left(\frac9{10}\right)\left(\frac1{10}\right)=\frac1{20},\quad
+ \frac1{20},\quad
+ \frac49+\frac59\left(\frac1{10}\right)^2=\frac9{20},
+\]
+in the order \((0,0),(0,1),(1,0),(1,1)\).  Thus it represents \(P^\star\) exactly and proves
+\[
+ G_{P^\star}(A;Y)=h(4/9).
+\]
+
+The displayed decimals and strict comparisons can be certified without floating-point assumptions.  For \(x>1\), put \(z=(x-1)/(x+1)\).  Integrating the finite geometric expansion of \((1-s^2)^{-1}\) gives, for every integer \(M\geq0\),
+\[
+ \log x=2\sum_{j=0}^{M}\frac{z^{2j+1}}{2j+1}+R_M,
+ \qquad 0<R_M<\frac{2z^{2M+3}}{(2M+3)(1-z^2)}.
+\]
+Use \(M=10\), together with
+\[
+ \log10=3\log2+\log(5/4),\qquad
+ \log(9/4)=\log2+\log(9/8),
+\]
+and \(h(1/10)=\tfrac1{10}\log10+\tfrac9{10}\log(10/9)\), \(h(4/9)=\tfrac49\log(9/4)+\tfrac59\log(9/5)\).  Substitution of the rational values \(z=1/3,1/9,1/19,1/17,2/7\), respectively, and rational interval arithmetic yields
+\[
+ 0.3680642071<I_{P^\star}(A;Y)<0.3680642072
+ <\frac12
+ <0.6869615765<G_{P^\star}(A;Y)<0.6869615767.
+\]
+This proves the asserted decimal expansions and strict inequalities.  At \(\kappa^\star=1/2\), the necessary observed-law inequality therefore holds, whereas \(G_{P^\star}(A;Y)>\kappa^\star\); \(\texttt{thm:origin-common-entropy-frontier}\) then gives \((0,0)\notin\Theta_{\kappa^\star}(P^\star)\).  Hence the necessary inequality is not sufficient.
+
+Finally, parameterize every two-state product mixture by the compact cube
+\[
+ D=[0,1]^5\ni(q,\alpha_0,\alpha_1,\beta_0,\beta_1)
+\]
+and let \(F:D\to\mathcal P(\{0,1\}^2)\) be its continuously induced cell-probability map.  By \(\texttt{lem:binary-common-entropy-two-state}\),
+\[
+ G_P(A;Y)=\min\{h(q):d\in D,\ F(d)=P\}.
+\]
+If \(P_n\to P\), choose minimizers \(d_n\).  Along a subsequence realizing \(\liminf_nG_{P_n}(A;Y)\), compactness gives a further subsequence with \(d_n\to d\in D\).  Continuity gives \(F(d)=P\) and
+\[
+ G_P(A;Y)\leq h(q)=\liminf_nG_{P_n}(A;Y).
+\]
+Thus \(P\mapsto G_P(A;Y)\) is lower semicontinuous.  On the positive binary-law simplex, \(P\mapsto I_P(A;Y)\) is continuous because it is a finite sum of continuous logarithmic cell expressions with positive cells and margins.  Since at \(P^\star\) one has \(I_P(A;Y)<1/2<G_P(A;Y)\), continuity and lower semicontinuity provide a relative neighborhood on which both strict inequalities persist.  The exact frontier theorem excludes the origin throughout that neighborhood at budget \(1/2\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The full-support witness separates exact origin feasibility from an entropy-implied necessary observed-information inequality. \textit{Gap.} The proposition uses the Markov chain induced by an origin witness to prove \(I_P(A;Y)\leq I_Q(A;U)\leq\operatorname{Ent}_Q(U)\leq\kappa\), then shows on an open positive-law neighborhood that this necessary inequality is not sufficient. It does not attribute a sufficient origin test to JiangWeiKocaoglu2023 or any other published workflow. \textit{Consumer.} Users can distinguish a cheap necessary observed-information screen from the exact common-entropy origin frontier without interpreting the example as a refutation of a published estimator.
+
+\begin{theorem}[thm:endpoint-geometry]\label{thm:endpoint-geometry}
+Under treatment positivity, the sensitivity path has the exact endpoints \[\Theta_0(P)=\mathcal S_0(P),\qquad \Theta_\kappa(P)=\mathcal R(P)\quad\text{for every }\kappa\geq h(p_1).\] The first equality is attained by every Fréchet coupling of Bernoulli margins \(\mu_0\) and \(\mu_1\); the second is attained by a witness with \(U=A\). In particular, the high-budget coordinate projections recover the sharp factual benefit and harm bounds.
+\end{theorem}
+\begin{proof}
+The proof uses Fr\'echet response-type algebra at zero budget and an explicit factual-cell split at high budget.
+
+First set \(\kappa=0\) and take \(Q\in\mathfrak M_0(P)\). By \(\texttt{ass:entropy-budget}\), \(\operatorname{Ent}_Q(U)\leq0\). Every summand \(-Q(U=u)\log Q(U=u)\) is nonnegative, so the finite-alphabet entropy can vanish only when exactly one latent state has probability one. Hence \(U\) is \(Q\)-almost surely constant. The conditional independence in \(\texttt{ass:latent-exchangeability}\) therefore becomes
+\[
+A\perp (Y(0),Y(1)).
+\]
+Treatment positivity ensures that both \(\mu_0\) and \(\mu_1\) are defined. For each \(a\in\{0,1\}\), independence, consistency, and factual compatibility give
+\[
+Q\{Y(a)=1\}
+=Q\{Y(a)=1\mid A=a\}
+=Q(Y=1\mid A=a)
+=\mu_a.
+\]
+Write \(x=Q\{Y(0)=1,Y(1)=1\}\). The four response-type probabilities must then be
+\[
+r_{11}=x,\qquad
+r_{01}=\mu_1-x,\qquad
+r_{10}=\mu_0-x,\qquad
+r_{00}=1-\mu_0-\mu_1+x.
+\]
+Their nonnegativity is equivalent to
+\[
+\max\{0,\mu_0+\mu_1-1\}\leq x\leq\min\{\mu_0,\mu_1\}.
+\]
+Since \(B(Q)=r_{01}\) and \(H(Q)=r_{10}\), it follows that
+\[
+B(Q)-H(Q)=\mu_1-\mu_0,
+\]
+\[
+0\leq B(Q)\leq\min\{\mu_1,1-\mu_0\},\qquad
+0\leq H(Q)\leq\min\{\mu_0,1-\mu_1\}.
+\]
+By \(\texttt{def:zero-budget-segment}\), this proves \(\Theta_0(P)\subseteq\mathcal S_0(P)\).
+
+Conversely, fix \((b,h)\in\mathcal S_0(P)\) and define a response-type law by
+\[
+r_{01}=b,\qquad r_{10}=h,\qquad
+r_{11}=\mu_1-b=\mu_0-h,\qquad
+r_{00}=1-\mu_0-b=1-\mu_1-h.
+\]
+The equalities follow from \(b-h=\mu_1-\mu_0\). The coordinate bounds in \(\texttt{def:zero-budget-segment}\) make every displayed probability nonnegative, and direct summation gives \(\sum_{i,j}r_{ij}=1\). Let \(U\) be constant, draw \((Y(0),Y(1))\) from this law, draw \(A\sim\operatorname{Bernoulli}(p_1)\) independently of the response type, and set \(Y=Y(A)\). Then \(A\perp(Y(0),Y(1))\mid U\), \(\operatorname{Ent}_Q(U)=0\), and the two response margins are
+\[
+Q\{Y(0)=1\}=r_{10}+r_{11}=\mu_0,
+\qquad
+Q\{Y(1)=1\}=r_{01}+r_{11}=\mu_1.
+\]
+Independence and consistency therefore reproduce \(P(A=a,Y=y)=p_{ay}\) for all \(a,y\). This constructs a member of \(\mathfrak M_0(P)\) with \((B(Q),H(Q))=(b,h)\). Thus \(\mathcal S_0(P)\subseteq\Theta_0(P)\), and
+\[
+\Theta_0(P)=\mathcal S_0(P).
+\]
+This is sharp because every point of the segment has just been attained by a Fr\'echet coupling of the two Bernoulli margins.
+
+We next prove the high-budget assertion. For any \(Q\in\mathfrak M_\kappa(P)\), split the benefit event according to treatment and use consistency and factual compatibility:
+\[
+\begin{aligned}
+B(Q)
+&=Q\{A=0,Y(0)=0,Y(1)=1\}
+  +Q\{A=1,Y(0)=0,Y(1)=1\}\\
+&\leq Q(A=0,Y=0)+Q(A=1,Y=1)\\
+&=p_{00}+p_{11}.
+\end{aligned}
+\]
+The same argument for harm gives
+\[
+\begin{aligned}
+H(Q)
+&=Q\{A=0,Y(0)=1,Y(1)=0\}
+  +Q\{A=1,Y(0)=1,Y(1)=0\}\\
+&\leq Q(A=0,Y=1)+Q(A=1,Y=0)\\
+&=p_{01}+p_{10}.
+\end{aligned}
+\]
+Because both coordinates are probabilities, \(\Theta_\kappa(P)\subseteq\mathcal R(P)\) for every \(\kappa\).
+
+For the reverse inclusion, fix \((b,h)\in\mathcal R(P)\) and put
+\[
+b_0=\min\{b,p_{00}\},\qquad b_1=b-b_0,
+\qquad
+h_0=\min\{h,p_{01}\},\qquad h_1=h-h_0.
+\]
+The rectangle restrictions imply
+\[
+0\leq b_0\leq p_{00},\quad 0\leq b_1\leq p_{11},
+\qquad
+0\leq h_0\leq p_{01},\quad 0\leq h_1\leq p_{10}.
+\]
+Indeed, if \(b>p_{00}\), then \(b_1=b-p_{00}\leq p_{11}\), while otherwise \(b_1=0\); the argument for \(h_1\) is identical. Define the joint masses of \((A,Y(0),Y(1))\), with columns indexed by the response types \(00,01,10,11\), by
+\[
+\begin{array}{c|cccc}
+ &00&01&10&11\\ \hline
+A=0&p_{00}-b_0&b_0&h_0&p_{01}-h_0\\
+A=1&p_{10}-h_1&b_1&h_1&p_{11}-b_1.
+\end{array}
+\]
+All entries are nonnegative, and their sum is \(\sum_{a,y}p_{ay}=1\). Set \(Y=Y(A)\) and \(U=A\). In the row \(A=0\), the masses of response types with \(Y(0)=0\) and \(Y(0)=1\) are respectively \(p_{00}\) and \(p_{01}\); in the row \(A=1\), the masses with \(Y(1)=0\) and \(Y(1)=1\) are respectively \(p_{10}\) and \(p_{11}\). Thus consistency produces exactly the factual law \(P\). Moreover,
+\[
+B(Q)=b_0+b_1=b,
+\qquad
+H(Q)=h_0+h_1=h.
+\]
+Conditional on \(U\), treatment is deterministic, so \(A\perp(Y(0),Y(1))\mid U\), including when some displayed masses vanish. Finally,
+\[
+\operatorname{Ent}_Q(U)=h\bigl(Q(A=1)\bigr)=h(p_1).
+\]
+Hence this law belongs to \(\mathfrak M_\kappa(P)\) whenever \(\kappa\geq h(p_1)\). It follows that \(\mathcal R(P)\subseteq\Theta_\kappa(P)\) in that regime. Combining the inclusions proves
+\[
+\Theta_\kappa(P)=\mathcal R(P)\qquad\text{for every }\kappa\geq h(p_1).
+\]
+The construction attains every pair in the rectangle simultaneously, so this is a sharp joint set and its coordinate projections are the sharp factual benefit and harm intervals.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} These reductions anchor the new sensitivity set to randomized Fréchet geometry and unrestricted probability-of-causation bounds. \textit{Gap.} TianPearl2000 gives sharp scalar probability-of-causation bounds, and Pena2023 studies separate benefit and harm bounds. Neither identifies the full joint rectangle as the high-common-entropy limit or the zero-budget segment of one sensitivity path. \textit{Consumer.} The endpoint formulas provide exact regression tests for implementations and interpretable anchors for sensitivity plots.
+
+\begin{theorem}[thm:star-kernel]\label{thm:star-kernel}
+Under treatment positivity \(0<p_1<1\), for every \(\theta\in\Theta_\kappa(P)\), every \(\theta_0\in\mathcal S_0(P)\), and every \(t\in[0,1]\), \[(1-t)\theta_0+t\theta\in\Theta_\kappa(P).\] A witness is obtained without adjoining a mixture indicator: retain the latent masses and propensities of a witness for \(\theta\), and replace each latent-specific response-type law by its common convex mixture with one no-confounding response law attaining \(\theta_0\). Therefore \(\mathcal S_0(P)\) lies in the star kernel of \(\Theta_\kappa(P)\), and \(\Theta_\kappa(P)\) is path connected.
+\end{theorem}
+\begin{proof}
+The technique is statewise convex interpolation of response kernels.  It preserves the latent law, and hence the Shannon-entropy budget, rather than introducing an additional mixture indicator.  Assume treatment positivity \(0<p_1<1\), as declared in \(\texttt{ass:treatment-positivity}\).  Fix \(\theta\in\Theta_\kappa(P)\), \(\theta_0\in\mathcal S_0(P)\), and \(t\in[0,1]\).  By the constructive direction of \(\texttt{lem:factor-program-equivalence}\), there are a finite \(m\geq1\) and \((\pi,e,r)\in\mathcal F_{m,\kappa}(P)\) such that \(\Phi_m(\pi,e,r)=\theta\).  By the zero-budget equality and constructive Fréchet-coupling assertion in \(\texttt{thm:endpoint-geometry}\), there is a response-type mass function \(s=(s_{ij})_{i,j\in\{0,1\}}\in\Delta_4\), common across latent states, such that
+\[
+\sum_{j=0}^1s_{1j}=\mu_0,\qquad
+\sum_{i=0}^1s_{i1}=\mu_1,\qquad
+(s_{01},s_{10})=\theta_0.
+\tag{1}
+\]
+Define, for every \(u\in\{1,\ldots,m\}\),
+\[
+r^{(t)}_{ij\mid u}=t r_{ij\mid u}+(1-t)s_{ij},
+\qquad i,j\in\{0,1\}.
+\tag{2}
+\]
+Since \(t\in[0,1]\) and both terms in (2) are probability mass functions, convexity of \(\Delta_4\) gives \(r^{(t)}_{\cdot\cdot\mid u}\in\Delta_4\).
+
+We next verify every factual equality in \(\texttt{def:finite-factor-program}\).  Summing the original equations for \(a=1\) over \(y\) and using \(\sum_{i,j}r_{ij\mid u}=1\) gives
+\[
+\sum_{u=1}^m\pi_u e_u=\sum_{y=0}^1p_{1y}=p_1.
+\tag{3}
+\]
+The corresponding calculation for \(a=0\) gives
+\[
+\sum_{u=1}^m\pi_u(1-e_u)=1-p_1.
+\tag{4}
+\]
+For \(a,y\in\{0,1\}\), set
+\[
+s_{a,y}=\sum_{i,j=0}^1s_{ij}\mathbf 1\{(1-a)i+aj=y\}.
+\tag{5}
+\]
+Equations (1) and the complementary binary margins imply
+\[
+s_{a,y}=P(Y=y\mid A=a).
+\tag{6}
+\]
+The divisions implicit in (6) are legitimate because \(0<p_1<1\).  Combining (2)--(6), for every \(a,y\), yields
+\[
+\begin{aligned}
+&\sum_{u=1}^m\pi_u e_u^a(1-e_u)^{1-a}
+ \sum_{i,j=0}^1r^{(t)}_{ij\mid u}\mathbf 1\{(1-a)i+aj=y\}\\
+&\quad=t p_{ay}+(1-t)s_{a,y}
+ \sum_{u=1}^m\pi_u e_u^a(1-e_u)^{1-a}\\
+&\quad=t p_{ay}+(1-t)P(Y=y\mid A=a)P(A=a)\\
+&\quad=p_{ay}.
+\end{aligned}
+\tag{7}
+\]
+Thus the interpolated tuple satisfies the factual constraints.  Its latent masses remain \(\pi\), so the entropy is unchanged:
+\[
+-\sum_{u=1}^m\pi_u\log\pi_u\leq\kappa.
+\tag{8}
+\]
+Equations (2), (7), and (8) prove \((\pi,e,r^{(t)})\in\mathcal F_{m,\kappa}(P)\).
+
+Finally, linearity of the benefit--harm projection and \(\sum_u\pi_u=1\) give
+\[
+\begin{aligned}
+\Phi_m(\pi,e,r^{(t)})
+&=t\Phi_m(\pi,e,r)
+ +(1-t)\left(\sum_u\pi_us_{01},\sum_u\pi_us_{10}\right)\\
+&=t\theta+(1-t)\theta_0.
+\end{aligned}
+\tag{9}
+\]
+The reverse constructive direction of \(\texttt{lem:factor-program-equivalence}\) turns (9) into a law in \(\mathfrak M_\kappa(P)\); hence \((1-t)\theta_0+t\theta\in\Theta_\kappa(P)\).  Thus every point of \(\mathcal S_0(P)\) is a star center.  By \(\texttt{thm:endpoint-geometry}\), \(\mathcal S_0(P)=\Theta_0(P)\) is nonempty.  Every zero-budget witness is also feasible at budget \(\kappa\), because \(0\leq\kappa\); therefore \(\mathcal S_0(P)\subseteq\Theta_\kappa(P)\).  Fixing one \(\theta_0\in\mathcal S_0(P)\), the displayed segments join every pair of points in \(\Theta_\kappa(P)\) through \(\theta_0\); their concatenation is a continuous path.  Therefore \(\Theta_\kappa(P)\) is path connected.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Under positive treatment arms, the theorem supplies global topology despite the nonconvex entropy sublevel set and avoids the entropy cost of an external mixture indicator. \textit{Gap.} Neither the scalar programs of JiangWeiKocaoglu2023 nor the coordinatewise bounds of Pena2023 address joint-set topology. The proof instead interpolates response kernels while holding the entropy-bearing latent law fixed. \textit{Consumer.} On the positive-arm domain, the star kernel gives BH-CERT an inner-set generator and guarantees that the sensitivity region cannot split into disconnected islands.
+
+\begin{openendedquestion}[oeq:bh-cert-early-kill]\label{oeq:bh-cert-early-kill}
+Can the BH-CERT handle be completed on the balanced law \(P^\star\) with support at most three so that it finitely certifies exclusion of \((0,0)\) for every fixed \(\kappa<G_{P^\star}(A;Y)\), while its nested inner and outer complexes converge in Hausdorff distance at the contact budget \(\kappa=G_{P^\star}(A;Y)\), including boxes whose witness has a zero latent mass or active entropy equality? A valid construction may not assume an interval-Newton or Krawczyk rank condition.
+\end{openendedquestion}
+The resolved three-state theorem removes the representation obstruction.  For the balanced law, \(\texttt{prop:strict-mi-false-inclusion}\) gives \(G_{P^\star}(A;Y)=h(4/9)\).  Hence every fixed \(\kappa<h(4/9)\) has the strict scalar gap \(h(4/9)-\kappa>0\), and \(\texttt{thm:origin-common-entropy-frontier}\) certifies \((0,0)\notin\Theta_\kappa(P^\star)\).  At \(\kappa=h(4/9)\), the entropy-minimizing product mixture with masses \(5/9\) and \(4/9\), completed by \(Y(0)=Y(1)=Y\), is an exact origin witness; padding it to three states gives a zero third mass and active entropy equality.  Thus the scalar exclusion and contact witness parts of the early-kill test close.  What remains is a finite, rank-free construction of nested complexes for the entire benefit--harm image at contact.
+\par\smallskip\noindent \textit{Justification.} This is the smallest singular instance that distinguishes genuine two-sided certification from regular-root numerics. \textit{Gap.} DuarteFinkelsteinKnoxMummoloShpitser2024 certifies scalar polynomial bounds by primal--dual branch and bound, while ArayaReyes2016 surveys interval contractors. Neither closes entropy-contact boxes with changing support and exact causal witnesses. \textit{Consumer.} Failure of this test triggers a pivot before a general BH-CERT implementation is presented as complete.
+
+\begin{openendedquestion}[oeq:bh-cert-general]\label{oeq:bh-cert-general}
+For every \(P\), \(\kappa\), and \(\varepsilon>0\), can BH-CERT be constructed to terminate with \[K^-_\varepsilon(P,\kappa)\subseteq\Theta_\kappa(P)\subseteq K^+_\varepsilon(P,\kappa),\qquad d_{\mathrm H}(K^-_\varepsilon,K^+_\varepsilon)\leq\varepsilon,\] while attaching an exact SCM witness section to every included cell and a checkable positive feasibility-residual certificate to every excluded cell, including all zero-weight and entropy-contact strata, without a local rank assumption?
+\end{openendedquestion}
+The strongest unconditional result available from the frozen primitives is non-effective finite Hausdorff approximability.  By \(\texttt{thm:three-state-reduction}\),
+\[
+\Theta_\kappa(P)=\Phi_3(\mathcal F_{3,\kappa}(P)).
+\]
+The ambient product \(\Delta_3\times[0,1]^3\times(\Delta_4)^3\) is compact.  The factual equalities are closed, and \(x\mapsto-x\log x\), extended by zero at \(x=0\), is continuous; hence \(\mathcal F_{3,\kappa}(P)\) and its continuous image \(\Theta_\kappa(P)\) are compact, including zero-mass and active-entropy strata.  For a finite closed-cell grid of \([0,1]^2\) with cell diameter at most \(\eta\), let \(K^+\) be the union of cells meeting \(\Theta_\kappa(P)\), and select one point of \(\Theta_\kappa(P)\) in each retained cell to form the zero-dimensional complex \(K^-\).  Then
+\[
+K^-\subseteq\Theta_\kappa(P)\subseteq K^+,
+\qquad d_{\mathrm H}(K^-,K^+)\leq\eta,
+\]
+and every selected vertex has an exact three-state SCM witness.  For a closed cell \(C\) disjoint from the image, minimize on the compact ambient parameter space the continuous residual
+\[
+R_C(\pi,e,r)=
+\max_{a,y}|F_{ay}(\pi,e,r)-p_{ay}|
++\left[-\sum_u\pi_u\log\pi_u-\kappa\right]_+
++\operatorname{dist}(\Phi_3(\pi,e,r),C),
+\]
+where \(F_{ay}\) is the factual-cell map in \(\texttt{def:finite-factor-program}\).  Its minimum is attained and is strictly positive, because a zero would be a feasible parameter whose image lies in \(C\).  This supplies existential exact witnesses and positive separation margins, but not an effective procedure for producing them or certifying the positive minima from arbitrary real input data.
+\par\smallskip\noindent \textit{Justification.} A sharp nonlinear identified set is operational only if both inclusion and exclusion are auditable at its singular boundary. \textit{Gap.} ArayaReyes2016 supplies generic interval branch-and-bound without exact singular causal-witness sections, FernandezGoth2009 supplies outer approximations to nonlinear biobjective efficient sets rather than the full causal image, and AudetMessineNinin2022 certifies Pareto proximity rather than exact SCM witness and exclusion sections. None establishes the requested rank-free two-sided BH-CERT contract. \textit{Consumer.} If solved, the procedure would make the common-entropy benefit--harm image computationally auditable at singular strata; the current paper claims only non-effective compact approximability.
+
+\begin{openendedquestion}[oeq:contact-hausdorff-inference]\label{oeq:contact-hausdorff-inference}
+Using the star-centered radial and KKT-stratified directional-derivative handle, what are the exact normalizations and weak limits of \(d_{\mathrm H}(\Theta_\kappa(\widehat P_N),\Theta_\kappa(P))\) at regular pairs, active-entropy pairs, and support-changing contact pairs, and which derivative-aware resampling rule is uniformly valid across those regimes? The answer must derive rather than assume the radial and set-valued expansions.
+\end{openendedquestion}
+The fixed support-three representation reduces the problem to sensitivity of one compact constrained image, but it does not make that image regular.  On a full-support law, write \(p_{a+}=p_{a0}+p_{a1}\) and let \(z=(z_{ay})\) be a tangent direction with \(\sum_{a,y}z_{ay}=0\).  Direct differentiation of \(\mu_a=p_{a1}/p_{a+}\) gives
+\[
+\dot\mu_a(P;z)=\frac{z_{a1}p_{a+}-p_{a1}(z_{a0}+z_{a1})}{p_{a+}^2}.
+\tag{1}
+\]
+Put \(\delta=\mu_1-\mu_0\), \(\ell=\max\{0,\delta\}\), and \(u=\min\{\mu_1,1-\mu_0\}\).  The midpoint definition of \(\theta_c(P)\) and \(\texttt{def:zero-budget-segment}\) give
+\[
+\theta_c(P)=\left(\frac{\ell+u}{2},\frac{\ell+u}{2}-\delta\right).
+\tag{2}
+\]
+With \(\dot\delta=\dot\mu_1-\dot\mu_0\), the elementary directional derivatives are
+\[
+\dot\ell=
+\begin{cases}
+\dot\delta,&\delta>0,\\
+0,&\delta<0,\\
+\max\{0,\dot\delta\},&\delta=0,
+\end{cases}
+\qquad
+\dot u=
+\begin{cases}
+\dot\mu_1,&\mu_0+\mu_1<1,\\
+-\dot\mu_0,&\mu_0+\mu_1>1,\\
+\min\{\dot\mu_1,-\dot\mu_0\},&\mu_0+\mu_1=1.
+\end{cases}
+\tag{3}
+\]
+Therefore
+\[
+\dot\theta_c(P;z)=
+\left(\frac{\dot\ell+\dot u}{2},
+\frac{\dot\ell+\dot u}{2}-\dot\delta\right).
+\tag{4}
+\]
+If the joint map \(P\mapsto(\theta_c(P),\rho_\kappa(\cdot;P))\) and the radial reconstruction map are proved uniformly Hadamard directionally differentiable, the fixed-direction boundary perturbation is necessarily
+\[
+\dot\theta_c(P;z)+\dot\rho_{P,\kappa}(v;z)v,
+\tag{5}
+\]
+not merely \(\dot\rho_{P,\kappa}(v;z)v\).  For multinomial sampling, \(\sqrt N(\widehat P_N-P)\) has the usual centered Gaussian limit \(Z\) with covariance \(\operatorname{diag}(p)-pp^{\mathsf T}\), but (5) alone does not identify the Hausdorff derivative: matching points across directions is part of the unproved radial reconstruction derivative.  In particular, the Hausdorff limit cannot be asserted to be \(\sup_v|\dot\rho_{P,\kappa}(v;Z)|\).  At a disappearing latent mass, the right derivative of \(-x\log x\) is unbounded, so neither the contact normalization nor a resampling rule uniform over support changes follows from the regular calculation.
+\par\smallskip\noindent \textit{Justification.} Entropy equality and disappearing latent masses create a phase transition that ordinary smooth set estimators do not capture. \textit{Gap.} ChernozhukovHongTamer2007 treats criterion-defined sets, FangSantos2019 treats directionally differentiable maps, and MastenPoirier2020 treats breakdown frontiers. None derives the moving-center radial reconstruction derivative, the entropy-contact normalization, or a uniformly valid resampling law for this causal image. \textit{Consumer.} A future solution would sharpen the conservative exact whole-set coverage, but no Hausdorff limit is claimed until both \(\dot\theta_c(P;Z)\) and \(\dot\rho_{P,\kappa}(v;Z)v\) are propagated through a proved reconstruction derivative.
+
+\begin{lemma}[lem:binary-common-entropy-cardinality]\label{lem:binary-common-entropy-cardinality}
+For every joint probability mass function \(J\) on a product of two nonempty finite alphabets \(\mathcal X\times\mathcal Z\), define \[G_J(X;Z)=\inf_{\substack{\widetilde J_{X,Z}=J,\ W\text{ finite}:\\ X\perp_{\widetilde J}Z\mid W}}\operatorname{Ent}_{\widetilde J}(W).\] The infimum is attained, and an entropy-minimizing exact factor can be chosen so that \[|\operatorname{supp}(W)|\leq 2^{\min\{|\mathcal X|,|\mathcal Z|\}}-1.\]
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} The published general finite-alphabet theorem supplies entropy-minimizing compression for the fixed joint law of treatment and the four-valued response type. \textit{Gap.} Its general three-state consequence is needed for the full image; the binary--binary origin face instead uses the separate Proposition 8 support-two leaf. \textit{Consumer.} The exact three-state representation of the full benefit--harm image; this carrier is not presented as the sharp origin-face bound.
+
+\begin{lemma}[lem:binary-common-entropy-two-state]\label{lem:binary-common-entropy-two-state}
+Let \(J\) be any probability mass function on \(\{0,1\}^2\). Among all finite extensions of \(J\) satisfying \(X\perp Z\mid W\), the minimum of \(\operatorname{Ent}(W)\) is attained, and an entropy-minimizing exact product-mixture factor can be chosen with \(W\) having at most two positive-mass states.
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This is the published binary specialization that supplies the support-two entropy minimizer used on the no-effect origin face. \textit{Gap.} The information-theoretic result does not construct potential outcomes or verify factual compatibility; those causal steps are proved in \(\texttt{thm:origin-common-entropy-frontier}\). \textit{Consumer.} The exact origin theorem uses this leaf to obtain both finite attainment and the two-positive-state support bound before performing the diagonal causal completion.
+
+\begin{proposition}[prop:three-state-sharpness]\label{prop:three-state-sharpness}
+For the balanced reverse-channel witness \(P^\dagger\), benefit--harm point \(\theta^\dagger\), and entropy budget \(\kappa^\dagger\), one has \(0<\kappa^\dagger<\log2\) and \[\theta^\dagger\in\Phi_3(\mathcal F_{3,\kappa^\dagger}(P^\dagger))\setminus\Phi_2(\mathcal F_{2,\kappa^\dagger}(P^\dagger)).\] Consequently, \[\Phi_2(\mathcal F_{2,\kappa^\dagger}(P^\dagger))\subsetneq\Phi_3(\mathcal F_{3,\kappa^\dagger}(P^\dagger)),\] so three latent states are sometimes necessary for the full benefit--harm image.
+\end{proposition}
+\begin{proof}
+Let \(R=(Y(0),Y(1))\).  We first verify the entropy range.  By the definition of \(h\) and the definition of \(\kappa^\dagger\),
+\[
+10\kappa^\dagger
+=9\log\frac{10}{9}+\log 20
+=\log\!\left(20\left(\frac{10}{9}\right)^9\right).
+\]
+Both terms defining \(\kappa^\dagger\) are nonnegative and \(h(9/10)>0\), so \(\kappa^\dagger>0\).  Moreover,
+\[
+20\cdot 10^9=20{,}000{,}000{,}000
+<396{,}718{,}580{,}736=2^{10}9^9.
+\]
+Strict monotonicity of the logarithm therefore gives \(10\kappa^\dagger<10\log 2\), and hence
+\[
+0<\kappa^\dagger<\log 2.
+\tag{1}
+\]
+
+We next give a constructive feasible three-state factorization.  Label the states \(00,10,11\), and set
+\[
+(\pi_{00},\pi_{10},\pi_{11})
+=\left(\frac1{20},\frac9{10},\frac1{20}\right),
+\qquad
+(e_{00},e_{10},e_{11})=\left(0,\frac12,1\right).
+\tag{2}
+\]
+At state \(ij\), let \(r_{ij\mid ij}=1\) and let every other response-type probability be zero.  Thus each \(r_{\cdot\cdot\mid u}\) belongs to \(\Delta_4\), \(\pi\in\Delta_3\), and \(e\in[0,1]^3\).  Substitution into the factual constraints in \(\mathcal F_{3,\kappa^\dagger}(P^\dagger)\) gives
+\[
+\begin{aligned}
+\sum_u\pi_u(1-e_u)\sum_{i,j}r_{ij\mid u}\mathbf 1\{i=0\}
+&=\frac1{20}=p^\dagger_{00},\\
+\sum_u\pi_u(1-e_u)\sum_{i,j}r_{ij\mid u}\mathbf 1\{i=1\}
+&=\frac9{20}=p^\dagger_{01},\\
+\sum_u\pi_u e_u\sum_{i,j}r_{ij\mid u}\mathbf 1\{j=0\}
+&=\frac9{20}=p^\dagger_{10},\\
+\sum_u\pi_u e_u\sum_{i,j}r_{ij\mid u}\mathbf 1\{j=1\}
+&=\frac1{20}=p^\dagger_{11}.
+\end{aligned}
+\tag{3}
+\]
+The entropy of the masses in (2) is
+\[
+-2\frac1{20}\log\frac1{20}-\frac9{10}\log\frac9{10}
+=h\!\left(\frac9{10}\right)+\frac1{10}\log2
+=\kappa^\dagger.
+\tag{4}
+\]
+Finally, the definition of \(\Phi_3\) and (2) give
+\[
+\Phi_3(\pi,e,r)
+=\left(\sum_u\pi_u r_{01\mid u},\sum_u\pi_u r_{10\mid u}\right)
+=\left(0,\frac9{10}\right)
+=\theta^\dagger.
+\tag{5}
+\]
+Equations (2)--(5) prove
+\[
+\theta^\dagger\in\Phi_3\bigl(\mathcal F_{3,\kappa^\dagger}(P^\dagger)\bigr).
+\tag{6}
+\]
+Equivalently, the constructive direction of \(\texttt{lem:factor-program-equivalence}\) turns this tuple into a factual-compatible law satisfying consistency, latent exchangeability, and the entropy budget.
+
+It remains to rule out two positive latent states.  Consider any factual-compatible law having \((B,H)=\theta^\dagger\), and write \(J\) for its joint law of \((A,R)\).  Since response-type probabilities are nonnegative, the definitions of \(B\) and \(H\) imply
+\[
+J(R=01)=0,
+\qquad
+J(R=10)=\frac9{10},
+\qquad
+J(R=00)+J(R=11)=\frac1{10}.
+\tag{7}
+\]
+By consistency, when \(A=0\) the observed outcome is the first component of \(R\), and when \(A=1\) it is the second component.  Factual compatibility with \(P^\dagger\), together with \(J(R=01)=0\), therefore yields
+\[
+J(A=0,R=00)=p^\dagger_{00}=\frac1{20},
+\qquad
+J(A=1,R=11)=p^\dagger_{11}=\frac1{20}.
+\tag{8}
+\]
+The two displayed masses exhaust the total diagonal-type mass \(1/10\) in (7).  Nonnegativity consequently forces
+\[
+J(A=1,R=00)=J(A=0,R=11)=0.
+\tag{9}
+\]
+Applying factual compatibility to the other two observed cells and using (9) gives
+\[
+J(A=0,R=10)=p^\dagger_{01}=\frac9{20},
+\qquad
+J(A=1,R=10)=p^\dagger_{10}=\frac9{20}.
+\tag{10}
+\]
+Thus (7)--(10) force the complete joint table
+\[
+J(0,00)=\frac1{20},\quad
+J(0,10)=\frac9{20},\quad
+J(1,10)=\frac9{20},\quad
+J(1,11)=\frac1{20},
+\tag{11}
+\]
+with every other cell equal to zero.
+
+Suppose for contradiction that a tuple in \(\mathcal F_{2,\kappa^\dagger}(P^\dagger)\) has image \(\theta^\dagger\).  By the constructive equivalence in \(\texttt{lem:factor-program-equivalence}\), its positive-mass latent states give a product-mixture representation
+\[
+J(a,r)=\sum_w\lambda_w e_w^a(1-e_w)^{1-a}s_w(r),
+\tag{12}
+\]
+where \(\lambda_w>0\) on the retained support, \(e_w\in[0,1]\), \(s_w\in\Delta_4\), and there are at most two retained states.  Positivity of \(J(0,00)\) in (11) provides a state \(w_0\) for which \(\lambda_{w_0}s_{w_0}(00)>0\) and \(1-e_{w_0}>0\).  But
+\[
+0=J(1,00)=\sum_w\lambda_w e_ws_w(00),
+\]
+and all summands are nonnegative, so \(e_{w_0}=0\).  Similarly, positivity of \(J(1,11)\) provides a state \(w_1\) with \(\lambda_{w_1}s_{w_1}(11)>0\), whereas
+\[
+0=J(0,11)=\sum_w\lambda_w(1-e_w)s_w(11)
+\]
+forces \(e_{w_1}=1\).  Hence \(w_0\ne w_1\).  Because (12) has at most two positive-mass states, these are all of them, and the latent state determines \(A\).  The marginal treatment law under \(P^\dagger\) is balanced, since
+\[
+P^\dagger(A=0)=p^\dagger_{00}+p^\dagger_{01}=\frac12,
+\qquad
+P^\dagger(A=1)=p^\dagger_{10}+p^\dagger_{11}=\frac12.
+\]
+It follows that \(\lambda_{w_0}=\lambda_{w_1}=1/2\), so the entropy of the factor in (12) is
+\[
+-\frac12\log\frac12-\frac12\log\frac12=\log2>\kappa^\dagger
+\tag{13}
+\]
+by (1).  This contradicts the entropy constraint in \(\mathcal F_{2,\kappa^\dagger}(P^\dagger)\).  Therefore
+\[
+\theta^\dagger\notin\Phi_2\bigl(\mathcal F_{2,\kappa^\dagger}(P^\dagger)\bigr).
+\tag{14}
+\]
+This zero-pattern product-mixture argument is the response-type embedding of the nonrepresentability technique in \citet[Section V, Example 2 and Appendix A]{KumarLiElGamal2014}; all properties needed here have been derived directly in (7)--(13).
+
+Finally, any element \((\pi,e,r)\in\mathcal F_{2,\kappa^\dagger}(P^\dagger)\) can be padded by a third state with mass zero and arbitrary admissible propensity and response distribution.  The convention \(0\log0=0\) shows that padding preserves entropy, and the zero mass shows that it preserves every factual constraint and \(\Phi_m\).  Hence
+\[
+\Phi_2\bigl(\mathcal F_{2,\kappa^\dagger}(P^\dagger)\bigr)
+\subseteq
+\Phi_3\bigl(\mathcal F_{3,\kappa^\dagger}(P^\dagger)\bigr).
+\]
+Together with (6) and (14), this inclusion is strict, proving every assertion of the proposition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit balanced reverse-channel witness certifies that the full image's support-three bound is sharp. \textit{Gap.} The information-theoretic zero-pattern obstruction is classical; the proposition supplies the exact causal response-type embedding, factual table, benefit--harm coordinates, and entropy comparison. \textit{Consumer.} It completes the support-cardinality elbow and prevents the origin's two-state reduction from being overgeneralized to the entire joint set.
+
+\begin{proposition}[prop:whole-set-confidence-coverage]\label{prop:whole-set-confidence-coverage}
+Suppose \(N\geq1\) and \(C_N\) is the multinomial count vector from \(N\) independent draws from \(P\). For every \(\alpha\in(0,1)\) and every fixed \(\kappa\in[0,\log2]\), \[\Pr_P\left\{\Theta_\kappa(P)\subseteq\widehat{\mathcal T}_{N,\alpha,\kappa}\right\}\geq1-\alpha.\] This is a whole-set outer-coverage guarantee obtained by exact multinomial inversion and deterministic image containment.
+\end{proposition}
+\begin{proof}
+The technique is exact inversion on a finite sample space followed by deterministic image containment.  Fix \(N\geq1\), \(\alpha\in(0,1)\), \(\kappa\in[0,\log2]\), and let \(p=(p_{ay})_{a,y\in\{0,1\}}\) be the true cell vector of \(P\).  The multinomial sample space
+\[
+\mathscr X_N=\left\{c\in\mathbb N^4:\sum_{a,y}c_{ay}=N\right\}
+\tag{1}
+\]
+is finite.  Under \(P\), the probability of \(C_N=c\) is exactly \(L_p(c)\), including boundary cell vectors because the convention \(0^0=1\) is used.  Define
+\[
+\psi_p(s)=\sum_{c\in\mathscr X_N:L_p(c)\geq s}L_p(c),
+\qquad
+S_p=\{s\in[0,1]:\psi_p(s)\geq1-\alpha\}.
+\tag{2}
+\]
+Since \(\psi_p(0)=1\), the set \(S_p\) is nonempty.  Since \(\mathscr X_N\) is finite, \(\psi_p\) changes only at the finitely many values \(\{L_p(c):c\in\mathscr X_N\}\).  It follows directly that \(S_p\) is a closed initial interval and its supremum is attained.  Thus the threshold in \(\texttt{def:exact-multinomial-region}\) satisfies
+\[
+u(p,\alpha)=\max S_p,\qquad
+\psi_p(u(p,\alpha))\geq1-\alpha.
+\tag{3}
+\]
+By that definition and (3),
+\[
+\begin{aligned}
+\Pr_P\{p\in\mathcal C_{N,\alpha}(C_N)\}
+&=\Pr_P\{L_p(C_N)\geq u(p,\alpha)\}\\
+&=\sum_{c\in\mathscr X_N:L_p(c)\geq u(p,\alpha)}L_p(c)\\
+&=\psi_p(u(p,\alpha))\geq1-\alpha.
+\end{aligned}
+\tag{4}
+\]
+On the event in (4), the candidate \(q=p\) occurs in the union defining \(\widehat{\mathcal T}_{N,\alpha,\kappa}\).  The induced factual law \(P_p\) equals \(P\) cell by cell.  Hence, deterministically on this event,
+\[
+\Theta_\kappa(P)=\Theta_\kappa(P_p)
+\subseteq\bigcup_{q\in\mathcal C_{N,\alpha}(C_N)}\Theta_\kappa(P_q)
+=\widehat{\mathcal T}_{N,\alpha,\kappa}.
+\tag{5}
+\]
+Therefore the event in (4) is contained in the whole-set coverage event.  Taking probabilities in (5) and applying (4) proves
+\[
+\Pr_P\left\{\Theta_\kappa(P)\subseteq\widehat{\mathcal T}_{N,\alpha,\kappa}\right\}\geq1-\alpha.
+\]
+This is an outer whole-set coverage statement; it does not assert optimality, small area, or equality of the random envelope with the identified set.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition supplies the finite-sample conclusion required to turn the confidence-envelope definition into an auditable coverage statement. \textit{Gap.} ChafaiConcordet2009 informs the likelihood-ordered exact multinomial region; the contribution here is only the deterministic mapping of that covered factual law into the entire entropy-indexed identified set. \textit{Consumer.} Users obtain conservative finite-sample coverage of the full benefit--harm set without relying on the unresolved contact asymptotics.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The support-three equality uses a published finite-alphabet common-entropy compression for the fixed joint law of treatment and the four-valued response type, but its causal glue is proved here by showing that preservation of that joint law preserves every factual cell and both response-type coordinates. The result makes the feasible image compact even at zero masses because \(-x\log x\) extends continuously to zero. Compactness yields non-effective Hausdorff approximations and positive separation margins, not a rank-free terminating certification algorithm with exact singular witnesses. For inference, the boundary perturbation includes \(\dot\theta_c(P;Z)+\dot\rho_{P,\kappa}(v;Z)v\); the derivative of the full radial reconstruction, the contact normalization, and uniform resampling remain unproved.
+
+\section{Honest scope}
+
+The three-state and origin theorems are global over binary factual laws. Endpoint and star-kernel geometry are asserted only under treatment positivity. The balanced example shows insufficiency of a necessary observed mutual-information relaxation and makes no claim about a published estimator or sufficient origin test. The whole-set confidence envelope has finite-sample outer coverage by exact multinomial inversion and deterministic set mapping, but no claim of optimal area or novel confidence-region ordering is made. BH-CERT termination at zero weights and active entropy equality remains open, as do the exact regular, active-entropy, and support-contact Hausdorff laws and a uniformly valid resampling rule.
+
+\begin{thebibliography}{99}
+
+  \bibitem{TianPearl2000} Jin Tian and Judea Pearl (2000), Probabilities of Causation: Bounds and Identification, \emph{Annals of Mathematics and Artificial Intelligence} 28, 287--313.
+
+  \bibitem{KumarLiElGamal2014} Gowtham Ramani Kumar, Cheuk Ting Li, and Abbas El Gamal (2014), Exact Common Information, \emph{Proceedings of the IEEE International Symposium on Information Theory}; arXiv:1402.0062.
+
+  \bibitem{KocaogluShakkottaiDimakisCaramanisVishwanath2020} Murat Kocaoglu, Sanjay Shakkottai, Alexandros G. Dimakis, Constantine Caramanis, and Sriram Vishwanath (2020), Applications of Common Entropy for Causal Inference, \emph{Advances in Neural Information Processing Systems} 33.
+
+  \bibitem{JiangWeiKocaoglu2023} Ziwei Jiang, Lai Wei, and Murat Kocaoglu (2023), Approximate Causal Effect Identification under Weak Confounding, \emph{Proceedings of the 40th International Conference on Machine Learning}, PMLR 202, 15125--15143.
+
+  \bibitem{JiangKocaoglu2024} Ziwei Jiang and Murat Kocaoglu (2024), Conditional Common Entropy for Instrumental Variable Testing and Partial Identification, \emph{Proceedings of the 41st International Conference on Machine Learning}, PMLR 235, 21824--21843.
+
+  \bibitem{Zhang2024} Zhiheng Zhang (2024), Tight Partial Identification of Causal Effects with Marginal Distribution of Unmeasured Confounders, \emph{Proceedings of the 41st International Conference on Machine Learning}, PMLR 235, 58510--58562.
+
+  \bibitem{Pena2023} Jose M. Peña (2023), Bounding the Probabilities of Benefit and Harm Through Sensitivity Parameters and Proxies, \emph{Journal of Causal Inference} 11, article 20230012.
+
+  \bibitem{GabrielSachsJensen2024} Erin E. Gabriel, Michael C. Sachs, and Andreas Kryger Jensen (2024), Sharp Symbolic Nonparametric Bounds for Measures of Benefit in Observational and Imperfect Randomized Studies with Ordinal Outcomes, \emph{Biometrika} 111, 1429--1436.
+
+  \bibitem{SachsJonzonSjolanderGabriel2022} Michael C. Sachs, Gustav Jonzon, Arvid Sjölander, and Erin E. Gabriel (2022), A General Method for Deriving Tight Symbolic Bounds on Causal Effects, \emph{Journal of Computational and Graphical Statistics} 31, 496--510.
+
+  \bibitem{JonzonSachsGabriel2023} Gustav Jonzon, Michael C. Sachs, and Erin E. Gabriel (2023), Accessible Computation of Tight Symbolic Bounds on Causal Effects Using an Intuitive Graphical Interface, \emph{The R Journal} 15, 165--186.
+
+  \bibitem{DuarteFinkelsteinKnoxMummoloShpitser2024} Guilherme Duarte, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser (2024), An Automated Approach to Causal Inference in Discrete Settings, \emph{Journal of the American Statistical Association} 119, 1778--1793.
+
+  \bibitem{ArayaReyes2016} Ignacio Araya and Victor Reyes (2016), Interval Branch-and-Bound Algorithms for Optimization and Constraint Satisfaction: A Survey and Prospects, \emph{Journal of Global Optimization} 65, 837--866.
+
+  \bibitem{AudetMessineNinin2022} Charles Audet, Frederic Messine, and Jordan Ninin (2022), Numerical Certification of Pareto Optimality for Biobjective Nonlinear Problems, \emph{Journal of Global Optimization} 83, 891--908.
+
+  \bibitem{FernandezGoth2009} Jose Fernandez and Boglarka G.-Toth (2009), Obtaining the Efficient Set of Nonlinear Biobjective Optimization Problems via Interval Branch-and-Bound Methods, \emph{Computational Optimization and Applications} 42, 393--419.
+
+  \bibitem{ChafaiConcordet2009} Djalil Chafai and Didier Concordet (2009), Confidence Regions for the Multinomial Parameter with Small Sample Size, \emph{Journal of the American Statistical Association} 104, 1071--1079.
+
+  \bibitem{ChernozhukovHongTamer2007} Victor Chernozhukov, Han Hong, and Elie Tamer (2007), Estimation and Confidence Regions for Parameter Sets in Econometric Models, \emph{Econometrica} 75, 1243--1284.
+
+  \bibitem{FangSantos2019} Zheng Fang and Andres Santos (2019), Inference on Directionally Differentiable Functions, \emph{Review of Economic Studies} 86, 377--412.
+
+  \bibitem{MastenPoirier2020} Matthew A. Masten and Alexandre Poirier (2020), Inference on Breakdown Frontiers, \emph{Quantitative Economics} 11, 41--111.
+
+  \bibitem{CiocaneaTeodorescuGabrielSjolander2025} Iuliana Ciocanea-Teodorescu, Erin E. Gabriel, and Arvid Sjölander (2025), Sensitivity Analysis for the Probability of Benefit in Randomized Controlled Trials with a Binary Treatment and a Binary Outcome, \emph{Biostatistics} 26, article kxaf011.
+
+\end{thebibliography}
+
+\end{document}

@@ -35,8 +35,10 @@ universe uN uΩ
 variable {N : Type uN} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type uΩ} [∀ n, MeasurableSpace (Ω n)]
 
-/-- The latent ancestors of a node set are the unobserved nodes that either belong to the set or
-are ancestors of one of its nodes. -/
+/-- For [a finite collection of nodes](hyp:N), [a structural causal model](hyp:M), and [a finite
+    set of nodes in its single-world intervention graph](hyp:T), the [latent ancestors of that
+    set](goal) are exactly the unobserved nodes that either belong to the set or are ancestors of
+    at least one node in the set. -/
 noncomputable def latentAncestorsOfSet (M : Causalean.SCM N Ω)
     (T : Finset (SWIGNode N)) : Finset (SWIGNode N) :=
   letI : DecidablePred
@@ -309,10 +311,14 @@ private theorem evalMap_valuesProjection_factors_through_latent_base_and_residua
 -- § 0. Product-space CI bridge (used by § 1)
 -- ============================================================
 
-/-- Measurable reindexing equivalence between the coordinate tuple on the
-    subtype-image `S.subtype (· ∈ P)` of `S ⊆ P` and the coordinate tuple on
-    `S` itself.  It is the identity on values, only relabelling the index from
-    the doubly-nested subtype to the direct subtype `{j // j ∈ S}`. -/
+/-- For [a finite coordinate population with a measurable outcome space for each coordinate](hyp:M',Ω'),
+    [a finite coordinate subset](hyp:P), [a finite set of coordinates](hyp:S), and [the condition
+    that this set is contained in the subset](hyp:hS), the [measurable equivalence between the two
+    coordinate tuples](goal) relabels an assignment indexed first by membership in the set and then
+    by membership in the subset as the same assignment indexed directly by membership in the set.
+
+    It is the identity on values, only relabelling the index from a doubly-nested
+    membership certificate to a direct membership certificate. -/
 noncomputable def reindexSubtypeProj {M' : Type*} [DecidableEq M'] [Fintype M']
     {Ω' : M' → Type*} [∀ n, MeasurableSpace (Ω' n)] {P : Finset M'}
     (S : Finset M') (hS : S ⊆ P) :

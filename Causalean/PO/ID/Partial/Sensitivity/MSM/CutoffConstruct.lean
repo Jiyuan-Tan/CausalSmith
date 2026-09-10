@@ -60,11 +60,15 @@ private lemma exists_measurableSet_through_factualX {s : Set P.Ω}
   rw [POBackdoorSystem.sigmaX] at hs
   exact MeasurableSpace.measurableSet_comap.mp hs
 
-/-- The **treated set** `{ω | D(ω) = 1}`. -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ), and
+[a back-door system on them](hyp:S), [the treated set](goal) is the set of all units whose factual
+treatment status is treatment. -/
 def treatedSet : Set P.Ω := S.factualD ⁻¹' {true}
 
-/-- The **treated push-forward law** of `(X, Y)`: the law of the factual covariate and
-outcome on the sub-population of treated units, `(μ restricted to {D=1}) ∘ (X, Y)⁻¹`. -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ), and
+[a back-door system on them](hyp:S), [the treated covariate--outcome law](goal) is the image law
+of the factual covariate and factual outcome under the population measure restricted to treated
+units. -/
 noncomputable def treatedXYLaw : Measure (γ × ℝ) :=
   (P.μ.restrict S.treatedSet).map (fun ω => (S.factualX ω, S.factualY ω))
 
@@ -77,8 +81,10 @@ lemma treatedXYLaw_eq :
       (P.μ.restrict S.treatedSet).map (fun ω => (S.factualX ω, S.factualY ω)) :=
   rfl
 
-/-- The **treated conditional CDF** of `Y` given `X`, evaluated along the factual covariate:
-`F(t | X(ω)) = P(Y ≤ t | X = X(ω), D = 1)`. -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ),
+[a back-door system on them](hyp:S), [a unit](hyp:ω), and [a real threshold](hyp:t), [the treated
+conditional distribution-function value](goal) is the probability that a treated unit's factual
+outcome does not exceed the threshold, conditional on having that unit's factual covariate value. -/
 noncomputable def treatedCondCDF (ω : P.Ω) (t : ℝ) : ℝ :=
   condCDF S.treatedXYLaw (S.factualX ω) t
 
@@ -313,8 +319,11 @@ private lemma treatedLe_const_eq (t : ℝ) :
     hle hf hg_int hg_eq hg_sm.aestronglyMeasurable
   exact h.symm
 
-/-- The **calibration quantile level** `τ(ω) = 1 − survTarget(ω)/e(ω)`: the treated-conditional-CDF
-level whose quantile is the calibrating cutoff. -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ),
+[a back-door system on them](hyp:S), [a sensitivity level](hyp:Λ), and [a unit](hyp:ω), [the
+calibration quantile level](goal) is one minus the target treated-survival probability divided by
+that unit's propensity for treatment. It is the treated conditional-distribution-function level
+whose quantile supplies the calibrating cutoff. -/
 noncomputable def calibLevel (Λ : ℝ) (ω : P.Ω) : ℝ :=
   1 - S.survTarget Λ ω / S.propScore true ω
 

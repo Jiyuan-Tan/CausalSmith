@@ -10,42 +10,39 @@ namespace Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
 
 namespace ComplexRatInterval
 
-/-- The width of a complex rectangle is the larger of its two coordinate widths. -/
+/-- Given [a rational complex rectangle](hyp:I), its [width](goal) is the larger of the widths of its real and imaginary coordinate intervals. -/
 def width (I : ComplexRatInterval) : ℚ := max I.re.width I.im.width
 
-/-- The maximum coordinate endpoint magnitude controls arithmetic error amplification. -/
+/-- Given [a rational complex rectangle](hyp:I), its [maximum coordinate endpoint magnitude](goal) is the larger of the maximum absolute endpoint magnitudes of its real and imaginary coordinate intervals. -/
 def maxAbs (I : ComplexRatInterval) : ℚ := max I.re.maxAbs I.im.maxAbs
 
-/-- A rational pair determines a point rectangle in the complex plane. -/
+/-- Given [a rational real coordinate](hyp:x) and [a rational imaginary coordinate](hyp:y), the [complex point rectangle](goal) is the zero-width rectangle containing $x+iy$. -/
 def point (x y : ℚ) : ComplexRatInterval :=
   ⟨RatInterval.point x, RatInterval.point y⟩
 
-/-- Complex rectangle negation reverses both coordinate intervals. -/
+/-- Given [a rational complex rectangle](hyp:I), its [negative rectangle](goal) negates both coordinate intervals. -/
 def neg (I : ComplexRatInterval) : ComplexRatInterval := ⟨I.re.neg, I.im.neg⟩
 
-/-- Complex rectangle subtraction adds the coordinatewise negation. -/
+/-- Given [a first rational complex rectangle](hyp:I) and [a second rational complex rectangle](hyp:J), their [difference rectangle](goal) adds the first rectangle to the coordinatewise negative of the second. -/
 def sub (I J : ComplexRatInterval) : ComplexRatInterval := I.add J.neg
 
-/-- Complex rectangle multiplication evaluates the Cartesian formula with
-outward rational real interval operations. -/
+/-- Given [two rational complex rectangles](hyp:I,J), their [product rectangle](goal) is obtained from the Cartesian complex-product formula using outward rational interval operations on the coordinate intervals. -/
 def mul (I J : ComplexRatInterval) : ComplexRatInterval :=
   ⟨(I.re.mul J.re).sub (I.im.mul J.im),
     (I.re.mul J.im).add (I.im.mul J.re)⟩
 
-/-- Complex conjugation negates only the imaginary coordinate interval. -/
+/-- Given [a rational complex rectangle](hyp:I), its [conjugate rectangle](goal) retains its real coordinate interval and negates its imaginary coordinate interval. -/
 def conj (I : ComplexRatInterval) : ComplexRatInterval := ⟨I.re, I.im.neg⟩
 
-/-- The squared-modulus interval sums the sign-aware squares of both coordinates. -/
+/-- Given [a rational complex rectangle](hyp:I), its [squared-modulus interval](goal) is the sum of the sign-aware squares of its real and imaginary coordinate intervals. -/
 def normSq (I : ComplexRatInterval) : RatInterval := I.re.sq.add I.im.sq
 
-/-- Guarded complex division multiplies by the conjugate and divides both
-resulting coordinates by the denominator squared-modulus interval. -/
+/-- Given [a numerator rectangle](hyp:I), [a denominator rectangle](hyp:J), and [evidence that the denominator's squared-modulus interval excludes zero](hyp:hJ), the [guarded quotient rectangle](goal) is [the product of the numerator rectangle and the denominator's conjugate](step:1), with both resulting coordinate intervals divided by the denominator's squared-modulus interval. -/
 def div (I J : ComplexRatInterval) (hJ : J.normSq.AwayFromZero) : ComplexRatInterval :=
   let numerator := I.mul J.conj
   ⟨numerator.re.div J.normSq hJ, numerator.im.div J.normSq hJ⟩
 
-/-- Coordinatewise conditional intersection makes a rectangle no larger while
-retaining a common enclosed complex value. -/
+/-- Given [two rational complex rectangles](hyp:I,J), their [coordinatewise tightening](goal) is formed by tightening the real coordinate intervals and tightening the imaginary coordinate intervals. -/
 def tighten (I J : ComplexRatInterval) : ComplexRatInterval :=
   ⟨I.re.tighten J.re, I.im.tighten J.im⟩
 
@@ -463,8 +460,7 @@ theorem div_width {I J : ComplexRatInterval} (hJ : J.normSq.AwayFromZero)
   · exact hre'.trans_eq (by ring)
   · exact him'.trans_eq (by ring)
 
-/-- Applying rational square-root bounds to the squared-modulus interval
-produces an executable enclosure of the complex norm. -/
+/-- Given [a rational complex rectangle](hyp:I) and a natural-number square-root fuel level, the [norm interval](goal) applies rational square-root bounds to the rectangle's squared-modulus interval. -/
 theorem normSq_lo_nonneg (I : ComplexRatInterval) : 0 ≤ I.normSq.lo := by
   have hsquare (K : RatInterval) : 0 ≤ K.sq.lo := by
     unfold RatInterval.sq

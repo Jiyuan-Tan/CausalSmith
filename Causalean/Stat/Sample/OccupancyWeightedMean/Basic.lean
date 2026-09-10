@@ -26,70 +26,96 @@ variable {Omega kappa : Type*} [MeasurableSpace Omega]
   [Fintype kappa] [DecidableEq kappa]
   [MeasurableSpace kappa] [MeasurableSingletonClass kappa]
 
-/-- The arm/group event consists of observations having the requested finite
-group label and Boolean arm label. -/
+/-- Given [a sample space](hyp:Omega), [a group-label space](hyp:kappa),
+[a group-label map](hyp:group), [a Boolean arm-assignment map](hyp:arm), [an arm label](hyp:a),
+and [a group label](hyp:k), the [arm--group event](goal) is the set of sample-space outcomes
+whose group and arm labels equal the requested labels. -/
 def armGroupEvent (group : Omega -> kappa) (arm : Omega -> Bool)
     (a : Bool) (k : kappa) : Set Omega :=
   {omega | group omega = k ∧ arm omega = a}
 
-/-- The group event consists of observations having the requested finite group
-label, irrespective of arm. -/
+/-- Given [a sample space](hyp:Omega), [a group-label space](hyp:kappa),
+[a group-label map](hyp:group), and [a group label](hyp:k), the [group event](goal) is the set
+of sample-space outcomes having that group label, irrespective of arm assignment. -/
 def groupEvent (group : Omega -> kappa) (k : kappa) : Set Omega :=
   {omega | group omega = k}
 
-/-- The residual at an arm/group label is the outcome minus its supplied
-arm/group center. -/
+/-- Given [a sample space](hyp:Omega), [a group-label space](hyp:kappa),
+[a real-valued outcome](hyp:Y), [a supplied real center for every arm and group](hyp:center),
+[an arm label](hyp:a), [a group label](hyp:k), and [a sample-space outcome](hyp:omega), the
+[arm--group residual](goal) is that outcome minus the center supplied for its requested arm and group. -/
 def armGroupResidual (Y : Omega -> Real) (center : Bool -> kappa -> Real)
     (a : Bool) (k : kappa) (omega : Omega) : Real :=
   Y omega - center a k
 
-/-- The supported residual equals the arm/group residual on its own label event
-and is zero elsewhere. -/
+/-- Given [a sample space](hyp:Omega), [a group-label space](hyp:kappa),
+[a group-label map](hyp:group), [a Boolean arm-assignment map](hyp:arm), [a real-valued
+outcome](hyp:Y), [arm--group centers](hyp:center), [an arm label](hyp:a), and [a group label](hyp:k),
+the [supported arm--group residual](goal) equals the corresponding residual on the requested
+arm--group event and zero outside that event. -/
 noncomputable def supportedArmGroupResidual (group : Omega -> kappa) (arm : Omega -> Bool)
     (Y : Omega -> Real) (center : Bool -> kappa -> Real)
     (a : Bool) (k : kappa) : Omega -> Real :=
   (armGroupEvent group arm a k).indicator (armGroupResidual Y center a k)
 
-/-- The finite design records only the group and arm label of each sample
-coordinate. -/
+/-- Given [a sample space](hyp:Omega), [a group-label space](hyp:kappa),
+[a nonnegative integer sample size](hyp:n), [a group-label map](hyp:group), [a Boolean
+arm-assignment map](hyp:arm), and [a sample of that size](hyp:z), the [sample design](goal)
+maps every sample coordinate to its pair of group and arm labels. -/
 def sampleDesign {n : Nat} (group : Omega -> kappa) (arm : Omega -> Bool)
     (z : Fin n -> Omega) : Fin n -> kappa × Bool :=
   fun i => (group (z i), arm (z i))
 
-/-- The arm/group count is the number of sample coordinates with both the
-requested group and requested arm. -/
+/-- Given [a sample space](hyp:Omega), [a group-label space whose labels can be compared for equality](hyp:kappa),
+[a nonnegative integer sample size](hyp:n), [a group-label map](hyp:group), [a Boolean
+arm-assignment map](hyp:arm), [a sample](hyp:z), [an arm label](hyp:a), and [a group label](hyp:k),
+the [arm--group count](goal) is the number of sample coordinates whose two labels equal those requested. -/
 def groupArmCount {n : Nat} (group : Omega -> kappa) (arm : Omega -> Bool)
     (z : Fin n -> Omega) (a : Bool) (k : kappa) : Nat :=
   (Finset.univ.filter fun i => group (z i) = k ∧ arm (z i) = a).card
 
-/-- The group count is the sum of its control and treated arm counts. -/
+/-- Given [a sample space](hyp:Omega), [a group-label space whose labels can be compared for equality](hyp:kappa),
+[a nonnegative integer sample size](hyp:n), [a group-label map](hyp:group), [a Boolean
+arm-assignment map](hyp:arm), [a sample](hyp:z), and [a group label](hyp:k), the [group count](goal)
+is the sum of the sample counts in that group for the false and true arm labels. -/
 def groupCount {n : Nat} (group : Omega -> kappa) (arm : Omega -> Bool)
     (z : Fin n -> Omega) (k : kappa) : Nat :=
   groupArmCount group arm z false k + groupArmCount group arm z true k
 
-/-- A sample group is usable exactly when both of its empirical arm counts are
-positive. -/
+/-- Given [a sample space](hyp:Omega), [a group-label space whose labels can be compared for equality](hyp:kappa),
+[a nonnegative integer sample size](hyp:n), [a group-label map](hyp:group), [a Boolean
+arm-assignment map](hyp:arm), [a sample](hyp:z), and [a group label](hyp:k), the [usable-group
+condition](goal) holds exactly when [the count in the false arm is positive](step:1) and [the
+count in the true arm is positive](step:2). -/
 def usableGroup {n : Nat} (group : Omega -> kappa) (arm : Omega -> Bool)
     (z : Fin n -> Omega) (k : kappa) : Prop :=
   0 < groupArmCount group arm z false k ∧
     0 < groupArmCount group arm z true k
 
-/-- The usable-group total is the total empirical occupancy of groups having
-both arms represented. -/
+/-- Given [a sample space](hyp:Omega), [a finite group-label space whose labels can be compared for equality](hyp:kappa),
+[a nonnegative integer sample size](hyp:n), [a group-label map](hyp:group), [a Boolean
+arm-assignment map](hyp:arm), and [a sample](hyp:z), the [usable-group total](goal) is the sum
+of group counts over precisely those groups represented by both arm labels. -/
 noncomputable def usableGroupTotal {n : Nat} (group : Omega -> kappa) (arm : Omega -> Bool)
     (z : Fin n -> Omega) : Nat := by
   classical
   exact ∑ k, if usableGroup group arm z k then groupCount group arm z k else 0
 
-/-- The residual sum in an arm/group cell adds only coordinates belonging to
-that cell. -/
+/-- Given [a sample space](hyp:Omega), [a group-label space](hyp:kappa),
+[a nonnegative integer sample size](hyp:n), [a group-label map](hyp:group), [a Boolean
+arm-assignment map](hyp:arm), [a real-valued outcome](hyp:Y), [arm--group centers](hyp:center),
+[a sample](hyp:z), [an arm label](hyp:a), and [a group label](hyp:k), the [arm--group residual
+sum](goal) adds the supported residuals of all sample coordinates. -/
 noncomputable def armResidualSum {n : Nat} (group : Omega -> kappa) (arm : Omega -> Bool)
     (Y : Omega -> Real) (center : Bool -> kappa -> Real)
     (z : Fin n -> Omega) (a : Bool) (k : kappa) : Real :=
   ∑ i, supportedArmGroupResidual group arm Y center a k (z i)
 
-/-- The totalized arm residual mean is the cell residual sum divided by its
-count when that count is positive, and zero when the count is zero. -/
+/-- Given [a sample space](hyp:Omega), [a group-label space whose labels can be compared for equality](hyp:kappa),
+[a nonnegative integer sample size](hyp:n), [a group-label map](hyp:group), [a Boolean
+arm-assignment map](hyp:arm), [a real-valued outcome](hyp:Y), [arm--group centers](hyp:center),
+[a sample](hyp:z), [an arm label](hyp:a), and [a group label](hyp:k), the [totalized arm--group
+residual mean](goal) is its residual sum divided by its count when that count is positive, and zero otherwise. -/
 noncomputable def armResidualMean {n : Nat} (group : Omega -> kappa) (arm : Omega -> Bool)
     (Y : Omega -> Real) (center : Bool -> kappa -> Real)
     (z : Fin n -> Omega) (a : Bool) (k : kappa) : Real :=
@@ -98,10 +124,13 @@ noncomputable def armResidualMean {n : Nat} (group : Omega -> kappa) (arm : Omeg
       armResidualSum group arm Y center z a k
   else 0
 
-/-- The occupancy-weighted residual statistic averages, over usable groups,
-each group occupancy times the treated-minus-control residual mean.  It is zero
-when no group is usable.  The law argument fixes the intended public API but
-does not alter this sample statistic. -/
+/-- Given [a measurable sample space](hyp:Omega), [a finite group-label space whose labels can be compared for equality](hyp:kappa),
+[a nonnegative integer sample size](hyp:n), [a measure on the sample space](hyp:_mu), [a group-label map](hyp:group),
+[a Boolean arm-assignment map](hyp:arm), [a real-valued outcome](hyp:Y), [arm--group centers](hyp:center),
+and [a sample](hyp:z), the [occupancy-weighted residual statistic](goal) is the usable-group-occupancy-weighted
+average of treated-minus-control residual means, totalized to zero when no group is usable.
+
+The measure fixes the intended public API but does not alter this sample statistic. -/
 noncomputable def occupancyWeightedResidual {n : Nat} (_mu : Measure Omega)
     (group : Omega -> kappa) (arm : Omega -> Bool) (Y : Omega -> Real)
     (center : Bool -> kappa -> Real) (z : Fin n -> Omega) : Real := by
@@ -115,17 +144,21 @@ noncomputable def occupancyWeightedResidual {n : Nat} (_mu : Measure Omega)
         else 0
     else 0
 
-/-- The inverse usable occupancy is the reciprocal of the usable-group total
-when positive, and zero at the empirical zero boundary. -/
+/-- Given [a sample space](hyp:Omega), [a finite group-label space whose labels can be compared for equality](hyp:kappa),
+[a nonnegative integer sample size](hyp:n), [a group-label map](hyp:group), [a Boolean
+arm-assignment map](hyp:arm), and [a sample](hyp:z), the [inverse usable-group total](goal) is
+the reciprocal usable-group total when that total is positive and is zero otherwise. -/
 noncomputable def inverseUsableGroupTotal {n : Nat} (group : Omega -> kappa)
     (arm : Omega -> Bool) (z : Fin n -> Omega) : Real :=
   if 0 < usableGroupTotal group arm z then
     (usableGroupTotal group arm z : Real)⁻¹
   else 0
 
-/-- The design variance factor is the usable-group sum of squared occupancy
-weights times the two reciprocal arm counts, totalized to zero when no group is
-usable. -/
+/-- Given [a sample space](hyp:Omega), [a finite group-label space whose labels can be compared for equality](hyp:kappa),
+[a nonnegative integer sample size](hyp:n), [a group-label map](hyp:group), [a Boolean
+arm-assignment map](hyp:arm), and [a sample](hyp:z), the [occupancy design-variance factor](goal)
+is the squared reciprocal usable-group total times the sum, over usable groups, of squared group
+counts times the two reciprocal arm counts, and is zero when no group is usable. -/
 noncomputable def occupancyDesignVarianceFactor {n : Nat} (group : Omega -> kappa)
     (arm : Omega -> Bool) (z : Fin n -> Omega) : Real := by
   classical

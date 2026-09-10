@@ -38,9 +38,12 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
 
 /-! ## Coordinate projections and degenerate kernels -/
 
-/-- The first-order influence function of an ordered fixed-order kernel: the sum
-of its coordinatewise first Hoeffding projections.  For a symmetric kernel this
-is `m` times the usual first projection. -/
+/-- For [a measurable observation space](hyp:X), [an order $m$](hyp:m), [a real-valued kernel
+of that order](hyp:h), and [an observation distribution](hyp:P), the [first-order influence
+function](goal) maps each observation to the sum of the kernel's first Hoeffding projections over
+all $m$ coordinate positions.
+
+For a symmetric kernel this is `m` times the usual first projection. -/
 noncomputable def uInfluenceOrder {m : ℕ} (h : (Fin m → X) → ℝ)
     (P : Measure X) : X → ℝ :=
   fun x => ∑ j : Fin m, uProjOrderAt j h P x
@@ -54,7 +57,11 @@ theorem uInfluenceOrder_eq_card_mul_of_common_projection {m : ℕ}
   funext x
   simp [uInfluenceOrder, hproj, Finset.sum_const, nsmul_eq_mul]
 
-/-- The higher-order remainder statistic for an order-`m` U-statistic. -/
+/-- For [an i.i.d. sample on a measurable sample space, with observations in a measurable
+observation space and their probability distribution](hyp:Ω,X,μ,P,S), [a positive
+integer order](hyp:m), [a real-valued kernel of that order](hyp:h), and [a sample size](hyp:n),
+the [higher-order Hájek remainder statistic](goal) is the order-$m$ U-statistic of the kernel
+remaining after all of its first-order Hoeffding projections have been removed. -/
 noncomputable def uRemainderOrder (S : IIDSample Ω X μ P) {m : ℕ} [NeZero m]
     (h : (Fin m → X) → ℝ) (n : ℕ) : Ω → ℝ :=
   uStatisticOrder S (uDegenOrder h P) n
@@ -85,12 +92,14 @@ attribute [fun_prop] OrderDegenKernel.meas OrderDegenKernel.sq
 
 /-! ## Hájek decomposition -/
 
-/-- The higher-order order-`m` Hájek remainder is negligible at the `√n` scale.
+/-- For [an i.i.d. sample on a measurable sample space, with observations in a measurable
+observation space and their probability distribution](hyp:Ω,X,μ,P,S), [a positive
+integer order](hyp:m), and [a real-valued kernel of that order](hyp:h), the [order-$m$
+degeneracy-negligibility condition](goal) asserts that the kernel's higher-order Hájek remainder,
+multiplied by $\sqrt n$, converges in probability to zero as the sample size tends to infinity.
 
-For a kernel `h`, this states that
-`√n * uRemainderOrder S h n = o_p(1)`.  It is kept as a separate hypothesis in
-the decomposition layer and discharged in `OrderM.RemainderNegligible` from
-first-order degeneracy and a second-moment bound. -/
+It is kept as a separate hypothesis in the decomposition layer and discharged in
+`OrderM.RemainderNegligible` from first-order degeneracy and a second-moment bound. -/
 def OrderDegenerateNegligible (S : IIDSample Ω X μ P) {m : ℕ} [NeZero m]
     (h : (Fin m → X) → ℝ) : Prop :=
   IsLittleOp

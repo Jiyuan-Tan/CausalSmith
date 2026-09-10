@@ -60,8 +60,9 @@ namespace KFoldSplit
 
 variable {S : IIDSample Ω X μ P} {K : ℕ} (split : KFoldSplit S K)
 
-/-- The training complement of fold `k` at sample size `n`:
-`{0, …, n-1} \ fold(n, k)`. -/
+/-- Given [a K-fold splitting schedule](hyp:split), [a sample size](hyp:n), and [a fold index](hyp:k),
+[the training complement](goal) is the set of all indices from $0$ through $n-1$ excluding those
+assigned to that fold. -/
 def trainComplement (n : ℕ) (k : Fin K) : Finset ℕ :=
   (Finset.range n) \ split.fold n k
 

@@ -33,10 +33,17 @@ namespace Causalean.Mathlib
 
 open MeasureTheory ProbabilityTheory Real Filter Topology
 
-/-- The standard-normal density `φ(x) = exp(-x²/2)/√(2π)` (= `gaussianPDFReal 0 1`). -/
+/-- For [each real number $x$](hyp:x), the [standard-normal density at $x$](goal) is
+$\exp(-x^2/2)/\sqrt{2\pi}$.
+
+The standard-normal density `φ(x) = exp(-x²/2)/√(2π)` (= `gaussianPDFReal 0 1`). -/
 noncomputable def stdNormalPDF (x : ℝ) : ℝ := gaussianPDFReal 0 1 x
 
-/-- The standard-normal CDF `Φ(x) = P(N(0,1) ≤ x)`, packaged from Mathlib's `cdf`. -/
+/-- For [each real number $x$](hyp:x), the [standard-normal cumulative distribution function at
+$x$](goal) is the probability that a mean-zero, variance-one normal random variable is at most
+$x$.
+
+The standard-normal CDF `Φ(x) = P(N(0,1) ≤ x)`, packaged from Mathlib's `cdf`. -/
 noncomputable def stdNormalCDF (x : ℝ) : ℝ := cdf (gaussianReal 0 1) x
 
 /-- The named standard-normal density is Mathlib's real Gaussian density with mean zero and
@@ -149,7 +156,11 @@ lemma stdNormalCDF_lt_one (x : ℝ) : stdNormalCDF x < 1 := by
   have hle := stdNormalCDF_le_one (x + 1)
   linarith
 
-/-- The **probit** `Φ⁻¹(p)`: the standard-normal quantile, the generalized inverse of `Φ`. -/
+/-- For [each real number $p$](hyp:p), the [probit at $p$](goal) is the infimum of the real
+numbers $x$ for which the standard-normal cumulative distribution function at $x$ is at least
+$p$.
+
+The **probit** `Φ⁻¹(p)` is the standard-normal quantile, the generalized inverse of `Φ`. -/
 noncomputable def probit (p : ℝ) : ℝ := sInf {x : ℝ | p ≤ stdNormalCDF x}
 
 /-- `Φ(Φ⁻¹(p)) = p` for `p ∈ (0,1)` (exact inversion, using continuity + strict monotonicity). -/

@@ -35,20 +35,31 @@ variable {P : POSystem} (S : POBalkePearlSystem P)
 
 /-! ### Helper selectors -/
 
-/-- The treatment arm under instrument value z: d₀ if z=false, d₁ if z=true. -/
+/-- For [a binary instrument value](hyp:z) and [two binary treatment potential outcomes,
+respectively under instrument values zero and one](hyp:d0,d1), the [selected treatment
+potential outcome](goal) is the first when the instrument value is zero and the second when
+it is one. -/
 def dArm (z d0 d1 : Bool) : Bool := if z then d1 else d0
 
-/-- The outcome arm under treatment d: y₀ if d=false, y₁ if d=true. -/
+/-- For [a binary treatment value](hyp:d) and [two binary outcome potential outcomes,
+respectively under treatment values zero and one](hyp:y0,y1), the [selected outcome potential
+outcome](goal) is the first when treatment is zero and the second when it is one. -/
 def yArm (d y0 y1 : Bool) : Bool := if d then y1 else y0
 
 /-! ### Latent set and probability -/
 
-/-- The event that unit ω has latent type (d0,d1,y0,y1). -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S) and [binary values for treatment under
+instrument zero and one and outcome under treatment zero and one](hyp:d0,d1,y0,y1), the
+[latent-type event](goal) is the set of sample points at which all four corresponding
+potential outcomes equal those values. -/
 def latentSet (d0 d1 y0 y1 : Bool) : Set P.Ω :=
   {ω | S.DofZ false ω = d0 ∧ S.DofZ true ω = d1
         ∧ S.YofD false ω = y0 ∧ S.YofD true ω = y1}
 
-/-- Probability of the latent type (d0,d1,y0,y1). -/
+/-- For a [potential-outcome system](hyp:P) and [its Balke--Pearl observational system](hyp:S) and [binary values for treatment under
+instrument zero and one and outcome under treatment zero and one](hyp:d0,d1,y0,y1), the
+[latent-type probability](goal) is the real-valued probability of the corresponding
+latent-type event. -/
 noncomputable def latentProb (d0 d1 y0 y1 : Bool) : ℝ :=
   (P.μ (S.latentSet d0 d1 y0 y1)).toReal
 

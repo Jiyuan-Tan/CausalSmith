@@ -75,12 +75,13 @@ namespace SWIGGraph
 
 variable (G : SWIGGraph N)
 
-/-- The conditioning set of the c-component factor `Q[C]`:
+/-- For [a SWIG graph](hyp:G) and [a finite set of its vertices](hyp:C), the
+    [conditioning-parent set](goal) is the union of the graph's observed
+    predecessors of the vertices in that set, with the set itself removed.
 
-    `Pa⁺_G(C) \ C  :=  (⋃_{v ∈ C} Pa⁺_G(v)) \ C`.
-
-    Members are the observed predecessors of any node in `C` that are
-    not themselves in `C`. -/
+    This is the conditioning set of the c-component factor $Q[C]$.  Its
+    members are observed predecessors of a vertex in the set that are not
+    themselves in the set. -/
 noncomputable def qFactorParents (C : Finset (SWIGNode N)) : Finset (SWIGNode N) :=
   (C.biUnion G.observedPredecessors) \ C
 
@@ -100,10 +101,16 @@ variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
 open scoped MeasureTheory ProbabilityTheory
 
-/-- **Conditional-kernel proxy for a Tian c-component factor.**
-
-    For a node set `C` and a fixed slice `s`, this is the conditional law of
-    `C` given `Pa⁺(C) \ C` under `M.obsKernel s`.
+/-- For [a structural causal model](hyp:M), [a finite set of observed SWIG
+    vertices](hyp:C), and [a fixed-value assignment](hyp:s), provided
+    [that the vertex set is contained in the observed-node set](hyp:hC) and
+    that the value space of that vertex set is standard Borel and nonempty,
+    every observational distribution at a fixed-value assignment is finite,
+    and either the fixed-value space is countable or the conditioning-value
+    space has a countably generated σ-algebra, the [c-component
+    conditional kernel](goal) is the conditional law of the values on the
+    vertex set given the values on its conditioning-parent set under the
+    model's observational law at that fixed-value assignment.
 
     The standard Tian c-factor `Q[C]` is the product over the prefix factors
     belonging to `C`, and Eq. 13 identifies that product with a do-complement

@@ -180,6 +180,9 @@ import Causalean.Mathlib.Analysis.RpowArith
 import Causalean.Mathlib.Analysis.SecondOrderDescent
 import Causalean.Mathlib.Analysis.SmoothReciprocal
 import Causalean.Mathlib.Analysis.WeightedCauchySchwarz
+import Causalean.Mathlib.Combinatorics.JohnsonKneser.Basic
+import Causalean.Mathlib.Combinatorics.JohnsonKneser.Harmonics
+import Causalean.Mathlib.Combinatorics.JohnsonKneser.Kneser
 import Causalean.Mathlib.CondDistribWitness
 import Causalean.Mathlib.CondIndep
 import Causalean.Mathlib.ConvergenceInDistribution

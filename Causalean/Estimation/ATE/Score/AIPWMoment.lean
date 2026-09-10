@@ -46,13 +46,13 @@ variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 
 /-! ## AIPW moment and influence function -/
 
-/-- Projection `(x, a, y) ↦ x`. -/
+/-- For a [covariate space](hyp:γ), the [covariate projection](goal) maps every observed triple $(x,a,y)$ to its covariate component $x$. -/
 def projX : γ × Bool × ℝ → γ := fun z => z.1
 
-/-- Projection `(x, a, y) ↦ a`. -/
+/-- For a [covariate space](hyp:γ), the [treatment projection](goal) maps every observed triple $(x,a,y)$ to its binary treatment component $a$. -/
 def projA : γ × Bool × ℝ → Bool := fun z => z.2.1
 
-/-- Projection `(x, a, y) ↦ y`. -/
+/-- For a [covariate space](hyp:γ), the [outcome projection](goal) maps every observed triple $(x,a,y)$ to its real-valued outcome component $y$. -/
 def projY : γ × Bool × ℝ → ℝ := fun z => z.2.2
 
 /-- The covariate projection of an observed data triple returns its covariate component. -/
@@ -67,11 +67,13 @@ lemma projA_apply (z : γ × Bool × ℝ) : projA z = z.2.1 := rfl
 @[causal_defs_simps]
 lemma projY_apply (z : γ × Bool × ℝ) : projY z = z.2.2 := rfl
 
-/-- Real-valued indicator of `{a = true}` viewed as a function of the data. -/
+/-- For a [covariate space](hyp:γ) and [an observed covariate--treatment--outcome triple](hyp:z), the [real-valued treatment indicator](goal) equals one when the treatment is true and zero when it is false. -/
 noncomputable def indA (z : γ × Bool × ℝ) : ℝ :=
   if projA z = true then 1 else 0
 
-/-- The AIPW moment `m_AIPW(η, z, θ)` from `def:est-aipw-moment`:
+/-- For a [covariate space](hyp:γ), [an observed triple](hyp:z), [two treatment-specific outcome-regression functions](hyp:μ_fn), [a propensity-score function](hyp:e_fn), and [a real target value](hyp:θ), the [augmented inverse-probability-weighting moment](goal) is the outcome-regression contrast plus the treated inverse-propensity-weighted residual minus the control inverse-propensity-weighted residual, less the target value.
+
+The AIPW moment `m_AIPW(η, z, θ)` from `def:est-aipw-moment`:
 
     μ(1,x) − μ(0,x) + (a/e(x))(y − μ(1,x)) − ((1−a)/(1−e(x)))(y − μ(0,x)) − θ. -/
 noncomputable def aipwMoment
@@ -95,8 +97,7 @@ lemma aipwMoment_eq
         - θ :=
   rfl
 
-/-- The AIPW influence function at the truth:
-`ψ_AIPW(z) := m_AIPW(η₀, z, θ₀)` with `η₀ = (μ_val, e_val)`. -/
+/-- For a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), [a back-door estimation system](hyp:S), and [an observed triple](hyp:z), the [AIPW influence function at the system's true nuisance functions and average treatment effect](goal) is its AIPW moment evaluated at that triple. -/
 noncomputable def ψ_AIPW (S : BackdoorEstimationSystem P γ)
     (z : γ × Bool × ℝ) : ℝ :=
   aipwMoment z S.μ_val S.e_val (S.θ₀)
@@ -125,13 +126,14 @@ namespace NuisanceVec
 
 variable {γ : Type*} [MeasurableSpace γ]
 
-/-- The zero nuisance sets both outcome regressions and the propensity function to zero. -/
+/-- For [a measurable covariate space](hyp:γ), the [zero operation on AIPW nuisance vectors](goal)
+sets [both treatment-specific outcome regressions and the propensity score to zero](step:1). -/
 instance : Zero (NuisanceVec γ) where
   zero := ⟨fun _ _ => 0, fun _ => 0,
            fun _ => measurable_const, measurable_const⟩
 
-/-- Addition of nuisance vectors is componentwise addition of the outcome
-regressions and propensity function. -/
+/-- For [a measurable covariate space](hyp:γ), the [addition operation on AIPW nuisance vectors](goal)
+is [componentwise addition of the treatment-specific outcome regressions and propensity score](step:1). -/
 instance : Add (NuisanceVec γ) where
   add η η' :=
     ⟨fun b x => η.μ_fn b x + η'.μ_fn b x,
@@ -139,14 +141,15 @@ instance : Add (NuisanceVec γ) where
      fun b => (η.μ_meas b).add (η'.μ_meas b),
      η.e_meas.add η'.e_meas⟩
 
-/-- Negation of a nuisance vector negates each outcome regression and the propensity function. -/
+/-- For [a measurable covariate space](hyp:γ), the [negation operation on AIPW nuisance vectors](goal)
+[negates each treatment-specific outcome regression and the propensity score](step:1). -/
 instance : Neg (NuisanceVec γ) where
   neg η :=
     ⟨fun b x => -η.μ_fn b x, fun x => -η.e_fn x,
      fun b => (η.μ_meas b).neg, η.e_meas.neg⟩
 
-/-- Subtraction of nuisance vectors is componentwise subtraction of the outcome
-regressions and propensity function. -/
+/-- For [a measurable covariate space](hyp:γ), the [subtraction operation on AIPW nuisance vectors](goal)
+is [componentwise subtraction of the treatment-specific outcome regressions and propensity score](step:1). -/
 instance : Sub (NuisanceVec γ) where
   sub η η' :=
     ⟨fun b x => η.μ_fn b x - η'.μ_fn b x,
@@ -154,8 +157,8 @@ instance : Sub (NuisanceVec γ) where
      fun b => (η.μ_meas b).sub (η'.μ_meas b),
      η.e_meas.sub η'.e_meas⟩
 
-/-- Scalar multiplication of a nuisance vector scales each outcome regression
-and the propensity function. -/
+/-- For [a measurable covariate space](hyp:γ), the [real scalar-multiplication operation on AIPW nuisance vectors](goal)
+[scales each treatment-specific outcome regression and the propensity score](step:1). -/
 instance : SMul ℝ (NuisanceVec γ) where
   smul t η :=
     ⟨fun b x => t * η.μ_fn b x, fun x => t * η.e_fn x,
@@ -177,7 +180,10 @@ theorem ext {η η' : NuisanceVec γ}
   · funext x
     exact he x
 
-/-- Nuisance vectors form an additive commutative group under componentwise operations. -/
+/-- For [a measurable covariate space](hyp:γ), the [additive commutative group structure on AIPW nuisance vectors](goal)
+uses [the zero vector](step:1), [componentwise addition](step:2), [componentwise negation](step:3),
+[componentwise subtraction](step:4), [natural-number scalar multiplication](step:5), and [integer scalar multiplication](step:6),
+and satisfies [the natural-zero rule](step:7), [the natural-successor rule](step:8), [the integer-zero rule](step:9), [the positive-integer-successor rule](step:10), [the negative-integer-successor rule](step:11), [subtraction as addition of an inverse](step:12), [associativity](step:13), [the left-zero law](step:14), [the right-zero law](step:15), [inverse cancellation](step:16), and [commutativity](step:17). -/
 instance : AddCommGroup (NuisanceVec γ) where
   zero := 0
   add := (· + ·)
@@ -226,7 +232,8 @@ instance : AddCommGroup (NuisanceVec γ) where
       exact add_comm (η.μ_fn b x) (η'.μ_fn b x)
     · exact add_comm (η.e_fn b) (η'.e_fn b)
 
-/-- Nuisance vectors form a real vector space under componentwise scalar multiplication. -/
+/-- For [a measurable covariate space](hyp:γ), the [real vector-space structure on AIPW nuisance vectors](goal)
+uses [componentwise scalar multiplication](step:1) and satisfies [multiplication by one](step:2), [compatibility of successive scalar multiplications](step:3), [multiplication of zero vectors](step:4), [distribution over vector addition](step:5), [distribution over scalar addition](step:6), and [multiplication by the zero scalar](step:7). -/
 instance : Module ℝ (NuisanceVec γ) where
   smul := (· • ·)
   one_smul η := by
@@ -280,21 +287,18 @@ namespace BackdoorEstimationSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- The truth `η₀ : NuisanceVec γ`. -/
+/-- For a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), and [a back-door estimation system](hyp:S), the [true nuisance vector](goal) consists of the system's treatment-specific outcome regressions and propensity score. -/
 noncomputable def η₀ (S : BackdoorEstimationSystem P γ) : NuisanceVec γ :=
   ⟨S.μ_val, S.e_val, S.μ_meas, S.e_meas⟩
 
-/-- The legacy overlap-bounded realization set consists of nuisance vectors whose
-propensity component lies between `ε` and `1 - ε` at every covariate value.
+/-- For a [measurable covariate space](hyp:γ) and [a real overlap level](hyp:ε), the [pointwise overlap-bounded nuisance class](goal) is the set of all nuisance vectors whose propensity score lies between $ε$ and $1-ε$ at every covariate value.
 
 This pointwise version remains for existing denominator-bound proofs that have
 not yet been migrated to a.e. overlap. -/
 def H_ε (ε : ℝ) : Set (NuisanceVec γ) :=
   { η | ∀ x, ε ≤ η.e_fn x ∧ η.e_fn x ≤ 1 - ε }
 
-/-- Source-shaped AIPW nuisance class: the propensity is overlap-bounded
-`P_X`-almost everywhere, both outcome regressions are square-integrable under
-the covariate law, and the propensity belongs to `L∞(P_X)`.
+/-- For a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), [a back-door estimation system](hyp:S), and [a real overlap level](hyp:ε), the [almost-everywhere $L^2$ AIPW nuisance class](goal) is the set of nuisance vectors whose propensity score lies between $ε$ and $1-ε$ almost everywhere under the covariate law, whose two outcome regressions are square-integrable under that law, and whose propensity score is essentially bounded under that law.
 
 This is the econometric nuisance-space structure used in standard AIPW/DML
 statements: overlap is a support condition, while the regression and propensity
@@ -351,8 +355,7 @@ lemma H_ε_aeL2_e_memLp_top
     MemLp η.e_fn ⊤ S.P_X :=
   hη.2.2
 
-/-- The AIPW moment as a moment functional `NuisanceVec γ → X → ℝ → ℝ`,
-suitable for feeding `NeymanOrthogonal`. -/
+/-- For a [measurable covariate space](hyp:γ), the [AIPW moment functional](goal) maps a nuisance vector, an observed covariate--treatment--outcome triple, and a real target value to the corresponding AIPW moment. -/
 noncomputable def aipwMomentFunctional :
     NuisanceVec γ → (γ × Bool × ℝ) → ℝ → ℝ :=
   fun η z θ => aipwMoment z η.μ_fn η.e_fn θ

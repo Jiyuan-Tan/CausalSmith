@@ -60,9 +60,13 @@ structure CertifiedIntervalArithmetic where
   refine_width : ∀ (x : CertifiedReal) (ε : PosRat),
     (refine x ε).width ≤ ε.1
 
-/-- The concrete certified interval arithmetic implementation uses exact
-rational primitives, rational Taylor/atanh enclosures, and stored effective
-moduli for certified real refinement. -/
+/-- The [concrete certified interval-arithmetic package](goal) provides outwardly sound
+rational interval operations for addition, subtraction, multiplication, division away from zero,
+exponentiation, logarithms and real powers on their positive domains, together with certified-real
+refinement of any requested positive rational precision.
+
+The concrete certified interval arithmetic implementation uses exact rational primitives, rational
+Taylor/atanh enclosures, and stored effective moduli for certified real refinement. -/
 def certifiedIntervalArithmetic : CertifiedIntervalArithmetic where
   add := RatInterval.add
   add_sound := RatInterval.add_sound

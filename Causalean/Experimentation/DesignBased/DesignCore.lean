@@ -55,19 +55,28 @@ namespace FiniteDesign
 
 variable {Ω : Type*} [Fintype Ω] (D : FiniteDesign Ω)
 
-/-- Expectation of a random variable `X : Ω → ℝ` under the design. -/
+/-- For [a randomization design](hyp:D) on a finite assignment space and [a real-valued
+statistic of the realized assignment](hyp:X), [the design expectation](goal) is the
+probability-weighted sum of that statistic over all assignments. -/
 def E (X : Ω → ℝ) : ℝ := ∑ z, D.p z * X z
 
-/-- Variance of `X` under the design. -/
+/-- For [a randomization design](hyp:D) on a finite assignment space and [a real-valued
+statistic of the realized assignment](hyp:X), [the design variance](goal) is the design
+expectation of the statistic's squared deviation from its design expectation. -/
 def Var (X : Ω → ℝ) : ℝ := D.E (fun z => (X z - D.E X) ^ 2)
 
-/-- Covariance of `X` and `Y` under the design. -/
+/-- For [a randomization design](hyp:D) on a finite assignment space and [two real-valued
+statistics of the realized assignment](hyp:X,Y), [the design covariance](goal) is the design
+expectation of the product of their deviations from their respective design expectations. -/
 def Cov (X Y : Ω → ℝ) : ℝ := D.E (fun z => (X z - D.E X) * (Y z - D.E Y))
 
-/-- Indicator of an event `A`, as a `{0,1}`-valued random variable. -/
+/-- For [an event with decidable membership](hyp:A) on an assignment space, [its indicator
+statistic](goal) assigns one to assignments in the event and zero to all other assignments. -/
 def ind (A : Ω → Prop) [DecidablePred A] : Ω → ℝ := fun z => if A z then 1 else 0
 
-/-- Probability of an event `A` under the design. -/
+/-- For [a randomization design](hyp:D) on a finite assignment space and [an event with
+decidable membership](hyp:A), [the design probability of the event](goal) is the design
+expectation of its indicator statistic. -/
 def Pr (A : Ω → Prop) [DecidablePred A] : ℝ := D.E (ind A)
 
 /-! ### Linearity of expectation -/
@@ -305,9 +314,12 @@ lemma Pr_split (B A : Ω → Prop) [DecidablePred A] [DecidablePred B] :
 
 /-! ### Pushforward along a map -/
 
-/-- The **pushforward** design `f_* D` of `D` along `f : Ω → Ω'`: the law of the transformed
-assignment `f z` when `z` is drawn from `D`.  Its weight on `y` is the total design weight of the
-fiber `f⁻¹{y}`. -/
+/-- For [a randomization design](hyp:D) on a finite assignment space and [a transformation from
+that space to another finite assignment space](hyp:f), [the pushforward randomization design](goal)
+is the law of the transformed assignment: each transformed assignment receives the total
+probability of all original assignments mapped to it.
+
+Its weight on each transformed assignment is the total design weight of its inverse image. -/
 noncomputable def map {Ω' : Type*} [Fintype Ω'] (f : Ω → Ω') :
     FiniteDesign Ω' := by
   classical

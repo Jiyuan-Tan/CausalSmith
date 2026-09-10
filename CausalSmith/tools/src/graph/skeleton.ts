@@ -20,7 +20,7 @@ const ROW_KINDS = new Set(["definition", "assumption", "lemma", "theorem"]);
 
 /** The obj_id a node is keyed by in the crosswalk: `aux_<decl>` hidden-defs mirror
  *  the legacy `AUX-<decl>` rows; everything else derives from raw ids like `thm:...`. */
-function rowObjId(n: GraphNode): string {
+export function reviewerObjId(n: GraphNode): string {
   if (n.id.startsWith("aux_")) return `AUX-${n.lean.decl_name ?? n.id.slice(4)}`;
   return nodeIdToObjId(n.id);
 }
@@ -64,7 +64,7 @@ export function renderDependencyBlock(rows: GraphSkeletonRow[]): string {
  * placeholder `unmatched`; durable review state lives on `node.review`.
  */
 export function graphDerivedSkeleton(graph: FormalizationGraph): GraphSkeletonRow[] {
-  const idToRow = new Map(graph.nodes.map((n) => [n.id, rowObjId(n)] as const));
+  const idToRow = new Map(graph.nodes.map((n) => [n.id, reviewerObjId(n)] as const));
   const rows: GraphSkeletonRow[] = [];
   for (const n of graph.nodes) {
     // A `cited` gate (borrowed comparator/input) IS a crosswalk row — its Lean def must be
@@ -89,8 +89,9 @@ export function graphDerivedSkeleton(graph: FormalizationGraph): GraphSkeletonRo
     }
     rows.push({
       graph_node_id: n.id,
-      obj_id: rowObjId(n),
-      // A cited gate reviews as an assumption (shallow tier — where the cited source-match block injects).
+      obj_id: reviewerObjId(n),
+      // A cited gate uses the shallow review tier so the source-match block is injected.
+      // This routing label does not turn a non-Prop metadata carrier into a logical assumption.
       kind: (isCitedGate ? "assumption" : n.kind) as CrosswalkEntry["kind"],
       title: n.nl.statement.split("\n")[0].slice(0, 120),
       tex: { label: n.nl.tex_anchor, line_range: n.nl.tex_anchor },

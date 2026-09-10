@@ -18,7 +18,12 @@ namespace Causalean.Mathlib.Optimization
 
 open scoped BigOperators
 
-/-- The threshold function `G(λ) = Σᵢ (max(λ − αᵢ, 0))² / βᵢ` whose level set
+/-- Given [three linear coefficients and three weights](hyp:α,β) and [a real
+multiplier](hyp:lam), the [active-set threshold value](goal) is the sum over the three
+coordinates of the squared positive part of the multiplier minus the coefficient, divided
+by the corresponding weight.
+
+The threshold function `G(λ) = Σᵢ (max(λ − αᵢ, 0))² / βᵢ` whose level set
 `G(λ) = κ²` selects the active support. -/
 noncomputable def kktThreshold (α β : Fin 3 → ℝ) (lam : ℝ) : ℝ :=
   ∑ i, (max (lam - α i) 0) ^ 2 / β i

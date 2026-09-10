@@ -67,12 +67,22 @@ structure FeasibleScore (μ : Measure ℝ) (x : ℝ) (s : ℝ → ℝ) : Prop wh
   /-- `s` carries the prescribed `y²`-moment: `∫ y²·s dμ = x`. -/
   cov_sq : ∫ y, y ^ 2 * s y ∂μ = x
 
-/-- The **optimal score** `s*(y) = (x / r)·q(y)`, where `q` is the L² projection residual of `y²`
+/-- For [a measure on the real line](hyp:μ) and [a real target moment](hyp:x), the [optimal
+score](goal) assigns to each real value the projection residual of its square multiplied by the
+target moment divided by the closed-form residual scalar calculated from the first four raw
+moments of the measure.
+
+The **optimal score** `s*(y) = (x / r)·q(y)`, where `q` is the L² projection residual of `y²`
 onto `span{1, y}` and `r = l2ResidualQuadratic μ`. This is the minimum-norm feasible score. -/
 noncomputable def optScore (μ : Measure ℝ) (x : ℝ) : ℝ → ℝ :=
   fun y => (x / l2ResidualQuadratic μ) * projResidual μ y
 
-/-- The **value of the score program**: the infimum of `∫ s² dμ` over all feasible scores `s`. -/
+/-- For [a measure on the real line](hyp:μ) and [a real target moment](hyp:x), the [score-program
+value](goal) is the infimum, over all square-integrable real-valued functions whose mean and first
+moment-weighted mean are zero and whose second-moment-weighted mean equals the target, of their
+integrated square.
+
+The **value of the score program**: the infimum of `∫ s² dμ` over all feasible scores `s`. -/
 noncomputable def scoreCost (μ : Measure ℝ) (x : ℝ) : ℝ :=
   sInf {c : ℝ | ∃ s, FeasibleScore μ x s ∧ c = ∫ y, s y ^ 2 ∂μ}
 

@@ -36,7 +36,8 @@ namespace PartialMatching
 
 variable {r s : ℕ}
 
-/-- The size of a partial matching is its number of paired coordinates. -/
+/-- For [a partial matching](hyp:M), its [matching size](goal) is the number of selected left
+coordinates, equivalently the number of paired coordinates. -/
 def size (M : PartialMatching r s) : ℕ := M.left.card
 
 /-- Given [a partial matching](hyp:M), [its selected right subset has the same
@@ -44,7 +45,8 @@ number of coordinates as the matching](goal). -/
 theorem right_card (M : PartialMatching r s) : M.right.card = M.size := by
   simpa [size] using (Fintype.card_congr M.equiv).symm
 
-/-- The empty partial matching between two coordinate sets pairs no coordinates. -/
+/-- For [two nonnegative coordinate-set sizes](hyp:r,s), the [empty partial matching](goal)
+selects no coordinate on either side and therefore contains no pairs. -/
 def empty (r s : ℕ) : PartialMatching r s where
   left := ∅
   right := ∅
@@ -75,17 +77,20 @@ theorem eq_empty_of_size_eq_zero (M : PartialMatching r s) (hM : M.size = 0) :
       intro x
       exact False.elim (by simpa using x.property)
 
-/-- The merged coordinate set retains every left coordinate and only the
-unmatched right coordinates. -/
+/-- For [a partial matching between coordinate sets of sizes $r$ and $s$](hyp:r,s,M), the
+[merged coordinate set](goal) contains every left coordinate together with precisely those right
+coordinates that are not selected by the matching. -/
 abbrev MergedIndex (M : PartialMatching r s) :=
   Fin r ⊕ {j : Fin s // j ∉ M.right}
 
-/-- A left coordinate occupies its own position in the merged coordinate set. -/
+/-- For [a partial matching](hyp:M) and [a left coordinate](hyp:i), the [left-coordinate
+injection](goal) assigns that coordinate its own position in the merged coordinate set. -/
 def leftInjection (M : PartialMatching r s) (i : Fin r) : M.MergedIndex :=
   Sum.inl i
 
-/-- A right coordinate shares the position of its matched left coordinate, or
-occupies a separate position when it is unmatched. -/
+/-- For [a partial matching](hyp:M) and [a right coordinate](hyp:j), the [right-coordinate
+injection](goal) assigns the coordinate to its matched left-coordinate position when it is
+matched, and otherwise to its own separate position in the merged coordinate set. -/
 noncomputable def rightInjection (M : PartialMatching r s) (j : Fin s) : M.MergedIndex := by
   classical
   by_cases hj : j ∈ M.right
@@ -106,8 +111,9 @@ theorem mergedIndex_card (M : PartialMatching r s) :
 
 end PartialMatching
 
-/-- Partial matchings are represented exactly by a selected subset on each side
-together with a bijection between those subsets. -/
+/-- For [two nonnegative coordinate-set sizes](hyp:r,s), the [partial-matching representation
+equivalence](goal) bijects partial matchings with a selected subset of each coordinate set and a
+bijection between the two selected subsets. -/
 def partialMatchingEquivSigma (r s : ℕ) :
     PartialMatching r s ≃
       Σ left : Finset (Fin r), Σ right : Finset (Fin s),
@@ -117,7 +123,8 @@ def partialMatchingEquivSigma (r s : ℕ) :
   left_inv M := by cases M; rfl
   right_inv M := by cases M; rfl
 
-/-- The equivalences between two finite sets form a finite collection. -/
+/-- For two finite sets, the collection of bijections between them
+is itself a finite collection. -/
 noncomputable local instance equivFintype {α β : Type*} [Fintype α] [Fintype β] :
     Fintype (α ≃ β) := by
   classical
@@ -128,19 +135,22 @@ noncomputable local instance equivFintype {α β : Type*} [Fintype α] [Fintype 
       right_inv := fun f => Subtype.ext (funext (fun x => rfl)) }
   exact Fintype.ofEquiv {f : α → β // Function.Bijective f} e.symm
 
-/-- The finite subsets of a finite set form a finite collection. -/
+/-- For a finite set, the collection of all its finite subsets is itself a
+finite collection. -/
 noncomputable local instance finsetFintype {α : Type*} [Fintype α] :
     Fintype (Finset α) where
   elems := Finset.univ.powerset
   complete := by simp
 
-/-- The collection of partial matchings between two finite coordinate sets is finite. -/
+/-- For [every pair of nonnegative integer coordinate-set sizes](hyp:r,s), [the
+collection of partial matchings between coordinate sets of those sizes is finite](goal). -/
 noncomputable instance partialMatchingFintype (r s : ℕ) : Fintype (PartialMatching r s) := by
   classical
   exact Fintype.ofEquiv _ (partialMatchingEquivSigma r s).symm
 
-/-- The fixed-size matching family consists of all partial matchings with exactly
-the prescribed number of pairs. -/
+/-- For [two nonnegative coordinate-set sizes and a prescribed number of pairs](hyp:r,s,h), the
+[fixed-size partial-matching family](goal) is the finite set of all partial matchings having
+exactly that prescribed number of paired coordinates. -/
 noncomputable def partialMatchingsOfSize (r s h : ℕ) : Finset (PartialMatching r s) := by
   classical
   exact Finset.univ.filter (fun M => M.size = h)

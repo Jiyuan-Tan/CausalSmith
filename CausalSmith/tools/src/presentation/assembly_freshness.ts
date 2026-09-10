@@ -35,10 +35,16 @@ export async function digestPaths(
   return hash.digest("hex");
 }
 
-async function assemblySourceDigest(outDir: string): Promise<string> {
+async function assemblySourceDigest(outDir: string, opts: { legacy?: boolean } = {}): Promise<string> {
+  // front_matter.tex is the reviser's commonest edit; P3 records after its own writes. It joins the
+  // digest whenever it exists (a bundle assembled before it was written keeps its baseline).
+  // `legacy` reproduces the pre-2026-09-09 formula (no front matter) so a manifest recorded under
+  // it is still honoured once; the next record re-stamps the current formula.
+  const frontMatter = join(outDir, "front_matter.tex");
   const paths = [
     join(outDir, "outline.md"),
     join(outDir, "appendix_proofs.tex"),
+    ...(opts.legacy ? [] : await readFile(frontMatter).then(() => [frontMatter], () => [])),
     ...(await texFilesUnder(outDir, ["sections", "proofs"])),
   ];
   return digestPaths(paths, { base: outDir });
@@ -61,6 +67,10 @@ export async function assertP2AssemblyFresh(outDir: string): Promise<void> {
   }
   const saved = JSON.parse(raw) as { source_digest?: string };
   const current = await assemblySourceDigest(outDir);
+  if (saved.source_digest && saved.source_digest !== current && saved.source_digest === await assemblySourceDigest(outDir, { legacy: true })) {
+    await recordP2Assembly(outDir); // the legacy match is consumed once: from here on front_matter.tex is guarded too
+    return;
+  }
   if (!saved.source_digest || saved.source_digest !== current) {
     throw new Error("P4 blocked: authored section/proof inputs changed after paper.tex was assembled; rerun from P2 before emitting.");
   }

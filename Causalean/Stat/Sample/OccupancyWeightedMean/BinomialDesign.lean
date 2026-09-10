@@ -90,15 +90,13 @@ private lemma sum_binomialWeight_interior_lower {m : Nat} (hm : 2 ≤ m)
   rw [sum_binomialWeight_interior hm p]
   nlinarith
 
-/-- The two-arm inverse-count contribution is the sum of the inverse success
-and failure counts when both are positive, and zero at either endpoint. -/
+/-- Given [a total count](hyp:m) and [a success count](hyp:j), [the two-arm inverse-count contribution](goal) is the sum of the reciprocal success and failure counts when both counts are positive, and is zero when either count is zero. -/
 noncomputable def inverseTwoCounts (m j : Nat) : Real :=
   if 0 < j ∧ j < m then
     (j : Real)⁻¹ + ((m - j : Nat) : Real)⁻¹
   else 0
 
-/-- The binomial interior indicator is one when both success and failure counts
-are positive, and zero at either endpoint. -/
+/-- Given [a total count](hyp:m) and [a success count](hyp:j), [the binomial interior indicator](goal) equals one when both the success and failure counts are positive, and equals zero when either count is zero. -/
 def interiorIndicator (m j : Nat) : Real :=
   if 0 < j ∧ j < m then 1 else 0
 

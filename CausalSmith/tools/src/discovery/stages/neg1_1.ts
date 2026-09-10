@@ -4,12 +4,14 @@
 // runner. See internal/plans/superpowers/specs/2026-07-20-dstage-framework-rewrite-design.md.
 
 import { mkdir, readFile } from "node:fs/promises";
+import { z } from "zod";
 import { MODEL_PLAN } from "../../constants.js";
 import type { PipelineContext, StageResult, StateJson } from "../../types.js";
 import { artifactPaths, readPrompt, type StageDeps } from "../../pipeline_support.js";
-import { dispatchAgent, parseAgentJson } from "../../framework/agent_dispatch.js";
+import { dispatchAgent } from "../../framework/agent_dispatch.js";
 import { normalizeRawModelJson } from "../core/latex_serialization.js";
 import { gapsJsonPath } from "../../paths.js";
+import { writeJsonAtomic } from "../../shared/json_atomic.js";
 
 /** Pure verdict over the scout's parsed stdout JSON.
  *
@@ -48,6 +50,187 @@ export function decideLitReviewOutcome(json: Record<string, unknown>): LitReview
   return { kind: status, nOpen };
 }
 
+const nonEmptyString = z.string().trim().min(1);
+const nonEmptyProvenanceString = z.string().refine((value) => value.trim().length > 0);
+function boundedDisplayString(maxLength: number) {
+  return z.preprocess(
+    (value) => typeof value === "string" && value.length > maxLength
+      ? value.slice(0, maxLength)
+      : value,
+    nonEmptyString.max(maxLength),
+  );
+}
+const sourceRefSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("paper"),
+    bibkey: nonEmptyString,
+    claim: nonEmptyString,
+    author: nonEmptyString,
+    year: z.number().int(),
+    venue: nonEmptyString,
+    url_or_doi: nonEmptyString,
+  }).strict(),
+  z.object({
+    kind: z.literal("prior_proposal"),
+    path: nonEmptyString,
+    qid: nonEmptyString,
+    spec: nonEmptyString,
+    where: nonEmptyString,
+    excerpt: boundedDisplayString(120),
+  }).strict(),
+]);
+const openProblemSchema = z.object({
+  open_problem: nonEmptyString,
+  source: z.enum(["web", "prior_proposal", "both"]),
+  source_refs: z.array(sourceRefSchema).min(1),
+  why_unsolved: nonEmptyString,
+  what_a_resolution_would_look_like: nonEmptyString,
+  cluster_hint: z.enum(["panel", "exactid", "partialid", "stat", "experimentation", "scm"]),
+  exemplars: z.object({
+    writing_exemplar: z.union([z.object({
+      bibkey: nonEmptyString,
+      arxiv_id_or_doi: nonEmptyString,
+      why: nonEmptyString,
+      motivation_arc: nonEmptyString,
+    }).strict(), z.null()]),
+    method_exemplars: z.array(z.object({
+      bibkey: nonEmptyString,
+      arxiv_id_or_doi: nonEmptyString,
+      role: z.enum(["identification", "estimation_inference"]),
+      technique: nonEmptyString,
+      why_closest: nonEmptyString,
+    }).strict()),
+  }).strict(),
+}).strict().superRefine((value, ctx) => {
+  const kinds = new Set(value.source_refs.map((ref) => ref.kind));
+  if (value.source === "web" && !kinds.has("paper")) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "web opportunity lacks a paper source" });
+  }
+  if (value.source === "prior_proposal" && !kinds.has("prior_proposal")) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "prior-proposal opportunity lacks a prior source" });
+  }
+  if (value.source === "both" && (!kinds.has("paper") || !kinds.has("prior_proposal"))) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "both-sourced opportunity lacks one source kind" });
+  }
+});
+const scoutArtifactSchema = z.object({
+  status: z.enum(["completed", "needs-pivot"]),
+  gaps_path: nonEmptyString,
+  topic: nonEmptyProvenanceString,
+  n_open_problems: z.number().int().nonnegative(),
+  by_source: z.object({
+    web: z.number().int().nonnegative(),
+    prior_proposal: z.number().int().nonnegative(),
+    both: z.number().int().nonnegative(),
+  }),
+  open_problems: z.array(openProblemSchema),
+  literature_map: z.string(),
+  prior_proposal_map: z.string(),
+  artifacts: z.array(nonEmptyString).min(1),
+}).strict().superRefine((value, ctx) => {
+  if (value.n_open_problems !== value.open_problems.length) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "n_open_problems disagrees with open_problems.length" });
+  }
+  const actualBySource = { web: 0, prior_proposal: 0, both: 0 };
+  for (const problem of value.open_problems) actualBySource[problem.source] += 1;
+  for (const source of ["web", "prior_proposal", "both"] as const) {
+    if (value.by_source[source] !== actualBySource[source]) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `by_source.${source} disagrees with open_problems` });
+    }
+  }
+  if ((value.status === "completed") !== (value.n_open_problems >= 3)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "status disagrees with the three-opportunity threshold" });
+  }
+});
+
+/** Bind the scout artifact to the orchestrator-owned topic.
+ *
+ * The topic is input provenance, not model-authored content.  Treating the
+ * scout's lossy echo as authoritative made an otherwise valid harvest fail
+ * whenever the model shortened a long topic. */
+export function bindScoutTopic(
+  json: Record<string, unknown>,
+  expectedTopic: string,
+): Record<string, unknown> {
+  return { ...json, topic: expectedTopic };
+}
+
+/** Replace every filesystem/provenance field with orchestrator-owned values.
+ *
+ * The scout supplies research content only.  In particular, a path echoed by
+ * the model is never inspected or used as a publication source. */
+export function bindScoutProvenance(
+  json: Record<string, unknown>,
+  expectedTopic: string,
+  gapsPath: string,
+): Record<string, unknown> {
+  return {
+    ...json,
+    topic: expectedTopic,
+    gaps_path: gapsPath,
+    artifacts: [gapsPath],
+  };
+}
+
+export function parseStrictScoutStdout(
+  stdout: string,
+  expectedTopic: string,
+  gapsPath: string,
+):
+  | { ok: true; json: z.infer<typeof scoutArtifactSchema> }
+  | { ok: false; error: string } {
+  const normalized = normalizeRawModelJson(stdout).trim();
+  let raw: unknown;
+  try {
+    raw = JSON.parse(normalized);
+  } catch (error) {
+    return { ok: false, error: `no exact JSON object (${error instanceof Error ? error.message : String(error)})` };
+  }
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+    return { ok: false, error: "stdout must be exactly one JSON object" };
+  }
+  const validated = scoutArtifactSchema.safeParse(
+    bindScoutProvenance(raw as Record<string, unknown>, expectedTopic, gapsPath),
+  );
+  if (!validated.success) {
+    return { ok: false, error: validated.error.issues[0]?.message ?? "schema mismatch" };
+  }
+  return { ok: true, json: validated.data };
+}
+
+function persistScoutDecision(args: {
+  state: StateJson;
+  gapsPath: string;
+  decision: Exclude<LitReviewDecision, { kind: "malformed" }>;
+  recovered: boolean;
+}): StageResult {
+  args.state.gaps = {
+    gaps_path: args.gapsPath,
+    n_open_problems: args.decision.nOpen,
+    status: args.decision.kind,
+  };
+
+  const verb = args.recovered ? "recovered written artifact with" : "harvested";
+  if (args.decision.kind === "needs-pivot") {
+    return {
+      stage: "-1.1",
+      status: "checkpoint",
+      advance: false,
+      message:
+        `Stage -1.1 needs-pivot — ${verb} ${args.decision.nOpen} open problem(s); topic anchor too generic; ` +
+        "orchestrator must pivot the topic",
+      artifacts: [args.gapsPath],
+    };
+  }
+
+  return {
+    stage: "-1.1",
+    status: "completed",
+    message: `Stage -1.1 ${verb} ${args.decision.nOpen} open problems at ${args.gapsPath}`,
+    artifacts: [args.gapsPath],
+  };
+}
+
 /**
  * Stage -1.1 literature scout: mine open problems from web search + prior
  * causalsmith proposals/reviewer JSONs and emit a structured `gaps.json` substrate
@@ -72,7 +255,7 @@ export async function runStageNeg1_1(args: {
   if (!args.ctx.proposeTopic) {
     return { stage: "-1.1", status: "skipped", message: "lit-review stage skipped (no --propose)" };
   }
-  if (args.state.gaps) {
+  if (args.state.gaps && !args.state.pre_d0_intent?.scout_refresh) {
     // A `needs-pivot` harvest is NOT a completed lit review. `state.gaps` is written and
     // persisted BEFORE the checkpoint returns, and `pipeline.ts` selects the entry stage on
     // `state.gaps` being truthy — so without this guard a resume skips straight past this
@@ -86,8 +269,8 @@ export async function runStageNeg1_1(args: {
         message:
           `Stage -1.1 previously harvested only ${args.state.gaps.n_open_problems} open problem(s) and returned ` +
           `needs-pivot: the topic is too thin to author against. A resume must NOT proceed to D-1.2 on it. ` +
-          `Pivot the topic (re-run --propose with a different anchor), or if you disagree with the scout, ` +
-          `clear state.gaps out-of-band to force a re-harvest.`,
+          `Pivot the topic under a NEW qid (the durable pre-D0 intent binds this qid to its topic), or if you ` +
+          `disagree with the scout, re-enter with --resume --from-stage -1.1 to force a re-harvest.`,
       };
     }
     return {
@@ -126,6 +309,8 @@ export async function runStageNeg1_1(args: {
     `gaps artifact path: ${gapsPath}`,
     upgradeBlock,
     "",
+    "Artifact publication is orchestrator-owned for this stage. Do not write any file.",
+    "Return the research payload only on stdout; topic, gaps_path, and artifacts are bound and published by TypeScript.",
     "Emit exactly one JSON object to stdout matching the schema in the prompt.",
   ]
     .filter((s) => s !== "")
@@ -151,52 +336,33 @@ export async function runStageNeg1_1(args: {
   // The scout quotes estimands and rates from the literature, so its stdout is a
   // TeX-bearing model boundary: normalize the raw bytes (where an under-escaped
   // `\theta` is still distinguishable from tab + "heta") before the JSON funnel.
-  const parsed = parseAgentJson(normalizeRawModelJson(out.stdout));
-  if (!parsed.json) {
+  const parsed = parseStrictScoutStdout(out.stdout, args.ctx.proposeTopic, gapsPath);
+  if (!parsed.ok) {
     return {
       stage: "-1.1",
       status: "checkpoint",
       advance: false,
-      message: `Stage -1.1 emitted no parseable JSON (parseError=${parsed.parseError ?? "n/a"}); re-run --resume after inspecting codex logs`,
+      message: `Stage -1.1 stdout is not a valid scout artifact (${parsed.error}); inspect codex logs before retrying`,
     };
   }
 
-  // ---- decide (pure) --------------------------------------------------------
-  const decision = decideLitReviewOutcome(parsed.json);
-  if (decision.kind === "malformed") {
-    return {
-      stage: "-1.1",
-      status: "checkpoint",
-      advance: false,
-      message:
-        `Stage -1.1 returned a malformed/wrong-object payload, NOT evidence that the topic is too generic — ` +
-        `refusing to force a pivot on it (${decision.detail}). Inspect the stage transcript, then --resume.`,
-    };
+  // The model supplies content, not a path or a file.  Publish only the
+  // schema-validated object whose provenance was deterministically rebound.
+  await writeJsonAtomic(gapsPath, parsed.json);
+
+  if (args.state.pre_d0_intent?.scout_refresh) {
+    // A deliberate re-scout: the old proposal was drafted against the stale gaps,
+    // so D-1.2 starts cold (the author overwrites the canonical core on promotion).
+    delete args.state.proposed_from;
+    args.state.pre_d0_intent.scout_refresh = false;
   }
 
-  // ---- persist --------------------------------------------------------------
-  args.state.gaps = {
-    gaps_path: gapsPath,
-    n_open_problems: decision.nOpen,
-    status: decision.kind,
-  };
-
-  if (decision.kind === "needs-pivot") {
-    return {
-      stage: "-1.1",
-      status: "checkpoint",
-      advance: false,
-      message: `Stage -1.1 needs-pivot — topic anchor too generic (n_open_problems=${decision.nOpen} < 3); orchestrator must pivot the topic`,
-      artifacts: [gapsPath],
-    };
-  }
-
-  return {
-    stage: "-1.1",
-    status: "completed",
-    message: `Stage -1.1 harvested ${decision.nOpen} open problems at ${gapsPath}`,
-    artifacts: [gapsPath],
-  };
+  return persistScoutDecision({
+    state: args.state,
+    gapsPath,
+    decision: { kind: parsed.json.status, nOpen: parsed.json.n_open_problems },
+    recovered: false,
+  });
 }
 
 /**

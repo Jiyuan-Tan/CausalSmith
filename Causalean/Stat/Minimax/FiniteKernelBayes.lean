@@ -47,7 +47,9 @@ theorem loss_integrable_kernel (K : Kernel Θ S) [IsMarkovKernel K]
     (loss : A → S → ℝ) (a : A) (θ : Θ) : Integrable (loss a) (K θ) := by
   exact finite_integrable (K θ) (loss a)
 
-/-- `kernelAverageLoss` is the expected loss of an action under the state distribution selected
+/-- Given [a measurable parameter space](hyp:Θ), [a finite measurable state space](hyp:S), [an action space](hyp:A), [a probability kernel from parameters to states](hyp:K), [a real-valued loss for each action and state](hyp:loss), [an action](hyp:a), and [a parameter value](hyp:θ), [the kernel-average loss](goal) is the expected loss of that action under the state distribution selected by the kernel at that parameter value.
+
+`kernelAverageLoss` is the expected loss of an action under the state distribution selected
 by a kernel at a parameter value. -/
 noncomputable def kernelAverageLoss (K : Kernel Θ S) (loss : A → S → ℝ)
     (a : A) (θ : Θ) : ℝ :=
@@ -97,7 +99,9 @@ theorem integrable_kernel_singletonReal (π : Measure Θ) [IsProbabilityMeasure 
   have htop : ((K θ) Set.univ) ≠ ⊤ := by simp
   simpa using ENNReal.toReal_mono htop (measure_mono (Set.subset_univ {s}))
 
-/-- `mixedKernelLoss` is the prior average of an action's kernel-averaged state loss. -/
+/-- Given [a measurable parameter space](hyp:Θ), [a finite measurable state space](hyp:S), [an action space](hyp:A), [a prior measure on the parameter space](hyp:π), [a probability kernel from parameters to states](hyp:K), [a real-valued loss for each action and state](hyp:loss), and [an action](hyp:a), [the mixed kernel loss](goal) is that action's kernel-average loss integrated with respect to the prior.
+
+`mixedKernelLoss` is the prior average of an action's kernel-averaged state loss. -/
 noncomputable def mixedKernelLoss (π : Measure Θ) (K : Kernel Θ S)
     (loss : A → S → ℝ) (a : A) : ℝ :=
   ∫ θ, kernelAverageLoss K loss a θ ∂π
@@ -147,7 +151,9 @@ theorem mixedKernelLoss_le_worstCaseRisk (π : Measure Θ) [IsProbabilityMeasure
             _ = worstCaseRisk loss a := by simp
     _ = worstCaseRisk loss a := by simp
 
-/-- `realBayesRisk` is the smallest prior-and-kernel average loss achievable by an action in a
+/-- Given [a measurable parameter space](hyp:Θ), [a finite measurable state space](hyp:S), [an action space](hyp:A), [a prior measure on the parameter space](hyp:π), [a probability kernel from parameters to states](hyp:K), and [a real-valued loss for each action and state](hyp:loss), [the real Bayes risk](goal) is the infimum, over all actions, of their mixed kernel losses.
+
+`realBayesRisk` is the smallest prior-and-kernel average loss achievable by an action in a
 finite-state decision problem. -/
 noncomputable def realBayesRisk (π : Measure Θ) (K : Kernel Θ S)
     (loss : A → S → ℝ) : ℝ :=
@@ -208,7 +214,9 @@ theorem integral_loss_comp_le_worstCaseRisk (π : Measure Θ) [IsProbabilityMeas
   rw [← mixedKernelLoss_deterministic π f hf loss a]
   exact mixedKernelLoss_le_worstCaseRisk π (Kernel.deterministic f hf) loss hloss a
 
-/-- `deterministicBayesRisk` is the smallest prior-integrated loss achieved after a measurable
+/-- Given [a measurable parameter space](hyp:Θ), [a finite measurable state space](hyp:S), [an action space](hyp:A), [a prior measure on the parameter space](hyp:π), [a map assigning each parameter a state](hyp:f), and [a real-valued loss for each action and state](hyp:loss), [the deterministic Bayes risk](goal) is the infimum, over all actions, of the prior-integrated loss evaluated at the state assigned to each parameter.
+
+`deterministicBayesRisk` is the smallest prior-integrated loss achieved after a measurable
 parameter is deterministically assigned to a finite state. -/
 noncomputable def deterministicBayesRisk (π : Measure Θ) (f : Θ → S)
     (loss : A → S → ℝ) : ℝ :=
@@ -265,7 +273,9 @@ theorem finiteDesign_expectedLoss_le_worstCaseRisk
           exact le_worstCaseRisk (finite_range_bddAbove (loss a)) s
     _ = worstCaseRisk loss a := by simp
 
-/-- `finiteDesignBayesRisk` is the smallest expected loss attainable under a fixed finite
+/-- Given [a finite state space](hyp:S), [an action space](hyp:A), [a finite randomization design on the state space](hyp:D), and [a real-valued loss for each action and state](hyp:loss), [the finite-design Bayes risk](goal) is the infimum, over all actions, of their expected losses under that design.
+
+`finiteDesignBayesRisk` is the smallest expected loss attainable under a fixed finite
 randomization design. -/
 noncomputable def finiteDesignBayesRisk
     (D : Causalean.Experimentation.DesignBased.FiniteDesign S)
@@ -285,7 +295,9 @@ theorem finiteDesignBayesRisk_le_minimaxValue [Nonempty A]
   rintro _ ⟨a', rfl⟩
   exact Finset.sum_nonneg fun s _ ↦ mul_nonneg (D.p_nonneg s) (hloss a' s)
 
-/-- `inducedFiniteDesign` assigns each finite state the average, under the prior, of the Markov
+/-- Given [a measurable parameter space](hyp:Θ), [a nonempty finite measurable state space with measurable singletons](hyp:S), [a probability prior on the parameter space](hyp:π), and [a Markov kernel from parameters to states](hyp:K), [the induced finite design](goal) is the design whose [probability assigned to each state is the prior average of the kernel's probability of that state](step:1), these probabilities are nonnegative, and their sum over all states is one.
+
+`inducedFiniteDesign` assigns each finite state the average, under the prior, of the Markov
 kernel's probability of that state. -/
 noncomputable def inducedFiniteDesign (π : Measure Θ) [IsProbabilityMeasure π]
     (K : Kernel Θ S) [IsMarkovKernel K] :

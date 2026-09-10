@@ -40,16 +40,21 @@ open UniformTwoWayPanel
 variable {Unit Time : Type*} [Fintype Unit] [Fintype Time]
 variable {K : Type*} [Fintype K] [DecidableEq K]
 
-/-- Component-wise double-demeaned vector regressor: the `k`-th coordinate is
-the scalar double demean of the `k`-th component field. -/
+/-- For [finite unit, time-period, and regressor-coordinate sets](hyp:Unit,Time,K), [a vector-valued regressor array](hyp:X), [a unit](hyp:i), [a time period](hyp:t),
+and [a regressor coordinate](hyp:k), the [componentwise double-demeaned regressor](goal) is
+the scalar double demean of that coordinate over the finite balanced panel. -/
 noncomputable def ddotVec (X : Unit → Time → K → ℝ) (i : Unit) (t : Time) (k : K) : ℝ :=
   ddot (fun i t => X i t k) i t
 
-/-- Residualized Gram matrix `Q_{\ddot X} = Σ_it ddot(X_it) ddot(X_it)ᵀ`. -/
+/-- For [finite unit, time-period, and regressor-coordinate sets](hyp:Unit,Time,K) and [a vector-valued regressor array](hyp:X), the [residualized Gram matrix](goal) has
+entry $(j,k)$ equal to the finite sum, over units and time periods, of the product of the
+double-demeaned $j$-th and $k$-th regressor coordinates. -/
 noncomputable def gram (X : Unit → Time → K → ℝ) : Matrix K K ℝ :=
   fun j k => ∑ i, ∑ t, ddotVec X i t j * ddotVec X i t k
 
-/-- Residualized numerator vector `Σ_it ddot(X_it) ddot(Y_it)`. -/
+/-- For [finite unit, time-period, and regressor-coordinate sets](hyp:Unit,Time,K), [a vector-valued regressor array](hyp:X), and [an outcome array](hyp:Y), the
+[residualized numerator vector](goal) has coordinate $k$ equal to the finite sum of the
+product of the double-demeaned $k$-th regressor and the double-demeaned outcome. -/
 noncomputable def numer (X : Unit → Time → K → ℝ) (Y : Unit → Time → ℝ) : K → ℝ :=
   fun k => ∑ i, ∑ t, ddotVec X i t k * ddot Y i t
 
@@ -67,12 +72,16 @@ structure VectorTWFEProblem (Unit Time : Type*) [Fintype Unit] [Fintype Time]
 
 namespace VectorTWFEProblem
 
-/-- Closed-form vector TWFE coefficient `Q_{\ddot X}⁻¹ (Σ_it ddot X ddot Y)`. -/
+/-- For [finite unit, time-period, and regressor-coordinate sets](hyp:Unit,Time,K) and [a vector two-way-fixed-effects problem](hyp:P), the [closed-form vector TWFE
+coefficient](goal) is the inverse residualized Gram matrix multiplied by the residualized
+outcome-regressor numerator vector. -/
 noncomputable def betaTWFE (P : VectorTWFEProblem Unit Time K) : K → ℝ :=
   (gram P.X)⁻¹.mulVec (numer P.X P.Y)
 
-/-- Vector TWFE normal equation after double demeaning: in every coordinate the
-residualized regressor is orthogonal to the residual. -/
+/-- For [finite unit, time-period, and regressor-coordinate sets](hyp:Unit,Time,K), [a vector two-way-fixed-effects problem](hyp:P), and [a candidate coefficient
+vector](hyp:β), the [vector TWFE normal-equation condition](goal) requires that, for every
+regressor coordinate, the finite inner product of its double-demeaned regressor with the
+double-demeaned outcome residual is zero. -/
 def vecTwfeNormalEq (P : VectorTWFEProblem Unit Time K) (β : K → ℝ) : Prop :=
   ∀ k, ∑ i, ∑ t,
     ddotVec P.X i t k * (ddot P.Y i t - ∑ j, ddotVec P.X i t j * β j) = 0
@@ -162,7 +171,12 @@ theorem betaTWFE_unique (P : VectorTWFEProblem Unit Time K) {β : K → ℝ}
 
 end VectorTWFEProblem
 
-/-- The scalar TWFE problem embeds as the singleton-`K = Fin 1` vector problem:
+/-- For [finite unit and time-period sets](hyp:Unit,Time) and [a scalar two-way-fixed-effects problem](hyp:P), the [associated one-coordinate vector
+two-way-fixed-effects problem](goal) has the same panel and outcome, uses the scalar regressor
+as its sole coordinate, and has a nonsingular residualized Gram matrix because the scalar
+double-demeaned regressor has a strictly positive sum of squares.
+
+The scalar TWFE problem embeds as the singleton-`K = Fin 1` vector problem:
 the regressor is the same scalar in the single coordinate and the matrix
 full-rank condition reduces to the scalar `ddotX_ss_pos`. -/
 noncomputable def ScalarTWFEProblem.toVector (P : ScalarTWFEProblem Unit Time) :

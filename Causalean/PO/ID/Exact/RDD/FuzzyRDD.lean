@@ -44,22 +44,7 @@ import Causalean.Tactic.Attr
 
 /-! # Fuzzy Regression Discontinuity
 
-This file formalizes fuzzy regression-discontinuity identification using
-regression-function representatives at the cutoff. `POFuzzyRDDSystem` defines
-the running variable, cutoff indicator, binary treatment, outcome, potential
-treatment `DofZ`, potential outcome `YofD`, induced outcome `YofDofZ`, and the
-complier-weighted outcome difference `YdiffComplier`.
-
-The `Assumptions` bundle records consistency, deterministic cutoff eligibility,
-local treatment monotonicity near the cutoff, latent and observable regression
-representatives, one-sided support, observable one-sided limits, a complier
-outcome-difference representative, and a nonzero first-stage jump. The main
-definitions are `tau_FRD` and `tau_LATE`. Theorems `nuD_right_limit_eq`,
-`nuD_left_limit_eq`, `nuY_right_limit_eq`, and `nuY_left_limit_eq` identify the
-observable one-sided limits with latent regression values, and
-`frd_identification` identifies the observable cutoff Wald ratio. The theorem
-`tau_late_identification` gives the separate global-monotonicity bridge from
-the fuzzy RDD ratio to the cutoff representative complier-effect ratio. -/
+This file provides the potential-outcome data layer, assumptions, and observable and latent regression functionals for fuzzy regression discontinuity at a cutoff. It supports the library's identification results by defining the cutoff Wald estimand, the corresponding complier-effect ratio, and their one-sided regression limits. -/
 
 namespace Causalean
 namespace PO
@@ -93,27 +78,27 @@ namespace POFuzzyRDDSystem
 
 variable {P : POSystem} (S : POFuzzyRDDSystem P)
 
-/-- Factual running variable `X`. -/
+/-- For [a fuzzy regression-discontinuity system](hyp:S), the [factual running variable](goal) assigns each unit its observed real-valued running variable. -/
 noncomputable def factualX : P.Ω → ℝ := S.Xvar.factual
 
-/-- Factual cutoff-eligibility instrument `Z`. -/
+/-- For [a fuzzy regression-discontinuity system](hyp:S), the [factual cutoff-eligibility indicator](goal) assigns each unit its observed binary above-cutoff indicator. -/
 noncomputable def factualZ : P.Ω → Bool := S.Zvar.factual
 
-/-- Factual treatment `D`. -/
+/-- For [a fuzzy regression-discontinuity system](hyp:S), the [factual treatment](goal) assigns each unit its observed binary treatment. -/
 noncomputable def factualD : P.Ω → Bool := S.Dvar.factual
 
-/-- Factual outcome `Y`. -/
+/-- For [a fuzzy regression-discontinuity system](hyp:S), the [factual outcome](goal) assigns each unit its observed real outcome. -/
 noncomputable def factualY : P.Ω → ℝ := S.Yvar.factual
 
-/-- Instrument-specific potential treatment `D(z)`. -/
+/-- For [a fuzzy regression-discontinuity system](hyp:S) and [an instrument value](hyp:z), the [potential treatment](goal) assigns each unit the binary treatment it would take under that instrument value. -/
 noncomputable def DofZ (z : Bool) : P.Ω → Bool :=
   S.Dvar.cfUnder S.Zvar z
 
-/-- Treatment-specific potential outcome `Y(d)`. -/
+/-- For [a fuzzy regression-discontinuity system](hyp:S) and [a treatment value](hyp:d), the [potential outcome](goal) assigns each unit the real outcome it would have under that treatment value. -/
 noncomputable def YofD (d : Bool) : P.Ω → ℝ :=
   S.Yvar.cfUnder S.Dvar d
 
-/-- Outcome under the treatment induced by instrument value `z`, `Y(D(z))`. -/
+/-- For [a fuzzy regression-discontinuity system](hyp:S) and [an instrument value](hyp:z), the [instrument-induced potential outcome](goal) assigns each unit the potential outcome under the treatment that the instrument value would induce for that unit. -/
 noncomputable def YofDofZ (z : Bool) : P.Ω → ℝ :=
   fun ω => if S.DofZ z ω then S.YofD true ω else S.YofD false ω
 
@@ -125,7 +110,9 @@ lemma YofDofZ_def (z : Bool) :
     S.YofDofZ z = fun ω => if S.DofZ z ω then S.YofD true ω else S.YofD false ω :=
   rfl
 
-/-- Y-difference weighted by the complier indicator `1_{D(1)=1, D(0)=0}`.
+/-- For [a fuzzy regression-discontinuity system](hyp:S), the [complier-weighted outcome difference](goal) assigns each unit the difference between its treated and untreated potential outcomes when it is a complier, and zero otherwise.
+
+Y-difference weighted by the complier indicator `1_{D(1)=1, D(0)=0}`.
 Equals `Y(D(1)) − Y(D(0))` a.e. under monotonicity; used in the LATE bridge. -/
 noncomputable def YdiffComplier : P.Ω → ℝ :=
   fun ω => (S.YofD true ω - S.YofD false ω) *
@@ -172,7 +159,7 @@ lemma measurable_YdiffComplier : Measurable S.YdiffComplier := by
         (S.measurable_DofZ false (MeasurableSet.singleton false)))
       measurable_const measurable_const
 
-/-- Factual eligibility event `{Z = z}`. -/
+/-- For [a fuzzy regression-discontinuity system](hyp:S) and [an instrument value](hyp:z), the [eligibility event](goal) is the set of units whose observed above-cutoff indicator equals that value. -/
 def zEvent (z : Bool) : Set P.Ω := S.Zvar.event z
 
 /-- The factual eligibility event is measurable. -/
@@ -239,34 +226,44 @@ structure Assumptions (S : POFuzzyRDDSystem P) where
   mu_Ydiff_complier_continuousAt : ContinuousAt mu_Ydiff_complier S.c
   firstStageJump : muD true S.c - muD false S.c ≠ 0
 
-/-- Cutoff-local fuzzy RDD Wald estimand in regression-representative form. -/
+/-- For [a fuzzy regression-discontinuity system](hyp:S) satisfying [the fuzzy-RDD assumptions](hyp:hA), the [cutoff-local fuzzy-RDD Wald estimand](goal) is the difference between the treated- and untreated-instrument latent outcome regressions at the cutoff divided by the corresponding treatment-regression difference. -/
 noncomputable def tau_FRD (hA : S.Assumptions) : ℝ :=
   (hA.muY true S.c - hA.muY false S.c) /
     (hA.muD true S.c - hA.muD false S.c)
 
-/-- Cutoff-local complier-effect ratio in regression-representative form.
+/-- For [a fuzzy regression-discontinuity system](hyp:S) satisfying [the fuzzy-RDD assumptions](hyp:hA), the [cutoff-local complier-effect ratio](goal) is the complier outcome-difference regression at the cutoff divided by the latent first-stage treatment-regression jump.
+
+Cutoff-local complier-effect ratio in regression-representative form.
 It divides the complier outcome-difference representative at the cutoff by the
 first-stage jump; `tau_late_identification` connects this ratio to `tau_FRD`
 under the fuzzy-RDD assumptions. -/
 noncomputable def tau_LATE (hA : S.Assumptions) : ℝ :=
   hA.mu_Ydiff_complier S.c / (hA.muD true S.c - hA.muD false S.c)
 
-/-- The right-hand treatment limit is the selected limit at the cutoff of the
+/-- For [a fuzzy regression-discontinuity system](hyp:S) satisfying [the fuzzy-RDD assumptions](hyp:hA), the [right-hand treatment-regression limit](goal) is the selected limit of the observed treatment regression as the running variable approaches the cutoff from above.
+
+The right-hand treatment limit is the selected limit at the cutoff of the
 observable treatment regression as the running variable approaches from above. -/
 noncomputable def nuD_right_limit (hA : S.Assumptions) : ℝ :=
   Classical.choose hA.nuD_right_limit_exists
 
-/-- The left-hand treatment limit is the selected limit at the cutoff of the
+/-- For [a fuzzy regression-discontinuity system](hyp:S) satisfying [the fuzzy-RDD assumptions](hyp:hA), the [left-hand treatment-regression limit](goal) is the selected limit of the observed treatment regression as the running variable approaches the cutoff from below.
+
+The left-hand treatment limit is the selected limit at the cutoff of the
 observable treatment regression as the running variable approaches from below. -/
 noncomputable def nuD_left_limit (hA : S.Assumptions) : ℝ :=
   Classical.choose hA.nuD_left_limit_exists
 
-/-- The right-hand outcome limit is the selected limit at the cutoff of the
+/-- For [a fuzzy regression-discontinuity system](hyp:S) satisfying [the fuzzy-RDD assumptions](hyp:hA), the [right-hand outcome-regression limit](goal) is the selected limit of the observed outcome regression as the running variable approaches the cutoff from above.
+
+The right-hand outcome limit is the selected limit at the cutoff of the
 observable outcome regression as the running variable approaches from above. -/
 noncomputable def nuY_right_limit (hA : S.Assumptions) : ℝ :=
   Classical.choose hA.nuY_right_limit_exists
 
-/-- The left-hand outcome limit is the selected limit at the cutoff of the
+/-- For [a fuzzy regression-discontinuity system](hyp:S) satisfying [the fuzzy-RDD assumptions](hyp:hA), the [left-hand outcome-regression limit](goal) is the selected limit of the observed outcome regression as the running variable approaches the cutoff from below.
+
+The left-hand outcome limit is the selected limit at the cutoff of the
 observable outcome regression as the running variable approaches from below. -/
 noncomputable def nuY_left_limit (hA : S.Assumptions) : ℝ :=
   Classical.choose hA.nuY_left_limit_exists

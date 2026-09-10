@@ -31,6 +31,8 @@ export interface PaperTokenUsageSummary {
   orchestrator_tokens: number | null;
   pipeline_codex: ProviderTokenSummary;
   pipeline_claude: ProviderTokenSummary;
+  /** Exact sum of all model calls whose usage was available to the pipeline. */
+  pipeline_tokens_consumed: number;
   total_tokens_consumed: number | null;
 }
 
@@ -96,6 +98,7 @@ export async function summarizeTokenUsage(
     orchestrator_tokens: orch,
     pipeline_codex: codex,
     pipeline_claude: claude,
+    pipeline_tokens_consumed: codex.total_tokens + claude.total_tokens,
     total_tokens_consumed: complete
       ? orch! + codex.total_tokens + claude.total_tokens
       : null,
@@ -118,6 +121,7 @@ export function tokenUsageYaml(summary: PaperTokenUsageSummary): string {
     `  orchestrator_tokens: ${value(summary.orchestrator_tokens)}`,
     `  pipeline_codex_tokens: ${summary.pipeline_codex.total_tokens}`,
     `  pipeline_claude_tokens: ${summary.pipeline_claude.total_tokens}`,
+    `  pipeline_tokens_consumed: ${summary.pipeline_tokens_consumed}`,
     `  total_tokens_consumed: ${value(summary.total_tokens_consumed)}`,
   ].join("\n");
 }

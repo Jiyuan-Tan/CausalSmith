@@ -26,35 +26,33 @@ namespace POVar
 
 variable {P : POSystem} (a : POVar P ℝ)
 
-/-- For a real-valued potential-outcome variable, an intervention regime, and a
-measure on the sample space, this is the distribution of the variable's
-potential outcome under the regime, obtained by pushing that measure forward
-through the counterfactual-value function.
+/-- For [a potential-outcome system](hyp:P), [a real-valued potential-outcome variable](hyp:a), [an intervention regime](hyp:r), and [a measure on the sample space](hyp:μ), [the counterfactual law](goal) is the distribution obtained by pushing the measure forward through the variable's potential-outcome function under that regime.
 
 Law of the counterfactual outcome `a(r)`: the pushforward of `μ` under
 `a.cf r`. -/
 noncomputable def cfLaw (r : Regime P.V P.X) (μ : Measure P.Ω) : Measure ℝ :=
   μ.map (a.cf r)
 
-/-- The law of a real-valued potential outcome is a probability measure
-whenever the original sample-space measure is a probability measure. -/
+/-- For [a potential-outcomes system](hyp:P), [a real-valued potential-outcome
+variable in that system](hyp:a), [an intervention regime](hyp:r), and [a
+measure on the system's sample space](hyp:μ), if that sample-space measure is
+a probability measure, then [the distribution of the variable's
+potential outcome under the regime](goal) is a probability measure.
+
+The law of a real-valued potential outcome is a probability measure whenever
+the original sample-space measure is a probability measure. -/
 instance instIsProbabilityMeasureCfLaw (r : Regime P.V P.X) (μ : Measure P.Ω)
     [IsProbabilityMeasure μ] : IsProbabilityMeasure (a.cfLaw r μ) :=
   Measure.isProbabilityMeasure_map (a.measurable_cf r).aemeasurable
 
-/-- For a real-valued potential-outcome variable, an intervention regime, and a
-measure on the sample space, this is the cumulative distribution function of
-the variable's potential outcome under that regime with respect to that measure.
+/-- For [a potential-outcome system](hyp:P), [a real-valued potential-outcome variable](hyp:a), [an intervention regime](hyp:r), and [a measure on the sample space](hyp:μ), [the counterfactual cumulative distribution function](goal) is the cumulative distribution function of the variable's counterfactual law under that regime and measure.
 
 The distributional potential outcome: cdf of the law of `a(r)`,
 `F_{a(r)}(y) = P(a(r) ≤ y)`. -/
 noncomputable def cfCDF (r : Regime P.V P.X) (μ : Measure P.Ω) : StieltjesFunction ℝ :=
   cdf (a.cfLaw r μ)
 
-/-- For a real-valued potential-outcome variable, an intervention regime, a
-measure on the sample space, and a real index $\tau$, this is the $\tau$-quantile
-of the variable's potential outcome under that regime with respect to that
-measure.
+/-- For [a potential-outcome system](hyp:P), [a real-valued potential-outcome variable](hyp:a), [an intervention regime](hyp:r), [a measure on the sample space](hyp:μ), and [a real index](hyp:τ), [the counterfactual quantile](goal) is the quantile at that index of the variable's counterfactual law under the regime and measure.
 
 The `τ`-quantile of the potential outcome `a(r)`: `F_{a(r)}^{-1}(τ)`. -/
 noncomputable def cfQuantile (r : Regime P.V P.X) (μ : Measure P.Ω) (τ : ℝ) : ℝ :=
@@ -72,20 +70,13 @@ lemma cfCDF_eq_measureReal (r : Regime P.V P.X) (μ : Measure P.Ω)
 
 variable {β : Type*} [MeasurableSpace β]
 
-/-- For a real-valued potential-outcome variable, another potential-outcome
-variable, a value of the second variable, and a measure on the sample space,
-this is the distribution of the first variable's potential outcome under the
-single-variable intervention that sets the second variable to that value.
+/-- For [a potential-outcome system](hyp:P), [a real-valued outcome variable](hyp:a), [a potential-outcome intervention variable on a measurable scale](hyp:w,β), [a value of that intervention variable](hyp:y), and [a measure on the sample space](hyp:μ), [the single-intervention counterfactual law](goal) is the distribution of the outcome variable's potential outcome when the intervention variable is set to that value.
 
 Law of the single-intervention counterfactual `a` under `{w ← y}`. -/
 noncomputable def cfUnderLaw (w : POVar P β) (y : β) (μ : Measure P.Ω) : Measure ℝ :=
   a.cfLaw (Regime.single w.v (w.equiv.symm y)) μ
 
-/-- For a real-valued potential-outcome variable, another potential-outcome
-variable, a value of the second variable, a measure on the sample space, and a
-real index $\tau$, this is the $\tau$-quantile of the first variable's potential
-outcome under the single-variable intervention that sets the second variable to
-that value.
+/-- For [a potential-outcome system](hyp:P), [a real-valued outcome variable](hyp:a), [a potential-outcome intervention variable on a measurable scale](hyp:w,β), [a value of that intervention variable](hyp:y), [a measure on the sample space](hyp:μ), and [a real index](hyp:τ), [the single-intervention counterfactual quantile](goal) is the quantile at that index of the outcome variable's potential outcome when the intervention variable is set to that value.
 
 The `τ`-quantile of `a` under the single intervention `{w ← y}`; this is the
 `τ`-quantile of `Y(d)` when `a := Y`, `w := D`, `y := d`. -/

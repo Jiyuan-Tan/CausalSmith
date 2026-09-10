@@ -1,0 +1,1500 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}rollout\_\allowbreak{}carryover\_\allowbreak{}endpoint\_\allowbreak{}design}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} The paper has two complementary sharp support certificates for an irreversible hash-threshold rollout with fixed potential outcomes and unit-specific additive distributed-lag effects. For stage means under a degree-\(r\) secular trend, the sustained effect is attainable with exactly \(T_{\min}(r,L)=\max\{r+2,L+1\}\) measured stages. For arbitrary observed unit-level wave sets and unrestricted secular values, a fixed schedule is feasible exactly when the all-ones lag vector lies in the span of its distinct interior-threshold block vectors; adjacent-cell Horvitz--Thompson contrasts give an explicit estimator and exact shared-score risk. The plateau schedule \(p=(0,1/3,1/3,1,1)\) at \(L=3\) verifies that endpoint overlap is sufficient for a convenient endpoint estimator but is not necessary for fixed-schedule identification. Feasible covariance learning and studentized asymptotics remain open.
+
+\section{Project justification}
+
+\paragraph{Gap.} Classical \(c\)-estimability and \(c\)-optimal design characterize generic linear models, while the cited rollout and carryover literature studies other schedules, criteria, or response restrictions. It does not give a necessary-and-sufficient audit for an arbitrary precommitted nested threshold path with plateaus and an arbitrary set of observed waves, nor the associated sharp horizon--wave frontier under unrestricted fixed secular outcomes.
+
+\paragraph{Niche.} The missing operational object is a finite support calculation that groups lag coordinates sharing the same threshold, determines whether their observed-wave block vectors span the sustained-effect loading, and returns either explicit adjacent-cell Horvitz--Thompson weights or a target-active alias. This complements, rather than replaces, the polynomial stage-mean support theorem.
+
+\paragraph{Fill.} The paper proves that exact observed-wave unbiasedness holds if and only if the all-ones lag vector lies in the threshold-block span. It constructs the estimator from adjacent positive-probability hash cells, derives its exact finite-population variance using one shared score per unit, and produces a separating lag perturbation when the span fails. The one-wave condition, elbow placement rule, bivariate count frontier, and a plateau schedule outside endpoint overlap follow as corollaries; the existing normalized-binomial stage-mean frontier and source positioning are retained.
+
+\section{Related work}
+
+Elfving1952, pp. 255--262, studies optimum allocation for estimating one linear combination of regression coefficients and supplies the geometric ancestor of \(c\)-optimality. KieferWolfowitz1959, pp. 271--294, develops computational optimum-design theory for inference on regression coefficients and includes polynomial-regression calculations. Studden1968, pp. 1435--1447, shows that for symmetric Tchebycheff systems a design optimal for a specified parameter is supported on one of two Tchebycheff point sets. These classical results explain the row-space and variance-minimization background, but their generic design spaces do not impose a single monotone endpoint path whose shifts simultaneously form \(L+1\) carryover columns; consequently they do not determine \(\max\{r+2,L+1\}\), prove its attainability by such a path, or construct the two deficit aliases. The accepted-bank note \texttt{exp\_rollout\_chebyshev\_minimax\_tv\_envelope\_rollout\_design} optimizes treated-fraction node placement and minimax total-variation variance amplification for static \(\beta\)-order, no-carryover rollout mean curves. It does not decide whether an arbitrary fixed endpoint schedule and arbitrary observed-wave set admit any uniformly exactly unbiased estimator of a heterogeneous additive-lag sustained effect when secular outcomes are unrestricted across waves. Conversely, the present block-span certificate tests fixed-schedule identification and constructs an estimator or alias, but it neither chooses treated-fraction nodes nor bounds or minimizes total-variation variance amplification, so it does not subsume that accepted result. AboukhamseenHudaBose2021, pp. 253--261, obtains universally optimal designs for total-effect contrasts, the sum of direct and carryover effects, in two-period non-circular multi-treatment crossover experiments with correlated within-subject errors. That comparator allocates treatment sequences across repeatedly treated subjects; it does not study a single-treatment irreversible monotone hash-threshold rollout, degree-\(r\) calendar nuisance, arbitrary declared lag order, target-specific estimability, or a sharp minimum-stage support frontier. XiongAtheyBayatiImbens2023, Sections 3.1--3.3 and Theorem 3.1, studies a \(T\)-period irreversible experiment and gives sufficient optimality conditions for maximizing the trace of the infeasible-GLS precision matrix under a specified lag model. Its reported \(S\)-shape has five phases within the treated-fraction curve, not five measured periods; this proposal is informed by its shifted-lag design but does not attribute the heterogeneous unit-level lag or polynomial restrictions to that paper. CortezEichhornYu2022, Section 3, recovers a degree-bounded rollout mean curve from one more measurement than the degree bound by Lagrange interpolation; the new step is simultaneous annihilation of unit-specific calendar polynomials and equalization of shifted copies of one path. AtheyImbens2022 and RothSantAnna2023 provide supporting design-based variance and efficient-linear-estimation context rather than headline targets. BojinovRambachanShephard2021, Theorem 3.1 and Propositions 3.1--3.2, develops general design-based Horvitz--Thompson estimation for dynamic causal effects, explains the nonestimability of its exact variance, and supplies estimators of an upper variance bound for conservative weak-null inference. The present variance boundary is narrower and different: on the explicit shared-hash class \(\mathcal C\), an identical-observed-law construction rules out uniform ratio-consistent estimation of \(R_\Gamma\) and \(V_{\mathrm{panel}}\). It does not assert general variance nonestimability and leaves conservative and pointwise inference available. ChenLi2025 studies cluster-level adoption-time randomization, whereas the present design uses independent unit hash scores reused across all threshold stages. LiDing2017 supplies general finite-population central-limit regularity for design-based arrays; it does not furnish the fixed-schedule identification certificate, the wave-support frontier, or variance-ratio learning asserted here. KennyVoldalXiaHeagertyHughes2022 studies time-varying treatment effects and robust inference in stepped-wedge cluster trials; it does not analyze independent unit-level hash thresholds, arbitrary observed-wave availability, or the threshold-block span criterion. HusseyHughes2007 and HughesHeagertyXiaRen2020 motivate separating exposure from calendar time but do not imply the maintained heterogeneous restrictions. LinkedInHash2020 documents deterministic hash assignment, and LinkedInTRex2020 documents successive allocation stages; these sources identify an operational consumer, not an implementation claim.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta=\sum_{\ell=0}^{L}\beta_\ell=n^{-1}\sum_{i\in I_n}\sum_{\ell=0}^{L}b_{i,\ell}\).
+Primary functional / estimator / diagnostic: For a fixed horizon \(H\), precommitted endpoint schedule \(p\), and observed-wave set \(\mathcal S\), form the distinct interior-threshold blocks \(v_{t,q}\) and their span \(\mathcal V(p,\mathcal S)\) in Definition \(\mathrm{def:wave\text{-}threshold\text{-}block\text{-}span}\). Then \(\theta\) has an exactly design-unbiased observed-wave estimator if and only if \(\mathbf 1_{L+1}\in\mathcal V(p,\mathcal S)\). For any coefficients satisfying \(\sum_{t,q}\lambda_{t,q}v_{t,q}=\mathbf 1_{L+1}\), Theorem \(\mathrm{thm:fixed\text{-}schedule\text{-}wave\text{-}span\text{-}certificate}\) gives the explicit map \(\widehat\theta_{\mathrm{span}}=\sum_{t,q}\lambda_{t,q}\widehat\Delta_{t,q}\), where \(\widehat\Delta_{t,q}\) is the Horvitz--Thompson difference between the two adjacent positive-probability hash cells around \(q\), and gives its exact shared-score finite-population variance. The plateau \(L=3\), \(H=4\), \(p=(0,1/3,1/3,1,1)\), \(\mathcal S=\{2,4\}\) is feasible because its two blocks are \((1,1,0,0)^{\mathsf T}\) and \((0,0,1,1)^{\mathsf T}\). A single wave at \(t\) is the special case \(0<p^{\mathrm{ext}}_{t-L}\leq p_t<1\), with estimator \(\widehat\theta_{\mathrm{one}}(t)\). At \(L\geq1\), \(H=L+1\), feasibility for some schedule requires and is implied by observing \(H\) and at least one \(s<H\); panel endpoint overlap is sufficient for the endpoint estimator on \(\{1,H\}\), but is not necessary for fixed-schedule identification. Under measurement at every threshold, \(T_{\min}^{\mathrm{panel}}(L)=\max\{2,L+1\}\). The restricted stage-mean benchmark remains \(\widehat\theta_w=w^{\mathsf T}M\), \(X(p)^{\mathsf T}w=c\), with oracle-risk benchmark \(w_\Gamma=\operatorname*{argmin}_{X(p)^{\mathsf T}v=c}v^{\mathsf T}\Gamma(p,b)v\)..
+\begin{itemize}
+  \item \texttt{r} --- \texttt{secular-\allowbreak{}trend degree}; \(\mathbb N_0\); \texttt{structural complexity}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The declared polynomial degree of the untreated calendar trend.}
+  \item \texttt{L} --- \texttt{carryover order}; \(\mathbb N_0\); \texttt{structural complexity}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The largest lag whose treatment indicator enters the fixed potential outcome.}
+  \item \texttt{T} --- \texttt{number of measured rollout stages}; \(\mathbb N\); \texttt{design cost}
+  \par\smallskip\noindent\emph{Definition.} Measured stages are indexed by \(t=1,\ldots,T\); the pre-rollout endpoint \(t=0\) fixes treatment fraction zero but is not an outcome measurement.
+  \item \texttt{n} --- \texttt{finite-\allowbreak{}population size}; \(\mathbb N\); \texttt{population size}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The number of fixed units repeatedly observed throughout the rollout.}
+  \item \texttt{alpha} --- \texttt{nominal miscoverage level}; \((0,1)\); \texttt{inference level}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The target upper bound on asymptotic noncoverage in the open inference question.}
+  \item \texttt{z\_\allowbreak{}alpha} --- \texttt{standard-\allowbreak{}normal critical value}; \((0,\infty)\); \texttt{Wald critical value}
+  \par\smallskip\noindent\emph{Definition.} \(z_\alpha=\Phi^{-1}(1-\alpha/2)\).
+  \item \texttt{I\_\allowbreak{}n} --- \texttt{unit index set}; \(2^{\mathbb N}\); \texttt{index set}
+  \par\smallskip\noindent\emph{Definition.} \(I_n=\{1,\ldots,n\}\).
+  \item \texttt{J\_\allowbreak{}T} --- \texttt{measured-\allowbreak{}stage index set}; \(2^{\mathbb N}\); \texttt{index set}
+  \par\smallskip\noindent\emph{Definition.} \(J_T=\{1,\ldots,T\}\).
+  \item \texttt{p} --- \texttt{rollout fraction vector}; \([0,1]^{T+1}\); \texttt{design decision}
+  \par\smallskip\noindent\emph{Definition.} \(p=(p_0,\ldots,p_T)\) is the precommitted threshold schedule.
+  \item \texttt{p\_\allowbreak{}ext} --- \texttt{left-\allowbreak{}extended rollout path}; \(\mathbb Z\to[0,1]\); \texttt{endpoint convention}
+  \par\smallskip\noindent\emph{Definition.} \(p^{\mathrm{ext}}_s=0\) for \(s\le 0\), \(p^{\mathrm{ext}}_s=p_s\) for \(s\in J_T\), and \(p^{\mathrm{ext}}_s=1\) for \(s>T\).
+  \item \texttt{U} --- \texttt{unit hash scores}; \([0,1]^{I_n}\); \texttt{randomization}
+  \par\smallskip\noindent\emph{Definition.} \(U=(U_i)_{i\in I_n}\) is the sole source of design randomness.
+  \item \texttt{Z} --- \texttt{nested assignment panel}; \(\{0,1\}^{I_n\times\mathbb Z}\); \texttt{realized treatment}
+  \par\smallskip\noindent\emph{Definition.} \(Z_{i,t}=\mathbf 1\{U_i\le p^{\mathrm{ext}}_t\}\).
+  \item \texttt{Z\_\allowbreak{}paths} --- \texttt{threshold-\allowbreak{}exposure path set}; \(2^{\{0,1\}^{\mathbb Z}}\); \texttt{observable-\allowbreak{}path support}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Z(p)\) is the set of treatment histories generated by the assignment construction \(Z\) as one unit score ranges over \([0,1]\), using the endpoint convention \(p^{\mathrm{ext}}\).
+  \item \texttt{g} --- \texttt{fixed untreated outcome schedule}; \(\mathbb R^{I_n\times J_T}\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} \(g_{i,t}\) is unit \(i\)'s fixed untreated secular component at measured stage \(t\).
+  \item \texttt{a} --- \texttt{fixed polynomial coefficients}; \(\mathbb R^{I_n\times\{0,\ldots,r\}}\); \texttt{nuisance primitive}
+  \par\smallskip\noindent\emph{Definition.} \(a_{i,j}\) is unit \(i\)'s coefficient on \(t^j\) in the secular component.
+  \item \texttt{b} --- \texttt{fixed unit-\allowbreak{}level lag coefficients}; \(\mathbb R^{I_n\times\{0,\ldots,L\}}\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} \(b_{i,\ell}\) is unit \(i\)'s causal coefficient on treatment at lag \(\ell\).
+  \item \texttt{Y} --- \texttt{fixed potential-\allowbreak{}outcome panel}; \(\prod_{i\in I_n,t\in J_T}\{\{0,1\}^{\mathbb Z}\to\mathbb R\}\); \texttt{potential outcome}
+  \par\smallskip\noindent\emph{Definition.} \(Y_{i,t}(z)\) is fixed before \(U\) is drawn.
+  \item \texttt{B} --- \texttt{primitive unit outcome envelope}; \([0,\infty)^{I_n}\); \texttt{finite-\allowbreak{}population regularity envelope}
+  \par\smallskip\noindent\emph{Definition.} \(B_i=\max_{t\in J_T,\ z\in\mathcal Z(p)}|Y_{i,t}(z)|\) for \(i\in I_n\).
+  \item \texttt{Y\_\allowbreak{}obs} --- \texttt{observed unit-\allowbreak{}level outcome panel}; \(\mathbb R^{I_n\times J_T}\); \texttt{observed data}
+  \par\smallskip\noindent\emph{Definition.} \(Y^{\mathrm{obs}}_{i,t}=Y_{i,t}(Z_{i,\cdot})\) for \(i\in I_n\) and \(t\in J_T\); the full repeatedly observed unit-level panel is available to a feasible inference rule.
+  \item \texttt{M} --- \texttt{observed stage-\allowbreak{}mean vector}; \(\mathbb R^T\); \texttt{observed statistic}
+  \par\smallskip\noindent\emph{Definition.} \(M_t=n^{-1}\sum_{i\in I_n}Y^{\mathrm{obs}}_{i,t}\) for \(t\in J_T\).
+  \item \texttt{bar\_\allowbreak{}a} --- \texttt{population-\allowbreak{}average trend coefficients}; \(\mathbb R^{r+1}\); \texttt{nuisance parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\bar a_j=n^{-1}\sum_{i\in I_n}a_{i,j}\) for \(j=0,\ldots,r\).
+  \item \texttt{beta} --- \texttt{population-\allowbreak{}average lag coefficient vector}; \(\mathbb R^{L+1}\); \texttt{causal parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\beta_\ell=n^{-1}\sum_{i\in I_n}b_{i,\ell}\) for \(\ell=0,\ldots,L\).
+  \item \texttt{eta} --- \texttt{mean-\allowbreak{}model coefficient vector}; \(\mathbb R^{r+L+2}\); \texttt{linear-\allowbreak{}model parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\eta=(\bar a_0,\ldots,\bar a_r,\beta_0,\ldots,\beta_L)^{\mathsf T}\).
+  \item \texttt{theta} --- \texttt{finite-\allowbreak{}population sustained-\allowbreak{}treatment contrast}; \(\mathbb R\); \texttt{target estimand}
+  \par\smallskip\noindent\emph{Definition.} \(\theta=\sum_{\ell=0}^{L}\beta_\ell=n^{-1}\sum_{i\in I_n}\sum_{\ell=0}^{L}b_{i,\ell}\).
+  \item \texttt{X} --- \texttt{mean-\allowbreak{}design matrix}; \(\mathbb R^{T\times(r+L+2)}\); \texttt{identification map}
+  \par\smallskip\noindent\emph{Definition.} Row \(t\in J_T\) is \(X_t=(1,t,\ldots,t^r,p^{\mathrm{ext}}_t,p^{\mathrm{ext}}_{t-1},\ldots,p^{\mathrm{ext}}_{t-L})\).
+  \item \texttt{c} --- \texttt{target contrast vector}; \(\mathbb R^{r+L+2}\); \texttt{target loading}
+  \par\smallskip\noindent\emph{Definition.} \(c=(0,\ldots,0,1,\ldots,1)^{\mathsf T}\), with \(r+1\) zeros and \(L+1\) ones, so \(c^{\mathsf T}\eta=\theta\).
+  \item \texttt{w} --- \texttt{stage-\allowbreak{}mean contrast weights}; \(\mathbb R^T\); \texttt{estimator coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(w=(w_1,\ldots,w_T)^{\mathsf T}\) forms the linear estimator \(w^{\mathsf T}M\).
+  \item \texttt{W\_\allowbreak{}c} --- \texttt{unbiased-\allowbreak{}representer set}; \(2^{\mathbb R^T}\); \texttt{feasible estimator class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal W_c(p)=\{w\in\mathbb R^T:X^{\mathsf T}w=c\}\).
+  \item \texttt{T\_\allowbreak{}min} --- \texttt{minimum feasible measured-\allowbreak{}stage count}; \(\mathbb N\); \texttt{optimal-\allowbreak{}design value}
+  \par\smallskip\noindent\emph{Definition.} \(T_{\min}(r,L)=\min\{T:\exists p\text{ with }0=p_0\le\cdots\le p_T=1\text{ and }\mathcal W_c(p)\ne\varnothing\}\).
+  \item \texttt{p\_\allowbreak{}star} --- \texttt{canonical minimum-\allowbreak{}support rollout schedule}; \([0,1]^{T+1}\); \texttt{attaining design}
+  \par\smallskip\noindent\emph{Definition.} For \(t=0,\ldots,T\), \(p_t^\star=\binom{t+r}{r+1}/\binom{T+r}{r+1}\).
+  \item \texttt{w\_\allowbreak{}star} --- \texttt{canonical terminal finite-\allowbreak{}difference weights}; \(\mathbb R^T\); \texttt{attaining representer}
+  \par\smallskip\noindent\emph{Definition.} \(w_t^\star=\binom{T+r}{r+1}(-1)^{T-t}\binom{r+1}{T-t}\mathbf 1\{0\le T-t\le r+1\}\) for \(t\in J_T\).
+  \item \texttt{q\_\allowbreak{}p} --- \texttt{deficit-\allowbreak{}regime interpolation polynomial}; \(\mathbb R[x]\); \texttt{explicit alias component}
+  \par\smallskip\noindent\emph{Definition.} \(q_p(x)=-\sum_{s=1}^{T}p_s\prod_{u\in J_T,\ u\ne s}(x-u)/(s-u)\), whose degree is at most \(T-1\).
+  \item \texttt{Gamma} --- \texttt{exact shared-\allowbreak{}hash covariance matrix}; \(\mathbb R^{T\times T}\); \texttt{finite-\allowbreak{}population risk kernel}
+  \par\smallskip\noindent\emph{Definition.} \(\Gamma(p,b)=\operatorname{Cov}_U(M)\), with covariance taken only over the known hash randomization.
+  \item \texttt{w\_\allowbreak{}Gamma} --- \texttt{oracle minimum-\allowbreak{}risk unbiased representer}; \(\mathbb R^T\); \texttt{oracle estimator}
+  \par\smallskip\noindent\emph{Definition.} \(w_\Gamma\) is the minimum-Euclidean-norm element of \(\operatorname*{argmin}_{v\in\mathcal W_c(p)}v^{\mathsf T}\Gamma v\).
+  \item \texttt{hat\_\allowbreak{}theta\_\allowbreak{}Gamma} --- \texttt{oracle linear unbiased estimator}; \(\mathbb R\); \texttt{estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\theta_\Gamma=w_\Gamma^{\mathsf T}M\).
+  \item \texttt{R\_\allowbreak{}Gamma} --- \texttt{oracle design risk}; \([0,\infty)\); \texttt{oracle-\allowbreak{}risk benchmark}
+  \par\smallskip\noindent\emph{Definition.} \(R_\Gamma=w_\Gamma^{\mathsf T}\Gamma w_\Gamma=\operatorname{Var}_U(\widehat\theta_\Gamma)\).
+  \item \texttt{hat\_\allowbreak{}Gamma} --- \texttt{feasible covariance learner}; \(\mathbb R^{T\times T}\); \texttt{feasible nuisance estimate}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\Gamma\) is a positive-semidefinite, observed-data-measurable estimate produced by the admissible unit-level learning rule in Definition \(\mathrm{def:hajek\text{-}inference\text{-}handle}\).
+  \item \texttt{hat\_\allowbreak{}w} --- \texttt{feasible exact-\allowbreak{}balance weight output}; \(\mathbb R^T\); \texttt{feasible learned weight}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat w\) is the exact-balance weight output of the admissible covariance-and-weight learning rule, with \(X^{\mathsf T}\widehat w=c\) almost surely.
+  \item \texttt{hat\_\allowbreak{}theta} --- \texttt{feasible sustained-\allowbreak{}effect estimator}; \(\mathbb R\); \texttt{feasible estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\theta\) is the symmetrized unit-cross-fitted estimator output by the inference construction handle.
+  \item \texttt{hat\_\allowbreak{}V} --- \texttt{feasible design-\allowbreak{}variance estimator}; \([0,\infty)\); \texttt{studentization}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat V\) is the observable unit-clustered sandwich variance output by the inference construction handle.
+  \item \texttt{H\_\allowbreak{}Hajek} --- \texttt{feasible-\allowbreak{}inference construction handle}; \texttt{construction program}; \texttt{open-\allowbreak{}question handle}
+  \par\smallskip\noindent\emph{Definition.} The handle starts from a unit-entry-time H\'{a}jek projection, learns a positive-semidefinite covariance and exact-balance weights by unit-level cross-fitting or leave-one-unit-out symmetrization, retains every within-unit cross-stage product generated by the shared score \(U_i\), and permits only regularization that vanishes as \(n\to\infty\).
+  \item \texttt{E\_\allowbreak{}panel} --- \texttt{observed-\allowbreak{}panel unbiased estimator class}; \(2^{\{\text{integrable real-valued statistics}\}}\); \texttt{feasible estimator class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal E_{\mathrm{panel}}(p)\) is the class of observed-panel statistics that are exactly design-unbiased for \(\theta\) uniformly over the fixed additive-lag arrays.
+  \item \texttt{T\_\allowbreak{}min\_\allowbreak{}panel} --- \texttt{minimum observed-\allowbreak{}panel measured-\allowbreak{}stage count}; \(\mathbb N\); \texttt{headline optimal-\allowbreak{}design value}
+  \par\smallskip\noindent\emph{Definition.} \(T_{\min}^{\mathrm{panel}}(L)\) is the least measured-stage count admitting an exactly design-unbiased observed-panel estimator of \(\theta\).
+  \item \texttt{A} --- \texttt{early-\allowbreak{}adopter indicators}; \(\{0,1\}^{I_n}\); \texttt{Horvitz-\allowbreak{}-\allowbreak{}Thompson exposure indicator}
+  \par\smallskip\noindent\emph{Definition.} \(A_i=\mathbf 1\{U_i\le p_1\}\).
+  \item \texttt{C} --- \texttt{terminal-\allowbreak{}adopter indicators}; \(\{0,1\}^{I_n}\); \texttt{Horvitz-\allowbreak{}-\allowbreak{}Thompson exposure indicator}
+  \par\smallskip\noindent\emph{Definition.} \(C_i=\mathbf 1\{U_i>p_{T-1}\}\).
+  \item \texttt{hat\_\allowbreak{}theta\_\allowbreak{}panel} --- \texttt{observed-\allowbreak{}panel sustained-\allowbreak{}effect estimator}; \(\mathbb R\); \texttt{headline estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\theta_{\mathrm{panel}}\) is the endpoint Horvitz--Thompson estimator defined from stages \(1\) and \(T\).
+  \item \texttt{H} --- \texttt{rollout horizon}; \(\mathbb N\); \texttt{design cost}
+  \par\smallskip\noindent\emph{Definition.} \(H\) is the number of rollout periods, including the terminal period at which the treatment fraction equals one.
+  \item \texttt{S} --- \texttt{outcome-\allowbreak{}wave set}; \(2^{\{1,\ldots,H\}}\); \texttt{measurement design}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal S\subseteq\{1,\ldots,H\}\) is the set of rollout stages at which outcomes are observed.
+  \item \texttt{m} --- \texttt{number of outcome waves}; \(\mathbb N\); \texttt{design cost}
+  \par\smallskip\noindent\emph{Definition.} \(m=|\mathcal S|\) is the outcome-measurement cost.
+  \item \texttt{E\_\allowbreak{}wave} --- \texttt{outcome-\allowbreak{}wave unbiased estimator class}; \(2^{\{\text{integrable real-valued statistics}\}}\); \texttt{feasible estimator class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal E_{\mathrm{wave}}(p,\mathcal S)\) is the class of observed-wave statistics that are exactly design-unbiased for \(\theta\) uniformly over the fixed additive-lag arrays.
+  \item \texttt{F\_\allowbreak{}wave} --- \texttt{rollout-\allowbreak{}horizon/\allowbreak{}outcome-\allowbreak{}wave feasible set}; \(2^{\mathbb N^2}\); \texttt{headline design frontier}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal F_{\mathrm{wave}}(L)\) is the set of feasible horizon and outcome-wave-count pairs for exact design-unbiased estimation of \(\theta\).
+  \item \texttt{m\_\allowbreak{}min\_\allowbreak{}wave} --- \texttt{minimum outcome-\allowbreak{}wave count at a fixed horizon}; \(\mathbb N\cup\{+\infty\}\); \texttt{headline optimal-\allowbreak{}design value}
+  \par\smallskip\noindent\emph{Definition.} \(m_{\min}^{\mathrm{wave}}(H,L)\) is the lower envelope of \(\mathcal F_{\mathrm{wave}}(L)\) at horizon \(H\).
+  \item \texttt{hat\_\allowbreak{}theta\_\allowbreak{}one} --- \texttt{interior one-\allowbreak{}wave sustained-\allowbreak{}effect estimator}; \(\mathbb R\); \texttt{headline estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\theta_{\mathrm{one}}(t)\) is the one-wave Horvitz--Thompson contrast between units exposed throughout all relevant lags and units exposed at none of them.
+  \item \texttt{G\_\allowbreak{}wave} --- \texttt{new-\allowbreak{}adopter stratum indicators}; \(\{0,1\}^{I_n\times J_T}\); \texttt{Horvitz-\allowbreak{}-\allowbreak{}Thompson exposure indicator}
+  \par\smallskip\noindent\emph{Definition.} For a selected measured wave \(s\), \(G_{i,s}=\mathbf 1\{p_{s-1}<U_i\leq p_s\}\) indicates adoption at that wave.
+  \item \texttt{N\_\allowbreak{}wave} --- \texttt{never-\allowbreak{}yet-\allowbreak{}treated stratum indicators}; \(\{0,1\}^{I_n\times J_T}\); \texttt{Horvitz-\allowbreak{}-\allowbreak{}Thompson exposure indicator}
+  \par\smallskip\noindent\emph{Definition.} For a selected measured wave \(s\), \(N_{i,s}=\mathbf 1\{U_i>p_s\}\) indicates no treatment through that wave.
+  \item \texttt{hat\_\allowbreak{}theta\_\allowbreak{}elbow} --- \texttt{two-\allowbreak{}wave elbow sustained-\allowbreak{}effect estimator}; \(\mathbb R\); \texttt{placement-\allowbreak{}specific headline estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\theta_{\mathrm{elbow}}(s)\) combines the new-adopter versus never-yet-treated contrast at nonterminal wave \(s\) with the early-adopter versus terminal-adopter contrast at wave \(H=L+1\).
+  \item \texttt{Q\_\allowbreak{}wave} --- \texttt{wave-\allowbreak{}indexed interior-\allowbreak{}threshold sets}; \(\prod_{t\in\mathcal S}2^{(0,1)}\); \texttt{fixed-\allowbreak{}schedule support audit}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Q_t(p)=\{q\in(0,1):q=p^{\mathrm{ext}}_{t-\ell}\text{ for some }\ell\in\{0,\ldots,L\}\}\) is the set of distinct interior thresholds at observed wave \(t\).
+  \item \texttt{v\_\allowbreak{}wave} --- \texttt{threshold-\allowbreak{}block lag vector}; \(\mathbb R^{L+1}\); \texttt{identification direction}
+  \par\smallskip\noindent\emph{Definition.} For \(t\in\mathcal S\) and \(q\in\mathcal Q_t(p)\), \((v_{t,q})_\ell=\mathbf 1\{p^{\mathrm{ext}}_{t-\ell}=q\}\) for \(\ell=0,\ldots,L\).
+  \item \texttt{V\_\allowbreak{}wave} --- \texttt{fixed-\allowbreak{}schedule observed-\allowbreak{}wave block space}; \(2^{\mathbb R^{L+1}}\); \texttt{identification space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal V(p,\mathcal S)=\operatorname{span}\{v_{t,q}:t\in\mathcal S,\ q\in\mathcal Q_t(p)\}\subseteq\mathbb R^{L+1}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:fixed-potential-outcomes]\label{ass:fixed-potential-outcomes}
+The potential-outcome panel \(Y\), the secular components \(g\), and the lag coefficients \(b\) are fixed before \(U\) is drawn.
+\par\smallskip\noindent\emph{Standard} (Neyman finite-population design perspective, \cite{AtheyImbens2022}).
+\end{assumption}
+
+\begin{assumption}[ass:nested-hash-randomization]\label{ass:nested-hash-randomization}
+The coordinates \(U_i\), \(i\in I_n\), are independent \(\operatorname{Uniform}[0,1]\) scores.
+\par\smallskip\noindent\emph{Standard} (Common-uniform nested Bernoulli rollout, \cite{CortezEichhornYu2022}).
+\end{assumption}
+
+\begin{assumption}[ass:irreversible-endpoints]\label{ass:irreversible-endpoints}
+The schedule satisfies \(0=p_0\le p_1\le\cdots\le p_T=1\).
+\par\smallskip\noindent\emph{Standard} (Irreversible endpoint-attaining staggered rollout, \cite{XiongAtheyBayatiImbens2023}).
+\end{assumption}
+
+\begin{assumption}[ass:additive-distributed-lag]\label{ass:additive-distributed-lag}
+For every \(i\in I_n\), \(t\in J_T\), and own-treatment history \(z\in\{0,1\}^{\mathbb Z}\), \(Y_{i,t}(z)=g_{i,t}+\sum_{\ell=0}^{L}b_{i,\ell}z_{t-\ell}\).
+\par\smallskip\noindent\emph{Novel.} This maintained restriction allows each unit to have its own finite impulse-response profile while ruling out treatment-history interactions beyond the declared lag horizon. It has direct empirical meaning in short product or policy ramps where exposure at each recent stage contributes additively but response magnitudes differ across units.
+\end{assumption}
+
+\begin{assumption}[ass:polynomial-secular-trend]\label{ass:polynomial-secular-trend}
+For every \(i\in I_n\) and \(t\in J_T\), \(g_{i,t}=\sum_{j=0}^{r}a_{i,j}t^j\).
+\par\smallskip\noindent\emph{Novel.} This maintained restriction permits every unit to have a distinct level, slope, and higher-order secular profile while requiring those profiles to lie in one prespecified low-degree calendar basis. It is empirically interpretable for short rollout windows in which unit-specific baseline trajectories are smooth enough to be represented by a declared polynomial degree.
+\end{assumption}
+
+\begin{assumption}[ass:finite-population-fourth-moment]\label{ass:finite-population-fourth-moment}
+Along the triangular array indexed by \(n\to\infty\) with \(T\), \(r\), and \(L\) fixed, there exists a constant \(C_4<\infty\), independent of \(n\), such that \(n^{-1}\sum_{i\in I_n}B_i^4\le C_4\) for every \(n\).
+\par\smallskip\noindent\emph{Standard} (Uniform fourth-moment sufficient condition for finite-population Lindeberg regularity, \cite{LiDing2017}).
+\end{assumption}
+
+\begin{assumption}[ass:max-unit-lindeberg]\label{ass:max-unit-lindeberg}
+Along the triangular array indexed by \(n\to\infty\) with \(T\), \(r\), and \(L\) fixed, \(\sum_{j\in I_n}B_j^2>0\) for all sufficiently large \(n\) and \(\max_{i\in I_n}B_i^2/\sum_{j\in I_n}B_j^2\to0\).
+\par\smallskip\noindent\emph{Standard} (Finite-population maximum-term negligibility condition, \cite{LiDing2017}).
+\end{assumption}
+
+\begin{assumption}[ass:nondegenerate-oracle-risk]\label{ass:nondegenerate-oracle-risk}
+Along the triangular array indexed by \(n\to\infty\) with \(T\), \(r\), and \(L\) fixed, the oracle risk satisfies \(0<\liminf_{n\to\infty}nR_\Gamma\le\limsup_{n\to\infty}nR_\Gamma<\infty\).
+\par\smallskip\noindent\emph{Standard} (Positive finite limiting variance under root-\(n\) normalization, \cite{LiDing2017}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:mean-design]\label{def:mean-design}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Augmented polynomial-\allowbreak{}lag mean design}
+\par\smallskip\noindent\emph{Construction.} \(X_{t,\cdot}=(1,t,\ldots,t^r,p^{\mathrm{ext}}_t,p^{\mathrm{ext}}_{t-1},\ldots,p^{\mathrm{ext}}_{t-L})\) for every \(t\in J_T\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{r}; \texttt{L}; \texttt{T}; \texttt{p}.
+\end{definition}
+
+\begin{definition}[def:unbiased-representers]\label{def:unbiased-representers}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Target-\allowbreak{}unbiased stage representers}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal W_c(p)=\{w\in\mathbb R^T:X^{\mathsf T}w=c\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}mean-\allowbreak{}design}.
+\end{definition}
+
+\begin{definition}[def:canonical-frontier-design]\label{def:canonical-frontier-design}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Binomial-\allowbreak{}ramp and terminal-\allowbreak{}difference construction}
+\par\smallskip\noindent\emph{Construction.} Set \(T=\max\{r+2,L+1\}\), \(p_t^\star=\binom{t+r}{r+1}/\binom{T+r}{r+1}\) for \(t=0,\ldots,T\), and \(w_t^\star=\binom{T+r}{r+1}(-1)^{T-t}\binom{r+1}{T-t}\mathbf 1\{0\le T-t\le r+1\}\) for \(t\in J_T\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{r}; \texttt{L}.
+\end{definition}
+
+\begin{definition}[def:deficit-alias]\label{def:deficit-alias}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Explicit support-\allowbreak{}deficit alias}
+\par\smallskip\noindent\emph{Construction.} If \(T\le L\), use the coefficient direction with unit loading on \(\beta_L\) and zero elsewhere. If \(T\le r+1\), use unit loading on \(\beta_0\) and polynomial nuisance perturbation \(q_p(x)=-\sum_{s=1}^{T}p_s\prod_{u\in J_T,\ u\ne s}(x-u)/(s-u)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{T}; \texttt{r}; \texttt{L}; \texttt{p}.
+\end{definition}
+
+\begin{definition}[def:exact-covariance]\label{def:exact-covariance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact shared-\allowbreak{}hash covariance kernel}
+\par\smallskip\noindent\emph{Construction.} \(\Gamma_{ts}=n^{-2}\sum_{i\in I_n}\sum_{\ell=0}^{L}\sum_{k=0}^{L}b_{i,\ell}b_{i,k}[\min\{p^{\mathrm{ext}}_{t-\ell},p^{\mathrm{ext}}_{s-k}\}-p^{\mathrm{ext}}_{t-\ell}p^{\mathrm{ext}}_{s-k}]\) for \(t,s\in J_T\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{b}; \texttt{p}; \texttt{U}.
+\end{definition}
+
+\begin{definition}[def:oracle-blue]\label{def:oracle-blue}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Singular-\allowbreak{}covariance oracle representer}
+\par\smallskip\noindent\emph{Construction.} \(w_\Gamma\) is the minimum-Euclidean-norm minimizer of \(v^{\mathsf T}\Gamma v\) subject to \(X^{\mathsf T}v=c\), and \(\widehat\theta_\Gamma=w_\Gamma^{\mathsf T}M\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}unbiased-\allowbreak{}representers}; \texttt{def:\allowbreak{}exact-\allowbreak{}covariance}.
+\end{definition}
+
+\begin{definition}[def:hajek-inference-handle]\label{def:hajek-inference-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed-\allowbreak{}panel cross-\allowbreak{}fitted H\textbackslash{}\allowbreak{}'\{a\}\allowbreak{}jek inference handle}
+\par\smallskip\noindent\emph{Construction.} With \(T\), \(r\), and \(L\) fixed as \(n\to\infty\), restrict attention to permutation-invariant rules measurable with respect to the observed unit-level panel \(Y^{\mathrm{obs}}\), the realized scores \(U\), and the known schedule \(p\). Start from the unit-entry-time H\'{a}jek projection, estimate a positive-semidefinite covariance by unit-level cross-fitting or leave-one-unit-out symmetrization, solve the exact-balance constraint \(X^{\mathsf T}\widehat w=c\) within each training fold, and retain all within-unit cross-stage products in \(\widehat V\). No rule may use the unobserved coefficients \(a\) or \(b\); any eigenvalue regularization must vanish as \(n\to\infty\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}exact-\allowbreak{}covariance}; \texttt{def:\allowbreak{}oracle-\allowbreak{}blue}.
+\end{definition}
+
+\begin{definition}[def:panel-endpoint-overlap]\label{def:panel-endpoint-overlap}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Panel endpoint-\allowbreak{}overlap condition}
+\par\smallskip\noindent\emph{Construction.} For \(T\ge2\), a schedule has panel endpoint overlap when
+\[
+ 0=p_0<p_1\le p_2\le\cdots\le p_{T-1}<p_T=1.
+\]
+Thus the early-adopter probability \(p_1\), the stage-one control probability \(1-p_1\), and the terminal-adopter probability \(1-p_{T-1}\) are all strictly positive; equality at intermediate rollout stages is allowed.
+\par\smallskip\noindent\emph{Inputs.} \texttt{T}; \texttt{p}.
+\end{definition}
+
+\begin{definition}[def:observed-panel-unbiased-rules]\label{def:observed-panel-unbiased-rules}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exactly unbiased observed-\allowbreak{}panel rules}
+\par\smallskip\noindent\emph{Construction.} For fixed \(n,L,T\) and endpoint schedule \(p\), let \(\mathcal E_{\mathrm{panel}}(p)\) be the set of integrable real-valued statistics measurable with respect to \(\sigma(Y^{\mathrm{obs}},U,Z,p)\) whose design expectation equals \(\theta\) for every fixed pair of arrays \((g,b)\) and potential-outcome panel satisfying Assumptions \(\mathrm{ass:fixed\text{-}potential\text{-}outcomes}\) and \(\mathrm{ass:additive\text{-}distributed\text{-}lag}\).  The secular array \(g\) is unrestricted across units and measured stages in this class.
+\par\smallskip\noindent\emph{Inputs.} \texttt{n}; \texttt{L}; \texttt{T}; \texttt{p}; \texttt{Y\_\allowbreak{}obs}; \texttt{U}; \texttt{Z}; \texttt{theta}; \texttt{ass:\allowbreak{}fixed-\allowbreak{}potential-\allowbreak{}outcomes}; \texttt{ass:\allowbreak{}additive-\allowbreak{}distributed-\allowbreak{}lag}.
+\end{definition}
+
+\begin{definition}[def:observed-panel-stage-frontier]\label{def:observed-panel-stage-frontier}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed-\allowbreak{}panel stage frontier}
+\par\smallskip\noindent\emph{Construction.} Define the observed-panel stage frontier by
+\[
+ T_{\min}^{\mathrm{panel}}(L)
+ =\min\left\{T\in\mathbb N:\ 
+ \begin{array}{l}
+ \text{there exists }p\text{ with }0=p_0\le\cdots\le p_T=1\\
+ \text{and }\mathcal E_{\mathrm{panel}}(p)\ne\varnothing
+ \end{array}
+ \right\}.
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{L}; \texttt{T}; \texttt{p}; \texttt{def:\allowbreak{}observed-\allowbreak{}panel-\allowbreak{}unbiased-\allowbreak{}rules}.
+\end{definition}
+
+\begin{definition}[def:panel-ht-estimator]\label{def:panel-ht-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Endpoint Horvitz-\allowbreak{}-\allowbreak{}Thompson panel estimator}
+\par\smallskip\noindent\emph{Construction.} Suppose \(T\ge2\) and \(p\) has panel endpoint overlap.  For \(i\in I_n\), define
+\[
+ A_i=\mathbf 1\{U_i\le p_1\},
+ \qquad C_i=\mathbf 1\{U_i>p_{T-1}\}.
+\]
+For \(L=0\), define
+\[
+ \widehat\theta_{\mathrm{panel}}
+ =\frac1n\sum_{i\in I_n}
+ \left\{
+ \frac{A_iY^{\mathrm{obs}}_{i,1}}{p_1}
+ -\frac{(1-A_i)Y^{\mathrm{obs}}_{i,1}}{1-p_1}
+ \right\}.
+\]
+For \(L\ge1\) and \(T\ge L+1\), define
+\[
+ \widehat\theta_{\mathrm{panel}}
+ =\frac1n\sum_{i\in I_n}
+ \left\{
+ \frac{A_iY^{\mathrm{obs}}_{i,1}}{p_1}
+ -\frac{(1-A_i)Y^{\mathrm{obs}}_{i,1}}{1-p_1}
+ +\frac{A_iY^{\mathrm{obs}}_{i,T}}{p_1}
+ -\frac{C_iY^{\mathrm{obs}}_{i,T}}{1-p_{T-1}}
+ \right\}.
+\]
+All four denominators used in the applicable formula are positive by panel endpoint overlap.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}panel-\allowbreak{}endpoint-\allowbreak{}overlap}; \texttt{n}; \texttt{L}; \texttt{T}; \texttt{p}; \texttt{Y\_\allowbreak{}obs}; \texttt{U}.
+\end{definition}
+
+\begin{definition}[def:outcome-wave-unbiased-rules]\label{def:outcome-wave-unbiased-rules}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exactly unbiased outcome-\allowbreak{}wave rules}
+\par\smallskip\noindent\emph{Construction.} For a rollout horizon \(H\in\mathbb N\), instantiate the assignment and potential-outcome model at \(T=H\).  Let \(\mathcal S\subseteq\{1,\ldots,H\}\) be the set of stages at which outcomes are revealed.  Define \(\mathcal E_{\mathrm{wave}}(p,\mathcal S)\) to be the set of integrable real-valued statistics measurable with respect to
+\[
+ \sigma\!\left(U,Z,p,
+       (Y^{\mathrm{obs}}_{i,t})_{i\in I_n,\ t\in\mathcal S}\right)
+\]
+whose design expectation equals \(\theta\) for every fixed pair \((g,b)\) satisfying Assumptions \(\mathrm{ass:fixed\text{-}potential\text{-}outcomes}\) and \(\mathrm{ass:additive\text{-}distributed\text{-}lag}\).  The secular values \(g_{i,t}\) are unrestricted across units and stages.  The scores and assignments may be observed at all rollout stages, but outcomes outside \(\mathcal S\) are not available to a statistic in this class.
+\par\smallskip\noindent\emph{Inputs.} \texttt{H}; \texttt{S}; \texttt{n}; \texttt{L}; \texttt{p}; \texttt{U}; \texttt{Z}; \texttt{Y\_\allowbreak{}obs}; \texttt{theta}; \texttt{ass:\allowbreak{}fixed-\allowbreak{}potential-\allowbreak{}outcomes}; \texttt{ass:\allowbreak{}additive-\allowbreak{}distributed-\allowbreak{}lag}.
+\end{definition}
+
+\begin{definition}[def:bivariate-rollout-wave-frontier]\label{def:bivariate-rollout-wave-frontier}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Bivariate rollout-\allowbreak{}horizon/\allowbreak{}outcome-\allowbreak{}wave frontier}
+\par\smallskip\noindent\emph{Construction.} For \(L\in\mathbb N_0\), define
+\[
+ \mathcal F_{\mathrm{wave}}(L)
+ =\left\{(H,m)\in\mathbb N^2:
+ \begin{array}{l}
+ \text{there exist }p\text{ with }0=p_0\leq\cdots\leq p_H=1
+ \text{ and }\mathcal S\subseteq\{1,\ldots,H\},\\
+ |\mathcal S|=m\text{ and }\mathcal E_{\mathrm{wave}}(p,\mathcal S)\ne\varnothing
+ \end{array}
+ \right\}.
+\]
+Set
+\[
+ m_{\min}^{\mathrm{wave}}(H,L)
+ =\min\{m\in\mathbb N:(H,m)\in\mathcal F_{\mathrm{wave}}(L)\},
+\]
+with the value \(+\infty\) when the displayed set is empty.
+\par\smallskip\noindent\emph{Inputs.} \texttt{L}; \texttt{H}; \texttt{m}; \texttt{p}; \texttt{S}; \texttt{def:\allowbreak{}outcome-\allowbreak{}wave-\allowbreak{}unbiased-\allowbreak{}rules}.
+\end{definition}
+
+\begin{definition}[def:interior-one-wave-ht-estimator]\label{def:interior-one-wave-ht-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Interior one-\allowbreak{}wave Horvitz-\allowbreak{}-\allowbreak{}Thompson estimator}
+\par\smallskip\noindent\emph{Construction.} Fix a horizon \(H\), a measured occasion \(t\in\{1,\ldots,H\}\), and an irreversible endpoint schedule.  If
+\[
+ 0<p^{\mathrm{ext}}_{t-L}\leq p_t<1,
+\]
+define the full-history and no-history indicators
+\[
+ D_{i,t}=\mathbf 1\{U_i\leq p^{\mathrm{ext}}_{t-L}\},
+ \qquad
+ N_{i,t}=\mathbf 1\{U_i>p_t\},
+\]
+and the interior one-wave Horvitz--Thompson estimator
+\[
+ \widehat\theta_{\mathrm{one}}(t)
+ =\frac1n\sum_{i\in I_n}
+ \left\{
+ \frac{D_{i,t}Y^{\mathrm{obs}}_{i,t}}{p^{\mathrm{ext}}_{t-L}}
+ -\frac{N_{i,t}Y^{\mathrm{obs}}_{i,t}}{1-p_t}
+ \right\}.
+\]
+Both denominators are strictly positive under the displayed condition.
+\par\smallskip\noindent\emph{Inputs.} \texttt{H}; \texttt{L}; \texttt{p}; \texttt{p\_\allowbreak{}ext}; \texttt{U}; \texttt{n}; \texttt{I\_\allowbreak{}n}; \texttt{Y\_\allowbreak{}obs}.
+\end{definition}
+
+\begin{definition}[def:elbow-placement-ht-estimator]\label{def:elbow-placement-ht-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Placement-\allowbreak{}specific elbow Horvitz-\allowbreak{}-\allowbreak{}Thompson estimator}
+\par\smallskip\noindent\emph{Construction.} Fix \(L\geq1\), instantiate \(T=H=L+1\), choose \(s\in\{1,\ldots,L\}\), and suppose that the irreversible endpoint schedule also satisfies
+\[
+ 0<p_1,\qquad p_{s-1}<p_s,\qquad p_L<1.
+\]
+Define the new-adopter and never-yet-treated indicators at wave \(s\) by
+\[
+ G_{i,s}=\mathbf 1\{p_{s-1}<U_i\leq p_s\},
+ \qquad
+ N_{i,s}=\mathbf 1\{U_i>p_s\},
+ \qquad i\in I_n.
+\]
+With \(A_i=\mathbf 1\{U_i\leq p_1\}\) and \(C_i=\mathbf 1\{U_i>p_L\}\), define
+\[
+ \widehat\theta_{\mathrm{elbow}}(s)
+ =\frac1n\sum_{i\in I_n}
+ \left\{
+ \frac{G_{i,s}Y^{\mathrm{obs}}_{i,s}}{p_s-p_{s-1}}
+ -\frac{N_{i,s}Y^{\mathrm{obs}}_{i,s}}{1-p_s}
+ +\frac{A_iY^{\mathrm{obs}}_{i,H}}{p_1}
+ -\frac{C_iY^{\mathrm{obs}}_{i,H}}{1-p_L}
+ \right\}.
+\]
+The four denominators are strictly positive: the first, third, and fourth by the displayed conditions, and the second because monotonicity and \(s\leq L\) give \(p_s\leq p_L<1\).  The statistic uses outcomes only at waves \(s\) and \(H\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{H}; \texttt{L}; \texttt{p}; \texttt{U}; \texttt{n}; \texttt{I\_\allowbreak{}n}; \texttt{Y\_\allowbreak{}obs}.
+\end{definition}
+
+\begin{definition}[def:wave-threshold-block-span]\label{def:wave-threshold-block-span}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed-\allowbreak{}wave threshold-\allowbreak{}block span}
+\par\smallskip\noindent\emph{Construction.} Fix a rollout horizon \(H\), instantiate \(T=H\), fix an irreversible endpoint schedule \(p\), and let \(\mathcal S\subseteq\{1,\ldots,H\}\).  For each \(t\in\mathcal S\), define the finite set of distinct interior thresholds
+\[
+ \mathcal Q_t(p)
+ =\left\{q\in(0,1):q=p^{\mathrm{ext}}_{t-\ell}
+       \text{ for some }\ell\in\{0,\ldots,L\}\right\}.
+\]
+For \(q\in\mathcal Q_t(p)\), define the threshold-block vector \(v_{t,q}\in\mathbb R^{L+1}\) componentwise by
+\[
+ (v_{t,q})_\ell
+ =\mathbf 1\{p^{\mathrm{ext}}_{t-\ell}=q\},
+ \qquad \ell=0,\ldots,L.
+\]
+The fixed-schedule observed-wave block space is
+\[
+ \mathcal V(p,\mathcal S)
+ =\operatorname{span}\left\{v_{t,q}:
+       t\in\mathcal S,\ q\in\mathcal Q_t(p)\right\}
+ \subseteq\mathbb R^{L+1},
+\]
+where the span of the empty family is \(\{0\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{H}; \texttt{L}; \texttt{p}; \texttt{p\_\allowbreak{}ext}; \texttt{S}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:row-space-certificate]\label{thm:row-space-certificate}
+Under Assumptions \(\mathrm{ass:fixed\text{-}potential\text{-}outcomes}\), \(\mathrm{ass:nested\text{-}hash\text{-}randomization}\), \(\mathrm{ass:additive\text{-}distributed\text{-}lag}\), and \(\mathrm{ass:polynomial\text{-}secular\text{-}trend}\), with assignment \(Z\) defined by the common-score threshold construction, \(\mathbb E_U[M]=X\eta\). The finite-population contrast \(\theta=c^{\mathsf T}\eta\) is identified by a linear functional of the stage means if and only if \(c\in\operatorname{row}(X)\), equivalently \(\mathcal W_c(p)\ne\varnothing\). Every \(w\in\mathcal W_c(p)\) gives \(\mathbb E_U[w^{\mathsf T}M]=\theta\). If \(c\notin\operatorname{row}(X)\), there exists \(h\in\ker(X)\) with \(c^{\mathsf T}h\ne0\), so \(\eta\) and \(\eta+h\) have the same mean path and different sustained contrasts.
+\end{theorem}
+\begin{proof}
+Because \(n\in\mathbb N\) is the finite-population size, \(n\ge1\), so all averages below are well defined.  Fix a measured stage \(t\in J_T\).  By the observed-outcome definition and Assumption \(\mathrm{ass:additive\text{-}distributed\text{-}lag}\),
+\[
+ M_t=\frac1n\sum_{i\in I_n}g_{i,t}
+     +\sum_{\ell=0}^{L}\frac1n\sum_{i\in I_n}b_{i,\ell}Z_{i,t-\ell}.
+\]
+Assumption \(\mathrm{ass:polynomial\text{-}secular\text{-}trend}\) and the definition of \(\bar a_j\) give
+\[
+ \frac1n\sum_{i\in I_n}g_{i,t}
+ =\sum_{j=0}^{r}\left(\frac1n\sum_{i\in I_n}a_{i,j}\right)t^j
+ =\sum_{j=0}^{r}\bar a_jt^j.
+\]
+The arrays \(g\) and \(b\) are nonrandom by Assumption \(\mathrm{ass:fixed\text{-}potential\text{-}outcomes}\).  Under Assumption \(\mathrm{ass:nested\text{-}hash\text{-}randomization}\), for every integer \(s\),
+\[
+ \mathbb E_U[Z_{i,s}]
+ =\mathbb P_U(U_i\le p_s^{\mathrm{ext}})
+ =p_s^{\mathrm{ext}},
+\]
+including the boundary cases \(p_s^{\mathrm{ext}}\in\{0,1\}\).  Therefore, using the definition \(\beta_\ell=n^{-1}\sum_i b_{i,\ell}\),
+\[
+ \mathbb E_U[M_t]
+ =\sum_{j=0}^{r}\bar a_jt^j
+   +\sum_{\ell=0}^{L}\beta_\ell p_{t-\ell}^{\mathrm{ext}}
+ =X_{t,\cdot}\eta.
+\]
+Stacking these \(T\) equalities proves \(\mathbb E_U[M]=X\eta\).  By the definitions of \(c\) and \(\theta\), \(c^{\mathsf T}\eta=\sum_{\ell=0}^{L}\beta_\ell=\theta\).
+
+The row space of \(X\) is the range of \(X^{\mathsf T}\).  Hence \(c\in\operatorname{row}(X)\) if and only if there is a vector \(w\in\mathbb R^T\) such that \(X^{\mathsf T}w=c\), which is exactly the condition \(w\in\mathcal W_c(p)\).  For every such \(w\), linearity of expectation and the preceding mean identity yield
+\[
+ \mathbb E_U[w^{\mathsf T}M]
+ =w^{\mathsf T}X\eta
+ =(X^{\mathsf T}w)^{\mathsf T}\eta
+ =c^{\mathsf T}\eta
+ =\theta.
+\]
+Conversely, if a fixed linear contrast \(w^{\mathsf T}M\) is unbiased for \(c^{\mathsf T}\eta\) for every fixed finite-population coefficient array allowed by the assumptions, then
+\[
+ (X^{\mathsf T}w-c)^{\mathsf T}\eta=0
+ \quad\text{for every }\eta\in\mathbb R^{r+L+2}.
+\]
+Every such \(\eta\) is admissible: take all units to have the same coefficients specified by \(\eta\), define \(g_{i,t}=\sum_{j=0}^{r}a_{i,j}t^j\), and define \(Y\) by the additive distributed-lag formula.  Taking \(\eta=X^{\mathsf T}w-c\) in the displayed equality therefore gives \(\lVert X^{\mathsf T}w-c\rVert_2^2=0\), so \(X^{\mathsf T}w=c\).  This proves necessity for linear unbiased identification.
+
+Finally suppose \(c\notin\operatorname{row}(X)\).  Choose an orthonormal basis \(e_1,\ldots,e_d\) of \(\operatorname{row}(X)\), set
+\[
+ c_R=\sum_{k=1}^{d}(c^{\mathsf T}e_k)e_k,
+ \qquad h=c-c_R,
+\]
+and use the empty sum if \(d=0\).  Then \(h\ne0\), \(h\) is orthogonal to every row of \(X\), and consequently \(Xh=0\).  Moreover,
+\[
+ c^{\mathsf T}h=(c_R+h)^{\mathsf T}h=\lVert h\rVert_2^2>0.
+\]
+Thus \(X(\eta+h)=X\eta\), whereas \(c^{\mathsf T}(\eta+h)-c^{\mathsf T}\eta=c^{\mathsf T}h\ne0\).  As above, both coefficient vectors can be realized by fixed homogeneous unit-level arrays satisfying the structural assumptions.  Hence they induce the same design mean path but different sustained-treatment contrasts, completing the certificate.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This separates target estimability from full identification of all trend and lag coefficients. \textit{Gap.} This is the classical linear-model \(c\)-estimability certificate, not the novel contribution. Elfving1952, KieferWolfowitz1959, and Studden1968 provide the adjacent scalar-optimal-design geometry; the new content begins with the constrained monotone polynomial-lag support frontier below. \textit{Consumer.} A rollout operator can audit a proposed fraction path before using any cumulative-effect estimator.
+
+\begin{theorem}[thm:sharp-stage-frontier]\label{thm:sharp-stage-frontier}
+Under Assumptions \(\mathrm{ass:irreversible\text{-}endpoints}\), \(\mathrm{ass:additive\text{-}distributed\text{-}lag}\), and \(\mathrm{ass:polynomial\text{-}secular\text{-}trend}\), the sharp minimum measured-stage count is \(T_{\min}(r,L)=\max\{r+2,L+1\}\). At \(T=\max\{r+2,L+1\}\), the construction in Definition \(\mathrm{def:canonical\text{-}frontier\text{-}design}\) satisfies \(0=p_0^\star<p_1^\star<\cdots<p_T^\star=1\) and \(X(p^\star)^{\mathsf T}w^\star=c\). For every deficit \(T<\max\{r+2,L+1\}\), Definition \(\mathrm{def:deficit\text{-}alias}\) gives a target-active null direction: the lag-\(L\) column is zero when \(T\le L\), while the direct-treatment column is absorbed by a degree-at-most-\(T-1\) nuisance polynomial when \(T\le r+1\).
+\end{theorem}
+\begin{proof}
+Let
+\[
+ T_0=\max\{r+2,L+1\},\qquad D=\binom{T_0+r}{r+1}.
+\]
+Then \(T_0\ge r+2\), \(T_0\ge L+1\), and \(D>0\).  For an integer \(s\) and a nonnegative integer \(k\), define the auxiliary sequence
+\[
+ F_k(s)=\mathbf 1\{s\ge1\}\binom{s+k-1}{k}.
+\]
+Let \((\nabla f)(s)=f(s)-f(s-1)\).  For \(k\ge1\), Pascal's identity and a separate check at \(s=1\) give
+\[
+ \nabla F_k(s)=F_{k-1}(s)\qquad(s\in\mathbb Z).
+\]
+Indeed, both sides vanish when \(s\le0\), both equal one when \(s=1\), and for \(s\ge2\) the identity is
+\[
+ \binom{s+k-1}{k}-\binom{s+k-2}{k}
+ =\binom{s+k-2}{k-1}.
+\]
+Iterating yields
+\[
+ \nabla^{r+1}F_{r+1}(s)=F_0(s)=\mathbf 1\{s\ge1\}.
+ \tag{1}
+\]
+
+Use Definition \(\mathrm{def:canonical\text{-}frontier\text{-}design}\) with \(T=T_0\).  Since
+\[
+ p_t^\star=\frac{F_{r+1}(t)}{D}\qquad(0\le t\le T_0),
+\]
+we have \(p_0^\star=0\) and \(p_{T_0}^\star=1\).  Moreover, for \(1\le t\le T_0\), Pascal's identity gives
+\[
+ p_t^\star-p_{t-1}^\star
+ =\frac{\binom{t+r-1}{r}}{D}>0.
+ \tag{2}
+\]
+Thus this schedule satisfies Assumption \(\mathrm{ass:irreversible\text{-}endpoints}\), in fact strictly between successive stages.
+
+We next verify every coordinate of the representer equation.  Because \(T_0\ge r+2\), every index \(T_0-k\), \(0\le k\le r+1\), lies in \(J_{T_0}\).  For \(0\le j\le r\), Definition \(\mathrm{def:canonical\text{-}frontier\text{-}design}\) gives
+\[
+\begin{aligned}
+ \sum_{t=1}^{T_0}w_t^\star t^j
+ &=D\sum_{k=0}^{r+1}(-1)^k\binom{r+1}{k}(T_0-k)^j\\
+ &=D\,\nabla^{r+1}[s\mapsto s^j](T_0)=0.
+\end{aligned}
+\tag{3}
+\]
+The last equality is elementary: one application of \(\nabla\) lowers the degree of a nonconstant polynomial by one and annihilates a constant, so \(r+1\) applications annihilate every polynomial of degree at most \(r\).
+
+Fix \(0\le\ell\le L\).  Every argument \(T_0-\ell-k\) below is at most \(T_0\).  For positive arguments the definition of \(p^\star\) gives \(p_s^\star=F_{r+1}(s)/D\), while for nonpositive arguments both the left-extension convention and \(F_{r+1}(s)/D\) equal zero.  Hence (1) implies
+\[
+\begin{aligned}
+ \sum_{t=1}^{T_0}w_t^\star p_{t-\ell}^{\mathrm{ext}}
+ &=\sum_{k=0}^{r+1}(-1)^k\binom{r+1}{k}F_{r+1}(T_0-\ell-k)\\
+ &=\nabla^{r+1}F_{r+1}(T_0-\ell)\\
+ &=F_0(T_0-\ell)=1.
+\end{aligned}
+\tag{4}
+\]
+The final equality uses \(T_0-\ell\ge T_0-L\ge1\).  Equations (3) and (4) are precisely
+\[
+ X(p^\star)^{\mathsf T}w^\star
+ =(\underbrace{0,\ldots,0}_{r+1},
+   \underbrace{1,\ldots,1}_{L+1})^{\mathsf T}=c.
+\]
+By Definition \(\mathrm{def:unbiased\text{-}representers}\), \(w^\star\in\mathcal W_c(p^\star)\); thus \(T_{\min}(r,L)\le T_0\).
+
+For the converse, let \(T<T_0\).  Since \(T,r,L\) are integers, either \(T\le L\) or \(T\le r+1\).  In the first case define \(h^{(L)}\in\mathbb R^{r+L+2}\) to have loading one on \(\beta_L\) and zero on every other coordinate.  For every \(t\in J_T\), \(t-L\le0\), and therefore \(p_{t-L}^{\mathrm{ext}}=0\).  Thus
+\[
+ Xh^{(L)}=0,
+ \qquad c^{\mathsf T}h^{(L)}=1.
+ \tag{5}
+\]
+This is an algebraic statement about the mean-design column; under the weak-threshold assignment, exposure at a zero threshold is also zero almost surely because \(\mathbb P_U(U_i=0)=0\).
+
+In the second case let \(q_p\) be the polynomial of Definition \(\mathrm{def:deficit\text{-}alias}\).  The nodes \(1,\ldots,T\) are distinct, so every denominator in its Lagrange basis is nonzero, and interpolation gives
+\[
+ \deg(q_p)\le T-1\le r,
+ \qquad q_p(t)=-p_t\quad(t\in J_T).
+\]
+Write \(q_p(x)=\sum_{j=0}^{r}q_jx^j\), padding by zero coefficients through degree \(r\), and set
+\[
+ h^{(0)}=(q_0,\ldots,q_r,1,0,\ldots,0)^{\mathsf T},
+\]
+where the one is in the \(\beta_0\) coordinate.  Then, for every \(t\in J_T\),
+\[
+ X_{t,\cdot}h^{(0)}=q_p(t)+p_t=0,
+ \qquad c^{\mathsf T}h^{(0)}=1.
+ \tag{6}
+\]
+Thus every support deficit admits the explicit target-active null direction (5) or (6).  Theorem \(\mathrm{thm:row\text{-}space\text{-}certificate}\) implies from either direction that \(c\notin\operatorname{row}(X)\) and \(\mathcal W_c(p)=\varnothing\) for every endpoint schedule with that \(T\).  Hence \(T_{\min}(r,L)\ge T_0\).  Combining the lower bound with the construction proves
+\[
+ T_{\min}(r,L)=\max\{r+2,L+1\}.
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the sharp support certificate within the explicitly defined assignment-blind linear stage-mean class: the binomial ramp attains the least stage count and the two null directions certify necessity. \textit{Gap.} Classical \(c\)-estimability does not solve the shifted monotone-path support problem, but this theorem must not be read as maximal over estimators using the full unit-level assignment panel. \textit{Consumer.} A rollout planner who intends to analyze only stage means can audit whether polynomial calendar balance and the lag horizon leave enough stages for the sustained contrast.
+
+\begin{proposition}[prop:presolve-and-linear-ramp]\label{prop:presolve-and-linear-ramp}
+For \(r=L=1\), three measured stages suffice: \(p=(p_0,p_1,p_2,p_3)=(0,1/6,1/2,1)\) and \(w=(6,-12,6)^{\mathsf T}\) satisfy \(X^{\mathsf T}w=(0,0,1,1)^{\mathsf T}\). The supplied four-stage check is also correct: for \(p=(0,0,0,1/2,1)\), the measured \(4\times4\) matrix has determinant \(1/4\), and \(w=(2,-2,-2,2)^{\mathsf T}\) satisfies the same identity. In contrast, for every \(T\ge3\), the linear ramp \(p_t=t/T\) is nonidentifying because the coefficient perturbation with direct-effect loading \(1\), time-trend loading \(-1/T\), and all other loadings zero lies in \(\ker(X)\) and changes \(\theta\) by \(1\).
+\end{proposition}
+\begin{proof}
+Take \(r=L=1\), so the columns of \(X\) are ordered as \((1,t,p_t^{\mathrm{ext}},p_{t-1}^{\mathrm{ext}})\) and \(c=(0,0,1,1)^{\mathsf T}\).  For \(T=3\), the schedule \((p_0,p_1,p_2,p_3)=(0,1/6,1/2,1)\) is monotone and endpoint-attaining.  With \(w=(6,-12,6)^{\mathsf T}\), direct calculation gives
+\[
+\begin{aligned}
+ \sum_{t=1}^{3}w_t&=6-12+6=0,\\
+ \sum_{t=1}^{3}tw_t&=6-24+18=0,\\
+ \sum_{t=1}^{3}w_tp_t&=6(1/6)-12(1/2)+6=1,\\
+ \sum_{t=1}^{3}w_tp_{t-1}^{\mathrm{ext}}&=6(0)-12(1/6)+6(1/2)=1.
+\end{aligned}
+\]
+Therefore \(X^{\mathsf T}w=c\), proving that three measured stages suffice.  This is also the specialization of the canonical frontier construction because \(\max\{r+2,L+1\}=3\).
+
+For the four-stage schedule \((p_0,p_1,p_2,p_3,p_4)=(0,0,0,1/2,1)\),
+\[
+ X=
+ \begin{pmatrix}
+ 1&1&0&0\\
+ 1&2&0&0\\
+ 1&3&1/2&0\\
+ 1&4&1&1/2
+ \end{pmatrix}.
+\]
+This matrix is block lower triangular after grouping its first two and last two rows as displayed, so
+\[
+ \det(X)
+ =\det\!\begin{pmatrix}1&1\\1&2\end{pmatrix}
+  \det\!\begin{pmatrix}1/2&0\\1&1/2\end{pmatrix}
+ =1\cdot\frac14=\frac14.
+\]
+For \(w=(2,-2,-2,2)^{\mathsf T}\), the four column identities are
+\[
+ 2-2-2+2=0,\qquad
+ 2-4-6+8=0,\qquad
+ 0+0-1+2=1,\qquad
+ 0+0+0+1=1.
+\]
+Hence again \(X^{\mathsf T}w=c\).
+
+Finally fix any \(T\ge3\) and take the legal linear ramp \(p_t=t/T\) for \(0\le t\le T\).  In coefficient order \((\bar a_0,\bar a_1,\beta_0,\beta_1)\), let
+\[
+ h=(0,-1/T,1,0)^{\mathsf T}.
+\]
+For every \(t\in J_T\),
+\[
+ X_{t,\cdot}h=-\frac{t}{T}+p_t=0,
+\]
+so \(h\in\ker(X)\), while \(c^{\mathsf T}h=1\).  A vector in the row space of \(X\) must be orthogonal to every vector in \(\ker(X)\); therefore \(c\notin\operatorname{row}(X)\).  Theorem \(\mathrm{thm:row\text{-}space\text{-}certificate}\) now shows that this nonconstant endpoint-attaining ramp does not identify \(\theta\) by a linear stage-mean functional.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} These exact reductions pass the early-kill test and show why nonconstant rollout variation alone is insufficient. \textit{Gap.} The four-stage identity was presolve evidence, but the three-stage witness and the target-active linear-ramp alias sharpen it and prevent an incorrect four-stage minimum claim. \textit{Consumer.} The proposition is a unit test for schedule-audit software and a warning against default linear ramps under linear calendar drift.
+
+\begin{theorem}[thm:uniform-feasible-studentization-obstruction]\label{thm:uniform-feasible-studentization-obstruction}
+The uniform obstruction is limited to variance-ratio studentization on the following explicit class; it does not rule out pointwise or conservative procedures.  Fix \(r=0\), \(L=2\), \(T=4\), and the irreversible endpoint schedule
+\[
+ (p_0,p_1,p_2,p_3,p_4)=(0,1/3,1/3,2/3,1).
+\]
+For each \(n\), let \(\mathcal C_n\) contain the fixed finite populations indexed by signs \(x_i,y_i\in\{-1,1\}\), \(i\in I_n\), with
+\[
+ a_{i,0}=-x_i,\qquad b_{i,0}=x_i,\qquad b_{i,1}=0,\qquad b_{i,2}=y_i,
+\]
+and with \(g\) and \(Y\) determined by the polynomial-trend and additive distributed-lag formulas.  Write \(\mathcal C=(\mathcal C_n)_{n\ge1}\).  Every triangular sequence chosen from \(\mathcal C\) satisfies Assumptions \(\mathrm{ass:fixed\text{-}potential\text{-}outcomes}\), \(\mathrm{ass:nested\text{-}hash\text{-}randomization}\), \(\mathrm{ass:irreversible\text{-}endpoints}\), \(\mathrm{ass:additive\text{-}distributed\text{-}lag}\), \(\mathrm{ass:polynomial\text{-}secular\text{-}trend}\), \(\mathrm{ass:finite\text{-}population\text{-}fourth\text{-}moment}\), \(\mathrm{ass:max\text{-}unit\text{-}lindeberg}\), and \(\mathrm{ass:nondegenerate\text{-}oracle\text{-}risk}\).  Its mean-design matrix \(X\) is nonsingular, \(\mathcal W_c(p)=\{(-3,0,3,0)^{\mathsf T}\}\), and its oracle stage-mean risk is
+\[
+ R_\Gamma=\frac1{n^2}\sum_{i\in I_n}(4-2x_i y_i).
+\]
+The endpoint Horvitz--Thompson estimator \(\widehat\theta_{\mathrm{panel}}\) in Definition \(\mathrm{def:panel\text{-}ht\text{-}estimator}\) is exactly design-unbiased for the finite-population causal estimand \(\theta\), and its exact shared-hash variance is
+\[
+ V_{\mathrm{panel}}:=\operatorname{Var}_U(\widehat\theta_{\mathrm{panel}})=\frac1{n^2}\sum_{i\in I_n}\left(\frac52-2x_i y_i\right).
+\]
+For either fixed choice \(D_n=R_\Gamma\) or \(D_n=V_{\mathrm{panel}}\), there is no sequence of nonnegative statistics \(\widehat D_n\), measurable with respect to \((Y^{\mathrm{obs}},U,Z,p)\), such that for every \(\epsilon>0\),
+\[
+ \sup_{(x_1,y_1,\ldots,x_n,y_n)\in\{-1,1\}^{2n}}
+ \mathbb P_U\!\left\{\left|\frac{\widehat D_n}{D_n}-1\right|>\epsilon\right\}
+ \longrightarrow0.
+\]
+Consequently no admissible construction in Definition \(\mathrm{def:hajek\text{-}inference\text{-}handle}\) can produce \((\widehat\Gamma,\widehat w,\widehat\theta,\widehat V)\) satisfying simultaneously, uniformly over \(\mathcal C\), oracle-risk equivalence, oracle variance-ratio consistency, asymptotic standard normality, and the requested \(1-\alpha\) Wald-coverage guarantee.  Likewise, no variance estimator can uniformly ratio-studentize \(\widehat\theta_{\mathrm{panel}}\) by consistently estimating its exact variance on \(\mathcal C\).  These conclusions do not assert impossibility of pointwise inference, conservative variance bounds, or other uniformly valid inference that does not require variance-ratio consistency.
+\end{theorem}
+\begin{proof}
+Put \(q=1/3\) and \(u=2/3\).  By the left-extension convention, \(p^{\mathrm{ext}}_{-1}=p^{\mathrm{ext}}_0=0\).  Definition \(\mathrm{def:mean\text{-}design}\), specialized to \(r=0\), \(L=2\), \(T=4\), and the schedule in the statement, therefore gives
+\[
+X=
+\begin{pmatrix}
+1&q&0&0\\
+1&q&q&0\\
+1&u&q&q\\
+1&1&u&q
+\end{pmatrix}.
+\]
+Subtracting the first row from each later row and expanding along the first column yields
+\[
+\det(X)
+=\det\!\begin{pmatrix}
+0&q&0\\
+u-q&q&q\\
+1-q&u&q
+\end{pmatrix}
+=q^2(1-u)=\frac1{27}>0.
+\]
+Thus \(X\) and \(X^{\mathsf T}\) are invertible.  Direct multiplication gives
+\[
+X^{\mathsf T}(-3,0,3,0)^{\mathsf T}
+=(0,1,1,1)^{\mathsf T}=c.
+\]
+Definition \(\mathrm{def:unbiased\text{-}representers}\) consequently gives \(\mathcal W_c(p)=\{w\}\), where \(w=(-3,0,3,0)^{\mathsf T}\).  Since the feasible set in Definition \(\mathrm{def:oracle\text{-}blue}\) is this singleton, its minimum-risk, minimum-Euclidean-norm member is \(w_\Gamma=w\), including when \(\Gamma\) is singular.
+
+Fix any deterministic signs \(x_i,y_i\in\{-1,1\}\), and set
+\[
+a_{i,0}=-x_i,\qquad b_{i,0}=x_i,\qquad b_{i,1}=0,
+\qquad b_{i,2}=y_i.
+\tag{1}
+\]
+The signs and hence these coefficients are fixed before randomization, as required by Assumption \(\mathrm{ass:fixed\text{-}potential\text{-}outcomes}\).  Assumption \(\mathrm{ass:polynomial\text{-}secular\text{-}trend}\) gives \(g_{i,t}=-x_i\), and Assumption \(\mathrm{ass:additive\text{-}distributed\text{-}lag}\) gives, for every treatment history \(z\),
+\[
+Y_{i,t}(z)=-x_i+x_i z_t+y_i z_{t-2}.
+\tag{2}
+\]
+The displayed schedule is nondecreasing, begins at \(p_0=0\), and ends at \(p_4=1\), so Assumption \(\mathrm{ass:irreversible\text{-}endpoints}\) holds.  Moreover, \(p_1=q>0\), \(1-p_1=2/3>0\), and \(1-p_3=1/3>0\), so Definition \(\mathrm{def:panel\text{-}endpoint\text{-}overlap}\) applies; every division in Definition \(\mathrm{def:panel\text{-}ht\text{-}estimator}\) is therefore legal.
+
+We next enumerate the observable path support exactly.  The assignment definition uses the weak inequality \(Z_{i,s}=\mathbf 1\{U_i\le p_s^{\mathrm{ext}}\}\).  Thus \(U_i=0\) produces an exceptional prehistory with \(Z_{i,s}=1\) even for \(s\le0\); this event has probability zero under Assumption \(\mathrm{ass:nested\text{-}hash\text{-}randomization}\).  Substitution in (2), including this null path rather than discarding it, gives
+\[
+Y_i^{\mathrm{obs}}=
+\begin{cases}
+(y_i,y_i,y_i,y_i)^{\mathsf T},&U_i=0,\\
+(0,0,y_i,y_i)^{\mathsf T},&0<U_i\le1/3,\\
+(-x_i,-x_i,0,0)^{\mathsf T},&1/3<U_i\le2/3,\\
+(-x_i,-x_i,-x_i,0)^{\mathsf T},&2/3<U_i\le1.
+\end{cases}
+\tag{3}
+\]
+These are all histories generated as a score ranges over \([0,1]\), including both threshold boundaries.  Every coordinate in (3) has absolute value at most one, and the path at \(U_i=0\) has a coordinate of absolute value one.  Hence the primitive envelope satisfies \(B_i=1\).  It follows that, for every \(n\),
+\[
+\frac1n\sum_{i\in I_n}B_i^4=1,
+\qquad
+\sum_{i\in I_n}B_i^2=n>0,
+\qquad
+\frac{\max_{i\in I_n}B_i^2}{\sum_{j\in I_n}B_j^2}
+=\frac1n\longrightarrow0.
+\tag{4}
+\]
+Thus Assumptions \(\mathrm{ass:finite\text{-}population\text{-}fourth\text{-}moment}\) and \(\mathrm{ass:max\text{-}unit\text{-}lindeberg}\) hold, with \(C_4=1\).  Equations (1)--(2), together with the stipulated construction of \(g\) and \(Y\), verify the two structural assumptions for every member of \(\mathcal C_n\).  The sole experiment randomness is still \(U\).
+
+For the stage-mean benchmark let \(H_i=w^{\mathsf T}Y_i^{\mathrm{obs}}\).  Equation (3) gives
+\[
+H_i=
+\begin{cases}
+0,&U_i=0,\\
+3y_i,&0<U_i\le1/3,\\
+3x_i,&1/3<U_i\le2/3,\\
+0,&2/3<U_i\le1.
+\end{cases}
+\tag{5}
+\]
+Each positive-probability interval in (5) has probability \(1/3\).  Therefore Assumption \(\mathrm{ass:nested\text{-}hash\text{-}randomization}\) implies
+\[
+\mathbb E_U(H_i)=x_i+y_i=\sum_{\ell=0}^2b_{i,\ell}
+\tag{6}
+\]
+and, because \(x_i^2=y_i^2=1\),
+\[
+\operatorname{Var}_U(H_i)
+=3y_i^2+3x_i^2-(x_i+y_i)^2
+=4-2x_i y_i.
+\tag{7}
+\]
+Since \(M=n^{-1}\sum_iY_i^{\mathrm{obs}}\), equation (6) proves
+\[
+\mathbb E_U(w^{\mathsf T}M)
+=\frac1n\sum_{i\in I_n}(x_i+y_i)
+=\frac1n\sum_{i\in I_n}\sum_{\ell=0}^2b_{i,\ell}
+=\theta.
+\tag{8}
+\]
+This is design unbiasedness for the fixed finite-population causal contrast, not a definition of that contrast.  The coordinates \(U_i\) are independent, while all potential outcomes are fixed, so \(H_i\) and \(H_j\) have zero design covariance for \(i\ne j\).  Equations (7)--(8), Definition \(\mathrm{def:exact\text{-}covariance}\), and \(w_\Gamma=w\) give
+\[
+R_\Gamma
+=\operatorname{Var}_U(w^{\mathsf T}M)
+=\frac1{n^2}\sum_{i\in I_n}(4-2x_i y_i).
+\tag{9}
+\]
+Writing \(\bar\xi_n=n^{-1}\sum_i x_i y_i\), equation (9) becomes
+\[
+nR_\Gamma=4-2\bar\xi_n.
+\tag{10}
+\]
+Because \(-1\le\bar\xi_n\le1\), one has \(2\le nR_\Gamma\le6\) for every sign array and every \(n\).  Hence every triangular sequence in \(\mathcal C\) satisfies Assumption \(\mathrm{ass:nondegenerate\text{-}oracle\text{-}risk}\).
+
+We now calculate the distinct risk of the observed-panel estimator.  Let \(\psi_i(U_i)\) be unit \(i\)'s summand inside the factor \(n^{-1}\) in the \(L\ge1\) formula of Definition \(\mathrm{def:panel\text{-}ht\text{-}estimator}\).  Here \(T=4\ge L+1=3\), so that formula and (3) yield
+\[
+\psi_i(U_i)=
+\begin{cases}
+6y_i,&U_i=0,\\
+3y_i,&0<U_i\le1/3,\\
+\frac32x_i,&1/3<U_i\le2/3,\\
+\frac32x_i,&2/3<U_i\le1.
+\end{cases}
+\tag{11}
+\]
+Indeed, on \(0<U_i\le1/3\) the stage-one term vanishes and the treated terminal term equals \(3y_i\); on \(U_i>1/3\) the stage-one control term equals \(3x_i/2\) and the terminal outcome is zero.  The exceptional first line of (11) is null.  Thus
+\[
+\mathbb E_U\{\psi_i(U_i)\}
+=\frac13(3y_i)+\frac23\left(\frac32x_i\right)
+=x_i+y_i
+\tag{12}
+\]
+and
+\[
+\begin{aligned}
+\operatorname{Var}_U\{\psi_i(U_i)\}
+&=\frac13(3y_i)^2+\frac23\left(\frac32x_i\right)^2-(x_i+y_i)^2\\
+&=\frac52-2x_i y_i.
+\end{aligned}
+\tag{13}
+\]
+Equation (12), the fixed-population definition of \(\theta\), and independence across units prove
+\[
+\mathbb E_U(\widehat\theta_{\mathrm{panel}})=\theta,
+\qquad
+V_{\mathrm{panel}}
+:=\operatorname{Var}_U(\widehat\theta_{\mathrm{panel}})
+=\frac1{n^2}\sum_{i\in I_n}\left(\frac52-2x_i y_i\right).
+\tag{14}
+\]
+This computation uses the whole unit-level summand before taking its variance and therefore retains the shared-score covariance between the two endpoint outcome waves.  In particular,
+\[
+nV_{\mathrm{panel}}=\frac52-2\bar\xi_n,
+\qquad
+\frac12\le nV_{\mathrm{panel}}\le\frac92.
+\tag{15}
+\]
+
+It remains to prove both uniform impossibility statements.  The following sign mixtures average over fixed arrays only for a minimax contradiction; they do not alter the design, whose sole randomness conditional on an array remains \(U\).  For \(\rho\in\{0,1/2\}\), let \(Q_\rho\) make the pairs \((x_i,y_i)\) independent across units with
+\[
+Q_\rho\{x_i=x,y_i=y\}=\frac{1+\rho xy}{4},
+\qquad (x,y)\in\{-1,1\}^2.
+\tag{16}
+\]
+The four probabilities are nonnegative and sum to one.  Under either \(Q_\rho\), each marginal sign is uniform and
+\[
+\mathbb E_{Q_\rho}(x_i y_i)=\rho.
+\tag{17}
+\]
+Conditional on every value of \(U_i\), equation (3) reveals only \(y_i\), only \(x_i\), or neither, never both signs or their product.  This includes the threshold points and the null point \(U_i=0\).  Since the two mixtures have the same marginal law for each sign, \(U_i\) is independent of the signs, and \(Z_i\) is a deterministic function of \((U_i,p)\), the joint law of \((Y_i^{\mathrm{obs}},U_i,Z_i)\) is identical under \(Q_0\) and \(Q_{1/2}\).  Independence across units makes the full observed-data law of \((Y^{\mathrm{obs}},U,Z,p)\) identical under the two mixtures for every \(n\).
+
+By independence in (16), equation (17), and \(|x_i y_i|=1\),
+\[
+\mathbb E_{Q_\rho}\{(\bar\xi_n-\rho)^2\}
+=\frac1{n^2}\sum_{i=1}^n\operatorname{Var}_{Q_\rho}(x_i y_i)
+\le\frac1n.
+\tag{18}
+\]
+For every \(\delta>0\), the pointwise inequality \(\delta^2\mathbf 1\{|\bar\xi_n-\rho|>\delta\}\le(\bar\xi_n-\rho)^2\), followed by expectations, gives
+\[
+Q_\rho\{|\bar\xi_n-\rho|>\delta\}
+\le\frac1{n\delta^2}\longrightarrow0.
+\tag{19}
+\]
+For \(D_n=R_\Gamma\), set \(a_D=4\); for \(D_n=V_{\mathrm{panel}}\), set \(a_D=5/2\).  Equations (10), (15), and (19) imply
+\[
+nD_n\xrightarrow[Q_0]{\mathbb P}a_D,
+\qquad
+nD_n\xrightarrow[Q_{1/2}]{\mathbb P}a_D-1.
+\tag{20}
+\]
+Suppose, toward a contradiction, that a nonnegative observed-data-measurable statistic \(\widehat D_n\) obeyed the uniform ratio-consistency display in the statement for either fixed choice of \(D_n\).  Averaging its design-randomization error probability over arrays under \(Q_\rho\) gives, for every \(\epsilon>0\),
+\[
+(Q_\rho\otimes\mathbb P_U)
+\!\left\{\left|\frac{\widehat D_n}{D_n}-1\right|>\epsilon\right\}
+\le
+\sup_{(x_1,y_1,\ldots,x_n,y_n)\in\{-1,1\}^{2n}}
+\mathbb P_U
+\!\left\{\left|\frac{\widehat D_n}{D_n}-1\right|>\epsilon\right\}
+\longrightarrow0.
+\tag{21}
+\]
+The denominators are positive by (10) and (15).  Also, \(nD_n\le6\) in both cases, so
+\[
+|n\widehat D_n-nD_n|
+=nD_n\left|\frac{\widehat D_n}{D_n}-1\right|
+\le6\left|\frac{\widehat D_n}{D_n}-1\right|.
+\tag{22}
+\]
+Equations (20)--(22) and the triangle inequality imply
+\[
+n\widehat D_n\xrightarrow[Q_0\otimes\mathbb P_U]{\mathbb P}a_D,
+\qquad
+n\widehat D_n\xrightarrow[Q_{1/2}\otimes\mathbb P_U]{\mathbb P}a_D-1.
+\tag{23}
+\]
+Consequently
+\[
+(Q_0\otimes\mathbb P_U)\{n\widehat D_n>a_D-1/2\}\longrightarrow1,
+\qquad
+(Q_{1/2}\otimes\mathbb P_U)\{n\widehat D_n>a_D-1/2\}\longrightarrow0.
+\tag{24}
+\]
+But the identical observed-data laws force the two probabilities in (24) to be equal for every \(n\), a contradiction.  Since the argument applies separately to each of the two fixed choices of \(D_n\), neither exact risk admits a uniformly ratio-consistent observed-data estimator on \(\mathcal C\).
+
+For the oracle risk, an admissible output from Definition \(\mathrm{def:hajek\text{-}inference\text{-}handle}\) is observed-data measurable, and oracle variance-ratio consistency is one of the four conclusions demanded simultaneously.  Its impossibility proves the stated simultaneous-conclusion obstruction without assuming or refuting any pointwise central limit theorem.  For the panel estimator, taking \(D_n=V_{\mathrm{panel}}\) proves precisely that no studentization using a uniformly ratio-consistent estimator of its exact variance exists on this class.  Neither argument excludes pointwise inference, conservative variance bounds, or a different uniformly valid procedure whose validity does not require variance-ratio consistency.
+
+Finally, the smallest \(n=1\) instance is completely stress-tested by (3), (5), and (11): every score region and every boundary is enumerated; \(w^{\mathsf T}M=H_1\) has exact mean \(x_1+y_1\) and variance \(4-2x_1y_1\), while \(\widehat\theta_{\mathrm{panel}}=\psi_1(U_1)\) has the same exact causal mean and variance \(5/2-2x_1y_1\).  Thus neither estimator bias, an omitted endpoint history, nor an independence approximation across repeated waves drives the obstruction; it is the uniform unobservability of the within-unit product \(x_i y_i\) that determines both risks.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This separate boundary theorem shows that a usable schedule certificate does not by itself make exact-risk Wald studentization uniformly feasible: on the explicit shared-hash class \(\mathcal C\), identical observed laws carry different oracle and panel risks, ruling out uniform variance-ratio consistency for both \(R_\Gamma\) and \(V_{\mathrm{panel}}\). \textit{Gap.} Bojinov--Rambachan--Shephard is the closest variance-identifiability comparator: their Theorem 3.1 develops general dynamic Horvitz--Thompson estimation and explains exact-variance nonestimability, while Propositions 3.1--3.2 provide unbiased or consistent estimators of an upper variance bound for conservative weak-null inference. The present theorem proves a distinct, deliberately scoped claim: an explicit identical-observed-law lower bound under shared-hash rollout rules out uniform ratio-consistent estimation of \(R_\Gamma\) and \(V_{\mathrm{panel}}\) over \(\mathcal C\). It neither claims general variance nonestimability nor excludes conservative or pointwise inference. \textit{Consumer.} After using the design certificate to choose an identifiable schedule, an inference designer learns exactly which stronger plug-in promise still fails uniformly on \(\mathcal C\): exact oracle-risk or panel-variance ratio studentization. The appropriate response is to use separately justified conservative bounds, restrict the population class, or make a pointwise claim rather than attach an unsupported uniform Wald guarantee.
+
+\begin{theorem}[thm:sharp-observed-panel-stage-frontier]\label{thm:sharp-observed-panel-stage-frontier}
+Under Assumptions \(\mathrm{ass:fixed\text{-}potential\text{-}outcomes}\), \(\mathrm{ass:nested\text{-}hash\text{-}randomization}\), \(\mathrm{ass:irreversible\text{-}endpoints}\), and \(\mathrm{ass:additive\text{-}distributed\text{-}lag}\), with no polynomial restriction on the fixed secular array \(g\), the observed-panel frontier is
+\[
+ T_{\min}^{\mathrm{panel}}(L)=\max\{2,L+1\}.
+\]
+More precisely, for every \(T\ge\max\{2,L+1\}\) and every schedule satisfying Definition \(\mathrm{def:panel\text{-}endpoint\text{-}overlap}\), the statistic in Definition \(\mathrm{def:panel\text{-}ht\text{-}estimator}\) belongs to \(\mathcal E_{\mathrm{panel}}(p)\) and obeys \(\mathbb E_U[\widehat\theta_{\mathrm{panel}}]=\theta\).  If \(\psi_i(U_i)\) denotes unit \(i\)'s summand inside the factor \(n^{-1}\) in that definition and \(\theta_i=\sum_{\ell=0}^{L}b_{i,\ell}\), then its exact finite-population randomization risk is
+\[
+ \operatorname{Var}_U(\widehat\theta_{\mathrm{panel}})
+ =\frac1{n^2}\sum_{i\in I_n}
+ \left\{\int_0^1\psi_i(u)^2\,du-\theta_i^2\right\};
+\]
+this formula retains the within-unit dependence between stages \(1\) and \(T\).  Necessity is witnessed explicitly for every deficit: if \(L\ge1\) and \(T\le L\), changing every \(b_{i,L}\) from zero to one leaves the observed panel unchanged almost surely and changes \(\theta\) from zero to one; if \(L=0\) and \(T=1\), changing \((g_{i,1},b_{i,0})\) from \((0,0)\) to \((-1,1)\) does the same.  Thus the panel frontier is independent of the declared polynomial degree \(r\).
+\end{theorem}
+\begin{proof}
+Fix \(T\geq\max\{2,L+1\}\) and a schedule with panel endpoint overlap.  Assumption \(\mathrm{ass:fixed\text{-}potential\text{-}outcomes}\) makes all potential outcomes and coefficients fixed; the only randomness is \(U\).  By Assumption \(\mathrm{ass:nested\text{-}hash\text{-}randomization}\) and Definition \(\mathrm{def:panel\text{-}endpoint\text{-}overlap}\),
+\[
+ \mathbb P_U(A_i=1)=p_1>0,
+ \qquad
+ \mathbb P_U(A_i=0)=1-p_1>0,
+ \qquad
+ \mathbb P_U(C_i=1)=1-p_{T-1}>0.
+ \tag{1}
+\]
+At stage \(1\), every lagged threshold with index at most zero equals zero.  Since a uniform score equals zero with probability zero, Assumption \(\mathrm{ass:additive\text{-}distributed\text{-}lag}\) gives, almost surely,
+\[
+ Y^{\mathrm{obs}}_{i,1}
+ =\begin{cases}
+ g_{i,1}+b_{i,0},&A_i=1,\\
+ g_{i,1},&A_i=0.
+ \end{cases}
+\]
+Consequently, fixedness and (1) imply
+\[
+\begin{aligned}
+ \mathbb E_U\!\left[
+ \frac{A_iY^{\mathrm{obs}}_{i,1}}{p_1}
+ -\frac{(1-A_i)Y^{\mathrm{obs}}_{i,1}}{1-p_1}
+ \right]
+ &=(g_{i,1}+b_{i,0})-g_{i,1}\\
+ &=b_{i,0}.
+\end{aligned}
+\tag{2}
+\]
+When \(L=0\), averaging (2) over \(i\in I_n\) proves \(\mathbb E_U[\widehat\theta_{\mathrm{panel}}]=n^{-1}\sum_i b_{i,0}=\theta\).
+
+Suppose next that \(L\geq1\).  Since \(T\geq L+1\), every final-stage lag index \(T-\ell\), \(0\leq\ell\leq L\), is at least one.  On \(\{A_i=1\}\), monotonicity in Assumption \(\mathrm{ass:irreversible\text{-}endpoints}\) yields
+\[
+ U_i\leq p_1\leq p_{T-\ell}
+ \qquad(0\leq\ell\leq L),
+\]
+so all \(L+1\) relevant exposures at stage \(T\) equal one.  On \(\{C_i=1\}\), one has \(U_i>p_{T-1}\geq p_{T-\ell}\) for \(1\leq\ell\leq L\), whereas \(Z_{i,T}=1\) because \(p_T=1\).  Hence the additive-lag equation gives
+\[
+ Y^{\mathrm{obs}}_{i,T}
+ =g_{i,T}+\sum_{\ell=0}^{L}b_{i,\ell}
+ \quad\text{on }\{A_i=1\},
+ \qquad
+ Y^{\mathrm{obs}}_{i,T}=g_{i,T}+b_{i,0}
+ \quad\text{on }\{C_i=1\}.
+\]
+Using (1) once more,
+\[
+\begin{aligned}
+ \mathbb E_U\!\left[
+ \frac{A_iY^{\mathrm{obs}}_{i,T}}{p_1}
+ -\frac{C_iY^{\mathrm{obs}}_{i,T}}{1-p_{T-1}}
+ \right]
+ &=\left(g_{i,T}+\sum_{\ell=0}^{L}b_{i,\ell}\right)
+   -(g_{i,T}+b_{i,0})\\
+ &=\sum_{\ell=1}^{L}b_{i,\ell}.
+\end{aligned}
+\tag{3}
+\]
+Adding (2) and (3), summing over units, and using the definition of \(\theta\) proves
+\[
+ \mathbb E_U[\widehat\theta_{\mathrm{panel}}]
+ =\frac1n\sum_{i\in I_n}\sum_{\ell=0}^{L}b_{i,\ell}
+ =\theta.
+\]
+The displayed estimator is measurable with respect to \(\sigma(Y^{\mathrm{obs}},U,Z,p)\).  Its denominators are positive, and each summand is a finite-valued function on a fixed finite population, so it is integrable.  It therefore belongs to \(\mathcal E_{\mathrm{panel}}(p)\).
+
+For the risk identity, write \(\widehat\theta_{\mathrm{panel}}=n^{-1}\sum_i\psi_i(U_i)\), using the applicable summand in Definition \(\mathrm{def:panel\text{-}ht\text{-}estimator}\), and put \(\theta_i=\sum_{\ell=0}^{L}b_{i,\ell}\).  The own-unit additive exposure model makes \(\psi_i(U_i)\) a function only of \(U_i\) and fixed unit-\(i\) quantities.  Independence of the coordinates in Assumption \(\mathrm{ass:nested\text{-}hash\text{-}randomization}\) therefore gives independence across units, while (2)--(3) give \(\mathbb E_U[\psi_i(U_i)]=\theta_i\).  Thus
+\[
+\begin{aligned}
+ \operatorname{Var}_U(\widehat\theta_{\mathrm{panel}})
+ &=\frac1{n^2}\sum_{i\in I_n}\operatorname{Var}_U(\psi_i(U_i))\\
+ &=\frac1{n^2}\sum_{i\in I_n}
+ \left\{\int_0^1\psi_i(u)^2\,du-\theta_i^2\right\}.
+\end{aligned}
+\]
+Both endpoint contributions for a unit occur inside the same function \(\psi_i(u)\); no independence between repeated stages has been used.
+
+It remains to prove sharpness under the convention that every rollout threshold is measured.  Let \(L\geq1\) and \(T\leq L\).  Compare two fixed populations.  In the first, set all \(g_{i,t}\) and \(b_{i,\ell}\) to zero.  In the second, keep \(g_{i,t}=0\), set \(b_{i,L}=1\) for every unit, and set all other lag coefficients to zero.  For each measured \(t\leq T\), \(t-L\leq0\), so
+\[
+ Z_{i,t-L}=\mathbf 1\{U_i\leq0\}=0
+ \quad\text{almost surely}.
+\]
+The complete observed data \((Y^{\mathrm{obs}},U,Z,p)\) therefore have the same law under the two populations, but \(\theta\) equals zero in the first and one in the second.  No integrable statistic of these data can be unbiased for both values, so \(\mathcal E_{\mathrm{panel}}(p)=\varnothing\).
+
+If \(L=0\) and \(T=1\), Assumption \(\mathrm{ass:irreversible\text{-}endpoints}\) forces \(p_1=1\).  Compare the all-zero population with the population having \(g_{i,1}=-1\) and \(b_{i,0}=1\) for every unit.  Since \(Z_{i,1}=1\) surely, both populations produce the identically zero observed panel and the same \((U,Z,p)\), whereas their target values are zero and one.  Hence \(\mathcal E_{\mathrm{panel}}(p)=\varnothing\) here as well.
+
+These witnesses cover every positive integer below \(\max\{2,L+1\}\).  Conversely, at \(T=\max\{2,L+1\}\), the strictly increasing schedule \(p_t=t/T\) has panel endpoint overlap, and the preceding calculation supplies an unbiased estimator.  Definition \(\mathrm{def:observed\text{-}panel\text{-}stage\text{-}frontier}\) now yields
+\[
+ T_{\min}^{\mathrm{panel}}(L)=\max\{2,L+1\}.
+\]
+Neither the construction nor either alias used a polynomial restriction on \(g\), so the value is independent of \(r\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem is the fully measured diagonal of the bivariate design problem and supplies the two-endpoint estimator and exact shared-hash finite-population risk used at the elbow. \textit{Gap.} Its \(\max\{2,L+1\}\) count applies when every threshold stage is an outcome wave; it is not the general horizon/wave frontier and is now explicitly scoped as that diagonal convention. \textit{Consumer.} A rollout analyst who already collects outcomes at every threshold can certify the minimum horizon and compute risk without treating repeated stages as independent.
+
+\begin{theorem}[thm:sharp-rollout-wave-pareto-frontier]\label{thm:sharp-rollout-wave-pareto-frontier}
+Under Assumptions \(\mathrm{ass:fixed\text{-}potential\text{-}outcomes}\), \(\mathrm{ass:nested\text{-}hash\text{-}randomization}\), \(\mathrm{ass:irreversible\text{-}endpoints}\), and \(\mathrm{ass:additive\text{-}distributed\text{-}lag}\), with unrestricted fixed secular array \(g\), the exact rollout-horizon/outcome-wave feasible set is
+\[
+ \mathcal F_{\mathrm{wave}}(L)=
+ \begin{cases}
+ \{(H,m):H\geq2,\ 1\leq m\leq H\},&L=0,\\
+ \{(L+1,m):2\leq m\leq L+1\}
+ \mathbin{\cup}
+ \{(H,m):H\geq L+2,\ 1\leq m\leq H\},&L\geq1.
+ \end{cases}
+\]
+Equivalently,
+\[
+ m_{\min}^{\mathrm{wave}}(H,L)=
+ \begin{cases}
+ +\infty,&L=0,\ H=1,\\
+ 1,&L=0,\ H\geq2,\\
+ +\infty,&L\geq1,\ H\leq L,\\
+ 2,&L\geq1,\ H=L+1,\\
+ 1,&L\geq1,\ H\geq L+2.
+ \end{cases}
+\]
+For a fixed schedule and a single measured occasion \(t\),
+\[
+ \mathcal E_{\mathrm{wave}}(p,\{t\})\ne\varnothing
+ \quad\Longleftrightarrow\quad
+ 0<p^{\mathrm{ext}}_{t-L}\leq p_t<1.
+\]
+When this condition holds, Definition \(\mathrm{def:interior\text{-}one\text{-}wave\text{-}ht\text{-}estimator}\) gives an exactly unbiased member of \(\mathcal E_{\mathrm{wave}}(p,\{t\})\).  If \(\phi_{i,t}(U_i)\) is its unit summand inside the factor \(n^{-1}\) and \(\theta_i=\sum_{\ell=0}^{L}b_{i,\ell}\), then
+\[
+ \operatorname{Var}_U\!\left(\widehat\theta_{\mathrm{one}}(t)\right)
+ =\frac1{n^2}\sum_{i\in I_n}
+ \left\{
+ \frac{(g_{i,t}+\theta_i)^2}{p^{\mathrm{ext}}_{t-L}}
+ +\frac{g_{i,t}^2}{1-p_t}-\theta_i^2
+ \right\}.
+\]
+At the elbow \(L\geq1\), \(H=L+1\), every schedule with \(0<p_1\leq\cdots\leq p_{H-1}<1\) is identified by the two endpoint waves \(\mathcal S=\{1,H\}\) and the endpoint estimator \(\widehat\theta_{\mathrm{panel}}\), whereas no one-wave rule is unbiased uniformly over the model.  Under the convention that every rollout threshold is measured, the diagonal frontier remains \(T_{\min}^{\mathrm{panel}}(L)=\max\{2,L+1\}\), independently of \(r\).
+\end{theorem}
+\begin{proof}
+Fix a horizon \(H\), instantiate \(T=H\), and fix a schedule satisfying Assumption \(\mathrm{ass:irreversible\text{-}endpoints}\).  We first derive the fixed-schedule one-wave claim from Theorem \(\mathrm{thm:fixed\text{-}schedule\text{-}wave\text{-}span\text{-}certificate}\).  For \(t\in\{1,\ldots,H\}\), monotonicity and the endpoint extension give
+\[
+ 0\le p^{\mathrm{ext}}_{t-L}
+ \le p^{\mathrm{ext}}_{t-\ell}
+ \le p_t\le1,
+ \qquad \ell=0,\ldots,L.
+\tag{1}
+\]
+The threshold-block vectors at this one wave have disjoint supports.  Their union covers every lag coordinate exactly when every threshold in (1) is interior.  By (1), this is equivalent to
+\[
+ 0<p^{\mathrm{ext}}_{t-L}\le p_t<1.
+\tag{2}
+\]
+If (2) holds, the sum of the distinct interior block vectors is \(\mathbf 1_{L+1}\), so the span certificate gives feasibility.  Conversely, if \(p^{\mathrm{ext}}_{t-L}=0\), coordinate \(L\) is zero in every interior block, while if \(p_t=1\), coordinate \(0\) is zero in every interior block.  In either case \(\mathbf 1_{L+1}\) is outside their span, and the target-active alias in the span theorem proves infeasibility.  This establishes the stated one-wave equivalence without imposing distinctness of the interior thresholds.
+
+For completeness, under (2) put
+\[
+ a=p^{\mathrm{ext}}_{t-L},\qquad q=p_t,
+ \qquad \theta_i=\sum_{\ell=0}^{L}b_{i,\ell}.
+\tag{3}
+\]
+On \(\{U_i\le a\}\), every relevant lag exposure equals one, whereas on \(\{U_i>q\}\), every relevant lag exposure equals zero.  Assumption \(\mathrm{ass:additive\text{-}distributed\text{-}lag}\) therefore gives
+\[
+ Y^{\mathrm{obs}}_{i,t}=g_{i,t}+\theta_i
+ \quad\text{on }\{U_i\le a\},
+ \qquad
+ Y^{\mathrm{obs}}_{i,t}=g_{i,t}
+ \quad\text{on }\{U_i>q\}.
+\tag{4}
+\]
+The events have probabilities \(a\) and \(1-q\) by Assumption \(\mathrm{ass:nested\text{-}hash\text{-}randomization}\).  Definition \(\mathrm{def:interior\text{-}one\text{-}wave\text{-}ht\text{-}estimator}\) and (4) yield, for its unit summand \(\phi_{i,t}(U_i)\),
+\[
+ \mathbb E_U[\phi_{i,t}(U_i)]=\theta_i,
+ \qquad
+ \mathbb E_U[\phi_{i,t}(U_i)^2]
+ =\frac{(g_{i,t}+\theta_i)^2}{a}
+  +\frac{g_{i,t}^2}{1-q}.
+\tag{5}
+\]
+The statistic is observed-wave measurable and integrable because the denominators in (2) are positive and the fixed population is finite.  Averaging the first identity in (5) gives expectation \(\theta\).  The complete unit summands are independent across units because each is a function of its own score \(U_i\); no claim of independence across repeated waves is involved.  Summing their variances from (5), multiplying by \(n^{-2}\), and substituting (3) proves the displayed exact risk formula.
+
+We now obtain the sharp bivariate frontier.  Suppose first that \(L=0\).  When \(H=1\), the only possible observed wave is terminal, and its sole threshold is \(p_1=1\); hence the block family is empty and the span certificate rules out feasibility.  When \(H\ge2\), choose the legal strict schedule \(p_j=j/H\) and observe wave \(t=1\).  Its only threshold is \(p_1=1/H\in(0,1)\), so its sole block vector is \((1)\).  Thus one wave is feasible by the span certificate, and no smaller positive wave count is permitted by Definition \(\mathrm{def:bivariate\text{-}rollout\text{-}wave\text{-}frontier}\).
+
+Next suppose \(L\ge1\).  If \(H\le L\), then every possible wave \(t\le H\) has
+\[
+ p^{\mathrm{ext}}_{t-L}=0.
+\tag{6}
+\]
+Consequently coordinate \(L\) is zero in every interior block at every possible wave.  The all-ones vector cannot belong to the span for any \(\mathcal S\), and the fixed-schedule theorem supplies, for every schedule, an explicit target-active alias.  Hence no wave count is feasible.
+
+At the elbow \(H=L+1\), the span certificate also gives the exact placement characterization over schedules.  If \(H\notin\mathcal S\), every observed \(t\) satisfies \(t\le L\), so (6) again excludes coordinate \(L\).  If \(H\in\mathcal S\) but \(\mathcal S\cap\{1,\ldots,L\}=\varnothing\), then \(\mathcal S=\{H\}\); at that wave coordinate \(0\) has threshold \(p_H=1\), so it is absent from every interior block.  Thus feasibility requires both the terminal wave and at least one nonterminal wave.
+
+Conversely, suppose \(H\in\mathcal S\) and choose \(s\in\mathcal S\cap\{1,\ldots,L\}\).  Under the strict schedule \(p_j=j/H\), the block at wave \(s\) and threshold \(p_s\) is the coordinate vector \(e_0\).  At wave \(H\), the thresholds \(p_{H-\ell}\), \(\ell=1,\ldots,L\), are distinct and interior, and their blocks are \(e_1,\ldots,e_L\).  Hence
+\[
+ \mathbf 1_{L+1}=e_0+e_1+\cdots+e_L
+ \in\mathcal V(p,\mathcal S).
+\tag{7}
+\]
+The span theorem proves feasibility.  Thus the fixed-schedule result recovers the elbow wave-placement equivalence: for some legal schedule, a wave set is feasible exactly when it contains \(H\) and at least one \(s<H\).  In particular, exactly two waves are necessary and sufficient at the elbow, and the construction in (7) agrees with the placement-specific Horvitz--Thompson construction.
+
+If \(H\ge L+2\), again choose \(p_j=j/H\) but observe only \(t=L+1\).  Its \(L+1\) thresholds
+\[
+ p_{L+1},p_L,\ldots,p_1
+\]
+are distinct and lie in \((0,1)\), because \(L+1\le H-1\).  The corresponding block vectors are all coordinate vectors \(e_0,\ldots,e_L\), so one wave is feasible.  These arguments prove the asserted minimum wave count in every \((H,L)\) regime.  Whenever a set of \(m_0\) waves is feasible and \(m_0\le m\le H\), enlarge it to cardinality \(m\) and use the same statistic while ignoring the additional outcomes.  Conversely every wave set has cardinality at most \(H\).  Definition \(\mathrm{def:bivariate\text{-}rollout\text{-}wave\text{-}frontier}\) now gives both the displayed formula for \(\mathcal F_{\mathrm{wave}}(L)\) and the equivalent formula for \(m_{\min}^{\mathrm{wave}}(H,L)\).
+
+The plateau witness in Theorem \(\mathrm{thm:fixed\text{-}schedule\text{-}wave\text{-}span\text{-}certificate}\) is an exact stress test of the distinction between the fixed-schedule certificate and a convenient sufficient estimator: when \(L=3\), \(H=4\), \(p=(0,1/3,1/3,1,1)\), and \(\mathcal S=\{2,4\}\), the blocks \((1,1,0,0)^{\mathsf T}\) and \((0,0,1,1)^{\mathsf T}\) sum to \(\mathbf 1_4\), although \(p_{H-1}=1\).  Thus terminal endpoint overlap is not necessary for a fixed wave set.
+
+It remains to verify the universal endpoint statement in the target.  Let \(L\ge1\), \(H=L+1\), and suppose
+\[
+ 0=p_0<p_1\le\cdots\le p_{H-1}<p_H=1.
+\tag{8}
+\]
+Equation (8) is exactly Definition \(\mathrm{def:panel\text{-}endpoint\text{-}overlap}\).  Since \(H=L+1\ge\max\{2,L+1\}\), Theorem \(\mathrm{thm:sharp\text{-}observed\text{-}panel\text{-}stage\text{-}frontier}\) shows that Definition \(\mathrm{def:panel\text{-}ht\text{-}estimator}\) is exactly unbiased.  That estimator uses outcomes only at waves \(1,H\), so it belongs to \(\mathcal E_{\mathrm{wave}}(p,\{1,H\})\).  The preceding one-wave block argument proves that no one-wave rule can be uniformly unbiased at this horizon.  Endpoint overlap is therefore a universally sufficient scheduling condition for this particular two-wave representer, while the block-span theorem is the necessary-and-sufficient audit for an arbitrary fixed schedule and wave set.
+
+Finally, under the convention that every threshold is measured, Theorem \(\mathrm{thm:sharp\text{-}observed\text{-}panel\text{-}stage\text{-}frontier}\) supplies
+\[
+ T_{\min}^{\mathrm{panel}}(L)=\max\{2,L+1\}.
+\]
+Every argument above permits an arbitrary fixed secular array \(g\), so neither the fixed-schedule certificate nor the bivariate frontier depends on the declared polynomial degree \(r\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Together with the fixed-schedule span certificate, this theorem gives the exact design audit separating rollout-horizon cost from outcome-measurement cost. \textit{Gap.} Generic dynamic-panel Horvitz--Thompson methodology does not characterize arbitrary wave sets by the span of equal-threshold lag blocks or derive the resulting sharp horizon--wave frontier. \textit{Consumer.} A planner can audit a precommitted schedule directly; if it fails, the theorem supplies an alias, and if the horizon itself is selectable, the frontier quantifies the exact price of using one rather than two outcome waves.
+
+\begin{proposition}[prop:elbow-wave-placement]\label{prop:elbow-wave-placement}
+Under Assumptions \(\mathrm{ass:fixed\text{-}potential\text{-}outcomes}\), \(\mathrm{ass:nested\text{-}hash\text{-}randomization}\), \(\mathrm{ass:irreversible\text{-}endpoints}\), and \(\mathrm{ass:additive\text{-}distributed\text{-}lag}\), fix \(L\geq1\) and \(H=L+1\).  For every \(\mathcal S\subseteq\{1,\ldots,H\}\),
+\[
+ \left\{
+ \begin{array}{c}
+ \text{there exists }p\text{ with }0=p_0\leq\cdots\leq p_H=1\\
+ \text{such that }\mathcal E_{\mathrm{wave}}(p,\mathcal S)\ne\varnothing
+ \end{array}
+ \right\}
+ \quad\Longleftrightarrow\quad
+ H\in\mathcal S\ \text{ and }\
+ \mathcal S\cap\{1,\ldots,L\}\ne\varnothing.
+\]
+More explicitly, for every \(s\in\{1,\ldots,L\}\), the schedule \(p_j=j/H\), \(j=0,\ldots,H\), satisfies the conditions of Definition \(\mathrm{def:elbow\text{-}placement\text{-}ht\text{-}estimator}\), and
+\[
+ \widehat\theta_{\mathrm{elbow}}(s)\in
+ \mathcal E_{\mathrm{wave}}(p,\{s,H\}),
+ \qquad
+ \mathbb E_U\!\left[\widehat\theta_{\mathrm{elbow}}(s)\right]=\theta.
+\]
+If \(\chi_{i,s}(U_i)\) denotes unit \(i\)'s summand inside the factor \(n^{-1}\) in that definition and \(\theta_i=\sum_{\ell=0}^{L}b_{i,\ell}\), its exact finite-population randomization risk is
+\[
+ \operatorname{Var}_U\!\left(\widehat\theta_{\mathrm{elbow}}(s)\right)
+ =\frac1{n^2}\sum_{i\in I_n}
+ \left\{\int_0^1\chi_{i,s}(u)^2\,du-\theta_i^2\right\}.
+\]
+Thus the risk calculation retains all within-unit dependence between the two measured waves.
+\end{proposition}
+\begin{proof}
+Fix \(L\geq1\) and put \(H=L+1\).  We first prove sufficiency for each advertised nonterminal placement.  Fix \(s\in\{1,\ldots,L\}\) and choose
+\[
+ p_j=\frac{j}{H},\qquad j=0,\ldots,H.
+\tag{1}
+\]
+Because \(H=L+1\geq2\), equation (1) gives
+\[
+ 0=p_0<p_1<\cdots<p_L<p_H=1,
+ \qquad
+ p_s-p_{s-1}=\frac1H>0.
+\tag{2}
+\]
+Hence Assumption \(\mathrm{ass:irreversible\text{-}endpoints}\) and every positivity condition in Definition \(\mathrm{def:elbow\text{-}placement\text{-}ht\text{-}estimator}\) hold.
+
+For a fixed unit \(i\), write \(\theta_i=\sum_{\ell=0}^{L}b_{i,\ell}\).  On the event \(G_{i,s}=1\), one has \(U_i\leq p_s\), so \(Z_{i,s}=1\).  For \(1\leq\ell\leq L\), one also has \(s-\ell\leq s-1\).  If \(s-\ell\geq1\), monotonicity gives \(p_{s-\ell}\leq p_{s-1}<U_i\), while if \(s-\ell\leq0\), the left-extension convention gives \(p^{\mathrm{ext}}_{s-\ell}=0<U_i\).  In both cases \(Z_{i,s-\ell}=0\).  Assumption \(\mathrm{ass:additive\text{-}distributed\text{-}lag}\) therefore yields
+\[
+ Y^{\mathrm{obs}}_{i,s}=g_{i,s}+b_{i,0}
+ \quad\text{on }\{G_{i,s}=1\}.
+\tag{3}
+\]
+On \(N_{i,s}=1\), monotonicity gives \(p^{\mathrm{ext}}_{s-\ell}\leq p_s<U_i\) for every \(0\leq\ell\leq L\), so every relevant exposure is zero and
+\[
+ Y^{\mathrm{obs}}_{i,s}=g_{i,s}
+ \quad\text{on }\{N_{i,s}=1\}.
+\tag{4}
+\]
+Assumption \(\mathrm{ass:nested\text{-}hash\text{-}randomization}\) gives
+\[
+ \mathbb P_U(G_{i,s}=1)=p_s-p_{s-1},
+ \qquad
+ \mathbb P_U(N_{i,s}=1)=1-p_s.
+\tag{5}
+\]
+Equations (3)--(5), with the positive denominators from (2), prove the unit-level identity
+\[
+ \mathbb E_U\!\left[
+ \frac{G_{i,s}Y^{\mathrm{obs}}_{i,s}}{p_s-p_{s-1}}
+ -\frac{N_{i,s}Y^{\mathrm{obs}}_{i,s}}{1-p_s}
+ \right]
+ =b_{i,0}.
+\tag{6}
+\]
+
+At the terminal wave \(H=L+1\), an early adopter with \(A_i=1\) satisfies \(U_i\leq p_1\leq p_{H-\ell}\) for every \(1\leq\ell\leq L\), while \(Z_{i,H}=1\) because \(p_H=1\).  Thus all \(L+1\) relevant exposures equal one.  A terminal adopter with \(C_i=1\) satisfies \(U_i>p_L\geq p_{H-\ell}\) for \(1\leq\ell\leq L\), while still \(Z_{i,H}=1\).  Consequently the additive-lag equation gives
+\[
+ Y^{\mathrm{obs}}_{i,H}=g_{i,H}+\theta_i
+ \quad\text{on }\{A_i=1\},
+ \qquad
+ Y^{\mathrm{obs}}_{i,H}=g_{i,H}+b_{i,0}
+ \quad\text{on }\{C_i=1\}.
+\tag{7}
+\]
+Uniformity gives \(\mathbb P_U(A_i=1)=p_1\) and \(\mathbb P_U(C_i=1)=1-p_L\).  Hence (7) implies
+\[
+ \mathbb E_U\!\left[
+ \frac{A_iY^{\mathrm{obs}}_{i,H}}{p_1}
+ -\frac{C_iY^{\mathrm{obs}}_{i,H}}{1-p_L}
+ \right]
+ =\theta_i-b_{i,0}
+ =\sum_{\ell=1}^{L}b_{i,\ell}.
+\tag{8}
+\]
+Adding (6) and (8) proves that the expectation of unit \(i\)'s complete summand is \(\theta_i\).  All potential outcomes and coefficients are fixed by Assumption \(\mathrm{ass:fixed\text{-}potential\text{-}outcomes}\); the population is finite; and every denominator is positive.  The statistic is therefore integrable and is measurable with respect to \(U,Z,p\) and the outcomes at waves \(s,H\).  Definition \(\mathrm{def:outcome\text{-}wave\text{-}unbiased\text{-}rules}\) and the definition \(\theta=n^{-1}\sum_i\theta_i\) now give
+\[
+ \widehat\theta_{\mathrm{elbow}}(s)
+ \in\mathcal E_{\mathrm{wave}}(p,\{s,H\}),
+ \qquad
+ \mathbb E_U\!\left[\widehat\theta_{\mathrm{elbow}}(s)\right]
+ =\frac1n\sum_{i\in I_n}\theta_i=\theta.
+\tag{9}
+\]
+If a larger wave set \(\mathcal S\) contains \(s\) and \(H\), the same statistic remains measurable after the additional outcomes are revealed, so (9) proves the forward existence claim for every such \(\mathcal S\).
+
+The exact risk uses the shared score only once per unit.  Let \(\chi_{i,s}(U_i)\) be the entire four-term summand in Definition \(\mathrm{def:elbow\text{-}placement\text{-}ht\text{-}estimator}\), before multiplication by \(n^{-1}\).  Equation (9) gives \(\mathbb E_U\{\chi_{i,s}(U_i)\}=\theta_i\).  The map \(u\mapsto\chi_{i,s}(u)\) is a bounded step function for each fixed finite-array unit, so uniformity gives
+\[
+ \operatorname{Var}_U\{\chi_{i,s}(U_i)\}
+ =\int_0^1\chi_{i,s}(u)^2\,du-\theta_i^2.
+\tag{10}
+\]
+Assumption \(\mathrm{ass:nested\text{-}hash\text{-}randomization}\) makes the scores independent across distinct units, so the complete summands are independent across units.  Summing (10) and multiplying by \(n^{-2}\) proves the displayed risk formula.  No independence between waves has been invoked: both wave contributions inside \(\chi_{i,s}\) are functions of the same \(U_i\).
+
+We next prove necessity.  Suppose first that \(H\notin\mathcal S\).  Every observed wave then satisfies \(t\leq L\).  Compare two fixed populations.  In the first, all \(g_{i,t}\) and all \(b_{i,\ell}\) are zero.  In the second, all secular outcomes and all lag coefficients except \(b_{i,L}\) are zero, and \(b_{i,L}=1\) for every \(i\).  For every observed \(t\leq L\), one has \(t-L\leq0\), so the left-extension convention and the assignment definition give
+\[
+ Z_{i,t-L}=\mathbf 1\{U_i\leq0\}=0
+ \quad\text{almost surely}.
+\tag{11}
+\]
+Thus the allowed observed data \((U,Z,p,(Y^{\mathrm{obs}}_{i,t})_{t\in\mathcal S})\) have the same law in the two populations, for every legal schedule.  Their causal targets are respectively \(0\) and \(1\).  Any integrable statistic with the same observed-data law has the same design expectation, so no statistic can be unbiased for both.  By Definition \(\mathrm{def:outcome\text{-}wave\text{-}unbiased\text{-}rules}\), \(\mathcal E_{\mathrm{wave}}(p,\mathcal S)=\varnothing\) for every schedule.
+
+It remains to exclude a terminal-only wave set.  If \(H\in\mathcal S\) but \(\mathcal S\cap\{1,\ldots,L\}=\varnothing\), then \(\mathcal S=\{H\}\).  Compare the all-zero population with the population in which \(b_{i,0}=1\), \(g_{i,H}=-1\), and all other secular outcomes and lag coefficients are zero.  Since every legal schedule has \(p_H=1\),
+\[
+ Z_{i,H}=1\quad\text{surely},
+ \qquad
+ Y^{\mathrm{obs}}_{i,H}=-1+Z_{i,H}=0.
+\tag{12}
+\]
+The terminal-wave observed laws are therefore identical, whereas the targets are \(0\) and \(1\).  The same equal-law argument rules out a uniformly unbiased terminal-only statistic.  Equations (11)--(12) establish the reverse implication and also show separately why the terminal wave and a second wave are necessary.
+
+For the smallest elbow \(L=1\), \(H=2\), \(s=1\), and \(n=1\), schedule (1) is \((0,1/2,1)\).  If \(U_1\leq1/2\), the two revealed outcomes are \(g_{1,1}+b_{1,0}\) and \(g_{1,2}+b_{1,0}+b_{1,1}\); if \(U_1>1/2\), they are \(g_{1,1}\) and \(g_{1,2}+b_{1,0}\).  Substitution in the estimator gives expectation
+\[
+ \frac12\{2(g_{1,1}+b_{1,0})+2(g_{1,2}+b_{1,0}+b_{1,1})\}
+ +\frac12\{-2g_{1,1}-2(g_{1,2}+b_{1,0})\}
+ =b_{1,0}+b_{1,1}.
+\]
+This exact two-score-region enumeration verifies the endpoint and weight conventions at the smallest nontrivial instance.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposition turns the elbow count into a necessary-and-sufficient placement rule and gives a computable estimator and exact shared-score risk for every admissible nonterminal placement. \textit{Gap.} The canonical endpoint pair is sufficient but not uniquely necessary; this proposition characterizes every wave set that is feasible for some legal schedule. \textit{Consumer.} A measurement scheduler can choose any nonterminal wave at the elbow, enforce the stated threshold increment and endpoint overlap, and evaluate the resulting two-wave estimator without an across-wave independence approximation.
+
+\begin{theorem}[thm:fixed-schedule-wave-span-certificate]\label{thm:fixed-schedule-wave-span-certificate}
+Under Assumptions \(\mathrm{ass:fixed\text{-}potential\text{-}outcomes}\), \(\mathrm{ass:nested\text{-}hash\text{-}randomization}\), \(\mathrm{ass:irreversible\text{-}endpoints}\), and \(\mathrm{ass:additive\text{-}distributed\text{-}lag}\), fix a horizon \(H\), instantiate \(T=H\), fix an endpoint schedule \(p\), and fix \(\mathcal S\subseteq\{1,\ldots,H\}\).  Then
+\[
+ \mathcal E_{\mathrm{wave}}(p,\mathcal S)\ne\varnothing
+ \quad\Longleftrightarrow\quad
+ \mathbf 1_{L+1}\in\mathcal V(p,\mathcal S).
+\]
+This certificate has a computable Horvitz--Thompson representer.  For \(t\in\mathcal S\) and \(q\in\mathcal Q_t(p)\), put
+\[
+ q^-_{t,q}=\max\bigl(\{0\}\cup\{q'\in\mathcal Q_t(p):q'<q\}\bigr),
+ \qquad
+ q^+_{t,q}=\min\bigl(\{1\}\cup\{q'\in\mathcal Q_t(p):q'>q\}\bigr),
+\]
+and
+\[
+ \widehat\Delta_{t,q}
+ =\frac1n\sum_{i\in I_n}\left\{
+ \frac{\mathbf 1\{q^-_{t,q}<U_i\le q\}Y^{\mathrm{obs}}_{i,t}}
+      {q-q^-_{t,q}}
+ -\frac{\mathbf 1\{q<U_i\le q^+_{t,q}\}Y^{\mathrm{obs}}_{i,t}}
+      {q^+_{t,q}-q}
+ \right\}.
+\]
+If real coefficients \(\lambda_{t,q}\) satisfy
+\[
+ \sum_{t\in\mathcal S}\sum_{q\in\mathcal Q_t(p)}
+ \lambda_{t,q}v_{t,q}=\mathbf 1_{L+1},
+\]
+then
+\[
+ \widehat\theta_{\mathrm{span}}
+ =\sum_{t\in\mathcal S}\sum_{q\in\mathcal Q_t(p)}
+   \lambda_{t,q}\widehat\Delta_{t,q}
+ \in\mathcal E_{\mathrm{wave}}(p,\mathcal S),
+ \qquad
+ \mathbb E_U[\widehat\theta_{\mathrm{span}}]=\theta.
+\]
+Writing \(\Psi_i(U_i)\) for unit \(i\)'s complete summand inside the factor \(n^{-1}\) in this estimator and \(\theta_i=\sum_{\ell=0}^{L}b_{i,\ell}\), its exact finite-population randomization risk is
+\[
+ \operatorname{Var}_U(\widehat\theta_{\mathrm{span}})
+ =\frac1{n^2}\sum_{i\in I_n}
+ \left\{\int_0^1\Psi_i(u)^2\,du-\theta_i^2\right\}.
+\]
+If the span condition fails, there is an explicit target-active alias: one can choose \(h\in\mathbb R^{L+1}\) with \(v_{t,q}^{\mathsf T}h=0\) for every displayed block and \(\mathbf 1_{L+1}^{\mathsf T}h\ne0\), set every unit's lag vector to \(h\), and absorb the threshold-one contribution at each observed wave into its unrestricted secular value.  This produces the same observed data almost surely as the all-zero array but a different value of \(\theta\).
+
+For the plateau instance \(L=3\), \(H=4\),
+\[
+ p=(0,1/3,1/3,1,1),
+ \qquad \mathcal S=\{2,4\},
+\]
+the only interior block at each observed wave has threshold \(1/3\), and
+\[
+ v_{2,1/3}=(1,1,0,0)^{\mathsf T},
+ \qquad
+ v_{4,1/3}=(0,0,1,1)^{\mathsf T}.
+\]
+Thus wave \(2\) identifies \(b_{i,0}+b_{i,1}\), wave \(4\) identifies \(b_{i,2}+b_{i,3}\), and their sum identifies \(\theta\), even though this schedule does not have terminal endpoint overlap.
+\end{theorem}
+\begin{proof}
+Fix \(H,p,\mathcal S\) as in the statement.  All probabilities and expectations below are with respect to the scores \(U\); the potential outcomes and their coefficients are fixed by Assumption \(\mathrm{ass:fixed\text{-}potential\text{-}outcomes}\).
+
+For a fixed \(t\in\mathcal S\) and \(q\in\mathcal Q_t(p)\), the set \(\mathcal Q_t(p)\) is finite and \(q\in(0,1)\).  Hence the adjacent values in the statement are well defined and satisfy
+\[
+ 0\le q^-_{t,q}<q<q^+_{t,q}\le1.
+\tag{1}
+\]
+In particular, both denominators in \(\widehat\Delta_{t,q}\) are strictly positive.  Define the lag-exposure vector at wave \(t\) and score \(u\) by
+\[
+ x_t(u)=\bigl(\mathbf 1\{u\le p^{\mathrm{ext}}_t\},
+ \mathbf 1\{u\le p^{\mathrm{ext}}_{t-1}\},\ldots,
+ \mathbf 1\{u\le p^{\mathrm{ext}}_{t-L}\}\bigr)^{\mathsf T}.
+\tag{2}
+\]
+There is no threshold strictly between \(q^-_{t,q}\) and \(q\), or strictly between \(q\) and \(q^+_{t,q}\), by the definitions of the adjacent values.  Therefore \(x_t(u)\) is constant, apart from null cell boundaries, on each of the two cells
+\[
+ I^-_{t,q}=(q^-_{t,q},q],
+ \qquad I^+_{t,q}=(q,q^+_{t,q}],
+\]
+and its two constant values, denoted \(x^-_{t,q}\) and \(x^+_{t,q}\), obey
+\[
+ x^-_{t,q}-x^+_{t,q}=v_{t,q}.
+\tag{3}
+\]
+Indeed, a coordinate changes between the cells exactly when its threshold equals \(q\), which is precisely the componentwise definition of \(v_{t,q}\).
+
+For unit \(i\), let \(b_i=(b_{i,0},\ldots,b_{i,L})^{\mathsf T}\).  Assumption \(\mathrm{ass:additive\text{-}distributed\text{-}lag}\), the assignment rule, and (2) give
+\[
+ Y^{\mathrm{obs}}_{i,t}=g_{i,t}+b_i^{\mathsf T}x_t(U_i).
+\tag{4}
+\]
+Assumption \(\mathrm{ass:nested\text{-}hash\text{-}randomization}\) and (1) give probabilities \(q-q^-_{t,q}\) and \(q^+_{t,q}-q\) to the two cells.  Using the constancy in (3)--(4), the expectation of unit \(i\)'s two-cell contrast is therefore
+\[
+ \begin{aligned}
+ &\mathbb E_U\left[
+ \frac{\mathbf 1\{U_i\in I^-_{t,q}\}Y^{\mathrm{obs}}_{i,t}}
+      {q-q^-_{t,q}}
+ -\frac{\mathbf 1\{U_i\in I^+_{t,q}\}Y^{\mathrm{obs}}_{i,t}}
+      {q^+_{t,q}-q}
+ \right]\\
+ &\qquad=(g_{i,t}+b_i^{\mathsf T}x^-_{t,q})
+          -(g_{i,t}+b_i^{\mathsf T}x^+_{t,q})
+ =b_i^{\mathsf T}v_{t,q}.
+ \end{aligned}
+\tag{5}
+\]
+Thus each block contrast cancels the unrestricted wave-specific secular value exactly; no comparison across waves and no independence of repeated waves has been used.
+
+Suppose now that coefficients \(\lambda_{t,q}\) satisfy the displayed spanning equation.  Summing (5), first over blocks and then over the finite population, yields
+\[
+ \begin{aligned}
+ \mathbb E_U[\widehat\theta_{\mathrm{span}}]
+ &=\frac1n\sum_{i\in I_n}
+   b_i^{\mathsf T}
+   \left(\sum_{t\in\mathcal S}\sum_{q\in\mathcal Q_t(p)}
+          \lambda_{t,q}v_{t,q}\right)\\
+ &=\frac1n\sum_{i\in I_n}b_i^{\mathsf T}\mathbf 1_{L+1}
+ =\frac1n\sum_{i\in I_n}\sum_{\ell=0}^{L}b_{i,\ell}
+ =\theta.
+ \end{aligned}
+\tag{6}
+\]
+The estimator is measurable with respect to the scores, assignments, schedule, and outcomes at waves in \(\mathcal S\).  It is integrable because the population and set of cells are finite, the fixed outcomes are finite real numbers, and every denominator is positive by (1).  Definition \(\mathrm{def:outcome\text{-}wave\text{-}unbiased\text{-}rules}\) and (6) prove
+\[
+ \mathbf 1_{L+1}\in\mathcal V(p,\mathcal S)
+ \quad\Longrightarrow\quad
+ \mathcal E_{\mathrm{wave}}(p,\mathcal S)\ne\varnothing.
+\tag{7}
+\]
+
+We next prove the converse by a target-active alias.  Suppose \(\mathbf 1_{L+1}\notin\mathcal V(p,\mathcal S)\).  Choose a basis \(e_1,\ldots,e_k\) of \(\mathcal V(p,\mathcal S)\).  Then \(e_1,\ldots,e_k,\mathbf 1_{L+1}\) are linearly independent and can be extended to a basis of \(\mathbb R^{L+1}\).  Define a linear functional \(f\) on this basis to be zero on every \(e_j\), one on \(\mathbf 1_{L+1}\), and zero on the remaining added basis vectors.  If \(\varepsilon_0,\ldots,\varepsilon_L\) is the standard coordinate basis, set \(h_\ell=f(\varepsilon_\ell)\).  Linearity then gives \(f(x)=x^{\mathsf T}h\) for every \(x\in\mathbb R^{L+1}\), and hence
+\[
+ v_{t,q}^{\mathsf T}h=0
+ \quad(t\in\mathcal S,\ q\in\mathcal Q_t(p)),
+ \qquad
+ \mathbf 1_{L+1}^{\mathsf T}h=1.
+\tag{8}
+\]
+
+Compare two fixed populations satisfying the additive-lag model.  Population zero has \(b_{i,\ell}=0\) and \(g_{i,t}=0\) for all units, lags, and measured stages.  In population one, set \(b_{i,\ell}=h_\ell\) for every unit and lag.  For each observed wave define
+\[
+ K_t=\sum_{\ell:\ p^{\mathrm{ext}}_{t-\ell}=1}h_\ell,
+ \qquad g_{i,t}=-K_t\quad(i\in I_n,t\in\mathcal S),
+\tag{9}
+\]
+and set the unobserved secular values arbitrarily, for example to zero.  This use of (9) is permitted because Definition \(\mathrm{def:outcome\text{-}wave\text{-}unbiased\text{-}rules}\) leaves \(g\) unrestricted across units and stages.
+
+For every \(t\in\mathcal S\) and all \(u\in(0,1]\), group the lag coordinates according to their common thresholds.  Threshold-zero coordinates contribute zero, threshold-one coordinates contribute \(K_t\), and each interior threshold contributes its block sum.  Thus (8) gives
+\[
+ \begin{aligned}
+ \sum_{\ell=0}^{L}h_\ell\mathbf 1\{u\le p^{\mathrm{ext}}_{t-\ell}\}
+ &=K_t+
+   \sum_{q\in\mathcal Q_t(p)}
+      \mathbf 1\{u\le q\}
+      \sum_{\ell=0}^{L}h_\ell
+      \mathbf 1\{p^{\mathrm{ext}}_{t-\ell}=q\}\\
+ &=K_t+
+   \sum_{q\in\mathcal Q_t(p)}
+      \mathbf 1\{u\le q\}v_{t,q}^{\mathsf T}h
+ =K_t.
+ \end{aligned}
+\tag{10}
+\]
+The exceptional point \(u=0\) has probability zero under the continuous uniform design.  Equations (9)--(10) and the additive-lag equation show that every observed outcome is zero almost surely in population one, exactly as in population zero.  The two populations also have identical \((U,Z,p)\), because assignment does not depend on \((g,b)\).  Hence the complete observed data allowed by Definition \(\mathrm{def:outcome\text{-}wave\text{-}unbiased\text{-}rules}\) have the same law.  But their target values are, by (8),
+\[
+ \theta^{(0)}=0,
+ \qquad
+ \theta^{(1)}=\frac1n\sum_{i\in I_n}\mathbf 1_{L+1}^{\mathsf T}h=1.
+\tag{11}
+\]
+Any integrable statistic of equal-law observed data has the same design expectation under the two populations, so no statistic can be unbiased for both target values in (11).  This proves the reverse implication in (7), including the empty-block case.
+
+For the exact risk, (5)--(6) give \(\mathbb E_U[\Psi_i(U_i)]=\theta_i\).  For fixed \(i\), the complete summand \(\Psi_i(U_i)\) includes all of that unit's wave contributions and is a bounded step function of the single score \(U_i\).  Uniformity therefore gives
+\[
+ \operatorname{Var}_U(\Psi_i(U_i))
+ =\int_0^1\Psi_i(u)^2\,du-\theta_i^2.
+\tag{12}
+\]
+Assumption \(\mathrm{ass:nested\text{-}hash\text{-}randomization}\) makes these complete summands independent across distinct units.  Summing (12) and multiplying by \(n^{-2}\) proves the displayed variance formula.  In particular, no wave-level independence has been asserted.
+
+Finally, consider the plateau witness.  At wave \(2\), the lag-indexed thresholds are
+\[
+ (p_2,p_1,p_0,p^{\mathrm{ext}}_{-1})=(1/3,1/3,0,0),
+\]
+so \(\mathcal Q_2(p)=\{1/3\}\) and \(v_{2,1/3}=(1,1,0,0)^{\mathsf T}\).  At wave \(4\), they are
+\[
+ (p_4,p_3,p_2,p_1)=(1,1,1/3,1/3),
+\]
+so \(\mathcal Q_4(p)=\{1/3\}\) and \(v_{4,1/3}=(0,0,1,1)^{\mathsf T}\).  Their sum is \(\mathbf 1_4\).  Equation (5) proves the two asserted block identities, and (6), with both coefficients equal to one, proves identification of \(\theta\).  Because \(p_{H-1}=p_3=1\), terminal endpoint overlap fails; the span certificate, rather than endpoint overlap, is the necessary-and-sufficient fixed-schedule condition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem is the necessary-and-sufficient, fixed-schedule audit: it decides whether any exactly unbiased observed-wave rule exists and supplies both an explicit rule and its exact shared-score risk when it does. \textit{Gap.} Endpoint-overlap formulas and wave-count frontiers are only special cases; they do not decide arbitrary precommitted schedules with plateaus and arbitrary observed-wave sets. The accepted-bank note \texttt{exp\_rollout\_chebyshev\_minimax\_tv\_envelope\_rollout\_design} instead optimizes treated-fraction node placement and minimax total-variation variance amplification for static \(\beta\)-order, no-carryover rollout mean curves. That result does not subsume this theorem because it neither permits heterogeneous additive lag profiles with unrestricted wave-specific secular outcomes nor characterizes the existence of any uniformly exactly unbiased statistic for a fixed schedule and wave set. This theorem does not subsume the accepted result because it fixes the schedule and observed waves and audits identification; it neither selects treated-fraction nodes nor optimizes total-variation variance amplification. \textit{Consumer.} A rollout planner can compute the finite block vectors from the announced thresholds, solve one finite linear system, and either obtain Horvitz--Thompson weights or a target-active nonidentification witness.
+
+\section{Interpretation}
+
+For a deterministic-hash ramp planner, the certificate is a measurement-design audit. At the shortest lag-compatible horizon \(H=L+1\), terminal outcomes cannot be dropped because the lag-\(L\) coefficient has not appeared earlier. A second, nonterminal wave is also unavoidable because universal terminal treatment aliases the contemporaneous effect with the unrestricted terminal secular outcome. The conventional pair \(\{1,H\}\) works for every schedule with positive early- and terminal-adopter strata. It is not the only option: any \(s<H\) can be paired with \(H\) after choosing a schedule with \(0<p_1\), a strict increment \(p_{s-1}<p_s\), and \(p_L<1\). Lengthening the horizon to at least \(L+2\) permits a single interior wave satisfying the full-history/no-history overlap condition. These are schedule-sufficiency conclusions, not claims about LinkedIn's implementation.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The wave-placement equivalence at \(H=L+1\) is existential over legal schedules. For a fixed schedule, a selected nonterminal wave needs a positive new-adopter increment for the displayed estimator; only the canonical pair \(\{1,H\}\) is asserted to work uniformly over all panel-endpoint-overlap schedules. The theorem optimizes horizon and outcome-wave support, not exact covariance risk among equally supported schedules. Its risk identities are oracle finite-population formulas and retain within-unit shared-hash dependence. The separate uniform obstruction concerns variance-ratio consistency on one explicit class and does not rule out conservative bounds, exact sharp-null randomization tests, or pointwise inference. The additive distributed-lag and, for the stage-mean result, polynomial-trend restrictions remain maintained modeling conditions.
+
+\section{Honest scope}
+
+The proved design results are the specialized stage-mean row-space equivalence and sharp formula \(T_{\min}(r,L)=\max\{r+2,L+1\}\), together with the fixed-schedule observed-wave theorem \(\mathcal E_{\mathrm{wave}}(p,\mathcal S)\ne\varnothing\) if and only if \(\mathbf 1_{L+1}\in\mathcal V(p,\mathcal S)\). The latter supplies an explicit adjacent-cell Horvitz--Thompson estimator, an exact finite-population shared-score variance, a target-active alias on failure, the one-wave equivalence, the sharp bivariate horizon--wave frontier, and the elbow placement rule. The plateau witness shows that the endpoint estimator's positivity conditions are sufficient rather than necessary. The heterogeneous additive-lag restriction and, for the stage-mean results, the exact polynomial-trend restriction are maintained modeling conditions. Generic \(c\)-estimability and singular quadratic programming remain supporting context. Feasible covariance estimation, oracle-risk equivalence, a primitive finite-population central limit theorem, and Wald coverage remain open and are not premises of either support certificate.
+
+\begin{thebibliography}{99}
+
+  \bibitem{Elfving1952} Gustav Elfving. Optimum Allocation in Linear Regression Theory. \textit{The Annals of Mathematical Statistics}, 23(2):255--262, 1952.
+
+  \bibitem{KieferWolfowitz1959} Jack Kiefer and Jacob Wolfowitz. Optimum Designs in Regression Problems. \textit{The Annals of Mathematical Statistics}, 30(2):271--294, 1959.
+
+  \bibitem{Studden1968} William J. Studden. Optimal Designs on Tchebycheff Points. \textit{The Annals of Mathematical Statistics}, 39(5):1435--1447, 1968.
+
+  \bibitem{AboukhamseenHudaBose2021} Suja Aboukhamseen, Shahariar Huda, and Mausumi Bose. Optimal Crossover Designs for Inference on Total Effects. \textit{Journal of Statistical Planning and Inference}, 213:253--261, 2021.
+
+  \bibitem{XiongAtheyBayatiImbens2023} Ruoxuan Xiong, Susan Athey, Mohsen Bayati, and Guido Imbens. Optimal Experimental Design for Staggered Rollouts. \textit{Management Science}, 70(8):5317--5336, 2024. Online publication and DOI dated 2023.
+
+  \bibitem{CortezEichhornYu2022} Mayleen Cortez, Matthew Eichhorn, and Christina Lee Yu. Staggered Rollout Designs Enable Causal Inference without Network Knowledge. \textit{Advances in Neural Information Processing Systems}, 35, 2022.
+
+  \bibitem{AtheyImbens2022} Susan Athey and Guido Imbens. Design-Based Analysis in Difference-in-Differences Settings with Staggered Adoption. \textit{Journal of Econometrics}, 226(1):62--79, 2022.
+
+  \bibitem{BojinovRambachanShephard2021} Iavor Bojinov, Ashesh Rambachan, and Neil Shephard. Panel Experiments and Dynamic Causal Effects: A Finite Population Perspective. \textit{Quantitative Economics}, 12(4):1171--1196, 2021.
+
+  \bibitem{LiDing2017} Xinran Li and Peng Ding. General Forms of Finite Population Central Limit Theorems with Applications to Causal Inference. \textit{Journal of the American Statistical Association}, 112(520):1759--1769, 2017.
+
+  \bibitem{ChenLi2025} Xinyuan Chen and Fan Li. Model-assisted inference for dynamic causal effects in staggered rollout cluster randomized experiments. arXiv:2502.10939, 2025.
+
+  \bibitem{RothSantAnna2023} Jonathan Roth and Pedro H. C. Sant'Anna. Efficient Estimation for Staggered Rollout Designs. \textit{Journal of Political Economy Microeconomics}, 1(4):669--709, 2023.
+
+  \bibitem{HusseyHughes2007} Michael A. Hussey and James P. Hughes. Design and Analysis of Stepped Wedge Cluster Randomized Trials. \textit{Contemporary Clinical Trials}, 28(2):182--191, 2007.
+
+  \bibitem{HughesHeagertyXiaRen2020} James P. Hughes, Patrick J. Heagerty, Fan Xia, and Yuqi Ren. Robust Inference for the Stepped Wedge Design. \textit{Biometrics}, 76(1):119--130, 2020.
+
+  \bibitem{KennyVoldalXiaHeagertyHughes2022} Avi Kenny, Emily C. Voldal, Fan Xia, Patrick J. Heagerty, and James P. Hughes. Analysis of Stepped Wedge Cluster Randomized Trials in the Presence of a Time-Varying Treatment Effect. \textit{Statistics in Medicine}, 41(22):4311--4339, 2022.
+
+  \bibitem{LinkedInHash2020} Alexander Ivaniuk and Weitao Duan. A/B Testing at LinkedIn: Assigning Variants at Scale. LinkedIn Engineering Blog, December 2020.
+
+  \bibitem{LinkedInTRex2020} LinkedIn Engineering. Our Evolution towards T-REX: The Prehistory of Experimentation Infrastructure at LinkedIn. LinkedIn Engineering Blog, September 2020.
+
+\end{thebibliography}
+
+\end{document}

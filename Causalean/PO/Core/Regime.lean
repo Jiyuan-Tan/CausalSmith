@@ -38,8 +38,7 @@ structure Regime (V : Type*) [DecidableEq V] (X : V → Type*) where
 
 namespace Regime
 
-/-- The empty intervention regime fixes no variables and therefore has no
-assignments.
+/-- For [a collection of variables whose identities can be compared](hyp:V) and [their value spaces](hyp:X), [the empty intervention regime](goal) targets no variable and consequently has no substantive assignments.
 
 Implementation note: this is the empty regime `r_∅` from def:po-system and
 def:po-consistency. -/
@@ -47,12 +46,10 @@ def empty : Regime V X where
   target := ∅
   assign := fun v hv => (Finset.notMem_empty v hv).elim
 
-/-- Two intervention regimes are disjoint exactly when their target sets have no
-variable in common. -/
+/-- For [a collection of variables whose identities can be compared](hyp:V) and [their value spaces](hyp:X), [two intervention regimes](hyp:r₁,r₂) are [disjoint](goal) exactly when no variable is targeted by both regimes. -/
 def Disjoint (r₁ r₂ : Regime V X) : Prop := _root_.Disjoint r₁.target r₂.target
 
-/-- The left-biased union of two regimes targets their union and uses the first regime's
-assignment wherever both regimes target the same variable. -/
+/-- For [a collection of variables whose identities can be compared](hyp:V) and [their value spaces](hyp:X), and [two intervention regimes](hyp:r₁,r₂), [the left-biased union](goal) targets every variable targeted by either regime and uses the first regime's assigned value whenever both assign that variable. -/
 noncomputable def leftBiasedUnion (r₁ r₂ : Regime V X) :
     Regime V X where
   target := r₁.target ∪ r₂.target
@@ -63,9 +60,7 @@ noncomputable def leftBiasedUnion (r₁ r₂ : Regime V X) :
       · exact (h1 h₁).elim
       · exact h₂)
 
-/-- The disjoint union of two compatible intervention regimes targets the union
-of their target sets and uses the assignment from the unique component regime
-that targets each variable.
+/-- For [a collection of variables whose identities can be compared](hyp:V) and [their value spaces](hyp:X), [two intervention regimes](hyp:r₁,r₂), and [the condition that they have no target variable in common](hyp:_h), [their disjoint union](goal) is their union regime, targeting every variable targeted by either regime and using its unique component assignment.
 
 Implementation note: this is the disjoint union `r₁ ⊔ r₂` from
 def:po-consistency and def:po-from-scm. -/
@@ -145,8 +140,7 @@ theorem ext {r₁ r₂ : Regime V X}
   funext v hv
   exact hassign v hv hv
 
-/-- A singleton intervention regime fixes exactly one variable to the supplied
-value. -/
+/-- For [a collection of variables whose identities can be compared](hyp:V), [their value spaces](hyp:X), [a variable](hyp:v), and [a value in that variable's value space](hyp:x), [the singleton intervention regime](goal) targets exactly that variable and assigns it that value. -/
 def single (v : V) (x : X v) : Regime V X where
   target := {v}
   assign := fun _ hw => (Finset.mem_singleton.mp hw).symm ▸ x
@@ -178,8 +172,7 @@ theorem disjoint_single_of_not_mem {v : V} (x : X v) (r : Regime V X)
 
 /-! ### Multi-stage regimes from a list of assignments -/
 
-/-- Lookup in a list of variable-value assignments returns the listed value for
-a variable that appears among the listed labels.
+/-- For [a collection of variables whose identities can be compared](hyp:V), [their value spaces](hyp:X), [a list of variable--value assignments](hyp:l), and [a variable occurring in that list](hyp:v), [the list lookup result](goal) is the value assigned to that variable by the first matching list entry: [the empty-list case follows from the impossible occurrence assertion](step:1), while [the nonempty-list case returns the head value when its variable matches and otherwise recurses on the tail](step:2).
 
 Implementation note: lookup is defined recursively so the list need not have
 duplicate-free labels for definitional well-formedness; uniqueness is exposed
@@ -195,8 +188,7 @@ def listLookup : (l : List ((v : V) × X v)) → (v : V) →
           · exact (h hv).elim
           · exact hv)
 
-/-- A list of variable-value assignments determines a regime by using the first listed
-assignment for each targeted variable. -/
+/-- For [a collection of variables whose identities can be compared](hyp:V), [their value spaces](hyp:X), and [a list of variable--value assignments](hyp:l), [the left-biased list-built regime](goal) targets the variables appearing in the list and assigns each the value at its first occurrence. -/
 def ofListLeftBiased (l : List ((v : V) × X v)) :
     Regime V X where
   target := (l.map Sigma.fst).toFinset
@@ -212,9 +204,7 @@ lemma ofListLeftBiased_target (l : List ((v : V) × X v)) :
     (ofListLeftBiased l : Regime V X).target = (l.map Sigma.fst).toFinset :=
   rfl
 
-/-- A duplicate-free list of variable-value assignments determines the
-intervention regime that targets exactly the listed variables and assigns each
-target its listed value. -/
+/-- For [a collection of variables whose identities can be compared](hyp:V) and [their value spaces](hyp:X), [a list of variable--value assignments](hyp:l), and [the condition that no variable appears more than once in that list](hyp:_h), [the list-built intervention regime](goal) targets exactly the listed variables and assigns each its listed value. -/
 def ofList (l : List ((v : V) × X v)) (_h : (l.map Sigma.fst).Nodup) :
     Regime V X :=
   ofListLeftBiased l

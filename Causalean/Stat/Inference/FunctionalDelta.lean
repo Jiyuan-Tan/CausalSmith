@@ -87,15 +87,15 @@ The limit law of the rescaled image is the pushforward of the joint limit by the
 continuous lattice functional; it is automatically a probability measure, so the
 `Tendsto_dist` conclusion below carries that instance *without it being assumed*. -/
 
-/-- The maximum of a two-dimensional probability limit is itself a probability
-law. -/
+/-- For [any probability law on ordered pairs of real numbers](hyp:Q), [the law
+of the larger coordinate is a probability law](goal). -/
 instance instIsProbabilityMeasure_map_max (Q : Measure (ℝ × ℝ)) [IsProbabilityMeasure Q] :
     IsProbabilityMeasure (Q.map (fun z : ℝ × ℝ => max z.1 z.2)) :=
   Measure.isProbabilityMeasure_map
     (continuous_fst.max continuous_snd).measurable.aemeasurable
 
-/-- The minimum of a two-dimensional probability limit is itself a probability
-law. -/
+/-- For [any probability law on ordered pairs of real numbers](hyp:Q), [the law
+of the smaller coordinate is a probability law](goal). -/
 instance instIsProbabilityMeasure_map_min (Q : Measure (ℝ × ℝ)) [IsProbabilityMeasure Q] :
     IsProbabilityMeasure (Q.map (fun z : ℝ × ℝ => min z.1 z.2)) :=
   Measure.isProbabilityMeasure_map

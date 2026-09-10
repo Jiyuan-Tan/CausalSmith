@@ -59,20 +59,35 @@ namespace ConicProgram
 
 variable (P : ConicProgram E F)
 
-/-- A point is **primal feasible** when it satisfies the equality constraint and
+/-- In [complete real inner-product decision and constraint spaces](hyp:E,F), for [a conic program](hyp:P) and [a candidate decision vector](hyp:x), the
+[primal-feasibility predicate](goal) holds precisely when [the vector satisfies the program's
+linear equality constraint](step:1) and [belongs to its constraint cone](step:2).
+
+A point is **primal feasible** when it satisfies the equality constraint and
 lies in the cone. -/
 def PrimalFeasible (x : E) : Prop := P.A x = P.b ∧ x ∈ P.K
 
-/-- A dual multiplier is **dual feasible** when the reduced cost `c - Aᵀ y` lies in
+/-- In [complete real inner-product decision and constraint spaces](hyp:E,F), for [a conic program](hyp:P) and [a candidate dual multiplier](hyp:y), the
+[dual-feasibility predicate](goal) holds precisely when [the program's objective direction
+minus the adjoint constraint operator applied to that multiplier belongs to the dual of the
+constraint cone](step:1).
+
+A dual multiplier is **dual feasible** when the reduced cost `c - Aᵀ y` lies in
 the dual cone `K⋆ = innerDual K`. -/
 def DualFeasible (y : F) : Prop :=
   P.c - (ContinuousLinearMap.adjoint P.A) y ∈ ProperCone.innerDual (P.K : Set E)
 
-/-- The **primal optimal value** `inf { ⟪c, x⟫ : x primal feasible }`. -/
+/-- In [complete real inner-product decision and constraint spaces](hyp:E,F), for [a conic program](hyp:P), its [primal optimal value](goal) is the infimum of the
+objective inner products over all primal-feasible decision vectors.
+
+The **primal optimal value** `inf { ⟪c, x⟫ : x primal feasible }`. -/
 noncomputable def primalValue : ℝ :=
   sInf ((fun x => ⟪P.c, x⟫) '' {x | P.PrimalFeasible x})
 
-/-- The **dual optimal value** `sup { ⟪b, y⟫ : y dual feasible }`. -/
+/-- In [complete real inner-product decision and constraint spaces](hyp:E,F), for [a conic program](hyp:P), its [dual optimal value](goal) is the supremum of the
+inner products between its right-hand side and all dual-feasible multipliers.
+
+The **dual optimal value** `sup { ⟪b, y⟫ : y dual feasible }`. -/
 noncomputable def dualValue : ℝ :=
   sSup ((fun y => ⟪P.b, y⟫) '' {y | P.DualFeasible y})
 
@@ -119,7 +134,11 @@ theorem farkas {b : F} :
         → 0 ≤ ⟪b, y⟫ :=
   ProperCone.relative_hyperplane_separation
 
-/-- The **augmented image cone** `{ (A x, ⟪c, x⟫) : x ∈ K }` in `F × ℝ`.  Its
+/-- In [complete real inner-product decision and constraint spaces](hyp:E,F), for [a conic program](hyp:P), the [augmented image](goal) is the set of pairs
+consisting of the constraint-operator image and objective inner product of each decision
+vector in its constraint cone.
+
+The **augmented image cone** `{ (A x, ⟪c, x⟫) : x ∈ K }` in `F × ℝ`.  Its
 closedness is the constraint qualification for primal attainment, and the
 geometry (a boundary point `(b, primalValue)`) is where the dual certificate is
 read off. -/

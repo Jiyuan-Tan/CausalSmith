@@ -7,6 +7,9 @@ import { bankAcceptedDir } from "./paths.js";
 /** Marker P2 puts on the proof-audit failure so the pipeline can distinguish
  *  "proofs need helper lemmas" from every other P2 error. */
 export const PROOF_AUDIT_FAILURE_MARKER = "P2 proof equivalence audit failed";
+/** The judge left only rendering/citation defects (no `[missing-step]`): promotion cannot help,
+ *  so P2 halts for adjudication under a marker the pipeline never promotes on. */
+export const PROOF_AUDIT_RENDERING_MARKER = "P2 proof audit: rendering defects remain";
 
 /**
  * Marks a halt asking the ORCHESTRATOR whether to promote again.
@@ -24,19 +27,18 @@ export const PROMOTION_ESCALATION_MARKER = "P2 promotion decision required";
 
 /**
  * PROMOTION ROUND (user-approved feature, kept deliberately simple — see the
- * lemma-promotion-round design note): when the P2 proof audit still fails after
- * its refine rounds, the failing steps' content usually needs to become citable
- * auxiliary lemmas — a journal paper's answer, and the refiner cannot inline
- * multi-page derivations. One agent call authors the bank-graph nodes; the
- * caller then re-runs P1 (delta: only the new statements render/audit) and
- * retries P2 once. Selection needs no separate judge: the audit findings plus
- * the refiner's failure ARE the criterion.
+ * lemma-promotion-round design note): when the P2 proof judge still reports a
+ * `[missing-step]` after the renderer's repair rounds, that step's content needs
+ * to become a citable auxiliary lemma — a journal paper's answer to a derivation
+ * too long to inline. One agent call authors the bank-graph nodes; the caller
+ * then re-runs P1 (delta: only the new statements render/audit) and retries P2
+ * once. Selection needs no separate judge: the tagged issues ARE the criterion
+ * (a rendering-only residual never reaches this path).
  *
  * Hard rules baked into the prompt (each one bought with an incident tonight):
  * every node must be backed by an existing proved Lean decl (never invented);
- * statement-uses edges MUST be declared to every definition the statement's
- * symbols resolve to (under-declared edges = ordering halts); outline objs
- * placement before the first consumer; NL statements in paper notation.
+ * statement-uses edges identify actual mathematical prerequisites, not shared variable
+ * spellings; authored outline homes place helpers before consumers; NL uses paper notation.
  */
 export async function runPromotionRound(io: StageIO, failureDetail: string): Promise<string> {
   const graphPath = join(bankAcceptedDir(io.ctx.repoRoot, io.ctx.qid, io.ctx.spec), "graph.json");
@@ -46,8 +48,8 @@ export async function runPromotionRound(io: StageIO, failureDetail: string): Pro
   const prompt = `You are resolving a CausalSmith P2 proof-audit failure by PROMOTING helper content to paper lemmas.
 
 The audit failure (each item names proof content that must become a citable auxiliary lemma, or a
-small prose fix — promote ONLY items whose demanded derivation is substantive; leave one-line fixes
-to the refiner by not promoting them):
+small prose fix — promote ONLY [missing-step] items whose demanded derivation is substantive; leave
+one-line fixes to the renderer's repair by not promoting them):
 ${failureDetail}
 
 Bank graph to EDIT: ${graphPath}
@@ -66,12 +68,16 @@ Method (follow exactly):
    via the repo convention — run: cd ${join(io.ctx.repoRoot, "tools")} && npx tsx -e "import {statementHash} from './src/graph/hash.js'; console.log(statementHash(process.argv[1]))" '<statement>'
    , note: honest one-line mapping note}, proof {state "complete", sorry_count: 0}.
 3. MANDATORY EDGES: add a "statement-uses" edge (source "declared") from each consumer (the failing
-   proof's env id) to the new lemma, AND from the new lemma to EVERY definition env whose symbols
-   its statement uses (check the notation table's home column; under-declared edges cause ordering
-   failures downstream — be generous).
-4. Outline: insert each new id into the appendix objs line immediately BEFORE its first consumer.
-5. Validate: graph.json parses; no duplicate ids; every edge endpoint exists; every outline objs id
-   unique. Then STOP — do not run the pipeline.
+   proof's env id) to the new lemma, AND from the new lemma to definitions of named mathematical
+   objects actually used in its statement. Resolve object identity from explicit references and
+   meaning; a shared bound-variable spelling alone does not establish a dependency.
+4. Outline: preserve every existing section and authored home. Insert each new id into the
+   appendix home_objs line immediately BEFORE its first consumer (use objs only for a legacy
+   section without home_objs). Also update that section's resolved objs line. P1 plans from
+   home_objs, so editing only resolved objs loses the new placement.
+5. Validate: graph.json parses; no duplicate ids; every edge endpoint exists; every graph paper
+   object occurs exactly once across the authored home_objs lines (or legacy objs), and each
+   resolved objs id is unique. Then STOP — do not run the pipeline.
 Report: the mapping table (audit item -> decl -> node id), files changed, items NOT promoted and why.`;
   // DELIBERATE TRUST ESCALATION, visible here at the call site: unlike every other
   // runClaude usage (read-only judges), the promotion agent must edit the bank graph

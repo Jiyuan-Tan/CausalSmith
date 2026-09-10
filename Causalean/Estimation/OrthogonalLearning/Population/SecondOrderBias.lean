@@ -54,7 +54,9 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
          {Θ : Type*} [NormedAddCommGroup Θ] [InnerProductSpace ℝ Θ]
          {G : Type*} [AddCommGroup G] [Module ℝ G]
 
-/-- Loss-gradient nuisance bias for a sample-split plug-in ERM.
+/-- For [an orthogonal statistical-learning system](hyp:S), [a target-direction derivative bundle at its true nuisance function](hyp:Dθ_truth), [a target-direction derivative bundle at a nuisance function](hyp:Dθ_at_ghat), and [a target estimate](hyp:θhat), the [loss-gradient nuisance bias](goal) is the population integral of the first bundle evaluated at the target estimate minus the corresponding population integral of the second bundle.
+
+Loss-gradient nuisance bias for a sample-split plug-in ERM.
 
 Given:
 * `S`            — orthogonal statistical-learning system,

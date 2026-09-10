@@ -57,7 +57,13 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
 
 namespace IIDSample
 
-/-- **Nonparametric bootstrap variance.**  The conditional variance of a single
+/-- For [an independent and identically distributed sample](hyp:S), [a real-valued
+statistic of one observation](hyp:ψ), and [a nonnegative integer sample size](hyp:n), [the
+nonparametric bootstrap variance](goal) is the function that assigns to each sample-space
+outcome the empirical mean of the statistic squared minus the square of its empirical mean,
+computed from the first $n$ observations at that outcome.
+
+**Nonparametric bootstrap variance.**  The conditional variance of a single
 multinomial-bootstrap draw `ψ(Z*₁)` given the first `n` sample points: the
 plug-in (empirical) variance of `ψ` over the empirical distribution
 `P̂ₙ(ω) = (1/n) Σ_{i<n} δ_{Zᵢ ω}`,

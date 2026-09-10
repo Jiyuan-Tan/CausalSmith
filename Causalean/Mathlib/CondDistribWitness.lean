@@ -42,7 +42,18 @@ variable {Ω 𝒳 𝒵 𝒞 𝒴 : Type*}
   [MeasurableSpace 𝒞] [StandardBorelSpace 𝒞] [Nonempty 𝒞]
   [MeasurableSpace 𝒴] [StandardBorelSpace 𝒴] [Nonempty 𝒴]
 
-/-- For each treatment-covariate pair, this kernel gives the conditional law of
+/-- Given [a sample space equipped with a σ-algebra](hyp:Ω), [a treatment space equipped
+with a σ-algebra](hyp:𝒳), [a covariate space equipped with a σ-algebra](hyp:𝒵),
+[a nonempty standard Borel residual-coordinate space](hyp:𝒞), and [an
+outcome space equipped with a σ-algebra](hyp:𝒴), let [the sampling measure be finite](hyp:μ),
+[the covariate map](hyp:Z) and [the residual-coordinate map](hyp:C) map sample points to their
+respective spaces, and let [the structural response map](hyp:h) map a treatment, covariate, and
+residual coordinate to an outcome.  If [this structural response is jointly measurable](hyp:hh),
+then the [witness kernel](goal) assigns to each treatment--covariate pair the distribution of the
+structural response after drawing the residual coordinate from its conditional distribution given
+the covariate.
+
+For each treatment-covariate pair, this kernel gives the conditional law of
 the outcome obtained by drawing the residual coordinate from its conditional law
 given the covariates and then applying the structural response function. -/
 noncomputable def witnessKernel (μ : Measure Ω) [IsFiniteMeasure μ]
@@ -86,7 +97,7 @@ lemma witnessKernel_apply (μ : Measure Ω) [IsFiniteMeasure μ]
     (hh : Measurable (fun p : (𝒳 × 𝒵) × 𝒞 => h p.1.1 p.1.2 p.2)) (p : 𝒳 × 𝒵) :
     witnessKernel μ (Z := Z) (C := C) hh p = (condDistrib C Z μ p.2).map (h p.1 p.2) := rfl
 
-/-- The witness kernel is a Markov kernel when the base measure is finite. -/
+/-- For every [sample space, treatment space, covariate space, nonempty standard Borel residual-coordinate space, and outcome space, each equipped with the stated measurable structure](hyp:Ω,𝒳,𝒵,𝒞,𝒴), [finite sampling measure](hyp:μ), [covariate map](hyp:Z), [residual-coordinate map](hyp:C), [structural response map](hyp:h), and [joint measurability of that response map](hyp:hh), [the witness kernel is a Markov kernel](goal). -/
 instance instIsMarkovKernel_witnessKernel (μ : Measure Ω) [IsFiniteMeasure μ]
     {Z : Ω → 𝒵} {C : Ω → 𝒞} {h : 𝒳 → 𝒵 → 𝒞 → 𝒴}
     (hh : Measurable (fun p : (𝒳 × 𝒵) × 𝒞 => h p.1.1 p.1.2 p.2)) :

@@ -51,8 +51,10 @@ open MeasureTheory
 
 namespace Causalean.Stat
 
-/-- The **Hellinger (Bhattacharyya) affinity** of two nonnegative densities taken against one
-common dominating measure: the integral of the square root of their pointwise product.  It
+/-- Given [a measurable sample space](hyp:α), [a measure on that space](hyp:μ), and [two real-valued functions on it](hyp:f,g), [the Hellinger--Bhattacharyya affinity of the functions relative to the measure](goal) is the integral of the square root of their pointwise product.
+
+The **Hellinger (Bhattacharyya) affinity** of two nonnegative densities taken against one
+common dominating measure: the integral of the square root of their pointwise product. It
 equals one when the two densities agree almost everywhere and falls toward zero as the two
 laws separate, so it measures how hard the two laws are to tell apart. -/
 noncomputable def densityAffinity
@@ -60,7 +62,9 @@ noncomputable def densityAffinity
     (f g : α → ℝ) : ℝ :=
   ∫ x, Real.sqrt (f x * g x) ∂μ
 
-/-- The **squared Hellinger distance** between two nonnegative densities against one common
+/-- Given [a measurable sample space](hyp:α), [a measure on that space](hyp:μ), and [two real-valued functions on it](hyp:f,g), [the unhalved squared Hellinger discrepancy relative to the measure](goal) is the integral of the squared difference between their pointwise square roots.
+
+The **squared Hellinger distance** between two nonnegative densities against one common
 dominating measure, in the unhalved convention: the integral of the squared difference of
 their pointwise square roots. -/
 noncomputable def hellingerSqDensity

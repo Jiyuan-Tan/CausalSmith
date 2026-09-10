@@ -8,7 +8,7 @@ import type { PipelineContext, Stage, StageResult, StateJson } from "../types.js
 import { artifactPaths, type StageDeps } from "../pipeline_support.js";
 import { coreJsonPath } from "../discovery/stages/d0_core.js";
 import { readTypedCore } from "../discovery/core/core_io.js";
-import { appendEscalationLog, loadWorkingState } from "../discovery/stages/d0_working.js";
+import { appendEscalationLog } from "../discovery/escalation_log.js";
 import { runProofReviewLoop, writeRunBarrel, type LoopOutcome } from "./proof_review_loop.js";
 import { startSharedLeanLsp } from "../shared/lean_lsp_server.js";
 import { runStage1 } from "./stage1.js";
@@ -141,7 +141,7 @@ export interface RedoMathProposal {
  * TARGETED escalation-log directive (the same channel `bin/d0_directive.ts` uses) and park
  * the cursor at "-0.5" so the next stage is the typed D0-SOLVE. Proto and the working
  * cursor stay intact; only the refuted step's core consumers (and their dependents) are
- * forced open — the promise `solve/dispatch.ts`'s witness block already makes to the solver.
+ * forced open — the promise the redo-math witness block in `vcs/round.ts` already makes to the solver.
  *
  * Two prior shapes of this branch are deliberately gone:
  *  - propose mode used to route through `applyInterventionRoute("stage_0")`, which re-invoked
@@ -157,9 +157,9 @@ export interface RedoMathProposal {
  *    same lemma was then refuted again, up to REDO_MATH_MAX.
  *
  * ID SPACES ARE DISJOINT AND LOAD-BEARING. `required_core_targets` must name CORE
- * statement ids: `solve/merge.ts` hard-THROWS when a required target is emitted by no
- * solver payload, and that throw precedes commitRound, so an unsatisfiable target (e.g. a
- * Lean aux id like `rm.obj_id`) would wedge every subsequent `--resume` identically. The
+ * node ids: `vcs/round.ts` refuses to dispatch (the directive stays pending) when a
+ * required target is not a graph node, so an unsatisfiable target (e.g. a Lean aux id
+ * like `rm.obj_id`) would block every subsequent `--resume` identically. The
  * refuted node itself has no core identity; the core statements whose proofs rest on it are
  * among its graph dependents, so the repair frontier is `[obj_id, ...dependents] ∩
  * core-statement-ids`. When that intersection is empty the rewind cannot be localized, and
@@ -198,10 +198,8 @@ export async function adjudicateRedoMathRewind(args: {
     };
   }
   // Auto-rewind: witnessed, no proven dependents, under cap, localizable.
-  const working = await loadWorkingState(args.ctx);
   await appendEscalationLog(args.ctx, {
-    round: working?.round ?? 0,
-    changed: [],
+    round: args.state.flags.d0_loop_counters?.solve_rounds ?? 0,
     directive: [
       `F3 REFUTATION — incremental re-solve, NOT from scratch. The Lean formalization refuted`,
       `\`${rm.obj_id}\`, an intermediate step of this core's formal proof, with a concrete ${w}.`,

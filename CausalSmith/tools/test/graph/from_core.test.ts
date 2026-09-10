@@ -73,8 +73,12 @@ describe("buildGraphFromCorePlan", () => {
   });
 
   it("marks a reuse node as library-backed (decl_name set)", () => {
-    expect(g.nodes.find((n) => n.id === "def:est")!.lean.decl_name).toBe("Causalean.Estimation.AIPW");
-    expect(g.nodes.find((n) => n.id === "S1")!.lean.decl_name).toBe("Causalean.PO.System.POStructure");
+    const reusedDefinition = g.nodes.find((n) => n.id === "def:est")!;
+    const reusedSetup = g.nodes.find((n) => n.id === "S1")!;
+    expect(reusedDefinition.lean.decl_name).toBe("Causalean.Estimation.AIPW");
+    expect(reusedDefinition.provenance).toBe("library");
+    expect(reusedSetup.lean.decl_name).toBe("Causalean.PO.System.POStructure");
+    expect(reusedSetup.provenance).toBe("library");
   });
 
   it("stamps a causalsmith-compatible obj_id alias on every node (by kind)", () => {

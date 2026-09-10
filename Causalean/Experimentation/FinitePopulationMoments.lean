@@ -41,18 +41,32 @@ open DesignBased
 
 variable {U : Type*} [Fintype U] [DecidableEq U]
 
-/-- The **finite-population mean** `ȳ_N = (1/N) ∑ y_i`. -/
+/-- For [a finite population of units](hyp:U) and [a real-valued outcome for each
+unit](hyp:y), the [finite-population mean](goal) is the sum of all outcomes divided by the
+number of units, with a zero denominator understood to yield zero. -/
 noncomputable def popMean (y : U → ℝ) : ℝ := (∑ i, y i) / (Fintype.card U : ℝ)
 
-/-- The **finite-population variance** `v_N = (1/(N−1)) ∑ (y_i − ȳ_N)²`. -/
+/-- For [a finite population of units](hyp:U) and [a real-valued outcome for each
+unit](hyp:y), the [finite-population variance](goal) is the sum of squared deviations from the
+finite-population mean divided by one fewer than the number of units, with a zero denominator
+understood to yield zero. -/
 noncomputable def popVar (y : U → ℝ) : ℝ :=
   (∑ i, (y i - popMean y) ^ 2) / ((Fintype.card U : ℝ) - 1)
 
-/-- The **maximum squared deviation** `m_N = maxᵢ (y_i − ȳ_N)²` driving the Hájek CLT condition. -/
+/-- For [a nonempty finite population of units](hyp:U) and [a real-valued outcome
+for each unit](hyp:y), the [maximum squared deviation](goal) is the largest squared deviation of
+an outcome from the finite-population mean.
+
+This quantity is denoted by $m_N$ in the Hájek
+central-limit condition. -/
 noncomputable def popMaxSqDev [Nonempty U] (y : U → ℝ) : ℝ :=
   Finset.univ.sup' Finset.univ_nonempty (fun i => (y i - popMean y) ^ 2)
 
-/-- The **simple-random-sample mean** `ȳ_S = (1/n) ∑_{i∈S} y_i` of a size-`n` sample `S`. -/
+/-- For [a finite population with decidable unit identity](hyp:U), [a nonnegative
+integer sample size](hyp:n), [a real-valued outcome for each unit](hyp:y), and [a selected sample
+containing exactly that many units](hyp:S), the [simple-random-sample mean](goal) is the sum of
+the selected outcomes divided by the sample size, with a zero denominator understood to yield
+zero. -/
 noncomputable def sampleMean (n : ℕ) (y : U → ℝ) (S : {S : Finset U // S.card = n}) : ℝ :=
   (∑ i, (if i ∈ S.val then y i else 0)) / (n : ℝ)
 

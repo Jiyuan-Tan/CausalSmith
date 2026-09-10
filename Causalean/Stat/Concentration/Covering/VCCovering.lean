@@ -27,13 +27,17 @@ open scoped BigOperators
 
 variable {𝒳 : Type v} {ι : Type u} {n d : ℕ}
 
-/-- The subset of sample coordinates at which a Boolean classifier is true. -/
+/-- For [a Boolean-valued classifier](hyp:p) and [a sample of $n$ observations](hyp:n,S), the [restriction pattern of the classifier on the sample](goal) is the finite set of sample coordinates at which the classifier is true.
+
+The subset of sample coordinates at which a Boolean classifier is true. -/
 noncomputable def restrictionPattern (p : 𝒳 → Bool) (S : Fin n → 𝒳) :
     Finset (Fin n) := by
   classical
   exact Finset.univ.filter fun j => p (S j)
 
-/-- The finite family of Boolean restriction patterns realized on a sample. -/
+/-- For [a family of Boolean-valued classifiers](hyp:π) and [a sample of $n$ observations](hyp:n,S), the [growth family of the classifier family on the sample](goal) is the finite collection of all restriction patterns realized by at least one classifier in the family.
+
+The finite family of Boolean restriction patterns realized on a sample. -/
 noncomputable def growthFamily (π : ι → 𝒳 → Bool) (S : Fin n → 𝒳) :
     Finset (Finset (Fin n)) := by
   classical
@@ -93,7 +97,9 @@ lemma empirical_dist_eq_zero_of_factor_pattern
       restrictionPattern_mem_iff (p := π i) (S := S) (j := j)]
   simp [empiricalNorm, hpoint]
 
-/-- One empirical-function representative for each realized Boolean pattern. -/
+/-- For [a family of real-valued functions](hyp:F), [a family of Boolean-valued classifiers](hyp:π), and [a sample of $n$ observations](hyp:n,S), the [pattern cover](goal) contains one empirical-function representative for each Boolean restriction pattern realized by the classifier family on that sample.
+
+One empirical-function representative for each realized Boolean pattern. -/
 noncomputable def patternCover {F : ι → 𝒳 → ℝ}
     (π : ι → 𝒳 → Bool) (S : Fin n → 𝒳) :
     Finset (EmpiricalFunctionSpace F S) := by

@@ -19,7 +19,7 @@ import type { PipelineContext, Stage, StageResult, StateJson } from "../types.js
 import { NEG1_PIVOT_BUDGET, NEG1_REVISE_CAP } from "../discovery/stages/neg1_2.js";
 import { STAGE2_REDIRECT_MAX } from "../formalization/loop_limits.js";
 import { STAGE_ORDER } from "../constants.js";
-import { proposalRevision } from "../discovery/stages/d0_working.js";
+import { proposalRevision } from "../discovery/proposal_revision.js";
 
 export async function runReviewBoundary(args: {
   ctx: PipelineContext;

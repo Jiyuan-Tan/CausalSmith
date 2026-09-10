@@ -20,7 +20,13 @@ open Matrix BigOperators
 
 variable {Obs Param : Type*} [Fintype Obs] [Fintype Param] [DecidableEq Param]
 
-/-- The ridge closed-form coefficient `(XᵀX + λI)⁻¹ Xᵀy`. -/
+/-- For [a finite set of observations](hyp:Obs), [a finite coefficient index set whose equality
+can be decided](hyp:Param),
+[a design matrix](hyp:X), [an outcome vector](hyp:y), and [a ridge penalty weight](hyp:lam),
+the [closed-form ridge coefficient vector](goal) is the totalized inverse of the design
+matrix's cross-product matrix plus the penalty weight times the identity—equal to its ordinary
+inverse when that matrix is invertible—multiplied by the design matrix transposed times the
+outcome vector. -/
 noncomputable def ridgeCoef
     (X : Matrix Obs Param ℝ) (y : Obs → ℝ) (lam : ℝ) : Param → ℝ :=
   ((Xᵀ * X) + lam • (1 : Matrix Param Param ℝ))⁻¹ *ᵥ (Xᵀ *ᵥ y)

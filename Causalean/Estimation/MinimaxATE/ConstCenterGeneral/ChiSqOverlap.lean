@@ -47,13 +47,19 @@ namespace GenConstr
 
 variable {K : ℕ} (P : GenConstr)
 
-/-- The per-cell χ²-overlap coefficient. -/
+/-- For [general constant-center construction data](hyp:P), [the per-cell chi-squared overlap
+coefficient](goal) is the sum of the three stated contributions from the treated-success,
+treated-failure, and control components of a paired covariate cell. -/
 noncomputable def Γ : ℝ :=
   P.m₀ * P.α ^ 2 / P.g₁
     + P.m₀ * (P.α + P.β / P.g₁) ^ 2 / (1 - P.g₁)
     + P.m₀ ^ 2 * P.β ^ 2 / (P.g₁ ^ 2 * (1 - P.m₀))
 
-/-- The single-observation χ² second-moment overlap of two perturbed laws relative to the null. -/
+/-- For [a positive number of covariate pairs](hyp:K), [general constant-center construction
+data](hyp:P), [a first binary sign vector over the pairs](hyp:lam), and [a second binary sign
+vector over the pairs](hyp:lam'), [the single-observation chi-squared second-moment overlap](goal)
+is the sum over all observed records of the product of their two perturbed masses divided by their
+null mass. -/
 noncomputable def chiSqOverlapG (lam lam' : Fin K → Bool) : ℝ :=
   ∑ z : Obs (Fin K × Bool),
     obsReal (P.mPertG lam) (P.gPertG lam) z

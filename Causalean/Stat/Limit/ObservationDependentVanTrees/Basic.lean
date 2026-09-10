@@ -23,60 +23,86 @@ open MeasureTheory Set
 
 namespace Causalean.Stat.Limit.ObservationDependentVanTrees
 
-/-- The parameter reference measure is Lebesgue measure restricted to the closed parameter interval. -/
+/-- Given [a lower endpoint](hyp:ell) and [an upper endpoint](hyp:u), [the parameter reference
+measure](goal) is Lebesgue measure restricted to the closed interval from the lower to the upper endpoint. -/
 noncomputable def parameterMeasure (ell u : ℝ) : Measure ℝ :=
   volume.restrict (Icc ell u)
 
-/-- The joint density is the product of the prior density and the conditional likelihood density. -/
+/-- Given [a prior density on the real parameter](hyp:w), [a conditional observation density given
+that parameter](hyp:p), and [a parameter--observation pair](hyp:z), [the joint density](goal) is
+the product of the prior density and the conditional likelihood density at that pair. -/
 def jointDensity {X : Type*} (w : ℝ → ℝ) (p : ℝ → X → ℝ) (z : ℝ × X) : ℝ :=
   w z.1 * p z.1 z.2
 
-/-- The guarded prior score divides the prior derivative by its positive density and is zero where that density vanishes. -/
+/-- Given [a prior density](hyp:w), [its parameter derivative](hyp:dw), and [a parameter value](hyp:θ),
+[the guarded prior score](goal) is the derivative divided by the density when the density is positive,
+and is zero otherwise. -/
 noncomputable def priorScore (w dw : ℝ → ℝ) (θ : ℝ) : ℝ :=
   if 0 < w θ then dw θ / w θ else 0
 
-/-- The guarded likelihood score divides the likelihood derivative by its positive density and is zero where that density vanishes. -/
+/-- Given [a conditional likelihood density](hyp:p), [its parameter derivative](hyp:dp), [a parameter
+value](hyp:θ), and [an observation](hyp:x), [the guarded likelihood score](goal) is the derivative
+divided by the likelihood when that likelihood is positive, and is zero otherwise. -/
 noncomputable def likelihoodScore {X : Type*} (p dp : ℝ → X → ℝ) (θ : ℝ) (x : X) : ℝ :=
   if 0 < p θ x then dp θ x / p θ x else 0
 
-/-- The guarded joint score divides the derivative of the prior--likelihood product by that positive product and is zero elsewhere. -/
+/-- Given [a prior density](hyp:w), [its derivative](hyp:dw), [a conditional likelihood density](hyp:p),
+[its derivative](hyp:dp), and [a parameter--observation pair](hyp:z), [the guarded joint score](goal)
+is the derivative of the prior--likelihood product divided by that product when the product is positive,
+and is zero otherwise. -/
 noncomputable def jointScore {X : Type*} (w dw : ℝ → ℝ) (p dp : ℝ → X → ℝ)
     (z : ℝ × X) : ℝ :=
   if 0 < jointDensity w p z then
     (dw z.1 * p z.1 z.2 + w z.1 * dp z.1 z.2) / jointDensity w p z
   else 0
 
-/-- The prior Fisher information is the prior-weighted integral of the squared guarded prior score over the parameter interval. -/
+/-- Given [a lower endpoint](hyp:ell), [an upper endpoint](hyp:u), [a prior density](hyp:w), and [its
+derivative](hyp:dw), [the prior Fisher information](goal) is the integral over the closed parameter
+interval of the prior density times the squared guarded prior score. -/
 noncomputable def priorInformation (ell u : ℝ) (w dw : ℝ → ℝ) : ℝ :=
   ∫ θ, w θ * (priorScore w dw θ) ^ 2 ∂parameterMeasure ell u
 
-/-- The conditional Fisher information is the likelihood-weighted observation integral of the squared guarded likelihood score at one parameter value. -/
+/-- Given [a measure on a measurable observation space](hyp:μ), [a conditional likelihood density](hyp:p), [its
+parameter derivative](hyp:dp), and [a parameter value](hyp:θ), [the conditional Fisher information](goal)
+is the observation integral of the likelihood times the squared guarded likelihood score at that parameter. -/
 noncomputable def fisherInformation {X : Type*} [MeasurableSpace X] (μ : Measure X)
     (p dp : ℝ → X → ℝ) (θ : ℝ) : ℝ :=
   ∫ x, p θ x * (likelihoodScore p dp θ x) ^ 2 ∂μ
 
-/-- The signed error--joint-score field is the estimator error times the guarded joint score, weighted by the joint density. -/
+/-- Given [a prior density](hyp:w), [its derivative](hyp:dw), [a conditional likelihood density](hyp:p),
+[its derivative](hyp:dp), [a target function](hyp:g), [an estimator](hyp:T), and [a parameter--observation
+pair](hyp:z), [the signed error--joint-score field](goal) is estimator error times guarded joint score,
+weighted by joint density. -/
 noncomputable def errorScoreField {X : Type*} (w dw : ℝ → ℝ) (p dp g : ℝ → X → ℝ)
     (T : X → ℝ) (z : ℝ × X) : ℝ :=
   (T z.2 - g z.1 z.2) * jointScore w dw p dp z * jointDensity w p z
 
-/-- The target-sensitivity field is the target's parameter derivative weighted by the joint density. -/
+/-- Given [a prior density](hyp:w), [a conditional likelihood density](hyp:p), [the parameter derivative
+of a target function](hyp:dg), and [a parameter--observation pair](hyp:z), [the target-sensitivity
+field](goal) is that derivative weighted by the joint density. -/
 def sensitivityField {X : Type*} (w : ℝ → ℝ) (p dg : ℝ → X → ℝ)
     (z : ℝ × X) : ℝ :=
   dg z.1 z.2 * jointDensity w p z
 
-/-- The derivative-balance field is the parameter derivative of the joint-density-weighted estimation error. -/
+/-- Given [a prior density](hyp:w), [its derivative](hyp:dw), [a conditional likelihood density](hyp:p),
+[its derivative](hyp:dp), [a target function](hyp:g), [its parameter derivative](hyp:dg), [an estimator](hyp:T),
+and [a parameter--observation pair](hyp:z), [the derivative-balance field](goal) is the parameter derivative
+of the joint-density-weighted estimation error. -/
 def derivativeBalanceField {X : Type*} (w dw : ℝ → ℝ)
     (p dp g dg : ℝ → X → ℝ) (T : X → ℝ) (z : ℝ × X) : ℝ :=
   (dw z.1 * p z.1 z.2 + w z.1 * dp z.1 z.2) * (T z.2 - g z.1 z.2)
     - jointDensity w p z * dg z.1 z.2
 
-/-- The squared-error field is the squared estimator error weighted by the joint density. -/
+/-- Given [a prior density](hyp:w), [a conditional likelihood density](hyp:p), [a target function](hyp:g),
+[an estimator](hyp:T), and [a parameter--observation pair](hyp:z), [the squared-error field](goal) is
+the squared estimator error weighted by the joint density. -/
 def errorSqField {X : Type*} (w : ℝ → ℝ) (p g : ℝ → X → ℝ)
     (T : X → ℝ) (z : ℝ × X) : ℝ :=
   (T z.2 - g z.1 z.2) ^ 2 * jointDensity w p z
 
-/-- The squared-score field is the squared guarded joint score weighted by the joint density. -/
+/-- Given [a prior density](hyp:w), [its derivative](hyp:dw), [a conditional likelihood density](hyp:p),
+[its derivative](hyp:dp), and [a parameter--observation pair](hyp:z), [the squared-score field](goal)
+is the squared guarded joint score weighted by the joint density. -/
 noncomputable def scoreSqField {X : Type*} (w dw : ℝ → ℝ) (p dp : ℝ → X → ℝ)
     (z : ℝ × X) : ℝ :=
   (jointScore w dw p dp z) ^ 2 * jointDensity w p z
@@ -95,15 +121,15 @@ open MeasureTheory Set
 
 namespace Causalean.Stat.Limit.ObservationDependentVanTrees
 
-/-- The smooth quartic prior is a beta-shaped probability density centered at a chosen
-real value and truncated outside a chosen radius. -/
+/-- Given [a center](hyp:c), [a radius](hyp:a), and [a parameter value](hyp:θ), [the smooth quartic
+prior](goal) is $(15/(16a))\,[1-((θ-c)/a)^2]^2$ when $|θ-c|<a$, and is zero otherwise. -/
 noncomputable def smoothPrior (c a θ : ℝ) : ℝ :=
   if |θ - c| < a then
     (15 / (16 * a)) * (1 - ((θ - c) / a) ^ 2) ^ 2
   else 0
 
-/-- The smooth quartic prior derivative is its explicit piecewise polynomial
-parameter derivative. -/
+/-- Given [a center](hyp:c), [a radius](hyp:a), and [a parameter value](hyp:θ), [the smooth quartic
+prior derivative](goal) is $-(15/(4a^3))(θ-c)[1-((θ-c)/a)^2]$ when $|θ-c|<a$, and is zero otherwise. -/
 noncomputable def smoothPriorDeriv (c a θ : ℝ) : ℝ :=
   if |θ - c| < a then
     -(15 / (4 * a ^ 3)) * (θ - c) * (1 - ((θ - c) / a) ^ 2)

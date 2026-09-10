@@ -75,38 +75,38 @@ open scoped MeasureTheory ProbabilityTheory
 -- § 1. Vertex set and value spaces
 -- ============================================================
 
-/-- The continuous-backdoor example has three nodes: confounder, treatment, and outcome. -/
+/-- [The node set of the continuous-backdoor example](goal) consists of three positions representing, in order, the confounder, treatment, and outcome. -/
 abbrev CBNode : Type := Fin 3
 
-/-- Every node in the continuous-backdoor example takes real values. -/
+/-- [The value-space assignment for the continuous-backdoor example](goal) gives every node the real-valued state space. -/
 abbrev CBΩ : CBNode → Type := fun _ => ℝ
 
-/-- This node index denotes the confounder in the continuous-backdoor example. -/
+/-- [The confounder node index](goal) is the first of the three node positions in the continuous-backdoor example. -/
 @[reducible] def Zidx : CBNode := 0
-/-- This node index denotes the treatment in the continuous-backdoor example. -/
+/-- [The treatment node index](goal) is the second of the three node positions in the continuous-backdoor example. -/
 @[reducible] def Xidx : CBNode := 1
-/-- This node index denotes the outcome in the continuous-backdoor example. -/
+/-- [The outcome node index](goal) is the third of the three node positions in the continuous-backdoor example. -/
 @[reducible] def Yidx : CBNode := 2
 
 -- ============================================================
 -- § 2. Underlying DAG on `CBNode`
 -- ============================================================
 
-/-- The edge indicator records confounder-to-treatment, confounder-to-outcome, and treatment-to-outcome arrows.
+/-- [The Boolean edge indicator](goal) is true exactly for an arrow from confounder to treatment, from confounder to outcome, or from treatment to outcome.
 
 It is Boolean-valued so the graphical criterion can be discharged by computation. -/
 def cbEdgeBool : CBNode → CBNode → Bool := fun a b =>
   (a.val == 0 && b.val == 1) || (a.val == 0 && b.val == 2) ||
   (a.val == 1 && b.val == 2)
 
-/-- The edge relation says exactly that the confounder points to treatment and outcome, and treatment points to outcome. -/
+/-- [The edge relation of the continuous-backdoor graph](goal) holds exactly when the Boolean edge indicator is true, namely for arrows from confounder to treatment or outcome and from treatment to outcome. -/
 def cbEdge : CBNode → CBNode → Prop := fun a b => cbEdgeBool a b = true
 
-/-- Whether a proposed continuous-backdoor edge is present is decidable by evaluating the edge indicator. -/
+/-- For every ordered pair of continuous-backdoor vertices, [a decision procedure for whether the pair is a directed edge](goal) is provided. -/
 instance : DecidableRel cbEdge := by
   intro a b; unfold cbEdge; infer_instance
 
-/-- The continuous-backdoor graph orders confounder before treatment before outcome. -/
+/-- [The topological-order label of the continuous-backdoor graph](goal) is each node's position, so it places the confounder before treatment and treatment before outcome. -/
 def cbTopo : CBNode → ℕ := fun n => n.val
 
 /-- Every edge in the continuous-backdoor graph points from an earlier to a later node in the chosen topological order. -/
@@ -114,7 +114,7 @@ theorem cbTopo_lt : ∀ u v, cbEdge u v → cbTopo u < cbTopo v := by
   intro u v h
   fin_cases u <;> fin_cases v <;> simp_all [cbEdge, cbEdgeBool, cbTopo]
 
-/-- This directed acyclic graph formalizes the three-node continuous backdoor example. -/
+/-- [The directed acyclic graph of the continuous backdoor example](goal) has the stated three-node edge relation and topological ordering, and is acyclic. -/
 def cbDAG : DAG CBNode where
   edge := cbEdge
   decEdge := inferInstance
@@ -124,7 +124,7 @@ def cbDAG : DAG CBNode where
 -- § 3. The SWIGGraph (computable, used for `decide` proofs)
 -- ============================================================
 
-/-- This computable SWIG graph represents the continuous-backdoor example before any intervention.
+/-- [The pre-intervention SWIG graph for the continuous-backdoor example](goal) has no fixed or unobserved nodes and has the confounder, treatment, and outcome as observed random nodes.
 
 It is defined separately from the full structural model so the graphical
 backdoor criterion can be checked by computation. -/
@@ -155,8 +155,7 @@ def cbSWIGGraph : SWIGGraph CBNode where
 -- § 4. The SCM
 -- ============================================================
 
-/-- This real-valued backdoor structural model has observed nodes for a
-confounder, treatment, and outcome, with no latent variables.
+/-- [The continuous-backdoor structural causal model](goal) has the specified real-valued pre-intervention graph, no latent variables, nonparametric edges, and constant-zero structural responses for every observed node.
 
 The structural functions are all constant `0`, so the induced observed law is
 degenerate. The model is used as a minimal real-valued witness for the graph and

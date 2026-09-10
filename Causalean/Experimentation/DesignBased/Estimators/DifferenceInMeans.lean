@@ -40,23 +40,30 @@ namespace DesignBased
 
 variable {U : Type*} [Fintype U] [DecidableEq U]
 
-/-- The **sample average treatment effect** (SATE): the population mean of the unit-level treatment
-effects `Y1 i − Y0 i`. -/
+/-- For a finite population [of units](hyp:U) with [potential outcomes under treatment and under
+control](hyp:Y1,Y0), the [sample average treatment effect](goal) is the population mean of the
+unit-level difference between those two potential outcomes. -/
 noncomputable def sateEstimand (Y1 Y0 : U → ℝ) : ℝ :=
   (∑ i, (Y1 i - Y0 i)) / (Fintype.card U : ℝ)
 
-/-- The **treated-arm mean** of `Y1` under a treated set `S`: the average of `Y1` over the `n₁`
+/-- For a finite population [of units](hyp:U), [a number of treated units](hyp:n₁), [the potential
+outcome under treatment for each unit](hyp:Y1), and [a treated set containing exactly that many
+units](hyp:S), the [treated-arm mean](goal) is the average treatment potential outcome among the
 treated units. -/
 noncomputable def treatedMean (n₁ : ℕ) (Y1 : U → ℝ) (S : {S : Finset U // S.card = n₁}) : ℝ :=
   (∑ i, (if i ∈ S.val then Y1 i else 0)) / (n₁ : ℝ)
 
-/-- The **control-arm mean** of `Y0` under a treated set `S`: the average of `Y0` over the
-`n₀ = N − n₁` control units. -/
+/-- For a finite population [of units](hyp:U), [a number of treated units](hyp:n₁), [the potential
+outcome under control for each unit](hyp:Y0), and [a treated set containing exactly that many
+units](hyp:S), the [control-arm mean](goal) is the average control potential outcome among all
+units outside the treated set. -/
 noncomputable def controlMean (n₁ : ℕ) (Y0 : U → ℝ) (S : {S : Finset U // S.card = n₁}) : ℝ :=
   (∑ i, (if i ∈ S.val then 0 else Y0 i)) / ((Fintype.card U - n₁ : ℕ) : ℝ)
 
-/-- The **difference-in-means** estimator: treated-arm mean of `Y1` minus control-arm mean of
-`Y0`. -/
+/-- For a finite population [of units](hyp:U), [a number of treated units](hyp:n₁), [potential
+outcomes under treatment and under control](hyp:Y1,Y0), and [a treated set containing exactly
+that many units](hyp:S), the [difference-in-means estimator](goal) is the treated-arm mean minus
+the control-arm mean. -/
 noncomputable def diffInMeans (n₁ : ℕ) (Y1 Y0 : U → ℝ) (S : {S : Finset U // S.card = n₁}) : ℝ :=
   treatedMean n₁ Y1 S - controlMean n₁ Y0 S
 

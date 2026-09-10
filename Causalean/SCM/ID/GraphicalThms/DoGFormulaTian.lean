@@ -166,7 +166,13 @@ lemma prefixIn_disjoint_singleton_next (H : SWIGGraph N) (D : Finset (SWIGNode N
   rw [Finset.disjoint_singleton_right]
   exact nodesAt_not_mem_prefixIn H D hn
 
-/-- Extend a `D`-prefix assignment by the next singleton coordinate. -/
+/-- For [a finite population of variables](hyp:N) with [measurable value spaces](hyp:Ω),
+[a SWIG graph](hyp:H), [a finite node set](hyp:D), and [an index strictly below its
+cardinality](hyp:n,hn), [the prefix-extension map](goal) combines an assignment on the
+first indexed nodes with an assignment on the next node into an assignment on the
+one-node-longer prefix.
+
+Extend a `D`-prefix assignment by the next singleton coordinate. -/
 noncomputable def extendTianPrefix (H : SWIGGraph N) (D : Finset (SWIGNode N))
     {n : ℕ} (hn : n < D.card) :
     ValuesOn (H.prefixIn D n) (swigΩ Ω) ×
@@ -303,7 +309,15 @@ lemma measure_map_prefixIn_absolutelyContinuous_jointRef
   exact ((hdom.map (measurable_valuesProjection (H.prefixIn_subset D k))).trans
     (jointRef_map_prefixIn_absolutelyContinuous H D ref k))
 
-/-- Recursive Tian prefix density product on an intermediate prefix. -/
+/-- For [a finite population of variables](hyp:N) with [measurable value spaces](hyp:Ω),
+[a SWIG graph](hyp:H), [a finite node set](hyp:D), [a finite measure on its joint value
+space](hyp:μ), and [reference measures](hyp:ref), assuming every graph-ordered singleton
+node value space is standard Borel and nonempty, [the Tian prefix density product](goal) at
+[a prefix length and an assignment on that prefix](hyp:k) is one [at length zero](step:1) and
+otherwise [the preceding product times the next conditional-density factor, or one when that
+next index is outside the node set](step:2).
+
+Recursive Tian prefix density product on an intermediate prefix. -/
 noncomputable def tianPrefixDensityProductInPrefix
     (H : SWIGGraph N) (D : Finset (SWIGNode N))
     (μ : MeasureTheory.Measure (ValuesOn D (swigΩ Ω)))
@@ -343,7 +357,15 @@ noncomputable def tianPrefixDensityProductInPrefix
         else
           1
 
-/-- One-step Tian density read from a `k`-prefix assignment. -/
+/-- For [a finite population of variables](hyp:N) with [measurable value spaces](hyp:Ω),
+[a SWIG graph](hyp:H), [a finite node set](hyp:D), [a finite measure on its joint value
+space](hyp:μ), [reference measures](hyp:ref), assuming every graph-ordered singleton node
+value space is standard Borel and nonempty, [a prefix length](hyp:k), [an assignment on that
+prefix](hyp:z), and [a node index](hyp:i), [the one-step Tian density](goal) is the
+conditional-density factor for that indexed node when it lies in both the prefix and the node
+set, and is one otherwise.
+
+One-step Tian density read from a `k`-prefix assignment. -/
 noncomputable def tianPrefixStepDensityInPrefix
     (H : SWIGGraph N) (D : Finset (SWIGNode N))
     (μ : MeasureTheory.Measure (ValuesOn D (swigΩ Ω)))

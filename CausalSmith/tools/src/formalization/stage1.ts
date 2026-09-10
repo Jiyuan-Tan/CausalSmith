@@ -32,8 +32,6 @@ import { renderBridgeNote } from "../graph/render_note.js";
 import { graphPath, loadGraph, saveGraph } from "../graph/store.js";
 import { mergeStage1RevisionGraph } from "../graph/revise_merge.js";
 import {
-  recordMissingArchitecture,
-  missingArchitectureLedgerPath,
 } from "../shared/missing_architecture_ledger.js";
 import { coreJsonPath } from "../discovery/stages/d0_core.js";
 import { type Core } from "../discovery/core/schema.js";
@@ -429,50 +427,9 @@ export async function runStage1(args: {
       console.warn(`[causalsmith] substrate-debt gate ledger write failed: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
-  const blockingInfraItems = infraItems.filter((it) => {
-    const id = String(it.id ?? "");
-    const description = String(it.description ?? "");
-    return !gateIds.has(id) &&
-      !gateNames.has(id) &&
-      ![...gateIds].some((gateId) => description.includes(gateId)) &&
-      ![...gateNames].some((gateName) => description.includes(gateName));
-  });
-  const needsSubstrate = feasibility === "needs-new-infrastructure" && blockingInfraItems.length > 0;
-
-  if (needsSubstrate) {
-    try {
-      recordMissingArchitecture(missingArchitectureLedgerPath(args.ctx.repoRoot), {
-        qid: args.ctx.qid,
-        spec: args.ctx.specialization,
-        source: "F1 needs-new-infrastructure",
-        date: new Date().toISOString().slice(0, 10),
-        items: blockingInfraItems.map((it) => ({
-          id: typeof it.id === "string" ? it.id : undefined,
-          kind: String(it.kind ?? "unknown"),
-          description: String(it.description ?? ""),
-          effort: typeof it.effort === "string" ? it.effort : undefined,
-        })),
-        deferred: typeof p.deferred_conjecture === "string" ? p.deferred_conjecture : undefined,
-      });
-    } catch (err) {
-      console.warn(`[causalsmith] missing-architecture ledger write failed: ${err instanceof Error ? err.message : String(err)}`);
-    }
-    // Substrate-build halt: hand control to the orchestrator so it can dispatch
-    // background builders for the Defer-items. It then clears this flag and
-    // resumes — F2 scaffolds against the assumed gate; each landed build is
-    // discharged later by codex wiring the lemma into the Lean + a rewind to
-    // F2.5 to re-review (NOT a rewind to F1). A naive `--resume` is refused
-    // (resolveResumeGates) until the flag is dealt with.
-    const itemSummary = blockingInfraItems
-      .map((it) => `${String(it.id ?? "?")} [${String(it.kind ?? "?")}/${String(it.effort ?? "?")}]: ${String(it.description ?? "").slice(0, 120)}`)
-      .join("\n  - ");
-    const deferredLine =
-      typeof p.deferred_conjecture === "string" && p.deferred_conjecture.trim()
-        ? `\nDeferred consumer: ${p.deferred_conjecture.trim()}`
-        : "";
-    args.state.flags.substrate_build_required =
-      `F1 verdict=needs-new-infrastructure. Dispatch a BACKGROUND builder subagent for EACH Defer-item (minimal-but-reusable, capped+isolated, codex-fills-the-proof), then CLEAR flags.substrate_build_required and resume so the run proceeds with the gates assumed (do NOT block). Discharge each landed build at the next checkpoint: codex wires the lemma into the Lean (replacing the assumed gate) and rewind to F2.5 to re-review (NOT F1; plan/scaffold unchanged), re-passing F4 before banking. A gate that cannot be built sorry-free stays honest substrate-debt (→ SUBSTRATE_DEBT.md).\nDefer-items:\n  - ${itemSummary}${deferredLine}`;
-  } else if (args.state.flags.substrate_build_required) {
+  // F1 never halts for substrate: it has no frozen provenance for an uncited
+  // external theorem, so build/citation classification belongs to F1.5.
+  if (args.state.flags.substrate_build_required) {
     // A rerun-F1 (after the orchestrator built the crux substrate) produced a plan
     // with no remaining Defer-item: clear the stale gate so `--resume` proceeds.
     args.state.flags.substrate_build_required = null;
@@ -503,20 +460,9 @@ export async function runStage1(args: {
   // The plan-audit checkpoint (CKPT 1) moved DOWNSTREAM to F1.5: when F1 produced
   // a usable plan it advances STRAIGHT into the F1.5 reuse-soundness review, so
   // F1 + F1.5 halt together at ONE consolidated CKPT 1 (fewer recall events for
-  // the orchestrator). F1 still halts on its own in two cases: (a) the
-  // substrate-build gate — hand control to the orchestrator to dispatch
-  // background builders for the Defer-items (it then clears the flag and
-  // proceeds gated; landed builds discharge later); (b) no usable plan was
+  // the orchestrator). F1 still halts on its own when no usable plan was
   // parsed (blocked-infeasible / parse failure) — there is nothing for F1.5 to
   // review, so surface the artifact to the human now.
-  if (needsSubstrate) {
-    return {
-      stage: "1",
-      status: "checkpoint",
-      message: `SUBSTRATE-BUILD CHECKPOINT: F1 flagged needs-new-infrastructure — dispatch background builders for the Defer-items, then clear the flag and resume to proceed gated (discharge at the next checkpoint). ${args.state.flags.substrate_build_required ?? ""}`.slice(0, 1200),
-      artifacts: [...new Set([...(parsed.artifacts ?? [paths.plan]), ...(emittedGraphAndNote ? [graphPath(paths.formalizationDir, args.ctx.qid, args.ctx.specialization), paths.md] : [])])],
-    };
-  }
   if (!parsedPlan?.success) {
     return {
       stage: "1",

@@ -19,17 +19,23 @@ and bounds those evaluations by the multilinear operator norm.
 open scoped BigOperators
 
 namespace Causalean.Stat.Nonparametric.LocalPolynomial
-/-- Total order of a bivariate coordinate multi-index. -/
+/-- For [a bivariate multi-index](hyp:alpha), the [total order of that multi-index](goal) is the
+sum of its two coordinate orders. -/
 def coordinateMultiOrder (alpha : Fin 2 → ℕ) : ℕ := alpha 0 + alpha 1
 
-/-- The ordered list of standard coordinate directions associated with a
-bivariate multi-index. -/
+/-- For [a bivariate multi-index](hyp:alpha) and [a position in a list whose length is its total
+order](hyp:k), the [associated ordered standard-coordinate direction](goal) is the first standard
+coordinate direction when the position is smaller than the first coordinate order, and the second
+standard coordinate direction otherwise. -/
 noncomputable def coordinateDirections (alpha : Fin 2 → ℕ)
     (k : Fin (coordinateMultiOrder alpha)) : EuclideanSpace ℝ (Fin 2) :=
   if (k : ℕ) < alpha 0 then EuclideanSpace.single 0 1
   else EuclideanSpace.single 1 1
 
-/-- The scalar coordinate partial derivative indexed by `alpha`. -/
+/-- For [a real-valued function on two-dimensional Euclidean space](hyp:f), [a bivariate
+multi-index](hyp:alpha), and [a point in that space](hyp:x), the [scalar coordinate partial
+derivative](goal) is the iterated derivative of total order given by the multi-index, evaluated at
+the point along the associated ordered standard-coordinate directions. -/
 noncomputable def coordinatePartial (f : EuclideanSpace ℝ (Fin 2) → ℝ) (alpha : Fin 2 → ℕ)
     (x : EuclideanSpace ℝ (Fin 2)) : ℝ :=
   iteratedFDeriv ℝ (coordinateMultiOrder alpha) f x (coordinateDirections alpha)

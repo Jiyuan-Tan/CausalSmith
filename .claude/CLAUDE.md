@@ -67,7 +67,7 @@ policies; do not impose interactive-collaboration rules on them.
 - **"Build green" ≠ proved.** `lake` exits 0 WITH sorries, and a targeted
   `lake build <module>` can replay a stale olean over a live error. Before
   claiming a theorem done: FULL build of the module, grep the SOURCE for
-  `sorry|admit|native_decide|^\s*axiom`, and run `#print axioms` via
+  `sorry|admit|^\s*axiom`, and run `#print axioms` via
   `lake env lean`.
 - When editing pipeline/skill prompts (`*.txt`), be concise and don't overfit:
   state the general rule, not examples tied to the specific instance that

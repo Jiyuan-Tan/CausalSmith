@@ -31,8 +31,11 @@ namespace Causalean.Stat.MomentProblems
 
 open scoped BigOperators
 
-/-- The `L + 1` **equally spaced symmetric atoms** `−L, −L + 2, …, L − 2, L`: the `i`-th atom sits
-at twice `i` minus `L`.  They are symmetric about the origin and pairwise distinct. -/
+/-- For [a nonnegative integer L](hyp:L), the [symmetric atom locations](goal) are the L + 1 real
+numbers −L, −L + 2, …, L, indexed in increasing order; equivalently, the location with index i is
+twice i minus L.
+
+They are symmetric about the origin and pairwise distinct. -/
 noncomputable def symmetricAtoms (L : ℕ) : Fin (L + 1) → ℝ :=
   fun i => 2 * (i.val : ℝ) - (L : ℝ)
 
@@ -62,7 +65,8 @@ theorem symmetricAtoms_sum (L : ℕ) : ∑ i : Fin (L + 1), symmetricAtoms L i =
       simp [Finset.mul_sum]
     _ = 0 := by linarith
 
-/-- The **uniform weight vector** on the `L + 1` atoms: each atom carries mass `1 / (L + 1)`. -/
+/-- For [a nonnegative integer L](hyp:L), the [uniform weight vector](goal) assigns mass
+$1/(L+1)$ to each of the L + 1 symmetric atoms. -/
 noncomputable def uniformWeights (L : ℕ) : Fin (L + 1) → ℝ :=
   fun _ => 1 / (L + 1 : ℝ)
 
@@ -84,7 +88,9 @@ theorem uniformWeights_mean (L : ℕ) :
   rw [← Finset.mul_sum]
   exact mul_eq_zero_of_right _ (symmetricAtoms_sum L)
 
-/-- The raw-moment sequence of the uniform-weight law on the symmetric atoms. -/
+/-- For [a nonnegative integer L](hyp:L), the [raw-moment sequence of the uniform law on the
+symmetric atoms](goal) assigns to every nonnegative order the equally weighted average of that
+power of the L + 1 symmetric atom locations. -/
 noncomputable def uniformMoments (L : ℕ) : ℕ → ℝ :=
   fun k => ∑ i, uniformWeights L i * symmetricAtoms L i ^ k
 
@@ -96,8 +102,10 @@ theorem uniformMoments_zero (L : ℕ) : uniformMoments L 0 = 1 := by
 theorem uniformMoments_one (L : ℕ) : uniformMoments L 1 = 0 := by
   simpa [uniformMoments] using uniformWeights_mean L
 
-/-- The cumulant sequence of the uniform-weight law on the symmetric atoms — the base point around
-which the truncated cumulant range is shown to have interior. -/
+/-- For [a nonnegative integer L](hyp:L), the [cumulant sequence of the uniform law on the
+symmetric atoms](goal) is the cumulant sequence calculated from that law's raw moments.
+
+It is the base point around which the truncated cumulant range is shown to have interior. -/
 noncomputable def uniformCumulants (L : ℕ) : ℕ → ℝ :=
   fun r => cumFromMom r (uniformMoments L)
 
@@ -111,7 +119,9 @@ theorem momFromCum_uniformCumulants (L k : ℕ) :
 
 /-! ### The Vandermonde solve -/
 
-/-- The Vandermonde matrix of the symmetric atoms: row `i` lists the powers of the `i`-th atom. -/
+/-- For [a nonnegative integer L](hyp:L), the [Vandermonde matrix of the symmetric atoms](goal) is
+the square real matrix whose row for each atom lists successive powers of that atom, from power
+zero through power L. -/
 noncomputable def atomVandermonde (L : ℕ) :
     Matrix (Fin (L + 1)) (Fin (L + 1)) ℝ :=
   Matrix.vandermonde (symmetricAtoms L)
@@ -123,8 +133,11 @@ theorem atomVandermonde_transpose_isUnit (L : ℕ) :
   rw [Matrix.det_transpose, isUnit_iff_ne_zero]
   exact Matrix.det_vandermonde_ne_zero_iff.mpr (symmetricAtoms_injective L)
 
-/-- The **weight vector solving the moment-matching system**: given a target for the raw moments of
-orders `0` through `L`, the unique weights on the symmetric atoms reproducing them. -/
+/-- For [a nonnegative integer L](hyp:L) and [a prescribed vector of real raw moments of orders zero
+through L](hyp:b), the [moment-matching weight vector](goal) is the result of applying the inverse
+transpose of the Vandermonde matrix of the symmetric atoms to that vector.
+
+It is the unique weights on the symmetric atoms reproducing the prescribed moments. -/
 noncomputable def atomSolve (L : ℕ) (b : Fin (L + 1) → ℝ) :
     Fin (L + 1) → ℝ :=
   (atomVandermonde L).transpose⁻¹.mulVec b
@@ -177,8 +190,9 @@ theorem continuous_atomSolve (L : ℕ) : Continuous (atomSolve L) := by
 
 /-! ### Cumulant target ↦ atom weights -/
 
-/-- Extending a finite cumulant target of orders `0, …, L` to a full sequence by zeros beyond
-order `L`. -/
+/-- For [a nonnegative integer L](hyp:L) and [a prescribed vector of cumulants of orders zero
+through L](hyp:y), the [zero-padded cumulant sequence](goal) agrees with that vector through order
+L and equals zero at every higher order. -/
 noncomputable def padCumulants (L : ℕ) (y : Fin (L + 1) → ℝ) : ℕ → ℝ :=
   fun k => if h : k < L + 1 then y ⟨k, h⟩ else 0
 
@@ -192,9 +206,10 @@ theorem continuous_padCumulants (L : ℕ) : Continuous (padCumulants L) := by
   · simpa [padCumulants, h] using
       (continuous_const : Continuous (fun _ : Fin (L + 1) → ℝ => (0 : ℝ)))
 
-/-- The **cumulant-to-weights map**: from a prescribed truncated cumulant target, invert the
-triangular moment↔cumulant relation to get the target moments, then solve the Vandermonde system
-for the weights on the symmetric atoms. -/
+/-- For [a nonnegative integer L](hyp:L) and [a prescribed vector of cumulants of orders zero
+through L](hyp:y), the [cumulant-to-weights map](goal) first reconstructs the corresponding raw
+moments and then returns the symmetric-atom weights obtained by solving their Vandermonde
+moment-matching system. -/
 noncomputable def cumulantToWeights (L : ℕ) (y : Fin (L + 1) → ℝ) :
     Fin (L + 1) → ℝ :=
   atomSolve L (fun k => momFromCum (padCumulants L y) k.val)
@@ -209,8 +224,8 @@ theorem continuous_cumulantToWeights (L : ℕ) : Continuous (cumulantToWeights L
   intro k
   exact (continuous_momFromCum k.val).comp (continuous_padCumulants L)
 
-/-- The **base cumulant target**: the cumulants, of orders `0` through `L`, of the uniform-weight
-law on the symmetric atoms. -/
+/-- For [a nonnegative integer L](hyp:L), the [base cumulant target](goal) is the vector of
+cumulants of orders zero through L of the uniform probability law on the symmetric atoms. -/
 noncomputable def uniformCumulantPoint (L : ℕ) : Fin (L + 1) → ℝ :=
   fun k => uniformCumulants L k.val
 

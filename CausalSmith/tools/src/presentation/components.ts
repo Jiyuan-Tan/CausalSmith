@@ -6,6 +6,8 @@
 // and the P4 emit (render the pieces as a composite). The single `lean` anchor
 // in the crosswalk stays the "primary representative decl"; this is the full set.
 
+import { MODELS } from "../models.js";
+import { isPaperTmpPath } from "../paths.js";
 import { readFile, readdir, realpath } from "node:fs/promises";
 import { isAbsolute, join, relative, sep } from "node:path";
 import { z } from "zod";
@@ -16,7 +18,7 @@ import { parseJsonLoose } from "./gates.js";
 import { presentationPrompt } from "./prompt_io.js";
 import { writeJsonAtomic } from "./json_io.js";
 import { graphComponentSpecs } from "./graph_components.js";
-import { fullyQualifiedSourceDecls, resolveLeanDeclaration, type ResolvedLeanDeclaration } from "./declaration_resolver.js";
+import { fullyQualifiedSourceDecls, resolveLeanDeclaration, type ResolvedLeanDeclaration, resolveLibraryDeclaration } from "./declaration_resolver.js";
 import type { CrosswalkEntry } from "./types.js";
 import type { FormalizationGraph } from "../graph/types.js";
 
@@ -46,6 +48,13 @@ export interface ModuleDecl {
   sourceHash?: string;
 }
 
+/** The run's declaration index. A name declared twice in the run is absent from the map (no
+ *  unique pointer) but remembered here, so a resolver can tell ambiguity from absence: absence
+ *  may fall through to the library, ambiguity must halt. */
+export class ModuleDeclIndex extends Map<string, ModuleDecl> {
+  readonly ambiguous = new Set<string>();
+}
+
 /** codex runner shape (subset of PaperDeps.runCodex); kept local to avoid a
  *  runtime import cycle with pipeline.ts. */
 export interface CodexRunner {
@@ -56,6 +65,8 @@ export interface CodexRunner {
     leanLsp?: boolean;
     /** Codex native sub-agents — default-off (opt-in); set true only for a lone low-concurrency call whose prompt uses spawn_agent (see CodexRunInput.multiAgent). */
     multiAgent?: boolean;
+    /** codex model id (defaults to the presentation tier). */
+    model?: string;
   }) => Promise<{ stdout: string; stderr: string }>;
 }
 
@@ -65,14 +76,16 @@ export interface CodexRunner {
 export async function buildModuleDeclIndex(
   repoRoot: string,
   leanSubdir: string,
-): Promise<Map<string, ModuleDecl>> {
-  const out = new Map<string, ModuleDecl>();
+): Promise<ModuleDeclIndex> {
+  const out = new ModuleDeclIndex();
   const shortCandidates = new Map<string, ModuleDecl[]>();
-  const ambiguousFull = new Set<string>();
+  const ambiguousFull = out.ambiguous;
   const root = join(repoRoot, leanSubdir);
   try {
     const rootReal = await realpath(root);
-    const files = (await readdir(rootReal, { recursive: true })).map(String).filter((f) => f.endsWith(".lean"));
+    // Scratch copies under a paper tmp dir (docstring staging, drafts) are not declarations of
+    // the run; indexing them makes every real declaration ambiguous.
+    const files = (await readdir(rootReal, { recursive: true })).map(String).filter((f) => f.endsWith(".lean") && !isPaperTmpPath(f));
     for (const rel of files) {
       const fileReal = await realpath(join(rootReal, rel));
       const fromRoot = relative(rootReal, fileReal);
@@ -137,6 +150,9 @@ function resolveDecl(
 ): { file: string; decl: string; line: number } | null {
   const c = crosswalk.find((x) => x.lean?.decl === decl);
   if (c?.lean) return { file: c.lean.file, decl: c.lean.decl, line: c.lean.line };
+  if (moduleDecls instanceof ModuleDeclIndex && moduleDecls.ambiguous.has(decl)) {
+    throw new Error(`P1 component ${decl} is declared more than once in the run — disambiguate the declarations before auditing`);
+  }
   const m = moduleDecls.get(decl);
   return m ? { file: m.file, decl: m.decl ?? decl, line: m.line } : null;
 }
@@ -151,6 +167,7 @@ export async function discoverComponents(args: {
   repoRoot: string;
 }): Promise<ComponentSpec[]> {
   const res = await args.deps.runCodex({
+    model: MODELS.codexComponents,
     prompt: await presentationPrompt("p4_components", {
       env_body: args.envBody,
       decl_list: args.declList,
@@ -182,8 +199,12 @@ export async function assembleComponentText(args: {
   for (const spec of args.specs) {
     const named = spec.type === "decl" ? spec.decl : spec.theorem;
     const loc = resolveDecl(named, args.crosswalk, args.moduleDecls);
-    if (!loc) throw new Error(`P1 component ${named} is not present in the crosswalk or run declaration index`);
-    const hit = await resolveLeanDeclaration(args.repoRoot, args.leanSubdir, loc);
+    // A component the run does not declare (a Causalean structure the setup instantiates, a
+    // Mathlib notion) is a library fact; read it from the library, never guess or skip it.
+    const hit = loc
+      ? await resolveLeanDeclaration(args.repoRoot, args.leanSubdir, loc)
+      : await resolveLibraryDeclaration(args.repoRoot, named);
+    if (!hit) throw new Error(`P1 component ${named} is not present in the crosswalk, the run declaration index, or the library index`);
     resolved.push(hit);
     if (spec.type === "decl") blocks.push(`-- ${hit.decl}  (${hit.file})\n${hit.snippet}`);
     else {
@@ -238,6 +259,7 @@ export async function ensureComponentsForEnvs(args: {
   components: Record<string, ComponentSpec[]>;
   complete: Record<string, true>;
   moduleDecls: Map<string, ModuleDecl>;
+  resolvedDeclarations: Map<string, ResolvedLeanDeclaration>;
 }> {
   const cwById = new Map(args.crosswalk.map((c) => [c.obj_id, c]));
   // repair:false — values are Lean-derived text (not model-authored LaTeX) and zod-guarded below.
@@ -256,9 +278,11 @@ export async function ensureComponentsForEnvs(args: {
   // or crosswalk provenance and silently turn a formal object into note-only text.
   const theoremStatements = await buildTheoremStatements(args.crosswalk, args.repoRoot, args.leanSubdir);
   const canonicalCrosswalkSources: string[] = [];
+  const resolvedDeclarations = new Map<string, ResolvedLeanDeclaration>();
   for (const cw of args.crosswalk) {
     if (!cw.lean) continue;
     const hit = await resolveLeanDeclaration(args.repoRoot, args.leanSubdir, cw.lean);
+    resolvedDeclarations.set(cw.obj_id, hit);
     canonicalCrosswalkSources.push(
       `${cw.obj_id}|${hit.file}|${hit.decl}|${hit.line}|${hashEnvBody(hit.snippet)}`,
     );
@@ -317,5 +341,5 @@ export async function ensureComponentsForEnvs(args: {
     await writeJsonAtomic(args.cachePath, cache);
   }
   await writeJsonAtomic(args.cachePath, cache);
-  return { components: out, complete, moduleDecls };
+  return { components: out, complete, moduleDecls, resolvedDeclarations };
 }

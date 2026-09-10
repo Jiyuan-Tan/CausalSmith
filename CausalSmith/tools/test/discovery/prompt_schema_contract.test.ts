@@ -85,8 +85,10 @@ describe("D0 solve carried-node prompt contract", () => {
   it("requires atomic coherence closure across formal metadata and narrative channels", async () => {
     const prompt = await readFile(D0_SOLVE_PROMPT_URL, "utf8");
     expect(prompt).toContain("COHERENCE CLOSURE IS ATOMIC");
-    expect(prompt).toContain("exactly one `definition-replace`");
-    expect(prompt).toContain("whose `depends_on` and `free_symbols`");
+    expect(prompt).toContain("replaces the construction only");
+    expect(prompt).toContain("`depends_on`/`free_symbols`");
+    expect(prompt).not.toContain("based_on_revision");
+    expect(prompt).not.toContain("argues_proposed");
     expect(prompt).toContain("Audit `estimand_functional`");
     expect(prompt).toContain("Emit all such edits in the same bundle");
   });

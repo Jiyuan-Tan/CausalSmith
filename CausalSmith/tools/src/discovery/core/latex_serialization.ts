@@ -290,6 +290,86 @@ export function assertSealableLatexPayload(value: unknown, source: string): void
     if ((doubledInlinePair || doubledDisplayPair) && !hasCanonicalSingleBackslash) {
       offenses.push(`${path}: over-escaped LaTeX (doubled math delimiters with no single-backslash command)`);
     }
+    // Four companion-backed proofs in one live solve arrived with bare `qquad`
+    // already present in their archived source bytes. Check only proof fields and
+    // only math spans: prose/metadata may discuss the token literally. Mask common
+    // text commands first, then require an odd backslash run before the control
+    // word (one = `\qquad`; three = row break followed by `\qquad`). Zero/even
+    // runs are bare letters in TeX and therefore malformed.
+    if (/(^|\.)proof_tex$/.test(path)) {
+      const masked = [...analysis];
+      // Text commands temporarily leave math mode. Mask balanced arguments,
+      // including nested groups, so literal tokens there remain ordinary text.
+      for (const match of analysis.matchAll(/\\(?:text|textrm|textsf|texttt|operatorname)\s*\{/g)) {
+        let commandSlashes = 1;
+        for (let j = match.index! - 1; j >= 0 && analysis[j] === "\\"; j -= 1) commandSlashes += 1;
+        if (commandSlashes % 2 === 0) continue;
+        const brace = match.index! + match[0].lastIndexOf("{");
+        let depth = 1;
+        for (let i = brace + 1; i < analysis.length; i += 1) {
+          let slashes = 0;
+          for (let j = i - 1; j >= 0 && analysis[j] === "\\"; j -= 1) slashes += 1;
+          if (slashes % 2 === 1) continue;
+          if (analysis[i] === "{") depth += 1;
+          else if (analysis[i] === "}" && --depth === 0) {
+            for (let j = brace + 1; j < i; j += 1) if (masked[j] !== "\n") masked[j] = " ";
+            break;
+          }
+        }
+      }
+      const qquadView = masked.join("");
+      const mathEnvs = new Set([
+        "equation", "align", "alignat", "flalign", "gather", "multline", "eqnarray",
+        "math", "displaymath", "aligned", "alignedat", "gathered", "split", "cases",
+        "dcases", "array", "matrix", "pmatrix", "bmatrix", "Bmatrix", "vmatrix",
+        "Vmatrix", "smallmatrix", "subarray",
+      ]);
+      let delimiterMath = false;
+      let environmentDepth = 0;
+      for (let i = 0; i < qquadView.length; i += 1) {
+        if (qquadView[i] === "\\") {
+          let end = i;
+          while (qquadView[end] === "\\") end += 1;
+          const run = end - i;
+          const env = /^(begin|end)\{([A-Za-z]+)\*?\}/.exec(qquadView.slice(end));
+          if (run % 2 === 1 && env !== null && mathEnvs.has(env[2])) {
+            environmentDepth = Math.max(0, environmentDepth + (env[1] === "begin" ? 1 : -1));
+            i = end + env[0].length - 1;
+            continue;
+          }
+          const delimiter = qquadView[end];
+          if (run % 2 === 1 && (delimiter === "(" || delimiter === ")" || delimiter === "[" || delimiter === "]")) {
+            delimiterMath = delimiter === "(" || delimiter === "[";
+          }
+          i = end - 1;
+          continue;
+        }
+        if (qquadView[i] === "$") {
+          let dollarSlashes = 0;
+          for (let j = i - 1; j >= 0 && qquadView[j] === "\\"; j -= 1) dollarSlashes += 1;
+          if (dollarSlashes % 2 === 1) continue;
+          if (qquadView[i + 1] === "$") i += 1;
+          delimiterMath = !delimiterMath;
+          continue;
+        }
+        if ((delimiterMath || environmentDepth > 0) && qquadView.startsWith("qquad", i)) {
+          const after = qquadView[i + 5] ?? "";
+          let slashCount = 0;
+          let beforeIndex = i - 1;
+          while (beforeIndex >= 0 && qquadView[beforeIndex] === "\\") {
+            slashCount += 1;
+            beforeIndex -= 1;
+          }
+          const before = beforeIndex >= 0 ? qquadView[beforeIndex] : "";
+          if (!/[\p{L}\p{N}_]/u.test(before) && !/[\p{L}\p{N}_]/u.test(after)) {
+            if (slashCount % 2 === 0) {
+              offenses.push(`${path}: bare 'qquad' in math (missing TeX control-word backslash)`);
+              break;
+            }
+          }
+        }
+      }
+    }
     // LaTeX environments must nest properly, so validate with a stack rather
     // than per-name counts: crossed or end-before-begin sequences whose counts
     // happen to balance are still invalid TeX.

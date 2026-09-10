@@ -1,0 +1,1202 @@
+{
+  "qid": "stat_bdd_pointwise_first_bin_alias_frontier",
+  "specialization": "v1",
+  "cluster": "stat",
+  "symbols": [
+    {
+      "name": "n",
+      "type": "sample size",
+      "space": "\\(\\{n\\in\\mathbb{N}:n\\geq256\\}\\)",
+      "def": "The number of independently sampled units in the stated finite-sample frontier.",
+      "role": "index"
+    },
+    {
+      "name": "\\Delta_0",
+      "type": "maximum quantization width",
+      "space": "\\((0,1/4]\\)",
+      "def": "A fixed upper bound on the released radial bin width.",
+      "role": "design constant"
+    },
+    {
+      "name": "\\Delta",
+      "type": "radial quantization width",
+      "space": "\\((0,\\Delta_0]\\)",
+      "def": "The known width of every floor-rounded radial bin.",
+      "role": "regime parameter",
+      "refs": [
+        "\\Delta_0"
+      ]
+    },
+    {
+      "name": "L",
+      "type": "Lipschitz envelope",
+      "space": "\\([1,\\infty)\\)",
+      "def": "The known common Lipschitz bound for the two radial outcome regressions.",
+      "role": "smoothness constant"
+    },
+    {
+      "name": "\\alpha",
+      "type": "noncoverage level",
+      "space": "\\((0,1/4)\\)",
+      "def": "The prescribed error probability for honest confidence intervals.",
+      "role": "inference constant"
+    },
+    {
+      "name": "b",
+      "type": "fixed boundary point",
+      "space": "\\(\\mathbb{R}^2\\)",
+      "def": "The target point, normalized to \\(b=(0,0)\\).",
+      "role": "causal target index"
+    },
+    {
+      "name": "e_1",
+      "type": "canonical lower-subclass boundary normal",
+      "space": "\\(\\mathbb R^2\\)",
+      "def": "The unit vector \\(e_1=(1,0)\\) used only to specify the uniform half-disc least-favorable subclass.",
+      "role": "lower-bound subclass geometry"
+    },
+    {
+      "name": "\\mathcal D",
+      "type": "local score support",
+      "space": "Borel subsets of \\(\\mathbb{R}^2\\)",
+      "def": "\\(\\mathcal D=\\{x\\in\\mathbb R^2:\\lVert x-b\\rVert_2\\leq1\\}\\).",
+      "role": "known design support",
+      "refs": [
+        "b"
+      ]
+    },
+    {
+      "name": "X",
+      "type": "latent bivariate score",
+      "space": "\\(\\mathcal D\\)",
+      "def": "The raw location score, which is sampled but not released to the analyst.",
+      "role": "latent data component",
+      "refs": [
+        "\\mathcal D"
+      ]
+    },
+    {
+      "name": "R",
+      "type": "latent point-radius",
+      "space": "\\([0,1]\\)",
+      "def": "\\(R=\\lVert X-b\\rVert_2\\).",
+      "role": "latent running coordinate",
+      "refs": [
+        "X",
+        "b"
+      ]
+    },
+    {
+      "name": "Y(0)",
+      "type": "control potential outcome",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "The potential outcome under control.",
+      "role": "causal primitive"
+    },
+    {
+      "name": "Y(1)",
+      "type": "treated potential outcome",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "The potential outcome under treatment.",
+      "role": "causal primitive"
+    },
+    {
+      "name": "P",
+      "type": "one-unit primitive-data law",
+      "space": "laws of ((X,Y(0),Y(1)))",
+      "def": "A one-unit law for the latent score and potential outcomes; treatment and the observed outcome are induced by sharp assignment and consistency.",
+      "role": "model",
+      "refs": [
+        "X",
+        "Y(0)",
+        "Y(1)"
+      ]
+    },
+    {
+      "name": "Q_\\Delta",
+      "type": "floor quantizer",
+      "sig": "\\([0,1]\\to\\{0,\\Delta,2\\Delta,\\ldots\\}\\)",
+      "def": "\\(Q_\\Delta(r)=\\Delta\\lfloor r/\\Delta\\rfloor\\).",
+      "role": "known coarsening operator",
+      "refs": [
+        "\\Delta"
+      ]
+    },
+    {
+      "name": "h_n",
+      "type": "exact-radius Lipschitz scale",
+      "space": "positive real sequences",
+      "def": "\\(h_n=n^{-1/4}\\).",
+      "role": "sampling scale",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "\\rho_{n,\\Delta}",
+      "type": "sampling--aliasing frontier",
+      "space": "positive real numbers",
+      "def": "\\(\\rho_{n,\\Delta}=\\max\\{h_n,\\Delta\\}\\).",
+      "role": "headline rate",
+      "refs": [
+        "n",
+        "h_n",
+        "\\Delta"
+      ]
+    },
+    {
+      "name": "K_{n,\\Delta}",
+      "type": "number of retained radial bins",
+      "space": "\\(\\mathbb N\\)",
+      "def": "\\(K_{n,\\Delta}=\\lceil h_n/\\Delta\\rceil\\).",
+      "role": "estimator tuning index",
+      "refs": [
+        "n",
+        "h_n",
+        "\\Delta"
+      ]
+    },
+    {
+      "name": "H_{n,\\Delta}",
+      "type": "bin-aligned localization radius",
+      "space": "\\((0,1/2]\\)",
+      "def": "\\(H_{n,\\Delta}=K_{n,\\Delta}\\Delta\\).",
+      "role": "estimator bandwidth",
+      "refs": [
+        "n",
+        "K_{n,\\Delta}",
+        "\\Delta"
+      ]
+    },
+    {
+      "name": "I^{\\mathrm{CP}}_{n,\\gamma}(s)",
+      "type": "Clopper--Pearson binomial interval family",
+      "space": "closed subintervals of \\([0,1]\\)",
+      "def": "For any positive integer trial count \\(k\\), \\(I^{\\mathrm{CP}}_{k,\\gamma}(s)\\) is the equal-tailed exact \\(1-\\gamma\\) binomial confidence interval after \\(s\\) successes in \\(k\\) trials.",
+      "role": "finite-sample conditional-count inference primitive"
+    },
+    {
+      "name": "\\phi",
+      "type": "first-bin radial alias direction",
+      "sig": "\\([0,1]\\to\\mathbb R\\)",
+      "def": "\\(\\phi(u)=(1-u)(1-2u)\\).",
+      "role": "exact coarsening-null direction"
+    },
+    {
+      "name": "c_L",
+      "type": "legal perturbation amplitude",
+      "space": "\\((0,1/16]\\)",
+      "def": "\\(c_L=\\min\\{L/8,1/16\\}\\).",
+      "role": "least-favorable constant",
+      "refs": [
+        "L"
+      ]
+    },
+    {
+      "name": "c_0",
+      "type": "two-sided local-mass constant",
+      "space": "\\((0,1/2]\\)",
+      "def": "A fixed class constant lower-bounding each side probability in a radius-\\(H\\) neighborhood by \\(c_0H^2\\).",
+      "role": "design regularity constant"
+    },
+    {
+      "name": "\\mathcal P_L",
+      "type": "unknown-design bivariate Bernoulli--Lipschitz boundary law class",
+      "space": "sets of one-unit laws \\(P\\)",
+      "def": "The one-unit full-data law class constructed in \\(\\mathrm{def:half\\text{-}disc\\text{-}class}\\), with fixed constants \\(L\\) and \\(c_0\\).",
+      "role": "minimax model",
+      "refs": [
+        "P",
+        "L",
+        "c_0"
+      ]
+    },
+    {
+      "name": "\\mathfrak H_{n,\\Delta}",
+      "type": "joint lower-bound construction handle",
+      "space": "pairs in \\(\\mathcal P_L^2\\)",
+      "def": "The explicit embedded uniform-half-disc pair constructed in \\(\\mathrm{def:joint\\text{-}lower\\text{-}handle}\\).",
+      "role": "joint minimax and honest-length lower certificate",
+      "refs": [
+        "n",
+        "\\Delta",
+        "\\mathcal P_L"
+      ]
+    },
+    {
+      "name": "\\mathcal X_{t,P}",
+      "type": "known side-specific score region",
+      "space": "Borel subsets of \\(\\mathcal D\\), for \\(t\\in\\{0,1\\}\\)",
+      "def": "The known Borel partition satisfies \\(\\mathcal X_{0,P}\\cap\\mathcal X_{1,P}=\\varnothing\\) and \\(\\mathcal X_{0,P}\\cup\\mathcal X_{1,P}=\\mathcal D\\); the local-mass condition implies that \\(b\\) lies in the closure of both sides.",
+      "role": "known assignment geometry",
+      "refs": [
+        "P",
+        "\\mathcal D",
+        "b"
+      ]
+    },
+    {
+      "name": "T",
+      "type": "sharp treatment side",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "\\(T=\\mathbf1\\{X\\in\\mathcal X_{1,P}\\}\\).",
+      "role": "observed assignment",
+      "refs": [
+        "X",
+        "\\mathcal X_{t,P}",
+        "P"
+      ]
+    },
+    {
+      "name": "Y",
+      "type": "observed outcome",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "The realized outcome under the sharp assignment.",
+      "role": "observed data component",
+      "refs": [
+        "Y(0)",
+        "Y(1)",
+        "T"
+      ]
+    },
+    {
+      "name": "Z_\\Delta",
+      "type": "released observation",
+      "space": "\\(\\{0,1\\}\\times\\{0,1\\}\\times\\{0,\\Delta,2\\Delta,\\ldots\\}\\)",
+      "def": "\\(Z_\\Delta=(Y,T,Q_\\Delta(R))\\); neither \\(X\\), the polar angle, nor raw \\(R\\) is observed.",
+      "role": "analyst information",
+      "refs": [
+        "Y",
+        "T",
+        "Q_\\Delta",
+        "R",
+        "X",
+        "\\Delta"
+      ]
+    },
+    {
+      "name": "S_{t,n,\\Delta}",
+      "type": "localized Bernoulli success count",
+      "space": "\\(\\{0,1,\\ldots,n\\}\\)",
+      "def": "\\(S_{t,n,\\Delta}=\\sum_{i=1}^n\\mathbf 1\\{T_i=t,Q_\\Delta(R_i)<H_{n,\\Delta}\\}Y_i\\).",
+      "role": "grouped sufficient statistic",
+      "refs": [
+        "n",
+        "T",
+        "Q_\\Delta",
+        "R",
+        "H_{n,\\Delta}",
+        "Y"
+      ]
+    },
+    {
+      "name": "\\mathcal T_{n,\\Delta}",
+      "type": "rounded-radius estimator class",
+      "space": "measurable maps from \\(Z_\\Delta^n\\) to \\(\\mathbb R\\)",
+      "def": "All law-independent estimators measurable with respect to the released sample only.",
+      "role": "minimax decision class",
+      "refs": [
+        "n",
+        "\\Delta",
+        "Z_\\Delta"
+      ]
+    },
+    {
+      "name": "\\mu_t",
+      "type": "side-specific bivariate potential-outcome mean",
+      "sig": "\\(\\overline{\\mathcal X_{t,P}}\\cap\\mathcal D\\to[1/4,3/4]\\) for \\(t\\in\\{0,1\\}\\)",
+      "def": "\\(\\mu_t(x)=\\mathbb E_P[Y(t)\\mid X=x]\\) on side \\(t\\), using the sidewise Lipschitz continuous extension at \\(b\\).",
+      "role": "outcome regression",
+      "refs": [
+        "P",
+        "Y(0)",
+        "Y(1)",
+        "X",
+        "\\mathcal X_{t,P}",
+        "\\mathcal D",
+        "b"
+      ]
+    },
+    {
+      "name": "m_t",
+      "type": "radial profile for constructed least-favorable laws",
+      "sig": "\\([0,1]\\to[1/4,3/4]\\) on the embedded uniform half-disc subclass",
+      "def": "For a constructed radial law, \\(m_t(r)\\) denotes the profile satisfying \\(\\mu_t(x)=m_t(\\lVert x-b\\rVert_2)\\); it is not a restriction on every \\(P\\in\\mathcal P_L\\).",
+      "role": "lower-bound subclass notation",
+      "refs": [
+        "\\mu_t",
+        "X",
+        "b",
+        "P",
+        "\\mathcal P_L"
+      ]
+    },
+    {
+      "name": "\\tau_P(b)",
+      "type": "point boundary average treatment effect",
+      "space": "\\([-1/2,1/2]\\)",
+      "def": "\\(\\tau_P(b)=\\mu_1(b)-\\mu_0(b)\\).",
+      "role": "causal estimand",
+      "refs": [
+        "P",
+        "b",
+        "\\mu_t"
+      ]
+    },
+    {
+      "name": "\\mathfrak R^{(1)}_{n,\\Delta}",
+      "type": "minimax absolute-error risk",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The risk constructed in \\(\\mathrm{def:minimax\\text{-}risks}\\).",
+      "role": "headline frontier object",
+      "refs": [
+        "n",
+        "\\Delta",
+        "\\mathcal T_{n,\\Delta}",
+        "\\mathcal P_L",
+        "\\tau_P(b)"
+      ]
+    },
+    {
+      "name": "\\mathfrak R^{(2)}_{n,\\Delta}",
+      "type": "minimax squared-error risk",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The squared risk constructed in \\(\\mathrm{def:minimax\\text{-}risks}\\).",
+      "role": "headline frontier object",
+      "refs": [
+        "n",
+        "\\Delta",
+        "\\mathcal T_{n,\\Delta}",
+        "\\mathcal P_L",
+        "\\tau_P(b)"
+      ]
+    },
+    {
+      "name": "\\mathcal C_{n,\\Delta}(\\alpha)",
+      "type": "honest rounded-radius confidence-interval class",
+      "space": "sets of interval-valued measurable maps",
+      "def": "The interval class constructed in \\(\\mathrm{def:honest\\text{-}class}\\).",
+      "role": "inference decision class",
+      "refs": [
+        "n",
+        "\\Delta",
+        "\\alpha",
+        "Z_\\Delta",
+        "\\mathcal P_L",
+        "\\tau_P(b)"
+      ]
+    },
+    {
+      "name": "\\mathfrak W_{n,\\Delta}(\\alpha)",
+      "type": "minimax honest expected length",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The width criterion constructed in \\(\\mathrm{def:honest\\text{-}width}\\).",
+      "role": "headline inference frontier",
+      "refs": [
+        "n",
+        "\\Delta",
+        "\\alpha",
+        "\\mathcal C_{n,\\Delta}(\\alpha)",
+        "\\mathcal P_L",
+        "P"
+      ]
+    },
+    {
+      "name": "P^{\\mathrm{alias}}_{\\pm,\\Delta}",
+      "type": "embedded uniform-half-disc first-bin alias laws",
+      "space": "pairs of one-unit full-data laws",
+      "def": "The two bivariate laws constructed in \\(\\mathrm{def:first\\text{-}bin\\text{-}alias}\\).",
+      "role": "exact nonidentification witness in a least-favorable subclass",
+      "refs": [
+        "P",
+        "\\Delta",
+        "\\phi",
+        "c_L",
+        "\\mu_t",
+        "\\mathcal P_L"
+      ]
+    },
+    {
+      "name": "N_{t,n,\\Delta}",
+      "type": "localized side count",
+      "space": "\\(\\{0,1,\\ldots,n\\}\\)",
+      "def": "\\(N_{t,n,\\Delta}=\\sum_{i=1}^n\\mathbf1\\{T_i=t,Q_\\Delta(R_i)<H_{n,\\Delta}\\}\\).",
+      "role": "observed estimator denominator",
+      "refs": [
+        "n",
+        "T",
+        "Q_\\Delta",
+        "R",
+        "H_{n,\\Delta}",
+        "\\Delta"
+      ]
+    },
+    {
+      "name": "\\widehat m_{t,n,\\Delta}",
+      "type": "bin-aware side boundary-mean estimator",
+      "space": "\\([0,1]\\)",
+      "def": "The observed-count ratio with fixed zero-count fallback constructed in \\(\\mathrm{def:bin\\text{-}aware\\text{-}estimator}\\).",
+      "role": "point estimator component",
+      "refs": [
+        "n",
+        "\\Delta",
+        "N_{t,n,\\Delta}",
+        "S_{t,n,\\Delta}"
+      ]
+    },
+    {
+      "name": "\\widehat\\tau_{n,\\Delta}",
+      "type": "bin-aware boundary-effect estimator",
+      "space": "\\([-1,1]\\)",
+      "def": "\\(\\widehat\\tau_{n,\\Delta}=\\widehat m_{1,n,\\Delta}-\\widehat m_{0,n,\\Delta}\\).",
+      "role": "point estimator",
+      "refs": [
+        "n",
+        "\\Delta",
+        "\\widehat m_{t,n,\\Delta}"
+      ]
+    },
+    {
+      "name": "C_{n,\\Delta,\\alpha}",
+      "type": "total bin-aware confidence interval",
+      "space": "closed bounded intervals in \\(\\mathbb R\\)",
+      "def": "The conditional-count exact-binomial interval with sidewise spatial Lipschitz enlargement constructed in \\(\\mathrm{def:total\\text{-}honest\\text{-}interval}\\).",
+      "role": "honest interval",
+      "refs": [
+        "n",
+        "\\Delta",
+        "\\alpha",
+        "L",
+        "N_{t,n,\\Delta}",
+        "S_{t,n,\\Delta}",
+        "I^{\\mathrm{CP}}_{n,\\gamma}(s)"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:iid-sampling",
+      "kind": "sampling",
+      "condition": "\\((X_i,Y_i(0),Y_i(1))_{i=1}^n\\) are independent and identically distributed under \\(P\\).",
+      "free_symbols": [
+        "n",
+        "X",
+        "Y(0)",
+        "Y(1)",
+        "P"
+      ],
+      "standard": {
+        "name": "independent random sampling",
+        "cite": "CattaneoTitiunikYu2026Distance"
+      },
+      "used_by": [
+        "def:half-disc-class",
+        "lem:conditional-local-binomial-law",
+        "thm:single-joint-pair",
+        "thm:minimax-frontier",
+        "thm:single-joint-pair",
+        "thm:total-honest-interval"
+      ]
+    },
+    {
+      "id": "ass:uniform-disc-design",
+      "kind": "support",
+      "condition": "For the fixed class constant \\(c_0\\in(0,1/2]\\), \\(\\mathbb P_P(T=t,\\lVert X-b\\rVert_2<H)\\geq c_0H^2\\) for every \\(t\\in\\{0,1\\}\\) and every \\(H\\in(0,1/2]\\).",
+      "free_symbols": [
+        "c_0",
+        "P",
+        "T",
+        "X",
+        "b",
+        "R"
+      ],
+      "constants": [
+        "c_0"
+      ],
+      "standard": {
+        "name": "two-sided quadratic local design mass",
+        "cite": "CattaneoTitiunikYu2026Distance"
+      },
+      "used_by": [
+        "def:half-disc-class",
+        "lem:conditional-local-binomial-law",
+        "lem:first-bin-alias",
+        "thm:single-joint-pair"
+      ]
+    },
+    {
+      "id": "ass:sharp-boundary-assignment",
+      "kind": "causal-structural",
+      "condition": "There is a known Borel side partition \\((\\mathcal X_{0,P},\\mathcal X_{1,P})\\) of \\(\\mathcal D\\) such that \\(T=\\mathbf 1\\{X\\in\\mathcal X_{1,P}\\}\\) almost surely under \\(P\\).",
+      "free_symbols": [
+        "T",
+        "X",
+        "\\mathcal X_{t,P}",
+        "\\mathcal D",
+        "P"
+      ],
+      "standard": {
+        "name": "sharp assignment across a known bivariate boundary",
+        "cite": "CattaneoTitiunikYu2026Distance"
+      },
+      "used_by": [
+        "def:half-disc-class"
+      ]
+    },
+    {
+      "id": "ass:consistency",
+      "kind": "causal-structural",
+      "condition": "\\(Y=T Y(1)+(1-T)Y(0)\\) almost surely under \\(P\\).",
+      "free_symbols": [
+        "Y",
+        "T",
+        "Y(1)",
+        "Y(0)",
+        "P"
+      ],
+      "standard": {
+        "name": "potential-outcome consistency",
+        "cite": "HahnToddVanderKlaauw2001RD"
+      },
+      "used_by": [
+        "def:half-disc-class",
+        "lem:conditional-local-binomial-law",
+        "lem:first-bin-alias"
+      ]
+    },
+    {
+      "id": "ass:radial-bernoulli",
+      "kind": "regularity",
+      "condition": "For each \\(t\\in\\{0,1\\}\\), \\(Y(t)\\mid X=x\\sim\\operatorname{Bernoulli}(\\mu_t(x))\\) for \\(P_X\\)-almost every \\(x\\in\\mathcal X_{t,P}\\).",
+      "free_symbols": [
+        "Y(0)",
+        "Y(1)",
+        "X",
+        "T",
+        "\\mu_t",
+        "\\mathcal X_{t,P}",
+        "P"
+      ],
+      "standard": {
+        "name": "Bernoulli nonparametric spatial regression experiment",
+        "cite": "Tsybakov2009Nonparametric"
+      },
+      "used_by": [
+        "def:half-disc-class",
+        "lem:conditional-local-binomial-law",
+        "lem:first-bin-alias",
+        "thm:single-joint-pair",
+        "thm:single-joint-pair"
+      ]
+    },
+    {
+      "id": "ass:bernoulli-interior-range",
+      "kind": "support",
+      "condition": "For every \\(t\\in\\{0,1\\}\\) and \\(x\\in\\overline{\\mathcal X_{t,P}}\\cap\\mathcal D\\), \\(1/4\\leq\\mu_t(x)\\leq3/4\\).",
+      "free_symbols": [
+        "\\mu_t",
+        "\\mathcal X_{t,P}",
+        "\\mathcal D"
+      ],
+      "standard": {
+        "name": "bounded-away-from-degeneracy Bernoulli spatial regression",
+        "cite": "Tsybakov2009Nonparametric"
+      },
+      "used_by": [
+        "def:half-disc-class",
+        "lem:conditional-local-binomial-law",
+        "lem:first-bin-alias",
+        "thm:single-joint-pair",
+        "thm:single-joint-pair"
+      ]
+    },
+    {
+      "id": "ass:radial-lipschitz",
+      "kind": "smoothness",
+      "condition": "For every \\(t\\in\\{0,1\\}\\) and \\(x,x'\\in\\overline{\\mathcal X_{t,P}}\\cap\\mathcal D\\) with \\(\\lVert x-b\\rVert_2\\vee\\lVert x'-b\\rVert_2\\leq1/2\\), \\(|\\mu_t(x)-\\mu_t(x')|\\leq L\\lVert x-x'\\rVert_2\\).",
+      "free_symbols": [
+        "\\mu_t",
+        "\\mathcal X_{t,P}",
+        "\\mathcal D",
+        "L",
+        "b"
+      ],
+      "standard": {
+        "name": "sidewise Euclidean Lipschitz condition near a boundary point",
+        "cite": "ArmstrongKolesar2020Honest"
+      },
+      "used_by": [
+        "def:half-disc-class",
+        "lem:conditional-local-binomial-law",
+        "lem:first-bin-alias",
+        "thm:single-joint-pair",
+        "thm:single-joint-pair"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:half-disc-class",
+      "name": "Unknown-design bivariate Bernoulli--Lipschitz boundary class",
+      "construction": "\\(\\mathcal P_L=\\{P:P\\text{ satisfies }\\mathrm{ass:uniform\\text{-}disc\\text{-}design},\\mathrm{ass:sharp\\text{-}boundary\\text{-}assignment},\\mathrm{ass:consistency},\\mathrm{ass:radial\\text{-}bernoulli},\\mathrm{ass:bernoulli\\text{-}interior\\text{-}range},\\mathrm{ass:radial\\text{-}lipschitz}\\}\\), where \\(c_0\\) is fixed and \\(X\\) is supported on \\(\\mathcal D\\) as declared in the statistical experiment.  The sampling condition \\(\\mathrm{ass:iid\\text{-}sampling}\\) is imposed on the sample and is not a member property of a one-unit law.",
+      "free_symbols": [
+        "\\mathcal P_L",
+        "P",
+        "L",
+        "c_0",
+        "X",
+        "\\mathcal D"
+      ],
+      "by_member_properties": [
+        "ass:uniform-disc-design",
+        "ass:sharp-boundary-assignment",
+        "ass:consistency",
+        "ass:radial-bernoulli",
+        "ass:bernoulli-interior-range",
+        "ass:radial-lipschitz"
+      ],
+      "revision": "rev:424b097a7bd80520e6c747df597b761986ca59d6db98b271431ca54b2dbdfcfc"
+    },
+    {
+      "id": "def:rounded-experiment",
+      "name": "Rounded-radius observation experiment",
+      "construction": "\\(\\mathcal E_{n,\\Delta}(P)=\\mathcal L_P(Z_{\\Delta,1},\\ldots,Z_{\\Delta,n})\\),\\quad Z_{\\Delta,i}=(Y_i,T_i,\\Delta\\lfloor R_i/\\Delta\\rfloor)\\). The observation \\(\\sigma\\)-field is exactly \\(\\sigma(Z_{\\Delta,1},\\ldots,Z_{\\Delta,n})\\); it excludes \\(X_i\\), angle, and raw \\(R_i\\).",
+      "free_symbols": [
+        "n",
+        "\\Delta",
+        "P",
+        "Z_\\Delta",
+        "Y",
+        "T",
+        "R",
+        "X"
+      ],
+      "inputs": [
+        "n",
+        "\\Delta",
+        "P"
+      ],
+      "revision": "rev:7e32c3bf0329c0cb61ca9e972829ce1f47b0beb7c806938543019b1d73c26876"
+    },
+    {
+      "id": "def:bin-aware-estimator",
+      "name": "Total bin-aware local-constant estimator",
+      "construction": "For \\(t\\in\\{0,1\\}\\), let \\(N_{t,n,\\Delta}=\\sum_{i=1}^n\\mathbf 1\\{T_i=t,Q_\\Delta(R_i)<H_{n,\\Delta}\\}\\).  Define\n\\[\n \\widehat m_{t,n,\\Delta}=\n \\begin{cases}\n \\Pi_{[0,1]}\\!\\left(S_{t,n,\\Delta}/N_{t,n,\\Delta}\\right),&N_{t,n,\\Delta}>0,\\\\\n 1/2,&N_{t,n,\\Delta}=0,\n \\end{cases}\n \\qquad\n H_{n,\\Delta}=\\Delta\\left\\lceil n^{-1/4}/\\Delta\\right\\rceil,\n\\]\nwhere \\(\\Pi_{[0,1]}\\) is Euclidean clipping, and set \\(\\widehat\\tau_{n,\\Delta}=\\widehat m_{1,n,\\Delta}-\\widehat m_{0,n,\\Delta}\\).",
+      "free_symbols": [
+        "n",
+        "\\Delta",
+        "H_{n,\\Delta}",
+        "N_{t,n,\\Delta}",
+        "S_{t,n,\\Delta}",
+        "\\widehat m_{t,n,\\Delta}",
+        "\\widehat\\tau_{n,\\Delta}"
+      ],
+      "inputs": [
+        "n",
+        "\\Delta",
+        "Z_\\Delta"
+      ],
+      "revision": "rev:01359eb8907d20bb193dedc6941d1a3f0e0653b6ed159ebe36550d14248b4741"
+    },
+    {
+      "id": "def:minimax-risks",
+      "name": "Rounded-radius minimax risks",
+      "construction": "\\(\\mathfrak R^{(1)}_{n,\\Delta}=\\inf_{\\widetilde\\tau\\in\\mathcal T_{n,\\Delta}}\\sup_{P\\in\\mathcal P_L}\\mathbb E_P|\\widetilde\\tau-\\tau_P(b)|\\) and \\(\\mathfrak R^{(2)}_{n,\\Delta}=\\inf_{\\widetilde\\tau\\in\\mathcal T_{n,\\Delta}}\\sup_{P\\in\\mathcal P_L}\\mathbb E_P[(\\widetilde\\tau-\\tau_P(b))^2]\\).",
+      "free_symbols": [
+        "n",
+        "\\Delta",
+        "\\mathfrak R^{(1)}_{n,\\Delta}",
+        "\\mathfrak R^{(2)}_{n,\\Delta}",
+        "\\mathcal T_{n,\\Delta}",
+        "\\mathcal P_L",
+        "P",
+        "\\tau_P(b)"
+      ],
+      "inputs": [
+        "n",
+        "\\Delta",
+        "\\mathcal T_{n,\\Delta}",
+        "\\mathcal P_L"
+      ],
+      "revision": "rev:ede9048314ba55519468cfc9af96e7431173f5d9c452bb6eb91fe1d36500fccd"
+    },
+    {
+      "id": "def:honest-class",
+      "name": "Honest closed bounded confidence-interval class",
+      "construction": "\\(\\mathcal C_{n,\\Delta}(\\alpha)=\\{C:C\\text{ is a closed bounded interval-valued, }\\sigma(Z_\\Delta^n)\\text{-measurable map and }\\inf_{P\\in\\mathcal P_L}\\mathbb P_P(\\tau_P(b)\\in C)\\geq1-\\alpha\\}\\).",
+      "free_symbols": [
+        "n",
+        "\\Delta",
+        "\\alpha",
+        "\\mathcal C_{n,\\Delta}(\\alpha)",
+        "Z_\\Delta",
+        "P",
+        "\\mathcal P_L",
+        "\\tau_P(b)"
+      ],
+      "inputs": [
+        "n",
+        "\\Delta",
+        "\\alpha",
+        "Z_\\Delta",
+        "\\mathcal P_L",
+        "\\tau_P(b)"
+      ],
+      "revision": "rev:b2351bfe279c942ac766ca5002522e29304a6a62702a9204ba3ca3a5383370e4"
+    },
+    {
+      "id": "def:honest-width",
+      "name": "Minimax honest expected length",
+      "construction": "\\(\\mathfrak W_{n,\\Delta}(\\alpha)=\\inf_{C\\in\\mathcal C_{n,\\Delta}(\\alpha)}\\sup_{P\\in\\mathcal P_L}\\mathbb E_P[\\operatorname{length}(C)]\\).",
+      "free_symbols": [
+        "n",
+        "\\Delta",
+        "\\alpha",
+        "\\mathfrak W_{n,\\Delta}(\\alpha)",
+        "\\mathcal C_{n,\\Delta}(\\alpha)",
+        "P",
+        "\\mathcal P_L"
+      ],
+      "inputs": [
+        "n",
+        "\\Delta",
+        "\\alpha",
+        "\\mathcal C_{n,\\Delta}(\\alpha)"
+      ],
+      "revision": "rev:09d4a45e3c9e1149d915872a5899222ce3cf0fa5f360dc4483b83195fe2b6700"
+    },
+    {
+      "id": "def:total-honest-interval",
+      "name": "Bias-enlarged conditional-count exact-binomial interval",
+      "construction": "For each \\(t\\in\\{0,1\\}\\), set \\([\\ell_t,u_t]=[0,1]\\) when \\(N_{t,n,\\Delta}=0\\), and set \\([\\ell_t,u_t]=I^{\\mathrm{CP}}_{N_{t,n,\\Delta},\\alpha/2}(S_{t,n,\\Delta})\\) when \\(N_{t,n,\\Delta}>0\\).  With \\(B_{n,\\Delta}=LH_{n,\\Delta}\\), define the closed bounded interval\n\\[\n C_{n,\\Delta,\\alpha}\n =\\bigl[\\ell_1-u_0-2B_{n,\\Delta},\\ u_1-\\ell_0+2B_{n,\\Delta}\\bigr].\n\\]",
+      "free_symbols": [
+        "n",
+        "\\Delta",
+        "\\alpha",
+        "L",
+        "I^{\\mathrm{CP}}_{n,\\gamma}(s)",
+        "N_{t,n,\\Delta}",
+        "S_{t,n,\\Delta}",
+        "H_{n,\\Delta}",
+        "C_{n,\\Delta,\\alpha}"
+      ],
+      "inputs": [
+        "n",
+        "\\Delta",
+        "\\alpha",
+        "L",
+        "Z_\\Delta"
+      ],
+      "revision": "rev:f717aa02a8c8e40f27e92d31841e1da677d43602e911ed05927c6a730533c6ac"
+    },
+    {
+      "id": "def:first-bin-alias",
+      "name": "Embedded uniform-half-disc exact first-bin alias pair",
+      "construction": "For each sign, construct \\(P^{\\mathrm{alias}}_{\\pm,\\Delta}\\) by drawing \\(X\\) uniformly on \\(\\mathcal D\\), taking \\(\\mathcal X_{1,P}=\\{x\\in\\mathcal D:e_1^{\\top}(x-b)\\geq0\\}\\), assigning \\(T=\\mathbf1\\{X\\in\\mathcal X_{1,P}\\}\\), and drawing conditionally independent Bernoulli potential outcomes given \\(X\\) with\n\\[\n \\mu_{0,\\pm}(x)=\\frac12,\n \\qquad\n \\mu_{1,\\pm}(x)=\\frac12\\pm c_L\\Delta\\phi\\!\\left(\\frac{\\lVert x-b\\rVert_2}{\\Delta}\\right)\n \\mathbf1\\{\\lVert x-b\\rVert_2<\\Delta\\}.\n\\]\nFinally set \\(Y=TY(1)+(1-T)Y(0)\\), where \\(\\phi(u)=(1-u)(1-2u)\\) and \\(c_L=\\min\\{L/8,1/16\\}\\).",
+      "free_symbols": [
+        "P^{\\mathrm{alias}}_{\\pm,\\Delta}",
+        "P",
+        "X",
+        "\\mathcal D",
+        "\\mathcal X_{t,P}",
+        "e_1",
+        "b",
+        "T",
+        "Y",
+        "Y(0)",
+        "Y(1)",
+        "\\mu_t",
+        "\\Delta",
+        "\\phi",
+        "c_L",
+        "L"
+      ],
+      "inputs": [
+        "L",
+        "\\Delta",
+        "\\phi"
+      ],
+      "revision": "rev:fe166ff0763fa42b30cd1aa212de382f379e94704cf8c937f6d9a666f656b4fb"
+    },
+    {
+      "id": "def:joint-lower-handle",
+      "name": "Embedded uniform-half-disc joint lower handle",
+      "construction": "Let \\(\\mathfrak H_{n,\\Delta}=(P_{0,n,\\Delta},P_{1,n,\\Delta})\\) denote the following pair.  Under both laws, \\(X\\) is uniform on \\(\\mathcal D\\), \\(\\mathcal X_{1,P}=\\{x\\in\\mathcal D:e_1^{\\top}(x-b)\\geq0\\}\\), assignment is sharp, and the control mean is \\(1/2\\).  Under \\(P_{0,n,\\Delta}\\) the treated mean is \\(1/2\\); under \\(P_{1,n,\\Delta}\\) it is\n\\[\n \\frac12+\\frac{c_L}{4}\\left\\{(h_n-\\lVert x-b\\rVert_2)_+\n +\\Delta\\phi\\!\\left(\\frac{\\lVert x-b\\rVert_2}{\\Delta}\\right)\n \\mathbf1\\{\\lVert x-b\\rVert_2<\\Delta\\}\\right\\}.\n\\]\nGiven \\(X\\), the potential outcomes are conditionally independent Bernoulli variables with these means, and \\(Y=TY(1)+(1-T)Y(0)\\).",
+      "free_symbols": [
+        "\\mathfrak H_{n,\\Delta}",
+        "P",
+        "X",
+        "\\mathcal D",
+        "\\mathcal X_{t,P}",
+        "e_1",
+        "b",
+        "T",
+        "Y",
+        "Y(0)",
+        "Y(1)",
+        "\\mu_t",
+        "n",
+        "\\Delta",
+        "h_n",
+        "c_L",
+        "\\phi"
+      ],
+      "inputs": [
+        "n",
+        "\\Delta",
+        "L",
+        "\\phi"
+      ],
+      "revision": "rev:626ea77108c66c208b7dbf36a5115a3d3d207d487f4c556c06faea8ec1c2288b"
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:first-bin-alias",
+      "kind": "lemma",
+      "statement": "For every \\(0<\\Delta\\leq\\Delta_0\\), \\(\\int_0^1u\\phi(u)\\,du=0\\), both \\(P^{\\mathrm{alias}}_{+,\\Delta}\\) and \\(P^{\\mathrm{alias}}_{-,\\Delta}\\) belong to \\(\\mathcal P_L\\), their released one-unit laws of \\(Z_\\Delta\\) are identical, and \\(\\tau_{P^{\\mathrm{alias}}_{+,\\Delta}}(b)-\\tau_{P^{\\mathrm{alias}}_{-,\\Delta}}(b)=2c_L\\Delta\\).",
+      "free_symbols": [
+        "\\Delta",
+        "\\Delta_0",
+        "\\phi",
+        "P^{\\mathrm{alias}}_{\\pm,\\Delta}",
+        "\\mathcal P_L",
+        "L",
+        "Z_\\Delta",
+        "\\tau_P(b)",
+        "b",
+        "c_L"
+      ],
+      "depends_on": [
+        "ass:uniform-disc-design",
+        "ass:radial-bernoulli",
+        "ass:bernoulli-interior-range",
+        "ass:radial-lipschitz",
+        "ass:consistency",
+        "def:half-disc-class",
+        "def:rounded-experiment",
+        "def:first-bin-alias",
+        "lem:conditional-local-binomial-law"
+      ],
+      "status": "proved",
+      "justification": "This certifies an exact order-\\(\\Delta\\) alias inside an embedded least-favorable subclass of the unknown-design model, without asserting orthogonality for every design.",
+      "gap": "Scalar rounding results do not furnish the radial-Jacobian null direction for the latent annular release experiment.",
+      "consumer": "Data stewards using released radial bins can see that no sample size removes the first-bin resolution floor.",
+      "proof_tex": "The polynomial in \\(\\mathrm{def:first\\text{-}bin\\text{-}alias}\\) is\n\\[\n \\phi(u)=1-3u+2u^2,\n \\qquad\n \\int_0^1u\\phi(u)\\,du=\\frac12-1+\\frac12=0.\n\\]\nAlso \\(\\phi(1)=0\\), \\(|\\phi(u)|\\leq1\\) on \\([0,1]\\), and \\(\\phi'(u)=-3+4u\\), so \\(\\sup_{u\\in[0,1]}|\\phi'(u)|=3\\).  Consequently\n\\[\n x\\longmapsto \\Delta\\phi(\\lVert x-b\\rVert_2/\\Delta)\n \\mathbf1\\{\\lVert x-b\\rVert_2<\\Delta\\}\n\\]\nis continuous at radius \\(\\Delta\\) and is \\(3\\)-Lipschitz, because the radius map is \\(1\\)-Lipschitz.  Since \\(c_L\\leq L/8\\), the perturbed treated means are at most \\(3c_L\\leq L\\)-Lipschitz.  Since \\(c_L\\leq1/16\\) and \\(\\Delta\\leq\\Delta_0\\leq1/4\\), their displacement from \\(1/2\\) is at most \\(1/64<1/4\\); hence all means lie in \\([1/4,3/4]\\).\n\nThe construction gives sharp assignment and consistency.  For the uniform disc and half-plane sides, polar integration gives, for every \\(H\\leq1/2\\) and each \\(t\\),\n\\[\n \\mathbb P(T=t,R<H)=\\frac1\\pi\\int_0^H\\int_{\\Theta_t}r\\,d\\vartheta\\,dr\n =\\frac{H^2}{2}\\geq c_0H^2,\n \\qquad |\\Theta_t|=\\pi,\n\\]\nwhere the last inequality uses \\(c_0\\leq1/2\\).  Thus every member property of the unknown-design class is satisfied, so both constructed laws belong to \\(\\mathcal P_L\\).  This calculation exhibits the uniform half-disc laws only as an embedded least-favorable subclass; it makes no orthogonality assertion for another design.\n\nThe two laws have the same distribution of \\((T,Q_\\Delta(R))\\).  In the treated first bin their difference in joint success mass is\n\\[\n \\frac1\\pi\\int_{\\Theta_1}\\int_0^\\Delta\n 2c_L\\Delta\\phi(r/\\Delta)r\\,dr\\,d\\vartheta\n =2c_L\\Delta^3\\int_0^1u\\phi(u)\\,du=0.\n\\]\nOutside that bin the perturbation vanishes, and every control cell is unchanged.  The binary-mixture assertion in \\(\\mathrm{lem:conditional\\text{-}local\\text{-}binomial\\text{-}law}\\) then shows that equality of the covariate-cell masses and success masses gives equality of the entire one-unit laws of \\(Z_\\Delta\\).  Finally, \\(\\phi(0)=1\\) and the target is \\(\\mu_1(b)-\\mu_0(b)\\), so the two targets are \\(c_L\\Delta\\) and \\(-c_L\\Delta\\), respectively.  Their difference is \\(2c_L\\Delta\\).",
+      "revision": "rev:5984be7a2c9f55161e7cb7a86992629d4d95d37678960ba0c519a1b0c56a18bb"
+    },
+    {
+      "id": "thm:minimax-frontier",
+      "kind": "theorem",
+      "statement": "There exist constants \\(0<c<C<\\infty\\), depending only on \\(L\\), \\(c_0\\), and \\(\\Delta_0\\), such that for every \\(n\\geq256\\) and \\(0<\\Delta\\leq\\Delta_0\\), \\(c\\rho_{n,\\Delta}\\leq\\mathfrak R^{(1)}_{n,\\Delta}\\leq C\\rho_{n,\\Delta}\\) and \\(c\\rho_{n,\\Delta}^2\\leq\\mathfrak R^{(2)}_{n,\\Delta}\\leq C\\rho_{n,\\Delta}^2\\). The upper bounds are attained, up to \\(C\\), by \\(\\widehat\\tau_{n,\\Delta}\\).",
+      "free_symbols": [
+        "n",
+        "\\Delta",
+        "\\Delta_0",
+        "L",
+        "c_0",
+        "\\rho_{n,\\Delta}",
+        "\\mathfrak R^{(1)}_{n,\\Delta}",
+        "\\mathfrak R^{(2)}_{n,\\Delta}",
+        "\\widehat\\tau_{n,\\Delta}"
+      ],
+      "depends_on": [
+        "ass:iid-sampling",
+        "def:half-disc-class",
+        "def:rounded-experiment",
+        "def:bin-aware-estimator",
+        "def:minimax-risks",
+        "lem:conditional-local-binomial-law",
+        "thm:single-joint-pair"
+      ],
+      "status": "proved",
+      "justification": "This is the sampling--quantization minimax frontier over the unknown-design bivariate Lipschitz boundary class.",
+      "gap": "Exact-radius boundary methods and ordinary scalar rounding methods do not derive the latent-annular rate \\(\\max\\{n^{-1/4},\\Delta\\}\\) over this superclass.",
+      "consumer": "The result tells users of the \\(\\texttt{rd2d}\\) R, Python, and Stata workflows when the Ser Pilo Paga analysis is sample-limited or release-precision-limited.",
+      "proof_tex": "Put \\(h=h_n\\), \\(H=H_{n,\\Delta}\\), and \\(\\rho=\\rho_{n,\\Delta}\\).  Quantizer alignment and the restrictions on \\(n\\) and \\(\\Delta\\) give\n\\[\n h\\leq H<h+\\Delta\\leq2\\rho,\n \\qquad 0<H\\leq\\frac12.\n\\]\nFix \\(P\\in\\mathcal P_L\\) and \\(t\\in\\{0,1\\}\\).  Use the notation \\(A_t,q_t,\\nu_t,N_t,S_t\\) from \\(\\mathrm{lem:conditional\\text{-}local\\text{-}binomial\\text{-}law}\\).  That lemma gives\n\\[\n q_t\\geq c_0H^2,\n \\qquad |\\nu_t-\\mu_t(b)|\\leq LH,\n \\qquad N_t\\sim\\operatorname{Binomial}(n,q_t),\n \\qquad S_t\\mid N_t=k\\sim\\operatorname{Binomial}(k,\\nu_t).\n\\]\nFor a binomial \\(N\\sim\\operatorname{Binomial}(n,q)\\), direct integration of its probability generating function gives\n\\[\n \\mathbb E\\frac1{N+1}\n =\\int_0^1(1-q+qx)^n\\,dx\n =\\frac{1-(1-q)^{n+1}}{(n+1)q}\n \\leq\\frac1{(n+1)q}.\n\\]\nSince \\(1/k\\leq2/(k+1)\\) for \\(k\\geq1\\),\n\\[\n \\mathbb E\\!\\left[\\frac{\\mathbf1\\{N>0\\}}N\\right]\\leq\\frac2{nq},\n \\qquad\n \\mathbb E\\!\\left[\\frac{\\mathbf1\\{N>0\\}}{\\sqrt N}\\right]\\leq\\sqrt{\\frac2{nq}}.\n\\]\nAlso \\(\\mathbb P(N=0)=(1-q)^n\\leq e^{-nq}\\), and the elementary maxima of \\(x^{1/2}e^{-x}\\) and \\(xe^{-x}\\) imply\n\\[\n \\mathbb P(N=0)\\leq(nq)^{-1/2},\n \\qquad\n \\mathbb P(N=0)\\leq(nq)^{-1}.\n\\]\n\nConditional on \\(N_t=k>0\\), the clipped ratio in \\(\\mathrm{def:bin\\text{-}aware\\text{-}estimator}\\) equals \\(S_t/k\\), has conditional mean \\(\\nu_t\\), and has conditional variance at most \\(1/(4k)\\).  On \\(N_t=0\\), its fixed value \\(1/2\\) differs from \\(\\nu_t\\in[1/4,3/4]\\) by at most \\(1/4\\).  Conditional Cauchy--Schwarz and the preceding inverse-count bounds therefore give the explicit inequalities\n\\[\n \\mathbb E_P|\\widehat m_{t,n,\\Delta}-\\nu_t|\n \\leq\\frac12\\sqrt{\\frac2{nq_t}}+\\frac1{4\\sqrt{nq_t}}\n =\\left(\\frac1{\\sqrt2}+\\frac14\\right)\\frac1{\\sqrt{nq_t}},\n\\]\nand\n\\[\n \\mathbb E_P[(\\widehat m_{t,n,\\Delta}-\\nu_t)^2]\n \\leq\\frac14\\frac2{nq_t}+\\frac1{16}\\frac1{nq_t}\n =\\frac9{16nq_t}.\n\\]\nCombining these inequalities with the explicit bias bound gives\n\\[\n \\mathbb E_P|\\widehat m_{t,n,\\Delta}-\\mu_t(b)|\n \\leq LH+\\left(\\frac1{\\sqrt2}+\\frac14\\right)\\frac1{\\sqrt{c_0nH^2}},\n\\]\nand, by \\((a+b)^2\\leq2a^2+2b^2\\),\n\\[\n \\mathbb E_P[(\\widehat m_{t,n,\\Delta}-\\mu_t(b))^2]\n \\leq2L^2H^2+\\frac9{8c_0nH^2}.\n\\]\nSince \\(H\\geq h=n^{-1/4}\\),\n\\[\n \\frac1{\\sqrt n H}\\leq h\\leq\\rho,\n \\qquad\n \\frac1{nH^2}\\leq h^2\\leq\\rho^2.\n\\]\nThe triangle inequality for absolute loss and \\((x-y)^2\\leq2x^2+2y^2\\) for squared loss now give, uniformly over \\(P\\in\\mathcal P_L\\),\n\\[\n \\mathbb E_P|\\widehat\\tau_{n,\\Delta}-\\tau_P(b)|\\leq C_1\\rho,\n \\qquad\n \\mathbb E_P[(\\widehat\\tau_{n,\\Delta}-\\tau_P(b))^2]\\leq C_2\\rho^2,\n\\]\nwhere \\(C_1,C_2\\) depend only on \\(L,c_0,\\Delta_0\\).  The estimator uses only \\(N_t,S_t\\), which are measurable functions of \\(Z_\\Delta^n\\), and its zero-count fallback is fixed; hence it is one law-independent member of \\(\\mathcal T_{n,\\Delta}\\).  Taking the infimum in \\(\\mathrm{def:minimax\\text{-}risks}\\) proves both upper bounds.\n\nFor the converse, take the uniform-half-disc pair from \\(\\mathrm{thm:single\\text{-}joint\\text{-}pair}\\).  Its proof verifies that both laws are members of the unknown-design superclass.  Let their released product laws be \\(Q_0,Q_1\\), targets be \\(\\theta_0,\\theta_1\\), and \\(\\delta=|\\theta_1-\\theta_0|\\).  Then\n\\[\n \\operatorname{TV}(Q_0,Q_1)\\leq\\frac14,\n \\qquad\n \\delta=\\kappa(h+\\Delta)\\geq\\kappa\\rho,\n \\qquad \\kappa=\\frac{c_L}{4}>0.\n\\]\nFor any released-data estimator \\(a\\), take densities \\(q_0,q_1\\) relative to \\(Q_0+Q_1\\).  Pointwise, \\(|a-\\theta_0|+|a-\\theta_1|\\geq\\delta\\), while \\(\\int\\min(q_0,q_1)=1-\\operatorname{TV}(Q_0,Q_1)\\).  Therefore\n\\[\n \\max_{k\\in\\{0,1\\}}\\mathbb E_{Q_k}|a-\\theta_k|\n \\geq\\frac\\delta2\\{1-\\operatorname{TV}(Q_0,Q_1)\\}\n \\geq\\frac{3\\kappa}{8}\\rho.\n\\]\nLikewise, \\((a-\\theta_0)^2+(a-\\theta_1)^2\\geq\\delta^2/2\\) pointwise, so\n\\[\n \\max_{k\\in\\{0,1\\}}\\mathbb E_{Q_k}(a-\\theta_k)^2\n \\geq\\frac{\\delta^2}{4}\\{1-\\operatorname{TV}(Q_0,Q_1)\\}\n \\geq\\frac{3\\kappa^2}{16}\\rho^2.\n\\]\nThe supremum over the superclass is at least the maximum over this embedded pair.  Taking the infimum over all released-data estimators proves the lower bounds and completes the theorem.",
+      "revision": "rev:4195f899117f6fbcb6469e8e6b468baaaecd1cf901d9cfbf01a8c808c640c462"
+    },
+    {
+      "id": "thm:total-honest-interval",
+      "kind": "theorem",
+      "statement": "For every \\(n\\geq256\\) and \\(0<\\Delta\\leq\\Delta_0\\), the interval \\(C_{n,\\Delta,\\alpha}\\) is defined for every released sample, satisfies \\(\\inf_{P\\in\\mathcal P_L}\\mathbb P_P(\\tau_P(b)\\in C_{n,\\Delta,\\alpha})\\geq1-\\alpha\\), and obeys \\(\\sup_{P\\in\\mathcal P_L}\\mathbb E_P[\\operatorname{length}(C_{n,\\Delta,\\alpha})]\\leq C_{L,c_0,\\alpha,\\Delta_0}\\rho_{n,\\Delta}\\).",
+      "free_symbols": [
+        "n",
+        "\\Delta",
+        "\\Delta_0",
+        "\\alpha",
+        "C_{n,\\Delta,\\alpha}",
+        "P",
+        "\\mathcal P_L",
+        "\\tau_P(b)",
+        "b",
+        "L",
+        "c_0",
+        "\\rho_{n,\\Delta}"
+      ],
+      "depends_on": [
+        "ass:iid-sampling",
+        "def:half-disc-class",
+        "def:rounded-experiment",
+        "def:total-honest-interval",
+        "lem:conditional-local-binomial-law",
+        "lem:clopper-pearson-conditional-coverage"
+      ],
+      "status": "to-prove",
+      "justification": "Conditional-count exact inversion plus sidewise Euclidean Lipschitz enlargement yields a total honest interval under unknown design.",
+      "gap": "Existing ordinary-running-variable intervals do not handle latent annuli, quadratic local mass, or empty random side counts in this release field.",
+      "consumer": "The interval is directly implementable as a safe fallback in quantized \\(\\texttt{rd2d.dist}\\) workflows.",
+      "revision": "rev:7dc61c5635b3e4fccc30e0f7a8632f47a96a7a98ad9028a809ecfbad91bd1efe"
+    },
+    {
+      "id": "thm:honest-length-lower",
+      "kind": "theorem",
+      "statement": "There is a constant \\(c_{L,\\alpha,\\Delta_0}>0\\) such that, for every \\(n\\geq256\\) and \\(0<\\Delta\\leq\\Delta_0\\), every \\(C\\in\\mathcal C_{n,\\Delta}(\\alpha)\\) satisfies \\(\\sup_{P\\in\\mathcal P_L}\\mathbb E_P[\\operatorname{length}(C)]\\geq c_{L,\\alpha,\\Delta_0}\\rho_{n,\\Delta}\\); hence \\(\\mathfrak W_{n,\\Delta}(\\alpha)\\asymp\\rho_{n,\\Delta}\\).",
+      "free_symbols": [
+        "n",
+        "\\Delta",
+        "\\Delta_0",
+        "\\alpha",
+        "\\mathcal C_{n,\\Delta}(\\alpha)",
+        "P",
+        "\\mathcal P_L",
+        "L",
+        "\\rho_{n,\\Delta}",
+        "\\mathfrak W_{n,\\Delta}(\\alpha)"
+      ],
+      "depends_on": [
+        "def:honest-class",
+        "def:honest-width",
+        "thm:single-joint-pair",
+        "thm:total-honest-interval"
+      ],
+      "status": "to-prove",
+      "justification": "The expected-length lower bound certifies that the total interval pays exactly the information loss forced by the release protocol.",
+      "gap": "ArmstrongKolesar2018Optimal gives general modulus lower bounds and KolesarRothe2018Discrete gives discrete-RD intervals, but neither evaluates the rounded radial modulus or its \\(n^{-1/4}\\)-to-\\(\\Delta\\) transition.",
+      "consumer": "The lower bound provides a performance certificate for software defaults and prevents misleading interval comparisons that ignore impossible within-bin recovery.",
+      "revision": "rev:2c4fff2171354b8e084a28f34aa4fdb47a8a69433afaab742e65ddb7b3fa179c"
+    },
+    {
+      "id": "thm:single-joint-pair",
+      "kind": "theorem",
+      "statement": "For every \\(n\\ge256\\) and \\(0<\\Delta\\le\\Delta_0\\), the handle \\(\\mathfrak H_{n,\\Delta}\\) admits one same-class baseline--alternative realization with both difficulties present.  Specifically, put \\(\\kappa=c_L/4\\), \\(b_h(r)=(h_n-r)_+\\),\n\\[\n a_\\Delta(r)=\\Delta\\phi(r/\\Delta)\\mathbf 1\\{0\\le r<\\Delta\\},\n \\qquad\n g_{n,\\Delta}(r)=\\kappa\\{b_h(r)+a_\\Delta(r)\\}.\n\\]\nThere are \\(P_{0,n,\\Delta},P_{1,n,\\Delta}\\in\\mathcal P_L\\) with \\(m_{0,0}=m_{0,1}=1/2\\), \\(m_{1,0}=1/2\\), and \\(m_{1,1}=1/2+g_{n,\\Delta}\\), for which\n\\[\n \\operatorname{TV}\\!\\left(\\mathcal L_{P_{0,n,\\Delta}}(Z_\\Delta^n),\n \\mathcal L_{P_{1,n,\\Delta}}(Z_\\Delta^n)\\right)\n \\le\\frac14<1-2\\alpha\n\\]\nand\n\\[\n \\tau_{P_{1,n,\\Delta}}(b)-\\tau_{P_{0,n,\\Delta}}(b)\n =\\kappa(h_n+\\Delta).\n\\]\nThus the open question has a positive answer with \\(\\eta=1/4\\) and \\(c=c_L/4\\), uniformly in \\(n\\) and \\(\\Delta\\).",
+      "free_symbols": [
+        "\\mathfrak H_{n,\\Delta}",
+        "n",
+        "\\Delta",
+        "\\Delta_0",
+        "\\mathcal P_L",
+        "L",
+        "Z_\\Delta",
+        "\\alpha",
+        "\\tau_P(b)",
+        "b",
+        "h_n",
+        "c_L",
+        "m_t",
+        "\\phi"
+      ],
+      "depends_on": [
+        "ass:iid-sampling",
+        "ass:radial-bernoulli",
+        "ass:bernoulli-interior-range",
+        "ass:radial-lipschitz",
+        "ass:uniform-disc-design",
+        "def:half-disc-class",
+        "def:rounded-experiment",
+        "def:joint-lower-handle",
+        "lem:conditional-local-binomial-law",
+        "lem:first-bin-alias"
+      ],
+      "status": "proved",
+      "justification": "One embedded uniform-half-disc pair combines the sampling bump and exact first-bin alias while charging released divergence only for the sampling component.",
+      "gap": "No cited comparator supplies a single pair for the latent annular experiment with both order-\\(n^{-1/4}\\) and order-\\(\\Delta\\) displacement.",
+      "consumer": "The pair is the common lower certificate for absolute risk, squared risk, and honest expected interval length over the full superclass.",
+      "proof_tex": "Fix \\(n\\geq256\\) and \\(0<\\Delta\\leq\\Delta_0\\), and put \\(h=h_n\\), \\(\\kappa=c_L/4\\).  Then \\(h\\leq1/4\\) and \\(\\Delta\\leq1/4\\).  The calculation in \\(\\mathrm{lem:first\\text{-}bin\\text{-}alias}\\) shows that\n\\[\n a_\\Delta(r)=\\Delta\\phi(r/\\Delta)\\mathbf1\\{r<\\Delta\\}\n\\]\nis \\(3\\)-Lipschitz, satisfies \\(a_\\Delta(0)=\\Delta\\), and obeys\n\\[\n \\int_0^\\Delta r a_\\Delta(r)\\,dr\n =\\Delta^3\\int_0^1u\\phi(u)\\,du=0.\n\\]\nThe triangular bump \\(b_h(r)=(h-r)_+\\) is \\(1\\)-Lipschitz and satisfies \\(b_h(0)=h\\).  Thus \\(g_{n,\\Delta}=\\kappa(b_h+a_\\Delta)\\) is \\(4\\kappa=c_L\\leq L\\)-Lipschitz.  Moreover,\n\\[\n |g_{n,\\Delta}(r)|\\leq\\kappa(h+\\Delta)\\leq\\frac{c_L}{8}\\leq\\frac1{128}<\\frac14.\n\\]\n\nUse the two laws named in \\(\\mathrm{def:joint\\text{-}lower\\text{-}handle}\\).  Composition with the radius preserves the Lipschitz bound because \\(|\\lVert x-b\\rVert_2-\\lVert x'-b\\rVert_2|\\leq\\lVert x-x'\\rVert_2\\).  The preceding range bound, the conditional Bernoulli construction, sharp assignment, and consistency verify the corresponding member properties.  Uniform polar integration gives, for each side and every \\(H\\leq1/2\\),\n\\[\n \\mathbb P(T=t,R<H)=\\frac{H^2}{2}\\geq c_0H^2,\n\\]\nusing \\(c_0\\leq1/2\\).  Hence both laws lie in the unknown-design class \\(\\mathcal P_L\\).  They form an embedded uniform-half-disc subclass, not a restriction imposed on the upper theorem.  Their boundary targets differ by\n\\[\n g_{n,\\Delta}(0)=\\kappa(h+\\Delta).\n\\]\n\nIt remains to bound the released likelihood distance.  Partition \\([0,1]\\) into the quantizer cells \\(A_j=[j\\Delta,\\min\\{(j+1)\\Delta,1\\})\\) of positive mass and put\n\\[\n w_j=\\int_{A_j}r\\,dr,\n \\qquad\n \\bar b_j=w_j^{-1}\\int_{A_j}rb_h(r)\\,dr.\n\\]\nFor the uniform half-disc, \\(w_j=\\mathbb P(T=1,Q_\\Delta(R)=j\\Delta)\\).  The alias term is supported on the complete first cell and has zero \\(r\\)-weighted integral there; it vanishes on every other cell.  The binary-mixture calculation in \\(\\mathrm{lem:conditional\\text{-}local\\text{-}binomial\\text{-}law}\\), applied cell by cell, therefore shows that the treated success probability in cell \\(j\\) is \\(1/2\\) under \\(P_0\\) and \\(1/2+\\kappa\\bar b_j\\) under \\(P_1\\).  Every control cell is unchanged.\n\nLet \\(Q_k=\\mathcal L_{P_k}(Z_\\Delta)\\).  Direct calculation gives\n\\[\n \\chi^2\\!\\left(\\operatorname{Bernoulli}(1/2+x),\\operatorname{Bernoulli}(1/2)\\right)=4x^2.\n\\]\nJensen's inequality within each cell consequently yields\n\\[\n \\begin{aligned}\n d:=\\chi^2(Q_1,Q_0)\n &=4\\kappa^2\\sum_jw_j\\bar b_j^2\\\\\n &\\leq4\\kappa^2\\int_0^1rb_h(r)^2\\,dr\n =4\\kappa^2\\int_0^h r(h-r)^2\\,dr\n =\\frac{\\kappa^2h^4}{3}.\n \\end{aligned}\n\\]\nIid sampling makes the likelihood ratio a product, and expanding its second moment gives\n\\[\n 1+\\chi^2(Q_1^{\\otimes n},Q_0^{\\otimes n})=(1+d)^n\n \\leq\\exp(nd)\\leq\\exp(\\kappa^2/3),\n\\]\nbecause \\(nh^4=1\\).  Since \\(\\kappa\\leq1/64\\), the elementary bound \\(e^x-1\\leq2x\\) for \\(0\\leq x\\leq1\\) gives\n\\[\n \\chi^2(Q_1^{\\otimes n},Q_0^{\\otimes n})\\leq\\frac{2\\kappa^2}{3}.\n\\]\nIf \\(M=dQ_1^{\\otimes n}/dQ_0^{\\otimes n}\\), Cauchy--Schwarz gives\n\\[\n \\operatorname{TV}(Q_1^{\\otimes n},Q_0^{\\otimes n})\n =\\frac12\\mathbb E_{Q_0^{\\otimes n}}|M-1|\n \\leq\\frac12\\{\\mathbb E_{Q_0^{\\otimes n}}(M-1)^2\\}^{1/2}\n \\leq\\frac\\kappa{\\sqrt6}<\\frac14.\n\\]\nFinally, \\(\\alpha<1/4\\) implies \\(1/4<1-2\\alpha\\).  This proves the same-class pair, the claimed separation, and the uniform total-variation bound.",
+      "revision": "rev:6a55a2a5a1a1b98b11b310625b46998cd64630a3ddac35674d353f825ecfd498"
+    },
+    {
+      "id": "lem:conditional-local-binomial-law",
+      "kind": "lemma",
+      "statement": "Fix \\(P\\in\\mathcal P_L\\), \\(n\\geq256\\), \\(0<\\Delta\\leq\\Delta_0\\), and \\(t\\in\\{0,1\\}\\).  For every event \\(B\\in\\sigma(T,Q_\\Delta(R))\\) with \\(B\\subseteq\\{T=t\\}\\) and \\(\\mathbb P_P(B)>0\\),\n\\[\n Y\\mid B\\sim\\operatorname{Bernoulli}\\!\\left(\\mathbb E_P[\\mu_t(X)\\mid B]\\right).\n\\]\nIn particular, put \\(A_t=\\{T=t,Q_\\Delta(R)<H_{n,\\Delta}\\}\\).  Then \\(A_t=\\{T=t,R<H_{n,\\Delta}\\}\\), its probability \\(q_t\\) is at least \\(c_0H_{n,\\Delta}^2>0\\), and, with\n\\[\n \\nu_t=\\mathbb E_P[\\mu_t(X)\\mid A_t],\n\\]\none has \\(|\\nu_t-\\mu_t(b)|\\leq LH_{n,\\Delta}\\), \\(N_{t,n,\\Delta}\\sim\\operatorname{Binomial}(n,q_t)\\), and\n\\[\n S_{t,n,\\Delta}\\mid N_{t,n,\\Delta}=k\n \\sim\\operatorname{Binomial}(k,\\nu_t)\n \\quad\\text{for every }k\\in\\{0,\\ldots,n\\}\\text{ with }\\mathbb P_P(N_{t,n,\\Delta}=k)>0.\n\\]",
+      "free_symbols": [
+        "P",
+        "\\mathcal P_L",
+        "n",
+        "\\Delta",
+        "\\Delta_0",
+        "c_0",
+        "T",
+        "R",
+        "Q_\\Delta",
+        "H_{n,\\Delta}",
+        "N_{t,n,\\Delta}",
+        "S_{t,n,\\Delta}",
+        "Y",
+        "\\mu_t",
+        "b",
+        "L"
+      ],
+      "depends_on": [
+        "ass:iid-sampling",
+        "ass:uniform-disc-design",
+        "ass:consistency",
+        "ass:radial-bernoulli",
+        "ass:bernoulli-interior-range",
+        "ass:radial-lipschitz",
+        "def:half-disc-class",
+        "def:rounded-experiment"
+      ],
+      "status": "proved",
+      "justification": "This is the unknown-design replacement for the old radial-Jacobian lemma: it supplies the conditional-count likelihood and the explicit spatial Lipschitz bias used by both upper procedures.",
+      "gap": "Exact-radius and scalar-running-variable analyses do not state the conditional Bernoulli law after retaining only side and a quantized radius under an unknown bivariate design.",
+      "consumer": "The count law is the implementation contract for the bin-aware estimator and the total confidence interval.",
+      "proof_tex": "First let \\(B\\in\\sigma(T,Q_\\Delta(R))\\) satisfy the conditions in the statement.  On \\(B\\), consistency gives \\(Y=Y(t)\\).  By \\(\\mathrm{ass:radial\\text{-}bernoulli}\\), iterated conditioning, and the fact that a binary law is determined by its success probability,\n\\[\n \\mathbb P_P(Y=1\\mid B)\n =\\mathbb E_P[\\mathbb P_P(Y(t)=1\\mid X)\\mid B]\n =\\mathbb E_P[\\mu_t(X)\\mid B].\n\\]\nThis proves the first assertion.  Now write \\(h=h_n\\) and \\(H=H_{n,\\Delta}\\).  Since \\(H=K_{n,\\Delta}\\Delta\\) is an integer multiple of \\(\\Delta\\), the definition of the floor quantizer gives\n\\[\n \\{Q_\\Delta(R)<H\\}=\\{R<H\\}.\n\\]\nMoreover, \\(h\\leq H<h+\\Delta\\leq1/2\\), because \\(n\\geq256\\) gives \\(h\\leq1/4\\) and \\(\\Delta\\leq\\Delta_0\\leq1/4\\).  The local-mass member property \\(\\mathrm{ass:uniform\\text{-}disc\\text{-}design}\\) therefore gives\n\\[\n q_t:=\\mathbb P_P(A_t)\\geq c_0H^2>0.\n\\]\nThe general assertion with \\(B=A_t\\) shows that \\(Y\\mid A_t\\) is Bernoulli with parameter \\(\\nu_t\\).  The spatial Lipschitz condition applies because every \\(X\\) in \\(A_t\\) lies on side \\(t\\) and has radius below \\(H\\leq1/2\\).  Hence\n\\[\n |\\nu_t-\\mu_t(b)|\n \\leq\\mathbb E_P[|\\mu_t(X)-\\mu_t(b)|\\mid A_t]\n \\leq L\\mathbb E_P[R\\mid A_t]\n \\leq LH.\n\\]\nFinally, iid sampling implies that the pairs \\((\\mathbf1_{A_{t,i}},\\mathbf1_{A_{t,i}}Y_i)\\) are iid.  In particular, \\(N_{t,n,\\Delta}\\sim\\operatorname{Binomial}(n,q_t)\\).  Their joint one-unit probability generating function is\n\\[\n 1-q_t+q_t(1-\\nu_t)w+q_t\\nu_t wz,\n\\]\nwhere \\(w\\) marks membership and \\(z\\) marks success.  Raising this expression to the \\(n\\)-th power and comparing the coefficient of \\(w^k\\) shows that, conditional on \\(N_{t,n,\\Delta}=k\\), the generating function of \\(S_{t,n,\\Delta}\\) is \\((1-\\nu_t+\\nu_t z)^k\\).  This is the asserted binomial law, including the degenerate case \\(k=0\\).",
+      "revision": "rev:2d2fb474aae1fa0eda63a1efabfe6857056f2ff2c2d304e5fb45cbdef284bb1c"
+    },
+    {
+      "id": "lem:clopper-pearson-conditional-coverage",
+      "kind": "lemma",
+      "statement": "For every integer \\(k\\geq1\\), if \\(S\\sim\\operatorname{Binomial}(k,p)\\), then the equal-tailed Clopper--Pearson interval \\(I^{\\mathrm{CP}}_{k,\\alpha/2}(S)\\) covers \\(p\\) with probability at least \\(1-\\alpha/2\\).  Writing \\(I^{\\mathrm{CP}}_{k,\\alpha/2}(s)=[\\ell,u]\\), its boundary conventions are \\(\\ell=0\\) at \\(s=0\\) and \\(u=1\\) at \\(s=k\\); with \\(\\beta=\\alpha/4\\), the non-boundary endpoints satisfy \\(\\mathbb P_{\\ell}\\{W\\geq s\\}=\\beta\\) and \\(\\mathbb P_u\\{W\\leq s\\}=\\beta\\) for \\(W\\sim\\operatorname{Binomial}(k,\\ell)\\) and \\(W\\sim\\operatorname{Binomial}(k,u)\\), respectively.",
+      "free_symbols": [
+        "\\alpha",
+        "I^{\\mathrm{CP}}_{n,\\gamma}(s)"
+      ],
+      "depends_on": [],
+      "status": "cited",
+      "source": {
+        "cite": "ClopperPearson1934",
+        "locator": "pp. 406--407, inversion of the two binomial tails defining the fiducial limits",
+        "carrier": "logical-claim",
+        "doi": "10.1093/biomet/26.4.404"
+      },
+      "justification": "The total interval uses exact conditional binomial inversion rather than an asymptotic normal approximation.",
+      "gap": "This classical leaf supplies only binomial coverage and endpoint equations; the random-count and spatial-bias adaptation is proved in this note.",
+      "consumer": "The endpoint equations yield both finite-sample coverage and the expected-width calculation.",
+      "revision": "rev:9e2187c81a52c6dde2327b4963bddfa281bee20b319a972847624f5a0b61f79a"
+    },
+    {
+      "id": "prop:fine-quantization-regimes",
+      "kind": "proposition",
+      "statement": "Along every sequence with \\(0<\\Delta\\leq n^{-1/4}\\), the unknown-design frontier has minimax absolute-error and honest expected-length order \\(n^{-1/4}\\) and squared-risk order \\(n^{-1/2}\\).  Along every sequence with \\(n^{-1/4}=o(\\Delta)\\), the corresponding orders are \\(\\Delta\\) and \\(\\Delta^2\\), respectively.",
+      "free_symbols": [
+        "n",
+        "\\Delta",
+        "\\mathfrak R^{(1)}_{n,\\Delta}",
+        "\\mathfrak R^{(2)}_{n,\\Delta}",
+        "\\mathfrak W_{n,\\Delta}(\\alpha)"
+      ],
+      "depends_on": [
+        "thm:minimax-frontier",
+        "thm:honest-length-lower"
+      ],
+      "status": "to-prove",
+      "justification": "This separates the fine-quantization sampling regime from the coarsening-dominated regime without claiming equivalence to an exact-score theorem.",
+      "gap": "The exact-score literature is a rate sanity check only; it does not imply the latent-annular experiment proved here.",
+      "consumer": "Applied users can diagnose whether sample size or released radial precision is the active constraint.",
+      "revision": "rev:c2bbfc8578ec4e03c88ef1bb34827926a04e9b152f0a09424879447ab1f90c01"
+    }
+  ],
+  "sampling_model": {
+    "design": "Independent uniform sampling on the known unit disc centered at \\(b\\), split into two equal half-discs by the known normal \\(e_1\\).",
+    "units": "\\((X_i,Y_i(0),Y_i(1))_{i=1}^n\\) are independent and identically distributed; the raw locations are latent after release.",
+    "treatment": "Sharp deterministic assignment \\(T_i=\\mathbf1\\{e_1^{\\top}(X_i-b)\\geq0\\}\\), with consistency for \\(Y_i\\).",
+    "overlap": "No treatment-overlap condition is imposed because assignment is deterministic; both geometric sides have known probability \\(1/2\\).",
+    "nuisance_estimation": "No design-density nuisance is estimated. The procedure uses only \\(Z_{\\Delta,i}=(Y_i,T_i,Q_\\Delta(R_i))\\), the known probability \\(p_{n,\\Delta}=H_{n,\\Delta}^2/2\\), and the known smoothness envelope \\(L\\)."
+  },
+  "estimand_functional": "\\(\\widehat\\tau_{n,\\Delta}=\\widehat m_{1,n,\\Delta}-\\widehat m_{0,n,\\Delta}\\), where \\(\\widehat m_{t,n,\\Delta}=\\Pi_{[0,1]}(S_{t,n,\\Delta}/N_{t,n,\\Delta})\\) on \\(N_{t,n,\\Delta}>0\\) and equals \\(1/2\\) otherwise; \\(\\mathfrak R^{(1)}_{n,\\Delta}\\asymp\\mathfrak W_{n,\\Delta}(\\alpha)\\asymp\\max\\{n^{-1/4},\\Delta\\}\\) and \\(\\mathfrak R^{(2)}_{n,\\Delta}\\asymp\\max\\{n^{-1/4},\\Delta\\}^2\\).",
+  "target_estimand": "\\(\\tau_P(b)=\\mu_1(b)-\\mu_0(b)\\)",
+  "bibliography": [
+    {
+      "key": "CattaneoTitiunikYu2026Distance",
+      "citation": "Cattaneo, M. D., Titiunik, R., and Yu, R. R. (2026). Estimation and inference in boundary discontinuity designs: Distance-based methods. Journal of Econometrics 256, 106266. arXiv:2510.26051."
+    },
+    {
+      "key": "Dong2015Rounding",
+      "citation": "Dong, Y. (2015). Regression discontinuity applications with rounding errors in the running variable. Journal of Applied Econometrics 30, 422--446."
+    },
+    {
+      "key": "KolesarRothe2018Discrete",
+      "citation": "Koles\\'ar, M. and Rothe, C. (2018). Inference in regression discontinuity designs with a discrete running variable. American Economic Review 108, 2277--2304."
+    },
+    {
+      "key": "ArmstrongKolesar2018Optimal",
+      "citation": "Armstrong, T. B. and Koles\\'ar, M. (2018). Optimal inference in a class of regression models. Econometrica 86, 655--683."
+    },
+    {
+      "key": "ArmstrongKolesar2020Honest",
+      "citation": "Armstrong, T. B. and Koles\\'ar, M. (2020). Simple and honest confidence intervals in nonparametric regression. Quantitative Economics 11, 1--39."
+    },
+    {
+      "key": "DongKolesar2023Measurement",
+      "citation": "Dong, Y. and Koles\\'ar, M. (2023). When can we ignore measurement error in the running variable? Journal of Applied Econometrics 38, 735--750. arXiv:2111.07388."
+    },
+    {
+      "key": "KeeleTitiunik2015Geographic",
+      "citation": "Keele, L. J. and Titiunik, R. (2015). Geographic boundaries as regression discontinuities. Political Analysis 23, 127--155."
+    },
+    {
+      "key": "CattaneoTitiunikYu2025Rd2d",
+      "citation": "Cattaneo, M. D., Titiunik, R., and Yu, R. R. (2025). \\(\\texttt{rd2d}\\): Causal inference in boundary discontinuity designs. arXiv:2505.07989."
+    },
+    {
+      "key": "HahnToddVanderKlaauw2001RD",
+      "citation": "Hahn, J., Todd, P., and van der Klaauw, W. (2001). Identification and estimation of treatment effects with a regression-discontinuity design. Econometrica 69, 201--209."
+    },
+    {
+      "key": "ClopperPearson1934",
+      "citation": "Clopper, C. J. and Pearson, E. S. (1934). The use of confidence or fiducial limits illustrated in the case of the binomial. Biometrika 26, 404--413."
+    },
+    {
+      "key": "Tsybakov2009Nonparametric",
+      "citation": "Tsybakov, A. B. (2009). Introduction to Nonparametric Estimation. Springer."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "CattaneoTitiunikYu2026Distance",
+      "comparator_claim": "Provides an exact-observed-score distance-based rate and method sanity comparator under a different Holder and along-boundary class; it does not prove the latent annular experiment here.",
+      "matched_by": "prop:fine-quantization-regimes",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Dong2015Rounding",
+      "comparator_claim": "Studies rounding of an ordinary scalar running variable under moment structure, not loss of raw bivariate coordinates within radial annuli.",
+      "matched_by": "lem:first-bin-alias",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "KolesarRothe2018Discrete",
+      "comparator_claim": "Develops inference for an ordinary discrete running variable, not conditional-count inference with radial local mass of order H squared and latent within-annulus bias.",
+      "matched_by": "thm:total-honest-interval",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ArmstrongKolesar2018Optimal",
+      "comparator_claim": "Supplies general modulus logic but does not evaluate the rounded radial modulus or construct the one-pair sampling-plus-aliasing witness.",
+      "matched_by": "thm:single-joint-pair",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ArmstrongKolesar2020Honest",
+      "comparator_claim": "Supplies the bias-enlargement principle, while the present random-count exact-binomial interval and its all-regime length bound are specific to this release experiment.",
+      "matched_by": "thm:total-honest-interval",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "DongKolesar2023Measurement",
+      "comparator_claim": "Studies causal targets compatible with correctly classified coarsened running scores; it does not recover the fixed latent boundary effect from side and rounded radius alone.",
+      "matched_by": "lem:first-bin-alias",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "A boundary-discontinuity analyst receives treatment side, Bernoulli outcome, and floor-rounded point-radius, but no angle, raw radius, or raw coordinate. In the uniform two-sided half-disc benchmark, the effective local mass inside radius \\(h\\) is order \\(h^2\\), producing the pointwise sampling scale \\(n^{-1/4}\\). Floor rounding creates a second, exact information loss: the first-bin direction \\(\\phi(u)=(1-u)(1-2u)\\) has zero mean under the radial Jacobian \\(u\\,du\\), yet shifts the boundary limit by order \\(\\Delta\\). The proposal derives one regime-uniform least-favorable pair combining these two moves, proves absolute minimax risk and honest expected length of order \\(\\max\\{n^{-1/4},\\Delta\\}\\), proves squared risk of the corresponding squared order, and supplies a total bin-aware estimator and exact-binomial interval with explicit Lipschitz bias.",
+  "project_justification": {
+    "gap": "Exact-distance boundary theory and ordinary one-score rounding theory leave open the statistical experiment created when a fixed boundary point is represented only by treatment side and floor-rounded radial distance.",
+    "niche": "The radial Jacobian makes first-bin aliasing different from scalar RD rounding, while the probability of a useful local bin is quadratic in its radius. This creates a sampling--resolution transition not covered by either literature.",
+    "fill": "The project fixes the release \\(\\sigma\\)-field, derives its grouped Bernoulli likelihood, constructs a bin-aligned inverse-probability estimator and a total exact-binomial interval, and asks for one same-class testing pair that certifies the joint \\(\\max\\{n^{-1/4},\\Delta\\}\\) frontier uniformly across quantization regimes."
+  },
+  "related_work": "CattaneoTitiunikYu2026Distance is the writing and sampling-method anchor: its Introduction treats point-distance as deliberate information reduction, Theorem 4 gives the \\(1/(nh^2)\\) pointwise stochastic scale, Theorem 6 gives an exact-radius isotropic minimax limitation, and its Conclusion points toward procedures that incorporate additional geometric information. The first changed step here is replacing exact-radius kernel moments and likelihoods by annular cell averages. Dong2015Rounding is the identification-method anchor: Theorem 1 integrates latent scalar scores over rounding cells and inverts a polynomial moment map when rounding moments are known. Its proof uses iterated expectations and a triangular moment matrix; here the radial Jacobian instead exposes a nonparametric within-cell null direction. KolesarRothe2018Discrete shows that clustering by support value does not control specification bias and constructs honest smoothness-based alternatives, but its support probabilities are those of an ordinary scalar running variable and its Proposition 1 does not address empty radial bins or latent annular bias. ArmstrongKolesar2018Optimal supplies the convex-class modulus logic for turning the same pair into risk and expected-length lower bounds. ArmstrongKolesar2020Honest supplies the estimator-centered inference move of adding an explicit worst-case bias envelope, while the present interval uses exact binomial inversion to remain total on sparse-count events. DongKolesar2023Measurement clarifies that correctly classified coarsened scores can target effects conditional on the observed score; that target is not the fixed latent boundary effect studied here. KeeleTitiunik2015Geographic explains why the retained spatial coordinate is part of the estimand, and CattaneoTitiunikYu2025Rd2d documents the R, Python, and Stata workflows that consume the proposed correction.",
+  "technical_internal_limitation": "The half-disc benchmark deliberately makes the radial cell law known and common across sides. The rate theorem does not claim transfer to curved boundaries or unknown nonuniform design densities. In those models, the polynomial \\(\\phi\\) need not be orthogonal to the latent first-bin weight, and raw locations would permit estimation of that weight; neither fact is available under the present release field.",
+  "honest_scope": "The theorem-level target is rate sharpness, not a sharp leading constant. The estimator and interval exploit the known uniform design probability, while the outcome regressions remain nonparametric Lipschitz functions. The open content is the single joint lower pair and its conversion to an honest expected-length lower bound. When \\(\\Delta\\leq n^{-1/4}\\), the result reduces to the familiar pointwise radial Lipschitz scale \\(n^{-1/4}\\); when \\(n^{-1/4}=o(\\Delta)\\), exact first-bin aliasing fixes the order-\\(\\Delta\\) floor. If raw \\(X\\), polar angle together with within-bin radius, or raw \\(R\\) remains available, this proposal's observation model does not apply."
+}

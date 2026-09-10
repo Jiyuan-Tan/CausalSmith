@@ -81,7 +81,7 @@ export function buildGraphFromCorePlan(core: Core, spec: string, plan: Plan | nu
       tex_anchor: "",
     });
     g = withSetup(g, e.id, e.modules);
-    if (e.disposition === "reuse" && e.reuse) g = withExternalLean(g, e.id, e.reuse);
+    if (e.disposition === "reuse" && e.reuse) g = withExternalLean(g, e.id, e.reuse, "library");
     setupIds.push(e.id);
   }
   if (setupIds.length === 0) {
@@ -135,7 +135,7 @@ export function buildGraphFromCorePlan(core: Core, spec: string, plan: Plan | nu
         reason: pnode.delivery_reason,
       });
     }
-    if (pnode?.disposition === "reuse" && pnode.reuse) g = withExternalLean(g, id, pnode.reuse);
+    if (pnode?.disposition === "reuse" && pnode.reuse) g = withExternalLean(g, id, pnode.reuse, "library");
     const std = stdById.get(id);
     if (std) g = withStandard(g, id, std);
   }

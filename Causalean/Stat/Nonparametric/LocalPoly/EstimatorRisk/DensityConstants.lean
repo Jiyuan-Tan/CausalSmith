@@ -36,9 +36,12 @@ open Matrix
 
 variable {p : ℕ}
 
-/-- The **weight-`W` moment matrix** `(weightMomentMatrix p W)_{jk} = ∫ W(u) · u^j · u^k du` of the
-centered monomials against the Lebesgue weight `W`. With `W = K · (p ∘ (t + h·)) ` this is the
-kernel shape matrix `T`; with `W = K` it is the pure kernel-moment matrix `G`. -/
+/-- For [a nonnegative integer degree](hyp:p) and [a real-valued weight function on the real
+line](hyp:W), the [weight moment matrix](goal) is the square matrix whose row-$j$, column-$k$
+entry is the Lebesgue integral $\int W(u)u^j u^k\,du$ for $j,k=0,\ldots,p$.
+
+With `W = K · (p ∘ (t + h·)) ` this is the kernel shape matrix `T`; with `W = K` it is the pure
+kernel-moment matrix `G`. -/
 noncomputable def weightMomentMatrix (p : ℕ) (W : ℝ → ℝ) :
     Matrix (Fin (p + 1)) (Fin (p + 1)) ℝ :=
   Matrix.of (fun j k => ∫ u, W u * (u ^ (j : ℕ) * u ^ (k : ℕ)))

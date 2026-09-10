@@ -324,7 +324,9 @@ function breakLines(raw: string, depth: number): StmtLine[] {
 
 export function stripLeadingQuantifier(text: string): { header: string; rest: string } | null {
   const t = text.trim();
-  if (!/^[∀∃]/.test(t)) return null;
+  // `∀ᵐ x ∂μ,` / `∀ᶠ x in l,` are propositions in their own right, not
+  // binder telescopes: the qualifier must stay with the clause.
+  if (!/^[∀∃](?![ᵐᶠ])/.test(t)) return null;
   const commaIdx = topLevelIndexOf(t, ",");
   if (commaIdx < 0) return null;
   return { header: t.slice(0, commaIdx).trim(), rest: t.slice(commaIdx + 1).trim() };
@@ -478,6 +480,288 @@ export function scanPropDefinitionSignature(rawSource: string): SignatureScan | 
   };
 }
 
+
+/**
+ * Locates a `def`/`abbrev` declaration's binder telescope, type, and value in
+ * its authored source — the definition counterpart of `scanTheoremSignature`.
+ * The value may be given by `:= term`, by equation alternatives (`| pat => …`)
+ * or by a `where` block; an unannotated `abbrev Foo (V) := …` yields an EMPTY
+ * type (the caller may fill it from the index's elaborated result type).
+ * Shared by the library page (`leanDeclView.ts`) and the paper drawer / P4
+ * (`leanCards.ts`, `tools/…/lean_structure.ts`). `null` when not confident.
+ */
+// A definition's head keyword. `instance` is deliberately excluded: its
+// value is a structure literal the row layout has nothing to say about.
+const DEF_HEAD = /\b(?:def|abbrev)\s+([^\s({[⦃:]+)/;
+
+export interface DefinitionScan {
+  name: string;
+  scan: SignatureScan;
+  /** How the value is given: `:= term`, equation alternatives (`| pat => …`),
+   *  a `where` block, or nothing recoverable. */
+  body: { kind: "value" | "alternatives" | "where"; text: string } | null;
+}
+
+/** Offset of the first depth-0 `|` that opens an equation alternative, or of
+ *  a depth-0 `where` keyword, after `from` — the end of a definition's type
+ *  when it has no `:=`. -1 if neither occurs. */
+function equationsStart(cleaned: string, from: number): number {
+  let depth = 0;
+  for (let i = from; i < cleaned.length; i++) {
+    const c = cleaned[i];
+    if (c === "(" || c === "{" || c === "[" || c === "⦃") depth++;
+    else if (c === ")" || c === "}" || c === "]" || c === "⦄") depth--;
+    if (depth !== 0) continue;
+    // `|` at the start of a line (after indentation) opens an alternative; a
+    // `|` mid-line is absolute-value / set-builder notation inside the type.
+    if (c === "|" && /^\s*$/.test(cleaned.slice(cleaned.lastIndexOf("\n", i) + 1, i))) return i;
+    if (c === "w" && cleaned.startsWith("where", i) && !/[A-Za-z0-9_.']/.test(cleaned[i - 1] ?? "") && !/[A-Za-z0-9_']/.test(cleaned[i + 5] ?? "")) return i;
+  }
+  return -1;
+}
+
+export function scanDefinitionSignature(rawSource: string): DefinitionScan | null {
+  const cleaned = stripLeanComments(rawSource);
+  const m = cleaned.match(DEF_HEAD);
+  if (!m || m.index === undefined) return null;
+  let telescopeStart = m.index + m[0].length;
+  const uni = cleaned.slice(telescopeStart).match(/^\s*\.\{[^}]*\}/);
+  if (uni) telescopeStart += uni[0].length;
+  const scan = scanSignature(cleaned, telescopeStart);
+  if (!scan) return null;
+  let body: DefinitionScan["body"] = null;
+  if (cleaned[scan.conclusionStart] === "=") {
+    // `abbrev Foo (V) := …` — no type annotation: scanSignature took the `:`
+    // of `:=`. The type is left empty (the caller fills it from the index's
+    // elaborated result type) and everything after `:=` is the value.
+    const b = cleaned.slice(scan.conclusionStart + 1).trim();
+    scan.conclusionText = "";
+    scan.conclusionEnd = scan.conclusionStart;
+    if (b.length > 0) body = { kind: "value", text: b };
+  } else {
+    // A `where` block's own `field := v` (or an alternative's) would be read as
+    // the proof marker; equations / `where` reached first cut the type instead.
+    const eq = equationsStart(cleaned, scan.conclusionStart);
+    if (eq >= 0 && (scan.conclusionEnd < 0 || eq < scan.conclusionEnd)) {
+      const text = cleaned.slice(eq).trim();
+      scan.conclusionText = cleaned.slice(scan.conclusionStart, eq).trim();
+      if (!scan.conclusionText) return null;
+      body = { kind: text.startsWith("where") ? "where" : "alternatives", text };
+    } else if (scan.conclusionEnd >= 0) {
+      let i = scan.conclusionEnd;
+      while (i < cleaned.length && /\s/.test(cleaned[i])) i++;
+      if (cleaned.startsWith(":=", i)) {
+        const b = cleaned.slice(i + 2).trim();
+        if (b.length > 0) body = { kind: "value", text: b };
+      }
+    }
+  }
+  return { name: m[1], scan: { cleaned, ...scan }, body };
+}
+
+/** One `name args := value` field of a `where` block (an instance's structure
+ *  literal, a `def … where`). */
+export interface WhereField {
+  /** `smul t η` — the field name with its pattern arguments. */
+  head: string;
+  value: string;
+}
+
+/**
+ * Splits a `where` block into its fields by indentation: the first non-blank
+ * line fixes the field indent; every line at that indent that carries a
+ * depth-0 `:=` opens a field, deeper lines continue it. `null` when the block
+ * has no recognisable field.
+ */
+export function splitWhereFields(block: string): WhereField[] | null {
+  const body = block.replace(/^\s*where\b/, "");
+  const lines = body.split("\n");
+  const firstIdx = lines.findIndex((l) => l.trim().length > 0);
+  if (firstIdx < 0) return null;
+  const indent = lines[firstIdx].match(/^ */)![0].length;
+  const fields: WhereField[] = [];
+  let cur: string[] | null = null;
+  for (const l of lines.slice(firstIdx)) {
+    if (l.trim().length === 0) continue;
+    const ind = l.match(/^ */)![0].length;
+    if (ind <= indent && cur !== null) {
+      fields.push(parseWhereField(cur.join("\n")));
+      cur = null;
+    }
+    if (ind <= indent) cur = [l.trim()];
+    else if (cur) cur.push(l.trim());
+  }
+  if (cur) fields.push(parseWhereField(cur.join("\n")));
+  return fields.length > 0 && fields.every((f) => f.head) ? fields : null;
+}
+
+function parseWhereField(text: string): WhereField {
+  const flat = text.replace(/\s+/g, " ").trim();
+  let depth = 0;
+  for (let i = 0; i < flat.length - 1; i++) {
+    depth += bracketDelta(flat[i]);
+    if (depth === 0 && flat[i] === ":" && flat[i + 1] === "=") {
+      return { head: flat.slice(0, i).trim(), value: flat.slice(i + 2).trim() };
+    }
+  }
+  return { head: "", value: flat };
+}
+
+export interface InstanceScan {
+  /** The authored name, or "" for an anonymous instance. */
+  name: string;
+  scan: SignatureScan;
+  body: { kind: "value" | "where" | "alternatives"; text: string } | null;
+}
+
+/**
+ * Locates an `instance` declaration's telescope, class type, and value —
+ * `instance foo (x : T) : Class x := term` or `… where field := …`. The
+ * optional `(priority := …)` and `scoped`/`local` modifiers are skipped.
+ */
+export function scanInstanceSignature(rawSource: string): InstanceScan | null {
+  const cleaned = stripLeanComments(rawSource);
+  const m = cleaned.match(/\binstance\b(?:\s*\(priority\s*:=[^)]*\))?\s*/);
+  if (!m || m.index === undefined) return null;
+  let i = m.index + m[0].length;
+  let name = "";
+  const nm = cleaned.slice(i).match(/^([^\s({[⦃:]+)/);
+  if (nm) {
+    name = nm[1];
+    i += nm[0].length;
+  }
+  const scan = scanSignature(cleaned, i);
+  if (!scan) return null;
+  let body: InstanceScan["body"] = null;
+  const eq = equationsStart(cleaned, scan.conclusionStart);
+  if (eq >= 0 && (scan.conclusionEnd < 0 || eq < scan.conclusionEnd)) {
+    const text = cleaned.slice(eq).trim();
+    scan.conclusionText = cleaned.slice(scan.conclusionStart, eq).trim();
+    if (!scan.conclusionText) return null;
+    body = { kind: text.startsWith("where") ? "where" : "alternatives", text };
+  } else if (scan.conclusionEnd >= 0) {
+    let j = scan.conclusionEnd;
+    while (j < cleaned.length && /\s/.test(cleaned[j])) j++;
+    if (cleaned.startsWith(":=", j)) {
+      const b = cleaned.slice(j + 2).trim();
+      if (b) body = { kind: "value", text: b };
+    }
+  }
+  return { name, scan: { cleaned, ...scan }, body };
+}
+
+export interface Constructor {
+  name: string;
+  /** Everything after the name: `(kind : MonotonicityKind)` or `: N → SWIGNode N`. */
+  sig: string;
+  doc: string | null;
+}
+
+export interface InductiveScan {
+  name: string;
+  scan: SignatureScan | null;
+  groups: ScannedGroup[];
+  /** Authored result sort (`Type*`, `Prop`), "" when omitted. */
+  sort: string;
+  constructors: Constructor[];
+  deriving: string | null;
+  telescopeStart: number;
+}
+
+/**
+ * Locates an `inductive` declaration's telescope, result sort, constructors
+ * (`| name …` lines, with the docstring each carries) and `deriving` clause.
+ * `null` when the head or the constructor list is not confidently parsed.
+ */
+export function scanInductiveSignature(rawSource: string): InductiveScan | null {
+  const cleaned = stripLeanComments(rawSource);
+  const m = cleaned.match(/\binductive\s+([^\s({[⦃:]+)/);
+  if (!m || m.index === undefined) return null;
+  let i = m.index + m[0].length;
+  const uni = cleaned.slice(i).match(/^\s*\.\{[^}]*\}/);
+  if (uni) i += uni[0].length;
+  const telescopeStart = i;
+  // telescope
+  const groups: ScannedGroup[] = [];
+  const n = cleaned.length;
+  const skipWs = () => {
+    while (i < n && /\s/.test(cleaned[i])) i++;
+  };
+  skipWs();
+  while (i < n && bracketDelta(cleaned[i]) === 1) {
+    const gStart = i;
+    let depth = 0;
+    do {
+      depth += bracketDelta(cleaned[i]);
+      i++;
+    } while (i < n && depth > 0);
+    if (depth !== 0) return null;
+    groups.push({ raw: cleaned.slice(gStart, i), start: gStart, end: i });
+    skipWs();
+  }
+  // optional `: Sort`, optional `where`, then constructors — normally one per
+  // line, but a short enumeration may sit on one line: `inductive T | a | b`.
+  let ctorStart = equationsStart(cleaned, i);
+  if (ctorStart < 0) {
+    let depth = 0;
+    for (let k = i; k < n - 1; k++) {
+      depth += bracketDelta(cleaned[k]);
+      if (depth === 0 && cleaned[k] === "|" && /\s/.test(cleaned[k - 1] ?? " ") && /\s/.test(cleaned[k + 1] ?? " ")) {
+        ctorStart = k;
+        break;
+      }
+    }
+  }
+  let sort = "";
+  if (cleaned[i] === ":") {
+    const end = ctorStart >= 0 ? ctorStart : n;
+    sort = cleaned.slice(i + 1, end).replace(/\bwhere\b/, "").trim();
+  }
+  if (ctorStart < 0) return null;
+  let rest = cleaned.slice(ctorStart).replace(/^\s*where\b/, "");
+  // deriving clause (depth 0, own line)
+  let deriving: string | null = null;
+  const dm = rest.match(/(?:^|\s)deriving\b([^\n]*)/);
+  if (dm && dm.index !== undefined) {
+    deriving = dm[1].trim();
+    rest = rest.slice(0, dm.index);
+  }
+  // constructors: split at `|` (line-initial, or inline for a one-line enumeration)
+  const rawOrig = rawSource.slice(telescopeStart);
+  const ctorLines = rest.includes("\n") ? rest.split("\n") : rest.split(/(?=\s\|\s)/).map((x) => x.trim());
+  const constructors: Constructor[] = [];
+  let cur: string[] | null = null;
+  const flush = () => {
+    if (!cur) return;
+    const text = cur.join(" ").replace(/\s+/g, " ").trim().replace(/^\|\s*/, "");
+    const nm = text.match(/^([^\s({[⦃:]+)/);
+    if (!nm) throw new Error("ctor");
+    constructors.push({ name: nm[1], sig: text.slice(nm[0].length).trim(), doc: null });
+    cur = null;
+  };
+  try {
+    for (const l of ctorLines) {
+      if (/^\s*\|/.test(l)) {
+        flush();
+        cur = [l];
+      } else if (cur && l.trim()) cur.push(l);
+    }
+    flush();
+  } catch {
+    return null;
+  }
+  if (constructors.length === 0) return null;
+  // constructor docstrings: `/-- … -/` immediately before each `| name` in the ORIGINAL text
+  for (const c of constructors) {
+    // The docstring IMMEDIATELY before `| name`: its body may not contain `-/`,
+    // or the first `/--` in the type would be paired with a later constructor.
+    const re = new RegExp("/--((?:(?!-/)[\\s\\S])*?)-/\\s*\\|\\s*" + c.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\w'!?₀-₉])");
+    const dm2 = rawOrig.match(re);
+    if (dm2) c.doc = dm2[1].replace(/\s+/g, " ").trim();
+  }
+  return { name: m[1], scan: null, groups, sort, constructors, deriving, telescopeStart };
+}
+
 /** A proposition-bearing declaration accepted by the structured renderer. */
 export function scanPropositionSignature(rawSource: string): SignatureScan | null {
   return scanTheoremSignature(rawSource) ?? scanPropDefinitionSignature(rawSource);
@@ -526,12 +810,22 @@ export function parseBinderGroup(raw: string): Omit<BinderRow, "kind"> | null {
     // Anonymous instance binder — `[StandardBorelSpace P.Ω]`, sugar for
     // `[inst : StandardBorelSpace P.Ω]`. Only `[...]` instance binders may
     // omit the name; `(...)`/`{...}` always carry an explicit `name : type`.
-    if (open !== "[") return null;
-    return { names: "", chip: "decl", body: formatBody(inner), bracketKind };
+    if (open === "[") return { names: "", chip: "decl", body: formatBody(inner), bracketKind };
+    // Untyped binder — `{Ω}` / `(x)`: names only, the type is inferred. A
+    // name is an identifier-shaped token; anything else is not a binder.
+    if (!/^[^\s()[\]{}⦃⦄:]+(\s+[^\s()[\]{}⦃⦄:]+)*$/.test(inner)) return null;
+    return { names: inner, chip: "decl", body: [], bracketKind };
   }
   const names = inner.slice(0, colonIdx).trim();
   const typeText = inner.slice(colonIdx + 1).trim();
   if (!names || !typeText) return null;
+  // `[∀ s' : M.FixedValues, IsFiniteMeasure …]` — an anonymous instance whose
+  // TYPE carries the colon. Names are identifier tokens only; anything else
+  // before the colon means the whole group is the type.
+  if (!/^[^\s()[\]{}⦃⦄:∀∃λ,]+(\s+[^\s()[\]{}⦃⦄:∀∃λ,]+)*$/.test(names)) {
+    if (open !== "[") return null;
+    return { names: "", chip: "decl", body: formatBody(inner), bracketKind };
+  }
   return {
     names,
     chip: classifyChip(names, bracketKind, typeText),

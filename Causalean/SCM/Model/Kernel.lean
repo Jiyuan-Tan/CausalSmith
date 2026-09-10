@@ -68,7 +68,9 @@ namespace SCM
 
 open scoped MeasureTheory ProbabilityTheory
 
-/-- The joint kernel maps each fixed-value assignment to the law of the model
+/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω) and [a structural causal model](hyp:M), the [joint conditional law of all random-node values given fixed-node values](goal) assigns each fixed-value assignment the distribution obtained by evaluating the model under its product distribution of latent variables. It is defined [by combining that latent distribution with the deterministic evaluation rule and projecting to evaluated random values](step:1).
+
+    The joint kernel maps each fixed-value assignment to the law of the model
 evaluation under the latent product distribution.
 
     The joint kernel `jointKernel M : Kernel (FixedValues M) (RandomValues M)`.
@@ -86,7 +88,7 @@ noncomputable def jointKernel (M : Causalean.SCM N Ω) :
     (ProbabilityTheory.Kernel.deterministic
       (Function.uncurry M.evalMap) M.evalMap_measurable)).map Prod.snd
 
-/-- The observed projection keeps only the observed coordinates of a full random assignment. -/
+/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω) and [a structural causal model](hyp:M), the [projection from all random-node values to observed-node values](goal) retains exactly the coordinates belonging to observed nodes. It is defined [coordinate by coordinate](step:1). -/
 def randomToObserved (M : Causalean.SCM N Ω) :
     RandomValues M → ObservedValues M :=
   fun ξ v => ξ ⟨v.val, Finset.mem_union_left _ v.property⟩
@@ -140,7 +142,9 @@ lemma jointKernel_apply_eq (M : Causalean.SCM N Ω) (s : FixedValues M) :
     rfl
   · exact MeasureTheory.lintegral_indicator_one (hf hA)
 
-/-- The observational kernel maps each fixed-value assignment to the induced law
+/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω) and [a structural causal model](hyp:M), the [conditional law of observed-node values given fixed-node values](goal) is obtained by mapping the joint conditional law to its observed coordinates. It is defined [by that observed-coordinate projection](step:1).
+
+    The observational kernel maps each fixed-value assignment to the induced law
 of the observed nodes.
 
     The observational kernel `obsKernel M : Kernel (FixedValues M) (ObservedValues M)`.
@@ -151,13 +155,17 @@ noncomputable def obsKernel (M : Causalean.SCM N Ω) :
     ProbabilityTheory.Kernel (FixedValues M) (ObservedValues M) :=
   (M.jointKernel).map M.randomToObserved
 
-/-- The joint kernel is a Markov kernel. -/
+/-- For [a finite, distinguishable node population with measurable node-value spaces](hyp:N,Ω) and [a structural causal model](hyp:M), the [joint conditional law of random-node values given fixed-node values](goal) is a Markov kernel: every conditional law is a probability measure.
+
+The joint kernel is a Markov kernel. -/
 instance instIsMarkovKernelJointKernel (M : Causalean.SCM N Ω) :
     ProbabilityTheory.IsMarkovKernel M.jointKernel := by
   unfold jointKernel
   exact ProbabilityTheory.Kernel.IsMarkovKernel.map _ measurable_snd
 
-/-- The observational kernel is a Markov kernel. -/
+/-- For [a finite, distinguishable node population with measurable node-value spaces](hyp:N,Ω) and [a structural causal model](hyp:M), the [conditional law of observed-node values given fixed-node values](goal) is a Markov kernel: every conditional law is a probability measure.
+
+The observational kernel is a Markov kernel. -/
 instance instIsMarkovKernelObsKernel (M : Causalean.SCM N Ω) :
     ProbabilityTheory.IsMarkovKernel M.obsKernel := by
   unfold obsKernel
@@ -196,7 +204,9 @@ theorem jointKernel_map_commute (M : Causalean.SCM N Ω) :
 -- § `obsCondKernel` — jointly measurable conditional kernel
 -- ============================================================
 
-/-- The conditional-pair kernel pushes the observational law to conditioning
+/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), [a target-node set](hyp:Y), [a conditioning-node set](hyp:CC), [the requirement that every target node is observed](hyp:hY), and [the requirement that every conditioning node is observed](hyp:hCC), the [joint conditional law of the conditioning and target coordinates given fixed-node values](goal) maps each observational law to the ordered pair of its conditioning-coordinate and target-coordinate restrictions. It is defined [by that paired coordinate projection](step:1).
+
+    The conditional-pair kernel pushes the observational law to conditioning
 coordinates paired with target coordinates. -/
 noncomputable def obsCondPairKernel
     (M : Causalean.SCM N Ω) (Y CC : Finset (SWIGNode N))
@@ -217,7 +227,9 @@ lemma obsCondPairKernel_eq
         (valuesProjection hCC ω, valuesProjection hY ω)) :=
   rfl
 
-/-- The observational conditional kernel is a jointly measurable conditional law
+/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), [a target-node set](hyp:Y), [a conditioning-node set](hyp:CC), [the requirement that every target node is observed](hyp:hY), [the requirement that every conditioning node is observed](hyp:hCC), a nonempty standard-Borel target-value space, and a conditioning-value space satisfying the stipulated countable-generation condition, the [jointly measurable conditional law of target coordinates given fixed-node and conditioning-coordinate values](goal) is obtained [as a conditional law from the paired observational distribution](step:1).
+
+    The observational conditional kernel is a jointly measurable conditional law
 of target coordinates given conditioning coordinates.
 
     Jointly measurable conditional law of the `Y`-coordinates given the

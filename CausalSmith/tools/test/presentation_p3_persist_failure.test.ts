@@ -24,9 +24,8 @@ const block = (obj_id: string, kind: string, env: string, body: string) => ({
 const QID = "q_test";
 const SPEC = "spec";
 
-// \kappa is first USED in theorem T-1 but its notation-table home is definition P-1,
-// which appears later in the file → trips the definition-order hard gate, the earliest
-// failure exit in stageP3.
+// The paper places T-1 before P-1 while the frozen layer (P1's settled order) has P-1
+// first → trips the frozen-layer order hard gate, the earliest failure exit in stageP3.
 const PAPER = `
 \\begin{theoremv}{T-1}[Rate]
 The rate depends on \\kappa.
@@ -62,8 +61,8 @@ describe("P3 persists its diagnosis before throwing", () => {
         JSON.stringify({
           commit: "abc",
           blocks: [
-            block("T-1", "theorem", "theoremv", "The rate depends on \\kappa."),
             block("P-1", "definition", "definitionv", "Let \\kappa be the exponent."),
+            block("T-1", "theorem", "theoremv", "The rate depends on \\kappa."),
           ],
         }),
         "utf8",
@@ -86,14 +85,14 @@ describe("P3 persists its diagnosis before throwing", () => {
         outDir: dir,
       } as never;
 
-      await expect(stageP3(io)).rejects.toThrow(/definition-order/);
+      await expect(stageP3(io)).rejects.toThrow(/frozen-layer order/);
 
       // The whole point of the field: it must survive the throw, on disk.
       const persisted = JSON.parse(
         await readFile(join(dir, `${QID}_${SPEC}_paper_state.json`), "utf8"),
       );
       expect(persisted.hard_gate_failures.length).toBeGreaterThan(0);
-      expect(JSON.stringify(persisted.hard_gate_failures)).toContain("notation-defined-after-use");
+      expect(JSON.stringify(persisted.hard_gate_failures)).toContain("frozen-layer-order");
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

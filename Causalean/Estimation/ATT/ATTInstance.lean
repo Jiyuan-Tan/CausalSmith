@@ -70,7 +70,7 @@ open TreatedEstimationSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- ATT AIPW instance of the abstract `GeneralMoment`.
+/-- For [a potential-outcomes system with a standard Borel sample space and finite probability measure](hyp:P), [a measurable covariate space](hyp:γ), [a treated estimation system](hyp:S), [a real overlap radius](hyp:ε), [the condition that the system's true nuisance vector belongs to its overlap-bounded candidate set at that radius](hyp:hη₀_mem), and [the condition that its marginal treatment probability is strictly positive](hyp:hπ_pos), the [ATT augmented inverse-probability-weighted general moment](goal) is the general moment whose score is the ATT AIPW score, whose target nuisance vector and target parameter are the system's true nuisance vector and ATT, whose candidate set is that overlap-bounded set, whose two seminorms are the $L^2$ distances between control-outcome regressions and between propensity scores, and whose Jacobian is the negative marginal treatment probability.
 
 The bilinear seminorms are the L²(P_X) norms of the `μ₀_fn` and `e_fn`
 differences.  Only the control-arm μ-residual appears (no sum over arms),

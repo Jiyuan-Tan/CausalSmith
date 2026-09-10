@@ -26,13 +26,16 @@ open MeasureTheory ProbabilityTheory Real
 variable {Z : Type v}
 variable {m : ℕ} {ι : Type u}
 
-/-- The two-point sign set is nonempty. -/
+/-- For every nonnegative integer, the [nonemptiness structure for the two-point sign
+set $\{-1,1\}$](goal) certifies that this set contains at least one integer. -/
 instance : Nonempty ({-1, 1} : Finset ℤ) := by
   use -1
   simp
 
-/-- The finite sign-vector space has measurable singletons under the product
-measurable structure. -/
+/-- For every [sign-vector length](hyp:m), the [measurable-singleton structure for the
+space of sign vectors of that length](goal) certifies that every singleton set of sign vectors
+is measurable under the product σ-algebra; [its measurability rule](step:1) supplies this
+certification for each sign vector. -/
 instance : @MeasurableSingletonClass (Signs m) MeasurableSpace.pi := by
   classical
   refine @MeasurableSingletonClass.mk (Signs m) MeasurableSpace.pi ?_
@@ -133,25 +136,34 @@ open MeasureTheory
 local notation3 "Ωᵣ" => Signs m
 
 -- random increments Y i j : Ωᵣ → ℝ
-/-- A Rademacher increment is the signed, sample-scaled value of one function at
-one sample coordinate. -/
+/-- Given [an observation space and class-index set](hyp:Z,ι), [a function class $F$](hyp:F),
+[a sample $S$ of $m$ observations](hyp:S,m), [a sample coordinate](hyp:i), and [a class
+index](hyp:j), the [Rademacher increment](goal) is the function that maps each Rademacher sign
+vector to $m^{-1}$ times the selected sign times the selected function's value at the selected
+sample coordinate. -/
 noncomputable def Y (i : Fin m) (j : ι) : Ωᵣ → ℝ :=
   fun σ => (m : ℝ)⁻¹ * (((σ i).1 : ℤ) : ℝ) * F j (S i)
 
 -- aggregated variable X j = ∑ i∈s_samples Y i j
-/-- The aggregated Rademacher variable for one class index is the sum of its
-coordinate increments. -/
+/-- Given [an observation space and class-index set](hyp:Z,ι), [a function class $F$](hyp:F),
+[a sample $S$ of $m$ observations](hyp:S,m), and [a class index](hyp:j), the [aggregated
+Rademacher variable](goal) maps each sign vector to the sum of its $m$ coordinate increments. -/
 noncomputable def X (j : ι) : Ωᵣ → ℝ :=
   fun σ => ∑ i : Fin m, Y (F:=F) (S:=S) i j σ
 
 -- per-sample envelope r i (independent of j), and its ℓ2-aggregate r′
-/-- The finite-class coordinate envelope is the sample-scaled supremum absolute
-value over a finite index set. -/
+/-- Given [an observation space and class-index set](hyp:Z,ι), [a function class $F$](hyp:F),
+[a sample $S$ of $m$ observations](hyp:S,m), [a nonempty finite set of class indices](hyp:f,hs),
+and [a sample coordinate](hyp:i),
+the [finite-class coordinate envelope](goal) is $m^{-1}$ times the largest absolute function
+value at that coordinate among the selected indices. -/
 noncomputable def r (f : Finset ι) (hs : f.Nonempty) (i : Fin m) : ℝ :=
   (m : ℝ)⁻¹ * Finset.sup' f hs (fun j => |F j (S i)|)
 
-/-- The pointwise coordinate radius is the sample-scaled absolute value for one
-index and one sample coordinate. -/
+/-- Given [an observation space and class-index set](hyp:Z,ι), [a function class $F$](hyp:F),
+[a sample $S$ of $m$ observations](hyp:S,m), [a sample coordinate](hyp:i), and [a class
+index](hyp:j), the [pointwise coordinate radius](goal)
+is $m^{-1}$ times the absolute value of the selected function at that coordinate. -/
 noncomputable def r' (i : Fin m) (j : ι) : ℝ :=
   (m : ℝ)⁻¹ * |F j (S i)|
 
@@ -175,8 +187,10 @@ Restrict the function class to a finite set `f` so we can use
 `empiricalRademacherComplexity_pmf m (F_on F f) S` directly.
 -/
 
-/-- Restricting a function class to a finite index set yields the corresponding
-subtype-indexed class. -/
+/-- Given [an observation space and class-index set](hyp:Z,ι), [a function class $F$](hyp:F)
+and [a finite set of its indices](hyp:f), the
+[restricted function class](goal) is indexed by precisely those indices in the finite set and
+assigns each retained index its original function. -/
 def F_on (F : ι → Z → ℝ) (f : Finset ι) : {j // j ∈ f} → Z → ℝ :=
   fun j z => F j.1 z
 

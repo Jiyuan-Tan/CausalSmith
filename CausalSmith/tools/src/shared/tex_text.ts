@@ -60,6 +60,40 @@ export function normalizeTexWhitespace(value: string): string {
     .trim();
 }
 
+/** THE claim identity: the form every gate compares and the revision hash covers.
+ * Two claims are the same claim iff their canonical texts are equal. A
+ * whitespace-sensitive text (comments, verbatim) is its own canonical form. */
+export function canonicalClaimText(value: string): string {
+  if (containsWhitespaceSensitiveTex(value)) return value;
+  // Inside math: keep `\\text{…}`/`\\mbox{…}` interiors as prose, and keep the space a
+  // control word needs before a following letter (`\\sup p` is not `\\supp`).
+  // Prose-carrying commands keep their interior (one nested brace level); a
+  // control space `\ ` is a token; a control word keeps the space before a letter.
+  const stripMath = (math: string): string =>
+    math
+      .split(/(\\(?:text|textrm|textit|textbf|textsf|textsc|mbox|hbox|mathrm|intertext)\{(?:[^{}]|\{[^{}]*\})*\})/)
+      .map((piece, i) => (i % 2 === 1 ? piece : piece
+        .replace(/\\ /g, "\\\u0001")
+        .replace(/(\\[A-Za-z]+)\s+(?=[A-Za-z])/g, "$1\u0000")
+        .replace(/\s+/g, "")))
+      .join("");
+  const strip = (value: string): string =>
+    normalizeTexWhitespace(value)
+      .replace(/\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|(?<!\\)\$(?:[^$\\]|\\.)*\$/g, stripMath);
+  return strip(value);
+}
+
+/** True when ordinary whitespace normalization is not semantics-preserving TeX.
+ * Exact byte matches remain safe; non-exact fields containing comments or
+ * whitespace-preserving literal/code constructs must stay fail-closed. */
+export function containsWhitespaceSensitiveTex(value: string): boolean {
+  if (stripTexComments(value) !== value) return true;
+  if (/\\(?:verb\*?|Verb\*?|SaveVerb|lstinline\*?|mintinline\*?|obeyspaces|obeylines)(?![A-Za-z@])/.test(value)) {
+    return true;
+  }
+  return /\\begin\s*\{(?:[^{}]*verbatim[^{}]*|lstlisting\*?|minted\*?|alltt\*?)\}/i.test(value);
+}
+
 /** Strip TeX `%` comments with backslash-run parity. A lookbehind `(?<!\\)%`
  * misreads `\\%` (row separator + real comment) because it sees only the
  * closest backslash; scan escaped pairs atomically instead. */

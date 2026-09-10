@@ -53,40 +53,60 @@ variable {U : Type*} [Fintype U] [DecidableEq U]
 
 /-! ### Components of the Hájek estimator -/
 
-/-- Treated Horvitz–Thompson summand `Zᵢ Yᵢ / pᵢ`. -/
+/-- For [a population of units](hyp:U), [marginal treatment probabilities](hyp:p), [a
+potential-outcome schedule](hyp:y), [a unit](hyp:i), and [a realized treatment assignment](hyp:z),
+the [treated Horvitz--Thompson summand](goal) is that unit's observed outcome multiplied by its
+treatment indicator and divided by its treatment probability. -/
 noncomputable def htTreatSummand (p : U → ℝ) (y : U → (U → Bool) → ℝ) (i : U) (z : U → Bool) : ℝ :=
   (if z i then (1 : ℝ) else 0) * y i z / p i
 
-/-- Control Horvitz–Thompson summand `(1 − Zᵢ) Yᵢ / (1 − pᵢ)`. -/
+/-- For [a population of units](hyp:U), [marginal treatment probabilities](hyp:p), [a
+potential-outcome schedule](hyp:y), [a unit](hyp:i), and [a realized treatment assignment](hyp:z),
+the [control Horvitz--Thompson summand](goal) is that unit's observed outcome multiplied by its
+control indicator and divided by its control probability. -/
 noncomputable def htCtrlSummand (p : U → ℝ) (y : U → (U → Bool) → ℝ) (i : U) (z : U → Bool) : ℝ :=
   (if z i then (0 : ℝ) else 1) * y i z / (1 - p i)
 
-/-- Treated weight summand `Zᵢ / pᵢ`. -/
+/-- For [a population of units](hyp:U), [marginal treatment probabilities](hyp:p), [a unit](hyp:i),
+and [a realized treatment assignment](hyp:z), the [treated inverse-probability weight summand](goal)
+is the unit's treatment indicator divided by its treatment probability. -/
 noncomputable def weightTreatSummand (p : U → ℝ) (i : U) (z : U → Bool) : ℝ :=
   (if z i then (1 : ℝ) else 0) / p i
 
-/-- Control weight summand `(1 − Zᵢ) / (1 − pᵢ)`. -/
+/-- For [a population of units](hyp:U), [marginal treatment probabilities](hyp:p), [a unit](hyp:i),
+and [a realized treatment assignment](hyp:z), the [control inverse-probability weight summand](goal)
+is the unit's control indicator divided by its control probability. -/
 noncomputable def weightCtrlSummand (p : U → ℝ) (i : U) (z : U → Bool) : ℝ :=
   (if z i then (0 : ℝ) else 1) / (1 - p i)
 
-/-- The treated numerator average `Â₁ = n⁻¹ ∑ᵢ Zᵢ Yᵢ / pᵢ`. -/
+/-- For [a finite population of units](hyp:U), [marginal treatment probabilities](hyp:p), [a
+potential-outcome schedule](hyp:y), and [a realized treatment assignment](hyp:z), the [treated
+numerator average](goal) is the population average of the treated Horvitz--Thompson summands. -/
 noncomputable def AhatTreat (p : U → ℝ) (y : U → (U → Bool) → ℝ) (z : U → Bool) : ℝ :=
   (∑ i, htTreatSummand p y i z) / (Fintype.card U : ℝ)
 
-/-- The control numerator average `Â₀ = n⁻¹ ∑ᵢ (1−Zᵢ) Yᵢ / (1−pᵢ)`. -/
+/-- For [a finite population of units](hyp:U), [marginal treatment probabilities](hyp:p), [a
+potential-outcome schedule](hyp:y), and [a realized treatment assignment](hyp:z), the [control
+numerator average](goal) is the population average of the control Horvitz--Thompson summands. -/
 noncomputable def AhatCtrl (p : U → ℝ) (y : U → (U → Bool) → ℝ) (z : U → Bool) : ℝ :=
   (∑ i, htCtrlSummand p y i z) / (Fintype.card U : ℝ)
 
-/-- The treated weight average `B̂₁ = n⁻¹ ∑ᵢ Zᵢ / pᵢ`. -/
+/-- For [a finite population of units](hyp:U), [marginal treatment probabilities](hyp:p), and [a
+realized treatment assignment](hyp:z), the [treated weight average](goal) is the population average
+of the treated inverse-probability weight summands. -/
 noncomputable def BhatTreat (p : U → ℝ) (z : U → Bool) : ℝ :=
   (∑ i, weightTreatSummand p i z) / (Fintype.card U : ℝ)
 
-/-- The control weight average `B̂₀ = n⁻¹ ∑ᵢ (1−Zᵢ) / (1−pᵢ)`. -/
+/-- For [a finite population of units](hyp:U), [marginal treatment probabilities](hyp:p), and [a
+realized treatment assignment](hyp:z), the [control weight average](goal) is the population average
+of the control inverse-probability weight summands. -/
 noncomputable def BhatCtrl (p : U → ℝ) (z : U → Bool) : ℝ :=
   (∑ i, weightCtrlSummand p i z) / (Fintype.card U : ℝ)
 
-/-- **The Hájek estimator** `ĤA = Â₁/B̂₁ − Â₀/B̂₀`, the realized-weight-normalized
-inverse-probability-weighted estimator. -/
+/-- For [a finite population of units](hyp:U), [marginal treatment probabilities](hyp:p), [a
+potential-outcome schedule](hyp:y), and [a realized treatment assignment](hyp:z), the [Hájek
+estimator](goal) is the treated numerator average divided by the treated weight average, minus the
+control numerator average divided by the control weight average. -/
 noncomputable def hajekEst (p : U → ℝ) (y : U → (U → Bool) → ℝ) (z : U → Bool) : ℝ :=
   AhatTreat p y z / BhatTreat p z - AhatCtrl p y z / BhatCtrl p z
 

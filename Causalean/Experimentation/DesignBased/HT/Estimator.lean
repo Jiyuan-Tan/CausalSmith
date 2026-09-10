@@ -42,25 +42,47 @@ namespace DesignBased
 variable {Ω : Type*} [Fintype Ω]
 variable {ι Θ Δ : Type*} [Fintype ι] [DecidableEq Δ]
 
-/-- Totalized Horvitz–Thompson estimator of the total potential outcome under exposure `d`. -/
+/-- On a finite assignment space and for a finite population with equality-comparable exposure
+conditions, [a finite randomization design](hyp:D), [a schedule of potential outcomes for every
+unit and exposure condition](hyp:y), [an assignment-to-exposure rule](hyp:f), [a map assigning
+each unit its traits](hyp:θ), [an exposure condition](hyp:d), and [a realized assignment](hyp:z)
+define [the totalized Horvitz–Thompson estimator of the total potential outcome](goal) as the sum
+over units of each observed outcome multiplied by its exposure indicator and divided by its
+generalized exposure probability. -/
 noncomputable def htTotal (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (d : Δ) (z : Ω) : ℝ :=
   ∑ i, expoInd f θ i d z * Yobs y f θ i z / prop D f θ i d
 
-/-- Population mean potential outcome under exposure `d`: `μ(d) = (1/N)∑ᵢ y i d`. -/
+/-- For a finite population, [a schedule of potential outcomes for every unit and exposure
+condition](hyp:y) and [an exposure condition](hyp:d) define [the finite-population mean potential
+outcome](goal) as the sum of the units' potential outcomes under that condition divided by the
+number of units. -/
 noncomputable def muTrue (y : ι → Δ → ℝ) (d : Δ) : ℝ :=
   (∑ i, y i d) / (Fintype.card ι : ℝ)
 
-/-- Average causal effect of exposure `dk` versus `dl`: `τ = μ(dk) − μ(dl)`. -/
+/-- For a finite population, [a schedule of potential outcomes for every unit and exposure
+condition](hyp:y) and [two exposure conditions](hyp:dk,dl) define [the finite-population average
+causal effect](goal) as the mean potential outcome under the first condition minus that under the
+second condition. -/
 noncomputable def tauTrue (y : ι → Δ → ℝ) (dk dl : Δ) : ℝ :=
   muTrue y dk - muTrue y dl
 
-/-- Horvitz–Thompson estimator of the mean potential outcome under exposure `d`. -/
+/-- On a finite assignment space and for a finite population with equality-comparable exposure
+conditions, [a finite randomization design](hyp:D), [a schedule of potential outcomes for every
+unit and exposure condition](hyp:y), [an assignment-to-exposure rule](hyp:f), [a map assigning
+each unit its traits](hyp:θ), [an exposure condition](hyp:d), and [a realized assignment](hyp:z)
+define [the Horvitz–Thompson estimator of the mean potential outcome](goal) as the totalized
+Horvitz–Thompson estimator divided by the number of units. -/
 noncomputable def htMean (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (d : Δ) (z : Ω) : ℝ :=
   htTotal D y f θ d z / (Fintype.card ι : ℝ)
 
-/-- Horvitz–Thompson estimator of the average causal effect of `dk` versus `dl`. -/
+/-- On a finite assignment space and for a finite population with equality-comparable exposure
+conditions, [a finite randomization design](hyp:D), [a schedule of potential outcomes for every
+unit and exposure condition](hyp:y), [an assignment-to-exposure rule](hyp:f), [a map assigning
+each unit its traits](hyp:θ), [two exposure conditions](hyp:dk,dl), and [a realized
+assignment](hyp:z) define [the Horvitz–Thompson estimator of the average causal effect](goal) as
+the estimated mean under the first condition minus the estimated mean under the second condition. -/
 noncomputable def htEffect (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (dk dl : Δ) (z : Ω) : ℝ :=
   htMean D y f θ dk z - htMean D y f θ dl z

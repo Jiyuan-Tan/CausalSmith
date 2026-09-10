@@ -1,0 +1,1579 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{scm\_\allowbreak{}selection\_\allowbreak{}externalmargin\_\allowbreak{}complete\_\allowbreak{}id}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} The achieved headline is a graph-level necessity result on the terminal-unconfounded selection subclass, not universal completeness of EXT-ID. If a causal cell is not identifiable from a strictly positive full observational law on the substantive ADMG \(\mathcal G[V]\), Kivva et al.'s positive ordinary-ID specialization supplies two positive finite models with the same \(P(V)\) and different intervention cells. Extending both by any common strictly positive terminal selection kernel preserves the same normalized selected law \(q_S=P(V\mid S=1)\), every external margin \(q_0=P(T_0)\), and the causal disagreement in one exact \(\epsilon\)-positive fiber. Hence recovery from the two laws on this subclass requires ordinary positive-model identification. At \(T_0=V\), this converse combines with the boundary reduction to give an exact equivalence, and EXT-ID succeeds for every ordinarily identifiable positive-model cell. The general algebraic SCM class remains broader than the terminal-sink subclass; successful EXT-ID formulas are sound and the procedure terminates, but a bare EXT-ID failure is not a universal nonidentification certificate. The projective null-space theorem and canonical response-fiber characterization remain conditional and fixed-fiber supporting results.
+
+\section{Project justification}
+
+\paragraph{Gap.} Ordinary ID completeness gives graph obstructions from a full observational law, and Kivva et al. restore positive-model witnesses for positive general identification. Neither result by itself proves that a positive same-\(P(V)\) witness pair remains observationally indistinguishable after conditioning on selection while also matching an unbiased external margin. Correa et al. provide sound recovery for the selected-law-plus-margin problem without a completeness theorem; do-search likewise has no negative-answer guarantee for unrestricted generalized-identifiability inputs of this shape. Qiu et al. are an input-shape and scalar-ATE analogue under probability-class assumptions, not a literal intersection with the present arbitrary finite ADMG class.
+
+\paragraph{Niche.} The tractable missing step is a graph-native transfer on diagrams where selection is a terminal sink with no incident bidirected edge: determine what ordinary positive-model nonidentification implies for the normalized selected conditional plus an arbitrary population margin, without assuming a representation-specific null vector.
+
+\paragraph{Fill.} The new theorem lifts the positive substantive witness pair through any common strictly positive terminal selection kernel, derives a common selected conditional and every \(T_0\)-margin, proves exact positive-fiber membership and retained causal separation, and obtains a common witness-specific response slack by finite response reduction. Its contrapositive is a necessary condition for two-law recovery on this subclass. At \(T_0=V\), initialization and ordinary do-calculus completeness give the reverse implication and executable EXT-ID success, yielding the exact equivalence. This is a scoped structural identification result; it does not establish arbitrary-failure completeness for EXT-ID.
+
+\section{Related work}
+
+Correa, Tian, and Bareinboim (2019, Definition 4, Algorithms 2--3, and Theorem 4) formulate the selected-conditional-plus-unbiased-margin problem and prove IDSB sound, while leaving completeness unresolved. Tikka, Hyttinen, and Karvanen (2021, Theorems 2--3 and Table 1) provide sound terminating do-search, but their negative-answer guarantee excludes unrestricted generalized identifiability, so it does not certify failure for the present source pair. Shpitser and Pearl (2006, Theorem 7) supply ordinary do-calculus completeness and the ordinary graph obstruction only; no global positivity claim is attributed to their hedge construction. Kivva et al. (2022, Definition 5 and Theorems 1--2), specialized to the singleton full-observational input, supply two positive finite substantive models with the same strictly positive \(P(V)\) and different target cells when ordinary positive-model identification fails. The present theorem's new step is to lift that pair through a common terminal-unconfounded selection kernel and prove exact equality of both observed sources. Qiu et al. (2026, Appendix B.2) study scalar ATE recovery from a selected observational law and an unbiased covariate margin under unconfoundedness, overlap, and probability-class restrictions. Their continuous-density exposition and probability-class theorem make it an input-shape and estimand analogue only; no literal finite-discrete class intersection is claimed. Richardson et al. inform successful fixing branches, Duarte et al. inform the finite response-fiber feasibility characterization, and Bhattacharya et al. inform supporting inference. Lee, Ghassami, and Shpitser study a different systematic-selection likelihood. Li, Buchanan, and Cole provide the ACTG 320 applied benchmark, not evidence for the structural theorem.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\psi_{x,y}(M)=P_M(Y=y\mid\operatorname{do}(X=x))\).
+Primary functional / estimator / diagnostic: \(\operatorname{EXT\text{-}ID}(\mathcal G,X,Y,x,y,T_0,q_S,q_0)=F_{x,y}\in\mathcal A(q_S,q_0)\) or \(\operatorname{FAIL}\).
+\begin{itemize}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal G} --- \texttt{finite selection ADMG}; An acyclic directed mixed graph on \(V\cup\{S\}\).; \texttt{known causal graph}
+  \item \texttt{V} --- \texttt{finite set of substantive vertices}; \texttt{observed substantive variables}
+  \item \texttt{S} --- \texttt{binary vertex}; \(\{0,1\}\); \texttt{selection indicator}
+  \item \texttt{W\_\allowbreak{}\textbackslash{}\allowbreak{}star} --- \texttt{binary substantive vertex}; \(W_\star\in V\); \texttt{baseline vertex in the first exact audit gate}
+  \item \texttt{A\_\allowbreak{}\textbackslash{}\allowbreak{}star} --- \texttt{binary substantive vertex}; \(A_\star\in V\); \texttt{treatment vertex in the first exact audit gate}
+  \item \texttt{Y\_\allowbreak{}\textbackslash{}\allowbreak{}star} --- \texttt{binary substantive vertex}; \(Y_\star\in V\); \texttt{outcome vertex in the first exact audit gate}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal G\_\allowbreak{}\textbackslash{}\allowbreak{}star} --- \texttt{three-\allowbreak{}substantive-\allowbreak{}node selection ADMG}; \texttt{nontrivial first kill-\allowbreak{}test graph}
+  \par\smallskip\noindent\emph{Definition.} The graph on \(\{W_\star,A_\star,Y_\star,S\}\) with directed edges \(W_\star\to A_\star\), \(W_\star\to Y_\star\), \(W_\star\to S\), \(A_\star\to Y_\star\), and \(Y_\star\to S\), and bidirected edge \(Y_\star\leftrightarrow S\).
+  \item \texttt{X} --- \texttt{vertex subset}; \(X\subseteq V\); \texttt{intervention variables}
+  \item \texttt{Y} --- \texttt{vertex subset}; \(Y\subseteq V\setminus X\); \texttt{outcome variables}
+  \item \texttt{T\_\allowbreak{}0} --- \texttt{vertex subset}; \(T_0\subseteq V\); \texttt{variables with an unbiased joint margin}
+  \item \texttt{Z} --- \texttt{vertex subset}; \(Z\subseteq V\setminus T_0\); \texttt{variables reconstructed by margin extension}
+  \item \texttt{A} --- \texttt{nonempty vertex subset}; \(\varnothing\ne A\subseteq V\); \texttt{random-\allowbreak{}variable block of a canonical kernel key}
+  \item \texttt{B} --- \texttt{vertex subset}; \(B\subseteq V\setminus A\); \texttt{intervention block of a canonical kernel key}
+  \item \texttt{C} --- \texttt{vertex subset}; \(C\subseteq V\setminus(A\cup B)\); \texttt{ordinary conditioning block of a canonical kernel key}
+  \item \texttt{H} --- \texttt{vertex subset}; \(H\subseteq V\); \texttt{finite block moved by a transition}
+  \item \texttt{s} --- \texttt{source tag}; \(s\in\{\mathrm{pop},\mathrm{sel}\}\); \texttt{population or selected kernel provenance}
+  \item \texttt{S\_\allowbreak{}s} --- \texttt{selection-\allowbreak{}conditioning set}
+  \par\smallskip\noindent\emph{Definition.} \(S_{\mathrm{pop}}=\varnothing\) and \(S_{\mathrm{sel}}=\{S\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}kappa} --- \texttt{canonical table-\allowbreak{}level kernel key}
+  \par\smallskip\noindent\emph{Definition.} \(\kappa=(A,B,C,s)\) with \(A,B,C\) pairwise disjoint and \(A\ne\varnothing\).
+  \item \texttt{x} --- \texttt{intervention value}; \(x\in\mathcal X_X\)
+  \item \texttt{y} --- \texttt{outcome value}; \(y\in\mathcal X_Y\)
+  \item \texttt{v} --- \texttt{substantive cell}; \(v\in\mathcal X_V\)
+  \item \texttt{t} --- \texttt{margin cell}; \(t\in\mathcal X_{T_0}\)
+  \item \texttt{a} --- \texttt{random-\allowbreak{}block cell}; A joint state of \(A\).
+  \item \texttt{b} --- \texttt{intervention-\allowbreak{}block cell}; A joint state of \(B\).
+  \item \texttt{c} --- \texttt{conditioning-\allowbreak{}block cell}; A joint state of \(C\).
+  \item \texttt{h} --- \texttt{moved-\allowbreak{}block cell}; A joint state of \(H\).
+  \item \texttt{z} --- \texttt{margin-\allowbreak{}extension cell}; A joint state of \(Z\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal X\_\allowbreak{}A} --- \texttt{finite state space map}
+  \par\smallskip\noindent\emph{Definition.} For every \(A\subseteq V\), \(\mathcal X_A=\prod_{W\in A}\mathcal X_W\).
+  \item \texttt{r} --- \texttt{positive integer}; \texttt{largest substantive state-\allowbreak{}space size}
+  \par\smallskip\noindent\emph{Definition.} \(r=\max_{W\in V}\lvert\mathcal X_W\rvert\).
+  \item \texttt{\textbackslash{}\allowbreak{}xi} --- \texttt{canonical scalar annotation key}; \texttt{cell-\allowbreak{}indexed state identity}
+  \par\smallskip\noindent\emph{Definition.} \(\xi=(A,B,C,s,a,b,c)\), where \(\kappa=(A,B,C,s)\) is a table-level key and \(a\in\mathcal X_A\), \(b\in\mathcal X_B\), and \(c\in\mathcal X_C\); the unique cell of an empty block is denoted by \(\ast\).
+  \item \texttt{q\_\allowbreak{}S} --- \texttt{selected probability table}; \(\Delta(\mathcal X_V)\); \texttt{first observed law}
+  \par\smallskip\noindent\emph{Definition.} \(q_S(v)=P(V=v\mid S=1)\).
+  \item \texttt{q\_\allowbreak{}0} --- \texttt{population-\allowbreak{}margin probability table}; \(\Delta(\mathcal X_{T_0})\); \texttt{second observed law}
+  \par\smallskip\noindent\emph{Definition.} \(q_0(t)=P(T_0=t)\).
+  \item \texttt{\textbackslash{}\allowbreak{}epsilon} --- \texttt{positive constant}; \((0,1)\); \texttt{selected-\allowbreak{}cell positivity level}
+  \item \texttt{\textbackslash{}\allowbreak{}eta} --- \texttt{positive constant}; \((0,1)\); \texttt{response-\allowbreak{}type interior level}
+  \item \texttt{M} --- \texttt{finite recursive semi-\allowbreak{}Markovian SCM}; \texttt{compatible causal model}
+  \item \texttt{q\_\allowbreak{}S\textasciicircum{}M} --- \texttt{model-\allowbreak{}induced selected probability table}; \(\Delta(\mathcal X_V)\); \texttt{selected law induced by a model}
+  \par\smallskip\noindent\emph{Definition.} \(q_S^M(v)=P_M(V=v\mid S=1)\), defined when \(P_M(S=1)>0\).
+  \item \texttt{q\_\allowbreak{}0\textasciicircum{}M} --- \texttt{model-\allowbreak{}induced population-\allowbreak{}margin table}; \(\Delta(\mathcal X_{T_0})\); \texttt{unbiased margin induced by a model}
+  \par\smallskip\noindent\emph{Definition.} \(q_0^M(t)=P_M(T_0=t)\).
+  \item \texttt{k\_\allowbreak{}\textbackslash{}\allowbreak{}kappa} --- \texttt{kernel table named by a canonical key}
+  \par\smallskip\noindent\emph{Definition.} For \(\kappa=(A,B,C,s)\), \(k_\kappa^M(a\mid b,c)=P_M(A=a\mid\operatorname{do}(B=b),C=c,S_s)\), where the last argument is absent for \(s=\mathrm{pop}\) and is \(S=1\) for \(s=\mathrm{sel}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal R} --- \texttt{chosen finite response-\allowbreak{}function representation}; \texttt{representation held fixed by the projective perturbation}
+  \par\smallskip\noindent\emph{Definition.} A collection of deterministic response maps and a product law on finitely supported independent exogenous coordinates that induces \(M\), with the declared state space of every exogenous coordinate defined to be exactly its positive-probability support; zero-mass labels are not coordinates of the representation.
+  \item \texttt{\textbackslash{}\allowbreak{}mathbf U} --- \texttt{finite vector of independent exogenous response coordinates}
+  \par\smallskip\noindent\emph{Definition.} The exogenous coordinates and their product law in \(\mathcal R\); for each coordinate, its finite state space is exactly the set of atoms assigned strictly positive mass.
+  \item \texttt{M\_\allowbreak{}1} --- \texttt{finite recursive semi-\allowbreak{}Markovian SCM}; \texttt{first nonidentification witness}
+  \item \texttt{M\_\allowbreak{}2} --- \texttt{finite recursive semi-\allowbreak{}Markovian SCM}; \texttt{second nonidentification witness}
+  \item \texttt{U\_\allowbreak{}0} --- \texttt{chosen exogenous response coordinate}; \texttt{only exogenous coordinate whose atom masses are perturbed}
+  \par\smallskip\noindent\emph{Definition.} One coordinate of \(\mathbf U\) in the fixed representation \(\mathcal R\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal J\_\allowbreak{}0} --- \texttt{finite active response-\allowbreak{}atom index set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal J_0=\{\omega:P_{\mathcal R}(U_0=\omega)>0\}\), and this finite set is the declared state space of \(U_0\).
+  \item \texttt{m} --- \texttt{positive integer}; \texttt{number of active atoms of the perturbed exogenous variable}
+  \par\smallskip\noindent\emph{Definition.} \(m=\lvert\mathcal J_0\rvert\).
+  \item \texttt{j} --- \texttt{active atom index}; \(j\in\mathcal J_0=\{1,\ldots,m\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak M\_\allowbreak{}\{\textbackslash{}\allowbreak{}epsilon\}\allowbreak{}} --- \texttt{SCM class}
+  \par\smallskip\noindent\emph{Definition.} Compatible models with \(P_M(S=1)>0\) and model-induced selected cells \(q_S^M(v)\ge\epsilon\) for every \(v\).
+  \item \texttt{\textbackslash{}\allowbreak{}operatorname\{Obs\}\allowbreak{}\_\allowbreak{}\{T\_\allowbreak{}0\}\allowbreak{}} --- \texttt{observed-\allowbreak{}data map}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Obs}_{T_0}(M)=(q_S^M,q_0^M)=(P_M(V\mid S=1),P_M(T_0))\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}\{\textbackslash{}\allowbreak{}epsilon\}\allowbreak{}} --- \texttt{compatible observed-\allowbreak{}data image}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C_{\epsilon}(\mathcal G,T_0)=\{\operatorname{Obs}_{T_0}(M):M\in\mathfrak M_{\epsilon}(\mathcal G)\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak F\_\allowbreak{}\{\textbackslash{}\allowbreak{}epsilon\}\allowbreak{}} --- \texttt{exact observed-\allowbreak{}data fiber}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0)=\{M\in\mathfrak M_{\epsilon}(\mathcal G):\operatorname{Obs}_{T_0}(M)=(q_S,q_0)\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak R\_\allowbreak{}\{\textbackslash{}\allowbreak{}epsilon,\allowbreak{}\textbackslash{}\allowbreak{}eta\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}circ\}\allowbreak{}} --- \texttt{representation-\allowbreak{}indexed interior class}
+  \par\smallskip\noindent\emph{Definition.} Triples \((M,\mathcal R,U_0)\) in which \(M\in\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0)\), \(\mathcal R\) is the chosen finite independent response representation whose every coordinate state space is exactly its positive support, and every atom in every such state space has mass at least \(\eta\).
+  \item \texttt{\textbackslash{}\allowbreak{}psi\_\allowbreak{}\{x,\allowbreak{}y\}\allowbreak{}} --- \texttt{causal query map}; \texttt{target cell}
+  \par\smallskip\noindent\emph{Definition.} \(\psi_{x,y}(M)=P_M(Y=y\mid\operatorname{do}(X=x))\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal I} --- \texttt{finite target-\allowbreak{}cell index set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal I=\mathcal X_X\times\mathcal X_Y\).
+  \item \texttt{\textbackslash{}\allowbreak{}boldsymbol\textbackslash{}\allowbreak{}psi} --- \texttt{finite full conditional-\allowbreak{}kernel table}; \texttt{all intervention and outcome cells}
+  \par\smallskip\noindent\emph{Definition.} \(\boldsymbol\psi(M)=\{\psi_{x,y}(M):(x,y)\in\mathcal I\}=\{P_M(Y=y\mid\operatorname{do}(X=x)):(x,y)\in\mathcal I\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{ATE\}\allowbreak{}\}\allowbreak{}} --- \texttt{full-\allowbreak{}population average treatment effect}
+  \par\smallskip\noindent\emph{Definition.} When \(X\) is binary and \(Y\) is numeric, \(\theta_{\mathrm{ATE}}(M)=E_M[Y\mid\operatorname{do}(X=1)]-E_M[Y\mid\operatorname{do}(X=0)]\).
+  \item \texttt{u} --- \texttt{chosen-\allowbreak{}coordinate atom-\allowbreak{}mass vector}; \(\Delta(\mathcal J_0)^{\circ}=\{w\in\mathbb R^{\mathcal J_0}:w_j>0,\ \sum_{j\in\mathcal J_0}w_j=1\}\)
+  \par\smallskip\noindent\emph{Definition.} For every active index \(j\in\mathcal J_0\), \(u_j=P_{\mathcal R}(U_0=j)>0\) in the fixed triple \((M,\mathcal R,U_0)\); there are no coordinates outside \(\mathcal J_0\), and all response maps and all other exogenous-coordinate laws are held fixed.
+  \item \texttt{a\_\allowbreak{}v} --- \texttt{representation-\allowbreak{}indexed selected joint-\allowbreak{}likelihood row}; \([0,1]^{\mathcal J_0}\)
+  \par\smallskip\noindent\emph{Definition.} For the fixed \((M,\mathcal R,U_0)\) and every \(j\in\mathcal J_0\), \(a_v(j)=P_{\mathcal R}(V=v,S=1\mid U_0=j)\), integrating over the positive-support state spaces of the other coordinates of \(\mathbf U\).
+  \item \texttt{a\_\allowbreak{}+\allowbreak{}} --- \texttt{representation-\allowbreak{}indexed selection-\allowbreak{}likelihood row}; \([0,1]^{\mathcal J_0}\)
+  \par\smallskip\noindent\emph{Definition.} For every \(j\in\mathcal J_0\), \(a_+(j)=\sum_{v\in\mathcal X_V}a_v(j)=P_{\mathcal R}(S=1\mid U_0=j)\).
+  \item \texttt{b\_\allowbreak{}t} --- \texttt{representation-\allowbreak{}indexed margin row}; \([0,1]^{\mathcal J_0}\)
+  \par\smallskip\noindent\emph{Definition.} For the fixed \((M,\mathcal R,U_0)\) and every \(j\in\mathcal J_0\), \(b_t(j)=P_{\mathcal R}(T_0=t\mid U_0=j)\), integrating over the positive-support state spaces of the other coordinates of \(\mathbf U\).
+  \item \texttt{h\_\allowbreak{}\{x,\allowbreak{}y\}\allowbreak{}} --- \texttt{representation-\allowbreak{}indexed query row}; \([0,1]^{\mathcal J_0}\)
+  \par\smallskip\noindent\emph{Definition.} For the fixed \((M,\mathcal R,U_0)\) and every \(j\in\mathcal J_0\), \(h_{x,y}(j)=P_{\mathcal R}(Y=y\mid\operatorname{do}(X=x),U_0=j)\), integrating over the positive-support state spaces of the other coordinates of \(\mathbf U\); no inactive response label indexes this row.
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}\{(M,\allowbreak{}\textbackslash{}\allowbreak{}mathcal R,\allowbreak{}U\_\allowbreak{}0)\}\allowbreak{}} --- \texttt{representation-\allowbreak{}indexed projective source row space}; a linear subspace of \(\mathbb R^{\mathcal J_0}\cong\mathbb R^m\)
+  \item \texttt{\textbackslash{}\allowbreak{}beta} --- \texttt{latent perturbation direction}; \(\mathbb R^{\mathcal J_0}\)
+  \item \texttt{\textbackslash{}\allowbreak{}tau} --- \texttt{perturbation amplitude}; \(\mathbb R\)
+  \item \texttt{u\textasciicircum{}\{\textbackslash{}\allowbreak{}pm\}\allowbreak{}} --- \texttt{pair of perturbed chosen-\allowbreak{}coordinate mass vectors}; \(\mathbb R^{\mathcal J_0}\)
+  \par\smallskip\noindent\emph{Definition.} \(u^{\pm}_j=u_j\pm\tau\beta_j\) for every \(j\in\mathcal J_0\); no inactive coordinate is added.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal R\_\allowbreak{}1} --- \texttt{first perturbed response representation}
+  \par\smallskip\noindent\emph{Definition.} When \(u^+\in\Delta(\mathcal J_0)^{\circ}\), the representation obtained from \(\mathcal R\) by assigning \(U_0\) the mass vector \(u^+\) on the unchanged positive-support state space \(\mathcal J_0\) and leaving every response map and other exogenous law unchanged; it induces \(M_1\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal R\_\allowbreak{}2} --- \texttt{second perturbed response representation}
+  \par\smallskip\noindent\emph{Definition.} When \(u^-\in\Delta(\mathcal J_0)^{\circ}\), the representation obtained from \(\mathcal R\) by assigning \(U_0\) the mass vector \(u^-\) on the unchanged positive-support state space \(\mathcal J_0\) and leaving every response map and other exogenous law unchanged; it induces \(M_2\).
+  \item \texttt{F\_\allowbreak{}\{x,\allowbreak{}y\}\allowbreak{}} --- \texttt{cell-\allowbreak{}indexed finite arithmetic functional}
+  \par\smallskip\noindent\emph{Definition.} For the fixed input cell \((x,y)\), \(F_{x,y}\) is a scalar expression built from cells of \(q_S,q_0\) by finite sums, products, and divisions by positive denominators.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal A} --- \texttt{finite arithmetic expression class}
+  \par\smallskip\noindent\emph{Definition.} The closure of cells of \(q_S,q_0\) under finite sums, products, and divisions by positive denominators.
+  \item \texttt{d} --- \texttt{positive integer}; \texttt{number of intervention-\allowbreak{}outcome cells}
+  \par\smallskip\noindent\emph{Definition.} \(d=\lvert\mathcal I\rvert\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathbf F} --- \texttt{vector finite arithmetic functional}; \(\mathbb R^d\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathbf F=(F_{x,y}:(x,y)\in\mathcal I)^{\mathsf T}\) in a fixed lexicographic cell order, whenever every cell run returns an arithmetic expression.
+  \item \texttt{\textbackslash{}\allowbreak{}operatorname\{FAIL\}\allowbreak{}} --- \texttt{decision token}; \texttt{terminal nonidentification candidate}
+  \item \texttt{\textbackslash{}\allowbreak{}operatorname\{EXT\textbackslash{}\allowbreak{}text\{-\allowbreak{}\}\allowbreak{}ID\}\allowbreak{}} --- \texttt{finite recursive cell decision procedure}; \((\mathcal G,X,Y,x,y,T_0,q_S,q_0)\mapsto F_{x,y}\text{ or }\operatorname{FAIL}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathscr K\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathcal G\}\allowbreak{}} --- \texttt{finite canonical scalar-\allowbreak{}key inventory}; \texttt{graph-\allowbreak{}fixed cell identities for scalar normalized interventional-\allowbreak{}kernel annotations}
+  \par\smallskip\noindent\emph{Definition.} \(\mathscr K_{\mathcal G}=\{(A,B,C,s,a,b,c):\varnothing\ne A\subseteq V,\ A,B,C\text{ pairwise disjoint},\ s\in\{\mathrm{pop},\mathrm{sel}\},\ a\in\mathcal X_A,\ b\in\mathcal X_B,\ c\in\mathcal X_C\}\). Thus \(\lvert\mathscr K_{\mathcal G}\rvert=2\sum_{A\ne\varnothing,\,A,B,C\,\mathrm{disjoint}}\lvert\mathcal X_A\rvert\lvert\mathcal X_B\rvert\lvert\mathcal X_C\rvert\le2\{(1+3r)^{\lvert V\rvert}-(1+2r)^{\lvert V\rvert}\}<2(1+3r)^{\lvert V\rvert}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathscr L} --- \texttt{finite ordered move-\allowbreak{}tag set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathscr L=(\mathrm{popstore},\mathrm{margin},\mathrm{popfix}_1,\mathrm{popfix}_2,\mathrm{popfix}_3,\mathrm{selfix}_1,\mathrm{selfix}_2,\mathrm{selfix}_3,\mathrm{marginal},\mathrm{condition},\mathrm{chain})\) in the displayed branch order.
+  \item \texttt{\textbackslash{}\allowbreak{}mathscr U} --- \texttt{finite ordered canonical move-\allowbreak{}instance universe}
+  \par\smallskip\noindent\emph{Definition.} \(\mathscr U\) is the subset of \(\mathscr L\times2^V\times2^{\mathscr K_{\mathcal G}}\times\mathscr K_{\mathcal G}\) whose coordinates give the move tag, moved block \(H\), complete finite set of required scalar input keys, and one scalar output key specified by the exact probability, graphical-fixing, or source-bridge transition relation. The order is first by \(\mathscr L\), then by a fixed lexicographic order on subsets, finite input-key sets, and output keys, and \(\lvert\mathscr U\rvert\le11\cdot2^{\lvert V\rvert}2^{\lvert\mathscr K_{\mathcal G}\rvert}\lvert\mathscr K_{\mathcal G}\rvert\). Arithmetic expressions and derivation lengths are not move-instance coordinates.
+  \item \texttt{\textbackslash{}\allowbreak{}sigma} --- \texttt{EXT-\allowbreak{}ID saturation state}
+  \par\smallskip\noindent\emph{Definition.} For the fixed procedure input \((\mathcal G,X,Y,x,y,T_0,q_S,q_0)\), \(\sigma=(K_\sigma,E_\sigma)\), where \(K_\sigma\subseteq\mathscr K_{\mathcal G}\) is the finite set of present scalar cell keys and \(E_\sigma\) assigns each present key one scalar arithmetic-expression annotation and one provenance pointer in \(\mathscr U\cup\{\mathrm{init}_S,\mathrm{init}_0\}\); transition eligibility and duplicate detection depend on \(K_\sigma\), not on the spelling of an annotation.
+  \item \texttt{K\_\allowbreak{}\textbackslash{}\allowbreak{}sigma} --- \texttt{present canonical kernel-\allowbreak{}key set}; \(K_\sigma\subseteq\mathscr K_{\mathcal G}\)
+  \par\smallskip\noindent\emph{Definition.} The first coordinate of \(\sigma\); membership records a canonical scalar cell key, never its arithmetic formula.
+  \item \texttt{E\_\allowbreak{}\textbackslash{}\allowbreak{}sigma} --- \texttt{finite expression-\allowbreak{}annotation and backpointer map}
+  \par\smallskip\noindent\emph{Definition.} The second coordinate of \(\sigma\), a partial map from scalar keys \(\xi\in\mathscr K_{\mathcal G}\) to scalar expressions in \(\mathcal A(q_S,q_0)\), paired with a provenance pointer in \(\mathscr U\cup\{\mathrm{init}_S,\mathrm{init}_0\}\); its values do not generate key identities and are ignored by duplicate detection and the termination measure.
+  \item \texttt{\textbackslash{}\allowbreak{}mu} --- \texttt{termination measure}
+  \par\smallskip\noindent\emph{Definition.} \(\mu(\sigma)=\lvert\mathscr K_{\mathcal G}\setminus K_\sigma\rvert\).
+  \item \texttt{\textbackslash{}\allowbreak{}operatorname\{QE\}\allowbreak{}\_\allowbreak{}3} --- \texttt{specification for a future parameterized exact finite audit artifact}
+  \par\smallskip\noindent\emph{Definition.} A not-yet-executed real-closed-field quantifier-elimination and cylindrical-algebraic-decomposition audit specification for binary selection ADMGs with at most three substantive vertices; a conforming artifact must keep \(q_S,q_0,\epsilon\) symbolic and return exact branch certificates.
+  \item \texttt{n\_\allowbreak{}S} --- \texttt{positive integer}; \texttt{selected-\allowbreak{}sample size}
+  \item \texttt{n\_\allowbreak{}0} --- \texttt{positive integer}; \texttt{external-\allowbreak{}margin sample size}
+  \item \texttt{n} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} \(n=n_S+n_0\).
+  \item \texttt{O\_\allowbreak{}i\textasciicircum{}S} --- \texttt{selected observation}; \(\mathcal X_V\)
+  \item \texttt{O\_\allowbreak{}j\textasciicircum{}0} --- \texttt{margin observation}; \(\mathcal X_{T_0}\)
+  \item \texttt{o} --- \texttt{generic source cell}; \(\mathcal X_V\) or \(\mathcal X_{T_0}\)
+  \item \texttt{e\_\allowbreak{}o} --- \texttt{one-\allowbreak{}hot cell vector}
+  \par\smallskip\noindent\emph{Definition.} The coordinate vector equal to one at cell \(o\) and zero elsewhere.
+  \item \texttt{\textbackslash{}\allowbreak{}lambda} --- \texttt{sampling fraction limit}; \((0,1)\)
+  \par\smallskip\noindent\emph{Definition.} \(n_S/n\to\lambda\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat q\_\allowbreak{}S} --- \texttt{selected empirical table}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat q_S(v)=n_S^{-1}\sum_{i=1}^{n_S}\mathbf 1\{O_i^S=v\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat q\_\allowbreak{}0} --- \texttt{margin empirical table}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat q_0(t)=n_0^{-1}\sum_{j=1}^{n_0}\mathbf 1\{O_j^0=t\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}mathbf F\}\allowbreak{}} --- \texttt{saturated two-\allowbreak{}source plug-\allowbreak{}in estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat{\mathbf F}=\mathbf F(\widehat q_S,\widehat q_0)\).
+  \item \texttt{D\_\allowbreak{}S\textbackslash{}\allowbreak{}mathbf F} --- \texttt{selected-\allowbreak{}table tangent derivative}
+  \par\smallskip\noindent\emph{Definition.} The Fréchet derivative of \(\mathbf F\) in the selected-source multinomial tangent space \(\{z\in\mathbb R^{\lvert\mathcal X_V\rvert}:\mathbf 1^{\mathsf T}z=0\}\), evaluated at \(q_S\).
+  \item \texttt{D\_\allowbreak{}0\textbackslash{}\allowbreak{}mathbf F} --- \texttt{margin-\allowbreak{}table tangent derivative}
+  \par\smallskip\noindent\emph{Definition.} The Fréchet derivative of \(\mathbf F\) in the margin-source multinomial tangent space \(\{z\in\mathbb R^{\lvert\mathcal X_{T_0}\rvert}:\mathbf 1^{\mathsf T}z=0\}\), evaluated at \(q_0\).
+  \item \texttt{\textbackslash{}\allowbreak{}phi\_\allowbreak{}S} --- \texttt{selected-\allowbreak{}source influence vector}; \(\mathbb R^d\)
+  \item \texttt{\textbackslash{}\allowbreak{}phi\_\allowbreak{}0} --- \texttt{margin-\allowbreak{}source influence vector}; \(\mathbb R^d\)
+  \item \texttt{\textbackslash{}\allowbreak{}Sigma} --- \texttt{asymptotic covariance matrix}; \(\mathbb R^{d\times d}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal K} --- \texttt{fixed positive compact inference class}; \texttt{uniformity domain}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}Sigma} --- \texttt{covariance estimator}
+  \par\smallskip\noindent\emph{Definition.} If every denominator appearing in \(\mathbf F(\widehat q_S,\widehat q_0)\) is strictly positive, define \[\widehat\phi_S(o)=\left.D_S\mathbf F\right|_{(\widehat q_S,\widehat q_0)}[e_o-\widehat q_S],\qquad \widehat\phi_0(o)=\left.D_0\mathbf F\right|_{(\widehat q_S,\widehat q_0)}[e_o-\widehat q_0],\] and \[\widehat\Sigma=\frac n{n_S}\sum_{o\in\mathcal X_V}\widehat q_S(o)\widehat\phi_S(o)\widehat\phi_S(o)^{\mathsf T}+\frac n{n_0}\sum_{o\in\mathcal X_{T_0}}\widehat q_0(o)\widehat\phi_0(o)\widehat\phi_0(o)^{\mathsf T}.\] If any such denominator is nonpositive, set \(\widehat\Sigma\) equal to the \(d\times d\) zero matrix.
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{significance level}; \((0,1)\)
+  \item \texttt{c\_\allowbreak{}\{1-\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{Bonferroni Gaussian critical value}
+  \par\smallskip\noindent\emph{Definition.} \(c_{1-\alpha}=\Phi^{-1}(1-\alpha/(2d))\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat C\_\allowbreak{}\{1-\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{simultaneous confidence region}; a subset of \(\mathbb R^d\)
+  \item \texttt{\textbackslash{}\allowbreak{}widetilde\{\textbackslash{}\allowbreak{}mathcal G\}\allowbreak{}} --- \texttt{canonical latent-\allowbreak{}variable DAG realization}
+  \par\smallskip\noindent\emph{Definition.} A canonical DAG whose finite-state main variables are \(V\cup\{S\}\) and whose independent exogenous disturbances realize the semi-Markovian selection ADMG \(\mathcal G\).
+  \item \texttt{N} --- \texttt{finite recursive semi-\allowbreak{}Markovian substantive SCM}; \texttt{ordinary positive hedge-\allowbreak{}witness model on the substantive graph}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal R\textasciicircum{}\{V\}\allowbreak{}} --- \texttt{finite substantive response-\allowbreak{}function representation}
+  \par\smallskip\noindent\emph{Definition.} A finite independent response representation of \(N\) on \(G_V=\mathcal G[V]\), with every coordinate state space equal to its positive-probability support.
+  \item \texttt{c\_\allowbreak{}v} --- \texttt{representation-\allowbreak{}indexed substantive likelihood row}; \([0,1]^{\mathcal J_0}\)
+  \par\smallskip\noindent\emph{Definition.} For \(j\in\mathcal J_0\), \(c_v(j)=P_{\mathcal R^{V}}(V=v\mid U_0=j)\), integrating over the other independent coordinates of \(\mathcal R^{V}\).
+  \item \texttt{\textbackslash{}\allowbreak{}pi\_\allowbreak{}S} --- \texttt{common terminal unconfounded selection kernel}; \(\pi_S(1\mid p)\in(0,1)\) for every parent cell \(p\)
+  \par\smallskip\noindent\emph{Definition.} The conditional law of terminal \(S\) given its directed parents in \(\mathcal G\), implemented by a finite exogenous response coordinate independent of all substantive exogenous coordinates and used unchanged in both lifted models.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal J\_\allowbreak{}\{\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{active support of one canonical exogenous response coordinate}
+  \par\smallskip\noindent\emph{Definition.} A nonempty finite subset of the deterministic response labels allowed for canonical exogenous coordinate \(\ell\).
+  \item \texttt{w\_\allowbreak{}\{\textbackslash{}\allowbreak{}ell j\}\allowbreak{}} --- \texttt{canonical exogenous response-\allowbreak{}atom mass}; \(w_{\ell j}>0\) with \(\sum_{j\in\mathcal J_{\ell}}w_{\ell j}=1\)
+  \item \texttt{\textbackslash{}\allowbreak{}omega} --- \texttt{canonical joint exogenous response assignment}; \(\omega\in\prod_{\ell}\mathcal J_{\ell}\)
+  \item \texttt{\textbackslash{}\allowbreak{}vartheta} --- \texttt{canonical graph-\allowbreak{}compatible multi-\allowbreak{}coordinate response point}
+  \par\smallskip\noindent\emph{Definition.} A choice of one active-support stratum of graph-compatible deterministic response maps together with independent coordinate weights \(w_{\ell j}\) on each \(\mathcal J_{\ell}\).
+  \item \texttt{V\_\allowbreak{}\{\textbackslash{}\allowbreak{}vartheta\}\allowbreak{}} --- \texttt{recursive substantive output map of a response point}
+  \par\smallskip\noindent\emph{Definition.} \(V_{\vartheta}(\omega)\) is the substantive output obtained by evaluating the acyclic deterministic recursion of \(\vartheta\) at \(\omega\).
+  \item \texttt{S\_\allowbreak{}\{\textbackslash{}\allowbreak{}vartheta\}\allowbreak{}} --- \texttt{recursive selection output map of a response point}
+  \par\smallskip\noindent\emph{Definition.} \(S_{\vartheta}(\omega)\in\{0,1\}\) is the selection output obtained from the deterministic recursion of \(\vartheta\) at \(\omega\).
+  \item \texttt{Y\_\allowbreak{}\{\textbackslash{}\allowbreak{}vartheta,\allowbreak{}x\}\allowbreak{}} --- \texttt{recursive intervened outcome map of a response point}
+  \par\smallskip\noindent\emph{Definition.} \(Y_{\vartheta,x}(\omega)\) is the value of \(Y\) obtained by evaluating the deterministic recursion of \(\vartheta\) after replacing the equations for \(X\) by \(X=x\).
+  \item \texttt{p\_\allowbreak{}\{\textbackslash{}\allowbreak{}vartheta\}\allowbreak{}} --- \texttt{canonical selected-\allowbreak{}joint probability polynomial}
+  \par\smallskip\noindent\emph{Definition.} \(p_{\vartheta}(v,1)=\sum_{\omega:V_{\vartheta}(\omega)=v,\,S_{\vartheta}(\omega)=1}\prod_{\ell}w_{\ell,\omega_{\ell}}\).
+  \item \texttt{m\_\allowbreak{}\{\textbackslash{}\allowbreak{}vartheta\}\allowbreak{}} --- \texttt{canonical external-\allowbreak{}margin probability polynomial}
+  \par\smallskip\noindent\emph{Definition.} \(m_{\vartheta}(t)=\sum_{\omega:(V_{\vartheta}(\omega))_{T_0}=t}\prod_{\ell}w_{\ell,\omega_{\ell}}\).
+  \item \texttt{g\_\allowbreak{}\{\textbackslash{}\allowbreak{}vartheta,\allowbreak{}x,\allowbreak{}y\}\allowbreak{}} --- \texttt{canonical causal-\allowbreak{}query probability polynomial}
+  \par\smallskip\noindent\emph{Definition.} \(g_{\vartheta,x,y}=\sum_{\omega:Y_{\vartheta,x}(\omega)=y}\prod_{\ell}w_{\ell,\omega_{\ell}}\).
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}\{\textbackslash{}\allowbreak{}vartheta\}\allowbreak{}} --- \texttt{canonical positive selection normalizer}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_{\vartheta}=\sum_{v\in\mathcal X_V}p_{\vartheta}(v,1)\).
+  \item \texttt{\textbackslash{}\allowbreak{}operatorname\{RF\}\allowbreak{}\_\allowbreak{}\{x,\allowbreak{}y\}\allowbreak{}} --- \texttt{canonical two-\allowbreak{}response-\allowbreak{}point exact-\allowbreak{}fiber feasibility formula}; \((\mathcal G,T_0,q_S,q_0,x,y)\mapsto\{\mathrm{true},\mathrm{false}\}\); \texttt{computable semialgebraic certificate of scalar exact-\allowbreak{}fiber nonidentification}
+  \item \texttt{N\_\allowbreak{}1} --- \texttt{finite recursive semi-\allowbreak{}Markovian substantive SCM}; \texttt{first positive ordinary nonidentification witness}
+  \item \texttt{N\_\allowbreak{}2} --- \texttt{finite recursive semi-\allowbreak{}Markovian substantive SCM}; \texttt{second positive ordinary nonidentification witness}
+  \item \texttt{p} --- \texttt{strictly positive substantive probability table}; \(p\in\Delta(\mathcal X_V)\) with \(p(v)>0\) for every \(v\in\mathcal X_V\); \texttt{common full observational law of the substantive witness pair}
+  \par\smallskip\noindent\emph{Definition.} For the positive ordinary witness pair, \(p(v)=P_{N_1}(V=v)=P_{N_2}(V=v)\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:finite-state]\label{ass:finite-state}
+Every substantive variable has a known finite state space and \(S\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (Finite-state causal model, \cite{ShpitserPearl2006JointID}).
+\end{assumption}
+
+\begin{assumption}[ass:semi-markovian]\label{ass:semi-markovian}
+\(M\) is recursive, semi-Markovian, and compatible with \(\mathcal G\).
+\par\smallskip\noindent\emph{Standard} (Recursive semi-Markovian SCM compatibility, \cite{ShpitserPearl2006JointID}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-selection]\label{ass:positive-selection}
+\(P_M(S=1)>0\).
+\par\smallskip\noindent\emph{Standard} (Positive sampling probability, \cite{CorreaTianBareinboim2019Selection}).
+\end{assumption}
+
+\begin{assumption}[ass:selected-epsilon]\label{ass:selected-epsilon}
+The model-induced selected cells satisfy \(q_S^M(v)\ge\epsilon\) for every \(v\in\mathcal X_V\).
+\par\smallskip\noindent\emph{Standard} (Uniform cell positivity for a finite multinomial law, \cite{vanDerVaart1998}).
+\end{assumption}
+
+\begin{assumption}[ass:response-interior]\label{ass:response-interior}
+For the chosen representation \(\mathcal R\), every atom in the declared positive-support state space of every independent exogenous coordinate in \(\mathbf U\) has probability at least \(\eta\).
+\par\smallskip\noindent\emph{Novel.} This is a representation-indexed interior restriction, not observed-law positivity. It holds for finite noisy response-type models whose positive-support mixing weights are uniformly separated from zero; after deleting zero-mass labels, every fixed finite representation satisfies it for some representation-specific \(\eta>0\).
+\end{assumption}
+
+\begin{assumption}[ass:two-independent-samples]\label{ass:two-independent-samples}
+\(O_1^S,\ldots,O_{n_S}^S\) are i.i.d. from \(q_S\), \(O_1^0,\ldots,O_{n_0}^0\) are i.i.d. from \(q_0\), and the two samples are independent.
+\par\smallskip\noindent\emph{Standard} (Independent non-nested two-sample model, \cite{LiBuchananCole2022ACTG}).
+\end{assumption}
+
+\begin{assumption}[ass:sample-share]\label{ass:sample-share}
+\(n_S/n\to\lambda\in(0,1)\).
+\par\smallskip\noindent\emph{Standard} (Stable two-sample allocation, \cite{LiBuchananCole2022ACTG}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-denominators]\label{ass:positive-denominators}
+Every denominator in the returned expression \(\mathbf F(q_S,q_0)\) is bounded below by a fixed positive constant.
+\par\smallskip\noindent\emph{Standard} (Interior differentiability of a finite probability functional, \cite{vanDerVaart1998}).
+\end{assumption}
+
+\begin{assumption}[ass:covariance-nondegenerate]\label{ass:covariance-nondegenerate}
+For some fixed \(\underline\sigma>0\), \(\min_{1\le k\le d}\Sigma_{kk}\ge\underline\sigma\).
+\par\smallskip\noindent\emph{Standard} (Positive coordinatewise asymptotic variances, \cite{vanDerVaart1998}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Positive selected-\allowbreak{}law SCM class}
+\par\smallskip\noindent\emph{Construction.} \[\mathfrak M_{\epsilon}(\mathcal G)=\{M:\text{ \(M\) satisfies \(\mathrm{ass{:}finite\text{-}state}\), \(\mathrm{ass{:}semi\text{-}markovian}\), and \(\mathrm{ass{:}positive\text{-}selection}\), and \(q_S^M(v)\ge\epsilon\) for every \(v\in\mathcal X_V\)}\}.\]
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}finite-\allowbreak{}state}; \texttt{ass:\allowbreak{}semi-\allowbreak{}markovian}; \texttt{ass:\allowbreak{}positive-\allowbreak{}selection}; \texttt{ass:\allowbreak{}selected-\allowbreak{}epsilon}.
+\end{definition}
+
+\begin{definition}[def:observed-data-map]\label{def:observed-data-map}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Model-\allowbreak{}induced two-\allowbreak{}law observation map}
+\par\smallskip\noindent\emph{Construction.} \[\operatorname{Obs}_{T_0}(M)=\bigl(q_S^M,q_0^M\bigr)=\bigl(P_M(V\mid S=1),P_M(T_0)\bigr).\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{M}; \texttt{T\_\allowbreak{}0}.
+\end{definition}
+
+\begin{definition}[def:compatible-input-image]\label{def:compatible-input-image}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Compatible positive observed-\allowbreak{}data image}
+\par\smallskip\noindent\emph{Construction.} \[\mathcal C_{\epsilon}(\mathcal G,T_0)=\{\operatorname{Obs}_{T_0}(M):M\in\mathfrak M_{\epsilon}(\mathcal G)\}.\] This is exactly the image of the positive graph-compatible model class; membership is not defined through existence of a separating pair.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal G}; \texttt{T\_\allowbreak{}0}; \texttt{\textbackslash{}\allowbreak{}epsilon}.
+\end{definition}
+
+\begin{definition}[def:exact-observed-fiber]\label{def:exact-observed-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact compatible observed-\allowbreak{}data fiber}
+\par\smallskip\noindent\emph{Construction.} For \((q_S,q_0)\in\mathcal C_{\epsilon}(\mathcal G,T_0)\), \[\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0)=\{M\in\mathfrak M_{\epsilon}(\mathcal G):\operatorname{Obs}_{T_0}(M)=(q_S,q_0)\}.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal G}; \texttt{T\_\allowbreak{}0}; \texttt{q\_\allowbreak{}S}; \texttt{q\_\allowbreak{}0}; \texttt{\textbackslash{}\allowbreak{}epsilon}.
+\end{definition}
+
+\begin{definition}[def:represented-interior-class]\label{def:represented-interior-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact-\allowbreak{}fiber representation-\allowbreak{}indexed response-\allowbreak{}interior class}
+\par\smallskip\noindent\emph{Construction.} \[\mathfrak R_{\epsilon,\eta}^{\circ}(\mathcal G,T_0;q_S,q_0)=\{(M,\mathcal R,U_0): M\in\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0),\ \mathcal R\text{ is a finite independent response representation of }M,\ U_0\in\mathbf U,\text{ every coordinate state space in }\mathbf U\text{ equals its positive support, and every atom in every such state space has mass at least }\eta\}.\]
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}finite-\allowbreak{}state}; \texttt{ass:\allowbreak{}semi-\allowbreak{}markovian}; \texttt{ass:\allowbreak{}positive-\allowbreak{}selection}; \texttt{ass:\allowbreak{}selected-\allowbreak{}epsilon}; \texttt{ass:\allowbreak{}response-\allowbreak{}interior}.
+\end{definition}
+
+\begin{definition}[def:arithmetic-language]\label{def:arithmetic-language}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite arithmetic expression language}
+\par\smallskip\noindent\emph{Construction.} For a fixed input \((q_S,q_0)\), \(\mathcal A(q_S,q_0)\) is the smallest class of scalar expressions containing every cell of \(q_S\) and \(q_0\) and closed under finite addition, multiplication, and division by an expression whose value at that input is positive. A successful cell run returns one \(F_{x,y}\in\mathcal A(q_S,q_0)\); causal validity is asserted only when \((q_S,q_0)\in\mathcal C_{\epsilon}(\mathcal G,T_0)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{q\_\allowbreak{}S}; \texttt{q\_\allowbreak{}0}.
+\end{definition}
+
+\begin{definition}[def:probability-moves]\label{def:probability-moves}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact probability-\allowbreak{}calculus transitions}
+\par\smallskip\noindent\emph{Construction.} For every source tag \(s\), intervention block \(B\), conditioning block \(C\), disjoint nonempty blocks \(A,H\), and fixed output cell, the following are the complete scalar probability-calculus moves. Marginalization requires the \(\lvert\mathcal X_H\rvert\) input keys \(\{(A\cup H,B,C,s,(a,h),b,c):h\in\mathcal X_H\}\), outputs \((A,B,C,s,a,b,c)\), and stores \(E_{\mathrm{out}}=\sum_hE_\sigma(A\cup H,B,C,s,(a,h),b,c)\); it introduces no denominator. Conditioning requires all \(\lvert\mathcal X_A\rvert\) keys \(\{(A\cup H,B,C,s,(a',h),b,c):a'\in\mathcal X_A\}\), outputs \((A,B,C\cup H,s,a,b,(c,h))\), and stores the annotation at \((a,h)\) divided by the sum over \(a'\); it is admissible exactly when that denominator is positive. Chain composition has arity two: inputs \((A,B,C,s,a,b,c)\) and \((H,B,C\cup A,s,h,b,(c,a))\), output \((A\cup H,B,C,s,(a,h),b,c)\), and stored product of the two scalar annotations. The symmetric chain instance interchanges \(A,H\); only the lexicographically first representation of an identical output scalar key is eligible. Each required input and output belongs to \(\mathscr K_{\mathcal G}\), and each move instance records its complete finite input-key set.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathscr K\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathcal G\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}mathcal A}.
+\end{definition}
+
+\begin{definition}[def:graphical-fixing-moves]\label{def:graphical-fixing-moves}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact population and selection-\allowbreak{}aware graphical fixing transitions}
+\par\smallskip\noindent\emph{Construction.} Write \(G_{\overline B}\) for \(\mathcal G\) with arrows into \(B\) removed, \(G_{\overline B,\underline H}\) also with arrows out of \(H\) removed, and \(H_s(C)=H\setminus\operatorname{An}_{G_{\overline B}}(C\cup S_s)\). For \(s\in\{\mathrm{pop},\mathrm{sel}\}\), each scalar transition has arity one, retains its source tag, copies the input annotation, and introduces no denominator. Rule \(1\) maps \((A,B,C\cup H,s,a,b,(c,h))\leftrightarrow(A,B,C,s,a,b,c)\) when \(A\perp\!\!\!\perp H\mid B,C,S_s\) in \(G_{\overline B}\). Rule \(2\) maps \((A,B,C\cup H,s,a,b,(c,h))\leftrightarrow(A,B\cup H,C,s,a,(b,h),c)\) when \(A\perp\!\!\!\perp H\mid B,C,S_s\) in \(G_{\overline B,\underline H}\). Rule \(3\) maps \((A,B\cup H,C,s,a,(b,h),c)\leftrightarrow(A,B,C,s,a,b,c)\) when \(A\perp\!\!\!\perp H\mid B,C,S_s\) in \(G_{\overline B,\overline{H_s(C)}}\). Each displayed reverse and each cell \((a,b,c,h)\) is a separate canonical move instance. The \(\mathrm{popfix}_r\) tags have \(s=\mathrm{pop}\), and \(\mathrm{selfix}_r\) have \(s=\mathrm{sel}\), so the latter condition every separation test on \(S=1\). Disjointness of \(A,B,C,H\), nonemptiness of \(A,H\), membership of both scalar keys in \(\mathscr K_{\mathcal G}\), and definition of the displayed input cell are mandatory.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal G}; \texttt{\textbackslash{}\allowbreak{}mathscr K\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathcal G\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:source-bridge-moves]\label{def:source-bridge-moves}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact margin-\allowbreak{}extension and population-\allowbreak{}storage transitions}
+\par\smallskip\noindent\emph{Construction.} Margin extension has arity two at each cell. For nonempty \(Z\subseteq V\setminus T_0\), fixed \(t\in\mathcal X_{T_0}\), and fixed \(z\in\mathcal X_Z\), its only input keys are \((Z,\varnothing,T_0,\mathrm{sel},z,\ast,t)\) and \((T_0,\varnothing,\varnothing,\mathrm{pop},t,\ast,\ast)\). If \(Z\perp\!\!\!\perp S\mid T_0\) in \(\mathcal G\) and the selected conditional cell is defined, the output is \((T_0\cup Z,\varnothing,\varnothing,\mathrm{pop},(t,z),\ast,\ast)\), with annotation equal to the product of the two input annotations. Population storage has arity one at each \((a,b,c)\): input \((A,B,C,\mathrm{sel},a,b,c)\), output \((A,B,C,\mathrm{pop},a,b,c)\), and unchanged annotation when \(A\perp\!\!\!\perp S\mid B,C\) in \(G_{\overline B}\). Every conditioning cell used by an input must have positive probability. These are the only source-changing moves, and every output belongs to \(\mathscr K_{\mathcal G}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal G}; \texttt{T\_\allowbreak{}0}; \texttt{\textbackslash{}\allowbreak{}mathscr K\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathcal G\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:extid-state-machine]\label{def:extid-state-machine}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Canonical finite mixed-\allowbreak{}source saturation machine}
+\par\smallskip\noindent\emph{Construction.} On input \((\mathcal G,X,Y,x,y,T_0,q_S,q_0)\), \(\operatorname{EXT\text{-}ID}\) initializes, for every \(v\in\mathcal X_V\), the scalar key \((V,\varnothing,\varnothing,\mathrm{sel},v,\ast,\ast)\) with annotation \(q_S(v)\) and provenance \(\mathrm{init}_S\). When \(T_0\ne\varnothing\), it also initializes, for every \(t\in\mathcal X_{T_0}\), \((T_0,\varnothing,\varnothing,\mathrm{pop},t,\ast,\ast)\) with \(q_0(t)\) and provenance \(\mathrm{init}_0\); when \(T_0=V\), these are exactly all cells of the full population law. When \(T_0=\varnothing\), \(q_0\) is the unique trivial law, its scalar unit creates no key, and no margin-extension instance is admissible because its required nonempty population-margin input key is absent. Population storage remains admissible whenever its unchanged predicate \(A\perp\!\!\!\perp S\mid B,C\) in \(G_{\overline B}\) holds, including the corresponding unconditional selection-independence predicate when \(B=C=\varnothing\). At each state the scalar target key \((Y,X,\varnothing,\mathrm{pop},y,x,\ast)\) is checked first. Otherwise the procedure scans \(\mathscr U\) in the order \(\mathrm{popstore},\mathrm{margin},\mathrm{popfix}_1,\mathrm{popfix}_2,\mathrm{popfix}_3,\mathrm{selfix}_1,\mathrm{selfix}_2,\mathrm{selfix}_3,\mathrm{marginal},\mathrm{condition},\mathrm{chain}\), then lexicographically, and takes the first instance whose exact premises hold, whose complete finite input-key set is contained in \(K_\sigma\), and whose one output scalar key is absent. It adds that output key, stores the displayed scalar arithmetic annotation and backpointer, and preserves all old entries. A present output is a duplicate and is skipped without overwrite. The target annotation is returned as \(F_{x,y}\); if no enabled instance has an absent output, \(\operatorname{FAIL}\) is returned. Formula spelling and derivation length never affect key identity or priority.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal G}; \texttt{X}; \texttt{Y}; \texttt{x}; \texttt{y}; \texttt{T\_\allowbreak{}0}; \texttt{q\_\allowbreak{}S}; \texttt{q\_\allowbreak{}0}.
+\end{definition}
+
+\begin{definition}[def:full-kernel-collection]\label{def:full-kernel-collection}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite full conditional-\allowbreak{}kernel collection}
+\par\smallskip\noindent\emph{Construction.} Run \(\operatorname{EXT\text{-}ID}(\mathcal G,X,Y,x,y,T_0,q_S,q_0)\) separately for every \((x,y)\in\mathcal I\), in the fixed lexicographic order. If every run returns \(F_{x,y}\), collect the results as \(\mathbf F=(F_{x,y}:(x,y)\in\mathcal I)^{\mathsf T}\), with coordinates indexed against the target table \(\boldsymbol\psi(M)\). If any run returns \(\operatorname{FAIL}\), report the set of failed cells and do not form \(\mathbf F\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal G}; \texttt{X}; \texttt{Y}; \texttt{T\_\allowbreak{}0}; \texttt{q\_\allowbreak{}S}; \texttt{q\_\allowbreak{}0}.
+\end{definition}
+
+\begin{definition}[def:projective-row-space]\label{def:projective-row-space}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Representation-\allowbreak{}indexed projective source row space}
+\par\smallskip\noindent\emph{Construction.} On the active index set \(\mathcal J_0\), with \(\mathbf 1\) denoting the all-ones vector in \(\mathbb R^{\mathcal J_0}\), \[\Gamma_{(M,\mathcal R,U_0)}=\operatorname{span}\left(\mathbf 1,\{b_t:t\in\mathcal X_{T_0}\},\{(u^{\mathsf T}a_+)a_v-(u^{\mathsf T}a_v)a_+:v\in\mathcal X_V\}\right)\subseteq\mathbb R^{\mathcal J_0}.\] Every inner product and row is restricted to \(j\in\mathcal J_0\); no zero-mass response label contributes a coordinate.
+\par\smallskip\noindent\emph{Inputs.} \texttt{M}; \texttt{\textbackslash{}\allowbreak{}mathcal R}; \texttt{U\_\allowbreak{}0}; \texttt{u}; \texttt{a\_\allowbreak{}v}; \texttt{a\_\allowbreak{}+\allowbreak{}}; \texttt{b\_\allowbreak{}t}.
+\end{definition}
+
+\begin{definition}[def:represented-perturbation]\label{def:represented-perturbation}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Chosen-\allowbreak{}coordinate response-\allowbreak{}law perturbation}
+\par\smallskip\noindent\emph{Construction.} For \(u^{\pm}_j=u_j\pm\tau\beta_j\) on \(j\in\mathcal J_0\) satisfying \(u^+,u^-\in\Delta(\mathcal J_0)^{\circ}\), let \(\mathcal R_1\) and \(\mathcal R_2\) retain every deterministic response map in \(\mathcal R\) and every exogenous-coordinate law other than that of \(U_0\), while assigning \(U_0\) the mass vectors \(u^+\) and \(u^-\), respectively, on the same declared state space \(\mathcal J_0\); let \(M_1\) and \(M_2\) be the induced SCMs.
+\par\smallskip\noindent\emph{Inputs.} \texttt{M}; \texttt{\textbackslash{}\allowbreak{}mathcal R}; \texttt{U\_\allowbreak{}0}; \texttt{u}; \texttt{\textbackslash{}\allowbreak{}beta}; \texttt{\textbackslash{}\allowbreak{}tau}.
+\end{definition}
+
+\begin{definition}[def:qe3-audit]\label{def:qe3-audit}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Parameterized three-\allowbreak{}node exact audit specification}
+\par\smallskip\noindent\emph{Construction.} The symbol \(\operatorname{QE}_3\) denotes the acceptance specification for a future exact audit artifact; this definition does not assert that such an artifact has been implemented or run.  For each binary selection ADMG with \(\lvert V\rvert\leq 3\), each query specification \((T_0,X,Y,x,y)\), and each canonical branch of the exact scalar-key transition system, a conforming artifact must treat every cell of \(q_S,q_0\) and \(\epsilon\) as free real parameters.  Its parameter formula must impose the two simplex systems, \(\epsilon>0\), \(q_S(v)\geq\epsilon\) for every \(v\), and the compatible-image condition \((q_S,q_0)\in\mathcal C_{\epsilon}(\mathcal G,T_0)\) by existentially quantified graph-compatible response weights and a positive selection normalizer.  It must literally replay \(\mathscr K_{\mathcal G}\), source tags, graphical predicates, every strict positive-denominator condition, duplicate suppression, and the canonical priority of \(\operatorname{EXT\text{-}ID}\).  Response coordinates must be restricted to their declared positive supports, and every row \(u,a_v,a_+,b_t,h_{x,y}\) must use only those active coordinates.  On a success branch, the certificate obligation is emptiness of the real-closed-field formula that adds a graph-compatible response point satisfying
+\[
+ P_M(V=v,S=1)=q_S(v)P_M(S=1),\qquad
+ P_M(T_0=t)=q_0(t),\qquad
+ F_{x,y}(q_S,q_0)\neq\psi_{x,y}(M).
+\]
+On a failure branch, the certificate obligation is the existence of two graph-compatible response points sharing the symbolic \(q_S,q_0\), each with a positive selection normalizer, satisfying all exact selected-law cross-products and margin equations, having all active atoms bounded below by one common existential \(\eta>0\), and having unequal query cells.  Denominators may be cleared only after their strict positivity constraints are included.  A conforming output is a finite semialgebraic partition of the symbolic parameter domain carrying the corresponding exact certificates.  No observed table or exact fiber is to be enumerated.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal G}; \texttt{X}; \texttt{Y}; \texttt{x}; \texttt{y}; \texttt{T\_\allowbreak{}0}.
+\end{definition}
+
+\begin{definition}[def:saturated-plugin]\label{def:saturated-plugin}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Saturated two-\allowbreak{}source plug-\allowbreak{}in estimator}
+\par\smallskip\noindent\emph{Construction.} When all cell runs return differentiable expressions, collect them using \(\mathrm{def{:}full\text{-}kernel\text{-}collection}\). If every denominator appearing in \(\mathbf F(\widehat q_S,\widehat q_0)\) is strictly positive, set \[\widehat{\mathbf F}=\bigl(F_{x,y}(\widehat q_S,\widehat q_0):(x,y)\in\mathcal I\bigr)^{\mathsf T}=\mathbf F(\widehat q_S,\widehat q_0).\] Otherwise set \(\widehat{\mathbf F}=0\in\mathbb R^d\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathbf F}; \texttt{\textbackslash{}\allowbreak{}widehat q\_\allowbreak{}S}; \texttt{\textbackslash{}\allowbreak{}widehat q\_\allowbreak{}0}.
+\end{definition}
+
+\begin{definition}[def:source-influence-functions]\label{def:source-influence-functions}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Source-\allowbreak{}specific multinomial-\allowbreak{}tangent influence functions}
+\par\smallskip\noindent\emph{Construction.} With \(D_S\mathbf F\) and \(D_0\mathbf F\) interpreted as linear maps on their zero-sum multinomial tangent spaces, \[\phi_S(o)=D_S\mathbf F[e_o-q_S],\qquad \phi_0(o)=D_0\mathbf F[e_o-q_0],\qquad \Sigma=\lambda^{-1}\operatorname{Var}_{q_S}(\phi_S)+(1-\lambda)^{-1}\operatorname{Var}_{q_0}(\phi_0).\] The centered one-hot residuals belong to the stated tangent spaces, so no dimension-mismatched free-coordinate multiplication occurs.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathbf F}; \texttt{q\_\allowbreak{}S}; \texttt{q\_\allowbreak{}0}; \texttt{\textbackslash{}\allowbreak{}lambda}.
+\end{definition}
+
+\begin{definition}[def:inference-class]\label{def:inference-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fixed positive compact inference class}
+\par\smallskip\noindent\emph{Construction.} \[\mathcal K=\{(q_S,q_0)\in\mathcal C_{\epsilon}(\mathcal G,T_0):\text{ \(\mathrm{ass{:}positive\text{-}denominators}\) and \(\mathrm{ass{:}covariance\text{-}nondegenerate}\) hold, and \((q_S,q_0)\) lies in a fixed compact subset of the relative interior}\}.\] The selected-cell lower bound follows from membership in \(\mathcal C_{\epsilon}(\mathcal G,T_0)\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}positive-\allowbreak{}denominators}; \texttt{ass:\allowbreak{}covariance-\allowbreak{}nondegenerate}.
+\end{definition}
+
+\begin{definition}[def:simultaneous-region]\label{def:simultaneous-region}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Studentized simultaneous confidence region}
+\par\smallskip\noindent\emph{Construction.} \[\widehat C_{1-\alpha}=\begin{cases}\left\{z\in\mathbb R^d:\max_{1\le k\le d}\dfrac{\sqrt n\lvert\widehat{\mathbf F}_k-z_k\rvert}{\sqrt{\widehat\Sigma_{kk}}}\le c_{1-\alpha}\right\},&\min_{1\le k\le d}\widehat\Sigma_{kk}>0,\\ \mathbb R^d,&\min_{1\le k\le d}\widehat\Sigma_{kk}\le0.\end{cases}\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}mathbf F\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}Sigma}; \texttt{\textbackslash{}\allowbreak{}alpha}.
+\end{definition}
+
+\begin{definition}[def:canonical-response-fiber-formula]\label{def:canonical-response-fiber-formula}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Canonical multi-\allowbreak{}coordinate exact-\allowbreak{}fiber witness formula}
+\par\smallskip\noindent\emph{Construction.} At fixed nonrestrictive finite disturbance cardinalities, a canonical graph-compatible response point \(\vartheta\) selects one of the finitely many active-support strata of deterministic response maps allowed by \(\mathcal G\).  On each of its finitely many independent exogenous coordinates, indexed by \(\ell\), it has a nonempty active set \(\mathcal J_\ell\) and weights \(w_{\ell j}>0\) satisfying \(\sum_{j\in\mathcal J_\ell}w_{\ell j}=1\).  For an exogenous assignment \(\omega\in\prod_\ell\mathcal J_\ell\), let the acyclic recursion determine \(V_\vartheta(\omega),S_\vartheta(\omega)\), and the intervened value \(Y_{\vartheta,x}(\omega)\).  Define the explicit multi-affine polynomials
+\[
+ \begin{aligned}
+ p_\vartheta(v,1)
+ &=\sum_{\omega:\,V_\vartheta(\omega)=v,\,S_\vartheta(\omega)=1}
+      \prod_\ell w_{\ell,\omega_\ell},\\
+ m_\vartheta(t)
+ &=\sum_{\omega:\,(V_\vartheta(\omega))_{T_0}=t}
+      \prod_\ell w_{\ell,\omega_\ell},\\
+ g_{\vartheta,x,y}
+ &=\sum_{\omega:\,Y_{\vartheta,x}(\omega)=y}
+      \prod_\ell w_{\ell,\omega_\ell},
+ \qquad
+ \rho_\vartheta=\sum_vp_\vartheta(v,1).
+ \end{aligned}
+\]
+The formula \(\operatorname{RF}_{x,y}(\mathcal G,T_0;q_S,q_0)\) is the following finite disjunction over ordered pairs of canonical active-support strata: there exist response points \(\vartheta^{(1)},\vartheta^{(2)}\) in the chosen strata and one \(\eta>0\) such that, for \(i=1,2\),
+\[
+ w^{(i)}_{\ell j}\geq\eta,\qquad
+ \sum_{j\in\mathcal J^{(i)}_\ell}w^{(i)}_{\ell j}=1,\qquad
+ \rho_{\vartheta^{(i)}}>0,
+\]
+for every coordinate \(\ell\) and active atom \(j\), and
+\[
+ \begin{aligned}
+ p_{\vartheta^{(i)}}(v,1)&=q_S(v)\rho_{\vartheta^{(i)}}
+ &&\text{for every }v,\\
+ m_{\vartheta^{(i)}}(t)&=q_0(t)
+ &&\text{for every }t,\\
+ g_{\vartheta^{(1)},x,y}&\neq g_{\vartheta^{(2)},x,y}.&&
+ \end{aligned}
+\]
+All support choices, deterministic response maps, sums, and products in this formula are finite and graph-determined.  Thus \(\operatorname{RF}_{x,y}\) is an explicit finite semialgebraic feasibility formula in the two observed tables; it is a specification of the witness constraints, not an assertion that an exhaustive solver run has been executed.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal G}; \texttt{T\_\allowbreak{}0}; \texttt{q\_\allowbreak{}S}; \texttt{q\_\allowbreak{}0}; \texttt{x}; \texttt{y}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:margin-extension]\label{lem:margin-extension}
+Fix \(\epsilon>0\), \((q_S,q_0)\in\mathcal C_{\epsilon}(\mathcal G,T_0)\), and \(M\in\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0)\). For any \(Z\subseteq V\setminus T_0\) such that \(Z\perp\!\!\!\perp S\mid T_0\) in \(\mathcal G\), \[P_M(T_0,Z)=P_M(Z\mid T_0,S=1)q_0(T_0).\]
+\end{lemma}
+\begin{proof}
+Fix a cell \(t\in\mathcal X_{T_0}\) and a cell \(z\in\mathcal X_Z\).  Because \(M\in\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0)\), Definitions \(\mathrm{def{:}model\text{-}class}\), \(\mathrm{def{:}observed\text{-}data\text{-}map}\), and \(\mathrm{def{:}exact\text{-}observed\text{-}fiber}\) give
+\[
+ P_M(S=1)>0,\qquad P_M(V=v\mid S=1)=q_S(v)\geq\epsilon
+ \quad\text{for every }v\in\mathcal X_V,
+\]
+and \(P_M(T_0=t)=q_0(t)\).  Summing the selected cells over all full cells whose \(T_0\)-coordinate is \(t\) shows
+\[
+ P_M(T_0=t\mid S=1)
+ =\sum_{v:v_{T_0}=t}q_S(v)>0.
+\]
+Consequently \(P_M(T_0=t,S=1)>0\), hence also \(P_M(T_0=t)>0\); every conditional probability used below is therefore defined.
+
+By \(\mathrm{ass{:}semi\text{-}markovian}\), compatibility with \(\mathcal G\) gives the global Markov implication for the stated graphical separation.  Thus \(Z\perp\!\!\!\perp S\mid T_0\) in \(\mathcal G\) implies
+\[
+ P_M(Z=z\mid T_0=t,S=1)=P_M(Z=z\mid T_0=t).
+\]
+Multiplication by the positive population margin and then use of the exact-fiber equality yield
+\[
+ \begin{aligned}
+ P_M(T_0=t,Z=z)
+ &=P_M(Z=z\mid T_0=t)P_M(T_0=t)\\
+ &=P_M(Z=z\mid T_0=t,S=1)q_0(t).
+ \end{aligned}
+\]
+This holds cell by cell.  When \(T_0=\varnothing\), the same calculation uses the unique empty-block cell and the unit margin; when \(Z=\varnothing\), it reduces to the margin identity.  These cover all boundary cases in the statement.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This identity is the sound primitive that converts one unbiased margin into a larger population kernel. \textit{Gap.} It restates Correa, Tian, and Bareinboim's Lemma 1 as the base case needed by the new recursion. \textit{Consumer.} It produces the population kernel used by the ACTG audit whenever the measured margin blocks selection from an additional covariate block.
+
+\begin{proposition}[prop:extid-storage-invariant]\label{prop:extid-storage-invariant}
+Fix \(\epsilon>0\) and \((q_S,q_0)\in\mathcal C_{\epsilon}(\mathcal G,T_0)\). At every reachable state \(\sigma\), \(K_\sigma\subseteq\mathscr K_{\mathcal G}\), and every present scalar key \(\xi=(A,B,C,s,a,b,c)\) has exactly one scalar annotation and backpointer in \(E_\sigma\). For every \(M\in\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0)\), that annotation equals the cell \(k_\kappa^M(a\mid b,c)=P_M(A=a\mid\operatorname{do}(B=b),C=c,S_s)\) whenever the conditioning cell is positive. Every transition has exactly the finite input-key set, source tags, graphical predicate, denominator condition, scalar output key, and stored scalar functional specified by its move definition. No move overwrites a key or uses an annotation as a state identity, and only margin extension or population storage changes a selected source into a population source.
+\end{proposition}
+\begin{proof}
+We prove the assertion by induction on the number of transitions from the initialized state in Definition \(\mathrm{def{:}extid\text{-}state\text{-}machine}\).
+
+At initialization, the selected key indexed by a full cell \(v\) has annotation
+\[
+ q_S(v)=P_M(V=v\mid S=1),
+\]
+where the equality follows from membership of \(M\) in the exact fiber.  If \(T_0\neq\varnothing\), the population key indexed by \(t\) has annotation
+\[
+ q_0(t)=P_M(T_0=t).
+\]
+These are precisely the kernels named by their selected and population source tags.  The initialized keys belong to \(\mathscr K_{\mathcal G}\), and each is assigned once with its prescribed initialization backpointer.
+
+Assume the invariant before one transition.  For a marginalization transition, the induction hypothesis and finite additivity give, cell by cell,
+\[
+ \sum_{h\in\mathcal X_H}
+ P_M(A=a,H=h\mid\operatorname{do}(B=b),C=c,S_s)
+ =P_M(A=a\mid\operatorname{do}(B=b),C=c,S_s).
+\]
+For a conditioning transition, its required strict denominator condition and the induction hypothesis give
+\[
+ \frac{P_M(A=a,H=h\mid\operatorname{do}(B=b),C=c,S_s)}
+ {\sum_{a'\in\mathcal X_A}P_M(A=a',H=h\mid\operatorname{do}(B=b),C=c,S_s)}
+ =P_M(A=a\mid\operatorname{do}(B=b),C=c,H=h,S_s).
+\]
+For a chain transition, the conditional product rule gives
+\[
+ \begin{aligned}
+ &P_M(A=a\mid\operatorname{do}(B=b),C=c,S_s)\\
+ &\qquad{}\times
+ P_M(H=h\mid\operatorname{do}(B=b),C=c,A=a,S_s)\\
+ &=P_M(A=a,H=h\mid\operatorname{do}(B=b),C=c,S_s).
+ \end{aligned}
+\]
+All denominators invoked here are positive by the eligibility condition in Definition \(\mathrm{def{:}probability\text{-}moves}\).
+
+For any population or selected graphical-fixing transition, the relevant equality is exactly one of the sound do-calculus equivalences in Lemma \(\mathrm{lem{:}do\text{-}calculus\text{-}rules}\).  Its source tag is retained, and its conditioning cell is required to be positive.  For margin extension, Lemma \(\mathrm{lem{:}margin\text{-}extension}\) gives at every eligible \((t,z)\)
+\[
+ P_M(T_0=t,Z=z)
+ =P_M(Z=z\mid T_0=t,S=1)q_0(t),
+\]
+which is the stored product.  Finally, for population storage the graphical premise \(A\perp\!\!\!\perp S\mid B,C\) in \(G_{\overline B}\), the positive selected conditioning cell, and Rule 1 of Lemma \(\mathrm{lem{:}do\text{-}calculus\text{-}rules}\) imply
+\[
+ P_M(A=a\mid\operatorname{do}(B=b),C=c,S=1)
+ =P_M(A=a\mid\operatorname{do}(B=b),C=c).
+\]
+Thus every possible transition stores the model kernel named by its output key.
+
+The transition definitions require their complete finite input-key sets to be present and their output to lie in \(\mathscr K_{\mathcal G}\).  Definition \(\mathrm{def{:}extid\text{-}state\text{-}machine}\) further requires that output to be absent, adds it once with one annotation and one backpointer, and preserves every old entry.  Therefore uniqueness and the inclusion \(K_\sigma\subseteq\mathscr K_{\mathcal G}\) are preserved.  The list of move tags shows directly that probability and graphical-fixing moves retain \(s\), while the two source-bridge moves are the only transitions with selected input and population output.  This completes the induction.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This invariant is the formal firewall preventing a conditional selected table from being silently reused as a population kernel. \textit{Gap.} IDSB establishes soundness of its recursion; the enlarged saturation requires a key-level invariant that audits every probability, graphical-fixing, and source-bridge transition without treating formulas as state identities. \textit{Consumer.} A checker can replay each ACTG audit formula from its backpointers and reject any derivation that crosses source tags without a licensed bridge.
+
+\begin{theorem}[thm:extid-sound-termination]\label{thm:extid-sound-termination}
+For every finite syntactically valid cell input \((\mathcal G,X,Y,x,y,T_0,q_S,q_0)\), \(\operatorname{EXT\text{-}ID}\) terminates with at most \(\lvert\mathscr K_{\mathcal G}\rvert\le2\{(1+3r)^{\lvert V\rvert}-(1+2r)^{\lvert V\rvert}\}\) scalar keys ever present: every nonterminal transition adds one previously absent scalar key and strictly decreases \(\mu(\sigma)\). Every legal move instance belongs to the finite universe \(\mathscr U\), and its output remains in \(\mathscr K_{\mathcal G}\). Fix \(\epsilon>0\) and require \((q_S,q_0)\in\mathcal C_{\epsilon}(\mathcal G,T_0)\). If the procedure returns \(F_{x,y}\in\mathcal A(q_S,q_0)\), then \[F_{x,y}(q_S,q_0)=\psi_{x,y}(M)=P_M(Y=y\mid\operatorname{do}(X=x))\] for every \(M\in\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0)\). Running the procedure over every \((x,y)\in\mathcal I\) therefore yields \(\mathbf F(q_S,q_0)=\boldsymbol\psi(M)\) for every model in that exact fiber whenever all cell runs succeed.
+\end{theorem}
+\begin{proof}
+Write \(d_W=\lvert\mathcal X_W\rvert\leq r\) for each \(W\in V\).  To specify a scalar key, each vertex is either absent, assigned to \(A\) with one of \(d_W\) cell values, assigned to \(B\) with one of \(d_W\) values, or assigned to \(C\) with one of \(d_W\) values.  Requiring \(A\neq\varnothing\) subtracts the assignments having no \(A\)-vertex, and the two source tags contribute a factor of two.  Hence Definition \(\mathrm{def{:}extid\text{-}state\text{-}machine}\) and the inventory definition give
+\[
+ \begin{aligned}
+ \lvert\mathscr K_{\mathcal G}\rvert
+ &=2\left\{\prod_{W\in V}(1+3d_W)-\prod_{W\in V}(1+2d_W)\right\}\\
+ &\leq2\left\{(1+3r)^{\lvert V\rvert}-(1+2r)^{\lvert V\rvert}\right\}.
+ \end{aligned}
+\]
+The first equality is also obtained by partitioning according to the disjoint sets \(A,B,C\) and then counting their cells.
+
+The ordered instance universe \(\mathscr U\) is finite because \(V\), \(\mathscr K_{\mathcal G}\), and the move-tag set are finite.  Every enabled nonterminal transition is, by definition, an instance in \(\mathscr U\) whose output is a key in \(\mathscr K_{\mathcal G}\), and the absent-output condition gives
+\[
+ K_{\sigma'}=K_\sigma\cup\{\xi_{\mathrm{out}}\},
+ \qquad \xi_{\mathrm{out}}\notin K_\sigma.
+\]
+Therefore
+\[
+ \mu(\sigma')
+ =\lvert\mathscr K_{\mathcal G}\setminus K_{\sigma'}\rvert
+ =\mu(\sigma)-1.
+\]
+The nonnegative integer \(\mu\) can decrease only finitely many times.  Each intervening scan is over the finite ordered set \(\mathscr U\), so a scan either adds such a key, returns a present target, or returns \(\operatorname{FAIL}\).  Thus the procedure terminates and never has more than \(\lvert\mathscr K_{\mathcal G}\rvert\) keys present.
+
+Now fix a compatible input and a model \(M\) in its exact fiber.  By Proposition \(\mathrm{prop{:}extid\text{-}storage\text{-}invariant}\), every annotation at every reachable state equals the interventional-kernel cell named by its key.  Finite sums and products preserve membership in \(\mathcal A(q_S,q_0)\), and a division is performed only when its denominator is positive; induction on the transition count therefore also shows that every annotation is in \(\mathcal A(q_S,q_0)\).  If the target key is present, its key is
+\[
+ (Y,X,\varnothing,\mathrm{pop},y,x,\ast),
+\]
+so its annotation satisfies
+\[
+ F_{x,y}(q_S,q_0)
+ =P_M(Y=y\mid\operatorname{do}(X=x))
+ =\psi_{x,y}(M).
+\]
+The input tables are common to every \(M\) in the exact fiber, so the same equality holds simultaneously for every such model.  Applying the cell argument in the finite lexicographic order on \(\mathcal I\) and using Definition \(\mathrm{def{:}full\text{-}kernel\text{-}collection}\) gives, whenever all runs succeed,
+\[
+ \mathbf F(q_S,q_0)=\{\psi_{x,y}(M):(x,y)\in\mathcal I\}
+ =\boldsymbol\psi(M)
+\]
+for every model in the fiber.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem certifies every returned arithmetic expression and finite termination, independently of the scoped necessity result. \textit{Gap.} It deliberately makes no claim that \(\operatorname{FAIL}\) is a universal nonidentification certificate. \textit{Consumer.} It validates successful ACTG audit formulas and, at \(T_0=V\), the ordinary-ID replay supplied by the boundary proposition.
+
+\begin{theorem}[thm:projective-nullspace-certificate]\label{thm:projective-nullspace-certificate}
+Fix \(\epsilon>0\), a compatible input \((q_S,q_0)\in\mathcal C_{\epsilon}(\mathcal G,T_0)\), a target cell \((x,y)\in\mathcal I\), and \(\eta>0\). Let \((M,\mathcal R,U_0)\in\mathfrak R_{\epsilon,\eta}^{\circ}(\mathcal G,T_0;q_S,q_0)\), so the represented baseline lies in the exact fiber \(\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0)\), the declared state space of \(U_0\) is exactly \(\mathcal J_0\), and \(u_j\ge\eta\) for every \(j\in\mathcal J_0\). All following vectors and inner products are indexed only by \(\mathcal J_0\). Then \(q_S(v)=(u^{\mathsf T}a_v)/(u^{\mathsf T}a_+)\), \(q_0(t)=u^{\mathsf T}b_t\), and \(\psi_{x,y}(M)=u^{\mathsf T}h_{x,y}\). If \(h_{x,y}\notin\Gamma_{(M,\mathcal R,U_0)}\), choose \(\beta\in\Gamma_{(M,\mathcal R,U_0)}^{\perp}\subseteq\mathbb R^{\mathcal J_0}\) with \(\beta^{\mathsf T}h_{x,y}\ne0\). For every \(\tau\) satisfying \(0<\lvert\tau\rvert\le\eta/(2\lVert\beta\rVert_{\infty})\), the construction \(u^{\pm}=u\pm\tau\beta\) yields graph-compatible triples \((M_1,\mathcal R_1,U_0),(M_2,\mathcal R_2,U_0)\in\mathfrak R_{\epsilon,\eta/2}^{\circ}(\mathcal G,T_0;q_S,q_0)\). Hence \(M_1,M_2\in\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0)\), \(\operatorname{Obs}_{T_0}(M_1)=\operatorname{Obs}_{T_0}(M_2)=(q_S,q_0)\) exactly, and \[\psi_{x,y}(M_1)-\psi_{x,y}(M_2)=2\tau\beta^{\mathsf T}h_{x,y}\ne0.\] Because \(\mathbf 1\in\Gamma_{(M,\mathcal R,U_0)}\), both perturbed vectors remain normalized, and for every \(j\in\mathcal J_0\), \(u_j^{\pm}\ge u_j-\lvert\tau\rvert\lVert\beta\rVert_{\infty}\ge\eta/2>0\). Thus their declared state space remains exactly \(\mathcal J_0\); positive selection normalizers are preserved, and \(\lVert h_{x,y}\rVert_{\infty}\le1\) keeps both scalar queries in the probability range.
+\end{theorem}
+\begin{proof}
+Set
+\[
+ A_0=u^{\mathsf T}a_+,
+ \qquad N_v=u^{\mathsf T}a_v,
+ \qquad \delta_+=\beta^{\mathsf T}a_+,
+ \qquad \delta_v=\beta^{\mathsf T}a_v.
+\]
+The law of total probability over the active atoms \(j\in\mathcal J_0\), with every other independent exogenous coordinate integrated out as in the row definitions, gives
+\[
+ P_M(V=v,S=1)=\sum_{j\in\mathcal J_0}u_ja_v(j)=N_v,
+ \qquad
+ P_M(S=1)=\sum_{j\in\mathcal J_0}u_ja_+(j)=A_0>0.
+\]
+The last inequality follows from Definition \(\mathrm{def{:}represented\text{-}interior\text{-}class}\): membership there entails membership in the exact fiber, whose defining model-class membership includes \(P_M(S=1)>0\). Therefore
+\[
+ q_S(v)=\frac{N_v}{A_0}.
+\]
+The same total-probability calculation, using the definitions of \(b_t\) and \(h_{x,y}\), gives
+\[
+ q_0(t)=P_M(T_0=t)=u^{\mathsf T}b_t,
+ \qquad
+ \psi_{x,y}(M)=u^{\mathsf T}h_{x,y}.
+\]
+
+The space \(\mathbb R^{\mathcal J_0}\) is finite-dimensional because \(\mathcal J_0\) is finite. Since \(h_{x,y}\notin\Gamma_{(M,\mathcal R,U_0)}\), its orthogonal residual
+\[
+ \beta=h_{x,y}-\operatorname{proj}_{\Gamma_{(M,\mathcal R,U_0)}}h_{x,y}
+\]
+belongs to \(\Gamma_{(M,\mathcal R,U_0)}^\perp\), is nonzero, and satisfies
+\[
+ \beta^{\mathsf T}h_{x,y}=\lVert\beta\rVert_2^2>0.
+\]
+Thus a direction with the property required in the statement exists. For any such chosen direction, orthogonality to the generators in Definition \(\mathrm{def{:}projective\text{-}row\text{-}space}\) yields
+\[
+ \beta^{\mathsf T}\mathbf 1=0,
+ \qquad
+ \beta^{\mathsf T}b_t=0,
+ \qquad
+ A_0\delta_v-N_v\delta_+=0
+ \quad\text{for every }t,v.
+\]
+
+The step-size bound is defined because \(\beta\ne0\), hence \(\lVert\beta\rVert_\infty>0\). For every active atom, the response-interior hypothesis and the displayed bound on \(\tau\) give
+\[
+ u_j^{\pm}
+ \geq u_j-\lvert\tau\rvert\lVert\beta\rVert_\infty
+ \geq\frac{\eta}{2}>0,
+ \qquad
+ \sum_{j\in\mathcal J_0}u_j^{\pm}
+ =1\pm\tau\beta^{\mathsf T}\mathbf 1=1.
+\]
+Thus both \(u^+\) and \(u^-\) are probability vectors on exactly the unchanged support \(\mathcal J_0\). Every other exogenous coordinate is unchanged and has every active atom mass at least \(\eta\); hence every coordinate atom of either perturbed representation has mass at least \(\eta/2\).
+
+The row \(a_+\) is coordinatewise nonnegative. Since \(A_0=u^{\mathsf T}a_+>0\), at least one coordinate of \(a_+\) is positive. Every coordinate of \(u^\pm\) is positive, so
+\[
+ (u^\pm)^{\mathsf T}a_+=A_0\pm\tau\delta_+>0.
+\]
+For each \(v\), the cross-product equality above gives
+\[
+ \begin{aligned}
+ \frac{(u^\pm)^{\mathsf T}a_v}{(u^\pm)^{\mathsf T}a_+}
+ &=\frac{N_v\pm\tau\delta_v}{A_0\pm\tau\delta_+}\\
+ &=\frac{N_v}{A_0}=q_S(v).
+ \end{aligned}
+\]
+Indeed, the second equality follows by cross multiplication from \(A_0\delta_v=N_v\delta_+\), and both denominators are positive. Similarly,
+\[
+ (u^\pm)^{\mathsf T}b_t
+ =u^{\mathsf T}b_t\pm\tau\beta^{\mathsf T}b_t
+ =q_0(t).
+\]
+Hence the two perturbations reproduce both observed tables exactly and preserve every selected lower bound \(q_S(v)\geq\epsilon\).
+
+Only the mass vector of the independent coordinate \(U_0\) changes. All deterministic response maps, their parent arguments, and all other independent exogenous laws remain fixed. Thus the induced models remain recursive, semi-Markovian, and compatible with \(\mathcal G\). The preceding equalities and positivity place the perturbed triples in
+\[
+ \mathfrak R_{\epsilon,\eta/2}^{\circ}(\mathcal G,T_0;q_S,q_0).
+\]
+In particular, both models lie in \(\mathfrak F_\epsilon(\mathcal G,T_0;q_S,q_0)\), and their observation maps are exactly \((q_S,q_0)\). Finally,
+\[
+ \begin{aligned}
+ \psi_{x,y}(M_1)-\psi_{x,y}(M_2)
+ &=(u+\tau\beta)^{\mathsf T}h_{x,y}-(u-\tau\beta)^{\mathsf T}h_{x,y}\\
+ &=2\tau\beta^{\mathsf T}h_{x,y}\ne0.
+ \end{aligned}
+\]
+Each scalar query is a convex combination of entries of \(h_{x,y}\in[0,1]^{\mathcal J_0}\), so it lies in \([0,1]\). This proves every assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is a supporting fixed-representation certificate: once a query row escapes the normalized selected-law and margin row space, an explicit interior perturbation yields an exact same-input pair. \textit{Gap.} Its normalized cross-product constraints are specific to the two-law fiber, but it is conditional and is not the graph-level headline. \textit{Consumer.} It supports explicit response-fiber witnesses and the named three-node diagnostic; it is not used to infer that every EXT-ID failure is feasible.
+
+\begin{proposition}[prop:qiu-scope-separation]\label{prop:qiu-scope-separation}
+Qiu et al.'s external-data theorem and the present decision problem are analogues at the level of data slots and estimand mapping; no literal intersection of their model classes is asserted. After relabeling their covariate block as \(T_0\), binary treatment as \(X\), outcome as \(Y\), and observed substantive tuple as \(V\), their selected observational law and external unbiased covariate margin have the same slot pattern \(P(V\mid S=1),P(T_0)\). In any finite specialization with binary \(X\) and numeric \(Y\), \(\theta_{\mathrm{ATE}}\) is a finite linear contrast of the cells \(\psi_{x,y}\), so \(\boldsymbol\psi\) determines \(\theta_{\mathrm{ATE}}\), whereas the converse fails even for strictly positive finite Markovian DAG models. Qiu et al.'s cited theorem is conditional on unconfoundedness, treatment overlap, and specified probability classes and concludes identification of the scalar \(\theta_{\mathrm{ATE}}\), not arbitrary cells \(\psi_{x,y}\) on an arbitrary semi-Markovian \(\mathcal G\). Conversely, the present finite-state graph class neither contains their continuous-law examples nor, from \(\mathcal G\) alone, imposes their probability-class restrictions. Therefore neither theorem subsumes the other.
+\end{proposition}
+\begin{proof}
+Let \(C_Q\), \(D\), and \(R\) denote, respectively, the covariate block, binary treatment, and outcome in \(\mathrm{lem:qiu\text{-}external\text{-}ate\text{-}characterization}\).  Relabel the variables for the purpose of comparing signatures by
+\[
+T_0=C_Q,\qquad X=\{D\},\qquad Y=\{R\},\qquad
+V=C_Q\mathbin{\dot\cup}\{D,R\}.
+\tag{1}
+\]
+By \(\mathrm{def:observed\text{-}data\text{-}map}\), the two entries of the present observation map under (1) are
+\[
+\operatorname{Obs}_{T_0}(M)
+=\bigl(P_M(V\mid S=1),P_M(T_0)\bigr)
+=\bigl(P_M(C_Q,D,R\mid S=1),P_M(C_Q)\bigr).
+\tag{2}
+\]
+The cited lemma states that Qiu et al. use a selected observational law together with an external unbiased covariate margin.  Thus (2) proves equality of the two data-slot patterns after relabeling.  It does not assert equality, inclusion, or even nonempty intersection of the two model classes.
+
+We next verify the estimand map.  Suppose only for this calculation that \(R\) has a finite numeric state space and \(D\) is binary.  Every sum below is finite, so no integrability or limiting condition is needed.  The definitions of \(\theta_{\mathrm{ATE}}\) and \(\psi_{x,y}\) give, equation by equation,
+\[
+\begin{aligned}
+\theta_{\mathrm{ATE}}(M)
+&=E_M[R\mid\operatorname{do}(D=1)]
+  -E_M[R\mid\operatorname{do}(D=0)]\\
+&=\sum_{r\in\mathcal X_R}r\,
+  P_M(R=r\mid\operatorname{do}(D=1))
+  -\sum_{r\in\mathcal X_R}r\,
+  P_M(R=r\mid\operatorname{do}(D=0))\\
+&=\sum_{r\in\mathcal X_R}r\,\psi_{1,r}(M)
+  -\sum_{r\in\mathcal X_R}r\,\psi_{0,r}(M).
+\end{aligned}
+\tag{3}
+\]
+Hence the finite table \(\boldsymbol\psi(M)\), whose coordinatewise role is made explicit in \(\mathrm{def:full\text{-}kernel\text{-}collection}\), determines \(\theta_{\mathrm{ATE}}(M)\) through the displayed linear map.
+
+The converse to this last implication fails inside a strictly positive finite Markovian DAG subclass.  Consider the graph \(D\to R\) with \(S\) isolated, take \(X=\{D\}\), \(Y=\{R\}\), and let \(T_0=\varnothing\).  Let \(U_D\) and \(U_S\) be independent Bernoulli\((1/2)\) variables, and let \(U_R\) be independent of them and uniform on \(\{1,\ldots,12\}\).  In model \(M_j\), set
+\[
+D=U_D,\qquad S=U_S,
+\qquad
+R_1=\mathbf 1\{U_R\le 3+6D\},
+\qquad
+R_2=\mathbf 1\{U_R\le 4+6D\}.
+\tag{4}
+\]
+Each model is finite and recursive.  Its exogenous variables are mutually independent, so it is Markovian and therefore semi-Markovian; its structural equations follow the displayed DAG.  Also \(P_{M_j}(S=1)=1/2>0\).  Independence of \(S\) from \((D,R_j)\) yields the selected cell tables
+\[
+\begin{array}{c|cccc}
+&(D,R_j)=(0,1)&(0,0)&(1,1)&(1,0)\\ \hline
+j=1&1/8&3/8&3/8&1/8\\
+j=2&1/6&1/3&5/12&1/12.
+\end{array}
+\tag{5}
+\]
+Every cell in (5) is positive; in fact both models satisfy the selected-cell lower bound \(1/12\).  Thus the positivity assertion uses no boundary point.  Intervention replaces the equation \(D=U_D\) and leaves the equation for \(R_j\) unchanged, so (4) gives
+\[
+\begin{array}{c|cc|c}
+&P_{M_j}(R=1\mid\operatorname{do}(D=0))
+&P_{M_j}(R=1\mid\operatorname{do}(D=1))
+&\theta_{\mathrm{ATE}}(M_j)\\ \hline
+j=1&3/12&9/12&6/12\\
+j=2&4/12&10/12&6/12.
+\end{array}
+\tag{6}
+\]
+Both scalar effects equal \(1/2\), while \(\psi_{0,1}(M_1)=1/4\ne1/3=\psi_{0,1}(M_2)\).  Therefore the linear map in (3) is not injective even on the stated positive finite DAG subclass: identification of the scalar effect alone cannot decide every coordinate of \(\boldsymbol\psi\).
+
+It remains to establish the two scope separations.  By \(\mathrm{lem:qiu\text{-}external\text{-}ate\text{-}characterization}\), Qiu et al.'s theorem assumes unconfoundedness, treatment overlap on the covariate support, and a pairwise distinguishability condition on specified classes of propensity, covariate--potential-outcome, and selection laws.  Its conclusion identifies the single scalar \(\theta_{\mathrm{ATE}}\), not every cell \(\psi_{x,y}\) for arbitrary semi-Markovian \(\mathcal G\).  Equation (6) additionally shows why the scalar conclusion cannot be inverted into the full-table conclusion.  Thus the cited theorem does not subsume the present arbitrary-cell graph problem.
+
+Conversely, \(\mathrm{def:model\text{-}class}\) restricts the present class to finite-state recursive semi-Markovian models and imposes only the listed graph, selection, and selected-cell positivity conditions.  The cited lemma states both that Qiu et al.'s exposition includes continuous covariate--outcome laws with densities and that its identification criterion is indexed by separately specified probability classes.  Continuous-law examples are not members of the present finite-state class.  Moreover, a graph \(\mathcal G\) and the membership conditions in \(\mathrm{def:model\text{-}class}\) do not supply a chosen triple of probability classes or assert Qiu et al.'s pairwise distinguishability condition.  Hence the present graph class does not subsume the cited setup.  Together with (2), (3), and (6), these observations prove precisely an input-shape and estimand-map analogy, the failure of the reverse estimand map, and non-subsumption in both directions, without claiming a literal model-class intersection.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This primary-text comparison prevents a scalar probability-class ATE frontier from being mistaken for completeness over the arbitrary two-law ADMG fiber. \textit{Gap.} Qiu et al. give a necessary-and-sufficient probability-class condition for full-population ATE, whereas the focal open question is a graph-compatible same-input witness for every failed arbitrary interventional-distribution query. \textit{Consumer.} The ACTG audit can use Qiu et al.'s theorem when its unconfounded scalar-ATE boundary applies and reserve EXT-ID for graph-indexed queries outside that boundary.
+
+\begin{proposition}[prop:boundary-reductions]\label{prop:boundary-reductions}
+Fix \(\epsilon>0\), \((q_S,q_0)\in\mathcal C_{\epsilon}(\mathcal G,T_0)\), \(M\in\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0)\), and a cell \((x,y)\). The exact transition system has four audited reductions. If \(T_0=V\), initialization stores every scalar cell \(q_0(v)=P_M(V=v)\) at \((V,\varnothing,\varnothing,\mathrm{pop},v,\ast,\ast)\); consequently, whenever \(\psi_{x,y}\) is identifiable from the full population law by a finite sequence of ordinary do-calculus and probability moves, the saturation returns a valid arithmetic functional for that cell. If \(\mathcal G\) entails \(S\perp\!\!\!\perp V\), population storage inserts the same full-population scalar keys with annotations \(q_S(v)=P_M(V=v)\). If \(T_0=\varnothing\), the external-margin law is trivial, its scalar unit creates no key, and no margin-extension instance is admissible. The resulting boundary is the selected-source scalar closure augmented by exactly the population kernels inserted from a selected key \((A,B,C,\mathrm{sel},a,b,c)\) when \(A\perp\!\!\!\perp S\mid B,C\) in \(G_{\overline B}\), together with their consequences under the unchanged population graphical-fixing and probability moves; at \(B=C=\varnothing\), the storage predicate is unconditional selection independence. Whenever margin extension reconstructs every cell of \(P_M(V)\), the same qualified full-law conclusion holds; in particular, under the corresponding adjustment or front-door graphical criterion, the saturation returns a valid expression equal to the standard adjustment or front-door functional. Collecting all successful \((x,y)\in\mathcal I\) gives the corresponding identified coordinates of the full conditional-kernel table on the exact fiber.
+\end{proposition}
+\begin{proof}
+Fix \(\epsilon>0\), an input \((q_S,q_0)\in\mathcal C_{\epsilon}(\mathcal G,T_0)\), a model \(M\in\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0)\), and a cell \((x,y)\).  By Definitions \(\mathrm{def{:}observed\text{-}data\text{-}map}\) and \(\mathrm{def{:}exact\text{-}observed\text{-}fiber}\),
+\[
+q_S(v)=P_M(V=v\mid S=1),\qquad q_0(t)=P_M(T_0=t).
+\]
+Moreover, Definitions \(\mathrm{def{:}model\text{-}class}\) and \(\mathrm{def{:}compatible\text{-}input\text{-}image}\) give \(P_M(S=1)>0\) and \(q_S(v)\geq\epsilon>0\) for every \(v\in\mathcal X_V\).  Hence
+\[
+P_M(V=v)\ \geq\ P_M(V=v,S=1)
+=P_M(S=1)q_S(v)
+\geq P_M(S=1)\epsilon>0. \tag{1}
+\]
+Thus the full population law is strictly positive at every substantive cell.  In particular, every marginal of that law on a conditioning cell is positive.
+
+Suppose first that \(T_0=V\).  The population-initialization clause of Definition \(\mathrm{def{:}extid\text{-}state\text{-}machine}\) puts, for each \(v\in\mathcal X_V\), the key
+\[
+ (V,\varnothing,\varnothing,\mathrm{pop},v,\ast,\ast)
+\]
+in the initial state with annotation
+\[
+q_0(v)=P_M(T_0=v)=P_M(V=v). \tag{2}
+\]
+Consider any finite, cellwise derivation of \(P_M(Y=y\mid\operatorname{do}(X=x))\) from \(P_M(V)\) using ordinary finite probability manipulations and the three rules of do-calculus.  Every initial scalar in this derivation is present by (2).  We prove inductively over the derivation that the scalar key produced at each step becomes present in the saturation state.  For the induction step, all of the finitely many input keys are present.  If the step is a probability manipulation, the corresponding marginalization, conditioning, or chain instance is one of the complete scalar moves in Definition \(\mathrm{def{:}probability\text{-}moves}\); a division occurs only at a positive conditioning cell, as required there.  Positivity for conditionals formed directly from the observational law follows from (1), and positivity of any other conditioning cell used is part of the legality of the stipulated cellwise derivation.  If the step is do-calculus, Lemma \(\mathrm{lem{:}do\text{-}calculus\text{-}rules}\) and Definition \(\mathrm{def{:}graphical\text{-}fixing\text{-}moves}\) give the corresponding population-tagged move and the equality of its input and output kernels.
+
+In either case, the move instance lies in the finite universe \(\mathscr U\), its complete input-key set is present, and its graphical and denominator premises hold.  If its output is not already present, it remains enabled because Definition \(\mathrm{def{:}extid\text{-}state\text{-}machine}\) only adds keys.  It cannot be postponed forever: each move chosen before it adds a previously absent key, while Theorem \(\mathrm{thm{:}extid\text{-}sound\text{-}termination}\) bounds the total number of present keys by \(\lvert\mathscr K_{\mathcal G}\rvert\).  Equivalently, a terminal state omitting that output would contradict the rule that failure occurs only when no enabled instance has an absent output.  This proves the induction.
+
+Therefore the target key \((Y,X,\varnothing,\mathrm{pop},y,x,\ast)\) becomes present.  It is checked before the next transition and its annotation is returned.  Proposition \(\mathrm{prop{:}extid\text{-}storage\text{-}invariant}\) identifies that annotation, simultaneously for every model in the exact fiber, with
+\[
+k^M_{(Y,X,\varnothing,\mathrm{pop})}(y\mid x,\ast)
+=P_M(Y=y\mid\operatorname{do}(X=x))
+=\psi_{x,y}(M). \tag{3}
+\]
+The stored expression belongs to \(\mathcal A(q_S,q_0)\) by Definitions \(\mathrm{def{:}arithmetic\text{-}language}\), \(\mathrm{def{:}probability\text{-}moves}\), and \(\mathrm{def{:}extid\text{-}state\text{-}machine}\).  Lemma \(\mathrm{lem{:}ordinary\text{-}do\text{-}calculus\text{-}completeness}\) supplies such a finite ordinary derivation whenever the target cell is identifiable from the full observational law, proving the first reduction.
+
+Suppose next that \(\mathcal G\) entails \(S\perp\!\!\!\perp V\).  The selected initialization provides
+\[
+(V,\varnothing,\varnothing,\mathrm{sel},v,\ast,\ast)
+\quad\text{with annotation}\quad q_S(v)
+\]
+for every \(v\).  With \(A=V\) and \(B=C=\varnothing\), the graphical predicate for population storage in Definition \(\mathrm{def{:}source\text{-}bridge\text{-}moves}\) is exactly \(V\perp\!\!\!\perp S\).  Hence saturation makes the corresponding population key present, unless it is already present from population initialization, and preserves its annotation.  The storage invariant then yields
+\[
+q_S(v)=P_M(V=v\mid S=1)=P_M(V=v), \tag{4}
+\]
+where conditioning is defined because \(P_M(S=1)>0\).  Thus the same full-population scalar keys are available with the claimed annotations.
+
+Now let \(T_0=\varnothing\).  By Definition \(\mathrm{def{:}extid\text{-}state\text{-}machine}\), the unique trivial margin contributes no scalar key.  A margin-extension instance in Definition \(\mathrm{def{:}source\text{-}bridge\text{-}moves}\) requires a nonempty population-margin input key, so no such instance is admissible.  To prove the asserted exact closure, inspect a transition according to its source tag.  Initially every present key is selected-tagged.  Definitions \(\mathrm{def{:}probability\text{-}moves}\) and \(\mathrm{def{:}graphical\text{-}fixing\text{-}moves}\) preserve the source tag.  Definition \(\mathrm{def{:}source\text{-}bridge\text{-}moves}\) says that the only source-changing moves are margin extension and population storage.  The first is unavailable, while the second maps
+\[
+(A,B,C,\mathrm{sel},a,b,c)
+\longmapsto
+(A,B,C,\mathrm{pop},a,b,c) \tag{5}
+\]
+with unchanged annotation exactly when
+\[
+A\perp\!\!\!\perp S\mid B,C
+\quad\text{in }G_{\overline B}. \tag{6}
+\]
+Induction on the number of transitions therefore shows that every selected key belongs to the closure of the selected initialization under selected probability and graphical-fixing moves, and every population key is either an output (5) satisfying (6) or is obtained from such outputs by population probability and graphical-fixing moves.  Conversely, any absent output in these two closures whose complete inputs are present remains enabled; finiteness and the same no-permanent-postponement argument used above show that saturation adds it before terminating.  Hence there are no fewer and no additional keys than the stated closure.  Setting \(B=C=\varnothing\) in (6) gives precisely unconditional selection independence.
+
+Finally, suppose margin extension reconstructs every cell of the full population law.  Lemma \(\mathrm{lem{:}margin\text{-}extension}\) gives, at every reconstructed cell \((t,z)\),
+\[
+P_M(T_0=t,Z=z)
+=P_M(Z=z\mid T_0=t,S=1)q_0(t), \tag{7}
+\]
+and Proposition \(\mathrm{prop{:}extid\text{-}storage\text{-}invariant}\) says that the margin-transition annotation is exactly the right-hand side of (7).  Taking \(Z=V\setminus T_0\), or composing the reconstructed population blocks by the probability moves, therefore makes every key
+\[
+(V,\varnothing,\varnothing,\mathrm{pop},v,\ast,\ast)
+\]
+present with annotation \(P_M(V=v)\).  The finite-derivation replay leading to (3) now applies verbatim.  In particular, under an adjustment criterion with adjustment block \(L\), the ordinary derivation returns the standard functional
+\[
+P_M(Y=y\mid\operatorname{do}(X=x))
+=\sum_{\ell\in\mathcal X_L}P_M(Y=y\mid X=x,L=\ell)P_M(L=\ell), \tag{8}
+\]
+and under the corresponding front-door criterion with mediating block \(D\), it returns
+\[
+P_M(Y=y\mid\operatorname{do}(X=x))
+=\sum_{d\in\mathcal X_D}P_M(D=d\mid X=x)
+  \sum_{x'\in\mathcal X_X}P_M(Y=y\mid D=d,X=x')P_M(X=x'). \tag{9}
+\]
+The graphical criteria are exactly the premises under which the usual do-calculus derivations of (8) and (9) are legal; Lemma \(\mathrm{lem{:}do\text{-}calculus\text{-}rules}\) validates each graphical equality, and Definition \(\mathrm{def{:}probability\text{-}moves}\) realizes their finite sums, products, and positive divisions.  Thus these are particular instances of the already proved replay argument, not additional identification assumptions.
+
+Apply (3) separately to every successful \((x,y)\in\mathcal I\); each such returned coordinate equals the corresponding coordinate of \(\boldsymbol\psi(M)\) throughout the exact fiber.  If every cell run succeeds, Definition \(\mathrm{def{:}full\text{-}kernel\text{-}collection}\) forms \(\mathbf F\) and places those coordinates in the same fixed order as \(\boldsymbol\psi(M)\).  Therefore, on the exact fiber,
+\[
+\mathbf F(q_S,q_0)
+=\bigl(F_{x,y}(q_S,q_0):(x,y)\in\mathcal I\bigr)^{\mathsf T}
+=\bigl(\psi_{x,y}(M):(x,y)\in\mathcal I\bigr)^{\mathsf T}
+=\boldsymbol\psi(M).
+\]
+When some cell run fails, that definition does not form \(\mathbf F\), but the coordinatewise equality just proved remains valid for every returned cell.  This proves all four reductions and the final coordinatewise collection claim.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} At \(T_0=V\), initialization exposes the full population law and supplies the achievability half of the ordinary-ID equivalence. \textit{Gap.} This is an executable boundary reduction, not a completeness result for arbitrary external margins. \textit{Consumer.} Combined with the terminal-selection necessity proposition, it gives the exact full-margin equivalence and success audit.
+
+\begin{proposition}[prop:source-specific-delta-method]\label{prop:source-specific-delta-method}
+Fix \(\epsilon>0\), \((q_S,q_0)\in\mathcal C_{\epsilon}(\mathcal G,T_0)\), and \(M\in\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0)\). If every cell run over \((x,y)\in\mathcal I\) returns a differentiable \(F_{x,y}\), then \(\mathbf F(q_S,q_0)=\boldsymbol\psi(M)\), and the saturated two-source plug-in estimator obeys \[\sqrt n\{\widehat{\mathbf F}-\mathbf F\}=\frac{\sqrt n}{n_S}\sum_{i=1}^{n_S}\phi_S(O_i^S)+\frac{\sqrt n}{n_0}\sum_{j=1}^{n_0}\phi_0(O_j^0)+o_P(1)\rightsquigarrow N(0,\Sigma).\]
+\end{proposition}
+\begin{proof}
+Put \(p=(q_S,q_0)\) and \(\widehat p=(\widehat q_S,\widehat q_0)\).  First, the soundness conclusion for the successful EXT-ID runs gives, cell by cell,
+\[
+F_{x,y}(q_S,q_0)=\psi_{x,y}(M)
+\qquad ((x,y)\in\mathcal I)
+\]
+for every \(M\in\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0)\).  The definition of the lexicographically ordered full-kernel collection therefore gives
+\[
+\mathbf F(q_S,q_0)=\boldsymbol\psi(M).
+\]
+This step uses the EXT-ID soundness theorem; it does not define the causal target to equal the observed-law functional.
+
+We next derive the stochastic expansion.  The empirical residuals are in the declared multinomial tangent spaces because
+\[
+\mathbf 1^{\mathsf T}(e_o-q_S)=0,
+\qquad
+\mathbf 1^{\mathsf T}(e_o-q_0)=0.
+\]
+Consequently the source derivatives in the influence-function definition may be applied to them.  Linearity gives the exact identities
+\[
+\begin{aligned}
+D_S\mathbf F[\widehat q_S-q_S]
+&=\frac1{n_S}\sum_{i=1}^{n_S}
+D_S\mathbf F[e_{O_i^S}-q_S]
+=\frac1{n_S}\sum_{i=1}^{n_S}\phi_S(O_i^S),\\
+D_0\mathbf F[\widehat q_0-q_0]
+&=\frac1{n_0}\sum_{j=1}^{n_0}
+D_0\mathbf F[e_{O_j^0}-q_0]
+=\frac1{n_0}\sum_{j=1}^{n_0}\phi_0(O_j^0).
+\end{aligned}
+\]
+For a probability vector \(q\) on a finite set and its empirical table \(\widehat q_N\), direct calculation yields
+\[
+\mathbb E_q\|\widehat q_N-q\|_2^2
+=\frac1N\sum_o q(o)\{1-q(o)\}
+=\frac{1-\sum_o q(o)^2}{N}\le \frac1N.
+\]
+The inequality
+\[
+\mathbf 1\{\|R\|_2>u\}\le \|R\|_2^2/u^2
+\]
+then shows that \(\widehat q_S-q_S=O_P(n_S^{-1/2})\) and \(\widehat q_0-q_0=O_P(n_0^{-1/2})\).  The sample-share assumption implies that \(n_S\), \(n_0\), and \(n\) have the same order.
+
+By differentiability of the returned finite-dimensional map at \(p\),
+\[
+\mathbf F(\widehat p)-\mathbf F(p)
+=D_S\mathbf F[\widehat q_S-q_S]
++D_0\mathbf F[\widehat q_0-q_0]+r_n,
+\qquad
+\frac{\|r_n\|_2}{\|\widehat q_S-q_S\|_2+\|\widehat q_0-q_0\|_2}
+\xrightarrow{P}0.
+\]
+Every population denominator is strictly positive by the positive-denominator assumption.  Because there are finitely many continuous denominators, there is a neighborhood of \(p\) on which they remain positive.  The empirical tables enter this neighborhood with probability tending to one by the preceding bound.  Thus the zero fallback in the totalized plug-in definition is used with probability tending to zero and does not alter the displayed first-order expansion.  Hence \(r_n=o_P(n^{-1/2})\), and multiplication by \(\sqrt n\) gives the asserted asymptotic linear representation.
+
+It remains to identify its limit.  The influence vectors are centered:
+\[
+\mathbb E_{q_S}\phi_S(O^S)
+=D_S\mathbf F\!\left[\sum_o q_S(o)(e_o-q_S)\right]=0,
+\qquad
+\mathbb E_{q_0}\phi_0(O^0)=0.
+\]
+Form one triangular row from the mutually independent vectors
+\[
+R_{n,i}=\frac{\sqrt n}{n_S}\phi_S(O_i^S),
+\quad 1\le i\le n_S,
+\qquad
+R_{n,n_S+j}=\frac{\sqrt n}{n_0}\phi_0(O_j^0),
+\quad 1\le j\le n_0.
+\]
+The state spaces are finite, so both influence vectors are bounded.  Since \(\sqrt n/n_S=O(n^{-1/2})\) and \(\sqrt n/n_0=O(n^{-1/2})\), for every \(u>0\) all summands have norm at most \(u\) for sufficiently large \(n\); the Lindeberg sum is therefore eventually zero.  Independence of the two samples and the sample-share limit give
+\[
+\sum_{\ell=1}^{n}\operatorname{Cov}(R_{n,\ell})
+=\frac n{n_S}\operatorname{Var}_{q_S}(\phi_S)
++\frac n{n_0}\operatorname{Var}_{q_0}(\phi_0)
+\longrightarrow
+\lambda^{-1}\operatorname{Var}_{q_S}(\phi_S)
++(1-\lambda)^{-1}\operatorname{Var}_{q_0}(\phi_0)
+=\Sigma.
+\]
+The cited multivariate Lindeberg--Feller theorem now yields convergence of the linear term to \(N(0,\Sigma)\).  The cited asymptotic-equivalence theorem absorbs the \(o_P(1)\) remainder.  This proves both the displayed expansion and the claimed limit law.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is a supporting finite-dimensional delta-method result that preserves source-specific uncertainty for compiled formulas. \textit{Gap.} The contribution is implementation support, not a new efficiency theorem; it instantiates the standard multinomial delta method for two independent tables. \textit{Consumer.} The expansion attributes uncertainty to selected records and audited margin records in the ACTG analysis.
+
+\begin{proposition}[prop:uniform-bonferroni-coverage]\label{prop:uniform-bonferroni-coverage}
+For the fixed all-cell dimension \(d=\lvert\mathcal I\rvert\) and fixed positive compact class \(\mathcal K\subseteq\mathcal C_{\epsilon}(\mathcal G,T_0)\), suppose that at every \((q_S,q_0)\in\mathcal K\), every cell run over \((x,y)\in\mathcal I\) succeeds and returns the same differentiable expressions \(F_{x,y}\); fix the resulting \(\mathbf F\). Then the plug-in covariance estimator satisfies, for every \(\delta>0\), \[\sup_{(q_S,q_0)\in\mathcal K}P_{q_S,q_0}\{\|\widehat\Sigma-\Sigma\|_{\mathrm{op}}>\delta\}\longrightarrow0,\] and \[\liminf_{n\to\infty}\inf_{(q_S,q_0)\in\mathcal K}\inf_{M\in\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0)}P_{q_S,q_0}\{\boldsymbol\psi(M)\in\widehat C_{1-\alpha}\}\ge1-\alpha.\]
+\end{proposition}
+\begin{proof}
+Fix the returned vector expression \(\mathbf F\) from the success branch in the proposed statement, write \(p=(q_S,q_0)\), and write \(P_p\) for the two-source sampling law at \(p\).  The finite arithmetic-language definition expresses every coordinate of \(\mathbf F\) as a rational function of finitely many probability cells.  On \(\mathcal K\), every denominator is bounded below by a common number \(\gamma>0\).  Since \(\mathcal K\) is compact and there are finitely many denominators, continuity supplies \(\rho>0\) such that every denominator is at least \(\gamma/2\) whenever a table pair lies within Euclidean distance \(\rho\) of \(\mathcal K\).  On this neighborhood \(\mathbf F\) is twice continuously differentiable, and compactness bounds its first and second derivatives by finite constants.  By continuity of the covariance formula and the assumed uniform positive lower bound on every coordinate variance, \(\rho\) may be decreased so that, once \(n_S/n\) is sufficiently close to \(\lambda\), every plug-in diagonal variance is positive throughout the same neighborhood.
+
+Let \(\mathcal E_n(p)\) be the event
+\[
+\|\widehat q_S-q_S\|_2+\|\widehat q_0-q_0\|_2<\rho.
+\]
+The exact multinomial second-moment calculation from the source-specific proposition and the elementary inequality \(\mathbf 1\{R>u\}\le R^2/u^2\) imply
+\[
+\sup_{p\in\mathcal K}P_p\{\mathcal E_n(p)^c\}
+\le \frac{4}{\rho^2n_S}+\frac{4}{\rho^2n_0}
+\longrightarrow0.
+\]
+Thus the fallback branches in the corrected plug-in, covariance, and confidence-region definitions have probability tending to zero uniformly over \(\mathcal K\).  On \(\mathcal E_n(p)\), the integral Taylor remainder and the uniform second-derivative bound give a constant \(C<\infty\), independent of \(p\in\mathcal K\), such that
+\[
+\left\|\mathbf F(\widehat p)-\mathbf F(p)
+-D_S\mathbf F_p[\widehat q_S-q_S]
+-D_0\mathbf F_p[\widehat q_0-q_0]\right\|_2
+\le C\bigl(\|\widehat q_S-q_S\|_2+\|\widehat q_0-q_0\|_2\bigr)^2.
+\]
+Because the expectation of the squared quantity in parentheses is \(O(n^{-1})\) uniformly and \(n_S/n\to\lambda\in(0,1)\), another application of the same elementary probability bound shows that the Taylor remainder is \(o_P(n^{-1/2})\) uniformly on \(\mathcal K\).
+
+We next verify covariance consistency rather than assuming it.  For \(p\in\mathcal K\), set
+\[
+\begin{aligned}
+\phi_{S,p}(o)&=D_S\mathbf F_p[e_o-q_S],
+&V_S(p)&=\sum_{o\in\mathcal X_V}q_S(o)\phi_{S,p}(o)\phi_{S,p}(o)^{\mathsf T},\\
+\phi_{0,p}(o)&=D_0\mathbf F_p[e_o-q_0],
+&V_0(p)&=\sum_{o\in\mathcal X_{T_0}}q_0(o)\phi_{0,p}(o)\phi_{0,p}(o)^{\mathsf T}.
+\end{aligned}
+\]
+The centering calculation in the preceding proposition shows that these second moments are the corresponding variances.  Hence
+\[
+\Sigma(p)=\lambda^{-1}V_S(p)+(1-\lambda)^{-1}V_0(p).
+\]
+By the corrected definition of the empirical covariance, on \(\mathcal E_n(p)\) it is the same finite formula with \(p\) replaced by \(\widehat p\) and \(\lambda\) replaced by \(n_S/n\).  That formula is continuous on the common neighborhood and uniformly continuous on its compact closure.  The uniform concentration bound and \(n_S/n\to\lambda\) therefore imply, for every \(\delta>0\),
+\[
+\sup_{p\in\mathcal K}P_p\{\|\widehat\Sigma-\Sigma(p)\|_{\mathrm{op}}>\delta\}\longrightarrow0.
+\]
+The zero-matrix fallback contributes only on \(\mathcal E_n(p)^c\), whose probability has already been bounded uniformly.  This proves the first conclusion of the proposed statement.
+
+For coverage, it remains to establish a uniform, rather than merely pointwise, central limit argument.  Suppose to the contrary that the asserted lower bound fails.  Then there are a number \(\eta>0\), a subsequence of sample sizes (not relabeled), points \(p_n=(q_{S,n},q_{0,n})\in\mathcal K\), and models \(M_n\in\mathfrak F_{\epsilon}(\mathcal G,T_0;q_{S,n},q_{0,n})\) such that the coverage probability is below \(1-\alpha-\eta\).  Compactness permits passage to a further subsequence for which \(p_n\to p_\star\in\mathcal K\).
+
+For this triangular sequence define the independent centered summands
+\[
+R_{n,i}=\frac{\sqrt n}{n_S}\phi_{S,p_n}(O_i^S),
+\qquad
+R_{n,n_S+j}=\frac{\sqrt n}{n_0}\phi_{0,p_n}(O_j^0).
+\]
+Uniform boundedness of the first derivatives on the common neighborhood and finiteness of both state spaces imply
+\[
+\max_{1\le \ell\le n}\|R_{n,\ell}\|_2=O(n^{-1/2}),
+\]
+so the Lindeberg condition holds.  Continuity of \(V_S\) and \(V_0\), together with the sample-share limit, gives
+\[
+\sum_{\ell=1}^{n}\operatorname{Cov}_{p_n}(R_{n,\ell})
+=\frac n{n_S}V_S(p_n)+\frac n{n_0}V_0(p_n)
+\longrightarrow\Sigma(p_\star).
+\]
+The cited Lindeberg--Feller theorem, the uniform Taylor expansion, and the cited asymptotic-equivalence result yield
+\[
+\sqrt n\{\widehat{\mathbf F}-\mathbf F(p_n)\}
+\rightsquigarrow N\{0,\Sigma(p_\star)\}.
+\]
+Uniform covariance consistency also gives \(\widehat\Sigma\xrightarrow{P}\Sigma(p_\star)\) along this sequence.  The coordinatewise variance assumption supplies a common \(\underline\sigma>0\) with \(\Sigma_{kk}(p)\ge\underline\sigma\) for every \(p\in\mathcal K\) and every \(k\).  Define the studentized vector coordinatewise by
+\[
+T_{n,k}=\frac{\sqrt n\{\widehat{\mathbf F}_k-\mathbf F_k(p_n)\}}{\sqrt{\widehat\Sigma_{kk}}}
+\]
+when all diagonal entries of \(\widehat\Sigma\) are positive, and set \(T_n=0\) otherwise.  On the latter event the corrected confidence region is \(\mathbb R^d\), and \(0\) belongs to the Bonferroni rectangle, so
+\[
+\{\mathbf F(p_n)\in\widehat C_{1-\alpha}\}
+=\left\{\max_{1\le k\le d}|T_{n,k}|\le c_{1-\alpha}\right\}
+\]
+holds on both branches.  Define
+\[
+D_\star=\operatorname{diag}\bigl(\Sigma_{11}(p_\star),\ldots,\Sigma_{dd}(p_\star)\bigr).
+\]
+The cited joint-convergence and continuous-mapping results therefore show that the studentized vector converges to
+\[
+Z_\star\sim N(0,R_\star),
+\qquad
+R_\star=D_\star^{-1/2}\Sigma(p_\star)D_\star^{-1/2},
+\]
+whose every marginal is standard normal.
+
+Let \(B=\{z:\max_{1\le k\le d}|z_k|\le c_{1-\alpha}\}\).  Its boundary is contained in the finite union of hyperplanes \(\{z:z_k=\pm c_{1-\alpha}\}\).  Each has \(Z_\star\)-probability zero because the corresponding marginal is a continuous standard normal law.  The continuity-set clause of the cited portmanteau lemma thus gives
+\[
+P_{p_n}\{\mathbf F(p_n)\in\widehat C_{1-\alpha}\}
+\longrightarrow P\{Z_\star\in B\}.
+\]
+Finally, by the union bound and the definition \(c_{1-\alpha}=\Phi^{-1}\{1-\alpha/(2d)\}\),
+\[
+P\{Z_\star\notin B\}
+\le\sum_{k=1}^{d}P\{|Z_{\star,k}|>c_{1-\alpha}\}
+=d\,\frac{\alpha}{d}=\alpha.
+\]
+Thus the limiting coverage along the allegedly bad subsequence is at least \(1-\alpha\), a contradiction.
+
+For every \(n\), the EXT-ID soundness conclusion in the source-specific proposition gives \(\boldsymbol\psi(M_n)=\mathbf F(p_n)\).  The coverage event therefore does not vary with the choice of \(M_n\) inside its exact observed-data fiber.  Taking the infimum over such models and reversing the contradiction argument proves
+\[
+\liminf_{n\to\infty}\inf_{(q_S,q_0)\in\mathcal K}
+\inf_{M\in\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0)}
+P_{q_S,q_0}\{\boldsymbol\psi(M)\in\widehat C_{1-\alpha}\}\ge1-\alpha.
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This supporting Bonferroni result supplies familywise coverage for a fixed vector of returned cells. \textit{Gap.} Uniform finite-table coverage on a positive compact set is standard and is not part of the completeness novelty claim. \textit{Consumer.} The ACTG audit can report one familywise-valid region for all prespecified treatment and outcome cells.
+
+\begin{lemma}[lem:do-calculus-rules]\label{lem:do-calculus-rules}
+In every recursive semi-Markovian SCM compatible with \(\mathcal G\), and at every positive conditioning cell, each of the three graphical equivalences specified in Definition \(\mathrm{def{:}graphical\text{-}fixing\text{-}moves}\) is an equality of the corresponding interventional kernels, also when \(S_s\) is included among the ordinary conditioning variables.
+\end{lemma}
+
+\begin{lemma}[lem:ordinary-do-calculus-completeness]\label{lem:ordinary-do-calculus-completeness}
+For recursive semi-Markovian models, the three rules of do-calculus together with standard finite probability manipulations are complete for determining identifiability of every unconditional causal effect \(P_M(Y=y\mid\operatorname{do}(X=x))\) from the full observational law \(P_M(V)\).
+\end{lemma}
+
+\begin{lemma}[lem:qiu-external-ate-characterization]\label{lem:qiu-external-ate-characterization}
+\texttt{Qiu et al. (2026) consider a Euclidean covariate,\allowbreak{} a binary treatment,\allowbreak{} and a real-\allowbreak{}valued outcome observed through a selected observational law,\allowbreak{} together with an external unbiased covariate margin. Under unconfoundedness and treatment overlap,\allowbreak{} their Appendix B.2 Condition 2 is a pairwise distinguishability condition on specified classes of propensity scores,\allowbreak{} covariate-\allowbreak{}-\allowbreak{}potential-\allowbreak{}outcome laws,\allowbreak{} and selection laws;\allowbreak{} their Theorem B.5 states that the full-\allowbreak{}population scalar average treatment effect is identifiable from the selected law and the unbiased covariate margin if and only if those classes satisfy that condition. The theorem's conclusion concerns that scalar average treatment effect,\allowbreak{} not every cell of an interventional outcome distribution or the complete interventional table. Their setup assumes continuous covariate-\allowbreak{}-\allowbreak{}outcome laws with densities for exposition and includes continuous probability-\allowbreak{}family examples.}
+\end{lemma}
+
+\begin{lemma}[lem:lindeberg-feller-clt]\label{lem:lindeberg-feller-clt}
+For each positive integer \(r\), let \(K_r\) be positive and let \(R_{r,1},\ldots,R_{r,K_r}\) be independent random vectors in a fixed finite-dimensional Euclidean space with finite second moments. If, for every \(u>0\), \[\sum_{\ell=1}^{K_r}\mathbb E\!\left[\|R_{r,\ell}\|_2^2\mathbf 1\{\|R_{r,\ell}\|_2>u\}\right]\longrightarrow0\] and \(\sum_{\ell=1}^{K_r}\operatorname{Cov}(R_{r,\ell})\to\Omega\), then \(\sum_{\ell=1}^{K_r}\{R_{r,\ell}-\mathbb E(R_{r,\ell})\}\rightsquigarrow N(0,\Omega)\).
+\end{lemma}
+
+\begin{lemma}[lem:weak-convergence-transfer]\label{lem:weak-convergence-transfer}
+Let \(R_r,R,T_r\) be random vectors in finite-dimensional Euclidean spaces. If \(R_r\rightsquigarrow R\) and \(\|R_r-T_r\|_2\xrightarrow{P}0\), then \(T_r\rightsquigarrow R\). If \(R_r\rightsquigarrow R\) and \(T_r\xrightarrow{P}c\) for a constant vector \(c\), then \((R_r,T_r)\rightsquigarrow(R,c)\).
+\end{lemma}
+
+\begin{lemma}[lem:continuous-mapping-theorem]\label{lem:continuous-mapping-theorem}
+Let \(R_r\rightsquigarrow R\), and let \(g\) be a map between finite-dimensional Euclidean spaces that is continuous at every point of a set \(C\) satisfying \(P(R\in C)=1\). Then \(g(R_r)\rightsquigarrow g(R)\).
+\end{lemma}
+
+\begin{lemma}[lem:portmanteau-continuity-set]\label{lem:portmanteau-continuity-set}
+If \(R_r\rightsquigarrow R\) and \(B\) is a Borel set satisfying \(P(R\in\partial B)=0\), then \(P(R_r\in B)\to P(R\in B)\).
+\end{lemma}
+
+\begin{lemma}[lem:finite-disturbance-full-law-reduction]\label{lem:finite-disturbance-full-law-reduction}
+For a canonical DAG \(\widetilde{\mathcal G}\) over the finite discrete main variables \(V\cup\{S\}\) and disturbances \(\mathbf U\) of arbitrary, possibly infinite cardinality, sufficiently large finite disturbance cardinalities leave the induced full data law, including all factual and counterfactual main variables, unchanged.
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This published finite-cardinality reduction is the external substrate needed to make the response-fiber formula graph bounded rather than witness-specific. \textit{Gap.} The cited result supplies only the canonical finite response domain; the exact selected-law and margin equations are derived in this note. \textit{Consumer.} The response-fiber adaptation lemma uses it to preserve all factual and counterfactual probabilities.
+
+\begin{lemma}[lem:finite-response-selection-admg-reduction]\label{lem:finite-response-selection-admg-reduction}
+Every recursive semi-Markovian SCM compatible with a finite-state selection ADMG \(\mathcal G\) has, with respect to the full joint law of all factual and counterfactual variables on \(V\cup\{S\}\), an equivalent graph-compatible representation with finitely many independent exogenous coordinates of finite cardinality.  The representation can be written using a finite graph- and state-space-determined inventory of deterministic response maps and a product of finite coordinate-weight simplices.  It preserves \(P_M(V,S)\), every margin \(P_M(T_0)\), and every intervention cell \(\psi_{x,y}(M)\); when \(P_M(S=1)>0\), it therefore also preserves \(q_S^M=P_M(V\mid S=1)\).
+\end{lemma}
+\begin{proof}
+By the meaning of recursive semi-Markovian compatibility in \(\mathrm{ass{:}semi\text{-}markovian}\), expand \(\mathcal G\) to its canonical latent DAG \(\widetilde{\mathcal G}\): the main variables are \(V\cup\{S\}\), every disturbance is exogenous, and the independent disturbance coordinates encode exactly the bidirected and private exogenous inputs permitted by \(\mathcal G\).  This expansion is merely the defining latent-DAG realization of the ADMG and changes no structural equation or counterfactual variable.
+
+The main-variable state spaces are finite by \(\mathrm{ass{:}finite\text{-}state}\).  Apply Lemma \(\mathrm{lem{:}finite\text{-}disturbance\text{-}full\text{-}law\text{-}reduction}\) to \(\widetilde{\mathcal G}\).  It replaces every disturbance cardinality by a sufficiently large finite one without changing the full data law.  In particular, it preserves the joint factual law \(P_M(V,S)\), the marginal \(P_M(T_0)\), and the joint law of every counterfactual outcome under \(\operatorname{do}(X=x)\), hence preserves \(\psi_{x,y}(M)\).
+
+For each finite disturbance coordinate, two atom labels that induce the same deterministic response map at all of their graph-permitted children can be merged.  Because every observed parent configuration and every child state space is finite, there are only finitely many such response maps.  After merging, the independent disturbance law remains a product of finite coordinate-weight vectors, and the acyclic structural recursion is a deterministic function of their joint assignment.  Enumerating the finitely many nonempty support subsets of these finite response-map sets gives the claimed finite inventory of support strata.  Finally, if \(P_M(S=1)>0\), equality of \(P_M(V,S)\) gives
+\[
+ P_M(V=v\mid S=1)=\frac{P_M(V=v,S=1)}{\sum_{v'}P_M(V=v',S=1)},
+\]
+with a common positive denominator, so the selected conditional is preserved as well.  This proves the adaptation.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the note-specific bridge from the published canonical-DAG reduction to finite semi-Markovian selection ADMG response points. \textit{Gap.} It explicitly tracks the selected joint law, the unbiased margin, and the intervention cell through canonicalization. \textit{Consumer.} It makes the two-response-point semialgebraic characterization exact over the stated finite-state SCM class.
+
+\begin{theorem}[thm:canonical-response-fiber-characterization]\label{thm:canonical-response-fiber-characterization}
+Fix \(\epsilon>0\), \((q_S,q_0)\in\mathcal C_{\epsilon}(\mathcal G,T_0)\), and \((x,y)\in\mathcal I\).  The scalar causal query is not point identified on the exact observed-data fiber if and only if the canonical response-fiber formula is feasible:
+\[
+ \bigl[\exists M_1,M_2\in\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0):
+ \psi_{x,y}(M_1)\neq\psi_{x,y}(M_2)\bigr]
+ \quad\Longleftrightarrow\quad
+ \operatorname{RF}_{x,y}(\mathcal G,T_0;q_S,q_0).
+\]
+Whenever the right-hand side is feasible, its two response points themselves construct finite graph-compatible witnesses with positive selection normalizers, exact selected-law cross-products, exact external-margin rows, and active atom masses bounded below by the displayed common witness-specific \(\eta>0\).  Conversely every finite separating pair in the exact fiber supplies such a feasible response-point pair after zero-mass response labels are deleted.  Hence exact-fiber nonidentification has the displayed computable finite semialgebraic witness characterization, but no implication from a terminal \(\operatorname{EXT\text{-}ID}\) failure to feasibility of this formula is asserted.
+\end{theorem}
+\begin{proof}
+First suppose \(\operatorname{RF}_{x,y}(\mathcal G,T_0;q_S,q_0)\) is feasible.  For \(i=1,2\), use the deterministic response maps in the selected stratum and the independent coordinate laws \(w^{(i)}_{\ell j}\) to construct the recursive SCM \(M_i\).  The stratum contains only response maps allowed by \(\mathcal G\), so \(M_i\) is graph compatible and semi-Markovian.  Its exogenous law is the product law, and the law of total probability over \(\omega\) gives, directly from Definition \(\mathrm{def{:}canonical\text{-}response\text{-}fiber\text{-}formula}\),
+\[
+ P_{M_i}(V=v,S=1)=p_{\vartheta^{(i)}}(v,1),
+ \quad
+ P_{M_i}(T_0=t)=m_{\vartheta^{(i)}}(t),
+ \quad
+ P_{M_i}(Y=y\mid\operatorname{do}(X=x))=g_{\vartheta^{(i)},x,y}.
+\]
+Also
+\[
+ P_{M_i}(S=1)=\sum_vp_{\vartheta^{(i)}}(v,1)
+ =\rho_{\vartheta^{(i)}}>0.
+\]
+The selected-law equations in the formula therefore imply
+\[
+ P_{M_i}(V=v\mid S=1)
+ =\frac{p_{\vartheta^{(i)}}(v,1)}{\rho_{\vartheta^{(i)}}}
+ =q_S(v)
+\]
+for every \(v\); division is licensed by \(\rho_{\vartheta^{(i)}}>0\).  The margin equations similarly give \(P_{M_i}(T_0=t)=q_0(t)\) for every \(t\).  Since the fixed input satisfies \(q_S(v)\geq\epsilon\), each \(M_i\) belongs to \(\mathfrak M_{\epsilon}(\mathcal G)\), and hence to \(\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0)\).  Finally,
+\[
+ \psi_{x,y}(M_1)-\psi_{x,y}(M_2)
+ =g_{\vartheta^{(1)},x,y}-g_{\vartheta^{(2)},x,y}\neq0.
+\]
+The inequalities \(w^{(i)}_{\ell j}\geq\eta>0\) give the claimed common interior slack on the exact active supports.
+
+Conversely, suppose finite models \(M_1,M_2\) in the exact fiber separate the query.  Apply Lemma \(\mathrm{lem{:}finite\text{-}response\text{-}selection\text{-}admg\text{-}reduction}\) to each model, preserving its full factual and counterfactual law.  Record the resulting deterministic response map taken by every atom of each independent finite exogenous coordinate.  Merge atoms that induce the same response label, and delete every label of mass zero.  This produces a canonical active-support stratum and strictly positive coordinate weights \(w^{(i)}_{\ell j}\) without changing any structural response, observational probability, margin probability, or intervention probability.  Since the pair has finitely many active weights, the number
+\[
+ \eta=\min_{i,\ell,j}w^{(i)}_{\ell j}
+\]
+exists and is strictly positive.  Let \(\vartheta^{(i)}\) be the resulting response point and \(\rho_i=P_{M_i}(S=1)>0\).  Membership in the exact fiber gives, cell by cell,
+\[
+ p_{\vartheta^{(i)}}(v,1)
+ =P_{M_i}(V=v,S=1)
+ =q_S(v)P_{M_i}(S=1)
+ =q_S(v)\rho_i,
+\]
+\[
+ m_{\vartheta^{(i)}}(t)=P_{M_i}(T_0=t)=q_0(t),
+ \qquad
+ g_{\vartheta^{(i)},x,y}=\psi_{x,y}(M_i).
+\]
+The last two values differ by hypothesis, so every clause of \(\operatorname{RF}_{x,y}\) holds.
+
+Finally, the graph admits only finitely many deterministic response maps and active-support strata.  Within each stratum, the displayed probabilities are finite sums of monomials in the coordinate weights; normalization, common-interior, positive-normalizer, exact-fiber, and query-separation requirements are polynomial equalities or strict or weak polynomial inequalities.  Thus the disjunction is a finite semialgebraic feasibility problem whose variables and constraints are written explicitly in the definition.  This establishes both directions and the computable witness characterization.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This replaces an unsupported universal failure theorem with an exact finite witness criterion whose variables and constraints are explicit. \textit{Gap.} The formula simultaneously enforces graph compatibility, positive supports, two positive selection normalizers, normalized selected-law cross-products, exact margin rows, and unequal causal cells. \textit{Consumer.} A feasible response pair is a directly checkable exact-fiber nonrecoverability certificate for a proposed external margin.
+
+\begin{lemma}[lem:kivva-positive-ordinary-id-specialization]\label{lem:kivva-positive-ordinary-id-specialization}
+For a finite-state semi-Markovian substantive causal graph on \(V\), specialize Kivva et al.'s positive general-identification setup to the singleton available family \(\{V\}\), so the sole available kernel is the strictly positive observational law \(P(V)\). If an intervention cell \(P(Y=y\mid\operatorname{do}(X=x))\) is not identifiable from \(P(V)\) over the positive finite recursive semi-Markovian model class, then there exist two positive finite recursive semi-Markovian SCMs \(N_1,N_2\) compatible with the same substantive graph and a probability table \(p\) such that
+\[
+ P_{N_1}(V=v)=P_{N_2}(V=v)=p(v)>0
+ \quad\text{for every }v\in\mathcal X_V,
+\]
+but
+\[
+ \psi_{x,y}(N_1)\ne\psi_{x,y}(N_2).
+\]
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This is the published positive-model substrate for the ordinary nonidentification pair used by the new selection lift. \textit{Gap.} The source gives the positive same-observational-law pair; this note derives preservation of a normalized selected law and an arbitrary external margin after a common terminal selection extension. \textit{Consumer.} The strengthened terminal-selection theorem invokes this specialization and no longer assumes a response-coordinate separating row.
+
+\begin{theorem}[thm:three-node-interior-witness]\label{thm:three-node-interior-witness}
+For the binary specialization \(V=\{W_\star,A_\star,Y_\star\}\), \(\mathcal G=\mathcal G_\star\), \(X=\{A_\star\}\), \(Y=\{Y_\star\}\), and \(T_0=\{W_\star\}\), the answer to the interior gate is affirmative.  In particular, for \(x=1\), \(y=1\), \(\epsilon=1/16\), the uniform tables \(q_S(w,a,y)=1/8\) and \(q_0(w)=1/2\) form a compatible input at which \(\operatorname{EXT\text{-}ID}\) returns \(\operatorname{FAIL}\).  There is a compatible represented baseline \((M,\mathcal R,U_0)\in\mathfrak R_{\epsilon,1/4}^{\circ}(\mathcal G_\star,T_0;q_S,q_0)\) and an active direction \(\beta\in\Gamma_{(M,\mathcal R,U_0)}^\perp\) such that \(\beta^{\mathsf T}h_{1,1}=1\).  The perturbations with \(\tau=1/8\) give two models in the same exact fiber with \(P(Y_\star=1\mid\operatorname{do}(A_\star=1))=5/8\) and \(3/8\), respectively.
+\end{theorem}
+\begin{proof}
+Let \(U_W\) and \(U_A\) be independent fair binary coordinates, and let \(U_0\) be independent of them with active state space \(\mathcal J_0=\{1,2,3,4\}\) and masses \(u_j=1/4\).  Define
+\[
+ W_\star=U_W,
+ \qquad A_\star=U_A,
+\]
+and, for \(j\in\mathcal J_0\), define
+\[
+ f_{Y_\star}(a,j)=
+ \begin{cases}
+ 0,&j=1,\\
+ 1,&j=2,\\
+ a,&j=3,\\
+ 1-a,&j=4.
+ \end{cases}
+\qquad
+ f_S(w,y,j)=
+ \begin{cases}
+ 1,&j\in\{1,2\},\\
+ 0,&j\in\{3,4\}.
+ \end{cases}
+\]
+Every structural function uses only a subset of its displayed parents in \(\mathcal G_\star\), and the only shared exogenous coordinate is \(U_0\), shared by \(Y_\star\) and \(S\).  Hence the SCM is recursive, semi-Markovian, and compatible with the directed and bidirected edges of \(\mathcal G_\star\).  Each coordinate state space is exactly its positive support, and every atom has mass at least \(1/4\).
+
+Selection occurs exactly for types \(1,2\), so
+\[
+ P_M(S=1)=\frac12.
+\]
+Conditional on selection, \(W_\star\) and \(A_\star\) remain independent fair coins, while types \(1,2\) make \(Y_\star\) respectively \(0,1\) with equal conditional probability.  For every \((w,a,y)\in\{0,1\}^3\), therefore,
+\[
+ P_M(W_\star=w,A_\star=a,Y_\star=y,S=1)
+ =\frac12\cdot\frac12\cdot\frac14=\frac1{16},
+\]
+and division by \(P_M(S=1)=1/2\) gives
+\[
+ q_S(w,a,y)=\frac18.
+\]
+Also \(q_0(w)=P_M(W_\star=w)=1/2\).  Thus \(q_S(v)\geq1/16\), the input belongs to \(\mathcal C_{1/16}(\mathcal G_\star,T_0)\), and the represented baseline belongs to \(\mathfrak R_{1/16,1/4}^{\circ}(\mathcal G_\star,T_0;q_S,q_0)\).
+
+Order the active types as above and put
+\[
+ \beta=(0,0,1,-1)^{\mathsf T}.
+\]
+Integrating over the independent fair \(U_W,U_A\) gives
+\[
+ a_+=(1,1,0,0)^{\mathsf T},
+ \qquad b_0=b_1=\frac12\mathbf 1.
+\]
+For a selected full cell with \(y=0\),
+\[
+ a_v=(1/4,0,0,0)^{\mathsf T},
+\]
+and for a selected full cell with \(y=1\),
+\[
+ a_v=(0,1/4,0,0)^{\mathsf T}.
+\]
+Since \(u^{\mathsf T}a_+=1/2\) and \(u^{\mathsf T}a_v=1/16\), every selected cross-product row is a scalar multiple of \((1,-1,0,0)^{\mathsf T}\).  Consequently \(\beta\) is orthogonal to \(\mathbf 1\), each \(b_t\), and every selected cross-product row, and therefore
+\[
+ \beta\in\Gamma_{(M,\mathcal R,U_0)}^\perp.
+\]
+For \((x,y)=(1,1)\), the intervention-response row is
+\[
+ h_{1,1}=(0,1,1,0)^{\mathsf T},
+ \qquad
+ \beta^{\mathsf T}h_{1,1}=1.
+\]
+Thus \(h_{1,1}\notin\Gamma_{(M,\mathcal R,U_0)}\).
+
+Take \(\tau=1/8=(1/4)/(2\lVert\beta\rVert_\infty)\).  Theorem \(\mathrm{thm{:}projective\text{-}nullspace\text{-}certificate}\) applies, with perturbed mass vectors
+\[
+ u^+=(1/4,1/4,3/8,1/8),
+ \qquad
+ u^-=(1/4,1/4,1/8,3/8).
+\]
+They preserve the displayed selected joint law and \(W_\star\)-margin, while direct evaluation gives
+\[
+ \begin{aligned}
+ P_{M_1}(Y_\star=1\mid\operatorname{do}(A_\star=1))
+ &=u_2^++u_3^+=\frac58,\\
+ P_{M_2}(Y_\star=1\mid\operatorname{do}(A_\star=1))
+ &=u_2^-+u_3^-=\frac38.
+ \end{aligned}
+\]
+If \(\operatorname{EXT\text{-}ID}\) returned an arithmetic functional at this input, Theorem \(\mathrm{thm{:}extid\text{-}sound\text{-}termination}\) would force that one value to equal both \(5/8\) and \(3/8\), a contradiction.  The state machine terminates and has only the two terminal outputs specified in Definition \(\mathrm{def{:}extid\text{-}state\text{-}machine}\), so its output here is \(\operatorname{FAIL}\).  This proves the claimed exact interior witness.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The four-response-type construction is an exact rational stress test and a fully interior nonidentification certificate for the named graph. \textit{Gap.} It preserves both a uniform selected conditional and a uniform external margin while moving the intervention cell from \(3/8\) to \(5/8\). \textit{Consumer.} It is the certified first kill-test instance; it is not evidence that the remaining three-node census has been executed.
+
+\begin{theorem}[thm:positive-ordinary-hedge-selection-lift]\label{thm:positive-ordinary-hedge-selection-lift}
+Let \(S\) be terminal in \(\mathcal G\), suppose no bidirected edge of \(\mathcal G\) is incident to \(S\), and put \(G_V=\mathcal G[V]\). Fix \(T_0\subseteq V\) and a target cell \((x,y)\in\mathcal I\). Suppose \(\psi_{x,y}\) is not identifiable from the full observational law \(P(V)\) over the positive finite recursive semi-Markovian substantive SCMs compatible with \(G_V\). Then there exist two such substantive models \(N_1,N_2\) and a strictly positive common table \(p\) satisfying
+\[
+ P_{N_1}(V=v)=P_{N_2}(V=v)=p(v)>0\quad\text{for every }v\in\mathcal X_V,
+ \qquad
+ \psi_{x,y}(N_1)\ne\psi_{x,y}(N_2).
+\]
+For any common terminal selection kernel \(\pi_S(1\mid r)\in(0,1)\), one value for every cell \(r\) of \(\operatorname{pa}_{\mathcal G}(S)\), implemented by an exogenous response coordinate independent of the substantive coordinates, extend both models by that same kernel and denote the extensions by \(M_1,M_2\). Define
+\[
+ q_S(v)=\frac{\pi_S(1\mid v_{\operatorname{pa}_{\mathcal G}(S)})p(v)}
+ {\sum_{v'}\pi_S(1\mid v'_{\operatorname{pa}_{\mathcal G}(S)})p(v')},
+ \qquad
+ q_0(t)=\sum_{v:v_{T_0}=t}p(v).
+\]
+For every \(\epsilon\) satisfying \(0<\epsilon\leq\min_v q_S(v)\), the pair \((q_S,q_0)\) belongs to \(\mathcal C_{\epsilon}(\mathcal G,T_0)\), both \(M_1,M_2\) belong to the single exact fiber \(\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0)\), and
+\[
+ \operatorname{Obs}_{T_0}(M_1)=\operatorname{Obs}_{T_0}(M_2)=(q_S,q_0),
+ \qquad
+ \psi_{x,y}(M_1)\ne\psi_{x,y}(M_2).
+\]
+Moreover the two lifted models admit finite independent response representations such that, after deleting zero-mass response labels, every active atom in either representation has mass at least one common witness-specific constant \(\eta>0\).
+\end{theorem}
+\begin{proof}
+Put
+\[
+ G_V=\mathcal G[V].
+\]
+The premise is failure of ordinary identification on the positive finite substantive model class. Lemma \(\mathrm{lem{:}kivva\text{-}positive\text{-}ordinary\text{-}id\text{-}specialization}\), applied to \(G_V\) and the cell \((x,y)\), therefore gives finite recursive semi-Markovian substantive SCMs \(N_1,N_2\) compatible with \(G_V\) and a probability table \(p\) such that, for every \(v\in\mathcal X_V\),
+\[
+ P_{N_1}(V=v)=P_{N_2}(V=v)=p(v)>0,
+\]
+while
+\[
+ \psi_{x,y}(N_1)\ne\psi_{x,y}(N_2).
+\]
+This is the only step imported from the cited positive ordinary-identification result.
+
+Fix any terminal selection kernel allowed by the statement and abbreviate
+\[
+ r_v=\pi_S(1\mid v_{\operatorname{pa}_{\mathcal G}(S)}),
+ \qquad
+ Z=\sum_{v'\in\mathcal X_V}r_{v'}p(v').
+\]
+Every \(r_v\) and every \(p(v)\) is strictly positive. The state space \(\mathcal X_V\) is finite by \(\mathrm{ass{:}finite\text{-}state}\), so
+\[
+ 0<Z<\infty.
+\]
+Because no bidirected edge is incident to \(S\), using an exogenous selection coordinate independent of all substantive exogenous coordinates is compatible with \(\mathcal G\). Because \(S\) is terminal, adjoining its structural equation changes no substantive structural equation and creates no directed feedback. Hence each extension \(M_k\), \(k\in\{1,2\}\), is recursive, semi-Markovian, and compatible with \(\mathcal G\).
+
+Conditional on \(V=v\), the independent common selection equation has success probability \(r_v\). Thus, for \(k\in\{1,2\}\), the product rule and the common population law give
+\[
+ P_{M_k}(V=v,S=1)
+ =P_{M_k}(S=1\mid V=v)P_{M_k}(V=v)
+ =r_vp(v).
+\]
+Summing this equality over the finite state space yields
+\[
+ P_{M_k}(S=1)=\sum_v r_vp(v)=Z>0.
+\]
+Division is therefore licensed, and
+\[
+ P_{M_k}(V=v\mid S=1)
+ =\frac{r_vp(v)}{Z}
+ =q_S(v).
+\]
+The right-hand side does not depend on \(k\). It is a probability table because
+\[
+ \sum_vq_S(v)=Z^{-1}\sum_vr_vp(v)=1,
+\]
+and every cell is strictly positive. Likewise marginalization of the common full law gives, for every \(t\in\mathcal X_{T_0}\),
+\[
+ P_{M_k}(T_0=t)
+ =\sum_{v:v_{T_0}=t}P_{M_k}(V=v)
+ =\sum_{v:v_{T_0}=t}p(v)
+ =q_0(t).
+\]
+Consequently
+\[
+ \operatorname{Obs}_{T_0}(M_1)
+ =\operatorname{Obs}_{T_0}(M_2)
+ =(q_S,q_0).
+\]
+
+Finiteness and strict positivity of the selected table imply
+\[
+ \min_{v\in\mathcal X_V}q_S(v)>0.
+\]
+Fix \(\epsilon\) with \(0<\epsilon\leq\min_vq_S(v)\). The compatibility, positive selection normalizer, and selected-cell inequality established above put each \(M_k\) in \(\mathfrak M_\epsilon(\mathcal G)\) by Definition \(\mathrm{def{:}model\text{-}class}\). Hence the common observed pair lies in \(\mathcal C_\epsilon(\mathcal G,T_0)\) by Definition \(\mathrm{def{:}compatible\text{-}input\text{-}image}\), and Definition \(\mathrm{def{:}exact\text{-}observed\text{-}fiber}\) gives
+\[
+ M_1,M_2\in\mathfrak F_\epsilon(\mathcal G,T_0;q_S,q_0).
+\]
+
+For an intervention \(\operatorname{do}(X=x)\), terminality of \(S\) implies that the selection structural equation is downstream of every substantive variable and is not an input to any substantive equation. The substantive interventional distribution in \(M_k\) is therefore exactly that in \(N_k\). In particular,
+\[
+ \psi_{x,y}(M_k)=\psi_{x,y}(N_k),\qquad k\in\{1,2\},
+\]
+so the cited strict inequality yields
+\[
+ \psi_{x,y}(M_1)\ne\psi_{x,y}(M_2).
+\]
+
+It remains to verify, rather than assume, the response-interior assertion. Apply Lemma \(\mathrm{lem{:}finite\text{-}response\text{-}selection\text{-}admg\text{-}reduction}\) separately to \(M_1\) and \(M_2\). It gives finite independent response representations preserving their full factual laws, the \(T_0\)-margins, and the target intervention cells. In each representation merge response labels inducing the same deterministic maps and delete every zero-mass label. The resulting state space of each coordinate is exactly its positive support. Across the two representations there are only finitely many active coordinate atoms, and every one has strictly positive mass. Therefore
+\[
+ \eta=\min\{\text{active coordinate-atom masses in either reduced representation}\}>0.
+\]
+Every active atom in either representation has mass at least \(\eta\), while all equalities already proved are preserved by the reduction. This completes the graph-level positive selection lift.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem gives a graph-native lift from ordinary positive-model nonidentification to exact two-law nonidentification without a representation-specific row-separation premise. \textit{Gap.} The cited result supplies a positive same-\(P(V)\) pair; the new calculation preserves the normalized selected conditional, every external margin, causal separation, and common witness-specific response slack. \textit{Consumer.} Its contrapositive is the necessary condition for recovery on terminal selection sinks without incident bidirected edges.
+
+\begin{proposition}[prop:terminal-selection-ordinary-id-necessary]\label{prop:terminal-selection-ordinary-id-necessary}
+Assume \(S\) is terminal in \(\mathcal G\) and no bidirected edge is incident to \(S\), and put \(G_V=\mathcal G[V]\). Fix \(T_0\subseteq V\) and a target cell \((x,y)\in\mathcal I\). If \(\psi_{x,y}\) is identifiable from the pair \((P_M(V\mid S=1),P_M(T_0))\) over all positive finite terminal-unconfounded extensions of substantive models compatible with \(G_V\), then \(\psi_{x,y}\) is identifiable from the full observational law \(P_N(V)\) over the positive finite substantive model class compatible with \(G_V\). When \(T_0=V\), the converse also holds, so two-law identification on this terminal-unconfounded subclass is equivalent to ordinary positive-model identification. In that \(T_0=V\) boundary, for every compatible positive input and every ordinarily identifiable cell, \(\operatorname{EXT\text{-}ID}\) returns a finite arithmetic functional equal to \(\psi_{x,y}\) throughout the exact two-law fiber.
+\end{proposition}
+\begin{proof}
+We first prove the necessary condition by contraposition. Suppose \(\psi_{x,y}\) is not identifiable from \(P_N(V)\) on the positive finite substantive model class compatible with \(G_V\). Choose any common strictly positive terminal selection kernel, for example
+\[
+ \pi_S(1\mid r)=\frac12
+ \quad\text{for every parent cell }r.
+\]
+Theorem \(\mathrm{thm{:}positive\text{-}ordinary\text{-}hedge\text{-}selection\text{-}lift}\) constructs two terminal-unconfounded extensions \(M_1,M_2\) with
+\[
+ \operatorname{Obs}_{T_0}(M_1)=\operatorname{Obs}_{T_0}(M_2)
+ \quad\text{and}\quad
+ \psi_{x,y}(M_1)\ne\psi_{x,y}(M_2).
+\]
+Therefore no single functional of the selected law and the \(T_0\)-margin can equal the causal cell for every model in that extension class. This is exactly the contrapositive of the first assertion.
+
+Now take \(T_0=V\). The necessary direction has just been proved. For the converse, the second observed table is
+\[
+ q_0(v)=P_M(V=v).
+\]
+If ordinary identification supplies a functional \(f\) satisfying
+\[
+ \psi_{x,y}(M)=f(P_M(V))
+\]
+for every positive substantive model compatible with \(G_V\), then the two-source functional
+\[
+ F(q_S,q_0)=f(q_0)
+\]
+has the same value for every terminal-unconfounded extension and ignores the selected table. Thus ordinary identification implies two-law identification, proving the equivalence.
+
+Finally, Lemma \(\mathrm{lem{:}ordinary\text{-}do\text{-}calculus\text{-}completeness}\) gives a finite ordinary do-calculus and probability derivation for every ordinarily identifiable cell. Proposition \(\mathrm{prop{:}boundary\text{-}reductions}\) states that when \(T_0=V\), initialization stores every cell of \(q_0=P_M(V)\) and the saturation replays any such finite derivation. Hence \(\operatorname{EXT\text{-}ID}\) returns an arithmetic functional. The soundness conclusion of that proposition, equivalently Theorem \(\mathrm{thm{:}extid\text{-}sound\text{-}termination}\), gives
+\[
+ F_{x,y}(q_S,q_0)=\psi_{x,y}(M)
+\]
+for every \(M\) in the exact compatible fiber. This proves the final claim without asserting anything about a bare \(\operatorname{FAIL}\) outside the stated boundary.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the headline graph-level recovery restriction, with an exact ordinary-ID equivalence when the external margin is the full population law. \textit{Gap.} Ordinary ID completeness alone does not establish preservation of both observed sources under selection; the selection-lift theorem supplies that missing direction. \textit{Consumer.} It gives the structural audit rule for terminal-unconfounded ACTG selection diagrams and the full-margin EXT-ID success boundary.
+
+\begin{theorem}[thm:all-graph-positive-ordinary-selection-lift]\label{thm:all-graph-positive-ordinary-selection-lift}
+Let \(\mathcal G\) be an arbitrary finite selection ADMG on \(V\cup\{S\}\), and put \(G_V=\mathcal G[V]\). Fix \(T_0\subseteq V\) and \((x,y)\in\mathcal I\). Suppose \(\psi_{x,y}\) is not identifiable from the full observational law \(P(V)\) over the positive finite recursive semi-Markovian substantive SCMs compatible with \(G_V\). Then there exist two such substantive models \(N_1,N_2\) and a strictly positive common table \(p\) such that
+\[
+ P_{N_1}(V=v)=P_{N_2}(V=v)=p(v)>0
+ \quad\text{for every }v\in\mathcal X_V,
+ \qquad
+ \psi_{x,y}(N_1)\ne\psi_{x,y}(N_2).
+\]
+For any common strictly positive table \(\pi_S(1\mid r)\in(0,1)\), indexed by cells \(r\) of \(\operatorname{pa}_{\mathcal G}(S)\), there are edge-silent extensions \(M_1,M_2\) compatible with the full graph \(\mathcal G\): the equation for \(S\) realizes \(\pi_S\) using an independent finite response coordinate and ignores every exogenous coordinate displayed by a bidirected edge incident to \(S\); every substantive equation retains its equation from \(N_k\), ignores a displayed parent \(S\), and ignores every exogenous coordinate displayed by a bidirected edge incident to \(S\). Define
+\[
+ q_S(v)=
+ \frac{\pi_S(1\mid v_{\operatorname{pa}_{\mathcal G}(S)})p(v)}
+ {\sum_{v'}\pi_S(1\mid v'_{\operatorname{pa}_{\mathcal G}(S)})p(v')},
+ \qquad
+ q_0(t)=\sum_{v:v_{T_0}=t}p(v).
+\]
+For every \(\epsilon\) satisfying \(0<\epsilon\leq\min_v q_S(v)\),
+\[
+ (q_S,q_0)\in\mathcal C_{\epsilon}(\mathcal G,T_0),
+ \qquad
+ M_1,M_2\in\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0),
+\]
+and
+\[
+ \operatorname{Obs}_{T_0}(M_1)=\operatorname{Obs}_{T_0}(M_2)=(q_S,q_0),
+ \qquad
+ \psi_{x,y}(M_1)\ne\psi_{x,y}(M_2).
+\]
+The two extensions admit finite independent response representations such that, after zero-mass response labels are deleted, every active atom in either representation has mass at least one common witness-specific constant \(\eta>0\). Consequently ordinary positive-model nonidentifiability implies two-law nonidentifiability over the full positive \(\mathcal G\)-compatible model class for every \(T_0\), because the edge-silent extensions form a subclass of that class.
+\end{theorem}
+\begin{proof}
+Put \(G_V=\mathcal G[V]\). Semantic nonidentifiability means that the query is not constant on at least one fiber of the full observational-law map. The positive finite separating pair is supplied by Lemma \(\mathrm{lem{:}kivva\text{-}positive\text{-}ordinary\text{-}id\text{-}specialization}\), which gives substantive models \(N_1,N_2\) compatible with \(G_V\) and a table \(p\) satisfying
+\[
+ P_{N_1}(V=v)=P_{N_2}(V=v)=p(v)>0
+ \quad\text{for every }v\in\mathcal X_V,
+ \tag{1}
+\]
+and
+\[
+ \psi_{x,y}(N_1)\ne\psi_{x,y}(N_2).
+ \tag{2}
+\]
+Thus the cited positive ordinary-identification result is used only for (1)--(2). By Lemma \(\mathrm{lem{:}finite\text{-}response\text{-}selection\text{-}admg\text{-}reduction}\), we may choose finite independent response representations of \(N_1,N_2\) preserving their complete factual and counterfactual laws. Delete zero-mass response labels; hence every remaining coordinate atom has positive mass.
+
+We next construct the extensions rather than assuming their existence. Let
+\[
+ \mathcal H_S
+ =\bigl\{g:\mathcal X_{\operatorname{pa}_{\mathcal G}(S)}\longrightarrow\{0,1\}\bigr\}.
+\]
+This is finite by Assumption \(\mathrm{ass{:}finite\text{-}state}\). Introduce an exogenous coordinate \(U_S\), independent of all substantive coordinates, with
+\[
+ P(U_S=g)
+ =\prod_{r\in\mathcal X_{\operatorname{pa}_{\mathcal G}(S)}}
+ \pi_S(1\mid r)^{g(r)}
+ \{1-\pi_S(1\mid r)\}^{1-g(r)}.
+ \tag{3}
+\]
+The empty-parent case uses the unique empty-block cell. Repeated finite distributivity gives
+\[
+ \sum_{g\in\mathcal H_S}P(U_S=g)
+ =\prod_r\{\pi_S(1\mid r)+1-\pi_S(1\mid r)\}=1.
+\]
+Every factor in (3) is strictly positive, so every atom of \(U_S\) has positive mass. Define
+\[
+ S=U_S\bigl(\operatorname{pa}_{\mathcal G}(S)\bigr).
+ \tag{4}
+\]
+For every bidirected edge incident to \(S\), take its displayed shared exogenous coordinate to have one atom of mass one and make both incident structural equations ignore that coordinate. For every \(W\in V\), retain the substantive equation from \(N_k\); if \(S\) is a displayed parent of \(W\), extend the equation constantly in its \(S\)-argument. Thus every substantive equation also ignores the coordinates displayed by bidirected edges incident to \(S\).
+
+We verify compatibility explicitly. Under the nonparametric ADMG convention in Assumption \(\mathrm{ass{:}semi\text{-}markovian}\), a structural function may depend only on displayed directed parents and its allowed exogenous coordinates; it is not required to depend nontrivially on every displayed argument. Indeed, if \(f(d,u)\) is an allowed function of a subset of displayed arguments, then \(\widetilde f(d,e,u)=f(d,u)\) is a function on the full displayed argument space, constant in the unused coordinate \(e\). Such constant extension introduces no unauthorized directed or bidirected dependence. The equations just constructed therefore use only arguments permitted by \(\mathcal G\). Their exogenous coordinates are independent, and each shared coordinate is incident to at most its displayed pair. Finally, the directed part of \(\mathcal G\) is acyclic, so evaluating these equations in a topological order is recursive even when \(S\) is not terminal. Hence each \(M_k\) is recursive, semi-Markovian, and compatible with the full arbitrary graph \(\mathcal G\).
+
+Because every substantive equation ignores \(S\), \(U_S\), and every \(S\)-incident shared coordinate, the factual vector \(V\) is exactly the factual vector generated by \(N_k\). The same observation holds after any intervention on a subset of \(V\). Therefore (1)--(2) imply
+\[
+ P_{M_k}(V=v)=p(v),
+ \qquad
+ \psi_{x,y}(M_k)=\psi_{x,y}(N_k),
+ \quad k\in\{1,2\},
+ \tag{5}
+\]
+and in particular
+\[
+ \psi_{x,y}(M_1)\ne\psi_{x,y}(M_2).
+ \tag{6}
+\]
+This is the step that removes the former terminality and selection-unconfoundedness restrictions.
+
+Equation (3) also makes \(U_S\) independent of \(V\). For a fixed parent cell \(r\), summing (3) over all response maps with \(g(r)=1\) gives
+\[
+ P\{U_S(r)=1\}
+ =\pi_S(1\mid r)
+ \prod_{r'\ne r}\{\pi_S(1\mid r')+1-\pi_S(1\mid r')\}
+ =\pi_S(1\mid r).
+ \tag{7}
+\]
+Consequently, for every substantive cell \(v\), (4), (5), and (7) give
+\[
+ P_{M_k}(V=v,S=1)
+ =\pi_S(1\mid v_{\operatorname{pa}_{\mathcal G}(S)})p(v).
+ \tag{8}
+\]
+Let
+\[
+ Z_S=\sum_{v'}\pi_S(1\mid v'_{\operatorname{pa}_{\mathcal G}(S)})p(v').
+\]
+All summands are strictly positive, and there are finitely many cells, so \(0<Z_S<\infty\). Summing (8) yields \(P_{M_k}(S=1)=Z_S\). Division is therefore licensed, and
+\[
+ P_{M_k}(V=v\mid S=1)
+ =\frac{\pi_S(1\mid v_{\operatorname{pa}_{\mathcal G}(S)})p(v)}{Z_S}
+ =q_S(v).
+ \tag{9}
+\]
+The right-hand side is common to the two models, sums to one, and is strictly positive at every cell. Marginalizing (5) gives, for every \(t\in\mathcal X_{T_0}\),
+\[
+ P_{M_k}(T_0=t)
+ =\sum_{v:v_{T_0}=t}p(v)
+ =q_0(t).
+ \tag{10}
+\]
+Equations (9)--(10) and Definition \(\mathrm{def{:}observed\text{-}data\text{-}map}\) show
+\[
+ \operatorname{Obs}_{T_0}(M_1)
+ =\operatorname{Obs}_{T_0}(M_2)
+ =(q_S,q_0).
+ \tag{11}
+\]
+
+Finiteness and cellwise strict positivity imply \(\min_vq_S(v)>0\). Fix \(\epsilon\) with \(0<\epsilon\leq\min_vq_S(v)\). The compatibility proved above, \(P_{M_k}(S=1)=Z_S>0\), and (9) put \(M_k\) in \(\mathfrak M_{\epsilon}(\mathcal G)\) by Definition \(\mathrm{def{:}model\text{-}class}\). Equation (11) and Definitions \(\mathrm{def{:}compatible\text{-}input\text{-}image}\) and \(\mathrm{def{:}exact\text{-}observed\text{-}fiber}\) then give
+\[
+ (q_S,q_0)\in\mathcal C_{\epsilon}(\mathcal G,T_0),
+ \qquad
+ M_1,M_2\in\mathfrak F_{\epsilon}(\mathcal G,T_0;q_S,q_0).
+ \tag{12}
+\]
+
+It remains to check the response-interior conclusion. The reduced representations of \(N_1,N_2\) have finitely many active coordinate atoms of positive mass. The selection coordinate in (3) has finitely many positive atoms, and every ignored \(S\)-incident coordinate has its single atom of mass one. Hence the union of the active coordinate-atom masses across both extensions is a finite nonempty set of positive real numbers. Its minimum
+\[
+ \eta
+ =\min\{\text{active coordinate-atom masses in either extension}\}
+ >0
+ \tag{13}
+\]
+is a common witness-specific slack. Equations (6), (11), and (12) exhibit two members of one exact two-law fiber with different query values. Because these edge-silent models are members of, hence a subclass of, the full positive \(\mathcal G\)-compatible class, a functional valid on that superclass would have to take one value on their common input, contradicting (6). This monotonic superclass argument proves two-law nonidentifiability. It does not assert the invalid reverse implication that identification on the edge-silent subclass would establish identification on the full superclass.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This all-graph edge-silent lift proves that ordinary positive-model nonidentifiability survives the selected conditional and every external margin inside the full graph-compatible superclass. \textit{Gap.} The ordinary positive witness supplies a common full law; the new construction activates no displayed edge at selection, proves full-graph compatibility, preserves the normalized selected law and every margin exactly, and retains query separation. \textit{Consumer.} It is the graph-level necessary obstruction for every external-margin recovery claim and the necessary half of the terminal full-margin equivalence.
+
+\section{Interpretation}
+
+On a terminal-unconfounded selection diagram, a strictly positive selection mechanism transforms the common substantive law by the same positive reweighting and normalization in both witness models. Because every external margin \(P(T_0)\) is already a marginal of that common substantive law, adding one such margin cannot distinguish the witnesses. Therefore two-law recovery on this subclass can occur only if the causal cell was already identifiable from \(P(V)\). When the margin is the full set \(T_0=V\), it directly reveals \(P(V)\), so the necessary condition becomes sufficient and EXT-ID replays ordinary identification. For an ACTG 320 audit using WIHS or CNICS margins, this gives a concrete negative diagnostic when the audited selection node is a terminal unconfounded sink and the substantive query fails ordinary positive-model ID; outside that graph subclass the theorem is not invoked.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The general finite selection-ADMG framework intentionally permits directed children of \(S\) and bidirected selection confounding. The graph-level transfer applies only when \(S\) is terminal and no bidirected edge is incident to it. It proves a necessary condition for recovery and the exact \(T_0=V\) equivalence, not completeness of EXT-ID on the broader class. The projective null-space theorem remains conditional on a chosen finite response representation and a separating query row; it does not extract such a representation from an arbitrary EXT-ID failure. The canonical response-fiber formula characterizes nonidentification at a fixed observed pair, but no implication from bare \(\operatorname{FAIL}\) to its feasibility has been proved. The parameterized three-node QE3/CAD audit has not been executed, and no universal margin-anchored hedge for every terminal failure is claimed. Presolve values such as \(19/36\) and the \(1/3\) versus \(2/3\) two-node pair remain diagnostics rather than proof premises.
+
+\section{Honest scope}
+
+The achieved tier is a scoped graph-level structural result: positive ordinary nonidentification transfers to exact two-law nonidentification for terminal selection sinks without incident bidirected edges, for every \(T_0\) and every common strictly positive terminal selection kernel. Its contrapositive is a necessary condition for recovery on that subclass, and at \(T_0=V\) the result is an equivalence with executable EXT-ID success for every ordinarily identifiable positive-model cell. The algebraic model class, the soundness theorem for successful EXT-ID outputs, and the fixed-fiber response characterization remain valid beyond this subclass under their own premises. No claim is made that arbitrary EXT-ID failure implies a feasible response witness, that QE3 has been run, or that universal completeness has been established. The response slack in the transfer is witness-specific after zero labels are removed. Qiu et al. are treated only as an input-shape and scalar-estimand analogue. The ACTG 320 extension using WIHS or CNICS margins is a downstream audit consumer, not validation of the theorem.
+
+\begin{thebibliography}{99}
+
+  \bibitem{CorreaTianBareinboim2019Selection} Juan D. Correa, Jin Tian, and Elias Bareinboim (2019), Identification of causal effects in the presence of selection bias, Proceedings of the AAAI Conference on Artificial Intelligence 33, 2744--2751.
+
+  \bibitem{ShpitserPearl2006JointID} Ilya Shpitser and Judea Pearl (2006), Identification of joint interventional distributions in recursive semi-Markovian causal models, Proceedings of AAAI, 1219--1226.
+
+  \bibitem{KivvaMokhtarianEtesamiKiyavash2022GID} Yaroslav Kivva, Ehsan Mokhtarian, Jalal Etesami, and Negar Kiyavash (2022), Revisiting the general identifiability problem, Proceedings of UAI, 1022--1030.
+
+  \bibitem{RichardsonEvansRobinsShpitser2017NestedMarkov} Thomas S. Richardson, Robin J. Evans, James M. Robins, and Ilya Shpitser (2023), Nested Markov properties for acyclic directed mixed graphs, Annals of Statistics 51, 334--361.
+
+  \bibitem{LeeGhassamiShpitser2024SystematicSelection} Jaron J. R. Lee, AmirEmad Ghassami, and Ilya Shpitser (2024), A general identification algorithm for data fusion problems under systematic selection, Proceedings of UAI.
+
+  \bibitem{BhattacharyaNabiShpitser2022Semiparametric} Rohit Bhattacharya, Razieh Nabi, and Ilya Shpitser (2022), Semiparametric inference for causal effects in graphical models with hidden variables, Journal of Machine Learning Research 23, 1--76.
+
+  \bibitem{LiBuchananCole2022ACTG} Fan Li, Ashley L. Buchanan, and Stephen R. Cole (2022), Generalizing trial evidence to target populations in non-nested designs, Journal of the Royal Statistical Society Series C 71, 669--697.
+
+  \bibitem{DuarteEtAl2024Autobounds} Guilherme Duarte, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser (2024), An automated approach to causal inference in discrete settings, Journal of the American Statistical Association 119, 1778--1793.
+
+  \bibitem{QiuEtAl2026DistributionalID} Yiwen Qiu, Filip Kovačević, Shimeng Huang, Peter Spirtes, and Francesco Locatello (2026), Towards a holistic understanding of selection bias for causal effect identification, arXiv:2605.13430v3.
+
+  \bibitem{TudballEtAl2023SampleConstrained} Matthew J. Tudball, Rachael A. Hughes, Kate Tilling, Jack Bowden, and Qingyuan Zhao (2023), Sample-constrained partial identification with application to selection bias, Biometrika 110, 485--498.
+
+  \bibitem{vanDerVaart1998} Aad W. van der Vaart (1998), Asymptotic Statistics, Cambridge University Press.
+
+  \bibitem{TikkaHyttinenKarvanen2021DoSearch} Santtu Tikka, Antti Hyttinen, and Juha Karvanen (2021), Causal effect identification from multiple incomplete data sources: A general search-based approach, Journal of Statistical Software 99(5), 1--40.
+
+\end{thebibliography}
+
+\end{document}

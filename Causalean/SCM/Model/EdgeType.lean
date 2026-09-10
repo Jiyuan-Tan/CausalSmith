@@ -27,8 +27,7 @@ models and is used to track functional assumptions.
 
 namespace Causalean
 
-/-- A monotonicity kind records whether an edge is nondecreasing, nonincreasing, strictly
-increasing, or strictly decreasing.
+/-- [A monotonicity classification](goal) is one of [nondecreasing](hyp:nonDecreasing), [nonincreasing](hyp:nonIncreasing), [strictly increasing](hyp:strictlyIncreasing), or [strictly decreasing](hyp:strictlyDecreasing).
 
     For every monotonicity classification and every natural-number pretty-printing
 precedence, the derived representation function returns a standard formatted
@@ -43,7 +42,7 @@ inductive MonotonicityKind
   | strictlyDecreasing
   deriving DecidableEq, Repr
 
-/-- An edge type records whether an edge is nonparametric, monotonic, linear, or parametric.
+/-- [An edge-type classification](goal) is either [nonparametric](hyp:nonparametric), [monotonic with a specified monotonicity classification](hyp:monotonic), [linear](hyp:linear), or [parametric](hyp:parametric).
 
     For any two edge-type classifications, the derived equality procedure decides
 whether the first classification is equal to the second; for every edge-type
@@ -67,8 +66,10 @@ inductive EdgeType
 
 namespace EdgeType
 
-/-- The Boolean refinement check decides whether one edge-type assumption is at least as specific
-as another.
+/-- For two edge-type assumptions, [the Boolean refinement indicator](goal) is true
+exactly when the first assumption is at least as restrictive as the second: every assumption
+refines the nonparametric class, matching monotonicity kinds refine one another, and linear or
+parametric classes refine only their respective matching classes.
 
     Nonparametric is the weakest assumption: every edge type refines it. A
     linear edge refines the linear and nonparametric classes, but it is not
@@ -82,12 +83,14 @@ def refinesBool : EdgeType → EdgeType → Bool
   | .parametric, .parametric => true
   | _, _ => false
 
-/-- The refinement relation says that one edge-type assumption is at least as specific as another.
+/-- For [two edge-type assumptions](hyp:e₁,e₂), [the refinement relation](goal) holds exactly
+when their Boolean refinement indicator is true; thus the first assumption is at least as
+restrictive as the second.
 
     Nonparametric is the weakest assumption: every edge type refines it. -/
 def refines (e₁ e₂ : EdgeType) : Prop := e₁.refinesBool e₂ = true
 
-/-- Refinement between two edge-type assumptions is decidable. -/
+/-- For [each first edge-type assumption](hyp:e₁) and [each second edge-type assumption](hyp:e₂), [a decision procedure for whether the first refines the second](goal) is provided. -/
 instance decRefines (e₁ e₂ : EdgeType) : Decidable (e₁.refines e₂) :=
   inferInstanceAs (Decidable (_ = true))
 
@@ -127,20 +130,22 @@ namespace EdgeTypeAssignment
 variable {V : Type*} [DecidableEq V] [Fintype V]
 variable {G : DAG V}
 
-/-- The default edge-type assignment labels every edge as nonparametric. -/
+/-- For [a directed acyclic graph](hyp:G), [the all-nonparametric edge-type assignment](goal)
+labels every ordered pair of its vertices as nonparametric. -/
 def allNonparametric (G : DAG V) : EdgeTypeAssignment G where
   edgeType := fun _ _ => .nonparametric
 
-/-- The incoming edge-type set collects the labels on all edges pointing into a vertex. -/
+/-- For [an edge-type assignment](hyp:a) and [a vertex](hyp:v) in its graph, [the incoming
+edge-type set](goal) is the finite set of labels assigned to all parents of that vertex. -/
 def incomingTypes (a : EdgeTypeAssignment G) (v : V) : Finset EdgeType :=
   (G.parents v).image (fun u => a.edgeType u v)
 
-/-- A graph is fully nonparametric under an assignment when every directed edge is labeled
-nonparametric. -/
+/-- For [an edge-type assignment](hyp:a), [full nonparametricity](goal) holds exactly when, for
+every ordered pair of vertices joined by a directed edge, the assigned label is nonparametric. -/
 def isFullyNonparametric (a : EdgeTypeAssignment G) : Prop :=
   ∀ u v, G.edge u v → a.edgeType u v = .nonparametric
 
-/-- Full nonparametricity of an edge-type assignment is decidable. -/
+/-- For [a finite vertex set whose members can be compared for equality and a directed acyclic graph on it](hyp:V,G) and [an edge-type assignment on that graph](hyp:a), [a decision procedure for whether every directed edge has the nonparametric label](goal) is provided. -/
 instance decIsFullyNonparametric (a : EdgeTypeAssignment G) :
     Decidable a.isFullyNonparametric :=
   inferInstanceAs (Decidable (∀ u v, G.edge u v → _))

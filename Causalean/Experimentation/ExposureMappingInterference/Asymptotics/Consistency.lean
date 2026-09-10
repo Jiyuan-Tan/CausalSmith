@@ -68,13 +68,15 @@ namespace Experiment
 
 variable (E : Experiment)
 
-/-- Pairwise dependency indicator: `0` when the exposure indicators of `i` and `j` for
-exposure `d` are uncorrelated, `1` otherwise. -/
+/-- Given [an experiment](hyp:E), [an exposure level](hyp:d), and [two units](hyp:i,j), the
+[pairwise dependency indicator](goal) equals zero when their indicators for that exposure have
+zero design covariance, and equals one otherwise. -/
 noncomputable def gdep (d : E.Δ) (i j : E.ι) : ℝ := by
   classical
   exact if E.D.Cov (expoInd E.f E.θ i d) (expoInd E.f E.θ j d) = 0 then 0 else 1
 
-/-- Population size. -/
+/-- Given [an experiment](hyp:E), the [population size](goal) is the number of units in its
+finite population. -/
 def N : ℕ := Fintype.card E.ι
 
 /-- Covariance of two `[0,1]`-valued random variables is bounded by `1` in absolute value. -/

@@ -1,4 +1,4 @@
-import { lintAnchors, lintDefinitionOrder, lintNegativeContributionFraming, lintReferences, parseAnchoredEnvs, repairObjRefs, type LintProblem } from "./tex_anchors.js";
+import { lintAnchors, lintEnvOrder, lintNegativeContributionFraming, lintReferences, parseAnchoredEnvs, repairObjRefs, type LintProblem } from "./tex_anchors.js";
 import { citedKeys, type BibEntry } from "./citations.js";
 import { maskNonBoundaryPeriods, stripTexComments } from "../shared/tex_text.js";
 import {
@@ -41,7 +41,8 @@ export interface GateRunners {
 
 export interface HardGateInput {
   paperTex: string;
-  notation: string;
+  /** Frozen-layer env ids in P1's settled order (`formal_layer.json` block order). */
+  layerOrder: readonly string[];
   knownObjIds: Set<string>;
   frozenBodies: Map<string, string>; // obj_id → canonical frozen body
   frontMatter: string;
@@ -75,64 +76,6 @@ export function citingSentences(tex: string): { sentence: string; keys: string[]
   return out;
 }
 
-export interface RefineCheck {
-  obj_id: string;
-  envBody: string;
-  leanStatement: string;
-  leanPointer: string;
-  driftDetail: string;
-  citedDependencies?: string;
-}
-export type RefineRunner = (
-  c: RefineCheck,
-  notation: string,
-) => Promise<{ refinedBody: string; changed: boolean; note?: string }>;
-export type ReauditRunner = (
-  s: StatementCheck,
-  notation: string,
-) => Promise<{ verdict: string; detail?: string }>;
-
-/**
- * Bounded statement refinement (additive guard before the equivalence hard-halt). Re-audits the
- * paper statement against the Lean ground truth; on drift it refines the paper body TOWARD Lean
- * fidelity and re-audits, up to `maxRounds`. Lean is trusted; the graph NL was only the draft.
- * Stops early when the refiner reports it cannot tighten further (`changed=false`). Returns the
- * final body, whether it is now faithful, and whether it escalated (still drifting → the caller
- * keeps it in the hard-halt set).
- */
-export async function refineStatement(opts: {
-  check: StatementCheck;
-  notation: string;
-  maxRounds: number;
-  reaudit: ReauditRunner;
-  refine: RefineRunner;
-}): Promise<{ body: string; faithful: boolean; escalated: boolean; rounds: number; detail?: string; note?: string }> {
-  let body = opts.check.envBody;
-  let lastNote: string | undefined;
-  let v = await opts.reaudit({ ...opts.check, envBody: body }, opts.notation);
-  let round = 0;
-  while (v.verdict !== "faithful" && round < opts.maxRounds) {
-    round++;
-    const r = await opts.refine(
-      {
-        obj_id: opts.check.obj_id,
-        envBody: body,
-        leanStatement: opts.check.leanStatement,
-        leanPointer: opts.check.leanPointer,
-        driftDetail: v.detail ?? "drift",
-        citedDependencies: opts.check.citedDependencies,
-      },
-      opts.notation,
-    );
-    if (!r.changed) break; // refiner cannot tighten further → escalate with the current body
-    body = r.refinedBody;
-    lastNote = r.note;
-    v = await opts.reaudit({ ...opts.check, envBody: body }, opts.notation);
-  }
-  const faithful = v.verdict === "faithful";
-  return { body, faithful, escalated: !faithful, rounds: round, detail: v.detail, note: lastNote };
-}
-
 /** Concurrency-limited map: run `fn` over `items` with at most `limit` in flight, results in order. */
 export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T, i: number) => Promise<R>): Promise<R[]> {
   const results = new Array<R>(items.length);
@@ -140,17 +83,24 @@ export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T, i:
   const worker = async (): Promise<void> => {
     while (next < items.length) {
       const i = next++;
-      results[i] = await fn(items[i], i);
+      try {
+        results[i] = await fn(items[i], i);
+      } catch (error) {
+        next = items.length; // stop scheduling; let already-running jobs finish and persist
+        throw error;
+      }
     }
   };
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  const settled = await Promise.allSettled(Array.from({ length: Math.min(limit, items.length) }, worker));
+  const failed = settled.find((r) => r.status === "rejected");
+  if (failed?.status === "rejected") throw failed.reason;
   return results;
 }
 
 export async function runHardGates(inp: HardGateInput, r: GateRunners): Promise<LintProblem[]> {
   const problems: LintProblem[] = [];
   problems.push(...lintAnchors(inp.paperTex, inp.knownObjIds, inp.frozenBodies));
-  problems.push(...lintDefinitionOrder(inp.paperTex, inp.notation));
+  problems.push(...lintEnvOrder(inp.paperTex, inp.layerOrder));
   problems.push(...lintReferences(inp.paperTex));
   problems.push(...lintNegativeContributionFraming(inp.paperTex));
   problems.push(...repairObjRefs(inp.paperTex, new Set(parseAnchoredEnvs(inp.paperTex).map((e) => e.obj_id))).problems); // why: P3 revisions must not defer dangling obj refs to P4.
@@ -209,8 +159,8 @@ export interface RubricReview {
 }
 
 /** Boundary validation for a model-emitted rubric review. Malformed JSON must be
- *  rejected here, not scored: a string score becomes NaN, and `NaN < RUBRIC_PASS`
- *  is false — a garbage review would silently pass the gate. */
+ *  rejected here, not scored: a string score becomes NaN, so a garbage review would
+ *  silently read as a passing (advisory) score and skip the revision pass. */
 export function parseRubricReview(v: unknown): RubricReview | null {
   if (typeof v !== "object" || v === null) return null;
   const o = v as { scores?: unknown; weaknesses?: unknown; defects?: unknown };

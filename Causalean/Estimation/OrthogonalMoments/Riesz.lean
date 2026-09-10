@@ -63,7 +63,14 @@ structure RieszRepresentation
   α₀_integrable : Integrable α₀ P_X
   representation : ∀ γ : H_γ, L γ = ∫ x, α₀ x * γ_target γ x ∂P_X
 
-/-- **Generic Riesz orthogonal score.**  Given a Riesz representation,
+/-- For [an observed-data space and a covariate space](hyp:Z,X), [a regression-function vector space](hyp:H_γ), [a map assigning each regression function
+its value at every covariate](hyp:γ_target), [a real-valued linear functional of that regression
+function](hyp:L), [an observed-data-to-covariate map](hyp:proj_X), [an observed outcome map](hyp:Y_obs),
+[a regression function](hyp:γ), [a Riesz representer](hyp:α), [a scalar target](hyp:θ), and [an
+observed-data realization](hyp:z), the [generic Riesz orthogonal score](goal) is the functional
+evaluated at the regression function plus the representer times its observed residual, minus the target.
+
+Given a Riesz representation,
 the orthogonal moment for the target `θ(P) := L(γ_0)` is
 
   `m(z; θ, γ, α) := L(γ) + α(X) · (Y_obs z − γ(X)) − θ`,

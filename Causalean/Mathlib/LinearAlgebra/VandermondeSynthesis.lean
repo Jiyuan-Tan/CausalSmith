@@ -25,8 +25,11 @@ open scoped BigOperators
 
 noncomputable section
 
-/-- Moment synthesis from `n` commutative-semiring-valued nodes and one terminal coordinate.
-The terminal coordinate contributes only to the highest requested moment. -/
+/-- Given [a nonnegative integer \(n\)](hyp:n), [a commutative semiring of coefficients](hyp:K),
+[\(n\) node values](hyp:s), and [a nonnegative integer \(r\)](hyp:r), the
+[endpoint-order synthesis map](goal) sends \(n+1\) coefficients to the first \(r+1\) moment
+sums of the node coefficients, with the terminal coefficient added only to the moment of order
+\(r\). -/
 def endpointOrderSynthesis {n : ℕ} {K : Type*} [CommSemiring K] (s : Fin n → K) (r : ℕ) :
     (Fin (n + 1) → K) →ₗ[K] (Fin (r + 1) → K) where
   toFun z a :=

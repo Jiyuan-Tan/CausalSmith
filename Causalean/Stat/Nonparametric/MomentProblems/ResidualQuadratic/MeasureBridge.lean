@@ -52,7 +52,8 @@ namespace Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge
 open MeasureTheory
 open scoped Real
 
-/-- The raw `k`-th moment `mₖ = ∫ yᵏ ∂μ` of a measure `μ` on `ℝ`. -/
+/-- Given [a measure on the real line](hyp:μ) and [a nonnegative integer $k$](hyp:k), the [raw
+$k$-th moment](goal) is the integral of $y^k$ with respect to that measure. -/
 noncomputable def moment (μ : Measure ℝ) (k : ℕ) : ℝ := ∫ y, y ^ k ∂μ
 
 /-- Finite-fourth-moment hypothesis bundle: [integrability of `y`](hyp:int1), [of
@@ -73,23 +74,29 @@ structure FiniteMoment4 (μ : Measure ℝ) : Prop where
 -- degree at most four are integrable.
 attribute [fun_prop] FiniteMoment4.int1 FiniteMoment4.int2 FiniteMoment4.int3 FiniteMoment4.int4
 
-/-- The quadratic regression objective in `L²(μ)`: the mean squared residual of the linear fit
-`b₀ + b₁ y` to `y²`, i.e. `∫ (y² − b₀ − b₁ y)² ∂μ`. -/
+/-- Given [a measure on the real line](hyp:μ), [an intercept](hyp:b₀), and [a slope](hyp:b₁), the
+[quadratic regression objective](goal) is the integral of the squared residual from fitting $y^2$
+by the affine function $b_0+b_1y$. -/
 noncomputable def residualQuad (μ : Measure ℝ) (b₀ b₁ : ℝ) : ℝ :=
   ∫ y, (y ^ 2 - b₀ - b₁ * y) ^ 2 ∂μ
 
-/-- The closed-form minimal residual `r(μ) = (m₄ − m₂²) − (m₃ − m₁ m₂)² / (m₂ − m₁²)`, expressed as
+/-- Given [a measure on the real line](hyp:μ), the [moment-defined quadratic residual](goal) is the
+closed-form residual-variance expression calculated from its first four raw moments.
+
+The closed-form minimal residual `r(μ) = (m₄ − m₂²) − (m₃ − m₁ m₂)² / (m₂ − m₁²)`, expressed as
 the Hankel-determinant ratio `MomentAlgebra.momentResidual` of the raw moments `m₁, m₂, m₃, m₄`. -/
 noncomputable def l2ResidualQuadratic (μ : Measure ℝ) : ℝ :=
   Causalean.Stat.MomentProblems.ResidualQuadratic.MomentAlgebra.momentResidual
     (moment μ 1) (moment μ 2) (moment μ 3) (moment μ 4)
 
-/-- The least-squares optimal intercept `b₀* = (m₁ m₃ − m₂²)/(m₁² − m₂) = m₂ − b₁* m₁`. -/
+/-- Given [a measure on the real line](hyp:μ), the [least-squares optimal intercept](goal) is the
+moment-based coefficient $(m_1m_3-m_2^2)/(m_1^2-m_2)$ for fitting $y^2$ by an affine function. -/
 noncomputable def optIntercept (μ : Measure ℝ) : ℝ :=
   Causalean.Stat.MomentProblems.ResidualQuadratic.MomentAlgebra.optIntercept
     (moment μ 1) (moment μ 2) (moment μ 3)
 
-/-- The least-squares optimal slope `b₁* = (m₃ − m₁ m₂)/(m₂ − m₁²)`. -/
+/-- Given [a measure on the real line](hyp:μ), the [least-squares optimal slope](goal) is the
+moment-based coefficient $(m_3-m_1m_2)/(m_2-m_1^2)$ for fitting $y^2$ by an affine function. -/
 noncomputable def optSlope (μ : Measure ℝ) : ℝ :=
   Causalean.Stat.MomentProblems.ResidualQuadratic.MomentAlgebra.optSlope
     (moment μ 1) (moment μ 2) (moment μ 3)

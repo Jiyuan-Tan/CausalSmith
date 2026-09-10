@@ -5,7 +5,7 @@
 // reviewer. Checks G1–G7; returns every violation with its gate code + location.
 import { CoreSchema, type Core } from "./schema.js";
 import { extractNodeRefs } from "./node_ids.js";
-import { normalizeSymbol } from "./preflight.js";
+import { normalizeSymbol } from "./symbol_names.js";
 import { hasPlausibleSentenceEnd, maskNonBoundaryPeriods } from "../../shared/tex_text.js";
 
 export interface GateViolation {
@@ -184,7 +184,7 @@ export function runStructuralGate(coreInput: unknown, opts: GateOptions = {}): G
   //
   // Definitions and statements are checked alongside assumptions because they now
   // declare `free_symbols` too, and the declaration is what SCOPES symbol invalidation
-  // (`d0_working.declaredSymbolScope`). An UNRESOLVABLE name there is worse than on an
+  // (`vcs/validity.contentClosure`). An UNRESOLVABLE name there is worse than on an
   // assumption: the scope reads the list as the complete set of symbols the claim rests
   // on, so a name matching no symbol contributes nothing while the symbol it was meant to
   // name goes unwatched — a re-definition of it would leave the proof standing. This gate
@@ -198,8 +198,8 @@ export function runStructuralGate(coreInput: unknown, opts: GateOptions = {}): G
     ...core.definitions,
     ...core.statements,
   ];
-  // Delimiter-normalized on both sides, matching `preflight.checkSymbolDeclarations`,
-  // `d0_working.declaredSymbolScope`, and APPLY's own free-symbol check: `\(\eta\)` and
+  // Delimiter-normalized on both sides via `normalizeSymbol`, matching
+  // `vcs/validity.contentClosure` and the PR converter's free-symbol handling: `\(\eta\)` and
   // `\eta` name the same table entry everywhere else, so raw equality here rejected an
   // already-accepted bundle at the APPLY structural gate.
   const normalizedSymbolNames = new Set(core.symbols.map((s) => normalizeSymbol(s.name)));

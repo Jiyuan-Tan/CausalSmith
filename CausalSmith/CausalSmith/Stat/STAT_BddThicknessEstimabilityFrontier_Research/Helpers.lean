@@ -1,0 +1,10 @@
+import CausalSmith.Stat.STAT_BddThicknessEstimabilityFrontier_Research.Helpers.Testing
+import CausalSmith.Stat.STAT_BddThicknessEstimabilityFrontier_Research.Helpers.Geometry
+import CausalSmith.Stat.STAT_BddThicknessEstimabilityFrontier_Research.Helpers.Estimator
+import CausalSmith.Stat.STAT_BddThicknessEstimabilityFrontier_Research.Helpers.Benchmark
+import CausalSmith.Stat.STAT_BddThicknessEstimabilityFrontier_Research.Helpers.DiskPattern
+import CausalSmith.Stat.STAT_BddThicknessEstimabilityFrontier_Research.Helpers.TubeCoords
+import CausalSmith.Stat.STAT_BddThicknessEstimabilityFrontier_Research.Helpers.Witness
+import CausalSmith.Stat.STAT_BddThicknessEstimabilityFrontier_Research.Helpers.BandWidth
+
+/-! # Shared helper barrel for the boundary-thickness paper -/

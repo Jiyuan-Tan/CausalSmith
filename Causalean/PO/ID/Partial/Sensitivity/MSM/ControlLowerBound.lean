@@ -31,18 +31,21 @@ namespace POBackdoorSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 variable (S : POBackdoorSystem P γ)
 
-/-- The **lower quantile-cutoff complete propensity**: the candidate whose inverse weight is `wMin0`
-above the cutoff and `wMax0` at or below it, `1 / (wMin0 if Y > c(X) else wMax0)` — the minimizing
-worst case (opposite of `cutoffProp`). -/
+/-- For [a potential-outcome backdoor system](hyp:S), [a sensitivity parameter](hyp:Λ), [a real-valued cutoff function on the sample space](hyp:c), and [a sample point](hyp:ω), the [lower quantile-cutoff complete propensity](goal) is the reciprocal of the lower admissible control inverse-propensity weight when the factual outcome exceeds the cutoff and of the upper admissible weight otherwise: $[w_{\min,0}(\Lambda,\omega)]^{-1}$ if $c(\omega)<Y(\omega)$, and $[w_{\max,0}(\Lambda,\omega)]^{-1}$ otherwise.
+
+The minimizing worst case is the control-arm counterpart of the upper cutoff construction. -/
 noncomputable def lowerCutoffProp0 (Λ : ℝ) (c : P.Ω → ℝ) (ω : P.Ω) : ℝ :=
   1 / (if c ω < S.factualY ω then S.wMin0 Λ ω else S.wMax0 Λ ω)
 
-/-- The **lower target survival** that calibrates the lower cutoff:
-`survTargetLower0 = (wMax0·e − 1)/(wMax0 − wMin0)` (equal to `e − survTarget`). -/
+/-- For [a potential-outcome backdoor system](hyp:S), [a sensitivity parameter](hyp:Λ), and [a sample point](hyp:ω), the [lower target control-survival probability](goal) is $(w_{\max,0}(\Lambda,\omega)e_0(\omega)-1)/(w_{\max,0}(\Lambda,\omega)-w_{\min,0}(\Lambda,\omega))$, where $e_0(\omega)$ is the control propensity score.
+
+It equals the control propensity score minus the upper target survival. -/
 noncomputable def survTargetLower0 (Λ : ℝ) (ω : P.Ω) : ℝ :=
   (S.wMax0 Λ ω * S.propScore false ω - 1) / (S.wMax0 Λ ω - S.wMin0 Λ ω)
 
-/-- The **lower calibration quantile level** `1 − survTargetLower0/e` (= `survTarget/e`). -/
+/-- For [a potential-outcome backdoor system](hyp:S), [a sensitivity parameter](hyp:Λ), and [a sample point](hyp:ω), the [lower calibration quantile level](goal) is one minus the lower target control-survival probability divided by the control propensity score at that point.
+
+Equivalently, it is the upper target survival divided by the control propensity score. -/
 noncomputable def calibLevelLower0 (Λ : ℝ) (ω : P.Ω) : ℝ :=
   1 - S.survTargetLower0 Λ ω / S.propScore false ω
 

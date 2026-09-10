@@ -4,10 +4,11 @@ import { join } from "node:path";
 import type { StageIO } from "../pipeline.js";
 import { presentationPrompt, promptFingerprint } from "../prompt_io.js";
 import { parseOutline } from "../stage_util.js";
-import { lintAnchors, lintDefinitionOrder, hashEnvBody, parseAnchoredEnvs, repairObjRefs, reviewerTexFor } from "../tex_anchors.js";
-import { FormalLayerSource } from "../formal_layer.js";
-import { applyProseRevision, proofBlocks } from "../prose_revision.js";
-import { recordP2Assembly, texFilesUnder } from "../assembly_freshness.js";
+import { lintAnchors, lintEnvOrder, hashEnvBody, parseAnchoredEnvs, repairObjRefs, reviewerTexFor } from "../tex_anchors.js";
+import { FormalLayerSource, blocksToTex } from "../formal_layer.js";
+import { applyProseRevision, proofBlocks, applyTargetedReplacements, type TextReplacement } from "../prose_revision.js";
+export { applyTargetedReplacements, type TextReplacement } from "../prose_revision.js";
+import { assertP2AssemblyFresh, recordP2Assembly, texFilesUnder } from "../assembly_freshness.js";
 import { parseBib } from "../citations.js";
 import { savePaperState } from "../state.js";
 import { writeJsonAtomic } from "../json_io.js";
@@ -95,22 +96,6 @@ function contextualClaimUnits(tex: string): { sentence: string; context: string;
   }));
 }
 
-export interface TextReplacement { before: string; after: string }
-
-/** Apply exact, unique replacements only; ambiguity is a hard failure. */
-export function applyTargetedReplacements(tex: string, replacements: TextReplacement[]): string {
-  let out = tex;
-  for (const { before, after } of replacements) {
-    if (!before || before === after) continue;
-    const first = out.indexOf(before);
-    if (first < 0 || out.indexOf(before, first + before.length) >= 0) {
-      throw new Error(`P3 patch replacement is missing or non-unique: ${before.slice(0, 100)}`);
-    }
-    out = out.slice(0, first) + after + out.slice(first + before.length);
-  }
-  return out;
-}
-
 /** Return the cached P2 front-matter artifact as it appears in an assembled paper. */
 export function frontMatterFromPaper(paperTex: string): string | null {
   const abstract = /\\begin\{abstract\}[\s\S]*?\\end\{abstract\}/.exec(paperTex);
@@ -149,6 +134,8 @@ export function checkedFrontMatterFromPaper(paperTex: string): string {
 
 /** Select the paragraphs most lexically related to the reported problems. */
 export function revisionContext(tex: string, details: string[]): string {
+  // P3 edits prose only. Do not select protected proofs as apparent repair targets.
+  for (const proof of proofBlocks(tex)) tex = tex.replace(proof, "");
   const terms = new Set(details.join(" ").toLowerCase().match(/[a-z][a-z0-9_-]{3,}/g) ?? []);
   const parts = tex.split(/\n\s*\n/);
   const scored = parts.map((part, i) => ({
@@ -168,7 +155,7 @@ export function revisionContext(tex: string, details: string[]): string {
 /**
  * P3 — WHOLE-PAPER hard gates (overclaiming, citation pool + support, anchor lint) with a bounded
  * revise loop, then the soft rubric ensemble. The Lean-anchored PER-ARTIFACT audits now run with the
- * stage that produces the artifact: statement equivalence at P1 (runStatementAudit), proof
+ * stage that produces the artifact: statement equivalence at P1 (judgeStatements, inside the render loop), proof
  * faithfulness at P2 (runProofAudit) — so a failure surfaces at its source rather than being
  * re-discovered here. Codex runs the overclaim gate; opus provides the independent prose review via
  * half the rubric ensemble (opus ×1 + codex ×1), so the prose is scored by a model that did not write
@@ -181,8 +168,8 @@ export async function stageP3(io: StageIO): Promise<void> {
     return;
   }
   const { deps } = io.ctx;
-  // `state.revision_round` is a pipeline-wide counter: P5 increments it when a
-  // healing pass starts, and prior P3 invocations may already have revised the
+  // `state.revision_round` is a pipeline-wide counter: each P3 revision pass increments it,
+  // and prior P3 invocations may already have revised the
   // paper.  P3's two-round budget is per invocation, so never use that durable
   // counter as the local gate-loop cursor.
   let p3RevisionRound = 0;
@@ -201,14 +188,20 @@ export async function stageP3(io: StageIO): Promise<void> {
   };
   const paperPath = join(io.outDir, "paper.tex");
   const frontMatterPath = join(io.outDir, "front_matter.tex");
+  // P3 records the assembly after its own validated writes, so it must first prove the sources it
+  // starts from ARE the assembled ones: a hand edit since P2 needs a reassembly, not a blessing.
+  // A bundle assembled before the manifest existed has nothing to compare against and is left as is
+  // (its first P3 write then records a baseline; every live bundle with a paper.tex has a manifest).
+  await assertP2AssemblyFresh(io.outDir).catch((err: Error) => {
+    if (!/manifest is missing/.test(err.message)) throw err;
+  });
   const reviewsPath = join(io.outDir, "logs", "reviews.jsonl");
   await mkdir(join(io.outDir, "logs"), { recursive: true });
   const formalLayer = FormalLayerSource.parse(
     JSON.parse(await readFile(join(io.outDir, "formal_layer.json"), "utf8")),
   );
   const frozen = new Map<string, string>(formalLayer.blocks.map((b) => [b.obj_id, b.body]));
-  const notation = parseOutline(await readFile(join(io.outDir, "outline.md"), "utf8")).notation;
-  const frozenEnvsTex = await readFile(join(io.outDir, "formal_layer.tex"), "utf8");
+  const frozenEnvsTex = blocksToTex(formalLayer.blocks); // derived from the source of truth, never the on-disk .tex
   const bibEntries = parseBib(await readFile(join(io.outDir, "references.bib"), "utf8"));
   const brief = await readFile(join(io.outDir, "related_work_brief.md"), "utf8").catch(() => "");
   // The entry's own do-not-claim charter (honest_scope + comparator promises) — a
@@ -236,14 +229,15 @@ export async function stageP3(io: StageIO): Promise<void> {
     await writeFile(frontMatterPath, await frontMatterOrFail(source), "utf8");
   };
 
-  // Definition order is structural: P3 prose revision cannot move or rewrite the P1-frozen
-  // environments. Fail directly with a P1 repair instruction instead of burning revision rounds.
-  const definitionOrderProblems = lintDefinitionOrder(await readFile(paperPath, "utf8"), notation);
-  if (definitionOrderProblems.length > 0) {
-    io.state.hard_gate_failures = definitionOrderProblems;
+  // Environment order is structural and P1's alone: P3 prose revision cannot move the frozen
+  // environments, so a paper that reorders the layer fails directly instead of burning rounds.
+  const layerOrder = formalLayer.blocks.filter((b) => b.env !== null).map((b) => b.obj_id);
+  const orderProblems = lintEnvOrder(await readFile(paperPath, "utf8"), layerOrder);
+  if (orderProblems.length > 0) {
+    io.state.hard_gate_failures = orderProblems;
     await failP3(
-      `P3 definition-order gate failed (${definitionOrderProblems.map((p) => p.detail).join("; ")}). ` +
-        `Repair the P1 notation/home ordering; do not restart the presentation run.`,
+      `P3 frozen-layer order gate failed (${orderProblems.map((p) => p.detail).join("; ")}). ` +
+        `P2 must lay the sections out in the P1 order; re-run P2, do not restart the presentation run.`,
     );
   }
 
@@ -317,7 +311,7 @@ export async function stageP3(io: StageIO): Promise<void> {
       const pending: { key: string; flag: { sentence: string; fix?: string } | null }[] = [];
       for (const miss of misses) {
         const flagged = v.flags.find((f) =>
-          f.id === miss.id || f.sentence.replace(/^\[CLAIM \d+\]\s*/, "").trim() === miss.sentence,
+          f.id === miss.id || (f.sentence ?? "").replace(/^\[CLAIM \d+\]\s*/, "").trim() === miss.sentence,
         );
         const flag = flagged ? { sentence: miss.sentence, fix: flagged.fix } : null;
         if (flagged) matchedFlags += 1;
@@ -392,6 +386,7 @@ export async function stageP3(io: StageIO): Promise<void> {
           try {
             const parsed = (await ask(
               deps.runCodex({ multiAgent: false, // keep codex sub-agents off in gate audits (concurrent multi-agent deadlocks the daemon)
+                model: MODELS.codexCitationSupport,
                 prompt: await presentationPrompt("p3_citation_support_batch", {
                   items_block: items,
                   related_work_brief: brief,
@@ -452,6 +447,7 @@ export async function stageP3(io: StageIO): Promise<void> {
         const repairedFrontMatter = await frontMatterOrFail(paperTex);
         await writeFile(paperPath, paperTex, "utf8");
         await writeFile(frontMatterPath, repairedFrontMatter, "utf8");
+        await recordP2Assembly(io.outDir);
       }
     }
     const cachedFrontMatter = frontMatterFromPaper(paperTex) ?? "";
@@ -473,7 +469,7 @@ export async function stageP3(io: StageIO): Promise<void> {
     const frontMatter = stripFrozenEnvs(`${cachedFrontMatter}\n\n${interpretive}`);
     const input: HardGateInput = {
       paperTex,
-      notation,
+      layerOrder,
       knownObjIds: known,
       frozenBodies: frozen,
       frontMatter,
@@ -483,7 +479,7 @@ export async function stageP3(io: StageIO): Promise<void> {
     return input;
   };
 
-  // NOTE: statement equivalence (vs Lean) now runs at P1 (runStatementAudit) and proof equivalence
+  // NOTE: statement equivalence (vs Lean) runs at P1 (judgeStatements) and proof equivalence
   // at P2 (runProofAudit) — each co-located with the stage that produces the artifact. P3 keeps only
   // the WHOLE-PAPER gates below (overclaim, citation pool + support, anchor lint, rubric).
 
@@ -495,7 +491,7 @@ export async function stageP3(io: StageIO): Promise<void> {
   const isProseRepairable = (p: { detail: string }): boolean =>
     !/Definitions?\s+(?:~?\\(?:Cref|cref|ref)\{obj:)?synth[_:{0-9-]/i.test(p.detail);
 
-  const revise = async (problems: { gate: string; detail: string }[], round: number) => {
+  const revise = async (problems: { gate: string; detail: string }[], round: number, advisory = false) => {
     const before = await readFile(paperPath, "utf8");
     const beforeProofs = proofBlocks(before);
     // P3 cannot edit frozen statement environments. Do not show them to the
@@ -519,8 +515,39 @@ export async function stageP3(io: StageIO): Promise<void> {
       leanLsp: false,
     });
     const parsed = parseJsonLoose(stdout) as { replacements?: TextReplacement[] } | null;
-    if (!parsed?.replacements?.length) throw new Error(`P3 revision round ${round} returned no replacements`);
-    const agentRevision = applyTargetedReplacements(before, parsed.replacements);
+    if (!Array.isArray(parsed?.replacements)) {
+      // An advisory repair (rubric) never fails the stage on a malformed reply: the paper stands.
+      if (advisory) {
+        io.state.notes.push(`P3 advisory revision round ${round}: reviser reply was not a replacements list — nothing applied`);
+        return false;
+      }
+      throw new Error(`P3 revision round ${round} returned no replacements`);
+    }
+    if (!advisory && parsed.replacements.length === 0) {
+      throw new Error(`P3 revision round ${round} returned no replacements`);
+    }
+    const { tex: agentRevision, skipped, applied } = applyTargetedReplacements(before, parsed.replacements,
+      // Reject each protected edit before persistence/propagation. Restoring only the final
+      // paper would still let a mixed prose/proof response alter the authored proof files.
+      (candidate, current) => {
+        try {
+          return applyProseRevision({
+            before: current, revised: candidate, blocks: formalLayer.blocks,
+            auditedProofs: beforeProofs, who: `P3 revision round ${round}`,
+          }) === candidate;
+        } catch {
+          return false; // a structurally invalid patch is skipped as protected, never the whole round
+        }
+      });
+    if (skipped.length > 0) {
+      io.state.notes.push(
+        `P3 revision round ${round}: ${skipped.length} of ${parsed.replacements.length} patch(es) skipped ` +
+          `(${skipped.map((k) => `${k.reason}: ${k.before.slice(0, 60)}`).join("; ")}) — the rest applied`,
+      );
+    }
+    if (!advisory && skipped.length === parsed.replacements.length) {
+      throw new Error(`P3 revision round ${round}: every patch was missing, non-unique, or protected in paper.tex — nothing applied`);
+    }
     // The revision model owns prose, never the P1-frozen formal layer or the P2-audited proofs —
     // the shared applicator re-imposes both mechanically and throws on structural change. Restore
     // runs before the no-change check: when P1 was re-audited after a Lean move, canonical
@@ -534,10 +561,18 @@ export async function stageP3(io: StageIO): Promise<void> {
       who: `P3 revision round ${round}`,
     });
     if (revised === before) {
+      if (advisory) {
+        io.state.notes.push(`P3 rubric revision round ${round}: no editable prose change; unresolved findings retained for operator/P5 review.`);
+        return false;
+      }
       throw new Error(`P3 revision round ${round} made no changes to paper.tex`);
     }
-    const lint = [...lintAnchors(revised, known, frozen), ...lintDefinitionOrder(revised, notation)];
+    const lint = [...lintAnchors(revised, known, frozen), ...lintEnvOrder(revised, layerOrder)];
     if (lint.length > 0) {
+      if (advisory) { // an advisory repair never fails the stage: nothing was written
+        io.state.notes.push(`P3 advisory revision round ${round} discarded — it broke the frozen layer: ${lint.map((p) => p.detail).join("; ")}`);
+        return false;
+      }
       throw new Error(
         `P3 revision round ${round} broke the frozen layer (restored): ${lint.map((p) => p.detail).join("; ")}`,
       );
@@ -545,17 +580,28 @@ export async function stageP3(io: StageIO): Promise<void> {
     // P3 patches paper.tex, not the P2 cache. Derive the cache from that validated assembled
     // source only after every frozen/proof guard has passed, so later regeneration never reseeds
     // pre-review front matter and frozen environments remain untouched.
-    const revisedFrontMatter = await frontMatterOrFail(revised);
+    const revisedFrontMatter = advisory ? frontMatterFromPaper(revised) : await frontMatterOrFail(revised);
+    if (revisedFrontMatter === null) {
+      io.state.notes.push(`P3 advisory revision round ${round} discarded — the revised front matter could not be extracted`);
+      return false;
+    }
     await writeFile(paperPath, revised, "utf8");
     await writeFile(frontMatterPath, revisedFrontMatter, "utf8");
+    await recordP2Assembly(io.outDir);
     // Sources-canonical contract: propagate each applied replacement into the authored
     // section/proof source that carries the same text, so a later P2 reassembly (P5
     // revision cycle, --from P2) does not silently revert this repair. A replacement
     // whose text only exists in assembled form (front matter — synced above — or
     // mechanically inserted proof pointers) matches no source file and is skipped.
-    const diffed = parsed.replacements.filter((r) => r.before && r.before !== r.after);
+    // Only the patches that landed in paper.tex may reach the sources: a patch skipped there
+    // (non-unique in the assembled paper) can still be unique inside ONE source file, and
+    // propagating it would ship an edit no gate saw.
+    const diffed = applied;
     let propagated = false;
-    for (const rel of await texFilesUnder(io.outDir, ["sections", "proofs"])) {
+    const landedInSource = new Set<string>();
+    // Sections only: the accept guard proved no applied patch changed a proof block in paper.tex,
+    // so a hit inside proofs/ would be a different occurrence and could only diverge an audited proof.
+    for (const rel of await texFilesUnder(io.outDir, ["sections"])) {
       const src = await readFile(rel, "utf8").catch(() => null);
       if (src === null) continue;
       let out = src;
@@ -563,8 +609,20 @@ export async function stageP3(io: StageIO): Promise<void> {
         const first = out.indexOf(b);
         if (first < 0 || out.indexOf(b, first + b.length) >= 0) continue; // absent or ambiguous here
         out = out.slice(0, first) + a + out.slice(first + b.length);
+        landedInSource.add(b);
       }
       if (out !== src) { await writeFile(rel, out, "utf8"); propagated = true; }
+    }
+    // A patch that landed in paper.tex but in no authored source is front-matter text (synced
+    // above) or a source that already diverged from its assembly; the latter reverts on the next
+    // `--from P2` reassembly, so say so at the checkpoint instead of finding out then.
+    const unsourced = diffed.filter((r) => !landedInSource.has(r.before) && !revisedFrontMatter.includes(r.after));
+    if (unsourced.length > 0) {
+      io.state.notes.push(
+        `P3 revision round ${round}: ${unsourced.length} patch(es) landed in paper.tex but matched no authored source ` +
+          `(a section/proof file diverged from its assembly — a later --from P2 reassembly would revert them): ` +
+          unsourced.map((r) => r.before.slice(0, 60)).join(" | "),
+      );
     }
     // The propagation just changed files the P4 freshness gate digests against the
     // P2-recorded manifest; re-record so a green P3 revision does not hard-block P4.
@@ -575,6 +633,7 @@ export async function stageP3(io: StageIO): Promise<void> {
     if (propagated) await recordP2Assembly(io.outDir);
     p3RevisionRound = round;
     io.state.revision_round += 1;
+    return true;
   };
 
   // "citation-unverifiable" is advisory (evidence silent, nothing
@@ -599,7 +658,7 @@ export async function stageP3(io: StageIO): Promise<void> {
       }
       return problems.filter((p) => !isAdvisory(p));
     },
-    revise,
+    revise: async (problems, round) => { await revise(problems, round); },
   });
   if (!result.ok) {
     io.state.hard_gate_failures = result.problems;
@@ -609,8 +668,10 @@ export async function stageP3(io: StageIO): Promise<void> {
     );
   }
 
-  // Heal stale P2 caches even when all hard gates pass in round zero.
+  // Heal stale P2 caches even when all hard gates pass in round zero; front_matter.tex is in the
+  // assembly digest, so every write of it is recorded here.
   await syncFrontMatter();
+  await recordP2Assembly(io.outDir);
 
   // soft rubric ensemble: opus ×1 + codex ×1 (user decision 2026-06-10: the
   // two opus reviews scored near-identically, so the duplicate bought nothing;
@@ -670,7 +731,7 @@ export async function stageP3(io: StageIO): Promise<void> {
     return { reviews, minScore: minRubric(reviews) };
   };
 
-  // Revision entries (P5 cycle / --reassemble re-entry): hard gates above have already
+  // Revision entries (P5 cycle / --from P2 re-entry): hard gates above have already
   // re-audited the changed prose; the P5 referee is the holistic judge of the revision,
   // so the rubric's full-paper re-score (and its internal revise loop) is skipped.
   if (io.revisionCycle) {
@@ -679,70 +740,53 @@ export async function stageP3(io: StageIO): Promise<void> {
   }
   let { reviews, minScore } = await scoreRubric();
   const entryScore = minScore;
-  // A defect repair is volunteered on an ALREADY-PASSING manuscript, so a stochastic
-  // re-score dip below the threshold afterwards must not fail a paper that would have
-  // shipped — record it instead. A paper that never passed is unaffected.
-  let passedBeforeDefectRepair = false;
-  // Two-tier consumption. `weaknesses` are judgment calls, weighed against the score
-  // threshold. `defects` are concrete, locatable, mechanically fixable reader-facing
-  // faults (placeholder text, an undefined symbol, a named object with no `\cref`,
-  // formalization jargon, a central object stranded in an appendix, a vacuous clause) —
-  // those are ALWAYS repaired, because a passing score used to discard them: on sa_plm
-  // 2026-08-20 every reviewer in both rounds flagged mangled labels ("mean squared u")
-  // and the paper still shipped them, since the score cleared the bar and the weakness
-  // list was only read on failure.
+  // Two-tier consumption. `defects` are concrete, locatable, mechanically fixable reader-facing
+  // faults and are ALWAYS repaired. `weaknesses` are judgment calls: a score below the pass line
+  // buys ONE revision pass, and the resulting score is RECORDED, never a stage outcome — two
+  // reviewers' mean is a noisy number, and P5's referee re-judges the same paper one stage later;
+  // failing P3 on it cost a full P3 (rubric ×2 + repair + re-gate) for a decision P5 re-makes.
   const defectsOf = (rs: RubricReview[]): string[] => [...new Set(rs.flatMap((r) => r.defects))];
-  if (minScore >= RUBRIC_PASS && p3RevisionRound < MAX_ROUNDS) {
-    const defects = defectsOf(reviews).filter((d) => isProseRepairable({ detail: d }));
-    if (defects.length > 0) {
-      passedBeforeDefectRepair = true;
-      io.state.notes.push(`P3: rubric passed (${minScore.toFixed(2)}) with ${defects.length} reader-facing defect(s) — repairing.`);
-      await revise(defects.map((d) => ({ gate: "rubric-defect", detail: d })), p3RevisionRound + 1);
-      const repairStart = p3RevisionRound;
-      const repair = await gateLoop({
-        maxRounds: Math.max(0, MAX_ROUNDS - repairStart),
-        run: async () => (await runHardGates(await buildInput(), runners)).filter((p) => !isAdvisory(p)),
-        revise: (problems, localRound) => revise(problems, repairStart + localRound),
-      });
-      if (!repair.ok) {
-        io.state.hard_gate_failures = repair.problems;
-        await failP3(
-          `P3: defect repair left hard-gate failures after ${repair.rounds} repair round(s): ` +
-            repair.problems.map((p) => `[${p.gate}] ${p.detail}`).join("; "),
-        );
-      }
-      ({ reviews, minScore } = await scoreRubric());
-    }
-  }
-  if (minScore < RUBRIC_PASS && p3RevisionRound < MAX_ROUNDS) {
-    await revise(
-      [...reviews.flatMap((r) => r.weaknesses), ...defectsOf(reviews)].map((w) => ({ gate: "rubric", detail: w })),
-      p3RevisionRound + 1,
-    );
-    // A broad prose-quality revision can accidentally add an unsupported citation or restore an
-    // overclaim even though frozen statements/proofs remain protected. Close that loop with the
-    // same bounded hard-gate reviser instead of halting on a repairable regression.
+  const repairThen = async (problems: { gate: string; detail: string }[], label: string): Promise<void> => {
+    if (problems.length === 0) return; // a below-line score with nothing repairable is just recorded
+    // The advisory repair edits a paper that already passed the hard gates. Snapshot every file it
+    // may touch; if its re-gate fails, the passing paper is restored and the defects are recorded —
+    // an advisory score never turns a passing paper into a halted stage.
+    const snapshotPaths = [paperPath, frontMatterPath, ...(await texFilesUnder(io.outDir, ["sections"]))];
+    const snapshot = new Map(await Promise.all(snapshotPaths.map(async (p) => [p, await readFile(p, "utf8").catch(() => null)] as const)));
+    if (await revise(problems, p3RevisionRound + 1, true) === false) return;
     const repairStart = p3RevisionRound;
     const repair = await gateLoop({
       maxRounds: Math.max(0, MAX_ROUNDS - repairStart),
-      run: async () =>
-        (await runHardGates(await buildInput(), runners)).filter((p) => !isAdvisory(p)),
-      revise: (problems, localRound) => revise(problems, repairStart + localRound),
+      run: async () => (await runHardGates(await buildInput(), runners)).filter((p) => !isAdvisory(p)),
+      revise: async (problems, localRound) => { await revise(problems, repairStart + localRound); },
     });
     if (!repair.ok) {
-      io.state.hard_gate_failures = repair.problems;
-      await failP3(
-        `P3: rubric revision left hard-gate failures after ${repair.rounds} repair round(s): ` +
+      for (const [p, text] of snapshot) if (text !== null) await writeFile(p, text, "utf8");
+      await recordP2Assembly(io.outDir);
+      io.state.notes.push(
+        `P3: ${label} was discarded — its re-gate failed after ${repair.rounds} repair round(s) and the passing paper was restored: ` +
           repair.problems.map((p) => `[${p.gate}] ${p.detail}`).join("; "),
       );
+      return;
     }
     ({ reviews, minScore } = await scoreRubric());
+  };
+  // One revision pass at most: a below-line score folds the defects into its weakness revision;
+  // a passing score with defects repairs only the defects.
+  const defects = defectsOf(reviews).filter((d) => isProseRepairable({ detail: d }));
+  if (p3RevisionRound < MAX_ROUNDS) {
+    if (minScore < RUBRIC_PASS) {
+      await repairThen(
+        [...reviews.flatMap((r) => r.weaknesses).map((w) => ({ gate: "rubric", detail: w })), ...defects.map((d) => ({ gate: "rubric-defect", detail: d }))],
+        "rubric revision",
+      );
+    } else if (defects.length > 0) {
+      io.state.notes.push(`P3: rubric ${minScore.toFixed(2)} with ${defects.length} reader-facing defect(s) — repairing.`);
+      await repairThen(defects.map((d) => ({ gate: "rubric-defect", detail: d })), "defect repair");
+    }
   }
-  // Surface whatever the FINAL review still reports as a reader-facing defect, whichever
-  // branch ran. The P3 reviser may not touch frozen statement/proof environments and cannot
-  // move or merge definitions (an outline/P1 decision), so a defect standing at this point is
-  // an OPERATOR-level fix, not a stage failure: record it for the checkpoint rather than
-  // halting a paper whose gates pass.
+  // Whatever the FINAL review still reports as a reader-facing defect is an OPERATOR-level fix
+  // (frozen environments, placement/merge), recorded for the checkpoint rather than a stage failure.
   const standingDefects = defectsOf(reviews);
   if (standingDefects.length > 0) {
     io.state.notes.push(
@@ -752,21 +796,8 @@ export async function stageP3(io: StageIO): Promise<void> {
     );
     await appendFile(reviewsPath, JSON.stringify({ kind: "rubric-defects-unrepaired", defects: standingDefects }) + "\n", "utf8");
   }
-  // Enforce the threshold. Previously `RUBRIC_PASS` was only a trigger for one revision
-  // pass and never a stage outcome, so a manuscript that stayed below it shipped anyway.
-  // The residual score is recorded either way so a pass near the line is still visible.
-  io.state.notes.push(`P3: rubric min score ${minScore.toFixed(2)} (pass = ${RUBRIC_PASS}).`);
-  if (minScore < RUBRIC_PASS && passedBeforeDefectRepair) {
-    io.state.notes.push(
-      `P3: score dipped ${entryScore.toFixed(2)} → ${minScore.toFixed(2)} after the volunteered defect repair — ` +
-        `not failing the stage on the dip; the repair's own hard gates were re-run and passed.`,
-    );
-  } else if (minScore < RUBRIC_PASS) {
-    const weaknesses = [...new Set(reviews.flatMap((r) => r.weaknesses))];
-    await failP3(
-      `P3: rubric min score ${minScore.toFixed(2)} is below the ${RUBRIC_PASS} pass threshold after ` +
-        `${p3RevisionRound < MAX_ROUNDS ? "a revision pass" : "the revision-round cap"}. ` +
-        `Remaining weaknesses: ${weaknesses.map((w) => `• ${w}`).join(" ")}`,
-    );
-  }
+  io.state.notes.push(
+    `P3: rubric min score ${minScore.toFixed(2)}${entryScore !== minScore ? ` (entry ${entryScore.toFixed(2)})` : ""} — ` +
+      `advisory (line ${RUBRIC_PASS}); the P5 referee is the holistic judge.`,
+  );
 }

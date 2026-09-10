@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { assembleComponentText, componentSignature, buildDeclList, ensureComponentsForEnvs, type ComponentSpec, type ModuleDecl } from "../src/presentation/components.js";
+import { assembleComponentText, componentSignature, buildDeclList, buildModuleDeclIndex, ensureComponentsForEnvs, type ComponentSpec, type ModuleDecl } from "../src/presentation/components.js";
 import type { CrosswalkEntry } from "../src/types.js";
 
 describe("componentSignature (cache/drift key for a component set)", () => {
@@ -189,6 +189,47 @@ describe("component assembly trust boundary", () => {
         crosswalk: [], moduleDecls: modules, repoRoot: dir, leanSubdir: ".",
       })).rejects.toThrow(/component Missing/);
     } finally { await rm(dir, { recursive: true, force: true }); }
+  });
+
+  it("resolves a component the run does not declare from the library index", async () => {
+    const ws = await mkdtemp(path.join(os.tmpdir(), "components-library-"));
+    try {
+      // Workspace topology: <ws>/Causalean (library) beside <ws>/CausalSmith (package root).
+      await mkdir(path.join(ws, "Causalean"), { recursive: true });
+      await mkdir(path.join(ws, "CausalSmith"), { recursive: true });
+      await mkdir(path.join(ws, "doc"), { recursive: true });
+      await writeFile(path.join(ws, "Causalean", "Lib.lean"), "namespace Lib\nstructure Good where\n  x : Nat\nend Lib\n", "utf8");
+      await writeFile(path.join(ws, "doc", "library_index.json"), JSON.stringify({ entries: [{ name: "Lib.Good", file: "Causalean/Lib.lean", line: 2, kind: "structure" }] }), "utf8");
+      const assembled = await assembleComponentText({
+        specs: [{ type: "decl", decl: "Lib.Good" }], crosswalk: [], moduleDecls: new Map(),
+        repoRoot: path.join(ws, "CausalSmith"), leanSubdir: ".",
+      });
+      expect(assembled.resolved).toMatchObject([{ file: "Causalean/Lib.lean", decl: "Lib.Good", line: 2, resolution: "library-index" }]);
+      expect(assembled.text).toContain("structure Good where");
+      await expect(assembleComponentText({
+        specs: [{ type: "decl", decl: "Lib.Absent" }], crosswalk: [], moduleDecls: new Map(),
+        repoRoot: path.join(ws, "CausalSmith"), leanSubdir: ".",
+      })).rejects.toThrow(/component Lib.Absent/);
+    } finally { await rm(ws, { recursive: true, force: true }); }
+  });
+
+  it("halts on a name the run declares twice instead of falling through to the library", async () => {
+    const ws = await mkdtemp(path.join(os.tmpdir(), "components-ambiguous-"));
+    try {
+      await mkdir(path.join(ws, "Causalean"), { recursive: true });
+      await mkdir(path.join(ws, "CausalSmith", "Run"), { recursive: true });
+      await mkdir(path.join(ws, "doc"), { recursive: true });
+      for (const f of ["A.lean", "B.lean"]) await writeFile(path.join(ws, "CausalSmith", "Run", f), "namespace Lib\ntheorem Good : True := trivial\nend Lib\n", "utf8");
+      await writeFile(path.join(ws, "Causalean", "Lib.lean"), "namespace Lib\ntheorem Good : True := trivial\nend Lib\n", "utf8");
+      await writeFile(path.join(ws, "doc", "library_index.json"), JSON.stringify({ entries: [{ name: "Lib.Good", file: "Causalean/Lib.lean", line: 2, kind: "theorem" }] }), "utf8");
+      const modules = await buildModuleDeclIndex(path.join(ws, "CausalSmith"), "Run");
+      expect(modules.has("Lib.Good")).toBe(false);
+      expect(modules.ambiguous.has("Lib.Good")).toBe(true);
+      await expect(assembleComponentText({
+        specs: [{ type: "decl", decl: "Lib.Good" }], crosswalk: [], moduleDecls: modules,
+        repoRoot: path.join(ws, "CausalSmith"), leanSubdir: "Run",
+      })).rejects.toThrow(/declared more than once/);
+    } finally { await rm(ws, { recursive: true, force: true }); }
   });
 
   it("returns the complete canonical resolved inventory used by the cache key", async () => {

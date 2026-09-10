@@ -28,8 +28,11 @@ namespace Causalean.Mathlib.LinearAlgebra
 
 variable {d : ℕ}
 
-/-- An upper-triangular matrix in the sense `j < i → U i j = 0`, i.e. all entries strictly below
-the diagonal vanish. -/
+/-- For [a matrix \(U\) whose rows and columns are indexed by an ordered set](hyp:U), the
+[upper-triangularity property](goal) holds precisely when every entry in a row strictly below its
+column is zero.
+
+Equivalently, all entries strictly below the diagonal vanish. -/
 def IsUpperTri {ι K : Type*} [LT ι] [Zero K] (U : Matrix ι ι K) : Prop :=
   ∀ i j, j < i → U i j = 0
 

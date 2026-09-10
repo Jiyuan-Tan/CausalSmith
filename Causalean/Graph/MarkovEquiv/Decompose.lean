@@ -53,11 +53,15 @@ theorem markovEquiv_of_same_edge {G₁ G₂ : DAG V}
     · exact iff_of_false (fun h => hXZ h.2.1) (fun h => hXZ h.2.1)
   · exact iff_of_false (fun h => hXY h.1) (fun h => hXY h.1)
 
-/-- The directed edges of `G₁` that are absent from `G₂`. -/
+/-- For [a finite vertex set with decidable equality](hyp:V) and [two directed acyclic graphs on that vertex
+set](hyp:G₁,G₂), the [directed-edge difference](goal) is the finite set of all ordered pairs of
+vertices that form a directed edge in the first graph but not in the second graph. -/
 def edgeDiff (G₁ G₂ : DAG V) : Finset (V × V) :=
   Finset.univ.filter (fun p => G₁.edge p.1 p.2 ∧ ¬ G₂.edge p.1 p.2)
 
-/-- Number of directed edges of `G₁` absent from `G₂`. -/
+/-- For [a finite vertex set with decidable equality](hyp:V) and [two directed acyclic graphs on that vertex
+set](hyp:G₁,G₂), the [directed-edge difference count](goal) is the number of directed edges in the
+first graph that are absent from the second graph. -/
 def edgeDiffCount (G₁ G₂ : DAG V) : ℕ := (edgeDiff G₁ G₂).card
 
 /-- With a one-way skeleton inclusion, an empty edge-difference forces equal edge relations. -/

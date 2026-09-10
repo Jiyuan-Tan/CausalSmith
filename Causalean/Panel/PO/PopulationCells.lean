@@ -60,7 +60,9 @@ structure CellPartition (μ : Measure Ω) (ι : Type*) [Fintype ι] where
   /-- Every cell has positive real mass. -/
   cell_pos : ∀ i, 0 < (μ (cell i)).toReal
 
-/-- Build a cell partition from a **finite classifier** `g : Ω → ι`: the cells
+/-- For [a measurable sample space](hyp:Ω), [a finite index set](hyp:ι), [a measure](hyp:μ), [a classifier assigning each sample point an index](hyp:g), [measurable classifier level sets](hyp:hmeas), and [strictly positive real mass for every level set](hyp:hpos), [the classifier-induced cell partition](goal) assigns each index its classifier level set.
+
+Build a cell partition from a **finite classifier** `g : Ω → ι`: the cells
 are the level sets `{ω | g ω = i}`. Disjointness and covering are automatic;
 the caller supplies measurability and positive mass of each level set. This is
 the common way panel bridges obtain their partition (cohort map, treated/untreated
@@ -86,10 +88,14 @@ variable {μ : Measure Ω} {ι : Type*} [Fintype ι]
     (hpos : ∀ i, 0 < (μ (g ⁻¹' {i})).toReal) (i : ι) :
     (cellPartitionOfClassifier μ g hmeas hpos).cell i = g ⁻¹' {i} := rfl
 
-/-- Cell probability `π_i = ℙ(cell i)`, as a real number. -/
+/-- For [a measurable sample space](hyp:Ω), [a measure](hyp:μ), [a finite index set](hyp:ι), [a cell partition](hyp:P), and [one of its indices](hyp:i), [the cell mass](goal) is the real-valued measure of that index's cell.
+
+Cell probability `π_i = ℙ(cell i)`, as a real number. -/
 def mass (P : CellPartition μ ι) (i : ι) : ℝ := (μ (P.cell i)).toReal
 
-/-- Cell-conditional mean `E[f ∣ cell i]`, i.e. the average of `f` over the
+/-- For [a measurable sample space](hyp:Ω), [a measure](hyp:μ), [a finite index set](hyp:ι), [a cell partition](hyp:P), [a real-valued variable on the sample space](hyp:f), and [one of the partition's indices](hyp:i), [the cell-conditional mean](goal) is that variable's integral over the indexed cell divided by the cell's real-valued mass.
+
+Cell-conditional mean `E[f ∣ cell i]`, i.e. the average of `f` over the
 cell computed as its integral over the cell divided by the cell's real mass. -/
 noncomputable def mean (P : CellPartition μ ι) (f : Ω → ℝ) (i : ι) : ℝ :=
   eventCondExp μ (P.cell i) f

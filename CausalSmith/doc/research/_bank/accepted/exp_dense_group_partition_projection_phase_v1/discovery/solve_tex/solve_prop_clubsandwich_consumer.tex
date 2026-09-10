@@ -1,0 +1,119 @@
+%%% FIELD club-contract-statement
+Let \({\tt fit}\) be an unweighted, full-column-rank \({\tt lm}\) fit with \(N_{\rm obs}\) fitted observations, model matrix \(X\), cluster-row blocks \(X_g\), and ordinary-least-squares residual blocks \(e_g\).  Suppose that \(I-X_g(X^{\mathsf T}X)^{-1}X_g^{\mathsf T}\) is positive definite for every cluster.  In \({\tt clubSandwich}\) version \(0.7.0\), the call \({\tt vcovCR}({\tt fit},\ {\tt cluster},\ {\tt type}={\tt 'CR2'})\), with \({\tt target}\), \({\tt inverse\_var}\), and \({\tt form}\) omitted, uses the identity working target and returns
+\[
+ \widetilde B
+ \sum_gX_g^{\mathsf T}A_ge_ge_g^{\mathsf T}A_g^{\mathsf T}X_g
+ \widetilde B,
+ \qquad
+ \widetilde B=\frac{{\tt sandwich::bread}({\tt fit})}{N_{\rm obs}},
+ \qquad
+ A_g=\left\{I-X_g(X^{\mathsf T}X)^{-1}X_g^{\mathsf T}\right\}^{-1/2},
+\]
+where the inverse square root is the symmetric positive-definite one.
+%%% FIELD sandwich-bread-statement
+Let \({\tt fit}\) be a full-column-rank, unweighted \({\tt lm}\) fit with \(N_{\rm obs}\) fitted observations and model matrix \(X\).  In \({\tt sandwich}\) version \(3.1\text{-}3\),
+\[
+ {\tt sandwich::bread}({\tt fit})=N_{\rm obs}(X^{\mathsf T}X)^{-1}.
+\]
+%%% FIELD consumer-proof
+Fix one realized data set and suppress the row index \(n\).  The assertion is deterministic conditional on this realization.  By \({\rm def:random\text{-}partition\text{-}design}\), every realized group has exactly \(M\) units.  For a group \(g\) assigned arm \(z\in\{0,1\}\), let \(y_g\in\mathbb R^M\) collect its individual observed outcomes, let \(\mathbf 1_M\) be the \(M\)-vector of ones, and define
+\[
+ H_g:=M^{-1}\mathbf 1_M^{\mathsf T}y_g=H^{\mathrm{obs}}_{ng},
+ \qquad
+ x_z:=\begin{pmatrix}1\\ z\end{pmatrix},
+ \qquad
+ X_g:=\mathbf 1_Mx_z^{\mathsf T}.
+ \tag{1}
+\]
+Write \(G_z:=G_{zn}\), so \(G_1=G_{1n}\) and \(G_0=G_{0n}\), and let \(X\) be the matrix obtained by stacking the \(X_g\)'s.  Both treatment values occur because \(G_1,G_0\ge2\); hence the two columns of \(X\) are linearly independent, so \(X\) has rank two.  Since \(M\ge2\), in particular \(M>0\).  Direct multiplication and inversion therefore give
+\[
+ X^{\mathsf T}X
+ =M\begin{pmatrix}G_0+G_1&G_1\\G_1&G_1\end{pmatrix},
+ \qquad
+ B:=(X^{\mathsf T}X)^{-1}
+ =\frac1M\begin{pmatrix}
+ G_0^{-1}&-G_0^{-1}\\
+ -G_0^{-1}&G_0^{-1}+G_1^{-1}
+ \end{pmatrix}.
+ \tag{2}
+\]
+The determinant inverted in (2) is \(M^2G_0G_1>0\).  If \(c=(0,1)^{\mathsf T}\) selects the treatment coordinate, (2) yields
+\[
+ c^{\mathsf T}Bx_1=\frac1{MG_1},
+ \qquad
+ c^{\mathsf T}Bx_0=-\frac1{MG_0}.
+ \tag{3}
+\]
+
+The cited software contract \({\rm lem:clubsandwich\text{-}cr2\text{-}software\text{-}contract}\), together with the cited \({\tt lm}\)-bread contract \({\rm lem:sandwich\text{-}lm\text{-}bread\text{-}contract}\), says that the returned matrix is
+\[
+ \widehat\Sigma_{\mathrm{CR2}}
+ =B\sum_gX_g^{\mathsf T}A_ge_ge_g^{\mathsf T}A_g^{\mathsf T}X_gB,
+ \qquad
+ A_g=\left(I_M-X_gBX_g^{\mathsf T}\right)^{-1/2},
+ \tag{4}
+\]
+provided the matrices inside the inverse square roots are positive definite.  Here \(e_g=y_g-X_g\widehat\beta\) is the ordinary-least-squares residual block.  To verify the required positivity rather than assume it, set
+\[
+ P_M:=M^{-1}\mathbf 1_M\mathbf 1_M^{\mathsf T}.
+\]
+For a group in arm \(z\), (1)--(2) give
+\[
+ X_gBX_g^{\mathsf T}
+ =\mathbf 1_M(x_z^{\mathsf T}Bx_z)\mathbf 1_M^{\mathsf T}
+ =G_z^{-1}P_M.
+ \tag{5}
+\]
+The matrix \(P_M\) is the orthogonal projection onto the span of \(\mathbf 1_M\).  Thus \(I_M-G_z^{-1}P_M\) has eigenvalue \(1-G_z^{-1}>0\) on that span, because \(G_z\ge2\), and eigenvalue \(1\) on its orthogonal complement.  This proves the positivity required in (4).  Spectral calculus applied to (5) then gives
+\[
+ A_g=(I_M-P_M)+a_zP_M,
+ \qquad
+ a_z:=\left(1-\frac1{G_z}\right)^{-1/2}
+ =\sqrt{\frac{G_z}{G_z-1}}.
+ \tag{6}
+\]
+
+Using (2) in \(\widehat\beta=BX^{\mathsf T}y\), and using equal group size to replace each group total by \(MH_g\), gives
+\[
+ \widehat\beta
+ =\begin{pmatrix}\bar H_0\\ \bar H_1-\bar H_0\end{pmatrix},
+ \qquad
+ \bar H_z:=G_z^{-1}\sum_{g:Z_{ng}=z}H_g.
+ \tag{7}
+\]
+Consequently the mean residual in a group \(g\) assigned arm \(z\) is
+\[
+ M^{-1}\mathbf 1_M^{\mathsf T}e_g=H_g-\bar H_z=:d_g.
+ \tag{8}
+\]
+Equations (6)--(8) imply that the component of \(e_g\) orthogonal to \(\mathbf 1_M\) contributes nothing to the cluster score and that
+\[
+ \mathbf 1_M^{\mathsf T}A_ge_g
+ =a_z\mathbf 1_M^{\mathsf T}e_g
+ =Ma_zd_g.
+ \tag{9}
+\]
+Combining (1), (3), and (9), the treatment-coordinate adjusted score is
+\[
+ q_g:=c^{\mathsf T}BX_g^{\mathsf T}A_ge_g
+ =\begin{cases}
+ a_1d_g/G_1,&Z_{ng}=1,\\
+ -a_0d_g/G_0,&Z_{ng}=0.
+ \end{cases}
+ \tag{10}
+\]
+Taking the treatment-coordinate entry of (4), substituting (10), then using (6) and \({\rm def:cr2\text{-}statistic}\), yields the equation-by-equation identity
+\[
+ \begin{aligned}
+ c^{\mathsf T}\widehat\Sigma_{\mathrm{CR2}}c
+ &=\sum_gq_g^2\\
+ &=\sum_{z=0}^1\frac{a_z^2}{G_z^2}
+   \sum_{g:Z_{ng}=z}(H_g-\bar H_z)^2\\
+ &=\sum_{z=0}^1
+   \frac{G_z}{G_z-1}\frac{(G_z-1)s_{z,n}^2}{G_z^2}\\
+ &=\frac{s_{1,n}^2}{G_{1n}}+\frac{s_{0,n}^2}{G_{0n}}\\
+ &=\widehat V_{\mathrm{CR2},n}.
+ \end{aligned}
+ \tag{11}
+\]
+No randomization, independence, moment, or limiting premise is used after fixing the realized data.  The restrictions \(G_{1n},G_{0n}\ge2\) are used exactly to make the CR2 adjustment in (6) finite and the sample variances in \({\rm def:cr2\text{-}statistic}\) well defined.  Equation (11) proves the claimed exact consumer identity.

@@ -32,7 +32,12 @@ namespace Causalean.SCM.ID
 
 variable {N : Type*} [DecidableEq N] [Fintype N]
 
-/-- **Observed ancestors of `C` within the subgraph induced on `T`.**  Tian's
+/-- For [a finite collection of distinguishable node labels](hyp:N),
+[a SWIG graph](hyp:G), [a node set on which to induce a subgraph](hyp:T),
+and [a target node set](hyp:C), the [induced ancestral set](goal) is the observed
+part of the ancestors of the target set in the graph induced on the first set.
+
+**Observed ancestors of `C` within the subgraph induced on `T`.**  Tian's
 `An(C)_{G_T}`: restrict `G` to the node set `T`, take the ancestors of `C` in that
 restricted graph, and keep the observed nodes.  This is the set the IDENTIFY
 subroutine compares against `C` (project) and `T` (hedge / fail). -/
@@ -72,7 +77,9 @@ theorem inducedAncestral_parent_closed
         (G.induce T).dag.isAncestor_trans (DAG.isAncestor.edge hEdgeInd) hwc⟩
   exact Finset.mem_inter.mpr ⟨hvAnc, hvIndObs⟩
 
-/-- **Recursive IDENTIFY reachability (full Tian–Shpitser success certificate).**
+/-- For [a finite collection of distinguishable node labels](hyp:N) and [a SWIG graph](hyp:G), [the recursive c-factor reachability relation](goal) relates any source node set $T$ to any target node set $C$ when either [the target is nonempty, is contained in the source, and its observed ancestral set in the source-induced graph is exactly the target](hyp:base), or [the target is nonempty and contained in the source, that ancestral set is neither the target nor the source, and the target is recursively reachable from its containing c-component in the ancestral induced graph](hyp:step).
+
+**Recursive IDENTIFY reachability (full Tian–Shpitser success certificate).**
 `CFactorReachableRec G T C` holds when `identify(C, T, Q[T])` succeeds, i.e. the
 c-factor `Q[C]` is recoverable from `Q[T]`.
 
@@ -95,7 +102,16 @@ inductive CFactorReachableRec (G : SWIGGraph N) :
         (containingCComponent (G.induce (inducedAncestral G T C)) C) C) :
       CFactorReachableRec G T C
 
-/-- **Full recursive success certificate for the ID algorithm.**  As `idSucceeds`,
+/-- For [a finite collection of distinguishable node labels](hyp:N),
+[an intervention variable set](hyp:X), [an outcome-node set](hyp:Y), and
+[a SWIG graph](hyp:G), the [full recursive ID success certificate](goal) holds
+exactly when [the intervention set is valid for the graph](step:1), the outcome
+nodes are observed, no random counterpart of an intervention variable
+is an outcome node, and every district of the post-intervention
+ancestral graph is recursively reachable from its containing district in the
+original graph.
+
+**Full recursive success certificate for the ID algorithm.**  As `idSucceeds`,
 but each c-component `S` of the post-intervention ancestral graph need only be
 *recursively reachable* from its containing district (`CFactorReachableRec`), not
 already a full c-component.  This is the honest Tian–Shpitser ID success

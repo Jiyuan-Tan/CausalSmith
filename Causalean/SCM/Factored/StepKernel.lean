@@ -47,10 +47,12 @@ open scoped MeasureTheory ProbabilityTheory
 -- § 1. The deterministic step function and its measurability
 -- ============================================================
 
-/-- The deterministic assignment producing the value of the `n`-th observed node
-    `v_n = M.observedAt ⟨n, hn⟩` from the current prefix state `(s, ℓ, ξ)`:
-    assemble the parent tuple via `parentValuesFromPrefix`, then apply the
-    structural function `M.structFun v_n`. -/
+/-- For [a structural causal model](hyp:M) and an index $n$ [for which at
+    least $n+1$ observed vertices exist](hyp:hn), the [deterministic step
+    function](goal) maps a fixed-value assignment together with the latent and
+    already generated observed-prefix values to the value of the $n$-th
+    observed vertex in the model's canonical topological order, by applying
+    that vertex's structural function to the values of its parents. -/
 noncomputable def stepFun (M : Causalean.SCM N Ω) {n : ℕ}
     (hn : n + 1 ≤ M.observed.card) :
     (M.FixedValues × M.OrderedLatentPrefixValues n (Nat.le_of_succ_le hn)) →
@@ -75,9 +77,14 @@ theorem measurable_stepFun (M : Causalean.SCM N Ω) {n : ℕ}
 -- § 2. The step kernel
 -- ============================================================
 
-/-- The step kernel for the `n`-th observed node.  Since `structFun v_n` is a
-    deterministic measurable map, the kernel is `Kernel.deterministic (stepFun hn)`:
-    on input `(s, ℓ, ξ)` it returns `Dirac (structFun v_n (Pa(v_n)))`. -/
+/-- For [a structural causal model](hyp:M) and an index $n$ [for which at
+    least $n+1$ observed vertices exist](hyp:hn), the [step kernel](goal) is
+    the probability kernel that assigns unit mass to the value of the $n$-th
+    observed vertex produced by its structural function from the fixed values,
+    latent values, and already generated observed-prefix values.
+
+    Since the structural assignment is deterministic and measurable, this
+    kernel is the corresponding Dirac kernel. -/
 noncomputable def stepKernel (M : Causalean.SCM N Ω) {n : ℕ}
     (hn : n + 1 ≤ M.observed.card) :
     ProbabilityTheory.Kernel
@@ -85,7 +92,11 @@ noncomputable def stepKernel (M : Causalean.SCM N Ω) {n : ℕ}
       (swigΩ Ω (M.observedAt ⟨n, hn⟩).val) :=
   ProbabilityTheory.Kernel.deterministic (M.stepFun hn) (M.measurable_stepFun hn)
 
-/-- The step kernel is Markov (inherits from `Kernel.deterministic`). -/
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω), [a structural causal
+model](hyp:M), [a nonnegative integer](hyp:n), and [proof that adding one to this integer does not
+exceed the number of observed nodes](hyp:hn), [the Markov-kernel structure for the corresponding
+deterministic step kernel](goal) asserts that the kernel assigning the next observed value from its
+structural equation is a Markov kernel. -/
 instance isMarkov_stepKernel (M : Causalean.SCM N Ω) {n : ℕ}
     (hn : n + 1 ≤ M.observed.card) :
     ProbabilityTheory.IsMarkovKernel (M.stepKernel hn) := by

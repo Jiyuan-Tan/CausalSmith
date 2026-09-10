@@ -174,7 +174,22 @@ structure MinimaxRateThreshold (mhat : C → ℝ) (ghat : Bool → C → ℝ) (�
 
 variable {K : ℕ}
 
-/-- **Capstone — DR/AIPW attains the structure-agnostic minimax rate.**  For the cell-varying
+/-- For [a cell-varying construction over a nonzero finite number of paired covariate
+cells](hyp:K,P), [a positive sample size](hyp:hn), and [nonnegative outcome-regression and
+propensity-error budgets](hyp:εg,εm,hεg,hεm), suppose [for every pair $j$, the squared
+propensity perturbation $(m_{0j}\beta/g_{1j})^2$ is at most $\varepsilon_m$](hyp:hm), [for
+every pair $j$, the squared treated-arm outcome-regression perturbation
+$g_{1j}^2(\alpha+\beta)^2/(g_{1j}-\beta)^2$ is at most $\varepsilon_g$](hyp:hg), [the
+normalized overlap coefficients satisfy $\sum_j \Gamma_j/K\leq 1$](hyp:hΓsum), and [their
+normalized squared sum satisfies $(n^2/2)\sum_j(\Gamma_j/K)^2\leq\log 2$](hyp:hreg).
+For [a positive overlap constant](hyp:ε,hε) such that [the fitted propensity is between
+$\varepsilon$ and $1-\varepsilon$ in every covariate cell](hyp:hco), and [a separation
+$s$ strictly larger than $\varepsilon^{-1}2\sqrt{\varepsilon_g}\sqrt{\varepsilon_m}$](hyp:s,hsb),
+[the minimax-rate threshold certificate](goal) specifies the fixed-center augmented
+inverse-probability-weighted estimator, its upper miss-probability bound at $s$, and the
+construction-induced lower miss-probability bound for every measurable estimator.
+
+**Capstone — DR/AIPW attains the structure-agnostic minimax rate.**  For the cell-varying
 construction `P` with the per-pair budgets and regularity conditions of the lower bound, the
 problem exhibits a `MinimaxRateThreshold`:
 

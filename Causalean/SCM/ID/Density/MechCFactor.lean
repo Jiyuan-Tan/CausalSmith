@@ -49,7 +49,12 @@ variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
 namespace SCM
 
-/-- Base-node names whose random copy lies in `M.observed \ S` and whose fixed
+/-- For a finite node set with measurable node-value spaces, [a structural causal model](hyp:M)
+and [a set of SWIG nodes](hyp:S), [the mechanism-complement node set](goal) consists exactly of
+the base nodes whose random copy is observed but absent from the given set and whose fixed copy
+is not already fixed in the model.
+
+Base-node names whose random copy lies in `M.observed \ S` and whose fixed
 copy is **not already fixed** in `M` — the variables intervened on in Tian's
 do-complement object `Q[S] = P_{v∖s}(s)`.  The "not already fixed" clause lets
 this apply to non-standard models such as `M.fixSet X`. -/
@@ -122,7 +127,13 @@ private lemma mechComplement_fixSet_obsParentClosed
       simpa [fixSet, fixMono, SWIGGraph.splitMono, SWIGGraph.splitMonoDAG] using hEdge
     simp [SWIGGraph.splitMonoEdgeRel, hnW] at hEdgeRel
 
-/-- Fixed-value slice for the do-complement SCM, read from a full observed
+/-- For a finite node set with measurable node-value spaces, [a structural causal model](hyp:M),
+[a set of SWIG nodes](hyp:S), [an assignment to the model's already fixed nodes](hyp:s), and [a
+full assignment to its observed nodes](hyp:x), [the do-complement fixed-node assignment](goal)
+extends the original fixed-node assignment by assigning each mechanism-complement node the value
+of its random copy in the observed assignment.
+
+Fixed-value slice for the do-complement SCM, read from a full observed
 assignment: keep `M`'s existing fixed slice `s` and extend it on the
 do-complement coordinates by projecting `x` to the random copies in `V∖S`. -/
 noncomputable def mechDoValues
@@ -136,7 +147,13 @@ noncomputable def mechDoValues
     (M.mechComplementNames_fixed_not_mem S) s
     (valuesProjection (M.mechComplementNames_image_random_subset_observed S) x)
 
-/-- Tian's `Q[S]` measure (Eq. 36 / Eq. 55): the do(observed∖S) marginal on `S`.
+/-- For a finite node set with measurable node-value spaces, [a structural causal model](hyp:M),
+[a set of SWIG nodes contained in its observed-node set](hyp:S,hS), and [an assignment to the
+fixed nodes of the model obtained by intervening on its mechanism complement](hyp:sWn), [the
+mechanism $Q[S]$ measure](goal) is the intervened model's observational law projected onto the
+given SWIG-node set.
+
+Tian's `Q[S]` measure (Eq. 36 / Eq. 55): the do(observed∖S) marginal on `S`.
 Intervene on every not-already-fixed observed node outside `S`, then project the
 intervened observational law to the coordinates in `S`. -/
 noncomputable def QmechMeasure
@@ -155,7 +172,15 @@ noncomputable def QmechMeasure
           (M.mechComplementNames_fixed_not_mem S)).observed by
         simpa [fixSet_observed] using hS))
 
-/-- The **mechanism c-factor density** `Q[S]` as a function of a full observed
+/-- For a finite node set with measurable node-value spaces, [a structural causal model](hyp:M),
+[a family of reference measures](hyp:ref), [a set of SWIG nodes contained in the model's
+observed-node set](hyp:S,hS), and [an assignment to the model's fixed nodes](hyp:s), [the
+mechanism c-factor density](goal) maps every full observed-node assignment to the
+Radon--Nikodym derivative of the corresponding mechanism $Q[S]$ measure with respect to the
+product reference measure on the given node set, evaluated at that assignment's restriction to
+the set.
+
+The **mechanism c-factor density** `Q[S]` as a function of a full observed
 assignment `x`: read the do-values for `V∖S` from `x` (keeping `M`'s fixed slice
 `s`), form the do-complement marginal on `S`, and take its `rnDeriv` against the
 product reference on `S`, evaluated at the `S`-projection of `x`. -/

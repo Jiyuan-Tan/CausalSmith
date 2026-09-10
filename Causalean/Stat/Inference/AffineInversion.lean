@@ -21,7 +21,9 @@ namespace Causalean.Stat
 
 open MeasureTheory
 
-/-- The subset of a parameter region accepted by a scalar affine inequality. -/
+/-- Given [a real parameter region](hyp:region), [real-valued intercept, slope, and radius
+parameters](hyp:A,B,r), the [affine-inversion acceptance set](goal) consists exactly of those
+parameter values in the region whose affine discrepancy $|A-\theta B|$ is at most $r$. -/
 noncomputable def affineInversionSet (region : Set ℝ) (A B r : ℝ) : Set ℝ :=
   {theta | theta ∈ region ∧ |A - theta * B| ≤ r}
 

@@ -45,10 +45,15 @@ namespace SteinMethod
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
-/-- The standardized sum `W = ∑ᵢ Xᵢ`. -/
+/-- For any [sample space](hyp:Ω), any [finite index set](hyp:ι), and [family of real-valued
+random variables indexed by that set](hyp:X), the [aggregate random-variable function](goal)
+assigns to each sample point the sum of the family’s values at that point. -/
 noncomputable def depSum (X : ι → Ω → ℝ) : Ω → ℝ := fun ω => ∑ i, X i ω
 
-/-- The neighborhood sum `Tᵢ = ∑_{j∈Nᵢ} Xⱼ`. -/
+/-- For any [sample space](hyp:Ω), any [index set](hyp:ι), a [family of real-valued random
+variables](hyp:X), [a finite neighborhood assigned to each index](hyp:N), and [a selected
+index](hyp:i), the [neighborhood-sum random-variable function](goal) assigns to each sample
+point the sum of the variables in that selected index’s neighborhood. -/
 noncomputable def nbhdSum (X : ι → Ω → ℝ) (N : ι → Finset ι) (i : ι) : Ω → ℝ :=
   fun ω => ∑ j ∈ N i, X j ω
 

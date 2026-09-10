@@ -1,0 +1,2133 @@
+{
+  "qid": "exp_block_adaptive_ot_variance_envelope",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "symbols": [
+    {
+      "name": "n",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Triangular-array index.",
+      "role": "asymptotic index"
+    },
+    {
+      "name": "B_n",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Number of sequential randomization blocks in array \\(n\\).",
+      "role": "adaptive horizon",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "b",
+      "type": "positive integer",
+      "space": "\\(\\{1,\\ldots,B_n\\}\\)",
+      "def": "Block index.",
+      "role": "time index",
+      "refs": [
+        "B_n"
+      ]
+    },
+    {
+      "name": "j",
+      "type": "nonnegative integer",
+      "space": "\\(\\{0,\\ldots,B_n\\}\\)",
+      "def": "Partial-sum time index.",
+      "role": "martingale time index",
+      "refs": [
+        "B_n"
+      ]
+    },
+    {
+      "name": "K",
+      "type": "fixed positive integer",
+      "space": "\\(\\{2,3,\\ldots\\}\\)",
+      "def": "Number of treatment arms, fixed across the triangular array.",
+      "role": "design dimension"
+    },
+    {
+      "name": "\\mathcal A",
+      "type": "finite treatment set",
+      "space": "\\(\\{1,\\ldots,K\\}\\)",
+      "def": "Set of treatment arms.",
+      "role": "action space",
+      "refs": [
+        "K"
+      ]
+    },
+    {
+      "name": "a",
+      "type": "treatment index",
+      "space": "\\(\\mathcal A\\)",
+      "def": "Treatment-arm index.",
+      "role": "arm index",
+      "refs": [
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "\\mathcal U_{nb}",
+      "type": "finite set",
+      "def": "Units entering block \\(b\\) of array \\(n\\).",
+      "role": "finite population",
+      "refs": [
+        "n",
+        "b"
+      ]
+    },
+    {
+      "name": "n_{nb}",
+      "type": "positive integer",
+      "def": "Block size \\(n_{nb}=|\\mathcal U_{nb}|\\).",
+      "role": "block size",
+      "refs": [
+        "\\mathcal U_{nb}"
+      ]
+    },
+    {
+      "name": "i",
+      "type": "unit index",
+      "space": "\\(\\mathcal U_{nb}\\)",
+      "def": "Unit index within block \\(b\\).",
+      "role": "unit index",
+      "refs": [
+        "\\mathcal U_{nb}"
+      ]
+    },
+    {
+      "name": "N_n",
+      "type": "positive integer",
+      "def": "Total population size \\(N_n=\\sum_{b=1}^{B_n}n_{nb}\\).",
+      "role": "population size",
+      "refs": [
+        "n",
+        "B_n",
+        "n_{nb}"
+      ]
+    },
+    {
+      "name": "w_{nb}",
+      "type": "positive real number",
+      "def": "Block weight \\(w_{nb}=n_{nb}/N_n\\).",
+      "role": "estimand weight",
+      "refs": [
+        "n_{nb}",
+        "N_n"
+      ]
+    },
+    {
+      "name": "Y_{nbi}(a)",
+      "type": "fixed potential outcome",
+      "space": "\\(\\mathbb R\\)",
+      "def": "Potential outcome of unit \\(i\\) in block \\(b\\) under arm \\(a\\).",
+      "role": "causal primitive",
+      "refs": [
+        "n",
+        "b",
+        "i",
+        "a"
+      ]
+    },
+    {
+      "name": "Z_{nbi}",
+      "type": "random treatment",
+      "space": "\\(\\mathcal A\\)",
+      "def": "Assigned arm for unit \\(i\\) in block \\(b\\).",
+      "role": "design randomness",
+      "refs": [
+        "n",
+        "b",
+        "i",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "Y_{nbi}^{\\mathrm{obs}}",
+      "type": "observed outcome",
+      "space": "\\(\\mathbb R\\)",
+      "def": "Observed response \\(Y_{nbi}^{\\mathrm{obs}}=Y_{nbi}(Z_{nbi})\\).",
+      "role": "observed response",
+      "refs": [
+        "Y_{nbi}(a)",
+        "Z_{nbi}"
+      ]
+    },
+    {
+      "name": "\\mathcal F_{n,b-1}",
+      "type": "sigma-field",
+      "def": "Pre-block history containing all prior assignments and observed outcomes and the current block's baseline information.",
+      "role": "predictable history",
+      "refs": [
+        "n",
+        "b",
+        "Z_{nbi}",
+        "Y_{nbi}^{\\mathrm{obs}}"
+      ]
+    },
+    {
+      "name": "m_{nba}",
+      "type": "predictable positive integer",
+      "space": "\\(\\{1,\\ldots,n_{nb}-1\\}\\)",
+      "def": "Number of units assigned to arm \\(a\\) in block \\(b\\), with \\(\\sum_{a\\in\\mathcal A}m_{nba}=n_{nb}\\).",
+      "role": "adaptive complete-block count",
+      "refs": [
+        "n",
+        "b",
+        "a",
+        "n_{nb}",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "p_{nba}",
+      "type": "predictable probability",
+      "space": "\\((0,1)\\)",
+      "def": "Marginal assignment probability \\(p_{nba}=m_{nba}/n_{nb}\\).",
+      "role": "logged propensity",
+      "refs": [
+        "m_{nba}",
+        "n_{nb}"
+      ]
+    },
+    {
+      "name": "c",
+      "type": "fixed contrast vector",
+      "space": "\\(\\mathbb R^K\\)",
+      "def": "Prespecified arm contrast \\(c=(c_a)_{a\\in\\mathcal A}\\).",
+      "role": "causal contrast",
+      "refs": [
+        "K",
+        "\\mathcal A",
+        "a"
+      ]
+    },
+    {
+      "name": "g_{nbi}(a)",
+      "type": "predictable adjustment",
+      "space": "\\(\\mathbb R\\)",
+      "def": "Past-fitted prediction for \\(Y_{nbi}(a)\\), evaluated before block \\(b\\) is randomized.",
+      "role": "AIPW nuisance value",
+      "refs": [
+        "Y_{nbi}(a)",
+        "\\mathcal F_{n,b-1}"
+      ]
+    },
+    {
+      "name": "R_{nbi}(a)",
+      "type": "fixed conditional residual",
+      "space": "\\(\\mathbb R\\)",
+      "def": "Residual \\(R_{nbi}(a)=Y_{nbi}(a)-g_{nbi}(a)\\), fixed conditional on \\(\\mathcal F_{n,b-1}\\).",
+      "role": "coupling primitive",
+      "refs": [
+        "Y_{nbi}(a)",
+        "g_{nbi}(a)",
+        "\\mathcal F_{n,b-1}"
+      ]
+    },
+    {
+      "name": "\\bar R_{nba}",
+      "type": "finite-population mean",
+      "space": "\\(\\mathbb R\\)",
+      "def": "Armwise block residual mean \\(\\bar R_{nba}=n_{nb}^{-1}\\sum_{i\\in\\mathcal U_{nb}}R_{nbi}(a)\\).",
+      "role": "centering constant",
+      "refs": [
+        "R_{nbi}(a)",
+        "n_{nb}",
+        "\\mathcal U_{nb}"
+      ]
+    },
+    {
+      "name": "S_{nba}^2",
+      "type": "finite-population variance",
+      "space": "\\([0,\\infty)\\)",
+      "def": "Residual variance \\(S_{nba}^2=(n_{nb}-1)^{-1}\\sum_{i\\in\\mathcal U_{nb}}\\{R_{nbi}(a)-\\bar R_{nba}\\}^2\\).",
+      "role": "oracle diagonal variance component",
+      "refs": [
+        "R_{nbi}(a)",
+        "\\bar R_{nba}",
+        "n_{nb}",
+        "\\mathcal U_{nb}"
+      ]
+    },
+    {
+      "name": "\\mu_{nba}",
+      "type": "probability measure",
+      "space": "\\(\\mathcal P_2(\\mathbb R)\\)",
+      "def": "Centered residual marginal \\(\\mu_{nba}=n_{nb}^{-1}\\sum_{i\\in\\mathcal U_{nb}}\\delta_{R_{nbi}(a)-\\bar R_{nba}}\\).",
+      "role": "oracle transport margin",
+      "refs": [
+        "R_{nbi}(a)",
+        "\\bar R_{nba}",
+        "n_{nb}",
+        "\\mathcal U_{nb}"
+      ]
+    },
+    {
+      "name": "\\Gamma_{nb}",
+      "type": "multi-marginal coupling set",
+      "def": "Set \\(\\Gamma(\\mu_{nb1},\\ldots,\\mu_{nbK})\\) of probability laws on \\(\\mathbb R^K\\) with the stated armwise marginals.",
+      "role": "completion set",
+      "refs": [
+        "\\mu_{nba}",
+        "K"
+      ]
+    },
+    {
+      "name": "J_{nb}^{-}",
+      "type": "nonnegative real number",
+      "def": "Minimum quadratic contrast cost over \\(\\Gamma_{nb}\\).",
+      "role": "lower transport value",
+      "refs": [
+        "\\Gamma_{nb}"
+      ]
+    },
+    {
+      "name": "J_{nb}^{+}",
+      "type": "nonnegative real number",
+      "def": "Maximum quadratic contrast cost over \\(\\Gamma_{nb}\\).",
+      "role": "upper transport value",
+      "refs": [
+        "\\Gamma_{nb}"
+      ]
+    },
+    {
+      "name": "\\mathcal O_{nba}",
+      "type": "observed arm sample",
+      "def": "Assigned-arm index set \\(\\mathcal O_{nba}=\\{i\\in\\mathcal U_{nb}:Z_{nbi}=a\\}\\), whose cardinality is \\(m_{nba}\\) under complete-block randomization.",
+      "role": "observed residual sample",
+      "refs": [
+        "i",
+        "\\mathcal U_{nb}",
+        "Z_{nbi}",
+        "a",
+        "m_{nba}"
+      ]
+    },
+    {
+      "name": "\\widehat{\\bar R}_{nba}",
+      "type": "observed arm residual mean",
+      "space": "\\(\\mathbb R\\)",
+      "def": "Assigned-arm sample mean \\(\\widehat{\\bar R}_{nba}=m_{nba}^{-1}\\sum_{i\\in\\mathcal O_{nba}}\\{Y_{nbi}^{\\mathrm{obs}}-g_{nbi}(a)\\}\\).",
+      "role": "observable centering constant",
+      "refs": [
+        "m_{nba}",
+        "i",
+        "\\mathcal O_{nba}",
+        "Y_{nbi}^{\\mathrm{obs}}",
+        "g_{nbi}(a)"
+      ]
+    },
+    {
+      "name": "\\widehat R_{nbi}^{c}(a)",
+      "type": "observed centered residual",
+      "space": "\\(\\mathbb R\\)",
+      "def": "For \\(i\\in\\mathcal O_{nba}\\), the observable centered residual \\(\\widehat R_{nbi}^{c}(a)=Y_{nbi}^{\\mathrm{obs}}-g_{nbi}(a)-\\widehat{\\bar R}_{nba}\\).",
+      "role": "empirical transport atom",
+      "refs": [
+        "i",
+        "\\mathcal O_{nba}",
+        "Y_{nbi}^{\\mathrm{obs}}",
+        "g_{nbi}(a)",
+        "\\widehat{\\bar R}_{nba}"
+      ]
+    },
+    {
+      "name": "\\widehat S_{nba}^2",
+      "type": "observed arm sample variance",
+      "space": "\\([0,\\infty)\\)",
+      "def": "Observable variance \\(\\widehat S_{nba}^2=(m_{nba}-1)^{-1}\\sum_{i\\in\\mathcal O_{nba}}\\{\\widehat R_{nbi}^{c}(a)\\}^2\\) when \\(m_{nba}\\ge2\\), with value zero when \\(m_{nba}\\le1\\).",
+      "role": "plug-in diagonal variance component",
+      "refs": [
+        "m_{nba}",
+        "i",
+        "\\mathcal O_{nba}",
+        "\\widehat R_{nbi}^{c}(a)"
+      ]
+    },
+    {
+      "name": "\\widehat\\mu_{nba}",
+      "type": "empirical probability measure",
+      "space": "\\(\\mathcal P_2(\\mathbb R)\\)",
+      "def": "Observable assigned-arm residual measure \\(\\widehat\\mu_{nba}=m_{nba}^{-1}\\sum_{i\\in\\mathcal O_{nba}}\\delta_{\\widehat R_{nbi}^{c}(a)}\\). If \\(m_{nba}=0\\), set \\(\\widehat\\mu_{nba}=\\delta_{0_{\\mathbb R}}\\).",
+      "role": "plug-in transport margin",
+      "refs": [
+        "m_{nba}",
+        "i",
+        "\\mathcal O_{nba}",
+        "\\widehat R_{nbi}^{c}(a)"
+      ]
+    },
+    {
+      "name": "\\widehat J_{nb}^{-}",
+      "type": "nonnegative random variable",
+      "def": "Minimum empirical transport cost formed from \\(\\widehat\\mu_{nba}\\).",
+      "role": "plug-in lower transport value",
+      "refs": [
+        "\\widehat\\mu_{nba}"
+      ]
+    },
+    {
+      "name": "\\widehat J_{nb}^{+}",
+      "type": "nonnegative random variable",
+      "def": "Maximum empirical transport cost formed from \\(\\widehat\\mu_{nba}\\).",
+      "role": "plug-in upper transport value",
+      "refs": [
+        "\\widehat\\mu_{nba}"
+      ]
+    },
+    {
+      "name": "\\tau_n",
+      "type": "finite-population causal estimand",
+      "space": "\\(\\mathbb R\\)",
+      "def": "Contrast average \\(\\tau_n=N_n^{-1}\\sum_{b=1}^{B_n}\\sum_{i\\in\\mathcal U_{nb}}\\sum_{a\\in\\mathcal A}c_aY_{nbi}(a)\\).",
+      "role": "causal target",
+      "refs": [
+        "N_n",
+        "B_n",
+        "\\mathcal U_{nb}",
+        "\\mathcal A",
+        "c",
+        "Y_{nbi}(a)"
+      ]
+    },
+    {
+      "name": "\\widehat\\tau_n",
+      "type": "random variable",
+      "space": "\\(\\mathbb R\\)",
+      "def": "Predictably adjusted AIPW estimator of \\(\\tau_n\\).",
+      "role": "effect estimator",
+      "refs": [
+        "\\tau_n"
+      ]
+    },
+    {
+      "name": "D_{nb}",
+      "type": "random variable",
+      "space": "\\(\\mathbb R\\)",
+      "def": "Centered block contribution satisfying \\(\\widehat\\tau_n-\\tau_n=\\sum_{b=1}^{B_n}D_{nb}\\).",
+      "role": "martingale increment",
+      "refs": [
+        "\\widehat\\tau_n",
+        "\\tau_n",
+        "B_n"
+      ]
+    },
+    {
+      "name": "M_{nj}",
+      "type": "random process",
+      "def": "Partial-sum process \\(M_{nj}=\\sum_{b=1}^{j}D_{nb}\\) for \\(j\\le B_n\\).",
+      "role": "AIPW martingale",
+      "refs": [
+        "D_{nb}",
+        "B_n",
+        "j"
+      ]
+    },
+    {
+      "name": "V_n",
+      "type": "nonnegative random variable",
+      "def": "Predictable quadratic variation \\(V_n=\\langle M_n\\rangle_{B_n}=\\sum_{b=1}^{B_n}E(D_{nb}^2\\mid\\mathcal F_{n,b-1})\\).",
+      "role": "true design variance along the adaptive history",
+      "refs": [
+        "M_{nj}",
+        "B_n",
+        "D_{nb}",
+        "\\mathcal F_{n,b-1}"
+      ]
+    },
+    {
+      "name": "s_n^2",
+      "type": "positive real number",
+      "def": "Primitive design scale \\(s_n^2=\\sum_{b=1}^{B_n}w_{nb}^2/n_{nb}\\).",
+      "role": "variance order",
+      "refs": [
+        "B_n",
+        "w_{nb}",
+        "n_{nb}"
+      ]
+    },
+    {
+      "name": "\\varepsilon_0",
+      "type": "fixed positive real number",
+      "space": "\\((0,1/K)\\)",
+      "def": "Common overlap constant for the uniform triangular-array class.",
+      "role": "uniform overlap envelope",
+      "refs": [
+        "K"
+      ]
+    },
+    {
+      "name": "\\delta_0",
+      "type": "fixed positive real number",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Common excess-moment exponent for the nuisance-adjusted residual arrays.",
+      "role": "uniform moment exponent"
+    },
+    {
+      "name": "C_R",
+      "type": "fixed positive real number",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Common \\((4+\\delta_0)\\)-moment envelope for all predictable-adjustment residuals.",
+      "role": "uniform nuisance-residual envelope",
+      "refs": [
+        "\\delta_0"
+      ]
+    },
+    {
+      "name": "q_n",
+      "type": "deterministic positive sequence",
+      "def": "Common lower arm-count sequence satisfying \\(q_n\\to\\infty\\).",
+      "role": "uniform sampling envelope",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "\\ell_n",
+      "type": "deterministic nonnegative sequence",
+      "def": "Common maximal-block-leverage envelope satisfying \\(\\ell_n\\to0\\).",
+      "role": "uniform leverage envelope",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "v_0",
+      "type": "fixed positive real number",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Common lower predictable-quadratic-variation constant for the uniform class.",
+      "role": "uniform nondegeneracy envelope"
+    },
+    {
+      "name": "C_{\\mathrm{ep}}",
+      "type": "positive real number",
+      "def": "A constant depending only on \\(K,\\varepsilon_0,\\delta_0,C_R\\), whose existence is asserted by \\(\\text{thm:history-uniform-plugin}\\).",
+      "role": "uniform endpoint-error constant",
+      "refs": [
+        "K",
+        "\\varepsilon_0",
+        "\\delta_0",
+        "C_R"
+      ]
+    },
+    {
+      "name": "L_n",
+      "type": "nonnegative predictable random variable",
+      "def": "Lower endpoint of the predictable coupling envelope for \\(V_n\\).",
+      "role": "rectangular lower variance endpoint",
+      "refs": [
+        "V_n"
+      ]
+    },
+    {
+      "name": "U_n",
+      "type": "nonnegative predictable random variable",
+      "def": "Upper endpoint of the predictable coupling envelope for \\(V_n\\).",
+      "role": "rectangular upper variance endpoint",
+      "refs": [
+        "V_n"
+      ]
+    },
+    {
+      "name": "\\widehat L_n",
+      "type": "nonnegative random variable",
+      "def": "Plug-in lower endpoint formed from observed armwise residual marginals.",
+      "role": "estimated lower endpoint",
+      "refs": [
+        "L_n",
+        "\\widehat J_{nb}^{+}"
+      ]
+    },
+    {
+      "name": "\\widehat U_n",
+      "type": "nonnegative random variable",
+      "def": "Plug-in upper endpoint formed from observed armwise residual marginals.",
+      "role": "conservative studentizer",
+      "refs": [
+        "U_n",
+        "\\widehat J_{nb}^{-}"
+      ]
+    },
+    {
+      "name": "\\alpha",
+      "type": "real number",
+      "space": "\\((0,1)\\)",
+      "def": "Nominal error probability.",
+      "role": "coverage level"
+    },
+    {
+      "name": "z_{1-\\alpha/2}",
+      "type": "positive real number",
+      "def": "The \\((1-\\alpha/2)\\)-quantile of \\(\\mathcal N(0,1)\\).",
+      "role": "Wald critical value",
+      "refs": [
+        "\\alpha"
+      ]
+    },
+    {
+      "name": "\\mathrm{CI}_{n,1-\\alpha}",
+      "type": "random interval",
+      "def": "Wald interval centered at \\(\\widehat\\tau_n\\) and scaled by \\(\\widehat U_n\\).",
+      "role": "inferential output",
+      "refs": [
+        "\\widehat\\tau_n",
+        "\\widehat U_n",
+        "z_{1-\\alpha/2}"
+      ]
+    },
+    {
+      "name": "\\mathfrak D",
+      "type": "class of triangular experiment-analysis arrays",
+      "def": "Uniform class \\(\\mathfrak D(K,\\varepsilon_0,\\delta_0,C_R,v_0,(q_n),(\\ell_n))\\) defined in \\(\\text{def:admissible-arrays}\\).",
+      "role": "uniformity class",
+      "refs": [
+        "K",
+        "\\varepsilon_0",
+        "\\delta_0",
+        "C_R",
+        "v_0",
+        "q_n",
+        "\\ell_n"
+      ]
+    },
+    {
+      "name": "\\gamma_{nb}^{\\mathrm{true}}",
+      "type": "empirical joint residual coupling",
+      "def": "Joint centered residual law induced by the common unit labels in block \\(b\\) at the realized pre-block history.",
+      "role": "true unidentified coupling",
+      "refs": [
+        "\\Gamma_{nb}",
+        "R_{nbi}(a)",
+        "b"
+      ]
+    },
+    {
+      "name": "\\mathcal H_{n,b-1}",
+      "type": "finite history-node set",
+      "def": "Universal tree of assignment prefixes before block \\(b\\); a fixed potential-outcome completion fills in the observed responses at each prefix and thereby induces the corresponding \\(\\mathcal F_{n,b-1}\\)-history, including nodes off the ultimately realized path.",
+      "role": "adaptive history tree",
+      "refs": [
+        "n",
+        "b",
+        "\\mathcal F_{n,b-1}"
+      ]
+    },
+    {
+      "name": "h",
+      "type": "history node",
+      "space": "\\(\\mathcal H_{n,b-1}\\)",
+      "def": "An assignment-prefix node at which a completion induces observed responses and the prespecified design and fitting rules are evaluated.",
+      "role": "tree-node index",
+      "refs": [
+        "\\mathcal H_{n,b-1}"
+      ]
+    },
+    {
+      "name": "g_{nbi}^{h}(a)",
+      "type": "nodewise adjustment value",
+      "space": "\\(\\mathbb R\\)",
+      "def": "Value produced for unit \\(i\\) and arm \\(a\\) by the fixed predictable fitting rule when the pre-block history is \\(h\\).",
+      "role": "history-tree nuisance value",
+      "refs": [
+        "g_{nbi}(a)",
+        "h"
+      ]
+    },
+    {
+      "name": "R_{nbi}^{h}(a)",
+      "type": "nodewise fixed residual",
+      "space": "\\(\\mathbb R\\)",
+      "def": "Residual \\(R_{nbi}^{h}(a)=Y_{nbi}(a)-g_{nbi}^{h}(a)\\) at history node \\(h\\).",
+      "role": "history-tree coupling primitive",
+      "refs": [
+        "Y_{nbi}(a)",
+        "g_{nbi}^{h}(a)",
+        "h"
+      ]
+    },
+    {
+      "name": "\\bar R_{nba}^{h}",
+      "type": "nodewise finite-population mean",
+      "space": "\\(\\mathbb R\\)",
+      "def": "Mean \\(\\bar R_{nba}^{h}=n_{nb}^{-1}\\sum_{i\\in\\mathcal U_{nb}}R_{nbi}^{h}(a)\\).",
+      "role": "history-tree centering constant",
+      "refs": [
+        "R_{nbi}^{h}(a)",
+        "n_{nb}",
+        "i",
+        "\\mathcal U_{nb}"
+      ]
+    },
+    {
+      "name": "\\mu_{nba}^{h}",
+      "type": "nodewise probability measure",
+      "space": "\\(\\mathcal P_2(\\mathbb R)\\)",
+      "def": "Centered empirical marginal of \\(R_{nbi}^{h}(a)\\) across \\(i\\in\\mathcal U_{nb}\\) at node \\(h\\).",
+      "role": "history-tree transport margin",
+      "refs": [
+        "R_{nbi}^{h}(a)",
+        "i",
+        "\\mathcal U_{nb}",
+        "h"
+      ]
+    },
+    {
+      "name": "m_{nba}^{h}",
+      "type": "nodewise positive integer",
+      "space": "\\(\\{1,\\ldots,n_{nb}-1\\}\\)",
+      "def": "Arm-\\(a\\) count produced by the prespecified predictable allocation rule at node \\(h\\), with \\(\\sum_{a\\in\\mathcal A}m_{nba}^{h}=n_{nb}\\).",
+      "role": "history-tree allocation count",
+      "refs": [
+        "n",
+        "b",
+        "a",
+        "h",
+        "n_{nb}",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "(S_{nba}^{h})^2",
+      "type": "nodewise finite-population variance",
+      "space": "\\([0,\\infty)\\)",
+      "def": "Finite-population variance of \\(R_{nbi}^{h}(a)\\) across \\(i\\in\\mathcal U_{nb}\\) at node \\(h\\).",
+      "role": "nodewise diagonal variance component",
+      "refs": [
+        "R_{nbi}^{h}(a)",
+        "i",
+        "\\mathcal U_{nb}",
+        "h"
+      ]
+    },
+    {
+      "name": "\\Gamma_{nb}^{h}",
+      "type": "nodewise multi-marginal coupling set",
+      "def": "The set \\(\\Gamma(\\mu_{nb1}^{h},\\ldots,\\mu_{nbK}^{h})\\) of convexified joint residual laws at node \\(h\\).",
+      "role": "nodewise convex relaxation",
+      "refs": [
+        "\\mu_{nba}^{h}",
+        "K",
+        "h"
+      ]
+    },
+    {
+      "name": "J_{nb}^{h,-}",
+      "type": "nonnegative real number",
+      "def": "Minimum quadratic contrast cost over \\(\\Gamma_{nb}^{h}\\).",
+      "role": "nodewise lower transport value",
+      "refs": [
+        "\\Gamma_{nb}^{h}"
+      ]
+    },
+    {
+      "name": "J_{nb}^{h,+}",
+      "type": "nonnegative real number",
+      "def": "Maximum quadratic contrast cost over \\(\\Gamma_{nb}^{h}\\).",
+      "role": "nodewise upper transport value",
+      "refs": [
+        "\\Gamma_{nb}^{h}"
+      ]
+    },
+    {
+      "name": "\\boldsymbol\\mu_n",
+      "type": "history-tree margin system",
+      "def": "The ex ante collection \\(\\boldsymbol\\mu_n=(\\mu_{nba}^{h})_{b\\le B_n,\\,h\\in\\mathcal H_{n,b-1},\\,a\\in\\mathcal A}\\) indexed by every possible pre-block history.",
+      "role": "completion datum",
+      "refs": [
+        "\\mu_{nba}^{h}",
+        "b",
+        "B_n",
+        "h",
+        "\\mathcal H_{n,b-1}",
+        "a",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "\\mathfrak R_n(\\boldsymbol\\mu_n)",
+      "type": "rectangular product of coupling sets",
+      "def": "The Cartesian product of \\(\\Gamma_{nb}^{h}\\) over all blocks and all possible pre-block histories.",
+      "role": "nodewise convexified completion relaxation",
+      "refs": [
+        "\\boldsymbol\\mu_n",
+        "\\Gamma_{nb}^{h}",
+        "b",
+        "B_n",
+        "h",
+        "\\mathcal H_{n,b-1}"
+      ]
+    },
+    {
+      "name": "\\Xi_n",
+      "type": "ex ante deterministic completion object",
+      "def": "One fixed potential-outcome array together with the evaluations, at every history node, of the prespecified predictable design and fitting rules.",
+      "role": "globally consistent completion",
+      "refs": [
+        "Y_{nbi}(a)",
+        "m_{nba}^{h}",
+        "g_{nbi}^{h}(a)",
+        "\\mathcal H_{n,b-1}"
+      ]
+    },
+    {
+      "name": "\\gamma_{nb}^{\\Xi,h}",
+      "type": "nodewise empirical joint residual law",
+      "def": "The joint coupling induced at node \\(h\\) by the common unit labels in the single completion \\(\\Xi_n\\).",
+      "role": "globally constrained nodewise coupling",
+      "refs": [
+        "\\Xi_n",
+        "h",
+        "R_{nbi}^{h}(a)"
+      ]
+    },
+    {
+      "name": "\\mathcal C_n(\\boldsymbol\\mu_n)",
+      "type": "set of ex ante deterministic completion objects",
+      "def": "History-tree compatible fixed-potential-outcome completions defined in \\(\\text{def:completion-class}\\).",
+      "role": "global sharpness class",
+      "ref": "def:completion-class",
+      "refs": [
+        "n",
+        "\\boldsymbol\\mu_n",
+        "\\Xi_n"
+      ]
+    },
+    {
+      "name": "\\mathcal P_n",
+      "type": "finite set of root-to-leaf assignment paths",
+      "def": "Set of complete assignment paths through the universal history tree.",
+      "role": "path index set",
+      "refs": [
+        "n",
+        "\\mathcal H_{n,b-1}",
+        "B_n"
+      ]
+    },
+    {
+      "name": "\\varpi",
+      "type": "root-to-leaf assignment path",
+      "space": "\\(\\mathcal P_n\\)",
+      "def": "A complete assignment path through the history tree.",
+      "role": "path index",
+      "refs": [
+        "\\mathcal P_n"
+      ]
+    },
+    {
+      "name": "h_b(\\varpi)",
+      "type": "history node",
+      "space": "\\(\\mathcal H_{n,b-1}\\)",
+      "def": "The pre-block node visited by path \\(\\varpi\\) before block \\(b\\).",
+      "role": "pathwise node selector",
+      "refs": [
+        "\\varpi",
+        "b",
+        "\\mathcal H_{n,b-1}"
+      ]
+    },
+    {
+      "name": "U_{nb}^{h}",
+      "type": "nonnegative real number",
+      "def": "Nodewise upper conditional-variance contribution \\(U_{nb}^{h}=w_{nb}^2\\{\\sum_{a\\in\\mathcal A}c_a^2(S_{nba}^{h})^2/m_{nba}^{h}-J_{nb}^{h,-}/(n_{nb}-1)\\}\\), with the variances and predictable counts evaluated at \\(h\\).",
+      "role": "nodewise rectangular upper endpoint",
+      "refs": [
+        "n",
+        "b",
+        "h",
+        "w_{nb}",
+        "a",
+        "\\mathcal A",
+        "c",
+        "(S_{nba}^{h})^2",
+        "m_{nba}^{h}",
+        "J_{nb}^{h,-}",
+        "n_{nb}"
+      ]
+    },
+    {
+      "name": "Q_{nb}^{\\Xi,h}",
+      "type": "nonnegative real number",
+      "def": "Conditional-variance contribution \\(Q_{nb}^{\\Xi,h}=w_{nb}^2\\{\\sum_{a\\in\\mathcal A}c_a^2(S_{nba}^{h})^2/m_{nba}^{h}-(n_{nb}-1)^{-1}\\int(\\sum_{a\\in\\mathcal A}c_ax_a)^2d\\gamma_{nb}^{\\Xi,h}\\}\\) induced by completion \\(\\Xi_n\\) at node \\(h\\).",
+      "role": "completion-induced nodewise variance",
+      "refs": [
+        "\\Xi_n",
+        "h",
+        "w_{nb}",
+        "a",
+        "\\mathcal A",
+        "c",
+        "(S_{nba}^{h})^2",
+        "m_{nba}^{h}",
+        "n_{nb}",
+        "\\gamma_{nb}^{\\Xi,h}"
+      ]
+    },
+    {
+      "name": "\\mathcal I_{nb}^{h}",
+      "type": "finite set of deterministic nodewise couplings",
+      "def": "Couplings of \\(\\mu_{nb1}^{h},\\ldots,\\mu_{nbK}^{h}\\) induced by same-size unit-label matchings at node \\(h\\), ignoring compatibility with other history nodes.",
+      "role": "single-node integrality set",
+      "refs": [
+        "n",
+        "b",
+        "h",
+        "\\mu_{nba}^{h}",
+        "K"
+      ]
+    },
+    {
+      "name": "\\rho",
+      "type": "fixed real number",
+      "space": "\\((0,1)\\)",
+      "def": "Fixed fractional reduction used for a nodewise rectangular upper contribution or for the observable upper endpoint in the fixed-quota necessity theorem.",
+      "role": "upper-endpoint reduction"
+    },
+    {
+      "name": "U_{nb}^{h,\\rho}",
+      "type": "nonnegative real number",
+      "def": "Fixed-fraction nodewise reduction \\(U_{nb}^{h,\\rho}=(1-\\rho)U_{nb}^{h}\\).",
+      "role": "reduced nodewise endpoint",
+      "refs": [
+        "U_{nb}^{h}",
+        "\\rho"
+      ]
+    },
+    {
+      "name": "U_n^{\\rho}(\\varpi)",
+      "type": "nonnegative real number",
+      "def": "Reduced pathwise endpoint \\(U_n^{\\rho}(\\varpi)=\\sum_{b=1}^{B_n}(1-\\rho)U_{nb}^{h_b(\\varpi)}\\).",
+      "role": "fixed-fraction pathwise reduction",
+      "refs": [
+        "n",
+        "\\rho",
+        "\\varpi",
+        "b",
+        "B_n",
+        "U_{nb}^{h}",
+        "U_{nb}^{h,\\rho}",
+        "h_b(\\varpi)"
+      ]
+    },
+    {
+      "name": "\\Delta_n^{\\mathrm{tree}}(\\boldsymbol\\mu_n)",
+      "type": "nonnegative extended real number",
+      "def": "Normalized global compatibility gap defined in \\(\\text{def:completion-gap}\\).",
+      "role": "history-tree attainment gap",
+      "refs": [
+        "n",
+        "\\boldsymbol\\mu_n"
+      ]
+    },
+    {
+      "name": "\\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n)",
+      "type": "nonnegative extended real number",
+      "def": "Normalized worst single-node multi-index integrality gap defined in \\(\\text{def:completion-gap}\\).",
+      "role": "nodewise integrality diagnostic",
+      "refs": [
+        "n",
+        "\\boldsymbol\\mu_n"
+      ]
+    },
+    {
+      "name": "\\kappa",
+      "type": "fixed positive real number",
+      "space": "\\((1/12,1/6)\\)",
+      "def": "Endpoint-rate exponent \\(\\kappa=\\frac{2+\\delta_0}{6(4+\\delta_0)}\\).",
+      "role": "uniform plug-in exponent",
+      "refs": [
+        "\\delta_0"
+      ]
+    },
+    {
+      "name": "r_n",
+      "type": "deterministic positive sequence",
+      "def": "Endpoint-error envelope \\(r_n=q_n^{-\\kappa}\\), which tends to zero.",
+      "role": "uniform plug-in rate",
+      "refs": [
+        "n",
+        "q_n",
+        "\\kappa"
+      ]
+    },
+    {
+      "name": "\\Phi",
+      "type": "function",
+      "space": "\\(\\mathbb R\\to(0,1)\\)",
+      "def": "Cumulative distribution function of \\(\\mathcal N(0,1)\\).",
+      "role": "Gaussian coverage map"
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:fixed-potential-outcomes",
+      "kind": "causal-structural",
+      "condition": "Conditional on baseline information, the array \\(\\{Y_{nbi}(a):b\\le B_n,\\ i\\in\\mathcal U_{nb},\\ a\\in\\mathcal A\\}\\) is nonrandom under the assignment law.",
+      "free_symbols": [
+        "Y_{nbi}(a)",
+        "n",
+        "b",
+        "B_n",
+        "i",
+        "\\mathcal U_{nb}",
+        "a",
+        "\\mathcal A"
+      ],
+      "standard": {
+        "name": "Fixed finite-population potential outcomes",
+        "cite": "LiZhao2026AdaptiveDesignBased"
+      },
+      "used_by": [
+        "def:admissible-arrays",
+        "thm:completion-gap-decomposition-and-inference-obstruction",
+        "thm:conservative-wald",
+        "thm:exact-predictable-ot-envelope"
+      ]
+    },
+    {
+      "id": "ass:consistency-no-interference",
+      "kind": "causal-structural",
+      "condition": "For every unit, \\(Y_{nbi}^{\\mathrm{obs}}=Y_{nbi}(Z_{nbi})\\).",
+      "free_symbols": [
+        "Y_{nbi}^{\\mathrm{obs}}",
+        "Y_{nbi}(a)",
+        "Z_{nbi}",
+        "n",
+        "b",
+        "i",
+        "a"
+      ],
+      "standard": {
+        "name": "Consistency and no interference",
+        "cite": "LiZhao2026AdaptiveDesignBased"
+      },
+      "used_by": [
+        "def:admissible-arrays",
+        "def:aipw-estimator",
+        "def:observed-residual-margins",
+        "thm:completion-gap-decomposition-and-inference-obstruction",
+        "thm:fixed-fraction-upper-endpoint-necessity",
+        "thm:history-uniform-plugin"
+      ]
+    },
+    {
+      "id": "ass:predictable-counts",
+      "kind": "causal-structural",
+      "condition": "The fixed-count vector \\((m_{nba})_{a\\in\\mathcal A}\\) is \\(\\mathcal F_{n,b-1}\\)-measurable for every \\(n\\) and \\(b\\).",
+      "free_symbols": [
+        "m_{nba}",
+        "\\mathcal A",
+        "\\mathcal F_{n,b-1}",
+        "n",
+        "b"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This is an explicit fixed-count complete-block design restriction of the paper. It is implementable in predictably batched platform experiments that update integer arm quotas after each completed batch and then use uniform complete randomization within the next batch; minimum cell sizes and capacity caps can be enforced directly by the quota rule. Li and Zhao's broader block-adaptive framework is not cited as supplying this restriction."
+      },
+      "used_by": [
+        "def:admissible-arrays",
+        "lem:two-block-kill-test",
+        "thm:completion-gap-decomposition-and-inference-obstruction",
+        "thm:exact-predictable-ot-envelope"
+      ]
+    },
+    {
+      "id": "ass:complete-block-randomization",
+      "kind": "causal-structural",
+      "condition": "Conditional on \\(\\mathcal F_{n,b-1}\\), \\((Z_{nbi})_{i\\in\\mathcal U_{nb}}\\) is uniform over assignments having exactly \\(m_{nba}\\) units in every arm \\(a\\in\\mathcal A\\).",
+      "free_symbols": [
+        "\\mathcal F_{n,b-1}",
+        "Z_{nbi}",
+        "n",
+        "b",
+        "i",
+        "\\mathcal U_{nb}",
+        "m_{nba}",
+        "a",
+        "\\mathcal A"
+      ],
+      "standard": {
+        "name": "Complete randomization within a predictable block",
+        "cite": "AronowGreenLee2014SharpVariance"
+      },
+      "used_by": [
+        "def:admissible-arrays",
+        "lem:two-block-kill-test",
+        "thm:completion-gap-decomposition-and-inference-obstruction",
+        "thm:exact-predictable-ot-envelope",
+        "thm:fixed-fraction-upper-endpoint-necessity",
+        "thm:history-uniform-plugin"
+      ]
+    },
+    {
+      "id": "ass:predictable-adjustment",
+      "kind": "regularity",
+      "condition": "The array \\((g_{nbi}(a))_{i\\in\\mathcal U_{nb},\\,a\\in\\mathcal A}\\) is \\(\\mathcal F_{n,b-1}\\)-measurable for every \\(n\\) and \\(b\\).",
+      "free_symbols": [
+        "g_{nbi}(a)",
+        "\\mathcal U_{nb}",
+        "a",
+        "\\mathcal A",
+        "\\mathcal F_{n,b-1}",
+        "n",
+        "b"
+      ],
+      "standard": {
+        "name": "Past-only adaptive outcome adjustment",
+        "cite": "LiZhao2026AdaptiveDesignBased"
+      },
+      "used_by": [
+        "def:admissible-arrays",
+        "def:aipw-estimator",
+        "def:observed-residual-margins",
+        "lem:two-block-kill-test",
+        "thm:completion-gap-decomposition-and-inference-obstruction",
+        "thm:exact-predictable-ot-envelope",
+        "thm:history-uniform-plugin"
+      ]
+    },
+    {
+      "id": "ass:overlap",
+      "kind": "support",
+      "condition": "The predictable arm fractions satisfy \\(\\varepsilon_0\\le p_{nba}\\le1-(K-1)\\varepsilon_0\\) almost surely for every \\(n\\), \\(b\\), and \\(a\\).",
+      "free_symbols": [
+        "K",
+        "\\varepsilon_0",
+        "p_{nba}",
+        "n",
+        "b",
+        "a"
+      ],
+      "standard": {
+        "name": "Uniform executed overlap",
+        "cite": "LiZhao2026AdaptiveDesignBased"
+      },
+      "used_by": [
+        "def:admissible-arrays",
+        "thm:completion-gap-decomposition-and-inference-obstruction",
+        "thm:conservative-wald",
+        "thm:history-uniform-plugin"
+      ]
+    },
+    {
+      "id": "ass:contrast-zero-sum",
+      "kind": "regularity",
+      "condition": "The contrast satisfies \\(\\sum_{a\\in\\mathcal A}c_a=0\\).",
+      "free_symbols": [
+        "c",
+        "a",
+        "\\mathcal A"
+      ],
+      "standard": {
+        "name": "Multi-arm treatment contrast",
+        "cite": "GaoGeQian2025MOT"
+      },
+      "used_by": [
+        "def:admissible-arrays",
+        "def:aipw-estimator",
+        "def:transport-values",
+        "thm:completion-gap-decomposition-and-inference-obstruction",
+        "thm:exact-predictable-ot-envelope",
+        "thm:fixed-fraction-upper-endpoint-necessity"
+      ]
+    },
+    {
+      "id": "ass:contrast-normalization",
+      "kind": "regularity",
+      "condition": "The contrast satisfies \\(\\sum_{a\\in\\mathcal A}c_a^2=1\\).",
+      "free_symbols": [
+        "c",
+        "a",
+        "\\mathcal A"
+      ],
+      "standard": {
+        "name": "Euclidean contrast normalization",
+        "cite": "GaoGeQian2025MOT"
+      },
+      "used_by": [
+        "def:admissible-arrays",
+        "thm:completion-gap-decomposition-and-inference-obstruction",
+        "thm:conservative-wald",
+        "thm:fixed-fraction-upper-endpoint-necessity",
+        "thm:history-uniform-plugin"
+      ]
+    },
+    {
+      "id": "ass:growing-arm-counts",
+      "kind": "empirical-process",
+      "condition": "The predictable counts satisfy \\(\\min_{b\\le B_n,\\,a\\in\\mathcal A}m_{nba}\\ge q_n\\) almost surely for every \\(n\\), where the deterministic lower-count envelope obeys \\(q_n\\to\\infty\\).",
+      "free_symbols": [
+        "m_{nba}",
+        "b",
+        "B_n",
+        "a",
+        "\\mathcal A",
+        "q_n",
+        "n"
+      ],
+      "standard": {
+        "name": "Growing-stratum sampling condition",
+        "cite": "YuZhuLiu2025SharpStratified"
+      },
+      "used_by": [
+        "def:admissible-arrays",
+        "def:observed-residual-margins",
+        "thm:completion-gap-decomposition-and-inference-obstruction",
+        "thm:history-uniform-plugin"
+      ]
+    },
+    {
+      "id": "ass:block-leverage",
+      "kind": "empirical-process",
+      "condition": "The design leverage satisfies \\(\\max_{b\\le B_n}\\{w_{nb}^2/n_{nb}\\}/s_n^2\\le\\ell_n\\) for every \\(n\\).",
+      "free_symbols": [
+        "b",
+        "B_n",
+        "w_{nb}",
+        "n_{nb}",
+        "s_n^2",
+        "\\ell_n"
+      ],
+      "standard": {
+        "name": "Negligible maximal block leverage",
+        "cite": "LiZhao2026AdaptiveDesignBased"
+      },
+      "used_by": [
+        "def:admissible-arrays",
+        "thm:completion-gap-decomposition-and-inference-obstruction",
+        "thm:conservative-wald"
+      ]
+    },
+    {
+      "id": "ass:residual-moments",
+      "kind": "empirical-process",
+      "condition": "The nuisance-adjusted residual arrays satisfy \\(\\sup_{n,b,a}\\operatorname*{ess\\,sup}_{\\mathcal F_{n,b-1}}n_{nb}^{-1}\\sum_{i\\in\\mathcal U_{nb}}|R_{nbi}(a)|^{4+\\delta_0}\\le C_R\\).",
+      "free_symbols": [
+        "n",
+        "b",
+        "a",
+        "\\mathcal F_{n,b-1}",
+        "n_{nb}",
+        "\\mathcal U_{nb}",
+        "R_{nbi}(a)",
+        "\\delta_0",
+        "C_R"
+      ],
+      "standard": {
+        "name": "Uniform finite-population \\((4+\\delta_0)\\)-moment condition",
+        "cite": "YuZhuLiu2025SharpStratified"
+      },
+      "used_by": [
+        "def:admissible-arrays",
+        "thm:completion-gap-decomposition-and-inference-obstruction",
+        "thm:conservative-wald",
+        "thm:history-uniform-plugin"
+      ]
+    },
+    {
+      "id": "ass:qv-growth",
+      "kind": "finite-population-nondegeneracy",
+      "condition": "The predictable quadratic variation satisfies \\(V_n\\ge v_0s_n^2\\) almost surely for every \\(n\\).",
+      "free_symbols": [
+        "V_n",
+        "s_n^2",
+        "v_0"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This common finite-population condition excludes asymptotically deterministic contrasts while allowing heterogeneous residual couplings; it holds, for example, when each root-to-leaf path contains a fixed share of blocks with residual contrast variance bounded below relative to \\(s_n^2\\)."
+      },
+      "used_by": [
+        "def:admissible-arrays",
+        "thm:completion-gap-decomposition-and-inference-obstruction",
+        "thm:completion-gap-decomposition-and-inference-obstruction",
+        "thm:conservative-wald"
+      ]
+    },
+    {
+      "id": "ass:qv-stabilization",
+      "condition": "For every \\(\\eta>0\\), the predictable quadratic variation stabilizes at its deterministic design expectation uniformly over the common-parameter class: \\[\\sup_{\\mathbb D\\in\\mathfrak D}\\Pr_{\\mathbb D}\\left(\\left|\\frac{V_n}{E_{\\mathbb D}V_n}-1\\right|>\\eta\\right)\\longrightarrow0.\\]",
+      "free_symbols": [
+        "n",
+        "\\mathfrak D",
+        "V_n"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "standard: predictable-variation stabilization for a martingale triangular array"
+      },
+      "used_by": [
+        "thm:conservative-wald",
+        "thm:fixed-fraction-upper-endpoint-necessity"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:admissible-arrays",
+      "name": "\\(\\mathfrak D(K,\\varepsilon_0,\\delta_0,C_R,v_0,(q_n),(\\ell_n))\\)",
+      "construction": "\\[\n\\mathfrak D(K,\\varepsilon_0,\\delta_0,C_R,v_0,(q_n),(\\ell_n))=\\left\\{(Y_{nbi}(a),Z_{nbi},m_{nba},g_{nbi}(a))_{n\\ge1,\\,b\\le B_n,\\,i\\in\\mathcal U_{nb},\\,a\\in\\mathcal A}:\\begin{array}{l}K\\text{ is fixed, }q_n\\to\\infty,\\ \\ell_n\\to0,\\text{ and every member-property assumption listed below holds for all }n;\\\\ \\varepsilon_0,\\delta_0,C_R,v_0,(q_n),(\\ell_n)\\text{ are the same displayed constants and deterministic envelopes for every array}\\end{array}\\right\\}.\n\\]",
+      "free_symbols": [
+        "\\mathfrak D",
+        "K",
+        "\\varepsilon_0",
+        "\\delta_0",
+        "C_R",
+        "v_0",
+        "q_n",
+        "\\ell_n",
+        "Y_{nbi}(a)",
+        "Z_{nbi}",
+        "m_{nba}",
+        "g_{nbi}(a)",
+        "n",
+        "b",
+        "B_n",
+        "i",
+        "\\mathcal U_{nb}",
+        "a",
+        "\\mathcal A"
+      ],
+      "by_member_properties": [
+        "ass:fixed-potential-outcomes",
+        "ass:consistency-no-interference",
+        "ass:predictable-counts",
+        "ass:complete-block-randomization",
+        "ass:predictable-adjustment",
+        "ass:overlap",
+        "ass:contrast-zero-sum",
+        "ass:contrast-normalization",
+        "ass:growing-arm-counts",
+        "ass:block-leverage",
+        "ass:residual-moments",
+        "ass:qv-growth"
+      ],
+      "revision": "rev:2fef5e79568e22b7752a87bb0e06ed706d84a15bebd40064f0b036dc8a6f7ce0"
+    },
+    {
+      "id": "def:aipw-estimator",
+      "name": "\\(\\widehat\\tau_n\\)",
+      "construction": "\\[\\widehat\\tau_n=\\frac1{N_n}\\sum_{b=1}^{B_n}\\sum_{i\\in\\mathcal U_{nb}}\\sum_{a\\in\\mathcal A}c_a\\left[g_{nbi}(a)+\\frac{\\mathbf 1\\{Z_{nbi}=a\\}}{p_{nba}}\\{Y_{nbi}^{\\mathrm{obs}}-g_{nbi}(a)\\}\\right].\\]",
+      "free_symbols": [
+        "\\widehat\\tau_n",
+        "n",
+        "b",
+        "N_n",
+        "B_n",
+        "i",
+        "\\mathcal U_{nb}",
+        "\\mathcal A",
+        "c",
+        "g_{nbi}(a)",
+        "Z_{nbi}",
+        "a",
+        "p_{nba}",
+        "Y_{nbi}^{\\mathrm{obs}}"
+      ],
+      "inputs": [
+        "ass:consistency-no-interference",
+        "ass:predictable-adjustment",
+        "ass:contrast-zero-sum"
+      ],
+      "revision": "rev:d92679842effce0ecf56a226b5f66da9067dd2462685168d60a76f0311746e93"
+    },
+    {
+      "id": "def:block-martingale",
+      "name": "\\(D_{nb},M_{nj},V_n\\)",
+      "construction": "\\[D_{nb}=w_{nb}\\sum_{a\\in\\mathcal A}c_a\\left[\\frac1{m_{nba}}\\sum_{i\\in\\mathcal U_{nb}}\\mathbf 1\\{Z_{nbi}=a\\}R_{nbi}(a)-\\bar R_{nba}\\right],\\quad M_{nj}=\\sum_{b=1}^{j}D_{nb},\\quad V_n=\\sum_{b=1}^{B_n}E(D_{nb}^2\\mid\\mathcal F_{n,b-1}).\\]",
+      "free_symbols": [
+        "D_{nb}",
+        "n",
+        "b",
+        "i",
+        "j",
+        "w_{nb}",
+        "\\mathcal A",
+        "c",
+        "m_{nba}",
+        "\\mathcal U_{nb}",
+        "Z_{nbi}",
+        "a",
+        "R_{nbi}(a)",
+        "\\bar R_{nba}",
+        "M_{nj}",
+        "V_n",
+        "B_n",
+        "\\mathcal F_{n,b-1}"
+      ],
+      "inputs": [
+        "def:aipw-estimator"
+      ],
+      "revision": "rev:0a1d08d8df1017445b5ff96dd85fcb2d83421b949a42dee471e0b79dcc92fb7e"
+    },
+    {
+      "id": "def:transport-values",
+      "name": "\\(J_{nb}^{-},J_{nb}^{+}\\)",
+      "construction": "\\[J_{nb}^{-}=\\inf_{\\gamma\\in\\Gamma_{nb}}\\int\\left(\\sum_{a\\in\\mathcal A}c_ax_a\\right)^2\\,d\\gamma(x_1,\\ldots,x_K),\\qquad J_{nb}^{+}=\\sup_{\\gamma\\in\\Gamma_{nb}}\\int\\left(\\sum_{a\\in\\mathcal A}c_ax_a\\right)^2\\,d\\gamma(x_1,\\ldots,x_K).\\]",
+      "free_symbols": [
+        "J_{nb}^{-}",
+        "J_{nb}^{+}",
+        "n",
+        "b",
+        "\\Gamma_{nb}",
+        "\\mathcal A",
+        "c",
+        "a",
+        "K"
+      ],
+      "inputs": [
+        "ass:contrast-zero-sum"
+      ],
+      "revision": "rev:d672f10dc60b98df0a343cc260d4e575b523787b06e1b148643b41efbb884e1d"
+    },
+    {
+      "id": "def:qv-envelope",
+      "name": "\\([L_n,U_n]\\)",
+      "construction": "\\[L_n=\\sum_{b=1}^{B_n}w_{nb}^2\\left\\{\\sum_{a\\in\\mathcal A}\\frac{c_a^2S_{nba}^2}{m_{nba}}-\\frac{J_{nb}^{+}}{n_{nb}-1}\\right\\},\\qquad U_n=\\sum_{b=1}^{B_n}w_{nb}^2\\left\\{\\sum_{a\\in\\mathcal A}\\frac{c_a^2S_{nba}^2}{m_{nba}}-\\frac{J_{nb}^{-}}{n_{nb}-1}\\right\\}.\\]",
+      "free_symbols": [
+        "L_n",
+        "U_n",
+        "n",
+        "b",
+        "a",
+        "B_n",
+        "w_{nb}",
+        "\\mathcal A",
+        "c",
+        "S_{nba}^2",
+        "m_{nba}",
+        "J_{nb}^{+}",
+        "J_{nb}^{-}",
+        "n_{nb}"
+      ],
+      "inputs": [
+        "def:transport-values",
+        "def:block-martingale"
+      ],
+      "revision": "rev:22ca7c2402b6e2a2a6feca4540780b45fcbdf3c96414295b1f958f5598df54f9"
+    },
+    {
+      "id": "def:observed-residual-margins",
+      "name": "\\(\\widehat{\\bar R}_{nba},\\widehat R_{nbi}^{c}(a),\\widehat S_{nba}^2,\\widehat\\mu_{nba}\\)",
+      "construction": "For \\(\\mathcal O_{nba}=\\{i\\in\\mathcal U_{nb}:Z_{nbi}=a\\}\\) of observed size \\(|\\mathcal O_{nba}|=m_{nba}\\), define\n\\[\n\\widehat{\\bar R}_{nba}=\\frac1{m_{nba}}\\sum_{i\\in\\mathcal O_{nba}}\\{Y_{nbi}^{\\mathrm{obs}}-g_{nbi}(a)\\},\\qquad \\widehat R_{nbi}^{c}(a)=Y_{nbi}^{\\mathrm{obs}}-g_{nbi}(a)-\\widehat{\\bar R}_{nba},\n\\]\n\\[\n\\widehat\\mu_{nba}=\\frac1{m_{nba}}\\sum_{i\\in\\mathcal O_{nba}}\\delta_{\\widehat R_{nbi}^{c}(a)},\\qquad \\widehat S_{nba}^2=\\frac1{m_{nba}-1}\\sum_{i\\in\\mathcal O_{nba}}\\{\\widehat R_{nbi}^{c}(a)\\}^2.\n\\]\nSet \\(\\widehat\\mu_{nba}=\\delta_{0_{\\mathbb R}}\\) and \\(\\widehat S_{nba}^2=0\\) when \\(m_{nba}=0\\), and set \\(\\widehat S_{nba}^2=0\\) when \\(m_{nba}=1\\). These total conventions are inactive for the endpoint theorem for all sufficiently large \\(n\\), because \\(\\min_{b,a}m_{nba}\\ge q_n\\) and \\(q_n\\to\\infty\\).",
+      "free_symbols": [
+        "\\mathcal O_{nba}",
+        "i",
+        "\\mathcal U_{nb}",
+        "Z_{nbi}",
+        "a",
+        "m_{nba}",
+        "\\widehat{\\bar R}_{nba}",
+        "Y_{nbi}^{\\mathrm{obs}}",
+        "g_{nbi}(a)",
+        "\\widehat R_{nbi}^{c}(a)",
+        "\\widehat\\mu_{nba}",
+        "\\widehat S_{nba}^2",
+        "n",
+        "b",
+        "q_n"
+      ],
+      "inputs": [
+        "ass:consistency-no-interference",
+        "ass:predictable-adjustment",
+        "ass:growing-arm-counts"
+      ],
+      "revision": "rev:e41b0be544f93c88c2cdd1b270876f376468024cbfae90e3660812a4e641334d"
+    },
+    {
+      "id": "def:plugin-envelope",
+      "name": "\\([\\widehat L_n,\\widehat U_n]\\)",
+      "construction": "Using only the assigned-arm measures and sample variances from \\(\\text{def:observed-residual-margins}\\), define \\[\\widehat L_n=\\sum_{b=1}^{B_n}w_{nb}^2\\left\\{\\sum_{a\\in\\mathcal A}\\frac{c_a^2\\widehat S_{nba}^2}{m_{nba}}-\\frac{\\widehat J_{nb}^{+}}{n_{nb}-1}\\right\\},\\qquad \\widehat U_n=\\sum_{b=1}^{B_n}w_{nb}^2\\left\\{\\sum_{a\\in\\mathcal A}\\frac{c_a^2\\widehat S_{nba}^2}{m_{nba}}-\\frac{\\widehat J_{nb}^{-}}{n_{nb}-1}\\right\\}.\\]",
+      "free_symbols": [
+        "\\widehat L_n",
+        "\\widehat U_n",
+        "n",
+        "b",
+        "a",
+        "B_n",
+        "w_{nb}",
+        "\\mathcal A",
+        "c",
+        "\\widehat S_{nba}^2",
+        "\\widehat J_{nb}^{-}",
+        "\\widehat J_{nb}^{+}",
+        "m_{nba}",
+        "n_{nb}"
+      ],
+      "inputs": [
+        "def:qv-envelope",
+        "def:observed-residual-margins"
+      ],
+      "revision": "rev:1855ec51dc1072a7a7b851536411e06345f788fd795ee09a420cdc20f95a7542"
+    },
+    {
+      "id": "def:twoarm-sorting",
+      "name": "Two-arm sorting map",
+      "construction": "For \\(K=2\\) and \\(c=(1,-1)/\\sqrt2\\), let \\(F_{nb,a}^{-1}\\) be the quantile function of \\(\\mu_{nba}\\) and compute \\[J_{nb}^{-}=\\frac12\\int_0^1\\{F_{nb,1}^{-1}(u)-F_{nb,2}^{-1}(u)\\}^2\\,du,\\qquad J_{nb}^{+}=\\frac12\\int_0^1\\{F_{nb,1}^{-1}(u)-F_{nb,2}^{-1}(1-u)\\}^2\\,du.\\]",
+      "free_symbols": [
+        "K",
+        "c",
+        "n",
+        "b",
+        "a",
+        "\\mu_{nba}",
+        "J_{nb}^{-}",
+        "J_{nb}^{+}"
+      ],
+      "inputs": [
+        "def:transport-values"
+      ],
+      "revision": "rev:18a06e3c690ced0d5f11504851bdd680fe3a4097e3147bf42a497990281e3926"
+    },
+    {
+      "id": "def:fixed-k-lp",
+      "name": "Fixed-\\(K\\) empirical transportation program",
+      "construction": "Feed the observable measures \\(\\widehat\\mu_{nba}=m_{nba}^{-1}\\sum_{i_a\\in\\mathcal O_{nba}}\\delta_{\\widehat R_{nbi_a}^{c}(a)}\\) from \\(\\text{def:observed-residual-margins}\\) into the finite program. When every \\(m_{nba}>0\\), optimize over variables \\(\\pi_{i_1\\ldots i_K}\\ge0\\), indexed by \\((i_1,\\ldots,i_K)\\in\\prod_{a=1}^K\\mathcal O_{nba}\\), the objective \\[\\sum_{i_1\\in\\mathcal O_{nb1}}\\cdots\\sum_{i_K\\in\\mathcal O_{nbK}}\\pi_{i_1\\ldots i_K}\\left\\{\\sum_{a=1}^Kc_a\\widehat R_{nbi_a}^{c}(a)\\right\\}^2\\] subject, for every \\(a\\in\\mathcal A\\) and every \\(i_a\\in\\mathcal O_{nba}\\), to the exact marginal constraints \\[\\sum_{(i_{a'})_{a'\\ne a}\\in\\prod_{a'\\ne a}\\mathcal O_{nba'}}\\pi_{i_1\\ldots i_K}=\\frac1{m_{nba}}.\\] The minimum is \\(\\widehat J_{nb}^{-}\\) and the maximum is \\(\\widehat J_{nb}^{+}\\). If an arm sample is empty, represent its convention \\(\\widehat\\mu_{nba}=\\delta_{0_{\\mathbb R}}\\) by one artificial zero atom of mass one and solve the same marginal-coupling program; the admissible class never invokes this branch.",
+      "free_symbols": [
+        "\\widehat\\mu_{nba}",
+        "\\mathcal O_{nba}",
+        "i",
+        "\\widehat R_{nbi}^{c}(a)",
+        "n",
+        "b",
+        "a",
+        "\\mathcal A",
+        "m_{nba}",
+        "K",
+        "c",
+        "\\widehat J_{nb}^{-}",
+        "\\widehat J_{nb}^{+}"
+      ],
+      "inputs": [
+        "def:transport-values",
+        "def:observed-residual-margins"
+      ],
+      "revision": "rev:6d89527179ff846104fcdc65594e3145ba5fd7da976051a32a6dc70297a79011"
+    },
+    {
+      "id": "def:pmone-witness",
+      "name": "Worked validation: the \\(\\{-1,-1,1,1\\}\\) coupling witness",
+      "construction": "Take one block of size \\(n_{nb}=4\\), \\(K=2\\), the unnormalized contrast \\(c=(1,-1)\\), and both centered marginal lists equal to \\(\\{-1,-1,1,1\\}\\). Direct substitution into the two-arm sorting costs gives \\[J_{nb}^{-}=\\frac14\\{(-1+1)^2+(-1+1)^2+(1-1)^2+(1-1)^2\\}=0\\] under equal-rank pairing and \\[J_{nb}^{+}=\\frac14\\{(-1-1)^2+(-1-1)^2+(1+1)^2+(1+1)^2\\}=4\\] under reverse-rank pairing. Substitution into \\(\\text{def:qv-envelope}\\) therefore gives \\(U_n-L_n=w_{nb}^2(J_{nb}^{+}-J_{nb}^{-})/(n_{nb}-1)=4w_{nb}^2/3>0\\) for this single block. Under the normalized contrast \\(c=(1,-1)/\\sqrt2\\), both costs and the width are divided by two. This is a direct arithmetic validation of sorting direction and endpoint signs, not a theorem contribution.",
+      "free_symbols": [
+        "K",
+        "c",
+        "n",
+        "b",
+        "n_{nb}",
+        "w_{nb}",
+        "\\mu_{nba}",
+        "J_{nb}^{-}",
+        "J_{nb}^{+}",
+        "L_n",
+        "U_n"
+      ],
+      "inputs": [
+        "def:twoarm-sorting"
+      ],
+      "revision": "rev:db6e8ea8bedee4ae64ccd3dd1b5ea1412e1209fc979c1474599574e6e15a0af7"
+    },
+    {
+      "id": "def:wald-interval",
+      "name": "\\(\\mathrm{CI}_{n,1-\\alpha}\\)",
+      "construction": "\\[\\mathrm{CI}_{n,1-\\alpha}=\\left[\\widehat\\tau_n-z_{1-\\alpha/2}\\sqrt{\\widehat U_n},\\ \\widehat\\tau_n+z_{1-\\alpha/2}\\sqrt{\\widehat U_n}\\right].\\]",
+      "free_symbols": [
+        "\\mathrm{CI}_{n,1-\\alpha}",
+        "n",
+        "\\alpha",
+        "\\widehat\\tau_n",
+        "z_{1-\\alpha/2}",
+        "\\widehat U_n"
+      ],
+      "inputs": [
+        "def:aipw-estimator",
+        "def:plugin-envelope"
+      ],
+      "revision": "rev:acad51839fdeb29f48bc5475ad7a1d94177b99640dea275ec74e5279060f9240"
+    },
+    {
+      "id": "def:history-tree-rectangular-relaxation",
+      "name": "\\(\\mathfrak R_n(\\boldsymbol\\mu_n)\\)",
+      "construction": "For the ex ante history-tree margin system \\(\\boldsymbol\\mu_n=(\\mu_{nba}^{h})_{b\\le B_n,\\,h\\in\\mathcal H_{n,b-1},\\,a\\in\\mathcal A}\\), set \\(\\Gamma_{nb}^{h}=\\Gamma(\\mu_{nb1}^{h},\\ldots,\\mu_{nbK}^{h})\\), define \\[J_{nb}^{h,-}=\\inf_{\\gamma\\in\\Gamma_{nb}^{h}}\\int(\\sum_{a\\in\\mathcal A}c_ax_a)^2d\\gamma,\\qquad J_{nb}^{h,+}=\\sup_{\\gamma\\in\\Gamma_{nb}^{h}}\\int(\\sum_{a\\in\\mathcal A}c_ax_a)^2d\\gamma,\\] define \\[U_{nb}^{h}=w_{nb}^2\\left\\{\\sum_{a\\in\\mathcal A}\\frac{c_a^2(S_{nba}^{h})^2}{m_{nba}^{h}}-\\frac{J_{nb}^{h,-}}{n_{nb}-1}\\right\\},\\] and let \\(\\mathfrak R_n(\\boldsymbol\\mu_n)=\\prod_{b=1}^{B_n}\\prod_{h\\in\\mathcal H_{n,b-1}}\\Gamma_{nb}^{h}\\). The Cartesian product permits a separate convexified coupling at every history node.",
+      "free_symbols": [
+        "\\mathfrak R_n(\\boldsymbol\\mu_n)",
+        "\\boldsymbol\\mu_n",
+        "\\mu_{nba}^{h}",
+        "n",
+        "b",
+        "B_n",
+        "h",
+        "\\mathcal H_{n,b-1}",
+        "a",
+        "\\mathcal A",
+        "K",
+        "\\Gamma_{nb}^{h}",
+        "J_{nb}^{h,-}",
+        "J_{nb}^{h,+}",
+        "U_{nb}^{h}",
+        "w_{nb}",
+        "(S_{nba}^{h})^2",
+        "m_{nba}^{h}",
+        "n_{nb}",
+        "c"
+      ],
+      "inputs": [
+        "def:transport-values"
+      ],
+      "revision": "rev:cfec717cc037c98a6584aab584646fc3822b42fbfeff2fdf3b0d7511aebdd1bb"
+    },
+    {
+      "id": "def:completion-class",
+      "name": "\\(\\mathcal C_n(\\boldsymbol\\mu_n)\\)",
+      "construction": "\\[\\mathcal C_n(\\boldsymbol\\mu_n)=\\left\\{\\Xi_n=\\left((Y_{nbi}(a))_{b,i,a},(m_{nba}^{h})_{b,h,a},(g_{nbi}^{h}(a))_{b,h,i,a}\\right):\\begin{array}{l}(Y_{nbi}(a))_{b,i,a}\\text{ is fixed before randomization};\\\\ (m_{nba}^{h})_{a\\in\\mathcal A}\\text{ and }(g_{nbi}^{h}(a))_{i,a}\\text{ are the evaluations of the same prespecified predictable allocation and fitting rules at every }h;\\\\ \\text{for every }b\\le B_n\\text{ and }h\\in\\mathcal H_{n,b-1},\\ R_{nbi}^{h}(a)=Y_{nbi}(a)-g_{nbi}^{h}(a)\\text{ has centered margins }\\mu_{nba}^{h};\\\\ \\gamma_{nb}^{\\Xi,h}=n_{nb}^{-1}\\sum_{i\\in\\mathcal U_{nb}}\\delta_{(R_{nbi}^{h}(1)-\\bar R_{nb1}^{h},\\ldots,R_{nbi}^{h}(K)-\\bar R_{nbK}^{h})}\\in\\Gamma_{nb}^{h}\\end{array}\\right\\}.\\] Thus one member fixes common unit labels and all potential outcomes before assignment and induces the counts, fitted values, residual margins, feasible couplings, and transport endpoints at every node, including nodes off the realized path.",
+      "free_symbols": [
+        "\\mathcal C_n(\\boldsymbol\\mu_n)",
+        "\\boldsymbol\\mu_n",
+        "\\Xi_n",
+        "n",
+        "Y_{nbi}(a)",
+        "b",
+        "B_n",
+        "i",
+        "\\mathcal U_{nb}",
+        "a",
+        "\\mathcal A",
+        "K",
+        "h",
+        "\\mathcal H_{n,b-1}",
+        "m_{nba}^{h}",
+        "g_{nbi}^{h}(a)",
+        "R_{nbi}^{h}(a)",
+        "\\bar R_{nba}^{h}",
+        "\\mu_{nba}^{h}",
+        "\\Gamma_{nb}^{h}",
+        "J_{nb}^{h,-}",
+        "J_{nb}^{h,+}",
+        "\\gamma_{nb}^{\\Xi,h}"
+      ],
+      "by_member_properties": [],
+      "revision": "rev:ff9f9c4ca0301d0a3f5ccf199ab3130e5bd68bd62212ac004ed65f15971c6608"
+    },
+    {
+      "id": "def:completion-gap",
+      "name": "\\(\\Delta_n^{\\mathrm{tree}}(\\boldsymbol\\mu_n),\\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n),U_n^{\\rho}(\\varpi)\\)",
+      "construction": "For \\(\\Xi_n\\in\\mathcal C_n(\\boldsymbol\\mu_n)\\), let \\(Q_{nb}^{\\Xi,h}\\) be its nodewise conditional-variance contribution. With the predictable block weight already included in \\(U_{nb}^{h}\\) and \\(Q_{nb}^{\\Xi,h}\\), define the normalized root-to-leaf compatibility gap\n\\[\n\\Delta_n^{\\mathrm{tree}}(\\boldsymbol\\mu_n)=\\inf_{\\Xi_n\\in\\mathcal C_n(\\boldsymbol\\mu_n)}\\ \\sup_{\\varpi\\in\\mathcal P_n}\\frac1{s_n^2}\\sum_{b=1}^{B_n}\\left\\{U_{nb}^{h_b(\\varpi)}-Q_{nb}^{\\Xi,h_b(\\varpi)}\\right\\}.\n\\]\nDefine the single-node multi-index integrality diagnostic\n\\[\n\\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n)=\\sup_{b\\le B_n,\\,h\\in\\mathcal H_{n,b-1}}\\frac{w_{nb}^2}{s_n^2(n_{nb}-1)}\\left[\\inf_{\\gamma\\in\\mathcal I_{nb}^{h}}\\int\\left(\\sum_{a\\in\\mathcal A}c_ax_a\\right)^2d\\gamma-J_{nb}^{h,-}\\right].\n\\]\nFor a fixed \\(\\rho\\in(0,1)\\), define the reduced nodewise contribution \\(U_{nb}^{h,\\rho}=(1-\\rho)U_{nb}^{h}\\) and the corresponding root-to-leaf endpoint\n\\[\nU_n^{\\rho}(\\varpi)=\\sum_{b=1}^{B_n}U_{nb}^{h_b(\\varpi),\\rho}.\n\\]\nThe two gaps and \\(U_n^{\\rho}(\\varpi)\\) are retained only for the unresolved global history-tree compatibility problem; the fixed-fraction necessity result for uniform inference is certified separately by an explicit nonadaptive fixed-quota subclass.",
+      "free_symbols": [
+        "\\Delta_n^{\\mathrm{tree}}(\\boldsymbol\\mu_n)",
+        "\\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n)",
+        "\\boldsymbol\\mu_n",
+        "n",
+        "\\Xi_n",
+        "\\mathcal C_n(\\boldsymbol\\mu_n)",
+        "Q_{nb}^{\\Xi,h}",
+        "U_{nb}^{h}",
+        "\\varpi",
+        "\\mathcal P_n",
+        "s_n^2",
+        "b",
+        "B_n",
+        "h_b(\\varpi)",
+        "h",
+        "\\mathcal H_{n,b-1}",
+        "w_{nb}",
+        "n_{nb}",
+        "\\mathcal I_{nb}^{h}",
+        "\\mathcal A",
+        "a",
+        "c",
+        "J_{nb}^{h,-}",
+        "\\rho",
+        "U_{nb}^{h,\\rho}",
+        "U_n^{\\rho}(\\varpi)"
+      ],
+      "inputs": [
+        "def:history-tree-rectangular-relaxation",
+        "def:completion-class"
+      ],
+      "revision": "rev:b88fd9b8f669cd882e455fcf7c7dc4568135b20cce106b6c77a8fc2e083a3c0b"
+    },
+    {
+      "id": "def:completion-sharpness-handle",
+      "name": "Residual history-tree integer-flow handle",
+      "construction": "The fixed-fraction necessity direction for uniform inference is settled by the explicit nonadaptive fixed-quota subclass in \\(\\text{thm:fixed-fraction-upper-endpoint-necessity}\\). The remaining handle concerns only global adaptive-history compatibility: represent one ex ante sequence \\((\\Xi_n)_{n\\ge1}\\), with \\(\\Xi_n\\in\\mathcal C_n(\\boldsymbol\\mu_n)\\) and its entire induced triangular experiment-analysis array in \\(\\mathfrak D\\), as a history-tree integer multi-index flow with common unit labels. Enforce prefix consistency by backward induction and compare its root-to-leaf objective with \\(\\Delta_n^{\\mathrm{tree}}(\\boldsymbol\\mu_n)\\). Use rational replication at an isolated node to measure \\(\\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n)\\), then characterize the additional loss caused by sharing one fixed potential-outcome array and one predictable fitting rule across incompatible branches while preserving membership in \\(\\mathfrak D\\).",
+      "free_symbols": [
+        "n",
+        "\\boldsymbol\\mu_n",
+        "\\Xi_n",
+        "\\mathcal C_n(\\boldsymbol\\mu_n)",
+        "\\mathfrak D",
+        "\\Delta_n^{\\mathrm{tree}}(\\boldsymbol\\mu_n)",
+        "\\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n)"
+      ],
+      "inputs": [
+        "def:admissible-arrays",
+        "def:history-tree-rectangular-relaxation",
+        "def:completion-class",
+        "def:completion-gap",
+        "def:fixed-k-lp",
+        "thm:fixed-fraction-upper-endpoint-necessity"
+      ],
+      "revision": "rev:f67a029e7736c0a2f8e6e05cec3787dfb85c1a7a0eed54b7bb7a71911bd7e43c"
+    }
+  ],
+  "statements": [
+    {
+      "id": "thm:exact-predictable-ot-envelope",
+      "kind": "theorem",
+      "statement": "For every array in \\(\\mathfrak D\\), \\((M_{nj},\\mathcal F_{n,j})_{j\\le B_n}\\) is a martingale and \\[E(D_{nb}^2\\mid\\mathcal F_{n,b-1})=w_{nb}^2\\left\\{\\sum_{a\\in\\mathcal A}\\frac{c_a^2S_{nba}^2}{m_{nba}}-\\frac1{n_{nb}-1}\\int\\left(\\sum_{a\\in\\mathcal A}c_ax_a\\right)^2d\\gamma_{nb}^{\\mathrm{true}}\\right\\},\\] where \\(\\gamma_{nb}^{\\mathrm{true}}\\in\\Gamma_{nb}\\) is the joint centered residual coupling in block \\(b\\). At every \\(h\\in\\mathcal H_{n,b-1}\\), the conditional variance range over \\(\\Gamma_{nb}^{h}\\) has endpoints obtained from \\(J_{nb}^{h,+}\\) and \\(J_{nb}^{h,-}\\), and both endpoints are attained in that node's convexified coupling set. Evaluating these nodewise endpoints along the realized pre-block histories yields the predictable pathwise containment \\(V_n\\in[L_n,U_n]\\). The interval is exact in the rectangular convexified history-tree relaxation \\(\\mathfrak R_n(\\boldsymbol\\mu_n)\\); this theorem does not assert that one \\(\\Xi_n\\in\\mathcal C_n(\\boldsymbol\\mu_n)\\) simultaneously realizes the selected optimizers across the tree. When \\(B_n=1\\) and \\(g_{nbi}(a)=0\\), the result reduces to the static quadratic MOT variance formula of Gao, Ge, and Qian. When \\(B_n\\ge2\\) and counts respond to earlier outcomes, \\([L_n,U_n]\\) is a sum of pre-block-measurable random endpoints rather than one static MOT functional, and the claim does not condition on \\(\\mathcal F_{n,B_n}\\).",
+      "free_symbols": [
+        "\\mathfrak D",
+        "n",
+        "b",
+        "i",
+        "j",
+        "a",
+        "M_{nj}",
+        "\\mathcal F_{n,b-1}",
+        "B_n",
+        "D_{nb}",
+        "w_{nb}",
+        "\\mathcal A",
+        "c",
+        "S_{nba}^2",
+        "m_{nba}",
+        "n_{nb}",
+        "\\Gamma_{nb}",
+        "\\gamma_{nb}^{\\mathrm{true}}",
+        "h",
+        "\\mathcal H_{n,b-1}",
+        "\\Gamma_{nb}^{h}",
+        "J_{nb}^{h,-}",
+        "J_{nb}^{h,+}",
+        "\\mathfrak R_n(\\boldsymbol\\mu_n)",
+        "\\boldsymbol\\mu_n",
+        "\\Xi_n",
+        "\\mathcal C_n(\\boldsymbol\\mu_n)",
+        "V_n",
+        "L_n",
+        "U_n",
+        "g_{nbi}(a)"
+      ],
+      "depends_on": [
+        "ass:fixed-potential-outcomes",
+        "ass:predictable-counts",
+        "ass:complete-block-randomization",
+        "ass:predictable-adjustment",
+        "ass:contrast-zero-sum",
+        "def:admissible-arrays",
+        "def:block-martingale",
+        "def:transport-values",
+        "def:qv-envelope",
+        "def:history-tree-rectangular-relaxation",
+        "def:completion-class"
+      ],
+      "status": "to-prove",
+      "justification": "This identifies the previously unknown random normalization before attempting estimation or inference.",
+      "gap": "LiZhao2026AdaptiveDesignBased, Section 5, Definition 2, and Theorem 6 give the block-adaptive martingale covariance for arbitrary history-measurable joint block assignment laws with positive marginals, whereas Theorem 5 precedes that extension; they do not impose this paper's predictable fixed-count complete-block restriction or give its exact marginal-coupling range. GaoGeQian2025MOT gives the static coupling range but no adaptive filtration.",
+      "consumer": "A future predictably batched version of the four-arm NewbyEtAl2025MentalHealth minitrials can report the narrowest residual-marginal-based design variance envelope for each prespecified contrast.",
+      "revision": "rev:2a57bbafa94f5e969bc03d8385f227b1690340687d87e5c569d83e6a7a0d4305"
+    },
+    {
+      "id": "prop:sorting-and-fixed-k-lp",
+      "kind": "proposition",
+      "statement": "The constructions in \\(\\text{def:twoarm-sorting}\\) equal \\(J_{nb}^{-}\\) and \\(J_{nb}^{+}\\) for \\(K=2\\). For each fixed \\(K\\), feeding the observable assigned-arm measures \\(\\widehat\\mu_{nba}=m_{nba}^{-1}\\sum_{i\\in\\mathcal O_{nba}}\\delta_{\\widehat R_{nbi}^{c}(a)}\\) into the finite primal programs in \\(\\text{def:fixed-k-lp}\\) attains \\(\\widehat J_{nb}^{-}\\) and \\(\\widehat J_{nb}^{+}\\), and their Kantorovich duals have the same values. These are exact convexified empirical endpoints. At any single history node, every rational optimal plan is realized by a deterministic fixed-potential-outcome block completion after finite replication of that node's armwise lists, so its LP endpoints are asymptotically nodewise completion-attainable as block sizes grow. No same-size integrality assertion for \\(K>2\\), and no cross-history assertion that one \\(\\Xi_n\\) realizes independently chosen nodewise plans, is made.",
+      "free_symbols": [
+        "J_{nb}^{-}",
+        "J_{nb}^{+}",
+        "n",
+        "b",
+        "K",
+        "a",
+        "m_{nba}",
+        "i",
+        "\\mathcal O_{nba}",
+        "\\widehat R_{nbi}^{c}(a)",
+        "\\widehat\\mu_{nba}",
+        "h",
+        "\\mathcal H_{n,b-1}",
+        "\\Xi_n",
+        "\\widehat J_{nb}^{-}",
+        "\\widehat J_{nb}^{+}",
+        "n_{nb}"
+      ],
+      "depends_on": [
+        "def:transport-values",
+        "def:observed-residual-margins",
+        "def:twoarm-sorting",
+        "def:fixed-k-lp"
+      ],
+      "status": "to-prove",
+      "justification": "The result turns the abstract envelope into sorting for two arms and a finite auditable computation for multiple arms.",
+      "gap": "AronowGreenLee2014SharpVariance gives two-arm rearrangement, while GaoGeQian2025MOT gives static MOT computation; neither states the finite-population replication boundary needed for adaptive design-based sharpness.",
+      "consumer": "A four-arm complete-block redesign of the NewbyEtAl2025MentalHealth minitrials can compute each endpoint using a fixed-\\(K\\) transportation program.",
+      "revision": "rev:12774b25ab7a6cf8fd35233cca1625807c4ba72af6cce1a9d5541c69de98970f"
+    },
+    {
+      "id": "thm:history-uniform-plugin",
+      "kind": "theorem",
+      "statement": "For every arm and block, form the observable assigned-arm measure \\(\\widehat\\mu_{nba}=m_{nba}^{-1}\\sum_{i\\in\\mathcal O_{nba}}\\delta_{Y_{nbi}^{\\mathrm{obs}}-g_{nbi}(a)-\\widehat{\\bar R}_{nba}}\\), centered by the observed assigned-arm residual mean \\(\\widehat{\\bar R}_{nba}\\), and feed exactly these measures into \\(\\widehat J_{nb}^{-}\\) and \\(\\widehat J_{nb}^{+}\\) and the plug-in envelope. There is a constant \\(C_{\\mathrm{ep}}<\\infty\\), depending only on \\(K,\\varepsilon_0,\\delta_0,C_R\\), such that for every \\(n\\), \\[\\sup_{\\mathbb D\\in\\mathfrak D}E_{\\mathbb D}\\left[1\\wedge\\frac{|\\widehat L_n-L_n|+|\\widehat U_n-U_n|}{s_n^2}\\right]\\le C_{\\mathrm{ep}}r_n.\\] Consequently, for every \\(\\eta>0\\), \\[\\sup_{\\mathbb D\\in\\mathfrak D}\\Pr_{\\mathbb D}\\left(\\frac{|\\widehat L_n-L_n|+|\\widehat U_n-U_n|}{s_n^2}>\\eta\\right)\\le\\frac{C_{\\mathrm{ep}}r_n}{1\\wedge\\eta}\\longrightarrow0.\\] The same bound, without the factor two implicit in the displayed sum, holds for the normalized Hausdorff distance between \\([\\widehat L_n,\\widehat U_n]\\) and \\([L_n,U_n]\\). Probability and expectation are over the original sequential randomization. The inequalities hold uniformly over pre-block histories generated by arrays in the common-parameter class, use observable assigned-arm centering throughout, and do not condition on \\(\\mathcal F_{n,B_n}\\) or freeze the realized final counts.",
+      "free_symbols": [
+        "\\mathfrak D",
+        "n",
+        "b",
+        "\\widehat L_n",
+        "L_n",
+        "\\widehat U_n",
+        "U_n",
+        "\\widehat\\mu_{nba}",
+        "m_{nba}",
+        "i",
+        "\\mathcal O_{nba}",
+        "Y_{nbi}^{\\mathrm{obs}}",
+        "g_{nbi}(a)",
+        "a",
+        "\\widehat{\\bar R}_{nba}",
+        "\\widehat J_{nb}^{-}",
+        "\\widehat J_{nb}^{+}",
+        "s_n^2",
+        "K",
+        "\\varepsilon_0",
+        "\\delta_0",
+        "C_R",
+        "C_{\\mathrm{ep}}",
+        "r_n",
+        "\\mathcal F_{n,b-1}",
+        "B_n"
+      ],
+      "depends_on": [
+        "ass:consistency-no-interference",
+        "ass:complete-block-randomization",
+        "ass:predictable-adjustment",
+        "ass:overlap",
+        "ass:contrast-normalization",
+        "ass:growing-arm-counts",
+        "ass:residual-moments",
+        "def:admissible-arrays",
+        "def:observed-residual-margins",
+        "def:transport-values",
+        "def:qv-envelope",
+        "def:plugin-envelope",
+        "prop:sorting-and-fixed-k-lp"
+      ],
+      "status": "to-prove",
+      "justification": "The explicit \\(q_n^{-\\kappa}\\) rate is the missing bridge from oracle partial identification to uniform adaptive inference.",
+      "gap": "The static i.i.d. empirical-margin rate of Gao, Ge, and Qian does not directly transfer to predictable triangular arrays, while the other comparators do not cover outcome-adaptive future quotas.",
+      "consumer": "A batched multi-arm trial may estimate the endpoint whenever its minimum predictable arm count diverges; no logarithmic block-count condition or leverage condition is needed for endpoint estimation itself.",
+      "revision": "rev:6429f9d04674a572af52f6927f387049fc089a1d91d65f099a18e2bc376c66ad"
+    },
+    {
+      "id": "thm:conservative-wald",
+      "kind": "theorem",
+      "statement": "For every \\(\\alpha\\in(0,1)\\), assume in addition that \\(\\mathrm{ass:qv\\text{-}stabilization}\\) holds uniformly for the displayed common-parameter class \\(\\mathfrak D\\). Then \\[\\liminf_{n\\to\\infty}\\inf_{\\mathbb D\\in\\mathfrak D}\\Pr_{\\mathbb D}\\{\\tau_n\\in\\mathrm{CI}_{n,1-\\alpha}\\}\\ge1-\\alpha.\\] More precisely, the common leverage envelope \\(\\ell_n\\to0\\), the common residual-moment envelope \\((\\delta_0,C_R)\\), the finite-population nondegeneracy condition \\(V_n\\ge v_0s_n^2\\), and uniform predictable-QV stabilization imply \\((\\widehat\\tau_n-\\tau_n)/\\sqrt{V_n}\\Rightarrow\\mathcal N(0,1)\\) uniformly over \\(\\mathfrak D\\). The exact-envelope theorem gives \\(V_n\\le U_n\\) pathwise, and the explicit bound \\(C_{\\mathrm{ep}}r_n=o(1)\\) permits \\(U_n\\) to be replaced by \\(\\widehat U_n\\). No conditioning on the terminal adaptive path is required.",
+      "free_symbols": [
+        "\\alpha",
+        "n",
+        "\\mathfrak D",
+        "\\tau_n",
+        "\\mathrm{CI}_{n,1-\\alpha}",
+        "\\widehat\\tau_n",
+        "V_n",
+        "U_n",
+        "s_n^2",
+        "\\widehat U_n",
+        "\\ell_n",
+        "\\delta_0",
+        "C_R",
+        "v_0",
+        "C_{\\mathrm{ep}}",
+        "r_n"
+      ],
+      "depends_on": [
+        "ass:fixed-potential-outcomes",
+        "ass:overlap",
+        "ass:contrast-normalization",
+        "ass:block-leverage",
+        "ass:residual-moments",
+        "ass:qv-growth",
+        "ass:qv-stabilization",
+        "def:admissible-arrays",
+        "def:wald-interval",
+        "thm:exact-predictable-ot-envelope",
+        "thm:history-uniform-plugin",
+        "lem:martingale-clt-predictable-variation"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem converts the nodewise rectangular upper variance endpoint into unconditional conservative design-based coverage once the adaptive predictable quadratic variation stabilizes relative to its own design expectation.",
+      "gap": "Saco2026SelfNormalizedAdaptiveExperiments, Assumption 5.11, imposes a high-probability linear lower bound on predictable quadratic variation under iid arrivals, while Theorem 5.14 studentizes by realized quadratic variation. LiZhao2026AdaptiveDesignBased, Section 5, Definition 2, and Theorem 6 use a generally conservative covariance estimator after the earlier Theorem 5. Neither supplies the present transport upper endpoint and its history-uniform plug-in bound; the static sharp-bound papers have no adaptive filtration.",
+      "consumer": "A predictably batched successor to NewbyEtAl2025MentalHealth can obtain valid four-arm contrast intervals if its quota rule satisfies the stated overlap and growth conditions and its predictable quadratic variation stabilizes relative to its own design expectation; no common limit of expected quadratic variation divided by \\(s_n^2\\) is required.",
+      "revision": "rev:5b4a6c1bc3c6d466f7a3c41e4eaf881bb3cb62d3b6b6c964afaac791fc35fe59"
+    },
+    {
+      "id": "thm:completion-gap-decomposition-and-inference-obstruction",
+      "kind": "theorem",
+      "statement": "For each \\(n\\), define, within this statement,\n\\[\n \\begin{aligned}\n A_n&=\\sup_{\\varpi\\in\\mathcal P_n}\\sum_{b=1}^{B_n}\n \\frac{w_{nb}^2}{s_n^2(n_{nb}-1)}\\left[\n \\inf_{\\gamma\\in\\mathcal I_{nb}^{h_b(\\varpi)}}\\int\\left(\\sum_ac_ax_a\\right)^2d\\gamma-J_{nb}^{h_b(\\varpi),-}\\right],\\\\\n C_n&=\\inf_{\\Xi_n\\in\\mathcal C_n(\\boldsymbol\\mu_n)}\\sup_{\\varpi\\in\\mathcal P_n}\n \\sum_{b=1}^{B_n}\\frac{w_{nb}^2}{s_n^2(n_{nb}-1)}\\left[\n \\int\\left(\\sum_ac_ax_a\\right)^2d\\gamma_{nb}^{\\Xi,h_b(\\varpi)}\n -\\inf_{\\gamma\\in\\mathcal I_{nb}^{h_b(\\varpi)}}\\int\\left(\\sum_ac_ax_a\\right)^2d\\gamma\\right].\n \\end{aligned}\n\\]\nWhenever \\(\\mathcal C_n(\\boldsymbol\\mu_n)\\ne\\varnothing\\),\n\\[\n \\max\\{A_n,C_n\\}\\le\\Delta_n^{\\mathrm{tree}}(\\boldsymbol\\mu_n)\\le A_n+C_n,\n \\qquad\n \\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n)\\le A_n\\le B_n\\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n).\n\\]\nConsequently, \\(\\Delta_n^{\\mathrm{tree}}(\\boldsymbol\\mu_n)\\to0\\) if and only if \\(A_n\\to0\\) and \\(C_n\\to0\\).  The quantity \\(A_n\\) is the computable root-to-leaf accumulation of the single-node multi-index integrality losses, while \\(C_n\\) is the infimum of the worst-path residual cross-history loss from requiring one fixed potential-outcome array, common unit labels, and one predictable fitting rule.  The decomposition reduces global simultaneous history-tree attainment to controlling \\(C_n\\), but makes no general claim that \\(C_n\\to0\\).\n\nAs a counterexample to inferring nondegenerate admissible attainment from zero gap, suppose for every \\(n\\) that \\(\\mathcal C_n(\\boldsymbol\\mu_n)\\ne\\varnothing\\) and every nodewise centered margin is \\(\\delta_{0_{\\mathbb R}}\\).  Then \\(A_n=C_n=\\Delta_n^{\\mathrm{tree}}(\\boldsymbol\\mu_n)=\\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n)=0\\), but every completion has \\(V_n=0\\) and hence violates \\(\\mathrm{ass:qv\\text{-}growth}\\).  Thus this global history-tree compatibility obstruction is logically separate from any minimax fixed-fraction upper-endpoint converse on a nonadaptive fixed-quota subclass.",
+      "free_symbols": [
+        "n",
+        "b",
+        "B_n",
+        "a",
+        "c",
+        "w_{nb}",
+        "s_n^2",
+        "n_{nb}",
+        "\\boldsymbol\\mu_n",
+        "\\mathcal C_n(\\boldsymbol\\mu_n)",
+        "\\Xi_n",
+        "\\mathcal P_n",
+        "\\varpi",
+        "h_b(\\varpi)",
+        "\\mathcal I_{nb}^{h}",
+        "\\gamma_{nb}^{\\Xi,h}",
+        "J_{nb}^{h,-}",
+        "\\Delta_n^{\\mathrm{tree}}(\\boldsymbol\\mu_n)",
+        "\\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n)",
+        "\\mathcal A",
+        "V_n"
+      ],
+      "depends_on": [
+        "ass:qv-growth",
+        "def:block-martingale",
+        "def:history-tree-rectangular-relaxation",
+        "def:completion-class",
+        "def:completion-gap"
+      ],
+      "status": "proved",
+      "proof_tex": "Fix \\(n\\) and suppose \\(\\mathcal C_n(\\boldsymbol\\mu_n)\\ne\\varnothing\\).  By the definitions of \\(w_{nb}\\) and \\(s_n^2\\), each \\(w_{nb}>0\\) and\n\\[\ns_n^2=\\sum_{b=1}^{B_n}\\frac{w_{nb}^2}{n_{nb}}>0.\n\\]\nThe predictable counts satisfy \\(1\\le m_{nba}^{h}\\le n_{nb}-1\\), so \\(n_{nb}-1>0\\).  Therefore the coefficient\n\\[\nd_{nb}:=\\frac{w_{nb}^2}{s_n^2(n_{nb}-1)}\n\\]\nis well defined and strictly positive.  For a coupling \\(\\gamma\\) define the nonnegative quadratic cost\n\\[\n\\Phi(\\gamma):=\\int\\left(\\sum_{a\\in\\mathcal A}c_ax_a\\right)^2d\\gamma.\n\\]\nAt a node \\((b,h)\\), set\n\\[\n r_{nb}^{h}:=d_{nb}\\left\\{\\inf_{\\gamma\\in\\mathcal I_{nb}^{h}}\\Phi(\\gamma)-J_{nb}^{h,-}\\right\\}\n\\]\nand, for \\(\\Xi_n\\in\\mathcal C_n(\\boldsymbol\\mu_n)\\), set\n\\[\n t_{nb}^{\\Xi,h}:=d_{nb}\\left\\{\\Phi(\\gamma_{nb}^{\\Xi,h})-\\inf_{\\gamma\\in\\mathcal I_{nb}^{h}}\\Phi(\\gamma)\\right\\}.\n\\]\n\nWe first establish the signs.  Each \\(\\mu_{nba}^{h}\\) is an empirical law of \\(n_{nb}\\) centered residuals indexed by \\(i\\in\\mathcal U_{nb}\\).  Pairing the atoms with the same index in every arm produces at least one deterministic label-matching coupling, so \\(\\mathcal I_{nb}^{h}\\ne\\varnothing\\).  By the declared meaning of \\(\\mathcal I_{nb}^{h}\\), every member of this finite matching set is a coupling of the prescribed margins, and hence\n\\(\\mathcal I_{nb}^{h}\\subseteq\\Gamma_{nb}^{h}\\).  Definition \\(\\text{def:history-tree-rectangular-relaxation}\\) gives\n\\[\nJ_{nb}^{h,-}=\\inf_{\\gamma\\in\\Gamma_{nb}^{h}}\\Phi(\\gamma)\n\\le \\inf_{\\gamma\\in\\mathcal I_{nb}^{h}}\\Phi(\\gamma),\n\\]\nso \\(r_{nb}^{h}\\ge0\\).  Definition \\(\\text{def:completion-class}\\) says that \\(\\gamma_{nb}^{\\Xi,h}\\) is induced by the common unit labels of \\(\\Xi_n\\).  It is therefore one of the deterministic label-matching couplings in \\(\\mathcal I_{nb}^{h}\\), whence\n\\[\n\\inf_{\\gamma\\in\\mathcal I_{nb}^{h}}\\Phi(\\gamma)\n\\le \\Phi(\\gamma_{nb}^{\\Xi,h})\n\\]\nand \\(t_{nb}^{\\Xi,h}\\ge0\\).\n\nThe declared formulas for \\(U_{nb}^{h}\\) and \\(Q_{nb}^{\\Xi,h}\\) have the same diagonal term.  Subtracting them, and then dividing by the positive number \\(s_n^2\\), gives the exact nodewise identity\n\\[\n\\begin{aligned}\n\\frac{U_{nb}^{h}-Q_{nb}^{\\Xi,h}}{s_n^2}\n&=d_{nb}\\left\\{\\Phi(\\gamma_{nb}^{\\Xi,h})-J_{nb}^{h,-}\\right\\}\\\\\n&=r_{nb}^{h}+t_{nb}^{\\Xi,h}.\n\\end{aligned}\n\\]\nFor \\(\\varpi\\in\\mathcal P_n\\), define\n\\[\nR_n(\\varpi):=\\sum_{b=1}^{B_n}r_{nb}^{h_b(\\varpi)},\n\\qquad\nT_n^{\\Xi}(\\varpi):=\\sum_{b=1}^{B_n}t_{nb}^{\\Xi,h_b(\\varpi)}.\n\\]\nThe preceding identity and Definition \\(\\text{def:completion-gap}\\) now yield, without conditioning on a realized terminal path,\n\\[\n\\Delta_n^{\\mathrm{tree}}(\\boldsymbol\\mu_n)\n=\\inf_{\\Xi_n\\in\\mathcal C_n(\\boldsymbol\\mu_n)}\n \\sup_{\\varpi\\in\\mathcal P_n}\n \\{R_n(\\varpi)+T_n^{\\Xi}(\\varpi)\\}.\n\\]\nBy their displayed definitions in the statement,\n\\[\nA_n=\\sup_{\\varpi\\in\\mathcal P_n}R_n(\\varpi),\n\\qquad\nC_n=\\inf_{\\Xi_n\\in\\mathcal C_n(\\boldsymbol\\mu_n)}\n     \\sup_{\\varpi\\in\\mathcal P_n}T_n^{\\Xi}(\\varpi).\n\\]\n\nBecause \\(R_n\\ge0\\) and \\(T_n^{\\Xi}\\ge0\\), for every completion \\(\\Xi_n\\),\n\\[\n\\sup_{\\varpi}\\{R_n(\\varpi)+T_n^{\\Xi}(\\varpi)\\}\n\\ge \\sup_{\\varpi}R_n(\\varpi)=A_n\n\\]\nand\n\\[\n\\sup_{\\varpi}\\{R_n(\\varpi)+T_n^{\\Xi}(\\varpi)\\}\n\\ge \\sup_{\\varpi}T_n^{\\Xi}(\\varpi).\n\\]\nTaking the infimum over the nonempty completion class in the first and second inequalities gives, respectively,\n\\[\n\\Delta_n^{\\mathrm{tree}}(\\boldsymbol\\mu_n)\\ge A_n,\n\\qquad\n\\Delta_n^{\\mathrm{tree}}(\\boldsymbol\\mu_n)\\ge C_n.\n\\]\nFor the reverse bound, the elementary supremum inequality gives, for each \\(\\Xi_n\\),\n\\[\n\\sup_{\\varpi}\\{R_n(\\varpi)+T_n^{\\Xi}(\\varpi)\\}\n\\le \\sup_{\\varpi}R_n(\\varpi)+\\sup_{\\varpi}T_n^{\\Xi}(\\varpi)\n=A_n+\\sup_{\\varpi}T_n^{\\Xi}(\\varpi).\n\\]\nTaking the infimum over \\(\\Xi_n\\) yields\n\\[\n\\max\\{A_n,C_n\\}\\le\n\\Delta_n^{\\mathrm{tree}}(\\boldsymbol\\mu_n)\n\\le A_n+C_n.\n\\]\n\nBy Definition \\(\\text{def:completion-gap}\\),\n\\[\n\\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n)\n=\\sup_{b\\le B_n,\\,h\\in\\mathcal H_{n,b-1}}r_{nb}^{h}.\n\\]\nEvery node in the universal history tree lies on at least one root-to-leaf path.  Since every \\(r_{nb}^{h}\\ge0\\), if a path \\(\\varpi\\) passes through \\(h\\) before block \\(b\\), then\n\\[\nr_{nb}^{h}\\le R_n(\\varpi)\\le A_n.\n\\]\nTaking the supremum over nodes proves\n\\(\\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n)\\le A_n\\).  Conversely, every root-to-leaf path has exactly \\(B_n\\) summands and each is at most \\(\\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n)\\), so\n\\[\nR_n(\\varpi)\\le B_n\\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n).\n\\]\nTaking the supremum over \\(\\varpi\\) proves\n\\[\n\\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n)\n\\le A_n\\le B_n\\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n).\n\\]\n\nAll three quantities in the first sandwich are nonnegative.  Hence \\(A_n\\to0\\) and \\(C_n\\to0\\) imply \\(\\Delta_n^{\\mathrm{tree}}(\\boldsymbol\\mu_n)\\to0\\) by the upper bound, while \\(\\Delta_n^{\\mathrm{tree}}(\\boldsymbol\\mu_n)\\to0\\) implies both \\(A_n\\to0\\) and \\(C_n\\to0\\) by the two lower bounds.\n\nWe make the computability claim explicit.  At a fixed node enumerate the atoms of arm \\(a\\), with multiplicity, as \\(x_{a1},\\ldots,x_{a n_{nb}}\\).  The value \\(J_{nb}^{h,-}\\) is the optimum of the finite linear program with variables \\(q_{r_1,\\ldots,r_K}\\):\n\\[\n\\begin{aligned}\n\\operatorname{minimize}_{q}\\quad\n &\\sum_{r_1=1}^{n_{nb}}\\cdots\\sum_{r_K=1}^{n_{nb}}\n q_{r_1,\\ldots,r_K}\n \\left(\\sum_{a=1}^{K}c_ax_{a r_a}\\right)^2,\\\\\n\\operatorname{subject\\ to}\\quad\n &q_{r_1,\\ldots,r_K}\\ge0,\\\\\n &\\sum_{(r_j)_{j\\ne a}}q_{r_1,\\ldots,r_K}=\\frac1{n_{nb}}\n \\quad\\text{for every }a\\in\\mathcal A\\text{ and }r_a\\in\\{1,\\ldots,n_{nb}\\}.\n\\end{aligned}\n\\]\nIndeed, every feasible array induces a coupling of the empirical margins, and every such coupling can be lifted to a feasible array by splitting the mass attached to repeated atom values uniformly among their labels.  Thus the program has exactly the feasible costs in \\(\\Gamma_{nb}^{h}\\).  In addition, \\(\\mathcal P_n\\) and every nonempty \\(\\mathcal I_{nb}^{h}\\) are finite by their declared types.  Hence the matching infimum is a finite minimum, each \\(r_{nb}^{h}\\) is computable from a finite linear program and a finite enumeration, and \\(A_n\\) is a finite maximum of finite sums.  The exact pathwise equality \\(R_n+T_n^{\\Xi}\\) identifies \\(C_n\\) as the residual term after imposing one globally compatible completion.\n\nIt remains to verify the counterexample and its boundary.  Suppose for every \\(n\\) that the completion class is nonempty and \\(\\mu_{nba}^{h}=\\delta_{0_{\\mathbb R}}\\) at every \\((b,h,a)\\).  The only coupling of these point masses is \\(\\delta_{(0,\\ldots,0)}\\); it belongs both to \\(\\Gamma_{nb}^{h}\\) and to \\(\\mathcal I_{nb}^{h}\\), and its cost is zero.  Consequently\n\\[\nJ_{nb}^{h,-}=0,\n\\qquad\nr_{nb}^{h}=0,\n\\qquad\nt_{nb}^{\\Xi,h}=0\n\\]\nfor every node and every completion.  The definitions then give\n\\[\nA_n=C_n=\\Delta_n^{\\mathrm{tree}}(\\boldsymbol\\mu_n)\n=\\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n)=0.\n\\]\nThe point-mass margin also implies, unit by unit,\n\\[\nR_{nbi}^{h}(a)-\\bar R_{nba}^{h}=0.\n\\]\nAt the realized pre-block history this says that every armwise residual is constant across the block.  Since every \\(m_{nba}>0\\), the sampled residual mean equals the full residual mean for every assignment.  Definition \\(\\text{def:block-martingale}\\) therefore gives \\(D_{nb}=0\\) in every block, and hence\n\\[\nV_n=\\sum_{b=1}^{B_n}E(D_{nb}^2\\mid\\mathcal F_{n,b-1})=0.\n\\]\nOn the other hand, \\(v_0>0\\) by its declared type and \\(s_n^2>0\\), so \\(0<v_0s_n^2\\).  Thus \\(V_n=0\\) violates \\(\\text{ass:qv-growth}\\).  This proves that a zero global completion gap does not by itself provide a nondegenerate admissible near-attaining sequence, while making no assertion against a separate fixed-quota subclass converse.",
+      "revision": "rev:6d611c4eca624102da754eea75845f35eccaf57b56a310b629359827b2cf7ace"
+    },
+    {
+      "id": "lem:twoarm-rearrangement-extrema",
+      "kind": "lemma",
+      "statement": "For two equally weighted finite empirical margins on \\(\\mathbb R\\) and the contrast \\(c=(1,-1)/\\sqrt2\\), the minimum of \\(\\frac12E(X_1-X_2)^2\\) over all couplings is attained by equal-rank pairing and the maximum is attained by reverse-rank pairing; equivalently, the two quantile formulas in \\(\\mathrm{def:twoarm\\text{-}sorting}\\) equal \\(J_{nb}^{-}\\) and \\(J_{nb}^{+}\\).",
+      "free_symbols": [
+        "K",
+        "c",
+        "n",
+        "b",
+        "\\mu_{nba}",
+        "J_{nb}^{-}",
+        "J_{nb}^{+}"
+      ],
+      "depends_on": [
+        "def:transport-values",
+        "def:twoarm-sorting"
+      ],
+      "status": "cited",
+      "source": {
+        "cite": "AronowGreenLee2014SharpVariance",
+        "locator": "Lemma 1 and Proposition 1",
+        "carrier": "logical-claim",
+        "url": "https://doi.org/10.1214/13-AOS1200",
+        "attestation": {
+          "by": "d0-agent",
+          "note": "Specialized to centered empirical residual margins; a stable DOI is supplied because the immutable core contains no lawful verbatim transcription."
+        }
+      },
+      "proof_tex": "",
+      "revision": "rev:690092edb23d3f266b560e07eed9ec3c9e514ed2fb023770c875be4af32b3318"
+    },
+    {
+      "id": "lem:martingale-clt-predictable-variation",
+      "kind": "lemma",
+      "statement": "Let \\((D_{nb})_{b\\le B_n}\\) be a triangular array of square-integrable martingale differences with respect to the pre-increment histories \\(\\mathcal F_{n,b-1}\\), let \\(V_n=\\sum_{b=1}^{B_n}E(D_{nb}^2\\mid\\mathcal F_{n,b-1})\\), and put \\(\\sigma_n^2=E(V_n)>0\\).  If \\(V_n/\\sigma_n^2\\to1\\) in probability and, for every \\(\\epsilon>0\\),\n\\[\n\\frac1{\\sigma_n^2}\\sum_{b=1}^{B_n}E\\left[D_{nb}^2\\mathbf 1\\{|D_{nb}|>\\epsilon\\sigma_n\\}\\mid\\mathcal F_{n,b-1}\\right]\\to0\n\\quad\\text{in probability},\n\\]\nthen \\(\\sigma_n^{-1}\\sum_{b=1}^{B_n}D_{nb}\\Rightarrow\\mathcal N(0,1)\\).",
+      "free_symbols": [
+        "D_{nb}",
+        "n",
+        "b",
+        "B_n",
+        "V_n",
+        "\\mathcal F_{n,b-1}"
+      ],
+      "depends_on": [
+        "def:block-martingale"
+      ],
+      "status": "cited",
+      "source": {
+        "cite": "LiZhao2026AdaptiveDesignBased",
+        "locator": "Supplementary Material, Lemma S4, which reviews Brown (1971), Theorem 2; see also Hall and Heyde (2014), Corollary 3.1",
+        "carrier": "logical-claim",
+        "arxiv": "2602.21998",
+        "upstream": {
+          "citation": "B. M. Brown. Martingale central limit theorems. Annals of Mathematical Statistics 42 (1971), 59--66.",
+          "locator": "Theorem 2"
+        },
+        "attestation": {
+          "by": "d0-agent",
+          "note": "Inspected arXiv:2602.21998, Supplementary Material, Lemma S4; the displayed lemma states the predictable-variance convergence and conditional Lindeberg version used here and attributes it to Brown (1971), Theorem 2."
+        }
+      },
+      "justification": "This classical martingale central limit theorem converts primitive predictable-variation stabilization and a derived conditional Lindeberg condition into Gaussian convergence.",
+      "gap": "This is classical substrate, not a contribution of the note.",
+      "consumer": "It is invoked by the conservative adaptive Wald theorem.",
+      "proof_tex": "",
+      "revision": "rev:503175d8228c761edbdcb6c00c9b160cb0056ca434577a406f70ee8741847789"
+    },
+    {
+      "id": "thm:fixed-fraction-upper-endpoint-necessity",
+      "kind": "theorem",
+      "statement": "There exists a nonadaptive fixed-quota subclass of an admissible common-parameter class \\(\\mathfrak D\\) with \\(B_n\\to\\infty\\), \\(q_n\\to\\infty\\), equal block weights \\(w_{nb}=B_n^{-1}\\), block sizes \\(n_{nb}=Kq_n\\), equal quotas \\(m_{nba}=q_n\\), zero adjustments \\(g_{nbi}(a)=0\\), and identical bounded potential-outcome lists across arms, such that \\(J_{nb}^{-}=0\\) in every block and \\(V_n=U_n\\) deterministically. This subclass satisfies the full overlap, residual-moment, count-growth, block-leverage, predictable-QV growth, predictable-QV stabilization, endpoint-consistency, and martingale-CLT conditions. Consequently, for every \\(\\alpha\\in(0,1)\\) and every fixed \\(\\rho\\in(0,1)\\),\n\\[\n \\Pr\\!\\left\\{|\\widehat\\tau_n-\\tau_n|\\le z_{1-\\alpha/2}\n \\sqrt{(1-\\rho)\\widehat U_n}\\right\\}\n \\longrightarrow\n 2\\Phi\\!\\left(z_{1-\\alpha/2}\\sqrt{1-\\rho}\\right)-1\n <1-\\alpha.\n\\]\nTherefore, for any broader design family containing this subclass, the limsup of its worst-case coverage after replacing \\(\\widehat U_n\\) by \\((1-\\rho)\\widehat U_n\\) is at most the displayed strict sub-nominal limit. This is a fixed-quota subclass converse for uniform inference, not a claim that independently selected nodewise transport optimizers are jointly realizable by one completion over an adaptive history tree.",
+      "free_symbols": [
+        "n",
+        "K",
+        "\\mathfrak D",
+        "B_n",
+        "q_n",
+        "w_{nb}",
+        "b",
+        "n_{nb}",
+        "m_{nba}",
+        "a",
+        "g_{nbi}(a)",
+        "i",
+        "J_{nb}^{-}",
+        "V_n",
+        "U_n",
+        "\\widehat U_n",
+        "\\widehat\\tau_n",
+        "\\tau_n",
+        "\\alpha",
+        "\\rho",
+        "z_{1-\\alpha/2}",
+        "\\Phi"
+      ],
+      "depends_on": [
+        "ass:consistency-no-interference",
+        "ass:complete-block-randomization",
+        "ass:contrast-zero-sum",
+        "ass:contrast-normalization",
+        "ass:qv-stabilization",
+        "def:admissible-arrays",
+        "def:aipw-estimator",
+        "def:block-martingale",
+        "def:qv-envelope",
+        "def:plugin-envelope",
+        "thm:exact-predictable-ot-envelope",
+        "thm:history-uniform-plugin",
+        "lem:martingale-clt-predictable-variation"
+      ],
+      "status": "to-prove",
+      "justification": "An explicit admissible fixed-quota sequence makes the transport upper endpoint equal the true predictable quadratic variation and supplies a matching fixed-fraction undercoverage certificate.",
+      "gap": "Nodewise completion attainability is not needed for this inference converse; the remaining unsolved issue is simultaneous compatibility across an adaptive history tree.",
+      "consumer": "The result certifies that a batched quota-controlled trial cannot uniformly shorten the transport-based standard error by any fixed fraction, even on the simplest nonadaptive subfamily.",
+      "revision": "rev:09bb99a26330be1398c8a448854e37b0f8fecba14ef4250a8ed64b0f4d46b640"
+    }
+  ],
+  "sampling_model": {
+    "design": "The paper restricts attention to sequential complete randomization within blocks: integer arm quotas are chosen from the pre-block history and assignments are then uniform over allocations realizing those quotas. This is implementable by batched platforms that update quotas between batches and enforce minimum cells or capacity caps; it is a restriction of, rather than a condition supplied by, the broader Li--Zhao block-adaptive framework.",
+    "units": "A triangular array of fixed finite populations partitioned into growing, disjoint blocks.",
+    "treatment": "A fixed number \\(K\\) of arms and a prespecified normalized contrast \\(c\\).",
+    "overlap": "Every predictable arm fraction obeys the same constant \\(\\varepsilon_0\\) over arrays and histories.",
+    "nuisance_estimation": "Armwise outcome adjustments are fit from past blocks only and held fixed within the current block. Each plug-in transport margin uses only assigned-arm observations and is centered by that arm's observed residual sample mean; the common nuisance-residual moment envelope is \\((\\delta_0,C_R)\\).",
+    "uniformity": "The number of arms \\(K\\), overlap and moment constants, deterministic lower count sequence \\(q_n\\), leverage envelope \\(\\ell_n\\), and QV lower constant \\(v_0\\) are common across \\(\\mathfrak D\\).",
+    "randomness": "The only randomness is sequential treatment assignment; potential outcomes are fixed.",
+    "terminal_conditioning": "All guarantees are unconditional under the sequential design and use only pre-block conditioning; the realized final adaptive path is never frozen."
+  },
+  "estimand_functional": "\\(V_n\\in[L_n,U_n]\\), with \\(L_n\\) and \\(U_n\\) the block-weighted multi-marginal transport functionals in \\(\\text{def:qv-envelope}\\), estimated by \\([\\widehat L_n,\\widehat U_n]\\)",
+  "target_estimand": "\\(\\tau_n=N_n^{-1}\\sum_{b=1}^{B_n}\\sum_{i\\in\\mathcal U_{nb}}\\sum_{a\\in\\mathcal A}c_aY_{nbi}(a)\\)",
+  "bibliography": [
+    {
+      "key": "LiZhao2026AdaptiveDesignBased",
+      "citation": "Xinran Li and Anqi Zhao. Design-based theory for causal inference from adaptive experiments. \\(\\textit{arXiv:2602.21998}\\), 2026."
+    },
+    {
+      "key": "GaoGeQian2025MOT",
+      "citation": "Zijun Gao, Shu Ge, and Jian Qian. Bridging multiple worlds: multi-marginal optimal transport for causal partial-identification problem. \\(\\textit{Proceedings of AISTATS}\\), PMLR 258, 2025."
+    },
+    {
+      "key": "AronowGreenLee2014SharpVariance",
+      "citation": "Peter M. Aronow, Donald P. Green, and Donald K. K. Lee. Sharp bounds on the variance in randomized experiments. \\(\\textit{Annals of Statistics}\\), 42(3):850--871, 2014."
+    },
+    {
+      "key": "Saco2026SelfNormalizedAdaptiveExperiments",
+      "citation": "Gabriel Saco. Fixed-horizon self-normalized inference for adaptive experiments via martingale AIPW/DML with logged propensities. \\(\\textit{arXiv:2602.15559}\\), 2026."
+    },
+    {
+      "key": "YuZhuLiu2025SharpStratified",
+      "citation": "Haoyang Yu, Ke Zhu, and Hanzhong Liu. Sharp variance estimator and causal bootstrap in stratified randomized experiments. \\(\\textit{Statistics in Medicine}\\), 2025."
+    },
+    {
+      "key": "MikhaeilGreen2024RegressionSharpVariance",
+      "citation": "Jonas M. Mikhaeil and Donald P. Green. Sharp bounds on the variance of general regression adjustment in randomized experiments. \\(\\textit{arXiv:2411.00191}\\), 2024."
+    },
+    {
+      "key": "OberReynolds2023OTFunctionals",
+      "citation": "Daniel Ober-Reynolds. Estimating functionals of the joint distribution of potential outcomes using optimal transport. \\(\\textit{arXiv:2311.09435}\\), 2023."
+    },
+    {
+      "key": "CookMishlerRamdas2024AdaptiveInference",
+      "citation": "Thomas Cook, Alan Mishler, and Aaditya Ramdas. Semiparametric efficient inference in adaptive experiments. \\(\\textit{Proceedings of CLeaR}\\), 2024."
+    },
+    {
+      "key": "HadadEtAl2021AdaptiveExperiments",
+      "citation": "Vitor Hadad, David A. Hirshberg, Ruohan Zhan, Stefan Wager, and Susan Athey. Confidence intervals for policy evaluation in adaptive experiments. \\(\\textit{Proceedings of the National Academy of Sciences}\\), 118(15):e2014602118, 2021."
+    },
+    {
+      "key": "HarshawMiddletonSavje2026OptimizedVariance",
+      "citation": "Christopher Harshaw, Joel A. Middleton, and Fredrik Savje. Optimized variance estimation under interference and complex experimental designs. \\(\\textit{Journal of the American Statistical Association}\\), 2026."
+    },
+    {
+      "key": "NewbyEtAl2025MentalHealth",
+      "citation": "Jill Newby, Sunil Gupta, Leonard Hoon, and coauthors. Brief digital interventions for psychological distress: an AI-enhanced response-adaptive randomized clinical trial. \\(\\textit{JAMA Network Open}\\), 8(10):e2540502, 2025."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "LiZhao2026AdaptiveDesignBased",
+      "comparator_claim": "Section 5, Definition 2, is structurally broader in allowing arbitrary history-measurable joint block assignment laws with positive unit-level marginals, and Theorem 6 gives block-adaptive AIPW covariance, normality, and Wald coverage; its regularity class is not automatically nested with the present fixed-quota common-envelope class in either direction.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "GaoGeQian2025MOT",
+      "comparator_claim": "Gives the static multi-marginal transport variance characterization and an i.i.d. empirical-margin plug-in rate; that rate does not directly transfer to the present predictable finite-population triangular array.",
+      "matched_by": "Theorem 1 (thm:exact-predictable-ot-envelope)",
+      "match_kind": "non_representability"
+    },
+    {
+      "comparator_bibkey": "AronowGreenLee2014SharpVariance",
+      "comparator_claim": "Proposes a consistent estimator of sharp variance bounds for the difference-in-means estimator under static complete randomization.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "YuZhuLiu2025SharpStratified",
+      "comparator_claim": "Derives a sharp variance estimator for treatment contrasts in nonadaptive stratified randomized experiments.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "MikhaeilGreen2024RegressionSharpVariance",
+      "comparator_claim": "Provides asymptotically sharp variance bounds for general regression adjustment in nonadaptive two-arm designs.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Saco2026SelfNormalizedAdaptiveExperiments",
+      "comparator_claim": "Under i.i.d. arrivals, Assumption 5.11 imposes a high-probability linear lower bound on predictable quadratic variation, while Theorem 5.14 studentizes by realized quadratic variation rather than the present plug-in transport upper endpoint.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "OberReynolds2023OTFunctionals",
+      "comparator_claim": "Derives weak convergence for optimal-transport endpoint estimators from i.i.d. empirical processes and directional differentiability.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HarshawMiddletonSavje2026OptimizedVariance",
+      "comparator_claim": "Characterizes admissible quadratic variance bounds under complex designs, separately from the present residual-coupling endpoint and fixed-quota necessity certificate.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "Under the paper's explicit design restriction of predictable integer quotas followed by uniform complete randomization within each growing block, past-only AIPW adjustments make centered block scores a martingale difference array, so cross-block covariance disappears without conditioning on the realized terminal path. The three adaptive contributions are the predictable complete-block transport envelope, its observable history-uniform plug-in theorem with deterministic rate bound \\(C_{\\mathrm{ep}}r_n\\), and conservative martingale Wald inference from the estimated upper endpoint. Supporting computation uses quantile sorting for two arms and a finite transportation program for fixed \\(K\\), while the worked \\(\\{-1,-1,1,1\\}\\) validation gives contrast-square costs zero and four by direct substitution. The static two-arm, regression-adjusted, and nonadaptive-stratified reductions are noncontributory validation checks attributed directly to their published sources. Ex ante completion sharpness is not claimed: the open problem separates single-node integrality from cross-history consistency and asks whether fixed-fraction undercoverage can be attained by one completion sequence whose entire induced triangular array remains in the common-overlap, residual-moment, arm-count, leverage, and nondegeneracy inference class.",
+  "project_justification": {
+    "gap": "Li and Zhao's adaptive design-based AIPW theory permits arbitrary history-measurable joint block assignment laws with positive marginals and identifies a martingale covariance, but it neither supplies this paper's predictable fixed-count complete-block restriction nor characterizes the resulting sharp residual-coupling range. Sharp transport variance theory treats static complete or stratified randomization and ordinary empirical marginals.",
+    "niche": "Predictable integer quotas followed by uniform complete-block randomization create a random variance target whose nodewise summands are conditionally static coupling problems. Uniform inference requires common deterministic overlap, moment, arm-count, leverage, and QV envelopes. Any completion used to demonstrate failure of a shortened interval must satisfy those same envelopes across the entire triangular array, in addition to linking all history nodes through common fixed potential outcomes and one fitting rule.",
+    "fill": "The three adaptive contributions are the exact predictable complete-block transport envelope, the observable history-uniform endpoint bound \\(C_{\\mathrm{ep}}r_n\\), and unconditional conservative design-based Wald inference from the estimated upper endpoint. The assigned-arm residual construction and finite-\\(K\\) program provide the computation supporting those claims. Published static reductions are retained only as attributed validation checks. The normalized history-tree gap, its nodewise integrality component, and fixed-fraction undercoverage over ex ante completion sequences that remain inside the full admissible inference class form one open optimization problem."
+  },
+  "related_work": "Li and Zhao (2026), Section 5, Definition 2, allow an arbitrary history-measurable joint block assignment law with positive unit-level marginals, and Theorem 6 gives the block-adaptive finite-population AIPW covariance, normality, and conservative coverage; Theorem 5 precedes that extension. The predictable integer quotas and uniform complete-block draw used here are an explicit restriction of that broader framework, motivated by batched platforms that update enforceable quotas between blocks, and are not attributed to Li and Zhao. Their covariance sharpening requires residual additivity. Gao, Ge, and Qian (2025), equation (1) and Theorem 1, turn a multi-arm contrast variance into a static quadratic multi-marginal transport problem and control its plug-in value; they do not impose cross-history compatibility on one fixed potential-outcome array. Aronow, Green, and Lee (2014), Lemma 1, Proposition 1, and Corollary 1, provide the two-arm sorting and static sharp-inference prototype without a history tree. Yu, Zhu, and Liu (2025) aggregate two-arm rearrangement bounds over nonadaptive strata and prove consistency in growing-strata regimes. Mikhaeil and Green (2024) show that regression residuals are the correct coupling object for adjusted estimators under nonadaptive two-arm designs. The corresponding static reductions are used only as noncontributory validation benchmarks and are attributed to these papers rather than stated as new results. Ober-Reynolds (2023) obtains directional endpoint limit theory from iid empirical processes. Saco (2026), Assumption 5.11, imposes a high-probability linear lower bound on predictable quadratic variation under iid arrivals, while Theorem 5.14 studentizes by realized quadratic variation; neither result supplies the common finite-population predictable-QV envelope imposed uniformly here. Harshaw, Middleton, and Savje (2026) optimize admissible quadratic bounds under arbitrary designs and separate admissibility from marginal sharpness. Newby et al. (2025) supply the four-arm mental-health consumer, but their participant-level contextual bandit has no minimum or maximum arm allocation and does not implement the fixed-count design; a predictably batched complete-block redesign is required before the main theorem applies.",
+  "technical_internal_limitation": "The rectangular relaxation permits an independent convexified coupling at each possible history node. Theorems establish sharpness only inside each node's convexified set. The diagnostic \\(\\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n)\\) isolates failure of a same-size deterministic multi-index matching at one node, whereas \\(\\Delta_n^{\\mathrm{tree}}(\\boldsymbol\\mu_n)\\) also charges the cross-history loss from common unit labels, fixed potential outcomes, and one predictable fitting rule. No theorem asserts that either gap vanishes. Any fixed-fraction undercoverage construction must be one ex ante completion sequence whose induced triangular experiment-analysis array belongs to \\(\\mathfrak D\\); nodewise compatibility alone is insufficient. Noncontributory validation appendix: direct substitution of the centered lists \\(\\{-1,-1,1,1\\}\\) into the two-arm costs gives \\(J_{nb}^{-}=0\\) from equal-rank pairing and \\(J_{nb}^{+}=4\\) from reverse-rank pairing for the unnormalized contrast \\((1,-1)\\); with \\(n_{nb}=4\\), the envelope width is \\(4w_{nb}^2/3\\). When \\(B_n=1\\), \\(K=2\\), \\(g_{nbi}(a)=0\\), and \\(c\\) is proportional to \\((1,-1)\\), direct substitution in the definitions recovers the Aronow--Green--Lee rearrangement envelope, plug-in endpoint, and conservative Wald interval after normalization. Allowing an arbitrary pre-randomization adjustment in that one-block two-arm calculation recovers the Mikhaeil--Green residual envelope. Making counts and adjustments history-independent reduces the endpoint sum to the nonadaptive stratified aggregation of Yu--Zhu--Liu. These three reductions are published sanity checks, not proposal results.",
+  "honest_scope": "The three adaptive contributions are the exact predictable complete-block transport envelope, the observable history-uniform plug-in theorem, and conservative martingale coverage using the estimated transport upper endpoint. The two-block covariance enumeration, two-arm sorting, and fixed-\\(K\\) LP are supporting results. Predictable integer quotas followed by uniform complete-block randomization are an explicit paper design restriction, justified by batched quota-controlled platforms and not attributed to Li and Zhao's broader assignment model. The \\(\\{-1,-1,1,1\\}\\) arithmetic and the Aronow--Green--Lee, Mikhaeil--Green, and Yu--Zhu--Liu static reductions are noncontributory validation checks, not to-prove results. The QV lower envelope is a nonstandard finite-population paper assumption; Saco (2026), Assumption 5.11, instead uses a high-probability linear predictable-QV lower bound and Theorem 5.14 studentizes by realized QV. No ex ante completion-sharpness claim is made. Open-ended Question 6 separates \\(\\Delta_n^{\\mathrm{node}}(\\boldsymbol\\mu_n)\\) from cross-history consistency and permits a fixed-fraction undercoverage conclusion only for one ex ante completion sequence whose full induced triangular array belongs to \\(\\mathfrak D\\), so the common overlap, count, leverage, residual-moment, plug-in, QV, and martingale-CLT requirements all apply. The published Newby et al. allocation is a participant-level contextual bandit rather than complete-block randomization; the paper is a consumer for a predictably batched redesign, not a claim of immediate reanalysis."
+}

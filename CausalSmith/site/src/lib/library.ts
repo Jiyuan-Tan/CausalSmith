@@ -23,6 +23,11 @@ export interface LibDecl {
   extRefs?: { n: string; m: string }[];
   axioms: string[];
   usesSorry: boolean;
+  /** Elaborated binders of the type, in order (name "" when anonymous) — carries
+   * `variable`-introduced section parameters the authored source omits. */
+  params?: { n: string; t: string; bi: string }[];
+  /** Elaborated result type after all binders (a definition's codomain). */
+  result?: string;
 }
 
 export interface ReviewEntry {
@@ -366,7 +371,7 @@ export function sourceKind(d: LibDecl): string {
   // would otherwise mistake for the real declaration keyword.
   const stripped = d.source ? stripLeadingDoc(d.source) : undefined;
   const m = stripped?.match(
-    /(?:^|\n)\s*(?:@\[[^\]]*\]\s*)*(?:private\s+|protected\s+|noncomputable\s+|unsafe\s+)*(theorem|lemma|def|abbrev|structure|class|inductive|instance|axiom|opaque)\b/,
+    /(?:^|\n)\s*(?:@\[[^\]]*\]\s*)*(?:private\s+|protected\s+|noncomputable\s+|unsafe\s+|scoped\s+|local\s+)*(theorem|lemma|def|abbrev|structure|class|inductive|instance|axiom|opaque)\b/,
   );
   return m ? m[1] : d.kind;
 }

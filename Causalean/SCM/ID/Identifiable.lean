@@ -59,8 +59,9 @@ variable {N : Type*} [DecidableEq N] [Fintype N]
 -- Causal Queries
 -- ============================================================
 
-/-- A causal query is a functional of a causal model, producing a value in
-    some type α.
+/-- For [a finite set of node labels](hyp:N), [measurable value spaces assigned to
+    those nodes](hyp:Ω), and [a result space](hyp:α), [a causal query](goal) maps
+    each structural causal model on those nodes to one value in the result space.
 
     From the tex: "A causal query is a functional Φ of the counterfactual
     distribution, e.g., Φ(C) = P(Y(x)) or Φ(C) = E[Y(x)] - E[Y(x')]."
@@ -80,8 +81,11 @@ abbrev CausalQuery (N : Type*) [DecidableEq N] [Fintype N]
 -- Observational equivalence
 -- ============================================================
 
-/-- Two SCMs are **observationally equivalent** if their derived observational
-    kernels agree.  Because `obsKernel` has dependent domain/codomain
+/-- For [a finite node-label set](hyp:N), [measurable node-value spaces](hyp:Ω),
+    and [two structural causal models](hyp:M₁,M₂) on them, [observational equivalence](goal)
+    means that their derived observational probability kernels are equal.
+
+    Because `obsKernel` has dependent domain/codomain
     (`FixedValues M` and `ObservedValues M`), we use `HEq` to accommodate two
     models whose `fixed`/`observed` sets may only be propositionally equal. -/
 def obsEquiv {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
@@ -92,9 +96,11 @@ def obsEquiv {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 -- Identifiability
 -- ============================================================
 
-/-- A causal query Φ is **identifiable** from the observational distribution
-    if any two causal models sharing the same **SWIG graph** and observational
-    kernel must agree on Φ.
+/-- For [a finite node-label set](hyp:N), [measurable node-value spaces](hyp:Ω),
+    [a SWIG graph](hyp:G), and [a causal query](hyp:Φ), [identifiability](goal)
+    means that every pair of structural causal models whose SWIG graphs both equal
+    the given graph and whose observational probability kernels are equal has the
+    same query value.
 
     From the tex (`def:scm-identifiability`):
     "Let ℱ be a class of gSCMs **sharing a SWIG graph 𝒢** … A causal query Φ is
@@ -112,8 +118,11 @@ def Identifiable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)] {α : Type*}
     obsEquiv M₁ M₂ →
     Φ M₁ = Φ M₂
 
-/-- A causal query is **non-identifiable** if there exist two models with the
-    same SWIG graph and observational kernel but different query values.
+/-- For [a finite node-label set](hyp:N), [measurable node-value spaces](hyp:Ω),
+    [a SWIG graph](hyp:G), and [a causal query](hyp:Φ), [non-identifiability](goal)
+    means that the query is not identifiable from the observational distribution:
+    it is not the case that every two models with that graph and equal
+    observational probability kernels have equal query values.
 
     A witness for non-identifiability consists of two models C₁, C₂ such that
     P_obs^{C₁} = P_obs^{C₂} but Φ(C₁) ≠ Φ(C₂). -/
@@ -143,7 +152,13 @@ theorem nonIdentifiable_iff {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 -- Identifiability with additional assumptions
 -- ============================================================
 
-/-- Identifiability given both functional and structural assumptions.
+/-- For [a finite node-label set](hyp:N), [measurable node-value spaces](hyp:Ω),
+    [a SWIG graph](hyp:G), [a functional-assumption predicate](hyp:Af), [a
+    structural-assumption predicate](hyp:As), and [a causal query](hyp:Φ),
+    [identifiability under the two assumptions](goal) means that every pair of
+    models whose SWIG graphs equal the given graph, which both satisfy each
+    predicate, and which have equal observational probability kernels, has the
+    same query value.
 
     `Af` encodes *functional assumptions* on edge types (nonparametric,
     monotonic, linear).

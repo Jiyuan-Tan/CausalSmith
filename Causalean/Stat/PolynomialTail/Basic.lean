@@ -109,20 +109,32 @@ attribute [fun_prop] TailSetup.measurable
 
 /-! ## The three definitions -/
 
-/-- The truncated denominator `max U λ` shared by the inverse-moment integrands. -/
+/-- For [a sample space](hyp:Ω), [a real-valued variable on that space](hyp:U), [a real threshold](hyp:lam),
+and [a sample point](hyp:ω), the [truncated denominator](goal) is the larger of the variable's
+value at that point and the threshold. -/
 noncomputable def truncDen (U : Ω → ℝ) (lam : ℝ) (ω : Ω) : ℝ := max (U ω) lam
 
-/-- `I P U λ = ∫ U / (max U λ)²`.  Equals `1/U` on `{U ≥ λ}` and `U/λ²` on
-`{U < λ}`; the truncated inverse *second moment*. -/
+/-- For [a measurable sample space](hyp:Ω), [a measure on that space](hyp:P), [a real-valued
+variable](hyp:U), and [a real threshold](hyp:lam), the [truncated inverse second moment](goal) is
+the integral of the variable divided by the square of the larger of its value and the threshold.
+
+It equals `1/U` on `{U ≥ λ}` and `U/λ²` on `{U < λ}`. -/
 noncomputable def invMomentI (P : Measure Ω) (U : Ω → ℝ) (lam : ℝ) : ℝ :=
   ∫ ω, U ω / (max (U ω) lam) ^ 2 ∂P
 
-/-- `J P U λ = ∫ (max U λ)⁻¹`.  Equals `1/U` on `{U ≥ λ}` and `1/λ` on `{U < λ}`;
-the truncated inverse *first moment*. -/
+/-- For [a measurable sample space](hyp:Ω), [a measure on that space](hyp:P), [a real-valued
+variable](hyp:U), and [a real threshold](hyp:lam), the [truncated inverse first moment](goal) is
+the integral of the reciprocal of the larger of the variable's value and the threshold.
+
+It equals `1/U` on `{U ≥ λ}` and `1/λ` on `{U < λ}`. -/
 noncomputable def invMomentJ (P : Measure Ω) (U : Ω → ℝ) (lam : ℝ) : ℝ :=
   ∫ ω, (max (U ω) lam)⁻¹ ∂P
 
-/-- The leftover trimming weight `wλ ω = 1 − U/(max U λ) ∈ [0,1]`, supported on `{U < λ}`. -/
+/-- For [a sample space](hyp:Ω), [a real-valued variable on that space](hyp:U), [a real threshold](hyp:lam),
+and [a sample point](hyp:ω), the [trimming weight](goal) is one minus the variable's value divided
+by the larger of that value and the threshold.
+
+It is the leftover trimming weight `wλ ω = 1 − U/(max U λ) ∈ [0,1]`, supported on `{U < λ}`. -/
 noncomputable def trimWeight (U : Ω → ℝ) (lam : ℝ) (ω : Ω) : ℝ :=
   1 - U ω / (max (U ω) lam)
 

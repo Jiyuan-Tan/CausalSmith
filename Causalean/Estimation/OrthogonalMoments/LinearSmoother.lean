@@ -69,11 +69,14 @@ namespace LinearSmootherOp
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
 variable {γ : Type*} [MeasurableSpace γ]
 
-/-- Predicate witnessing that the operator is genuinely a linear smoother:
-the value of `evalAt n ω f x` is the weighted sum `Σ_{i ∈ B} w i · f (xs i)`,
-where `B : Finset ι` enumerates the data fold, `w : ι → ℝ` provides the
-weights, and `xs : ι → γ × Bool × ℝ` provides the data tuples.  The exact
-relationship between `w` and `op.weights` is left to the caller.
+/-- Given [a linear-smoother operator](hyp:op), [a sample size](hyp:n), [a
+randomness realization](hyp:ω), [a query point](hyp:x), [a finite index set for
+the data fold](hyp:B), [real weights on that index set](hyp:w), and [the
+corresponding covariate-treatment-outcome data tuples](hyp:xs), the [linear-smoother
+condition](goal) states that, for every real-valued pseudo-outcome function, the
+operator's estimate equals the weighted sum of that function over the fold.
+
+The exact relationship between `w` and `op.weights` is left to the caller.
 
 This is the explicit weighted-sum identity from Def `def:est-cate-second-stage`. -/
 def IsLinearSmoother {ι : Type*} (op : LinearSmootherOp Ω μ γ)
@@ -97,8 +100,10 @@ is a real number `p`. Real exponentiation `^` is used (Mathlib's
 identity collapses if all weights are zero, which is the trivial regime we
 handle at the abstract layer via Mathlib's convention `0 / 0 = 0`. -/
 
-/-- The weighted norm is the normalized absolute-weight empirical norm of a
-real-valued function on the sample indices.
+/-- Given [a finite index set](hyp:B), [real weights on that set](hyp:w), [a
+real-valued function on its indices](hyp:g), and [a real exponent](hyp:p), the
+[weighted empirical norm](goal) is the normalized absolute-weight power mean
+of the function's absolute values, with the indicated exponent.
 
 $\left(\sum_{i \in B} |w_i|/(\sum_{j \in B}|w_j|)\, |g_i|^p\right)^{1/p}$.
 There are no positivity or nonzero-denominator hypotheses in the definition.

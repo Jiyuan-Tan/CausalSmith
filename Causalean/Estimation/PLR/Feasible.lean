@@ -66,7 +66,15 @@ namespace PLRSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ] [IsProbabilityMeasure P.μ]
 
-/-- **Feasible (solved) partially linear DML estimator.**  Solving the empirical
+/-- For [a partially linear potential-outcomes system with a finite population measure and a
+measurable covariate space](hyp:P,γ), [a partially linear estimation system built on it](hyp:S),
+[an independent and identically distributed sample from its joint observed-data law](hyp:sample),
+[a one-shot evaluation-fold split of that sample](hyp:split), [a sequence of estimated outcome-and-treatment
+regression pairs](hyp:η_hat), and [a sample-size index](hyp:n), the [feasible partially linear
+double-machine-learning estimator](goal) maps each population state to the ratio of the evaluation-fold
+sum of residualized-outcome times residualized-treatment to the evaluation-fold sum of squared residualized-treatment.
+
+Solving the empirical
 Robinson partialling-out moment equation `Pₙ ψ(η̂, ·, θ) = 0` for `θ` — which,
 because the score is affine in `θ`, is the explicit ratio of the empirical
 covariance of the residualized outcome and residualized treatment to the

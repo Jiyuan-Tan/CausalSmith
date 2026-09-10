@@ -107,4 +107,20 @@ describe("checkpointGuidance D0.5 verdict branching (not always PASS)", () => {
       expect(guidance.length).toBeLessThan(800);
     }
   });
+
+  it("distinguishes borrowed cited inputs from paper-owned formalization work", () => {
+    const consolidated = checkpointGuidance("1.5", "checkpoint", {}, true, "")!;
+    expect(consolidated).toContain("published source-matched input may remain cited");
+    expect(consolidated).toContain("formalize every paper-owned/new step");
+
+    const build = checkpointGuidance(
+      "1",
+      "checkpoint",
+      { substrate_build_required: "gate X" },
+      true,
+      "",
+    )!;
+    expect(build).toContain("published, source-matched input may remain cited");
+    expect(build).toContain("every new adaptation, bridge, and theorem step must be formalized");
+  });
 });

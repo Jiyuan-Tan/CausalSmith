@@ -37,8 +37,7 @@ namespace BackdoorEstimationSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- Value-space propensity for label `d`: `e_val` for `d = true`,
-`1 − e_val` for `d = false`. -/
+/-- For a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), [a back-door estimation system](hyp:S), [a treatment label](hyp:d), and [a covariate value](hyp:x), the [label-specific value-space propensity](goal) equals the propensity score for the treated label and one minus that score for the control label. -/
 noncomputable def e_val_label (S : BackdoorEstimationSystem P γ)
     (d : Bool) (x : γ) : ℝ :=
   if d then S.e_val x else 1 - S.e_val x

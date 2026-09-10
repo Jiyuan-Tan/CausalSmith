@@ -54,10 +54,13 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
 
 namespace IIDSample
 
-/-- **Bootstrap standard error** of `√n θ̂`: the square root of the bootstrap
-variance.  Since the bootstrap variance of `√n (X̄* − X̄)` is exactly the
-empirical variance, `bootstrapSE` is the bootstrap estimate of the asymptotic
-standard deviation `√(∫ ψ² dP)`. -/
+/-- For [a measurable sample space, measurable observation space, sample-space measure, and
+observation-space measure](hyp:Ω,X,μ,P), [an independent, identically distributed sample](hyp:S), [a real-valued influence
+function](hyp:ψ), and [a sample size](hyp:n), the [bootstrap standard error](goal) is the square
+root of the bootstrap variance at that sample size.
+
+Since the bootstrap variance of `√n (X̄* − X̄)` is exactly the empirical variance, `bootstrapSE`
+is the bootstrap estimate of the asymptotic standard deviation `√(∫ ψ² dP)`. -/
 noncomputable def bootstrapSE (S : IIDSample Ω X μ P) (ψ : X → ℝ) (n : ℕ) :
     Ω → ℝ :=
   fun ω => Real.sqrt (bootstrapVar S ψ n ω)
@@ -80,9 +83,14 @@ theorem bootstrapSE_tendsto_inProb (S : IIDSample Ω X μ P)
   Tendsto_inProb.sqrt
     (bootstrapVar_tendsto_inProb S hψ_meas hψ_int hψ_sq_int hmean)
 
-/-- **Bootstrap studentized statistic** `√n (θ̂ − θ₀) / σ̂ₙ`, where
-`σ̂ₙ = bootstrapSE` is the bootstrap standard error.  The full-sample index
-family `I n = Finset.range n` is used. -/
+/-- For [a measurable sample space, measurable observation space, sample-space measure, and
+observation-space measure](hyp:Ω,X,μ,P), [a sequence of real-valued estimators](hyp:θn), [a target real value](hyp:θ₀), [an
+independent, identically distributed sample](hyp:S), [a real-valued influence function](hyp:ψ),
+and [a sample size](hyp:n), the [bootstrap studentized statistic](goal) is
+$\sqrt n(\widehat\theta_n-\theta_0)/\widehat\sigma_n$, where the denominator is the bootstrap
+standard error computed from the full sample of that size.
+
+The full-sample index family `I n = Finset.range n` is used. -/
 noncomputable def bootstrapStudentized (θn : ℕ → Ω → ℝ) (θ₀ : ℝ)
     (S : IIDSample Ω X μ P) (ψ : X → ℝ) (n : ℕ) : Ω → ℝ :=
   fun ω =>

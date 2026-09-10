@@ -79,7 +79,7 @@ theorem popMomentEntry_changeOfVar (K pdens : ℝ → ℝ) (t h : ℝ) (hh : 0 <
         rw [pow_succ]
         ring
 
-/-- The population design moment matrix `S_{jk} = N · ∫ K((a−t)/h) (a−t)^{j+k} p(a) da`. -/
+/-- Given a [nonnegative polynomial degree](hyp:p), a [nonnegative sample size](hyp:N), a [real-valued kernel function](hyp:K), a [real-valued design-weight function](hyp:pdens), a [real target point](hyp:t), and a [real bandwidth](hyp:h), the [population design moment matrix](goal) is the matrix whose $(j,k)$ entry is $N\int K((a-t)/h)(a-t)^{j+k}p(a)\,da$. -/
 noncomputable def popDesignMatrix (p N : ℕ) (K pdens : ℝ → ℝ) (t h : ℝ) :
     Matrix (Fin (p + 1)) (Fin (p + 1)) ℝ :=
   Matrix.of (fun j k =>

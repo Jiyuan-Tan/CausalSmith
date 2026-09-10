@@ -52,10 +52,21 @@ namespace OneShotSplit
 
 variable {S : IIDSample Ω X μ P} (split : OneShotSplit S)
 
-/-- Nuisance-fold index set at horizon `n`: `A(n) := {0, …, n₁(n)−1}`. -/
+/-- For [an i.i.d. sample on a measurable sample space, with observations in a measurable
+observation space and their probability distribution](hyp:Ω,X,μ,P,S), [a two-fold
+split of that sample](hyp:split), and [a sample size](hyp:n), the [nuisance-fold index set](goal)
+consists of the nonnegative indices strictly smaller than the split's nuisance-fold size at that
+sample size.
+
+This is the set customarily denoted $A(n)=\{0,\ldots,n_1(n)-1\}$. -/
 def foldA (n : ℕ) : Finset ℕ := Finset.range (split.n₁ n)
 
-/-- Estimation-fold index set at horizon `n`: `B(n) := {n₁(n), …, n−1}`. -/
+/-- For [an i.i.d. sample on a measurable sample space, with observations in a measurable
+observation space and their probability distribution](hyp:Ω,X,μ,P,S), [a two-fold
+split of that sample](hyp:split), and [a sample size](hyp:n), the [estimation-fold index set](goal)
+consists of the indices from the split's nuisance-fold size through one less than that sample size.
+
+This is the set customarily denoted $B(n)=\{n_1(n),\ldots,n-1\}$. -/
 def foldB (n : ℕ) : Finset ℕ :=
   (Finset.range n).filter (fun i => split.n₁ n ≤ i)
 

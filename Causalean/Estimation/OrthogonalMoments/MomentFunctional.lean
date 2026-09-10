@@ -80,7 +80,8 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
          {Z : Type*} [MeasurableSpace Z] {P_Z : MeasureTheory.Measure Z}
          {H : Type*} [AddCommGroup H] [Module ℝ H]
 
-/-- The inverse Jacobian is the reciprocal of the nonzero population Jacobian.
+/-- For [a general moment system](hyp:M), the [inverse population Jacobian](goal)
+is the reciprocal of the system's nonzero population Jacobian.
 
 For the AIPW linear score, the Jacobian is minus one, so the inverse Jacobian is
 also minus one. -/
@@ -99,12 +100,16 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
          {Z : Type*} [MeasurableSpace Z] {P_Z : MeasureTheory.Measure Z}
          {H : Type*} [AddCommGroup H] [Module ℝ H]
 
-/-- The moment has zero population mean at the true nuisance and target. -/
+/-- For [a general moment system](hyp:M), [the mean-zero condition](goal) states
+that the population expectation of its score at the true nuisance and true scalar
+target is zero. -/
 def MeanZero (M : GeneralMoment Ω μ Z P_Z H) : Prop :=
   ∫ z, M.m M.η₀ z M.θ₀ ∂P_Z = 0
 
-/-- The perturbation set is closed under line segments from the true nuisance to
-any nuisance already in the set. -/
+/-- For [a general moment system](hyp:M), [perturbation-set segment closure](goal)
+states that, for every nuisance value in its admissible perturbation set and every
+weight in the closed unit interval, the corresponding point on the line segment
+from the true nuisance to that value also belongs to the admissible set. -/
 def H_ε_PerturbClosed (M : GeneralMoment Ω μ Z P_Z H) : Prop :=
   ∀ η ∈ M.H_ε, ∀ t ∈ Set.Icc (0 : ℝ) 1, M.η₀ + t • (η - M.η₀) ∈ M.H_ε
 

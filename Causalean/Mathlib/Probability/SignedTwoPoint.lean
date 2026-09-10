@@ -34,9 +34,9 @@ open MeasureTheory
 
 open scoped ENNReal
 
-/-- **Symmetric two-point mean channel.**  For a scale `B` and a target mean `u`, the law
-`twoPointMean B u` on `{−B, B}` puts mass `(1 + u/B)/2` on `B` and `(1 − u/B)/2` on `−B`; its mean
-is `u`. -/
+/-- For [a real scale](hyp:B) and [a real target mean](hyp:u), [the symmetric two-point mean
+measure](goal) is the sum of a point mass at $B$ weighted by $\max((1+u/B)/2,0)$ and a point
+mass at $-B$ weighted by $\max((1-u/B)/2,0)$. -/
 noncomputable def twoPointMean (B u : ℝ) : Measure ℝ :=
   ENNReal.ofReal ((1 + u / B) / 2) • Measure.dirac B
     + ENNReal.ofReal ((1 - u / B) / 2) • Measure.dirac (-B)

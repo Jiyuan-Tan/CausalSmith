@@ -54,8 +54,12 @@ open DesignBased
 variable {U : Type*} [Fintype U] [DecidableEq U]
 
 open Classical in
-/-- The block of units that interfere with `i` (its own treatment included): the coordinate support
-of the `i`ᵗʰ HT summand. -/
+/-- For every [finite population of units whose members can be compared for equality](hyp:U), every
+[schedule of potential outcomes indexed by a unit and a complete binary treatment assignment](hyp:y),
+and every [unit in that population](hyp:i), the [interferer set](goal) is the finite set consisting
+of that unit and every other unit whose treatment can affect that unit's potential outcome.
+
+The interferer set is the coordinate support of the corresponding Horvitz--Thompson summand. -/
 noncomputable def interferers (y : U → (U → Bool) → ℝ) (i : U) : Finset U :=
   Finset.univ.filter (fun ℓ => Interferes y ℓ i)
 

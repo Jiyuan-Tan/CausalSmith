@@ -53,13 +53,17 @@ open MeasureTheory ProbabilityTheory Filter Topology TopologicalSpace
 
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 
-/-- Boundedness of the target candidate evaluation map: `|eval θ x| ≤ M_Θ`
+/-- For [a candidate target set](hyp:Θ_set), [an evaluation map from candidate targets to functions of the covariates](hyp:eval), and [a real bound](hyp:M_Θ), the [DR-Learner evaluation-boundedness condition](goal) requires that [the bound is nonnegative](step:1) and that [the absolute evaluation of every candidate target at every covariate value is at most the bound](step:2).
+
+Boundedness of the target candidate evaluation map: `|eval θ x| ≤ M_Θ`
 uniformly over `θ ∈ Θ_set` and `x : γ`. -/
 def DREvalBounded
     {Θ : Type*} (Θ_set : Set Θ) (eval : Θ → γ → ℝ) (M_Θ : ℝ) : Prop :=
   0 ≤ M_Θ ∧ ∀ θ ∈ Θ_set, ∀ x : γ, |eval θ x| ≤ M_Θ
 
-/-- Bounded outcome assumption: the outcome coordinate is bounded by `M_Y`
+/-- For [a CATE estimation system with a standard Borel unit space and finite population measure](hyp:S) and [a real bound](hyp:M_Y), the [DR-Learner outcome-boundedness condition](goal) requires that [the bound is nonnegative](step:1) and that [the observed outcome has absolute value at most the bound for almost every observation under the system's observed-data law](step:2).
+
+Bounded outcome assumption: the outcome coordinate is bounded by `M_Y`
 under the observed-data law `P_Z`, almost everywhere.
 
 This is the standard `P_Z`-a.e. bounded-outcome assumption used by the
@@ -69,7 +73,9 @@ def DROutcomeBounded
     (S : CATEEstimationSystem P γ) (M_Y : ℝ) : Prop :=
   0 ≤ M_Y ∧ ∀ᵐ z ∂(S.toBackdoorEstimationSystem.P_Z), |z.2.2| ≤ M_Y
 
-/-- Strict overlap floor on the realised nuisance `h`: the propensity
+/-- For [a CATE estimation system with a standard Borel unit space and finite population measure](hyp:_S), [a candidate target set](hyp:_Θ_set), [a nuisance-function vector](hyp:h), and [a real overlap floor](hyp:ε), the [DR-Learner nuisance-overlap condition](goal) requires: [the floor is strictly positive](step:1); [it is at most one half](step:2); and [at every covariate value the nuisance propensity score lies between the floor and one minus the floor](step:3).
+
+Strict overlap floor on the realised nuisance `h`: the propensity
 component `h.e_fn` is bounded inside `[ε, 1 − ε]` uniformly in `x`. -/
 def DRNuisanceOverlap
     {Θ : Type*}
@@ -78,7 +84,9 @@ def DRNuisanceOverlap
     (_Θ_set : Set Θ) (h : NuisanceVec γ) (ε : ℝ) : Prop :=
   0 < ε ∧ ε ≤ 1 / 2 ∧ ∀ x : γ, ε ≤ h.e_fn x ∧ h.e_fn x ≤ 1 - ε
 
-/-- Uniform L∞-bound on the outcome-regression component of the realised
+/-- On a measurable covariate space, for [a nuisance-function vector](hyp:h) and [a real bound](hyp:M_μ), the [DR-Learner outcome-regression boundedness condition](goal) requires that [the bound is nonnegative](step:1) and that [for either treatment arm and every covariate value, the absolute conditional-mean outcome regression is at most the bound](step:2).
+
+Uniform L∞-bound on the outcome-regression component of the realised
 nuisance `h`: `|h.μ_fn b x| ≤ M_μ` for both treatment arms. -/
 def DRNuisanceMuBounded (h : NuisanceVec γ) (M_μ : ℝ) : Prop :=
   0 ≤ M_μ ∧ ∀ b : Bool, ∀ x : γ, |h.μ_fn b x| ≤ M_μ

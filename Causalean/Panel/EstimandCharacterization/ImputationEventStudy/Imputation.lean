@@ -39,7 +39,9 @@ noncomputable section
 variable {Treated Untreated Regressor : Type*}
   [Fintype Treated] [Fintype Untreated] [Fintype Regressor]
 
-/-- Finite dot product for regressor rows and nuisance vectors. -/
+/-- For [a finite regressor index set](hyp:Regressor), [a regressor row](hyp:x), and [a nuisance
+coefficient vector](hyp:beta), the [finite dot product](goal) is the sum, over regressors, of
+their coordinatewise products. -/
 def dot (x beta : Regressor → ℝ) : ℝ :=
   ∑ r : Regressor, x r * beta r
 
@@ -80,24 +82,30 @@ namespace BJSPanel
 
 variable (P : BJSPanel Treated Untreated Regressor)
 
-/-- Target weighted sum over treated-cell effects.  No positivity or
+/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P), the [target estimand](goal) is the finite sum of each
+treated cell's causal effect multiplied by its supplied target weight; the weights need not be
+positive or sum to one.
+
+Target weighted sum over treated-cell effects.  No positivity or
 normalization of `a` is imposed. -/
 def theta : ℝ :=
   ∑ c : Treated, P.a c * P.tau c
 
-/-- Target value for an arbitrary unrestricted treated-effect vector. -/
+/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P) and [an arbitrary treated-cell effect vector](hyp:tau'),
+the [corresponding target value](goal) is the finite sum of that vector weighted by the panel's
+target weights. -/
 def targetForTau (tau' : Treated → ℝ) : ℝ :=
   ∑ c : Treated, P.a c * tau' c
 
-/-- Deterministic untreated-outcome mean model and untreated-cell
-no-anticipation / observation equation. -/
+/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P), the [untreated-outcome model condition](goal) requires that [every treated cell's untreated potential-outcome mean equals its regressor-row dot product with the nuisance vector](step:1), [every untreated cell's untreated potential-outcome mean equals its regressor-row dot product with that vector](step:2), and [every untreated cell's observed mean equals its untreated potential-outcome mean](step:3). -/
 def UntreatedOutcomeModel : Prop :=
   (∀ c : Treated, P.EY0_T c = dot (P.qT c) P.beta0) ∧
     (∀ u : Untreated, P.EY0_U u = dot (P.qU u) P.beta0) ∧
       (∀ u : Untreated, P.EY_U u = P.EY0_U u)
 
-/-- Treated-cell effects are fixed at the observed-law mean level:
-treated observed means equal untreated means plus `tau`. -/
+/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P), the [fixed-treatment-effect condition](goal) requires that
+in every treated cell the observed mean equals the untreated potential-outcome mean plus that
+cell's stored treatment effect. -/
 def TreatmentEffectFixed : Prop :=
   ∀ c : Treated, P.EY_T c = P.EY0_T c + P.tau c
 
@@ -114,11 +122,17 @@ structure ImputationWeights where
     ∀ c : Treated, P.a c ≠ 0 →
       ∀ r : Regressor, ∑ u : Untreated, weight c u * P.qU u r = P.qT c r
 
-/-- Existence form of the target-relevant prediction-span condition. -/
+/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P), the [target-relevant prediction-identification condition](goal)
+holds exactly when at least one imputation-weight system represents every treated regressor row
+with nonzero target weight as a weighted combination of untreated regressor rows. -/
 def PredictionIdentified : Prop :=
   Nonempty P.ImputationWeights
 
-/-- Observed-law population imputation functional for arbitrary imputation
+/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P) and [an array of imputation weights from treated to
+untreated cells](hyp:h), the [observed-law imputation functional](goal) is the target-weighted
+sum of each treated observed mean less its imputed untreated observed mean.
+
+Observed-law population imputation functional for arbitrary imputation
 weights.  The row identity is a theorem hypothesis, not part of this
 functional's definition. -/
 def psiImp (h : Treated → Untreated → ℝ) : ℝ :=
@@ -207,25 +221,31 @@ namespace LinearEstimator
 
 variable {P}
 
-/-- Value of a treated-plus-untreated linear estimator at arbitrary cell
-outcome arrays. -/
+/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P), [a linear estimator](hyp:L), [an arbitrary array of treated
+cell outcomes](hyp:YT), and [an arbitrary array of untreated cell outcomes](hyp:YU), the
+[linear-estimator value](goal) is the sum of treated outcomes weighted by treated coefficients
+plus untreated outcomes weighted by untreated coefficients. -/
 def value (L : P.LinearEstimator) (YT : Treated → ℝ) (YU : Untreated → ℝ) : ℝ :=
   (∑ c : Treated, L.vT c * YT c) + ∑ u : Untreated, L.vU u * YU u
 
-/-- Observed-law value of the linear estimator on the panel means. -/
+/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P) and [a linear estimator](hyp:L), the [observed-law
+linear-estimator value](goal) is its value at the panel's treated and untreated observed means. -/
 def observedValue (L : P.LinearEstimator) : ℝ :=
   L.value P.EY_T P.EY_U
 
-/-- Model-implied value for a nuisance vector and unrestricted treated-effect
-vector. -/
+/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P), [a linear estimator](hyp:L), [a nuisance coefficient
+vector](hyp:beta), and [an arbitrary treated-effect vector](hyp:tau'), the [model-implied
+linear-estimator value](goal) is its value when treated outcomes equal the regressor prediction
+plus the effect and untreated outcomes equal the regressor prediction. -/
 def modelValue (L : P.LinearEstimator)
     (beta : Regressor → ℝ) (tau' : Treated → ℝ) : ℝ :=
   L.value
     (fun c : Treated => dot (P.qT c) beta + tau' c)
     (fun u : Untreated => dot (P.qU u) beta)
 
-/-- Linear unbiasedness over unrestricted treated effects and nuisance vectors
-in the finite-cell model. -/
+/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P) and [a linear estimator](hyp:L), the [unbiasedness condition
+for all treated effects](goal) requires that, for every nuisance coefficient vector and every
+treated-effect vector, the estimator's model-implied value equals the corresponding target value. -/
 def unbiasedForAllTau (L : P.LinearEstimator) : Prop :=
   ∀ (beta : Regressor → ℝ) (tau' : Treated → ℝ),
     L.modelValue beta tau' = P.targetForTau tau'

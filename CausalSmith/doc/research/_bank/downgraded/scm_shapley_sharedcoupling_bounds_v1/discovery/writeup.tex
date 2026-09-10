@@ -1,0 +1,1310 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{scm\_\allowbreak{}shapley\_\allowbreak{}sharedcoupling\_\allowbreak{}bounds}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Under a fixed initial state, externally randomized factual and coalition policies, deterministic transition rewards, independent transition disturbances across time, and unrestricted within-time coupling of transition response rows, every trajectory-conditioned Shapley mean-credit coordinate has an attained sharp interval obtained by optimizing one posterior transition kernel shared across all coalition worlds.  Exact beta-integral compression reduces the \(2^H\) coalition sum to \(H\) Markov evaluations, and a legal mixed-elimination compiler returns both endpoints and compact compatible SCM witnesses in \(O(H^2Nd^{w_{\mathrm c}+1})\) rational operations.  A two-stage open family has shared interval \([-\varepsilon,\varepsilon/2]\), strictly inside the internally defined separate-coalition interval \([-(1+\varepsilon)/2,1/2]\).  An explicit row-product multinomial region gives simultaneous whole-set coverage, a finite boundary-aware endpoint algorithm, and endpoint error controlled by factual transition-cell positivity.
+
+\section{Project justification}
+
+\paragraph{Gap.} Published trajectory credit uses a broader counterfactual-independence and resampling scheme, generic Layer-3 bounds do not expose finite Markov posterior rows, and one-step compatible-MDP gluing does not solve a signed Shapley objective over one transition SCM shared by all coalitions.  Generic marginal-MAP and confidence-projection results likewise do not provide the present causal witness and boundary geometry.
+
+\paragraph{Niche.} With a fixed initial state and explicitly exogenous action coins, conditioning on the factual trajectory cancels the action likelihood and projects arbitrary within-time transition-response coupling onto a product of capped posterior-row simplexes.  Shapley beta integration then compresses coalition worlds before the common-row optimization.
+
+\paragraph{Fill.} The paper proves the attained shared-SCM interval, compact transition-table witnesses completed by external policy coins, exact coalition compression, an optimization-preserving constrained-width compiler with a sparse regime and a fully active lower bound, a quantitative open-family strict gap against an internal separate-coalition relaxation, and an explicit Hoeffding row-product confidence inversion with finite endpoint compilation and local positivity stability.
+
+\section{Related work}
+
+Li, Lee, and Bareinboim (2026) define the state-contingent trajectory intervention and impose a broader counterfactual-independence and resampling scheme.  The present result keeps externally randomized policy actions and deterministic rewards fixed and relaxes only within-time coupling among transition response rows; its counterfactual-independence proposition is a fidelity reduction, not a claim to remove the full published scheme.  Lee, Plecko, and Bareinboim (2026) optimize whole Layer-3 Shapley functionals over a generic neural-SCM family.  Lally, Kazemi, and Paoletti (2026) supply the generic one-step row-bound and simultaneous gluing substrate; novelty here is confined to valid trajectory conditioning, one shared sequential Shapley optimization, exact compression and compilation, and confidence-fiber projection.  Zhang, Tian, and Bareinboim (2022), Choe et al. (2026), Arroyo et al. (2025), and Zaffalon et al. (2024) provide canonical-SCM, reduction, programming, and credal-network context.  Witter et al. (2026) and recent quadrature work motivate coalition compression but do not give this posterior shared-row endpoint.  Liu and Ihler (2013), Park and Darwiche (2004), and Choi, Friedman, and Van den Broeck (2022) provide marginal-MAP context; the legal-order invariant, common backpointer, sparse upper bound, and active-chain obstruction are proved directly here.  Hoeffding (1963) supplies the cellwise concentration inequality, while Wang (2008) studies exact multinomial simultaneous coefficients; the paper uses its own conservative union-bound product rather than assuming either Wang calibration or cross-row independence.  Kaido, Molinari, and Stoye (2019), Fang and Santos (2019), and Bennett et al. (2024) mark stronger projection and inference rungs not claimed here.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\Phi_i(\mathcal M\mid\tau)\).
+Primary functional / estimator / diagnostic: \(\Theta_i(K,\tau)=[\min_{q\in\mathcal B(K,\tau)}\Phi_i(q),\max_{q\in\mathcal B(K,\tau)}\Phi_i(q)]\), with \(\Theta_i^{\mathrm{CI}}(K,\tau)=\{\Phi_i(q^{\mathrm{CI}})\}\subseteq\Theta_i(K,\tau)\).
+\begin{itemize}
+  \item \texttt{H} --- \texttt{positive integer}; \(\{1,2,\ldots\}\); \texttt{Finite decision horizon.}
+  \item \texttt{[H]} --- \texttt{finite index set}; \texttt{Time indices and Shapley players.}
+  \par\smallskip\noindent\emph{Definition.} \([H]=\{1,\ldots,H\}\).
+  \item \texttt{i} --- \texttt{time index}; \([H]\); \texttt{Shapley coordinate under study.}
+  \item \texttt{C} --- \texttt{coalition}; \(2^{[H]}\); \texttt{Subset of switched time indices.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal S} --- \texttt{finite nonempty set}; \texttt{State space.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal A} --- \texttt{finite nonempty set}; \texttt{Action space.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal X} --- \texttt{finite row set}; \texttt{Transition-\allowbreak{}row index set.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal X=\mathcal S\times\mathcal A\).
+  \item \texttt{K} --- \texttt{time-\allowbreak{}indexed Markov kernel}; \(\prod_{t\in[H]}\Delta(\mathcal S)^{\mathcal X}\); \texttt{Observed transition marginals.}
+  \par\smallskip\noindent\emph{Definition.} \(K=(K_t(y\mid x):t\in[H],x\in\mathcal X,y\in\mathcal S)\).
+  \item \texttt{K'} --- \texttt{time-\allowbreak{}indexed Markov kernel}; \(\prod_{t\in[H]}\Delta(\mathcal S)^{\mathcal X}\); \texttt{Perturbed transition kernel used in confidence fibers and sensitivity comparisons.}
+  \item \texttt{r} --- \texttt{known reward array}; \(\prod_{t\in[H]}\mathbb R^{\mathcal X\times\mathcal S}\); \texttt{Known transition rewards,\allowbreak{} including any discounting.}
+  \par\smallskip\noindent\emph{Definition.} \(r=(r_t(x,y):t\in[H],x\in\mathcal X,y\in\mathcal S)\).
+  \item \texttt{m\_\allowbreak{}t} --- \texttt{stage reward minimum}; \texttt{Stagewise lower shift used by the nonnegative compiler input.}
+  \par\smallskip\noindent\emph{Definition.} \(m_t=\min_{x\in\mathcal X,\,y\in\mathcal S}r_t(x,y)\) for \(t\in[H]\).
+  \item \texttt{M\_\allowbreak{}t} --- \texttt{stage reward maximum}; \texttt{Stagewise upper shift used by the nonnegative compiler input.}
+  \par\smallskip\noindent\emph{Definition.} \(M_t=\max_{x\in\mathcal X,\,y\in\mathcal S}r_t(x,y)\) for \(t\in[H]\).
+  \item \texttt{R} --- \texttt{nonnegative real constant}; \texttt{Total stagewise reward range used to normalize signed objectives.}
+  \par\smallskip\noindent\emph{Definition.} \(R=\sum_{t=1}^H(M_t-m_t)\).
+  \item \texttt{h\_\allowbreak{}t\textasciicircum{}\{+\allowbreak{}\}\allowbreak{}} --- \texttt{nonnegative local reward leaf}; \texttt{Normalized positive reward leaf.}
+  \par\smallskip\noindent\emph{Definition.} For \(R>0\), \(h_t^{+}(x,y)=\{r_t(x,y)-m_t\}/R\).
+  \item \texttt{h\_\allowbreak{}t\textasciicircum{}\{-\allowbreak{}\}\allowbreak{}} --- \texttt{nonnegative local reward leaf}; \texttt{Normalized complementary reward leaf.}
+  \par\smallskip\noindent\emph{Definition.} For \(R>0\), \(h_t^{-}(x,y)=\{M_t-r_t(x,y)\}/R\).
+  \item \texttt{\textbackslash{}\allowbreak{}underline G} --- \texttt{derived real constant}; \texttt{Derived lower bound on every complete return from the stagewise reward minima.}
+  \par\smallskip\noindent\emph{Definition.} \(\underline G=\sum_{t=1}^H m_t\).
+  \item \texttt{\textbackslash{}\allowbreak{}overline G} --- \texttt{derived real constant}; \texttt{Derived upper bound on every complete return from the stagewise reward maxima.}
+  \par\smallskip\noindent\emph{Definition.} \(\overline G=\sum_{t=1}^H M_t\).
+  \item \texttt{D} --- \texttt{nonnegative real constant}; \texttt{Derived width of the complete-\allowbreak{}return range.}
+  \par\smallskip\noindent\emph{Definition.} \(D=\overline G-\underline G=R\).
+  \item \texttt{\textbackslash{}\allowbreak{}pi} --- \texttt{known time-\allowbreak{}indexed policy}; \(\prod_{t\in[H]}\Delta(\mathcal A)^{\mathcal S}\); \texttt{Factual policy used off the factual state.}
+  \item \texttt{\textbackslash{}\allowbreak{}pi\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{base\}\allowbreak{}\}\allowbreak{}} --- \texttt{known time-\allowbreak{}indexed policy}; \(\prod_{t\in[H]}\Delta(\mathcal A)^{\mathcal S}\); \texttt{Baseline policy used at switched times.}
+  \item \texttt{\textbackslash{}\allowbreak{}tau} --- \texttt{factual trajectory}; \(\mathcal S\times(\mathcal A\times\mathcal S)^H\); \texttt{Positive-\allowbreak{}probability trajectory on which credit is conditioned.}
+  \par\smallskip\noindent\emph{Definition.} \(\tau=(s_1,a_1,s_2,\ldots,s_H,a_H,s_{H+1})\).
+  \item \texttt{x\_\allowbreak{}t} --- \texttt{factual row}; \(\mathcal X\); Observed transition row at time \(t\).
+  \par\smallskip\noindent\emph{Definition.} \(x_t=(s_t,a_t)\) for \(t\in[H]\).
+  \item \texttt{y\_\allowbreak{}t} --- \texttt{factual next state}; \(\mathcal S\); Observed next state at time \(t\).
+  \par\smallskip\noindent\emph{Definition.} \(y_t=s_{t+1}\) for \(t\in[H]\).
+  \item \texttt{p\_\allowbreak{}t} --- \texttt{factual transition probability}; \texttt{Local evidence probability used in posterior response-\allowbreak{}row constraints.}
+  \par\smallskip\noindent\emph{Definition.} \(p_t=K_t(y_t\mid x_t)\).
+  \item \texttt{\textbackslash{}\allowbreak{}kappa} --- \texttt{positive real constant}; \((0,1]\); \texttt{Lower bound on factual transition-\allowbreak{}cell probabilities for uniform stability.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M} --- \texttt{finite-\allowbreak{}horizon Markov structural causal model}; \texttt{Candidate environment SCM.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M\) has equations \(S_{t+1}=F_t(S_t,A_t,U_t)\) and the specified policy interventions.
+  \item \texttt{U\_\allowbreak{}t} --- \texttt{exogenous disturbance}; Time-\(t\) transition disturbance.
+  \item \texttt{F\_\allowbreak{}t} --- \texttt{deterministic structural function}; \(\mathcal X\times\operatorname{supp}(U_t)\to\mathcal S\); Time-\(t\) transition mechanism.
+  \item \texttt{R\_\allowbreak{}t} --- \texttt{random response table}; \(\mathcal S^{\mathcal X}\); Joint potential-next-state table at time \(t\).
+  \par\smallskip\noindent\emph{Definition.} \(R_t=(F_t(x,U_t):x\in\mathcal X)\).
+  \item \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}t} --- \texttt{probability mass function}; \(\Delta(\mathcal S^{\mathcal X})\); \texttt{Within-\allowbreak{}time response-\allowbreak{}table coupling.}
+  \par\smallskip\noindent\emph{Definition.} \(\lambda_t\) is the law of \(R_t\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak M(K)} --- \texttt{class of compatible Markov structural causal models}; \texttt{Compatible-\allowbreak{}SCM class over which identification is evaluated.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak M(K)\) is the class defined in \(\texttt{def:compatible-scm-class}\).
+  \item \texttt{\textbackslash{}\allowbreak{}alpha\_\allowbreak{}t\textasciicircum{}0} --- \texttt{known policy kernel}; Retained-action intervention at time \(t\).
+  \par\smallskip\noindent\emph{Definition.} \(\alpha_t^0(\cdot\mid s_t)=\delta_{a_t}\) and \(\alpha_t^0(\cdot\mid s)=\pi_t(\cdot\mid s)\) for \(s\ne s_t\).
+  \item \texttt{\textbackslash{}\allowbreak{}alpha\_\allowbreak{}t\textasciicircum{}1} --- \texttt{known policy kernel}; Baseline-switch intervention at time \(t\).
+  \par\smallskip\noindent\emph{Definition.} \(\alpha_t^1=\pi_{\mathrm{base},t}\).
+  \item \texttt{\textbackslash{}\allowbreak{}alpha\textasciicircum{}C} --- \texttt{coalition policy}; Policy-switching intervention for coalition \(C\).
+  \par\smallskip\noindent\emph{Definition.} \(\alpha_t^C=\alpha_t^1\) if \(t\in C\) and \(\alpha_t^C=\alpha_t^0\) otherwise, for \(C\subseteq[H]\).
+  \item \texttt{q} --- \texttt{posterior transition-\allowbreak{}row array}; \(\prod_{t\in[H]}\Delta(\mathcal S)^{\mathcal X}\); Conditional transition kernel after abduction on \(\tau\).
+  \par\smallskip\noindent\emph{Definition.} \(q=(q_{t,x}(y):t\in[H],x\in\mathcal X,y\in\mathcal S)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal B(K,\allowbreak{}\textbackslash{}\allowbreak{}tau)} --- \texttt{compact product polytope}; \texttt{Exact posterior row fiber.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal B(K,\tau)=\{q:q_{t,x_t}=\delta_{y_t},\ q_{t,x}\in\Delta(\mathcal S),\ p_tq_{t,x}(y)\le K_t(y\mid x)\ \text{for all }t,x\ne x_t,y\}\).
+  \item \texttt{g\_\allowbreak{}C(q)} --- \texttt{real functional}; Counterfactual expected return for coalition \(C\).
+  \par\smallskip\noindent\emph{Definition.} \(g_C(q)=\mathbb E_q[\sum_{t=1}^H r_t((S_t,A_t),S_{t+1})\mid S_1=s_1,\alpha^C]\).
+  \item \texttt{\textbackslash{}\allowbreak{}omega\_\allowbreak{}H(C)} --- \texttt{nonnegative scalar}; \texttt{Shapley coalition weight.}
+  \par\smallskip\noindent\emph{Definition.} \(\omega_H(C)=|C|!(H-|C|-1)!/H!\) for \(C\subseteq[H]\setminus\{i\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Phi\_\allowbreak{}i(q)} --- \texttt{real functional}; Trajectory-conditioned Shapley mean-credit coordinate under posterior kernel \(q\).
+  \par\smallskip\noindent\emph{Definition.} \(\Phi_i(q)=\sum_{C\subseteq[H]\setminus\{i\}}\omega_H(C)\{g_C(q)-g_{C\cup\{i\}}(q)\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Theta\_\allowbreak{}i(K,\allowbreak{}\textbackslash{}\allowbreak{}tau)} --- \texttt{identified set}; SCM-identified values of coordinate \(i\).
+  \par\smallskip\noindent\emph{Definition.} \(\Theta_i(K,\tau)=\{\Phi_i(\mathcal M\mid\tau):\mathcal M\text{ is compatible with }K\}\).
+  \item \texttt{L\_\allowbreak{}i(K,\allowbreak{}\textbackslash{}\allowbreak{}tau)} --- \texttt{real functional}; \texttt{Lower shared-\allowbreak{}SCM endpoint.}
+  \par\smallskip\noindent\emph{Definition.} \(L_i(K,\tau)=\min_{q\in\mathcal B(K,\tau)}\Phi_i(q)\).
+  \item \texttt{U\_\allowbreak{}i(K,\allowbreak{}\textbackslash{}\allowbreak{}tau)} --- \texttt{real functional}; \texttt{Upper shared-\allowbreak{}SCM endpoint.}
+  \par\smallskip\noindent\emph{Definition.} \(U_i(K,\tau)=\max_{q\in\mathcal B(K,\tau)}\Phi_i(q)\).
+  \item \texttt{G\_\allowbreak{}i\textasciicircum{}b(z,\allowbreak{}q)} --- \texttt{real polynomial functional}; \texttt{Forced-\allowbreak{}membership branch of the Bernoulli-\allowbreak{}coalition representation.}
+  \par\smallskip\noindent\emph{Definition.} \(G_i^b(z,q)\) is the Markov expected return with time \(i\) fixed to \(\alpha_i^b\) and every \(t\ne i\) independently mixed as \((1-z)\alpha_t^0+z\alpha_t^1\), for \(b\in\{0,1\}\).
+  \item \texttt{P\_\allowbreak{}i(z,\allowbreak{}q)} --- \texttt{univariate polynomial}; \texttt{Bernoulli-\allowbreak{}coalition marginal-\allowbreak{}contribution polynomial.}
+  \par\smallskip\noindent\emph{Definition.} \(P_i(z,q)=G_i^0(z,q)-G_i^1(z,q)\), where \(G_i^b(z,q)\) is the Markov expected return with time \(i\) fixed to \(\alpha_i^b\) and each \(t\ne i\) independently mixed as \((1-z)\alpha_t^0+z\alpha_t^1\).
+  \item \texttt{\textbackslash{}\allowbreak{}zeta\_\allowbreak{}j} --- \texttt{rational quadrature nodes}; \([0,1]\cap\mathbb Q\); \texttt{Interpolation nodes for exact Shapley integration.}
+  \par\smallskip\noindent\emph{Definition.} \(\zeta_1,\ldots,\zeta_H\) are pairwise distinct rational points.
+  \item \texttt{\textbackslash{}\allowbreak{}ell\_\allowbreak{}j(z)} --- \texttt{Lagrange basis polynomial}; \texttt{Interpolation basis associated with the rational quadrature nodes.}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_j(z)=\prod_{k\ne j}(z-\zeta_k)/(\zeta_j-\zeta_k)\).
+  \item \texttt{\textbackslash{}\allowbreak{}nu\_\allowbreak{}j} --- \texttt{rational quadrature weights}; Exact integration weights for degree at most \(H-1\).
+  \par\smallskip\noindent\emph{Definition.} \(\nu_j=\int_0^1\ell_j(z)\,dz\), where \(\ell_j\) is the Lagrange basis polynomial for \(\zeta_1,\ldots,\zeta_H\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf Q\_\allowbreak{}i(q)} --- \texttt{exact quadrature functional}; \texttt{Polynomial-\allowbreak{}size exact representation of the Shapley coordinate.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf Q_i(q)=\sum_{j=1}^H\nu_jP_i(\zeta_j,q)\).
+  \item \texttt{\textbackslash{}\allowbreak{}sigma} --- \texttt{fixed sign input}; \(\{-1,+1\}\); \texttt{Selects the upper or lower affine endpoint objective.}
+  \item \texttt{h\_\allowbreak{}\{jb\}\allowbreak{}(q)} --- \texttt{normalized branch-\allowbreak{}return functional}; A branch expectation in \(\left[0,1\right]\) realized from normalized local reward leaves.
+  \par\smallskip\noindent\emph{Definition.} For \(R>0\), \(h_{jb}(q)=\{G_i^b(\zeta_j,q)-\sum_{t=1}^H m_t\}/R\), for \(j\in[H]\) and \(b\in\{0,1\}\).
+  \item \texttt{a\_\allowbreak{}\{jb\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}sigma\}\allowbreak{}} --- \texttt{signed rational coefficient}; \texttt{Signed coefficient in the affine nonnegative lift.}
+  \par\smallskip\noindent\emph{Definition.} \(a_{jb}^{\sigma}=\sigma(-1)^b\nu_j\) for \(j\in[H]\), \(b\in\{0,1\}\), and fixed \(\sigma\in\{-1,+1\}\).
+  \item \texttt{C\_\allowbreak{}\{\textbackslash{}\allowbreak{}nu\}\allowbreak{}} --- \texttt{nonnegative rational constant}; Quadrature offset; this is the constant denoted \(C\) in the affine recovery identity.
+  \par\smallskip\noindent\emph{Definition.} \(C_{\nu}=\sum_{j=1}^H|\nu_j|\).
+  \item \texttt{F\_\allowbreak{}i\textasciicircum{}\{\textbackslash{}\allowbreak{}sigma\}\allowbreak{}(q)} --- \texttt{nonnegative objective functional}; Concrete nonnegative objective for sign \(\sigma\), with the same posterior kernel \(q\) in every term.
+  \par\smallskip\noindent\emph{Definition.} For \(R>0\), \(F_i^{\sigma}(q)=\sum_{j,b:a_{jb}^{\sigma}\ge0}|a_{jb}^{\sigma}|h_{jb}(q)+\sum_{j,b:a_{jb}^{\sigma}<0}|a_{jb}^{\sigma}|\{1-h_{jb}(q)\}\).
+  \item \texttt{V\_\allowbreak{}\{\textbackslash{}\allowbreak{}sigma\}\allowbreak{}} --- \texttt{nonnegative endpoint-\allowbreak{}circuit value}; \texttt{Maximized nonnegative objective from which a shared endpoint is recovered.}
+  \par\smallskip\noindent\emph{Definition.} For \(R>0\), \(V_{\sigma}=\max_{q\in\mathcal B(K,\tau)}F_i^{\sigma}(q)\).
+  \item \texttt{Z\_\allowbreak{}\{t,\allowbreak{}x\}\allowbreak{}} --- \texttt{finite decision variable}; \texttt{Shared endpoint-\allowbreak{}optimization choice for one posterior row;\allowbreak{} singleton choices are substituted before the sparse-\allowbreak{}width order is run.}
+  \par\smallskip\noindent\emph{Definition.} \(Z_{t,x}\) selects one vertex of the row polytope for \((t,x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak F\_\allowbreak{}i\textasciicircum{}\{\textbackslash{}\allowbreak{}sigma\}\allowbreak{}} --- \texttt{sign-\allowbreak{}indexed nonnegative factor circuit}; \texttt{Explicit polynomial-\allowbreak{}size nonnegative input whose legal mixed elimination returns the exact fixed-\allowbreak{}sign shared endpoint objective.}
+  \par\smallskip\noindent\emph{Definition.} For fixed \(\sigma\in\{-1,+1\}\), \(\mathfrak F_i^{\sigma}\) is the explicit circuit for \(F_i^{\sigma}\), using quadrature, forced-membership, path, and reward-time selectors, local leaves \(h_t^{+}\) and \(h_t^{-}\), and one shared copy of every \(Z_{t,x}\) across all selectors and paths.
+  \item \texttt{N} --- \texttt{positive integer}; \texttt{Compiler input-\allowbreak{}size count.}
+  \par\smallskip\noindent\emph{Definition.} \(N\) is the maximum number of variables plus factors in either explicit circuit \(\mathfrak F_i^{+1}\) or \(\mathfrak F_i^{-1}\).
+  \item \texttt{d} --- \texttt{positive integer}; \texttt{Compiler alphabet bound.}
+  \par\smallskip\noindent\emph{Definition.} \(d\) is the largest alphabet size of a nonglobal chance or decision variable in \(\mathfrak F_i^{+1}\) or \(\mathfrak F_i^{-1}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf\{BP\}\allowbreak{}\_\allowbreak{}\{\textbackslash{}\allowbreak{}sigma\}\allowbreak{}} --- \texttt{optimizer backpointer table}; \texttt{Backtracking data that recovers one joint assignment of all shared row selectors and hence one compatible endpoint SCM.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{BP}_{\sigma}\) records, at every maximization bucket of \(\mathfrak F_i^{\sigma}\), an optimizing value consistent with the already fixed outer decision context.
+  \item \texttt{\textbackslash{}\allowbreak{}varepsilon} --- \texttt{real family parameter}; \((0,1)\); \texttt{Baseline-\allowbreak{}switch probability in the strict-\allowbreak{}gap family.}
+  \item \texttt{u} --- \texttt{strict-\allowbreak{}gap posterior-\allowbreak{}row coordinate}; \texttt{Time-\allowbreak{}one alternate-\allowbreak{}action success probability.}
+  \par\smallskip\noindent\emph{Definition.} For the binary two-stage strict-gap calculation, \(u=q_{1,(0,1)}(1)\).
+  \item \texttt{w} --- \texttt{strict-\allowbreak{}gap posterior-\allowbreak{}row coordinate}; \texttt{Time-\allowbreak{}two baseline-\allowbreak{}action success probability at state zero.}
+  \par\smallskip\noindent\emph{Definition.} For the binary two-stage strict-gap calculation, \(w=q_{2,(0,1)}(1)\).
+  \item \texttt{z} --- \texttt{strict-\allowbreak{}gap posterior-\allowbreak{}row coordinate}; \texttt{Time-\allowbreak{}two factual-\allowbreak{}policy success probability at state one.}
+  \par\smallskip\noindent\emph{Definition.} For the binary two-stage strict-gap calculation, \(z=q_{2,(1,0)}(1)\).
+  \item \texttt{v} --- \texttt{strict-\allowbreak{}gap posterior-\allowbreak{}row coordinate}; \texttt{Time-\allowbreak{}two baseline-\allowbreak{}action success probability at state one.}
+  \par\smallskip\noindent\emph{Definition.} For the binary two-stage strict-gap calculation, \(v=q_{2,(1,1)}(1)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak G\_\allowbreak{}\{\textbackslash{}\allowbreak{}varepsilon\}\allowbreak{}} --- \texttt{one-\allowbreak{}parameter family of finite Markov SCM instances}; \texttt{Nondegenerate family separating shared and coalitionwise endpoint optimization.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak G_{\varepsilon}\) is the explicit two-step binary family defined in \(\texttt{def:strict-gap-family}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal I\_\allowbreak{}i\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{ind\}\allowbreak{}\}\allowbreak{}(K,\allowbreak{}\textbackslash{}\allowbreak{}tau)} --- \texttt{outer interval}; \texttt{Independently optimized coalitionwise outer bound.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal I_i^{\mathrm{ind}}(K,\tau)\) is obtained by minimizing or maximizing every distinct coalition return \(g_C\) over its own copy of \(\mathcal B(K,\tau)\) before forming the signed Shapley sum.
+  \item \texttt{n\_\allowbreak{}\{t,\allowbreak{}x\}\allowbreak{}} --- \texttt{nonnegative integer array}; \texttt{Multinomial row sample sizes.}
+  \par\smallskip\noindent\emph{Definition.} \(n_{t,x}\) is the fixed number of transition observations from row \((t,x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat K} --- \texttt{empirical transition kernel}; \texttt{Estimated transition marginals.}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat K_t(\cdot\mid x)\) is the empirical multinomial proportion vector from the \(n_{t,x}\) observations.
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{significance level}; \((0,1)\); \texttt{Familywise error probability.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}\{1-\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}(\textbackslash{}\allowbreak{}widehat K)} --- \texttt{simultaneous confidence region}; \texttt{Joint transition-\allowbreak{}law confidence fiber.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C_{1-\alpha}(\widehat K)\) is a product of rowwise multinomial confidence polytopes satisfying \(\inf_K\Pr_K\{K\in\mathcal C_{1-\alpha}(\widehat K)\}\ge 1-\alpha\).
+  \item \texttt{L\_\allowbreak{}i\textasciicircum{}\{\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{random lower endpoint}; \texttt{Lower confidence-\allowbreak{}fiber endpoint.}
+  \par\smallskip\noindent\emph{Definition.} \(L_i^{\alpha}=\inf_{K'\in\mathcal C_{1-\alpha}(\widehat K):\,K'_t(y_t\mid x_t)>0\ \forall t}L_i(K',\tau)\).
+  \item \texttt{U\_\allowbreak{}i\textasciicircum{}\{\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{random upper endpoint}; \texttt{Upper confidence-\allowbreak{}fiber endpoint.}
+  \par\smallskip\noindent\emph{Definition.} \(U_i^{\alpha}=\sup_{K'\in\mathcal C_{1-\alpha}(\widehat K):\,K'_t(y_t\mid x_t)>0\ \forall t}U_i(K',\tau)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak M\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{CI\}\allowbreak{}\}\allowbreak{}(K)} --- \texttt{counterfactually independent compatible-\allowbreak{}SCM subclass}; \texttt{Published point-\allowbreak{}selection special case used for the reduction check.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak M_{\mathrm{CI}}(K)\subseteq\mathfrak M(K)\) contains models whose distinct response-row coordinates are mutually independent within each time.
+  \item \texttt{q\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{CI\}\allowbreak{}\}\allowbreak{}} --- \texttt{counterfactually independent posterior kernel}; \texttt{Unique posterior-\allowbreak{}row kernel selected by within-\allowbreak{}time counterfactual independence.}
+  \par\smallskip\noindent\emph{Definition.} \(q_{t,x_t}^{\mathrm{CI}}=\delta_{y_t}\) and \(q_{t,x}^{\mathrm{CI}}=K_t(\cdot\mid x)\) for \(x\ne x_t\), at every \(t\in[H]\).
+  \item \texttt{\textbackslash{}\allowbreak{}Theta\_\allowbreak{}i\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{CI\}\allowbreak{}\}\allowbreak{}(K,\allowbreak{}\textbackslash{}\allowbreak{}tau)} --- \texttt{counterfactually independent identified set}; \texttt{Identified set after imposing the published counterfactual-\allowbreak{}independence selection.}
+  \par\smallskip\noindent\emph{Definition.} \(\Theta_i^{\mathrm{CI}}(K,\tau)=\{\Phi_i(\mathcal M\mid\tau):\mathcal M\in\mathfrak M_{\mathrm{CI}}(K)\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}delta(K,\allowbreak{}K')} --- \texttt{nonnegative discrepancy}; \texttt{Uniform rowwise transition perturbation.}
+  \par\smallskip\noindent\emph{Definition.} \(\delta(K,K')=\max_{t,x}\|K_t(\cdot\mid x)-K'_t(\cdot\mid x)\|_1\).
+  \item \texttt{\textbackslash{}\allowbreak{}theta} --- \texttt{primitive tuple}; \texttt{Joint transition,\allowbreak{} reward,\allowbreak{} factual-\allowbreak{}policy,\allowbreak{} and baseline-\allowbreak{}policy primitive.}
+  \par\smallskip\noindent\emph{Definition.} \(\theta=(K,r,\pi,\pi_{\mathrm{base}})\) on the fixed two-stage binary stratum.
+  \item \texttt{\textbackslash{}\allowbreak{}theta\textasciicircum{}\textbackslash{}\allowbreak{}star} --- \texttt{interior primitive tuple}; \texttt{Interior center of the quantitative strict-\allowbreak{}gap family.}
+  \par\smallskip\noindent\emph{Definition.} \(\theta^\star\) is the center specified in \(\texttt{def:quantitative-gap-neighborhood}\).
+  \item \texttt{\textbackslash{}\allowbreak{}rho} --- \texttt{positive real radius}; \texttt{Primitive-\allowbreak{}metric radius of the quantitative gap neighborhood.}
+  \par\smallskip\noindent\emph{Definition.} \(\rho=1/1024\).
+  \item \texttt{d\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{pr\}\allowbreak{}\}\allowbreak{}} --- \texttt{primitive discrepancy}; Metric controlling simultaneous perturbations of \(K,r,\pi,\pi_{\mathrm{base}}\).
+  \par\smallskip\noindent\emph{Definition.} \(d_{\mathrm{pr}}\) is the maximum rowwise \(\ell^1\) discrepancy for transition and policy kernels and the sup discrepancy for reward cells, as specified in \(\texttt{def:quantitative-gap-neighborhood}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal N\_\allowbreak{}\textbackslash{}\allowbreak{}rho(\textbackslash{}\allowbreak{}theta\textasciicircum{}\textbackslash{}\allowbreak{}star)} --- \texttt{relative-\allowbreak{}open primitive family}; \texttt{Certified open neighborhood on which the strict gap and nondegeneracy bounds hold.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal N_\rho(\theta^\star)=\{\theta:d_{\mathrm{pr}}(\theta,\theta^\star)<\rho\}\) within the valid fixed discrete stratum.
+  \item \texttt{\textbackslash{}\allowbreak{}mu\_\allowbreak{}\textbackslash{}\allowbreak{}tau(\textbackslash{}\allowbreak{}theta)} --- \texttt{nonnegative real functional}; \texttt{Observed probability mass of the fixed factual action-\allowbreak{}transition region.}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_\tau(\theta)=\prod_{t=1}^2\pi_t(0\mid0)K_t(0\mid(0,0))\).
+  \item \texttt{s\_\allowbreak{}\textbackslash{}\allowbreak{}pi(\textbackslash{}\allowbreak{}theta)} --- \texttt{nonnegative real functional}; \texttt{Smallest action probability across both policies.}
+  \par\smallskip\noindent\emph{Definition.} \(s_\pi(\theta)=\min_{t,s,a}\min\{\pi_t(a\mid s),\pi_{\mathrm{base},t}(a\mid s)\}\).
+  \item \texttt{s\_\allowbreak{}K(\textbackslash{}\allowbreak{}theta)} --- \texttt{nonnegative real functional}; \texttt{Smallest transition probability in the two-\allowbreak{}stage binary primitive.}
+  \par\smallskip\noindent\emph{Definition.} \(s_K(\theta)=\min_{t,x,y}K_t(y\mid x)\).
+  \item \texttt{V\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{fd\}\allowbreak{}\}\allowbreak{}(\textbackslash{}\allowbreak{}theta)} --- \texttt{nonnegative real functional}; \texttt{Smallest conditional variance of the terminal reward across time-\allowbreak{}two rows.}
+  \par\smallskip\noindent\emph{Definition.} \(V_{\mathrm{fd}}(\theta)=\min_{x\in\mathcal X}\operatorname{Var}_{Y\sim K_2(\cdot\mid x)}\{r_2(x,Y)\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Delta\_\allowbreak{}1\textasciicircum{}-\allowbreak{}(\textbackslash{}\allowbreak{}theta)} --- \texttt{nonnegative excess-\allowbreak{}width functional}; \texttt{Lower excess width of the internal coalitionwise relaxation over the shared-\allowbreak{}SCM interval.}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_1^-(\theta)=L_1(K,\tau)-\inf\mathcal I_1^{\mathrm{ind}}(K,\tau)\).
+  \item \texttt{\textbackslash{}\allowbreak{}Delta\_\allowbreak{}1\textasciicircum{}+\allowbreak{}(\textbackslash{}\allowbreak{}theta)} --- \texttt{nonnegative excess-\allowbreak{}width functional}; \texttt{Upper excess width of the internal coalitionwise relaxation over the shared-\allowbreak{}SCM interval.}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_1^+(\theta)=\sup\mathcal I_1^{\mathrm{ind}}(K,\tau)-U_1(K,\tau)\).
+  \item \texttt{W} --- \texttt{finite global chance selector}; \([H]\times\{0,1\}\times[H]\); Single global selector whose alphabet contributes the leading \(2H^2\) factor but is excluded from constrained width.
+  \par\smallskip\noindent\emph{Definition.} \(W\) jointly indexes a quadrature node, a forced-membership branch, and a reward time in one endpoint circuit.
+  \item \texttt{\textbackslash{}\allowbreak{}preceq} --- \texttt{variable elimination order}; Order preserving the outer shared-SCM maximization; the certified sparse order eliminates the path, then \(W\), then the active row selectors.
+  \par\smallskip\noindent\emph{Definition.} For either circuit \(\mathfrak F_i^{\sigma}\), \(\preceq\) is legal when every chance variable whose current factor scope contains an uneliminated decision variable is summed before that decision variable is maximized; the global sign is fixed, not eliminated.
+  \item \texttt{J} --- \texttt{active-\allowbreak{}time index set}; \(2^{[H]}\); \texttt{Stages at which factual conditioning does not force every posterior transition row to be a singleton.}
+  \par\smallskip\noindent\emph{Definition.} \(J=\{t\in[H]:p_t<1\}\).
+  \item \texttt{m} --- \texttt{nonnegative integer}; \texttt{Active decision count controlling the certified sparse-\allowbreak{}stochastic constrained-\allowbreak{}width upper bound.}
+  \par\smallskip\noindent\emph{Definition.} After singleton substitution, \(m\) is the number of remaining non-singleton posterior-row selectors specified by \(\texttt{def:active-ambiguity-count}\).
+  \item \texttt{w\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm c\}\allowbreak{}(\textbackslash{}\allowbreak{}preceq)} --- \texttt{nonnegative integer}; Constrained elimination width: at most \(m+3\) for the sparse order, but at least \(|J|-1\) on a fully active chain minor.
+  \par\smallskip\noindent\emph{Definition.} \(w_{\mathrm c}(\preceq)\) is the maximum, over buckets induced by a legal order on either \(\mathfrak F_i^{\sigma}\), of the number of nonglobal live variables in the bucket minus one.
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf\{Compile\}\allowbreak{}\_\allowbreak{}i} --- \texttt{mixed-\allowbreak{}elimination compiler handle}; \texttt{Exact rational compiler for both shared-\allowbreak{}SCM endpoints,\allowbreak{} with a certified sparse-\allowbreak{}stochastic order and no uniform small-\allowbreak{}width claim for fully active chains.}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{Compile}_i\) is the handle that applies legal sum-before-max elimination and \(\mathsf{BP}_{\sigma}\)-backtracking separately to the two fixed-sign circuits \(\mathfrak F_i^{+1}\) and \(\mathfrak F_i^{-1}\), without duplicating any \(Z_{t,x}\) within a circuit.
+  \item \texttt{r\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{pos\}\allowbreak{}\}\allowbreak{}(\textbackslash{}\allowbreak{}kappa)} --- \texttt{positive real critical perturbation radius}; \((0,1/2]\); \texttt{Certified proof-\allowbreak{}used radius that preserves at least half of the factual-\allowbreak{}cell positivity margin;\allowbreak{} no maximality is claimed.}
+  \par\smallskip\noindent\emph{Definition.} \(r_{\mathrm{pos}}(\kappa)=\kappa/2\).
+  \item \texttt{r\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathcal C\}\allowbreak{}(K,\allowbreak{}\textbackslash{}\allowbreak{}widehat K)} --- \texttt{nonnegative realized confidence-\allowbreak{}fiber radius}; \([0,2]\); \texttt{Maximum rowwise discrepancy from the true transition kernel across the realized simultaneous confidence region.}
+  \par\smallskip\noindent\emph{Definition.} \(r_{\mathcal C}(K,\widehat K)=\sup_{K'\in\mathcal C_{1-\alpha}(\widehat K)}\delta(K,K')\), with \(\sup\varnothing=0\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:markov-structural-equations]\label{ass:markov-structural-equations}
+The environment transition equation at time \(t\) is \(S_{t+1}=F_t(S_t,A_t,U_t)\).
+\par\smallskip\noindent\emph{Standard} (Markovian finite-horizon SCM representation, \cite{LallyKazemiPaoletti2026RobustCounterfactualMDP}).
+\end{assumption}
+
+\begin{assumption}[ass:independent-time-disturbances]\label{ass:independent-time-disturbances}
+The disturbances \(U_1,\ldots,U_H\) are mutually independent.
+\par\smallskip\noindent\emph{Standard} (Independent disturbances across Markov stages, \cite{LallyKazemiPaoletti2026RobustCounterfactualMDP}).
+\end{assumption}
+
+\begin{assumption}[ass:transition-marginals]\label{ass:transition-marginals}
+For every \(t\in[H]\), \(x\in\mathcal X\), and \(y\in\mathcal S\), \(\Pr\{F_t(x,U_t)=y\}=K_t(y\mid x)\).
+\par\smallskip\noindent\emph{Standard} (SCM compatibility with an observed Markov kernel, \cite{ZhangTianBareinboim2022PartialCounterfactual}).
+\end{assumption}
+
+\begin{assumption}[ass:factual-positivity]\label{ass:factual-positivity}
+For every \(t\in[H]\), \(p_t>0\).
+\par\smallskip\noindent\emph{Standard} (Positive factual transition evidence, \cite{LallyKazemiPaoletti2026RobustCounterfactualMDP}).
+\end{assumption}
+
+\begin{assumption}[ass:within-time-row-independence]\label{ass:within-time-row-independence}
+For every \(t\in[H]\), the coordinates \(R_t(x)\), \(x\in\mathcal X\), are mutually independent.
+\par\smallskip\noindent\emph{Standard} (Counterfactual independence across action rows, \cite{LiLeeBareinboim2026CounterfactualShapley}).
+\end{assumption}
+
+\begin{assumption}[ass:fixed-row-multinomial-sampling]\label{ass:fixed-row-multinomial-sampling}
+Conditional on each row \((t,x)\), the \(n_{t,x}\) observed next states are independent draws from \(K_t(\cdot\mid x)\).
+\par\smallskip\noindent\emph{Standard} (Fixed-design multinomial row sampling, \cite{Wang2008MultinomialSCI}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:compatible-scm-class]\label{def:compatible-scm-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathfrak M(K)}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak M(K)=\{\mathcal M:\mathcal M\text{ satisfies }\text{ass:markov-structural-equations},\ \text{ass:independent-time-disturbances},\ \text{and }\text{ass:transition-marginals for every }t\in[H]\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}markov-\allowbreak{}structural-\allowbreak{}equations}; \texttt{ass:\allowbreak{}independent-\allowbreak{}time-\allowbreak{}disturbances}; \texttt{ass:\allowbreak{}transition-\allowbreak{}marginals}.
+\end{definition}
+
+\begin{definition}[def:posterior-row-fiber]\label{def:posterior-row-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal B(K,\allowbreak{}\textbackslash{}\allowbreak{}tau)}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal B(K,\tau)=\{q:q_{t,x_t}=\delta_{y_t}\text{ and }q_{t,x}\in\Delta(\mathcal S),\ p_tq_{t,x}(y)\le K_t(y\mid x)\text{ for every }t\in[H],x\ne x_t,y\in\mathcal S\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{K}; \texttt{\textbackslash{}\allowbreak{}tau}.
+\end{definition}
+
+\begin{definition}[def:coalition-policy]\label{def:coalition-policy}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}alpha\textasciicircum{}C}
+\par\smallskip\noindent\emph{Construction.} For \(C\subseteq[H]\), set \(\alpha_t^C=\alpha_t^1\) when \(t\in C\) and \(\alpha_t^C=\alpha_t^0\) when \(t\notin C\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{C}.
+\end{definition}
+
+\begin{definition}[def:shapley-coordinate]\label{def:shapley-coordinate}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}Phi\_\allowbreak{}i(q)}
+\par\smallskip\noindent\emph{Construction.} \(\Phi_i(q)=\sum_{C\subseteq[H]\setminus\{i\}}\omega_H(C)\{g_C(q)-g_{C\cup\{i\}}(q)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{q}; \texttt{i}.
+\end{definition}
+
+\begin{definition}[def:shared-endpoints]\label{def:shared-endpoints}
+\par\smallskip\noindent\emph{Defined object.} \texttt{[L\_\allowbreak{}i(K,\allowbreak{}\textbackslash{}\allowbreak{}tau),\allowbreak{}U\_\allowbreak{}i(K,\allowbreak{}\textbackslash{}\allowbreak{}tau)]}
+\par\smallskip\noindent\emph{Construction.} \(L_i(K,\tau)=\min_{q\in\mathcal B(K,\tau)}\Phi_i(q)\) and \(U_i(K,\tau)=\max_{q\in\mathcal B(K,\tau)}\Phi_i(q)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{K}; \texttt{\textbackslash{}\allowbreak{}tau}; \texttt{i}.
+\end{definition}
+
+\begin{definition}[def:quadrature-representation]\label{def:quadrature-representation}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathsf Q\_\allowbreak{}i(q)}
+\par\smallskip\noindent\emph{Construction.} \(\mathsf Q_i(q)=\sum_{j=1}^H\nu_jP_i(\zeta_j,q)\), with each \(P_i(\zeta_j,q)\) evaluated by the finite-horizon Markov recursion.
+\par\smallskip\noindent\emph{Inputs.} \texttt{q}; \texttt{i}.
+\end{definition}
+
+\begin{definition}[def:nonnegative-endpoint-objectives]\label{def:nonnegative-endpoint-objectives}
+\par\smallskip\noindent\emph{Defined object.} \texttt{F\_\allowbreak{}i\textasciicircum{}\{\textbackslash{}\allowbreak{}sigma\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} For \(R>0\), set \(h_t^{+}(x,y)=\{r_t(x,y)-m_t\}/R\), \(h_t^{-}(x,y)=\{M_t-r_t(x,y)\}/R\), \(h_{jb}(q)=\{G_i^b(\zeta_j,q)-\sum_{t=1}^Hm_t\}/R\), \(a_{jb}^{\sigma}=\sigma(-1)^b\nu_j\), and \(C_{\nu}=\sum_{j=1}^H|\nu_j|\). Define \(F_i^{\sigma}(q)=\sum_{j,b:a_{jb}^{\sigma}\ge0}|a_{jb}^{\sigma}|h_{jb}(q)+\sum_{j,b:a_{jb}^{\sigma}<0}|a_{jb}^{\sigma}|\{1-h_{jb}(q)\}\) for fixed \(\sigma\in\{-1,+1\}\), always using the same \(q\) in every summand, and set \(V_{\sigma}=\max_{q\in\mathcal B(K,\tau)}F_i^{\sigma}(q)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{q}; \texttt{\textbackslash{}\allowbreak{}sigma}.
+\end{definition}
+
+\begin{definition}[def:compiler-handle]\label{def:compiler-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathsf\{Compile\}\allowbreak{}\_\allowbreak{}i}
+\par\smallskip\noindent\emph{Construction.} For \(R>0\) and each fixed \(\sigma\in\{-1,+1\}\), realize \(h_{jb}\) and \(1-h_{jb}\) by Markov path factors, the single global selector \(W\) jointly indexing quadrature, forced membership, and reward time, and the local leaves \(h_t^{+}\) and \(h_t^{-}\); weight them by \(|a_{jb}^{\sigma}|\) to target \(F_i^{\sigma}\). Use one shared selector \(Z_{t,x}\) for each posterior row across every quadrature branch, forced-membership branch, path, and reward selector. Apply any legal order \(\preceq\), store \(\mathsf{BP}_{\sigma}\), and backtrack one joint row assignment. For the sparse-stochastic order, first substitute the unique values of all singleton row selectors, keep \(W\) live while eliminating the Markov state-action path backward, sum \(W\), and only then maximize the remaining row selectors. If a circuit formalism requires selector probabilities, use weights \(|a_{jb}^{\sigma}|/(2C_{\nu})\) and multiply the circuit value by \(2C_{\nu}\) before endpoint recovery.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathfrak F\_\allowbreak{}i\textasciicircum{}\{\textbackslash{}\allowbreak{}sigma\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}preceq}.
+\end{definition}
+
+\begin{definition}[def:independent-coalition-outer-bound]\label{def:independent-coalition-outer-bound}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal I\_\allowbreak{}i\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{ind\}\allowbreak{}\}\allowbreak{}(K,\allowbreak{}\textbackslash{}\allowbreak{}tau)}
+\par\smallskip\noindent\emph{Construction.} For \(i\in[H]\), define the internally constructed coalitionwise relaxation
+\[
+ \mathcal I_i^{\mathrm{ind}}(K,\tau)
+ =\left[
+ \sum_{C\subseteq[H]\setminus\{i\}}\omega_H(C)
+ \left\{\inf_{q\in\mathcal B(K,\tau)}g_C(q)
+       -\sup_{q\in\mathcal B(K,\tau)}g_{C\cup\{i\}}(q)\right\},
+ \sum_{C\subseteq[H]\setminus\{i\}}\omega_H(C)
+ \left\{\sup_{q\in\mathcal B(K,\tau)}g_C(q)
+       -\inf_{q\in\mathcal B(K,\tau)}g_{C\cup\{i\}}(q)\right\}
+ \right].
+\]
+Thus every distinct coalition return is optimized over its own copy of the posterior fiber before the signed Shapley sum is formed.  This relaxation is defined internally for comparison; its definition does not attribute this operation to an external estimator or workflow.
+\par\smallskip\noindent\emph{Inputs.} \texttt{K}; \texttt{\textbackslash{}\allowbreak{}tau}; \texttt{i}.
+\end{definition}
+
+\begin{definition}[def:strict-gap-family]\label{def:strict-gap-family}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathfrak G\_\allowbreak{}\{\textbackslash{}\allowbreak{}varepsilon\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} For \(0<\varepsilon<1\), \(\mathfrak G_{\varepsilon}\) is the primitive tuple \(H=2\), \(\mathcal S=\mathcal A=\{0,1\}\), \(S_1=0\), \(\tau=(0,0,0,0,0)\), \(K_t(y\mid s,a)=1/2\) for every \(t,s,a,y\), \(r_1((s,a),y)=0\), \(r_2((s,a),y)=y\), and \(i=1\). For every state and time, \(\pi_t(0\mid s)=1\). For both states, \(\pi_{\mathrm{base},1}(1\mid s)=\varepsilon\), \(\pi_{\mathrm{base},1}(0\mid s)=1-\varepsilon\), and \(\pi_{\mathrm{base},2}(1\mid s)=1\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}varepsilon}.
+\end{definition}
+
+\begin{definition}[def:confidence-fiber-endpoints]\label{def:confidence-fiber-endpoints}
+\par\smallskip\noindent\emph{Defined object.} \texttt{[L\_\allowbreak{}i\textasciicircum{}\{\textbackslash{}\allowbreak{}alpha\}\allowbreak{},\allowbreak{}U\_\allowbreak{}i\textasciicircum{}\{\textbackslash{}\allowbreak{}alpha\}\allowbreak{}]}
+\par\smallskip\noindent\emph{Construction.} \(L_i^{\alpha}=\inf_{K'\in\mathcal C_{1-\alpha}(\widehat K):\,K'_t(y_t\mid x_t)>0\ \forall t}L_i(K',\tau)\) and \(U_i^{\alpha}=\sup_{K'\in\mathcal C_{1-\alpha}(\widehat K):\,K'_t(y_t\mid x_t)>0\ \forall t}U_i(K',\tau)\), with closure in posterior-row space when a confidence fiber approaches a zero factual cell.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat K}; \texttt{\textbackslash{}\allowbreak{}alpha}; \texttt{\textbackslash{}\allowbreak{}tau}; \texttt{i}.
+\end{definition}
+
+\begin{definition}[def:counterfactual-independent-subclass]\label{def:counterfactual-independent-subclass}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathfrak M\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{CI\}\allowbreak{}\}\allowbreak{}(K)}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak M_{\mathrm{CI}}(K)=\{\mathcal M\in\mathfrak M(K):R_t(x)\text{ and }R_t(x')\text{ are independent for all }t\in[H]\text{ and distinct }x,x'\in\mathcal X\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}markov-\allowbreak{}structural-\allowbreak{}equations}; \texttt{ass:\allowbreak{}independent-\allowbreak{}time-\allowbreak{}disturbances}; \texttt{ass:\allowbreak{}transition-\allowbreak{}marginals}; \texttt{ass:\allowbreak{}within-\allowbreak{}time-\allowbreak{}row-\allowbreak{}independence}.
+\end{definition}
+
+\begin{definition}[def:counterfactual-independent-target]\label{def:counterfactual-independent-target}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}Theta\_\allowbreak{}i\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{CI\}\allowbreak{}\}\allowbreak{}(K,\allowbreak{}\textbackslash{}\allowbreak{}tau)}
+\par\smallskip\noindent\emph{Construction.} \(\Theta_i^{\mathrm{CI}}(K,\tau)=\{\Phi_i(\mathcal M\mid\tau):\mathcal M\in\mathfrak M_{\mathrm{CI}}(K)\}\), with the selected posterior kernel \(q_{t,x_t}^{\mathrm{CI}}=\delta_{y_t}\) and \(q_{t,x}^{\mathrm{CI}}=K_t(\cdot\mid x)\) for \(x\ne x_t\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{K}; \texttt{\textbackslash{}\allowbreak{}tau}; \texttt{i}.
+\end{definition}
+
+\begin{definition}[def:quantitative-gap-neighborhood]\label{def:quantitative-gap-neighborhood}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal N\_\allowbreak{}\textbackslash{}\allowbreak{}rho(\textbackslash{}\allowbreak{}theta\textasciicircum{}\textbackslash{}\allowbreak{}star)}
+\par\smallskip\noindent\emph{Construction.} Work on the fixed discrete stratum \(H=2\), \(\mathcal S=\mathcal A=\{0,1\}\), \(\tau=(0,0,0,0,0)\), and \(i=1\).  Write \(\theta=(K,r,\pi,\pi_{\mathrm{base}})\).  The interior center \(\theta^\star\) has \(K_t(y\mid s,a)=1/2\) for all cells, \(r_1((s,a),y)=0\), \(r_2((s,a),y)=y\), \(\pi_t(1\mid s)=1/64\) for every \(t,s\), \(\pi_{\mathrm{base},1}(1\mid s)=1/4\), and \(\pi_{\mathrm{base},2}(1\mid s)=63/64\) for every \(s\).  All complementary action probabilities are determined by normalization.  Set \(\rho=1/1024\) and, with probability vectors ordered by \(0,1\), set
+\[
+\begin{aligned}
+d_{\mathrm{pr}}(\theta,\theta^\star)=\max\Bigl\{
+&\max_{t,x}\|K_t(\cdot\mid x)-(1/2,1/2)\|_1,
+ \max_{x,y}|r_1(x,y)|,
+ \max_{x,y}|r_2(x,y)-y|,\\
+&\max_{t,s}\|\pi_t(\cdot\mid s)-(63/64,1/64)\|_1,\\
+&\max_s\|\pi_{\mathrm{base},1}(\cdot\mid s)-(3/4,1/4)\|_1,
+ \max_s\|\pi_{\mathrm{base},2}(\cdot\mid s)-(1/64,63/64)\|_1
+\Bigr\}.
+\end{aligned}
+\]
+Define \(\mathcal N_\rho(\theta^\star)\) to be the set of all valid kernel, reward, and policy primitives on this stratum satisfying \(d_{\mathrm{pr}}(\theta,\theta^\star)<\rho\).  Apart from the probability-simplex constraints, no continuous cell is held fixed.  For \(\theta\in\mathcal N_\rho(\theta^\star)\), define
+\[
+ \mu_\tau(\theta)=\prod_{t=1}^2\pi_t(0\mid0)K_t(0\mid(0,0)),
+\]
+\[
+ s_\pi(\theta)=\min_{t,s,a}\min\{\pi_t(a\mid s),\pi_{\mathrm{base},t}(a\mid s)\},
+ \qquad
+ s_K(\theta)=\min_{t,x,y}K_t(y\mid x),
+\]
+\[
+ V_{\mathrm{fd}}(\theta)=\min_{x\in\mathcal X}
+ \operatorname{Var}_{Y\sim K_2(\cdot\mid x)}\{r_2(x,Y)\},
+\]
+and the lower and upper excess widths of the internal relaxation by
+\[
+ \Delta_1^-(\theta)=L_1(K,\tau)-\inf\mathcal I_1^{\mathrm{ind}}(K,\tau),
+ \qquad
+ \Delta_1^+(\theta)=\sup\mathcal I_1^{\mathrm{ind}}(K,\tau)-U_1(K,\tau).
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}theta}.
+\end{definition}
+
+\begin{definition}[def:active-ambiguity-count]\label{def:active-ambiguity-count}
+\par\smallskip\noindent\emph{Defined object.} \texttt{J,\allowbreak{}m}
+\par\smallskip\noindent\emph{Construction.} After substituting the unique feasible row into every singleton posterior-row factor, define
+\[
+ J=\{t\in[H]:p_t<1\}
+\]
+and
+\[
+ m=\#\left\{(t,x)\in[H]\times\mathcal X:
+ x\ne x_t\ \text{and}\ 
+ \left\{v\in\Delta(\mathcal S):p_tv(y)\le K_t(y\mid x)
+ \ \text{for every }y\in\mathcal S\right\}
+ \text{ is not a singleton}\right\}.
+\]
+Thus \(m\) is exactly the number of non-singleton row selectors remaining in either fixed-sign circuit.
+\par\smallskip\noindent\emph{Inputs.} \texttt{K}; \texttt{\textbackslash{}\allowbreak{}tau}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:posterior-row-projection]\label{lem:posterior-row-projection}
+For every \(\mathcal M\in\mathfrak M(K)\), conditioning on \(\tau\) induces a kernel \(q\in\mathcal B(K,\tau)\). Conversely, every \(q\in\mathcal B(K,\tau)\) is induced by one compatible response-table law \(\lambda_t\) at each time, shared by all nonfactual rows and all coalition worlds; the timewise laws can be sampled independently to form a member of \(\mathfrak M(K)\).
+\end{lemma}
+\begin{proof}
+Fix \(t\in[H]\), and abbreviate \(E_t=\{R_t(x_t)=y_t\}\).  By \(\text{ass:transition-marginals}\), \(\Pr(E_t)=K_t(y_t\mid x_t)=p_t\), which is positive by \(\text{ass:factual-positivity}\).  For a compatible SCM define
+\[
+ q_{t,x}(y)=\Pr\{R_t(x)=y\mid E_t\}.
+\]
+Then \(q_{t,x_t}=\delta_{y_t}\).  If \(x\ne x_t\), the multiplication rule and monotonicity of probability give, for every \(y\in\mathcal S\),
+\[
+ p_tq_{t,x}(y)
+ =\Pr\{R_t(x_t)=y_t,R_t(x)=y\}
+ \le \Pr\{R_t(x)=y\}
+ =K_t(y\mid x),
+\]
+where the last equality is \(\text{ass:transition-marginals}\).  Thus the induced array belongs to \(\mathcal B(K,\tau)\) by \(\text{def:posterior-row-fiber}\).
+
+Conversely, fix \(q\in\mathcal B(K,\tau)\).  At time \(t\), first draw a variable \(F_t\) with law \(K_t(\cdot\mid x_t)\), and put \(R_t(x_t)=F_t\).  Suppose first that \(p_t<1\).  For every \(x\ne x_t\), define
+\[
+ h_{t,x}(y)=\frac{K_t(y\mid x)-p_tq_{t,x}(y)}{1-p_t}.
+\]
+The numerator is nonnegative by \(\text{def:posterior-row-fiber}\), and
+\[
+ \sum_{y\in\mathcal S}h_{t,x}(y)
+ =\frac{1-p_t}{1-p_t}=1.
+\]
+Conditional on \(F_t=y_t\), draw the coordinates \(R_t(x)\), \(x\ne x_t\), independently with respective laws \(q_{t,x}\).  Conditional on \(F_t\ne y_t\), draw them independently with respective laws \(h_{t,x}\).  The particular value of \(F_t\ne y_t\) need not enter this second draw.  For every nonfactual row,
+\[
+ \Pr\{R_t(x)=y\}
+ =p_tq_{t,x}(y)+(1-p_t)h_{t,x}(y)
+ =K_t(y\mid x).
+\]
+If \(p_t=1\), the inequalities \(q_{t,x}(y)\le K_t(y\mid x)\), together with equality of both coordinate sums to one, imply \(q_{t,x}=K_t(\cdot\mid x)\); use that law in the only, factual branch and omit the residual branch.  In either case the resulting random table has a law \(\lambda_t\) with all the required marginals and with conditional row marginals \(q_{t,x}\) given \(E_t\).  Notice that this is one joint table law: it is not reselected by a coalition or by the row later queried.
+
+Sample the constructed tables independently over \(t\).  This enforces \(\text{ass:independent-time-disturbances}\), while table lookup supplies the equations in \(\text{ass:markov-structural-equations}\); the displayed marginal calculation supplies \(\text{ass:transition-marginals}\).  Hence the construction is in \(\mathfrak M(K)\) by \(\text{def:compatible-scm-class}\).  Because the events \(E_t\) belong to independent time blocks,
+\[
+ \Pr\{R_1\in dr_1,\ldots,R_H\in dr_H\mid E_1\cap\cdots\cap E_H\}
+ =\prod_{t=1}^H\Pr\{R_t\in dr_t\mid E_t\}.
+\]
+Under the specified policy interventions, initial-state and action-randomization factors are fixed and do not alter these environment-table likelihoods.  A counterfactual path at time \(t\) queries exactly the coordinate \(R_t(S_t,A_t)\); earlier states are functions of earlier, conditionally independent blocks.  Its conditional transition law is therefore \(q_{t,S_t,A_t}\).  Thus every coalition world is evaluated by the same posterior Markov kernel \(q\), completing both directions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This lemma validates the reduction from trajectory conditioning to posterior transition rows by explicitly canceling the factual action likelihood. \textit{Gap.} Generic row gluing is known; the paper's added bridge is the explicit exogenous-policy likelihood factorization and its use across all coalition worlds. \textit{Consumer.} Every sharpness, compiler, and confidence witness uses this one shared response-table construction.
+
+\begin{theorem}[thm:sharp-shared-interval]\label{thm:sharp-shared-interval}
+For every \(i\in[H]\), \(\Theta_i(K,\tau)=[L_i(K,\tau),U_i(K,\tau)]\). Both endpoints are attained by compatible SCMs in \(\mathfrak M(K)\). Each endpoint has a witness whose posterior row \(q_{t,x}\) is a vertex of its capped-simplex factor for every \(t\in[H]\) and \(x\in\mathcal X\), and the witness is returned as a compact conditional response-table sampler rather than an exponentially long mass table.
+\end{theorem}
+\begin{proof}
+By \(\texttt{def:posterior-row-fiber}\), choose \(q_{t,x_t}=\delta_{y_t}\) and \(q_{t,x}=K_t(\cdot\mid x)\) for \(x\ne x_t\).  Since \(K_t(\cdot\mid x)\) is a probability mass function and \(0<p_t\le 1\) by \(\texttt{ass:factual-positivity}\),
+\[
+ p_tq_{t,x}(y)=p_tK_t(y\mid x)\le K_t(y\mid x),
+\]
+so this choice belongs to \(\mathcal B(K,\tau)\).  Thus the fiber is nonempty.  Each nonfactual row factor is the intersection of the finite-dimensional simplex \(\Delta(\mathcal S)\) with the finitely many closed half-spaces \(p_tq_{t,x}(y)\le K_t(y\mid x)\); each factual row factor is the singleton \(\{\delta_{y_t}\}\).  Because \(\mathcal S\), \(\mathcal X\), and \([H]\) are finite, \(\mathcal B(K,\tau)\) is a compact convex polytope.
+
+Fix a coalition \(C\).  Expanding the finite-state Markov recursion under the known policy \(\alpha^C\) expresses \(g_C(q)\) as a finite sum over state-action paths.  Each summand is a known reward multiplied by known policy probabilities and by exactly one coordinate of a posterior transition row at each time.  Therefore \(g_C(q)\) is a polynomial in the coordinates of \(q\), and it is affine when all but any one row \(q_{t,x}\) are held fixed.  By \(\texttt{def:shapley-coordinate}\), the finite weighted sum \(\Phi_i(q)\) is likewise continuous on the fiber and affine in each row separately.
+
+The two directions of \(\texttt{lem:posterior-row-projection}\) give the equality
+\[
+ \Theta_i(K,\tau)
+ =\{\Phi_i(q):q\in\mathcal B(K,\tau)\}.
+ \tag{1}
+\]
+Indeed, the forward direction maps the posterior of every compatible SCM to a point of the displayed fiber, and the converse direction realizes every point of that fiber by timewise independent response-table laws shared across all coalition worlds.  Compactness of the fiber and continuity of \(\Phi_i\) give minimizers \(q^-\) and maximizers \(q^+\).  By \(\texttt{def:shared-endpoints}\), their values are \(L_i(K,\tau)\) and \(U_i(K,\tau)\).
+
+For \(s\in[0,1]\), convexity makes \(q(s)=(1-s)q^-+sq^+\) feasible, and \(f(s)=\Phi_i(q(s))\) is continuous.  If \(c\) lies between \(f(0)\) and \(f(1)\), repeatedly retain a closed half-interval whose two endpoint values bracket \(c\).  The resulting nested intervals have lengths tending to zero and therefore have a common point \(s_*\).  Continuity rules out both \(f(s_*)<c\) and \(f(s_*)>c\), so \(f(s_*)=c\).  Hence the right side of (1) contains every point of \([L_i(K,\tau),U_i(K,\tau)]\); the reverse containment follows from the definitions of the extrema.  This proves
+\[
+ \Theta_i(K,\tau)=[L_i(K,\tau),U_i(K,\tau)].
+\]
+Applying the converse part of \(\texttt{lem:posterior-row-projection}\) to \(q^-\), \(q^+\), or \(q(s_*)\) gives compatible SCMs realizing the corresponding values.  In particular, both endpoints are attained without introducing a disturbance shared across times.
+
+It remains to prove the vertex assertion.  Start with an endpoint optimizer and fix one row factor.  Since \(\Phi_i\) is affine in this row when all other rows are fixed, the optimizer's current row minimizes, or respectively maximizes, the resulting affine functional on that factor.  If an optimizing row is not extreme, take a line segment in the factor having that row in its relative interior and extend it maximally within the factor.  Both endpoints are feasible and lie in proper faces.  Affineness and optimality force both endpoints to have the same endpoint value, because their weighted average has the optimal value and neither can improve it.  Replace the row by either endpoint and repeat within its proper face.  The face dimension strictly decreases at each repetition, so finite dimensionality makes the process end at a vertex with the same value.  Iterating this replacement through the finitely many pairs \((t,x)\) preserves all vertices already selected and ends with an endpoint optimizer whose every nonfactual row is a vertex; every factual singleton row is already a vertex.
+
+Finally, the converse construction in \(\texttt{lem:posterior-row-projection}\) is a compact conditional sampler.  At time \(t\), store the factual marginal \(K_t(\cdot\mid x_t)\), the selected posterior rows \(q_{t,x}\), and, when \(p_t<1\), the residual rows
+\[
+ h_{t,x}(y)=\frac{K_t(y\mid x)-p_tq_{t,x}(y)}{1-p_t},
+ \qquad x\ne x_t.
+\]
+The fiber inequalities make every numerator nonnegative, and summing over \(y\) gives one, so each residual row is a probability mass function.  Sample the factual coordinate first; conditionally on its equaling \(y_t\), sample the other coordinates from the stored \(q_{t,x}\), and otherwise sample them from the residual rows.  When \(p_t=1\), the fiber constraints and equality of total masses force \(q_{t,x}=K_t(\cdot\mid x)\), so no residual row is needed.  Sampling these response tables independently over \(t\), as licensed by \(\texttt{lem:posterior-row-projection}\), returns a member of \(\mathfrak M(K)\).  The sampler stores \(O(H|\mathcal X||\mathcal S|)\) probabilities and never lists the generally exponential mass table on \(\mathcal S^{\mathcal X}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the exact causal identified set for one trajectory-conditioned mean-credit coordinate in the repaired transition SCM class. \textit{Gap.} Generic Layer-3 attainment does not expose the capped posterior-row product, interval image, or compact sequential witness. \textit{Consumer.} A \(\phi\)-PPO update can distinguish robustly signed mean credit from coupling-sensitive credit.
+
+\begin{proposition}[prop:exact-coalition-compression]\label{prop:exact-coalition-compression}
+For every \(q\in\mathcal B(K,\tau)\), \(P_i(z,q)\) has degree at most \(H-1\) in \(z\), and \(\Phi_i(q)=\int_0^1P_i(z,q)\,dz=\sum_{j=1}^H\nu_jP_i(\zeta_j,q)\). For fixed \(q\), all terms are evaluated exactly in \(O(H^2|\mathcal S|^2|\mathcal A|)\) arithmetic operations, without enumerating coalitions or state paths.
+\end{proposition}
+\begin{proof}
+Fix \(q\in\mathcal B(K,\tau)\), and let \(m=H-1\).  Under the definition of \(G_i^b(z,q)\), each \(t\ne i\) independently selects \(\alpha_t^1\) with probability \(z\) and \(\alpha_t^0\) with probability \(1-z\), while membership of \(i\) is fixed at \(b\).  Expanding these independent selections and using \(\text{def:coalition-policy}\) gives
+\[
+ G_i^0(z,q)=\sum_{C\subseteq[H]\setminus\{i\}}
+ z^{|C|}(1-z)^{m-|C|}g_C(q),
+\]
+\[
+ G_i^1(z,q)=\sum_{C\subseteq[H]\setminus\{i\}}
+ z^{|C|}(1-z)^{m-|C|}g_{C\cup\{i\}}(q).
+\]
+Their difference \(P_i(z,q)\) is therefore a polynomial of degree at most \(m=H-1\).  Repeated integration by parts, with the boundary cases at zero and one, gives for \(0\le k\le m\)
+\[
+ \int_0^1 z^k(1-z)^{m-k}\,dz
+ =\frac{k!(m-k)!}{(m+1)!}.
+\]
+Integrating the finite expansion term by term and invoking \(\text{def:shapley-coordinate}\) yields
+\[
+ \int_0^1P_i(z,q)\,dz
+ =\sum_{C\subseteq[H]\setminus\{i\}}
+ \omega_H(C)\{g_C(q)-g_{C\cup\{i\}}(q)\}
+ =\Phi_i(q).
+\]
+
+The \(H\) pairwise distinct nodes \(\zeta_1,\ldots,\zeta_H\) interpolate every polynomial of degree at most \(H-1\): explicitly,
+\[
+ P_i(z,q)=\sum_{j=1}^H P_i(\zeta_j,q)\ell_j(z).
+\]
+After integration, the definition \(\nu_j=\int_0^1\ell_j(z)\,dz\) gives
+\[
+ \Phi_i(q)=\sum_{j=1}^H\nu_jP_i(\zeta_j,q)=\mathsf Q_i(q),
+\]
+which is \(\text{def:quadrature-representation}\).  This includes \(H=1\), when both sides are the constant marginal contribution.
+
+For one fixed \(z\) and branch \(b\), forward recursion keeps the current state distribution and, at every time, sums over \(s\in\mathcal S\), \(a\in\mathcal A\), and \(y\in\mathcal S\).  It therefore uses \(O(H|\mathcal S|^2|\mathcal A|)\) arithmetic operations and sums rewards during the same recursion.  There are two branches at each of \(H\) nodes, so all values in the last display cost \(O(H^2|\mathcal S|^2|\mathcal A|)\) operations.  No coalition or state-path list is formed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact Shapley sum must be compressed before the shared endpoint optimization can be computationally meaningful. \textit{Gap.} Witter et al. compress do-Shapley by graph classes, while Theorem 4.2 of Li, Lee, and Bareinboim gives an optimal coalition proposal and sample guarantee; this proposition gives an exact Markov polynomial representation but does not claim the beta-integral identity itself as novel. \textit{Consumer.} It supplies the polynomial-size arithmetic input for exact shared-SCM endpoint compilation.
+
+\begin{proposition}[prop:affine-nonnegative-lift]\label{prop:affine-nonnegative-lift}
+If \(R=0\), then \(\Phi_i(q)=0\) for every \(q\in\mathcal B(K,\tau)\), so \(L_i(K,\tau)=U_i(K,\tau)=0\). If \(R>0\), then every complete path \((s'_1,a'_1,s'_2,\ldots,s'_H,a'_H,s'_{H+1})\) satisfies \(0\le\sum_{t=1}^Hh_t^{+}((s'_t,a'_t),s'_{t+1})\le1\) and \(\sum_{t=1}^Hh_t^{-}((s'_t,a'_t),s'_{t+1})=1-\sum_{t=1}^Hh_t^{+}((s'_t,a'_t),s'_{t+1})\). Consequently \(0\le h_{jb}(q)\le1\) and the explicit nonnegative objective obeys \(F_i^{\sigma}(q)=C_{\nu}+\sigma\Phi_i(q)/R\). Hence, for \(V_{\sigma}=\max_{q\in\mathcal B(K,\tau)}F_i^{\sigma}(q)\), \(U_i(K,\tau)=R(V_{+1}-C_{\nu})\) and \(L_i(K,\tau)=R(C_{\nu}-V_{-1})\).
+\end{proposition}
+\begin{proof}
+For each \(t\), \(M_t-m_t\ge0\).  If \(R=\sum_t(M_t-m_t)=0\), every summand vanishes, so \(r_t(x,y)=m_t=M_t\) for all \(x,y\).  Every coalition return is then the same constant \(\sum_tm_t\).  The signed differences in \(\text{def:shapley-coordinate}\) vanish, and \(L_i=U_i=0\) by \(\text{def:shared-endpoints}\).
+
+Assume henceforth that \(R>0\).  On any complete path with total reward \(G'=\sum_tr_t((s'_t,a'_t),s'_{t+1})\), the definitions give
+\[
+ \sum_{t=1}^Hh_t^+=\frac{G'-\sum_tm_t}{R},\qquad
+ \sum_{t=1}^Hh_t^-=\frac{\sum_tM_t-G'}{R}.
+\]
+The stagewise bounds \(m_t\le r_t\le M_t\) imply that the first quantity lies in \([0,1]\), and since \(R=\sum_tM_t-\sum_tm_t\), the second equals one minus the first.  Taking the Markov expectation in branch \((j,b)\) proves
+\[
+ 0\le h_{jb}(q)\le1,
+ \qquad
+ h_{jb}(q)=\frac{G_i^b(\zeta_j,q)-\sum_tm_t}{R}.
+\]
+
+For a real number \(a\), the summand used in \(F_i^\sigma\) is \(ah\) if \(a\ge0\), and \(|a|(1-h)=|a|+ah\) if \(a<0\).  For each \(j\), the two coefficients \(a_{j0}^\sigma=\sigma\nu_j\) and \(a_{j1}^\sigma=-\sigma\nu_j\) have total negative-part magnitude \(|\nu_j|\).  Therefore \(\text{def:nonnegative-endpoint-objectives}\) implies
+\[
+\begin{aligned}
+ F_i^\sigma(q)
+ &=C_\nu+\sum_{j=1}^H\sum_{b=0}^1a_{jb}^\sigma h_{jb}(q)\\
+ &=C_\nu+\frac{\sigma}{R}\sum_{j=1}^H\nu_j
+       \{G_i^0(\zeta_j,q)-G_i^1(\zeta_j,q)\}\\
+ &=C_\nu+\frac{\sigma}{R}\Phi_i(q),
+\end{aligned}
+\]
+where the last equality is \(\text{prop:exact-coalition-compression}\).  All terms in the defining expression of \(F_i^\sigma\) are nonnegative because \(0\le h_{jb}\le1\).  Maximizing the identity over the same set \(\mathcal B(K,\tau)\) gives
+\[
+ V_{+1}=C_\nu+\frac{U_i}{R},\qquad
+ V_{-1}=C_\nu-\frac{L_i}{R},
+\]
+and rearrangement proves the two endpoint formulas.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This affine identity turns every signed reward and quadrature coefficient into a concrete nonnegative objective without changing the shared posterior kernel. \textit{Gap.} Generic marginal-MAP formulations permit nonnegative factors but do not provide this reward-range normalization and endpoint recovery identity for the signed trajectory-Shapley polynomial. \textit{Consumer.} The proved compiler receives two explicit nonnegative objectives whose maximizers retain one shared posterior kernel and recover the lower and upper sharp endpoints by the affine identities.
+
+\begin{theorem}[thm:open-family-shared-gap]\label{thm:open-family-shared-gap}
+For every \(0<\varepsilon<1\), in \(\mathfrak G_{\varepsilon}\) write \(u=q_{1,(0,1)}(1)\), \(w=q_{2,(0,1)}(1)\), \(z=q_{2,(1,0)}(1)\), and \(v=q_{2,(1,1)}(1)\). The posterior fiber makes \(u,w,z,v\) independently range over \([0,1]\), while \(q_{t,(0,0)}=\delta_0\). Direct recursion gives \(g_{\varnothing}=0\), \(g_{\{1\}}=\varepsilon uz\), \(g_{\{2\}}=w\), and \(g_{\{1,2\}}=(1-\varepsilon u)w+\varepsilon uv\), so \(\Phi_1=(\varepsilon u/2)(w-z-v)\). Thus \(U_1=\varepsilon/2\) is attained at \((u,w,z,v)=(1,1,0,0)\), and \(L_1=-\varepsilon\) is attained at \((1,0,1,1)\). With independent coalition copies, \(g_{\varnothing}\in\{0\}\), \(g_{\{1\}}\in[0,\varepsilon]\), \(g_{\{2\}}\in[0,1]\), and \(g_{\{1,2\}}\in[0,1]\), whence \(\mathcal I_1^{\mathrm{ind}}=[-(1+\varepsilon)/2,1/2]\). Its lower and upper excess widths over the shared interval both equal \((1-\varepsilon)/2>0\). At \(\varepsilon=1/4\), continuity of extrema over compact continuously varying fibers yields a relative neighborhood of the full primitive tuple, restricted to positive factual cells and valid probability simplices and containing interior policy points, on which both slacks remain positive.
+\end{theorem}
+\begin{proof}
+In \(\mathfrak G_\varepsilon\), \(p_t=1/2\) for both times.  For a binary nonfactual row whose observed marginal is \((1/2,1/2)\), \(\texttt{def:posterior-row-fiber}\) imposes
+\[
+ \frac12q(0)\le\frac12,
+ \qquad
+ \frac12q(1)\le\frac12,
+ \qquad
+ q(0)+q(1)=1,
+\]
+which is exactly \(0\le q(1)\le1\).  Because the fiber is a Cartesian product of row factors, \(u,w,z,v\) range independently over \([0,1]\), and the factual rows equal \(\delta_0\).
+
+The first-stage reward is zero and the second-stage reward is the terminal next state.  Under the empty coalition both factual rows are queried, so \(g_\varnothing=0\).  Under \(\{1\}\), the time-one baseline chooses action one with probability \(\varepsilon\), reaches state one with conditional probability \(u\), and the retained time-two policy then uses action zero, whose success probability is \(z\).  Hence
+\[
+ g_{\{1\}}=\varepsilon uz.
+\]
+Under \(\{2\}\), time one remains factual and time two takes action one at state zero, giving
+\[
+ g_{\{2\}}=w.
+\]
+Under \(\{1,2\}\), the time-one baseline reaches state one with probability \(\varepsilon u\).  The time-two baseline success probability is \(w\) from state zero and \(v\) from state one.  Therefore
+\[
+ g_{\{1,2\}}=(1-\varepsilon u)w+\varepsilon uv.
+\]
+For \(H=2\), both Shapley weights are \(1/2\).  Substitution into \(\texttt{def:shapley-coordinate}\) gives
+\[
+\begin{aligned}
+ \Phi_1(q)
+ &=\frac12\{g_\varnothing-g_{\{1\}}+g_{\{2\}}-g_{\{1,2\}}\}\\
+ &=\frac{\varepsilon u}{2}(w-z-v).
+\end{aligned}
+\]
+Since \(u,w,z,v\in[0,1]\), the maximum is \(\varepsilon/2\), attained at \((u,w,z,v)=(1,1,0,0)\), and the minimum is \(-\varepsilon\), attained at \((1,0,1,1)\).  The equality with \([L_1,U_1]\), together with compatible-SCM attainment by these common row assignments, follows from \(\texttt{thm:sharp-shared-interval}\).
+
+The internally defined relaxation assigns a separate posterior-kernel copy to each distinct coalition return.  The displayed recursions imply
+\[
+ g_\varnothing\in\{0\},
+ \qquad
+ g_{\{1\}}\in[0,\varepsilon],
+ \qquad
+ g_{\{2\}}\in[0,1],
+ \qquad
+ g_{\{1,2\}}\in[0,1].
+\]
+Each endpoint is attained by a suitable row assignment in its own copy.  The explicit interval formula in \(\texttt{def:independent-coalition-outer-bound}\) consequently gives
+\[
+ \mathcal I_1^{\mathrm{ind}}(K,\tau)
+ =\left[-\frac{1+\varepsilon}{2},\frac12\right].
+\]
+Its lower excess below \(-\varepsilon\) and upper excess above \(\varepsilon/2\) both equal
+\[
+ \frac{1-\varepsilon}{2}>0.
+\]
+
+We prove the neighborhood assertion rather than infer it from the single tuple.  On the fixed discrete stratum, restrict first to a sufficiently small relative neighborhood on which both factual transition cells remain positive.  If \(K'\) approaches \(K\) in maximum rowwise \(\ell^1\) distance and their factual cells have a common positive lower bound, truncate each old feasible posterior row at the new caps \(K'_t(y\mid x)/p'_t\) and redistribute the removed mass into unused cap capacity.  Exactly as in the row-matching calculation in \(\texttt{thm:quantitative-gap-neighborhood}\), the removed mass tends uniformly to zero.  Reversing \(K,K'\) proves Hausdorff convergence of the finite product fibers.
+
+Every coalition return is a finite polynomial in the posterior rows, rewards, and policy probabilities, hence is uniformly continuous on a compact neighborhood of the valid primitive and posterior-row products.  Given Hausdorff-close fibers, match a maximizer or minimizer in either direction and apply this uniform continuity.  Thus each shared endpoint and each coalition-return extremum in the internal relaxation is continuous.  The two excess-width functions are finite sums and differences of these continuous extrema.  At \(\varepsilon=1/4\), both equal \(3/8\), so the set on which both are positive is a relative-open neighborhood of the displayed primitive tuple.
+
+This neighborhood genuinely contains interior-policy points.  More explicitly, keep \(K,r\), and the time-one baseline at their \(\varepsilon=1/4\) values, and for \(0\le c\le1/64\) set \(\pi_t(1\mid s)=c\) and \(\pi_{\mathrm{base},2}(1\mid s)=1-c\) for all \(t,s\).  The same recursion, now with \(\eta=c\) and \(\beta=1-c\), gives
+\[
+ [L_1,U_1]=\left[-\frac14,\frac{1-c}{8}\right],
+\]
+\[
+ \mathcal I_1^{\mathrm{ind}}
+ =\left[-\frac58+\frac{3c}{8},\frac{1-c}{2}\right].
+\]
+The lower and upper excess widths are respectively \(3(1-c)/8\) and \(3(1-c)/8\), so the whole segment remains in the positive-gap set, and every point with \(c>0\) has all policy cells positive.  At \(c=1/64\) this point is \(\theta^\star\), and \(\texttt{thm:quantitative-gap-neighborhood}\) further supplies the explicit radius \(\rho=1/1024\), factual-region mass, support, variance, and uniform \(1/4\)-gap certificate under perturbations of every continuous primitive.  This proves the stated open-neighborhood conclusion and its quantitative strengthening.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This gives a nondegenerate family where separate coalition extrema are provably not sharp for one shared SCM. \textit{Gap.} The relaxation is internal and is not attributed to the published trajectory-credit workflow. \textit{Consumer.} It prevents a wider interval-arithmetic surrogate from being reported as sharp mean credit; no PTR RMS claim follows.
+
+\begin{theorem}[thm:simultaneous-confidence-fiber]\label{thm:simultaneous-confidence-fiber}
+If \(\mathcal C_{1-\alpha}(\widehat K)\) has simultaneous coverage at least \(1-\alpha\), then with probability at least \(1-\alpha\), \([L_i(K,\tau),U_i(K,\tau)]\subseteq[L_i^{\alpha},U_i^{\alpha}]\) simultaneously for every \(i\in[H]\) and every prespecified positive-probability factual trajectory and policy pair. On every realized confidence region whose rowwise polytopes are nonempty and for which each factual confidence row attains a positive value of \(K'_t(y_t\mid x_t)\), the confidence posterior-row fiber is a product of explicit local polytopes when every factual confidence-cell minimum is positive; when the minimum at time \(t\) is zero, the closure of that time block is the product, over its nonfactual rows, of simplices supported on next states having positive attainable marginal probability.
+\end{theorem}
+\begin{proof}
+Let
+\[
+ \mathcal E=\{K\in\mathcal C_{1-\alpha}(\widehat K)\}.
+\]
+The assumed simultaneous coverage gives \(\Pr_K(\mathcal E)\ge1-\alpha\) under \(\text{ass:fixed-row-multinomial-sampling}\).  On \(\mathcal E\), every prespecified trajectory having positive probability under \(K\) makes the true kernel admissible in the defining optimizations for \(L_i^\alpha\) and \(U_i^\alpha\).  Hence, directly from \(\text{def:confidence-fiber-endpoints}\),
+\[
+ L_i^\alpha\le L_i(K,\tau)\le U_i(K,\tau)\le U_i^\alpha.
+\]
+The event \(\mathcal E\) depends only on the transition kernel, not on \(i\), \(\tau\), or the specified policy pair.  The same event therefore proves all asserted containments simultaneously; no additional union bound over queries is needed.  By \(\text{thm:sharp-shared-interval}\), these are containments of the whole population identified sets, not merely of selected point values.
+
+For the geometric assertion, write the rowwise product confidence region as \(\prod_{t,x}\mathcal C_{t,x}\), and set
+\[
+ p_t^- =\min_{k\in\mathcal C_{t,x_t}}k(y_t),
+ \qquad
+ p_t^+ =\max_{k\in\mathcal C_{t,x_t}}k(y_t).
+\]
+The proposed statement assumes that the row polytopes are nonempty and that \(p_t^+>0\) for every \(t\), precisely the conditions needed for a nonempty positive-evidence confidence fiber.  If \(p_t^->0\), define, for \(x\ne x_t\),
+\[
+ \mathcal Q_{t,x}
+ =\{q_x\in\Delta(\mathcal S):
+       \exists k_x\in\mathcal C_{t,x}\text{ such that }
+       p_t^-q_x(y)\le k_x(y)\text{ for all }y\}.
+\]
+This is the projection of an explicitly given bounded polyhedron in \((q_x,k_x)\), hence is an explicit polytope.  If \(q_x\) is feasible for some common factual probability \(p_t\ge p_t^-\), it is feasible at \(p_t^-\) with the same \(k_x\).  Conversely, choose a factual confidence row attaining \(p_t^-\) and, independently for each alternate row, a witnessing \(k_x\).  Product structure of the confidence region then supplies a single kernel \(K'\), with the same \(p_t^-\) for every alternate row.  Thus the union of posterior fibers is exactly
+\[
+ \{q_{t,x_t}=\delta_{y_t}\}\times
+ \prod_{x\ne x_t}\mathcal Q_{t,x}
+\]
+at time \(t\), and the product over times is exact as well.
+
+Suppose instead that \(p_t^-=0<p_t^+\), and put
+\[
+ J_{t,x}=\{y\in\mathcal S:\exists k\in\mathcal C_{t,x}
+                    \text{ with }k(y)>0\}.
+\]
+For every positive factual value \(p\), feasibility \(pq_x(y)\le k_x(y)\) forces \(q_x(y)=0\) when \(y\notin J_{t,x}\).  This proves that the closure is contained in the simplex supported on \(J_{t,x}\).  Conversely, by convexity of \(\mathcal C_{t,x}\), averaging one witness for each member of the finite set \(J_{t,x}\) gives a single \(k_x^*\in\mathcal C_{t,x}\) positive on all of \(J_{t,x}\).  For any \(q_x\) supported there, all inequalities \(pq_x(y)\le k_x^*(y)\) hold for sufficiently small \(p>0\).  There are finitely many alternate rows, so one sufficiently small \(p\) works for all of them.  The projection of the convex factual-row polytope onto its \(y_t\)-coordinate is the interval \([0,p_t^+]\), so that common positive \(p\) is attainable.  Letting \(p\downarrow0\) proves that the closure is the claimed product of support simplices.  The same reasoning independently at each time completes the product-fiber characterization.
+
+If \(p_t^+=0\), the set of confidence kernels satisfying the positive-evidence restriction is empty at that time, and its closure is empty rather than a support simplex.  This explicit countercase is why the positive-maximum clause in the proposed statement is necessary.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem delivers one explicit finite-sample event, the exact closed projected fiber, and a finite endpoint algorithm for all reported coordinates. \textit{Gap.} Existing confidence-projection and multinomial work does not give the common-factual-row causal projection or shared-Shapley boundary compiler. \textit{Consumer.} Offline \(\phi\)-PPO analyses can compute whole-set-valid ambiguity bands and positive-minimum endpoint witnesses.
+
+\begin{theorem}[thm:local-positivity-modulus]\label{thm:local-positivity-modulus}
+For every \(i\in[H]\), let \(K\) and \(K'\) satisfy \(K_t(y_t\mid x_t)\ge\kappa\) and \(K'_t(y_t\mid x_t)\ge\kappa\) for every \(t\in[H]\). Then
+\[
+ \max\!\left\{|L_i(K,\tau)-L_i(K',\tau)|,
+                 |U_i(K,\tau)-U_i(K',\tau)|\right\}
+ \le \frac{4DH}{\kappa}\,\delta(K,K').
+\]
+Define the certified positivity-preserving radius by \(r_{\mathrm{pos}}(\kappa)=\kappa/2\). If only \(K_t(y_t\mid x_t)\ge\kappa\) is initially known and \(\delta(K,K')<r_{\mathrm{pos}}(\kappa)\), then \(K'_t(y_t\mid x_t)>\kappa/2\) for every \(t\), and, for each \(E_i\in\{L_i,U_i\}\),
+\[
+ E_i(K,\tau)-\frac{8DH}{\kappa}\delta(K,K')
+ \le E_i(K',\tau)
+ \le E_i(K,\tau)+\frac{8DH}{\kappa}\delta(K,K').
+\]
+On the coverage event \(K\in\mathcal C_{1-\alpha}(\widehat K)\), let
+\[
+ r_{\mathcal C}(K,\widehat K)
+ =\sup_{K'\in\mathcal C_{1-\alpha}(\widehat K)}\delta(K,K').
+\]
+If \(K_t(y_t\mid x_t)\ge\kappa\) for every \(t\) and \(r_{\mathcal C}(K,\widehat K)<\kappa/2\), then
+\[
+ L_i(K,\tau)-\frac{8DH}{\kappa}r_{\mathcal C}(K,\widehat K)
+ \le L_i^{\alpha}\le L_i(K,\tau)
+\]
+and
+\[
+ U_i(K,\tau)
+ \le U_i^{\alpha}
+ \le U_i(K,\tau)+\frac{8DH}{\kappa}r_{\mathcal C}(K,\widehat K).
+\]
+Consequently, the plug-in endpoints are uniformly consistent on classes with \(\kappa\)-positive factual cells whenever \(\delta(\widehat K,K)\) converges uniformly to zero in probability. The displayed confidence-fiber brackets also give uniform convergence on any sequence of coverage events for which \(r_{\mathcal C}(K,\widehat K)\) converges uniformly to zero.
+\end{theorem}
+\begin{proof}
+Write \(\delta=\delta(K,K')\), \(p=K_t(y_t\mid x_t)\), and \(p'=K'_t(y_t\mid x_t)\).  The definition of \(\delta\) gives \(|p-p'|\le\delta\), and the first hypothesis gives \(p,p'\ge\kappa>0\).  Fix a nonfactual row \(x\ne x_t\), abbreviate \(k=K_t(\cdot\mid x)\) and \(k'=K'_t(\cdot\mid x)\), and take a feasible posterior row \(q\) from its \(K\)-fiber.  Define
+\[
+ a(y)=\min\{q(y),k'(y)/p'\},
+ \qquad
+ d_0=1-\sum_{y\in\mathcal S}a(y).
+\]
+Division by \(p'\) is valid because \(p'\ge\kappa>0\).  Since \(pq(y)\le k(y)\) by \(\texttt{def:posterior-row-fiber}\),
+\[
+\begin{aligned}
+ d_0
+ &=\frac1{p'}\sum_{y\in\mathcal S}\bigl(p'q(y)-k'(y)\bigr)_+\\
+ &\le \frac{|p'-p|+\|k-k'\|_1}{p'}\\
+ &\le \frac{2\delta}{\kappa}.
+\end{aligned}
+\tag{2}
+\]
+To justify the middle inequality coordinatewise, write
+\[
+ p'q-k'=(p'-p)q+(pq-k)+(k-k').
+\]
+The middle summand is nonpositive.  The positive parts of the first summand total at most \(|p'-p|\sum_yq(y)=|p'-p|\), and the positive parts of the last total at most \(\|k-k'\|_1\).  The last inequality in (2) uses the two rowwise bounds supplied by \(\delta\).
+
+The unused upper-cap capacity equals
+\[
+ \sum_y\{k'(y)/p'-a(y)\}
+ =1/p'-1+d_0
+ \ge d_0,
+\]
+where \(p'\le1\) because it is a probability.  Since \(\mathcal S\) is finite, distribute mass \(d_0\) within these nonnegative capacities and call the added vector \(b\).  Then \(q'=a+b\) belongs to \(\Delta(\mathcal S)\) and satisfies \(p'q'(y)\le k'(y)\) for every \(y\).  Moreover,
+\[
+ \|q-q'\|_1
+ \le \|q-a\|_1+\|b\|_1
+ =2d_0
+ \le\frac{4\delta}{\kappa},
+ \qquad
+ \operatorname{TV}(q,q')\le\frac{2\delta}{\kappa}.
+ \tag{3}
+\]
+The factual posterior rows agree exactly at \(\delta_{y_t}\).  Applying this construction separately to every nonfactual row and time maps each \(q\in\mathcal B(K,\tau)\) to a \(q'\in\mathcal B(K',\tau)\) satisfying
+\[
+ \max_{t,x}\operatorname{TV}(q_{t,x},q'_{t,x})
+ \le\frac{2\delta}{\kappa}.
+ \tag{4}
+\]
+Interchanging \(K\) and \(K'\) gives the reverse fiber approximation with the same bound.
+
+Fix a coalition policy.  Couple the two induced Markov paths sequentially.  They start at the same fixed state.  Whenever their histories agree through the current state, use the same action draw from their common known policy kernel.  For two next-state mass functions \(\mu\) and \(\nu\), put mass \(\min\{\mu(y),\nu(y)\}\) on each diagonal pair \((y,y)\) and couple the two residual mass functions arbitrarily.  The mismatch probability is
+\[
+ 1-\sum_y\min\{\mu(y),\nu(y)\}
+ =\frac12\sum_y|\mu(y)-\nu(y)|
+ =\operatorname{TV}(\mu,\nu).
+\]
+Use this construction for the two posterior next-state rows.  By (4), the conditional probability of a first mismatch at that transition is at most \(2\delta/\kappa\).  A union bound over the \(H\) transitions therefore produces a coupling of the complete paths whose mismatch probability is at most \(2H\delta/\kappa\).  When the paths agree their complete returns agree, and otherwise the absolute return difference is at most \(D\).  Hence
+\[
+ |g_C(q)-g_C(q')|\le\frac{2DH\delta}{\kappa}.
+ \tag{5}
+\]
+The Shapley weights are nonnegative and sum to one, because
+\[
+ \sum_{C\subseteq[H]\setminus\{i\}}\omega_H(C)
+ =\sum_{k=0}^{H-1}{H-1\choose k}
+   \frac{k!(H-k-1)!}{H!}
+ =1.
+ \tag{6}
+\]
+Combining (5), (6), and \(\texttt{def:shapley-coordinate}\) yields
+\[
+\begin{aligned}
+ |\Phi_i(q)-\Phi_i(q')|
+ &\le\sum_C\omega_H(C)
+ \left\{|g_C(q)-g_C(q')|
+       +|g_{C\cup\{i\}}(q)-g_{C\cup\{i\}}(q')|\right\}\\
+ &\le\frac{4DH\delta}{\kappa}.
+\end{aligned}
+\tag{7}
+\]
+
+By \(\texttt{thm:sharp-shared-interval}\), the maxima and minima over both compact fibers are attained and have the asserted causal interpretation.  Map a maximizer over the \(K\)-fiber into the \(K'\)-fiber using (4).  Equation (7) gives
+\[
+ U_i(K,\tau)\le U_i(K',\tau)+4DH\delta/\kappa.
+\]
+Reverse the kernels to obtain the opposite inequality.  Applying the same two comparisons to minimizers proves
+\[
+ \max\!\left\{|L_i(K,\tau)-L_i(K',\tau)|,
+                 |U_i(K,\tau)-U_i(K',\tau)|\right\}
+ \le\frac{4DH\delta}{\kappa}.
+ \tag{8}
+\]
+
+It remains to derive the evaluable corollaries.  By definition, \(r_{\mathrm{pos}}(\kappa)=\kappa/2\).  If \(K_t(y_t\mid x_t)\ge\kappa\) and \(\delta(K,K')<\kappa/2\), then
+\[
+ K'_t(y_t\mid x_t)
+ \ge K_t(y_t\mid x_t)-\delta(K,K')
+ >\kappa/2
+\]
+for every \(t\).  Thus both kernels have factual cells at least \(\kappa/2\).  Applying (8) with the common positivity constant \(\kappa/2\) gives, for \(E_i\in\{L_i,U_i\}\),
+\[
+ |E_i(K',\tau)-E_i(K,\tau)|
+ \le\frac{8DH}{\kappa}\delta(K,K'),
+\]
+which is equivalent to the asserted two-sided trajectory bracket.  This certifies the stated radius; no maximality claim is made.
+
+On the coverage event \(K\in\mathcal C_{1-\alpha}(\widehat K)\), the confidence region is nonempty and contains the true kernel.  If \(r_{\mathcal C}(K,\widehat K)<\kappa/2\), its definition implies that every \(K'\) in the region satisfies \(\delta(K,K')<\kappa/2\).  The preceding bracket therefore holds uniformly over the region, and all its factual cells are positive.  Taking the infimum of the lower endpoints and using feasibility of \(K\) in \(\texttt{def:confidence-fiber-endpoints}\) gives
+\[
+ L_i(K,\tau)-\frac{8DH}{\kappa}r_{\mathcal C}(K,\widehat K)
+ \le L_i^\alpha\le L_i(K,\tau).
+\]
+Taking the supremum of the upper endpoints gives
+\[
+ U_i(K,\tau)
+ \le U_i^\alpha
+ \le U_i(K,\tau)+\frac{8DH}{\kappa}r_{\mathcal C}(K,\widehat K).
+\]
+Finally, on the event \(\delta(\widehat K,K)<\kappa/2\), the same corollary with \(K'=\widehat K\) bounds each plug-in endpoint error by \(8DH\delta(\widehat K,K)/\kappa\).  Uniform convergence of the discrepancy in probability therefore implies uniform plug-in consistency.  The two confidence-fiber displays give the stated conditional uniform convergence whenever the realized fiber radius converges uniformly to zero on the coverage events.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit \(\kappa\)-dependent modulus converts transition-row accuracy into endpoint and confidence-fiber error bars. \textit{Gap.} Known row bounds do not yield this sequential shared-Shapley endpoint sensitivity. \textit{Consumer.} Mean-credit updates can report the certified \(8DHr_{\mathcal C}/\kappa\) envelope; PTR RMS priority remains outside scope.
+
+\begin{proposition}[prop:counterfactual-independence-reduction]\label{prop:counterfactual-independence-reduction}
+On \(\mathfrak M_{\mathrm{CI}}(K)\), conditioning on \(\tau\) induces the unique posterior kernel \(q^{\mathrm{CI}}\), where \(q_{t,x_t}^{\mathrm{CI}}=\delta_{y_t}\) and \(q_{t,x}^{\mathrm{CI}}=K_t(\cdot\mid x)\) for every \(x\ne x_t\). Therefore \(\Theta_i^{\mathrm{CI}}(K,\tau)=\{\Phi_i(q^{\mathrm{CI}})\}\subseteq\Theta_i(K,\tau)\).
+\end{proposition}
+\begin{proof}
+Fix \(\mathcal M\in\mathfrak M_{\mathrm{CI}}(K)\).  At a time \(t\), \(\text{ass:within-time-row-independence}\) makes every \(R_t(x)\), \(x\ne x_t\), independent of the factual coordinate \(R_t(x_t)\).  Since \(p_t>0\), conditioning on \(R_t(x_t)=y_t\) therefore gives
+\[
+ \Pr\{R_t(x)=y\mid R_t(x_t)=y_t\}
+ =\Pr\{R_t(x)=y\}=K_t(y\mid x)
+\]
+for \(x\ne x_t\), using \(\text{ass:transition-marginals}\) through \(\text{def:counterfactual-independent-subclass}\).  Consistency on the conditioned coordinate gives \(q_{t,x_t}=\delta_{y_t}\).  Independence across times, inherited from \(\mathfrak M(K)\), makes the full-trajectory posterior kernel uniquely equal to \(q^{\mathrm{CI}}\) in \(\text{def:counterfactual-independent-target}\).
+
+This kernel is feasible in \(\mathcal B(K,\tau)\): for \(x\ne x_t\),
+\[
+ p_tq_{t,x}^{\mathrm{CI}}(y)=p_tK_t(y\mid x)\le K_t(y\mid x),
+\]
+and its factual row is the required point mass.  Every member of the counterfactually independent subclass therefore has the same Markov recursion and the same credit \(\Phi_i(q^{\mathrm{CI}})\), proving
+\[
+ \Theta_i^{\mathrm{CI}}(K,\tau)=\{\Phi_i(q^{\mathrm{CI}})\}.
+\]
+Because \(q^{\mathrm{CI}}\in\mathcal B(K,\tau)\), \(\text{thm:sharp-shared-interval}\) gives \(\Phi_i(q^{\mathrm{CI}})\in\Theta_i(K,\tau)\), which proves the asserted subset relation.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This verifies fidelity to the transition-row point selection under the stronger within-time independence restriction. \textit{Gap.} It is a reduction check inside external policy randomization and deterministic rewards, not a novelty claim or removal of the full published independence scheme. \textit{Consumer.} Implementations can recover the selected transition posterior while retaining the unrestricted interval as the sensitivity analysis.
+
+\begin{theorem}[thm:optimization-preserving-compiler]\label{thm:optimization-preserving-compiler}
+For rational \(K\), \(r\), \(\pi\), \(\pi_{\mathrm{base}}\), and rational quadrature data with \(R>0\), \(\mathsf{Compile}_i\) has an explicit realization of each \(F_i^\sigma\), \(\sigma\in\{-1,+1\}\), as a nonnegative finite factor circuit \(\mathfrak F_i^\sigma\) with one selector \(Z_{t,x}\) for each posterior row and no selector copies across quadrature, forced-membership, state-path, or reward-time branches.  Every legal order \(\preceq\) returns \(V_\sigma\) in \(O(H^2N d^{w_{\mathrm c}(\preceq)+1})\) rational arithmetic operations.  Intermediate and output rational bit lengths are polynomial in the rational input length, \(N\), and the requested output precision.  The table \(\mathsf{BP}_\sigma\) backtracks one joint assignment of row vertices, and the gluing construction turns it into a compatible SCM attaining \(U_i=R(V_{+1}-C_\nu)\) or \(L_i=R(C_\nu-V_{-1})\), respectively.
+\end{theorem}
+\begin{proof}
+Fix \(i\in[H]\) and \(\sigma\in\{-1,+1\}\).  The sign is fixed throughout and is not an eliminated variable.
+
+For \(x\ne x_t\), define
+\[
+ u_{t,x}(y)=\min\!\left\{1,\frac{K_t(y\mid x)}{p_t}\right\},
+ \qquad y\in\mathcal S.
+ \tag{1}
+\]
+The division is valid by \(\texttt{ass:factual-positivity}\).  By \(\texttt{def:posterior-row-fiber}\), the feasible factor for this row is the capped simplex
+\[
+ \mathcal P_{t,x}=
+ \left\{v\in\mathbb R^{\mathcal S}:0\le v(y)\le u_{t,x}(y),\ 
+              \sum_{y\in\mathcal S}v(y)=1\right\}.
+ \tag{2}
+\]
+It is nonempty.  Indeed, \(\sum_yK_t(y\mid x)/p_t=1/p_t\ge1\).  If one untruncated cap is at least one, then the sum of the truncated caps is at least one; otherwise truncation changes no cap.  Thus \(\sum_yu_{t,x}(y)\ge1\), and mass one can be filled beneath the caps.  The factual-row factor is the singleton \(\{\delta_{y_t}\}\).
+
+A point of \(\mathcal P_{t,x}\) is a vertex if and only if all but at most one coordinate are at either zero or their upper cap.  If two coordinates are strictly between their bounds, a sufficiently small transfer of mass between them gives two distinct feasible points with the original point as midpoint.  Conversely, in a convex decomposition of a point with all but at most one coordinate at a bound, every bound coordinate agrees in the two summands, and the sum-to-one constraint fixes the remaining coordinate.
+
+These vertices can be listed exactly in output-sensitive time.  Start from the vertex obtained by filling coordinates in a fixed order to their caps until the residual mass fits in one coordinate.  From a listed vertex, test every ordered transfer direction \(e_y-e_{y'}\) that is locally feasible, move maximally in that direction, and retain the endpoint if it has the vertex form just proved.  These moves traverse every edge because an edge of the box intersected with the sum hyperplane can free at most two box constraints.  To verify reachability, fix any target vertex \(v^\star\).  Assign coefficient one to coordinates at their upper cap in \(v^\star\), coefficient minus one to coordinates that are zero there, and coefficient zero to its possible unique non-bound coordinate.  The resulting linear functional is uniquely maximized at \(v^\star\).  At any other vertex, \(v^\star-v\) decomposes into transfers from decreasing to increasing coordinates; when \(v\) has a unique non-bound coordinate, a transfer between two bound coordinates can be split through that coordinate.  At least one locally feasible transfer strictly increases the functional.  Maximal movement reaches another vertex, and finiteness forces a path to \(v^\star\).  Hence breadth-first traversal with duplicate suppression lists all vertices in \(O(|\mathcal S|^2v_{t,x})\) rational operations when this row has \(v_{t,x}\) vertices.  Every listed coordinate is zero, a cap, or one minus a sum of caps, so its bit length is polynomial in the rational input length.
+
+Let \(Z_{t,x}\) select one listed vertex \(q^Z_{t,x}\), using a one-point alphabet for a singleton row.  The vertex-witness assertion of \(\texttt{thm:sharp-shared-interval}\), together with \(\texttt{prop:affine-nonnegative-lift}\), gives
+\[
+ V_\sigma=\max_z F_i^\sigma(q^z),
+ \tag{3}
+\]
+where \(z\) is one joint assignment of every row selector.  Thus this finite outer maximization already imposes one row assignment shared by all coalition worlds.
+
+We now construct the nonnegative circuit.  Exact quadrature applied to the constant polynomial gives \(\sum_{j=1}^H\nu_j=1\), whence \(C_\nu=\sum_j|\nu_j|\ge1\).  Put
+\[
+ \rho_{jb}=\frac{|a_{jb}^\sigma|}{2C_\nu},
+ \qquad
+ \eta_{jb}=\begin{cases}+,&a_{jb}^\sigma\ge0,\\-,&a_{jb}^\sigma<0.\end{cases}
+ \tag{4}
+\]
+Because \(|a_{j0}^\sigma|=|a_{j1}^\sigma|=|\nu_j|\), \(\sum_{j,b}\rho_{jb}=1\).  Introduce one global chance variable \(W\) with alphabet \([H]\times\{0,1\}\times[H]\) and law
+\[
+ \Pr\{W=(j,b,\ell)\}=\frac{\rho_{jb}}{H}.
+ \tag{5}
+\]
+Conditional on its first two coordinates, use at time \(t\) the action kernel
+\[
+ \gamma_t^{jb}(a\mid s)=
+ \begin{cases}
+  \alpha_i^b(a\mid s),&t=i,\\
+  (1-\zeta_j)\alpha_t^0(a\mid s)+\zeta_j\alpha_t^1(a\mid s),&t\ne i.
+ \end{cases}
+ \tag{6}
+\]
+For each row insert
+\[
+ \psi_{t,x}(S_t,A_t,S_{t+1},Z_{t,x})=
+ \begin{cases}
+ q^{Z}_{t,x}(S_{t+1}),&(S_t,A_t)=x,\\
+ 1,&(S_t,A_t)\ne x,
+ \end{cases}
+ \tag{7}
+\]
+and insert the initial factor \(\mathbf 1\{S_1=s_1\}\).  Finally insert, for every reward time,
+\[
+ \chi_t(W,S_t,A_t,S_{t+1})=
+ \begin{cases}
+ Hh_t^{\eta_{jb}}((S_t,A_t),S_{t+1}),&W=(j,b,t),\\
+ 1,&W=(j,b,\ell),\ \ell\ne t.
+ \end{cases}
+ \tag{8}
+\]
+All factors are rational and nonnegative.  Rationality follows from the theorem's input restrictions and the rational vertex construction.  Nonnegativity follows from \(R>0\), the definitions of \(m_t,M_t\), and \(\texttt{prop:affine-nonnegative-lift}\).  Equation (7) contains exactly one variable \(Z_{t,x}\) for each row; no copy is created when \(W\), the state path, or the selected reward time changes.
+
+Fix \(z\) and sum the product of (5)--(8), the policy factors, and the initial factor over \(W\), all actions, and \(S_2,\ldots,S_{H+1}\).  For a realized \((S_t,A_t)\), the product of (7) over \(x\in\mathcal X\) is exactly \(q^z_{t,(S_t,A_t)}(S_{t+1})\).  Hence the path sum is a Markov expectation under the single kernel \(q^z\).  Averaging first over the reward-time coordinate and then over \((j,b)\) gives
+\[
+ \begin{aligned}
+ T_\sigma(z)
+ &=\sum_{j=1}^H\sum_{b=0}^1\rho_{jb}
+   \mathbb E_{q^z}\!\left[
+    \sum_{t=1}^H h_t^{\eta_{jb}}((S_t,A_t),S_{t+1})
+    \mathrel{\big|}S_1=s_1,\gamma^{jb}\right]\\
+ &=\frac{1}{2C_\nu}F_i^\sigma(q^z).
+ \end{aligned}
+ \tag{9}
+\]
+For positive sign in (4), the expectation is \(h_{jb}(q^z)\) by \(\texttt{def:nonnegative-endpoint-objectives}\).  For negative sign, the pathwise complementary-leaf identity in \(\texttt{prop:affine-nonnegative-lift}\) makes it \(1-h_{jb}(q^z)\).  Thus the circuit followed by deterministic multiplication by \(2C_\nu\) realizes \(F_i^\sigma\) exactly.  This is \(\mathfrak F_i^\sigma\) from \(\texttt{def:compiler-handle}\).
+
+We next prove optimization preservation.  Bucket elimination maintains nonnegative factors.  Summing a chance variable is exact by distributivity because factors outside its bucket do not contain it.  Suppose a decision variable \(Z\) is next maximized.  Multiply the current factors containing \(Z\) into \(A(Z,Y)\), where \(Y\) consists of the other uneliminated decisions in that bucket.  Legality of \(\preceq\) implies that no uneliminated chance variable occurs in \(A\).  The product of all factors outside the bucket can be written \(B(X,Y,Y')\), where \(X\) are remaining chance variables, \(Y'\) are other decisions, and \(B\) does not contain \(Z\).  Pointwise, nonnegativity gives
+\[
+ \max_Z\{A(Z,Y)B(X,Y,Y')\}
+ =B(X,Y,Y')\max_ZA(Z,Y).
+ \tag{10}
+\]
+Thus this maximization commutes outward past every still-unperformed chance summation; its choice may depend on later decisions but not on a chance realization.  Finite maxima over decisions commute with one another.  Induction over buckets, using distributivity at chance buckets and (10) at decision buckets, reduces the returned value to
+\[
+ 2C_\nu\max_z\sum_{W,S_2,\ldots,S_{H+1},A_1,\ldots,A_H}
+       \mathfrak F_i^\sigma(z,W,S,A)
+ =\max_zF_i^\sigma(q^z)=V_\sigma,
+ \tag{11}
+\]
+where (9) and (3) give the two equalities.  This proves the mixed-elimination invariant while retaining one outer row assignment.
+
+For the operation count, a bucket contains at most \(w_{\mathrm c}(\preceq)+1\) nonglobal live variables, each with alphabet at most \(d\).  The one global variable \(W\) has \(2H^2\) values.  Therefore every bucket table has at most
+\[
+ 2H^2d^{w_{\mathrm c}(\preceq)+1}
+ \tag{12}
+\]
+entries, with the same expression an upper bound when \(W\) is absent.  Multiplication and elimination use a constant number of rational operations per table entry per consumed factor.  Each initial factor is consumed once, and each eliminated variable creates at most one factor that is later consumed once.  Since \(N\) bounds variables plus initial factors, summing bucket-factor incidences gives
+\[
+ O\!\left(H^2N d^{w_{\mathrm c}(\preceq)+1}\right)
+ \tag{13}
+\]
+rational operations.  Vertex listing costs \(O(N|\mathcal S|^2d)\).  If a non-singleton selector exists, its transition factor contains that selector, current state, action, and next state, so the width term in (13), with \(|\mathcal S|\le d\), absorbs this preprocessing; if every row is a singleton, no nontrivial listing is needed.  The remaining factor construction is also absorbed by (13).
+
+Let \(B_0\) be the binary length of the rational input.  Every cap in (1), every vertex coordinate, and every initial factor entry has bit length polynomial in \(B_0\).  For a fixed remaining decision context, an intermediate entry expands into a sum of products of primitive factor entries, with each primitive factor used at most once in a product.  A common product of their denominators has bit length \(O(NB_0)\).  There are at most \((2H^2)d^N\) chance assignments, adding only \(O(\log H+N\log d)\) numerator bits.  Maximization selects one candidate rational and introduces no new denominator.  A capped simplex has at most \(|\mathcal S|2^{|\mathcal S|-1}\) vertices by the proved vertex characterization, so \(\log d\) is itself bounded by a polynomial in the explicit input length.  Reduced intermediate and exact output rationals therefore have bit length polynomial in \(B_0\) and \(N\); reporting a requested binary approximation adds only the requested output precision.
+
+At each maximization bucket, store a maximizing selector value for every assignment of the later decision variables in its output scope, breaking ties deterministically.  Reverse-order backtracking fixes those later variables before consulting the stored value.  Legality removed every chance variable from a maximization bucket, so no stored choice depends on \(W\), a state, or an action realization.  Hence \(\mathsf{BP}_\sigma\) recovers one joint row assignment \(z_\sigma\), shared by all quadrature branches and all paths.
+
+It remains to construct the endpoint SCM compactly.  At time \(t\), draw \(E_t\sim\operatorname{Bernoulli}(p_t)\).  Conditional on \(E_t=1\), set the factual coordinate of \(R_t\) to \(y_t\) and draw each nonfactual coordinate from \(q^{z_\sigma}_{t,x}\).  If \(p_t<1\), conditional on \(E_t=0\), draw the factual coordinate from
+\[
+ \frac{K_t(y\mid x_t)-p_t\mathbf 1\{y=y_t\}}{1-p_t}
+ \tag{14}
+\]
+and each nonfactual coordinate \(x\ne x_t\) from
+\[
+ \frac{K_t(y\mid x)-p_tq^{z_\sigma}_{t,x}(y)}{1-p_t}.
+ \tag{15}
+\]
+The numerators are nonnegative by membership in \(\mathcal B(K,\tau)\), and each distribution sums to one.  The factual residual assigns zero mass to \(y_t\), so conditioning on the factual event forces \(E_t=1\) and induces exactly the selected posterior rows.  Mixing the branches recovers marginal \(K_t(\cdot\mid x)\) for every row.  If \(p_t=1\), the residual branch is absent, and the coordinatewise inequalities together with equality of total mass force \(q^{z_\sigma}_{t,x}=K_t(\cdot\mid x)\) for every nonfactual row.  Sampling these response tables independently over \(t\) gives the structural equations, transition marginals, and timewise disturbance independence required by \(\mathfrak M(K)\), in agreement with \(\texttt{lem:posterior-row-projection}\).  Equations (14)--(15) specify a conditional sampler rather than an exponential response-table mass array.
+
+Finally, run (11) separately for \(\sigma=+1\) and \(\sigma=-1\).  By \(\texttt{prop:affine-nonnegative-lift}\),
+\[
+ U_i(K,\tau)=R(V_{+1}-C_\nu),
+ \qquad
+ L_i(K,\tau)=R(C_\nu-V_{-1}).
+\]
+The corresponding backtracked SCMs attain the two endpoints and use one shared joint row assignment in every coalition world.  This proves all assertions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This closes the central algorithmic obligation: legal elimination returns the exact shared endpoint and a common causal witness. \textit{Gap.} Generic marginal MAP does not supply this Shapley circuit, its one-copy selector invariant, or endpoint-SCM completion. \textit{Consumer.} Finite \(\phi\)-PPO audits obtain exact endpoint values and explanatory SCM witnesses.
+
+\begin{theorem}[thm:quantitative-gap-neighborhood]\label{thm:quantitative-gap-neighborhood}
+For the objects in \(\texttt{def:quantitative-gap-neighborhood}\), the center \(\theta^\star\) obeys
+\[
+ [L_1(K,\tau),U_1(K,\tau)]=[-1/4,63/512],
+ \qquad
+ \mathcal I_1^{\mathrm{ind}}(K,\tau)=[-317/512,63/128],
+\]
+so \(\Delta_1^-(\theta^\star)=\Delta_1^+(\theta^\star)=189/512\).  Let \(\kappa=511/1024\).  Every \(\theta\in\mathcal N_\rho(\theta^\star)\) satisfies
+\[
+ K_t(0\mid(0,0))>\kappa,
+ \qquad
+ \mu_\tau(\theta)>\left(\frac{63}{64}-\rho\right)^2
+                         \left(\frac12-\rho\right)^2>\frac15,
+\]
+\[
+ s_\pi(\theta)>\frac1{64}-\rho>\frac1{100},
+ \qquad
+ s_K(\theta)>\frac12-\rho>\frac25,
+\]
+\[
+ V_{\mathrm{fd}}(\theta)>\left(\frac14-\rho^2\right)(1-2\rho)^2>\frac15,
+ \qquad
+ \Delta_1^-(\theta)>\frac14,
+ \qquad
+ \Delta_1^+(\theta)>\frac14.
+\]
+Consequently \(\mathcal N_\rho(\theta^\star)\) is a relative-open, positive-mass family with uniformly interior policy and transition support, nonvanishing failure-driving conditional variance, and a uniform strict gap between the sharp shared-SCM interval and the internally defined coalitionwise relaxation.
+\end{theorem}
+\begin{proof}
+At \(\theta^\star\), every factual transition probability is \(1/2\).  By \(\texttt{def:posterior-row-fiber}\), a binary nonfactual posterior row with success probability \(a\) is constrained only by
+\[
+ \frac12a\le\frac12,
+ \qquad
+ \frac12(1-a)\le\frac12,
+\]
+and hence \(a\in[0,1]\).  The posterior fiber is a product, so the coordinates \(u,w,z,v\) range independently over \([0,1]\), whereas the two factual rows are \(\delta_0\).
+
+Put \(\eta=1/64\), \(\beta=63/64\), and \(\epsilon=1/4\).  Since the first-stage reward is zero and the second-stage reward is the terminal state, direct Markov recursion gives
+\[
+ g_\varnothing=0,
+ \qquad
+ g_{\{1\}}=\epsilon u\{(1-\eta)z+\eta v\},
+ \qquad
+ g_{\{2\}}=\beta w,
+\]
+and
+\[
+ g_{\{1,2\}}=(1-\epsilon u)\beta w
+ +\epsilon u\{(1-\beta)z+\beta v\}.
+\]
+Indeed, a switch at time one chooses action one with probability \(\epsilon\), reaches state one with probability \(u\), and then the retained policy mixes the rows \((1,0)\) and \((1,1)\) with probabilities \(1-\eta\) and \(\eta\).  A switch at time two mixes action one with probability \(\beta\), which proves each displayed term.
+
+For \(H=2\), both Shapley weights are \(1/2\).  Since \(\beta+\eta=1\), substitution into \(\texttt{def:shapley-coordinate}\) yields
+\[
+\begin{aligned}
+ \Phi_1(q)
+ &=\frac12\{g_\varnothing-g_{\{1\}}+g_{\{2\}}-g_{\{1,2\}}\}\\
+ &=\frac{\epsilon u}{2}
+ \left[\beta w-\{2-\beta-\eta\}z-(\beta+\eta)v\right]\\
+ &=\frac{u}{8}\left(\frac{63}{64}w-z-v\right).
+\end{aligned}
+\]
+All four variables lie in \([0,1]\).  Therefore the minimum is \(-1/4\), attained at \((u,w,z,v)=(1,0,1,1)\), and the maximum is \(63/512\), attained at \((1,1,0,0)\).  This proves the first shared-interval display by \(\texttt{def:shared-endpoints}\).
+
+For the internal relaxation, the preceding recursion and nonnegativity give
+\[
+ \inf g_\varnothing=\sup g_\varnothing=0,
+ \quad \inf g_{\{1\}}=0,
+ \quad \sup g_{\{1\}}=\epsilon=\frac14,
+ \quad \inf g_{\{2\}}=0,
+ \quad \sup g_{\{2\}}=\beta=\frac{63}{64}.
+\]
+Moreover, \(g_{\{1,2\}}\ge0\), its minimum is zero, and its maximum is obtained by setting \(w=z=v=u=1\):
+\[
+ \sup g_{\{1,2\}}
+ =\beta+\epsilon(1-\beta)
+ =\frac{63}{64}+\frac1{256}
+ =\frac{253}{256}.
+\]
+The explicit formula in \(\texttt{def:independent-coalition-outer-bound}\) now gives
+\[
+ \inf\mathcal I_1^{\mathrm{ind}}
+ =-\frac12\left(\frac14+\frac{253}{256}\right)
+ =-\frac{317}{512},
+ \qquad
+ \sup\mathcal I_1^{\mathrm{ind}}
+ =\frac12\frac{63}{64}=\frac{63}{128}.
+\]
+Subtracting the shared endpoints gives
+\[
+ -\frac14-\left(-\frac{317}{512}\right)
+ =\frac{63}{128}-\frac{63}{512}
+ =\frac{189}{512}.
+\]
+
+We next prove a uniform perturbation bound.  Write the already defined center as \(\theta^\star=(K^\star,r^\star,\pi^\star,\pi_{\mathrm{base}}^\star)\), and fix \(\theta\in\mathcal N_\rho(\theta^\star)\).  The metric definition implies
+\[
+ \delta(K,K^\star)<\rho,
+ \qquad
+ p_t=K_t(0\mid(0,0))>\frac12-\rho=\kappa,
+\]
+With the center rewards and policies held fixed, the complete return lies in \([0,1]\), so its range width is \(D=1\).  Applying \(\texttt{thm:local-positivity-modulus}\) with \(H=2\) therefore bounds the movement of either shared endpoint caused by changing \(K^\star\) to \(K\) by
+\[
+ \frac{4DH\rho}{\kappa}=\frac{8\rho}{\kappa}.
+\]
+
+Now hold \(K\), and hence its posterior fiber, fixed while changing the center rewards and policies to those of \(\theta\).  Under a maximal coupling, the action selected at either time differs with conditional probability at most one half of the relevant rowwise \(\ell^1\) distance, hence by less than \(\rho/2\).  A union bound over the two action times makes the complete path laws differ in total variation by less than \(\rho\); conditional on equal actions and states, the common posterior kernel gives equal next states.  The center total reward is in \([0,1]\), and the two stage rewards on any fixed path move by less than \(2\rho\).  Thus, for every coalition and every fixed feasible \(q\),
+\[
+ |g_C(q;\theta)-g_C(q;K,r^\star,\pi^\star,\pi_{\mathrm{base}}^\star)|
+ <\rho+2\rho=3\rho.
+\]
+The Shapley weights are nonnegative and sum to one.  Each marginal contribution contains two coalition returns, so
+\[
+ |\Phi_1(q;\theta)-\Phi_1(q;K,r^\star,\pi^\star,\pi_{\mathrm{base}}^\star)|<6\rho.
+\]
+Taking minima or maxima over the unchanged fiber and combining the two perturbations shows that each shared endpoint moves from its value at \(\theta^\star\) by at most
+\[
+ A=\frac{8\rho}{\kappa}+6\rho.
+\]
+
+For completeness, the same constant controls each endpoint of the internal relaxation.  To see this without interchanging optimization operators, take a row \(q\) feasible under \(K^\star\).  For a nonfactual row, set
+\[
+ a(y)=\min\{q(y),K_t(y\mid x)/p_t\},
+ \qquad d_0=1-\sum_y a(y).
+\]
+The cap inequalities for \(q\), the rowwise bound \(\delta(K,K^\star)<\rho\), and \(p_t>\kappa\) imply
+\[
+ d_0
+ \le \frac{|p_t-1/2|+
+ \|K_t(\cdot\mid x)-(1/2,1/2)\|_1}{p_t}
+ <\frac{2\rho}{\kappa}.
+\]
+The unused caps have total capacity at least \(d_0\), so redistributing this removed mass produces a row feasible under \(K\) at total-variation distance less than \(2\rho/\kappa\).  The factual rows agree at \(\delta_0\).  Reversing \(K\) and \(K^\star\) gives the opposite Hausdorff direction.  Sequential maximal coupling over two transitions therefore moves the infimum or supremum of any fixed center-reward coalition return by at most \(4\rho/\kappa\).  The reward-policy comparison just proved adds \(3\rho\).  Each endpoint in \(\texttt{def:independent-coalition-outer-bound}\) has total absolute Shapley coefficient two, so it moves by at most
+\[
+ 2\left(\frac{4\rho}{\kappa}+3\rho\right)=A.
+\]
+Consequently
+\[
+ \min\{\Delta_1^-(\theta),\Delta_1^+(\theta)\}
+ \ge \frac{189}{512}-2A
+ =\frac{183}{512}-\frac{16}{511}
+ >\frac14,
+\]
+where the last inequality is equivalent to \(55\cdot511>16\cdot512\).
+
+It remains to verify the probability and variance certificates.  Every coordinate difference is bounded by its rowwise \(\ell^1\) distance.  Hence
+\[
+ \mu_\tau(\theta)
+ >\left(\frac{63}{64}-\rho\right)^2
+   \left(\frac12-\rho\right)^2>\frac15,
+\]
+the final rational inequality following, for example, from \(63/64-\rho>49/50\), \(1/2-\rho>49/100\), and \((49/50)^2(49/100)^2>1/5\).  The smallest center policy cell is \(1/64\), and every center transition cell is \(1/2\), so
+\[
+ s_\pi(\theta)>\frac1{64}-\rho=\frac{15}{1024}>\frac1{100},
+ \qquad
+ s_K(\theta)>\frac12-\rho=\frac{511}{1024}>\frac25.
+\]
+For any time-two row write \(a=K_2(1\mid x)\).  Then \(|a-1/2|<\rho\), while the perturbed reward contrast obeys
+\[
+ |r_2(x,1)-r_2(x,0)|>1-2\rho.
+\]
+The binary variance identity gives
+\[
+ \operatorname{Var}_{Y\sim K_2(\cdot\mid x)}\{r_2(x,Y)\}
+ =a(1-a)\{r_2(x,1)-r_2(x,0)\}^2
+ >\left(\frac14-\rho^2\right)(1-2\rho)^2.
+\]
+Here \(1/4-\rho^2>6/25\) and \((1-2\rho)^2=(511/512)^2>5/6\), so the product exceeds \(1/5\).  Taking the minimum over \(x\) proves the claimed bound on \(V_{\mathrm{fd}}\).
+
+Finally, the strict metric ball is relative-open in the finite product of valid probability simplices and Euclidean reward cells.  Every probability cell of \(\theta^\star\) is strictly positive, and no continuous coordinate is fixed by the definition of the ball.  Thus all continuous primitives can be perturbed, subject only to row normalization, while the proved inequalities hold uniformly.  This establishes every assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The strict gap persists with positive factual mass, interior policy and transition support, and nonvanishing terminal-reward variance. \textit{Gap.} A single boundary tuple would not establish a generic statistically nondegenerate failure class. \textit{Consumer.} It shows separate-coalition conservatism can remain material in interior \(\phi\)-PPO settings.
+
+\begin{theorem}[thm:sparse-stochastic-trajectory-width]\label{thm:sparse-stochastic-trajectory-width}
+Under the rational-input and \(R>0\) hypotheses of \(\texttt{thm:optimization-preserving-compiler}\), let \(J\) and \(m\) be as in \(\texttt{def:active-ambiguity-count}\).  Then
+\[
+ m\le |J|\bigl(|\mathcal X|-1\bigr).
+\]
+After singleton substitution, the order that keeps the global selector \(W\) live, eliminates the Markov state-action path backward in path order, sums \(W\), and then maximizes the remaining row selectors is legal and satisfies
+\[
+ w_{\mathrm c}(\preceq)\le m+3.
+\]
+With this order, \(\mathsf{Compile}_i\) returns \(L_i(K,\tau)\) and \(U_i(K,\tau)\) exactly in
+\[
+ O\!\left(H^2N d^{m+4}\right)
+\]
+rational arithmetic operations, with the same common-SCM backtracking guarantee.  For fixed state, action, and nonglobal alphabets, this cost is polynomial in the horizon whenever \(|J|=O(\log H)\).
+\end{theorem}
+\begin{proof}
+Fix a stage \(t\notin J\).  By definition, \(p_t=1\).  For any nonfactual row \(x\ne x_t\), \(\texttt{def:posterior-row-fiber}\) gives
+\[
+ q_{t,x}(y)\le K_t(y\mid x)\quad\text{for every }y\in\mathcal S,
+ \qquad
+ \sum_yq_{t,x}(y)=\sum_yK_t(y\mid x)=1.
+ \tag{1}
+\]
+Every difference \(K_t(y\mid x)-q_{t,x}(y)\) is nonnegative and their sum is zero, so every difference is zero.  Thus every nonfactual row at \(t\notin J\) is the singleton \(\{K_t(\cdot\mid x)\}\); the factual row is always the singleton \(\{\delta_{y_t}\}\).  At a stage in \(J\), at most the \(|\mathcal X|-1\) nonfactual rows can remain non-singleton.  The definition of \(m\) therefore yields
+\[
+ m\le\sum_{t\in J}(|\mathcal X|-1)=|J|(|\mathcal X|-1).
+ \tag{2}
+\]
+
+Substitute every singleton selector by its unique row.  Write \(\mathcal D_t\) for the remaining decisions belonging to stage \(t\), so \(\sum_t|\mathcal D_t|=m\).  Use the explicit circuit constructed in \(\texttt{thm:optimization-preserving-compiler}\).  Its time-\(t\) policy, transition, and reward factors have scope contained in
+\[
+ \{W,S_t,A_t,S_{t+1}\}\cup\mathcal D_t.
+ \tag{3}
+\]
+Eliminate in the backward order
+\[
+ A_H,S_{H+1},A_{H-1},S_H,\ldots,A_1,S_2,
+ \tag{4}
+\]
+with a fixed initial state removed by its point-mass factor.  A direct backward induction shows that, before processing stage \(t\), the accumulated future message has scope contained in \(\{W,S_{t+1}\}\cup\bigcup_{u>t}\mathcal D_u\).  Combining it with (3) and eliminating the next variable in (4) leaves the same form with boundary state \(S_t\).  Consequently every path bucket contains \(W\), at most all \(m\) active decisions, and at most four nonglobal path variables.  Since the definition of constrained width excludes the global variable and subtracts one from the number of nonglobal live variables,
+\[
+ w_{\mathrm c}(\preceq)\le (m+4)-1=m+3
+ \tag{5}
+\]
+for all path buckets.  After (4), the \(W\)-bucket contains no path variable and at most the \(m\) decisions.  After summing \(W\), successive decision buckets also contain at most those \(m\) variables, so (5) bounds every bucket.
+
+All chance variables in (4), followed by \(W\), are summed before any row selector is maximized.  Hence every chance variable sharing a current factor with a decision has already been summed, which is exactly legality of \(\preceq\).  Applying \(\texttt{thm:optimization-preserving-compiler}\) and (5) gives
+\[
+ O\!\left(H^2N d^{w_{\mathrm c}(\preceq)+1}\right)
+ \subseteq O\!\left(H^2N d^{m+4}\right).
+ \tag{6}
+\]
+Singleton substitution does not change the objective: it merely inserts the unique feasible value.  The target theorem's backpointers therefore recover the joint assignment of the remaining selectors; restoring the unique singleton rows and applying its gluing sampler yields one compatible endpoint SCM shared across all worlds.
+
+Finally, suppose \(|J|\le c\log H\) for a constant \(c\), while \(|\mathcal S|\), \(|\mathcal A|\), and \(d\) are fixed.  Then \(|\mathcal X|\) is fixed and (2) gives
+\[
+ d^{m+4}\le d^4H^{c(|\mathcal X|-1)\log d}.
+\]
+The explicit circuit has \(N=O(H|\mathcal X|)\) variables and factors for fixed alphabets, while the \(2H^2\)-state global selector is already accounted for by the leading \(H^2\) in (6).  Thus (6) is polynomial in \(H\), proving the stated sparse-stochastic tractability claim.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This states the explicit active-ambiguity regime where exact endpoint compilation is polynomial in the horizon. \textit{Gap.} The trajectory-specific count and legal backward order are not supplied by generic width terminology alone. \textit{Consumer.} Implementers can certify tractability before running the exact endpoint backend.
+
+\begin{proposition}[prop:active-chain-width-lower-bound]\label{prop:active-chain-width-lower-bound}
+Call a simplified endpoint circuit \(\mathfrak F_i^\sigma\) a fully active chain minor of length \(k\) if a factor-graph minor contains \(k\) distinct non-singleton row selectors, one at each of \(k\) active stages, linked successively by summed Markov chance variables, with every transition factor genuinely depending on its selector and the two adjacent chain variables.  If \(k=|J|\), then every legal sum-before-max order induces a clique on these selectors before the first of them is maximized and hence satisfies
+\[
+ w_{\mathrm c}(\preceq)\ge |J|-1.
+\]
+Such fully active minors occur for every horizon in binary finite Markov SCMs with strictly interior transition and policy probabilities.  Therefore the ordinary fully stochastic growing-horizon class admits \(w_{\mathrm c}(\preceq)=\Omega(|J|)=\Omega(H)\), so neither bounded nor logarithmic constrained width holds uniformly on that class.
+\end{proposition}
+\begin{proof}
+Consider first the stated chain minor with summed chance variables \(Y_0,\ldots,Y_k\) and distinct active decisions \(Z_1,\ldots,Z_k\), where the stage-\(j\) factor has structural scope \(\{Y_{j-1},Y_j,Z_j\}\).  Additional factors or variables can only add scopes, so it suffices to work in the minor.
+
+Let \(Z_r\) be the first of these decisions maximized by a legal order.  Before that maximization, both adjacent chance variables in every current factor containing \(Z_r\) must have been summed.  Summing \(Y_r\) combines the factors on the two incident chain edges and creates a factor whose scope contains \(Z_r\), \(Z_{r+1}\), and \(Y_{r+1}\) when \(r<k\).  Legality now forces \(Y_{r+1}\) to be summed before \(Z_r\); repeating the argument propagates to the right endpoint.  The identical argument through \(Y_{r-1}\) propagates to the left endpoint.  Thus all chain chance variables are summed before the first decision is maximized.  Successive chance elimination takes unions of the incident scopes, so, because the displayed dependences are genuine and the definition of the minor excludes numerical scope deletion, the resulting factor contains every \(Z_1,\ldots,Z_k\).  Equivalently, these decisions form an induced clique.  The bucket of the first decision therefore contains at least \(k\) nonglobal live variables, and the definition of width gives
+\[
+ w_{\mathrm c}(\preceq)\ge k-1.
+ \tag{1}
+\]
+For \(k=|J|\), this is the first assertion.
+
+To show that the obstruction is realized inside the model rather than only by an abstract graph, fix any \(H\) and take \(\mathcal S=\mathcal A=\{0,1\}\), the all-zero factual state-action trajectory, and
+\[
+ K_t(y\mid x)=\frac12
+ \qquad(t\in[H],\ x\in\mathcal X,\ y\in\mathcal S).
+ \tag{2}
+\]
+Choose factual and baseline policies with both actions having positive probability at every state and time.  Then \(p_t=1/2<1\), so \(J=[H]\).  For every nonfactual row, the posterior constraints are
+\[
+ \frac12q_{t,x}(y)\le\frac12,
+ \qquad q_{t,x}(0)+q_{t,x}(1)=1,
+\]
+and hence the row polytope is the full binary simplex with distinct vertices \(\delta_0\) and \(\delta_1\).  In particular the fiber is nonempty, and the converse direction of \(\texttt{lem:posterior-row-projection}\) supplies compatible response-table laws, independently sampled over time, so the example belongs to the stated Markov SCM class.  Select the row \(x=(0,1)\) at each stage.  In the factor circuit proved in \(\texttt{thm:optimization-preserving-compiler}\), after restricting the positive-probability action branch to \(A_t=1\), its transition factor genuinely depends on \(S_t\), \(S_{t+1}\), and that stage's row selector.  These factors form a fully active state-chain minor of length \(H\).  Equation (1) yields \(w_{\mathrm c}(\preceq)\ge H-1\) for every legal order.  This obstruction persists under sufficiently small perturbations: strict positivity of both entries of each binary transition row and the inequality \(p_t<1\) imply that the two caps have sum \(1/p_t>1\), so their intersection with the binary simplex has positive length; strict action positivity and genuine factor dependence also persist.  The primitives in (2) and the policies are strictly interior, and hence they have a relative-open neighborhood of fully active chain instances.  Thus no bounded- or logarithmic-width guarantee holds uniformly over fully stochastic growing horizons.  This does not contradict the sparse result, whose premise requires only \(O(\log H)\) stages with \(p_t<1\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This prevents overclaiming a uniform small-width dynamic program on fully stochastic chains. \textit{Gap.} The lower bound is realized directly inside the repaired binary SCM class rather than borrowed from generic MAP hardness. \textit{Consumer.} Implementers know when exponential constrained-width behavior is structurally unavoidable for this compiler.
+
+\section{Interpretation}
+
+The interval is the set of conditional mean credits compatible with the observed transition marginals and the stated transition SCM class.  One posterior transition-row assignment must serve every coalition world.  If an interval excludes zero, the sign of that mean credit is robust to the unidentified transition-response coupling; if it crosses zero, the sign is not identified from these transition marginals.  The endpoint compiler returns a concrete compatible transition SCM and external policy-coin completion explaining each extreme.  These statements concern the mean coordinate used by \(\phi\)-PPO, not the second moment or history dependence in PTR priority.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The exact compiler is exponential in the valid constrained width, not in ordinary temporal treewidth alone.  Sparse trajectories with \(|J|=O(\log H)\) and fixed alphabets give polynomial horizon cost, whereas fully active binary chains can force \(w_{\mathrm c}=\Omega(H)\).  Confidence-polytope vertex enumeration is finite and output-sensitive but no polynomial bound is claimed.  The paper does not provide root-normal inference, adaptive-sampling confidence sequences, or a jointly sharp box for all Shapley coordinates.
+
+\section{Honest scope}
+
+The causal class has finite state and action spaces, a fixed initial state, deterministic known transition rewards, independent transition disturbances across time, explicit factual action equations driven by exogenous coins, positive factual action and transition cells, and fresh external coins for baseline and off-track coalition actions.  Only coupling among potential next states for different state-action rows within the same time is left unrestricted; policy-response coupling, stochastic-reward coupling, dependence of action coins on transition tables, hidden global confounding, and equality of response-table laws across stages are outside scope.  Population endpoints are attained by compatible SCMs.  Confidence endpoints use fixed rowwise multinomial sampling; zero-minimum confidence blocks are reported through exact closure values and positive-evidence approximating sequences, while a zero factual-cell maximum triggers only the logical band \([-D,D]\).  No sharp result is claimed for PTR's root-mean-square priority, exponential moving average, rankings, or learning performance.
+
+\begin{thebibliography}{99}
+
+  \bibitem{LiLeeBareinboim2026CounterfactualShapley} Li, M., K.-Z. Lee, and E. Bareinboim (2026). Counterfactual Shapley Credit Assignment. arXiv:2607.16999v2.
+
+  \bibitem{LeePleckoBareinboim2026ImprovingCausalExplanations} Lee, K.-Z., D. Plecko, and E. Bareinboim (2026). Improving Causal Explanations. Columbia Causal AI Lab Technical Report R-135, May 2026. https://causalai.net/r135.pdf.
+
+  \bibitem{LallyKazemiPaoletti2026RobustCounterfactualMDP} Lally, J., M. Kazemi, and N. Paoletti (2026). Robust Counterfactual Inference in Markov Decision Processes. AAMAS, arXiv:2502.13731.
+
+  \bibitem{ZhangTianBareinboim2022PartialCounterfactual} Zhang, J., J. Tian, and E. Bareinboim (2022). Partial Counterfactual Identification from Observational and Experimental Data. ICML, arXiv:2110.05690.
+
+  \bibitem{WitterEtAl2026ExactlyDoShapley} Witter, R. T., A. Parafita, T. Garriga, M. Muschalik, F. Fumagalli, A. Brando, and L. Rosenblatt (2026). Exactly Computing do-Shapley Values. ICML, arXiv:2602.07203.
+
+  \bibitem{LiuIhler2013MarginalMAP} Liu, Q. and A. Ihler (2013). Variational Algorithms for Marginal MAP. Journal of Machine Learning Research 14:3165--3200, arXiv:1302.6584.
+
+  \bibitem{ParkDarwiche2004MAPComplexity} Park, J. D. and A. Darwiche (2004). Complexity Results and Approximation Strategies for MAP Explanations. Journal of Artificial Intelligence Research 21:101--133.
+
+  \bibitem{ChoiFriedmanVanDenBroeck2022MarginalMAP} Choi, Y., T. Friedman, and G. Van den Broeck (2022). Solving Marginal MAP Exactly by Probabilistic Circuit Transformations. AISTATS, arXiv:2111.04833.
+
+  \bibitem{ZaffalonEtAl2024EfficientCounterfactualBounds} Zaffalon, M., A. Antonucci, R. Cabañas, D. Huber, and D. Azzimonti (2024). Efficient Computation of Counterfactual Bounds. International Journal of Approximate Reasoning 171:109111. doi:10.1016/j.ijar.2023.109111.
+
+  \bibitem{KaidoMolinariStoye2019CalibratedProjection} Kaido, H., F. Molinari, and J. Stoye (2019). Confidence Intervals for Projections of Partially Identified Parameters. Econometrica 87(4):1397--1432.
+
+  \bibitem{FangSantos2019DirectionalInference} Fang, Z. and A. Santos (2019). Inference on Directionally Differentiable Functions. Review of Economic Studies 86(1):377--412.
+
+  \bibitem{Wang2008MultinomialSCI} Wang, H. (2008). Exact Confidence Coefficients of Simultaneous Confidence Intervals for Multinomial Proportions. Journal of Multivariate Analysis 99(5):896--911.
+
+  \bibitem{BennettKallusOprescuSunWang2024RobustOPE} Bennett, A., N. Kallus, M. Oprescu, W. Sun, and K. Wang (2024). Efficient and Sharp Off-Policy Evaluation in Robust Markov Decision Processes. NeurIPS, arXiv:2404.00099.
+
+  \bibitem{ChoeKwonParkLee2026CanonicalDomainReduction} Choe, Y., Y. Kwon, M. W. Park, and S. Lee (2026). Canonical Domain Reduction for Partial Counterfactual Identification. Proceedings of the 42nd Conference on Uncertainty in Artificial Intelligence, PMLR 337:1302--1326. https://proceedings.mlr.press/v337/choe26a.html.
+
+  \bibitem{ArroyoEtAl2025MultilinearPrograms} Arroyo, J. P., J. G. Rodrigues, D. Lawand, D. D. Mauá, J. Lee, R. Marinescu, A. Gray, E. R. Laurentino, and F. G. Cozman (2025). Multilinear and Linear Programs for Partially Identifiable Queries in Quasi-Markovian Structural Causal Models. CAR Workshop at UAI 2025, arXiv:2509.03548.
+
+\end{thebibliography}
+
+\end{document}

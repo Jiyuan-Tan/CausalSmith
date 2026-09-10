@@ -323,7 +323,10 @@ private def asCondExp (eqFn l e₀ : Expr) : Option (Ctx × Expr) := do
       μ := args[6]! }
   some (ctx, args[7]!)
 
-/--
+/-- The parser description defines the tactic command named `condexp_linearity`.
+Every invocation consists of that command name and may additionally contain a bracketed,
+comma-separated list of mathematical expressions.
+
 Prove an a.e. linearity identity for conditional expectation, following the shape of the
 goal's non-conditioned side.
 

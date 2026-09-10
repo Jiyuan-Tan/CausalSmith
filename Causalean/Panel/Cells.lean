@@ -53,7 +53,7 @@ namespace Panel
 
 variable (I T : Type*)
 
-/-- Observed cells of a panel together with positive normalized weights.
+/-- [For finite sets of units and periods with decidable equality](hyp:I,T), [the observed cells of a panel](goal) are a finite collection of unit-period pairs equipped with strictly positive weights that sum to one over that collection.
 
 This is a thin specialization of `Causalean.Panel.Weighted.WeightedSupport` to the
 product index `R = I × T`.  All algebraic properties (`weight_nonneg`,

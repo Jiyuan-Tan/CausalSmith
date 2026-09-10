@@ -50,8 +50,9 @@ namespace Panel.Weighted
 
 /-! ### Cell indicators -/
 
-/-- The cell indicator is one on records classified into a given cell and zero
-elsewhere. -/
+/-- For [a classifier from records to cells](hyp:G) and [a chosen cell](hyp:g), the [cell-indicator array](goal) assigns one to each record in the chosen cell and zero to every other record.
+
+The cell indicator is one on records classified into a given cell and zero elsewhere. -/
 def cellIndicator {R 𝒢 : Type*} [DecidableEq 𝒢]
     (G : R → 𝒢) (g : 𝒢) : R → ℝ :=
   fun r => if G r = g then (1 : ℝ) else 0
@@ -65,8 +66,9 @@ lemma cellIndicator_apply {R 𝒢 : Type*} [DecidableEq 𝒢]
 
 /-! ### One-axis indicator span -/
 
-/-- The one-axis indicator span contains exactly the finite linear combinations
-of singleton indicators for one classifier. -/
+/-- For a finite collection of distinguishable cells and [a classifier from records to those cells](hyp:G), the [one-axis indicator span](goal) is the real vector space of arrays that are weighted sums of the classifier's singleton cell indicators, with one real coefficient for each cell.
+
+The one-axis indicator span contains exactly the finite linear combinations of singleton indicators for one classifier. -/
 def indicatorSpan {R 𝒢 : Type*} [Fintype 𝒢] [DecidableEq 𝒢]
     (G : R → 𝒢) : Submodule ℝ (R → ℝ) where
   carrier := { f | ∃ c : 𝒢 → ℝ, ∀ r : R, f r = ∑ g, c g * cellIndicator G g r }
@@ -134,8 +136,9 @@ lemma cellIndicator_mem_indicatorSpan {R 𝒢 : Type*} [Fintype 𝒢] [Decidable
 
 /-! ### Two-axis indicator span -/
 
-/-- The two-axis indicator span contains sums of one-axis indicator functions
-from two classifiers. -/
+/-- For two finite collections of distinguishable cells, [a first classifier](hyp:G) and [a second classifier](hyp:T) from records to their respective cells, the [two-axis indicator span](goal) is the real vector space generated jointly by the singleton indicators of both classifiers.
+
+The two-axis indicator span contains sums of one-axis indicator functions from two classifiers. -/
 def twoAxisIndicatorSpan {R 𝒢 𝒯 : Type*}
     [Fintype 𝒢] [DecidableEq 𝒢] [Fintype 𝒯] [DecidableEq 𝒯]
     (G : R → 𝒢) (T : R → 𝒯) : Submodule ℝ (R → ℝ) :=
@@ -161,8 +164,9 @@ namespace WeightedSupport
 
 variable {R : Type*} [Fintype R] [DecidableEq R]
 
-/-- The cell mass is the total weight of observed records in one classifier
-cell. -/
+/-- For [a finite record set](hyp:R), [a weighted support](hyp:c), [a classifier from records to distinguishable cells](hyp:G), and [a chosen cell](hyp:g), the [cell mass](goal) is the sum of the support weights of all observed records classified into that cell.
+
+The cell mass is the total weight of observed records in one classifier cell. -/
 def cellMass {𝒢 : Type*} [DecidableEq 𝒢]
     (c : WeightedSupport R) (G : R → 𝒢) (g : 𝒢) : ℝ :=
   ∑ r ∈ c.observed, c.weight r * cellIndicator G g r
@@ -184,8 +188,9 @@ lemma cellMass_nonneg {𝒢 : Type*} [DecidableEq 𝒢]
     simp [cellIndicator, h, hw]
   · simp [cellIndicator, h]
 
-/-- On a classifier cell with positive observed mass, the cell mean is the
-ordinary weighted average of the outcome over observed records in that cell.
+/-- For [a finite record set](hyp:R), [a weighted support](hyp:c), [an outcome array](hyp:F), [a classifier from records to distinguishable cells](hyp:G), [a chosen cell](hyp:g), and [the condition that this cell has strictly positive mass](hyp:_hpos), the [cell mean](goal) is the weighted average of the outcome over observed records in that cell.
+
+On a classifier cell with positive observed mass, the cell mean is the ordinary weighted average of the outcome over observed records in that cell.
 
 The explicit positivity guard rules out zero-mass cells, where the ordinary
 weighted average is not defined. -/
@@ -205,8 +210,9 @@ lemma cellMean_mul_cellMass {𝒢 : Type*} [DecidableEq 𝒢]
   unfold cellMean
   exact div_mul_cancel₀ _ (ne_of_gt hpos)
 
-/-- The joint cell mass is the total weight of observed records lying in a
-given pair of classifier cells. -/
+/-- For [a finite record set](hyp:R), [a weighted support](hyp:c), [a first classifier into distinguishable cells](hyp:G), [a second classifier into distinguishable cells](hyp:T), [a chosen cell of the first classifier](hyp:g), and [a chosen cell of the second classifier](hyp:t), the [joint cell mass](goal) is the sum of the support weights of observed records lying in both chosen cells.
+
+The joint cell mass is the total weight of observed records lying in a given pair of classifier cells. -/
 def jointCellMass {𝒢 𝒯 : Type*} [DecidableEq 𝒢] [DecidableEq 𝒯]
     (c : WeightedSupport R) (G : R → 𝒢) (T : R → 𝒯)
     (g : 𝒢) (t : 𝒯) : ℝ :=

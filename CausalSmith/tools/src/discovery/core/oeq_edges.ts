@@ -35,7 +35,7 @@ export function remapResolvedDependencies(
  * dropped; with one it denotes the replacement, except the replacement's own
  * citation of the node it supersedes (the usual "derived from the old result"
  * shape), which is dropped rather than turned into a self-edge that G4 rejects
- * and that would discard the round on every replay of the sealed mandate. */
+ * and that the checks would reject on every replay. */
 export function retargetDeletedDependency(
   consumerId: string,
   dependencies: readonly string[],

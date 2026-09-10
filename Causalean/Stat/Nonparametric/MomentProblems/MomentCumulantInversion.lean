@@ -28,17 +28,18 @@ namespace Causalean.Stat.MomentProblems
 open MeasureTheory ProbabilityTheory
 open scoped BigOperators
 
-/-- The order-`r` **cumulant read off from a moment sequence**: the set-partition (Möbius) formula
-that expresses the `r`-th cumulant as a signed, factorial-weighted sum over partitions of `r`
-slots of products of moments, one moment per block, at the block's size. -/
+/-- For [a nonnegative order](hyp:r) and [a real moment sequence](hyp:m), the [cumulant read from
+that moment sequence](goal) is the signed, factorial-weighted sum over all partitions of a set of
+that many elements, with each partition contributing the product of the moments indexed by its
+block sizes. -/
 noncomputable def cumFromMom (r : ℕ) (m : ℕ → ℝ) : ℝ :=
   ∑ π : Finpartition (Finset.univ : Finset (Fin r)),
     (-1 : ℝ) ^ (π.parts.card - 1) * (Nat.factorial (π.parts.card - 1) : ℝ) *
       ∏ B ∈ π.parts, m B.card
 
-/-- The **lower-order remainder** of the order-`r` cumulant formula: the same sum with the single
-one-block partition removed.  Because every block of a multi-block partition is a proper subset,
-this depends only on moments of order strictly below `r`. -/
+/-- For [a nonnegative order](hyp:r) and [a real moment sequence](hyp:m), the [lower-order
+remainder of the cumulant formula](goal) is the same partition sum with the sole one-block
+partition omitted; hence it uses only moments of order strictly below that order. -/
 noncomputable def restFromMom (r : ℕ) (m : ℕ → ℝ) : ℝ :=
   ∑ π ∈ Finset.univ.filter
       (fun π : Finpartition (Finset.univ : Finset (Fin r)) => π.parts.card ≠ 1),
@@ -154,9 +155,14 @@ theorem restFromMom_congr (r : ℕ) {m m' : ℕ → ℝ}
   intro B hB
   exact h B.card (block_card_pos π hB) (block_card_lt_of_card_ne_one π hcard hB)
 
-/-- The **moment sequence reconstructed from a prescribed cumulant sequence**, by inverting the
-triangular formula: total mass one, mean zero, and at each order at least two the moment is the
-prescribed cumulant minus the remainder assembled from the already-reconstructed lower moments. -/
+/-- For [a real sequence of prescribed cumulants](hyp:c), the [reconstructed moment sequence](goal)
+is defined by [giving its zeroth moment the value one](step:1), [giving its first moment the value
+zero](step:2), and [at every order at least two, subtracting from the prescribed cumulant the
+lower-order remainder computed from the already reconstructed moments](step:3).
+
+This inverts the triangular formula: total mass one, mean zero, and at each order at least two the
+moment is the prescribed cumulant minus the remainder assembled from the already-reconstructed
+lower moments. -/
 noncomputable def momFromCum (c : ℕ → ℝ) : ℕ → ℝ
   | 0 => 1
   | 1 => 0

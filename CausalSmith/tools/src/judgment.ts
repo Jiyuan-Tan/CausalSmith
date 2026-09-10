@@ -13,10 +13,10 @@ export interface TheoremReviewEntry {
 }
 
 /**
- * A named Lean hypothesis that ASSUMES a true, standard mathematical fact the
- * theorem ought eventually to prove, deferred only because the discharging
- * Mathlib/Causalean substrate does not exist yet (e.g. `PinskerBound`, pending the
- * Scheffé / f-divergence layer). Reported by Stage 4 EVEN ON A PASSING review
+ * A disclosed external dependency: normally a named Lean hypothesis that ASSUMES
+ * a true, standard mathematical fact the theorem ought eventually to prove, but
+ * for `gate_class:"cited"` it may instead be a closed non-logical metadata carrier.
+ * Reported by Stage 4 EVEN ON A PASSING review
  * and aggregated into the global `SUBSTRATE_DEBT.md` ledger so we know what
  * infrastructure to build.
  *
@@ -25,9 +25,9 @@ export interface TheoremReviewEntry {
  * theorem vacuous — it is honest, trackable debt, not laundering.
  */
 export interface SubstrateGate {
-  /** Lean hypothesis identifier / binder (e.g. `h : PinskerBound P₀ P₁`). */
+  /** Lean hypothesis identifier/binder, or cited metadata declaration name. */
   name: string;
-  /** The assumed proposition (informal or Lean rendering). */
+  /** The assumed proposition or recorded metadata (informal or Lean rendering). */
   statement: string;
   /** The standard theorem this encodes (e.g. "Pinsker's inequality"). */
   classical_fact: string;
@@ -37,21 +37,20 @@ export interface SubstrateGate {
    * Discharge fate on the discharge-this-run axis (absent ⇒ "gated", back-compat):
    *  - "gated": WILL be discharged this run (parallelism gate); recorded in
    *    SUBSTRATE_DEBT.md until its proof lands. Verified by that proof.
-   *  - "cited": NOT discharged this run — a deferred assumption matched against
-   *    `source`; recorded in CITED_DEPENDENCIES.md; may be built in a future run.
+   *  - "cited": NOT discharged this run — a logical assumption or closed metadata
+   *    carrier matched against `source`; recorded in CITED_DEPENDENCIES.md.
    */
   gate_class?: "gated" | "cited";
-  /** For `gate_class:"cited"`: the citation this assumption is matched against. */
+  /** For `gate_class:"cited"`: the citation this carrier is matched against. */
   source?: { cite_id: string; locator: string; url?: string };
   /**
    * For `gate_class:"cited"`: the F2.5 source-match verdict.
    *  - `cited-verified`: Lean def matches the FETCHED source at the locator.
    *  - `cited-verified-attested`: matches the attested `verbatim_statement` (no fetch).
    *  - `cited-mismatch`: def does NOT match — HARD-BLOCKS banking.
-   *  - `cited-underspecified`: def is not self-contained — a distinguishing
-   *    hypothesis/class the cited statement relies on is referenced only by name
-   *    (a free abstract variable or an undefined named class) instead of being
-   *    encoded — HARD-BLOCKS banking.
+   *  - `cited-underspecified`: carrier is not closed/self-contained — a logical
+   *    condition is left abstract, or a metadata clause is missing/caller-supplied
+   *    instead of fixed by the declaration — HARD-BLOCKS banking.
    *  - `cited-source-unverifiable`: neither fetch nor verbatim statement — invalid
    *    for new runs; migration-only carve-out (flag, do not block).
    */

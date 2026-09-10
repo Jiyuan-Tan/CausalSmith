@@ -70,13 +70,19 @@ namespace Parametric
 
 variable {C : Type*} [Fintype C] [Nonempty C] [MeasurableSpace C] [MeasurableSingletonClass C]
 
-/-- The constant propensity center `m ≡ m₀`. -/
+/-- For every [covariate set](hyp:C) and [real number $m_0$](hyp:m₀), the [constant propensity
+function](goal) assigns $m_0$ to every covariate value. -/
 def mC (m₀ : ℝ) : C → ℝ := fun _ => m₀
 
-/-- The null outcome regression: `g₁` on the treated arm, `g₀` on the control arm. -/
+/-- For every [covariate set](hyp:C), [control-arm outcome mean $g_0$](hyp:g₀), and
+[treated-arm outcome mean $g_1$](hyp:g₁), the [null outcome-regression function](goal) assigns
+$g_1$ under treatment and $g_0$ under control at every covariate value. -/
 def gNull (g₀ g₁ : ℝ) : Bool → C → ℝ := fun d _ => if d then g₁ else g₀
 
-/-- The perturbed outcome regression: the treated arm is shifted to `g₁ + δ`. -/
+/-- For every [covariate set](hyp:C), [control-arm outcome mean $g_0$](hyp:g₀),
+[treated-arm baseline outcome mean $g_1$](hyp:g₁), and [real perturbation $\delta$](hyp:δ),
+the [perturbed outcome-regression function](goal) assigns $g_1+\delta$ under treatment and
+$g_0$ under control at every covariate value. -/
 def gPert (g₀ g₁ δ : ℝ) : Bool → C → ℝ := fun d _ => if d then g₁ + δ else g₀
 
 variable {m₀ g₀ g₁ δ : ℝ}

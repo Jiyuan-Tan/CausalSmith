@@ -44,15 +44,14 @@ open MeasureTheory ProbabilityTheory Filter Topology
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- **DR-Learner CATE estimator** at `x` (Def `def:est-cate-dr-learner`,
-`τ̂^{DR}_n(x)`).
+/-- For [a population outcome system](hyp:P) and [a covariate space](hyp:γ), given [a CATE estimation system](hyp:_S), [a second-stage regression
+operator](hyp:op), [a sequence of estimated nuisance vectors indexed by sample size and
+sample realization](hyp:η_hat), [a sample size](hyp:n), [a sample realization](hyp:ω), and
+[a covariate query point](hyp:x), the [DR-Learner CATE estimator](goal) is that operator,
+at the stated sample size, realization, and query point, applied to the uncentered augmented
+inverse-probability-weighted pseudo-outcome formed with the corresponding estimated nuisance vector.
 
-Given a CATE estimation system `S`, an abstract second-stage regression
-operator `op` over the data law context `(P.Ω, P.μ)`, and a sequence of
-estimated nuisance vectors `η_hat n ω` (trained on the nuisance fold encoded
-in `ω`), the DR-Learner at sample size `n`, randomness `ω`, and query point
-`x` is the operator applied to the uncentered AIPW pseudo-outcome
-`φ_{η_hat n ω}`.
+**DR-Learner CATE estimator** at `x` (Def `def:est-cate-dr-learner`, `τ̂^{DR}_n(x)`).
 
 The system parameter `_S` is kept in the signature for API symmetry with
 `drOracleEstimator` / `drOracleRiskScale`, even though the estimator itself
@@ -64,21 +63,28 @@ noncomputable def drLearnerEstimator
     (n : ℕ) (ω : P.Ω) (x : γ) : ℝ :=
   op.evalAt n ω (fun z => phi_eta z (η_hat n ω)) x
 
-/-- **Oracle DR-Learner** at `x` (Def `def:est-cate-dr-learner`, `τ̃_n(x)`).
+/-- For [a population outcome system](hyp:P) and [a covariate space](hyp:γ), given [a CATE estimation system](hyp:S), [a second-stage regression operator](hyp:op),
+[a sample size](hyp:n), [a sample realization](hyp:ω), and [a covariate query point](hyp:x),
+the [oracle DR-Learner estimator](goal) is the operator at that sample size, realization,
+and query point applied to the true augmented inverse-probability-weighted pseudo-outcome.
 
-The oracle counterpart of `drLearnerEstimator` substitutes the true pseudo-
-outcome `φ_0` (built from the truth nuisance `η₀` carried by the back-door
-substrate of `S`) in place of the estimated pseudo-outcome. -/
+**Oracle DR-Learner** at `x` (Def `def:est-cate-dr-learner`, `τ̃_n(x)`). The oracle
+counterpart of `drLearnerEstimator` substitutes the true pseudo-outcome `φ_0` (built from
+the truth nuisance `η₀` carried by the back-door substrate of `S`) in place of the estimated
+pseudo-outcome. -/
 noncomputable def drOracleEstimator
     (S : CATEEstimationSystem P γ)
     (op : SecondStageOperator P.Ω P.μ γ)
     (n : ℕ) (ω : P.Ω) (x : γ) : ℝ :=
   op.evalAt n ω (fun z => phi₀ S z) x
 
-/-- **Oracle pointwise risk scale** `R^*_n(x)` (Def `def:est-cate-dr-learner`).
+/-- For [a population outcome system](hyp:P) and [a covariate space](hyp:γ), given [a CATE estimation system](hyp:S), [a second-stage regression operator](hyp:op),
+[a covariate query point](hyp:x), and [a sample size](hyp:n), the [oracle pointwise risk
+scale](goal) is the square root of the population expectation of the squared difference
+between the oracle DR-Learner at that point and the system's conditional average treatment-effect target.
 
-This specializes `SecondStageOperator.oracleRiskScale` to the AIPW pseudo-
-outcome `φ_0` and the value-space CATE target `τ_val`:
+**Oracle pointwise risk scale** `R^*_n(x)` (Def `def:est-cate-dr-learner`). This specializes
+`SecondStageOperator.oracleRiskScale` to the AIPW pseudo-outcome `φ_0` and the value-space CATE target `τ_val`:
 
     R^*_n(x) := sqrt( ∫ (op.evalAt n ω φ_0 x - τ_val x)^2 ∂P.μ ).
 

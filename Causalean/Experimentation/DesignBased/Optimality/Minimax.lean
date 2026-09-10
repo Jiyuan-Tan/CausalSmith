@@ -35,8 +35,10 @@ namespace DesignBased
 
 variable {Ω : Type*} [Fintype Ω] {Y : Type*}
 
-/-- The **worst-case risk** of a design `D` over a nonempty finite set `s` of states of nature: the
-largest risk `R y D` incurred as the state `y` ranges over `s`. -/
+/-- For [a finite set of states of nature](hyp:s) that [is nonempty](hyp:hs), [a risk criterion
+indexed by states and randomization designs](hyp:R), and [a randomization design](hyp:D), [the
+worst-case risk](goal) is the largest risk incurred by that design as the state ranges over the
+given set, provided risk values admit pairwise least upper bounds. -/
 noncomputable def worstRisk {α : Type*} [SemilatticeSup α] (s : Finset Y) (hs : s.Nonempty)
     (R : Y → FiniteDesign Ω → α) (D : FiniteDesign Ω) : α :=
   s.sup' hs (fun y => R y D)
@@ -47,8 +49,12 @@ lemma le_worstRisk {α : Type*} [SemilatticeSup α] (s : Finset Y) (hs : s.Nonem
     R y D ≤ worstRisk s hs R D :=
   Finset.le_sup' (fun y => R y D) hy
 
-/-- A design is **minimax** in the family `𝒟` over the states `s` when it belongs to `𝒟` and has the
-least worst-case risk among all members. -/
+/-- For [a family of randomization designs](hyp:𝒟), [a finite set of states of nature](hyp:s) that
+[is nonempty](hyp:hs), [a risk criterion indexed by states and randomization designs](hyp:R), and
+[a candidate randomization design](hyp:D₀), [the minimax condition](goal) holds precisely when
+[the candidate belongs to the family](step:1) and [its worst-case risk over the state set is no
+greater than that of every design in the family](step:2), provided risk values admit pairwise
+least upper bounds. -/
 def IsMinimaxOn (𝒟 : DesignFamily Ω) (s : Finset Y) (hs : s.Nonempty)
     {α : Type*} [SemilatticeSup α]
     (R : Y → FiniteDesign Ω → α) (D₀ : FiniteDesign Ω) : Prop :=
@@ -65,9 +71,13 @@ theorem exists_isMinimaxOn (𝒟 : DesignFamily Ω) (s : Finset Y) (hs : s.Nonem
     ∃ D₀, IsMinimaxOn 𝒟 s hs R D₀ :=
   exists_isOptimalOn 𝒟 (worstRisk s hs R) hfin hne
 
-/-- The **best achievable risk** at state `y` over the finite design family `𝒟`: the least risk
-`R y D` as `D` ranges over `𝒟`. (Defined via a chosen minimizer, which exists by
-`exists_isOptimalOn`; `bestRisk_le` and `le_bestRisk` characterize it.) -/
+/-- For [a family of randomization designs](hyp:𝒟) that [is finite](hyp:hfin) and [nonempty](hyp:hne),
+[a risk criterion indexed by states and randomization designs](hyp:R), and [a state of nature](hyp:y),
+[the best achievable risk](goal) is the least risk at that state among designs in the family,
+provided risk values are linearly ordered.
+
+It is defined through a chosen minimizing design; the subsequent comparison lemmas characterize
+the resulting value. -/
 noncomputable def bestRisk {α : Type*} [LinearOrder α] (𝒟 : DesignFamily Ω) (hfin : 𝒟.Finite)
     (hne : 𝒟.Nonempty) (R : Y → FiniteDesign Ω → α) (y : Y) : α :=
   R y (Classical.choose (exists_isOptimalOn 𝒟 (R y) hfin hne))
@@ -79,8 +89,11 @@ lemma bestRisk_le {α : Type*} [LinearOrder α] (𝒟 : DesignFamily Ω) (hfin :
     bestRisk 𝒟 hfin hne R y ≤ R y D :=
   (Classical.choose_spec (exists_isOptimalOn 𝒟 (R y) hfin hne)).2 D hD
 
-/-- The **regret** of a design `D` at state `y`, relative to the finite family `𝒟`: how much worse
-its risk is than the best risk achievable in `𝒟` at that state. -/
+/-- For [a family of randomization designs](hyp:𝒟) that [is finite](hyp:hfin) and [nonempty](hyp:hne),
+[a risk criterion indexed by states and randomization designs](hyp:R), [a state of nature](hyp:y),
+and [a randomization design](hyp:D), [the design's regret](goal) is its risk at that state minus
+the least risk achievable there within the family, provided risk values form a linearly ordered
+additive group whose order is preserved by right addition. -/
 noncomputable def regret (𝒟 : DesignFamily Ω) (hfin : 𝒟.Finite) (hne : 𝒟.Nonempty)
     {α : Type*} [AddGroup α] [LinearOrder α] [AddRightMono α]
     (R : Y → FiniteDesign Ω → α) (y : Y) (D : FiniteDesign Ω) : α :=

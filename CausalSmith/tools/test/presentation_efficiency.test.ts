@@ -17,8 +17,20 @@ describe("presentation token-efficiency helpers", () => {
 
   it("splits claim units and applies exact unique patches", () => {
     expect(claimUnits("First claim. Second claim!")).toHaveLength(2);
-    expect(applyTargetedReplacements("alpha beta", [{ before: "beta", after: "gamma" }])).toBe("alpha gamma");
-    expect(() => applyTargetedReplacements("x x", [{ before: "x", after: "y" }])).toThrow(/non-unique/);
+    expect(applyTargetedReplacements("alpha beta", [{ before: "beta", after: "gamma" }]).tex).toBe("alpha gamma");
+    // A non-unique or missing patch is skipped and reported; the others still apply.
+    const partial = applyTargetedReplacements("x x beta", [{ before: "x", after: "y" }, { before: "beta", after: "gamma" }, { before: "zeta", after: "eta" }]);
+    expect(partial.tex).toBe("x x gamma");
+    expect(partial.skipped).toEqual([{ before: "x", reason: "non-unique" }, { before: "zeta", reason: "missing" }]);
+    // Source propagation needs exact accepted patches, not a set of skipped search strings:
+    // a rejected edit and a later valid edit may have the same `before`.
+    const accepted = { before: "alpha", after: "beta" };
+    const guarded = applyTargetedReplacements("alpha", [
+      { before: "alpha", after: "protected change" }, accepted,
+    ], candidate => !candidate.includes("protected"));
+    expect(guarded.tex).toBe("beta");
+    expect(guarded.applied).toEqual([accepted]);
+    expect(guarded.skipped).toEqual([{ before: "alpha", reason: "protected" }]);
   });
 
   it("selects relevant paragraphs rather than the whole paper", () => {

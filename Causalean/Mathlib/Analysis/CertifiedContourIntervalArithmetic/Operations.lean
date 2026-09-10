@@ -28,8 +28,7 @@ private theorem expInterval_wellFormed (I : RatInterval) (n : ℕ) :
     Real.exp_monotone (by exact_mod_cast I.lo_le_hi)
   exact_mod_cast hlo.trans (hmono.trans hhi)
 
-/-- Exponential interval evaluation encloses the exponential of every real
-number contained in its input interval. -/
+/-- For [a rational interval](hyp:I) and [a precision index](hyp:n), [the exponential interval evaluation](goal) has [lower endpoint equal to the lower endpoint of the scalar exponential enclosure at the input interval's lower endpoint](step:1), upper endpoint equal to the upper endpoint of the scalar exponential enclosure at the input interval's upper endpoint, and valid endpoint order. -/
 def expInterval (I : RatInterval) (n : ℕ) : RatInterval :=
   ⟨expIntervalLo I n, expIntervalHi I n, expInterval_wellFormed I n⟩
 
@@ -46,19 +45,17 @@ private theorem logInterval_wellFormed (I : RatInterval) (hI : 0 < I.lo) (n : �
       (by exact_mod_cast I.lo_le_hi)
   exact_mod_cast hlo.trans (hmono.trans hhi)
 
-/-- Positive logarithm interval evaluation encloses the logarithm of every real
-number contained in its certified positive input interval. -/
+/-- For [a rational interval](hyp:I) [whose lower endpoint is strictly positive](hyp:hI) and [a precision index](hyp:n), [the logarithm interval evaluation](goal) has [lower endpoint equal to the lower endpoint of the scalar logarithm enclosure at the original lower endpoint](step:1), upper endpoint equal to the upper endpoint of the scalar logarithm enclosure at the original upper endpoint, and valid endpoint order. -/
 def logInterval (I : RatInterval) (hI : 0 < I.lo) (n : ℕ) : RatInterval :=
   ⟨(logScalar I.lo hI n).lo,
     (logScalar I.hi (hI.trans_le I.lo_le_hi) n).hi,
     logInterval_wellFormed I hI n⟩
 
-/-- Raw real-power evaluation on a strictly positive base composes logarithm,
-multiplication, and exponential interval evaluation. -/
+/-- For [a base rational interval and an exponent rational interval](hyp:base,exponent) [whose base interval has a strictly positive lower endpoint](hyp:hbase), and [a precision index](hyp:n), [the raw real-power interval](goal) is the exponential interval of the product of the exponent interval and the logarithm interval of the base. -/
 def rpowRaw (base exponent : RatInterval) (hbase : 0 < base.lo) (n : ℕ) : RatInterval :=
   expInterval (RatInterval.mul exponent (logInterval base hbase n)) n
 
-/-- Real-power interval evaluation tightens all raw evaluations up to the requested precision. -/
+/-- For [a base rational interval and an exponent rational interval](hyp:base,exponent) [whose base interval has a strictly positive lower endpoint](hyp:hbase), [the real-power interval sequence](goal) assigns [the raw real-power interval at precision zero](step:1) to index zero and [the conditional tightening of the preceding interval with the next raw real-power interval](step:2) to each positive index. -/
 def rpowInterval (base exponent : RatInterval) (hbase : 0 < base.lo) :
     ℕ → RatInterval
   | 0 => rpowRaw base exponent hbase 0

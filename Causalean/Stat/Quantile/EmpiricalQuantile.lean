@@ -54,7 +54,10 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} {P : Measure ℝ}
 
 /-! ## Empirical measure -/
 
-/-- The **empirical measure** `νₙ = (1/n) Σ_{i<n} δ_{Zᵢ}` of an i.i.d. sample. -/
+/-- For [an independent and identically distributed real-valued sample](hyp:S), [a
+nonnegative integer sample size](hyp:n), and [a sample-space outcome](hyp:ω), [the empirical
+measure](goal) is the sum of point masses at the first $n$ observed values, multiplied by the
+reciprocal of $n$; at sample size zero it is the zero measure. -/
 noncomputable def IIDSample.empiricalMeasure (S : IIDSample Ω ℝ μ P) (n : ℕ) (ω : Ω) :
     Measure ℝ :=
   (n : ℝ≥0∞)⁻¹ • ∑ i ∈ Finset.range n, Measure.dirac (S.Z i ω)
@@ -103,7 +106,12 @@ lemma IIDSample.empiricalMeasure_cdf (S : IIDSample Ω ℝ μ P)
 
 /-! ## Sample quantile -/
 
-/-- The **sample `τ`-quantile** `q̂ₙ(τ) = quantile νₙ τ`, the generalized inverse
+/-- For [an independent and identically distributed real-valued sample](hyp:S) and [a real
+quantile level](hyp:τ), [the sample quantile](goal) maps each nonnegative integer sample size
+and sample-space outcome to the lower generalized inverse, at that level, of the empirical
+cumulative distribution function.
+
+The **sample `τ`-quantile** `q̂ₙ(τ) = quantile νₙ τ`, the generalized inverse
 of the empirical cdf. -/
 noncomputable def IIDSample.sampleQuantile (S : IIDSample Ω ℝ μ P) (τ : ℝ) :
     ℕ → Ω → ℝ :=

@@ -1,0 +1,48 @@
+{
+  "node_type": "statement",
+  "body": {
+    "id": "prop:clubsandwich-consumer",
+    "kind": "proposition",
+    "statement": "Suppose \\(G_{1n}\\ge 2\\) and \\(G_{0n}\\ge 2\\). Let \\({\\tt fit}={\\tt lm}(Y^{\\mathrm{obs}}\\sim Z)\\) be unweighted, with only an intercept and numeric binary group treatment, equal group size \\(M\\), and clusters equal the realized groups. With the default identity target, the treatment-coordinate entry of \\({\\tt clubSandwich::vcovCR}({\\tt fit},\\ {\\tt cluster}={\\tt group},\\ {\\tt type}={\\tt 'CR2'})\\) equals \\(\\widehat V_{\\mathrm{CR2},n}=s_{1,n}^2/G_{1n}+s_{0,n}^2/G_{0n}\\) exactly.",
+    "free_symbols": [
+      "M",
+      "G_{1n}",
+      "G_{0n}",
+      "H^{\\mathrm{obs}}_{ng}",
+      "s_{z,n}^2",
+      "\\widehat V_{\\mathrm{CR2},n}"
+    ],
+    "depends_on": [
+      "def:random-partition-design",
+      "def:cr2-statistic",
+      "lem:clubsandwich-cr2-software-contract",
+      "lem:sandwich-lm-bread-contract"
+    ],
+    "justification": "Freezing the exact software call prevents a theoretical group-HC2 formula from being misapplied to a different sandwich specification.",
+    "gap": "FuSamiiWang2026 states the equal-group formula and an implementation call, but it does not connect that software output to the dense projection correction.",
+    "consumer": "The proposition identifies the exact coefficient variance returned to users of \\({\\tt clubSandwich}\\) in the design studied here.",
+    "proof_tex": "Fix one realized data set and suppress the row index \\(n\\).  The assertion is deterministic conditional on this realization.  By \\({\\rm def:random\\text{-}partition\\text{-}design}\\), every realized group has exactly \\(M\\) units.  For a group \\(g\\) assigned arm \\(z\\in\\{0,1\\}\\), let \\(y_g\\in\\mathbb R^M\\) collect its individual observed outcomes, let \\(\\mathbf 1_M\\) be the \\(M\\)-vector of ones, and define\n\\[\n H_g:=M^{-1}\\mathbf 1_M^{\\mathsf T}y_g=H^{\\mathrm{obs}}_{ng},\n \\qquad\n x_z:=\\begin{pmatrix}1\\\\ z\\end{pmatrix},\n \\qquad\n X_g:=\\mathbf 1_Mx_z^{\\mathsf T}.\n \\tag{1}\n\\]\nWrite \\(G_z:=G_{zn}\\), so \\(G_1=G_{1n}\\) and \\(G_0=G_{0n}\\), and let \\(X\\) be the matrix obtained by stacking the \\(X_g\\)'s.  Both treatment values occur because \\(G_1,G_0\\ge2\\); hence the two columns of \\(X\\) are linearly independent, so \\(X\\) has rank two.  Since \\(M\\ge2\\), in particular \\(M>0\\).  Direct multiplication and inversion therefore give\n\\[\n X^{\\mathsf T}X\n =M\\begin{pmatrix}G_0+G_1&G_1\\\\G_1&G_1\\end{pmatrix},\n \\qquad\n B:=(X^{\\mathsf T}X)^{-1}\n =\\frac1M\\begin{pmatrix}\n G_0^{-1}&-G_0^{-1}\\\\\n -G_0^{-1}&G_0^{-1}+G_1^{-1}\n \\end{pmatrix}.\n \\tag{2}\n\\]\nThe determinant inverted in (2) is \\(M^2G_0G_1>0\\).  If \\(c=(0,1)^{\\mathsf T}\\) selects the treatment coordinate, (2) yields\n\\[\n c^{\\mathsf T}Bx_1=\\frac1{MG_1},\n \\qquad\n c^{\\mathsf T}Bx_0=-\\frac1{MG_0}.\n \\tag{3}\n\\]\n\nThe cited software contract \\({\\rm lem:clubsandwich\\text{-}cr2\\text{-}software\\text{-}contract}\\), together with the cited \\({\\tt lm}\\)-bread contract \\({\\rm lem:sandwich\\text{-}lm\\text{-}bread\\text{-}contract}\\), says that the returned matrix is\n\\[\n \\widehat\\Sigma_{\\mathrm{CR2}}\n =B\\sum_gX_g^{\\mathsf T}A_ge_ge_g^{\\mathsf T}A_g^{\\mathsf T}X_gB,\n \\qquad\n A_g=\\left(I_M-X_gBX_g^{\\mathsf T}\\right)^{-1/2},\n \\tag{4}\n\\]\nprovided the matrices inside the inverse square roots are positive definite.  Here \\(e_g=y_g-X_g\\widehat\\beta\\) is the ordinary-least-squares residual block.  To verify the required positivity rather than assume it, set\n\\[\n P_M:=M^{-1}\\mathbf 1_M\\mathbf 1_M^{\\mathsf T}.\n\\]\nFor a group in arm \\(z\\), (1)--(2) give\n\\[\n X_gBX_g^{\\mathsf T}\n =\\mathbf 1_M(x_z^{\\mathsf T}Bx_z)\\mathbf 1_M^{\\mathsf T}\n =G_z^{-1}P_M.\n \\tag{5}\n\\]\nThe matrix \\(P_M\\) is the orthogonal projection onto the span of \\(\\mathbf 1_M\\).  Thus \\(I_M-G_z^{-1}P_M\\) has eigenvalue \\(1-G_z^{-1}>0\\) on that span, because \\(G_z\\ge2\\), and eigenvalue \\(1\\) on its orthogonal complement.  This proves the positivity required in (4).  Spectral calculus applied to (5) then gives\n\\[\n A_g=(I_M-P_M)+a_zP_M,\n \\qquad\n a_z:=\\left(1-\\frac1{G_z}\\right)^{-1/2}\n =\\sqrt{\\frac{G_z}{G_z-1}}.\n \\tag{6}\n\\]\n\nUsing (2) in \\(\\widehat\\beta=BX^{\\mathsf T}y\\), and using equal group size to replace each group total by \\(MH_g\\), gives\n\\[\n \\widehat\\beta\n =\\begin{pmatrix}\\bar H_0\\\\ \\bar H_1-\\bar H_0\\end{pmatrix},\n \\qquad\n \\bar H_z:=G_z^{-1}\\sum_{g:Z_{ng}=z}H_g.\n \\tag{7}\n\\]\nConsequently the mean residual in a group \\(g\\) assigned arm \\(z\\) is\n\\[\n M^{-1}\\mathbf 1_M^{\\mathsf T}e_g=H_g-\\bar H_z=:d_g.\n \\tag{8}\n\\]\nEquations (6)--(8) imply that the component of \\(e_g\\) orthogonal to \\(\\mathbf 1_M\\) contributes nothing to the cluster score and that\n\\[\n \\mathbf 1_M^{\\mathsf T}A_ge_g\n =a_z\\mathbf 1_M^{\\mathsf T}e_g\n =Ma_zd_g.\n \\tag{9}\n\\]\nCombining (1), (3), and (9), the treatment-coordinate adjusted score is\n\\[\n q_g:=c^{\\mathsf T}BX_g^{\\mathsf T}A_ge_g\n =\\begin{cases}\n a_1d_g/G_1,&Z_{ng}=1,\\\\\n -a_0d_g/G_0,&Z_{ng}=0.\n \\end{cases}\n \\tag{10}\n\\]\nTaking the treatment-coordinate entry of (4), substituting (10), then using (6) and \\({\\rm def:cr2\\text{-}statistic}\\), yields the equation-by-equation identity\n\\[\n \\begin{aligned}\n c^{\\mathsf T}\\widehat\\Sigma_{\\mathrm{CR2}}c\n &=\\sum_gq_g^2\\\\\n &=\\sum_{z=0}^1\\frac{a_z^2}{G_z^2}\n   \\sum_{g:Z_{ng}=z}(H_g-\\bar H_z)^2\\\\\n &=\\sum_{z=0}^1\n   \\frac{G_z}{G_z-1}\\frac{(G_z-1)s_{z,n}^2}{G_z^2}\\\\\n &=\\frac{s_{1,n}^2}{G_{1n}}+\\frac{s_{0,n}^2}{G_{0n}}\\\\\n &=\\widehat V_{\\mathrm{CR2},n}.\n \\end{aligned}\n \\tag{11}\n\\]\nNo randomization, independence, moment, or limiting premise is used after fixing the realized data.  The restrictions \\(G_{1n},G_{0n}\\ge2\\) are used exactly to make the CR2 adjustment in (6) finite and the sample variances in \\({\\rm def:cr2\\text{-}statistic}\\) well defined.  Equation (11) proves the claimed exact consumer identity.",
+    "proof_basis": {
+      "def:cr2-statistic": "d6b41a02db955301974897c7ba25ca561e099f4becc22c57c551822d6412199b",
+      "def:random-partition-design": "c7d668c19d7f6cab079b32a32a60ffa6da0728ceac78c3b7e52e5894f1e3bf88",
+      "lem:clubsandwich-cr2-software-contract": "b24aee8eb00791c51f78f8c9ce3bd109a5f427e9bf722c8c793ef45210d18460",
+      "lem:sandwich-lm-bread-contract": "dcf0adb0cfcf872740535e2b25cf5d4ef28f2300aeab29be2e67acd8e5376744",
+      "prop:clubsandwich-consumer": "af78ee93ce6b52c874b72ac4802b1feaaab7489bff596802a65c179c74603c1e",
+      "sym:G_n": "1a6dee04597356baf7d714472fad4ed792bd088428f440ca405c19f716bc6b69",
+      "sym:G_{0n}": "fc30a02efcb7c89ad528805358bed50939dc9c595af438256f141e8f6e0a49ef",
+      "sym:G_{1n}": "5860ebbeca802aa658fedc99d2f908c7b1500d5241975324625f156b662c5c6d",
+      "sym:H^{\\mathrm{obs}}_{ng}": "65b8573e321145f7b83fa9b26f717c5f21ef7fcdb48c18e6d16c3a64bae8f1b0",
+      "sym:M": "b7fdd2258e24ad77e2fc05037907839a80471e08a573ed9913974548856d1dca",
+      "sym:Y_{i,n}(z,A)": "f696882be258670b6b6f10d9806e15535fcb7394c6574ca137f3d46f3d32b966",
+      "sym:\\Omega_{n,M}": "158dd61d8312a216e9d74336923e4149518b222dda7eae4425f66c49588df2ed",
+      "sym:\\mathbf A_n": "66bd0c2f93a167fa0954646e9bc14e792618cb078570a54ab58a4bb194024c36",
+      "sym:\\mathbf Z_n": "dcc2657b3bea56d17be9dd8cf5b1c625620b5c078a19a2f592a9053b66772264",
+      "sym:\\mathcal U_n": "0e4cc7c35c3381a3e649fd793f72ba7e0c312c3a86ba1741a4e078c280da6280",
+      "sym:\\mathcal Z": "fb12945555e1ffc732a7db7e7a4655bc2e0059c113dd773c64a5f40232a51095",
+      "sym:\\widehat V_{\\mathrm{CR2},n}": "e57fd2c1fb0c3d67034829586cd13df4c39203f9338cc0a989ca8710118a5aa5",
+      "sym:h_{z,n}": "9cd0101feba105cca2eec8d613c7e2a8c1334d512ca2fc34bcbba7551b5c41db",
+      "sym:n": "712d72b4eb1ad30212ea13e0c40291b3312ff9e1893fadc57c656167bab230fa",
+      "sym:s_{z,n}^2": "2468dd504bea78f6d3e1a4b4295d98bdab909487cd63f22c639d05581f71762a"
+    }
+  }
+}

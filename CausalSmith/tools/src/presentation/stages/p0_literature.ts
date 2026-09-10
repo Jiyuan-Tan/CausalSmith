@@ -1,4 +1,4 @@
-import { writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { StageIO } from "../pipeline.js";
 import { presentationPrompt } from "../prompt_io.js";
@@ -53,7 +53,12 @@ export async function stageP0(io: StageIO): Promise<void> {
     await writeFile(join(io.outDir, "p0.stub"), "dry-run\n");
     return;
   }
-  const prompt = await presentationPrompt("p0_literature", {
+  // A verification-rate halt must not re-pay the search: the raw pool and the brief are persisted
+  // before verification, and a re-entry that finds both re-verifies only.
+  const rawPath = join(io.outDir, "references_raw.bib");
+  const briefPath = join(io.outDir, "related_work_brief.md");
+  const persisted = await Promise.all([readFile(rawPath, "utf8"), readFile(briefPath, "utf8")]).catch(() => null);
+  const prompt = persisted ? "" : await presentationPrompt("p0_literature", {
     topic: io.bank.readme.topic ?? io.ctx.qid,
     research_writeup_tex: anchorLiterature(io),
     source_bibliography: JSON.stringify(io.bank.sourceBibliography, null, 2),
@@ -64,20 +69,33 @@ export async function stageP0(io: StageIO): Promise<void> {
   // Codex with its hosted web_search tool (server-side search + open_page) builds
   // the pool; the sandbox stays network-off. High effort — search + extraction +
   // faithful bibtex. (Stage -1.1 already uses codex web_search the same way.)
-  const { stdout: out } = await io.ctx.deps.runCodex({
-    prompt,
-    cwd: io.ctx.repoRoot,
-    reasoningEffort: "high",
-    leanLsp: false,
-    // Pin P0 to the same presentation tier explicitly so its model choice is
-    // visible in the per-run transcript rather than hidden in CLI injection.
-    model: MODELS.codexPresentation,
-  });
-  const bib = extractFenced(out, "bibtex");
-  const brief = extractFenced(out, "markdown");
-  if (!bib || !brief) throw new Error("P0 output missing the bibtex/markdown fenced blocks");
-  // Raw pre-verification pool, so drops are auditable after the fact.
-  await writeFile(join(io.outDir, "references_raw.bib"), bib + "\n", "utf8");
+  let bib: string;
+  let brief: string;
+  if (persisted) {
+    [bib, brief] = persisted.map((t: string) => t.trim());
+    io.state.notes.push("P0: reused the persisted raw pool and brief (references_raw.bib, related_work_brief.md); re-verifying only");
+  } else {
+    const { stdout: out } = await io.ctx.deps.runCodex({
+      prompt,
+      cwd: io.ctx.repoRoot,
+      reasoningEffort: "high",
+      leanLsp: false,
+      // Pin P0 to the same presentation tier explicitly so its model choice is
+      // visible in the per-run transcript rather than hidden in CLI injection.
+      model: MODELS.codexPresentation,
+    });
+    const fencedBib = extractFenced(out, "bibtex");
+    const fencedBrief = extractFenced(out, "markdown");
+    if (!fencedBib || !fencedBrief) throw new Error("P0 output missing the bibtex/markdown fenced blocks");
+    // `verifiedby` is the orchestrator's hand-verification mark (see citations.ts verifyEntry);
+    // model output never carries one, so the registry check cannot be talked out of.
+    // Matches the whole field in any layout (own line, one-line entry, braced multi-line value).
+    bib = fencedBib.replace(/,?\s*verifiedby\s*=\s*(?:\{(?:[^{}]|\{[^{}]*\})*\}|"[^"]*"|[^,}\n]*)/gi, "");
+    brief = fencedBrief;
+    // Raw pre-verification pool and the brief, so drops are auditable and a halt below re-pays nothing.
+    await writeFile(rawPath, bib + "\n", "utf8");
+    await writeFile(briefPath, brief + "\n", "utf8");
+  }
 
   const lookup = io.ctx.deps.lookup ?? defaultLookup;
   const chunks = bibChunks(bib);
@@ -102,6 +120,8 @@ export async function stageP0(io: StageIO): Promise<void> {
     "utf8",
   );
   const dropped = report.filter((r) => r.verdict === "major").length;
+  const unverified = report.filter((r) => r.detail.includes("unreachable (transient)")).length;
+  if (unverified > 0) io.state.notes.push(`P0: ${unverified}/${report.length} entries unverified this run (registry unreachable) — P4 re-verifies the cited ones.`);
   if (kept.length === 0) throw new Error("P0: citation pool empty after verification");
   if (dropped / report.length > 0.4) {
     throw new Error(
@@ -109,5 +129,5 @@ export async function stageP0(io: StageIO): Promise<void> {
     );
   }
   await writeFile(join(io.outDir, "references.bib"), kept.join("\n\n") + "\n", "utf8");
-  await writeFile(join(io.outDir, "related_work_brief.md"), brief + "\n", "utf8");
+  if (!persisted) await writeFile(briefPath, brief + "\n", "utf8");
 }

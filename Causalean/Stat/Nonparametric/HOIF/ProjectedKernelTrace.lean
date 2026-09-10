@@ -46,11 +46,18 @@ open scoped BigOperators
 variable {X : Type*} [MeasurableSpace X] {P : Measure X} [IsProbabilityMeasure P]
 variable {J : ℕ}
 
-/-- The second-moment (Gram) matrix of the basis `c`: `Σ_{kl} = ∫ c(x)_k c(x)_l dP`. -/
+/-- For [a measurable sample space](hyp:X), [a nonnegative integer giving the number of basis
+functions](hyp:J), [a real-valued basis evaluated at each sample point](hyp:c), and [a measure on
+that sample space](hyp:P), the [second-moment, or Gram, matrix of the basis](goal) has entry
+$k,l$ equal to $\int c_k(x)c_l(x)\,dP(x)$. -/
 noncomputable def gram (c : X → Fin J → ℝ) (P : Measure X) : Matrix (Fin J) (Fin J) ℝ :=
   Matrix.of (fun k l => ∫ x, c x k * c x l ∂P)
 
-/-- The projected HOIF kernel `g(x,y) = ∑_{k,l} c(x)_k M_{kl} c(y)_l`. -/
+/-- For [a sample space](hyp:X), [a nonnegative integer giving the number of basis
+functions](hyp:J), [a real-valued basis evaluated at each sample point](hyp:c), and [a real
+square weighting matrix indexed by those basis functions](hyp:M), the [projected higher-order
+influence-function kernel](goal) assigns to two sample points $x,y$ the value
+$\sum_{k,l} c_k(x)M_{kl}c_l(y)$. -/
 noncomputable def projKernel (c : X → Fin J → ℝ) (M : Matrix (Fin J) (Fin J) ℝ) :
     X → X → ℝ :=
   fun x y => ∑ k, ∑ l, c x k * M k l * c y l

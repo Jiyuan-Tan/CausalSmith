@@ -91,10 +91,10 @@ export interface CodexRunInput {
    * if the extra tool surface is unwanted.
    */
   webSearch?: boolean;
-  /** Per-call sandbox narrowing. Cold referees use `read-only` even when the
-   *  host configuration permits workspace writes. A call may never broaden
-   *  the configured sandbox through this field. */
-  sandboxMode?: "read-only";
+  /** Per-call sandbox narrowing. Cold referees use `read-only`; staged writers
+   *  use `workspace-write` even when host configuration permits full access.
+   *  A call may never broaden the configured sandbox through this field. */
+  sandboxMode?: "read-only" | "workspace-write";
   /** Ignore inherited user config while retaining CODEX_HOME authentication.
    * Cold referees use this so user MCP/tool settings cannot widen the call. */
   ignoreUserConfig?: boolean;
@@ -166,6 +166,18 @@ export function resolveCodexSandboxMode(args: {
 /** Canonical, explicitly configured mode for every real Codex dispatch. */
 export function codexSandboxMode(): CodexSandboxMode {
   return resolveCodexSandboxMode({ configured: localConfig().codexSandbox });
+}
+
+/** The sandbox a call actually runs under. `danger-full-access` in the config is the operator's
+ *  statement that Codex's sandbox cannot start on this host at all, so it is used for EVERY call
+ *  and no per-call request replaces it (user directive 2026-09-09). Under `workspace-write` a call
+ *  may still narrow itself to `read-only`. */
+export function effectiveSandboxMode(
+  requested: "read-only" | "workspace-write" | undefined,
+  configured: CodexSandboxMode,
+): "read-only" | "workspace-write" | "danger-full-access" {
+  if (configured === "danger-full-access") return configured;
+  return requested ?? configured;
 }
 
 /**
@@ -365,7 +377,13 @@ export async function runCodex(input: CodexRunInput): Promise<{ stdout: string; 
   // all, so a machine without one should still reach `codex exec` rather than
   // abort the `&&` chain. node_env.sh prints its own diagnostic to stderr.
   const setup = `. ${shellQuote(NODE_ENV_SCRIPT)} || true`;
-  const sandboxMode = input.sandboxMode ?? codexSandboxMode();
+  // A call may narrow the configured sandbox, never broaden it — and a configured
+  // `danger-full-access` is never replaced: it is the operator's declaration that Codex's namespace
+  // sandbox fails on this host (`bwrap: loopback: Failed RTM_NEWADDR`), so any per-call sandbox
+  // would start a session in which every read, shell command and apply_patch fails and the model
+  // reports "blocked" — the P5 reviser ran that way for weeks and never edited.
+  const configuredSandbox = codexSandboxMode();
+  const sandboxMode = effectiveSandboxMode(input.sandboxMode, configuredSandbox);
   // Billing path. In api mode the key rides in via `workerEnv()` (which also
   // points CODEX_HOME at the dedicated home) and `forced_login_method="api"`
   // makes the choice explicit, so a home that somehow held ChatGPT credentials
@@ -400,6 +418,18 @@ export async function runCodex(input: CodexRunInput): Promise<{ stdout: string; 
     // delegates both filesystem and network confinement to the outer environment.
     "-c windows.sandbox=unelevated",
     ...(auth.mode === "api" ? ['-c forced_login_method="api"'] : []),
+    // Billing tier, stated explicitly. The server ships `default_service_tier =
+    // "priority"` ("Fast": 1.5-2x speed, INCREASED usage) for entitled accounts, so a
+    // call that never names a tier silently burns quota faster. `~/.codex/config.toml`
+    // opts out, but the Claude-unavailable fallback cold referee
+    // (`discovery/framework/referee.ts`) passes `--ignore-user-config`, documented as
+    // "Do not load $CODEX_HOME/config.toml", so the file never reaches THAT call. A `-c`
+    // override applies in both cases, hence pass it on every call. `shellQuote` wraps the
+    // ALREADY-TOML-quoted value so the inner quotes survive the shell and codex parses a
+    // TOML string, rather than leaning on its parse-failure->literal-string fallback. The
+    // neighbouring `-c` values still ride that fallback (bare words after the shell eats
+    // their quotes); do NOT "harmonize" this line back to their style.
+    `-c service_tier=${shellQuote('"default"')}`,
     // Default fallback tier is mechanical (gpt-5.6-terra); every hard-math / kernel caller
     // passes an explicit `input.model` (codexKernel = gpt-5.5), so this default only applies
     // to unspecified/clerical codex calls.

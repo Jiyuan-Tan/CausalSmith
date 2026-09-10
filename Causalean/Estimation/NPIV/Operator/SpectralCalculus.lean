@@ -73,7 +73,9 @@ open MeasureTheory ContinuousLinearMap
 
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
 
-/-- Local disambiguation of the real-scalar algebra structure on the complex
+/-- For a measurable sample space and its measure, the real-scalar algebra is the algebra of bounded complex-linear operators on the corresponding complex-valued $L^2$ space.
+
+Local disambiguation of the real-scalar algebra structure on the complex
 operator algebra `Lp ℂ 2 μ →L[ℂ] Lp ℂ 2 μ`.
 
 There are two definitionally equal but syntactically different ways to view this
@@ -143,7 +145,9 @@ lemma Tstar_T_spectrum_nonneg (_sc : SpectralSourceCondition S β) :
 
 /-! ## The `(T†T)^{β/2}` operator, defined via real CFC -/
 
-/-- The symbol `x ↦ Real.rpow (max x 0) (β/2)` used by `spectralPower`.
+/-- For [a real source exponent](hyp:β), [the source symbol is the function sending each real number $x$ to $(\max\{x,0\})^{\beta/2}$](goal).
+
+The symbol `x ↦ Real.rpow (max x 0) (β/2)` used by `spectralPower`.
 Continuous on all of ℝ for `β ≥ 0`, and agrees with `x^{β/2}` on
 `[0, ∞)`. -/
 noncomputable def sourceSymbol (β : ℝ) : ℝ → ℝ :=
@@ -156,7 +160,9 @@ lemma continuous_sourceSymbol {β : ℝ} (h : 0 ≤ β) :
   refine (Real.continuous_rpow_const ?_).comp (continuous_id.max continuous_const)
   linarith
 
-/-- The operator `(T†T)^{β/2}`, defined as the real CFC of `T†T`
+/-- For [a spectral source condition](hyp:_sc), [the spectral-power operator is the real functional-calculus transform of the adjoint-product NPIV operator by the symbol $x\mapsto(\max\{x,0\})^{\beta/2}$](goal).
+
+The operator `(T†T)^{β/2}`, defined as the real CFC of `T†T`
 applied to the continuous symbol `x ↦ Real.rpow (max x 0) (β/2)`. -/
 noncomputable def spectralPower (_sc : SpectralSourceCondition S β) :
     Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ :=
@@ -169,7 +175,9 @@ lemma spectral_identity_h₀ (sc : SpectralSourceCondition S β) :
 
 /-! ## Bias constant -/
 
-/-- Uniform constant absorbing both regimes (β ≤ 2 and β > 2) of the
+/-- For [a spectral source condition](hyp:_sc), [the bias constant is $(\max\{1,\lVert T^*T\rVert+1\})^\beta$](goal).
+
+Uniform constant absorbing both regimes (β ≤ 2 and β > 2) of the
 sup-on-spectrum analysis.
 
 In the small-β regime (β ≤ 2) the constant is `≤ 1` and the rate is
@@ -1215,7 +1223,9 @@ structure TikhonovPullback
     haveI := sc.Hbar_L2_hasProj
     S.hL2 h_lambda_star_mem = S.tikhonovMinimiserL2 lambda
 
-/-- **Discharge of the Tikhonov bias bound from the spectral source
+/-- For [an NPIV operator system](hyp:S), [a real source exponent](hyp:β), [a real regularization level](hyp:lambda), [a strictly positive regularization level](hyp:lambda_pos), [a spectral source condition](hyp:sc), and [a pullback of the $L^2$ Tikhonov minimiser to a primal candidate function](hyp:pb), [the construction returns a Tikhonov bias-bound bundle for that system, exponent, level, and the source condition underlying the spectral condition](goal).
+
+**Discharge of the Tikhonov bias bound from the spectral source
 condition.**
 
 Given a `SpectralSourceCondition` and a `TikhonovPullback` to the

@@ -92,7 +92,11 @@ structure SampleQuantileReg (P : Measure ℝ) (τ q₀ f₀ : ℝ) : Prop where
 
 /-! ## The centered, scaled empirical process -/
 
-/-- The centered, scaled empirical process `Gₙ(y) = √n (F̂ₙ(y) − F(y))`. -/
+/-- For [an independent and identically distributed real-valued sample](hyp:S), [a
+nonnegative integer sample size](hyp:n), [a sample-space outcome](hyp:ω), and [a real
+threshold](hyp:y), [the centered, scaled empirical process](goal) is $\sqrt n$ times the
+difference between the empirical cumulative distribution function at that threshold and the
+population cumulative distribution function there. -/
 noncomputable def IIDSample.empProcess (S : IIDSample Ω ℝ μ P) (n : ℕ) (ω : Ω) (y : ℝ) :
     ℝ :=
   Real.sqrt (n : ℝ) * (S.empiricalCDF y n ω - cdf P y)

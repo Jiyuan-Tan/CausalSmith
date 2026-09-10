@@ -31,8 +31,7 @@ namespace Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition
 open MeasureTheory Finset Causalean.Panel
 open scoped BigOperators
 
-/-- Linear `L²` control class spanned, up to almost-everywhere equality, by the
-finite family of cell indicators `𝟙{G = g}` for `g : 𝒢`.
+/-- For [a finite measure on a sample space](hyp:μ), [a finite covariate-valued map](hyp:G), and [the measurability of that map](hyp:G_meas), the [saturated linear square-integrable control class](goal) consists of functions that agree almost everywhere with a linear combination of the indicators of the covariate cells.
 
 Membership predicate (predicate-style, residualization_core D1 option (b)):
 
@@ -49,21 +48,17 @@ noncomputable def saturatedClass {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype
     (G : Ω → 𝒢) (G_meas : Measurable G) : LinearL2Class μ :=
   CellBridge.indicatorSpan μ G G_meas
 
-/-- Cell mass `(μ {G = g}).toReal`, the probability weight of covariate cell `g`. -/
+/-- For [a measure on a sample space](hyp:μ), [a covariate map](hyp:G), and [a covariate cell](hyp:g), the [cell mass](goal) is the measure of the event that the covariate map equals that cell, expressed as a real number. -/
 def cellMass {Ω 𝒢 : Type*} [MeasurableSpace Ω]
     (μ : Measure Ω) (G : Ω → 𝒢) (g : 𝒢) : ℝ :=
   CellBridge.cellMass μ G g
 
-/-- Cell-wise treated share, defined as the indicator-weighted integral of `D`
-on covariate cell `g`, divided by `cellMass μ G g`. On zero-mass cells, the
-value is `0` by Mathlib's `0/0 = 0` convention. -/
+/-- For [a measure on a sample space](hyp:μ), [a treatment-valued function](hyp:D), [a covariate map](hyp:G), and [a covariate cell](hyp:g), the [cell-wise treated share](goal) is the indicator-weighted integral of treatment over that cell divided by its mass. On a zero-mass cell, its value is zero. -/
 noncomputable def cellShare {Ω 𝒢 : Type*} [MeasurableSpace Ω]
     (μ : Measure Ω) (D : Ω → ℝ) (G : Ω → 𝒢) (g : 𝒢) : ℝ :=
   CellBridge.cellMean μ D G g
 
-/-- Cell-wise treatment effect `E[Y(1) − Y(0) | G = g]` in the shared
-indicator-weighted cell-mean convention. Like `cellShare`, zero-mass cells
-collapse to `0`. -/
+/-- For [a measure on a sample space](hyp:μ), [an untreated potential-outcome function](hyp:Y0), [a treated potential-outcome function](hyp:Y1), [a covariate map](hyp:G), and [a covariate cell](hyp:g), the [cell-wise treatment effect](goal) is the indicator-weighted mean of $Y(1)-Y(0)$ in that cell. On a zero-mass cell, its value is zero. -/
 noncomputable def cellTau {Ω 𝒢 : Type*} [MeasurableSpace Ω]
     (μ : Measure Ω) (Y0 Y1 : Ω → ℝ) (G : Ω → 𝒢) (g : 𝒢) : ℝ :=
   CellBridge.cellMean μ (fun ω => Y1 ω - Y0 ω) G g
@@ -116,17 +111,17 @@ theorem cellTau_eq_eventCondExp {Ω 𝒢 : Type*} [MeasurableSpace Ω]
       = Causalean.PO.eventCondExp μ {ω | G ω = g} (fun ω => Y1 ω - Y0 ω) :=
   cellMean_eq_eventCondExp μ (fun ω => Y1 ω - Y0 ω) G G_meas g
 
-/-- Saturated propensity `propensity μ D G ω = cellShare μ D G (G ω)`
-(pointwise, by disjointness of the `{G = g}` family). Plays the role of
-`p(G(·))` and lies in `saturatedClass μ G G_meas`. -/
+/-- For [a measure on a sample space](hyp:μ), [a treatment-valued function](hyp:D), and [a finite covariate map](hyp:G), the [saturated propensity function](goal) assigns to every sample point the treated share of its covariate cell.
+
+It is written as the finite sum of cell-share-weighted cell indicators. -/
 noncomputable def propensity {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 𝒢]
     (μ : Measure Ω) (D : Ω → ℝ) (G : Ω → 𝒢) : Ω → ℝ :=
   fun ω => ∑ g, cellShare μ D G g
     * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω
 
-/-- Saturated mean regression `meanReg μ Y G ω` is the cell-wise
-average of `Y`, evaluated at `G ω`. Plays the role of `m(G(·))` for the
-outcome `Y`. Lies in `saturatedClass μ G G_meas`. -/
+/-- For [a measure on a sample space](hyp:μ), [an outcome-valued function](hyp:Y), and [a finite covariate map](hyp:G), the [saturated mean-regression function](goal) assigns to every sample point the indicator-weighted mean outcome of its covariate cell.
+
+It is written as the finite sum of cell-mean-weighted cell indicators. -/
 noncomputable def meanReg {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 𝒢]
     (μ : Measure Ω) (Y : Ω → ℝ) (G : Ω → 𝒢) : Ω → ℝ :=
   fun ω => ∑ g,

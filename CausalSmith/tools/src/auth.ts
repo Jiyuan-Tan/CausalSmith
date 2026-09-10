@@ -18,9 +18,14 @@
 //   anthropicApiKeyFile  …or a path to a file holding it (first line)
 //   openaiApiKey / openaiApiKeyFile   same, for codex
 //   codexApiHome       CODEX_HOME used in api mode (see below)
+//   claudeConfigDir    CLAUDE_CONFIG_DIR for the claude workers — an ACCOUNT
+//                      switch, not a billing one: it runs the pipeline on a
+//                      different Anthropic subscription while leaving the
+//                      operator's own interactive login alone.
 //
 //   CAUSALSMITH_AUTH_MODE, CAUSALSMITH_ANTHROPIC_AUTH, CAUSALSMITH_OPENAI_AUTH,
-//   ANTHROPIC_API_KEY, OPENAI_API_KEY, CAUSALSMITH_CODEX_HOME_API
+//   ANTHROPIC_API_KEY, OPENAI_API_KEY, CAUSALSMITH_CODEX_HOME_API,
+//   CAUSALSMITH_CLAUDE_CONFIG_DIR
 //
 // Mixed modes are legitimate and supported: `anthropicAuth: "api"` with
 // `openaiAuth: "subscription"` runs the claude workers on an API key while codex
@@ -256,11 +261,45 @@ export function codexHome(inputs: AuthInputs = {}): string {
  * Both keys are exported whenever they are configured, regardless of which
  * worker is being spawned: the child CLIs ignore the other provider's key.
  */
+/**
+ * CLAUDE_CONFIG_DIR for the spawned `claude` workers, or undefined to leave the
+ * child on whatever the operator's shell already uses (`~/.claude`).
+ *
+ * This is an ACCOUNT switch, not a billing switch: `claude` keeps its credentials,
+ * settings and session history under one directory, so pointing the workers at a
+ * second directory runs the pipeline on a second Anthropic subscription while the
+ * operator's own interactive login is untouched. Unlike codex there is no
+ * one-login-per-home eviction rule, so pointing this at `~/.claude` is merely a
+ * no-op rather than destructive, and needs no guard.
+ *
+ * `CAUSALSMITH_CLAUDE_CONFIG_DIR` wins over the config file, as everywhere else.
+ */
+export function claudeConfigDir(inputs: AuthInputs = {}): string | undefined {
+  const env = inputs.env ?? process.env;
+  const config = inputs.config ?? localConfig();
+  const configured =
+    env.CAUSALSMITH_CLAUDE_CONFIG_DIR?.trim() || config.claudeConfigDir?.trim();
+  if (!configured) return undefined;
+  const dir = configured.replace(/^~(?=\/|\\|$)/, os.homedir());
+  // Fail loudly at the dispatch boundary rather than letting every worker die on
+  // "Not logged in": a typo here would otherwise look like a model outage.
+  if (!fs.existsSync(dir)) {
+    throw new AuthConfigError(
+      `claudeConfigDir does not exist: ${dir}. Create it and log the pipeline's ` +
+        `Anthropic account in with:  CLAUDE_CONFIG_DIR=${dir} claude  then /login. ` +
+        `Unset claudeConfigDir to run the workers on the operator's own ~/.claude.`,
+    );
+  }
+  return dir;
+}
+
 export function workerEnv(inputs: AuthInputs = {}): NodeJS.ProcessEnv {
   const env = inputs.env ?? process.env;
   const config = inputs.config ?? localConfig();
   const auth = resolveAuth({ env, config });
   const out: NodeJS.ProcessEnv = { ...env };
+  const claudeDir = claudeConfigDir({ env, config });
+  if (claudeDir) out.CLAUDE_CONFIG_DIR = claudeDir;
   if (auth.anthropic.apiKey) out.ANTHROPIC_API_KEY = auth.anthropic.apiKey;
   if (auth.openai.apiKey) {
     out.OPENAI_API_KEY = auth.openai.apiKey;

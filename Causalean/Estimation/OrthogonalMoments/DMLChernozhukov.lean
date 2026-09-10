@@ -54,8 +54,14 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
          {Z : Type*} [MeasurableSpace Z] {P_Z : MeasureTheory.Measure Z}
          {H : Type*} [AddCommGroup H] [Module ℝ H]
 
-/-- **Chernozhukov one-step DML estimator.**  Evaluates the score at the
-truth `M.θ₀` and rescales by the Jacobian inverse:
+/-- For [a measurable population space with a population measure, a measurable observed-data
+space with its observed-data law, and a real vector space of nuisance values](hyp:Ω,μ,Z,P_Z,H),
+[a general moment system](hyp:M), [an independent and identically distributed sample](hyp:sample),
+[a one-shot evaluation-fold split of that sample](hyp:split), [a sequence of nuisance estimators](hyp:η_hat),
+and [a sample-size index](hyp:n), the [Chernozhukov one-step double-machine-learning estimator](goal)
+maps each population state to the true target minus the inverse Jacobian times the evaluation-fold empirical mean of the moment evaluated at that target and at the estimated nuisance.
+
+Evaluates the score at the truth `M.θ₀` and rescales by the Jacobian inverse:
 
     θ̂_n := M.θ₀ − M.J₀⁻¹ · ((1/|B(n)|) Σ_{i ∈ B(n)} m(η̂(n), Z_i, M.θ₀))
 

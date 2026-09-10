@@ -52,9 +52,11 @@ namespace PartialID
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
-/-- The **support function** of a set `C` in direction `d`:
-`supportFn C d = sup { ⟪d, x⟫ : x ∈ C }`.  Outside the nonempty and
-bounded-above regime, the raw `sSup` value is a convention and should not be
+/-- For [a real inner-product space](hyp:E), [a set of feasible vectors in that space](hyp:C),
+and [a direction in the same space](hyp:d), [the support function of the set in that direction](goal)
+is the supremum of the inner products of the direction with all feasible vectors.
+
+Outside the nonempty and bounded-above regime, the raw `sSup` value is a convention and should not be
 used mathematically; meaningful statements carry `Nonempty`/`BddAbove`
 hypotheses (see `le_supportFn`, `supportFn_le`). -/
 noncomputable def supportFn (C : Set E) (d : E) : ℝ :=

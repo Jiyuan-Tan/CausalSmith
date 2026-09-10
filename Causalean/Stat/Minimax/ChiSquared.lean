@@ -51,7 +51,11 @@ open scoped ENNReal
 
 variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ ν : Measure Ω}
 
-/-- The finite real χ² functional `∫ (dμ/dν − 1)² dν` of `μ` relative to `ν`. -/
+/-- For [two measures on the same measurable space](hyp:μ,ν), the [finite
+real chi-squared divergence of the first relative to the second](goal) is the
+integral, under the second measure, of the square of one less the
+Radon--Nikodym density of the first measure with respect to the second, with
+infinite density values represented by zero in the real-valued integrand. -/
 noncomputable def chiSqDiv (μ ν : Measure Ω) : ℝ :=
   ∫ x, ((μ.rnDeriv ν x).toReal - 1) ^ 2 ∂ν
 

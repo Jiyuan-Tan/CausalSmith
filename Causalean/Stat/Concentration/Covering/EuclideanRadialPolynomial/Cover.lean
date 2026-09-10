@@ -22,8 +22,10 @@ open MeasureTheory
 
 universe u v w
 
-/-- A positive common envelope for all radial powers from zero through `p`
-on an annulus whose upper relative radius is `b`. -/
+/-- For [an upper relative radius $b$](hyp:b) and [a nonnegative integer $p$](hyp:p), the
+[radial-monomial envelope](goal) is $(\max\{1,b\})^p$.
+
+It is a common nonnegative bound used for radial powers of orders from zero through $p$. -/
 def radialMonomialEnvelope (b : ℝ) (p : ℕ) : ℝ :=
   (max 1 b) ^ p
 
@@ -367,8 +369,12 @@ theorem radialAnnulusMonomial_hasPolynomialL2Cover
       (radialMonomialClass_hasPolynomialL2Cover d p hq ha hab)
       (fun x : EuclideanPoint d => (x, degree))
 
-/-- Evaluation of the radial-monomial class after a measurable Euclidean
-location map on a general observation space. -/
+/-- Given [an observation space $\Omega$](hyp:Ω), [a Euclidean dimension $d$](hyp:d),
+[a maximum degree $p$](hyp:p), [a location map from observations to $d$-dimensional
+Euclidean space](hyp:loc), [a bandwidth $q$](hyp:q), [annulus radii $a$ and $b$](hyp:a,b),
+[a radial-monomial parameter θ](hyp:θ), and [an observation $\omega$](hyp:ω), the
+[radial monomial evaluated at that observation](goal) is the corresponding radial-monomial
+class function evaluated at the mapped location. -/
 noncomputable def radialMonomialOn
     {Ω : Type u} [MeasurableSpace Ω]
     (d p : ℕ) (loc : Ω → EuclideanPoint d) (q a b : ℝ)

@@ -81,7 +81,8 @@ export function reviewTargets(graph: FormalizationGraph, dirty: string[]): Revie
     if (n.kind === "assumption" && closure.has(n.id) && needsReview(n.id, n.review.status)) {
       assumptionTargets.push(n.id);
     }
-    // A `cited` gate is reviewed in the assumption tier (its source-match). NOT closure-gated:
+    // A `cited` gate is reviewed in the shallow/assumption tier for source matching; this
+    // is routing only, not a claim that a non-Prop metadata carrier is logically assumed. NOT closure-gated:
     // even an isolated/supportive comparator (consumed by nobody) must have its def verified
     // against the cited source.
     if (n.kind === "gate" && n.gate?.gate_class === "cited" && needsReview(n.id, n.review.status)) {
@@ -99,10 +100,12 @@ export function reviewTargets(graph: FormalizationGraph, dirty: string[]): Revie
 
 /**
  * The FULL faithfulness surface for the final dual-model convergence review (old F4): EVERY frozen
- * theorem + EVERY assumption in its uses-closure + EVERY from-tex definition — UNCONDITIONALLY, i.e.
- * ignoring dirty/matched. The convergence gate must independently re-verify the headline claims with
- * both models even when single-model delta reviews already marked them matched; gating it on the
- * incremental `needsReview` would make it run vacuously (empty targets) in the happy path.
+ * theorem + EVERY assumption in its uses-closure + EVERY from-tex definition — ignoring
+ * dirty/matched. A single-model delta `matched` never stands in for the dual gate. What CAN stand
+ * in for a fresh dual review is a prior dual review of the SAME evidence: the reviewer skips a
+ * target only when both peers hold a `matched` receipt at its current evidence hash
+ * (`graph.convergenceReview`, see `formalization/convergence_evidence.ts`); banking re-verifies
+ * that. This function returns the whole surface so the audit and the reviewer agree on it.
  */
 export function convergenceTargets(graph: FormalizationGraph): ReviewTargets {
   const closure = frozenUsesClosure(graph);
@@ -128,20 +131,18 @@ export function convergenceTargets(graph: FormalizationGraph): ReviewTargets {
 /**
  * Incremental review scope for SETUP/ENVIRONMENT symbol clusters (the `sym:<symbol>` tier), the
  * symbol-level analogue of `reviewTargets`. Symbols are not graph nodes, so their prior verdict +
- * cluster hash are carried on `graph.symbolReview` instead of `node.review`. A `delta` pass reviews
- * only symbols that are NEW (no prior entry), previously non-passing (drift), or whose cluster hash
- * CHANGED since the last pass (e.g. the scaffolder added an `@realizes` tag) — skipping
- * matched/untagged-and-unchanged symbols so it does not re-spend model calls on already-cleared
- * symbols. `convergence` (final F4 gate) reviews EVERY symbol unconditionally. `isPass` classifies a
- * stored verdict string (passed in to avoid a dependency on the reviewer's verdict vocabulary).
+ * cluster hash are carried on `graph.symbolReview` instead of `node.review`. Returns the symbols
+ * that are NEW (no prior entry), previously non-passing (drift), or whose cluster hash CHANGED
+ * since the last pass (e.g. the scaffolder added an `@realizes` tag) — skipping
+ * matched/untagged-and-unchanged symbols so a delta pass does not re-spend model calls on
+ * already-cleared symbols. The convergence gate applies this AND the dual-receipt check. `isPass`
+ * classifies a stored verdict string (passed in to avoid a dependency on the reviewer's vocabulary).
  */
 export function incrementalSymbolRows<T extends { id: string; hash: string }>(
   built: T[],
   priorSym: Record<string, { verdict: string; hash: string }> | undefined,
-  mode: "delta" | "convergence",
   isPass: (verdict: string) => boolean,
 ): T[] {
-  if (mode === "convergence") return built;
   const prior = priorSym ?? {};
   return built.filter((s) => {
     const prev = prior[s.id];

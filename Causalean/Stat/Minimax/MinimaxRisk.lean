@@ -175,13 +175,18 @@ The final theorem applies the same reduction directly to finite i.i.d. product e
 variable {X : Type uX} {Y : Type uY} {Iota : Type uI}
   [MeasurableSpace X] [MeasurableSpace Y]
 
-/-- The squared risk of a real-valued estimator is its expected squared error around a
-specified real target. -/
+/-- Given [a measurable observation space](hyp:X), [a measure on that space](hyp:law),
+[a real-valued estimator](hyp:est), and [a real target value](hyp:theta), the [squared
+risk](goal) is the expected value, under that measure, of the estimator's squared error from
+the target. -/
 noncomputable def sqRisk (law : Measure X) (est : X → ℝ) (theta : ℝ) : ℝ :=
   ∫ z, (est z - theta) ^ 2 ∂law
 
-/-- The affine pullback estimator first applies the deterministic observation rule, then
-subtracts the affine offset from the target estimator and divides by the affine slope. -/
+/-- Given [a source observation space](hyp:X), [a target observation space](hyp:Y),
+[a deterministic observation rule from the source to the target](hyp:phi), [real affine slope
+and offset parameters](hyp:a,b), and [a real-valued target-space estimator](hyp:targetEst), the
+[affine pullback estimator](goal) maps each source observation to the target estimator evaluated
+at its observed target value, minus the offset and divided by the slope. -/
 noncomputable def affinePullbackEstimator (phi : X → Y) (a b : ℝ)
     (targetEst : Y → ℝ) : X → ℝ :=
   fun z => (targetEst (phi z) - b) / a

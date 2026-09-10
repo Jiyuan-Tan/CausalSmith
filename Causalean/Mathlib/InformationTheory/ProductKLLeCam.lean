@@ -354,12 +354,9 @@ lemma productKL_tensorization_toReal_eq {α : Type*} [MeasurableSpace α]
 
 end ProductKLPrivate
 
-/-- Product-KL tensorisation bound for an `n`-fold i.i.d. product pair.
+/-- For [a measurable observation space](hyp:α), [a sample size](hyp:n), and [two measures on that space](hyp:μ,ν), the [product-KL tensorisation bound](goal) asserts that [the Kullback--Leibler divergence between their $n$-fold product measures is finite](step:1), [their one-observation Kullback--Leibler divergence is finite](step:2), and [the real-valued product divergence is at most $n$ times the real-valued one-observation divergence](step:3).
 
-The product and one-observation KL divergences are both finite, and after this
-finite-KL guard the real-valued product KL is at most `n` times the real-valued
-one-observation KL. The finiteness conjuncts prevent the Le Cam interface from
-silently turning an infinite KL divergence into zero via `ENNReal.toReal`. -/
+The finiteness conjuncts prevent the Le Cam interface from silently turning an infinite KL divergence into zero via `ENNReal.toReal`. -/
 def ProductKLTensorizationBound {α : Type*} [MeasurableSpace α]
     (n : ℕ) (μ ν : Measure α) : Prop :=
   _root_.InformationTheory.klDiv

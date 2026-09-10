@@ -42,18 +42,21 @@ namespace Causalean.Stat
 
 variable {E E' Θ Θ' : Sort*}
 
-/-- The worst-case risk of a single estimator: the largest risk it incurs anywhere in the
-model class. The estimator is held fixed and the supremum runs over the class.
+/-- Given an [estimator class](hyp:E), a [model class](hyp:Θ), a [real-valued risk for each
+estimator-model pair](hyp:risk), and an [estimator](hyp:e), the [worst-case risk](goal) is the
+supremum, over all models in the class, of that estimator's risk.
 
 If the class is empty, or if the estimator's risk is unbounded over the class, this is zero
 by the real-supremum convention; `le_worstCaseRisk` therefore asks for an explicit bound. -/
 noncomputable def worstCaseRisk (risk : E → Θ → ℝ) (e : E) : ℝ :=
   ⨆ θ : Θ, risk e θ
 
-/-- The minimax risk of a decision problem: the smallest worst-case risk that any admissible
-estimator achieves. Admissibility is expressed by the choice of the estimator index type, so
-instantiating it at a subtype restricts the infimum to the estimators satisfying that
-subtype's condition.
+/-- Given an [estimator class](hyp:E), a [model class](hyp:Θ), and a [real-valued risk for each
+estimator-model pair](hyp:risk), the [minimax value](goal) is the infimum, over all estimators
+in the class, of their worst-case risks over the model class.
+
+Admissibility is expressed by the choice of the estimator index type, so instantiating it at a
+subtype restricts the infimum to the estimators satisfying that subtype's condition.
 
 If there are no admissible estimators this is zero by the real-infimum convention. -/
 noncomputable def minimaxValue (risk : E → Θ → ℝ) : ℝ :=

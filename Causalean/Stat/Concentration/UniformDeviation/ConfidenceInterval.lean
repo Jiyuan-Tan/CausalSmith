@@ -55,16 +55,18 @@ open MeasureTheory ProbabilityTheory Real
 variable {Ω X' : Type*} [MeasurableSpace Ω] [MeasurableSpace X']
   {μ : Measure Ω} {P : Measure X'}
 
-/-- The two-sided **Hoeffding confidence half-width** at level `δ` for an
-`[a, b]`-valued statistic and sample size `n`:
-`(b − a)·√(log(2/δ) / (2n))`. -/
+/-- Given [real endpoints $a$ and $b$](hyp:a,b), [a natural-number sample size $n$](hyp:n), and [a real confidence level $\delta$](hyp:δ), the [two-sided Hoeffding confidence-interval half-width](goal) is $(b-a)\sqrt{\log(2/\delta)/(2n)}$.
+
+This is the two-sided Hoeffding confidence half-width at level `δ` for an
+`[a, b]`-valued statistic and sample size `n`. -/
 noncomputable def hoeffdingCIHalfWidth (a b : ℝ) (n : ℕ) (δ : ℝ) : ℝ :=
   (b - a) * Real.sqrt (Real.log (2 / δ) / (2 * n))
 
-/-- The two-sided **Bernstein confidence half-width** at level `δ` for a
-statistic with range bound `c` (`|f − m| ≤ c`) and variance proxy `σ²`:
-`2σ·√(log(2/δ)/n) + 2c·(log(2/δ)/n)`.  Variance-adaptive: the leading term
-scales with `σ`, not the range `c`. -/
+/-- Given [a real range-bound constant $c$](hyp:c), [a real standard-deviation proxy $\sigma$](hyp:σ), [a natural-number sample size $n$](hyp:n), and [a real confidence level $\delta$](hyp:δ), the [two-sided Bernstein confidence-interval half-width](goal) is $2\sigma\sqrt{\log(2/\delta)/n}+2c\log(2/\delta)/n$.
+
+This is the two-sided Bernstein confidence half-width at level `δ` for a
+statistic with range bound `c` (`|f − m| ≤ c`) and variance proxy `σ²`.
+Variance-adaptive: the leading term scales with `σ`, not the range `c`. -/
 noncomputable def bernsteinCIHalfWidth (c σ : ℝ) (n : ℕ) (δ : ℝ) : ℝ :=
   2 * σ * Real.sqrt (Real.log (2 / δ) / n) + 2 * c * (Real.log (2 / δ) / n)
 

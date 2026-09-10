@@ -64,10 +64,14 @@ namespace AdaptiveExperiment
 
 variable {Ω : Type*} {m0 : MeasurableSpace Ω}
 
-/-- The experiment satisfies **overlap with margin `δ`** when every propensity stays at least `δ`
-away from the boundary: `δ ≤ propensity t ω ≤ 1 − δ`.  This is the positivity condition that makes
-inverse-propensity weighting (and hence the martingale construction underlying valid inference)
-well-behaved. -/
+/-- For [a measurable outcome space](hyp:Ω,m0), [an adaptive experiment on that space](hyp:E),
+and [a real number serving as an overlap margin](hyp:δ), the [overlap condition with that
+margin](goal) holds precisely when [the margin is strictly positive](step:1) and [at every time
+and on every outcome history, the experiment's treatment probability lies between the margin and
+one minus the margin](step:2).
+
+This is the positivity condition that makes inverse-propensity
+weighting, and hence the martingale construction underlying valid inference, well behaved. -/
 def HasOverlap (E : AdaptiveExperiment Ω m0) (δ : ℝ) : Prop :=
   0 < δ ∧ ∀ t ω, δ ≤ E.propensity t ω ∧ E.propensity t ω ≤ 1 - δ
 

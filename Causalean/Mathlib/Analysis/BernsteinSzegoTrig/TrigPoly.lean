@@ -42,7 +42,9 @@ open Real
 
 namespace Causalean.Mathlib.Analysis.BernsteinSzegoTrig
 
-/-- `IsTrigPolyLE n f` means `f` is a real trigonometric polynomial of degree at
+/-- For [a nonnegative integer degree bound](hyp:n) and [a real-valued function of a real argument](hyp:f), [the assertion that the function is a real trigonometric polynomial of degree at most the bound](goal) means [that there exist two real coefficient sequences such that, for every real argument $t$, the function equals $\sum_{k=0}^{n}\{a_k\cos(kt)+b_k\sin(kt)\}$](step:1).
+
+`IsTrigPolyLE n f` means `f` is a real trigonometric polynomial of degree at
 most `n`, i.e. there are coefficient sequences `a b : ℕ → ℝ` with
 `f t = ∑_{k=0}^{n} (a k · cos (k t) + b k · sin (k t))` for all `t`. -/
 def IsTrigPolyLE (n : ℕ) (f : ℝ → ℝ) : Prop :=

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdtemp, rm, writeFile, mkdir } from "node:fs/promises";
+import { mkdtemp, rm, writeFile, mkdir, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { refreshGraphForGate, applyVerdictsToGraph } from "../../src/graph/refresh.js";
@@ -75,6 +75,39 @@ describe("refreshGraphForGate", () => {
     expect(r.error).toMatch(/unlinked Lean @node annotations/);
     expect(r.error).toContain("t1->t1_thm@T1.lean");
     expect(r.error).toContain("t1->t1_companion@T1.lean");
+  });
+
+  it("self-heals a duplicate phantom helper tag reintroduced after an earlier round minted it", async () => {
+    const leanDir = await scaffold();
+    const file = path.join(leanDir, "T1.lean");
+    await writeFile(file, [
+      "-- @node: t1",
+      "theorem t1_thm : True := by trivial",
+      "",
+      "-- @node: l1",
+      "lemma helper_first : True := by trivial",
+    ].join("\n"), "utf8");
+    const first = await refreshGraphForGate({
+      formalizationDir: dir, qid: "q", spec: "v1", leanDir, mdPath: path.join(dir, "q_v1.md"),
+    });
+    expect(first.graph?.nodes.find((n) => n.id === "l1")?.provenance).toBe("agent-introduced");
+
+    await writeFile(file, [
+      "-- @node: t1",
+      "theorem t1_thm : True := by trivial",
+      "",
+      "-- @node: l1",
+      "lemma helper_first : True := by trivial",
+      "",
+      "-- @node: l1",
+      "lemma helper_second : True := by trivial",
+    ].join("\n"), "utf8");
+    const second = await refreshGraphForGate({ formalizationDir: dir, qid: "q", spec: "v1", leanDir });
+
+    expect(second.graph).not.toBeNull();
+    expect(second.strippedTags?.map((x) => x.id)).toContain("l1");
+    expect(second.graph?.nodes.some((n) => n.id === "l1")).toBe(false);
+    expect(await readFile(file, "utf8")).not.toContain("@node: l1");
   });
 });
 

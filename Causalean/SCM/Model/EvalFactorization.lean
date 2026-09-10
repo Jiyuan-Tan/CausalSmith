@@ -148,7 +148,9 @@ theorem evalMap_factors_through_parents (M : Causalean.SCM N Ω)
 -- § 6. Ancestor factorization of `evalMap` at observed nodes
 -- ============================================================
 
-/-- The latent ancestors of a node are the unobserved nodes equal to that node
+/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), and [a node](hyp:v), the [set of latent ancestors of that node](goal) consists exactly of the model's unobserved nodes that are either the node itself or ancestors of it in the directed graph. It is formed [by filtering the unobserved nodes by this condition](step:1).
+
+    The latent ancestors of a node are the unobserved nodes equal to that node
 or ancestral to it.
 
     Latent-or-self ancestors of `v` among `M.unobserved`.
@@ -164,7 +166,9 @@ noncomputable def latentAncestorsOfNode (M : Causalean.SCM N Ω) (v : SWIGNode N
     Classical.decPred _
   M.unobserved.filter (fun u => u = v ∨ M.dag.isAncestor u v)
 
-/-- The fixed ancestors of a node are the fixed nodes equal to that node or
+/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), and [a node](hyp:v), the [set of fixed ancestors of that node](goal) consists exactly of the model's fixed nodes that are either the node itself or ancestors of it in the directed graph. It is formed [by filtering the fixed nodes by this condition](step:1).
+
+    The fixed ancestors of a node are the fixed nodes equal to that node or
 ancestral to it. -/
 noncomputable def fixedAncestorsOfNode (M : Causalean.SCM N Ω) (v : SWIGNode N) :
     Finset (SWIGNode N) :=

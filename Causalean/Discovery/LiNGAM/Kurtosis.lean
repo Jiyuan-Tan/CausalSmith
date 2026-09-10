@@ -32,10 +32,13 @@ open scoped BigOperators
 
 variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasure P]
 
-/-- Excess kurtosis, the fourth cumulant of a real random variable.  For a
-centered variable `X` it is `E[X⁴] − 3 · (E[X²])²`; Gaussian variables have zero
-excess kurtosis, while LiNGAM's kurtosis route assumes every source has nonzero
-excess kurtosis of one common sign. -/
+/-- For [a measurable sample space](hyp:Ω), [a real-valued random variable](hyp:X), and
+[a measure on that sample space](hyp:P), [its excess kurtosis](goal) is its fourth moment minus
+three times the square of its second moment.
+
+For a centered variable $X$ it is $E[X^4]-3(E[X^2])^2$; Gaussian variables have zero
+excess kurtosis, while LiNGAM's kurtosis route assumes every source has nonzero excess kurtosis
+of one common sign. -/
 noncomputable def kurt (X : Ω → ℝ) (P : Measure Ω) : ℝ :=
   (∫ ω, (X ω) ^ 4 ∂P) - 3 * (∫ ω, (X ω) ^ 2 ∂P) ^ 2
 

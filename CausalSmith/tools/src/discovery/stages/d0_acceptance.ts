@@ -1,10 +1,9 @@
 /** Exact-artifact receipt for a complete typed D0.5 pass.
  *
- * Proposal review (D-0.5) and typed core review (D0.5) are different gates. A
- * sanctioned D0 baseline rebase does not manufacture a new D-0.5 iteration,
- * so F-entry must use an authority emitted by D0.5 itself. Every full D0.5
- * pass writes this receipt, whether or not D0.R edited the core. F-entry binds
- * the authority to the proposal revision and exact proto/working/core bytes.
+ * Proposal review (D-0.5) and typed core review (D0.5) are different gates, so
+ * F-entry uses an authority emitted by D0.5 itself. Every full D0.5 pass writes
+ * this receipt, binding the pass to the proposal revision, the graph's main
+ * commit, and the exact rendered core bytes the panel read.
  */
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
@@ -12,15 +11,14 @@ import path from "node:path";
 import type { PipelineContext, StateJson } from "../../types.js";
 import { writeJsonAtomic } from "../../shared/json_atomic.js";
 import { coreJsonPath } from "./d0_core.js";
-import { loadWorkingState, proposalRevision, workingPath } from "./d0_working.js";
-import { protoCoreJsonPath } from "./neg1_2_author.js";
+import { proposalRevision } from "../proposal_revision.js";
+import { MAIN_REF, VcsStore } from "../vcs/store.js";
 
 interface D05AcceptanceReceipt {
-  schema_version: 1;
+  schema_version: 2;
   kind: "accepted-d05-store";
   proposal_revision: string;
-  proto_sha256: string;
-  working_sha256: string;
+  main_commit: string;
   core_sha256: string;
 }
 
@@ -37,22 +35,14 @@ async function currentReceipt(ctx: PipelineContext, state: StateJson): Promise<D
   // Legacy/non-propose fixtures have no proposal cursor and are outside the
   // revision-coherence guard. Do not make their otherwise-valid D0.5 pass fail.
   if (!revision) return null;
-  const working = await loadWorkingState(ctx);
-  // Never bless a split store merely because a reviewer happened to read its
-  // core. The receipt is authority only for a coherent current revision.
-  if (!working || working.proposal_revision !== revision) return null;
-  const [proto_sha256, working_sha256, core_sha256] = await Promise.all([
-    sha256File(protoCoreJsonPath(ctx)),
-    sha256File(workingPath(ctx)),
-    sha256File(coreJsonPath(ctx)),
-  ]);
+  const main = await VcsStore.at(ctx).readRef(MAIN_REF);
+  if (main === null) return null;
   return {
-    schema_version: 1,
+    schema_version: 2,
     kind: "accepted-d05-store",
     proposal_revision: revision,
-    proto_sha256,
-    working_sha256,
-    core_sha256,
+    main_commit: main,
+    core_sha256: await sha256File(coreJsonPath(ctx)),
   };
 }
 
@@ -64,23 +54,20 @@ export async function writeD05AcceptanceReceipt(ctx: PipelineContext, state: Sta
     return;
   }
   if (proposalRevision(state)) {
-    throw new Error("refusing to record typed D0.5 acceptance for an absent or split D store");
+    throw new Error("refusing to record typed D0.5 acceptance: the run has no graph store main commit");
   }
 }
 
-/** Exact-byte validation; malformed/stale receipts are simply not authority. */
-export async function hasValidD05AcceptanceReceipt(
-  ctx: PipelineContext,
-  state: StateJson,
-): Promise<boolean> {
+/** Exact validation; malformed/stale receipts are simply not authority. */
+export async function hasValidD05AcceptanceReceipt(ctx: PipelineContext, state: StateJson): Promise<boolean> {
   try {
     const recorded = JSON.parse(await readFile(d05AcceptanceReceiptPath(ctx), "utf8")) as D05AcceptanceReceipt;
     const current = await currentReceipt(ctx, state);
     if (!current) return false;
-    return recorded.schema_version === 1 && recorded.kind === "accepted-d05-store" &&
+    // `main_commit` is provenance: a reset back to the accepted tree is a new commit
+    // that renders the same bytes, and the bytes are what the panel accepted.
+    return recorded.schema_version === 2 && recorded.kind === "accepted-d05-store" &&
       recorded.proposal_revision === current.proposal_revision &&
-      recorded.proto_sha256 === current.proto_sha256 &&
-      recorded.working_sha256 === current.working_sha256 &&
       recorded.core_sha256 === current.core_sha256;
   } catch {
     return false;

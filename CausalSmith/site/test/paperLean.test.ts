@@ -340,12 +340,14 @@ describe("component closure", () => {
     expect(fromDef7.key).toBe(fromDef9.key);
     expect(fromDef9.cls).not.toBe(fromDef7.cls); // classified per entry, stored once
     const table = enriched.declSources["Demo.splitCellCount"];
-    expect(table).toEqual({
+    expect(table).toMatchObject({
       file: "Demo/Estimator.lean",
       line: 30,
       statement: SPLIT_CELL_COUNT.source,
       usesSorry: false,
     });
+    // a definition structures as parameters · def · given by
+    expect(table.structured?.defRow?.code).toBe("splitCellCount sample j : ℕ");
     // Every key some view names resolves, and the table holds nothing else.
     const named = new Set<string>();
     for (const s of Object.values(enriched.snippets))
@@ -752,8 +754,9 @@ describe("structureStatementView", () => {
       "theorem helper_bound (n : ℕ) : lightCells n ≤ n ∧ heavyCells n ≤ n",
     );
     expect(helper.source.startsWith(shared.statement)).toBe(true);
-    // A `def` component carries no structured view — its body is its statement.
-    expect(out.declSources["Demo.heavyCells"].structured).toBeUndefined();
+    // A `def` component structures too: parameters · def · given by; its body
+    // stays the statement the drawer falls back to.
+    expect(out.declSources["Demo.heavyCells"].structured?.defRow).toBeDefined();
     expect(out.declSources["Demo.heavyCells"].statement).toBe(HEAVY_CELLS.source);
   });
 });
@@ -1161,6 +1164,28 @@ describe("promotion of display-linked closure pieces", () => {
       );
       expect(r.problems).toEqual([]);
       expect(r.blocks["def:hybrid-estimator-handle"].displayLinks[0].decl).toBe(CAUSALEAN.n);
+    });
+
+    it("retains source-backed imported proof helpers through validation and enrichment", () => {
+      const name = "Causalean.Analysis.imported_helper";
+      const snippets = {
+        "def:hybrid-estimator-handle": DEF9_SNIPPET,
+        imported: { decl: name, file: "Helpers.lean", line: 1,
+          statement: "theorem imported_helper : True := by trivial" },
+      };
+      const blocks = { "def:hybrid-estimator-handle": block({ displayLinks: [{ segment: "d1", decl: name }] }) };
+      expect(resolveDisplayLinks(blocks, LIB).problems).toHaveLength(1);
+      const checked = resolveDisplayLinks(blocks, LIB, snippets);
+      expect(checked.problems).toEqual([]);
+      const out = run([DEF9_ENTRY], snippets, LIB, checked.blocks);
+      const view = out.views("def:hybrid-estimator-handle").imported_helper;
+      expect(view.fullName).toBe(name);
+      expect(view.xl).toBe("def:hybrid-estimator-handle#d1");
+      expect(out.linkProblems).toEqual([]);
+      for (const statement of ["private theorem imported_helper : True := by trivial", "theorem wrong : True := by trivial", "-- theorem imported_helper : True"] ) {
+        expect(resolveDisplayLinks(blocks, LIB, { imported: { ...snippets.imported, statement } }).problems).toHaveLength(1);
+      }
+      expect(resolveDisplayLinks(blocks, LIB, { imported: { ...snippets.imported, decl: "imported_helper" } }).problems).toHaveLength(1);
     });
 
     it("mints a source-less card that still carries the segment token", () => {
@@ -1622,5 +1647,32 @@ describe.skipIf(!hasReal)("real bundle: discrete-ATE minimax", () => {
     }
     expect(trimmed).toBeGreaterThan(0);
     expect(whole).toBeGreaterThan(0);
+  });
+});
+
+describe("supporting definitions are shown where they are used", () => {
+  // The snipe shape: `effBeta` is a helper def that Definition 1's own declaration uses, and
+  // that a later composite definition happens to list among its pieces. Listing a helper as a
+  // component is not being ABOUT it, so Definition 1 must show the helper inline, not send the
+  // reader to Definition 16.
+  const EFF = decl("effBeta", 200, "def effBeta (β d : ℕ) : ℕ := min β d");
+  const KSTAR = decl("kStar", 210, "def kStar (d β : ℕ) : ℕ := effBeta β d", ["Demo.effBeta"]);
+  const LOCLIN = decl("LocLinClass", 220, "structure LocLinClass (β : ℕ) : Prop where\n  eff : effBeta β 1 = 1", ["Demo.effBeta"], [], "structure");
+  const DEF1: PaperLeanEntry = { obj_id: "def:exposed-order", env: "definitionv", paper_label: "Definition 1", lean: { decl: "Demo.kStar", decl_kind: "def" }, status: "matched" };
+  const DEF16: PaperLeanEntry = { obj_id: "def:local-linear-class", env: "definitionv", paper_label: "Definition 16", lean: null, status: "matched" };
+  const r = run([DEF1, DEF16], {
+    "def:exposed-order": { decl: "Demo.kStar", file: "Demo/Estimator.lean", line: 210, statement: KSTAR.source },
+    "def:local-linear-class": {
+      decl: "(composite)", file: "Demo/Estimator.lean", line: 0, statement: "",
+      components: [{ label: "Demo.LocLinClass", statement: LOCLIN.source }, { label: "Demo.effBeta", statement: EFF.source }],
+    },
+  }, [...LIB, EFF, KSTAR, LOCLIN]);
+  it("keeps a helper inline at the block that uses it and as a piece of the composite that lists it", () => {
+    const atDef1 = r.views("def:exposed-order")["effBeta"];
+    expect(atDef1).toBeDefined();
+    expect(atDef1.cls).toBe("lean_only");
+    expect(atDef1.paperObjId).toBeUndefined();
+    expect(r.sourceOf(atDef1)?.statement).toContain("min β d");
+    expect(r.views("def:local-linear-class")["effBeta"].cls).toBe("env");
   });
 });

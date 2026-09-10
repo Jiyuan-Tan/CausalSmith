@@ -50,7 +50,14 @@ variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 
 /-! ## AIPW moment and influence function for ATT -/
 
-/-- The ATT AIPW moment
+/-- Given [a measurable covariate space](hyp:γ), [an observed covariate, treatment, and outcome
+triple](hyp:z), [a control-arm outcome-regression function](hyp:μ₀_fn), [a propensity-score
+function](hyp:e_fn), and [a real candidate effect on the treated](hyp:θ), the [unnormalized
+augmented inverse-probability-weighting moment for the average treatment effect on the
+treated](goal) is the treated residual minus the odds-weighted control residual minus the treated
+indicator times the candidate effect.
+
+The ATT AIPW moment
 
     A · (Y − μ₀(X))
       − (1 − A) · (e(X) / (1 − e(X))) · (Y − μ₀(X))
@@ -80,7 +87,13 @@ lemma aipwMomentATT_eq
         - indA z * θ :=
   rfl
 
-/-- The ATT AIPW influence function at the truth for the population-`π_T`
+/-- For [a potential-outcome system with a measurable covariate space](hyp:P), [a treated
+estimation system](hyp:S), and [an observed covariate, treatment, and outcome triple](hyp:z),
+the [ATT AIPW influence-function value](goal) is the unnormalized true-nuisance moment at zero,
+divided by the population treatment probability and centered at the true average treatment effect
+on the treated.
+
+The ATT AIPW influence function at the truth for the population-`π_T`
 one-shot estimator:
 `ψ_ATT(z) := (1/π) · m_AIPW(η₀, z, 0) − θ₀`.
 
@@ -113,11 +126,13 @@ namespace TreatedNuisanceVec
 
 variable {γ : Type*} [MeasurableSpace γ]
 
-/-- The zero treated-nuisance vector sets the control regression and propensity function to zero. -/
+/-- For [a measurable covariate space](hyp:γ), the [zero operation on ATT nuisance vectors](goal)
+sets [the control-arm outcome regression and the propensity score to zero](step:1). -/
 instance : Zero (TreatedNuisanceVec γ) where
   zero := ⟨fun _ => 0, fun _ => 0, measurable_const, measurable_const⟩
 
-/-- Addition of treated-nuisance vectors is componentwise addition of the control regression and propensity function. -/
+/-- For [a measurable covariate space](hyp:γ), the [addition operation on ATT nuisance vectors](goal)
+is [componentwise addition of the control-arm outcome regression and propensity score](step:1). -/
 instance : Add (TreatedNuisanceVec γ) where
   add η η' :=
     ⟨fun x => η.μ₀_fn x + η'.μ₀_fn x,
@@ -125,13 +140,15 @@ instance : Add (TreatedNuisanceVec γ) where
      η.μ₀_meas.add η'.μ₀_meas,
      η.e_meas.add η'.e_meas⟩
 
-/-- Negation of a treated-nuisance vector negates the control regression and propensity function. -/
+/-- For [a measurable covariate space](hyp:γ), the [negation operation on ATT nuisance vectors](goal)
+[negates the control-arm outcome regression and propensity score](step:1). -/
 instance : Neg (TreatedNuisanceVec γ) where
   neg η :=
     ⟨fun x => -η.μ₀_fn x, fun x => -η.e_fn x,
      η.μ₀_meas.neg, η.e_meas.neg⟩
 
-/-- Subtraction of treated-nuisance vectors is componentwise subtraction of the control regression and propensity function. -/
+/-- For [a measurable covariate space](hyp:γ), the [subtraction operation on ATT nuisance vectors](goal)
+is [componentwise subtraction of the control-arm outcome regression and propensity score](step:1). -/
 instance : Sub (TreatedNuisanceVec γ) where
   sub η η' :=
     ⟨fun x => η.μ₀_fn x - η'.μ₀_fn x,
@@ -139,7 +156,8 @@ instance : Sub (TreatedNuisanceVec γ) where
      η.μ₀_meas.sub η'.μ₀_meas,
      η.e_meas.sub η'.e_meas⟩
 
-/-- Scalar multiplication of a treated-nuisance vector scales the control regression and propensity function. -/
+/-- For [a measurable covariate space](hyp:γ), the [real scalar-multiplication operation on ATT nuisance vectors](goal)
+[scales the control-arm outcome regression and propensity score](step:1). -/
 instance : SMul ℝ (TreatedNuisanceVec γ) where
   smul t η :=
     ⟨fun x => t * η.μ₀_fn x, fun x => t * η.e_fn x,
@@ -160,7 +178,9 @@ theorem ext {η η' : TreatedNuisanceVec γ}
   · funext x
     exact he x
 
-/-- Treated-nuisance vectors form an additive commutative group under componentwise operations. -/
+/-- For [a measurable covariate space](hyp:γ), the [additive commutative group structure on ATT nuisance vectors](goal)
+uses [the zero vector](step:1), [componentwise addition](step:2), [componentwise negation](step:3), [componentwise subtraction](step:4),
+[natural-number scalar multiplication](step:5), and [integer scalar multiplication](step:6), and satisfies [the natural-zero rule](step:7), [the natural-successor rule](step:8), [the integer-zero rule](step:9), [the positive-integer-successor rule](step:10), [the negative-integer-successor rule](step:11), [subtraction as addition of an inverse](step:12), [associativity](step:13), [the left-zero law](step:14), [the right-zero law](step:15), [inverse cancellation](step:16), and [commutativity](step:17). -/
 instance : AddCommGroup (TreatedNuisanceVec γ) where
   zero := 0
   add := (· + ·)
@@ -198,7 +218,8 @@ instance : AddCommGroup (TreatedNuisanceVec γ) where
     · intro x; exact add_comm (η.μ₀_fn x) (η'.μ₀_fn x)
     · intro x; exact add_comm (η.e_fn x) (η'.e_fn x)
 
-/-- Treated-nuisance vectors form a real vector space under componentwise scalar multiplication. -/
+/-- For [a measurable covariate space](hyp:γ), the [real vector-space structure on ATT nuisance vectors](goal)
+uses [componentwise scalar multiplication](step:1) and satisfies [multiplication by one](step:2), [compatibility of successive scalar multiplications](step:3), [multiplication of zero vectors](step:4), [distribution over vector addition](step:5), [distribution over scalar addition](step:6), and [multiplication by the zero scalar](step:7). -/
 instance : Module ℝ (TreatedNuisanceVec γ) where
   smul := (· • ·)
   one_smul η := by
@@ -257,11 +278,20 @@ namespace TreatedEstimationSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- The truth `η₀ : TreatedNuisanceVec γ`. -/
+/-- For [a potential-outcome system with a measurable covariate space](hyp:P) and [a
+treated estimation system](hyp:S), the [true ATT nuisance pair](goal) consists of that system's
+control-arm outcome regression and propensity-score functions. -/
 noncomputable def η₀ (S : TreatedEstimationSystem P γ) : TreatedNuisanceVec γ :=
   ⟨S.μ₀_val, S.e_val, S.μ₀_meas, S.e_meas⟩
 
-/-- The ATT nuisance class carries one-sided upper overlap `P_X`-a.e., an
+/-- For [a potential-outcome system with a measurable covariate space](hyp:P), [a treated
+estimation system](hyp:S), and [a real overlap margin](hyp:ε), the [ATT nuisance class](goal)
+consists exactly of nuisance pairs for which [the propensity score is at most $1-ε$ for
+almost every covariate](step:1), the control-arm outcome regression is square-integrable under
+the covariate distribution, and the propensity score is essentially bounded under that
+distribution.
+
+The ATT nuisance class carries one-sided upper overlap `P_X`-a.e., an
 `L²(P_X)` outcome-regression component, and an `L∞(P_X)` propensity component.
 
 For ATT only the upper overlap bound matters because the IPW correction divides
@@ -306,7 +336,11 @@ lemma H_ε_overlap_P_Z
     simpa [projX] using (measurable_fst : Measurable (fun z : γ × Bool × ℝ => z.1))
   exact (MeasureTheory.ae_map_iff hproj.aemeasurable hset).mp hx
 
-/-- The ATT AIPW moment as a moment functional `TreatedNuisanceVec γ → X → ℝ → ℝ`,
+/-- Given [a measurable covariate space](hyp:γ), the [ATT AIPW moment functional](goal) maps a
+nuisance pair, an observed covariate-treatment-outcome triple, and a candidate effect on the
+treated to the corresponding unnormalized ATT AIPW moment.
+
+The ATT AIPW moment as a moment functional `TreatedNuisanceVec γ → X → ℝ → ℝ`,
 suitable for feeding `NeymanOrthogonal`. -/
 noncomputable def aipwMomentATTFunctional :
     TreatedNuisanceVec γ → (γ × Bool × ℝ) → ℝ → ℝ :=

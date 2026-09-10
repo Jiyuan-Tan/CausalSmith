@@ -61,10 +61,17 @@ namespace Causalean.PartialID.RandomSet
 
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} {L U : Ω → ℝ}
 
-/-- The interval-valued random closed set `ω ↦ [L ω, U ω]`. -/
+/-- For [a sample space](hyp:Ω), [a lower endpoint function](hyp:L), and [an upper endpoint function](hyp:U), the
+[interval-valued random set](goal) assigns to every sample outcome the set of real numbers
+that are at least its lower-endpoint value and at most its upper-endpoint value. -/
 def randomInterval (L U : Ω → ℝ) : Ω → Set ℝ := fun ω => Set.Icc (L ω) (U ω)
 
-/-- `f` is a measurable everywhere-selection of the interval random set `[L, U]`:
+/-- For [a sample space equipped with a measurable structure](hyp:Ω), [a lower endpoint function](hyp:L), [an upper endpoint function](hyp:U), and
+[a real-valued function on the sample space](hyp:f), the [everywhere measurable-selection
+condition](goal) holds precisely when [the function is measurable](step:1) and [at every
+sample outcome its value lies in the closed interval between the endpoint values](step:2).
+
+`f` is a measurable everywhere-selection of the interval random set `[L, U]`:
 it is measurable and `L ω ≤ f ω ≤ U ω` for every `ω`. -/
 def IsSelection (L U f : Ω → ℝ) : Prop :=
   Measurable f ∧ ∀ ω, f ω ∈ Set.Icc (L ω) (U ω)
@@ -118,7 +125,13 @@ theorem isSelection_iff_exists_param (hL : Measurable L) (hU : Measurable U)
     · nlinarith [hLU ω]
     · nlinarith [hLU ω]
 
-/-- The selection (Aumann) expectation of the interval random set `[L, U]`: the
+/-- For [a sample space equipped with a measurable structure](hyp:Ω), [a lower endpoint function](hyp:L), [an upper endpoint function](hyp:U), and
+[a measure on the sample space](hyp:μ), the [selection, or Aumann, expectation](goal) is the
+set of real numbers for which there exists a function such that [it is an everywhere measurable
+selection of the endpoint interval](step:1), it is integrable under the measure, and
+its integral under that measure equals the real number.
+
+The selection (Aumann) expectation of the interval random set `[L, U]`: the
 set of integrals of integrable measurable selections. -/
 def selectionExpectation (L U : Ω → ℝ) (μ : Measure Ω) : Set ℝ :=
   {r | ∃ f, IsSelection L U f ∧ Integrable f μ ∧ ∫ ω, f ω ∂μ = r}

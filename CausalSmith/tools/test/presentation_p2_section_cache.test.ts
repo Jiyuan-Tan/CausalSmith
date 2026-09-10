@@ -3,8 +3,9 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
-  canonicalProofHelperContext, existingProofForP2, proofRenderCacheKey, sectionCacheKey,
+  canonicalProofHelperContext, existingProofForP2, proofHelperContextFor, proofObjectCatalog, proofRenderCacheKey, sectionCacheKey,
 } from "../src/presentation/stages/p2_draft.js";
+import { parseAnchoredEnvs } from "../src/presentation/tex_anchors.js";
 
 describe("sectionCacheKey (P2 content-keyed section cache)", () => {
   const base = () => sectionCacheKey("02_main.tex", ["def:a", "thm:b"], "brief", "k1", "(no review)");
@@ -63,17 +64,68 @@ describe("proofRenderCacheKey", () => {
   });
 });
 
-describe("explicit existing-proof audit candidate", () => {
-  it("reuses a file on a key miss only when explicitly enabled and never calls it a cache hit", async () => {
+describe("proofHelperContextFor", () => {
+  const envs = parseAnchoredEnvs(String.raw`
+\begin{theoremv}{thm:prior}[Prior theorem]
+Prior theorem body.
+\end{theoremv}
+\begin{propositionv}{prop:target}[Target proposition]
+Target proposition body.
+\end{propositionv}
+\begin{propositionv}{prop:other}[Other proposition]
+Other proposition body.
+\end{propositionv}`);
+  const envText = new Map(envs.map((e) => [e.obj_id, String.raw`\begin{${e.env}}{${e.obj_id}}${e.title ? `[${e.title}]` : ""}
+${e.body}
+\end{${e.env}}`]));
+  const graphWithDecl = (decl: string) => ({
+    qid: "q", specialization: "v1", edges: [{ from: "prop:target", to: "thm:prior", kind: "proof-uses" }],
+    nodes: envs.map((e) => ({
+      id: e.obj_id, obj_id: e.obj_id, kind: e.env === "theoremv" ? "theorem" : "proposition",
+      provenance: "from-note", nl: { statement: e.body, tex_anchor: "", frozen: true },
+      lean: { decl_name: e.obj_id === "thm:prior" ? decl : e.obj_id.replace(":", "_"), file: "Basic.lean" },
+      review: { status: "matched", passed_hash: null }, proof: { state: "complete", sorry_count: 0 },
+    })),
+  });
+
+  it("includes recorded dependencies, excludes unrelated bodies, and preserves their catalogue identities", () => {
+    const first = proofHelperContextFor(envs, envText, graphWithDecl("prior_v1") as never, "prop:target");
+    expect(first.map((e) => e.obj_id)).toEqual(["thm:prior"]);
+    const catalog = proofObjectCatalog(envs, graphWithDecl("prior_v1") as never, "prop:target");
+    expect(catalog).toContain("prop:other | Other proposition | prop_other");
+    expect(catalog).not.toContain("Other proposition body.");
+    expect(catalog).not.toContain("prop:target");
+    expect(first[0].tex).toContain("% realizes Lean declaration: prior_v1");
+    const second = proofHelperContextFor(envs, envText, graphWithDecl("prior_v2") as never, "prop:target");
+    expect(canonicalProofHelperContext(second)).not.toBe(canonicalProofHelperContext(first));
+  });
+  it("adds explicitly referenced helpers and their references without cycling or inventing targets", () => {
+    const changed = envs.map(e => ({ ...e, body: e.obj_id === "prop:other"
+      ? String.raw`Uses \cref{obj:thm:prior,obj:prop:other,obj:missing}.` : e.body }));
+    const graph = { ...graphWithDecl("prior"), edges: [] };
+    const selected = proofHelperContextFor(changed, envText, graph as never, "prop:target",
+      String.raw`Repair cites \cref{obj:prop:other}. % \cref{obj:ignored}`);
+    expect(selected.map(e => e.obj_id)).toEqual(["thm:prior", "prop:other"]);
+  });
+  it("invalidates renderer provenance when the fallback catalogue changes", () => {
+    const parts = { modelKey: "m", objId: "x", envTex: "x", leanPath: "/a", leanDecl: "a",
+      exactDecl: "a", helperContext: [], notation: "", revisionBrief: "", citedDependencies: "", informalDerivation: "" };
+    expect(proofRenderCacheKey({ ...parts, objectCatalog: "lem:a | A | a" }))
+      .not.toBe(proofRenderCacheKey({ ...parts, objectCatalog: "lem:a | A | renamed" }));
+  });
+
+});
+
+describe("existing-proof audit candidate", () => {
+  it("reuses authored work on a key miss and never calls it a cache hit", async () => {
     const dir = await mkdtemp(join(tmpdir(), "p2-existing-proof-"));
     const path = join(dir, "proof.tex");
     await writeFile(path, "existing proof\n");
     try {
-      expect(await existingProofForP2(path, "old", "new", false)).toBeNull();
-      expect(await existingProofForP2(path, "old", "new", true)).toEqual({
+      expect(await existingProofForP2(path, "old", "new")).toEqual({
         text: "existing proof\n", cacheHit: false,
       });
-      expect(await existingProofForP2(path, "new", "new", false)).toEqual({
+      expect(await existingProofForP2(path, "new", "new")).toEqual({
         text: "existing proof\n", cacheHit: true,
       });
     } finally {

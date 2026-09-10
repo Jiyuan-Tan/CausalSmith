@@ -31,8 +31,8 @@ namespace Causalean.Mathlib.Probability
 open MeasureTheory
 open scoped BigOperators
 
-/-- The Bernoulli law on `ℝ` with success probability `p`.  Concentrates
-`ENNReal.ofReal p` on `1` and `ENNReal.ofReal (1 − p)` on `0`. -/
+/-- For [any real number interpreted as a success parameter](hyp:p), [the real-valued Bernoulli
+measure](goal) assigns mass $\max(p,0)$ to $1$ and mass $\max(1-p,0)$ to $0$. -/
 noncomputable def bernoulliLaw (p : ℝ) : Measure ℝ :=
   ENNReal.ofReal p • Measure.dirac (1 : ℝ)
     + ENNReal.ofReal (1 - p) • Measure.dirac (0 : ℝ)
@@ -269,12 +269,11 @@ lemma bernoulliLaw_lintegral_ofReal {p : ℝ} (f : ℝ → ENNReal) :
   rw [lintegral_add_measure]
   · simp [lintegral_smul_measure, mul_comm]
 
-/-- The Boolean Bernoulli distribution assigns success probability to truth and failure
-probability to falsehood. It is the same two-point law as the existing real-valued Bernoulli
-distribution on zero and one, but its Boolean values make it usable as a Markov kernel into
-a Boolean coordinate of a potential-outcome tuple.
+/-- For [any real number interpreted as a success parameter](hyp:p), [the Boolean-valued
+Bernoulli measure](goal) assigns mass $\max(p,0)$ to true and mass $\max(1-p,0)$ to false.
 
-This is the Bool-valued sibling of `bernoulliLaw`. -/
+It is the Boolean-valued sibling of `bernoulliLaw`, and its Boolean values make it usable as a
+Markov kernel into a Boolean coordinate of a potential-outcome tuple. -/
 noncomputable def bernoulliBool (p : ℝ) : Measure Bool :=
   ENNReal.ofReal p • Measure.dirac true +
     ENNReal.ofReal (1 - p) • Measure.dirac false
@@ -347,8 +346,9 @@ namespace Causalean.Mathlib.Probability
 
 open scoped BigOperators
 
-/-- The real binomial weight of count `j` among `m` trials with success
-parameter `p`. -/
+/-- For [a nonnegative number of trials](hyp:m), [a real success parameter](hyp:p), and [a
+nonnegative count](hyp:j), [the binomial weight](goal) is
+$\binom{m}{j}p^j(1-p)^{m-j}$. -/
 def binomialWeight (m : Nat) (p : Real) (j : Nat) : Real :=
   (Nat.choose m j : Real) * p ^ j * (1 - p) ^ (m - j)
 

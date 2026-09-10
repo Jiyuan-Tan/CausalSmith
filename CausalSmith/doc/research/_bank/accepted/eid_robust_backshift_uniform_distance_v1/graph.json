@@ -1,0 +1,3777 @@
+{
+  "qid": "eid_robust_backshift_uniform_distance",
+  "specialization": "v1",
+  "nodes": [
+    {
+      "id": "S1",
+      "obj_id": "S-1",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "A population BACKSHIFT multi-environment covariance system. Fix a dimension \\(p\\in\\{2,3,\\ldots\\}\\) and a finite label set \\(E=\\{1,\\ldots,m\\}\\) of observed environment slots, a corruption budget \\(c\\in\\{0,\\ldots,m-1\\}\\), and \\(h=m-c\\). Write \\(\\mathbb S_{+}^{p}\\) and \\(\\mathbb S_{++}^{p}\\) for the real symmetric positive-semidefinite and positive-definite \\(p\\times p\\) cones. An observed input is a family \\(\\Sigma=(\\Sigma_e:e\\in E)\\in(\\mathbb S_{+}^{p})^{E}\\). A structural explanation consists of an invertible demixing matrix \\(D\\in\\mathrm{GL}_p(\\mathbb R)\\) with connectivity target \\(B=I_p-D\\), an invariant disturbance covariance \\(\\Omega\\in\\mathbb S^{p}\\) that is permitted to be nondiagonal and singular, and nonnegative diagonal intervention-variance levels \\(s=(s_{ek})\\) on an unknown honest set \\(H\\subseteq E\\) with \\(\\lvert H\\rvert=h\\), linked by the equilibrium covariance equation \\(\\Sigma_e=D^{-1}(\\Omega+\\operatorname{diag}(s_e))D^{-\\mathsf T}\\) for \\(e\\in H\\); the remaining \\(c\\) slots of \\(E\\setminus H\\) may carry arbitrary elements of \\(\\mathbb S_{+}^{p}\\). Admissibility is the BACKSHIFT normalization \\(\\mathcal D=\\{A\\in\\mathrm{GL}_p(\\mathbb R):\\operatorname{diag}(A)=\\mathbf 1,\\ \\operatorname{CP}(I_p-A)<1\\}\\), where \\(\\operatorname{CP}\\) is the maximum absolute entry product along a directed simple cycle of length at least two. Two competing explanations \\(D^{(1)},H_1,s^{(1)}\\) and \\(D^{(2)},H_2,s^{(2)}\\) with \\(\\lvert H_r\\rvert\\ge h\\) may share only the overlap \\(J=H_1\\cap H_2\\), of size at least \\(m-2c=h-c\\). The geometry of a shift design is measured by affine lines \\(L\\subset\\mathbb R^2\\): the pairwise occupancy \\(M_{k\\ell}=\\max_L\\#\\{e\\in H:(s_{ek},s_{e\\ell})\\in L\\}\\), the deletion distance \\(\\delta_H=\\min_{k<\\ell}(h-M_{k\\ell})\\), and the affine-minor separation \\(\\gamma_H\\). The recovery map is the \\(c\\)-replacement compatibility set \\(\\mathcal R_c(\\Sigma)\\subseteq\\mathcal D\\), with its subset-enumeration presentation \\(\\text{SubsetConsensus}\\). Conditioning margins are \\(\\kappa_D=\\|D\\|_{\\mathrm{op}}\\|D^{-1}\\|_{\\mathrm{op}}\\), \\(\\zeta_D=1-\\operatorname{CP}(I_p-D)\\), and the scale bound \\(M_H=1+\\|\\Omega\\|_{\\mathrm{op}}+\\max_{e\\in H}\\|\\Sigma_e\\|_{\\mathrm{op}}+\\max_{e\\in H}\\|\\operatorname{diag}(s_e)\\|_{\\mathrm{op}}\\); no interiority margin is imposed on the covariances, which are only required to be positive semidefinite. The size of a set-valued structural output is measured by \\(\\operatorname{diam}_{\\mathrm{op}}\\) and \\(\\operatorname{outer}_{\\mathrm{op}}\\), both valued in \\([0,+\\infty]\\). — bypass-justified (ABSTRACTION MISMATCH against the whole declared cluster substrate root). The paper's ambient world carries no graph, no d-separation, no do-operator, no potential outcome, and no probability space at the population layer: an environment is a covariance matrix, an intervention is an unobserved diagonal variance shift, and identification is congruence-diagonalizer uniqueness under a normalization. Surveyed and rejected, one line each: `Causalean/Graph/SWIG.lean` + `Causalean/SCM/ID/GraphicalThms/*` (SWIG/d-separation graphical criteria; the paper never states a graphical condition and the target is a cyclic system, which `Graph/DAG.lean` forbids); `Causalean/SCM/ID/Identifiable.lean` and `Overlap.lean` (identifiability of an interventional kernel from an observational kernel by do-calculus; here the observable is a second-moment family and the target is a matrix, so `Identifiable`'s kernel-equality shape does not type-fit); `Causalean/SCM/Do/*` (do-calculus rules on measure kernels — no consumer); `Causalean/PO/**` and `Causalean/PO/ID/Exact/*` (`POSystem`, `Adjustment`, `Backdoor.*`, `Frontdoor.*`, `ATE.*`, `DID.*`, `DTR.*`, `LATE.*`, `*.Assumptions` — all are potential-outcome estimand identification under overlap/unconfoundedness; the paper has no treatment variable, no propensity, and no estimand of the form \\(E[Y(a)]\\)). What IS reused, and it is the highest-leverage reuse in this plan, is Causalean's linear-causal-discovery matrix layer, which sits at exactly this abstraction: `Causalean.Mathlib.LinearAlgebra.genPerm_of_det_ne_zero_of_colSupport` (Causalean/Mathlib/LinearAlgebra/MonomialMatrix.lean:37) is verbatim the monomial-extraction step of `lem:overlap-uniqueness` ('invertibility then makes \\(Q\\) monomial'), and `Causalean.Mathlib.LinearAlgebra.perm_uniqueness` / `eq_of_genPerm_triangular_unitDiag` (:104,:132) are the unit-diagonal pinning template that the cycle-product argument replaces. Search trace: `grep '^## '` over ../doc/API.md then reads of §9 (Identifiable), §9a (Overlap), §9d/§9e/§9e' (Adjustment/Backdoor), §8h (PO), §17 (LiNGAM), §17b (LinearDisentanglement), §17c (InvariantPrediction), §10j/§10j' (Cholesky, Vandermonde), §10j (OperatorSqrt); `lean_local_search` (project_root=CausalSmith) on `PosSemidef`, `l2_opNorm`, `Collinear`, `cycleFactorsFinset`, `det_eq_prod_eigenvalues`, `powersetCard`; `grep -rn 'genPerm|lingam_reduction|perm_uniqueness|cholesky_unique' Causalean/` under the sibling base `../Causalean/` (NOT a `Causalean/…` glob from the CausalSmith cwd). Result: Causalean has no multi-environment covariance model, no simultaneous-diagonalization-by-congruence predicate, and no BACKSHIFT normalization; `Discovery/LinearDisentanglement/Model.lean` is the nearest neighbour (per-context precision matrices \\(\\Theta_k=H^\\mathsf T B_k^\\mathsf T B_kH\\) under single-node perfect interventions) but its world fixes a full-row-rank mixing, upper-triangular positive-diagonal \\(B_0\\), and an acyclic latent DAG, all of which this cyclic unit-diagonal cycle-product world denies. F2 therefore emits a paper-local record `BackshiftSystem` over `Matrix (Fin p) (Fin p) ℝ`, following the established per-paper record pattern, and imports only the Mathlib matrix/analysis layer plus `MonomialMatrix`. REVISED (core revision): the symbol `lambda` (\\(\\lambda_{\\mathrm{cov},H}=\\min_{e\\in H}\\lambda_{\\min}(\\Sigma_e)\\)) is DROPPED from `binds_symbols` and from the world text — the revised core removes the covariance-interiority margin entirely (the contraction theorem now imposes four true-side margins \\(\\gamma_H,\\zeta_D,\\kappa_D,M_H\\) and only a condition-number bound on feasible candidates, with covariances merely positive semidefinite). No other S1 binding, module, or reuse decision moves: the surveyed-and-rejected cluster substrate and the `MonomialMatrix` reuse are unchanged, since the population layer of the core (records, admissibility, compatibility, occupancy, separation) is untouched by the revision. REVISED AGAIN (F1.5 review, FLAG-missed-reuse on `def:operator-diameter`): the symbol `diamOp` bound here is now realized by REUSED Mathlib `Metric.ediam` rather than by a local functional, so `Mathlib.Topology.EMetricSpace.Diam` joins this block's module list and the operator-norm metric structure on `Matrix (Fin p) (Fin p) ℝ` is taken from the scope `Matrix.Norms.L2Operator` (`Matrix.instL2OpMetricSpace`, `Mathlib/Analysis/CStarAlgebra/Matrix.lean:158,172`) — the same single `open scoped` this development already needs for `‖·‖`. The world text is unchanged (\\(\\operatorname{diam}_{\\mathrm{op}}\\) is still the \\([0,+\\infty]\\)-valued operator-norm diameter; only its Lean realization moved from define-local to reuse), and `outerOp` remains a local one-sided functional because Mathlib has no sup-of-distances-to-a-point decl.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Mathlib.LinearAlgebra.Matrix.NonsingularInverse",
+          "Mathlib.LinearAlgebra.Matrix.PosDef",
+          "Mathlib.Analysis.Matrix.Order",
+          "Mathlib.Analysis.Matrix.Spectrum",
+          "Mathlib.Analysis.CStarAlgebra.Matrix",
+          "Mathlib.GroupTheory.Perm.Cycle.Factors",
+          "Mathlib.Data.Finset.Powerset",
+          "Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional",
+          "Mathlib.Topology.EMetricSpace.Diam",
+          "Causalean.Mathlib.LinearAlgebra.MonomialMatrix"
+        ]
+      }
+    },
+    {
+      "id": "S2",
+      "obj_id": "S-2",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "A prespecified sparse intervention-design genericity world. On a probability space carrying the shift design, a deterministic binary support pattern \\(Z\\in\\{0,1\\}^{H\\times p}\\) is fixed before the experiment, and random positive amplitudes \\(a\\in(0,\\infty)^{H\\times p}\\) produce the realized shift levels \\(s_{ek}=Z_{ek}a_{ek}\\). The joint law of the active subarray \\((a_{ek}:Z_{ek}=1)\\) is absolutely continuous with respect to Lebesgue measure on its positive orthant; nothing is assumed about the inactive coordinates, and the amplitudes may be dependent. For each coordinate pair \\(k<\\ell\\) the pattern determines the incidence counts \\(n_{uv}^{k\\ell}=\\#\\{e\\in H:(Z_{ek},Z_{e\\ell})=(u,v)\\}\\) and the closed-form generic occupancy \\(M_{k\\ell}^{\\mathrm{gen}}=\\max\\{n_{00}^{k\\ell}+n_{10}^{k\\ell},\\ n_{00}^{k\\ell}+n_{01}^{k\\ell},\\ n_{00}^{k\\ell}+\\mathbf 1\\{n_{11}^{k\\ell}>0\\},\\ \\min(2,h)\\}\\). Points of type \\(00\\) coincide at the origin and are counted with their full multiplicity as indexed observations, so this is an incidence statement about an indexed family, not about a set of distinct points. — bypass-justified: this is a bare Lebesgue-genericity world, not a causal sampling world. Surveyed `Causalean/Stat/Sample.lean` (`IIDSample`), `Causalean/Stat/EmpiricalProcess/*`, `Causalean/Stat/Concentration/*` via `grep '^## '` of ../doc/API.md §12, §12ep, §12' and reads of the section tables: every Causalean sampling primitive is an i.i.d.-observation layer with empirical means and concentration, whereas this world has no observations and no estimator — it only needs `MeasureTheory.Measure.AbsolutelyContinuous` of one fixed law against the volume measure on a positive orthant and a null-set union over finitely many polynomial equations. Mathlib-side check for the one genuinely mathematical ingredient (`lean_leansearch` \"zero set of a nonzero multivariate polynomial has measure zero\" and \"nonzero polynomial vanishes on a set of Lebesgue measure zero in R^n\"): Mathlib supplies the univariate root finiteness `Polynomial.finite_setOf_isRoot` (Mathlib.Algebra.Polynomial.Roots) and `MvPolynomial.support_nonempty` / `zeroLocus` algebra, but NO statement that the real zero set of a nonzero `MvPolynomial (Fin n) ℝ` is Lebesgue-null; Causalean-side check `grep -rln 'MvPolynomial' ../Causalean/` returns only `Causalean/Mathlib/AlgebraicGeometry/PolynomialImageDimension/*` and `Causalean/Mathlib/Analysis/MonomialGram.lean`, and `grep -n 'measure zero|Lebesgue|volume|addHaar'` over that directory returns nothing — that development is Zariski/dimension-theoretic and carries no measure. The gap is therefore a build-inline helper (`Helpers/PolynomialNull.lean`), proved by the induction the note's own proof spells out: expand in the last variable, apply the inductive hypothesis to the coefficient polynomials, and integrate the finite-root sections via `MeasureTheory.Measure.pi` / Fubini.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Mathlib.MeasureTheory.Measure.MeasureSpace",
+          "Mathlib.MeasureTheory.Measure.Lebesgue.Basic",
+          "Mathlib.MeasureTheory.Constructions.Pi",
+          "Mathlib.Algebra.MvPolynomial.Basic",
+          "Mathlib.Algebra.Polynomial.Roots"
+        ]
+      }
+    },
+    {
+      "id": "S3",
+      "obj_id": "S-3",
+      "kind": "setup",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "A set-theoretic finite-sample inference world layered on the population system. Fix a sample-size index \\(n\\geq1\\) and a nominal noncoverage level \\(\\alpha\\in(0,1)\\). For each slot \\(e\\in E\\) the data supply an ARBITRARY nonempty simultaneous covariance region \\(\\mathcal C^{(n)}_{e,\\alpha}\\subseteq\\mathbb S_{+}^{p}\\); no representation, encoding, membership oracle, or computability property of a region is assumed, and no sampling mechanism producing it is specified. The honest-slot error radius is \\(r_{n,\\alpha,H}=\\max_{e\\in H}\\sup_{\\Gamma\\in\\mathcal C^{(n)}_{e,\\alpha}}\\|\\Gamma-\\Sigma_e\\|_{\\mathrm{op}}\\in[0,+\\infty]\\), with the value \\(+\\infty\\) permitted, and the identification-robust output is the confidence union \\(\\mathcal U^{(n)}_{\\alpha}=\\bigcup\\{\\mathcal R_c(\\Gamma):\\Gamma_e\\in\\mathcal C^{(n)}_{e,\\alpha}\\ \\forall e\\in E\\}\\), the union of the population replacement-compatibility sets over all simultaneous selections. The coverage event is \\(G_{n,\\alpha,H}=\\{\\Sigma_e\\in\\mathcal C^{(n)}_{e,\\alpha}\\ \\forall e\\in H\\}\\). Quantitative statements are made against four fixed rational margins imposed on the TRUE instance — \\(\\gamma_H\\geq\\gamma_0\\in\\mathbb Q_{>0}\\), \\(\\zeta_D\\geq\\zeta_0\\in\\mathbb Q\\cap(0,1]\\), \\(\\kappa_D\\leq\\overline\\kappa\\in\\mathbb Q\\cap[1,\\infty)\\), \\(M_H\\leq\\overline M\\in\\mathbb Q\\cap[1,\\infty)\\) — together with a single declarative condition-number bound \\(\\|A\\|_{\\mathrm{op}}\\|A^{-1}\\|_{\\mathrm{op}}\\leq\\overline\\kappa\\) on every feasible candidate. No covariance-interiority, candidate affine-separation, candidate normalization-slack, or candidate scale condition is imposed, and the local radius \\(r_0\\) is a non-effective compactness quantity: its existence is asserted, no procedure evaluates it, and no executable, algorithmic, or software interface is part of this world. — REVISED (core revision, whole-block rewrite): the previous S3 was an ENCODED-REGION world binding `RegionCode`, `lambda0`, `CertificateInferenceHandle` and `AuditedReleaseContraction`, and carrying a rational-semialgebraic syntax layer with a release/abstain certificate handle. The revised core deletes all four of those symbols and the entire symbolic layer: regions are now ARBITRARY nonempty subsets of \\(\\mathbb S_+^p\\), the covariance-interiority margin is gone, and every executable/effective/decision/chart/software item is moved into the unresolved `oeq:certified-uniform-inference`. The whole `Mathlib.Algebra.MvPolynomial.Basic` / `Mathlib.Data.Rat.Defs`-syntax module list, the `RationalSignFormula`/`FOFormula` plan, and the sibling-CAD analogous-module record are therefore DROPPED (they are recorded in `file_plan.bypass_survey` for provenance only). What remains is a plain `Set (Matrix (Fin p) (Fin p) ℝ)`-indexed-family world over `ℝ≥0∞`-valued radii plus four rational margin parameters. bypass-justified (ABSTRACTION MISMATCH, re-surveyed for the revised world): Causalean's set-valued identification substrate is `Causalean/PO/ID/Partial/**` — `IdentifiedInterval`, support functions of random convex sets, and Hausdorff-distance vocabulary — which lives at the real-interval / convex-body abstraction over a potential-outcome estimand, whereas this world's uncertainty object is a family of arbitrary subsets of the PSD matrix cone and its output is a union of matrix solution sets. Search trace for the revised world: `grep '^## '` over ../doc/API.md then reads of §9j2/§9j2sf (`PO/ID/Partial/` abstract bounds engine, random sets) and §12/§12ep (`Stat/Sample.lean`, `Stat/EmpiricalProcess/*` — i.i.d. observation layers with empirical means, no set-valued covariance region); `lean_local_search` (project_root=CausalSmith) on `l2_opNorm` (→ `Matrix.l2_opNorm_def`, `l2_opNorm_mul`, `l2_opNorm_mulVec`, `l2_opNorm_conjTranspose`, scoped `Matrix.Norms.L2Operator` — REVISED (F1.5): the scope name recorded here earlier, `Matrix.L2OpNorm`, is STALE and does not exist in this tree; `Mathlib/Analysis/CStarAlgebra/Matrix.lean:172,183,260,269` puts `Matrix.instL2OpMetricSpace`, `Matrix.instL2OpNormedAddCommGroup`, `instL2OpNormedSpace` and `instL2OpNormedRing` under `scoped[Matrix.Norms.L2Operator]`, and F2 must open that name or nothing resolves; REUSED wholesale as this world's operator norm AND — since the same scope supplies the `MetricSpace`, hence `EMetricSpace`, structure — as the ambient metric for the REUSED `Metric.ediam` that now realizes \\(\\operatorname{diam}_{\\mathrm{op}}\\), with `Metric.ediam_le` discharging the contraction theorem's diameter conclusion), on `IsCompact.exists_isMinOn` (→ `IsCompact.exists_isMinOn`, `IsCompact.exists_isMinOn_mem_subset`, Mathlib.Topology.Order.Compact) and on `isCompact_of_isClosed_isBounded` (→ `Metric.isCompact_of_isClosed_isBounded`, Mathlib.Topology.MetricSpace.Bounded) — both confirmed present and named in the two cited-gate nodes' discharge notes; `grep -rn 'diam|opNorm' ../Causalean/` under the sibling base returns only `PO/ID/Partial/RandomSet/` Hausdorff vocabulary and `Mathlib/OperatorSqrt.lean` at the `E →ₗ[ℝ] E` abstraction. No confidence-union or set-valued matrix-compatibility primitive exists in Causalean or Mathlib.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": null,
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      },
+      "setup": {
+        "required_modules": [
+          "Mathlib.Data.ENNReal.Basic",
+          "Mathlib.Data.Rat.Defs",
+          "Mathlib.Analysis.SpecialFunctions.Pow.Real",
+          "Mathlib.Analysis.CStarAlgebra.Matrix",
+          "Mathlib.Topology.Order.Compact",
+          "Mathlib.Topology.EMetricSpace.Diam",
+          "Mathlib.Data.Finset.Powerset"
+        ]
+      }
+    },
+    {
+      "id": "ass:backshift-normalization",
+      "obj_id": "A-1",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(D\\in\\mathcal D=\\{A\\in\\mathrm{GL}_p(\\mathbb R):\\operatorname{diag}(A)=\\mathbf 1,\\ \\operatorname{CP}(I_p-A)<1\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.BackshiftNormalization",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "2e9e85154a3254c97b49a9b070ab3249515a5905",
+        "note": "Unfolding admissibleSet gives exactly invertibility, unit diagonal, and cycleProduct (1 - D) < 1, matching the stated normalized parameter space."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "BACKSHIFT unit-diagonal and cycle-product normalization.",
+        "cite": "RothenhauslerEtAl2015BackShift",
+        "citation": "Dominik Rothenhäusler, Christina Heinze, Jonas Peters, and Nicolai Meinshausen (2015). \\(\\textit{backShift: Learning causal cyclic graphs from unknown shift interventions}\\). Advances in Neural Information Processing Systems 28. arXiv:1506.02494."
+      }
+    },
+    {
+      "id": "ass:nonnegative-shifts",
+      "obj_id": "A-2",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(s_{ek}\\ge0\\) for every \\(e\\in H\\) and \\(1\\le k\\le p\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.NonnegativeShifts",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "45a2d790c46200d1cafaa2679ce27311d8aa67a2",
+        "note": "Membership in W.honest and quantification over Fin p encode exactly every e ∈ H and coordinate 1 ≤ k ≤ p."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Nonnegative diagonal intervention variances.",
+        "cite": "RothenhauslerEtAl2015BackShift",
+        "citation": "Dominik Rothenhäusler, Christina Heinze, Jonas Peters, and Nicolai Meinshausen (2015). \\(\\textit{backShift: Learning causal cyclic graphs from unknown shift interventions}\\). Advances in Neural Information Processing Systems 28. arXiv:1506.02494."
+      }
+    },
+    {
+      "id": "ass:honest-covariance-model",
+      "obj_id": "A-3",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\Sigma_e=D^{-1}(\\Omega+\\operatorname{diag}(s_e))D^{-\\mathsf T}\\) for every \\(e\\in H\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.HonestCovarianceModel",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "230f46d62dbcab04320cf445e5831f7bc9aa3479",
+        "note": "The matrix equality is exactly Sigma_e = D⁻¹ (Omega + diag(s_e)) D⁻ᵀ for every honest environment."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      },
+      "standard": {
+        "name": "Population BACKSHIFT covariance equation, with the invariant-noise cone stated separately.",
+        "cite": "RothenhauslerEtAl2015BackShift",
+        "citation": "Dominik Rothenhäusler, Christina Heinze, Jonas Peters, and Nicolai Meinshausen (2015). \\(\\textit{backShift: Learning causal cyclic graphs from unknown shift interventions}\\). Advances in Neural Information Processing Systems 28. arXiv:1506.02494."
+      }
+    },
+    {
+      "id": "ass:support-factorization",
+      "obj_id": "A-4",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(s_{ek}=Z_{ek}a_{ek}\\) for every \\(e\\in H\\) and \\(1\\le k\\le p\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.SupportFactorization",
+        "file": "Basic/Occupancy.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "df58ff0e20d39a8b3ff2b6d662570733264f393a",
+        "note": "The Boolean conditional is exactly multiplication by the binary support Z, while positivity on Z-active entries makes explicit the stipulated positive-amplitude domain."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "ass:generic-active-amplitudes",
+      "obj_id": "A-5",
+      "kind": "assumption",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The joint law of \\((a_{ek}:e\\in H,1\\le k\\le p,Z_{ek}=1)\\) is absolutely continuous with respect to Lebesgue measure on its positive orthant.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.GenericActiveAmplitudes",
+        "file": "Basic/Occupancy.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "1b692dae6e128f8579fa05845f6a8e1f2d8c4395",
+        "note": "The measurable active-coordinate projection and absolute continuity of its pushforward law with respect to volume restricted to the positive orthant exactly formalize the stated joint-law condition."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:admissible-matrices",
+      "obj_id": "P-1",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\mathcal D=\\{A\\in\\mathrm{GL}_p(\\mathbb R):\\operatorname{diag}(A)=\\mathbf 1,\\ \\operatorname{CP}(I_p-A)<1\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.admissibleSet",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "e6dcafed91eb76c4e2e88b66d4c825c35c66126c",
+        "note": "IsUnit A.det is invertibility over ℝ, the diagonal condition is entrywise unit diagonal, and cycleProduct (1 - A) is exactly CP(I_p-A)."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:max-line-occupancy",
+      "obj_id": "P-2",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For \\(1\\le k<\\ell\\le p\\), \\(M_{k\\ell}=\\max_{L\\subset\\mathbb R^2\\,\\mathrm{affine\\ line}}\\#\\{e\\in H:(s_{ek},s_{e\\ell})\\in L\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.maxLineOccupancy",
+        "file": "Basic/Occupancy.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "e47c2fbf66e4f2698599c85122cd82bd0d2ec8c4",
+        "note": "Vanishing of every affine 3×3 minor is equivalent to containment of the indexed planar points in an affine line, and powerset supremum preserves repeated-point multiplicity by index."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:environment-distance",
+      "obj_id": "P-3",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(\\delta_H=\\min_{1\\le k<\\ell\\le p}(h-M_{k\\ell})\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.envDeletionDistance",
+        "file": "Basic/Occupancy.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "b8d52b646a5d10636bdfa825092a44e5360930c5",
+        "note": "offDiagPairs p is exactly the set of k<ℓ pairs, I.card realizes h, and the fold computes the minimum of h-M_{kℓ} on the stated p≥2 domain."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:compatible-set",
+      "obj_id": "P-4",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For \\(\\Sigma\\in(\\mathbb S_{+}^{p})^{E}\\), \\(\\mathcal R_c(\\Sigma)=\\{A\\in\\mathcal D:\\exists K\\subseteq E,\\ |K|\\ge h,\\ \\exists\\Psi\\in\\mathbb S_{+}^p,\\ \\exists t_e\\in[0,\\infty)^p,\\ \\Sigma_e=A^{-1}(\\Psi+\\operatorname{diag}(t_e))A^{-\\mathsf T}\\ \\forall e\\in K\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.compatibleSet",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "09ec58a82cb37feb1c82549d3d36df7e4ab15b24",
+        "note": "The subtype pins every covariance to the symmetric PSD cone, K has cardinality at least h=m-c, Ψ is PSD, and the total t function is a conservative extension of the nonnegative vectors required only on K."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:generic-occupancy",
+      "obj_id": "P-5",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For each \\(k<\\ell\\), \\(M_{k\\ell}^{\\mathrm{gen}}=\\max\\{n_{00}^{k\\ell}+n_{10}^{k\\ell},n_{00}^{k\\ell}+n_{01}^{k\\ell},n_{00}^{k\\ell}+\\mathbf 1\\{n_{11}^{k\\ell}>0\\},\\min(2,h)\\}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.genericOccupancy",
+        "file": "Basic/Occupancy.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "223b7ae818499f04d0642118b58d2c716c1b23e1",
+        "note": "The four nested maximum terms are exactly the two axial counts, the n00 plus n11-positivity indicator, and min(2,h) with h=I.card."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:affine-separation",
+      "obj_id": "P-6",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Set \\(\\gamma_H=0\\) when \\(h-c<3\\); otherwise set \\(\\gamma_H=\\min_{1\\le k<\\ell\\le p}\\min_{S\\subseteq H,\\,|S|=h-c}\\max_{e<f<g\\in S}\\left|\\det\\begin{pmatrix}1&s_{ek}&s_{e\\ell}\\\\1&s_{fk}&s_{f\\ell}\\\\1&s_{gk}&s_{g\\ell}\\end{pmatrix}\\right|\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.affineSeparation",
+        "file": "Basic/Occupancy.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "cc4d9ff7f4fa641c79009eeb3a9a8ffde7493d3a",
+        "note": "The zero branch is exactly h-c<3 using H.card=h; otherwise the finite nonempty sInf is the stated double minimum, and maximizing over all distinct ordered triples equals maximizing over e<f<g because absolute affine minors are permutation-invariant."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:subset-consensus",
+      "obj_id": "P-7",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Definitional implementation note: given a feasibility oracle that returns the full solution set for each queried semialgebraic system, query every \\(K\\subseteq E\\) with \\(|K|=h\\) for all \\(A\\in\\mathcal D\\) satisfying \\(\\operatorname{offdiag}(A(\\Sigma_e-\\Sigma_f)A^{\\mathsf T})=0\\) for \\(e,f\\in K\\) and admitting one \\(\\Psi\\in\\mathbb S_{+}^p\\) with nonnegative diagonal shifts for the transformed raw covariances. Define \\(\\text{SubsetConsensus}(\\Sigma,c)\\) as the union of the oracle-returned solution sets. This enumeration makes exactly \\(\\binom{m}{h}\\) oracle queries and, by expansion of \\(\\text{def:compatible-set}\\), its returned union equals \\(\\mathcal R_c(\\Sigma)\\); neither fact is a theorem contribution or a claim that an encoded terminating solver is supplied.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.subsetConsensus",
+        "file": "Helpers/ConfidenceUnion.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "140b1e9f4a93fca3a982d2750f36290dd475f8b7",
+        "note": "The iUnion ranges over exactly all h-subsets and their full admissible feasibility sets; admissibility makes A invertible, so the common PSD Psi plus nonnegative diagonal-shift equations are equivalent to the transformed formulation and imply the stated off-diagonal equalities."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:honest-region-radius",
+      "obj_id": "P-8",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "\\(r_{n,\\alpha,H}=\\max_{e\\in H}\\sup_{\\Gamma\\in\\mathcal C^{(n)}_{e,\\alpha}}\\|\\Gamma-\\Sigma_e\\|_{\\mathrm{op}}\\in[0,+\\infty]\\), where the supremum and hence the maximum may equal \\(+\\infty\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.honestRegionRadius",
+        "file": "Helpers/ConfidenceUnion.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "15dd8baea23ca9181d00467789e4e17493f3d253",
+        "note": "The nested ENNReal suprema give the finite maximum over honest slots of the possibly infinite regional supremum, while matrix edist is the extended operator-norm distance in the selected L2-operator norm."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:operator-diameter",
+      "obj_id": "P-9",
+      "kind": "definition",
+      "provenance": "library",
+      "nl": {
+        "statement": "For every nonempty matrix set \\(\\mathcal A\\), \\(\\operatorname{diam}_{\\mathrm{op}}(\\mathcal A)=\\sup_{A_1,A_2\\in\\mathcal A}\\|A_1-A_2\\|_{\\mathrm{op}}\\in[0,+\\infty]\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "Metric.ediam",
+        "file": null
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:operator-outer-radius",
+      "obj_id": "P-10",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every nonempty matrix set \\(\\mathcal A\\) and matrix \\(D\\), \\(\\operatorname{outer}_{\\mathrm{op}}(\\mathcal A,D)=\\sup_{A_1\\in\\mathcal A}\\|A_1-D\\|_{\\mathrm{op}}\\in[0,+\\infty]\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.opOuterRadius",
+        "file": "Helpers/MatrixMargins.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "7abe26d999583d26e9aa2b5f6e7f6ebc0dbc6ef6",
+        "note": "For the explicitly required nonempty set, the nested ENNReal supremum is exactly the possibly infinite supremum of operator-norm distances from D."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "def:confidence-union",
+      "obj_id": "P-11",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every \\(n\\geq1\\), \\(\\alpha\\in(0,1)\\), and indexed family of nonempty sets \\(\\mathcal C^{(n)}_{e,\\alpha}\\subseteq\\mathbb S_{+}^{p}\\), define the set-theoretic confidence union\n\\[\n\\mathcal U^{(n)}_{\\alpha}\n=\\bigcup_{\\Gamma\\in\\prod_{e\\in E}\\mathcal C^{(n)}_{e,\\alpha}}\n\\mathcal R_c(\\Gamma).\n\\]\nThus \\(\\mathcal U^{(n)}_{\\alpha}\\) is the union of the population replacement-compatibility sets over all simultaneous selections from the covariance regions. This definition asserts neither computability nor a coverage property.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.confidenceUnion",
+        "file": "Helpers/ConfidenceUnion.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "38c58cae6d82cf6e728f15c68cf4031a77a233f8",
+        "note": "The iUnion quantifies over every simultaneous selection from the current nonempty PSD regions and unions exactly the corresponding replacement-compatible sets; bundling n and alpha in InferenceWorld is conservative and adds no computability or coverage claim."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "lem:overlap-uniqueness",
+      "obj_id": "L-1",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Let the first explanation \\(D^{(1)},H_1,s^{(1)}\\) and the second explanation \\(D^{(2)},H_2,s^{(2)}\\) fit the same \\(\\Sigma\\), each through a BACKSHIFT covariance equation satisfying the unit-diagonal and cycle-product normalization, with its own invariant positive-semidefinite nuisance, nonnegative shifts, and \\(|H_r|\\ge h=m-c\\). Set \\(J=H_1\\cap H_2\\). Then \\(|J|\\ge m-2c=h-c\\). If, for every \\(k<\\ell\\), the first explanation's cloud \\(\\{(s^{(1)}_{ek},s^{(1)}_{e\\ell}):e\\in J\\}\\) is not contained in an affine line, then \\(D^{(1)}=D^{(2)}\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.overlap_uniqueness",
+        "file": "Helpers/OverlapUniqueness.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "fe680f20a16ed3ba283d552f4b0742f94295a8c6",
+        "note": "BackshiftExplanation unfolds to the stated invertibility, unit diagonal, strict cycle-product normalization, PSD nuisance, fitted-set size, nonnegative shifts, and covariance equations; CollinearPairs exactly expresses affine-line containment, and the overlap bound and uniqueness implication match."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "thm:sharp-replacement-radius",
+      "obj_id": "T-1",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Fix an honest BACKSHIFT instance \\(D,H,s,\\Omega\\) with \\(D\\in\\mathcal D\\), nonnegative shifts, \\(\\Omega\\in\\mathbb S_{+}^{p}\\), and \\(\\Sigma_e=D^{-1}(\\Omega+\\operatorname{diag}(s_e))D^{-\\mathsf T}\\) for every \\(e\\in H\\). If \\(\\delta_H>c\\), equivalently \\(\\gamma_H>0\\), then \\(\\mathcal R_c(\\Sigma)=\\{D\\}\\) for every assignment of matrices in \\(\\mathbb S_{+}^{p}\\) to the \\(c\\) slots in \\(E\\setminus H\\). If, in addition, this fixed instance has \\(\\Omega\\in\\mathbb S_{++}^{p}\\) and \\(\\delta_H\\le c\\), then there are positive-definite values for all slots in \\(E\\setminus H\\), a matrix \\(D'\\in\\mathcal D\\) with \\(D'\\ne D\\), an invariant \\(\\Omega'\\in\\mathbb S_{++}^{p}\\), and nonnegative shifts on a set \\(H'\\subseteq E\\) with \\(|H'|=h\\) such that \\(D,D'\\in\\mathcal R_c(\\Sigma)\\). Consequently, over the published class allowing \\(\\Omega\\in\\mathbb S_{+}^{p}\\) and positive-semidefinite covariance slots, the threshold \\(\\delta_H>c\\) is minimax sharp: whenever \\(\\delta_H\\le c\\), the class contains an ambiguity witness in its positive-definite invariant-noise and covariance subclass. No ambiguity is asserted for every fixed singular boundary value of \\(\\Omega\\). On the positive-definite invariant-noise interior and at \\(c=0\\), the equivalence is exactly the BACKSHIFT pairwise noncollinearity criterion.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.sharp_replacement_radius",
+        "file": "TSharpReplacementRadius.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "539511e22666d97b35e2a3cb4301449cfdef2a80",
+        "note": "The conjuncts exactly encode δ_H > c ↔ γ_H > 0, uniform PSD-replacement singleton recovery, the fixed-instance positive-definite converse witness, and the minimax interior witness; at c = 0, unfolding envDeletionDistance gives δ_H > 0 ↔ every pairwise occupancy is < h, while the converse conjunct supplies ambiguity on failure."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "prop:generic-support-frontier",
+      "obj_id": "T-2",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Under the prespecified support pattern \\(Z\\) and absolutely continuous active amplitudes, simultaneously for every \\(k<\\ell\\), \\(M_{k\\ell}=M_{k\\ell}^{\\mathrm{gen}}\\) almost surely. Consequently, the pattern guarantees \\(\\mathcal R_c(\\Sigma)=\\{D\\}\\) uniformly for all admissible \\(D\\in\\mathcal D\\), all \\(\\Omega\\in\\mathbb S_{+}^{p}\\), and every positive-semidefinite assignment to the \\(c\\) replacement slots if and only if, for every \\(k<\\ell\\), \\(\\max\\{n_{00}^{k\\ell}+n_{10}^{k\\ell},n_{00}^{k\\ell}+n_{01}^{k\\ell},n_{00}^{k\\ell}+\\mathbf 1\\{n_{11}^{k\\ell}>0\\},\\min(2,h)\\}<h-c\\). Failure of this inequality has an ambiguity witness with positive-definite invariant noise and positive-definite covariance slots; it is not a claim that every fixed singular boundary instance is ambiguous. In particular, any uniformly robustly identifying support pattern satisfies \\(m\\ge2c+3\\), and this environment-count lower bound is attained by support patterns with no larger forced affine incidence.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.generic_support_frontier",
+        "file": "TGenericSupportFrontier.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "9f78486f4eb15764d8858f3d745ba05e5c4b8a86",
+        "note": "After unfolding the referenced definitions and using H.card = honestCount m c = m-c, Lean states the same simultaneous a.s. occupancy formula, exact full-PSD-class uniform recovery iff the four-term bound is below h-c, PD ambiguity witness on failure, m ≥ 2c+3 necessity, and all-active attainment."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "oeq:certified-uniform-inference",
+      "obj_id": "P-12",
+      "kind": "definition",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "The set-theoretic simultaneous-coverage implication for arbitrary nonempty positive-semidefinite covariance regions is established by \\(\\text{thm:confidence-union-coverage}\\). The result \\(\\text{thm:non-effective-four-margin-contraction}\\) establishes a non-effective existential local radius and an explicit linear modulus under four bounds on the true instance---affine separation, normalization slack, structural conditioning, and scale---and only a condition-number bound on every feasible candidate. Can one additionally build and formally verify an executable real-closed-field quantifier-elimination, sign-determination, and root-isolation substrate which, from finite rational-semialgebraic covariance-region codes, (i) terminates and emits a quantifier-free code whose realization is exactly \\(\\mathcal U^{(n)}_\\alpha\\), (ii) decides a release-or-abstain condition, possibly using a conservative universal four-margin audit to certify unknown true-side margins and forcing abstention within that audit whenever it finds a feasible candidate with zero affine separation, while distinguishing that operational sufficient audit from the sole candidate-side condition-number bound required by the analytic contraction theorem, (iii) decides for every rational population covariance family whether \\(\\mathcal R_c(\\Sigma)\\) is empty, is a singleton, or contains at least two matrices, and (iv) computes a certified positive lower bound for the compact far-family residual and hence an effective positive radius \\(r_0\\)? Can the same verified program automate normalization-chart changes without altering the represented matrix set and support a corruption-aware extension of the CRAN \\(\\texttt{backShift}\\) workflow? Every executable, effective, decision, chart-automation, and software item in this question is unresolved future work. A feasible candidate with zero affine separation or a small normalization slack may trigger that conservative operational audit, but neither is an analytic candidate-side obstruction to contraction around a fixed true instance satisfying \\(\\gamma_H\\geq\\gamma_0>0\\) and \\(\\zeta_D\\geq\\zeta_0>0\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.openQuestion_certifiedUniformInference",
+        "file": "OpenQuestions.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "c0782c1ddca3d35151236360040a04eb59a1b279",
+        "note": "The closed non-Prop string payload preserves the established set-theoretic and non-effective context, every executable desideratum and operational distinction, and all future-work disclaimers without asserting witnesses or entering delivered theorem dependencies."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "lem:generic-affine-occupancy",
+      "obj_id": "L-2",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Let \\(I\\) be a finite index set of cardinality \\(r\\), let \\(Z^\\circ\\in\\{0,1\\}^{I\\times p}\\), and let \\(a^\\circ\\in(0,\\infty)^{I\\times p}\\). Suppose the subarray \\((a^\\circ_{ek}:Z^\\circ_{ek}=1)\\) has a joint distribution absolutely continuous on its positive orthant. Define \\(P_e^{k\\ell}=(Z^\\circ_{ek}a^\\circ_{ek},Z^\\circ_{e\\ell}a^\\circ_{e\\ell})\\), \\(N_{uv}^{k\\ell}=\\#\\{e\\in I:(Z^\\circ_{ek},Z^\\circ_{e\\ell})=(u,v)\\}\\), and \\(M_I^{k\\ell}=\\max_{L\\text{ affine line}}\\#\\{e\\in I:P_e^{k\\ell}\\in L\\}\\). Then, simultaneously for all \\(k<\\ell\\), almost surely\n\\[\n M_I^{k\\ell}=\\max\\{N_{00}^{k\\ell}+N_{10}^{k\\ell},N_{00}^{k\\ell}+N_{01}^{k\\ell},N_{00}^{k\\ell}+\\mathbf 1\\{N_{11}^{k\\ell}>0\\},\\min(2,r)\\}.\n\\]",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.generic_affine_occupancy",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "c9a9639ac490241216c3047a9aeec3b589951cd8",
+        "note": "GenericActiveAmplitudes is precisely measurable active-subarray law absolute continuity relative to volume on the positive orthant; inactive amplitudes are conservatively irrelevant after masking, while maxLineOccupancy and genericOccupancy unfold to the indexed affine-line maximum and the four stated incidence terms."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "prop:uniform-support-deletion-radius",
+      "obj_id": "T-3",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Let \\(\\bar Z\\in\\{0,1\\}^{E\\times p}\\) be a planned full-environment support array and let \\(\\bar a\\in(0,\\infty)^{E\\times p}\\). Suppose the active subarray \\((\\bar a_{ek}:\\bar Z_{ek}=1)\\) has a joint density on its positive orthant, and put \\(\\bar s_{ek}=\\bar Z_{ek}\\bar a_{ek}\\). For \\(u,v\\in\\{0,1\\}\\), define \\(N_{uv}^{k\\ell}=\\#\\{e\\in E:(\\bar Z_{ek},\\bar Z_{e\\ell})=(u,v)\\}\\), and set \\(T=\\max_{k<\\ell}\\max\\{N_{00}^{k\\ell}+N_{10}^{k\\ell},N_{00}^{k\\ell}+N_{01}^{k\\ell},N_{00}^{k\\ell}+\\mathbf 1\\{N_{11}^{k\\ell}>0\\},\\min(2,m)\\}\\). Almost surely, the following are equivalent: (i) for every failed set \\(F\\subseteq E\\) with \\(|F|=c\\), the retained set \\(H=E\\setminus F\\) and shifts \\((\\bar s_e:e\\in H)\\) give a design that guarantees \\(\\mathcal R_c(\\Sigma)=\\{D\\}\\) uniformly over all admissible \\(D\\in\\mathcal D\\), all \\(\\Omega\\in\\mathbb S_+^p\\), and all positive-semidefinite replacements; (ii) \\(T<m-2c\\). If \\(T<m\\), condition (ii) is equivalent to \\(c\\le\\lfloor(m-T-1)/2\\rfloor\\); if \\(T=m\\), no nonnegative corruption budget is certified. For the all-active design and \\(m\\ge3\\), the largest certified budget is \\(c_{\\max}=\\lfloor(m-3)/2\\rfloor\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.uniform_support_deletion_radius",
+        "file": "TUniformSupportDeletionRadius.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "494dd2f21e487cf5cffe1e9c89c82ab5152c6d24",
+        "note": "Unfolding fullDesignOccupancy, genericOccupancy, SupportFactorization, BackshiftSystem, and compatibleSet gives exactly the stated four-term T and uniform quantification over every admissible D, PSD Ω, and PSD failed-slot replacement; the fixed-c budget formula is explicit, T=m excludes every admissible c, and the all-active clause T=2 together with the preceding equivalences yields c_max=(m-3)/2, while the paper's incidence definition conversely yields T=2."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "thm:confidence-union-coverage",
+      "obj_id": "T-4",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Fix \\(n\\geq1\\), \\(\\alpha\\in(0,1)\\), and an arbitrary indexed family of nonempty covariance regions \\(\\mathcal C^{(n)}_{e,\\alpha}\\subseteq\\mathbb S_{+}^{p}\\), \\(e\\in E\\). Under \\(\\text{ass:backshift-normalization}\\), \\(\\text{ass:nonnegative-shifts}\\), and \\(\\text{ass:honest-covariance-model}\\), suppose additionally that \\(\\Omega\\in\\mathbb S_+^p\\), and define\n\\[\nG_{n,\\alpha,H}\n=\\{\\Sigma_e\\in\\mathcal C^{(n)}_{e,\\alpha}\\text{ for every }e\\in H\\}.\n\\]\nThen\n\\[\nG_{n,\\alpha,H}\\subseteq\\{D\\in\\mathcal U^{(n)}_\\alpha\\}.\n\\]\nConsequently, whenever the displayed events are measurable,\n\\[\n\\Pr(G_{n,\\alpha,H})\\geq1-\\alpha\n\\quad\\Longrightarrow\\quad\n\\Pr\\{D\\in\\mathcal U^{(n)}_\\alpha\\}\\geq1-\\alpha.\n\\]\nThis is a set-theoretic coverage implication and makes no representation or computability claim.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.confidence_union_coverage",
+        "file": "TConfidenceUnionCoverage.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "363e6ab1fafe7571570c50bbfe36f519088179cc",
+        "note": "Unfolding coverageEvent and confidenceUnion gives exactly G_{n,alpha,H} → D ∈ U^{(n)}_alpha; the measurable probability consequence follows from this inclusion by measure monotonicity, while InferenceWorld's all-n packaging is conservatively expandable from any fixed nonempty PSD region family."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "thm:non-effective-four-margin-contraction",
+      "obj_id": "T-5",
+      "kind": "theorem",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "Fix \\(p\\geq2\\), \\(m\\geq1\\), and \\(0\\leq c\\leq m-1\\), put \\(h=m-c\\) and \\(q=m-2c=h-c\\), and fix \\(\\gamma_0\\in\\mathbb Q_{>0}\\), \\(\\zeta_0\\in\\mathbb Q\\cap(0,1]\\), and \\(\\overline\\kappa,\\overline M\\in\\mathbb Q\\cap[1,\\infty)\\). Define\n\\[\nL_0=\\bigl(p!\\,\\overline\\kappa^{p-1}\\bigr)^{1/p},\n\\qquad\nK_0=\\frac{6\\overline M}{\\gamma_0}\n\\sqrt{p(p-1)(1+L_0^2)},\n\\qquad\nC_0=16K_0L_0^3.\n\\]\nUnder \\(\\text{ass:backshift-normalization}\\), \\(\\text{ass:nonnegative-shifts}\\), and \\(\\text{ass:honest-covariance-model}\\), suppose that \\(\\Omega\\in\\mathbb S_+^p\\) and that the true instance satisfies\n\\[\n\\gamma_H\\geq\\gamma_0,\\qquad\n\\zeta_D\\geq\\zeta_0,\\qquad\n\\kappa_D\\leq\\overline\\kappa,\\qquad\nM_H\\leq\\overline M.\n\\]\nFix \\(n\\geq1\\), \\(\\alpha\\in(0,1)\\), and an arbitrary indexed family of nonempty covariance regions \\(\\mathcal C^{(n)}_{e,\\alpha}\\subseteq\\mathbb S_{+}^p\\). Assume declaratively that every tuple consisting of \\(K\\subseteq E\\) with \\(|K|=h\\), \\(A\\in\\mathcal D\\), \\(\\Psi\\in\\mathbb S_+^p\\), \\(t_e\\in[0,\\infty)^p\\), and \\(\\Gamma_e\\in\\mathcal C^{(n)}_{e,\\alpha}\\) for \\(e\\in K\\), satisfying\n\\[\nA\\Gamma_eA^{\\mathsf T}=\\Psi+\\operatorname{diag}(t_e)\n\\qquad(e\\in K),\n\\]\nalso satisfies the single bound\n\\[\n\\|A\\|_{\\mathrm{op}}\\|A^{-1}\\|_{\\mathrm{op}}\n\\leq\\overline\\kappa.\n\\]\nThen there exists a real number \\(r_0>0\\), depending only on \\(p,m,c,\\gamma_0,\\zeta_0,\\overline\\kappa,\\overline M\\), such that on the event\n\\[\nG_{n,\\alpha,H}\n=\\{\\Sigma_e\\in\\mathcal C^{(n)}_{e,\\alpha}\\text{ for every }e\\in H\\},\n\\]\none has\n\\[\nr_{n,\\alpha,H}\\leq r_0\n\\quad\\Longrightarrow\\quad\n\\operatorname{outer}_{\\mathrm{op}}(\\mathcal U^{(n)}_\\alpha,D)\n\\leq C_0r_{n,\\alpha,H},\n\\]\n\\[\n\\operatorname{diam}_{\\mathrm{op}}(\\mathcal U^{(n)}_\\alpha)\n\\leq2C_0r_{n,\\alpha,H}.\n\\]\nConsequently, along any sequence of covered outcomes satisfying the same declarative candidate-side condition-number bound and \\(r_{n,\\alpha,H}\\to0\\), both displayed set radii converge to zero. The existence of \\(r_0\\) is non-effective: no procedure is asserted for checking the universal candidate premise or for computing \\(r_0\\), and no executable, algorithmic, or software interface is asserted.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.non_effective_four_margin_contraction",
+        "file": "TNonEffectiveFourMarginContraction.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "09899f5bca23ca1cfc45282a500f6dab79ff668d",
+        "note": "After unfolding all referenced definitions, Lean matches both directions: its bundled worlds conservatively represent arbitrary nonempty PSD regions, the candidate premise and four margins coincide, and the uniform local bounds imply the stated convergence consequence by eventual entry below r0 and squeezing."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "lem:euclidean-heine-borel",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "For every positive integer \\(d\\), every closed and bounded subset of \\(\\mathbb R^d\\) is compact.",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.euclideanHeineBorel_mathlib",
+        "file": "Helpers/EuclideanHeineBorel.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "50d71df8f9557c7064b19f3cedb2567730e69cd6",
+        "note": "EuclideanSpace ℝ (Fin d) realizes ℝ^d, Bornology.IsBounded is metric boundedness here, and the positive-dimension, closedness, boundedness, and compactness clauses match exactly."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "lem:compact-extreme-value",
+      "kind": "lemma",
+      "provenance": "from-note",
+      "nl": {
+        "statement": "If \\(X\\) is a nonempty compact subset of a finite-dimensional Euclidean space and \\(f:X\\to\\mathbb R\\) is continuous, then there exists \\(x_\\star\\in X\\) such that \\(f(x_\\star)=\\inf_{x\\in X}f(x)\\).",
+        "tex_anchor": "",
+        "frozen": true
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.compactExtremeValueMinimum_mathlib",
+        "file": "Helpers/CompactExtremeValue.lean"
+      },
+      "review": {
+        "status": "matched",
+        "passed_hash": "3b9f72ee707793db795ded55e993740c53f6c2d7",
+        "note": "ContinuousOn represents continuity of the restriction to X, values outside X are irrelevant, and existence of a point below every point of the nonempty compact set is equivalent to attaining the infimum."
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_BackshiftSystem",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def BackshiftSystem, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "BackshiftSystem",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CandidateConditionBound",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CandidateConditionBound, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CandidateConditionBound",
+        "file": "Helpers/ContractionCompactness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_CollinearPairs",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def CollinearPairs, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CollinearPairs",
+        "file": "Basic/Occupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_contractionC0",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def contractionC0, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "contractionC0",
+        "file": "Helpers/ContractionLocalInverse.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_coverageEvent",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def coverageEvent, flavor predicate)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "coverageEvent",
+        "file": "TConfidenceUnionCoverage.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_Environment",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def Environment, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "Environment",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_honestCount",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def honestCount, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "honestCount",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_InferenceWorld",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def InferenceWorld, flavor structure)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "InferenceWorld",
+        "file": "Helpers/ConfidenceUnion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_matrixConditionNumber",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def matrixConditionNumber, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "matrixConditionNumber",
+        "file": "Helpers/MatrixMargins.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_matrixScaleBound",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def matrixScaleBound, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "matrixScaleBound",
+        "file": "Helpers/MatrixMargins.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_normalizationSlack",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def normalizationSlack, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "normalizationSlack",
+        "file": "Helpers/MatrixMargins.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_RealMatrix",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def RealMatrix, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "RealMatrix",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_PSDCovarianceFamily",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def PSDCovarianceFamily, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "PSDCovarianceFamily",
+        "file": "Basic.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "volume_mk_zeroLocus_mvPolynomial",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.volume_mk_zeroLocus_mvPolynomial)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.volume_mk_zeroLocus_mvPolynomial",
+        "file": "Helpers/PolynomialNull.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "65a033dea403d17ed8d4ce0c0aebc1092eb56d93"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "overlap_card_lower_bound",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.overlap_card_lower_bound)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.overlap_card_lower_bound",
+        "file": "Helpers/OverlapUniqueness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "00a15e509c656c39ba5d51ec71a1ea5f3582c524"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "noncollinear_card_at_least_three",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.noncollinear_card_at_least_three)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.noncollinear_card_at_least_three",
+        "file": "Helpers/OverlapUniqueness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "d2f96e04e71718aecc5274836374bc92c202e444"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "exists_nonzero_affineMinor_of_noncollinear",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.exists_nonzero_affineMinor_of_noncollinear)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.exists_nonzero_affineMinor_of_noncollinear",
+        "file": "Helpers/OverlapUniqueness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "af690f2b94fa6597355eeab94173fbc0fd0d8038"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "BackshiftExplanation.transformed_covariance_eq",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.BackshiftExplanation.transformed_covariance_eq)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.WeakBackshiftExplanation.transformed_covariance_eq",
+        "file": "Helpers/OverlapUniqueness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "2ed0e5100f6a2cd77747e86bf3d9d75bffd29e18"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "centeredShiftCombination",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced def CausalSmith.ExactID.RobustBackshiftUniformDistance.centeredShiftCombination)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.centeredShiftCombination",
+        "file": "Helpers/OverlapUniqueness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "a4c4f5a7d98321101f10d667d76203c31845ffee"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "centeredShiftCombination_single",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.centeredShiftCombination_single)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.centeredShiftCombination_single",
+        "file": "Helpers/OverlapUniqueness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "4dbf30acc1f786622f1b7ec0efd3daee20b66198"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "exists_centeredShiftCombination_ne_zero",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.exists_centeredShiftCombination_ne_zero)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.exists_centeredShiftCombination_ne_zero",
+        "file": "Helpers/OverlapUniqueness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "82b240ceed953cb412b9fe55c91267290ca8051f"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "exists_centeredShiftCombination_distinctRatios",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.exists_centeredShiftCombination_distinctRatios)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.exists_centeredShiftCombination_distinctRatios",
+        "file": "Helpers/OverlapUniqueness.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "633e731df6be4d95866914c06a5ddb5cfeaa17ca"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "genericActiveAmplitudes_ae_positive",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.genericActiveAmplitudes_ae_positive)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.genericActiveAmplitudes_ae_positive",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "5a4aaa0cc4b2ada29a09d1e7ee92054e305e3e66"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "genericActiveAmplitudes_ae_avoid_volume_null",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.genericActiveAmplitudes_ae_avoid_volume_null)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.genericActiveAmplitudes_ae_avoid_volume_null",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "ba44802f6d5d59c110973b90e4f7077849ed1e8f"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "genericActiveAmplitudes_ae_polynomial_ne_zero",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.genericActiveAmplitudes_ae_polynomial_ne_zero)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.genericActiveAmplitudes_ae_polynomial_ne_zero",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "e821da81642fb1d1224ffb1ba394fdc0557ceeb9"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "volume_zeroLocus_mvPolynomial_finite",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.volume_zeroLocus_mvPolynomial_finite)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.volume_zeroLocus_mvPolynomial_finite",
+        "file": "Helpers/PolynomialNull.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "33a7cf337629e3cff604b2c1a7556da6f6c7c700"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "genericActiveAmplitudes_ae_finite_polynomials_ne_zero",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.genericActiveAmplitudes_ae_finite_polynomials_ne_zero)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.genericActiveAmplitudes_ae_finite_polynomials_ne_zero",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "2f4c512ac74f59ac5f2793be520489869ff3a6a5"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "genericActiveAmplitudes_ae_activeProjection_injective",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.genericActiveAmplitudes_ae_activeProjection_injective)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.genericActiveAmplitudes_ae_activeProjection_injective",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "b8a3843e0a4d98256c36eefdd3a56a03663bdd95"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "maxLineOccupancy_ge_of_collinear",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.maxLineOccupancy_ge_of_collinear)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.maxLineOccupancy_ge_of_collinear",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "bded6ec258c6bd8048110a89c979e0d47363af29"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "maxLineOccupancy_support_lower_bound",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.maxLineOccupancy_support_lower_bound)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.maxLineOccupancy_support_lower_bound",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "e639f1fa51a88e9b214caf2801ec9a796d244980"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "maxLineOccupancy_ge_min_two",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.maxLineOccupancy_ge_min_two)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.maxLineOccupancy_ge_min_two",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "908727090e0a54552225d051998f45dcb74fe91b"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "maxLineOccupancy_three_forced_terms",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.maxLineOccupancy_three_forced_terms)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.maxLineOccupancy_three_forced_terms",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "4081d41cb577237cdd24f76fc2258df9f630c0fe"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "horizontalSupport_card",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.horizontalSupport_card)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.horizontalSupport_card",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "f0f9a4467fdb7a1f0f3a63bb9dab4135a743b1ce"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "verticalSupport_card",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.verticalSupport_card)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.verticalSupport_card",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "134334313b6b5066264b962677bceef2a8d78155"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "zeroSupport_card",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.zeroSupport_card)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.zeroSupport_card",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "3a2cd5335286938b85515d4d703e36bb10db982a"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "maxLineOccupancy_le_of_forced_classification",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.maxLineOccupancy_le_of_forced_classification)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.maxLineOccupancy_le_of_forced_classification",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "84c1f04a87446b2639647f5e7baf632869f7a0c7"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "activeCoordinatePolynomial",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced def CausalSmith.ExactID.RobustBackshiftUniformDistance.activeCoordinatePolynomial)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.activeCoordinatePolynomial",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "2f258d328f1f5a0ab454b246b6dbe842c4cda175"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "eval_activeCoordinatePolynomial",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.eval_activeCoordinatePolynomial)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.eval_activeCoordinatePolynomial",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "bec4084862df42bc0df3fa96dca388bcf1edd539"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "affineMinorPolynomial",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced def CausalSmith.ExactID.RobustBackshiftUniformDistance.affineMinorPolynomial)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.affineMinorPolynomial",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "73a5363722fef4160c235570e8386e4ec1516783"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "eval_affineMinorPolynomial",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.eval_affineMinorPolynomial)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.eval_affineMinorPolynomial",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "0020df42ad8a2ff714e1ee1a8652d175304fcd1c"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "affineMinorPolynomial_ne_zero_of_mixed_support",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.affineMinorPolynomial_ne_zero_of_mixed_support)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.affineMinorPolynomial_ne_zero_of_mixed_support",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "eb5b45c21e3b54d330e4d9779fe3cea2d830c193"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "originMinorPolynomial",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced def CausalSmith.ExactID.RobustBackshiftUniformDistance.originMinorPolynomial)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.originMinorPolynomial",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "ea783db5e48437493a2de5c8251f2dc11296cb79"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "eval_originMinorPolynomial",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.eval_originMinorPolynomial)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.eval_originMinorPolynomial",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "46c386f1865fe95392e92a97cbd3cd720f24531e"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "originMinorPolynomial_ne_zero_of_mixed_support",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.originMinorPolynomial_ne_zero_of_mixed_support)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.originMinorPolynomial_ne_zero_of_mixed_support",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "5b137e6d15ecaecd19bec64306b07896cb9733e9"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "maxLineOccupancy_origin_interior_lower_bound",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.maxLineOccupancy_origin_interior_lower_bound)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.maxLineOccupancy_origin_interior_lower_bound",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "41c83cfe29d6f8ea4a1b55bb2c2937d34d48a937"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "genericActiveAmplitudes_ae_forced_classification",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.genericActiveAmplitudes_ae_forced_classification)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.genericActiveAmplitudes_ae_forced_classification",
+        "file": "Helpers/GenericAffineOccupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "50f64d087959a08ec4d71d50a6465ea56fc9001f"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "maxLineOccupancy_congr_on",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.maxLineOccupancy_congr_on)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.maxLineOccupancy_congr_on",
+        "file": "Basic/Occupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "61a811b9b1e4697bc5f1e20be795edac148f8bf4"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "envDeletionDistance_gt_iff",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.envDeletionDistance_gt_iff)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.envDeletionDistance_gt_iff",
+        "file": "Basic/Occupancy.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "e72a4f2fce6ea27c63ceec0785a67abee60396cb"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "maxLineOccupancy_mono_index",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.maxLineOccupancy_mono_index)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.maxLineOccupancy_mono_index",
+        "file": "TUniformSupportDeletionRadius.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "4b7bf417406f04ee31295b53eec114241d5deb48"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "maxAffineMinor_pos_iff_not_collinear",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.maxAffineMinor_pos_iff_not_collinear)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.maxAffineMinor_pos_iff_not_collinear",
+        "file": "Helpers/SharpThreshold.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "ba01e90a56643c9e88618e9a6614dde765f39b96"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "envDeletionDistance_gt_iff_affineSeparation_pos",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.envDeletionDistance_gt_iff_affineSeparation_pos)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.envDeletionDistance_gt_iff_affineSeparation_pos",
+        "file": "Helpers/SharpThreshold.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "6f1b819ba154db0ae6e19f196d3cb28577cb135e"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "compatibleSet_eq_singleton_of_deletionDistance_gt",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.compatibleSet_eq_singleton_of_deletionDistance_gt)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.compatibleSet_eq_singleton_of_deletionDistance_gt",
+        "file": "Helpers/SharpThreshold.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "5745e7cff9d64a50ca3ead896078be506d9720f9"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "continuousAt_deformedDiagonalizer",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.continuousAt_deformedDiagonalizer)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.continuousAt_deformedDiagonalizer",
+        "file": "Helpers/GlobalCollinearAmbiguity.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "3d8f47aa377387ec1fb58b2ff661772b9246e80d"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "exists_deformedDiagonalizer_cycleProduct_radius",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.exists_deformedDiagonalizer_cycleProduct_radius)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.exists_deformedDiagonalizer_cycleProduct_radius",
+        "file": "Helpers/GlobalCollinearAmbiguity.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "b9992f6939da77218819e9f2e8e71c8c0e147f79"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "pairCycleAdmissible_of_cycleProduct_lt_one",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced lemma CausalSmith.ExactID.RobustBackshiftUniformDistance.pairCycleAdmissible_of_cycleProduct_lt_one)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.pairCycleAdmissible_of_cycleProduct_lt_one",
+        "file": "Helpers/GlobalCollinearAmbiguity.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "7c9a79d7f961c8c8f7a6e32765a0afd2c8e3cdbb"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "affineLineCertificate_of_collinearPairs",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced def CausalSmith.ExactID.RobustBackshiftUniformDistance.affineLineCertificate_of_collinearPairs)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.affineLineCertificate_of_collinearPairs",
+        "file": "Helpers/GlobalCollinearAmbiguity.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "33e2dee55c36b5cab3fc5a4d07ea6f68eb8315ab"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "exists_globally_admissible_collinear_ambiguity",
+      "kind": "lemma",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(agent-introduced theorem CausalSmith.ExactID.RobustBackshiftUniformDistance.exists_globally_admissible_collinear_ambiguity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "CausalSmith.ExactID.RobustBackshiftUniformDistance.exists_globally_admissible_collinear_ambiguity",
+        "file": "Helpers/GlobalCollinearAmbiguity.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": "d9e7736e05bdc4d42892c96bc236379c32993674"
+      },
+      "proof": {
+        "state": "complete",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_invariantNoise",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def invariantNoise, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "invariantNoise",
+        "file": "Helpers/ContractionUniformExclusion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    },
+    {
+      "id": "aux_structural",
+      "kind": "definition",
+      "provenance": "agent-introduced",
+      "nl": {
+        "statement": "(hidden def structural, flavor quantity)",
+        "tex_anchor": "",
+        "frozen": false
+      },
+      "lean": {
+        "decl_name": "structural",
+        "file": "Helpers/ContractionUniformExclusion.lean"
+      },
+      "review": {
+        "status": "unreviewed",
+        "passed_hash": null
+      },
+      "proof": {
+        "state": "sorry",
+        "sorry_count": 0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "kind": "proof-uses",
+      "from": "lem:overlap-uniqueness",
+      "to": "def:admissible-matrices",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "ass:backshift-normalization",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "ass:nonnegative-shifts",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "ass:honest-covariance-model",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "def:admissible-matrices",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "def:max-line-occupancy",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "def:environment-distance",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "def:affine-separation",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "def:compatible-set",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "lem:overlap-uniqueness",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "ass:nonnegative-shifts",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "ass:honest-covariance-model",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "ass:support-factorization",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "ass:generic-active-amplitudes",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "def:max-line-occupancy",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "def:environment-distance",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "def:generic-occupancy",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "lem:generic-affine-occupancy",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "thm:sharp-replacement-radius",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:certified-uniform-inference",
+      "to": "ass:backshift-normalization",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:certified-uniform-inference",
+      "to": "ass:nonnegative-shifts",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:certified-uniform-inference",
+      "to": "ass:honest-covariance-model",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:certified-uniform-inference",
+      "to": "def:admissible-matrices",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:certified-uniform-inference",
+      "to": "def:compatible-set",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:certified-uniform-inference",
+      "to": "def:affine-separation",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:certified-uniform-inference",
+      "to": "def:subset-consensus",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:certified-uniform-inference",
+      "to": "def:honest-region-radius",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:certified-uniform-inference",
+      "to": "def:operator-diameter",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:certified-uniform-inference",
+      "to": "def:operator-outer-radius",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:certified-uniform-inference",
+      "to": "def:confidence-union",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:certified-uniform-inference",
+      "to": "thm:confidence-union-coverage",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "oeq:certified-uniform-inference",
+      "to": "thm:non-effective-four-margin-contraction",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:uniform-support-deletion-radius",
+      "to": "def:compatible-set",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:uniform-support-deletion-radius",
+      "to": "def:admissible-matrices",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:uniform-support-deletion-radius",
+      "to": "thm:sharp-replacement-radius",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "prop:uniform-support-deletion-radius",
+      "to": "lem:generic-affine-occupancy",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:confidence-union-coverage",
+      "to": "ass:backshift-normalization",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:confidence-union-coverage",
+      "to": "ass:nonnegative-shifts",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:confidence-union-coverage",
+      "to": "ass:honest-covariance-model",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:confidence-union-coverage",
+      "to": "def:admissible-matrices",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:confidence-union-coverage",
+      "to": "def:compatible-set",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:confidence-union-coverage",
+      "to": "def:confidence-union",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "ass:backshift-normalization",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "ass:nonnegative-shifts",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "ass:honest-covariance-model",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "def:admissible-matrices",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "def:affine-separation",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "def:compatible-set",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "def:honest-region-radius",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "def:operator-diameter",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "def:operator-outer-radius",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "def:confidence-union",
+      "source": "declared"
+    },
+    {
+      "kind": "proof-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "thm:confidence-union-coverage",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:sharp-replacement-radius",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:sharp-replacement-radius",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:sharp-replacement-radius",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "prop:generic-support-frontier",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "prop:generic-support-frontier",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "prop:generic-support-frontier",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "prop:uniform-support-deletion-radius",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "prop:uniform-support-deletion-radius",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "prop:uniform-support-deletion-radius",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:confidence-union-coverage",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:confidence-union-coverage",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:confidence-union-coverage",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S1",
+      "to": "thm:non-effective-four-margin-contraction",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S2",
+      "to": "thm:non-effective-four-margin-contraction",
+      "source": "declared"
+    },
+    {
+      "kind": "setup-of",
+      "from": "S3",
+      "to": "thm:non-effective-four-margin-contraction",
+      "source": "declared"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:admissible-matrices",
+      "to": "aux_RealMatrix",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:compatible-set",
+      "to": "aux_PSDCovarianceFamily",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:compatible-set",
+      "to": "aux_RealMatrix",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:affine-separation",
+      "to": "aux_honestCount",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "maxLineOccupancy_congr_on",
+      "to": "def:max-line-occupancy",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "envDeletionDistance_gt_iff",
+      "to": "def:environment-distance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "envDeletionDistance_gt_iff",
+      "to": "def:max-line-occupancy",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:subset-consensus",
+      "to": "aux_PSDCovarianceFamily",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:subset-consensus",
+      "to": "aux_RealMatrix",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:honest-region-radius",
+      "to": "aux_InferenceWorld",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:honest-region-radius",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:honest-region-radius",
+      "to": "aux_PSDCovarianceFamily",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:confidence-union",
+      "to": "aux_InferenceWorld",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:confidence-union",
+      "to": "aux_RealMatrix",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "genericActiveAmplitudes_ae_positive",
+      "to": "ass:generic-active-amplitudes",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "genericActiveAmplitudes_ae_avoid_volume_null",
+      "to": "ass:generic-active-amplitudes",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "genericActiveAmplitudes_ae_polynomial_ne_zero",
+      "to": "ass:generic-active-amplitudes",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "genericActiveAmplitudes_ae_finite_polynomials_ne_zero",
+      "to": "ass:generic-active-amplitudes",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "genericActiveAmplitudes_ae_activeProjection_injective",
+      "to": "ass:generic-active-amplitudes",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "eval_activeCoordinatePolynomial",
+      "to": "activeCoordinatePolynomial",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "eval_affineMinorPolynomial",
+      "to": "affineMinorPolynomial",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "affineMinorPolynomial_ne_zero_of_mixed_support",
+      "to": "affineMinorPolynomial",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "eval_originMinorPolynomial",
+      "to": "originMinorPolynomial",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "originMinorPolynomial_ne_zero_of_mixed_support",
+      "to": "originMinorPolynomial",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "maxLineOccupancy_ge_of_collinear",
+      "to": "aux_CollinearPairs",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "maxLineOccupancy_ge_of_collinear",
+      "to": "def:max-line-occupancy",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "maxLineOccupancy_support_lower_bound",
+      "to": "def:max-line-occupancy",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "maxLineOccupancy_ge_min_two",
+      "to": "def:max-line-occupancy",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "maxLineOccupancy_three_forced_terms",
+      "to": "def:max-line-occupancy",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "maxLineOccupancy_origin_interior_lower_bound",
+      "to": "def:max-line-occupancy",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "maxLineOccupancy_le_of_forced_classification",
+      "to": "aux_CollinearPairs",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "maxLineOccupancy_le_of_forced_classification",
+      "to": "def:max-line-occupancy",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "maxLineOccupancy_le_of_forced_classification",
+      "to": "def:generic-occupancy",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "genericActiveAmplitudes_ae_forced_classification",
+      "to": "ass:generic-active-amplitudes",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "genericActiveAmplitudes_ae_forced_classification",
+      "to": "aux_CollinearPairs",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:generic-affine-occupancy",
+      "to": "ass:generic-active-amplitudes",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:generic-affine-occupancy",
+      "to": "def:max-line-occupancy",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:generic-affine-occupancy",
+      "to": "def:generic-occupancy",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "continuousAt_deformedDiagonalizer",
+      "to": "aux_RealMatrix",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "exists_deformedDiagonalizer_cycleProduct_radius",
+      "to": "aux_RealMatrix",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "pairCycleAdmissible_of_cycleProduct_lt_one",
+      "to": "aux_RealMatrix",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "affineLineCertificate_of_collinearPairs",
+      "to": "aux_CollinearPairs",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "exists_globally_admissible_collinear_ambiguity",
+      "to": "aux_RealMatrix",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "exists_globally_admissible_collinear_ambiguity",
+      "to": "def:admissible-matrices",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "def:operator-outer-radius",
+      "to": "aux_RealMatrix",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "overlap_card_lower_bound",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "overlap_card_lower_bound",
+      "to": "aux_honestCount",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "BackshiftExplanation.transformed_covariance_eq",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "BackshiftExplanation.transformed_covariance_eq",
+      "to": "aux_RealMatrix",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "centeredShiftCombination",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "centeredShiftCombination_single",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "centeredShiftCombination_single",
+      "to": "centeredShiftCombination",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "exists_centeredShiftCombination_ne_zero",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "exists_centeredShiftCombination_ne_zero",
+      "to": "centeredShiftCombination",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "exists_centeredShiftCombination_distinctRatios",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "exists_centeredShiftCombination_distinctRatios",
+      "to": "aux_CollinearPairs",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "exists_centeredShiftCombination_distinctRatios",
+      "to": "centeredShiftCombination",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "noncollinear_card_at_least_three",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "noncollinear_card_at_least_three",
+      "to": "aux_CollinearPairs",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "exists_nonzero_affineMinor_of_noncollinear",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "exists_nonzero_affineMinor_of_noncollinear",
+      "to": "aux_CollinearPairs",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:overlap-uniqueness",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:overlap-uniqueness",
+      "to": "aux_RealMatrix",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "lem:overlap-uniqueness",
+      "to": "aux_CollinearPairs",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "maxAffineMinor_pos_iff_not_collinear",
+      "to": "aux_CollinearPairs",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "envDeletionDistance_gt_iff_affineSeparation_pos",
+      "to": "aux_honestCount",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "envDeletionDistance_gt_iff_affineSeparation_pos",
+      "to": "def:environment-distance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "envDeletionDistance_gt_iff_affineSeparation_pos",
+      "to": "def:affine-separation",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "compatibleSet_eq_singleton_of_deletionDistance_gt",
+      "to": "aux_BackshiftSystem",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "compatibleSet_eq_singleton_of_deletionDistance_gt",
+      "to": "ass:backshift-normalization",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "compatibleSet_eq_singleton_of_deletionDistance_gt",
+      "to": "ass:nonnegative-shifts",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "compatibleSet_eq_singleton_of_deletionDistance_gt",
+      "to": "ass:honest-covariance-model",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "compatibleSet_eq_singleton_of_deletionDistance_gt",
+      "to": "def:environment-distance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "compatibleSet_eq_singleton_of_deletionDistance_gt",
+      "to": "def:compatible-set",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:confidence-union-coverage",
+      "to": "aux_BackshiftSystem",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:confidence-union-coverage",
+      "to": "aux_InferenceWorld",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:confidence-union-coverage",
+      "to": "ass:backshift-normalization",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:confidence-union-coverage",
+      "to": "ass:nonnegative-shifts",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:confidence-union-coverage",
+      "to": "ass:honest-covariance-model",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:confidence-union-coverage",
+      "to": "aux_coverageEvent",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:confidence-union-coverage",
+      "to": "def:confidence-union",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "aux_honestCount",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "ass:generic-active-amplitudes",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "def:max-line-occupancy",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "def:generic-occupancy",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "aux_BackshiftSystem",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "ass:support-factorization",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "ass:backshift-normalization",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "ass:nonnegative-shifts",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "ass:honest-covariance-model",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "def:compatible-set",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:generic-support-frontier",
+      "to": "aux_RealMatrix",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "aux_BackshiftSystem",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "aux_InferenceWorld",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "ass:backshift-normalization",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "ass:nonnegative-shifts",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "ass:honest-covariance-model",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "def:affine-separation",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "aux_normalizationSlack",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "aux_matrixConditionNumber",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "aux_matrixScaleBound",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "aux_CandidateConditionBound",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "aux_coverageEvent",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "def:honest-region-radius",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "def:confidence-union",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "def:operator-outer-radius",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "aux_contractionC0",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:non-effective-four-margin-contraction",
+      "to": "def:operator-diameter",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "aux_BackshiftSystem",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "ass:backshift-normalization",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "ass:nonnegative-shifts",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "ass:honest-covariance-model",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "def:environment-distance",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "def:affine-separation",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "def:compatible-set",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "aux_PSDCovarianceFamily",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "aux_RealMatrix",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "def:admissible-matrices",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "thm:sharp-replacement-radius",
+      "to": "aux_honestCount",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "maxLineOccupancy_mono_index",
+      "to": "def:max-line-occupancy",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:uniform-support-deletion-radius",
+      "to": "aux_Environment",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:uniform-support-deletion-radius",
+      "to": "ass:generic-active-amplitudes",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:uniform-support-deletion-radius",
+      "to": "aux_BackshiftSystem",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:uniform-support-deletion-radius",
+      "to": "ass:support-factorization",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:uniform-support-deletion-radius",
+      "to": "ass:backshift-normalization",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:uniform-support-deletion-radius",
+      "to": "ass:nonnegative-shifts",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:uniform-support-deletion-radius",
+      "to": "ass:honest-covariance-model",
+      "source": "extracted"
+    },
+    {
+      "kind": "statement-uses",
+      "from": "prop:uniform-support-deletion-radius",
+      "to": "def:compatible-set",
+      "source": "extracted"
+    }
+  ],
+  "symbolReview": {
+    "sym:p": {
+      "verdict": "matched",
+      "hash": "30e081f176ab26ec88ce588ecdfe82946e156b09"
+    },
+    "sym:m": {
+      "verdict": "matched",
+      "hash": "22c6bb76a2bcf2bef3352c9634ea4d3bd7674881"
+    },
+    "sym:c": {
+      "verdict": "matched",
+      "hash": "7c459b9121ecc9547039c8593a282365fdc5e269"
+    },
+    "sym:E": {
+      "verdict": "matched",
+      "hash": "54c6cca8cc4250e906a0ce5d6b33334a3313e6ac"
+    },
+    "sym:Mkl": {
+      "verdict": "matched",
+      "hash": "b839ef7dfa809325626000ad3307a202160e7eb7"
+    },
+    "sym:delta": {
+      "verdict": "matched",
+      "hash": "cec9965fcb1b6489297e5094f7d0241e1d2ac0f2"
+    },
+    "sym:Rc": {
+      "verdict": "matched",
+      "hash": "aaf78944bce7a54c1282651bf68f6ae681e32c74"
+    },
+    "sym:n": {
+      "verdict": "matched",
+      "hash": "84e82d3399f7a36c88893e0a1b8f98a3aed6da35"
+    },
+    "sym:alpha": {
+      "verdict": "matched",
+      "hash": "46e3a5f1d52a291baab528b3f3279dd75793c82f"
+    },
+    "sym:zeta0": {
+      "verdict": "matched",
+      "hash": "876faa611975b4701c94215973b7b2af09f96eb2"
+    },
+    "sym:kappabar": {
+      "verdict": "matched",
+      "hash": "a34400d4cbd9f076e7c55abdf47169f5313a9e15"
+    },
+    "sym:Mbar": {
+      "verdict": "matched",
+      "hash": "c62ac30fedf39383dc875933da5cfe5c5d37f7ee"
+    },
+    "sym:Calpha": {
+      "verdict": "matched",
+      "hash": "7b417ec9fe242f0213a32ec9b8557dbb994bd1d1"
+    },
+    "sym:rRadius": {
+      "verdict": "matched",
+      "hash": "efa13c136a07a1e18289662acfede450c86f7a8f"
+    },
+    "sym:Ualpha": {
+      "verdict": "matched",
+      "hash": "70955c9a73958e4873471fa8d5a542a5904468e7"
+    }
+  },
+  "convergenceReview": {
+    "thm:sharp-replacement-radius": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "e28713c046869d97b3b6b925e7528d92655a1997",
+        "note": "The conjuncts exactly encode δ_H > c ↔ γ_H > 0, uniform PSD-replacement singleton recovery, the fixed-instance positive-definite converse witness, and the minimax interior witness; at c = 0, unfolding envDeletionDistance gives δ_H > 0 ↔ every pairwise occupancy is < h, while the converse conjunct supplies ambiguity on failure."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "e28713c046869d97b3b6b925e7528d92655a1997",
+        "note": "Both directions check: hypotheses (W : BackshiftSystem with p≥2, m≥1, c<m, |H|=m-c, Σ PSD, D invertible, Ω symmetric) + BackshiftNormalization (D ∈ admissibleSet = invertible/unit-diagonal/CP(1-A)<1) + NonnegativeShifts (s_ek ≥ 0 on H) + HonestCovarianceModel (Σ_e = D⁻¹(Ω+diag s_e)D⁻ᵀ on H) + invariantNoise.PosSemidef are exactly the note's fixed honest instance with Ω ∈ S₊; conjunct 1 is δ_H>c ↔ γ_H>0 with envDeletionDistance = min_{k<l}(|H| - maxLineOccupancy) and affineSeparation = 0 when |H|-c<3 else min-min-max|affine minor|, matching def:environment-distance/def:affine-separation; conjunct 2 gives R_c(Σ)={D} for the given family, and since HonestCovarianceModel constrains only e ∈ H while covariance_psd leaves the c slots of E∖H arbitrary PSD, universal quantification over W is equivalent to the note's 'for every PSD assignment to the c slots'; conjunct 3 is the fixed-instance Ω ∈ S₊₊, δ_H ≤ c converse with Σ unchanged on H, PD values off H, D' ∈ 𝒟, D' ≠ D, Ω' PD, |H'| = h, nonnegative s' and the fitted equation on H', and D,D' ∈ R_c — exactly the note's existential, no more and no less; conjunct 4 is the class-level minimax-sharpness clause (same H and s, PD invariant noise and PD covariance slots, all three assumptions, two distinct compatible matrices), and nothing is asserted at a fixed singular Ω; the final c=0 pairwise-noncollinearity remark is a definitional corollary (at c=0, H = E and conjuncts 2–3 apply to the same Σ), so no content is dropped."
+      }
+    },
+    "prop:generic-support-frontier": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "2ce394a0b2cb4d8bf4d4c53330573ee21a447eb0",
+        "note": "After unfolding the referenced definitions and using H.card = honestCount m c = m-c, Lean states the same simultaneous a.s. occupancy formula, exact full-PSD-class uniform recovery iff the four-term bound is below h-c, PD ambiguity witness on failure, m ≥ 2c+3 necessity, and all-active attainment."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "2ce394a0b2cb4d8bf4d4c53330573ee21a447eb0",
+        "note": "Both directions check out: conjunct 1 is the a.s. simultaneous M_kl=M^gen_kl (maxLineOccupancy of the masked array `if Z e j then a ω e j else 0` = the paper's s_ek=Z_ek a_ek on H, and maxLineOccupancy_congr_on makes it interchangeable with any W.shifts satisfying SupportFactorization); genericOccupancy unfolds to exactly max{n00+n10, n00+n01, n00+1{n11>0}, min(2,h)} with incidenceCount = n_uv^{kl} and I.card = h, and supportFrontierCriterion is `< H.card - c` = h-c (ℕ truncation is harmless since genericOccupancy ≥ min(2,h) ≥ 0, so both readings are false when h ≤ c); conjunct 2's ↔ RHS quantifies over every BackshiftSystem with honest=H, Z/a-factorized shifts, BackshiftNormalization (D∈𝒟 = invertible, unit diagonal, CP(I−A)<1), NonnegativeShifts, HonestCovarianceModel and PSD invariantNoise with arbitrary PSD replacement slots, concluding compatibleSet = {W.structural}, i.e. the paper's uniform R_c(Σ)={D} over all D∈𝒟, Ω∈S_+^p and every PSD slot assignment; conjunct 3 gives the failure-side ambiguity witness with PosDef invariant noise and PosDef covariance slots and two distinct compatible structural matrices, matching the paper's explicit disclaimer that no fixed singular boundary instance is claimed ambiguous; conjunct 4 is m ≥ 2c+3 from the criterion; conjunct 5 pins Zgood to the constant-true pattern (`∀ e k, Zgood e k = true` determines it uniquely, and forces genericOccupancy = min(2,h), i.e. 'no larger forced affine incidence') and asserts the criterion for every m ≥ 2c+3, which specializes at m = 2c+3 to the paper's attainment claim. Hypotheses hp/hm/hc/hH are the S1/S2 setup constraints (p≥2, m≥1, c<m, |H|=h=m−c) and generic_active_amplitudes is ass:generic-active-amplitudes verbatim (measurability + absolute continuity of the active-orthant pushforward); no extra model restriction is added. File elaborates with no diagnostics."
+      }
+    },
+    "prop:uniform-support-deletion-radius": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "790780f9d2b76f0b6dce2cec770326b728238873",
+        "note": "Unfolding fullDesignOccupancy, genericOccupancy, SupportFactorization, BackshiftSystem, and compatibleSet gives exactly the stated four-term T and uniform quantification over every admissible D, PSD Ω, and PSD failed-slot replacement; the fixed-c budget formula is explicit, T=m excludes every admissible c, and the all-active clause T=2 together with the preceding equivalences yields c_max=(m-3)/2, while the paper's incidence definition conversely yields T=2."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "790780f9d2b76f0b6dce2cec770326b728238873",
+        "note": "Both directions check out: Lean's `fullDesignOccupancy Zbar = (offDiagPairs p).sup genericOccupancy` unfolds (Occupancy.lean:107-123) to exactly max_{k<l} max{N00+N10, N00+N01, N00+1{N11>0}, min(2,m)} with `incidenceCount` = #{e in E : (Z_ek,Z_el)=(u,v)} and univ.card = m, so Lean's T is the paper's T; condition (i) `uniformAfterDeletion` quantifies over every F with |F|=c, H = univ\\F, and every `BackshiftSystem` with honest = H, shifts = s-bar on H (`SupportFactorization`, whose positivity conjunct is the paper's a-bar in (0,inf) and is a.s. free), D admissible (`BackshiftNormalization` = admissibleSet), Omega PSD, honest slots obeying the equilibrium model, and covariance PSD on the deleted slots unconstrained otherwise — i.e. exactly 'uniformly over all admissible D, all Omega in S_+^p, all PSD replacements', concluding compatibleSet = {D} = R_c(Sigma) = {D}; hp/hm/hc are the frozen symbol spaces (p>=2, m>=1, 0<=c<m, tagged on BackshiftSystem fields), not added restrictions; the truncated-Nat forms `T < m-2*c`, `c <= (m-T-1)/2` and `T = m -> not (T < m-2*c)` agree with the integer statements on the whole domain (2c>=m makes both sides false), matching the (ii)/floor-budget/T=m clauses; the all-active clause is rendered as `fullDesignOccupancy Zbar = 2`, which is a definitional computation from the all-active hypothesis (N11=m, N00=N10=N01=0 so T = max(0,0,1,min(2,m)) = 2 for m>=2) and, combined with conjuncts 1-2 at the universally quantified c (any c < m, and floor((m-3)/2) < m), yields exactly the paper's c_max = floor((m-3)/2) with attainment, so no content is added or dropped in either direction; the `sorry`-free proof and the statement-uses edges (ass:support-factorization, ass:generic-active-amplitudes, ass:honest-covariance-model, ass:nonnegative-shifts, ass:backshift-normalization, def:compatible-set, AUX-BackshiftSystem/Environment) are all genuinely referenced by the statement, and non-vacuity is witnessed by the W0 construction in the proof."
+      }
+    },
+    "thm:confidence-union-coverage": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "41c2e27cd62277a222753e7d84c1e7ad65112f8f",
+        "note": "Unfolding coverageEvent and confidenceUnion gives exactly G_{n,alpha,H} → D ∈ U^{(n)}_alpha; the measurable probability consequence follows from this inclusion by measure monotonicity, while InferenceWorld's all-n packaging is conservatively expandable from any fixed nonempty PSD region family."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "41c2e27cd62277a222753e7d84c1e7ad65112f8f",
+        "note": "Lean `coverageEvent W V.currentRegions → W.structural ∈ confidenceUnion c V` is exactly G_{n,α,H} ⊆ {D ∈ U^{(n)}_α}: `InferenceWorld` fixes n≥1 (PositiveSampleSize), α∈(0,1) (alpha_pos/alpha_lt_one) and an arbitrary complete family of nonempty PSD regions (regions_nonempty/regions_psd), `coverageEvent` unfolds to ∀ e ∈ W.honest, Σ_e ∈ C_e, `confidenceUnion` unfolds to ⋃_{Γ ∈ ∏_e C_e} compatibleSet = ⋃ R_c(Γ) matching def:confidence-union/def:compatible-set (D = admissibleSet: IsUnit det ∧ unit diagonal ∧ cycleProduct (1-A) < 1), and the four hypotheses are precisely ass:backshift-normalization, ass:nonnegative-shifts, ass:honest-covariance-model plus the node's own premise Ω ∈ S_+^p (invariantNoise_symmetric already in the carrier, so PosSemidef adds no extra restriction beyond the paper's); the note's 'consequently' measurable probability transfer is the trivial measure-monotonicity consequence and is separately realized at the same fixed n, α by `confidence_union_probability_coverage` in the same file, so both directions hold with no added or dropped content."
+      }
+    },
+    "thm:non-effective-four-margin-contraction": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "732dccbe8b6c1af5cce5c92d7714f338e30e7fc8",
+        "note": "After unfolding all referenced definitions, Lean matches both directions: its bundled worlds conservatively represent arbitrary nonempty PSD regions, the candidate premise and four margins coincide, and the uniform local bounds imply the stated convergence consequence by eventual entry below r0 and squeezing."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "732dccbe8b6c1af5cce5c92d7714f338e30e7fc8",
+        "note": "Both directions check: unfolded margins equal the core symbols (matrixConditionNumber=‖D‖‖D⁻¹‖, normalizationSlack=1-CP(I-D), matrixScaleBound=1+‖Ω‖+max‖Σ_e‖+max‖diag s_e‖, affineSeparation = the h-c<3⇒0 min-min-max minor), contractionL0/K0/C0 reproduce (p!κ̄^{p-1})^{1/p}, (6M̄/γ0)√(p(p-1)(1+L0²)), 16K0L0³ exactly; CandidateConditionBound is the paper's declarative K,A∈𝒟,Ψ∈S₊,t≥0,Γ∈C tuple premise verbatim; ∃r0>0 is bound outside ∀W,V so it depends only on p,m,c,γ0,ζ0,κ̄,M̄ as stated; coverageEvent is G_{n,α,H}, honestRegionRadius/opOuterRadius/Metric.ediam are the sup-based r, outer_op, diam_op under the L2-operator-norm metric, and both conclusions (C0·r and 2C0·r) sit under r ≤ ofReal r0. No hypothesis beyond the paper's: hp/hm/hc, ζ0≤1, 1≤κ̄, 1≤M̄, Ω PSD and the S1 structure fields (D invertible, Ω symmetric, |H|=m-c, Σ PSD) are all paper-stated setup; the ∃ union_nonempty conjunct is the nonemptiness the paper's outer_op presupposes and is entailed by thm:confidence-union-coverage. InferenceWorld's family being indexed by every sample size is a conservative encoding (constant-in-n expansion of any paper family; only currentRegions is used in the statement), not a model restriction. The 'consequently … radii converge to zero' clause is a formal consequence of the displayed implication and is additionally realized in-file as the proved non_effective_four_margin_convergence with the same premises; the non-effectivity clause matches a bare existential r0 with no procedure asserted."
+      }
+    },
+    "def:admissible-matrices": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "5ff6cc430872d01c3d688980e59ebf9856827f66",
+        "note": "IsUnit A.det is invertibility over ℝ, the diagonal condition is entrywise unit diagonal, and cycleProduct (1 - A) is exactly CP(I_p-A)."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "5ff6cc430872d01c3d688980e59ebf9856827f66",
+        "note": "Both directions: over ℝ `IsUnit A.det ↔ A.det ≠ 0 ↔ A ∈ GL_p(ℝ)`; `∀ i, A i i = 1` is diag(A)=1; hover confirms `1 : RealMatrix p` is the Matrix identity (used as such via Matrix.one_apply in OverlapUniqueness.lean:540), and unfolded `cycleProduct = Finset.fold max 0 simpleCycleWeight` over all perms with `simpleCycleWeight A σ = ∏ i ∈ σ.support, |A i (σ i)|` when σ.IsCycle ∧ 2 ≤ σ.support.card, else 0 — exactly CP = max absolute product along a directed simple cycle of length ≥ 2 (max over the empty cycle family = 0, consistent with the core's CP : ℝ^{p×p} → [0,∞))."
+      }
+    },
+    "def:max-line-occupancy": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "ee13b916008b0a20336106cfcb01be4105d9df57",
+        "note": "Vanishing of every affine 3×3 minor is equivalent to containment of the indexed planar points in an affine line, and powerset supremum preserves repeated-point multiplicity by index."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "ee13b916008b0a20336106cfcb01be4105d9df57",
+        "note": "Equivalent both ways: (⊇) for any affine line L the index set {e ∈ I : (s_ek,s_el) ∈ L} has all `affineMinor` 3×3 determinants zero (affineMinor is exactly the expanded |1 x y| minor), so it is a filtered subset and its card is ≤ the sup; (⊆) any S with all triple minors vanishing lies on a common affine line (two distinct points fix L and every third has zero minor; all-coincident points also lie on a line), so |S| ≤ #{e ∈ I : point ∈ L}; index-indexed subsets keep coincident points at full multiplicity, matching the note's `#{e ∈ H : …}`; empty/singleton I give 0/1 on both sides. Generic index `I`/`s` instantiates at `H`."
+      }
+    },
+    "def:environment-distance": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "546fec5c9ee0952bf8b8b98235d836aeb692cca1",
+        "note": "offDiagPairs p is exactly the set of k<ℓ pairs, I.card realizes h, and the fold computes the minimum of h-M_{kℓ} on the stated p≥2 domain."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "546fec5c9ee0952bf8b8b98235d836aeb692cca1",
+        "note": "`Finset.fold min I.card f (offDiagPairs p)` = min(I.card, min_{k<l}(I.card - M_kl)); `offDiagPairs` is exactly {kl : kl.1 < kl.2}, each term ≤ I.card so the seed is inert whenever p ≥ 2 (the core's standing `p` space), and M_kl ≤ I.card (sup over subsets of I) makes ℕ truncated subtraction agree with h - M_kl; hence equal to min_{1≤k<l≤p}(h - M_kl) at I = H with |H| = h."
+      }
+    },
+    "def:compatible-set": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "080e2a77017d7bb1982ece13ed5568cb2e4bf810",
+        "note": "The subtype pins every covariance to the symmetric PSD cone, K has cardinality at least h=m-c, Ψ is PSD, and the total t function is a conservative extension of the nonnegative vectors required only on K."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "080e2a77017d7bb1982ece13ed5568cb2e4bf810",
+        "note": "Clause-for-clause equivalent: `A ∈ admissibleSet p` = A ∈ 𝒟; `K : Finset (Environment m)` is automatically K ⊆ E with `honestCount m c = m - c = h ≤ K.card`; `Ψ.PosSemidef` over ℝ is Hermitian+PSD = 𝕊_+^p; `∀ e ∈ K, ∀ j, 0 ≤ t e j` = t_e ∈ [0,∞)^p (a total t with constraints only on K is equivalent to a K-indexed family); `A⁻¹ * (Ψ + diagonal (t e)) * A⁻¹.transpose` = A^{-1}(Ψ+diag t_e)A^{-T} since (A⁻¹)ᵀ = (Aᵀ)⁻¹ and A⁻¹ is the genuine inverse under IsUnit A.det; domain `PSDCovarianceFamily p m` = (𝕊_+^p)^E. Statement-uses edges to AUX-RealMatrix/AUX-PSDCovarianceFamily are carrier encodings, not content dependencies."
+      }
+    },
+    "def:generic-occupancy": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "99e0f65f30d444efc7487bf8421f6b153b840250",
+        "note": "The four nested maximum terms are exactly the two axial counts, the n00 plus n11-positivity indicator, and min(2,h) with h=I.card."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "99e0f65f30d444efc7487bf8421f6b153b840250",
+        "note": "`incidenceCount I Z k l u v = #{e ∈ I : Z e k = u ∧ Z e l = v}` is the core's n_uv^{kl} under false↔0/true↔1, and the nested `max (max (n00+n10) (n00+n01)) (max (n00 + if 0 < n11 then 1 else 0) (min 2 I.card))` is the max of exactly the four listed terms with 1{n11>0} rendered as the if-term and h = I.card; the u/v ordering convention is immaterial since n00+n10 and n00+n01 both occur."
+      }
+    },
+    "def:affine-separation": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "8c9f3dc2c7cd72c896f91ee15c44f15b50d7fb75",
+        "note": "The zero branch is exactly h-c<3 using H.card=h; otherwise the finite nonempty sInf is the stated double minimum, and maximizing over all distinct ordered triples equals maximizing over e<f<g because absolute affine minors are permutation-invariant."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "8c9f3dc2c7cd72c896f91ee15c44f15b50d7fb75",
+        "note": "Both directions check: `if H.card - c < 3 then 0` is the frozen h−c<3 zero convention (`_hH : H.card = honestCount m c` pins H.card = h, ℕ-truncation agrees with the guard); the else branch's `sInf` is over the image of the finite nonempty index set offDiagPairs p (nonempty by `_hp : 2 ≤ p`) × `H.powersetCard (H.card - c)`, bounded below by 0, so sInf = the double min over 1≤k<ℓ≤p and |S|=h−c; `maxAffineMinor` folds max 0 over `indexTriples S` (pairwise-distinct triples) of |affineMinor|, and `affineMinor s k l e f g = s_fk s_gl − s_gk s_fl − (s_ek s_gl − s_gk s_el) + (s_ek s_fl − s_fk s_el)` is exactly the first-column expansion of the stated 3×3 determinant, whose absolute value is permutation-invariant so max over all orderings = max over e<f<g (and |S| = h−c ≥ 3 in that branch makes the fold's base 0 inert); `_hp/_hH/_hs` are the paper's standing global conditions, value-irrelevant domain pins, not extra restrictions."
+      }
+    },
+    "def:subset-consensus": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "ff7d5f258cc26a77d4432599a3eea64c7c7d83c9",
+        "note": "The iUnion ranges over exactly all h-subsets and their full admissible feasibility sets; admissibility makes A invertible, so the common PSD Psi plus nonnegative diagonal-shift equations are equivalent to the transformed formulation and imply the stated off-diagonal equalities."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "ff7d5f258cc26a77d4432599a3eea64c7c7d83c9",
+        "note": "Lean unions `subsetFeasible K` over exactly the K ⊆ E with |K| = honestCount m c = h, matching the note's per-K oracle queries; unfolding, membership is A ∈ admissibleSet p (= 𝒟) together with ∃Ψ PosSemidef and per-slot shifts t_e ≥ 0 on K with Σ_e = A⁻¹(Ψ+diag t_e)A⁻ᵀ, which for invertible A (from IsUnit A.det in admissibleSet) is equivalent to AΣ_eAᵀ = Ψ + diag(t_e) — this is the note's Ψ-clause verbatim and it *implies* the note's offdiag(A(Σ_e−Σ_f)Aᵀ)=0 clause (the difference is diag(t_e−t_f)), so the note's conjunction and the Lean predicate are equivalent, no conjunct dropped; the note's query-count and ℛ_c-equality remarks are annotations, not definitional content (the latter is separately proved as subsetConsensus_eq_compatibleSet)."
+      }
+    },
+    "def:honest-region-radius": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "e45a1f2356e6a2d4c5b5fce9edb891a17d5ac118",
+        "note": "The nested ENNReal suprema give the finite maximum over honest slots of the possibly infinite regional supremum, while matrix edist is the extended operator-norm distance in the selected L2-operator norm."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "e45a1f2356e6a2d4c5b5fce9edb891a17d5ac118",
+        "note": "`⨆ e ∈ H, ⨆ Gamma ∈ V.currentRegions e, edist Gamma (Σ e)` in ℝ≥0∞ is the frozen max over honest slots of the regional sup; the ambient norm on RealMatrix is the L2 operator norm (file opens `scoped Matrix.Norms.L2Operator`; MatrixMargins.lean elaborates clean while rewriting `‖·‖` with `Matrix.l2_opNorm_def`/`Matrix.l2_opNorm_toEuclideanCLM`, and Matrix carries no global norm instance), so edist Γ Σ_e = ‖Γ−Σ_e‖_op; ℝ≥0∞ codomain realizes the stated [0,+∞] with a possibly infinite sup, and `currentRegions = regions V.sampleSize` supplies the C^(n)_{e,α} at the world's n."
+      }
+    },
+    "def:operator-outer-radius": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "72f727825d4ed173a10970356a97f5bb5cac3301",
+        "note": "For the explicitly required nonempty set, the nested ENNReal supremum is exactly the possibly infinite supremum of operator-norm distances from D."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "72f727825d4ed173a10970356a97f5bb5cac3301",
+        "note": "`⨆ A1 ∈ A, edist A1 D` in ℝ≥0∞ is exactly sup_{A1∈𝒜}‖A1−D‖_op under the same L2-operator-norm instance, with the extended codomain matching the stated [0,+∞]; the unused `_hA : A.Nonempty` is the note's own nonemptiness domain restriction, so it neither narrows nor strengthens the definition."
+      }
+    },
+    "def:confidence-union": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "6b21004dc2abe45d9392aca0290d074bd8e407ba",
+        "note": "The iUnion quantifies over every simultaneous selection from the current nonempty PSD regions and unions exactly the corresponding replacement-compatible sets; bundling n and alpha in InferenceWorld is conservative and adds no computability or coverage claim."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "6b21004dc2abe45d9392aca0290d074bd8e407ba",
+        "note": "The double `⋃` over Γ : E → RealMatrix p and the proof `hGamma : ∀ e, Γ e ∈ V.currentRegions e` is the standard encoding of the union over the product ∏_{e∈E} C^(n)_{e,α}, and the body is `compatibleSet p m c ⟨Γ, …⟩` = ℛ_c(Γ) (the PSD component comes from V.regions_psd and the set depends only on Γ), so the two sets have the same elements; n ≥ 1 and α ∈ (0,1) are carried by InferenceWorld's sampleSize/alpha fields, and no computability or coverage claim is added."
+      }
+    },
+    "oeq:certified-uniform-inference": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "ed8330af39f1e0f8ecafd24a15cc8c66bbeff04a",
+        "note": "The closed non-Prop string payload preserves the established set-theoretic and non-effective context, every executable desideratum and operational distinction, and all future-work disclaimers without asserting witnesses or entering delivered theorem dependencies."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "ed8330af39f1e0f8ecafd24a15cc8c66bbeff04a",
+        "note": "OEQ case (B): the frozen node explicitly declares every executable/effective/decision/chart/software item unresolved future work with no supplied truth-condition, so the faithful carrier is a descriptive non-Prop payload; the `List String` records each frozen clause with no added or dropped content — established results (set-theoretic coverage implication conditional on measurability; non-effective existential radius with L0/K0/C0 under the four true-side margins and the sole candidate-side condition-number premise), the quantified regime (n>=1, alpha in (0,1), arbitrary nonempty PSD regions, no representation/oracle/computability assumption), the QE/sign-determination/root-isolation substrate, desiderata (i)-(iv), both further asks (chart automation, CRAN backShift corruption-aware extension), and all nonassertions including that zero candidate affine separation or small normalization slack is only an operational-audit trigger and not an analytic candidate-side obstruction at gamma0,zeta0>0; the subset-consensus nonassertion matches def:subset-consensus's own oracle-enumeration disclaimer; it is never proved, is not a Prop, and no Lean declaration in the development references it, so it is excluded from theorem manifests and delivered-theorem dependencies"
+      }
+    },
+    "lem:overlap-uniqueness": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "63e41af3f3362dcd81898b40bb1f9a1c8e3c89fc",
+        "note": "BackshiftExplanation unfolds to the stated invertibility, unit diagonal, strict cycle-product normalization, PSD nuisance, fitted-set size, nonnegative shifts, and covariance equations; CollinearPairs exactly expresses affine-line containment, and the overlap bound and uniqueness implication match."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "63e41af3f3362dcd81898b40bb1f9a1c8e3c89fc",
+        "note": "BackshiftExplanation fields encode exactly the note's premises (GL_p + unit diagonal + strict cycleProduct<1 = def:admissible-matrices, PSD invariant nuisance, shifts nonnegative on fitted, |H_r| ≥ honestCount m c = m-c, shared PSD covariance family, Σ_e = D⁻¹(Ψ+diag s_e)D⁻ᵀ ⟺ paper's DΣ_eDᵀ = Ψ+diag s_e by invertibility); conclusion is the same conjunction m-2c ≤ |H1∩H2| and (∀k<l ¬CollinearPairs s1 k l J → D1=D2), and ¬CollinearPairs (all 3×3 affine minors vanish) is equivalent both ways to 'the cloud is not contained in an affine line' for a finite family; extra binders hp : 2 ≤ p, hc : c < m, covariance_psd are exactly the core symbol spaces p∈{2,3,…}, c∈{0,…,m-1}, Σ∈(S₊^p)^E, and the redundant cycle_bound ≤ 1 is implied by cycle_strict < 1."
+      }
+    },
+    "lem:generic-affine-occupancy": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "302711dc58a9a31bc7bf3b59aa7c467ed76e24a4",
+        "note": "GenericActiveAmplitudes is precisely measurable active-subarray law absolute continuity relative to volume on the positive orthant; inactive amplitudes are conservatively irrelevant after masking, while maxLineOccupancy and genericOccupancy unfold to the indexed affine-line maximum and the four stated incidence terms."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "302711dc58a9a31bc7bf3b59aa7c467ed76e24a4",
+        "note": "maxLineOccupancy (sup of cards of collinear subfamilies of I, multiplicity retained) is equivalent to the note's max over affine lines of #{e∈I : P_e ∈ L} since a finite planar family is line-contained iff all affine minors vanish; masked points (fun e j ↦ if Z e j then a ω e j else 0) = P_e^{kl}; genericOccupancy = max{n00+n10, n00+n01, n00+1{n11>0}, min 2 I.card} with incidenceCount = N_uv and I.card = r; GenericActiveAmplitudes (measurable, law ≪ volume.restrict positiveOrthant on the active subarray e∈I, Z_ek=1) is the note's joint absolute continuity on the positive orthant, and dropping the note's blanket a ∈ (0,∞) is vacuous generality (active coordinates are a.s. positive by that same hypothesis and inactive ones are masked out), so both directions hold; ∀ᵐ ω, ∀ k<l is the note's simultaneous almost-sure equality, and hp : 2 ≤ p is the core's declared space for p."
+      }
+    },
+    "lem:euclidean-heine-borel": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "23b2f62d6117d910ef17495ad703866ac9195fcd",
+        "note": "EuclideanSpace ℝ (Fin d) realizes ℝ^d, Bornology.IsBounded is metric boundedness here, and the positive-dimension, closedness, boundedness, and compactness clauses match exactly."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "23b2f62d6117d910ef17495ad703866ac9195fcd",
+        "note": "Lean `euclideanHeineBorel_mathlib` (IsClosed S → Bornology.IsBounded S → IsCompact S over EuclideanSpace ℝ (Fin d), with 0 < d as an unused-but-harmless explicit binder mirroring 'positive integer d') is logically equivalent to the frozen node's 'closed and bounded subset of ℝ^d is compact'; Bornology.IsBounded on a metric space is exactly metric boundedness, so both directions hold."
+      }
+    },
+    "lem:compact-extreme-value": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "37bd990c2a9e6e25e80db89b709516fc691d0102",
+        "note": "ContinuousOn represents continuity of the restriction to X, values outside X are irrelevant, and existence of a point below every point of the nonempty compact set is equivalent to attaining the infimum."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "37bd990c2a9e6e25e80db89b709516fc691d0102",
+        "note": "`∃ x ∈ S, ∀ y ∈ S, f x ≤ f y` with S compact nonempty is equivalent to the node's `∃ x⋆ ∈ X, f(x⋆) = inf_X f` (a minimum over a nonempty set is its infimum and conversely an attained infimum is a minimum); ContinuousOn f S is equivalent to continuity of the restriction f : X → ℝ (Tietze supplies the extension direction for compact hence closed S), so no strengthening or weakening in either direction."
+      }
+    },
+    "ass:backshift-normalization": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "e1163b1e5ef0e341dd7f5830aa5e6b3f4e4c368d",
+        "note": "Unfolding admissibleSet gives exactly invertibility, unit diagonal, and cycleProduct (1 - D) < 1, matching the stated normalized parameter space."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "e1163b1e5ef0e341dd7f5830aa5e6b3f4e4c368d",
+        "note": "`W.structural ∈ admissibleSet p` unfolds to `IsUnit A.det ∧ (∀ i, A i i = 1) ∧ cycleProduct (1 - A) < 1`; over ℝ `IsUnit det` ⟺ A ∈ GL_p, `1` is the identity matrix so `1 - A` = I_p − A, and `cycleProduct` (max over permutations that are cycles with support ≥ 2 of ∏_{i∈support}|A i (σ i)|, fold base 0) is exactly CP — both directions hold."
+      }
+    },
+    "ass:nonnegative-shifts": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "fd745db310a3a2f2c041363764f52d7bebe8f2de",
+        "note": "Membership in W.honest and quantification over Fin p encode exactly every e ∈ H and coordinate 1 ≤ k ≤ p."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "fd745db310a3a2f2c041363764f52d7bebe8f2de",
+        "note": "`∀ e ∈ W.honest, ∀ k : Fin p, 0 ≤ W.shifts e k` is literally s_ek ≥ 0 for e ∈ H, 1 ≤ k ≤ p (Fin p indexing = the p coordinates); equivalent in both directions."
+      }
+    },
+    "ass:honest-covariance-model": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "2fa7b5953c2afd3ed61dceac1347ff7f6a63f8f8",
+        "note": "The matrix equality is exactly Sigma_e = D⁻¹ (Omega + diag(s_e)) D⁻ᵀ for every honest environment."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "2fa7b5953c2afd3ed61dceac1347ff7f6a63f8f8",
+        "note": "`covariance e = structural⁻¹ * (invariantNoise + diagonal (shifts e)) * structural⁻¹.transpose` for all e ∈ honest is Σ_e = D⁻¹(Ω + diag(s_e))D^{-T} (since (D⁻¹)ᵀ = D^{-T}) with the single environment-invariant Ω; equivalent both ways."
+      }
+    },
+    "ass:support-factorization": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "86b0449a7f2450ef5afe88497db9ac4729e08d63",
+        "note": "The Boolean conditional is exactly multiplication by the binary support Z, while positivity on Z-active entries makes explicit the stipulated positive-amplitude domain."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "86b0449a7f2450ef5afe88497db9ac4729e08d63",
+        "note": "First conjunct `s e k = if Z e k then a e k else 0` is exactly s_ek = Z_ek a_ek for binary Z; the added `Z e k = true → 0 < a e k` is entailed by the core's declared symbol space for `a` ((0,∞)^{H×p}), and dropping positivity at inactive coordinates is harmless since s and every downstream use (activeProjection) ignore those entries."
+      }
+    },
+    "ass:generic-active-amplitudes": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "757054c1a9b19149facd02f40034098c1de9abc4",
+        "note": "The measurable active-coordinate projection and absolute continuity of its pushforward law with respect to volume restricted to the positive orthant exactly formalize the stated joint-law condition."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "757054c1a9b19149facd02f40034098c1de9abc4",
+        "note": "`Measure.map (activeProjection I Z ∘ a) μ ≪ volume.restrict (positiveOrthant I Z)` is the law of the active subarray (ActiveIndex = {(e,k) : e ∈ I, Z e k}) being ≪ Lebesgue on its positive orthant; the extra `Measurable` conjunct is the well-definedness the phrase 'the joint law' presupposes (without it Measure.map is junk-0 and absolute continuity would be vacuous), so it is not a strengthening of the paper's content."
+      }
+    },
+    "sym:p": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "100b504d0398d67e97b7e80349f51727f3287432",
+        "note": "BackshiftSystem takes p : ℕ and requires 2 ≤ p, exactly pinning p to {2,3,…}."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "100b504d0398d67e97b7e80349f51727f3287432",
+        "note": "BackshiftSystem carries p : ℕ with field dimension_at_least_two : 2 ≤ p (Basic.lean:42), so the cluster pins exactly {2,3,...} (ℕ gives integrality, the field gives ≥ 2)."
+      }
+    },
+    "sym:m": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "f7122832e50c6ea501c73aadc17f0936758361b1",
+        "note": "BackshiftSystem takes m : ℕ and requires 1 ≤ m, exactly pinning m to the positive integers."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "f7122832e50c6ea501c73aadc17f0936758361b1",
+        "note": "BackshiftSystem field environment_nonempty : 1 ≤ m (Basic.lean:43) over m : ℕ pins exactly {1,2,...}."
+      }
+    },
+    "sym:c": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "8523cd65bdad0beb44ca53c60c0384c58da5c515",
+        "note": "BackshiftSystem takes c : ℕ and requires c < m; natural-number nonnegativity therefore gives exactly 0 ≤ c < m."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "8523cd65bdad0beb44ca53c60c0384c58da5c515",
+        "note": "BackshiftSystem field corruption_lt : c < m (Basic.lean:44) with c : ℕ gives 0 ≤ c ≤ m-1, exactly {0,...,m-1}."
+      }
+    },
+    "sym:E": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "4d9816bc5cdb693309939df17fb621c0c84ff522",
+        "note": "Environment m is definitionally Fin m, a canonical zero-based relabeling of the paper's m-element label set {1,…,m}."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "4d9816bc5cdb693309939df17fb621c0c84ff522",
+        "note": "abbrev Environment (m : ℕ) := Fin m (Basic.lean:24) is a finite label type of exactly m elements; 0-based vs 1-based indexing is a relabeling, so the space matches E={1,...,m}."
+      }
+    },
+    "sym:Mkl": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "965c341368570965712db7110733e7bdfd8423c3",
+        "note": "maxLineOccupancy computes the maximum cardinality of a subset whose projected points have all affine 3×3 minors zero, equivalently the maximum indexed affine-line occupancy; for I = H its natural-valued result lies in {0,…,h}."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "965c341368570965712db7110733e7bdfd8423c3",
+        "note": "maxLineOccupancy (Basic/Occupancy.lean:48) is a def computing the symbol: sup of card over subsets of I whose affine 3x3 minors all vanish (= collinear in ℝ², affineMinor is exactly det[[1,x,y];…], multiplicities retained), hence range ⊆ {0,...,I.card} by construction, and every consumer instantiates I = W.honest with honest_card = m - c = h; pair indexing over binom(p,2) is supplied by offDiagPairs at the consumer envDeletionDistance."
+      }
+    },
+    "sym:delta": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "5f2508c5a57451084bf85a633b690306bdf81638",
+        "note": "The tagged definition computes a natural-valued minimum of h minus an occupancy bounded by h, and the theorem instantiates it on W.honest with cardinality h, jointly pinning δ to {0,…,h}."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "5f2508c5a57451084bf85a633b690306bdf81638",
+        "note": "envDeletionDistance (Basic/Occupancy.lean:62) is a computed ℕ-valued def `Finset.fold min I.card (fun kl ↦ I.card - maxLineOccupancy I s kl.1 kl.2) (offDiagPairs p)`; the fold's init and every term are ≤ I.card, and sharp_replacement_radius (TSharpReplacementRadius.lean:25) instantiates I = W.honest with W.honest_card : card = honestCount m c = h, so the range is {0,…,h} by construction (empty offDiagPairs for p<2 yields h, still in range); truncated ℕ subtraction matches h − M_kl since M_kl ≤ h."
+      }
+    },
+    "sym:Rc": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "6bb08d863eb2bfbb15b45f3da161ada03c33fb60",
+        "note": "compatibleSet has type Set (RealMatrix p), and every member is explicitly required to lie in admissibleSet p, so its codomain is exactly 2^𝒟."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "6bb08d863eb2bfbb15b45f3da161ada03c33fb60",
+        "note": "compatibleSet (Basic.lean:87) is a def returning `Set (RealMatrix p)` whose membership predicate conjoins `A ∈ admissibleSet p`, and admissibleSet (Basic.lean:63, @realizes Dcal) is exactly 𝒟 (IsUnit det ∧ unit diagonal ∧ cycleProduct (1-A) < 1); hence every value is a subset of 𝒟, i.e. an element of 2^𝒟 by construction."
+      }
+    },
+    "sym:n": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "6eea0c0a4e6a15f57c8ed8c4c0e6bd59a29edb21",
+        "note": "InferenceWorld.sampleSize has subtype {n : ℕ // 0 < n}, exactly the positive integers {1,2,…}."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "6eea0c0a4e6a15f57c8ed8c4c0e6bd59a29edb21",
+        "note": "InferenceWorld.sampleSize : PositiveSampleSize = {n : ℕ // 0 < n} (Helpers/ConfidenceUnion.lean:32,37) pins the carrier to positive integers {1,2,…} exactly."
+      }
+    },
+    "sym:alpha": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "185d97022e6496ecd3c70094023ed8354b74e0e0",
+        "note": "InferenceWorld.alpha is real and its tagged fields impose 0 < alpha and alpha < 1, exactly pinning (0,1)."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "185d97022e6496ecd3c70094023ed8354b74e0e0",
+        "note": "InferenceWorld fields alpha : ℝ with alpha_pos : 0 < alpha and alpha_lt_one : alpha < 1 (Helpers/ConfidenceUnion.lean:38-40) jointly pin the open interval (0,1); carrier ℝ plus the two structure-field constraints is the standard faithful idiom."
+      }
+    },
+    "sym:zeta0": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "1b9046fd96c4f04d48fc123d5883d893f5497e63",
+        "note": "MarginParameters.zetaLower is rational and its tagged fields impose 0 < zetaLower and zetaLower ≤ 1, exactly pinning ℚ ∩ (0,1]."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "1b9046fd96c4f04d48fc123d5883d893f5497e63",
+        "note": "MarginParameters fields zetaLower : ℚ with zetaLower_pos : 0 < zetaLower and zetaLower_le_one : zetaLower ≤ 1 (Helpers/ConfidenceUnion.lean:23-25) jointly pin ℚ ∩ (0,1] exactly; hints verified against the actual structure fields."
+      }
+    },
+    "sym:kappabar": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "574596380485f98fdd162a9d412a9cb5300e389d",
+        "note": "MarginParameters.conditionUpper has carrier ℚ and one_le_conditionUpper pins exactly 1 ≤ conditionUpper, hence ℚ ∩ [1,∞)."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "574596380485f98fdd162a9d412a9cb5300e389d",
+        "note": "MarginParameters.conditionUpper : ℚ plus field one_le_conditionUpper : 1 ≤ conditionUpper jointly pin ℚ∩[1,∞) exactly (rational carrier + range-pinning clause, both verified in Helpers/ConfidenceUnion.lean:26-27)."
+      }
+    },
+    "sym:Mbar": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "7733ad5e2c8c8f89e7b9c62d7f38e823fed0ad40",
+        "note": "MarginParameters.scaleUpper has carrier ℚ and one_le_scaleUpper pins exactly 1 ≤ scaleUpper, hence ℚ ∩ [1,∞)."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "7733ad5e2c8c8f89e7b9c62d7f38e823fed0ad40",
+        "note": "MarginParameters.scaleUpper : ℚ plus one_le_scaleUpper : 1 ≤ scaleUpper pin ℚ∩[1,∞) exactly (Helpers/ConfidenceUnion.lean:28-29); no extra or missing constraint."
+      }
+    },
+    "sym:Calpha": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "8fc648383bca3fa8938593576be4b4a5568fbb38",
+        "note": "InferenceWorld.regions is indexed by every PositiveSampleSize and Environment m, while regions_nonempty and regions_psd pin every region to a nonempty subset of the PSD cone."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "8fc648383bca3fa8938593576be4b4a5568fbb38",
+        "note": "InferenceWorld.regions : PositiveSampleSize → Environment m → Set (RealMatrix p) with regions_nonempty (∀ n e) and regions_psd (∀ n e A ∈ ·, A.PosSemidef, Mathlib PosSemidef = Hermitian + PSD = S_+^p) jointly give exactly ((2^{S_+^p}\\{∅})^E)^{ℕ_+}, complete over all positive n (Helpers/ConfidenceUnion.lean:41-46, Environment m = Fin m realizing E)."
+      }
+    },
+    "sym:rRadius": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "eeb72a26f5b05553a05c86861bbfe6dcc3e0e1b2",
+        "note": "honestRegionRadius is an ℝ≥0∞-valued computed supremum over honest slots and their current covariance regions, so its range is exactly within [0,+∞] as declared."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "eeb72a26f5b05553a05c86861bbfe6dcc3e0e1b2",
+        "note": "honestRegionRadius is a tagged def computing ⨆ e ∈ H, ⨆ Γ ∈ V.currentRegions e, edist Γ (Σ e) : ℝ≥0∞ under the L2Operator scope, so its range is [0,+∞] by construction and the hint (max over honest slots of the regional operator radius) matches the body."
+      }
+    },
+    "sym:Ualpha": {
+      "codex": {
+        "verdict": "matched",
+        "evidence_hash": "9584758e396761513e812c6f254d6a9e5c30aa55",
+        "note": "confidenceUnion is a computed Set (RealMatrix p), and every constituent compatibleSet requires membership in admissibleSet p, so the union lies in 2^Dcal."
+      },
+      "claude": {
+        "verdict": "matched",
+        "evidence_hash": "9584758e396761513e812c6f254d6a9e5c30aa55",
+        "note": "confidenceUnion is a tagged def returning Set (RealMatrix p) as a union of compatibleSet p m c, each of whose members satisfies A ∈ admissibleSet p = {IsUnit det ∧ diag = 1 ∧ cycleProduct (1-A) < 1} = 𝒟 (Basic.lean:63-64,87-95), so the value lies in 2^𝒟 by construction."
+      }
+    }
+  }
+}

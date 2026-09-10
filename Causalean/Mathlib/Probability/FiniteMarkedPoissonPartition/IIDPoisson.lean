@@ -17,12 +17,14 @@ namespace Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition
 
 variable {X : Type*} [MeasurableSpace X]
 
-/-- The law of an infinite i.i.d. stream with one-coordinate law `P`. -/
+/-- Given [a probability measure on a measurable sample space](hyp:P), [the law of an infinite
+independent and identically distributed stream](goal) is the product probability measure on
+infinite sequences whose every coordinate has that measure as its marginal. -/
 noncomputable def iidStreamLaw (P : Measure X) [IsProbabilityMeasure P] :
     Measure (ℕ → X) :=
   Measure.infinitePi (fun _ : ℕ => P)
 
-/-- The infinite i.i.d. stream law is a probability measure. -/
+/-- For every [measurable sample space](hyp:X) and [probability measure on that space](hyp:P), [the law of the infinite independent and identically distributed stream is a probability measure](goal). -/
 instance iidStreamLaw_isProbabilityMeasure (P : Measure X) [IsProbabilityMeasure P] :
     IsProbabilityMeasure (iidStreamLaw P) := by
   unfold iidStreamLaw
@@ -63,13 +65,15 @@ lemma iidStreamLaw_map_finPrefix (P : Measure X) [IsProbabilityMeasure P] (n : �
     rw [dif_pos (Finset.mem_range.1 hi)]
     exact hs _
 
-/-- An independent scalar Poisson count and infinite i.i.d. stream. -/
+/-- Given [a probability measure on a measurable sample space](hyp:P) and [a nonnegative Poisson
+rate](hyp:lam), [the joint count-and-stream law](goal) is the product law of a Poisson count with
+that rate and an independent infinite stream whose coordinates are independent with the given
+common distribution. -/
 noncomputable def poissonIIDStreamLaw (P : Measure X) [IsProbabilityMeasure P]
     (lam : ℝ≥0) : Measure (ℕ × (ℕ → X)) :=
   (poissonMeasure lam).prod (iidStreamLaw P)
 
-/-- The independent Poisson-count and i.i.d.-stream law is a probability
-measure. -/
+/-- For every [measurable sample space](hyp:X), [probability measure on that space](hyp:P), and [nonnegative Poisson rate](hyp:lam), [the joint law of an independent Poisson count and an independent and identically distributed stream is a probability measure](goal). -/
 instance poissonIIDStreamLaw_isProbabilityMeasure (P : Measure X) [IsProbabilityMeasure P]
     (lam : ℝ≥0) : IsProbabilityMeasure (poissonIIDStreamLaw P lam) := by
   unfold poissonIIDStreamLaw

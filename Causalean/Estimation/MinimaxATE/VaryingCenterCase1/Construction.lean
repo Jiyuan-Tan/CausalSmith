@@ -102,20 +102,29 @@ theorem ratio_nonneg (j : Fin K) : 0 ≤ P.β / P.g₁ j := div_nonneg P.hβ (P.
 /-- `β/g₁ j < 1` since `β < g₁ j`. -/
 theorem ratio_lt_one (j : Fin K) : P.β / P.g₁ j < 1 := (div_lt_one (P.hg₁0 j)).mpr (P.hβg₁ j)
 
-/-- The cell-varying propensity center as a function of the covariate. -/
+/-- For every [number $K$ of paired cells](hyp:K) and [cell-varying construction
+data](hyp:P), the [cell-varying propensity center](goal) assigns to each covariate cell the
+propensity-center value of that cell's pair. -/
 noncomputable def mhatV : (Fin K × Bool) → ℝ := fun x => P.m₀ x.1
 
-/-- The cell-varying outcome-regression center: `g₁ j` on the treated arm, `g₀ j` on
-control, where `j` is the pair index of the cell. -/
+/-- For every [number $K$ of paired cells](hyp:K) and [cell-varying construction
+data](hyp:P), the [cell-varying outcome-regression center](goal) assigns the treated-arm
+center for a cell's pair under treatment and the control-arm center for that pair under control. -/
 noncomputable def ghatV : Bool → (Fin K × Bool) → ℝ :=
   fun d x => if d then P.g₁ x.1 else P.g₀ x.1
 
-/-- The perturbed propensity `mλ x = m₀ x.1·(1 − (β/g₁ x.1)·Δ)`. -/
+/-- For every [number $K$ of paired cells](hyp:K), [cell-varying construction data](hyp:P), and
+[binary sign vector over the pairs](hyp:lam), the [perturbed propensity function](goal) assigns
+to each cell its pair's propensity center multiplied by one minus the propensity-to-treated-mean
+ratio times that cell's signed perturbation. -/
 noncomputable def mPertV (lam : Fin K → Bool) : (Fin K × Bool) → ℝ :=
   fun x => P.m₀ x.1 * (1 - (P.β / P.g₁ x.1) * Δ lam x)
 
-/-- The perturbed outcome regression: control arm `= g₀ x.1`, treated arm
-`gλ(1,x) = (g₁ x.1 + α·Δ)/(1 − (β/g₁ x.1)·Δ)`. -/
+/-- For every [number $K$ of paired cells](hyp:K), [cell-varying construction data](hyp:P), and
+[binary sign vector over the pairs](hyp:lam), the [perturbed outcome-regression function](goal)
+assigns the control-arm center of the cell's pair under control and, under treatment, the
+sign-perturbed treated-arm center divided by one minus the signed propensity-to-treated-mean
+ratio. -/
 noncomputable def gPertV (lam : Fin K → Bool) : Bool → (Fin K × Bool) → ℝ :=
   fun d x => if d then (P.g₁ x.1 + P.α * Δ lam x) / (1 - (P.β / P.g₁ x.1) * Δ lam x) else P.g₀ x.1
 

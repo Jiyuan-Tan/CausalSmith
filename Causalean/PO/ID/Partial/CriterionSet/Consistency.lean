@@ -96,7 +96,11 @@ lemma directedHausdorff_eq_zero_of_subset {A B : Set Θ} (h : A ⊆ B) :
 
 /-! ## The CHT criterion-set consistency results -/
 
-/-- A criterion `Q` satisfies a **linear minorant** with modulus `δ` relative to
+/-- For [a parameter space with a pseudometric](hyp:Θ), [a criterion function](hyp:Q), and [a real modulus](hyp:δ), the [linear-minorant
+condition](goal) holds precisely when, for every parameter value, [the modulus times its
+distance from the criterion's zero set is no greater than its criterion value](step:1).
+
+A criterion `Q` satisfies a **linear minorant** with modulus `δ` relative to
 its identified set: `δ · d(θ, Θ_I) ≤ Q θ` for all `θ`.  This is the
 Chernozhukov–Hong–Tamer (2007) polynomial-minorant identifiability condition of
 degree `γ = 1` — it forces `Q` to grow at least linearly away from `Θ_I`, so a

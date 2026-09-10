@@ -31,16 +31,22 @@ open MeasureTheory ProbabilityTheory Set
 
 variable {π : Measure (ℝ × ℝ)} {μ ν : Measure ℝ}
 
-/-- The first marginal survival function of `π`: `SX s = π{p | s < p.1}`. -/
+/-- For a measure [on pairs of real-valued quantities](hyp:π) and a
+[real threshold](hyp:s), the [first marginal survival function](goal) is the real-valued
+mass of pairs whose first coordinate exceeds that threshold. -/
 noncomputable def survFst (π : Measure (ℝ × ℝ)) (s : ℝ) : ℝ :=
   (π (Prod.fst ⁻¹' Ioi s)).toReal
 
-/-- The second marginal survival function of `π`: `SY t = π{p | t < p.2}`. -/
+/-- For a measure [on pairs of real-valued quantities](hyp:π) and a
+[real threshold](hyp:t), the [second marginal survival function](goal) is the real-valued
+mass of pairs whose second coordinate exceeds that threshold. -/
 noncomputable def survSnd (π : Measure (ℝ × ℝ)) (t : ℝ) : ℝ :=
   (π (Prod.snd ⁻¹' Ioi t)).toReal
 
-/-- The joint survival function of `π`: `S s t = π (Ioi s ×ˢ Ioi t)`, the mass
-of the open upper-right quadrant. -/
+/-- For a measure [on pairs of real-valued quantities](hyp:π) and
+[real thresholds](hyp:s,t), the [joint survival function](goal) is the real-valued mass
+of pairs for which the first coordinate exceeds the first threshold and the second coordinate
+exceeds the second threshold. -/
 noncomputable def jointSurv (π : Measure (ℝ × ℝ)) (s t : ℝ) : ℝ :=
   (π (Ioi s ×ˢ Ioi t)).toReal
 

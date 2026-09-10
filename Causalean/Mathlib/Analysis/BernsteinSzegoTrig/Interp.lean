@@ -37,7 +37,9 @@ open Real
 
 namespace Causalean.Mathlib.Analysis.BernsteinSzegoTrig
 
-/-- The **Szegő comparison interpolant** at base point `t₀` matching prescribed
+/-- For [a nonnegative integer frequency](hyp:β), [a prescribed value](hyp:Q₀), [a prescribed derivative](hyp:Q₁), [a real base point](hyp:t₀), and [a real argument](hyp:t), [the Szegő comparison interpolant](goal) is $Q₀\cos(β(t-t₀))+(Q₁/β)\sin(β(t-t₀))$.
+
+The **Szegő comparison interpolant** at base point `t₀` matching prescribed
 value `Q₀` and derivative `Q₁`:
 `S(t) = Q₀ · cos(β(t − t₀)) + (Q₁/β) · sin(β(t − t₀))`.
 For `β ≥ 1` it satisfies `S(t₀) = Q₀`, `S'(t₀) = Q₁`, and is a trigonometric

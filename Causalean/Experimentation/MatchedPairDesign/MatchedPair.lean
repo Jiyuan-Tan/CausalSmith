@@ -45,15 +45,17 @@ open DesignBased
 
 variable {P : Type*} [Fintype P] [DecidableEq P]
 
-/-- The per-pair fair coin: `true` means the `true` position is treated, and `false` means the
-`false` position is treated. -/
+/-- The [per-pair fair-coin randomization design](goal) assigns probability one half to each of
+the two positions: one outcome selects the first position for treatment and the other selects the
+second position. -/
 noncomputable def pairCoinDesign : FiniteDesign Bool :=
   coinDesign ((1 : ℝ) / 2) (by norm_num) (by norm_num)
 
-/-- The **matched-pair design**: each pair `p` independently treats one of its two positions by a
-fair coin.  The assignment `z p : Bool` is the treated position in pair `p`; the other position is
-control.  This is a size-two stratified design with one treated unit per stratum, represented in the
-smaller assignment space of treated positions rather than as independent unit-level assignments. -/
+/-- For [a finite collection of pair labels with decidable identity](hyp:P), the
+[matched-pair randomization design](goal) independently draws a fair coin for every pair and
+treats the position selected by that coin, leaving the other position as control.  This is a
+size-two stratified design with one treated unit in each pair rather than independent assignment
+over all units. -/
 noncomputable def matchedPairDesign : FiniteDesign (P → Bool) :=
   prodDesign (fun _ : P => pairCoinDesign)
 
@@ -61,8 +63,9 @@ noncomputable def matchedPairDesign : FiniteDesign (P → Bool) :=
 lemma matchedPairDesign_eq_prod_pairCoin :
     matchedPairDesign (P := P) = prodDesign (fun _ : P => pairCoinDesign) := rfl
 
-/-- The treatment indicator of the unit at position `b` of pair `p` under assignment `z`: `1` if the
-coin selected position `b`, else `0`. -/
+/-- For [a pair label](hyp:P,p), [one of its two positions](hyp:b), and [an assignment selecting a
+treated position in every pair](hyp:z), the [treatment indicator for that unit](goal) equals one
+when the assignment selects that position and zero otherwise. -/
 def mpTreatInd (p : P) (b : Bool) (z : P → Bool) : ℝ := if z p = b then 1 else 0
 
 omit [Fintype P] [DecidableEq P] in

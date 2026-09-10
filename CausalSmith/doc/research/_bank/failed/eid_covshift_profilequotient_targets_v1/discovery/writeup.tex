@@ -1,0 +1,1325 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{eid\_\allowbreak{}covshift\_\allowbreak{}profilequotient\_\allowbreak{}targets}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Under a designed minimum-variance baseline, stationary latent confounding and measurement error cancel from covariance differences.  No common all-target reference is needed: the aggregate carrier \(\bar Q=\sum_{e=1}^E\Delta_e\) has rank \(r\) and contains every shift range whenever shifts are nonnegative and every target changes in at least one environment.  A size-\(r\) label set is compatible exactly when some ordering passes the aggregate principal-block \(LDL^{\mathsf T}\) certificate, and every certificate has an acyclic Gaussian realization at any positive-definite baseline with strictly positive structural and measurement noises.  Subset-memoized pivots compute the complete family, while feasible-point augmentation gives always-nonempty honest family regions.  Information distance separates consistency from bounded-information impossibility, but local optimal certification is indexed by the full tangent-cone geometry rather than by distance alone.
+
+\section{Project justification}
+
+\paragraph{Gap.} Unknown-target methods with latent confounding return candidate supersets, target estimates, or latent-model/equivalence-class outputs rather than an exact labeled acyclic target fiber.  Covariance-difference methods recover a global mixing matrix only under profile separation.  Existing heteroskedastic diagonalization and rotation-set results do not characterize every labeled acyclic target set at profile collisions or lift each certificate to a positive-noise SCM; existing confidence-union coverage for a global diagonalizer also does not supply an always-nonempty region for this nonclosed exact-rank target-family model.
+
+\paragraph{Niche.} A minimum-variance baseline, nonnegative shifts, and panel-wide target coverage make the aggregate covariance difference a rank-\(r\) carrier.  Acyclicity then supplies a triangular labeling constraint that can be checked on candidate principal blocks even when no individual environment changes every target and individual changed columns are not globally identified.
+
+\paragraph{Fill.} The project gives an aggregate-carrier if-and-only-if labeled-fiber theorem, an arbitrary-baseline positive-noise converse, a signed-shift boundary witness, a complete subset recursion, and always-nonempty honest family inference by measurable feasible-point augmentation rather than a confidence union for a global diagonalizer.  It also gives a quantitative four-node collision and a geometry-indexed characterization showing why no universal local envelope can depend only on scalar information distance.
+
+\section{Related work}
+
+Yang, Salehkaleybar, and Kiyavash motivate unknown-target matching under latent confounding but characterize a candidate superset rather than the complete labeled fiber.  Varici et al. estimate intervention targets with latent variables, while Taeb et al. fit and score Gaussian latent-variable causal models with unknown additive interventions; neither output is an ordered-principal-block characterization of every compatible labeled acyclic target set, nor does it provide the present arbitrary-positive-baseline realization.  BACKSHIFT motivates covariance differencing and global diagonalization, but it permits cyclic structural coefficients and does not assume a common all-target reference or a designated exact-rank carrier; the present acyclic aggregate-carrier theorem is therefore a different result.  coroICA likewise motivates differencing away group-wise stationary noise and uses variation conditions for unmixing recovery; aggregate exact rank and aggregate range inclusion here are derived consequences of nonnegative covered shifts in the legal causal model, or explicit premises for standalone observed-tuple reconstruction, rather than attributed coroICA hypotheses.  Yang et al. analyze measurement error after a recoverable mixing matrix is available, whereas invariant positive measurement error here cancels before the target fiber is characterized.  Le and Nguyen give congruence simultaneous-diagonalization conditions and a numerical method for a complete Hermitian matrix family; that algebraic primitive does not impose the present labeled acyclic triangular completion or prove a legal positive-noise target-fiber converse.  Bacchiocchi et al. study sign/permutation equivalence, distinct heteroskedastic eigenvalues, and restricted rotation sets at multiplicity, not the complete discrete family of observed acyclic target labels.  Jaber et al. and Squires et al. make completeness over unknown-target equivalence classes algorithmically central under graphical oracle conditions; the present recursion uses exact aggregate covariance pivots.  The accepted-bank note eid\_robust\_backshift\_uniform\_distance\_v1 establishes set-theoretic confidence-union coverage for a robust global BACKSHIFT-normalized diagonalizer from supplied nonempty covariance regions; it does not address this exact-rank labeled target family or the measurable feasible-point augmentation that guarantees a model-intersecting region on every sample.  Brown--Purves selection and Romano--Shaikh identified-set inversion motivate the inference construction, while Lewis and Andrews--Cheng motivate inference that remains valid near weak or disappearing identification; neither supplies the discrete target-family augmentation or the incident-geometry certification analysis here.  Wu et al. motivate causal differential-network analysis of biological perturbations, but do not furnish a covariance-profile target-fiber characterization under stationary latent confounding and measurement error.  Perturb-seq and Sci-Plex supply the experimental application domain, but the output here concerns effective structural-noise targets only when the narrower covariance model is scientifically defensible.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\mathcal F_{\mathrm{causal}}(\theta)\).
+Primary functional / estimator / diagnostic: \(\mathcal F_{\mathrm{causal}}(\theta)=\{T\subseteq\mathcal V:|T|=r,\ \exists t\text{ ordering }T\text{ with }\bar Q_{tt}\succ0\text{ and }L_t^{-1}P_t\Delta_eP_t^{\mathsf T}L_t^{-\mathsf T}\text{ diagonal and nonnegative for every }e\}\), where \(\bar Q=\sum_{e=1}^E\Delta_e\) and \(L_t\) is the unit-lower factor in the positive \(LDL^{\mathsf T}\) factorization of \(\bar Q_{tt}\)..
+\begin{itemize}
+  \item \texttt{d} --- \texttt{positive integer}; \(\{2,3,\ldots\}\); \texttt{Fixed ambient dimension.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Dimension of the observed system.}
+  \item \texttt{E} --- \texttt{positive integer}; \(\{2,3,\ldots\}\); \texttt{Fixed environment count.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of nonbaseline environments.}
+  \item \texttt{r} --- \texttt{positive integer}; \(\{1,\ldots,d-1\}\); \texttt{Target-\allowbreak{}set size.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of observed structural-\allowbreak{}noise coordinates whose variances change.}
+  \item \texttt{V} --- \texttt{finite index set}; \(\mathcal V=\{1,\ldots,d\}\); \texttt{Target label space.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed-\allowbreak{}node labels.}
+  \item \texttt{Env} --- \texttt{finite index set}; \(\mathcal E=\{0,1,\ldots,E\}\); \texttt{Covariance-\allowbreak{}tuple index set.}
+  \par\smallskip\noindent\emph{Definition.} Environment labels, with baseline environment \(0\) and nonbaseline environments \(1,\ldots,E\).
+  \item \texttt{Id} --- \texttt{real matrix}; \(\mathbb R^{d\times d}\); \texttt{Matrix normalization.}
+  \par\smallskip\noindent\emph{Definition.} Identity matrix \(I_d\).
+  \item \texttt{Symd} --- \texttt{vector space}; \(\mathbb S^d\); \texttt{Covariance-\allowbreak{}difference space.}
+  \par\smallskip\noindent\emph{Definition.} Real symmetric \(d\times d\) matrices.
+  \item \texttt{SPDd} --- \texttt{matrix cone}; \(\mathbb S_{++}^d\); \texttt{Observable covariance space.}
+  \par\smallskip\noindent\emph{Definition.} Real positive-definite \(d\times d\) matrices.
+  \item \texttt{mu} --- \texttt{candidate Gaussian SCM record}; \texttt{Generic member of the legal SCM class.}
+  \par\smallskip\noindent\emph{Definition.} A record \(\mu\) containing the invariant structural coefficients, latent loading, primitive noise laws, target labels, and environment-specific structural-variance shifts.
+  \item \texttt{Bmu} --- \texttt{real matrix}; \(\mathbb R^{d\times d}\); \texttt{Acyclic observed mechanism.}
+  \par\smallskip\noindent\emph{Definition.} Observed structural coefficient matrix \(B_{\mu}\).
+  \item \texttt{Umu} --- \texttt{invertible real matrix}; \(\mathrm{GL}_d(\mathbb R)\); \texttt{Maps primitive disturbances to observed variables.}
+  \par\smallskip\noindent\emph{Definition.} Total-effect matrix \(U_{\mu}=(I_d-B_{\mu})^{-1}\).
+  \item \texttt{Cmu} --- \texttt{real matrix}; \(\mathbb R^{d\times d}\); \texttt{Latent-\allowbreak{}confounding nuisance.}
+  \par\smallskip\noindent\emph{Definition.} Invariant loading \(C_{\mu}\) of \(d\) stationary latent roots; zero loading columns permit fewer effective latent factors.
+  \item \texttt{OmegaH} --- \texttt{positive-\allowbreak{}semidefinite matrix}; \(\mathbb S_{+}^{d}\); \texttt{Stationary latent covariance.}
+  \par\smallskip\noindent\emph{Definition.} Invariant covariance \(\Omega_{H,\mu}\) of the latent roots.
+  \item \texttt{omega0} --- \texttt{positive vector}; \(\mathbb R^d\); \texttt{Strict structural-\allowbreak{}noise slack.}
+  \par\smallskip\noindent\emph{Definition.} Baseline observed structural-noise variances \(\omega_{0,\mu}\).
+  \item \texttt{Omegaeta} --- \texttt{diagonal symmetric matrix}; \(\mathbb S^d\); \texttt{Strict measurement-\allowbreak{}noise slack.}
+  \par\smallskip\noindent\emph{Definition.} Invariant measurement-error covariance \(\Omega_{\eta,\mu}\).
+  \item \texttt{Tmu} --- \texttt{subset of observed labels}; \(T_{\mu}\subseteq\mathcal V\); \texttt{Causal target set of a model.}
+  \par\smallskip\noindent\emph{Definition.} Observed coordinates whose structural-noise variances change in \(\mu\).
+  \item \texttt{lambda} --- \texttt{real array}; \(\mathbb R^{E\times d}\); \texttt{Environment profile of each observed structural noise.}
+  \par\smallskip\noindent\emph{Definition.} Variance increments \(\lambda=(\lambda_{ej}:1\le e\le E,\ j\in\mathcal V)\) relative to environment \(0\).
+  \item \texttt{He} --- \texttt{Gaussian random vector family}; \(H_e\in\mathbb R^{d}\); \texttt{Latent disturbance.}
+  \par\smallskip\noindent\emph{Definition.} Stationary latent-root vector in environment \(e\).
+  \item \texttt{epsilone} --- \texttt{Gaussian random vector family}; \(\varepsilon_e\in\mathbb R^d\); \texttt{Changing primitive disturbance.}
+  \par\smallskip\noindent\emph{Definition.} Observed structural-noise vector with covariance \(\operatorname{diag}(\omega_{0,\mu}+\lambda_e)\), taking \(\lambda_0=0\).
+  \item \texttt{etae} --- \texttt{Gaussian random vector family}; \(\eta_e\in\mathbb R^d\); \texttt{Measurement disturbance.}
+  \par\smallskip\noindent\emph{Definition.} Stationary measurement error with covariance \(\Omega_{\eta,\mu}\).
+  \item \texttt{Ye} --- \texttt{Gaussian random vector family}; \(Y_e\in\mathbb R^d\); \texttt{Environment-\allowbreak{}specific observation.}
+  \par\smallskip\noindent\emph{Definition.} Observed vector \(Y_e=U_{\mu}(C_{\mu}H_e+\varepsilon_e)+\eta_e\).
+  \item \texttt{Mscm} --- \texttt{model class}; \texttt{Causal compatibility class.}
+  \par\smallskip\noindent\emph{Definition.} Legal fixed-dimensional Gaussian covariance-shift SCM class \(\mathcal M_{d,E,r}\).
+  \item \texttt{theta} --- \texttt{covariance tuple}; \((\mathbb S^d)^{E+1}\); \texttt{Observable population input.}
+  \par\smallskip\noindent\emph{Definition.} Population covariance tuple \(\theta=(\Sigma_0,\ldots,\Sigma_E)\).
+  \item \texttt{Sigma} --- \texttt{symmetric matrix family}; \(\Sigma_e\in\mathbb S^d\); \texttt{Environment covariance.}
+  \par\smallskip\noindent\emph{Definition.} Component \(\Sigma_e=\operatorname{Cov}(Y_e)\) of \(\theta\).
+  \item \texttt{Delta} --- \texttt{symmetric matrix family}; \(\Delta_e\in\mathbb S^d\); \texttt{Stationary-\allowbreak{}nuisance-\allowbreak{}cancelled observable.}
+  \par\smallskip\noindent\emph{Definition.} Covariance shift \(\Delta_e=\Sigma_e-\Sigma_0\), with \(\Delta_0=0\).
+  \item \texttt{Q} --- \texttt{symmetric matrix}; \(\bar Q\in\mathbb S^d\); Rank-\(r\) changing-subspace carrier.
+  \par\smallskip\noindent\emph{Definition.} Aggregate shift \(\bar Q=\sum_{e=1}^E\Delta_e\).
+  \item \texttt{T} --- \texttt{subset of observed labels}; \(T\subseteq\mathcal V\); \texttt{Candidate causal label set.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Candidate labeled target set;\allowbreak{} its cardinality is imposed where the candidate is evaluated.}
+  \item \texttt{t} --- \texttt{ordered tuple of distinct labels}; \(t=(t_1,\ldots,t_r)\in\mathcal V^r\); \texttt{Induced target topological order.}
+  \par\smallskip\noindent\emph{Definition.} An ordering of the elements of \(T\).
+  \item \texttt{Pt} --- \texttt{selection matrix}; \(P_t\in\{0,1\}^{r\times d}\); \texttt{Ordered principal-\allowbreak{}block operator.}
+  \par\smallskip\noindent\emph{Definition.} Matrix selecting the coordinates in the order \(t\).
+  \item \texttt{Qtt} --- \texttt{symmetric matrix}; \(\bar Q_{tt}\in\mathbb S^r\); \texttt{Aggregate pivot block.}
+  \par\smallskip\noindent\emph{Definition.} Ordered aggregate principal block \(\bar Q_{tt}=P_t\bar QP_t^{\mathsf T}\).
+  \item \texttt{Lt} --- \texttt{unit-\allowbreak{}lower-\allowbreak{}triangular matrix}; \(\mathbb R^{r\times r}\); \texttt{Ordered triangular diagonalizer.}
+  \par\smallskip\noindent\emph{Definition.} Unit-lower factor \(L_t\) in the positive \(LDL^{\mathsf T}\) factorization of \(\bar Q_{tt}\).
+  \item \texttt{Dt} --- \texttt{positive diagonal matrix}; \(\mathbb S_{++}^r\); \texttt{Aggregate target-\allowbreak{}variance increments.}
+  \par\smallskip\noindent\emph{Definition.} Diagonal factor \(D_t\) satisfying \(\bar Q_{tt}=L_tD_tL_t^{\mathsf T}\).
+  \item \texttt{Lambdat} --- \texttt{symmetric matrix family}; \(\Lambda_{e,t}\in\mathbb S^r\); \texttt{Candidate environment-\allowbreak{}specific target increments.}
+  \par\smallskip\noindent\emph{Definition.} Transformed target block \(\Lambda_{e,t}=L_t^{-1}P_t\Delta_eP_t^{\mathsf T}L_t^{-\mathsf T}\).
+  \item \texttt{Cert} --- \texttt{Boolean predicate}; \(\operatorname{Cert}(\theta,T,t)\in\{\mathrm{true},\mathrm{false}\}\); \texttt{Observable compatibility predicate.}
+  \par\smallskip\noindent\emph{Definition.} Ordered principal-block certificate defined in \(\text{def:ordered-ldl-certificate}\).
+  \item \texttt{Nmat} --- \texttt{symmetric matrix}; \(N\in\mathbb S^d\); \texttt{Range-\allowbreak{}reconstruction input.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic symmetric matrix whose range is contained in the aggregate-\allowbreak{}carrier range.}
+  \item \texttt{Wt} --- \texttt{real matrix}; \(W_t\in\mathbb R^{d\times r}\); Inverse of coordinate restriction on \(\operatorname{range}(\bar Q)\).
+  \par\smallskip\noindent\emph{Definition.} Aggregate range reconstruction map \(W_t=\bar QP_t^{\mathsf T}\bar Q_{tt}^{-1}\).
+  \item \texttt{At} --- \texttt{real matrix}; \(A_t\in\mathbb R^{d\times r}\); \texttt{Recovered target total-\allowbreak{}effect columns.}
+  \par\smallskip\noindent\emph{Definition.} Candidate changed-column matrix \(A_t=W_tL_t\).
+  \item \texttt{Ut} --- \texttt{unit-\allowbreak{}lower-\allowbreak{}triangular matrix after permutation}; \(\mathrm{GL}_d(\mathbb R)\); \texttt{Acyclic total-\allowbreak{}effect completion.}
+  \par\smallskip\noindent\emph{Definition.} Completion \(U_t=\begin{psmallmatrix}L_t&0\\A_{t,N}&I_{d-r}\end{psmallmatrix}\) after placing \(t\) first.
+  \item \texttt{Bt} --- \texttt{real matrix}; \(\mathbb R^{d\times d}\); \texttt{Alternative legal observed DAG.}
+  \par\smallskip\noindent\emph{Definition.} Completed structural matrix \(B_t=I_d-U_t^{-1}\).
+  \item \texttt{tau} --- \texttt{positive scalar}; \((0,\infty)\); \texttt{Strict positivity margin.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Noise-\allowbreak{}slack scalar chosen below the minimum-\allowbreak{}eigenvalue bound in the completion.}
+  \item \texttt{Rzero} --- \texttt{symmetric matrix}; \(\mathbb S^d\); \texttt{Baseline covariance remainder.}
+  \par\smallskip\noindent\emph{Definition.} Latent residual covariance \(R_0=\Sigma_0-\tau U_tU_t^{\mathsf T}-\tau I_d\).
+  \item \texttt{Ct} --- \texttt{real matrix}; \(\mathbb R^{d\times d}\); \texttt{Arbitrary-\allowbreak{}baseline realization map.}
+  \par\smallskip\noindent\emph{Definition.} Latent loading \(C_t=U_t^{-1}R_0^{1/2}\) used by the completion.
+  \item \texttt{Fcausal} --- \texttt{family of labeled target sets}; \(\mathcal F_{\mathrm{causal}}(\theta)\subseteq\{T\subseteq\mathcal V:\lvert T\rvert=r\}\); \texttt{Causal target fiber.}
+  \par\smallskip\noindent\emph{Definition.} Target sets realized by models in \(\mathcal M_{d,E,r}\) with covariance tuple \(\theta\).
+  \item \texttt{Falg} --- \texttt{family of labeled target sets}; \(\mathcal F_{\mathrm{LDL}}(\theta)\subseteq\{T\subseteq\mathcal V:\lvert T\rvert=r\}\); \texttt{Observable algebraic fiber.}
+  \par\smallskip\noindent\emph{Definition.} Target sets admitting at least one ordered \(LDL^{\mathsf T}\) certificate.
+  \item \texttt{Comp} --- \texttt{subset of observed labels}; \(\mathcal C(\theta)\subseteq\mathcal V\); \texttt{Labels targeted in every compatible model.}
+  \par\smallskip\noindent\emph{Definition.} Compulsory nodes \(\mathcal C(\theta)=\bigcap_{T\in\mathcal F_{\mathrm{LDL}}(\theta)}T\).
+  \item \texttt{Poss} --- \texttt{subset of observed labels}; \(\mathcal P(\theta)\subseteq\mathcal V\); \texttt{Labels targeted in some compatible model.}
+  \par\smallskip\noindent\emph{Definition.} Possible nodes \(\mathcal P(\theta)=\bigcup_{T\in\mathcal F_{\mathrm{LDL}}(\theta)}T\).
+  \item \texttt{h} --- \texttt{finite-\allowbreak{}valued classification}; \texttt{Discrete inferential target.}
+  \par\smallskip\noindent\emph{Definition.} Complete classification \(h(\theta)=(\mathcal C(\theta),\mathcal P(\theta))\).
+  \item \texttt{Sset} --- \texttt{subset of observed labels}; \(S\subseteq\mathcal V\); \texttt{Memoization key.}
+  \par\smallskip\noindent\emph{Definition.} Selected-pivot subset with \(\lvert S\rvert\le r\).
+  \item \texttt{PS} --- \texttt{selection matrix}; \(P_S\in\{0,1\}^{|S|\times d}\); \texttt{Subset coordinate restriction.}
+  \par\smallskip\noindent\emph{Definition.} Matrix selecting the coordinates indexed by \(S\) in a fixed canonical order.
+  \item \texttt{RS} --- \texttt{symmetric matrix}; \(R_S\in\mathbb S^d\); \texttt{Order-\allowbreak{}independent aggregate pivot state.}
+  \par\smallskip\noindent\emph{Definition.} Aggregate residual \(R_S=\bar Q-\bar Q_{:S}\bar Q_{SS}^{-1}\bar Q_{S:}\), with \(R_{\varnothing}=\bar Q\).
+  \item \texttt{MeS} --- \texttt{symmetric matrix family}; \(M_{e,S}\in\mathbb S^d\); \texttt{Order-\allowbreak{}independent environment residual.}
+  \par\smallskip\noindent\emph{Definition.} Shift residual \(M_{e,S}=(I_d-\bar Q_{:S}\bar Q_{SS}^{-1}P_S)\Delta_e(I_d-\bar Q_{:S}\bar Q_{SS}^{-1}P_S)^{\mathsf T}\).
+  \item \texttt{Pivot} --- \texttt{Boolean predicate}; \texttt{Recursive certificate test.}
+  \par\smallskip\noindent\emph{Definition.} Admissibility of a label \(j\notin S\) for the global proportionality pivot.
+  \item \texttt{m} --- \texttt{positive scalar}; \((0,\infty)\); \texttt{Inference-\allowbreak{}class conditioning constant.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Uniform lower covariance eigenvalue bound.}
+  \item \texttt{M} --- \texttt{positive scalar}; \((m,\infty)\); \texttt{Inference-\allowbreak{}class conditioning constant.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Uniform upper covariance eigenvalue bound.}
+  \item \texttt{zeta} --- \texttt{generic covariance tuple}; \((\mathbb S_{++}^d)^{E+1}\); \texttt{Inference-\allowbreak{}class member.}
+  \par\smallskip\noindent\emph{Definition.} Generic tuple \(\zeta=(Z_0,\ldots,Z_E)\) used to define the bounded legal covariance class.
+  \item \texttt{ThetaK} --- \texttt{covariance-\allowbreak{}tuple class}; \texttt{Uniform-\allowbreak{}inference parameter space.}
+  \par\smallskip\noindent\emph{Definition.} Bounded nonempty exact-rank legal covariance class \(\Theta_K\).
+  \item \texttt{alpha} --- \texttt{probability level}; \((0,1)\); \texttt{Confidence level.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Maximum family-\allowbreak{}misclassification probability.}
+  \item \texttt{n} --- \texttt{positive integer array}; \((n_0,\ldots,n_E)\in\mathbb N_{+}^{E+1}\); \texttt{Sampling allocation.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Environment-\allowbreak{}specific sample sizes.}
+  \item \texttt{Shat} --- \texttt{symmetric matrix family}; \(\widehat\Sigma_e\in\mathbb S_{+}^d\); \texttt{Observed covariance statistic.}
+  \par\smallskip\noindent\emph{Definition.} Empirical covariance \(\widehat\Sigma_e=n_e^{-1}\sum_{i=1}^{n_e}Y_{ei}Y_{ei}^{\mathsf T}\).
+  \item \texttt{normw} --- \texttt{weighted norm}; \(\lVert\cdot\rVert_w:(\mathbb S^d)^{E+1}\to[0,\infty)\); \texttt{Finite-\allowbreak{}sample covariance-\allowbreak{}region metric.}
+  \par\smallskip\noindent\emph{Definition.} Sample-size weighted Frobenius norm \(\lVert a\rVert_w^2=\sum_{e=0}^{E}n_e\lVert a_e\rVert_F^2\).
+  \item \texttt{Vmax} --- \texttt{positive scalar}; \texttt{Uniform covariance concentration constant.}
+  \par\smallskip\noindent\emph{Definition.} Wishart second-moment bound \(V_{\max}=(E+1)M^2d(d+1)\).
+  \item \texttt{calpha} --- \texttt{positive scalar}; \texttt{Finite-\allowbreak{}sample confidence radius.}
+  \par\smallskip\noindent\emph{Definition.} Radius \(c_{\alpha}=\sqrt{V_{\max}/\alpha}\).
+  \item \texttt{Wn} --- \texttt{random covariance region}; \texttt{Simultaneous covariance confidence region.}
+  \par\smallskip\noindent\emph{Definition.} Raw region \(W_n=\{\zeta:mI_d\preceq Z_e\preceq MI_d,\ \lVert\zeta-\widehat\Sigma\rVert_w\le c_{\alpha}\}\).
+  \item \texttt{epsilon} --- \texttt{positive scalar}; \((0,\infty)\); \texttt{Nonattainment slack.}
+  \par\smallskip\noindent\emph{Definition.} Approximation tolerance \(\epsilon\) for projection onto the nonclosed model.
+  \item \texttt{Gepsilon} --- \texttt{correspondence}; \texttt{Selection correspondence.}
+  \par\smallskip\noindent\emph{Definition.} Strict approximate-minimizer graph \(G_{\epsilon}=\{(s,\zeta):\zeta\in\Theta_K,\ \lVert\zeta-s\rVert_w<\inf_{\xi\in\Theta_K}\lVert\xi-s\rVert_w+\epsilon\}\).
+  \item \texttt{stilde} --- \texttt{candidate selector map}; \(s_{\epsilon}:(\mathbb S^d)^{E+1}\to(\mathbb S^d)^{E+1}\); \texttt{Always-\allowbreak{}feasible approximate projection.}
+  \par\smallskip\noindent\emph{Definition.} A definable-choice section \(s_{\epsilon}\) of \(G_{\epsilon}\), including a finite ordered-certificate witness.
+  \item \texttt{thetatilde} --- \texttt{random covariance tuple}; \(\widetilde\theta_n\in(\mathbb S^d)^{E+1}\); \texttt{Nonemptiness augmentation point.}
+  \par\smallskip\noindent\emph{Definition.} Selected feasible tuple \(\widetilde\theta_n=s_1(\widehat\Sigma)\).
+  \item \texttt{Rn} --- \texttt{random covariance region}; \texttt{Always model-\allowbreak{}intersecting covariance region.}
+  \par\smallskip\noindent\emph{Definition.} Augmented region \(R_n=W_n\cup\{\widetilde\theta_n\}\).
+  \item \texttt{Fout} --- \texttt{random family of target sets}; \texttt{Honest family-\allowbreak{}valued confidence object.}
+  \par\smallskip\noindent\emph{Definition.} Outer target family \(\mathcal F_{\mathrm{out},n}=\bigcup_{\zeta\in R_n\cap\Theta_K}\mathcal F_{\mathrm{LDL}}(\zeta)\).
+  \item \texttt{Hn} --- \texttt{random set of classifications}; \texttt{Abstaining complete-\allowbreak{}classification certificate.}
+  \par\smallskip\noindent\emph{Definition.} Classification image \(\mathcal H_n=\{h(\zeta):\zeta\in R_n\cap\Theta_K\}\).
+  \item \texttt{Hpert} --- \texttt{symmetric matrix tuple}; \((\mathbb S^d)^{E+1}\); \texttt{Argument of the frozen information norm.}
+  \par\smallskip\noindent\emph{Definition.} Generic covariance displacement \(H=(H_0,\ldots,H_E)\).
+  \item \texttt{Inorm} --- \texttt{local quadratic norm}; \texttt{Observable local separation metric.}
+  \par\smallskip\noindent\emph{Definition.} Frozen Gaussian covariance-information norm \(\lVert H\rVert_{I,n,\theta}^2=\tfrac12\sum_{e=0}^{E}n_e\operatorname{tr}(\Sigma_e^{-1}H_e\Sigma_e^{-1}H_e)\).
+  \item \texttt{Ah} --- \texttt{subset of the covariance model}; \texttt{Nearest classification boundary.}
+  \par\smallskip\noindent\emph{Definition.} Opposite-classification set \(\mathcal A_h(\theta)=\{\zeta\in\Theta_K:h(\zeta)\ne h(\theta)\}\).
+  \item \texttt{deltan} --- \texttt{extended nonnegative scalar}; \([0,\infty]\); \texttt{Classification-\allowbreak{}strength index.}
+  \par\smallskip\noindent\emph{Definition.} Information distance \(\delta_n(\theta)=\inf_{\zeta\in\mathcal A_h(\theta)}\lVert\zeta-\theta\rVert_{I,n,\theta}\), with \(\inf\varnothing=\infty\).
+  \item \texttt{gamma} --- \texttt{real scalar}; \((-1,1)\); \texttt{Concrete weak-\allowbreak{}identification index.}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Profile-\allowbreak{}split parameter in the four-\allowbreak{}node collision path.}
+  \item \texttt{thetagamma} --- \texttt{four-\allowbreak{}dimensional covariance tuple path}; \texttt{Legal target-\allowbreak{}family collision witness with aggregate carrier.}
+  \par\smallskip\noindent\emph{Definition.} Path \(\theta_\gamma=(\Sigma_0,\Sigma_1,\Sigma_2)\) with \(\Sigma_0=I_4\), \(\Delta_1=aa^{\mathsf T}+bb^{\mathsf T}\), \(\Delta_2(\gamma)=2aa^{\mathsf T}+(2+\gamma)bb^{\mathsf T}\), \(a=(1,1,2,1)^{\mathsf T}\), and \(b=(0,1,1,2)^{\mathsf T}\).
+  \item \texttt{clocal} --- \texttt{nonnegative scalar}; \([0,\infty)\); \texttt{Scalar summary of,\allowbreak{} but not replacement for,\allowbreak{} tangent geometry.}
+  \par\smallskip\noindent\emph{Definition.} Finite nearest-opposite information limit \(c\) along sequences with \(\delta_n(\theta_n)\to c\).
+  \item \texttt{Gtan} --- \texttt{Gaussian tangent-\allowbreak{}geometry record}; \texttt{Geometry retained by local honest-\allowbreak{}certification optimization.}
+  \par\smallskip\noindent\emph{Definition.} A record \(\mathcal G=(k,g_0,\mathcal A)\) containing the whitened local dimension, focal shift, and opposite-classification tangent set.
+  \item \texttt{Cbound} --- \texttt{finite nonnegative scalar}; \([0,\infty)\); \texttt{Bounded-\allowbreak{}information regime constant.}
+  \par\smallskip\noindent\emph{Definition.} Fixed upper bound \(C\) on local classification information distance.
+  \item \texttt{xrad} --- \texttt{positive scalar}; \((0,\infty)\); \texttt{Finite-\allowbreak{}sample exclusion radius.}
+  \par\smallskip\noindent\emph{Definition.} Deterministic sampling-error threshold \(x\) used to control the weighted covariance error event.
+  \item \texttt{thetaSigned} --- \texttt{covariance tuple}; \((\mathbb S_{++}^{3})^{3}\); \texttt{Witness for failure of the nonnegative-\allowbreak{}diagonal certificate under signed variance changes.}
+  \par\smallskip\noindent\emph{Definition.} Explicit three-node signed-shift boundary tuple \(\theta^{\pm}\) defined in \(\text{def:restriction-boundary-witnesses}\).
+  \item \texttt{betastar} --- \texttt{geometry-\allowbreak{}indexed power-\allowbreak{}envelope functional}; \(\beta^{\star}_{\mathcal G}(\alpha)\in[0,1]\); \texttt{Local decision-\allowbreak{}theory target after geometry is specified.}
+  \par\smallskip\noindent\emph{Definition.} Optimal honest correct-certification probability in the specified Gaussian tangent geometry \(\mathcal G\).
+  \item \texttt{thetaSplitRef} --- \texttt{covariance tuple}; \((\mathbb S_{++}^{3})^{3}\); \texttt{Witness for failure of the single-\allowbreak{}reference rank carrier when no environment shifts every target.}
+  \par\smallskip\noindent\emph{Definition.} Explicit three-node split-reference boundary tuple \(\theta^{\mathrm{split}}\) defined in \(\text{def:restriction-boundary-witnesses}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:acyclic-observed-system]\label{ass:acyclic-observed-system}
+The observed coefficient matrix \(B_{\mu}\) is permutation-similar to a strictly lower-triangular matrix.
+\par\smallskip\noindent\emph{Standard} (Acyclic linear structural equation model, \cite{YangSalehkaleybarKiyavash2024LIT}).
+\end{assumption}
+
+\begin{assumption}[ass:centered-gaussian-noises]\label{ass:centered-gaussian-noises}
+For every \(e\in\mathcal E\), the primitive vector \((H_e,\varepsilon_e,\eta_e)\) is centered Gaussian.
+\par\smallskip\noindent\emph{Standard} (Linear Gaussian latent-variable model, \cite{VariciEtAl2022LatentTargets}).
+\end{assumption}
+
+\begin{assumption}[ass:block-independent-noises]\label{ass:block-independent-noises}
+For every \(e\in\mathcal E\), the collection consisting of \(H_e\), all coordinates of \(\varepsilon_e\), and \(\eta_e\) is mutually independent.
+\par\smallskip\noindent\emph{Standard} (Independent structural noises with separate latent roots, \cite{YangGhassamiNafeaKiyavashZhangShpitser2022MeasurementError}).
+\end{assumption}
+
+\begin{assumption}[ass:stationary-latent-noise]\label{ass:stationary-latent-noise}
+The covariance of \(H_e\) equals \(\Omega_{H,\mu}\) for every \(e\in\mathcal E\).
+\par\smallskip\noindent\emph{Standard} (Group-wise stationary confounding, \cite{PfisterWeichwaldBuhlmannScholkopf2019CoroICA}).
+\end{assumption}
+
+\begin{assumption}[ass:stationary-measurement-error]\label{ass:stationary-measurement-error}
+The covariance of \(\eta_e\) equals the same diagonal matrix \(\Omega_{\eta,\mu}\) for every \(e\in\mathcal E\).
+\par\smallskip\noindent\emph{Standard} (Classical additive measurement error with invariant variance, \cite{YangGhassamiNafeaKiyavashZhangShpitser2022MeasurementError}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-structural-noise]\label{ass:positive-structural-noise}
+Every coordinate of \(\omega_{0,\mu}\) is strictly positive.
+\par\smallskip\noindent\emph{Standard} (Nonsingular structural-noise covariance, \cite{YangGhassamiNafeaKiyavashZhangShpitser2022MeasurementError}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-measurement-noise]\label{ass:positive-measurement-noise}
+The diagonal measurement covariance satisfies \(\Omega_{\eta,\mu}\succ0\).
+\par\smallskip\noindent\emph{Standard} (Strictly positive classical measurement error, \cite{YangGhassamiNafeaKiyavashZhangShpitser2022MeasurementError}).
+\end{assumption}
+
+\begin{assumption}[ass:target-cardinality]\label{ass:target-cardinality}
+The changing-coordinate set satisfies \(\lvert T_{\mu}\rvert=r\).
+\par\smallskip\noindent\emph{Standard} (Fixed intervention-target cardinality, \cite{YangSalehkaleybarKiyavash2024LIT}).
+\end{assumption}
+
+\begin{assumption}[ass:no-off-target-shifts]\label{ass:no-off-target-shifts}
+For every \(e\in\{1,\ldots,E\}\) and \(j\notin T_{\mu}\), \(\lambda_{ej}=0\).
+\par\smallskip\noindent\emph{Standard} (Additive shift intervention exclusion, \cite{RothenhauslerHeinzePetersMeinshausen2015BACKSHIFT}).
+\end{assumption}
+
+\begin{assumption}[ass:nonnegative-variance-shifts]\label{ass:nonnegative-variance-shifts}
+For every \(e\in\{1,\ldots,E\}\) and \(j\in T_{\mu}\), \(\lambda_{ej}\ge0\).
+\par\smallskip\noindent\emph{Novel.} This is a fixed-baseline-minimum design restriction.  It is satisfied when an untreated or lowest-intensity condition is fixed as baseline and every included stimulation arm can only add structural-noise variance on an effective target, as in randomized dose-escalation or activation panels.
+\end{assumption}
+
+\begin{assumption}[ass:reference-shifts-all-targets]\label{ass:reference-shifts-all-targets}
+For every \(j\in T_{\mu}\), there exists \(e\in\{1,\ldots,E\}\) such that \(\lambda_{ej}>0\).
+\par\smallskip\noindent\emph{Novel.} This panel-coverage restriction permits different nonbaseline environments to reveal different effective targets while ensuring that every declared target changes somewhere.
+\end{assumption}
+
+\begin{assumption}[ass:baseline-positive]\label{ass:baseline-positive}
+The baseline covariance satisfies \(\Sigma_0\succ0\).
+\par\smallskip\noindent\emph{Standard} (Nonsingular Gaussian covariance, \cite{StriederFreidlingHaffnerDrton2021ConfidenceCausalDiscovery}).
+\end{assumption}
+
+\begin{assumption}[ass:reference-exact-rank]\label{ass:reference-exact-rank}
+The aggregate shift \(\bar Q=\sum_{e=1}^E\Delta_e\) satisfies \(\operatorname{rank}(\bar Q)=r\).
+\par\smallskip\noindent\emph{Novel.} This is the observable aggregate-carrier regularity premise used by reconstruction; within the legal causal class it follows from nonnegative shifts and target coverage.
+\end{assumption}
+
+\begin{assumption}[ass:common-shift-range]\label{ass:common-shift-range}
+For every \(e\in\{1,\ldots,E\}\), \(\operatorname{range}(\Delta_e)\subseteq\operatorname{range}(\bar Q)\), where \(\bar Q=\sum_{f=1}^E\Delta_f\).
+\par\smallskip\noindent\emph{Novel.} This is the full-matrix reconstruction premise for standalone observed tuples; it is a consequence of the repaired legal causal class.
+\end{assumption}
+
+\begin{assumption}[ass:bounded-covariance-member]\label{ass:bounded-covariance-member}
+For every \(e\in\mathcal E\), the generic tuple satisfies \(mI_d\preceq Z_e\preceq MI_d\).
+\par\smallskip\noindent\emph{Standard} (Uniform covariance eigenvalue bounds, \cite{Lewis2022RobustHeteroskedasticity}).
+\end{assumption}
+
+\begin{assumption}[ass:bounded-reference-rank]\label{ass:bounded-reference-rank}
+The generic aggregate difference \(\sum_{e=1}^E(Z_e-Z_0)\) has rank \(r\).
+\par\smallskip\noindent\emph{Novel.} This is the exact-rank stratum of the repaired aggregate covariance model.
+\end{assumption}
+
+\begin{assumption}[ass:bounded-common-range]\label{ass:bounded-common-range}
+For every \(e\in\{1,\ldots,E\}\), \(\operatorname{range}(Z_e-Z_0)\subseteq\operatorname{range}(\sum_{f=1}^E(Z_f-Z_0))\).
+\par\smallskip\noindent\emph{Novel.} This is the common aggregate-subspace premise for the bounded observed covariance class.
+\end{assumption}
+
+\begin{assumption}[ass:bounded-certificate-exists]\label{ass:bounded-certificate-exists}
+There exist \(T\subseteq\mathcal V\) with \(\lvert T\rvert=r\) and an ordering \(t\) of \(T\) such that \(\operatorname{Cert}(\zeta,T,t)\) holds.
+\par\smallskip\noindent\emph{Standard} (Nonempty correctly specified identified-set model, \cite{RomanoShaikh2010IdentifiedSetInference}).
+\end{assumption}
+
+\begin{assumption}[ass:independent-environment-samples]\label{ass:independent-environment-samples}
+Conditional on \(\theta\), the observations \(Y_{ei}\sim N(0,\Sigma_e)\) are independent over all \(e\in\mathcal E\) and \(1\le i\le n_e\).
+\par\smallskip\noindent\emph{Standard} (Independent multi-sample Gaussian covariance experiment, \cite{Lewis2022RobustHeteroskedasticity}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:legal-scm-class]\label{def:legal-scm-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{legal Gaussian covariance-\allowbreak{}shift SCM class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{d,E,r}=\{\mu_{d,E,r}: B_{\mu}\text{ is acyclic};\ (H_e,\varepsilon_e,\eta_e)\text{ obey the centered Gaussian and independence conditions};\ \operatorname{Cov}(H_e)=\Omega_{H,\mu};\ \operatorname{Cov}(\eta_e)=\Omega_{\eta,\mu};\ \omega_{0,\mu}>0;\ \Omega_{\eta,\mu}\succ0;\ |T_{\mu}|=r;\ \lambda_{ej}=0\text{ off }T_{\mu};\ \lambda_{ej}\ge0\text{ on }T_{\mu};\ \forall j\in T_{\mu}\ \exists e\in\{1,\ldots,E\}:\lambda_{ej}>0\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}acyclic-\allowbreak{}observed-\allowbreak{}system}; \texttt{ass:\allowbreak{}centered-\allowbreak{}gaussian-\allowbreak{}noises}; \texttt{ass:\allowbreak{}block-\allowbreak{}independent-\allowbreak{}noises}; \texttt{ass:\allowbreak{}stationary-\allowbreak{}latent-\allowbreak{}noise}; \texttt{ass:\allowbreak{}stationary-\allowbreak{}measurement-\allowbreak{}error}; \texttt{ass:\allowbreak{}positive-\allowbreak{}structural-\allowbreak{}noise}; \texttt{ass:\allowbreak{}positive-\allowbreak{}measurement-\allowbreak{}noise}; \texttt{ass:\allowbreak{}target-\allowbreak{}cardinality}; \texttt{ass:\allowbreak{}no-\allowbreak{}off-\allowbreak{}target-\allowbreak{}shifts}; \texttt{ass:\allowbreak{}nonnegative-\allowbreak{}variance-\allowbreak{}shifts}; \texttt{ass:\allowbreak{}reference-\allowbreak{}shifts-\allowbreak{}all-\allowbreak{}targets}.
+\end{definition}
+
+\begin{definition}[def:ordered-ldl-certificate]\label{def:ordered-ldl-certificate}
+\par\smallskip\noindent\emph{Defined object.} \texttt{ordered LDL certificate}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{Cert}(\theta,T,t)\iff [\,t\text{ orders }T,\ \bar Q_{tt}\succ0,\ \bar Q_{tt}=L_tD_tL_t^{\mathsf T},\ L_t\text{ unit lower triangular},\ D_t\text{ diagonal positive},\ \Lambda_{e,t}=L_t^{-1}P_t\Delta_eP_t^{\mathsf T}L_t^{-\mathsf T}\text{ diagonal and entrywise nonnegative for every }1\le e\le E\,]\), where \(\bar Q=\sum_{e=1}^E\Delta_e\) and \(\bar Q_{tt}=P_t\bar QP_t^{\mathsf T}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{theta}; \texttt{T}; \texttt{t}.
+\end{definition}
+
+\begin{definition}[def:causal-target-fiber]\label{def:causal-target-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{causal target fiber}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal F_{\mathrm{causal}}(\theta)=\{T\subseteq\mathcal V:|T|=r,\ \exists\mu\in\mathcal M_{d,E,r}\text{ with }T_{\mu}=T\text{ and }\operatorname{Cov}_{\mu}(Y_e)=\Sigma_e\text{ for every }e\in\mathcal E\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{theta}; \texttt{Mscm}.
+\end{definition}
+
+\begin{definition}[def:algebraic-target-fiber]\label{def:algebraic-target-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{algebraic target fiber}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal F_{\mathrm{LDL}}(\theta)=\{T\subseteq\mathcal V:|T|=r,\ \exists t\text{ ordering }T\text{ with }\operatorname{Cert}(\theta,T,t)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{theta}; \texttt{Cert}.
+\end{definition}
+
+\begin{definition}[def:positive-noise-completion]\label{def:positive-noise-completion}
+\par\smallskip\noindent\emph{Defined object.} \texttt{positive-\allowbreak{}noise SCM completion}
+\par\smallskip\noindent\emph{Construction.} Given \(\operatorname{Cert}(\theta,T,t)\), set \(W_t=\bar QP_t^{\mathsf T}\bar Q_{tt}^{-1}\), \(A_t=W_tL_t\), \(U_t=\begin{psmallmatrix}L_t&0\\A_{t,T^c}&I_{d-r}\end{psmallmatrix}\) after placing \(t\) first, and \(B_t=I_d-U_t^{-1}\).  Choose \(0<\tau<\lambda_{\min}(\Sigma_0)/(2(\lVert U_t\rVert_{\mathrm{op}}^2+1))\), set \(R_0=\Sigma_0-\tau U_tU_t^{\mathsf T}-\tau I_d\), and set \(C_t=U_t^{-1}R_0^{1/2}\).  Take \(H_e\sim N(0,I_d)\), baseline structural and measurement covariances \(\tau I_d\), and in environment \(e\) place the increments \(\operatorname{diag}(\Lambda_{e,t})\) on \(t\) and zero increments off \(T\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{theta}; \texttt{T}; \texttt{t}; \texttt{Cert}.
+\end{definition}
+
+\begin{definition}[def:subset-pivot-recursion]\label{def:subset-pivot-recursion}
+\par\smallskip\noindent\emph{Defined object.} \texttt{subset-\allowbreak{}memoized global pivot recursion}
+\par\smallskip\noindent\emph{Construction.} Initialize \(S=\varnothing\), \(R_S=\bar Q=\sum_{e=1}^E\Delta_e\), and \(M_{e,S}=\Delta_e\).  A label \(j\notin S\) is admissible when \(q=(R_S)_{jj}>0\), \(m_e=(M_{e,S})_{jj}\ge0\), and \(q(M_{e,S})_{:j}=m_e(R_S)_{:j}\) for every \(1\le e\le E\).  With \(u=(R_S)_{:j}/q\), update \(R_{S\cup\{j\}}=R_S-quu^{\mathsf T}\) and \(M_{e,S\cup\{j\}}=M_{e,S}-m_euu^{\mathsf T}\), memoizing only \(S\cup\{j\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Q}; \texttt{Delta}; \texttt{r}.
+\end{definition}
+
+\begin{definition}[def:complete-classification]\label{def:complete-classification}
+\par\smallskip\noindent\emph{Defined object.} \texttt{compulsory-\allowbreak{}and-\allowbreak{}possible classification}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal C(\theta)=\bigcap_{T\in\mathcal F_{\mathrm{LDL}}(\theta)}T\), \(\mathcal P(\theta)=\bigcup_{T\in\mathcal F_{\mathrm{LDL}}(\theta)}T\), and \(h(\theta)=(\mathcal C(\theta),\mathcal P(\theta))\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Falg}.
+\end{definition}
+
+\begin{definition}[def:bounded-covariance-class]\label{def:bounded-covariance-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{bounded legal covariance class}
+\par\smallskip\noindent\emph{Construction.} \(\Theta_K=\{\zeta_{d,E,r}:mI_d\preceq Z_e\preceq MI_d\text{ for every }e\in\mathcal E;\ \operatorname{rank}(\sum_{f=1}^E(Z_f-Z_0))=r;\ \operatorname{range}(Z_e-Z_0)\subseteq\operatorname{range}(\sum_{f=1}^E(Z_f-Z_0))\text{ for every }1\le e\le E;\ \exists T,t\text{ with }|T|=r\text{ and }\operatorname{Cert}(\zeta,T,t)\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}bounded-\allowbreak{}covariance-\allowbreak{}member}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}reference-\allowbreak{}rank}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}common-\allowbreak{}range}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}certificate-\allowbreak{}exists}.
+\end{definition}
+
+\begin{definition}[def:certified-approximate-selector]\label{def:certified-approximate-selector}
+\par\smallskip\noindent\emph{Defined object.} \texttt{certified approximate covariance selector}
+\par\smallskip\noindent\emph{Construction.} Fix a cylindrical algebraic decomposition of the semialgebraic graph \(G_{\epsilon}\) together with its ordered-certificate witness variables, and let \(s_{\epsilon}(s)\) be the definable-choice section obtained by taking the first nonempty cell in that fixed decomposition.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Gepsilon}; \texttt{epsilon}.
+\end{definition}
+
+\begin{definition}[def:augmented-family-region]\label{def:augmented-family-region}
+\par\smallskip\noindent\emph{Defined object.} \texttt{augmented target-\allowbreak{}family confidence region}
+\par\smallskip\noindent\emph{Construction.} \(W_n=\{\zeta:mI_d\preceq Z_e\preceq MI_d,\ \lVert\zeta-\widehat\Sigma\rVert_w\le c_{\alpha}\}\), \(\widetilde\theta_n=s_1(\widehat\Sigma)\), \(R_n=W_n\cup\{\widetilde\theta_n\}\), \(\mathcal F_{\mathrm{out},n}=\bigcup_{\zeta\in R_n\cap\Theta_K}\mathcal F_{\mathrm{LDL}}(\zeta)\), and \(\mathcal H_n=\{h(\zeta):\zeta\in R_n\cap\Theta_K\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Shat}; \texttt{ThetaK}; \texttt{stilde}; \texttt{alpha}.
+\end{definition}
+
+\begin{definition}[def:classification-information-distance]\label{def:classification-information-distance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{classification information distance}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal A_h(\theta)=\{\zeta\in\Theta_K:h(\zeta)\ne h(\theta)\}\) and \(\delta_n(\theta)=\inf_{\zeta\in\mathcal A_h(\theta)}[\tfrac12\sum_{e=0}^{E}n_e\operatorname{tr}(\Sigma_e^{-1}(Z_e-\Sigma_e)\Sigma_e^{-1}(Z_e-\Sigma_e))]^{1/2}\), with \(\inf\varnothing=\infty\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{theta}; \texttt{ThetaK}; \texttt{h}; \texttt{n}.
+\end{definition}
+
+\begin{definition}[def:four-node-collision-path]\label{def:four-node-collision-path}
+\par\smallskip\noindent\emph{Defined object.} \texttt{four-\allowbreak{}node profile-\allowbreak{}collision path}
+\par\smallskip\noindent\emph{Construction.} For \(d=4\), \(r=2\), and \(E=2\), take \(a=(1,1,2,1)^{\mathsf T}\), \(b=(0,1,1,2)^{\mathsf T}\), \(\Sigma_0=I_4\), \(\Delta_1=aa^{\mathsf T}+bb^{\mathsf T}\), and \(\Delta_2(\gamma)=2aa^{\mathsf T}+(2+\gamma)bb^{\mathsf T}\).  Set \(\Sigma_e=\Sigma_0+\Delta_e\), \(\theta_\gamma=(\Sigma_0,\Sigma_1,\Sigma_2)\), and \(\bar Q=\Delta_1+\Delta_2=3aa^{\mathsf T}+(3+\gamma)bb^{\mathsf T}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{gamma}.
+\end{definition}
+
+\begin{definition}[def:restriction-boundary-witnesses]\label{def:restriction-boundary-witnesses}
+\par\smallskip\noindent\emph{Defined object.} \texttt{signed-\allowbreak{}shift and split-\allowbreak{}reference boundary witnesses}
+\par\smallskip\noindent\emph{Construction.} For \(d=3\), \(r=2\), and \(E=2\), set \(B_{\mu}=0\), \(C_{\mu}=0\), \(\omega_{0,\mu}=(3/2,3/2,3/2)^{\mathsf T}\), \(\Omega_{\eta,\mu}=I_3/2\), and \(T_{\mu}=\{1,2\}\).  Define \(\theta^{\pm}\) by \(\lambda_1=(1,1,0)^{\mathsf T}\) and \(\lambda_2=(-1/2,0,0)^{\mathsf T}\), so \(\Sigma_0=2I_3\), \(\Sigma_1=\operatorname{diag}(3,3,2)\), and \(\Sigma_2=\operatorname{diag}(3/2,2,2)\).  Define \(\theta^{\mathrm{split}}\) by \(\lambda_1=(1,0,0)^{\mathsf T}\) and \(\lambda_2=(0,1,0)^{\mathsf T}\), so \(\Sigma_0=2I_3\), \(\Sigma_1=\operatorname{diag}(3,2,2)\), and \(\Sigma_2=\operatorname{diag}(2,3,2)\).
+\end{definition}
+
+\begin{definition}[def:power-envelope-handle]\label{def:power-envelope-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{geometry-\allowbreak{}indexed local collision power-\allowbreak{}envelope handle}
+\par\smallskip\noindent\emph{Construction.} For a specified regular sequence, first derive its Gaussian local experiment and record its tangent geometry as \(\mathcal G=(k,g_0,\mathcal A)\), where \(X\sim N(g,I_k)\), \(g_0\) has the focal complete classification, and \(\mathcal A\) is the union of tangent sets having a different complete classification.  Define the geometry-indexed honest focal-certification value by \(\beta^{\star}_{\mathcal G}(\alpha)=\sup\{\mathbb E_{g_0}\phi(X):\phi:\mathbb R^k\to[0,1]\text{ is Borel and }\sup_{g\in\mathcal A}\mathbb E_g\phi(X)\le\alpha\}\).  Record \(c=\inf_{g\in\mathcal A}\lVert g-g_0\rVert_2\) as the nearest-boundary summary, but retain \(\mathcal G\) as an argument of the envelope.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Gtan}; \texttt{alpha}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:range-reconstruction]\label{lem:range-reconstruction}
+If \(\operatorname{rank}(Q)=r\), \(Q_{tt}\) is invertible, \(W_t=QP_t^{\mathsf T}Q_{tt}^{-1}\), and \(N=N^{\mathsf T}\) satisfies \(\operatorname{range}(N)\subseteq\operatorname{range}(Q)\), then \(N=W_t(P_tNP_t^{\mathsf T})W_t^{\mathsf T}\).
+\end{lemma}
+\begin{proof}
+Let \(\mathcal S=\operatorname{range}(Q)\) and put \(K=QP_t^{\mathsf T}\).  The hypothesis that \(Q_{tt}=P_tQP_t^{\mathsf T}\) is invertible gives
+\[
+ P_tK=Q_{tt}\in\mathrm{GL}_r(\mathbb R).
+\]
+Thus the \(r\) columns of \(K\) are linearly independent.  Since \(\operatorname{rank}(Q)=r\), they span \(\mathcal S\).  By the definition of \(W_t\),
+\[
+ P_tW_t=P_tQP_t^{\mathsf T}Q_{tt}^{-1}=I_r,
+ \qquad \operatorname{range}(W_t)\subseteq\mathcal S.
+\]
+Consequently \(W_t\) is the inverse of the coordinate restriction \(P_t\vert_{\mathcal S}:\mathcal S\to\mathbb R^r\), and hence
+\[
+ W_tP_tx=x\qquad(x\in\mathcal S). \tag{1}
+\]
+Every column of \(N\) lies in \(\mathcal S\) by the assumed range inclusion, so applying (1) columnwise yields \(W_tP_tN=N\).  Symmetry of \(N\) then gives, after transposition, \(NP_t^{\mathsf T}W_t^{\mathsf T}=N\).  Therefore
+\[
+ W_t(P_tNP_t^{\mathsf T})W_t^{\mathsf T}
+ =(W_tP_tN)P_t^{\mathsf T}W_t^{\mathsf T}
+ =NP_t^{\mathsf T}W_t^{\mathsf T}=N.
+\]
+No sign or definiteness condition on \(N\) is needed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lemma upgrades target-block diagonalization to an identity for every full covariance shift. \textit{Gap.} BACKSHIFT and coroICA use global diagonalizers; neither isolates the coordinate-restriction inverse needed for a labeled principal-block converse. \textit{Consumer.} The positive-noise realization theorem uses this identity to reconstruct every full shift from its target block.
+
+\begin{theorem}[thm:positive-noise-realization]\label{thm:positive-noise-realization}
+Suppose \(\Sigma_0\succ0\), \(\operatorname{rank}(\bar Q)=r\), and \(\operatorname{range}(\Delta_e)\subseteq\operatorname{range}(\bar Q)\) for every \(1\le e\le E\), where \(\bar Q=\sum_{e=1}^E\Delta_e\).  For every \(T\subseteq\mathcal V\) and ordering \(t\) satisfying \(\operatorname{Cert}(\theta,T,t)\), the construction in \(\text{def:positive-noise-completion}\) yields a model in \(\mathcal M_{d,E,r}\) with target set \(T\), covariance \(\operatorname{Cov}(Y_e)=\Sigma_e\) for all \(e\in\mathcal E\), strictly positive baseline structural-noise variances, and strictly positive stationary measurement-error variances.
+\end{theorem}
+\begin{proof}
+Fix \(T\) and an ordering \(t\) for which \(\operatorname{Cert}(\theta,T,t)\) holds.  Write \(W=W_t\), \(L=L_t\), \(D=D_t\), and \(A=WL\).  The aggregate certificate and the definitions give
+\[
+ P_tA=P_t\bar QP_t^{\mathsf T}\bar Q_{tt}^{-1}L=L,
+ \qquad
+ P_t\Delta_eP_t^{\mathsf T}=L\Lambda_{e,t}L^{\mathsf T}. \tag{1}
+\]
+The hypotheses \(\operatorname{rank}(\bar Q)=r\) and \(\operatorname{range}(\Delta_e)\subseteq\operatorname{range}(\bar Q)\) are explicit premises of the narrowed statement.  Apply \(\text{lem:range-reconstruction}\), with its carrier symbol interpreted as \(\bar Q\), first to \(N=\bar Q\) and then to \(N=\Delta_e\).  Because \(\bar Q_{tt}=LDL^{\mathsf T}\), equation (1) yields
+\[
+ \bar Q=W\bar Q_{tt}W^{\mathsf T}=ADA^{\mathsf T},
+ \qquad
+ \Delta_e=W(P_t\Delta_eP_t^{\mathsf T})W^{\mathsf T}
+ =A\Lambda_{e,t}A^{\mathsf T}. \tag{2}
+\]
+Every \(\Delta_e\) is therefore positive semidefinite, since every \(\Lambda_{e,t}\) is diagonal and entrywise nonnegative.
+
+The aggregate identity is also needed to verify target coverage.  Summing the definition of \(\Lambda_{e,t}\) over \(e\) gives
+\[
+ \sum_{e=1}^E\Lambda_{e,t}
+ =L^{-1}P_t\bar QP_t^{\mathsf T}L^{-\mathsf T}
+ =L^{-1}(LDL^{\mathsf T})L^{-\mathsf T}=D. \tag{3}
+\]
+Thus, for each \(1\le k\le r\), the nonnegative numbers \((\Lambda_{e,t})_{kk}\) sum to \(D_{kk}>0\).  Consequently at least one environment has \((\Lambda_{e,t})_{kk}>0\).  This proves the target-coverage condition without requiring a single environment to change every target.
+
+Permute the observed coordinates so that \(t_1,\ldots,t_r\) occur first.  Write \(A_{T^c}\) for the remaining rows of \(A\), and define
+\[
+ U=\begin{pmatrix}L&0\\ A_{T^c}&I_{d-r}\end{pmatrix}. \tag{4}
+\]
+By (1), the first \(r\) columns of \(U\) are exactly \(A\).  The matrix \(U\) is unit lower triangular and invertible.  Solving \(UX=I_d\) successively by rows shows that \(U^{-1}\) is unit lower triangular.  Hence \(B=I_d-U^{-1}\) is strictly lower triangular in this permutation, so it is an acyclic observed structural matrix.  Undoing the permutation retains the original observed labels.
+
+Let \(a_0=\lambda_{\min}(\Sigma_0)>0\), using the explicit premise \(\Sigma_0\succ0\), and choose \(\tau\) as in \(\text{def:positive-noise-completion}\).  For every \(x\in\mathbb R^d\),
+\[
+ \begin{aligned}
+ x^{\mathsf T}R_0x
+ &=x^{\mathsf T}\Sigma_0x-\tau\lVert U^{\mathsf T}x\rVert_2^2-\tau\lVert x\rVert_2^2\\
+ &\ge\bigl(a_0-\tau(\lVert U\rVert_{\mathrm{op}}^2+1)\bigr)\lVert x\rVert_2^2
+ >\frac{a_0}{2}\lVert x\rVert_2^2.
+ \end{aligned} \tag{5}
+\]
+Thus \(R_0\succ0\).  Its spectral decomposition supplies the unique symmetric positive square root \(R_0^{1/2}\).
+
+For each environment, take mutually independent random vectors
+\[
+ H_e\sim N(0,I_d),\qquad
+ \eta_e\sim N(0,\tau I_d),\qquad
+ \varepsilon_e\sim N\!\left(0,\tau I_d+
+ \operatorname{diag}_t(\Lambda_{e,t})\right), \tag{6}
+\]
+where \(\operatorname{diag}_t(\Lambda_{e,t})\) places the diagonal entries on the labels in \(t\), is zero off \(T\), and \(\Lambda_{0,t}=0\).  Set \(C=U^{-1}R_0^{1/2}\).  Equation (6) supplies centered Gaussian primitives and the required mutual independence.  The latent covariance \(I_d\), loading \(C\), and measurement covariance \(\tau I_d\succ0\) are invariant over environments.  The baseline structural variance vector is \(\tau\mathbf 1_d>0\).  Its increments vanish off \(T\), are nonnegative on \(T\), and, by (3), every label in \(T\) has a strictly positive increment in at least one environment.  Thus the changing-coordinate set is exactly the declared size-\(r\) set \(T\).
+
+At baseline, independence and the definition of \(Y_e\) give
+\[
+ \operatorname{Cov}(Y_0)
+ =UCC^{\mathsf T}U^{\mathsf T}+\tau UU^{\mathsf T}+\tau I_d
+ =R_0+\tau UU^{\mathsf T}+\tau I_d=\Sigma_0. \tag{7}
+\]
+Only the structural-noise covariance changes across environments.  Since the target columns of \(U\) equal \(A\), equations (2) and (7) imply
+\[
+ \operatorname{Cov}(Y_e)-\operatorname{Cov}(Y_0)
+ =A\Lambda_{e,t}A^{\mathsf T}=\Delta_e,
+ \qquad
+ \operatorname{Cov}(Y_e)=\Sigma_0+\Delta_e=\Sigma_e. \tag{8}
+\]
+All conditions of the repaired \(\mathcal M_{d,E,r}\), including strict structural and measurement-noise positivity and aggregate target coverage, have now been verified from the construction.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem proves that every aggregate certificate has a legal acyclic SCM witness at the actually observed positive-definite baseline. \textit{Gap.} Existing mixing-matrix and measurement-error results do not provide this arbitrary-baseline positive-noise lift from target-block covariance certificates. \textit{Consumer.} Every member of the reported family is a realizable causal explanation rather than only an algebraic factorization.
+
+\begin{theorem}[thm:sharp-target-fiber]\label{thm:sharp-target-fiber}
+For every covariance tuple \(\theta\) satisfying \(\Sigma_0\succ0\), \(\operatorname{rank}(\bar Q)=r\), and \(\operatorname{range}(\Delta_e)\subseteq\operatorname{range}(\bar Q)\) for all \(1\le e\le E\), where \(\bar Q=\sum_{e=1}^E\Delta_e\), one has \(\mathcal F_{\mathrm{causal}}(\theta)=\mathcal F_{\mathrm{LDL}}(\theta)\).  Equivalently, a labeled size-\(r\) set is compatible if and only if some ordering has a positive-definite aggregate principal block whose unique unit-lower \(LDL^{\mathsf T}\) factor simultaneously transforms every target-block shift to a diagonal entrywise-nonnegative matrix.
+\end{theorem}
+\begin{proof}
+We prove the two inclusions, keeping the causal fiber and the observable certificate distinct until their equality has been derived.
+
+Let \(T\in\mathcal F_{\mathrm{causal}}(\theta)\).  By \(\text{def:causal-target-fiber}\), choose \(\mu\in\mathcal M_{d,E,r}\) with \(T_\mu=T\) and covariance tuple \(\theta\).  Write \(U=U_\mu\), choose a topological ordering of the acyclic matrix \(B_\mu\), and let \(t=(t_1,\ldots,t_r)\) be the induced order on \(T\).  Put \(A=UP_t^{\mathsf T}\), the matrix formed by the target columns of \(U\).  Stationarity of the latent-root and measurement-error covariances, mutual independence of the primitive blocks, and the no-off-target-shift condition in \(\text{def:legal-scm-class}\) imply, for each \(e\ge1\),
+\[
+ \Delta_e
+ =U\operatorname{diag}(\lambda_e)U^{\mathsf T}
+ =A\operatorname{diag}(\lambda_{e,t_1},\ldots,\lambda_{e,t_r})A^{\mathsf T}. \tag{2}
+\]
+Let
+\[
+ s_k=\sum_{e=1}^E\lambda_{e,t_k}\qquad(1\le k\le r).
+\]
+Each summand is nonnegative by \(\text{ass:nonnegative-variance-shifts}\), and the target-coverage clause of \(\text{def:legal-scm-class}\) supplies at least one strictly positive summand for each \(k\).  Thus \(s_k>0\).  Summing (2) over the nonbaseline environments gives
+\[
+ \bar Q=A\operatorname{diag}(s_1,\ldots,s_r)A^{\mathsf T}. \tag{3}
+\]
+Because the labels in \(t\) retain their topological order, \(P_tA=U_{tt}\) is unit lower triangular.  Taking the \(t\)-principal block in (3),
+\[
+ \bar Q_{tt}=U_{tt}\operatorname{diag}(s_1,\ldots,s_r)U_{tt}^{\mathsf T}\succ0. \tag{4}
+\]
+The positive unit-lower \(LDL^{\mathsf T}\) factorization is unique.  Indeed, its \((1,1)\) entry and first column determine the first positive pivot and the first column of the unit-lower factor; subtracting the resulting rank-one term reduces the assertion to dimension \(r-1\), so induction proves uniqueness.  Comparing (4) with the factorization in \(\text{def:ordered-ldl-certificate}\) therefore yields
+\[
+ L_t=U_{tt},\qquad D_t=\operatorname{diag}(s_1,\ldots,s_r). \tag{5}
+\]
+Taking the target principal block in (2) and using (5),
+\[
+ \Lambda_{e,t}
+ =L_t^{-1}P_t\Delta_eP_t^{\mathsf T}L_t^{-\mathsf T}
+ =\operatorname{diag}(\lambda_{e,t_1},\ldots,\lambda_{e,t_r}). \tag{6}
+\]
+This matrix is diagonal and entrywise nonnegative.  Equations (4)--(6) prove \(\operatorname{Cert}(\theta,T,t)\), hence \(T\in\mathcal F_{\mathrm{LDL}}(\theta)\).  We have proved
+\[
+ \mathcal F_{\mathrm{causal}}(\theta)\subseteq\mathcal F_{\mathrm{LDL}}(\theta). \tag{7}
+\]
+
+Conversely, let \(T\in\mathcal F_{\mathrm{LDL}}(\theta)\).  The definition of the algebraic fiber supplies an ordering \(t\) of \(T\) for which \(\operatorname{Cert}(\theta,T,t)\) holds.  The hypotheses of \(\text{thm:positive-noise-realization}\) are exactly the assumed baseline positivity, aggregate rank \(r\), and inclusion of every shift range in \(\operatorname{range}(\bar Q)\).  That theorem therefore constructs \(\mu\in\mathcal M_{d,E,r}\) satisfying \(T_\mu=T\) and \(\operatorname{Cov}_\mu(Y_e)=\Sigma_e\) for every \(e\in\mathcal E\).  Thus \(T\in\mathcal F_{\mathrm{causal}}(\theta)\), which proves the reverse inclusion.  Combining it with (7) proves the equality of fibers.  Expanding \(\text{def:algebraic-target-fiber}\) and \(\text{def:ordered-ldl-certificate}\) gives the stated necessary-and-sufficient observable recovery map.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the necessary-and-sufficient population kernel that replaces nonsharp target supersets by the complete labeled fiber. \textit{Gap.} Yang, Salehkaleybar, and Kiyavash characterize a superset under latent confounding, while BACKSHIFT and coroICA identify a global mixing matrix only when variance profiles separate.  Varici et al. estimate intervention targets in latent-variable settings, and Taeb et al. fit and score latent-variable causal models with unknown additive interventions; their target-estimation or model/equivalence-class outputs do not give the exact set of all labeled acyclic target sets certified by an ordered aggregate principal block, nor the positive-noise converse at profile collisions. \textit{Consumer.} Unknown-target perturbation studies can report all and only covariance-compatible effective target sets while retaining stationary latent confounding and measurement error.
+
+\begin{theorem}[thm:subset-pivot-completeness]\label{thm:subset-pivot-completeness}
+Suppose \(\Sigma_0\succ0\), \(\operatorname{rank}(\bar Q)=r\), and \(\operatorname{range}(\Delta_e)\subseteq\operatorname{range}(\bar Q)\) for every \(1\le e\le E\), where \(\bar Q=\sum_{e=1}^E\Delta_e\).  The leaves of depth \(r\) accepted by the recursion in \(\text{def:subset-pivot-recursion}\) are exactly \(\mathcal F_{\mathrm{LDL}}(\theta)=\mathcal F_{\mathrm{causal}}(\theta)\).  Every reached residual pair \((R_S,(M_{e,S})_{e=1}^{E})\) depends only on \(S\), so the algorithm terminates after visiting at most \(\sum_{k=0}^{r}\binom{d}{k}\) subset states, and the intersection and union of its leaves equal \(\mathcal C(\theta)\) and \(\mathcal P(\theta)\).
+\end{theorem}
+\begin{proof}
+We first establish that every reached residual is determined by its selected subset.  For a reached subset \(S\), define
+\[
+ E_S=I_d-\bar Q_{:S}\bar Q_{SS}^{-1}P_S. \tag{8}
+\]
+Every preceding aggregate pivot is strictly positive.  Successive symmetric elimination therefore gives a unit-lower factorization of \(\bar Q_{SS}\) with positive diagonal pivots, so \(\bar Q_{SS}\succ0\) and the inverse in (8) exists.  Since \(P_S\bar Q_{:S}=\bar Q_{SS}\), direct multiplication gives
+\[
+ E_S\bar Q=\bar QE_S^{\mathsf T}
+ =\bar Q-\bar Q_{:S}\bar Q_{SS}^{-1}\bar Q_{S:},
+ \qquad E_S\bar QE_S^{\mathsf T}=E_S\bar Q. \tag{9}
+\]
+We claim that the residuals after selecting \(S\) are
+\[
+ R_S=\bar Q-\bar Q_{:S}\bar Q_{SS}^{-1}\bar Q_{S:},
+ \qquad M_{e,S}=E_S\Delta_eE_S^{\mathsf T}. \tag{10}
+\]
+This is true at \(S=\varnothing\).  If (10) holds and \(j\notin S\) is admissible, put
+\[
+ q=(R_S)_{jj}>0,\qquad m_e=(M_{e,S})_{jj}\ge0,\qquad
+ u=(R_S)_{:j}/q.
+\]
+The scalar block-inverse formula for \(\bar Q_{S\cup\{j\},S\cup\{j\}}\) changes the first expression in (10) to \(R_S-quu^{\mathsf T}\).  Admissibility says \((M_{e,S})_{:j}=m_eu\); symmetry gives the corresponding row identity, so the same one-coordinate congruence changes the second expression to \(M_{e,S}-m_euu^{\mathsf T}\).  These are precisely the recursion updates.  Induction proves (10), and hence the entire residual tuple depends only on \(S\), not on the path that reached it.
+
+Now suppose \(t=(t_1,\ldots,t_r)\) certifies \(T\).  Apply \(\text{lem:range-reconstruction}\) first to \(N=\bar Q\) and then to each \(N=\Delta_e\).  With \(A=W_tL_t\), columns \(a_1,\ldots,a_r\), diagonal entries \(d_k=(D_t)_{kk}>0\), and \(\ell_{ek}=(\Lambda_{e,t})_{kk}\ge0\), this gives
+\[
+ \bar Q=\sum_{k=1}^r d_ka_ka_k^{\mathsf T},
+ \qquad
+ \Delta_e=\sum_{k=1}^r\ell_{ek}a_ka_k^{\mathsf T}. \tag{11}
+\]
+Moreover, \(P_tA=L_t\), so unit lower triangularity gives
+\[
+ (a_k)_{t_i}=0\quad(i<k),\qquad (a_k)_{t_k}=1. \tag{12}
+\]
+After the first \(k-1\) updates, (11)--(12) imply inductively
+\[
+ R=\sum_{l=k}^r d_la_la_l^{\mathsf T},
+ \qquad M_e=\sum_{l=k}^r\ell_{el}a_la_l^{\mathsf T}. \tag{13}
+\]
+At label \(t_k\), the later columns vanish by (12), whence
+\[
+ q=d_k>0,quad m_e=\ell_{ek}\ge0,quad
+ R_{:t_k}=d_ka_k,quad (M_e)_{:t_k}=\ell_{ek}a_k.
+\]
+Thus \(q(M_e)_{:t_k}=m_eR_{:t_k}\) for every \(e\), and every certifying ordering is an accepted path of depth \(r\).
+
+Conversely, let \(t=(t_1,\ldots,t_r)\) be an accepted path, and denote its successive values by \(q_k>0\), \(m_{ek}\ge0\), and \(u_k\).  We first show
+\[
+ \operatorname{range}(M_{e,S})\subseteq\operatorname{range}(R_S) \tag{14}
+\]
+at every reached subset.  Let \(\bar Q^+\) be the Moore--Penrose inverse.  Since \(\bar Q\) is symmetric, \(P=\bar Q\bar Q^+\) is the orthogonal projection onto \(\operatorname{range}(\bar Q)\).  The assumed range inclusion and symmetry of \(\Delta_e\) give \(P\Delta_e=\Delta_e=\Delta_eP\).  Hence, with \(C_e=\bar Q^+\Delta_e\bar Q^+\),
+\[
+ \Delta_e=\bar QC_e\bar Q.
+\]
+Equations (9)--(10) consequently imply
+\[
+ M_{e,S}=E_S\bar QC_e\bar QE_S^{\mathsf T}=R_SC_eR_S,
+\]
+which proves (14).
+
+For a symmetric residual with pivot \(q_k>0\), the update \(R\mapsto R-q_ku_ku_k^{\mathsf T}\) is a congruence elimination that deletes one nonzero pivot; therefore its rank is one less.  Starting from \(\operatorname{rank}(\bar Q)=r\), after \(r\) accepted pivots one has \(R_T=0\).  Equation (14) then gives \(M_{e,T}=0\) for every \(e\).  Telescoping all recursion updates yields
+\[
+ \bar Q=\sum_{k=1}^r q_ku_ku_k^{\mathsf T},
+ \qquad
+ \Delta_e=\sum_{k=1}^r m_{ek}u_ku_k^{\mathsf T}. \tag{15}
+\]
+Eliminating a selected label makes its residual row and column zero, and later update vectors are zero at all earlier selected labels.  Hence
+\[
+ (u_k)_{t_i}=0\quad(i<k),\qquad (u_k)_{t_k}=1.
+\]
+If \(L=P_t[u_1\ \cdots\ u_r]\), then \(L\) is unit lower triangular.  Taking target principal blocks in (15) gives
+\[
+ \bar Q_{tt}=L\operatorname{diag}(q_1,\ldots,q_r)L^{\mathsf T}\succ0,
+\]
+and, for every \(e\),
+\[
+ L^{-1}P_t\Delta_eP_t^{\mathsf T}L^{-\mathsf T}
+ =\operatorname{diag}(m_{e1},\ldots,m_{er}), \tag{16}
+\]
+which is entrywise nonnegative.  Thus \(\operatorname{Cert}(\theta,T,t)\) holds.
+
+We have shown that the depth-\(r\) leaves are exactly \(\mathcal F_{\mathrm{LDL}}(\theta)\).  The stated baseline, rank, and range hypotheses allow \(\text{thm:sharp-target-fiber}\) to identify this family with \(\mathcal F_{\mathrm{causal}}(\theta)\).  Since a memoized state is indexed only by a subset \(S\) of size at most \(r\), there are at most
+\[
+ \sum_{k=0}^r\binom{d}{k}
+\]
+states, and the search terminates at depth \(r\).  Finally, \(\text{def:complete-classification}\) says that the intersection and union of this exact leaf family are \(\mathcal C(\theta)\) and \(\mathcal P(\theta)\), respectively.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The aggregate residual recursion converts the sharp characterization into a terminating complete-family algorithm with subset memoization. \textit{Gap.} No prior covariance-shift method supplies this complete labeled pivot enumeration at profile collisions. \textit{Consumer.} The leaves directly yield compulsory and possible effective targets together with witness orderings.
+
+\begin{lemma}[lem:measurable-certified-selection]\label{lem:measurable-certified-selection}
+For every \(\epsilon>0\), the correspondence \(G_{\epsilon}\) admits a semialgebraic, hence Borel measurable, section \(s_{\epsilon}\) that returns both \(s_{\epsilon}(s)\in\Theta_K\) and an ordered certificate witness, with \(\lVert s_{\epsilon}(s)-s\rVert_w<\inf_{\zeta\in\Theta_K}\lVert\zeta-s\rVert_w+\epsilon\) for every covariance statistic \(s\).
+\end{lemma}
+\begin{proof}
+We first verify that \(\Theta_K\) is nonempty.  Let
+\[
+ a=\frac{m+M}{2},\qquad q=\frac{M-m}{4},\qquad
+ J=\operatorname{diag}(I_r,0),
+\]
+and set \(Z_0=aI_d\), \(Z_1=Z_0+qJ\), and \(Z_e=Z_0\) for \(e\ge2\).  Since \(0<m<M\), every eigenvalue of every \(Z_e\) lies in \([m,M]\).  The aggregate difference is \(qJ\), which has rank \(r\), and every individual difference has range contained in its range.  The first \(r\) labels in their natural order have certificate
+\[
+ L=I_r,\qquad D=qI_r,\qquad
+ \Lambda_1=qI_r,\qquad \Lambda_e=0\ (e\ge2).
+\]
+Thus this tuple belongs to \(\Theta_K\).
+
+We next exhibit the finite-dimensional semialgebraic graph to which the fixed cylindrical decomposition in \(\text{def:certified-approximate-selector}\) applies.  The covariance box constraints are finite principal-minor inequalities for \(Z_e-mI_d\) and \(MI_d-Z_e\).  If
+\[
+ Q(\zeta)=\sum_{e=1}^E(Z_e-Z_0),
+\]
+then \(\operatorname{rank}(Q(\zeta))=r\) is expressed by the vanishing of every \((r+1)\)-minor and strict positivity of the sum of squares of the \(r\)-minors.  Given that exact rank, the inclusion
+\(\operatorname{range}(Z_e-Z_0)\subseteq\operatorname{range}(Q(\zeta))\) is equivalent to the vanishing of every \((r+1)\)-minor of the column-concatenated matrix \([Q(\zeta)\; Z_e-Z_0]\).
+
+For each of the finitely many pairs \((T,t)\), retain real witness variables \(L,D,(\Lambda_e)_{e=1}^E\).  The certificate is expressed by
+\[
+ P_tQ(\zeta)P_t^{\mathsf T}=LDL^{\mathsf T},
+ \qquad
+ P_t(Z_e-Z_0)P_t^{\mathsf T}=L\Lambda_eL^{\mathsf T}, \tag{17}
+\]
+together with polynomial equations imposing that \(L\) is unit lower triangular and \(D,\Lambda_e\) are diagonal, strict inequalities for the diagonal of \(D\), and weak nonnegativity inequalities for the diagonals of every \(\Lambda_e\).  Hence the witnessed membership relation for \(\Theta_K\) is a finite Boolean combination of polynomial equalities and inequalities.
+
+For a covariance statistic \(s\), define the squared-distance infimum
+\[
+ v(s)=\inf_{\xi\in\Theta_K}\lVert\xi-s\rVert_w^2.
+\]
+It is finite because \(\Theta_K\ne\varnothing\).  Its graph is characterized without assuming attainment by the first-order conditions
+\[
+ v\ge0,\qquad
+ \bigl(\forall\xi\in\Theta_K\bigr)\ v\le\lVert\xi-s\rVert_w^2,
+\]
+\[
+ \bigl(\forall u>v\bigr)\bigl(\exists\xi\in\Theta_K\bigr)
+ \ \lVert\xi-s\rVert_w^2<u. \tag{18}
+\]
+All terms in (18) are polynomial after expanding the weighted Frobenius norm.  Real quantifier elimination, equivalently the projection step in a cylindrical algebraic decomposition, therefore shows that the graph of \(v\) is semialgebraic.  Introduce \(\rho\ge0\) with \(\rho^2=v(s)\).  The augmented relation consisting of (17), witnessed membership in \(\Theta_K\), and
+\[
+ \lVert\zeta-s\rVert_w^2<(\rho+\epsilon)^2 \tag{19}
+\]
+is likewise semialgebraic.  Because \(\rho=\inf_{\xi\in\Theta_K}\lVert\xi-s\rVert_w\), the defining property of an infimum supplies a \(\zeta\in\Theta_K\) satisfying (19) for every \(s\) and every \(\epsilon>0\); witnessed membership supplies at least one finite certificate branch.  Thus every fiber of the augmented relation is nonempty.
+
+For completeness, the fixed cylindrical decomposition yields a section without any closed-fiber or attainment premise.  Order its finitely many cells.  Over each base cell, take the first cell with nonempty fiber.  In one added coordinate a cylindrical cell is either the graph of a semialgebraic boundary function or a band between two such functions.  Select the boundary value in the graph case, the midpoint when both band boundaries are finite, the finite boundary plus or minus one in a one-sided unbounded band, and zero in a two-sided unbounded band.  Repeating this operation coordinate by coordinate gives a semialgebraic point in the chosen fiber.  Induction over the finitely many covariance, certificate, and branch coordinates produces the section specified in \(\text{def:certified-approximate-selector}\).
+
+Its covariance component \(s_\epsilon\) consequently satisfies, for every \(s\),
+\[
+ s_\epsilon(s)\in\Theta_K,
+ \qquad
+ \lVert s_\epsilon(s)-s\rVert_w
+ <\inf_{\xi\in\Theta_K}\lVert\xi-s\rVert_w+\epsilon, \tag{20}
+\]
+and the retained variables in (17) give an ordered certificate witness.  Finally, each coordinate of a semialgebraic map is Borel measurable: for every rational \(c\), its inverse image of \(( -\infty,c)\) is the projection of the semialgebraic graph intersected with the corresponding half-space, hence is semialgebraic and therefore Borel.  Such rational half-lines generate the Euclidean Borel sigma-field.  Thus \(s_\epsilon\) is Borel measurable, completing the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This closes the nonattainment gap created by exact rank and strict positive pivots without assuming a nearest model point exists. \textit{Gap.} Brown and Purves treat measurable attained extrema, and Romano and Shaikh invert criteria over identified sets; neither supplies certified approximate projection through this nonclosed exact-rank semialgebraic covariance model. \textit{Consumer.} The augmented confidence construction needs this selector to be measurable and nonempty on every sample, including off-model empirical covariances.
+
+\begin{theorem}[thm:honest-family-confidence]\label{thm:honest-family-confidence}
+Under the independent Gaussian sampling design, uniformly over \(\theta\in\Theta_K\), \(\Pr_{\theta}[\mathcal F_{\mathrm{causal}}(\theta)\subseteq\mathcal F_{\mathrm{out},n}\text{ and }h(\theta)\in\mathcal H_n]\ge1-\alpha\).  The region \(R_n\cap\Theta_K\) is nonempty for every sample, and a rule reports a classification only when \(\mathcal H_n\) is a singleton has probability at most \(\alpha\) of reporting a classification different from \(h(\theta)\).
+\end{theorem}
+\begin{proof}
+Fix one environment and suppress its index.  With \(\widehat\Sigma=n^{-1}\sum_{i=1}^nY_iY_i^{\mathsf T}\) and \(Y_i\sim N(0,\Sigma)\), diagonalization of \(\Sigma\), the one-dimensional Gaussian moments \(\mathbb EZ^2=1\) and \(\mathbb EZ^4=3\), and independence of the whitened coordinates give
+\[
+ \mathbb E(Y_jY_kY_lY_m)
+ =\Sigma_{jk}\Sigma_{lm}+\Sigma_{jl}\Sigma_{km}+\Sigma_{jm}\Sigma_{kl}. \tag{21}
+\]
+Independence over observations and summation over matrix entries therefore yield
+\[
+ \mathbb E_\Sigma\lVert\widehat\Sigma-\Sigma\rVert_F^2
+ =\frac1n\sum_{j,k}\operatorname{Var}(Y_jY_k)
+ =\frac1n\left\{(\operatorname{tr}\Sigma)^2+\operatorname{tr}(\Sigma^2)\right\}. \tag{22}
+\]
+For \(\Sigma\preceq MI_d\), the expression in braces is at most \(M^2d(d+1)\).  Applying (22) in every environment and using the definition of the weighted norm gives, uniformly over \(\theta\in\Theta_K\),
+\[
+ \mathbb E_\theta\lVert\widehat\Sigma-\theta\rVert_w^2
+ \le (E+1)M^2d(d+1)=V_{\max}. \tag{23}
+\]
+Markov's inequality and \(c_\alpha^2=V_{\max}/\alpha\) imply
+\[
+ \Pr_\theta\!\left(\lVert\widehat\Sigma-\theta\rVert_w\le c_\alpha\right)
+ \ge1-\alpha. \tag{24}
+\]
+
+On the event in (24), the true tuple obeys the covariance box constraints and the radius constraint defining \(W_n\); since \(\theta\in\Theta_K\), it follows that \(\theta\in R_n\cap\Theta_K\).  By \(\text{thm:sharp-target-fiber}\),
+\[
+ \mathcal F_{\mathrm{causal}}(\theta)=\mathcal F_{\mathrm{LDL}}(\theta).
+\]
+The definitions of \(\mathcal F_{\mathrm{out},n}\) and \(\mathcal H_n\) then give
+\[
+ \mathcal F_{\mathrm{causal}}(\theta)\subseteq\mathcal F_{\mathrm{out},n},
+ \qquad h(\theta)\in\mathcal H_n. \tag{25}
+\]
+Combining (24) and (25) proves the asserted uniform joint coverage.
+
+For every realized sample, \(\text{lem:measurable-certified-selection}\) with \(\epsilon=1\) gives
+\[
+ \widetilde\theta_n=s_1(\widehat\Sigma)\in\Theta_K.
+\]
+This point belongs to \(R_n\), so \(R_n\cap\Theta_K\) is nonempty for every sample.  The selector is Borel measurable.  Moreover, because there are finitely many target sets and orderings, membership of any fixed target set in \(\mathcal F_{\mathrm{out},n}\), and membership of any fixed finite value in \(\mathcal H_n\), are existential first-order statements over the semialgebraic region and certificate constraints.  Their sample sets are semialgebraic projections and hence Borel.  The singleton reporting rule is therefore measurable.
+
+If that rule reports a classification different from \(h(\theta)\), then the event in (24) cannot have occurred: on that event, (25) puts \(h(\theta)\) in \(\mathcal H_n\), and a singleton \(\mathcal H_n\) would necessarily equal \(\{h(\theta)\}\).  The incorrect-report event is thus contained in the complement of (24), whose probability is at most \(\alpha\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Family coverage must retain structural uncertainty and remain well-defined when the raw covariance region misses the nonclosed model. \textit{Gap.} Strieder et al. retain graph uncertainty by test inversion and Romano--Shaikh cover identified sets.  The accepted-bank note eid\_robust\_backshift\_uniform\_distance\_v1 also gives a set-theoretic confidence-union coverage implication for a robust global BACKSHIFT-normalized diagonalizer from supplied nonempty covariance regions.  Unlike that global-structural target, the present claim covers the exact-rank labeled target family and its complete classification, and its measurable feasible-point augmentation makes the model-intersecting region nonempty for every sample despite the nonclosed model. \textit{Consumer.} A Perturb-seq or Sci-Plex audit can abstain near collisions while maintaining finite-sample coverage of all effective target explanations under the stated covariance model.
+
+\begin{theorem}[thm:consistency-above-boundary]\label{thm:consistency-above-boundary}
+For every \(x>0\), on the event \(\lVert\widehat\Sigma-\theta\rVert_w\le x\), every point of \(R_n\) is within weighted distance at most \(\max\{x+c_{\alpha},2x+1\}\) of \(\theta\).  Hence, if \(\max\{x+c_{\alpha},2x+1\}<\sqrt{2}m\delta_n(\theta)\), the singleton rule based on \(\mathcal H_n\) reports \(h(\theta)\), and its failure probability is at most \(V_{\max}/x^2\).  In particular, \(\sqrt{2}m\delta_n(\theta)>2c_{\alpha}+1\) implies correct reporting with probability at least \(1-\alpha\).  For every sequence \(\theta_n\in\Theta_K\) with \(\delta_n(\theta_n)\to\infty\), the rule reports \(h(\theta_n)\) with probability tending to one, uniformly over subclasses on which the infimum of \(\delta_n\) diverges.
+\end{theorem}
+\begin{proof}
+Fix \(\theta\in\Theta_K\) and write
+\[
+ Z=\lVert\widehat\Sigma-\theta\rVert_w.
+\]
+On the event \(Z\le x\), every \(\zeta\in W_n\) satisfies, by the triangle inequality,
+\[
+ \lVert\zeta-\theta\rVert_w
+ \le\lVert\zeta-\widehat\Sigma\rVert_w
+   +\lVert\widehat\Sigma-\theta\rVert_w
+ \le c_\alpha+x. \tag{26}
+\]
+Because \(\theta\in\Theta_K\), the infimum in the approximate-selector inequality is at most \(Z\).  The strict tolerance-one guarantee therefore gives
+\[
+ \lVert\widetilde\theta_n-\widehat\Sigma\rVert_w<Z+1,
+ \qquad
+ \lVert\widetilde\theta_n-\theta\rVert_w<2Z+1\le2x+1. \tag{27}
+\]
+Since \(R_n=W_n\cup\{\widetilde\theta_n\}\), (26)--(27) prove
+\[
+ \sup_{\zeta\in R_n}\lVert\zeta-\theta\rVert_w
+ \le\max\{x+c_\alpha,2x+1\}. \tag{28}
+\]
+
+We compare the weighted norm with the frozen information norm.  For a symmetric tuple \(H=(H_e)_e\), set
+\(K_e=\Sigma_e^{-1/2}H_e\Sigma_e^{-1/2}\).  Then
+\[
+ \operatorname{tr}(\Sigma_e^{-1}H_e\Sigma_e^{-1}H_e)=\lVert K_e\rVert_F^2.
+\]
+The covariance bounds \(mI_d\preceq\Sigma_e\preceq MI_d\), together with
+\(H_e=\Sigma_e^{1/2}K_e\Sigma_e^{1/2}\), imply
+\[
+ \frac1M\lVert H_e\rVert_F\le\lVert K_e\rVert_F
+ \le\frac1m\lVert H_e\rVert_F.
+\]
+After multiplication by \(n_e\), summation, and taking square roots,
+\[
+ \frac{1}{\sqrt2M}\lVert H\rVert_w
+ \le\lVert H\rVert_{I,n,\theta}
+ \le\frac{1}{\sqrt2m}\lVert H\rVert_w. \tag{29}
+\]
+
+Suppose
+\[
+ \max\{x+c_\alpha,2x+1\}<\sqrt2m\,\delta_n(\theta).
+\]
+For every \(\zeta\in R_n\cap\Theta_K\), equations (28)--(29) give
+\[
+ \lVert\zeta-\theta\rVert_{I,n,\theta}
+ \le\frac{\lVert\zeta-\theta\rVert_w}{\sqrt2m}
+ <\delta_n(\theta). \tag{30}
+\]
+By \(\text{def:classification-information-distance}\), no such \(\zeta\) belongs to \(\mathcal A_h(\theta)\).  Hence every point of \(R_n\cap\Theta_K\) has classification \(h(\theta)\).  This intersection is nonempty by \(\text{thm:honest-family-confidence}\), so \(\mathcal H_n=\{h(\theta)\}\), and the singleton rule reports correctly.
+
+The second-moment calculation (21)--(23), now with threshold \(x\), yields
+\[
+ \Pr_\theta(Z>x)\le\frac{\mathbb E_\theta Z^2}{x^2}
+ \le\frac{V_{\max}}{x^2}. \tag{31}
+\]
+This is the stated failure bound.  Taking \(x=c_\alpha\), the right side of (31) is \(\alpha\), while the radius in (28) is at most \(2c_\alpha+1\).  Therefore \(\sqrt2m\delta_n(\theta)>2c_\alpha+1\) implies correct reporting with probability at least \(1-\alpha\).
+
+Finally, if \(\delta_n(\theta_n)\to\infty\), choose deterministic \(x_n\to\infty\) with \(x_n/\delta_n(\theta_n)\to0\), interpreting the ratio as zero when the denominator is infinite.  The strict separation condition then holds eventually, and (31) tends to zero.  For a subclass with
+\[
+ D_n=\inf_{\theta\text{ in the subclass}}\delta_n(\theta)\longrightarrow\infty,
+\]
+one may take \(x_n=\sqrt{\min\{D_n,n\}}\).  This common choice tends to infinity and satisfies \(x_n/D_n\to0\), so the same argument is uniform over the subclass.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The result identifies the observable separation scale at which honest abstention disappears. \textit{Gap.} Lewis studies weak heteroskedastic identification for continuous structural parameters; the present boundary concerns the entire discrete compulsory-and-possible target classification over a nonclosed causal fiber. \textit{Consumer.} Analysts obtain a diagnostic for when an exact target classification, rather than an outer family, is statistically defensible.
+
+\begin{proposition}[prop:design-restriction-boundary]\label{prop:design-restriction-boundary}
+The tuple \(\theta^{\pm}\) is generated by an acyclic positive-structural-noise, positive-measurement-noise Gaussian SCM satisfying every member condition of \(\mathcal M_{3,2,2}\) except nonnegative variance shifts, and its true target set is \(\{1,2\}\).  For each ordering of that target, the aggregate ordered certificate has unit-lower factor equal to the identity and its transformed second-environment target block contains the diagonal entry \(-1/2\), so \(\operatorname{Cert}\) rejects the true target.  The tuple \(\theta^{\mathrm{split}}\) is generated by a member of \(\mathcal M_{3,2,2}\) with true target set \(\{1,2\}\).  Its first-environment covariance shift has rank one, strictly less than \(r=2\), whereas its aggregate carrier \(\bar Q\) has rank \(r\), and \(\operatorname{Cert}\) accepts the true target in both orders.  Thus signed shifts destroy the nonnegative-diagonal necessity and require strict baseline-variance feasibility in place of nonnegativity, whereas an environment that shifts every target is unnecessary for the aggregate-carrier certificate.
+\end{proposition}
+\begin{proof}
+Write \(\lambda^{\pm}\) and \(\lambda^{\mathrm{split}}\) for the two increment arrays in \(\text{def:restriction-boundary-witnesses}\), and put \(\lambda^w_0=0\) for \(w\in\{\pm,\mathrm{split}\}\).  We first construct primitive variables; thus the displayed covariances in that definition are not being treated as proof of SCM compatibility.  For each \(w\), let every coordinate of the vectors \(h_e,z_e,v_e\), jointly over \(e\in\{0,1,2\}\), be mutually independent standard normal random variables, and define
+\[
+ H_e=h_e,\qquad
+ \varepsilon_e=\operatorname{diag}\!\left(\sqrt{\omega_{0,\mu}+\lambda^w_e}\right)z_e,
+ \qquad
+ \eta_e=2^{-1/2}v_e. \tag{1}
+\]
+Here and below the square root of a vector is coordinatewise.  For the signed witness, the three structural-variance vectors are
+\[
+ \omega_{0,\mu}+\lambda^{\pm}_0=(3/2,3/2,3/2)^{\mathsf T},\qquad
+ \omega_{0,\mu}+\lambda^{\pm}_1=(5/2,5/2,3/2)^{\mathsf T},\qquad
+ \omega_{0,\mu}+\lambda^{\pm}_2=(1,3/2,3/2)^{\mathsf T}. \tag{2}
+\]
+For the split witness, they are
+\[
+ \omega_{0,\mu}+\lambda^{\mathrm{split}}_0=(3/2,3/2,3/2)^{\mathsf T},\qquad
+ \omega_{0,\mu}+\lambda^{\mathrm{split}}_1=(5/2,3/2,3/2)^{\mathsf T},\qquad
+ \omega_{0,\mu}+\lambda^{\mathrm{split}}_2=(3/2,5/2,3/2)^{\mathsf T}. \tag{3}
+\]
+Every coordinate in (2) and (3) is strictly positive, so all square roots in (1) exist and every structural-noise covariance in the construction is positive definite.
+
+Set \(\Omega_{H,\mu}=I_3\).  The construction in (1) gives centered Gaussian primitive vectors.  Mutual independence of their underlying standard-normal coordinates gives the block-independence condition in \(\text{def:legal-scm-class}\); it also gives \(\operatorname{Cov}(H_e)=I_3\) and \(\operatorname{Cov}(\eta_e)=I_3/2\succ0\), independently of \(e\).  The choices in \(\text{def:restriction-boundary-witnesses}\) give \(B_\mu=0\), which is acyclic, and hence
+\[
+ U_\mu=(I_3-B_\mu)^{-1}=I_3.
+\]
+They also give \(C_\mu=0\) and \(\omega_{0,\mu}=(3/2,3/2,3/2)^{\mathsf T}>0\) coordinatewise.  By the definition of \(Y_e\), bilinearity of covariance, and the established independence of its three summands,
+\[
+ \begin{aligned}
+ \operatorname{Cov}(Y_e)
+ &=U_\mu\!\left(C_\mu\Omega_{H,\mu}C_\mu^{\mathsf T}
+   +\operatorname{diag}(\omega_{0,\mu}+\lambda^w_e)\right)U_\mu^{\mathsf T}
+   +\Omega_{\eta,\mu}\\
+ &=\operatorname{diag}(\omega_{0,\mu}+\lambda^w_e)+\tfrac12 I_3. 
+ \end{aligned} \tag{4}
+\]
+Substitution of (2) and (3) into (4) gives exactly the covariance tuples \(\theta^{\pm}\) and \(\theta^{\mathrm{split}}\) specified in \(\text{def:restriction-boundary-witnesses}\).  In particular, every covariance in both tuples is positive definite.
+
+For \(\theta^{\pm}\), take the structural target set \(T_\mu=\{1,2\}\).  It has cardinality \(2=r\); every increment on coordinate \(3\) vanishes; and both coordinates in \(T_\mu\) change because \(\lambda^{\pm}_{11}=\lambda^{\pm}_{12}=1\).  The target-coverage condition in \(\text{def:legal-scm-class}\) therefore holds.  All its member conditions have now been checked except nonnegative variance shifts, which fails because
+\[
+ \lambda^{\pm}_{21}=-1/2<0. \tag{5}
+\]
+Equation (2) shows that this signed increment does not violate positivity of the actual structural variance: \(\omega_{0,\mu,1}+\lambda^{\pm}_{21}=1>0\).  Since the variance increments are nonzero on exactly labels \(1\) and \(2\), the causal target set of the constructed SCM is \(T_\mu=\{1,2\}\).  This target is fixed by the primitive mechanism, not defined through the observable certificate.
+
+By (4), the shifts and aggregate carrier for the signed witness are
+\[
+ \Delta^{\pm}_1=\operatorname{diag}(1,1,0),\qquad
+ \Delta^{\pm}_2=\operatorname{diag}(-1/2,0,0),\qquad
+ \bar Q^{\pm}=\Delta^{\pm}_1+\Delta^{\pm}_2
+ =\operatorname{diag}(1/2,1,0). \tag{6}
+\]
+For the order \(t=(1,2)\), the ordered aggregate principal block is \(\operatorname{diag}(1/2,1)\succ0\).  To compute its positive \(LDL^{\mathsf T}\) factors directly, write
+\[
+ L_t=\begin{pmatrix}1&0\\ \ell&1\end{pmatrix},\qquad
+ D_t=\operatorname{diag}(d_1,d_2),\qquad d_1,d_2>0.
+\]
+Equating entries in
+\[
+ L_tD_tL_t^{\mathsf T}
+ =\begin{pmatrix}d_1&d_1\ell\\d_1\ell&d_1\ell^2+d_2\end{pmatrix}
+ =\begin{pmatrix}1/2&0\\0&1\end{pmatrix}
+\]
+gives successively \(d_1=1/2\), \(\ell=0\), and \(d_2=1\).  Hence \(L_t=I_2\), and
+\[
+ L_t^{-1}P_t\Delta^{\pm}_2P_t^{\mathsf T}L_t^{-\mathsf T}
+ =\operatorname{diag}(-1/2,0). \tag{7}
+\]
+This violates the entrywise-nonnegative clause of \(\text{def:ordered-ldl-certificate}\).  For the only other order \(t'=(2,1)\), the aggregate principal block is \(\operatorname{diag}(1,1/2)\).  The same entry comparison gives \(L_{t'}=I_2\), while
+\[
+ L_{t'}^{-1}P_{t'}\Delta^{\pm}_2P_{t'}^{\mathsf T}L_{t'}^{-\mathsf T}
+ =\operatorname{diag}(0,-1/2). \tag{8}
+\]
+Thus \(\operatorname{Cert}\) rejects the true target under each of its two possible orders.
+
+For \(\theta^{\mathrm{split}}\), again set \(T_\mu=\{1,2\}\).  The verification through (4) proves acyclicity, Gaussianity, block independence, stationarity, and strict positivity of structural and measurement noises.  The target has size \(r=2\), every off-target increment vanishes, and every target increment is nonnegative.  Target coverage holds because \(\lambda^{\mathrm{split}}_{11}=1>0\) and \(\lambda^{\mathrm{split}}_{22}=1>0\).  Consequently this witness satisfies every member condition of \(\mathcal M_{3,2,2}\).  Its changing coordinates are exactly \(1\) and \(2\), so its causal target is \(T_\mu=\{1,2\}\).
+
+The individual shifts are
+\[
+ \Delta^{\mathrm{split}}_1=\operatorname{diag}(1,0,0),\qquad
+ \Delta^{\mathrm{split}}_2=\operatorname{diag}(0,1,0). \tag{9}
+\]
+Thus \(\operatorname{rank}(\Delta^{\mathrm{split}}_1)=1<2=r\).  In contrast, the aggregate carrier defined in \(\text{def:ordered-ldl-certificate}\) is
+\[
+ \bar Q^{\mathrm{split}}
+ =\Delta^{\mathrm{split}}_1+\Delta^{\mathrm{split}}_2
+ =\operatorname{diag}(1,1,0),\qquad
+ \operatorname{rank}(\bar Q^{\mathrm{split}})=2=r. \tag{10}
+\]
+For completeness, each shift range is carried by the aggregate:
+\[
+ \operatorname{range}(\Delta^{\mathrm{split}}_1)
+ =\operatorname{span}\{(1,0,0)^{\mathsf T}\}
+ \subseteq\operatorname{range}(\bar Q^{\mathrm{split}}),
+\]
+\[
+ \operatorname{range}(\Delta^{\mathrm{split}}_2)
+ =\operatorname{span}\{(0,1,0)^{\mathsf T}\}
+ \subseteq\operatorname{range}(\bar Q^{\mathrm{split}})
+ =\operatorname{span}\{(1,0,0)^{\mathsf T},(0,1,0)^{\mathsf T}\}. \tag{11}
+\]
+For \(t=(1,2)\), the aggregate target block in (10) is \(I_2\).  Applying the preceding entrywise factor calculation with both diagonal entries equal to one gives \(L_t=D_t=I_2\).  Therefore
+\[
+ L_t^{-1}P_t\Delta^{\mathrm{split}}_1P_t^{\mathsf T}L_t^{-\mathsf T}
+ =\operatorname{diag}(1,0),\qquad
+ L_t^{-1}P_t\Delta^{\mathrm{split}}_2P_t^{\mathsf T}L_t^{-\mathsf T}
+ =\operatorname{diag}(0,1). \tag{12}
+\]
+Both matrices are diagonal and entrywise nonnegative.  For the reversed order \(t'=(2,1)\), the aggregate target block remains \(I_2\), so \(L_{t'}=D_{t'}=I_2\), and the two matrices in (12) are interchanged.  Every clause of \(\text{def:ordered-ldl-certificate}\) holds in both orders, proving
+\[
+ \operatorname{Cert}(\theta^{\mathrm{split}},\{1,2\},(1,2))
+ =\operatorname{Cert}(\theta^{\mathrm{split}},\{1,2\},(2,1))
+ =\mathrm{true}. \tag{13}
+\]
+
+Finally, no single environment of the split witness shifts both target coordinates: their two environment profiles are \((1,0)^{\mathsf T}\) and \((0,1)^{\mathsf T}\).  Equations (10)--(13) therefore show directly that an all-target environment is unnecessary when the certificate uses the aggregate carrier.  Conversely, if signed increments are admitted but every actual structural-noise covariance must remain positive definite, then diagonal positive definiteness is equivalent to
+\[
+ \omega_{0,\mu,j}+\lambda_{ej}>0
+ \quad\text{for every }j\in\{1,2,3\}\text{ and }e\in\{0,1,2\}. \tag{14}
+\]
+Indeed, necessity follows by evaluating the quadratic form of \(\operatorname{diag}(\omega_{0,\mu}+\lambda_e)\) at the \(j\)-th coordinate vector; sufficiency follows because its quadratic form at any nonzero \(x\) is \(\sum_j(\omega_{0,\mu,j}+\lambda_{ej})x_j^2>0\).  Equations (2), (5), (7), and (8) show that (14) may hold while the nonnegative-diagonal certificate fails.  Hence strict baseline-variance feasibility, rather than increment nonnegativity, is the relevant primitive support restriction for signed shifts, while the present certificate deliberately encodes the stronger nonnegative-shift design.  This proves every assertion of the corrected proposition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The result identifies exactly which parts of the certificate fail when either design restriction is removed. \textit{Gap.} BACKSHIFT permits signed covariance changes and does not require a designated common reference, whereas the labeled principal-block fiber uses both restrictions; the explicit witnesses prevent that narrower result from being advertised as a general covariance-shift characterization. \textit{Consumer.} Panel designers learn whether to add a lowest-variance baseline and a broad calibration environment, and analysts without them know which certificate component must be replaced rather than trusted.
+
+\begin{theorem}[thm:impossibility-bounded-information]\label{thm:impossibility-bounded-information}
+Fix \(C<\infty\).  For any possibly abstaining rule whose probability of an incorrect classification is uniformly at most \(\alpha\) on \(\Theta_K\), there exists \(\kappa=\kappa(C,\alpha,m,M,d,E)>0\) such that along every sequence \(\theta_n\in\Theta_K\) with \(\delta_n(\theta_n)\le C\), the probability of correctly certifying \(h(\theta_n)\) is at most \(1-\kappa\).
+\end{theorem}
+\begin{proof}
+Fix \(C<\infty\), and let \(\theta_n\in\Theta_K\) satisfy \(\delta_n(\theta_n)\le C\).  Finiteness of this infimum implies that \(\mathcal A_h(\theta_n)\ne\varnothing\).  By the defining property of an infimum, without assuming attainment, choose \(\zeta_n=(Z_{0n},\ldots,Z_{En})\in\Theta_K\) such that
+\[
+ h(\zeta_n)\ne h(\theta_n),
+ \qquad
+ \lVert\zeta_n-\theta_n\rVert_{I,n,\theta_n}<C+1. \tag{32}
+\]
+
+Put \(R=M/m>1\), and choose \(p>1\) sufficiently close to one that
+\(p-(p-1)R>0\).  Consider one observation with covariance \(\Sigma\) under the denominator law and covariance \(Z\) under the numerator law.  If \(\lambda_1,\ldots,\lambda_d\) are the eigenvalues of \(\Sigma^{-1/2}Z\Sigma^{-1/2}\), then the covariance bounds imply \(R^{-1}\le\lambda_j\le R\).  Whitening the Gaussian densities and evaluating the resulting one-dimensional Gaussian integrals gives, for \(L=dN(0,Z)/dN(0,\Sigma)\),
+\[
+ \mathbb E_\Sigma L^p
+ =\prod_{j=1}^d
+ \lambda_j^{-(p-1)/2}\{p-(p-1)\lambda_j\}^{-1/2}. \tag{33}
+\]
+The chosen restriction on \(p\) makes every denominator positive.  Define
+\[
+ g_p(\lambda)=-\frac{p-1}{2}\log\lambda
+ -\frac12\log\{p-(p-1)\lambda\}.
+\]
+One has \(g_p(1)=g_p'(1)=0\), and \(g_p''\) is bounded in absolute value by some finite \(K_0=K_0(p,R)\) on \([R^{-1},R]\).  Taylor's theorem thus gives
+\[
+ g_p(\lambda)\le\frac{K_0}{2}(\lambda-1)^2. \tag{34}
+\]
+
+Multiply (33) over the independent observations and environments.  For each environment,
+\[
+ \sum_{j=1}^d(\lambda_{ej}-1)^2
+ =\operatorname{tr}\!\left[
+ \Sigma_{en}^{-1}(Z_{en}-\Sigma_{en})
+ \Sigma_{en}^{-1}(Z_{en}-\Sigma_{en})\right].
+\]
+Equations (32)--(34) and the factor \(1/2\) in the definition of the information norm yield
+\[
+ \mathbb E_{\theta_n}\left(\frac{dP_{\zeta_n}}{dP_{\theta_n}}\right)^p
+ \le \exp\!\left(K_0\lVert\zeta_n-\theta_n\rVert_{I,n,\theta_n}^2\right)
+ \le K_C:=\exp\{K_0(C+1)^2\}<\infty. \tag{35}
+\]
+The constant is independent of \(n\), the sampling allocation, and the selected pair.
+
+Let \(A_n\) be the event that the possibly abstaining rule reports exactly \(h(\theta_n)\).  Since this classification is incorrect under \(\zeta_n\), uniform \(\alpha\)-honesty gives \(P_{\zeta_n}(A_n)\le\alpha\).  With \(L_n=dP_{\zeta_n}/dP_{\theta_n}\), H\"older's inequality and (35) give
+\[
+ 1-\alpha
+ \le P_{\zeta_n}(A_n^{\mathsf c})
+ =\mathbb E_{\theta_n}[L_n\mathbf 1_{A_n^{\mathsf c}}]
+ \le K_C^{1/p}P_{\theta_n}(A_n^{\mathsf c})^{(p-1)/p}. \tag{36}
+\]
+Therefore
+\[
+ P_{\theta_n}(A_n)\le1-\kappa,
+ \qquad
+ \kappa=(1-\alpha)^{p/(p-1)}K_C^{-1/(p-1)}>0. \tag{37}
+\]
+Here \(p\), and hence \(\kappa\), depends only on \(C,\alpha,m,M,d,E\) (the displayed calculation in fact needs no extra dependence on \(d,E\)).  This is the claimed obstruction to correct certification throughout the bounded-information regime.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A matching impossibility result makes information distance a genuine certification boundary rather than only a sufficient margin. \textit{Gap.} Weak-heteroskedasticity tests and repeated-eigenvalue analyses do not construct opposite labeled causal-target strata while preserving acyclicity, stationary confounding, measurement error, range inclusion, and positive noises. \textit{Consumer.} The bound prevents overconfident effective-target declarations when covariance profiles are statistically indistinguishable.
+
+\begin{proposition}[prop:four-node-collision]\label{prop:four-node-collision}
+Along the legal path \(\theta_{\gamma}\), \(\mathcal F_{\mathrm{causal}}(\theta_{\gamma})=\{\{1,2\},\{1,3\},\{1,4\}\}\) and \(h(\theta_{\gamma})=(\{1\},\{1,2,3,4\})\) for \(\gamma\ne0\), whereas at \(\gamma=0\) all six two-element target sets are compatible and \(h(\theta_0)=(\varnothing,\{1,2,3,4\})\).  If the fixed constants \(m,M\) admit \(\gamma_0>0\) such that \(\theta_{\gamma}\in\Theta_K\) for every \(|\gamma|\le\gamma_0\), then, for equal environment sample sizes, there exist constants \(0<c<C<\infty\) such that \(c\sqrt n|\gamma|\le\delta_n(\theta_{\gamma})\le C\sqrt n|\gamma|\) for all sufficiently small nonzero \(\gamma\).
+\end{proposition}
+\begin{proof}
+Let \(A=[a\ b]\).  In pair order \(12,13,14,23,24,34\), the squared determinants of the two-row submatrices of \(A\) are
+\[
+ 1,\ 1,\ 4,\ 1,\ 1,\ 9. \tag{38}
+\]
+They are all strictly positive.  Along the path,
+\[
+ \Delta_1=aa^{\mathsf T}+bb^{\mathsf T},\qquad
+ \Delta_2=2aa^{\mathsf T}+(2+\gamma)bb^{\mathsf T},
+\]
+\[
+ \bar Q=3aa^{\mathsf T}+(3+\gamma)bb^{\mathsf T}. \tag{39}
+\]
+For \(|\gamma|<1\), the two aggregate weights in (39) are positive.  Thus every two-by-two aggregate principal block is positive definite, with determinant \(3(3+\gamma)\) times the corresponding number in (38).  Moreover, \(\operatorname{rank}(\bar Q)=2\), both shift ranges are contained in \(\operatorname{span}\{a,b\}=\operatorname{range}(\bar Q)\), and \(\Sigma_0=I_4\succ0\).
+
+Consider an ordered pair \(t=(j,k)\).  The lower entry in the unit-lower factor of \(\bar Q_{tt}\) is \(\ell=\bar Q_{kj}/\bar Q_{jj}\).  The off-diagonal entry of the congruently transformed \(\Delta_1\)-block is
+\[
+ (\Delta_1)_{kj}-\ell(\Delta_1)_{jj}
+ =-\frac{\gamma a_jb_j(a_jb_k-b_ja_k)}{\bar Q_{jj}}. \tag{40}
+\]
+To obtain (40), multiply by \(\bar Q_{jj}\), substitute (39), and cancel the terms whose two profile weights are both three.  The row determinants in (38) are nonzero.  Since \(b_1=0\), whereas \(a_jb_j\ne0\) for \(j=2,3,4\), (40) vanishes for \(\gamma\ne0\) exactly when the first pivot is label \(1\).
+
+For the three orders beginning at label \(1\), direct elimination gives
+\[
+\begin{array}{c|c|c|c}
+t&D_t&\Lambda_{1,t}&\Lambda_{2,t}\\ \hline
+(1,2)&\operatorname{diag}(3,3+\gamma)&\operatorname{diag}(1,1)&\operatorname{diag}(2,2+\gamma)\\
+(1,3)&\operatorname{diag}(3,3+\gamma)&\operatorname{diag}(1,1)&\operatorname{diag}(2,2+\gamma)\\
+(1,4)&\operatorname{diag}(3,12+4\gamma)&\operatorname{diag}(1,4)&\operatorname{diag}(2,8+4\gamma).
+\end{array} \tag{41}
+\]
+All displayed diagonal entries are nonnegative for \(|\gamma|<1\).  It follows that, for \(\gamma\ne0\),
+\[
+ \mathcal F_{\mathrm{LDL}}(\theta_\gamma)
+ =\{\{1,2\},\{1,3\},\{1,4\}\}. \tag{42}
+\]
+At \(\gamma=0\), one has \(\Delta_2=2\Delta_1\) and \(\bar Q=3\Delta_1\).  Therefore, for every ordered pair, the aggregate \(LDL^{\mathsf T}\) factor transforms \(\Delta_1\) and \(\Delta_2\) to \(D_t/3\) and \(2D_t/3\), respectively.  All six pairs are certified.  The baseline, rank, and range conditions required by \(\text{thm:sharp-target-fiber}\) were verified after (39), so the algebraic fibers just computed equal the causal fibers.  Their intersections and unions give
+\[
+ h(\theta_\gamma)=(\{1\},\{1,2,3,4\})\quad(\gamma\ne0),
+ \qquad
+ h(\theta_0)=(\varnothing,\{1,2,3,4\}). \tag{43}
+\]
+In particular the algebraic fiber is nonempty at every \(|\gamma|<1\), and the reverse inclusion in the sharp-fiber theorem supplies a legal positive-noise SCM realizing each displayed covariance tuple; thus legality is a proved consequence, not part of the path's definition.
+
+It remains to compute the information-distance order under the stated bounded-class premise.  Define
+\[
+ D(\zeta,\theta)=\left(\sum_{e=0}^2\lVert Z_e-\Sigma_e\rVert_F^2\right)^{1/2},
+ \qquad
+ \bar Q(\zeta)=\sum_{e=1}^2(Z_e-Z_0),
+\]
+and, for \(j=2,3,4\),
+\[
+ f_j(\zeta)=\bar Q(\zeta)_{jj}(Z_1-Z_0)_{1j}
+ -(Z_1-Z_0)_{jj}\bar Q(\zeta)_{1j}. \tag{44}
+\]
+Substitution from (39) gives
+\[
+ f_2(\theta_\gamma)=\gamma,\qquad
+ f_3(\theta_\gamma)=2\gamma,\qquad
+ f_4(\theta_\gamma)=4\gamma. \tag{45}
+\]
+At \(\theta_0\), every aggregate two-by-two principal block is positive definite.  Choose a bounded neighborhood \(\mathcal U\) of \(\theta_0\) on which this remains true.  The polynomial gradients of the three functions in (44) are bounded on the closure of a smaller such neighborhood.  The mean-value theorem therefore gives \(K<\infty\) such that
+\[
+ \max_{j=2,3,4}|f_j(\zeta)-f_j(\theta_\gamma)|
+ \le K D(\zeta,\theta_\gamma) \tag{46}
+\]
+whenever both tuples lie in that neighborhood.
+
+Suppose \(\zeta\in\Theta_K\cap\mathcal U\) and \(D(\zeta,\theta_\gamma)<|\gamma|/(2K)\).  Equations (45)--(46) make all three \(f_j(\zeta)\) nonzero.  We justify the implication for certificates at the full-matrix level.  If a certificate starts with \(j\), exact aggregate rank and invertibility of its target block make coordinate restriction invertible on \(\operatorname{range}(\bar Q(\zeta))\); the common-range condition then reconstructs each full shift from that target block.  Its first reconstructed aggregate and shift columns must be proportional, and their entries in row \(1\) give \(f_j(\zeta)=0\).  Hence no certificate can start at \(2,3,4\), so every certificate starts at \(1\).
+
+Membership in \(\Theta_K\) guarantees at least one certificate.  Reconstructing from such a certificate shows that \(\bar Q(\zeta)\) and every shift are positive semidefinite, and that the corresponding residuals after eliminating label \(1\) have ranges inside the rank-one aggregate residual range.  Every remaining aggregate residual diagonal is positive because the associated two-by-two principal block remains positive definite.  A positive-semidefinite shift residual supported on this rank-one range is a nonnegative scalar multiple of the aggregate residual.  Consequently, for each \(j=2,3,4\), the order \((1,j)\) has a positive second aggregate pivot, zero transformed off-diagonal entries, and nonnegative transformed shift pivots.  All three star pairs, and no others, are certified.  Therefore \(h(\zeta)=h(\theta_\gamma)\).
+
+Choose \(\mathcal U\) to contain a fixed ball about \(\theta_0\).  Since \(\theta_\gamma\to\theta_0\), points outside \(\mathcal U\) remain at a fixed positive \(D\)-distance from \(\theta_\gamma\) for all sufficiently small \(|\gamma|\).  Combining this observation with the previous paragraph gives \(c_0>0\) such that every \(\zeta\in\Theta_K\) satisfying \(h(\zeta)\ne h(\theta_\gamma)\) obeys
+\[
+ D(\zeta,\theta_\gamma)\ge c_0|\gamma|. \tag{47}
+\]
+
+For equal environment sample sizes \(n\), the bounds \(mI_4\preceq\Sigma_e\preceq MI_4\) imply, for every displacement \(H\),
+\[
+ \frac{\sqrt n}{\sqrt2M}\left(\sum_{e=0}^2\lVert H_e\rVert_F^2\right)^{1/2}
+ \le\lVert H\rVert_{I,n,\theta_\gamma}
+ \le\frac{\sqrt n}{\sqrt2m}\left(\sum_{e=0}^2\lVert H_e\rVert_F^2\right)^{1/2}. \tag{48}
+\]
+The left inequality in (48), together with (47), gives
+\[
+ \delta_n(\theta_\gamma)\ge\frac{c_0}{\sqrt2M}\sqrt n\,|\gamma|. \tag{49}
+\]
+For the reverse inequality, the premise places \(\theta_0\) in \(\Theta_K\), and (43) shows that its classification differs from that at every nonzero \(\gamma\).  Only environment \(2\) changes, by \(\gamma bb^{\mathsf T}\).  Hence the right inequality in (48) gives
+\[
+ \delta_n(\theta_\gamma)
+ \le\lVert\theta_0-\theta_\gamma\rVert_{I,n,\theta_\gamma}
+ \le\frac{\sqrt n}{\sqrt2m}|\gamma|\,\lVert bb^{\mathsf T}\rVert_F. \tag{50}
+\]
+Equations (49)--(50) prove the asserted constants \(0<c<C<\infty\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit identity baseline and aggregate carrier preserve the star/all-six collision and compute its first-order information scale. \textit{Gap.} Rotation-set analyses do not provide a legal acyclic target-family collision with a labeled classification and Gaussian-information rate. \textit{Consumer.} The example remains a minimal audit case for certificate enumeration, augmentation, and abstention near profile collisions.
+
+\begin{proposition}[prop:rank-one-reduction]\label{prop:rank-one-reduction}
+When \(r=1\) and \(\mathcal F_{\mathrm{causal}}(\theta)\ne\varnothing\), the sharp fiber reduces to \(\mathcal F_{\mathrm{causal}}(\theta)=\{\{j\}:Q_{jj}>0\}\).
+\end{proposition}
+\begin{proof}
+Assume \(r=1\) and \(\mathcal F_{\mathrm{causal}}(\theta)\ne\varnothing\).  Choose a witnessing model \(\mu\in\mathcal M_{d,E,1}\), let its unique target be \(k\), and write \(u=U_\mu e_k\).  The same covariance subtraction as in (2) gives
+\[
+ \Delta_e=\lambda_{ek}uu^{\mathsf T},
+ \qquad
+ Q=\left(\sum_{e=1}^E\lambda_{ek}\right)uu^{\mathsf T}. \tag{51}
+\]
+Nonnegative shifts and target coverage imply
+\(s:=\sum_e\lambda_{ek}>0\).  Since \(U_\mu\) is invertible, \(u\ne0\), so \(Q\) is positive semidefinite of rank one and every shift range lies in \(\operatorname{range}(Q)\).  The baseline covariance is positive definite because its structural-noise contribution is \(U_\mu\operatorname{diag}(\omega_{0,\mu})U_\mu^{\mathsf T}\succ0\), while its latent and measurement contributions are positive semidefinite (indeed the measurement contribution is strictly positive).  Thus all premises of \(\text{thm:sharp-target-fiber}\) hold.
+
+For any label \(j\), the one-element aggregate block is the scalar
+\[
+ Q_{jj}=s u_j^2.
+\]
+If \(Q_{jj}=0\), the positive-pivot condition fails, so \(\{j\}\) is not certified.  If \(Q_{jj}>0\), the unique unit-lower factor is \(L=(1)\), and (51) gives, for every environment,
+\[
+ \Lambda_{e,(j)}=\Delta_{e,jj}
+ =\frac{\lambda_{ek}}{s}Q_{jj}\ge0. \tag{52}
+\]
+Hence \(\{j\}\) is certified exactly when \(Q_{jj}>0\).  Applying the sharp-fiber equality proves
+\[
+ \mathcal F_{\mathrm{causal}}(\theta)=\{\{j\}:Q_{jj}>0\}.
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This reduction checks that the multivariate certificate collapses to the known rank-one changing-column ambiguity. \textit{Gap.} The rank-one case is implicit in covariance-factor arguments, but is stated here as the required sanity reduction of the general labeled-fiber theorem. \textit{Consumer.} Practitioners with single effective perturbations obtain a closed-form candidate list without running the recursion.
+
+\begin{theorem}[thm:geometry-indexed-local-power-envelope]\label{thm:geometry-indexed-local-power-envelope}
+There is no universal correct-certification envelope determined only by \(c=\lim\delta_n(\theta_n)\).  For any specified Gaussian tangent geometry \(\mathcal G=(k,g_0,\mathcal A)\), where \(X\sim N(g,I_k)\), \(g_0\) has the focal classification, and \(\mathcal A\) is the opposite-classification tangent set, the geometry-indexed focal-certification value is
+\[
+ \beta^{\star}_{\mathcal G}(\alpha)
+ =\sup_{\substack{\phi:\mathbb R^k\to[0,1]\ \mathrm{Borel}\\
+                    \sup_{g\in\mathcal A}\mathbb E_g\phi(X)\le\alpha}}
+   \mathbb E_{g_0}\phi(X).
+\]
+The nearest-opposite distance \(c=\inf_{g\in\mathcal A}\lVert g-g_0\rVert_2\) does not determine this value.  Explicitly, for \(k=1\), \(g_0=0\), and opposite sets \(\mathcal A_+=[c,\infty)\) and \(\mathcal A_{\pm}=(-\infty,-c]\cup[c,\infty)\), with \(c>0\),
+\[
+ \beta^{\star}_{\mathcal G_+}(\alpha)=\Phi(\Phi^{-1}(\alpha)+c),
+ \qquad
+ \beta^{\star}_{\mathcal G_{\pm}}(\alpha)=2\Phi(t_{c,\alpha})-1
+ <\beta^{\star}_{\mathcal G_+}(\alpha),
+\]
+where \(\Phi\) is the standard-normal distribution function and \(t_{c,\alpha}>0\) is the unique solution of \(\Phi(t-c)-\Phi(-t-c)=\alpha\).  Thus the handle yields an explicit optimization only after the incident tangent geometry is supplied; neither a one-variable \(\beta^{\star}(c)\) nor one classifier attaining it uniformly over all regular sequences is determined by the frozen core.
+\end{theorem}
+\begin{proof}
+Fix \(\alpha\in(0,1)\) and a Gaussian tangent geometry \(\mathcal G=(k,g_0,\mathcal A)\).  Write \(P_g\) for the law \(N(g,I_k)\).  By \(\text{def:power-envelope-handle}\), a randomized focal-certificate rule is a Borel function \(\phi:\mathbb R^k\to[0,1]\); its probability of issuing the focal certificate at \(g_0\) is \(E_{g_0}\phi\), and honesty against every opposite-classification tangent \(g\in\mathcal A\) is exactly
+\[
+ \sup_{g\in\mathcal A}E_g\phi\leq\alpha.
+\]
+Consequently the largest attainable focal-certification probability is, directly from that definition,
+\[
+ \beta^{\star}_{\mathcal G}(\alpha)
+ =\sup_{\substack{\phi:\mathbb R^k\to[0,1]\ \mathrm{Borel}\\
+                    \sup_{g\in\mathcal A}E_g\phi\leq\alpha}}
+   E_{g_0}\phi.
+\]
+This optimization is indexed by the entire set \(\mathcal A\), not merely by its distance from \(g_0\).  We now prove that this distinction is material by calculating two instances of the optimization.
+
+Let \(k=1\), \(g_0=0\), and \(c>0\).  Denote the standard-normal distribution function and density by \(\Phi\) and \(\varphi\), respectively, and let \(p_u(x)=\varphi(x-u)\) be the density of \(P_u=N(u,1)\).
+
+First consider \(\mathcal A_+=[c,\infty)\).  The likelihood ratio at the nearest opposite point is
+\[
+ r_+(x):=\frac{p_0(x)}{p_c(x)}
+ =\exp\{-cx+c^2/2\},
+\]
+which is strictly decreasing in \(x\).  Put
+\[
+ a=c+\Phi^{-1}(\alpha),\qquad A_+=(-\infty,a],
+\]
+so that \(P_c(A_+)=\Phi(a-c)=\alpha\).  Let \(K=r_+(a)>0\).  If \(0\leq\phi\leq1\) is Borel and \(E_c\phi\leq\alpha\), absolute continuity and \(P_c(A_+)=\alpha\) give
+\[
+ \begin{aligned}
+ E_0\phi-P_0(A_+)
+ &=\int_{\mathbb R}(\phi-\mathbf 1_{A_+})r_+\,dP_c\\
+ &=\int_{\mathbb R}(\phi-\mathbf 1_{A_+})(r_+-K)\,dP_c
+   +K\{E_c\phi-P_c(A_+)\}\\
+ &\leq0.
+ \end{aligned}
+\]
+Indeed, on \(A_+\), \(\phi-1\leq0\) and \(r_+-K\geq0\); on its complement, \(\phi\geq0\) and \(r_+-K<0\); and the final term is nonpositive by the constraint.  Thus the constraint at \(c\) alone gives the upper bound \(E_0\phi\leq P_0(A_+)\).  Conversely, for every \(u\geq c\),
+\[
+ P_u(A_+)=\Phi(a-u)\leq\Phi(a-c)=\alpha,
+\]
+so \(\mathbf 1_{A_+}\) is feasible for all of \(\mathcal A_+\).  Hence
+\[
+ \beta^{\star}_{\mathcal G_+}(\alpha)
+ =P_0(A_+)
+ =\Phi\!\left(\Phi^{-1}(\alpha)+c\right).
+\]
+The displayed signed-integrand inequality also proves uniqueness up to normal-null sets: equality forces \(\phi=1\) where \(x<a\) and \(\phi=0\) where \(x>a\), because \(r_+(x)-K\) is strictly positive on the first region and strictly negative on the second.
+
+Next consider \(\mathcal A_{\pm}=(-\infty,-c]\cup[c,\infty)\).  For any rule \(\phi\) feasible for this geometry, define its reflection symmetrization by
+\[
+ \psi(x)=\frac{\phi(x)+\phi(-x)}{2}.
+\]
+Then \(\psi\) is Borel, takes values in \([0,1]\), and symmetry of \(P_0\) gives \(E_0\psi=E_0\phi\).  Moreover, for every \(u\) with \(|u|\geq c\),
+\[
+ E_u\psi=\frac{E_u\phi+E_{-u}\phi}{2}\leq\alpha,
+\]
+because both \(u\) and \(-u\) belong to \(\mathcal A_{\pm}\).  Thus symmetrization preserves feasibility and the objective.
+
+Let \(Q=(P_c+P_{-c})/2\).  Its density is
+\[
+ q(x)=\varphi(x)e^{-c^2/2}\cosh(cx),
+ \qquad
+ r_{\pm}(x):=\frac{p_0(x)}{q(x)}
+ =\frac{e^{c^2/2}}{\cosh(cx)}.
+\]
+The ratio \(r_{\pm}\) is even and strictly decreasing as a function of \(|x|\).  The function
+\[
+ F_c(t):=Q([-t,t])=\Phi(t-c)-\Phi(-t-c),\qquad t\geq0,
+\]
+is continuous, satisfies \(F_c(0)=0\), tends to \(1\) as \(t\to\infty\), and has derivative
+\[
+ F_c'(t)=\varphi(t-c)+\varphi(t+c)>0.
+\]
+Therefore there is a unique \(t_{c,\alpha}>0\) such that
+\[
+ \Phi(t_{c,\alpha}-c)-\Phi(-t_{c,\alpha}-c)=\alpha.
+\]
+Set \(A_{\pm}=[-t_{c,\alpha},t_{c,\alpha}]\) and \(K_{\pm}=r_{\pm}(t_{c,\alpha})\).  Every symmetrized feasible rule satisfies
+\[
+ E_Q\psi=\frac{E_c\psi+E_{-c}\psi}{2}\leq\alpha=Q(A_{\pm}).
+\]
+Repeating the preceding signed-integrand argument with reference measure \(Q\) yields
+\[
+ \begin{aligned}
+ E_0\psi-P_0(A_{\pm})
+ &=\int_{\mathbb R}(\psi-\mathbf 1_{A_{\pm}})(r_{\pm}-K_{\pm})\,dQ
+   +K_{\pm}\{E_Q\psi-Q(A_{\pm})\}\\
+ &\leq0.
+ \end{aligned}
+\]
+Here \(r_{\pm}-K_{\pm}\geq0\) on \(A_{\pm}\) and is negative off that interval, while \(\psi-1\leq0\) on the interval and \(\psi\geq0\) off it.  This proves the upper bound for every feasible \(\phi\), since symmetrization preserves \(E_0\phi\).
+
+It remains to check that the central-interval rule is feasible for the full composite opposite set.  For \(u\geq0\), differentiation gives
+\[
+ \frac{d}{du}P_u(A_{\pm})
+ =-\varphi(t_{c,\alpha}-u)+\varphi(t_{c,\alpha}+u)\leq0,
+\]
+because \(|t_{c,\alpha}+u|\geq|t_{c,\alpha}-u|\) and the standard-normal density decreases with the absolute value of its argument.  Since \(P_u(A_{\pm})\) is even in \(u\), it is nonincreasing in \(|u|\).  Its value at \(u=c\) is \(Q(A_{\pm})=\alpha\), because the interval is symmetric and hence \(P_c(A_{\pm})=P_{-c}(A_{\pm})=Q(A_{\pm})\).  Therefore \(P_u(A_{\pm})\leq\alpha\) whenever \(|u|\geq c\).  The indicator \(\mathbf 1_{A_{\pm}}\) is thus feasible and attains the upper bound, proving
+\[
+ \beta^{\star}_{\mathcal G_{\pm}}(\alpha)
+ =P_0(A_{\pm})=2\Phi(t_{c,\alpha})-1.
+\]
+
+The feasible set for \(\mathcal G_{\pm}\) is contained in the feasible set for \(\mathcal G_+\), so the second value cannot exceed the first.  The inequality is strict.  If equality held, the attaining central-interval rule for \(\mathcal G_{\pm}\) would also attain the one-sided optimum.  By the uniqueness just proved it would then agree, up to normal-null sets, with \(\mathbf 1_{A_+}\).  But the latter is not feasible for \(\mathcal G_{\pm}\), since
+\[
+ P_{-c}(A_+)
+ =\Phi(a+c)
+ =\Phi\!\left(\Phi^{-1}(\alpha)+2c\right)
+ >\alpha.
+\]
+This contradiction establishes
+\[
+ 2\Phi(t_{c,\alpha})-1
+ <\Phi\!\left(\Phi^{-1}(\alpha)+c\right).
+\]
+
+Finally, both geometries have the same nearest-opposite distance,
+\[
+ \inf_{g\in\mathcal A_+}|g-g_0|
+ =\inf_{g\in\mathcal A_{\pm}}|g-g_0|=c,
+\]
+but their optimal honest focal-certification probabilities are different.  Hence no function of the scalar \(c\) alone can equal \(\beta^{\star}_{\mathcal G}(\alpha)\) for all tangent geometries.  Nor can one rule attain such a putative universal value: any rule attaining the one-sided value must be \(\mathbf 1_{A_+}\) up to null sets, and that rule violates the two-sided honesty constraint.  By \(\text{def:classification-information-distance}\), \(\delta_n(\theta_n)\) records the nearest opposite classification in the information norm; by \(\text{def:power-envelope-handle}\), information whitening turns its finite local limit into the Euclidean nearest-set distance just used while retaining \(\mathcal A\) in \(\mathcal G\).  Thus \(\lim\delta_n(\theta_n)=c\) supplies only the nearest-boundary summary, whereas the explicit optimization and any attaining classifier require the full incident tangent geometry.  This proves every assertion of the theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The scalar information distance is only a nearest-boundary summary; honest local certification must be indexed by the complete incident tangent geometry. \textit{Gap.} Weak-identification theory does not provide a universal one-variable power envelope for a finite causal classification with different incident semialgebraic cone geometries. \textit{Consumer.} An analyst can compute a local certification benchmark after deriving the tangent geometry of the particular collision, while avoiding unsupported universal calibration by the scalar distance alone.
+
+\section{Interpretation}
+
+For a Perturb-seq or Sci-Plex panel, each nonbaseline condition may reveal only part of the effective perturbation support.  The aggregate certificate combines those conditions without assigning privileged status to one arm.  Report the full compatible family, its compulsory intersection, and its possible union; interpret a singleton only when the augmented classification image is a singleton.  These labels describe effective variance-shift coordinates in the acyclic covariance model, not direct molecular binding sites, and uncertain or environment-dependent perturbation efficacy should be carried as abstention or a larger family rather than collapsed to a single target.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The model assumes environment-invariant structural coefficients, latent covariance, and measurement-error covariance, fixed dimension, a minimum-variance baseline, nonnegative structural-variance increments, and panel-wide coverage of every declared target.  For arbitrary observed tuples, positive-noise completion and recursive completeness explicitly require positive baseline covariance, exact rank of \(\bar Q\), and inclusion of every shift range in \(\operatorname{range}(\bar Q)\); these follow for tuples generated by the legal causal model but not from a target-block certificate alone.  Signed shifts remain outside the certificate because primitive variance feasibility then depends on unknown baseline structural variances.  The semialgebraic algorithm is a certification route rather than a transcriptome-scale complexity claim, and the exact local power value requires the complete incident tangent geometry.
+
+\section{Honest scope}
+
+The aggregate sharp fiber, positive-noise realization, subset recursion, measurable approximate selector, finite-sample family coverage, two-regime information boundary, and four-node collision rate are theorem-level claims.  The finite-sample sufficient threshold remains \(\sqrt{2}m\delta_n(\theta)>2c_{\alpha}+1\) on the stated confidence event, with the full \(x\)-indexed bound retained for consistency.  A universal one-variable local envelope is not claimed: the proved negative result gives an explicit geometry-indexed Gaussian optimization and same-distance witness showing that \(c\) alone is insufficient.  When \(r=1\), the aggregate result reduces to the ambiguity \(\{\{j\}:\bar Q_{jj}>0\}\); no stronger single-target identification is asserted.
+
+\begin{thebibliography}{99}
+
+  \bibitem{RothenhauslerHeinzePetersMeinshausen2015BACKSHIFT} Rothenhäusler, Dominik, Christina Heinze, Jonas Peters, and Nicolai Meinshausen. 2015. ``backShift: Learning Causal Cyclic Graphs from Unknown Shift Interventions.'' Advances in Neural Information Processing Systems 28. arXiv:1506.02494.
+
+  \bibitem{YangSalehkaleybarKiyavash2024LIT} Yang, Yuqin, Saber Salehkaleybar, and Negar Kiyavash. 2024. ``Learning Unknown Intervention Targets in Structural Causal Models from Heterogeneous Data.'' Proceedings of AISTATS, PMLR 238:3187--3195. arXiv:2312.06091.
+
+  \bibitem{YangGhassamiNafeaKiyavashZhangShpitser2022MeasurementError} Yang, Yuqin, AmirEmad Ghassami, Mohamed Nafea, Negar Kiyavash, Kun Zhang, and Ilya Shpitser. 2022. ``Causal Discovery in Linear Latent Variable Models Subject to Measurement Error.'' Advances in Neural Information Processing Systems 35. arXiv:2211.03984.
+
+  \bibitem{PfisterWeichwaldBuhlmannScholkopf2019CoroICA} Pfister, Niklas, Sebastian Weichwald, Peter Bühlmann, and Bernhard Schölkopf. 2019. ``Robustifying Independent Component Analysis by Adjusting for Group-Wise Stationary Noise.'' Journal of Machine Learning Research 20(147):1--50. arXiv:1806.01094.
+
+  \bibitem{VariciEtAl2022LatentTargets} Varici, Burak, Karthikeyan Shanmugam, Prasanna Sattigeri, and Ali Tajer. 2022. ``Intervention Target Estimation in the Presence of Latent Variables.'' Proceedings of UAI, PMLR 180:2013--2023.
+
+  \bibitem{TaebGamellaHeinzeDemlBuhlmann2024UTLVCE} Taeb, Armeen, Juan L. Gamella, Christina Heinze-Deml, and Peter Bühlmann. 2024. ``Learning and Scoring Gaussian Latent Variable Causal Models with Unknown Additive Interventions.'' Journal of Machine Learning Research 25. arXiv:2101.06950.
+
+  \bibitem{JaberKocaogluShanmugamBareinboim2020UnknownSoft} Jaber, Amin, Murat Kocaoglu, Karthikeyan Shanmugam, and Elias Bareinboim. 2020. ``Causal Discovery from Soft Interventions with Unknown Targets: Characterization and Learning.'' Advances in Neural Information Processing Systems 33.
+
+  \bibitem{SquiresWangUhler2020UTIGSP} Squires, Chandler, Yuhao Wang, and Caroline Uhler. 2020. ``Permutation-Based Causal Structure Learning with Unknown Intervention Targets.'' Proceedings of UAI, PMLR 124:1039--1048. arXiv:1910.09007.
+
+  \bibitem{LeNguyen2022HermitianSDC} Le, Thanh Hieu, and Thi Ngan Nguyen. 2022. ``Simultaneous Diagonalization via Congruence of Hermitian Matrices: Some Equivalent Conditions and a Numerical Solution.'' SIAM Journal on Matrix Analysis and Applications 43(2):882--911.
+
+  \bibitem{BacchiocchiBastianinKitagawaMirto2024PartialHSVAR} Bacchiocchi, Emanuele, Andrea Bastianin, Toru Kitagawa, and Elisabetta Mirto. 2024. ``Partially Identified Heteroskedastic SVARs.'' arXiv:2403.06879v1.
+
+  \bibitem{StriederFreidlingHaffnerDrton2021ConfidenceCausalDiscovery} Strieder, David, Tobias Freidling, Stefan Haffner, and Mathias Drton. 2021. ``Confidence in Causal Discovery with Linear Causal Models.'' Proceedings of UAI, PMLR 161:1217--1226. arXiv:2106.05694.
+
+  \bibitem{RomanoShaikh2010IdentifiedSetInference} Romano, Joseph P., and Azeem M. Shaikh. 2010. ``Inference for the Identified Set in Partially Identified Econometric Models.'' Econometrica 78(1):169--211.
+
+  \bibitem{BrownPurves1973} Brown, Lawrence D., and Roger Purves. 1973. ``Measurable Selections of Extrema.'' Annals of Statistics 1(5):902--912.
+
+  \bibitem{Lewis2022RobustHeteroskedasticity} Lewis, Daniel J. 2022. ``Robust Inference in Models Identified via Heteroskedasticity.'' Review of Economics and Statistics 104(3):510--524.
+
+  \bibitem{AndrewsCheng2012WeakSemiStrongStrongID} Andrews, Donald W. K., and Xu Cheng. 2012. ``Estimation and Inference with Weak, Semi-Strong, and Strong Identification.'' Econometrica 80(5):2153--2211.
+
+  \bibitem{WuEtAl2025CausalDifferentialNetworks} Wu, Shirley, Jeroen Berkhout, Simon Geisler, and others. 2025. ``Identifying Biological Perturbation Targets through Causal Differential Networks.'' Proceedings of ICML. arXiv:2410.03380.
+
+  \bibitem{DixitEtAl2016PerturbSeq} Dixit, Atray, Oren Parnas, Biyu Li, and others. 2016. ``Perturb-seq: Dissecting Molecular Circuits with Scalable Single-Cell RNA Profiling of Pooled Genetic Screens.'' Cell 167(7):1853--1866.
+
+  \bibitem{SrivatsanEtAl2020SciPlex} Srivatsan, Sanjay R., José L. McFaline-Figueroa, Vijay Ramani, and others. 2020. ``Massively Multiplex Chemical Transcriptomics at Single-Cell Resolution.'' Science 367(6473):45--51.
+
+\end{thebibliography}
+
+\end{document}

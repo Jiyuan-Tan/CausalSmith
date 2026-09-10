@@ -52,14 +52,17 @@ open MeasureTheory
 
 /-! ## The witness node type and graph (covariate-independent) -/
 
-/-- These are the nodes of the finite backdoor witness graph. -/
+/-- The [finite backdoor witness-node type](goal) consists of [the observed covariate node](hyp:Xc), the treatment node, the outcome node, the latent covariate-draw node, the treatment-noise node, and the outcome-noise node. -/
 inductive WNode
   | Xc | A | Y | Un | Ea | Ey
   deriving DecidableEq
 
 namespace WNode
 
-/-- This gives a printable representation for the witness graph nodes. -/
+/-- [The printable representation of a witness-graph node](goal) is its corresponding node label,
+with [the observed covariate](step:1), [treatment](step:2), [outcome](step:3), [the latent
+covariate draw](step:4), [treatment noise](step:5), and [outcome noise](step:6) given their six
+respective labels. -/
 protected def repr : WNode → Nat → Std.Format
   | Xc, _ => "WNode.Xc"
   | A, _ => "WNode.A"
@@ -68,10 +71,10 @@ protected def repr : WNode → Nat → Std.Format
   | Ea, _ => "WNode.Ea"
   | Ey, _ => "WNode.Ey"
 
-/-- The witness graph nodes can be rendered for debugging and generated instances. -/
+/-- The [printable representation of a finite backdoor witness node](goal) is [the node's corresponding label](step:1). -/
 instance : Repr WNode := ⟨WNode.repr⟩
 
-/-- The witness graph nodes form a finite type. -/
+/-- The [finite enumeration of backdoor witness nodes](goal) consists of [the six witness nodes, with every witness node included](step:1) and [a proof that this enumeration is exhaustive](step:2). -/
 instance : Fintype WNode where
   elems := {Xc, A, Y, Un, Ea, Ey}
   complete := by intro x; cases x <;> simp
@@ -80,7 +83,11 @@ end WNode
 
 open WNode
 
-/-- This is the edge relation for the finite backdoor witness graph. -/
+/-- [The edge relation of the finite backdoor witness graph](goal) contains [the arrow from the
+latent covariate draw to the observed covariate](step:1), [the arrow from the observed covariate
+to treatment](step:2), [the arrow from the observed covariate to outcome](step:3), [the arrow
+from treatment to outcome](step:4), [the arrow from treatment noise to treatment](step:5), and
+[the arrow from outcome noise to outcome](step:6); [every other ordered pair has no arrow](step:7). -/
 def wEdge : WNode → WNode → Prop
   | Un, Xc => True
   | Xc, A  => True
@@ -90,12 +97,14 @@ def wEdge : WNode → WNode → Prop
   | Ey, Y  => True
   | _,  _  => False
 
-/-- The witness graph edge relation is decidable. -/
+/-- The [procedure deciding whether an ordered pair of witness nodes is an edge](goal) [examines the finite witness-graph edge relation](step:1). -/
 instance : DecidableRel wEdge := by
   intro a b; cases a <;> cases b <;> simp [wEdge] <;> infer_instance
 
-/-- This topological order places latent roots before the observed covariate,
-treatment, and outcome. -/
+/-- [The topological ordering of a witness-graph node](goal) assigns [rank zero to the latent
+covariate draw](step:1), [rank one to treatment noise](step:2), [rank two to outcome noise](step:3),
+[rank three to the observed covariate](step:4), [rank four to treatment](step:5), and [rank five
+to the outcome](step:6). -/
 def wTopo : WNode → ℕ
   | Un => 0
   | Ea => 1
@@ -109,14 +118,16 @@ topological order on its nodes](goal). -/
 theorem wTopo_lt : ∀ u v, wEdge u v → wTopo u < wTopo v := by
   intro u v h; cases u <;> cases v <;> simp_all [wEdge, wTopo]
 
-/-- This is the directed acyclic graph for the finite backdoor witness. -/
+/-- [The directed acyclic graph for the finite backdoor witness](goal) is the graph whose nodes
+are the witness nodes and whose arrows are the specified witness-graph edge relation. -/
 def wDAG : DAG WNode where
   edge := wEdge
   decEdge := inferInstance
   acyclic := DAG.acyclic_of_topoOrder wTopo_lt
 
-/-- This is the SWIG graph with observed covariate, treatment, and outcome nodes
-and latent noise roots. -/
+/-- [The single-world intervention graph for the finite backdoor witness](goal) has the witness
+directed acyclic graph, no fixed nodes, observed nodes for the covariate, treatment, and outcome,
+and unobserved nodes for the three latent noise variables. -/
 def wSWIGGraph : SWIGGraph WNode where
   dag := initialSWIG wDAG
   fixed := ∅
@@ -148,7 +159,10 @@ section DGP
 variable (C : Type) [Fintype C] [Nonempty C] [MeasurableSpace C]
   [MeasurableSingletonClass C] [StandardBorelSpace C]
 
-/-- This assigns value spaces to the witness graph nodes. -/
+/-- For [a covariate space](hyp:C), [the value space assigned to each witness-graph node](goal)
+is [the covariate space for the observed covariate](step:1), [the binary space for treatment](step:2),
+[the real line for the outcome](step:3), [the covariate space for the latent covariate draw](step:4),
+[the real line for treatment noise](step:5), and [the real line for outcome noise](step:6). -/
 def WΩ : WNode → Type
   | Xc => C
   | A  => Bool
@@ -157,7 +171,7 @@ def WΩ : WNode → Type
   | Ea => ℝ
   | Ey => ℝ
 
-/-- Each witness node value space has its measurable-space structure. -/
+/-- For [a covariate space equipped with a measurable structure](hyp:C) and [each witness node](hyp:n), the [measurable-space structure for that witness-node value space](goal) is [the given covariate measurable structure for the observed covariate](step:1), [the binary measurable structure for treatment](step:2), [the real-line measurable structure for outcome](step:3), [the given covariate measurable structure for the latent covariate draw](step:4), [the real-line measurable structure for treatment noise](step:5), and [the real-line measurable structure for outcome noise](step:6). -/
 noncomputable instance WΩ_meas : ∀ n, MeasurableSpace (WΩ C n)
   | Xc => inferInstanceAs (MeasurableSpace C)
   | A  => inferInstanceAs (MeasurableSpace Bool)
@@ -166,7 +180,7 @@ noncomputable instance WΩ_meas : ∀ n, MeasurableSpace (WΩ C n)
   | Ea => inferInstanceAs (MeasurableSpace ℝ)
   | Ey => inferInstanceAs (MeasurableSpace ℝ)
 
-/-- Each witness node value space is standard Borel. -/
+/-- For [a covariate space equipped with a measurable structure and a standard-Borel structure](hyp:C) and [each witness node](hyp:n), the [standard-Borel structure for that witness-node value space](goal) is [the given structure for the observed covariate](step:1), [the binary structure for treatment](step:2), [the real-line structure for outcome](step:3), [the given structure for the latent covariate draw](step:4), [the real-line structure for treatment noise](step:5), and [the real-line structure for outcome noise](step:6). -/
 noncomputable instance WΩ_borel : ∀ n, StandardBorelSpace (WΩ C n)
   | Xc => inferInstanceAs (StandardBorelSpace C)
   | A  => inferInstanceAs (StandardBorelSpace Bool)
@@ -175,7 +189,7 @@ noncomputable instance WΩ_borel : ∀ n, StandardBorelSpace (WΩ C n)
   | Ea => inferInstanceAs (StandardBorelSpace ℝ)
   | Ey => inferInstanceAs (StandardBorelSpace ℝ)
 
-/-- Each witness node value space is nonempty. -/
+/-- For [a nonempty covariate space](hyp:C) and [each witness node](hyp:n), the [nonemptiness certificate for that witness-node value space](goal) is [the given certificate for the observed covariate](step:1), [a binary value for treatment](step:2), [a real value for outcome](step:3), [the given certificate for the latent covariate draw](step:4), [a real value for treatment noise](step:5), and [a real value for outcome noise](step:6). -/
 instance WΩ_nonempty : ∀ n, Nonempty (WΩ C n)
   | Xc => inferInstanceAs (Nonempty C)
   | A  => inferInstanceAs (Nonempty Bool)
@@ -186,11 +200,15 @@ instance WΩ_nonempty : ∀ n, Nonempty (WΩ C n)
 
 /-! ## Structural functions and parent-value plumbing -/
 
-/-- This structural function turns a uniform treatment noise draw into a Boolean treatment. -/
+/-- Given [a real-valued propensity score](hyp:p) and [a real-valued treatment-noise draw](hyp:ea),
+[the binary treatment assignment](goal) is true exactly when the noise draw is no greater than
+the propensity score. -/
 noncomputable def treatFun (p ea : ℝ) : Bool := decide (ea ≤ p)
 
-/-- This structural function turns treatment, covariate, and outcome noise into a
-Bernoulli outcome. -/
+/-- Given [a covariate space](hyp:C), [an outcome-regression function indexed by binary treatment and covariate value](hyp:g),
+[a binary treatment value](hyp:a), [a covariate value](hyp:x), and [a real-valued outcome-noise
+draw](hyp:ey), [the real-valued outcome](goal) is one exactly when the noise draw is no greater
+than the corresponding outcome-regression value, and is zero otherwise. -/
 noncomputable def outFun (g : Bool → C → ℝ) (a : Bool) (x : C) (ey : ℝ) : ℝ :=
   if ey ≤ g a x then 1 else 0
 
@@ -201,34 +219,43 @@ theorem wParent_mem {p c : WNode} (h : wEdge p c) :
     (SWIGNode.random p) ∈ (initialSWIG wDAG).parents (SWIGNode.random c) := by
   rw [DAG.mem_parents, initialSWIG_random_edge]; exact h
 
-/-- This extracts a parent node's value from the tuple of parent values supplied
-to a structural function. -/
+/-- Given [a covariate space](hyp:C),
+[a child witness node](hyp:c), [the supplied values of all parents of that child](hyp:vals),
+[a parent witness node](hyp:p), and [an arrow from that parent to the child](hyp:h), [the
+extracted parent value](goal) is that parent’s supplied value. -/
 def parentVal {c : WNode}
     (vals : ∀ w : {w // w ∈ (initialSWIG wDAG).parents (SWIGNode.random c)}, swigΩ (WΩ C) w.val)
     {p : WNode} (h : wEdge p c) : WΩ C p :=
   vals ⟨SWIGNode.random p, wParent_mem h⟩
 
-/-- This is the uniform law on the unit interval used for the latent noise roots. -/
+/-- [The latent-noise probability law](goal) is the uniform probability distribution on the
+closed unit interval $[0,1]$ of the real line. -/
 noncomputable def unifLaw : Measure ℝ :=
   volume.restrict (Set.Icc (0 : ℝ) 1)
 
-/-- The unit-interval uniform law is a probability measure. -/
+/-- [The uniform law on the closed unit interval is a probability measure](goal). -/
 instance instIsProbabilityMeasureUnifLaw : IsProbabilityMeasure unifLaw := by
   unfold unifLaw
   constructor
   simp [Real.volume_Icc]
 
-/-- This is the uniform law on the finite covariate space. -/
+/-- For [a finite, nonempty covariate space equipped with a measurable structure](hyp:C),
+[the covariate probability law](goal) assigns equal probability to every covariate value. -/
 noncomputable def covLaw : Measure C := (PMF.uniformOfFintype C).toMeasure
 
-/-- The finite covariate uniform law is a probability measure. -/
+/-- For [a finite, nonempty covariate space equipped with a measurable structure](hyp:C), [the uniform covariate law is a probability measure](goal). -/
 instance instIsProbabilityMeasureCovLaw : IsProbabilityMeasure (covLaw C) := by
   unfold covLaw; infer_instance
 
 variable {C}
 
-/-- This is the concrete stochastic structural causal model for a finite
-propensity and outcome regression.
+/-- For [a finite, nonempty covariate space equipped with a measurable structure whose
+singletons are measurable](hyp:C),
+[a propensity function](hyp:m), and [an outcome-regression function for the two treatment
+arms](hyp:g), [the structural causal model](goal) has a uniformly distributed latent covariate,
+independent unit-interval treatment and outcome noises, treatment generated by thresholding its
+noise at the propensity, and outcome generated by thresholding its noise at the arm-specific
+outcome regression.
 
 It realizes the backdoor triangle with a uniform covariate root, independent unit-interval noise
 for treatment and outcome, treatment generated from the propensity, and outcome generated from
@@ -339,43 +366,71 @@ noncomputable def dgpSCM (m : C → ℝ) (g : Bool → C → ℝ) :
     | fixed n =>
         simp [wSWIGGraph] at hn
 
-/-- This is the empty background assignment for the witness SCM. -/
+/-- For [a finite, nonempty covariate space equipped with a measurable structure whose
+singletons are measurable](hyp:C),
+[a propensity function](hyp:m), and [an outcome-regression function](hyp:g), [the background
+assignment for the witness causal model](goal) assigns no fixed values. -/
 noncomputable def dgpFixed (m : C → ℝ) (g : Bool → C → ℝ) :
     SCM.FixedValues (dgpSCM m g) :=
   fun s => (Finset.notMem_empty s.val s.property).elim
 
-/-- This is the potential-outcome system induced by the witness structural causal model. -/
+/-- For [a finite, nonempty covariate space equipped with a measurable structure whose
+singletons are measurable](hyp:C), [a propensity function](hyp:m),
+and [an outcome-regression function](hyp:g), [the induced potential-outcome system](goal) is the
+one generated by the witness structural causal model with its empty background assignment. -/
 noncomputable def dgpPO (m : C → ℝ) (g : Bool → C → ℝ) : POSystem :=
   POSystem.ofSCM (dgpSCM m g) (dgpFixed m g)
 
-/-- This is the observed-node index of the treatment in the induced potential-outcome system. -/
+/-- For [a finite, nonempty covariate space equipped with a measurable structure whose
+singletons are measurable](hyp:C), [a propensity function](hyp:m),
+and [an outcome-regression function](hyp:g), [the treatment index](goal) is the observed
+treatment node of the induced potential-outcome system. -/
 noncomputable def AIdx (m : C → ℝ) (g : Bool → C → ℝ) : (dgpPO m g).V :=
   (⟨SWIGNode.random A, by simp [dgpSCM, wSWIGGraph]⟩ : ObsIdx (dgpSCM m g))
 
-/-- This is the observed-node index of the outcome in the induced potential-outcome system. -/
+/-- For [a finite, nonempty covariate space equipped with a measurable structure whose
+singletons are measurable](hyp:C), [a propensity function](hyp:m),
+and [an outcome-regression function](hyp:g), [the outcome index](goal) is the observed outcome
+node of the induced potential-outcome system. -/
 noncomputable def YIdx (m : C → ℝ) (g : Bool → C → ℝ) : (dgpPO m g).V :=
   (⟨SWIGNode.random Y, by simp [dgpSCM, wSWIGGraph]⟩ : ObsIdx (dgpSCM m g))
 
-/-- This is the observed-node index of the covariate in the induced potential-outcome system. -/
+/-- For [a finite, nonempty covariate space equipped with a measurable structure whose
+singletons are measurable](hyp:C), [a propensity function](hyp:m),
+and [an outcome-regression function](hyp:g), [the covariate index](goal) is the observed
+covariate node of the induced potential-outcome system. -/
 noncomputable def XIdx (m : C → ℝ) (g : Bool → C → ℝ) : (dgpPO m g).V :=
   (⟨SWIGNode.random Xc, by simp [dgpSCM, wSWIGGraph]⟩ : ObsIdx (dgpSCM m g))
 
-/-- This identifies the treatment node's value space with Booleans. -/
+/-- For [a finite, nonempty covariate space equipped with a measurable structure whose
+singletons are measurable](hyp:C), [a propensity function](hyp:m),
+and [an outcome-regression function](hyp:g), [the measurable identification of the treatment
+node’s value space with the binary treatment space](goal) is the identity map. -/
 noncomputable def AEquiv (m : C → ℝ) (g : Bool → C → ℝ) :
     (dgpPO m g).X (AIdx m g) ≃ᵐ Bool :=
   MeasurableEquiv.refl Bool
 
-/-- This identifies the outcome node's value space with real numbers. -/
+/-- For [a finite, nonempty covariate space equipped with a measurable structure whose
+singletons are measurable](hyp:C), [a propensity function](hyp:m),
+and [an outcome-regression function](hyp:g), [the measurable identification of the outcome
+node’s value space with the real line](goal) is the identity map. -/
 noncomputable def YEquiv (m : C → ℝ) (g : Bool → C → ℝ) :
     (dgpPO m g).X (YIdx m g) ≃ᵐ ℝ :=
   MeasurableEquiv.refl ℝ
 
-/-- This identifies the covariate node's value space with the finite covariate type. -/
+/-- For [a finite, nonempty covariate space equipped with a measurable structure whose
+singletons are measurable](hyp:C), [a propensity function](hyp:m),
+and [an outcome-regression function](hyp:g), [the measurable identification of the covariate
+node’s value space with the covariate space](goal) is the identity map. -/
 noncomputable def XEquiv (m : C → ℝ) (g : Bool → C → ℝ) :
     (dgpPO m g).X (XIdx m g) ≃ᵐ C :=
   MeasurableEquiv.refl C
 
-/-- This is the backdoor potential-outcome system extracted from the finite witness construction.
+/-- For [a finite, nonempty covariate space equipped with a measurable structure whose
+singletons are measurable](hyp:C), [a propensity function](hyp:m),
+and [an outcome-regression function](hyp:g), [the backdoor potential-outcome system](goal) uses
+the constructed treatment, outcome, and covariate nodes as its treatment, outcome, and adjustment
+variables.
 
 It uses the constructed treatment, outcome, and covariate nodes as the variables of the backdoor
 estimation problem. -/

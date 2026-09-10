@@ -46,17 +46,18 @@ namespace Experiment
 
 variable (E : Experiment)
 
-/-- This is one unit's inverse-propensity-weighted contribution to the unnormalized Horvitz-Thompson
-effect estimator.
-
-It is the difference between that unit's weighted observed outcome under the two target exposure
-conditions. -/
+/-- Given [an experiment](hyp:E), [two target exposure levels](hyp:dk,dl), [a unit](hyp:i), and
+[a realized assignment](hyp:z), the [raw effect contribution](goal) is that unit's
+inverse-propensity-weighted observed outcome under the first exposure level minus its analogous
+weighted observed outcome under the second exposure level. -/
 noncomputable def effRaw (dk dl : E.Δ) (i : E.ι) (z : E.Ω) : ℝ :=
   expoInd E.f E.θ i dk z * Yobs E.y E.f E.θ i z / prop E.D E.f E.θ i dk
     - expoInd E.f E.θ i dl z * Yobs E.y E.f E.θ i z / prop E.D E.f E.θ i dl
 
-/-- This is the centered and standardized per-unit summand used to form the studentized
-Horvitz-Thompson effect statistic. -/
+/-- Given [an experiment](hyp:E), [two target exposure levels](hyp:dk,dl), [a unit](hyp:i), and
+[a realized assignment](hyp:z), the [standardized effect summand](goal) is the unit's raw effect
+contribution minus its design expectation, divided by the population size times the true standard
+deviation of the Horvitz--Thompson effect estimator. -/
 noncomputable def effSummand (dk dl : E.Δ) (i : E.ι) (z : E.Ω) : ℝ :=
   (effRaw E dk dl i z - E.D.E (effRaw E dk dl i))
     / ((Fintype.card E.ι : ℝ) * Real.sqrt (E.D.Var (htEffect E.D E.y E.f E.θ dk dl)))
@@ -163,11 +164,15 @@ private lemma E_studentizedEffect_sq (dk dl : E.Δ)
   rw [inv_pow, hσ2]
   field_simp
 
-/-- Equip a finite assignment space with the top σ-algebra (every set measurable), so the design
-measure and the measure-theoretic CLT machinery apply with no extra hypotheses. -/
+/-- For [every exposure-mapping experiment](hyp:E), [the measurable structure on its finite
+assignment space](goal) is the top σ-algebra, under which every subset is measurable.
+
+This makes the design measure and the measure-theoretic central-limit machinery applicable without
+additional measurability assumptions. -/
 instance instMeasurableSpaceΩ (E : Experiment) : MeasurableSpace E.Ω := ⊤
 
-/-- The top sigma-algebra on a finite assignment space makes every singleton measurable. -/
+/-- For [every exposure-mapping experiment](hyp:E), [every singleton subset of its assignment
+space is measurable](goal) under the experiment's measurable structure. -/
 instance instMeasurableSingletonΩ (E : Experiment) : MeasurableSingletonClass E.Ω :=
   ⟨fun _ => trivial⟩
 

@@ -43,18 +43,30 @@ namespace POBackdoorSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 variable (S : POBackdoorSystem P γ)
 
-/-- The **lower quantile-cutoff complete propensity**: the candidate whose inverse weight is `wMin`
-above the cutoff and `wMax` at or below it, `1 / (wMin if Y > c(X) else wMax)` — the minimizing
-worst case (opposite of `cutoffProp`). -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ),
+[a back-door system on them](hyp:S), [a sensitivity level](hyp:Λ), [a cutoff function](hyp:c), and
+[a unit](hyp:ω), [the lower quantile-cutoff complete propensity](goal) is the reciprocal of the
+lower inverse-probability weight when that unit's factual outcome exceeds its cutoff and of the
+upper inverse-probability weight otherwise.
+
+This is the minimizing worst-case candidate, opposite to the upper-cutoff construction. -/
 noncomputable def lowerCutoffProp (Λ : ℝ) (c : P.Ω → ℝ) (ω : P.Ω) : ℝ :=
   1 / (if c ω < S.factualY ω then S.wMin Λ ω else S.wMax Λ ω)
 
-/-- The **lower target survival** that calibrates the lower cutoff:
-`survTargetLower = (wMax·e − 1)/(wMax − wMin)` (equal to `e − survTarget`). -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ),
+[a back-door system on them](hyp:S), [a sensitivity level](hyp:Λ), and [a unit](hyp:ω), [the lower
+target survival probability](goal) is the upper inverse-probability weight times the treatment
+propensity minus one, divided by the difference between the upper and lower inverse-probability
+weights.
+
+It equals the treatment propensity minus the upper-cutoff target survival probability. -/
 noncomputable def survTargetLower (Λ : ℝ) (ω : P.Ω) : ℝ :=
   (S.wMax Λ ω * S.propScore true ω - 1) / (S.wMax Λ ω - S.wMin Λ ω)
 
-/-- The **lower calibration quantile level** `1 − survTargetLower/e` (= `survTarget/e`). -/
+/-- For [a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ),
+[a back-door system on them](hyp:S), [a sensitivity level](hyp:Λ), and [a unit](hyp:ω), [the lower
+calibration quantile level](goal) is one minus the lower target survival probability divided by
+that unit's propensity for treatment. -/
 noncomputable def calibLevelLower (Λ : ℝ) (ω : P.Ω) : ℝ :=
   1 - S.survTargetLower Λ ω / S.propScore true ω
 

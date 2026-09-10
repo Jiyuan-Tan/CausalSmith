@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createInitialState, loadState, saveState } from "../src/state.js";
 import { proposalTexPath } from "../src/paths.js";
-import type { PipelineContext, StateJson } from "../src/types.js";
+import type { StateJson } from "../src/types.js";
 
 const exec = promisify(execFile);
 const __TOOLS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -138,13 +138,39 @@ describe("reset_proposal_cursor.ts", () => {
     expect(pf.literature_map).toBe("known ratio exact; learned ratio corrected");
   });
 
-  it("clears the stale draft version and marks last_draft_status completed so the loop re-drives the producer", async () => {
+  it("clears the stale draft version so the -0.5 loop re-drives the producer", async () => {
     await seedNoPass();
     await run("reset_proposal_cursor.ts", ["--angle", "0"]);
     const pf = (await loadState(repoRoot, QID, SPEC)).proposed_from!;
     // stale marker must be cleared → loop re-drives the revise producer, not a dead review
     expect(pf.last_draft_version).toBeUndefined();
     expect(pf.last_draft_status).toBe("completed");
+    expect(pf.current_mode).toBe("revise");
+  });
+
+  it("refuses --no-restore when the canonical core is not a valid proposal, writing nothing", async () => {
+    const { protoArchive0 } = await seedNoPass();
+    await expect(run("reset_proposal_cursor.ts", ["--angle", "0", "--no-restore"]))
+      .rejects.toThrow();
+    const pf = (await loadState(repoRoot, QID, SPEC)).proposed_from!;
+    expect(pf.current_angle_index).toBe(4);
+    expect(pf.last_draft_status).toBe("needs-pivot");
+    expect(await exists(protoArchive0)).toBe(true);
+  });
+
+  it("keeps a valid canonical core as the reset base under --no-restore", async () => {
+    const { protoCore } = await seedNoPass();
+    const core = JSON.parse(await readFile(
+      path.join(__TOOLS_ROOT, "test/fixtures/stat_ate_overlap_decay_proto_core.json"), "utf8",
+    ));
+    await writeFile(protoCore, JSON.stringify(core));
+
+    await run("reset_proposal_cursor.ts", ["--angle", "4", "--no-restore"]);
+    const pf = (await loadState(repoRoot, QID, SPEC)).proposed_from!;
+    expect(pf.proposal_path).toBe(protoCore);
+    expect(pf.last_draft_version).toBeUndefined();
+    expect(pf.last_draft_status).toBe("completed");
+    expect(JSON.parse(await readFile(protoCore, "utf8")).qid).toBe(core.qid);
   });
 
   it("fresh-cleans one angle while preserving the D-1.1 gaps harvest", async () => {

@@ -101,8 +101,14 @@ end SWIGGraph
 
 namespace SCM.ID
 
-/-- This predicate says that two coordinate blocks are conditionally independent
-given a third block under a finite-coordinate measure.
+/-- For [a finite node-label set](hyp:N), [measurable node-value spaces](hyp:Ω),
+    [a finite coordinate set](hyp:D), [two coordinate blocks](hyp:X,Y), [a
+    conditioning coordinate block](hyp:Z), [proofs that all three blocks are
+    contained in the coordinate set](hyp:hX,hY,hZ), and [a finite measure on the
+    values of that coordinate set](hyp:μ), [kernel observational conditional
+    independence](goal) means that the first two blocks are conditionally
+    independent given the third under that measure, provided the coordinate-value
+    space is standard Borel.
 
 It is the measure-level analogue of observational conditional independence, but
 it is not tied to a particular structural causal model or induced model. -/
@@ -119,9 +125,13 @@ def KernelObsCondIndepOn
     (valuesProjection hY)
     μ
 
-/-- This predicate says that every graphical separation in a graph gives the
-corresponding coordinate conditional independence under a finite-coordinate
-measure.
+/-- For [a finite node-label set](hyp:N), [measurable node-value spaces](hyp:Ω),
+    [a SWIG graph](hyp:H), [a finite coordinate set](hyp:D), and [a finite
+    measure on its coordinate-value space](hyp:μ), [the kernel global Markov
+    property](goal) means that every three pairwise disjoint coordinate blocks
+    contained in that set which are d-separated in the graph are conditionally
+    independent under the measure, provided the coordinate-value space is standard
+    Borel.
 
 It is the graph-to-measure interface needed for Tian's Lemma 1 and deliberately
 does not mention an induced structural causal model. -/
@@ -136,8 +146,14 @@ def KernelGlobalMarkovOn
         H.dag.dSep X Y Z →
           KernelObsCondIndepOn D X Y Z hX hY hZ μ
 
-/-- This density is Tian's one-node conditional factor along the topological
-prefix of a finite node set.
+/-- For [a finite node-label set](hyp:N), [measurable node-value spaces](hyp:Ω),
+    [a SWIG graph](hyp:G), [a finite node set](hyp:D), [a finite measure on
+    its value assignments](hyp:μ), [a family of reference measures](hyp:ref), and
+    [a position in the graph's ordering of that set](hyp:i), [Tian's prefix-step
+    density](goal) maps each assignment of the selected nodes to the
+    Radon–Nikodym density of the selected node's conditional distribution given
+    its preceding nodes, relative to its reference measure; the selected node's
+    value space is required to be nonempty and standard Borel.
 
 The conditioning set is the prefix inside the chosen finite node set, not graph
 parents and not the full observed prefix of an ambient model. -/
@@ -169,8 +185,13 @@ noncomputable def tianPrefixStepDensity
           rw [Finset.mem_singleton] at hv
           exact hv ▸ (G.nodesAt D i).property) x)
 
-/-- Tian's district density multiplies the prefix conditional factors whose
-nodes lie in one district.
+/-- For [a finite node-label set](hyp:N), [measurable node-value spaces](hyp:Ω),
+    [a SWIG graph](hyp:G), [a finite node set](hyp:D), [a finite measure on
+    its value assignments](hyp:μ), [a family of reference measures](hyp:ref), and
+    [a selected node set](hyp:S), [Tian's district density](goal) maps each node
+    assignment to the product of the prefix-step densities for exactly those
+    ordered nodes that lie in the selected set; every singleton node-value space
+    in the ordering is required to be nonempty and standard Borel.
 
 This is the induce-free district factor for a measure on the selected finite
 node set. -/
@@ -192,8 +213,13 @@ noncomputable def tianDistrictDensity
         (fun i : Fin D.card => (G.nodesAt D i).val ∈ S),
       tianPrefixStepDensity G D μ ref i x
 
-/-- Tian's full prefix-chain density multiplies all one-node prefix conditional
-factors for a finite node set. -/
+/-- For [a finite node-label set](hyp:N), [measurable node-value spaces](hyp:Ω),
+    [a SWIG graph](hyp:G), [a finite node set](hyp:D), [a finite measure on
+    its value assignments](hyp:μ), and [a family of reference measures](hyp:ref),
+    [Tian's full prefix-chain density](goal) maps each node assignment to the
+    product of the prefix-step densities for every node in the graph's ordering;
+    every singleton node-value space in that ordering is required to be nonempty
+    and standard Borel. -/
 noncomputable def tianDensityProduct
     (G : SWIGGraph N) (D : Finset (SWIGNode N))
     (μ : MeasureTheory.Measure (ValuesOn D (swigΩ Ω)))

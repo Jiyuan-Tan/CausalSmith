@@ -36,6 +36,8 @@ export interface ProposalAngleActionResult {
 
 function resetForProducer(state: StateJson): void {
   const pf = state.proposed_from!;
+  // "completed" with no draft version = the -0.5 producer-first guard drives
+  // the author before any review.
   pf.last_draft_status = "completed";
   pf.last_draft_version = undefined;
   delete pf.last_draft_handoff;
@@ -54,6 +56,17 @@ export async function applyProposalAngleAction(
   if (!checkpoint) {
     throw new Error(
       "--angle-action requires a pending D-0.5 angle checkpoint; the run has none",
+    );
+  }
+
+  const angle = pf.current_angle_index ?? 0;
+  const version = pf.current_version ?? 0;
+  const latestReview = pf.iterations?.at(-1);
+  if (checkpoint.angle !== angle || checkpoint.version !== version ||
+      latestReview?.angle !== angle || latestReview.version !== version ||
+      latestReview.verdict.toUpperCase() !== checkpoint.verdict.toUpperCase()) {
+    throw new Error(
+      "stale D-0.5 angle checkpoint conflicts with the live proposal cursor or latest review",
     );
   }
 
@@ -133,8 +146,6 @@ export async function applyProposalAngleAction(
     });
   }
 
-  const angle = checkpoint.angle;
-  const version = checkpoint.version;
   if (options.action === "continue") {
     pf.current_angle_index = angle;
     pf.current_version = version;

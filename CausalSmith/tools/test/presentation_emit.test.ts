@@ -1,12 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, writeFile, rm, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildBundle, paperLabels, assumptionTable } from "../src/presentation/emit.js";
+import { buildBundle, paperLabels, assumptionTable, repairSymbolLeanrefTargets } from "../src/presentation/emit.js";
 import { tex2html } from "../src/presentation/tex2html.js";
 import { parseAnchoredEnvs, type AnchoredEnv } from "../src/presentation/tex_anchors.js";
 import { parseNoteBlocks, type NoteBlock } from "../src/presentation/note_parser.js";
 import { parseBib } from "../src/presentation/citations.js";
+import { resolveLeanDeclaration } from "../src/presentation/declaration_resolver.js";
 import type { CrosswalkEntry } from "../src/presentation/types.js";
 
 const PAPER = `
@@ -38,6 +39,60 @@ const cwRow = (obj_id: string, kind: string, lean: CrosswalkEntry["lean"]): Cros
 });
 
 describe("bundle join", () => {
+
+  it("retains an authoritative imported statement when the recorded module only imports it", async () => {
+    const workspace = await mkdtemp(join(tmpdir(), "emit-imported-"));
+    try {
+      const repoRoot = join(workspace, "CausalSmith");
+      await mkdir(repoRoot);
+      await mkdir(join(workspace, "Causalean"));
+      await writeFile(join(repoRoot, "Imported.lean"), "import Causalean.Library\n");
+      await writeFile(join(workspace, "Causalean", "Library.lean"),
+        "theorem Library.borrowed (n : Nat) : n = n := by rfl\n");
+      await mkdir(join(workspace, "doc"));
+      await writeFile(join(workspace, "doc", "library_index.json"), JSON.stringify({ entries: [
+        { name: "Library.borrowed", file: "Causalean/Library.lean", line: 1 },
+      ] }));
+      const hit = await resolveLeanDeclaration(repoRoot, ".", {
+        file: "Imported.lean", decl: "Library.borrowed", line: 0,
+      });
+      expect(hit.resolution).toBe("library-index");
+      const envs = parseAnchoredEnvs("\\begin{lemmav}{L-imported}Every n equals itself.\\end{lemmav}");
+      const bundle = await buildBundle({
+        envs, repoRoot, leanSubdir: ".", commit: "fixture", blocks: [],
+        crosswalk: [cwRow("L-imported", "lemma", {
+          file: "Imported.lean", decl: "Library.borrowed", line: 0, decl_kind: "theorem",
+        })],
+        resolvedDeclarations: new Map([["L-imported", hit]]),
+        verdictByObj: new Map([["L-imported", { status: "matched" }]]),
+      });
+      expect(bundle.snippets.snippets["L-imported"].statement).toBe(hit.snippet);
+      expect(bundle.snippets.snippets["L-imported"].file).toBe("Causalean/Library.lean");
+      expect(bundle.snippets.snippets["L-imported"].sorry_free).toBe(true);
+      expect(bundle.crosswalk.entries[0].lean).toBeNull();
+      expect(bundle.crosswalk.entries[0].fallback).toContain("Causalean/Library.lean:1");
+      expect(bundle.crosswalk.entries[0].status).toBe("matched");
+    } finally {
+      await rm(workspace, { recursive: true, force: true });
+    }
+  });
+
+  it("does not silently emit a matched object whose declared source cannot be displayed", async () => {
+    const repoRoot = await mkdtemp(join(tmpdir(), "emit-missing-"));
+    try {
+      await writeFile(join(repoRoot, "Imported.lean"), "import Missing\n");
+      await expect(buildBundle({
+        envs: parseAnchoredEnvs("\\begin{lemmav}{L-missing}Claim.\\end{lemmav}"),
+        repoRoot, leanSubdir: ".", commit: "fixture", blocks: [],
+        crosswalk: [cwRow("L-missing", "lemma", {
+          file: "Imported.lean", decl: "Missing.claim", line: 0, decl_kind: "theorem",
+        })],
+        verdictByObj: new Map([["L-missing", { status: "matched" }]]),
+      })).rejects.toThrow("matched object L-missing has no resolved Lean snippet");
+    } finally {
+      await rm(repoRoot, { recursive: true, force: true });
+    }
+  });
   it("numbers per env class and joins lean snippets + fallbacks", async () => {
     const dir = await mkdtemp(join(tmpdir(), "psmith-emit-"));
     await writeFile(
@@ -179,6 +234,35 @@ describe("bundle join", () => {
     expect(bundle.crosswalk.entries[0]).toMatchObject({
       obj_id: "synth_1", lean: null, status: "presentation-synthesized",
     });
+  });
+
+  it("links a synthesized definition rendered from a Lean declaration and displays that declaration", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "emit-linked-synth-"));
+    await writeFile(join(dir, "Basic.lean"), "def summaryRadius (x : Nat) : Nat := x + 1\n", "utf8");
+    const envs = parseAnchoredEnvs("\\begin{definitionv}{synth_2}[Summary radius] body \\end{definitionv}");
+    const bundle = await buildBundle({
+      envs,
+      crosswalk: [],
+      blocks: [],
+      repoRoot: dir,
+      leanSubdir: ".",
+      commit: "c",
+      moduleDecls: new Map([["summaryRadius", { file: "Basic.lean", line: 1, kind: "def" }]]),
+      verdictByObj: new Map([["synth_2", { status: "matched", lean: { decl: "summaryRadius", file: "Basic.lean" } }]]),
+    });
+    expect(bundle.crosswalk.entries[0]).toMatchObject({
+      obj_id: "synth_2", status: "matched", lean: { decl: "summaryRadius", file: "Basic.lean", decl_kind: "def", line: 1 },
+    });
+    expect(bundle.snippets.snippets["synth_2"].statement).toContain("def summaryRadius");
+    expect([...bundle.matchedSynthDecls]).toEqual(["summaryRadius"]);
+  });
+
+  it("fails loudly when a linked declaration is not in the paper's modules", async () => {
+    const envs = parseAnchoredEnvs("\\begin{definitionv}{synth_3}[Gone] body \\end{definitionv}");
+    await expect(buildBundle({
+      envs, crosswalk: [], blocks: [], repoRoot: "/nowhere", leanSubdir: ".", commit: "c",
+      verdictByObj: new Map([["synth_3", { status: "matched", lean: { decl: "vanished", file: "Basic.lean" } }]]),
+    })).rejects.toThrow(/links Lean declaration vanished/);
   });
 });
 
@@ -331,6 +415,7 @@ This sentence is live prose between two commented delimiters.
 Opening context.
 \\section{Results}\\label{sec:results}
 Prose with math \\(x^2\\) and \\citet{robins1994}. See \\cref{obj:P-1,obj:T-1} in \\cref{sec:results}.
+Reference-only math must render as an ordinary link: \\(\\cref{obj:P-1}\\).
 ${PAPER}
 \\begin{proof}[Proof of Theorem 1]
 Trivial and 100\\% exact.
@@ -359,6 +444,8 @@ x=1.
     expect(html).toContain('Definition <a class="objref" href="#obj-P-1">1</a>');
     expect(html).toContain('Theorem <a class="objref" href="#obj-T-1">1</a>');
     expect(html).toContain("Section 2");
+    expect(html).toContain('Reference-only math must render as an ordinary link: Definition <a class="objref" href="#obj-P-1">1</a>.');
+    expect(html).not.toContain('class="math inline">\\(Definition <a class="objref"');
     expect(html).not.toContain("\\cref");
   });
 
@@ -537,5 +624,29 @@ describe("stale Lean paths are reported honestly", () => {
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
+  });
+});
+
+describe("symbol links and equation labels on the web", () => {
+  it("upgrades a symbol link target written with math delimiters to the bare realized name", () => {
+    const tex = "the outcome \\leanref{sym:\\(Y(a)\\)}{\\(Y(a)\\)} under arm";
+    expect(repairSymbolLeanrefTargets(tex, ["Y(a)"])).toBe("the outcome \\leanref{sym:Y(a)}{\\(Y(a)\\)} under arm");
+    expect(repairSymbolLeanrefTargets(tex, ["Y(b)"])).toBe(tex); // unknown stays unknown (P4 stays loud)
+  });
+
+  it("keeps an equation label for numbering but strips it from the math the page renders", async () => {
+    const tex = "\\begin{document}See \\cref{eq:one}.\\begin{equation}\\label{eq:one} a = b \\end{equation}\\end{document}";
+    const html = await tex2html(tex, [], new Set());
+    expect(html).not.toContain("\\label");
+    expect(html).toContain("Equation 1");
+    const bare = await tex2html("\\begin{document}\\[ x = y \\label{eq:two} \\]\\end{document}", [], new Set());
+    expect(bare).not.toContain("\\label");
+  });
+
+  it("spells out mathtools' delimited small matrices for the page", async () => {
+    const html = await tex2html("\\begin{document}\\(B=\\begin{psmallmatrix}1&1\\\\0.2&0.8\\end{psmallmatrix}\\)\\end{document}", [], new Set());
+    expect(html).not.toContain("psmallmatrix");
+    expect(html).toContain("\\left(\\begin{smallmatrix}");
+    expect(html).toContain("\\end{smallmatrix}\\right)");
   });
 });

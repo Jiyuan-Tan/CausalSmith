@@ -166,9 +166,14 @@ export async function refreshGraphForGate(a: {
     // them below. Duplicate @node tags, by contrast, survive minting and are caught by the
     // post-mint `ext.unlinked` check (extractFromLean early-returns duplicates as unlinked).
     const ext0 = await extractFromLean(g, a.leanDir);
-    // Ids the graph already knew BEFORE minting. An unlinked tag naming one of these is a
-    // REAL ambiguity (two decls claiming one node, or a mis-anchor) and stays fatal below.
-    const preMintIds = new Set(g.nodes.map((n) => n.id));
+    // From-note ids known BEFORE minting are protected: an unlinked tag naming one is a REAL
+    // ambiguity (two decls claiming one core node, or a mis-anchor). Agent-introduced ids are
+    // deliberately not protected here. A scaffolder can reintroduce the same phantom helper tag
+    // on a later round after the first refresh minted it; treating that phantom as permanent made
+    // the existing duplicate-tag self-heal work only once and deadlocked every subsequent round.
+    const protectedPreMintIds = new Set(
+      g.nodes.filter((n) => n.provenance !== "agent-introduced").map((n) => n.id),
+    );
     g = await mintHiddenDefNodes(ext0.graph, a.leanDir);
     // Register agent-introduced `@node:`-tagged helper lemmas the filler added, then
     // re-extract so the freshly-minted nodes get linked (decl_name/file) and hashed.
@@ -184,11 +189,11 @@ export async function refreshGraphForGate(a: {
     // one or make coverage depend on source order (the hazard the duplicate check exists for).
     // Strip those comment lines, drop the phantom node minted from them, and re-extract once.
     // Tags naming a pre-existing node are untouched and still fail closed.
-    if (ext.unlinked.length > 0 && ext.unlinked.every((u) => !preMintIds.has(u.id))) {
+    if (ext.unlinked.length > 0 && ext.unlinked.every((u) => !protectedPreMintIds.has(u.id))) {
       const inertIds = [...new Set(ext.unlinked.map((u) => u.id))];
       strippedTags = await stripNodeTags(a.leanDir, inertIds);
       if (strippedTags.length > 0) {
-        g = { ...g, nodes: g.nodes.filter((n) => !(inertIds.includes(n.id) && !preMintIds.has(n.id))) };
+        g = { ...g, nodes: g.nodes.filter((n) => !(inertIds.includes(n.id) && !protectedPreMintIds.has(n.id))) };
         ext = await extractFromLean(g, a.leanDir);
       }
     }

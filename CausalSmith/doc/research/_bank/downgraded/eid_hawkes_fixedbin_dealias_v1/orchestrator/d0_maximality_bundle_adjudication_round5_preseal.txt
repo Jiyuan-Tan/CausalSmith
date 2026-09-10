@@ -1,0 +1,23 @@
+Round-5 pre-seal mechanical finding
+
+Controlling packet digest inspected:
+`514b5bbe601799d529807359273f4e67e384d122f7e85aa7d72c4ac385a9c0d9`.
+
+The repaired mathematics is substantively sound, but this packet is not mechanically applicable under its controlling digest. The exact read-only preview
+
+`npx tsx tools/bin/d0_apply_change.ts eid_hawkes_fixedbin_dealias v1 --all --review-digest 514b5bbe601799d529807359273f4e67e384d122f7e85aa7d72c4ac385a9c0d9 --note "Round-5 external adjudication preview only" --check`
+
+fails with:
+
+`d0_apply_change: Ordinary D0 APPLY requires a sealed, fully coherent proposal review packet; regenerate and re-adjudicate it`
+
+The failure is isolated to the durable-state equality seal. The packet's `durable_working_state` is byte-equal to raw `d0_working.json`, but APPLY loads that cursor through `loadWorkingState`, which calls `repairLatexStringsDeep`. That normalization changes both values under `sealed_open_oeqs` from JSON strings containing double-escaped TeX delimiters such as `\\\\(` to canonical strings containing `\\(`. Consequently:
+
+- `JSON.stringify(packet.durable_working_state) !== JSON.stringify(loadWorkingState(...))`;
+- the packet's self-digest check succeeds;
+- its contract string is current;
+- all proposal arrays equal the durable proposal arrays;
+- packet core revision, assembled-current revision, and `basis_revision` all equal `rev:7420931e1c3b5864a53d4966480bab5e516d1c6a0abdbda6dec2ddc5039e3739`;
+- `full_current_paper_tex` exactly equals the renderer output from `current_typed_core`.
+
+Thus the only reproduced blocker is pre-seal versus load-time normalization of `sealed_open_oeqs`. Do not apply or discard digest `514b5bbe601799d529807359273f4e67e384d122f7e85aa7d72c4ac385a9c0d9`. Canonicalize the sealed-OEQ strings before packet construction, regenerate the review packet, and require fresh adjudication of the new digest.

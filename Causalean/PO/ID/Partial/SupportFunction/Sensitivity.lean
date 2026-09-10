@@ -92,12 +92,14 @@ characterization results reused by concrete sensitivity models. -/
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
-/-- The **upper robust bound** of the reweighted mean `⟪c, ·⟫` over an ambiguity
-set `W`: the worst case from above, `supportFn W c`. -/
+/-- For [a real inner-product space](hyp:E), [a set of admissible reweighting vectors](hyp:W),
+and [a target direction](hyp:c), [the upper robust bound](goal) is the supremum, over the
+admissible vectors, of their inner product with the target direction. -/
 noncomputable def robustUpper (W : Set E) (c : E) : ℝ := supportFn W c
 
-/-- The **lower robust bound** of the reweighted mean `⟪c, ·⟫` over an ambiguity
-set `W`: the worst case from below, `-supportFn W (-c)`. -/
+/-- For [a real inner-product space](hyp:E), [a set of admissible reweighting vectors](hyp:W),
+and [a target direction](hyp:c), [the lower robust bound](goal) is the infimum, over the
+admissible vectors, of their inner product with the target direction. -/
 noncomputable def robustLower (W : Set E) (c : E) : ℝ := -supportFn W (-c)
 
 /-- The robust interval `[robustLower, robustUpper]` is well-ordered under the usual boundedness
@@ -170,8 +172,9 @@ times a standard deviation, in closed form via the affine-ball engine. -/
 
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H] [CompleteSpace H]
 
-/-- The **χ²/L² ambiguity set**: weights normalized against the unit base
-direction `e` and within an L²-ball of radius `ρ` around it. -/
+/-- For [a real inner-product space](hyp:H), [a base direction in that space](hyp:e), and [a real
+radius](hyp:ρ), [the chi-square/L2 ambiguity set](goal) consists exactly of the vectors whose inner
+product with the base direction is one and whose distance from that direction is at most the radius. -/
 def l2Ball (e : H) (ρ : ℝ) : Set H := {w | ⟪e, w⟫ = 1 ∧ ‖w - e‖ ≤ ρ}
 
 omit [CompleteSpace H] in

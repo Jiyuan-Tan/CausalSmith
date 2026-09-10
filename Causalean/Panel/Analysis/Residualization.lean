@@ -75,9 +75,12 @@ structure ResidualizationWitness {Ω : Type*} [MeasurableSpace Ω]
   member of `H`. -/
   orthogonal : ∀ ⦃h : Ω → ℝ⦄, H.mem h → ∫ ω, Vtilde ω * h ω ∂μ = 0
 
-/-- The residualized population coefficient is the ratio of the covariance-like
-integral of treatment and outcome residuals to the second moment of the
-treatment residual.
+/-- On a measurable sample space equipped with [a measure](hyp:μ), let [a linear class of
+square-integrable real-valued functions](hyp:H) be given. Given [a residualization witness for
+a real-valued outcome](hyp:wY) and [a residualization witness for a real-valued
+treatment](hyp:wD)—each supplying an in-class component and an orthogonal, square-integrable
+residual—the [residualized population coefficient](goal) is the integral of the product of the
+treatment and outcome residuals divided by the integral of the squared treatment residual.
 
 The denominator is left as-is here; positivity is supplied at theorem-use time. -/
 noncomputable def residualizedCoefficient {Ω : Type*} [MeasurableSpace Ω]

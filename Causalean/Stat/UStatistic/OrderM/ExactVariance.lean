@@ -66,8 +66,14 @@ variable [IsProbabilityMeasure μ] [IsProbabilityMeasure P]
 
 /-! ## Cross expectations by image comparison -/
 
-/-- Two injective maps from a finite index set with the same image determine a permutation
-of that index set which reorders the first map into the second. -/
+/-- Given [a nonnegative integer $m$ specifying the size of a source index set](hyp:m), [a
+nonnegative integer $n$ specifying the size of a target index set](hyp:n), [two maps from the
+source index set into the target index set](hyp:t,q), [the assumption that both maps are
+injective](hyp:ht,hq), and [the assumption that their images coincide](hyp:himg), [the selected
+permutation of the source index set](goal) reorders the first map into the second. [It first
+selects, for each target value of the second map, a source index having the same first-map
+value](step:1), and then selects, for each target value of the first map, a source index having
+the same second-map value. -/
 noncomputable def permOfImageEq {n : ℕ} {t q : Fin m → Fin n}
     (ht : Function.Injective t) (hq : Function.Injective q)
     (himg : Finset.univ.image t = Finset.univ.image q) : Equiv.Perm (Fin m) := by

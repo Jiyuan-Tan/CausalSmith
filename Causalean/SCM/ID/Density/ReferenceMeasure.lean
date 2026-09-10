@@ -46,8 +46,9 @@ structure ReferenceMeasures (Ω : N → Type*) [∀ n, MeasurableSpace (Ω n)] w
 
 attribute [instance] ReferenceMeasures.sigmaFinite
 
-/-- The joint reference measure is the finite product of the per-node reference
-measures over a node set.
+/-- For [a node population with measurable value spaces](hyp:N,Ω), [a reference-measure
+family](hyp:ref), and [a finite node set](hyp:I), [the joint reference measure](goal) is the
+finite product of the reference measures assigned to the nodes in that set.
 
 For counting references this is counting measure on the discrete product; for
 Lebesgue references it is Lebesgue measure on the continuous product. -/
@@ -55,23 +56,29 @@ noncomputable def jointRef (ref : ReferenceMeasures Ω) (I : Finset (SWIGNode N)
     MeasureTheory.Measure (ValuesOn I (swigΩ Ω)) :=
   MeasureTheory.Measure.pi (fun i : {i // i ∈ I} => ref.μ i.val)
 
-/-- Finite products of sigma-finite coordinate reference measures are
-sigma-finite. -/
+/-- For [a node population with measurable value spaces](hyp:N,Ω), [a reference-measure
+family](hyp:ref), and [a finite set of nodes](hyp:I), [the σ-finiteness structure for their
+joint reference measure](goal) asserts that the finite product of the selected coordinate
+reference measures is σ-finite. -/
 instance instSigmaFiniteJointRef (ref : ReferenceMeasures Ω) (I : Finset (SWIGNode N)) :
     MeasureTheory.SigmaFinite (jointRef ref I) := by
   unfold jointRef
   infer_instance
 
-/-- A structural causal model is dominated when each observational law is
-absolutely continuous with respect to the joint reference measure.
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω), [a structural causal
+model](hyp:M), and [a reference-measure family](hyp:ref), [observational domination](goal) holds
+exactly when, for every assignment of fixed-node values, the model's observational law is
+absolutely continuous with respect to the joint reference measure on its observed nodes.
 
 Equivalently, the observational law admits a joint density at every fixed-value
 slice. -/
 def DominatedObs (M : Causalean.SCM N Ω) (ref : ReferenceMeasures Ω) : Prop :=
   ∀ s : M.FixedValues, M.obsKernel s ≪ jointRef ref M.observed
 
-/-- The joint observational density is the Radon-Nikodym derivative of the
-observational law with respect to the observed-node reference product. -/
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω), [a structural causal
+model](hyp:M), [a reference-measure family](hyp:ref), and [fixed-node values](hyp:s), [the joint
+observational density](goal) is the Radon--Nikodym derivative of the model's observational law at
+those fixed-node values with respect to the joint reference measure on the observed nodes. -/
 noncomputable def obsDensity (M : Causalean.SCM N Ω) (ref : ReferenceMeasures Ω)
     (s : M.FixedValues) : ValuesOn M.observed (swigΩ Ω) → ENNReal :=
   (M.obsKernel s).rnDeriv (jointRef ref M.observed)

@@ -37,14 +37,19 @@ open Real Polynomial
 
 namespace Causalean.Mathlib.Analysis.EhlichZellerMesh
 
-/-- The `j`-th Chebyshev–Lobatto (extrema) node on `[-1, 1]` for a mesh of order
-`k`: `czNode k j = -cos(π j / k)`.  When `0 < k`, the indices `j = 0..k` give
-`k+1` points with endpoints `czNode k 0 = -1` and `czNode k k = 1`. -/
+/-- For [a nonnegative mesh order](hyp:k) and [a nonnegative node index](hyp:j), the
+[Chebyshev–Lobatto node](goal) is $-\cos(\pi j/k)$.  When the mesh order is positive,
+the indices from zero through that order give its endpoints $-1$ and $1$ as well as its
+intermediate nodes.
+
+The node is defined for every pair of nonnegative integers, including mesh order zero. -/
 noncomputable def czNode (k : ℕ) (j : ℕ) : ℝ := - Real.cos (Real.pi * j / k)
 
-/-- The mesh maximum: `max_{0 ≤ j ≤ k} |R(x_j)|`, written as a bounded supremum
-over `Finset.range (k+1)`.  Since each summand is `≥ 0` and the index set is
-finite and nonempty, this is the ordinary finite maximum. -/
+/-- For [a real polynomial](hyp:R) and [a nonnegative mesh order](hyp:k), the
+[mesh maximum](goal) is the largest absolute value of the polynomial over all
+Chebyshev–Lobatto nodes with indices from zero through that order.
+
+Since the index set is finite and nonempty, this bounded supremum is the ordinary finite maximum. -/
 noncomputable def czMeshMax (R : Polynomial ℝ) (k : ℕ) : ℝ :=
   ⨆ j ∈ Finset.range (k + 1), |R.eval (czNode k j)|
 

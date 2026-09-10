@@ -43,9 +43,12 @@ namespace Causalean.Estimation.OrthogonalMoments.AutoDebias
 open MeasureTheory ProbabilityTheory Filter Topology Causalean.Stat
   Causalean.Estimation.OrthogonalMoments
 
-/-- **Joint nuisance type** for the linear Auto-DML moment: a regression
-function `γ ∈ H_γ` paired with a Riesz-representer candidate
-`α : X → ℝ`.  Carries componentwise `AddCommGroup` / `Module ℝ`. -/
+/-- For a [linear regression-function system](hyp:S), the [joint nuisance
+object for its linear automatic-debiasing moment](goal) is a pair comprising a
+regression function from the system's regression class and a candidate Riesz
+representer, which is a real-valued function of the covariates.
+
+Carries componentwise `AddCommGroup` / `Module ℝ`. -/
 def linAutoNuisance (S : LinRegFnSys) : Type _ := S.H_γ × (S.X → ℝ)
 
 noncomputable instance linAutoNuisance.instAddCommGroup (S : LinRegFnSys) :
@@ -58,7 +61,13 @@ noncomputable instance linAutoNuisance.instModule (S : LinRegFnSys) :
   unfold linAutoNuisance
   exact Prod.instModule
 
-/-- **Linear Auto-DML moment** as a `GeneralMoment` instance.
+/-- Given [a measure on the sample space](hyp:μ), [a linear regression-function
+system](hyp:S), [a Riesz representation of that system's target functional](hyp:rep),
+[a nonnegative neighborhood radius](hyp:ε,hε_nn), and [measurability of the linear
+Riesz score for every joint nuisance and scalar target value](hyp:h_score_meas), the
+[linear automatic-debiasing general moment](goal) has that score, its true regression
+and Riesz representer as nuisance truth, and the target functional evaluated at the
+true regression as scalar truth.
 
 The bilinear seminorms are the L²(P_X) norms of `γ_target η.1 - γ_target g₀`
 and `η.2 - rep.α₀` respectively.  `J₀ = -1` since the score
@@ -217,7 +226,13 @@ theorem linAuto_bilinearRem
     rfl
   exact h_abs_rewrite.trans_le ((h_abs_int.trans hcs).trans (le_of_eq hfin))
 
-/-- **One-shot linear Auto-DML estimator.**
+/-- Given [a linear regression-function system](hyp:S), [a Riesz representation
+of its target functional](hyp:rep), [a nonnegative neighborhood radius](hyp:ε,hε_nn),
+[measurability of the linear Riesz score for every joint nuisance and target value](hyp:h_score_meas),
+[an independent and identically distributed sample](hyp:sample), [a one-shot split of
+that sample](hyp:split), and [a sequence of joint nuisance estimators indexed by sample
+size and randomness](hyp:η_hat), the [one-shot linear automatic-debiasing estimator](goal)
+maps each sample size and randomness realization to a real-valued estimate.
 
 Built as a `dmlChernozhukovEstimator` over the `linAutoGeneralMoment`
 instance.  Equivalently:

@@ -20,7 +20,10 @@ open scoped BigOperators ENNReal Topology
 
 namespace Causalean.Stat
 
-/-- The law of a compressed local observation. -/
+/-- For [a compression from a measurable observation space to a measurable summary
+space](hyp:compress) and [a measure on the observation space](hyp:Q), the [compressed-coordinate
+law](goal) is the image measure of the summary obtained by applying the
+compression to an observation governed by that measure. -/
 noncomputable def compressedCoordinateLaw {Z S : Type*}
     [MeasurableSpace Z] [MeasurableSpace S]
     (compress : Z → S) (Q : Measure Z) : Measure S :=
@@ -37,8 +40,15 @@ lemma compressedCoordinateLaw_klDiv_le {Z S : Type*}
       InformationTheory.klDiv μ ν := by
   exact Causalean.Mathlib.InformationTheory.Measure.klDiv_map_le hcompress
 
-/-- The average probability that every decentralized decoder recovers its bit
-under the uniform hypercube prior and the conditionally independent product
+/-- For [a nonnegative number of coordinates](hyp:M), measurable raw-observation
+and summary spaces at every coordinate, a measurable ancillary space, [two probability laws
+for each coordinate, indexed by its binary state](hyp:Q), [a probability law
+for a common ancillary variable](hyp:R), [one compression for each
+coordinate](hyp:compress), and [a decoder for each coordinate that uses its
+compressed observation, the full raw observation vector, and the ancillary
+variable](hyp:decoder), the [coordinatewise success probability](goal) is the
+average, over all binary state vectors, of the probability that every decoder
+recovers its corresponding state under the associated independent product
 experiment. -/
 noncomputable def coordinatewiseSuccessProbability
     {M : ℕ} {Z S : Fin M → Type*} {A : Type*}
@@ -54,7 +64,10 @@ noncomputable def coordinatewiseSuccessProbability
           decoder j (compress j (data.2 j)) data.2 data.1 = omega j}) /
     ((2 : ℝ≥0∞) ^ M)
 
-/-- The common-part overlap of the two compressed laws at coordinate `j`. -/
+/-- For [two probability laws at each coordinate, indexed by its binary state](hyp:Q),
+[a compression at each coordinate](hyp:compress), and [one coordinate](hyp:j), the
+[common-part overlap at that coordinate](goal) is one minus the total-variation distance
+between the two compressed laws of that coordinate. -/
 noncomputable def coordinateOverlap
     {M : ℕ} {Z S : Fin M → Type*}
     [∀ j, MeasurableSpace (Z j)] [∀ j, MeasurableSpace (S j)]
@@ -64,16 +77,23 @@ noncomputable def coordinateOverlap
     (compressedCoordinateLaw (compress j) (Q j false))
     (compressedCoordinateLaw (compress j) (Q j true))
 
-/-- Select the raw coordinate corresponding to a hypercube vertex from a
-coordinatewise pair coupling. -/
+/-- For [a binary hypercube vertex](hyp:omega) and [a pair of raw observations at every
+coordinate](hyp:z), the [selected raw observation vector](goal) takes the first member of
+each pair when the corresponding vertex bit is false and the second member when it is
+true. -/
 -- @node: selectCoupledRaw
 def selectCoupledRaw {M : ℕ} {Z : Fin M → Type*}
     (omega : Fin M → Bool) (z : (j : Fin M) → Z j × Z j) :
     (j : Fin M) → Z j :=
   fun j => if omega j then (z j).2 else (z j).1
 
-/-- Simultaneous correctness of all decentralized decoders on a coupled raw
-sample selected by `omega`. -/
+/-- For a nonnegative number of coordinates, one compression for
+each coordinate, one decoder for each coordinate,
+a binary hypercube vertex, a pair of raw observations at every
+coordinate, and an ancillary-variable value, the coupled
+decoder-good condition holds exactly when every decoder, applied to its
+compressed selected observation together with the full selected raw vector and
+the ancillary value, returns its corresponding vertex bit. -/
 -- @node: coupledDecoderGood
 def coupledDecoderGood
     {M : ℕ} {Z S : Fin M → Type*} {A : Type*}
@@ -84,7 +104,13 @@ def coupledDecoderGood
     (selectCoupledRaw omega z) a = omega j
 
 -- @node: coupledGoodIndicator
-/-- The ENNReal indicator of simultaneous decoder correctness. -/
+/-- For [a nonnegative number of coordinates](hyp:M), [one compression for
+each coordinate](hyp:compress), [one decoder for each coordinate](hyp:decoder),
+[a binary hypercube vertex](hyp:omega), [a pair of raw observations at every
+coordinate](hyp:z), and [an ancillary-variable value](hyp:a), the [coupled
+decoder-good condition](goal) holds exactly when every decoder, applied to its
+compressed selected observation together with the full selected raw vector and
+the ancillary value, returns its corresponding vertex bit. -/
 noncomputable def coupledGoodIndicator
     {M : ℕ} {Z S : Fin M → Type*} {A : Type*}
     (compress : ∀ j, Z j → S j)

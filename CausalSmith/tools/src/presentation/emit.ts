@@ -15,8 +15,12 @@ import type { SymbolCluster } from "../formalization/crosswalk.js";
 import { tryExtractDeclSnippet, extractHypothesisBinders, sorryFree } from "./lean_extract.js";
 import { graphComponentSpecs } from "./graph_components.js";
 import { auxiliaryNodes, isCitedNode } from "./graph_view.js";
-import { matchSynthDecl } from "./synth_lean_match.js";
 import { isUndeliveredNode } from "../graph/types.js";
+import { isSynthId } from "./p1_order.js";
+import { shortDeclName } from "./synth_lean_match.js";
+import { canonicalRealizedSymbol } from "../formalization/crosswalk_semantics.js";
+import { isPrivateDeclarationSource } from "./lean_decl_name.js";
+import { resolvedLeanAbsolutePath, type ResolvedLeanDeclaration } from "./declaration_resolver.js";
 import type { FormalizationGraph, GraphNode } from "../graph/types.js";
 
 /**
@@ -84,14 +88,16 @@ export async function buildBundle(args: {
   commit: string;
   /** obj_id → mapped Lean pieces (for composite/multi-part objects). */
   components?: Record<string, ComponentSpec[]>;
-  /** decl short-name → source location, for resolving component pieces that are
-   *  not standalone crosswalk entries (the paper's full module index). `kind`
-   *  (when present) restricts presentation-synthesized-definition matching to
-   *  def-like declarations. */
+  /** Exact primary declarations already resolved by the shared P1/P2 source resolver. */
+  resolvedDeclarations?: ReadonlyMap<string, ResolvedLeanDeclaration>;
+  /** decl name → source location, for resolving component pieces that are not
+   *  standalone crosswalk entries (the paper's full module index) and the declaration a
+   *  synthesized definition links (`kind` labels it on the entry). */
   moduleDecls?: Map<string, { file: string; line: number; kind?: string }>;
   /** obj_id → causalsmith review status ("matched"/"drift"/"unreviewed"), stamped onto
-   *  each entry so the page reports the verified state honestly. Defaults to "unreviewed". */
-  verdictByObj?: Map<string, { status: string }>;
+   *  each entry so the page reports the verified state honestly. Defaults to "unreviewed".
+   *  A synthesized definition's entry also carries the Lean pointer P1 rendered it from. */
+  verdictByObj?: Map<string, { status: string; lean?: { decl: string; file: string } | null }>;
 }): Promise<{ crosswalk: PresentationCrosswalk; snippets: LeanSnippets; matchedSynthDecls: Set<string> }> {
   const byId = new Map(args.crosswalk.map((e) => [e.obj_id, e]));
   const blockById = new Map(args.blocks.map((b) => [b.obj_id, b]));
@@ -111,41 +117,36 @@ export async function buildBundle(args: {
   for (const e of args.envs) {
     const cw = byId.get(e.obj_id);
     if (!cw) {
-      if (args.verdictByObj?.get(e.obj_id)?.status !== "presentation-synthesized") {
-        throw new Error(`env ${e.obj_id} not in bank crosswalk`);
-      }
-      // A synthesized definition often already has a standalone Lean declaration in the run (the
-      // notation loop synthesized it only because that decl was not `@realizes`-tagged). When the
-      // definition's concept key matches a unique def-like decl EXACTLY, link and display it rather
-      // than claiming "no standalone Lean declaration" — otherwise the same object appears twice
-      // (unlinked printed definition + auxiliary Lean lemma).
-      const hit = args.moduleDecls ? matchSynthDecl(e.title, e.obj_id, args.moduleDecls) : null;
-      if (hit) {
-        const src = await readSrc(hit.file);
-        const snippet = tryExtractDeclSnippet(src, hit.decl, hit.line);
-        if (snippet !== null) {
-          matchedSynthDecls.add(hit.decl);
-          snippets[e.obj_id] = {
-            decl: hit.decl,
-            file: hit.file,
-            line: hit.line,
-            statement: snippet,
-            sorry_free: sorryFree(src),
-            axioms: null,
-          };
-          entries.push({
-            obj_id: e.obj_id,
-            env: e.env,
-            paper_label: labels.get(e.obj_id)!,
-            title: e.title,
-            lean: { file: hit.file, decl: hit.decl, decl_kind: hit.decl_kind, line: hit.line },
-            fallback: null,
-            uses: [],
-            status: "matched",
-            sorry_free: sorryFree(src),
-          });
-          continue;
+      // Not a bank object: a definition P1 synthesized for the notation. One rendered from a Lean
+      // declaration carries its pointer on the block and is linked and displayed like any other
+      // verified object (the declaration leaves the auxiliary group); a presentation-only one has
+      // no Lean and says so.
+      const verdict = args.verdictByObj?.get(e.obj_id);
+      const synthesized = isSynthId(e.obj_id) || verdict?.status === "presentation-synthesized";
+      if (!synthesized) throw new Error(`env ${e.obj_id} not in bank crosswalk`);
+      if (verdict?.lean) {
+        const decl = verdict.lean.decl;
+        const loc = resolve(decl);
+        const src = loc ? await readSrc(loc.file) : "";
+        const snippet = loc ? tryExtractDeclSnippet(src, decl, loc.line) : null;
+        if (!loc || snippet === null) {
+          throw new Error(`env ${e.obj_id} links Lean declaration ${decl} (${verdict.lean.file}), which the paper's modules do not contain — re-run P1`);
         }
+        // Both name forms: auxiliary graph nodes name their declaration short or qualified.
+        matchedSynthDecls.add(decl).add(shortDeclName(decl));
+        snippets[e.obj_id] = { decl, file: loc.file, line: loc.line, statement: snippet, sorry_free: sorryFree(src), axioms: null };
+        entries.push({
+          obj_id: e.obj_id,
+          env: e.env,
+          paper_label: labels.get(e.obj_id)!,
+          title: e.title,
+          lean: { file: loc.file, decl, decl_kind: args.moduleDecls?.get(decl)?.kind ?? "def", line: loc.line },
+          fallback: null,
+          uses: [],
+          status: "matched",
+          sorry_free: sorryFree(src),
+        });
+        continue;
       }
       entries.push({
         obj_id: e.obj_id,
@@ -210,8 +211,26 @@ export async function buildBundle(args: {
       fallback = "Formalized by several Lean declarations; the pieces are shown below.";
     } else if (cw.lean) {
       const src = await readSrc(cw.lean.file);
-      const snippet = tryExtractDeclSnippet(src, cw.lean.decl, cw.lean.line);
-      if (snippet === null) {
+      const resolved = args.resolvedDeclarations?.get(e.obj_id);
+      const snippet = resolved?.snippet ?? tryExtractDeclSnippet(src, cw.lean.decl, cw.lean.line);
+      if (resolved?.relocated) {
+        const source = await readFile(await resolvedLeanAbsolutePath(args.repoRoot, resolved.file), "utf8");
+        snippets[e.obj_id] = {
+          decl: resolved.decl,
+          file: resolved.file,
+          line: resolved.line,
+          statement: resolved.snippet,
+          sorry_free: sorryFree(source),
+          axioms: null,
+        };
+        // Imported source uses a workspace-canonical path, not the bundle's run-relative
+        // GitHub prefix. Show its exact source in the drawer without inventing a file link.
+        entryLean = null;
+        fallback = `Lean declaration resolved in ${resolved.file}:${resolved.line}; its exact statement is shown below.`;
+      } else if (snippet === null) {
+        if (args.verdictByObj?.get(e.obj_id)?.status === "matched") {
+          throw new Error(`P4: matched object ${e.obj_id} has no resolved Lean snippet for ${cw.lean.decl}`);
+        }
         // Distinguish the two reasons the decl wasn't found. A STALE recorded path is a
         // bank/tree-refactor defect, not a statement about formalization — never report it
         // with the re-export wording, which reads as an intentional, benign situation.
@@ -220,10 +239,11 @@ export async function buildBundle(args: {
           : `Lean declaration \`${cw.lean.decl}\` is re-exported here from another module; see the source file.`;
         entryLean = null;
       } else {
+        if (resolved) entryLean = { ...cw.lean, line: resolved.line };
         snippets[e.obj_id] = {
           decl: cw.lean.decl,
           file: cw.lean.file,
-          line: cw.lean.line,
+          line: resolved?.line ?? cw.lean.line,
           statement: snippet,
           sorry_free: sorryFree(src),
           axioms: null, // axiom audit deferred (v1); site badge reflects the sorry scan only
@@ -503,6 +523,9 @@ export function repairSymbolLeanrefTargets(tex: string, symbolNames: string[]): 
   const exact = new Set(symbolNames);
   const resolve = (name: string): string | null => {
     if (exact.has(name)) return name;
+    // A target written with math delimiters (`sym:\(Y(a)\)`) names the same symbol as `sym:Y(a)`.
+    const bare = canonicalRealizedSymbol(name);
+    if (bare !== name && exact.has(bare)) return bare;
     const prefixes = [name, ...(name.endsWith("}") ? [name.slice(0, -1)] : [])];
     const candidates = symbolNames.filter((candidate) => prefixes.some((prefix) => candidate.startsWith(prefix)));
     return candidates.length === 1 ? candidates[0] : null;
@@ -773,12 +796,16 @@ export async function buildProseEntries(args: {
           sorry_free: sorryFree(src),
           axioms: null,
         };
-        lean = {
-          file: loc.file,
-          decl: decls[0],
-          decl_kind: node.kind === "theorem" || node.kind === "lemma" ? node.kind : "def",
-          line: loc.line,
-        };
+        if (isPrivateDeclarationSource(snippet)) {
+          fallback = `Private Lean declaration in ${loc.file}:${loc.line}; its exact source is shown below.`;
+        } else {
+          lean = {
+            file: loc.file,
+            decl: decls[0],
+            decl_kind: node.kind === "theorem" || node.kind === "lemma" ? node.kind : "def",
+            line: loc.line,
+          };
+        }
       }
     } else if (decls.length > 1) {
       const parts: { label: string; statement: string }[] = [];

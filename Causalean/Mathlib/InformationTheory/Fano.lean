@@ -38,11 +38,9 @@ open Causalean.Mathlib.InformationTheory
 
 variable {α β : Type*} [Fintype α] [Fintype β] [DecidableEq α]
 
-/-- The **Fano reference distribution** on `α × β`. On each column `y` it places mass
-`(1 − Pe)` on the decoded symbol `decode y` and spreads the error mass `Pe` uniformly over
-the `card α − 1` other symbols, then weights the column by the marginal `yMarginal p y`:
-`fanoRef p decode (x, y) = yMarginal p y · (if x = decode y then 1 − Pe else Pe / (card α − 1))`
-where `Pe = errorProb p decode`. It is the worst-case posterior that makes Gibbs tight. -/
+/-- For [finite outcome and observation alphabets, with equality decidable for outcomes](hyp:α,β), [a joint real-valued mass function on their product](hyp:p), [a deterministic decoder from observations to outcomes](hyp:decode), and [an outcome--observation pair](hyp:xy), the [Fano reference mass at that pair](goal) equals the marginal mass of its observation multiplied by $1-P_e$ when its outcome is the decoded outcome, and by $P_e/(|\mathcal A|-1)$ otherwise, where $P_e$ is the decoder's error mass and $|\mathcal A|$ is the number of outcome values.
+
+It is the worst-case posterior that makes Gibbs tight. -/
 noncomputable def fanoRef (p : α × β → ℝ) (decode : β → α) (xy : α × β) : ℝ :=
   yMarginal p xy.2 *
     (if xy.1 = decode xy.2 then 1 - errorProb p decode

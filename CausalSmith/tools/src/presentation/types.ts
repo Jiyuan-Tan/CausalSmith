@@ -31,10 +31,6 @@ export const PaperState = z.object({
   checkpoint_pending: z.enum(["outline", "draft"]).nullable(),
   pinned_commit: z.string().nullable(),
   revision_round: z.number().int(),
-  /** Number of holistic P5-driven manuscript revision passes already attempted (hard cap: 2). */
-  p5_revision_passes: z.number().int().nonnegative().default(0),
-  /** Repairable P5 issue families supplied to the immediately preceding holistic pass. */
-  p5_last_fingerprints: z.array(z.string()).default([]),
   /**
    * P2 promotion rounds already spent in this bundle.
    *

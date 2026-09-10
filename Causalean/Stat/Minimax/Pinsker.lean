@@ -240,10 +240,12 @@ theorem klFun_lower_bound {x : ℝ} (hx : 0 ≤ x) :
 
 variable {Ω : Type*} {mΩ : MeasurableSpace Ω}
 
-/-- Pinsker-type control of total variation by KL divergence:
-`tvDist μ ν ≤ √((klDiv μ ν).toReal / 2)`.
+/-- For [a measurable sample space](hyp:Ω,mΩ) and [two measures on that space](hyp:μ,ν), the
+[Pinsker bound](goal) is the proposition that their total-variation distance is at most the square
+root of one half of the real-valued Kullback--Leibler divergence from the first measure to the
+second.
 
-A reusable `Prop` packaging of the bound for a pair `(μ, ν)`.  It is constructed
+It is a reusable `Prop` packaging of the bound for a pair `(μ, ν)`.  It is constructed
 by `pinskerBound_of_ac_of_ne_top` whenever `μ ≪ ν` and `klDiv μ ν ≠ ⊤` (note:
 under `.toReal`, `klDiv = ⊤` collapses to `0`, so those two hypotheses are
 genuinely required; the bound is false without them). The `_of_pinsker` lemmas

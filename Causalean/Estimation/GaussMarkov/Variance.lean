@@ -34,7 +34,11 @@ open MeasureTheory ProbabilityTheory Matrix
 
 variable {Ω Obs : Type*} [Fintype Obs] {mΩ : MeasurableSpace Ω} {μ : Measure Ω}
 
-/-- Covariance matrix of a finite family of random variables `Y i`. -/
+/-- For [a sample space equipped with a σ-algebra](hyp:Ω,mΩ), [a finite observation
+index set](hyp:Obs), [a real-valued random variable for each observation](hyp:Y),
+and [a measure on the sample space](hyp:μ), the [covariance matrix](goal) has
+entry $(i,j)$ equal to the covariance of the $i$th and $j$th random variables
+under that measure. -/
 noncomputable def covMatrix (Y : Obs → Ω → ℝ) (μ : Measure Ω) : Matrix Obs Obs ℝ :=
   fun i j => cov[Y i, Y j; μ]
 
@@ -68,8 +72,11 @@ theorem variance_linearCombination [IsProbabilityMeasure μ]
         refine Finset.sum_congr rfl (fun i _ => Finset.sum_congr rfl (fun j _ => ?_))
         ring
 
-/-- A random family has *spherical errors* with scale `σ`: distinct cells are
-uncorrelated and each has variance `σ²`. -/
+/-- For [a sample space equipped with a σ-algebra](hyp:Ω,mΩ), [a finite observation
+index set](hyp:Obs), [a real-valued random variable for each observation](hyp:Y),
+[a measure on the sample space](hyp:μ), and [a real scale parameter](hyp:σ), the
+[spherical-family condition](goal) holds exactly when every random variable has
+variance $σ^2$ and every two indexed by distinct observations have covariance zero. -/
 def SphericalFamily (Y : Obs → Ω → ℝ) (μ : Measure Ω) (σ : ℝ) : Prop :=
   (∀ i, Var[Y i; μ] = σ ^ 2) ∧ (∀ i j, i ≠ j → cov[Y i, Y j; μ] = 0)
 

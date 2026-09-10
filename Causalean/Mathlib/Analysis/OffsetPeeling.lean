@@ -19,13 +19,16 @@ and `max_two_split` for splitting a clipped two-term offset across summands.
 
 namespace Causalean.Mathlib.OffsetPeeling
 
-/-- Offset-peeling constant for the `c = 1/4` offset:
-`(1 − θ)·(4θ)^{θ/(1−θ)}`. -/
+/-- Given [a real number \(\theta\)](hyp:θ), the [quarter-offset peeling constant](goal) is
+\((1-\theta)(4\theta)^{\theta/(1-\theta)}\). -/
 noncomputable def offsetPeelingConstant (θ : ℝ) : ℝ :=
   (1 - θ) * (4 * θ) ^ (θ / (1 - θ))
 
-/-- Peeling constant with a general offset coefficient `c`:
-`(1 − θ)·(θ/c)^{θ/(1−θ)}` (the `c = 1/4` case is `offsetPeelingConstant`). -/
+/-- Given [a real offset coefficient \(c\)](hyp:c) and [a real number \(\theta\)](hyp:θ), the
+[general-offset peeling constant](goal) is
+\((1-\theta)(\theta/c)^{\theta/(1-\theta)}).
+
+The `c = 1/4` case is `offsetPeelingConstant`. -/
 noncomputable def offsetPeelingConstantC (c θ : ℝ) : ℝ :=
   (1 - θ) * (θ / c) ^ (θ / (1 - θ))
 

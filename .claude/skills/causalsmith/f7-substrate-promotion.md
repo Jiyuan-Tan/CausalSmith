@@ -1,75 +1,51 @@
 # F7 — substrate promotion recipe
 
-Dispatch payload for the F7 promotion agent (see `SKILL.md` § "F7 — SUBSTRATE PROMOTION"). This is a
-plain reference doc, not a skill — main hands the dispatched subagent this file path directly (`Read` it),
-the same way `causalsmith-shared/reference.md` is a pointed-to store rather than an invoked skill. The
-promotion agent is a single bounded task: no resume-lease, no `state.json`/node-process interaction — it
-edits Lean/JSON files and runs `lake`/`npm` commands, then reports back and is done.
+Dispatch payload for the F7 promotion agent (main skill § "F7"). A single bounded task: no lease, no
+`state.json`/node-process interaction — edit Lean/JSON, run `lake`/`npm`, report, done.
 
-**Promotion SET** (given at dispatch): a list of `helper → target Causalean module` pairs, already
-selected by main for REAL reuse — the agent does not re-litigate the selection, only executes it. A pair may
-carry a **`generalize`** tag (target = a decoupled general statement): restate the lemma over a general
-ambient, then re-import the run's version as a specialization. **Stop and report it back** — never
-promote/gerrymander anyway — if a listed helper is actually high-coupling / a vestigial-import false
-positive, or if a `generalize` pair has no faithful general form.
+**Promotion SET** (given at dispatch): `helper → target Causalean module` pairs already selected by main.
+Execute the selection; do not re-litigate it. A `generalize` tag means restate the lemma over a general
+ambient and re-import the run's version as a specialization. **Stop and report** — never promote
+anyway — if a helper is high-coupling / a vestigial-import false positive, or a `generalize` pair has no
+faithful general form.
 
-For EACH helper in the SET:
+For EACH helper:
 
-1. **Search Causalean AND Mathlib first** (`npm run search -- "<concept>" --scope module`; Mathlib via
-   loogle / leansearch / `exact?`). If the concept already exists (e.g. a Krull-dimension or semialgebraic
-   notion), **state the result in terms of it** — never mint a paper-named parallel primitive; a duplicate
-   abstraction is the main long-term-maintenance cost. Reinventing an existing primitive is worse than none.
-2. **Fit, don't dump.** The final target must be in the proper existing Causalean subject hierarchy.
-   Search the current layout and place the result under the narrowest relevant domain (`Mathlib/`, `Stat/`, `SCM/`, `PO/`,
-   `Estimation/`, etc.), creating a properly named topic module there only when no existing module fits.
-   Match the target module's idiom: naming and notation (no run-jargon in shared
-   names), generality, and file granularity (CLAUDE.md: one topic, normally ≤600 lines; split before ~900 when independent). Strip run-coupled types
-   from the statement where the lemma is genuinely general; if it can't be stated without them, it wasn't
-   low-coupling — stop and report (above).
-   **Mind reusability of the signature.** A run states a lemma for its one caller; the shared copy is
-   reused by many, so an over-specific signature is silently re-derived downstream. Before moving,
-   promote the WEAKEST statement the *existing* proof already supports: drop hypotheses and `[instance]`
-   arguments the proof never uses, weaken a typeclass to what it actually needs, and widen a hard-coded
-   concrete type/constant the proof treats generically. Aim for the reachable, readable form — not
-   maximal generality — and never ADD a compensating hypothesis to make it go through.
-3. **Move** statement + proof into the target module; rewire CausalSmith to re-import it (delete the local
-   copy — never two definitions). **Causalean NEVER imports CausalSmith.**
-4. **Docstring-canonical** (CLAUDE.md): first paragraph = self-contained NL translation; `/-! -/` module
-   overview.
-6. **Curate importance.** Add every MAIN result (identification/estimand-characterization theorem,
-   paper-named decomposition, asymptotic linearity/normality/rate/optimality/efficiency result, sharp
-   bound) to `headline_theorems` in `doc/library_review/<Area>.json` so the `/library` explorer shows its
-   full NL card; leave supporting-tier lemmas (measurability/integrability, rewrites, bridges, intermediate
-   inequalities) uncurated — don't over-list.
-7. **New module/namespace.** If this lands a module with no existing sidecar coverage, also add a short
-   one-line description — `namespace_intros["<Path>"]` for an inner namespace (dotted path below the area,
-   e.g. `"Privacy"`, `"CATE.OSL"`) or `intro` for a brand-new top-level area — in
-   `doc/library_review/<Area>.json`. Skip this when the module is already described.
-8. **Regenerate derived views:** `lake exe library_index` → `embed:library` + `lint:embeddings` →
-   `doc:gen`/`doc:check`.
+1. **Search Causalean and Mathlib first** (`npm run search -- "<concept>" --scope module`; loogle /
+   leansearch / `exact?`). If the concept exists, state the result in terms of it; never mint a
+   paper-named parallel primitive.
+2. **Fit.** Place under the narrowest relevant domain (`Mathlib/`, `Stat/`, `SCM/`, `PO/`,
+   `Estimation/`, …), creating a topic module only when none fits. Match the target's naming/notation
+   (no run jargon), generality, and granularity (≤600 lines; split before ~900). Strip run-coupled
+   types; if the statement cannot be stated without them, stop and report. Promote the weakest statement
+   the existing proof already supports: drop unused hypotheses and instance arguments, weaken typeclasses
+   to what is used, widen hard-coded types/constants the proof treats generically. Never add a
+   compensating hypothesis.
+3. **Move** statement + proof into the target; rewire CausalSmith to re-import it and delete the local
+   copy. Causalean never imports CausalSmith.
+4. **Docstrings** (CLAUDE.md): first paragraph = self-contained NL translation with crosslinks —
+   `[phrase](hyp:binder)` on every hypothesis/explicit binder, `[phrase](goal)` on the conclusion (for a
+   definition: every explicit parameter, `(goal)` on the defined object, `(step:N)` per given-by clause);
+   `/-! -/` module overview.
+5. **Curate.** Add every MAIN result (identification / estimand characterization / paper-named
+   decomposition / asymptotic normality, rate, optimality, efficiency / sharp bound) to
+   `headline_theorems` in `doc/library_review/<Area>.json`; leave supporting lemmas uncurated. For a
+   module with no sidecar coverage add a one-line `namespace_intros["<Path>"]` (or `intro` for a new
+   top-level area).
+6. **Regenerate:** `lake exe library_index` → `npm run embed:library` + `npm run lint:embeddings` →
+   `npm run doc:gen`/`doc:check` → `npm run lint:nl-links` (0 errors).
 
-**Mandatory self-check before reporting done — a report without this evidence is INVALID** (same
-discipline as F's `f5-clean`: the agent's own claim never substitutes for the check main will
-independently redo). After the moves, for the banked flagship theorem this run produced:
+**Mandatory self-check before reporting** (a report without this evidence is invalid). For the banked
+flagship theorem:
 
-- **FULL** `lake build` (not a targeted module build — it can Replay a stale olean over a live error) →
-  green.
-- `#print axioms` on the flagship, via `lake env lean` (never `lean_verify`/LSP — stale-olean risk in
-  either direction) → unchanged from the pre-promotion bank.
+- **FULL** `lake build` green (a targeted build can replay a stale olean).
+- `#print axioms` on the flagship via `lake env lean` (never `lean_verify`/LSP) → unchanged.
 - Signature unchanged (no new binder), conjuncts intact.
-- Grep the SOURCE for `sorry`/`admit`/`native_decide`/a stray `axiom` — lake exits 0 WITH sorries, so a
-  green build alone is not evidence.
-- **Fit:** you searched Mathlib + Causalean and either reused an existing primitive or can justify the new
-  one; no run-jargon leaked into shared names.
-- **Docstrings + crosslinks:** every promoted declaration has a docstring-canonical first paragraph with
-  `[phrase](hyp:binder)` on every hypothesis/explicit binder and `[phrase](goal)` on the conclusion; any
-  `headline_theorems` entry you add is annotated. Then `lake exe library_index`, `npm run embed:library`,
-  and `npm run lint:nl-links` → 0 errors (the export and the /library page hard-fail otherwise).
+- Grep the SOURCE for `sorry`/`admit`/stray `axiom`.
+- Fit: existing primitive reused or the new one justified; no run jargon in shared names.
+- Docstrings + crosslinks on every promoted declaration; any `headline_theorems` entry annotated.
 
-**Report back, per helper:** promoted path, full build status, the `#print axioms` output. Main
-independently re-verifies the regression gate itself before accepting — attach real evidence, not a
-summary claim. If ANY check fails, do not "fix" it by weakening the banked flagship — **report the
-failure and stop; main decides.**
+**Report per helper:** promoted path, full-build status, the `#print axioms` output — real evidence, not
+a summary. If any check fails, do not weaken the banked flagship: report and stop; main decides.
 
-**Record:** append the new Causalean paths to the bank README's `reusable_artifacts` field — main appends
-the `command` decision-log entry after accepting the report.
+**Record:** append the new Causalean paths to the bank README's `reusable_artifacts`.

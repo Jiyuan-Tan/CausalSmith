@@ -70,24 +70,35 @@ structure StaggeredATTCells (Cohort Time Covar : Type*)
 namespace StaggeredATTCells
 
 open Classical in
-/-- Treated cohort-time support set `C_tr`. -/
+/-- For [finite sets of cohorts, periods, and covariate cells](hyp:Cohort,Time,Covar)
+and [a staggered-adoption cell system](hyp:P), the [treated-cell set](goal) is
+the finite set of all cohort--period pairs designated as treated by that system. -/
 noncomputable def treatedCells (P : StaggeredATTCells Cohort Time Covar) :
     Finset (Cohort × Time) :=
   (Finset.univ : Finset (Cohort × Time)).filter (fun gt => P.treatedCell gt.1 gt.2)
 
 open Classical in
-/-- Untreated cohort-time design set used to fit the untreated-outcome
-regression (the support of the weighted projection that produces `m0`). -/
+/-- For [finite sets of cohorts, periods, and covariate cells](hyp:Cohort,Time,Covar)
+and [a staggered-adoption cell system](hyp:P), the [untreated-cell set](goal) is
+the finite set of all cohort--period pairs designated as untreated and used to
+fit the untreated-outcome regression. -/
 noncomputable def untreatedCells (P : StaggeredATTCells Cohort Time Covar) :
     Finset (Cohort × Time) :=
   (Finset.univ : Finset (Cohort × Time)).filter (fun gt => P.untreatedCell gt.1 gt.2)
 
-/-- ATT cell `τ_gt`, averaged over baseline covariate cells within cohort. -/
+/-- For [finite sets of cohorts, periods, and covariate cells](hyp:Cohort,Time,Covar),
+[a staggered-adoption cell system](hyp:P), [a cohort](hyp:g), and [a period](hyp:t),
+the [cell average treatment effect on the treated](goal) is the covariate-
+weighted average, within that cohort, of the treated potential outcome minus
+the untreated potential outcome in that period. -/
 noncomputable def tauCell (P : StaggeredATTCells Cohort Time Covar)
     (g : Cohort) (t : Time) : ℝ :=
   ∑ c, P.covarWeight g c * (P.YgMean g t c - P.Y0Mean g t c)
 
-/-- Aggregate ATT for requested finite treated-cell weights. -/
+/-- For [finite sets of cohorts, periods, and covariate cells](hyp:Cohort,Time,Covar),
+[a staggered-adoption cell system](hyp:P), and [a cohort-period weighting
+function](hyp:a), the [aggregate average treatment effect on the treated](goal)
+is the weighted sum of cell average treatment effects over all treated cells. -/
 noncomputable def tauAgg (P : StaggeredATTCells Cohort Time Covar)
     (a : Cohort → Time → ℝ) : ℝ :=
   ∑ gt ∈ P.treatedCells, a gt.1 gt.2 * P.tauCell gt.1 gt.2
@@ -101,28 +112,39 @@ structure AggregateWeights (P : StaggeredATTCells Cohort Time Covar) where
     ∀ ⦃g : Cohort⦄ ⦃t : Time⦄, P.treatedCell g t → 0 ≤ weight g t
   sum_treated : ∑ gt ∈ P.treatedCells, weight gt.1 gt.2 = 1
 
-/-- No anticipation: before adoption, the cohort-`g` potential outcome equals
-the untreated potential outcome. Here `untreatedCell` marks the relevant
-pre-treatment / not-yet-treated observations. -/
+/-- For [finite sets of cohorts, periods, and covariate cells](hyp:Cohort,Time,Covar)
+and [a staggered-adoption cell system](hyp:P), [no anticipation](goal) means
+that, for every cohort, every period designated untreated, and every covariate
+cell, that cohort's potential outcome equals its untreated potential outcome. -/
 def NoAnticipation (P : StaggeredATTCells Cohort Time Covar) : Prop :=
   ∀ ⦃g : Cohort⦄ ⦃t : Time⦄, P.untreatedCell g t →
     ∀ c, P.YgMean g t c = P.Y0Mean g t c
 
-/-- Conditional parallel trends, represented by the equivalent additive
-untreated mean form `m0(g,t,c) = α(g,c) + λ(t,c)`. -/
+/-- For [finite sets of cohorts, periods, and covariate cells](hyp:Cohort,Time,Covar)
+and [a staggered-adoption cell system](hyp:P), [conditional parallel trends in
+additive form](goal) means that there exist cohort-by-covariate and period-by-
+covariate functions whose sum equals the untreated potential-outcome mean for
+every cohort, period, and covariate cell. -/
 def ConditionalParallelTrendsAdditive
     (P : StaggeredATTCells Cohort Time Covar) : Prop :=
   ∃ α : Cohort → Covar → ℝ, ∃ lam : Time → Covar → ℝ,
     ∀ g t c, P.Y0Mean g t c = α g c + lam t c
 
-/-- An additive function `d(g,t,c) = γ(g,c) + δ(t,c)` of the cohort/time/covariate
-cell, the difference class used to compare two additive untreated-mean
-representations. -/
+/-- For [finite sets of cohorts, periods, and covariate cells](hyp:Cohort,Time,Covar)
+and [a cohort-period-covariate function](hyp:d), the [cell-additivity
+condition](goal) means that there exist cohort-by-covariate and period-by-
+covariate functions whose sum equals that function at every cell. -/
 def IsCellAdditive (d : Cohort → Time → Covar → ℝ) : Prop :=
   ∃ γ : Cohort → Covar → ℝ, ∃ δ : Time → Covar → ℝ,
     ∀ g t c, d g t c = γ g c + δ t c
 
-/-- Connected untreated design and full-rank identification condition.
+/-- For [finite sets of cohorts, periods, and covariate cells](hyp:Cohort,Time,Covar)
+and [a staggered-adoption cell system](hyp:P), the [untreated-design
+identification condition](goal) means that every additive cohort-period-
+covariate function which vanishes at every untreated cell also vanishes at
+every treated cell.
+
+Connected untreated design and full-rank identification condition.
 
 Saturating the untreated design with enough connected cells to pin down the
 additive `α_{g,c} + λ_{t,c}` parameters is represented by the statement that an
@@ -200,8 +222,12 @@ structure UntreatedFitWitness
           untreatedWeight gt.1 gt.2 c *
             (P.observedMean gt.1 gt.2 c - m0 gt.1 gt.2 c) * d gt.1 gt.2 c = 0
 
-/-- Forget the target-support and design-identification fields that are not
-needed for exact fit on untreated cells. -/
+/-- For [finite sets of cohorts, periods, and covariate cells](hyp:Cohort,Time,Covar),
+[the staggered-adoption cell system underlying the regression](hyp:P), and [a
+saturated untreated-outcome regression](hyp:S), the [untreated-fit
+witness](goal) retains its fitted untreated mean, additivity, untreated-cell
+weights, positivity condition, and untreated normal equations, while omitting
+its target-support and design-identification conditions. -/
 def SaturatedUntreatedRegression.toUntreatedFitWitness
     {P : StaggeredATTCells Cohort Time Covar}
     (S : SaturatedUntreatedRegression P) : UntreatedFitWitness P where
@@ -338,7 +364,13 @@ theorem recovers_target_Y0
 
 end SaturatedUntreatedRegression
 
-/-- Imputation residual mean for a treated cohort-time cell.
+/-- For [finite sets of cohorts, periods, and covariate cells](hyp:Cohort,Time,Covar),
+[a staggered-adoption cell system](hyp:P), [a saturated untreated-outcome
+regression](hyp:S), [a cohort](hyp:g), and [a period](hyp:t), the [imputation
+residual mean](goal) is the within-cohort covariate-weighted average of the
+observed cell mean minus the fitted untreated mean.
+
+Imputation residual mean for a treated cohort-time cell.
 
 The companion file `FlexibleDIDMundlak/PopulationBridge.lean` connects this
 finite covariate-weighted average of cell residuals to the corresponding
@@ -348,9 +380,12 @@ noncomputable def imputationTheta (P : StaggeredATTCells Cohort Time Covar)
     (S : SaturatedUntreatedRegression P) (g : Cohort) (t : Time) : ℝ :=
   ∑ c, P.covarWeight g c * (P.observedMean g t c - S.m0 g t c)
 
-/-- Finite-cell residual normal equation for a cell coefficient.  With
-baseline-covariate weights summing to one inside cohort `g`, this pins down
-the unique coefficient as the imputation residual mean. -/
+/-- For [finite sets of cohorts, periods, and covariate cells](hyp:Cohort,Time,Covar),
+[a staggered-adoption cell system](hyp:P), [a saturated untreated-outcome
+regression](hyp:S), [a proposed cell coefficient](hyp:theta), [a cohort](hyp:g),
+and [a period](hyp:t), the [cell residual normal equation](goal) states that
+the within-cohort covariate-weighted mean of observed outcome minus fitted
+untreated outcome minus that coefficient is zero. -/
 def cellResidualNormalEq (P : StaggeredATTCells Cohort Time Covar)
     (S : SaturatedUntreatedRegression P) (theta : ℝ) (g : Cohort) (t : Time) :
     Prop :=
@@ -387,8 +422,9 @@ theorem cellResidualNormalEq_eq_imputationTheta
       _ = 0 := hθ
   exact (sub_eq_zero.mp hnormal).symm
 
-/-- Saturated treated-cell indicator `1{(g',t') = (g,t)}` (the POLS/ETWFE
-treated regressor for cell `(g,t)`). -/
+/-- For [finite sets of cohorts and periods](hyp:Cohort,Time), [a cohort](hyp:g),
+and [a period](hyp:t), the [saturated treated-cell indicator](goal) is one at
+that cohort--period pair and zero at every other pair. -/
 noncomputable def cellIndicator [DecidableEq Cohort] [DecidableEq Time]
     (g : Cohort) (t : Time) : Cohort → Time → ℝ :=
   fun g' t' => if g' = g ∧ t' = t then 1 else 0
@@ -528,19 +564,33 @@ theorem etwfe_cell_eq_pols
 
 end FlexibleDIDEstimands
 
-/-- Aggregate estimand for the imputation coefficients. -/
+/-- For [finite sets of cohorts, periods, and covariate cells](hyp:Cohort,Time,Covar),
+[a staggered-adoption cell system](hyp:P), [a saturated untreated-outcome
+regression](hyp:S), [a flexible-DID estimand collection](hyp:E), and [a
+cohort-period weighting function](hyp:a), the [aggregate imputation estimand](goal)
+is the weighted sum of imputation coefficients over treated cells. -/
 noncomputable def psiImp (P : StaggeredATTCells Cohort Time Covar)
     {S : SaturatedUntreatedRegression P} (E : FlexibleDIDEstimands P S)
     (a : Cohort → Time → ℝ) : ℝ :=
   ∑ gt ∈ P.treatedCells, a gt.1 gt.2 * E.thetaImp gt.1 gt.2
 
-/-- Aggregate estimand for the flexible POLS coefficients. -/
+/-- For [finite sets of cohorts, periods, and covariate cells](hyp:Cohort,Time,Covar),
+[a staggered-adoption cell system](hyp:P), [a saturated untreated-outcome
+regression](hyp:S), [a flexible-DID estimand collection](hyp:E), and [a
+cohort-period weighting function](hyp:a), the [aggregate pooled-least-squares
+estimand](goal) is the weighted sum of pooled-least-squares coefficients over
+treated cells. -/
 noncomputable def psiPOLS (P : StaggeredATTCells Cohort Time Covar)
     {S : SaturatedUntreatedRegression P} (E : FlexibleDIDEstimands P S)
     (a : Cohort → Time → ℝ) : ℝ :=
   ∑ gt ∈ P.treatedCells, a gt.1 gt.2 * E.thetaPOLS gt.1 gt.2
 
-/-- Aggregate estimand for the flexible ETWFE coefficients. -/
+/-- For [finite sets of cohorts, periods, and covariate cells](hyp:Cohort,Time,Covar),
+[a staggered-adoption cell system](hyp:P), [a saturated untreated-outcome
+regression](hyp:S), [a flexible-DID estimand collection](hyp:E), and [a
+cohort-period weighting function](hyp:a), the [aggregate extended two-way-
+fixed-effects estimand](goal) is the weighted sum of extended two-way-fixed-
+effects coefficients over treated cells. -/
 noncomputable def psiETWFE (P : StaggeredATTCells Cohort Time Covar)
     {S : SaturatedUntreatedRegression P} (E : FlexibleDIDEstimands P S)
     (a : Cohort → Time → ℝ) : ℝ :=

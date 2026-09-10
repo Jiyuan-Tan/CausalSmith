@@ -66,26 +66,23 @@ namespace SWIGGraph
 
 variable (G : SWIGGraph N)
 
-/-- **Backdoor criterion** of `Z` relative to `(X, Y)` in the SWIG graph `G`.
+/-- Given [a SWIG graph](hyp:G), [a finite treatment-variable set $X$](hyp:X),
+    [the condition that the random copy of every treatment variable is
+    observed](hyp:hX_obs), [the condition that the fixed copy of no treatment
+    variable is already fixed](hyp:hX_fix), [a finite outcome-vertex set
+    $Y$](hyp:Y), and [a finite candidate adjustment-vertex set $Z$](hyp:Z),
+    the [backdoor criterion](goal) holds precisely when [every vertex in $Z$
+    is observed](step:1), [$Z$ is disjoint from $Y$](step:2), [$Z$ is disjoint
+    from the random copies of the treatment variables](step:3), [no vertex in
+    $Z$ is a descendant of a random treatment copy](step:4), and [in the graph
+    obtained by splitting the treatment variables, $Y$ is d-separated from
+    their random copies after conditioning on $Z$ and their fixed
+    copies](step:5).
 
-    * **(0) Adjustment-set guards.** `Z` is observed, disjoint from `Y`, and
-      disjoint from the treatment random nodes `X.image .random`.
-
-    * **(i) Non-descendant condition.**  No node in `Z` is a descendant of any
-      treatment random node `random D` (with `D ∈ X`) in `G`. Written as:
-      `G.dag.isAncestor (random D) z` is false for all `D ∈ X`, `z ∈ Z`.
-
-    * **(ii) splitMono d-separation.**  `Z ∪ X.image .fixed` d-separates
-      `Y` from `X.image .random` in the splitMono graph
-      `G.splitMono X hX_obs hX_fix`.  This encodes the lower-bar mutilation
-      criterion `G_{X̲}`: splitting reroutes outgoing edges of `random D`
-      (for `D ∈ X`) to root nodes `fixed D`.  The additional
-      `X.image SWIGNode.fixed` conditioning is vacuous in the splitMono graph
-      (fixed_X are roots with no incoming edges; no undirected path from
-      `random_X` to `Y` traverses them — any such fork would force a DAG
-      cycle) but is carried to match `do_rule2_kernel`'s contract directly.
-
-    The preconditions `hX_obs` and `hX_fix` are needed to form `splitMono`. -/
+    Splitting reroutes outgoing edges of each random treatment copy to its
+    fixed copy, thereby encoding the lower-bar mutilation graph.  The fixed
+    copies are included in the conditioning set to match the Rule 2 contract.
+    -/
 def backdoorCriterion
     (X : Finset N)
     (hX_obs : ∀ D ∈ X, SWIGNode.random D ∈ G.observed)

@@ -117,7 +117,11 @@ theorem supportFn_finsetSum {ι : Type*} (s : Finset ι) (F : ι → Set E) (d :
       rw [supportFn_minkowski ha.nonempty hbody.nonempty (ha.bddAbove d)
         (hbody.bddAbove d), ih hr]
 
-/-- The **empirical Minkowski average** `(1/|s|) • ∑_{i∈s} Fᵢ`. -/
+/-- For [an inner-product outcome space](hyp:E), [an index population](hyp:ι), [a finite index
+set](hyp:s), and [a family of subsets of that space](hyp:F), the [empirical Minkowski average](goal)
+is the Minkowski sum of the selected sets, scaled by the reciprocal of the number of selected indices.
+
+The empirical Minkowski average is `(1/|s|) • ∑_{i∈s} Fᵢ`. -/
 noncomputable def minkowskiMean {ι : Type*} (s : Finset ι) (F : ι → Set E) : Set E :=
   (s.card : ℝ)⁻¹ • (∑ i ∈ s, F i)
 

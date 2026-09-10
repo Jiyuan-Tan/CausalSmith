@@ -31,21 +31,40 @@ open Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge (moment l2Res
 open MeasureTheory Set
 open scoped Real
 
-/-- Interior support point `xᵥ = extremalMid μᵥ (v²)` of the extremal three-point law. -/
+/-- For [a real number $v$](hyp:v), the [interior support point of the extremal three-point law](goal)
+is $(\mu_v^2-2\mu_vv^2+v^2)/(2\mu_v(1-\mu_v))$, where $\mu_v$ is the selected maximizing first
+moment at second moment $v^2$.
+
+Interior support point `xᵥ = extremalMid μᵥ (v²)` of the extremal three-point law. -/
 noncomputable def extremalSupp (v : ℝ) : ℝ := extremalMid (maximizingRoot v) (v ^ 2)
 
-/-- Weight `w₁` on the interior point `xᵥ`. -/
+/-- For [a real number $v$](hyp:v), the [weight on the interior support point](goal) is
+$ (\mu_v-v^2)/(x_v(1-x_v)) $, where $\mu_v$ is the selected maximizing first moment and $x_v$
+is the interior support point.
+
+Weight `w₁` on the interior point `xᵥ`. -/
 noncomputable def extremalW1 (v : ℝ) : ℝ :=
   (maximizingRoot v - v ^ 2) / (extremalSupp v * (1 - extremalSupp v))
 
-/-- Weight `w₂` on the point `1`. -/
+/-- For [a real number $v$](hyp:v), the [weight on the support point $1$](goal) is
+$ (v^2-\mu_v x_v)/(1-x_v) $, where $\mu_v$ is the selected maximizing first moment and $x_v$
+is the interior support point.
+
+Weight `w₂` on the point `1`. -/
 noncomputable def extremalW2 (v : ℝ) : ℝ :=
   (v ^ 2 - maximizingRoot v * extremalSupp v) / (1 - extremalSupp v)
 
-/-- Weight `w₀` on the point `0`. -/
+/-- For [a real number $v$](hyp:v), the [weight on the support point $0$](goal) is one minus the
+weights assigned to the interior support point and to $1$.
+
+Weight `w₀` on the point `0`. -/
 noncomputable def extremalW0 (v : ℝ) : ℝ := 1 - extremalW1 v - extremalW2 v
 
-/-- The extremal three-point probability law `w₀ δ₀ + w₁ δ_{xᵥ} + w₂ δ₁`. -/
+/-- For [a real number $v$](hyp:v), the [extremal three-point measure](goal) places the nonnegative
+parts of the three prescribed weights at $0$, at the associated interior support point, and at $1$,
+respectively.
+
+The extremal three-point probability law `w₀ δ₀ + w₁ δ_{xᵥ} + w₂ δ₁`. -/
 noncomputable def extremalMeasure (v : ℝ) : Measure ℝ :=
   ENNReal.ofReal (extremalW0 v) • Measure.dirac 0
     + ENNReal.ofReal (extremalW1 v) • Measure.dirac (extremalSupp v)

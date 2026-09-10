@@ -358,8 +358,7 @@ theorem integral_rescaled_uStatisticOrder_eq_zero_of_degenKernel [NeZero m]
   exact S.integral_rescaled_uStatisticOrder_eq_zero_of_degenKernel_uMean_zero hg hmn
     hg.integral_eq_zero
 
-/-- `ζ_m = E[g(Z₁,…,Z_m)^2]`, the second moment of an order-`m` kernel under the
-product law `P^m`.
+/-- For [a measurable observation space](hyp:X), [a measure on that space](hyp:P), [a nonnegative integer kernel order $m$](hyp:m), and [a real-valued kernel of $m$ observations](hyp:g), the [order-$m$ kernel second moment](goal) is $\int g(z)^2\,dP^m(z)$, where $P^m$ is the product measure of $m$ independent draws from the given measure.
 
 This scalar is the diagonal second moment of an injectively indexed kernel term
 and is the variance scale used in the exact variance and second-moment-bound

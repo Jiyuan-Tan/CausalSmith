@@ -1,0 +1,11 @@
+import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.AtomicLaw
+import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.CitedGates
+import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.Concentration
+import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.Inference
+import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.LatticeEstimator
+import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.Risk
+import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.SpectralSubstrate
+import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.SummaryClosure
+import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.Witness
+
+/-! Shared helper-module barrel for the proxy effect-law collision-frontier paper. -/

@@ -60,46 +60,64 @@ structure IWDesign (P : EventStudySystem T) where
   /-- Aggregation weights `rho(g,l)`. -/
   rho : Fin T → ℝ
 
-/-- Observed treated-cohort target mean from the finite-cohort factual means. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), [an
+interaction-weighted design](hyp:I), and [a cohort](hyp:g), the [observed target
+mean](goal) is the average observed outcome of that cohort over the periods at
+the design's specified relative time. -/
 noncomputable def observedTargetMean (P : EventStudySystem T)
     (I : P.IWDesign) (g : Fin T) : ℝ :=
   ((P.targetPeriods g I.eventTime).card : ℝ)⁻¹ *
     ∑ t ∈ P.targetPeriods g I.eventTime, P.observedMean g t
 
-/-- Observed treated-cohort baseline mean from the finite-cohort factual
-means, using relative time `-1`. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
+cohort](hyp:g), the [observed baseline mean](goal) is the average observed
+outcome of that cohort over its baseline periods, defined at relative time
+$-1$. -/
 noncomputable def observedBaselineMean (P : EventStudySystem T)
     (g : Fin T) : ℝ :=
   ((P.baselinePeriods g).card : ℝ)⁻¹ *
     ∑ t ∈ P.baselinePeriods g, P.observedMean g t
 
-/-- Total comparison-group population mass for cohort `g`'s IW contrast. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), [an
+interaction-weighted design](hyp:I), and [a cohort](hyp:g), the [comparison
+mass](goal) is the total population share of the cohorts in that cohort's
+comparison group. -/
 noncomputable def comparisonMass (P : EventStudySystem T)
     (I : P.IWDesign) (g : Fin T) : ℝ :=
   ∑ h ∈ I.comparisonGroup g, P.cohortShare h
 
-/-- Population-share weighted comparison-group mean change from baseline
-`g-1` to target `g+l`. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), [an
+interaction-weighted design](hyp:I), and [a cohort](hyp:g), the [comparison
+mean change](goal) is the comparison-group population-share-weighted average
+of each comparison path's change from the cohort's baseline periods to its
+target periods. -/
 noncomputable def comparisonMeanChange (P : EventStudySystem T)
     (I : P.IWDesign) (g : Fin T) : ℝ :=
   (P.comparisonMass I g)⁻¹ *
     ∑ h ∈ I.comparisonGroup g,
       P.cohortShare h * (P.pathTargetMean h g I.eventTime - P.pathBaselineMean h g)
 
-/-- Cohort-specific DID contrast using the treated cohort and its comparison
-group. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), [an
+interaction-weighted design](hyp:I), and [a cohort](hyp:g), the [difference-in-
+differences contrast](goal) is the treated cohort's observed target-minus-
+baseline mean change minus the corresponding comparison-group mean change. -/
 noncomputable def DIDContrast (P : EventStudySystem T)
     (I : P.IWDesign) (g : Fin T) : ℝ :=
   (P.observedTargetMean I g - P.observedBaselineMean g) -
     P.comparisonMeanChange I g
 
-/-- Cohort-specific IW DID contrast `Delta(g,l)`. It is definitional rather
-than stored separately, so the IW theorem identifies the actual DID contrast. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), [an
+interaction-weighted design](hyp:I), and [a cohort](hyp:g), the [interaction-
+weighted cohort contrast](goal) is that cohort's difference-in-differences
+contrast. -/
 noncomputable def Delta (P : EventStudySystem T) (I : P.IWDesign)
     (g : Fin T) : ℝ :=
   P.DIDContrast I g
 
-/-- Interaction-weighted event-study estimand. -/
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [an
+interaction-weighted design](hyp:I), the [interaction-weighted event-study
+estimand](goal) is the sum, over all eligible cohorts, of each aggregation
+weight times that cohort's interaction-weighted contrast. -/
 noncomputable def nuIW (P : EventStudySystem T) (I : P.IWDesign) : ℝ :=
   ∑ g ∈ I.cohortsIW, I.rho g * P.Delta I g
 

@@ -46,7 +46,7 @@
  * and it leaves the original directory untouched in --dry-run mode.
  */
 import { existsSync } from "node:fs";
-import { mkdir, readFile, readdir, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { STAGE_ORDER } from "../src/constants.js";
@@ -61,7 +61,10 @@ import { PlanSchema } from "../src/formalization/plan/schema.js";
 import { GraphSchema } from "../src/graph/types.js";
 import { parseLeanDecls } from "../src/formalization/crosswalk.js";
 import { bankSoundnessIssues } from "../src/formalization/bank_soundness.js";
-import { auditCitedReview, auditDelivery } from "../src/formalization/delivery_audit.js";
+import { auditCitedReview, auditDelivery, citedLeanEvidence } from "../src/formalization/delivery_audit.js";
+import { auditConvergenceReview } from "../src/formalization/convergence_evidence.js";
+import { PAPER_TMP_DIR, promptPath } from "../src/paths.js";
+import { parseAnnotatedDecls } from "../src/graph/extractor.js";
 import type { CitedReviewReceipt, DeliveryReviewReceipt } from "../src/types.js";
 import { normalizeNoveltyTarget, type NoveltyTarget } from "../src/novelty.js";
 import { findCausalSmithRoot } from "../src/shared/repo_root.js";
@@ -695,6 +698,12 @@ export async function bankEntry(input: BankEntryArgs): Promise<BankEntryResult> 
       const graph = GraphSchema.parse(await readStrict("graph.json", [path.join(srcDir, "graph.json"), path.join(srcDir, "formalization", "graph.json")]));
       const leanDir = path.join(repoRoot, String(state.lean_subdir ?? ""));
       if (!existsSync(leanDir)) throw new Error(`Refusing accepted banking: Lean directory not found: ${leanDir}`);
+      // Drop the paper's disposable agent workspace before it is archived. `PAPER_TMP_DIR` lives
+      // beside the paper's source on purpose (concurrent papers must not share scratch names), but
+      // nothing removed it, so probe files — some carrying live `sorry`s — accumulated inside owned
+      // module trees and tripped every later source scan. It is excluded from the formalization by
+      // `isPaperTmpPath`, so deleting it here cannot affect the build or the banked artifact.
+      await rm(path.join(leanDir, PAPER_TMP_DIR), { recursive: true, force: true });
       // Re-scan at BANK time, not just at F5. Banking is a deliberate step that can happen long
       // after F5 signed off, and the tree is editable in between (a repair, a rebase, a
       // concurrent run, a hand-edit). F5's scan is not bound to a source digest, so without this
@@ -708,11 +717,14 @@ export async function bankEntry(input: BankEntryArgs): Promise<BankEntryResult> 
         );
       }
       const declNames = (await parseLeanDecls(leanDir, { includeLemmas: true })).map((decl) => decl.name);
+      const annotatedDecls = await parseAnnotatedDecls(leanDir);
+      const leanEvidence = await citedLeanEvidence(leanDir, plan, graph);
       const deliveryFindings = auditDelivery({
         core,
         plan,
         graph,
         leanDeclNames: declNames,
+        annotatedDecls,
         stageCompleted: String(state.stage_completed ?? ""),
         requireFinalStage: true,
         receipts: Array.isArray(state.delivery_review_receipts)
@@ -721,15 +733,25 @@ export async function bankEntry(input: BankEntryArgs): Promise<BankEntryResult> 
         requireReceipts: true,
       });
       deliveryFindings.push(...auditCitedReview({
+        core,
         plan,
         graph,
+        leanEvidence,
         receipts: Array.isArray(state.cited_review_receipts)
           ? state.cited_review_receipts as CitedReviewReceipt[]
           : [],
       }));
+      // F4 may have SKIPPED a target on a prior dual receipt; certify here that every governed
+      // target still holds both receipts at the tree/rubric as they are NOW.
+      deliveryFindings.push(...await auditConvergenceReview({
+        graph,
+        leanDir,
+        core,
+        promptFile: promptPath(repoRoot, "proof_reviewer.txt"),
+      }));
       if (deliveryFindings.length > 0) {
         throw new Error(
-          `Refusing to bank ${args.qid}/${args.spec} as 'accepted': undelivered delivery audit failed:\n` +
+          `Refusing to bank ${args.qid}/${args.spec} as 'accepted': F4 delivery/convergence audit failed:\n` +
             deliveryFindings.map((finding) => `  - ${finding.code}${finding.node_id ? ` @ ${finding.node_id}` : ""}: ${finding.message}`).join("\n"),
         );
       }

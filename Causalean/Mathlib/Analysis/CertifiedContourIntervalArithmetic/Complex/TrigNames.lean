@@ -12,22 +12,19 @@ open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
 
 namespace Transcendental
 
-/-- A sine output on a refining real name recursively intersects the current
-input enclosure result with every preceding output. -/
+/-- For [a certified real number](hyp:x) and a natural-number fuel level, the [sine name approximation at that level](goal) is [the sine interval of the level-zero input enclosure](step:1), and at every successor level is [the intersection of the preceding sine approximation and the sine interval of the corresponding input enclosure](step:2). -/
 def sinNameApprox (x : CertifiedReal) : ℕ → RatInterval
   | 0 => sinInterval (x.approx 0) 0
   | fuel + 1 => (sinNameApprox x fuel).tighten
       (sinInterval (x.approx (fuel + 1)) (fuel + 1))
 
-/-- A cosine output on a refining real name recursively intersects the current
-input enclosure result with every preceding output. -/
+/-- For [a certified real number](hyp:x) and a natural-number fuel level, the [cosine name approximation at that level](goal) is [the cosine interval of the level-zero input enclosure](step:1), and at every successor level is [the intersection of the preceding cosine approximation and the cosine interval of the corresponding input enclosure](step:2). -/
 def cosNameApprox (x : CertifiedReal) : ℕ → RatInterval
   | 0 => cosInterval (x.approx 0) 0
   | fuel + 1 => (cosNameApprox x fuel).tighten
       (cosInterval (x.approx (fuel + 1)) (fuel + 1))
 
-/-- Conservative trigonometric precision combines the input modulus, initial
-argument magnitude, and target denominator. -/
+/-- Given [a certified real number](hyp:x) and [a positive rational target width](hyp:ε), the [trigonometric name precision](goal) is [half the target width](step:1) and the larger of the input precision required for that half-width and an explicit Taylor-fuel bound based on the target denominator and the initial enclosure's magnitude. -/
 def trigNamePrecision (x : CertifiedReal) (ε : PosRat) : ℕ :=
   let δ : PosRat := ⟨ε.1 / 2, div_pos ε.2 (by norm_num)⟩
   max (x.modulus δ)
@@ -248,7 +245,7 @@ theorem cosName_width_at_precision (x : CertifiedReal) (ε : PosRat) :
   dsimp [δ] at hKw
   exact hout.trans (hcur.trans (by nlinarith [herr']))
 
-/-- Sine lifts a refining certified real input to a certified real output. -/
+/-- Given [a certified real number](hyp:x), the [certified sine name](goal) has exact value the sine of the input value, uses the recursively refined sine intervals as approximations, and uses the trigonometric precision rule for requested positive rational widths. -/
 noncomputable def sinName (x : CertifiedReal) : CertifiedReal where
   value := Real.sin x.value
   approx := sinNameApprox x
@@ -257,7 +254,7 @@ noncomputable def sinName (x : CertifiedReal) : CertifiedReal where
   modulus := trigNamePrecision x
   width_modulus := sinName_width_at_precision x
 
-/-- Cosine lifts a refining certified real input to a certified real output. -/
+/-- Given [a certified real number](hyp:x), the [certified cosine name](goal) has exact value the cosine of the input value, uses the recursively refined cosine intervals as approximations, and uses the trigonometric precision rule for requested positive rational widths. -/
 noncomputable def cosName (x : CertifiedReal) : CertifiedReal where
   value := Real.cos x.value
   approx := cosNameApprox x

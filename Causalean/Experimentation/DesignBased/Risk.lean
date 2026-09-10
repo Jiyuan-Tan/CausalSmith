@@ -38,13 +38,19 @@ namespace FiniteDesign
 
 variable {Ω : Type*} [Fintype Ω] (D : FiniteDesign Ω)
 
-/-- Bias of an estimator `est` for the target `μ` under the design: `E[est] − μ`. -/
+/-- For [a randomization design](hyp:D), [a real-valued estimator of the realized assignment](hyp:est),
+and [a real-valued target](hyp:μ), [the estimator's design bias](goal) is its design expectation
+minus the target. -/
 def bias (est : Ω → ℝ) (μ : ℝ) : ℝ := D.E est - μ
 
-/-- Mean squared error of `est` for the target `μ` under the design: `E[(est − μ)²]`. -/
+/-- For [a randomization design](hyp:D), [a real-valued estimator of the realized assignment](hyp:est),
+and [a real-valued target](hyp:μ), [the estimator's design mean squared error](goal) is the design
+expectation of the squared difference between the estimator and the target. -/
 def mse (est : Ω → ℝ) (μ : ℝ) : ℝ := D.E (fun z => (est z - μ) ^ 2)
 
-/-- An estimator is **unbiased** for `μ` under the design when its expectation equals `μ`. -/
+/-- For [a randomization design](hyp:D), [a real-valued estimator of the realized assignment](hyp:est),
+and [a real-valued target](hyp:μ), [the assertion that the estimator is unbiased](goal) means that
+its design expectation equals the target. -/
 def Unbiased (est : Ω → ℝ) (μ : ℝ) : Prop := D.E est = μ
 
 /-- **Bias–variance decomposition.** [The mean squared error `mse` of estimator `est` for target

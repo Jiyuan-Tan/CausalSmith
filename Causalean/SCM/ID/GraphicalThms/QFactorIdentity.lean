@@ -66,11 +66,17 @@ variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 -- Proposition 2.19: Q-factor Identity (Tian's Lemma)
 -- ============================================================
 
-/-- The proven marginal fixing helper behind Tian's fixing lemma.
+/-- For [a finite node-label set](hyp:N), [measurable node-value spaces](hyp:Ω),
+    [a structural causal model](hyp:M), [a node set](hyp:R), [a second node set](hyp:T), and
+    [an intervention target set](hyp:Wn), [the Q-factor marginal-fixing
+    conclusion](goal) asserts the following. Whenever the first node set is
+    ancestrally closed, the second lies among the observed nodes of the induced
+    model, the intervention targets are observed random nodes not already fixed
+    and have no descendants in the second set after intervention, and a fixed-value
+    slice is chosen, the two specified marginal observational measures on that
+    second set are equal.
 
-    For an ancestrally-closed `R ⊆ M.observed`, a c-component
-    `T ⊆ R` of the induced sub-SCM `M.induce R`, and an intervention name set
-    `Wn`, Rule 3 and induced-SCM
+    Under these conditions, Rule 3 and induced-SCM
     marginal compatibility imply that the `T`-marginal of the
     post-intervention kernel `(M.fixSet Wn _ _).obsKernel` agrees with
     the `T`-marginal of the induced sub-SCM at the projected fixed
@@ -103,7 +109,17 @@ def QFactorMarginalFixingConclusion
           (M.fixSetProj Wn _hWn_obs _hWn_fixed s'))).map
         (valuesProjection hT_induce)
 
-/-- The conditional conclusion of Tian's fixing lemma (Prop 2.19).
+/-- For [a finite node-label set](hyp:N), [measurable node-value spaces](hyp:Ω),
+    [a structural causal model](hyp:M), [a node set](hyp:R), [a second node set](hyp:T), and [an
+    intervention target set](hyp:Wn), [the Q-factor identity conclusion](goal)
+    asserts that, whenever the first node set is ancestrally closed, the second
+    lies among the observed nodes of the induced model, and the targets are observed
+    random nodes not already fixed with no descendants in the second set or its
+    induced Q-factor parents after intervention, the indicated induced and
+    post-intervention conditional kernels are equal at every fixed-value slice,
+    provided their stated finite-measure, standard-Borel, nonemptiness, and
+    countable-generation conditions hold. It uses [the induced model](step:1),
+    the post-intervention model, and the induced Q-factor parent set.
 
     The left side is the `qFactor` of the induced sub-SCM on `R`, i.e. the
     conditional law of `T` given the induced graph's `qFactorParents T`.  The
@@ -432,8 +448,15 @@ theorem q_factor_identity
 -- Intervention target simplification (fact4)
 -- ============================================================
 
-/-- The conclusion of `fact4` (intervention target simplification),
-    stated as a structural equivalence of gSCMs.
+/-- For [a finite node-label set](hyp:N), [measurable node-value spaces](hyp:Ω),
+    [a structural causal model](hyp:M), [a first intervention target set](hyp:Dn),
+    and [a second intervention target set](hyp:Yn), [the intervention-target
+    simplification conclusion](goal) asserts that the two target sets are disjoint,
+    that each listed intervention is well formed, and that intervening first on
+    the first set and then on the second produces a structurally equivalent model
+    to intervening once on their union.
+
+    This is stated as a structural equivalence of gSCMs.
 
     Tex (`ID Alg in 10 mins.tex` §3): intervening on `Dn` followed by
     `Yn` equals intervening on `Dn ∪ Yn` directly, in the sense that
@@ -619,10 +642,11 @@ theorem intervention_target_simp
 -- Corollary: District identification
 -- ============================================================
 
-/-- The conclusion of district identification: for `T ∈ C(G)`, the c-factor
-    `Q[T]` of the full SCM equals a.e. the matching do-side conditional after
-    fixing `Wn`.  Special case `R = M.observed` of
-    `QFactorIdentityConclusion`. -/
+/-- For [a finite node-label set](hyp:N), [measurable node-value spaces](hyp:Ω),
+    [a structural causal model](hyp:M), [a node set](hyp:T), and [an
+    intervention target set](hyp:Wn), [the district-identification conclusion](goal)
+    is the Q-factor identity conclusion obtained by taking the ancestral node set
+    to be all observed nodes of the model. -/
 def DistrictIdConclusion
     (M : Causalean.SCM N Ω) (T : Finset (SWIGNode N))
     (Wn : Finset N) : Prop :=

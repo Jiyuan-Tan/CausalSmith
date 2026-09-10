@@ -44,7 +44,11 @@ open scoped Real Topology ENNReal
 
 namespace Causalean.Mathlib.Probability.ConvergingTogether
 
-/-- Bundle a probability measure on `ℝ` (with an explicit `IsProbabilityMeasure` proof) as a
+/-- Given [a measure on the real line and a proof that it has total mass one](hyp:m,h), the
+[bundled real probability law](goal) is that measure regarded as a probability law on the
+real line.
+
+Bundle a probability measure on `ℝ` (with an explicit `IsProbabilityMeasure` proof) as a
 `ProbabilityMeasure ℝ`.  A thin wrapper around the subtype constructor whose declared return type
 keeps the bundled `ProbabilityMeasure` topology in scope (avoiding the raw-subtype unfolding that
 breaks `𝓝`). -/

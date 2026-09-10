@@ -63,7 +63,9 @@ variable {K : ℕ}
 
 /-! ### Residualized regression objects -/
 
-/-- Residualized regressor Gram matrix `Q_XX = ⟨M_H X, M_H X⟩_ω`. -/
+/-- For [a finite record set](hyp:R) and [a nonnegative integer $K$](hyp:K), [a weighted support](hyp:c), [a family of $K$ regressors](hyp:X), and [a nuisance subspace of real-valued arrays](hyp:H) determine the [residualized regressor Gram matrix](goal), whose $(j,k)$ entry is the weighted inner product of regressor $j$ and regressor $k$ after both are residualized against the nuisance subspace.
+
+Residualized regressor Gram matrix `Q_XX = ⟨M_H X, M_H X⟩_ω`. -/
 noncomputable def Q_XX (c : WeightedSupport R) (X : Fin K → R → ℝ)
     (H : Submodule ℝ (R → ℝ)) : Matrix (Fin K) (Fin K) ℝ :=
   c.ipMat (c.tildeXVec H X) (c.tildeXVec H X)
@@ -75,7 +77,9 @@ of the corresponding residualized regressors. -/
     Q_XX c X H j k =
       c.ip (c.tildeX H (X j)) (c.tildeX H (X k)) := rfl
 
-/-- Residualized FWL right-hand side `⟨M_H X, Y⟩_ω`. -/
+/-- For [a finite record set](hyp:R) and [a nonnegative integer $K$](hyp:K), [a weighted support](hyp:c), [a family of $K$ regressors](hyp:X), [a nuisance subspace of real-valued arrays](hyp:H), and [an outcome array](hyp:Y) determine the [residualized right-hand-side vector](goal), whose coordinate $j$ is the weighted inner product of regressor $j$ residualized against the nuisance subspace with the outcome.
+
+Residualized FWL right-hand side `⟨M_H X, Y⟩_ω`. -/
 noncomputable def rhsVec (c : WeightedSupport R) (X : Fin K → R → ℝ)
     (H : Submodule ℝ (R → ℝ)) (Y : R → ℝ) : Fin K → ℝ :=
   fun j => c.ip (c.tildeX H (X j)) Y
@@ -86,13 +90,16 @@ product of a residualized regressor with the outcome. -/
     (H : Submodule ℝ (R → ℝ)) (Y : R → ℝ) (j : Fin K) :
     rhsVec c X H Y j = c.ip (c.tildeX H (X j)) Y := rfl
 
-/-- Residualized weighted least-squares coefficient
-`θ̂ = Q_XX⁻¹ ⟨M_H X, Y⟩_ω`. -/
+/-- For [a finite record set](hyp:R) and [a nonnegative integer $K$](hyp:K), [a weighted support](hyp:c), [a family of $K$ regressors](hyp:X), [a nuisance subspace of real-valued arrays](hyp:H), and [an outcome array](hyp:Y) determine the [residualized weighted least-squares coefficient vector](goal), obtained by multiplying the inverse of the residualized regressor Gram matrix by the residualized right-hand-side vector.
+
+Residualized weighted least-squares coefficient `θ̂ = Q_XX⁻¹ ⟨M_H X, Y⟩_ω`. -/
 noncomputable def thetaHat (c : WeightedSupport R) (X : Fin K → R → ℝ)
     (H : Submodule ℝ (R → ℝ)) (Y : R → ℝ) : Fin K → ℝ :=
   (Q_XX c X H)⁻¹.mulVec (rhsVec c X H Y)
 
-/-- Rank condition for the residualized regressors: `Q_XX` is invertible. -/
+/-- For [a finite record set](hyp:R) and [a nonnegative integer $K$](hyp:K), [a weighted support](hyp:c), [a nuisance subspace of real-valued arrays](hyp:H), and [a family of $K$ regressors](hyp:X) satisfy the [residualized-regressor rank condition](goal) exactly when the determinant of their residualized weighted Gram matrix is nonzero.
+
+Rank condition for the residualized regressors: `Q_XX` is invertible. -/
 def RankCondition (c : WeightedSupport R) (H : Submodule ℝ (R → ℝ))
     (X : Fin K → R → ℝ) : Prop :=
   IsUnit (Q_XX c X H).det

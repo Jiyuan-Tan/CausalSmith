@@ -5,8 +5,8 @@ import process from "node:process";
 /**
  * Write `value` as pretty-printed JSON to `target`, atomically.
  *
- * Every canonical D-stage store is written through this: a torn `d0_working.json` or
- * `proto_core.json` costs the run every proof it holds, and a crash mid-write is not
+ * Every canonical D-stage store is written through this: a torn graph-store object or
+ * `core.json` costs the run every proof it holds, and a crash mid-write is not
  * a hypothetical on a shared cluster filesystem. Writing to a sibling temp file and
  * renaming makes the replacement atomic, so a reader sees either the old file or the
  * new one and never a truncated prefix.

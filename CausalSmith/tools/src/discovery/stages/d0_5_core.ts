@@ -156,6 +156,10 @@ async function reviewWithReferee(args: {
 }): Promise<ReviewVerdict> {
   const { ctx, referee } = args;
   const outPath = reviewVerdictPath(ctx, referee.role);
+  const modelOutPath = path.relative(ctx.repoRoot, outPath);
+  if (modelOutPath.startsWith("..") || path.isAbsolute(modelOutPath)) {
+    throw new Error(`Stage 0.5 referee output escapes repository root: ${outPath}`);
+  }
   await mkdir(path.dirname(outPath), { recursive: true });
   // why: referee verdict paths are stable, so remove stale files before this round writes.
   await rm(outPath, { force: true });
@@ -177,7 +181,7 @@ async function reviewWithReferee(args: {
       ? []
       : ["", "=== MECHANICAL RETRY — CONTRACT VIOLATION IN YOUR PREVIOUS VERDICT ===", args.mechanicalNote]),
     "",
-    `VERDICT_OUTPUT_PATH: ${outPath}`,
+    `VERDICT_OUTPUT_PATH: ${modelOutPath}`,
     'Return only JSON on stdout: {"status":"completed","message":"...","artifacts":["<verdict.json>"]}.',
   ].join("\n");
 

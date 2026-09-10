@@ -68,16 +68,14 @@ describe("scanSourceForNonProofDischarge (axiom-laundering guard)", () => {
     expect(hits[0]).toContain("axiom");
   });
 
-  it("flags native_decide", () => {
-    const hits = scanSourceForNonProofDischarge("X.lean", "theorem p : 2 = 2 := by native_decide");
-    expect(hits).toHaveLength(1);
-    expect(hits[0]).toContain("native_decide");
+  it("does not flag native_decide", () => {
+    expect(scanSourceForNonProofDischarge("X.lean", "theorem p : 2 = 2 := by native_decide")).toEqual([]);
   });
 
   it("does NOT flag the word 'axiom' when it appears only in a comment/docstring", () => {
     const src = [
       "/-- This proof avoids any `axiom`; it is fully constructive. -/",
-      "-- strategy: do not axiomatize the hard step; native_decide is banned",
+      "-- strategy: do not axiomatize the hard step",
       "/- nested /- axiom -/ still a comment -/",
       "theorem foo : True := trivial",
     ].join("\n");

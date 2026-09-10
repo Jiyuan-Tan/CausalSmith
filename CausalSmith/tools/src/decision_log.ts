@@ -29,6 +29,8 @@ export type DecisionLogEntry = {
   cmd?: string;
   target?: string;
   note?: string;
+  /** D0 pull-request verdict: the PR head id `d0_vc pr merge|close` acted on. */
+  pr_id?: string;
   // terminal
   tier?: "accepted" | "failed" | "downgraded";
   reraise?: string;

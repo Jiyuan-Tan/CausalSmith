@@ -1,0 +1,157 @@
+The present local-polynomial claim cannot be closed from the current class without laundering an occupancy assumption. Standard boundary-local-polynomial results require thickness of the retained design support or an explicit Gram lower bound; neither follows from the normal-link certificate. The clean literature-faithful resolution is to replace pointwise chart fitting by an empirical minimax-linear/Riesz correction and expose its extrapolation modulus in the oracle.
+
+## 1. Source receipts
+
+- [Sasaki–Ura, arXiv:1709.00981v7](https://arxiv.org/abs/1709.00981v7), TeX source fetched successfully, file `sasaki_ura_2021_01_11.tex`.
+  - Equations `eq:mkappa`, `eq:bias_estimator`, `eq:estimator`: global Legendre-series derivative correction.
+  - Remark `remark:local` (source lines 223–225): they explicitly reject local polynomials when the design density is small near the trimming boundary and use a global series instead.
+  - Section “On Assumption a:psi,” conditions (I)–(V) (lines 393–426): their series result still assumes a population Gram eigenvalue bounded away from zero, sieve approximation rates, and moment control. Thus it does not supply the missing multivariate Hankel bound automatically.
+
+- [Audibert–Tsybakov, arXiv:math/0507180v3](https://arxiv.org/abs/math/0507180), TeX source fetched successfully, `plugin_v3.tex`.
+  - Definition around equation `reg` (lines 701–743): `(c₀,r₀)`-regular support plus density bounded above and away from zero—the named “strong density assumption.”
+  - Local-polynomial definition `lpe` (lines 748–761).
+  - Theorem `th:kernel` (lines 895–925).
+  - Proof of `th:kernel` (lines 1570–1613): the lower eigenvalue bound for the local polynomial Gram is obtained precisely from `(c₀,r₀)`-regularity of the estimation support. The current class bounds density on S, but does not make every moving retained set A_C uniformly regular.
+
+- [Gaïffas, arXiv:math/0410354v3](https://arxiv.org/abs/math/0410354), TeX source fetched successfully, single source `gaiffas1.tex`.
+  - Theorem 1 and equation (2.5) (lines 327–355): the rate is determined by local design mass through the equation balancing smoothness against `n ∫₀ʰν`.
+  - Proposition 1, equation (3.12), and event `Ω_h^K` (lines 631–669): the local-polynomial bound is conditional on a nondegenerate empirical design matrix.
+  - Equations (3.13) and Proposition 2 (lines 672–704): the bandwidth must respond to observed local occupancy.
+  - This directly confirms that a deterministic radius cap alone does not control fitting error under degenerate occupancy.
+
+- [Hirshberg–Maleki–Zubizarreta, arXiv:1901.10296v2](https://arxiv.org/abs/1901.10296v2), TeX source fetched successfully, `minimax-linear.tex`.
+  - Equation `eq:ml-weights` (source lines 295–310): minimize squared worst-case imbalance over an absolutely convex regression class plus a variance penalty.
+  - Error decomposition `eq:linear-error-decomp` (lines 319–331): this objective is the conditional worst-case MSE.
+  - Lemma `ridge-equivalence` (lines 333–349): weighting and averaged ridge/Riesz regression are dual.
+  - Their root-n theorem additionally assumes bounded target-to-donor density ratio, lines 403–420. That rate theorem is not applicable here because retained and trimmed regions are disjoint; only the estimator and finite-sample bias–variance construction are lawful donors.
+
+- [Armstrong–Kolesár, arXiv:1511.06028v4](https://arxiv.org/abs/1511.06028), TeX source fetched successfully, `draft_final.tex`.
+  - Section “Affine estimators and optimal bias-variance tradeoff,” lines 718–769: affine estimators are characterized by worst-case bias and variance.
+  - Ordered modulus, lines 771–806; bias-aware intervals, equations `affine_oci` and `affine_flci`, lines 729–762.
+  - This supports making the fitting/extrapolation modulus explicit rather than silently declaring it negligible.
+
+- Fan–Guerre’s multivariate-boundary accepted manuscript was attempted from QMUL/Kent. QMUL returned a 2.7 KB JavaScript challenge rather than the PDF; Kent returned 502. I did not rely on it.
+
+## 2. Faithful construction and bound
+
+Use three-fold rotations: one fold estimates Γ, one provides retained donor scores, and one supplies the target empirical distribution and directly truncated scores.
+
+Let F_Σ,s be the unit ball of functions on S admitting the already-assumed original-coordinate C^{s−1,1} Whitney extension. For cutoff C define, on the target fold,
+
+    L̂_C(f) = n_V⁻¹ Σ_{r∈V, X_r≠0} 1{H_k(X_r)>C} f(X_r).
+
+For retained donor observations D_C = `{i∈D:X_i≠0,H_k(X_i)≤C}`, define
+
+    I_C(γ) = sup_{f∈F_Σ,s} |L̂_C(f) − Σ_{i∈D_C} γ_i f(X_i)|.
+
+Choose the lexicographically least minimizer
+
+    γ̂_C ∈ argmin_{|γ_i|≤Λ_Σ/|D|}
+      { L_s² I_C(γ)² + c_Σ Σ_i γ_i²(1+H_k(X_i)²) }.
+
+Here Λ_Σ is a fixed signature/envelope constant. The box constraint is important: under the existing unconditional q-moment assumption it gives
+
+    E Σ_i γ̂_i² |Z_i−μ_k(X_i)|²
+      ≲ G⁻¹ {1 + E[H_k² 1{H_k≤C}]},
+
+without adding a uniform conditional moment assumption. If D_C is empty, set γ̂_C=0. Compactness, strict coercivity, and deterministic tie-breaking make the estimator total and measurable.
+
+The fold estimator is
+
+    τ̂_k^ML(C)
+      = n_V⁻¹ Σ_{r∈V} 1{X_r≠0,H_k(X_r)≤C} Z_r
+        + Σ_{i∈D_C} γ̂_{C,i} Z_i,
+
+then average fold rotations. This uses only Σ, the declared constants, observed X and outcomes, and Γ̂. It receives neither μ_k, Γ, a dominating stratum, nor any tail/bias index. It uses no chartwise bandwidth, local Gram, or occupancy test and automatically pools tangential directions.
+
+Define the honest empirical extrapolation modulus
+
+    Ω_G,Σ,k,s(C)
+      = sup_{P∈P_Σ} E_P [
+          min_{|γ_i|≤Λ_Σ/|D|}
+          { L_s² I_C(γ)²
+            + c_Σ Σ_i γ_i²(1+H_k(X_i)²) }
+        ].
+
+Then the standard minimax-linear decomposition, the weight cap, and `lem:regular-gamma` give
+
+    sup_P ||τ̂_k^ML(C)−τ_k||₂
+      ≤ C_Σ,q [
+          {V̄_Σ,k(C)/G}¹ᐟ²
+          + Ω_G,Σ,k,s(C)¹ᐟ²
+          + G⁻¹ᐟ²
+        ].
+
+The already-proved deterministic statement remains valid:
+
+    B̄_Σ,k,s(C)
+      ≤ C_Σ,s L_s D_Σ,k,s(C)
+      ≤ C′_Σ,s L_s J_Σ,k,s(C).
+
+What is not justified is
+
+    Ω_G,Σ,k,s(C*) ≲ R*_G,Σ,k.
+
+That comparison is exactly the missing higher-rank/boundary transport theorem. Audibert–Tsybakov and Gaïffas show why it cannot be replaced by a generic local-polynomial citation; Sasaki–Ura likewise requires an explicit series Gram condition.
+
+Define, if an attained oracle is desired,
+
+    R†_G,Σ,k(C)
+      = V̄_Σ,k(C)/G
+        + B̄_Σ,k,s(C)²
+        + Ω_G,Σ,k,s(C)
+        + G⁻¹,
+
+and let C† be its least minimizer on the existing finite grid. Then the displayed estimator attains R† up to constants without any new assumption. Keep the pole-derived R* as a deterministic geometric oracle and state that R†≲R* is open.
+
+## 3. Scoped `d0_directive`
+
+```text
+--require-core-target lem:oracle-fitting-remainder
+
+Do not attempt to close the current chartwise local-polynomial claim by citing
+generic boundary adaptivity or by adding uniform A_C-thickness, empirical-Gram,
+anisotropic-occupancy, active-stratum, tail-index, or bias-index assumptions.
+The cited local-polynomial theorems require exactly such conditions.
+
+Replace def:oracle-estimator's fitted-tail component by a cross-fitted minimax
+linear/Riesz correction over the existing original-coordinate Whitney ball.
+On a donor fold retain H_k≤C scores. On an independent target fold form the
+empirical functional of f over H_k>C. Choose lexicographically tie-broken
+weights minimizing squared worst-case Whitney-ball imbalance plus the observed
+(1+H_k²)-weighted quadratic variance penalty, subject to a fixed
+signature-coded coordinatewise bound |γ_i|≤Λ_Σ/G. Specify zero weights for
+empty donor folds and preserve all existing Moore–Penrose and Γ fallback
+conventions.
+
+Add an empirical extrapolation modulus Ω_G,Σ,k,s(C), defined as the whole-class
+supremum of the expected minimized objective. Prove totality/measurability and
+
+  sup_P ||τhat_k(C)-τ_k||_2
+    ≤ C[{Vbar_Σ,k(C)/G}^{1/2}+Ω_G,Σ,k,s(C)^{1/2}+G^{-1/2}].
+
+Retain, as a separate already-supported conclusion,
+
+  Bbar_Σ,k,s(C) ≤ C L_s D_Σ,k,s(C) ≤ C' L_s J_Σ,k,s(C).
+
+Do not assert Ω(C*)≲R* from the present normal-link record. If estimator
+attainment is retained, define the augmented finite-grid oracle
+Rdagger(C)=Vbar(C)/G+Bbar(C)^2+Ω(C)+G^{-1}, use its least minimizer, and state
+attainment only for Rdagger. Preserve the pole-sensitive deterministic R*
+phase theorem separately; the comparison Rdagger≲R* is an explicit open
+transport/optimal-recovery problem.
+
+Add HirshbergMalekiZubizarreta2021, AudibertTsybakov2011, and Gaiffas2005 to
+the bibliography/source map. Cite SasakiUra2022 for its global-series choice
+and its explicit Gram/sieve conditions, not as a proof of this multivariate
+bound.
+```
+
+## 4. Prose/headline impact
+
+Yes—prose sync is required. The current TL;DR, estimand-functional sentence, “Fill,” honest scope, and `thm:matched-frontier` still advertise feasible attainment of the pole-derived R*. They must instead say:
+
+- R* has the proved deterministic pole-sensitive upper phase.
+- The minimax-linear estimator attains the augmented R†.
+- Showing its extrapolation modulus is no larger than R* remains open.
+- Honest-length attainment at the old R* scale must remain removed unless that comparison is later proved.

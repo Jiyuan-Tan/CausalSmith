@@ -45,14 +45,12 @@ dividing by `|cube|` gives the result.  Like Fano, this is proven **unconditiona
 
 import Causalean.Stat.Minimax.LeCam
 
-/-! # Assouad hypercube bound
+/-! # Assouad hypercube minimax bound
 
-This module proves Assouad's minimax lower bound for experiments indexed by a
-Boolean hypercube.  It defines the coordinate flip operations `flipBit` and
-`flipPerm`, the Hamming-risk functional `hammingRisk`, and proves the
-coordinate pairing lemmas culminating in `assouad_average` and
-`assouad_exists`, which turn uniform total-variation control between neighboring
-vertices into average and worst-case Hamming-risk lower bounds.
+This file develops Assouad's lower bound for statistical experiments indexed by
+a Boolean hypercube. It introduces coordinate flips and Hamming risk, then
+uses coordinatewise total-variation bounds between neighboring experiments to
+derive average and worst-case minimax lower bounds.
 -/
 
 namespace Causalean.Stat
@@ -62,7 +60,7 @@ open scoped BigOperators
 
 variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {d : ℕ}
 
-/-- Flip the `j`-th coordinate of a cube vertex `τ : Fin d → Bool`. -/
+/-- Given [a hypercube dimension](hyp:d), [a coordinate of that hypercube](hyp:j), and [a Boolean hypercube vertex](hyp:τ), [the coordinate-flipped vertex](goal) agrees with the given vertex at every coordinate except the specified one, where it takes the opposite Boolean value. -/
 def flipBit (j : Fin d) (τ : Fin d → Bool) : Fin d → Bool :=
   Function.update τ j (!τ j)
 
@@ -78,7 +76,7 @@ theorem flipBit_involutive (j : Fin d) : Function.Involutive (flipBit j) := by
   · subst h; simp [flipBit]
   · simp [flipBit, Function.update_of_ne h]
 
-/-- The coordinate flip as a permutation of the cube, used to reindex sums. -/
+/-- Given [a hypercube dimension](hyp:d) and [a coordinate of that hypercube](hyp:j), [the coordinate-flip permutation](goal) is the bijection of Boolean hypercube vertices that flips precisely the specified coordinate. -/
 def flipPerm (j : Fin d) : Equiv.Perm (Fin d → Bool) :=
   ⟨flipBit j, flipBit j, flipBit_involutive j, flipBit_involutive j⟩
 
@@ -86,8 +84,7 @@ def flipPerm (j : Fin d) : Equiv.Perm (Fin d → Bool) :=
 @[simp] theorem flipPerm_apply (j : Fin d) (τ : Fin d → Bool) :
     flipPerm j τ = flipBit j τ := rfl
 
-/-- The expected **Hamming risk** of a cube estimator at vertex `τ`:
-the expected number of coordinates it decodes incorrectly. -/
+/-- Given [a measurable sample space](hyp:Ω,mΩ), [a hypercube dimension](hyp:d), [a measure for every Boolean hypercube vertex](hyp:P), [an estimator returning a Boolean vertex from each sample outcome](hyp:est), and [a true vertex](hyp:τ), [the Hamming risk](goal) is the sum, over coordinates, of the measure of the outcomes at which the estimator differs from that true vertex under its associated measure. -/
 noncomputable def hammingRisk (P : (Fin d → Bool) → Measure Ω)
     (est : Ω → Fin d → Bool) (τ : Fin d → Bool) : ℝ :=
   ∑ j, (P τ).real {ω | est ω j ≠ τ j}

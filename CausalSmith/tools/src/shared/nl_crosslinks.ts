@@ -5,7 +5,11 @@
  *   [phrase](hyp:name[,name…])  links the phrase to the statement binder(s)
  *                               with those names;
  *   [phrase](goal)              links the phrase to the conclusion
- *                               (canonical link token "⊢").
+ *                               (canonical link token "⊢") — for a definition,
+ *                               the `def` row (the object being defined) and
+ *                               its given-by clause(s);
+ *   [phrase](step:N)            links the phrase to the N-th top-level clause of
+ *                               the conclusion / given-by (token "⊢N").
  *
  * The library site renders these as dash-underlined spans that
  * cross-highlight with the structured statement rows (site/src/lib/docmd.ts
@@ -35,7 +39,7 @@ export function parseNlCrosslinks(s: string): NlCrosslinkSeg[] {
   // masked copy (span brackets neutralized, same length) and slice the original.
   const masked = s.replace(/`[^`\n]+`|\$[^$\n]+\$/g, (t) => t.replace(/[[\]]/g, "•"));
   const segs: NlCrosslinkSeg[] = [];
-  const closer = /\]\((?:hyp:([^()\s]+)|goal)\)/g;
+  const closer = /\]\((?:hyp:([^()\s]+)|goal|step:(\d+))\)/g;
   let plainStart = 0;
   let m: RegExpExecArray | null;
   while ((m = closer.exec(masked))) {
@@ -54,7 +58,11 @@ export function parseNlCrosslinks(s: string): NlCrosslinkSeg[] {
     }
     if (open < 0) continue;
     if (open > plainStart) segs.push({ text: s.slice(plainStart, open), links: null });
-    const names = m[1] ? m[1].split(",").map((t) => t.trim()).filter(Boolean) : ["⊢"];
+    const names = m[1]
+      ? m[1].split(",").map((t) => t.trim()).filter(Boolean)
+      : m[2]
+        ? [`⊢${Number(m[2])}`]
+        : ["⊢"];
     segs.push({ text: s.slice(open + 1, m.index), links: names.length ? names : null });
     plainStart = closer.lastIndex;
   }
@@ -69,11 +77,24 @@ export function stripNlCrosslinks(s: string): string {
     .join("");
 }
 
-/** All binder names referenced by crosslinks in `s` (excluding "⊢"). */
+/** All binder names referenced by crosslinks in `s` (excluding the "⊢" /
+ *  "⊢N" clause tokens). */
 export function crosslinkNames(s: string): string[] {
   const out: string[] = [];
   for (const seg of parseNlCrosslinks(s)) {
-    if (seg.links) out.push(...seg.links.filter((n) => n !== "⊢"));
+    if (seg.links) out.push(...seg.links.filter((n) => !n.startsWith("⊢")));
+  }
+  return out;
+}
+
+/** The clause numbers referenced by `[phrase](step:N)` links in `s`. */
+export function crosslinkSteps(s: string): number[] {
+  const out: number[] = [];
+  for (const seg of parseNlCrosslinks(s)) {
+    for (const n of seg.links ?? []) {
+      const m = n.match(/^⊢(\d+)$/);
+      if (m) out.push(Number(m[1]));
+    }
   }
   return out;
 }
@@ -95,6 +116,8 @@ export interface SourceBinder {
   /** Explicit `( … )` binder whose type reads as a Prop — the rows the site
    * chips as "hyp" and the coverage check counts. Mirror of classifyChip. */
   isHyp: boolean;
+  /** Explicit `( … )` binder of any type — a definition's coverage counts these. */
+  isExplicit: boolean;
 }
 
 function bracketDelta(c: string): number {
@@ -159,7 +182,7 @@ const PROP_HINT = /[≤≥≠↔∈⊆∀∃]|(?:^|[^:<>])=(?:[^=]|$)|\s<\s/;
  */
 export function sourceBinders(rawSource: string): SourceBinder[] | null {
   const cleaned = stripLeanComments(rawSource);
-  const m = cleaned.match(/\b(?:theorem|lemma|def|structure|class)\s+([^\s({[⦃:]+)/);
+  const m = cleaned.match(/\b(?:theorem|lemma|def|abbrev|structure|class|inductive)\s+([^\s({[⦃:]+)|\binstance\b(?:\s*\(priority\s*:=[^)]*\))?\s*([^\s({[⦃:]+)?/);
   if (!m || m.index === undefined) return null;
   let i = m.index + m[0].length;
   const uni = cleaned.slice(i).match(/^\s*\.\{[^}]*\}/);
@@ -187,7 +210,11 @@ export function sourceBinders(rawSource: string): SourceBinder[] | null {
       const isHyp =
         open === "(" &&
         (names.every((t) => /^h/i.test(t) && t.length > 1) || PROP_HINT.test(typeText));
-      if (names.length) out.push({ names, isHyp });
+      if (names.length) out.push({ names, isHyp, isExplicit: open === "(" });
+    } else if (open !== "[") {
+      // Untyped binder `{Ω}` / `(x)`: names only (mirrors parseBinderGroup).
+      const names = inner.split(/\s+/).filter(Boolean);
+      if (names.length) out.push({ names, isHyp: false, isExplicit: open === "(" });
     }
     skipWs();
   }
@@ -224,5 +251,14 @@ export function sourceFieldNames(rawSource: string): string[] {
     if (colonIdx <= 0) continue;
     out.push(...t.slice(0, colonIdx).trim().split(/\s+/).filter(Boolean));
   }
+  return out;
+}
+
+/** Constructor names of an `inductive` (`| name …`), one row each on the site. */
+export function sourceConstructorNames(rawSource: string): string[] {
+  const cleaned = stripLeanComments(rawSource);
+  const out: string[] = [];
+  for (const m of cleaned.matchAll(/(?:^|\n)\s*\|\s*([^\s({[⦃:|]+)/g)) out.push(m[1]);
+  if (out.length === 0) for (const m of cleaned.matchAll(/\s\|\s+([^\s({[⦃:|]+)/g)) out.push(m[1]);
   return out;
 }

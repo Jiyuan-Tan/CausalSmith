@@ -34,12 +34,15 @@ namespace Causalean
 namespace Experimentation
 namespace DesignBased
 
-/-- The **Neyman-fraction formula**: `√A / (√A + √B)`, the treatment fraction that minimizes
-the two-arm variance `A/x + B/(1−x)` when the arm variances are positive. -/
+/-- For [a first real-valued input](hyp:A) and [a second real-valued input](hyp:B), [the Neyman
+allocation fraction](goal) is $\sqrt{A}/(\sqrt{A}+\sqrt{B})$. When the inputs are nonnegative
+arm variances, this is the ratio of the treated arm's standard deviation to the sum of the two
+arms' standard deviations. -/
 noncomputable def neymanFraction (A B : ℝ) : ℝ := Real.sqrt A / (Real.sqrt A + Real.sqrt B)
 
-/-- The **Neyman optimal-value formula**: `(√A + √B)²`, the minimized two-arm variance when
-the arm variances are positive. -/
+/-- For [a first real-valued input](hyp:A) and [a second real-valued input](hyp:B), [the Neyman
+optimal-value formula](goal) is $(\sqrt{A}+\sqrt{B})^2$. When the inputs are nonnegative arm
+variances, this is the squared sum of their standard deviations. -/
 noncomputable def neymanOptimalValue (A B : ℝ) : ℝ := (Real.sqrt A + Real.sqrt B) ^ 2
 
 /-- **Neyman allocation lower bound.** For nonnegative arm variances `A, B` and any treatment
