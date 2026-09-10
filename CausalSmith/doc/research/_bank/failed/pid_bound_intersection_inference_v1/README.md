@@ -17,10 +17,10 @@ reusable_artifacts:
   - path: "pid_bound_intersection_inference_v1_gaps.json"
     kind: literature_map
     one_line: "Useful map for intersection-bound inference: CLR 2013, Fang-Santos 2019, Imbens-Manski 2004, CHT 2007, Andrews-Shi 2013, Lee-Song-Whang 2018, KMS 2019."
-  - path: "pid_bound_intersection_inference_v1_reviews/angle0_v1.json"
+  - path: "reviews/angle0_v1.json"
     kind: counterexample
     one_line: "Reviewer shows contact-cone/phase-threshold framing collapses to known active-set supremum inference."
-  - path: "pid_bound_intersection_inference_v1_reviews/angle1_v1.json"
+  - path: "reviews/angle1_v1.json"
     kind: counterexample
     one_line: "Reviewer shows the bootstrap-failure witness is just Fang-Santos max-map theory unless paired with a new correction rule or named workflow failure."
 seeds_burned: []
@@ -47,7 +47,7 @@ banked_on: "2026-05-24"
 - `pid_bound_intersection_inference_v1_proposal.tex` â€” final proposal version.
 - `pid_bound_intersection_inference_v1.tex` â€” derivation note (if Stage 0 ran).
 - `pid_bound_intersection_inference_v1_reviews.jsonl` â€” per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `pid_bound_intersection_inference_v1_reviews/` â€” per-version reviewer JSON files (if present).
+- `reviews/` â€” per-version reviewer JSON files (if present).
 
 ## Notes
 

@@ -65,7 +65,7 @@ not a repair of this one (the reviewer's named compatibility-lemma repair was sc
 - `pid_did_anticipation_bounded_v1_proposal.tex` — final proposal version.
 - `pid_did_anticipation_bounded_v1.tex` — derivation note (if D0 ran).
 - `pid_did_anticipation_bounded_v1_reviews.jsonl` — per-round reviewer log (D-0.5 and D0.5).
-- `pid_did_anticipation_bounded_v1_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

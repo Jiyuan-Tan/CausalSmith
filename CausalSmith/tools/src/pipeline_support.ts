@@ -26,6 +26,7 @@ import {
   crosswalkJsonPath,
   crosswalkMdPath,
   formalizationDir,
+  resolveInDir,
   ensurePaperTmpDir,
   gapsJsonPath,
   leanTheoremDir,
@@ -596,10 +597,12 @@ export async function appendReview(
 }
 
 /**
- * Persist per-attempt review JSON to `<qid>_<spec>_reviews/<boundary>_attempt<N>.json`.
- * Mirrors `persistReviewJson` for Stage -0.5 so derivation/NL/Lean review
- * history is greppable as standalone files instead of buried inside
- * reviews.jsonl. Best-effort: errors are logged but never block the pipeline.
+ * Persist per-attempt review JSON to `reviews/<boundary>_attempt<N>.json` (the run's
+ * `reviews/` folder, falling back to the legacy `<qid>_<spec>_reviews/` dir name like
+ * every other review artifact — the legacy name doubled the qid in the path and
+ * overflowed Windows' path limit). Mirrors `persistReviewJson` for Stage -0.5 so
+ * derivation/NL/Lean review history is greppable as standalone files instead of
+ * buried inside reviews.jsonl. Best-effort: errors are logged but never block the pipeline.
  */
 async function persistReviewBoundaryJson(
   ctx: PipelineContext,
@@ -608,10 +611,9 @@ async function persistReviewBoundaryJson(
   review: ReviewResult,
 ): Promise<void> {
   try {
-    const dir = path.join(
-      formalizationDir(ctx.repoRoot, ctx.qid),
+    const dir = resolveInDir(formalizationDir(ctx.repoRoot, ctx.qid), "reviews", [
       `${ctx.qid}_${ctx.specialization}_reviews`,
-    );
+    ]);
     await mkdir(dir, { recursive: true });
     // Sanitize boundary for filesystem (e.g. "stage_0.5_to_0").
     const safe = boundary.replace(/[^A-Za-z0-9._-]/g, "_");

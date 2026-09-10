@@ -57,7 +57,7 @@ banked_on: "2026-07-01"
 - `pid_alwaystaker_adrf_sharp_conditional_frechet_fractional_program_proposal.tex` — final proposal version.
 - `pid_alwaystaker_adrf_sharp_conditional_frechet_fractional_program.tex` — derivation note (if Stage 0 ran).
 - `pid_alwaystaker_adrf_sharp_conditional_frechet_fractional_program_reviews.jsonl` — per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `pid_alwaystaker_adrf_sharp_conditional_frechet_fractional_program_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

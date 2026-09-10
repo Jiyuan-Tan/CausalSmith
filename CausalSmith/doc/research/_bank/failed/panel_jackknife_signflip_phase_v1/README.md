@@ -20,7 +20,7 @@ reusable_artifacts:
   - "panel_jackknife_signflip_phase_v1_gaps.json: useful literature map for TWFE negative weights, event-study contamination, cluster leverage diagnostics, and the closest banked panel proposals."
   - "panel_jackknife_signflip_phase_v1_proposal_angle0_rejected.tex: negative example of a LOCO frontier that assumes its deletion update instead of deriving it from raw panel primitives."
   - "panel_jackknife_signflip_phase_v1_proposal_angle1_rejected.tex: finite equal-target TWFE deletion witness attempt; useful only as a checklist of what must be computed from raw outcomes before retrying."
-  - "panel_jackknife_signflip_phase_v1_reviews/angle0_v1.json and angle1_v1.json: precise reviewer failure modes and strengthening paths."
+  - "reviews/angle0_v1.json and angle1_v1.json: precise reviewer failure modes and strengthening paths."
 seeds_burned: []
 proof_attempt_summary: |
   This run tried to make a flagship panel/estimation-geometry result: a leave-one-cluster TWFE event-study sign flip with full-sample contrast positive, deleted-cluster refit negative, and modern ATT estimators remaining positive. The first angle collapsed because the LOCO frontier was tautological under an assumed deletion formula and the finite witness values were not computed from a displayed residualized table; the pivot improved the witness framing but still stipulated residualized primitives and reached only letter tier. A future retry needs a raw 4-by-4 outcome/adoption table with FWL residuals, N/Q/h/s/q, and all leave-one coefficients computed directly, plus an open-class theorem rather than a single cautionary finite example.
@@ -45,7 +45,7 @@ banked_on: "2026-05-25"
 - `panel_jackknife_signflip_phase_v1_proposal.tex` — final proposal version.
 - `panel_jackknife_signflip_phase_v1.tex` — derivation note (if Stage 0 ran).
 - `panel_jackknife_signflip_phase_v1_reviews.jsonl` — per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `panel_jackknife_signflip_phase_v1_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

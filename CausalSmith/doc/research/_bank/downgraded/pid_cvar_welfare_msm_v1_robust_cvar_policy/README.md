@@ -64,7 +64,7 @@ kernel the note itself names as open — a genuine #15 pivot, and new D0 work ra
 - `pid_cvar_welfare_msm_v1_robust_cvar_policy_proposal.tex` — final proposal version.
 - `pid_cvar_welfare_msm_v1_robust_cvar_policy.tex` — derivation note (if Stage 0 ran).
 - `pid_cvar_welfare_msm_v1_robust_cvar_policy_reviews.jsonl` — per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `pid_cvar_welfare_msm_v1_robust_cvar_policy_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

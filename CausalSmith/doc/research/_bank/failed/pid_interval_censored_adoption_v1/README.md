@@ -17,7 +17,7 @@ reusable_artifacts:
   - path: "pid_interval_censored_adoption_v1_gaps.json"
     kind: literature_map
     one_line: "Useful interval-censored/adoption-timing DiD map: Callaway-Sant'Anna, Sun-Abraham, Goodman-Bacon, de Chaisemartin-D'Haultfoeuille, Manski-Tamer, Augustin-Gutknecht-Liu, and ambiguous-timing DiD comparators."
-  - path: "pid_interval_censored_adoption_v1_reviews/angle0_v3.json"
+  - path: "reviews/angle0_v3.json"
     kind: counterexample
     one_line: "Clean reviewer diagnosis: mathematically clean by v3 but only field-tier/incremental once Denteh-Kedagni 2026 is considered."
   - path: "pid_interval_censored_adoption_v1_proposal_angle0_rejected.tex"
@@ -47,7 +47,7 @@ banked_on: "2026-05-24"
 - `pid_interval_censored_adoption_v1_proposal.tex` â€” final proposal version.
 - `pid_interval_censored_adoption_v1.tex` â€” derivation note (if Stage 0 ran).
 - `pid_interval_censored_adoption_v1_reviews.jsonl` â€” per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `pid_interval_censored_adoption_v1_reviews/` â€” per-version reviewer JSON files (if present).
+- `reviews/` â€” per-version reviewer JSON files (if present).
 
 ## Notes
 

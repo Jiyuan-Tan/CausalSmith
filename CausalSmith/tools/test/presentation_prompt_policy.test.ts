@@ -178,6 +178,7 @@ describe("a rendered proof must reach the paper", () => {
     // flips: shipped bundles must stay clean. Removing an object from a paper also deletes its
     // proofs/*.tex, so every id under proofs/ is expected to be placed — no filtering.
     const { lintProofsReachedPaper } = await import("../src/presentation/stages/p2_draft.js");
+    const { proofObjId } = await import("../src/presentation/proof_files.js");
     const { readFile, readdir } = await import("node:fs/promises");
     const root = new URL("../../doc/presentation/", import.meta.url);
     const found: string[] = [];
@@ -186,7 +187,7 @@ describe("a rendered proof must reach the paper", () => {
                      "stat_dose_response_minimax_holder_anisotropic_converse"]) {
       const paper = await readFile(new URL(`${q}/paper.tex`, root), "utf8");
       const ids = (await readdir(new URL(`${q}/proofs/`, root)))
-        .filter((n) => n.endsWith(".tex")).map((n) => n.slice(0, -4));
+        .map(proofObjId).filter((id): id is string => id !== null);
       found.push(...lintProofsReachedPaper(paper, ids).map((p) => p.objId!));
     }
     expect(found).toEqual([]);

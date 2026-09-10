@@ -63,7 +63,7 @@ Re-tiered to `downgraded` before 2026-07-18; the `candidates` tier was retired 2
 - `eid_frontdoor_multi_mediator_v1_proposal.tex` — final proposal version.
 - `eid_frontdoor_multi_mediator_v1.tex` — derivation note (if D0 ran).
 - `eid_frontdoor_multi_mediator_v1_reviews.jsonl` — per-round reviewer log (D-0.5 and D0.5).
-- `eid_frontdoor_multi_mediator_v1_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

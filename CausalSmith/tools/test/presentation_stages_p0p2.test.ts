@@ -10,6 +10,7 @@ import { parseNotationReviewerOutput } from "../src/presentation/stages/p1_plan.
 import { acceptedBankEntry, causalSmithRoot } from "./helpers.js";
 import { graphPath, saveGraph } from "../src/graph/store.js";
 import { loadBankEntry } from "../src/presentation/bank.js";
+import { proofFileName, proofObjId } from "../src/presentation/proof_files.js";
 import { parseOutline } from "../src/presentation/stage_util.js";
 import { rewriteOutlineObjs } from "../src/presentation/p1_order.js";
 import { MODELS } from "../src/models.js";
@@ -537,10 +538,10 @@ describe("stages P0-P2 against the real bank entry (stubbed models)", () => {
         return runPaperPipeline({ repoRoot: root, qid: QID, spec: SPEC, deps, from: "P2", auto: true, stopAfter: "P2", outDir: dir });
       });
     expect(seeded.halt).toBe("stopped:P2");
-    const proofIds = (await readdir(join(dir, "proofs"))).filter((n) => n.endsWith(".tex")).map((n) => n.slice(0, -4));
+    const proofIds = (await readdir(join(dir, "proofs"))).map(proofObjId).filter((id): id is string => id !== null);
     expect(proofIds.length).toBeGreaterThan(1);
     const [unclearId, ...others] = proofIds;
-    await rm(join(dir, "proofs", `${unclearId}.tex`));
+    await rm(join(dir, "proofs", proofFileName(unclearId)));
     await rm(join(dir, "proofs", "_cache_keys.json"));
     let audits = 0;
     const unclearDeps: PaperDeps = { ...deps, runCodex: async (args) => {
@@ -553,7 +554,7 @@ describe("stages P0-P2 against the real bank entry (stubbed models)", () => {
     await expect(runPaperPipeline({ repoRoot: root, qid: QID, spec: SPEC, deps: unclearDeps, from: "P2", auto: true, stopAfter: "P2", outDir: dir }))
       .rejects.toThrow(new RegExp(`rendering defects remain.*1 proof\\(s\\) could not be rendered.*${unclearId}: the writer reported the Lean route UNCLEAR`));
     // Siblings were rendered (their files exist) and no sibling was left un-judged for the halt.
-    for (const id of others) expect(await readFile(join(dir, "proofs", `${id}.tex`), "utf8")).toContain("\\begin{proof}");
+    for (const id of others) expect(await readFile(join(dir, "proofs", proofFileName(id)), "utf8")).toContain("\\begin{proof}");
     expect(audits).toBe(0); // every sibling approval was reused from the seeded pass
     // Re-entry renders only the unclear proof.
     let renders = 0;
@@ -607,7 +608,7 @@ describe("stages P0-P2 against the real bank entry (stubbed models)", () => {
     const noProgress: PaperDeps = { ...deps, runCodex: async args => {
       if (args.prompt.includes("=== PROMPT: p2_proof ===")) {
         renders++;
-        return { stdout: await readFile(join(dir, "proofs", `${target}.tex`), "utf8"), stderr: "" };
+        return { stdout: await readFile(join(dir, "proofs", proofFileName(target)), "utf8"), stderr: "" };
       }
       return deps.runCodex(args);
     } };

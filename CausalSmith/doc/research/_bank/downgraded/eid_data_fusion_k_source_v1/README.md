@@ -53,7 +53,7 @@ banked_on: "2026-05-20"
 - `eid_data_fusion_k_source_v1_proposal.tex` — final proposal version.
 - `eid_data_fusion_k_source_v1.tex` — derivation note (if D0 ran).
 - `eid_data_fusion_k_source_v1_reviews.jsonl` — per-round reviewer log (D-0.5 and D0.5).
-- `eid_data_fusion_k_source_v1_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

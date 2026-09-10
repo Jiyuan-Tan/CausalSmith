@@ -17,8 +17,8 @@ gap_reasons:
   - "angle0_v2: Conjecture 1 remained field-tier; the affine-image iff was still definitional stacking, and flagship would require independent determinant/minor conditions plus a minimality theorem."
 reusable_artifacts:
   - "eid_anchor_icp_dantzig_frontier_v1_gaps.json: useful literature map for ICP, anchor regression, Causal Dantzig, distributional anchor regression, and environment/IV links."
-  - "eid_anchor_icp_dantzig_frontier_v1_reviews/angle0_v1.json: stop anchor for invalid K-as-vector/operator notation and invalid q=p=2 witness rows."
-  - "eid_anchor_icp_dantzig_frontier_v1_reviews/angle0_v2.json: decisive diagnosis that published-equation stacking is field-tier and that the Causal-Dantzig bridge is missing."
+  - "reviews/angle0_v1.json: stop anchor for invalid K-as-vector/operator notation and invalid q=p=2 witness rows."
+  - "reviews/angle0_v2.json: decisive diagnosis that published-equation stacking is field-tier and that the Causal-Dantzig bridge is missing."
   - "eid_anchor_icp_dantzig_frontier_v1_proposal.tex: reusable only as a field-tier catalogue of population equations; do not lift its K frontier as a flagship kernel."
 seeds_burned:
   - "Three-way ICP/anchor/Causal-Dantzig affine-image equality frontier."
@@ -46,8 +46,8 @@ banked_on: "2026-05-25"
 - `eid_anchor_icp_dantzig_frontier_v1_gaps.json` - literature map and harvested open problems.
 - `eid_anchor_icp_dantzig_frontier_v1_proposal.tex` - final proposal version.
 - `eid_anchor_icp_dantzig_frontier_v1_reviews.jsonl` - per-round reviewer log.
-- `eid_anchor_icp_dantzig_frontier_v1_reviews/angle0_v1.json` - first D-0.5 review.
-- `eid_anchor_icp_dantzig_frontier_v1_reviews/angle0_v2.json` - decisive second D-0.5 review.
+- `reviews/angle0_v1.json` - first D-0.5 review.
+- `reviews/angle0_v2.json` - decisive second D-0.5 review.
 - `eid_anchor_icp_dantzig_frontier_v1_state.json` - pipeline state at banking.
 
 ## Reflection

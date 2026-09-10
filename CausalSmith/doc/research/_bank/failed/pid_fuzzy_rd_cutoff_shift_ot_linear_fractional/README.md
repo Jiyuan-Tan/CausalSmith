@@ -41,7 +41,7 @@ banked_on: "2026-07-16"
 - `pid_fuzzy_rd_cutoff_shift_ot_linear_fractional_proposal.tex` — final proposal version.
 - `pid_fuzzy_rd_cutoff_shift_ot_linear_fractional.tex` — derivation note (if Stage 0 ran).
 - `pid_fuzzy_rd_cutoff_shift_ot_linear_fractional_reviews.jsonl` — per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `pid_fuzzy_rd_cutoff_shift_ot_linear_fractional_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

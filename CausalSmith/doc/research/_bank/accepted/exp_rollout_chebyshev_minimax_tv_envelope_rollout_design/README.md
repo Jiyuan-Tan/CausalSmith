@@ -42,7 +42,7 @@ paper_score_rationale: "The verified mathematical core is coherent and potential
 - `exp_rollout_chebyshev_minimax_tv_envelope_rollout_design_proposal.tex` — final proposal version.
 - `exp_rollout_chebyshev_minimax_tv_envelope_rollout_design.tex` — derivation note (if Stage 0 ran).
 - `exp_rollout_chebyshev_minimax_tv_envelope_rollout_design_reviews.jsonl` — per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `exp_rollout_chebyshev_minimax_tv_envelope_rollout_design_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

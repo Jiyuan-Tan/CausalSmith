@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { firstDeclaredLeaf, leanNameLeaf, isPrivateDeclarationSource } from "../src/presentation/lean_decl_name.js";
+import { firstDeclaredLeaf, leanNameLeaf, isPrivateDeclarationSource, leanSourceDeclarations, autoInstanceName } from "../src/presentation/lean_decl_name.js";
 
 describe("firstDeclaredLeaf", () => {
   it("keeps Unicode subscript suffixes that distinguish neighbouring declarations", () => {
@@ -57,5 +57,30 @@ describe("isPrivateDeclarationSource", () => {
     expect(isPrivateDeclarationSource("/-- Calls a private helper. -/\n@[privateHint] protected def visible : Nat := 1")).toBe(false);
     expect(isPrivateDeclarationSource("def quoted := `(private def hidden : Nat := 1)")).toBe(false);
     expect(isPrivateDeclarationSource("/-- private def hidden -/")).toBe(false);
+  });
+});
+
+describe("anonymous instances carry Lean's auto-generated name", () => {
+  it("names an instance from the constants of its result type, skipping binder variables", () => {
+    const src = [
+      "namespace M",
+      "instance {n : ℕ} {G : Causalean.DAG (Fin n)} : TopologicalSpace (Mechanism n G) :=",
+      "  TopologicalSpace.induced mechanismC2Coordinates inferInstance",
+      "instance : Fintype (Fin n × Bool) := inferInstance",
+      "noncomputable instance named : Inhabited ℝ := ⟨0⟩",
+      "end M",
+    ].join("\n");
+    expect(leanSourceDeclarations(src).map((d) => [d.name, d.line, d.kind])).toEqual([
+      ["instTopologicalSpaceMechanism", 2, "instance"],
+      ["instFintypeProdFinBool", 4, "instance"],
+      ["named", 5, "instance"],
+    ]);
+  });
+  it("suffixes a repeated auto name the way Lean does", () => {
+    const src = "instance : Inhabited Foo := ⟨a⟩\ninstance : Inhabited Foo := ⟨b⟩\n";
+    expect(leanSourceDeclarations(src).map((d) => d.name)).toEqual(["instInhabitedFoo", "instInhabitedFoo_1"]);
+  });
+  it("returns nothing for an instance whose result type it cannot read", () => {
+    expect(autoInstanceName("instance := foo", "instance".length)).toBeNull();
   });
 });

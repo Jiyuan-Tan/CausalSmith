@@ -27,7 +27,7 @@ reusable_artifacts:
   - path: pid_dynamic_iv_compliance_v1_proposal.tex
     kind: literature_map
     one_line: 12-paper literature map (Chen-Zhang 2023, Han 2024, Balke-Pearl 1997, Duarte et al 2024, Swanson-Labrecque-Hernan 2018, Xu-Zhu-Shi-Luo-Song 2023, Artman et al 2024, Mogstad-Torgovitsky-Walters 2024, Gabriel-Sjolander-Sachs 2023, Pu-Zhang 2021, Cui-Tchetgen 2021, Manski-Pepper 2000, Heckman-Humphries-Veramendi 2016) with claims and tensions — saves a future run from re-doing Step 0a.
-  - path: pid_dynamic_iv_compliance_v1_reviews/angle0_v5.json
+  - path: reviews/angle0_v5.json
     kind: other
     one_line: Final ACCEPT proposal review (Stage -0.5) — useful as a calibration sample for what passed proposal but failed derivation.
   - path: pid_dynamic_iv_compliance_v1_oneshot_stage0_5_field_2026-05-14T15-55-41-123Z.txt
@@ -75,7 +75,7 @@ than a new dynamic separation theorem.
   counterexample, and Section 14 math-object checklist.
 - [`pid_dynamic_iv_compliance_v1_proposal.tex`](pid_dynamic_iv_compliance_v1_proposal.tex) —
   final (v5) accepted proposal.
-- [`pid_dynamic_iv_compliance_v1_reviews/angle0_v5.json`](pid_dynamic_iv_compliance_v1_reviews/angle0_v5.json)
+- [`reviews/angle0_v5.json`](reviews/angle0_v5.json)
   — D-0.5 ACCEPT verdict.
 - [`pid_dynamic_iv_compliance_v1_oneshot_stage0_5_field_2026-05-14T15-55-41-123Z.txt`](pid_dynamic_iv_compliance_v1_oneshot_stage0_5_field_2026-05-14T15-55-41-123Z.txt)
   — D0.5 final field-tier REVISE verdict (load-bearing for `gap_reasons`).

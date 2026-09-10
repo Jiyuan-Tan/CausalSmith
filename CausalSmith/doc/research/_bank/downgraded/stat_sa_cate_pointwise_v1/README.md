@@ -34,9 +34,9 @@ proposal reviewer (no estimand-well-definedness check).
 
 Key files:
 - `..._proposal.tex` — the verbatim v2 proposal that was accepted (structure-agnostic pointwise CATE).
-- `..._reviews/angle0_v1.json` — original D-0.5 ACCEPT (the miss).
-- `..._reviews/angle0_v2.json` — **corrected** D-0.5 REVISE with the `C-wellposed` well-definedness flag.
-- `..._reviews/stage_0.5_to_0_attempt1.json` — original D0.5 derivation ACCEPT@field.
+- `reviews/angle0_v1.json` — original D-0.5 ACCEPT (the miss).
+- `reviews/angle0_v2.json` — **corrected** D-0.5 REVISE with the `C-wellposed` well-definedness flag.
+- `reviews/stage_0.5_to_0_attempt1.json` — original D0.5 derivation ACCEPT@field.
 - `..._v1.tex` — stitched Stage-0 derivation (both conjectures confirmed under the ill-posed target).
 
 Pipeline-calibration value: this entry is the worked example behind the 2026-06-04 fixes —

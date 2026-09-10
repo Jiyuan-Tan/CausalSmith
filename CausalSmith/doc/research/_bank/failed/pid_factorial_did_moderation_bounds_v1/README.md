@@ -17,7 +17,7 @@ reusable_artifacts:
   - path: "pid_factorial_did_moderation_bounds_v1_gaps.json"
     kind: literature_map
     one_line: "Useful FDID map: Xu-Zhao-Ding 2026, Bansak 2021, VanderWeele 2009, Rambachan-Roth 2023, Manski-Pepper 2018, Balke-Pearl 1997, Demuynck 2015."
-  - path: "pid_factorial_did_moderation_bounds_v1_reviews/angle0_v3.json"
+  - path: "reviews/angle0_v3.json"
     kind: counterexample
     one_line: "Cleanest reviewer diagnosis: after setup repair, the flagship claim is still a field-tier definition unfold/support calculation."
   - path: "pid_factorial_did_moderation_bounds_v1_proposal.tex"
@@ -47,7 +47,7 @@ banked_on: "2026-05-24"
 - `pid_factorial_did_moderation_bounds_v1_proposal.tex` â€” final proposal version.
 - `pid_factorial_did_moderation_bounds_v1.tex` â€” derivation note (if Stage 0 ran).
 - `pid_factorial_did_moderation_bounds_v1_reviews.jsonl` â€” per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `pid_factorial_did_moderation_bounds_v1_reviews/` â€” per-version reviewer JSON files (if present).
+- `reviews/` â€” per-version reviewer JSON files (if present).
 
 ## Notes
 

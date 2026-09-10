@@ -16,6 +16,7 @@ import { helperDeclarationsFor, sectionContextBefore } from "./lean_one_hop.js";
 import { parseNoteBlocks } from "./note_parser.js";
 import { writeJsonAtomic, writeTextAtomic } from "./json_io.js";
 import { loadJsonCache } from "./cache.js";
+import { proofFilePath } from "./proof_files.js";
 import { resolveLeanDeclaration, resolvedLeanAbsolutePath } from "./declaration_resolver.js";
 export { resolveLeanDeclaration } from "./declaration_resolver.js";
 import { parseJsonLoose, mapLimit, type StatementCheck } from "./gates.js";
@@ -753,7 +754,7 @@ export async function runProofAudit(
   const readRunFile = leanSourceReader(repoRoot, leanSubdir);
   const libraryMemo = new Map<string, string | null>();
   for (const pt of proofTargets) {
-    const proofTex = await readFile(join(io.outDir, "proofs", `${pt.obj_id}.tex`), "utf8").catch(() => null);
+    const proofTex = await readFile(proofFilePath(io.outDir, pt.obj_id), "utf8").catch(() => null);
     if (proofTex === null) continue; // statement-only / no rendered proof
     const resolved = await resolveLeanDeclaration(repoRoot, leanSubdir, { ...pt.lean, line: 0 });
     const resolvedPath = await resolvedLeanAbsolutePath(repoRoot, resolved.file);
@@ -795,7 +796,7 @@ export async function runProofAudit(
         notationTable: notationForArtifact(notation, `${proofTex}\n${pt.leanProofSource}\n${targetStatementFor(pt.obj_id)}`),
       });
       const judge = (proofTex: string) => proofAudit(judgeInput(proofTex));
-      const proofPath = join(io.outDir, "proofs", `${pt.obj_id}.tex`);
+      const proofPath = proofFilePath(io.outDir, pt.obj_id);
       // Cross-reference targets are checked deterministically before any judge call: a dropped
       // kind prefix is repaired in place (the assembly repair, applied earlier); a target with no
       // environment is a defect the writer repairs once, without paying the judge to find it.
@@ -869,7 +870,7 @@ export async function runProofAudit(
         });
         io.state.notes.push(
           `P2: proof ${pt.obj_id} re-rendered against the judge's issues (${rounds} round(s)); STILL ${verdict.verdict} — ` +
-            (promotable ? "a missing derivation remains (promotion-eligible)" : "rendering defects remain (adjudicate or delete proofs/<id>.tex to re-render)"),
+            (promotable ? "a missing derivation remains (promotion-eligible)" : "rendering defects remain (adjudicate or delete the proof file for <id> under proofs/, colon spelled --, to re-render)"),
         );
       }
     });

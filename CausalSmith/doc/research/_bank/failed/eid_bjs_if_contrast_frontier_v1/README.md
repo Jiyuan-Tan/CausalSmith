@@ -16,8 +16,8 @@ gap_reasons:
   - "Final review: quotient norm Omega_m and corrected projection Pi_m^star were validated only under asserted identity covariance/selector simplifications and did not preserve the target aggregation a' tau."
 reusable_artifacts:
   - "eid_bjs_if_contrast_frontier_v1_gaps.json: literature map for BJS, Sun-Abraham, Callaway-Sant'Anna, Wooldridge, and Chen-Sant'Anna-Xie EIF comparators."
-  - "eid_bjs_if_contrast_frontier_v1_reviews/angle2_v3.json: best review, with a transient flagship-tier signal before the construction defects resurfaced."
-  - "eid_bjs_if_contrast_frontier_v1_reviews/angle4_v3.json: final concise diagnosis of promissory C/Omega/Pi objects and definitional contrast algebra."
+  - "reviews/angle2_v3.json: best review, with a transient flagship-tier signal before the construction defects resurfaced."
+  - "reviews/angle4_v3.json: final concise diagnosis of promissory C/Omega/Pi objects and definitional contrast algebra."
   - "eid_bjs_if_contrast_frontier_v1_proposal_angle2_rejected.tex: most useful rejected proposal version for understanding the matrix-frontier attempt."
 seeds_burned: []
 proof_attempt_summary: |
@@ -42,7 +42,7 @@ banked_on: "2026-05-25"
 - `eid_bjs_if_contrast_frontier_v1_state.json` - pipeline state at banking (`banked: true`).
 - `eid_bjs_if_contrast_frontier_v1_proposal.tex` - final proposal version.
 - `eid_bjs_if_contrast_frontier_v1_reviews.jsonl` - per-round reviewer log.
-- `eid_bjs_if_contrast_frontier_v1_reviews/` - per-version reviewer JSON files.
+- `reviews/` - per-version reviewer JSON files.
 
 ## Notes
 

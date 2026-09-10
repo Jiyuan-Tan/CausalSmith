@@ -30,6 +30,7 @@ import { writeJsonAtomic, writeTextAtomic } from "../json_io.js";
 import { loadJsonCache } from "../cache.js";
 import { recordP2Assembly } from "../assembly_freshness.js";
 import { mapLimit } from "../gates.js";
+import { proofFilePath } from "../proof_files.js";
 import { applyProseRevision, applyTargetedReplacements, type TextReplacement } from "../prose_revision.js";
 import { normalizeRawModelJson, repairLatexStringsDeep } from "../../discovery/core/latex_serialization.js";
 import { runProofAudit, type ProofRenderHook } from "../audit.js";
@@ -467,8 +468,8 @@ export async function stageP2(io: StageIO): Promise<void> {
   const allowedFrontMatterBibKeys = frontMatterBibKeys(frontMatterBib);
 
   // Lean-faithful appendix proofs, one per theorem env. Cached per theorem in
-  // proofs/<obj_id>.tex (codex renders are the most expensive P2 calls);
-  // delete a file to re-render that proof.
+  // proofs/<obj_id>.tex — see proof_files.ts for the portable spelling of the id
+  // (codex renders are the most expensive P2 calls); delete a file to re-render that proof.
   // Include recorded dependencies and explicit references; missing graph edges remain
   // discoverable through a complete compact catalogue and targeted formal-layer reads.
   const helperContextFor = (objId: string, additionalText = "") =>
@@ -551,7 +552,7 @@ export async function stageP2(io: StageIO): Promise<void> {
     await mapLimit(envs.filter((e) => isMainProofEnv(e.env) || e.env === "lemmav"), 4, async (e) => {
       const lean = leanPointer(io.bank.graph, e.obj_id);
       if (!lean) return;
-      const proofPath = join(io.outDir, "proofs", `${e.obj_id}.tex`);
+      const proofPath = proofFilePath(io.outDir, e.obj_id);
       const proofKey = await proofRenderKey(e.obj_id, envText.get(e.obj_id)!, lean, helperContextFor(e.obj_id), FIRST_DRAFT_BRIEF);
       repairContextKeys.set(e.obj_id, proofKey);
       const output = isMainProofEnv(e.env) ? theoremProofById : lemmaProofTexts;
@@ -618,7 +619,7 @@ export async function stageP2(io: StageIO): Promise<void> {
       `${marker} (${proofProblems.length} proof(s) still unfaithful after repair — ` +
         (promotable.length > 0
           ? `${promotable.length} with a missing derivation a promoted lemma can supply): `
-          : `adjudicate, or delete proofs/<id>.tex to re-render from scratch): `) +
+          : `adjudicate, or delete the proof file for <id> under proofs/ (its colon is spelled --) to re-render from scratch): `) +
         proofProblems.map((p) => p.detail).join("; "),
     );
   }

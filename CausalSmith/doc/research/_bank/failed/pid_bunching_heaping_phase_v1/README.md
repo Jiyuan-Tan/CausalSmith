@@ -17,7 +17,7 @@ reusable_artifacts:
   - "pid_bunching_heaping_phase_v1_gaps.json: literature map for bunching, rounded/heaped running variables, discrete RD, and interval/random-set partial identification anchors."
   - "pid_bunching_heaping_phase_setup.json: finite heap-incidence setup and notation for observable rounded histograms, latent fibers, continuation restrictions, and excess-mass loading."
   - "pid_bunching_heaping_phase_conj_2_fragment.tex: useful negative distinction between feasible-face rank and full-nullspace rank; salvage only as field-tier infrastructure."
-  - "pid_bunching_heaping_phase_v1_reviews/stage_0.5_to_0_attempt2.json: concise diagnosis of why the D0 theorem contract and convexity assumptions failed."
+  - "reviews/stage_0.5_to_0_attempt2.json: concise diagnosis of why the D0 theorem contract and convexity assumptions failed."
 seeds_burned: []
 proof_attempt_summary: |
   Attempted to turn deterministic heaping in bunching designs into a sharp heap-aliasing frontier and equal-grid phase screen. The proposal found a plausible field-tier finite nullspace object, but D0 did not produce a clean theorem contract: the endpoint formula was not lifted into the theorem, convex/polyhedral feasibility was missing, and the reviewer still saw generic LP/nullspace machinery. Reuse the literature map and the feasible-face-vs-full-nullspace distinction, but do not revive this topic for flagship without a genuinely heap-geometric threshold theorem or a hand-derived certificate that is not just row-span annihilation.
@@ -42,7 +42,7 @@ banked_on: "2026-05-24"
 - `pid_bunching_heaping_phase_v1_proposal.tex` - final proposal version.
 - `pid_bunching_heaping_phase_v1.tex` - derivation note.
 - `pid_bunching_heaping_phase_v1_reviews.jsonl` - per-round reviewer log.
-- `pid_bunching_heaping_phase_v1_reviews/` - per-version reviewer JSON files.
+- `reviews/` - per-version reviewer JSON files.
 
 ## Notes
 

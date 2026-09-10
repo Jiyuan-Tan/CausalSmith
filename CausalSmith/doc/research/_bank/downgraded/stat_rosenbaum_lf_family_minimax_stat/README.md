@@ -47,7 +47,7 @@ banked_on: "2026-07-17"
 - `stat_rosenbaum_lf_family_minimax_stat_proposal.tex` — final proposal version.
 - `stat_rosenbaum_lf_family_minimax_stat.tex` — derivation note (if Stage 0 ran).
 - `stat_rosenbaum_lf_family_minimax_stat_reviews.jsonl` — per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `stat_rosenbaum_lf_family_minimax_stat_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

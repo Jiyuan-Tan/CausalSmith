@@ -23,7 +23,7 @@ reusable_artifacts:
   - path: pid_network_iv_exposure_v3_gaps.json
     kind: literature_map
     one_line: "Useful network-IV/interference map: Hoshino-Yanagi 2024, Imai-Jiang-Malani 2021, Vazquez-Bare 2023, Acerenza et al. 2025, Nibbering-Oosterveen 2025, plus parent exposure-misspecification anchors."
-  - path: pid_network_iv_exposure_v3_reviews/angle4_v1.json
+  - path: reviews/angle4_v1.json
     kind: counterexample
     one_line: "Reviewer pinpoints why the four-unit hidden-edge witness is infeasible; avoid reusing this witness shape."
   - path: pid_network_iv_exposure_v3_proposal.tex
@@ -55,7 +55,7 @@ banked_on: "2026-05-24"
 - `pid_network_iv_exposure_v3_proposal.tex` — final proposal version.
 - `pid_network_iv_exposure_v3.tex` — derivation note (if Stage 0 ran).
 - `pid_network_iv_exposure_v3_reviews.jsonl` — per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `pid_network_iv_exposure_v3_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

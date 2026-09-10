@@ -33,13 +33,20 @@ shares the project's name:
 
 ## Quick start (fresh clone)
 
+Linux, macOS, and Windows are all supported. The commands below are for a POSIX
+shell; on Windows run them from **Git Bash** (installed with Git for Windows) and
+read the [platform notes](#platform-notes) first.
+
 ```sh
+# 0. Clone (Windows: see the platform notes for the long-path setting)
+git clone https://github.com/Jiyuan-Tan/CausalSmith.git && cd CausalSmith
+
 # 1. Toolchain — elan reads lean-toolchain and installs the pinned Lean version
-curl https://elan.lean-lang.org/elan-init.sh -sSf | sh   # if you don't have elan
+curl https://elan.lean-lang.org/elan-init.sh -sSf | sh   # Linux/macOS; Windows: elan-init.exe (see below)
 
 # 2. Build the library — both caches make this minutes instead of hours
 lake exe cache get               # Mathlib's prebuilt oleans
-scripts/fetch_build_cache.sh     # Causalean's prebuilt oleans (a GitHub release asset)
+scripts/fetch_build_cache.sh     # Causalean's prebuilt oleans (a GitHub release asset; needs curl, tar, zstd)
 lake build                       # only what changed since the cached commit
 
 # 3. Retrieval tooling — how you actually find things in a ~8000-declaration library
@@ -47,6 +54,8 @@ cd CausalSmith/tools && npm install
 npm run search -- "backdoor adjustment"
 ```
 
+Step 2's cache scripts need `zstd` (`apt install zstd`, `brew install zstd`, or the
+[zstd releases](https://github.com/facebook/zstd/releases) on Windows).
 Step 3 needs Node ≥ 20.20.2 and is worth doing before you read any Lean source:
 the library is large, and `npm run search` is the intended entry point for
 locating a definition, lemma, or module. Everything above works offline from a
@@ -63,6 +72,27 @@ Then, depending on what you came for:
 | Browse a module's API | [`doc/API.md`](doc/API.md), section `## <n>. <path>` |
 | Contribute a declaration | Write the docstring — see [Documentation](#documentation) |
 | Run the theorem-generation pipeline | [`CausalSmith/doc/SETUP.md`](CausalSmith/doc/SETUP.md) |
+
+### Platform notes
+
+- **Windows — clone.** Every tracked path is kept under 200 characters, so a plain
+  `git clone` works from the usual locations (`C:\Users\<you>\...`). A deeply
+  nested clone directory or the Lean build tree can still approach Windows'
+  260-character limit, so enabling long paths once is recommended:
+  `git config --global core.longpaths true` (or `git clone -c core.longpaths=true …`).
+- **Windows — shell and tools.** Use Git Bash for the commands above. `curl` and
+  `tar` ship with Git for Windows; put `zstd.exe` on `PATH` for the cache scripts.
+  Install elan with `elan-init.exe` from the
+  [elan releases](https://github.com/leanprover/elan/releases) (or let the VS Code
+  Lean 4 extension install it); `lake` then works from Git Bash or PowerShell.
+  `.gitattributes` keeps the shell scripts LF whatever `core.autocrlf` is set to.
+- **macOS.** Everything works as on Linux; `brew install zstd` for the cache scripts.
+  The default file system is case-insensitive, and the repository contains no
+  paths that differ only by case.
+- **Semantic retrieval** (the optional embedding tier and its Python daemons) is
+  Linux/macOS only; the default lexical `npm run search` works everywhere. The
+  pipeline's own Windows notes are in
+  [`CausalSmith/doc/SETUP.md`](CausalSmith/doc/SETUP.md#windows).
 
 ### Model access for the pipeline
 

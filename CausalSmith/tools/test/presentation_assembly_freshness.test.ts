@@ -3,6 +3,7 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { assertP2AssemblyFresh, recordP2Assembly } from "../src/presentation/assembly_freshness.js";
+import { proofFileName } from "../src/presentation/proof_files.js";
 
 const dirs: string[] = [];
 afterEach(async () => {
@@ -17,7 +18,7 @@ async function fixture(): Promise<string> {
   await writeFile(join(outDir, "outline.md"), "# Title\n");
   await writeFile(join(outDir, "appendix_proofs.tex"), "Proof.\n");
   await writeFile(join(outDir, "sections", "01_body.tex"), "Body.\n");
-  await writeFile(join(outDir, "proofs", "thm:main.tex"), "Proof.\n");
+  await writeFile(join(outDir, "proofs", proofFileName("thm:main")), "Proof.\n");
   return outDir;
 }
 

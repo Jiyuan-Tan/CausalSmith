@@ -18,10 +18,10 @@ reusable_artifacts:
   - path: eid_dml_fold_spectrum_phase_v1_gaps.json
     kind: literature_map
     one_line: "Literature map for DML cross-fitting, custom folds, growing-K DML, no-split DML, and geometry-specific variance comparators."
-  - path: eid_dml_fold_spectrum_phase_v1_reviews/angle0_v1.json
+  - path: reviews/angle0_v1.json
     kind: counterexample
     one_line: "Reviewer diagnosis that the initial fold-spectrum phase certificate was symbolic and the vanishing-fold variance witness had the wrong scaling."
-  - path: eid_dml_fold_spectrum_phase_v1_reviews/angle1_v1.json
+  - path: reviews/angle1_v1.json
     kind: counterexample
     one_line: "Decisive algebraic refutation of the proposed small-fold perturbation scaling."
   - path: eid_dml_fold_spectrum_phase_v1_proposal_angle1_rejected.tex
@@ -60,7 +60,7 @@ banked_on: "2026-05-25"
 - `eid_dml_fold_spectrum_phase_v1_proposal.tex` — final proposal version.
 - `eid_dml_fold_spectrum_phase_v1.tex` — derivation note (if Stage 0 ran).
 - `eid_dml_fold_spectrum_phase_v1_reviews.jsonl` — per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `eid_dml_fold_spectrum_phase_v1_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

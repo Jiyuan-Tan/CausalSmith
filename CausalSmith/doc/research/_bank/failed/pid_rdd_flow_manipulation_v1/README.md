@@ -23,7 +23,7 @@ reusable_artifacts:
   - path: "pid_rdd_flow_manipulation_v1_gaps.json"
     kind: literature_map
     one_line: "Useful RDD computation map: GRR 2020, Rosenman et al. 2019, Bertanha 2020, Cattaneo-Keele-Titiunik-Vazquez-Bare 2021, Chernozhukov-Lee-Rosen 2013, Orlin 1993."
-  - path: "pid_rdd_flow_manipulation_v1_reviews/angle4_v5.json"
+  - path: "reviews/angle4_v5.json"
     kind: counterexample
     one_line: "Reviewer identifies the exact graph-balance and dual-certificate contradictions; use before attempting another flow/TU RDD proposal."
   - path: "pid_rdd_flow_manipulation_v1_proposal.tex"
@@ -55,7 +55,7 @@ banked_on: "2026-05-24"
 - `pid_rdd_flow_manipulation_v1_proposal.tex` â€” final proposal version.
 - `pid_rdd_flow_manipulation_v1.tex` â€” derivation note (if Stage 0 ran).
 - `pid_rdd_flow_manipulation_v1_reviews.jsonl` â€” per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `pid_rdd_flow_manipulation_v1_reviews/` â€” per-version reviewer JSON files (if present).
+- `reviews/` â€” per-version reviewer JSON files (if present).
 
 ## Notes
 

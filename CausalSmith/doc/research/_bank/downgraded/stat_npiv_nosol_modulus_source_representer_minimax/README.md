@@ -48,7 +48,7 @@ banked_on: "2026-06-21"
 - `stat_npiv_nosol_modulus_source_representer_minimax_proposal.tex` — final proposal version.
 - `stat_npiv_nosol_modulus_source_representer_minimax.tex` — derivation note (if Stage 0 ran).
 - `stat_npiv_nosol_modulus_source_representer_minimax_reviews.jsonl` — per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `stat_npiv_nosol_modulus_source_representer_minimax_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

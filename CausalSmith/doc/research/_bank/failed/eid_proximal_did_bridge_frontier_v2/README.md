@@ -44,7 +44,7 @@ banked_on: "2026-05-27"
 - `eid_proximal_did_bridge_frontier_v2_proposal.tex` — final proposal version.
 - `eid_proximal_did_bridge_frontier_v2.tex` — derivation note (if Stage 0 ran).
 - `eid_proximal_did_bridge_frontier_v2_reviews.jsonl` — per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `eid_proximal_did_bridge_frontier_v2_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

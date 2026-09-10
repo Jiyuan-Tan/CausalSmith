@@ -16,8 +16,8 @@ gap_reasons:
   - "Angle 1: the ATE width formula still had correctness errors: missing intersection residual for overlapping tails and a false 2B Manski corner where the treatment-effect range width is 4B."
 reusable_artifacts:
   - "pid_overlap_tail_phase_v1_gaps.json: useful literature map for limited overlap, tail-rate inference, non-overlap bounds, and prior CausalSmith overlap/heavy-tail failures."
-  - "pid_overlap_tail_phase_v1_reviews/angle0_v1.json: explicit algebraic refutation of the first alpha-profile definition."
-  - "pid_overlap_tail_phase_v1_reviews/angle1_v1.json: clean diagnosis that the revised two-tail profile remains bounded missing-mass plus regular variation."
+  - "reviews/angle0_v1.json: explicit algebraic refutation of the first alpha-profile definition."
+  - "reviews/angle1_v1.json: clean diagnosis that the revised two-tail profile remains bounded missing-mass plus regular variation."
   - "pid_overlap_tail_phase_v1_proposal_angle0_rejected.tex: rejected proposal illustrating the tempting but impossible mu/nu exponent phase law."
 seeds_burned: []
 proof_attempt_summary: |
@@ -42,7 +42,7 @@ banked_on: "2026-05-24"
 - `pid_overlap_tail_phase_v1_state.json` - pipeline state at banking (`banked: true`).
 - `pid_overlap_tail_phase_v1_proposal.tex` - final proposal version.
 - `pid_overlap_tail_phase_v1_reviews.jsonl` - per-round reviewer log.
-- `pid_overlap_tail_phase_v1_reviews/` - per-version reviewer JSON files.
+- `reviews/` - per-version reviewer JSON files.
 
 ## Notes
 

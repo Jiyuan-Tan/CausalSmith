@@ -41,7 +41,7 @@ banked_on: "2026-05-14"
 - `pid_late_bounded_defiers_one_sided_compliance_proposal.tex` — final proposal version.
 - `pid_late_bounded_defiers_one_sided_compliance.tex` — derivation note (if D0 ran).
 - `pid_late_bounded_defiers_one_sided_compliance_reviews.jsonl` — per-round reviewer log (D-0.5 and D0.5).
-- `pid_late_bounded_defiers_one_sided_compliance_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

@@ -19,10 +19,10 @@ reusable_artifacts:
   - path: pid_surrogate_paradox_phase_v1_gaps.json
     kind: literature_map
     one_line: "Useful map of principal-surrogate paradox anchors and nearby failed/candidate bank entries."
-  - path: pid_surrogate_paradox_phase_v1_reviews/angle0_v2.json
+  - path: reviews/angle0_v2.json
     kind: counterexample
     one_line: "Numerical refutation of the angle0 witness: the displayed table computes an average endpoint effect of -0.11."
-  - path: pid_surrogate_paradox_phase_v1_reviews/angle3_v3.json
+  - path: reviews/angle3_v3.json
     kind: other
     one_line: "Final stop anchor explaining the ACS/CEP mischaracterization and bounded-mixture algebra collapse."
   - path: pid_surrogate_paradox_phase_v1_proposal_angle0_rejected.tex
@@ -64,7 +64,7 @@ banked_on: "2026-05-25"
 - `pid_surrogate_paradox_phase_v1_proposal.tex` — final proposal version.
 - `pid_surrogate_paradox_phase_v1.tex` — derivation note (if Stage 0 ran).
 - `pid_surrogate_paradox_phase_v1_reviews.jsonl` — per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `pid_surrogate_paradox_phase_v1_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

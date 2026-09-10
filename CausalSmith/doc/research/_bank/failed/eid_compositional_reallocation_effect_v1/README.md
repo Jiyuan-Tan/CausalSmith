@@ -19,7 +19,7 @@ reusable_artifacts:
   - path: "eid_compositional_reallocation_effect_v1_gaps.json"
     kind: literature_map
     one_line: "Useful compositional-treatment map: Arnold et al. 2020, Tomova et al. 2022, VanderWeele-Hernan 2013, Hirano-Imbens 2004, Hines et al. 2026, Aitchison-Bacon-Shone 1984, Piepel 2006/2007."
-  - path: "eid_compositional_reallocation_effect_v1_reviews/angle0_v3.json"
+  - path: "reviews/angle0_v3.json"
     kind: counterexample
     one_line: "Best reviewer diagnosis: even after repairs, support-span identification is field-tier unless upgraded with nonroutine inference or estimator theory."
   - path: "eid_compositional_reallocation_effect_v1_proposal.tex"
@@ -49,7 +49,7 @@ banked_on: "2026-05-24"
 - `eid_compositional_reallocation_effect_v1_proposal.tex` â€” final proposal version.
 - `eid_compositional_reallocation_effect_v1.tex` â€” derivation note (if Stage 0 ran).
 - `eid_compositional_reallocation_effect_v1_reviews.jsonl` â€” per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `eid_compositional_reallocation_effect_v1_reviews/` â€” per-version reviewer JSON files (if present).
+- `reviews/` â€” per-version reviewer JSON files (if present).
 
 ## Notes
 

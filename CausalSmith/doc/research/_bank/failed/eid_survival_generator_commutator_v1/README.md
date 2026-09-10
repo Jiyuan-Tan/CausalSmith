@@ -45,7 +45,7 @@ banked_on: "2026-05-25"
 - `eid_survival_generator_commutator_v1_proposal.tex` â€” final proposal version.
 - `eid_survival_generator_commutator_v1.tex` â€” derivation note (if Stage 0 ran).
 - `eid_survival_generator_commutator_v1_reviews.jsonl` â€” per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `eid_survival_generator_commutator_v1_reviews/` â€” per-version reviewer JSON files (if present).
+- `reviews/` â€” per-version reviewer JSON files (if present).
 
 ## Notes
 

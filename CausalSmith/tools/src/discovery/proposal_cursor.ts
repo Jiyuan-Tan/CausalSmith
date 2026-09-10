@@ -15,7 +15,7 @@
 import { rename, access, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { loadState, saveState } from "../state.js";
-import { proposalTexPath } from "../paths.js";
+import { formalizationDir, proposalTexPath, resolveInDir } from "../paths.js";
 import { NEG1_PIVOT_BUDGET } from "./stages/neg1_2.js";
 import { readRepairedModelJson } from "./core/core_io.js";
 import { CoreSchema } from "./core/schema.js";
@@ -281,7 +281,10 @@ export async function resetProposalCursor(
       `(?:^|_)(?:proposal|proto_core)_angle${angle}_(?:rejected|archive)(?:\\.[A-Za-z0-9]+)*$`,
     );
     const angleReviews = new RegExp(`^angle${angle}_v\\d+\\.json$`);
-    const reviewsDir = path.join(runDir, "reviews");
+    // Same resolution as the writers: bare `reviews/`, else the legacy `<qid>_<spec>_reviews/`.
+    const reviewsDir = resolveInDir(formalizationDir(repoRoot, qid), "reviews", [
+      `${qid}_${specialization}_reviews`,
+    ]);
     // Pre-2026 flat layouts parked prefixed archives in the RUN directory, not
     // discovery/ (audit B4) — sweep both so a "fresh" angle is actually fresh.
     const [archiveNames, flatArchiveNames, reviewNames] = await Promise.all([

@@ -42,7 +42,7 @@ paper_score_rationale: "The verified mathematics appears coherent and exact, but
 - `exp_design_pm1_exactness_boundary_v1_experimentation_proposal.tex` — final proposal version.
 - `exp_design_pm1_exactness_boundary_v1_experimentation.tex` — derivation note (if Stage 0 ran).
 - `exp_design_pm1_exactness_boundary_v1_experimentation_reviews.jsonl` — per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `exp_design_pm1_exactness_boundary_v1_experimentation_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

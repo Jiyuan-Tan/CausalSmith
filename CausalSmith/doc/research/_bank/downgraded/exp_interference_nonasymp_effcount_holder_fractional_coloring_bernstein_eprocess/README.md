@@ -51,7 +51,7 @@ banked_on: "2026-07-16"
 - `exp_interference_nonasymp_effcount_holder_fractional_coloring_bernstein_eprocess_proposal.tex` — final proposal version.
 - `exp_interference_nonasymp_effcount_holder_fractional_coloring_bernstein_eprocess.tex` — derivation note (if Stage 0 ran).
 - `exp_interference_nonasymp_effcount_holder_fractional_coloring_bernstein_eprocess_reviews.jsonl` — per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `exp_interference_nonasymp_effcount_holder_fractional_coloring_bernstein_eprocess_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

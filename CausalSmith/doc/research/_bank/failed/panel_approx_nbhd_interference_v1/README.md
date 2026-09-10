@@ -43,7 +43,7 @@ banked_on: "2026-05-16"
 - `panel_approx_nbhd_interference_v1_proposal.tex` — final proposal version.
 - `panel_approx_nbhd_interference_v1.tex` — derivation note (if D0 ran).
 - `panel_approx_nbhd_interference_v1_reviews.jsonl` — per-round reviewer log (D-0.5 and D0.5).
-- `panel_approx_nbhd_interference_v1_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

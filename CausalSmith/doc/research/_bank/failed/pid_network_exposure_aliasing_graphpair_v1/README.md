@@ -16,8 +16,8 @@ gap_reasons:
   - angle0_v2: "C-definitional-unfold: mu_G depends on G only through the already-defined average closure count tau_cl; the proposed frontier is essentially linearity plus the definition of the quotient."
 reusable_artifacts:
   - pid_network_exposure_aliasing_graphpair_v1_proposal.tex: finite C6 versus 2K3 closure witness, including degree-two one-hop count alias and Delta_cl(1/2)=1/4 calculation.
-  - pid_network_exposure_aliasing_graphpair_v1_reviews/angle0_v1.json: reviewer checklist for why finite network-exposure witnesses stay field-tier without a generic comparator-anchored frontier.
-  - pid_network_exposure_aliasing_graphpair_v1_reviews/angle0_v2.json: exact failure modes for tau_cl frontier attempts, especially comparator drift and definitional quotient collapse.
+  - reviews/angle0_v1.json: reviewer checklist for why finite network-exposure witnesses stay field-tier without a generic comparator-anchored frontier.
+  - reviews/angle0_v2.json: exact failure modes for tau_cl frontier attempts, especially comparator drift and definitional quotient collapse.
 seeds_burned:
   - C6_vs_2K3_one_hop_count_alias
   - tau_cl_two_regular_closure_frontier
@@ -43,7 +43,7 @@ banked_on: "2026-05-25"
 - `pid_network_exposure_aliasing_graphpair_v1_state.json` - pipeline state at banking (`banked: true`).
 - `pid_network_exposure_aliasing_graphpair_v1_proposal.tex` - final proposal version.
 - `pid_network_exposure_aliasing_graphpair_v1_reviews.jsonl` - per-round reviewer log.
-- `pid_network_exposure_aliasing_graphpair_v1_reviews/` - per-version reviewer JSON files.
+- `reviews/` - per-version reviewer JSON files.
 
 ## Notes
 

@@ -151,8 +151,8 @@ earliest stage that still owes work.
 
 A residual `[missing-step]` proof-audit failure fires ONE promotion round per invocation: an agent
 authors the missing Lean-backed helper lemmas as bank nodes, the bank reloads, P1 runs a delta pass,
-P2 retries once. Rendering-only residuals never promote (halt for adjudication; delete
-`proofs/<id>.tex` to re-render). If the retry fails, recover with `--from P1`, never plain
+P2 retries once. Rendering-only residuals never promote (halt for adjudication; delete the
+proof file for `<id>` under `proofs/` — its colon is spelled `--` — to re-render). If the retry fails, recover with `--from P1`, never plain
 `--resume`; reassemble re-entries never promote. The halt `P2 promotion decision required` hands
 you a second round: grant `--promote-again` only when a proof lacks a CITABLE STEP; a rendering
 defect (leaked totalization conventions, mis-attributed step, omitted conjunct, symbol shadowing)

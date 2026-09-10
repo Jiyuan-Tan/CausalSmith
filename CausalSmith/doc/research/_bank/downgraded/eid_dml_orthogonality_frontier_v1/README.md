@@ -59,7 +59,7 @@ banked_on: "2026-05-22"
 - `eid_dml_orthogonality_frontier_v1_proposal.tex` — final proposal version.
 - `eid_dml_orthogonality_frontier_v1.tex` — derivation note (if Stage 0 ran).
 - `eid_dml_orthogonality_frontier_v1_reviews.jsonl` — per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `eid_dml_orthogonality_frontier_v1_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

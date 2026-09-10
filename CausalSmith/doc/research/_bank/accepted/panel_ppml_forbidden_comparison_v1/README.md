@@ -48,7 +48,7 @@ paper_score_rationale: "The core deterministic sign-reversal result appears corr
 - `panel_ppml_forbidden_comparison_v1_proposal.tex` — final proposal version.
 - `panel_ppml_forbidden_comparison_v1.tex` — derivation note (if Stage 0 ran).
 - `panel_ppml_forbidden_comparison_v1_reviews.jsonl` — per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `panel_ppml_forbidden_comparison_v1_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

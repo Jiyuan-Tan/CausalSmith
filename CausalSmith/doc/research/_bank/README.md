@@ -67,7 +67,16 @@ their `literature_map` artifacts are trustworthy, their novelty framing is not.
 
 Each entry directory contains the verbatim run artifacts (state.json,
 proposal.tex, reviews/, derivation note, pipeline.jsonl, etc.) plus a
-top-level `README.md` carrying the metadata block below.
+top-level `README.md` carrying the metadata block below. Review artifacts —
+the `reviews.jsonl` event log, the D-1 `angle*_v*.json` verdicts, the D0.5
+`review_*.json` panel verdicts and the per-attempt `stage_*_attempt<N>.json`
+boundary reviews — all live in the entry's `reviews/` folder (older entries
+were written under `<qid>_<spec>_reviews/`, a name that doubled the qid in
+every path; the readers accept both). Two hash-addressed pipeline caches,
+`discovery/proof_archive/objects/` (content-addressed proof-attempt blobs;
+their `index.jsonl` stays) and `discovery/solve_context/` (per-call
+core-graph snapshots), are omitted from the public snapshot: they are machine
+caches, and their 64-hex names under a long qid overflow Windows' path limit.
 
 ## Banking and the guardrail
 

@@ -46,7 +46,7 @@ banked_on: "2026-07-17"
 - `scm_prox_recant_pid_v1_proposal.tex` — final proposal version.
 - `scm_prox_recant_pid_v1.tex` — derivation note (if Stage 0 ran).
 - `scm_prox_recant_pid_v1_reviews.jsonl` — per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `scm_prox_recant_pid_v1_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

@@ -18,8 +18,8 @@ gap_reasons:
 reusable_artifacts:
   - eid_switchback_debruijn_carryover_v1_proposal_angle0_rejected.tex: contains the best schedule-audit revision and the failed L^star sustained-contrast frontier.
   - eid_switchback_debruijn_carryover_v1_proposal.tex: final pivot seed draft after angle 0 was rejected; useful only for seeing how the pipeline tried to escape.
-  - eid_switchback_debruijn_carryover_v1_reviews/angle0_v1.json: reviewer diagnosis that de Bruijn coverage is already-known and the rank iff is field-tier.
-  - eid_switchback_debruijn_carryover_v1_reviews/angle0_v2.json: decisive diagnosis of promissory L^star, comparator drift, and tautological row-space frontier.
+  - reviews/angle0_v1.json: reviewer diagnosis that de Bruijn coverage is already-known and the rank iff is field-tier.
+  - reviews/angle0_v2.json: decisive diagnosis of promissory L^star, comparator drift, and tautological row-space frontier.
 seeds_burned:
   - de_bruijn_history_incidence_frontier
   - switchback_Lstar_rowspace_frontier
@@ -46,7 +46,7 @@ banked_on: "2026-05-25"
 - `eid_switchback_debruijn_carryover_v1_proposal.tex` - final proposal version.
 - `eid_switchback_debruijn_carryover_v1_proposal_angle0_rejected.tex` - rejected v2 schedule-audit revision.
 - `eid_switchback_debruijn_carryover_v1_reviews.jsonl` - per-round reviewer log.
-- `eid_switchback_debruijn_carryover_v1_reviews/` - per-version reviewer JSON files.
+- `reviews/` - per-version reviewer JSON files.
 
 ## Notes
 

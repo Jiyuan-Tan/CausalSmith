@@ -19,7 +19,7 @@ reusable_artifacts:
   - path: "eid_fragmented_transport_support_v1_gaps.json"
     kind: literature_map
     one_line: "Useful multi-trial transport map: Dahabreh 2020/2023, Cole-Stuart 2010, Westreich 2017, Hotz-Imbens-Mortimer 2005, Kline-Tamer 2018, Zivich et al. 2025, Bareinboim et al. 2013."
-  - path: "eid_fragmented_transport_support_v1_reviews/angle0_v1.json"
+  - path: "reviews/angle0_v1.json"
     kind: counterexample
     one_line: "Reviewer diagnosis showing why the atom-cover idea is already covered or field-tier."
   - path: "eid_fragmented_transport_support_v1_proposal.tex"
@@ -49,7 +49,7 @@ banked_on: "2026-05-24"
 - `eid_fragmented_transport_support_v1_proposal.tex` â€” final proposal version.
 - `eid_fragmented_transport_support_v1.tex` â€” derivation note (if Stage 0 ran).
 - `eid_fragmented_transport_support_v1_reviews.jsonl` â€” per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `eid_fragmented_transport_support_v1_reviews/` â€” per-version reviewer JSON files (if present).
+- `reviews/` â€” per-version reviewer JSON files (if present).
 
 ## Notes
 

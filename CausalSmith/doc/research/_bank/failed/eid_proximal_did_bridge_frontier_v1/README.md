@@ -16,8 +16,8 @@ gap_reasons:
   - "Angle 0 v2: the proposal still had a W/Z proxy-role convention mismatch and missing proximal-panel comparator anchors."
 reusable_artifacts:
   - "eid_proximal_did_bridge_frontier_v1_gaps.json: useful literature map for negative-control DiD, proximal bridges, single-proxy controls, and multiple-preperiod panel bridge comparators."
-  - "eid_proximal_did_bridge_frontier_v1_reviews/angle0_v1.json: reviewer diagnosis requiring full finite latent laws rather than moment rows."
-  - "eid_proximal_did_bridge_frontier_v1_reviews/angle0_v2.json: concise final diagnosis that the kernel is the existing null-annihilator bridge criterion specialized to DiD."
+  - "reviews/angle0_v1.json: reviewer diagnosis requiring full finite latent laws rather than moment rows."
+  - "reviews/angle0_v2.json: concise final diagnosis that the kernel is the existing null-annihilator bridge criterion specialized to DiD."
   - "eid_proximal_did_bridge_frontier_v1_proposal.tex: revised field-tier proposal with a concrete binary-proxy table, useful only as setup for a future estimator-frontier theorem."
 seeds_burned: []
 proof_attempt_summary: |
@@ -42,7 +42,7 @@ banked_on: "2026-05-25"
 - `eid_proximal_did_bridge_frontier_v1_state.json` - pipeline state at banking (`banked: true`).
 - `eid_proximal_did_bridge_frontier_v1_proposal.tex` - final proposal version.
 - `eid_proximal_did_bridge_frontier_v1_reviews.jsonl` - per-round reviewer log.
-- `eid_proximal_did_bridge_frontier_v1_reviews/` - per-version reviewer JSON files.
+- `reviews/` - per-version reviewer JSON files.
 
 ## Notes
 

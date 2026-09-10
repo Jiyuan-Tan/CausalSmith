@@ -17,8 +17,8 @@ gap_reasons:
   - "angle0_v2: Conjecture 2 remained under-anchored against Roth-Sant'Anna functional-form sensitivity and Wooldridge nonlinear DiD."
 reusable_artifacts:
   - "eid_binary_did_scale_frontier_v1_gaps.json: literature map and seed list for additive-vs-OREC binary DiD scale conflicts."
-  - "eid_binary_did_scale_frontier_v1_reviews/angle0_v1.json: useful defect list for incoherent simultaneous assumptions, missing full-law witness, and false scale-link exhibit."
-  - "eid_binary_did_scale_frontier_v1_reviews/angle0_v2.json: decisive flagship-ceiling review; use as a stop anchor for future algebraic Delta_OR-add variants."
+  - "reviews/angle0_v1.json: useful defect list for incoherent simultaneous assumptions, missing full-law witness, and false scale-link exhibit."
+  - "reviews/angle0_v2.json: decisive flagship-ceiling review; use as a stop anchor for future algebraic Delta_OR-add variants."
   - "eid_binary_did_scale_frontier_v1_proposal.tex: contains observed algebra q_A, q_L, Delta_OR-add and numeric witness sketches; reusable only as a field-tier diagnostic scaffold."
 seeds_burned:
   - "Finite binary additive-vs-OREC equality frontier."
@@ -47,8 +47,8 @@ banked_on: "2026-05-25"
 - `eid_binary_did_scale_frontier_v1_gaps.json` - harvested literature and seed list.
 - `eid_binary_did_scale_frontier_v1_proposal.tex` - final proposal version.
 - `eid_binary_did_scale_frontier_v1_reviews.jsonl` - per-round reviewer log.
-- `eid_binary_did_scale_frontier_v1_reviews/angle0_v1.json` - first D-0.5 review.
-- `eid_binary_did_scale_frontier_v1_reviews/angle0_v2.json` - decisive second D-0.5 review.
+- `reviews/angle0_v1.json` - first D-0.5 review.
+- `reviews/angle0_v2.json` - decisive second D-0.5 review.
 
 ## Reflection
 

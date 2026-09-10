@@ -9,7 +9,7 @@ proposal_promise_gap: "tier_genuinely_below"
 reusable: not_reusable
 reraise_status: re-raise
 gap_reasons:
-  # Source: D0.5.G cold referee under field floor (pid_contdid_acrt_lipschitz_v1_reviews/stage_0.5_to_0_attempt1.json, field-retest).
+  # Source: D0.5.G cold referee under field floor (reviews/stage_0.5_to_0_attempt1.json, field-retest).
   - "law-sharp: shallow sharpness — the main sharpness step 'becomes a direct two-point mean-completion construction once the missing inequalities are added', i.e. a definitional unfold, not a new sharpness principle."
   - "law-sharp: narrow causal content — 'the advertised law-sharp interval is sharp only for a very permissive completion class with arbitrary off-arm product kernels, so the causal content is much narrower than the continuous-treatment DiD headline suggests'."
   - "critical-l: 'standard parametric LP basis sensitivity' — not a new threshold object."
@@ -48,7 +48,7 @@ banked_on: "2026-06-10"
 - `pid_contdid_acrt_lipschitz_v1_proposal.tex` — final proposal version.
 - `pid_contdid_acrt_lipschitz_v1.tex` — derivation note (if Stage 0 ran).
 - `pid_contdid_acrt_lipschitz_v1_reviews.jsonl` — per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `pid_contdid_acrt_lipschitz_v1_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

@@ -15,7 +15,7 @@ gap_reasons:
   - "Conjecture 3 was promissory: the finite nonrectangular witness was only a skeleton and lacked numeric cell means and support-direction inequalities."
 reusable_artifacts:
   - "pid_multivariate_interval_regression_v1_gaps.json: literature map for Manski-Tamer and random-set interval-regression anchors."
-  - "pid_multivariate_interval_regression_v1_reviews/angle0_v1.json: counterexample-style reviewer diagnosis of why antichain/frontier pruning is invalid as stated."
+  - "reviews/angle0_v1.json: counterexample-style reviewer diagnosis of why antichain/frontier pruning is invalid as stated."
   - "pid_multivariate_interval_regression_v1_proposal_angle0_rejected.tex: rejected proposal showing the tempting but invalid frontier-certificate formulation."
 seeds_burned: []
 proof_attempt_summary: |
@@ -41,7 +41,7 @@ banked_on: "2026-05-24"
 - `pid_multivariate_interval_regression_v1_proposal.tex` â€” final proposal version.
 - `pid_multivariate_interval_regression_v1.tex` â€” derivation note (if Stage 0 ran).
 - `pid_multivariate_interval_regression_v1_reviews.jsonl` â€” per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `pid_multivariate_interval_regression_v1_reviews/` â€” per-version reviewer JSON files (if present).
+- `reviews/` â€” per-version reviewer JSON files (if present).
 
 ## Notes
 

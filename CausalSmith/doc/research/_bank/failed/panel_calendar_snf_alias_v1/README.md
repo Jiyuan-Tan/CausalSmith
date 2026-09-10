@@ -20,7 +20,7 @@ reusable_artifacts:
   - "panel_calendar_snf_alias_v1_gaps.json: literature map for event-study contamination, imputation, aggregation, and distributed-lag comparators."
   - "panel_calendar_snf_alias_v1_proposal_angle0_rejected.tex: negative example where an SNF/Fourier certificate was arithmetically inconsistent."
   - "panel_calendar_snf_alias_v1_proposal_angle1_rejected.tex: repaired 4-by-4 residue table plus failed residue-modulus frontier; useful only as a warning that the diagonal calendar-time incidence map must be explicit."
-  - "panel_calendar_snf_alias_v1_reviews/angle0_v1.json and angle1_v1.json: reviewer failure modes for promissory SNF frontiers, missing omitted-bin exhibits, and definitional alias iff statements."
+  - "reviews/angle0_v1.json and angle1_v1.json: reviewer failure modes for promissory SNF frontiers, missing omitted-bin exhibits, and definitional alias iff statements."
 seeds_burned: []
 proof_attempt_summary: |
   Attempted a non-do-calculus panel/event-study flagship object: a Smith-normal-form and Fourier character certificate showing when calendar-residue adoption aliases an alternating event-time contrast. The first angle was arithmetically broken, and the pivot repaired the 4-by-4 table but left the flagship frontier uncomputed, omitted actual calendar-time diagonal margins, and defined aliasing too close to the claimed SNF/Fourier condition. Future work in this neighborhood needs a hand-derived ESFE residualization map with diagonal calendar margins plus a non-4-by-4 and nonempty omitted-bin computation before launch.
@@ -45,7 +45,7 @@ banked_on: "2026-05-25"
 - `panel_calendar_snf_alias_v1_proposal.tex` â€” final proposal version.
 - `panel_calendar_snf_alias_v1.tex` â€” derivation note (if Stage 0 ran).
 - `panel_calendar_snf_alias_v1_reviews.jsonl` â€” per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `panel_calendar_snf_alias_v1_reviews/` â€” per-version reviewer JSON files (if present).
+- `reviews/` â€” per-version reviewer JSON files (if present).
 
 ## Notes
 

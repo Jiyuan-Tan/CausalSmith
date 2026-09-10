@@ -54,7 +54,7 @@ banked_on: "2026-06-30"
 - `exp_ego_cluster_exposure_clt_ego_cluster_polynomial_clt_proposal.tex` — final proposal version.
 - `exp_ego_cluster_exposure_clt_ego_cluster_polynomial_clt.tex` — derivation note (if Stage 0 ran).
 - `exp_ego_cluster_exposure_clt_ego_cluster_polynomial_clt_reviews.jsonl` — per-round reviewer log (Stage -0.5 and Stage 0.5).
-- `exp_ego_cluster_exposure_clt_ego_cluster_polynomial_clt_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 

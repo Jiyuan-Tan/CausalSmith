@@ -18,8 +18,8 @@ gap_reasons:
 reusable_artifacts:
   - eid_market_matching_augmenting_path_v1_proposal_angle0_rejected.tex: first four-node augmenting-path witness and failed AP/audit frontier.
   - eid_market_matching_augmenting_path_v1_proposal_angle1_rejected.tex: best pivot with AP_b, alias diameter, SC10 witness, and still-failed AP frontier.
-  - eid_market_matching_augmenting_path_v1_reviews/angle0_v1.json: reviewer diagnosis for promissory audit and missing bipartite-design comparators.
-  - eid_market_matching_augmenting_path_v1_reviews/angle1_v1.json: reviewer diagnosis that the AP frontier needs a worked certificate extraction object, not only a four-node witness.
+  - reviews/angle0_v1.json: reviewer diagnosis for promissory audit and missing bipartite-design comparators.
+  - reviews/angle1_v1.json: reviewer diagnosis that the AP frontier needs a worked certificate extraction object, not only a four-node witness.
 seeds_burned:
   - four_node_matching_augmenting_path_alias
   - AP_b_matching_summary_frontier
@@ -47,7 +47,7 @@ banked_on: "2026-05-25"
 - `eid_market_matching_augmenting_path_v1_proposal_angle0_rejected.tex` - first rejected angle.
 - `eid_market_matching_augmenting_path_v1_proposal_angle1_rejected.tex` - second rejected angle.
 - `eid_market_matching_augmenting_path_v1_reviews.jsonl` - per-round reviewer log.
-- `eid_market_matching_augmenting_path_v1_reviews/` - per-version reviewer JSON files.
+- `reviews/` - per-version reviewer JSON files.
 
 ## Notes
 

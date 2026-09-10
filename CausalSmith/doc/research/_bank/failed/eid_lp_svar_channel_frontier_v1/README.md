@@ -18,8 +18,8 @@ gap_reasons:
   - "angle1_v1: the claimed residual and exposure formulas were not determined by Section 6 primitives; K_u, kappa values, delta_4, and sign-row matrix A were not specified."
 reusable_artifacts:
   - "eid_lp_svar_channel_frontier_v1_gaps.json: useful literature map and exact failure anchors for common-restriction LP/SVAR, sign exposure, cumulant labels, weak non-Gaussianity, and c_w(P)."
-  - "eid_lp_svar_channel_frontier_v1_reviews/angle0_v1.json: decisive warning that common-restriction equality and parent-margin collapse are already known/repo-covered."
-  - "eid_lp_svar_channel_frontier_v1_reviews/angle1_v1.json: decisive algebraic refutation of the support-loss-to-distance-product c_w(P) definition."
+  - "reviews/angle0_v1.json: decisive warning that common-restriction equality and parent-margin collapse are already known/repo-covered."
+  - "reviews/angle1_v1.json: decisive algebraic refutation of the support-loss-to-distance-product c_w(P) definition."
   - "eid_lp_svar_channel_frontier_v1_proposal_angle0_rejected.tex and proposal_angle1_rejected.tex: negative examples of circular c_w(P) and no-gap two-shock witnesses."
 seeds_burned:
   - "Common-restriction LP/SVAR support equality as a flagship theorem."
@@ -48,8 +48,8 @@ banked_on: "2026-05-25"
 - `eid_lp_svar_channel_frontier_v1_proposal_angle0_rejected.tex` - first rejected proposal.
 - `eid_lp_svar_channel_frontier_v1_proposal_angle1_rejected.tex` - pivot rejected proposal.
 - `eid_lp_svar_channel_frontier_v1_reviews.jsonl` - per-round reviewer log.
-- `eid_lp_svar_channel_frontier_v1_reviews/angle0_v1.json` - first hard reject.
-- `eid_lp_svar_channel_frontier_v1_reviews/angle1_v1.json` - second hard reject.
+- `reviews/angle0_v1.json` - first hard reject.
+- `reviews/angle1_v1.json` - second hard reject.
 - `eid_lp_svar_channel_frontier_v1_state.json` - pipeline state at banking.
 
 ## Reflection

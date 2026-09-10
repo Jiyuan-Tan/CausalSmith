@@ -137,6 +137,13 @@ Three behaviours worth knowing before you switch:
 
 ## Windows
 
+- Clone with long paths enabled — `git clone -c core.longpaths=true …` or
+  `git config --global core.longpaths true` once. Tracked paths stay under 200
+  characters, but the Lean build tree under `.lake/` and a deeply nested clone
+  directory can still approach the 260-character limit.
+- Run the shell helpers (`scripts/*.sh`, `tools/scripts/*.sh`) from Git Bash; they
+  need `curl`, `tar` (both bundled with Git for Windows) and `zstd` on `PATH`.
+  `.gitattributes` pins them to LF so `core.autocrlf` cannot break them.
 - codex-cli's default `elevated` sandbox fails to spawn on Windows. Pass
   `-c windows.sandbox=unelevated` (ignored on other OSes). The pipeline's codex
   invocations already include this.

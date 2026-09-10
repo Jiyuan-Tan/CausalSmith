@@ -9,7 +9,7 @@ proposal_promise_gap: null  # confirmed null: died at proposal gate, no D0 deriv
 reusable: unknown  # confirmed unknown: solver never ran (not solver_blocked); proposal itself never stabilized to flagship (not a clean not_reusable)
 reraise_status: re-raise
 gap_reasons:
-  # Source: pid_reversible_dynamic_spillover_v1_reviews/*.json (per-version reviewer JSON).
+  # Source: reviews/*.json (per-version reviewer JSON).
   # Two persistent objection clusters across all 3 angles: novelty-below-flagship and C-wellposed.
   # --- novelty (kernel reads as generic convex-analysis, not a regime-opening causal result) ---
   - "tier=field below novelty_target=flagship; to reach flagship, the kernel needs a causal sharp-bound object that is not just a generic compact-set face-stability criterion, or a named wider-class extension left open by prior literature."
@@ -61,7 +61,7 @@ banked_on: "2026-05-20"
 - `pid_reversible_dynamic_spillover_v1_proposal.tex` — final proposal version.
 - `pid_reversible_dynamic_spillover_v1.tex` — derivation note (if D0 ran).
 - `pid_reversible_dynamic_spillover_v1_reviews.jsonl` — per-round reviewer log (D-0.5 and D0.5).
-- `pid_reversible_dynamic_spillover_v1_reviews/` — per-version reviewer JSON files (if present).
+- `reviews/` — per-version reviewer JSON files (if present).
 
 ## Notes
 
