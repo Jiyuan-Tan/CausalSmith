@@ -37,9 +37,10 @@ shares the project's name:
 # 1. Toolchain — elan reads lean-toolchain and installs the pinned Lean version
 curl https://elan.lean-lang.org/elan-init.sh -sSf | sh   # if you don't have elan
 
-# 2. Build the library (the Mathlib cache makes this minutes instead of hours)
-lake exe cache get
-lake build
+# 2. Build the library — both caches make this minutes instead of hours
+lake exe cache get               # Mathlib's prebuilt oleans
+scripts/fetch_build_cache.sh     # Causalean's prebuilt oleans (a GitHub release asset)
+lake build                       # only what changed since the cached commit
 
 # 3. Retrieval tooling — how you actually find things in a ~8000-declaration library
 cd CausalSmith/tools && npm install
@@ -110,7 +111,11 @@ Useful flags: `--k N` (results, default 8), `--cluster panel|exactid|partialid|s
 to restrict the search area, and `--semantic` to add an embedding tier on top of
 lexical ranking. The embedding tier requires `npm run embed:library` (Python 3 +
 `sentence-transformers`); `--scope module` switches it on automatically whenever
-the embeddings are present and fresh, so that mode is slower on first use.
+the embeddings are present and fresh, so that mode is slower on first use. The
+fine-tuned encoder and reranker behind that tier are gitignored weight
+directories: `scripts/fetch_retrieval_models.sh` downloads them (about 2.3 GB,
+published as release assets) into `doc/`; without them the tooling falls back to
+the off-the-shelf `BAAI/bge-large-en-v1.5` checkpoint.
 
 Each hit shows the score, fully-qualified name, type signature, source file,
 whether it is `tier-1` or carries a `⚠usesSorry` flag, and the docstring's
@@ -164,6 +169,7 @@ packages build independently:
 
 ```sh
 lake exe cache get          # fetch Mathlib build cache (do this first — it saves hours)
+scripts/fetch_build_cache.sh  # fetch Causalean's prebuilt oleans (release asset; lake rebuilds only the delta)
 lake build                  # Causalean, the foundational library
 lake -d CausalSmith build   # CausalSmith pipeline package (optional; depends on Causalean)
 ```

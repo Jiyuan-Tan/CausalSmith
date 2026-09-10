@@ -1,0 +1,75 @@
+name: build-cache
+
+# Publishes the prebuilt Causalean oleans as release assets on the rolling tag
+# `build-cache`, so a clone can run `scripts/fetch_build_cache.sh` instead of a
+# multi-hour cold build. Incremental: the previous asset seeds .lake/build and
+# lake rebuilds only the delta, so this stays well inside the job limit.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Causalean/**"
+      - "Causalean.lean"
+      - "third_party/**"
+      - "lakefile.toml"
+      - "lake-manifest.json"
+      - "lean-toolchain"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-cache
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    # Only the public repository publishes; a mirror or fork must opt in by editing this.
+    if: github.repository == 'Jiyuan-Tan/CausalSmith'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: build-cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: true
+          use-github-cache: false
+      - name: Seed .lake/build from the previous asset
+        run: |
+          set -e
+          mkdir -p .lake
+          if gh release download "$TAG" -p causalean-build-latest.tar.zst -O prev.tar.zst 2>/dev/null; then
+            tar --use-compress-program=unzstd -xf prev.tar.zst -C .lake && rm prev.tar.zst
+            echo "seeded from previous build-cache asset"
+          else
+            echo "no previous asset: cold build"
+          fi
+      - name: lake build
+        run: lake build
+      - name: Package
+        run: |
+          set -e
+          sha="$(git rev-parse HEAD)"
+          lean="$(tr -d '[:space:]' < lean-toolchain)"
+          mathlib="$(git -C .lake/packages/mathlib rev-parse HEAD)"
+          tar -C .lake -cf - build | zstd -T0 -3 -q -o "causalean-build-$sha.tar.zst"
+          cp "causalean-build-$sha.tar.zst" causalean-build-latest.tar.zst
+          printf '{"sha": "%s", "lean": "%s", "mathlib": "%s", "built_at": "%s"}\n' \
+            "$sha" "$lean" "$mathlib" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > causalean-build-latest.json
+          ls -la causalean-build-*
+      - name: Upload to the build-cache release
+        run: |
+          set -e
+          sha="$(git rev-parse HEAD)"
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "Build cache" \
+            --notes "Prebuilt Causalean oleans and the retrieval models. Fetch with scripts/fetch_build_cache.sh and scripts/fetch_retrieval_models.sh; see README."
+          gh release upload "$TAG" --clobber "causalean-build-$sha.tar.zst" causalean-build-latest.tar.zst causalean-build-latest.json
+          # Keep the three newest per-commit archives; `latest` and the models stay.
+          gh release view "$TAG" --json assets -q '.assets[].name' | grep -E '^causalean-build-[0-9a-f]{40}\.tar\.zst$' \
+            | grep -v "causalean-build-$sha.tar.zst" | head -n -2 | while read -r old; do gh release delete-asset "$TAG" "$old" -y; done
