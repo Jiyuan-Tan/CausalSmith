@@ -108,8 +108,9 @@ export async function runPresentationCli(argv: string[]): Promise<void> {
   // never join the P0–P5 revision loop's cache fan-out. One codex call; slides.md is
   // an authored source whose hand edits survive re-runs (see stages/p6_slides.ts).
   if (parsedFrom === "P6") {
-    // `--auto` is accepted and inert here: P6's checkpoint is the orchestrator's slides review.
-    if (resume || refreshFrozenBodies || promoteAgain || stopAfter) usage();
+    // `--auto` and `--resume` are accepted and inert here: P6's checkpoint is the orchestrator's
+    // slides review, and P6 always continues from the settled paper.
+    if (refreshFrozenBodies || promoteAgain || stopAfter) usage();
     const { loadBankEntry } = await import("./bank.js");
     const { loadPaperState, savePaperState } = await import("./state.js");
     const { stageP6 } = await import("./stages/p6_slides.js");

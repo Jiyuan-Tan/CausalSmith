@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseAnchoredEnvs, lintAnchors, lintCrossRefs, lintSelfContainment, lintClarity, definitionOrderViolations, lintNegativeContributionFraming, lintNestedMathDelimiters, lintReferences, lintHypothesisPresentation, repairObjRefs, normalizeCrefs, displaysDefiningEquality, notationHomes, usesSymbolUndecorated, placeFrozenEnvs, lintEnvOrder } from "../src/presentation/tex_anchors.js";
+import { unwrapLeanrefs, reviewerTexFor, parseAnchoredEnvs, lintAnchors, lintCrossRefs, lintSelfContainment, lintClarity, definitionOrderViolations, lintNegativeContributionFraming, lintNestedMathDelimiters, lintReferences, lintHypothesisPresentation, repairObjRefs, normalizeCrefs, displaysDefiningEquality, notationHomes, usesSymbolUndecorated, placeFrozenEnvs, lintEnvOrder } from "../src/presentation/tex_anchors.js";
 
 // The semantic definition-order check as P1's repair reads it (P3/P4 no longer re-judge it).
 const lintDefinitionOrder = (tex: string, notation: string) =>
@@ -800,5 +800,15 @@ describe("normalizeCrefs: label-list separators", () => {
   it("removes whitespace around commas inside a reference list and leaves single labels alone", () => {
     expect(normalizeCrefs("see \\cref{obj:a, obj:b , obj:c} and \\Cref{obj:d}")).toBe("see \\cref{obj:a,obj:b,obj:c} and \\Cref{obj:d}");
     expect(normalizeCrefs("\\cref{obj:a,obj:b}")).toBe("\\cref{obj:a,obj:b}"); // idempotent
+  });
+});
+
+describe("reviewer copy shows what the PDF shows", () => {
+  it("unwraps \\leanref wrappers to their display text, honouring nested braces", () => {
+    expect(unwrapLeanrefs("the \\leanref{sym:\\mathcal{A}_K}{\\(\\mathcal{A}_K\\)} arms and \\leanref{S-1}{Assumption 1}."))
+      .toBe("the \\(\\mathcal{A}_K\\) arms and Assumption 1.");
+    expect(unwrapLeanrefs("broken \\leanref{sym:x")).toBe("broken \\leanref{sym:x");
+    expect(reviewerTexFor("Intro.\n% lean: tag\nSee \\leanref{obj:def:a}{Definition 1}.\n")).toContain("See Definition 1.");
+    expect(reviewerTexFor("See \\leanref{obj:def:a}{Definition 1}.")).not.toContain("leanref");
   });
 });

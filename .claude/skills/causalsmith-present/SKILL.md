@@ -62,7 +62,9 @@ No figures in the paper (no gate audits them); tables and prose carry regime sum
    unattended. (1) You root-fix every finding by hand at the level that owns it, before paying any
    downstream stage: outline order or duplicate blocks → `outline.md` (`home_objs:`) and `--from P1`;
    a synthesized definition's rendering → P1; prose → `front_matter.tex`, `sections/*.tex`,
-   `proofs/*.tex` and `--from P2` (`paper.tex` is derived, never hand-edit it). A referee finding
+   `proofs/*.tex` and `--from P2` (`paper.tex` is derived, never hand-edit it). Order matters:
+   make outline/P1 changes FIRST and re-enter P1, then hand-edit prose and re-enter P2 — a
+   `--from P1` re-drafts every section whose objects changed and discards prose edits there. A referee finding
    NEVER changes a Lean-backed environment: if you believe the body misrenders its Lean, record an
    adjudication item naming the declaration — the amendment is the user's decision. (2) Rescore:
    the re-entry runs through P5 and halts again with the new score. (3) A second hand round and

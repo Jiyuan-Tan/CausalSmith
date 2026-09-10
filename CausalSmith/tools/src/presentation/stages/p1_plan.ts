@@ -18,7 +18,8 @@ import {
   type LintProblem,
 } from "../tex_anchors.js";
 import { parseBib } from "../citations.js";
-import { parseJsonArrayLoose, parseJsonLoose, mapLimit } from "../gates.js";
+import { parseJsonLoose, mapLimit } from "../gates.js";
+import { parseSynthReply } from "../synth_reply.js";
 import { buildLeanContextIndex, type LeanContext } from "../lean_context.js";
 import { citedDependencies, renderedNodes, topoOrder, refTargets, envForNode, isCitedNode } from "../graph_view.js";
 import { citedStdFromNode, reconcileCite, indexBib } from "../assumption_citations.js";
@@ -982,9 +983,9 @@ export async function stageP1(io: StageIO): Promise<void> {
         const res = await deps.runCodex({ prompt, cwd: repoRoot, reasoningEffort: "medium", leanLsp: true });
         // A decoy array in surrounding prose can win the loose scan; a reply whose elements are not
         // all group OBJECTS is a mechanical failure — retried once, then thrown.
-        const parsed = parseJsonArrayLoose(res.stdout);
-        if (Array.isArray(parsed) && parsed.every((g) => g !== null && typeof g === "object" && !Array.isArray(g))) {
-          groups = (parsed as Partial<SynthGroup>[]).map((g) => ({ symbols: g.symbols ?? [], title: g.title, body: g.body ?? "" }));
+        const parsed = parseSynthReply(res.stdout);
+        if (parsed) {
+          groups = parsed;
         } else {
           await writeDiagnostic(io.outDir, "p1_synthesize_raw.txt", res.stdout.slice(0, 20000));
         }

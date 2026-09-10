@@ -705,7 +705,40 @@ interface NotationHome {
  *  reviser must see the file as it really is. Comment-only lines collapse so the copy has
  *  no runs of blank lines. */
 export function reviewerTexFor(paperTex: string): string {
-  return stripTexComments(paperTex).replace(/\n[ \t]*\n(?:[ \t]*\n)+/g, "\n\n");
+  return unwrapLeanrefs(stripTexComments(paperTex)).replace(/\n[ \t]*\n(?:[ \t]*\n)+/g, "\n\n");
+}
+
+/** `\leanref{<id>}{<display>}` → `<display>`: the PDF prints only the display text (the macro is
+ *  `\newcommand{\leanref}[2]{#2}`), so a reviewer shown the wrapper reports the internal id as a
+ *  reader-visible placeholder — a recurring false finding. Balanced-brace scan; a malformed wrapper
+ *  is left as written. */
+export function unwrapLeanrefs(tex: string): string {
+  const MARK = "\\leanref{";
+  let out = "";
+  let i = 0;
+  for (;;) {
+    const at = tex.indexOf(MARK, i);
+    if (at < 0) { out += tex.slice(i); return out; }
+    out += tex.slice(i, at);
+    const idEnd = closingBrace(tex, at + MARK.length - 1);
+    const dispOpen = idEnd >= 0 ? idEnd + 1 : -1;
+    const dispEnd = dispOpen >= 0 && tex[dispOpen] === "{" ? closingBrace(tex, dispOpen) : -1;
+    if (dispEnd < 0) { out += MARK; i = at + MARK.length; continue; }
+    out += tex.slice(dispOpen + 1, dispEnd);
+    i = dispEnd + 1;
+  }
+}
+
+/** Index of the `}` matching the `{` at `open`, honouring nesting and `\{`/`\}`; -1 if unbalanced. */
+function closingBrace(tex: string, open: number): number {
+  let depth = 0;
+  for (let j = open; j < tex.length; j++) {
+    const ch = tex[j];
+    if (ch === "\\") { j++; continue; }
+    if (ch === "{") depth++;
+    else if (ch === "}") { depth--; if (depth === 0) return j; }
+  }
+  return -1;
 }
 
 /** Parse the P1 notation table rows that assign a paper symbol to an anchored home. */
