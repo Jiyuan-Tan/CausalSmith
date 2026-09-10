@@ -323,6 +323,30 @@ describe("component closure", () => {
     expect(enriched.views("def:sample-splits").splitIndices).toBeDefined();
   });
 
+  it("makes a composite block's principal component its anchor, listed once, and claimed for it", () => {
+    // Definition 9 is realized by a head definition plus helpers: the head IS the
+    // statement, so it heads the panel as the anchor and is not repeated as a piece.
+    const views = enriched.views("def:hybrid-estimator-handle");
+    expect(views.hybridEstimator.cls).toBe("anchor");
+    expect(views.hybridEstimator.depth).toBe(0);
+    expect((def9.componentViews ?? []).filter((v) => v.decl === "hybridEstimator")).toHaveLength(1);
+    // Another block that names the head is sent to Definition 9, not shown the source inline.
+    const other: PaperLeanEntry = {
+      obj_id: "thm:uses-estimator", env: "theoremv", paper_label: "Theorem 1",
+      lean: { decl: "Demo.splitCellCount", decl_kind: "theorem" }, status: "matched",
+    };
+    const out = run([DEF9, other], {
+      "def:hybrid-estimator-handle": DEF9_SNIPPET,
+      "thm:uses-estimator": {
+        decl: "(composite)", file: "Demo/Estimator.lean", line: 0, statement: "",
+        components: [{ label: "Demo.splitCellCount", statement: SPLIT_CELL_COUNT.source }, { label: "Demo.hybridEstimator", statement: HYBRID.source }],
+      },
+    });
+    const ref = out.views("thm:uses-estimator").hybridEstimator;
+    expect(ref.cls).toBe("paper");
+    expect(ref.paperObjId).toBe("def:hybrid-estimator-handle");
+  });
+
   it("classifies the owning block's own anchor as `anchor`, not `paper`", () => {
     const v = enriched.views("def:sample-splits").splitCellCount;
     expect(v.cls).toBe("anchor");

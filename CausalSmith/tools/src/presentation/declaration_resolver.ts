@@ -19,6 +19,14 @@ export interface ResolvedLeanDeclaration {
 const leafOf = leanNameLeaf;
 const within = (root: string, target: string) => target === root || !relative(root, target).startsWith(`..${sep}`) && relative(root, target) !== ".." && !isAbsolute(relative(root, target));
 
+/** The pinned Mathlib checkout: the package's own `.lake` when it has been built, else the
+ *  workspace root's (a fresh clone that has only run `lake exe cache get && lake build` at
+ *  the root has no `CausalSmith/.lake` yet, and the presentation tests must not depend on it). */
+function mathlibCheckout(packageRoot: string, workspaceRoot: string): string {
+  const own = join(packageRoot, ".lake", "packages", "mathlib");
+  return existsSync(join(own, "Mathlib")) ? own : join(workspaceRoot, ".lake", "packages", "mathlib");
+}
+
 async function rootsFor(repoRoot: string): Promise<{ packageRoot: string; workspaceRoot: string; runRoot: string }> {
   const packageRoot = await realpath(repoRoot);
   const parent = await realpath(dirname(packageRoot));
@@ -209,7 +217,7 @@ export async function resolveLibraryDeclaration(
   if (indexed || opts.mathlib === false) return indexed;
   // A Mathlib lookup is a `git grep` over the checkout — seconds per name; only callers that
   // must resolve every component ask for it.
-  const mathlibFiles = await mathlibDeclarationFiles(join(packageRoot, ".lake", "packages", "mathlib"), leafOf(decl));
+  const mathlibFiles = await mathlibDeclarationFiles(mathlibCheckout(packageRoot, workspaceRoot), leafOf(decl));
   return validateUnique(workspaceRoot, decl, mathlibFiles.map((abs) => ({
     abs, file: "", decl, line: 1, resolution: "library-index" as const,
   })), "Mathlib package");
@@ -324,7 +332,7 @@ export async function resolveLeanDeclaration(
     }
 
     // Locate a reused declaration in the pinned Mathlib checkout, then authenticate its FQ name.
-    mathlibFiles ??= await mathlibDeclarationFiles(join(packageRoot, ".lake", "packages", "mathlib"), leaf);
+    mathlibFiles ??= await mathlibDeclarationFiles(mathlibCheckout(packageRoot, workspaceRoot), leaf);
     const library = await validateUnique(workspaceRoot, targetFq, mathlibFiles.map((abs) => ({
       abs, file: "", decl: targetFq, line: 1, resolution: "library-index" as const,
     })), "Mathlib package", visibleBefore);

@@ -471,6 +471,11 @@ function resolveAnchor(
     const r = index.resolve(label);
     if (r) return r.name;
   }
+  // A composite block IS stated by its principal component (the proposition it
+  // carries, or the head definition): that declaration is the block's anchor —
+  // its name heads the panel, it is not repeated as one of its own pieces, and
+  // another block that names it is sent here rather than shown the source inline.
+  if (snippet && !snippet.statement.trim()) return compositeProposition(snippet, index)?.name ?? null;
   return null;
 }
 
@@ -913,10 +918,10 @@ function sortComponentViews(views: ComponentView[], declSources: Record<string, 
 function compositeProposition(
   snippet: PaperLeanSnippet,
   index: DeclIndex,
-): { source: string; kind: string | undefined } | null {
+): { source: string; kind: string | undefined; name?: string } | null {
   const candidates = (snippet.components ?? []).map((component) => {
     const decl = index.resolve(component.label);
-    return { source: decl?.source || component.statement || "", kind: decl?.kind };
+    return { source: decl?.source || component.statement || "", kind: decl?.kind, name: decl?.name };
   });
   const isProposition = (candidate: { source: string; kind: string | undefined }) =>
     (candidate.kind !== undefined && isTheoremKind(candidate.kind)) ||
