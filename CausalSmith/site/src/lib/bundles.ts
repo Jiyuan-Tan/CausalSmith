@@ -331,7 +331,9 @@ export async function loadBundle(dir: string, id: string): Promise<Bundle> {
     dir,
     meta,
     commit: crosswalk.commit,
-    leanSubdir: crosswalk.lean_subdir,
+    // `lean_subdir` is relative to the CausalSmith Lake package, which lives in the
+    // repository's `CausalSmith/` directory; GitHub links need the repository path.
+    leanSubdir: `CausalSmith/${crosswalk.lean_subdir.replace(/^\/+/, "")}`,
     entries: crosswalk.entries,
     snippets: snippets.snippets,
     bodyHtml: linkedBody,
