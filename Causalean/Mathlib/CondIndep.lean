@@ -19,6 +19,10 @@ Sub-modules:
 import Causalean.Mathlib.CondIndep.CondExp
 import Causalean.Mathlib.CondIndep.AELift
 import Causalean.Mathlib.CondIndep.Integrability
+import Causalean.Mathlib.CondIndep.ThreeBlockDensity
+import Causalean.Mathlib.CondIndep.DomainTransport.AeRetraction
+
+
 
 /-!
 This file gathers conditional-independence tools used across the causal library,

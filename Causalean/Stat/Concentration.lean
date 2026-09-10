@@ -1,4 +1,6 @@
 import Causalean.Stat.Concentration.Chebyshev
+import Causalean.Stat.Concentration.HilbertEmpiricalMean
+
 import Causalean.Stat.Concentration.TailBounds
 import Causalean.Stat.Concentration.Rademacher
 import Causalean.Stat.Concentration.Covering

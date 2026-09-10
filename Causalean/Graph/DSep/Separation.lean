@@ -24,7 +24,8 @@ This file defines d-separation for DAGs and proves its key structural properties
 * Basic Concepts.tex, Definitions 2-3 (Blocked path, d-separation)
 -/
 
-import Causalean.Graph.DSep.ActivePath
+module
+public import Causalean.Graph.DSep.ActivePath
 
 /-! # d-Separation
 
@@ -36,6 +37,8 @@ monotonicity in source and target sets, the union rule for collider-activation
 ancestors (`bbZAncestors_union_eq`), directed-path extraction avoiding a
 conditioning set, source-to-conditioning transfer (`dSep_source_to_cond`),
 transfer to edge subgraphs (`dSep_mono_conditioningSet`), and symmetry. -/
+
+@[expose] public section
 
 namespace Causalean
 

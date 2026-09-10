@@ -141,6 +141,99 @@ lemma conservative_wald_liminf_of_studentized_cdf
           |θ n - est n zz| ≤ z * Real.sqrt (vhat n / m n)))
         atTop := by rfl
 
+/-- For [a sequence of finite-design laws](hyp:D) and [real-valued statistics](hyp:T), if [their
+CDFs converge pointwise to a limit CDF](hyp:F,hT), [the limit CDF is continuous](hyp:hF), and [the
+symmetric-band radius is nonnegative](hyp:c,hc), then [the closed symmetric-band probabilities
+converge to the difference of the limiting CDF at the two endpoints](goal). -/
+lemma finiteDesign_symmetricBand_tendsto (D : ∀ n, FiniteDesign (Ω n))
+    (T : ∀ n, Ω n → ℝ) (F : ℝ → ℝ)
+    (hT : ∀ x : ℝ, Tendsto (fun n => (D n).Pr (fun z => T n z ≤ x))
+      atTop (𝓝 (F x)))
+    (hF : Continuous F) (c : ℝ) (hc : 0 ≤ c) :
+    Tendsto (fun n => (D n).Pr (fun z => -c ≤ T n z ∧ T n z ≤ c))
+      atTop (𝓝 (F c - F (-c))) := by
+  classical
+  rw [Metric.tendsto_atTop]
+  intro ε hε
+  have hε8 : 0 < ε / 8 := by linarith
+  obtain ⟨δ, hδ, hcont⟩ :=
+    (Metric.continuousAt_iff.1 hF.continuousAt) (ε / 8) hε8
+  let d : ℝ := δ / 2
+  have hd : 0 < d := by dsimp [d]; linarith
+  have hdlt : dist (-c - d) (-c) < δ := by
+    rw [Real.dist_eq]
+    dsimp [d]
+    rw [show -c - δ / 2 - -c = -(δ / 2) by ring, abs_neg, abs_of_pos (by linarith : 0 < δ / 2)]
+    linarith
+  have hFd : |F (-c - d) - F (-c)| < ε / 8 := by
+    simpa [Real.dist_eq] using hcont hdlt
+  let S : ℕ → ℝ := fun n => (D n).Pr (fun z => T n z ≤ c)
+  let L : ℕ → ℝ := fun n => (D n).Pr (fun z => T n z ≤ -c)
+  let Ld : ℕ → ℝ := fun n => (D n).Pr (fun z => T n z ≤ -c - d)
+  let J : ℕ → ℝ := fun n => (D n).Pr (fun z => -c ≤ T n z ∧ T n z ≤ c)
+  have hS := hT c
+  have hL := hT (-c)
+  have hLd := hT (-c - d)
+  have hevS : ∀ᶠ n in atTop, |S n - F c| < ε / 8 := by
+    simpa [S, Real.dist_eq] using (Metric.tendsto_nhds.1 hS) (ε / 8) hε8
+  have hevL : ∀ᶠ n in atTop, |L n - F (-c)| < ε / 8 := by
+    simpa [L, Real.dist_eq] using (Metric.tendsto_nhds.1 hL) (ε / 8) hε8
+  have hevLd : ∀ᶠ n in atTop, |Ld n - F (-c - d)| < ε / 8 := by
+    simpa [Ld, Real.dist_eq] using (Metric.tendsto_nhds.1 hLd) (ε / 8) hε8
+  have hbounds : ∀ n, S n - L n ≤ J n ∧ J n ≤ S n - Ld n := by
+    intro n
+    have hlo := (D n).Pr_split (fun z => T n z ≤ c) (fun z => T n z ≤ -c)
+    have hld := (D n).Pr_split (fun z => T n z ≤ c) (fun z => T n z ≤ -c - d)
+    have hlofirst : (D n).Pr (fun z => T n z ≤ c ∧ T n z ≤ -c) = L n := by
+      apply (D n).Pr_congr
+      intro z
+      constructor
+      · exact fun h => h.2
+      · intro h
+        exact ⟨h.trans (by linarith), h⟩
+    have hldfirst : (D n).Pr (fun z => T n z ≤ c ∧ T n z ≤ -c - d) = Ld n := by
+      apply (D n).Pr_congr
+      intro z
+      constructor
+      · exact fun h => h.2
+      · intro h
+        exact ⟨h.trans (by linarith), h⟩
+    have hloeq : S n - L n =
+        (D n).Pr (fun z => T n z ≤ c ∧ ¬ T n z ≤ -c) := by
+      have : S n = (D n).Pr (fun z => T n z ≤ c ∧ T n z ≤ -c) +
+          (D n).Pr (fun z => T n z ≤ c ∧ ¬ T n z ≤ -c) := by
+        simpa [S, L] using hlo
+      rw [this, hlofirst]
+      ring
+    have hldeq : S n - Ld n =
+        (D n).Pr (fun z => T n z ≤ c ∧ ¬ T n z ≤ -c - d) := by
+      have : S n = (D n).Pr (fun z => T n z ≤ c ∧ T n z ≤ -c - d) +
+          (D n).Pr (fun z => T n z ≤ c ∧ ¬ T n z ≤ -c - d) := by
+        simpa [S, Ld] using hld
+      rw [this, hldfirst]
+      ring
+    constructor
+    · rw [hloeq]
+      apply (D n).Pr_mono
+      intro z hz
+      exact ⟨le_of_not_ge hz.2, hz.1⟩
+    · rw [hldeq]
+      apply (D n).Pr_mono
+      intro z hz
+      constructor
+      · exact hz.2
+      · rw [not_le]
+        linarith
+  apply Filter.eventually_atTop.1
+  filter_upwards [hevS, hevL, hevLd] with n hnS hnL hnLd
+  rw [Real.dist_eq, abs_lt]
+  rcases hbounds n with ⟨hlower, hupper⟩
+  rcases abs_lt.1 hnS with ⟨hnSlo, hnShi⟩
+  rcases abs_lt.1 hnL with ⟨hnLlo, hnLhi⟩
+  rcases abs_lt.1 hnLd with ⟨hnLdlo, hnLdhi⟩
+  rcases abs_lt.1 hFd with ⟨hFdlo, hFdhi⟩
+  constructor <;> linarith
+
 end DesignBased
 end Experimentation
 end Causalean

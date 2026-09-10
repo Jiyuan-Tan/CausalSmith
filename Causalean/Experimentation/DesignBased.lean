@@ -28,6 +28,8 @@ import Causalean.Experimentation.DesignBased.InProb
 import Causalean.Experimentation.DesignBased.Slutsky
 import Causalean.Experimentation.DesignBased.ProductReindex
 import Causalean.Experimentation.DesignBased.ProductMeasure
+import Causalean.Experimentation.DesignBased.HeydeBrown
+
 import Causalean.Experimentation.DesignBased.IndepSummandsCLT
 import Causalean.Experimentation.DesignBased.Risk
 import Causalean.Experimentation.DesignBased.Optimality

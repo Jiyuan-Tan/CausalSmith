@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Data.Finset.Basic
-import Mathlib.Data.Fintype.Card
-import Mathlib.Data.Finset.Powerset
-import Mathlib.Data.Fintype.EquivFin
-import Mathlib.Logic.Relation
+module
+public import Mathlib.Data.Finset.Basic
+public import Mathlib.Data.Fintype.Card
+public import Mathlib.Data.Finset.Powerset
+public import Mathlib.Data.Fintype.EquivFin
+public import Mathlib.Logic.Relation
 
 /-! # Directed Acyclic Graphs
 
@@ -40,6 +41,8 @@ and roots.
 
 * Basic Concepts.tex, Definition 1 (Directed Acyclic Graph)
 -/
+
+@[expose] public section
 
 namespace Causalean
 

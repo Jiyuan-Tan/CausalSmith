@@ -56,7 +56,11 @@ variable (E : Type*) [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 private noncomputable def onb : OrthonormalBasis (Fin (Module.finrank ℝ E)) ℝ E :=
   stdOrthonormalBasis ℝ E
 
-/-- The product measure of independent standard normal laws, with one real-valued coordinate
+/-- For every [real normed inner-product space](hyp:E), the [coordinate product Gaussian
+measure](goal) is the product of independent standard normal laws, with one real-valued coordinate
+for every element of the finite index set whose size is the space's real rank.
+
+The product measure of independent standard normal laws, with one real-valued coordinate
 for each dimension of a finite-dimensional real inner-product space. -/
 noncomputable def piGaussian :
     Measure (Fin (Module.finrank ℝ E) → ℝ) :=
@@ -67,8 +71,14 @@ private noncomputable def euclideanStdGaussian :
     Measure (EuclideanSpace ℝ (Fin (Module.finrank ℝ E))) :=
   (piGaussian E).map (EuclideanSpace.equiv (Fin (Module.finrank ℝ E)) ℝ).symm
 
-/-- The standard Gaussian measure on a finite-dimensional real inner-product space
-`E`: covariance equal to the identity (inner product), mean zero. -/
+/-- For every [finite-dimensional real inner-product space equipped with a measurable
+structure](hyp:E), the [standard Gaussian measure on that space](goal) is obtained by transporting
+the coordinate product of independent standard normal laws through a chosen orthonormal-coordinate
+identification. It is therefore the centered Gaussian law whose covariance form is the inner
+product.
+
+The standard Gaussian measure on a finite-dimensional real inner-product space `E`: covariance
+equal to the identity (inner product), mean zero. -/
 noncomputable def stdGaussian : Measure E :=
   (euclideanStdGaussian E).map (onb E).repr.symm.toContinuousLinearEquiv
 
@@ -77,8 +87,7 @@ end Defs
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
   [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
 
-/-- The product of independent one-dimensional standard Gaussian laws is a probability
-measure. -/
+/-- For every [real normed inner-product space](hyp:E), [the coordinate product of independent one-dimensional standard Gaussian laws is a probability measure](goal). -/
 instance isProbabilityMeasure_piGaussian : IsProbabilityMeasure (piGaussian E) := by
   unfold piGaussian; infer_instance
 
@@ -89,7 +98,7 @@ lemma memLp_eval (i : Fin (Module.finrank ℝ E)) :
   have : MemLp id 2 (gaussianReal (0 : ℝ) 1) := memLp_id_gaussianReal' 2 (by simp)
   exact this.comp_measurePreserving (measurePreserving_eval _ i)
 
-/-- The product standard Gaussian on `Fin n → ℝ` is Gaussian. -/
+/-- For every [real normed inner-product space](hyp:E), [the coordinate product of independent one-dimensional standard Gaussian laws is a Gaussian probability law](goal). -/
 instance isGaussian_piGaussian : IsGaussian (piGaussian E) := by
   have hIndep : iIndepFun (fun (i : Fin (Module.finrank ℝ E))
       (ω : Fin (Module.finrank ℝ E) → ℝ) => ω i) (piGaussian E) :=
@@ -111,23 +120,23 @@ instance isGaussian_piGaussian : IsGaussian (piGaussian E) := by
     (hIndep.hasGaussianLaw hLaw).isGaussian_map
   simpa using hJoint
 
-/-- The transported product standard Gaussian on Euclidean space is a probability measure. -/
+/-- For every [real normed inner-product space](hyp:E), [the transported coordinate-product standard Gaussian law on the associated Euclidean space is a probability measure](goal). -/
 instance isProbabilityMeasure_euclideanStdGaussian :
     IsProbabilityMeasure (euclideanStdGaussian E) := by
   unfold euclideanStdGaussian
   exact Measure.isProbabilityMeasure_map (by fun_prop)
 
-/-- The standard Gaussian measure on the inner-product space is a probability measure. -/
+/-- For every [finite-dimensional real normed inner-product space equipped with a measurable structure equal to its Borel structure](hyp:E), [the standard Gaussian measure on that space is a probability measure](goal). -/
 instance isProbabilityMeasure_stdGaussian : IsProbabilityMeasure (stdGaussian E) := by
   unfold stdGaussian
   exact Measure.isProbabilityMeasure_map (by fun_prop)
 
-/-- The product standard Gaussian on `EuclideanSpace ℝ (Fin n)` is Gaussian. -/
+/-- For every [real normed inner-product space](hyp:E), [the transported coordinate-product standard Gaussian law on the associated Euclidean space is a Gaussian probability law](goal). -/
 instance isGaussian_euclideanStdGaussian : IsGaussian (euclideanStdGaussian E) := by
   unfold euclideanStdGaussian
   exact isGaussian_map_equiv _
 
-/-- The standard Gaussian measure on the inner-product space is a Gaussian law. -/
+/-- For every [finite-dimensional real normed inner-product space equipped with a measurable structure equal to its Borel structure](hyp:E), [the standard Gaussian measure on that space is a Gaussian probability law](goal). -/
 instance isGaussian_stdGaussian : IsGaussian (stdGaussian E) := by
   unfold stdGaussian
   exact isGaussian_map_equiv _

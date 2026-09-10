@@ -40,6 +40,10 @@ Main definitions / results:
 -/
 
 import Mathlib.Analysis.Calculus.FDeriv.Basic
+import Mathlib.Analysis.Calculus.FDeriv.Add
+import Mathlib.Analysis.Calculus.FDeriv.Mul
+import Mathlib.Analysis.Calculus.FDeriv.Prod
+import Mathlib.Analysis.Calculus.Deriv.Inv
 import Mathlib.Topology.Order.Lattice
 
 /-! # Hadamard Directional Derivatives
@@ -65,11 +69,13 @@ variable {E F : Type*}
   [NormedAddCommGroup E] [NormedSpace ℝ E]
   [NormedAddCommGroup F] [NormedSpace ℝ F]
 
-/-- **Hadamard directional differentiability.**  `φ` has Hadamard directional
-derivative `φ'` at `θ` if for every direction `h`, every sequence `hₙ → h`, and
-every step sequence `tₙ → 0` with `tₙ > 0`,
+/-- Given [normed real vector spaces](hyp:E,F), [a map between them](hyp:φ), [a proposed directional derivative](hyp:φ'),
+and [a point](hyp:θ), the [Hadamard directional differentiability property at that point](goal)
+holds exactly when, for every direction, every sequence of directions converging to it, and every
+strictly positive real step-size sequence converging to zero,
 
-    (tₙ)⁻¹ • (φ (θ + tₙ • hₙ) − φ θ)  →  φ' h.
+the rescaled increment $t_n^{-1}\{\phi(\theta+t_nh_n)-\phi(\theta)\}$ converges to the proposed
+derivative evaluated at that direction.
 
 `φ'` is required to reproduce the limit but is *not* assumed linear; this is the
 notion needed for the directional delta method. -/
@@ -152,13 +158,17 @@ theorem HasFDerivAt.hasHadamardDirDerivAt {φ : E → F} {L : E →L[ℝ] F} {θ
 
 /-! ## Lattice functionals on `ℝ × ℝ` -/
 
-/-- The directional derivative of `max : ℝ × ℝ → ℝ` at `(a, b)`:
-`fst` if `b < a`, `snd` if `a < b`, and `max` itself at a tie `a = b`
-(where it is sublinear, not linear). -/
+/-- Given [a first real coordinate](hyp:a) and [a second real coordinate](hyp:b), the [directional
+derivative of the maximum functional at their pair](goal) sends a direction $(u,v)$ to $u$ when
+$b<a$, to $v$ when $a<b$, and to $\max(u,v)$ when $a=b$.
+
+At a tie this derivative is sublinear, not linear. -/
 noncomputable def maxDirDeriv (a b : ℝ) : ℝ × ℝ → ℝ :=
   fun z => if b < a then z.1 else if a < b then z.2 else max z.1 z.2
 
-/-- The directional derivative of `min : ℝ × ℝ → ℝ` at `(a, b)`. -/
+/-- Given [a first real coordinate](hyp:a) and [a second real coordinate](hyp:b), the [directional
+derivative of the minimum functional at their pair](goal) sends a direction $(u,v)$ to $u$ when
+$a<b$, to $v$ when $b<a$, and to $\min(u,v)$ when $a=b$. -/
 noncomputable def minDirDeriv (a b : ℝ) : ℝ × ℝ → ℝ :=
   fun z => if a < b then z.1 else if b < a then z.2 else min z.1 z.2
 
@@ -325,5 +335,262 @@ theorem hasHadamardDirDerivAt_min (a b : ℝ) :
         ← mul_assoc, inv_mul_cancel₀ htn_ne, one_mul]
     simp only [key]
     exact hh1.min hh2
+
+/-! ## Continuous directional-derivative calculus -/
+
+/-- Given [normed real vector spaces](hyp:E,F), [a map between them](hyp:f) and [a point](hyp:x), the [continuous
+Hadamard directional differentiability property at that point](goal) holds exactly when there
+exists a [continuous directional derivative at that point](step:1) and [that derivative satisfies
+Hadamard directional differentiability](step:2). -/
+def HasContinuousHadamardDirDerivAt (f : E → F) (x : E) : Prop :=
+  ∃ f' : E → F, Continuous f' ∧ HasHadamardDirDerivAt f f' x
+
+/-- If [the outer map has a Hadamard directional derivative](hyp:hg) and [the inner map has
+a Hadamard directional derivative](hyp:hf), then [their composition has the composed
+directional derivative](goal). -/
+theorem HasHadamardDirDerivAt.comp
+    {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
+    {f : E → F} {f' : E → F} {g : F → G} {g' : F → G} {x : E}
+    (hg : HasHadamardDirDerivAt g g' (f x))
+    (hf : HasHadamardDirDerivAt f f' x) :
+    HasHadamardDirDerivAt (g ∘ f) (g' ∘ f') x := by
+  intro h hn tn hhn htn htn_pos
+  let kn : ℕ → F := fun n =>
+    (tn n)⁻¹ • (f (x + tn n • hn n) - f x)
+  have hkn : Tendsto kn atTop (nhds (f' h)) := hf h hn tn hhn htn htn_pos
+  have hout := hg (f' h) kn tn hkn htn htn_pos
+  apply hout.congr'
+  filter_upwards [] with n
+  have hne : tn n ≠ 0 := (htn_pos n).ne'
+  have hrecover : f x + tn n • kn n = f (x + tn n • hn n) := by
+    simp only [kn, smul_smul, mul_inv_cancel₀ hne, one_smul, add_sub_cancel]
+  simp only [Function.comp_apply, hrecover, kn]
+
+/-- If [the outer map](hyp:hg) and [the inner map](hyp:hf) are continuously Hadamard
+directionally differentiable, then [their composition is too](goal). -/
+theorem HasContinuousHadamardDirDerivAt.comp
+    {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
+    {f : E → F} {g : F → G} {x : E}
+    (hg : HasContinuousHadamardDirDerivAt g (f x))
+    (hf : HasContinuousHadamardDirDerivAt f x) :
+    HasContinuousHadamardDirDerivAt (g ∘ f) x := by
+  rcases hg with ⟨g', hg'c, hg'⟩
+  rcases hf with ⟨f', hf'c, hf'⟩
+  exact ⟨g' ∘ f', hg'c.comp hf'c, HasHadamardDirDerivAt.comp hg' hf'⟩
+
+/-- If [a map has a Fréchet derivative](hyp:hf), then [it is continuously Hadamard
+directionally differentiable](goal). -/
+theorem HasContinuousHadamardDirDerivAt.of_hasFDerivAt
+    {f : E → F} {L : E →L[ℝ] F} {x : E} (hf : HasFDerivAt f L x) :
+    HasContinuousHadamardDirDerivAt f x :=
+  ⟨fun h => L h, L.continuous, HasFDerivAt.hasHadamardDirDerivAt hf⟩
+
+/-- If [a map is differentiable at a point](hyp:hf), then [it is continuously Hadamard
+directionally differentiable there](goal). -/
+theorem HasContinuousHadamardDirDerivAt.of_differentiableAt
+    {f : E → F} {x : E} (hf : DifferentiableAt ℝ f x) :
+    HasContinuousHadamardDirDerivAt f x :=
+  .of_hasFDerivAt hf.hasFDerivAt
+
+/-- If [two maps agree near a point](hyp:hfg) and [one is continuously Hadamard directionally
+differentiable there](hyp:hg), then [the other has the same property](goal). -/
+theorem HasContinuousHadamardDirDerivAt.congr_of_eventuallyEq
+    {f g : E → F} {x : E} (hfg : Filter.EventuallyEq (nhds x) f g)
+    (hg : HasContinuousHadamardDirDerivAt g x) :
+    HasContinuousHadamardDirDerivAt f x := by
+  rcases hg with ⟨g', hg'c, hg'⟩
+  refine ⟨g', hg'c, ?_⟩
+  intro h hn tn hhn htn htn_pos
+  have hxlim : Tendsto (fun n => x + tn n • hn n) atTop (nhds x) := by
+    simpa using (tendsto_const_nhds (x := x)).add (htn.smul hhn)
+  have hev := hxlim.eventually hfg
+  have hfx : f x = g x := hfg.self_of_nhds
+  apply (hg' h hn tn hhn htn htn_pos).congr'
+  filter_upwards [hev] with n hnfg
+  rw [hnfg, hfx]
+
+/-- If [each component map is continuously Hadamard directionally differentiable](hyp:hf,hg),
+then [their product-valued pairing has the same property](goal). -/
+theorem HasContinuousHadamardDirDerivAt.prod
+    {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
+    {f : E → F} {g : E → G} {x : E}
+    (hf : HasContinuousHadamardDirDerivAt f x)
+    (hg : HasContinuousHadamardDirDerivAt g x) :
+    HasContinuousHadamardDirDerivAt (fun y => (f y, g y)) x := by
+  rcases hf with ⟨f', hf'c, hf'⟩
+  rcases hg with ⟨g', hg'c, hg'⟩
+  refine ⟨fun h => (f' h, g' h), hf'c.prodMk hg'c, ?_⟩
+  intro h hn tn hhn htn htn_pos
+  have hf_lim := hf' h hn tn hhn htn htn_pos
+  have hg_lim := hg' h hn tn hhn htn htn_pos
+  change Tendsto (fun n =>
+    ((tn n)⁻¹ • (f (x + tn n • hn n) - f x),
+      (tn n)⁻¹ • (g (x + tn n • hn n) - g x))) atTop (nhds (f' h, g' h))
+  exact hf_lim.prodMk_nhds hg_lim
+
+/-- If [two real-valued maps are continuously Hadamard directionally differentiable](hyp:hf,hg),
+then [their pointwise sum has the same property](goal). -/
+theorem HasContinuousHadamardDirDerivAt.add
+    {f g : E → ℝ} {x : E}
+    (hf : HasContinuousHadamardDirDerivAt f x)
+    (hg : HasContinuousHadamardDirDerivAt g x) :
+    HasContinuousHadamardDirDerivAt (fun y => f y + g y) x := by
+  have ho : HasContinuousHadamardDirDerivAt (fun z : ℝ × ℝ => z.1 + z.2)
+      (f x, g x) := .of_differentiableAt
+        (differentiableAt_fst.add differentiableAt_snd)
+  change HasContinuousHadamardDirDerivAt
+    ((fun z : ℝ × ℝ => z.1 + z.2) ∘ fun y => (f y, g y)) x
+  exact HasContinuousHadamardDirDerivAt.comp
+    (f := fun y => (f y, g y)) (g := fun z : ℝ × ℝ => z.1 + z.2)
+    ho (hf.prod hg)
+
+/-- If [two real-valued maps are continuously Hadamard directionally differentiable](hyp:hf,hg),
+then [their pointwise difference has the same property](goal). -/
+theorem HasContinuousHadamardDirDerivAt.sub
+    {f g : E → ℝ} {x : E}
+    (hf : HasContinuousHadamardDirDerivAt f x)
+    (hg : HasContinuousHadamardDirDerivAt g x) :
+    HasContinuousHadamardDirDerivAt (fun y => f y - g y) x := by
+  have ho : HasContinuousHadamardDirDerivAt (fun z : ℝ × ℝ => z.1 - z.2)
+      (f x, g x) := .of_differentiableAt
+        (differentiableAt_fst.sub differentiableAt_snd)
+  change HasContinuousHadamardDirDerivAt
+    ((fun z : ℝ × ℝ => z.1 - z.2) ∘ fun y => (f y, g y)) x
+  exact HasContinuousHadamardDirDerivAt.comp
+    (f := fun y => (f y, g y)) (g := fun z : ℝ × ℝ => z.1 - z.2)
+    ho (hf.prod hg)
+
+/-- If [two real-valued maps are continuously Hadamard directionally differentiable](hyp:hf,hg),
+then [their pointwise product has the same property](goal). -/
+theorem HasContinuousHadamardDirDerivAt.mul
+    {f g : E → ℝ} {x : E}
+    (hf : HasContinuousHadamardDirDerivAt f x)
+    (hg : HasContinuousHadamardDirDerivAt g x) :
+    HasContinuousHadamardDirDerivAt (fun y => f y * g y) x := by
+  have ho : HasContinuousHadamardDirDerivAt (fun z : ℝ × ℝ => z.1 * z.2)
+      (f x, g x) := .of_differentiableAt
+        (differentiableAt_fst.mul differentiableAt_snd)
+  change HasContinuousHadamardDirDerivAt
+    ((fun z : ℝ × ℝ => z.1 * z.2) ∘ fun y => (f y, g y)) x
+  exact HasContinuousHadamardDirDerivAt.comp
+    (f := fun y => (f y, g y)) (g := fun z : ℝ × ℝ => z.1 * z.2)
+    ho (hf.prod hg)
+
+/-- If [the denominator is nonzero](hyp:hg0) and [the numerator and denominator maps are
+continuously Hadamard directionally differentiable](hyp:hf,hg), then [their pointwise quotient
+has the same property](goal). -/
+theorem HasContinuousHadamardDirDerivAt.div
+    {f g : E → ℝ} {x : E} (hg0 : g x ≠ 0)
+    (hf : HasContinuousHadamardDirDerivAt f x)
+    (hg : HasContinuousHadamardDirDerivAt g x) :
+    HasContinuousHadamardDirDerivAt (fun y => f y / g y) x := by
+  have ho : HasContinuousHadamardDirDerivAt (fun z : ℝ × ℝ => z.1 / z.2)
+      (f x, g x) := .of_differentiableAt
+        (differentiableAt_fst.mul (differentiableAt_snd.inv hg0))
+  change HasContinuousHadamardDirDerivAt
+    ((fun z : ℝ × ℝ => z.1 / z.2) ∘ fun y => (f y, g y)) x
+  exact HasContinuousHadamardDirDerivAt.comp
+    (f := fun y => (f y, g y)) (g := fun z : ℝ × ℝ => z.1 / z.2)
+    ho (hf.prod hg)
+
+/-- If [every map indexed by a finite set is continuously Hadamard directionally
+differentiable](hyp:hf), then [their pointwise finite sum has the same property](goal). -/
+theorem HasContinuousHadamardDirDerivAt.finset_sum
+    {I : Type*} (s : Finset I) {f : I → E → ℝ} {x : E}
+    (hf : ∀ i ∈ s, HasContinuousHadamardDirDerivAt (f i) x) :
+    HasContinuousHadamardDirDerivAt (fun y => ∑ i ∈ s, f i y) x := by
+  classical
+  induction s using Finset.induction_on with
+  | empty =>
+      simp only [Finset.sum_empty]
+      exact .of_differentiableAt (differentiableAt_const (c := (0 : ℝ)))
+  | @insert a s ha ih =>
+      simp_rw [Finset.sum_insert ha]
+      exact (hf a (Finset.mem_insert_self a s)).add
+        (ih fun i hi => hf i (Finset.mem_insert_of_mem hi))
+
+/-- If [two real-valued maps are continuously Hadamard directionally differentiable](hyp:hf,hg),
+then [their pointwise maximum has the same property](goal). -/
+theorem HasContinuousHadamardDirDerivAt.max
+    {f g : E → ℝ} {x : E}
+    (hf : HasContinuousHadamardDirDerivAt f x)
+    (hg : HasContinuousHadamardDirDerivAt g x) :
+    HasContinuousHadamardDirDerivAt (fun y => max (f y) (g y)) x := by
+  have ho : HasContinuousHadamardDirDerivAt
+      (fun z : ℝ × ℝ => Max.max z.1 z.2) (f x, g x) :=
+    ⟨maxDirDeriv (f x) (g x), continuous_maxDirDeriv _ _,
+      hasHadamardDirDerivAt_max _ _⟩
+  change HasContinuousHadamardDirDerivAt
+    ((fun z : ℝ × ℝ => Max.max z.1 z.2) ∘ fun y => (f y, g y)) x
+  exact HasContinuousHadamardDirDerivAt.comp ho (hf.prod hg)
+
+/-- If [two real-valued maps are continuously Hadamard directionally differentiable](hyp:hf,hg),
+then [their pointwise minimum has the same property](goal). -/
+theorem HasContinuousHadamardDirDerivAt.min
+    {f g : E → ℝ} {x : E}
+    (hf : HasContinuousHadamardDirDerivAt f x)
+    (hg : HasContinuousHadamardDirDerivAt g x) :
+    HasContinuousHadamardDirDerivAt (fun y => min (f y) (g y)) x := by
+  have ho : HasContinuousHadamardDirDerivAt
+      (fun z : ℝ × ℝ => Min.min z.1 z.2) (f x, g x) :=
+    ⟨minDirDeriv (f x) (g x), continuous_minDirDeriv _ _,
+      hasHadamardDirDerivAt_min _ _⟩
+  change HasContinuousHadamardDirDerivAt
+    ((fun z : ℝ × ℝ => Min.min z.1 z.2) ∘ fun y => (f y, g y)) x
+  exact HasContinuousHadamardDirDerivAt.comp ho (hf.prod hg)
+
+/-- If [a finite index set is nonempty](hyp:hs) and [every indexed map is continuously
+Hadamard directionally differentiable](hyp:hf), then [their pointwise finite supremum has the
+same property](goal). -/
+theorem HasContinuousHadamardDirDerivAt.finset_sup'
+    {I : Type*} (s : Finset I) (hs : s.Nonempty)
+    {f : I → E → ℝ} {x : E}
+    (hf : ∀ i ∈ s, HasContinuousHadamardDirDerivAt (f i) x) :
+    HasContinuousHadamardDirDerivAt
+      (fun y => s.sup' hs (fun i => f i y)) x := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp at hs
+  | @insert a s ha ih =>
+      by_cases hse : s.Nonempty
+      · have ha' := hf a (Finset.mem_insert_self a s)
+        have hs' : ∀ i ∈ s, HasContinuousHadamardDirDerivAt (f i) x :=
+          fun i hi => hf i (Finset.mem_insert_of_mem hi)
+        have hi := ih hse hs'
+        simpa only [Finset.sup'_insert hse] using
+          HasContinuousHadamardDirDerivAt.max ha' hi
+      · have hsempty : s = ∅ := Finset.not_nonempty_iff_eq_empty.mp hse
+        subst s
+        change HasContinuousHadamardDirDerivAt
+          (fun y => ({a} : Finset I).sup' hs (fun i => f i y)) x
+        simpa only [Finset.sup'_singleton] using
+          hf a (Finset.mem_singleton_self a)
+
+/-- If [a finite index set is nonempty](hyp:hs) and [every indexed map is continuously
+Hadamard directionally differentiable](hyp:hf), then [their pointwise finite infimum has the
+same property](goal). -/
+theorem HasContinuousHadamardDirDerivAt.finset_inf'
+    {I : Type*} (s : Finset I) (hs : s.Nonempty)
+    {f : I → E → ℝ} {x : E}
+    (hf : ∀ i ∈ s, HasContinuousHadamardDirDerivAt (f i) x) :
+    HasContinuousHadamardDirDerivAt
+      (fun y => s.inf' hs (fun i => f i y)) x := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp at hs
+  | @insert a s ha ih =>
+      by_cases hse : s.Nonempty
+      · have ha' := hf a (Finset.mem_insert_self a s)
+        have hs' : ∀ i ∈ s, HasContinuousHadamardDirDerivAt (f i) x :=
+          fun i hi => hf i (Finset.mem_insert_of_mem hi)
+        have hi := ih hse hs'
+        simpa only [Finset.inf'_insert hse] using
+          HasContinuousHadamardDirDerivAt.min ha' hi
+      · have hsempty : s = ∅ := Finset.not_nonempty_iff_eq_empty.mp hse
+        subst s
+        change HasContinuousHadamardDirDerivAt
+          (fun y => ({a} : Finset I).inf' hs (fun i => f i y)) x
+        simpa only [Finset.inf'_singleton] using
+          hf a (Finset.mem_singleton_self a)
 
 end Causalean.Stat

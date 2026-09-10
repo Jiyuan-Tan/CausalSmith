@@ -27,7 +27,8 @@ needed for the source-to-conditioning transfer in d-separation.
 * Shachter (1998), Bayes Ball algorithm
 -/
 
-import Causalean.Graph.DSep.BayesBall
+module
+public import Causalean.Graph.DSep.BayesBall
 
 /-! # Active Paths
 
@@ -41,6 +42,8 @@ The main path lemmas prove reversal symmetry (`isActivePath_reverse`,
 source-to-conditioning transfer, and the Bayes Ball correctness theorem
 `bbReachableVertices_iff_activePath`, which identifies computed reachability
 with existence of an active path. -/
+
+@[expose] public section
 
 namespace Causalean
 

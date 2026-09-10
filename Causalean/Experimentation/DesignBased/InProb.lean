@@ -57,6 +57,47 @@ def TendstoInProb (D : ∀ m, FiniteDesign (Ω m)) (X : ∀ m, Ω m → ℝ) (c 
   ∀ ε : ℝ, 0 < ε →
     Tendsto (fun m => (D m).Pr (fun z => ε ≤ |X m z - c m|)) atTop (𝓝 0)
 
+/-- Under [a sequence of finite-design laws](hyp:D), if [a deterministic real sequence](hyp:a)
+[converges to a constant](hyp:c,ha), then [the corresponding constant-on-assignment statistics
+converge in finite-design probability](goal). -/
+theorem deterministic_tendstoInProb (D : ∀ n, FiniteDesign (Ω n)) (a : ℕ → ℝ) (c : ℝ)
+    (ha : Tendsto a atTop (𝓝 c)) :
+    TendstoInProb D (fun n _ => a n) (fun _ => c) := by
+  intro ε hε
+  have hev : ∀ᶠ n in atTop, |a n - c| < ε := by
+    simpa [Real.dist_eq] using (Metric.tendsto_atTop.1 ha ε hε)
+  apply tendsto_order.2
+  constructor
+  · intro u hu
+    filter_upwards [] with n
+    exact hu.trans_le ((D n).Pr_nonneg _)
+  · intro u hu
+    filter_upwards [hev] with n hn
+    have hz : (D n).Pr (fun _ => ε ≤ |a n - c|) = 0 := by
+      unfold FiniteDesign.Pr FiniteDesign.E FiniteDesign.ind
+      simp [not_le.mpr hn]
+    rw [hz]
+    exact hu
+
+/-- Under [a sequence of finite-design laws](hyp:D), if [a statistic](hyp:X) [converges in
+probability to a constant](hyp:c,hX) and [a real map is continuous at that constant](hyp:f,hf),
+then [applying the map preserves convergence in probability](goal). -/
+theorem tendstoInProb_continuousMap (D : ∀ n, FiniteDesign (Ω n))
+    (X : ∀ n, Ω n → ℝ) (c : ℝ) (f : ℝ → ℝ)
+    (hX : TendstoInProb D X (fun _ => c))
+    (hf : ContinuousAt f c) :
+    TendstoInProb D (fun n z => f (X n z)) (fun _ => f c) := by
+  intro ε hε
+  obtain ⟨δ, hδ, hmap⟩ := (Metric.continuousAt_iff.1 hf) ε hε
+  have htail := hX δ hδ
+  refine squeeze_zero (fun n => (D n).Pr_nonneg _) (fun n => ?_) htail
+  apply (D n).Pr_mono
+  intro z hz
+  by_contra hfar
+  rw [not_le] at hfar
+  have := hmap (show dist (X n z) c < δ by simpa [Real.dist_eq] using hfar)
+  exact (not_lt_of_ge hz) (by simpa [Real.dist_eq] using this)
+
 /-- **Chebyshev consistency engine.** Along [a sequence of finite designs `D`](hyp:D), for
 [statistics `X`](hyp:X), if [the design variance of `X m` tends to zero as `m → ∞`](hyp:hvar), then
 [`X m` converges in probability to its design mean `E[X m]`](goal). -/

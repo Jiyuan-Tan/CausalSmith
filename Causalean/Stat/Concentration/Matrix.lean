@@ -3,6 +3,9 @@ import Causalean.Stat.Concentration.Matrix.InversePerturbation
 import Causalean.Stat.Concentration.Matrix.InverseUnionBound
 import Causalean.Stat.Concentration.Matrix.DesignInverse
 import Causalean.Stat.Concentration.Matrix.IidSums
+import Causalean.Stat.Concentration.Matrix.LocalizedGramBasic
+import Causalean.Stat.Concentration.Matrix.LocalizedGram
+
 
 /-!
 # Concentration · Matrix / design inverse (barrel)

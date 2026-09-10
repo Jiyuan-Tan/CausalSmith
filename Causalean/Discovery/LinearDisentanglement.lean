@@ -11,6 +11,10 @@ import Causalean.Discovery.LinearDisentanglement.PartialOrderRQ
 import Causalean.Discovery.LinearDisentanglement.Rowspan
 import Causalean.Discovery.LinearDisentanglement.Uniqueness
 import Causalean.Discovery.LinearDisentanglement.Identifiability
+import Causalean.Discovery.LinearDisentanglement.Quantitative.Definitions
+import Causalean.Discovery.LinearDisentanglement.Quantitative.Quantitative
+import Causalean.Discovery.LinearDisentanglement.Quantitative.CompactExclusion
+
 
 /-!
 # Linear causal disentanglement via interventions — umbrella

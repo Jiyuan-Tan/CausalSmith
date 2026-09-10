@@ -24,9 +24,10 @@ reachability in DAGs.
 * Shachter (1998), Bayes Ball algorithm
 -/
 
-import Causalean.Graph.DAG
-import Mathlib.Data.Finset.Max
-import Mathlib.Data.Fintype.Prod
+module
+public import Causalean.Graph.DAG
+public import Mathlib.Data.Finset.Max
+public import Mathlib.Data.Fintype.Prod
 
 /-! # Bayes Ball Reachability
 
@@ -41,6 +42,8 @@ vertex projection `bbReachableVertices`. The exposed invariants include source
 monotonicity (`bbReachable_mono_source`,
 `bbReachableVertices_mono_source`), minimality of the fixed point, and closure of
 reachable states under `bbStep`. -/
+
+@[expose] public section
 
 namespace Causalean
 
@@ -107,7 +110,7 @@ def bbStep (Z : Finset V) (s : BBState V) : Finset (BBState V) :=
         ⟨(·, BBDir.fromChild), fun _ _ h => by simpa using h⟩
 
 /-- Iterative Bayes Ball: compute fixed point of reachable states. -/
-private def bbReachAux (Z : Finset V) (frontier visited : Finset (BBState V))
+def bbReachAux (Z : Finset V) (frontier visited : Finset (BBState V))
     (fuel : ℕ) : Finset (BBState V) :=
   match fuel with
   | 0 => visited
