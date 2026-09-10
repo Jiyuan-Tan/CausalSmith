@@ -1,4 +1,4 @@
-import { maskLeanCommentsAndStrings } from "../graph/extractor.js";
+import { maskLeanCommentsAndStrings } from "../shared/lean_mask.js";
 
 /** Declaration command header, including repeated attributes and modifiers. */
 const DECL_HEAD =
