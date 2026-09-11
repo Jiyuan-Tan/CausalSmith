@@ -26,6 +26,31 @@ import { fixtureCore } from "./fixture.js";
 
 type Script = (targets: string[], prompt: string) => Record<string, unknown>;
 
+function companionize(payload: Record<string, unknown>): { payload: Record<string, unknown>; companion: string } {
+  const longFields = new Set(["statement", "proof_tex", "construction", "condition", "partial_result"]);
+  const blocks: string[] = [];
+  const visit = (value: unknown, path = ""): void => {
+    if (Array.isArray(value)) {
+      value.forEach((item, i) => visit(item, `${path}[${i}]`));
+      return;
+    }
+    if (value === null || typeof value !== "object") return;
+    for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+      const alias = key === "proposed" &&
+        /(?:^|\.)(?:proposed_statement_changes|proposed_definition_changes)\[\d+\]$/.test(path);
+      if ((longFields.has(key) || alias) && typeof child === "string") {
+        const ref = `fixture-${blocks.length}`;
+        blocks.push(`%%% FIELD ${ref}\n${child}\n`);
+        (value as Record<string, unknown>)[key] = { tex_ref: ref };
+      } else {
+        visit(child, path.length === 0 ? key : `${path}.${key}`);
+      }
+    }
+  };
+  visit(payload);
+  return { payload, companion: blocks.join("") };
+}
+
 function scriptedSolver(script: Script): StageDeps & { calls: string[][] } {
   const calls: string[][] = [];
   return {
@@ -35,7 +60,13 @@ function scriptedSolver(script: Script): StageDeps & { calls: string[][] } {
       const segment = (prompt.split("TARGET STATEMENT(S) TO SOLVE")[1] ?? "[]").split("SOLVE_OUTPUT_PATH")[0];
       const targets = (JSON.parse(segment.slice(segment.indexOf("["), segment.lastIndexOf("]") + 1)) as Array<{ id: string }>).map((t) => t.id);
       calls.push(targets);
-      await writeFile(outPath, JSON.stringify(script(targets, prompt)), "utf8");
+      const output = companionize(script(targets, prompt));
+      const companionPath = /SOLVE_COMPANION_PATH:\s*(\S+)/.exec(prompt)![1];
+      if (output.companion.length > 0) {
+        await mkdir(path.dirname(companionPath), { recursive: true });
+        await writeFile(companionPath, output.companion, "utf8");
+      }
+      await writeFile(outPath, JSON.stringify(output.payload), "utf8");
       return { stdout: JSON.stringify({ status: "completed", message: "ok", artifacts: [outPath] }), stderr: "" };
     },
     runClaude: async () => { throw new Error("unused"); },

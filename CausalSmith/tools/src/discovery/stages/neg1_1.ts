@@ -99,7 +99,7 @@ const openProblemSchema = z.object({
       role: z.enum(["identification", "estimation_inference"]),
       technique: nonEmptyString,
       why_closest: nonEmptyString,
-    }).strict()).nullable().transform((value) => value ?? []),
+    }).strip()).nullable().transform((value) => value ?? []),
   }).strict(),
 }).strict().superRefine((value, ctx) => {
   const kinds = new Set(value.source_refs.map((ref) => ref.kind));

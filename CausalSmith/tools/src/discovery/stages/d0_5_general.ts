@@ -170,7 +170,9 @@ export const CEILING_FOR_FLAGSHIP = 9.0;
 // referee had been anchoring on — 26% of scores landed on exactly 7.8) shifted the whole scale
 // down by ~1 point. Re-scoring all six mill-accepted papers under the no-cap prompt gave
 // 7.2/7.2/7.2/6.9/6.9/6.4, so 7.8 had become unreachable. 7.2 restores the intended meaning.
-export const CEILING_FOR_FIELD = 7.2;
+// 2026-09-11: raised 7.2 -> 7.4 at the operator's direction, to be more selective about what
+// reaches the F stages.
+export const CEILING_FOR_FIELD = 7.4;
 export const CEILING_FOR_SUBFIELD = 6.5;
 
 /**

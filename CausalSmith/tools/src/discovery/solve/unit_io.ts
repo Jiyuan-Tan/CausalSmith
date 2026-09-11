@@ -18,7 +18,7 @@ import {
   repairLatexStringsDeep,
 } from "../core/latex_serialization.js";
 import { SolveUnitOutputSchema, type SolveUnitOutput } from "./schemas.js";
-import { companionPathFor, sliceTexCompanion, resolveTexRefs } from "./tex_companion.js";
+import { companionPathFor, isTexRef, sliceTexCompanion, resolveTexRefs } from "./tex_companion.js";
 
 /** The persisted artifact is not a readable carrier (damaged JSON / TeX bytes)
  * even after the deterministic repairs: the model call itself failed and may be
@@ -140,9 +140,10 @@ export function healCoreEditDirections(body: unknown): void {
   }
 }
 
-/** A D0 solve unit only owns `to-prove` statements.  A statement replacement may
- * change its mathematical payload, but proof promotion happens later when the PR
- * is applied; the model therefore has no authority over this status field. */
+/** A D0 solve unit cannot promote a replacement to proved. Derive status from the
+ * replacement's structural provenance instead of trusting the emitted status:
+ * cited leaves stay cited when they carry a source, while every proof-owned
+ * replacement stays to-prove until PR application handles proof promotion. */
 export function normalizeStatementReplacementStatuses(body: unknown): void {
   if (body === null || typeof body !== "object") return;
   const edits = (body as { proposed_core_edits?: unknown }).proposed_core_edits;
@@ -151,7 +152,8 @@ export function normalizeStatementReplacementStatuses(body: unknown): void {
     if (!e || typeof e !== "object") continue;
     const edit = e as { kind?: unknown; proposed?: unknown };
     if (edit.kind !== "statement-replace" || edit.proposed === null || typeof edit.proposed !== "object") continue;
-    (edit.proposed as { status?: unknown }).status = "to-prove";
+    const proposed = edit.proposed as { status?: unknown; source?: unknown };
+    proposed.status = proposed.source === undefined ? "to-prove" : "cited";
   }
 }
 
@@ -223,6 +225,89 @@ export interface ReadSolveUnitOutputOptions {
   assertPersistenceLease?: () => Promise<void>;
   /** Exact companion generation accepted with the JSON. */
   onValidatedSnapshot?: (snapshot: { companionBlocks: Map<string, string>; companionRaw: string | null }) => void;
+  /** Require the current D0 prompt's companion-only carrier for long TeX fields. */
+  requireCompanionLongFields?: boolean;
+}
+
+function assertLongTexFieldsUseCompanion(body: unknown, companionPath: string): void {
+  const invalidFields: string[] = [];
+  const companionRequiredAt = (fieldPath: string): boolean => {
+    if (/^proofs\[\d+\]\.proof_tex$/.test(fieldPath)) return true;
+    if (/^(?:resolved_oeqs\[\d+\]\.theorem|added_lemmas\[\d+\])\.(?:statement|proof_tex)$/.test(fieldPath)) return true;
+    if (/^(?:resolved_oeqs\[\d+\]\.theorem|added_lemmas\[\d+\])\.obligation\.partial_result$/.test(fieldPath)) return true;
+    if (/^proposed_statement_changes\[\d+\]\.proposed$/.test(fieldPath)) return true;
+    if (/^proposed_definition_changes\[\d+\]\.proposed$/.test(fieldPath)) return true;
+    if (/^proposed_assumptions\[\d+\]\.condition$/.test(fieldPath)) return true;
+    if (/^open_obligations\[\d+\]\.partial_result$/.test(fieldPath)) return true;
+    const replacementPartial = /^proposed_core_edits\[(\d+)\]\.proposed\.obligation\.partial_result$/.exec(fieldPath);
+    if (replacementPartial !== null && body !== null && typeof body === "object") {
+      const edits = (body as { proposed_core_edits?: unknown }).proposed_core_edits;
+      const edit = Array.isArray(edits) ? edits[Number(replacementPartial[1])] : undefined;
+      return edit !== null && typeof edit === "object" &&
+        (edit as { kind?: unknown }).kind === "statement-replace";
+    }
+    const coreEdit = /^proposed_core_edits\[(\d+)\]\.proposed\.(condition|statement|construction|partial_result)$/.exec(fieldPath);
+    if (coreEdit === null || body === null || typeof body !== "object") return false;
+    const edits = (body as { proposed_core_edits?: unknown }).proposed_core_edits;
+    const edit = Array.isArray(edits) ? edits[Number(coreEdit[1])] : undefined;
+    const kind = edit !== null && typeof edit === "object" ? (edit as { kind?: unknown }).kind : undefined;
+    if (coreEdit[2] === "condition") return kind === "assumption-replace";
+    if (coreEdit[2] === "construction") return kind === "definition-add" || kind === "definition-replace";
+    return kind === "statement-replace";
+  };
+  const visit = (value: unknown, path: string): void => {
+    if (Array.isArray(value)) {
+      value.forEach((item, i) => visit(item, `${path}[${i}]`));
+      return;
+    }
+    if (value === null || typeof value !== "object") return;
+    if (Object.hasOwn(value, "tex_ref")) {
+      invalidFields.push(`${path || "<root>"} (tex_ref is malformed or not allowed here)`);
+      return;
+    }
+    for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+      const childPath = path.length === 0 ? key : `${path}.${key}`;
+      const companionRequired = companionRequiredAt(childPath);
+      if (companionRequired) {
+        if (!isTexRef(child)) invalidFields.push(`${childPath} (expected tex_ref)`);
+        continue;
+      }
+      const hasTexRefKey = child !== null && typeof child === "object" && !Array.isArray(child) &&
+        Object.hasOwn(child, "tex_ref");
+      if (hasTexRefKey) {
+        invalidFields.push(`${childPath} (tex_ref is malformed or not allowed here)`);
+        continue;
+      }
+      visit(child, childPath);
+    }
+  };
+  visit(body, "");
+  if (invalidFields.length === 0) return;
+  throw new Error(
+    `only long TeX fields may use {"tex_ref":"<local-ref>"}, and each must use raw blocks at ` +
+      `SOLVE_COMPANION_PATH (${companionPath}); invalid carrier field(s): ${invalidFields.join(", ")}`,
+  );
+}
+
+function assertCompanionHasNoDecodedControlChars(blocks: Map<string, string>, companionPath: string): void {
+  const locations: string[] = [];
+  for (const [ref, block] of blocks) {
+    const match = /[\u0000-\u0009\u000b-\u001f]/.exec(block);
+    if (match === null) continue;
+    const code = match[0].charCodeAt(0).toString(16).toUpperCase().padStart(4, "0");
+    const line = block.slice(0, match.index).split("\n").length;
+    locations.push(`tex_ref '${ref}', block line ${line}: U+${code}`);
+  }
+  if (locations.length === 0) return;
+  assertNoDecodedControlChars(
+    Object.fromEntries(blocks),
+    `Raw TeX companion ${companionPath}`,
+    `these bytes came from raw companion blocks, not JSON strings. Do not add JSON escaping there: write a ` +
+      `single-backslash TeX command literally (for example, \\frac, not \\\\frac), while preserving TeX syntax ` +
+      `that intrinsically uses multiple backslashes, such as \\\\ row terminators. ` +
+      `A decoded control character such as U+000C means an escape was interpreted before the bytes reached ` +
+      `the companion. Offending companion location(s): ${locations.join("; ")}.`,
+  );
 }
 
 /** Solve-unit ingest. Parsing is pure unless the live dispatcher requests a canonical commit. */
@@ -238,6 +323,7 @@ export async function readSolveUnitOutput(
     const companionRawAtStart = existsSync(companionPath) ? await readFile(companionPath, "utf8") : null;
     const normalizedRaw = normalizeRawModelJson(raw);
     const body = JSON.parse(normalizedRaw);
+    if (options.requireCompanionLongFields === true) assertLongTexFieldsUseCompanion(body, companionPath);
     normalizeEmptySolveUnitContainers(body);
     repairSolveUnitLatexSerialization(body);
     assertNoDecodedControlChars(body, `Stage 0-SOLVE unit ${label} output`);
@@ -249,6 +335,7 @@ export async function readSolveUnitOutput(
     const companionBlocks = companionRawAtStart !== null
       ? sliceTexCompanion(companionRawAtStart, companionPath)
       : new Map<string, string>();
+    assertCompanionHasNoDecodedControlChars(companionBlocks, companionPath);
     {
       const used = resolveTexRefs(validationBody, companionBlocks, companionPath);
       const unused = [...companionBlocks.keys()].filter((ref) => !used.has(ref));

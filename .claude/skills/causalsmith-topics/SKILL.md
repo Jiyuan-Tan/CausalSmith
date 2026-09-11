@@ -34,8 +34,35 @@ re-runs your deep reads/gate/presolve.
 ## Generation procedure
 
 
-1. **Scope.** Take the user's area/seed, else span clusters (panel / exactid / partialid / stat /
-   experimentation / scm; no cluster preference, #11). Read the flagship rubric
+1. **Scope.** Take the user's area/seed, else span the six clusters (no cluster preference, #11).
+   Cluster = what kind of claim the kernel is; the qid prefix in parentheses is the one you emit in
+   step 9 (`CausalSmith/doc/qid-naming.md`):
+   - `panel` (`panel_`) — causal inference with panel / longitudinal data: any method exploiting
+     repeated observations of units over time (DiD, event studies, TWFE, synthetic control, factor /
+     interactive-effects models, dynamic panels) — identification, estimand characterization, or
+     inference.
+   - `exactid` (`eid_`) — point identification: showing a causal quantity (an effect, parameter,
+     distributional feature, or the causal structure itself, M18) is a unique functional of the
+     observed data distribution, under any assumption framework (unconfoundedness, IV, RDD, proxies,
+     monotonicity, shape/parametric restrictions, …).
+   - `partialid` (`pid_`) — partial identification: the identified set or bounds for a causal
+     quantity when assumptions do not pin it down — sharp/valid bounds, sensitivity and breakdown
+     analysis, robustness to assumption relaxation.
+   - `stat` (`stat_`) — statistical theory of causal estimation and inference: estimators and their
+     properties (consistency, rates, minimax, efficiency bounds, limit laws), confidence procedures,
+     policy learning / regret, uncertainty quantification.
+   - `experimentation` (`exp_`) — design and analysis of experiments: randomized / design-based
+     inference, optimal and adaptive designs, interference and spillovers, finite-population and
+     randomization-based methods.
+   - `scm` (`scm_`) — structural causal models and graphical causal inference: identification,
+     bounds, and counterfactual reasoning over DAGs / ADMGs / selection diagrams, do-calculus,
+     transportability and data fusion, mediation and path-specific effects.
+   Tie-breakers the pipeline enforces (D-1.1 G5, D0 setup prompts): a new identification or bound
+   claim routes to `exactid` / `partialid` / `scm` even if it carries an estimator; a result stated
+   purely in potential-outcome language with no graph is `exactid` / `partialid`, not `scm`; plain
+   i.i.d. super-population inference is `stat`, while design randomness, an adaptive design, or
+   network / spatial dependence from an experiment is `experimentation`.
+   Read the flagship rubric
    (`CausalSmith/tools/src/discovery/prompts/_shared/stage_flagship_rubric.txt`) and the motif library
    (`.../prompts/D-1/stage_neg1_2_motif_library.txt`) so each candidate maps to an axis (a)–(i) and a
    motif (M1–M20); the library defines each cluster's admissible shapes — never narrow a cluster to its

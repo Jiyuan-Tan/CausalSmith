@@ -22,6 +22,7 @@ import { clusterFor } from "../cluster_setup.js";
 import { CoreSchema } from "../core/schema.js";
 import {
   assertNoDecodedControlChars,
+  assertSealableLatexPayload,
   normalizeRawModelJson,
   repairCoreLatexSerialization,
 } from "../core/latex_serialization.js";
@@ -542,11 +543,12 @@ export async function runStageNeg1_2ProtoCore(args: {
       continue;
     }
     repairCoreLatexSerialization(typedCore);
-    // Backstop: any control character surviving normalization + repair is an
-    // escaping error the model must fix; feed it back as a re-author round
-    // instead of persisting silently corrupted TeX.
+    // Backstop: any control character or malformed TeX (unbalanced delimiters /
+    // environments) surviving normalization + repair is an error the model must
+    // fix; feed it back as a re-author round instead of persisting corrupted TeX.
     try {
       assertNoDecodedControlChars(typedCore, "Stage -1.2 proposal core");
+      assertSealableLatexPayload(typedCore, "Stage -1.2 proposal core");
     } catch (e) {
       if (attempt === REAUTHOR_BUDGET) throw e;
       lastGateFeedback = `  [ESCAPE] ${e instanceof Error ? e.message : String(e)}`;

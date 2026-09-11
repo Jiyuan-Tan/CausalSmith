@@ -401,7 +401,11 @@ async function solveUnit(args: {
     const receiptPath = path.join(solveReuseReceiptsDir(ctx), `${path.basename(outPath)}.receipt`);
 
     const readValidated = (): Promise<SolveUnitOutput> =>
-      readSolveUnitOutput(outPath, label, { persistCanonical: true, assertPersistenceLease: lease.assertOwned });
+      readSolveUnitOutput(outPath, label, {
+        persistCanonical: true,
+        assertPersistenceLease: lease.assertOwned,
+        requireCompanionLongFields: true,
+      });
     const companionSha = async (): Promise<string | undefined> => {
       const p = companionPathFor(outPath);
       return existsSync(p) ? sha256Hex(await readFile(p, "utf8")) : undefined;
