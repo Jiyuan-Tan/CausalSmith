@@ -258,6 +258,19 @@ describe("vcs solve round", () => {
     expect(outcome.unaddressedTargets).toEqual(["metadata:honest-scope"]);
   });
 
+  it("recognizes landed statement prose as an exact target receipt", async () => {
+    await appendEscalationLog(ctx, {
+      round: 1, directive: "Correct the helper explanation.", required_core_targets: ["lem:helper"],
+    });
+    const deps = scriptedSolver(() => ({
+      prose_updates: {
+        statement_notes: [{ id: "lem:helper", gap: "The repaired statement-specific gap." }],
+      },
+    }));
+    const outcome = await runVcsSolveRound({ ctx, state, deps, round: 1 });
+    expect(outcome.unaddressedTargets).toEqual([]);
+  });
+
   it("consumes a directive with an unknown target so it cannot block every later resume", async () => {
     await appendEscalationLog(ctx, {
       round: 1, directive: "Repair the named node.", required_core_targets: ["def:missing"],

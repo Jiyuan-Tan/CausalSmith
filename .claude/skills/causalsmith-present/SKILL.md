@@ -23,7 +23,7 @@ the lease with verbatim receipts only for:
 
 - `paper-done` — score trajectory, kept version, adjudications (fixed vs dismissed), files awaiting
   commit, your own clarity verdict.
-- `pipeline-bug` — file:line suspicion, exact error, minimal repro.
+- `pipeline-bug` — per the Bug-fix contract.
 - `cap-block` — a cap reached with unresolved findings; never grant yourself more (exception: the P2
   `--promote-again` decision is yours).
 - `user-scope` — a finding needing new mathematics (corollaries, renames, simulation studies).
@@ -40,8 +40,9 @@ No figures in the paper (no gate audits them); tables and prose carry regime sum
    `npx tsx bin/causalsmith.ts present <qid> <spec> [--resume] [--auto] [--dry-run] [--stop-after P0..P5]
    [--from P0..P6] [--promote-again] [--refresh-frozen-bodies]`. `--from P2` reassembles the authored
    sources whenever `front_matter.tex` exists (only a missing file is drafted; delete
-   `front_matter.tex` to draft afresh). Run long stages detached; pre-warm the Lean build before P2/P3 (`lake -d CausalSmith build
-   <research modules>`; fetch the Mathlib cache first if oleans are missing).
+   `front_matter.tex` to draft afresh). Run long stages detached (Sharp edges); pre-warm the Lean
+   build before P2/P3 (`lake -d CausalSmith build <research modules>`; fetch the Mathlib cache first
+   if oleans are missing).
 2. Checkpoints (then `--resume`):
    - **P1** (outline + frozen layer + bibliography): resolve every `notation_review.json` advisory
      (edit the note/outline/statement, or accept with a recorded reason; `notation-unresolved` with no
@@ -64,16 +65,18 @@ No figures in the paper (no gate audits them); tables and prose carry regime sum
    a synthesized definition's rendering → P1; prose → `front_matter.tex`, `sections/*.tex`,
    `proofs/*.tex` and `--from P2` (`paper.tex` is derived, never hand-edit it). Order matters:
    make outline/P1 changes FIRST and re-enter P1, then hand-edit prose and re-enter P2 — a
-   `--from P1` re-drafts every section whose objects changed and discards prose edits there. A referee finding
+   `--from P1` revises every section whose objects changed from its prior draft (hand prose is
+   carried, not guaranteed: diff after the re-entry), a section whose number shifted starts
+   afresh, and `--from P0` re-plans the outline and discards prose wholesale (never rewind to P0
+   mid-revision; snapshot the sources before every re-entry). A referee finding
    NEVER changes a Lean-backed environment: if you believe the body misrenders its Lean, record an
    adjudication item naming the declaration — the amendment is the user's decision. (2) Rescore:
    the re-entry runs through P5 and halts again with the new score. (3) A second hand round and
-   rescore only if the new review still carries findings you can fix; then stop: record what
-   remains as unresolved, run P6 (Mechanics 6), and return `paper-done`. Three referee passes
-   total (the first review and two rescores), yours to enforce — no code cap. Adding
-   referee-identified citations is your remit (verified entries, exact titles/DOIs).
-5. Done: strip latexmk aux files, `cd CausalSmith/site && npx astro build` (bundle integrity gate),
-   run P6, then return `paper-done` + `commit-request`.
+   rescore only if the new review still carries findings you can fix; then stop (Mechanics 5).
+   Three referee passes total (the first review and two rescores), yours to enforce — no code cap.
+   Adding referee-identified citations is your remit (verified entries, exact titles/DOIs).
+5. Done: record what remains unresolved, strip latexmk aux files, `cd CausalSmith/site && npx astro
+   build` (bundle integrity gate), run P6 (Mechanics 6), then return `paper-done` + `commit-request`.
 6. **P6 slides** (after the final score): `present <qid> <spec> --from P6`. One codex call emits
    `slides.md` (11–17 slides targeted, lint 8–18); formal statements are injected verbatim via
    `@formal <obj_id>`; the lint (theorem coverage, displayed math only as verbatim copies, authors'
@@ -135,17 +138,21 @@ fresh audit. Never hand-compute a key; to reseed an adjudicated false positive, 
   `references_raw.bib` (P0 rebuilds the former from the latter and strips the field from model
   output). Never "fix" fields from another work's record; a correct indexed entry that fails is a
   lookup defect → `pipeline-bug`.
-- **Stop rule.** A re-entry reproducing the SAME failure after your fix, or two consecutive
-  unhonoured edits, is a pipeline bug — stop and escalate.
+- **Stop rule.** A re-entry reproducing the SAME failure after your fix gets one sanctioned
+  workaround (Route around before you escalate); if it reproduces again, or two consecutive edits go unhonoured,
+  it is a pipeline bug — stop and escalate.
 
-## Mechanical recovery before paid retries
+## Route around before you escalate
 
-Fix mechanical errors (JSON punctuation, a known path, a LaTeX/package error) in place from the
-worker's own raw output, change only what the syntax needs, re-run the existing checks, record the
-original and the repair. A syntax repair never approves mathematical content or link assignments —
-their semantic checks still apply. Never invent missing answers, merge conflicting ones, or weaken a
-validator; an ambiguous intended content is an unresolved judgment, not a repair. Resume at the
-earliest stage that still owes work.
+Fix mechanical errors in place from the worker's own raw output — JSON punctuation, a known path,
+a LaTeX/package error, a lint false positive (a locator brace, a cref form), a bib field taken from
+the right record — changing only what the syntax needs; re-run the existing checks and record the
+original and the repair. A syntax repair never approves mathematical content or link assignments;
+never invent missing answers, merge conflicting ones, or weaken a validator — ambiguous intended
+content is an unresolved judgment, not a repair. A P3 halt that reproduces verbatim on re-entry →
+delete `gate_cache.json` so the gates re-audit fresh; a transient registry or capacity error →
+re-enter in place. Resume at the earliest stage that still owes work. Log each workaround with the
+exact halt line and report it as a suspected defect in `paper-done`; the run does not stop for it.
 
 ## Promotion round (inside P2)
 
@@ -164,9 +171,9 @@ needs the proof or the STATEMENT adjudicated — check the statement first.
 |---|---|---|
 | P0 | `references.bib`, `references_raw.bib`, `p0_verification.json`, `related_work_brief.md` | drops >40% throw (lookup defect). A re-entry that finds the raw pool and brief re-verifies without re-searching — delete both to refresh |
 | P1 | `outline.md`, `formal_layer.{json,tex}`, `notation_review.json`, `equivalence_cache.json` | outline/env validation throws; residual statement drift halts |
-| P2 | `sections/*.tex`, `proofs/*.tex`, `front_matter.tex`, `paper.tex`, `proof_audit_cache.json` | frozen-drift / `objid-in-prose` lint (fix the cached artifact); `isolated-lemma`; residual proof unfaithfulness; unrenderable proofs listed in one halt. Frozen-block placement slips are repaired mechanically at P1's position and noted (`P2: section …`); a dangling proof `\cref{obj:…}` is repaired or sent to the writer, still dangling ⇒ halt. The affirmative-prose contract is gated at P3, not P2 |
-| P3 | `logs/reviews.jsonl`, `gate_cache.json` | overclaim, citation support (`citation-unverifiable` advisory, `unsupported` blocks), rubric; ≤2 repair rounds |
-| P4 | bundle files, `paper.pdf`, `lean_snippets.json` | compile errors halt for hand repair (no model retry); bib re-verification; undocumented Lean decls block the emit (docstrings are authored at F5 — add them, then `--from P4`) |
+| P2 | `sections/*.tex`, `proofs/*.tex`, `front_matter.tex`, `paper.tex`, `proof_audit_cache.json` | frozen-drift lint (fix the cached artifact; bare obj ids and dropped `obj:` prefixes are repaired at assembly, never linted); `isolated-lemma`; residual proof unfaithfulness; unrenderable proofs listed in one halt. Frozen-block placement slips are repaired mechanically at P1's position and noted (`P2: section …`); a dangling proof `\cref{obj:…}` is repaired or sent to the writer, still dangling ⇒ halt. Framing and assumption-numbering advisories land in the state notes |
+| P3 | `logs/reviews.jsonl`, `gate_cache.json` | overclaim, citation support (`citation-unverifiable` advisory, `unsupported` blocks), rubric (advisory); style is an advisory note, never a halt |
+| P4 | bundle files, `paper.pdf`, `lean_snippets.json` | compile errors halt for hand repair (no model retry); bib re-verification; undocumented Lean decls block the emit (docstrings are authored at F5 — add them, then `--from P4`). Style advisories (`P4 advisory (…)` in the state notes) are input to your hand round, never a halt |
 | P5 | `p5_review.{json,md}` | Mechanics 4 |
 | P6 | `slides.md`, `slides_cache.json` | lint after one retry; refused until P5 is settled |
 
@@ -199,21 +206,19 @@ edits separately from pipeline edits in `commit-request`; sweep the prose around
 
 ## Bug-fix contract
 
-A pipeline fix is for a GENUINE, BLOCKING, reproduced bug — wrong output, corrupted content, a gate
-passing what it should catch. An audit finding or a latent hazard is a backlog note. You escalate
-(`pipeline-bug`); the escalation names the exact error, a minimal repro, (a) the INPUT that was wrong
-(a model verdict, a heuristic match, planner metadata) and (b) the code that trusted it. Main's fix
-REMOVES or DETERMINIZES a mechanism, never adds one: stop trusting that input — compute the fact
-deterministically or turn it into a defect the artifact's single writer repairs; a counter, ledger,
-hint, suppression branch or `throw` on the same untrusted input is the next incident. A fix is proven
-by replay on the failing bundle AND one that passed; three fixes in one function in a week ⇒ stop and
-stop and write a redesign note before continuing. Main verifies with `npx vitest run test/presentation_` + `npx tsc
---noEmit`, lands prompt lessons only on a failure class's second occurrence, one commit per fix, each
-with an independent audit PASS before commit or live use.
+A `pipeline-bug` is a halt you cannot clear without touching a frozen body, a proof, or pipeline
+code: a GENUINE, BLOCKING, reproduced defect — wrong output, corrupted content, a gate passing what
+it should catch. An audit finding or a latent hazard is a backlog note. The escalation names the
+exact error, a minimal repro, (a) the INPUT that was wrong (a model verdict, a heuristic match,
+planner metadata) and (b) the code that trusted it. Main's fix REMOVES or DETERMINIZES a mechanism,
+never adds one — a counter, ledger, hint, suppression branch or `throw` on the same untrusted input
+is the next incident; it is proven by replay on the failing bundle AND one that passed, verified with
+`npx vitest run test/presentation_` + `npx tsc --noEmit`, and lands one commit per fix with an
+independent audit PASS before commit or live use. Prompt lessons land only on a failure class's
+second occurrence; three fixes in one function in a week ⇒ a redesign note first.
 
 ## Sharp edges
 
-- Every pipeline shell: `cd <repo>/CausalSmith/tools && source scripts/node_env.sh`; explicit cwd.
 - Run logs to a durable directory outside `/tmp` (a per-job or tmpfs `/tmp` loses them). Detach
   long stages (`setsid nohup … >log 2>&1 & echo $! > log.pid`) with a separate waiter on that PID.
   `setsid` re-forks: resolve the real sid from `ps -eo pid,sid` and key liveness/kill on

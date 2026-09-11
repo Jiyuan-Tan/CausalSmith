@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { restoreObjRefs, unwrapLeanrefs, reviewerTexFor, lintLeanrefs, parseAnchoredEnvs, lintAnchors, lintCrossRefs, lintSelfContainment, lintClarity, definitionOrderViolations, lintNegativeContributionFraming, lintNestedMathDelimiters, lintReferences, lintHypothesisPresentation, repairObjRefs, normalizeCrefs, displaysDefiningEquality, notationHomes, usesSymbolUndecorated, placeFrozenEnvs, lintEnvOrder } from "../src/presentation/tex_anchors.js";
+import { canonicalizeObjRefs, unwrapLeanrefs, reviewerTexFor, lintLeanrefs, parseAnchoredEnvs, lintAnchors, lintCrossRefs, lintSelfContainment, lintClarity, definitionOrderViolations, lintNegativeContributionFraming, lintNestedMathDelimiters, lintReferences, lintHypothesisPresentation, repairObjRefs, normalizeCrefs, displaysDefiningEquality, notationHomes, usesSymbolUndecorated, placeFrozenEnvs, lintEnvOrder } from "../src/presentation/tex_anchors.js";
 
 // The semantic definition-order check as P1's repair reads it (P3/P4 no longer re-judge it).
 const lintDefinitionOrder = (tex: string, notation: string) =>
@@ -206,7 +206,6 @@ Under Assumption A1, \\(\\hat\\theta\\) of \\cref{obj:def:est} converges.
     expect(lintDefinitionOrder(tex.replace(/^\n/, "\nEarly use of \\(\\hat\\theta\\) in a theorem: \\begin{theoremv}{T-0}[Early]\\(\\hat\\theta\\) is good.\\end{theoremv}\n"), notation)
       .some((p) => /def:est/.test(p.detail))).toBe(true);
     // a manually typed kind is caught for algorithms too
-    expect(lintReferences(tex + "See Algorithm~\\cref{obj:def:est}.").some((p) => p.gate === "manual-cref-kind")).toBe(true);
   });
 
   it("self-containedness: passes when a definition env defines the labels", () => {
@@ -294,37 +293,14 @@ Step 2.
 \\end{proof}`).some((p) => p.gate === "formalization-leak")).toBe(true);
   });
 
-  it("reference lint: cleveref contract, assumption-numbering gaps, and legacy refs", () => {
-    // consecutive A-labels + target-typed cleveref references → clean
+  it("reference lint: only assumption-numbering gaps remain (cref form is normalized, not linted)", () => {
     const ok = `\\begin{assumptionv}{P-2}[Tail (A1)]Tail in \\cref{obj:P-2}.\\end{assumptionv}
 \\begin{assumptionv}{P-7}[Drift (A2)]See \\cref{obj:P-4}.\\end{assumptionv}`;
     expect(lintReferences(ok)).toEqual([]);
-    // a gap in A-labels (A1, A3 — missing A2)
     const gap = `\\begin{assumptionv}{P-2}[Tail (A1)]x\\end{assumptionv}
 \\begin{assumptionv}{P-7}[Drift (A3)]y\\end{assumptionv}`;
-    expect(lintReferences(gap).some((p) => p.gate === "assumption-numbering")).toBe(true);
-    // a bare ref after a preposition (renders "…of 9")
-    const bare = `\\begin{lemmav}{L-9}[Pair]The bump condition of \\ref{obj:P-12} holds.\\end{lemmav}`;
-    expect(lintReferences(bare).some((p) => p.gate === "bare-ref")).toBe(true);
-    // same defect with colon-prefixed semantic ids (the causalsmith default for generated labels)
-    const colon = `\\begin{definitionv}{def:design-objective}[Objective]The objective $F$ is defined.\\end{definitionv}
-The objective $F$ in \\ref{obj:def:design-objective} combines four terms.`;
-    expect(lintReferences(colon).some((p) => p.gate === "bare-ref")).toBe(true);
-    expect(lintReferences(colon).some((p) => p.gate === "legacy-ref")).toBe(true);
-    expect(lintReferences("See \\ref{sec:results}.").some((p) => p.gate === "legacy-ref")).toBe(true);
-    expect(lintReferences("See \\eqref{eq:result}.").some((p) => p.gate === "legacy-ref")).toBe(true);
-    // a list continuation "Type~\\ref and~\\ref" is NOT a bare ref
-    expect(
-      lintReferences(`\\begin{theoremv}{T-1}[X]Under Assumptions~\\ref{obj:P-1} and~\\ref{obj:P-2}.\\end{theoremv}`)
-        .some((p) => p.gate === "bare-ref"),
-    ).toBe(false);
-    // a typed reference must agree with the environment behind the obj label
-    const wrongKind = `\\begin{definitionv}{def:risk}[Risk]The minimax risk.\\end{definitionv}
-The setup in Section~\\ref{obj:def:risk} is finite-dimensional.`;
-    expect(lintReferences(wrongKind).some((p) => p.gate === "reference-kind")).toBe(true);
-    expect(lintReferences(wrongKind.replace("Section~", "Definition~")).some((p) => p.gate === "reference-kind")).toBe(false);
-    expect(lintReferences(wrongKind.replace("Section~\\ref", "\\cref")).some((p) => p.gate === "legacy-ref")).toBe(false);
-    expect(lintReferences(wrongKind.replace("Section~\\ref", "Definition~\\cref")).some((p) => p.gate === "manual-cref-kind")).toBe(true);
+    expect(lintReferences(gap).map((p) => p.gate)).toEqual(["assumption-numbering"]);
+    expect(lintReferences("The objective in \\ref{obj:def:x} and Section~\\cref{obj:def:x}.")).toEqual([]);
   });
 
   it("negative contribution framing is rejected in ordinary prose and allowed only in exempt content", () => {
@@ -557,15 +533,14 @@ Let \(v_0=(1,0)\), \(v_j=(\sigma_j,1)\), and \(v_{m+1}=(\delta,1)\).
     ]);
   });
 
-  it("lints: bare obj_id in prose; \\ref{obj:...} and env bodies are exempt", () => {
+  it("a bare obj_id in prose is repaired to its cref, never linted; env bodies are exempt", () => {
     const frozen = new Map(parseAnchoredEnvs(TEX).map((e) => [e.obj_id, e.body]));
     const known = new Set(["P-2", "T-1"]);
     const leak = TEX + "\nBy Theorem~T-1 and (P-2) the bound follows.";
-    const gates = lintAnchors(leak, known, frozen).filter((p) => p.gate === "objid-in-prose");
-    expect(gates.map((g) => g.detail.split(" ")[0]).sort()).toEqual(["P-2", "T-1"]);
-    const ok = TEX + "\nBy Theorem~\\ref{obj:T-1} and Assumption~\\ref{obj:P-2} it follows.";
-    expect(lintAnchors(ok, known, frozen)).toEqual([]);
+    expect(lintAnchors(leak, known, frozen)).toEqual([]);
+    expect(canonicalizeObjRefs(leak, known)).toBe(TEX + "\nBy Theorem~\\cref{obj:T-1} and (\\cref{obj:P-2}) the bound follows.");
     // ids inside frozen env bodies are not prose
+    expect(canonicalizeObjRefs(TEX, known)).toBe(TEX);
     expect(lintAnchors(TEX, known, frozen)).toEqual([]);
   });
 });
@@ -822,12 +797,24 @@ describe("lintLeanrefs", () => {
   });
 });
 
-describe("restoreObjRefs", () => {
+describe("canonicalizeObjRefs", () => {
   it("re-prefixes bare known env ids inside cross-references and touches nothing else", () => {
     const known = new Set(["thm:main", "def:setup"]);
-    expect(restoreObjRefs("See \\cref{thm:main} and \\Cref{def:setup,thm:main}.", known))
+    expect(canonicalizeObjRefs("See \\cref{thm:main} and \\Cref{def:setup,thm:main}.", known))
       .toBe("See \\cref{obj:thm:main} and \\Cref{obj:def:setup,obj:thm:main}.");
-    const untouched = "See \\cref{obj:thm:main}, \\cref{sec:setup} and \\ref{eq:one}; thm:main in text.";
-    expect(restoreObjRefs(untouched, known)).toBe(untouched);
+    const untouched = "See \\cref{obj:thm:main}, \\cref{sec:setup} and \\ref{eq:one}; \\label{obj:thm:main} % thm:main here";
+    expect(canonicalizeObjRefs(untouched, known)).toBe(untouched);
+  });
+  it("turns a bare known id in prose into its cref, leaving frozen env blocks and comments alone", () => {
+    const known = new Set(["T-1", "P-2", "thm:main-result"]);
+    const tex = "\\begin{theoremv}{T-1}[A]Uses P-2 inside the body.\\end{theoremv}\nBy T-1 and (P-2) the bound follows; see thm:main-result. % T-1 in a comment\nA \\% literal then T-1.";
+    expect(canonicalizeObjRefs(tex, known)).toBe(
+      "\\begin{theoremv}{T-1}[A]Uses P-2 inside the body.\\end{theoremv}\nBy \\cref{obj:T-1} and (\\cref{obj:P-2}) the bound follows; see \\cref{obj:thm:main-result}. % T-1 in a comment\nA \\% literal then \\cref{obj:T-1}.",
+    );
+    expect(canonicalizeObjRefs("Theorem T-10 and T-1x are other names.", known)).toBe("Theorem T-10 and T-1x are other names.");
+    const nested = new Set(["main", "thm:main", "thm:main-2"]);
+    expect(canonicalizeObjRefs("By thm:main-2, thm:main and main.", nested)).toBe("By \\cref{obj:thm:main-2}, \\cref{obj:thm:main} and \\cref{obj:main}.");
+    const opaque = "\\leanref{T-1}{the bound} with \\citep[Lemma~T-1]{T-1} and \\label{T-1}.";
+    expect(canonicalizeObjRefs(opaque, known)).toBe(opaque);
   });
 });

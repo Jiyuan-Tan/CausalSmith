@@ -322,10 +322,9 @@ export async function runStageNeg0_5(args: {
     }
 
     // SINGLE SOURCE for drafter context: the RAW proto core. The persisted core
-    // already carries everything the drafter handoff shows — the checklist and
-    // comparator table via CoreSchema/CORE_HANDOFF_KEYS, and the UM8 upgrade
-    // receipt folded in from stdout at the author's persist boundary
-    // (UPGRADE_RECEIPT_KEYS). The state stores only a compact freshness version,
+    // already carries everything the drafter handoff shows — the checklist,
+    // comparator table, and UM8 upgrade metadata via CoreSchema/CORE_HANDOFF_KEYS.
+    // Stdout is only a disposition receipt. The state stores only a compact freshness version,
     // never a second serialized copy of the author output.
     let draftJson: Record<string, unknown> = {};
     const rawCoreForHandoff = await readIfExists(protoCoreJsonPath(args.ctx));

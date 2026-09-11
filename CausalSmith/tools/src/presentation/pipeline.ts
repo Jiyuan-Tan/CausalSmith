@@ -31,6 +31,8 @@ export interface PaperDeps {
     onResolvedModel?: (modelId: string) => void;
     /** Exact aggregate usage from the terminal Claude result event. */
     onUsage?: (usage: ModelTokenUsage) => void;
+    /** Strict JSON Schema for the reply (see reply_schemas.ts). */
+    jsonSchema?: Record<string, unknown>;
   }) => Promise<string>;
   runCodex: (args: {
     prompt: string;
@@ -46,6 +48,8 @@ export interface PaperDeps {
     multiAgent?: boolean;
     /** Exact cumulative usage from this Codex session, including native subagents. */
     onUsage?: (usage: ModelTokenUsage) => void;
+    /** Strict JSON Schema for the reply (see CodexRunInput.outputSchema). */
+    outputSchema?: Record<string, unknown>;
   }) => Promise<{ stdout: string; stderr: string }>;
   /** Citation metadata lookup; defaults to live Crossref/arXiv (citations.defaultLookup). */
   lookup?: Lookup;

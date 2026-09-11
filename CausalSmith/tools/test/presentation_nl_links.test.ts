@@ -42,7 +42,7 @@ import {
   STATEMENT_PART,
   type BlockInput,
   type IndexedLeanDecl,
-  type NlLinkSelectable,
+  type NlLinkSelectable, assignReplyFromStrict,
 } from "../src/presentation/nl_links.js";
 import { displayRanges, openStacks, segmentBlock, segmentText, segmentationProblems } from "../src/presentation/nl_segments.js";
 import { hashEnvBody } from "../src/presentation/tex_anchors.js";
@@ -143,9 +143,57 @@ function stubCodex(opts: {
           state.asked.push(ids);
           reply = opts.assign?.({ ids, prompt: a.prompt }) ?? { blocks: allUnstatedFromPrompt(a.prompt) };
         }
-        return { stdout: typeof reply === "string" ? reply : JSON.stringify(reply), stderr: "" };
+        // Stubs author replies in the artifact's own shape; the model is constrained to the
+        // strict schema shape, so fold before handing the reply to the pipeline.
+        const wire = reply !== null && typeof reply === "object" ? (isVerify ? strictVerifyShape(reply) : strictAssignShape(reply)) : reply;
+        return { stdout: typeof wire === "string" ? wire : JSON.stringify(wire), stderr: "" };
       },
     },
+  };
+}
+
+describe("assignReplyFromStrict (schema-constrained wire shape → artifact shape)", () => {
+  it("folds empty/false fields away, drops null or empty decls, and rejects duplicate or non-array blocks", () => {
+    const wire = { blocks: [{ id: "a", assignments: [{ row: "r1", segments: [], unstated: false }, { row: "r2", segments: ["s1"], unstated: true }],
+      displayLinks: [{ segment: "s5", decl: null, presentationOnly: true }, { segment: "s6", decl: "", presentationOnly: false }, { segment: "s7", decl: "Foo.bar", presentationOnly: false }] }] };
+    expect(assignReplyFromStrict(wire)).toEqual({ blocks: { a: {
+      assignments: [{ row: "r1" }, { row: "r2", segments: ["s1"], unstated: true }],
+      displayLinks: [{ segment: "s5", presentationOnly: true }, { segment: "s6" }, { segment: "s7", decl: "Foo.bar" }],
+    } } });
+    expect(assignReplyFromStrict({ blocks: [{ id: "a", assignments: [], displayLinks: [] }, { id: "a", assignments: [], displayLinks: [] }] })).toBeNull();
+    expect(assignReplyFromStrict({ blocks: { a: { assignments: [], displayLinks: [] } } })).toBeNull();
+    expect(assignReplyFromStrict("no json")).toBeNull();
+  });
+});
+
+/** Artifact-shaped verify reply (optional fields) → the strict wire shape (every field present). */
+function strictVerifyShape(reply: unknown): unknown {
+  const verdicts = (reply as { verdicts?: unknown }).verdicts;
+  if (!Array.isArray(verdicts)) return reply;
+  return { ...(reply as object), verdicts: verdicts.map((v) => {
+    const o = v as { obj_id?: unknown; claim?: unknown; ok?: unknown; segments?: unknown; unstated?: unknown; decls?: unknown; presentationOnly?: unknown };
+    return { obj_id: o.obj_id, claim: o.claim, ok: o.ok, segments: Array.isArray(o.segments) ? o.segments : [], unstated: o.unstated === true,
+      decls: Array.isArray(o.decls) ? o.decls : [], presentationOnly: o.presentationOnly === true };
+  }) };
+}
+
+/** Artifact-shaped assign reply (record of blocks, optional fields) → the strict wire shape. */
+function strictAssignShape(reply: unknown): unknown {
+  const blocks = (reply as { blocks?: unknown }).blocks;
+  if (blocks === undefined || blocks === null || typeof blocks !== "object" || Array.isArray(blocks)) return reply;
+  return {
+    ...(reply as object),
+    blocks: Object.entries(blocks as Record<string, { assignments?: unknown[]; displayLinks?: unknown[] }>).map(([id, b]) => ({
+      id,
+      assignments: (b.assignments ?? []).map((a) => {
+        const r = a as { row?: unknown; segments?: unknown; unstated?: unknown };
+        return { row: r.row, segments: Array.isArray(r.segments) ? r.segments : [], unstated: r.unstated === true };
+      }),
+      displayLinks: (b.displayLinks ?? []).map((d) => {
+        const l = d as { segment?: unknown; decl?: unknown; presentationOnly?: unknown };
+        return { segment: l.segment, decl: typeof l.decl === "string" ? l.decl : null, presentationOnly: l.presentationOnly === true };
+      }),
+    })),
   };
 }
 
@@ -1461,10 +1509,26 @@ describe("ensureNlLinks", () => {
     expect(persisted).toEqual(["a1"]);
   });
 
-  it("throws uncached when the verification skips a claim", async () => {
+  it("re-asks once when the verification skips a claim, and accepts a complete second reply", async () => {
+    await withDir(async (dir) => {
+      let verifyCalls = 0;
+      const codex = stubCodex({ verify: ({ prompt }) => {
+        verifyCalls++;
+        const all = verdictsFromPrompt(prompt);
+        if (verifyCalls === 1) { expect(prompt).not.toContain("CORRECTION REQUIRED"); return { verdicts: all.slice(1) }; }
+        expect(prompt).toContain("CORRECTION REQUIRED");
+        return { verdicts: all };
+      } });
+      await run(dir, codex.deps);
+      expect(verifyCalls).toBe(2);
+      expect(Object.keys(JSON.parse(await readFile(path.join(dir, "nl_links_verify_cache.json"), "utf8"))).length).toBeGreaterThan(0);
+    });
+  });
+
+  it("throws uncached when the verification skips a claim twice", async () => {
     await withDir(async (dir) => {
       const codex = stubCodex({ verify: ({ prompt }) => ({ verdicts: verdictsFromPrompt(prompt).slice(1) }) });
-      await expect(run(dir, codex.deps)).rejects.toThrow(/did not judge every claim exactly once/);
+      await expect(run(dir, codex.deps)).rejects.toThrow(/did not judge every claim exactly once on two attempts/);
       await expect(readFile(path.join(dir, "nl_links_verify_cache.json"), "utf8")).rejects.toThrow(/ENOENT/);
       // the assignment receipt survives: the failure is downstream of it
       expect(Object.keys(JSON.parse(await readFile(path.join(dir, "nl_links_cache.json"), "utf8")))).toEqual(["a1"]);
@@ -1939,7 +2003,7 @@ describe("prompts", () => {
     expect(prompt).toMatch(/You choose only among these ids and names; you never quote, rewrite, or compose text/);
     expect(prompt).toMatch(/The answer must be TOTAL/);
     expect(prompt).toMatch(/every row\s*id appears exactly once/);
-    expect(prompt).toMatch(/either with one or more `decl` entries/);
+    expect(prompt).toMatch(/either with one or more entries whose\s*`decl` names a declaration/);
     expect(prompt).toMatch(/never the same declaration twice for one segment/);
     expect(prompt).toMatch(/realizes one declaration per quantity: give an entry for each/);
     // the borderline that stopped a live rollout: notation AND realized is realized

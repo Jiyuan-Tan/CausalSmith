@@ -1,11 +1,9 @@
 import { readFile, writeFile, mkdir, rename, rm } from "node:fs/promises";
 import { basename, join } from "node:path";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import type { StageIO } from "../pipeline.js";
 import { presentationPrompt } from "../prompt_io.js";
 import { parseOutline, reconcileXrefAdvisories } from "../stage_util.js";
-import { parseAnchoredEnvs, lintAnchors, lintClarity, lintEnvOrder, lintNegativeContributionFraming, lintNestedMathDelimiters, lintReferences, repairObjRefs } from "../tex_anchors.js";
+import { canonicalizeObjRefs, parseAnchoredEnvs, lintAnchors, lintClarity, lintEnvOrder, lintNegativeContributionFraming, lintNestedMathDelimiters, lintReferences, repairObjRefs } from "../tex_anchors.js";
 import { FormalLayerSource, normalizeCitedScopeFootnotes, paperEnvMismatches } from "../formal_layer.js";
 import { parseNoteBlocks } from "../note_parser.js";
 import { SYNTHETIC_COMPANION_RE, externallyConsumedModules, findOrphanPaperModules } from "../paper_index_orphans.js";
@@ -18,7 +16,9 @@ import { ensureNlLinks } from "../nl_links.js";
 import { extractLeanrefIds } from "../tex2html.js";
 import { paperReferenceLabels, resolveObjCrefsPlain, tex2html } from "../tex2html.js";
 import { PresentationCrosswalk, LeanSnippets, FormalLayer, PaperMeta } from "../types.js";
-import { assertP2AssemblyFresh } from "../assembly_freshness.js";
+import { assertP2AssemblyFresh, recordP2Assembly, texFilesUnder } from "../assembly_freshness.js";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { loadJsonCache } from "../cache.js";
 import { buildPaperGraph, lintIsolatedLemmas, type PaperGraphNode } from "../paper_graph.js";
 
@@ -123,6 +123,35 @@ export function blocksMissingEquivalence(
  * join + Lean snippet extraction, assumption-faithfulness table with totality
  * check, tex→HTML fragment, meta.json. Site consumes only these artifacts.
  */
+/** HEAD of the repository at `repoRoot`, or null outside a git checkout (tests emit into a temp
+ *  dir); pinned once at entry and reused by the emit. */
+async function pinnedCommitOf(repoRoot: string): Promise<string | null> {
+  try {
+    const { stdout } = await execFileP("git", ["rev-parse", "HEAD"], { cwd: repoRoot });
+    return stdout.trim(); // "" outside a checkout (tests): nothing to stamp, and nothing to re-ask
+  } catch {
+    return null;
+  }
+}
+
+/** Whether `sha` names a commit object of the repository at `repoRoot`. */
+async function isRepoCommit(repoRoot: string, sha: string): Promise<boolean> {
+  try {
+    const { stdout } = await execFileP("git", ["cat-file", "-t", sha], { cwd: repoRoot });
+    return stdout.trim() === "commit";
+  } catch {
+    return false;
+  }
+}
+
+/** Rewrite the commit ids in `prior` — this bundle's own pinned commits from earlier emits — to
+ *  `commit`. Only those: a verification note also names the Lean toolchain and Mathlib revisions,
+ *  which a blanket rewrite of 40-hex tokens would falsify. */
+export function stampCommitIds(tex: string, prior: ReadonlySet<string>, commit: string): string {
+  if (prior.size === 0) return tex;
+  return tex.replace(/\b[0-9a-f]{40}\b/g, (token) => (prior.has(token) && token !== commit ? commit : token));
+}
+
 export async function stageP4(io: StageIO): Promise<void> {
   await mkdir(io.outDir, { recursive: true });
   if (io.ctx.deps.dryRun) {
@@ -181,17 +210,20 @@ export async function stageP4(io: StageIO): Promise<void> {
   const definedIds = new Set(parseAnchoredEnvs(paperTex).map((e) => e.obj_id));
   const layerOrder = formalLayer.blocks.filter((b) => b.env !== null).map((b) => b.obj_id);
   const refRepair = repairObjRefs(paperTex, definedIds);
-  if (refRepair.tex !== paperTex) {
-    paperTex = refRepair.tex;
+  const canonical = canonicalizeObjRefs(refRepair.tex, known);
+  if (canonical !== paperTex) {
+    paperTex = canonical;
     await writeFile(paperPath, paperTex, "utf8");
+  }
+  // Reader-facing style (identifier leaks, framing, assumption numbering) is the referee's to
+  // judge and the orchestrator's to fix; it is surfaced here, never a halt on the emit.
+  for (const p of [...lintClarity(paperTex), ...lintReferences(paperTex), ...lintNegativeContributionFraming(paperTex)]) {
+    io.state.notes.push(`P4 advisory (${p.gate}): ${p.detail}`);
   }
   const finalLint = [
     ...lintAnchors(paperTex, known, frozen),
     ...lintEnvOrder(paperTex, layerOrder),
-    ...lintClarity(paperTex),
     ...lintNestedMathDelimiters(paperTex),
-    ...lintReferences(paperTex),
-    ...lintNegativeContributionFraming(paperTex),
     ...lintIsolatedLemmas(paperTex),
     ...refRepair.problems,
   ];
@@ -226,6 +258,44 @@ export async function stageP4(io: StageIO): Promise<void> {
     }
   }
 
+  // The verification note names the commit the checks ran at, and the emit runs them at HEAD: a
+  // literal commit id in the prose is stamped to the pinned commit, in the paper and in the
+  // authored sources, so a hand-written id cannot go stale when the tree moves (it did, twice,
+  // and the referee read it as a broken reproducibility record each time).
+  const pinnedAtEntry = await pinnedCommitOf(io.ctx.repoRoot);
+  if (pinnedAtEntry !== null && pinnedAtEntry !== "") {
+    // The ids that were THIS bundle's pinned commit before: the prior emit's state, its
+    // verification contract, and the formal layer's own stamp.
+    const priorContract = await readFile(join(io.outDir, "verification_contract.json"), "utf8")
+      .then((raw) => (JSON.parse(raw) as { commit?: unknown }).commit).catch(() => undefined);
+    const recorded = new Set(
+      [io.state.pinned_commit, priorContract, formalLayer.commit]
+        .filter((c): c is string => typeof c === "string" && /^[0-9a-f]{40}$/.test(c)),
+    );
+    // A literal id typed from an earlier contract may predate every recorded one, so the test
+    // is the decidable one: the token names a commit of THIS repository (toolchain and Mathlib
+    // revisions do not resolve here). Every 40-hex token in the paper is checked once.
+    const priorCommits = new Set<string>();
+    for (const token of new Set([...paperTex.matchAll(/\b[0-9a-f]{40}\b/g)].map((m) => m[0]))) {
+      if (token === pinnedAtEntry) continue;
+      if (recorded.has(token) || (await isRepoCommit(io.ctx.repoRoot, token))) priorCommits.add(token);
+    }
+    const stamped = stampCommitIds(paperTex, priorCommits, pinnedAtEntry);
+    if (stamped !== paperTex) {
+      paperTex = stamped;
+      await writeFile(paperPath, paperTex, "utf8");
+      let sourcesChanged = false;
+      const sourceFiles = [join(io.outDir, "front_matter.tex"), join(io.outDir, "appendix_proofs.tex"), ...(await texFilesUnder(io.outDir, ["sections", "proofs"]))];
+      for (const rel of sourceFiles) {
+        const src = await readFile(rel, "utf8").catch(() => null);
+        if (src === null) continue;
+        const out = stampCommitIds(src, priorCommits, pinnedAtEntry);
+        if (out !== src) { await writeFile(rel, out, "utf8"); sourcesChanged = true; }
+      }
+      if (sourcesChanged) await recordP2Assembly(io.outDir);
+      io.state.notes.push(`P4: stamped the verification note's commit id to ${pinnedAtEntry.slice(0, 10)}`);
+    }
+  }
   // Mechanical compile failures belong to the orchestrator, not a paid writer retry.
   try {
     await execFileP("latexmk", ["-pdf", "-interaction=nonstopmode", "paper.tex"], {
@@ -265,8 +335,7 @@ export async function stageP4(io: StageIO): Promise<void> {
   }
 
   // pin the commit, then index + docstring pass — the extraction below must read the post-docstring tree
-  const { stdout: commitRaw } = await execFileP("git", ["rev-parse", "HEAD"], { cwd: io.ctx.repoRoot });
-  const commit = commitRaw.trim();
+  const commit = pinnedAtEntry ?? (await execFileP("git", ["rev-parse", "HEAD"], { cwd: io.ctx.repoRoot })).stdout.trim();
   io.state.pinned_commit = commit;
 
   // paper-module index: full decl-level view of the run's Lean code for the

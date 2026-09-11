@@ -12,21 +12,22 @@ objects. You choose only among these ids and names; you never quote, rewrite, or
 
 {{objects_payload}}
 
-Output exactly one JSON object, nothing else:
-{"blocks": {"<object id>": {
-  "assignments": [{"row": "r1", "segments": ["s2"]}, {"row": "r2", "unstated": true}],
-  "displayLinks": [{"segment": "s5", "decl": "<declaration name>"},
-                   {"segment": "s5", "decl": "<another declaration the same display defines>"},
-                   {"segment": "s6", "presentationOnly": true}]
-}}}
+Output exactly one JSON object of this shape (every field present on every item):
+{"blocks": [{"id": "<object id>",
+  "assignments": [{"row": "r1", "segments": ["s2"], "unstated": false},
+                  {"row": "r2", "segments": [], "unstated": true}],
+  "displayLinks": [{"segment": "s5", "decl": "<declaration name>", "presentationOnly": false},
+                   {"segment": "s5", "decl": "<another declaration the same display defines>", "presentationOnly": false},
+                   {"segment": "s6", "decl": null, "presentationOnly": true}]
+}]}
 
-The answer must be TOTAL. Every object id above appears exactly once. Within an object, every row
-id appears exactly once in `assignments` — with a non-empty `segments` list, or with
-`"unstated": true` and no segments, never both and never neither. Every DISPLAY segment appears
-in `displayLinks` — either with one or more `decl` entries, each naming a declaration of this
-paper's Lean development, or with a single `"presentationOnly": true` entry. Never both forms for
-one segment, never neither, and never the same declaration twice for one segment. Text segments
-are not listed there.
+The answer must be TOTAL. Every object id above appears exactly once in `blocks`. Within an
+object, every row id appears exactly once in `assignments` — with a non-empty `segments` list and
+`"unstated": false`, or with `"unstated": true` and empty `segments`, never both and never
+neither. Every DISPLAY segment appears in `displayLinks` — either with one or more entries whose
+`decl` names a declaration of this paper's Lean development (`presentationOnly` false), or with a
+single entry `{"decl": null, "presentationOnly": true}`. Never both forms for one segment, never
+neither, and never the same declaration twice for one segment. Text segments are not listed there.
 Any id you invent, omit, or answer twice discards the whole request and it is re-run.
 
 How to choose:

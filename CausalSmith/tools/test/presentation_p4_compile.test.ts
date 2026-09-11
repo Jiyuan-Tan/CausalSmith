@@ -10,7 +10,7 @@ vi.mock("node:child_process", async (importOriginal) => ({
   execFile: subprocess,
 }));
 
-import { stageP4 } from "../src/presentation/stages/p4_emit.js";
+import { stageP4, stampCommitIds } from "../src/presentation/stages/p4_emit.js";
 import { recordP2Assembly } from "../src/presentation/assembly_freshness.js";
 
 const dirs: string[] = [];
@@ -59,8 +59,8 @@ describe("P4 mechanical compile recovery", () => {
     expect((error as Error).message).toContain("Undefined control sequence");
     expect((error as Error).message).not.toContain("diagnostic prefix");
     expect((error as Error).message.length).toBeLessThan(2400);
-    expect(subprocess).toHaveBeenCalledTimes(1);
-    expect(subprocess.mock.calls[0][0]).toBe("latexmk");
+    expect(subprocess).toHaveBeenCalledTimes(2); // the entry commit pin, then one compile — no paid retry
+    expect(subprocess.mock.calls.map((call) => call[0])).toEqual(["git", "latexmk"]);
     expect(runCodex).not.toHaveBeenCalled();
     expect(await readFile(join(outDir, "paper.tex"), "utf8")).toBe(paper);
     expect(await readFile(join(outDir, "front_matter.tex"), "utf8")).toBe("A finite example.");
@@ -72,7 +72,7 @@ describe("P4 mechanical compile recovery", () => {
       callback(file === "latexmk" ? null : new Error("post-compile sentinel"), "");
     });
     await expect(stageP4(io)).rejects.toThrow("post-compile sentinel");
-    expect(subprocess.mock.calls.map((call) => call[0])).toEqual(["latexmk", "git"]);
+    expect(subprocess.mock.calls.map((call) => call[0])).toEqual(["git", "latexmk", "git"]) // entry pin (mock git throws), compile, then the emit pin — the sentinel;
     expect(runCodex).not.toHaveBeenCalled();
   });
 });
@@ -108,7 +108,7 @@ describe("P4 bibliography verification preserves publication metadata", () => {
     await expect(stageP4(io)).rejects.toThrow("post-compile sentinel");
     expect(await readFile(join(outDir, "references.bib"), "utf8")).toBe(bib);
     expect(io.state.notes.some(n => n.includes("published kept with caveat"))).toBe(true);
-    expect(subprocess.mock.calls.map(call => call[0])).toEqual(["latexmk", "git"]);
+    expect(subprocess.mock.calls.map(call => call[0])).toEqual(["git", "latexmk", "git"]) // entry pin (mock git throws), compile, then the emit pin — the sentinel;
     expect(runCodex).not.toHaveBeenCalled();
   });
 
@@ -141,5 +141,15 @@ describe("P4 bibliography verification preserves publication metadata", () => {
     expect(await readFile(join(outDir, "references.bib"), "utf8")).toBe(bib);
     expect(subprocess).not.toHaveBeenCalled();
     expect(runCodex).not.toHaveBeenCalled();
+  });
+});
+
+describe("stampCommitIds", () => {
+  it("rewrites only the bundle's own prior pinned commits, never a toolchain or Mathlib revision", () => {
+    const pinned = "84c32d60cb53b2f1cdef917448a45b96b08296ad";
+    const prior = new Set(["6f11a039165a75921bbb6499f3d9bf40f3f404f8"]);
+    const tex = "checks ran at commit \\texttt{6f11a039165a75921bbb6499f3d9bf40f3f404f8}; Lean commit \\texttt{d8b18978322de05a8f3dba51ef03cf5461676c17}; Mathlib db584cd6a0d5f9c6e1a5b4d3c2b1a09f8e7d6c5b; not 6f11a039.";
+    expect(stampCommitIds(tex, prior, pinned)).toBe(`checks ran at commit \\texttt{${pinned}}; Lean commit \\texttt{d8b18978322de05a8f3dba51ef03cf5461676c17}; Mathlib db584cd6a0d5f9c6e1a5b4d3c2b1a09f8e7d6c5b; not 6f11a039.`);
+    expect(stampCommitIds(tex, new Set(), pinned)).toBe(tex);
   });
 });

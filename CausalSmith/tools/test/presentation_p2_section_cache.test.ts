@@ -3,7 +3,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
-  canonicalProofHelperContext, existingProofForP2, proofHelperContextFor, proofObjectCatalog, proofRenderCacheKey, sectionCacheKey,
+  canonicalProofHelperContext, existingProofForP2, proofHelperContextFor, proofObjectCatalog, proofRenderCacheKey, sectionCacheKey, sectionRevisionBrief, frontMatterRevisionBrief,
 } from "../src/presentation/stages/p2_draft.js";
 import { parseAnchoredEnvs } from "../src/presentation/tex_anchors.js";
 
@@ -131,5 +131,28 @@ describe("existing-proof audit candidate", () => {
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
+  });
+});
+
+describe("sectionRevisionBrief", () => {
+  it("carries the prior draft with the object delta so a changed section is revised, not rewritten", () => {
+    const previous = "Hand-edited intro.\n\\begin{theoremv}{T-1}[A]x\\end{theoremv}\n\\begin{definitionv}{D-2}[B]y\\end{definitionv}\n";
+    const brief = sectionRevisionBrief(previous, ["T-1", "D-3"]);
+    expect(brief).toContain("Objects added to this section: D-3");
+    expect(brief).toContain("Objects removed from this section: D-2");
+    expect(brief).toContain("Hand-edited intro.");
+    expect(brief.endsWith(previous.trim() + "\nEND OF PRIOR DRAFT")).toBe(true);
+    const unchanged = sectionRevisionBrief(previous, ["T-1", "D-2"]);
+    expect(unchanged).toContain("added to this section: (none)");
+    expect(unchanged).toContain("removed from this section: (none)");
+  });
+});
+
+describe("frontMatterRevisionBrief", () => {
+  it("carries the prior front matter verbatim between the revise instruction and a closing line", () => {
+    const prior = "\\begin{abstract}Hand-edited.\\end{abstract}\n\\section{Introduction}\\label{sec:intro}Intro.";
+    const brief = frontMatterRevisionBrief(prior);
+    expect(brief.startsWith("PRIOR DRAFT of the abstract and introduction")).toBe(true);
+    expect(brief.endsWith(prior + "\nEND OF PRIOR DRAFT")).toBe(true);
   });
 });

@@ -325,22 +325,51 @@ export function repairObjRefs(tex: string, definedIds: Set<string>): { tex: stri
 }
 
 /**
- * Restore the `obj:` namespace on a cross-reference that names a known env id bare
- * (`\cref{thm:main}` for the env anchored at `thm:main`). Models that see `\cref{obj:thm:main}`
- * in a sentence sometimes "clean" the prefix away when they quote or rewrite it; the label without
- * the prefix does not exist, and the anchor lint rejects the bare id. The rewrite is fully
- * determined (a bare known id can only mean its `obj:` label) and byte-preserving otherwise.
+ * Obj ids are plumbing: prose reaches a statement through `\\cref{obj:<id>}` (the env macros
+ * define the labels), never through the bare id. Models that see `\\cref{obj:thm:main}` in a
+ * sentence sometimes "clean" the prefix away when they quote or rewrite it, or name the id bare;
+ * neither is a label LaTeX can resolve. Both repairs are fully determined (a known id can only
+ * mean its `obj:` label), so this rewrites them instead of a lint rejecting the text:
+ *  - a label list of `\\cref`/`\\Cref`/`\\ref` naming a known id bare gets the `obj:` prefix;
+ *  - a bare known id in prose outside frozen env blocks, references, labels and comments becomes
+ *    `\\cref{obj:<id>}`.
+ * Byte-preserving otherwise.
  */
-export function restoreObjRefs(tex: string, knownIds: ReadonlySet<string>): string {
-  return tex.replace(/\\(Cref|cref|ref)\{([^}]+)\}/g, (whole, command: string, rawLabels: string) => {
-    let changed = false;
-    const labels = rawLabels.split(",").map((x) => x.trim()).map((label) => {
-      if (label.startsWith("obj:") || !knownIds.has(label)) return label;
-      changed = true;
-      return `obj:${label}`;
+export function canonicalizeObjRefs(tex: string, knownIds: ReadonlySet<string>): string {
+  if (knownIds.size === 0) return tex;
+  const restoreRef = (ref: string): string =>
+    ref.replace(/^\\(Cref|cref|ref)\{([^}]+)\}$/, (whole, command: string, rawLabels: string) => {
+      let changed = false;
+      const labels = rawLabels.split(",").map((x) => x.trim()).map((label) => {
+        if (label.startsWith("obj:") || !knownIds.has(label)) return label;
+        changed = true;
+        return `obj:${label}`;
+      });
+      return changed ? `\\${command}{${labels.join(",")}}` : whole;
     });
-    return changed ? `\\${command}{${labels.join(",")}}` : whole;
-  });
+  const alternation = [...knownIds]
+    .sort((x, y) => y.length - x.length)
+    .map((id) => id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join("|");
+  const bareId = new RegExp(`(?<![\\w:-])(${alternation})(?![\\w-])`, "g");
+  // references get their prefix restored; leanref/cite/label arguments are opaque and left alone
+  const protectedSpan = /(\\(?:Cref|cref|ref|label|leanref|cite[A-Za-z]*)\s*(?:\[[^\]]*\]\s*){0,2}\{[^}]*\})/;
+  const fixProse = (span: string): string =>
+    span.split("\n").map((line) => {
+      // parity-aware comment cut: `\%` is a literal percent, `\\%` (row break, then %) a comment
+      const cut = line.search(/(?<!\\)(?:\\\\)*%/);
+      const at = cut < 0 ? -1 : cut + (line.slice(cut).match(/^(?:\\\\)*/)?.[0].length ?? 0);
+      const code = at < 0 ? line : line.slice(0, at);
+      const comment = at < 0 ? "" : line.slice(at);
+      return code.split(protectedSpan).map((part, i) => (i % 2 === 1 ? restoreRef(part) : part.replace(bareId, "\\cref{obj:$1}"))).join("") + comment;
+    }).join("\n");
+  let out = "";
+  let pos = 0;
+  for (const e of scanAnchoredEnvs(tex)) {
+    out += fixProse(tex.slice(pos, e.start)) + e.raw;
+    pos = e.end;
+  }
+  return out + fixProse(tex.slice(pos));
 }
 
 /** Whitespace-insensitive canonical form: reflowing prose is not drift, changing tokens is. */
@@ -652,7 +681,7 @@ export function lintClarity(tex: string): LintProblem[] {
       .replace(/\\\[[\s\S]*?\\\]/g, " ")
       .replace(/\\\((?:[^\\]|\\[^)])*?\\\)/g, " ")
       .replace(/\$[^$]*\$/g, " ")
-      .replace(/\\(?:cref|Cref|ref|label|cite[A-Za-z]*|leanref)\s*\{[^}]*\}(?:\{[^}]*\})?/g, " ")
+      .replace(/\\(?:cref|Cref|ref|label|cite[A-Za-z]*|leanref)\s*(?:\[[^\]]*\]\s*){0,2}\{[^}]*\}(?:\{[^}]*\})?/g, " ")
       .replace(/\\[A-Za-z]+/g, " ");
     for (const w of noMath.matchAll(/(?:^|[\s~])((?![aAiI])[A-Za-z])(?=[\s.,;:!?]|$)/g)) {
       problems.push({
@@ -690,28 +719,11 @@ export function lintClarity(tex: string): LintProblem[] {
 }
 
 /**
- * Reference/structure readability gate (#3b numbering + #6 bare cross-references).
- *  - `assumption-numbering`: assumption A-labels (the "(A_k)" in titles) must be
- *    consecutive and agree with the printed Assumption order — never A1,A2,A4,…
- *    (a gap at A3) or "Assumption 3" labelled (A4). Renumber to one scheme.
- *  - `legacy-ref`: every reader-facing reference uses cleveref so its target,
- *    rather than surrounding prose, determines the printed kind.
- *  - `reference-kind`: a typed reference must name the environment it targets;
- *    e.g. `Section~\ref{obj:def:risk}` must not silently render as "Section 14".
+ * Assumption A-labels (the "(A_k)" in titles) must be consecutive and agree with the printed
+ * Assumption order — never A1,A2,A4,… (a gap at A3). Advisory: reader-facing, judged by the
+ * referee, never a halt. Cross-reference form is not linted: `normalizeCrefs` rewrites every
+ * authored text to target-typed cleveref before it is assembled.
  */
-const PREP_REF_RE = /\b(of|in|from|see)\s*~?\s*\\ref\{obj:([^}]+)\}/g;
-const TYPED_OBJ_REF_RE = /\b(Sections?|Theorems?|Lemmas?|Definitions?|Assumptions?|Propositions?|Remarks?|Algorithms?|Cited results?)~\\ref\{obj:([^}]+)\}/gi;
-const MANUALLY_TYPED_CREF_RE = /\b(Appendix|Appendices|Chapters?|Sections?|Figures?|Tables?|Equations?|Theorems?|Lemmas?|Definitions?|Assumptions?|Propositions?|Remarks?|Algorithms?|Cited results?)\s*~?\s*\\(?:c|C)ref\{([^}]+)\}/gi;
-const ENV_REFERENCE_KIND: Record<AnchoredEnv["env"], string> = {
-  theoremv: "theorem",
-  assumptionv: "assumption",
-  lemmav: "lemma",
-  definitionv: "definition",
-  citedv: "cited result",
-  propositionv: "proposition",
-  remarkv: "remark",
-  algorithmv: "algorithm",
-};
 interface NotationHome {
   symbol: string;
   home: string;
@@ -1204,10 +1216,6 @@ export function lintHypothesisPresentation(tex: string): LintProblem[] {
 
 export function lintReferences(tex: string): LintProblem[] {
   const problems: LintProblem[] = [];
-  const envById = new Map(parseAnchoredEnvs(tex).map((e) => [e.obj_id, e.env] as const));
-  // #3b — assumption A-labels must be consecutive; a GAP (A1,A2,A4,…) makes the
-  // printed "Assumption k" disagree with its "(A_j)" label (the reader's "where is
-  // Assumption 3?" confusion). A single label or a consecutive run is fine.
   const aLabels: number[] = [];
   for (const e of parseAnchoredEnvs(tex)) {
     if (e.env !== "assumptionv") continue;
@@ -1223,50 +1231,9 @@ export function lintReferences(tex: string): LintProblem[] {
       break;
     }
   }
-  const seen = new Set<string>();
-  let r: RegExpExecArray | null;
-  for (const legacy of tex.matchAll(/\\((?:auto|eq)?ref)\{([^}]+)\}/g)) {
-    problems.push({
-      gate: "legacy-ref",
-      detail: `\\${legacy[1]}{${legacy[2]}} bypasses the manuscript's target-typed reference convention — use \\cref{${legacy[2]}} (or \\Cref at sentence start) so the target supplies its own kind`,
-    });
-  }
-  MANUALLY_TYPED_CREF_RE.lastIndex = 0;
-  while ((r = MANUALLY_TYPED_CREF_RE.exec(tex))) {
-    problems.push({
-      gate: "manual-cref-kind",
-      detail: `"${r[1]}~\\cref{${r[2]}}" duplicates a manually chosen kind — write \\cref{${r[2]}} and let the target determine the label`,
-    });
-  }
-  PREP_REF_RE.lastIndex = 0;
-  while ((r = PREP_REF_RE.exec(tex))) {
-    const key = `${r[1].toLowerCase()}|${r[2]}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    problems.push({
-      gate: "bare-ref",
-      detail: `"${r[1]} \\ref{obj:${r[2]}}" renders as "${r[1]} <number>" — write "${r[1]} \\cref{obj:${r[2]}}" so cleveref supplies the environment kind`,
-    });
-  }
-  TYPED_OBJ_REF_RE.lastIndex = 0;
-  while ((r = TYPED_OBJ_REF_RE.exec(tex))) {
-    const targetEnv = envById.get(r[2]);
-    if (!targetEnv) continue; // undefined references are handled by repairObjRefs.
-    const actual = r[1].replace(/s$/i, "").toLowerCase();
-    const expected = ENV_REFERENCE_KIND[targetEnv];
-    if (actual === expected) continue;
-    problems.push({
-      gate: "reference-kind",
-      detail: `"${r[1]}~\\ref{obj:${r[2]}}" targets a ${expected} environment — write "\\cref{obj:${r[2]}}" so the target supplies the correct kind`,
-    });
-  }
   return problems;
 }
 
-/** Check references against the current paper inventory and expected graph dependencies.
- * A present environment is a valid citation target even without a statement-uses edge:
- * exposition repairs can add references. Missing graph assumptions remain blocking;
- * other omitted graph references are advisory. Semantic judges check citation meaning. */
 export function lintCrossRefs(
   tex: string, expected: Map<string, Set<string>>, available: ReadonlySet<string>,
 ): LintProblem[] {
@@ -1340,26 +1307,6 @@ export function lintAnchors(
       } else if (normalizeBody(canonical) !== normalizeBody(e.body)) {
         problems.push({ gate: "frozen-drift", detail: `${e.obj_id} body differs from frozen layer` });
       }
-    }
-  }
-  // Obj ids are plumbing: prose must reference statements via \cref{obj:<id>}
-  // (the env macros define the labels), never as a bare id the reader can't
-  // resolve against the printed numbering. Frozen env bodies are exempt (they
-  // may cross-reference ids and cannot be edited anyway).
-  // Strip ALL LaTeX comments (inline too, not just full-line): proof steps carry
-  // inline `% lean: <decl>` provenance tags, and an aux-lemma node whose id equals
-  // its decl_name would otherwise false-positive on its own (invisible) comment tag.
-  // Parity-aware: `\%` is a literal percent, `\\%` (row break, then %) is a comment.
-  const proseNoEnvs = stripTexComments(
-    stripAnchoredEnvBlocks(tex).replace(/\\(?:Cref|cref|ref|label)\{[^}]*obj:[^}]*\}/g, " "),
-  );
-  for (const id of knownObjIds) {
-    const idRe = new RegExp(`(?<![\\w:-])${id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\w-])`);
-    if (idRe.test(proseNoEnvs)) {
-      problems.push({
-        gate: "objid-in-prose",
-        detail: `${id} appears in prose — cross-reference it as \\cref{obj:${id}} instead`,
-      });
     }
   }
   return problems;

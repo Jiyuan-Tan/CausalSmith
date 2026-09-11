@@ -29,6 +29,17 @@ vi.mock("../src/presentation/paths.js", async (importOriginal) => {
 // are stubbed). Tracks bank re-curation instead of a hardcoded qid.
 const { qid: QID, spec: SPEC } = acceptedBankEntry();
 
+/** Copy the fixture entry into an isolated bank. The fixture is whichever accepted entry sorts
+ *  first; one that has already been presented carries frozen bodies, which P1 reuses instead of
+ *  rendering — strip them so the render paths under test (batch touch-up, omission recovery) run. */
+async function copyBankFixture(dest: string): Promise<void> {
+  await cp(join(causalSmithRoot(), "doc", "research", "_bank", "accepted", `${QID}_${SPEC}`), dest, { recursive: true });
+  const graphPath = join(dest, "graph.json");
+  const graph = JSON.parse(await readFile(graphPath, "utf8"));
+  for (const node of graph.nodes ?? []) if (node.nl && "frozen_body" in node.nl) delete node.nl.frozen_body;
+  await writeFile(graphPath, JSON.stringify(graph, null, 2) + "\n", "utf8");
+}
+
 const BIB = `@article{robins1994,
   title = {Estimation of Regression Coefficients When Some Regressors Are Not Always Observed},
   author = {Robins, James M. and Rotnitzky, Andrea and Zhao, Lue Ping},
@@ -261,7 +272,7 @@ describe("stages P0-P2 against the real bank entry (stubbed models)", () => {
   afterAll(async () => rm(await dirP, { recursive: true, force: true }));
   beforeAll(async () => {
     isolatedBank.dir = join(await dirP, "bank");
-    await cp(join(root, "doc", "research", "_bank", "accepted", `${QID}_${SPEC}`), isolatedBank.dir, { recursive: true });
+    await copyBankFixture(isolatedBank.dir);
   });
 
   it("P0+P1 produce pool, outline, frozen layer; halts at outline checkpoint", async () => {
@@ -789,7 +800,7 @@ ${target.body} ${failedBody}
     const priorBank = isolatedBank.dir;
     isolatedBank.dir = join(dir, "bank");
     try {
-      await cp(join(root, "doc", "research", "_bank", "accepted", `${QID}_${SPEC}`), isolatedBank.dir, { recursive: true });
+      await copyBankFixture(isolatedBank.dir);
       await runPaperPipeline({ repoRoot: root, qid: QID, spec: SPEC, deps,
         auto: true, stopAfter: "P1", outDir: dir });
       const graphFile = graphPath(isolatedBank.dir, QID, SPEC);
@@ -841,7 +852,7 @@ ${target.body} ${failedBody}
     const priorBank = isolatedBank.dir;
     isolatedBank.dir = join(dir, "bank");
     try {
-      await cp(join(root, "doc", "research", "_bank", "accepted", `${QID}_${SPEC}`), isolatedBank.dir, { recursive: true });
+      await copyBankFixture(isolatedBank.dir);
       // Bootstrap this regression's own P0/P1 artifacts, including the related-work brief.
       await runPaperPipeline({ repoRoot: root, qid: QID, spec: SPEC, deps,
         auto: true, stopAfter: "P1", outDir: dir });

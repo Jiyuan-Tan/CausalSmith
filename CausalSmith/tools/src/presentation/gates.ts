@@ -1,4 +1,4 @@
-import { lintAnchors, lintEnvOrder, lintNegativeContributionFraming, lintReferences, parseAnchoredEnvs, repairObjRefs, restoreObjRefs, type LintProblem } from "./tex_anchors.js";
+import { canonicalizeObjRefs, lintAnchors, lintEnvOrder, parseAnchoredEnvs, repairObjRefs, type LintProblem } from "./tex_anchors.js";
 import { citedKeys, type BibEntry } from "./citations.js";
 import { maskNonBoundaryPeriods, stripTexComments } from "../shared/tex_text.js";
 import {
@@ -101,8 +101,6 @@ export async function runHardGates(inp: HardGateInput, r: GateRunners): Promise<
   const problems: LintProblem[] = [];
   problems.push(...lintAnchors(inp.paperTex, inp.knownObjIds, inp.frozenBodies));
   problems.push(...lintEnvOrder(inp.paperTex, inp.layerOrder));
-  problems.push(...lintReferences(inp.paperTex));
-  problems.push(...lintNegativeContributionFraming(inp.paperTex));
   problems.push(...repairObjRefs(inp.paperTex, new Set(parseAnchoredEnvs(inp.paperTex).map((e) => e.obj_id))).problems); // why: P3 revisions must not defer dangling obj refs to P4.
 
   const pool = new Set(inp.bibEntries.map((e) => e.key));
@@ -116,7 +114,7 @@ export async function runHardGates(inp: HardGateInput, r: GateRunners): Promise<
       // The auditor quotes the sentence with its `\cref{obj:…}` links and sometimes returns a
       // "fix" that only strips the `obj:` prefix (seen on 6 of 8 flags in one run): restoring the
       // prefix makes such a fix identical to the sentence, and a no-op flag is no finding.
-      const fix = f.fix === undefined ? undefined : restoreObjRefs(f.fix, inp.knownObjIds);
+      const fix = f.fix === undefined ? undefined : canonicalizeObjRefs(f.fix, inp.knownObjIds);
       if (fix !== undefined && fix.replace(/\s+/g, " ").trim() === f.sentence.replace(/\s+/g, " ").trim()) continue;
       problems.push({ gate: "overclaim", detail: `${f.sentence}${fix ? ` → ${fix}` : ""}` });
     }
@@ -240,39 +238,6 @@ const parseCandidate = (candidate: string): unknown => {
   }
   return null;
 };
-
-/** Extracts the first parseable JSON ARRAY from model output. Counterpart of
- *  `parseJsonLoose`, which is OBJECT-only: fed an array reply, its `{`…`}` slice
- *  cuts the brackets off and hands back the FIRST element as a bare object, so an
- *  `Array.isArray` caller sees every well-formed array reply as unparseable
- *  (observed live 2026-08-26: all 11 P1 synthesis batches rejected). */
-export function parseJsonArrayLoose(text: string): unknown[] | null {
-  const first = text.indexOf("[");
-  const last = text.lastIndexOf("]");
-  if (first < 0 || last <= first) return null;
-  const whole = parseCandidate(text.slice(first, last + 1));
-  if (Array.isArray(whole)) return whole;
-  // Stray brackets in surrounding prose break the whole-span attempt; accept the
-  // first balanced candidate that parses to an array (same fallback shape — and
-  // same brackets-inside-strings limitation — as the object scan below).
-  let depth = 0;
-  let start = -1;
-  for (let i = first; i <= last; i++) {
-    const c = text[i];
-    if (c === "[") {
-      if (depth === 0) start = i;
-      depth++;
-    } else if (c === "]") {
-      depth--;
-      if (depth === 0 && start >= 0) {
-        const parsed = parseCandidate(text.slice(start, i + 1));
-        if (Array.isArray(parsed)) return parsed;
-        start = -1;
-      }
-    }
-  }
-  return null;
-}
 
 /** Extracts the first parseable JSON object from model output.
  *

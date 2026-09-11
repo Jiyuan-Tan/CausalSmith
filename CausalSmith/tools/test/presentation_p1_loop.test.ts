@@ -128,6 +128,20 @@ describe("p1_order: definition-order repair (P1 is the only judge of order; late
     expect(envs.map(e => e.id)).toEqual([a.id, b.id, user.id, commented.id]);
     expect(problems).toEqual([]); // Missing references remain the separate xref lint's responsibility.
   });
+  it("ignores a synthesized definition's cross-references as prerequisites (a usage list must not hoist the paper)", () => {
+    const synth = mkEnv("synth_1", String.raw`Define \(\mathcal Z\); it is used in \cref{obj:ass:iid}, \cref{obj:def:late}, \cref{obj:thm:main}.`);
+    const user = mkEnv("thm:main", String.raw`Uses \(\mathcal Z\).`, "theoremv");
+    const iid = mkEnv("ass:iid", "IID.", "assumptionv");
+    const late = mkEnv("def:late", "Late.");
+    const envs = [synth, user, iid, late];
+    const { envs: out, problems } = repairDefinitionOrder(envs, new Map(), new Map(), new Map([["synth_1", [String.raw`\mathcal Z`]]]));
+    expect(problems).toEqual([]);
+    expect(out.map((e) => e.id)).toEqual(["synth_1", "thm:main", "ass:iid", "def:late"]);
+    // a graph-backed user's crefs still bind
+    const def = mkEnv("def:z", String.raw`Define \(z\).`);
+    const citing = mkEnv("thm:cite", String.raw`See \cref{obj:def:z}.`, "theoremv");
+    expect(repairDefinitionOrder([citing, def], new Map(), new Map(), new Map()).envs.map((e) => e.id)).toEqual(["def:z", "thm:cite"]);
+  });
   it("moves a definition home before its first user", () => {
     const envs = [mkEnv("thm:use", String.raw`Uses \(\mathcal A\).`, "theoremv"), mkEnv("def:a", String.raw`Define \(\mathcal A := \{1\}\).`)];
     const { envs: out, problems } = repairDefinitionOrder(envs, depsOf(["thm:use", "def:a"]), new Map(), new Map());
@@ -384,7 +398,7 @@ describe("undelivered presentation boundary", () => {
 
 describe("routeFinding (deterministic fix_locus)", () => {
   it("routes wording gates to the reviser", () => {
-    for (const g of ["lean-identifier", "formalization-leak", "xref-dangling", "xref-missing", "xref-missing-assumption", "faithfulness", "objid-in-prose", "assumption-numbering", "bare-ref", "lean-drift"]) {
+    for (const g of ["lean-identifier", "formalization-leak", "xref-dangling", "xref-missing", "xref-missing-assumption", "faithfulness", "assumption-numbering", "lean-drift"]) {
       expect(routeFinding(g)).toBe("wording-revise");
     }
   });
@@ -617,6 +631,10 @@ describe("lintClarity mangled-word guard", () => {
     const hits = lintClarity(wrap(
       "A bound holds; I state it. (b) For a value \\(u\\) with $v>0$, see \\cref{obj:def:x}. The rate is 5\\% by \\emph{design}.",
     ));
+    expect(hits.filter((p) => p.gate === "mangled-word")).toEqual([]);
+  });
+  it("a citation locator in an optional argument is not a bare word", () => {
+    const hits = lintClarity(wrap("As shown in \\citet[Corollary~D.1]{Yao2025}, the bound holds."));
     expect(hits.filter((p) => p.gate === "mangled-word")).toEqual([]);
   });
 });

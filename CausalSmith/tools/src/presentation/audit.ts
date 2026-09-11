@@ -20,6 +20,7 @@ import { proofFilePath } from "./proof_files.js";
 import { resolveLeanDeclaration, resolvedLeanAbsolutePath } from "./declaration_resolver.js";
 export { resolveLeanDeclaration } from "./declaration_resolver.js";
 import { parseJsonLoose, mapLimit, type StatementCheck } from "./gates.js";
+import { EQUIVALENCE_BATCH_REPLY, EQUIVALENCE_REPLY, PROOF_AUDIT_REPLY } from "./reply_schemas.js";
 
 /**
  * Per-artifact Lean-equivalence audits, co-located with the stage that PRODUCES the artifact
@@ -334,6 +335,7 @@ export async function judgeStatements(
         // definitions/assumptions are short structural comparisons — medium suffices (cost economy).
         reasoningEffort: s.isMainResult ? "high" : "medium",
         leanLsp: true,
+        outputSchema: EQUIVALENCE_REPLY,
       }),
     )) as { verdict?: string; detail?: string } | null;
     if (v?.verdict === "faithful" || v?.verdict === "missing-coverage") {
@@ -487,6 +489,7 @@ export async function judgeStatements(
           cwd: repoRoot,
           reasoningEffort: effort,
           leanLsp: true,
+          outputSchema: EQUIVALENCE_BATCH_REPLY,
         }),
       )) as { results?: { obj_id?: string; verdict?: string; detail?: string }[] } | null;
       let adopted = 0;
@@ -734,6 +737,7 @@ export async function runProofAudit(
         cwd: repoRoot,
         reasoningEffort: p.tier === "main" ? "high" : "medium",
         leanLsp: true,
+        outputSchema: PROOF_AUDIT_REPLY,
       }),
       )) as { verdict?: string; issues?: string[] } | null;
       if (typeof v?.verdict === "string" && (v.verdict === "faithful" || (v.issues?.length ?? 0) > 0)) break;

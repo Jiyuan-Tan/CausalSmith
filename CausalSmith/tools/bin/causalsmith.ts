@@ -13,7 +13,7 @@ export function parseCausalSmithCommand(argv: string[]): { mode: CausalSmithMode
     "Usage: causalsmith <research|present|study> <args...>\n" +
       "  causalsmith research <qid> <spec> [options...]\n" +
       "  causalsmith present <qid> <spec> [options...]\n" +
-      "  causalsmith study <slug> [--resume] [--clear-coordinate-cap] [--dry-run]",
+      "  causalsmith study <slug> [--resume] [--clear-build-cap] [--clear-coordinate-cap] [--dry-run]",
   );
 }
 

@@ -19,6 +19,7 @@ import {
 } from "../tex_anchors.js";
 import { parseBib } from "../citations.js";
 import { parseJsonLoose, mapLimit } from "../gates.js";
+import { NOTATION_REPLY } from "../reply_schemas.js";
 import { parseSynthReply } from "../synth_reply.js";
 import { buildLeanContextIndex, type LeanContext } from "../lean_context.js";
 import { citedDependencies, renderedNodes, topoOrder, refTargets, envForNode, isCitedNode } from "../graph_view.js";
@@ -110,9 +111,11 @@ function validateOutline(outlineMd: string, ids: string[], poolKeys: Set<string>
     problems.push("outline does not start with `# Title` — output-format drift");
   }
   if (outline.sections.length < 3) problems.push(`only ${outline.sections.length} sections parsed`);
-  const names = outline.sections.map((s) => s.name);
-  for (const dup of new Set(names.filter((n, i) => names.indexOf(n) !== i))) {
-    problems.push(`section name "${dup}" appears more than once (objs lines are keyed by section name)`);
+  // Names are compared by their file slug: P2 keys section files on it, so "Main Results" and
+  // "Main results" would share one file (and one prior draft) even though they differ as strings.
+  const slugs = outline.sections.map((s) => s.name.toLowerCase().replace(/[^a-z0-9]+/g, "_"));
+  for (const dup of new Set(slugs.filter((n, i) => slugs.indexOf(n) !== i))) {
+    problems.push(`section name "${outline.sections[slugs.indexOf(dup)].name}" appears more than once up to case/punctuation (objs lines and section files are keyed by section name)`);
   }
   const placed = outline.sections.flatMap((s) => s.objs);
   for (const id of ids) {
@@ -812,7 +815,7 @@ export async function stageP1(io: StageIO): Promise<void> {
     // An unusable reply is a mechanical failure: retried once at the call site, then thrown.
     let problems: NotationReviewerProblem[] | null = null;
     for (let attempt = 0; attempt < 2 && problems === null; attempt++) {
-      const res = await deps.runCodex({ model: MODELS.codexNotationCheck, prompt, cwd: repoRoot, reasoningEffort: "medium", leanLsp: false });
+      const res = await deps.runCodex({ model: MODELS.codexNotationCheck, prompt, cwd: repoRoot, reasoningEffort: "medium", leanLsp: false, outputSchema: NOTATION_REPLY });
       try {
         problems = parseNotationReviewerOutput(res.stdout);
       } catch (e) {
@@ -981,8 +984,7 @@ export async function stageP1(io: StageIO): Promise<void> {
       let groups: SynthGroup[] | null = null;
       for (let attempt = 0; attempt < 2 && groups === null; attempt++) {
         const res = await deps.runCodex({ prompt, cwd: repoRoot, reasoningEffort: "medium", leanLsp: true });
-        // A decoy array in surrounding prose can win the loose scan; a reply whose elements are not
-        // all group OBJECTS is a mechanical failure — retried once, then thrown.
+        // A reply without well-formed delimited blocks is a mechanical failure — retried once, then thrown.
         const parsed = parseSynthReply(res.stdout);
         if (parsed) {
           groups = parsed;

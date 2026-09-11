@@ -4,7 +4,8 @@ import { join } from "node:path";
 import type { StageIO } from "../pipeline.js";
 import { presentationPrompt, promptFingerprint } from "../prompt_io.js";
 import { parseOutline } from "../stage_util.js";
-import { lintAnchors, lintEnvOrder, hashEnvBody, parseAnchoredEnvs, repairObjRefs, restoreObjRefs, reviewerTexFor } from "../tex_anchors.js";
+import { CITATION_SUPPORT_REPLY, OVERCLAIM_REPLY, REPLACEMENTS_REPLY, RUBRIC_REPLY } from "../reply_schemas.js";
+import { canonicalizeObjRefs, lintAnchors, lintEnvOrder, hashEnvBody, normalizeCrefs, parseAnchoredEnvs, repairObjRefs, reviewerTexFor } from "../tex_anchors.js";
 import { FormalLayerSource, blocksToTex } from "../formal_layer.js";
 import { applyProseRevision, proofBlocks, applyTargetedReplacements, type TextReplacement } from "../prose_revision.js";
 export { applyTargetedReplacements, type TextReplacement } from "../prose_revision.js";
@@ -298,6 +299,7 @@ export async function stageP3(io: StageIO): Promise<void> {
           }),
           cwd: io.ctx.repoRoot,
           reasoningEffort: "medium",
+          outputSchema: OVERCLAIM_REPLY,
           leanLsp: false,
         }),
       )) as { clean?: boolean; flags?: { id?: number; sentence: string; fix?: string }[] } | null;
@@ -394,6 +396,7 @@ export async function stageP3(io: StageIO): Promise<void> {
                 cwd: io.ctx.repoRoot,
                 reasoningEffort: "low",
                 leanLsp: false,
+                outputSchema: CITATION_SUPPORT_REPLY,
               }),
             )) as { results?: { id?: number; verdict?: string; reason?: string }[] } | null;
             for (const r of parsed?.results ?? []) {
@@ -513,6 +516,7 @@ export async function stageP3(io: StageIO): Promise<void> {
       cwd: io.ctx.repoRoot,
       reasoningEffort: "high",
       leanLsp: false,
+      outputSchema: REPLACEMENTS_REPLY,
     });
     const parsed = parseJsonLoose(stdout) as { replacements?: TextReplacement[] } | null;
     if (!Array.isArray(parsed?.replacements)) {
@@ -526,13 +530,12 @@ export async function stageP3(io: StageIO): Promise<void> {
     if (!advisory && parsed.replacements.length === 0) {
       throw new Error(`P3 revision round ${round} returned no replacements`);
     }
-    // A reviser that echoes a `\cref{obj:…}` link sometimes drops the `obj:` prefix: in `after` the
-    // bare id is not a label and the frozen-layer lint below would reject the whole round; in
-    // `before` it matches nothing and the patch would be skipped as missing. The paper never
-    // legally contains a bare known id inside a ref, so restoring both sides is determined.
+    // The reviser's patches cross the model boundary here: a `\cref{obj:…}` it echoed with the
+    // prefix dropped, a bare id, or a `\ref`/manual kind are canonicalized on both sides (the
+    // paper itself is canonical, so a raw `before` would match nothing and be skipped as missing).
     for (const r of parsed.replacements) {
-      if (typeof r.before === "string") r.before = restoreObjRefs(r.before, known);
-      if (typeof r.after === "string") r.after = restoreObjRefs(r.after, known);
+      if (typeof r.before === "string") r.before = canonicalizeObjRefs(r.before, known);
+      if (typeof r.after === "string") r.after = canonicalizeObjRefs(normalizeCrefs(r.after), known);
     }
     const { tex: agentRevision, skipped, applied } = applyTargetedReplacements(before, parsed.replacements,
       // Reject each protected edit before persistence/propagation. Restoring only the final
@@ -715,8 +718,8 @@ export async function stageP3(io: StageIO): Promise<void> {
       const rubricPrompt = await presentationPrompt("p3_rubric", { paper_tex: paperTex });
       reviews = [];
       const rubricRuns = [
-        () => deps.runClaude({ prompt: rubricPrompt, model: MODELS.claudeMain, cwd: io.ctx.repoRoot }),
-        () => deps.runCodex({ prompt: rubricPrompt, cwd: io.ctx.repoRoot, reasoningEffort: "medium" as const, leanLsp: false, multiAgent: false }),
+        () => deps.runClaude({ prompt: rubricPrompt, model: MODELS.claudeMain, cwd: io.ctx.repoRoot, jsonSchema: RUBRIC_REPLY }),
+        () => deps.runCodex({ prompt: rubricPrompt, cwd: io.ctx.repoRoot, reasoningEffort: "medium" as const, leanLsp: false, multiAgent: false, outputSchema: RUBRIC_REPLY }),
       ];
       for (const run of rubricRuns) {
         const v = parseRubricReview(await ask(run()));

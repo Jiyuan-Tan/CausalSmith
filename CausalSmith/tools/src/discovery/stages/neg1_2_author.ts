@@ -7,21 +7,21 @@
 // artifact: discovery consumers (the D-0.5 reviewer, D0-CORE) read the proto_core JSON
 // directly, so NO proposal .tex is rendered here (the D0 derivation .tex — F3 roadmap —
 // is rendered later by D0-RENDER). Flow: dispatch → write core.json → proposal gate
-// (G1–G7 + GP1/GP2/GP3) → schema-validate. The author's stdout JSON (seeds /
-// literature_map / cluster / novelty_justification / literature_checklist) is returned
-// as `handoff` for the -0.5 loop. See D0_CORE_REDESIGN.md §12.
+// (G1–G7 + GP1/GP2/GP3) → schema-validate. Proposal metadata is harvested from
+// that core into the -0.5 handoff. Stdout is only a disposition receipt; it is
+// never a second authority for proposal metadata. See D0_CORE_REDESIGN.md §12.
 import { existsSync } from "node:fs";
 import { mkdir, readFile, rm } from "node:fs/promises";
 import path from "node:path";
+import { z } from "zod";
 import { MODEL_PLAN } from "../../constants.js";
 import { artifactPath } from "../../paths.js";
-import { discoveryBrief, parseStageOutput, readPrompt, type StageDeps } from "../../pipeline_support.js";
-import { extractJsonObject } from "../../judgment.js";
+import { discoveryBrief, readPrompt, type StageDeps } from "../../pipeline_support.js";
 import type { PipelineContext, StateJson } from "../../types.js";
+import { clusterFor } from "../cluster_setup.js";
 import { CoreSchema } from "../core/schema.js";
 import {
   assertNoDecodedControlChars,
-  containsLikelyDecodedTexNewlines,
   normalizeRawModelJson,
   repairCoreLatexSerialization,
 } from "../core/latex_serialization.js";
@@ -30,6 +30,7 @@ import { dispatchAgent } from "../../framework/agent_dispatch.js";
 import { proposalGate } from "../framework/gate_registrations.js";
 import { writeJsonAtomic } from "../../shared/json_atomic.js";
 import { stableJson } from "../../shared/stable_json.js";
+import { loadParentEntry } from "../../upgrade.js";
 import {
   extensionEditBasePath,
   sealPendingExtensionSource,
@@ -56,11 +57,6 @@ export interface StageNeg1_2ProtoCoreResult {
   handoff: Record<string, unknown>;
 }
 
-function leadingStageStatus(stdout: string): "completed" | "needs-pivot" | "failed" | null {
-  const match = stdout.match(/^\s*\{\s*"status"\s*:\s*"(completed|needs-pivot|failed)"\s*[,}]/);
-  return match?.[1] as "completed" | "needs-pivot" | "failed" | undefined ?? null;
-}
-
 function containsSubstantiveText(value: unknown): boolean {
   if (typeof value === "string") return value.trim() !== "";
   if (Array.isArray(value)) return value.some(containsSubstantiveText);
@@ -70,50 +66,197 @@ function containsSubstantiveText(value: unknown): boolean {
   return false;
 }
 
-function invalidReviewerFields(
-  reviewerFields: Record<string, unknown>,
+const nonempty = z.string().trim().min(1);
+/** The stdout receipt: a disposition plus a nonempty message. Unknown keys are
+ * STRIPPED, not rejected — a model that also echoes checklist / upgrade metadata
+ * on stdout is harmless (the core is the only authority) and must not cost a
+ * re-author round. `artifacts` is advisory: the core path is orchestrator-owned. */
+const AuthorReceiptSchema = z.object({
+  status: z.enum(["completed", "needs-pivot", "failed"]),
+  message: nonempty,
+  artifacts: z.array(nonempty).optional(),
+});
+const substantiveRecord = z.record(z.unknown()).refine(containsSubstantiveText, "must contain substantive text");
+const IdeationMetadataSchema = z.object({
+  seeds: z.array(nonempty).min(1),
+  seed_details: z.array(substantiveRecord).min(1),
+  literature_map: z.union([nonempty, substantiveRecord, z.array(substantiveRecord).min(1)]),
+});
+const LiteratureChecklistRowSchema = z.object({
+  author: nonempty,
+  year: z.union([z.number().finite(), nonempty]),
+  venue: nonempty,
+  bibkey: nonempty,
+  one_line: nonempty,
+  relevant_to: nonempty,
+}).strict();
+const UpgradeMetadataSchema = z.object({
+  upgrade_mode: z.literal(true).optional(),
+  parent_qid: nonempty.optional(),
+  parent_spec: nonempty.optional(),
+  upgrade_axis: z.enum(["computation", "estimation", "generalization", "mechanism"]).optional(),
+  delta_summary: nonempty.optional(),
+  reused_bibkeys: z.array(nonempty).optional(),
+  new_bibkeys: z.array(nonempty).min(1).optional(),
+});
+
+function authoredMetadataSchema(
   upgrade: NonNullable<StateJson["proposed_from"]>["upgrade_from"],
-): string[] {
-  const invalid: string[] = [];
-  const checklistPresent = Object.prototype.hasOwnProperty.call(reviewerFields, "literature_checklist");
-  const checklistValid = Array.isArray(reviewerFields.literature_checklist) &&
-    reviewerFields.literature_checklist.length >= 4 &&
-    reviewerFields.literature_checklist.length <= 10 &&
-    reviewerFields.literature_checklist.every((row) => {
-    if (typeof row !== "object" || row === null) return false;
-    const item = row as Record<string, unknown>;
-    const nonempty = (key: string) => typeof item[key] === "string" && (item[key] as string).trim() !== "";
-    return nonempty("author") &&
-      ((typeof item.year === "number" && Number.isFinite(item.year)) || nonempty("year")) &&
-      nonempty("venue") && nonempty("bibkey") && nonempty("one_line") && nonempty("relevant_to");
-  });
-  if (!checklistPresent || !checklistValid) invalid.push("literature_checklist(typed rows)");
-  const noveltyPresent = Object.prototype.hasOwnProperty.call(reviewerFields, "novelty_justification");
-  if (!noveltyPresent ||
-      typeof reviewerFields.novelty_justification !== "string" || reviewerFields.novelty_justification.trim() === "") {
-    invalid.push("novelty_justification(nonempty string)");
-  }
-  const messagePresent = Object.prototype.hasOwnProperty.call(reviewerFields, "message");
-  if (!messagePresent || typeof reviewerFields.message !== "string" || reviewerFields.message.trim() === "") {
-    invalid.push("message(nonempty string)");
-  }
-  if (upgrade) {
-    if (reviewerFields.upgrade_mode !== true) invalid.push("upgrade_mode(true)");
-    if (reviewerFields.parent_qid !== upgrade.parent_qid) invalid.push("parent_qid(exact)");
-    if (reviewerFields.parent_spec !== upgrade.parent_spec) invalid.push("parent_spec(exact)");
-    if (reviewerFields.upgrade_axis !== upgrade.upgrade_axis) invalid.push("upgrade_axis(exact)");
-    if (typeof reviewerFields.delta_summary !== "string" || reviewerFields.delta_summary.trim() === "") {
-      invalid.push("delta_summary(nonempty string)");
-    }
-    const bibkeysValid = (value: unknown) => Array.isArray(value) && value.every(
-      (key) => typeof key === "string" && key.trim() !== "",
+  core: Record<string, unknown>,
+  /** Cold-start is the only mode whose prompt runs seed generation; every other
+   * mode carries the ideation substrate in `proposed_from`, so there the keys are
+   * harvested when present and never required. */
+  requireIdeation: boolean,
+) {
+  const ideation = requireIdeation ? IdeationMetadataSchema : IdeationMetadataSchema.partial();
+  return ideation.merge(z.object({
+    literature_checklist: z.array(LiteratureChecklistRowSchema).min(4).max(10),
+    novelty_justification: z.union([
+      nonempty,
+      z.record(z.unknown()).refine(containsSubstantiveText, "must contain substantive text")
+        .transform((value) => stableJson(value)),
+    ]),
+  })).merge(UpgradeMetadataSchema).superRefine((metadata, ctx) => {
+    const statementIds = new Set(
+      Array.isArray(core.statements)
+        ? core.statements.flatMap((statement) =>
+          typeof statement === "object" && statement !== null &&
+              typeof (statement as Record<string, unknown>).id === "string"
+            ? [(statement as Record<string, unknown>).id as string]
+            : [])
+        : [],
     );
-    if (!bibkeysValid(reviewerFields.reused_bibkeys)) invalid.push("reused_bibkeys(nonempty strings)");
-    if (!bibkeysValid(reviewerFields.new_bibkeys) || (reviewerFields.new_bibkeys as unknown[]).length === 0) {
-      invalid.push("new_bibkeys(nonempty array of nonempty strings)");
+    const bibliographyEntries = Array.isArray(core.bibliography)
+      ? core.bibliography.flatMap((entry) => {
+        if (typeof entry !== "object" || entry === null) return [];
+        const row = entry as Record<string, unknown>;
+        return typeof row.key === "string" ? [{ key: row.key }] : [];
+      })
+      : [];
+    const bibliographyKeys = new Set(bibliographyEntries.map(({ key }) => key));
+    if (bibliographyKeys.size !== bibliographyEntries.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["bibliography"],
+        message: "bibliography keys must be unique for unambiguous metadata joins",
+      });
     }
+    for (const [index, row] of metadata.literature_checklist.entries()) {
+      if (!statementIds.has(row.relevant_to)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["literature_checklist", index, "relevant_to"],
+          message: "must name a current statement id",
+        });
+      }
+      if (!bibliographyKeys.has(row.bibkey)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["literature_checklist", index, "bibkey"],
+          message: "must name a current bibliography key",
+        });
+      }
+    }
+    if (!upgrade) return;
+    const expected: Record<string, unknown> = {
+      upgrade_mode: true,
+      parent_qid: upgrade.parent_qid,
+      parent_spec: upgrade.parent_spec,
+      upgrade_axis: upgrade.upgrade_axis,
+    };
+    for (const [key, value] of Object.entries(expected)) {
+      if (metadata[key as keyof typeof metadata] !== value) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: [key], message: `must equal ${JSON.stringify(value)}` });
+      }
+    }
+    for (const key of ["delta_summary", "reused_bibkeys", "new_bibkeys"] as const) {
+      if (metadata[key] === undefined) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: [key], message: "required in upgrade mode" });
+      }
+    }
+    const reused = metadata.reused_bibkeys ?? [];
+    const added = metadata.new_bibkeys ?? [];
+    if (new Set(reused).size !== reused.length || reused.length < 3) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["reused_bibkeys"],
+        message: "must contain at least three unique parent bibliography keys",
+      });
+    }
+    if (new Set(added).size !== added.length) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["new_bibkeys"], message: "must contain unique keys" });
+    }
+    for (const key of [...reused, ...added]) {
+      if (!bibliographyKeys.has(key)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [reused.includes(key) ? "reused_bibkeys" : "new_bibkeys"],
+          message: `${JSON.stringify(key)} must name a current bibliography key`,
+        });
+      }
+    }
+    for (const key of added) {
+      if (reused.includes(key)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["new_bibkeys"],
+          message: `${JSON.stringify(key)} must be disjoint from reused_bibkeys`,
+        });
+      }
+    }
+  });
+}
+
+function parseAuthorReceipt(
+  stdout: string,
+): { receipt: z.infer<typeof AuthorReceiptSchema>; error: null } | { receipt: null; error: string } {
+  try {
+    const normalized = normalizeRawModelJson(stdout).trim();
+    return { receipt: AuthorReceiptSchema.parse(JSON.parse(normalized)), error: null };
+  } catch (error) {
+    return {
+      receipt: null,
+      error: `Stage -1.2 producer receipt is invalid: ${error instanceof Error ? error.message : String(error)}`,
+    };
   }
-  return invalid;
+}
+
+/** Upgrade-provenance contract read from the banked parent. `null` when the
+ * parent cannot supply one (pre-rollout `.tex` proposal, stale identity, too
+ * few keys): the run then keeps the core-side upgrade checks (three unique
+ * reused keys, all keys present in the current bibliography, reused/new
+ * disjoint) and skips only the parent-membership join. Halting an upgrade run
+ * over bank-side metadata would make every legacy parent un-upgradable. */
+async function loadParentContract(
+  repoRoot: string,
+  upgradeFrom: NonNullable<NonNullable<StateJson["proposed_from"]>["upgrade_from"]>,
+): Promise<{ bibliography: Set<string>; cluster: string } | null> {
+  const parent = await loadParentEntry(repoRoot, upgradeFrom);
+  const skip = (why: string): null => {
+    console.warn(`[D-1.2] upgrade provenance: parent-membership check skipped — ${why}`);
+    return null;
+  };
+  let parentCore: Record<string, unknown>;
+  try {
+    parentCore = JSON.parse(normalizeRawModelJson(parent.proposal_tex)) as Record<string, unknown>;
+  } catch {
+    return skip("the banked parent proposal is not a typed core (pre-rollout .tex entry)");
+  }
+  const parsed = CoreSchema.safeParse(parentCore);
+  if (!parsed.success) return skip("the banked parent core does not parse as CoreSchema");
+  const typedParent = parsed.data;
+  if (typedParent.qid !== upgradeFrom.parent_qid || typedParent.specialization !== upgradeFrom.parent_spec) {
+    return skip("the banked parent core identity does not match the requested upgrade parent");
+  }
+  if (!typedParent.cluster) return skip("the banked parent core declares no cluster");
+  if (parent.cluster && typedParent.cluster !== parent.cluster) {
+    return skip("the banked parent core cluster does not match the bank metadata");
+  }
+  const keys = (typedParent.bibliography ?? []).map((entry) => entry.key);
+  const bibliography = new Set(keys);
+  if (bibliography.size !== keys.length) return skip("the banked parent bibliography keys are not unique");
+  if (bibliography.size < 3) return skip("the banked parent bibliography has fewer than three keys");
+  return { bibliography, cluster: typedParent.cluster };
 }
 
 export function assembleNeg1_2AuthorPrompt(parts: {
@@ -134,7 +277,7 @@ export function assembleNeg1_2AuthorPrompt(parts: {
     parts.modeBlock ? `\n${parts.modeBlock}` : "",
     "",
     `Write the typed proposal core JSON to this path (create it): ${parts.corePath}`,
-    'Return only JSON on stdout: {"status":"completed"|"needs-pivot","message":"...","artifacts":["<proto_core.json>"], "literature_checklist":[...]}.',
+    'Return only the disposition receipt on stdout: {"status":"completed"|"needs-pivot","message":"...","artifacts":["<proto_core.json>"]}. Put all proposal, literature, novelty, and upgrade metadata in the typed proposal core, never in this receipt.',
   ].join("\n");
 }
 
@@ -142,22 +285,10 @@ export function assembleNeg1_2AuthorPrompt(parts: {
  * persist boundary (everything else outside CoreSchema is dropped — see the
  * persist comment in `runStageNeg1_2ProtoCore`). Exported so the prompt↔schema
  * contract test can prove every prompt-mandated field survives persistence. */
-export const CORE_HANDOFF_KEYS = [
-  "seeds",
-  "seed_details",
-  "literature_map",
-  "cluster",
-  "novelty_justification",
-  "literature_checklist",
-] as const;
-
-/** Upgrade-mode receipt fields the UM8 directive mandates in the author's
- * STDOUT JSON (not the core file). The persisted core is the single source the
- * -0.5 reviewer reads, so these are folded into it at
- * the persist boundary — otherwise upgrade runs would review without their
- * declared axis/delta. Fixed allowlist for the same injection/bloat reason as
- * CORE_HANDOFF_KEYS. */
-export const UPGRADE_RECEIPT_KEYS = [
+/** Upgrade metadata is authored in the core and preserved at its validation
+ * boundary. Stdout may repeat it, but the receipt is never consulted for these
+ * fields. */
+export const UPGRADE_CORE_KEYS = [
   "upgrade_mode",
   "parent_qid",
   "parent_spec",
@@ -167,48 +298,14 @@ export const UPGRADE_RECEIPT_KEYS = [
   "new_bibkeys",
 ] as const;
 
-/** The checklist's one canonical key plus the spellings the producer model
- * empirically drifts to. ONE logical field: the persist fold normalizes any
- * spelling to `literature_checklist` and never persists an alias — otherwise a
- * fresh checklist emitted under a drift spelling loses to a stale canonical
- * copy carried in the core (audit R3C3). */
-const CHECKLIST_SPELLINGS = [
-  "literature_checklist",
-  "named_literature_checklist",
-  "literature_check_list",
-] as const;
-
-/** The stdout fields the -0.5 reviewer CONSUMES from the persisted core, which the head prompts
- * mandate (or tolerate as empirical key drift) on the FINAL STDOUT LINE rather
- * than in the core file: the checklist (+ drift spellings), the novelty
- * justification, the UM8 upgrade receipt, and the author's one-line `message`.
- * Folded into the persisted core at the persist boundary so a
- * contract-compliant stdout-only emission still reaches the reviewer through
- * the single artifact (audit C1: losing a stdout-only checklist made every
- * revise round fire N-thin-survey).
- *
- * Fold semantics, each boundary pinned by a test:
- *  - STDOUT WINS on conflict. The current call's stdout is always fresh,
- *    while the core copy can be OUR OWN prior fold carried back through the
- *    revise input block (audit R2C1: raw-core precedence persisted iteration
- *    1's checklist over iteration 2's updated one).
- *  - RAW-CORE FALLBACK when stdout omits the key. CoreSchema strips these
- *    keys from the typed core, so without an explicit fallback a revise whose
- *    stdout forgets the UM8 receipt silently drops `upgrade_mode` and D-0.5
- *    skips the parent-aware directive (audit R3C2).
- *  - The checklist is normalized across CHECKLIST_SPELLINGS to the canonical
- *    key; aliases are never persisted (audit R3C3).
- *  - The list must stay DISJOINT from CoreSchema-declared keys. Folding a
- *    schema-declared key (e.g. `cluster`, an enum) would let a malformed
- *    stdout value invalidate an already-validated core AFTER its last
- *    CoreSchema.parse (audit R2C2). Ideation metadata the reviewer never
- *    renders (seeds, literature_map, cluster) is therefore NOT folded — it
- *    reaches `proposed_from` via the in-memory handoff object instead. */
-export const STDOUT_HANDOFF_KEYS = [
-  ...UPGRADE_RECEIPT_KEYS,
-  ...CHECKLIST_SPELLINGS,
+export const CORE_HANDOFF_KEYS = [
+  "seeds",
+  "seed_details",
+  "literature_map",
+  "cluster",
   "novelty_justification",
-  "message",
+  "literature_checklist",
+  ...UPGRADE_CORE_KEYS,
 ] as const;
 
 /** Preserve the small stdout status receipt while sourcing proposal metadata
@@ -218,11 +315,22 @@ function mergeCoreHandoff(
   core: Record<string, unknown>,
   stdoutHandoff: Record<string, unknown>,
 ): Record<string, unknown> {
-  const merged = { ...stdoutHandoff };
+  const merged = projectStdoutReceipt(stdoutHandoff);
   for (const key of CORE_HANDOFF_KEYS) {
     if (Object.prototype.hasOwnProperty.call(core, key)) merged[key] = core[key];
   }
   return merged;
+}
+
+function projectStdoutReceipt(stdoutHandoff: Record<string, unknown>): Record<string, unknown> {
+  const receipt: Record<string, unknown> = {};
+  // Failure diagnostics are part of the disposition receipt: D-0.5 uses them
+  // to distinguish an unworkable angle from a provider/sandbox failure. They
+  // are not proposal or reviewer metadata.
+  for (const key of ["status", "message", "artifacts", "blocking_reason", "error", "failure_reason"] as const) {
+    if (Object.prototype.hasOwnProperty.call(stdoutHandoff, key)) receipt[key] = stdoutHandoff[key];
+  }
+  return receipt;
 }
 
 /**
@@ -301,6 +409,7 @@ export async function runStageNeg1_2ProtoCore(args: {
     corePath: attemptPath,
   });
   const upgradeFrom = args.state.pre_d0_intent?.upgrade_from ?? args.state.proposed_from?.upgrade_from ?? args.ctx.upgradeFrom;
+  const parentContract = upgradeFrom ? await loadParentContract(args.ctx.repoRoot, upgradeFrom) : null;
 
   // The proposal gate (G1–G7 + GP1–GP3) can reject the authored core (e.g. prose
   // in an atomic `condition`/target field). Re-author with the violations fed back
@@ -341,75 +450,27 @@ export async function runStageNeg1_2ProtoCore(args: {
       reasoningEffort: MODEL_PLAN.stageNeg1_2_draft.codex.effort,
       inactivityTimeoutMs: 40 * 60 * 1000,
     });
-    const initiallyParsed = parseStageOutput(out.stdout);
-    const recoveredLeadingStatus = initiallyParsed.status === "parse_failed"
-      ? leadingStageStatus(out.stdout)
-      : null;
-    const parsedOut = initiallyParsed.status === "parse_failed" && recoveredLeadingStatus
-      ? { status: recoveredLeadingStatus, message: "Recovered the leading producer disposition from malformed JSON" }
-      : initiallyParsed;
-    if (parsedOut.status === "parse_failed") {
-      // The receipt is advisory once the author has written the declared artifact:
-      // only an unambiguous leading disposition may recover it. Unknown status
-      // remains a hard failure even if a diagnostic artifact happens to exist.
-      throw new Error("Stage -1.2: proto-core author output did not parse (parse_failed) - refusing to advance on unparseable output");
+    const parsedReceipt = parseAuthorReceipt(out.stdout);
+    if (parsedReceipt.receipt === null) {
+      // A malformed receipt is a fixable output defect, not a dead angle: spend a
+      // bounded re-author round on it (the core is rewritten with the receipt).
+      if (attempt === REAUTHOR_BUDGET) throw new Error(parsedReceipt.error);
+      lastGateFeedback = `  [RECEIPT] ${parsedReceipt.error} — the final stdout line must be exactly ` +
+        `{"status":"completed"|"needs-pivot"|"failed","message":"<nonempty>","artifacts":["<core path>"]}`;
+      continue;
     }
-    if (parsedOut.status !== "completed" && parsedOut.status !== "needs-pivot" && parsedOut.status !== "failed") {
-      throw new Error(
-        `Stage -1.2: proto-core author returned an unknown disposition ${JSON.stringify(parsedOut.status)} - refusing to advance`,
-      );
-    }
+    const parsedOut = parsedReceipt.receipt;
     if (parsedOut.status === "failed") {
       throw new Error(
         `Stage -1.2 author reported status "failed": ${parsedOut.message ?? "(no message)"} — ` +
           `the proposal is not authorable as posed; pivot or revise the angle.`,
       );
     }
-    // needs-pivot: the author declined this mode (revise can't fix in place / no
-    // surviving seed). Not an error — the -0.5 orchestrator drives the pivot.
-    // The author may still have written a diagnostic proto core containing the
-    // cold-start seed slate. Harvest those ideation fields before returning;
-    // otherwise every pivot receives an empty seed_list and mechanically burns
-    // the proposal budget. The diagnostic core is intentionally not proposal-
-    // gate/schema validated because it is not advancing as an authored proposal.
+    // needs-pivot declines this mode without authoring proposal state. Never
+    // harvest a diagnostic `.next`: only a fully gated canonical core may be a
+    // source of proposal metadata.
     if (parsedOut.status === "needs-pivot") {
-      let handoff: Record<string, unknown> = {};
-      if (initiallyParsed.status === "parse_failed") {
-        // A status-only malformed refusal cannot safely distinguish a
-        // mathematical pivot from a local execution/output failure. Route it
-        // through the existing environment retry lane, never burn the angle.
-        handoff.blocking_reason = "local execution tools failed to return a parseable producer receipt";
-      }
-      try {
-        // TeX-bearing model boundary: normalize raw bytes before the JSON funnel,
-        // exactly as the core read below does. Without it an under-escaped command
-        // in the diagnostic seed slate silently empties the handoff (this catch is
-        // best-effort by design), and every pivot then burns budget on no seeds.
-        handoff = {
-          ...(extractJsonObject(normalizeRawModelJson(out.stdout)) as Record<string, unknown>),
-          ...handoff,
-        };
-      } catch {
-        // The normalizer assumes pure JSON: odd `"` counts in surrounding
-        // narration flip its string tracker and corrupt correctly-escaped
-        // JSON. Retry on the untouched stdout before giving up — but reject a
-        // fallback showing the `\n`-family decode signature (silent TeX
-        // corruption only raw-byte normalization could have prevented).
-        try {
-          const rawHandoff = extractJsonObject(out.stdout) as Record<string, unknown>;
-          if (!containsLikelyDecodedTexNewlines(rawHandoff)) handoff = { ...rawHandoff, ...handoff };
-        } catch {
-          /* best-effort */
-        }
-      }
-      if (existsSync(attemptPath)) {
-        try {
-          const diagnosticCore = JSON.parse(normalizeRawModelJson(await readFile(attemptPath, "utf8"))) as Record<string, unknown>;
-          handoff = mergeCoreHandoff(diagnosticCore, handoff);
-        } catch {
-          /* best-effort: the stdout receipt still drives needs-pivot */
-        }
-      }
+      const handoff = projectStdoutReceipt(parsedOut);
       return {
         status: "needs-pivot",
         message: parsedOut.message ?? "Stage -1.2 author returned needs-pivot",
@@ -457,6 +518,29 @@ export async function runStageNeg1_2ProtoCore(args: {
     // disagree with a solver that correctly re-emits the intended LaTeX.
     // No .tex is rendered: the proto_core JSON is the sole discovery artifact.
     const typedCore = CoreSchema.parse(core);
+    // Run identity and cluster are fixed by the orchestrator (the brief names
+    // them). A mismatch is a model slip the author can correct, so it is fed
+    // back like a gate violation rather than halting the run.
+    const identityViolations: string[] = [];
+    if (typedCore.qid !== args.ctx.qid) {
+      identityViolations.push(`  [IDENTITY] Stage -1.2 authored core qid must equal ${args.ctx.qid}`);
+    }
+    if (typedCore.specialization !== args.ctx.specialization) {
+      identityViolations.push(`  [IDENTITY] Stage -1.2 authored core specialization must equal ${args.ctx.specialization}`);
+    }
+    const expectedCluster = clusterFor(args.ctx, args.state);
+    if (!typedCore.cluster) {
+      identityViolations.push("  [IDENTITY] Stage -1.2 authored core must declare cluster");
+    } else if (expectedCluster && typedCore.cluster !== expectedCluster) {
+      identityViolations.push(`  [IDENTITY] Stage -1.2 authored core cluster must equal run cluster ${expectedCluster}`);
+    } else if (parentContract && typedCore.cluster !== parentContract.cluster) {
+      identityViolations.push(`  [IDENTITY] Stage -1.2 upgrade core cluster must equal parent cluster ${parentContract.cluster}`);
+    }
+    if (identityViolations.length > 0) {
+      if (attempt === REAUTHOR_BUDGET) throw new Error(identityViolations.join("\n").trim());
+      lastGateFeedback = identityViolations.join("\n");
+      continue;
+    }
     repairCoreLatexSerialization(typedCore);
     // Backstop: any control character surviving normalization + repair is an
     // escaping error the model must fix; feed it back as a re-author round
@@ -469,87 +553,80 @@ export async function runStageNeg1_2ProtoCore(args: {
       continue;
     }
     CoreSchema.parse(typedCore);
-    // Persist the canonicalized core plus ONLY the allowlisted ideation keys
-    // (seeds, seed_details, literature_map, ...): CoreSchema strips unknown keys,
+    // Persist the canonicalized core plus ONLY the allowlisted authored metadata
+    // (seeds, literature metadata, upgrade metadata): CoreSchema strips unknown keys,
     // and both the cold-start harvest below and post-interrupt rehydration read
     // those keys from this object / the persisted file. A blanket raw-core spread
     // would let the author persist arbitrary non-schema keys that later flow
     // verbatim into the D-0.5 reviewer prompt (audit finding: prompt injection /
     // payload bloat), so everything outside the allowlist is dropped here.
     const rawCore = core as Record<string, unknown>;
-    const persistedCore: Record<string, unknown> = { ...typedCore };
-    for (const key of CORE_HANDOFF_KEYS) {
-      if (Object.prototype.hasOwnProperty.call(rawCore, key)) persistedCore[key] = rawCore[key];
-    }
-    let stdoutHandoff: Record<string, unknown> = {};
-    try {
-      stdoutHandoff = extractJsonObject(normalizeRawModelJson(out.stdout)) as Record<string, unknown>;
-    } catch {
-      // Same normalizer caveat as the needs-pivot harvest above: retry raw,
-      // rejecting a fallback with the `\n`-family decode signature.
-      try {
-        const rawHandoff = extractJsonObject(out.stdout) as Record<string, unknown>;
-        if (!containsLikelyDecodedTexNewlines(rawHandoff)) stdoutHandoff = rawHandoff;
-      } catch {
-        /* gate already passed; harvest is best-effort */
+    if (!upgradeFrom) {
+      // Stray upgrade keys outside an upgrade run carry no meaning downstream;
+      // strip them (visibly) instead of failing a core that is otherwise valid.
+      const stray = UPGRADE_CORE_KEYS.filter((key) => rawCore[key] !== undefined);
+      if (stray.length > 0) {
+        console.warn(`[D-1.2] dropped upgrade metadata authored outside upgrade mode: ${stray.join(", ")}`);
+        for (const key of stray) delete rawCore[key];
       }
     }
-    // The head prompts mandate the reviewer-rendered handoff fields (checklist,
-    // novelty justification, upgrade receipt, message) on the final STDOUT
-    // line, not in the core file — fold them into the persisted core so the
-    // single artifact the -0.5 reviewer reads carries everything the drafter
-    // emitted. Stdout wins, raw core is the fallback, checklist spellings
-    // normalize to the canonical key (see STDOUT_HANDOFF_KEYS for why each).
-    const hasOwn = (obj: Record<string, unknown>, key: string): boolean =>
-      Object.prototype.hasOwnProperty.call(obj, key);
-    const checklistKeys: readonly string[] = CHECKLIST_SPELLINGS;
-    for (const key of STDOUT_HANDOFF_KEYS) {
-      if (checklistKeys.includes(key)) continue; // one logical field, handled below
-      if (hasOwn(stdoutHandoff, key)) persistedCore[key] = stdoutHandoff[key];
-      else if (!hasOwn(persistedCore, key) && hasOwn(rawCore, key)) persistedCore[key] = rawCore[key];
+    const metadataParse = authoredMetadataSchema(upgradeFrom, rawCore, args.mode === "cold-start").safeParse(rawCore);
+    const metadataViolations: string[] = metadataParse.success
+      ? []
+      : metadataParse.error.issues.map((issue) => {
+        // A union failure hides the branch messages (e.g. the substantive-text
+        // refinement) behind "Invalid input"; surface them so the feedback is actionable.
+        const nested = issue.code === z.ZodIssueCode.invalid_union
+          ? issue.unionErrors.flatMap((e) => e.issues.map((i) => i.message))
+          : [];
+        const detail = nested.length > 0 ? `${issue.message} (${[...new Set(nested)].join("; ")})` : issue.message;
+        return `  [METADATA] ${issue.path.join(".")}: ${detail}`;
+      });
+    if (metadataParse.success && parentContract) {
+      // Parent-membership join. Citation TEXT is deliberately not compared: a
+      // reformatted citation under a reused key is not a provenance defect.
+      const reused = metadataParse.data.reused_bibkeys ?? [];
+      const added = metadataParse.data.new_bibkeys ?? [];
+      const mislabeledReused = reused.filter((key) => !parentContract.bibliography.has(key));
+      const mislabeledNew = added.filter((key) => parentContract.bibliography.has(key));
+      if (mislabeledReused.length > 0 || mislabeledNew.length > 0) {
+        metadataViolations.push(
+          `  [METADATA] upgrade provenance does not match the banked parent bibliography: ` +
+            `reused-not-parent=[${mislabeledReused.join(", ")}], new-already-parent=[${mislabeledNew.join(", ")}]`,
+        );
+      }
     }
-    for (const key of checklistKeys) delete persistedCore[key];
-    const checklistSource = checklistKeys.some((key) => hasOwn(stdoutHandoff, key))
-      ? stdoutHandoff
-      : rawCore;
-    const checklistSpelling = checklistKeys.find((key) => hasOwn(checklistSource, key));
-    if (checklistSpelling !== undefined) {
-      persistedCore.literature_checklist = checklistSource[checklistSpelling];
+    if (metadataViolations.length > 0) {
+      const summary = `Stage -1.2 authored metadata is invalid:\n${metadataViolations.join("\n")}`;
+      if (attempt === REAUTHOR_BUDGET) throw new Error(summary);
+      lastGateFeedback = metadataViolations.join("\n");
+      continue;
     }
-    // The authored core is a permitted fallback for this handoff field, and
-    // models sometimes express its requested argument as a structured record.
-    // Canonicalize that record at the producer boundary: downstream state has
-    // always stored the field as a string, and key order must not turn the same
-    // justification into different persisted content.
-    if (persistedCore.novelty_justification !== null &&
-        typeof persistedCore.novelty_justification === "object" &&
-        !Array.isArray(persistedCore.novelty_justification) &&
-        containsSubstantiveText(persistedCore.novelty_justification)) {
-      persistedCore.novelty_justification = stableJson(persistedCore.novelty_justification);
-    }
-    const invalidReviewerMetadata = invalidReviewerFields(persistedCore, upgradeFrom);
-    if (invalidReviewerMetadata.length > 0) {
-      throw new Error(
-        `Stage -1.2 reviewer metadata is invalid: ${invalidReviewerMetadata.join(", ")}`,
-      );
-    }
+    if (!metadataParse.success) throw new Error("unreachable: metadata violations were handled above");
+    const authoredMetadata = metadataParse.data;
+    const persistedCore: Record<string, unknown> = { ...typedCore, ...authoredMetadata };
+    // The filesystem path is orchestrator-owned and already fixed in the author
+    // prompt. Treat stdout only as a disposition/message receipt: a model typo in
+    // its echoed path must not reject a valid artifact or leak the deleted staging
+    // path into downstream state. Existence, JSON, gates, schema, and run identity
+    // above are the authority; publish the canonical path deterministically.
+    const stdoutHandoff = { ...parsedOut, artifacts: [corePath] };
+    // The authored artifact is the sole authority for every reviewer metadata
+    // field. The stdout object is merely a disposition/message/artifact receipt:
+    // even a well-formed conflicting value must not rewrite validated core data.
     // Emitted-vs-persisted visibility (computed AFTER the folds so a key with a
     // persistence home is never falsely reported): the drop is intentional, but
     // it must never be SILENT — a prompt-mandated field missing from every
     // allowlist otherwise vanishes here and is only discovered rounds later as
     // a reviewer <MISSING> (the comparator_promise_table incident).
     const droppedKeys = Object.keys(rawCore).filter(
-      (key) =>
-        !Object.prototype.hasOwnProperty.call(persistedCore, key) &&
-        // A checklist alias is not dropped — it was normalized to the
-        // canonical `literature_checklist` (or superseded by stdout's).
-        !(STDOUT_HANDOFF_KEYS as readonly string[]).includes(key),
+      (key) => !Object.prototype.hasOwnProperty.call(persistedCore, key),
     );
     if (droppedKeys.length > 0) {
       console.warn(
         `[D-1.2] persist boundary dropped non-schema key(s) from the authored core: ` +
           `${droppedKeys.join(", ")} — if the prompt mandates one of these, give it a home in ` +
-          `CoreSchema, CORE_HANDOFF_KEYS, or STDOUT_HANDOFF_KEYS (contract: prompt_schema_contract.test.ts)`,
+          `CoreSchema or CORE_HANDOFF_KEYS (contract: prompt_schema_contract.test.ts)`,
       );
     }
     await writeJsonAtomic(corePath, persistedCore);
@@ -560,9 +637,7 @@ export async function runStageNeg1_2ProtoCore(args: {
 
     return {
       status: "completed",
-      message: initiallyParsed.status === "parse_failed"
-        ? "Stage -1.2 accepted the validated proposal core despite a malformed advisory receipt"
-        : parsedOut.message ?? "Stage -1.2 authored the proposal core",
+      message: parsedOut.message ?? "Stage -1.2 authored the proposal core",
       protoCoreJsonPath: corePath,
       handoff,
     };

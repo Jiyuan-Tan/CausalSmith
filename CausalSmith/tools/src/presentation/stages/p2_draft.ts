@@ -15,6 +15,7 @@ import {
   parseAnchoredEnvs,
   repairObjRefs,
   lintReferences,
+  canonicalizeObjRefs,
   normalizeCrefs,
   placeFrozenEnvs,
   hashEnvBody,
@@ -25,6 +26,7 @@ import {
 import { FormalLayerSource, normalizeCitedScopeFootnotes, texEnvFor } from "../formal_layer.js";
 import { assumptionCiteContext } from "../assumption_citations.js";
 import { FIRST_DRAFT_BRIEF } from "../revision_brief.js";
+import { REPLACEMENTS_REPLY } from "../reply_schemas.js";
 import { symbolProseTargets, normalizeSymbolLeanrefs, promoteSymbolLeanrefs, repairSymbolLeanrefTargets } from "../emit.js";
 import { lintIsolatedLemmas } from "../paper_graph.js";
 import { writeJsonAtomic, writeTextAtomic } from "../json_io.js";
@@ -56,6 +58,37 @@ export function sectionCacheKey(
   name: string, objs: string[], brief: string, allowedKeys: string, revBrief: string,
 ): string {
   return hashEnvBody([name, objs.join(","), brief, allowedKeys, revBrief].join("§"));
+}
+
+/** The writer's brief for a section that already has a draft but whose inputs changed: revise
+ *  the prior text rather than rewrite it, with the object delta spelled out. Exported for tests. */
+export function sectionRevisionBrief(previous: string, objs: readonly string[]): string {
+  const had = new Set(parseAnchoredEnvs(previous).map((e) => e.obj_id));
+  const added = objs.filter((id) => !had.has(id));
+  const removed = [...had].filter((id) => !objs.includes(id));
+  return [
+    "PRIOR DRAFT of this section follows. Revise it rather than writing anew: keep its prose, structure and",
+    "wording wherever they remain correct (sentences were edited by hand), and change only what the input",
+    "changes below require. Never mention the revision.",
+    `Objects added to this section: ${added.length ? added.join(", ") : "(none)"} — introduce and motivate them in place.`,
+    `Objects removed from this section: ${removed.length ? removed.join(", ") : "(none)"} — delete the prose that only served them.`,
+    "",
+    previous.trim(),
+    "END OF PRIOR DRAFT",
+  ].join("\n");
+}
+
+/** The front-matter writer's brief when a prior front_matter.tex exists but the body it summarizes
+ *  changed: revise the prior text rather than rewrite it. Exported for tests. */
+export function frontMatterRevisionBrief(previous: string): string {
+  return [
+    "PRIOR DRAFT of the abstract and introduction follows. Revise it rather than writing anew: keep its",
+    "prose, structure and wording wherever they remain accurate for the current body (sentences were",
+    "edited by hand), and change only what the current statements and exposition require. Never mention the revision.",
+    "",
+    previous.trim(),
+    "END OF PRIOR DRAFT",
+  ].join("\n");
 }
 
 export interface ProofHelperContext { obj_id: string; tex: string }
@@ -380,6 +413,12 @@ export async function stageP2(io: StageIO): Promise<void> {
     // a changed objs/brief/env-set re-drafts. Delete sections/ to force a full regenerate.
     let tex = io.reassemble || cacheKeys[name] === sectionKey ? await readFile(join(io.outDir, "sections", name), "utf8").catch(() => null) : null;
     if (tex === null) {
+      // A section whose drafting inputs changed is REVISED from its prior draft, not rewritten:
+      // the prior text (hand edits included) goes to the writer with the input delta, and the
+      // lints and the referee guard the result. Only a section with no draft starts from scratch.
+      const previous = await readFile(join(io.outDir, "sections", name), "utf8").catch(() => null);
+      const brief = previous === null ? revBrief : sectionRevisionBrief(previous, s.objs);
+      if (previous !== null) io.state.notes.push(`P2: section ${s.name} revised from its prior draft (inputs changed)`);
       // Codex drafts the body section; high effort (the main faithful prose, must
       // match the frozen envs + outline and cite only the allowed keys).
       const { stdout: reply } = await io.ctx.deps.runCodex({
@@ -395,7 +434,7 @@ export async function stageP2(io: StageIO): Promise<void> {
           prior_sections: priorSectionContext(priorDraftedSections),
           leanref_objects: leanrefObjects || "(none)",
           symbol_leanref_targets: symbolLeanrefTargets,
-          revision_brief: revBrief,
+          revision_brief: brief,
         }),
         cwd: io.ctx.repoRoot,
         reasoningEffort: "high",
@@ -531,6 +570,8 @@ export async function stageP2(io: StageIO): Promise<void> {
       cwd: io.ctx.repoRoot,
       reasoningEffort: "high",
       leanLsp: true,
+      // A first render is raw LaTeX; only a repair answers in JSON, and then by schema.
+      ...(repair ? { outputSchema: REPLACEMENTS_REPLY } : {}),
     });
     return stdout;
   };
@@ -707,6 +748,10 @@ export async function stageP2(io: StageIO): Promise<void> {
   let front = io.reassemble || frontCacheHit ? await readFile(join(io.outDir, "front_matter.tex"), "utf8").catch(() => null) : null;
   if (front !== null && io.reassemble) front = normalizeCrefs(front);
   if (front === null) {
+    // A front matter whose body changed is revised from its prior text, like a section: the
+    // orchestrator's hand edits there survived nothing before this.
+    const previousFront = await readFile(join(io.outDir, "front_matter.tex"), "utf8").catch(() => null);
+    if (previousFront !== null) io.state.notes.push("P2: front matter revised from its prior draft (body changed)");
     // Intro + abstract: medium effort (summarization of the already-drafted body).
     front = unwrapArtifact(
       (
@@ -716,7 +761,7 @@ export async function stageP2(io: StageIO): Promise<void> {
             related_work_brief: brief,
             contribution_narrative: contributionNarrative,
             allowed_bib_keys: allowedFrontMatterBibKeys,
-            revision_brief: frontBrief,
+            revision_brief: previousFront === null ? frontBrief : frontMatterRevisionBrief(previousFront),
           }),
           cwd: io.ctx.repoRoot,
           reasoningEffort: "medium",
@@ -769,19 +814,20 @@ export async function stageP2(io: StageIO): Promise<void> {
   // Finish at the same canonical boundary P3/P5 use, AFTER inserting proofs and
   // boilerplate. Otherwise their guard can mistake its own scope-note relocation
   // or frozen-text restoration for a protected edit in an unrelated prose patch.
-  const paperSafe = applyProseRevision({
-    before: linkedPaper, revised: linkedPaper, blocks: layerSrc.blocks, who: "P2 assembly",
-  });
-
   // The formal layer is the paper's complete environment namespace. It includes graph-backed
   // objects plus P1's presentation-owned setup definitions; only the former require crosswalk/Lean
   // anchors, but both are valid frozen env ids for the P2 anchor lint.
   const known = new Set(layerSrc.blocks.map((b) => b.obj_id));
+  // Prose reaches a statement only through `\cref{obj:…}`; a bare id or a prefix a drafter dropped
+  // is repaired here, never linted (the repair is determined; frozen blocks are untouched).
+  const paperSafe = canonicalizeObjRefs(applyProseRevision({
+    before: linkedPaper, revised: linkedPaper, blocks: layerSrc.blocks, who: "P2 assembly",
+  }), known);
+  for (const p of lintReferences(paperSafe)) io.state.notes.push(`P2 advisory (${p.gate}): ${p.detail}`);
   const problems = [
     ...lintAnchors(paperSafe, known, new Map(Object.entries(frozen))),
     // The paper prints the frozen environments once each, in the P1 order (P3/P4 assert the same).
     ...lintEnvOrder(paperSafe, layerSrc.blocks.filter((b) => b.env !== null).map((b) => b.obj_id)),
-    ...lintReferences(paperSafe),
     ...lintProofsReachedPaper(paperSafe, proofById.keys()),
     // Assembly is where a lemma's citations become visible for the first time (proofs are rendered
     // per-object, so no earlier stage sees the whole dependency structure) — and it is the one

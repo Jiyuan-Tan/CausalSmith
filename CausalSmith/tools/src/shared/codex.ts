@@ -1,4 +1,4 @@
-import { open, readdir, stat, mkdir, readFile, writeFile, copyFile, chmod } from "node:fs/promises";
+import { open, readdir, stat, mkdir, readFile, writeFile, copyFile, chmod, unlink } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import lockfile from "proper-lockfile";
 import os from "node:os";
@@ -31,6 +31,14 @@ const NODE_ENV_SCRIPT = path
 export interface CodexRunInput {
   prompt: string;
   model?: string;
+  /**
+   * JSON Schema the final reply must satisfy (`codex exec --output-schema`): the API constrains
+   * decoding, so the reply is valid JSON of this shape by construction — no loose parsing, no
+   * repair tiers. Strict-mode rules apply: every property listed in `required`,
+   * `additionalProperties: false` on every object, no `additionalProperties`-typed records
+   * (use arrays of keyed items), optional fields as nullable types.
+   */
+  outputSchema?: Record<string, unknown>;
   reasoningEffort?: "minimal" | "low" | "medium" | "high" | "xhigh";
   cwd: string;
   /**
@@ -398,6 +406,27 @@ export async function runCodex(input: CodexRunInput): Promise<{ stdout: string; 
     if (!auth.apiKey) throw new Error("codex api auth resolved without a key");
     await ensureCodexApiHome(codexHome(), auth.apiKey);
   }
+  const schemaPath = input.outputSchema
+    ? path.join(os.tmpdir(), `causalsmith-output-schema-${process.pid}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}.json`)
+    : null;
+  if (schemaPath) await writeFile(schemaPath, JSON.stringify(input.outputSchema), "utf8");
+  const spawnedAt = Date.now();
+  // Shared hosts can legitimately queue the code-mode host for several
+  // minutes before the first rollout record or child output appears.  A live
+  // run on 2026-07-12 took ~229s to reach code-mode startup, so the former
+  // 180s default killed healthy queued reviewers.  This remains only the
+  // pre-start window; once started, the independent inactivity watchdog below
+  // still detects genuinely silent hangs.
+  const startupTimeoutMs = input.startupTimeoutMs ?? 10 * 60 * 1000;
+  // Per-call marker appended to the prompt and searched for in the rollout
+  // file. The old check accepted ANY fresh ~/.codex/sessions/*.jsonl, so with
+  // two pipeline runs in flight the OTHER run's session satisfied it and the
+  // stuck-startup detector never fired. The marker scopes the check to THIS
+  // call; codex records the submitted prompt in the rollout's first records.
+  const marker = `causalsmith-session-marker:${spawnedAt.toString(36)}-${Math.random()
+    .toString(36)
+    .slice(2, 10)}`;
+  const result = await (async () => { try {
   const cmd = [
     // `codex exec` is non-interactive, so approval remains `never`; this selects
     // only the explicitly configured local-tool sandbox. Never use the blanket
@@ -406,6 +435,7 @@ export async function runCodex(input: CodexRunInput): Promise<{ stdout: string; 
     ...(input.ignoreUserConfig === true ? ["--ignore-user-config"] : []),
     `-C ${shellQuote(input.cwd)}`,
     "--skip-git-repo-check",
+    ...(schemaPath ? [`--output-schema ${shellQuote(schemaPath)}`] : []),
     // Windows: the default `elevated` sandbox setup helper fails to spawn on
     // codex-cli 0.133.x (`windows sandbox: spawn setup refresh`, OS error 740 —
     // see openai/codex#24098, #25362). The `unelevated` sandbox is the documented
@@ -473,24 +503,8 @@ export async function runCodex(input: CodexRunInput): Promise<{ stdout: string; 
   ].join(" ");
   const script = `${setup} && ${cmd}`;
 
-  const spawnedAt = Date.now();
-  // Shared hosts can legitimately queue the code-mode host for several
-  // minutes before the first rollout record or child output appears.  A live
-  // run on 2026-07-12 took ~229s to reach code-mode startup, so the former
-  // 180s default killed healthy queued reviewers.  This remains only the
-  // pre-start window; once started, the independent inactivity watchdog below
-  // still detects genuinely silent hangs.
-  const startupTimeoutMs = input.startupTimeoutMs ?? 10 * 60 * 1000;
-  // Per-call marker appended to the prompt and searched for in the rollout
-  // file. The old check accepted ANY fresh ~/.codex/sessions/*.jsonl, so with
-  // two pipeline runs in flight the OTHER run's session satisfied it and the
-  // stuck-startup detector never fired. The marker scopes the check to THIS
-  // call; codex records the submitted prompt in the rollout's first records.
-  const marker = `causalsmith-session-marker:${spawnedAt.toString(36)}-${Math.random()
-    .toString(36)
-    .slice(2, 10)}`;
   const promptWithMarker = `${input.prompt}\n\n[${marker}] — machine tag for run-liveness tracking; ignore.`;
-  const result = await spawnWithInactivityTimeout("bash", ["-lc", script], {
+  return await spawnWithInactivityTimeout("bash", ["-lc", script], {
     cwd: input.cwd,
     // Carries OPENAI_API_KEY + the dedicated CODEX_HOME in api mode; identical
     // to process.env otherwise.
@@ -526,7 +540,7 @@ export async function runCodex(input: CodexRunInput): Promise<{ stdout: string; 
         return { ok: true };
       },
     },
-  });
+  }); } finally { if (schemaPath) await unlink(schemaPath).catch(() => {}); } })();
   // Telemetry is best-effort and must never change the model call's outcome.
   try {
     const sessionFile = await findCodexSessionFile(spawnedAt, marker);

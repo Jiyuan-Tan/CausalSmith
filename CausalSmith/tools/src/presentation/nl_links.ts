@@ -27,6 +27,7 @@ import { join } from "node:path";
 import { z } from "zod";
 import { loadJsonCache } from "./cache.js";
 import { parseJsonLoose } from "./gates.js";
+import { NL_LINKS_VERIFY_REPLY } from "./reply_schemas.js";
 import { writeJsonAtomic } from "./json_io.js";
 import { presentationPrompt } from "./prompt_io.js";
 import { hashEnvBody } from "./tex_anchors.js";
@@ -138,6 +139,7 @@ export interface CodexRunner {
     reasoningEffort?: "minimal" | "low" | "medium" | "high" | "xhigh";
     leanLsp?: boolean;
     model?: string;
+    outputSchema?: Record<string, unknown>;
   }) => Promise<{ stdout: string; stderr: string }>;
 }
 
@@ -786,6 +788,76 @@ const AssignReply = z.object({
     displayLinks: z.array(DisplayLink),
   })),
 });
+/** The reply shape the model is constrained to (`outputSchema`): strict JSON Schema admits no
+ *  dynamic keys and no optional fields, so blocks are an array keyed by `id`, and every optional
+ *  field is present (`segments: []`, `unstated: false`, `decl: null`, `presentationOnly: false`).
+ *  `assignReplyFromStrict` folds it into the artifact's own shape. */
+const ASSIGN_REPLY_SCHEMA = {
+  type: "object",
+  properties: {
+    blocks: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          assignments: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: { row: { type: "string" }, segments: { type: "array", items: { type: "string" } }, unstated: { type: "boolean" } },
+              required: ["row", "segments", "unstated"],
+              additionalProperties: false,
+            },
+          },
+          displayLinks: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: { segment: { type: "string" }, decl: { type: ["string", "null"] }, presentationOnly: { type: "boolean" } },
+              required: ["segment", "decl", "presentationOnly"],
+              additionalProperties: false,
+            },
+          },
+        },
+        required: ["id", "assignments", "displayLinks"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["blocks"],
+  additionalProperties: false,
+} as const;
+const StrictAssignReply = z.object({
+  blocks: z.array(z.object({
+    id: z.string(),
+    assignments: z.array(z.object({ row: z.string(), segments: z.array(z.string()), unstated: z.boolean() })),
+    displayLinks: z.array(z.object({ segment: z.string(), decl: z.string().nullable(), presentationOnly: z.boolean() })),
+  })),
+});
+/** Fold the schema-constrained reply into the artifact shape; `null` when it is not that shape
+ *  (a duplicate block id counts as not that shape — the answer must be total and single). */
+export function assignReplyFromStrict(reply: unknown): z.infer<typeof AssignReply> | null {
+  const parsed = StrictAssignReply.safeParse(reply);
+  if (!parsed.success) return null;
+  const blocks: z.infer<typeof AssignReply>["blocks"] = {};
+  for (const b of parsed.data.blocks) {
+    if (b.id in blocks) return null;
+    blocks[b.id] = {
+      assignments: b.assignments.map((a) => ({
+        row: a.row,
+        ...(a.segments.length > 0 ? { segments: a.segments } : {}),
+        ...(a.unstated ? { unstated: true as const } : {}),
+      })),
+      displayLinks: b.displayLinks.map((d) => ({
+        segment: d.segment,
+        ...(d.decl !== null && d.decl !== "" ? { decl: d.decl } : {}),
+        ...(d.presentationOnly ? { presentationOnly: true as const } : {}),
+      })),
+    };
+  }
+  return { blocks };
+}
 
 /** Rewrite every display link's decl to its resolved fully-qualified name, so
  *  the artifact never carries the input string. Applied to fresh answers, to
@@ -944,15 +1016,16 @@ export async function assignChunk(args: {
       prompt,
       cwd: args.repoRoot,
       reasoningEffort: "medium",
+      outputSchema: ASSIGN_REPLY_SCHEMA,
       leanLsp: false,
     });
     // A malformed reply gets the same single retry as a semantically incomplete one: there is no
     // channel for a hand-repaired reply, so the only recovery is another call, and one made here
     // costs the batch, not a P4 re-entry. The second malformed reply halts, uncached.
-    const reply = parseJsonLoose(res.stdout);
+    const reply = assignReplyFromStrict(parseJsonLoose(res.stdout));
     if (reply === null) {
       if (attempt === 0) {
-        priorProblem = "the reply was not a JSON object (malformed or truncated); return the complete JSON object only";
+        priorProblem = "the reply was not a JSON object of the required shape (malformed, truncated, or a block id repeated); return the complete JSON object only";
         continue;
       }
       throw new Error(`P4 nl-links: the request for ${ids.join(", ")} returned invalid JSON twice; not cached.`);
@@ -1114,6 +1187,23 @@ const Verdict = z.object({
   presentationOnly: z.literal(true).optional(),
 });
 const VerifyReply = z.object({ verdicts: z.array(Verdict) });
+/** The verifier's schema-constrained wire shape has every field present; fold empty lists and
+ *  `false` away so the artifact keeps its optional-field `Verdict` shape. `null` when not that shape. */
+const StrictVerifyReply = z.object({ verdicts: z.array(z.object({
+  obj_id: z.string(), claim: z.string(), ok: z.boolean(),
+  segments: z.array(z.string()), unstated: z.boolean(), decls: z.array(z.string()), presentationOnly: z.boolean(),
+})) });
+export function verifyReplyFromStrict(reply: unknown): { verdicts: Verdict[] } | null {
+  const parsed = StrictVerifyReply.safeParse(reply);
+  if (!parsed.success) return null;
+  return { verdicts: parsed.data.verdicts.map((v) => ({
+    obj_id: v.obj_id, claim: v.claim, ok: v.ok,
+    ...(v.segments.length > 0 ? { segments: v.segments } : {}),
+    ...(v.unstated ? { unstated: true as const } : {}),
+    ...(v.decls.length > 0 ? { decls: v.decls } : {}),
+    ...(v.presentationOnly ? { presentationOnly: true as const } : {}),
+  })) };
+}
 type Verdict = z.infer<typeof Verdict>;
 
 const CachedVerify = z.object({
@@ -1308,29 +1398,42 @@ export async function verifyChunks(args: {
   })) {
     const payload = `${chunk.map((u) => verifySectionFor(u.input, new Set(u.claims))).join("\n\n")}\n\n` +
       declVocabularyAppendix(chunk[0].input.block.index);
-    const res = await args.deps.runCodex({
-      prompt: await presentationPrompt("p4_nl_links_verify", { claims_payload: payload }),
-      cwd: args.repoRoot,
-      reasoningEffort: "medium",
-      leanLsp: false,
-      model: MODELS.codexCrosswalkVerify,
-    });
-    calls++;
-    const parsed = VerifyReply.safeParse(parseJsonLoose(res.stdout));
-    if (!parsed.success) {
-      throw new Error(
-        `P4 nl-links verification returned invalid JSON for ` +
-          `${[...new Set(chunk.map((u) => u.objId))].join(", ")}: ${parsed.error.message}`,
-      );
+    const basePrompt = await presentationPrompt("p4_nl_links_verify", { claims_payload: payload });
+    const chunkIds = [...new Set(chunk.map((u) => u.objId))].join(", ");
+    // The prompt promises a skipped or invented claim re-runs the whole request: one re-ask in
+    // place with the problems named (the schema fixes the shape, not the count — a constrained
+    // reply has been seen to stop after a handful of verdicts). The second failure halts, uncached.
+    let verdicts: Verdict[] | null = null;
+    let priorProblem = "";
+    for (let attempt = 0; attempt < 2 && verdicts === null; attempt++) {
+      const prompt = priorProblem === "" ? basePrompt :
+        `${basePrompt}\n\nCORRECTION REQUIRED\nYour previous reply was rejected: ${priorProblem}\n` +
+        `Return the COMPLETE JSON answer: one verdict for EVERY claim listed under CLAIMS TO AUDIT, each exactly once, and no other claim.`;
+      const res = await args.deps.runCodex({
+        prompt,
+        cwd: args.repoRoot,
+        reasoningEffort: "medium",
+        leanLsp: false,
+        model: MODELS.codexCrosswalkVerify,
+        outputSchema: NL_LINKS_VERIFY_REPLY,
+      });
+      calls++;
+      const parsed = VerifyReply.safeParse(verifyReplyFromStrict(parseJsonLoose(res.stdout)));
+      if (!parsed.success) {
+        if (attempt === 0) { priorProblem = "the reply was not a JSON object of the required shape"; continue; }
+        throw new Error(`P4 nl-links verification returned invalid JSON twice for ${chunkIds}: ${parsed.error.message}`);
+      }
+      const problems = verifyUnitProblems(chunk, parsed.data.verdicts);
+      if (problems.length > 0) {
+        if (attempt === 0) { priorProblem = problems.slice(0, 6).join("; "); continue; }
+        throw new Error(
+          `P4 nl-links verification did not judge every claim exactly once on two attempts ` +
+            `(${chunkIds}): ${problems.slice(0, 6).join("; ")}. Not cached.`,
+        );
+      }
+      verdicts = parsed.data.verdicts;
     }
-    const problems = verifyUnitProblems(chunk, parsed.data.verdicts);
-    if (problems.length > 0) {
-      throw new Error(
-        `P4 nl-links verification did not judge every claim exactly once ` +
-          `(${[...new Set(chunk.map((u) => u.objId))].join(", ")}): ${problems.slice(0, 6).join("; ")}. Not cached.`,
-      );
-    }
-    for (const v of parsed.data.verdicts) judged.set(v.obj_id, [...(judged.get(v.obj_id) ?? []), v]);
+    for (const v of verdicts!) judged.set(v.obj_id, [...(judged.get(v.obj_id) ?? []), v]);
     // A receipt is written only for a block whose EVERY claim has now been
     // judged. A block still missing a request caches nothing, so an interrupted
     // run re-asks only the requests it never got — never the whole block, and

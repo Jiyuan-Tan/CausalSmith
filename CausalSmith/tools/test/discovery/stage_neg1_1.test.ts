@@ -86,6 +86,20 @@ function gapsTarget(prompt: string): string {
 }
 
 describe("runStageNeg1_1", () => {
+  it("canonicalizes an unavailable method exemplar list to an empty array", () => {
+    const gapsPath = "/tmp/current/gaps.json";
+    const payload = makeGapsPayload(gapsPath, 3);
+    const problem = (payload.open_problems as Array<Record<string, unknown>>)[0];
+    problem.exemplars = { writing_exemplar: null, method_exemplars: null };
+
+    const parsed = parseStrictScoutStdout(JSON.stringify(payload), "thin topic", gapsPath);
+
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.json.open_problems[0].exemplars.method_exemplars).toEqual([]);
+    }
+  });
+
   it("deterministically bounds prior-proposal display excerpts", () => {
     const gapsPath = "/tmp/current/gaps.json";
     const emitted =

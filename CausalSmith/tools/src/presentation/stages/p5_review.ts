@@ -5,6 +5,7 @@ import { z } from "zod";
 import type { StageIO } from "../pipeline.js";
 import { presentationPrompt } from "../prompt_io.js";
 import { parseJsonLoose } from "../gates.js";
+import { REFEREE_REPLY } from "../reply_schemas.js";
 import { reviewerTexFor } from "../tex_anchors.js";
 import { bankAcceptedDir } from "../paths.js";
 import type { ReviewFinding } from "../revision_brief.js";
@@ -112,6 +113,7 @@ export async function stageP5(io: StageIO): Promise<void> {
     reasoningEffort: "high",
     leanLsp: false,
     model: MODELS.codexPresentationReview,
+    outputSchema: REFEREE_REPLY,
   });
   const parsed = parseJsonLoose(stdout);
   const shaped = ReviewSchema.safeParse(parsed);

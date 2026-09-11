@@ -112,7 +112,7 @@ Every escalation carries **verbatim receipts** (the reviewer phrase, the `.tex` 
 | `terminal:below-floor` | D | Codex-validity-gate, then surface the achieved tier to the user (never silently lower `--novelty`): bank `downgraded`, or continue to F via `causalsmith research --downgrade-tier <achieved-tier> <qid> <spec>`. |
 | `rewind:fix-source` | F | Verify necessity (§ "Cross-boundary rewind"), then dispatch a D-orch to execute it. |
 | `cap-block` / `substrate-unbuildable` | D/F | Only main resets caps (exception: the D-1 leaseholder's persisted `--angle-action retry --extra-revisions N` lane). Diagnose the root first: scaffolder drift → `bin/f2_directive.ts`; reviewer wrong → `pipeline-bug`; plan wrong → rewind. `--clear-gate` only after a root change, and log it. Same defect after two resets → validity-gate, then user. |
-| `build-substrate` (a.k.a. `substrate-build:study`) | F | The proof needs a lemma that does not exist. Never bank `failed` for this — route by REUSE: generally reusable (a Mathlib-shaped fact any run could want) → `--study` side-run (§ "study"), relay the Causalean path back; specific to this model and of manageable size → dispatch a subagent to build it under the run's own `Helpers/`. Escalate only if it is neither. |
+| `build-substrate` (a.k.a. `substrate-build:study`) | F | The proof needs a lemma that does not exist. Never bank `failed` for this — route by REUSE: generally reusable (a Mathlib-shaped fact any run could want) → `--study` side-run (§ "study"), relay the Causalean path back; specific to this model and of manageable size → dispatch a subagent to build it under the run's own `Helpers/`. Escalate only if it is neither. A study halted at `BUILD_CAP` is out of ROUNDS, not necessarily out of reach — judge the final round's receipt and grant one more window with `--resume --clear-build-cap` when it is close (few sorries, shrinking). If that second window also halts, bank `failed`. |
 | `citation-instantiation-overflow` | F | Apply the citation invariant. Source mismatch → correct the source; new reusable infrastructure → build/study; paper-specific residual → prove or correct the headline. F4 must still run. |
 | `f5-clean` | F | Verify F4 ran (a this-round `stage 4 … dual-model convergence review completed` line in `pipeline.jsonl` plus one current receipt from each peer in `state.delivery_review_receipts` / `state.cited_review_receipts`; a loop escalation followed by stages 3/3.5/4 `skipped` voids it → send back to re-enter F2.5). Then run S6 for remaining `gated` debt, then CKPT 2 user stop with Lean/API/assumptions/F4/tier receipts and the planned F7 reusable-helper closure. One explicit acceptance authorizes the whole standard post-checkpoint sequence: accepted bank, scoped commit, F7, verification, and final scoped commit; do not ask again between those steps. |
 | `reviewer-dispute` | F | Reproduce independently. Reviewer right → comply. Reviewer wrong → `pipeline-bug`: propose a concise GENERAL reviewer-prompt rule, ask the user before editing (hard stop 8), record in `PIPELINE_NOTES.md`, re-enter F2.5/F4. Never instance-exempt a node. Undecidable math → user. |
@@ -225,11 +225,15 @@ run jargon in shared names), `lint:nl-links` clean. Regression → back to the a
 - **Only a blocking true bug earns a code change:** reproduced behaviour that is stopping or corrupting
   the run in front of you. An audit finding, a latent hazard or a defect you reasoned your way to is
   not one — note it and carry on. If the run proceeds without the change, do not make the change.
+- **Every fix must be ROBUST, keep the design AS SIMPLE AS POSSIBLE, and be TOKEN EFFICIENT** — judged
+  for the pipeline as a whole, not just the path in front of you. A fix that makes the run halt more
+  often, adds a mechanism, or makes the model re-emit more is not a fix.
 - **Minimal repair:** the smallest change that closes the reproduced defect — one general rule or one
-  existing-boundary check, never a new stage/state field/lane. Fix for the robustness, simplicity and
-  token efficiency of the pipeline AS A WHOLE, not just of the path in front of you. Code bug → fix the
-  TS. Prompt problem → a concise GENERAL rule, user-approved first (hard stop 8). Prompts are re-read
-  per dispatch: edit only while the run is stopped.
+  existing-boundary check, never a new stage/state field/lane. Ignore what is harmless (strip, do not
+  reject), require only what the prompt mandates, and route what the model can correct through the
+  existing bounded feedback loop — a hard throw is for corruption the model cannot repair. Code bug →
+  fix the TS. Prompt problem → a concise GENERAL rule, user-approved first (hard stop 8). Prompts are
+  re-read per dispatch: edit only while the run is stopped.
 - Never route accepted mathematics back through an LLM to repair serialization, canonicalization,
   ordering, or store state; the D-orch edits `core.json` and commits it (`bin/d0_vc.ts commit`), or
   resets `main` to a known-good commit (`bin/d0_vc.ts reset`). Re-dispatch D0 only when content,
@@ -311,6 +315,8 @@ standard primitive, handing up the `requirement.md` content + slug.
 ```bash
 npx --prefix tools tsx tools/bin/causalsmith.ts study <slug>           # cold start / re-run
 npx --prefix tools tsx tools/bin/causalsmith.ts study <slug> --resume  # continue
+# halted at BUILD_CAP / COORD_CAP: one more window, only after judging the last round's receipt
+npx --prefix tools tsx tools/bin/causalsmith.ts study <slug> --resume --clear-build-cap|--clear-coordinate-cap
 ```
 
 Run dir `CausalSmith/doc/study/<slug>/`. If `requirement.md` is absent the first run writes a blank

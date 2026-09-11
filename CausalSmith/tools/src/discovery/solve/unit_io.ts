@@ -112,7 +112,6 @@ export async function acquireSolvePathLease(outPath: string): Promise<{
 /** Called only from inside the acquired per-qid run heartbeat: the qid mutex proves
  * no normal pipeline owner remains, so a stranded lease can be reclaimed. */
 export async function clearOrphanSolvePathLeases(ctx: PipelineContext): Promise<void> {
-  if (process.env.CAUSALSMITH_ALLOW_PARALLEL === "1") return;
   const runDir = formalizationDir(ctx.repoRoot, ctx.qid);
   for (const dir of [path.join(runDir, "discovery"), runDir]) {
     let names: string[];

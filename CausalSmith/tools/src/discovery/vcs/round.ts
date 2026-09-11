@@ -103,6 +103,10 @@ function outputTargetReceipt(output: SolveUnitOutput, id: string): TargetReceipt
     if (output.added_lemmas.some((s) => s.id === id)) for (const f of ["proof_tex", "proof_basis", "source", "obligation"]) fields.add(f);
     if (output.resolved_oeqs.some((r) => r.source_id === id)) fields.add("resolved_by");
     if (output.proposed_statement_changes.some((c) => c.id === id)) fields.add("statement");
+    for (const note of output.prose_updates?.statement_notes ?? []) {
+      if (note.id !== id) continue;
+      for (const f of ["justification", "gap", "consumer"] as const) if (note[f] !== undefined) fields.add(f);
+    }
     for (const e of output.proposed_core_edits) {
       if (!("id" in e) || e.id !== id) continue;
       if (e.kind === "statement-delete") removal = true;

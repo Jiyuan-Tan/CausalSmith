@@ -792,6 +792,7 @@ interface StudyArgs {
   slug: string;
   resume: boolean;
   dryRun: boolean;
+  clearBuildCap: boolean;
   clearCoordinateCap: boolean;
   acceptRequirementChange: boolean;
 }
@@ -807,20 +808,26 @@ function parseStudyArgs(argv: string[]): StudyArgs {
   const clearCoordinateCapIndex = args.indexOf("--clear-coordinate-cap");
   const clearCoordinateCap = clearCoordinateCapIndex !== -1;
   if (clearCoordinateCap) args.splice(clearCoordinateCapIndex, 1);
+  const clearBuildCapIndex = args.indexOf("--clear-build-cap");
+  const clearBuildCap = clearBuildCapIndex !== -1;
+  if (clearBuildCap) args.splice(clearBuildCapIndex, 1);
   const acceptRequirementChangeIndex = args.indexOf("--accept-requirement-change");
   const acceptRequirementChange = acceptRequirementChangeIndex !== -1;
   if (acceptRequirementChange) args.splice(acceptRequirementChangeIndex, 1);
   const [slug, extra] = args;
   if (!slug || extra || slug.startsWith("-")) {
-    throw new Error("Usage: causalsmith study <slug> [--resume] [--clear-coordinate-cap] [--accept-requirement-change] [--dry-run]");
+    throw new Error("Usage: causalsmith study <slug> [--resume] [--clear-build-cap] [--clear-coordinate-cap] [--accept-requirement-change] [--dry-run]");
   }
   if (clearCoordinateCap && !resume) {
     throw new Error("--clear-coordinate-cap requires --resume");
   }
+  if (clearBuildCap && !resume) {
+    throw new Error("--clear-build-cap requires --resume");
+  }
   if (acceptRequirementChange && !resume) {
     throw new Error("--accept-requirement-change requires --resume");
   }
-  return { slug, resume, dryRun, clearCoordinateCap, acceptRequirementChange };
+  return { slug, resume, dryRun, clearBuildCap, clearCoordinateCap, acceptRequirementChange };
 }
 
 /** Test-only access to the `causalsmith study` parser. */
@@ -855,6 +862,7 @@ export async function runStudyCli(argv: string[]): Promise<void> {
   try {
     const finalState = await runSubstratePipeline({
       repoRoot, slug: parsed.slug, resume: parsed.resume, dryRun: parsed.dryRun,
+      clearBuildCap: parsed.clearBuildCap,
       clearCoordinateCap: parsed.clearCoordinateCap,
       acceptRequirementChange: parsed.acceptRequirementChange,
     });

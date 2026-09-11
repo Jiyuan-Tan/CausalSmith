@@ -15,6 +15,7 @@ import { hashEnvBody, type AnchoredEnv } from "./tex_anchors.js";
 import { loadJsonCache } from "./cache.js";
 import { extractHypothesisBinders } from "./lean_extract.js";
 import { parseJsonLoose } from "./gates.js";
+import { COMPONENTS_REPLY } from "./reply_schemas.js";
 import { presentationPrompt } from "./prompt_io.js";
 import { writeJsonAtomic } from "./json_io.js";
 import { graphComponentSpecs } from "./graph_components.js";
@@ -67,6 +68,7 @@ export interface CodexRunner {
     multiAgent?: boolean;
     /** codex model id (defaults to the presentation tier). */
     model?: string;
+    outputSchema?: Record<string, unknown>;
   }) => Promise<{ stdout: string; stderr: string }>;
 }
 
@@ -176,6 +178,7 @@ export async function discoverComponents(args: {
     cwd: args.repoRoot,
     reasoningEffort: "medium",
     leanLsp: false,
+    outputSchema: COMPONENTS_REPLY,
   });
   const parsed = ComponentsResponseSchema.safeParse(parseJsonLoose(res.stdout));
   if (!parsed.success) {

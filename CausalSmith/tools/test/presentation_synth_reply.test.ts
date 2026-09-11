@@ -14,8 +14,8 @@ describe("parseSynthReply", () => {
       { symbols: ["\\tau_c"], title: undefined, body: "Write \\(\\tau_c := \\langle c, \\mu\\rangle\\)." },
     ]);
   });
-  it("still accepts a JSON array from a reply that ignored the format, and rejects anything else", () => {
-    expect(parseSynthReply('[{"symbols":["x"],"body":"b"}]')).toEqual([{ symbols: ["x"], title: undefined, body: "b" }]);
+  it("rejects a JSON array and anything else that is not the delimited format", () => {
+    expect(parseSynthReply('[{"symbols":["x"],"body":"b"}]')).toBeNull(); // JSON was the pre-delimiter format; no longer accepted
     expect(parseSynthReply("no definitions here")).toBeNull();
     expect(parseSynthReply("@@@DEF@@@\nSYMBOLS: x\n@@@BODY@@@\ncut @@@END@@@ here\n@@@END@@@")).toBeNull(); // a sentinel in a body never ships truncated
   });

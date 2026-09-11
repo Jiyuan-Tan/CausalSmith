@@ -74,11 +74,12 @@ function textSignalsEnvFailure(text: string): boolean {
  * True iff a parsed producer handoff reports an ENVIRONMENT failure (the
  * sandbox / local execution backend could not start) rather than a genuine
  * mathematical `needs-pivot`. Scans the fields a producer uses to report a
- * pre-flight failure: `blocking_reason`, `error`, and the SC self-review lines.
+ * pre-flight failure. The D-1.2 producer's closed receipt reports it in
+ * `message`; legacy producer shapes may use the diagnostic fields below.
  */
 export function handoffSignalsEnvFailure(json: Record<string, unknown>): boolean {
   const texts: string[] = [];
-  for (const key of ["blocking_reason", "error", "failure_reason"] as const) {
+  for (const key of ["message", "blocking_reason", "error", "failure_reason"] as const) {
     if (typeof json[key] === "string") texts.push(json[key] as string);
   }
   if (Array.isArray(json.soundness_self_review)) {
@@ -312,11 +313,9 @@ export async function runStageNeg1_2Dual(args: {
   });
   const handoff = authored.handoff;
 
-  // Harvest ideation metadata even when the author returns needs-pivot. A
-  // cold-start author can legitimately reject the initially requested kernel
-  // while still writing the ranked seed slate that the pivot modes require.
-  // Persisting those seeds before the early return prevents artificial
-  // empty-seed pivot exhaustion.
+  // Harvest ideation metadata only when the producer returned it from a fully
+  // validated canonical core. A needs-pivot diagnostic artifact is never a
+  // metadata authority, so its closed receipt contributes none of these keys.
   const ideationStateMissing = !Array.isArray(pf.seed_list) || pf.seed_list.length === 0;
   if (args.mode === "cold-start" || ideationStateMissing) {
     if (Array.isArray(handoff.seeds)) {
@@ -345,8 +344,8 @@ export async function runStageNeg1_2Dual(args: {
 
   // needs-pivot: the author declined this mode (revise can't fix / no surviving
   // seed). Record it so Stage -0.5 drives the pivot (mirrors the monolith's
-  // last_draft_status="needs-pivot" path). Ideation fields above remain available
-  // to the pivot even when no advancing core was authored this round.
+  // last_draft_status="needs-pivot" path). Any seed substrate must come from an
+  // earlier validated canonical core.
   if (authored.status === "needs-pivot") {
     pf.current_version = args.nextVersion;
     pf.last_draft_version = args.nextVersion;

@@ -91,6 +91,7 @@ export async function runSubstratePipeline(
     resume: boolean;
     dryRun?: boolean;
     clearCoordinateCap?: boolean;
+    clearBuildCap?: boolean;
     /** Explicit legacy recovery: asserts that an escalated scaffolder state predating requirement
      * hashes is being resumed only after a real requirement correction. */
     acceptRequirementChange?: boolean;
@@ -150,6 +151,19 @@ export async function runSubstratePipeline(
       state.requirementVersion += 1;
       await saveSubstrateState(repoRoot, slug, state);
     }
+  }
+  if (opts.clearBuildCap) {
+    // One more build window on a study halted at BUILD_CAP. The cap exists to stop a scaffolder
+    // looping forever, not to declare a substrate unbuildable: a study can be one `sorry` from
+    // done when it runs out. Staged Lean and audit history are preserved; only the round budget
+    // resets. Granting this twice is the signal to bank instead.
+    if (state.phase !== "halted" || !state.terminalMessage?.startsWith("Reached BUILD_CAP")) {
+      throw new Error("--clear-build-cap requires a study halted at BUILD_CAP");
+    }
+    state.phase = "build";
+    state.buildRounds = 0;
+    state.terminalMessage = null;
+    await saveSubstrateState(repoRoot, slug, state);
   }
   if (opts.clearCoordinateCap) {
     if (state.phase !== "halted" || !state.terminalMessage?.startsWith("Reached COORD_CAP")) {

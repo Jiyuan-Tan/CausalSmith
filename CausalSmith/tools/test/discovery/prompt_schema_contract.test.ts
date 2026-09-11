@@ -21,6 +21,10 @@ const D0_SOLVE_PROMPT_URL = new URL(
   "../../src/discovery/prompts/D0/stage0_solve.txt",
   import.meta.url,
 );
+const UPGRADE_PROMPT_URL = new URL(
+  "../../src/discovery/prompts/D-1/stage_neg1_2_draft_upgrade_directive.txt",
+  import.meta.url,
+);
 
 /** Top-level fields the prompt mandates: the leading run of backticked
  * identifiers in each `- \`field\`` bullet (nested row-field mentions later in
@@ -49,6 +53,12 @@ function coreSchemaKeys(): Set<string> {
 const EXPECTED_DROPS: ReadonlySet<string> = new Set<string>();
 
 describe("D-1 proto-core prompt ↔ CoreSchema persistence contract", () => {
+  it("keeps the disposition message in the stdout receipt rather than duplicating it in the core", async () => {
+    const prompt = await readFile(PROMPT_URL, "utf8");
+    expect(prompt).toContain('stdout JSON receipt with no proposal metadata: {"status":"completed","message":"..."');
+    expect(CORE_HANDOFF_KEYS).not.toContain("message");
+  });
+
   it("extracts a plausible field list from the prompt (extraction-rot canary)", async () => {
     const fields = extractPromptFields(await readFile(PROMPT_URL, "utf8"));
     for (const canary of ["qid", "symbols", "statements", "comparator_promise_table", "tldr"]) {
@@ -71,6 +81,20 @@ describe("D-1 proto-core prompt ↔ CoreSchema persistence contract", () => {
         `incident class). Add to CoreSchema, CORE_HANDOFF_KEYS, or EXPECTED_DROPS (with reason): ` +
         orphans.join(", "),
     ).toEqual([]);
+  });
+
+  it("gives every inline proposal and upgrade metadata field a core persistence home", async () => {
+    const base = await readFile(PROMPT_URL, "utf8");
+    const upgrade = await readFile(UPGRADE_PROMPT_URL, "utf8");
+    const handoffKeys = new Set<string>(CORE_HANDOFF_KEYS);
+    for (const key of [
+      "seeds", "seed_details", "literature_map", "cluster", "novelty_justification",
+      "literature_checklist", "upgrade_mode", "parent_qid", "parent_spec", "upgrade_axis",
+      "delta_summary", "reused_bibkeys", "new_bibkeys",
+    ]) {
+      expect(`${base}\n${upgrade}`).toMatch(new RegExp("`" + key + "(?=[:`])"));
+      expect(handoffKeys, `inline prompt field ${key} has no core persistence home`).toContain(key);
+    }
   });
 
   it("EXPECTED_DROPS stays minimal: no entry that already has a persistence home", () => {

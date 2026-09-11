@@ -121,9 +121,15 @@ export function repairDefinitionOrder(
   const constraints: Constraint[] = [];
   for (const e of ordered) {
     const refs = new Set(dependencies.get(e.id));
-    for (const m of stripTexComments(e.body).matchAll(/\\(?:Cref|cref|ref)\{([^}]+)\}/g)) {
-      for (const label of m[1].split(",").map((s) => s.trim())) {
-        if (label.startsWith("obj:")) refs.add(label.slice(4));
+    // A synthesized definition's cross-references are prose ("used in …"), not prerequisites: a
+    // fresh synthesis has opened with a \cref to every object in the paper, and treating those as
+    // dependencies hoisted ~30 environments and emptied whole sections (twice, live). Its real
+    // prerequisites are the homes of the symbols its body uses, handled below.
+    if (!isSynthId(e.id)) {
+      for (const m of stripTexComments(e.body).matchAll(/\\(?:Cref|cref|ref)\{([^}]+)\}/g)) {
+        for (const label of m[1].split(",").map((s) => s.trim())) {
+          if (label.startsWith("obj:")) refs.add(label.slice(4));
+        }
       }
     }
     for (const home of [...refs].filter((id) => id !== e.id && index.has(id) && movable(envById.get(id)!)).sort((a, b) => index.get(a)! - index.get(b)!)) {
