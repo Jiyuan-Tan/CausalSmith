@@ -1,4 +1,4 @@
-import { lintAnchors, lintEnvOrder, lintNegativeContributionFraming, lintReferences, parseAnchoredEnvs, repairObjRefs, type LintProblem } from "./tex_anchors.js";
+import { lintAnchors, lintEnvOrder, lintNegativeContributionFraming, lintReferences, parseAnchoredEnvs, repairObjRefs, restoreObjRefs, type LintProblem } from "./tex_anchors.js";
 import { citedKeys, type BibEntry } from "./citations.js";
 import { maskNonBoundaryPeriods, stripTexComments } from "../shared/tex_text.js";
 import {
@@ -113,7 +113,12 @@ export async function runHardGates(inp: HardGateInput, r: GateRunners): Promise<
   const oc = await r.overclaim(inp.frontMatter, inp.frozenEnvsTex);
   if (!oc.clean) {
     for (const f of oc.flags ?? []) {
-      problems.push({ gate: "overclaim", detail: `${f.sentence}${f.fix ? ` → ${f.fix}` : ""}` });
+      // The auditor quotes the sentence with its `\cref{obj:…}` links and sometimes returns a
+      // "fix" that only strips the `obj:` prefix (seen on 6 of 8 flags in one run): restoring the
+      // prefix makes such a fix identical to the sentence, and a no-op flag is no finding.
+      const fix = f.fix === undefined ? undefined : restoreObjRefs(f.fix, inp.knownObjIds);
+      if (fix !== undefined && fix.replace(/\s+/g, " ").trim() === f.sentence.replace(/\s+/g, " ").trim()) continue;
+      problems.push({ gate: "overclaim", detail: `${f.sentence}${fix ? ` → ${fix}` : ""}` });
     }
     if ((oc.flags ?? []).length === 0) problems.push({ gate: "overclaim", detail: "flagged without detail" });
   }

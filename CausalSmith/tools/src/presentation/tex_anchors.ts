@@ -324,6 +324,25 @@ export function repairObjRefs(tex: string, definedIds: Set<string>): { tex: stri
   return { tex: out, problems };
 }
 
+/**
+ * Restore the `obj:` namespace on a cross-reference that names a known env id bare
+ * (`\cref{thm:main}` for the env anchored at `thm:main`). Models that see `\cref{obj:thm:main}`
+ * in a sentence sometimes "clean" the prefix away when they quote or rewrite it; the label without
+ * the prefix does not exist, and the anchor lint rejects the bare id. The rewrite is fully
+ * determined (a bare known id can only mean its `obj:` label) and byte-preserving otherwise.
+ */
+export function restoreObjRefs(tex: string, knownIds: ReadonlySet<string>): string {
+  return tex.replace(/\\(Cref|cref|ref)\{([^}]+)\}/g, (whole, command: string, rawLabels: string) => {
+    let changed = false;
+    const labels = rawLabels.split(",").map((x) => x.trim()).map((label) => {
+      if (label.startsWith("obj:") || !knownIds.has(label)) return label;
+      changed = true;
+      return `obj:${label}`;
+    });
+    return changed ? `\\${command}{${labels.join(",")}}` : whole;
+  });
+}
+
 /** Whitespace-insensitive canonical form: reflowing prose is not drift, changing tokens is. */
 function normalizeBody(body: string): string {
   return body.replace(/\s+/g, " ").trim();

@@ -358,6 +358,55 @@ describe("defaultLookup: transient-unreachable vs definitively-absent", () => {
     expect(crossref).not.toHaveBeenCalled(); // the laundering title-query never ran
   });
 
+  const arxivGoodFeed = {
+    ok: true,
+    status: 200,
+    json: async () => ({}),
+    text: async () => "<feed><title>ArXiv Query</title><entry><title>Causal Inference under Interference</title><name>Xin Fan</name><published>2025-02-10</published></entry></feed>",
+  };
+  const fanEntry: BibEntry = {
+    key: "fan2025",
+    type: "misc",
+    fields: { title: "Causal Inference under Interference", author: "Fan, X.", year: "2025", eprint: "2502.06008" },
+  };
+
+  it("arXiv throttling (403) is transient → UNREACHABLE, not a title fallback", async () => {
+    globalThis.fetch = vi.fn(async (url: string | URL) => {
+      const u = String(url);
+      if (u.includes("export.arxiv.org")) return { ok: false, status: 403 } as unknown as Response;
+      if (u.includes("api.crossref.org")) return wrongCrossrefHit as unknown as Response;
+      return { ok: false, status: 404 } as unknown as Response;
+    }) as unknown as typeof fetch;
+    expect(await runLookup(fanEntry)).toBe(UNREACHABLE);
+  });
+
+  it("an intermittent empty arXiv feed is retried once before the id counts as unresolved", async () => {
+    let calls = 0;
+    globalThis.fetch = vi.fn(async (url: string | URL) => {
+      const u = String(url);
+      if (u.includes("export.arxiv.org")) return (calls++ === 0 ? arxivEmptyFeed : arxivGoodFeed) as unknown as Response;
+      return wrongCrossrefHit as unknown as Response;
+    }) as unknown as typeof fetch;
+    const rec = await runLookup(fanEntry);
+    expect(rec !== UNREACHABLE && rec?.title).toBe("Causal Inference under Interference");
+    expect(calls).toBe(2);
+  });
+
+  it("an id that resolves to nothing is reported as such, never as a title mismatch against an unrelated hit", async () => {
+    globalThis.fetch = vi.fn(async (url: string | URL) => {
+      const u = String(url);
+      if (u.includes("export.arxiv.org")) return arxivEmptyFeed as unknown as Response;
+      if (u.includes("api.crossref.org")) return wrongCrossrefHit as unknown as Response;
+      return { ok: false, status: 404 } as unknown as Response;
+    }) as unknown as typeof fetch;
+    vi.useFakeTimers();
+    const p = verifyEntry(fanEntry, defaultLookup);
+    await vi.runAllTimersAsync();
+    const v = await p;
+    expect(v.verdict).toBe("major");
+    expect(v.detail).toContain("arXiv id 2502.06008 resolves to nothing");
+  });
+
   it("arXiv id definitively absent (reachable, empty feed) → still title-checked → fabricated id caught (major)", async () => {
     globalThis.fetch = vi.fn(async (url: string | URL) => {
       const u = String(url);

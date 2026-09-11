@@ -309,7 +309,16 @@ export async function verifyEntry(e: BibEntry, lookup: Lookup): Promise<Verifica
       detail: "external registry unreachable (transient); metadata unverified this run",
     };
   }
-  if (!rec) return { key: e.key, verdict: "major", detail: "no external record found" };
+  if (!rec) {
+    const id = e.fields.doi
+      ? `DOI ${e.fields.doi} is not in Crossref`
+      : e.fields.eprint ? `arXiv id ${e.fields.eprint} resolves to nothing` : "";
+    return {
+      key: e.key,
+      verdict: "major",
+      detail: id ? `no external record found: ${id} and no registry lists the title` : "no external record found",
+    };
+  }
   const titleOk = titleKey(rec.title) === titleKey(e.fields.title ?? "");
   const year = parseInt(e.fields.year ?? "0", 10);
   const yearOk = Math.abs(rec.year - year) <= 1;
@@ -361,7 +370,7 @@ let lastFetch = 0;
  */
 type Fetched =
   | { ok: true; response: Response }
-  | { ok: false; unreachable: boolean };
+  | { ok: false; unreachable: boolean; status?: number };
 
 async function politeFetch(url: string): Promise<Fetched> {
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -377,7 +386,7 @@ async function politeFetch(url: string): Promise<Fetched> {
         },
       });
       if (r.ok) return { ok: true, response: r };
-      if (r.status < 500 && r.status !== 429) return { ok: false, unreachable: false }; // definitive 4xx
+      if (r.status < 500 && r.status !== 429) return { ok: false, unreachable: false, status: r.status }; // definitive 4xx
     } catch {
       // network error — retry
     }
@@ -427,9 +436,17 @@ type RecFetch = { rec: ExternalRecord | null; unreachable: boolean };
 async function arxivById(eprint: string): Promise<RecFetch> {
   // models emit "arXiv:2305.04116" / "2305.04116v2"; the API wants the bare id
   const id = eprint.replace(/^\s*arxiv:\s*/i, "").trim();
-  const r = await politeFetch(`https://export.arxiv.org/api/query?id_list=${encodeURIComponent(id)}`);
-  if (!r.ok) return { rec: null, unreachable: r.unreachable };
-  return { rec: fromArxivFeed(await r.response.text()), unreachable: false };
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const r = await politeFetch(`https://export.arxiv.org/api/query?id_list=${encodeURIComponent(id)}`);
+    // arXiv answers 403 (not 429) when it throttles a client: transient, not a missing id.
+    if (!r.ok) return { rec: null, unreachable: r.unreachable || r.status === 403 };
+    const rec = fromArxivFeed(await r.response.text());
+    if (rec) return { rec, unreachable: false };
+    // arXiv intermittently answers a valid id with an empty feed; one retry separates that from
+    // an id that resolves to nothing.
+    if (attempt === 0) await sleep(3000);
+  }
+  return { rec: null, unreachable: false };
 }
 
 async function arxivByTitle(title: string): Promise<RecFetch> {
@@ -565,6 +582,7 @@ export async function defaultLookup(e: BibEntry): Promise<ExternalRecord | typeo
     // authUnreachable false and still falls through to the title fallback, so fabricated ids are caught.)
     if (hasAuthId && authUnreachable) return UNREACHABLE;
     // No identifier (or identifier definitively did not resolve): search by title.
+    const authMissed = hasAuthId; // reachable registries, no record for the id
     const candidates: (ExternalRecord | null)[] = [];
     let titleUnreachable = false; // a registry the title search needed answered 429/5xx/network
     const crossref = await getJson(
@@ -593,6 +611,9 @@ export async function defaultLookup(e: BibEntry): Promise<ExternalRecord | typeo
     // No match, but a registry the search needed did not answer: the work may well be indexed
     // there. Transient, non-blocking — never launder a rate limit into a confident rejection.
     if (titleUnreachable) return UNREACHABLE;
+    // An id that resolved to nothing is the finding; an unrelated top hit for the title would
+    // only turn it into a misleading "title does not match".
+    if (authMissed && !candidates.some((c) => c !== null && titleKey(c.title) === titleKey(e.fields.title ?? ""))) return null;
     return candidates[0] ?? null;
   } catch {
     return null;

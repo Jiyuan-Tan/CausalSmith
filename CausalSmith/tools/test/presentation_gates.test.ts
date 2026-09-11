@@ -55,6 +55,21 @@ describe("hard gates", () => {
     expect(await runHardGates(makeInput(), passingRunners)).toEqual([]);
   });
 
+  it("drops an overclaim flag whose fix only strips the obj: prefix and restores the prefix otherwise", async () => {
+    const sentence = "\\Cref{obj:T-1} shows the bound, see \\cref{obj:T-1}.";
+    const noop = await runHardGates(makeInput(), {
+      ...passingRunners,
+      overclaim: async () => ({ clean: false, flags: [{ sentence, fix: "\\Cref{T-1} shows the bound, see \\cref{T-1}." }] }),
+    });
+    expect(noop.some((p) => p.gate === "overclaim")).toBe(false);
+    const real = await runHardGates(makeInput(), {
+      ...passingRunners,
+      overclaim: async () => ({ clean: false, flags: [{ sentence, fix: "\\Cref{T-1} gives the bound, see \\cref{T-1}." }] }),
+    });
+    const flag = real.find((p) => p.gate === "overclaim");
+    expect(flag?.detail).toContain("→ \\Cref{obj:T-1} gives the bound, see \\cref{obj:T-1}.");
+  });
+
   it("a single unsupported / overclaim verdict fails the run", async () => {
     const oc = await runHardGates(makeInput(), {
       ...passingRunners,

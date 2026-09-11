@@ -4,7 +4,7 @@ import { join } from "node:path";
 import type { StageIO } from "../pipeline.js";
 import { presentationPrompt, promptFingerprint } from "../prompt_io.js";
 import { parseOutline } from "../stage_util.js";
-import { lintAnchors, lintEnvOrder, hashEnvBody, parseAnchoredEnvs, repairObjRefs, reviewerTexFor } from "../tex_anchors.js";
+import { lintAnchors, lintEnvOrder, hashEnvBody, parseAnchoredEnvs, repairObjRefs, restoreObjRefs, reviewerTexFor } from "../tex_anchors.js";
 import { FormalLayerSource, blocksToTex } from "../formal_layer.js";
 import { applyProseRevision, proofBlocks, applyTargetedReplacements, type TextReplacement } from "../prose_revision.js";
 export { applyTargetedReplacements, type TextReplacement } from "../prose_revision.js";
@@ -525,6 +525,14 @@ export async function stageP3(io: StageIO): Promise<void> {
     }
     if (!advisory && parsed.replacements.length === 0) {
       throw new Error(`P3 revision round ${round} returned no replacements`);
+    }
+    // A reviser that echoes a `\cref{obj:…}` link sometimes drops the `obj:` prefix: in `after` the
+    // bare id is not a label and the frozen-layer lint below would reject the whole round; in
+    // `before` it matches nothing and the patch would be skipped as missing. The paper never
+    // legally contains a bare known id inside a ref, so restoring both sides is determined.
+    for (const r of parsed.replacements) {
+      if (typeof r.before === "string") r.before = restoreObjRefs(r.before, known);
+      if (typeof r.after === "string") r.after = restoreObjRefs(r.after, known);
     }
     const { tex: agentRevision, skipped, applied } = applyTargetedReplacements(before, parsed.replacements,
       // Reject each protected edit before persistence/propagation. Restoring only the final

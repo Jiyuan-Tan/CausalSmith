@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { unwrapLeanrefs, reviewerTexFor, lintLeanrefs, parseAnchoredEnvs, lintAnchors, lintCrossRefs, lintSelfContainment, lintClarity, definitionOrderViolations, lintNegativeContributionFraming, lintNestedMathDelimiters, lintReferences, lintHypothesisPresentation, repairObjRefs, normalizeCrefs, displaysDefiningEquality, notationHomes, usesSymbolUndecorated, placeFrozenEnvs, lintEnvOrder } from "../src/presentation/tex_anchors.js";
+import { restoreObjRefs, unwrapLeanrefs, reviewerTexFor, lintLeanrefs, parseAnchoredEnvs, lintAnchors, lintCrossRefs, lintSelfContainment, lintClarity, definitionOrderViolations, lintNegativeContributionFraming, lintNestedMathDelimiters, lintReferences, lintHypothesisPresentation, repairObjRefs, normalizeCrefs, displaysDefiningEquality, notationHomes, usesSymbolUndecorated, placeFrozenEnvs, lintEnvOrder } from "../src/presentation/tex_anchors.js";
 
 // The semantic definition-order check as P1's repair reads it (P3/P4 no longer re-judge it).
 const lintDefinitionOrder = (tex: string, notation: string) =>
@@ -819,5 +819,15 @@ describe("lintLeanrefs", () => {
     const bad = lintLeanrefs("see \\leanref{sym:x}{\\(x_{1}\\) more text \\leanref{obj:def:a}{Definition 1}");
     expect(bad.map((p) => p.gate)).toEqual(["unterminated-leanref"]);
     expect(bad[0].detail).toContain("\\leanref{sym:x}");
+  });
+});
+
+describe("restoreObjRefs", () => {
+  it("re-prefixes bare known env ids inside cross-references and touches nothing else", () => {
+    const known = new Set(["thm:main", "def:setup"]);
+    expect(restoreObjRefs("See \\cref{thm:main} and \\Cref{def:setup,thm:main}.", known))
+      .toBe("See \\cref{obj:thm:main} and \\Cref{obj:def:setup,obj:thm:main}.");
+    const untouched = "See \\cref{obj:thm:main}, \\cref{sec:setup} and \\ref{eq:one}; thm:main in text.";
+    expect(restoreObjRefs(untouched, known)).toBe(untouched);
   });
 });
