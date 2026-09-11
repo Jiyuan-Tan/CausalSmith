@@ -70,11 +70,18 @@ command, and Codex reads it on request.
 
 | You want to… | In Claude Code | In Codex |
 |---|---|---|
+| Run the pipeline without bringing a topic | "Run the CausalSmith research pipeline and choose the topic yourself" | "Follow .claude/skills/causalsmith/SKILL.md: run the research pipeline and choose the topic yourself" |
 | Get topic suggestions | `/causalsmith-topics <area>` | "Follow .claude/skills/causalsmith-topics/SKILL.md for `<area>`" |
 | Discover, prove and bank a theorem | `/causalsmith research --propose "<topic>" <qid> v1 --auto` | "Follow .claude/skills/causalsmith/SKILL.md: run `causalsmith research --propose "<topic>" <qid> v1 --auto`" |
 | Turn an accepted result into a paper | `/causalsmith present <qid> v1` | "Follow .claude/skills/causalsmith-present/SKILL.md for `<qid> v1`" |
 
-`<qid>` is a short snake_case id you choose (see
+**You do not have to supply a topic.** Asked to run the pipeline without one,
+the agent first dispatches the topic-selection sub-skill, which searches the
+literature and the bank of finished runs for an area with real headroom, then
+names the run and launches it. Give it a topic and an id only when you want the
+run pinned to an idea of your own.
+
+`<qid>` is a short snake_case id you choose when you name a run yourself (see
 [`CausalSmith/doc/qid-naming.md`](CausalSmith/doc/qid-naming.md)); `--auto` lets
 the agent decide every checkpoint itself and stop only at the end. A finished run
 lands in `CausalSmith/doc/research/_bank/accepted/<qid>_v1/` with its Lean proofs
