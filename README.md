@@ -77,9 +77,9 @@ command, and Codex reads it on request.
 
 **You do not have to supply a topic.** Asked to run the pipeline without one,
 the agent first dispatches the topic-selection sub-skill, which searches the
-literature and the bank of finished runs for an area with real headroom, then
-names the run and launches it. Give it a topic and an id only when you want the
-run pinned to an idea of your own.
+literature and the bank of finished runs for an area with real headroom and
+names the run; the orchestrator then launches it. Give it a topic and an id
+only when you want the run pinned to an idea of your own.
 
 `<qid>` is a short snake_case id you choose when you name a run yourself (see
 [`CausalSmith/doc/qid-naming.md`](CausalSmith/doc/qid-naming.md)); `--auto` lets

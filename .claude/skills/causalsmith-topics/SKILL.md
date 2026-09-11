@@ -26,9 +26,9 @@ run autonomously, blocking on each verdict in your turn. Never start an explicit
 task and end your turn, and never detach manually (`nohup`/`&`); if a child is long, foreground-poll it.
 Return to the coordinator only at the bounce point (terminal no-accept after the capped re-propose) or
 when blocked, handing back `{slate, verbatim gate verdicts, verbatim presolve verdicts, ranked options +
-recommendation}` tagged `ESCALATION` / `BLOCKED` / `DONE`. On `ESCALATION` also hand back a ranked list
-of UNTRIED levers (fresh cluster / sub-area / mode, one-line headroom each) plus your best tier-honest
-fallback; an empty list signals structural exhaustion. The coordinator re-steers ≤4 rounds and never
+recommendation, the emitted command}` tagged `ESCALATION` / `BLOCKED` / `DONE`. On `ESCALATION` also
+hand back a ranked list of UNTRIED levers (fresh cluster / sub-area / mode, one-line headroom each)
+plus your best tier-honest fallback; an empty list signals structural exhaustion. The coordinator re-steers ≤4 rounds and never
 re-runs your deep reads/gate/presolve.
 
 ## Generation procedure
@@ -73,8 +73,10 @@ re-runs your deep reads/gate/presolve.
 8. **Present the slate** with an adversarial self-ranking and each candidate's most-likely D0.5 death.
 9. **Gate, presolve, emit.** Run the adversarial gate; after accept, run the presolve; only a `launch`
    verdict produces the command: `causalsmith research --propose "<anchor>" <qid> <spec> --novelty
-   <target>` with the presolve capsule embedded in `<anchor>`. `--novelty` is required and maps the
-   accepted Target tier directly (`flagship | field | subfield | incremental`). Do not launch it.
+   <target>` with the presolve capsule embedded in `<anchor>`. Fill every placeholder: `<qid>` is yours
+   to choose (snake_case, per `CausalSmith/doc/qid-naming.md`), `<spec>` is `v1` unless continuing a
+   line. `--novelty` is required and maps the accepted Target tier directly (`flagship | field |
+   subfield | incremental`). Do not launch it.
 
 ## Venue reference (orientation, not a filter)
 
@@ -338,5 +340,5 @@ gap. Preserve the candidate's original assumptions; theorem status is reserved f
 
 ## What this skill does NOT do
 
-- Launch CausalSmith research (emit the command; the user runs it).
+- Launch CausalSmith research (emit the command; the caller runs it).
 - Filter on Causalean infra availability (#1).

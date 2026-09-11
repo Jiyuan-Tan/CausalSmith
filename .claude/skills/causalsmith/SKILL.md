@@ -1,6 +1,6 @@
 ---
 name: causalsmith
-description: Run the CausalSmith pipeline. Invoke on `/causalsmith research` to discover, formalize, verify, and bank a causal theorem — with a qid and specialization, or with no topic at all, in which case it selects the topic and names the run itself; `/causalsmith present` with a qid and specialization to turn an accepted entry into a verified paper bundle; or `/causalsmith study` with a slug to build reusable Causalean substrate. Also invoke on conversational requests to launch, resume, present, or study a CausalSmith result. Research owns the D-/F-stage workflow and dispatches `causalsmith-d` and `causalsmith-f`; presentation details live in `causalsmith-present/SKILL.md`.
+description: Run the CausalSmith pipeline. Invoke on `/causalsmith research` to discover, formalize, verify, and bank a causal theorem — with a qid and specialization, or with no run id, in which case it selects the topic and names the run itself; `/causalsmith present` with a qid and specialization to turn an accepted entry into a verified paper bundle; or `/causalsmith study` with a slug to build reusable Causalean substrate. Also invoke on conversational requests to launch, resume, present, or study a CausalSmith result. Research owns the D-/F-stage workflow and dispatches `causalsmith-d` and `causalsmith-f`; presentation details live in `causalsmith-present/SKILL.md`.
 ---
 
 # /causalsmith research — main orchestrator
