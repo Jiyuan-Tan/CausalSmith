@@ -1,6 +1,6 @@
 ---
 name: causalsmith
-description: Run the CausalSmith pipeline. Invoke on `/causalsmith research` with a qid and specialization to discover, formalize, verify, and bank a causal theorem; `/causalsmith present` with a qid and specialization to turn an accepted entry into a verified paper bundle; or `/causalsmith study` with a slug to build reusable Causalean substrate. Also invoke on conversational requests to launch, resume, present, or study a CausalSmith result. Research owns the D-/F-stage workflow and dispatches `causalsmith-d` and `causalsmith-f`; presentation details live in `causalsmith-present/SKILL.md`.
+description: Run the CausalSmith pipeline. Invoke on `/causalsmith research` to discover, formalize, verify, and bank a causal theorem — with a qid and specialization, or with no topic at all, in which case it selects the topic and names the run itself; `/causalsmith present` with a qid and specialization to turn an accepted entry into a verified paper bundle; or `/causalsmith study` with a slug to build reusable Causalean substrate. Also invoke on conversational requests to launch, resume, present, or study a CausalSmith result. Research owns the D-/F-stage workflow and dispatches `causalsmith-d` and `causalsmith-f`; presentation details live in `causalsmith-present/SKILL.md`.
 ---
 
 # /causalsmith research — main orchestrator
@@ -258,6 +258,7 @@ lease-return escalation).
 
 | Form | Effect |
 |------|--------|
+| *(none, or a bare area/interest)* | No qid to parse: § "Topic selection" first, then launch the form it returns. |
 | `<qid> <spec>` | Cold start. |
 | `--resume <qid> <spec>` | Resume after a checkpoint or block. |
 | `--propose <topic> <qid> <spec>` | Run with D-1 proposal first. |
@@ -276,7 +277,8 @@ Pass-through flags: `--auto`; `--novelty <incremental|subfield|field|flagship>` 
 `state.flags.proof_loop_counters`; clearing any cap is main's authority and legitimate only after the
 root cause changed); `--proposer <codex|claude>`; `--dry-run` (state-machine
 mechanics only — never on a live run: it fast-forwards `stage_completed`). Parsing failure → stop and
-report; never invent a qid.
+report; never invent a qid. Arguments that name no qid are the topic-selection entry above,
+not a parsing failure.
 
 ## Launch
 
