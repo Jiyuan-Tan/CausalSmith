@@ -140,6 +140,35 @@ describe("citations", () => {
     expect((await verifyEntry(entry, wholeName)).verdict).toBe("exact");
   });
 
+  it("matches diacritics and LaTeX accents, leading articles, and question-mark subtitles", async () => {
+    const savje: BibEntry = { key: "savje2021", type: "article", fields: { title: "Average Treatment Effects in the Presence of Unknown Interference", author: "S\\\"avje, Fredrik and Aronow, Peter M. and Hudgens, Michael G.", year: "2021" } };
+    expect((await verifyEntry(savje, async () => ({ title: savje.fields.title, authorFamily: "Sävje", year: 2021 }))).verdict).toBe("exact");
+    const erdos: BibEntry = { key: "gm2016", type: "book", fields: { title: "Erd\\H{o}s--Ko--Rado Theorems: Algebraic Approaches", author: "Godsil, Chris and Meagher, Karen", year: "2016" } };
+    expect((await verifyEntry(erdos, async () => ({ title: "Erdős–Ko–Rado Theorems: Algebraic Approaches", authorFamily: "Godsil", year: 2016 }))).verdict).toBe("exact");
+    const article: BibEntry = { key: "filmus", type: "article", fields: { title: "An Orthogonal Basis for Functions over a Slice of the Boolean Hypercube", author: "Filmus, Yuval", year: "2016" } };
+    expect((await verifyEntry(article, async () => ({ title: "Orthogonal basis for functions over a slice of the Boolean hypercube", authorFamily: "Filmus", year: 2016 }))).verdict).toBe("exact");
+    const question: BibEntry = { key: "sobel", type: "article", fields: { title: "What Do Randomized Studies of Housing Mobility Demonstrate? Causal Inference in the Face of Interference", author: "Sobel, Michael E.", year: "2006" } };
+    expect((await verifyEntry(question, async () => ({ title: "What Do Randomized Studies of Housing Mobility Demonstrate?", authorFamily: "Sobel", year: 2006, authoritative: true }))).verdict).toBe("minor");
+  });
+
+  it("matches letters without a Unicode decomposition, such as the dotless i in Turkish names", async () => {
+    const entry: BibEntry = { key: "varici2025", type: "article", fields: { title: "Score-Based Causal Representation Learning", author: "Var{\\i}c{\\i}, Burak and Acarturk, Emre", year: "2025" } };
+    expect((await verifyEntry(entry, async () => ({ title: entry.fields.title, authorFamily: "Varıcı", year: 2024 }))).verdict).toBe("exact");
+    const thorn: BibEntry = { key: "thor2020", type: "article", fields: { title: "Icelandic Cohort Effects", author: "{\\TH}{\\'o}rarinsson, Einar and {\\AE}gisson, Jon", year: "2020" } };
+    expect((await verifyEntry(thorn, async () => ({ title: thorn.fields.title, authorFamily: "Þórarinsson", year: 2020 }))).verdict).toBe("exact");
+    expect((await verifyEntry(thorn, async () => ({ title: thorn.fields.title, authorFamily: "Ægisson", year: 2020 }))).verdict).toBe("exact");
+  });
+
+  it("never mistakes an ordinary macro for an accent", async () => {
+    for (const [tex, plain] of [["$\\beta$-mixing rates", "β-mixing rates"], ["\\textit{Weak} limits", "Weak limits"], ["Bounds \\dots\\ here", "Bounds here"], ["The \\rho and \\tau scales", "The ρ and τ scales"], ["A \\vec{x} lemma", "A x lemma"], ["\\kappa-cover results", "κ-cover results"]] as const) {
+      const entry: BibEntry = { key: "m", type: "article", fields: { title: tex, author: "Doe, Jane", year: "2020" } };
+      const registryTitle = plain.replace(/[βρτκ]/g, (c) => ({ "β": "beta", "ρ": "rho", "τ": "tau", "κ": "kappa" })[c]!);
+      // The registry spells the Greek letter out (as Crossref does for a plain-text title): the LaTeX side must reduce to the same word, not to a truncated one.
+      const wrongTruncation = registryTitle.replace(/\b(beta|rho|tau|kappa|Weak|Bounds|A x)\b/, (w) => w.slice(1));
+      expect((await verifyEntry(entry, async () => ({ title: wrongTruncation, authorFamily: "Doe", year: 2020 }))).verdict).not.toBe("exact");
+    }
+  });
+
   it("title identity ignores a registry's spacing typo", async () => {
     const entry: BibEntry = {
       key: "sidiropoulos2000",

@@ -1,6 +1,6 @@
-# CausalSmith Result Bank (thmsmith pipeline)
+# CausalSmith Result Bank
 
-A persistent, queryable archive of every thmsmith run that completed Stage -0.5
+A persistent, queryable archive of every CausalSmith research run that completed D-0.5
 (question proposal) and reached at least an attempted derivation. Banking
 downgraded and failed runs is deliberate: negative results, burned seeds, and
 reusable infrastructure all compound over time, and the proposal→derivation
@@ -10,16 +10,13 @@ tier drift is the most important calibration signal for the pipeline.
 
 | Directory | Inclusion criterion | Primary use |
 |-----------|--------------------|-------------|
-| `accepted/`   | Stage -0.5 ACCEPT **and** Stage 0.5 ACCEPT at the requested `novelty_target`, **and** the run reached Stage 5 (Lean proof complete) | Publishable results; promotion candidates into AutoID |
-| `downgraded/` | Stage -0.5 ACCEPT **but** Stage 0.5 falls below `novelty_target` (still mathematically sound) | Negative findings; reusable LP/operator/witness infrastructure; burned-seed manifests |
-| `failed/`     | Stage -0.5 NO-PASS, or Stage 0.5 REJECT on correctness/structure | Pipeline-diagnostic only; usually low scientific value |
-| `legacy/`     | Runs predating the Stage -0.5 / Stage 0.5 reviewer system (e.g. early Q1 outputs) | Held un-graded; see `legacy/README.md` for the regrade plan |
+| `accepted/`   | D-0.5 ACCEPT **and** D0.5 ACCEPT at the requested `novelty_target`, **and** the run reached F5 (Lean proof complete) | Publishable results; promotion candidates into Causalean |
+| `downgraded/` | D-0.5 ACCEPT **but** D0.5 falls below `novelty_target` (still mathematically sound) | Negative findings; reusable LP/operator/witness infrastructure; burned-seed manifests |
+| `failed/`     | D-0.5 NO-PASS, or D0.5 REJECT on correctness/structure | Pipeline-diagnostic only; usually low scientific value |
 
-The four-bucket split is deliberate. `legacy/` is an administrative
-holding bin, not a scientific tier — it holds results that cannot be
-retroactively slotted without re-running the reviewers. The
-proposal→derivation tier-drift statistic is computed only over
-`accepted ∪ downgraded ∪ failed` (entries with both verdicts on file).
+The proposal→derivation tier-drift statistic is computed only over
+`accepted ∪ downgraded` (`failed` never reached a derivation; `legacy`
+predates the reviewers).
 
 **Retired tier — `candidates/` (removed 2026-07-18).** `candidates/` parked
 D0.5-ACCEPT runs pending tournament selection. It was retired because the
@@ -63,7 +60,6 @@ their `literature_map` artifacts are trustworthy, their novelty framing is not.
       accepted/<qid>_<spec>/             ← entry directory, one per accepted run
       downgraded/<qid>_<spec>/           ← entry directory, one per downgraded run
       failed/<qid>_<spec>/               ← entry directory, one per failed run
-      legacy/<qid>_<spec>/               ← entry directory, one per legacy (pre-reviewer) run
 
 Each entry directory contains the verbatim run artifacts (state.json,
 proposal.tex, reviews/, derivation note, pipeline.jsonl, etc.) plus a
@@ -80,16 +76,16 @@ caches, and their 64-hex names under a long qid overflow Windows' path limit.
 
 ## Banking and the guardrail
 
-When an entry is banked, its `<qid>_<spec>_state.json` MUST carry:
+When an entry is banked, its `state.json` (legacy: `<qid>_<spec>_state.json`) MUST carry:
 
     "banked": true,
     "banked_tier": "accepted" | "downgraded" | "failed" | "legacy",
     "banked_on": "<YYYY-MM-DD>",
     "banked_reason": "<one-sentence reason, verbatim verdict where possible>",
 
-Banking moves `<qid>_<spec>_state.json` out of `formalization/<qid>/` into
+Banking moves the whole run directory out of `doc/research/active/<qid>/` into
 `_bank/<tier>/<qid>_<spec>/`, so the `causalsmith-guardrail.sh` PreToolUse
-hook's legacy state-file check (which scans `formalization/<qid>/*_state.json`
+hook's legacy state-file check (which scans `doc/research/active/<qid>/{state.json,*_state.json}`
 for `stage_completed != "5"`) never sees the banked file again. The
 `banked: true` field is preserved as a frozen artifact, not a live signal —
 the hook is path-scoped, so being out of the protected directory is what
@@ -98,8 +94,8 @@ makes a banked entry inert.
 ## Per-entry metadata (entry `README.md` frontmatter)
 
     ---
-    qid: <question id>                   # e.g. flagship_explore, q1_minimal_basis
-    spec: <specialization id>            # e.g. f1, p1_bernoulli
+    qid: <question id>                   # e.g. pid_late_bounded_defiers, stat_policy_regret_margin_overlap
+    spec: <specialization id>            # e.g. v1, v2
     topic: <one-line topic phrase>       # carried from state.json proposed_from.topic
     novelty_target: incremental | subfield | field | flagship
     banked_novelty_tier: incremental | subfield | field | flagship  # achieved tier; upgrade target must be >= this
@@ -136,12 +132,14 @@ context not captured by the structured fields.
   upstreamed; that happens only after a human review copies the Lean
   statement+proof into AutoID and confirms it builds.
 
-## Tier-drift metric (planned)
+## Tier-drift metric
+
+Computed by `npx tsx tools/bin/bank_drift.ts` (`--json` for machine-readable output).
 
     drift_rate(novelty_target) =
       |{downgraded entries with novelty_target = T}| /
       |{accepted ∪ downgraded entries proposed at T}|
 
 Computed per `novelty_target` band. A rising drift rate at `field`/`flagship`
-means Stage -0.5 is over-promising relative to Stage 0.5; a falling rate is
+means D-0.5 is over-promising relative to D0.5; a falling rate is
 calibration. Both are useful — neither is visible if downgrades are deleted.

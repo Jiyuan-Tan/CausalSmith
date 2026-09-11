@@ -26,5 +26,10 @@ file:line, and the T-blocks that reach it.
 - `migrate_bank_stage_prose.mjs` (+ `.d.mts`) — one-off bank migration (old bare-number
   stage ids → `D-`/`F-` labels in bank README prose). Tested by
   `test/migrate_bank_stage_prose.test.ts`. `node scripts/dev/migrate_bank_stage_prose.mjs`.
+- `repin_frozen_hashes.mjs` — one-off: regenerate a bundle's `frozen_hashes.json` from a
+  hand-amended `formal_layer.tex` (mirrors P1's hashing).
+  `npx tsx scripts/dev/repin_frozen_hashes.mjs <bundleDirAbs>`.
+- `salvage_resolved_oeqs.ts` — one-off audited migration for legacy D0 cores that proved
+  open equivalences in place; reads the core + plan, re-runs the plan gate, rebuilds the graph.
 - `watch.py` — ad-hoc poller that tails active research runs (hardcoded run list / path;
   edit before use). Pure scratch monitoring helper.

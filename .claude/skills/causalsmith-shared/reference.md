@@ -6,15 +6,18 @@ rewinds) lives in the TS pipeline at [`CausalSmith/tools/`](../../../CausalSmith
 
 ## Process rules
 
-- **Protected paths** are read-only while a run is active: `CausalSmith/Panel/<QName>/` and
-  `CausalSmith/doc/research/active/<qid>/*.{tex,md,lean}` (exempt: `state.json`, `PIPELINE_NOTES.md`,
-  `doc/API.md`). The guardrail hook (§ "Guardrail hook") enforces this. Edit at a halt, where the
+- **Protected paths:** while a run's heartbeat is fresh the guardrail hook (§ "Guardrail hook") denies
+  every edit anywhere under `CausalSmith/doc/research/active/<qid>/`, `state.json` included (the
+  `state.json` / `PIPELINE_NOTES.md` exemptions apply only on the legacy no-heartbeat fallback). The
+  run's Lean tree `CausalSmith/<Substrate>/<QName>/` is not hook-protected — treat it as read-only by
+  convention while the run is live. Edit at a halt, where the
   process has already exited.
 - **Stopping a run is main's authority.** SIGINT the pipeline node, verify the tree is down (no
   orphaned `codex exec`), then relaunch. A lease-holding sub never SIGINTs. On Windows `TaskStop` kills
   only the wrapper: kill the `Local\OpenAI\Codex\bin` codex tree and any `*sandbox-setup*` process (an
   orphaned one breaks the next run), sparing the desktop `Codex.exe`, `.vscode` Codex, and your harness.
-- **Triage a halt** from the tail of the newest `<qid>_<spec>_intervention_raw_<timestamp>.txt`.
+- **Triage a halt** from the last line of `pipeline.jsonl`. If the intervention judge itself failed to
+  parse, its raw dump is the newest `intervention_raw_<timestamp>.txt` at the run-dir root.
 - **Watcher ownership.** The current lease holder arms the watcher for its whole phase, including the
   cold-start→first-halt window. Exactly one watcher per qid; different qids are independent.
 - **Subs stay in their turn.** A dispatched sub that starts a `run_in_background` task and ends its
@@ -99,7 +102,7 @@ codex). Never force-kill mid-`codex`. Reaping keeps the cluster under its proces
 
 ## Proof-review loop — when to intervene
 
-Default: let it run; act per the checkpoint route (`hint` / `build-substrate` / `fix-source` /
+Default: let it run; act per the checkpoint route (`hint` / `build-substrate` / `fix-source` / `unclear` /
 `bank-partial` / `abandon`). Intervene when the faithful fix is one the loop's lanes structurally
 cannot make: a decl loops with no goal movement because its fix needs a frozen-theorem-meaning change or
 a core-`def` strengthen, or the reviewer keeps flagging drift the filler cannot resolve without changing
@@ -126,7 +129,7 @@ Schema: [`tools/src/state.ts`](../../../CausalSmith/tools/src/state.ts).
 
 | Field | Meaning |
 |-------|---------|
-| `stage_completed` | Bare number on disk, order `"-1.1","-1.2","-0.5","0","0.5","1","1.5","2","2.5","3","3.5","3.7","4","5"`; cold-start sentinel `"-1.2"`. F5 ≡ `"5"`, D0 ≡ `"0"`, D0.5 ≡ `"0.5"`, D-1 ≡ `"-1.2"`. |
+| `stage_completed` | Bare number on disk, order `"-1.1","-1.2","-0.5","0","0.5","1","1.5","2","2.5","3","3.5","4","5"` (a legacy on-disk `"3.7"` is remapped to `"3.5"` on load); cold-start sentinel `"-1.2"`. F5 ≡ `"5"`, D0 ≡ `"0"`, D0.5 ≡ `"0.5"`, D-1 ≡ `"-1.2"`. |
 | `next_action` | `"pending_checkpoint"` after a clean F5, `"user_chose:<command>"` once acted on, else `null`. No `ckpt_pending` field exists. |
 | `flags.missing_architecture` (+`_items`) | Scaffolder reported `blocked-missing-architecture`; resume blocks until each item exists. |
 | `flags.stage_neg1_fallback` | D-1 budget spent without an acceptable proposal. Bank, or `--resume --clear-gate stage_neg1_fallback` after an out-of-band revision. |
@@ -159,8 +162,7 @@ actions collapse to "decide per the rule, then `--resume`" except the main skill
 | `stage_completed:"5"` + checkpoint line / `next_action:"pending_checkpoint"` | CKPT 2 | Print Lean file list, API.md diff path, `added_assumptions`, and planned F7 closure; ask once to accept the continuous bank → scoped commit → F7 → verification → final scoped commit sequence. |
 | `stage_completed:"5"`, no pending signal | CKPT 2 already acted on | Nothing to resume. |
 | `stage_completed:"1.5"` + `CONSOLIDATED CKPT 1` | CKPT 1 | Depth/reuse/fidelity audit (F skill § "F1.5"); wait for user unless auto. |
-| `stage_completed:"1"` + `SUBSTRATE-BUILD CHECKPOINT` / no-usable-plan | F1 self-halt | Build each gate (cheapest route), `--resume --from-stage F1.5 --clear-gate substrate_build_required`; discharge landed builds and rewind to F2.5 (not F1). |
-| `stage_completed:"3"` + `CHECKPOINT 1.5` | Proof fill complete (maybe with sorries) | Print sorry count + `pending_sorries`; fill / accept into F4 / abort. |
+| `stage_completed:"1"` + no-usable-plan | F1 self-halt (its only one — F1 no longer halts for substrate) | Inspect `plan.json`; substrate gates are classified at F1.5. |
 | `flags.missing_architecture:true` | Resume blocked | Build each listed item, clear, resume gated. |
 | `flags.stage_neg1_fallback` | D-1 budget spent | Bank `downgraded|failed`, or clear deliberately to retry. |
 | `flags.general_review_halt` / a cap flag | Halt / cap | Address the cause, then `--clear-gate`. |
@@ -171,8 +173,8 @@ actions collapse to "decide per the rule, then `--resume`" except the main skill
 
 ## Rewind verification
 
-Read the rewind verdict (`stage_4*`/`stage_2*` entries in `reviews.jsonl` + the `pipeline.jsonl`
-message), locate the flagged declaration, and independently reproduce the conflict against the
+Read the rewind verdict (the `PROOF-REVIEW LOOP ESCALATION [fix-source]` line in `pipeline.jsonl`
+and the reviewer reasoning in `logs/_reviewer_calls.log`), locate the flagged declaration, and independently reproduce the conflict against the
 `.md`/`.tex` (the verdict must cite the spec line, the Lean line, and why they conflict). Drift
 signatures: a hypothesis over-quantified to unsatisfiability (`∀ n` where the spec says *eventually*),
 a dropped/extra term, a wrong sign, a `def` gerrymandered to the proof's objects. Legitimate → let the
@@ -225,4 +227,4 @@ Read; a denial means you tried to mutate a protected path.
 | State schema / stage order | [`state.ts`](../../../CausalSmith/tools/src/state.ts), [`constants.ts`](../../../CausalSmith/tools/src/constants.ts) |
 | Bank tools / archive | [`tools/bin/bank_*.ts`](../../../CausalSmith/tools/bin/), [`doc/research/_bank/`](../../../CausalSmith/doc/research/_bank/) |
 | Per-run logs (heartbeat, reviewer-call log, any manual redirect/pid file) | `<qid>/logs/` — never the qid root |
-| Pipeline-failure notes | [`PIPELINE_NOTES.md`](../../../CausalSmith/doc/research/PIPELINE_NOTES.md) |
+| Pipeline-failure notes | `CausalSmith/doc/research/PIPELINE_NOTES.md` (created on first use) |

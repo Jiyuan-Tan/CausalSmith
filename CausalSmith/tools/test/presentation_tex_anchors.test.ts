@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { unwrapLeanrefs, reviewerTexFor, parseAnchoredEnvs, lintAnchors, lintCrossRefs, lintSelfContainment, lintClarity, definitionOrderViolations, lintNegativeContributionFraming, lintNestedMathDelimiters, lintReferences, lintHypothesisPresentation, repairObjRefs, normalizeCrefs, displaysDefiningEquality, notationHomes, usesSymbolUndecorated, placeFrozenEnvs, lintEnvOrder } from "../src/presentation/tex_anchors.js";
+import { unwrapLeanrefs, reviewerTexFor, lintLeanrefs, parseAnchoredEnvs, lintAnchors, lintCrossRefs, lintSelfContainment, lintClarity, definitionOrderViolations, lintNegativeContributionFraming, lintNestedMathDelimiters, lintReferences, lintHypothesisPresentation, repairObjRefs, normalizeCrefs, displaysDefiningEquality, notationHomes, usesSymbolUndecorated, placeFrozenEnvs, lintEnvOrder } from "../src/presentation/tex_anchors.js";
 
 // The semantic definition-order check as P1's repair reads it (P3/P4 no longer re-judge it).
 const lintDefinitionOrder = (tex: string, notation: string) =>
@@ -810,5 +810,14 @@ describe("reviewer copy shows what the PDF shows", () => {
     expect(unwrapLeanrefs("broken \\leanref{sym:x")).toBe("broken \\leanref{sym:x");
     expect(reviewerTexFor("Intro.\n% lean: tag\nSee \\leanref{obj:def:a}{Definition 1}.\n")).toContain("See Definition 1.");
     expect(reviewerTexFor("See \\leanref{obj:def:a}{Definition 1}.")).not.toContain("leanref");
+  });
+});
+
+describe("lintLeanrefs", () => {
+  it("flags a \\leanref missing its second group and passes balanced ones, nested braces included", () => {
+    expect(lintLeanrefs("ok \\leanref{sym:x}{\\(x_{1}\\)} and \\leanref{obj:def:a}{Definition 1}.")).toEqual([]);
+    const bad = lintLeanrefs("see \\leanref{sym:x}{\\(x_{1}\\) more text \\leanref{obj:def:a}{Definition 1}");
+    expect(bad.map((p) => p.gate)).toEqual(["unterminated-leanref"]);
+    expect(bad[0].detail).toContain("\\leanref{sym:x}");
   });
 });

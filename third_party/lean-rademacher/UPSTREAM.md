@@ -17,8 +17,8 @@ imported across `Causalean/Stat/Concentration/`, `Causalean/Estimation/`, and
 
 This copy is **adapted for AutoID's Lean/Mathlib pin** and diverges from upstream:
 
-- Bumped to `leanprover/lean4:v4.29.0-rc3` and pinned Mathlib to
-  `bf8875c7dc7162b23cdb881f33cc97caab1c688a` (matching Causalean's `lakefile.toml`).
+- Bumped to `leanprover/lean4:v4.33.0` and pinned Mathlib to
+  `db584cd6d46c92f209a44c0f1c829460d327499d` (matching Causalean's `lakefile.toml`).
 - Toolchain-drift fixes to `FoML/McDiarmid`, `FoML/MaximalInequality` (Massart),
   and `FoML/DudleyEntropy` to compile against that pin.
 

@@ -729,6 +729,28 @@ export function unwrapLeanrefs(tex: string): string {
   }
 }
 
+/** Every `\leanref` must carry two balanced brace groups; an unterminated one makes LaTeX scan to
+ *  the end of the file ("File ended while scanning use of \leanref") — caught at P4 compile after
+ *  P3's gates were paid. Assembly catches it first, and names the spot. */
+export function lintLeanrefs(tex: string): LintProblem[] {
+  const MARK = "\\leanref{";
+  const problems: LintProblem[] = [];
+  let i = 0;
+  for (;;) {
+    const at = tex.indexOf(MARK, i);
+    if (at < 0) return problems;
+    const idEnd = closingBrace(tex, at + MARK.length - 1);
+    const dispOpen = idEnd >= 0 ? idEnd + 1 : -1;
+    const dispEnd = dispOpen >= 0 && tex[dispOpen] === "{" ? closingBrace(tex, dispOpen) : -1;
+    if (dispEnd < 0) {
+      problems.push({ gate: "unterminated-leanref", detail: `\\leanref without two balanced brace groups at: ${tex.slice(at, at + 60).replace(/\s+/g, " ")}` });
+      i = at + MARK.length;
+      continue;
+    }
+    i = dispEnd + 1;
+  }
+}
+
 /** Index of the `}` matching the `{` at `open`, honouring nesting and `\{`/`\}`; -1 if unbalanced. */
 function closingBrace(tex: string, open: number): number {
   let depth = 0;

@@ -16,7 +16,7 @@ Use those skill files as local project guidance when they apply. If any
 `.claude` instruction conflicts with higher-priority Codex system/developer
 instructions, follow the higher-priority instruction and preserve the project intent as closely as possible.
 
-When the inline prompt header identifies the caller as CausalSmith research (any `CausalSmith/tools/src/discovery/prompts/` or `CausalSmith/tools/src/formalization/prompts/` content), treat the inline prompt as authoritative. Do NOT load `.claude/skills/*/SKILL.md` or `.claude/agents/*.md` unless the inline prompt explicitly names that path. CLAUDE.md cues about conditional skills (e.g. `formalization-with-user`) do not apply inside autonomous CausalSmith research stages.
+When the inline prompt header identifies the caller as CausalSmith research (any `CausalSmith/tools/src/discovery/prompts/` or `CausalSmith/tools/src/formalization/prompts/` content), treat the inline prompt as authoritative. Do NOT load `.claude/skills/*/SKILL.md` unless the inline prompt explicitly names that path. CLAUDE.md cues about conditional skills do not apply inside autonomous CausalSmith research stages.
 
 **Pipeline task prompts are self-contained.** A prompt whose first line is `=== PROMPT: <name> ===`
 comes from a CausalSmith presentation stage (judges, writers, reviewers). For such a prompt: do NOT read `.claude/CLAUDE.md`, skills, or agent files — nothing

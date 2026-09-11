@@ -228,8 +228,23 @@ export function citedKeys(tex: string): Set<string> {
   return keys;
 }
 
-const norm = (s: string) =>
+/** LaTeX accent commands and Unicode diacritics both reduce to the base letter, so a registry's
+ *  "Sävje"/"Erdős" matches an entry's `S\"avje`/`Erd\H{o}s`; `\o`, `\l`, `\ss`, `\ae` map to their
+ *  ASCII spellings. Every other non-alphanumeric character is dropped as before. */
+const LATEX_LETTERS: Record<string, string> = { o: "o", O: "O", l: "l", L: "L", ss: "ss", ae: "ae", AE: "AE", oe: "oe", OE: "OE", aa: "a", AA: "A", i: "i", j: "j" };
+const asciiLetters = (s: string): string =>
   s
+    // Punctuation accents (\"a \'{e} \^o) take the next letter directly; letter-named accents (\H{o}
+    // \v{s} \c{c} \u a) need a brace or space after them — otherwise \beta, \textit, \rho, \vec lose
+    // their first letter.
+    .replace(/\\(?:[`'^"~=.]|[uvHtcdbkr](?=[\s{]))\s*\{?\\?([A-Za-z])\}?/g, "$1")
+    .replace(/\\(ss|ae|AE|oe|OE|aa|AA|o|O|l|L|i|j)\b\{?\}?/g, (_m, k: string) => LATEX_LETTERS[k] ?? k)
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    // Letters with no canonical decomposition: dotless ı (Turkish names such as Varıcı), ł, ø, ß, æ, œ, đ, ð, þ.
+    .replace(/ı/g, "i").replace(/ł/g, "l").replace(/Ł/g, "L").replace(/ø/g, "o").replace(/Ø/g, "O").replace(/ß/g, "ss").replace(/ẞ/g, "SS").replace(/æ/g, "ae").replace(/Æ/g, "AE").replace(/œ/g, "oe").replace(/Œ/g, "OE").replace(/đ/g, "d").replace(/Đ/g, "D").replace(/ð/g, "d").replace(/Ð/g, "D").replace(/þ/g, "th").replace(/Þ/g, "Th");
+const norm = (s: string) =>
+  asciiLetters(s)
     .toLowerCase()
     .replace(/[^a-z0-9 ]/g, "")
     .replace(/\s+/g, " ")
@@ -259,8 +274,10 @@ const authorFamilyMatches = (e: BibEntry, rec: ExternalRecord): boolean => {
 
 /** Title identity ignores spacing as well as case and punctuation: registries carry typos such as
  * "ofN-way" for "of N-way", and spaces never distinguish works. */
-const titleKey = (s: string): string => norm(stripRegistryMarkup(s)).replace(/ /g, "");
-const titleCore = (title: string): string => titleKey(title.split(/\s*[:–—]\s*/, 1)[0] ?? "");
+// A leading article is not identity ("An Orthogonal Basis…" is "Orthogonal basis…").
+const titleKey = (s: string): string => norm(stripRegistryMarkup(s)).replace(/^(?:a|an|the) /, "").replace(/ /g, "");
+// A subtitle follows a colon, a dash, or a question mark ("…Demonstrate? Causal Inference…").
+const titleCore = (title: string): string => titleKey(title.split(/\s*[:–—?]\s*/, 1)[0] ?? "");
 
 /** Same title, or an exact short/full-title relation: one side IS the other's pre-subtitle title.
  * Crossref stores books under the short title; arXiv and publishers vary the subtitle. Two titles

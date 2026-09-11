@@ -17,8 +17,8 @@ engine they rest on.
 ## Why vendored (not a git require)
 
 Upstream pins `leanprover/lean4:v4.13.0` / `mathlib@v4.13.0` (late 2024). AutoID
-is on `leanprover/lean4:v4.29.0-rc3` with mathlib pinned to
-`bf8875c7dc7162b23cdb881f33cc97caab1c688a`. The ~16-major-version gap makes a
+is on `leanprover/lean4:v4.33.0` with mathlib pinned to
+`db584cd6d46c92f209a44c0f1c829460d327499d`. The ~20-major-version gap makes a
 plain `git`-require unbuildable, so the adapted source is carried in-tree and
 drift-fixed against AutoID's pin (mirrors the FoML / lean-rademacher vendoring in
 `third_party/lean-rademacher`).
@@ -39,7 +39,7 @@ optimizer/convergence suite (GD, ADMM, Nesterov, …):
 
 Adapted from upstream `main` (commit as cloned 2026-07-08). Changes are limited
 to toolchain-drift fixes needed to compile against AutoID's mathlib pin; no
-mathematical content was altered. Notably, mathlib v4.29 supplies
+mathematical content was altered. Notably, the current mathlib pin supplies
 `tangentConeAt` / `posTangentConeAt` natively, so unfolding-based rewrites were
 adjusted to the current definition. Upstream is referenced here only for
 provenance and license attribution.

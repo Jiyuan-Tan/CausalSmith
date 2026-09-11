@@ -114,7 +114,7 @@ Every escalation carries **verbatim receipts** (the reviewer phrase, the `.tex` 
 | `cap-block` / `substrate-unbuildable` | D/F | Only main resets caps (exception: the D-1 leaseholder's persisted `--angle-action retry --extra-revisions N` lane). Diagnose the root first: scaffolder drift → `bin/f2_directive.ts`; reviewer wrong → `pipeline-bug`; plan wrong → rewind. `--clear-gate` only after a root change, and log it. Same defect after two resets → validity-gate, then user. |
 | `build-substrate` (a.k.a. `substrate-build:study`) | F | The proof needs a lemma that does not exist. Never bank `failed` for this — route by REUSE: generally reusable (a Mathlib-shaped fact any run could want) → `--study` side-run (§ "study"), relay the Causalean path back; specific to this model and of manageable size → dispatch a subagent to build it under the run's own `Helpers/`. Escalate only if it is neither. |
 | `citation-instantiation-overflow` | F | Apply the citation invariant. Source mismatch → correct the source; new reusable infrastructure → build/study; paper-specific residual → prove or correct the headline. F4 must still run. |
-| `f5-clean` | F | Verify F4 ran (this-round `reviews.jsonl` verdict + dual F4 receipts; a loop escalation followed by stages 3/3.5/3.7/4 `skipped` voids it → send back to re-enter F2.5). Then run S6 for remaining `gated` debt, then CKPT 2 user stop with Lean/API/assumptions/F4/tier receipts and the planned F7 reusable-helper closure. One explicit acceptance authorizes the whole standard post-checkpoint sequence: accepted bank, scoped commit, F7, verification, and final scoped commit; do not ask again between those steps. |
+| `f5-clean` | F | Verify F4 ran (a this-round `stage 4 … dual-model convergence review completed` line in `pipeline.jsonl` plus one current receipt from each peer in `state.delivery_review_receipts` / `state.cited_review_receipts`; a loop escalation followed by stages 3/3.5/4 `skipped` voids it → send back to re-enter F2.5). Then run S6 for remaining `gated` debt, then CKPT 2 user stop with Lean/API/assumptions/F4/tier receipts and the planned F7 reusable-helper closure. One explicit acceptance authorizes the whole standard post-checkpoint sequence: accepted bank, scoped commit, F7, verification, and final scoped commit; do not ask again between those steps. |
 | `reviewer-dispute` | F | Reproduce independently. Reviewer right → comply. Reviewer wrong → `pipeline-bug`: propose a concise GENERAL reviewer-prompt rule, ask the user before editing (hard stop 8), record in `PIPELINE_NOTES.md`, re-enter F2.5/F4. Never instance-exempt a node. Undecidable math → user. |
 | `pipeline-bug` | D/F | Fix while stopped (§ "Pipeline-bug fixes"), re-dispatch. |
 
@@ -270,7 +270,7 @@ Pass-through flags: `--auto`; `--novelty <incremental|subfield|field|flagship>` 
 `stage0_budget_exhausted`, `general_review_halt`, `stage_neg1_fallback`, `d0_loop_cap_hit`,
 `proof_loop_cap_hit` — the last covers every proof-review-loop budget in
 `state.flags.proof_loop_counters`; clearing any cap is main's authority and legitimate only after the
-root cause changed); `--proposer <codex|claude>`; `--from-study-gaps`; `--dry-run` (state-machine
+root cause changed); `--proposer <codex|claude>`; `--dry-run` (state-machine
 mechanics only — never on a live run: it fast-forwards `stage_completed`). Parsing failure → stop and
 report; never invent a qid.
 

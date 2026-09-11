@@ -1,8 +1,8 @@
 # qid / specialization naming convention
 
 CausalSmith research pipeline runs are identified by `(qid, specialization)`. The pair
-appears in every artifact path (`doc/research/active/<qid>/<qid>_<spec>_*`,
-`_bank/<tier>/<qid>_<spec>/`, Lean output dirs) and in seed-burning /
+appears in the bank path and Lean output dirs (`_bank/<tier>/<qid>_<spec>/`; inside a
+run directory `doc/research/active/<qid>/` artifacts use bare names and the spec lives in `state.json`) and in seed-burning /
 reusable-artifact match keys. Drift here costs the team — a vague qid forces
 a future reader to open the proposal before they can tell what a banked run
 was about, and inconsistent cluster prefixes silently shrink bank-matching.
@@ -10,8 +10,9 @@ was about, and inconsistent cluster prefixes silently shrink bank-matching.
 ## Rules
 
 1. **The qid encodes the topic, not the tier.** The novelty tier is a
-   separate axis passed via the `--novelty` flag (`relative-to-repo` |
-   `relative-to-literature` | `field` | `flagship`). Tier is not a topic
+   separate axis passed via the `--novelty` flag (`incremental` | `subfield` |
+   `field` | `flagship`; the older spellings `relative-to-repo` / `relative-to-literature`
+   are still accepted and normalized). Tier is not a topic
    property; it's an acceptance threshold. Do not put `flagship` or `field`
    in the qid.
 
@@ -25,8 +26,8 @@ was about, and inconsistent cluster prefixes silently shrink bank-matching.
    - `stat` — estimation and inference theory.
    - `exp` — design-based / randomization inference.
    - `scm` — graphical identification and structural causal models.
-   This prefix is what the bank uses as the "related" matching key — runs
-   that share it can reuse each other's `literature_map` artifacts.
+   This prefix is the convention by which a reader (and the `causalsmith-topics`
+   skill) groups related prior runs; nothing in code keys off it.
 
 3. **The remainder of the qid is a short topic descriptor** in lowercase
    `snake_case`: 2–4 tokens, content-bearing, no filler words like
@@ -57,7 +58,9 @@ was about, and inconsistent cluster prefixes silently shrink bank-matching.
    heartbeat, so generating alternatives needs no parking step: a run that has
    passed D0.5 but not yet committed to F1 stays in
    `doc/research/active/<qid>/`. Sibling runs on the same qid use the next spec
-   (`v3`, `v4`); cross-topic alternatives use a fresh qid.
+   (`v3`, `v4`); cross-topic alternatives use a fresh qid. The heartbeat is per-qid:
+   a sibling spec on the same qid can be drafted in parallel but cannot RUN until the
+   first run's heartbeat clears; only distinct qids run concurrently.
 
    The `candidates` bank tier that formerly parked such runs was retired
    2026-07-18 — see the "Retired tier" note in

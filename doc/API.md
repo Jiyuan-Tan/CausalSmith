@@ -608,7 +608,7 @@ hypothesis of the Rule 3 non-ancestor bridge.
 | `SWIGGraph.splitMono_parents_char` | `x ∈ (G.splitMono X _ _).dag.parents v ↔ (x ∈ G.dag.parents v ∧ ∀ D ∈ X, x ≠ SWIGNode.random D) ∨ (∃ D ∈ X, x = SWIGNode.fixed D ∧ SWIGNode.random D ∈ G.dag.parents v)` | Characterizes parents in the split graph: either a non-targeted original parent, or a new `.fixed D` replacing `.random D` | **Proved** |
 | `SWIGGraph.splitMono_parents_eq_of_no_fixed_parent` | `(∀ D ∈ X, SWIGNode.fixed D ∉ (G.splitMono X _ _).dag.parents v) → (G.splitMono X _ _).dag.parents v = G.dag.parents v` | Parent-set coincidence at non-`.fixed`-targeted vertices; key prerequisite for the Rule 3 non-ancestor `evalMap` bridge | **Proved** |
 
-Reference: Basic Concepts.tex, Definition 8 (multi-target generalized intervention).
+Reference: the project's *Basic Concepts* notes (not distributed), Definition 8 (multi-target generalized intervention).
 
 ---
 
@@ -790,8 +790,8 @@ joint / observational kernels are derived via the evaluation map (see
 
 | Declaration | Signature | Description | Status |
 |---|---|---|---|
-| `SCM.latentProduct` | `Measure (LatentValues M)` | Product measure over all latent roots, `Measure.pi (fun u => latentDist u)` | *(sorry — TODO(evaluation))* |
-| `instProbabilityLatentProduct` | `IsProbabilityMeasure latentProduct` | Total-mass-1 instance for `latentProduct` | *(sorry — TODO(evaluation))* |
+| `SCM.latentProduct` | `Measure (LatentValues M)` | Product measure over all latent roots, `Measure.pi (fun u => latentDist u)` | **Proved** |
+| `instProbabilityLatentProduct` | `IsProbabilityMeasure latentProduct` | Total-mass-1 instance for `latentProduct` | **Proved** |
 
 #### Type aliases and basic definitions
 
@@ -858,7 +858,6 @@ as **non-private** (formerly private) so that `Induced.lean`'s bridge lemma
 | `SCM.evalMap_observed_unfold` | `M.evalMap s ℓ ⟨v.val, _⟩ = M.structFun v (fun w => if-else dispatch with recursive `M.evalMap` on observed parents)` for `v : {v // v ∈ M.observed}` | Cast-free "recursive form" of `M.evalMap` at observed nodes, stated directly in terms of `M.evalMap` on parents rather than `evalObservedAux`. Consumed by `Induced.induce_evalMap_compat` as a black box | **Proved (Layer 4).** Uses a `suffices` with `subst hw` to eliminate the circular `v ↔ M.observedIndex v` dependency, then the cast-navigation helper above |
 | `SCM.ancestralFactorization` | `∀ (T : Finset (SWIGNode N)), T ⊆ M.observed → (s, s', ℓ, ℓ' agree on fixed/latent ancestors of T via `DAG.isAncestor`) → ∀ v ∈ T, evalMap s ℓ v = evalMap s' ℓ' v` | Congruence form of `lem:scm-ancestral-factor`: `evalMap` at any `v ∈ T` depends on `(s, ℓ)` only through the fixed/latent ancestors of `T`. Uses the inductive `DAG.isAncestor` directly (the Finset `DAG.ancestorsSet` is sorry-tainted via `decIsAncestor`) | **Proved (Layer 4).** Strong recursion via the private helper `evalObservedAux_agree_anc` on the topological index, chaining ancestor witnesses through `isAncestor.edge` + `isAncestor_trans` at each parent branch |
 | `SCM.observedIndex_observedAt` | `M.observedIndex (M.observedAt k) = k` for `k : Fin M.observed.card` | Round-trip lemma companion to `observedAt_observedIndex`; needed to collapse `observedIndex` after destructuring through the topological enumeration | **Proved (Layer 4)** via the `orderIsoOfFin` round-trip |
-| `SCM.evalMap_topo_indep` | `True` | Placeholder for `prop:scm-evalmap` (independence of `evalMap` from the choice of topological extension). Downstream (`GlobalMarkov`, `DoCalculus`) only depends on the canonical `evalMap` tied to `M.topoLinearOrder`, so the refactor is safely deferred | *(deferred, Layer 5+)* — requires first refactoring `evalMap` to take an explicit linear extension of `M.dag` |
 
 *Factorization lemmas (§5–§6) are in `EvalFactorization.lean`; latent-restricted factorization (§7) is in `EvalLatent.lean`; cross-SCM transport (§8) is in `EquivKernel.lean`.*
 
@@ -932,7 +931,7 @@ Imports `CutsetLatent.lean` and `GlobalMarkov.lean`. Transfers d-separation from
 
 ## 6a'''. `SCM/Model/CounterfactualLemmas.lean` — Pathwise CF identities for the PO bridge
 
-Imports `Evaluation.lean` and `InterventionSet.lean`. Provides one-step observed-node unfold lemmas for do-intervened SCMs, plus two pathwise pushforward identities used by `PO/Bridge/FromSCM.lean` to discharge `POSystem.ofSCM_consistency`. The pushforward identities correspond to natural-language propositions in `doc/Basic Concepts.tex` (lines 475–487) and are proved by pathwise induction along the topological order in `Evaluation.lean`.
+Imports `Evaluation.lean` and `InterventionSet.lean`. Provides one-step observed-node unfold lemmas for do-intervened SCMs, plus two pathwise pushforward identities used by `PO/Bridge/FromSCM.lean` to discharge `POSystem.ofSCM_consistency`. The pushforward identities correspond to natural-language propositions in `doc/the project's *Basic Concepts* notes (not distributed)` (lines 475–487) and are proved by pathwise induction along the topological order in `Evaluation.lean`.
 
 | Declaration | Signature | Description | Status |
 |---|---|---|---|
@@ -942,7 +941,7 @@ Imports `Evaluation.lean` and `InterventionSet.lean`. Provides one-step observed
 | `SCM.evalMap_fixSet_factual_eq` | for `M`, `X ⊆ N`, `s`, `sx`, `ℓ`, `v ∈ M.observed`, `v ∉ X` (pointwise): `(∀ v ∈ M.fixed, sx v = s v) → (∀ D ∈ X, M.evalMap s ℓ ⟨.random D, _⟩ = sx ⟨.fixed D, _⟩) → (M.fixSet X _ _).evalMap sx ℓ ⟨v, _⟩ = M.evalMap s ℓ ⟨v, _⟩` | prop:scm-cf-consistency: on the event the natural value of `X` equals the intervention assignment, evaluating `M.fixSet X` agrees pathwise with evaluating `M` on every observed node disjoint from `X` | **Proved** |
 | `SCM.evalMap_fixSet_union_eq` | for `M`, disjoint `X₁`, `X₂`, `s`, `sx₁`, `sxU`, `ℓ`, `v ∈ M.observed`, `v ∉ X₁ ∪ X₂` (pointwise): with old/new compatibility hypotheses + intermediate factual: `(M.fixSet (X₁ ∪ X₂) _ _).evalMap sxU ℓ ⟨v, _⟩ = (M.fixSet X₁ _ _).evalMap sx₁ ℓ ⟨v, _⟩` | prop:scm-cf-commute: intervening on `X₁ ∪ X₂` matches first intervening on `X₁` then on `X₂`, provided the natural value of `X₂` after the `X₁` intervention already equals the `X₂` assignment | **Proved** |
 
-Reference: `Basic Concepts.tex`, prop:scm-cf-consistency (L475–480), prop:scm-cf-commute (L482–487).
+Reference: the project's *Basic Concepts* notes (not distributed), prop:scm-cf-consistency (L475–480), prop:scm-cf-commute (L482–487).
 
 ---
 
@@ -967,7 +966,7 @@ and `SCM/Do/Rule3.lean` (see §6b1–§6b2).
 | `SCM.obsKernel` | `Kernel (FixedValues M) (ObservedValues M)` | Observational kernel: pushforward of `jointKernel` along the observed projection | noncomputable |
 | `SCM.jointKernel_map_commute` | `M.obsKernel = (const latentProduct ⊗ₖ deterministic (uncurry evalMap) _).map (randomToObserved ∘ Prod.snd)` | Rewrites `obsKernel` as a single-step push-and-project form via `map_comp_right` | **Proved (Layer 4)** |
 
-Reference: Basic Concepts.tex, Definition `def:scm-joint`; `rem:scm-docalculus-lean` bullet 3 for the Step B escalation.
+Reference: the project's *Basic Concepts* notes (not distributed), Definition `def:scm-joint`; `rem:scm-docalculus-lean` bullet 3 for the Step B escalation.
 
 > **Archive note.** The old kernel-primitive sections `8a. Causal/Kernel/PoSet.lean`, `8b. Causal/Kernel/KernelOps.lean`, and `8e. Causal/Kernel/CrossModel.lean` have been removed. Their contents — iterated Po fold, kernel projection / marginal utilities, cross-model `compProd` analyses — live in `archive/Causal/Kernel/` for historical reference and will be recovered against the SCM primitives in a later pass.
 
@@ -1065,7 +1064,7 @@ Seven files under `Causalean/SCM/Factored/`:
 
 **Status of block 3.** The structural `jointKernel` factorization files (3.1–3.6) and the observational chain-rule product in `ObsChainKernel.lean` are closed fully. Block 4 (ordered Markov) consumes `jointKernel_eq_factored_kernel`.
 
-Reference: Basic Concepts.tex, Lemma `lem:scm-ancestral-factor` and the recursive definition around `def:scm-eval`.
+Reference: the project's *Basic Concepts* notes (not distributed), Lemma `lem:scm-ancestral-factor` and the recursive definition around `def:scm-eval`.
 
 ---
 
@@ -1167,7 +1166,7 @@ Graph layer is `SWIGGraph.splitMono`; `latentDist` and `isProbability_latent` in
 | `SCM.fixMono_image_fixed_subset` | `X.image SWIGNode.fixed ⊆ (M.fixMono X _ _).fixed` | `X.image SWIGNode.fixed` is a subset of the post-`fixMono` fixed set | **Proved** |
 | `SCM.fixMono_parents_eq_of_no_fixed_parent` | `(∀ D ∈ X, .fixed D ∉ (M.fixMono X _ _).dag.parents v) → (M.fixMono X _ _).dag.parents v = M.dag.parents v` | Parent-set coincidence at non-`X`-targeted vertices; delegates to `splitMono_parents_eq_of_no_fixed_parent`; key for Rule 3 | **Proved** |
 
-Reference: Basic Concepts.tex, Definition 8 (multi-target generalized intervention); `rem:scm-do-standard-lean`.
+Reference: the project's *Basic Concepts* notes (not distributed), Definition 8 (multi-target generalized intervention); `rem:scm-do-standard-lean`.
 
 ---
 
@@ -1197,7 +1196,7 @@ Thin public-API wrapper: `fixSet` is a definitional alias for `fixMono`, plus th
 | `SCM.fixSetZSlice M X Z …` | `((M.fixSet X).fixSet Z).FixedValues → ValuesOn (Z.image SWIGNode.fixed) (swigΩ Ω)` | Extracts the `do(Z)` fixed-node slice from a double-intervention `FixedValues`; consumed by Rule 2 | noncomputable |
 | `SCM.measurable_fixSetZSlice` | `Measurable (M.fixSetZSlice X Z _ _ _ _)` | Measurability of `fixSetZSlice` | **Proved** |
 
-Reference: Basic Concepts.tex, Definition 8 (multi-target generalized intervention); `rem:scm-do-standard-lean`.
+Reference: the project's *Basic Concepts* notes (not distributed), Definition 8 (multi-target generalized intervention); `rem:scm-do-standard-lean`.
 
 ---
 
@@ -1238,7 +1237,7 @@ can reference `obsKernel` directly.
 | `SCM.induce_evalMap_compat` | `∀ {v} (hvI : v ∈ (M.induce R hR).randomVars) (hvM : v ∈ M.randomVars), (M.induce R hR).evalMap (sTilde \| _) ℓ ⟨v, hvI⟩ = M.evalMap sTilde ℓ ⟨v, hvM⟩` | `evalMap` of the induced SCM at any `v ∈ (M.induce R).randomVars` agrees pointwise with `M.evalMap` | **Proved (Layer 4)** |
 | `SCM.induce_marginal_compat M R hR sTilde` | `(M.induce R hR).obsKernel (sTilde \| (M.induce R hR).fixed) = (M.obsKernel sTilde).map (valuesProjection : ObservedValues M → ObservedValues (M.induce R hR))` | `obsKernel` of the induced SCM is the `valuesProjection` pushforward of `M.obsKernel` | **Proved (Layer 4)** |
 
-References: Basic Concepts.tex, Definitions `def:scm-anc-closed`, `def:scm-induced-sub`; Proposition `prop:scm-induced-marginal`.
+References: the project's *Basic Concepts* notes (not distributed), Definitions `def:scm-anc-closed`, `def:scm-induced-sub`; Proposition `prop:scm-induced-marginal`.
 
 ---
 
@@ -1250,7 +1249,7 @@ Mathlib's `ProbabilityTheory.CondIndepFun` (via `valuesProjection` and
 `comap_valuesProjection_le`).  The canonical choice downstream is
 `Causalean.SCM.obsKernel M s` at `s : M.FixedValues`.  Weak union and contraction
 are SCM-level wrappers around graph-independent projection lemmas in
-`Mathlib/CondIndep/SemiGraphoid.lean`.
+`Mathlib/CondIndep/CondExp.lean`.
 
 | Declaration | Signature | Description | Status |
 |---|---|---|---|
@@ -1260,8 +1259,8 @@ are SCM-level wrappers around graph-independent projection lemmas in
 | `Causalean.condIndep_valuesProjection_symm` | projection-form `CondIndepFun` symmetry | Graph-independent symmetry helper over `ValuesOn I` projections | **Proved** |
 | `Causalean.condIndep_valuesProjection_subset_right` | projection-form subset-right | Graph-independent subset-right helper over `ValuesOn I` projections | **Proved** |
 | `Causalean.condIndep_valuesProjection_decomposition` | projection-form decomposition | Graph-independent decomposition helper over `ValuesOn I` projections | **Proved** |
-| `Causalean.condIndep_valuesProjection_weak_union_axiom` | projection-form weak union | Graph-independent weak-union wrapper around `Mathlib/CondIndep/SemiGraphoid.lean` | **Proved** |
-| `Causalean.condIndep_valuesProjection_contraction_axiom` | projection-form contraction | Graph-independent contraction wrapper around `Mathlib/CondIndep/SemiGraphoid.lean` | **Proved** |
+| `Causalean.condIndep_valuesProjection_weak_union_axiom` | projection-form weak union | Graph-independent weak-union wrapper around `Mathlib/CondIndep/CondExp.lean` | **Proved** |
+| `Causalean.condIndep_valuesProjection_contraction_axiom` | projection-form contraction | Graph-independent contraction wrapper around `Mathlib/CondIndep/CondExp.lean` | **Proved** |
 | `obsCondIndep_symm` | symmetry in `X` and `Y` | Delegates to `CondIndepFun.symm` | **Proved** |
 | `obsCondIndep_subset_right` | `Y' ⊆ Y` inherits CI from `X ⊥ Y \| Z` | SCM-level wrapper via `Causalean.condIndep_valuesProjection_subset_right` | **Proved** |
 | `obsCondIndep_decomposition` | `X ⊥ (Y ∪ W) \| Z → X ⊥ Y \| Z` | SCM-level wrapper via `Causalean.condIndep_valuesProjection_decomposition` | **Proved** |
@@ -1310,7 +1309,7 @@ Imports flow `FullCondIndep → LocalMarkov → GlobalMarkov → ObsMarkov`.
 
 | Declaration | Signature | Description | Status |
 |---|---|---|---|
-| `fullCondIndep_singleton_of_dSep` | `Disjoint {a} Y → dSep {a} Y W → FullCondIndep M {a} Y W ... (jointKernel M s)` | Singleton-source d-sep ⟹ full CI, now with the necessary non-overlap assumption `a ∉ Y`. The body is refactored around three named SCM/product-space bridges: a latent-overlap lemma `latentAncestorsOfSet_inter_subset_of_dSep_with_fixed`, a raw-base factorization `evalMap_valuesProjection_factors_through_latentAncestorsOfSet`, and the corrected latent-base/residual factorization `evalMap_valuesProjection_factors_through_latent_base_and_residual`. The previously stronger claim factoring through the realized `W`-values was false in general and has been removed. The remaining blockers are the two factorization helpers together with the generic product-space CI bridge `condIndepFun_of_shared_base_valuesProjection_pi` | **sorry** (isolated to named helpers) |
+| `fullCondIndep_singleton_of_dSep_with_fixed` | `Disjoint {a} Y → dSep {a} Y W → FullCondIndep M {a} Y W ... (jointKernel M s)` | Singleton-source d-sep ⟹ full CI, now with the necessary non-overlap assumption `a ∉ Y`. The body is refactored around three named SCM/product-space bridges: a latent-overlap lemma `latentAncestorsOfSet_inter_subset_of_dSep_with_fixed`, a raw-base factorization `evalMap_valuesProjection_factors_through_latentAncestorsOfSet`, and the corrected latent-base/residual factorization `evalMap_valuesProjection_factors_through_latent_base_and_residual`. The previously stronger claim factoring through the realized `W`-values was false in general and has been removed. The remaining blockers are the two factorization helpers together with the generic product-space CI bridge `condIndepFun_of_shared_base_valuesProjection_pi` | **sorry** (isolated to named helpers) |
 | `full_globalMarkov` | `Disjoint X Y → dSep X Y Z → FullCondIndep M X Y Z ... (jointKernel M s)` | Verma–Pearl induction. The disjointness hypothesis rules out the degenerate `X ∩ Y ≠ ∅` case, which is not excluded by the current Bayes-ball `dSep` definition. Body sorry-free; transitively depends on `fullCondIndep_singleton_of_dSep` (step ii) and `fullCondIndep_contraction` (step iii) | **Proved** (modulo named auxiliaries) |
 
 ### `ObsMarkov.lean`
@@ -1404,7 +1403,7 @@ theorems, archived).  The earlier two-layer-only helper file
 `SCM/Do/RuleSingle.lean` is also deleted — the single-intervention
 shape subsumes the single-target specialization it was carrying.
 
-References: Basic Concepts.tex, Proposition `prop:scm-docalculus`;
+References: the project's *Basic Concepts* notes (not distributed), Proposition `prop:scm-docalculus`;
 Pearl (2009), *Causality*, Chapter 3; Malinsky, Shpitser & Tchetgen
 Tchetgen (2019).
 
@@ -1413,7 +1412,7 @@ Tchetgen (2019).
 ## 8g. `Graph/Induce.lean` — Induced Subgraph of a SWIG Graph
 
 Defines `SWIGGraph.induce`, the graph-level restriction to an observed
-subset `R` (Basic Concepts.tex Definition 2.11). Since the April 2026
+subset `R` (the project's *Basic Concepts* notes (not distributed) Definition 2.11). Since the April 2026
 unification, the induced graph is itself a `SWIGGraph` — the old
 `SubSWIGGraph` sibling structure has been deleted. This works because
 the weakened `dag_edges_classified` invariant (replacing the stronger
@@ -1454,7 +1453,7 @@ counterfactual distributions; `PO/Assumptions/` for consistency and
 counterfactual-independence assumptions; `PO/Conditioning/` for conditional
 expectation workhorses; `PO/Bridge/` for restriction and SCM-to-PO bridges; and
 `PO/Analysis/` for regression, residualization, and quantile tools.
-Spec: `Basic Concepts.tex` §8 lines 812–1263 (def:po-system through
+Spec: the project's *Basic Concepts* notes (not distributed) §8 lines 812–1263 (def:po-system through
 prop:po-consistency).
 
 Current status is skeleton: types and statements are in place; proofs are
@@ -1485,7 +1484,7 @@ corresponding definition/proposition in the .tex.
 | `Regime.listLookup_cons_self` | `listLookup (⟨v,x⟩ :: rest) v hv = x` | Looking up the head key returns the head value | **Proved** |
 | `Regime.listLookup_cons_of_ne` | `v ≠ w → listLookup (⟨w,x⟩ :: rest) v hv = listLookup rest v hv'` | Lookup skips a non-matching head and recurses into the tail | **Proved** |
 
-Reference: `Basic Concepts.tex`, def:po-system.
+Reference: the project's *Basic Concepts* notes (not distributed), def:po-system.
 
 ### `PO/Core/System.lean` — Bare PO system and PO operator
 
@@ -1499,7 +1498,7 @@ Reference: `Basic Concepts.tex`, def:po-system.
 | `POSystem.poOperator P r Y` | `Measure (ValuesOn Y P.X)` | `Po^P_r(Y) := (Y(r))_# μ` | **Defined** |
 | `instance …poOperator… IsProbabilityMeasure` | — | `poOperator` is a probability measure | **Proved** |
 
-Reference: `Basic Concepts.tex`, def:po-operator.
+Reference: the project's *Basic Concepts* notes (not distributed), def:po-operator.
 
 ### `PO/Core/Counterfactual.lean` — Cross-world distribution
 
@@ -1511,7 +1510,7 @@ Reference: `Basic Concepts.tex`, def:po-operator.
 | `instance …counterfactualDist… IsProbabilityMeasure` | — | — | **Proved** |
 | `POSystem.counterfactualDist_marginal` | single-coord marginal = `poOperator` | rem:po-reading | **Proved** |
 
-Reference: `Basic Concepts.tex`, def:po-counterfactual, rem:po-reading.
+Reference: the project's *Basic Concepts* notes (not distributed), def:po-counterfactual, rem:po-reading.
 
 ### `PO/Assumptions/Consistency.lean` — Consistency axiom
 
@@ -1521,7 +1520,7 @@ Reference: `Basic Concepts.tex`, def:po-counterfactual, rem:po-reading.
 | `POSystem.IntermediateAgrees P r₁ r₂ ω` | `Prop` | Post-`r₁` value of `r₂.target` matches `r₂.assign` | **Defined** |
 | `POSystem.Consistency P` | `structure { factual, composition }` | Two-clause consistency predicate | **Defined** |
 
-Reference: `Basic Concepts.tex`, def:po-consistency.
+Reference: the project's *Basic Concepts* notes (not distributed), def:po-consistency.
 
 Also adds, in `PO/Core/Regime.lean`:
 
@@ -1554,7 +1553,7 @@ automatically enforces the spec clause that regimes target only `R`.
 | `POSystem.liftRegime_sqcup` | `P.liftRegime R (r₁'.sqcup r₂' h) = (P.liftRegime R r₁').sqcup (P.liftRegime R r₂') (P.liftRegime_disjoint R h)` | Lift commutes with `sqcup` (full regime equality, via `Regime.ext` and `sqcup_assign_pos`/`_neg`) | **Proved** |
 | `POSystem.restrict_consistency` | `P.Consistency → (P.restrict R).Consistency` | Consistency propagates to the sub-system; both clauses reduce to the ambient ones via `restrict_eval` and the lift lemmas | **Proved** |
 
-Reference: `Basic Concepts.tex`, def:po-restrict, rem:po-restrict.
+Reference: the project's *Basic Concepts* notes (not distributed), def:po-restrict, rem:po-restrict.
 
 ### `PO/Bridge/FromSCM.lean` — SCM → PO bridge
 
@@ -1582,7 +1581,7 @@ Reference: `Basic Concepts.tex`, def:po-restrict, rem:po-restrict.
 | `evalMap_fixSet_transport` *(private)* | Transport `(M.fixSet X₁ _ _).evalMap` across set equality `X₁ = X₂` (via `subst` + `evalMap_eq_of_equiv` with `Equiv.refl`) | Bridges `M.fixSet (regimeTargetN M (r₁.sqcup r₂))` and `M.fixSet (regimeTargetN M r₁ ∪ regimeTargetN M r₂)` for the composition proof | **Proved** |
 | `POSystem.ofSCM_consistency` | `(POSystem.ofSCM M s).Consistency` | Induced system satisfies consistency, prop:po-consistency. **factual** closes against `SCM.evalMap_fixSet_factual_eq`; **composition** transports via `evalMap_fixSet_transport` then closes against `SCM.evalMap_fixSet_union_eq` | **Proved** (modulo upstream `evalMap_fixSet_factual_eq` / `evalMap_fixSet_union_eq` `sorry`s in `CounterfactualLemmas.lean`) |
 
-Reference: `Basic Concepts.tex`, def:po-from-scm, rem:po-induced, prop:po-consistency, rem:po-vs-do.
+Reference: the project's *Basic Concepts* notes (not distributed), def:po-from-scm, rem:po-induced, prop:po-consistency, rem:po-vs-do.
 
 ### `PO/Core/Variable.lean` — PO variables and regimed variables
 
@@ -1820,7 +1819,7 @@ lower-tail inverse moments — is developed separately under `Stat/PolynomialTai
 |---|---|---|---|
 | `Rule2JointOverlap M' Z hZ_obs hZ_fixed W hZrW s'` | `Prop` | **Canonical Rule 2 overlap.** Absolute continuity `((M'.fixSet Z).obsKernel s').map π_{Zr∪W} ≪ (M'.obsKernel ∘ fixSetProj s').map π_{Zr∪W}` — a kernel-level AC predicate with no pointwise singleton positivity requirement. Holds trivially in the discrete case; holds in the continuous case whenever the SCM's structural functions are measurable and latents match. Hypothesis of `obsCondKernel_fixSet_eq_ae_witness` (canonical posterior witness-kernel Rule 2) and through it of `do_rule2_kernel` and backdoor / frontdoor identification. | Complete |
 
-Reference: Basic Concepts.tex, Definition 2.12 (Overlap assumption).
+Reference: the project's *Basic Concepts* notes (not distributed), Definition 2.12 (Overlap assumption).
 
 ---
 
@@ -1836,7 +1835,7 @@ for abstract identifiability statements.
 
 ## 9c. `SCM/ID/GraphicalThms/` — Graphical Identification Theorems
 
-Formalizes Basic Concepts.tex §4.1.  Several live files:
+Formalizes the project's *Basic Concepts* notes (not distributed) §4.1.  Several live files:
 
 * `InducedSubgraph.lean` — graph-only utilities (ancestral closure,
   proper-descendant / non-descendant sets in `G_R`).
@@ -1853,7 +1852,7 @@ Formalizes Basic Concepts.tex §4.1.  Several live files:
 
 The old kernel-era files (`Fixable.lean`, `FixingStep.lean`,
 `CFactor.lean`) are **archived** under
-`archive/SCM/ID/GraphicalThms/`.  The Shpitser–Pearl c-component
+the repository (removed from the tree; recoverable from git history).  The Shpitser–Pearl c-component
 recursion (the chosen design path for the Session-5 ID algorithm) does
 not consume the fixing-step machinery, so it is no longer in the build.
 
@@ -1867,15 +1866,15 @@ not consume the fixing-step machinery, so it is no longer in the build.
 | `SWIGGraph.nonDescIn G R v₀` | `T := (R.erase v₀) \ (G.induce R).dag.descendants v₀` — non-descendants of `v₀` in `G_R`, matching the tex convention that `De(v₀)` includes `v₀` |
 | `v₀_not_mem_properDescIn` | `v₀ ∉ G.properDescIn R v₀` — irreflexivity |
 | `v₀_not_mem_nonDescIn` | `v₀ ∉ G.nonDescIn R v₀` — by the `erase` in the definition |
-| `properDescIn_subset_erase` | `G.properDescIn R v₀ ⊆ R.erase v₀` — **sorry** (needs `descendants_induce_subset`) |
+| `properDescIn_subset_erase` | `G.properDescIn R v₀ ⊆ R.erase v₀` — proved via `induce_isAncestor_mem_R` |
 | `nonDescIn_subset_erase` | `G.nonDescIn R v₀ ⊆ R.erase v₀` — proven via `Finset.sdiff_subset` |
 | `nonDescIn_subset` | `G.nonDescIn R v₀ ⊆ R` |
 | `properDescIn_disjoint_nonDescIn` | `Disjoint (properDescIn R v₀) (nonDescIn R v₀)` |
-| `properDescIn_union_nonDescIn_eq_erase` | `D ∪ T = R.erase v₀` (for `v₀ ∈ R`) — **sorry** (needs the subset helper) |
+| `properDescIn_union_nonDescIn_eq_erase` | `D ∪ T = R.erase v₀` (for `v₀ ∈ R`) — proved by `Finset` extensionality |
 
 ### `CComponentFactor.lean` — c-component factorization (Tian, 2002)
 
-Formalizes `thm:scm-c-factor` (Basic Concepts.tex:662–672) against
+Formalizes `thm:scm-c-factor` (the project's *Basic Concepts* notes (not distributed):662–672) against
 `obsKernel`.  The Pa⁺ semantics is the standard Tian (2002) convention:
 *topological predecessors*, i.e. observed nodes preceding `v` in a fixed
 topological order — not the direct-parent set.
@@ -1982,7 +1981,7 @@ can.)
 | `cComponentDensityFactor M ref s C` | `ValuesOn M.observed (swigΩ Ω) → ℝ≥0∞` | Product of the one-node conditional density factors over the observed indices whose node lies in c-component `C` (density analogue of Tian's `Q[C]`) |
 | `qFactorDensityProduct_eq_prod_cComponentFactor` | `M.qFactorDensityProduct ref s x = ∏ C ∈ cComponentSet, cComponentDensityFactor … C x` | The chain-rule density product regroups as a product over c-components. **Fully proved, axiom-clean** (pure `Finset.prod_fiberwise` regrouping; the kernel-impossible step) |
 
-### Archived (under `archive/SCM/ID/GraphicalThms/`)
+### Removed from the tree (kernel-era files; recoverable from git history)
 
 * `Fixable.lean` — `SWIGGraph.isFixable`, `isFixableSeq` (kernel-era; no
   longer used by the chosen Shpitser–Pearl recursion).
@@ -2006,7 +2005,7 @@ Demonstrates the full API on the standard instrumental variable DAG:
 | Module | Tests |
 |---|---|
 | `Graph/DAG.lean` | `parents`, `children`, `isRoot`, `isAncestor`, `isAncestor_irrefl/trans` |
-| `Graph/DSep.lean` | `dSep` with various conditioning sets; collider bias; instrument independence |
+| `Graph/DSep/` | `dSep` with various conditioning sets; collider bias; instrument independence |
 | `Graph/SWIG.lean` | `SWIGGraph` construction; initial SWIG; SWIG edge tests |
 | `Graph/CComponents.lean` | `directlyConfounded` on `SWIGGraph`; `cComponentOf` |
 | `SCM/Model/EdgeType.lean` | `EdgeTypeAssignment`; monotonic vs nonparametric; `refines` |
@@ -2031,7 +2030,7 @@ Observed: D (treatment), Y (outcome), Z (observed confounder). Latent roots U₁
 | Module | Tests |
 |---|---|
 | `Graph/DAG.lean` | `parents`, `isRoot`, `isAncestor` (irreflexivity via `isAncestor_topoOrder_lt`) |
-| `Graph/DSep.lean` | `dSep` for the observational graph; no d-separation by {Z} (direct edge D → Y remains open) |
+| `Graph/DSep/` | `dSep` for the observational graph; no d-separation by {Z} (direct edge D → Y remains open) |
 | `Graph/SWIG.lean` | `SWIGGraph` construction with three latent roots; `swig_random_root_of_root` for each |
 | `Graph/SWIGSplitMono.lean` | Backdoor condition (ii): `splitMonoDAG {bdD}` d-separates Y from D given Z, verified by `native_decide` on the computable `splitMonoDAG` |
 | `Graph/CComponents.lean` | Each observed node is its own singleton C-component (no confounding) |
@@ -2082,7 +2081,7 @@ plumbing out of the do-calculus assembly in `SCM/ID/Backdoor.lean` /
 
 ## 9e. `SCM/ID/BackdoorCriterion.lean` — Backdoor criterion + Rule-3 leg
 
-The graphical backdoor criterion (Basic Concepts.tex:636–645, Pearl 2009
+The graphical backdoor criterion (the project's *Basic Concepts* notes (not distributed):636–645, Pearl 2009
 Theorem 3.3.2) and the single regime-independent do-calculus leg the backdoor
 identification proof consumes.  The identification *theorems* live in
 `SCM/ID/Backdoor.lean` (§9e').
@@ -2122,7 +2121,7 @@ treatment value (so they never read `obsCondKernel`/`backdoorAdjustment` on a
 
 ## 9f. `PO/ID/Exact/LATE.lean` — IV/LATE Identification Theorem
 
-Formalizes the Wald identification of LATE in the PO framework (Basic Concepts.tex: def:po-iv-system, def:po-iv-assumptions, def:po-late, prop:po-late, rem:po-late).
+Formalizes the Wald identification of LATE in the PO framework (the project's *Basic Concepts* notes (not distributed): def:po-iv-system, def:po-iv-assumptions, def:po-late, prop:po-late, rem:po-late).
 
 **Implementation note (2026-04-23 refactor).** The file now consumes the PO
 abstraction layer introduced in `PO/`: counterfactual maps are built
@@ -2172,7 +2171,7 @@ no private helper remains in this file.
 
 ## 9f'. `PO/ID/Exact/HeckmanRoy/{Setup,Wald}.lean` — Heckman–Vytlacil IV / Generalized Roy Selection Model (PO framework)
 
-Formalises the Heckman–Vytlacil IV / generalized Roy selection model from `Basic Concepts.tex` (def:po-iv-heckman-roy-system, def:po-iv-heckman-roy-assumptions, def:po-iv-heckman-roy-late, prop:po-iv-heckman-roy-wald, rem:po-iv-heckman-roy-lean). Generalises `LATE.lean` to:
+Formalises the Heckman–Vytlacil IV / generalized Roy selection model from the project's *Basic Concepts* notes (not distributed) (def:po-iv-heckman-roy-system, def:po-iv-heckman-roy-assumptions, def:po-iv-heckman-roy-late, prop:po-iv-heckman-roy-wald, rem:po-iv-heckman-roy-lean). Generalises `LATE.lean` to:
 
 * an arbitrary measurable instrument value space `α` (with `MeasurableSingletonClass`), instead of `Bool` — same parametrization pattern as `Manski/Setup.lean`;
 * a latent uniform rank `U : Ω → ℝ` (`U ~ Unif[0,1]`) plus a propensity map `p : α → ℝ`, replacing the binary `D` potentials and monotonicity by threshold crossing `D(z) = 1_{U ≤ p(z)}`;
@@ -2266,9 +2265,7 @@ kernel across all environments (an a.e. statement w.r.t. each environment's pred
 | `EnvFamily` / `paObs` / `paLat` / `Invariant` (`Model.lean`, `Invariance.lean`, `MechanismFactor.lean`) | environment-family structure with shared parents/mechanism/latent law + exogeneity `hExo`; observed/latent parents of the target; the invariance predicate (one shared conditional kernel a.e. per environment) | Model + grammar layer. **Defs** |
 | `mechanism_invariant` (`Invariance.lean`) | the target's observed parents `paObs` form an invariant set: in every environment the conditional law of the target given its observed parents equals one fixed structural factor | **Headline (the engine of soundness), proved.** Witness = law of `structFun Y` driven by the latent-parent noise (reference environment); per-environment disintegration via exogeneity (`hExo`), cross-environment agreement via shared E2/E3/E4. `#print axioms` = `[propext, sorryAx, Classical.choice, Quot.sound]`, where `sorryAx` is **only** the isolated `s_eq_on_fixed_parents` regularity gap below. **Proved (modulo one regularity gap)** |
 | `icp_sound` / `idSet` / `invariantSets` (`Soundness.lean`, `IdentifiedSet.lean`) | **Theorem 1 (soundness):** the identified set `S(E) = ⋂` (invariant sets) is contained in the target's observed parents — ICP never selects a non-cause | Immediate from `mechanism_invariant`. Same axiom profile (reduces to `s_eq_on_fixed_parents`). **Proved (modulo the same gap)** |
-| `mechanismFun` / `condDistrib_target_eq_mechanismKernel` / `mechanismKernel_env_eq` / `jointKernel_map_paLat_eq_latentProduct_map` / `structFun_yNode_apply_eq` / `latentProduct_heq` / `map_heq_transport` (`MechanismFactor.lean`) | the structural mechanism as a measurable map of observed+latent parents; per-environment factorization of the target conditional through the mechanism kernel; cross-environment equality of that kernel; latent-parent marginal = latent-product marginal; cross-environment `structFun Y` agreement; HEq transport of latent product measures / push-forwards | Supporting machinery for `mechanism_invariant` (Steps A/B/C). **Proved (sorry-free)** |
-| `s_eq_on_fixed_parents` (`MechanismFactor.lean`) | environments assign the same value to any **fixed** (intervened) parent of the target | **The one residual `sorry`.** Holds vacuously when the target has no fixed parents; not derivable from the bare `EnvFamily` fields (the `EnvFamily` shares the parent set and forbids changing it, but does not pin the intervention *value* on a fixed parent), so it is isolated here as the structural regularity gap (ICP's "no intervention on a direct cause of `Y` with a shifting value"). **`sorry` (isolated gap)** |
-| `parent_omitted_not_invariant` / `icp_complete` / `RichEnv` (`Completeness.lean`) | **Theorem 2 (completeness):** under richness/faithfulness primitives `S(E)` equals the parents | Completeness direction; the hard propagation lemma `parent_omitted_not_invariant` is a pre-existing escalated `sorry` (unchanged). **Partial (`sorry`)** |
+| `mechanismFun` / `condDistrib_target_eq_mechanismKernel` / `mechanismKernel_cf_env_eq` / `jointKernel_map_paLat_eq_latentProduct_map` / `structFun_yNode_apply_eq` / `latentProduct_heq` / `map_heq_transport` (`Helpers/MechanismFactor.lean`) | the structural mechanism as a measurable map of observed+latent parents; per-environment factorization of the target conditional through the mechanism kernel; cross-environment equality of that kernel; latent-parent marginal = latent-product marginal; cross-environment `structFun Y` agreement; HEq transport of latent product measures / push-forwards | Supporting machinery for `mechanism_invariant` (Steps A/B/C). **Proved (sorry-free)** |
 
 ### `LinearGaussian/` — completeness in the linear-Gaussian model (`prop:1`(i), sorry-free)
 
@@ -2299,7 +2296,7 @@ across environments), and the identified set `S(E) = ⋂{S : H_{0,S}}`.
 The experimentation cluster: a shared, paper-agnostic **design-based substrate**
 (`Experimentation/DesignBased/`, namespace `Causalean.Experimentation.DesignBased`) plus one
 folder per formalized paper that consumes it (`Experimentation/ExposureMappingInterference/` and
-`Experimentation/TwoStageInterference/`, namespaces `Causalean.Experimentation.{ExposureMappingInterference,TwoStageInterference}`).
+`Experimentation/TwoStageInterference/`, namespaces `Causalean.Experimentation.{ExposureMappingInterference,TwoStageInterference}`; further sibling folders — `MatchedPairDesign/`, `Sequential/`, `SuperPopulation/`, `UnknownInterference/` — and the top-level `BettingMean.lean`, `ClusterRandomizedHT.lean`, `FinitePopulationMoments.lean` are documented by their module docstrings; `npm run search -- --scope module <topic>` locates them).
 The substrate is the finite-population,
 fixed-potential-outcome flavor of the potential-outcomes framework — probability comes from the
 experimenter's randomization over a *finite* assignment space `Ω` (a sibling of the
@@ -2307,12 +2304,12 @@ measure-theoretic superpopulation `PO/`, which it never imports), with a deliber
 finite-sum layer (`E X = ∑ z, p z · X z`) so all algebraic identities are `Finset` algebra.
 Further experimentation papers (two-stage experiments, …) slot in as sibling folders under
 `Experimentation/`, reusing `DesignBased`. First paper: Aronow & Samii (2017, AOAS), "Estimating
-Average Causal Effects Under General Interference" (arXiv:1305.6156; plan `doc/aronow_samii_plan.md`).
+Average Causal Effects Under General Interference" (arXiv:1305.6156).
 Second paper: Hudgens & Halloran (2008, JASA), "Toward Causal Inference With Interference" — the
 two-stage / partial-interference estimand zoo (direct/indirect/total/overall effects), which forced
-the reusable `Product`/`TwoStage` substrate combinators (plan `doc/hudgens_halloran_plan.md`).
+the reusable `Product`/`TwoStage` substrate combinators.
 
-**Main results** (the paper's named theorems; flagged as headlines in
+**Main results** (the paper's named theorems; `doc/library_review/Experimentation.json` currently flags a wider set as headlines than listed in
 `doc/library_review/Experimentation.json` — everything else is supporting substrate):
 `Experimentation.DesignBased.E_htEffect` (Lemma 4.1, HT effect unbiasedness — substrate),
 `Experimentation.DesignBased.Var_htTotal` (Prop 4.4, HT variance — substrate),
@@ -2330,7 +2327,7 @@ The substrate (`DesignBased/`: finite-sum `E`/`Var`/`Cov`, exposure, HT, Chebysh
 designs, the abstract `var_edge_sum_le`, normal-CDF facts, the measure bridge) is reusable
 architecture, not main results.
 
-### `Experimentation/DesignBased/Design.lean` — finite randomization design + `E`/`Var`/`Cov` algebra
+### `Experimentation/DesignBased/DesignCore.lean` — finite randomization design + `E`/`Var`/`Cov` algebra
 
 | Declaration | Statement | Description |
 |---|---|---|
@@ -2477,7 +2474,7 @@ Partial interference is structural (the product over groups); the only modeling 
 *within*-group stratified interference, needed only for the variance theory (Phase 1 unbiasedness
 holds without it). Stage-1 and within-group design propensities (`C/N`, `mᵢ/nᵢ`) enter as
 hypotheses — the design-based known-propensity stance; Assumption 1's mixed strategy satisfies them.
-Plan: `doc/hudgens_halloran_plan.md`. Namespace `Causalean.Experimentation.TwoStageInterference`.
+Namespace `Causalean.Experimentation.TwoStageInterference`.
 
 | Declaration | Statement | Description |
 |---|---|---|

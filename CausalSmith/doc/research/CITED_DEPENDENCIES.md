@@ -4,15 +4,16 @@ External dependencies a banked artifact does NOT discharge at run time
 (`gate_class:"cited"`): a logical source claim is formalized as a Lean
 `def … : Sort 0` (semantically Prop) and threaded as a hypothesis; genuinely bibliographic
 scope/provenance metadata is a direct literal canonical `_root_.String`, `_root_.List _root_.String`, or `_root_.Array _root_.String` `def` and is never used as a proof
-premise. Both carrier kinds are MATCHED against an external source by the F4
-convergence reviewer, which also writes these rows. Unlike
+premise. Rows are opened by F1 and stamped with the source-match verdict by the
+F2.5 / F4 reviewers. Unlike
 SUBSTRATE_DEBT.md these are NOT owed a build — they may graduate to a real lemma
 in a future run.
 
 A `cited-mismatch` or `cited-underspecified` verdict BLOCKS banking: F4 persists
 it to `state.cited_checks` and escalates, and `bankEntry` re-checks that field so
-the block survives outside the review loop (a row is written here only once the
-match gate PASSES, so this registry never lists a failing def).
+the block survives outside the review loop (a row is opened at F1 with status `pending` and
+upserted with the reviewer's verdict at F2.5/F4; a `cited-mismatch` or
+`cited-underspecified` row blocks banking, so no accepted entry rests on one).
 
 | Cited carrier | Run (qid/spec) | Recorded statement or metadata | Source | Locator | Check status |
 |-----------|----------------|-------------------|--------|---------|--------------|

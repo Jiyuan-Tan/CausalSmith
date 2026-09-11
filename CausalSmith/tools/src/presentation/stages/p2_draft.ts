@@ -20,6 +20,7 @@ import {
   hashEnvBody,
   type AnchoredEnv,
   type LintProblem,
+  lintLeanrefs,
 } from "../tex_anchors.js";
 import { FormalLayerSource, normalizeCitedScopeFootnotes, texEnvFor } from "../formal_layer.js";
 import { assumptionCiteContext } from "../assumption_citations.js";
@@ -786,6 +787,7 @@ export async function stageP2(io: StageIO): Promise<void> {
     // per-object, so no earlier stage sees the whole dependency structure) — and it is the one
     // boundary EVERY re-entry, draft or reassemble, must cross.
     ...lintIsolatedLemmas(paperSafe),
+    ...lintLeanrefs(paperSafe),
     ...refProblems,
   ];
   if (problems.length > 0) {

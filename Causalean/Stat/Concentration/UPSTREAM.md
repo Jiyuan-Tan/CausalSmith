@@ -1,9 +1,9 @@
 # Stat/Concentration vendoring audit trail
 
-This directory selectively vendors content from
-[auto-res/lean-rademacher](https://github.com/auto-res/lean-rademacher).
-The plan in [.claude/plans/i-just-added-a-rosy-hennessy.md](../../.claude/plans/i-just-added-a-rosy-hennessy.md)
-(Phase 4a) describes the rationale.
+The upstream package [auto-res/lean-rademacher](https://github.com/auto-res/lean-rademacher)
+is vendored whole under `third_party/lean-rademacher/` and required as the `FoML` lake
+dependency; this directory adds Causalean-namespace wrappers and Causalean-specific
+extensions on top of the `FoML.*` imports ("Phase 4a" of the concentration build-out).
 
 ## Upstream
 
@@ -11,9 +11,9 @@ The plan in [.claude/plans/i-just-added-a-rosy-hennessy.md](../../.claude/plans/
 * Pinned commit: `72d28921dc960f47691640fb973303a1be9d13ca`
 * Date pulled: 2026-05-08
 * Upstream Lean toolchain: `leanprover/lean4:v4.27.0-rc1`
-* Causalean Lean toolchain: `leanprover/lean4:v4.29.0-rc3` (mathlib pinned at `bf8875c7`)
+* Causalean Lean toolchain: `leanprover/lean4:v4.33.0` (mathlib pinned at `db584cd6`)
 * Upstream license: **MIT License** (Copyright (c) 2025 AutoRes) — verified
-  in `/tmp/lean-rademacher/LICENSE` of the pinned commit.
+  in `third_party/lean-rademacher/LICENSE`.
 
 Each ported file carries an `Adapted from auto-res/lean-rademacher`
 header citing the upstream file and commit, and a per-deviation
@@ -29,33 +29,24 @@ header citing the upstream file and commit, and a per-deviation
 | `Rademacher/Symmetrization.lean`             | `FoML/Symmetrization.lean`         | Headline only: `expectation_le_rademacher` (a.k.a. the symmetrization bound on `E[supₐ |Pₙfₐ − Pfₐ|]`). |
 | `Covering/Separable.lean`                    | `FoML/SeparableSpaceSup.lean`      | `separableSpaceSup_eq_real`: countable-dense lifting for `sup` over uncountable separable index. |
 
-## Files NOT vendored in Phase 4a
+## Also vendored
 
-The plan deliberately defers these until a downstream caller demands them:
-
-* `FoML/DudleyEntropy.lean`, `FoML/CoveringNumber.lean`,
-  `FoML/PseudoMetric.lean` — entropy-integral rates.
-* `FoML/Massart.lean` — finite-class shortcut.
-* `FoML/LinearPredictorL1.lean`, `FoML/LinearPredictorL2.lean` —
-  application layer; Causalean-flavoured equivalents go in
-  `Estimation/CATE/OSL/Modulus/DRLearner.lean`.
-* `FoML/MeasurePiLemmas.lean` — pulled in only as inline helpers if
-  needed; not as a standalone vendored file.
-* `FoML/ForMathlib/Probability/Moments.lean` — assumed already covered
-  by Causalean's mathlib pin or inlined locally as a small porting layer.
+The remaining upstream modules (`FoML/DudleyEntropy`, `CoveringNumber`, `PseudoMetric`,
+`Massart`, `LinearPredictorL1/L2`, `MeasurePiLemmas`, `ForMathlib/Probability/Moments`)
+ship with the package under `third_party/lean-rademacher/FoML/`; `Covering/DudleyEntropy.lean`,
+`Covering/CoveringNumber.lean` and `TailBounds/Massart.lean` here are their Causalean ports.
 
 ## Porting policy
 
 * Each ported file's leading docstring documents `UPSTREAM-DELTA:` —
   every non-trivial deviation from the original (mathlib API rename,
   namespace changes, removed unused lemmas, weakened hypotheses, etc.).
-* Where upstream proofs do not compile under our Lean/mathlib pin, the
-  scaffold leaves a `sorry` with a `-- TODO(port):` comment pointing to
-  the upstream file/line. These sorries are filled iteratively after
-  scaffolding lands.
-* No upstream file is copied verbatim. Even where the proof is
-  unchanged, the file lives under the `Causalean.Stat.Concentration`
-  namespace and its imports are normalised to Causalean conventions.
+* The port is complete and sorry-free; where an upstream proof needed a
+  toolchain-drift fix, the fix lives in `third_party/lean-rademacher/` (see its
+  `UPSTREAM.md`), and the Causalean wrapper imports the fixed `FoML.*` module.
+* Wrappers live under the `Causalean.Stat.Concentration` namespace with imports
+  normalised to Causalean conventions; the FoML definitions themselves remain
+  root-namespace symbols exposed by the imports.
 
 ## Re-syncing with upstream
 

@@ -61,8 +61,8 @@ never weaken the consumer or silently leave it conditional.
 
 ## Per-stage event → action
 
-**F1 plan** (`stage_1`) halts only for no usable plan or `needs-new-infrastructure`/
-`substrate_build_required`. No plan → inspect the artifact. Gates → build per § "Substrate building",
+**F1 plan** (`stage_1`) halts only for no usable plan; a `needs-new-infrastructure` verdict is
+recorded to the missing-architecture ledger and classified at F1.5, not halted on. No plan → inspect the artifact. Gates → build per § "Substrate building",
 clear the work-owed flag on resume, discharge later via F2.5 (not a re-plan).
 
 **F1.5 / CKPT 1** (`stage_1.5_to_1`) — audit reuse, role, depth, size, fidelity before F2:
@@ -83,7 +83,7 @@ clear the work-owed flag on resume, discharge later via F2.5 (not a re-plan).
 - Restate statement/spec mismatch; on `missing_architecture`, build gates and proceed conditional.
   Scaffold post-proof modules topic-split under `Helpers/<Topic>.lean` + barrel.
 
-**F2–F4 proof-review loop** (`PROOF-REVIEW LOOP ESCALATION [<route>]` in `reviews.jsonl`). The loop
+**F2–F4 proof-review loop** (`PROOF-REVIEW LOOP ESCALATION [<route>]` in `pipeline.jsonl`). The loop
 self-heals; act per route:
 - `hint` → `bin/f3_directive.ts <qid> <spec> --directive "…"` (a PROOF hint only; persists on
   `state.flags.f3_filler_directive`; `--clear` once it lands).
@@ -110,11 +110,11 @@ self-heals; act per route:
   primitives, discharge it as a lemma, drop it, edit the `.tex` upward, re-gate F3.5→F5. Weakening the
   `.tex` to match a degraded proof is forbidden.
 
-**The loop (F2.5 → F3 → F3.5 → F3.7 → F4) is never skipped.** F3.5 and the dual-model F4 review fire
+**The loop (F2.5 → F3 → F3.5 → F4) is never skipped.** F3.5 and the dual-model F4 review fire
 only at the loop's done-gate (zero real `sorry` and a settled frozen graph). An escalation means F4 did
 not run: never `--resume --from-stage 5` (or any later stage) after a loop escalation — the symptom is
-`stage 2.5 … LOOP ESCALATION` followed by `stage 3/3.5/3.7/4 skipped` and no this-round verdict in
-`reviews/reviews.jsonl`. Resolve the non-convergent node at the root, re-enter at F2.5, let it run to
+`stage 2.5 … LOOP ESCALATION` in `pipeline.jsonl` followed by `stage 3/3.5/4 skipped`, and no
+`stage 4 … dual-model convergence review completed` line for this round. Resolve the non-convergent node at the root, re-enter at F2.5, let it run to
 completion. If you believe a review is wrong, encode your reasoning as an `f2_directive` and let the
 loop converge; if it still will not, return `reviewer-dispute` — never overrule a reviewer or advance the
 stage pointer past it. Your own audit never substitutes for F4.

@@ -1,3 +1,5 @@
+> **Vendored, adapted copy.** See `UPSTREAM.md` for provenance and the toolchain-drift fixes. It builds as part of this workspace with `lake build` (required as the `FoML` dependency), not by the upstream instructions below, which are kept for attribution.
+
 # Lean Formalization of Generalization Error Bound by Rademacher Complexity and Dudley's Entropy Integral
 [![arXiv](https://img.shields.io/badge/arXiv-2503.19605-b31b1b.svg)](https://arxiv.org/abs/2503.19605)
 

@@ -10,13 +10,14 @@ Per-file / per-declaration documentation for the **Lean** source of the CausalSm
 
     Panel/            panel / linear-projection theorems (panel_* runs)
     ExactID/          exact-identification theorems (eid_* runs)
-    PartialID/        partial-identification theorems (pid_* runs; no completed entry yet)
+    PartialID/        partial-identification theorems (pid_* runs)
     Stat/             estimation / inference theory for a causal estimand (stat_* runs)
     Experimentation/  design-based / randomization-inference theorems (exp_* runs)
+    SCM/              graphical-identification theorems (scm_* runs)
     Mathlib/          Mathlib-shaped helpers staged for promotion to Causalean/Mathlib
     Substrate/        thin re-export umbrellas over Causalean substrate (no own declarations)
 
-Each research run lands under `CausalSmith/<Cluster>/<QidCamel>_Research/` with a run barrel `<QidCamel>_Research.lean` importing every module of that run, so `lake build` of the barrel type-checks the whole run over fresh oleans. The `CausalSmith.Research` umbrella (`CausalSmith/CausalSmith/Research.lean`) imports every *completed* run so `lake -d CausalSmith build` exercises the finished corpus; active runs are folded in when they finish. 
+Each research run lands under `CausalSmith/<Cluster>/<QidCamel>_Research/` with a run barrel `<QidCamel>_Research.lean` importing every module of that run, so `lake build` of the barrel type-checks the whole run over fresh oleans. The `CausalSmith.Research` umbrella (`CausalSmith/CausalSmith/Research.lean`) imports a subset of completed runs; the full tree is swept by `cd CausalSmith/tools && npm run build:full-tree`, since most run modules sit outside the default build's import graph. 
 
 ## 1. Panel theorems
 
@@ -37,7 +38,12 @@ Panel/Theorems paper-scoped entries under `CausalSmith/Panel/PANEL_PpmlForbidden
 
 ## 2. Mathlib-shaped helpers (promotion targets)
 
-Mathlib-shaped lemmas extracted from CausalSmith research derivations and staged under `CausalSmith/CausalSmith/Mathlib/`. They are model-agnostic (pure analysis / measure theory / concentration) and reusable; promotion to `Causalean/Mathlib/` is gated on a second consumer (per the Mathlib-staging convention). The concentration envelopes (2.1) feed the localized empirical-process toolbox in `Causalean/Stat/Concentration/`; the analysis / information-theory helpers (2.2–2.4) were factored out of the `STAT_PolicyRegretMarginOverlap_Research` derivation; 2.5–2.6 are elementary measure-theory bridges.
+Mathlib-shaped lemmas extracted from CausalSmith research derivations and staged under `CausalSmith/CausalSmith/Mathlib/`. They are model-agnostic (pure analysis / measure theory / concentration) and reusable; promotion to `Causalean/Mathlib/` is gated on a second consumer (per the `causalsmith` skill's "Mathlib helper staging" section). Four earlier helpers (offset peeling, `rpow` arithmetic, `MemLp` from square-integrability, product-kernel conditional distributions) have been promoted and now live under `Causalean/Mathlib/`, documented in `doc/API.md`. Currently staged:
+
+- 2.1 `Concentration/FiniteClassRademacher.lean` — finite-class Massart envelopes (feeds `Causalean/Stat/Concentration/`).
+- 2.2 `InformationTheory/ProductChiSquared.lean` — χ² tensorization.
+- `Probability/ParameterizedFinitePoissonSample.lean` — turns an atomwise measurable family of probability measures on a finite discrete space into the Markov kernel of finite samples with an independent Poisson sample size.
+- `Probability/PoissonUsableOccupancy.lean` — deterministic light/heavy cell aggregation for the Laplace-transform argument behind usable Poisson occupancies (birthday-scale exponent `n² / max n d` with explicit constants).
 
 ### 2.1 `CausalSmith/Mathlib/Concentration/FiniteClassRademacher.lean` — finite-class Massart envelopes
 
@@ -46,32 +52,7 @@ Mathlib-shaped lemmas extracted from CausalSmith research derivations and staged
 | `CausalSmith.Mathlib.Concentration.finiteClass_rademacherUpperBound` | `[Fintype ι][Nonempty ι] (F : ι→𝒳→ℝ)(norm)(μ)[IsProb](X){n}(hn)(b)(hb:0≤b)(hbound:∀ i ω,│F i (X ω)│≤b) → ∃ ψ, SubRoot ψ ∧ RademacherUpperBound F norm μ X n ψ ∧ ∀ r, ψ r = (b/√n)·√(2 log(2│ι│))` | **Global** finite-class Massart envelope: a CONSTANT `ψ` (independent of `r`), a genuine sub-root upper bound for every star-hull radius via signed-doubling + `FoML.Massart`. Gives `criticalRadius = √c` (the non-localized / slow rate). **Proved**, 0-sorry, `lean_verify` axioms `[propext, Classical.choice, Quot.sound]`. |
 | `CausalSmith.Mathlib.Concentration.finiteClass_rademacherUpperBound_linear` | `… (hscale:∀ r≥0, ∀ p:starHullParam ι, norm(starHullEval F p)≤r → p.1.val≤r)(hunit:∀ i ω,│F i (X ω)│≤1) → ∃ ψ, SubRoot ψ ∧ RademacherUpperBound F norm μ X n ψ ∧ ∀ r, ψ r = r·√(2 log(2│ι│)/n)` | **Sharp LINEAR localized** envelope (`ψ(r)=r·√(2log 2│ι│/n)`): the radius-`r` star-hull zero-out class is dominated by `r·`(finite signed `ι`-proxy) via `empiricalRademacherComplexity_smul_class` homogeneity + the unit Massart bound. Gives `criticalRadius = √(2 log(2│ι│)/n)` — the correct finite-class localized critical radius, i.e. the **margin-fast** rate when fed to `localized_uniform_deviation_sharp`. `hscale` is a satisfiable norm-control regularity condition (holds e.g. for a unit-normalized class), discharged by the consumer. **Proved**, 0-sorry, sound axioms. |
 
-### 2.2 `CausalSmith/Mathlib/Analysis/OffsetPeeling.lean` — Young / offset-peeling inequalities
-
-Namespace `CausalSmith.Mathlib.OffsetPeeling`. The deterministic peeling atom of every offset/localization rate proof.
-
-| Declaration | Signature (sketch) | Description |
-|---|---|---|
-| `offsetPeelingConstantC` | `(c θ : ℝ) : ℝ := (1−θ)·(θ/c)^(θ/(1−θ))` | Offset-peeling constant for a general offset coefficient `c`. |
-| `offsetPeelingConstant` | `(θ : ℝ) : ℝ := (1−θ)·(4θ)^(θ/(1−θ))` | The `c = 1/4` specialization (AIPW oracle offset). |
-| `offset_peeling_coeff` | `0<c → 0<θ<1 → 0≤a → 0≤t → max 0 (a·t^θ − c·t) ≤ offsetPeelingConstantC c θ · a^(1/(1−θ))` | General weighted-AM-GM (Young) offset bound. |
-| `offset_peeling` | `0<θ<1 → 0≤a → 0≤t → max 0 (a·t^θ − t/4) ≤ offsetPeelingConstant θ · a^(1/(1−θ))` | The `c = 1/4` peeling bound. |
-| `offset_peeling_coeff_nonneg_theta` / `offset_peeling_nonneg_theta` | as above with `0≤θ` (θ=0 base case folded in) | `θ`-nonneg variants. |
-| `offsetPeelingConstantC_nonneg` / `offsetPeelingConstant_nonneg` | nonnegativity of the constants | Sign lemmas. |
-| `max_two_split` | `a ≤ b+c → 0≤r → max 0 (a−2r) ≤ max 0 (b−r) + max 0 (c−r)` | Split a clipped two-term offset across its summands. |
-
-### 2.3 `CausalSmith/Mathlib/Analysis/RpowArith.lean` — small `rpow`/`sqrt` algebra
-
-Namespace `CausalSmith.Mathlib.RpowArith`. Model-agnostic real-power identities over free variables.
-
-| Declaration | Signature (sketch) | Description |
-|---|---|---|
-| `natCast_inv_eq_rpow_neg_one` | `0<n → (n:ℝ)⁻¹ = n^(−1)` | Cast an inverse to a real power. |
-| `div_natCast_rpow` | `0≤A → 0<n → (A/n)^(p/2) = A^(p/2)·n^(−p/2)` | Pull a `1/n` out of a real power. |
-| `rpow_natCast_nonpos_le_one` | `0<n → e≤0 → (n:ℝ)^e ≤ 1` | Nonpositive power of `n ≥ 1`. |
-| `inv_mul_sqrt_eq_rpow_neg_half` | `0<q → q⁻¹·√q = q^(−1/2)` | Half-power identity. |
-
-### 2.4 `CausalSmith/Mathlib/InformationTheory/ProductChiSquared.lean` — χ² tensorization
+### 2.2 `CausalSmith/Mathlib/InformationTheory/ProductChiSquared.lean` — χ² tensorization
 
 Namespace `CausalSmith.Mathlib.ProductChiSquared`. The χ²-divergence analogue of `Causalean/Mathlib/InformationTheory/ProductKLLeCam.lean`, built on `Causalean.Stat.chiSqDiv`.
 
@@ -81,32 +62,15 @@ Namespace `CausalSmith.Mathlib.ProductChiSquared`. The χ²-divergence analogue 
 | `chiSqDiv_pi_iid_integrable` | i.i.d. product χ²-integrability side condition | Discharges the integrability hypothesis of the tensorization for arbitrary finite products. |
 | `chiSqDiv_eq_sum_partition_of_restrict_eq_smul` | finite measurable partition, `μ.restrict (sᵢ) = cᵢ • ν.restrict (sᵢ)` → `χ²(μ‖ν) = ∑ᵢ (cᵢ−1)²·ν(sᵢ)` | χ²-divergence on a finite partition where `μ` is a constant multiple of `ν` per cell. |
 
-### 2.5 `CausalSmith/Mathlib/MeasureTheory/MemLp.lean` — MemLp from square-integrability
-
-Namespace `CausalSmith.Mathlib.MeasureTheory`. A single regularity bridge from a measurability + square-integrability witness to `Lᵖ` membership.
-
-| Declaration | Signature (sketch) | Description | Status |
-|---|---|---|---|
-| `MemLp.of_measurable_of_integral_sq_le` | `Measurable f → Integrable (fun x => f x ^ 2) Q → 0 ≤ A → ∫ f² ∂Q ≤ A → MemLp f 2 Q` | A measurable `f` whose square is Bochner-integrable belongs to `L²`. The explicit `Integrable (f²)` hypothesis is essential — Mathlib's integral convention makes a bare bound on `∫ f²` vacuous for non-integrable squares. | **Proved.** |
-
-### 2.6 `CausalSmith/Mathlib/Probability/Kernel/ProductCondDistrib.lean` — conditional distributions for product kernels
-
-Namespace `CausalSmith.Mathlib.ProbabilityTheory.ProductCondDistrib`. Elementary disintegration of `Measure.compProd ρ (Kernel.prod κ η)`: conditional on the base coordinate, the two product-kernel coordinates have conditional laws `κ` and `η`.
-
-| Declaration | Signature (sketch) | Description | Status |
-|---|---|---|---|
-| `condDistrib_fst_of_compProd_prod` | `[StandardBorelSpace β] [Nonempty β] (κ η Markov) → condDistrib (·.2.1) (·.1) (compProd ρ (Kernel.prod κ η)) =ᵐ[ρ] κ` | The conditional law of the first product-kernel coordinate given the base coordinate is `κ`. | **Proved.** |
-| `condDistrib_snd_of_compProd_prod` | `[StandardBorelSpace γ] [Nonempty γ] (κ η Markov) → condDistrib (·.2.2) (·.1) (compProd ρ (Kernel.prod κ η)) =ᵐ[ρ] η` | The conditional law of the second product-kernel coordinate given the base coordinate is `η`. | **Proved.** |
-
 ## 3. Identification, Stat, and Experimentation catalogues
 
 Completed identification, statistical-inference, and experimentation runs, grouped by the *kind* of result (not merely the directory). Clusters with no completed entry are noted; each is populated one `<QidCamel>_Research/` tree at a time as runs finish.
 
 - **`ExactID/`** (`eid_*`) — a new identifying functional for a causal query in the potential-outcomes (exchangeability) language: backdoor, frontdoor, IV/LATE, DID, DTR, mediation, structure/mechanism ID, …
-- **`PartialID/`** (`pid_*`) — a partial-identification / bounds result: Manski-family bounds, Balke–Pearl, IV bounds, sensitivity analysis, shape restrictions, missing-data. *No completed entry in the tree yet.*
+- **`PartialID/`** (`pid_*`) — a partial-identification / bounds result: Manski-family bounds, Balke–Pearl, IV bounds, sensitivity analysis, shape restrictions, missing-data. 
 - **`Stat/`** (`stat_*`) — an **estimation-and-inference** kernel for a *causal* estimand: a minimax convergence rate, a semiparametric efficiency bound, a limit law / CLT, a concentration or coverage result, where that statement IS the contribution (not an identification or bounds claim). The estimand must be causal (ATE/ATT/CATE/LATE/policy value/partial-ID endpoint) and the result must advance the Stat frontier. **A matching minimax converse is not required.** It is *one* eligible frontier advance among several — achievability at a new rate, a semiparametric efficiency bound, a limit law, a coverage or concentration result each qualify on their own — so a converse is never a default expectation, and an entry is not downgraded for lacking one (cf. §3.3, whose certified statements deliberately assert no same-class upper bound). Built on `Causalean/Stat/` (Minimax, CLT, Concentration, EmpiricalProcess, Inference, Bootstrap, GMM, UStatistic, …) and `Causalean/Estimation/` (Efficiency, StructureAgnostic, OrthogonalMoments, OSL, NPIV).
 - **`Experimentation/`** (`exp_*`) — a **design-based / randomization-inference** result where the treatment assignment is the only randomness and the design itself is a first-class object: a design-based limit law + Wald coverage for a given design, an optimal chosen design with an optimality certificate, or adaptive inference under a data-dependent design. Built on `Causalean/Experimentation/DesignBased/`.
-- **`SCM/`** (`scm_*`) — a **graphical-identification** kernel over a DAG / ADMG / selection diagram in the do / σ-calculus language (a new identifying functional under a stated assumption, or a graphical / data-fusion bound), distinct from ExactID/PartialID which speak potential outcomes. Built on `Causalean/SCM/` + `Causalean/Graph/`. *No completed entry, and no `SCM/` directory in the tree yet.*
+- **`SCM/`** (`scm_*`) — a **graphical-identification** kernel over a DAG / ADMG / selection diagram in the do / σ-calculus language (a new identifying functional under a stated assumption, or a graphical / data-fusion bound), distinct from ExactID/PartialID which speak potential outcomes. Built on `Causalean/SCM/` + `Causalean/Graph/`.
 
 When promotion to Causalean is appropriate (the theorem matures, dependencies stabilize, and a human curator signs off), entries move from `CausalSmith/ExactID/<QidCamel>/` to `Causalean/PO/ID/Exact/<QidCamel>/`, and likewise for PartialID and Stat (the latter to `Causalean/Stat/` or `Causalean/Estimation/`). Causalean's `doc/API.md` is the canonical record for promoted entries; new CausalSmith additions should be recorded here under sections 3.1, 3.2 etc. as they are written.
 
@@ -231,7 +195,7 @@ Stat/Theorems entries under `CausalSmith/Stat/STAT_NeymanRegretMinimax_Research/
 
 Experimentation/Theorems entries under `CausalSmith/Experimentation/EXP_SaturationSkewThreshold_Research/` (namespace `CausalSmith.Experimentation.SaturationSkew`; `exp_saturation_skew_threshold`, v1). The run treats the cluster-saturation law as the experimental-design object and studies when the design-based variance functional — a quartic in the saturation moments, `V0 + V1·m₂ + V3·m₃ + V4·m₄` — is minimized at a symmetric (Dirac) design versus a skewed one, reducing V-optimization to a moment program with an at-most-three-point optimizer.
 
-**Status: in-flight (F-phase), not yet banked.** The theorem statements below are scaffolded and the shared substrate is largely proved, but several headline proofs are still `sorry`, resting on three deferred substrate-gates (a Cai-type saturation moment expansion, a CAD / Tarski–Seidenberg semialgebraic solver, and a Winkler extreme-point step). Signatures may still change.
+**Status: banked `downgraded`** (`_bank/downgraded/exp_saturation_skew_threshold_v1`); several headline proofs are still `sorry`. The theorem statements below are scaffolded and the shared substrate is largely proved, but several headline proofs are still `sorry`, resting on three deferred substrate-gates (a Cai-type saturation moment expansion, a CAD / Tarski–Seidenberg semialgebraic solver, and a Winkler extreme-point step). Signatures may still change.
 
 | Declaration | Description |
 |---|---|

@@ -207,14 +207,14 @@ REMOVES or DETERMINIZES a mechanism, never adds one: stop trusting that input �
 deterministically or turn it into a defect the artifact's single writer repairs; a counter, ledger,
 hint, suppression branch or `throw` on the same untrusted input is the next incident. A fix is proven
 by replay on the failing bundle AND one that passed; three fixes in one function in a week ⇒ stop and
-redesign under `internal/plans/`. Main verifies with `npx vitest run test/presentation_` + `npx tsc
+stop and write a redesign note before continuing. Main verifies with `npx vitest run test/presentation_` + `npx tsc
 --noEmit`, lands prompt lessons only on a failure class's second occurrence, one commit per fix, each
 with an independent audit PASS before commit or live use.
 
 ## Sharp edges
 
 - Every pipeline shell: `cd <repo>/CausalSmith/tools && source scripts/node_env.sh`; explicit cwd.
-- Run logs to durable NFS (`<workspace>/_orch_logs/`), never /tmp. Detach
+- Run logs to a durable directory outside `/tmp` (a per-job or tmpfs `/tmp` loses them). Detach
   long stages (`setsid nohup … >log 2>&1 & echo $! > log.pid`) with a separate waiter on that PID.
   `setsid` re-forks: resolve the real sid from `ps -eo pid,sid` and key liveness/kill on
   `pgrep -s <sid>` or recorded PIDs, always excluding `$$`; never `pkill -f`/`pgrep -f` a pattern

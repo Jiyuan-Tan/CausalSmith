@@ -54,7 +54,7 @@ re-runs your deep reads/gate/presolve.
    directions for another target/model/setting, naming the first changed proof step; (d) follow-up
    searches for each. Tag occupied directions `closed-by:<cite>`. For a bank anchor read its
    `README.md` + `discovery/writeup.tex` and run the same external search.
-4. **Draft ~4 candidates** (#12) from both opportunity kinds. Rank by
+4. **Draft ~5 candidates** (#12) from both opportunity kinds. Rank by
    evidence, mathematical depth, novelty, feasibility, and consumer value. Each carries a named focal object, a computation method if
    it is a bound (#3), the estimation rung for ID/partial-ID (#9), and the tier-justifying hard theorem
    in the kernel (#15). For an open characterization problem make the kernel problem-closed and
@@ -68,7 +68,7 @@ re-runs your deep reads/gate/presolve.
    collision with an in-flight run. For a `_bank/` collision branch on the README `reraise_status`:
    `true-negative` → drop; `re-raise` → keep, re-anchored at the corrected tier; `retry` → keep, same
    framing. Never branch on `reusable`. If `reraise_status` is `unknown`/absent/`TODO`, skim the
-   entry's `*_reviews.jsonl`.
+   entry's `reviews/reviews.jsonl` (older entries: the flat `<qid>_<spec>_reviews.jsonl`).
 7. **17-principle gate.** Drop or repair failures; #13 is a hard gate.
 8. **Present the slate** with an adversarial self-ranking and each candidate's most-likely D0.5 death.
 9. **Gate, presolve, emit.** Run the adversarial gate; after accept, run the presolve; only a `launch`

@@ -31,8 +31,60 @@ shares the project's name:
 > not included. Issues are welcome; for substantial contributions please open an
 > issue first so changes can be coordinated with the internal tree.
 
-## Quick start (fresh clone)
+## Using the pipeline in three steps
 
+The pipeline is operated *through* a coding agent: you install the two agent
+CLIs once, and from then on you ask an agent to set the repository up and to run
+the pipeline for you. You do not need to know Lean or the internals.
+
+**1. Install Claude Code and Codex, and sign both in.**
+
+```sh
+npm install -g @anthropic-ai/claude-code   # Claude Code — then run `claude` once to sign in
+npm install -g @openai/codex               # Codex        — then run `codex login`
+```
+
+Both are required: the pipeline drives Codex for discovery and proof work and
+Claude for review and judging, and it spends those two logins by default (an
+API key is an opt-in alternative — see [Model access](#model-access-for-the-pipeline)).
+
+**2. Ask either agent to install CausalSmith.** Clone the repository, start
+`claude` or `codex` inside it, and say:
+
+> Set this repository up for the CausalSmith pipeline: follow the "Manual
+> install" section of README.md and CausalSmith/doc/SETUP.md, then run the quick
+> check in SETUP.md and tell me what you did.
+
+The agent installs the Lean toolchain; downloads Mathlib's build cache and
+Causalean's **prebuilt oleans** (a `.tar.zst` archive published as a release
+asset on the `build-cache` tag, so the first build takes minutes rather than
+hours); builds the library; installs the Node tooling; downloads the
+**fine-tuned retrieval models** (about 2.3 GB, same release tag; they power the
+semantic search tier the pipeline uses to find reusable lemmas); and writes the
+machine-specific config. (Windows users: read the [platform notes](#platform-notes)
+first.)
+
+**3. Ask either agent to run the pipeline.** The workflow lives in the project
+skill `.claude/skills/causalsmith/SKILL.md`; Claude Code exposes it as a slash
+command, and Codex reads it on request.
+
+| You want to… | In Claude Code | In Codex |
+|---|---|---|
+| Get topic suggestions | `/causalsmith-topics <area>` | "Follow .claude/skills/causalsmith-topics/SKILL.md for `<area>`" |
+| Discover, prove and bank a theorem | `/causalsmith research --propose "<topic>" <qid> v1 --auto` | "Follow .claude/skills/causalsmith/SKILL.md: run `causalsmith research --propose "<topic>" <qid> v1 --auto`" |
+| Turn an accepted result into a paper | `/causalsmith present <qid> v1` | "Follow .claude/skills/causalsmith-present/SKILL.md for `<qid> v1`" |
+
+`<qid>` is a short snake_case id you choose (see
+[`CausalSmith/doc/qid-naming.md`](CausalSmith/doc/qid-naming.md)); `--auto` lets
+the agent decide every checkpoint itself and stop only at the end. A finished run
+lands in `CausalSmith/doc/research/_bank/accepted/<qid>_v1/` with its Lean proofs
+under `CausalSmith/CausalSmith/`; the agent reports where. Everything the agent
+follows is in [`CausalSmith/doc/USER_MANUAL.md`](CausalSmith/doc/USER_MANUAL.md)
+if you want to drive it by hand.
+
+## Manual install
+
+This is what the agent does in step 2; you can also do it by hand.
 Linux, macOS, and Windows are all supported. The commands below are for a POSIX
 shell; on Windows run them from **Git Bash** (installed with Git for Windows) and
 read the [platform notes](#platform-notes) first.
@@ -52,15 +104,25 @@ lake build                       # only what changed since the cached commit
 # 3. Retrieval tooling — how you actually find things in a ~8000-declaration library
 cd CausalSmith/tools && npm install
 npm run search -- "backdoor adjustment"
+
+# 4. Optional: the fine-tuned retrieval models (~2.3 GB, same release tag) for semantic search
+cd ../.. && scripts/fetch_retrieval_models.sh   # needs curl, tar, zstd
+cd CausalSmith/tools && npm run embed:library    # Python 3 + sentence-transformers; Linux/macOS only
+npm run search -- --semantic "backdoor adjustment"
 ```
 
-Step 2's cache scripts need `zstd` (`apt install zstd`, `brew install zstd`, or the
+Both release assets live on the `build-cache` tag of this repository:
+`causalean-build-<sha>.tar.zst` / `causalean-build-latest.tar.zst` (the prebuilt
+oleans; `fetch_build_cache.sh` picks the exact commit when published, else the
+latest and lets `lake` rebuild the delta) and `retrieval_model_ft.tar.zst` /
+`retrieval_reranker_ft.tar.zst` (the model weights, unpacked into `doc/`).
+Steps 2 and 4 need `zstd` (`apt install zstd`, `brew install zstd`, or the
 [zstd releases](https://github.com/facebook/zstd/releases) on Windows).
 Step 3 needs Node ≥ 20.20.2 and is worth doing before you read any Lean source:
 the library is large, and `npm run search` is the intended entry point for
-locating a definition, lemma, or module. Everything above works offline from a
-fresh clone — there are no API keys, no sibling checkouts, and no network
-dependencies beyond Mathlib's cache. (Running the theorem-generation pipeline is
+locating a definition, lemma, or module. Everything above needs only this clone —
+no API keys, no sibling checkouts, no credentials; the only network access is to
+Mathlib's cache and this repository's release assets. (Running the theorem-generation pipeline is
 the one part that needs model access — see below.)
 
 Then, depending on what you came for:
@@ -71,7 +133,7 @@ Then, depending on what you came for:
 | Orient in an unfamiliar area | `npm run search -- --scope module "<area>"` |
 | Browse a module's API | [`doc/API.md`](doc/API.md), section `## <n>. <path>` |
 | Contribute a declaration | Write the docstring — see [Documentation](#documentation) |
-| Run the theorem-generation pipeline | [`CausalSmith/doc/SETUP.md`](CausalSmith/doc/SETUP.md) |
+| Run the theorem-generation pipeline | [Using the pipeline in three steps](#using-the-pipeline-in-three-steps) |
 
 ### Platform notes
 
@@ -244,7 +306,8 @@ cd CausalSmith/tools && npm run doc:gen              # API.md generated tables
 npm run embed:library && npm run lint:embeddings     # semantic search tier (optional)
 ```
 
-`npm run doc:check` guards `doc/API.md` freshness in CI.
+Run `npm run doc:check` before committing to confirm `doc/API.md` is in sync; CI
+(`.github/workflows/kb-lint.yml`) runs the knowledge-base and NL-crosslink lints.
 
 ## License
 

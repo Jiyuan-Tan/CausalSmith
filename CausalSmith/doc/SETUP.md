@@ -13,9 +13,9 @@ environment variables — never hardcoded.
 
 | Tool | Purpose | Notes |
 |---|---|---|
-| [`elan`](https://github.com/leanprover/elan) + `lake` | Lean toolchain / build | Toolchain pinned by `lean-toolchain` (`leanprover/lean4:v4.29.0-rc3`). |
+| [`elan`](https://github.com/leanprover/elan) + `lake` | Lean toolchain / build | Toolchain pinned by `lean-toolchain` (currently `leanprover/lean4:v4.33.0`; the file is authoritative — elan reads it, never pin a version by hand). |
 | Node.js **≥ 20.20.2** | TypeScript pipeline runtime | Floor from `tools/package.json` `engines`; 22.x verified. `source tools/scripts/node_env.sh` puts a satisfying install on PATH, locating nvm via `$NVM_DIR` rather than assuming `$HOME`. Older node (e.g. system node 12) silently fails. |
-| [`lean-lsp-mcp`](https://github.com/) on `PATH` | Lean type-checking for agents | Or point `leanLspMcpBinary` / `CAUSALSMITH_LEAN_LSP_MCP` at an absolute path. |
+| [`lean-lsp-mcp`](https://github.com/oOo0oOo/lean-lsp-mcp) on `PATH` (`pip install lean-lsp-mcp` or `uv tool install lean-lsp-mcp`) | Lean type-checking for agents | Or point `leanLspMcpBinary` / `CAUSALSMITH_LEAN_LSP_MCP` at an absolute path. |
 | `codex` CLI (OpenAI) | Discovery + proof agents | Default models `gpt-5.x` (see "Models" below). Billed to the CLI's own login unless you configure api auth (see "Who pays" below). |
 | `claude` CLI (Anthropic) | Reviewer / judge agents | Same: billed to the CLI's stored login by default; an API key is an opt-in alternative, not a requirement. |
 | Python 3 + `sentence-transformers` | Retrieval embeddings (optional) | Only for `npm run embed:library` / semantic search. |
@@ -24,6 +24,7 @@ Build the Lean packages first (the pipeline pre-warms Lean modules):
 
 ```sh
 lake exe cache get              # Mathlib build cache
+scripts/fetch_build_cache.sh    # Causalean's prebuilt oleans (release asset; lake then rebuilds only the delta)
 lake build                      # Causalean
 lake -d CausalSmith build       # CausalSmith
 ```
@@ -36,9 +37,11 @@ cd CausalSmith/tools && npm install
 
 ### Retrieval models (semantic search) — rebuilding on a fresh machine
 
-The two fine-tuned retrieval models are **gitignored weights**, so a fresh clone or a
-migration to a new machine has to regenerate them; only their meta sidecars are committed.
-Everything is derived offline from `doc/library_index.json` (no LLM, no labels), so the
+The two fine-tuned retrieval models are **gitignored weights**; only their meta sidecars are
+committed. On a fresh machine, download them rather than retraining:
+`scripts/fetch_retrieval_models.sh` (about 2.3 GB, release assets on the `build-cache` tag,
+unpacked into `doc/`), then `cd CausalSmith/tools && npm run embed:library`. Retraining is only
+needed when the index schema or the base checkpoint changes. Everything is derived offline from `doc/library_index.json` (no LLM, no labels), so the
 rebuild is fully reproducible — the train/test split is a deterministic hash of module
 names, which is what keeps the reported numbers leak-free.
 
@@ -58,8 +61,8 @@ npm run embed:library && npm run lint:embeddings                       # re-embe
 npm run eval:retrieval -- --test-modules ../../doc/retrieval_finetune/test_modules.json --module
 ```
 
-The cross-encoder reranker is optional (opt-in, not wired into the live pipeline — see the
-retrieval-v2 plan): `python3 scripts/train_reranker.py --test-modules … --out ../../doc/retrieval_reranker_ft`.
+The cross-encoder reranker is optional and not wired into the live pipeline — only the
+search CLI's rerank option and the retrieval eval harness use it: `python3 scripts/train_reranker.py --test-modules … --out ../../doc/retrieval_reranker_ft`.
 
 ### FoML / lean-rademacher (vendored)
 
@@ -89,6 +92,7 @@ cp CausalSmith/tools/config/local.example.json CausalSmith/tools/config/local.js
 | `anthropicApiKey` / `anthropicApiKeyFile` | Anthropic key, inline or as a path to a file holding it. Read only in api mode. | unset |
 | `openaiApiKey` / `openaiApiKeyFile` | Same, for OpenAI. | unset |
 | `codexApiHome` | `CODEX_HOME` for codex api mode — deliberately not `~/.codex`. | `~/.codex-causalsmith-api` |
+| `claudeConfigDir` | `CLAUDE_CONFIG_DIR` for the spawned `claude` workers — an account switch, not a billing one: run the pipeline on a different Anthropic subscription while your interactive login keeps `~/.claude`. | unset |
 
 Each field also has an environment-variable override (env wins over the file):
 
@@ -100,6 +104,7 @@ Each field also has an environment-variable override (env wins over the file):
 - `CAUSALSMITH_AUTH_MODE` → `authMode`; `CAUSALSMITH_ANTHROPIC_AUTH` / `CAUSALSMITH_OPENAI_AUTH` → the per-provider fields
 - `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` → the corresponding key fields
 - `CAUSALSMITH_CODEX_HOME_API` → `codexApiHome`
+- `CAUSALSMITH_CLAUDE_CONFIG_DIR` → `claudeConfigDir`
 
 ## Who pays for the model calls
 
@@ -154,10 +159,10 @@ Three behaviours worth knowing before you switch:
 
 ## Models
 
-Every model id flows through `tools/src/models.ts`, which maps five logical
-roles to committed defaults (the current OpenAI `codex` + Anthropic `claude`
+Every model id flows through `tools/src/models.ts`, which maps each logical
+role to a committed default (the current OpenAI `codex` + Anthropic `claude`
 lineup). To run on a different lineup, set the corresponding env var — no source
-edit needed:
+edit needed. The research-pipeline roles:
 
 | Env var | Role | Default | Runner |
 |---|---|---|---|
@@ -167,6 +172,12 @@ edit needed:
 | `CAUSALEAN_MODEL_CLAUDE_MAIN` | main reviewer / producer | `opus` | claude |
 | `CAUSALEAN_MODEL_CLAUDE_MID` | mid tier | `sonnet` | claude |
 | `CAUSALEAN_MODEL_CLAUDE_CHEAP` | cheap / bulk | `haiku` | claude |
+
+The presentation pipeline (`causalsmith present`) has its own codex roles on the same
+pattern — `CAUSALEAN_MODEL_CODEX_PRESENT` (authoring/revision, `gpt-5.5`),
+`…_PRESENT_REVIEW` (P5 referee, `gpt-5.6-sol`), `…_CROSSWALK_ASSIGN`, `…_CROSSWALK_VERIFY`,
+`…_COMPONENTS`, `…_NOTATION`, `…_CITATION_SUPPORT` — see the header comment of
+`tools/src/models.ts` for the full list and defaults.
 
 codex roles take an OpenAI model id; claude roles take any `claude --model`
 value (an alias like `opus`, or a pinned id like `claude-opus-4-8`).
