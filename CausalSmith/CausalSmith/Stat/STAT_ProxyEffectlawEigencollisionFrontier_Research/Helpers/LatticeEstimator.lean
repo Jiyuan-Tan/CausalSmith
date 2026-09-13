@@ -12,7 +12,7 @@ open scoped MatrixOrder
 
 /-- Polynomial aggregate spectral projectors and the positive law they determine at one feasible
 representative.  The law is not supplied independently: its atoms and masses are definitionally
-the displayed projector formula. -/
+the displayed projector formula.        It uses [the supplied parameters](hyp:k,dx,dz,radius,threshold,s). -/
 structure RepresentativeSpectralData (k dx dz : ℕ) (radius threshold : ℝ)
     (s : SummarySpace dx dz) where
   basis : SignalBasis dx k
@@ -30,6 +30,7 @@ structure RepresentativeSpectralData (k dx dz : ℕ) (radius threshold : ℝ)
           (compressedOperator s basis spans) eigenvalue i) a b *
           rightAnchor basis b), eigenvalue⟩ : AtomicLaw k radius)
 
+/-- For [the supplied parameters](hyp:D), [effect Law](goal) is given by [its defining clause](step:1). -/
 noncomputable def RepresentativeSpectralData.effectLaw {k dx dz : ℕ} {radius threshold : ℝ}
     {s : SummarySpace dx dz} (D : RepresentativeSpectralData k dx dz radius threshold s) :
     AtomicLaw.LawModulo k radius :=
@@ -39,7 +40,7 @@ noncomputable def RepresentativeSpectralData.effectLaw {k dx dz : ℕ} {radius t
           (compressedOperator s D.basis D.spans) D.eigenvalue i) a b *
           rightAnchor D.basis b), D.eigenvalue⟩, D.lawValid⟩
 
-/-- Coordinatewise membership in one deterministic half-open summary cube. -/
+/-- Coordinatewise membership in one deterministic half-open summary cube.     For [the supplied parameters](hyp:L,s), [the defined object](goal) is given by [its defining clause](step:1). -/
 def InSummaryBox {dx dz : ℕ} (L : ℝ) (s : SummarySpace dx dz) : Prop :=
   (∀ i j, s.M0 i j ∈ Set.Icc (-L) L) ∧
   (∀ i j, s.M1 i j ∈ Set.Icc (-L) L) ∧
@@ -47,6 +48,7 @@ def InSummaryBox {dx dz : ℕ} (L : ℝ) (s : SummarySpace dx dz) : Prop :=
   (∀ i j, s.N1 i j ∈ Set.Icc (-L) L) ∧
   ∀ i, s.mX i ∈ Set.Icc (-L) L
 
+/-- For [the supplied parameters](hyp:scale,lo,s), [In Half Open Summary Cube](goal) is given by [its defining clause](step:1). -/
 def InHalfOpenSummaryCube {dx dz : ℕ} (scale : ℝ) (lo s : SummarySpace dx dz) : Prop :=
   (∀ i j, lo.M0 i j ≤ s.M0 i j ∧ s.M0 i j < lo.M0 i j + scale) ∧
   (∀ i j, lo.M1 i j ≤ s.M1 i j ∧ s.M1 i j < lo.M1 i j + scale) ∧
@@ -54,6 +56,7 @@ def InHalfOpenSummaryCube {dx dz : ℕ} (scale : ℝ) (lo s : SummarySpace dx dz
   (∀ i j, lo.N1 i j ≤ s.N1 i j ∧ s.N1 i j < lo.N1 i j + scale) ∧
   ∀ i, lo.mX i ≤ s.mX i ∧ s.mX i < lo.mX i + scale
 
+/-- For [the supplied parameters](hyp:s), [summary Lex Key](goal) is given by [its defining clause](step:1). -/
 noncomputable def summaryLexKey {dx dz : ℕ} (s : SummarySpace dx dz) : List ℝ :=
   ((Finset.univ.toList.flatMap fun i : Fin dz =>
       Finset.univ.toList.map fun j : Fin dx => s.M0 i j) ++
@@ -65,10 +68,11 @@ noncomputable def summaryLexKey {dx dz : ℕ} (s : SummarySpace dx dz) : List �
       Finset.univ.toList.map fun j : Fin dx => s.N1 i j) ++
    Finset.univ.toList.map fun i : Fin dx => s.mX i)
 
+/-- For [the supplied parameters](hyp:s,q), [Summary Lex LE](goal) is given by [its defining clause](step:1). -/
 def SummaryLexLE {dx dz : ℕ} (s q : SummarySpace dx dz) : Prop :=
   summaryLexKey s = summaryLexKey q ∨ List.Lex (· < ·) (summaryLexKey s) (summaryLexKey q)
 
-/-- A faithfully well-formed class-dependent grid library of feasible representatives. -/
+/-- A faithfully well-formed class-dependent grid library of feasible representatives.     It uses [the supplied parameters](hyp:k,dx,dz,n,L,pi0,sigma0). -/
 structure NetLibrary (k dx dz n : ℕ) (L pi0 sigma0 : ℝ) where
   index : Type
   finiteIndex : Fintype index
@@ -101,16 +105,17 @@ structure NetLibrary (k dx dz n : ℕ) (L pi0 sigma0 : ℝ) where
   radius_nonneg : 0 ≤ effectRadius dz L sigma0
   index_nonempty_iff : Nonempty index ↔ admissibleImage k dx dz L pi0 sigma0 ≠ ∅
 
+/-- For [a finite representative library](hyp:A), [its index type is finite](goal). -/
 local instance {k dx dz n L pi0 sigma0} (A : NetLibrary k dx dz n L pi0 sigma0) :
     Fintype A.index := A.finiteIndex
 
-/-- The actual finite list scanned by the advised estimator. -/
+/-- The actual finite list scanned by the advised estimator.     For [the supplied parameters](hyp:A), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def NetLibrary.indexList {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (A : NetLibrary k dx dz n L pi0 sigma0) : List A.index :=
   (Finset.univ : Finset A.index).toList
 
 /-- One exact-real comparison step: keep the closer representative, breaking distance ties by
-the prescribed lexicographic rank. -/
+the prescribed lexicographic rank.        For [the supplied parameters](hyp:A,s,i,j), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def NetLibrary.betterIndex {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (A : NetLibrary k dx dz n L pi0 sigma0) (s : SummarySpace dx dz)
     (i j : A.index) : A.index :=
@@ -119,7 +124,7 @@ noncomputable def NetLibrary.betterIndex {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
   else if A.lexRank j < A.lexRank i then j else i
 
 /-- Exhaustive smallest-index nearest-library search, implemented by a fold over the actual finite
-library rather than supplied as an oracle field. -/
+library rather than supplied as an oracle field.        For [the supplied parameters](hyp:A,s), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def nearestLibraryIndex {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (A : NetLibrary k dx dz n L pi0 sigma0) (s : SummarySpace dx dz) : Option A.index :=
   match A.indexList with
@@ -195,7 +200,7 @@ private lemma NetLibrary.foldl_betterIndex_dominates
         · exact htail j (by simp [hj])
 
 /-- Successful exhaustive fold selection minimizes distance over the whole library and uses the
-stored lexicographic rank to break every distance tie. -/
+stored lexicographic rank to break every distance tie.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,A,s,i,hsel), [the stated conclusion](goal) holds. -/
 lemma nearestLibraryIndex_spec
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (A : NetLibrary k dx dz n L pi0 sigma0) (s : SummarySpace dx dz)
@@ -224,7 +229,7 @@ lemma nearestLibraryIndex_spec
 -- keep: reusable feasibility-to-spectral-certificate bridge for alternate finite-net estimators
 /-- Feasibility of a raw advised summary implies all spectral facts needed by the stored-summary
 rule.  In particular, these are conclusions of the model assumptions, not certificates bundled
-into the advice. -/
+into the advice.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,s,hs), [the stated conclusion](goal) holds. -/
 lemma representativeSpectralData_exists {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (s : SummarySpace dx dz) (hs : s ∈ admissibleImage k dx dz L pi0 sigma0) :
     Nonempty (RepresentativeSpectralData k dx dz (effectRadius dz L sigma0)
@@ -276,17 +281,18 @@ lemma representativeSpectralData_exists {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
         CausalSmith.Substrate.CollisionSafeSpectralLaw.polynomialSpectralProjector] using
           hweightSum
 
-/-- The operation classes charged by the paper's fixed-dimensional exact-real model. -/
+/-- The operation classes charged by the paper's fixed-dimensional exact-real model.  It uses the ambient setting.  It uses the ambient setting.  It uses the ambient setting.  It uses the ambient setting. -/
 structure NetOperationCount where
   arithmetic : ℕ
   comparison : ℕ
   singularValue : ℕ
   rootIsolation : ℕ
 
+/-- For [the supplied parameters](hyp:cost), [total](goal) is given by [its defining clause](step:1). -/
 def NetOperationCount.total (cost : NetOperationCount) : ℕ :=
   cost.arithmetic + cost.comparison + cost.singularValue + cost.rootIsolation
 
-/-- Primitive instructions in the fixed-dimensional exact-real implementation. -/
+/-- [The finite instruction type](goal) records arithmetic, comparison, singular-value, and root-isolation operations in the exact-real implementation. -/
 inductive NetPrimitiveOperation where
   | arithmetic
   | comparison
@@ -294,22 +300,28 @@ inductive NetPrimitiveOperation where
   | rootIsolation
   deriving DecidableEq
 
+/-- [Equality of primitive net operations](goal) is decidable. -/
+add_decl_doc instDecidableEqNetPrimitiveOperation
+
+/-- For [the supplied parameters](hyp:hyp,step,a,b), [cost](goal) is given by [its defining clause](step:1). -/
 def NetPrimitiveOperation.cost : NetPrimitiveOperation → NetOperationCount
   | .arithmetic => ⟨1, 0, 0, 0⟩
   | .comparison => ⟨0, 1, 0, 0⟩
   | .singularValue => ⟨0, 0, 1, 0⟩
   | .rootIsolation => ⟨0, 0, 0, 1⟩
 
+/-- For [the supplied parameters](hyp:a,b), [add](goal) is given by [its defining clause](step:1). -/
 def NetOperationCount.add (a b : NetOperationCount) : NetOperationCount :=
   ⟨a.arithmetic + b.arithmetic, a.comparison + b.comparison,
     a.singularValue + b.singularValue, a.rootIsolation + b.rootIsolation⟩
 
+/-- For [the supplied parameters](hyp:trace), [net Trace Cost](goal) is given by [its defining clause](step:1). -/
 def netTraceCost (trace : List NetPrimitiveOperation) : NetOperationCount :=
   trace.foldl (fun cost op => cost.add op.cost) ⟨0, 0, 0, 0⟩
 
 /-- Result returned by the singular-value primitive at one feasible representative.  Its basis,
 rank certificates, and threshold decision are the data produced by this execution, not separately
-supplied advice. -/
+supplied advice.        It uses [the supplied parameters](hyp:s). -/
 structure ThresholdedSignalExecution {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (s : SummarySpace dx dz) where
   basis : SignalBasis dx k
@@ -323,7 +335,7 @@ structure ThresholdedSignalExecution {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
 
 /-- Result returned by fixed-degree real-root isolation and projector-mass arithmetic after the
 singular-value execution.  The validity certificate concerns exactly the atoms and projector
-masses returned by this execution. -/
+masses returned by this execution.        It uses [the supplied parameters](hyp:s,signal,L,pi0,sigma0). -/
 structure RootIsolationMassExecution {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (s : SummarySpace dx dz) (signal : ThresholdedSignalExecution
       (k := k) (L := L) (pi0 := pi0) (sigma0 := sigma0) s) where
@@ -339,7 +351,7 @@ structure RootIsolationMassExecution {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
   trace : List NetPrimitiveOperation
   trace_eq : trace = [.rootIsolation, .arithmetic]
 
-/-- One execution of the result-bearing singular-value and root-isolation primitives. -/
+/-- One execution of the result-bearing singular-value and root-isolation primitives.     It uses [the supplied parameters](hyp:s). -/
 structure ExactRealSpectralRun {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (s : SummarySpace dx dz) where
   signal : ThresholdedSignalExecution
@@ -348,7 +360,7 @@ structure ExactRealSpectralRun {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
 
 /-- Exact-real primitives at fixed admissible dimensions and constants.  The combined primitive
 threads feasibility into both singular-value thresholding and root isolation, so no root run can
-be requested at an arbitrary summary. -/
+be requested at an arbitrary summary.        It uses [the supplied parameters](hyp:k,dx,dz,L,pi0,sigma0). -/
 structure ExactRealPrimitivesAt (k dx dz : ℕ) (L pi0 sigma0 : ℝ) where
   spectralRun : (s : SummarySpace dx dz) →
     s ∈ admissibleImage k dx dz L pi0 sigma0 →
@@ -361,7 +373,7 @@ abbrev ExactRealPrimitives :=
     CoreParameterDomain k dx dz L pi0 sigma0 →
       ExactRealPrimitivesAt k dx dz L pi0 sigma0
 
-/-- Feasibility identifies the admissible positive parameter domain carried by its model law. -/
+/-- Feasibility identifies the admissible positive parameter domain carried by its model law.     Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,s,hs), [the stated conclusion](goal) holds. -/
 lemma admissibleImage_coreParameterDomain {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     {s : SummarySpace dx dz} (hs : s ∈ admissibleImage k dx dz L pi0 sigma0) :
     CoreParameterDomain k dx dz L pi0 sigma0 := by
@@ -371,7 +383,7 @@ lemma admissibleImage_coreParameterDomain {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
 
 -- keep: public nonvacuity certificate for the exact-real primitive carrier audited by F2.5/F5
 /-- The exact-real primitive carrier is inhabited: representative spectral data on every
-admissible summary supplies a combined fixed-parameter run. -/
+admissible summary supplies a combined fixed-parameter run.  Under the stated setting, [the stated conclusion](goal) holds. -/
 theorem exactRealPrimitives_nonempty : Nonempty ExactRealPrimitives := by
   classical
   refine ⟨fun {k dx dz} {L pi0 sigma0} _ => ⟨fun s hs => ?_⟩⟩
@@ -395,7 +407,7 @@ theorem exactRealPrimitives_nonempty : Nonempty ExactRealPrimitives := by
         (k := k) (L := L) (pi0 := pi0) (sigma0 := sigma0) s)
   exact D.lawValid
 
-/-- The representative spectral datum computed by an exact-real spectral execution. -/
+/-- The representative spectral datum computed by an exact-real spectral execution.     For [the supplied parameters](hyp:run,L,pi0,sigma0), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def ExactRealSpectralRun.output {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     {s : SummarySpace dx dz} (run : ExactRealSpectralRun
       (k := k) (L := L) (pi0 := pi0) (sigma0 := sigma0) s) :
@@ -410,7 +422,7 @@ noncomputable def ExactRealSpectralRun.output {k dx dz : ℕ} {L pi0 sigma0 : �
   lawValid := run.roots.lawValid
 
 /-- The trace is assembled from the two result-bearing primitive executions that produced the
-spectral output. -/
+spectral output.        For [the supplied parameters](hyp:run,L,pi0,sigma0), [the defined object](goal) is given by [its defining clause](step:1). -/
 def ExactRealSpectralRun.trace {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     {s : SummarySpace dx dz} (run : ExactRealSpectralRun
       (k := k) (L := L) (pi0 := pi0) (sigma0 := sigma0) s) :
@@ -418,26 +430,26 @@ def ExactRealSpectralRun.trace {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
   run.signal.trace ++ run.roots.trace
 
 /-- Execute the result-bearing singular-value and root-isolation primitives.  No choice operator
-or precomputed spectral selector participates in this definition. -/
+or precomputed spectral selector participates in this definition.        For [the supplied parameters](hyp:primitives,s,hs,k,L,pi0,sigma0), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def exactRealSpectralRun {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (primitives : ExactRealPrimitives) (s : SummarySpace dx dz)
     (hs : s ∈ admissibleImage k dx dz L pi0 sigma0) :
     ExactRealSpectralRun (k := k) (L := L) (pi0 := pi0) (sigma0 := sigma0) s :=
   (primitives (admissibleImage_coreParameterDomain hs)).spectralRun s hs
 
-/-- Instructions used to form all coordinates of the empirical summary. -/
+/-- Instructions used to form all coordinates of the empirical summary.     For [the supplied parameters](hyp:n,dx,dz), [the defined object](goal) is given by [its defining clause](step:1). -/
 def netSummaryTrace (n dx dz : ℕ) : List NetPrimitiveOperation :=
   List.replicate (n * (4 * dz * dx + dx)) .arithmetic
 
 /-- Instructions used by the actual fold over the representative list.  Each distance evaluates
-four fixed-dimensional operator norms, its scalar coordinate arithmetic, and one comparison. -/
+four fixed-dimensional operator norms, its scalar coordinate arithmetic, and one comparison.        For [the supplied parameters](hyp:A), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def netSearchTrace {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (A : NetLibrary k dx dz n L pi0 sigma0) : List NetPrimitiveOperation :=
   A.indexList.flatMap fun _ =>
     List.replicate (4 * dz * dx + dx) .arithmetic ++
       List.replicate 4 .singularValue ++ [.comparison]
 
-/-- The result and exact primitive trace of the finite-library program. -/
+/-- The result and exact primitive trace of the finite-library program.     It uses [the supplied parameters](hyp:A). -/
 structure NetProgramResult {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (A : NetLibrary k dx dz n L pi0 sigma0) where
   selected : Option A.index
@@ -446,7 +458,7 @@ structure NetProgramResult {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
 
 /-- The operationally linked exact-real program: form the summary, exhaustively scan the finite
 library, then run singular-value thresholding and fixed-degree root isolation only at the selected
-representative. -/
+representative.        For [the supplied parameters](hyp:primitives,A,sample), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def netExactRealProgram {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (primitives : ExactRealPrimitives) (A : NetLibrary k dx dz n L pi0 sigma0)
     (sample : Fin n → Obs dx dz) :
@@ -465,7 +477,7 @@ noncomputable def netExactRealProgram {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
 
 /-- The advised finite-library estimator is the output of the explicit exhaustive-search and
 spectral program; the only advice is the representative-summary library.
-    @realizes \(\widehat\nu_n^{\mathrm{net}}\)(nearest finite-library law) -/
+    @realizes \(\widehat\nu_n^{\mathrm{net}}\)(nearest finite-library law)        For [the supplied parameters](hyp:primitives,A,sample), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: def:finite-net-law-estimator
 noncomputable def netLawEstimator {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (primitives : ExactRealPrimitives) (A : NetLibrary k dx dz n L pi0 sigma0)
@@ -473,14 +485,14 @@ noncomputable def netLawEstimator {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     AtomicLaw.LawModulo k (effectRadius dz L sigma0) :=
   (netExactRealProgram primitives A sample).law
 
-/-- The operation count is computed from the trace of the very execution producing the estimate. -/
+/-- The operation count is computed from the trace of the very execution producing the estimate.     For [the supplied parameters](hyp:primitives,A,sample), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def netOperationCount {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (primitives : ExactRealPrimitives) (A : NetLibrary k dx dz n L pi0 sigma0)
     (sample : Fin n → Obs dx dz) :
     NetOperationCount :=
   netTraceCost (netExactRealProgram primitives A sample).trace
 
-/-- A completed primitive run has the fixed five-operation spectral tail. -/
+/-- A completed primitive run has the fixed five-operation spectral tail.     Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,s,run), [the stated conclusion](goal) holds. -/
 lemma ExactRealSpectralRun.trace_eq_fixed {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     {s : SummarySpace dx dz}
     (run : ExactRealSpectralRun (k := k) (L := L) (pi0 := pi0) (sigma0 := sigma0) s) :
@@ -488,7 +500,7 @@ lemma ExactRealSpectralRun.trace_eq_fixed {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
   unfold ExactRealSpectralRun.trace
   rw [run.signal.trace_eq, run.roots.trace_eq]
 
-/-- The operational program trace is definitionally linked to the selected primitive run. -/
+/-- The operational program trace is definitionally linked to the selected primitive run.     Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,primitives,A,sample), [the stated conclusion](goal) holds. -/
 lemma netExactRealProgram_trace_eq
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (primitives : ExactRealPrimitives) (A : NetLibrary k dx dz n L pi0 sigma0)
@@ -503,7 +515,7 @@ lemma netExactRealProgram_trace_eq
   split <;> simp
 
 /-- On a successful exhaustive selection, the returned law is exactly the law produced by the
-result-bearing spectral run at that selected representative. -/
+result-bearing spectral run at that selected representative.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,primitives,A,sample,i,hsel), [the stated conclusion](goal) holds. -/
 lemma netLawEstimator_eq_of_selected
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (primitives : ExactRealPrimitives) (A : NetLibrary k dx dz n L pi0 sigma0)
@@ -522,7 +534,7 @@ lemma netLawEstimator_eq_of_selected
     subst i
     rfl
 
-/-- Every result-bearing spectral execution returns a valid representative law. -/
+/-- Every result-bearing spectral execution returns a valid representative law.     Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,primitives,s,hs), [the stated conclusion](goal) holds. -/
 lemma exactRealSpectralRun_output_valid
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ} (primitives : ExactRealPrimitives)
     (s : SummarySpace dx dz) (hs : s ∈ admissibleImage k dx dz L pi0 sigma0) :
@@ -530,7 +542,7 @@ lemma exactRealSpectralRun_output_valid
       ((exactRealSpectralRun primitives s hs).output.effectLaw.representative.1) := by
   exact (exactRealSpectralRun primitives s hs).output.effectLaw.representative.2
 
-/-- A concrete structured-lattice estimator interface. -/
+/-- A concrete structured-lattice estimator interface.     It uses [the supplied parameters](hyp:k,dx,dz,n,radius). -/
 structure LatticeEstimator (k dx dz n : ℕ) (radius : ℝ) where
   summaryRule : SummarySpace dx dz → AtomicLaw.LawModulo k radius
   summaryRule_measurable : Measurable summaryRule
@@ -543,12 +555,12 @@ structure LatticeEstimator (k dx dz n : ℕ) (radius : ℝ) where
   candidateCount : ℕ
 
 /-- The exhaustive-search work count: one pass over the sample and one fixed-dimensional
-criterion evaluation for every enumerated lattice point. -/
+criterion evaluation for every enumerated lattice point.        For [the supplied parameters](hyp:A), [the defined object](goal) is given by [its defining clause](step:1). -/
 def latticeOperationCount {k dx dz n : ℕ} {radius : ℝ}
     (A : LatticeEstimator k dx dz n radius) : ℕ :=
   n + A.candidateCount
 
-/-- One point in the prescribed no-advice product lattice. -/
+/-- One point in the prescribed no-advice product lattice.     It uses [the supplied parameters](hyp:k,dx,radius). -/
 structure StructuredLatticePoint (k dx : ℕ) (radius : ℝ) where
   gridBasis : RectMatrix dx k
   V : RectMatrix dx k
@@ -557,15 +569,17 @@ structure StructuredLatticePoint (k dx : ℕ) (radius : ℝ) where
   effect : Fin k → ℝ
   lawValid : AtomicLaw.Valid (⟨weight, effect⟩ : AtomicLaw k radius)
 
+/-- For [the supplied parameters](hyp:k,dx,n,pi0,sigma0), [lattice Height](goal) is given by [its defining clause](step:1). -/
 noncomputable def latticeHeight (k dx n : ℕ) (pi0 sigma0 : ℝ) : ℕ :=
   ⌈Real.sqrt n⌉₊ + ⌈pi0⁻¹⌉₊ + 2 * k +
     ⌈4 * Real.sqrt (dx * k)⌉₊ + ⌈2 * k / sigma0⌉₊
 
+/-- For [the supplied parameters](hyp:k,dx,n,pi0,sigma0), [lattice Mesh](goal) is given by [its defining clause](step:1). -/
 noncomputable def latticeMesh (k dx n : ℕ) (pi0 sigma0 : ℝ) : ℝ :=
   (latticeHeight k dx n pi0 sigma0 : ℝ)⁻¹
 
 /-- The displayed constant `C_lat` from the structured-lattice construction.
-    @realizes \(C_{\mathrm{lat}}\)(explicit positive structured-lattice constant) -/
+    @realizes \(C_{\mathrm{lat}}\)(explicit positive structured-lattice constant)        For [the supplied parameters](hyp:k,dx,dz,L,pi0,sigma0), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def prescribedLatticeConstant
     (k dx dz : ℕ) (L pi0 sigma0 : ℝ) : ℝ :=
   let Ltau := effectRadius dz L sigma0
@@ -582,16 +596,19 @@ noncomputable def prescribedLatticeConstant
   let Blat := 2 * (AD + 1) + cgrid
   max (8 * Ltau / s0) ((Ltau + KD + L * Kf) * Blat)
 
+/-- For [the supplied parameters](hyp:k,threshold,G), [Threshold Recovers Matrix Dimension](goal) is given by [its defining clause](step:1). -/
 def ThresholdRecoversMatrixDimension {rows cols : ℕ}
     (k : ℕ) (threshold : ℝ) (G : RectMatrix rows cols) : Prop :=
   (∀ j, j < k → threshold ≤ singularValue G j) ∧
   ∀ j, k ≤ j → singularValue G j < threshold
 
+/-- For [the supplied parameters](hyp:k,threshold,s), [Threshold Recovers Dimension](goal) is given by [its defining clause](step:1). -/
 def ThresholdRecoversDimension {dx dz : ℕ}
     (k : ℕ) (threshold : ℝ) (s : SummarySpace dx dz) : Prop :=
   ThresholdRecoversMatrixDimension k threshold (stackedProxyMoment s)
 
 -- @node: inverseGramSqrt_exists
+/-- Inverse gram sqrt exists: under [the stated inputs and assumptions](hyp:k,dx,G,_hG), [the stated conclusion](goal) holds. -/
 lemma inverseGramSqrt_exists {k dx : ℕ} (G : RectMatrix dx k)
     (_hG : 1 / 2 ≤ signalMinSingular G) :
     ∃ H : RectMatrix k k, H.PosSemidef ∧ H * H = (G.transpose * G)⁻¹ := by
@@ -603,17 +620,17 @@ lemma inverseGramSqrt_exists {k dx : ℕ} (G : RectMatrix dx k)
   · exact Matrix.nonneg_iff_posSemidef.mp (CFC.sqrt_nonneg _)
   · simpa [pow_two] using CFC.sq_sqrt ((G.transpose * G)⁻¹)
 
-/-- The inverse positive square root of the Gram matrix used in the paper's polar factor. -/
+/-- The inverse positive square root of the Gram matrix used in the paper's polar factor.     For [the supplied parameters](hyp:G,hG), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def inverseGramSqrt {k dx : ℕ} (G : RectMatrix dx k)
     (hG : 1 / 2 ≤ signalMinSingular G) : RectMatrix k k :=
   Classical.choose (inverseGramSqrt_exists G hG)
 
-/-- The unique prescribed polar-factor basis `G (G^T G)^(-1/2)`. -/
+/-- The unique prescribed polar-factor basis `G (G^T G)^(-1/2)`.     For [the supplied parameters](hyp:G,hG), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def prescribedPolarFactor {k dx : ℕ} (G : RectMatrix dx k)
     (hG : 1 / 2 ≤ signalMinSingular G) : RectMatrix dx k :=
   G * inverseGramSqrt G hG
 
-/-- Exact grid, polar-factor, conditioning, simplex-floor, and clipped-support constraints. -/
+/-- Exact grid, polar-factor, conditioning, simplex-floor, and clipped-support constraints.  For the ambient setting, [the defined object](goal) is given by [its defining clause](step:1). -/
 def StructuredLatticePoint.WellFormed {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (θ : StructuredLatticePoint k dx (effectRadius dz L sigma0)) : Prop :=
   let H := latticeHeight k dx n pi0 sigma0
@@ -629,15 +646,18 @@ def StructuredLatticePoint.WellFormed {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
   ∀ u, θ.effect u ∈ Set.Icc (-effectRadius dz L sigma0) (effectRadius dz L sigma0) ∧
     ∃ z : ℤ, θ.effect u = q * z
 
+/-- For the ambient setting, [structured Candidate Operator](goal) is given by [its defining clause](step:1). -/
 noncomputable def structuredCandidateOperator {k dx : ℕ} {radius : ℝ}
     (θ : StructuredLatticePoint k dx radius) : RectMatrix dx dx :=
   θ.V * θ.R⁻¹ * Matrix.diagonal θ.effect * θ.R * θ.V.transpose
 
+/-- For [the supplied parameters](hyp:threshold,s), [empirical Compressed Operator](goal) is given by [its defining clause](step:1). -/
 noncomputable def empiricalCompressedOperator {dx dz : ℕ}
     (threshold : ℝ) (s : SummarySpace dx dz) : RectMatrix dx dx :=
   thresholdedPenroseInverse threshold s.M1 * s.N1 -
     thresholdedPenroseInverse threshold s.M0 * s.N0
 
+/-- For [the supplied parameters](hyp:threshold,s), [structured Lattice Criterion](goal) is given by [its defining clause](step:1). -/
 noncomputable def structuredLatticeCriterion {k dx dz : ℕ} {radius : ℝ}
     (threshold : ℝ) (s : SummarySpace dx dz)
     (θ : StructuredLatticePoint k dx radius) : ℝ :=
@@ -645,10 +665,12 @@ noncomputable def structuredLatticeCriterion {k dx dz : ℕ} {radius : ℝ}
   Real.sqrt (∑ i, ((∑ u, θ.V i u * (∑ v, θ.R v u * θ.weight v)) - s.mX i) ^ 2) +
   Real.sqrt (∑ u, ((∑ v, θ.R u v * (∑ i, θ.V i v * firstBasis dx i)) - 1) ^ 2)
 
+/-- For the ambient setting, [effect Law](goal) is given by [its defining clause](step:1). -/
 noncomputable def StructuredLatticePoint.effectLaw {k dx : ℕ} {radius : ℝ}
     (θ : StructuredLatticePoint k dx radius) : AtomicLaw.LawModulo k radius :=
   AtomicLaw.LawModulo.ofProbabilityLaw ⟨⟨θ.weight, θ.effect⟩, θ.lawValid⟩
 
+/-- For the ambient setting, [structured Lattice Lex Key](goal) is given by [its defining clause](step:1). -/
 noncomputable def structuredLatticeLexKey {k dx : ℕ} {radius : ℝ}
     (θ : StructuredLatticePoint k dx radius) : List ℝ :=
   (Finset.univ.toList.flatMap fun i : Fin dx =>
@@ -658,13 +680,14 @@ noncomputable def structuredLatticeLexKey {k dx : ℕ} {radius : ℝ}
   (Finset.univ.toList.map fun i : Fin k => θ.weight i) ++
   (Finset.univ.toList.map fun i : Fin k => θ.effect i)
 
+/-- For the ambient setting, [Lex LE](goal) is given by [its defining clause](step:1). -/
 def StructuredLatticePoint.LexLE {k dx : ℕ} {radius : ℝ}
     (θ φ : StructuredLatticePoint k dx radius) : Prop :=
   structuredLatticeLexKey θ = structuredLatticeLexKey φ ∨
     List.Lex (· < ·) (structuredLatticeLexKey θ) (structuredLatticeLexKey φ)
 
 /-- The estimator is exactly the first minimizer of the displayed `H_n`/`q_n` lattice, its
-candidate count is an actual exhaustive list size, and its runtime accounts for that search. -/
+candidate count is an actual exhaustive list size, and its runtime accounts for that search.        For [the supplied parameters](hyp:A), [the defined object](goal) is given by [its defining clause](step:1). -/
 def IsPrescribedStructuredLattice {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (A : LatticeEstimator k dx dz n (effectRadius dz L sigma0)) : Prop :=
   ∃ (candidate : Fin A.candidateCount →
@@ -691,7 +714,7 @@ def IsPrescribedStructuredLattice {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
       first sample ≤ i) ∧
     A.estimate = fun sample => (candidate (first sample)).effectLaw
 
-/-- The explicit lattice-law output. @realizes \(\widehat\lambda_n\)(no-advice lattice estimate) -/
+/-- The explicit lattice-law output. @realizes \(\widehat\lambda_n\)(no-advice lattice estimate)     For [the supplied parameters](hyp:A), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def latticeLaw {k dx dz n : ℕ} {radius : ℝ}
     (A : LatticeEstimator k dx dz n radius) :
     (Fin n → Obs dx dz) → AtomicLaw.LawModulo k radius :=

@@ -9,7 +9,7 @@ noncomputable section
 open scoped Matrix.Norms.L2Operator
 
 /-- Assemble coordinate, polar, matrix, simplex, and effect rounding into one well-formed lattice
-point.  The conclusion records the four approximation estimates used factorwise in (91). -/
+point.  The conclusion records the four approximation estimates used factorwise in (91).        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,hk,hL,hpi,hsigma,hradius,V,R,p,tau,hRmin,hRnorm,hp,hpSum,htau), [the stated conclusion](goal) holds. -/
 lemma structuredLatticeComparator_exists
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (hk : 2 ≤ k) (hL : 1 ≤ L) (hpi : 0 < pi0) (hsigma : 0 < sigma0)

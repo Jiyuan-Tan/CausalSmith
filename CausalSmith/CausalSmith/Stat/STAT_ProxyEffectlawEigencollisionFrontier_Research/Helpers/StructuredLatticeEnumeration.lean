@@ -42,7 +42,7 @@ private lemma integer_witness_mem_Icc (H : ℕ) (hH : 0 < H) (B x : ℝ) (z : �
       _ ≤ (H : ℝ) * B := habsz
       _ ≤ (⌈(H : ℝ) * B⌉ : ℤ) := Int.le_ceil _)
 
-/-- A finite integer/simplex code for one well-formed structured lattice point. -/
+/-- For [the latent dimension, feature dimension, mesh denominator, and bounds](hyp:k,dx,H,L,sigma0,radius), [the finite code type for one structured-lattice point](goal) stores its grid, coordinate, mass, and effect entries. -/
 structure StructuredLatticeCode (k dx : ℕ) (H : ℕ) (L sigma0 radius : ℝ) where
   grid : Fin dx → Fin k → BoundedLatticeInt H 1
   coord : Fin k → Fin k → BoundedLatticeInt H (2 * Real.sqrt k * L)
@@ -50,8 +50,12 @@ structure StructuredLatticeCode (k dx : ℕ) (H : ℕ) (L sigma0 radius : ℝ) w
   effect : Fin k → BoundedLatticeInt H radius
   deriving Fintype
 
+/-- For [the lattice dimensions and bounds](hyp:k,dx,H,L,sigma0,radius), [structured lattice
+codes form a finite type](goal). -/
+add_decl_doc instFintypeStructuredLatticeCode
+
 /-- The encoder has exactly the paper's number of free mesh coordinates; the simplex contributes
-`k-1` because its final mass is determined by the sum. -/
+`k-1` because its final mass is determined by the sum.        Under [the stated inputs and assumptions](hyp:k,dx,H,L,sigma0,radius), [the stated conclusion](goal) holds. -/
 lemma structuredLatticeCode_card
     (k dx H : ℕ) (L sigma0 radius : ℝ) :
     Fintype.card (StructuredLatticeCode k dx H L sigma0 radius) =
@@ -327,7 +331,7 @@ private lemma structuredLatticeCode_injective
   cases φ
   simp_all
 
-/-- The subtype of all well-formed points in the prescribed lattice is finite. -/
+/-- The subtype of all well-formed points in the prescribed lattice is finite.     For [the supplied parameters](hyp:dz,n,L,pi0,sigma0), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable instance structuredLatticeWellFormedFinite
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ} :
     Finite {θ : StructuredLatticePoint k dx (effectRadius dz L sigma0) //
@@ -336,18 +340,20 @@ noncomputable instance structuredLatticeWellFormedFinite
     (fun θ => structuredLatticeCode θ.1 θ.2) structuredLatticeCode_injective
 
 /-- Coordinate keys which are realized by at least one well-formed lattice point.  Passing to
-keys removes harmless duplicate grid bases having the same prescribed visible coordinates. -/
+keys removes harmless duplicate grid bases having the same prescribed visible coordinates.        For [the supplied parameters](hyp:k,dx,dz,n,L,pi0,sigma0), [the defined object](goal) is given by [its defining clause](step:1). -/
 def StructuredLatticeKey (k dx dz n : ℕ) (L pi0 sigma0 : ℝ) :=
   {key : List ℝ // ∃ θ : StructuredLatticePoint k dx (effectRadius dz L sigma0),
     θ.WellFormed (dz := dz) (n := n) (L := L) (pi0 := pi0) (sigma0 := sigma0) ∧
       structuredLatticeLexKey θ = key}
 
+/-- For the ambient setting, [structured Lattice Key Linear Order](goal) is given by [its defining clause](step:1). -/
 noncomputable instance structuredLatticeKeyLinearOrder
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ} :
     LinearOrder (StructuredLatticeKey k dx dz n L pi0 sigma0) := by
   unfold StructuredLatticeKey
   infer_instance
 
+/-- For the ambient setting, [structured Lattice Key Finite](goal) is given by [its defining clause](step:1). -/
 noncomputable instance structuredLatticeKeyFinite
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ} :
     Finite (StructuredLatticeKey k dx dz n L pi0 sigma0) := by
@@ -360,6 +366,7 @@ noncomputable instance structuredLatticeKeyFinite
     refine ⟨⟨θ, hθ⟩, Subtype.ext ?_⟩
     exact hkey)
 
+/-- For the ambient setting, [structured Lattice Key Fintype](goal) is given by [its defining clause](step:1). -/
 noncomputable instance structuredLatticeKeyFintype
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ} :
     Fintype (StructuredLatticeKey k dx dz n L pi0 sigma0) := Fintype.ofFinite _
@@ -384,7 +391,7 @@ private lemma structuredLatticeKeyRepresentative_key
   (Classical.choose_spec key.property).2
 
 /-- Realized visible-coordinate keys inject into the integer encoder, so their cardinality is
-bounded by the encoder's exact free-coordinate product. -/
+bounded by the encoder's exact free-coordinate product.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0), [the stated conclusion](goal) holds. -/
 lemma structuredLatticeKey_card_le_code
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ} :
     Fintype.card (StructuredLatticeKey k dx dz n L pi0 sigma0) ≤
@@ -489,7 +496,7 @@ private lemma structuredLatticeLexKey_injective_visible
   · exact univList_map_injective _ _ he
 
 /-- There is a duplicate-free exhaustive enumeration of the well-formed lattice, ordered by the
-displayed lexicographic coordinate key. -/
+displayed lexicographic coordinate key.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0), [the stated conclusion](goal) holds. -/
 theorem structuredLatticeEnumeration_exists
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ} :
     ∃ (m : ℕ) (candidate : Fin m →
@@ -537,7 +544,7 @@ theorem structuredLatticeEnumeration_exists
     exact le_iff_eq_or_lt
 
 /-- Any certified duplicate-free exhaustive lattice search has no more candidates than the exact
-integer/simplex encoder. -/
+integer/simplex encoder.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,A,hA), [the stated conclusion](goal) holds. -/
 lemma isPrescribedStructuredLattice_candidateCount_le_code
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (A : LatticeEstimator k dx dz n (effectRadius dz L sigma0))
@@ -565,7 +572,7 @@ lemma isPrescribedStructuredLattice_candidateCount_le_code
         L sigma0 (effectRadius dz L sigma0)) := structuredLatticeKey_card_le_code
 
 /-- A nonempty finite candidate family has a unique first minimizer: first minimize the displayed
-real score, then minimize the enumeration index among ties. -/
+real score, then minimize the enumeration index among ties.        Under [the stated inputs and assumptions](hyp:m,hm,score), [the stated conclusion](goal) holds. -/
 theorem finite_first_minimizer_exists {α : Type*} {m : ℕ} (hm : 0 < m)
     (score : α → Fin m → ℝ) :
     ∃ first : α → Fin m,

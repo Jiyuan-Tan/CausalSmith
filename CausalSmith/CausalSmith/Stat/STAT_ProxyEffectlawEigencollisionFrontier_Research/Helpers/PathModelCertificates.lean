@@ -10,7 +10,7 @@ open MeasureTheory Set
 
 noncomputable section
 
-/-- A property true at every displayed path atom holds almost everywhere under the path law. -/
+/-- A property true at every displayed path atom holds almost everywhere under the path law.     Under [the stated inputs and assumptions](hyp:g,h,p,hp), [the stated conclusion](goal) holds. -/
 -- @node: ae_pathLaw_of_points
 lemma ae_pathLaw_of_points (g h : ℝ) (p : FullData 2 2 2 → Prop)
     (hp : ∀ (u : Fin 2) (t x z y0 y1 : Bool), p (pathPoint u t x z y0 y1)) :
@@ -25,7 +25,7 @@ lemma ae_pathLaw_of_points (g h : ℝ) (p : FullData 2 2 2 → Prop)
 
 set_option maxHeartbeats 2000000 in
 -- The explicit inverse-matrix normalization expands into several rational identities.
-/-- The constructed reference feature has the normalized constant first coordinate. -/
+/-- The constructed reference feature has the normalized constant first coordinate.     Under [the stated inputs and assumptions](hyp:t,h,u,hh), [the stated conclusion](goal) holds. -/
 -- @node: pathReferenceFeature_first_formula
 lemma pathReferenceFeature_first_formula (t : Bool) (h : ℝ) (u : Fin 2)
     (hh : |h| ≤ 1 / 100) : pathReferenceFeature t h 0 u = 1 := by
@@ -79,7 +79,7 @@ lemma pathReferenceFeature_first_formula (t : Bool) (h : ℝ) (u : Fin 2)
 
 set_option maxHeartbeats 2000000 in
 -- Expanding all finite latent/proxy cells requires a larger simplification budget.
-/-- The path's latent-class conditional target means equal its constructed target feature. -/
+/-- The path's latent-class conditional target means equal its constructed target feature.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: path_targetFeature
 lemma path_targetFeature (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) : targetFeature (pathLaw g h) = pathTargetFeature h := by
@@ -104,7 +104,7 @@ lemma path_targetFeature (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
 
 set_option maxHeartbeats 2000000 in
 -- Expanding all finite latent-arm/proxy cells requires a larger simplification budget.
-/-- The path's latent-arm conditional reference means equal its constructed reference feature. -/
+/-- The path's latent-arm conditional reference means equal its constructed reference feature.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh,t), [the stated conclusion](goal) holds. -/
 -- @node: path_referenceFeature
 lemma path_referenceFeature (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) (t : Bool) :
@@ -157,7 +157,7 @@ lemma path_referenceFeature (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
   all_goals norm_num at * <;>
     field_simp [h2, h3, h4, h5, hd30p, hd40, hd30m, hd135, hd90, hd160] <;> ring
 
-/-- The path obeys observed/potential-outcome consistency. -/
+/-- The path obeys observed/potential-outcome consistency.     Under [the stated inputs and assumptions](hyp:g,h), [the stated conclusion](goal) holds. -/
 -- @node: path_consistency
 lemma path_consistency (g h : ℝ) : CausalConsistency (pathLaw g h) := by
   unfold CausalConsistency
@@ -165,7 +165,7 @@ lemma path_consistency (g h : ℝ) : CausalConsistency (pathLaw g h) := by
   intro u t x z y0 y1
   cases t <;> simp [pathPoint, witnessPoint, potential]
 
-/-- The path preserves the constant first target-proxy coordinate. -/
+/-- The path preserves the constant first target-proxy coordinate.     Under [the stated inputs and assumptions](hyp:g,h), [the stated conclusion](goal) holds. -/
 -- @node: path_anchor
 lemma path_anchor (g h : ℝ) : AnchorNormalization (pathLaw g h) := by
   unfold AnchorNormalization
@@ -173,7 +173,7 @@ lemma path_anchor (g h : ℝ) : AnchorNormalization (pathLaw g h) := by
   intro u t x z y0 y1 i hi
   simp [pathPoint, witnessPoint, vec2, hi]
 
-/-- The target proxy remains inside the envelope along the path. -/
+/-- The target proxy remains inside the envelope along the path.     Under [the stated inputs and assumptions](hyp:g,h), [the stated conclusion](goal) holds. -/
 -- @node: path_boundedX
 lemma path_boundedX (g h : ℝ) : BoundedTargetProxy (L := 2) (pathLaw g h) := by
   unfold BoundedTargetProxy
@@ -182,7 +182,7 @@ lemma path_boundedX (g h : ℝ) : BoundedTargetProxy (L := 2) (pathLaw g h) := b
   simp [pathPoint, witnessPoint, vec2, boolReal, Fin.sum_univ_two]
   cases x <;> norm_num [Real.sqrt_le_iff]
 
-/-- Proxy outer products remain inside the envelope along the path. -/
+/-- Proxy outer products remain inside the envelope along the path.     Under [the stated inputs and assumptions](hyp:g,h), [the stated conclusion](goal) holds. -/
 -- @node: path_boundedProxyProduct
 lemma path_boundedProxyProduct (g h : ℝ) :
     BoundedProxyProduct (L := 2) (pathLaw g h) := by
@@ -191,7 +191,7 @@ lemma path_boundedProxyProduct (g h : ℝ) :
   intro u t x z y0 y1
   simpa [pathPoint, witnessPoint] using witness_outerProduct_norm x z
 
-/-- Outcome-weighted proxy outer products remain inside the envelope along the path. -/
+/-- Outcome-weighted proxy outer products remain inside the envelope along the path.     Under [the stated inputs and assumptions](hyp:g,h), [the stated conclusion](goal) holds. -/
 -- @node: path_boundedOutcomeProxyProduct
 lemma path_boundedOutcomeProxyProduct (g h : ℝ) :
     BoundedOutcomeProxyProduct (L := 2) (pathLaw g h) := by
@@ -214,7 +214,7 @@ lemma path_boundedOutcomeProxyProduct (g h : ℝ) :
         (vec2 1 (boolReal x)))‖ ≤ 2
       simpa using witness_outerProduct_norm x z
 
-/-- The latent-arm cell masses are exactly the constructed arm weights. -/
+/-- The latent-arm cell masses are exactly the constructed arm weights.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh,u,t), [the stated conclusion](goal) holds. -/
 -- @node: path_latentCell_mass
 lemma path_latentCell_mass (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) (u : Fin 2) (t : Bool) :
@@ -238,7 +238,7 @@ lemma path_latentCell_mass (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
   all_goals have h3' : 3 - 5 * h ≠ 0 := by nlinarith [hb.1, hb.2]
   all_goals field_simp [h2', h3'] <;> ring
 
-/-- Every latent-arm cell retains the required one-tenth probability floor. -/
+/-- Every latent-arm cell retains the required one-tenth probability floor.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: path_latentArmPositivity
 lemma path_latentArmPositivity (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) : LatentArmPositivity (pi0 := 1 / 10) (pathLaw g h) := by
@@ -249,7 +249,7 @@ lemma path_latentArmPositivity (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
   fin_cases u <;> cases t <;> simp <;> nlinarith [hb.1, hb.2]
 
 /-- The operator norm of a two-by-two perturbation supported in the lower-right entry
-is bounded by the absolute value of that entry. -/
+is bounded by the absolute value of that entry.        Under [the stated inputs and assumptions](hyp:a), [the stated conclusion](goal) holds. -/
 -- @node: path_lowerRight_opNorm
 lemma path_lowerRight_opNorm (a : ℝ) :
     ‖matrixCLM (!![(0 : ℝ), 0; 0, a])‖ ≤ |a| := by
@@ -264,7 +264,7 @@ lemma path_lowerRight_opNorm (a : ℝ) :
   exact mul_le_mul_of_nonneg_left hx (abs_nonneg a)
 
 /-- The operator norm of a two-by-two perturbation supported in the lower-left entry
-is bounded by the absolute value of that entry. -/
+is bounded by the absolute value of that entry.        Under [the stated inputs and assumptions](hyp:a), [the stated conclusion](goal) holds. -/
 -- @node: path_lowerLeft_opNorm
 lemma path_lowerLeft_opNorm (a : ℝ) :
     ‖matrixCLM (!![(0 : ℝ), 0; a, 0])‖ ≤ |a| := by
@@ -279,7 +279,7 @@ lemma path_lowerLeft_opNorm (a : ℝ) :
   exact mul_le_mul_of_nonneg_left hx (abs_nonneg a)
 
 /-- The undisplaced target feature has enough strict singular-value slack to absorb
-the small labelled-path perturbation. -/
+the small labelled-path perturbation.  Under the stated setting, [the stated conclusion](goal) holds. -/
 -- @node: pathTargetFeature_zero_strictRank
 lemma pathTargetFeature_zero_strictRank :
     (1 / 5 : ℝ) ≤ signalMinSingular (pathTargetFeature 0) := by
@@ -289,7 +289,7 @@ lemma pathTargetFeature_zero_strictRank :
   nlinarith [sq_nonneg (3 * x 0 - 4 * x 1)]
 
 /-- The displaced lower-right target-feature entry remains within one fiftieth of
-its undisplaced value. -/
+its undisplaced value.        Under [the stated inputs and assumptions](hyp:h,hh), [the stated conclusion](goal) holds. -/
 -- @node: pathTargetFeature_entry_displacement
 lemma pathTargetFeature_entry_displacement (h : ℝ) (hh : |h| ≤ 1 / 100) :
     |(12 / 25 - h / 5) / (3 / 5 - h) - 4 / 5| ≤ 1 / 50 := by
@@ -311,7 +311,7 @@ lemma pathTargetFeature_entry_displacement (h : ℝ) (hh : |h| ≤ 1 / 100) :
   nlinarith
 
 /-- The target feature retains the one-tenth singular-value margin throughout the
-small labelled-path neighborhood. -/
+small labelled-path neighborhood.        Under [the stated inputs and assumptions](hyp:h,hh), [the stated conclusion](goal) holds. -/
 -- @node: pathTargetFeature_rankMargin
 lemma pathTargetFeature_rankMargin (h : ℝ) (hh : |h| ≤ 1 / 100) :
     (1 / 10 : ℝ) ≤ signalMinSingular (pathTargetFeature h) := by
@@ -331,7 +331,7 @@ lemma pathTargetFeature_rankMargin (h : ℝ) (hh : |h| ≤ 1 / 100) :
   linarith
 
 /-- Each undisplaced reference feature has enough strict singular-value slack to
-absorb the labelled-path perturbation. -/
+absorb the labelled-path perturbation.        Under [the stated inputs and assumptions](hyp:t), [the stated conclusion](goal) holds. -/
 -- @node: baseReferenceFeature_strictRank
 lemma baseReferenceFeature_strictRank (t : Bool) :
     (1 / 5 : ℝ) ≤ signalMinSingular (baseReferenceFeature t) := by
@@ -344,7 +344,7 @@ lemma baseReferenceFeature_strictRank (t : Bool) :
     nlinarith [sq_nonneg (7 * x 0 - 15 * x 1)]
 
 /-- The varying lower-left reference-feature entry remains within one fiftieth of
-its undisplaced value in either treatment arm. -/
+its undisplaced value in either treatment arm.        Under [the stated inputs and assumptions](hyp:t,h,hh), [the stated conclusion](goal) holds. -/
 -- @node: pathReferenceFeature_entry_displacement
 lemma pathReferenceFeature_entry_displacement (t : Bool) (h : ℝ)
     (hh : |h| ≤ 1 / 100) :
@@ -386,7 +386,7 @@ lemma pathReferenceFeature_entry_displacement (t : Bool) (h : ℝ)
     nlinarith
 
 /-- Both reference features retain the one-tenth singular-value margin throughout
-the small labelled-path neighborhood. -/
+the small labelled-path neighborhood.        Under [the stated inputs and assumptions](hyp:t,h,hh), [the stated conclusion](goal) holds. -/
 -- @node: pathReferenceFeature_rankMargin
 lemma pathReferenceFeature_rankMargin (t : Bool) (h : ℝ) (hh : |h| ≤ 1 / 100) :
     (1 / 10 : ℝ) ≤ signalMinSingular (pathReferenceFeature t h) := by
@@ -410,7 +410,7 @@ lemma pathReferenceFeature_rankMargin (t : Bool) (h : ℝ) (hh : |h| ≤ 1 / 100
   linarith
 
 /-- The factorization-preserving path has the full proxy-rank certificate required
-by the uniformly conditioned model. -/
+by the uniformly conditioned model.        Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: path_proxyRankMargin
 lemma path_proxyRankMargin (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) : ProxyRankMargin (sigma0 := 1 / 10) (pathLaw g h) := by
@@ -424,7 +424,7 @@ lemma path_proxyRankMargin (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     pathReferenceFeature_rankMargin true h hh, pathTargetFeature_rankMargin h hh⟩
 
 /-- Every sufficiently small labelled-path displacement remains in the uniformly
-conditioned model, uniformly over the displayed gap range. -/
+conditioned model, uniformly over the displayed gap range.        Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: path_ucvmwModel
 lemma path_ucvmwModel (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) :

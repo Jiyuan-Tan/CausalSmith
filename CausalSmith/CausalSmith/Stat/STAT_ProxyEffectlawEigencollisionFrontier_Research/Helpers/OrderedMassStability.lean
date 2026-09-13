@@ -130,7 +130,7 @@ private lemma support_eq_of_measureEquivalent {k : ℕ} {radius : ℝ}
   exact ⟨fun hx => oneSide nu xi h hx, fun hx => oneSide xi nu h.symm hx⟩
 
 /-- Ordered aggregate masses depend only on the represented probability measure, despite being
-computed from a chosen finite representative. -/
+computed from a chosen finite representative.        Under [the stated inputs and assumptions](hyp:k,radius,nu,xi,h), [the stated conclusion](goal) holds. -/
 lemma orderedMasses_eq_of_measureEquivalent {k : ℕ} {radius : ℝ}
     (nu xi : AtomicLaw.ProbabilityLaw k radius)
     (h : nu.MeasureEquivalent xi) : orderedMasses nu.1 = orderedMasses xi.1 := by
@@ -191,7 +191,7 @@ lemma orderedMasses_eq_of_measureEquivalent {k : ℕ} {radius : ℝ}
     rw [if_neg (fun hcond => hfull ((full_support_iff nu.1 nu.2).mpr hcond)),
       if_neg (fun hcond => hfullXi ((full_support_iff xi.1 xi.2).mpr hcond))]
 
-/-- Ordered masses descend to a measurable function on extensional atomic laws. -/
+/-- Ordered masses descend to a measurable function on extensional atomic laws.     Under [the stated inputs and assumptions](hyp:k,radius), [the stated conclusion](goal) holds. -/
 lemma orderedMasses_representative_measurable {k : ℕ} {radius : ℝ} :
     Measurable (fun q : AtomicLaw.LawModulo k radius =>
       orderedMasses q.representative.1) := by
@@ -210,14 +210,14 @@ lemma orderedMasses_representative_measurable {k : ℕ} {radius : ℝ} :
   rw [heq]
   exact orderedMasses_measurable.comp measurable_subtype_coe
 
-/-- The canonical ordered-weight estimator is measurable. -/
+/-- The canonical ordered-weight estimator is measurable.     Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,R), [the stated conclusion](goal) holds. -/
 lemma orderedWeightEstimator_measurable {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (R : SummaryRepairData k dx dz n L pi0 sigma0) :
     Measurable (orderedWeightEstimator R) := by
   exact orderedMasses_representative_measurable.comp R.measurableRepair
 
 /-- Below the localization radius, ordered atomic weights are Lipschitz in `W₁` with the
-expected inverse support-gap factor. -/
+expected inverse support-gap factor.        Under [the stated inputs and assumptions](hyp:k,radius,m,delta,nu,xi,hnu,hxi,hm,hdelta,hweight,hinj,hgap,hsmall), [the stated conclusion](goal) holds. -/
 theorem orderedMasses_l1_le_four_mul_wass1_div_gap
     {k : ℕ} {radius m delta : ℝ} (nu xi : AtomicLaw k radius)
     (hnu : AtomicLaw.Valid nu) (hxi : AtomicLaw.Valid xi)
@@ -417,7 +417,7 @@ theorem orderedMasses_l1_le_four_mul_wass1_div_gap
       gcongr
 
 /-- Gap-stratum membership supplies the positive weights, injectivity, and numerical gap needed
-by the finite-atomic stability lemma. -/
+by the finite-atomic stability lemma.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,g,P,hM,hg,hxi,hsmall), [the stated conclusion](goal) holds. -/
 theorem gapStratum_orderedMasses_l1_le
     {k dx dz : ℕ} {L pi0 sigma0 g : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]

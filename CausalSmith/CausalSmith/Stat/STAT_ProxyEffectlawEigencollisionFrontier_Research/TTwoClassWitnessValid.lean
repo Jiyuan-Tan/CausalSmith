@@ -9,7 +9,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open MeasureTheory
 
 /-- The explicit two-class law remains in the uniformly conditioned model through the collision,
-with unequal latent weights and nonsingular proxy matrices. -/
+with unequal latent weights and nonsingular proxy matrices.        Under [the stated inputs and assumptions](hyp:eps,hEps), [the stated conclusion](goal) holds. -/
 -- @node: prop:two-class-witness-valid
 theorem two_class_witness_valid (eps : ℝ) (hEps : WitnessPerturbationDomain eps) :
     let hlo := hEps.1

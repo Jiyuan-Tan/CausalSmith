@@ -13,6 +13,7 @@ import { ensureStore } from "../../src/discovery/vcs/round.js";
 import { runVcsSolveRound } from "../../src/discovery/vcs/round.js";
 import { headGraph } from "../../src/discovery/vcs/commit.js";
 import { deriveStatus } from "../../src/discovery/vcs/validity.js";
+import { companionPathFor } from "../../src/discovery/solve/tex_companion.js";
 
 // An F3 refutation (a concrete witness against an intermediate Lean step) routes back
 // to D0 as a TARGETED directive: only the core statements whose proofs rest on the
@@ -114,7 +115,12 @@ describe("adjudicateRedoMathRewind — targeted incremental rewind", () => {
         const segment = (prompt.split("TARGET STATEMENT(S) TO SOLVE")[1] ?? "[]").split("SOLVE_OUTPUT_PATH")[0];
         const targets = (JSON.parse(segment.slice(segment.indexOf("["), segment.lastIndexOf("]") + 1)) as Array<{ id: string }>).map((t) => t.id);
         calls.push(targets);
-        await writeFile(outPath, JSON.stringify({ proofs: targets.map((id) => ({ id, proof_tex: "Re-derived under the witness constraint." })) }), "utf8");
+        // Long TeX travels in the raw companion file; the JSON cites each block by tex_ref.
+        const companionPath = /SOLVE_COMPANION_PATH:?\s*\(?([^\s)]+)/.exec(prompt)?.[1] ?? companionPathFor(outPath);
+        expect(companionPath).toBe(companionPathFor(outPath));
+        await mkdir(path.dirname(companionPath), { recursive: true });
+        await writeFile(companionPath, targets.map((_, i) => `%%% FIELD proof-${i}\nRe-derived under the witness constraint.\n`).join(""), "utf8");
+        await writeFile(outPath, JSON.stringify({ proofs: targets.map((id, i) => ({ id, proof_tex: { tex_ref: `proof-${i}` } })) }), "utf8");
         return { stdout: JSON.stringify({ status: "completed", message: "ok", artifacts: [outPath] }), stderr: "" };
       },
       runClaude: async () => { throw new Error("unused"); },

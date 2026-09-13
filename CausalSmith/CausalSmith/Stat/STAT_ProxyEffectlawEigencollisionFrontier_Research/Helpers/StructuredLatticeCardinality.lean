@@ -60,7 +60,7 @@ private lemma sqrt_pow_eq_rpow_half (n D : ℕ) (hn : 1 ≤ n) :
   ring
 
 /-- For fixed structural parameters, the exact encoder (and hence every prescribed duplicate-free
-search) has the paper's `n^(D/2)` cardinality, where `D = dx*k+k^2+2*k-1`. -/
+search) has the paper's `n^(D/2)` cardinality, where `D = dx*k+k^2+2*k-1`.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,hk,_hkx,hkz,hL,_hpi,_hpiMax,hsigma,_hsigmaMax), [the stated conclusion](goal) holds. -/
 theorem prescribed_candidateCount_polynomial_bound
     (k dx dz : ℕ) (L pi0 sigma0 : ℝ)
     (hk : 2 ≤ k) (_hkx : k ≤ dx) (hkz : k ≤ dz) (hL : 1 ≤ L)
@@ -165,7 +165,7 @@ theorem prescribed_candidateCount_polynomial_bound
       simp only [C]
       ring
 
-/-- The charged exhaustive-search runtime obeys the matching polynomial bound. -/
+/-- The charged exhaustive-search runtime obeys the matching polynomial bound.     Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax), [the stated conclusion](goal) holds. -/
 theorem prescribed_latticeOperationCount_polynomial_bound
     (k dx dz : ℕ) (L pi0 sigma0 : ℝ)
     (hk : 2 ≤ k) (hkx : k ≤ dx) (hkz : k ≤ dz) (hL : 1 ≤ L)

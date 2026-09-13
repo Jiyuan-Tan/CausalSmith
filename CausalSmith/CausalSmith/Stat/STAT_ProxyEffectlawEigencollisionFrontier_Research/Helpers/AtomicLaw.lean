@@ -14,32 +14,33 @@ open scoped BigOperators ENNReal
 open MeasureTheory Set
 
 /-- A labelled representation of a probability law with at most `k` atoms in `[-radius,radius]`.
-Coincident locations are intentionally allowed; `toMeasure` aggregates them. -/
+Coincident locations are intentionally allowed; `toMeasure` aggregates them.        It uses [the supplied parameters](hyp:k,radius). -/
 structure AtomicLaw (k : ℕ) (radius : ℝ) where
   weight : Fin k → ℝ
   atom : Fin k → ℝ
 
+/-- For the ambient setting, [the stated instance](goal) is given by [its defining clause](step:1). -/
 instance {k : ℕ} {radius : ℝ} : TopologicalSpace (AtomicLaw k radius) :=
   TopologicalSpace.induced (fun ν => (ν.weight, ν.atom)) inferInstance
 
-/-- The canonical Borel structure inherited from the two real coordinate vectors. -/
+/-- The canonical Borel structure inherited from the two real coordinate vectors.  For the ambient setting, [the defined object](goal) is given by [its defining clause](step:1). -/
 instance {k : ℕ} {radius : ℝ} : MeasurableSpace (AtomicLaw k radius) :=
   MeasurableSpace.comap (fun ν => (ν.weight, ν.atom)) inferInstance
 
 namespace AtomicLaw
 
-/-- The labelled representation of the unit point mass at zero. -/
+/-- The labelled representation of the unit point mass at zero.  For the ambient setting, [the defined object](goal) is given by [its defining clause](step:1). -/
 def deltaZero {k : ℕ} {radius : ℝ} : AtomicLaw k radius :=
   { weight := fun i => if i.val = 0 then 1 else 0
     atom := fun _ => 0 }
 
-/-- The simplex and support constraints making a representation a probability law. -/
+/-- The simplex and support constraints making a representation a probability law.  For the ambient setting, [the defined object](goal) is given by [its defining clause](step:1). -/
 def Valid {k : ℕ} {radius : ℝ} (ν : AtomicLaw k radius) : Prop :=
   (∀ i, 0 ≤ ν.weight i) ∧
     (∑ i, ν.weight i = 1) ∧
     ∀ i, ν.atom i ∈ Set.Icc (-radius) radius
 
-/-- Atomic-law coordinates give a homeomorphism with the pair of finite real coordinate vectors. -/
+/-- Atomic-law coordinates give a homeomorphism with the pair of finite real coordinate vectors.     For [the supplied parameters](hyp:k,radius), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: atomicLaw_coordinateHomeomorph
 def coordinateHomeomorph (k : ℕ) (radius : ℝ) :
     AtomicLaw k radius ≃ₜ (Fin k → ℝ) × (Fin k → ℝ) := by
@@ -51,7 +52,7 @@ def coordinateHomeomorph (k : ℕ) (radius : ℝ) :
   apply continuous_induced_rng.mpr
   exact continuous_id
 
-/-- The valid labelled atomic parameter space is compact. -/
+/-- The valid labelled atomic parameter space is compact.     Under [the stated inputs and assumptions](hyp:k,radius), [the stated conclusion](goal) holds. -/
 -- @node: atomicLaw_valid_isCompact
 lemma valid_isCompact (k : ℕ) (radius : ℝ) :
     IsCompact {nu : AtomicLaw k radius | Valid nu} := by
@@ -102,12 +103,13 @@ lemma valid_isCompact (k : ℕ) (radius : ℝ) :
 /-- The actual carrier of at-most-`k` probability laws supported in the stated interval. -/
 abbrev ProbabilityLaw (k : ℕ) (radius : ℝ) := {ν : AtomicLaw k radius // Valid ν}
 
-/-- Valid labelled laws inherit compactness from the compact valid coordinate set. -/
+/-- Valid labelled laws inherit compactness from the compact valid coordinate set.     For [the supplied parameters](hyp:k,radius), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: probabilityLaw_compactSpace
 instance probabilityLawCompactSpace (k : ℕ) (radius : ℝ) :
     CompactSpace (ProbabilityLaw k radius) :=
   isCompact_iff_compactSpace.mp (valid_isCompact k radius)
 
+/-- Delta zero valid: under [the stated inputs and assumptions](hyp:k,radius,hk,hradius), [the stated conclusion](goal) holds. -/
 lemma deltaZero_valid {k : ℕ} {radius : ℝ} (hk : 0 < k) (hradius : 0 ≤ radius) :
     Valid (deltaZero : AtomicLaw k radius) := by
   classical
@@ -127,28 +129,29 @@ lemma deltaZero_valid {k : ℕ} {radius : ℝ} (hk : 0 < k) (hradius : 0 ≤ rad
     change -radius ≤ 0 ∧ 0 ≤ radius
     constructor <;> linarith
 
-/-- The bundled unit point mass at zero. -/
+/-- The bundled unit point mass at zero.     For [the supplied parameters](hyp:hk,hradius), [the defined object](goal) is given by [its defining clause](step:1). -/
 def deltaZeroLaw {k : ℕ} {radius : ℝ} (hk : 0 < k) (hradius : 0 ≤ radius) :
     ProbabilityLaw k radius :=
   ⟨deltaZero, deltaZero_valid hk hradius⟩
 
 namespace ProbabilityLaw
 
+/-- For the ambient setting, [the stated instance](goal) is given by [its defining clause](step:1). -/
 instance {k : ℕ} {radius : ℝ} : Coe (ProbabilityLaw k radius) (AtomicLaw k radius) :=
   ⟨Subtype.val⟩
 
 end ProbabilityLaw
 
-/-- The probability measure represented by a finite atomic law. -/
+/-- The probability measure represented by a finite atomic law.  For the ambient setting, [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def toMeasure {k : ℕ} {radius : ℝ} (ν : AtomicLaw k radius) : Measure ℝ :=
   ∑ i, ENNReal.ofReal (ν.weight i) • Measure.dirac (ν.atom i)
 
-/-- The represented measure of a bundled valid atomic probability law. -/
+/-- The represented measure of a bundled valid atomic probability law.  For the ambient setting, [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def ProbabilityLaw.toMeasure {k : ℕ} {radius : ℝ}
     (ν : ProbabilityLaw k radius) : Measure ℝ :=
   AtomicLaw.toMeasure ν.1
 
-/-- A finite atomic law assigns a singleton its aggregate weight at that location. -/
+/-- A finite atomic law assigns a singleton its aggregate weight at that location.     Under [the stated inputs and assumptions](hyp:k,radius,x,hν), [the stated conclusion](goal) holds. -/
 -- @node: atomicLaw_toMeasure_singleton
 lemma toMeasure_singleton {k : ℕ} {radius x : ℝ} (ν : AtomicLaw k radius)
     (hν : Valid ν) :
@@ -160,6 +163,7 @@ lemma toMeasure_singleton {k : ℕ} {radius x : ℝ} (ν : AtomicLaw k radius)
   · intro i hi
     exact hν.1 i
 
+/-- To measure is probability: under [the stated inputs and assumptions](hyp:k,radius), [the stated conclusion](goal) holds. -/
 lemma ProbabilityLaw.toMeasure_isProbability {k : ℕ} {radius : ℝ}
     (ν : ProbabilityLaw k radius) : IsProbabilityMeasure ν.toMeasure := by
   constructor
@@ -167,16 +171,17 @@ lemma ProbabilityLaw.toMeasure_isProbability {k : ℕ} {radius : ℝ}
   convert congrArg ENNReal.ofReal ν.property.2.1 using 1 <;>
     simp [ENNReal.ofReal_sum_of_nonneg, ν.property.1]
 
+/-- For the ambient setting, [the stated instance](goal) is given by [its defining clause](step:1). -/
 instance {k : ℕ} {radius : ℝ} (ν : ProbabilityLaw k radius) :
     IsProbabilityMeasure ν.toMeasure := ν.toMeasure_isProbability
 
 /-- Two valid finite representations denote the same law exactly when their represented measures
-agree.  This removes all dependence on zero-mass slots and on how coincident atoms are labelled. -/
+agree.  This removes all dependence on zero-mass slots and on how coincident atoms are labelled.  For the ambient setting, [the defined object](goal) is given by [its defining clause](step:1). -/
 def ProbabilityLaw.MeasureEquivalent {k : ℕ} {radius : ℝ}
     (ν ξ : ProbabilityLaw k radius) : Prop :=
   ν.toMeasure = ξ.toMeasure
 
-/-- Equivalent labelled laws have the same aggregate weight at every location. -/
+/-- Equivalent labelled laws have the same aggregate weight at every location.     Under [the stated inputs and assumptions](hyp:k,radius,h,x), [the stated conclusion](goal) holds. -/
 -- @node: measureEquivalent_aggregate_weight
 lemma ProbabilityLaw.MeasureEquivalent.aggregate_weight {k : ℕ} {radius : ℝ}
     {ν ξ : ProbabilityLaw k radius} (h : ν.MeasureEquivalent ξ) (x : ℝ) :
@@ -189,37 +194,40 @@ lemma ProbabilityLaw.MeasureEquivalent.aggregate_weight {k : ℕ} {radius : ℝ}
     (Finset.sum_nonneg fun i _ => ν.2.1 i)
     (Finset.sum_nonneg fun j _ => ξ.2.1 j)).mp heq
 
+/-- For [the supplied parameters](hyp:k,radius), [probability Law Setoid](goal) is given by [its defining clause](step:1). -/
 instance probabilityLawSetoid (k : ℕ) (radius : ℝ) : Setoid (ProbabilityLaw k radius) where
   r := ProbabilityLaw.MeasureEquivalent
   iseqv := ⟨fun _ => rfl, fun h => h.symm, fun h₁ h₂ => h₁.trans h₂⟩
 
-/-- Extensional at-most-`k` probability laws: valid atomic representations modulo `toMeasure`. -/
+/-- Extensional at-most-`k` probability laws: valid atomic representations modulo `toMeasure`.     For [the supplied parameters](hyp:k,radius), [the defined object](goal) is given by [its defining clause](step:1). -/
 def LawModulo (k : ℕ) (radius : ℝ) := Quotient (probabilityLawSetoid k radius)
 
 namespace LawModulo
 
-/-- Send a valid labelled representation to its extensional law. -/
+/-- Send a valid labelled representation to its extensional law.  For the ambient setting, [the defined object](goal) is given by [its defining clause](step:1). -/
 def ofProbabilityLaw {k : ℕ} {radius : ℝ} (ν : ProbabilityLaw k radius) :
     LawModulo k radius := Quotient.mk _ ν
 
-/-- Extensional unit point mass at zero. -/
+/-- Extensional unit point mass at zero.     For [the supplied parameters](hyp:hk,hradius), [the defined object](goal) is given by [its defining clause](step:1). -/
 def deltaZeroLaw {k : ℕ} {radius : ℝ} (hk : 0 < k) (hradius : 0 ≤ radius) :
     LawModulo k radius :=
   ofProbabilityLaw (AtomicLaw.deltaZeroLaw hk hradius)
 
 /-- A finite representative used internally by explicit algorithms.  Public equality remains
-measure equality through the quotient. -/
+measure equality through the quotient.  For the ambient setting, [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def representative {k : ℕ} {radius : ℝ} (ν : LawModulo k radius) :
     ProbabilityLaw k radius := Quotient.out ν
 
+/-- For the ambient setting, [the stated instance](goal) is given by [its defining clause](step:1). -/
 instance {k : ℕ} {radius : ℝ} : TopologicalSpace (LawModulo k radius) :=
   TopologicalSpace.coinduced (@ofProbabilityLaw k radius) inferInstance
 
+/-- For the ambient setting, [the stated instance](goal) is given by [its defining clause](step:1). -/
 instance {k : ℕ} {radius : ℝ} : MeasurableSpace (LawModulo k radius) :=
   MeasurableSpace.map (@ofProbabilityLaw k radius) inferInstance
 
 /-- The quotient of the compact valid labelled parameter space is compact in its coinduced
-topology. -/
+topology.        For [the supplied parameters](hyp:k,radius), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: lawModulo_compactSpace
 instance compactSpace (k : ℕ) (radius : ℝ) : CompactSpace (LawModulo k radius) := by
   rw [← isCompact_univ_iff]
@@ -229,14 +237,16 @@ instance compactSpace (k : ℕ) (radius : ℝ) : CompactSpace (LawModulo k radiu
   rw [← Set.image_univ_of_surjective hsurj]
   exact isCompact_univ.image continuous_coinduced_rng
 
-/-- The represented probability measure, independent of the chosen labelled representative. -/
+/-- The represented probability measure, independent of the chosen labelled representative.  For the ambient setting, [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def toMeasure {k : ℕ} {radius : ℝ} (ν : LawModulo k radius) : Measure ℝ :=
   ν.representative.toMeasure
 
+/-- To measure eq of mk: under [the stated inputs and assumptions](hyp:k,radius), [the stated conclusion](goal) holds. -/
 lemma toMeasure_eq_of_mk {k : ℕ} {radius : ℝ} (ν : ProbabilityLaw k radius) :
     toMeasure (ofProbabilityLaw ν) = ν.toMeasure := by
   exact Quotient.mk_out ν
 
+/-- For the ambient setting, [the stated instance](goal) is given by [its defining clause](step:1). -/
 instance {k : ℕ} {radius : ℝ} (ν : LawModulo k radius) :
     IsProbabilityMeasure ν.toMeasure := by
   unfold toMeasure
@@ -244,14 +254,14 @@ instance {k : ℕ} {radius : ℝ} (ν : LawModulo k radius) :
 
 end LawModulo
 
-/-- A finite coupling between two labelled atomic representations. -/
+/-- A finite coupling between two labelled atomic representations.  It uses the ambient setting.  It uses the ambient setting.  It uses the ambient setting.  It uses the ambient setting. -/
 structure TransportPlan {k : ℕ} {radius : ℝ} (ν ξ : AtomicLaw k radius) where
   mass : Fin k → Fin k → ℝ
   nonneg : ∀ i j, 0 ≤ mass i j
   fst_marginal : ∀ i, ∑ j, mass i j = ν.weight i
   snd_marginal : ∀ j, ∑ i, mass i j = ξ.weight j
 
-/-- Equivalent labelled probability laws have a coupling supported on equal locations. -/
+/-- Equivalent labelled probability laws have a coupling supported on equal locations.     For [the supplied parameters](hyp:h), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: measureEquivalent_zeroTransportPlan
 noncomputable def ProbabilityLaw.MeasureEquivalent.zeroTransportPlan
     {k : ℕ} {radius : ℝ} (ν ξ : ProbabilityLaw k radius)
@@ -323,12 +333,12 @@ noncomputable def ProbabilityLaw.MeasureEquivalent.zeroTransportPlan
             change A (ξ.1.atom j) * ξ.1.weight j / A (ξ.1.atom j) = _
             field_simp
 
-/-- Cost of a finite transport plan for absolute-distance loss. -/
+/-- Cost of a finite transport plan for absolute-distance loss.  For the ambient setting, [the defined object](goal) is given by [its defining clause](step:1). -/
 def transportCost {k : ℕ} {radius : ℝ} {ν ξ : AtomicLaw k radius}
     (γ : TransportPlan ν ξ) : ℝ :=
   ∑ i, ∑ j, γ.mass i j * |ν.atom i - ξ.atom j|
 
-/-- The coupling between equivalent representations has zero transport cost. -/
+/-- The coupling between equivalent representations has zero transport cost.     Under [the stated inputs and assumptions](hyp:k,radius,h), [the stated conclusion](goal) holds. -/
 -- @node: measureEquivalent_zeroTransportCost
 lemma ProbabilityLaw.MeasureEquivalent.zeroTransportCost
     {k : ℕ} {radius : ℝ} (ν ξ : ProbabilityLaw k radius)
@@ -345,11 +355,11 @@ lemma ProbabilityLaw.MeasureEquivalent.zeroTransportCost
   · simp [hij]
 
 /-- One-Wasserstein distance, definitionally the infimum over the finite transport polytope.
-    @realizes \(W_1\)(infimum of finite transport costs) -/
+    @realizes \(W_1\)(infimum of finite transport costs)  For the ambient setting, [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def wass1 {k : ℕ} {radius : ℝ} (ν ξ : AtomicLaw k radius) : ℝ :=
   sInf {c : ℝ | ∃ γ : TransportPlan ν ξ, transportCost γ = c}
 
-/-- Every feasible transport plan upper-bounds the infimal transport cost. -/
+/-- Every feasible transport plan upper-bounds the infimal transport cost.     Under [the stated inputs and assumptions](hyp:k,radius), [the stated conclusion](goal) holds. -/
 -- @node: wass1_le_of_plan
 lemma wass1_le_of_plan {k : ℕ} {radius : ℝ} {ν ξ : AtomicLaw k radius}
     (γ : TransportPlan ν ξ) : wass1 ν ξ ≤ transportCost γ := by
@@ -362,7 +372,7 @@ lemma wass1_le_of_plan {k : ℕ} {radius : ℝ} {ν ξ : AtomicLaw k radius}
       mul_nonneg (q.nonneg i j) (abs_nonneg _)
   · exact ⟨γ, rfl⟩
 
-/-- The finite transport polytope attains the infimum defining `wass1`. -/
+/-- The finite transport polytope attains the infimum defining `wass1`.     Under [the stated inputs and assumptions](hyp:k,radius,hν,hξ), [the stated conclusion](goal) holds. -/
 -- @node: wass1_optimal_plan
 lemma wass1_optimal_plan {k : ℕ} {radius : ℝ} {ν ξ : AtomicLaw k radius}
     (hν : Valid ν) (hξ : Valid ξ) :
@@ -441,7 +451,7 @@ lemma wass1_optimal_plan {k : ℕ} {radius : ℝ} {ν ξ : AtomicLaw k radius}
   · unfold wass1
     exact csInf_le hvalues_bdd ⟨γ, rfl⟩
 
-/-- Finite-transport Wasserstein loss is nonnegative on valid labelled laws. -/
+/-- Finite-transport Wasserstein loss is nonnegative on valid labelled laws.     Under [the stated inputs and assumptions](hyp:k,radius,hν,hξ), [the stated conclusion](goal) holds. -/
 -- @node: atomicLaw_wass1_nonneg
 lemma wass1_nonneg {k : ℕ} {radius : ℝ} {ν ξ : AtomicLaw k radius}
     (hν : Valid ν) (hξ : Valid ξ) : 0 ≤ wass1 ν ξ := by
@@ -451,7 +461,7 @@ lemma wass1_nonneg {k : ℕ} {radius : ℝ} {ν ξ : AtomicLaw k radius}
   exact Finset.sum_nonneg fun i _ => Finset.sum_nonneg fun j _ =>
     mul_nonneg (γ.nonneg i j) (abs_nonneg _)
 
-/-- Transposing a finite coupling proves symmetry of finite-transport Wasserstein loss. -/
+/-- Transposing a finite coupling proves symmetry of finite-transport Wasserstein loss.     Under [the stated inputs and assumptions](hyp:k,radius), [the stated conclusion](goal) holds. -/
 -- @node: atomicLaw_wass1_comm
 lemma wass1_comm {k : ℕ} {radius : ℝ} (ν ξ : AtomicLaw k radius) :
     wass1 ν ξ = wass1 ξ ν := by
@@ -488,7 +498,7 @@ lemma wass1_comm {k : ℕ} {radius : ℝ} (ν ξ : AtomicLaw k radius) :
     intro j hj
     rw [abs_sub_comm]
 
-/-- A valid labelled law has zero finite-transport Wasserstein loss from itself. -/
+/-- A valid labelled law has zero finite-transport Wasserstein loss from itself.     Under [the stated inputs and assumptions](hyp:k,radius,hν), [the stated conclusion](goal) holds. -/
 -- @node: atomicLaw_wass1_self
 lemma wass1_self {k : ℕ} {radius : ℝ} (ν : AtomicLaw k radius) (hν : Valid ν) :
     wass1 ν ν = 0 := by
@@ -506,7 +516,7 @@ lemma wass1_self {k : ℕ} {radius : ℝ} (ν : AtomicLaw k radius) (hν : Valid
       _ = 0 := by simp [transportCost, γ]
   · exact wass1_nonneg hν hν
 
-/-- Finite-transport loss vanishes between measure-equivalent valid representations. -/
+/-- Finite-transport loss vanishes between measure-equivalent valid representations.     Under [the stated inputs and assumptions](hyp:k,radius,h), [the stated conclusion](goal) holds. -/
 -- @node: measureEquivalent_wass1_eq_zero
 lemma ProbabilityLaw.MeasureEquivalent.wass1_eq_zero
     {k : ℕ} {radius : ℝ} (ν ξ : ProbabilityLaw k radius)
@@ -519,7 +529,7 @@ lemma ProbabilityLaw.MeasureEquivalent.wass1_eq_zero
   · exact wass1_nonneg ν.2 ξ.2
 
 /-- A zero marginal forces every entry in the corresponding column of a nonnegative plan to
-vanish. -/
+vanish.        Under [the stated inputs and assumptions](hyp:k,radius,nu,xi,gamma,j,hj,i), [the stated conclusion](goal) holds. -/
 -- @node: transportPlan_mass_eq_zero_of_snd_weight_eq_zero
 lemma TransportPlan.mass_eq_zero_of_snd_weight_eq_zero
     {k : ℕ} {radius : ℝ} {nu xi : AtomicLaw k radius}
@@ -533,7 +543,7 @@ lemma TransportPlan.mass_eq_zero_of_snd_weight_eq_zero
   · exact gamma.nonneg i j
 
 /-- Glue two finite couplings through their common intermediate marginal, interpreting every
-zero-mass intermediate slice as zero. -/
+zero-mass intermediate slice as zero.        For [the supplied parameters](hyp:gamma,eta), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: transportPlan_glue
 noncomputable def TransportPlan.glue
     {k : ℕ} {radius : ℝ} {nu xi zeta : AtomicLaw k radius}
@@ -589,7 +599,7 @@ noncomputable def TransportPlan.glue
               field_simp
       _ = zeta.weight l := eta.snd_marginal l
 
-/-- The glued coupling costs at most the sum of the two input coupling costs. -/
+/-- The glued coupling costs at most the sum of the two input coupling costs.     Under [the stated inputs and assumptions](hyp:k,radius,nu,xi,zeta,gamma,eta), [the stated conclusion](goal) holds. -/
 -- @node: transportCost_glue_le
 lemma transportCost_glue_le
     {k : ℕ} {radius : ℝ} {nu xi zeta : AtomicLaw k radius}
@@ -679,7 +689,7 @@ lemma transportCost_glue_le
           simp_rw [mul_add, Finset.sum_add_distrib]
     _ = transportCost gamma + transportCost eta := by rw [hleft, hright]
 
-/-- Finite-transport Wasserstein loss satisfies the triangle inequality on valid laws. -/
+/-- Finite-transport Wasserstein loss satisfies the triangle inequality on valid laws.     Under [the stated inputs and assumptions](hyp:k,radius,nu,xi,zeta), [the stated conclusion](goal) holds. -/
 -- @node: atomicLaw_wass1_triangle
 lemma wass1_triangle {k : ℕ} {radius : ℝ} (nu xi zeta : ProbabilityLaw k radius) :
     wass1 nu.1 zeta.1 ≤ wass1 nu.1 xi.1 + wass1 xi.1 zeta.1 := by
@@ -690,7 +700,7 @@ lemma wass1_triangle {k : ℕ} {radius : ℝ} (nu xi zeta : ProbabilityLaw k rad
     _ ≤ transportCost gamma + transportCost eta := transportCost_glue_le gamma eta
     _ = wass1 nu.1 xi.1 + wass1 xi.1 zeta.1 := by rw [hgamma, heta]
 
-/-- A zero-cost nonnegative coupling has no mass between distinct locations. -/
+/-- A zero-cost nonnegative coupling has no mass between distinct locations.     Under [the stated inputs and assumptions](hyp:k,radius,nu,xi,gamma,hcost,i,j,hij), [the stated conclusion](goal) holds. -/
 -- @node: transportPlan_mass_eq_zero_of_cost_eq_zero
 lemma TransportPlan.mass_eq_zero_of_cost_eq_zero
     {k : ℕ} {radius : ℝ} {nu xi : AtomicLaw k radius}
@@ -716,7 +726,7 @@ lemma TransportPlan.mass_eq_zero_of_cost_eq_zero
   · exact hmass
   · exact False.elim (hij (sub_eq_zero.mp (abs_eq_zero.mp habs)))
 
-/-- A zero-cost coupling identifies the represented probability measures. -/
+/-- A zero-cost coupling identifies the represented probability measures.     Under [the stated inputs and assumptions](hyp:k,radius,nu,xi,gamma,hcost), [the stated conclusion](goal) holds. -/
 -- @node: measureEquivalent_of_transportCost_eq_zero
 lemma measureEquivalent_of_transportCost_eq_zero
     {k : ℕ} {radius : ℝ} (nu xi : ProbabilityLaw k radius)
@@ -766,7 +776,7 @@ lemma measureEquivalent_of_transportCost_eq_zero
           intro j hj
           rw [← Finset.sum_mul, gamma.snd_marginal j]
 
-/-- Wasserstein loss vanishes exactly between measure-equivalent valid representations. -/
+/-- Wasserstein loss vanishes exactly between measure-equivalent valid representations.     Under [the stated inputs and assumptions](hyp:k,radius,nu,xi), [the stated conclusion](goal) holds. -/
 -- @node: wass1_eq_zero_iff_measureEquivalent
 lemma wass1_eq_zero_iff_measureEquivalent
     {k : ℕ} {radius : ℝ} (nu xi : ProbabilityLaw k radius) :
@@ -778,7 +788,7 @@ lemma wass1_eq_zero_iff_measureEquivalent
   · exact fun h => h.wass1_eq_zero nu xi
 
 /-- Wasserstein loss is unchanged when its left labelled representation is replaced by an
-equivalent one. -/
+equivalent one.        Under [the stated inputs and assumptions](hyp:k,radius,h), [the stated conclusion](goal) holds. -/
 -- @node: atomicLaw_wass1_congr_left
 lemma wass1_congr_left {k : ℕ} {radius : ℝ}
     {nu nu' xi : ProbabilityLaw k radius} (h : nu.MeasureEquivalent nu') :
@@ -795,7 +805,7 @@ lemma wass1_congr_left {k : ℕ} {radius : ℝ}
         rw [ProbabilityLaw.MeasureEquivalent.wass1_eq_zero nu' nu h.symm, zero_add]
 
 /-- Wasserstein loss is unchanged when its right labelled representation is replaced by an
-equivalent one. -/
+equivalent one.        Under [the stated inputs and assumptions](hyp:k,radius,h), [the stated conclusion](goal) holds. -/
 -- @node: atomicLaw_wass1_congr_right
 lemma wass1_congr_right {k : ℕ} {radius : ℝ}
     {nu xi xi' : ProbabilityLaw k radius} (h : xi.MeasureEquivalent xi') :
@@ -803,7 +813,7 @@ lemma wass1_congr_right {k : ℕ} {radius : ℝ}
   rw [wass1_comm nu.1 xi.1, wass1_comm nu.1 xi'.1]
   exact wass1_congr_left h
 
-/-- Wasserstein loss is invariant under equivalent labelled representations in both arguments. -/
+/-- Wasserstein loss is invariant under equivalent labelled representations in both arguments.     Under [the stated inputs and assumptions](hyp:k,radius,hnu,hxi), [the stated conclusion](goal) holds. -/
 -- @node: atomicLaw_wass1_congr
 lemma wass1_congr {k : ℕ} {radius : ℝ}
     {nu nu' xi xi' : ProbabilityLaw k radius}
@@ -811,37 +821,37 @@ lemma wass1_congr {k : ℕ} {radius : ℝ}
     wass1 nu.1 xi.1 = wass1 nu'.1 xi'.1 :=
   (wass1_congr_left hnu).trans (wass1_congr_right hxi)
 
-/-- Wasserstein loss on extensional laws, computed using their finite representatives. -/
+/-- Wasserstein loss on extensional laws, computed using their finite representatives.  For the ambient setting, [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def LawModulo.wass1 {k : ℕ} {radius : ℝ}
     (ν ξ : LawModulo k radius) : ℝ :=
   AtomicLaw.wass1 ν.representative.1 ξ.representative.1
 
 namespace LawModulo
 
-/-- Extensional Wasserstein loss is nonnegative. -/
+/-- Extensional Wasserstein loss is nonnegative.     Under [the stated inputs and assumptions](hyp:k,radius,nu,xi), [the stated conclusion](goal) holds. -/
 lemma wass1_nonneg {k : ℕ} {radius : ℝ} (nu xi : LawModulo k radius) :
     0 ≤ nu.wass1 xi :=
   AtomicLaw.wass1_nonneg nu.representative.2 xi.representative.2
 
-/-- Extensional Wasserstein loss vanishes on the diagonal. -/
+/-- Extensional Wasserstein loss vanishes on the diagonal.     Under [the stated inputs and assumptions](hyp:k,radius,nu), [the stated conclusion](goal) holds. -/
 -- @node: lawModulo_wass1_self
 lemma wass1_self {k : ℕ} {radius : ℝ} (nu : LawModulo k radius) :
     nu.wass1 nu = 0 :=
   AtomicLaw.wass1_self nu.representative.1 nu.representative.2
 
-/-- Extensional Wasserstein loss is symmetric. -/
+/-- Extensional Wasserstein loss is symmetric.     Under [the stated inputs and assumptions](hyp:k,radius,nu,xi), [the stated conclusion](goal) holds. -/
 -- @node: lawModulo_wass1_comm
 lemma wass1_comm {k : ℕ} {radius : ℝ} (nu xi : LawModulo k radius) :
     nu.wass1 xi = xi.wass1 nu :=
   AtomicLaw.wass1_comm _ _
 
-/-- Extensional Wasserstein loss satisfies the triangle inequality. -/
+/-- Extensional Wasserstein loss satisfies the triangle inequality.     Under [the stated inputs and assumptions](hyp:k,radius,nu,xi,zeta), [the stated conclusion](goal) holds. -/
 -- @node: lawModulo_wass1_triangle
 lemma wass1_triangle {k : ℕ} {radius : ℝ} (nu xi zeta : LawModulo k radius) :
     nu.wass1 zeta ≤ nu.wass1 xi + xi.wass1 zeta :=
   AtomicLaw.wass1_triangle nu.representative xi.representative zeta.representative
 
-/-- Extensional Wasserstein loss separates quotient laws. -/
+/-- Extensional Wasserstein loss separates quotient laws.     Under [the stated inputs and assumptions](hyp:k,radius,nu,xi,h), [the stated conclusion](goal) holds. -/
 -- @node: lawModulo_eq_of_wass1_eq_zero
 lemma eq_of_wass1_eq_zero {k : ℕ} {radius : ℝ} {nu xi : LawModulo k radius}
     (h : nu.wass1 xi = 0) : nu = xi := by
@@ -853,7 +863,7 @@ lemma eq_of_wass1_eq_zero {k : ℕ} {radius : ℝ} {nu xi : LawModulo k radius}
     _ = xi := Quotient.out_eq xi
 
 /-- The raw metric structure whose distance is exactly extensional Wasserstein loss.  Its induced
-topology is compared with the pre-existing quotient topology before an instance is installed. -/
+topology is compared with the pre-existing quotient topology before an instance is installed.        For [the supplied parameters](hyp:k,radius), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: lawModulo_rawMetricSpace
 noncomputable def rawMetricSpace (k : ℕ) (radius : ℝ) : MetricSpace (LawModulo k radius) := by
   let d : Dist (LawModulo k radius) := ⟨LawModulo.wass1⟩
@@ -864,7 +874,7 @@ noncomputable def rawMetricSpace (k : ℕ) (radius : ℝ) : MetricSpace (LawModu
     dist_triangle := wass1_triangle }
   exact @MetricSpace.mk _ pm (fun {_ _} h => eq_of_wass1_eq_zero h)
 
-/-- The raw metric distance unfolds to extensional Wasserstein loss. -/
+/-- The raw metric distance unfolds to extensional Wasserstein loss.     Under [the stated inputs and assumptions](hyp:k,radius,nu,xi), [the stated conclusion](goal) holds. -/
 -- @node: lawModulo_rawMetricSpace_dist
 lemma rawMetricSpace_dist {k : ℕ} {radius : ℝ} (nu xi : LawModulo k radius) :
     @dist (LawModulo k radius) (rawMetricSpace k radius).toPseudoMetricSpace.toDist nu xi =
@@ -872,7 +882,7 @@ lemma rawMetricSpace_dist {k : ℕ} {radius : ℝ} (nu xi : LawModulo k radius) 
   rfl
 
 /-- Couple common coordinate mass diagonally and the two residual marginals by their normalized
-product.  This coupling is used only to compare nearby labelled representatives. -/
+product.  This coupling is used only to compare nearby labelled representatives.        For [the supplied parameters](hyp:nu,xi), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: probabilityLaw_coordinateTransportPlan
 noncomputable def probabilityLaw_coordinateTransportPlan
     {k : ℕ} {radius : ℝ} (nu xi : ProbabilityLaw k radius) :
@@ -952,7 +962,7 @@ noncomputable def probabilityLaw_coordinateTransportPlan
             _ = b j := by change s * b j / s = b j; field_simp
         _ = xi.1.weight j := by dsimp [b]; ring
 
-/-- The coordinate coupling gives a continuous upper bound for Wasserstein loss. -/
+/-- The coordinate coupling gives a continuous upper bound for Wasserstein loss.     Under [the stated inputs and assumptions](hyp:k,radius,nu,xi), [the stated conclusion](goal) holds. -/
 -- @node: atomicLaw_wass1_le_coordinateBound
 lemma wass1_le_coordinateBound {k : ℕ} {radius : ℝ}
     (nu xi : ProbabilityLaw k radius) :
@@ -1013,7 +1023,7 @@ lemma wass1_le_coordinateBound {k : ℕ} {radius : ℝ}
               ring
     _ = _ := rfl
 
-/-- Computing quotient Wasserstein loss on quotient constructors recovers the labelled loss. -/
+/-- Computing quotient Wasserstein loss on quotient constructors recovers the labelled loss.     Under [the stated inputs and assumptions](hyp:k,radius,nu,xi), [the stated conclusion](goal) holds. -/
 -- @node: lawModulo_wass1_ofProbabilityLaw
 lemma wass1_ofProbabilityLaw {k : ℕ} {radius : ℝ}
     (nu xi : ProbabilityLaw k radius) :
@@ -1027,7 +1037,7 @@ lemma wass1_ofProbabilityLaw {k : ℕ} {radius : ℝ}
   exact AtomicLaw.wass1_congr hnu hxi
 
 /-- The quotient projection is continuous from labelled coordinates to the raw Wasserstein metric
-topology. -/
+topology.        Under [the stated inputs and assumptions](hyp:k,radius), [the stated conclusion](goal) holds. -/
 -- @node: lawModulo_continuous_ofProbabilityLaw_rawMetric
 lemma continuous_ofProbabilityLaw_rawMetric (k : ℕ) (radius : ℝ) :
     @Continuous (ProbabilityLaw k radius) (LawModulo k radius)
@@ -1076,7 +1086,7 @@ lemma continuous_ofProbabilityLaw_rawMetric (k : ℕ) (radius : ℝ) :
   rw [LawModulo.wass1_comm, wass1_ofProbabilityLaw]
   exact lt_of_le_of_lt (wass1_le_coordinateBound nu xi) hxi
 
-/-- The raw Wasserstein metric topology agrees with the original coinduced quotient topology. -/
+/-- The raw Wasserstein metric topology agrees with the original coinduced quotient topology.     Under [the stated inputs and assumptions](hyp:k,radius), [the stated conclusion](goal) holds. -/
 -- @node: lawModulo_rawMetricSpace_topology_eq
 lemma rawMetricSpace_topology_eq (k : ℕ) (radius : ℝ) :
     instTopologicalSpace =
@@ -1092,40 +1102,40 @@ lemma rawMetricSpace_topology_eq (k : ℕ) (radius : ℝ) :
       (continuous_ofProbabilityLaw_rawMetric k radius)
   exact hquot.isCoinducing.eq_coinduced.symm
 
-/-- The Wasserstein metric installed on quotient laws, with the original quotient topology. -/
+/-- The Wasserstein metric installed on quotient laws, with the original quotient topology.     For [the supplied parameters](hyp:k,radius), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: lawModulo_metricSpace
 noncomputable instance metricSpace (k : ℕ) (radius : ℝ) :
     MetricSpace (LawModulo k radius) :=
   (rawMetricSpace k radius).replaceTopology (rawMetricSpace_topology_eq k radius)
 
-/-- The installed metric distance is extensional Wasserstein loss. -/
+/-- For any two quotient laws, [the installed metric distance equals their extensional one-Wasserstein loss](goal). -/
 -- @node: lawModulo_dist_eq_wass1
 @[simp] lemma dist_eq_wass1 {k : ℕ} {radius : ℝ} (nu xi : LawModulo k radius) :
     dist nu xi = nu.wass1 xi := by
   rfl
 
-/-- Compact quotient laws are complete for their Wasserstein metric. -/
+/-- Compact quotient laws are complete for their Wasserstein metric.     For [the supplied parameters](hyp:k,radius), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: lawModulo_completeSpace
 noncomputable instance completeSpace (k : ℕ) (radius : ℝ) :
     CompleteSpace (LawModulo k radius) := complete_of_compact
 
 end LawModulo
 
-/-- The (finite) set of locations carrying positive represented mass. -/
+/-- The (finite) set of locations carrying positive represented mass.  For the ambient setting, [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def support {k : ℕ} {radius : ℝ} (ν : AtomicLaw k radius) : Finset ℝ :=
   (Finset.univ.filter (fun i => 0 < ν.weight i)).image ν.atom
 
 /-- Every distinct represented atom has at least the prescribed aggregate mass.
     @realizes \(\mathcal P_{\le k,m_\star}([-L_{\tau},L_{\tau}])\)(atom-floor class)
-    @realizes \(\xi\)(generic member of the atom-floor class) -/
+    @realizes \(\xi\)(generic member of the atom-floor class)        For [the supplied parameters](hyp:m), [the defined object](goal) is given by [its defining clause](step:1). -/
 def AtomFloor (m : ℝ) {k : ℕ} {radius : ℝ} (ν : AtomicLaw k radius) : Prop :=
   ∀ x ∈ ν.support, m ≤ ∑ i with ν.atom i = x, ν.weight i
 
-/-- Distance from a point to a finite set. -/
+/-- Distance from a point to a finite set.     For [the supplied parameters](hyp:x,C), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def distToFinset (x : ℝ) (C : Finset ℝ) : ℝ :=
   sInf {d : ℝ | ∃ y ∈ C, d = |x - y|}
 
-/-- Atom-floor transport implication used by the cluster report. -/
+/-- Atom-floor transport implication used by the cluster report.     Under [the stated inputs and assumptions](hyp:k,hνValid,hξValid,hν,hξ,hm,hW), [the stated conclusion](goal) holds. -/
 -- @node: support_close_of_wass1_le
 lemma support_close_of_wass1_le {k : ℕ} {radius m ρ : ℝ}
     {ν ξ : AtomicLaw k radius} (hνValid : Valid ν) (hξValid : Valid ξ)

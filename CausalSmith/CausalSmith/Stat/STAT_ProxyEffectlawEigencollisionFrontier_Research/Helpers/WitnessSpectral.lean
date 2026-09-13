@@ -7,7 +7,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open scoped BigOperators
 
 /-- A coordinatewise quadratic lower bound certifies the last singular value of a real
-two-by-two matrix. -/
+two-by-two matrix.        Under [the stated inputs and assumptions](hyp:A,s,hs,hquad), [the stated conclusion](goal) holds. -/
 -- @node: signalMinSingular_lower_fin_two
 lemma signalMinSingular_lower_fin_two (A : RectMatrix 2 2) (s : ℝ) (hs : 0 < s)
     (hquad : ∀ x : Fin 2 → ℝ,
@@ -39,7 +39,7 @@ lemma signalMinSingular_lower_fin_two (A : RectMatrix 2 2) (s : ℝ) (hs : 0 < s
   rw [S.sigma_eq r] at hle
   simpa [signalMinSingular, singularValue, r] using hle
 
-/-- The target-proxy matrix of the collision witness has singular-value margin one tenth. -/
+/-- The target-proxy matrix of the collision witness has singular-value margin one tenth.     Under the stated inputs and assumptions, [the stated conclusion](goal) holds. -/
 -- @node: witnessTargetMatrix_signalMinSingular
 lemma witnessTargetMatrix_signalMinSingular :
     (1 / 10 : ℝ) ≤ signalMinSingular (fun i j : Fin 2 =>
@@ -49,7 +49,7 @@ lemma witnessTargetMatrix_signalMinSingular :
   simp [Fin.sum_univ_two]
   nlinarith [sq_nonneg (3 * x 0 - 4 * x 1)]
 
-/-- The control-arm reference-proxy matrix has singular-value margin one tenth. -/
+/-- The control-arm reference-proxy matrix has singular-value margin one tenth.     Under the stated inputs and assumptions, [the stated conclusion](goal) holds. -/
 -- @node: witnessReferenceMatrix_false_signalMinSingular
 lemma witnessReferenceMatrix_false_signalMinSingular :
     (1 / 10 : ℝ) ≤ signalMinSingular (fun i j : Fin 2 =>
@@ -59,7 +59,7 @@ lemma witnessReferenceMatrix_false_signalMinSingular :
   simp [Fin.sum_univ_two]
   nlinarith [sq_nonneg (3 * x 0 - 7 * x 1)]
 
-/-- The treated-arm reference-proxy matrix has singular-value margin one tenth. -/
+/-- The treated-arm reference-proxy matrix has singular-value margin one tenth.     Under the stated inputs and assumptions, [the stated conclusion](goal) holds. -/
 -- @node: witnessReferenceMatrix_true_signalMinSingular
 lemma witnessReferenceMatrix_true_signalMinSingular :
     (1 / 10 : ℝ) ≤ signalMinSingular (fun i j : Fin 2 =>

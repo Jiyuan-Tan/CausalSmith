@@ -9,6 +9,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 namespace GapFreeClosureAssembly
 
 -- @node: gapFreeClosureAssembly_atomicLawBorelSpace
+/-- For [the supplied parameters](hyp:k,radius), [atomic Law Borel Space](goal) is given by [its defining clause](step:1). -/
 noncomputable instance atomicLawBorelSpace (k : ℕ) (radius : ℝ) :
     BorelSpace (AtomicLaw k radius) := by
   constructor
@@ -16,16 +17,19 @@ noncomputable instance atomicLawBorelSpace (k : ℕ) (radius : ℝ) :
   rfl
 
 -- @node: gapFreeClosureAssembly_atomicLawPolishSpace
+/-- For [the supplied parameters](hyp:k,radius), [atomic Law Polish Space](goal) is given by [its defining clause](step:1). -/
 noncomputable instance atomicLawPolishSpace (k : ℕ) (radius : ℝ) :
     PolishSpace (AtomicLaw k radius) :=
   (AtomicLaw.coordinateHomeomorph k radius).toEquiv.polishSpace_induced
 
 -- @node: gapFreeClosureAssembly_probabilityLawPolishSpace
+/-- For [the supplied parameters](hyp:k,radius), [probability Law Polish Space](goal) is given by [its defining clause](step:1). -/
 noncomputable instance probabilityLawPolishSpace (k : ℕ) (radius : ℝ) :
     PolishSpace (AtomicLaw.ProbabilityLaw k radius) :=
   (AtomicLaw.valid_isCompact k radius).isClosed.polishSpace
 
 -- @node: gapFreeClosureAssembly_lawModuloOpensMeasurableSpace
+/-- For [the supplied parameters](hyp:k,radius), [law Modulo Opens Measurable Space](goal) is given by [its defining clause](step:1). -/
 noncomputable instance lawModuloOpensMeasurableSpace (k : ℕ) (radius : ℝ) :
     OpensMeasurableSpace (AtomicLaw.LawModulo k radius) := by
   constructor
@@ -42,6 +46,7 @@ noncomputable instance lawModuloOpensMeasurableSpace (k : ℕ) (radius : ℝ) :
   exact hpre
 
 -- @node: gapFreeClosureAssembly_lawModuloBorelSpace
+/-- For [the supplied parameters](hyp:k,radius), [law Modulo Borel Space](goal) is given by [its defining clause](step:1). -/
 noncomputable instance lawModuloBorelSpace (k : ℕ) (radius : ℝ) :
     BorelSpace (AtomicLaw.LawModulo k radius) := by
   apply Measurable.borelSpace_codomain
@@ -51,6 +56,7 @@ noncomputable instance lawModuloBorelSpace (k : ℕ) (radius : ℝ) :
     exact ⟨q.out, Quotient.out_eq q⟩
 
 -- @node: gapFreeClosureAssembly_exists_unique_extension_with_control
+/-- Exists unique extension with control: under [the stated inputs and assumptions](hyp:k,radius,s,f,control,Kmetric,C,hfmetric,hcontrol,hfcontrol), [the stated conclusion](goal) holds. -/
 theorem exists_unique_extension_with_control
     {α : Type*} [PseudoMetricSpace α] {k : ℕ} {radius : ℝ}
     (s : Set α) (f : s → AtomicLaw.LawModulo k radius)

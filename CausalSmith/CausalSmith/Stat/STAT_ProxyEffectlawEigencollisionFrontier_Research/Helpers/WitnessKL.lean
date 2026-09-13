@@ -8,7 +8,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open MeasureTheory Set
 open scoped BigOperators ENNReal
 
-/-- The coordinate measurable structure on labelled atomic laws is their Borel structure. -/
+/-- The coordinate measurable structure on labelled atomic laws is their Borel structure.     For [the supplied parameters](hyp:k,radius), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: atomicLaw_borelSpace
 instance atomicLaw_borelSpace (k : ℕ) (radius : ℝ) :
     BorelSpace (AtomicLaw k radius) where
@@ -26,7 +26,7 @@ instance atomicLaw_borelSpace (k : ℕ) (radius : ℝ) :
       _ = borel (AtomicLaw k radius) := borel_comap.symm
 
 /-- The quotient law's mapped measurable structure contains all open sets of its installed
-Wasserstein topology. -/
+Wasserstein topology.        For [the supplied parameters](hyp:k,radius), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: lawModulo_opensMeasurableSpace
 instance lawModulo_opensMeasurableSpace (k : ℕ) (radius : ℝ) :
     OpensMeasurableSpace (AtomicLaw.LawModulo k radius) where
@@ -37,12 +37,12 @@ instance lawModulo_opensMeasurableSpace (k : ℕ) (radius : ℝ) :
     change IsOpen (AtomicLaw.LawModulo.ofProbabilityLaw ⁻¹' U) at hU
     exact hU.measurableSet
 
-/-- The collision witness represented on the finite visible Bernoulli carrier. -/
+/-- The collision witness represented on the finite visible Bernoulli carrier.     For [the supplied parameters](hyp:eps), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: witnessVisibleLaw
 noncomputable def witnessVisibleLaw (eps : ℝ) : Measure PathVisibleCell :=
   pathVisibleLaw (2 * eps) 0
 
-/-- Mapping the finite collision-witness carrier recovers its observed margin. -/
+/-- Mapping the finite collision-witness carrier recovers its observed margin.     Under [the stated inputs and assumptions](hyp:eps,heps0,heps1), [the stated conclusion](goal) holds. -/
 -- @node: witnessVisibleLaw_map
 lemma witnessVisibleLaw_map (eps : ℝ) (heps0 : 0 ≤ eps) (heps1 : eps ≤ 1 / 8) :
     letI := witnessLaw_isProbabilityMeasure eps heps0 heps1
@@ -55,7 +55,7 @@ lemma witnessVisibleLaw_map (eps : ℝ) (heps0 : 0 ≤ eps) (heps1 : eps ≤ 1 /
   unfold obsLaw at hmap ⊢
   simpa [pathLaw_zero] using hmap
 
-/-- The finite visible collision-witness law has total mass one. -/
+/-- The finite visible collision-witness law has total mass one.     Under [the stated inputs and assumptions](hyp:eps,heps0,heps1), [the stated conclusion](goal) holds. -/
 -- @node: witnessVisibleLaw_isProbabilityMeasure
 lemma witnessVisibleLaw_isProbabilityMeasure (eps : ℝ) (heps0 : 0 ≤ eps)
     (heps1 : eps ≤ 1 / 8) : IsProbabilityMeasure (witnessVisibleLaw eps) := by
@@ -65,7 +65,7 @@ lemma witnessVisibleLaw_isProbabilityMeasure (eps : ℝ) (heps0 : 0 ≤ eps)
 
 set_option maxHeartbeats 800000 in
 -- Expanding all sixteen visible cells requires a larger heartbeat budget.
-/-- Each visible cell changes by at most the collision amplitude. -/
+/-- Each visible cell changes by at most the collision amplitude.     Under [the stated inputs and assumptions](hyp:eps,heps0,heps1,v), [the stated conclusion](goal) holds. -/
 -- @node: witnessVisibleLaw_singleton_diff_bound
 lemma witnessVisibleLaw_singleton_diff_bound (eps : ℝ) (heps0 : 0 ≤ eps)
     (heps1 : eps ≤ 1 / 8) (v : PathVisibleCell) :
@@ -83,7 +83,7 @@ lemma witnessVisibleLaw_singleton_diff_bound (eps : ℝ) (heps0 : 0 ≤ eps)
     apply (abs_le).2
     constructor <;> nlinarith
 
-/-- Every base collision-witness visible cell has a uniform positive mass. -/
+/-- Every base collision-witness visible cell has a uniform positive mass.     Under [the stated inputs and assumptions](hyp:v), [the stated conclusion](goal) holds. -/
 -- @node: witnessVisibleLaw_base_floor
 lemma witnessVisibleLaw_base_floor (v : PathVisibleCell) :
     1 / 1000 ≤ (witnessVisibleLaw 0).real {v} := by
@@ -91,7 +91,7 @@ lemma witnessVisibleLaw_base_floor (v : PathVisibleCell) :
   simp only [mul_zero]
   exact pathVisibleLaw_base_floor 0 (by norm_num) (by norm_num) v
 
-/-- Every collision-witness visible law is absolutely continuous with respect to the base law. -/
+/-- Every collision-witness visible law is absolutely continuous with respect to the base law.     Under [the stated inputs and assumptions](hyp:eps), [the stated conclusion](goal) holds. -/
 -- @node: witnessVisibleLaw_absolutelyContinuous
 lemma witnessVisibleLaw_absolutelyContinuous (eps : ℝ) :
     witnessVisibleLaw eps ≪ witnessVisibleLaw 0 := by
@@ -110,7 +110,7 @@ lemma witnessVisibleLaw_absolutelyContinuous (eps : ℝ) :
   · rw [not_nonempty_iff_eq_empty.mp hA]
     simp
 
-/-- The observed collision-witness law is absolutely continuous with respect to the base law. -/
+/-- The observed collision-witness law is absolutely continuous with respect to the base law.     Under [the stated inputs and assumptions](hyp:eps,heps0,heps1), [the stated conclusion](goal) holds. -/
 -- @node: witnessObsLaw_absolutelyContinuous
 lemma witnessObsLaw_absolutelyContinuous (eps : ℝ) (heps0 : 0 ≤ eps)
     (heps1 : eps ≤ 1 / 8) :
@@ -124,7 +124,7 @@ lemma witnessObsLaw_absolutelyContinuous (eps : ℝ) (heps0 : 0 ≤ eps)
     ← witnessVisibleLaw_map 0 (by norm_num) (by norm_num)]
   exact (witnessVisibleLaw_absolutelyContinuous eps).map (measurable_of_finite f)
 
-/-- The collision-witness observed log likelihood ratio is integrable. -/
+/-- The collision-witness observed log likelihood ratio is integrable.     Under [the stated inputs and assumptions](hyp:eps,heps0,heps1), [the stated conclusion](goal) holds. -/
 -- @node: witnessObsLaw_llr_integrable
 lemma witnessObsLaw_llr_integrable (eps : ℝ) (heps0 : 0 ≤ eps)
     (heps1 : eps ≤ 1 / 8) :
@@ -143,7 +143,7 @@ lemma witnessObsLaw_llr_integrable (eps : ℝ) (heps0 : 0 ≤ eps)
     (witnessVisibleLaw_absolutelyContinuous eps) (measurable_of_finite f)
     Integrable.of_finite
 
-/-- The finite visible collision-witness chi-square divergence is quadratic. -/
+/-- The finite visible collision-witness chi-square divergence is quadratic.     Under [the stated inputs and assumptions](hyp:eps,heps0,heps1), [the stated conclusion](goal) holds. -/
 -- @node: witnessVisibleLaw_chiSqDiv_bound
 lemma witnessVisibleLaw_chiSqDiv_bound (eps : ℝ) (heps0 : 0 ≤ eps)
     (heps1 : eps ≤ 1 / 8) :
@@ -213,7 +213,7 @@ lemma witnessVisibleLaw_chiSqDiv_bound (eps : ℝ) (heps0 : 0 ≤ eps)
       norm_num [Fintype.card_prod]
       ring
 
-/-- The observed one-record KL divergence of the collision witness is quadratic. -/
+/-- The observed one-record KL divergence of the collision witness is quadratic.     Under [the stated inputs and assumptions](hyp:eps,heps0,heps1), [the stated conclusion](goal) holds. -/
 -- @node: witnessLaw_observed_kl_bound
 lemma witnessLaw_observed_kl_bound (eps : ℝ) (heps0 : 0 ≤ eps) (heps1 : eps ≤ 1 / 8) :
     letI := witnessLaw_isProbabilityMeasure eps heps0 heps1
@@ -236,7 +236,7 @@ lemma witnessLaw_observed_kl_bound (eps : ℝ) (heps0 : 0 ≤ eps) (heps1 : eps 
       ENNReal.ofReal_le_ofReal (witnessVisibleLaw_chiSqDiv_bound eps heps0 heps1)
 
 /-- A collision witness whose quadratic KL is within the local radius belongs to the
-quotient local experiment. -/
+quotient local experiment.        Under [the stated inputs and assumptions](hyp:n,cLoc,eps,hcLoc,heps0,heps1,hKL), [the stated conclusion](goal) holds. -/
 -- @node: witness_localQuotientExperiment
 lemma witness_localQuotientExperiment (n : ℕ) (cLoc eps : ℝ)
     (hcLoc : LocalRadiusDomain cLoc) (heps0 : 0 ≤ eps) (heps1 : eps ≤ 1 / 8)
@@ -253,7 +253,7 @@ lemma witness_localQuotientExperiment (n : ℕ) (cLoc eps : ℝ)
   exact (witnessLaw_observed_kl_bound eps heps0 heps1).trans
     (ENNReal.ofReal_le_ofReal hKL)
 
-/-- The collision witness quotient laws are separated by exactly the collision amplitude. -/
+/-- The collision witness quotient laws are separated by exactly the collision amplitude.     Under [the stated inputs and assumptions](hyp:eps,heps0,heps1), [the stated conclusion](goal) holds. -/
 -- @node: witness_quotientLaw_wass1
 lemma witness_quotientLaw_wass1 (eps : ℝ) (heps0 : 0 ≤ eps) (heps1 : eps ≤ 1 / 8) :
     letI := witnessLaw_isProbabilityMeasure eps heps0 heps1

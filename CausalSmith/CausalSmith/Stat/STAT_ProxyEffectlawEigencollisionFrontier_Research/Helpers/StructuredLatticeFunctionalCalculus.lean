@@ -12,7 +12,7 @@ open scoped Matrix.Norms.L2Operator
 open CausalSmith.Substrate.CollisionSafeSpectralLaw
 
 /-- Extending an operator on an orthonormal signal frame by the identity on its orthogonal
-complement has norm at most the larger of the signal-block norm and one. -/
+complement has norm at most the larger of the signal-block norm and one.        Under [the stated inputs and assumptions](hyp:dx,k,V,C), [the stated conclusion](goal) holds. -/
 lemma SignalBasis.blockExtension_norm_le_max
     {dx k : ℕ} (V : SignalBasis dx k) (C : RectMatrix k k) :
     ‖V.V * C * V.V.transpose + (1 - V.V * V.V.transpose)‖ ≤ max ‖C‖ 1 := by
@@ -117,7 +117,7 @@ private lemma orthonormalBasis_basisInvMatrix_norm_le_one {n : ℕ}
   rw [haction, b.repr.norm_map, one_mul]
 
 /-- The ambient diagonalizer induced by a thin signal factorization has condition number at
-most the product of the sharp signal/complement extension bounds. -/
+most the product of the sharp signal/complement extension bounds.        Under [the stated inputs and assumptions](hyp:dx,k,B,F,tau), [the stated conclusion](goal) holds. -/
 lemma ThinSignalFactorization.realDiagonalization_conditionNumber_le_max
     {dx k : ℕ} [Nonempty (Fin k)] {B : RectMatrix dx k}
     (F : ThinSignalFactorization B) (tau : Fin k → ℝ) :
@@ -170,7 +170,7 @@ lemma ThinSignalFactorization.realDiagonalization_conditionNumber_le_max
     _ = _ := by ring
 
 /-- Regard a well-conditioned structured tuple as a thin signal factorization of its
-reconstructed feature matrix. -/
+reconstructed feature matrix.        For [the supplied parameters](hyp:theta,htheta,n,L), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def structuredLatticeThinSignalFactorization
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (theta : StructuredLatticePoint k dx (effectRadius dz L sigma0))
@@ -195,7 +195,7 @@ noncomputable def structuredLatticeThinSignalFactorization
       Matrix.transpose_one]
 
 /-- Ambient diagonalization of the selected candidate operator, including zero on the
-orthogonal complement of the reconstructed signal space. -/
+orthogonal complement of the reconstructed signal space.        For [the supplied parameters](hyp:theta,htheta,n,L), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def structuredLatticeRealDiagonalization
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (theta : StructuredLatticePoint k dx (effectRadius dz L sigma0))
@@ -212,7 +212,7 @@ noncomputable def structuredLatticeRealDiagonalization
   exact F.realDiagonalization theta.effect
 
 /-- Under the paper's parameter domain, every selected structured-lattice diagonalizer has
-condition number at most the frozen sharp value `4 * sqrt k * L / sigma0`. -/
+condition number at most the frozen sharp value `4 * sqrt k * L / sigma0`.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,theta,htheta,hk,hL,hsigma,hsigmaMax), [the stated conclusion](goal) holds. -/
 lemma structuredLatticeRealDiagonalization_conditionNumber_le
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (theta : StructuredLatticePoint k dx (effectRadius dz L sigma0))
@@ -259,7 +259,7 @@ lemma structuredLatticeRealDiagonalization_conditionNumber_le
     _ = 4 * Real.sqrt k * L / sigma0 := by ring
 
 /-- The corrected right anchor changes the observed anchor only inside the selected signal
-space and makes the structured feature transpose evaluate exactly to the all-ones vector. -/
+space and makes the structured feature transpose evaluate exactly to the all-ones vector.        For [the supplied parameters](hyp:thetaV,thetaR), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def structuredCorrectedAnchor
     {k dx : ℕ} (thetaV : RectMatrix dx k) (thetaR : RectMatrix k k) : Euc dx :=
   WithLp.toLp 2 (firstBasis dx) +
@@ -267,6 +267,7 @@ noncomputable def structuredCorrectedAnchor
       (WithLp.toLp 2 ((fun _ => (1 : ℝ)) -
         Matrix.mulVec (thetaR * thetaV.transpose) (firstBasis dx)))
 
+/-- Structured feature transpose corrected anchor: under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,theta,htheta,hsigma), [the stated conclusion](goal) holds. -/
 lemma structuredFeature_transpose_correctedAnchor
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (theta : StructuredLatticePoint k dx (effectRadius dz L sigma0))
@@ -303,7 +304,7 @@ lemma structuredFeature_transpose_correctedAnchor
 
 -- keep: reusable corrected-anchor stability API for alternate structured-lattice estimators
 /-- The corrected-anchor displacement is controlled by the selected anchor residual and the
-inverse coordinate margin, with no eigengap condition. -/
+inverse coordinate margin, with no eigengap condition.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,theta,htheta,hsigma,hanchor), [the stated conclusion](goal) holds. -/
 lemma structuredCorrectedAnchor_sub_norm_le
     {k dx dz n : ℕ} {L pi0 sigma0 δ : ℝ}
     (theta : StructuredLatticePoint k dx (effectRadius dz L sigma0))
@@ -359,7 +360,7 @@ lemma structuredCorrectedAnchor_sub_norm_le
     _ = 2 / sigma0 * δ := by ring
 
 /-- The selected labelled atomic law is represented exactly by its ambient collision-safe
-functional calculus at the reconstructed mean and corrected anchor. -/
+functional calculus at the reconstructed mean and corrected anchor.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,theta,htheta,hsigma), [the stated conclusion](goal) holds. -/
 -- keep: reusable representation certificate connecting structured lattices to atomic laws
 lemma structuredLattice_represents_effectLaw
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
@@ -407,7 +408,7 @@ lemma structuredLattice_represents_effectLaw
     simpa [Matrix.toEuclideanLin_apply, Matrix.mulVec_mulVec, hinv] using hx'
 
 /-- A signal frame and a square coordinate factor with a positive singular margin determine
-the thin factorization used for the exact population tuple. -/
+the thin factorization used for the exact population tuple.        For [the supplied parameters](hyp:V,R,hs,hR), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def signalTupleThinFactorization
     {k dx : ℕ} (V : SignalBasis dx k) (R : RectMatrix k k)
     {s : ℝ} (hs : 0 < s) (hR : s ≤ signalMinSingular R) :
@@ -423,7 +424,7 @@ noncomputable def signalTupleThinFactorization
   · rw [← Matrix.transpose_mul, Matrix.nonsing_inv_mul R hdet, Matrix.transpose_one]
   · rw [← Matrix.transpose_mul, Matrix.mul_nonsing_inv R hdet, Matrix.transpose_one]
 
-/-- Exact ambient real diagonalization of a population signal tuple. -/
+/-- Exact ambient real diagonalization of a population signal tuple.     For [the supplied parameters](hyp:V,R,tau,hs,hR), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def signalTupleRealDiagonalization
     {k dx : ℕ} (V : SignalBasis dx k) (R : RectMatrix k k) (tau : Fin k → ℝ)
     {s : ℝ} (hs : 0 < s) (hR : s ≤ signalMinSingular R) [Nonempty (Fin k)] :
@@ -437,7 +438,7 @@ noncomputable def signalTupleRealDiagonalization
   exact F.realDiagonalization tau
 
 /-- The exact population tuple has condition number at most the same frozen sharp value used
-for every selected lattice point. -/
+for every selected lattice point.        Under [the stated inputs and assumptions](hyp:k,dx,V,R,tau,L,sigma0,hk,hL,hsigma,hsigmaMax,hRmin,hRnorm), [the stated conclusion](goal) holds. -/
 lemma signalTupleRealDiagonalization_conditionNumber_le
     {k dx : ℕ} (V : SignalBasis dx k) (R : RectMatrix k k) (tau : Fin k → ℝ)
     {L sigma0 : ℝ} (hk : 2 ≤ k) (hL : 1 ≤ L) (hsigma : 0 < sigma0)
@@ -491,7 +492,7 @@ lemma signalTupleRealDiagonalization_conditionNumber_le
     _ = 4 * Real.sqrt k * L / sigma0 := by ring
 
 /-- Support membership of the signal atoms bounds the full ambient spectrum, including the
-zero eigenvalues on the orthogonal complement. -/
+zero eigenvalues on the orthogonal complement.        Under [the stated inputs and assumptions](hyp:k,dx,V,R,tau,s,radius,hs,hR,hradius,htau), [the stated conclusion](goal) holds. -/
 lemma signalTupleRealDiagonalization_spectrumBound
     {k dx : ℕ} (V : SignalBasis dx k) (R : RectMatrix k k) (tau : Fin k → ℝ)
     {s radius : ℝ} (hs : 0 < s) (hR : s ≤ signalMinSingular R)
@@ -508,7 +509,7 @@ lemma signalTupleRealDiagonalization_spectrumBound
     exact hradius
 
 /-- Every selected structured-lattice diagonalizer has its full ambient spectrum in the
-prescribed effect interval. -/
+prescribed effect interval.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,theta,htheta,hsigma,hradius), [the stated conclusion](goal) holds. -/
 lemma structuredLatticeRealDiagonalization_spectrumBound
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (theta : StructuredLatticePoint k dx (effectRadius dz L sigma0))
@@ -530,7 +531,7 @@ lemma structuredLatticeRealDiagonalization_spectrumBound
     exact hradius
 
 /-- The exact population tuple represents its labelled atomic law at the factorized mean and
-the uncorrected first-coordinate anchor. -/
+the uncorrected first-coordinate anchor.        Under [the stated inputs and assumptions](hyp:k,dx,V,R,p,tau,s,hs,hR,hanchor), [the stated conclusion](goal) holds. -/
 lemma signalTuple_represents_atomicLaw
     {k dx : ℕ} (V : SignalBasis dx k) (R : RectMatrix k k) (p tau : Fin k → ℝ)
     {s : ℝ} (hs : 0 < s) (hR : s ≤ signalMinSingular R)
@@ -641,7 +642,7 @@ private lemma structuredLattice_uncorrectedAnchor_error_eq
   ring
 
 /-- The uncorrected first-coordinate anchor costs at most the spectral radius times its
-Euclidean anchor residual. -/
+Euclidean anchor residual.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,delta,theta,htheta,hL,hsigma,hf,hf0,hanchor), [the stated conclusion](goal) holds. -/
 lemma structuredLattice_uncorrectedAnchor_error_le
     {k dx dz n : ℕ} {L pi0 sigma0 delta : ℝ}
     (theta : StructuredLatticePoint k dx (effectRadius dz L sigma0))
@@ -718,10 +719,40 @@ lemma structuredLattice_uncorrectedAnchor_error_le
       mul_le_mul hr hc (norm_nonneg _) (le_trans (norm_nonneg _) hr)
     _ = radius * delta := mul_comm _ _
 
+/-- Local presentation wrapper for the attaining Kantorovich--Rubinstein potential used by the
+structured-lattice comparison.  It records the normalization and the immediate uniform-bound
+consequence together with the substrate theorem. -/
+theorem krPotential_attains_with_normalization
+    {ι κ : Type*} [Fintype ι] [Fintype κ]
+    (μ : CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicLaw ι)
+    (ν : CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicLaw κ)
+    (hμ : μ.Valid) (hν : ν.Valid) :
+    LipschitzWith 1
+        (CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicLaw.krPotential μ ν) ∧
+      CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicLaw.krPotential μ ν 0 = 0 ∧
+      CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicLaw.w1 μ ν =
+        |μ.integral
+            (CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicLaw.krPotential μ ν) -
+          ν.integral
+            (CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicLaw.krPotential μ ν)| ∧
+      ∀ ε : ℝ,
+        (∀ f : ℝ → ℝ, LipschitzWith 1 f → f 0 = 0 →
+          |μ.integral f - ν.integral f| ≤ ε) →
+        CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicLaw.w1 μ ν ≤ ε := by
+  obtain ⟨hlip, hatt⟩ :=
+    CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicLaw.krPotential_attains μ ν hμ hν
+  have hzero :
+      CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicLaw.krPotential μ ν 0 = 0 :=
+    CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicLaw.krPotential_zero μ ν
+  refine ⟨hlip, hzero, hatt, ?_⟩
+  intro ε hε
+  rw [hatt]
+  exact hε _ hlip hzero
+
 set_option maxHeartbeats 800000
 
 /-- Exact small-error Wasserstein estimate (paper display (102)) for the selected prescribed
-structured-lattice law. -/
+structured-lattice law.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,P,A,hA,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax,hM,hsmall), [the stated conclusion](goal) holds. -/
 theorem selected_structuredLattice_wass1_le
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (P : MeasureTheory.Measure (FullData k dx dz)) [MeasureTheory.IsProbabilityMeasure P]
@@ -868,7 +899,7 @@ theorem selected_structuredLattice_wass1_le
       ring
 
 /-- The small- and large-summary-error branches combine into the deterministic all-sample
-oracle bound with the frozen displayed lattice constant. -/
+oracle bound with the frozen displayed lattice constant.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,P,A,hA,hn,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax,hM), [the stated conclusion](goal) holds. -/
 theorem prescribedEstimator_wass1_le
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (P : MeasureTheory.Measure (FullData k dx dz)) [MeasureTheory.IsProbabilityMeasure P]

@@ -17,7 +17,7 @@ namespace QuotientFunctionalCalculus
 
 /-- A square real operator together with diagonalizing coordinates.  `recover` records the
 diagonal entry of `basisInv * operator * basis`; it is the only part of diagonalization needed by
-the perturbation bound, while `expand` is the usual reconstruction identity. -/
+the perturbation bound, while `expand` is the usual reconstruction identity.        It uses [the supplied parameters](hyp:k,radius). -/
 -- @node: quotientFunctionalCalculus_diagonalizedOperator
 structure DiagonalizedOperator (k : ℕ) (radius : ℝ) where
   operator : Matrix (Fin k) (Fin k) ℝ
@@ -30,26 +30,26 @@ structure DiagonalizedOperator (k : ℕ) (radius : ℝ) where
   recover : ∀ i, spectrum i =
     ∑ p, ∑ q, basisInv i p * operator p q * basis q i
 
-/-- The left-right spectral weight occurring in `aᵀ f(D) c`. -/
+/-- The left-right spectral weight occurring in `aᵀ f(D) c`.     For [the supplied parameters](hyp:A,a,c,i), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: quotientFunctionalCalculus_spectralWeight
 def spectralWeight {k : ℕ} {radius : ℝ} (A : DiagonalizedOperator k radius)
     (a c : Fin k → ℝ) (i : Fin k) : ℝ :=
   (∑ p, a p * A.basis p i) * (∑ q, A.basisInv i q * c q)
 
-/-- The matrix obtained by applying a scalar function to diagonalized spectral coordinates. -/
+/-- The matrix obtained by applying a scalar function to diagonalized spectral coordinates.     For [the supplied parameters](hyp:A,f), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: quotientFunctionalCalculus_applyFunction
 def applyFunction {k : ℕ} {radius : ℝ} (A : DiagonalizedOperator k radius)
     (f : ℝ → ℝ) : Matrix (Fin k) (Fin k) ℝ :=
   fun p q ↦ ∑ i, A.basis p i * f (A.spectrum i) * A.basisInv i q
 
-/-- The bilinear anchor evaluation of a square matrix. -/
+/-- The bilinear anchor evaluation of a square matrix.     For [the supplied parameters](hyp:a,c,M), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: quotientFunctionalCalculus_anchorEval
 def anchorEval {k : ℕ} (a c : Fin k → ℝ)
     (M : Matrix (Fin k) (Fin k) ℝ) : ℝ :=
   ∑ p, ∑ q, a p * M p q * c q
 
 /-- Left-right functional calculus is exactly integration against the labelled spectral weights:
-`aᵀ f(D)c` equals the weighted sum of `f` over the real spectrum. -/
+`aᵀ f(D)c` equals the weighted sum of `f` over the real spectrum.        Under [the stated inputs and assumptions](hyp:k,radius,A,a,c,f), [the stated conclusion](goal) holds. -/
 -- @node: quotientFunctionalCalculus_anchorEval_applyFunction
 theorem anchorEval_applyFunction {k : ℕ} {radius : ℝ} (A : DiagonalizedOperator k radius)
     (a c : Fin k → ℝ) (f : ℝ → ℝ) :
@@ -85,14 +85,14 @@ theorem anchorEval_applyFunction {k : ℕ} {radius : ℝ} (A : DiagonalizedOpera
       intro p hp
       ring
 
-/-- The labelled atomic law extracted from left-right functional calculus. -/
+/-- The labelled atomic law extracted from left-right functional calculus.     For [the supplied parameters](hyp:A,a,c), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: quotientFunctionalCalculus_atomicLaw
 def atomicLaw {k : ℕ} {radius : ℝ} (A : DiagonalizedOperator k radius)
     (a c : Fin k → ℝ) : AtomicLaw k radius :=
   ⟨spectralWeight A a c, A.spectrum⟩
 
 /-- Positivity and normalization of the spectral weights turn functional-calculus coordinates
-into a valid atomic probability law. -/
+into a valid atomic probability law.        Under [the stated inputs and assumptions](hyp:k,radius,A,a,c,hpos,hsum), [the stated conclusion](goal) holds. -/
 -- @node: quotientFunctionalCalculus_atomicLaw_valid
 theorem atomicLaw_valid {k : ℕ} {radius : ℝ} (A : DiagonalizedOperator k radius)
     (a c : Fin k → ℝ) (hpos : ∀ i, 0 ≤ spectralWeight A a c i)
@@ -100,7 +100,7 @@ theorem atomicLaw_valid {k : ℕ} {radius : ℝ} (A : DiagonalizedOperator k rad
     AtomicLaw.Valid (atomicLaw A a c) := by
   exact ⟨hpos, hsum, A.spectrum_mem⟩
 
-/-- Public quotient-law constructor for a positive normalized left-right functional calculus. -/
+/-- Public quotient-law constructor for a positive normalized left-right functional calculus.     For [the supplied parameters](hyp:A,a,c,hpos,hsum), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: quotientFunctionalCalculus_quotientLaw
 def quotientLaw {k : ℕ} {radius : ℝ} (A : DiagonalizedOperator k radius)
     (a c : Fin k → ℝ) (hpos : ∀ i, 0 ≤ spectralWeight A a c i)
@@ -109,7 +109,7 @@ def quotientLaw {k : ℕ} {radius : ℝ} (A : DiagonalizedOperator k radius)
     ⟨atomicLaw A a c, atomicLaw_valid A a c hpos hsum⟩
 
 /-- Coordinatewise atom and weight perturbations control quotient Wasserstein loss.  This lemma
-is independent of any eigengap and permits coincident atoms. -/
+is independent of any eigengap and permits coincident atoms.        Under [the stated inputs and assumptions](hyp:k,radius,nu,xi), [the stated conclusion](goal) holds. -/
 -- @node: quotientFunctionalCalculus_wass1_le_coordinateL1
 theorem wass1_le_coordinateL1 {k : ℕ} {radius : ℝ}
     {nu xi : AtomicLaw.ProbabilityLaw k radius} :
@@ -149,7 +149,7 @@ theorem wass1_le_coordinateL1 {k : ℕ} {radius : ℝ}
 
 /-- Gap-free quotient-law modulus in diagonalized operator coordinates.  The right side contains
 only the recovered operator entries and the left-right anchor weights; no eigenvalue separation
-or choice of distinct spectral projectors occurs. -/
+or choice of distinct spectral projectors occurs.        Under [the stated inputs and assumptions](hyp:k,radius,A,B,hradius,hApos,hAsum,hBpos,hBsum), [the stated conclusion](goal) holds. -/
 -- @node: quotientFunctionalCalculus_gapFree_operatorAnchor_bound
 theorem gapFree_operatorAnchor_bound {k : ℕ} {radius : ℝ}
     (A B : DiagonalizedOperator k radius) (a c a' c' : Fin k → ℝ)
@@ -339,7 +339,7 @@ private lemma spectral_weight_difference_bound {k : ℕ} {radius : ℝ}
 
 /-- With bounded diagonalizers and anchors, quotient Wasserstein loss has an explicit fixed-`k`
 gap-free bound in entrywise operator, anchor, diagonalizer, and inverse perturbations.  The formula
-is uniform over all real spectra in the radius interval, including arbitrary repeated eigenvalues. -/
+is uniform over all real spectra in the radius interval, including arbitrary repeated eigenvalues.        Under [the stated inputs and assumptions](hyp:k,radius,A,B,hradius,hK,hU,hAbasis,hBbasis,hAinv,hBinv,ha,hc,hD,hda,hdc,hS,hT,hApos,hAsum,hBpos,hBsum,ha'), [the stated conclusion](goal) holds. -/
 -- @node: quotientFunctionalCalculus_gapFree_fixedK_envelope
 theorem gapFree_fixedK_envelope {k : ℕ} {radius : ℝ}
     (A B : DiagonalizedOperator k radius)

@@ -10,7 +10,7 @@ open MeasureTheory Set
 /-! ### Certificates for the labelled path -/
 
 /-- At zero displacement, the labelled path is exactly the collision witness with
-effect amplitude `g / 2`. -/
+effect amplitude `g / 2`.        Under [the stated inputs and assumptions](hyp:g,u,t,x,z,y0,y1), [the stated conclusion](goal) holds. -/
 -- @node: pathWeight_zero
 lemma pathWeight_zero (g : ℝ) (u : Fin 2) (t x z y0 y1 : Bool) :
     pathWeight g 0 u t x z y0 y1 = witnessWeight (g / 2) u t x z y0 y1 := by
@@ -20,13 +20,13 @@ lemma pathWeight_zero (g : ℝ) (u : Fin 2) (t x z y0 y1 : Bool) :
   fin_cases u <;> cases t <;> cases x <;> cases z <;> cases y0 <;> cases y1 <;>
     norm_num [pathTargetFeature, witnessWeight, bernoulliMass]
 
-/-- The base labelled-path measure is the already validated collision witness. -/
+/-- The base labelled-path measure is the already validated collision witness.     Under [the stated inputs and assumptions](hyp:g), [the stated conclusion](goal) holds. -/
 -- @node: pathLaw_zero
 lemma pathLaw_zero (g : ℝ) : pathLaw g 0 = witnessLaw (g / 2) := by
   simp_rw [pathLaw, witnessLaw, pathPoint, pathWeight_zero g]
 
 /-- The undisplaced labelled path inherits uniformly conditioned model validity from the
-collision witness. -/
+collision witness.        Under [the stated inputs and assumptions](hyp:g,hg0,hg1), [the stated conclusion](goal) holds. -/
 -- @node: pathLaw_zero_ucvmwModel
 lemma pathLaw_zero_ucvmwModel (g : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4) :
     letI := pathLaw_isProbabilityMeasure g 0 hg0 hg1
@@ -40,7 +40,7 @@ lemma pathLaw_zero_ucvmwModel (g : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4) :
   simpa only [pathLaw_zero g] using hM
 
 /-- Every atomic coefficient of the labelled path is nonnegative on the small rational
-neighborhood used by the lower-bound construction. -/
+neighborhood used by the lower-bound construction.        Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh,u,t,x,z,y0,y1), [the stated conclusion](goal) holds. -/
 -- @node: pathWeight_nonneg
 lemma pathWeight_nonneg (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) (u : Fin 2) (t x z y0 y1 : Bool) :
@@ -98,7 +98,7 @@ lemma pathWeight_nonneg (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
       (bernoulliMass_nonneg (1 / 4) y0 (by norm_num) (by norm_num)))
     (bernoulliMass_nonneg _ y1 (hpy1 u).1 (hpy1 u).2)
 
-/-- Summing every nuisance coordinate of the labelled path leaves its prescribed latent mass. -/
+/-- Summing every nuisance coordinate of the labelled path leaves its prescribed latent mass.     Under [the stated inputs and assumptions](hyp:g,h,u), [the stated conclusion](goal) holds. -/
 -- @node: pathWeight_sum_nuisance
 lemma pathWeight_sum_nuisance (g h : ℝ) (u : Fin 2) :
     ∑ t : Bool, ∑ x : Bool, ∑ z : Bool, ∑ y0 : Bool, ∑ y1 : Bool,
@@ -106,7 +106,7 @@ lemma pathWeight_sum_nuisance (g h : ℝ) (u : Fin 2) :
       if u.val = 0 then 2 / 5 + h else 3 / 5 - h := by
   simp only [pathWeight, sum_mul_bernoulliMass]
 
-/-- Restricted event masses under the labelled path reduce to the defining finite sum. -/
+/-- Restricted event masses under the labelled path reduce to the defining finite sum.     Under [the stated inputs and assumptions](hyp:g,h,A,hA), [the stated conclusion](goal) holds. -/
 -- @node: pathLaw_real
 lemma pathLaw_real (g h : ℝ) (A : Set (FullData 2 2 2))
     [DecidablePred (· ∈ A)] (hA : MeasurableSet A) :
@@ -129,18 +129,18 @@ lemma pathLaw_real (g h : ℝ) (A : Set (FullData 2 2 2))
   · intro i _
     exact (integrable_dirac (by simp)).smul_measure (by simp [c])
 
-/-- The observed support point indexed by the four visible Bernoulli coordinates. -/
+/-- The observed support point indexed by the four visible Bernoulli coordinates.     For [the supplied parameters](hyp:t,x,z,y), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: pathObsPoint
 def pathObsPoint (t x z y : Bool) : Obs 2 2 :=
   ⟨t, vec2 1 (boolReal x), vec2 1 (boolReal z), boolReal y⟩
 
-/-- Indicator that a visible Bernoulli support point is the requested observed record. -/
+/-- Indicator that a visible Bernoulli support point is the requested observed record.     For [the supplied parameters](hyp:t,x,z,y,o), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: pathObsIndicator
 noncomputable def pathObsIndicator (t x z y : Bool) (o : Obs 2 2) : ℝ := by
   classical
   exact if pathObsPoint t x z y = o then 1 else 0
 
-/-- Singletons of the observed carrier are measurable in its induced Borel structure. -/
+/-- Singletons of the observed carrier are measurable in its induced Borel structure.     Under [the stated inputs and assumptions](hyp:o), [the stated conclusion](goal) holds. -/
 -- @node: measurableSet_singleton_obs
 lemma measurableSet_singleton_obs (o : Obs 2 2) : MeasurableSet ({o} : Set (Obs 2 2)) := by
   change @MeasurableSet (Obs 2 2)
@@ -156,7 +156,12 @@ lemma measurableSet_singleton_obs (o : Obs 2 2) : MeasurableSet ({o} : Set (Obs 
     simp_all [Obs.toCoordinates]
   · exact fun h => congrArg Obs.toCoordinates h
 
-/-- Every observed-cell mass is the explicit finite sum over the path atoms mapping to that cell. -/
+/-- The mass assigned by the labelled path to an observed singleton. -/
+-- @node: pathObservedCellMass
+noncomputable def pathObservedCellMass (g h : ℝ) (o : Obs 2 2) : ℝ :=
+  (pathLaw g h).real (obsMap ⁻¹' ({o} : Set (Obs 2 2)))
+
+/-- Every observed-cell mass is the explicit finite sum over the path atoms mapping to that cell.     Under [the stated inputs and assumptions](hyp:g,h,o), [the stated conclusion](goal) holds. -/
 -- @node: pathObservedCellMass_formula
 lemma pathObservedCellMass_formula (g h : ℝ) (o : Obs 2 2) :
     pathObservedCellMass g h o =
@@ -169,7 +174,7 @@ lemma pathObservedCellMass_formula (g h : ℝ) (o : Obs 2 2) :
   · exact (measurableSet_singleton_obs o).preimage (obsMap_measurable 2 2 2)
 
 /-- The finite observed-cell formula after summing out the inactive potential outcome and the
-latent class. -/
+latent class.        For [the supplied parameters](hyp:g,h,t,x,z,y), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: pathVisibleMass
 noncomputable def pathVisibleMass (g h : ℝ) (t x z y : Bool) : ℝ :=
   if t then ∑ u : Fin 2, ∑ y0 : Bool, pathWeight g h u true x z y0 y
@@ -178,7 +183,7 @@ noncomputable def pathVisibleMass (g h : ℝ) (t x z y : Bool) : ℝ :=
 set_option maxHeartbeats 800000
 
 /-- Exact visible-cell displacement along the labelled path.  The control arm is fixed,
-while each treated-arm cell changes by an explicit multiple of `g * h`. -/
+while each treated-arm cell changes by an explicit multiple of `g * h`.        Under [the stated inputs and assumptions](hyp:g,h,hh,t,x,z,y), [the stated conclusion](goal) holds. -/
 -- @node: pathVisibleMass_diff_formula
 lemma pathVisibleMass_diff_formula (g h : ℝ) (hh : |h| ≤ 1 / 100)
     (t x z y : Bool) :
@@ -232,7 +237,7 @@ lemma pathVisibleMass_diff_formula (g h : ℝ) (hh : |h| ≤ 1 / 100)
     field_simp [h2p, h3m, h4, h3, h4', h3', hprod]
     ring
 
-/-- Uniform visible-cell displacement bound, with a numerical constant independent of the cell. -/
+/-- Uniform visible-cell displacement bound, with a numerical constant independent of the cell.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hh,t,x,z,y), [the stated conclusion](goal) holds. -/
 -- @node: pathVisibleMass_diff_bound
 lemma pathVisibleMass_diff_bound (g h : ℝ) (hg0 : 0 ≤ g) (hh : |h| ≤ 1 / 100)
     (t x z y : Bool) :
@@ -248,7 +253,7 @@ lemma pathVisibleMass_diff_bound (g h : ℝ) (hg0 : 0 ≤ g) (hh : |h| ≤ 1 / 1
     linarith [mul_nonneg hg0 (abs_nonneg h)]
 
 /-- An observed singleton mass is the sum of the sixteen visible Bernoulli-cell masses
-selected by that singleton. -/
+selected by that singleton.        Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh,o), [the stated conclusion](goal) holds. -/
 -- @node: pathObservedCellMass_visible_formula
 lemma pathObservedCellMass_visible_formula (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) (o : Obs 2 2) :
@@ -296,7 +301,7 @@ lemma pathObservedCellMass_visible_formula (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g 
             intro y _
             split_ifs <;> simp
 
-/-- Uniform observed-singleton displacement bound along the labelled path. -/
+/-- Uniform observed-singleton displacement bound along the labelled path.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh,o), [the stated conclusion](goal) holds. -/
 -- @node: pathObservedCellMass_diff_bound
 lemma pathObservedCellMass_diff_bound (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) (o : Obs 2 2) :
@@ -350,7 +355,7 @@ lemma pathObservedCellMass_diff_bound (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1
       · simp [mul_nonneg hg0 (abs_nonneg h)]
     _ = 16 * g * |h| := by simp; ring
 
-/-- Every one of the sixteen visible cells of the base path has a uniform positive mass. -/
+/-- Every one of the sixteen visible cells of the base path has a uniform positive mass.     Under [the stated inputs and assumptions](hyp:g,hg0,hg1,t,x,z,y), [the stated conclusion](goal) holds. -/
 -- @node: pathVisibleMass_base_floor
 lemma pathVisibleMass_base_floor (g : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (t x z y : Bool) : 1 / 1000 ≤ pathVisibleMass g 0 t x z y := by
@@ -361,7 +366,7 @@ lemma pathVisibleMass_base_floor (g : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
       pathReferenceFeature_second_formula _ 0 _ (by norm_num), bernoulliMass]
     nlinarith
 
-/-- Every represented observed atom of the base path inherits the uniform visible-cell floor. -/
+/-- Every represented observed atom of the base path inherits the uniform visible-cell floor.        Under [the stated inputs and assumptions](hyp:g,hg0,hg1,t,x,z,y), [the stated conclusion](goal) holds. -/
 -- @node: pathObservedCellMass_base_floor
 lemma pathObservedCellMass_base_floor (g : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (t x z y : Bool) :
@@ -406,7 +411,7 @@ lemma pathObservedCellMass_base_floor (g : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 /
               Finset.sum_nonneg fun y' _ => hnonneg t' x' z' y') (Finset.mem_univ t)
   exact le_trans (pathVisibleMass_base_floor g hg0 hg1 t x z y) hterm
 
-/- The finite path sum restricted to a latent-class cylinder selects that class. -/
+/-- For [a path law, latent class, and integrand](hyp:g,h,u,dA,F), [restricting the finite path sum to that latent class selects exactly its atoms](goal). -/
 -- @node: path_sum_restrict_latentClass
 lemma path_sum_restrict_latentClass (g h : ℝ) (u : Fin 2)
     [dA : DecidablePred (· ∈ latentClass u)] (F : FullData 2 2 2 → ℝ) :
@@ -428,7 +433,7 @@ lemma path_sum_restrict_latentClass (g h : ℝ) (u : Fin 2)
     simp
   · simp
 
-/-- The labelled path has exactly the displaced latent masses prescribed in its construction. -/
+/-- The labelled path has exactly the displaced latent masses prescribed in its construction.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh,u), [the stated conclusion](goal) holds. -/
 -- @node: path_latentMass
 lemma path_latentMass (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) (u : Fin 2) :
@@ -440,7 +445,7 @@ lemma path_latentMass (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
   simp only [mul_one]
   exact pathWeight_sum_nuisance g h u
 
-/-- The ordered-mass target moves by exactly twice the absolute tangent displacement. -/
+/-- The ordered-mass target moves by exactly twice the absolute tangent displacement.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: path_latentMass_l1_displacement
 lemma path_latentMass_l1_displacement (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) :

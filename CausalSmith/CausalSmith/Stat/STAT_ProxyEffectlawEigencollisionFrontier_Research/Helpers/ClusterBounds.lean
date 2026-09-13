@@ -6,6 +6,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open MeasureTheory Set
 
 -- @node: cluster_effectGap_nonneg
+/-- Cluster effect gap nonneg: under [the stated inputs and assumptions](hyp:k,dx,dz,P), [the stated conclusion](goal) holds. -/
 lemma cluster_effectGap_nonneg {k dx dz : ℕ} (P : Measure (FullData k dx dz)) :
     (0 : EReal) ≤ effectGap P := by
   unfold effectGap
@@ -15,6 +16,7 @@ lemma cluster_effectGap_nonneg {k dx dz : ℕ} (P : Measure (FullData k dx dz)) 
   positivity
 
 -- @node: cluster_effectGap_le_support_distance
+/-- Cluster effect gap le support distance: under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hM,hx,hy,hxy), [the stated conclusion](goal) holds. -/
 lemma cluster_effectGap_le_support_distance {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
     (hM : UCVMWModel (L := L) (pi0 := pi0) (sigma0 := sigma0) P)
@@ -42,6 +44,7 @@ lemma cluster_effectGap_le_support_distance {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
   · rw [← hux, ← hvy]
 
 -- @node: cluster_effectGap_le_externalGap
+/-- Cluster effect gap le external gap: under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,rho,P,hM,hcard), [the stated conclusion](goal) holds. -/
 lemma cluster_effectGap_le_externalGap {k dx dz : ℕ} {L pi0 sigma0 rho : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
     (hM : UCVMWModel (L := L) (pi0 := pi0) (sigma0 := sigma0) P)
@@ -63,6 +66,7 @@ lemma cluster_effectGap_le_externalGap {k dx dz : ℕ} {L pi0 sigma0 rho : ℝ}
   · exact le_top
 
 -- @node: cluster_effectGap_toReal_pos_of_external_ne_top
+/-- Cluster effect gap to real pos of external ne top: under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,rho,P,hM,hcard,htop), [the stated conclusion](goal) holds. -/
 lemma cluster_effectGap_toReal_pos_of_external_ne_top
     {k dx dz : ℕ} {L pi0 sigma0 rho : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -128,6 +132,7 @@ lemma cluster_effectGap_toReal_pos_of_external_ne_top
     exact (not_le_of_gt (EReal.coe_lt_top _)) hle
 
 -- @node: cluster_singleton_width_from_external
+/-- Cluster singleton width from external: under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,rho,R,width,P,hM,hcard,hR,hpi,htopZero,hwidth), [the stated conclusion](goal) holds. -/
 lemma cluster_singleton_width_from_external
     {k dx dz : ℕ} {L pi0 sigma0 rho R width : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -164,6 +169,7 @@ lemma cluster_singleton_width_from_external
         gcongr
 
 -- @node: clusterMass_mem_unitInterval
+/-- Cluster mass mem unit interval: under [the stated inputs and assumptions](hyp:k,radius,rho,hν,C), [the stated conclusion](goal) holds. -/
 lemma clusterMass_mem_unitInterval {k : ℕ} {radius rho : ℝ}
     (ν : AtomicLaw k radius) (hν : AtomicLaw.Valid ν) (C : Finset ℝ) :
     0 ≤ clusterMass rho ν C ∧ clusterMass rho ν C ≤ 1 := by
@@ -180,6 +186,7 @@ lemma clusterMass_mem_unitInterval {k : ℕ} {radius rho : ℝ}
       _ = 1 := hν.2.1
 
 -- @node: clusterMass_eq_one_of_support_subset
+/-- Cluster mass eq one of support subset: under [the stated inputs and assumptions](hyp:k,radius,rho,hν,C,hsub), [the stated conclusion](goal) holds. -/
 lemma clusterMass_eq_one_of_support_subset {k : ℕ} {radius rho : ℝ}
     (ν : AtomicLaw k radius) (hν : AtomicLaw.Valid ν) (C : Finset ℝ)
     (hsub : ν.support ⊆ associatedSupport (rho := rho) ν C) :
@@ -196,6 +203,7 @@ lemma clusterMass_eq_one_of_support_subset {k : ℕ} {radius rho : ℝ}
     simp [hw0]
 
 -- @node: cluster_mass_gap_cost
+/-- Cluster mass gap cost: under [the stated inputs and assumptions](hyp:k,radius,rho,center,nu,xi,hcenter,hnu,hxi,hrho,hcloseNu,hcloseXi,C,hC,hgapTop,hgapLarge), [the stated conclusion](goal) holds. -/
 lemma cluster_mass_gap_cost {k : ℕ} {radius rho : ℝ}
     {center nu xi : AtomicLaw k radius}
     (hcenter : AtomicLaw.Valid center) (hnu : AtomicLaw.Valid nu)
@@ -308,6 +316,7 @@ lemma cluster_mass_gap_cost {k : ℕ} {radius rho : ℝ}
         linarith
 
 -- @node: cluster_candidate_mass_error
+/-- Cluster candidate mass error: under [the stated inputs and assumptions](hyp:k,radius,m,R,rho,center,nu,xi,hcenter,hnu,hxi,hm,hmOne,hR,hrho,hcenterFloor,hnuFloor,hxiFloor,hWnu,hWxi,C,hC), [the stated conclusion](goal) holds. -/
 lemma cluster_candidate_mass_error {k : ℕ} {radius m R rho : ℝ}
     {center nu xi : AtomicLaw k radius}
     (hcenter : AtomicLaw.Valid center) (hnu : AtomicLaw.Valid nu)
@@ -472,6 +481,7 @@ lemma cluster_candidate_mass_error {k : ℕ} {radius m R rho : ℝ}
               _ ≤ 4 / m * (R / gap) := by gcongr
 
 -- @node: cluster_deterministic_report
+/-- Cluster deterministic report: under [the stated inputs and assumptions](hyp:k,radius,m,R,rho,center,nu,hcenter,hnu,hm,hmOne,hR,hrho,hcenterFloor,hnuFloor,Calg,hCalg,hnuCalg,hnuRep), [the stated conclusion](goal) holds. -/
 lemma cluster_deterministic_report {k : ℕ} {radius m R rho : ℝ}
     {center nu : AtomicLaw k radius}
     (hcenter : AtomicLaw.Valid center) (hnu : AtomicLaw.Valid nu)
@@ -485,6 +495,8 @@ lemma cluster_deterministic_report {k : ℕ} {radius m R rho : ℝ}
     (hnuRep : (AtomicLaw.LawModulo.ofProbabilityLaw ⟨nu, hnu⟩).representative.1 = nu) :
     (∀ x, x ∈ nu.support ↔ ∃! C, C ∈ components (rho := rho) center ∧
       x ∈ associatedSupport (rho := rho) nu C) ∧
+    (∀ C ∈ components (rho := rho) center,
+      (associatedSupport (rho := rho) nu C).Nonempty) ∧
     (∀ C ∈ components (rho := rho) center,
       associatedSupport (rho := rho) nu C ⊆ nu.support) ∧
     (∀ C ∈ components (rho := rho) center, ∀ x ∈ associatedSupport (rho := rho) nu C,
@@ -514,7 +526,15 @@ lemma cluster_deterministic_report {k : ℕ} {radius m R rho : ℝ}
   have hcloseNu := AtomicLaw.support_close_of_wass1_le hnu hcenter hnuFloor hcenterFloor
     hm (by rw [hscale]; exact hWnu)
   have hpart := cluster_association_partition hcenter hnu hrho0 hcloseNu
-  refine ⟨hpart, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨hpart, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro C hC
+    obtain ⟨z, hz, hCz⟩ := Finset.mem_image.mp hC
+    obtain ⟨x, hx, hzx⟩ := cluster_distToFinset_attained z
+      (cluster_support_nonempty hnu)
+    refine ⟨x, Finset.mem_filter.mpr ⟨hx, ?_⟩⟩
+    have hzC : z ∈ C := by rw [← hCz]; exact cluster_componentOf_mem_self hz
+    exact (cluster_distToFinset_le_of_mem x hzC).trans
+      (by simpa [abs_sub_comm] using (hzx ▸ hcloseNu.2 z hz))
   · intro C hC x hx
     exact (Finset.mem_filter.mp hx).1
   · intro C hC x hx

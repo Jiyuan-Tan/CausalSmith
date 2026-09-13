@@ -374,9 +374,11 @@ noncomputable def canonicalThresholdSlate {P : POSystem.{uV, uVal, uOmega}}
 abbrev ThresholdCellTable (𝒳 : Type uCell) (K : ℕ) :=
   𝒳 → Bool → Bool → Bool → Bool → Fin K → Fin K → ℝ
 
+/-- [A conditional latent cell table](hyp:T) [is nonnegative](goal) when every entry is at least zero, that is, when the weight it assigns to each joint value of the two potential treatments, the two potential selection indicators, and the two potential ordered outcomes is nonnegative in every covariate cell. -/
 def ThresholdCellTable.Nonnegative (T : ThresholdCellTable 𝒳 K) : Prop :=
   ∀ x d0 d1 s0 s1 y0 y1, 0 ≤ T x d0 d1 s0 s1 y0 y1
 
+/-- [A conditional latent cell table](hyp:T) [is normalized](goal) when, within each covariate cell, its weights sum to one over all joint values of the two potential treatments, the two potential selection indicators, and the two potential ordered outcomes, so that every cell carries a conditional probability distribution over latent types. -/
 def ThresholdCellTable.Normalized (T : ThresholdCellTable 𝒳 K) : Prop :=
   ∀ x, ∑ d0, ∑ d1, ∑ s0, ∑ s1, ∑ y0, ∑ y1,
     T x d0 d1 s0 s1 y0 y1 = 1

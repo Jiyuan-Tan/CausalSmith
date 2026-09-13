@@ -11,8 +11,11 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open Filter
 open scoped Matrix.Norms.L2Operator
 
+/-- For [the row and column dimensions](hyp:rows,cols), [the measurable-space structure on rectangular matrices](goal) is the Borel structure. -/
 noncomputable local instance {rows cols : ℕ} : MeasurableSpace (RectMatrix rows cols) := borel _
+/-- For [the row and column dimensions](hyp:rows,cols), [rectangular matrices form a Borel space](goal). -/
 local instance {rows cols : ℕ} : BorelSpace (RectMatrix rows cols) := ⟨rfl⟩
+/-- For [the row and column dimensions](hyp:rows,cols), [open sets of rectangular matrices are measurable](goal). -/
 local instance {rows cols : ℕ} : OpensMeasurableSpace (RectMatrix rows cols) := ⟨le_rfl⟩
 
 private lemma matrixCLM_isometry {rows cols : ℕ} : Isometry (@matrixCLM rows cols) := by
@@ -26,6 +29,7 @@ private lemma matrixCLM_isometry {rows cols : ℕ} : Isometry (@matrixCLM rows c
   rw [heq]
   rfl
 
+/-- For [the row and column dimensions](hyp:rows,cols), [the topology on rectangular matrices is second countable](goal). -/
 local instance {rows cols : ℕ} : SecondCountableTopology (RectMatrix rows cols) :=
   matrixCLM_isometry.isUniformInducing.isInducing.secondCountableTopology
 
@@ -368,7 +372,7 @@ private lemma rationalThresholdApprox_succ_tendsto {rows cols : ℕ} {tau : ℝ}
   exact (hseq n).symm
 
 /-- The genuine SVD hard-thresholded Moore--Penrose inverse is Borel measurable, including at
-the equality stratum of the convention `tau ≤ sigma`. -/
+the equality stratum of the convention `tau ≤ sigma`.        Under [the stated inputs and assumptions](hyp:rows,cols,tau,htau), [the stated conclusion](goal) holds. -/
 lemma thresholdedPenroseInverse_measurable {rows cols : ℕ} {tau : ℝ} (htau : 0 < tau) :
     Measurable (thresholdedPenroseInverse (rows := rows) (cols := cols) tau) := by
   apply CausalSmith.Substrate.CollisionSafeSpectralLaw.measurable_of_rationalThresholdApprox_tendsto
@@ -408,6 +412,7 @@ private lemma summary_mX_continuous {dx dz : ℕ} :
   simpa [Function.comp_def, SummarySpace.toCoordinates] using
     (continuous_snd.comp (continuous_snd.comp (continuous_snd.comp continuous_snd))).comp hcoord
 
+/-- Empirical compressed operator measurable: under [the stated inputs and assumptions](hyp:dx,dz,tau,htau), [the stated conclusion](goal) holds. -/
 lemma empiricalCompressedOperator_measurable {dx dz : ℕ} {tau : ℝ} (htau : 0 < tau) :
     Measurable (empiricalCompressedOperator (dx := dx) (dz := dz) tau) := by
   have hpinv1 : Measurable (fun s : SummarySpace dx dz =>
@@ -430,6 +435,7 @@ lemma empiricalCompressedOperator_measurable {dx dz : ℕ} {tau : ℝ} (htau : 0
     continuous_fst.sub continuous_snd
   exact hsub.measurable2 hterm1 hterm0
 
+/-- Structured lattice criterion measurable: under [the stated inputs and assumptions](hyp:k,dx,dz,radius,tau,htau,theta), [the stated conclusion](goal) holds. -/
 lemma structuredLatticeCriterion_measurable {k dx dz : ℕ} {radius tau : ℝ}
     (htau : 0 < tau) (theta : StructuredLatticePoint k dx radius) :
     Measurable (fun s : SummarySpace dx dz => structuredLatticeCriterion tau s theta) := by
@@ -449,7 +455,7 @@ lemma structuredLatticeCriterion_measurable {k dx dz : ℕ} {radius tau : ℝ}
         (∑ i, theta.V i v * firstBasis dx i)) - 1) ^ 2)) := measurable_const
   exact (hop.add hmean.measurable).add hconstant
 
-/-- A finite score family with measurable coordinates has a measurable smallest-index minimizer. -/
+/-- A finite score family with measurable coordinates has a measurable smallest-index minimizer.     Under [the stated inputs and assumptions](hyp:m,hm,score,hscore), [the stated conclusion](goal) holds. -/
 lemma finite_first_minimizer_measurable_exists {α : Type*} [MeasurableSpace α]
     {m : ℕ} (hm : 0 < m) (score : α → Fin m → ℝ)
     (hscore : ∀ i, Measurable fun x => score x i) :
@@ -494,7 +500,7 @@ lemma finite_first_minimizer_measurable_exists {α : Type*} [MeasurableSpace α]
   exact MeasurableSet.iUnion fun j => hfiber j
 
 /-- The paper's exhaustive family admits a Borel, lexicographically first criterion minimizer on
-the five-block summary space. -/
+the five-block summary space.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax), [the stated conclusion](goal) holds. -/
 theorem structuredLatticeMeasurableSelector_exists
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (hk : 2 ≤ k) (hkx : k ≤ dx) (hkz : k ≤ dz) (hL : 1 ≤ L)
@@ -540,7 +546,7 @@ theorem structuredLatticeMeasurableSelector_exists
   exact ⟨m, candidate, first, hm, hwf, hcomplete, hinj, horder, hfirst, hfirstMin,
     hfirstTie⟩
 
-/-- The total empirical five-block summary is measurable, including the empty-arm branch. -/
+/-- The total empirical five-block summary is measurable, including the empty-arm branch.     Under [the stated inputs and assumptions](hyp:n,dx,dz), [the stated conclusion](goal) holds. -/
 lemma structuredLattice_empSummary_measurable {n dx dz : ℕ} :
     Measurable (@empSummary n dx dz) := by
   have hc (t : Bool) : Measurable (@armCount n dx dz t) := by
@@ -654,7 +660,7 @@ private lemma structuredLatticePoint_atomFloor
   exact atomFloor_of_measureEquivalent hrep hraw
 
 /-- The measurable structured search packages into the estimator interface, with the prescribed
-atom floor and exact exhaustive-search certificate. -/
+atom floor and exact exhaustive-search certificate.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax), [the stated conclusion](goal) holds. -/
 theorem structuredLatticeEstimator_exists
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (hk : 2 ≤ k) (hkx : k ≤ dx) (hkz : k ≤ dz) (hL : 1 ≤ L)

@@ -9,27 +9,28 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open MeasureTheory Set
 open Causalean.Mathlib.Probability
 
-/-- A probability law together with membership in the uniformly conditioned model. -/
+/-- A probability law together with membership in the uniformly conditioned model.     It uses [the supplied parameters](hyp:k,dx,dz,L,pi0,sigma0). -/
 structure ModelLaw (k dx dz : ℕ) (L pi0 sigma0 : ℝ) where
   P : Measure (FullData k dx dz) -- @realizes \(P\)(member law carrier)
   prob : IsProbabilityMeasure P
   model : UCVMWModel (L := L) (pi0 := pi0) (sigma0 := sigma0) P
 
+/-- For [the supplied parameters](hyp:Q), [summary](goal) is given by [its defining clause](step:1). -/
 noncomputable def ModelLaw.summary {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (Q : ModelLaw k dx dz L pi0 sigma0) : SummarySpace dx dz := by
   letI := Q.prob
   exact obsSummary Q.P
 
-/-- Admissible summary image. @realizes \(\mathscr S\)(S(M)) -/
+/-- Admissible summary image. @realizes \(\mathscr S\)(S(M))     For [the supplied parameters](hyp:k,dx,dz,L,pi0,sigma0), [the defined object](goal) is given by [its defining clause](step:1). -/
 def admissibleImage (k dx dz : ℕ) (L pi0 sigma0 : ℝ) : Set (SummarySpace dx dz) :=
   {s | ∃ Q : ModelLaw k dx dz L pi0 sigma0, Q.summary = s}
 
-/-- Closed feasible-summary space. @realizes \(\mathcal K\)(closure of admissible image) -/
+/-- Closed feasible-summary space. @realizes \(\mathcal K\)(closure of admissible image)     For [the supplied parameters](hyp:k,dx,dz,L,pi0,sigma0), [the defined object](goal) is given by [its defining clause](step:1). -/
 def summaryClosure (k dx dz : ℕ) (L pi0 sigma0 : ℝ) : Set (SummarySpace dx dz) :=
   closure (admissibleImage k dx dz L pi0 sigma0)
 
 /-- The quotient-law functional on the admissible summary image.
-    @realizes \(F\)(quotient functional on admissible summaries) -/
+    @realizes \(F\)(quotient functional on admissible summaries)        For [the supplied parameters](hyp:k,dx,dz,L,pi0,sigma0,s), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def publishedQuotientFunctional (k dx dz : ℕ) (L pi0 sigma0 : ℝ)
     (s : {q // q ∈ admissibleImage k dx dz L pi0 sigma0}) :
     AtomicLaw.LawModulo k (effectRadius dz L sigma0) := by
@@ -37,7 +38,7 @@ noncomputable def publishedQuotientFunctional (k dx dz : ℕ) (L pi0 sigma0 : �
   letI := Q.prob
   exact quotientLaw Q.P Q.model
 
-/-- The `2k` spectral moments identify the quotient functional on the admissible image. -/
+/-- The `2k` spectral moments identify the quotient functional on the admissible image.     For [the supplied parameters](hyp:k,dx,dz,L,pi0,sigma0), [the defined object](goal) is given by [its defining clause](step:1). -/
 def PublishedMomentIdentity (k dx dz : ℕ) (L pi0 sigma0 : ℝ) : Prop :=
   ∀ (Q : ModelLaw k dx dz L pi0 sigma0)
     (j : Fin (2 * k)) -- @realizes \(j\)(moment order in Fin (2*k))
@@ -47,7 +48,7 @@ def PublishedMomentIdentity (k dx dz : ℕ) (L pi0 sigma0 : ℝ) : Prop :=
         (∑ b, ((compressedOperator Q.summary V hV) ^ (j : ℕ)) a b * rightAnchor V b)
 
 /-- The model anchor makes the first ambient coordinate the all-ones right anchor in latent
-coordinates. -/
+coordinates.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hpi,hM), [the stated conclusion](goal) holds. -/
 -- @node: publishedMomentIdentity_targetFeature_transpose_firstBasis
 lemma publishedMomentIdentity_targetFeature_transpose_firstBasis
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -81,7 +82,7 @@ lemma publishedMomentIdentity_targetFeature_transpose_firstBasis
   rw [hfirst]
   simp [Matrix.mulVec, hmean]
 
-/-- The observable target-proxy mean is the target-feature matrix applied to the latent masses. -/
+/-- The observable target-proxy mean is the target-feature matrix applied to the latent masses.     Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hpi,hM), [the stated conclusion](goal) holds. -/
 -- @node: publishedMomentIdentity_obsSummary_mX_factorization
 lemma publishedMomentIdentity_obsSummary_mX_factorization
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -138,7 +139,7 @@ lemma publishedMomentIdentity_obsSummary_mX_factorization
     exact ENNReal.toReal_ne_zero.mpr ⟨ne_of_gt hclass, measure_ne_top P _⟩
   rw [inv_mul_eq_div, div_mul_cancel₀ _ hreal]
 
-/-- The positive compressed signal singular value implies injectivity for the moment identity. -/
+/-- The positive compressed signal singular value implies injectivity for the moment identity.     Under [the stated inputs and assumptions](hyp:rows,cols,A,h), [the stated conclusion](goal) holds. -/
 -- @node: publishedMomentIdentity_injective_of_signalMinSingular_pos
 lemma publishedMomentIdentity_injective_of_signalMinSingular_pos {rows cols : ℕ}
     (A : RectMatrix rows cols) (h : 0 < signalMinSingular A) :
@@ -149,7 +150,7 @@ lemma publishedMomentIdentity_injective_of_signalMinSingular_pos {rows cols : �
   exact lt_of_lt_of_le h
     ((Matrix.toEuclideanLin A).singularValues_antitone (Nat.le_sub_one_of_lt hi))
 
-/-- Injectivity makes the Gram determinant a unit for the moment-identity calculation. -/
+/-- Injectivity makes the Gram determinant a unit for the moment-identity calculation.     Under [the stated inputs and assumptions](hyp:rows,cols,A,hA), [the stated conclusion](goal) holds. -/
 -- @node: publishedMomentIdentity_gram_det_isUnit_of_injective
 lemma publishedMomentIdentity_gram_det_isUnit_of_injective {rows cols : ℕ}
     (A : RectMatrix rows cols) (hA : Function.Injective (Matrix.toEuclideanLin A)) :
@@ -176,7 +177,7 @@ lemma publishedMomentIdentity_gram_det_isUnit_of_injective {rows cols : ℕ}
   have := hgram he
   simpa using congrArg WithLp.ofLp this
 
-/-- The Gram-form inverse is a left inverse in the injective moment-identity calculation. -/
+/-- The Gram-form inverse is a left inverse in the injective moment-identity calculation.     Under [the stated inputs and assumptions](hyp:rows,cols,A,hA), [the stated conclusion](goal) holds. -/
 -- @node: publishedMomentIdentity_penrose_left_inverse_of_injective
 lemma publishedMomentIdentity_penrose_left_inverse_of_injective {rows cols : ℕ}
     (A : RectMatrix rows cols) (hA : Function.Injective (Matrix.toEuclideanLin A)) :
@@ -186,6 +187,7 @@ lemma publishedMomentIdentity_penrose_left_inverse_of_injective {rows cols : ℕ
   simp only [penroseInverse]
   rw [Matrix.mul_assoc, Matrix.inv_mul_of_invertible]
 
+/-- Published moment identity holds: under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0), [the stated conclusion](goal) holds. -/
 lemma publishedMomentIdentity_holds (k dx dz : ℕ) (L pi0 sigma0 : ℝ) :
     PublishedMomentIdentity k dx dz L pi0 sigma0 := by
   classical
@@ -414,11 +416,11 @@ lemma publishedMomentIdentity_holds (k dx dz : ℕ) (L pi0 sigma0 : ℝ) :
   simp [Matrix.mulVec_diagonal]
 
 /-- Homogeneity at a common latent effect.
-    @realizes \(\tau_\star\)(common value of all latent effects) -/
+    @realizes \(\tau_\star\)(common value of all latent effects)        For [the supplied parameters](hyp:P,tauStar), [the defined object](goal) is given by [its defining clause](step:1). -/
 def HomogeneousEffects {k dx dz : ℕ} (P : Measure (FullData k dx dz))
     (tauStar : ℝ) : Prop := ∀ u, latentEffect P u = tauStar
 
-/-- The homogeneous-effect specialization included in the closed-summary definition. -/
+/-- The homogeneous-effect specialization included in the closed-summary definition.     For [the supplied parameters](hyp:k,dx,dz,L,pi0,sigma0), [the defined object](goal) is given by [its defining clause](step:1). -/
 def HomogeneousSummarySpecialization (k dx dz : ℕ) (L pi0 sigma0 : ℝ) : Prop :=
   ∀ (Q : ModelLaw k dx dz L pi0 sigma0) (tauStar : ℝ)
     (V : SignalBasis dx k) (hV : V.SpansSignal Q.summary),
@@ -428,7 +430,7 @@ def HomogeneousSummarySpecialization (k dx dz : ℕ) (L pi0 sigma0 : ℝ) : Prop
         letI := Q.prob
         exact quotientLaw Q.P Q.model) = Measure.dirac tauStar
 
-/-- Positivity of the last singular value makes a finite rectangular map injective. -/
+/-- Positivity of the last singular value makes a finite rectangular map injective.     Under [the stated inputs and assumptions](hyp:rows,cols,A,h), [the stated conclusion](goal) holds. -/
 -- @node: summaryClosure_injective_of_signalMinSingular_pos
 lemma summaryClosure_injective_of_signalMinSingular_pos {rows cols : ℕ}
     (A : RectMatrix rows cols) (h : 0 < signalMinSingular A) :
@@ -439,7 +441,7 @@ lemma summaryClosure_injective_of_signalMinSingular_pos {rows cols : ℕ}
   exact lt_of_lt_of_le h
     ((Matrix.toEuclideanLin A).singularValues_antitone (Nat.le_sub_one_of_lt hi))
 
-/-- Injectivity of a rectangular map makes its Gram determinant a unit. -/
+/-- Injectivity of a rectangular map makes its Gram determinant a unit.     Under [the stated inputs and assumptions](hyp:rows,cols,A,hA), [the stated conclusion](goal) holds. -/
 -- @node: summaryClosure_gram_det_isUnit_of_injective
 lemma summaryClosure_gram_det_isUnit_of_injective {rows cols : ℕ}
     (A : RectMatrix rows cols) (hA : Function.Injective (Matrix.toEuclideanLin A)) :
@@ -466,7 +468,7 @@ lemma summaryClosure_gram_det_isUnit_of_injective {rows cols : ℕ}
   have := hgram he
   simpa using congrArg WithLp.ofLp this
 
-/-- The Gram-form Penrose inverse is a left inverse on every injective rectangular map. -/
+/-- The Gram-form Penrose inverse is a left inverse on every injective rectangular map.     Under [the stated inputs and assumptions](hyp:rows,cols,A,hA), [the stated conclusion](goal) holds. -/
 -- @node: summaryClosure_penrose_left_inverse_of_injective
 lemma summaryClosure_penrose_left_inverse_of_injective {rows cols : ℕ}
     (A : RectMatrix rows cols) (hA : Function.Injective (Matrix.toEuclideanLin A)) :
@@ -476,6 +478,7 @@ lemma summaryClosure_penrose_left_inverse_of_injective {rows cols : ℕ}
   simp only [penroseInverse]
   rw [Matrix.mul_assoc, Matrix.inv_mul_of_invertible]
 
+/-- Homogeneous summary specialization holds: under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0), [the stated conclusion](goal) holds. -/
 lemma homogeneousSummarySpecialization_holds (k dx dz : ℕ) (L pi0 sigma0 : ℝ) :
     HomogeneousSummarySpecialization k dx dz L pi0 sigma0 := by
   intro Q tauStar V hV hhom
@@ -580,7 +583,7 @@ lemma homogeneousSummarySpecialization_holds (k dx dz : ℕ) (L pi0 sigma0 : ℝ
     rw [hsum, one_smul]
 
 /-- The complete closed-summary node: its closure, identified quotient functional, spectral
-moment identity, and homogeneous-effect specialization. -/
+moment identity, and homogeneous-effect specialization.        It uses [the supplied parameters](hyp:k,dx,dz,L,pi0,sigma0). -/
 structure SummaryClosureData (k dx dz : ℕ) (L pi0 sigma0 : ℝ) where
   K : Set (SummarySpace dx dz)
   K_eq : K = closure (admissibleImage k dx dz L pi0 sigma0)
@@ -590,6 +593,7 @@ structure SummaryClosureData (k dx dz : ℕ) (L pi0 sigma0 : ℝ) where
   homogeneous : HomogeneousSummarySpecialization k dx dz L pi0 sigma0
 
 -- @node: def:summary-closure
+/-- For [the supplied parameters](hyp:k,dx,dz,L,pi0,sigma0), [summary Closure Data](goal) is given by [its defining clause](step:1). -/
 noncomputable def summaryClosureData (k dx dz : ℕ) (L pi0 sigma0 : ℝ) :
     SummaryClosureData k dx dz L pi0 sigma0 where
   K := summaryClosure k dx dz L pi0 sigma0
@@ -599,7 +603,7 @@ noncomputable def summaryClosureData (k dx dz : ℕ) (L pi0 sigma0 : ℝ) :
   homogeneous := homogeneousSummarySpecialization_holds k dx dz L pi0 sigma0
 
 /-- Data supplied by the unique continuous extension and measurable nearest-point construction.
-The extension is defined only on `K`, at the paper's fixed effect radius. -/
+The extension is defined only on `K`, at the paper's fixed effect radius.        It uses [the supplied parameters](hyp:k,dx,dz,n,L,pi0,sigma0). -/
 structure SummaryRepairData (k dx dz n : ℕ) (L pi0 sigma0 : ℝ) where
   k_pos : 0 < k
   radius_nonneg : 0 ≤ effectRadius dz L sigma0
@@ -624,7 +628,7 @@ structure SummaryRepairData (k dx dz n : ℕ) (L pi0 sigma0 : ℝ) where
       AtomicLaw.LawModulo.deltaZeroLaw k_pos radius_nonneg
     else Fbar ⟨Pi (empSummary sample), (nearest _ hK).1⟩)
 
-/-- The repaired estimator data. @realizes \(\widehat\nu_n\)(Fbar(Pi(empSummary))) -/
+/-- The repaired estimator data. @realizes \(\widehat\nu_n\)(Fbar(Pi(empSummary)))     For [the supplied parameters](hyp:R), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: def:summary-space-repair
 noncomputable def summaryRepair {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (R : SummaryRepairData k dx dz n L pi0 sigma0) :
@@ -633,6 +637,7 @@ noncomputable def summaryRepair {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
       AtomicLaw.LawModulo.deltaZeroLaw R.k_pos R.radius_nonneg
     else R.Fbar ⟨R.Pi (empSummary sample), (R.nearest _ hK).1⟩
 
+/-- For the ambient setting, [ordered Masses](goal) is given by [its defining clause](step:1). -/
 noncomputable def orderedMasses {k : ℕ} {radius : ℝ} (ν : AtomicLaw k radius) : Fin k → ℝ :=
   if (∀ i, 0 < ν.weight i) ∧ Function.Injective ν.atom then
     fun j => ∑ i, if (Finset.univ.filter fun l => ν.atom l < ν.atom i).card = j.val
@@ -642,7 +647,7 @@ noncomputable def orderedMasses {k : ℕ} {radius : ℝ} (ν : AtomicLaw k radiu
 /-- Total effect-ordered mass estimator, with barycenter fallback.
     @realizes \(p^{\uparrow}(P)\)(ordered true masses)
     @realizes \(\widehat p_n^{\uparrow}\)(ordered estimated masses)
-    @realizes \(\widetilde p_n\)(generic competitor type) -/
+    @realizes \(\widetilde p_n\)(generic competitor type)        For [the supplied parameters](hyp:R), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: def:labeled-weight-estimator
 noncomputable def orderedWeightEstimator {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (R : SummaryRepairData k dx dz n L pi0 sigma0) :

@@ -7,10 +7,12 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 
 open Set
 
+/-- For [target- and reference-proxy dimensions](hyp:dx,dz), [the summary-repair coordinate index](goal) labels four matrix blocks and one target-proxy mean block. -/
 abbrev SummaryRepairCoordIndex (dx dz : ℕ) :=
   (Fin 4 × Fin dz × Fin dx) ⊕ Fin dx
 
 -- @node: summaryRepairToEuc
+/-- For [the supplied parameters](hyp:s), [summary Repair To Euc](goal) is given by [its defining clause](step:1). -/
 def summaryRepairToEuc {dx dz : ℕ} (s : SummarySpace dx dz) :
     EuclideanSpace ℝ (SummaryRepairCoordIndex dx dz) :=
   WithLp.toLp 2 fun i => match i with
@@ -19,6 +21,7 @@ def summaryRepairToEuc {dx dz : ℕ} (s : SummarySpace dx dz) :
   | Sum.inr j => s.mX j
 
 -- @node: summaryRepairOfEuc
+/-- For [the supplied parameters](hyp:x), [summary Repair Of Euc](goal) is given by [its defining clause](step:1). -/
 def summaryRepairOfEuc {dx dz : ℕ}
     (x : EuclideanSpace ℝ (SummaryRepairCoordIndex dx dz)) : SummarySpace dx dz where
   M0 a j := x (Sum.inl (0, a, j)); M1 a j := x (Sum.inl (1, a, j))
@@ -26,6 +29,7 @@ def summaryRepairOfEuc {dx dz : ℕ}
   mX j := x (Sum.inr j)
 
 -- @node: summaryRepairSpaceHomeomorph
+/-- For [the supplied parameters](hyp:dx,dz), [summary Repair Space Homeomorph](goal) is given by [its defining clause](step:1). -/
 def summaryRepairSpaceHomeomorph (dx dz : ℕ) :
     SummarySpace dx dz ≃ₜ EuclideanSpace ℝ (SummaryRepairCoordIndex dx dz) where
   toFun := summaryRepairToEuc
@@ -67,6 +71,7 @@ def summaryRepairSpaceHomeomorph (dx dz : ℕ) :
       (apply continuous_pi; intro; fun_prop)
 
 -- @node: euclideanReindexHomeomorph
+/-- For [the supplied parameters](hyp:e), [euclidean Reindex Homeomorph](goal) is given by [its defining clause](step:1). -/
 def euclideanReindexHomeomorph {ι κ : Type*} [Fintype ι] [Fintype κ]
     (e : ι ≃ κ) : EuclideanSpace ℝ ι ≃ₜ EuclideanSpace ℝ κ where
   toFun x := WithLp.toLp 2 fun j => x (e.symm j)
@@ -81,6 +86,7 @@ def euclideanReindexHomeomorph {ι κ : Type*} [Fintype ι] [Fintype κ]
     exact PiLp.continuous_apply 2 (fun _ : κ => ℝ) (e i)
 
 -- @node: compactLoss_selector_of_homeomorph
+/-- Compact loss selector of homeomorph: under [the stated inputs and assumptions](hyp:X,d,e,K,hKne,hK,loss,hloss), [the stated conclusion](goal) holds. -/
 lemma compactLoss_selector_of_homeomorph {X : Type*} [TopologicalSpace X]
     [MeasurableSpace X] [BorelSpace X] (d : ℕ) (e : X ≃ₜ Euc d)
     (K : Set X) (hKne : K.Nonempty) (hK : IsCompact K)
@@ -108,7 +114,7 @@ lemma compactLoss_selector_of_homeomorph {X : Type*} [TopologicalSpace X]
     simpa [Pi] using (hp (e s)).2 (e q) ⟨q, hq, rfl⟩
 
 /-- The nearest-summary repair has a total Borel positive-law realization, with the stated
-zero-law fallback and a nonempty theoretical confidence set. -/
+zero-law fallback and a nonempty theoretical confidence set.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,alpha,C0,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax,hn,hAlpha,hC0), [the stated conclusion](goal) holds. -/
 -- @node: prop:summary-repair-total-borel
 theorem summary_repair_total_borel
     (k dx dz n : ℕ) (L pi0 sigma0 alpha C0 : ℝ)

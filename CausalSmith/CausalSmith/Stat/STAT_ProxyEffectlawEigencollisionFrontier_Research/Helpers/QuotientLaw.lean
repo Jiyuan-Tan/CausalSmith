@@ -10,6 +10,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open MeasureTheory Set
 
 -- @node: quotientLawRaw_valid
+/-- Quotient law raw valid: under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hM), [the stated conclusion](goal) holds. -/
 lemma quotientLawRaw_valid {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
     (hM : UCVMWModel (L := L) (pi0 := pi0) (sigma0 := sigma0) P) :
@@ -39,7 +40,7 @@ lemma quotientLawRaw_valid {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
 
 /-- Quotient latent-effect probability law, supported at the derived radius; its represented
 measure automatically aggregates coincident effect values.
-    @realizes \(\nu_P\)(valid probability law at latent effects) -/
+    @realizes \(\nu_P\)(valid probability law at latent effects)        For [the supplied parameters](hyp:P,hM,pi0,sigma0), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: def:quotient-law
 noncomputable def quotientLaw {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]

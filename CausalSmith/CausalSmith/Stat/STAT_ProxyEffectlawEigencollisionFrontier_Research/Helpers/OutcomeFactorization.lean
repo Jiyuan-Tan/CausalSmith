@@ -11,7 +11,7 @@ open MeasureTheory Set ProbabilityTheory
 open Causalean.Mathlib.Probability
 
 /-- Armwise latent ignorability identifies the potential-outcome mean on a positive
-latent-treatment cell with its latent-class mean. -/
+latent-treatment cell with its latent-class mean.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hpi,hM), [the stated conclusion](goal) holds. -/
 -- @node: outcomeFactorization_conditionalMean_potential_latentCell
 lemma conditionalMean_potential_latentCell
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -72,7 +72,7 @@ lemma conditionalMean_potential_latentCell
   nlinarith
 
 /-- Consistency replaces the observed outcome by the arm-specific potential outcome inside
-a latent-treatment cell. -/
+a latent-treatment cell.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hM), [the stated conclusion](goal) holds. -/
 -- @node: outcomeFactorization_conditionalMean_observed_eq_potential
 lemma conditionalMean_observed_eq_potential
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -90,7 +90,7 @@ lemma conditionalMean_observed_eq_potential
   simpa [ht] using hcons
 
 /-- Consequently the observed outcome mean on each latent-treatment cell equals the
-latent potential-outcome mean from the roadmap's factorization. -/
+latent potential-outcome mean from the roadmap's factorization.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hpi,hM), [the stated conclusion](goal) holds. -/
 -- @node: outcomeFactorization_conditionalMean_observed_latentCell
 lemma conditionalMean_observed_latentCell
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -103,7 +103,7 @@ lemma conditionalMean_observed_latentCell
   exact conditionalMean_potential_latentCell P hpi hM u t
 
 /-- Target-proxy separation remains valid after conditioning on treatment because the
-separated second random element contains both the outcome and treatment coordinates. -/
+separated second random element contains both the outcome and treatment coordinates.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hpi,hM), [the stated conclusion](goal) holds. -/
 -- @node: outcomeFactorization_conditionalMean_target_mul_observed
 lemma conditionalMean_target_mul_observed
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -178,7 +178,7 @@ lemma conditionalMean_target_mul_observed
   nlinarith
 
 /-- The cell target--outcome moment therefore factors into the target feature and the
-latent potential-outcome mean. -/
+latent potential-outcome mean.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hpi,hM), [the stated conclusion](goal) holds. -/
 -- @node: outcomeFactorization_conditionalMean_targetOutcome_latentCell
 lemma conditionalMean_targetOutcome_latentCell
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -192,7 +192,7 @@ lemma conditionalMean_targetOutcome_latentCell
     conditionalMean_observed_latentCell P hpi hM u t]
 
 /-- Reference-proxy separation factors the outcome-weighted proxy product on each positive
-latent-treatment cell. -/
+latent-treatment cell.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hpi,hM), [the stated conclusion](goal) holds. -/
 -- @node: outcomeFactorization_conditionalMean_reference_targetOutcome
 lemma conditionalMean_reference_targetOutcome
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -230,7 +230,7 @@ lemma conditionalMean_reference_targetOutcome
     Pi.mul_apply] using hprod
 
 /-- Combining the two proxy separations, consistency, and latent ignorability gives the
-cellwise outcome-weighted factorization in equation (16). -/
+cellwise outcome-weighted factorization in equation (16).        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hpi,hM), [the stated conclusion](goal) holds. -/
 -- @node: outcomeFactorization_latentCell_outcomeProxy
 lemma latentCell_outcomeProxy_factorization
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -248,7 +248,7 @@ lemma latentCell_outcomeProxy_factorization
   ring
 
 /-- The observed armwise outcome-weighted proxy moment has the roadmap's finite-mixture
-factorization (16). -/
+factorization (16).        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hpi,hM), [the stated conclusion](goal) holds. -/
 -- @node: outcomeFactorization_observedOutcomeProxyMoment
 lemma observedOutcomeProxyMoment_factorization
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}

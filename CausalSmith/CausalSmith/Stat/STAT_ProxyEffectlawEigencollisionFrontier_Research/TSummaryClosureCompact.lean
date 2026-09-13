@@ -6,7 +6,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 
 open Set
 
-/-- Every matrix entry is bounded by the Euclidean operator norm. -/
+/-- Every matrix entry is bounded by the Euclidean operator norm.     Under [the stated inputs and assumptions](hyp:rows,cols,A,i,j), [the stated conclusion](goal) holds. -/
 -- @node: matrixEntry_abs_le_operatorNorm
 lemma matrixEntry_abs_le_operatorNorm {rows cols : ℕ} (A : RectMatrix rows cols)
     (i : Fin rows) (j : Fin cols) : |A i j| ≤ ‖matrixCLM A‖ := by
@@ -18,35 +18,35 @@ lemma matrixEntry_abs_le_operatorNorm {rows cols : ℕ} (A : RectMatrix rows col
     _ ≤ ‖matrixCLM A‖ * ‖x‖ := ContinuousLinearMap.le_opNorm _ _
     _ = ‖matrixCLM A‖ := by simp [x]
 
-/-- The entrywise closed cube of rectangular matrices. -/
+/-- The entrywise closed cube of rectangular matrices.     For [the supplied parameters](hyp:rows,cols,L), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: summaryMatrixBox
 def summaryMatrixBox (rows cols : ℕ) (L : ℝ) : Set (RectMatrix rows cols) :=
   {A | ∀ i j, A i j ∈ Icc (-L) L}
 
-/-- The entrywise matrix cube is compact in the finite product topology. -/
+/-- The entrywise matrix cube is compact in the finite product topology.     Under [the stated inputs and assumptions](hyp:rows,cols,L), [the stated conclusion](goal) holds. -/
 -- @node: summaryMatrixBox_compact
 lemma summaryMatrixBox_compact (rows cols : ℕ) (L : ℝ) :
     IsCompact (summaryMatrixBox rows cols L) := by
   exact isCompact_pi_infinite fun _ => isCompact_pi_infinite fun _ => isCompact_Icc
 
-/-- The coordinatewise closed cube for the unconditional proxy mean. -/
+/-- The coordinatewise closed cube for the unconditional proxy mean.     For [the supplied parameters](hyp:d,L), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: summaryVectorBox
 def summaryVectorBox (d : ℕ) (L : ℝ) : Set (Fin d → ℝ) :=
   {x | ∀ i, x i ∈ Icc (-L) L}
 
-/-- The proxy-mean cube is compact in the finite product topology. -/
+/-- The proxy-mean cube is compact in the finite product topology.     Under [the stated inputs and assumptions](hyp:d,L), [the stated conclusion](goal) holds. -/
 -- @node: summaryVectorBox_compact
 lemma summaryVectorBox_compact (d : ℕ) (L : ℝ) :
     IsCompact (summaryVectorBox d L) := by
   exact isCompact_pi_infinite fun _ => isCompact_Icc
 
-/-- Product cube containing every admissible five-block summary. -/
+/-- Product cube containing every admissible five-block summary.     For [the supplied parameters](hyp:dx,dz,L), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: summaryCoordinateBox
 def summaryCoordinateBox (dx dz : ℕ) (L : ℝ) : Set (SummaryCoordinates dx dz) :=
   summaryMatrixBox dz dx L ×ˢ summaryMatrixBox dz dx L ×ˢ
     summaryMatrixBox dz dx L ×ˢ summaryMatrixBox dz dx L ×ˢ summaryVectorBox dx L
 
-/-- The five-block coordinate cube is compact. -/
+/-- The five-block coordinate cube is compact.     Under [the stated inputs and assumptions](hyp:dx,dz,L), [the stated conclusion](goal) holds. -/
 -- @node: summaryCoordinateBox_compact
 lemma summaryCoordinateBox_compact (dx dz : ℕ) (L : ℝ) :
     IsCompact (summaryCoordinateBox dx dz L) := by
@@ -54,7 +54,7 @@ lemma summaryCoordinateBox_compact (dx dz : ℕ) (L : ℝ) :
     ((summaryMatrixBox_compact dz dx L).prod ((summaryMatrixBox_compact dz dx L).prod
       (summaryVectorBox_compact dx L))))
 
-/-- The summary record is topologically identical to its five-coordinate product. -/
+/-- The summary record is topologically identical to its five-coordinate product.     For [the supplied parameters](hyp:dx,dz), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: summarySpaceEquivCoordinates
 def summarySpaceEquivCoordinates (dx dz : ℕ) :
     SummarySpace dx dz ≃ SummaryCoordinates dx dz where
@@ -63,7 +63,7 @@ def summarySpaceEquivCoordinates (dx dz : ℕ) :
   left_inv := by rintro ⟨M0, M1, N0, N1, mX⟩; rfl
   right_inv := by rintro ⟨M0, M1, N0, N1, mX⟩; rfl
 
-/-- The coordinate equivalence respects the induced summary topology. -/
+/-- The coordinate equivalence respects the induced summary topology.     For [the supplied parameters](hyp:dx,dz), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: summarySpaceHomeomorphCoordinates
 def summarySpaceHomeomorphCoordinates (dx dz : ℕ) :
     SummarySpace dx dz ≃ₜ SummaryCoordinates dx dz where
@@ -74,12 +74,12 @@ def summarySpaceHomeomorphCoordinates (dx dz : ℕ) :
     change Continuous fun x : SummaryCoordinates dx dz => x
     exact continuous_id
 
-/-- The summary-space cube corresponding to the coordinate product cube. -/
+/-- The summary-space cube corresponding to the coordinate product cube.     For [the supplied parameters](hyp:dx,dz,L), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: summarySpaceBox
 def summarySpaceBox (dx dz : ℕ) (L : ℝ) : Set (SummarySpace dx dz) :=
   SummarySpace.toCoordinates ⁻¹' summaryCoordinateBox dx dz L
 
-/-- The summary-space cube is compact. -/
+/-- The summary-space cube is compact.     Under [the stated inputs and assumptions](hyp:dx,dz,L), [the stated conclusion](goal) holds. -/
 -- @node: summarySpaceBox_compact
 lemma summarySpaceBox_compact (dx dz : ℕ) (L : ℝ) :
     IsCompact (summarySpaceBox dx dz L) := by
@@ -95,7 +95,7 @@ lemma summarySpaceBox_compact (dx dz : ℕ) (L : ℝ) :
   rw [heq]
   exact (summaryCoordinateBox_compact dx dz L).image e.symm.continuous
 
-/-- Observable block envelopes place the admissible image in the finite coordinate cube. -/
+/-- Observable block envelopes place the admissible image in the finite coordinate cube.     Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax), [the stated conclusion](goal) holds. -/
 -- @node: admissibleImage_subset_summarySpaceBox
 lemma admissibleImage_subset_summarySpaceBox (k dx dz : ℕ) (L pi0 sigma0 : ℝ)
     (hk : 2 ≤ k) (hkx : k ≤ dx) (hkz : k ≤ dz) (hL : 1 ≤ L)
@@ -126,7 +126,7 @@ lemma admissibleImage_subset_summarySpaceBox (k dx dz : ℕ) (L pi0 sigma0 : ℝ
       simpa [Real.norm_eq_abs] using norm_le_pi_norm Q.summary.mX i
     exact abs_le.mp (hi.trans (by simpa [ModelLaw.summary] using h.2.2.2.2))
 
-/-- The closure of an admissible image contained in the summary cube is compact. -/
+/-- The closure of an admissible image contained in the summary cube is compact.     Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,hsub), [the stated conclusion](goal) holds. -/
 -- @node: summaryClosure_compact_of_block_bounds
 lemma summaryClosure_compact_of_block_bounds (k dx dz : ℕ) (L pi0 sigma0 : ℝ)
     (hsub : admissibleImage k dx dz L pi0 sigma0 ⊆ summarySpaceBox dx dz L) :
@@ -136,7 +136,7 @@ lemma summaryClosure_compact_of_block_bounds (k dx dz : ℕ) (L pi0 sigma0 : ℝ
   exact closure_minimal hsub
     ((summaryCoordinateBox_compact dx dz L).isClosed.preimage continuous_induced_dom)
 
-/-- Observable block bounds give a uniform bound for the continuous summary loss. -/
+/-- Observable block bounds give a uniform bound for the continuous summary loss.     Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax), [the stated conclusion](goal) holds. -/
 -- @node: admissibleImage_dS_bounded
 lemma admissibleImage_dS_bounded (k dx dz : ℕ) (L pi0 sigma0 : ℝ)
     (hk : 2 ≤ k) (hkx : k ≤ dx) (hkz : k ≤ dz) (hL : 1 ≤ L)
@@ -177,7 +177,7 @@ lemma admissibleImage_dS_bounded (k dx dz : ℕ) (L pi0 sigma0 : ℝ)
   nlinarith [h'.1, h'.2.1, h'.2.2.1, h'.2.2.2.1, hm]
 
 /-- The admissible image is uniformly `dS`-bounded, its closure is compact, and closure
-nonemptiness is equivalent to model nonemptiness. -/
+nonemptiness is equivalent to model nonemptiness.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax), [the stated conclusion](goal) holds. -/
 -- @node: prop:summary-closure-compact
 theorem summary_closure_compact (k dx dz : ℕ) (L pi0 sigma0 : ℝ)
     (hk : 2 ≤ k) (hkx : k ≤ dx) (hkz : k ≤ dz) (hL : 1 ≤ L)

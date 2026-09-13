@@ -12,13 +12,19 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open MeasureTheory Set
 
 -- @node: SummaryCoord
+/-- For [the proxy and outcome dimensions](hyp:dx,dz), [the finite coordinate type for an observed summary](goal) enumerates matrix, mean, and treatment-probability coordinates. -/
 inductive SummaryCoord (dx dz : ℕ)
   | matrix (weighted arm : Bool) (i : Fin dz) (j : Fin dx)
   | mean (j : Fin dx)
   | arm (t : Bool)
   deriving Fintype
 
+/-- For [the proxy and outcome dimensions](hyp:dx,dz), [observed-summary coordinates form a finite
+type](goal). -/
+add_decl_doc instFintypeSummaryCoord
+
 -- @node: summaryCoordStat
+/-- For [the supplied parameters](hyp:hyp,step,L,P,hf,hab,hbound,n,hn,heps,Measure,fun), [summary Coord Stat](goal) is given by [its defining clause](step:1). -/
 noncomputable def summaryCoordStat {dx dz : ℕ} : SummaryCoord dx dz → Obs dx dz → ℝ
   | .matrix weighted t i j => fun o =>
       if o.T = t then (if weighted then o.Y else 1) * o.Z i * o.X j else 0
@@ -26,12 +32,14 @@ noncomputable def summaryCoordStat {dx dz : ℕ} : SummaryCoord dx dz → Obs dx
   | .arm t => fun o => if o.T = t then 1 else 0
 
 -- @node: summaryCoordScale
+/-- For [the supplied parameters](hyp:L,hyp,P,hf,hab,hbound,n,hn,heps,Measure,fun), [summary Coord Scale](goal) is given by [its defining clause](step:1). -/
 def summaryCoordScale {dx dz : ℕ} (L : ℝ) : SummaryCoord dx dz → ℝ
   | .matrix .. => L
   | .mean .. => L
   | .arm .. => 1
 
 -- @node: product_hoeffding
+/-- Product hoeffding: under [the stated inputs and assumptions](hyp:X,P,f,hf,a,b,hab,hbound,n,hn,eps,heps), [the stated conclusion](goal) holds. -/
 lemma product_hoeffding {X : Type*} [MeasurableSpace X]
     (P : Measure X) [IsProbabilityMeasure P]
     {f : X → ℝ} (hf : Measurable f) {a b : ℝ} (hab : a < b)
@@ -63,6 +71,7 @@ lemma product_hoeffding {X : Type*} [MeasurableSpace X]
   exact Causalean.Stat.Concentration.hoeffding_abs_ge S hf hab hbound n hn heps
 
 -- @node: summaryCoordStat_measurable
+/-- Summary coord stat measurable: under [the stated inputs and assumptions](hyp:dx,dz,a), [the stated conclusion](goal) holds. -/
 lemma summaryCoordStat_measurable {dx dz : ℕ} (a : SummaryCoord dx dz) :
     Measurable (summaryCoordStat a) := by
   cases a with
@@ -88,6 +97,7 @@ lemma summaryCoordStat_measurable {dx dz : ℕ} (a : SummaryCoord dx dz) :
         measurable_const measurable_const
 
 -- @node: summaryCoordStat_ae_bound
+/-- Summary coord stat ae bound: under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hM,hL), [the stated conclusion](goal) holds. -/
 lemma summaryCoordStat_ae_bound {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
     (hM : UCVMWModel (L := L) (pi0 := pi0) (sigma0 := sigma0) P)
@@ -121,6 +131,7 @@ lemma summaryCoordStat_ae_bound {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
       by_cases ht : w.T = t <;> simp [summaryCoordStat, summaryCoordScale, obsMap, ht]
 
 -- @node: summaryCoordStat_integral
+/-- Summary coord stat integral: under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hM,hpi), [the stated conclusion](goal) holds. -/
 lemma summaryCoordStat_integral {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
     (hM : UCVMWModel (L := L) (pi0 := pi0) (sigma0 := sigma0) P)
@@ -172,6 +183,7 @@ lemma summaryCoordStat_integral {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
         field_simp <;> simp
 
 -- @node: summaryCoordStat_arm_sampleMean
+/-- Summary coord stat arm sample mean: under [the stated inputs and assumptions](hyp:n,dx,dz,sample,t), [the stated conclusion](goal) holds. -/
 lemma summaryCoordStat_arm_sampleMean {n dx dz : ℕ} (sample : Fin n → Obs dx dz)
     (t : Bool) :
     (n : ℝ)⁻¹ * ∑ i, summaryCoordStat (.arm t) (sample i) =
@@ -186,6 +198,7 @@ lemma summaryCoordStat_arm_sampleMean {n dx dz : ℕ} (sample : Fin n → Obs dx
   simp [div_eq_mul_inv, mul_comm]
 
 -- @node: summaryCoordStat_matrix_sampleMean
+/-- Summary coord stat matrix sample mean: under [the stated inputs and assumptions](hyp:n,dx,dz,sample,weighted,t,a,b), [the stated conclusion](goal) holds. -/
 lemma summaryCoordStat_matrix_sampleMean {n dx dz : ℕ}
     (sample : Fin n → Obs dx dz) (weighted t : Bool) (a : Fin dz) (b : Fin dx) :
     (n : ℝ)⁻¹ * ∑ i, summaryCoordStat (.matrix weighted t a b) (sample i) =
@@ -194,6 +207,7 @@ lemma summaryCoordStat_matrix_sampleMean {n dx dz : ℕ}
   rfl
 
 -- @node: populationArmCoord
+/-- For [the supplied parameters](hyp:P,weighted,t,a,b), [population Arm Coord](goal) is given by [its defining clause](step:1). -/
 noncomputable def populationArmCoord {k dx dz : ℕ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
     (weighted t : Bool) (a : Fin dz) (b : Fin dx) : ℝ :=
@@ -201,6 +215,7 @@ noncomputable def populationArmCoord {k dx dz : ℕ}
   else observedProxyMoment (obsSummary P) t a b
 
 -- @node: empiricalArmMatrix_entry_error
+/-- Empirical arm matrix entry error: under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,beta,P,hM,hL,hpi,hn,hbeta0,hbeta,hdev), [the stated conclusion](goal) holds. -/
 lemma empiricalArmMatrix_entry_error {k dx dz n : ℕ} {L pi0 sigma0 beta : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
     (hM : UCVMWModel (L := L) (pi0 := pi0) (sigma0 := sigma0) P)
@@ -285,6 +300,7 @@ lemma empiricalArmMatrix_entry_error {k dx dz n : ℕ} {L pi0 sigma0 beta : ℝ}
     _ = 4 * L * beta / (k * pi0) := by field_simp; ring
 
 -- @node: empSummary_error_of_small_deviations
+/-- Emp summary error of small deviations: under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,beta,P,hM,hL,hpi,hn,hbeta0,hbeta,hdev), [the stated conclusion](goal) holds. -/
 lemma empSummary_error_of_small_deviations {k dx dz n : ℕ}
     {L pi0 sigma0 beta : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -351,6 +367,7 @@ lemma empSummary_error_of_small_deviations {k dx dz n : ℕ}
       ring
 
 -- @node: abs_fin_average_le
+/-- Abs fin average le: under [the stated inputs and assumptions](hyp:n,hn,f,B,hB,hf), [the stated conclusion](goal) holds. -/
 lemma abs_fin_average_le {n : ℕ} (hn : 0 < n) {f : Fin n → ℝ} {B : ℝ}
     (hB : 0 ≤ B) (hf : ∀ i, |f i| ≤ B) :
     |(n : ℝ)⁻¹ * ∑ i, f i| ≤ B := by
@@ -369,6 +386,7 @@ lemma abs_fin_average_le {n : ℕ} (hn : 0 < n) {f : Fin n → ℝ} {B : ℝ}
       field_simp
 
 -- @node: empiricalArmMatrix_entry_bound
+/-- Empirical arm matrix entry bound: under [the stated inputs and assumptions](hyp:n,dx,dz,L,hL,sample,hsupport,weighted,t,a,b), [the stated conclusion](goal) holds. -/
 lemma empiricalArmMatrix_entry_bound {n dx dz : ℕ} {L : ℝ}
     (hL : 0 ≤ L) (sample : Fin n → Obs dx dz)
     (hsupport : ∀ i c, |summaryCoordStat c (sample i)| ≤ summaryCoordScale L c)
@@ -411,6 +429,7 @@ lemma empiricalArmMatrix_entry_bound {n dx dz : ℕ} {L : ℝ}
     simpa [mul_comm] using hsum
 
 -- @node: empSummary_error_on_support
+/-- Emp summary error on support: under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,P,hM,hL,hpi,hn,hsupport), [the stated conclusion](goal) holds. -/
 lemma empSummary_error_on_support {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
     (hM : UCVMWModel (L := L) (pi0 := pi0) (sigma0 := sigma0) P)
@@ -496,6 +515,7 @@ lemma empSummary_error_on_support {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     _ = (4 * (entryNormConstant dz dx + 1) + dx + 1) * L := by ring
 
 -- @node: measurableSet_summaryCoordSupport
+/-- Measurable set summary coord support: under [the stated inputs and assumptions](hyp:dx,dz,L), [the stated conclusion](goal) holds. -/
 lemma measurableSet_summaryCoordSupport {dx dz : ℕ} (L : ℝ) :
     MeasurableSet {o : Obs dx dz | ∀ c : SummaryCoord dx dz,
       |summaryCoordStat c o| ≤ summaryCoordScale L c} := by
@@ -504,6 +524,7 @@ lemma measurableSet_summaryCoordSupport {dx dz : ℕ} (L : ℝ) :
     measurableSet_Iic.preimage (summaryCoordStat_measurable c).abs
 
 -- @node: sample_summaryCoordSupport_ae
+/-- Sample summary coord support ae: under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,P,hM,hL), [the stated conclusion](goal) holds. -/
 lemma sample_summaryCoordSupport_ae {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
     (hM : UCVMWModel (L := L) (pi0 := pi0) (sigma0 := sigma0) P)
@@ -536,6 +557,7 @@ lemma sample_summaryCoordSupport_ae {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
   simp [hGone]
 
 -- @node: summaryCoord_deviation_probability
+/-- Summary coord deviation probability: under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,C,eta,P,hM,hL,hn,heta,hetaUpper,hC), [the stated conclusion](goal) holds. -/
 lemma summaryCoord_deviation_probability {k dx dz n : ℕ} {L pi0 sigma0 C eta : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
     (hM : UCVMWModel (L := L) (pi0 := pi0) (sigma0 := sigma0) P)
@@ -586,4 +608,3 @@ lemma summaryCoord_deviation_probability {k dx dz n : ℕ} {L pi0 sigma0 C eta :
 
 
 end CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
-

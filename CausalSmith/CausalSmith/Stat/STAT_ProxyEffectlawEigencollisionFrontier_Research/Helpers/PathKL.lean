@@ -9,7 +9,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open MeasureTheory Set
 open scoped BigOperators ENNReal
 
-/-- KL divergence is bounded by chi-square divergence. -/
+/-- KL divergence is bounded by chi-square divergence.     Under [the stated inputs and assumptions](hyp:hac), [the stated conclusion](goal) holds. -/
 -- @node: klDiv_le_chiSqDiv
 lemma klDiv_le_chiSqDiv {Ω : Type*} [MeasurableSpace Ω] [MeasurableSingletonClass Ω]
     [Finite Ω]
@@ -36,7 +36,7 @@ lemma klDiv_le_chiSqDiv {Ω : Type*} [MeasurableSpace Ω] [MeasurableSingletonCl
 -- @node: PathVisibleCell
 abbrev PathVisibleCell := Bool × Bool × Bool × Bool
 
-/-- The atomic law of the four visible Bernoulli coordinates. -/
+/-- The atomic law of the four visible Bernoulli coordinates.     For [the supplied parameters](hyp:g,h,v), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: pathVisibleCoefficient
 noncomputable def pathVisibleCoefficient (g h : ℝ) (v : PathVisibleCell) : ℝ≥0∞ :=
   if v.1 then
@@ -44,13 +44,13 @@ noncomputable def pathVisibleCoefficient (g h : ℝ) (v : PathVisibleCell) : ℝ
   else
     ∑ u : Fin 2, ∑ y1 : Bool, ENNReal.ofReal (pathWeight g h u false v.2.1 v.2.2.1 v.2.2.2 y1)
 
-/-- The atomic law of the four visible Bernoulli coordinates. -/
+/-- The atomic law of the four visible Bernoulli coordinates.     For [the supplied parameters](hyp:g,h), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: pathVisibleLaw
 noncomputable def pathVisibleLaw (g h : ℝ) : Measure PathVisibleCell :=
   ∑ v : PathVisibleCell,
     pathVisibleCoefficient g h v • Measure.dirac v
 
-/-- Every singleton of the finite visible carrier has its explicit cell mass. -/
+/-- Every singleton of the finite visible carrier has its explicit cell mass.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh,v), [the stated conclusion](goal) holds. -/
 -- @node: pathVisibleLaw_singleton
 lemma pathVisibleLaw_singleton (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) (v : PathVisibleCell) :
@@ -79,7 +79,7 @@ lemma pathVisibleLaw_singleton (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     · simpa using hw
   · simp
 
-/-- Mapping the finite visible carrier to observation records recovers the observed margin. -/
+/-- Mapping the finite visible carrier to observation records recovers the observed margin.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: pathVisibleLaw_map
 lemma pathVisibleLaw_map (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) :
@@ -103,7 +103,7 @@ lemma pathVisibleLaw_map (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     pathObsPoint, pathPoint, witnessPoint, obsMap, add_smul]
   abel_nf
 
-/-- The visible atomic law has total mass one on the path domain. -/
+/-- The visible atomic law has total mass one on the path domain.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: pathVisibleLaw_isProbabilityMeasure
 lemma pathVisibleLaw_isProbabilityMeasure (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) : IsProbabilityMeasure (pathVisibleLaw g h) := by
@@ -117,7 +117,7 @@ lemma pathVisibleLaw_isProbabilityMeasure (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g �
     pathObsPoint v.1 v.2.1 v.2.2.1 v.2.2.2)) MeasurableSet.univ] at huniv
   simpa using huniv
 
-/-- Every base visible cell has a uniform positive mass. -/
+/-- Every base visible cell has a uniform positive mass.     Under [the stated inputs and assumptions](hyp:g,hg0,hg1,v), [the stated conclusion](goal) holds. -/
 -- @node: pathVisibleLaw_base_floor
 lemma pathVisibleLaw_base_floor (g : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (v : PathVisibleCell) :
@@ -125,7 +125,7 @@ lemma pathVisibleLaw_base_floor (g : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
   rw [pathVisibleLaw_singleton g 0 hg0 hg1 (by norm_num)]
   exact pathVisibleMass_base_floor g hg0 hg1 _ _ _ _
 
-/-- The displaced finite visible law is absolutely continuous with respect to the base law. -/
+/-- The displaced finite visible law is absolutely continuous with respect to the base law.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1), [the stated conclusion](goal) holds. -/
 -- @node: pathVisibleLaw_absolutelyContinuous
 lemma pathVisibleLaw_absolutelyContinuous (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4) :
     pathVisibleLaw g h ≪ pathVisibleLaw g 0 := by
@@ -144,7 +144,7 @@ lemma pathVisibleLaw_absolutelyContinuous (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g �
   · rw [not_nonempty_iff_eq_empty.mp hA]
     simp
 
-/-- The observed labelled-path law is absolutely continuous with respect to its base law. -/
+/-- The observed labelled-path law is absolutely continuous with respect to its base law.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: pathObsLaw_absolutelyContinuous
 lemma pathObsLaw_absolutelyContinuous (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) :
@@ -162,7 +162,7 @@ lemma pathObsLaw_absolutelyContinuous (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1
     ← pathVisibleLaw_map g 0 hg0 hg1 (by norm_num)]
   exact (pathVisibleLaw_absolutelyContinuous g h hg0 hg1).map (measurable_of_finite f)
 
-/-- The labelled-path observed log likelihood ratio is integrable. -/
+/-- The labelled-path observed log likelihood ratio is integrable.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: pathObsLaw_llr_integrable
 lemma pathObsLaw_llr_integrable (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) :
@@ -185,7 +185,7 @@ lemma pathObsLaw_llr_integrable (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (pathVisibleLaw_absolutelyContinuous g h hg0 hg1) (measurable_of_finite f)
     Integrable.of_finite
 
-/-- The chi-square divergence of the finite visible path is quadratically bounded. -/
+/-- The chi-square divergence of the finite visible path is quadratically bounded.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: pathVisibleLaw_chiSqDiv_bound
 lemma pathVisibleLaw_chiSqDiv_bound (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) :
@@ -260,7 +260,7 @@ lemma pathVisibleLaw_chiSqDiv_bound (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 /
       norm_num [Fintype.card_prod]
       ring
 
-/-- The observed one-record KL divergence along the labelled path is quadratic in `g*h`. -/
+/-- The observed one-record KL divergence along the labelled path is quadratic in `g*h`.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: pathLaw_observed_kl_bound
 lemma pathLaw_observed_kl_bound (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) :

@@ -8,6 +8,7 @@ noncomputable section
 
 open scoped Matrix.Norms.L2Operator
 
+/-- Matrix clm norm le one: under [the stated inputs and assumptions](hyp:dx,k,V), [the stated conclusion](goal) holds. -/
 lemma SignalBasis.matrixCLM_norm_le_one {dx k : ℕ} (V : SignalBasis dx k) :
     ‖matrixCLM V.V‖ ≤ 1 := by
   apply ContinuousLinearMap.opNorm_le_bound _ (by norm_num)
@@ -17,7 +18,7 @@ lemma SignalBasis.matrixCLM_norm_le_one {dx k : ℕ} (V : SignalBasis dx k) :
   change ‖Matrix.toEuclideanLin V.V x‖ ≤ ‖x‖
   exact hn.le
 
-/-- A positive square signal margin makes the ordinary nonsingular inverse available. -/
+/-- A positive square signal margin makes the ordinary nonsingular inverse available.     Under [the stated inputs and assumptions](hyp:k,A,hA), [the stated conclusion](goal) holds. -/
 lemma matrix_det_isUnit_of_signalMinSingular_pos {k : ℕ} (A : RectMatrix k k)
     (hA : 0 < signalMinSingular A) : IsUnit A.det := by
   have hinj := publishedMomentIdentity_injective_of_signalMinSingular_pos A hA
@@ -27,7 +28,7 @@ lemma matrix_det_isUnit_of_signalMinSingular_pos {k : ℕ} (A : RectMatrix k k)
   apply hgram.ne_zero
   rw [Matrix.det_mul, Matrix.det_transpose, hdet, mul_zero]
 
-/-- The inverse norm is the reciprocal of any certified lower singular margin. -/
+/-- The inverse norm is the reciprocal of any certified lower singular margin.     Under [the stated inputs and assumptions](hyp:k,A,s,hs,hA), [the stated conclusion](goal) holds. -/
 lemma matrix_inv_norm_le_of_signalMinSingular {k : ℕ} (A : RectMatrix k k)
     {s : ℝ} (hs : 0 < s) (hA : s ≤ signalMinSingular A) :
     ‖matrixCLM A⁻¹‖ ≤ 1 / s := by
@@ -48,7 +49,7 @@ lemma matrix_inv_norm_le_of_signalMinSingular {k : ℕ} (A : RectMatrix k k)
   rw [himage] at hlower
   simpa [one_div] using (le_inv_mul_iff₀ hs).2 hlower
 
-/-- The exact inverse perturbation estimate used by the frozen operator coefficient. -/
+/-- The exact inverse perturbation estimate used by the frozen operator coefficient.     Under [the stated inputs and assumptions](hyp:k,R,Rn,sigma0,q,hsigma0,hRmin,hRnmin,hR,hq), [the stated conclusion](goal) holds. -/
 lemma matrix_inv_sub_inv_norm_le_of_signalMinSingular
     {k : ℕ} (R Rn : RectMatrix k k) {sigma0 q : ℝ}
     (hsigma0 : 0 < sigma0)
@@ -82,7 +83,7 @@ lemma matrix_inv_sub_inv_norm_le_of_signalMinSingular
       simpa [div_eq_mul_inv] using hRnInv
     _ = 2 * k * q / sigma0 ^ 2 := by field_simp
 
-/-- A finite probability vector has Euclidean norm at most one. -/
+/-- A finite probability vector has Euclidean norm at most one.     Under [the stated inputs and assumptions](hyp:k,p,hp,hsum), [the stated conclusion](goal) holds. -/
 lemma probabilityVector_euc_norm_le_one {k : ℕ} (p : Fin k → ℝ)
     (hp : ∀ u, 0 ≤ p u) (hsum : ∑ u, p u = 1) :
     ‖(WithLp.toLp 2 p : Euc k)‖ ≤ 1 := by
@@ -101,7 +102,7 @@ lemma probabilityVector_euc_norm_le_one {k : ℕ} (p : Fin k → ℝ)
     _ = 1 := hsum
 
 /-- Factorwise perturbation of the observable mean reconstruction.  Substituting
-`cV = 4*sqrt(dx*k)` gives exactly the frozen `cm` coefficient. -/
+`cV = 4*sqrt(dx*k)` gives exactly the frozen `cm` coefficient.        Under [the stated inputs and assumptions](hyp:dx,k,L,q,cV,V,Vn,R,Rn,p,pn,hp,hpSum,hpn,hpnSum,hV,hR,hRn,hR0,hweight,hL,hq), [the stated conclusion](goal) holds. -/
 lemma rounded_mean_factorization_residual_le
     {dx k : ℕ} {L q cV : ℝ}
     (V Vn : SignalBasis dx k) (R Rn : RectMatrix k k) (p pn : Fin k → ℝ)
@@ -197,7 +198,7 @@ lemma rounded_mean_factorization_residual_le
         _ = (2 * Real.sqrt k * L * cV + k + k * L) * q := by rw [hs]; ring
 
 /-- Factorwise perturbation of the anchor reconstruction.  This is the exact frozen `cb`
-coefficient after substituting `cV = 4*sqrt(dx*k)`. -/
+coefficient after substituting `cV = 4*sqrt(dx*k)`.        Under [the stated inputs and assumptions](hyp:dx,k,L,q,cV,hdx,V,Vn,R,Rn,hV,hR,hRn,hL,hq), [the stated conclusion](goal) holds. -/
 lemma rounded_anchor_factorization_residual_le
     {dx k : ℕ} {L q cV : ℝ} (hdx : 0 < dx)
     (V Vn : SignalBasis dx k) (R Rn : RectMatrix k k)
@@ -272,7 +273,7 @@ lemma rounded_anchor_factorization_residual_le
 hypotheses expose the three analytic ingredients needed downstream: inverse
 stability, inverse norm control, and coordinatewise effect rounding.  With
 `KD = 4 * sqrt k * L * Ltau / sigma0`, the conclusion is the frozen `cD`
-coefficient. -/
+coefficient.        Under [the stated inputs and assumptions](hyp:dx,k,L,Ltau,sigma0,q,cV,KD,V,Vn,R,Rn,tau,taun,hV,hR,hRn,hR0,hRinv,hRninv,hInvDiff,htau,htaun,htauDiff,hL,hLtau,hsigma0,hq,hcV,hKD), [the stated conclusion](goal) holds. -/
 lemma rounded_operator_factorization_residual_le
     {dx k : ℕ} {L Ltau sigma0 q cV KD : ℝ}
     (V Vn : SignalBasis dx k) (R Rn : RectMatrix k k)
@@ -412,7 +413,7 @@ lemma rounded_operator_factorization_residual_le
       nlinarith [hslack]
 
 /-- Signal-margin form of `rounded_operator_factorization_residual_le`, discharging all
-ordinary-inverse hypotheses from the ideal and rounded singular-value certificates. -/
+ordinary-inverse hypotheses from the ideal and rounded singular-value certificates.        Under [the stated inputs and assumptions](hyp:dx,k,L,Ltau,sigma0,q,cV,KD,V,Vn,R,Rn,tau,taun,hV,hR,hRn,hR0,hRmin,hRnmin,htau,htaun,htauDiff,hL,hLtau,hsigma0,hq,hcV,hKD), [the stated conclusion](goal) holds. -/
 lemma rounded_operator_factorization_residual_le_of_signalMinSingular
     {dx k : ℕ} {L Ltau sigma0 q cV KD : ℝ}
     (V Vn : SignalBasis dx k) (R Rn : RectMatrix k k)

@@ -11,13 +11,13 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 
 namespace GapFreeModulusBridge
 
-/-- Forget the support-radius index while retaining the labelled atomic law. -/
+/-- Forget the support-radius index while retaining the labelled atomic law.     For [the supplied parameters](hyp:mu), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: gapFreeModulusBridge_asNeutral
 def asNeutral {k : ℕ} {radius : ℝ} (mu : AtomicLaw k radius) :
     CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicLaw (Fin k) :=
   ⟨mu.weight, mu.atom⟩
 
-/-- Local validity supplies the positivity and normalization required by the neutral carrier. -/
+/-- Local validity supplies the positivity and normalization required by the neutral carrier.     Under [the stated inputs and assumptions](hyp:k,radius,mu,hmu), [the stated conclusion](goal) holds. -/
 -- @node: gapFreeModulusBridge_asNeutral_valid
 lemma asNeutral_valid {k : ℕ} {radius : ℝ} {mu : AtomicLaw k radius}
     (hmu : AtomicLaw.Valid mu) :
@@ -55,7 +55,7 @@ private lemma cost_fromNeutral {k : ℕ} {radius : ℝ} {mu nu : AtomicLaw k rad
       CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicLaw.transportCost pi := by
   rfl
 
-/-- The paper-local and neutral finite transport formulations compute exactly the same cost. -/
+/-- The paper-local and neutral finite transport formulations compute exactly the same cost.     Under [the stated inputs and assumptions](hyp:k,radius,mu,nu,hmu,hnu), [the stated conclusion](goal) holds. -/
 -- @node: gapFreeModulusBridge_wass1_eq_neutralW1
 lemma wass1_eq_neutralW1 {k : ℕ} {radius : ℝ} {mu nu : AtomicLaw k radius}
     (hmu : AtomicLaw.Valid mu) (hnu : AtomicLaw.Valid nu) :
@@ -84,7 +84,7 @@ lemma wass1_eq_neutralW1 {k : ℕ} {radius : ℝ} {mu nu : AtomicLaw k radius}
       _ = AtomicLaw.wass1 mu nu := hpi
 
 /-- Quotient Wasserstein distance can be evaluated by the neutral substrate on any chosen
-representatives. -/
+representatives.        Under [the stated inputs and assumptions](hyp:k,radius,mu,nu), [the stated conclusion](goal) holds. -/
 -- @node: gapFreeModulusBridge_lawModulo_wass1_eq_neutralW1
 lemma lawModulo_wass1_eq_neutralW1 {k : ℕ} {radius : ℝ}
     (mu nu : AtomicLaw.LawModulo k radius) :
@@ -94,7 +94,7 @@ lemma lawModulo_wass1_eq_neutralW1 {k : ℕ} {radius : ℝ}
 
 /-- A Lipschitz map into the complete quotient-law space extends uniquely from a set to its
 closure.  This packages the final completion step of the modulus argument independently of the
-model-specific operator construction. -/
+model-specific operator construction.        Under [the stated inputs and assumptions](hyp:k,radius,s,f,K,hf), [the stated conclusion](goal) holds. -/
 -- @node: gapFreeModulusBridge_exists_unique_lipschitz_extension
 theorem exists_unique_lipschitz_extension
     {α : Type*} [PseudoMetricSpace α] {k : ℕ} {radius : ℝ}

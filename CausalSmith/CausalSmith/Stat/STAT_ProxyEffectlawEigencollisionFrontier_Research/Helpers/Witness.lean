@@ -9,26 +9,34 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open scoped BigOperators ENNReal
 open MeasureTheory Set
 
+/-- For [the supplied parameters](hyp:p,b), [bernoulli Mass](goal) is given by [its defining clause](step:1). -/
 def bernoulliMass (p : ℝ) (b : Bool) : ℝ := if b then p else 1 - p
 
 -- @node: bernoulliMass_nonneg
+/-- Bernoulli mass nonneg: under [the stated inputs and assumptions](hyp:p,b,hp0,hp1), [the stated conclusion](goal) holds. -/
 lemma bernoulliMass_nonneg (p : ℝ) (b : Bool) (hp0 : 0 ≤ p) (hp1 : p ≤ 1) :
     0 ≤ bernoulliMass p b := by
   cases b <;> simp [bernoulliMass] <;> linarith
 
 -- @node: sum_bernoulliMass
+/-- Sum bernoulli mass: under [the stated inputs and assumptions](hyp:p), [the stated conclusion](goal) holds. -/
 lemma sum_bernoulliMass (p : ℝ) : ∑ b : Bool, bernoulliMass p b = 1 := by
   simp [bernoulliMass]
 
 -- @node: sum_mul_bernoulliMass
+/-- Sum mul bernoulli mass: under [the stated inputs and assumptions](hyp:a,p), [the stated conclusion](goal) holds. -/
 lemma sum_mul_bernoulliMass (a p : ℝ) :
     ∑ b : Bool, a * bernoulliMass p b = a := by
   rw [← Finset.mul_sum, sum_bernoulliMass, mul_one]
+/-- For [the supplied parameters](hyp:a,b), [vec2](goal) is given by [its defining clause](step:1). -/
 def vec2 (a b : ℝ) : Fin 2 → ℝ := fun i => if i.val = 0 then a else b
+/-- For [the supplied parameters](hyp:b), [bool Real](goal) is given by [its defining clause](step:1). -/
 def boolReal (b : Bool) : ℝ := if b then 1 else 0
 
+/-- For [the supplied parameters](hyp:A), [det2](goal) is given by [its defining clause](step:1). -/
 def det2 (A : RectMatrix 2 2) : ℝ := A 0 0 * A 1 1 - A 0 1 * A 1 0
 
+/-- For [the supplied parameters](hyp:u,t,x,z,y0,y1), [witness Point](goal) is given by [its defining clause](step:1). -/
 def witnessPoint (u : Fin 2) (t x z y0 y1 : Bool) : FullData 2 2 2 where
   U := u
   T := t
@@ -38,6 +46,7 @@ def witnessPoint (u : Fin 2) (t x z y0 y1 : Bool) : FullData 2 2 2 where
   Y1 := boolReal y1
   Y := if t then boolReal y1 else boolReal y0
 
+/-- For [the supplied parameters](hyp:eps,u,t,x,z,y0,y1), [witness Weight](goal) is given by [its defining clause](step:1). -/
 noncomputable def witnessWeight (eps : ℝ) (u : Fin 2) (t x z y0 y1 : Bool) : ℝ :=
   let pu := if u.val = 0 then 2 / 5 else 3 / 5
   let pt := if u.val = 0 then 2 / 5 else 3 / 5
@@ -49,7 +58,7 @@ noncomputable def witnessWeight (eps : ℝ) (u : Fin 2) (t x z y0 y1 : Bool) : �
   pu * bernoulliMass pt t * bernoulliMass px x * bernoulliMass pz z *
     bernoulliMass py0 y0 * bernoulliMass py1 y1
 
-/-- Every elementary weight in the admissible witness family is nonnegative. -/
+/-- Every elementary weight in the admissible witness family is nonnegative.     Under [the stated inputs and assumptions](hyp:eps,hlo,hhi,u,t,x,z,y0,y1), [the stated conclusion](goal) holds. -/
 -- @node: witnessWeight_nonneg
 lemma witnessWeight_nonneg (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8)
     (u : Fin 2) (t x z y0 y1 : Bool) :
@@ -57,7 +66,7 @@ lemma witnessWeight_nonneg (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8)
   fin_cases u <;> cases t <;> cases x <;> cases z <;> cases y0 <;> cases y1 <;>
     simp [witnessWeight, bernoulliMass] <;> nlinarith
 
-/-- Latent-arm cylinders are measurable in the witness full-data space. -/
+/-- Latent-arm cylinders are measurable in the witness full-data space.     Under [the stated inputs and assumptions](hyp:u,t), [the stated conclusion](goal) holds. -/
 -- @node: measurableSet_witness_latentCell
 lemma measurableSet_witness_latentCell (u : Fin 2) (t : Bool) :
     MeasurableSet (latentCell (dx := 2) (dz := 2) u t) := by
@@ -70,7 +79,7 @@ lemma measurableSet_witness_latentCell (u : Fin 2) (t : Bool) :
   have hpre := hUT (measurableSet_singleton (u, t))
   simpa [latentCell, Set.preimage] using hpre
 
-/-- Latent-class cylinders are measurable in the witness full-data space. -/
+/-- Latent-class cylinders are measurable in the witness full-data space.     Under [the stated inputs and assumptions](hyp:u), [the stated conclusion](goal) holds. -/
 -- @node: measurableSet_witness_latentClass
 lemma measurableSet_witness_latentClass (u : Fin 2) :
     MeasurableSet (latentClass (dx := 2) (dz := 2) u) := by
@@ -82,14 +91,14 @@ lemma measurableSet_witness_latentClass (u : Fin 2) :
   have hpre := hU (measurableSet_singleton u)
   simpa [latentClass, Set.preimage] using hpre
 
-/-- Domain of the collision-witness perturbation. -/
+/-- Domain of the collision-witness perturbation.     For [the supplied parameters](hyp:eps), [the defined object](goal) is given by [its defining clause](step:1). -/
 def WitnessPerturbationDomain (eps : ℝ) : Prop :=
   0 ≤ eps ∧ -- @realizes \(\varepsilon\)(nonnegative witness perturbation)
   eps ≤ 1 / 8 -- @realizes \(\varepsilon\)(witness perturbation at most one eighth)
 
 /-- Explicit two-class Bernoulli collision law.
     @realizes \(P_{\varepsilon}^{\mathrm{wit}}\)(finite Dirac law)
-    @realizes \(\varepsilon\)(real carrier; range via WitnessPerturbationDomain) -/
+    @realizes \(\varepsilon\)(real carrier; range via WitnessPerturbationDomain)        For [the supplied parameters](hyp:eps), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: def:two-class-witness
 noncomputable def witnessLaw (eps : ℝ) : Measure (FullData 2 2 2) :=
   ∑ u : Fin 2, ∑ t : Bool, ∑ x : Bool, ∑ z : Bool, ∑ y0 : Bool, ∑ y1 : Bool,
@@ -98,6 +107,7 @@ noncomputable def witnessLaw (eps : ℝ) : Measure (FullData 2 2 2) :=
 
 set_option maxHeartbeats 1000000 in
 -- Expanding the six binary coordinates produces 128 elementary nonnegativity goals.
+/-- Witness law is probability measure: under [the stated inputs and assumptions](hyp:eps,hlo,hhi), [the stated conclusion](goal) holds. -/
 lemma witnessLaw_isProbabilityMeasure (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8) :
     IsProbabilityMeasure (witnessLaw eps) := by
   have hw : ∀ (u : Fin 2) (t x z y0 y1 : Bool),
@@ -146,7 +156,7 @@ lemma witnessLaw_isProbabilityMeasure (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps �
 
 /-- Summing out the four Bernoulli nuisance coordinates leaves the prescribed latent-class and
 treatment masses.  This is the finite-factorization calculation used by the witness-validity
-proof for its class and arm marginals. -/
+proof for its class and arm marginals.        Under [the stated inputs and assumptions](hyp:eps,u,t), [the stated conclusion](goal) holds. -/
 -- @node: witnessWeight_sum_nuisance
 lemma witnessWeight_sum_nuisance (eps : ℝ) (u : Fin 2) (t : Bool) :
     ∑ x : Bool, ∑ z : Bool, ∑ y0 : Bool, ∑ y1 : Bool,
@@ -155,7 +165,7 @@ lemma witnessWeight_sum_nuisance (eps : ℝ) (u : Fin 2) (t : Bool) :
         bernoulliMass (if u.val = 0 then 2 / 5 else 3 / 5) t := by
   simp only [witnessWeight, sum_mul_bernoulliMass]
 
-/-- Restricted integrals under the finite witness law reduce to its explicit 128-point sum. -/
+/-- Restricted integrals under the finite witness law reduce to its explicit 128-point sum.     Under [the stated inputs and assumptions](hyp:eps,A,hA,f), [the stated conclusion](goal) holds. -/
 -- @node: integral_witnessLaw_restrict
 lemma integral_witnessLaw_restrict (eps : ℝ) (A : Set (FullData 2 2 2))
     [DecidablePred (· ∈ A)] (hA : MeasurableSet A)
@@ -177,7 +187,7 @@ lemma integral_witnessLaw_restrict (eps : ℝ) (A : Set (FullData 2 2 2))
   · intro i _
     exact (integrable_dirac (by simp)).smul_measure (by simp [c])
 
-/-- Event masses under the finite witness law reduce to its explicit 128-point sum. -/
+/-- Event masses under the finite witness law reduce to its explicit 128-point sum.     Under [the stated inputs and assumptions](hyp:eps,A,hA), [the stated conclusion](goal) holds. -/
 -- @node: witnessLaw_real
 lemma witnessLaw_real (eps : ℝ) (A : Set (FullData 2 2 2))
     [DecidablePred (· ∈ A)] (hA : MeasurableSet A) :
@@ -188,7 +198,7 @@ lemma witnessLaw_real (eps : ℝ) (A : Set (FullData 2 2 2))
   classical
   simpa using integral_witnessLaw_restrict eps A hA (fun _ => (1 : ℝ))
 
-/-- Conditional means under the witness law are ratios of two explicit 128-point sums. -/
+/-- Conditional means under the witness law are ratios of two explicit 128-point sums.     Under [the stated inputs and assumptions](hyp:eps,A,hA,f), [the stated conclusion](goal) holds. -/
 -- @node: conditionalMean_witnessLaw
 lemma conditionalMean_witnessLaw (eps : ℝ) (A : Set (FullData 2 2 2))
     [DecidablePred (· ∈ A)] (hA : MeasurableSet A)
@@ -203,6 +213,7 @@ lemma conditionalMean_witnessLaw (eps : ℝ) (A : Set (FullData 2 2 2))
   rw [conditionalMean, witnessLaw_real eps A hA, integral_witnessLaw_restrict eps A hA]
 
 -- @node: ass:local-quotient-neighborhood
+/-- For [the supplied parameters](hyp:P), [Local Quotient Neighborhood](goal) is given by [its defining clause](step:1). -/
 def LocalQuotientNeighborhood {n : ℕ} {cLoc : ℝ}
     (P : Measure (FullData 2 2 2)) [IsProbabilityMeasure P] : Prop :=
   letI : IsProbabilityMeasure (witnessLaw 0) :=
@@ -210,13 +221,14 @@ def LocalQuotientNeighborhood {n : ℕ} {cLoc : ℝ}
   InformationTheory.klDiv (obsLaw P) (obsLaw (witnessLaw 0)) ≤ ENNReal.ofReal (cLoc / n)
 
 -- @node: ass:local-weight-neighborhood
+/-- For [the supplied parameters](hyp:P), [Local Weight Neighborhood](goal) is given by [its defining clause](step:1). -/
 def LocalWeightNeighborhood {n : ℕ} {g cLoc : ℝ}
     (P : Measure (FullData 2 2 2)) [IsProbabilityMeasure P] : Prop :=
   let eps := g / 2
   InformationTheory.klDiv (obsLaw P)
     ((witnessLaw eps).map obsMap) ≤ ENNReal.ofReal (cLoc / n)
 
-/-- Local quotient-law KL experiment. @realizes \(\mathcal L_{n}^{\nu}\)(model KL neighborhood) -/
+/-- Local quotient-law KL experiment. @realizes \(\mathcal L_{n}^{\nu}\)(model KL neighborhood)     It uses [the supplied parameters](hyp:P). -/
 -- @node: def:local-quotient-experiment
 structure LocalQuotientExperiment {n : ℕ} {L pi0 sigma0 cLoc : ℝ}
     (P : Measure (FullData 2 2 2)) [IsProbabilityMeasure P] : Prop where
@@ -226,7 +238,7 @@ structure LocalQuotientExperiment {n : ℕ} {L pi0 sigma0 cLoc : ℝ}
   neighborhood : LocalQuotientNeighborhood (n := n) (cLoc := cLoc) P
 
 /-- Local separated labeled-weight experiment.
-    @realizes \(\mathcal L_{n,g}^{p}\)(gap model KL neighborhood) -/
+    @realizes \(\mathcal L_{n,g}^{p}\)(gap model KL neighborhood)        It uses [the supplied parameters](hyp:P). -/
 -- @node: def:local-weight-experiment
 structure LocalWeightExperiment {n : ℕ} {L pi0 sigma0 cLoc g : ℝ}
     (P : Measure (FullData 2 2 2)) [IsProbabilityMeasure P] : Prop where
@@ -235,49 +247,53 @@ structure LocalWeightExperiment {n : ℕ} {L pi0 sigma0 cLoc g : ℝ}
   cLoc_lt_one : cLoc < 1 -- @realizes \(c_{\mathrm{loc}}\)(local radius below one)
   neighborhood : LocalWeightNeighborhood (n := n) (g := g) (cLoc := cLoc) P
 
-/-- A complex spectral point of a real square compressed operator. -/
+/-- A complex spectral point of a real square compressed operator.     For [the supplied parameters](hyp:D,z), [the defined object](goal) is given by [its defining clause](step:1). -/
 def MatrixEigenvalue {k : ℕ} (D : RectMatrix k k) (z : ℂ) : Prop :=
   ∃ v : Fin k → ℂ, v ≠ 0 ∧
     ∀ i, ∑ j, (D i j : ℂ) * v j = z * v i
 
+/-- For [the supplied parameters](hyp:D,z,v), [Matrix Eigenvector](goal) is given by [its defining clause](step:1). -/
 def MatrixEigenvector {k : ℕ} (D : RectMatrix k k) (z : ℂ) (v : Fin k → ℂ) : Prop :=
   v ≠ 0 ∧ ∀ i, ∑ j, (D i j : ℂ) * v j = z * v i
 
+/-- For [the supplied parameters](hyp:D), [complexify Matrix](goal) is given by [its defining clause](step:1). -/
 def complexifyMatrix {k : ℕ} (D : RectMatrix k k) : Matrix (Fin k) (Fin k) ℂ :=
   fun i j => (D i j : ℂ)
 
 /-- A polynomial aggregate projector used by the separate structured-lattice algebra.  The
 constructive repair handle below deliberately does not use it: empirical clusters use Riesz
-contour projectors instead. -/
+contour projectors instead.        For [the supplied parameters](hyp:D,eigenvalue,i), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def polynomialAggregateProjector {k : ℕ} (D : RectMatrix k k)
     (eigenvalue : Fin k → ℝ) (i : Fin k) : RectMatrix k k :=
   (Finset.univ.filter (fun j => eigenvalue j ≠ eigenvalue i)).toList.foldl
     (fun E j => E * ((eigenvalue i - eigenvalue j)⁻¹ •
       (D - eigenvalue j • (1 : RectMatrix k k)))) 1
 
+/-- For [the supplied parameters](hyp:C), [aggregate Mass](goal) is given by [its defining clause](step:1). -/
 noncomputable def aggregateMass {k : ℕ} {radius : ℝ}
     (ν : AtomicLaw k radius) (C : Set ℂ) : ℝ := by
   classical
   exact ∑ i, if (ν.atom i : ℂ) ∈ C then ν.weight i else 0
 
+/-- For [the supplied parameters](hyp:m), [moment Discrepancy](goal) is given by [its defining clause](step:1). -/
 noncomputable def momentDiscrepancy {k : ℕ} {radius : ℝ}
     (m : Fin (2 * k) → ℝ) (ν : AtomicLaw k radius) : ℝ :=
   ∑ j, |m j - ∑ i, ν.weight i * ν.atom i ^ (j : ℕ)|
 
-/-- The identifying moment vector computed from a compressed operator and its summary anchors. -/
+/-- The identifying moment vector computed from a compressed operator and its summary anchors.     For [the supplied parameters](hyp:deltaQ,s,basis), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def summarySpectralMoments {k dx dz : ℕ}
     (deltaQ : RectMatrix k k) (s : SummarySpace dx dz) (basis : SignalBasis dx k) :
     Fin (2 * k) → ℝ := fun j =>
   ∑ a, leftAnchor s basis a *
     (∑ b, (deltaQ ^ (j : ℕ)) a b * rightAnchor basis b)
 
-/-- Full pairwise diameter of the effect cluster specified by the overlap relation. -/
+/-- Full pairwise diameter of the effect cluster specified by the overlap relation.     For [the supplied parameters](hyp:effect,sameCluster,i), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def effectClusterDiameter {k : ℕ} (effect : Fin k → ℝ)
     (sameCluster : Fin k → Fin k → Bool) (i : Fin k) : ℝ :=
   sSup {d : ℝ | ∃ u v, sameCluster i u = true ∧ sameCluster i v = true ∧
     d = |effect u - effect v|}
 
-/-- The compressed operator computed from the one empirical summary generated by `sample`. -/
+/-- The compressed operator computed from the one empirical summary generated by `sample`.     For [the supplied parameters](hyp:sample,basis), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def repairEmpiricalCompressedOperator {k dx dz n : ℕ} {pi0 sigma0 : ℝ}
     (sample : Fin n → Obs dx dz) (basis : SignalBasis dx k) : RectMatrix k k :=
   let sHat := empSummary sample
@@ -285,26 +301,26 @@ noncomputable def repairEmpiricalCompressedOperator {k dx dz n : ℕ} {pi0 sigma
   thresholdedPenroseInverse threshold (sHat.M1 * basis.V) * (sHat.N1 * basis.V) -
     thresholdedPenroseInverse threshold (sHat.M0 * basis.V) * (sHat.N0 * basis.V)
 
-/-- The complex resolvent appearing in the Kato/Riesz contour projector. -/
+/-- The complex resolvent appearing in the Kato/Riesz contour projector.     For [the supplied parameters](hyp:D,z), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def matrixResolvent {k : ℕ} (D : RectMatrix k k) (z : ℂ) :
     Matrix (Fin k) (Fin k) ℂ :=
   (z • (1 : Matrix (Fin k) (Fin k) ℂ) - complexifyMatrix D)⁻¹
 
 /-- The Kato/Riesz contour integral of the resolvent of a real empirical operator.  Contours are
 parametrized on `[0,1]`; certification that they close and avoid the spectrum is carried by
-`RepairHandle`. -/
+`RepairHandle`.        For [the supplied parameters](hyp:D,contour), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def rieszContourProjector {k : ℕ} (D : RectMatrix k k)
     (contour : ℝ → ℂ) : Matrix (Fin k) (Fin k) ℂ := fun a b =>
   (2 * Real.pi * Complex.I)⁻¹ *
     ∫ t in Set.Icc (0 : ℝ) 1, (matrixResolvent D (contour t)) a b * deriv contour t
 
-/-- The winding index used to tie the certified interior to its contour. -/
+/-- The winding index used to tie the certified interior to its contour.     For [the supplied parameters](hyp:contour,z), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def contourWindingIndex (contour : ℝ → ℂ) (z : ℂ) : ℂ :=
   (2 * Real.pi * Complex.I)⁻¹ *
     ∫ t in Set.Icc (0 : ℝ) 1, (contour t - z)⁻¹ * deriv contour t
 
 /-- One empirical-summary carrier generated from the observed product law of `P`.  Both its law
-and its summary are pinned, so neither can be chosen independently of the common DGP. -/
+and its summary are pinned, so neither can be chosen independently of the common DGP.        It uses [the supplied parameters](hyp:P). -/
 structure PGeneratedEmpiricalSummary {k dx dz n : ℕ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P] where
   carrierLaw : Measure (Fin n → Obs dx dz)
@@ -313,11 +329,20 @@ structure PGeneratedEmpiricalSummary {k dx dz n : ℕ}
   summary : SummarySpace dx dz
   summary_eq : summary = empSummary sample
 
-/-- Total empirical spectral mass carried by the eigenvalues enclosed by one cluster contour. -/
+/-- Total empirical spectral mass carried by the eigenvalues enclosed by one cluster contour.     For [the supplied parameters](hyp:location,mass,interior), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def enclosedSpectralMass {k : ℕ} (location : Fin k → ℂ)
     (mass : Fin k → ℝ) (interior : Set ℂ) : ℂ := by
   classical
   exact ∑ r, if location r ∈ interior then (mass r : ℂ) else 0
+
+/-- A positive finite-atomic law is a moment-cone projection of one specified moment vector when
+it is valid and minimizes the fixed finite-moment discrepancy among valid laws.  This relation is
+used only at the realized empirical summary; it does not choose projections for other inputs. -/
+def IsPositiveMomentConeProjection {k : ℕ} {radius : ℝ}
+    (m : Fin (2 * k) → ℝ) (projected : AtomicLaw k radius) : Prop :=
+  AtomicLaw.Valid projected ∧
+    ∀ candidate : AtomicLaw k radius, AtomicLaw.Valid candidate →
+      momentDiscrepancy m projected ≤ momentDiscrepancy m candidate
 
 /-- A cluster-level constructive repair certificate indexed by one data-generating probability
 law, its model witness, one sample from its observed product carrier, and the corresponding
@@ -325,8 +350,9 @@ population signal basis.  No population operator, target law, empirical summary,
 free: all clauses refer definitionally to this single package.
 
 The cluster projectors are Kato/Riesz projectors of the empirical compressed operator around the
-connected components of overlapping Bauer--Fike discs.  The last fields certify a genuine closest
-projection of its empirical spectral moments onto the positive finite-atomic moment cone. -/
+connected components of overlapping Bauer--Fike discs.  The last field certifies projection of
+this realized empirical spectral-moment vector onto the positive finite-atomic moment cone; it
+does not require a total selector on arbitrary moment vectors.        It uses [the supplied parameters](hyp:k,dx,dz,n,L,pi0,sigma0,P,hModel). -/
 structure RepairHandle (k dx dz n : ℕ) (L pi0 sigma0 : ℝ)
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
     (hModel : UCVMWModel (L := L) (pi0 := pi0) (sigma0 := sigma0) P)
@@ -427,30 +453,28 @@ structure RepairHandle (k dx dz n : ℕ) (L pi0 sigma0 : ℝ)
       sameCluster i u = true ∧
       empiricalSpectralLocation r ∈ enclosedEmpiricalSpectrum i ∧
       ‖empiricalSpectralLocation r - (latentEffect P u : ℂ)‖ ≤
-        effectClusterDiameter (latentEffect P) sameCluster i
-  momentConeProjector : (Fin (2 * k) → ℝ) → AtomicLaw k (effectRadius dz L sigma0)
-  momentConeProjector_valid : ∀ m, AtomicLaw.Valid (momentConeProjector m)
-  momentConeProjector_minimizes : ∀ m (ν : AtomicLaw k (effectRadius dz L sigma0)),
-    AtomicLaw.Valid ν →
-      momentDiscrepancy m (momentConeProjector m) ≤ momentDiscrepancy m ν
+        localizationRadius + effectClusterDiameter (latentEffect P) sameCluster i
   repairedLaw : AtomicLaw k (effectRadius dz L sigma0)
-  repairedLaw_eq : repairedLaw = momentConeProjector
+  repairedLaw_isProjection : IsPositiveMomentConeProjection
     (summarySpectralMoments
       (repairEmpiricalCompressedOperator (pi0 := pi0) (sigma0 := sigma0) data.sample basis)
-      data.summary basis)
-  repairedLaw_valid : AtomicLaw.Valid repairedLaw
+      data.summary basis) repairedLaw
 
+/-- For [the supplied parameters](hyp:h), [path Target Feature](goal) is given by [its defining clause](step:1). -/
 noncomputable def pathTargetFeature (h : ℝ) : RectMatrix 2 2 := fun i u =>
   if i.val = 0 then 1 else if u.val = 0 then 1 / 5 else (12 / 25 - h / 5) / (3 / 5 - h)
 
+/-- For [the supplied parameters](hyp:t), [path Arm Totals](goal) is given by [its defining clause](step:1). -/
 noncomputable def pathArmTotals (t : Bool) : Fin 2 → ℝ := fun j =>
   if j.val = 0 then (if t then 13 / 25 else 12 / 25)
   else if t then 8 / 25 else 6 / 25
 
+/-- For [the supplied parameters](hyp:t,h), [path Arm Weights](goal) is given by [its defining clause](step:1). -/
 noncomputable def pathArmWeights (t : Bool) (h : ℝ) : Fin 2 → ℝ := fun u =>
   ∑ j, pathArmTotals t j * ((pathTargetFeature h).transpose)⁻¹ j u
 
 -- @node: pathArmWeights_formula
+/-- Path arm weights formula: under [the stated inputs and assumptions](hyp:t,h,u,hh), [the stated conclusion](goal) holds. -/
 lemma pathArmWeights_formula (t : Bool) (h : ℝ) (u : Fin 2) (hh : |h| ≤ 1 / 100) :
     pathArmWeights t h u =
       if t then (if u.val = 0 then 4 / 25 + 3 * h / 5 else 9 / 25 - 3 * h / 5)
@@ -470,6 +494,7 @@ lemma pathArmWeights_formula (t : Bool) (h : ℝ) (u : Fin 2) (hh : |h| ≤ 1 / 
     field_simp [hne, hdet] <;> ring
 
 -- @node: pathTargetTransposeInverse_formula
+/-- Path target transpose inverse formula: under [the stated inputs and assumptions](hyp:h,hh), [the stated conclusion](goal) holds. -/
 lemma pathTargetTransposeInverse_formula (h : ℝ) (hh : |h| ≤ 1 / 100) :
     ((pathTargetFeature h).transpose)⁻¹ =
       !![4 / 3 - 5 * h / 9, 5 * h / 9 - 1 / 3;
@@ -489,19 +514,23 @@ lemma pathTargetTransposeInverse_formula (h : ℝ) (hh : |h| ≤ 1 / 100) :
       Matrix.adjugate_fin_two] <;>
     field_simp [hne, hdet] <;> ring
 
+/-- For [the supplied parameters](hyp:t), [base Reference Feature](goal) is given by [its defining clause](step:1). -/
 noncomputable def baseReferenceFeature (t : Bool) : RectMatrix 2 2 := fun i u =>
   if i.val = 0 then 1
   else if t then (if u.val = 0 then 7 / 20 else 3 / 4)
   else if u.val = 0 then 3 / 10 else 7 / 10
 
+/-- For [the supplied parameters](hyp:t), [path Joint Proxy Moment](goal) is given by [its defining clause](step:1). -/
 noncomputable def pathJointProxyMoment (t : Bool) : RectMatrix 2 2 :=
   baseReferenceFeature t * Matrix.diagonal (pathArmWeights t 0) * (pathTargetFeature 0).transpose
 
+/-- For [the supplied parameters](hyp:t,h), [path Reference Feature](goal) is given by [its defining clause](step:1). -/
 noncomputable def pathReferenceFeature (t : Bool) (h : ℝ) : RectMatrix 2 2 :=
   pathJointProxyMoment t * ((pathTargetFeature h).transpose)⁻¹ *
     (Matrix.diagonal (pathArmWeights t h))⁻¹
 
 -- @node: pathReferenceFeature_second_formula
+/-- Path reference feature second formula: under [the stated inputs and assumptions](hyp:t,h,u,hh), [the stated conclusion](goal) holds. -/
 lemma pathReferenceFeature_second_formula (t : Bool) (h : ℝ) (u : Fin 2)
     (hh : |h| ≤ 1 / 100) :
     pathReferenceFeature t h 1 u =
@@ -561,9 +590,11 @@ lemma pathReferenceFeature_second_formula (t : Bool) (h : ℝ) (u : Fin 2)
     field_simp [h4, h4', h3, h30p, h20p, h30m, h45m, hw0f, hw0t, hw1f, hw1t] <;>
     norm_num <;> try field_simp [h4'] <;> ring
 
+/-- For [the supplied parameters](hyp:u,t,x,z,y0,y1), [path Point](goal) is given by [its defining clause](step:1). -/
 def pathPoint (u : Fin 2) (t x z y0 y1 : Bool) : FullData 2 2 2 :=
   witnessPoint u t x z y0 y1
 
+/-- For [the supplied parameters](hyp:g,h,u,t,x,z,y0,y1), [path Weight](goal) is given by [its defining clause](step:1). -/
 noncomputable def pathWeight (g h : ℝ) (u : Fin 2) (t x z y0 y1 : Bool) : ℝ :=
   let pu := if u.val = 0 then 2 / 5 + h else 3 / 5 - h
   let pt := pathArmWeights true h u / pu
@@ -574,17 +605,18 @@ noncomputable def pathWeight (g h : ℝ) (u : Fin 2) (t x z y0 y1 : Bool) : ℝ 
   pu * bernoulliMass pt t * bernoulliMass px x * bernoulliMass pz z *
     bernoulliMass py0 y0 * bernoulliMass py1 y1
 
-/-- Exact domain of the generic tangent amplitude used by the labelled path. -/
+/-- Exact domain of the generic tangent amplitude used by the labelled path.     For [the supplied parameters](hyp:h), [the defined object](goal) is given by [its defining clause](step:1). -/
 def TangentAmplitudeDomain (h : ℝ) : Prop :=
   h ∈ Set.Icc (-1 : ℝ) 1 -- @realizes \(h\)(h in [-1,1])
 
 /-- The factorization-preserving Bernoulli path of equations (68)--(72).  Every theorem and
-certificate using its second argument carries `TangentAmplitudeDomain`. -/
+certificate using its second argument carries `TangentAmplitudeDomain`.        For [the supplied parameters](hyp:g,h), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def pathLaw (g h : ℝ) : Measure (FullData 2 2 2) :=
   ∑ u : Fin 2, ∑ t : Bool, ∑ x : Bool, ∑ z : Bool, ∑ y0 : Bool, ∑ y1 : Bool,
     ENNReal.ofReal (pathWeight g h u t x z y0 y1) •
       Measure.dirac (pathPoint u t x z y0 y1)
 
+/-- Path law is probability measure: under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hDomain,hh), [the stated conclusion](goal) holds. -/
 lemma pathLaw_isProbabilityMeasure (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hDomain : TangentAmplitudeDomain h) (hh : |h| ≤ 1 / 100) :
     IsProbabilityMeasure (pathLaw g h) := by
@@ -683,52 +715,50 @@ lemma pathLaw_isProbabilityMeasure (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 
       simp
       ring
 
-/-- One observed-cell mass along the explicit path.  It is defined directly from `pathLaw`, so the
-score below cannot float free of the statistical experiment. -/
-noncomputable def pathObservedCellMass (g h : ℝ) (o : Obs 2 2) : ℝ :=
-  (pathLaw g h).real (obsMap ⁻¹' ({o} : Set (Obs 2 2)))
-
-/-- The observed path score increment is the actual change of an observed-cell mass from the
-base path, hence is definitionally connected to `pathLaw`. -/
-noncomputable def pathObservedScore (g h : ℝ) (o : Obs 2 2) : ℝ :=
-  pathObservedCellMass g h o - pathObservedCellMass g 0 o
-
-/-- The four rational primitive coordinates changed by the factorization-preserving path. -/
-noncomputable def pathPrimitiveParameter (_g h : ℝ) : Fin 4 → ℝ := fun j =>
-  match j.val with
-  | 0 => pathTargetFeature h 1 1
-  | 1 => pathArmWeights false h 0
-  | 2 => pathArmWeights true h 0
-  | _ => pathReferenceFeature true h 1 0
-
-noncomputable def pathPrimitiveScore (g : ℝ) (j : Fin 4) : ℝ :=
-  deriv (fun h => pathPrimitiveParameter g h j) 0
-
-/-- The labelled-path component is tied definitionally to the Bernoulli law, its rational
-factorization primitives, and the derivative of observed cell masses.  The score cancellation is
-the genuine coordinatewise derivative of `Aₜ(h) diag(wₜ(h)) B(h)ᵀ = Jₜ`, rather than a scalar sum
-of unrelated primitive derivatives. -/
+/-- A labelled-path certificate for the explicit rational Bernoulli factorization used by the
+converse.  The first four equalities tie every supplied path component to `pathLaw` and its proxy
+and weight primitives, so the remaining factorization, displacement, and score fields cannot be
+realized by an unrelated family of full-data laws.  The coordinatewise derivative clause records
+the score-cancellation equations for `Aₜ(h) diag(wₜ(h)) B(h)ᵀ`. -/
 structure FactorizationPathHandle where
   path : ℝ → ℝ → Measure (FullData 2 2 2)
-  path_eq : path = pathLaw
-  primitiveParameter : ℝ → ℝ → Fin 4 → ℝ
-  primitiveParameter_eq : primitiveParameter = pathPrimitiveParameter
-  primitiveScore : ℝ → Fin 4 → ℝ
-  primitiveScore_eq : primitiveScore = pathPrimitiveScore
-  proxyMomentDerivativeCancellation : ∀ t i j,
-    deriv (fun h =>
-      (pathReferenceFeature t h * Matrix.diagonal (pathArmWeights t h) *
-        (pathTargetFeature h).transpose) i j) 0 = 0
-  observedScore : ℝ → ℝ → Obs 2 2 → ℝ
-  observedScore_eq : observedScore = pathObservedScore
-  observedScore_order : ∃ Cscore : ℝ, 0 < Cscore ∧ ∀ g h o,
-    TangentAmplitudeDomain h → |h| ≤ 1 / 100 →
-      |observedScore g h o| ≤ Cscore * |g * h|
-  proxyFactorization : ∀ g h, TangentAmplitudeDomain h →
+  referenceFeaturePath : Bool → ℝ → RectMatrix 2 2
+  targetFeaturePath : ℝ → RectMatrix 2 2
+  armWeightsPath : Bool → ℝ → Fin 2 → ℝ
+  path_eq_explicit : ∀ g h, path g h = pathLaw g h
+  referenceFeaturePath_eq_explicit : ∀ t h,
+    referenceFeaturePath t h = pathReferenceFeature t h
+  targetFeaturePath_eq_explicit : ∀ h, targetFeaturePath h = pathTargetFeature h
+  armWeightsPath_eq_explicit : ∀ t h, armWeightsPath t h = pathArmWeights t h
+  basePath : ∀ g, 0 ≤ g → g ≤ 1 / 4 → path g 0 = witnessLaw (g / 2)
+  pathFactorization : ∀ g h, TangentAmplitudeDomain h →
     0 ≤ g → g ≤ 1 / 4 → |h| ≤ 1 / 100 →
     ∃ hP : IsProbabilityMeasure (path g h),
       letI := hP
-      ReferenceProxySeparation (path g h) ∧ TargetProxySeparation (path g h)
+      ReferenceProxySeparation (path g h) ∧
+      TargetProxySeparation (path g h) ∧
+      ∀ t : Bool,
+        observedProxyMoment (obsSummary (path g h)) t =
+          referenceFeaturePath t h * Matrix.diagonal (armWeightsPath t h) *
+            (targetFeaturePath h).transpose
+  proxyMomentPreserved : ∀ t g h, TangentAmplitudeDomain h →
+    0 ≤ g → g ≤ 1 / 4 → |h| ≤ 1 / 100 →
+    referenceFeaturePath t h * Matrix.diagonal (armWeightsPath t h) *
+        (targetFeaturePath h).transpose =
+      referenceFeaturePath t 0 * Matrix.diagonal (armWeightsPath t 0) *
+        (targetFeaturePath 0).transpose
+  proxyMomentDerivativeCancellation : ∀ t i j,
+    deriv (fun h =>
+      (referenceFeaturePath t h * Matrix.diagonal (armWeightsPath t h) *
+        (targetFeaturePath h).transpose) i j) 0 = 0
+  observedScore : ℝ → ℝ → Obs 2 2 → ℝ
+  observedScore_eq : ∀ g h o,
+    observedScore g h o =
+      (path g h).real (obsMap ⁻¹' ({o} : Set (Obs 2 2))) -
+        (path g 0).real (obsMap ⁻¹' ({o} : Set (Obs 2 2)))
+  observedScore_order : ∃ Cscore : ℝ, 0 < Cscore ∧ ∀ g h o,
+    TangentAmplitudeDomain h → |h| ≤ 1 / 100 →
+      |observedScore g h o| ≤ Cscore * |g * h|
   weightDisplacement : ∀ g h, TangentAmplitudeDomain h →
     0 ≤ g → g ≤ 1 / 4 → |h| ≤ 1 / 100 →
     ∃ hP : IsProbabilityMeasure (path g h),
@@ -738,7 +768,7 @@ structure FactorizationPathHandle where
 /-- The open constructive object requested by the note.  It does not assert existence of a repair
 algorithm or prove a headline theorem: an inhabitant must supply both the empirical contour/moment
 certificate tied to `P` and `sample`, and the separate factorization-preserving labelled path
-certificate. -/
+certificate.        For [the supplied parameters](hyp:P,hModel,pi0,sigma0), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: def:constructive-repair-handle
 def repairHandle {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -747,10 +777,11 @@ def repairHandle {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (hBasis : basis.SpansSignal (obsSummary P)) : Type :=
   RepairHandle k dx dz n L pi0 sigma0 P hModel data basis hBasis × FactorizationPathHandle
 
-/-- Calibrated positive path displacement. @realizes \(h(n,g)\)(a min(1,(sqrt n g)^-1)) -/
+/-- Calibrated positive path displacement. @realizes \(h(n,g)\)(a min(1,(sqrt n g)^-1))     For [the supplied parameters](hyp:a,n,g), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def calibratedDisplacement (a : ℝ) (n : ℕ) (g : ℝ) : ℝ :=
   a * min 1 (Real.sqrt n * g)⁻¹
 
+/-- Calibrated displacement mem: under [the stated inputs and assumptions](hyp:a,n,g,ha,haMax,hn,hg), [the stated conclusion](goal) holds. -/
 lemma calibratedDisplacement_mem (a : ℝ) (n : ℕ) (g : ℝ)
     (ha : 0 < a) (haMax : a ≤ 1 / 8) (hn : 0 < n) (hg : 0 < g) :
     0 < calibratedDisplacement a n g ∧ calibratedDisplacement a n g ≤ a := by
@@ -761,7 +792,7 @@ lemma calibratedDisplacement_mem (a : ℝ) (n : ℕ) (g : ℝ)
     nlinarith [mul_le_mul_of_nonneg_left hmin (le_of_lt ha)]
   -- @realizes \(h(n,g)\)(positive and at most a)
 
-/-- Range of the universal local-experiment radius. -/
+/-- Range of the universal local-experiment radius.     For [the supplied parameters](hyp:cLoc), [the defined object](goal) is given by [its defining clause](step:1). -/
 def LocalRadiusDomain (cLoc : ℝ) : Prop :=
   0 < cLoc ∧ cLoc < 1 -- @realizes \(c_{\mathrm{loc}}\)(cLoc in (0,1))
 

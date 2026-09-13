@@ -17,7 +17,7 @@ open Causalean.Mathlib.Probability
 open MeasureTheory
 
 /-- The first `r` positive directions of the paper-local singular system, packaged for the
-neutral retained-SVD substrate. -/
+neutral retained-SVD substrate.        For [the supplied parameters](hyp:A,hrc,hpos), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def singularSystemRetainedSVD
     {rows cols r : ℕ} (A : RectMatrix rows cols) (hrc : r ≤ cols)
     (hpos : ∀ a : Fin r, 0 < (singularSystem A).sigma (Fin.castLE hrc a)) :
@@ -40,13 +40,14 @@ noncomputable def singularSystemRetainedSVD
     simpa using
       (singularSystem A).right_orthonormal (Fin.castLE hrc a) (Fin.castLE hrc b)
 
-/-- Matrix obtained by retaining exactly the singular directions at or above a threshold. -/
+/-- Matrix obtained by retaining exactly the singular directions at or above a threshold.     For [the supplied parameters](hyp:threshold,A), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def thresholdSingularTruncation {rows cols : ℕ} (threshold : ℝ)
     (A : RectMatrix rows cols) : RectMatrix rows cols :=
   fun i j => ∑ x, if threshold ≤ (singularSystem A).sigma x then
     (singularSystem A).sigma x * (singularSystem A).left x i *
       (singularSystem A).right x j else 0
 
+/-- Threshold singular truncation eq retained: under [the stated inputs and assumptions](hyp:rows,cols,r,threshold,A,hrc,hthreshold,hrec), [the stated conclusion](goal) holds. -/
 lemma thresholdSingularTruncation_eq_retained
     {rows cols r : ℕ} {threshold : ℝ} (A : RectMatrix rows cols)
     (hrc : r ≤ cols) (hthreshold : 0 < threshold)
@@ -82,7 +83,7 @@ lemma thresholdSingularTruncation_eq_retained
     simp_all only [mul_ite, mul_zero, Finset.sum_ite_eq', Finset.mem_univ,
       if_true, mul_eq_mul_right_iff]
 
-/-- An upper bound on every discarded singular coefficient controls the truncation error. -/
+/-- An upper bound on every discarded singular coefficient controls the truncation error.     Under [the stated inputs and assumptions](hyp:rows,cols,threshold,bound,A,hthreshold,hbound0,hdiscard), [the stated conclusion](goal) holds. -/
 lemma thresholdSingularTruncation_error_le_of_discardedBound
     {rows cols : ℕ} {threshold bound : ℝ} (A : RectMatrix rows cols)
     (hthreshold : 0 < threshold) (hbound0 : 0 ≤ bound)
@@ -196,7 +197,7 @@ lemma thresholdSingularTruncation_error_le_of_discardedBound
     (by simpa [mul_pow] using hsq)
 
 /-- Discarding singular directions below a positive threshold changes the matrix by at most
-the threshold in operator norm. -/
+the threshold in operator norm.        Under [the stated inputs and assumptions](hyp:rows,cols,threshold,A,hthreshold), [the stated conclusion](goal) holds. -/
 lemma thresholdSingularTruncation_error_le
     {rows cols : ℕ} {threshold : ℝ} (A : RectMatrix rows cols)
     (hthreshold : 0 < threshold) :
@@ -206,7 +207,7 @@ lemma thresholdSingularTruncation_error_le
   intro a ha
   exact le_of_lt (lt_of_not_ge ha)
 
-/-- Dimension recovery makes the thresholded singular truncation have exactly the target rank. -/
+/-- Dimension recovery makes the thresholded singular truncation have exactly the target rank.     Under [the stated inputs and assumptions](hyp:rows,cols,r,threshold,A,hrc,hthreshold,hrec), [the stated conclusion](goal) holds. -/
 lemma thresholdSingularTruncation_rank
     {rows cols r : ℕ} {threshold : ℝ} (A : RectMatrix rows cols)
     (hrc : r ≤ cols) (hthreshold : 0 < threshold)
@@ -216,7 +217,7 @@ lemma thresholdSingularTruncation_rank
   exact RetainedSVD.rank_matrix _
 
 -- keep: generic thresholded-SVD perturbation estimate for future finite-dimensional models
-/-- Truncation costs at most one cutoff radius in addition to the original perturbation. -/
+/-- Truncation costs at most one cutoff radius in addition to the original perturbation.     Under [the stated inputs and assumptions](hyp:rows,cols,threshold,e,A,M,hthreshold,hAM), [the stated conclusion](goal) holds. -/
 lemma thresholdSingularTruncation_sub_norm_le
     {rows cols : ℕ} {threshold e : ℝ} (A M : RectMatrix rows cols)
     (hthreshold : 0 < threshold) (hAM : ‖matrixCLM (A - M)‖ ≤ e) :
@@ -236,7 +237,7 @@ lemma thresholdSingularTruncation_sub_norm_le
     _ ≤ threshold + e := add_le_add
       (thresholdSingularTruncation_error_le A hthreshold) hAM
 
-/-- Weyl's inequality transfers a last-signal singular margin to a nearby empirical matrix. -/
+/-- Weyl's inequality transfers a last-signal singular margin to a nearby empirical matrix.     Under [the stated inputs and assumptions](hyp:rows,cols,r,s,e,A,M,hmargin,hAM), [the stated conclusion](goal) holds. -/
 lemma singularValue_lower_of_perturbation
     {rows cols r : ℕ} {s e : ℝ} (A M : RectMatrix rows cols)
     (hmargin : s ≤ singularValue M (r - 1))
@@ -249,7 +250,7 @@ lemma singularValue_lower_of_perturbation
   linarith
 
 /-- If the comparison matrix has rank `r` and recovery retains the first `r` directions, the
-discarded empirical tail is bounded by the original perturbation radius. -/
+discarded empirical tail is bounded by the original perturbation radius.        Under [the stated inputs and assumptions](hyp:rows,cols,r,threshold,e,A,M,hthreshold,hrec,hrank,hAM), [the stated conclusion](goal) holds. -/
 lemma thresholdSingularTruncation_error_le_of_rank_perturbation
     {rows cols r : ℕ} {threshold e : ℝ} (A M : RectMatrix rows cols)
     (hthreshold : 0 < threshold)
@@ -282,7 +283,7 @@ lemma thresholdSingularTruncation_error_le_of_rank_perturbation
   exact hw.trans hAM
 
 /-- Rank-aware truncation stays within twice the original perturbation radius of the rank-`r`
-comparison matrix. -/
+comparison matrix.        Under [the stated inputs and assumptions](hyp:rows,cols,r,threshold,e,A,M,hthreshold,hrec,hrank,hAM), [the stated conclusion](goal) holds. -/
 lemma thresholdSingularTruncation_sub_norm_le_two_mul
     {rows cols r : ℕ} {threshold e : ℝ} (A M : RectMatrix rows cols)
     (hthreshold : 0 < threshold)
@@ -304,7 +305,7 @@ lemma thresholdSingularTruncation_sub_norm_le_two_mul
     _ = 2 * e := by ring
 
 /-- Dimension recovery identifies the paper's thresholded reciprocal expansion with the
-neutral Moore--Penrose inverse of the retained rank-`r` SVD matrix. -/
+neutral Moore--Penrose inverse of the retained rank-`r` SVD matrix.        Under [the stated inputs and assumptions](hyp:rows,cols,r,threshold,A,hrc,hthreshold,hrec), [the stated conclusion](goal) holds. -/
 lemma thresholdedPenroseInverse_eq_retained_moorePenrose
     {rows cols r : ℕ} {threshold : ℝ} (A : RectMatrix rows cols)
     (hrc : r ≤ cols) (hthreshold : 0 < threshold)
@@ -348,7 +349,7 @@ lemma thresholdedPenroseInverse_eq_retained_moorePenrose
     ring
 
 /-- The thresholded reciprocal expansion inherits any lower bound on the last retained
-singular coefficient. -/
+singular coefficient.        Under [the stated inputs and assumptions](hyp:rows,cols,r,threshold,s,A,hrc,_hrpos,hthreshold,hrec,hs,hmargin), [the stated conclusion](goal) holds. -/
 lemma thresholdedPenroseInverse_norm_le_of_recovery
     {rows cols r : ℕ} {threshold s : ℝ} (A : RectMatrix rows cols)
     (hrc : r ≤ cols) (_hrpos : 0 < r) (hthreshold : 0 < threshold)
@@ -370,7 +371,7 @@ lemma thresholdedPenroseInverse_norm_le_of_recovery
       singularValue] using hanti)
 
 /-- One arm of the empirical thresholded product is stable with the constants used by the
-frozen structured-lattice modulus. -/
+frozen structured-lattice modulus.        Under [the stated inputs and assumptions](hyp:rows,cols,r,s0,L,eM,eN,A,M,N,N₀,hrc,hrpos,hs0,hL0,hsmall,hrec,hrank,hmargin,hN₀,hMdiff,hNdiff), [the stated conclusion](goal) holds. -/
 lemma thresholded_product_perturbation_le
     {rows cols r : ℕ} {s0 L eM eN : ℝ}
     (A M N N₀ : RectMatrix rows cols)
@@ -456,7 +457,7 @@ lemma thresholded_product_perturbation_le
       gcongr
     _ = 16 * L / s0 ^ 2 * eM + 4 / (3 * s0) * eN := by ring
 
-/-- The two empirical arms obey the exact operator coefficient used in the frozen theorem. -/
+/-- The two empirical arms obey the exact operator coefficient used in the frozen theorem.     Under [the stated inputs and assumptions](hyp:dx,dz,r,s0,L,s,p,hrc,hrpos,hs0,hL0,hsmall,hrec0,hrec1,hrank0,hrank1,hmargin0,hmargin1,hN0,hN1), [the stated conclusion](goal) holds. -/
 lemma empiricalCompressedOperator_sub_ambientEffectOperator_norm_le
     {dx dz r : ℕ} {s0 L : ℝ} (s p : SummarySpace dx dz)
     (hrc : r ≤ dx) (hrpos : 0 < r) (hs0 : 0 < s0) (hL0 : 0 ≤ L)
@@ -517,7 +518,7 @@ lemma empiricalCompressedOperator_sub_ambientEffectOperator_norm_le
       dsimp [e]
       ring
 
-/-- Each proxy-moment arm is dominated by the full summary distance. -/
+/-- Each proxy-moment arm is dominated by the full summary distance.     Under [the stated inputs and assumptions](hyp:dx,dz,s,p,t), [the stated conclusion](goal) holds. -/
 lemma observedProxyMoment_sub_norm_le_dS {dx dz : ℕ}
     (s p : SummarySpace dx dz) (t : Bool) :
     ‖matrixCLM (observedProxyMoment s t - observedProxyMoment p t)‖ ≤ dS s p := by
@@ -535,7 +536,7 @@ lemma observedProxyMoment_sub_norm_le_dS {dx dz : ℕ}
 
 -- keep: generic selector characterization for the thresholded Penrose-inverse API
 /-- Under the dimension-recovery certificate, the custom thresholded SVD retains exactly the
-first `k` singular directions. -/
+first `k` singular directions.        Under [the stated inputs and assumptions](hyp:rows,cols,k,threshold,A,hrec,r), [the stated conclusion](goal) holds. -/
 lemma thresholdedPenroseInverse_select_iff
     {rows cols k : ℕ} {threshold : ℝ} (A : RectMatrix rows cols)
     (hrec : ThresholdRecoversMatrixDimension k threshold A) (r : Fin cols) :
@@ -549,7 +550,7 @@ lemma thresholdedPenroseInverse_select_iff
 
 -- keep: generic rank-to-zero-singular-value bridge used by future truncation arguments
 /-- Every direction discarded after the recovered rank is genuinely a zero singular direction
-of the rank-`k` comparison matrix. -/
+of the rank-`k` comparison matrix.        Under [the stated inputs and assumptions](hyp:rows,cols,k,A,hrank,r,hr), [the stated conclusion](goal) holds. -/
 lemma singularSystem_sigma_eq_zero_of_rank
     {rows cols k : ℕ} (A : RectMatrix rows cols) (hrank : A.rank = k)
     (r : Fin cols) (hr : k ≤ (r : ℕ)) :
@@ -565,7 +566,7 @@ lemma singularSystem_sigma_eq_zero_of_rank
   exact hr
 
 /-- A rank-`r` comparison with margin `s0`, perturbed by less than `s0/4`, is recovered by
-thresholding at `s0/2`. -/
+thresholding at `s0/2`.        Under [the stated inputs and assumptions](hyp:rows,cols,r,s0,e,A,M,hrpos,hs0,hrank,hmargin,hAM,hsmall), [the stated conclusion](goal) holds. -/
 lemma thresholdRecoversMatrixDimension_of_rank_perturbation
     {rows cols r : ℕ} {s0 e : ℝ} (A M : RectMatrix rows cols)
     (hrpos : 0 < r) (hs0 : 0 < s0) (hrank : M.rank = r)
@@ -601,7 +602,7 @@ lemma thresholdRecoversMatrixDimension_of_rank_perturbation
     exact lt_of_le_of_lt (hw.trans hAM) (hsmall.trans (by linarith))
 
 /-- Model membership specializes the two-arm perturbation certificate, including deriving
-threshold recovery rather than assuming it. -/
+threshold recovery rather than assuming it.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,s,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax,hM,hsmall), [the stated conclusion](goal) holds. -/
 lemma empiricalCompressedOperator_model_norm_le
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : MeasureTheory.Measure (FullData k dx dz)) [MeasureTheory.IsProbabilityMeasure P]
@@ -640,7 +641,7 @@ lemma empiricalCompressedOperator_model_norm_le
   · exact (hb.1 false).2.2
   · exact (hb.1 true).2.2
 
-/-- Each latent-class conditional target-feature column retains the model's Euclidean envelope. -/
+/-- Each latent-class conditional target-feature column retains the model's Euclidean envelope.     Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hpi,hM), [the stated conclusion](goal) holds. -/
 lemma targetFeature_column_norm_le
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : MeasureTheory.Measure (FullData k dx dz)) [MeasureTheory.IsProbabilityMeasure P]
@@ -684,7 +685,7 @@ lemma targetFeature_column_norm_le
     _ = L := by simp
 
 /-- A matrix whose columns obey a common Euclidean envelope has the corresponding
-square-root-of-cardinality operator envelope. -/
+square-root-of-cardinality operator envelope.        Under [the stated inputs and assumptions](hyp:rows,cols,L,hL,A,hcol), [the stated conclusion](goal) holds. -/
 lemma matrixCLM_norm_le_sqrt_card_mul_of_column_norm_le
     {rows cols : ℕ} {L : ℝ} (hL : 0 ≤ L) (A : RectMatrix rows cols)
     (hcol : ∀ j, ‖(WithLp.toLp 2 (fun i => A i j) : Euc rows)‖ ≤ L) :
@@ -730,7 +731,7 @@ lemma matrixCLM_norm_le_sqrt_card_mul_of_column_norm_le
     _ = (Real.sqrt cols * L) * ‖x‖ := by ring
 
 /-- The coordinate factor has no larger operator norm than the original matrix because its
-left factor has orthonormal columns. -/
+left factor has orthonormal columns.        Under [the stated inputs and assumptions](hyp:dx,k,L,B,hpos,hL,hcol), [the stated conclusion](goal) holds. -/
 lemma thinSignalFactorization_coord_transpose_norm_le
     {dx k : ℕ} {L : ℝ} (B : RectMatrix dx k)
     (hpos : ∀ r : Fin k, 0 < (singularSystem B).sigma r)
@@ -769,7 +770,7 @@ lemma thinSignalFactorization_coord_transpose_norm_le
   exact hcoord
 
 /-- The transposed coordinate factor in the thin SVD inherits the certified lower singular
-margin of every retained direction. -/
+margin of every retained direction.        Under [the stated inputs and assumptions](hyp:dx,k,B,hk,s,hs,hpos,hsle), [the stated conclusion](goal) holds. -/
 lemma thinSignalFactorization_coord_transpose_signalMinSingular
     {dx k : ℕ} (B : RectMatrix dx k)
     (hk : 0 < k) {s : ℝ} (hs : 0 ≤ s)
@@ -816,7 +817,7 @@ lemma thinSignalFactorization_coord_transpose_signalMinSingular
     exact mul_le_mul_of_nonneg_right hsq (sq_nonneg _)
 
 /-- The model supplies one common latent tuple whose mean, anchor, and ambient effect operator
-have exactly the factorizations used by the structured lattice criterion. -/
+have exactly the factorizations used by the structured lattice criterion.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hL,hpi,hsigma,hM), [the stated conclusion](goal) holds. -/
 lemma population_structured_tuple_exists
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : MeasureTheory.Measure (FullData k dx dz)) [MeasureTheory.IsProbabilityMeasure P]
@@ -886,7 +887,7 @@ lemma population_structured_tuple_exists
   · exact hvalid.2.2
 
 /-- The exact population tuple admits a well-formed prescribed-grid comparator, retaining both
-its factorization identities and all four frozen rounding estimates. -/
+its factorization identities and all four frozen rounding estimates.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,P,hk,hkx,hL,hpi,hsigma,hM), [the stated conclusion](goal) holds. -/
 lemma population_structuredLatticeComparator_exists
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (P : MeasureTheory.Measure (FullData k dx dz)) [MeasureTheory.IsProbabilityMeasure P]
@@ -919,18 +920,23 @@ lemma population_structuredLatticeComparator_exists
   exact ⟨V, R, p, tau, theta, htheta, hm, hb, hD, hRmin, hRnorm, hp, hpSum,
     htau, hV, hR, hweight, heffect⟩
 
+/-- For [the supplied parameters](hyp:L,pi0,sigma0), [population Operator Coefficient](goal) is given by [its defining clause](step:1). -/
 noncomputable def populationOperatorCoefficient (L pi0 sigma0 : ℝ) : ℝ :=
   8 / (3 * (pi0 * sigma0 ^ 2)) + 32 * L / (pi0 * sigma0 ^ 2) ^ 2
 
+/-- For [the supplied parameters](hyp:k,dx), [structured Grid VConstant](goal) is given by [its defining clause](step:1). -/
 noncomputable def structuredGridVConstant (k dx : ℕ) : ℝ :=
   4 * Real.sqrt (dx * k)
 
+/-- For [the supplied parameters](hyp:k,dx,L), [structured Grid Mean Coefficient](goal) is given by [its defining clause](step:1). -/
 noncomputable def structuredGridMeanCoefficient (k dx : ℕ) (L : ℝ) : ℝ :=
   2 * Real.sqrt k * L * structuredGridVConstant k dx + k + k * L
 
+/-- For [the supplied parameters](hyp:k,dx,L), [structured Grid Anchor Coefficient](goal) is given by [its defining clause](step:1). -/
 noncomputable def structuredGridAnchorCoefficient (k dx : ℕ) (L : ℝ) : ℝ :=
   k + 2 * Real.sqrt k * L * structuredGridVConstant k dx
 
+/-- For [the supplied parameters](hyp:k,dx,dz,L,sigma0), [structured Grid Operator Coefficient](goal) is given by [its defining clause](step:1). -/
 noncomputable def structuredGridOperatorCoefficient
     (k dx dz : ℕ) (L sigma0 : ℝ) : ℝ :=
   let Ltau := effectRadius dz L sigma0
@@ -939,13 +945,14 @@ noncomputable def structuredGridOperatorCoefficient
     4 * k * Real.sqrt k * L * Ltau / sigma0 ^ 2 +
     2 * Real.sqrt k * L / sigma0 + k * Ltau / sigma0
 
+/-- For [the supplied parameters](hyp:k,dx,dz,L,sigma0), [structured Grid Criterion Coefficient](goal) is given by [its defining clause](step:1). -/
 noncomputable def structuredGridCriterionCoefficient
     (k dx dz : ℕ) (L sigma0 : ℝ) : ℝ :=
   structuredGridOperatorCoefficient k dx dz L sigma0 +
     structuredGridMeanCoefficient k dx L + structuredGridAnchorCoefficient k dx L
 
 /-- Model-specialized oracle inequality for the selected structured-lattice point, with the
-population perturbation and grid approximation contributions kept additively separate. -/
+population perturbation and grid approximation contributions kept additively separate.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,P,A,hA,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax,hM,hsmall), [the stated conclusion](goal) holds. -/
 lemma selected_structuredLatticeCriterion_model_le
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (P : MeasureTheory.Measure (FullData k dx dz)) [MeasureTheory.IsProbabilityMeasure P]
@@ -1127,14 +1134,14 @@ lemma selected_structuredLatticeCriterion_model_le
   linarith
 
 /-- The single frozen path coefficient used to dominate all three selected population
-residuals after adding the empirical-to-population bridge. -/
+residuals after adding the empirical-to-population bridge.        For [the supplied parameters](hyp:k,dx,dz,L,pi0,sigma0), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def structuredLatticePathCoefficient
     (k dx dz : ℕ) (L pi0 sigma0 : ℝ) : ℝ :=
   2 * (populationOperatorCoefficient L pi0 sigma0 + 1) +
     structuredGridCriterionCoefficient k dx dz L sigma0
 
 /-- The selected grid point obeys the common paper-local path envelope against the population
-operator, population mean, and exact population anchor. -/
+operator, population mean, and exact population anchor.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,P,A,hA,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax,hM,hsmall), [the stated conclusion](goal) holds. -/
 lemma selected_structuredLattice_population_residuals_le
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (P : MeasureTheory.Measure (FullData k dx dz)) [MeasureTheory.IsProbabilityMeasure P]
@@ -1276,7 +1283,7 @@ lemma selected_structuredLattice_population_residuals_le
   · simpa [B, e, q, s, p0] using hb.trans (hcrit'.trans hbenv)
 
 -- keep: reusable population mean-residual adapter for alternate structured comparators
-/-- The population mean factorization leaves only the mean block of the summary distance. -/
+/-- The population mean factorization leaves only the mean block of the summary distance.     Under [the stated inputs and assumptions](hyp:k,dx,dz,s,s0,V,R,p,hm), [the stated conclusion](goal) holds. -/
 lemma population_mean_residual_le_dS
     {k dx dz : ℕ} (s s0 : SummarySpace dx dz)
     (V : SignalBasis dx k) (R : RectMatrix k k) (p : Fin k → ℝ)
@@ -1296,7 +1303,7 @@ lemma population_mean_residual_le_dS
     _ ≤ dS s s0 := hblock
 
 -- keep: reusable exact-anchor-to-zero-residual adapter for structured lattice comparators
-/-- Criterion-coordinate form of the exact population anchor residual. -/
+/-- Criterion-coordinate form of the exact population anchor residual.     Under [the stated inputs and assumptions](hyp:k,dx,V,R,hanchor), [the stated conclusion](goal) holds. -/
 lemma population_anchor_residual_eq_zero
     {k dx : ℕ} (V : SignalBasis dx k) (R : RectMatrix k k)
     (hanchor : Matrix.mulVec (R * V.V.transpose) (firstBasis dx) =

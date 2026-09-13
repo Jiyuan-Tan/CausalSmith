@@ -1,6 +1,7 @@
 import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.Concentration
 import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.LatticeEstimator
 import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.NetLibraryCertificates
+import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.NetLibraryExistence
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 
@@ -8,7 +9,7 @@ open MeasureTheory
 
 /-- The advised class-dependent finite library is total and Borel, has the displayed polynomial
 size, and obeys the deterministic gap-free modulus bound.  Its spectral output and operation count
-come from the same result-bearing exact-real primitive execution. -/
+come from the same result-bearing exact-real primitive execution.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax), [the stated conclusion](goal) holds. -/
 -- @node: thm:polynomial-net-law-estimator
 theorem finite_net_law_estimator
     (k dx dz : ℕ) (L pi0 sigma0 : ℝ)
@@ -19,8 +20,8 @@ theorem finite_net_law_estimator
       0 < Cmod ∧ -- @realizes \(C_{\mathrm{mod}}\)(positive finite-net modulus constant)
       0 < C ∧ -- @realizes \(C\)(positive finite-net complexity and tail constant)
       ∀ n : ℕ, 1 ≤ n →
+    ∃ A : NetLibrary k dx dz n L pi0 sigma0,
     ∀ primitives : ExactRealPrimitives,
-    ∀ A : NetLibrary k dx dz n L pi0 sigma0,
     Measurable (netLawEstimator (n := n) primitives A) ∧
     ((@Fintype.card A.index A.finiteIndex : ℕ) : ℝ) ≤
       C * Real.rpow (n : ℝ) ((4 * dz * dx + dx : ℝ) / 2) ∧
@@ -91,7 +92,13 @@ theorem finite_net_law_estimator
   have hC : 0 < C := hCtail.trans_le
     ((le_max_right Cwork Ctail).trans (le_max_right Ccard (max Cwork Ctail)))
   refine ⟨Cmod, C, hCmod, hC, ?_⟩
-  intro n hn primitives A
+  intro n hn
+  have hA : Nonempty (NetLibrary k dx dz n L pi0 sigma0) := by
+    exact netLibrary_nonempty k dx dz n L pi0 sigma0 hk hkx hkz hL hpi hpiMax
+      hsigma hsigmaMax hn
+  obtain ⟨A⟩ := hA
+  refine ⟨A, ?_⟩
+  intro primitives
   have hCcardLe : Ccard ≤ C := le_max_left _ _
   have hCworkLe : Cwork ≤ C :=
     (le_max_left _ _).trans (le_max_right _ _)

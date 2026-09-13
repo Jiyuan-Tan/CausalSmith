@@ -11,7 +11,7 @@ open MeasureTheory Set
 
 noncomputable section
 
-/-- The coordinates actually stored in a summary (excluding the two empirical arm counts). -/
+/-- For [the proxy and outcome dimensions](hyp:dx,dz), [the finite coordinate type for a stored summary](goal) enumerates its four matrix blocks and its target-feature mean coordinates. -/
 inductive NetSummaryCoord (dx dz : ℕ)
   | M0 (i : Fin dz) (j : Fin dx)
   | M1 (i : Fin dz) (j : Fin dx)
@@ -20,6 +20,13 @@ inductive NetSummaryCoord (dx dz : ℕ)
   | mean (j : Fin dx)
   deriving Fintype, DecidableEq
 
+/-- For [the proxy and outcome dimensions](hyp:dx,dz), [summary coordinates form a finite type](goal). -/
+add_decl_doc instFintypeNetSummaryCoord
+
+/-- For [the proxy and outcome dimensions](hyp:dx,dz), [equality of summary coordinates is decidable](goal). -/
+add_decl_doc instDecidableEqNetSummaryCoord
+
+/-- For [the supplied parameters](hyp:s,hyp,h), [net Summary Coord](goal) is given by [its defining clause](step:1). -/
 def netSummaryCoord {dx dz : ℕ} (s : SummarySpace dx dz) : NetSummaryCoord dx dz → ℝ
   | .M0 i j => s.M0 i j
   | .M1 i j => s.M1 i j
@@ -27,6 +34,7 @@ def netSummaryCoord {dx dz : ℕ} (s : SummarySpace dx dz) : NetSummaryCoord dx 
   | .N1 i j => s.N1 i j
   | .mean j => s.mX j
 
+/-- Net summary coord ext: under [the stated inputs and assumptions](hyp:dx,dz,s,q,h), [the stated conclusion](goal) holds. -/
 lemma netSummaryCoord_ext {dx dz : ℕ} {s q : SummarySpace dx dz}
     (h : ∀ c, netSummaryCoord s c = netSummaryCoord q c) : s = q := by
   cases s
@@ -38,6 +46,7 @@ lemma netSummaryCoord_ext {dx dz : ℕ} {s q : SummarySpace dx dz}
   · ext i j; exact h (.N1 i j)
   · funext j; exact h (.mean j)
 
+/-- Net summary coord card: under [the stated inputs and assumptions](hyp:dx,dz), [the stated conclusion](goal) holds. -/
 lemma netSummaryCoord_card (dx dz : ℕ) :
     Fintype.card (NetSummaryCoord dx dz) = 4 * dz * dx + dx := by
   rw [Fintype.card_congr (NetSummaryCoord.proxyTypeEquiv dx dz).symm]
@@ -191,7 +200,7 @@ private lemma NetLibrary.gridCode_injective
     _ = ((A.gridInteger j c).toNat : ℤ) := congrArg Int.ofNat hc
     _ = A.gridInteger j c := Int.toNat_of_nonneg hj
 
-/-- The half-open grid certificate bounds every advised library by a fixed polynomial in `n`. -/
+/-- The half-open grid certificate bounds every advised library by a fixed polynomial in `n`.     Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,hk,hkx,hkz,hL), [the stated conclusion](goal) holds. -/
 theorem netLibrary_card_polynomial_bound
     (k dx dz : ℕ) (L pi0 sigma0 : ℝ)
     (hk : 2 ≤ k) (hkx : k ≤ dx) (hkz : k ≤ dz) (hL : 1 ≤ L) :
@@ -255,7 +264,7 @@ theorem netLibrary_card_polynomial_bound
         simp [m]
 
 /-- Every signal basis at a model summary supplies latent-effect diagonal coordinates and the
-corresponding left/right anchor coordinates. -/
+corresponding left/right anchor coordinates.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,Q,V,hV), [the stated conclusion](goal) holds. -/
 theorem modelCompressedCoordinates_exists
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (Q : ModelLaw k dx dz L pi0 sigma0) (V : SignalBasis dx k)
@@ -424,7 +433,7 @@ theorem modelCompressedCoordinates_exists
   exact ⟨D, rfl, hleft, hright⟩
 
 /-- Any valid complete projector enumeration gives the same extensional law as the positive
-diagonal-coordinate law, even when eigenvalues collide and the list contains dummy slots. -/
+diagonal-coordinate law, even when eigenvalues collide and the list contains dummy slots.        Under [the stated inputs and assumptions](hyp:k,radius,A,D,mass,value,left,right,hmasspos,htrue,hcomplete,hleft,hright,hout), [the stated conclusion](goal) holds. -/
 theorem complete_projectorLaw_eq
     {k : ℕ} {radius : ℝ} {A : RectMatrix k k}
     (D : CausalSmith.Substrate.CollisionSafeSpectralLaw.RealDiagonalization A)
@@ -554,7 +563,7 @@ private theorem exactRealSpectralRun_eq_quotient_of_model
   simpa [run, RepresentativeSpectralData.effectLaw, quotientLaw, quotientLawRaw, hEig] using heq
 
 /-- An arbitrary result-bearing primitive run at a feasible summary denotes its model quotient
-law; no canonical choice of signal basis or root enumeration is assumed. -/
+law; no canonical choice of signal basis or root enumeration is assumed.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,primitives,s,hs), [the stated conclusion](goal) holds. -/
 theorem exactRealSpectralRun_eq_quotient
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (primitives : ExactRealPrimitives) (s : SummarySpace dx dz)
@@ -571,7 +580,7 @@ theorem exactRealSpectralRun_eq_quotient
     (exactRealSpectralRun_eq_quotient_of_model primitives Q hsQ)
 
 /-- The exhaustive finite fold is Borel measurable, and hence so is the law returned by the
-result-bearing program. -/
+result-bearing program.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,primitives,A), [the stated conclusion](goal) holds. -/
 theorem netLawEstimator_measurable
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (primitives : ExactRealPrimitives) (A : NetLibrary k dx dz n L pi0 sigma0) :
@@ -643,13 +652,14 @@ private lemma netTraceCost_total_aux (trace : List NetPrimitiveOperation)
       cases op <;> simp [NetOperationCount.add, NetOperationCount.total,
         NetPrimitiveOperation.cost] <;> omega
 
+/-- Net trace cost total eq length: under [the stated inputs and assumptions](hyp:trace), [the stated conclusion](goal) holds. -/
 lemma netTraceCost_total_eq_length (trace : List NetPrimitiveOperation) :
     (netTraceCost trace).total = trace.length := by
   simpa [netTraceCost, NetOperationCount.total] using
     netTraceCost_total_aux trace ⟨0, 0, 0, 0⟩
 
 /-- Exact trace accounting bounds the program work by the summary scan, the exhaustive library
-scan, and the fixed five-operation spectral tail. -/
+scan, and the fixed five-operation spectral tail.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,primitives,A,sample), [the stated conclusion](goal) holds. -/
 lemma netOperationCount_le
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (primitives : ExactRealPrimitives) (A : NetLibrary k dx dz n L pi0 sigma0)
@@ -682,7 +692,7 @@ lemma netOperationCount_le
     simp
 
 /-- The exact trace accounting and the grid-cardinality certificate combine into the displayed
-polynomial work bound with one class-dependent positive constant. -/
+polynomial work bound with one class-dependent positive constant.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,hk,hkx,hkz,hL), [the stated conclusion](goal) holds. -/
 theorem netOperationCount_polynomial_bound
     (k dx dz : ℕ) (L pi0 sigma0 : ℝ)
     (hk : 2 ≤ k) (hkx : k ≤ dx) (hkz : k ≤ dz) (hL : 1 ≤ L) :
@@ -738,6 +748,7 @@ theorem netOperationCount_polynomial_bound
         (mul_le_mul_of_nonneg_right htail hr0)
     _ = Cwork * ((n : ℝ) + r) := by ring
 
+/-- Net program selected eq nearest: under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,primitives,A,sample), [the stated conclusion](goal) holds. -/
 lemma netProgram_selected_eq_nearest
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (primitives : ExactRealPrimitives) (A : NetLibrary k dx dz n L pi0 sigma0)
@@ -749,7 +760,7 @@ lemma netProgram_selected_eq_nearest
 
 /-- A rank-`r` comparison with last signal singular value at least `s0` remains exactly
 `r`-dimensional after thresholding at `s0 / 2` under any perturbation strictly below that
-threshold. -/
+threshold.        Under [the stated inputs and assumptions](hyp:rows,cols,r,s0,e,A,M,hrpos,hs0,hrank,hmargin,hAM,hsmall), [the stated conclusion](goal) holds. -/
 lemma thresholdRecoversMatrixDimension_of_rank_perturbation_half
     {rows cols r : ℕ} {s0 e : ℝ} (A M : RectMatrix rows cols)
     (hrpos : 0 < r) (hs0 : 0 < s0) (hrank : M.rank = r)
@@ -785,7 +796,7 @@ lemma thresholdRecoversMatrixDimension_of_rank_perturbation_half
     exact lt_of_le_of_lt (hw.trans hAM) hsmall
 
 /-- The quantitative model rank certificate gives the perturbation clause required by every
-stored representative summary. -/
+stored representative summary.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,Q,H,hH), [the stated conclusion](goal) holds. -/
 lemma modelSummary_thresholdRecovers_of_perturbation
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (Q : ModelLaw k dx dz L pi0 sigma0) (H : RectMatrix (2 * dz) dx)
@@ -828,7 +839,7 @@ private lemma nearestLibraryIndex_exists_of_model
   | cons i is => exact ⟨is.foldl (A.betterIndex s) i, rfl⟩
 
 /-- Nearest-library selection plus the gap-free model modulus gives the deterministic advised
-estimator bound. -/
+estimator bound.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,Cmod,primitives,A,hCmod,hmodel,P,hP,hM,sample), [the stated conclusion](goal) holds. -/
 theorem netEstimator_wass1_le
     {k dx dz n : ℕ} {L pi0 sigma0 Cmod : ℝ}
     (primitives : ExactRealPrimitives) (A : NetLibrary k dx dz n L pi0 sigma0)

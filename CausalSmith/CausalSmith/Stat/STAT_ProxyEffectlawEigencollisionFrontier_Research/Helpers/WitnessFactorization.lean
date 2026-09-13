@@ -10,6 +10,7 @@ open MeasureTheory Set
 noncomputable section
 
 -- @node: witness_sum_restrict_latentCell
+/-- Witness sum restrict latent cell: under [the stated inputs and assumptions](hyp:eps,u,t,dA,F), [the stated conclusion](goal) holds. -/
 lemma witness_sum_restrict_latentCell (eps : ℝ) (u : Fin 2) (t : Bool)
     [dA : DecidablePred (· ∈ latentCell u t)] (F : FullData 2 2 2 → ℝ) :
     (∑ v : Fin 2, ∑ s : Bool, ∑ x : Bool, ∑ z : Bool, ∑ y0 : Bool, ∑ y1 : Bool,
@@ -39,6 +40,7 @@ lemma witness_sum_restrict_latentCell (eps : ℝ) (u : Fin 2) (t : Bool)
   · simp
 
 -- @node: conditionalMean_witness_latentCell
+/-- Conditional mean witness latent cell: under [the stated inputs and assumptions](hyp:eps,hlo,hhi,u,t,F), [the stated conclusion](goal) holds. -/
 lemma conditionalMean_witness_latentCell (eps : ℝ) (hlo : 0 ≤ eps)
     (hhi : eps ≤ 1 / 8) (u : Fin 2) (t : Bool) (F : FullData 2 2 2 → ℝ) :
     conditionalMean (witnessLaw eps) (latentCell u t) F =
@@ -54,6 +56,7 @@ lemma conditionalMean_witness_latentCell (eps : ℝ) (hlo : 0 ≤ eps)
   simp
 
 -- @node: witness_sum_restrict_latentClass
+/-- Witness sum restrict latent class: under [the stated inputs and assumptions](hyp:eps,u,dA,F), [the stated conclusion](goal) holds. -/
 lemma witness_sum_restrict_latentClass (eps : ℝ) (u : Fin 2)
     [dA : DecidablePred (· ∈ latentClass u)] (F : FullData 2 2 2 → ℝ) :
     (∑ v : Fin 2, ∑ t : Bool, ∑ x : Bool, ∑ z : Bool, ∑ y0 : Bool, ∑ y1 : Bool,
@@ -76,6 +79,7 @@ lemma witness_sum_restrict_latentClass (eps : ℝ) (u : Fin 2)
   · simp
 
 -- @node: conditionalMean_witness_latentClass
+/-- Conditional mean witness latent class: under [the stated inputs and assumptions](hyp:eps,hlo,hhi,u,F), [the stated conclusion](goal) holds. -/
 lemma conditionalMean_witness_latentClass (eps : ℝ) (hlo : 0 ≤ eps)
     (hhi : eps ≤ 1 / 8) (u : Fin 2) (F : FullData 2 2 2 → ℝ) :
     conditionalMean (witnessLaw eps) (latentClass u) F =
@@ -91,6 +95,7 @@ lemma conditionalMean_witness_latentClass (eps : ℝ) (hlo : 0 ≤ eps)
   simp
 
 -- @node: witness_referenceProxySeparation
+/-- Witness reference proxy separation: under [the stated inputs and assumptions](hyp:eps,hlo,hhi), [the stated conclusion](goal) holds. -/
 lemma witness_referenceProxySeparation (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8) :
     ReferenceProxySeparation (witnessLaw eps) := by
   intro u t f q _hf _hq _hfb _hqb
@@ -102,6 +107,7 @@ lemma witness_referenceProxySeparation (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps 
       [witnessWeight, witnessPoint, boolReal, bernoulliMass] <;> ring
 
 -- @node: witness_targetProxySeparation
+/-- Witness target proxy separation: under [the stated inputs and assumptions](hyp:eps,hlo,hhi), [the stated conclusion](goal) holds. -/
 lemma witness_targetProxySeparation (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8) :
     TargetProxySeparation (witnessLaw eps) := by
   intro u f q _hf _hq _hfb _hqb
@@ -113,6 +119,7 @@ lemma witness_targetProxySeparation (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤
       [witnessWeight, witnessPoint, boolReal, bernoulliMass] <;> ring
 
 -- @node: witness_armwiseLatentIgnorability
+/-- Witness armwise latent ignorability: under [the stated inputs and assumptions](hyp:eps,hlo,hhi), [the stated conclusion](goal) holds. -/
 lemma witness_armwiseLatentIgnorability (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8) :
     ArmwiseLatentIgnorability (witnessLaw eps) := by
   intro u t f q _hf _hq _hfb _hqb

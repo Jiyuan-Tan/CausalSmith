@@ -6,7 +6,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open MeasureTheory
 
 /-- Uniform labeled-coordinate upper bound on the gap stratum; inverse-gap behavior is confined
-to ordered labels. -/
+to ordered labels.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax), [the stated conclusion](goal) holds. -/
 -- @node: thm:labeled-weight-upper
 theorem labeled_weight_upper
     (k dx dz : ℕ) (L pi0 sigma0 : ℝ)
@@ -87,7 +87,7 @@ theorem labeled_weight_upper
     have hthreshold : Ctail * Real.sqrt (Real.log (Ctail / eta) / (n : ℝ)) ≤
         A * Real.sqrt (Real.log (A / eta) / (n : ℝ)) :=
       mul_le_mul hCA hsqrt (Real.sqrt_nonneg _) hApos.le
-    refine (measureReal_mono (μ := sampleLaw (n := n) P) ?_).trans hprob
+    refine (measureReal_mono (μ := sampleLaw (n := n) P) ?_).trans hprob.1
     intro sample hs
     exact lt_of_le_of_lt hthreshold (lt_of_lt_of_le hs (le_max_right _ _))
   have hmean : (∫ sample, Z sample ∂sampleLaw (n := n) P) ≤ B / Real.sqrt n := by

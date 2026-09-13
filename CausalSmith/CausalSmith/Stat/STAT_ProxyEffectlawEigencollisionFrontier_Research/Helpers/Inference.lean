@@ -7,7 +7,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open scoped BigOperators ENNReal
 open Set
 
-/-- Both confidence-set constructions at a fixed sample. -/
+/-- Both confidence-set constructions at a fixed sample.     It uses [the supplied parameters](hyp:k,dx,dz,n,radius). -/
 structure ConfidenceSetData (k dx dz n : ℕ) (radius : ℝ) where
   Ctheory : Set (AtomicLaw.LawModulo k radius)
     -- @realizes \(\mathcal C_{n,\alpha}\)(theoretical image set)
@@ -21,7 +21,7 @@ structure ConfidenceSetData (k dx dz n : ℕ) (radius : ℝ) where
   Ralpha : ℝ -- @realizes \(R_{n,\alpha}\)(lattice confidence radius)
   Ralpha_pos : 0 < Ralpha
 
-/-- The retained sharp summary-inversion image, independent of the computable outer set. -/
+/-- The retained sharp summary-inversion image, independent of the computable outer set.     For [the supplied parameters](hyp:R,sample,alpha,C0), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def theoreticalConfidenceSet {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (R : SummaryRepairData k dx dz n L pi0 sigma0)
     (sample : Fin n → Obs dx dz) (alpha C0 : ℝ) :
@@ -32,6 +32,7 @@ noncomputable def theoreticalConfidenceSet {k dx dz n : ℕ} {L pi0 sigma0 : ℝ
   else {ν | ∃ q : {q // q ∈ summaryClosure k dx dz L pi0 sigma0},
     dS q.1 (R.Pi (empSummary sample)) ≤ 2 * r ∧ ν = R.Fbar q}
 
+/-- Confidence radius pos: under [the stated inputs and assumptions](hyp:n,alpha,C0,L,Clat,hn,halpha,halphaHalf,hC0,hL,hClat), [the stated conclusion](goal) holds. -/
 lemma confidenceRadius_pos {n : ℕ} {alpha C0 L Clat : ℝ}
     (hn : 0 < n) (halpha : 0 < alpha) (halphaHalf : alpha < 1 / 2)
     (hC0 : 1 ≤ C0) (hL : 1 ≤ L) (hClat : 0 < Clat) :
@@ -39,7 +40,7 @@ lemma confidenceRadius_pos {n : ℕ} {alpha C0 L Clat : ℝ}
   positivity [summaryRadius_pos n alpha C0 L hn halpha halphaHalf hC0 hL]
 
 /-- The original summary-inversion image and the separate computable Wasserstein outer set.
-    @realizes \(\xi\)(candidate law in Calg) -/
+    @realizes \(\xi\)(candidate law in Calg)        For [the supplied parameters](hyp:R,A,_hA,pi0,sigma0), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: def:wasserstein-confidence-set
 noncomputable def confidenceSets {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (R : SummaryRepairData k dx dz n L pi0 sigma0)
@@ -64,7 +65,7 @@ noncomputable def confidenceSets {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     Ralpha := Rα
     Ralpha_pos := confidenceRadius_pos hn halpha halphaHalf hC0 hL hClat }
 
-/-- The finite transport-plan constraint representation of the computable outer set. -/
+/-- The finite transport-plan constraint representation of the computable outer set.     For [the supplied parameters](hyp:CS,center), [the defined object](goal) is given by [its defining clause](step:1). -/
 def CalgHasConstrainedRepresentation {k dx dz n : ℕ} {radius : ℝ}
     (CS : ConfidenceSetData k dx dz n radius)
     (center : AtomicLaw.LawModulo k radius) : Prop :=
@@ -73,6 +74,7 @@ def CalgHasConstrainedRepresentation {k dx dz n : ℕ} {radius : ℝ}
       AtomicLaw.transportCost γ ≤ CS.Ralpha
 
 -- @node: confidenceSets_constrainedRepresentation
+/-- Confidence sets constrained representation: under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,R,A,hA,hn,halpha,halphaHalf,hC0,hL,hpi,hpiMax,hClat), [the stated conclusion](goal) holds. -/
 lemma confidenceSets_constrainedRepresentation {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (R : SummaryRepairData k dx dz n L pi0 sigma0)
     (A : LatticeEstimator k dx dz n (effectRadius dz L sigma0))
@@ -94,28 +96,34 @@ lemma confidenceSets_constrainedRepresentation {k dx dz n : ℕ} {L pi0 sigma0 :
   · rintro ⟨hfloor, γ, hγ⟩
     exact ⟨hfloor, le_trans (AtomicLaw.wass1_le_of_plan γ) hγ⟩
 
+/-- For [the supplied parameters](hyp:x,y), [linked](goal) is given by [its defining clause](step:1). -/
 def linked {k : ℕ} {radius rho : ℝ} (ν : AtomicLaw k radius) (x y : ℝ) : Prop :=
   x ∈ ν.support ∧ y ∈ ν.support ∧ |x - y| ≤ 4 * rho
 
+/-- For [the supplied parameters](hyp:x), [component Of](goal) is given by [its defining clause](step:1). -/
 noncomputable def componentOf {k : ℕ} {radius rho : ℝ}
     (ν : AtomicLaw k radius) (x : ℝ) : Finset ℝ := by
   classical
   exact ν.support.filter fun y => Relation.ReflTransGen (linked (rho := rho) ν) x y
 
+/-- For the ambient setting, [components](goal) is given by [its defining clause](step:1). -/
 noncomputable def components {k : ℕ} {radius rho : ℝ}
     (ν : AtomicLaw k radius) : Finset (Finset ℝ) :=
   ν.support.image (componentOf (rho := rho) ν)
 
+/-- For [the supplied parameters](hyp:rho,C), [cluster Mass](goal) is given by [its defining clause](step:1). -/
 noncomputable def clusterMass {k : ℕ} {radius : ℝ} (rho : ℝ)
     (ν : AtomicLaw k radius) (C : Finset ℝ) : ℝ :=
   ∑ i, if AtomicLaw.distToFinset (ν.atom i) C ≤ rho then ν.weight i else 0
 
 -- @node: associatedSupport
+/-- For [the supplied parameters](hyp:C), [associated Support](goal) is given by [its defining clause](step:1). -/
 noncomputable def associatedSupport {k : ℕ} {radius rho : ℝ}
     (ν : AtomicLaw k radius) (C : Finset ℝ) : Finset ℝ :=
   ν.support.filter fun x => AtomicLaw.distToFinset x C ≤ rho
 
 -- @node: clusterExternalGap
+/-- For [the supplied parameters](hyp:C), [cluster External Gap](goal) is given by [its defining clause](step:1). -/
 noncomputable def clusterExternalGap {k : ℕ} {radius rho : ℝ}
     (ν : AtomicLaw k radius) (C : Finset ℝ) : EReal :=
   if (ν.support \ associatedSupport (rho := rho) ν C).Nonempty then
@@ -124,7 +132,7 @@ noncomputable def clusterExternalGap {k : ℕ} {radius rho : ℝ}
   else ⊤
 
 /-- Feasible objective values in the ordered-support/weight/transport representation of one
-cluster-mass endpoint. -/
+cluster-mass endpoint.        For [the supplied parameters](hyp:CS,center,rho,C,m), [the defined object](goal) is given by [its defining clause](step:1). -/
 def ClusterEndpointFeasible {k dx dz n : ℕ} {radius : ℝ}
     (CS : ConfidenceSetData k dx dz n radius) (center : AtomicLaw.LawModulo k radius)
     (rho : ℝ) (C : Finset ℝ) (m : ℝ) : Prop :=
@@ -134,6 +142,7 @@ def ClusterEndpointFeasible {k dx dz n : ℕ} {radius : ℝ}
       AtomicLaw.transportCost γ ≤ CS.Ralpha) ∧
     m = clusterMass rho ν.representative.1 C
 
+/-- Cluster endpoint extrema of representation: under [the stated inputs and assumptions](hyp:k,dx,dz,n,radius,rho,CS,center,hrep,C), [the stated conclusion](goal) holds. -/
 lemma clusterEndpoint_extrema_of_representation {k dx dz n : ℕ} {radius rho : ℝ}
     (CS : ConfidenceSetData k dx dz n radius) (center : AtomicLaw.LawModulo k radius)
     (hrep : CalgHasConstrainedRepresentation CS center) (C : Finset ℝ) :
@@ -149,7 +158,7 @@ lemma clusterEndpoint_extrema_of_representation {k dx dz n : ℕ} {radius rho : 
     · rintro ⟨ν, hf, hp, rfl⟩
       exact ⟨ν, (hrep ν).mpr ⟨hf, hp⟩, rfl⟩
 
-/-- One cluster report at a fixed sample. -/
+/-- One cluster report at a fixed sample.     It uses [the supplied parameters](hyp:k,dx,dz,n,radius). -/
 structure ClusterReportData (k dx dz n : ℕ) (radius : ℝ) where
   EP : SummarySpace dx dz → Set (Fin n → Obs dx dz)
     -- @realizes \(E_P\)(summary concentration event as a function of S(P))
@@ -166,10 +175,13 @@ structure ClusterReportData (k dx dz n : ℕ) (radius : ℝ) where
   massInterval_program : ∀ C,
     massInterval C = (sInf {m | endpointFeasible C m}, sSup {m | endpointFeasible C m})
   externalGap : AtomicLaw k radius → Finset ℝ → EReal -- @realizes \(\Delta_C(P)\)(external gap)
+  externalGap_eq : ∀ ν C, externalGap ν C = clusterExternalGap (rho := rho) ν C
+    -- @realizes \(\Delta_C(P)\)(defining infimum; top when complement empty)
   externalGap_range : ∀ ν, AtomicLaw.Valid ν → ∀ C, externalGap ν C = ⊤ ∨
     (0 : EReal) ≤ externalGap ν C ∧ externalGap ν C ≤ (2 * radius : ℝ)
 
 -- @node: clusterReport_side_conditions
+/-- Cluster report side conditions: under [the stated inputs and assumptions](hyp:k,radius,rho,hradius,hrho,Calg), [the stated conclusion](goal) holds. -/
 lemma clusterReport_side_conditions {k : ℕ} {radius rho : ℝ}
     (hradius : 0 ≤ radius) (hrho : 0 < rho)
     (Calg : Set (AtomicLaw.LawModulo k radius)) :
@@ -265,7 +277,7 @@ lemma clusterReport_side_conditions {k : ℕ} {radius rho : ℝ}
       rw [if_neg (by simpa [A] using hcomp)]
 
 /-- Computable cluster-adaptive report.
-    @realizes \(\mathfrak R_{n,\alpha}\)(support and mass report) -/
+    @realizes \(\mathfrak R_{n,\alpha}\)(support and mass report)        For [the supplied parameters](hyp:R,A,hA,pi0,sigma0), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: def:cluster-report
 noncomputable def clusterReport {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (R : SummaryRepairData k dx dz n L pi0 sigma0)
@@ -298,6 +310,7 @@ noncomputable def clusterReport {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
       (confidenceSets_constrainedRepresentation R A hA sample alpha C0 Clat hn halpha
         halphaHalf hC0 hL hpi hpiMax hClat) C
     externalGap := fun ν C => clusterExternalGap (rho := rho) ν C
+    externalGap_eq := fun ν C => rfl
     externalGap_range := (clusterReport_side_conditions R.radius_nonneg
       (div_pos CS.Ralpha_pos CS.mStar_pos) CS.Calg).2 }
 

@@ -5,6 +5,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 /-! A concrete metric on finite-dimensional summary coordinates and comparison with `dS`. -/
 
 -- @node: summaryMetric_toCoordinates_injective
+/-- To coordinates injective: under [the stated inputs and assumptions](hyp:dx,dz), [the stated conclusion](goal) holds. -/
 lemma SummarySpace.toCoordinates_injective {dx dz : ℕ} :
     Function.Injective (@SummarySpace.toCoordinates dx dz) := by
   intro p q h
@@ -13,12 +14,14 @@ lemma SummarySpace.toCoordinates_injective {dx dz : ℕ} :
   simp only [SummarySpace.toCoordinates] at h
   simp_all
 
+/-- For [target- and reference-proxy dimensions](hyp:dx,dz), [metric summary coordinates](goal) are the Euclidean representation of the four moment matrices and target-proxy mean. -/
 -- @node: summaryMetric_coordinates
 abbrev SummaryMetricCoordinates (dx dz : ℕ) :=
   EuclideanSpace ℝ (Fin dz × Fin dx) × EuclideanSpace ℝ (Fin dz × Fin dx) ×
     EuclideanSpace ℝ (Fin dz × Fin dx) × EuclideanSpace ℝ (Fin dz × Fin dx) × Euc dx
 
 -- @node: summaryMetric_toMetricCoordinates
+/-- For [the supplied parameters](hyp:s), [to Metric Coordinates](goal) is given by [its defining clause](step:1). -/
 noncomputable def SummarySpace.toMetricCoordinates {dx dz : ℕ} (s : SummarySpace dx dz) :
     SummaryMetricCoordinates dx dz :=
   (WithLp.toLp 2 (fun ij => s.M0 ij.1 ij.2),
@@ -27,6 +30,7 @@ noncomputable def SummarySpace.toMetricCoordinates {dx dz : ℕ} (s : SummarySpa
     WithLp.toLp 2 (fun ij => s.N1 ij.1 ij.2), WithLp.toLp 2 s.mX)
 
 -- @node: summaryMetric_toMetricCoordinates_injective
+/-- To metric coordinates injective: under [the stated inputs and assumptions](hyp:dx,dz), [the stated conclusion](goal) holds. -/
 lemma SummarySpace.toMetricCoordinates_injective {dx dz : ℕ} :
     Function.Injective (@SummarySpace.toMetricCoordinates dx dz) := by
   intro p q h
@@ -46,6 +50,7 @@ lemma SummarySpace.toMetricCoordinates_injective {dx dz : ℕ} :
   · exact congrArg WithLp.ofLp h4
 
 -- @node: summaryMetric_fromMetricCoordinates
+/-- For [the supplied parameters](hyp:c), [from Metric Coordinates](goal) is given by [its defining clause](step:1). -/
 noncomputable def fromMetricCoordinates {dx dz : ℕ} (c : SummaryMetricCoordinates dx dz) :
     SummaryCoordinates dx dz :=
   ((fun i j => c.1.ofLp (i, j)), (fun i j => c.2.1.ofLp (i, j)),
@@ -53,6 +58,7 @@ noncomputable def fromMetricCoordinates {dx dz : ℕ} (c : SummaryMetricCoordina
     c.2.2.2.2.ofLp)
 
 -- @node: summaryMetric_toMetricCoordinates_continuous
+/-- To metric coordinates continuous: under [the stated inputs and assumptions](hyp:dx,dz), [the stated conclusion](goal) holds. -/
 lemma SummarySpace.toMetricCoordinates_continuous {dx dz : ℕ} :
     Continuous (@SummarySpace.toMetricCoordinates dx dz) := by
   unfold SummarySpace.toMetricCoordinates
@@ -72,17 +78,20 @@ lemma SummarySpace.toMetricCoordinates_continuous {dx dz : ℕ} :
   fun_prop
 
 -- @node: summaryMetric_fromMetricCoordinates_continuous
+/-- From metric coordinates continuous: under [the stated inputs and assumptions](hyp:dx,dz), [the stated conclusion](goal) holds. -/
 lemma fromMetricCoordinates_continuous {dx dz : ℕ} :
     Continuous (@fromMetricCoordinates dx dz) := by
   unfold fromMetricCoordinates
   fun_prop
 
 -- @node: summaryMetric_from_toMetricCoordinates
+/-- From to metric coordinates: under [the stated inputs and assumptions](hyp:dx,dz,s), [the stated conclusion](goal) holds. -/
 lemma from_toMetricCoordinates {dx dz : ℕ} (s : SummarySpace dx dz) :
     fromMetricCoordinates s.toMetricCoordinates = s.toCoordinates := by
   rfl
 
 -- @node: summaryMetric_metricSpace
+/-- For the ambient setting, [summary Metric Space](goal) is given by [its defining clause](step:1). -/
 noncomputable instance summaryMetricSpace {dx dz : ℕ} : MetricSpace (SummarySpace dx dz) :=
   let m := MetricSpace.induced SummarySpace.toMetricCoordinates
     SummarySpace.toMetricCoordinates_injective inferInstance
@@ -112,6 +121,7 @@ noncomputable instance summaryMetricSpace {dx dz : ℕ} : MetricSpace (SummarySp
         exact from_toMetricCoordinates s
       exact hc)
 
+/-- For [any observable summary](hyp:p), [its summary distance from itself is zero](goal). -/
 -- @node: summaryMetric_dS_self
 @[simp] lemma dS_self {dx dz : ℕ} (p : SummarySpace dx dz) : dS p p = 0 := by
   unfold dS
@@ -121,6 +131,7 @@ noncomputable instance summaryMetricSpace {dx dz : ℕ} : MetricSpace (SummarySp
   simp [hz]
 
 -- @node: summaryMetric_dS_le_dist
+/-- D s le dist mul: under [the stated inputs and assumptions](hyp:dx,dz,p,q), [the stated conclusion](goal) holds. -/
 lemma dS_le_dist_mul {dx dz : ℕ} (p q : SummarySpace dx dz) :
     dS p q ≤ (4 * entryNormConstant dz dx + dx) * dist p q := by
   have hcomp0 : ‖WithLp.toLp 2 (fun ij : Fin dz × Fin dx =>

@@ -5,6 +5,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open Set
 
 -- @node: cluster_support_nonempty
+/-- Cluster support nonempty: under [the stated inputs and assumptions](hyp:k,radius,hν), [the stated conclusion](goal) holds. -/
 lemma cluster_support_nonempty {k : ℕ} {radius : ℝ} {ν : AtomicLaw k radius}
     (hν : AtomicLaw.Valid ν) : ν.support.Nonempty := by
   by_contra he
@@ -21,6 +22,7 @@ lemma cluster_support_nonempty {k : ℕ} {radius : ℝ} {ν : AtomicLaw k radius
   linarith [hν.2.1]
 
 -- @node: cluster_support_eq_of_measureEquivalent
+/-- Cluster support eq of measure equivalent: under [the stated inputs and assumptions](hyp:k,radius,h), [the stated conclusion](goal) holds. -/
 lemma cluster_support_eq_of_measureEquivalent {k : ℕ} {radius : ℝ}
     (ν ξ : AtomicLaw.ProbabilityLaw k radius)
     (h : ν.MeasureEquivalent ξ) : ν.1.support = ξ.1.support := by
@@ -43,6 +45,7 @@ lemma cluster_support_eq_of_measureEquivalent {k : ℕ} {radius : ℝ}
   exact ⟨fun hx => oneSide ν ξ h hx, fun hx => oneSide ξ ν h.symm hx⟩
 
 -- @node: cluster_distToFinset_attained
+/-- Cluster dist to finset attained: under [the stated inputs and assumptions](hyp:x,C,hC), [the stated conclusion](goal) holds. -/
 lemma cluster_distToFinset_attained (x : ℝ) {C : Finset ℝ} (hC : C.Nonempty) :
     ∃ y ∈ C, AtomicLaw.distToFinset x C = |x - y| := by
   let S : Set ℝ := {d | ∃ y ∈ C, d = |x - y|}
@@ -59,6 +62,7 @@ lemma cluster_distToFinset_attained (x : ℝ) {C : Finset ℝ} (hC : C.Nonempty)
   simpa [AtomicLaw.distToFinset, S] using hm
 
 -- @node: cluster_distToFinset_nonneg
+/-- Cluster dist to finset nonneg: under [the stated inputs and assumptions](hyp:x,C,hC), [the stated conclusion](goal) holds. -/
 lemma cluster_distToFinset_nonneg (x : ℝ) {C : Finset ℝ} (hC : C.Nonempty) :
     0 ≤ AtomicLaw.distToFinset x C := by
   obtain ⟨y, hy, hxy⟩ := cluster_distToFinset_attained x hC
@@ -66,6 +70,7 @@ lemma cluster_distToFinset_nonneg (x : ℝ) {C : Finset ℝ} (hC : C.Nonempty) :
   exact abs_nonneg _
 
 -- @node: cluster_distToFinset_le_of_mem
+/-- Cluster dist to finset le of mem: under [the stated inputs and assumptions](hyp:x,C,y,hy), [the stated conclusion](goal) holds. -/
 lemma cluster_distToFinset_le_of_mem (x : ℝ) {C : Finset ℝ} {y : ℝ} (hy : y ∈ C) :
     AtomicLaw.distToFinset x C ≤ |x - y| := by
   unfold AtomicLaw.distToFinset
@@ -74,17 +79,20 @@ lemma cluster_distToFinset_le_of_mem (x : ℝ) {C : Finset ℝ} {y : ℝ} (hy : 
   · exact ⟨y, hy, rfl⟩
 
 -- @node: cluster_linked_symmetric
+/-- Cluster linked symmetric: under [the stated inputs and assumptions](hyp:k,radius,rho), [the stated conclusion](goal) holds. -/
 lemma cluster_linked_symmetric {k : ℕ} {radius rho : ℝ} (ν : AtomicLaw k radius) :
     Symmetric (linked (rho := rho) ν) := by
   intro x y hxy
   exact ⟨hxy.2.1, hxy.1, by simpa [abs_sub_comm] using hxy.2.2⟩
 
 -- @node: cluster_componentOf_mem_self
+/-- Cluster component of mem self: under [the stated inputs and assumptions](hyp:k,radius,rho,x,hx), [the stated conclusion](goal) holds. -/
 lemma cluster_componentOf_mem_self {k : ℕ} {radius rho : ℝ} {ν : AtomicLaw k radius}
     {x : ℝ} (hx : x ∈ ν.support) : x ∈ componentOf (rho := rho) ν x := by
   simp [componentOf, hx, Relation.ReflTransGen.refl]
 
 -- @node: cluster_componentOf_subset_support
+/-- Cluster component of subset support: under [the stated inputs and assumptions](hyp:k,radius,rho,x), [the stated conclusion](goal) holds. -/
 lemma cluster_componentOf_subset_support {k : ℕ} {radius rho : ℝ}
     (ν : AtomicLaw k radius) (x : ℝ) : componentOf (rho := rho) ν x ⊆ ν.support := by
   classical
@@ -92,6 +100,7 @@ lemma cluster_componentOf_subset_support {k : ℕ} {radius rho : ℝ}
   exact (Finset.mem_filter.mp (by simpa [componentOf] using hy)).1
 
 -- @node: cluster_componentOf_eq_of_connected
+/-- Cluster component of eq of connected: under [the stated inputs and assumptions](hyp:k,radius,rho,x,y,hxy), [the stated conclusion](goal) holds. -/
 lemma cluster_componentOf_eq_of_connected {k : ℕ} {radius rho : ℝ}
     {ν : AtomicLaw k radius} {x y : ℝ}
     (hxy : Relation.ReflTransGen (linked (rho := rho) ν) x y) :
@@ -107,12 +116,14 @@ lemma cluster_componentOf_eq_of_connected {k : ℕ} {radius rho : ℝ}
     exact ⟨hz, hxy.trans hyz⟩
 
 -- @node: cluster_componentOf_eq_of_linked
+/-- Cluster component of eq of linked: under [the stated inputs and assumptions](hyp:k,radius,rho,x,y,hxy), [the stated conclusion](goal) holds. -/
 lemma cluster_componentOf_eq_of_linked {k : ℕ} {radius rho : ℝ}
     {ν : AtomicLaw k radius} {x y : ℝ} (hxy : linked (rho := rho) ν x y) :
     componentOf (rho := rho) ν x = componentOf (rho := rho) ν y :=
   cluster_componentOf_eq_of_connected (Relation.ReflTransGen.single hxy)
 
 -- @node: cluster_component_eq_componentOf_of_mem
+/-- Cluster component eq component of of mem: under [the stated inputs and assumptions](hyp:k,radius,rho,C,hC,hx), [the stated conclusion](goal) holds. -/
 lemma cluster_component_eq_componentOf_of_mem {k : ℕ} {radius rho : ℝ}
     {ν : AtomicLaw k radius} {C : Finset ℝ} (hC : C ∈ components (rho := rho) ν)
     {x : ℝ} (hx : x ∈ C) : C = componentOf (rho := rho) ν x := by
@@ -124,6 +135,7 @@ lemma cluster_component_eq_componentOf_of_mem {k : ℕ} {radius rho : ℝ}
   exact hCy.symm.trans (cluster_componentOf_eq_of_connected hyx)
 
 -- @node: cluster_components_partition_support
+/-- Cluster components partition support: under [the stated inputs and assumptions](hyp:k,radius,rho), [the stated conclusion](goal) holds. -/
 lemma cluster_components_partition_support {k : ℕ} {radius rho : ℝ}
     (ν : AtomicLaw k radius) :
     ∀ x, x ∈ ν.support ↔ ∃! C, C ∈ components (rho := rho) ν ∧ x ∈ C := by
@@ -148,6 +160,7 @@ lemma cluster_components_partition_support {k : ℕ} {radius rho : ℝ}
     exact hxC
 
 -- @node: cluster_association_partition
+/-- Cluster association partition: under [the stated inputs and assumptions](hyp:k,radius,rho,hcenter,hν,hrho,hclose), [the stated conclusion](goal) holds. -/
 lemma cluster_association_partition {k : ℕ} {radius rho : ℝ}
     {center ν : AtomicLaw k radius} (hcenter : AtomicLaw.Valid center)
     (hν : AtomicLaw.Valid ν) (hrho : 0 ≤ rho)
@@ -193,6 +206,7 @@ lemma cluster_association_partition {k : ℕ} {radius rho : ℝ}
     exact (Finset.mem_filter.mp hx).1
 
 -- @node: cluster_extrema_contain_and_width
+/-- Cluster extrema contain and width: under [the stated inputs and assumptions](hyp:S,m,B,hm,hB,hbound), [the stated conclusion](goal) holds. -/
 lemma cluster_extrema_contain_and_width {S : Set ℝ} {m B : ℝ}
     (hm : m ∈ S) (hB : 0 ≤ B) (hbound : ∀ x ∈ S, |x - m| ≤ B) :
     sInf S ≤ m ∧ m ≤ sSup S ∧ sSup S - sInf S ≤ 2 * B := by
@@ -220,6 +234,7 @@ lemma cluster_extrema_contain_and_width {S : Set ℝ} {m B : ℝ}
   linarith
 
 -- @node: cluster_externalGap_le_cross
+/-- Cluster external gap le cross: under [the stated inputs and assumptions](hyp:k,radius,rho,C,hgapTop,hx,hy,hyout), [the stated conclusion](goal) holds. -/
 lemma cluster_externalGap_le_cross {k : ℕ} {radius rho : ℝ}
     {ν : AtomicLaw k radius} {C : Finset ℝ}
     (hgapTop : clusterExternalGap (rho := rho) ν C ≠ ⊤)
@@ -245,6 +260,7 @@ lemma cluster_externalGap_le_cross {k : ℕ} {radius rho : ℝ}
   · simp
 
 -- @node: cluster_externalGap_nonneg
+/-- Cluster external gap nonneg: under [the stated inputs and assumptions](hyp:k,radius,rho,C), [the stated conclusion](goal) holds. -/
 lemma cluster_externalGap_nonneg {k : ℕ} {radius rho : ℝ}
     (ν : AtomicLaw k radius) (C : Finset ℝ) :
     (0 : EReal) ≤ clusterExternalGap (rho := rho) ν C := by
@@ -257,6 +273,7 @@ lemma cluster_externalGap_nonneg {k : ℕ} {radius rho : ℝ}
   · exact le_top
 
 -- @node: cluster_externalGap_toReal_pos
+/-- Cluster external gap to real pos: under [the stated inputs and assumptions](hyp:k,radius,rho,C,hA,htop), [the stated conclusion](goal) holds. -/
 lemma cluster_externalGap_toReal_pos {k : ℕ} {radius rho : ℝ}
     {ν : AtomicLaw k radius} {C : Finset ℝ}
     (hA : (associatedSupport (rho := rho) ν C).Nonempty)

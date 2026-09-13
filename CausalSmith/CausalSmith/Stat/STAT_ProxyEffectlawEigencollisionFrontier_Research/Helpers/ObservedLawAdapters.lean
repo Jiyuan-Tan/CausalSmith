@@ -10,33 +10,33 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open scoped BigOperators ENNReal
 open MeasureTheory Set
 
-/-- The full-data treatment coordinate is measurable. -/
+/-- The full-data treatment coordinate is measurable.     Under [the stated inputs and assumptions](hyp:k,dx,dz), [the stated conclusion](goal) holds. -/
 -- @node: measurable_fullData_T
 lemma measurable_fullData_T {k dx dz : ℕ} :
     Measurable (fun w : FullData k dx dz => w.T) := by
   change Measurable (fun w : FullData k dx dz => (FullData.toCoordinates w).2.1)
   exact continuous_induced_dom.measurable.snd.fst
 
-/-- The full-data latent coordinate is measurable. -/
+/-- The full-data latent coordinate is measurable.     Under [the stated inputs and assumptions](hyp:k,dx,dz), [the stated conclusion](goal) holds. -/
 -- @node: measurable_fullData_U
 lemma measurable_fullData_U {k dx dz : ℕ} :
     Measurable (fun w : FullData k dx dz => w.U) := by
   change Measurable (fun w : FullData k dx dz => (FullData.toCoordinates w).1)
   exact continuous_induced_dom.measurable.fst
 
-/-- The observed treatment coordinate is measurable. -/
+/-- The observed treatment coordinate is measurable.     Under [the stated inputs and assumptions](hyp:dx,dz), [the stated conclusion](goal) holds. -/
 -- @node: measurable_obs_T
 lemma measurable_obs_T {dx dz : ℕ} : Measurable (fun o : Obs dx dz => o.T) := by
   change Measurable (fun o : Obs dx dz => (Obs.toCoordinates o).1)
   exact continuous_induced_dom.measurable.fst
 
-/-- A latent class is a measurable full-data event. -/
+/-- A latent class is a measurable full-data event.     Under [the stated inputs and assumptions](hyp:k,dx,dz,u), [the stated conclusion](goal) holds. -/
 -- @node: measurableSet_latentClass
 lemma measurableSet_latentClass {k dx dz : ℕ} (u : Fin k) :
     MeasurableSet (latentClass (dx := dx) (dz := dz) u) := by
   exact measurable_fullData_U (measurableSet_singleton u)
 
-/-- A latent-treatment cell is a measurable full-data event. -/
+/-- A latent-treatment cell is a measurable full-data event.     Under [the stated inputs and assumptions](hyp:k,dx,dz,u,t), [the stated conclusion](goal) holds. -/
 -- @node: measurableSet_latentCell
 lemma measurableSet_latentCell {k dx dz : ℕ} (u : Fin k) (t : Bool) :
     MeasurableSet (latentCell (dx := dx) (dz := dz) u t) := by
@@ -44,19 +44,19 @@ lemma measurableSet_latentCell {k dx dz : ℕ} (u : Fin k) (t : Bool) :
   exact (measurable_fullData_U (measurableSet_singleton u)).inter
     (measurable_fullData_T (measurableSet_singleton t))
 
-/-- A treatment arm is a measurable full-data event. -/
+/-- A treatment arm is a measurable full-data event.     Under [the stated inputs and assumptions](hyp:k,dx,dz,t), [the stated conclusion](goal) holds. -/
 -- @node: measurableSet_fullDataArm
 lemma measurableSet_fullDataArm {k dx dz : ℕ} (t : Bool) :
     MeasurableSet {w : FullData k dx dz | w.T = t} := by
   exact measurable_fullData_T (measurableSet_singleton t)
 
-/-- A treatment arm is a measurable observed-data event. -/
+/-- A treatment arm is a measurable observed-data event.     Under [the stated inputs and assumptions](hyp:dx,dz,t), [the stated conclusion](goal) holds. -/
 -- @node: measurableSet_obsArm_generic
 lemma measurableSet_obsArm_generic {dx dz : ℕ} (t : Bool) :
     MeasurableSet (obsArm (dx := dx) (dz := dz) t) := by
   exact measurable_obs_T (measurableSet_singleton t)
 
-/-- The observed-law mass of an arm equals its full-data-law mass. -/
+/-- The observed-law mass of an arm equals its full-data-law mass.     Under [the stated inputs and assumptions](hyp:k,dx,dz,P,t), [the stated conclusion](goal) holds. -/
 -- @node: obsLaw_real_obsArm
 lemma obsLaw_real_obsArm {k dx dz : ℕ} (P : Measure (FullData k dx dz))
     [IsProbabilityMeasure P] (t : Bool) :
@@ -66,7 +66,7 @@ lemma obsLaw_real_obsArm {k dx dz : ℕ} (P : Measure (FullData k dx dz))
   rfl
 
 /-- Conditional means under the observed pushforward equal the corresponding full-data
-conditional means on the pulled-back event. -/
+conditional means on the pulled-back event.        Under [the stated inputs and assumptions](hyp:k,dx,dz,P,A,hA,f,hf), [the stated conclusion](goal) holds. -/
 -- @node: conditionalMean_obsLaw_eq_fullData
 lemma conditionalMean_obsLaw_eq_fullData {k dx dz : ℕ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -86,12 +86,12 @@ lemma conditionalMean_obsLaw_eq_fullData {k dx dz : ℕ}
   rw [hmap]
   exact integral_map (obsMap_measurable k dx dz).aemeasurable hf.aestronglyMeasurable
 
-/-- The observed treatment arm pulls back to the matching full-data arm. -/
+/-- The observed treatment arm pulls back to the matching full-data arm.     Under [the stated inputs and assumptions](hyp:k,dx,dz,t), [the stated conclusion](goal) holds. -/
 -- @node: obsMap_preimage_obsArm
 lemma obsMap_preimage_obsArm {k dx dz : ℕ} (t : Bool) :
     @obsMap k dx dz ⁻¹' obsArm t = {w | w.T = t} := rfl
 
-/-- An observed-arm conditional mean can be evaluated directly under the full-data law. -/
+/-- An observed-arm conditional mean can be evaluated directly under the full-data law.     Under [the stated inputs and assumptions](hyp:k,dx,dz,P,t,f,hf), [the stated conclusion](goal) holds. -/
 -- @node: conditionalMean_obsArm_eq_fullDataArm
 lemma conditionalMean_obsArm_eq_fullDataArm {k dx dz : ℕ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -101,14 +101,14 @@ lemma conditionalMean_obsArm_eq_fullDataArm {k dx dz : ℕ}
   simpa only [obsMap_preimage_obsArm] using
     conditionalMean_obsLaw_eq_fullData P (obsArm t) (measurableSet_obsArm_generic t) f hf
 
-/-- A full-data treatment arm is the disjoint union of its finitely many latent cells. -/
+/-- A full-data treatment arm is the disjoint union of its finitely many latent cells.     Under [the stated inputs and assumptions](hyp:k,dx,dz,t), [the stated conclusion](goal) holds. -/
 -- @node: fullDataArm_eq_iUnion_latentCell
 lemma fullDataArm_eq_iUnion_latentCell {k dx dz : ℕ} (t : Bool) :
     {w : FullData k dx dz | w.T = t} = ⋃ u : Fin k, latentCell u t := by
   ext w
   simp [latentCell]
 
-/-- The real mass of an arm is the sum of the real masses of its latent cells. -/
+/-- The real mass of an arm is the sum of the real masses of its latent cells.     Under [the stated inputs and assumptions](hyp:k,dx,dz,P,t), [the stated conclusion](goal) holds. -/
 -- @node: fullDataArm_real_eq_sum_latentCell
 lemma fullDataArm_real_eq_sum_latentCell {k dx dz : ℕ}
     (P : Measure (FullData k dx dz)) [IsFiniteMeasure P] (t : Bool) :
@@ -122,7 +122,7 @@ lemma fullDataArm_real_eq_sum_latentCell {k dx dz : ℕ}
     exact huv (hwu.1.symm.trans hwv.1)
   · exact fun u => measurableSet_latentCell u t
 
-/-- Joint latent-arm positivity yields the paper's quantitative marginal arm bound. -/
+/-- Joint latent-arm positivity yields the paper's quantitative marginal arm bound.     Under [the stated inputs and assumptions](hyp:k,dx,dz,pi0,P,hpos,t), [the stated conclusion](goal) holds. -/
 -- @node: arm_mass_lower_of_latentArmPositivity
 lemma arm_mass_lower_of_latentArmPositivity {k dx dz : ℕ} {pi0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -134,7 +134,7 @@ lemma arm_mass_lower_of_latentArmPositivity {k dx dz : ℕ} {pi0 : ℝ}
     _ ≤ ∑ u : Fin k, P.real (latentCell u t) :=
       Finset.sum_le_sum fun u _ => hpos u t
 
-/-- Every latent-treatment cell has strictly positive mass under a positive margin. -/
+/-- Every latent-treatment cell has strictly positive mass under a positive margin.     Under [the stated inputs and assumptions](hyp:k,dx,dz,pi0,P,hpi,hpos), [the stated conclusion](goal) holds. -/
 -- @node: latentCell_pos_of_latentArmPositivity
 lemma latentCell_pos_of_latentArmPositivity {k dx dz : ℕ} {pi0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -143,7 +143,7 @@ lemma latentCell_pos_of_latentArmPositivity {k dx dz : ℕ} {pi0 : ℝ}
   have hr : 0 < P.real (latentCell u t) := lt_of_lt_of_le hpi (hpos u t)
   exact pos_iff_ne_zero.mpr fun hz => by simp [Measure.real, hz] at hr
 
-/-- Every treatment arm has strictly positive mass under joint latent-arm positivity. -/
+/-- Every treatment arm has strictly positive mass under joint latent-arm positivity.     Under [the stated inputs and assumptions](hyp:k,dx,dz,pi0,P,hk,hpi,hpos), [the stated conclusion](goal) holds. -/
 -- @node: fullDataArm_pos_of_latentArmPositivity
 lemma fullDataArm_pos_of_latentArmPositivity {k dx dz : ℕ} {pi0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -154,7 +154,7 @@ lemma fullDataArm_pos_of_latentArmPositivity {k dx dz : ℕ} {pi0 : ℝ}
       (arm_mass_lower_of_latentArmPositivity P hpos t)
   exact pos_iff_ne_zero.mpr fun hz => by simp [Measure.real, hz] at hr
 
-/-- Each normalized latent-arm weight retains the original joint-cell positivity margin. -/
+/-- Each normalized latent-arm weight retains the original joint-cell positivity margin.     Under [the stated inputs and assumptions](hyp:k,dx,dz,pi0,P,hpi,hpos), [the stated conclusion](goal) holds. -/
 -- @node: latentArmWeight_lower
 lemma latentArmWeight_lower {k dx dz : ℕ} {pi0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -175,7 +175,7 @@ lemma latentArmWeight_lower {k dx dz : ℕ} {pi0 : ℝ}
       _ = pi0 := mul_one _
       _ ≤ P.real (latentCell u t) := hcell)
 
-/-- The diagonal matrix of normalized latent-arm weights is injective. -/
+/-- The diagonal matrix of normalized latent-arm weights is injective.     Under [the stated inputs and assumptions](hyp:k,dx,dz,pi0,P,hpi,hpos), [the stated conclusion](goal) holds. -/
 -- @node: latentArmWeights_injective
 lemma latentArmWeights_injective {k dx dz : ℕ} {pi0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]

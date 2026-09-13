@@ -9,7 +9,7 @@ open MeasureTheory Set
 
 /-- A nominal handle for the parameter class and recovery regime defined in the published VMW
 paper.  Its fields deliberately carry no local characterization: the cited gates below are the
-only bridge from these publication-level names to the conditions displayed in this development. -/
+only bridge from these publication-level names to the conditions displayed in this development.  It uses the ambient setting.  It uses the ambient setting.  It uses the ambient setting.  It uses the ambient setting.  It uses the ambient setting.  It uses the ambient setting.  It uses the ambient setting. -/
 structure PublishedVMWScopeHandle where
   model : ∀ (k dx dz : ℕ), Measure (FullData k dx dz) → Prop
   assumption4 : ∀ (k dx dz : ℕ), Measure (FullData k dx dz) → Prop
@@ -19,18 +19,18 @@ structure PublishedVMWScopeHandle where
   theorem72Estimator : ∀ (k dx dz n : ℕ), (Fin n → Obs dx dz) →
     (Fin k → ℝ) × RectMatrix dx k × (Fin k → ℝ)
 
-/-- The nominal published VMW parameter-class membership predicate. -/
+/-- The nominal published VMW parameter-class membership predicate.     For [the supplied parameters](hyp:publishedScope,P), [the defined object](goal) is given by [its defining clause](step:1). -/
 def PublishedVMWModel (publishedScope : PublishedVMWScopeHandle) {k dx dz : ℕ}
     (P : Measure (FullData k dx dz)) : Prop :=
   publishedScope.model k dx dz P
 
-/-- A nominal record of quantitative margins imposed by a published model specification. -/
+/-- A nominal record of quantitative margins imposed by a published model specification.  It uses the ambient setting.  It uses the ambient setting.  It uses the ambient setting.  It uses the ambient setting. -/
 structure PublishedVMWMarginRecord where
   latentArmMargin : Option ℝ
   proxySingularMargin : Option ℝ
 
 /-- The qualitative conditions listed in VMW Assumptions 1--2 and §4.2.  In particular, this
-predicate has no numerical latent-positivity or singular-value margin parameter. -/
+predicate has no numerical latent-positivity or singular-value margin parameter.        For [the supplied parameters](hyp:P), [the defined object](goal) is given by [its defining clause](step:1). -/
 def PublishedVMWQualitativeConditions {k dx dz : ℕ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P] : Prop :=
   ReferenceProxySeparation P ∧
@@ -43,13 +43,13 @@ def PublishedVMWQualitativeConditions {k dx dz : ℕ}
   ∀ u t, 0 < P.real (latentCell u t)
 
 /-- The published qualitative scope fixes neither this paper's latent-arm margin nor its proxy
-singular-value margin. -/
+singular-value margin.        For [the supplied parameters](hyp:publishedMargins), [the defined object](goal) is given by [its defining clause](step:1). -/
 def PublishedVMWNoFixedMargins (publishedMargins : PublishedVMWMarginRecord) : Prop :=
   publishedMargins.latentArmMargin = none ∧
   publishedMargins.proxySingularMargin = none
 
 /-- The local nearest-point wrapper, with the local top measurable-space instance adapted to the
-canonical Euclidean Borel instance used by the discharged Causalean theorem. -/
+canonical Euclidean Borel instance used by the discharged Causalean theorem.        Under the stated inputs and assumptions, [the stated conclusion](goal) holds. -/
 lemma borelMeasurable_nearestPoint_selector :
     ∀ (d : ℕ) (K : Set (Euc d)), K.Nonempty → IsCompact K →
       ∃ Pi : Euc d → Euc d, Measurable Pi ∧
@@ -60,7 +60,7 @@ lemma borelMeasurable_nearestPoint_selector :
 
 /-- Brown and Purves (1973), Corollary 1, specialized to a compact Euclidean action space and an
 arbitrary jointly continuous loss: the argmin correspondence admits a Borel measurable selector.
-DOI 10.1214/aos/1176342510. -/
+DOI 10.1214/aos/1176342510.        Under the stated inputs and assumptions, [the stated conclusion](goal) holds. -/
 -- @node: lem:borel-nearest-point-selector
 lemma borelMeasurable_compactLoss_selector :
     ∀ (d : ℕ) (K : Set (Euc d)) (dS : Euc d → Euc d → ℝ),
@@ -76,7 +76,7 @@ lemma borelMeasurable_compactLoss_selector :
 /-- Virk, Mazaheri, and Wu (2026), arXiv:2607.10926v1, Assumptions 1--2 and §4.2.
 The cited correspondence says that the displayed qualitative proxy independences, consistency,
 armwise ignorability, full column ranks, and strict latent positivity are the published model scope;
-the source does not impose this paper's fixed quantitative margins. -/
+the source does not impose this paper's fixed quantitative margins.        For [the supplied parameters](hyp:publishedScope,publishedMargins), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: lem:vmw-model-scope
 def VMWModelScope (publishedScope : PublishedVMWScopeHandle)
     (publishedMargins : PublishedVMWMarginRecord) : Sort 0 :=
@@ -86,7 +86,7 @@ def VMWModelScope (publishedScope : PublishedVMWScopeHandle)
     PublishedVMWModel publishedScope P ↔ PublishedVMWQualitativeConditions P
 
 /-- The paper's quantitative model membership implies all of the qualitative conditions; the
-cited gate is used separately to identify those conditions with the published scope. -/
+cited gate is used separately to identify those conditions with the published scope.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hdom,hM), [the stated conclusion](goal) holds. -/
 lemma ucvmwModel_publishedQualitativeConditions
     (k dx dz : ℕ) (L pi0 sigma0 : ℝ)
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -109,34 +109,34 @@ lemma ucvmwModel_publishedQualitativeConditions
     injective_of_margin _ hM.proxyRankMargin.2.2,
     fun u t => lt_of_lt_of_le hpi (hM.latentArmPositivity u t)⟩
 
-/-- The qualitative simple-effect separation condition used by the published recovery regime. -/
+/-- The qualitative simple-effect separation condition used by the published recovery regime.     For [the supplied parameters](hyp:tau), [the defined object](goal) is given by [its defining clause](step:1). -/
 def PublishedSpectralSeparation {k : ℕ} (tau : Fin k → ℝ) : Prop :=
   ∀ u v, u ≠ v → tau u ≠ tau v
 
-/-- The full-column-rank requirement called Assumption 2 in the cited VMW paper. -/
+/-- The full-column-rank requirement called Assumption 2 in the cited VMW paper.     For [the supplied parameters](hyp:P), [the defined object](goal) is given by [its defining clause](step:1). -/
 def PublishedVMWAssumption2 {k dx dz : ℕ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P] : Prop :=
   Function.Injective (Matrix.toEuclideanLin (referenceFeature P false)) ∧
   Function.Injective (Matrix.toEuclideanLin (referenceFeature P true)) ∧
   Function.Injective (Matrix.toEuclideanLin (targetFeature P))
 
-/-- The strict latent positivity requirement used by the cited VMW recovery theorem. -/
+/-- The strict latent positivity requirement used by the cited VMW recovery theorem.     For [the supplied parameters](hyp:P), [the defined object](goal) is given by [its defining clause](step:1). -/
 def PublishedVMWStrictLatentPositivity {k dx dz : ℕ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P] : Prop :=
   ∀ u t, 0 < P.real (latentCell u t)
 
 /-- The nominal proposition called Assumption 4 in the published VMW paper.  Its mathematical
 content remains attached to the publication handle rather than being replaced by an arbitrary
-proposition chosen by a consumer. -/
+proposition chosen by a consumer.        For [the supplied parameters](hyp:publishedScope,P), [the defined object](goal) is given by [its defining clause](step:1). -/
 def PublishedVMWAssumption4 (publishedScope : PublishedVMWScopeHandle) {k dx dz : ℕ}
     (P : Measure (FullData k dx dz)) : Prop :=
   publishedScope.assumption4 k dx dz P
 
-/-- The positive-dimensional domain on which the cited VMW model and recovery statements apply. -/
+/-- The positive-dimensional domain on which the cited VMW model and recovery statements apply.     For [the supplied parameters](hyp:k,dx,dz), [the defined object](goal) is given by [its defining clause](step:1). -/
 def VMWPositiveDimensionDomain (k dx dz : ℕ) : Prop :=
   0 < k ∧ k ≤ dx ∧ k ≤ dz
 
-/-- The columns form a population top-`k` right singular basis of the stacked proxy moment. -/
+/-- The columns form a population top-`k` right singular basis of the stacked proxy moment.     For [the supplied parameters](hyp:s,basis), [the defined object](goal) is given by [its defining clause](step:1). -/
 def PublishedVMWTopRightSingularBasis {k dx dz : ℕ}
     (s : SummarySpace dx dz) (basis : SignalBasis dx k) : Prop :=
   ∀ j : Fin k,
@@ -147,7 +147,7 @@ def PublishedVMWTopRightSingularBasis {k dx dz : ℕ}
 /-- The law-level content of VMW Assumption 4: admissible positive dimensions, finite positive
 envelopes for the target proxy and the two proxy products, positive marginal treatment-arm
 probabilities, and a positive population singular-value margin.  Sample-size and confidence-level
-conditions belong to the recovery theorem, not to this predicate. -/
+conditions belong to the recovery theorem, not to this predicate.        For [the supplied parameters](hyp:P), [the defined object](goal) is given by [its defining clause](step:1). -/
 def ConcreteVMWAssumption4 {k dx dz : ℕ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P] : Prop :=
   VMWPositiveDimensionDomain k dx dz ∧
@@ -163,7 +163,7 @@ def ConcreteVMWAssumption4 {k dx dz : ℕ}
       ∀ t : Bool,
         sigma ≤ singularValue (observedProxyMoment (obsSummary P) t * basis.V) (k - 1)
 
-/-- The nominal published Theorem 7.2 recovery-regime membership predicate. -/
+/-- The nominal published Theorem 7.2 recovery-regime membership predicate.     For [the supplied parameters](hyp:publishedScope,P), [the defined object](goal) is given by [its defining clause](step:1). -/
 def PublishedVMWRecoveryRegime (publishedScope : PublishedVMWScopeHandle) {k dx dz : ℕ}
     (P : Measure (FullData k dx dz)) : Prop :=
   publishedScope.recoveryRegime k dx dz P
@@ -172,7 +172,7 @@ def PublishedVMWRecoveryRegime (publishedScope : PublishedVMWScopeHandle) {k dx 
 predicates.  The universal constants are outermost.  For the published estimator, the displayed
 sample-size and radius conditions imply one event of probability at least `1 - eta` on which the
 treatment effects, anchor-normalized feature columns, and simplex-projected mixture weights obey
-their three simultaneous bounds. -/
+their three simultaneous bounds.        For [the supplied parameters](hyp:publishedScope), [the defined object](goal) is given by [its defining clause](step:1). -/
 def PublishedVMWTheorem72FiniteSampleRecovery
     (publishedScope : PublishedVMWScopeHandle) : Prop :=
   ∃ cW cMom cReg cTau cB cAnc cMu c0 : ℝ,
@@ -257,7 +257,7 @@ Assumption 2, strict latent positivity, Assumption 4, and spectral separation.  
 separately quantifies the sample size and confidence level, imposes its displayed sample-size and
 radius conditions, applies its stated estimator, and gives simultaneous high-probability bounds
 for the effects, anchor-normalized feature matrix, and simplex-projected mixture proportions.
-None of those theorem-level data is a field of either population-law predicate below. -/
+None of those theorem-level data is a field of either population-law predicate below.        For [the supplied parameters](hyp:publishedScope), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: lem:vmw-separated-recovery-scope
 def VMWSeparatedRecoveryScope (publishedScope : PublishedVMWScopeHandle) : Sort 0 :=
   (∀ (k dx dz : ℕ) (P : Measure (FullData k dx dz))

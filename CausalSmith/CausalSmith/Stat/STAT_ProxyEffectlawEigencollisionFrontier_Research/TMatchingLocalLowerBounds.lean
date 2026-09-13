@@ -14,7 +14,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 
 open MeasureTheory
 
-/-- A tail event for a nonnegative integrable loss gives a lower bound on its mean. -/
+/-- A tail event for a nonnegative integrable loss gives a lower bound on its mean.     Under [the stated inputs and assumptions](hyp:f,hfmeas,hf,hf0,s), [the stated conclusion](goal) holds. -/
 -- @node: eventProbability_mul_threshold_le_risk
 lemma eventProbability_mul_threshold_le_risk {Ω : Type*} [MeasurableSpace Ω]
     (μ : Measure Ω) [IsFiniteMeasure μ] (f : Ω → ℝ) (hfmeas : Measurable f)
@@ -37,7 +37,7 @@ lemma eventProbability_mul_threshold_le_risk {Ω : Type*} [MeasurableSpace Ω]
       ring
     _ ≤ ∫ ω, f ω ∂μ := integral_mono_ae hi hf hmono
 
-/-- Distance to a fixed point is integrable for measurable maps into a compact metric space. -/
+/-- Distance to a fixed point is integrable for measurable maps into a compact metric space.     Under [the stated inputs and assumptions](hyp:est,hest), [the stated conclusion](goal) holds. -/
 -- @node: compactMetric_distance_integrable
 lemma compactMetric_distance_integrable {Ω Θ : Type*} [MeasurableSpace Ω]
     [PseudoMetricSpace Θ] [CompactSpace Θ] [MeasurableSpace Θ] [OpensMeasurableSpace Θ]
@@ -50,7 +50,7 @@ lemma compactMetric_distance_integrable {Ω Θ : Type*} [MeasurableSpace Ω]
     Metric.dist_le_diam_of_mem isCompact_univ.isBounded (Set.mem_univ (est ω)) (Set.mem_univ θ)
 
 /-- Le Cam's inequality, tensorisation, and tail integration give an expected metric-risk
-lower bound for one member of a two-point experiment. -/
+lower bound for one member of a two-point experiment.        Under [the stated inputs and assumptions](hyp:n,hac,hint,hKL,est,hest,hiμ,hiν), [the stated conclusion](goal) holds. -/
 -- @node: twoPoint_expectedMetricRisk_lower
 lemma twoPoint_expectedMetricRisk_lower {Ω Θ : Type*} [MeasurableSpace Ω]
     [PseudoMetricSpace Θ] [SecondCountableTopology Θ] [MeasurableSpace Θ]
@@ -104,7 +104,7 @@ lemma twoPoint_expectedMetricRisk_lower {Ω Θ : Type*} [MeasurableSpace Ω]
     nlinarith [mul_le_mul_of_nonneg_left hp
       (div_nonneg (dist_nonneg : 0 ≤ dist θμ θν) (by norm_num : (0:ℝ) ≤ 2))]
 
-/-- The ℓ¹ loss between two simplex-valued vectors is integrable. -/
+/-- The ℓ¹ loss between two simplex-valued vectors is integrable.     Under [the stated inputs and assumptions](hyp:k,est,hest,hestSimplex,target,htarget), [the stated conclusion](goal) holds. -/
 -- @node: simplexWeightLoss_integrable
 lemma simplexWeightLoss_integrable {Ω : Type*} [MeasurableSpace Ω] {k : ℕ}
     (μ : Measure Ω) [IsFiniteMeasure μ] (est : Ω → (Fin k → ℝ))
@@ -124,7 +124,7 @@ lemma simplexWeightLoss_integrable {Ω : Type*} [MeasurableSpace Ω] {k : ℕ}
         by linarith [hestSimplex w |>.1 i, htarget.1 i]⟩
     _ = 2 := by rw [Finset.sum_add_distrib, (hestSimplex w).2, htarget.2]; norm_num
 
-/-- The scalar-coordinate Le Cam bound lower-bounds the full simplex ℓ¹ risk. -/
+/-- The scalar-coordinate Le Cam bound lower-bounds the full simplex ℓ¹ risk.     Under [the stated inputs and assumptions](hyp:k,n,hac,hint,hKL,est,hest,hestSimplex,pμ,pν,hpμ,hpν,i), [the stated conclusion](goal) holds. -/
 -- @node: twoPoint_expectedWeightRisk_lower
 lemma twoPoint_expectedWeightRisk_lower {Ω : Type*} [MeasurableSpace Ω] {k : ℕ}
     (n : ℕ) (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
@@ -170,7 +170,7 @@ lemma twoPoint_expectedWeightRisk_lower {Ω : Type*} [MeasurableSpace Ω] {k : �
           (fun j (_ : j ∈ Finset.univ) => abs_nonneg (est w j - pν j)) (Finset.mem_univ i)))
 
 /-- Along the separated two-class path, ordering the quotient-law atoms preserves their latent
-coordinate order. -/
+coordinate order.        Under [the stated inputs and assumptions](hyp:g,h,hg,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: path_orderedMasses_eq_latentMass
 lemma path_orderedMasses_eq_latentMass (g h : ℝ) (hg : 0 < g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) :
@@ -225,7 +225,7 @@ lemma path_orderedMasses_eq_latentMass (g h : ℝ) (hg : 0 < g) (hg1 : g ≤ 1 /
   fin_cases i <;> simp [hflo, hfhi, quotientLawRaw,
     heff0, heff1, hmass0, hmass1]
 
-/-- The ordered mass vector on the separated two-class path belongs to the probability simplex. -/
+/-- The ordered mass vector on the separated two-class path belongs to the probability simplex.     Under [the stated inputs and assumptions](hyp:g,h,hg,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: path_orderedMasses_inSimplex
 lemma path_orderedMasses_inSimplex (g h : ℝ) (hg : 0 < g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) :
@@ -241,7 +241,7 @@ lemma path_orderedMasses_inSimplex (g h : ℝ) (hg : 0 < g) (hg1 : g ≤ 1 / 4)
     simp_rw [path_latentMass g h hg.le hg1 hh]
     norm_num
 
-/-- Calibrating by the inverse square-root signal bounds the squared product displacement. -/
+/-- Calibrating by the inverse square-root signal bounds the squared product displacement.     Under [the stated inputs and assumptions](hyp:a,n,g,hn,hg), [the stated conclusion](goal) holds. -/
 -- @node: calibratedDisplacement_sample_signal_sq_le
 lemma calibratedDisplacement_sample_signal_sq_le (a : ℝ) (n : ℕ) (g : ℝ)
     (hn : 1 ≤ n) (hg : 0 < g) :
@@ -268,10 +268,10 @@ lemma calibratedDisplacement_sample_signal_sq_le (a : ℝ) (n : ℕ) (g : ℝ)
 
 set_option maxHeartbeats 800000 in
 /-- Matching local converse witnesses for quotient-law and labeled-weight loss. The existential
-law form avoids supremum junk values and is equivalent to the displayed minimax lower bounds. -/
+law form avoids supremum junk values and is equivalent to the displayed minimax lower bounds.        Under [the stated inputs and assumptions](hyp:cLoc,hcLoc), [the stated conclusion](goal) holds. -/
 -- @node: thm:matching-local-lower-bounds
-theorem matching_local_lower_bounds :
-    ∃ cLoc a c C : ℝ, LocalRadiusDomain cLoc ∧
+theorem matching_local_lower_bounds (cLoc : ℝ) (hcLoc : LocalRadiusDomain cLoc) :
+    ∃ a c C : ℝ,
       0 < a ∧ -- @realizes \(a\)(universal path amplitude in (0,1/8])
       a ≤ 1 / 8 ∧
       0 < c ∧ -- @realizes \(c\)(positive minimax lower-bound constant)
@@ -321,40 +321,62 @@ theorem matching_local_lower_bounds :
               (pathLaw g 0) ∧
             InformationTheory.klDiv (obsLaw (pathLaw g h))
                 (obsLaw (pathLaw g 0)) ≤ ENNReal.ofReal (C * g ^ 2 * h ^ 2) ∧
-            (∑ i, |latentMass (pathLaw g h) i -
-              latentMass (pathLaw g 0) i|) = 2 * |h| := by
-  refine ⟨1 / 4, 1 / 3200, 1 / 25600, 16000, ?_, by norm_num, by norm_num,
-    by norm_num, by norm_num, ?_⟩
-  · exact ⟨by norm_num, by norm_num⟩
+            (∑ i, |orderedMasses
+                  (quotientLawRaw (pathLaw g h) (effectRadius 2 2 (1 / 10))) i -
+                orderedMasses
+                  (quotientLawRaw (pathLaw g 0) (effectRadius 2 2 (1 / 10))) i|) =
+              2 * |h| := by
+  obtain ⟨hcLocPos, hcLocLt⟩ := hcLoc
+  let a : ℝ := min (1 / 3200) (Real.sqrt cLoc / 3200)
+  have hsqrtCLoc : 0 < Real.sqrt cLoc := Real.sqrt_pos.2 hcLocPos
+  have ha : 0 < a := by
+    dsimp [a]
+    exact lt_min (by norm_num) (div_pos hsqrtCLoc (by norm_num))
+  have haMax3200 : a ≤ 1 / 3200 := by
+    dsimp [a]
+    exact min_le_left _ _
+  have haRadius : a ≤ Real.sqrt cLoc / 3200 := by
+    dsimp [a]
+    exact min_le_right _ _
+  have haMax : a ≤ 1 / 8 := haMax3200.trans (by norm_num)
+  have haRadiusSq : a ^ 2 ≤ (Real.sqrt cLoc / 3200) ^ 2 :=
+    (sq_le_sq₀ ha.le (by positivity)).2 haRadius
+  have hsqrtCLocSq : (Real.sqrt cLoc) ^ 2 = cLoc := Real.sq_sqrt hcLocPos.le
+  have hscaledRadius : 16000 * a ^ 2 ≤ cLoc := by
+    rw [div_pow, hsqrtCLocSq] at haRadiusSq
+    nlinarith
+  have hscaledLeCam : 16000 * a ^ 2 ≤ 1 / 4 := by
+    nlinarith [sq_nonneg (1 / 3200 - a)]
+  refine ⟨a, a / 8, 16000, ha, haMax, div_pos ha (by norm_num), by norm_num, ?_⟩
   intro n hn
   have hnR : (0 : ℝ) < n := Nat.cast_pos.mpr (lt_of_lt_of_le Nat.zero_lt_one hn)
   have hsqrt : 0 < Real.sqrt n := Real.sqrt_pos.2 hnR
-  let eps : ℝ := (1 / 3200) / Real.sqrt n
+  let eps : ℝ := a / Real.sqrt n
   have heps0 : 0 ≤ eps := by dsimp [eps]; positivity
   have heps1 : eps ≤ 1 / 8 := by
     have hsqrtOne : 1 ≤ Real.sqrt n := by
       rw [← Real.sqrt_one]
       exact Real.sqrt_le_sqrt (by exact_mod_cast hn)
-    dsimp [eps]
-    rw [div_le_iff₀ hsqrt]
-    nlinarith
-  have hepsLocal : 16000 * eps ^ 2 ≤ (1 / 4 : ℝ) / n := by
+    exact (div_le_self ha.le hsqrtOne).trans haMax
+  have hepsLocal : 16000 * eps ^ 2 ≤ cLoc / n := by
     have hsqrtSq : (Real.sqrt n) ^ 2 = (n : ℝ) := Real.sq_sqrt hnR.le
-    dsimp [eps]
-    rw [div_pow, hsqrtSq]
-    field_simp [hnR.ne']
-    norm_num
+    calc
+      16000 * eps ^ 2 = (16000 * a ^ 2) / n := by
+        dsimp [eps]
+        rw [div_pow, hsqrtSq]
+        ring
+      _ ≤ cLoc / n := div_le_div_of_nonneg_right hscaledRadius hnR.le
   let hW0 : IsProbabilityMeasure (witnessLaw 0) :=
     witnessLaw_isProbabilityMeasure 0 (by norm_num) (by norm_num)
   let hW1 : IsProbabilityMeasure (witnessLaw eps) :=
     witnessLaw_isProbabilityMeasure eps heps0 heps1
   letI := hW0
   letI := hW1
-  have hM0 := witness_localQuotientExperiment n (1 / 4) 0
-    (by exact ⟨by norm_num, by norm_num⟩) (by norm_num) (by norm_num)
+  have hM0 := witness_localQuotientExperiment n cLoc 0
+    (by exact ⟨hcLocPos, hcLocLt⟩) (by norm_num) (by norm_num)
       (by norm_num only [zero_pow, mul_zero]; positivity)
-  have hM1 := witness_localQuotientExperiment n (1 / 4) eps
-    (by exact ⟨by norm_num, by norm_num⟩) heps0 heps1 hepsLocal
+  have hM1 := witness_localQuotientExperiment n cLoc eps
+    (by exact ⟨hcLocPos, hcLocLt⟩) heps0 heps1 hepsLocal
   have hWitnessKLReal :
       (InformationTheory.klDiv (obsLaw (witnessLaw eps))
         (obsLaw (witnessLaw 0))).toReal ≤ 16000 * eps ^ 2 := by
@@ -366,15 +388,20 @@ theorem matching_local_lower_bounds :
   have hWitnessProductKL :
       (n : ℝ) * (InformationTheory.klDiv (obsLaw (witnessLaw eps))
         (obsLaw (witnessLaw 0))).toReal ≤ 2 / 5 := by
+    have hsqrtSq : (Real.sqrt n) ^ 2 = (n : ℝ) := Real.sq_sqrt hnR.le
     calc
-      _ ≤ (n : ℝ) * ((1 / 4 : ℝ) / n) :=
-        mul_le_mul_of_nonneg_left (hWitnessKLReal.trans hepsLocal) hnR.le
-      _ = 1 / 4 := by field_simp [hnR.ne']
+      _ ≤ (n : ℝ) * (16000 * eps ^ 2) :=
+        mul_le_mul_of_nonneg_left hWitnessKLReal hnR.le
+      _ = 16000 * a ^ 2 := by
+        dsimp [eps]
+        rw [div_pow, hsqrtSq]
+        field_simp [hnR.ne']
+      _ ≤ 1 / 4 := hscaledLeCam
       _ ≤ 2 / 5 := by norm_num
   have hLawPair (est : LawEstimator 2 2 2 n (effectRadius 2 2 (1 / 10))) :
-      (1 / 25600 : ℝ) / Real.sqrt n ≤
+      (a / 8 : ℝ) / Real.sqrt n ≤
           expectedLawRisk (witnessLaw 0) hM0.toUCVMWModel est ∨
-        (1 / 25600 : ℝ) / Real.sqrt n ≤
+        (a / 8 : ℝ) / Real.sqrt n ≤
           expectedLawRisk (witnessLaw eps) hM1.toUCVMWModel est := by
     have hsep : dist
         (quotientLaw (witnessLaw 0) hM0.toUCVMWModel)
@@ -384,7 +411,7 @@ theorem matching_local_lower_bounds :
         (quotientLaw (witnessLaw eps) hM1.toUCVMWModel)
         (quotientLaw (witnessLaw 0) hM0.toUCVMWModel) = eps := by
       rw [dist_comm, hsep]
-    have hscale : eps / 8 = (1 / 25600 : ℝ) / Real.sqrt n := by
+    have hscale : eps / 8 = (a / 8 : ℝ) / Real.sqrt n := by
       dsimp [eps]
       ring
     have hr := twoPoint_expectedMetricRisk_lower n
@@ -412,13 +439,13 @@ theorem matching_local_lower_bounds :
     · exact ⟨witnessLaw eps, hW1, hM1, Or.inr (by rfl), hr⟩
   · intro g hGap est
     obtain ⟨hg, hg1⟩ := hGap
-    let h := calibratedDisplacement (1 / 3200) n g
-    have hhmem := calibratedDisplacement_mem (1 / 3200) n g
-      (by norm_num) (by norm_num) (Nat.zero_lt_of_lt hn) hg
+    let h := calibratedDisplacement a n g
+    have hhmem := calibratedDisplacement_mem a n g
+      ha haMax (Nat.zero_lt_of_lt hn) hg
     have hh0 : 0 < h := hhmem.1
     have hh : |h| ≤ 1 / 100 := by
       rw [abs_of_pos hh0]
-      exact hhmem.2.trans (by norm_num)
+      exact hhmem.2.trans (haMax3200.trans (by norm_num))
     have hdomain : TangentAmplitudeDomain h := by
       constructor <;> linarith [hhmem.2]
     let hPath : IsProbabilityMeasure (pathLaw g h) :=
@@ -428,14 +455,17 @@ theorem matching_local_lower_bounds :
         (by norm_num [TangentAmplitudeDomain]) (by norm_num)
     letI := hPath
     letI := hBase
-    have hcal := calibratedDisplacement_sample_signal_sq_le (1 / 3200) n g hn hg
-    have hpathLocal : 16000 * g ^ 2 * h ^ 2 ≤ (1 / 4 : ℝ) / n := by
+    have hcal := calibratedDisplacement_sample_signal_sq_le a n g hn hg
+    have hpathLocal : 16000 * g ^ 2 * h ^ 2 ≤ cLoc / n := by
       apply (le_div_iff₀ hnR).2
-      nlinarith
-    have hLocalPath := path_localWeightExperiment n (1 / 4) g h
-      (by exact ⟨by norm_num, by norm_num⟩) hg hg1 hh hpathLocal
-    have hLocalBase := path_localWeightExperiment n (1 / 4) g 0
-      (by exact ⟨by norm_num, by norm_num⟩) hg hg1 (by norm_num)
+      calc
+        16000 * g ^ 2 * h ^ 2 * n = 16000 * ((n : ℝ) * g ^ 2 * h ^ 2) := by ring
+        _ ≤ 16000 * a ^ 2 := mul_le_mul_of_nonneg_left hcal (by norm_num)
+        _ ≤ cLoc := hscaledRadius
+    have hLocalPath := path_localWeightExperiment n cLoc g h
+      (by exact ⟨hcLocPos, hcLocLt⟩) hg hg1 hh hpathLocal
+    have hLocalBase := path_localWeightExperiment n cLoc g 0
+      (by exact ⟨hcLocPos, hcLocLt⟩) hg hg1 (by norm_num)
         (by norm_num only [zero_pow, mul_zero]; positivity)
     have hPathKLReal :
         (InformationTheory.klDiv (obsLaw (pathLaw g h))
@@ -449,7 +479,12 @@ theorem matching_local_lower_bounds :
         (n : ℝ) * (InformationTheory.klDiv (obsLaw (pathLaw g h))
           (obsLaw (pathLaw g 0))).toReal ≤ 2 / 5 := by
       have hscaled := mul_le_mul_of_nonneg_left hPathKLReal hnR.le
-      nlinarith
+      calc
+        _ ≤ (n : ℝ) * (16000 * g ^ 2 * h ^ 2) := hscaled
+        _ = 16000 * ((n : ℝ) * g ^ 2 * h ^ 2) := by ring
+        _ ≤ 16000 * a ^ 2 := mul_le_mul_of_nonneg_left hcal (by norm_num)
+        _ ≤ 1 / 4 := hscaledLeCam
+        _ ≤ 2 / 5 := by norm_num
     have hweights := twoPoint_expectedWeightRisk_lower n
       (obsLaw (pathLaw g h)) (obsLaw (pathLaw g 0))
       (pathObsLaw_absolutelyContinuous g h hg.le hg1 hh)
@@ -469,7 +504,7 @@ theorem matching_local_lower_bounds :
       norm_num
       exact hh0.le
     rw [hcoord] at hweights
-    have hscale : (1 / 25600 : ℝ) * min 1 (Real.sqrt n * g)⁻¹ = h / 8 := by
+    have hscale : (a / 8 : ℝ) * min 1 (Real.sqrt n * g)⁻¹ = h / 8 := by
       dsimp [h, calibratedDisplacement]
       ring
     rw [hscale]
@@ -482,23 +517,27 @@ theorem matching_local_lower_bounds :
     · exact (witnessLaw_observed_kl_bound eps heps0 heps1).trans
         (ENNReal.ofReal_le_ofReal (by
           have hsqrtSq : (Real.sqrt n) ^ 2 = (n : ℝ) := Real.sq_sqrt hnR.le
-          dsimp [eps]
-          rw [div_pow, hsqrtSq]
-          field_simp [hnR.ne']
-          norm_num))
+          show (16000 : ℝ) * eps ^ 2 ≤ (16000 : ℝ) / (n : ℝ)
+          calc
+            (16000 : ℝ) * eps ^ 2 = (16000 * a ^ 2) / (n : ℝ) := by
+              dsimp [eps]
+              rw [div_pow, hsqrtSq]
+              ring
+            _ ≤ (16000 : ℝ) / (n : ℝ) := div_le_div_of_nonneg_right (by
+              nlinarith [sq_nonneg (1 - a)]) hnR.le))
     · rw [witness_quotientLaw_wass1 eps heps0 heps1]
       dsimp [eps]
-      exact div_le_div_of_nonneg_right (by norm_num) hsqrt.le
+      exact div_le_div_of_nonneg_right (by nlinarith) hsqrt.le
   · intro g hGap
     obtain ⟨hg, hg1⟩ := hGap
     dsimp only
-    let h := calibratedDisplacement (1 / 3200) n g
-    have hhmem := calibratedDisplacement_mem (1 / 3200) n g
-      (by norm_num) (by norm_num) (Nat.zero_lt_of_lt hn) hg
+    let h := calibratedDisplacement a n g
+    have hhmem := calibratedDisplacement_mem a n g
+      ha haMax (Nat.zero_lt_of_lt hn) hg
     have hh0 : 0 < h := hhmem.1
     have hh : |h| ≤ 1 / 100 := by
       rw [abs_of_pos hh0]
-      exact hhmem.2.trans (by norm_num)
+      exact hhmem.2.trans (haMax3200.trans (by norm_num))
     have hdomain : TangentAmplitudeDomain h := by
       constructor <;> linarith [hhmem.2]
     let hPath : IsProbabilityMeasure (pathLaw g h) :=
@@ -508,17 +547,23 @@ theorem matching_local_lower_bounds :
         (by norm_num [TangentAmplitudeDomain]) (by norm_num)
     letI := hPath
     letI := hBase
-    have hcal := calibratedDisplacement_sample_signal_sq_le (1 / 3200) n g hn hg
-    have hpathLocal : 16000 * g ^ 2 * h ^ 2 ≤ (1 / 4 : ℝ) / n := by
+    have hcal := calibratedDisplacement_sample_signal_sq_le a n g hn hg
+    have hpathLocal : 16000 * g ^ 2 * h ^ 2 ≤ cLoc / n := by
       apply (le_div_iff₀ hnR).2
-      nlinarith
+      calc
+        16000 * g ^ 2 * h ^ 2 * n = 16000 * ((n : ℝ) * g ^ 2 * h ^ 2) := by ring
+        _ ≤ 16000 * a ^ 2 := mul_le_mul_of_nonneg_left hcal (by norm_num)
+        _ ≤ cLoc := hscaledRadius
     refine ⟨hdomain, hPath, hBase,
-      path_localWeightExperiment n (1 / 4) g h
-        (by exact ⟨by norm_num, by norm_num⟩) hg hg1 hh hpathLocal,
-      path_localWeightExperiment n (1 / 4) g 0
-        (by exact ⟨by norm_num, by norm_num⟩) hg hg1 (by norm_num)
+      path_localWeightExperiment n cLoc g h
+        (by exact ⟨hcLocPos, hcLocLt⟩) hg hg1 hh hpathLocal,
+      path_localWeightExperiment n cLoc g 0
+        (by exact ⟨hcLocPos, hcLocLt⟩) hg hg1 (by norm_num)
           (by norm_num only [zero_pow, mul_zero]; positivity),
-      ?_, path_latentMass_l1_displacement g h hg.le hg1 hh⟩
-    simpa [h] using pathLaw_observed_kl_bound g h hg.le hg1 hh
+      ?_, ?_⟩
+    · simpa [h] using pathLaw_observed_kl_bound g h hg.le hg1 hh
+    · rw [path_orderedMasses_eq_latentMass g h hg hg1 hh,
+        path_orderedMasses_eq_latentMass g 0 hg hg1 (by norm_num)]
+      exact path_latentMass_l1_displacement g h hg.le hg1 hh
 
 end CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier

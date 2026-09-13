@@ -7,7 +7,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open MeasureTheory Set
 
 /-- Existence and deterministic/high-probability guarantees of the explicit no-advice structured
-lattice estimator, including its atom floor and polynomial candidate count. -/
+lattice estimator, including its atom floor and polynomial candidate count.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax), [the stated conclusion](goal) holds. -/
 -- @node: prop:polynomial-net-law-estimator
 theorem polynomial_lattice_law_estimator
     (k dx dz : ℕ) (L pi0 sigma0 : ℝ) (hk : 2 ≤ k) (hkx : k ≤ dx)

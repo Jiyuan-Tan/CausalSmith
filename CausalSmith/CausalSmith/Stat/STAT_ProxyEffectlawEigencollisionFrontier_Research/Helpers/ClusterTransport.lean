@@ -3,6 +3,7 @@ import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpe
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier.AtomicLaw
 open scoped BigOperators
 
+/-- Test mass identity: under [the stated inputs and assumptions](hyp:k,radius,a,b,p,q), [the stated conclusion](goal) holds. -/
 lemma test_mass_identity {k : ℕ} {radius : ℝ} {a b : AtomicLaw k radius}
     (γ : TransportPlan a b) (p q : Fin k → Prop) [DecidablePred p] [DecidablePred q] :
     (∑ i, if p i then a.weight i else 0) - (∑ j, if q j then b.weight j else 0) =
@@ -30,6 +31,7 @@ lemma test_mass_identity {k : ℕ} {radius : ℝ} {a b : AtomicLaw k radius}
   intro j hj
   by_cases hp : p i <;> by_cases hq : q j <;> simp [hp, hq]
 
+/-- Test mass gap: under [the stated inputs and assumptions](hyp:k,radius,gap,a,b,p,q,hgap,hcross), [the stated conclusion](goal) holds. -/
 lemma test_mass_gap {k : ℕ} {radius gap : ℝ} {a b : AtomicLaw k radius}
     (γ : TransportPlan a b) (p q : Fin k → Prop) [DecidablePred p] [DecidablePred q]
     (hgap : 0 ≤ gap)

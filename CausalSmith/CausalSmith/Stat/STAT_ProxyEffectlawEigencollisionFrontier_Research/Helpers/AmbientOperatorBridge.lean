@@ -19,14 +19,14 @@ namespace AmbientOperatorBridge
 open CausalSmith.Substrate.CollisionSafeSpectralLaw
 open Causalean.Mathlib.Probability
 
-/-- The basis-free ambient effect contrast formed from the two observed arm summaries. -/
+/-- The basis-free ambient effect contrast formed from the two observed arm summaries.     For [the supplied parameters](hyp:s), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: ambientOperatorBridge_ambientEffectOperator
 noncomputable def ambientEffectOperator {dx dz : ℕ} (s : SummarySpace dx dz) :
     RectMatrix dx dx :=
   moorePenroseInverse s.M1 * s.N1 - moorePenroseInverse s.M0 * s.N0
 
 /-- A single outcome-weighted Moore--Penrose product is stable under simultaneous movement of
-the proxy moment and outcome-weighted moment, assuming only equal rank and a singular margin. -/
+the proxy moment and outcome-weighted moment, assuming only equal rank and a singular margin.        Under [the stated inputs and assumptions](hyp:dx,dz,r,s,L,hs,hrM,hmM,hN,hrM',hmM'), [the stated conclusion](goal) holds. -/
 -- @node: ambientOperatorBridge_norm_product_difference
 lemma norm_product_difference {dx dz : ℕ} (M M' N N' : RectMatrix dz dx)
     {r : ℕ} {s L : ℝ} (hs : 0 < s)
@@ -57,7 +57,7 @@ lemma norm_product_difference {dx dz : ℕ} (M M' N N' : RectMatrix dz dx)
       gcongr
 
 /-- The ambient two-arm contrast is Lipschitz in the paper's five-block summary metric.  This is
-the model-local product-triangle bridge from the moving-space Moore--Penrose estimate. -/
+the model-local product-triangle bridge from the moving-space Moore--Penrose estimate.        Under [the stated inputs and assumptions](hyp:dx,dz,r,p,q,s,L,hs,hL,hrp0,hrq0,hrp1,hrq1,hmp0,hmq0,hmp1,hmq1,hNp0,hNp1), [the stated conclusion](goal) holds. -/
 -- @node: ambientOperatorBridge_norm_ambientEffectOperator_sub_le
 lemma norm_ambientEffectOperator_sub_le {dx dz r : ℕ}
     (p q : SummarySpace dx dz) {s L : ℝ} (hs : 0 < s) (hL : 0 ≤ L)
@@ -127,7 +127,7 @@ lemma norm_ambientEffectOperator_sub_le {dx dz r : ℕ}
       have hsqrt : 0 ≤ Real.sqrt (∑ i, (p.mX i - q.mX i) ^ 2) := Real.sqrt_nonneg _
       nlinarith
 
-/-- The mean-coordinate block is dominated by the full five-block summary distance. -/
+/-- The mean-coordinate block is dominated by the full five-block summary distance.     Under [the stated inputs and assumptions](hyp:dx,dz,p,q), [the stated conclusion](goal) holds. -/
 -- @node: ambientOperatorBridge_norm_mX_sub_le_dS
 lemma norm_mX_sub_le_dS {dx dz : ℕ} (p q : SummarySpace dx dz) :
     ‖(WithLp.toLp 2 (p.mX - q.mX) : Euc dx)‖ ≤ dS p q := by
@@ -142,7 +142,7 @@ lemma norm_mX_sub_le_dS {dx dz : ℕ} (p q : SummarySpace dx dz) :
 
 /-- For a full-column-rank rectangular matrix, its Moore--Penrose inverse is a genuine
 left inverse.  This is the cancellation used when the proxy factorization is restricted to
-the latent signal coordinates. -/
+the latent signal coordinates.        Under [the stated inputs and assumptions](hyp:rows,cols,A,hA), [the stated conclusion](goal) holds. -/
 -- @node: ambientOperatorBridge_moorePenroseInverse_mul_eq_one_of_injective
 lemma moorePenroseInverse_mul_eq_one_of_injective {rows cols : ℕ}
     (A : RectMatrix rows cols)
@@ -161,7 +161,7 @@ lemma moorePenroseInverse_mul_eq_one_of_injective {rows cols : ℕ}
     congrArg (fun M : RectMatrix rows cols => Matrix.mulVec M x i) hmatrix
 
 /-- The Moore--Penrose inverse of a product of two full-column-rank factors is the
-reverse product of their Moore--Penrose inverses. -/
+reverse product of their Moore--Penrose inverses.        Under [the stated inputs and assumptions](hyp:rows,cols,r,C,B,hC,hB), [the stated conclusion](goal) holds. -/
 -- @node: ambientOperatorBridge_moorePenroseInverse_mul_transpose
 lemma moorePenroseInverse_mul_transpose {rows cols r : ℕ}
     (C : RectMatrix rows r) (B : RectMatrix cols r)
@@ -201,7 +201,7 @@ lemma moorePenroseInverse_mul_transpose {rows cols r : ℕ}
   exact isMoorePenroseInverse_unique (moorePenroseInverse_spec _) hspec
 
 /-- Cancelling a full-rank proxy factorization identifies the ambient outcome operator as
-the target-feature conjugation of the latent diagonal outcome means. -/
+the target-feature conjugation of the latent diagonal outcome means.        Under [the stated inputs and assumptions](hyp:rows,cols,r,C,B,mu,hC,hB), [the stated conclusion](goal) holds. -/
 -- @node: ambientOperatorBridge_moorePenrose_outcome_factorization
 lemma moorePenrose_outcome_factorization {rows cols r : ℕ}
     (C : RectMatrix rows r) (B : RectMatrix cols r) (mu : Fin r → ℝ)
@@ -216,7 +216,7 @@ lemma moorePenrose_outcome_factorization {rows cols r : ℕ}
   rw [← Matrix.mul_assoc (moorePenroseInverse C), hCleft, Matrix.one_mul]
 
 /-- The model's basis-free ambient contrast is exactly the target-feature conjugation of
-the diagonal latent treatment effects. -/
+the diagonal latent treatment effects.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hL,hpi,hsigma,hM), [the stated conclusion](goal) holds. -/
 -- @node: ambientOperatorBridge_model_ambientEffectOperator_factorization
 lemma model_ambientEffectOperator_factorization
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -278,7 +278,7 @@ lemma model_ambientEffectOperator_factorization
 
 /-- Every model-generated arm moment has exactly the latent rank.  This packages the
 lower-rank consequence of the observed singular margin with the upper-rank consequence of
-the latent factorization, in the form required by the moving-space Moore--Penrose estimate. -/
+the latent factorization, in the form required by the moving-space Moore--Penrose estimate.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hL,hpi,hsigma,hM), [the stated conclusion](goal) holds. -/
 -- @node: ambientOperatorBridge_model_summary_rank_eq
 lemma model_summary_rank_eq {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : MeasureTheory.Measure (FullData k dx dz)) [MeasureTheory.IsProbabilityMeasure P]
@@ -312,7 +312,7 @@ lemma model_summary_rank_eq {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
   omega
 
 /-- Model membership supplies, simultaneously in both arms, all quantitative hypotheses used
-by the ambient Moore--Penrose perturbation bound. -/
+by the ambient Moore--Penrose perturbation bound.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax,hM), [the stated conclusion](goal) holds. -/
 -- @node: ambientOperatorBridge_model_summary_ambient_bounds
 lemma model_summary_ambient_bounds {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : MeasureTheory.Measure (FullData k dx dz)) [MeasureTheory.IsProbabilityMeasure P]
@@ -338,7 +338,7 @@ lemma model_summary_ambient_bounds {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
 
 /-- The model anchor makes the first ambient coordinate the all-ones right anchor in latent
 coordinates.  This is the paper-local identity `Bᵀ e₁ = 1` used by the spectral-law
-representation certificate. -/
+representation certificate.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hpi,hM), [the stated conclusion](goal) holds. -/
 -- @node: ambientOperatorBridge_targetFeature_transpose_firstBasis
 lemma targetFeature_transpose_firstBasis {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : MeasureTheory.Measure (FullData k dx dz)) [MeasureTheory.IsProbabilityMeasure P]
@@ -373,7 +373,7 @@ lemma targetFeature_transpose_firstBasis {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
   simp [Matrix.mulVec, hmean]
 
 /-- The canonical right anchor has Euclidean norm one whenever the ambient dimension is
-positive. -/
+positive.        Under [the stated inputs and assumptions](hyp:dx,hdx), [the stated conclusion](goal) holds. -/
 -- @node: ambientOperatorBridge_norm_firstBasis
 lemma norm_firstBasis {dx : ℕ} (hdx : 0 < dx) :
     ‖(WithLp.toLp 2 (firstBasis dx) : Euc dx)‖ = 1 := by
@@ -383,8 +383,7 @@ lemma norm_firstBasis {dx : ℕ} (hdx : 0 < dx) :
       rw [EuclideanSpace.norm_eq, Fin.sum_univ_succ]
       simp [firstBasis]
 
-/-- The observable target-proxy mean is the target-feature matrix applied to the latent
-class-mass vector. -/
+/-- Under [positive latent-class mass and model membership](hyp:hpi,hM), [the observable target-proxy mean factors as the target-feature matrix times the latent-class mass vector](goal). -/
 -- @node: ambientOperatorBridge_obsSummary_mX_factorization
 lemma obsSummary_mX_factorization {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : MeasureTheory.Measure (FullData k dx dz)) [MeasureTheory.IsProbabilityMeasure P]
@@ -443,7 +442,7 @@ lemma obsSummary_mX_factorization {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
 
 /-- An explicit functional-calculus formula for the target-feature factorization represents
 the labelled latent-effect law.  This bridge uses only the mean and anchor identities and is
-insensitive to repeated effect values. -/
+insensitive to repeated effect values.        Under [the stated inputs and assumptions](hyp:k,dx,A,D,B,p,tau,m,c,hm,hc,hcalc,hleft), [the stated conclusion](goal) holds. -/
 -- @node: ambientOperatorBridge_represents_raw_quotientLaw
 lemma represents_raw_quotientLaw {k dx : ℕ} {A : RectMatrix dx dx}
     (D : RealDiagonalization A) (B : RectMatrix dx k)
@@ -494,7 +493,7 @@ lemma represents_raw_quotientLaw {k dx : ℕ} {A : RectMatrix dx dx}
       ring
 
 /-- A model-specific diagonalization whose functional calculus has the target-feature formula
-automatically represents the model's raw quotient law. -/
+automatically represents the model's raw quotient law.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hpi,hsigma,hM,hcalc), [the stated conclusion](goal) holds. -/
 -- @node: ambientOperatorBridge_model_represents_raw_quotientLaw
 lemma model_represents_raw_quotientLaw
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -524,7 +523,7 @@ lemma model_represents_raw_quotientLaw
 
 /-- Once each model supplies its own bounded real diagonalization and representation
 certificate, the neutral collision-safe estimate and the moving-space Moore--Penrose bound
-assemble into a summary-metric modulus.  The two diagonalizers are unrelated. -/
+assemble into a summary-metric modulus.  The two diagonalizers are unrelated.        Under [the stated inputs and assumptions](hyp:k,dx,dz,r,p,q,mu,nu,Dp,Dq,s,L,kappa,R,hs,hL,hkappa,hR,hdx,hrp0,hrq0,hrp1,hrq1,hmp0,hmq0,hmp1,hmq1,hNp0,hNp1,hmq,hmu,hnu,hrepP,hrepQ,hkP,hkQ,hRP,hRQ), [the stated conclusion](goal) holds. -/
 -- @node: ambientOperatorBridge_atomicW1_le_dS_of_certificates
 theorem atomicW1_le_dS_of_certificates {k dx dz r : ℕ}
     (p q : SummarySpace dx dz)
@@ -582,7 +581,7 @@ theorem atomicW1_le_dS_of_certificates {k dx dz r : ℕ}
 
 /-- Model membership discharges every analytic side condition in the ambient certificate
 comparison.  What remains for the paper-specific spectral step is exactly one independently
-chosen real diagonalization and representation certificate for each model law. -/
+chosen real diagonalization and representation certificate for each model law.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,kappa,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax,P,Q,DP,DQ,hrepP,hrepQ,hkappa,hkP,hkQ,hRP,hRQ), [the stated conclusion](goal) holds. -/
 -- @node: ambientOperatorBridge_modelLaw_wass1_le_dS_of_certificates
 theorem modelLaw_wass1_le_dS_of_certificates
     {k dx dz : ℕ} {L pi0 sigma0 kappa : ℝ}

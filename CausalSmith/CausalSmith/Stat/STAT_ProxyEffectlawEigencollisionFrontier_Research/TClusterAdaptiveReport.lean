@@ -6,7 +6,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open MeasureTheory Set
 
 /-- On the summary event, associated true clusters partition the target support, lie in their
-reported intervals, and obey the atom-floor external-gap mass bounds. -/
+reported intervals, and obey the atom-floor external-gap mass bounds.        Under [the stated inputs and assumptions](hyp:k,dx,dz,pi0,sigma0,hk,hkx,hkz,hpi,hpiMax,hsigma,hsigmaMax), [the stated conclusion](goal) holds. -/
 -- @node: thm:cluster-adaptive-report
 theorem cluster_adaptive_report
     (k dx dz : ℕ) (pi0 sigma0 : ℝ)
@@ -38,6 +38,7 @@ theorem cluster_adaptive_report
           hC0 hL hpi hpiMax hClat
         let nu := (quotientLaw P hM).representative.1
         (∀ x, x ∈ nu.support ↔ ∃! C, C ∈ report.Kcomponents ∧ x ∈ report.Ktrue nu C) ∧
+        (∀ C ∈ report.Kcomponents, (report.Ktrue nu C).Nonempty) ∧
         (∀ C ∈ report.Kcomponents, report.Ktrue nu C ⊆ nu.support) ∧
         (∀ C ∈ report.Kcomponents, ∀ x ∈ report.Ktrue nu C,
           (report.supportInterval C).1 ≤ x ∧ x ≤ (report.supportInterval C).2) ∧
@@ -156,12 +157,15 @@ theorem cluster_adaptive_report
             (quotientLaw P hM).representative = quotientLaw P hM := Quotient.out_eq _
         rw [heq]
         exact hnuCalg) hnuRep
-    rcases hcore with ⟨hpart, hsubset, hsupp, hmass, hsingleSupp, htop, hgeneral⟩
-    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+    rcases hcore with ⟨hpart, hnonempty, hsubset, hsupp, hmass, hsingleSupp, htop, hgeneral⟩
+    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_ , ?_⟩
     · change ∀ x, x ∈ nu.support ↔ ∃! C,
         C ∈ components (rho := rho) center ∧
           x ∈ associatedSupport (rho := rho) nu C
       exact hpart
+    · change ∀ C ∈ components (rho := rho) center,
+        (associatedSupport (rho := rho) nu C).Nonempty
+      exact hnonempty
     · intro C hC x hx
       exact (Finset.mem_filter.mp hx).1
     · change ∀ C ∈ components (rho := rho) center,

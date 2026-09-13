@@ -11,7 +11,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open MeasureTheory Set
 open Causalean.Mathlib.Probability
 
-/-- Every entry of a rectangular matrix is bounded by its Euclidean operator norm. -/
+/-- Every entry of a rectangular matrix is bounded by its Euclidean operator norm.     Under [the stated inputs and assumptions](hyp:rows,cols,A,i,j), [the stated conclusion](goal) holds. -/
 -- @node: abs_matrix_entry_le_matrixCLM_norm
 lemma abs_matrix_entry_le_matrixCLM_norm {rows cols : ℕ} (A : RectMatrix rows cols)
     (i : Fin rows) (j : Fin cols) : |A i j| ≤ ‖matrixCLM A‖ := by
@@ -27,7 +27,7 @@ lemma abs_matrix_entry_le_matrixCLM_norm {rows cols : ℕ} (A : RectMatrix rows 
     _ = ‖matrixCLM A‖ := by rw [he, mul_one]
 
 /-- Anchor normalization converts the observable outer-product envelopes into coordinatewise
-bounds for both proxies and the observed outcome--reference-proxy product. -/
+bounds for both proxies and the observed outcome--reference-proxy product.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hM), [the stated conclusion](goal) holds. -/
 -- @node: proxy_coordinate_bounds_of_model
 lemma proxy_coordinate_bounds_of_model {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -58,24 +58,27 @@ lemma proxy_coordinate_bounds_of_model {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     simpa [outerProduct, hi0, mul_assoc] using hentry.trans hprod
   exact ⟨hX, hZ, hYZ⟩
 
-/-- Clamp a real value to the interval `[-R, R]`. -/
+/-- Clamp a real value to the interval `[-R, R]`.     For [the supplied parameters](hyp:R,x), [the defined object](goal) is given by [its defining clause](step:1). -/
 def clampReal (R x : ℝ) : ℝ := max (-R) (min R x)
 
+/-- Measurable clamp real: under [the stated inputs and assumptions](hyp:Omega,f,hf,R), [the stated conclusion](goal) holds. -/
 lemma measurable_clampReal {Omega : Type*} [MeasurableSpace Omega]
     {f : Omega → ℝ} (hf : Measurable f) (R : ℝ) :
     Measurable (fun omega => clampReal R (f omega)) := by
   exact measurable_const.max (measurable_const.min hf)
 
+/-- Abs clamp real le: under [the stated inputs and assumptions](hyp:R,x,hR), [the stated conclusion](goal) holds. -/
 lemma abs_clampReal_le (R x : ℝ) (hR : 0 ≤ R) : |clampReal R x| ≤ R := by
   rw [abs_le]
   constructor <;> simp [clampReal] <;> linarith
 
+/-- Clamp real eq self: under [the stated inputs and assumptions](hyp:R,x,hx), [the stated conclusion](goal) holds. -/
 lemma clampReal_eq_self {R x : ℝ} (hx : |x| ≤ R) : clampReal R x = x := by
   rw [abs_le] at hx
   simp [clampReal, hx.1, hx.2]
 
 /-- An a.e.-bounded measurable scalar has a globally bounded measurable clamped representative,
-and the two representatives have the same integral. -/
+and the two representatives have the same integral.        Under [the stated inputs and assumptions](hyp:Omega,mu,f,hf,R,hR,hbound), [the stated conclusion](goal) holds. -/
 theorem integral_clampReal_eq_of_ae_abs_le
     {Omega : Type*} [MeasurableSpace Omega] {mu : Measure Omega}
     {f : Omega → ℝ} (hf : Measurable f) {R : ℝ} (hR : 0 ≤ R)
@@ -90,7 +93,7 @@ theorem integral_clampReal_eq_of_ae_abs_le
     hae, integral_congr_ae hae⟩
 
 -- keep: reusable restricted-integral clamping adapter for bounded conditional-moment models
-/-- Clamping an a.e.-bounded coordinate on a cell does not change its restricted integral. -/
+/-- Clamping an a.e.-bounded coordinate on a cell does not change its restricted integral.     Under [the stated inputs and assumptions](hyp:Omega,P,C,f,hf,R,hR,hbound), [the stated conclusion](goal) holds. -/
 theorem setIntegral_clampReal_eq_of_ae_abs_le
     {Omega : Type*} [MeasurableSpace Omega] {P : Measure Omega} {C : Set Omega}
     {f : Omega → ℝ} (hf : Measurable f) {R : ℝ} (hR : 0 ≤ R)
@@ -100,7 +103,7 @@ theorem setIntegral_clampReal_eq_of_ae_abs_le
 
 -- keep: reusable normalized-restriction clamping adapter for later conditional-moment consumers
 /-- Clamping an a.e.-bounded coordinate on a positive cell does not change its normalized
-restricted integral. -/
+restricted integral.        Under [the stated inputs and assumptions](hyp:Omega,P,C,hCpos,f,hf,R,hR,hbound), [the stated conclusion](goal) holds. -/
 theorem normalizedRestrictedIntegral_clampReal_eq_of_ae_abs_le
     {Omega : Type*} [MeasurableSpace Omega] {P : Measure Omega} [IsFiniteMeasure P]
     {C : Set Omega} (hCpos : 0 < P C)
@@ -115,7 +118,7 @@ theorem normalizedRestrictedIntegral_clampReal_eq_of_ae_abs_le
 
 -- keep: reusable measurable vector-clamping certificate independent of this paper's estimator
 /-- Coordinatewise clamping gives a measurable, globally coordinate-bounded vector representative
-which agrees almost surely with the original vector when all coordinates obey the a.e. bound. -/
+which agrees almost surely with the original vector when all coordinates obey the a.e. bound.        Under [the stated inputs and assumptions](hyp:Omega,mu,n,X,hX,R,hR,hbound), [the stated conclusion](goal) holds. -/
 theorem measurable_clampedVector_and_aeEq
     {Omega : Type*} [MeasurableSpace Omega] {mu : Measure Omega} {n : ℕ}
     {X : Omega → Fin n → ℝ} (hX : Measurable X) {R : ℝ} (hR : 0 ≤ R)
@@ -133,7 +136,7 @@ theorem measurable_clampedVector_and_aeEq
   exact (clampReal_eq_self (homega i)).symm
 
 /-- The paper's conditional mean is exactly integration under the promoted normalized restriction
-on a positive-mass cell. -/
+on a positive-mass cell.        Under [the stated inputs and assumptions](hyp:Omega,P,C,hCpos,f), [the stated conclusion](goal) holds. -/
 theorem conditionalMean_eq_normalizedRestrictedIntegral
     {Omega : Type*} [MeasurableSpace Omega] {P : Measure Omega} [IsFiniteMeasure P]
     {C : Set Omega} (hCpos : 0 < P C) (f : Omega → ℝ) :
@@ -142,7 +145,7 @@ theorem conditionalMean_eq_normalizedRestrictedIntegral
   rfl
 
 /-- Reference-proxy separation supplies the promoted bounded-test factorization on each positive
-latent cell. -/
+latent cell.        Under [the stated inputs and assumptions](hyp:k,dx,dz,P,hsep,u,t,hpos), [the stated conclusion](goal) holds. -/
 theorem referenceProxySeparation_to_normalizedFactorization
     {k dx dz : ℕ} {P : Measure (FullData k dx dz)} [IsProbabilityMeasure P]
     (hsep : ReferenceProxySeparation P) (u : Fin k) (t : Bool)
@@ -157,7 +160,7 @@ theorem referenceProxySeparation_to_normalizedFactorization
   simpa only [normalizedRestrictedIntegral] using hs
 
 /-- Target-proxy separation supplies the promoted bounded-test factorization on each positive
-latent class. -/
+latent class.        Under [the stated inputs and assumptions](hyp:k,dx,dz,P,hsep,u,hpos), [the stated conclusion](goal) holds. -/
 theorem targetProxySeparation_to_normalizedFactorization
     {k dx dz : ℕ} {P : Measure (FullData k dx dz)} [IsProbabilityMeasure P]
     (hsep : TargetProxySeparation P) (u : Fin k)
@@ -172,7 +175,7 @@ theorem targetProxySeparation_to_normalizedFactorization
   simpa only [normalizedRestrictedIntegral] using hs
 
 /-- Armwise latent ignorability supplies bounded-test factorization of a potential outcome and
-the treatment indicator under each positive latent-class law. -/
+the treatment indicator under each positive latent-class law.        Under [the stated inputs and assumptions](hyp:k,dx,dz,P,hign,u,t,hpos), [the stated conclusion](goal) holds. -/
 -- @node: latentIgnorability_to_normalizedFactorization
 theorem latentIgnorability_to_normalizedFactorization
     {k dx dz : ℕ} {P : Measure (FullData k dx dz)} [IsProbabilityMeasure P]

@@ -9,21 +9,23 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open scoped BigOperators ENNReal
 open MeasureTheory Set Filter
 
+/-- For [the supplied parameters](hyp:k,dx,dz,n,radius), Law Estimator is the stated data structure. -/
 structure LawEstimator (k dx dz n : ℕ) (radius : ℝ) where
   eval : (Fin n → Obs dx dz) → AtomicLaw.LawModulo k radius
     -- @realizes \(\widetilde\nu_n\)(generic law estimator)
   measurable : Measurable eval
 
-/-- Probability-simplex constraint for labelled weight vectors. -/
+/-- Probability-simplex constraint for labelled weight vectors.     For [the supplied parameters](hyp:p), [the defined object](goal) is given by [its defining clause](step:1). -/
 def InSimplex {k : ℕ} (p : Fin k → ℝ) : Prop :=
   (∀ i, 0 ≤ p i) ∧ ∑ i, p i = 1
 
+/-- For [the supplied parameters](hyp:k,dx,dz,n), Weight Estimator is the stated data structure. -/
 structure WeightEstimator (k dx dz n : ℕ) where
   eval : (Fin n → Obs dx dz) → (Fin k → ℝ) -- @realizes \(\widetilde p_n\)(generic weight estimator)
   measurable : Measurable eval
   simplex : ∀ sample, InSimplex (eval sample)
 
-/-- Ordered masses are a Borel function of the labelled atomic coordinates. -/
+/-- Ordered masses are a Borel function of the labelled atomic coordinates.     Under [the stated inputs and assumptions](hyp:k,radius), [the stated conclusion](goal) holds. -/
 -- @node: orderedMasses_measurable
 lemma orderedMasses_measurable {k : ℕ} {radius : ℝ} :
     Measurable (@orderedMasses k radius) := by
@@ -100,7 +102,7 @@ lemma orderedMasses_measurable {k : ℕ} {radius : ℝ} :
     · fun_prop
   · fun_prop
 
-/-- Ordered masses of a valid nonempty atomic law form a probability-simplex vector. -/
+/-- Ordered masses of a valid nonempty atomic law form a probability-simplex vector.     Under [the stated inputs and assumptions](hyp:k,radius,hk,hν), [the stated conclusion](goal) holds. -/
 -- @node: orderedMasses_inSimplex
 lemma orderedMasses_inSimplex {k : ℕ} {radius : ℝ} (hk : 0 < k)
     (ν : AtomicLaw k radius) (hν : AtomicLaw.Valid ν) : InSimplex (orderedMasses ν) := by
@@ -149,7 +151,7 @@ lemma orderedMasses_inSimplex {k : ℕ} {radius : ℝ} (hk : 0 < k)
     · rw [Finset.sum_const, Finset.card_univ]
       simp [nsmul_eq_mul, Nat.cast_ne_zero.mpr (Nat.ne_of_gt hk)]
 
-/-- The ℓ¹ diameter of the probability simplex is two. -/
+/-- The ℓ¹ diameter of the probability simplex is two.     Under [the stated inputs and assumptions](hyp:k,p,q,hp,hq), [the stated conclusion](goal) holds. -/
 -- @node: simplex_l1_le_two
 lemma simplex_l1_le_two {k : ℕ} {p q : Fin k → ℝ}
     (hp : InSimplex p) (hq : InSimplex q) : ∑ i, |p i - q i| ≤ 2 := by
@@ -161,6 +163,7 @@ lemma simplex_l1_le_two {k : ℕ} {p q : Fin k → ℝ}
       exact ⟨by linarith [hp.1 i, hq.1 i], by linarith [hp.1 i, hq.1 i]⟩
     _ = 2 := by rw [Finset.sum_add_distrib, hp.2, hq.2]; norm_num
 
+/-- For [the supplied parameters](hyp:P,hM,pi0,sigma0), [expected Law Risk](goal) is given by [its defining clause](step:1). -/
 noncomputable def expectedLawRisk {k dx dz n : ℕ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
     {L pi0 sigma0 : ℝ}
@@ -169,13 +172,14 @@ noncomputable def expectedLawRisk {k dx dz n : ℕ}
   ∫ sample, AtomicLaw.LawModulo.wass1 (est.eval sample) (quotientLaw P hM)
     ∂sampleLaw (n := n) P
 
+/-- For [the supplied parameters](hyp:P,target,est), [expected Weight Risk](goal) is given by [its defining clause](step:1). -/
 noncomputable def expectedWeightRisk {k dx dz n : ℕ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
     (target : Fin k → ℝ) (est : WeightEstimator k dx dz n) : ℝ :=
   ∫ sample, ∑ i, |est.eval sample i - target i| ∂sampleLaw (n := n) P
 
 -- keep: canonical ordered-weight risk functional for follow-on estimator comparisons
-/-- Risk of the specified ordered-mass estimator derived from the common repaired law estimator. -/
+/-- Risk of the specified ordered-mass estimator derived from the common repaired law estimator.     For [the supplied parameters](hyp:P,hM,pi0,sigma0), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def expectedOrderedWeightRisk {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
     (hM : UCVMWModel (L := L) (pi0 := pi0) (sigma0 := sigma0) P)
@@ -185,7 +189,7 @@ noncomputable def expectedOrderedWeightRisk {k dx dz n : ℕ} {L pi0 sigma0 : �
       orderedMasses (quotientLaw P hM).representative.1 i|
     ∂sampleLaw (n := n) P
 
-/-- One-Wasserstein loss between two bundled finite probability laws is nonnegative. -/
+/-- One-Wasserstein loss between two bundled finite probability laws is nonnegative.     Under [the stated inputs and assumptions](hyp:k,radius), [the stated conclusion](goal) holds. -/
 lemma lawModulo_wass1_nonneg {k : ℕ} {radius : ℝ}
     (ν ξ : AtomicLaw.LawModulo k radius) :
     0 ≤ AtomicLaw.LawModulo.wass1 ν ξ := by
@@ -197,7 +201,7 @@ lemma lawModulo_wass1_nonneg {k : ℕ} {radius : ℝ}
   exact Finset.sum_nonneg fun i _ => Finset.sum_nonneg fun j _ =>
     mul_nonneg (γ.nonneg i j) (abs_nonneg _)
 
-/-- Integrating a Gaussian upper-tail envelope gives the corresponding mean bound. -/
+/-- Integrating a Gaussian upper-tail envelope gives the corresponding mean bound.     Under [the stated inputs and assumptions](hyp:Z,hZnn,A,b,q,hA,hb,hq,htail), [the stated conclusion](goal) holds. -/
 -- @node: integral_le_of_gaussian_tail
 lemma integral_le_of_gaussian_tail {Ω : Type*} [MeasurableSpace Ω]
     (μ : Measure Ω) [IsProbabilityMeasure μ] (Z : Ω → ℝ)
@@ -258,7 +262,7 @@ lemma integral_le_of_gaussian_tail {Ω : Type*} [MeasurableSpace Ω]
     positivity
 
 /-- A square-root logarithmic deviation inequality, uniform over confidence levels, implies a
-root-sample-size mean bound. -/
+root-sample-size mean bound.        Under [the stated inputs and assumptions](hyp:Z,hZnn,A,n,hA,hn,htail), [the stated conclusion](goal) holds. -/
 -- @node: integral_le_of_sqrt_log_tail
 lemma integral_le_of_sqrt_log_tail {Ω : Type*} [MeasurableSpace Ω]
     (μ : Measure Ω) [IsProbabilityMeasure μ] (Z : Ω → ℝ)

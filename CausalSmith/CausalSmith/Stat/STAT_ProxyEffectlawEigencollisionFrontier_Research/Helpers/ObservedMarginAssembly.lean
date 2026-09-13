@@ -13,21 +13,21 @@ open MeasureTheory Set
 open scoped BigOperators ENNReal
 open Causalean.Mathlib.Probability
 
-/-- The full-data target-proxy coordinate map is measurable. -/
+/-- The full-data target-proxy coordinate map is measurable.     Under [the stated inputs and assumptions](hyp:k,dx,dz), [the stated conclusion](goal) holds. -/
 -- @node: measurable_fullData_X
 lemma measurable_fullData_X {k dx dz : ℕ} :
     Measurable (fun w : FullData k dx dz => w.X) := by
   change Measurable (fun w : FullData k dx dz => (FullData.toCoordinates w).2.2.1)
   exact continuous_induced_dom.measurable.snd.snd.fst
 
-/-- The full-data reference-proxy coordinate map is measurable. -/
+/-- The full-data reference-proxy coordinate map is measurable.     Under [the stated inputs and assumptions](hyp:k,dx,dz), [the stated conclusion](goal) holds. -/
 -- @node: measurable_fullData_Z
 lemma measurable_fullData_Z {k dx dz : ℕ} :
     Measurable (fun w : FullData k dx dz => w.Z) := by
   change Measurable (fun w : FullData k dx dz => (FullData.toCoordinates w).2.2.2.1)
   exact continuous_induced_dom.measurable.snd.snd.snd.fst
 
-/-- The full-data observed-outcome coordinate map is measurable. -/
+/-- The full-data observed-outcome coordinate map is measurable.     Under [the stated inputs and assumptions](hyp:k,dx,dz), [the stated conclusion](goal) holds. -/
 -- @node: measurable_fullData_Y
 lemma measurable_fullData_Y {k dx dz : ℕ} :
     Measurable (fun w : FullData k dx dz => w.Y) := by
@@ -35,7 +35,7 @@ lemma measurable_fullData_Y {k dx dz : ℕ} :
     (FullData.toCoordinates w).2.2.2.2.2.2)
   exact continuous_induced_dom.measurable.snd.snd.snd.snd.snd.snd
 
-/-- Each binary potential-outcome coordinate map is measurable. -/
+/-- Each binary potential-outcome coordinate map is measurable.     Under [the stated inputs and assumptions](hyp:k,dx,dz,t), [the stated conclusion](goal) holds. -/
 -- @node: measurable_potential
 lemma measurable_potential {k dx dz : ℕ} (t : Bool) :
     Measurable (@potential k dx dz t) := by
@@ -49,26 +49,26 @@ lemma measurable_potential {k dx dz : ℕ} (t : Bool) :
         (FullData.toCoordinates w).2.2.2.2.2.1)
       exact continuous_induced_dom.measurable.snd.snd.snd.snd.snd.fst
 
-/-- The observed target-proxy coordinate map is measurable. -/
+/-- The observed target-proxy coordinate map is measurable.     Under [the stated inputs and assumptions](hyp:dx,dz), [the stated conclusion](goal) holds. -/
 -- @node: measurable_obs_X
 lemma measurable_obs_X {dx dz : ℕ} : Measurable (fun o : Obs dx dz => o.X) := by
   change Measurable (fun o : Obs dx dz => (Obs.toCoordinates o).2.1)
   exact continuous_induced_dom.measurable.snd.fst
 
-/-- The observed reference-proxy coordinate map is measurable. -/
+/-- The observed reference-proxy coordinate map is measurable.     Under [the stated inputs and assumptions](hyp:dx,dz), [the stated conclusion](goal) holds. -/
 -- @node: measurable_obs_Z
 lemma measurable_obs_Z {dx dz : ℕ} : Measurable (fun o : Obs dx dz => o.Z) := by
   change Measurable (fun o : Obs dx dz => (Obs.toCoordinates o).2.2.1)
   exact continuous_induced_dom.measurable.snd.snd.fst
 
-/-- The observed outcome coordinate map is measurable. -/
+/-- The observed outcome coordinate map is measurable.     Under [the stated inputs and assumptions](hyp:dx,dz), [the stated conclusion](goal) holds. -/
 -- @node: measurable_obs_Y
 lemma measurable_obs_Y {dx dz : ℕ} : Measurable (fun o : Obs dx dz => o.Y) := by
   change Measurable (fun o : Obs dx dz => (Obs.toCoordinates o).2.2.2)
   exact continuous_induced_dom.measurable.snd.snd.snd
 
 /-- A conditional mean on a treatment arm is the finite mixture of the conditional means on
-its latent cells. -/
+its latent cells.        Under [the stated inputs and assumptions](hyp:k,dx,dz,P,t,f,hf,hArm), [the stated conclusion](goal) holds. -/
 -- @node: conditionalMean_fullDataArm_eq_sum_latentCell
 lemma conditionalMean_fullDataArm_eq_sum_latentCell
     {k dx dz : ℕ} (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -99,7 +99,7 @@ lemma conditionalMean_fullDataArm_eq_sum_latentCell
   · field_simp
 
 /-- Reference-proxy separation factors each latent-cell proxy cross moment, using bounded
-clamped representatives of the proxy coordinates. -/
+clamped representatives of the proxy coordinates.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hL,hpi,hM), [the stated conclusion](goal) holds. -/
 -- @node: latentCell_ZX_conditionalMean_factorization
 lemma latentCell_ZX_conditionalMean_factorization
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -149,7 +149,7 @@ lemma latentCell_ZX_conditionalMean_factorization
           hXb.mono fun w hx => by simpa only [Xc] using clampReal_eq_self hx
 
 /-- Target-proxy separation makes the target-proxy conditional mean invariant across treatment
-arms within a latent class. -/
+arms within a latent class.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hL,hpi,hM), [the stated conclusion](goal) holds. -/
 -- @node: latentCell_X_conditionalMean_eq_latentClass
 lemma latentCell_X_conditionalMean_eq_latentClass
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -234,7 +234,7 @@ lemma latentCell_X_conditionalMean_eq_latentClass
       apply integral_congr_ae
       exact hclassb.mono fun w hw => by simp only [f, clampReal_eq_self hw]
 
-/-- The observed armwise proxy moment has the latent finite-mixture factorization. -/
+/-- The observed armwise proxy moment has the latent finite-mixture factorization.     Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hL,hpi,hM), [the stated conclusion](goal) holds. -/
 -- @node: observedProxyMoment_factorization
 lemma observedProxyMoment_factorization
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -286,7 +286,7 @@ lemma observedProxyMoment_factorization
   ring
 
 /-- Entrywise conditional outer-product moments agree with the Bochner integral of the
-corresponding continuous-linear maps under the normalized cell law. -/
+corresponding continuous-linear maps under the normalized cell law.        Under [the stated inputs and assumptions](hyp:k,dx,dz,P,C,hCpos,hcoord,hmap), [the stated conclusion](goal) holds. -/
 -- @node: matrixCLM_conditionalOuterMoment_eq_integral
 lemma matrixCLM_conditionalOuterMoment_eq_integral
     {k dx dz : ℕ} (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -316,7 +316,7 @@ lemma matrixCLM_conditionalOuterMoment_eq_integral
     exact (hcoord i j).mul_const (x j)
 
 /-- A matrix of scalar conditional means is the Bochner conditional mean of the
-corresponding matrix-valued random element. -/
+corresponding matrix-valued random element.        Under [the stated inputs and assumptions](hyp:k,dx,dz,P,C,hCpos,A,hcoord,hmap), [the stated conclusion](goal) holds. -/
 -- @node: matrixCLM_conditionalMatrix_eq_integral
 lemma matrixCLM_conditionalMatrix_eq_integral
     {k dx dz : ℕ} (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]

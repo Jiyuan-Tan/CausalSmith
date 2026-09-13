@@ -12,7 +12,7 @@ open CausalSmith.Substrate.CollisionSafeSpectralLaw
 
 /-- The orthonormal target-signal frame extends to an ambient orthonormal basis.  This is the
 paper-local complement construction needed to add the zero eigenspace without choosing an
-eigengap or a basis inside any repeated signal eigenspace. -/
+eigengap or a basis inside any repeated signal eigenspace.        Under [the stated inputs and assumptions](hyp:dx,k,V), [the stated conclusion](goal) holds. -/
 -- @node: realDiagonalizationBridge_signalBasis_extension
 lemma SignalBasis.exists_ambient_orthonormalBasis {dx k : ℕ} (V : SignalBasis dx k) :
     ∃ (u : Finset (Euc dx)) (b : OrthonormalBasis u ℝ (Euc dx)),
@@ -32,7 +32,7 @@ lemma SignalBasis.exists_ambient_orthonormalBasis {dx k : ℕ} (V : SignalBasis 
   simpa [f] using hrange.exists_orthonormalBasis_extension
 
 /-- The ambient orthonormal extension may be indexed by the standard ambient coordinates,
-with an explicit embedding recording which coordinates are the signal columns. -/
+with an explicit embedding recording which coordinates are the signal columns.        Under [the stated inputs and assumptions](hyp:dx,k,V), [the stated conclusion](goal) holds. -/
 -- @node: realDiagonalizationBridge_signalBasis_fin_extension
 lemma SignalBasis.exists_fin_ambient_orthonormalBasis {dx k : ℕ} (V : SignalBasis dx k) :
     ∃ (b : OrthonormalBasis (Fin dx) ℝ (Euc dx)) (e : Fin k ↪ Fin dx),
@@ -60,19 +60,19 @@ lemma SignalBasis.exists_fin_ambient_orthonormalBasis {dx k : ℕ} (V : SignalBa
   simp only [Equiv.symm_apply_apply]
   simpa [f] using congrFun hb ⟨f j, hu ⟨j, rfl⟩⟩
 
-/-- The matrix whose columns are the vectors of a Euclidean basis. -/
+/-- The matrix whose columns are the vectors of a Euclidean basis.     For [the supplied parameters](hyp:b), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: realDiagonalizationBridge_basisMatrix
 noncomputable def basisMatrix {n : ℕ} (b : Module.Basis (Fin n) ℝ (Euc n)) :
     RectMatrix n n :=
   fun i j => (b j).ofLp i
 
-/-- The inverse coordinate matrix of a Euclidean basis. -/
+/-- The inverse coordinate matrix of a Euclidean basis.     For [the supplied parameters](hyp:b), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: realDiagonalizationBridge_basisInvMatrix
 noncomputable def basisInvMatrix {n : ℕ} (b : Module.Basis (Fin n) ℝ (Euc n)) :
     RectMatrix n n :=
   fun i j => b.repr (EuclideanSpace.single j (1 : ℝ)) i
 
-/-- A basis matrix followed by its coordinate matrix is the identity. -/
+/-- A basis matrix followed by its coordinate matrix is the identity.     Under [the stated inputs and assumptions](hyp:n,b), [the stated conclusion](goal) holds. -/
 -- @node: realDiagonalizationBridge_basisMatrix_mul_inv
 lemma basisMatrix_mul_inv {n : ℕ} (b : Module.Basis (Fin n) ℝ (Euc n)) :
     basisMatrix b * basisInvMatrix b = 1 := by
@@ -94,7 +94,7 @@ lemma basisMatrix_mul_inv {n : ℕ} (b : Module.Basis (Fin n) ℝ (Euc n)) :
   simpa only [WithLp.ofLp_smul, Pi.smul_apply, smul_eq_mul,
     PiLp.single_apply, one_mul, Matrix.one_apply] using h
 
-/-- The coordinate matrix followed by its basis matrix is the identity. -/
+/-- The coordinate matrix followed by its basis matrix is the identity.     Under [the stated inputs and assumptions](hyp:n,b), [the stated conclusion](goal) holds. -/
 -- @node: realDiagonalizationBridge_basisInvMatrix_mul_basis
 lemma basisInvMatrix_mul_basis {n : ℕ} (b : Module.Basis (Fin n) ℝ (Euc n)) :
     basisInvMatrix b * basisMatrix b = 1 := by
@@ -110,7 +110,7 @@ lemma basisInvMatrix_mul_basis {n : ℕ} (b : Module.Basis (Fin n) ℝ (Euc n)) 
   rw [Finsupp.single_apply] at h
   simpa [e, mul_comm, Matrix.one_apply, eq_comm] using h
 
-/-- A full real eigenbasis yields the substrate's two-sided real diagonalization certificate. -/
+/-- A full real eigenbasis yields the substrate's two-sided real diagonalization certificate.     For [the supplied parameters](hyp:A,b,lam,heig), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: realDiagonalizationBridge_ofEigenbasis
 noncomputable def realDiagonalizationOfEigenbasis {n : ℕ} (A : RectMatrix n n)
     (b : Module.Basis (Fin n) ℝ (Euc n)) (lam : Fin n → ℝ)
@@ -136,7 +136,7 @@ noncomputable def realDiagonalizationOfEigenbasis {n : ℕ} (A : RectMatrix n n)
         _ = (A * S) * T := by rw [Matrix.mul_assoc]
         _ = (S * Matrix.diagonal lam) * T := by rw [hAS] }
 
-/-- The functional calculus of the eigenbasis certificate is the expected conjugation formula. -/
+/-- The functional calculus of the eigenbasis certificate is the expected conjugation formula.     Under [the stated inputs and assumptions](hyp:n,A,b,lam,heig,f), [the stated conclusion](goal) holds. -/
 -- @node: realDiagonalizationBridge_applyFunction
 lemma realDiagonalizationOfEigenbasis_applyFunction {n : ℕ} (A : RectMatrix n n)
     (b : Module.Basis (Fin n) ℝ (Euc n)) (lam : Fin n → ℝ)
@@ -146,7 +146,7 @@ lemma realDiagonalizationOfEigenbasis_applyFunction {n : ℕ} (A : RectMatrix n 
   rfl
 
 /-- A matrix agreeing with the scalar functional calculus on every vector of the eigenbasis
-is exactly the functional-calculus matrix. -/
+is exactly the functional-calculus matrix.        Under [the stated inputs and assumptions](hyp:n,A,F,b,lam,heig,f,hF), [the stated conclusion](goal) holds. -/
 -- @node: realDiagonalizationBridge_applyFunction_eq_of_apply_basis
 lemma realDiagonalizationOfEigenbasis_applyFunction_eq_of_apply_basis {n : ℕ}
     (A F : RectMatrix n n) (b : Module.Basis (Fin n) ℝ (Euc n))

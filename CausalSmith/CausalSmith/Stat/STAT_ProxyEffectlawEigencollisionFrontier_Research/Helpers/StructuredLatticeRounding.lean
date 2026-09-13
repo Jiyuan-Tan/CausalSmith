@@ -8,19 +8,19 @@ noncomputable section
 
 open scoped Matrix.Norms.L2Operator
 
-/-- The prescribed height is positive on the core domain. -/
+/-- The prescribed height is positive on the core domain.     Under [the stated inputs and assumptions](hyp:k,dx,n,pi0,sigma0,hk), [the stated conclusion](goal) holds. -/
 lemma latticeHeight_pos {k dx n : ℕ} {pi0 sigma0 : ℝ} (hk : 0 < k) :
     0 < latticeHeight k dx n pi0 sigma0 := by
   unfold latticeHeight
   omega
 
-/-- The height contains the reciprocal-mass ceiling required by largest-remainder rounding. -/
+/-- The height contains the reciprocal-mass ceiling required by largest-remainder rounding.     Under [the stated inputs and assumptions](hyp:k,dx,n,pi0,sigma0), [the stated conclusion](goal) holds. -/
 lemma ceil_inv_le_latticeHeight (k dx n : ℕ) (pi0 sigma0 : ℝ) :
     ⌈pi0⁻¹⌉₊ ≤ latticeHeight k dx n pi0 sigma0 := by
   unfold latticeHeight
   omega
 
-/-- The height's explicit polar term makes the signal-basis mesh at most one quarter. -/
+/-- The height's explicit polar term makes the signal-basis mesh at most one quarter.     Under [the stated inputs and assumptions](hyp:k,dx,n,pi0,sigma0,hk), [the stated conclusion](goal) holds. -/
 lemma sqrt_card_mul_latticeMesh_le_quarter
     {k dx n : ℕ} {pi0 sigma0 : ℝ} (hk : 0 < k) :
     Real.sqrt (dx * k) * latticeMesh k dx n pi0 sigma0 ≤ 1 / 4 := by
@@ -39,7 +39,7 @@ lemma sqrt_card_mul_latticeMesh_le_quarter
   nlinarith
 
 /-- The height's conditioning term makes square-coordinate rounding preserve half the model
-singular margin. -/
+singular margin.        Under [the stated inputs and assumptions](hyp:k,dx,n,pi0,sigma0,hk,hsigma), [the stated conclusion](goal) holds. -/
 lemma k_mul_latticeMesh_le_half_sigma
     {k dx n : ℕ} {pi0 sigma0 : ℝ} (hk : 0 < k) (hsigma : 0 < sigma0) :
     (k : ℝ) * latticeMesh k dx n pi0 sigma0 ≤ sigma0 / 2 := by
@@ -59,7 +59,7 @@ lemma k_mul_latticeMesh_le_half_sigma
   nlinarith
 
 /-- On the core size and envelope domain, the basic `2k` height term also leaves enough norm
-budget for square-coordinate rounding. -/
+budget for square-coordinate rounding.        Under [the stated inputs and assumptions](hyp:k,dx,n,pi0,sigma0,L,hk,hL), [the stated conclusion](goal) holds. -/
 lemma k_mul_latticeMesh_le_sqrt_mul
     {k dx n : ℕ} {pi0 sigma0 L : ℝ} (hk : 2 ≤ k) (hL : 1 ≤ L) :
     (k : ℝ) * latticeMesh k dx n pi0 sigma0 ≤ Real.sqrt k * L := by
@@ -86,7 +86,7 @@ lemma k_mul_latticeMesh_le_sqrt_mul
 
 /-- A rectangular matrix whose entries are uniformly bounded by `M` has Euclidean operator norm
 at most `sqrt (rows * cols) * M`.  This is the sharp dimension factor needed when rounding the
-signal basis coordinatewise. -/
+signal basis coordinatewise.        Under [the stated inputs and assumptions](hyp:rows,cols,M,hM,A,hA), [the stated conclusion](goal) holds. -/
 lemma matrixCLM_norm_le_sqrt_card_mul_of_entry_abs_le
     {rows cols : ℕ} {M : ℝ} (hM : 0 ≤ M) (A : RectMatrix rows cols)
     (hA : ∀ i j, |A i j| ≤ M) :
@@ -132,7 +132,7 @@ lemma matrixCLM_norm_le_sqrt_card_mul_of_entry_abs_le
 
 /-- Largest-remainder rounding of a finite probability vector.  Each allocated numerator differs
 from its unrounded value by at most one, and any lower bound already satisfied by every floor is
-preserved. -/
+preserved.        Under [the stated inputs and assumptions](hyp:k,H,hk,hH,p,hp,hsum), [the stated conclusion](goal) holds. -/
 lemma simplex_largestRemainder_round
     {k H : ℕ} (hk : 0 < k) (hH : 0 < H) (p : Fin k → ℝ)
     (hp : ∀ u, 0 ≤ p u) (hsum : ∑ u, p u = 1) :
@@ -201,7 +201,7 @@ lemma simplex_largestRemainder_round
     omega
 
 /-- Under the model's doubled latent-mass floor and `H ≥ ceil(pi0⁻¹)`, largest-remainder
-rounding lands in the prescribed floor-constrained simplex. -/
+rounding lands in the prescribed floor-constrained simplex.        Under [the stated inputs and assumptions](hyp:k,H,pi0,hk,hH,hpi,hHpi,p,hp,hsum), [the stated conclusion](goal) holds. -/
 lemma simplex_largestRemainder_round_with_floor
     {k H : ℕ} {pi0 : ℝ} (hk : 0 < k) (hH : 0 < H)
     (hpi : 0 < pi0) (hHpi : ⌈pi0⁻¹⌉₊ ≤ H)
@@ -235,7 +235,7 @@ lemma simplex_largestRemainder_round_with_floor
   have hxFloor : x ≤ (⌊y⌋₊ : ℝ) := by linarith
   exact hxFloor.trans (by exact_mod_cast haFloor u)
 
-/-- Euclidean form of the largest-remainder error bound used in the frozen estimate (88). -/
+/-- Euclidean form of the largest-remainder error bound used in the frozen estimate (88).     Under [the stated inputs and assumptions](hyp:k,H,pi0,hk,hH,hpi,hHpi,p,hp,hsum), [the stated conclusion](goal) holds. -/
 lemma simplex_largestRemainder_round_with_floor_l2
     {k H : ℕ} {pi0 : ℝ} (hk : 0 < k) (hH : 0 < H)
     (hpi : 0 < pi0) (hHpi : ⌈pi0⁻¹⌉₊ ≤ H)
@@ -271,7 +271,7 @@ lemma simplex_largestRemainder_round_with_floor_l2
   exact hsumSq
 
 /-- Rounding toward zero puts a bounded scalar on the clipped `1/H` lattice without leaving its
-support interval. -/
+support interval.        Under [the stated inputs and assumptions](hyp:H,radius,x,hH,hradius,hx), [the stated conclusion](goal) holds. -/
 lemma clipped_lattice_round {H : ℕ} {radius x : ℝ} (hH : 0 < H)
     (hradius : 0 ≤ radius) (hx : x ∈ Set.Icc (-radius) radius) :
     ∃ z : ℤ, (H : ℝ)⁻¹ * z ∈ Set.Icc (-radius) radius ∧
@@ -318,7 +318,7 @@ lemma clipped_lattice_round {H : ℕ} {radius x : ℝ} (hH : 0 < H)
       field_simp
       nlinarith
 
-/-- Coordinatewise clipped rounding for rectangular matrices. -/
+/-- Coordinatewise clipped rounding for rectangular matrices.     Under [the stated inputs and assumptions](hyp:rows,cols,H,radius,hH,hradius,A,hA), [the stated conclusion](goal) holds. -/
 lemma clipped_lattice_round_matrix {rows cols H : ℕ} {radius : ℝ}
     (hH : 0 < H) (hradius : 0 ≤ radius) (A : RectMatrix rows cols)
     (hA : ∀ i j, |A i j| ≤ radius) :
@@ -340,7 +340,7 @@ lemma clipped_lattice_round_matrix {rows cols H : ℕ} {radius : ℝ}
     exact (Classical.choose_spec (hpoint i j)).2
 
 /-- Operator-norm form of coordinatewise matrix rounding, with the exact Frobenius-to-operator
-dimension factor used by the comparator construction. -/
+dimension factor used by the comparator construction.        Under [the stated inputs and assumptions](hyp:rows,cols,H,radius,hH,hradius,A,hA), [the stated conclusion](goal) holds. -/
 lemma clipped_lattice_round_matrix_norm {rows cols H : ℕ} {radius : ℝ}
     (hH : 0 < H) (hradius : 0 ≤ radius) (A : RectMatrix rows cols)
     (hA : ∀ i j, |A i j| ≤ radius) :
@@ -354,7 +354,7 @@ lemma clipped_lattice_round_matrix_norm {rows cols H : ℕ} {radius : ℝ}
   simpa only [Matrix.sub_apply] using herr i j
 
 /-- Every supplied orthonormal signal basis has all of its `k` column singular values at least
-one (in fact equal to one). -/
+one (in fact equal to one).        Under [the stated inputs and assumptions](hyp:dx,k,V,hk), [the stated conclusion](goal) holds. -/
 lemma SignalBasis.one_le_signalMinSingular {dx k : ℕ} (V : SignalBasis dx k)
     (hk : 0 < k) : 1 ≤ signalMinSingular V.V := by
   apply Causalean.Mathlib.Analysis.le_singularValues_of_subspace
@@ -366,7 +366,7 @@ lemma SignalBasis.one_le_signalMinSingular {dx k : ℕ} (V : SignalBasis dx k)
     exact hn.symm.le
 
 /-- Coordinate rounding of an orthonormal signal basis produces a valid grid matrix.  Weyl's
-inequality preserves the asserted singular margin under the frozen quarter-radius condition. -/
+inequality preserves the asserted singular margin under the frozen quarter-radius condition.        Under [the stated inputs and assumptions](hyp:dx,k,H,V,hk,hH,hmesh), [the stated conclusion](goal) holds. -/
 lemma SignalBasis.exists_rounded_gridBasis
     {dx k H : ℕ} (V : SignalBasis dx k) (hk : 0 < k) (hH : 0 < H)
     (hmesh : Real.sqrt (dx * k) * (H : ℝ)⁻¹ ≤ 1 / 4) :
@@ -397,7 +397,7 @@ lemma SignalBasis.exists_rounded_gridBasis
   linarith
 
 /-- A well-conditioned square coordinate matrix can be rounded to the prescribed clipped lattice
-while retaining half its singular margin and the doubled norm budget. -/
+while retaining half its singular margin and the doubled norm budget.        Under [the stated inputs and assumptions](hyp:k,H,L,sigma0,hH,hL,hsigma,R,hRmin,hRnorm,hmargin,hbudget), [the stated conclusion](goal) holds. -/
 lemma exists_rounded_conditioned_matrix
     {k H : ℕ} {L sigma0 : ℝ} (hH : 0 < H) (hL : 0 ≤ L)
     (hsigma : 0 ≤ sigma0) (R : RectMatrix k k)
@@ -443,7 +443,7 @@ lemma exists_rounded_conditioned_matrix
       _ ≤ Real.sqrt k * L + Real.sqrt k * L := add_le_add hRnorm (herr.trans hbudget)
       _ = 2 * Real.sqrt k * L := by ring
 
-/-- Coordinatewise clipped rounding for the effect vector. -/
+/-- Coordinatewise clipped rounding for the effect vector.     Under [the stated inputs and assumptions](hyp:k,H,radius,hH,hradius,x,hx), [the stated conclusion](goal) holds. -/
 lemma clipped_lattice_round_vector {k H : ℕ} {radius : ℝ}
     (hH : 0 < H) (hradius : 0 ≤ radius) (x : Fin k → ℝ)
     (hx : ∀ u, x u ∈ Set.Icc (-radius) radius) :
@@ -462,7 +462,7 @@ lemma clipped_lattice_round_vector {k H : ℕ} {radius : ℝ}
     exact (Classical.choose_spec (hpoint u)).2
 
 -- keep: generic Euclidean certificate for clipped lattice rounding in later estimators
-/-- Euclidean error form of clipped coordinatewise vector rounding. -/
+/-- Euclidean error form of clipped coordinatewise vector rounding.     Under [the stated inputs and assumptions](hyp:k,H,radius,hH,hradius,x,hx), [the stated conclusion](goal) holds. -/
 lemma clipped_lattice_round_vector_l2 {k H : ℕ} {radius : ℝ}
     (hH : 0 < H) (hradius : 0 ≤ radius) (x : Fin k → ℝ)
     (hx : ∀ u, x u ∈ Set.Icc (-radius) radius) :

@@ -5,7 +5,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 
 open MeasureTheory
 
-/-- Root-n upper and lower bounds hold on the same uniformly conditioned two-class model. -/
+/-- Root-n upper and lower bounds hold on the same uniformly conditioned two-class model.     Under the stated inputs and assumptions, [the stated conclusion](goal) holds. -/
 -- @node: prop:same-class-quotient-minimax
 theorem same_class_quotient_minimax :
     ∃ c C : ℝ,
@@ -23,8 +23,8 @@ theorem same_class_quotient_minimax :
           letI := _hP
           (hM : UCVMWModel (L := 2) (pi0 := 1 / 10) (sigma0 := 1 / 10) P) →
             expectedLawRisk P hM est ≤ C / Real.sqrt n := by
-  obtain ⟨cLoc, a, cLower, CKL, hcLoc, ha, haMax, hcLower, hCKL, hlower⟩ :=
-    matching_local_lower_bounds
+  obtain ⟨a, cLower, CKL, ha, haMax, hcLower, hCKL, hlower⟩ :=
+    matching_local_lower_bounds (1 / 4) (by exact ⟨by norm_num, by norm_num⟩)
   obtain ⟨Ctail, hCtail, hupper⟩ :=
     collision_uniform_root_n 2 2 2 2 (1 / 10) (1 / 10)
       (by norm_num) (by norm_num) (by norm_num) (by norm_num)
@@ -74,7 +74,7 @@ theorem same_class_quotient_minimax :
       have hthreshold : Ctail * Real.sqrt (Real.log (Ctail / eta) / (n : ℝ)) ≤
           A * Real.sqrt (Real.log (A / eta) / (n : ℝ)) := by
         exact mul_le_mul hCA hsqrt (Real.sqrt_nonneg _) (le_trans (by norm_num) hA)
-      refine (measureReal_mono (μ := sampleLaw (n := n) P) ?_).trans hprob
+      refine (measureReal_mono (μ := sampleLaw (n := n) P) ?_).trans hprob.1
       intro sample hs
       change Ctail * Real.sqrt (Real.log (Ctail / eta) / (n : ℝ)) <
         max (AtomicLaw.LawModulo.wass1 (Alat.estimate sample) (quotientLaw P hM))

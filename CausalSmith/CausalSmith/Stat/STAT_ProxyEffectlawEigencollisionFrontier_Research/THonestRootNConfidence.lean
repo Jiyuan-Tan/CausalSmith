@@ -10,6 +10,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open MeasureTheory Set
 
 -- @node: honestConfidence_latentClass_real_eq_sum_cells
+/-- Latent class real eq sum cells: under [the stated inputs and assumptions](hyp:k,dx,dz,P,u), [the stated conclusion](goal) holds. -/
 lemma latentClass_real_eq_sum_cells {k dx dz : ℕ}
     (P : Measure (FullData k dx dz)) [IsFiniteMeasure P] (u : Fin k) :
     P.real (latentClass u) = ∑ t : Bool, P.real (latentCell u t) := by
@@ -25,6 +26,7 @@ lemma latentClass_real_eq_sum_cells {k dx dz : ℕ}
   · exact fun t => measurableSet_latentCell u t
 
 -- @node: honestConfidence_latentMass_two_pi0
+/-- Latent mass two pi0 le: under [the stated inputs and assumptions](hyp:k,dx,dz,pi0,P,hpos,u), [the stated conclusion](goal) holds. -/
 lemma latentMass_two_pi0_le {k dx dz : ℕ} {pi0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
     (hpos : LatentArmPositivity (pi0 := pi0) P) (u : Fin k) :
@@ -33,6 +35,7 @@ lemma latentMass_two_pi0_le {k dx dz : ℕ} {pi0 : ℝ}
   simpa [two_mul] using add_le_add (hpos u true) (hpos u false)
 
 -- @node: honestConfidence_atomFloor_of_measureEquivalent
+/-- Of measure equivalent: under [the stated inputs and assumptions](hyp:k,radius,m,a,b,hab,hb), [the stated conclusion](goal) holds. -/
 lemma AtomicLaw.AtomFloor.of_measureEquivalent {k : ℕ} {radius m : ℝ}
     {a b : AtomicLaw.ProbabilityLaw k radius}
     (hab : a.MeasureEquivalent b) (hb : AtomicLaw.AtomFloor m b.1) :
@@ -56,6 +59,7 @@ lemma AtomicLaw.AtomFloor.of_measureEquivalent {k : ℕ} {radius m : ℝ}
       (Finset.mem_filter.mp hi).2⟩
 
 -- @node: honestConfidence_quotient_atomFloor
+/-- Quotient law atom floor: under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hpi,hM), [the stated conclusion](goal) holds. -/
 lemma quotientLaw_atomFloor {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
     (hpi : 0 < pi0)
@@ -76,11 +80,13 @@ lemma quotientLaw_atomFloor {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
   apply hraw.of_measureEquivalent
   exact (Quotient.eq_mk_iff_out (x := quotientLaw P hM) (y := raw)).mp rfl
 
+/-- For [the supplied parameters](hyp:C), [wass Diameter](goal) is given by [its defining clause](step:1). -/
 noncomputable def wassDiameter {k : ℕ} {radius : ℝ}
     (C : Set (AtomicLaw.LawModulo k radius)) : ℝ :=
   sSup {d | ∃ x ∈ C, ∃ y ∈ C, d = AtomicLaw.LawModulo.wass1 x y}
 
 -- @node: honestConfidence_summaryRepair_with_modulus
+/-- Summary repair with modulus: under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,Cmod,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax,Fbar,hFcont,hFlip,hFext), [the stated conclusion](goal) holds. -/
 lemma summaryRepair_with_modulus
     (k dx dz n : ℕ) (L pi0 sigma0 Cmod : ℝ)
     (hk : 2 ≤ k) (hkx : k ≤ dx) (hkz : k ≤ dz)
@@ -140,7 +146,7 @@ lemma summaryRepair_with_modulus
 
 set_option maxHeartbeats 0 in
 /-- Simultaneous honesty and the two separate root-n diameter bounds, without asserting an
-equality or inclusion between the confidence sets. -/
+equality or inclusion between the confidence sets.        Under [the stated inputs and assumptions](hyp:k,dx,dz,pi0,sigma0,hk,hkx,hkz,hpi,hpiMax,hsigma,hsigmaMax), [the stated conclusion](goal) holds. -/
 -- @node: thm:honest-root-n-confidence
 theorem honest_root_n_confidence
     (k dx dz : ℕ) (pi0 sigma0 : ℝ)

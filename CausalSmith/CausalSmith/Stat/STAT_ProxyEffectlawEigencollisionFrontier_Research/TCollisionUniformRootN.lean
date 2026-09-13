@@ -8,7 +8,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open MeasureTheory Set
 
 /-- The total empirical five-block summary is Borel measurable, including its empty-arm
-branches. -/
+branches.        Under [the stated inputs and assumptions](hyp:n,dx,dz), [the stated conclusion](goal) holds. -/
 -- @node: empSummary_measurable
 lemma empSummary_measurable {n dx dz : ℕ} : Measurable (@empSummary n dx dz) := by
   have hc (t : Bool) : Measurable (@armCount n dx dz t) := by
@@ -65,7 +65,7 @@ lemma empSummary_measurable {n dx dz : ℕ} : Measurable (@empSummary n dx dz) :
   exact e.symm_apply_apply (empSummary sample)
 
 /-- The computable lattice and theoretical nearest-summary estimators simultaneously attain the
-collision-uniform root-n quotient-law rate. -/
+collision-uniform root-n quotient-law rate.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax), [the stated conclusion](goal) holds. -/
 -- @node: thm:collision-uniform-root-n
 theorem collision_uniform_root_n
     (k dx dz : ℕ) (L pi0 sigma0 : ℝ)
@@ -87,7 +87,10 @@ theorem collision_uniform_root_n
               (quotientLaw P hM))
             (AtomicLaw.LawModulo.wass1 (summaryRepair R sample)
               (quotientLaw P hM)) >
-            C * Real.sqrt (Real.log (C / eta) / n)} ≤ eta := by
+            C * Real.sqrt (Real.log (C / eta) / n)} ≤ eta ∧
+        ∀ t : Bool,
+          (sampleLaw (n := n) P).real {sample | armCount t sample = 0} ≤
+            (1 - k * pi0) ^ n := by
   obtain ⟨C0, hC0, hconc⟩ := uniform_summary_concentration k dx dz pi0 sigma0
     hk hkx hkz hpi hpiMax hsigma hsigmaMax
   obtain ⟨ClatTail, hClat, hClatTail, hlattice⟩ :=
@@ -160,6 +163,10 @@ theorem collision_uniform_root_n
     have heta2Half : eta / 2 < 1 / 2 := by linarith
     have hAt := hAtail (eta / 2) ⟨heta2, heta2Half⟩ P hP hM
     have hSt := (hconc L n hL hn P hP hM (eta / 2) ⟨heta2, heta2Half⟩).1
+    have hEmpty : ∀ t : Bool,
+        (sampleLaw (n := n) P).real {sample | armCount t sample = 0} ≤
+          (1 - k * pi0) ^ n := fun t =>
+      ((hconc L n hL hn P hP hM (eta / 2) ⟨heta2, heta2Half⟩).2 t).2
     let Q : ModelLaw k dx dz L pi0 sigma0 := ⟨P, hP, hM⟩
     have hKne : summaryClosure k dx dz L pi0 sigma0 ≠ ∅ := by
       intro he
@@ -267,6 +274,7 @@ theorem collision_uniform_root_n
         exact (not_lt_of_ge (hrepair sample |>.trans
           (mul_le_mul_of_nonneg_left hsummLe (by positivity))))
           (lt_of_le_of_lt hSthreshold hmax)
+    refine ⟨?_, hEmpty⟩
     calc
       (sampleLaw (n := n) P).real {sample |
           max (AtomicLaw.LawModulo.wass1 (A.estimate sample) (quotientLaw P hM))

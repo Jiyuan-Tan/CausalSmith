@@ -9,6 +9,7 @@ open scoped BigOperators ENNReal
 open MeasureTheory Set
 
 -- @node: measurableSet_obsArm
+/-- Measurable set obs arm: under [the stated inputs and assumptions](hyp:t), [the stated conclusion](goal) holds. -/
 lemma measurableSet_obsArm (t : Bool) : MeasurableSet (obsArm (dx := 2) (dz := 2) t) := by
   have hcoord : Measurable (@Obs.toCoordinates 2 2) := continuous_induced_dom.measurable
   have hT : Measurable (fun o : Obs 2 2 => o.T) := by
@@ -17,6 +18,7 @@ lemma measurableSet_obsArm (t : Bool) : MeasurableSet (obsArm (dx := 2) (dz := 2
   exact hT (measurableSet_singleton t)
 
 -- @node: measurable_obs_Z_mul_X
+/-- Measurable obs z mul x: under [the stated inputs and assumptions](hyp:i,j), [the stated conclusion](goal) holds. -/
 lemma measurable_obs_Z_mul_X (i j : Fin 2) :
     Measurable (fun o : Obs 2 2 => o.Z i * o.X j) := by
   have hcoord : Measurable (@Obs.toCoordinates 2 2) := continuous_induced_dom.measurable
@@ -29,6 +31,7 @@ lemma measurable_obs_Z_mul_X (i j : Fin 2) :
   exact ((measurable_pi_apply i).comp hZ).mul ((measurable_pi_apply j).comp hX)
 
 -- @node: obs_witness_arm_mass
+/-- Obs witness arm mass: under [the stated inputs and assumptions](hyp:eps,hlo,hhi,t), [the stated conclusion](goal) holds. -/
 lemma obs_witness_arm_mass (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8)
     (t : Bool) :
     letI := witnessLaw_isProbabilityMeasure eps hlo hhi
@@ -54,6 +57,7 @@ lemma obs_witness_arm_mass (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8)
   fin_cases t <;> simp [bernoulliMass] <;> norm_num
 
 -- @node: witness_latentMass
+/-- Witness latent mass: under [the stated inputs and assumptions](hyp:eps,hlo,hhi,u), [the stated conclusion](goal) holds. -/
 lemma witness_latentMass (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8)
     (u : Fin 2) :
     latentMass (witnessLaw eps) u = if u.val = 0 then 2 / 5 else 3 / 5 := by
@@ -66,6 +70,7 @@ lemma witness_latentMass (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8)
   fin_cases u <;> simp [bernoulliMass] <;> norm_num
 
 -- @node: witness_latentCell_mass
+/-- Witness latent cell mass: under [the stated inputs and assumptions](hyp:eps,hlo,hhi,u,t), [the stated conclusion](goal) holds. -/
 lemma witness_latentCell_mass (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8)
     (u : Fin 2) (t : Bool) :
     (witnessLaw eps).real (latentCell u t) =
@@ -79,6 +84,7 @@ lemma witness_latentCell_mass (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8
   exact witnessWeight_sum_nuisance eps u t
 
 -- @node: witness_targetFeature
+/-- Witness target feature: under [the stated inputs and assumptions](hyp:eps,hlo,hhi), [the stated conclusion](goal) holds. -/
 lemma witness_targetFeature (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8) :
     targetFeature (witnessLaw eps) = fun i u : Fin 2 =>
       if i.val = 0 then 1 else if u.val = 0 then 1 / 5 else 4 / 5 := by
@@ -89,6 +95,7 @@ lemma witness_targetFeature (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8) 
       [witnessWeight, witnessPoint, vec2, boolReal, bernoulliMass] <;> ring
 
 -- @node: witness_referenceFeature
+/-- Witness reference feature: under [the stated inputs and assumptions](hyp:eps,hlo,hhi,t), [the stated conclusion](goal) holds. -/
 lemma witness_referenceFeature (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8)
     (t : Bool) :
     referenceFeature (witnessLaw eps) t = fun i u : Fin 2 =>
@@ -102,6 +109,7 @@ lemma witness_referenceFeature (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 
       [witnessWeight, witnessPoint, vec2, boolReal, bernoulliMass] <;> ring
 
 -- @node: witness_latentEffect
+/-- Witness latent effect: under [the stated inputs and assumptions](hyp:eps,hlo,hhi,u), [the stated conclusion](goal) holds. -/
 lemma witness_latentEffect (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8)
     (u : Fin 2) :
     latentEffect (witnessLaw eps) u =
@@ -114,6 +122,7 @@ lemma witness_latentEffect (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8)
       [witnessWeight, witnessPoint, potential, boolReal, bernoulliMass] <;> ring
 
 -- @node: conditionalMean_obsLaw_witness
+/-- Conditional mean obs law witness: under [the stated inputs and assumptions](hyp:eps,hlo,hhi,A,hA,f,hf), [the stated conclusion](goal) holds. -/
 lemma conditionalMean_obsLaw_witness (eps : ℝ) (hlo : 0 ≤ eps)
     (hhi : eps ≤ 1 / 8) (A : Set (Obs 2 2)) [DecidablePred (· ∈ A)]
     (hA : MeasurableSet A) (f : Obs 2 2 → ℝ) (hf : Measurable f) :
@@ -145,6 +154,7 @@ lemma conditionalMean_obsLaw_witness (eps : ℝ) (hlo : 0 ≤ eps)
   simp only [Set.mem_preimage]
 
 -- @node: witness_sum_restrict_obsArm
+/-- Witness sum restrict obs arm: under [the stated inputs and assumptions](hyp:eps,t,F), [the stated conclusion](goal) holds. -/
 lemma witness_sum_restrict_obsArm (eps : ℝ) (t : Bool)
     (F : Obs 2 2 → ℝ) :
     (∑ u : Fin 2, ∑ s : Bool, ∑ x : Bool, ∑ z : Bool, ∑ y0 : Bool, ∑ y1 : Bool,
@@ -159,6 +169,7 @@ lemma witness_sum_restrict_obsArm (eps : ℝ) (t : Bool)
     simp [obsMap, witnessPoint]
 
 -- @node: conditionalMean_obsArm_witness
+/-- Conditional mean obs arm witness: under [the stated inputs and assumptions](hyp:eps,hlo,hhi,t,f,hf), [the stated conclusion](goal) holds. -/
 lemma conditionalMean_obsArm_witness (eps : ℝ) (hlo : 0 ≤ eps)
     (hhi : eps ≤ 1 / 8) (t : Bool) (f : Obs 2 2 → ℝ) (hf : Measurable f) :
     letI := witnessLaw_isProbabilityMeasure eps hlo hhi
@@ -175,6 +186,7 @@ lemma conditionalMean_obsArm_witness (eps : ℝ) (hlo : 0 ≤ eps)
   simp only [mul_one]
 
 -- @node: witnessWeight_sum_outcomes_mul
+/-- Witness weight sum outcomes mul: under [the stated inputs and assumptions](hyp:eps,u,t,x,z,c), [the stated conclusion](goal) holds. -/
 lemma witnessWeight_sum_outcomes_mul (eps : ℝ) (u : Fin 2) (t x z : Bool)
     (c : ℝ) :
     ∑ y0 : Bool, ∑ y1 : Bool, witnessWeight eps u t x z y0 y1 * c =
@@ -197,6 +209,7 @@ lemma witnessWeight_sum_outcomes_mul (eps : ℝ) (u : Fin 2) (t x z : Bool)
   rfl
 
 -- @node: witnessWeight_sum_outcomes
+/-- Witness weight sum outcomes: under [the stated inputs and assumptions](hyp:eps,u,t,x,z), [the stated conclusion](goal) holds. -/
 lemma witnessWeight_sum_outcomes (eps : ℝ) (u : Fin 2) (t x z : Bool) :
     ∑ y0 : Bool, ∑ y1 : Bool, witnessWeight eps u t x z y0 y1 =
       (if u.val = 0 then 2 / 5 else 3 / 5) *
@@ -207,6 +220,7 @@ lemma witnessWeight_sum_outcomes (eps : ℝ) (u : Fin 2) (t x z : Bool) :
   simpa using witnessWeight_sum_outcomes_mul eps u t x z 1
 
 -- @node: conditionalMean_obsArm_ZX
+/-- Conditional mean obs arm zx: under [the stated inputs and assumptions](hyp:eps,hlo,hhi,t,i,j), [the stated conclusion](goal) holds. -/
 lemma conditionalMean_obsArm_ZX (eps : ℝ) (hlo : 0 ≤ eps)
     (hhi : eps ≤ 1 / 8) (t : Bool) (i j : Fin 2) :
     letI := witnessLaw_isProbabilityMeasure eps hlo hhi
@@ -234,6 +248,7 @@ lemma conditionalMean_obsArm_ZX (eps : ℝ) (hlo : 0 ≤ eps)
 
 set_option maxHeartbeats 1000000 in
 -- @node: witness_observedProxyMoment_entry
+/-- Witness observed proxy moment entry: under [the stated inputs and assumptions](hyp:eps,hlo,hhi,t,i,j), [the stated conclusion](goal) holds. -/
 lemma witness_observedProxyMoment_entry (eps : ℝ) (hlo : 0 ≤ eps)
     (hhi : eps ≤ 1 / 8) (t : Bool) (i j : Fin 2) :
     letI := witnessLaw_isProbabilityMeasure eps hlo hhi
@@ -254,6 +269,7 @@ lemma witness_observedProxyMoment_entry (eps : ℝ) (hlo : 0 ≤ eps)
       [obsMap, witnessPoint, vec2, boolReal, bernoulliMass] <;> ring
 
 -- @node: witness_observedProxyMoment_det
+/-- Witness observed proxy moment det: under [the stated inputs and assumptions](hyp:eps,hlo,hhi,t), [the stated conclusion](goal) holds. -/
 lemma witness_observedProxyMoment_det (eps : ℝ) (hlo : 0 ≤ eps)
     (hhi : eps ≤ 1 / 8) (t : Bool) :
     letI := witnessLaw_isProbabilityMeasure eps hlo hhi
@@ -268,6 +284,7 @@ lemma witness_observedProxyMoment_det (eps : ℝ) (hlo : 0 ≤ eps)
   cases t <;> norm_num
 
 -- @node: ae_witnessLaw_of_points
+/-- Ae witness law of points: under [the stated inputs and assumptions](hyp:eps,p,h), [the stated conclusion](goal) holds. -/
 lemma ae_witnessLaw_of_points (eps : ℝ) (p : FullData 2 2 2 → Prop)
     (h : ∀ (u : Fin 2) (t x z y0 y1 : Bool), p (witnessPoint u t x z y0 y1)) :
     ∀ᵐ w ∂witnessLaw eps, p w := by
@@ -280,6 +297,7 @@ lemma ae_witnessLaw_of_points (eps : ℝ) (p : FullData 2 2 2 → Prop)
     exact h u t x z y0 y1
 
 -- @node: witness_consistency
+/-- Witness consistency: under [the stated inputs and assumptions](hyp:eps), [the stated conclusion](goal) holds. -/
 lemma witness_consistency (eps : ℝ) : CausalConsistency (witnessLaw eps) := by
   unfold CausalConsistency
   apply ae_witnessLaw_of_points
@@ -287,6 +305,7 @@ lemma witness_consistency (eps : ℝ) : CausalConsistency (witnessLaw eps) := by
   cases t <;> simp [witnessPoint, potential]
 
 -- @node: witness_anchor
+/-- Witness anchor: under [the stated inputs and assumptions](hyp:eps), [the stated conclusion](goal) holds. -/
 lemma witness_anchor (eps : ℝ) : AnchorNormalization (witnessLaw eps) := by
   unfold AnchorNormalization
   apply ae_witnessLaw_of_points
@@ -294,6 +313,7 @@ lemma witness_anchor (eps : ℝ) : AnchorNormalization (witnessLaw eps) := by
   simp [witnessPoint, vec2, hi]
 
 -- @node: witness_outerProduct_norm
+/-- Witness outer product norm: under [the stated inputs and assumptions](hyp:x,z), [the stated conclusion](goal) holds. -/
 lemma witness_outerProduct_norm (x z : Bool) :
     ‖matrixCLM (outerProduct (vec2 1 (boolReal z)) (vec2 1 (boolReal x)))‖ ≤ 2 := by
   apply ContinuousLinearMap.opNorm_le_bound _ (by norm_num)
@@ -316,6 +336,7 @@ lemma witness_outerProduct_norm (x z : Bool) :
     nlinarith [sq_nonneg (v.ofLp 0 - v.ofLp 1)]
 
 -- @node: witness_boundedX
+/-- Witness bounded x: under [the stated inputs and assumptions](hyp:eps), [the stated conclusion](goal) holds. -/
 lemma witness_boundedX (eps : ℝ) : BoundedTargetProxy (L := 2) (witnessLaw eps) := by
   unfold BoundedTargetProxy
   apply ae_witnessLaw_of_points
@@ -324,6 +345,7 @@ lemma witness_boundedX (eps : ℝ) : BoundedTargetProxy (L := 2) (witnessLaw eps
   cases x <;> norm_num [Real.sqrt_le_iff]
 
 -- @node: witness_boundedProxyProduct
+/-- Witness bounded proxy product: under [the stated inputs and assumptions](hyp:eps), [the stated conclusion](goal) holds. -/
 lemma witness_boundedProxyProduct (eps : ℝ) :
     BoundedProxyProduct (L := 2) (witnessLaw eps) := by
   unfold BoundedProxyProduct
@@ -332,6 +354,7 @@ lemma witness_boundedProxyProduct (eps : ℝ) :
   simpa [witnessPoint] using witness_outerProduct_norm x z
 
 -- @node: witness_boundedOutcomeProxyProduct
+/-- Witness bounded outcome proxy product: under [the stated inputs and assumptions](hyp:eps), [the stated conclusion](goal) holds. -/
 lemma witness_boundedOutcomeProxyProduct (eps : ℝ) :
     BoundedOutcomeProxyProduct (L := 2) (witnessLaw eps) := by
   unfold BoundedOutcomeProxyProduct
@@ -354,6 +377,7 @@ lemma witness_boundedOutcomeProxyProduct (eps : ℝ) :
       simpa using witness_outerProduct_norm x z
 
 -- @node: witness_latentArmPositivity
+/-- Witness latent arm positivity: under [the stated inputs and assumptions](hyp:eps,hlo,hhi), [the stated conclusion](goal) holds. -/
 lemma witness_latentArmPositivity (eps : ℝ) (hlo : 0 ≤ eps)
     (hhi : eps ≤ 1 / 8) : LatentArmPositivity (pi0 := 1 / 10) (witnessLaw eps) := by
   intro u t
@@ -361,6 +385,7 @@ lemma witness_latentArmPositivity (eps : ℝ) (hlo : 0 ≤ eps)
   fin_cases u <;> cases t <;> norm_num [bernoulliMass]
 
 -- @node: witness_proxyRankMargin
+/-- Witness proxy rank margin: under [the stated inputs and assumptions](hyp:eps,hlo,hhi), [the stated conclusion](goal) holds. -/
 lemma witness_proxyRankMargin (eps : ℝ) (hlo : 0 ≤ eps)
     (hhi : eps ≤ 1 / 8) : ProxyRankMargin (sigma0 := 1 / 10) (witnessLaw eps) := by
   constructor
@@ -373,12 +398,14 @@ lemma witness_proxyRankMargin (eps : ℝ) (hlo : 0 ≤ eps)
     exact witnessTargetMatrix_signalMinSingular
 
 -- @node: witness_det_targetFeature
+/-- Witness det target feature: under [the stated inputs and assumptions](hyp:eps,hlo,hhi), [the stated conclusion](goal) holds. -/
 lemma witness_det_targetFeature (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8) :
     det2 (targetFeature (witnessLaw eps)) = 3 / 5 := by
   rw [witness_targetFeature eps hlo hhi]
   norm_num [det2]
 
 -- @node: witness_det_referenceFeature
+/-- Witness det reference feature: under [the stated inputs and assumptions](hyp:eps,hlo,hhi,t), [the stated conclusion](goal) holds. -/
 lemma witness_det_referenceFeature (eps : ℝ) (hlo : 0 ≤ eps)
     (hhi : eps ≤ 1 / 8) (t : Bool) :
     det2 (referenceFeature (witnessLaw eps) t) = 2 / 5 := by
@@ -386,6 +413,7 @@ lemma witness_det_referenceFeature (eps : ℝ) (hlo : 0 ≤ eps)
   cases t <;> norm_num [det2]
 
 -- @node: two_by_two_injective_of_signalMinSingular_pos
+/-- Two by two injective of signal min singular pos: under [the stated inputs and assumptions](hyp:A,hA), [the stated conclusion](goal) holds. -/
 lemma two_by_two_injective_of_signalMinSingular_pos (A : RectMatrix 2 2)
     (hA : 0 < signalMinSingular A) :
     Function.Injective (Matrix.toEuclideanLin A) := by
@@ -398,7 +426,7 @@ lemma two_by_two_injective_of_signalMinSingular_pos (A : RectMatrix 2 2)
   simpa [signalMinSingular, singularValue] using hant
 
 /-- The collision witness belongs to the uniformly conditioned model throughout its
-admissible amplitude interval. -/
+admissible amplitude interval.        Under [the stated inputs and assumptions](hyp:eps,hlo,hhi), [the stated conclusion](goal) holds. -/
 lemma witness_ucvmwModel (eps : ℝ) (hlo : 0 ≤ eps) (hhi : eps ≤ 1 / 8) :
     letI := witnessLaw_isProbabilityMeasure eps hlo hhi
     UCVMWModel (L := 2) (pi0 := 1 / 10) (sigma0 := 1 / 10) (witnessLaw eps) := by

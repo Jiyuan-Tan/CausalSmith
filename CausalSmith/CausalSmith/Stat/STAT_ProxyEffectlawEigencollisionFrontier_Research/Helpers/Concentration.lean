@@ -6,7 +6,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 
 open MeasureTheory Set
 
-/-- The five-block empirical summary concentrates uniformly, including the empty-arm event. -/
+/-- The five-block empirical summary concentrates uniformly, including the empty-arm event.     Under [the stated inputs and assumptions](hyp:k,dx,dz,pi0,sigma0,hk,hkx,hkz,hpi,hpiMax,hsigma,hsigmaMax), [the stated conclusion](goal) holds. -/
 -- @node: lem:uniform-summary-concentration
 lemma uniform_summary_concentration
     (k dx dz : ℕ) (pi0 sigma0 : ℝ)

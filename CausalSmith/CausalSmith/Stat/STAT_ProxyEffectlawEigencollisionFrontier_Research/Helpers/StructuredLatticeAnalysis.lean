@@ -13,7 +13,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open MeasureTheory Set
 open scoped Matrix.Norms.L2Operator
 
-/-- The displayed lattice constant is strictly positive throughout the core parameter domain. -/
+/-- The displayed lattice constant is strictly positive throughout the core parameter domain.     Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,hk,_hkx,hkz,hL,hpi,hsigma), [the stated conclusion](goal) holds. -/
 lemma prescribedLatticeConstant_pos
     (k dx dz : ℕ) (L pi0 sigma0 : ℝ)
     (hk : 2 ≤ k) (_hkx : k ≤ dx) (hkz : k ≤ dz) (hL : 1 ≤ L)
@@ -26,7 +26,7 @@ lemma prescribedLatticeConstant_pos
     positivity
   · exact le_max_left _ _
 
-/-- The prescribed inverse-Gram square root has the two defining square-root properties. -/
+/-- The prescribed inverse-Gram square root has the two defining square-root properties.     Under [the stated inputs and assumptions](hyp:k,dx,G,hG), [the stated conclusion](goal) holds. -/
 lemma inverseGramSqrt_spec {k dx : ℕ} (G : RectMatrix dx k)
     (hG : 1 / 2 ≤ signalMinSingular G) :
     (inverseGramSqrt G hG).PosSemidef ∧
@@ -34,7 +34,7 @@ lemma inverseGramSqrt_spec {k dx : ℕ} (G : RectMatrix dx k)
   Classical.choose_spec (inverseGramSqrt_exists G hG)
 
 /-- The prescribed polar factor has orthonormal columns whenever its asserted singular margin is
-positive.  This is the algebraic fact used for every rounded grid basis. -/
+positive.  This is the algebraic fact used for every rounded grid basis.        Under [the stated inputs and assumptions](hyp:k,dx,G,hG), [the stated conclusion](goal) holds. -/
 lemma prescribedPolarFactor_transpose_mul_self {k dx : ℕ} (G : RectMatrix dx k)
     (hG : 1 / 2 ≤ signalMinSingular G) :
     (prescribedPolarFactor G hG).transpose * prescribedPolarFactor G hG = 1 := by
@@ -73,7 +73,7 @@ lemma prescribedPolarFactor_transpose_mul_self {k dx : ℕ} (G : RectMatrix dx k
   simpa only [gram, Matrix.mul_assoc] using hmiddle
 
 /-- At every model-generated summary, thresholding at half the population margin retains exactly
-the `k` signal singular values. -/
+the `k` signal singular values.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hM), [the stated conclusion](goal) holds. -/
 lemma model_thresholdRecoversDimension
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -89,7 +89,7 @@ lemma model_thresholdRecoversDimension
     exact lt_of_not_ge (fun h => hnot ((facts.thresholdRetainsExactlySignal j).1 h))
 
 /-- The operator norm of a perturbation of the vertically stacked proxy block is bounded by the
-two proxy-block terms already present in the summary metric. -/
+two proxy-block terms already present in the summary metric.        Under [the stated inputs and assumptions](hyp:dx,dz,s,q), [the stated conclusion](goal) holds. -/
 lemma stackedProxyMoment_sub_norm_le {dx dz : ℕ} (s q : SummarySpace dx dz) :
     ‖matrixCLM (stackedProxyMoment s - stackedProxyMoment q)‖ ≤
       ‖matrixCLM (s.M0 - q.M0)‖ + ‖matrixCLM (s.M1 - q.M1)‖ := by
@@ -157,7 +157,7 @@ lemma stackedProxyMoment_sub_norm_le {dx dz : ℕ} (s q : SummarySpace dx dz) :
       ring
 
 /-- The stacked proxy perturbation is controlled without an extra dimension factor by the summary
-metric used in the theorem. -/
+metric used in the theorem.        Under [the stated inputs and assumptions](hyp:dx,dz,s,q), [the stated conclusion](goal) holds. -/
 lemma stackedProxyMoment_sub_norm_le_dS {dx dz : ℕ} (s q : SummarySpace dx dz) :
     ‖matrixCLM (stackedProxyMoment s - stackedProxyMoment q)‖ ≤ dS s q := by
   calc
@@ -171,7 +171,7 @@ lemma stackedProxyMoment_sub_norm_le_dS {dx dz : ℕ} (s q : SummarySpace dx dz)
       linarith
 
 /-- Any summary lying strictly inside half the population singular margin has exactly the same
-thresholded signal dimension. -/
+thresholded signal dimension.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hM,hs), [the stated conclusion](goal) holds. -/
 lemma model_thresholdRecoversDimension_of_dS_lt
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]

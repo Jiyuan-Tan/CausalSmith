@@ -11,13 +11,17 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 
 open scoped BigOperators
 
+/-- For [a dimension](hyp:d), [the Euclidean coordinate space](goal) is the real Euclidean space indexed by its `d` coordinates. -/
 abbrev Euc (d : ℕ) := EuclideanSpace ℝ (Fin d)
+/-- For [numbers of rows and columns](hyp:rows,cols), [the rectangular matrix space](goal) is the space of real matrices of that size. -/
 abbrev RectMatrix (rows cols : ℕ) := Matrix (Fin rows) (Fin cols) ℝ
 
+/-- For [the supplied parameters](hyp:A), [matrix CLM](goal) is given by [its defining clause](step:1). -/
 noncomputable def matrixCLM {rows cols : ℕ} (A : RectMatrix rows cols) :
     Euc cols →L[ℝ] Euc rows :=
   LinearMap.toContinuousLinearMap (Matrix.toEuclideanLin A)
 
+/-- As a matrix varies, [the associated continuous linear map](goal) varies continuously. -/
 -- @node: matrixCLM_continuous
 @[fun_prop] lemma matrixCLM_continuous {rows cols : ℕ} :
     Continuous (@matrixCLM rows cols) := by
@@ -33,15 +37,15 @@ noncomputable def matrixCLM {rows cols : ℕ} (A : RectMatrix rows cols) :
         simp [matrixCLM, Matrix.toEuclideanLin_apply] }
   exact f.continuous_of_finiteDimensional
 
-/-- The singular value with zero-based index `j`. -/
+/-- The singular value with zero-based index `j`.     For [the supplied parameters](hyp:A,j), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def singularValue {rows cols : ℕ} (A : RectMatrix rows cols) (j : ℕ) : ℝ :=
   (LinearMap.singularValues (Matrix.toEuclideanLin A)) j
 
-/-- The last signal singular value for a `rows × k` matrix. -/
+/-- The last signal singular value for a `rows × k` matrix.     For [the supplied parameters](hyp:A), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def signalMinSingular {rows k : ℕ} (A : RectMatrix rows k) : ℝ :=
   singularValue A (k - 1)
 
-/-- Moore--Penrose formula for a full-column-rank rectangular matrix. -/
+/-- Moore--Penrose formula for a full-column-rank rectangular matrix.     For [the supplied parameters](hyp:A), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def penroseInverse {rows cols : ℕ} (A : RectMatrix rows cols) :
     RectMatrix cols rows :=
   ((A.transpose * A)⁻¹) * A.transpose
@@ -49,7 +53,7 @@ noncomputable def penroseInverse {rows cols : ℕ} (A : RectMatrix rows cols) :
 /-- A genuine real thin singular-value decomposition.  Besides reconstruction, the right
 singular vectors are orthonormal and every retained positive singular direction satisfies both
 singular-vector equations; these conditions prevent the thresholded inverse from using an
-arbitrary rank-one reconstruction. -/
+arbitrary rank-one reconstruction.        It uses [the supplied parameters](hyp:A). -/
 structure SingularSystem {rows cols : ℕ} (A : RectMatrix rows cols) where
   sigma : Fin cols → ℝ
   left : Fin cols → Fin rows → ℝ
@@ -64,6 +68,7 @@ structure SingularSystem {rows cols : ℕ} (A : RectMatrix rows cols) where
   expansion : ∀ i j, A i j = ∑ r, sigma r * left r i * right r j
 
 -- @node: singularSystem_exists
+/-- Singular system exists: under [the stated inputs and assumptions](hyp:rows,cols,A), [the stated conclusion](goal) holds. -/
 lemma singularSystem_exists {rows cols : ℕ} (A : RectMatrix rows cols) :
     Nonempty (SingularSystem A) := by
   let T : Euc cols →ₗ[ℝ] Euc rows := Matrix.toEuclideanLin A
@@ -186,12 +191,12 @@ lemma singularSystem_exists {rows cols : ℕ} (A : RectMatrix rows cols) :
         simp only [right, smul_smul, WithLp.ofLp_smul, Pi.smul_apply, smul_eq_mul]
         ring
 
-/-- A fixed real SVD of a rectangular matrix. -/
+/-- A fixed real SVD of a rectangular matrix.     For [the supplied parameters](hyp:A), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def singularSystem {rows cols : ℕ} (A : RectMatrix rows cols) :
     SingularSystem A := Classical.choice (singularSystem_exists A)
 
 /-- The genuine SVD-thresholded Moore--Penrose inverse
-`sum_{sigma_j >= threshold} sigma_j^{-1} v_j u_j^T`. -/
+`sum_{sigma_j >= threshold} sigma_j^{-1} v_j u_j^T`.        For [the supplied parameters](hyp:threshold,A), [the defined object](goal) is given by [its defining clause](step:1). -/
 noncomputable def thresholdedPenroseInverse {rows cols : ℕ}
     (threshold : ℝ) (A : RectMatrix rows cols) : RectMatrix cols rows :=
   fun i j => ∑ r : Fin cols,
@@ -202,13 +207,14 @@ noncomputable def thresholdedPenroseInverse {rows cols : ℕ}
 
 /-- The Moore--Penrose inverse of an arbitrary real rectangular matrix.  This local spelling
 delegates to the paper-independent substrate construction, which satisfies all four Penrose
-equations without a rank assumption. -/
+equations without a rank assumption.        For [the supplied parameters](hyp:A), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: genuinePenroseInverse
 noncomputable def genuinePenroseInverse {rows cols : ℕ} (A : RectMatrix rows cols) :
     RectMatrix cols rows :=
   CausalSmith.Substrate.CollisionSafeSpectralLaw.moorePenroseInverse A
 
 -- @node: singular_value_variational_lower
+/-- Singular value variational lower: under [the stated inputs and assumptions](hyp:rows,cols,A,hA,x), [the stated conclusion](goal) holds. -/
 lemma singular_value_variational_lower {rows cols : ℕ} (A : RectMatrix rows cols)
     (hA : Function.Injective (Matrix.toEuclideanLin A)) (x : Euc cols) :
     signalMinSingular A * ‖x‖ ≤ ‖Matrix.toEuclideanLin A x‖ := by
@@ -249,6 +255,7 @@ lemma singular_value_variational_lower {rows cols : ℕ} (A : RectMatrix rows co
     (norm_nonneg _)).mp hsq
 
 -- @node: singular_value_weyl
+/-- Singular value weyl: under [the stated inputs and assumptions](hyp:rows,cols,j,A,H), [the stated conclusion](goal) holds. -/
 lemma singular_value_weyl {rows cols j : ℕ} (A H : RectMatrix rows cols) :
     |singularValue (A + H) j - singularValue A j| ≤
       ‖matrixCLM H‖ := by
@@ -310,7 +317,7 @@ private lemma penrose_left_inverse {rows cols : ℕ} (A : RectMatrix rows cols)
   rw [Matrix.mul_assoc, Matrix.inv_mul_of_invertible]
 
 /-- On the full-column-rank domain, the canonical Moore--Penrose inverse agrees with
-the Gram formula used by the perturbation and moment-identity proofs. -/
+the Gram formula used by the perturbation and moment-identity proofs.        Under [the stated inputs and assumptions](hyp:rows,cols,A,hA), [the stated conclusion](goal) holds. -/
 -- @node: genuinePenroseInverse_eq_penroseInverse_of_injective
 lemma genuinePenroseInverse_eq_penroseInverse_of_injective {rows cols : ℕ}
     (A : RectMatrix rows cols) (hA : Function.Injective (Matrix.toEuclideanLin A)) :
@@ -433,6 +440,7 @@ private lemma gram_inverse_norm_le {rows cols : ℕ} {s : ℝ} (A : RectMatrix r
     (pow_le_pow_left₀ (norm_nonneg _) hpn 2)
 
 -- keep: generic rectangular Penrose-inverse perturbation bound for later spectral-law runs
+/-- Penrose perturbation: under [the stated inputs and assumptions](hyp:rows,cols,s₀,A,B,hA,hB,hs), [the stated conclusion](goal) holds. -/
 lemma penrose_perturbation {rows cols : ℕ} {s₀ : ℝ}
     (A B : RectMatrix rows cols)
     (hA : s₀ ≤ signalMinSingular A) (hB : s₀ ≤ signalMinSingular B)

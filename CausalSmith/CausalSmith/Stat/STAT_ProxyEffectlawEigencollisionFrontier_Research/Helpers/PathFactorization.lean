@@ -9,7 +9,7 @@ open MeasureTheory Set
 
 noncomputable section
 
-/-- Restricting the finite path sum to a latent-arm cell selects exactly that class and arm. -/
+/-- Restricting the finite path sum to a latent-arm cell selects exactly that class and arm.     Under [the stated inputs and assumptions](hyp:g,h,u,t,dA,F), [the stated conclusion](goal) holds. -/
 -- @node: path_sum_restrict_latentCell
 lemma path_sum_restrict_latentCell (g h : ℝ) (u : Fin 2) (t : Bool)
     [dA : DecidablePred (· ∈ latentCell u t)] (F : FullData 2 2 2 → ℝ) :
@@ -38,7 +38,7 @@ lemma path_sum_restrict_latentCell (g h : ℝ) (u : Fin 2) (t : Bool)
     simp
   · simp
 
-/-- Restricted integrals under the labelled path reduce to its defining finite sum. -/
+/-- Restricted integrals under the labelled path reduce to its defining finite sum.     Under [the stated inputs and assumptions](hyp:g,h,A,hA,F), [the stated conclusion](goal) holds. -/
 -- @node: integral_pathLaw_restrict
 lemma integral_pathLaw_restrict (g h : ℝ) (A : Set (FullData 2 2 2))
     [DecidablePred (· ∈ A)] (hA : MeasurableSet A) (F : FullData 2 2 2 → ℝ) :
@@ -60,7 +60,7 @@ lemma integral_pathLaw_restrict (g h : ℝ) (A : Set (FullData 2 2 2))
   · intro i _
     exact (integrable_dirac (by simp)).smul_measure (by simp [c])
 
-/-- Conditional means on a labelled-path latent-arm cell reduce to the corresponding finite sum. -/
+/-- Conditional means on a labelled-path latent-arm cell reduce to the corresponding finite sum.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh,u,t,F), [the stated conclusion](goal) holds. -/
 -- @node: conditionalMean_path_latentCell
 lemma conditionalMean_path_latentCell (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) (u : Fin 2) (t : Bool) (F : FullData 2 2 2 → ℝ) :
@@ -77,7 +77,7 @@ lemma conditionalMean_path_latentCell (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1
     path_sum_restrict_latentCell]
   simp
 
-/-- Conditional means on a labelled-path latent class reduce to the corresponding finite sum. -/
+/-- Conditional means on a labelled-path latent class reduce to the corresponding finite sum.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh,u,F), [the stated conclusion](goal) holds. -/
 -- @node: conditionalMean_path_latentClass
 lemma conditionalMean_path_latentClass (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) (u : Fin 2) (F : FullData 2 2 2 → ℝ) :
@@ -97,7 +97,7 @@ lemma conditionalMean_path_latentClass (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 
 set_option maxRecDepth 10000 in
 set_option maxHeartbeats 800000 in
 -- Expanding the 64 Bernoulli terms requires more than the default heartbeat budget.
-/-- The labelled path preserves reference-proxy conditional independence. -/
+/-- The labelled path preserves reference-proxy conditional independence.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: path_referenceProxySeparation
 lemma path_referenceProxySeparation (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) : ReferenceProxySeparation (pathLaw g h) := by
@@ -124,7 +124,7 @@ lemma path_referenceProxySeparation (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 /
 set_option maxRecDepth 10000 in
 set_option maxHeartbeats 800000 in
 -- Expanding the 128 Bernoulli terms requires more than the default heartbeat budget.
-/-- The labelled path preserves target-proxy conditional independence. -/
+/-- The labelled path preserves target-proxy conditional independence.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: path_targetProxySeparation
 lemma path_targetProxySeparation (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) : TargetProxySeparation (pathLaw g h) := by
@@ -151,7 +151,7 @@ lemma path_targetProxySeparation (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
 set_option maxRecDepth 10000 in
 set_option maxHeartbeats 2000000 in
 -- Expanding the 128 Bernoulli terms requires more than the default heartbeat budget.
-/-- The labelled path preserves armwise latent ignorability. -/
+/-- The labelled path preserves armwise latent ignorability.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: path_armwiseLatentIgnorability
 lemma path_armwiseLatentIgnorability (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) : ArmwiseLatentIgnorability (pathLaw g h) := by

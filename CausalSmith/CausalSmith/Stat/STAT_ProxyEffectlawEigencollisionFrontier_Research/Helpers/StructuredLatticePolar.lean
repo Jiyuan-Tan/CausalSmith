@@ -9,7 +9,7 @@ noncomputable section
 open scoped Matrix.Norms.L2Operator
 
 /-- The prescribed polar factor is Lipschitz at an orthonormal basis.  The factor `2` is stronger
-than the factor `4` used in the frozen comparator estimate. -/
+than the factor `4` used in the frozen comparator estimate.        Under [the stated inputs and assumptions](hyp:dx,k,V,G,hG,e,hclose), [the stated conclusion](goal) holds. -/
 lemma prescribedPolarFactor_sub_signalBasis_norm_le
     {dx k : ℕ} (V : SignalBasis dx k) (G : RectMatrix dx k)
     (hG : 1 / 2 ≤ signalMinSingular G) {e : ℝ}
@@ -173,7 +173,7 @@ lemma prescribedPolarFactor_sub_signalBasis_norm_le
     _ = 2 * e := by ring
 
 /-- The rounded grid and its prescribed polar factor satisfy the exact `cV = 4 * sqrt (dx*k)`
-comparator bound used in the frozen proof. -/
+comparator bound used in the frozen proof.        Under [the stated inputs and assumptions](hyp:dx,k,H,V,hk,hH,hmesh), [the stated conclusion](goal) holds. -/
 lemma SignalBasis.exists_rounded_prescribedPolarFactor
     {dx k H : ℕ} (V : SignalBasis dx k) (hk : 0 < k) (hH : 0 < H)
     (hmesh : Real.sqrt (dx * k) * (H : ℝ)⁻¹ ≤ 1 / 4) :

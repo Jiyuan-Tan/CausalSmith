@@ -5,7 +5,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 
 open MeasureTheory
 
-/-- The inverse-gap lower and upper bounds hold on the same gap-localized two-class model. -/
+/-- The inverse-gap lower and upper bounds hold on the same gap-localized two-class model.     Under the stated inputs and assumptions, [the stated conclusion](goal) holds. -/
 -- @node: prop:same-class-labeled-minimax
 theorem same_class_labeled_minimax :
     ∃ c C : ℝ,
@@ -28,8 +28,8 @@ theorem same_class_labeled_minimax :
           expectedWeightRisk P
             (orderedMasses (quotientLawRaw P (effectRadius 2 2 (1 / 10)))) est ≤
             C * min 1 (Real.sqrt n * g)⁻¹ := by
-  obtain ⟨cLoc, a, cLower, CKL, hcLoc, ha, haMax, hcLower, hCKL, hlower⟩ :=
-    matching_local_lower_bounds
+  obtain ⟨a, cLower, CKL, ha, haMax, hcLower, hCKL, hlower⟩ :=
+    matching_local_lower_bounds (1 / 4) (by exact ⟨by norm_num, by norm_num⟩)
   obtain ⟨CUpper, hCUpper, hupper⟩ :=
     labeled_weight_upper 2 2 2 2 (1 / 10) (1 / 10)
       (by norm_num) (by norm_num) (by norm_num) (by norm_num)

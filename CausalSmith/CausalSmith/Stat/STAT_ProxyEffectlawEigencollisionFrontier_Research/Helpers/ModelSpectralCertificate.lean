@@ -12,6 +12,7 @@ open CausalSmith.Substrate.CollisionSafeSpectralLaw
 open Causalean.Mathlib.Probability
 
 -- @node: modelRealDiagonalization_targetFeature_entry_bound
+/-- Target feature entry bound: under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hL,hpi,hM), [the stated conclusion](goal) holds. -/
 lemma targetFeature_entry_bound {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : MeasureTheory.Measure (FullData k dx dz)) [MeasureTheory.IsProbabilityMeasure P]
     (hk : 2 ≤ k) (hkx : k ≤ dx) (hL : 1 ≤ L) (hpi : 0 < pi0)
@@ -40,6 +41,7 @@ lemma targetFeature_entry_bound {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     _ = L := by simp
 
 -- @node: modelRealDiagonalization_model_certificate
+/-- Model real diagonalization certificate: under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax,hM), [the stated conclusion](goal) holds. -/
 theorem model_realDiagonalization_certificate
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : MeasureTheory.Measure (FullData k dx dz)) [MeasureTheory.IsProbabilityMeasure P]

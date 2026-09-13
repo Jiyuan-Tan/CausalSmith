@@ -107,7 +107,7 @@ private lemma lattice_floor_numerators
   · simp [a, surplus, u0, Finset.sum_add_distrib, H]
     omega
 
-/-- The core-domain inequalities guarantee that the prescribed structured lattice is nonempty. -/
+/-- The core-domain inequalities guarantee that the prescribed structured lattice is nonempty.     Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax), [the stated conclusion](goal) holds. -/
 theorem structuredLatticeWellFormed_nonempty
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (hk : 2 ≤ k) (hkx : k ≤ dx) (hkz : k ≤ dz) (hL : 1 ≤ L)
@@ -186,7 +186,7 @@ theorem structuredLatticeWellFormed_nonempty
     simp [θ, effect]
 
 /-- The core domain therefore supplies the exact exhaustive, lex-ordered search and its
-smallest-index empirical minimizer. -/
+smallest-index empirical minimizer.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax), [the stated conclusion](goal) holds. -/
 theorem structuredLatticeSearch_exists
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (hk : 2 ≤ k) (hkx : k ≤ dx) (hkz : k ≤ dz) (hL : 1 ≤ L)

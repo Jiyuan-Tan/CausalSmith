@@ -13,7 +13,7 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open Set
 
 /-- Gap-free Lipschitz modulus for quotient effect laws and its positive-law continuous
-extension. -/
+extension.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax), [the stated conclusion](goal) holds. -/
 -- @node: thm:gap-free-positive-measure-modulus
 theorem gap_free_positive_measure_modulus
     (k dx dz : ℕ) (L pi0 sigma0 : ℝ) (hk : 2 ≤ k) (hkx : k ≤ dx)

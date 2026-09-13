@@ -10,7 +10,7 @@ open MeasureTheory
 noncomputable section
 
 /-- Exhaustive minimization compares the selected point with every well-formed lattice point,
-including points represented by a different harmless grid-basis witness. -/
+including points represented by a different harmless grid-basis witness.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,A,hA,htheta), [the stated conclusion](goal) holds. -/
 lemma isPrescribedStructuredLattice_selected_criterion_le
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (A : LatticeEstimator k dx dz n (effectRadius dz L sigma0))
@@ -41,7 +41,7 @@ lemma isPrescribedStructuredLattice_selected_criterion_le
         rw [hV, hR, hweight, heffect]
 
 /-- The three coordinate/operator residual estimates combine to the displayed grid criterion
-constant, with no hidden multiplicative loss. -/
+constant, with no hidden multiplicative loss.        Under [the stated inputs and assumptions](hyp:k,dx,dz,radius,tau,q,cD,cm,cb,s,theta,hD,hm,hb), [the stated conclusion](goal) holds. -/
 lemma structuredLatticeCriterion_le_of_residuals
     {k dx dz : ℕ} {radius tau q cD cm cb : ℝ}
     (s : SummarySpace dx dz) (theta : StructuredLatticePoint k dx radius)
@@ -55,7 +55,7 @@ lemma structuredLatticeCriterion_le_of_residuals
   unfold structuredLatticeCriterion
   linarith
 
-/-- Each of the three nonnegative residuals is bounded by the full criterion. -/
+/-- Each of the three nonnegative residuals is bounded by the full criterion.     Under [the stated inputs and assumptions](hyp:k,dx,dz,radius,tau,s,theta), [the stated conclusion](goal) holds. -/
 lemma structuredLatticeCriterion_operator_le
     {k dx dz : ℕ} {radius tau : ℝ} (s : SummarySpace dx dz)
     (theta : StructuredLatticePoint k dx radius) :
@@ -68,6 +68,7 @@ lemma structuredLatticeCriterion_operator_le
       (∑ i, theta.V i v * firstBasis dx i)) - 1) ^ 2) := Real.sqrt_nonneg _
   linarith
 
+/-- Structured lattice criterion mean le: under [the stated inputs and assumptions](hyp:k,dx,dz,radius,tau,s,theta), [the stated conclusion](goal) holds. -/
 lemma structuredLatticeCriterion_mean_le
     {k dx dz : ℕ} {radius tau : ℝ} (s : SummarySpace dx dz)
     (theta : StructuredLatticePoint k dx radius) :
@@ -81,6 +82,7 @@ lemma structuredLatticeCriterion_mean_le
       (∑ i, theta.V i v * firstBasis dx i)) - 1) ^ 2) := Real.sqrt_nonneg _
   linarith
 
+/-- Structured lattice criterion anchor le: under [the stated inputs and assumptions](hyp:k,dx,dz,radius,tau,s,theta), [the stated conclusion](goal) holds. -/
 lemma structuredLatticeCriterion_anchor_le
     {k dx dz : ℕ} {radius tau : ℝ} (s : SummarySpace dx dz)
     (theta : StructuredLatticePoint k dx radius) :
@@ -96,7 +98,7 @@ lemma structuredLatticeCriterion_anchor_le
 
 -- keep: reusable oracle transfer from comparator residuals to exhaustive lattice selection
 /-- Once a rounded well-formed comparator has the three frozen residual bounds at the empirical
-summary, exhaustive minimization transfers their exact `c_grid` sum to the selected point. -/
+summary, exhaustive minimization transfers their exact `c_grid` sum to the selected point.        Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,cD,cm,cb,q,A,hA,htheta,hD,hm,hb), [the stated conclusion](goal) holds. -/
 lemma isPrescribedStructuredLattice_selected_criterion_le_grid
     {k dx dz n : ℕ} {L pi0 sigma0 cD cm cb q : ℝ}
     (A : LatticeEstimator k dx dz n (effectRadius dz L sigma0))
@@ -122,7 +124,7 @@ lemma isPrescribedStructuredLattice_selected_criterion_le_grid
   refine ⟨thetaHat, hthetaHat, hestimate, hmin.trans ?_⟩
   exact structuredLatticeCriterion_le_of_residuals (empSummary sample) theta hD hm hb
 
-/-- The mesh is no larger than the nominal root-`n` scale. -/
+/-- The mesh is no larger than the nominal root-`n` scale.     Under [the stated inputs and assumptions](hyp:k,dx,n,pi0,sigma0,hn), [the stated conclusion](goal) holds. -/
 lemma latticeMesh_le_sqrt_inv (k dx n : ℕ) (pi0 sigma0 : ℝ) (hn : 1 ≤ n) :
     latticeMesh k dx n pi0 sigma0 ≤ (Real.sqrt n)⁻¹ := by
   unfold latticeMesh latticeHeight
@@ -146,7 +148,7 @@ lemma latticeMesh_le_sqrt_inv (k dx n : ℕ) (pi0 sigma0 : ℝ) (hn : 1 ≤ n) :
             ⌈4 * Real.sqrt (dx * k)⌉₊ + ⌈2 * k / sigma0⌉₊)
 
 /-- Two probability laws supported in the same radius interval are at Wasserstein distance at
-most the interval diameter. -/
+most the interval diameter.        Under [the stated inputs and assumptions](hyp:k,radius,hradius,nu,xi), [the stated conclusion](goal) holds. -/
 lemma AtomicLaw.LawModulo.wass1_le_two_radius {k : ℕ} {radius : ℝ}
     (hradius : 0 ≤ radius) (nu xi : AtomicLaw.LawModulo k radius) :
     nu.wass1 xi ≤ 2 * radius := by
@@ -179,7 +181,7 @@ lemma AtomicLaw.LawModulo.wass1_le_two_radius {k : ℕ} {radius : ℝ}
       simp only [gamma, ← Finset.mul_sum, xi.representative.2.2.1,
         mul_one, ← Finset.sum_mul, nu.representative.2.2.1, one_mul]
 
-/-- The large-summary-error branch of the deterministic oracle inequality. -/
+/-- The large-summary-error branch of the deterministic oracle inequality.     Under [the stated inputs and assumptions](hyp:k,dx,dz,n,L,pi0,sigma0,hk,hkz,hL,hpi,hsigma,A,P,hM,he), [the stated conclusion](goal) holds. -/
 lemma prescribedEstimator_wass1_le_of_large_summary_error
     {k dx dz n : ℕ} {L pi0 sigma0 : ℝ}
     (hk : 2 ≤ k) (hkz : k ≤ dz) (hL : 1 ≤ L) (hpi : 0 < pi0)

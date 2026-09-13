@@ -16,7 +16,7 @@ open MeasureTheory Set
 open CausalSmith.Substrate.CollisionSafeSpectralLaw
 
 /-- The model-generated facts needed to turn a compressed operator into collision-safe polynomial
-projector masses. -/
+projector masses.        It uses [the supplied parameters](hyp:Q). -/
 structure ModelCompressedSpectralFacts {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (Q : ModelLaw k dx dz L pi0 sigma0) where
   basis : SignalBasis dx k
@@ -34,7 +34,7 @@ structure ModelCompressedSpectralFacts {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
   right_coordinates : Matrix.mulVec diagonalization.basisInv (rightAnchor basis) = fun _ => 1
 
 /-- Every model law supplies a compressed real diagonalization in latent-effect coordinates,
-together with an observable signal basis and exact threshold-rank certificates. -/
+together with an observable signal basis and exact threshold-rank certificates.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,Q), [the stated conclusion](goal) holds. -/
 theorem modelCompressedSpectralFacts_exists
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (Q : ModelLaw k dx dz L pi0 sigma0) :

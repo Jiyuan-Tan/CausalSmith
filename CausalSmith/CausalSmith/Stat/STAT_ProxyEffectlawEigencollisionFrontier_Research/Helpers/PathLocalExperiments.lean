@@ -8,13 +8,13 @@ namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 open scoped BigOperators ENNReal
 open MeasureTheory Set
 
-/-- Multiplying a Bernoulli mass by its Boolean outcome and summing returns its mean. -/
+/-- Multiplying a Bernoulli mass by its Boolean outcome and summing returns its mean.     Under [the stated inputs and assumptions](hyp:a,p), [the stated conclusion](goal) holds. -/
 -- @node: pathBernoulli_mean
 lemma pathBernoulli_mean (a p : ℝ) :
     ∑ b : Bool, a * bernoulliMass p b * boolReal b = a * p := by
   norm_num [bernoulliMass, boolReal]
 
-/-- A Bernoulli nuisance coordinate integrates out even with a trailing constant factor. -/
+/-- A Bernoulli nuisance coordinate integrates out even with a trailing constant factor.     Under [the stated inputs and assumptions](hyp:a,p,c), [the stated conclusion](goal) holds. -/
 -- @node: pathBernoulli_sum_mul
 lemma pathBernoulli_sum_mul (a p c : ℝ) :
     ∑ b : Bool, a * bernoulliMass p b * c = a * c := by
@@ -23,7 +23,7 @@ lemma pathBernoulli_sum_mul (a p c : ℝ) :
 
 set_option maxHeartbeats 800000 in
 -- The explicit 64-cell Bernoulli sum needs a larger heartbeat budget.
-/-- Potential-outcome means on the labelled path equal their construction probabilities. -/
+/-- Potential-outcome means on the labelled path equal their construction probabilities.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh,u,t), [the stated conclusion](goal) holds. -/
 -- @node: path_latentMean
 lemma path_latentMean (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) (u : Fin 2) (t : Bool) :
@@ -51,7 +51,7 @@ lemma path_latentMean (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     simp_rw [pathBernoulli_sum_mul]
     rw [← mul_assoc, inv_mul_cancel₀ hpu, one_mul]
 
-/-- The two latent effects on the labelled path are exactly separated by `g`. -/
+/-- The two latent effects on the labelled path are exactly separated by `g`.     Under [the stated inputs and assumptions](hyp:g,h,hg0,hg1,hh,u), [the stated conclusion](goal) holds. -/
 -- @node: path_latentEffect
 lemma path_latentEffect (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) (u : Fin 2) :
@@ -61,7 +61,7 @@ lemma path_latentEffect (g h : ℝ) (hg0 : 0 ≤ g) (hg1 : g ≤ 1 / 4)
     path_latentMean g h hg0 hg1 hh u false]
   fin_cases u <;> norm_num <;> ring
 
-/-- The nearest positive effect gap of the labelled path is exactly `g`. -/
+/-- The nearest positive effect gap of the labelled path is exactly `g`.     Under [the stated inputs and assumptions](hyp:g,h,hg,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: path_effectGap
 lemma path_effectGap (g h : ℝ) (hg : 0 < g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) : effectGap (pathLaw g h) = (g : EReal) := by
@@ -99,7 +99,7 @@ lemma path_effectGap (g h : ℝ) (hg : 0 < g) (hg1 : g ≤ 1 / 4)
   rw [hset]
   simp
 
-/-- Both positive-mass effects on the labelled path are distinct. -/
+/-- Both positive-mass effects on the labelled path are distinct.     Under [the stated inputs and assumptions](hyp:g,h,hg,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: path_distinctEffects
 lemma path_distinctEffects (g h : ℝ) (hg : 0 < g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) : DistinctEffects (pathLaw g h) := by
@@ -114,7 +114,7 @@ lemma path_distinctEffects (g h : ℝ) (hg : 0 < g) (hg1 : g ≤ 1 / 4)
   rw [path_latentEffect g h hg.le hg1 hh u, path_latentEffect g h hg.le hg1 hh v] at huv
   fin_cases u <;> fin_cases v <;> simp_all <;> linarith
 
-/-- Every small-displacement path law lies in the gap-localized model. -/
+/-- Every small-displacement path law lies in the gap-localized model.     Under [the stated inputs and assumptions](hyp:g,h,hg,hg1,hh), [the stated conclusion](goal) holds. -/
 -- @node: path_gapStratum
 lemma path_gapStratum (g h : ℝ) (hg : 0 < g) (hg1 : g ≤ 1 / 4)
     (hh : |h| ≤ 1 / 100) :
@@ -136,7 +136,7 @@ lemma path_gapStratum (g h : ℝ) (hg : 0 < g) (hg1 : g ≤ 1 / 4)
   · norm_cast
     nlinarith
 
-/-- The observed KL certificate promotes a small labelled path into the local experiment. -/
+/-- The observed KL certificate promotes a small labelled path into the local experiment.     Under [the stated inputs and assumptions](hyp:n,cLoc,g,h,hcLoc,hg,hg1,hh,hKL), [the stated conclusion](goal) holds. -/
 -- @node: path_localWeightExperiment
 lemma path_localWeightExperiment (n : ℕ) (cLoc g h : ℝ)
     (hcLoc : LocalRadiusDomain cLoc) (hg : 0 < g) (hg1 : g ≤ 1 / 4)

@@ -15,6 +15,7 @@ open CausalSmith.Substrate.CollisionSafeSpectralLaw
 open Causalean.Mathlib.Probability
 
 -- @node: modelRealDiagonalization_thinSignalFactorization
+/-- For [the supplied parameters](hyp:B), Thin Signal Factorization is the stated data structure. -/
 structure ThinSignalFactorization {dx k : ℕ} (B : RectMatrix dx k) where
   V : SignalBasis dx k
   coord : RectMatrix k k
@@ -24,6 +25,7 @@ structure ThinSignalFactorization {dx k : ℕ} (B : RectMatrix dx k) where
   inv_mul_coord : coordInv * coord = 1
 
 -- @node: modelRealDiagonalization_thinSignalFactorization_construct
+/-- For [the supplied parameters](hyp:B,hpos), [thin Signal Factorization](goal) is given by [its defining clause](step:1). -/
 noncomputable def thinSignalFactorization {dx k : ℕ} (B : RectMatrix dx k)
     (hpos : ∀ r : Fin k, 0 < (singularSystem B).sigma r) : ThinSignalFactorization B := by
   let S := singularSystem B
@@ -66,24 +68,28 @@ noncomputable def thinSignalFactorization {dx k : ℕ} (B : RectMatrix dx k)
 
 
 -- @node: modelRealDiagonalization_signalBasis_transpose_mul_self
+/-- Transpose mul self: under [the stated inputs and assumptions](hyp:dx,k,V), [the stated conclusion](goal) holds. -/
 lemma SignalBasis.transpose_mul_self {dx k : ℕ} (V : SignalBasis dx k) :
     V.V.transpose * V.V = (1 : RectMatrix k k) := by
   ext i j
   simpa [Matrix.mul_apply, Matrix.one_apply] using V.orthonormal i j
 
 -- @node: modelRealDiagonalization_forward
+/-- For [the supplied parameters](hyp:F), [forward](goal) is given by [its defining clause](step:1). -/
 noncomputable def ThinSignalFactorization.forward {dx k : ℕ} {B : RectMatrix dx k}
     (F : ThinSignalFactorization B) : RectMatrix dx dx :=
   F.V.V * F.coordInv.transpose * F.V.V.transpose +
     (1 - F.V.V * F.V.V.transpose)
 
 -- @node: modelRealDiagonalization_backward
+/-- For [the supplied parameters](hyp:F), [backward](goal) is given by [its defining clause](step:1). -/
 noncomputable def ThinSignalFactorization.backward {dx k : ℕ} {B : RectMatrix dx k}
     (F : ThinSignalFactorization B) : RectMatrix dx dx :=
   F.V.V * F.coord.transpose * F.V.V.transpose +
     (1 - F.V.V * F.V.V.transpose)
 
 -- @node: modelRealDiagonalization_forward_mul_backward
+/-- Forward mul backward: under [the stated inputs and assumptions](hyp:dx,k,B,F), [the stated conclusion](goal) holds. -/
 lemma ThinSignalFactorization.forward_mul_backward {dx k : ℕ} {B : RectMatrix dx k}
     (F : ThinSignalFactorization B) : F.forward * F.backward = 1 := by
   let V := F.V.V
@@ -122,6 +128,7 @@ lemma ThinSignalFactorization.forward_mul_backward {dx k : ℕ} {B : RectMatrix 
   simp [K]
 
 -- @node: modelRealDiagonalization_backward_mul_forward
+/-- Backward mul forward: under [the stated inputs and assumptions](hyp:dx,k,B,F), [the stated conclusion](goal) holds. -/
 lemma ThinSignalFactorization.backward_mul_forward {dx k : ℕ} {B : RectMatrix dx k}
     (F : ThinSignalFactorization B) : F.backward * F.forward = 1 := by
   let V := F.V.V
@@ -160,6 +167,7 @@ lemma ThinSignalFactorization.backward_mul_forward {dx k : ℕ} {B : RectMatrix 
   simp [K]
 
 -- @node: modelRealDiagonalization_linearEquiv
+/-- For [the supplied parameters](hyp:F), [linear Equiv](goal) is given by [its defining clause](step:1). -/
 noncomputable def ThinSignalFactorization.linearEquiv {dx k : ℕ} {B : RectMatrix dx k}
     (F : ThinSignalFactorization B) : Euc dx ≃ₗ[ℝ] Euc dx := by
   apply LinearEquiv.ofLinear (Matrix.toEuclideanLin F.forward)

@@ -11,12 +11,14 @@ open CausalSmith.Substrate.CollisionSafeSpectralLaw
 open scoped Matrix.Norms.L2Operator
 
 -- @node: modelRealDiagonalization_AmbientExtension
+/-- For [the supplied parameters](hyp:V), Ambient Extension is the stated data structure. -/
 structure AmbientExtension {dx k : ℕ} (V : SignalBasis dx k) where
   basis : OrthonormalBasis (Fin dx) ℝ (Euc dx)
   signalIndex : Fin k ↪ Fin dx
   basis_signal : ∀ j, basis (signalIndex j) = WithLp.toLp 2 (fun i => V.V i j)
 
 -- @node: modelRealDiagonalization_ambientExtension
+/-- For [the supplied parameters](hyp:V), [ambient Extension](goal) is given by [its defining clause](step:1). -/
 noncomputable def SignalBasis.ambientExtension {dx k : ℕ} (V : SignalBasis dx k) :
     AmbientExtension V := by
   let b := Classical.choose V.exists_fin_ambient_orthonormalBasis
@@ -25,12 +27,14 @@ noncomputable def SignalBasis.ambientExtension {dx k : ℕ} (V : SignalBasis dx 
   exact ⟨b, e, Classical.choose_spec he⟩
 
 -- @node: modelRealDiagonalization_ambientEigenvalue
+/-- For [the supplied parameters](hyp:V,tau,i), [ambient Eigenvalue](goal) is given by [its defining clause](step:1). -/
 noncomputable def ambientEigenvalue {dx k : ℕ} [Nonempty (Fin k)] (V : SignalBasis dx k)
     (tau : Fin k → ℝ) (i : Fin dx) : ℝ :=
   if _h : i ∈ Set.range V.ambientExtension.signalIndex then
     tau (Function.invFun V.ambientExtension.signalIndex i) else 0
 
 -- @node: modelRealDiagonalization_ambientEigenvalue_signal
+/-- Ambient eigenvalue signal: under [the stated inputs and assumptions](hyp:dx,k,V,tau,j), [the stated conclusion](goal) holds. -/
 lemma ambientEigenvalue_signal {dx k : ℕ} [Nonempty (Fin k)] (V : SignalBasis dx k)
     (tau : Fin k → ℝ) (j : Fin k) :
     ambientEigenvalue V tau (V.ambientExtension.signalIndex j) = tau j := by
@@ -38,6 +42,7 @@ lemma ambientEigenvalue_signal {dx k : ℕ} [Nonempty (Fin k)] (V : SignalBasis 
     Function.leftInverse_invFun V.ambientExtension.signalIndex.injective j]
 
 -- @node: modelRealDiagonalization_ambientEigenvalue_nonsignal
+/-- Ambient eigenvalue nonsignal: under [the stated inputs and assumptions](hyp:dx,k,V,tau,i,hi), [the stated conclusion](goal) holds. -/
 lemma ambientEigenvalue_nonsignal {dx k : ℕ} [Nonempty (Fin k)] (V : SignalBasis dx k)
     (tau : Fin k → ℝ) (i : Fin dx)
     (hi : i ∉ Set.range V.ambientExtension.signalIndex) :
@@ -45,12 +50,14 @@ lemma ambientEigenvalue_nonsignal {dx k : ℕ} [Nonempty (Fin k)] (V : SignalBas
   simp [ambientEigenvalue, hi]
 
 -- @node: modelRealDiagonalization_eigenbasis
+/-- For [the supplied parameters](hyp:F), [eigenbasis](goal) is given by [its defining clause](step:1). -/
 noncomputable def ThinSignalFactorization.eigenbasis {dx k : ℕ}
     {B : RectMatrix dx k} (F : ThinSignalFactorization B) :
     Module.Basis (Fin dx) ℝ (Euc dx) :=
   F.V.ambientExtension.basis.toBasis.map F.linearEquiv
 
 -- @node: modelRealDiagonalization_forward_signal
+/-- Forward signal: under [the stated inputs and assumptions](hyp:dx,k,B,F,j), [the stated conclusion](goal) holds. -/
 lemma forward_signal {dx k : ℕ} {B : RectMatrix dx k}
     (F : ThinSignalFactorization B) (j : Fin k) :
     Matrix.toEuclideanLin F.forward
@@ -68,12 +75,14 @@ lemma forward_signal {dx k : ℕ} {B : RectMatrix dx k}
   simpa [Matrix.toEuclideanLin_apply, Matrix.mul_apply, Matrix.mulVec, dotProduct] using hi
 
 -- @node: modelRealDiagonalization_factorOperator
+/-- For [the supplied parameters](hyp:F,tau), [factor Operator](goal) is given by [its defining clause](step:1). -/
 noncomputable def ThinSignalFactorization.factorOperator {dx k : ℕ}
     {B : RectMatrix dx k} (F : ThinSignalFactorization B) (tau : Fin k → ℝ) :
     RectMatrix dx dx :=
   F.V.V * F.coordInv.transpose * Matrix.diagonal tau * F.coord.transpose * F.V.V.transpose
 
 -- @node: modelRealDiagonalization_factorOperator_mul_signalEigenvectors
+/-- Factor operator mul signal eigenvectors: under [the stated inputs and assumptions](hyp:dx,k,B,F,tau), [the stated conclusion](goal) holds. -/
 lemma factorOperator_mul_signalEigenvectors {dx k : ℕ} {B : RectMatrix dx k}
     (F : ThinSignalFactorization B) (tau : Fin k → ℝ) :
     F.factorOperator tau * (F.V.V * F.coordInv.transpose) =
@@ -89,6 +98,7 @@ lemma factorOperator_mul_signalEigenvectors {dx k : ℕ} {B : RectMatrix dx k}
     hci, Matrix.mul_one]
 
 -- @node: modelRealDiagonalization_transpose_mul_ambientBasis_nonsignal
+/-- Transpose mul ambient basis nonsignal: under [the stated inputs and assumptions](hyp:dx,k,V,i,hi), [the stated conclusion](goal) holds. -/
 lemma transpose_mul_ambientBasis_nonsignal {dx k : ℕ} (V : SignalBasis dx k)
     (i : Fin dx) (hi : i ∉ Set.range V.ambientExtension.signalIndex) :
     Matrix.mulVec V.V.transpose (V.ambientExtension.basis i).ofLp = 0 := by
@@ -103,6 +113,7 @@ lemma transpose_mul_ambientBasis_nonsignal {dx k : ℕ} (V : SignalBasis dx k)
     conj_trivial, mul_comm] using horth
 
 -- @node: modelRealDiagonalization_forward_ambientBasis_nonsignal
+/-- Forward ambient basis nonsignal: under [the stated inputs and assumptions](hyp:dx,k,B,F,i,hi), [the stated conclusion](goal) holds. -/
 lemma forward_ambientBasis_nonsignal {dx k : ℕ} {B : RectMatrix dx k}
     (F : ThinSignalFactorization B) (i : Fin dx)
     (hi : i ∉ Set.range F.V.ambientExtension.signalIndex) :
@@ -125,6 +136,7 @@ lemma forward_ambientBasis_nonsignal {dx k : ℕ} {B : RectMatrix dx k}
   simp
 
 -- @node: modelRealDiagonalization_factorOperator_eigenbasis
+/-- Factor operator eigenbasis: under [the stated inputs and assumptions](hyp:dx,k,B,F,tau), [the stated conclusion](goal) holds. -/
 lemma factorOperator_eigenbasis {dx k : ℕ} [Nonempty (Fin k)]
     {B : RectMatrix dx k} (F : ThinSignalFactorization B) (tau : Fin k → ℝ) :
     ∀ i, Matrix.toEuclideanLin (F.factorOperator tau) (F.eigenbasis i) =
@@ -169,6 +181,7 @@ lemma factorOperator_eigenbasis {dx k : ℕ} [Nonempty (Fin k)]
     simp
 
 -- @node: modelRealDiagonalization_realDiagonalization
+/-- For [the supplied parameters](hyp:F,tau), [real Diagonalization](goal) is given by [its defining clause](step:1). -/
 noncomputable def ThinSignalFactorization.realDiagonalization {dx k : ℕ}
     [Nonempty (Fin k)] {B : RectMatrix dx k} (F : ThinSignalFactorization B)
     (tau : Fin k → ℝ) : RealDiagonalization (F.factorOperator tau) :=
@@ -176,6 +189,7 @@ noncomputable def ThinSignalFactorization.realDiagonalization {dx k : ℕ}
     (ambientEigenvalue F.V tau) (factorOperator_eigenbasis F tau)
 
 -- @node: modelRealDiagonalization_ambientEigenvalue_comp
+/-- Ambient eigenvalue comp: under [the stated inputs and assumptions](hyp:dx,k,V,tau,f,hf0,i), [the stated conclusion](goal) holds. -/
 lemma ambientEigenvalue_comp {dx k : ℕ} [Nonempty (Fin k)]
     (V : SignalBasis dx k) (tau : Fin k → ℝ) (f : ℝ → ℝ) (hf0 : f 0 = 0) (i : Fin dx) :
     ambientEigenvalue V (f ∘ tau) i = f (ambientEigenvalue V tau i) := by
@@ -186,6 +200,7 @@ lemma ambientEigenvalue_comp {dx k : ℕ} [Nonempty (Fin k)]
       ambientEigenvalue_nonsignal V tau i hi, hf0]
 
 -- @node: modelRealDiagonalization_applyFunction
+/-- Real diagonalization apply function: under [the stated inputs and assumptions](hyp:dx,k,B,F,tau,f,hf0), [the stated conclusion](goal) holds. -/
 lemma realDiagonalization_applyFunction {dx k : ℕ} [Nonempty (Fin k)]
     {B : RectMatrix dx k} (F : ThinSignalFactorization B) (tau : Fin k → ℝ)
     (f : ℝ → ℝ) (hf0 : f 0 = 0) :
@@ -196,6 +211,7 @@ lemma realDiagonalization_applyFunction {dx k : ℕ} [Nonempty (Fin k)]
   exact factorOperator_eigenbasis F (f ∘ tau) i
 
 -- @node: modelRealDiagonalization_moorePenroseInverse_thinSignalFactorization
+/-- Moore penrose inverse thin signal factorization: under [the stated inputs and assumptions](hyp:dx,k,B,F), [the stated conclusion](goal) holds. -/
 lemma moorePenroseInverse_thinSignalFactorization {dx k : ℕ}
     {B : RectMatrix dx k} (F : ThinSignalFactorization B) :
     moorePenroseInverse B = F.coordInv * F.V.V.transpose := by
@@ -234,6 +250,7 @@ lemma moorePenroseInverse_thinSignalFactorization {dx k : ℕ}
   · rw [hGB, Matrix.transpose_one]
 
 -- @node: modelRealDiagonalization_factorOperator_eq_moorePenrose
+/-- Factor operator eq moore penrose: under [the stated inputs and assumptions](hyp:dx,k,B,F,tau), [the stated conclusion](goal) holds. -/
 lemma factorOperator_eq_moorePenrose {dx k : ℕ}
     {B : RectMatrix dx k} (F : ThinSignalFactorization B) (tau : Fin k → ℝ) :
     F.factorOperator tau =
@@ -252,6 +269,7 @@ lemma factorOperator_eq_moorePenrose {dx k : ℕ}
         F.factor.symm
 
 -- @node: modelRealDiagonalization_applyFunction_moorePenrose
+/-- Real diagonalization apply function moore penrose: under [the stated inputs and assumptions](hyp:dx,k,B,F,tau,f,hf0), [the stated conclusion](goal) holds. -/
 lemma realDiagonalization_applyFunction_moorePenrose {dx k : ℕ}
     [Nonempty (Fin k)] {B : RectMatrix dx k} (F : ThinSignalFactorization B)
     (tau : Fin k → ℝ) (f : ℝ → ℝ) (hf0 : f 0 = 0) :
@@ -261,6 +279,7 @@ lemma realDiagonalization_applyFunction_moorePenrose {dx k : ℕ}
     factorOperator_eq_moorePenrose]
 
 -- @node: modelRealDiagonalization_eucNorm_le_card_mul_bound
+/-- Euc norm le card mul bound: under [the stated inputs and assumptions](hyp:n,x,M,_hM,hx), [the stated conclusion](goal) holds. -/
 lemma eucNorm_le_card_mul_bound {n : ℕ} (x : Euc n) (M : ℝ)
     (_hM : 0 ≤ M) (hx : ∀ i, |x.ofLp i| ≤ M) :
     ‖x‖ ≤ (n : ℝ) * M := by
@@ -278,17 +297,20 @@ lemma eucNorm_le_card_mul_bound {n : ℕ} (x : Euc n) (M : ℝ)
     _ = (n : ℝ) * M := by simp
 
 -- @node: modelRealDiagonalization_entryNormConstant
+/-- For [the supplied parameters](hyp:rows,cols), [entry Norm Constant](goal) is given by [its defining clause](step:1). -/
 noncomputable def entryNormConstant (rows cols : ℕ) : ℝ :=
   (cols : ℝ) *
     ‖((EuclideanSpace.basisFun (Fin cols) ℝ).toBasis.equivFunL :
       Euc cols →L[ℝ] (Fin cols → ℝ))‖ * (rows : ℝ)
 
 -- @node: modelRealDiagonalization_entryNormConstant_nonneg
+/-- Entry norm constant nonneg: under [the stated inputs and assumptions](hyp:rows,cols), [the stated conclusion](goal) holds. -/
 lemma entryNormConstant_nonneg (rows cols : ℕ) : 0 ≤ entryNormConstant rows cols := by
   unfold entryNormConstant
   positivity
 
 -- @node: modelRealDiagonalization_matrixNorm_le_entryBound
+/-- Matrix norm le entry bound: under [the stated inputs and assumptions](hyp:rows,cols,A,M,hM,hA), [the stated conclusion](goal) holds. -/
 lemma matrixNorm_le_entryBound {rows cols : ℕ}
     (A : RectMatrix rows cols) (M : ℝ) (hM : 0 ≤ M)
     (hA : ∀ i j, |A i j| ≤ M) :
@@ -304,6 +326,7 @@ lemma matrixNorm_le_entryBound {rows cols : ℕ}
   simpa [entryNormConstant, nsmul_eq_mul, mul_assoc] using hb
 
 -- @node: modelRealDiagonalization_orthonormalBasis_entry_abs_le_one
+/-- Orthonormal basis entry abs le one: under [the stated inputs and assumptions](hyp:n,b,i,j), [the stated conclusion](goal) holds. -/
 lemma orthonormalBasis_entry_abs_le_one {n : ℕ}
     (b : OrthonormalBasis (Fin n) ℝ (Euc n)) (i j : Fin n) :
     |(b j).ofLp i| ≤ 1 := by
@@ -312,6 +335,7 @@ lemma orthonormalBasis_entry_abs_le_one {n : ℕ}
   simpa [Real.norm_eq_abs] using hi
 
 -- @node: modelRealDiagonalization_signalBasis_entry_abs_le_one
+/-- Entry abs le one: under [the stated inputs and assumptions](hyp:dx,k,V,i,j), [the stated conclusion](goal) holds. -/
 lemma SignalBasis.entry_abs_le_one {dx k : ℕ} (V : SignalBasis dx k)
     (i : Fin dx) (j : Fin k) : |V.V i j| ≤ 1 := by
   let v : Euc dx := WithLp.toLp 2 (fun a => V.V a j)
@@ -326,6 +350,7 @@ lemma SignalBasis.entry_abs_le_one {dx k : ℕ} (V : SignalBasis dx k)
   simpa [v, Real.norm_eq_abs] using hi
 
 -- @node: modelRealDiagonalization_coord_entry_bound
+/-- Coord entry bound: under [the stated inputs and assumptions](hyp:dx,k,B,F,L,hL,hB,r,j), [the stated conclusion](goal) holds. -/
 lemma ThinSignalFactorization.coord_entry_bound {dx k : ℕ} {B : RectMatrix dx k}
     (F : ThinSignalFactorization B) {L : ℝ} (hL : 0 ≤ L)
     (hB : ∀ i j, |B i j| ≤ L) (r j : Fin k) :
@@ -351,6 +376,7 @@ lemma ThinSignalFactorization.coord_entry_bound {dx k : ℕ} {B : RectMatrix dx 
     _ = (dx : ℝ) * L := by simp
 
 -- @node: modelRealDiagonalization_forward_norm_bound
+/-- Forward norm bound: under [the stated inputs and assumptions](hyp:dx,k,B,F,J,hJ,hCi,hdx), [the stated conclusion](goal) holds. -/
 lemma ThinSignalFactorization.forward_norm_bound {dx k : ℕ} {B : RectMatrix dx k}
     (F : ThinSignalFactorization B) {J : ℝ} (hJ : 0 ≤ J)
     (hCi : ∀ i j, |F.coordInv i j| ≤ J) (hdx : 0 < dx) :
@@ -393,6 +419,7 @@ lemma ThinSignalFactorization.forward_norm_bound {dx k : ℕ} {B : RectMatrix dx
     _ = _ := by ring
 
 -- @node: modelRealDiagonalization_backward_norm_bound
+/-- Backward norm bound: under [the stated inputs and assumptions](hyp:dx,k,B,F,L,hL,hB,hdx), [the stated conclusion](goal) holds. -/
 lemma ThinSignalFactorization.backward_norm_bound {dx k : ℕ} {B : RectMatrix dx k}
     (F : ThinSignalFactorization B) {L : ℝ} (hL : 0 ≤ L)
     (hB : ∀ i j, |B i j| ≤ L) (hdx : 0 < dx) :
@@ -438,6 +465,7 @@ lemma ThinSignalFactorization.backward_norm_bound {dx k : ℕ} {B : RectMatrix d
     _ = _ := by ring
 
 -- @node: modelRealDiagonalization_conditionBound
+/-- For [the supplied parameters](hyp:dx,k,L,sigma0), [condition Bound](goal) is given by [its defining clause](step:1). -/
 noncomputable def conditionBound (dx k : ℕ) (L sigma0 : ℝ) : ℝ :=
   let Kf := entryNormConstant dx k * entryNormConstant k k *
       entryNormConstant k dx * sigma0⁻¹ +
@@ -448,6 +476,7 @@ noncomputable def conditionBound (dx k : ℕ) (L sigma0 : ℝ) : ℝ :=
   entryNormConstant dx dx ^ 2 * Kf * Kb
 
 -- @node: modelRealDiagonalization_conditionBound_nonneg
+/-- Condition bound nonneg: under [the stated inputs and assumptions](hyp:dx,k,L,sigma0,hL,hsigma), [the stated conclusion](goal) holds. -/
 lemma conditionBound_nonneg (dx k : ℕ) {L sigma0 : ℝ}
     (hL : 0 ≤ L) (hsigma : 0 < sigma0) :
     0 ≤ conditionBound dx k L sigma0 := by
@@ -459,6 +488,7 @@ lemma conditionBound_nonneg (dx k : ℕ) {L sigma0 : ℝ}
   positivity
 
 -- @node: modelRealDiagonalization_conditionNumber_le
+/-- Diagonalization condition number le: under [the stated inputs and assumptions](hyp:dx,k,B,F,tau,L,sigma0,hL,hsigma,hB,hCi,hdx), [the stated conclusion](goal) holds. -/
 lemma ThinSignalFactorization.diagonalization_conditionNumber_le
     {dx k : ℕ} [Nonempty (Fin k)] {B : RectMatrix dx k}
     (F : ThinSignalFactorization B) (tau : Fin k → ℝ) {L sigma0 : ℝ}
@@ -552,6 +582,7 @@ lemma ThinSignalFactorization.diagonalization_conditionNumber_le
     _ = _ := by ring
 
 -- @node: modelRealDiagonalization_singularSystem_right_entry_abs_le_one
+/-- Singular system right entry abs le one: under [the stated inputs and assumptions](hyp:rows,cols,B,r,j), [the stated conclusion](goal) holds. -/
 lemma singularSystem_right_entry_abs_le_one {rows cols : ℕ} (B : RectMatrix rows cols)
     (r j : Fin cols) : |(singularSystem B).right r j| ≤ 1 := by
   let v : Euc cols := WithLp.toLp 2 ((singularSystem B).right r)
@@ -566,6 +597,7 @@ lemma singularSystem_right_entry_abs_le_one {rows cols : ℕ} (B : RectMatrix ro
   simpa [v, Real.norm_eq_abs] using hj
 
 -- @node: modelRealDiagonalization_constructed_coordInv_entry_bound
+/-- Thin signal factorization coord inv entry bound: under [the stated inputs and assumptions](hyp:dx,k,B,hpos,sigma0,hsigma,hsle,i,j), [the stated conclusion](goal) holds. -/
 lemma thinSignalFactorization_coordInv_entry_bound {dx k : ℕ}
     (B : RectMatrix dx k) (hpos : ∀ r : Fin k, 0 < (singularSystem B).sigma r)
     {sigma0 : ℝ} (hsigma : 0 < sigma0)
