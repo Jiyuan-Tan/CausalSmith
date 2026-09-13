@@ -97,7 +97,7 @@ theorem rational_primal_dual_certificates (E : Setup) (q : Theta E → ℝ)
       linarith
   have hobj (x) : P.objective x = ∑ θ, qQ θ * boundQ x θ := by
     unfold Causalean.Mathlib.Optimization.RationalLP.Program.objective
-      Causalean.Mathlib.Optimization.RationalLP.dot
+      dotProduct
     simp only [P, boundQ, Finset.mul_sum]
     rw [Finset.sum_comm]
     apply Finset.sum_congr rfl

@@ -37,7 +37,7 @@ structure UnitNormFeatureMap (H : Type*) [NormedAddCommGroup H]
 def gaussianFeatureCoefficient (r : ℝ) (m : ℕ) : ℝ :=
   Real.sqrt ((2 : ℝ) ^ m / m.factorial) * Real.exp (-r ^ 2) * r ^ m
 
-/-- The explicit coefficient sequence is square-summable. -/
+/-- The explicit coefficient sequence is square-summable.  [the stated conclusion](goal) follows. -/
 lemma gaussianFeature_memℓp (r : ℝ) :
     Memℓp (gaussianFeatureCoefficient r) 2 := by
   apply memℓp_gen
@@ -61,6 +61,7 @@ lemma gaussianFeature_memℓp (r : ℝ) :
 def gaussianFeature (r : ℝ) : lp (fun _ : ℕ => ℝ) 2 :=
   ⟨gaussianFeatureCoefficient r, gaussianFeature_memℓp r⟩
 
+/-- The [inner product of two explicit Gaussian feature vectors equals the Gaussian kernel](goal). -/
 lemma gaussianFeature_inner (a b : ℝ) :
     ⟪gaussianFeature a, gaussianFeature b⟫_ℝ =
       gaussianKernel a b := by
@@ -89,6 +90,7 @@ lemma gaussianFeature_inner (a b : ℝ) :
   congr 1
   ring
 
+/-- Every [explicit Gaussian feature vector has unit norm](goal). -/
 lemma gaussianFeature_norm (r : ℝ) : ‖gaussianFeature r‖ = 1 := by
   have hsq : ‖gaussianFeature r‖ ^ 2 = 1 := by
     rw [← real_inner_self_eq_norm_sq, gaussianFeature_inner]
@@ -115,7 +117,7 @@ def observedLawRatio (laws : ObservedLawFamily n) (i : Fin n) (x : LatentState n
   ((laws i.succ).rnDeriv (laws 0) x).toReal
   -- @realizes \(R_i\)(Radon--Nikodym derivative computed from observed laws)
 
-/-- The canonical observed-law ratio is globally measurable. -/
+/-- The canonical observed-law ratio is globally measurable.  [the stated conclusion](goal) follows. -/
 lemma measurable_observedLawRatio (laws : ObservedLawFamily n) (i : Fin n) :
     Measurable (observedLawRatio laws i) :=
   ENNReal.measurable_toReal.comp (Measure.measurable_rnDeriv _ _)
@@ -139,7 +141,7 @@ def populationDiscrepancy {H : Type*} [NormedAddCommGroup H] [InnerProductSpace 
   -- @realizes \(D_{ji}\)(norm of difference of kernel mean embeddings)
 
 -- @node: populationDiscrepancy_eq_zero_of_ratioLaw_eq
-/-- Equal observational and interventional ratio laws have zero population discrepancy. -/
+/-- Equal observational and interventional ratio laws have zero population discrepancy.  Given [the stated inputs and conditions](hyp:hLaw), [the stated conclusion](goal) follows. -/
 lemma populationDiscrepancy_eq_zero_of_ratioLaw_eq
     {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H] [CompleteSpace H]
     (U : UnitNormFeatureMap H) {θ : Mechanism n G} (W : ObservedWorld G θ)

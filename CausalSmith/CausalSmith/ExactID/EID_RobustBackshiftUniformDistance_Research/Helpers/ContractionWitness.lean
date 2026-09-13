@@ -37,9 +37,7 @@ lemma opNorm_sub_le_of_pairwise_affine_in_identity_branch_sharp
   have hK0 : 0 ≤ K := by
     dsimp [K, pairwiseAggregateFactor, pairwiseSolveFactor]
     positivity
-  have hu0 : 0 ≤ entryL2 R := by
-    dsimp [entryL2]
-    positivity
+  have hu0 : 0 ≤ entryL2 R := entryL2_nonneg R
   have hc0 : 0 ≤ pairwiseSolveFactor M δ *
       (2 * M * entryL2 R ^ 2 + 2 * ε) := by
     unfold pairwiseSolveFactor

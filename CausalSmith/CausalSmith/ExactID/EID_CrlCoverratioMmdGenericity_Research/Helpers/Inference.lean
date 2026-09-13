@@ -119,7 +119,7 @@ def ConditionalEvaluationSampling : Prop :=
     inferInstance (fun p => S.ratioEstimate p.1 i p.2))
 
 /-- The full independent-environment sampling contract supplies the smaller collection of
-assumptions needed for conditional evaluation-fold concentration. -/
+assumptions needed for conditional evaluation-fold concentration.  Given [the stated inputs and conditions](hyp:h), [the stated conclusion](goal) follows. -/
 lemma IndependentEnvironmentSampling.toConditionalEvaluationSampling
     (h : IndependentEnvironmentSampling S) : ConditionalEvaluationSampling S := by
   rcases h with

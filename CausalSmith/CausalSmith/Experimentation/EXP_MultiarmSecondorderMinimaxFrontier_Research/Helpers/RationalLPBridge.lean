@@ -34,10 +34,10 @@ noncomputable def gvDecode (x : Fin (Fintype.card (GV K n M)) → ℚ) : GV K n 
 /-- [the gv dot equals property holds](goal). -/
 lemma gvDot_eq (a : GV K n M → ℚ)
     (x : Fin (Fintype.card (GV K n M)) → ℚ) :
-    Causalean.Mathlib.Optimization.RationalLP.dot
+    dotProduct
       (fun j => a ((gvEquiv K n M).symm j)) x =
       ∑ v, a v * gvDecode x v := by
-  unfold Causalean.Mathlib.Optimization.RationalLP.dot gvDecode
+  unfold dotProduct gvDecode
   exact Fintype.sum_equiv (gvEquiv K n M).symm _ _ (fun _ => by simp)
 
 -- @node: objCoeff
@@ -127,9 +127,9 @@ noncomputable def decodeW (x : Fin (Fintype.card (GV K n M)) → ℚ) :
 /-- [the dot norm property holds](goal). -/
 lemma dot_norm (c : RatContrast K) (x : Fin (Fintype.card (GV K n M)) → ℚ)
     (lower : Bool) :
-    Causalean.Mathlib.Optimization.RationalLP.dot ((gridProgram c).A (.norm lower)) x =
+    dotProduct ((gridProgram c).A (.norm lower)) x =
       if lower then -∑ r, decodePi x r else ∑ r, decodePi x r := by
-  change Causalean.Mathlib.Optimization.RationalLP.dot
+  change dotProduct
     (fun j => rowCoeff c (.norm lower) ((gvEquiv K n M).symm j)) x = _
   rw [gvDot_eq, Fintype.sum_sum_type, Fintype.sum_sum_type]
   simp [rowCoeff, decodePi, gvDecode]
@@ -138,8 +138,8 @@ lemma dot_norm (c : RatContrast K) (x : Fin (Fintype.card (GV K n M)) → ℚ)
 /-- [the dot pi is nonnegative](goal). -/
 lemma dot_piNonneg (c : RatContrast K)
     (x : Fin (Fintype.card (GV K n M)) → ℚ) (r : AllocVec K n) :
-    Causalean.Mathlib.Optimization.RationalLP.dot ((gridProgram c).A (.piNonneg r)) x = -decodePi x r := by
-  change Causalean.Mathlib.Optimization.RationalLP.dot
+    dotProduct ((gridProgram c).A (.piNonneg r)) x = -decodePi x r := by
+  change dotProduct
     (fun j => rowCoeff c (.piNonneg r) ((gvEquiv K n M).symm j)) x = _
   rw [gvDot_eq, Fintype.sum_sum_type, Fintype.sum_sum_type]
   simp [rowCoeff, decodePi, gvDecode]
@@ -149,8 +149,8 @@ lemma dot_piNonneg (c : RatContrast K)
 lemma dot_wNonneg (c : RatContrast K)
     (x : Fin (Fintype.card (GV K n M)) → ℚ)
     (r : AllocVec K n) (y : ObsVec r) (g : Fin (2 * M + 1)) :
-    Causalean.Mathlib.Optimization.RationalLP.dot ((gridProgram c).A (.wNonneg r y g)) x = -decodeW x r y g := by
-  change Causalean.Mathlib.Optimization.RationalLP.dot
+    dotProduct ((gridProgram c).A (.wNonneg r y g)) x = -decodeW x r y g := by
+  change dotProduct
     (fun j => rowCoeff c (.wNonneg r y g) ((gvEquiv K n M).symm j)) x = _
   rw [gvDot_eq, Fintype.sum_sum_type, Fintype.sum_sum_type, Fintype.sum_sigma]
   simp only [Fintype.sum_prod_type]
@@ -180,10 +180,10 @@ lemma dot_wNonneg (c : RatContrast K)
 lemma dot_occ (c : RatContrast K)
     (x : Fin (Fintype.card (GV K n M)) → ℚ)
     (r : AllocVec K n) (y : ObsVec r) (lower : Bool) :
-    Causalean.Mathlib.Optimization.RationalLP.dot ((gridProgram c).A (.occ r y lower)) x =
+    dotProduct ((gridProgram c).A (.occ r y lower)) x =
       if lower then decodePi x r - ∑ g, decodeW x r y g
       else ∑ g, decodeW x r y g - decodePi x r := by
-  change Causalean.Mathlib.Optimization.RationalLP.dot
+  change dotProduct
     (fun j => rowCoeff c (.occ r y lower) ((gvEquiv K n M).symm j)) x = _
   rw [gvDot_eq, Fintype.sum_sum_type, Fintype.sum_sum_type, Fintype.sum_sigma]
   simp only [Fintype.sum_prod_type]
@@ -194,10 +194,10 @@ lemma dot_occ (c : RatContrast K)
 /-- [the dot risk property holds](goal). -/
 lemma dot_risk (c : RatContrast K)
     (x : Fin (Fintype.card (GV K n M)) → ℚ) (m : CountVec K n) :
-    Causalean.Mathlib.Optimization.RationalLP.dot ((gridProgram c).A (.risk m)) x =
+    dotProduct ((gridProgram c).A (.risk m)) x =
       (∑ r, ∑ y, ∑ g, orbitLik m r y * decodeW x r y g *
         (gammaMC M c g - tauCountRat c m) ^ 2) - decodeU x := by
-  change Causalean.Mathlib.Optimization.RationalLP.dot
+  change dotProduct
     (fun j => rowCoeff c (.risk m) ((gvEquiv K n M).symm j)) x = _
   rw [gvDot_eq, Fintype.sum_sum_type, Fintype.sum_sum_type, Fintype.sum_sigma]
   simp only [Fintype.sum_prod_type]
@@ -223,7 +223,7 @@ lemma gridProgram_objective_encode (c : RatContrast K)
     (pi : GridPi K n) (w : RationalGridWeight K n M) (u : ℚ) :
     (gridProgram c).objective (encodePoint pi w u) = u := by
   rw [Causalean.Mathlib.Optimization.RationalLP.Program.objective]
-  change Causalean.Mathlib.Optimization.RationalLP.dot
+  change dotProduct
     (fun j => objCoeff ((gvEquiv K n M).symm j)) (encodePoint pi w u) = u
   rw [gvDot_eq, sum_objCoeff]
   exact decode_encode_u pi w u
@@ -234,7 +234,7 @@ lemma gridProgram_objective (c : RatContrast K)
     (x : Fin (Fintype.card (GV K n M)) → ℚ) :
     (gridProgram c).objective x = decodeU x := by
   rw [Causalean.Mathlib.Optimization.RationalLP.Program.objective]
-  change Causalean.Mathlib.Optimization.RationalLP.dot
+  change dotProduct
     (fun j => objCoeff ((gvEquiv K n M).symm j)) x = _
   rw [gvDot_eq, sum_objCoeff]
   rfl

@@ -14,6 +14,7 @@ namespace CausalSmith.ExactID.EID_SourceminCyclicEffectRankfrontier
 
 open MeasureTheory Set
 open scoped BigOperators NNReal
+open Causalean.Stat.MomentProblems (rawMoment)
 
 noncomputable def veronesePower {p s : ℕ} (z : Vec p) : (Fin s → Fin p) → ℝ :=
   fun I => ∏ k, z (I k)
@@ -150,6 +151,18 @@ noncomputable def totalVariationDistance {α : Type*} [MeasurableSpace α]
   sSup {d : ℝ | ∃ A : Set α, MeasurableSet A ∧
     d = |(P A).toReal - (Q A).toReal|}
 
+private lemma totalVariationDistance_eq_tvDist {α : Type*} [MeasurableSpace α]
+    (P Q : Measure α) :
+    totalVariationDistance P Q = Causalean.Stat.tvDist P Q := by
+  rw [totalVariationDistance, Causalean.Stat.tvDist, ← sSup_range]
+  congr 1
+  ext d
+  constructor
+  · rintro ⟨A, hA, rfl⟩
+    exact ⟨⟨A, hA⟩, rfl⟩
+  · rintro ⟨A, rfl⟩
+    exact ⟨A.1, A.2, rfl⟩
+
 -- @node: lem:finite-moment-near-gaussian-witness
 lemma exists_nearGaussian_momentMatching_witness
     (CarlemanMomentDeterminacy_of_gate : CarlemanMomentDeterminacy)
@@ -172,12 +185,11 @@ lemma exists_nearGaussian_momentMatching_witness
       K rho hK hrho
   have hdeterminate : MomentDeterminate F :=
     CarlemanMomentDeterminacy_of_gate F hprob hallMoments (by
-      simpa [Causalean.Stat.MomentProblems.hamburgerCarlemanSeries,
-        Causalean.Stat.MomentProblems.rawMoment, rawMoment] using hcarleman)
+      simpa [Causalean.Stat.MomentProblems.hamburgerCarlemanSeries, rawMoment] using hcarleman)
   refine ⟨F, hprob, hmean, hvariance, hnongaussian, hdeterminate, ?_, ?_, hcumulant⟩
-  · simpa [totalVariationDistance,
-      Causalean.Stat.MomentProblems.totalVariationDistance] using htv
+  · rw [totalVariationDistance_eq_tvDist]
+    exact htv
   · intro k hk
-    simpa [rawMoment, Causalean.Stat.MomentProblems.rawMoment] using hmoment k hk
+    simpa [rawMoment] using hmoment k hk
 
 end CausalSmith.ExactID.EID_SourceminCyclicEffectRankfrontier

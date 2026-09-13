@@ -2,6 +2,7 @@ import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.C
 import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionFeasible
 import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionLocalInverse
 import Causalean.Discovery.LinearDisentanglement.Quantitative.CompactExclusion
+import Causalean.Mathlib.Topology.CompactExclusion
 
 /-!
 # Uniform exclusion for compactified BACKSHIFT witnesses
@@ -16,6 +17,7 @@ open Set
 open scoped Matrix.Norms.L2Operator ENNReal BigOperators
 open Causalean.Discovery.LinearDisentanglement.Quantitative
 open Causalean.Discovery.LinearDisentanglement.Quantitative.PairwiseAffine
+open Causalean.Mathlib.Topology.CompactExclusion
 
 /-- A feasible compactified witness with zero covariance residual has the reference structural
 matrix as its candidate. [Under the stated hypotheses](hyp:hp,hc,hScard,hζ,hγ,hz,hzero) [this conclusion](goal) applies. -/
@@ -165,7 +167,7 @@ lemma exists_uniformContractionLocalTolerance
       calc
         x = entryL2 (z.candidate - z.structural) :=
           (congrArg Prod.snd hembed).symm
-        _ = 0 := by simp [heq, entryL2]
+        _ = 0 := by simp [heq, entryL2_eq_sqrt]
         _ = x₀ q := rfl)
   refine ⟨ε₀, hε₀, ?_⟩
   intro S z hS hz hres
@@ -237,16 +239,14 @@ lemma opNorm_candidate_sub_structural_le_contractionC0
     hWcond hAcond
   have happrox := offDiagonalApproximateCongruence_centered S W.covariance X.covariance
     A X.invariantNoise X.shifts e0 (zero_le_one.trans hL) hr
-    (pairMatrixNormBound_conditionRoot W.structural A hp0 hκ hnorm.2.1
-      X.admissible.2.1 hcond).2
+    (pairMatrixNormBound_conditionRoot W.structural A hp0 hκ hcond).2
     (fun e he => X.transformed_eq e (hSX he)) herr
   have hbranch := inIdentityBranch_of_small_residual
     (fun e : {e // e ∈ S} => W.covariance e.1 - W.covariance e0.1)
     (fun e : {e // e ∈ S} => fun i => W.shifts e.1 i - W.shifts e0.1 i)
     W.structural A hp0 hM hγ hL (lt_of_lt_of_le zero_lt_one hκ)
     hshift hsepCentered W.structural_invertible hexact hnorm.2.1 X.admissible.2.1
-    (pairMatrixNormBound_conditionRoot W.structural A hp0 hκ hnorm.2.1
-      X.admissible.2.1 hcond)
+    (pairMatrixNormBound_conditionRoot W.structural A hp0 hκ hcond).1
     (invOpNorm_le_conditionEnvelope W.structural hp0 hnorm.2.1 hcond.1)
     (mul_nonneg (mul_nonneg (by norm_num) (sq_nonneg _)) hr) hsmall happrox hlocal
   have hsharp := opNorm_sub_le_of_pairwise_affine_in_identity_branch_sharp
@@ -254,8 +254,7 @@ lemma opNorm_candidate_sub_structural_le_contractionC0
     (fun e : {e // e ∈ S} => fun i => W.shifts e.1 i - W.shifts e0.1 i)
     W.structural A hp0 hM hγ hL hshift hsepCentered W.structural_invertible hexact
     hnorm.2.1 X.admissible.2.1
-    (pairMatrixNormBound_conditionRoot W.structural A hp0 hκ hnorm.2.1
-      X.admissible.2.1 hcond)
+    (pairMatrixNormBound_conditionRoot W.structural A hp0 hκ hcond)
     (mul_nonneg (mul_nonneg (by norm_num) (sq_nonneg _)) hr) happrox hbranch
   have hK : 0 ≤ contractionK0 p γ M κ := by
     unfold contractionK0

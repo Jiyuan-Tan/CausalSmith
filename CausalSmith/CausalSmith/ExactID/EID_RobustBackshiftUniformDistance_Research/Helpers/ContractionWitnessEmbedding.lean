@@ -35,7 +35,7 @@ private lemma norm_le_of_unitDiagonal_condition {p : ℕ} {κ : ℝ}
     (B : RealMatrix p) (hp : 0 < p) (hκ : 1 ≤ κ)
     (hB : B ∈ admissibleSet p) (hcond : matrixConditionNumber B ≤ κ) :
     ‖B‖ ≤ contractionL0 p κ := by
-  apply opNorm_le_conditionRoot B hp hκ hB.2.1
+  apply opNorm_le_conditionRoot B hp hκ
   exact ⟨hB.1, abs_det_le_factorial_of_mem_admissibleSet hB, hcond⟩
 
 private lemma norm_inv_le_of_unitDiagonal_condition {p : ℕ} {κ : ℝ}

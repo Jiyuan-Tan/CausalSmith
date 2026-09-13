@@ -3,6 +3,7 @@ import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpe
 import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ObservedLawAdapters
 import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ObservedMarginAssembly
 import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+import Causalean.PO.Assumptions.ArmSupportTransfer
 import Causalean.Mathlib.Analysis.RectangularSignalSingularValues
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
@@ -12,12 +13,15 @@ open ProbabilityTheory
 open scoped BigOperators
 open Causalean.Mathlib.Analysis
 open Causalean.Mathlib.Probability
+open Causalean.PO (armIndicator)
 
+/-- For [Euclidean input and output dimensions](hyp:m,n), [the measurable-space structure on continuous linear maps](goal) is the Borel structure. -/
 noncomputable local instance {m n : ℕ} : MeasurableSpace (Euc n →L[ℝ] Euc m) := borel _
+/-- For [Euclidean input and output dimensions](hyp:m,n), [continuous linear maps form a Borel space](goal). -/
 local instance {m n : ℕ} : BorelSpace (Euc n →L[ℝ] Euc m) := ⟨rfl⟩
 
 /-- The diagonal normalized latent-arm weight matrix retains the joint-cell positivity margin
-at its least signal singular value. -/
+at its least signal singular value.        Under [the stated inputs and assumptions](hyp:k,dx,dz,pi0,P,hk,hpi,hpos), [the stated conclusion](goal) holds. -/
 -- @node: latentArmWeights_minSingular
 lemma latentArmWeights_minSingular {k dx dz : ℕ} {pi0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -47,7 +51,7 @@ lemma latentArmWeights_minSingular {k dx dz : ℕ} {pi0 : ℝ}
       Matrix.diagonal_apply_eq] using hsqrt
 
 /-- Once the promoted conditional-moment argument supplies the proxy factorization, the three
-quantitative factor margins yield the required armwise singular-value margin. -/
+quantitative factor margins yield the required armwise singular-value margin.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hpi,hsigma,hM,hfac), [the stated conclusion](goal) holds. -/
 -- @node: observedProxyMoment_minSingular_of_factorization
 lemma observedProxyMoment_minSingular_of_factorization
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -101,7 +105,7 @@ lemma observedProxyMoment_minSingular_of_factorization
       simpa only [signalMinSingular, singularValue, Fintype.card_fin] using hprod
 
 /-- The matrix carried by a `SignalBasis` is the linear isometric embedding determined by
-its orthonormal columns. -/
+its orthonormal columns.        For [the supplied parameters](hyp:V), [the defined object](goal) is given by [its defining clause](step:1). -/
 -- @node: signalBasisLinearIsometry
 noncomputable def signalBasisLinearIsometry {dx k : ℕ} (V : SignalBasis dx k) :
     Euc k →ₗᵢ[ℝ] Euc dx := by
@@ -128,7 +132,7 @@ noncomputable def signalBasisLinearIsometry {dx k : ℕ} (V : SignalBasis dx k) 
   nlinarith [norm_nonneg x, norm_nonneg (Matrix.toEuclideanLin V.V x)]
 
 /-- Compression by any orthonormal basis spanning the stacked signal rowspace preserves the
-last signal singular value and its quantitative lower margin. -/
+last signal singular value and its quantitative lower margin.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hL,hpi,hsigma,hM,hV), [the stated conclusion](goal) holds. -/
 -- @node: observedProxyMoment_compression_margin
 lemma observedProxyMoment_compression_margin
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -189,7 +193,7 @@ lemma observedProxyMoment_compression_margin
       exact hmin)
 
 /-- Independence transfers an almost-sure product envelope to the second factor whenever the
-first factor exceeds a positive threshold with positive probability. -/
+first factor exceeds a positive threshold with positive probability.        Under [the stated inputs and assumptions](hyp:X,Y,hX,hY,hInd,a,L,ha,hL,hEvent,hProduct), [the stated conclusion](goal) holds. -/
 -- @node: ae_abs_right_le_of_indep_product_bound
 lemma ae_abs_right_le_of_indep_product_bound
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
@@ -229,7 +233,7 @@ lemma ae_abs_right_le_of_indep_product_bound
   exact le_of_not_gt (by simpa [B] using hω)
 
 /-- A bound holding on a positive-probability event transfers to an independent random variable
-on the whole probability space. -/
+on the whole probability space.        Under [the stated inputs and assumptions](hyp:X,hX,A,hA,hApos,hInd,R,hBound), [the stated conclusion](goal) holds. -/
 -- @node: ae_abs_le_of_indep_positive_event
 lemma ae_abs_le_of_indep_positive_event
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
@@ -262,7 +266,7 @@ lemma ae_abs_le_of_indep_positive_event
   exact le_of_not_gt (by simpa [B] using hω)
 
 /-- A reference-feature singular-value margin supplies a coordinate that is nontrivial with
-positive probability in every normalized latent cell. -/
+positive probability in every normalized latent cell.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hkz,hL,hpi,hsigma,hM), [the stated conclusion](goal) holds. -/
 -- @node: exists_reference_coordinate_positive_event
 lemma exists_reference_coordinate_positive_event
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -364,7 +368,7 @@ lemma exists_reference_coordinate_positive_event
   exact (not_lt_of_ge hj) (lt_of_le_of_lt hmean this)
 
 /-- Proxy separation, a reference-rank margin, the anchor, and the observable outcome--proxy
-envelope bound the observed outcome on every latent treatment cell. -/
+envelope bound the observed outcome on every latent treatment cell.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hkz,hL,hpi,hsigma,hM), [the stated conclusion](goal) holds. -/
 -- @node: ae_abs_observedOutcome_le_on_latentCell
 lemma ae_abs_observedOutcome_le_on_latentCell
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -415,7 +419,7 @@ lemma ae_abs_observedOutcome_le_on_latentCell
     _ = (4 * L * Real.sqrt dz / sigma0) / 2 := by field_simp; ring
 
 /-- Consistency and armwise latent ignorability transfer the observed cell envelope to each
-potential outcome on the whole latent class. -/
+potential outcome on the whole latent class.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hkz,hL,hpi,hsigma,hM), [the stated conclusion](goal) holds. -/
 -- @node: ae_abs_potential_le_on_latentClass
 lemma ae_abs_potential_le_on_latentClass
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -472,7 +476,7 @@ lemma ae_abs_potential_le_on_latentClass
     ae_abs_le_of_indep_positive_event (measurable_potential t)
       (measurableSet_fullDataArm t) hApos hInd hOnArm
 
-/-- The derived potential-outcome envelope bounds every latent conditional mean. -/
+/-- The derived potential-outcome envelope bounds every latent conditional mean.     Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hkz,hL,hpi,hsigma,hM), [the stated conclusion](goal) holds. -/
 lemma latentMean_abs_le_of_model
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -505,7 +509,7 @@ lemma latentMean_abs_le_of_model
       integral_mono_ae hint.abs (integrable_const _) hpotmu
     _ = effectRadius dz L sigma0 / 2 := by simp
 
-/-- The two derived latent-mean bounds imply the gap-free support bound for every latent effect. -/
+/-- The two derived latent-mean bounds imply the gap-free support bound for every latent effect.     Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hkz,hL,hpi,hsigma,hM,hk,hkx,hkz,hL,hpi,hsigma,hM), [the stated conclusion](goal) holds. -/
 lemma latentEffect_abs_le_of_model
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -522,8 +526,58 @@ lemma latentEffect_abs_le_of_model
         (latentMean_abs_le_of_model P hk hkx hkz hL hpi hsigma hM u false)
     _ = effectRadius dz L sigma0 := by ring
 
+/-- Given [the latent dimension lower bound](hyp:hk), [feature dimension bound](hyp:hkx),
+[proxy dimension bound](hyp:hkz), [radius bound](hyp:hL), [treatment positivity](hyp:hpi),
+[noise positivity](hyp:hsigma), and [model membership](hyp:hM), [the effect gap is infinite or
+lies in the declared positive bounded interval](goal).
+
+Under model membership, the nearest positive effect gap is either infinite (when there is no
+distinct positive-mass pair) or belongs to the declared interval `(0, 2 * effectRadius]`.
+    @realizes \(\delta(P)\)(range `(0,2L_tau] ∪ {+infinity}`) -/
+-- keep: tagged range certificate for the frozen δ(P) symbol space
+theorem effectGap_range_of_model
+    {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
+    (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
+    (hk : 2 ≤ k) (hkx : k ≤ dx) (hkz : k ≤ dz) (hL : 1 ≤ L)
+    (hpi : 0 < pi0) (hsigma : 0 < sigma0)
+    (hM : UCVMWModel (L := L) (pi0 := pi0) (sigma0 := sigma0) P) :
+    effectGap P = ⊤ ∨
+      (0 < effectGap P ∧ effectGap P ≤ (2 * effectRadius dz L sigma0 : ℝ)) := by
+  classical
+  let D : Set EReal := {d | ∃ u v : Fin k,
+    0 < latentMass P u ∧ 0 < latentMass P v ∧ latentEffect P u ≠ latentEffect P v ∧
+      d = |latentEffect P u - latentEffect P v|}
+  by_cases hD : D.Nonempty
+  · right
+    have hDfin : D.Finite := by
+      let F := (Finset.univ : Finset (Fin k)).product (Finset.univ : Finset (Fin k))
+      have hsub : D ⊆ (fun p : Fin k × Fin k =>
+          ((|latentEffect P p.1 - latentEffect P p.2| : ℝ) : EReal)) ''
+            (F : Set (Fin k × Fin k)) := by
+        rintro d ⟨u, v, hu, hv, huv, rfl⟩
+        exact ⟨(u, v), Finset.mem_product.mpr ⟨Finset.mem_univ _, Finset.mem_univ _⟩, rfl⟩
+      exact (F.finite_toSet.image _).subset hsub
+    have hmin := hD.csInf_mem hDfin
+    rcases hmin with ⟨u, v, hu, hv, huv, hEq⟩
+    constructor
+    · rw [show effectGap P = sInf D by rfl, hEq]
+      exact_mod_cast (abs_pos.mpr (sub_ne_zero.mpr huv))
+    · rw [show effectGap P = sInf D by rfl, hEq]
+      exact_mod_cast (calc
+        |latentEffect P u - latentEffect P v| ≤
+            |latentEffect P u| + |latentEffect P v| := abs_sub _ _
+        _ ≤ effectRadius dz L sigma0 + effectRadius dz L sigma0 :=
+          add_le_add
+            (latentEffect_abs_le_of_model P hk hkx hkz hL hpi hsigma hM u)
+            (latentEffect_abs_le_of_model P hk hkx hkz hL hpi hsigma hM v)
+        _ = 2 * effectRadius dz L sigma0 := by ring)
+  · left
+    have hDempty : D = ∅ := Set.not_nonempty_iff_eq_empty.mp hD
+    rw [show effectGap P = sInf D by rfl, hDempty]
+    exact sInf_empty
+
 /-- The operator norm of a conditional matrix mean is bounded by an almost-sure operator
-envelope for the matrix-valued random element. -/
+envelope for the matrix-valued random element.        Under [the stated inputs and assumptions](hyp:k,dx,dz,P,t,A,hcoordMeas,hmapMeas,L,hL,hbound,hArm), [the stated conclusion](goal) holds. -/
 -- @node: conditionalMatrix_norm_le_of_ae_bound
 lemma conditionalMatrix_norm_le_of_ae_bound
     {k dx dz : ℕ} (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]
@@ -557,7 +611,7 @@ lemma conditionalMatrix_norm_le_of_ae_bound
       integral_mono_ae hmap.norm (integrable_const _) hboundμ
     _ = L := by simp
 
-/-- All five observable summary blocks inherit the common model envelope. -/
+/-- All five observable summary blocks inherit the common model envelope.     Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hL,hpi,hM), [the stated conclusion](goal) holds. -/
 -- @node: observedSummary_envelopes_of_model
 lemma observedSummary_envelopes_of_model
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -667,7 +721,7 @@ lemma observedSummary_envelopes_of_model
       _ = L := by simp
 
 /-- The Euclidean norm of either arm block is at most the norm of the vertically stacked
-proxy-moment operator. -/
+proxy-moment operator.        Under [the stated inputs and assumptions](hyp:dx,dz,s,x,t), [the stated conclusion](goal) holds. -/
 -- @node: observedProxyMoment_norm_le_stackedProxyMoment
 lemma observedProxyMoment_norm_le_stackedProxyMoment
     {dx dz : ℕ} (s : SummarySpace dx dz) (x : Euc dx) (t : Bool) :
@@ -710,7 +764,7 @@ lemma observedProxyMoment_norm_le_stackedProxyMoment
   · exact le_add_of_nonneg_right (Finset.sum_nonneg fun _ _ => sq_nonneg _)
   · exact le_add_of_nonneg_left (Finset.sum_nonneg fun _ _ => sq_nonneg _)
 
-/-- The vertically stacked proxy moment retains the common quantitative signal margin. -/
+/-- The vertically stacked proxy moment retains the common quantitative signal margin.     Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hL,hpi,hsigma,hM), [the stated conclusion](goal) holds. -/
 -- @node: stackedProxyMoment_minSingular
 lemma stackedProxyMoment_minSingular
     {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
@@ -788,7 +842,7 @@ lemma stackedProxyMoment_minSingular
         observedProxyMoment_norm_le_stackedProxyMoment (obsSummary P) x false
 
 /-- Uniform observed-moment and latent-outcome consequences of model membership, together with
-the conditional cited-scope transfer to the published VMW model. -/
+the conditional cited-scope transfer to the published VMW model.        Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,publishedScope,publishedMargins,P,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax,hM,hVMWModelScope_of_gate), [the stated conclusion](goal) holds. -/
 -- @node: prop:observed-vmw-margin-inclusion
 theorem observed_vmw_margin_inclusion {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (publishedScope : PublishedVMWScopeHandle)
@@ -841,7 +895,7 @@ theorem observed_vmw_margin_inclusion {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
       (ucvmwModel_publishedQualitativeConditions k dx dz L pi0 sigma0 P
         ⟨hk, hkx, hkz, hL, hpi, hpiMax, hsigma, hsigmaMax⟩ hM)
 
-/-- The five observable blocks of a model-generated summary obey the common envelope. -/
+/-- The five observable blocks of a model-generated summary obey the common envelope.     Under [the stated inputs and assumptions](hyp:k,dx,dz,L,pi0,sigma0,P,hk,hkx,hkz,hL,hpi,hpiMax,hsigma,hsigmaMax,hM), [the stated conclusion](goal) holds. -/
 -- @node: observed_summary_block_bounds
 lemma observed_summary_block_bounds {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     (P : Measure (FullData k dx dz)) [IsProbabilityMeasure P]

@@ -15,42 +15,6 @@ noncomputable section
 
 namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 
-/-- Every strict ancestor relation in a finite DAG factors through ancestral covers. -/
-lemma isAncestor_transGen_ancestralCover
-    {n : ℕ} (G : Causalean.DAG (Fin n)) {a b : Fin n}
-    (h : G.isAncestor a b) : Relation.TransGen (ancestralCover G) a b := by
-  letI : LE (Fin n) := ⟨fun x y => x = y ∨ G.isAncestor x y⟩
-  letI : LT (Fin n) := ⟨G.isAncestor⟩
-  letI : PartialOrder (Fin n) := {
-    le_refl x := Or.inl rfl
-    le_trans x y z hxy hyz := by
-      rcases hxy with rfl | hxy
-      · exact hyz
-      rcases hyz with rfl | hyz
-      · exact Or.inr hxy
-      · exact Or.inr (G.isAncestor_trans hxy hyz)
-    le_antisymm x y hxy hyx := by
-      rcases hxy with rfl | hxy
-      · rfl
-      rcases hyx with rfl | hyx
-      · rfl
-      exact False.elim (G.isAncestor_irrefl x (G.isAncestor_trans hxy hyx))
-    lt_iff_le_not_ge x y := by
-      constructor
-      · intro hxy
-        exact ⟨Or.inr hxy, fun hyx => by
-          rcases hyx with rfl | hyx
-          · exact G.isAncestor_irrefl _ hxy
-          · exact G.isAncestor_irrefl _ (G.isAncestor_trans hxy hyx)⟩
-      · rintro ⟨hxy, hnxy⟩
-        rcases hxy with rfl | hxy
-        · exact False.elim (hnxy (Or.inl rfl))
-        · exact hxy }
-  letI : DecidableLE (Fin n) := Classical.decRel _
-  letI : DecidableLT (Fin n) := Classical.decRel _
-  letI : LocallyFiniteOrder (Fin n) := Fintype.toLocallyFiniteOrder
-  exact transGen_covBy_of_lt h
-
 /-- The event that every empirical MMD is within the simultaneous confidence radius. -/
 def simultaneousMmdEvent
     {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
@@ -65,7 +29,7 @@ set_option maxHeartbeats 2000000 in
 -- @node: thm:simultaneous-confidence-edges
 /-- Under the simultaneous first-stage event, sample splitting yields familywise MMD confidence
 bounds. Selected arrows are ancestral, and a two-radius cover margin recovers the true transitive
-closure. -/
+closure.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hSampling,hn,hN,hα,hη,hfirst), [the stated conclusion](goal) follows. -/
 theorem simultaneous_confidence_edges
     {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
     {θ : Mechanism n G} (W : ObservedWorld G θ)
@@ -154,7 +118,9 @@ theorem simultaneous_confidence_edges
     have hrev : ‖Pj - P0‖ = ‖P0 - Pj‖ := norm_sub_rev _ _
     rw [hrev] at hnorm
     have hfinal : |‖Ej - E0‖ - ‖P0 - Pj‖| ≤ confidenceRadius S := by
-      convert hnorm using 1 <;> simp only [confidenceRadius, R] <;> ring
+      convert hnorm using 1
+      all_goals simp only [confidenceRadius, R]
+      all_goals ring
     simpa only [empiricalDiscrepancy, populationDiscrepancy,
       observationalRatioLaw, interventionalRatioLaw, Ej, E0, Pj, P0] using hfinal
   have hconditional : ConditionalProbabilityAtLeast S.probability

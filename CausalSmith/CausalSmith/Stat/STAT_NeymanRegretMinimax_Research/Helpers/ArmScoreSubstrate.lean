@@ -18,7 +18,8 @@ namespace CausalSmith.Stat.NeymanRegretMinimax
 
 open MeasureTheory
 open scoped ProbabilityTheory
-open Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge (FiniteMoment4 moment l2ResidualQuadratic)
+open Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge (FiniteMoment4 l2ResidualQuadratic)
+open Causalean.Stat.MomentProblems (rawMoment)
 
 -- @node: armMarginal_isProbabilityMeasure
 /-- Arm marginals of an `MInt` law are probability measures. -/
@@ -72,22 +73,22 @@ lemma armMarginal_finiteMoment4 (nu : Measure (ℝ × ℝ)) (hnu : MInt nu) (a :
 -- @node: arm_variance_pos_of_tangent
 /-- Positive tangent residual forces nondegenerate arm variance. -/
 lemma arm_variance_pos_of_tangent (nu : Measure (ℝ × ℝ)) (hnu : MTan nu) (a : Fin 2) :
-    moment (armMarginal nu a) 1 ^ 2 < moment (armMarginal nu a) 2 := by
+    rawMoment (armMarginal nu a) 1 ^ 2 < rawMoment (armMarginal nu a) 2 := by
   let μ := armMarginal nu a
   haveI : IsProbabilityMeasure μ := armMarginal_isProbabilityMeasure nu hnu.toMInt a
   have hfin : FiniteMoment4 μ := armMarginal_finiteMoment4 nu hnu.toMInt a
   by_contra hnot
-  have hle : moment μ 2 ≤ moment μ 1 ^ 2 := le_of_not_gt hnot
+  have hle : rawMoment μ 2 ≤ rawMoment μ 1 ^ 2 := le_of_not_gt hnot
   have hmem : MemLp (fun y : ℝ => y) 2 μ := by
     simpa using Causalean.Stat.MomentProblems.ResidualQuadratic.ProjectionResidual.memL2_id μ hfin
   have hvar_nonneg := ProbabilityTheory.variance_nonneg (fun y : ℝ => y) μ
   have hvar_eq :
-      ProbabilityTheory.variance (fun y : ℝ => y) μ = moment μ 2 - moment μ 1 ^ 2 := by
+      ProbabilityTheory.variance (fun y : ℝ => y) μ = rawMoment μ 2 - rawMoment μ 1 ^ 2 := by
     rw [ProbabilityTheory.variance_eq_sub hmem]
-    simp [moment, pow_two]
+    simp [rawMoment, pow_two]
   have hvar0 : ProbabilityTheory.variance (fun y : ℝ => y) μ = 0 := by
     rw [hvar_eq]
-    have hge : moment μ 1 ^ 2 ≤ moment μ 2 := by
+    have hge : rawMoment μ 1 ^ 2 ≤ rawMoment μ 2 := by
       linarith [hvar_nonneg, hvar_eq]
     linarith
   have hevar0 : ProbabilityTheory.evariance (fun y : ℝ => y) μ = 0 := by
@@ -96,14 +97,14 @@ lemma arm_variance_pos_of_tangent (nu : Measure (ℝ × ℝ)) (hnu : MTan nu) (a
     exact hof.symm
   have hconst_ae : (fun y : ℝ => y) =ᵐ[μ] fun _ => (∫ y : ℝ, y ∂μ) := by
     exact (ProbabilityTheory.evariance_eq_zero_iff hmem.aemeasurable).1 hevar0
-  have hres0 : ∫ y, (y ^ 2 - 0 - (moment μ 1) * y) ^ 2 ∂μ = 0 := by
+  have hres0 : ∫ y, (y ^ 2 - 0 - (rawMoment μ 1) * y) ^ 2 ∂μ = 0 := by
     calc
-      ∫ y, (y ^ 2 - 0 - (moment μ 1) * y) ^ 2 ∂μ =
+      ∫ y, (y ^ 2 - 0 - (rawMoment μ 1) * y) ^ 2 ∂μ =
           ∫ _y : ℝ, (0 : ℝ) ∂μ := by
         apply integral_congr_ae
         filter_upwards [hconst_ae] with y hy
         rw [hy]
-        simp [moment]
+        simp [rawMoment]
         ring
       _ = 0 := by simp
   have hbdd :
@@ -116,8 +117,8 @@ lemma arm_variance_pos_of_tangent (nu : Measure (ℝ × ℝ)) (hnu : MTan nu) (a
       (⨅ b : ℝ × ℝ, ∫ y, (y ^ 2 - b.1 - b.2 * y) ^ 2 ∂μ) ≤ 0 := by
     calc
       (⨅ b : ℝ × ℝ, ∫ y, (y ^ 2 - b.1 - b.2 * y) ^ 2 ∂μ)
-          ≤ ∫ y, (y ^ 2 - (0 : ℝ) - (moment μ 1) * y) ^ 2 ∂μ :=
-            ciInf_le hbdd (0, moment μ 1)
+          ≤ ∫ y, (y ^ 2 - (0 : ℝ) - (rawMoment μ 1) * y) ^ 2 ∂μ :=
+            ciInf_le hbdd (0, rawMoment μ 1)
       _ = 0 := hres0
   have hpos : 0 < (⨅ b : ℝ × ℝ, ∫ y, (y ^ 2 - b.1 - b.2 * y) ^ 2 ∂μ) := by
     simpa [μ, armTangentStrength] using hnu.tangent a
@@ -131,7 +132,7 @@ lemma armTangentStrength_eq_l2ResidualQuadratic (nu : Measure (ℝ × ℝ)) (hnu
   let μ := armMarginal nu a
   haveI : IsProbabilityMeasure μ := armMarginal_isProbabilityMeasure nu hnu.toMInt a
   have hfin : FiniteMoment4 μ := armMarginal_finiteMoment4 nu hnu.toMInt a
-  have hnd : moment μ 1 ^ 2 < moment μ 2 := by
+  have hnd : rawMoment μ 1 ^ 2 < rawMoment μ 2 := by
     simpa [μ] using arm_variance_pos_of_tangent nu hnu a
   rw [armTangentStrength]
   apply le_antisymm

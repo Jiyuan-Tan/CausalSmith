@@ -227,6 +227,7 @@ def firstStageRatioContract {Ω : Type*} [MeasurableSpace Ω]
         (uniformC1RatioEvent (sampling θs N) (bN N))
 
 /-- The proposed uniform coordinate-rate expression. -/
+-- keep: paper-defined rate object for the explicitly open generated-rank frontier
 def coordinateRate (N : ℕ) : ℝ :=
   R.bandwidth N ^ 2 +
     Real.sqrt (Real.log (regimeMinimumSampleSize R N) /

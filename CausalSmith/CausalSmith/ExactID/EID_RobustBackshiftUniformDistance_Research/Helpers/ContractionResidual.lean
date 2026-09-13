@@ -53,7 +53,7 @@ lemma selected_eq_true_of_residual_eq_zero {p m : ℕ} (S : Finset (Environment 
 lemma continuous_uniformContractionEntryDistance {p m : ℕ} :
     Continuous (fun z : UniformContractionAmbient p m ↦
       entryL2 (z.candidate - z.structural)) := by
-  unfold entryL2
+  simp only [entryL2_eq_sqrt]
   apply Continuous.sqrt
   fun_prop
 

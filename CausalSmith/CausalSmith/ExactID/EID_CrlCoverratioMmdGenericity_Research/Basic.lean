@@ -22,6 +22,7 @@ namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 
 /-! ## Latent mechanism world -/
 
+/-- For a [finite dimension](hyp:n), the [latent state space is the real coordinate space](goal). -/
 abbrev LatentState (n : ℕ) := Fin n → ℝ -- @realizes V(carrier [0,1]^n via latentCube)
 
 /-- The closed latent cube. -/
@@ -42,17 +43,23 @@ structure Mechanism (n : ℕ) (G : Causalean.DAG (Fin n)) where
     (∀ j ∈ G.parents i, v j = w j) → p i v = p i w
     -- @realizes \(\operatorname{pa}_G(i)\)(p_i depends only on own coordinate and parents)
 
-/-- Values and the first two ambient derivatives of every mechanism slot, each equipped with
-uniform convergence on its closed cube.  Pulling this topology back gives the paper's finite
-product `C²` topology rather than Lean's default pointwise function topology. -/
+/-- Values and the first two derivatives within the closed domain of every mechanism slot, each
+equipped with uniform convergence there. Pulling this topology back gives the paper's finite
+relative product `C²` topology, including its one-sided boundary derivatives, rather than Lean's
+default pointwise function topology. -/
 def mechanismC2Coordinates {n : ℕ} {G : Causalean.DAG (Fin n)} (θ : Mechanism n G) :=
   ((fun i => UniformOnFun.ofFun {latentCube n} (θ.p i)),
-    (fun i => UniformOnFun.ofFun {latentCube n} (fderiv ℝ (θ.p i))),
-    (fun i => UniformOnFun.ofFun {latentCube n} (iteratedFDeriv ℝ 2 (θ.p i))),
+    (fun i => UniformOnFun.ofFun {latentCube n} (fderivWithin ℝ (θ.p i) (latentCube n))),
+    (fun i => UniformOnFun.ofFun {latentCube n}
+      (iteratedFDerivWithin ℝ 2 (θ.p i) (latentCube n))),
     (fun i => UniformOnFun.ofFun {Set.Icc (0 : ℝ) 1} (θ.q i)),
-    (fun i => UniformOnFun.ofFun {Set.Icc (0 : ℝ) 1} (fderiv ℝ (θ.q i))),
-    (fun i => UniformOnFun.ofFun {Set.Icc (0 : ℝ) 1} (iteratedFDeriv ℝ 2 (θ.q i))))
+    (fun i => UniformOnFun.ofFun {Set.Icc (0 : ℝ) 1}
+      (fderivWithin ℝ (θ.q i) (Set.Icc (0 : ℝ) 1))),
+    (fun i => UniformOnFun.ofFun {Set.Icc (0 : ℝ) 1}
+      (iteratedFDerivWithin ℝ 2 (θ.q i) (Set.Icc (0 : ℝ) 1))))
 
+/-- For a [finite latent dimension](hyp:n) and [DAG](hyp:G), the [mechanism space carries
+the relative product C² topology](goal). -/
 instance {n : ℕ} {G : Causalean.DAG (Fin n)} : TopologicalSpace (Mechanism n G) :=
   TopologicalSpace.induced mechanismC2Coordinates inferInstance
 
@@ -116,6 +123,8 @@ variable {n : ℕ} -- @realizes n(number of latent nodes)
 
 -- @realizes \([n]\)(implemented as Fin n)
 -- @realizes \(j\lessdot_G i\)(CovBy for DAG.isAncestor)
+/-- For a [finite node set](hyp:n) and [DAG](hyp:G), the [ancestral cover relation consists
+of cover pairs in the DAG's ancestor order](goal). -/
 abbrev ancestralCover (G : Causalean.DAG (Fin n)) : Fin n → Fin n → Prop :=
   @CovBy (Fin n) ⟨G.isAncestor⟩
 
@@ -136,7 +145,8 @@ def PositiveNormalizedSmoothMechanisms (θ : Mechanism n G) : Prop :=
 -- @node: ass:fixed-own-derivative-sign
 /-- Each latent log ratio has the prescribed strict own-coordinate derivative sign. -/
 def FixedOwnDerivativeSign (θ : Mechanism n G) : Prop :=
-  ∀ i v, v ∈ latentCube n → 0 < s.value i * ownLogRatioDerivative θ i v
+  ∀ i v, v ∈ latentCube n →
+    0 < s.value i * ownLogRatioDerivative θ i v -- @realizes s(fixed own-derivative sign)
 
 -- @node: ass:causal-minimality
 /-- Every direct causal edge remains conditionally dependent given the other parents. -/
@@ -160,14 +170,6 @@ structure ModelStratum (θ : Mechanism n G) : Prop where
 /-- The mechanism subtype carrying the relative product `C²` topology. -/
 abbrev StratumPoint := {θ : Mechanism n G // ModelStratum G s θ}
   -- @realizes \(\Theta_{G,s}\)(subtype with relative product topology)
-
-/-- Squared conditional-dependence witness used to expose openness of causal minimality. -/
-def causalMinimalityWitness (θ : Mechanism n G) (j i : Fin n) : ℝ :=
-  ∫ v in latentCube n,
-    (observationalDensity θ v *
-        observationalDensity θ (Function.update (Function.update v i 0) j 0) -
-      observationalDensity θ (Function.update v i 0) *
-        observationalDensity θ (Function.update v j 0)) ^ 2
 
 /-! ## Observed environment world -/
 

@@ -32,6 +32,7 @@ def cancellationPrimitive (x : ℝ) : ℝ :=
 /-- The three-node graph `0 → 1` with node `2` isolated. -/
 def threeNodeEdge (i j : Fin 3) : Prop := i = 0 ∧ j = 1
 
+/-- The [three-node edge relation has no directed cycle](goal). -/
 lemma threeNodeEdge_acyclic (v : Fin 3) : ¬ Relation.TransGen threeNodeEdge v v := by
   intro h
   have path_shape : ∀ {a b : Fin 3}, Relation.TransGen threeNodeEdge a b →
@@ -64,6 +65,7 @@ def sparseP (s : SignVector 3) (i : Fin 3) (v : LatentState 3) : ℝ :=
 def sparseQ (s : SignVector 3) (i : Fin 3) (z : ℝ) : ℝ :=
   exponentialInterventionDensity (reflectedCoordinate s i z)
 
+/-- The [sparse observational factor depends only on its own coordinate and graph parents](goal). -/
 lemma sparseP_parent_local (s : SignVector 3) :
     ∀ i v w, v i = w i →
       (∀ j ∈ threeNodeDAG.parents i, v j = w j) → sparseP s i v = sparseP s i w := by
@@ -91,6 +93,7 @@ def cancellationP (s : SignVector 3) (i : Fin 3) (v : LatentState 3) : ℝ :=
       centeredCoordinate (reflectedCoordinate s 1 (v 1))
   else 1
 
+/-- The [cancellation observational factor depends only on its own coordinate and graph parents](goal). -/
 lemma cancellationP_parent_local (s : SignVector 3) :
     ∀ i v w, v i = w i →
       (∀ j ∈ threeNodeDAG.parents i, v j = w j) →
@@ -120,6 +123,8 @@ def embeddedSparseP {n : ℕ} (s : SignVector n)
       centeredCoordinate (reflectedCoordinate s i (v i))
   else 1
 
+/-- Given [the selected directed edge](hyp:hji), the [embedded sparse factor depends only on
+its own coordinate and graph parents](goal). -/
 lemma embeddedSparseP_parent_local {n : ℕ} {G : Causalean.DAG (Fin n)}
     (s : SignVector n) {j i : Fin n} (hji : G.edge j i) :
     ∀ l v w, v l = w l → (∀ k ∈ G.parents l, v k = w k) →
@@ -140,6 +145,7 @@ def embeddedSparseWitness {n : ℕ} {G : Causalean.DAG (Fin n)}
   q := fun l z => exponentialInterventionDensity (reflectedCoordinate s l z)
   parent_local := embeddedSparseP_parent_local s hji
 
+/-- The [affine interpolation of two mechanisms remains local to each node and its parents](goal). -/
 lemma affinePath_parent_local {n : ℕ} {G : Causalean.DAG (Fin n)}
     (θ endpoint : Mechanism n G) (t : ℝ) :
     ∀ i v w, v i = w i → (∀ j ∈ G.parents i, v j = w j) →
@@ -150,6 +156,9 @@ lemma affinePath_parent_local {n : ℕ} {G : Causalean.DAG (Fin n)}
 
 /-! The unrestricted extension is used only to state analyticity on a neighborhood of the
 closed unit interval. The paper's mechanism path itself is the restricted wrapper below. -/
+/-- For a [finite dimension](hyp:n), [DAG](hyp:G), [sign pattern](hyp:s), [stratum point](hyp:θ),
+[directed edge endpoints](hyp:j,i), [edge certificate](hyp:hji), and [real path parameter](hyp:t),
+the [unrestricted affine mechanism path](goal) interpolates toward the embedded sparse witness. -/
 def affinePathExtension {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) (t : ℝ) : Mechanism n G where
   p := fun l v => (1 - t) * θ.1.p l v + t * (embeddedSparseWitness s hji).p l v
@@ -164,6 +173,7 @@ def affinePath {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
   affinePathExtension s θ hji t.1
   -- @realizes \(\theta^t\)(p_l^t and q_l^t are affine; t is indexed by [0,1])
 
+/-- The [exponential intervention density integrates to one on the unit interval](goal). -/
 lemma exponentialInterventionDensity_integral :
     ∫ z in Set.Icc (0 : ℝ) 1, exponentialInterventionDensity z = 1 := by
   rw [MeasureTheory.integral_Icc_eq_integral_Ioc]
@@ -182,6 +192,7 @@ lemma exponentialInterventionDensity_integral :
   simp only [mul_zero, mul_one, Real.exp_zero, inv_eq_one_div, smul_eq_mul]
   field_simp
 
+/-- The [centered coordinate integrates to zero on the unit interval](goal). -/
 lemma centeredCoordinate_integral :
     ∫ z in Set.Icc (0 : ℝ) 1, centeredCoordinate z = 0 := by
   rw [MeasureTheory.integral_Icc_eq_integral_Ioc]
@@ -194,7 +205,7 @@ lemma centeredCoordinate_integral :
   norm_num
 
 -- @node: integral_reflectedCoordinate
-/-- Reflection about the midpoint preserves integrals over the unit interval. -/
+/-- Reflection about the midpoint preserves integrals over the unit interval.  [the stated conclusion](goal) follows. -/
 lemma integral_reflectedCoordinate {n : ℕ} (s : SignVector n) (i : Fin n)
     (f : ℝ → ℝ) :
     ∫ z in Set.Icc (0 : ℝ) 1, f (reflectedCoordinate s i z) =
@@ -210,7 +221,7 @@ lemma integral_reflectedCoordinate {n : ℕ} (s : SignVector n) (i : Fin n)
   · simp [reflectedCoordinate, reflect, hi]
 
 -- @node: sparseQ_normalized
-/-- Every reflected exponential intervention density is normalized. -/
+/-- Every reflected exponential intervention density is normalized.  [the stated conclusion](goal) follows. -/
 lemma sparseQ_normalized (s : SignVector 3) (i : Fin 3) :
     ∫ z in Set.Icc (0 : ℝ) 1, sparseQ s i z = 1 := by
   unfold sparseQ
@@ -218,7 +229,7 @@ lemma sparseQ_normalized (s : SignVector 3) (i : Fin 3) :
   exact exponentialInterventionDensity_integral
 
 -- @node: centeredCoordinate_reflected_integral
-/-- Every reflected centered coordinate has zero integral. -/
+/-- Every reflected centered coordinate has zero integral.  [the stated conclusion](goal) follows. -/
 lemma centeredCoordinate_reflected_integral (s : SignVector 3) (i : Fin 3) :
     ∫ z in Set.Icc (0 : ℝ) 1,
       centeredCoordinate (reflectedCoordinate s i z) = 0 := by
@@ -226,7 +237,7 @@ lemma centeredCoordinate_reflected_integral (s : SignVector 3) (i : Fin 3) :
   exact centeredCoordinate_integral
 
 -- @node: sparseP_normalized
-/-- Every sparse observational conditional is normalized in its own coordinate. -/
+/-- Every sparse observational conditional is normalized in its own coordinate.  [the stated conclusion](goal) follows. -/
 lemma sparseP_normalized (s : SignVector 3) (i : Fin 3) (v : LatentState 3) :
     ∫ z in Set.Icc (0 : ℝ) 1, sparseP s i (Function.update v i z) = 1 := by
   by_cases hi : i = 1
@@ -262,7 +273,7 @@ lemma sparseP_normalized (s : SignVector 3) (i : Fin 3) (v : LatentState 3) :
   · simp [sparseP, hi]
 
 -- @node: cancellationP_normalized
-/-- Every cancellation observational conditional is normalized in its own coordinate. -/
+/-- Every cancellation observational conditional is normalized in its own coordinate.  [the stated conclusion](goal) follows. -/
 lemma cancellationP_normalized (s : SignVector 3) (i : Fin 3) (v : LatentState 3) :
     ∫ z in Set.Icc (0 : ℝ) 1, cancellationP s i (Function.update v i z) = 1 := by
   by_cases hi : i = 1
@@ -297,6 +308,7 @@ lemma cancellationP_normalized (s : SignVector 3) (i : Fin 3) (v : LatentState 3
       exact hc.integrableOn_Icc
   · simp [cancellationP, hi]
 
+/-- The [cancellation primitive vanishes at both endpoints of the unit interval](goal). -/
 lemma cancellationPrimitive_zero :
     cancellationPrimitive 0 = 0 ∧ cancellationPrimitive 1 = 0 := by
   constructor
@@ -308,6 +320,7 @@ lemma cancellationPrimitive_zero :
     field_simp
     norm_num
 
+/-- The [derivative of the cancellation primitive is the intervention density minus one](goal). -/
 lemma cancellationPrimitive_deriv (x : ℝ) :
     deriv cancellationPrimitive x = exponentialInterventionDensity x - 1 := by
   change deriv (fun y : ℝ => (Real.exp (4 * y) - 1) / (Real.exp 4 - 1) - y) x =
@@ -324,7 +337,7 @@ lemma cancellationPrimitive_deriv (x : ℝ) :
   exact (hF.sub (hasDerivAt_id x)).deriv
 
 -- @node: cancellationPrimitive_nonconstant
-/-- The cancellation primitive genuinely varies, as witnessed by its nonzero derivative at zero. -/
+/-- The cancellation primitive genuinely varies, as witnessed by its nonzero derivative at zero.  [the stated conclusion](goal) follows. -/
 lemma cancellationPrimitive_nonconstant :
     ∃ x, cancellationPrimitive x ≠ cancellationPrimitive 0 := by
   by_contra hconst
@@ -345,7 +358,7 @@ lemma cancellationPrimitive_nonconstant :
   linarith
 
 -- @node: cancellationPrimitive_mem_unitInterval_sub
-/-- On the unit interval the cancellation primitive lies between minus one and one. -/
+/-- On the unit interval the cancellation primitive lies between minus one and one.  Given [the stated inputs and conditions](hyp:hx), [the stated conclusion](goal) follows. -/
 lemma cancellationPrimitive_mem_unitInterval_sub {x : ℝ} (hx : x ∈ Set.Icc (0 : ℝ) 1) :
     cancellationPrimitive x ∈ Set.Icc (-1 : ℝ) 1 := by
   have hden : 0 < Real.exp 4 - 1 := by
@@ -363,7 +376,7 @@ lemma cancellationPrimitive_mem_unitInterval_sub {x : ℝ} (hx : x ∈ Set.Icc (
   unfold cancellationPrimitive
   constructor <;> linarith [hx.1, hx.2]
 
-/-- A prescribed coordinate reflection preserves the closed unit interval. -/
+/-- A prescribed coordinate reflection preserves the closed unit interval.  Given [the stated inputs and conditions](hyp:hz), [the stated conclusion](goal) follows. -/
 -- @node: reflectedCoordinate_mem_unitInterval
 lemma reflectedCoordinate_mem_unitInterval {n : ℕ} (s : SignVector n) (i : Fin n)
     {z : ℝ} (hz : z ∈ Set.Icc (0 : ℝ) 1) :
@@ -374,14 +387,125 @@ lemma reflectedCoordinate_mem_unitInterval {n : ℕ} (s : SignVector n) (i : Fin
   · rw [reflectedCoordinate, reflect, hi, if_pos rfl]
     exact hz
 
-/-- The centered coordinate has absolute value at most one on the unit interval. -/
+/-- The centered coordinate has absolute value at most one on the unit interval.  Given [the stated inputs and conditions](hyp:hz), [the stated conclusion](goal) follows. -/
 -- @node: abs_centeredCoordinate_le_one
 lemma abs_centeredCoordinate_le_one {z : ℝ} (hz : z ∈ Set.Icc (0 : ℝ) 1) :
     |centeredCoordinate z| ≤ 1 := by
   rw [abs_le]
   constructor <;> simp only [centeredCoordinate] <;> linarith [hz.1, hz.2]
 
-/-- The normalized exponential intervention density is strictly positive. -/
+/-- The embedded sparse conditional stays uniformly between `9/10` and `11/10`
+on the latent cube.  Given [the stated inputs and conditions](hyp:hji,hv), [the stated conclusion](goal) follows. -/
+lemma embeddedSparseP_bounds {n : ℕ} {G : Causalean.DAG (Fin n)}
+    (s : SignVector n) {j i : Fin n} (hji : G.edge j i)
+    (l : Fin n) (v : LatentState n) (hv : v ∈ latentCube n) :
+    (9 / 10 : ℝ) ≤ embeddedSparseP s j i l v ∧
+      embeddedSparseP s j i l v ≤ (11 / 10 : ℝ) := by
+  by_cases hli : l = i
+  · subst l
+    have hj : v j ∈ Set.Icc (0 : ℝ) 1 := hv j (Set.mem_univ j)
+    have hi : v i ∈ Set.Icc (0 : ℝ) 1 := hv i (Set.mem_univ i)
+    have hbj := abs_centeredCoordinate_le_one
+      (reflectedCoordinate_mem_unitInterval s j hj)
+    have hbi := abs_centeredCoordinate_le_one
+      (reflectedCoordinate_mem_unitInterval s i hi)
+    rw [abs_le] at hbj hbi
+    simp only [embeddedSparseP, if_true]
+    constructor <;> nlinarith
+  · simp [embeddedSparseP, hli]
+    norm_num
+
+/-- Every embedded sparse observational conditional is normalized in its own coordinate.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
+lemma embeddedSparseP_normalized {n : ℕ} {G : Causalean.DAG (Fin n)}
+    (s : SignVector n) {j i : Fin n} (hji : G.edge j i)
+    (l : Fin n) (v : LatentState n) :
+    ∫ z in Set.Icc (0 : ℝ) 1, embeddedSparseP s j i l (Function.update v l z) = 1 := by
+  by_cases hli : l = i
+  · subst l
+    have hji_ne : j ≠ i := by
+      intro h
+      subst j
+      exact G.irrefl i hji
+    simp only [embeddedSparseP, if_true, Function.update_self]
+    simp only [Function.update, dif_neg hji_ne]
+    rw [integral_add]
+    · simp only [integral_const, Measure.restrict_apply_univ,
+        Measure.real, measureReal_def, Real.volume_Icc, sub_zero, ENNReal.toReal_one,
+        one_smul]
+      rw [show (∫ a in Set.Icc (0 : ℝ) 1,
+          (1 / 10 * centeredCoordinate (reflectedCoordinate s j (v j))) *
+            centeredCoordinate (reflectedCoordinate s i a)) =
+          (1 / 10 * centeredCoordinate (reflectedCoordinate s j (v j))) *
+            ∫ a in Set.Icc (0 : ℝ) 1,
+              centeredCoordinate (reflectedCoordinate s i a) by
+          rw [integral_const_mul]]
+      rw [integral_reflectedCoordinate, centeredCoordinate_integral]
+      ring
+      norm_num
+    · exact integrableOn_const (ne_of_lt measure_Icc_lt_top)
+    · have hc : Continuous (fun z : ℝ =>
+          1 / 10 * centeredCoordinate (reflectedCoordinate s j (v j)) *
+            centeredCoordinate (reflectedCoordinate s i z)) := by
+          rcases s.signed i with hs | hs
+          · simp only [centeredCoordinate, reflectedCoordinate, reflect, hs,
+              if_neg (by norm_num : (-1 : ℝ) ≠ 1)]
+            fun_prop
+          · simp only [centeredCoordinate, reflectedCoordinate, reflect, hs, if_true]
+            fun_prop
+      exact hc.integrableOn_Icc
+  · simp [embeddedSparseP, hli]
+
+/-- The edge-specific sparse endpoint is positive, normalized, and smooth on every
+finite DAG, including DAGs with additional unused parents and edges.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
+lemma embeddedSparseWitness_positive_normalized_smooth
+    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {j i : Fin n} (hji : G.edge j i) :
+    PositiveNormalizedSmoothMechanisms G (embeddedSparseWitness s hji) := by
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro l v hv
+    exact lt_of_lt_of_le (by norm_num : (0 : ℝ) < 9 / 10)
+      (embeddedSparseP_bounds s hji l v hv).1
+  · intro l z hz
+    change 0 < exponentialInterventionDensity (reflectedCoordinate s l z)
+    unfold exponentialInterventionDensity
+    have hden : 0 < Real.exp 4 - 1 := by
+      have := Real.one_lt_exp_iff.mpr (by norm_num : (0 : ℝ) < 4)
+      linarith
+    positivity
+  · intro l
+    change ContDiffOn ℝ 3 (embeddedSparseP s j i l) (latentCube n)
+    by_cases hli : l = i
+    · subst l
+      rw [show embeddedSparseP s j i i = fun v : LatentState n =>
+          1 + (1 / 10 : ℝ) * centeredCoordinate (reflectedCoordinate s j (v j)) *
+            centeredCoordinate (reflectedCoordinate s i (v i)) by
+        funext v
+        simp [embeddedSparseP]]
+      rcases s.signed j with hj | hj <;> rcases s.signed i with hi | hi <;>
+        simp [reflectedCoordinate, reflect, hj, hi, centeredCoordinate,
+          show (-1 : ℝ) ≠ 1 by norm_num] <;> fun_prop
+    · rw [show embeddedSparseP s j i l = fun _ => (1 : ℝ) by
+        funext v
+        simp [embeddedSparseP, hli]]
+      fun_prop
+  · intro l
+    change ContDiffOn ℝ 3 (fun z : ℝ =>
+      exponentialInterventionDensity (reflectedCoordinate s l z)) (Set.Icc 0 1)
+    unfold exponentialInterventionDensity
+    rcases s.signed l with hl | hl
+    · simp [reflectedCoordinate, reflect, hl, show (-1 : ℝ) ≠ 1 by norm_num]
+      fun_prop
+    · simp [reflectedCoordinate, reflect, hl]
+      fun_prop
+  · intro l v hv
+    exact embeddedSparseP_normalized s hji l v
+  · intro l
+    change ∫ z in Set.Icc (0 : ℝ) 1,
+      exponentialInterventionDensity (reflectedCoordinate s l z) = 1
+    rw [integral_reflectedCoordinate]
+    exact exponentialInterventionDensity_integral
+
+/-- The normalized exponential intervention density is strictly positive.  [the stated conclusion](goal) follows. -/
 -- @node: exponentialInterventionDensity_pos
 lemma exponentialInterventionDensity_pos (z : ℝ) :
     0 < exponentialInterventionDensity z := by
@@ -391,7 +515,28 @@ lemma exponentialInterventionDensity_pos (z : ℝ) :
     linarith
   positivity
 
-/-- Every sparse observational mechanism is strictly positive on the latent cube. -/
+/-- A rational lower bound on the exponential normalizing constant used by the
+quantitative sparse certificate.  [the stated conclusion](goal) follows. -/
+lemma thirteen_lt_exp_four : (13 : ℝ) < Real.exp 4 := by
+  have h := Real.sum_le_exp_of_nonneg (x := (4 : ℝ)) (by norm_num) 4
+  norm_num [Finset.sum_range_succ] at h ⊢
+  linarith
+
+/-- On the unit interval the intervention density is strictly below `13/3`.  Given [the stated inputs and conditions](hyp:hz), [the stated conclusion](goal) follows. -/
+lemma exponentialInterventionDensity_lt_thirteen_div_three {z : ℝ}
+    (hz : z ∈ Set.Icc (0 : ℝ) 1) :
+    exponentialInterventionDensity z < (13 / 3 : ℝ) := by
+  have hden : 0 < Real.exp 4 - 1 := by linarith [thirteen_lt_exp_four]
+  have he : Real.exp (4 * z) ≤ Real.exp 4 := by
+    exact Real.exp_le_exp.mpr (by nlinarith [hz.2])
+  unfold exponentialInterventionDensity
+  calc
+    4 * Real.exp (4 * z) / (Real.exp 4 - 1) ≤
+        4 * Real.exp 4 / (Real.exp 4 - 1) :=
+      div_le_div_of_nonneg_right (by nlinarith) hden.le
+    _ < 13 / 3 := (div_lt_iff₀ hden).2 (by nlinarith [thirteen_lt_exp_four])
+
+/-- Every sparse observational mechanism is strictly positive on the latent cube.  Given [the stated inputs and conditions](hyp:hv), [the stated conclusion](goal) follows. -/
 -- @node: sparseP_pos
 lemma sparseP_pos (s : SignVector 3) (i : Fin 3) (v : LatentState 3)
     (hv : v ∈ latentCube 3) : 0 < sparseP s i v := by
@@ -411,7 +556,7 @@ lemma sparseP_pos (s : SignVector 3) (i : Fin 3) (v : LatentState 3)
     nlinarith
   · simp [sparseP, hi]
 
-/-- The sparse witness is positive, normalized, and `C³` on every mechanism domain. -/
+/-- The sparse witness is positive, normalized, and `C³` on every mechanism domain.  [the stated conclusion](goal) follows. -/
 -- @node: sparseWitness_positive_normalized_smooth
 lemma sparseWitness_positive_normalized_smooth (s : SignVector 3) :
     PositiveNormalizedSmoothMechanisms threeNodeDAG (sparseWitness s) := by
@@ -449,7 +594,7 @@ lemma sparseWitness_positive_normalized_smooth (s : SignVector 3) :
     exact sparseQ_normalized s i
 
 -- @node: cancellationP_pos
-/-- Every cancellation observational mechanism is strictly positive on the latent cube. -/
+/-- Every cancellation observational mechanism is strictly positive on the latent cube.  Given [the stated inputs and conditions](hyp:hv), [the stated conclusion](goal) follows. -/
 lemma cancellationP_pos (s : SignVector 3) (i : Fin 3) (v : LatentState 3)
     (hv : v ∈ latentCube 3) : 0 < cancellationP s i v := by
   by_cases hi : i = 1
@@ -466,7 +611,7 @@ lemma cancellationP_pos (s : SignVector 3) (i : Fin 3) (v : LatentState 3)
   · simp [cancellationP, hi]
 
 -- @node: cancellationWitness_positive_normalized_smooth
-/-- The cancellation witness is positive, normalized, and `C³` on every mechanism domain. -/
+/-- The cancellation witness is positive, normalized, and `C³` on every mechanism domain.  [the stated conclusion](goal) follows. -/
 lemma cancellationWitness_positive_normalized_smooth (s : SignVector 3) :
     PositiveNormalizedSmoothMechanisms threeNodeDAG (cancellationWitness s) := by
   refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
@@ -503,7 +648,7 @@ lemma cancellationWitness_positive_normalized_smooth (s : SignVector 3) :
     exact sparseQ_normalized s i
 
 -- @node: sparseWitness_contDiff_all
-/-- Every sparse-witness mechanism component is smooth to every finite order. -/
+/-- Every sparse-witness mechanism component is smooth to every finite order.  [the stated conclusion](goal) follows. -/
 lemma sparseWitness_contDiff_all (s : SignVector 3) :
     (∀ k i, ContDiffOn ℝ k ((sparseWitness s).p i) (latentCube 3)) ∧
     ∀ k i, ContDiffOn ℝ k ((sparseWitness s).q i) (Set.Icc (0 : ℝ) 1) := by
@@ -533,7 +678,7 @@ lemma sparseWitness_contDiff_all (s : SignVector 3) :
       fun_prop
 
 -- @node: cancellationWitness_contDiff_all
-/-- Every cancellation-witness mechanism component is smooth to every finite order. -/
+/-- Every cancellation-witness mechanism component is smooth to every finite order.  [the stated conclusion](goal) follows. -/
 lemma cancellationWitness_contDiff_all (s : SignVector 3) :
     (∀ k i, ContDiffOn ℝ k ((cancellationWitness s).p i) (latentCube 3)) ∧
     ∀ k i, ContDiffOn ℝ k ((cancellationWitness s).q i) (Set.Icc (0 : ℝ) 1) := by

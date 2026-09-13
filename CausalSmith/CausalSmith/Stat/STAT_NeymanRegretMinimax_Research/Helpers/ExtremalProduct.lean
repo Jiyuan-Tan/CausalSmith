@@ -27,8 +27,8 @@ lemma armTangentStrength_eq_l2ResidualQuadratic_of_finite_nonconstant
     (nu : Measure (ℝ × ℝ)) (a : Fin 2)
     (hprob : IsProbabilityMeasure (armMarginal nu a))
     (hfin : Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.FiniteMoment4 (armMarginal nu a))
-    (hnd : Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment (armMarginal nu a) 1 ^ 2
-        < Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment (armMarginal nu a) 2) :
+    (hnd : Causalean.Stat.MomentProblems.rawMoment (armMarginal nu a) 1 ^ 2
+        < Causalean.Stat.MomentProblems.rawMoment (armMarginal nu a) 2) :
     armTangentStrength nu a =
       Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.l2ResidualQuadratic (armMarginal nu a) := by
   let μ := armMarginal nu a
@@ -102,7 +102,7 @@ lemma extremalProduct_balanced_mtan_positive_complexity (v : ℝ) (hv0 : 0 < v)
   have hmom2_int : ∫ y, y ^ 2 ∂μ = v ^ 2 := by
     have h := Causalean.Stat.MomentProblems.BoundedOutcomeEnvelope.extremalMeasure_moment2
       v hv0 hv1
-    simpa [μ, Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment] using h
+    simpa [μ, Causalean.Stat.MomentProblems.rawMoment] using h
   have hroot0 : rootSecondMoment nu 0 = v := by
     rw [rootSecondMoment, hmargin0, hmom2_int, Real.sqrt_sq_eq_abs, abs_of_pos hv0]
   have hroot1 : rootSecondMoment nu 1 = v := by
@@ -113,8 +113,8 @@ lemma extremalProduct_balanced_mtan_positive_complexity (v : ℝ) (hv0 : 0 < v)
       (Causalean.Stat.MomentProblems.BoundedOutcomeEnvelope.extremalMeasure_admissible
         v hv0 hv1)
   have hndμ :
-      Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment μ 1 ^ 2
-        < Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment μ 2 := by
+      Causalean.Stat.MomentProblems.rawMoment μ 1 ^ 2
+        < Causalean.Stat.MomentProblems.rawMoment μ 2 := by
     have hm1 := Causalean.Stat.MomentProblems.BoundedOutcomeEnvelope.extremalMeasure_moment1
       v hv0 hv1
     have hm2 := Causalean.Stat.MomentProblems.BoundedOutcomeEnvelope.extremalMeasure_moment2
@@ -124,7 +124,7 @@ lemma extremalProduct_balanced_mtan_positive_complexity (v : ℝ) (hv0 : 0 < v)
     have hvSqPos : 0 < v ^ 2 := by positivity
     have hu0 : 0 < Causalean.Stat.MomentProblems.BoundedOutcomeEnvelope.maximizingRoot v :=
       lt_trans hvSqPos hmem.1
-    dsimp [μ]
+    dsimp only [μ]
     rw [hm1, hm2]
     nlinarith [hmem.2, hu0, hv0]
   have htangent0 : 0 < armTangentStrength nu 0 := by

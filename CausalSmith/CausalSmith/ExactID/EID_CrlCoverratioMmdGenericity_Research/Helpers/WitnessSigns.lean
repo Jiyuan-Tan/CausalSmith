@@ -12,7 +12,7 @@ noncomputable section
 namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 
 -- @node: exponentialInterventionDensity_hasDerivAt
-/-- The normalized exponential intervention density has logarithmic slope four. -/
+/-- The normalized exponential intervention density has logarithmic slope four.  [the stated conclusion](goal) follows. -/
 lemma exponentialInterventionDensity_hasDerivAt (x : ℝ) :
     HasDerivAt exponentialInterventionDensity (4 * exponentialInterventionDensity x) x := by
   have hexp : HasDerivAt (fun y : ℝ => Real.exp (4 * y))
@@ -24,7 +24,7 @@ lemma exponentialInterventionDensity_hasDerivAt (x : ℝ) :
     first | rfl | ring
 
 -- @node: exponentialLogRatio_hasDerivAt
-/-- The unreflected child log ratio has slope `4 - K / (5p)`. -/
+/-- The unreflected child log ratio has slope `4 - K / (5p)`.  Given [the stated inputs and conditions](hyp:hden), [the stated conclusion](goal) follows. -/
 lemma exponentialLogRatio_hasDerivAt (K x : ℝ)
     (hden : 1 + (1 / 10 : ℝ) * K * centeredCoordinate x ≠ 0) :
     HasDerivAt (fun z : ℝ => Real.log
@@ -53,7 +53,7 @@ lemma exponentialLogRatio_hasDerivAt (K x : ℝ)
   field_simp [hden', ne_of_gt hqpos]
 
 -- @node: reflectedExponentialLogRatio_hasDerivAt
-/-- Reflection reverses the child log-ratio derivative. -/
+/-- Reflection reverses the child log-ratio derivative.  Given [the stated inputs and conditions](hyp:hden), [the stated conclusion](goal) follows. -/
 lemma reflectedExponentialLogRatio_hasDerivAt (K x : ℝ)
     (hden : 1 + (1 / 10 : ℝ) * K * centeredCoordinate (1 - x) ≠ 0) :
     HasDerivAt (fun z : ℝ => Real.log
@@ -66,7 +66,7 @@ lemma reflectedExponentialLogRatio_hasDerivAt (K x : ℝ)
   convert hh using 1 <;> first | rfl | ring
 
 -- @node: sparseWitness_fixedOwnDerivativeSign
-/-- The reflected sparse witness has the prescribed strict own-coordinate derivative signs. -/
+/-- The reflected sparse witness has the prescribed strict own-coordinate derivative signs.  [the stated conclusion](goal) follows. -/
 lemma sparseWitness_fixedOwnDerivativeSign (s : SignVector 3) :
     FixedOwnDerivativeSign threeNodeDAG s (sparseWitness s) := by
   intro i v hv
@@ -203,7 +203,7 @@ lemma sparseWitness_fixedOwnDerivativeSign (s : SignVector 3) :
       norm_num
 
 -- @node: cancellationWitness_fixedOwnDerivativeSign
-/-- The reflected cancellation witness has the prescribed strict own-coordinate derivative signs. -/
+/-- The reflected cancellation witness has the prescribed strict own-coordinate derivative signs.  [the stated conclusion](goal) follows. -/
 lemma cancellationWitness_fixedOwnDerivativeSign (s : SignVector 3) :
     FixedOwnDerivativeSign threeNodeDAG s (cancellationWitness s) := by
   intro i v hv
@@ -337,7 +337,7 @@ lemma cancellationWitness_fixedOwnDerivativeSign (s : SignVector 3) :
 
 -- @node: explicitWitness_regularities
 /-- Both explicit witnesses are positive, normalized, smooth to every finite order, and obey
-their prescribed own-coordinate derivative signs. -/
+their prescribed own-coordinate derivative signs.  [the stated conclusion](goal) follows. -/
 lemma explicitWitness_regularities (s : SignVector 3) :
     PositiveNormalizedSmoothMechanisms threeNodeDAG (sparseWitness s) ∧
     FixedOwnDerivativeSign threeNodeDAG s (sparseWitness s) ∧

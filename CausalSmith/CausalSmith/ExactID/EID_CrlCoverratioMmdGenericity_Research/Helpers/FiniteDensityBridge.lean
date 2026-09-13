@@ -1,5 +1,7 @@
 import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Kernel
-import CausalSmith.Substrate.UnitCubeFactorizationRnTransport.Main
+import Causalean.Graph.FiniteDensity.Cube
+import Causalean.Graph.FiniteDensity.OrderedLocalMarkov.Main
+import Causalean.Mathlib.MeasureTheory.SupportRnDerivTransport
 
 /-!
 # Finite-density bridge for observed ratio laws
@@ -10,7 +12,8 @@ general finite-DAG nonancestor marginal theorem with the paper's observed laws.
 
 open MeasureTheory
 open scoped ENNReal
-open CausalSmith.Substrate.UnitCubeFactorizationRnTransport
+open Causalean.Graph.FiniteDensity
+open Causalean.Mathlib.MeasureTheory
 
 noncomputable section
 
@@ -133,7 +136,7 @@ def mechanismRatioNumerator
   (mechanismInterventionDensity W hpos e).density
 
 /-- On [the latent unit cube](hyp:hv), the [real value of the clamped factor ratio](goal) is
-the paper's ordinary replacement-to-observational density ratio. -/
+the paper's ordinary replacement-to-observational density ratio.  With [the stated inputs and conditions](hyp:hpos), the documented conclusion follows. -/
 theorem mechanismTargetRatio_toReal_eq
     {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
@@ -174,8 +177,40 @@ theorem measurable_mechanismTargetRatio
       (measurable_pi_apply (W.targetPerm e))).div
     ((mechanismUnitCubeFactorization hpos).measurable_factor (W.targetPerm e))
 
+/-- Every positive single-target latent intervention law is absolutely continuous with respect
+to the corresponding observational latent law.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
+lemma interventionalLaw_absolutelyContinuous_observational
+    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ) (e : Fin n) :
+    interventionalLaw θ (W.targetPerm e) ≪ observationalLaw θ := by
+  letI : SigmaFinite Causalean.Graph.FiniteDensity.unitIntervalReference := by
+    unfold Causalean.Graph.FiniteDensity.unitIntervalReference
+    infer_instance
+  let B := mechanismUnitCubeFactorization hpos
+  let q := mechanismInterventionDensity W hpos e
+  let μ := Causalean.Graph.FiniteDensity.unitCubeReference (Fin n)
+  have hfactor_pos : ∀ i v, 0 < B.factor i v := by
+    intro i v
+    change 0 < ENNReal.ofReal (θ.p i (clampCube (Fin n) v))
+    rw [ENNReal.ofReal_pos]
+    exact hpos.1 i _ (by
+      simpa only [latentCube, Causalean.Graph.FiniteDensity.unitCube] using
+        clampCube_mem (Fin n) v)
+  have hμ_obs : μ ≪ B.observationalMeasure := by
+    rw [Causalean.Graph.FiniteDensity.Factorization.observationalMeasure]
+    apply withDensity_absolutelyContinuous' B.measurable_observationalDensity.aemeasurable
+    filter_upwards with v
+    unfold Causalean.Graph.FiniteDensity.Factorization.observationalDensity
+      Causalean.Graph.FiniteDensity.Factorization.partialDensity
+    exact Finset.prod_ne_zero_iff.mpr (fun i _ => (hfactor_pos i v).ne')
+  have hint_μ : B.interventionMeasure (W.targetPerm e) q ≪ μ := by
+    rw [Causalean.Graph.FiniteDensity.Factorization.interventionMeasure]
+    exact withDensity_absolutelyContinuous _ _
+  simpa only [B, q, mechanismUnitCubeFactorization_interventionMeasure W hpos e,
+    mechanismUnitCubeFactorization_observationalMeasure hpos] using hint_μ.trans hμ_obs
+
 /-- Under [positive latent densities](hyp:hpos), [support-local shared mixing](hyp:hmix), and
-[the supplied pushforward laws](hyp:hone), every observed single-target intervention law is
+[the supplied pushforward laws](hyp:hone), [every observed single-target intervention law is
 absolutely continuous with respect to the observed observational law](goal). -/
 theorem observedInterventional_absolutelyContinuous_observational
     {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
@@ -384,7 +419,7 @@ def finiteDensityObservedWorldBridge_of_assumptions
       _ = _ := by rfl
 
 /-- The finite-density bridge turns nonancestry into equality of the two canonical
-real-valued ratio laws. -/
+real-valued ratio laws.  Given [the stated inputs and conditions](hyp:hji,hna), [the stated conclusion](goal) follows. -/
 -- @node: FiniteDensityObservedWorldBridge.ratioLaw_eq_of_nonancestor
 lemma FiniteDensityObservedWorldBridge.ratioLaw_eq_of_nonancestor
     {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
@@ -420,5 +455,35 @@ lemma FiniteDensityObservedWorldBridge.ratioLaw_eq_of_nonancestor
     _ = _ := by
       simpa [r] using Measure.map_map ENNReal.measurable_toReal
         (B.ratio_measurable i)
+
+-- @node: mechanism_orderedLocalMarkov
+/-- The observational law of a positive normalized mechanism satisfies the ordered local
+Markov property for every topological ranking of its latent DAG.  Given [the stated inputs and conditions](hyp:hpos,hA,hpa), [the stated conclusion](goal) follows. -/
+lemma mechanism_orderedLocalMarkov
+    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    (hpos : PositiveNormalizedSmoothMechanisms G θ)
+    (τ : Causalean.Graph.FiniteDensity.TopologicalRanking G)
+    (i : Fin n) (A : Finset (Fin n))
+    (hA : A ⊆ Causalean.Graph.FiniteDensity.predecessors τ i)
+    (hpa : G.parents i ⊆ A) :
+    let B := mechanismUnitCubeFactorization hpos
+    ∃ hfinite : IsFiniteMeasure B.observationalMeasure,
+      letI := hfinite
+      ProbabilityTheory.CondIndepFun
+        (MeasurableSpace.comap
+          (Causalean.Mathlib.MeasureTheory.FiniteCoordinate.coordinateProjection
+            (X := fun _ : Fin n ↦ ℝ) A) inferInstance)
+        (Causalean.Graph.FiniteDensity.coordinateConditioning_comap_le
+          (X := fun _ : Fin n ↦ ℝ) A)
+        (fun v : LatentState n ↦ v i)
+        (Causalean.Mathlib.MeasureTheory.FiniteCoordinate.coordinateProjection
+          (X := fun _ : Fin n ↦ ℝ)
+          (Causalean.Graph.FiniteDensity.predecessors τ i \ A))
+        B.observationalMeasure := by
+  let B := mechanismUnitCubeFactorization hpos
+  have hfinite : IsFiniteMeasure B.observationalMeasure :=
+    Causalean.Graph.FiniteDensity.UnitCubeFactorization.instIsFiniteMeasureUnitCubeObservational B
+  refine ⟨hfinite, ?_⟩
+  exact B.orderedLocalMarkov_unitCubeReference τ i A hA hpa
 
 end CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity

@@ -62,8 +62,8 @@ private lemma armMarginal_finiteMoment4_of_bounded
 private lemma armTangentStrength_eq_l2ResidualQuadratic_of_variance_pos
     (nu : Measure (ℝ × ℝ)) [IsProbabilityMeasure nu] (hbounded : BoundedOutcomes nu)
     (a : Fin 2)
-    (hnd : Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment (armMarginal nu a) 1 ^ 2
-      < Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment (armMarginal nu a) 2) :
+    (hnd : Causalean.Stat.MomentProblems.rawMoment (armMarginal nu a) 1 ^ 2
+      < Causalean.Stat.MomentProblems.rawMoment (armMarginal nu a) 2) :
     armTangentStrength nu a =
       Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.l2ResidualQuadratic (armMarginal nu a) := by
   let μ := armMarginal nu a
@@ -219,16 +219,16 @@ private lemma linearTiltPath_arm_moment_continuousAt
     (p : ℝ → Measure (ℝ × ℝ)) (hlin : IsLinearTiltPath nu u p)
     (a : Fin 2) (k : ℕ) :
     ContinuousAt (fun h : ℝ =>
-      Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment (armMarginal (p h) a) k) 0 := by
+      Causalean.Stat.MomentProblems.rawMoment (armMarginal (p h) a) k) 0 := by
   rcases hlin with ⟨s, η, hηpos, hs, hmargin⟩
   have hev :
       (fun h : ℝ =>
-          Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment (armMarginal (p h) a) k)
+          Causalean.Stat.MomentProblems.rawMoment (armMarginal (p h) a) k)
         =ᶠ[𝓝 (0 : ℝ)]
           (fun h : ℝ =>
             ∫ y, y ^ k ∂(armMarginal nu a)
               + h * ∫ y, y ^ k * s a y ∂(armMarginal nu a)) := by
-    simpa [Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment] using
+    simpa [Causalean.Stat.MomentProblems.rawMoment] using
       (linearTiltPath_arm_moment_eventually_eq_affine nu hnu u p
         hηpos hs hmargin a k)
   have haff :
@@ -255,13 +255,13 @@ private lemma linearTiltPath_l2ResidualQuadratic_continuousAt
         Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.l2ResidualQuadratic
           (armMarginal (p h) a)) 0 := by
   let m1 : ℝ → ℝ := fun h =>
-    Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment (armMarginal (p h) a) 1
+    Causalean.Stat.MomentProblems.rawMoment (armMarginal (p h) a) 1
   let m2 : ℝ → ℝ := fun h =>
-    Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment (armMarginal (p h) a) 2
+    Causalean.Stat.MomentProblems.rawMoment (armMarginal (p h) a) 2
   let m3 : ℝ → ℝ := fun h =>
-    Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment (armMarginal (p h) a) 3
+    Causalean.Stat.MomentProblems.rawMoment (armMarginal (p h) a) 3
   let m4 : ℝ → ℝ := fun h =>
-    Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment (armMarginal (p h) a) 4
+    Causalean.Stat.MomentProblems.rawMoment (armMarginal (p h) a) 4
   have hm1 : ContinuousAt m1 0 :=
     linearTiltPath_arm_moment_continuousAt nu hnu u p hlin a 1
   have hm2 : ContinuousAt m2 0 :=
@@ -298,10 +298,10 @@ private lemma linearTiltPath_rootSecondMoment_continuousAt
   have hm2 :
       ContinuousAt
         (fun h : ℝ =>
-          Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment (armMarginal (p h) a) 2) 0 :=
+          Causalean.Stat.MomentProblems.rawMoment (armMarginal (p h) a) 2) 0 :=
     linearTiltPath_arm_moment_continuousAt nu hnu u p hlin a 2
   simpa [rootSecondMoment, Function.comp_def,
-    Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment] using
+    Causalean.Stat.MomentProblems.rawMoment] using
     Real.continuous_sqrt.continuousAt.comp hm2
 
 private lemma linearTiltPath_armTangentStrength_continuousAt
@@ -311,9 +311,9 @@ private lemma linearTiltPath_armTangentStrength_continuousAt
     ContinuousAt (fun h : ℝ => armTangentStrength (p h) a) 0 := by
   let μh : ℝ → Measure ℝ := fun h => armMarginal (p h) a
   let m1 : ℝ → ℝ := fun h =>
-    Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment (μh h) 1
+    Causalean.Stat.MomentProblems.rawMoment (μh h) 1
   let m2 : ℝ → ℝ := fun h =>
-    Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment (μh h) 2
+    Causalean.Stat.MomentProblems.rawMoment (μh h) 2
   have hm1 : ContinuousAt m1 0 :=
     linearTiltPath_arm_moment_continuousAt nu hnu u p hlin a 1
   have hm2 : ContinuousAt m2 0 :=

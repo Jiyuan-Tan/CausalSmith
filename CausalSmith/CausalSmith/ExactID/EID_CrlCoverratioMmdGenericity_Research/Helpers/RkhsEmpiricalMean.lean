@@ -22,7 +22,7 @@ noncomputable section
 
 namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 
-/-- A training-measurable localization of the random-parameter product-law bound. -/
+/-- A training-measurable localization of the random-parameter product-law bound.  Given [the stated inputs and conditions](hyp:hY,hY_law,hmA,hindep,hBad,hsec,hB), [the stated conclusion](goal) follows. -/
 -- @node: randomParam_event_inter_le
 lemma randomParam_event_inter_le
     {Ω β : Type*} [mΩ : MeasurableSpace Ω] [mβ : MeasurableSpace β]
@@ -85,7 +85,7 @@ private lemma unitNormFeatureMap_dist_sq
   ring_nf
   simp
 
-/-- Every realization of the Gaussian kernel is `sqrt 2`-Lipschitz. -/
+/-- Every realization of the Gaussian kernel is `sqrt 2`-Lipschitz.  [the stated conclusion](goal) follows. -/
 -- @node: unitNormFeatureMap_dist_le
 lemma unitNormFeatureMap_dist_le
     {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H]
@@ -139,7 +139,7 @@ private lemma unitNormFeatureMap_stronglyMeasurable
     StronglyMeasurable U.Φ :=
   (unitNormFeatureMap_continuous U).stronglyMeasurable
 
-/-- Gaussian mean embeddings are controlled by `sqrt 2` times the input `L¹` distance. -/
+/-- Gaussian mean embeddings are controlled by `sqrt 2` times the input `L¹` distance.  Given [the stated inputs and conditions](hyp:hf,hg,hfg), [the stated conclusion](goal) follows. -/
 -- @node: meanEmbedding_map_sub_le_l1
 lemma meanEmbedding_map_sub_le_l1
     {X H : Type*} [MeasurableSpace X]
@@ -185,7 +185,7 @@ def fittedMeanEmbedding
 set_option maxHeartbeats 2000000 in
 -- @node: lem:bounded-rkhs-empirical-mean
 /-- Conditional on training, all environment/ratio empirical feature means obey the stated
-unit-norm Hilbert-space deviation bound with probability at least `1-α`. -/
+unit-norm Hilbert-space deviation bound with probability at least `1-α`.  Given [the stated inputs and conditions](hyp:hSampling,hn,hN,hα), [the stated conclusion](goal) follows. -/
 lemma bounded_rkhs_empirical_mean
     {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
     {W : ObservedWorld G θ} {Ω H : Type*} [mΩ : MeasurableSpace Ω]

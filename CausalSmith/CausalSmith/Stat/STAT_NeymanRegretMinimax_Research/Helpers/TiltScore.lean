@@ -68,8 +68,8 @@ lemma boundedArmScore_moments (nu : Measure (ℝ × ℝ)) (hnu : MTan nu)
   have hfin : Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.FiniteMoment4 μ :=
     armMarginal_finiteMoment4 nu hnu.toMInt a
   have hnd :
-      Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment μ 1 ^ 2
-        < Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.moment μ 2 := by
+      Causalean.Stat.MomentProblems.rawMoment μ 1 ^ 2
+        < Causalean.Stat.MomentProblems.rawMoment μ 2 := by
     simpa [μ] using arm_variance_pos_of_tangent nu hnu a
   have hr_eq :
       armTangentStrength nu a
