@@ -1,0 +1,1538 @@
+{
+  "qid": "stat_pomdp_latent_overlap_minimax",
+  "specialization": "v1",
+  "cluster": "stat",
+  "symbols": [
+    {
+      "name": "\\(T\\)",
+      "type": "trajectory length",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Number of observed decision epochs.",
+      "role": "sample size"
+    },
+    {
+      "name": "\\(t_0\\)",
+      "type": "mixing-time bound",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Fixed contraction-scale parameter.",
+      "role": "regime parameter"
+    },
+    {
+      "name": "\\(\\zeta\\)",
+      "type": "log policy-overlap bound",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Fixed logarithmic bound on one-step target-to-behavior action ratios.",
+      "role": "regime parameter"
+    },
+    {
+      "name": "\\(C\\)",
+      "type": "latent stationary-overlap radius",
+      "space": "\\([1,\\infty)\\)",
+      "def": "Fixed bound on the target-to-behavior stationary density ratio on the joint state.",
+      "role": "regime parameter"
+    },
+    {
+      "name": "\\(\\alpha\\)",
+      "type": "one-step contraction factor",
+      "space": "\\((0,1)\\)",
+      "def": "\\(\\alpha:=\\exp(-1/t_0)\\).",
+      "role": "derived parameter",
+      "refs": [
+        "\\(t_0\\)"
+      ]
+    },
+    {
+      "name": "\\(L\\)",
+      "type": "one-step policy-overlap factor",
+      "space": "\\((1,\\infty)\\)",
+      "def": "\\(L:=\\exp(\\zeta)\\).",
+      "role": "derived parameter",
+      "refs": [
+        "\\(\\zeta\\)"
+      ]
+    },
+    {
+      "name": "\\(\\mathcal X\\)",
+      "type": "observed-state alphabet",
+      "space": "finite sets of unrestricted cardinality",
+      "def": "Finite alphabet revealed to the estimator.",
+      "role": "state space"
+    },
+    {
+      "name": "\\(\\mathcal H\\)",
+      "type": "latent-state alphabet",
+      "space": "finite sets of unrestricted cardinality",
+      "def": "Finite alphabet that is neither observed nor revealed to the estimator.",
+      "role": "latent state space"
+    },
+    {
+      "name": "\\(\\mathcal S\\)",
+      "type": "joint-state alphabet",
+      "space": "finite sets",
+      "def": "\\(\\mathcal S:=\\mathcal X\\times\\mathcal H\\).",
+      "role": "state space",
+      "refs": [
+        "\\(\\mathcal X\\)",
+        "\\(\\mathcal H\\)"
+      ]
+    },
+    {
+      "name": "\\(\\mathcal A\\)",
+      "type": "action alphabet",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "Fixed binary action alphabet.",
+      "role": "action space"
+    },
+    {
+      "name": "\\(X_t\\)",
+      "type": "observed state",
+      "space": "\\(\\mathcal X\\)",
+      "def": "Observed state at epoch \\(t\\).",
+      "role": "data",
+      "refs": [
+        "\\(\\mathcal X\\)"
+      ]
+    },
+    {
+      "name": "\\(H_t\\)",
+      "type": "latent state",
+      "space": "\\(\\mathcal H\\)",
+      "def": "Unobserved state at epoch \\(t\\).",
+      "role": "latent variable",
+      "refs": [
+        "\\(\\mathcal H\\)"
+      ]
+    },
+    {
+      "name": "\\(S_t\\)",
+      "type": "joint state",
+      "space": "\\(\\mathcal S\\)",
+      "def": "\\(S_t:=(X_t,H_t)\\).",
+      "role": "latent Markov state",
+      "refs": [
+        "\\(X_t\\)",
+        "\\(H_t\\)",
+        "\\(\\mathcal S\\)"
+      ]
+    },
+    {
+      "name": "\\(A_t\\)",
+      "type": "action",
+      "space": "\\(\\mathcal A\\)",
+      "def": "Observed action at epoch \\(t\\).",
+      "role": "data",
+      "refs": [
+        "\\(\\mathcal A\\)"
+      ]
+    },
+    {
+      "name": "\\(Y_t\\)",
+      "type": "reward",
+      "space": "\\([-1,1]\\)",
+      "def": "Observed bounded reward at epoch \\(t\\).",
+      "role": "data"
+    },
+    {
+      "name": "\\(K\\)",
+      "type": "time-homogeneous joint reward-transition kernel",
+      "sig": "\\(K(dy,dx',dh'\\mid x,h,a)\\)",
+      "def": "Conditional law of \\((Y_t,X_{t+1},H_{t+1})\\) given \\((X_t,H_t,A_t)\\).",
+      "role": "causal kernel",
+      "refs": [
+        "\\(Y_t\\)",
+        "\\(X_t\\)",
+        "\\(H_t\\)",
+        "\\(A_t\\)"
+      ]
+    },
+    {
+      "name": "\\(b\\)",
+      "type": "known behavior policy",
+      "sig": "\\(b:\\mathcal X\\to\\Delta(\\mathcal A)\\)",
+      "def": "Memoryless logging policy supplied to the estimator.",
+      "role": "policy",
+      "refs": [
+        "\\(\\mathcal X\\)",
+        "\\(\\mathcal A\\)"
+      ]
+    },
+    {
+      "name": "\\(e\\)",
+      "type": "known target policy",
+      "sig": "\\(e:\\mathcal X\\to\\Delta(\\mathcal A)\\)",
+      "def": "Memoryless evaluation policy supplied to the estimator.",
+      "role": "policy",
+      "refs": [
+        "\\(\\mathcal X\\)",
+        "\\(\\mathcal A\\)"
+      ]
+    },
+    {
+      "name": "\\(P_p\\)",
+      "type": "policy-induced joint-state kernel",
+      "sig": "\\(P_p(s,B)=\\sum_{a\\in\\mathcal A}p(a\\mid x)K(\\mathbb R,B\\mid s,a)\\) for \\(p\\in\\{b,e\\}\\)",
+      "def": "Joint-state transition kernel under policy \\(p\\).",
+      "role": "Markov kernel",
+      "refs": [
+        "\\(\\mathcal S\\)",
+        "\\(\\mathcal A\\)",
+        "\\(K\\)",
+        "\\(b\\)",
+        "\\(e\\)"
+      ]
+    },
+    {
+      "name": "\\(d_p\\)",
+      "type": "stationary joint-state law",
+      "space": "\\(\\Delta(\\mathcal S)\\)",
+      "def": "Unique law satisfying \\(d_pP_p=d_p\\) for \\(p\\in\\{b,e\\}\\).",
+      "role": "stationary distribution",
+      "refs": [
+        "\\(P_p\\)",
+        "\\(\\mathcal S\\)"
+      ]
+    },
+    {
+      "name": "\\(g_e\\)",
+      "type": "target-policy reward regression",
+      "sig": "\\(g_e:\\mathcal S\\to[-1,1]\\)",
+      "def": "\\(g_e(s):=\\sum_{a\\in\\mathcal A}e(a\\mid x)E_K[Y_t\\mid S_t=s,A_t=a]\\).",
+      "role": "primitive functional",
+      "refs": [
+        "\\(\\mathcal S\\)",
+        "\\(\\mathcal A\\)",
+        "\\(e\\)",
+        "\\(K\\)",
+        "\\(Y_t\\)",
+        "\\(S_t\\)",
+        "\\(A_t\\)"
+      ]
+    },
+    {
+      "name": "\\(\\theta(K,e)\\)",
+      "type": "stationary target-policy mean reward",
+      "space": "\\([-1,1]\\)",
+      "def": "Causal target constructed in \\(\\mathrm{def{:}target\\text{-}value}\\).",
+      "role": "estimand",
+      "refs": [
+        "\\(K\\)",
+        "\\(e\\)"
+      ]
+    },
+    {
+      "name": "\\(\\mathsf O_T\\)",
+      "type": "observed trajectory",
+      "space": "\\((\\mathcal X\\times\\mathcal A\\times[-1,1])^T\\)",
+      "def": "\\(\\mathsf O_T:=((X_t,A_t,Y_t))_{t=1}^T\\).",
+      "role": "observed experiment",
+      "refs": [
+        "\\(T\\)",
+        "\\(\\mathcal X\\)",
+        "\\(\\mathcal A\\)",
+        "\\(X_t\\)",
+        "\\(A_t\\)",
+        "\\(Y_t\\)"
+      ]
+    },
+    {
+      "name": "\\(\\mathcal M_T(t_0,\\zeta,C)\\)",
+      "type": "latent-overlap POMDP experiment class",
+      "space": "classes of observed-trajectory laws",
+      "def": "Class constructed in \\(\\mathrm{def{:}model\\text{-}class}\\).",
+      "role": "model class",
+      "refs": [
+        "\\(T\\)",
+        "\\(t_0\\)",
+        "\\(\\zeta\\)",
+        "\\(C\\)"
+      ]
+    },
+    {
+      "name": "\\(\\rho_t\\)",
+      "type": "observable one-step policy ratio",
+      "space": "\\([0,L]\\)",
+      "def": "\\(\\rho_t:=e(A_t\\mid X_t)/b(A_t\\mid X_t)\\) on behavior-supported cells, with value zero on cells where both probabilities vanish.",
+      "role": "importance weight",
+      "refs": [
+        "\\(e\\)",
+        "\\(b\\)",
+        "\\(A_t\\)",
+        "\\(X_t\\)",
+        "\\(L\\)"
+      ]
+    },
+    {
+      "name": "\\(Z_t(k)\\)",
+      "type": "partial-history weighted reward",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(Z_t(k):=Y_t\\prod_{j=t-k}^{t}\\rho_j\\) for \\(0\\le k<T\\) and \\(t>k\\).",
+      "role": "score",
+      "refs": [
+        "\\(T\\)",
+        "\\(Y_t\\)",
+        "\\(\\rho_t\\)"
+      ]
+    },
+    {
+      "name": "\\(\\widehat\\theta_k\\)",
+      "type": "partial-history importance-weighted estimator",
+      "space": "\\([-1,1]\\)",
+      "def": "Estimator constructed in \\(\\mathrm{def{:}phiw\\text{-}estimator}\\).",
+      "role": "estimator",
+      "refs": [
+        "\\(Z_t(k)\\)"
+      ]
+    },
+    {
+      "name": "\\(k_T\\)",
+      "type": "history depth",
+      "space": "\\(\\{0,\\ldots,T-1\\}\\)",
+      "def": "Rate-balancing history depth constructed in \\(\\mathrm{def{:}history\\text{-}depth}\\).",
+      "role": "tuning parameter",
+      "refs": [
+        "\\(T\\)"
+      ]
+    },
+    {
+      "name": "\\(\\beta\\)",
+      "type": "hidden-state minimax exponent",
+      "space": "\\((0,1)\\)",
+      "def": "\\(\\beta:=2/(2+t_0\\zeta)\\).",
+      "role": "rate exponent",
+      "refs": [
+        "\\(t_0\\)",
+        "\\(\\zeta\\)"
+      ]
+    },
+    {
+      "name": "\\(R_T(t_0,\\zeta,C)\\)",
+      "type": "cardinality-uniform minimax mean-squared error",
+      "space": "\\([0,4]\\)",
+      "def": "Risk constructed in \\(\\mathrm{def{:}minimax\\text{-}risk}\\).",
+      "role": "risk",
+      "refs": [
+        "\\(T\\)",
+        "\\(t_0\\)",
+        "\\(\\zeta\\)",
+        "\\(C\\)"
+      ]
+    },
+    {
+      "name": "\\(c_\\star\\)",
+      "type": "lower comparison constant",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Lower risk constant allowed to depend only on \\(t_0,\\zeta,C\\).",
+      "role": "theorem constant",
+      "refs": [
+        "\\(t_0\\)",
+        "\\(\\zeta\\)",
+        "\\(C\\)"
+      ]
+    },
+    {
+      "name": "\\(c^\\star\\)",
+      "type": "upper comparison constant",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Upper risk constant allowed to depend only on \\(t_0,\\zeta,C\\).",
+      "role": "theorem constant",
+      "refs": [
+        "\\(t_0\\)",
+        "\\(\\zeta\\)",
+        "\\(C\\)"
+      ]
+    },
+    {
+      "name": "\\(T_\\star\\)",
+      "type": "asymptotic comparison threshold",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Threshold allowed to depend only on \\(t_0,\\zeta,C\\).",
+      "role": "theorem constant",
+      "refs": [
+        "\\(t_0\\)",
+        "\\(\\zeta\\)",
+        "\\(C\\)"
+      ]
+    },
+    {
+      "name": "\\(Q\\)",
+      "type": "hidden depth",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Depth parameter of the lower-bound experiment.",
+      "role": "lower-bound index"
+    },
+    {
+      "name": "\\(v\\)",
+      "type": "alternative index",
+      "space": "\\(\\{-1,+1\\}\\)",
+      "def": "Sign indexing the two lower-bound reward kernels.",
+      "role": "lower-bound parameter"
+    },
+    {
+      "name": "\\(\\varepsilon_C\\)",
+      "type": "reset-sign bias",
+      "space": "\\((0,1/2]\\)",
+      "def": "\\(\\varepsilon_C:=\\min\\{(C-1)/2,1/2\\}\\) when \\(C>1\\).",
+      "role": "lower-bound amplitude",
+      "refs": [
+        "\\(C\\)"
+      ]
+    },
+    {
+      "name": "\\(c_0\\)",
+      "type": "reward-emission amplitude",
+      "space": "\\((0,1/4)\\)",
+      "def": "\\(c_0:=(1-\\alpha)/4\\).",
+      "role": "lower-bound amplitude",
+      "refs": [
+        "\\(\\alpha\\)"
+      ]
+    },
+    {
+      "name": "\\(J_t\\)",
+      "type": "hidden depth state",
+      "space": "\\(\\{0,\\ldots,Q\\}\\)",
+      "def": "Depth coordinate in the signed-depth lower-bound family.",
+      "role": "latent variable",
+      "refs": [
+        "\\(Q\\)"
+      ]
+    },
+    {
+      "name": "\\(U_t\\)",
+      "type": "hidden sign state",
+      "space": "\\(\\{-1,+1\\}\\)",
+      "def": "Sign coordinate in the signed-depth lower-bound family.",
+      "role": "latent variable"
+    },
+    {
+      "name": "\\(w_j\\)",
+      "type": "stationary depth mass",
+      "space": "\\((0,1)\\)",
+      "def": "\\(w_j:=(1-\\alpha)\\alpha^j/(1-\\alpha^{Q+1})\\) for \\(j\\in\\{0,\\ldots,Q\\}\\).",
+      "role": "lower-bound stationary law",
+      "refs": [
+        "\\(\\alpha\\)",
+        "\\(Q\\)"
+      ]
+    },
+    {
+      "name": "\\(\\mathbb P_{Q,v}^{\\mathrm{obs},T}\\)",
+      "type": "observed-path law in the signed-depth family",
+      "space": "probability laws on \\(\\mathsf O_T\\)",
+      "def": "Observed law induced by depth \\(Q\\) and sign \\(v\\) in \\(\\mathrm{def{:}signed\\text{-}depth\\text{-}family}\\).",
+      "role": "lower-bound experiment",
+      "refs": [
+        "\\(Q\\)",
+        "\\(v\\)",
+        "\\(T\\)",
+        "\\(\\mathsf O_T\\)"
+      ]
+    },
+    {
+      "name": "\\(\\mathcal F_{t-1}^{\\mathrm{obs}}\\)",
+      "type": "observed-history sigma-field",
+      "def": "\\(\\mathcal F_{t-1}^{\\mathrm{obs}}:=\\sigma(A_1,Y_1,\\ldots,A_{t-1},Y_{t-1})\\).",
+      "role": "filtration",
+      "refs": [
+        "\\(A_t\\)",
+        "\\(Y_t\\)"
+      ]
+    },
+    {
+      "name": "\\(\\ell_t\\)",
+      "type": "observed prefix length",
+      "space": "\\(\\{0,\\ldots,Q\\}\\)",
+      "def": "\\(\\ell_t:=\\min\\{Q,t-1\\}\\).",
+      "role": "lower-bound index",
+      "refs": [
+        "\\(Q\\)"
+      ]
+    },
+    {
+      "name": "\\(q_t^v\\)",
+      "type": "predictive terminal posterior",
+      "space": "\\([0,1]\\)",
+      "def": "Posterior quantity constructed in \\(\\mathrm{def{:}filter\\text{-}quantities}\\).",
+      "role": "lower-bound filter",
+      "refs": [
+        "\\(v\\)"
+      ]
+    },
+    {
+      "name": "\\(a_t^{(Q)}\\)",
+      "type": "rare-action-history factor",
+      "space": "\\([0,1]\\)",
+      "def": "Action-history quantity constructed in \\(\\mathrm{def{:}filter\\text{-}quantities}\\).",
+      "role": "lower-bound filter",
+      "refs": [
+        "\\(Q\\)"
+      ]
+    },
+    {
+      "name": "\\(B_0\\)",
+      "type": "observed-divergence constant",
+      "space": "\\((0,\\infty)\\)",
+      "def": "A constant depending only on \\(t_0,\\zeta,C\\), and not on \\(Q,T\\) or alphabet sizes.",
+      "role": "lower-bound constant",
+      "refs": [
+        "\\(t_0\\)",
+        "\\(\\zeta\\)",
+        "\\(C\\)",
+        "\\(Q\\)",
+        "\\(T\\)"
+      ]
+    },
+    {
+      "name": "\\(K_0\\)",
+      "type": "uniform terminal-posterior constant",
+      "space": "\\((0,\\infty)\\)",
+      "def": "Constant in the bound \\(q_t^v\\le K_0\\alpha^Q\\), depending only on \\(t_0\\).",
+      "role": "lower-bound constant",
+      "refs": [
+        "\\(q_t^v\\)",
+        "\\(\\alpha\\)",
+        "\\(Q\\)",
+        "\\(t_0\\)"
+      ]
+    },
+    {
+      "name": "\\(\\delta_T\\)",
+      "type": "shrinking latent-overlap excess",
+      "space": "\\([0,\\infty)\\)",
+      "def": "Sequence defining the local radius \\(C_T=1+\\delta_T\\).",
+      "role": "open frontier parameter",
+      "refs": [
+        "\\(T\\)"
+      ]
+    },
+    {
+      "name": "\\(\\mathfrak H_{\\mathrm{loc}}\\)",
+      "type": "local-overlap research handle",
+      "def": "Handle constructed in \\(\\mathrm{def{:}local\\text{-}frontier\\text{-}handle}\\).",
+      "role": "open-question handle"
+    },
+    {
+      "name": "\\(\\mathcal I_{\\mathrm{grid}}\\)",
+      "type": "refreshed finite insulin-policy POMDP",
+      "space": "a \\(360\\)-state controlled Markov model",
+      "def": "Finite application construction in \\(\\mathrm{def{:}insulin\\text{-}grid}\\).",
+      "role": "application witness"
+    },
+    {
+      "name": "\\(\\Delta_{\\mathrm{imm}}\\)",
+      "type": "immediate-weighting bias in the application witness",
+      "space": "\\([-2,2]\\)",
+      "def": "Difference between the stationary expectation of \\(Y_t e(A_t\\mid X_t)/b(A_t\\mid X_t)\\) and \\(\\theta(K,e)\\) in \\(\\mathcal I_{\\mathrm{grid}}\\).",
+      "role": "application diagnostic",
+      "refs": [
+        "\\(Y_t\\)",
+        "\\(e\\)",
+        "\\(A_t\\)",
+        "\\(X_t\\)",
+        "\\(b\\)",
+        "\\(\\theta(K,e)\\)",
+        "\\(\\mathcal I_{\\mathrm{grid}}\\)"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:pomdp-kernel",
+      "kind": "causal-structural",
+      "condition": "\\(\\mathcal L(Y_t,X_{t+1},H_{t+1}\\mid X_{1:t},H_{1:t},A_{1:t},Y_{1:t-1})=K(\\cdot\\mid X_t,H_t,A_t),\\quad t=1,\\ldots,T\\).",
+      "free_symbols": [
+        "\\(T\\)",
+        "\\(Y_t\\)",
+        "\\(X_t\\)",
+        "\\(H_t\\)",
+        "\\(A_t\\)",
+        "\\(K\\)"
+      ],
+      "standard": {
+        "name": "time-homogeneous POMDP kernel, Model 3",
+        "cite": "HuWager2023"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:phiw-upper",
+        "lem:signed-depth-membership"
+      ]
+    },
+    {
+      "id": "ass:sequential-ignorability",
+      "kind": "causal-structural",
+      "condition": "\\(\\Pr(A_t=a\\mid X_{1:t},H_{1:t},A_{1:t-1},Y_{1:t-1})=b(a\\mid X_t),\\quad (a,t)\\in\\mathcal A\\times\\{1,\\ldots,T\\}\\).",
+      "free_symbols": [
+        "\\(T\\)",
+        "\\(A_t\\)",
+        "\\(X_t\\)",
+        "\\(H_t\\)",
+        "\\(Y_t\\)",
+        "\\(b\\)",
+        "\\(\\mathcal A\\)"
+      ],
+      "standard": {
+        "name": "sequential ignorability with observed-state randomization",
+        "cite": "HuWager2023"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:phiw-upper",
+        "lem:observed-path-kl"
+      ]
+    },
+    {
+      "id": "ass:stationary-start",
+      "kind": "sampling",
+      "condition": "\\(S_1\\sim d_b\\).",
+      "free_symbols": [
+        "\\(S_t\\)",
+        "\\(d_p\\)",
+        "\\(b\\)"
+      ],
+      "standard": {
+        "name": "behavior-stationary initialization",
+        "cite": "HuWager2023"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:phiw-upper",
+        "lem:observed-path-kl"
+      ]
+    },
+    {
+      "id": "ass:bounded-reward",
+      "kind": "support",
+      "condition": "\\(\\Pr(|Y_t|\\le1)=1,\\quad t=1,\\ldots,T\\).",
+      "free_symbols": [
+        "\\(T\\)",
+        "\\(Y_t\\)"
+      ],
+      "standard": {
+        "name": "uniformly bounded rewards",
+        "cite": "HuWager2023"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:phiw-upper",
+        "lem:signed-depth-membership"
+      ]
+    },
+    {
+      "id": "ass:policy-overlap",
+      "kind": "support",
+      "condition": "\\(e(a\\mid x)\\le Lb(a\\mid x),\\quad (a,x)\\in\\mathcal A\\times\\mathcal X\\).",
+      "free_symbols": [
+        "\\(e\\)",
+        "\\(b\\)",
+        "\\(L\\)",
+        "\\(\\mathcal A\\)",
+        "\\(\\mathcal X\\)"
+      ],
+      "standard": {
+        "name": "uniform one-step policy overlap",
+        "cite": "HuWager2023"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:phiw-upper",
+        "lem:signed-depth-membership"
+      ]
+    },
+    {
+      "id": "ass:uniform-contraction",
+      "kind": "regularity",
+      "condition": "\\(\\|\\nu P_p-\\nu'P_p\\|_{\\mathrm{TV}}\\le\\alpha\\|\\nu-\\nu'\\|_{\\mathrm{TV}},\\quad (p,\\nu,\\nu')\\in\\{b,e\\}\\times\\Delta(\\mathcal S)^2\\).",
+      "free_symbols": [
+        "\\(P_p\\)",
+        "\\(\\alpha\\)",
+        "\\(b\\)",
+        "\\(e\\)",
+        "\\(\\mathcal S\\)"
+      ],
+      "standard": {
+        "name": "uniform geometric total-variation contraction",
+        "cite": "HuWager2023"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:phiw-upper",
+        "lem:signed-depth-membership"
+      ]
+    },
+    {
+      "id": "ass:latent-stationary-overlap",
+      "kind": "support",
+      "condition": "\\(d_e(s)\\le C d_b(s),\\quad s\\in\\mathcal S\\).",
+      "free_symbols": [
+        "\\(d_p\\)",
+        "\\(e\\)",
+        "\\(b\\)",
+        "\\(C\\)",
+        "\\(\\mathcal S\\)"
+      ],
+      "standard": {
+        "name": "strong stationary distributional overlap, imposed on the unobserved joint state",
+        "cite": "MehrabiWager2025"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:signed-depth-membership",
+        "thm:fixed-c-minimax",
+        "prop:unit-overlap-boundary"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:model-class",
+      "name": "cardinality-uniform latent-overlap POMDP experiment class",
+      "construction": "\\(\\mathcal M_T(t_0,\\zeta,C):=\\{(\\mathcal X,\\mathcal H,K,b,e,\\mathcal L(\\mathsf O_T)): T\\in\\mathbb N,\\ |\\mathcal X|<\\infty,\\ |\\mathcal H|<\\infty,\\ |\\mathcal A|=2,\\text{ and }\\mathrm{A}_{\\mathrm{pomdp}},\\mathrm{A}_{\\mathrm{ign}},\\mathrm{A}_{\\mathrm{start}},\\mathrm{A}_{\\mathrm{reward}},\\mathrm{A}_{\\mathrm{act}},\\mathrm{A}_{\\mathrm{mix}},\\mathrm{A}_{\\mathrm{stat}}\\text{ hold}\\}\\), where the seven predicates are exactly \\(\\mathrm{ass{:}pomdp\\text{-}kernel}\\) through \\(\\mathrm{ass{:}latent\\text{-}stationary\\text{-}overlap}\\); the union ranges over all finite cardinalities and all revealed policy pairs.",
+      "free_symbols": [
+        "\\(\\mathcal M_T(t_0,\\zeta,C)\\)",
+        "\\(T\\)",
+        "\\(t_0\\)",
+        "\\(\\zeta\\)",
+        "\\(C\\)",
+        "\\(\\mathcal X\\)",
+        "\\(\\mathcal H\\)",
+        "\\(\\mathcal A\\)",
+        "\\(K\\)",
+        "\\(b\\)",
+        "\\(e\\)",
+        "\\(\\mathsf O_T\\)"
+      ],
+      "by_member_properties": [
+        "ass:pomdp-kernel",
+        "ass:sequential-ignorability",
+        "ass:stationary-start",
+        "ass:bounded-reward",
+        "ass:policy-overlap",
+        "ass:uniform-contraction",
+        "ass:latent-stationary-overlap"
+      ]
+    },
+    {
+      "id": "def:target-value",
+      "name": "stationary target-policy causal value",
+      "construction": "\\(\\theta(K,e):=\\sum_{s=(x,h)\\in\\mathcal S}d_e(s)g_e(s)=\\sum_{s=(x,h)\\in\\mathcal S}d_e(s)\\sum_{a\\in\\mathcal A}e(a\\mid x)E_K[Y_t\\mid S_t=s,A_t=a]\\).",
+      "free_symbols": [
+        "\\(\\theta(K,e)\\)",
+        "\\(K\\)",
+        "\\(e\\)",
+        "\\(d_p\\)",
+        "\\(g_e\\)",
+        "\\(\\mathcal S\\)",
+        "\\(\\mathcal A\\)",
+        "\\(Y_t\\)",
+        "\\(S_t\\)",
+        "\\(A_t\\)"
+      ],
+      "inputs": [
+        "\\(K\\)",
+        "\\(e\\)",
+        "\\(d_p\\)",
+        "\\(g_e\\)"
+      ]
+    },
+    {
+      "id": "def:minimax-risk",
+      "name": "cardinality-uniform observable-data minimax risk",
+      "construction": "\\(R_T(t_0,\\zeta,C):=\\inf_{\\widehat\\theta\\in\\sigma(\\mathsf O_T,b,e,t_0,\\zeta,C)}\\sup_{M\\in\\mathcal M_T(t_0,\\zeta,C)}E_M[(\\widehat\\theta-\\theta(K,e))^2]\\), where the infimum is over all measurable estimators and the supplied finite observed alphabets are included in the estimator's information.",
+      "free_symbols": [
+        "\\(R_T(t_0,\\zeta,C)\\)",
+        "\\(T\\)",
+        "\\(t_0\\)",
+        "\\(\\zeta\\)",
+        "\\(C\\)",
+        "\\(\\mathsf O_T\\)",
+        "\\(b\\)",
+        "\\(e\\)",
+        "\\(\\mathcal M_T(t_0,\\zeta,C)\\)",
+        "\\(\\theta(K,e)\\)",
+        "\\(K\\)"
+      ],
+      "inputs": [
+        "\\(\\mathsf O_T\\)",
+        "\\(b\\)",
+        "\\(e\\)",
+        "\\(\\mathcal M_T(t_0,\\zeta,C)\\)",
+        "\\(\\theta(K,e)\\)"
+      ]
+    },
+    {
+      "id": "def:phiw-estimator",
+      "name": "clipped partial-history importance-weighted estimator",
+      "construction": "For \\(0\\le k<T\\), define \\(\\widehat\\theta_k:=\\operatorname{clip}_{[-1,1]}\\{(T-k)^{-1}\\sum_{t=k+1}^{T}Z_t(k)\\}\\), with \\(Z_t(k)=Y_t\\prod_{j=t-k}^{t}\\rho_j\\) and the zero-cell convention in the definition of \\(\\rho_t\\).",
+      "free_symbols": [
+        "\\(T\\)",
+        "\\(\\widehat\\theta_k\\)",
+        "\\(Z_t(k)\\)",
+        "\\(Y_t\\)",
+        "\\(\\rho_t\\)"
+      ],
+      "inputs": [
+        "\\(T\\)",
+        "\\(Z_t(k)\\)",
+        "\\(\\rho_t\\)",
+        "\\(Y_t\\)"
+      ]
+    },
+    {
+      "id": "def:history-depth",
+      "name": "mixing-overlap balanced history depth",
+      "construction": "\\(k_T:=\\min\\{\\lfloor T/2\\rfloor,\\max\\{0,\\lfloor\\log(T)/(2\\log(1/\\alpha)+\\log L)\\rfloor\\}\\}\\).",
+      "free_symbols": [
+        "\\(k_T\\)",
+        "\\(T\\)",
+        "\\(\\alpha\\)",
+        "\\(L\\)"
+      ],
+      "inputs": [
+        "\\(T\\)",
+        "\\(\\alpha\\)",
+        "\\(L\\)"
+      ]
+    },
+    {
+      "id": "def:signed-depth-family",
+      "name": "stationary-overlap-preserving signed-depth alternatives",
+      "construction": "For \\(C>1\\), \\(Q\\ge1\\), and \\(v\\in\\{-1,+1\\}\\), take \\(X_t\\) constant, \\(H_t=(J_t,U_t)\\in\\{0,\\ldots,Q\\}\\times\\{-1,+1\\}\\), \\(b(1)=1/L\\), and \\(e(1)=1\\). Draw a reset sign from \\(\\Pr(U= u)=(1+u\\varepsilon_C)/2\\). If \\(J_t=Q\\), set \\(J_{t+1}=0\\) and draw a reset sign. If \\(J_t<Q\\), reset in the same way with probability \\(1-\\alpha\\); otherwise set \\(J_{t+1}=J_t+1\\), retaining \\(U_t\\) when \\(A_t=1\\) and replacing it by an independent fair sign when \\(A_t=0\\). Independently of the next-state draw conditional on \\((J_t,U_t,A_t)\\), draw \\(Y_t\\in\\{-1,+1\\}\\) with \\(\\Pr_v(Y_t=y\\mid J_t,U_t,A_t)=\\{1+yvc_0U_t\\mathbf 1(J_t=Q)\\}/2\\). Initialize from the behavior-stationary law \\(d_b(j,u)=w_j(1+u\\varepsilon_C L^{-j})/2\\).",
+      "free_symbols": [
+        "\\(C\\)",
+        "\\(Q\\)",
+        "\\(v\\)",
+        "\\(X_t\\)",
+        "\\(H_t\\)",
+        "\\(J_t\\)",
+        "\\(U_t\\)",
+        "\\(b\\)",
+        "\\(e\\)",
+        "\\(L\\)",
+        "\\(\\varepsilon_C\\)",
+        "\\(\\alpha\\)",
+        "\\(A_t\\)",
+        "\\(Y_t\\)",
+        "\\(c_0\\)",
+        "\\(d_p\\)",
+        "\\(w_j\\)"
+      ],
+      "inputs": [
+        "\\(C\\)",
+        "\\(Q\\)",
+        "\\(v\\)",
+        "\\(L\\)",
+        "\\(\\alpha\\)",
+        "\\(\\varepsilon_C\\)",
+        "\\(c_0\\)"
+      ]
+    },
+    {
+      "id": "def:filter-quantities",
+      "name": "observed-filtration posterior and action-history factor",
+      "construction": "Let \\(\\mathcal F_{t-1}^{\\mathrm{obs}}:=\\sigma(A_1,Y_1,\\ldots,A_{t-1},Y_{t-1})\\), \\(\\ell_t:=\\min\\{Q,t-1\\}\\), \\(q_t^v:=\\Pr_v(J_t=Q\\mid\\mathcal F_{t-1}^{\\mathrm{obs}})\\), and \\(a_t^{(Q)}:=L^{-(Q-\\ell_t)}\\prod_{j=t-\\ell_t}^{t-1}\\mathbf 1\\{A_j=1\\}\\), with an empty product equal to one.",
+      "free_symbols": [
+        "\\(A_t\\)",
+        "\\(Y_t\\)",
+        "\\(Q\\)",
+        "\\(\\mathcal F_{t-1}^{\\mathrm{obs}}\\)",
+        "\\(\\ell_t\\)",
+        "\\(q_t^v\\)",
+        "\\(v\\)",
+        "\\(J_t\\)",
+        "\\(a_t^{(Q)}\\)",
+        "\\(L\\)"
+      ],
+      "inputs": [
+        "\\(A_t\\)",
+        "\\(Y_t\\)",
+        "\\(Q\\)",
+        "\\(v\\)",
+        "\\(J_t\\)",
+        "\\(L\\)"
+      ]
+    },
+    {
+      "id": "def:local-frontier-handle",
+      "name": "shrinking-overlap phase-transition handle",
+      "construction": "\\(\\mathfrak H_{\\mathrm{loc}}\\) is the following derivation handle: scale the reset-sign perturbation in \\(\\mathrm{def{:}signed\\text{-}depth\\text{-}family}\\) to obey \\(d_e/d_b\\le1+\\delta_T\\), derive its observed-path testing modulus as a joint function of \\(Q\\) and \\(\\delta_T\\), and pair that modulus with a data-dependent selector between immediate weighting and the partial-history scores \\(Z_t(k)\\). The output object is the sharp risk function \\(R_T(t_0,\\zeta,1+\\delta_T)\\), not a preassigned rate formula.",
+      "free_symbols": [
+        "\\(\\mathfrak H_{\\mathrm{loc}}\\)",
+        "\\(d_p\\)",
+        "\\(e\\)",
+        "\\(b\\)",
+        "\\(\\delta_T\\)",
+        "\\(Q\\)",
+        "\\(T\\)",
+        "\\(Z_t(k)\\)",
+        "\\(R_T(t_0,\\zeta,C)\\)",
+        "\\(t_0\\)",
+        "\\(\\zeta\\)"
+      ],
+      "inputs": [
+        "\\(\\delta_T\\)",
+        "\\(Q\\)",
+        "\\(Z_t(k)\\)",
+        "\\(R_T(t_0,\\zeta,C)\\)"
+      ]
+    },
+    {
+      "id": "def:insulin-grid",
+      "name": "refreshed finite-state insulin-policy adaptation",
+      "construction": "Let the state be \\(s=(g,d_1,d_2,x_1,x_2,a_1)\\) in \\(\\{50,100,150,200,250\\}\\times\\{0,78\\}^2\\times\\{0,31,850\\}^2\\times\\{0,1\\}\\), giving \\(360\\) states. The diet coordinates \\((d_1,d_2)\\) form \\(H_t\\); all other coordinates form \\(X_t\\). Put \\(b(1\\mid X_t)=0.3\\) and \\(e(1\\mid X_t)=\\mathbf 1\\{g\\ge125\\}\\). With probability \\(1/2\\), draw the next full state uniformly. Otherwise draw \\(d_0\\in\\{0,78\\}\\) with probabilities \\((0.8,0.2)\\), draw \\(x_0\\in\\{0,31,850\\}\\) with probabilities \\((0.4,0.4,0.2)\\), draw \\(\\xi\\sim N(0,25)\\), set \\(g'=\\operatorname{round}_{\\{50,100,150,200,250\\}}\\operatorname{clip}_{[50,250]}(10+0.9g+0.1d_1+0.1d_2-0.01x_1-0.01x_2-2A_t-4a_1+\\xi)\\), and shift the memories to \\((g',d_0,d_1,x_0,x_1,A_t)\\). Set \\(Y_t=-1\\) for \\(g\\le70\\), \\(Y_t=-2/3\\) for \\(g>150\\), \\(Y_t=-1/3\\) for \\(70<g\\le80\\) or \\(120<g\\le150\\), and \\(Y_t=0\\) otherwise. This defines \\(\\mathcal I_{\\mathrm{grid}}\\).",
+      "free_symbols": [
+        "\\(\\mathcal I_{\\mathrm{grid}}\\)",
+        "\\(H_t\\)",
+        "\\(X_t\\)",
+        "\\(b\\)",
+        "\\(e\\)",
+        "\\(A_t\\)",
+        "\\(Y_t\\)"
+      ],
+      "inputs": [
+        "\\(H_t\\)",
+        "\\(X_t\\)",
+        "\\(A_t\\)"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:phiw-upper",
+      "kind": "lemma",
+      "statement": "For every fixed \\(t_0>0\\), \\(\\zeta>0\\), and \\(C\\ge1\\), there is \\(c^\\star<\\infty\\), independent of \\(T\\), \\(|\\mathcal X|\\), and \\(|\\mathcal H|\\), such that \\(\\sup_{M\\in\\mathcal M_T(t_0,\\zeta,C)}E_M[(\\widehat\\theta_{k_T}-\\theta(K,e))^2]\\le c^\\star T^{-\\beta}\\) for all sufficiently large \\(T\\). In particular, the overlapping-history covariance sum is geometric and introduces no logarithmic loss.",
+      "free_symbols": [
+        "\\(t_0\\)",
+        "\\(\\zeta\\)",
+        "\\(C\\)",
+        "\\(c^\\star\\)",
+        "\\(T\\)",
+        "\\(\\mathcal X\\)",
+        "\\(\\mathcal H\\)",
+        "\\(\\mathcal M_T(t_0,\\zeta,C)\\)",
+        "\\(\\widehat\\theta_k\\)",
+        "\\(k_T\\)",
+        "\\(\\theta(K,e)\\)",
+        "\\(K\\)",
+        "\\(e\\)",
+        "\\(\\beta\\)"
+      ],
+      "depends_on": [
+        "ass:pomdp-kernel",
+        "ass:sequential-ignorability",
+        "ass:stationary-start",
+        "ass:bounded-reward",
+        "ass:policy-overlap",
+        "ass:uniform-contraction",
+        "def:model-class",
+        "def:target-value",
+        "def:phiw-estimator",
+        "def:history-depth"
+      ],
+      "status": "to-prove",
+      "justification": "This supplies the explicit observable-data attaining estimator and removes a possible spurious logarithm from overlapping windows.",
+      "gap": "HuWager2023, Lemmas 2.3 and 2.4 and Theorem 2.1, give the PHIW bias and variance benchmark; the present statement makes the one-trajectory, cardinality-uniform bound explicit on the fixed latent-overlap subclass and sharpens the covariance summation without changing the exponent.",
+      "consumer": "The bound gives a deployable history length for the refreshed finite insulin model without estimating latent stationary ratios."
+    },
+    {
+      "id": "lem:signed-depth-membership",
+      "kind": "lemma",
+      "statement": "For every fixed \\(t_0>0\\), \\(\\zeta>0\\), \\(C>1\\), \\(Q\\ge1\\), and \\(v\\in\\{-1,+1\\}\\), the signed-depth construction belongs to \\(\\mathcal M_T(t_0,\\zeta,C)\\) for every \\(T\\). Its policy-induced stationary laws satisfy \\(d_r(j,u)=w_j(1+u\\varepsilon_C r^j)/2\\) when action one is taken with probability \\(r\\), \\(\\max_{j,u}d_e(j,u)/d_b(j,u)\\le1+\\varepsilon_C\\le C\\), and \\(\\theta(K,e)=vc_0\\varepsilon_Cw_Q\\).",
+      "free_symbols": [
+        "\\(t_0\\)",
+        "\\(\\zeta\\)",
+        "\\(C\\)",
+        "\\(Q\\)",
+        "\\(v\\)",
+        "\\(\\mathcal M_T(t_0,\\zeta,C)\\)",
+        "\\(T\\)",
+        "\\(d_p\\)",
+        "\\(e\\)",
+        "\\(b\\)",
+        "\\(w_j\\)",
+        "\\(\\varepsilon_C\\)",
+        "\\(c_0\\)",
+        "\\(\\theta(K,e)\\)",
+        "\\(K\\)"
+      ],
+      "depends_on": [
+        "ass:pomdp-kernel",
+        "ass:bounded-reward",
+        "ass:policy-overlap",
+        "ass:uniform-contraction",
+        "ass:latent-stationary-overlap",
+        "def:model-class",
+        "def:target-value",
+        "def:signed-depth-family"
+      ],
+      "status": "to-prove",
+      "justification": "The action-independent depth occupancy is the new mechanism that keeps the lower alternatives inside every fixed \\(C>1\\) class.",
+      "gap": "HuWager2023, Section 3.1, uses a depth chain whose terminal stationary ratio grows exponentially with depth and explicitly leaves distributionally overlapping hidden states open in Section 3.2; this construction removes that growth.",
+      "consumer": "It makes a fixed physiological-occupancy assurance compatible with a nonparametric hidden-state lower experiment."
+    },
+    {
+      "id": "lem:observed-path-kl",
+      "kind": "lemma",
+      "statement": "For the signed-depth alternatives, there exists \\(B_0<\\infty\\), independent of \\(Q\\) and \\(T\\), such that \\(\\operatorname{KL}(\\mathbb P_{Q,+1}^{\\mathrm{obs},T}\\,\\|\\,\\mathbb P_{Q,-1}^{\\mathrm{obs},T})\\le B_0T\\alpha^{2Q}L^{-Q}\\). More precisely, for every observed history, \\(E_v[Y_t\\mid\\mathcal F_{t-1}^{\\mathrm{obs}}]=vc_0\\varepsilon_Ca_t^{(Q)}q_t^v\\) and \\(q_t^v\\le K_0\\alpha^Q\\) for a finite \\(K_0\\) depending only on \\(t_0\\), so the bound includes all stationary initial windows \\(t\\le Q\\) without revealing reset times.",
+      "free_symbols": [
+        "\\(B_0\\)",
+        "\\(Q\\)",
+        "\\(T\\)",
+        "\\(\\mathbb P_{Q,v}^{\\mathrm{obs},T}\\)",
+        "\\(\\alpha\\)",
+        "\\(L\\)",
+        "\\(v\\)",
+        "\\(Y_t\\)",
+        "\\(c_0\\)",
+        "\\(\\varepsilon_C\\)",
+        "\\(a_t^{(Q)}\\)",
+        "\\(q_t^v\\)",
+        "\\(\\mathcal F_{t-1}^{\\mathrm{obs}}\\)",
+        "\\(K_0\\)",
+        "\\(t_0\\)"
+      ],
+      "depends_on": [
+        "ass:sequential-ignorability",
+        "ass:stationary-start",
+        "def:signed-depth-family",
+        "def:filter-quantities",
+        "lem:signed-depth-membership"
+      ],
+      "status": "to-prove",
+      "justification": "This is the early kill test: the extra hidden-survival factor in observed KL is exactly what preserves the Hu--Wager exponent under fixed latent occupancy.",
+      "gap": "HuWager2023, Lemma 3.3, proves the corresponding divergence bound for its unrestricted hard chain; no published argument located in the scan controls the full observed filter while every joint-state stationary ratio is uniformly bounded.",
+      "consumer": "The lemma decides whether bounded latent occupancy alone can justify shorter histories in the mobile-health use case."
+    },
+    {
+      "id": "thm:fixed-c-minimax",
+      "kind": "theorem",
+      "statement": "For every fixed \\(t_0>0\\), \\(\\zeta>0\\), and \\(C>1\\), there exist \\(0<c_\\star\\le c^\\star<\\infty\\) and \\(T_\\star<\\infty\\), depending only on \\(t_0,\\zeta,C\\), such that \\(c_\\star T^{-2/(2+t_0\\zeta)}\\le R_T(t_0,\\zeta,C)\\le c^\\star T^{-2/(2+t_0\\zeta)}\\) for every \\(T\\ge T_\\star\\). The upper bound is attained by \\(\\widehat\\theta_{k_T}\\); the lower bound holds against every measurable observable-data estimator, already with constant \\(X_t\\) and \\(2(Q+1)\\) latent states. Thus the HuWager2023 Theorem 3.1 minimax exponent remains sharp after strictly restricting its POMDP class by \\(d_e\\le Cd_b\\), with no logarithmic factor.",
+      "free_symbols": [
+        "\\(t_0\\)",
+        "\\(\\zeta\\)",
+        "\\(C\\)",
+        "\\(c_\\star\\)",
+        "\\(c^\\star\\)",
+        "\\(T_\\star\\)",
+        "\\(T\\)",
+        "\\(R_T(t_0,\\zeta,C)\\)",
+        "\\(\\widehat\\theta_k\\)",
+        "\\(k_T\\)",
+        "\\(X_t\\)",
+        "\\(Q\\)",
+        "\\(d_p\\)",
+        "\\(e\\)",
+        "\\(b\\)"
+      ],
+      "depends_on": [
+        "ass:latent-stationary-overlap",
+        "def:minimax-risk",
+        "lem:phiw-upper",
+        "lem:signed-depth-membership",
+        "lem:observed-path-kl"
+      ],
+      "status": "to-prove",
+      "justification": "This closes the exact fixed-occupancy minimax question with both an implementable estimator and an all-estimator converse.",
+      "gap": "HuWager2023 proves the same exponent without stationary overlap but flags the overlapping-hidden-state converse as open; MehrabiWager2025 obtains root-\\(T\\) behavior from strong stationary overlap only when the state and ratio are observable.",
+      "consumer": "For the finite insulin-policy adaptation, the theorem shows that a bound on latent physiological occupancy alone does not certify parametric precision or a universally fixed short history."
+    },
+    {
+      "id": "prop:unit-overlap-boundary",
+      "kind": "proposition",
+      "statement": "At \\(C=1\\), \\(d_e=d_b\\), the immediate estimator \\(\\widehat\\theta_0\\) has cardinality-uniform mean-squared error of order \\(T^{-1}\\), and \\(R_T(t_0,\\zeta,1)\\asymp T^{-1}\\). Consequently the fixed-\\(C>1\\) theorem has a genuine discontinuous boundary in exponent, although its constants need not be uniform as \\(C\\downarrow1\\).",
+      "free_symbols": [
+        "\\(C\\)",
+        "\\(d_p\\)",
+        "\\(e\\)",
+        "\\(b\\)",
+        "\\(\\widehat\\theta_k\\)",
+        "\\(T\\)",
+        "\\(R_T(t_0,\\zeta,C)\\)",
+        "\\(t_0\\)",
+        "\\(\\zeta\\)"
+      ],
+      "depends_on": [
+        "ass:bounded-reward",
+        "ass:policy-overlap",
+        "ass:uniform-contraction",
+        "ass:latent-stationary-overlap",
+        "def:model-class",
+        "def:minimax-risk",
+        "def:phiw-estimator"
+      ],
+      "status": "to-prove",
+      "justification": "The equality boundary is the required sanity reduction and reveals that an arbitrarily small fixed latent shift is asymptotically consequential over the unrestricted finite-state union.",
+      "gap": "MehrabiWager2025 gives the fully observed strong-overlap endpoint, while neither it nor HuWager2023 isolates the exact \\(C=1\\) latent stationary-law equality boundary for the present observed experiment.",
+      "consumer": "This tells investigators when a genuine stationary-law invariance claim, stronger than mere bounded overlap, permits immediate weighting."
+    },
+    {
+      "id": "prop:finite-insulin-demonstration",
+      "kind": "proposition",
+      "statement": "The refreshed insulin construction \\(\\mathcal I_{\\mathrm{grid}}\\) has \\(360\\) joint states, Dobrushin coefficient at most \\(1/2\\) under both policies, one-step policy overlap \\(L=10/3\\), and the analytic stationary-overlap bound \\(d_e(s)\\le720d_b(s)\\) for every state. An interval-certified evaluation of its finite transition matrices satisfies \\(-0.0060<\\Delta_{\\mathrm{imm}}<-0.0058\\), so immediate action weighting is biased despite finite latent stationary overlap.",
+      "free_symbols": [
+        "\\(\\mathcal I_{\\mathrm{grid}}\\)",
+        "\\(L\\)",
+        "\\(d_p\\)",
+        "\\(e\\)",
+        "\\(b\\)",
+        "\\(\\Delta_{\\mathrm{imm}}\\)"
+      ],
+      "depends_on": [
+        "def:insulin-grid",
+        "def:target-value"
+      ],
+      "status": "to-prove",
+      "justification": "The finite construction translates the theorem's uniform message into the published glucose-policy setting without claiming the continuous simulator satisfies the class.",
+      "gap": "HuWager2023, Section 5.2 and equation (53), studies PHIW in a continuous synthetic glucose simulator but does not impose or verify joint latent stationary overlap; this proposition adds an explicit refreshed discretization and a certifiable overlap-and-bias calculation.",
+      "consumer": "It demonstrates why bounded latent dietary occupancy does not by itself license current-action weighting for an insulin threshold policy."
+    },
+    {
+      "id": "oeq:shrinking-overlap-frontier",
+      "kind": "openendedquestion",
+      "statement": "Using \\(\\mathfrak H_{\\mathrm{loc}}\\), determine the sharp cardinality-uniform order of \\(R_T(t_0,\\zeta,1+\\delta_T)\\) for every deterministic sequence \\(\\delta_T\\downarrow0\\), construct an observable estimator attaining that order, and prove the matching all-measurable lower bound. In particular, characterize the exact threshold sequence separating the parametric immediate-weighting regime from the logarithmic-history regime, without imposing proxy informativeness, emission rank, finite memory, or known latent dynamics.",
+      "free_symbols": [
+        "\\(\\mathfrak H_{\\mathrm{loc}}\\)",
+        "\\(R_T(t_0,\\zeta,C)\\)",
+        "\\(T\\)",
+        "\\(t_0\\)",
+        "\\(\\zeta\\)",
+        "\\(\\delta_T\\)"
+      ],
+      "depends_on": [
+        "def:minimax-risk",
+        "def:local-frontier-handle",
+        "thm:fixed-c-minimax",
+        "prop:unit-overlap-boundary"
+      ],
+      "status": "to-prove",
+      "justification": "The fixed-radius theorem and equality boundary force a local phase transition whose location is not determined by either endpoint.",
+      "gap": "HuWager2023 localizes risk only by mixing and action overlap, and MehrabiWager2025 varies observable density-ratio tails rather than an unobserved stationary-law radius approaching equality.",
+      "consumer": "The threshold would quantify how strong an approximate physiological-occupancy assurance must be before it changes data-collection duration or estimator choice."
+    }
+  ],
+  "sampling_model": {
+    "design": "One behavior-stationary trajectory from a time-homogeneous finite POMDP; randomness comes from the controlled kernel and the known behavior randomization.",
+    "units": "The observations are \\((X_t,A_t,Y_t)\\) for \\(t=1,\\ldots,T\\); \\(H_t\\) and both stationary joint-state laws are unobserved.",
+    "treatment": "The action alphabet is \\(\\{0,1\\}\\); \\(A_t\\) is drawn from the known memoryless behavior policy \\(b(\\cdot\\mid X_t)\\), and the known target policy is \\(e(\\cdot\\mid X_t)\\).",
+    "overlap": "One-step action ratios are bounded by \\(e^{\\zeta}\\), and the unobserved joint stationary ratio is bounded by \\(C\\); neither stationary law nor its ratio is supplied.",
+    "nuisance_estimation": "No latent alphabet, transition kernel, reward regression, stationary law, proxy, emission rank, or finite-memory bound is known or estimated as a class-membership condition; the attaining estimator uses only observable policy ratios."
+  },
+  "estimand_functional": "\\(\\widehat\\theta_{k_T}=\\operatorname{clip}_{[-1,1]}\\{(T-k_T)^{-1}\\sum_{t=k_T+1}^{T}Y_t\\prod_{j=t-k_T}^{t}e(A_j\\mid X_j)/b(A_j\\mid X_j)\\},\\quad R_T(t_0,\\zeta,C)\\asymp T^{-2/(2+t_0\\zeta)}\\text{ for fixed }C>1\\)",
+  "target_estimand": "\\(\\theta(K,e)=\\sum_{s\\in\\mathcal S}d_e(s)\\sum_{a\\in\\mathcal A}e(a\\mid x)E_K[Y_t\\mid S_t=s,A_t=a]\\)",
+  "bibliography": [
+    {
+      "key": "HuWager2023",
+      "citation": "Hu, Y., and Wager, S. (2023). Off-policy evaluation in partially observed Markov decision processes under sequential ignorability. Annals of Statistics 51(4), 1561--1580. arXiv:2110.12343."
+    },
+    {
+      "key": "MehrabiWager2025",
+      "citation": "Mehrabi, M., and Wager, S. (2025). Off-policy evaluation in Markov decision processes under weak distributional overlap. arXiv:2402.08201, version 2."
+    },
+    {
+      "key": "ZhangJiang2024",
+      "citation": "Zhang, Y., and Jiang, N. (2024). On the curses of future and history in future-dependent value functions for off-policy evaluation. Advances in Neural Information Processing Systems 37. arXiv:2402.14703."
+    },
+    {
+      "key": "TennenholtzShalitMannor2020",
+      "citation": "Tennenholtz, G., Shalit, U., and Mannor, S. (2020). Off-policy evaluation in partially observable environments. Proceedings of the AAAI Conference on Artificial Intelligence 34(6), 10276--10283. arXiv:1909.03739."
+    },
+    {
+      "key": "KallusUehara2020",
+      "citation": "Kallus, N., and Uehara, M. (2020). Double reinforcement learning for efficient off-policy evaluation in Markov decision processes. Journal of Machine Learning Research 21(167), 1--63. arXiv:1908.08526."
+    },
+    {
+      "key": "LiaoKlasnjaMurphy2021",
+      "citation": "Liao, P., Klasnja, P., and Murphy, S. A. (2021). Off-policy estimation of long-term average outcomes with applications to mobile health. Journal of the American Statistical Association 116(533), 382--391. arXiv:1912.13088."
+    },
+    {
+      "key": "LuckettEtAl2020",
+      "citation": "Luckett, D. J., Laber, E. B., Kahkoska, A. R., Maahs, D. M., Mayer-Davis, E. J., and Kosorok, M. R. (2020). Estimating dynamic treatment regimes in mobile health using V-learning. Journal of the American Statistical Association 115(530), 692--706."
+    },
+    {
+      "key": "MaahsEtAl2012",
+      "citation": "Maahs, D. M., Mayer-Davis, E. J., Bishop, F. K., Wang, L., Mangan, M., and McMurray, R. G. (2012). Outpatient assessment of determinants of glucose excursions in adolescents with type 1 diabetes: proof of concept. Diabetes Technology and Therapeutics 14(8), 658--664."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "HuWager2023",
+      "comparator_claim": "Theorem 3.1 gives a single-trajectory minimax lower bound of order \\(T^{-2/(t_0\\zeta+2)}\\) under mixing, action overlap, and reward moments, while Section 3.2 leaves distributionally overlapping hidden-state hard instances open.",
+      "matched_by": "Theorem 1",
+      "match_kind": "strict_tightening"
+    },
+    {
+      "comparator_bibkey": "MehrabiWager2025",
+      "comparator_claim": "Strong or square-integrable stationary density-ratio control supports root-\\(T\\) behavior for truncated doubly robust evaluation in fully observed MDPs, while heavier ratio tails produce slower regimes.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ZhangJiang2024",
+      "comparator_claim": "Latent-state density-ratio coverage is weaker than belief coverage, and future-dependent value guarantees can retain exponentially large outcome or belief quantities without the stronger conditions.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "TennenholtzShalitMannor2020",
+      "comparator_claim": "Generic partially observable off-policy evaluation can have arbitrarily large bias, while recovery in the decoupled POMDP uses invertibility and conditional-independence structure.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "KallusUehara2020",
+      "comparator_claim": "Double reinforcement learning attains the semiparametric efficiency bound in observed Markov models using estimated \\(q\\)-functions and marginalized density ratios.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "LiaoKlasnjaMurphy2021",
+      "comparator_claim": "Long-run average policy outcomes admit estimation and confidence intervals in a fully observed Markov mobile-health model.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "A uniform bound on where a target policy places latent stationary mass does not reveal the temporal information needed to evaluate that policy. For one stationary trajectory from Hu and Wager's Model 3, with arbitrary finite observed and hidden alphabets, this proposal shows that every fixed \\(C>1\\) joint-state bound \\(d_e\\le Cd_b\\) leaves the exact cardinality-uniform minimax MSE at \\(T^{-2/(2+t_0\\zeta)}\\), with no logarithmic factor. Observable partial-history importance weighting attains the rate. A new signed-depth reset family supplies the matching all-estimator converse while keeping every stationary ratio below \\(C\\); its load-bearing result is a full observed-filtration KL bound that handles stationary pre-sample signs and never reveals reset times. The equality boundary \\(C=1\\) is parametric, and the first-class open question is the sharp transition when \\(C_T=1+\\delta_T\\).",
+  "project_justification": {
+    "gap": "HuWager2023 proves the unrestricted POMDP rate but its hard chain violates every fixed joint-state stationary-overlap bound at growing depth, and the paper explicitly leaves overlapping hidden-state hard instances open. Fully observed stationary-ratio methods do not apply because the ratio-supporting state is latent.",
+    "niche": "The unresolved object is a cardinality-uniform observed-law testing modulus inside the fixed-\\(C\\) latent-overlap class, not another estimator-side upper bound or a proxy-assisted identification result.",
+    "fill": "The project combines a no-log PHIW upper calculation with signed-depth alternatives whose depth occupancy is policy invariant while actions erase a hidden sign. A uniform terminal-posterior recursion yields the observed-path KL needed for a Le Cam converse, and a refreshed \\(360\\)-state insulin-policy adaptation demonstrates the practical distinction between bounded occupancy and sufficient observed history."
+  },
+  "related_work": "HuWager2023 is the writing and theorem anchor: its Introduction moves from fully observed Markov evaluation to partial-history weighting, Lemmas 2.3--2.4 derive the geometric bias and overlap-driven variance, Theorem 3.1 uses a Le Cam depth chain for the unrestricted converse, and Section 3.2 explicitly asks whether the same lower bound can use hidden states satisfying distributional overlap. Theorem 1 strictly tightens that converse by imposing the fixed joint-state restriction \\(d_e\\le Cd_b\\), while retaining the same exponent. MehrabiWager2025 is the closest fully observed comparator: its TDR construction truncates an observable stationary ratio, Theorems 3.9--3.10 organize rates by ratio tails, and Theorem 4.1 derives weak overlap from mixing and action overlap; those proof steps cannot estimate an unobserved ratio. ZhangJiang2024 explains the obstruction from another direction: its outcome- and belief-coverage analysis and Appendix E.3 show that latent-state density-ratio coverage alone is weaker than the observable operator control needed by future-dependent values. TennenholtzShalitMannor2020 obtains POMDP recovery only after decoupling and matrix invertibility, assumptions absent from the present class. KallusUehara2020 supplies the observed-MDP efficiency endpoint using marginalized density ratios and \\(q\\)-functions, while LiaoKlasnjaMurphy2021 supplies the fully observed long-run mobile-health inference endpoint. LuckettEtAl2020 and MaahsEtAl2012 motivate the glucose application inherited by HuWager2023 Section 5.2; the proposal uses only an explicitly refreshed finite discretization and makes no class-membership claim about the original continuous simulator.",
+  "technical_internal_limitation": "The signed-depth posterior factorization and the displayed observed-path KL bound are the early kill test and remain statements to prove, despite successful finite-path enumeration for small depths. The application bias interval also requires an interval-arithmetic certificate; current floating-point calculations only motivate its endpoints. The refreshed finite model is an artificial discretized adaptation used to demonstrate the theorem's implication, not evidence that the continuous simulator in HuWager2023 or LuckettEtAl2020 satisfies uniform finite-state contraction or stationary overlap.",
+  "honest_scope": "The fixed-\\(C>1\\) exact rate, the \\(C=1\\) boundary, and the finite refreshed application are the claimed deliverables. Constants may depend on \\(t_0,\\zeta,C\\) and are not uniform as \\(C\\downarrow1\\). The hard family uses \\(O(\\log T)\\) latent states, so the theorem does not address a uniformly bounded hidden alphabet. The local \\(C_T=1+\\delta_T\\) phase diagram, honest single-trajectory confidence intervals, policy-learning regret, and testability of the latent-overlap assertion remain separate questions. When \\(C=1\\), normalized stationary laws coincide and the result reduces to the known parametric immediate-weighting endpoint.",
+  "seeds": [
+    "seed:fixed-c-matched-minimax",
+    "seed:shrinking-c-phase-transition",
+    "seed:single-trajectory-honest-limit",
+    "seed:latent-efficiency-frontier",
+    "seed:memoryless-policy-regret",
+    "seed:stationary-block-symmetry",
+    "seed:latent-overlap-testability",
+    "seed:fixed-hidden-cardinality-frontier",
+    "seed:overlap-misspecification-critical-delta"
+  ],
+  "seed_details": [
+    {
+      "id": "seed:fixed-c-matched-minimax",
+      "anchor_open_problem": "Determine whether the Hu--Wager hidden-state minimax rate survives the fixed joint-state restriction \\(d_e\\le Cd_b\\) for every \\(C>1\\).",
+      "anchor_bibkey": "HuWager2023",
+      "anchor_locator": "Introduction; Lemmas 2.3--2.4; Theorem 3.1 and Lemma 3.3; Section 3.2, note 4; Discussion",
+      "motif": "M11+M7",
+      "m11_subshape": "matched rate",
+      "target_tier": "flagship",
+      "summary": "Prove an explicit no-log PHIW upper bound and a matching all-estimator lower bound on the original fixed-latent-overlap class using signed-depth alternatives.",
+      "first_changed_proof_step": "Replace Hu--Wager's target-favored depth process by policy-invariant depth and prove the KL of the actual observed filter, including stationary prefixes, without revealing resets.",
+      "destination_search": "Exact searches for POMDP, hidden state, stationary distributional overlap, fixed density ratio, minimax, and Hu--Wager found fully observed overlap rates and proxy-coverage results but no fixed-\\(C\\) stationary POMDP converse.",
+      "red_team": "Immediate from HuWager2023 because its Theorem 3.1 already has the same exponent.",
+      "rebuttal": "Their lower chain has an exponentially growing terminal stationary ratio and their Section 3.2 explicitly leaves distributionally overlapping hidden-state hard instances open; admissibility and observed KL must both be rebuilt.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 4,
+        "consumer_value": 5
+      },
+      "survived": true,
+      "selected": true,
+      "rank": 1
+    },
+    {
+      "id": "seed:shrinking-c-phase-transition",
+      "anchor_open_problem": "Characterize the local minimax transition for \\(C_T=1+\\delta_T\\).",
+      "anchor_bibkey": "MehrabiWager2025",
+      "anchor_locator": "Introduction; equation (13); Theorems 3.9--3.10 and 4.1; numerical discussion",
+      "motif": "M11",
+      "m11_subshape": "matched rate",
+      "target_tier": "flagship",
+      "summary": "Derive the sharp \\(\\delta_T\\)-dependent rate and the crossover between immediate and logarithmic-history weighting.",
+      "first_changed_proof_step": "Replace observable ratio-tail truncation by a latent stationary-radius testing modulus and jointly scale sign bias and hidden depth.",
+      "destination_search": "Searches for shrinking stationary overlap, local POMDP minimax risk, and near-equal invariant laws found no latent-radius phase diagram.",
+      "red_team": "Immediate interpolation between the \\(C=1\\) parametric point and the fixed-\\(C>1\\) rate.",
+      "rebuttal": "Endpoint bounds do not determine the local modulus, and the hard-pair value separation and KL both shrink with \\(\\delta_T\\), so the threshold requires a new matched construction.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 3,
+        "consumer_value": 5
+      },
+      "survived": true,
+      "selected": true,
+      "rank": 2
+    },
+    {
+      "id": "seed:single-trajectory-honest-limit",
+      "anchor_open_problem": "Construct honest target-centered inference after history-length selection from one stationary partially observed trajectory.",
+      "anchor_bibkey": "HuWager2023",
+      "anchor_locator": "Section 4, Theorems 4.1--4.2 and condition (39); Discussion",
+      "motif": "M11",
+      "m11_subshape": "limit law",
+      "target_tier": "field",
+      "summary": "Derive a growing-depth limit law or bias-aware non-Gaussian limit and uniformly honest intervals at the fixed-\\(C\\) uncertainty scale.",
+      "first_changed_proof_step": "Replace the independent-trajectory centered CLT by a dependent triangular-array expansion for one path and retain the target-centering bias after selection.",
+      "destination_search": "Hu--Wager's CLT is across independent trajectories and centered at the estimator expectation; Liao--Klasnja--Murphy use observed Markov state. No one-path fixed-latent-overlap target-centered limit was located.",
+      "red_team": "A standard Markov-chain CLT plus undersmoothing gives the interval.",
+      "rebuttal": "The score depth grows, importance weights grow exponentially, and undersmoothing changes interval length; a fixed-function Markov CLT does not give uniform target-centered coverage.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 5
+      },
+      "survived": true,
+      "selected": true,
+      "rank": 3
+    },
+    {
+      "id": "seed:latent-efficiency-frontier",
+      "anchor_open_problem": "Characterize pointwise semiparametric information for stationary POMDP value when finite latent dimension is fixed but the emission representation may be singular.",
+      "anchor_bibkey": "KallusUehara2020",
+      "anchor_locator": "Introduction; Theorem 2 efficiency bound; Theorem 12 double reinforcement learning attainment; Appendix proof of Theorem 12",
+      "motif": "M11",
+      "m11_subshape": "efficiency bound",
+      "target_tier": "field",
+      "summary": "Determine when the observed-path tangent experiment has finite information and when the efficiency bound diverges as latent observability degenerates.",
+      "first_changed_proof_step": "Project the observed-MDP influence function through the hidden-state filtering tangent operator instead of treating stationary ratios and \\(q\\)-functions as observed nuisances.",
+      "destination_search": "The scan found observed-MDP efficiency and bridge-based POMDP efficiency under proxy conditions, but no efficiency frontier without rank or bridge assumptions.",
+      "red_team": "The global slow minimax rate already implies an infinite efficiency bound.",
+      "rebuttal": "Global growing-cardinality hardness does not determine pointwise information at regular fixed finite models; a singularity-indexed efficiency frontier is a distinct local object.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 3
+      },
+      "survived": true,
+      "selected": false,
+      "rank": 7
+    },
+    {
+      "id": "seed:memoryless-policy-regret",
+      "anchor_open_problem": "Extend fixed-policy POMDP evaluation to learning a memoryless target policy with a cardinality-uniform welfare-regret frontier.",
+      "anchor_bibkey": "HuWager2023",
+      "anchor_locator": "Introduction, related-work policy-learning paragraph; Discussion",
+      "motif": "M16+M11",
+      "m11_subshape": "matched policy-regret rate",
+      "target_tier": "field",
+      "summary": "Use uniform PHIW scores over a policy class and match the resulting regret dependence on policy entropy, mixing, and overlap.",
+      "first_changed_proof_step": "Upgrade the fixed-policy covariance bound to a sequential empirical-process bound uniform over overlapping history products.",
+      "destination_search": "Dynamic policy-learning searches found model-free and observed-MDP results but no stationary sequentially ignorable POMDP regret theorem under latent stationary overlap alone.",
+      "red_team": "Apply empirical welfare maximization directly to the fixed-policy risk bound.",
+      "rebuttal": "Policy-dependent stationary occupancy restrictions and exponentially weighted overlapping histories require uniform control and a matching policy-packing lower bound; pointwise MSE alone is insufficient.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "survived": true,
+      "selected": false,
+      "rank": 6
+    },
+    {
+      "id": "seed:stationary-block-symmetry",
+      "anchor_open_problem": "Obtain finite-sample or approximate-symmetry confidence sets for stationary POMDP values by block permutation or conformal inversion.",
+      "anchor_bibkey": "HuWager2023",
+      "anchor_locator": "Section 4 confidence construction and Discussion",
+      "motif": "M17",
+      "target_tier": "subfield",
+      "summary": "Invert blockwise placebo scores after a mixing gap to replace Wald approximation.",
+      "first_changed_proof_step": "Establish a policy-compatible exchangeability or quantified approximate-exchangeability orbit for weighted dependent blocks.",
+      "destination_search": "Searches for conformal or permutation POMDP off-policy inference found no exact stationary orbit; arbitrary Markov trajectories are not block exchangeable.",
+      "red_team": "The required symmetry is absent, so the construction would only rename a mixing concentration interval.",
+      "rebuttal": "The objection holds under the displayed class: contraction alone gives approximation bounds, not the group invariance needed for an M17 kernel.",
+      "scores": {
+        "direct_evidence": 2,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 1,
+        "consumer_value": 3
+      },
+      "survived": false,
+      "selected": false,
+      "rank": 9,
+      "search_obstruction": "No exact permutation or conformal symmetry survives arbitrary stationary finite-state Markov dependence, and adding regeneration labels would reveal forbidden latent information."
+    },
+    {
+      "id": "seed:latent-overlap-testability",
+      "anchor_open_problem": "Characterize whether \\(d_e(x,h)\\le Cd_b(x,h)\\) has observable implications without proxies, rank, or known latent dynamics.",
+      "anchor_bibkey": "TennenholtzShalitMannor2020",
+      "anchor_locator": "Introduction; Theorem 2 and its matrix-product proof; Conclusion",
+      "motif": "M6+M7",
+      "target_tier": "field",
+      "summary": "Prove observational equivalence between finite hidden realizations that agree under behavior but disagree on the latent-overlap assertion, or derive the exact observable compatibility condition.",
+      "first_changed_proof_step": "Remove the decoupled-POMDP invertibility step and instead construct hidden refinements with the same observed path law but contrasting target stationary ratios.",
+      "destination_search": "Bridge, spectral, and future-dependent-value papers operationalize hidden restrictions only with additional rank, proxy, or belief conditions; no overlap-only test was located.",
+      "red_team": "Generic HMM nonidentifiability makes non-testability immediate.",
+      "rebuttal": "The known behavior randomization, common controlled kernel, two policy-induced stationary laws, and uniform contraction must all be preserved, so ordinary label-switching does not change the truth of the ratio bound.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 4
+      },
+      "survived": true,
+      "selected": false,
+      "rank": 5
+    },
+    {
+      "id": "seed:fixed-hidden-cardinality-frontier",
+      "anchor_open_problem": "Determine how a known uniform bound on hidden-state cardinality changes the stationary POMDP minimax rate.",
+      "anchor_bibkey": "HuWager2023",
+      "anchor_locator": "Discussion, finite-hidden-space open question; Theorem 3.1 construction",
+      "motif": "M11",
+      "m11_subshape": "matched rate",
+      "target_tier": "field",
+      "summary": "Derive the minimax rate as a function of \\(T\\) and a fixed or growing hidden-cardinality cap, without adding an emission-rank assumption.",
+      "first_changed_proof_step": "Replace the depth \\(Q\\asymp\\log T\\) chain by a packing or repeated-use construction that respects a cardinality budget and controls repeated emissions.",
+      "destination_search": "Hu--Wager explicitly pose bounded hidden cardinality as open; spectral POMDP papers require rank and distinctness, so they do not occupy the no-rank target.",
+      "red_team": "Finite-dimensional hidden Markov estimation is automatically parametric.",
+      "rebuttal": "Without rank, emission separation, or identifiability margins, fixed-dimensional HMMs contain singular strata; dimension alone does not yield uniform parametric risk.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "survived": true,
+      "selected": false,
+      "rank": 4
+    },
+    {
+      "id": "seed:overlap-misspecification-critical-delta",
+      "anchor_open_problem": "Quantify robustness when a claimed latent stationary-overlap bound is violated by a multiplicative radius.",
+      "anchor_bibkey": "ZhangJiang2024",
+      "anchor_locator": "Introduction and contributions; outcome-coverage results; Appendix E.3; Conclusion",
+      "motif": "M3+M11",
+      "m11_subshape": "matched sensitivity rate",
+      "target_tier": "field",
+      "summary": "Derive a sensitivity envelope for risk or bias under \\(d_e/d_b\\le C(1+\\delta)\\) and identify the critical violation at which an estimator ranking changes.",
+      "first_changed_proof_step": "Translate the separation between latent, belief, and outcome coverage into a sharp observable bias modulus rather than assuming a bridge norm.",
+      "destination_search": "The POMDP coverage literature separates coverage notions but does not provide a critical-violation sensitivity frontier for stationary PHIW versus immediate weighting.",
+      "red_team": "Monotonicity in the radius makes the sensitivity curve tautological.",
+      "rebuttal": "A critical \\(\\delta\\) requires sharp endpoint constructions and an observable estimator-ranking inversion; set inclusion alone gives neither.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "survived": true,
+      "selected": false,
+      "rank": 8
+    }
+  ],
+  "literature_map": {
+    "chosen_seed": "seed:fixed-c-matched-minimax",
+    "anchor": "HuWager2023 was read at the Introduction, Model 3, Lemmas 2.3--2.4, Theorem 3.1, Lemma 3.3, Section 3.2, Section 5.2, and Discussion. It settles the unrestricted PHIW upper and lower exponent but expressly does not construct distributionally overlapping hidden hard states.",
+    "adjacent_threads": [
+      "MehrabiWager2025 was read at the Introduction, TDR equation (13), Theorems 3.9--3.10 and 4.1, and its empirical discussion. It confirms that stationary-ratio regularity is rate-driving when the Markov state is observed, but its estimator requires an observable or estimable ratio.",
+      "ZhangJiang2024 was read at the Introduction, Bellman-residual construction, Example 1, Appendix E.3, and Conclusion. It confirms that latent-state coverage is weaker than belief and outcome coverage and does not subsume a stationary single-trajectory minimax theorem.",
+      "TennenholtzShalitMannor2020 was read at the Introduction, Theorem 2 and its matrix-factorization proof, and Conclusion. Its positive result depends on decoupling and invertibility, absent here.",
+      "KallusUehara2020 supplies the fully observed semiparametric efficiency and double-reinforcement-learning endpoint; its marginalized density ratio and \\(q\\)-function are functions of an observed Markov state.",
+      "LiaoKlasnjaMurphy2021 supplies long-run average-outcome inference in a fully observed mobile-health MDP, clarifying that the hidden-state obstacle is not merely temporal dependence.",
+      "LuckettEtAl2020 and MaahsEtAl2012 establish the published glucose-policy application chain; the proposal restricts its demonstration to an explicitly finite refreshed adaptation."
+    ],
+    "occupied_targets": "Published work occupies the unrestricted Hu--Wager POMDP rate, observable-state stationary-ratio rates and efficiency, and proxy- or coverage-assisted POMDP estimation. The exact fixed-\\(C\\), latent-ratio, cardinality-uniform target-method pair was not located in the bounded current-and-citing search.",
+    "writing_exemplar_used": "HuWager2023",
+    "method_exemplars_used": [
+      "HuWager2023",
+      "MehrabiWager2025",
+      "ZhangJiang2024"
+    ],
+    "method_adaptation": "The proposal retains Hu--Wager's partial-history estimator and mixing-versus-overlap balance, but replaces its lower chain at the first inadmissible step. Depth occupancy is made policy invariant; action histories instead preserve or erase a hidden sign. Zhang--Jiang's separation of latent coverage from observable inverse control motivates the filter-level KL calculation, while Mehrabi--Wager supplies the fully observed contrast."
+  },
+  "novelty_justification": {
+    "closest_published_results": [
+      "HuWager2023",
+      "MehrabiWager2025"
+    ],
+    "precise_gap": "HuWager2023 gives the desired exponent over a larger POMDP class, but its converse alternatives violate the fixed \\(d_e/d_b\\) bound and the paper explicitly leaves overlapping hidden states open. MehrabiWager2025 shows that strong stationary overlap can restore classical behavior only when the state supporting the ratio is observed. Neither result determines the minimax consequence of a bounded but unobserved joint-state ratio.",
+    "why_not_subsumed": "The new theorem is not a corollary of restricting Hu--Wager's upper bound, because minimax lower bounds do not pass to subclasses. It is not a relabeling of fully observed density-ratio theory, because the estimator never sees \\(H_t\\), \\(d_b\\), \\(d_e\\), or their ratio. Proxy and future-dependent-value papers impose informativeness conditions excluded from this class.",
+    "strict_delta": "The headline lower bound holds on the strict subclass of HuWager2023 defined by the cardinality-free constraint \\(d_e(s)\\le Cd_b(s)\\) for every joint state and every fixed \\(C>1\\), while matching the same exponent against all measurable observable-data estimators.",
+    "chosen_kernel_reason": "This seed has direct theorem-text support from the anchor's explicit open note, a concrete admissible hard-family mechanism, a falsifiable observed-filter bottleneck, an unchanged practical estimator, and a named mobile-health consumer. It dominates the local phase diagram and inference seeds because it supplies the necessary fixed-radius endpoint they would build on."
+  },
+  "_pre_d0_cursor": {
+    "cursor_version": 1,
+    "topic": "The cost of hidden state under uniformly bounded stationary policy overlap. sampling: One stationary trajectory (X_t,A_t,Y_t)_{t=1}^T; joint state S_t=(X_t,H_t) has arbitrary finite state space, with no fixed bound on either cardinality; H_t never observed. All finite observed alphabets and known policies are supplied to the estimator; latent alphabet, transition/reward kernel and stationary distributions are unknown. This is a union of finite models; constants in the requested risk comparison must not depend on cardinalities. causal_kernel: A time-homogeneous joint kernel K(dy,dx_next,dh_next | x,h,a), as Hu–Wager Model 3. Under behavior, A_t is drawn from the known policy b(.|X_t), independently of all past and H_t conditional on X_t. Target e(.|X_t) is known, memoryless in the observed state. Rewards satisfy |Y_t|<=1. policy_overlap: For fixed zeta>0, e(a|x)<=exp(zeta)b(a|x) for all a,x (zero behavior cells therefore have zero target probability). Take a fixed binary action alphabet. Both policies may vary across instances and are revealed to the estimator. mixing: For fixed t0>0 and p in {b,e}, the induced joint-state kernel P_p satisfies ||nu P_p - nu_prime P_p||_TV <= exp(-1/t0)||nu-nu_prime||_TV for every pair of state distributions. Let d_b,d_e be their unique stationary joint-state laws; observed data start from d_b. latent_stationary_overlap: For a fixed C>1 independent of T and all state cardinalities, d_e(s)<=C d_b(s) at every joint state s=(x,h). This is a structural class restriction; neither d_b nor d_e nor their ratio is revealed. Do not replace it by overlap of observed X marginals. estimand: theta(K,e)=sum_s d_e(s) sum_a e(a|x) E_K[Y|s,a], the stationary mean outcome if target policy e were deployed. risk: R_T(t0,zeta,C)=inf over all measurable estimators based only on the observed trajectory and known (b,e,t0,zeta,C), sup over the displayed class, E[(theta_hat-theta)^2]. Supremum includes all finite state cardinalities and known-policy pairs obeying restrictions. Determine the exact asymptotic order of R_T(t0,zeta,C), with an explicit attaining observable-data estimator and a matching lower bound against all measurable estimators, for fixed positive t0,zeta and C>1. Characterize whether bounded latent stationary occupancy removes, reduces, or leaves unchanged the partial-observability penalty present in Hu–Wager. Rate and all boundary/logarithmic factors are outputs, not stipulated answers. All constants may depend on t0,zeta,C but not T or cardinality. A one-sided lower construction or a reuse of the unrestricted-class PHIW upper bound without matching the restricted-class converse does not deliver the kernel. No proxy informativeness, emission-rank, finite-memory, or known latent dynamics assumptions may be inserted. Consumer: Hu–Wager Section5.2 applies PHIW to the Luckett et al. (2019) mobile-health insulin-policy simulator calibrated to Maahs et al. (2012), with dietary intake hidden and ten-day hourly glucose trajectories. This result changes whether a substantive assurance that a candidate insulin policy stays within the logging policy's latent physiological occupancy can justify shorter history weights or faster precision, or whether collecting state/proxy information remains necessary. The paper-shaped deliverable must demonstrate that implication on a finite-state discretized version of this published application; it must not claim the original continuous simulator already satisfies the finite-state uniform contraction/overlap class. PRESOLVE EVIDENCE REQUIRING VERIFICATION: A signed-depth reset chain keeps the same depth occupancy under both policies while treatment preserves a hidden sign and control erases it. Its target-to-behavior stationary ratios remain at most 1+epsilon, so epsilon can be fixed below C-1 independently of history length. A single noisy reward at terminal depth gives a target-value separation proportional to alpha^Q. The observed-filter argument uses the fact that terminal arrival forces the preceding Q rewards to be fair; a two-stage posterior bound suggests observed-path KL of order T alpha^(2Q) p^Q without revealing reset times. Balancing Q suggests the unchanged Hu-Wager risk exponent 2/(2+t0*zeta) for every fixed C>1, whereas C=1 permits parametric immediate weighting. Exhaustive small-path checks support normalization, occupancy and divergence scaling; a refreshed 360-state insulin-policy adaptation shows finite occupancy and nonzero immediate-weight bias. UNRESOLVED BOTTLENECK: Independently verify the uniform terminal-posterior bound and chain-rule KL, including stationary pre-sample signs and every initial window. EARLY KILL TEST: Re-derive this observed-data KL bound before any formalization; a missing inverse-history factor or need to reveal resets invalidates the proposed lower construction. STRONGEST-FORM DRAFT (unverified, gaps listed inside): <repo-root>/internal/presolve_drafts/stat_pomdp_latent_overlap_minimax.md.",
+    "novelty_target": "field",
+    "qid": "stat_pomdp_latent_overlap_minimax",
+    "specialization": "v1",
+    "angle": 0,
+    "version": 1,
+    "mode": "cold-start"
+  },
+  "message": "Authored the complete typed proposal core; JSON parsing, the repository proposal gate, seed-count checks, and free-symbol checks all pass.",
+  "literature_checklist": [
+    {
+      "author": "Yuchen Hu and Stefan Wager",
+      "year": 2023,
+      "venue": "Annals of Statistics",
+      "bibkey": "HuWager2023",
+      "one_line": "PHIW attains the unrestricted stationary POMDP rate, but the fixed latent-stationary-overlap converse remains open.",
+      "relevant_to": "thm:fixed-c-minimax"
+    },
+    {
+      "author": "Mohammad Mehrabi and Stefan Wager",
+      "year": 2025,
+      "venue": "arXiv",
+      "bibkey": "MehrabiWager2025",
+      "one_line": "Observable stationary-density-ratio regularity determines fully observed MDP rates.",
+      "relevant_to": "prop:unit-overlap-boundary"
+    },
+    {
+      "author": "Yuheng Zhang and Nan Jiang",
+      "year": 2024,
+      "venue": "NeurIPS",
+      "bibkey": "ZhangJiang2024",
+      "one_line": "Latent-state coverage is weaker than the belief and outcome coverage required by future-dependent-value methods.",
+      "relevant_to": "lem:observed-path-kl"
+    },
+    {
+      "author": "Guy Tennenholtz, Uri Shalit, and Shie Mannor",
+      "year": 2020,
+      "venue": "AAAI",
+      "bibkey": "TennenholtzShalitMannor2020",
+      "one_line": "Positive POMDP OPE recovery uses decoupling and invertible observable matrices absent here.",
+      "relevant_to": "oeq:shrinking-overlap-frontier"
+    },
+    {
+      "author": "Nathan Kallus and Masatoshi Uehara",
+      "year": 2020,
+      "venue": "Journal of Machine Learning Research",
+      "bibkey": "KallusUehara2020",
+      "one_line": "Observed-state q-functions and marginalized density ratios yield efficient MDP evaluation.",
+      "relevant_to": "thm:fixed-c-minimax"
+    },
+    {
+      "author": "Peng Liao, Predrag Klasnja, and Susan Murphy",
+      "year": 2021,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "LiaoKlasnjaMurphy2021",
+      "one_line": "Long-run policy-value inference is developed for fully observed mobile-health Markov states.",
+      "relevant_to": "prop:finite-insulin-demonstration"
+    },
+    {
+      "author": "Daniel Luckett and coauthors",
+      "year": 2020,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "LuckettEtAl2020",
+      "one_line": "V-learning supplies the glucose-policy setting adapted by the finite application witness.",
+      "relevant_to": "prop:finite-insulin-demonstration"
+    },
+    {
+      "author": "David Maahs and coauthors",
+      "year": 2012,
+      "venue": "Diabetes Technology and Therapeutics",
+      "bibkey": "MaahsEtAl2012",
+      "one_line": "The outpatient diabetes study motivates the diet, activity, insulin, and glucose variables.",
+      "relevant_to": "prop:finite-insulin-demonstration"
+    }
+  ]
+}

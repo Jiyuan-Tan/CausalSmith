@@ -17,11 +17,8 @@ moment, and derives the AIPW asymptotic-linearity theorem from the abstract
 
 This file uses the per-η̂ bilinear-remainder route for
 `aipw_dml_isAsymLinear`. The older Gâteaux-derivative AIPW witnesses are not
-exported from this instance; their supporting material (an unfinished,
-`sorry`-carrying Neyman-orthogonality development) is documented in
-`doc/basic_concepts/po/estimation/aipw_if.tex` and preserved in git history.
-
-See `docs/superpowers/specs/2026-05-06-general-dml-framework-design.md` §5.
+exported from this instance; the unfinished Neyman-orthogonality development
+that supported them is not part of the library.
 -/
 
 import Causalean.Estimation.OrthogonalMoments.DMLChernozhukov

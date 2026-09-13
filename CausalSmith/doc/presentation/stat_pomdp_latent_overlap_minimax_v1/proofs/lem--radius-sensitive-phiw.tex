@@ -1,0 +1,247 @@
+\begin{proof}[Proof of \cref{obj:lem:radius-sensitive-phiw}]
+\begin{enumerate}
+\item
+Write \(\mathbb P_M^{\mathrm{obs}}\) for the observed trajectory law induced by \(M\), and let
+\[
+q_C:=\frac{C-1}{C}
+\]
+be the overlap-distance radius from \cref{obj:def:overlap-distance-radius}.  Define the unclipped partial-history average
+\[
+\widetilde\theta_k
+:=
+\frac{1}{T-k}\sum_{t=k}^{T-1} Z_t(k),
+\qquad
+\widehat\theta_k
+=
+\operatorname{clip}_{[-1,1]}(\widetilde\theta_k),
+\]
+with \(Z_t(k)\) as in \cref{obj:def:phiw-estimator}.  Since \(1\le T\) and \(k\le \lfloor T/2\rfloor\), one has \(k<T\), so \(T-k\ge 1\).  The conditions defining \(M\in\mathcal M_T(t_0,\zeta,C)\) in \cref{obj:def:model-class} give \(L=e^\zeta>1\) and \(0<\alpha=e^{-1/t_0}<1\).  The finite observation space makes each score \(Z_t(k)\) measurable.  Moreover \(L=e^\zeta\ge 1\), and the sequential-ignorability, policy-overlap, and bounded-reward restrictions in \cref{obj:def:model-class} imply the window envelope
+\[
+|Z_t(k)|\le L^{k+1}
+\qquad \mathbb P_M^{\mathrm{obs}}\text{-a.s.},
+\]
+for every \(t\).  Thus each score is square-integrable under \(\mathbb P_M^{\mathrm{obs}}\), and so is \(\widetilde\theta_k\).  Moreover, \cref{obj:lem:target-value-unit-interval} applies to the present horizon and model class membership, giving
+\[
+\theta(K,e)\in[-1,1].
+\] % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.radius_sensitive_phiw
+
+\item
+For every \(u\in\mathbb R\) and every \(\vartheta\in[-1,1]\),
+\[
+\bigl(\operatorname{clip}_{[-1,1]}(u)-\vartheta\bigr)^2
+\le
+(u-\vartheta)^2.
+\]
+Applying this pointwise with \(u=\widetilde\theta_k\) and \(\vartheta=\theta(K,e)\), and then using the usual bias--variance identity for the square-integrable random variable \(\widetilde\theta_k\), yields
+\[
+\mathbb E_M\!\left[
+\{\widehat\theta_k-\theta(K,e)\}^2
+\right]
+\le
+\operatorname{Var}_M(\widetilde\theta_k)
++
+\left(
+\mathbb E_M[\widetilde\theta_k]-\theta(K,e)
+\right)^2 .
+\] % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.sqRisk_clipUnit_le_variance_add_bias_sq
+
+\item
+We next bound the bias term.  Let \(d_b\) and \(d_e\) be the stationary laws of the behavior- and target-policy transition kernels, and let \(g_e\) be the target-policy reward regression appearing in \cref{obj:def:target-value}.  Define
+\[
+g_e^\circ(s)
+:=
+\begin{cases}
+g_e(s), & d_b(s)>0,\\
+0, & d_b(s)=0,
+\end{cases}
+\qquad
+\Psi_k(s):=(P_e^k g_e^\circ)(s).
+\]
+On states with \(d_b(s)>0\), the horizon condition and the model-class restrictions give \(|g_e(s)|\le 1\); on states with \(d_b(s)=0\), the definition gives \(g_e^\circ(s)=0\).  Hence \(|g_e^\circ(s)|\le 1\) for every \(s\), and therefore
+\[
+\operatorname{osc}(g_e^\circ)
+:=
+\sup_{s,s'} |g_e^\circ(s)-g_e^\circ(s')|
+\le 2.
+\]
+The kernel and policy restrictions in \cref{obj:def:model-class} make \(P_e\) a Markov transition kernel, and \cref{obj:ass:uniform-contraction} supplies
+\[
+\|\lambda P_e-\lambda' P_e\|_{\mathrm{TV}}
+\le
+\alpha\|\lambda-\lambda'\|_{\mathrm{TV}}
+\]
+for all probability laws \(\lambda,\lambda'\) on \(\mathcal S\).  Consequently, for any bounded function \(r:\mathcal S\to\mathbb R\) and any states \(s,s'\), the dual total-variation inequality gives
+\[
+\bigl|(P_e r)(s)-(P_e r)(s')\bigr|
+\le
+\operatorname{osc}(r)\,\|\delta_sP_e-\delta_{s'}P_e\|_{\mathrm{TV}}
+\le
+\alpha\operatorname{osc}(r).
+\]
+Iterating this one-step oscillation contraction yields
+\[
+\operatorname{osc}(P_e^k r)
+\le
+\alpha^k\operatorname{osc}(r).
+\]
+Applying the last display to \(r=g_e^\circ\) gives
+\[
+\operatorname{osc}(\Psi_k)
+=
+\operatorname{osc}(P_e^k g_e^\circ)
+\le
+2\alpha^k .
+\]
+By \cref{obj:lem:phiw-score-stationary-mean}, every score in the average defining \(\widetilde\theta_k\) has mean
+\[
+\mathbb E_M[Z_t(k)]
+=
+\sum_{s\in\mathcal S} d_b(s)(P_e^k g_e)(s),
+\qquad t=k,\ldots,T-1.
+\]
+Therefore
+\[
+\mathbb E_M[\widetilde\theta_k]
+=
+\sum_{s\in\mathcal S} d_b(s)(P_e^k g_e)(s).
+\]
+For each state \(s\) with \(d_b(s)>0\), the functions \(g_e\) and \(g_e^\circ\) agree on the behavior support, so \cref{obj:lem:behavior-support-operator-congruence}, applied with the target policy and initial state \(s\), gives
+\[
+(P_e^k g_e)(s)=\Psi_k(s).
+\]
+For states with \(d_b(s)=0\), the common prefactor \(d_b(s)\) makes both weighted summands vanish, regardless of the two function values.  Hence
+\[
+\sum_s d_b(s)(P_e^k g_e)(s)
+=
+\sum_s d_b(s)\Psi_k(s).
+\]
+By \cref{obj:ass:latent-stationary-overlap}, included among the restrictions in \cref{obj:def:model-class}, \(d_e(s)\le C d_b(s)\).  Thus \(d_e(s)>0\) implies \(d_b(s)>0\), so
+\[
+\theta(K,e)
+=
+\sum_s d_e(s)g_e(s)
+=
+\sum_s d_e(s)g_e^\circ(s).
+\]
+By the meaning of the target-policy stationary law used in \cref{obj:def:target-value}, \(d_e\) is invariant for \(P_e\).  Thus, for every function \(r_{\mathrm{test}}:\mathcal S\to\mathbb R\) and every integer \(m\ge0\),
+\[
+\sum_s d_e(s)r_{\mathrm{test}}(s)
+=
+\sum_s d_e(s)(P_e^m r_{\mathrm{test}})(s).
+\]
+Applying this identity with \(r_{\mathrm{test}}=g_e^\circ\) and \(m=k\) yields
+\[
+\sum_s d_e(s)g_e^\circ(s)
+=
+\sum_s d_e(s)\Psi_k(s).
+\]
+Combining the preceding displays,
+\[
+\mathbb E_M[\widetilde\theta_k]-\theta(K,e)
+=
+\sum_s \{d_b(s)-d_e(s)\}\Psi_k(s).
+\]
+For any function with oscillation at most \(2\alpha^k\),
+\[
+\left|
+\sum_s \{d_b(s)-d_e(s)\}\Psi_k(s)
+\right|
+\le
+2\alpha^k\,\|d_b-d_e\|_{\mathrm{TV}}.
+\]
+It remains to prove the stationary-law distance subclaim
+\[
+\|d_b-d_e\|_{\mathrm{TV}}\le q_C.
+\]
+This subclaim uses the pointwise comparison \(d_e(s)\le C d_b(s)\) from \cref{obj:ass:latent-stationary-overlap}.  Throughout this step,
+\[
+\|\mu-\eta\|_{\mathrm{TV}}
+:=
+\frac12\sum_{s\in\mathcal S}|\mu(s)-\eta(s)|
+=
+\sup_{B\subseteq\mathcal S}|\mu(B)-\eta(B)|
+\]
+for probability laws on the finite joint-state space.  With this convention, any two probability laws have total-variation distance at most \(1\), since
+\[
+\frac12\sum_s |\mu(s)-\eta(s)|
+\le
+\frac12\sum_s\{\mu(s)+\eta(s)\}=1.
+\]
+If \(C=1\), then \(d_e(s)\le d_b(s)\) for every \(s\), and the two probability laws have equal total mass, so \(d_b=d_e\).  Hence
+\[
+\|d_b-d_e\|_{\mathrm{TV}}=0=q_C.
+\]
+If \(C>1\), define
+\[
+\eta_C(s):=\frac{C d_b(s)-d_e(s)}{C-1},\qquad s\in\mathcal S .
+\]
+The latent stationary overlap condition gives \(C d_b(s)-d_e(s)\ge0\) for every \(s\), and
+\[
+\sum_s \eta_C(s)
+=
+\frac{C\sum_s d_b(s)-\sum_s d_e(s)}{C-1}
+=
+1,
+\]
+so \(\eta_C\) is a probability law.  The identity
+\[
+d_b=\frac1C d_e+q_C\eta_C,
+\qquad q_C=\frac{C-1}{C},
+\]
+then gives
+\[
+d_b-d_e
+=
+q_C(\eta_C-d_e).
+\]
+Therefore
+\[
+\|d_b-d_e\|_{\mathrm{TV}}
+=
+q_C\|\eta_C-d_e\|_{\mathrm{TV}}
+\le q_C.
+\]
+Thus in all cases,
+\[
+\left|
+\mathbb E_M[\widetilde\theta_k]-\theta(K,e)
+\right|
+\le
+2q_C\alpha^k .
+\] % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.phiw_bias_le
+
+\item
+The variance estimate supplied by \cref{obj:lem:phiw-raw-variance}, with \(L=e^\zeta\) and \(\alpha=e^{-1/t_0}\), gives
+\[
+\operatorname{Var}_M(\widetilde\theta_k)
+\le
+\frac{2}{T}\left\{
+L^{k+1}\left(1+\frac{4}{L-1}\right)
++
+\frac{4}{1-\alpha}
+\right\}.
+\] % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.variance_phiwRaw_le
+
+\item
+Since \(q_C\ge 0\) and \(\alpha\ge 0\),
+\[
+\left(
+\mathbb E_M[\widetilde\theta_k]-\theta(K,e)
+\right)^2
+\le
+(2q_C\alpha^k)^2
+=
+4q_C^2\alpha^{2k}.
+\]
+Substituting this and the variance bound into the clipped bias--variance inequality proves
+\[
+\mathbb E_M\!\left[\{\widehat\theta_k-\theta(K,e)\}^2\right]
+\le
+4q_C^2\alpha^{2k}
++\frac{2}{T}\left\{
+L^{k+1}\left(1+\frac{4}{L-1}\right)
++\frac{4}{1-\alpha}
+\right\}.
+\] % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.radius_sensitive_phiw
+\end{enumerate}
+\end{proof}

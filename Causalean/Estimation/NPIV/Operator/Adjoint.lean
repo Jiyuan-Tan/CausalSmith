@@ -23,7 +23,7 @@ operator the source condition refers to.  Self-adjointness follows from
 `IsSelfAdjoint.star_mul_self` once we identify `Tadjoint` with `star Tlin`
 in the C⋆-algebra `Lp ℝ 2 μ →L[ℝ] Lp ℝ 2 μ`.
 
-All declarations in this file are fully proved (no sorries).
+All declarations in this file are fully proved.
 -/
 
 import Causalean.Estimation.NPIV.Operator

@@ -1,0 +1,290 @@
+%%% FIELD prop-finite-insulin-demonstration-proof
+Put \(\mathcal G=\{50,100,150,200,250\}\), \(\mathcal D=\{0,78\}\), and \(\mathcal E=\{0,31,850\}\).  By \(\mathrm{def{:}insulin\text{-}grid}\), a joint state is an element of
+\[
+ \mathcal G\times\mathcal D^2\times\mathcal E^2\times\{0,1\}.
+\]
+Consequently its cardinality is
+\[
+ 5\cdot 2^2\cdot 3^2\cdot 2=360.
+\]
+
+We first write the transition matrix explicitly.  For
+\(s=(g,d_1,d_2,x_1,x_2,a_1)\) and \(a\in\{0,1\}\), define
+\[
+ m(s,a)=10+0.9g+0.1d_1+0.1d_2-0.01x_1-0.01x_2-2a-4a_1.
+\]
+Let \(\Phi\) be the standard normal distribution function, let
+\(c_0=-\infty\), \(c_1=75\), \(c_2=125\), \(c_3=175\),
+\(c_4=225\), and \(c_5=+\infty\), and enumerate the elements of
+\(\mathcal G\) increasingly as \(g_0,\ldots,g_4\).  The probability
+that the rounded next glucose is \(g_i\), conditional on the
+nonrefresh branch, \(s\), and \(a\), is
+\[
+ q_i(s,a)=\Phi\!\left(\frac{c_{i+1}-m(s,a)}5\right)
+             -\Phi\!\left(\frac{c_i-m(s,a)}5\right),
+ \qquad 0\le i\le4,
+\]
+where \(\Phi(-\infty)=0\) and \(\Phi(+\infty)=1\).  This is exactly
+the clipping-and-nearest-grid rule in \(\mathrm{def{:}insulin\text{-}grid}\),
+since its four rounding cut points are \(75,125,175,225\); ties have
+normal probability zero.  Write
+\[
+ \pi_D(0)=\frac45,\quad \pi_D(78)=\frac15,
+ \qquad
+ \pi_E(0)=\pi_E(31)=\frac25,\quad \pi_E(850)=\frac15.
+\]
+Thus the nonrefresh action-specific kernel \(B_a\) is specified by
+\[
+ B_a\bigl(s,(g_i,d_0,d_1,x_0,x_1,a)\bigr)
+   =q_i(s,a)\pi_D(d_0)\pi_E(x_0),
+\]
+and is zero at every other next state.  The two nonrefresh
+policy-induced kernels are therefore
+\[
+ Q_b=\frac7{10}B_0+\frac3{10}B_1,
+ \qquad
+ Q_e(s,\cdot)=B_{\mathbf 1\{g\ge125\}}(s,\cdot).
+\]
+If \(u\) denotes the uniform distribution on the \(360\) states, the
+full policy-induced kernels are
+\[
+ P_p(s,\cdot)=\frac12u+\frac12Q_p(s,\cdot),
+ \qquad p\in\{b,e\}.
+\]
+
+For any two state distributions \(\nu,\nu'\), the signed measure
+\(\eta=\nu-\nu'\) has total mass zero, whence the common refresh term
+cancels and
+\[
+ \eta P_p=\frac12\eta Q_p.
+\]
+A Markov kernel is a contraction in total variation: indeed, for
+every function \(f\) with \(0\le f\le1\), also \(0\le Q_pf\le1\), so
+\(\sup_{0\le f\le1}|\eta Q_pf|\le\sup_{0\le h\le1}|\eta h|\).
+It follows that
+\[
+ \|\nu P_p-\nu'P_p\|_{\mathrm{TV}}
+ \le\frac12\|\nu-\nu'\|_{\mathrm{TV}},
+ \qquad p\in\{b,e\}.
+\]
+Hence both Dobrushin coefficients are at most \(1/2\).
+
+The behavior probabilities of actions \(0\) and \(1\) are \(7/10\)
+and \(3/10\).  If \(g\ge125\), the only action having positive target
+probability is action \(1\), and its target-to-behavior ratio is
+\(1/(3/10)=10/3\).  If \(g<125\), the only such action is action
+\(0\), and its ratio is \(1/(7/10)=10/7\).  Thus the maximum one-step
+ratio is
+\[
+ L=\max\left\{\frac{10}{3},\frac{10}{7}\right\}=\frac{10}{3}.
+\]
+
+The refresh representation also gives, for every pair of states
+\(s,s'\),
+\[
+ P_b(s,s')\ge \frac12u(s')=\frac1{720}.
+\]
+Stationarity and positivity of \(d_b\) then imply
+\[
+ d_b(s')=\sum_s d_b(s)P_b(s,s')\ge\frac1{720}\sum_s d_b(s)
+ =\frac1{720}.
+\]
+Since \(d_e(s')\le1\), division by the strictly positive quantity
+\(d_b(s')\) yields
+\[
+ d_e(s')\le720d_b(s')
+\]
+for every joint state \(s'\).  This is the claimed analytic latent
+stationary-overlap certificate.
+
+It remains to certify that immediate weighting is biased.  The reward
+is a deterministic function \(r\) of the current glucose, with
+\[
+ r(50)=-1,\quad r(100)=0,\quad r(150)=-\frac13,\quad
+ r(200)=r(250)=-\frac23.
+\]
+Both behavior action probabilities are positive.  Conditional
+behavior randomization and the fact that \(r\) does not depend on the
+current action give
+\[
+ \begin{aligned}
+ E_b\!\left[Y_t\frac{e(A_t\mid X_t)}{b(A_t\mid X_t)}\right]
+ &=\sum_s d_b(s)r(s)\sum_{a=0}^1
+       b(a\mid x)\frac{e(a\mid x)}{b(a\mid x)}\\
+ &=\sum_s d_b(s)r(s).
+ \end{aligned}
+\]
+On the other hand, \(\mathrm{def{:}target\text{-}value}\) and the same
+action-independence of the current reward give
+\[
+ \theta(K,e)=\sum_s d_e(s)r(s).
+\]
+Therefore
+\[
+ \Delta_{\mathrm{imm}}=d_br-d_er.
+\]
+
+Here is a reproducible rational interval certificate for this last
+difference.  From \(P_p=\tfrac12u+\tfrac12Q_p\), define
+\[
+ \bar d_p:=\sum_{j=0}^{\infty}2^{-(j+1)}uQ_p^j.
+\]
+The series is an absolutely convergent probability vector, and direct
+multiplication gives
+\[
+ \bar d_pP_p=\frac12u+\frac12\bar d_pQ_p
+ =\frac12u+\sum_{j=1}^{\infty}2^{-(j+1)}uQ_p^j=\bar d_p.
+\]
+The total-variation contraction just proved makes the stationary law
+unique, so \(\bar d_p=d_p\).
+
+All normal probabilities used below were enclosed using rational
+arithmetic.  For completeness, the enclosure is now described.  For
+\(0\le x\le8\), termwise integration of the exponential power series
+gives
+\[
+ \Phi(x)=\frac12+\frac1{\sqrt{2\pi}}
+ \sum_{k=0}^{\infty}\frac{(-1)^kx^{2k+1}}{(2k+1)2^kk!},
+ \qquad \Phi(-x)=1-\Phi(x).
+\]
+The constant was enclosed without floating-point evaluation.  The
+tangent addition formula gives
+\[
+ \tan\!\left(4\arctan\frac15-\arctan\frac1{239}\right)=1,
+\]
+because \(\tan(2\arctan(1/5))=5/12\),
+\(\tan(4\arctan(1/5))=120/119\), and substituting
+\(1/239\) in the subtraction formula gives exactly one.  The angle
+lies in \((0,\pi/2)\), and hence
+\[
+ \pi=16\arctan\frac15-4\arctan\frac1{239}.
+\]
+For \(0<x<1\), integrating the finite geometric identity for
+\((1+x^2)^{-1}\) shows that the truncation
+\[
+ A_N(x)=\sum_{k=0}^N\frac{(-1)^kx^{2k+1}}{2k+1}
+\]
+has an error of the sign of its first omitted term and magnitude at
+most \(x^{2N+3}/(2N+3)\).  Applying this with \(N=14\) at \(1/5\)
+and \(N=4\) at \(1/239\), followed only by integer multiplication and
+comparison, gives
+\[
+ \frac{3989422804014326}{10^{16}}
+ <\frac1{\sqrt{2\pi}}<
+ \frac{3989422804014328}{10^{16}}.
+\]
+For the integrated exponential series, the ratio of consecutive
+absolute terms is at most \(x^2/(2(k+1))\); hence its tail is
+alternating and decreasing after \(k=32\).  Truncation after \(k=118\)
+therefore brackets the integral between that partial sum and the same
+sum minus its next term.  Uniformly for \(x\le8\), that next term is at
+most
+\[
+ \frac{8^{239}}{239\,2^{119}119!}<8\times10^{-20}.
+\]
+For \(x>8\), integration of
+\(e^{-t^2/2}\le(t/x)e^{-t^2/2}\) for \(t\ge x\) gives the Mills bound
+\[
+ 1-\Phi(x)\le\frac{e^{-x^2/2}}{x\sqrt{2\pi}}.
+\]
+The exact rational comparison
+\[
+ \sum_{k=0}^{40}\frac{32^k}{k!}>
+ \frac{500000000000000}{7}
+\]
+and the preceding upper bound \(1/\sqrt{2\pi}<2/5\) imply
+\[
+ 1-\Phi(x)<7\times10^{-16},\qquad x>8.
+\]
+
+There are \(1422\) distinct rational arguments
+\[
+ \mathcal Z=\left\{\frac{c-m(s,a)}5:
+ s\in\mathcal G\times\mathcal D^2\times\mathcal E^2\times\{0,1\},
+ \ a\in\{0,1\},\ c\in\{75,125,175,225\}\right\},
+\]
+and their range is \([-878/25,193/5]\).  Applying the preceding
+enclosures to this finite set, exact rational comparison places every
+interval strictly inside one rounding cell for the grid
+\(10^{-12}\mathbb Z\); the smallest clearance from a cell boundary is
+greater than \(7\times10^{-4}\) after multiplication by \(10^{12}\).
+Let \(\widetilde\Phi(z)\) be the resulting multiple of \(10^{-12}\).
+Then, simultaneously for all \(z\in\mathcal Z\),
+\[
+ |\Phi(z)-\widetilde\Phi(z)|\le\varepsilon,
+ \qquad \varepsilon:=5\times10^{-13}.
+\]
+
+Replace \(\Phi\) by \(\widetilde\Phi\) in the displayed construction
+of \(B_a,Q_b,Q_e\), obtaining stochastic matrices
+\(\widetilde Q_b,\widetilde Q_e\).  Monotonicity of rounding and
+telescoping of the five glucose probabilities make their entries
+nonnegative and their row sums one.  Each action-specific row has
+\(\ell^1\) error at most
+\[
+ \varepsilon+3(2\varepsilon)+\varepsilon=8\varepsilon;
+\]
+averaging over an action cannot increase this bound.  Consequently
+\[
+ \sup_s\|Q_p(s,\cdot)-\widetilde Q_p(s,\cdot)\|_{\mathrm{TV}}
+ \le4\varepsilon,\qquad p\in\{b,e\}.
+\]
+
+The following exact-integer recurrence records the remaining finite
+calculation.  Order the states lexicographically, put
+\(R=10^{12}\), and put \(D_Q=250R\).  The matrices
+\[
+ M_p:=D_Q\widetilde Q_p
+\]
+have nonnegative integer entries and every row sum is \(D_Q\): the
+nonrefresh glucose probabilities have denominator \(R\), the diet and
+activity probabilities together have denominator \(25\), and the
+behavior mixture has denominator \(10\); the target rows are put over
+the same denominator by multiplication by \(10\).  Starting with
+\(n_{p,0,i}=1\), iterate
+\[
+ n_{p,j+1,k}=\sum_{i=0}^{359}n_{p,j,i}M_p(i,k).
+\]
+Thus \(u\widetilde Q_p^j\) has coordinate
+\(n_{p,j,i}/(360D_Q^j)\).  With \(\bar r_i=3r(s_i)\in\{-3,-2,-1,0\}\),
+define the entirely rational quantity
+\[
+ \widetilde V_{p,30}
+ =\sum_{j=0}^{29}\frac1{2^{j+1}}
+   \frac{\sum_{i=0}^{359}n_{p,j,i}\bar r_i}{3\cdot360D_Q^j}.
+\]
+Exact integer evaluation of this displayed recurrence gives
+\[
+ -\frac{5906084184470}{10^{15}}
+ <\widetilde V_{b,30}-\widetilde V_{e,30}
+ <-\frac{5906084184469}{10^{15}}.
+\]
+This calculation involves no floating-point operation: the normal
+enclosures select integers, and the recurrence thereafter consists
+only of integer additions and multiplications.
+
+Finally, since \(r\in[-1,0]\), its oscillation is one.  A telescoping
+comparison of \(Q_p^j\) and \(\widetilde Q_p^j\), using the last
+total-variation row bound at each of the \(j\) positions, yields
+\[
+ |uQ_p^jr-u\widetilde Q_p^jr|\le4j\varepsilon.
+\]
+Also, the omitted geometric tail has absolute value at most
+\(2^{-30}\).  Since \(\sum_{j\ge0}j2^{-(j+1)}=1\), the two policies
+together satisfy
+\[
+ \left|\Delta_{\mathrm{imm}}-
+   (\widetilde V_{b,30}-\widetilde V_{e,30})\right|
+ \le8\varepsilon+2^{1-30}<1.867\times10^{-9}.
+\]
+Combining this rigorous error bound with the exact rational interval
+above gives the sharper certificate
+\[
+ -0.005906087<\Delta_{\mathrm{imm}}<-0.005906082.
+\]
+In particular,
+\[
+ -0.0060<\Delta_{\mathrm{imm}}<-0.0058,
+\]
+which proves the asserted nonzero immediate-weighting bias together
+with all the structural claims.

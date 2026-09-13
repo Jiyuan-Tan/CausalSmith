@@ -1,0 +1,92 @@
+{
+  "recommendation": "major_revision",
+  "score": 6.4,
+  "score_rationale": "The paper delivers a technically substantial, machine-verified minimax frontier, but unsupported claims about the insulin example and an excessively artifact-like presentation prevent publication in its current form.",
+  "summary": "The paper characterizes the cardinality-uniform minimax risk for stationary off-policy evaluation in finite POMDPs under action overlap, contraction, and latent stationary overlap, including fixed-radius, unit-overlap, and shrinking-radius regimes. The verified all-radius surface and matching signed-depth construction are potentially important contributions for econometrics and reinforcement learning. The main theoretical claims track the verification contract closely, but the manuscript overstates what the insulin theorem establishes and requires substantial restructuring into a readable journal article.",
+  "strengths": [
+    "The uniform risk surface cleanly unifies the fixed-C exponent, the parametric C=1 endpoint, and the shrinking-radius transition with constants uniform over C and finite state cardinalities.",
+    "The upper and lower bounds are constructive: a radius-calibrated PHIW estimator attains the surface, while signed-depth alternatives and a separate parametric pair provide matching lower bounds.",
+    "The paper engages the closest partially observed benchmark, Hu--Wager, and explains why its original lower-bound construction does not directly furnish a fixed-latent-overlap converse.",
+    "The limitations sections accurately identify empirical untestability of latent overlap, dependence on known tuning parameters, nonstationary starts, and the growing hidden alphabet used by the converse.",
+    "The formal statements of the principal theorems faithfully reproduce the current verified declarations."
+  ],
+  "findings": [
+    {
+      "severity": "major",
+      "section": "A finite insulin-policy adaptation; Related work; Discussion and limitations",
+      "issue": "The manuscript repeatedly claims full model-class membership although the verified insulin theorem establishes only state count, contraction, policy overlap, stationary overlap, and the bias interval. Offending sentences include “What the example establishes is therefore exactly these two facts: the grid lies inside the model class” and “Because the grid lies in the class, the partial-history estimator ... is the estimator whose worst-case guarantee ... is supplied by” the frontier theorem. The related-work and discussion sections similarly call it an instance satisfying all structural conditions and place it on the fixed-overlap slice. Neither the displayed construction nor the verified proposition establishes the Markov-law, sequential-ignorability, stationary-start, and bounded-reward conjunction required by the model class; in particular, the construction does not specify the initial law needed to assess stationary start.",
+      "fix": "At minimum, describe the example affirmatively as verifying the four listed structural properties and a nonzero immediate-weighting bias, and remove every invocation of full class membership or the frontier's guarantee for this grid. If the intended class-membership link is essential, add the initial law and a separately verified theorem establishing every model-class predicate at t0=1/log 2 and zeta=log(10/3).",
+      "kind": "prose",
+      "finding_id": "insulin-class-membership-overclaim",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "major",
+      "section": "Proofs and auxiliary constructions; Proofs of the main results",
+      "issue": "The manuscript reads primarily as a line-by-line formal-proof transcript rather than a journal article. Long sequences of implementation-level measure-theoretic and finite-index bookkeeping obscure the statistical ideas, while closely related definitions and arguments are repeated across several lemmas. The source also retains a very large disabled \\iffalse proof block inside the PHIW upper-bound proof.",
+      "fix": "Keep concise proof sketches for the upper-bound bias–variance calculation, radius calibration, signed-depth information bound, and two-point reduction in the paper; move the proof transcriptions and certificate arithmetic to a clearly identified technical supplement. Add a compact proof roadmap showing how the main lemmas feed the three principal theorems, and remove the disabled duplicate source block.",
+      "kind": "structure",
+      "finding_id": "formal-transcript-dominates-exposition",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "minor",
+      "section": "Verification note",
+      "issue": "The statement map is stale relative to the current verification record. It maps the bounded-target result to targetValue_mem_Icc in Helpers/BiasVariance.lean, whereas the current declaration is targetValue_mem_unit in Helpers/Kernels.lean; it also places observedRisk_le_four in Helpers/TwoPoint.lean rather than Helpers/Kernels.lean. In addition, the source-tree-wide assertion about containing no occurrence of sorry, admit, or added axioms is broader than the declaration-level receipts supplied here.",
+      "fix": "Regenerate the statement map from the current declaration inventory and phrase the trust disclosure at the level actually certified by the receipts. Check every listed declaration name and file before publication.",
+      "kind": "other",
+      "finding_id": "stale-verification-map",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "minor",
+      "section": "A finite insulin-policy adaptation",
+      "issue": "The paragraph following the insulin theorem violates the affirmative contribution-framing contract outside a limitations section: “the example is not a finite-sample comparison, and it does not show that ...” followed by “outside the scope.”",
+      "fix": "Move genuine noncoverage to the explicitly titled limitations section. In the example section, state positively that the construction certifies four structural properties and isolates the stationary-occupancy source of immediate-weighting bias.",
+      "kind": "prose",
+      "finding_id": "contribution-by-negation",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "minor",
+      "section": "Related work",
+      "issue": "The central novelty argument relies on a detailed claim about the terminal-depth stationary ratio in the proof of Hu--Wager's Theorem 3.1, but cites only the theorem as a whole. Readers need a precise source locator or a short self-contained calculation to verify why that construction exits every fixed-C class when Q is proportional to log T.",
+      "fix": "Add the exact appendix, equation, lemma, or page locator in Hu--Wager supporting the stationary-ratio calculation, and display the short ratio calculation if no single cited result states it directly.",
+      "kind": "citation",
+      "finding_id": "hu-wager-ratio-locator",
+      "remedy": "citation_research"
+    },
+    {
+      "severity": "minor",
+      "section": "A finite insulin-policy adaptation",
+      "issue": "The insulin transition definition is not fully reproducible from the prose: N(0,25) does not say explicitly whether 25 is the variance, and the rounding operator on the glucose grid lacks a tie-breaking convention. These choices determine transition probabilities used by the certificate.",
+      "fix": "Specify the Gaussian parameterization and the exact clipping, nearest-grid, and tie-breaking rules, matching the verified implementation.",
+      "kind": "statement",
+      "finding_id": "insulin-transition-ambiguity",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "minor",
+      "section": "Setup and estimands",
+      "issue": "The environment titled “Memoryless binary policy” defines an arbitrary real-valued function rather than a probability kernel. Normalization and nonnegativity are imposed later for b and e, but the present title and accompanying prose invite readers to infer those properties immediately.",
+      "fix": "Rename it “Memoryless binary policy carrier” and state directly that the probability-vector restrictions for the behavior and target carriers are imposed in the subsequent assumptions.",
+      "kind": "statement",
+      "finding_id": "policy-carrier-terminology",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "nit",
+      "section": "abstract",
+      "issue": "At their first appearance, q_C and beta are introduced only through formulas rather than plain-word glosses, contrary to the first-use gloss requirement.",
+      "fix": "Write “the overlap-distance radius q_C=(C-1)/C” and “the rate exponent beta=2/(2+t0 zeta)” at first use.",
+      "kind": "prose",
+      "finding_id": "abstract-symbol-gloss",
+      "remedy": "rewrite"
+    }
+  ],
+  "questions_for_authors": [
+    "What initial distribution is used in the insulin experiment, and is it exactly the behavior-policy stationary law?",
+    "Do the authors intend the insulin construction to satisfy the complete model-class predicate, or only the four properties asserted by the verified insulin theorem?",
+    "Which precise part of Hu--Wager establishes the terminal-depth target-to-behavior stationary-ratio growth used in the novelty comparison?"
+  ]
+}

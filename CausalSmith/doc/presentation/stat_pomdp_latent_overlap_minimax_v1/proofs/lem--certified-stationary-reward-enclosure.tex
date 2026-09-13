@@ -1,0 +1,133 @@
+\begin{proof}[Proof of \cref{obj:lem:certified-stationary-reward-enclosure}]
+\begin{enumerate}
+\item Fix \(k=0,\ldots,m\) and \(s'\in\mathsf S\).  For this pair \((k,s')\), write the chunked-recurrence data as
+\[
+\mathcal G^{k,s'}_1,\ldots,\mathcal G^{k,s'}_{J_{k,s'}},
+\qquad
+\Xi^{k,s'}_1(s'),\ldots,\Xi^{k,s'}_{J_{k,s'}}(s'),
+\qquad
+\Sigma^{k,s'}_1,\ldots,\Sigma^{k,s'}_{J_{k,s'}+1}.
+\]
+These are the block partition, block intervals, and partial-sum intervals attached to this fixed \((k,s')\).  The chunked recurrence first gives the ordinary interval recurrence
+\[
+\sum_{s\in\mathsf S}\mathfrak T_k(s)\cdot\mathfrak A(s,s')
+   \subseteq \mathfrak T_{k+1}(s').
+\]
+Indeed, take arbitrary choices from the interval summands on the left and group them by the disjoint covering blocks \(\mathcal G^{k,s'}_1,\ldots,\mathcal G^{k,s'}_{J_{k,s'}}\).  The contribution of block \(\mathcal G^{k,s'}_j\) lies in \(\Xi^{k,s'}_j(s')\).  Starting from the tail value \(0\in\Sigma^{k,s'}_{J_{k,s'}+1}\), the inclusions
+\[
+\Xi^{k,s'}_j(s')+\Sigma^{k,s'}_{j+1}\subseteq \Sigma^{k,s'}_j,
+\qquad j=J_{k,s'},\ldots,1,
+\]
+show by backward induction that the sum of the block contributions from \(j\) through \(J_{k,s'}\) lies in \(\Sigma^{k,s'}_j\).  At \(j=1\) this is the full sum, and \(\Sigma^{k,s'}_1=\mathfrak T_{k+1}(s')\).  If the block list is empty, the same argument is just the terminal condition \(0\in\Sigma^{k,s'}_1=\mathfrak T_{k+1}(s')\).  Thus the initial row together with these coordinate recurrences is the ordinary finite-iterate certificate with rows \(\mathfrak T_0,\ldots,\mathfrak T_{m+1}\) used in the remaining argument. % lean: CoordinateRecurrenceCertificate.sound
+
+\item Define the true iterates \(\eta_n:\mathsf S\to\mathbb R\), for all \(n\in\mathbb N\), by
+\[
+\eta_{0}(s)=\mu_0(s),\qquad
+\eta_{n+1}(s')=\sum_{s\in\mathsf S}\eta_n(s)P(s,s').
+\]
+Here \(\mu_0\) is the given initial probability vector, while \(\eta_n\) denotes its \(n\)-step image under \(P\).  The initial condition gives \(\eta_0(s)\in\mathfrak T_0(s)\).  If \(\eta_n(s)\in\mathfrak T_n(s)\) for every \(s\), then \(P(s,s')\in\mathfrak A(s,s')\) and exact interval multiplication give
+\[
+\eta_n(s)P(s,s')\in \mathfrak T_n(s)\cdot\mathfrak A(s,s'),
+\]
+and exact interval summation together with the recurrence from the previous step gives
+\[
+\eta_{n+1}(s')\in\mathfrak T_{n+1}(s').
+\]
+Thus, for \(n=0,\ldots,m+1\),
+\[
+\eta_n(s)\in\mathfrak T_n(s)\qquad\text{for every }s\in\mathsf S.
+\]
+In particular,
+\[
+\eta_m(s)\in\mathfrak T_m(s),\qquad
+\eta_{m+1}(s)\in\mathfrak T_{m+1}(s).
+\]
+Since \(\mu_0\) is a probability vector and \(P\) is stochastic, every \(\eta_n\) is a probability vector. % lean: FiniteIterateCertificate.table_sound
+
+\item The terminal interval expectation contains the true reward expectation at time \(m\):
+\[
+\sum_{s\in\mathsf S}\eta_m(s)r(s)
+   \in
+\sum_{s\in\mathsf S}\mathfrak T_m(s)\cdot\mathfrak r(s)
+   =\mathfrak E.
+\]
+This follows coordinatewise from \(\eta_m(s)\in\mathfrak T_m(s)\) and \(r(s)\in\mathfrak r(s)\), followed by exact interval products and exact finite interval addition. % lean: intervalDot_sound
+
+\item The one-step residual of \(\eta_m\) is bounded by \(\delta\).  Since \(\eta_{m+1}=\eta_mP\), exact interval subtraction gives
+\[
+\eta_m(s)-\eta_{m+1}(s)
+   \in \mathfrak T_m(s)\ominus\mathfrak T_{m+1}(s),
+\]
+and hence
+\[
+|\eta_m(s)-\eta_{m+1}(s)|
+   \le \bigl|\mathfrak T_m(s)\ominus\mathfrak T_{m+1}(s)\bigr|_{\max}.
+\]
+Summing over \(s\) yields
+\[
+\|\eta_m-\eta_mP\|_1
+   =\|\eta_m-\eta_{m+1}\|_1
+   \le \delta.
+\]
+Because \(\pi\) is stationary and both \(\eta_m\) and \(\pi\) are probability vectors,
+\[
+\begin{aligned}
+\|\eta_m-\pi\|_1
+&\le \|\eta_m-\eta_mP\|_1+\|\eta_mP-\pi P\|_1\\
+&\le \delta+\rho\|\eta_m-\pi\|_1 .
+\end{aligned}
+\]
+Since \(1-\rho>0\), this gives
+\[
+\|\eta_m-\pi\|_1\le \frac{\delta}{1-\rho}.
+\]
+% lean: finiteIterate_stationary_l1_le
+
+\item For every state \(s\),
+\[
+|r(s)|
+   \le \max\{|\ell(\mathfrak r(s))|,|u(\mathfrak r(s))|\}
+   =|\mathfrak r(s)|_{\max}
+   \le B.
+\]
+Therefore
+\[
+\begin{aligned}
+\left|
+\sum_{s\in\mathsf S}\pi(s)r(s)
+-
+\sum_{s\in\mathsf S}\eta_m(s)r(s)
+\right|
+&=
+\left|\sum_{s\in\mathsf S}(\pi(s)-\eta_m(s))r(s)\right|\\
+&\le \sum_{s\in\mathsf S}|\pi(s)-\eta_m(s)|\,|r(s)|\\
+&\le B\|\pi-\eta_m\|_1\\
+&\le \frac{B\delta}{1-\rho}.
+\end{aligned}
+\]
+% lean: abs_rewardExpectation_sub_le
+
+\item Combining the preceding two enclosures, let
+\[
+x_m=\sum_{s\in\mathsf S}\eta_m(s)r(s),
+\qquad
+x_\pi=\sum_{s\in\mathsf S}\pi(s)r(s).
+\]
+From \(x_m\in\mathfrak E\) and
+\[
+|x_\pi-x_m|\le \frac{B\delta}{1-\rho},
+\]
+we obtain
+\[
+\ell(\mathfrak E)-\frac{B\delta}{1-\rho}
+\le x_\pi\le
+u(\mathfrak E)+\frac{B\delta}{1-\rho}.
+\]
+By the definition of \(\mathfrak J\), this is exactly
+\[
+\sum_{s\in\mathsf S}\pi(s)r(s)\in\mathfrak J .
+\]
+% lean: stationaryRewardInterval_sound
+\end{enumerate}
+% lean: stationaryRewardInterval_sound_of_chunked
+\end{proof}

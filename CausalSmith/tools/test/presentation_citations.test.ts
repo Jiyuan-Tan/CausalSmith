@@ -370,6 +370,43 @@ describe("defaultLookup: transient-unreachable vs definitively-absent", () => {
     fields: { title: "Causal Inference under Interference", author: "Fan, X.", year: "2025", eprint: "2502.06008" },
   };
 
+  it("a record found only after an earlier registry failed is marked degraded", async () => {
+    globalThis.fetch = vi.fn(async (url: string | URL) => {
+      const u = String(url);
+      if (u.includes("api.crossref.org/works/")) return { ok: false, status: 503 } as unknown as Response;
+      if (u.includes("export.arxiv.org")) return arxivGoodFeed as unknown as Response;
+      return { ok: false, status: 404 } as unknown as Response;
+    }) as unknown as typeof fetch;
+    const rec = await runLookup({ ...fanEntry, fields: { ...fanEntry.fields, doi: "10.1000/fan2025" } });
+    expect(rec !== UNREACHABLE && rec?.title).toBe("Causal Inference under Interference");
+    expect(rec !== UNREACHABLE && rec?.degraded).toBe(true);
+  });
+
+  it("a DOI that is reachable but absent does not degrade the arXiv record that follows", async () => {
+    globalThis.fetch = vi.fn(async (url: string | URL) => {
+      const u = String(url);
+      if (u.includes("api.crossref.org/works/")) return { ok: false, status: 404 } as unknown as Response;
+      if (u.includes("export.arxiv.org")) return arxivGoodFeed as unknown as Response;
+      return { ok: false, status: 404 } as unknown as Response;
+    }) as unknown as typeof fetch;
+    const rec = await runLookup({ ...fanEntry, fields: { ...fanEntry.fields, doi: "10.1000/fan2025" } });
+    expect(rec !== UNREACHABLE && rec?.title).toBe("Causal Inference under Interference");
+    expect(rec !== UNREACHABLE && rec?.degraded).toBeUndefined();
+  });
+
+  it("a title-search match found after Crossref failed is marked degraded", async () => {
+    globalThis.fetch = vi.fn(async (url: string | URL) => {
+      const u = String(url);
+      if (u.includes("api.crossref.org")) return { ok: false, status: 503 } as unknown as Response;
+      if (u.includes("export.arxiv.org")) return arxivGoodFeed as unknown as Response;
+      return { ok: false, status: 404 } as unknown as Response;
+    }) as unknown as typeof fetch;
+    const { eprint: _drop, ...noId } = fanEntry.fields;
+    const rec = await runLookup({ ...fanEntry, fields: noId });
+    expect(rec !== UNREACHABLE && rec?.title).toBe("Causal Inference under Interference");
+    expect(rec !== UNREACHABLE && rec?.degraded).toBe(true);
+  });
+
   it("arXiv throttling (403) is transient → UNREACHABLE, not a title fallback", async () => {
     globalThis.fetch = vi.fn(async (url: string | URL) => {
       const u = String(url);

@@ -1,0 +1,245 @@
+\begin{proof}[Proof of \cref{obj:lem:phiw-overlapping-window-covariance}]
+\begin{enumerate}
+\item Let
+\[
+\mu_{\mathrm{obs}}:=\mathcal L_{\mathrm{obs}}(M)
+\]
+be the observed-trajectory law of \(M\). Since it is the pushforward of the probability law of the full raw experiment under the observation map, \(\mu_{\mathrm{obs}}\) is a probability measure. Also, from \(k\le t\), \(u=t+h\), and \(h\ge 1\), we have
+\[
+k\le u .
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.abs_covariance_phiwScore_le_overlapDecay
+
+\item We use the following covariance reduction. If \(\mu\) is a probability law, \(\xi,\eta\in L^2(\mu)\), and a number \(B\) satisfies
+\[
+\int |\xi|\,d\mu\le 1,\qquad
+\int |\eta|\,d\mu\le 1,\qquad
+\int |\xi\eta|\,d\mu\le B,\qquad
+1\le B,
+\]
+then
+\[
+|\operatorname{Cov}_{\mu}(\xi,\eta)|\le 2B .
+\]
+Indeed,
+\[
+|\operatorname{Cov}_{\mu}(\xi,\eta)|
+\le
+\int |\xi\eta|\,d\mu
++
+\left(\int |\xi|\,d\mu\right)
+\left(\int |\eta|\,d\mu\right),
+\]
+by expanding the covariance and applying the triangle inequality. The two \(L^1\)-bounds give
+\[
+\left(\int |\xi|\,d\mu\right)
+\left(\int |\eta|\,d\mu\right)\le 1,
+\]
+because both factors are nonnegative. Hence
+\[
+|\operatorname{Cov}_{\mu}(\xi,\eta)|
+\le B+1\le 2B .
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.abs_covariance_le_two_mul
+
+\item Apply this reduction with
+\[
+\xi(w):=Z_t(k)(w),
+\qquad
+\eta(w):=Z_u(k)(w),
+\qquad
+B:=L^{k+1-h},
+\]
+for observed trajectories \(w\). The two scores are square-integrable under \(\mu_{\mathrm{obs}}\). To see this, write the one-step ratio in \cref{obj:def:phiw-estimator} as
+\[
+\rho_j(w)
+:=
+\begin{cases}
+ e(A_j(w)\mid X_j(w))/b(A_j(w)\mid X_j(w)),& b(A_j(w)\mid X_j(w))>0,\\
+ 0,& b(A_j(w)\mid X_j(w))=0,
+\end{cases}
+\]
+for every observed trajectory \(w\). The policy-vector parts of \cref{obj:ass:sequential-ignorability,obj:ass:policy-overlap} give \(b(a\mid x),e(a\mid x)\ge 0\). If \(b(a\mid x)>0\), \cref{obj:ass:policy-overlap} gives
+\[
+0\le {e(a\mid x)\over b(a\mid x)}\le L .
+\]
+If \(b(a\mid x)=0\), then \(e(a\mid x)\le Lb(a\mid x)=0\), hence \(e(a\mid x)=0\), and the zero-cell convention sets the ratio equal to zero. Thus, for every observed trajectory \(w\),
+\[
+0\le \rho_j(w)\le L
+\qquad\text{for every }j .
+\]
+Also \(|Y_r|\le 1\) almost surely by \cref{obj:ass:bounded-reward}. Hence, for every time \(r\),
+\[
+|Z_r(k)(w)|
+\le
+\prod_{j\in\mathcal W_r}\rho_j(w)
+\le
+L^{|\mathcal W_r|}
+\le
+L^{k+1},
+\qquad
+\mathcal W_r:=\{j: j\le r,\ r-j\le k\},
+\]
+outside the null set where the reward bound fails. The window \(\mathcal W_r\) is a subset of the integer interval \(\{r-k,\ldots,r\}\), so \(|\mathcal W_r|\le k+1\). The map \(w\mapsto Z_r(k)(w)\) is measurable: the observed trajectory space carries real rewards and is not finite, so measurability is not a counting argument, but each coordinate map \(w\mapsto(X_j(w),A_j(w))\) and \(w\mapsto Y_j(w)\) is measurable, the ratio \(\rho_j\) is a measurable function of the first of these by the two-case definition above, and \(Z_r(k)\) is a finite product of these measurable maps. Since \(\mu_{\mathrm{obs}}\) is a probability law, the almost-sure bound above implies \(Z_r(k)\in L^2(\mu_{\mathrm{obs}})\), and in particular it applies to \(r=t\) and \(r=u\).
+
+Moreover, \cref{obj:ass:pomdp-kernel} and the initial-window conditions \(k\le t\) and \(k\le u\) give
+\[
+\int |Z_t(k)|\,d\mu_{\mathrm{obs}}\le 1,
+\qquad
+\int |Z_u(k)|\,d\mu_{\mathrm{obs}}\le 1 .
+\]
+For a single time \(r\) with \(k\le r\), this last estimate is obtained as follows. For integers \(r_{\mathrm{lo}},r_{\mathrm{hi}}\) with \(0\le r_{\mathrm{lo}}\le r_{\mathrm{hi}}<T\), define
+\[
+\Gamma_{r_{\mathrm{lo}},r_{\mathrm{hi}}}(w)
+:=
+\prod_{j=r_{\mathrm{lo}}}^{r_{\mathrm{hi}}}\rho_j(w),
+\]
+with the empty product equal to one when the lower endpoint is above the upper endpoint. This chronological block has unit expectation:
+\[
+\int \Gamma_{r_{\mathrm{lo}},r_{\mathrm{hi}}}(w)\,d\mu_{\mathrm{obs}}(w)=1 .
+\]
+To prove this, pull the integral back from \(\mu_{\mathrm{obs}}\) to the full trajectory law, so that \(X_j,A_j\), and \(Y_j\) are full-trajectory coordinates. For \(s\in\{r_{\mathrm{lo}},\ldots,r_{\mathrm{hi}}\}\), let
+\[
+\mathscr G_s
+:=
+\sigma(X_0,H_0,A_0,Y_0,\ldots,A_{s-1},Y_{s-1},X_s,H_s)
+\]
+and
+\[
+\Gamma^-_{r_{\mathrm{lo}},s}
+:=
+\prod_{j=r_{\mathrm{lo}}}^{s-1}\rho_j,
+\]
+where the product is one for \(s=r_{\mathrm{lo}}\). The factor \(\Gamma^-_{r_{\mathrm{lo}},s}\) is \(\mathscr G_s\)-measurable. By \cref{obj:ass:sequential-ignorability}, conditionally on \(\mathscr G_s\) the action \(A_s\) has law \(b(\cdot\mid X_s)\). The zero-cell convention and the implication \(b(a\mid x)=0\Rightarrow e(a\mid x)=0\) computed above give
+\[
+\sum_{a\in\mathcal A} b(a\mid X_s)\rho(a,X_s)
+=
+\sum_{a\in\mathcal A} e(a\mid X_s)
+=
+1,
+\]
+and hence
+\[
+\mathbb E\!\left[
+\Gamma^-_{r_{\mathrm{lo}},s}\rho_s
+\mid \mathscr G_s
+\right]
+=
+\Gamma^-_{r_{\mathrm{lo}},s} .
+\]
+The remaining coordinates after the action at time \(s\) are integrated with the probability kernel in \cref{obj:ass:pomdp-kernel}; integrating first over the fibre containing \((Y_s,X_{s+1},H_{s+1})\) preserves the expectation of any function of \(\mathscr G_s\). Applying the displayed conditional identity successively for \(s=r_{\mathrm{hi}},r_{\mathrm{hi}}-1,\ldots,r_{\mathrm{lo}}\) removes the factors one at a time and leaves the empty product, whose expectation is one. Taking \(r_{\mathrm{lo}}=r-k\) and \(r_{\mathrm{hi}}=r\) gives
+\[
+\int \prod_{j=r-k}^{r}\rho_j(w)\,d\mu_{\mathrm{obs}}(w)=1 .
+\]
+Now
+\[
+Z_r(k)(w)
+=
+Y_r(w)\prod_{j=r-k}^{r}\rho_j(w),
+\]
+and \(|Y_r|\le 1\) almost surely by \cref{obj:ass:bounded-reward}. Therefore
+\[
+\int |Z_r(k)|\,d\mu_{\mathrm{obs}}
+\le
+\int \prod_{j=r-k}^{r}\rho_j(w)\,d\mu_{\mathrm{obs}}(w)
+=
+1 .
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.integral_abs_phiwScore_le_one
+
+\item It remains to bound the cross moment. For the two overlapping windows define
+\[
+\mathcal W_t:=\{j\in\{0,\ldots,T-1\}: t-k\le j\le t\},
+\qquad
+\mathcal W_u:=\{j\in\{0,\ldots,T-1\}: u-k\le j\le u\},
+\qquad
+\mathcal W_{\cup}:=\mathcal W_t\cup\mathcal W_u .
+\]
+Since \(t\) and \(u\) are elements of \(\{0,\ldots,T-1\}\), their integer values are valid finite-time endpoints. The assumptions \(k\le t\), \(u=t+h\), and \(h\le k\) give \(t-k\le u\) and identify the union in the formal finite index set as
+\[
+\mathcal W_t\cup\mathcal W_u
+=
+\{j\in\{0,\ldots,T-1\}: t-k\le j\le u\}.
+\]
+The same endpoint inequalities give the cardinality bound for the overlap,
+\[
+|\mathcal W_t\cap\mathcal W_u|\le k+1-h .
+\]
+Using the same zero-cell ratio \(\rho_j\) as above, the policy-vector and overlap parts of \cref{obj:ass:sequential-ignorability,obj:ass:policy-overlap}, together with \(L\ge 1\), give
+\[
+0\le \rho_j(w)\le L
+\qquad\text{for every }j,w .
+\]
+Therefore
+\[
+\prod_{j\in\mathcal W_t\cap\mathcal W_u}\rho_j(w)
+\le
+L^{|\mathcal W_t\cap\mathcal W_u|}
+\le
+L^{k+1-h},
+\]
+the second inequality by the cardinality bound \(|\mathcal W_t\cap\mathcal W_u|\le k+1-h\) together with the monotonicity of \(n\mapsto L^{n}\) for \(L\ge1\); the intersection need not have exactly \(k+1-h\) indices, so this step is an inequality and not an identity.
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.integral_abs_phiwScore_mul_le_overlapDecay
+
+\item Since \(|Y_t|\le 1\) and \(|Y_u|\le 1\) almost surely,
+\[
+|Z_t(k)Z_u(k)|
+\le
+\left(\prod_{j\in\mathcal W_t}\rho_j\right)
+\left(\prod_{j\in\mathcal W_u}\rho_j\right).
+\]
+The product over two windows decomposes into the product over the union times the product over the overlap:
+\[
+\left(\prod_{j\in\mathcal W_t}\rho_j\right)
+\left(\prod_{j\in\mathcal W_u}\rho_j\right)
+=
+\left(\prod_{j\in\mathcal W_{\cup}}\rho_j\right)
+\left(\prod_{j\in\mathcal W_t\cap\mathcal W_u}\rho_j\right).
+\]
+Combining this with the previous display gives the pointwise almost-sure bound
+\[
+|Z_t(k)Z_u(k)|
+\le
+L^{k+1-h}
+\prod_{j\in\mathcal W_{\cup}}\rho_j .
+\]
+The finite-window identity from the preceding step rewrites the union product in exactly chronological form:
+\[
+\mathcal W_{\cup}
+=
+\{j\in\{0,\ldots,T-1\}: t-k\le j\le u\},
+\qquad
+\prod_{j\in\mathcal W_{\cup}}\rho_j(w)
+=
+\prod_{j=t-k}^{u}\rho_j(w).
+\]
+The interval-normalization argument proved above applies with lower endpoint \(t-k\) and upper endpoint \(u\). The lower endpoint is nonnegative because \(k\le t\), the upper endpoint is in \(\{0,\ldots,T-1\}\) because \(u\) is a time index, and \(t-k\le u\) follows from \(u=t+h\). Thus
+\[
+\int \prod_{j\in\mathcal W_{\cup}}\rho_j(w)\,d\mu_{\mathrm{obs}}(w)
+=
+\int \prod_{j=t-k}^{u}\rho_j(w)\,d\mu_{\mathrm{obs}}(w)
+=
+1 .
+\]
+Hence
+\[
+\int |Z_t(k)Z_u(k)|\,d\mu_{\mathrm{obs}}
+\le
+L^{k+1-h}.
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.integral_abs_phiwScore_mul_le_overlapDecay
+
+\item Finally,
+\[
+1\le L^{k+1-h},
+\]
+because \(L\ge 1\). The covariance reduction from Step 2, applied with \(B=L^{k+1-h}\), yields
+\[
+\bigl|\operatorname{Cov}_{\mathrm{obs}}(Z_t(k),Z_u(k))\bigr|
+\le
+2L^{k+1-h},
+\]
+which is the claimed bound.
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.abs_covariance_phiwScore_le_overlapDecay
+\end{enumerate}
+\end{proof}

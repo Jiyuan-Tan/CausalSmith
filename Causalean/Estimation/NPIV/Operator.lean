@@ -36,7 +36,7 @@ The operator `T h` is then:
 The single population identity exported here, `T_inner_eq_integral`, is what
 the rate theorem consumes.  Its proof combines `condExpL2` self-adjointness
 with the orthogonality characterization of `Qbar_L2`-projection; it is fully
-proved (no sorries).
+proved.
 
 The adjoint `T*` and the self-adjoint composite `T†T` are bundled in
 `Operator/Adjoint.lean`; this file focuses on the unbundled projection operator

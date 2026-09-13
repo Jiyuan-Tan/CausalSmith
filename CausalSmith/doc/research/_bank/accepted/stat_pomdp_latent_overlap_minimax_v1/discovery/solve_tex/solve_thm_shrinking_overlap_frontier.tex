@@ -1,0 +1,487 @@
+%%% FIELD shrinking-frontier-proof
+Put \(\delta:=\delta_T\), \(r:=\log(1/\alpha)=1/t_0\),
+\[
+ D:=2r+\log L,
+ \qquad
+ \beta=\frac{2r}{D}=\frac{2}{2+t_0\zeta},
+ \qquad
+ 1-\beta=\frac{\log L}{D},
+\]
+and put \(x:=T\delta^2\).
+
+We first prove the upper bound for the estimator displayed in the statement.  Fix a member of \(\mathcal M_T(t_0,\zeta,1+\delta)\).  If \(\delta>0\), then
+\[
+ \nu:=\frac{(1+\delta)d_b-d_e}{\delta}
+\]
+is a probability law: nonnegativity follows from \(\mathrm{ass{:}latent\text{-}stationary\text{-}overlap}\), and its mass is one because \(d_b\) and \(d_e\) are probability laws.  The identity
+\[
+ d_b-d_e=\frac{\delta}{1+\delta}(\nu-d_e)
+\]
+therefore implies
+\[
+ \lVert d_b-d_e\rVert_{\mathrm{TV}}
+ \le \frac{\delta}{1+\delta}\le\delta. \tag{1}
+\]
+If \(\delta=0\), pointwise domination and equality of total masses give \(d_b=d_e\), so (1) also holds.
+
+Let \(0\le k<T\), and let \(\widetilde\theta_k:=(T-k)^{-1}\sum_{t=k+1}^T Z_t(k)\) denote the average before clipping.  Sequential randomization in \(\mathrm{def{:}model\text{-}class}\) changes each behavior action law to the target action law when it is multiplied by \(\rho_j\).  Iterating this identity through the \(k+1\) ratios in \(Z_t(k)\), and then using the POMDP kernel predicate, gives
+\[
+ E[Z_t(k)]=d_bP_e^kg_e.
+\]
+There are \(k\) transitions because the final ratio changes only the action distribution at epoch \(t\).  Since \(d_eP_e^k=d_e\), the contraction predicate and (1) give
+\[
+ \lVert d_bP_e^k-d_e\rVert_{\mathrm{TV}}
+ \le \alpha^k\lVert d_b-d_e\rVert_{\mathrm{TV}}
+ \le\delta\alpha^k.
+\]
+The reward-support predicate gives \(\lVert g_e\rVert_\infty\le1\).  Hence, by \(\mathrm{def{:}target\text{-}value}\),
+\[
+ \bigl|E[Z_t(k)]-\theta(K,e)\bigr|
+ \le2\delta\alpha^k. \tag{2}
+\]
+
+We next record the variance calculation, including the overlapping windows.  The policy-overlap predicate gives \(0\le\rho_j\le L\) and \(\rho_j^2\le L\rho_j\).  Successive conditional expectation of a chronological product of single policy ratios gives expectation one.  Since \(|Y_t|\le1\),
+\[
+ E|Z_t(k)|\le1,
+ \qquad
+ E[Z_t(k)^2]\le L^{k+1}. \tag{3}
+\]
+For \(1\le h\le k\), the two windows overlap at \(k+1-h\) actions.  Applying \(\rho^2\le L\rho\) at precisely those actions and cancelling every remaining single ratio yields
+\[
+ E|Z_t(k)Z_{t+h}(k)|\le L^{k+1-h},
+\]
+and therefore, using (3),
+\[
+ |\operatorname{Cov}(Z_t(k),Z_{t+h}(k))|
+ \le2L^{k+1-h}. \tag{4}
+\]
+For \(h\ge k+1\), the Markov and likelihood-ratio identities make the conditional mean of the future block, given the latent history through \(S_{t+1}\), equal to
+\[
+ H_h(S_{t+1}),
+ \qquad H_h:=P_b^{h-k-1}P_e^kg_e.
+\]
+The contraction predicate implies
+\(\operatorname{osc}(H_h)\le2\alpha^{h-k-1}\).  The stationary-start predicate makes the mean of \(H_h(S_{t+1})\) equal to \(E[Z_t(k)]\), which lies between its minimum and maximum.  Thus (3) gives
+\[
+ |\operatorname{Cov}(Z_t(k),Z_{t+h}(k))|
+ \le2\alpha^{h-k-1}. \tag{5}
+\]
+Writing \(N:=T-k\), stationarity and the variance identity for a finite sum now give
+\[
+ \operatorname{Var}(\widetilde\theta_k)
+ \le \frac1N\left\{
+ L^{k+1}\left(1+\frac4{L-1}\right)
+ +\frac4{1-\alpha}\right\}. \tag{6}
+\]
+Both covariance sums in (6) are geometric, so no factor \(k\) occurs.
+
+For all sufficiently large \(T\), \(\delta\le1\), and
+\(\log T/D<T/2\).  Consequently the cap in the displayed definition of \(\kappa_T\) is inactive whenever \(x>1\).  If \(x\le1\), then \(\kappa_T=0\); (2), (6), and \(N=T\) bound the mean-squared error of \(\widetilde\theta_0\) by a constant depending only on \(t_0,\zeta\) times \(T^{-1}\).  If \(x>1\), then
+\[
+ \kappa_T=\left\lfloor\frac{\log x}{D}\right\rfloor,
+ \qquad N\ge T/2,
+\]
+and the floor inequalities give
+\[
+ \delta^2\alpha^{2\kappa_T}
+ \le\alpha^{-2}\delta^2x^{-\beta},
+ \qquad
+ T^{-1}L^{\kappa_T}
+ \le T^{-1}x^{1-\beta}.
+\]
+The two expressions on the right have the common value
+\[
+ \delta^2x^{-\beta}
+ =T^{-1}x^{1-\beta}
+ =T^{-\beta}\delta^{2(1-\beta)}. \tag{7}
+\]
+Combining (2), (6), and (7), and using \(T^{-1}\le T^{-1}+T^{-\beta}\delta^{2(1-\beta)}\), proves the asserted upper bound for the unclipped average.  Because \(\theta(K,e)\in[-1,1]\), projection onto \([-1,1]\) cannot increase squared error, so the same bound holds for \(\widehat\theta_{\kappa_T}\).
+
+We next prove two lower bounds against every measurable estimator.  For the parametric bound, take singleton observed and latent state spaces, take \(b=e=(1/2,1/2)\), and let rewards be independent Rademacher variables with means \(v\eta_T\), where \(v\in\{-1,+1\}\) and \(\eta_T:=1/(4\sqrt T)\).  Both alternatives satisfy every predicate in \(\mathrm{def{:}model\text{-}class}\), including stationary overlap for every \(1+\delta\ge1\), and their target values are \(v\eta_T\).  Their revealed inputs coincide.  Direct calculation and \(\log(1+u)-\log(1-u)\le2u/(1-u)\) for \(0\le u<1\) give
+\[
+ \operatorname{KL}(P_+^T\,\|\,P_-^T)
+ =T\eta_T\log\frac{1+\eta_T}{1-\eta_T}
+ \le\frac{2T\eta_T^2}{1-\eta_T}\le\frac14. \tag{8}
+\]
+For any mutually absolutely continuous laws \(P_+,P_-\), put
+\[
+ A:=\int\sqrt{dP_+dP_-},
+ \qquad O:=\int\min(dP_+,dP_-).
+\]
+Jensen's inequality applied under \(P_+\) and Cauchy--Schwarz give
+\[
+ A\ge \exp\{-\operatorname{KL}(P_+\,\|\,P_-)/2\},
+ \qquad
+ A^2\le O(2-O)\le2O.
+\]
+Therefore
+\[
+ O\ge\tfrac12\exp\{-\operatorname{KL}(P_+\,\|\,P_-)\}. \tag{9}
+\]
+Classify an arbitrary estimator by the sign of its output.  On a classification error its squared loss is at least \(\eta_T^2\), and the sum of the two error probabilities is at least \(O\).  Equations (8)--(9) imply
+\[
+ R_T(t_0,\zeta,1+\delta)
+ \ge \frac{e^{-1/4}}{64T}. \tag{10}
+\]
+
+For the hidden-state bound, restrict to sufficiently large \(T\) so that \(\delta\le1\).  In \(\mathrm{def{:}signed\text{-}depth\text{-}family}\) with \(C=1+\delta\),
+\[
+ \varepsilon_C=\frac\delta2. \tag{11}
+\]
+The exact conditional-mean and posterior conclusions of \(\mathrm{lem{:}observed\text{-}path\text{-}kl}\) imply, at every common observed history,
+\[
+ |m_t^{+1}-m_t^{-1}|
+ \le2c_0\varepsilon_CK_0\alpha^Qa_t^{(Q)},
+ \qquad |m_t^{-1}|\le c_0,
+\]
+where \(m_t^v:=E_v[Y_t\mid\mathcal F_{t-1}^{\mathrm{obs}}]\).  A Rademacher law of mean \(m\) has probabilities \((1\pm m)/2\).  Thus \(\log u\le u-1\) gives
+\[
+ \operatorname{KL}(\operatorname{Rad}(m)\,\|\,\operatorname{Rad}(n))
+ \le\frac{(m-n)^2}{1-n^2}. \tag{12}
+\]
+The action conditionals coincide under the alternatives.  Factoring the finite observed-path likelihood into successive action and reward conditionals, applying (12), and using
+\[
+ E[(a_t^{(Q)})^2]
+ =L^{-(2Q-\ell_t)}\le L^{-Q}
+\]
+therefore yields
+\[
+ \operatorname{KL}(\mathbb P_{Q,+1}^{\mathrm{obs},T}\,\|\,
+                    \mathbb P_{Q,-1}^{\mathrm{obs},T})
+ \le \overline B\,T\varepsilon_C^2\alpha^{2Q}L^{-Q},
+ \qquad
+ \overline B:=\frac{4c_0^2K_0^2}{1-c_0^2}. \tag{13}
+\]
+The constant \(\overline B\) depends only on \(t_0\).
+
+Choose \(x_0<\infty\), depending only on \(t_0,\zeta\), so that, for \(x\ge x_0\),
+\[
+ Q_x:=\left\lceil\frac{\log(2\overline Bx)}D\right\rceil\ge1.
+\]
+By (11)--(13),
+\[
+ \operatorname{KL}(\mathbb P_{Q_x,+1}^{\mathrm{obs},T}\,\|\,
+                    \mathbb P_{Q_x,-1}^{\mathrm{obs},T})
+ \le\frac{\overline Bx}{4}e^{-DQ_x}\le\frac18. \tag{14}
+\]
+By \(\mathrm{lem{:}signed\text{-}depth\text{-}membership}\), both alternatives belong to the required class and their target values are \(\pm a_{Q_x}\), where
+\[
+ a_Q:=c_0\varepsilon_Cw_Q,
+ \qquad
+ w_Q\ge(1-\alpha)\alpha^Q.
+\]
+Applying the testing argument (9) to this pair gives risk at least \(a_{Q_x}^2e^{-1/8}/4\).  The ceiling defining \(Q_x\) also gives
+\[
+ \alpha^{2Q_x}\ge\alpha^2(2\overline Bx)^{-\beta}.
+\]
+Together with (11), this proves, for a constant depending only on \(t_0,\zeta\),
+\[
+ R_T(t_0,\zeta,1+\delta)
+ \gtrsim_{t_0,\zeta}
+ \delta^2x^{-\beta}
+ =T^{-\beta}\delta^{2(1-\beta)},
+ \qquad x\ge x_0. \tag{15}
+\]
+When \(x<x_0\), the second term in the claimed lower bound is
+\[
+ T^{-\beta}\delta^{2(1-\beta)}=T^{-1}x^{1-\beta}
+ \le x_0^{1-\beta}T^{-1},
+\]
+and is therefore controlled by (10).  When \(x\ge x_0\), the maximum of (10) and (15) is at least one half of their sum after changing a constant.  This proves the displayed two-sided comparison.
+
+Finally, the ratio of the hidden-state term to \(T^{-1}\) is \(x^{1-\beta}\).  Thus immediate weighting is of parametric order whenever \(T\delta_T^2=O(1)\), whereas the hidden-state term dominates when \(T\delta_T^2\to\infty\).  In the latter regime the displayed depth is of order \(\log(T\delta_T^2)\).  Equations (6)--(7) show directly that no logarithmic multiplier occurs.
+%%% FIELD radius-sensitive-phiw-statement
+For every \(T\in\mathbb N\), \(C\ge1\), \(M\in\mathcal M_T(t_0,\zeta,C)\), and integer \(0\le k\le\lfloor T/2\rfloor\),
+\[
+ E_M[(\widehat\theta_k-\theta(K,e))^2]
+ \le4q_C^2\alpha^{2k}
+ +\frac2T\left\{L^{k+1}\left(1+\frac4{L-1}\right)
+ +\frac4{1-\alpha}\right\}.
+\]
+The bound is uniform in \(C\) and in both state-space cardinalities.
+%%% FIELD radius-sensitive-phiw-proof
+Fix \(M\in\mathcal M_T(t_0,\zeta,C)\).  If \(C>1\), pointwise stationary overlap implies that
+\[
+ \nu:=\frac{Cd_b-d_e}{C-1}
+\]
+is a probability law.  Since \(d_b=C^{-1}d_e+q_C\nu\),
+\[
+ \lVert d_b-d_e\rVert_{\mathrm{TV}}
+ =q_C\lVert\nu-d_e\rVert_{\mathrm{TV}}
+ \le q_C. \tag{16}
+\]
+If \(C=1\), the nonnegative cellwise differences \(d_b(s)-d_e(s)\) sum to zero, so \(d_b=d_e\), and (16) again holds because \(q_1=0\).
+
+Let \(\widetilde\theta_k:=(T-k)^{-1}\sum_{t=k+1}^TZ_t(k)\).  By the sequential-randomization and POMDP-kernel predicates in \(\mathrm{def{:}model\text{-}class}\), successive likelihood-ratio cancellation gives
+\[
+ E_M[Z_t(k)]=d_bP_e^kg_e.
+\]
+Stationarity gives \(d_eP_e^k=d_e\), and uniform contraction gives
+\[
+ \lVert d_bP_e^k-d_e\rVert_{\mathrm{TV}}
+ \le\alpha^k\lVert d_b-d_e\rVert_{\mathrm{TV}}.
+\]
+Since bounded rewards imply \(\lVert g_e\rVert_\infty\le1\), (16) and \(\mathrm{def{:}target\text{-}value}\) yield
+\[
+ |E_M[Z_t(k)]-\theta(K,e)|\le2q_C\alpha^k. \tag{17}
+\]
+
+Policy overlap gives \(0\le\rho_j\le L\) and \(\rho_j^2\le L\rho_j\).  Conditional expectation of each chronological product of single ratios is one.  The unit reward bound therefore gives
+\[
+ E_M|Z_t(k)|\le1,
+ \qquad E_M[Z_t(k)^2]\le L^{k+1}. \tag{18}
+\]
+For \(1\le h\le k\), the two windows overlap in exactly \(k+1-h\) ratios.  Applying \(\rho^2\le L\rho\) to those ratios, cancelling the remaining single ratios, and using (18) gives
+\[
+ |\operatorname{Cov}_M(Z_t(k),Z_{t+h}(k))|
+ \le2L^{k+1-h}. \tag{19}
+\]
+For \(h\ge k+1\), conditioning on the latent history through \(S_{t+1}\) makes the future-block conditional mean
+\[
+ H_h(S_{t+1}),
+ \qquad H_h:=P_b^{h-k-1}P_e^kg_e.
+\]
+Uniform contraction implies \(\operatorname{osc}(H_h)\le2\alpha^{h-k-1}\).  Stationary initialization makes \(E_MH_h(S_{t+1})=E_MZ_t(k)\), so (18) yields
+\[
+ |\operatorname{Cov}_M(Z_t(k),Z_{t+h}(k))|
+ \le2\alpha^{h-k-1}. \tag{20}
+\]
+With \(N:=T-k\), the variance identity and the two geometric sums (19)--(20) give
+\[
+ \operatorname{Var}_M(\widetilde\theta_k)
+ \le\frac1N\left\{L^{k+1}\left(1+\frac4{L-1}\right)
+ +\frac4{1-\alpha}\right\}. \tag{21}
+\]
+Because \(k\le T/2\), one has \(N^{-1}\le2/T\).  Adding the squared bias from (17) to (21) proves the displayed bound for \(\widetilde\theta_k\).  Finally, \(\theta(K,e)\in[-1,1]\), so clipping to \([-1,1]\) cannot increase squared distance to the target.  This proves the result for \(\widehat\theta_k\).  Every constant in the calculation depends only on \(\alpha\) and \(L\), hence only on \(t_0,\zeta\), and not on \(C\) or a state-space cardinality.
+%%% FIELD radius-explicit-kl-statement
+For every \(C>1\), \(Q\ge1\), and \(T\in\mathbb N\), the signed-depth alternatives satisfy
+\[
+ \frac{q_C}{2}\le\varepsilon_C\le q_C
+\]
+and
+\[
+ \operatorname{KL}(\mathbb P_{Q,+1}^{\mathrm{obs},T}\,\|\,
+                    \mathbb P_{Q,-1}^{\mathrm{obs},T})
+ \le
+ \frac{4c_0^2K_0^2}{1-c_0^2}
+ T\varepsilon_C^2\alpha^{2Q}L^{-Q}.
+\]
+The displayed coefficient depends only on \(t_0\), not on \(C,Q,T\), or any alphabet cardinality.
+%%% FIELD radius-explicit-kl-proof
+First compare the two radius parameters.  If \(1<C\le2\), then
+\[
+ \varepsilon_C=\frac{C-1}{2},
+ \qquad
+ \frac{\varepsilon_C}{q_C}=\frac C2\in\left(\frac12,1\right].
+\]
+If \(C\ge2\), then
+\[
+ \varepsilon_C=\frac12,
+ \qquad
+ \frac{\varepsilon_C}{q_C}=\frac{C}{2(C-1)}\in\left[\frac12,1\right].
+\]
+Thus \(q_C/2\le\varepsilon_C\le q_C\) for every \(C>1\).
+
+For the divergence bound, write
+\[
+ m_t^v:=E_v[Y_t\mid\mathcal F_{t-1}^{\mathrm{obs}}].
+\]
+The pointwise filter conclusions of \(\mathrm{lem{:}observed\text{-}path\text{-}kl}\) give
+\[
+ m_t^v=vc_0\varepsilon_Ca_t^{(Q)}q_t^v,
+ \qquad q_t^v\le K_0\alpha^Q.
+\]
+Consequently, at every common observed history,
+\[
+ |m_t^{+1}-m_t^{-1}|
+ \le2c_0\varepsilon_CK_0\alpha^Qa_t^{(Q)},
+ \qquad |m_t^{-1}|\le c_0. \tag{22}
+\]
+All histories have positive probability because \(0<c_0<1\) and both behavior actions have positive probability.  For Rademacher laws of means \(m,n\in(-1,1)\), direct substitution followed by \(\log u\le u-1\) gives
+\[
+ \operatorname{KL}(\operatorname{Rad}(m)\,\|\,\operatorname{Rad}(n))
+ \le\chi^2(\operatorname{Rad}(m)\,\|\,\operatorname{Rad}(n))
+ =\frac{(m-n)^2}{1-n^2}. \tag{23}
+\]
+The two alternatives have identical conditional action laws.  Factoring their finite observed-path likelihoods into successive action and reward conditionals, the action contributions cancel.  Applying (23) to each reward conditional and then (22) gives
+\[
+ \operatorname{KL}(\mathbb P_{Q,+1}^{\mathrm{obs},T}\,\|\,
+                    \mathbb P_{Q,-1}^{\mathrm{obs},T})
+ \le\frac{4c_0^2\varepsilon_C^2K_0^2}{1-c_0^2}
+ \alpha^{2Q}\sum_{t=1}^TE_{+1}[(a_t^{(Q)})^2]. \tag{24}
+\]
+Under behavior, the actions in the signed-depth family are independent Bernoulli variables with success probability \(1/L\), conditionally on every earlier observed history.  With \(\ell_t=\min\{Q,t-1\}\), the definition of \(a_t^{(Q)}\) therefore gives
+\[
+ E_{+1}[(a_t^{(Q)})^2]
+ =L^{-(2Q-\ell_t)}\le L^{-Q}. \tag{25}
+\]
+Substitution of (25) into (24) proves the displayed radius-explicit bound.  The established posterior constant \(K_0\), and hence the displayed coefficient, depends only on \(t_0\).
+%%% FIELD uniform-parametric-floor-statement
+For every fixed \(t_0>0\), \(\zeta>0\), every \(C\ge1\), and every \(T\in\mathbb N\),
+\[
+ R_T(t_0,\zeta,C)\ge\frac{e^{-1/4}}{64T}.
+\]
+This lower bound holds on a common singleton-state, equal-policy subexperiment and is therefore uniform in \(C\).
+%%% FIELD uniform-parametric-floor-proof
+Take singleton observed and latent state spaces, let \(b=e=(1/2,1/2)\), and let the rewards be independent Rademacher variables of mean \(v\eta_T\), where
+\[
+ v\in\{-1,+1\},
+ \qquad
+ \eta_T:=\frac1{4\sqrt T}.
+\]
+The state kernel has contraction coefficient zero; its behavior and target stationary laws coincide; sequential randomization, policy overlap, stationary initialization, and bounded reward support all hold.  Hence both alternatives belong to \(\mathcal M_T(t_0,\zeta,C)\) for every \(C\ge1\).  By \(\mathrm{def{:}target\text{-}value}\), their target values are \(\pm\eta_T\), and all information supplied to the estimator is identical under the pair.
+
+The action laws make no contribution to the divergence.  For the reward laws, direct calculation and \(\log(1+u)-\log(1-u)\le2u/(1-u)\) give
+\[
+ \operatorname{KL}(P_+^T\,\|\,P_-^T)
+ =T\eta_T\log\frac{1+\eta_T}{1-\eta_T}
+ \le\frac{2T\eta_T^2}{1-\eta_T}\le\frac14. \tag{26}
+\]
+Let \(O:=\int\min(dP_+^T,dP_-^T)\) and \(A:=\int\sqrt{dP_+^TdP_-^T}\).  Jensen's inequality under \(P_+^T\) gives
+\[
+ A\ge e^{-\operatorname{KL}(P_+^T\,\|\,P_-^T)/2},
+\]
+whereas Cauchy--Schwarz gives \(A^2\le O(2-O)\le2O\).  Hence
+\[
+ O\ge\tfrac12e^{-\operatorname{KL}(P_+^T\,\|\,P_-^T)}. \tag{27}
+\]
+For an arbitrary estimator, declare the plus alternative when its output is positive.  On a classification error the squared loss is at least \(\eta_T^2\), and every binary rule has the sum of its two error probabilities at least \(O\).  Thus (26)--(27) imply
+\[
+ \max_{v\in\{-1,+1\}}E_v[(\widehat\theta-v\eta_T)^2]
+ \ge\frac{\eta_T^2}{4}e^{-1/4}
+ =\frac{e^{-1/4}}{64T}.
+\]
+Taking the supremum over the full class and then the infimum over all measurable estimators, as in \(\mathrm{def{:}minimax\text{-}risk}\), proves the result.
+%%% FIELD uniform-overlap-frontier-statement
+For every fixed \(t_0>0\) and \(\zeta>0\), uniformly over all \(C\ge1\),
+\[
+ R_T(t_0,\zeta,C)
+ \asymp_{t_0,\zeta}
+ T^{-1}+T^{-\beta}q_C^{2(1-\beta)},
+ \qquad
+ \beta=\frac{2}{2+t_0\zeta},
+\]
+for all sufficiently large \(T\), with comparison constants and the threshold independent of \(C\) and of both state-space cardinalities.  The upper bound is attained by the observable estimator \(\widehat\theta_{\kappa_T^{\mathrm{rad}}(C)}\).  Equivalently, the exact elbow is \(q_C\asymp T^{-1/2}\): depth zero has parametric order when \(Tq_C^2=O(1)\), whereas the hidden-state term dominates when \(Tq_C^2\to\infty\).  No logarithmic factor occurs.
+%%% FIELD uniform-overlap-frontier-proof
+Put
+\[
+ r:=\log(1/\alpha)=1/t_0,
+ \qquad
+ D:=2r+\log L,
+ \qquad
+ x:=Tq_C^2.
+\]
+Then
+\[
+ \beta=\frac{2r}{D}=\frac{2}{2+t_0\zeta},
+ \qquad
+ 1-\beta=\frac{\log L}{D}. \tag{28}
+\]
+
+We first prove the upper bound.  If \(x\le1\), then \(\kappa_T^{\mathrm{rad}}(C)=0\).  Applying \(\mathrm{lem{:}radius\text{-}sensitive\text{-}phiw}\) with \(k=0\), and using \(q_C^2\le T^{-1}\), gives
+\[
+ \sup_{M\in\mathcal M_T(t_0,\zeta,C)}
+ E_M[(\widehat\theta_0-\theta(K,e))^2]
+ \lesssim_{t_0,\zeta}T^{-1}. \tag{29}
+\]
+If \(x>1\), then, for all sufficiently large \(T\), uniformly in \(C\ge1\),
+\[
+ \frac{\log x}{D}\le\frac{\log T}{D}<\frac T2.
+\]
+Thus the cap in \(\mathrm{def{:}radius\text{-}adaptive\text{-}history\text{-}depth}\) is inactive and
+\[
+ k:=\kappa_T^{\mathrm{rad}}(C)=\left\lfloor\frac{\log x}{D}\right\rfloor.
+\]
+The floor inequalities and (28) imply
+\[
+ q_C^2\alpha^{2k}
+ \le\alpha^{-2}q_C^2x^{-\beta},
+ \qquad
+ T^{-1}L^k
+ \le T^{-1}x^{1-\beta}. \tag{30}
+\]
+Both quantities on the right of (30) equal
+\[
+ q_C^2x^{-\beta}
+ =T^{-1}x^{1-\beta}
+ =T^{-\beta}q_C^{2(1-\beta)}. \tag{31}
+\]
+Substitution into \(\mathrm{lem{:}radius\text{-}sensitive\text{-}phiw}\), together with \(k\le T/2\), proves
+\[
+ \sup_{M\in\mathcal M_T(t_0,\zeta,C)}
+ E_M[(\widehat\theta_{\kappa_T^{\mathrm{rad}}(C)}-\theta(K,e))^2]
+ \lesssim_{t_0,\zeta}
+ T^{-1}+T^{-\beta}q_C^{2(1-\beta)}. \tag{32}
+\]
+All constants in (29)--(32) are independent of \(C\).  The minimax upper bound follows because the displayed estimator is an explicit observable-data map under \(\mathrm{def{:}phiw\text{-}estimator}\).
+
+For the converse, \(\mathrm{lem{:}uniform\text{-}parametric\text{-}floor}\) gives, for every \(C\ge1\),
+\[
+ R_T(t_0,\zeta,C)\gtrsim T^{-1}. \tag{33}
+\]
+It remains to lower-bound the hidden-state term.  This term is zero when \(C=1\), so suppose \(C>1\).  Define the constant
+\[
+ B:=\frac{4c_0^2K_0^2}{1-c_0^2},
+\]
+which depends only on \(t_0\).  Choose \(x_0<\infty\), depending only on \(t_0,\zeta\), large enough that
+\[
+ Q_x:=\left\lceil\frac{\log(8Bx)}D\right\rceil\ge1
+\]
+whenever \(x\ge x_0\).  By \(\mathrm{lem{:}radius\text{-}explicit\text{-}observed\text{-}kl}\), \(\varepsilon_C\le q_C\), and hence
+\[
+ \operatorname{KL}(\mathbb P_{Q_x,+1}^{\mathrm{obs},T}\,\|\,
+                    \mathbb P_{Q_x,-1}^{\mathrm{obs},T})
+ \le BTq_C^2e^{-DQ_x}\le\frac18. \tag{34}
+\]
+By \(\mathrm{lem{:}signed\text{-}depth\text{-}membership}\), the two alternatives belong to \(\mathcal M_T(t_0,\zeta,C)\) and have target values \(\pm a_{Q_x}\), where
+\[
+ a_Q:=c_0\varepsilon_Cw_Q.
+\]
+The same membership lemma gives \(w_Q\ge(1-\alpha)\alpha^Q\), while the radius-explicit lemma gives \(\varepsilon_C\ge q_C/2\).  Therefore
+\[
+ a_{Q_x}^2
+ \ge\frac{c_0^2(1-\alpha)^2}{4}q_C^2\alpha^{2Q_x}. \tag{35}
+\]
+
+For completeness, let \(O_x\) denote the overlap integral of the two observed laws in (34).  Jensen's inequality and Cauchy--Schwarz give
+\[
+ O_x\ge\tfrac12\exp\{-\operatorname{KL}(\mathbb P_{Q_x,+1}^{\mathrm{obs},T}\,\|\,
+                                             \mathbb P_{Q_x,-1}^{\mathrm{obs},T})\}.
+\]
+Classifying an arbitrary estimator by the sign of its output makes squared loss at least \(a_{Q_x}^2\) on an error, and the sum of the two error probabilities is at least \(O_x\).  Thus (34) gives minimax risk at least \(a_{Q_x}^2e^{-1/8}/4\).  The ceiling defining \(Q_x\) yields
+\[
+ \alpha^{2Q_x}\ge\alpha^2(8Bx)^{-\beta}. \tag{36}
+\]
+Combining (35)--(36) proves, with a constant depending only on \(t_0,\zeta\),
+\[
+ R_T(t_0,\zeta,C)
+ \gtrsim_{t_0,\zeta}q_C^2x^{-\beta}
+ =T^{-\beta}q_C^{2(1-\beta)},
+ \qquad x\ge x_0. \tag{37}
+\]
+If \(x<x_0\), then
+\[
+ T^{-\beta}q_C^{2(1-\beta)}
+ =T^{-1}x^{1-\beta}
+ \le x_0^{1-\beta}T^{-1},
+\]
+so the parametric floor (33) already controls the hidden-state term.  If \(x\ge x_0\), the maximum of (33) and (37) controls one half of their sum after changing a constant.  This proves the lower comparison uniformly over all \(C\ge1\).
+
+Finally, the hidden-state term divided by \(T^{-1}\) is exactly \(x^{1-\beta}\).  Hence the elbow is \(q_C\asymp T^{-1/2}\).  The upper proof uses depth zero whenever \(x\le1\); more generally, direct application of the radius-sensitive lemma at depth zero is parametric whenever \(x=O(1)\).  When \(x\to\infty\), the selected depth is of order \(\log x\), and (30)--(31) show that the geometric covariance sum contributes no logarithmic factor.
+%%% FIELD overlap-distance-radius-construction
+For \(C\ge1\), define
+\[
+ q_C:=\frac{C-1}{C}.
+\]
+%%% FIELD radius-adaptive-history-depth-construction
+For \(T\in\mathbb N\) and \(C\ge1\), define the radius-adaptive history depth
+\[
+ \kappa_T^{\mathrm{rad}}(C):=
+ \begin{cases}
+ 0, & Tq_C^2\le1,\\[3pt]
+ \displaystyle
+ \min\!\left\{\left\lfloor\frac T2\right\rfloor,
+ \left\lfloor\frac{\log(Tq_C^2)}{2\log(1/\alpha)+\log L}\right\rfloor\right\},
+ & Tq_C^2>1.
+ \end{cases}
+\]

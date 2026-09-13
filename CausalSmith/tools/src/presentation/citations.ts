@@ -20,6 +20,10 @@ export interface ExternalRecord {
   /** True when fetched by a DOI/arXiv id (the source is the entry's OWN identifier, so the
    *  record is the right work by construction). A title-query record is never authoritative. */
   authoritative?: boolean;
+  /** True when a registry the lookup needed did not answer before this record was found (a DOI
+   *  registry that failed before the arXiv id resolved, a Crossref title search that failed before
+   *  OpenAlex answered). A better record may exist, so a verdict built on it is never cached. */
+  degraded?: boolean;
 }
 
 interface OpenAlexItem {
@@ -565,7 +569,7 @@ export async function defaultLookup(e: BibEntry): Promise<ExternalRecord | typeo
     if (e.fields.eprint) {
       const { rec, unreachable } = await arxivById(e.fields.eprint);
       authUnreachable ||= unreachable;
-      if (rec) return { ...rec, authoritative: true }; // eprint id is authoritative too
+      if (rec) return { ...rec, authoritative: true, ...(authUnreachable ? { degraded: true } : {}) }; // eprint id is authoritative too
     }
     if (jmlrUrl) {
       const { rec, unreachable } = await jmlrByUrl(jmlrUrl);
@@ -573,7 +577,7 @@ export async function defaultLookup(e: BibEntry): Promise<ExternalRecord | typeo
       // JMLR's canonical article page supplies Highwire citation metadata. It
       // identifies the work directly, unlike a loose title query whose first
       // result may be an unrelated newer paper.
-      if (rec) return { ...rec, authoritative: true };
+      if (rec) return { ...rec, authoritative: true, ...(authUnreachable ? { degraded: true } : {}) };
     }
     // The entry carries a well-formed DOI/arXiv id but we could not REACH its registry (transient).
     // Do NOT fall back to a title query: its top hit is often a DIFFERENT paper, whose title mismatch
@@ -607,7 +611,7 @@ export async function defaultLookup(e: BibEntry): Promise<ExternalRecord | typeo
     }
     // Prefer the same work at another year (edition, print vs online) over an unrelated top hit.
     const best = candidates.find(identityMatches) ?? candidates.find(workMatches) ?? candidates.find(authorlessMatches);
-    if (best) return best;
+    if (best) return titleUnreachable ? { ...best, degraded: true } : best;
     // No match, but a registry the search needed did not answer: the work may well be indexed
     // there. Transient, non-blocking — never launder a rate limit into a confident rejection.
     if (titleUnreachable) return UNREACHABLE;

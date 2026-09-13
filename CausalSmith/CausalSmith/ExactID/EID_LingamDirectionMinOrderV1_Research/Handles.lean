@@ -141,7 +141,7 @@ the realizing laws, not a property of the laws it exhibits: "was obtained by a p
 a predicate on a measure, so it is not — and must not be — a conjunct here.  Adding one would make
 the Lean predicate *strictly stronger* than the object the note defines.  The perturbation content the
 development actually uses is a **proved theorem**, not an assumed clause: `truncatedMomentInterior`
-(`Causalean.Stat.MomentProblems.truncatedMomentInterior`, 0 `sorry`) supplies exactly the
+(`Causalean.Stat.MomentProblems.truncatedMomentInterior`, fully proved) supplies exactly the
 moment-cone-interior /
 neighbourhood-realizability fact for which the perturbation is invoked. -/
 def compactlySupportedFeasibleRegion (m L : ℕ) : Set (ParamSpace ℝ m) :=

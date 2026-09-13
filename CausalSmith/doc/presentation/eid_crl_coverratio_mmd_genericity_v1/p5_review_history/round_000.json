@@ -1,0 +1,129 @@
+{
+  "recommendation": "major_revision",
+  "score": 6.3,
+  "score_rationale": "The verified population identification result is potentially important, but the manuscript’s central decoder is presently misstated, its notation and cross-references are internally inconsistent, and its novelty and verification scope require substantial clarification.",
+  "summary": "The paper establishes generic likelihood-ratio separation and exact population recovery of a nonlinear latent DAG and coordinates from one perfect intervention per scalar latent variable under a positive compact-cube, fixed-sign, causal-minimal model. It also gives conditional familywise guarantees for an MMD confidence graph. The core verified results appear strong, but the manuscript needs major revision before publication because the displayed decoder can contain self-loops, a key conditional-kernel statement is not coherently typed, the closest literature is not compared precisely, and the promised verification record is absent.",
+  "strengths": [
+    "The open-dense cover-separation result and exact population decoder form a coherent and potentially significant arbitrary-dimensional identification contribution within the stated compact-support fixed-sign regime.",
+    "The manuscript distinguishes generic population identification, exact decoding under cover separation, conditional finite-sample confidence edges, and the open generated-rank program.",
+    "The abstract generally preserves the principal conditions and correctly describes the finite-sample guarantee as conditional on a simultaneous first-stage ratio-error event.",
+    "The explicit separated and cancellation witnesses help demonstrate both the substance of the ratio signal and the exceptional nature of cancellation.",
+    "The related-work section is placed early and covers graphical causal inference, nonlinear ICA, causal representation learning, and kernel testing."
+  ],
+  "findings": [
+    {
+      "severity": "major",
+      "section": "Population decoding",
+      "issue": "The decoder and theorem define the ratio graph as “H_D={j→i:D_ji>0}” without excluding j=i. The own-environment discrepancy D_ii will generally be positive, producing self-loops and making a topological ordering impossible. The proof later silently changes the graph to j≠i, and the sample-split graph also explicitly excludes diagonal pairs.",
+      "fix": "Define H_D everywhere as the off-diagonal relation {j→i:j≠i and D_ji>0}; make the introduction, decoder, theorem statement, supporting lemmas, and proof use that identical definition.",
+      "kind": "statement",
+      "finding_id": "ratio-graph-diagonal",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "major",
+      "section": "Proofs and verification",
+      "issue": "The “Triangular predecessor-score range and inverse” definition uses rho_i^tau for the inverse of Lambda_i^tau from the realized range to the predecessor cube. The subsequent kernel-factorization lemma instead calls rho_i^tau a retraction from the ambient score space onto the realized range and writes z_i^tau=(Lambda_i^tau)^{-1}∘rho_i^tau. Its proof introduces yet another convention. These maps have different domains and codomains, so the reader-facing statement is not coherently typed.",
+      "fix": "Introduce distinct symbols for the ambient-to-range retraction and the range-to-cube inverse, define both domains and codomains explicitly, and write the total inverse as their correctly ordered composition. Propagate the notation consistently through the lemma, proof, and exact-decoder proof.",
+      "kind": "statement",
+      "finding_id": "predecessor-inverse-typing",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "major",
+      "section": "Related work",
+      "issue": "The section labels Wendong et al. and Yao et al. as the closest interventional comparison while giving no dedicated account of von Kügelgen et al., although the latter is the direct unknown-target intervention-count comparator underlying the paper’s main novelty. It also omits the especially relevant one-versus-two-intervention score-based results and does not compare the conditional MMD result with available finite-sample causal-representation bounds.",
+      "fix": "Add a precise comparison stating, for each closest paper, the intervention count, target information, dimension, support and smoothness class, mixing assumptions, recovered ambiguity, and statistical guarantee. Explain explicitly that the intervention-count improvement over von Kügelgen et al. is claimed on the overlapping smooth compact-support faithful regime. Engage the score-based one/two-intervention results and relevant finite-sample bounds rather than leaving them in a citation list.",
+      "kind": "citation",
+      "finding_id": "closest-work-comparison",
+      "remedy": "citation_research"
+    },
+    {
+      "severity": "major",
+      "section": "Proofs and verification",
+      "issue": "The introduction promises that “the precise checked scope is recorded in the verification appendix,” but the appendix provides no toolchain, commit, declaration mapping, or distinction between matched formal declarations and presentation-level definitions. Its blanket sentence that “Every assumption, definition, lemma, and theorem of the formal layer is stated and proved” is also misleading: assumptions and definitions are encoded and typechecked, while presentation-synthesized definitions are not Lean declarations with proofs.",
+      "fix": "Add a reproducibility table recording the Lean version/toolchain, commit 5cf697685fb4569c08b60f0356ee06296e5b1734, theorem names and files, and proof status. Clearly distinguish verified theorem statements and proofs, typechecked assumptions/definitions, presentation-synthesized definitions, and nonassertive open-question objects; replace the blanket claim accordingly.",
+      "kind": "prose",
+      "finding_id": "verification-scope-record",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "major",
+      "section": "Proofs of the main results",
+      "issue": "Many equation labels are placed inside unnumbered display delimiters, for example a display using \\[...\\label{eq:exact-ratio-decoder-log-ratio}\\]. Such labels do not create proper equation targets, so subsequent cleveref references may be unresolved or inherit the wrong counter type, violating the paper’s cross-reference contract.",
+      "fix": "Place every referenced display in a numbered equation or aligned environment carrying its label, or remove the label and rewrite the surrounding transition without a cross-reference. Compile and inspect all cleveref targets to confirm that each is rendered as an equation rather than a section or unresolved reference.",
+      "kind": "structure",
+      "finding_id": "unnumbered-equation-labels",
+      "remedy": "source_change"
+    },
+    {
+      "severity": "minor",
+      "section": "Sample-split confidence edges",
+      "issue": "The manuscript calls the rule a “sample-split procedure” and a “finite-sample graph layer,” but its threshold contains a deterministic first-stage radius a_N(eta) whose validity is assumed rather than constructed or calibrated. The theorem is a valid conditional inference interface, but the current wording can suggest a directly deployable procedure.",
+      "fix": "Describe the result consistently as a conditional confidence construction indexed by a valid first-stage bound. In the limitations section, state that operational use requires a ratio estimator with a justified or computable simultaneous L1 radius; alternatively, supply such an estimator and calibration.",
+      "kind": "prose",
+      "finding_id": "conditional-radius-interpretation",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "minor",
+      "section": "abstract",
+      "issue": "The sentence saying that “the transitive closure matches the transported DAG” is stronger and less precise than the verified conclusion, which is equality between the transitive closures of the selected graph and G^pi.",
+      "fix": "Write that the selected confidence graph has the same transitive closure as the transported DAG under the displayed cover-margin condition.",
+      "kind": "prose",
+      "finding_id": "transitive-closure-wording",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "minor",
+      "section": "global",
+      "issue": "The title “One intervention per latent variable in nonlinear causal representations” does not signal that arbitrary-dimensional exact decoding relies on fixed own-derivative signs and generic cover separation within a positive compact-support causal-minimal stratum. As written, it reads like an unrestricted one-intervention identification claim.",
+      "fix": "Use a title that signals generic identification or the smooth fixed-sign setting, while retaining the one-intervention contribution.",
+      "kind": "structure",
+      "finding_id": "title-scope",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "minor",
+      "section": "Model and ratio observables",
+      "issue": "The fixed-sign condition is central to triangular inversion and coordinate orientation, yet its motivation is limited to calling it a “standard fixed-sign compact-support variant.” The paper gives no substantive model classes or general-dimensional examples demonstrating nonempty fixed-sign strata.",
+      "fix": "Explain why the condition is plausible, how it relates to the cited everywhere-change condition, and provide representative mechanism families satisfying it for nontrivial DAGs. Clearly retain nonemptiness as a condition wherever no general existence result is supplied.",
+      "kind": "prose",
+      "finding_id": "fixed-sign-motivation",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "minor",
+      "section": "global",
+      "issue": "The main text introduces numerous low-level objects—coherence, latent state space, basic graph relations, feature-space details, and witness-law notation—before the reader sees the decoder’s central logic. This obscures the economic and statistical content of an otherwise clean identification argument.",
+      "fix": "Move routine graph, measure, and implementation definitions to an appendix or notation table. In the main text, present the identification chain compactly: ratio-law separation, ancestral ordering, conditional ranks, and parent pruning.",
+      "kind": "structure",
+      "finding_id": "formalism-obscures-contribution",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "nit",
+      "section": "Related work",
+      "issue": "The sentence “linking representation recovery to causal discovery rather than treating the two tasks separately” frames the contribution partly through negation outside the limitations section.",
+      "fix": "Rewrite affirmatively, for example: “The likelihood-ratio construction jointly recovers latent coordinates and their causal organization.”",
+      "kind": "prose",
+      "finding_id": "negative-contribution-framing",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "nit",
+      "section": "Sample-split confidence edges",
+      "issue": "The sample-split experiment repeatedly calls X^{eval}_{e,m} and X^{tr}_{e,m} “latent states,” although these variables are sampled from the observed laws P^e and are used as observed inputs to fitted ratios.",
+      "fix": "Call them observed vectors or observations throughout, reserving V for latent states.",
+      "kind": "prose",
+      "finding_id": "observed-latent-terminology",
+      "remedy": "rewrite"
+    }
+  ],
+  "questions_for_authors": [
+    "Is the intended population ratio graph explicitly off-diagonal, as the proof and sample-split graph indicate?",
+    "Which concrete likelihood-ratio estimators are expected to deliver the simultaneous L1 radius required by the confidence-edge result in the stated smooth compact-cube model?",
+    "Can the authors provide a general-dimensional family establishing nonemptiness of the fixed-sign causal-minimal strata, or is nonemptiness intended to remain an abstract condition?",
+    "Will the public artifact include the exact Lean toolchain and declaration-to-manuscript mapping promised in the introduction?"
+  ]
+}

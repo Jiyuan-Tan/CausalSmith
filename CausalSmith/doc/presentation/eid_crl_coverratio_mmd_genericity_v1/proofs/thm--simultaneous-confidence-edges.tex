@@ -1,0 +1,243 @@
+\begin{proof}[Proof of \cref{obj:thm:simultaneous-confidence-edges}]
+Let \(\mathcal H_k\) be the Hilbert space of the Gaussian unit-norm feature map
+\(\Phi\).  Write
+\[
+\underline N=\min_{0\le e\le n}N_e,
+\qquad
+\delta_N(\alpha)=
+\frac{1+\sqrt{2\log\{n(n+1)/\alpha\}}}{\sqrt{\underline N}},
+\]
+so that
+\[
+\varepsilon_N(\alpha,\eta)
+=
+2\sqrt 2\,a_N(\eta)+2\delta_N(\alpha).
+\]
+For \(e\in\{0,\ldots,n\}\), \(i\in[n]\), and an outcome \(\omega\), set
+\[
+\widehat\mu_{e i}(\omega)
+=
+\frac1{N_e}\sum_{r=1}^{N_e}
+\Phi\!\left(\widehat R_i(X^{(e)}_r(\omega))\right),
+\]
+\[
+\widetilde\mu_{e i}(\omega)
+=
+\int \Phi\!\left(\widehat R_i(x)\right)\,dP^e(x),
+\qquad
+\mu_{e i}
+=
+\int \Phi\!\left(R_i(x)\right)\,dP^e(x).
+\]
+Define the evaluation concentration event
+\[
+\mathcal E_{\mathrm{emb}}
+=
+\left\{
+\omega:
+\forall i\in[n],\ \forall e\in\{0,\ldots,n\},\
+\|\widehat\mu_{e i}(\omega)-\widetilde\mu_{e i}(\omega)\|_{\mathcal H_k}
+\le \delta_N(\alpha)
+\right\}.
+\]
+The independent-environment sampling assumption supplies the conditional evaluation-sampling hypotheses in \cref{obj:lem:bounded-rkhs-empirical-mean}.  Hence, conditionally on the training fold, \(\mathcal E_{\mathrm{emb}}\) has probability at least \(1-\alpha\): for every training-fold measurable event \(B\),
+\[
+(1-\alpha)\Pr(B)
+\le
+\Pr(\mathcal E_{\mathrm{emb}}\cap B).
+\]
+% lean: CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity.bounded_rkhs_empirical_mean
+
+For the bridge from fitted to population embeddings, first note that the Gaussian normalization gives, for all \(a,b\in\mathbb R\),
+\[
+\|\Phi(a)-\Phi(b)\|_{\mathcal H_k}^2
+=
+2-2\exp\{-(a-b)^2\}
+\le 2(a-b)^2,
+\]
+and therefore
+\[
+\|\Phi(a)-\Phi(b)\|_{\mathcal H_k}
+\le
+\sqrt2\,|a-b|.
+\]
+On \(\mathcal E_{\mathrm{fs}}\), the defining \(L^1(P^e)\) bound gives, for every \(i\) and \(e\),
+\[
+\begin{aligned}
+\|\widetilde\mu_{e i}(\omega)-\mu_{e i}\|_{\mathcal H_k}
+&=
+\left\|
+\int
+\left\{
+\Phi(\widehat R_i(x))-\Phi(R_i(x))
+\right\}
+\,dP^e(x)
+\right\|_{\mathcal H_k}                                                   \\
+&\le
+\int
+\|\Phi(\widehat R_i(x))-\Phi(R_i(x))\|_{\mathcal H_k}
+\,dP^e(x)                                                                 \\
+&\le
+\sqrt2
+\int
+|\widehat R_i(x)-R_i(x)|
+\,dP^e(x)                                                                 \\
+&\le
+\sqrt2\,a_N(\eta).
+\end{aligned}
+\]
+The measurability and integrability requirements here are exactly the training-fold and finite-integral clauses in \cref{obj:ass:independent-environment-sampling} and in the definition of \(\mathcal E_{\mathrm{fs}}\).
+% lean: CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity.meanEmbedding_map_sub_le_l1
+
+Now fix \(\omega\in\mathcal E_{\mathrm{emb}}\cap\mathcal E_{\mathrm{fs}}\) and \(j\ne i\).  The empirical and population discrepancies are
+\[
+\widehat D_{ji}(\omega)
+=
+\|\widehat\mu_{j i}(\omega)-\widehat\mu_{0 i}(\omega)\|_{\mathcal H_k},
+\qquad
+D_{ji}
+=
+\|\mu_{0 i}-\mu_{j i}\|_{\mathcal H_k}.
+\]
+By the reverse triangle inequality,
+\[
+\begin{aligned}
+|\widehat D_{ji}(\omega)-D_{ji}|
+&\le
+\left\|
+(\widehat\mu_{j i}-\widehat\mu_{0 i})
+-
+(\mu_{j i}-\mu_{0 i})
+\right\|_{\mathcal H_k}                                                    \\
+&\le
+\|\widehat\mu_{j i}-\widetilde\mu_{j i}\|_{\mathcal H_k}
++
+\|\widetilde\mu_{j i}-\mu_{j i}\|_{\mathcal H_k}                            \\
+&\quad+
+\|\widehat\mu_{0 i}-\widetilde\mu_{0 i}\|_{\mathcal H_k}
++
+\|\widetilde\mu_{0 i}-\mu_{0 i}\|_{\mathcal H_k}                            \\
+&\le
+2\delta_N(\alpha)+2\sqrt2\,a_N(\eta)
+=
+\varepsilon_N(\alpha,\eta).
+\end{aligned}
+\]
+Thus
+\[
+\mathcal E_{\mathrm{emb}}\cap\mathcal E_{\mathrm{fs}}
+\subseteq
+\mathcal E_{\mathrm{MMD}}.
+\]
+Applying the conditional bound for \(\mathcal E_{\mathrm{emb}}\) to \(\mathcal E_{\mathrm{fs}}\cap B\), which is training-fold measurable by \cref{obj:ass:independent-environment-sampling}, yields
+\[
+(1-\alpha)\Pr(\mathcal E_{\mathrm{fs}}\cap B)
+\le
+\Pr(\mathcal E_{\mathrm{MMD}}\cap\mathcal E_{\mathrm{fs}}\cap B)
+\]
+for every training-fold measurable \(B\).  This is the stated conditional probability bound.
+% lean: CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity.simultaneous_confidence_edges
+
+Taking \(B=\Omega\) gives
+\[
+(1-\alpha)\Pr(\mathcal E_{\mathrm{fs}})
+\le
+\Pr(\mathcal E_{\mathrm{MMD}}\cap\mathcal E_{\mathrm{fs}})
+\le
+\Pr(\mathcal E_{\mathrm{MMD}}).
+\]
+Since \(\Pr(\mathcal E_{\mathrm{fs}})\ge 1-\eta\) and
+\(\alpha,\eta\in(0,1)\),
+\[
+\Pr(\mathcal E_{\mathrm{MMD}})
+\ge
+(1-\alpha)(1-\eta)
+=
+1-\alpha-\eta+\alpha\eta
+\ge
+1-\alpha-\eta.
+\]
+% lean: CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity.simultaneous_confidence_edges
+
+It remains to identify the graph-theoretic consequences on \(\mathcal E_{\mathrm{MMD}}\).  Fix \(\omega\in\mathcal E_{\mathrm{MMD}}\), and suppose \(j\to i\) is selected by \(\widehat H(\omega)\).  Then \(j\ne i\) and
+\[
+0<\widehat D_{ji}(\omega)-\varepsilon_N(\alpha,\eta).
+\]
+If \(\pi(j)\) were not an ancestor of \(\pi(i)\) in \(G\), the structural assumptions
+\cref{obj:ass:positive-normalized-smooth-mechanisms,obj:ass:shared-diffeomorphic-mixing,obj:ass:one-perfect-intervention-per-node} imply that the ratio coordinate \(R_i\) has the same law under \(P^0\) and \(P^j\):
+\[
+(R_i)_\#P^0=(R_i)_\#P^j.
+\]
+Indeed, in the latent factorization, \(R_i(f(v))\) depends only on \(v_{\pi(i)}\) and the parents of \(\pi(i)\); an intervention at a non-ancestor of \(\pi(i)\) leaves the joint law of these ancestral coordinates unchanged.  Therefore
+\[
+D_{ji}
+=
+\left\|
+\int\Phi\,d((R_i)_\#P^0)
+-
+\int\Phi\,d((R_i)_\#P^j)
+\right\|_{\mathcal H_k}
+=0.
+\]
+The event \(\mathcal E_{\mathrm{MMD}}\) then gives
+\[
+\widehat D_{ji}(\omega)
+=
+|\widehat D_{ji}(\omega)-0|
+\le
+\varepsilon_N(\alpha,\eta),
+\]
+contradicting the selection inequality.  Hence every selected arrow \(j\to i\) satisfies that \(\pi(j)\) is an ancestor of \(\pi(i)\) in \(G\).
+% lean: CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity.ratio_nonancestor_zero
+
+Assume now the cover margin
+\[
+2\varepsilon_N(\alpha,\eta)<D_{ji}
+\qquad
+\text{whenever }\pi(j)\lessdot_G\pi(i).
+\]
+The soundness just proved gives the forward inclusion
+\[
+\operatorname{TC}(\widehat H(\omega))
+\subseteq
+\operatorname{TC}(G^\pi):
+\]
+a selected edge \(j\to i\) yields an ancestral chain from \(\pi(j)\) to \(\pi(i)\) in \(G\), and applying \(\pi^{-1}\) to each edge of that chain gives a directed path from \(j\) to \(i\) in \(G^\pi\).
+
+For the reverse inclusion, let \(a\lessdot_G b\) be an ancestral cover and put
+\[
+j=\pi^{-1}(a),
+\qquad
+i=\pi^{-1}(b).
+\]
+The cover relation implies \(a\ne b\), hence \(j\ne i\).  By the margin and the event \(\mathcal E_{\mathrm{MMD}}\),
+\[
+\widehat D_{ji}(\omega)
+\ge
+D_{ji}-\varepsilon_N(\alpha,\eta)
+>
+\varepsilon_N(\alpha,\eta),
+\]
+so \(j\to i\) is selected by \(\widehat H(\omega)\).  Thus every transported ancestral cover of \(G\) is an edge of \(\widehat H(\omega)\).
+
+Finally, every strict ancestral relation in the finite ancestor order of \(G\) factors into covers:
+\[
+a<_G b
+\quad\Longrightarrow\quad
+\exists a=a_0\lessdot_G a_1\lessdot_G\cdots\lessdot_G a_m=b.
+\]
+This follows by induction on the finite interval
+\(\{c:a\le_G c\le_G b\}\): if \(a\lessdot_G b\) there is nothing to prove, while otherwise one chooses an intermediate \(c\) with \(a<_G c<_G b\) and concatenates the two shorter saturated chains.  Hence each edge of \(G^\pi\), and therefore each path in \(G^\pi\), maps to a path in \(\widehat H(\omega)\).  We obtain
+\[
+\operatorname{TC}(G^\pi)
+\subseteq
+\operatorname{TC}(\widehat H(\omega)).
+\]
+Together with the forward inclusion,
+\[
+\operatorname{TC}(\widehat H(\omega))
+=
+\operatorname{TC}(G^\pi).
+\]
+% lean: CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity.isAncestor_transGen_ancestralCover
+\end{proof}

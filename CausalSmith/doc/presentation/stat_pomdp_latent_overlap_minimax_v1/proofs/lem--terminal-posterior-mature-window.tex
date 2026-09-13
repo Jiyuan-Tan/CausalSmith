@@ -1,0 +1,123 @@
+\begin{proof}[Proof of \cref{obj:lem:terminal-posterior-mature-window}]
+Set \(o^-:=o_{\le k-Q}\), and introduce
+\[
+\mathsf W_{\mathrm{fair}}
+:=
+\prod_{k-Q\le i<k}
+ b(a_{i+1})\,\frac12,
+\qquad
+\mathsf M_{\mathrm{pre}}:=\mathsf M_v(o^-),
+\]
+\[
+\mathsf U_{\mathrm{pre}}
+:=
+\sum_{u\in\{-1,+1\}}\lambda_v((0,u);o^-),
+\qquad
+\mathsf R_{\mathrm{corr}}
+:=
+\prod_{k-Q\le i<k}
+\frac{
+\mathsf M_v(o_{\le i+1})
+}{
+b(a_{i+1})\,\mathsf M_v(o_{\le i})
+},
+\]
+and
+\[
+\mathsf P_{\mathrm{low}}:=\Lambda_Q(o).
+\]
+Here the products are over the final \(Q\) action--reward pairs; if \(Q=0\), they are empty products and equal one.
+
+1. The terminal-depth numerator after the full prefix factors as
+\[
+\sum_{h\in\{0,\ldots,Q\}\times\{-1,+1\}}
+\mathbf 1\{J(h)=Q\}\lambda_v(h;o)
+=
+\alpha^Q\,\mathsf W_{\mathrm{fair}}\,\mathsf U_{\mathrm{pre}} .
+\]
+Indeed, summing over the two terminal signs gives the unsigned mass at depth \(Q\).  Over a mature window of length \(Q\), the only way to arrive at terminal depth \(Q\) is to start the window at depth \(0\) and advance once at each of the \(Q\) updates; this contributes \(\alpha^Q\), while the action and sign-symmetric factors over the same window contribute exactly \(\mathsf W_{\mathrm{fair}}\).  The remaining mass is the unsigned depth-zero mass \(\mathsf U_{\mathrm{pre}}\) at the beginning of the window. % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.terminalFilterMass_eq_fairWindow_of_le
+
+2. The total mass over the observed prefix factors through the same window as
+\[
+\mathsf M_v(o)
+=
+\mathsf W_{\mathrm{fair}}\,
+\mathsf M_{\mathrm{pre}}\,
+\mathsf R_{\mathrm{corr}} .
+\]
+This follows by iterating the one-step mass recursion across the last \(Q\) observations: each step extracts the behavior/fair-sign factor and leaves the corresponding reward-correction factor.  For \(Q=0\) the window is empty and the identity reduces to \(\mathsf M_v(o)=\mathsf M_v(o)\). % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepthTotalMass_eq_windows
+
+3. The unsigned depth-zero mass at the window start is bounded by the total mass there:
+\[
+\mathsf U_{\mathrm{pre}}
+=
+\sum_{u\in\{-1,+1\}}\lambda_v((0,u);o^-)
+\le
+\sum_{j=0}^Q\sum_{u\in\{-1,+1\}}\lambda_v((j,u);o^-)
+=
+\mathsf M_{\mathrm{pre}} .
+\]
+All summands are nonnegative, since each prefix weight is a sum of nonnegative path weights. % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepthUnsignedMass_le_totalMass
+
+4. The lower posterior window is positive and is dominated by the correction window:
+\[
+0<\mathsf P_{\mathrm{low}}\le \mathsf R_{\mathrm{corr}} .
+\]
+For each factor in \(\mathsf P_{\mathrm{low}}\),
+\[
+0\le \pi_v(o_{\le i})\le 1,
+\qquad
+0\le c_0(t_0)<1,
+\]
+so \(1-c_0(t_0)\pi_v(o_{\le i})>0\).  The one-step reward-correction factor at the same prefix is at least
+\[
+1-c_0(t_0)\pi_v(o_{\le i}),
+\]
+and taking products over the final window gives the displayed inequality. % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepthPosteriorLowerWindow_pos_le_correction
+
+5. The remaining factors have the needed signs:
+\[
+\mathsf W_{\mathrm{fair}}>0,\qquad
+\mathsf M_{\mathrm{pre}}>0,\qquad
+\mathsf R_{\mathrm{corr}}>0,\qquad
+\alpha^Q\ge 0 .
+\]
+The first inequality is the product of positive behavior weights and \(1/2\) factors, while the second is positivity of the finite total mass at the window start.  The third follows from Step 4 by \(0<\mathsf P_{\mathrm{low}}\le \mathsf R_{\mathrm{corr}}\).  Finally, \(\alpha=\exp\{-(1/t_0)\}>0\), so its \(Q\)-th power is nonnegative. % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepthFairWindowWeight_pos; CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepthTotalMass_pos; CausalSmith.Stat.PomdpLatentOverlapMinimax.mixingAlpha_pos
+
+6. Combining the two window factorizations with the monotonicity bounds gives
+\[
+\mathsf U_{\mathrm{pre}}\mathsf P_{\mathrm{low}}
+\le
+\mathsf M_{\mathrm{pre}}\mathsf R_{\mathrm{corr}},
+\]
+because \(0\le \mathsf U_{\mathrm{pre}}\le \mathsf M_{\mathrm{pre}}\), \(0<\mathsf P_{\mathrm{low}}\le \mathsf R_{\mathrm{corr}}\), and \(\mathsf M_{\mathrm{pre}}\ge0\).  Multiplying by the nonnegative factor
+\(\alpha^Q\mathsf W_{\mathrm{fair}}\) yields
+\[
+\alpha^Q\mathsf W_{\mathrm{fair}}\mathsf U_{\mathrm{pre}}\mathsf P_{\mathrm{low}}
+\le
+\alpha^Q\mathsf W_{\mathrm{fair}}\mathsf M_{\mathrm{pre}}\mathsf R_{\mathrm{corr}} .
+\]
+Using the identities from Steps 1 and 2, this is
+\[
+\left(
+\sum_h \mathbf 1\{J(h)=Q\}\lambda_v(h;o)
+\right)\mathsf P_{\mathrm{low}}
+\le
+\alpha^Q\,\mathsf M_v(o).
+\]
+Since \(\mathsf M_v(o)>0\) and \(\mathsf P_{\mathrm{low}}>0\), division gives
+\[
+\pi_v(o)
+=
+\frac{
+\sum_h \mathbf 1\{J(h)=Q\}\lambda_v(h;o)
+}{
+\mathsf M_v(o)
+}
+\le
+\frac{\alpha^Q}{\mathsf P_{\mathrm{low}}}
+=
+\frac{\alpha^Q}{\Lambda_Q(o)} ,
+\]
+as claimed. % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepthRawPosterior_le_product_of_le
+\end{proof}

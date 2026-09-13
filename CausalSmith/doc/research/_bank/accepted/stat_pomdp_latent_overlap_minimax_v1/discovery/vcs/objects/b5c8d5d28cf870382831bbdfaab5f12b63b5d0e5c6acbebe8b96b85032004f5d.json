@@ -1,0 +1,64 @@
+{
+  "node_type": "meta",
+  "body": {
+    "qid": "stat_pomdp_latent_overlap_minimax",
+    "specialization": "v1",
+    "cluster": "stat",
+    "target_estimand": "\\(\\theta(K,e)=\\sum_{s\\in\\mathcal S}d_e(s)\\sum_{a\\in\\mathcal A}e(a\\mid x)E_K[Y_t\\mid S_t=s,A_t=a]\\)",
+    "estimand_functional": "\\(\\widehat\\theta_{k_T}=\\operatorname{clip}_{[-1,1]}\\{(T-k_T)^{-1}\\sum_{t=k_T+1}^{T}Y_t\\prod_{j=t-k_T}^{t}e(A_j\\mid X_j)/b(A_j\\mid X_j)\\},\\quad R_T(t_0,\\zeta,C)\\asymp T^{-2/(2+t_0\\zeta)}\\text{ for fixed }C>1\\)",
+    "sampling_model": {
+      "design": "One behavior-stationary trajectory from a time-homogeneous finite POMDP; randomness comes from the controlled kernel and the known behavior randomization.",
+      "units": "The observations are \\((X_t,A_t,Y_t)\\) for \\(t=1,\\ldots,T\\); \\(H_t\\) and both stationary joint-state laws are unobserved.",
+      "treatment": "The action alphabet is \\(\\{0,1\\}\\); \\(A_t\\) is drawn from the known memoryless behavior policy \\(b(\\cdot\\mid X_t)\\), and the known target policy is \\(e(\\cdot\\mid X_t)\\).",
+      "overlap": "One-step action ratios are bounded by \\(e^{\\zeta}\\), and the unobserved joint stationary ratio is bounded by \\(C\\); neither stationary law nor its ratio is supplied.",
+      "nuisance_estimation": "No latent alphabet, transition kernel, reward regression, stationary law, proxy, emission rank, or finite-memory bound is known or estimated as a class-membership condition; the attaining estimator uses only observable policy ratios."
+    },
+    "comparator_promise_table": [
+      {
+        "comparator_bibkey": "HuWager2023",
+        "comparator_claim": "Theorem 3.1 gives a single-trajectory minimax lower bound of order \\(T^{-2/(t_0\\zeta+2)}\\) under mixing, action overlap, and reward moments, while Section 3.2 leaves distributionally overlapping hidden-state hard instances open.",
+        "matched_by": "Theorem 1",
+        "match_kind": "strict_tightening"
+      },
+      {
+        "comparator_bibkey": "MehrabiWager2025",
+        "comparator_claim": "Strong or square-integrable stationary density-ratio control supports root-\\(T\\) behavior for truncated doubly robust evaluation in fully observed MDPs, while heavier ratio tails produce slower regimes.",
+        "matched_by": "unmatched",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "ZhangJiang2024",
+        "comparator_claim": "Latent-state density-ratio coverage is weaker than belief coverage, and future-dependent value guarantees can retain exponentially large outcome or belief quantities without the stronger conditions.",
+        "matched_by": "unmatched",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "TennenholtzShalitMannor2020",
+        "comparator_claim": "Generic partially observable off-policy evaluation can have arbitrarily large bias, while recovery in the decoupled POMDP uses invertibility and conditional-independence structure.",
+        "matched_by": "unmatched",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "KallusUehara2020",
+        "comparator_claim": "Double reinforcement learning attains the semiparametric efficiency bound in observed Markov models using estimated \\(q\\)-functions and marginalized density ratios.",
+        "matched_by": "unmatched",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "LiaoKlasnjaMurphy2021",
+        "comparator_claim": "Long-run average policy outcomes admit estimation and confidence intervals in a fully observed Markov mobile-health model.",
+        "matched_by": "unmatched",
+        "match_kind": "downgraded_to_informed_by"
+      }
+    ],
+    "tldr": "A uniform bound on where a target policy places latent stationary mass does not reveal the temporal information needed to evaluate that policy. For one stationary trajectory from Hu and Wager's Model 3, with arbitrary finite observed and hidden alphabets, this proposal shows that every fixed \\(C>1\\) joint-state bound \\(d_e\\le Cd_b\\) leaves the exact cardinality-uniform minimax MSE at \\(T^{-2/(2+t_0\\zeta)}\\), with no logarithmic factor. Observable partial-history importance weighting attains the rate. A new signed-depth reset family supplies the matching all-estimator converse while keeping every stationary ratio below \\(C\\); its load-bearing result is a full observed-filtration KL bound that handles stationary pre-sample signs and never reveals reset times. The equality boundary \\(C=1\\) is parametric, and the first-class open question is the sharp transition when \\(C_T=1+\\delta_T\\).",
+    "project_justification": {
+      "gap": "HuWager2023 proves the unrestricted POMDP rate but its hard chain violates every fixed joint-state stationary-overlap bound at growing depth, and the paper explicitly leaves overlapping hidden-state hard instances open. Fully observed stationary-ratio methods do not apply because the ratio-supporting state is latent.",
+      "niche": "The unresolved object is a cardinality-uniform observed-law testing modulus inside the fixed-\\(C\\) latent-overlap class, not another estimator-side upper bound or a proxy-assisted identification result.",
+      "fill": "The project combines a no-log PHIW upper calculation with signed-depth alternatives whose depth occupancy is policy invariant while actions erase a hidden sign. A uniform terminal-posterior recursion yields the observed-path KL needed for a Le Cam converse, and a refreshed \\(360\\)-state insulin-policy adaptation demonstrates the practical distinction between bounded occupancy and sufficient observed history."
+    },
+    "related_work": "HuWager2023 is the writing and theorem anchor: its Introduction moves from fully observed Markov evaluation to partial-history weighting, Lemmas 2.3--2.4 derive the geometric bias and overlap-driven variance, Theorem 3.1 uses a Le Cam depth chain for the unrestricted converse, and Section 3.2 explicitly asks whether the same lower bound can use hidden states satisfying distributional overlap. Theorem 1 strictly tightens that converse by imposing the fixed joint-state restriction \\(d_e\\le Cd_b\\), while retaining the same exponent. MehrabiWager2025 is the closest fully observed comparator: its TDR construction truncates an observable stationary ratio, Theorems 3.9--3.10 organize rates by ratio tails, and Theorem 4.1 derives weak overlap from mixing and action overlap; those proof steps cannot estimate an unobserved ratio. ZhangJiang2024 explains the obstruction from another direction: its outcome- and belief-coverage analysis and Appendix E.3 show that latent-state density-ratio coverage alone is weaker than the observable operator control needed by future-dependent values. TennenholtzShalitMannor2020 obtains POMDP recovery only after decoupling and matrix invertibility, assumptions absent from the present class. KallusUehara2020 supplies the observed-MDP efficiency endpoint using marginalized density ratios and \\(q\\)-functions, while LiaoKlasnjaMurphy2021 supplies the fully observed long-run mobile-health inference endpoint. LuckettEtAl2020 and MaahsEtAl2012 motivate the glucose application inherited by HuWager2023 Section 5.2; the proposal uses only an explicitly refreshed finite discretization and makes no class-membership claim about the original continuous simulator.",
+    "technical_internal_limitation": "The signed-depth posterior factorization and the displayed observed-path KL bound are the early kill test and remain statements to prove, despite successful finite-path enumeration for small depths. The application bias interval also requires an interval-arithmetic certificate; current floating-point calculations only motivate its endpoints. The refreshed finite model is an artificial discretized adaptation used to demonstrate the theorem's implication, not evidence that the continuous simulator in HuWager2023 or LuckettEtAl2020 satisfies uniform finite-state contraction or stationary overlap.",
+    "honest_scope": "The fixed-\\(C>1\\) exact rate, the \\(C=1\\) boundary, and the finite refreshed application are the claimed deliverables. Constants may depend on \\(t_0,\\zeta,C\\) and are not uniform as \\(C\\downarrow1\\). The hard family uses \\(O(\\log T)\\) latent states, so the theorem does not address a uniformly bounded hidden alphabet. The local \\(C_T=1+\\delta_T\\) phase diagram, honest single-trajectory confidence intervals, policy-learning regret, and testability of the latent-overlap assertion remain separate questions. When \\(C=1\\), normalized stationary laws coincide and the result reduces to the known parametric immediate-weighting endpoint."
+  }
+}

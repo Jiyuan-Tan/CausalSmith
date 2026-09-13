@@ -1,2 +1,0 @@
-# Substrate debt (disclosed gates)
-

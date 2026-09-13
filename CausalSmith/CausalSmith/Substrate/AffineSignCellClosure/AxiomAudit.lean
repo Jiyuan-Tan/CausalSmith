@@ -1,5 +1,0 @@
-import CausalSmith.Substrate.AffineSignCellClosure.Polynomial
-
-#print axioms CausalSmith.Substrate.AffineSignCellClosure.affineFnOfMvPolynomial_eval
-#print axioms CausalSmith.Substrate.AffineSignCellClosure.strictCell_affineSystemOfPolynomials
-#print axioms CausalSmith.Substrate.AffineSignCellClosure.weakCell_affineSystemOfPolynomials

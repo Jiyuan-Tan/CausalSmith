@@ -1,0 +1,1455 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}pomdp\_\allowbreak{}latent\_\allowbreak{}overlap\_\allowbreak{}minimax}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For the bounded-reward, binary-action, single-trajectory specialization of Hu and Wager's finite-state Model 3 studied here, the exact cardinality-uniform minimax risk is, uniformly over every \(C\ge1\), \(T^{-1}+T^{-\beta}q_C^{2(1-\beta)}\), where \(q_C=(C-1)/C\) and \(\beta=2/(2+t_0\zeta)\); the comparison constants depend only on \(t_0,\zeta\). The observable radius-adaptive partial-history estimator attains this surface, with an exact elbow at \(q_C\asymp T^{-1/2}\) and no logarithmic loss. The signed-depth family gives the matching all-estimator converse while preserving bounded latent stationary occupancy. Thus the risk surface is continuous through its \(q_C\)-amplitude and boundary layer even though the pointwise fixed-\(C\) exponent is parametric at \(C=1\) and slower for every fixed \(C>1\). The fixed-radius, equality-boundary, and shrinking-radius results are corollaries of this uniform headline.
+
+\section{Project justification}
+
+\paragraph{Gap.} HuWager2023 establishes the unrestricted partially observed minimax exponent and asks whether its converse can be realized with distributionally overlapping hidden states. Its original hard chain does not provide a cardinality-uniform all-radius risk surface under \(d_e\le Cd_b\), while fully observed stationary-ratio methods cannot use a ratio carried by an unobserved state.
+
+\paragraph{Niche.} The paper's sole headline is the cardinality-uniform observable-data minimax surface over all \(C\ge1\) in the bounded-reward, binary-action, single-trajectory specialization of Hu and Wager's finite-state Model 3. It resolves both the shrinking-overlap boundary layer and the fixed-radius regimes without proxy, emission-rank, finite-memory, or known-latent-dynamics assumptions.
+
+\paragraph{Fill.} Radius-sensitive PHIW bias and covariance bounds yield the uniform upper surface, attained by a radius-adaptive observable history depth. A signed-depth reset family, together with the verified uniform terminal-posterior and observed-path KL bounds, yields the matching two-point converse with constants depending only on \(t_0,\zeta\). The fixed-\(C\), \(C=1\), and shrinking-radius statements follow as specializations. An interval-certified \(360\)-state insulin-policy adaptation demonstrates why bounded latent occupancy need not justify immediate weighting.
+
+\section{Related work}
+
+HuWager2023 is the theorem and application anchor: its Introduction develops partial-history weighting for partially observed Markov evaluation, its upper analysis balances geometric forgetting against policy-ratio growth, Theorem 3.1 supplies the unrestricted depth-chain converse, and Section 3.2 asks whether an overlapping hidden-state hard family can retain that difficulty. The uniform-overlap frontier answers that converse question inside the present bounded-reward, binary-action specialization and simultaneously gives its matching upper bound. The lower construction is a hard subclass, so its converse transfers by subclass inclusion to a larger Hu--Wager class containing those instances; the upper theorem is not asserted over Hu and Wager's full conditional-moment or general-finite-action class. MehrabiWager2025 studies observable stationary density ratios in fully observed MDPs, where truncation and ratio-tail conditions can yield root-\(T\) behavior; those methods do not reveal the latent ratio here. ZhangJiang2024 distinguishes latent-state density-ratio coverage from the stronger observable operator control needed for future-dependent values. TennenholtzShalitMannor2020 obtains POMDP recovery under decoupling and matrix invertibility, conditions deliberately absent here. KallusUehara2020 and LiaoKlasnjaMurphy2021 provide fully observed efficiency and long-run inference comparators. LuckettEtAl2020 and MaahsEtAl2012 motivate Hu and Wager's glucose application; this paper uses only a finite discretized adaptation and does not claim that the original continuous simulator belongs to the present contraction-and-overlap class.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta(K,e)=\sum_{s\in\mathcal S}d_e(s)\sum_{a\in\mathcal A}e(a\mid x)E_K[Y_t\mid S_t=s,A_t=a]\).
+Primary functional / estimator / diagnostic: For \(q_C=(C-1)/C\) and \(\beta=2/(2+t_0\zeta)\), \(\widehat\theta_{\kappa_T^{\mathrm{rad}}(C)}=\operatorname{clip}_{[-1,1]}\{(T-\kappa_T^{\mathrm{rad}}(C))^{-1}\sum_{t=\kappa_T^{\mathrm{rad}}(C)+1}^{T}Y_t\prod_{j=t-\kappa_T^{\mathrm{rad}}(C)}^{t}e(A_j\mid X_j)/b(A_j\mid X_j)\}\), and, uniformly over \(C\ge1\), \(R_T(t_0,\zeta,C)\asymp_{t_0,\zeta}T^{-1}+T^{-\beta}q_C^{2(1-\beta)}\)..
+\begin{itemize}
+  \item \(T\) --- \texttt{trajectory length}; \(\mathbb N\); \texttt{sample size}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of observed decision epochs.}
+  \item \(t_0\) --- \texttt{mixing-\allowbreak{}time bound}; \((0,\infty)\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed contraction-\allowbreak{}scale parameter.}
+  \item \(\zeta\) --- \texttt{log policy-\allowbreak{}overlap bound}; \((0,\infty)\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed logarithmic bound on one-\allowbreak{}step target-\allowbreak{}to-\allowbreak{}behavior action ratios.}
+  \item \(C\) --- \texttt{latent stationary-\allowbreak{}overlap radius}; \([1,\infty)\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed bound on the target-\allowbreak{}to-\allowbreak{}behavior stationary density ratio on the joint state.}
+  \item \(\alpha\) --- \texttt{one-\allowbreak{}step contraction factor}; \((0,1)\); \texttt{derived parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\alpha:=\exp(-1/t_0)\).
+  \item \(L\) --- \texttt{one-\allowbreak{}step policy-\allowbreak{}overlap factor}; \((1,\infty)\); \texttt{derived parameter}
+  \par\smallskip\noindent\emph{Definition.} \(L:=\exp(\zeta)\).
+  \item \(\mathcal X\) --- \texttt{observed-\allowbreak{}state alphabet}; \texttt{finite sets of unrestricted cardinality}; \texttt{state space}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Finite alphabet revealed to the estimator.}
+  \item \(\mathcal H\) --- \texttt{latent-\allowbreak{}state alphabet}; \texttt{finite sets of unrestricted cardinality}; \texttt{latent state space}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Finite alphabet that is neither observed nor revealed to the estimator.}
+  \item \(\mathcal S\) --- \texttt{joint-\allowbreak{}state alphabet}; \texttt{finite sets}; \texttt{state space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal S:=\mathcal X\times\mathcal H\).
+  \item \(\mathcal A\) --- \texttt{action alphabet}; \(\{0,1\}\); \texttt{action space}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed binary action alphabet.}
+  \item \(X_t\) --- \texttt{observed state}; \(\mathcal X\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} Observed state at epoch \(t\).
+  \item \(H_t\) --- \texttt{latent state}; \(\mathcal H\); \texttt{latent variable}
+  \par\smallskip\noindent\emph{Definition.} Unobserved state at epoch \(t\).
+  \item \(S_t\) --- \texttt{joint state}; \(\mathcal S\); \texttt{latent Markov state}
+  \par\smallskip\noindent\emph{Definition.} \(S_t:=(X_t,H_t)\).
+  \item \(A_t\) --- \texttt{action}; \(\mathcal A\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} Observed action at epoch \(t\).
+  \item \(Y_t\) --- \texttt{reward}; \([-1,1]\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} Observed bounded reward at epoch \(t\).
+  \item \(K\) --- \texttt{time-\allowbreak{}homogeneous joint reward-\allowbreak{}transition kernel}; \(K(dy,dx',dh'\mid x,h,a)\); \texttt{causal kernel}
+  \par\smallskip\noindent\emph{Definition.} Conditional law of \((Y_t,X_{t+1},H_{t+1})\) given \((X_t,H_t,A_t)\).
+  \item \(b\) --- \texttt{known behavior policy}; \(b:\mathcal X\to\Delta(\mathcal A)\); \texttt{policy}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Memoryless logging policy supplied to the estimator.}
+  \item \(e\) --- \texttt{known target policy}; \(e:\mathcal X\to\Delta(\mathcal A)\); \texttt{policy}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Memoryless evaluation policy supplied to the estimator.}
+  \item \(P_p\) --- \texttt{policy-\allowbreak{}induced joint-\allowbreak{}state kernel}; \(P_p(s,B)=\sum_{a\in\mathcal A}p(a\mid x)K(\mathbb R,B\mid s,a)\) for \(p\in\{b,e\}\); \texttt{Markov kernel}
+  \par\smallskip\noindent\emph{Definition.} Joint-state transition kernel under policy \(p\).
+  \item \(d_p\) --- \texttt{stationary joint-\allowbreak{}state law}; \(\Delta(\mathcal S)\); \texttt{stationary distribution}
+  \par\smallskip\noindent\emph{Definition.} Unique law satisfying \(d_pP_p=d_p\) for \(p\in\{b,e\}\).
+  \item \(g_e\) --- \texttt{target-\allowbreak{}policy reward regression}; \(g_e:\mathcal S\to[-1,1]\); \texttt{primitive functional}
+  \par\smallskip\noindent\emph{Definition.} \(g_e(s):=\sum_{a\in\mathcal A}e(a\mid x)E_K[Y_t\mid S_t=s,A_t=a]\).
+  \item \(\theta(K,e)\) --- \texttt{stationary target-\allowbreak{}policy mean reward}; \([-1,1]\); \texttt{estimand}
+  \par\smallskip\noindent\emph{Definition.} Causal target constructed in \(\mathrm{def{:}target\text{-}value}\).
+  \item \(\mathsf O_T\) --- \texttt{observed trajectory}; \((\mathcal X\times\mathcal A\times[-1,1])^T\); \texttt{observed experiment}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf O_T:=((X_t,A_t,Y_t))_{t=1}^T\).
+  \item \(\mathcal M_T(t_0,\zeta,C)\) --- \texttt{latent-\allowbreak{}overlap POMDP experiment class}; \texttt{classes of observed-\allowbreak{}trajectory laws}; \texttt{model class}
+  \par\smallskip\noindent\emph{Definition.} Class constructed in \(\mathrm{def{:}model\text{-}class}\).
+  \item \(\rho_t\) --- \texttt{observable one-\allowbreak{}step policy ratio}; \([0,L]\); \texttt{importance weight}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_t:=e(A_t\mid X_t)/b(A_t\mid X_t)\) on behavior-supported cells, with value zero on cells where both probabilities vanish.
+  \item \(Z_t(k)\) --- \texttt{partial-\allowbreak{}history weighted reward}; \(\mathbb R\); \texttt{score}
+  \par\smallskip\noindent\emph{Definition.} \(Z_t(k):=Y_t\prod_{j=t-k}^{t}\rho_j\) for \(0\le k<T\) and \(t>k\).
+  \item \(\widehat\theta_k\) --- \texttt{partial-\allowbreak{}history importance-\allowbreak{}weighted estimator}; \([-1,1]\); \texttt{estimator}
+  \par\smallskip\noindent\emph{Definition.} Estimator constructed in \(\mathrm{def{:}phiw\text{-}estimator}\).
+  \item \(k_T\) --- \texttt{history depth}; \(\{0,\ldots,T-1\}\); \texttt{tuning parameter}
+  \par\smallskip\noindent\emph{Definition.} Rate-balancing history depth constructed in \(\mathrm{def{:}history\text{-}depth}\).
+  \item \(\beta\) --- \texttt{hidden-\allowbreak{}state minimax exponent}; \((0,1)\); \texttt{rate exponent}
+  \par\smallskip\noindent\emph{Definition.} \(\beta:=2/(2+t_0\zeta)\).
+  \item \(R_T(t_0,\zeta,C)\) --- \texttt{cardinality-\allowbreak{}uniform minimax mean-\allowbreak{}squared error}; \([0,4]\); \texttt{risk}
+  \par\smallskip\noindent\emph{Definition.} Risk constructed in \(\mathrm{def{:}minimax\text{-}risk}\).
+  \item \(c_\star\) --- \texttt{lower comparison constant}; \((0,\infty)\); \texttt{theorem constant}
+  \par\smallskip\noindent\emph{Definition.} Lower risk constant allowed to depend only on \(t_0,\zeta,C\).
+  \item \(c^\star\) --- \texttt{upper comparison constant}; \((0,\infty)\); \texttt{theorem constant}
+  \par\smallskip\noindent\emph{Definition.} Upper risk constant allowed to depend only on \(t_0,\zeta,C\).
+  \item \(T_\star\) --- \texttt{asymptotic comparison threshold}; \(\mathbb N\); \texttt{theorem constant}
+  \par\smallskip\noindent\emph{Definition.} Threshold allowed to depend only on \(t_0,\zeta,C\).
+  \item \(Q\) --- \texttt{hidden depth}; \(\mathbb N\); \texttt{lower-\allowbreak{}bound index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Depth parameter of the lower-\allowbreak{}bound experiment.}
+  \item \(v\) --- \texttt{alternative index}; \(\{-1,+1\}\); \texttt{lower-\allowbreak{}bound parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Sign indexing the two lower-\allowbreak{}bound reward kernels.}
+  \item \(\varepsilon_C\) --- \texttt{reset-\allowbreak{}sign bias}; \((0,1/2]\); \texttt{lower-\allowbreak{}bound amplitude}
+  \par\smallskip\noindent\emph{Definition.} \(\varepsilon_C:=\min\{(C-1)/2,1/2\}\) when \(C>1\).
+  \item \(c_0\) --- \texttt{reward-\allowbreak{}emission amplitude}; \((0,1/4)\); \texttt{lower-\allowbreak{}bound amplitude}
+  \par\smallskip\noindent\emph{Definition.} \(c_0:=(1-\alpha)/4\).
+  \item \(J_t\) --- \texttt{hidden depth state}; \(\{0,\ldots,Q\}\); \texttt{latent variable}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Depth coordinate in the signed-\allowbreak{}depth lower-\allowbreak{}bound family.}
+  \item \(U_t\) --- \texttt{hidden sign state}; \(\{-1,+1\}\); \texttt{latent variable}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Sign coordinate in the signed-\allowbreak{}depth lower-\allowbreak{}bound family.}
+  \item \(w_j\) --- \texttt{stationary depth mass}; \((0,1)\); \texttt{lower-\allowbreak{}bound stationary law}
+  \par\smallskip\noindent\emph{Definition.} \(w_j:=(1-\alpha)\alpha^j/(1-\alpha^{Q+1})\) for \(j\in\{0,\ldots,Q\}\).
+  \item \(\mathbb P_{Q,v}^{\mathrm{obs},T}\) --- \texttt{observed-\allowbreak{}path law in the signed-\allowbreak{}depth family}; probability laws on \(\mathsf O_T\); \texttt{lower-\allowbreak{}bound experiment}
+  \par\smallskip\noindent\emph{Definition.} Observed law induced by depth \(Q\) and sign \(v\) in \(\mathrm{def{:}signed\text{-}depth\text{-}family}\).
+  \item \(\mathcal F_{t-1}^{\mathrm{obs}}\) --- \texttt{observed-\allowbreak{}history sigma-\allowbreak{}field}; \texttt{filtration}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal F_{t-1}^{\mathrm{obs}}:=\sigma(A_1,Y_1,\ldots,A_{t-1},Y_{t-1})\).
+  \item \(\ell_t\) --- \texttt{observed prefix length}; \(\{0,\ldots,Q\}\); \texttt{lower-\allowbreak{}bound index}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_t:=\min\{Q,t-1\}\).
+  \item \(q_t^v\) --- \texttt{predictive terminal posterior}; \([0,1]\); \texttt{lower-\allowbreak{}bound filter}
+  \par\smallskip\noindent\emph{Definition.} Posterior quantity constructed in \(\mathrm{def{:}filter\text{-}quantities}\).
+  \item \(a_t^{(Q)}\) --- \texttt{rare-\allowbreak{}action-\allowbreak{}history factor}; \([0,1]\); \texttt{lower-\allowbreak{}bound filter}
+  \par\smallskip\noindent\emph{Definition.} Action-history quantity constructed in \(\mathrm{def{:}filter\text{-}quantities}\).
+  \item \(B_0\) --- \texttt{observed-\allowbreak{}divergence constant}; \((0,\infty)\); \texttt{lower-\allowbreak{}bound constant}
+  \par\smallskip\noindent\emph{Definition.} A constant depending only on \(t_0,\zeta,C\), and not on \(Q,T\) or alphabet sizes.
+  \item \(K_0\) --- \texttt{uniform terminal-\allowbreak{}posterior constant}; \((0,\infty)\); \texttt{lower-\allowbreak{}bound constant}
+  \par\smallskip\noindent\emph{Definition.} Constant in the bound \(q_t^v\le K_0\alpha^Q\), depending only on \(t_0\).
+  \item \(\delta_T\) --- \texttt{shrinking latent-\allowbreak{}overlap excess}; \([0,\infty)\); \texttt{open frontier parameter}
+  \par\smallskip\noindent\emph{Definition.} Sequence defining the local radius \(C_T=1+\delta_T\).
+  \item \(\mathfrak H_{\mathrm{loc}}\) --- \texttt{local-\allowbreak{}overlap research handle}; \texttt{open-\allowbreak{}question handle}
+  \par\smallskip\noindent\emph{Definition.} Handle constructed in \(\mathrm{def{:}local\text{-}frontier\text{-}handle}\).
+  \item \(\mathcal I_{\mathrm{grid}}\) --- \texttt{refreshed finite insulin-\allowbreak{}policy POMDP}; a \(360\)-state controlled Markov model; \texttt{application witness}
+  \par\smallskip\noindent\emph{Definition.} Finite application construction in \(\mathrm{def{:}insulin\text{-}grid}\).
+  \item \(\Delta_{\mathrm{imm}}\) --- \texttt{immediate-\allowbreak{}weighting bias in the application witness}; \([-2,2]\); \texttt{application diagnostic}
+  \par\smallskip\noindent\emph{Definition.} Difference between the stationary expectation of \(Y_t e(A_t\mid X_t)/b(A_t\mid X_t)\) and \(\theta(K,e)\) in \(\mathcal I_{\mathrm{grid}}\).
+  \item \(q_C\) --- \texttt{latent stationary-\allowbreak{}overlap distance radius}; \([0,1)\); \texttt{uniform overlap-\allowbreak{}radius parameter}
+  \par\smallskip\noindent\emph{Definition.} \(q_C:=(C-1)/C\).
+  \item \(\kappa_T^{\mathrm{rad}}(C)\) --- \texttt{radius-\allowbreak{}adaptive observable history depth}; \(\{0,\ldots,\lfloor T/2\rfloor\}\); \texttt{uniform-\allowbreak{}frontier tuning parameter}
+  \par\smallskip\noindent\emph{Definition.} History depth constructed in \(\mathrm{def{:}radius\text{-}adaptive\text{-}history\text{-}depth}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:pomdp-kernel]\label{ass:pomdp-kernel}
+\(\mathcal L(Y_t,X_{t+1},H_{t+1}\mid X_{1:t},H_{1:t},A_{1:t},Y_{1:t-1})=K(\cdot\mid X_t,H_t,A_t),\quad t=1,\ldots,T\).
+\par\smallskip\noindent\emph{Standard} (time-homogeneous POMDP kernel, Model 3, \cite{HuWager2023}).
+\end{assumption}
+
+\begin{assumption}[ass:sequential-ignorability]\label{ass:sequential-ignorability}
+\(\Pr(A_t=a\mid X_{1:t},H_{1:t},A_{1:t-1},Y_{1:t-1})=b(a\mid X_t),\quad (a,t)\in\mathcal A\times\{1,\ldots,T\}\).
+\par\smallskip\noindent\emph{Standard} (sequential ignorability with observed-state randomization, \cite{HuWager2023}).
+\end{assumption}
+
+\begin{assumption}[ass:stationary-start]\label{ass:stationary-start}
+\(S_1\sim d_b\).
+\par\smallskip\noindent\emph{Standard} (behavior-stationary initialization, \cite{HuWager2023}).
+\end{assumption}
+
+\begin{assumption}[ass:bounded-reward]\label{ass:bounded-reward}
+\(\Pr(|Y_t|\le1)=1,\quad t=1,\ldots,T\).
+\par\smallskip\noindent\emph{Standard} (uniformly bounded rewards, \cite{HuWager2023}).
+\end{assumption}
+
+\begin{assumption}[ass:policy-overlap]\label{ass:policy-overlap}
+\(e(a\mid x)\le Lb(a\mid x),\quad (a,x)\in\mathcal A\times\mathcal X\).
+\par\smallskip\noindent\emph{Standard} (uniform one-step policy overlap, \cite{HuWager2023}).
+\end{assumption}
+
+\begin{assumption}[ass:uniform-contraction]\label{ass:uniform-contraction}
+\(\|\nu P_p-\nu'P_p\|_{\mathrm{TV}}\le\alpha\|\nu-\nu'\|_{\mathrm{TV}},\quad (p,\nu,\nu')\in\{b,e\}\times\Delta(\mathcal S)^2\).
+\par\smallskip\noindent\emph{Standard} (uniform geometric total-variation contraction, \cite{HuWager2023}).
+\end{assumption}
+
+\begin{assumption}[ass:latent-stationary-overlap]\label{ass:latent-stationary-overlap}
+\(d_e(s)\le C d_b(s),\quad s\in\mathcal S\).
+\par\smallskip\noindent\emph{Standard} (strong stationary distributional overlap, imposed on the unobserved joint state, \cite{MehrabiWager2025}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{cardinality-\allowbreak{}uniform latent-\allowbreak{}overlap POMDP experiment class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_T(t_0,\zeta,C):=\{(\mathcal X,\mathcal H,K,b,e,\mathcal L(\mathsf O_T)): T\in\mathbb N,\ |\mathcal X|<\infty,\ |\mathcal H|<\infty,\ |\mathcal A|=2,\text{ and }\mathrm{A}_{\mathrm{pomdp}},\mathrm{A}_{\mathrm{ign}},\mathrm{A}_{\mathrm{start}},\mathrm{A}_{\mathrm{reward}},\mathrm{A}_{\mathrm{act}},\mathrm{A}_{\mathrm{mix}},\mathrm{A}_{\mathrm{stat}}\text{ hold}\}\), where the seven predicates are exactly \(\mathrm{ass{:}pomdp\text{-}kernel}\) through \(\mathrm{ass{:}latent\text{-}stationary\text{-}overlap}\); the union ranges over all finite cardinalities and all revealed policy pairs.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}pomdp-\allowbreak{}kernel}; \texttt{ass:\allowbreak{}sequential-\allowbreak{}ignorability}; \texttt{ass:\allowbreak{}stationary-\allowbreak{}start}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}reward}; \texttt{ass:\allowbreak{}policy-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}uniform-\allowbreak{}contraction}; \texttt{ass:\allowbreak{}latent-\allowbreak{}stationary-\allowbreak{}overlap}.
+\end{definition}
+
+\begin{definition}[def:target-value]\label{def:target-value}
+\par\smallskip\noindent\emph{Defined object.} \texttt{stationary target-\allowbreak{}policy causal value}
+\par\smallskip\noindent\emph{Construction.} \(\theta(K,e):=\sum_{s=(x,h)\in\mathcal S}d_e(s)g_e(s)=\sum_{s=(x,h)\in\mathcal S}d_e(s)\sum_{a\in\mathcal A}e(a\mid x)E_K[Y_t\mid S_t=s,A_t=a]\).
+\par\smallskip\noindent\emph{Inputs.} \(K\); \(e\); \(d_p\); \(g_e\).
+\end{definition}
+
+\begin{definition}[def:minimax-risk]\label{def:minimax-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{cardinality-\allowbreak{}uniform observable-\allowbreak{}data minimax risk}
+\par\smallskip\noindent\emph{Construction.} \(R_T(t_0,\zeta,C):=\inf_{\widehat\theta\in\sigma(\mathsf O_T,b,e,t_0,\zeta,C)}\sup_{M\in\mathcal M_T(t_0,\zeta,C)}E_M[(\widehat\theta-\theta(K,e))^2]\), where the infimum is over all measurable estimators and the supplied finite observed alphabets are included in the estimator's information.
+\par\smallskip\noindent\emph{Inputs.} \(\mathsf O_T\); \(b\); \(e\); \(\mathcal M_T(t_0,\zeta,C)\); \(\theta(K,e)\).
+\end{definition}
+
+\begin{definition}[def:phiw-estimator]\label{def:phiw-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{clipped partial-\allowbreak{}history importance-\allowbreak{}weighted estimator}
+\par\smallskip\noindent\emph{Construction.} For \(0\le k<T\), define \(\widehat\theta_k:=\operatorname{clip}_{[-1,1]}\{(T-k)^{-1}\sum_{t=k+1}^{T}Z_t(k)\}\), with \(Z_t(k)=Y_t\prod_{j=t-k}^{t}\rho_j\) and the zero-cell convention in the definition of \(\rho_t\).
+\par\smallskip\noindent\emph{Inputs.} \(T\); \(Z_t(k)\); \(\rho_t\); \(Y_t\).
+\end{definition}
+
+\begin{definition}[def:history-depth]\label{def:history-depth}
+\par\smallskip\noindent\emph{Defined object.} \texttt{mixing-\allowbreak{}overlap balanced history depth}
+\par\smallskip\noindent\emph{Construction.} \(k_T:=\min\{\lfloor T/2\rfloor,\max\{0,\lfloor\log(T)/(2\log(1/\alpha)+\log L)\rfloor\}\}\).
+\par\smallskip\noindent\emph{Inputs.} \(T\); \(\alpha\); \(L\).
+\end{definition}
+
+\begin{definition}[def:signed-depth-family]\label{def:signed-depth-family}
+\par\smallskip\noindent\emph{Defined object.} \texttt{stationary-\allowbreak{}overlap-\allowbreak{}preserving signed-\allowbreak{}depth alternatives}
+\par\smallskip\noindent\emph{Construction.} For \(C>1\), \(Q\ge1\), and \(v\in\{-1,+1\}\), take \(X_t\) constant, \(H_t=(J_t,U_t)\in\{0,\ldots,Q\}\times\{-1,+1\}\), \(b(1)=1/L\), and \(e(1)=1\). Draw a reset sign from \(\Pr(U= u)=(1+u\varepsilon_C)/2\). If \(J_t=Q\), set \(J_{t+1}=0\) and draw a reset sign. If \(J_t<Q\), reset in the same way with probability \(1-\alpha\); otherwise set \(J_{t+1}=J_t+1\), retaining \(U_t\) when \(A_t=1\) and replacing it by an independent fair sign when \(A_t=0\). Independently of the next-state draw conditional on \((J_t,U_t,A_t)\), draw \(Y_t\in\{-1,+1\}\) with \(\Pr_v(Y_t=y\mid J_t,U_t,A_t)=\{1+yvc_0U_t\mathbf 1(J_t=Q)\}/2\). Initialize from the behavior-stationary law \(d_b(j,u)=w_j(1+u\varepsilon_C L^{-j})/2\).
+\par\smallskip\noindent\emph{Inputs.} \(C\); \(Q\); \(v\); \(L\); \(\alpha\); \(\varepsilon_C\); \(c_0\).
+\end{definition}
+
+\begin{definition}[def:filter-quantities]\label{def:filter-quantities}
+\par\smallskip\noindent\emph{Defined object.} \texttt{observed-\allowbreak{}filtration posterior and action-\allowbreak{}history factor}
+\par\smallskip\noindent\emph{Construction.} Let \(\mathcal F_{t-1}^{\mathrm{obs}}:=\sigma(A_1,Y_1,\ldots,A_{t-1},Y_{t-1})\), \(\ell_t:=\min\{Q,t-1\}\), \(q_t^v:=\Pr_v(J_t=Q\mid\mathcal F_{t-1}^{\mathrm{obs}})\), and \(a_t^{(Q)}:=L^{-(Q-\ell_t)}\prod_{j=t-\ell_t}^{t-1}\mathbf 1\{A_j=1\}\), with an empty product equal to one.
+\par\smallskip\noindent\emph{Inputs.} \(A_t\); \(Y_t\); \(Q\); \(v\); \(J_t\); \(L\).
+\end{definition}
+
+\begin{definition}[def:local-frontier-handle]\label{def:local-frontier-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{shrinking-\allowbreak{}overlap phase-\allowbreak{}transition handle}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak H_{\mathrm{loc}}\) is the following derivation handle: scale the reset-sign perturbation in \(\mathrm{def{:}signed\text{-}depth\text{-}family}\) to obey \(d_e/d_b\le1+\delta_T\), derive its observed-path testing modulus as a joint function of \(Q\) and \(\delta_T\), and pair that modulus with a data-dependent selector between immediate weighting and the partial-history scores \(Z_t(k)\). The output object is the sharp risk function \(R_T(t_0,\zeta,1+\delta_T)\), not a preassigned rate formula.
+\par\smallskip\noindent\emph{Inputs.} \(\delta_T\); \(Q\); \(Z_t(k)\); \(R_T(t_0,\zeta,C)\).
+\end{definition}
+
+\begin{definition}[def:insulin-grid]\label{def:insulin-grid}
+\par\smallskip\noindent\emph{Defined object.} \texttt{refreshed finite-\allowbreak{}state insulin-\allowbreak{}policy adaptation}
+\par\smallskip\noindent\emph{Construction.} Let the state be \(s=(g,d_1,d_2,x_1,x_2,a_1)\) in \(\{50,100,150,200,250\}\times\{0,78\}^2\times\{0,31,850\}^2\times\{0,1\}\), giving \(360\) states. The diet coordinates \((d_1,d_2)\) form \(H_t\); all other coordinates form \(X_t\). Put \(b(1\mid X_t)=0.3\) and \(e(1\mid X_t)=\mathbf 1\{g\ge125\}\). With probability \(1/2\), draw the next full state uniformly. Otherwise draw \(d_0\in\{0,78\}\) with probabilities \((0.8,0.2)\), draw \(x_0\in\{0,31,850\}\) with probabilities \((0.4,0.4,0.2)\), draw \(\xi\sim N(0,25)\), set \(g'=\operatorname{round}_{\{50,100,150,200,250\}}\operatorname{clip}_{[50,250]}(10+0.9g+0.1d_1+0.1d_2-0.01x_1-0.01x_2-2A_t-4a_1+\xi)\), and shift the memories to \((g',d_0,d_1,x_0,x_1,A_t)\). Set \(Y_t=-1\) for \(g\le70\), \(Y_t=-2/3\) for \(g>150\), \(Y_t=-1/3\) for \(70<g\le80\) or \(120<g\le150\), and \(Y_t=0\) otherwise. This defines \(\mathcal I_{\mathrm{grid}}\).
+\par\smallskip\noindent\emph{Inputs.} \(H_t\); \(X_t\); \(A_t\).
+\end{definition}
+
+\begin{definition}[def:overlap-distance-radius]\label{def:overlap-distance-radius}
+\par\smallskip\noindent\emph{Defined object.} \texttt{normalized latent stationary-\allowbreak{}overlap radius}
+\par\smallskip\noindent\emph{Construction.} For \(C\ge1\), define
+\[
+ q_C:=\frac{C-1}{C}.
+\]
+\par\smallskip\noindent\emph{Inputs.} \(C\).
+\end{definition}
+
+\begin{definition}[def:radius-adaptive-history-depth]\label{def:radius-adaptive-history-depth}
+\par\smallskip\noindent\emph{Defined object.} \texttt{radius-\allowbreak{}adaptive mixing-\allowbreak{}overlap balanced history depth}
+\par\smallskip\noindent\emph{Construction.} For \(T\in\mathbb N\) and \(C\ge1\), define the radius-adaptive history depth
+\[
+ \kappa_T^{\mathrm{rad}}(C):=
+ \begin{cases}
+ 0, & Tq_C^2\le1,\\[3pt]
+ \displaystyle
+ \min\!\left\{\left\lfloor\frac T2\right\rfloor,
+ \left\lfloor\frac{\log(Tq_C^2)}{2\log(1/\alpha)+\log L}\right\rfloor\right\},
+ & Tq_C^2>1.
+ \end{cases}
+\]
+\par\smallskip\noindent\emph{Inputs.} \(T\); \(C\); \(q_C\); \(\alpha\); \(L\).
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:phiw-upper]\label{lem:phiw-upper}
+For every fixed \(t_0>0\), \(\zeta>0\), and \(C\ge1\), there is \(c^\star<\infty\), independent of \(T\), \(|\mathcal X|\), and \(|\mathcal H|\), such that \(\sup_{M\in\mathcal M_T(t_0,\zeta,C)}E_M[(\widehat\theta_{k_T}-\theta(K,e))^2]\le c^\star T^{-\beta}\) for all sufficiently large \(T\). In particular, the overlapping-history covariance sum is geometric and introduces no logarithmic loss.
+\end{lemma}
+\begin{proof}
+Put \(r:=\log(1/\alpha)=1/t_0\) and \(D:=2r+\log L\).  Thus
+\[
+ \beta=\frac{2r}{D}=\frac{2}{2+t_0\zeta}.
+\]
+Fix a member \(M\in\mathcal M_T(t_0,\zeta,C)\) and an integer \(0\le k<T\).  By \(\mathrm{ass{:}sequential\text{-}ignorability}\), conditional on the joint state and the past, multiplication by \(\rho_j\) changes the action law at epoch \(j\) from \(b\) to \(e\).  Iterating this identity over the \(k+1\) actions in \(Z_t(k)\), and using \(\mathrm{ass{:}pomdp\text{-}kernel}\), gives
+\[
+ \mu_k:=E_M[Z_t(k)]=d_bP_e^kg_e .
+\]
+There are \(k\) state transitions here because the last ratio changes the distribution of \(A_t\), whose target-policy reward mean is \(g_e(S_t)\).  No independence between \(Y_t\) and \(S_{t+1}\) is used.  By \(\mathrm{ass{:}uniform\text{-}contraction}\), iteration gives
+\[
+ \|d_bP_e^k-d_eP_e^k\|_{\mathrm{TV}}
+ \le \alpha^k\|d_b-d_e\|_{\mathrm{TV}}\le \alpha^k.
+\]
+Since \(d_eP_e^k=d_e\), \(|g_e|\le1\) by \(\mathrm{ass{:}bounded\text{-}reward}\), and integration of a \([-1,1]\)-valued function changes by at most twice total variation, \(\mathrm{def{:}target\text{-}value}\) yields
+\[
+ |\mu_k-\theta(K,e)|\le2\alpha^k. \tag{1}
+\]
+
+The overlap assumption gives \(0\le\rho_j\le L\) on every behavior-supported cell and hence \(\rho_j^2\le L\rho_j\).  Repeated conditional expectation under \(\mathrm{ass{:}sequential\text{-}ignorability}\) gives expectation one for a chronological product of policy ratios.  Consequently
+\[
+ E_M|Z_t(k)|\le1,
+ \qquad E_M[Z_t(k)^2]\le L^{k+1}. \tag{2}
+\]
+For \(1\le h\le k\), the two ratio products in \(Z_t(k)Z_{t+h}(k)\) overlap at exactly \(k+1-h\) actions.  Applying \(\rho^2\le L\rho\) at those actions, using \(|Y_tY_{t+h}|\le1\), and cancelling the remaining single ratios gives
+\[
+ E_M|Z_t(k)Z_{t+h}(k)|\le L^{k+1-h}.
+\]
+Because \(|\mu_k|\le1\), this implies
+\[
+ |\operatorname{Cov}_M(Z_t(k),Z_{t+h}(k))|
+ \le2L^{k+1-h},\qquad 1\le h\le k. \tag{3}
+\]
+
+For \(h\ge k+1\), condition on the latent history through \(S_{t+1}\).  The Markov property and the same likelihood-ratio cancellation show that the conditional mean of the future block is
+\[
+ H_h(S_{t+1}),\qquad
+ H_h:=P_b^{h-k-1}P_e^kg_e.
+\]
+For every bounded \(f\), the contraction assumption implies
+\(\operatorname{osc}(P_b^mf)\le\alpha^m\operatorname{osc}(f)\).  Since \(\operatorname{osc}(P_e^kg_e)\le2\),
+\[
+ \operatorname{osc}(H_h)\le2\alpha^{h-k-1}.
+\]
+Stationarity in \(\mathrm{ass{:}stationary\text{-}start}\) gives \(E_MH_h(S_{t+1})=\mu_k\); this mean lies between the minimum and maximum of \(H_h\).  Using (2),
+\[
+ |\operatorname{Cov}_M(Z_t(k),Z_{t+h}(k))|
+ =|E_M[Z_t(k)\{H_h(S_{t+1})-\mu_k\}]|
+ \le2\alpha^{h-k-1}. \tag{4}
+\]
+
+Let \(N:=T-k\).  Equations (2)--(4), stationarity, and the variance identity for a finite sum give
+\[
+ \begin{split}
+ \operatorname{Var}_M\!\left(N^{-1}\sum_{t=k+1}^TZ_t(k)\right)
+ &\le \frac1N\left\{L^{k+1}
+       +4\sum_{h=1}^kL^{k+1-h}
+       +4\sum_{j=0}^{\infty}\alpha^j\right\}\\
+ &\le \frac1N\left\{L^{k+1}\left(1+\frac4{L-1}\right)
+       +\frac4{1-\alpha}\right\}.
+ \end{split}\tag{5}
+\]
+This is the claimed geometric covariance sum and has no factor \(k\).
+
+For all sufficiently large \(T\), \(k_T=\lfloor\log T/D\rfloor<T/2\).  Hence \(N\ge T/2\), and the floor inequalities imply
+\[
+ \alpha^{2k_T}\le \alpha^{-2}T^{-2r/D}=\alpha^{-2}T^{-\beta},
+ \qquad
+ T^{-1}L^{k_T+1}\le L T^{-1+(\log L)/D}=LT^{-\beta}.
+\]
+Also \(T^{-1}\le T^{-\beta}\) because \(0<\beta<1\).  Combining (1) and (5) bounds the mean-squared error of the unclipped average by \(c^\star T^{-\beta}\), where \(c^\star\) depends only on \(t_0\) and \(\zeta\).  Finally \(\theta(K,e)\in[-1,1]\), so projection onto \([-1,1]\) cannot increase squared distance to the target.  Taking the supremum over \(M\) proves the assertion, uniformly in both alphabet cardinalities and, a fortiori, uniformly over the additional restriction indexed by \(C\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This supplies the explicit observable-data attaining estimator and removes a possible spurious logarithm from overlapping windows. \textit{Gap.} HuWager2023, Lemmas 2.3 and 2.4 and Theorem 2.1, give the PHIW bias and variance benchmark; the present statement makes the one-trajectory, cardinality-uniform bound explicit on the fixed latent-overlap subclass and sharpens the covariance summation without changing the exponent. \textit{Consumer.} The bound gives a deployable history length for the refreshed finite insulin model without estimating latent stationary ratios.
+
+\begin{lemma}[lem:signed-depth-membership]\label{lem:signed-depth-membership}
+For every fixed \(t_0>0\), \(\zeta>0\), \(C>1\), \(Q\ge1\), and \(v\in\{-1,+1\}\), the signed-depth construction belongs to \(\mathcal M_T(t_0,\zeta,C)\) for every \(T\). Its policy-induced stationary laws satisfy \(d_r(j,u)=w_j(1+u\varepsilon_C r^j)/2\) when action one is taken with probability \(r\), \(\max_{j,u}d_e(j,u)/d_b(j,u)\le1+\varepsilon_C\le C\), and \(\theta(K,e)=vc_0\varepsilon_Cw_Q\).
+\end{lemma}
+\begin{proof}
+Write \(p:=1/L\) and \(\nu_0(0,u):=(1+u\varepsilon_C)/2\).  The action law in \(\mathrm{def{:}signed\text{-}depth\text{-}family}\) is i.i.d. Bernoulli \(p\) under behavior and depends on neither the past nor \(U_t\).  It therefore satisfies the sequential-randomization predicate in \(\mathrm{def{:}model\text{-}class}\).  The displayed construction is time homogeneous and generates \((Y_t,J_{t+1},U_{t+1})\) from \((J_t,U_t,A_t)\), so it satisfies the POMDP-kernel predicate.  Moreover \(Y_t\in\{-1,+1\}\), proving bounded reward support.  Since \(e(1)=1=Lb(1)\) and \(e(0)=0\le Lb(0)\), \(\mathrm{ass{:}policy\text{-}overlap}\) holds, including its zero-cell requirement.
+
+For either policy \(q\in\{b,e\}\), its state kernel can be written
+\[
+ P_q(s,\cdot)=(1-\alpha)\nu_0(\cdot)+\alpha R_{q,s}(\cdot), \tag{6}
+\]
+where at depth \(Q\) one may take \(R_{q,s}=\nu_0\), and below depth \(Q\), \(R_{q,s}\) is the policy-mixture of the one-step advance kernels.  Thus, for arbitrary state laws \(\nu,\nu'\), Markov-kernel nonexpansiveness of total variation and (6) give
+\[
+ \|\nu P_q-\nu'P_q\|_{\mathrm{TV}}
+ =\alpha\|\nu R_q-\nu'R_q\|_{\mathrm{TV}}
+ \le\alpha\|\nu-\nu'\|_{\mathrm{TV}}. \tag{7}
+\]
+This proves the required contraction with a constant independent of \(Q\).
+
+The depth transition is independent of the action and sign.  The probabilities
+\[
+ w_j=\frac{(1-\alpha)\alpha^j}{1-\alpha^{Q+1}},\qquad 0\le j\le Q,
+\]
+sum to one, satisfy \(w_j=\alpha w_{j-1}\) for \(j\ge1\), and satisfy
+\(w_0=(1-\alpha)\sum_{j=0}^{Q-1}w_j+w_Q\).  They are therefore stationary for the depth chain.  If action one is taken independently with probability \(r\), a reset sign has mean \(\varepsilon_C\), while each advance multiplies its conditional mean by \(r\): action one retains the sign and action zero replaces it by a fair sign.  Induction on \(j\) consequently gives conditional sign mean \(\varepsilon_Cr^j\) at depth \(j\).  Hence the joint stationary law is
+\[
+ d_r(j,u)=\frac{w_j}{2}(1+u\varepsilon_Cr^j). \tag{8}
+\]
+Direct substitution in the stationarity equations also verifies (8).  All its cells are positive because \(0<\varepsilon_C\le1/2\).
+
+Under the target \(r=1\), and under behavior \(r=p\).  For \(u=+1\),
+\[
+ \frac{d_e(j,+1)}{d_b(j,+1)}
+ =\frac{1+\varepsilon_C}{1+\varepsilon_Cp^j}\le1+\varepsilon_C,
+\]
+whereas for \(u=-1\),
+\[
+ \frac{d_e(j,-1)}{d_b(j,-1)}
+ =\frac{1-\varepsilon_C}{1-\varepsilon_Cp^j}\le1.
+\]
+By the definition \(\varepsilon_C=\min\{(C-1)/2,1/2\}\), one has \(1+\varepsilon_C\le C\) for every \(C>1\).  Thus the latent stationary-overlap predicate holds pointwise on the joint state.  Initialization is exactly from the behavior law (8), as required by \(\mathrm{ass{:}stationary\text{-}start}\).  Equations (6)--(8), together with the preceding support checks, prove membership in \(\mathcal M_T(t_0,\zeta,C)\) for every \(T\).
+
+Finally, under the target policy the conditional sign mean at every depth is \(\varepsilon_C\).  Rewards have mean zero off depth \(Q\), and at \((Q,u)\) their mean is \(vc_0u\).  Therefore \(\mathrm{def{:}target\text{-}value}\) and (8) give
+\[
+ \theta(K,e)=\sum_{u\in\{-1,+1\}}d_e(Q,u)vc_0u
+ =vc_0\varepsilon_Cw_Q,
+\]
+as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The action-independent depth occupancy is the new mechanism that keeps the lower alternatives inside every fixed \(C>1\) class. \textit{Gap.} HuWager2023, Section 3.1, uses a depth chain whose terminal stationary ratio grows exponentially with depth and explicitly leaves distributionally overlapping hidden states open in Section 3.2; this construction removes that growth. \textit{Consumer.} It makes a fixed physiological-occupancy assurance compatible with a nonparametric hidden-state lower experiment.
+
+\begin{lemma}[lem:observed-path-kl]\label{lem:observed-path-kl}
+For the signed-depth alternatives, there exists \(B_0<\infty\), independent of \(Q\) and \(T\), such that \(\operatorname{KL}(\mathbb P_{Q,+1}^{\mathrm{obs},T}\,\|\,\mathbb P_{Q,-1}^{\mathrm{obs},T})\le B_0T\alpha^{2Q}L^{-Q}\). More precisely, for every observed history, \(E_v[Y_t\mid\mathcal F_{t-1}^{\mathrm{obs}}]=vc_0\varepsilon_Ca_t^{(Q)}q_t^v\) and \(q_t^v\le K_0\alpha^Q\) for a finite \(K_0\) depending only on \(t_0\), so the bound includes all stationary initial windows \(t\le Q\) without revealing reset times.
+\end{lemma}
+\begin{proof}
+Put \(p:=1/L\) and
+\[
+ m_t^v:=E_v[Y_t\mid\mathcal F_{t-1}^{\mathrm{obs}}].
+\]
+Every finite observed history has positive probability: the action probabilities are positive on their behavior support and every conditional reward probability lies in \([(1-c_0)/2,(1+c_0)/2]\).  Hence all following conditional probabilities are well defined.
+
+By the reward law in \(\mathrm{def{:}signed\text{-}depth\text{-}family}\),
+\[
+ m_t^v=vc_0E_v[U_t\mathbf1\{J_t=Q\}\mid\mathcal F_{t-1}^{\mathrm{obs}}]. \tag{9}
+\]
+Suppose first that \(t>Q\).  On \(\{J_t=Q\}\), the depth path during epochs \(t-Q,\ldots,t\) is necessarily \(0,1,\ldots,Q\), with no reset.  The rewards at the preceding \(Q\) epochs are therefore emitted below terminal depth and are fair; they convey no information about the episode's sign.  The sign at depth zero has mean \(\varepsilon_C\), independently of the earlier observed history, and it survives to epoch \(t\) exactly when all of \(A_{t-Q},\ldots,A_{t-1}\) equal one.  It follows that
+\[
+ E_v[U_t\mid J_t=Q,\mathcal F_{t-1}^{\mathrm{obs}}]
+ =\varepsilon_C\prod_{j=t-Q}^{t-1}\mathbf1\{A_j=1\}. \tag{10}
+\]
+For \(t\le Q\), terminal depth at epoch \(t\) forces initial depth \(Q-t+1\) followed by \(t-1\) advances.  Equation (8) from \(\mathrm{lem{:}signed\text{-}depth\text{-}membership}\) gives initial conditional sign mean \(\varepsilon_Cp^{Q-t+1}\); the observed preceding rewards are again all fair on this event, and each recorded action zero erases the sign.  Thus
+\[
+ E_v[U_t\mid J_t=Q,\mathcal F_{t-1}^{\mathrm{obs}}]
+ =\varepsilon_Cp^{Q-t+1}\prod_{j=1}^{t-1}\mathbf1\{A_j=1\}. \tag{11}
+\]
+Equations (9)--(11) and \(\mathrm{def{:}filter\text{-}quantities}\) prove, for every \(t\),
+\[
+ m_t^v=vc_0\varepsilon_Ca_t^{(Q)}q_t^v. \tag{12}
+\]
+This calculation accounts explicitly for the stationary pre-sample actions when \(t\le Q\).
+
+We next bound \(q_t^v\) without observing resets.  For \(t>Q\), condition first on \(\mathcal F_{t-Q-1}^{\mathrm{obs}}\) and on the intervening actions.  The joint conditional probability of \(J_t=Q\) and the realized rewards \(Y_{t-Q},\ldots,Y_{t-1}\) is
+\[
+ \Pr_v(J_{t-Q}=0\mid\mathcal F_{t-Q-1}^{\mathrm{obs}})\alpha^Q2^{-Q}; \tag{13}
+\]
+indeed, terminal arrival requires \(Q\) advances and every reward on those nonterminal depths is fair.  On the other hand, the chain rule and (12) show that the conditional probability of the realized reward window is
+\[
+ 2^{-Q}\prod_{r=t-Q}^{t-1}(1+Y_rm_r^v). \tag{14}
+\]
+Dividing (13) by (14), dropping the first probability, and using
+\(|m_r^v|\le c_0q_r^v\), gives
+\[
+ q_t^v\le\alpha^Q\prod_{r=t-Q}^{t-1}(1-c_0q_r^v)^{-1}. \tag{15}
+\]
+For \(t\le Q\), stationarity gives
+\[
+ \Pr(J_1=Q-t+1)\alpha^{t-1}=w_{Q-t+1}\alpha^{t-1}=w_Q.
+\]
+The same fair-reward calculation therefore replaces the numerator in (13) by \(w_Q2^{-(t-1)}\).  Since
+\[
+ w_Q=\frac{(1-\alpha)\alpha^Q}{1-\alpha^{Q+1}}\le\alpha^Q,
+\]
+inequality (15) remains valid with the product restricted to \(r=1,\ldots,t-1\).  Thus it covers every initial window.
+
+Set \(r_0:=\alpha/(1-c_0)\).  Since \(c_0=(1-\alpha)/4\),
+\[
+ r_0=\frac{4\alpha}{3+\alpha}<1. \tag{16}
+\]
+The crude bound \(q_r^v\le1\) in (15), including its initial-window version, gives \(q_t^v\le r_0^Q\) for every \(t,v\) and every observed history.  Substituting this uniform result back into (15) yields
+\[
+ q_t^v\le\alpha^Q(1-c_0r_0^Q)^{-Q}.
+\]
+Using \(-\log(1-x)\le x/(1-x)\), \(1-c_0r_0^Q\ge1-c_0\), and
+\(Qr_0^Q\le\sum_{j\ge1}jr_0^j=r_0/(1-r_0)^2\), we obtain
+\[
+ q_t^v\le K_0\alpha^Q,
+ \qquad
+ K_0:=\exp\!\left\{\frac{c_0r_0}{(1-c_0)(1-r_0)^2}\right\}<\infty. \tag{17}
+\]
+This constant depends only on \(t_0\), not on \(Q,T,C\), or the observed word.
+
+It remains to pass from the filter to the observed experiment.  If two Rademacher laws have means \(m,n\in(-1,1)\), then \(\log x\le x-1\) gives
+\[
+ \operatorname{KL}(\operatorname{Rad}(m)\,\|\,\operatorname{Rad}(n))
+ \le\chi^2(\operatorname{Rad}(m)\,\|\,\operatorname{Rad}(n))
+ =\frac{(m-n)^2}{1-n^2}. \tag{18}
+\]
+At a common observed history, (12) and (17) imply
+\[
+ |m_t^{+1}-m_t^{-1}|
+ \le2c_0\varepsilon_CK_0\alpha^Qa_t^{(Q)},
+ \qquad |m_t^{-1}|\le c_0. \tag{19}
+\]
+The conditional action laws are identical under the two alternatives by sequential randomization.  Applying the ordinary product-density chain rule, then (18)--(19), gives
+\[
+ \operatorname{KL}(\mathbb P_{Q,+1}^{\mathrm{obs},T}\,\|\,
+                    \mathbb P_{Q,-1}^{\mathrm{obs},T})
+ \le \frac{4c_0^2\varepsilon_C^2K_0^2}{1-c_0^2}
+       \alpha^{2Q}\sum_{t=1}^TE_{+1}[(a_t^{(Q)})^2]. \tag{20}
+\]
+Behavior actions are i.i.d. Bernoulli \(p\), even after conditioning on earlier observed outcomes.  With \(\ell_t=\min\{Q,t-1\}\),
+\[
+ E_{+1}[(a_t^{(Q)})^2]
+ =p^{2(Q-\ell_t)}p^{\ell_t}=p^{2Q-\ell_t}\le p^Q=L^{-Q}. \tag{21}
+\]
+Combining (20)--(21) proves the asserted KL inequality with, for example,
+\[
+ B_0:=\frac{4c_0^2\varepsilon_C^2K_0^2}{1-c_0^2}.
+\]
+Its allowed dependence is only through \(t_0,\zeta,C\), and the derivation never reveals a reset or a latent state.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the early kill test: the extra hidden-survival factor in observed KL is exactly what preserves the Hu--Wager exponent under fixed latent occupancy. \textit{Gap.} HuWager2023, Lemma 3.3, proves the corresponding divergence bound for its unrestricted hard chain; no published argument located in the scan controls the full observed filter while every joint-state stationary ratio is uniformly bounded. \textit{Consumer.} The lemma decides whether bounded latent occupancy alone can justify shorter histories in the mobile-health use case.
+
+\begin{theorem}[thm:fixed-c-minimax]\label{thm:fixed-c-minimax}
+For every fixed \(t_0>0\), \(\zeta>0\), and \(C>1\), there exist \(0<c_\star\le c^\star<\infty\) and \(T_\star<\infty\), depending only on \(t_0,\zeta,C\), such that \(c_\star T^{-2/(2+t_0\zeta)}\le R_T(t_0,\zeta,C)\le c^\star T^{-2/(2+t_0\zeta)}\) for every \(T\ge T_\star\). The upper bound is attained by \(\widehat\theta_{k_T}\); the lower bound holds against every measurable observable-data estimator, already with constant \(X_t\) and \(2(Q+1)\) latent states. Thus the HuWager2023 Theorem 3.1 minimax exponent remains sharp after strictly restricting its POMDP class by \(d_e\le Cd_b\), with no logarithmic factor.
+\end{theorem}
+\begin{proof}
+The upper inequality, with the stated observable estimator, is exactly \(\mathrm{lem{:}phiw\text{-}upper}\) combined with \(\mathrm{def{:}minimax\text{-}risk}\).  We prove the converse.
+
+Put \(r:=\log(1/\alpha)\), \(D:=2r+\log L\), so \(\beta=2r/D\).  Let \(B_0\) be the constant from \(\mathrm{lem{:}observed\text{-}path\text{-}kl}\), and, for all sufficiently large \(T\), choose
+\[
+ Q_T:=\left\lceil\frac{\log(8B_0T)}{D}\right\rceil\ge1. \tag{22}
+\]
+The two models with \(v=+1\) and \(v=-1\) belong to the class by \(\mathrm{lem{:}signed\text{-}depth\text{-}membership}\), have the same revealed policies and alphabets, and have \(2(Q_T+1)\) latent states.  The KL lemma and (22) imply
+\[
+ \operatorname{KL}(\mathbb P_{Q_T,+1}^{\mathrm{obs},T}\,\|\,
+                    \mathbb P_{Q_T,-1}^{\mathrm{obs},T})
+ \le B_0T\exp(-DQ_T)\le\frac18. \tag{23}
+\]
+
+For completeness, we derive the testing reduction used here.  For two mutually absolutely continuous probability laws \(P_+,P_-\), let \(R=dP_+/dP_-\), let
+\(A:=\int\sqrt{dP_+dP_-}\), and let \(O:=\int\min(dP_+,dP_-)\).  Jensen's inequality gives
+\[
+ A=E_{P_+}[R^{-1/2}]
+ \ge\exp\{-\operatorname{KL}(P_+\|P_-)/2\}.
+\]
+Cauchy--Schwarz, applied to \(\sqrt{\min(dP_+,dP_-)\max(dP_+,dP_-)}\), gives
+\(A^2\le O(2-O)\le2O\).  Hence
+\[
+ O\ge\tfrac12\exp\{-\operatorname{KL}(P_+\|P_-)\}. \tag{24}
+\]
+For any estimator \(\widehat\theta\), classify as plus when \(\widehat\theta>0\).  The two target values are \(\theta_+=a_Q\) and \(\theta_-=-a_Q\), where
+\(a_Q:=c_0\varepsilon_Cw_Q\).  On either classification error the squared loss is at least \(a_Q^2\).  The sum of the two error probabilities is at least \(O\), since pointwise the smaller density is paid by every binary decision rule.  Therefore (24) implies
+\[
+ \max_{v\in\{-1,+1\}}E_v[(\widehat\theta-\theta_v)^2]
+ \ge\frac{a_Q^2}{4}\exp\{-\operatorname{KL}(P_+\|P_-)\}. \tag{25}
+\]
+
+Now \(w_Q\ge(1-\alpha)\alpha^Q\).  Also, by the ceiling in (22),
+\[
+ \alpha^{2Q_T}\ge \alpha^2(8B_0T)^{-2r/D}
+ =\alpha^2(8B_0)^{-\beta}T^{-\beta}. \tag{26}
+\]
+Combining (23)--(26) gives, for every measurable observable-data estimator,
+\[
+ \max_{v\in\{-1,+1\}}E_v[(\widehat\theta-\theta_v)^2]
+ \ge \frac{c_0^2\varepsilon_C^2(1-\alpha)^2\alpha^2
+              (8B_0)^{-\beta}e^{-1/8}}{4}\,T^{-\beta}. \tag{27}
+\]
+The coefficient is strictly positive for fixed \(C>1\) and depends only on \(t_0,\zeta,C\).  Taking first the supremum over the full class, which contains this pair, and then the infimum over all estimators proves the lower inequality in \(\mathrm{def{:}minimax\text{-}risk}\).  Enlarging the threshold if needed to cover the floor and ceiling conditions produces \(T_\star\).  Equations (22) and (27) also prove the asserted constant observed alphabet and \(2(Q+1)\)-state lower experiment.  Since both inequalities have exponent \(2/(2+t_0\zeta)\) and neither contains a logarithmic multiplier, bounded latent stationary occupancy with any fixed \(C>1\) leaves the partial-observability exponent unchanged.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This closes the exact fixed-occupancy minimax question with both an implementable estimator and an all-estimator converse. \textit{Gap.} HuWager2023 proves the same exponent without stationary overlap but flags the overlapping-hidden-state converse as open; MehrabiWager2025 obtains root-\(T\) behavior from strong stationary overlap only when the state and ratio are observable. \textit{Consumer.} For the finite insulin-policy adaptation, the theorem shows that a bound on latent physiological occupancy alone does not certify parametric precision or a universally fixed short history.
+
+\begin{proposition}[prop:unit-overlap-boundary]\label{prop:unit-overlap-boundary}
+At \(C=1\), \(d_e=d_b\), the immediate estimator \(\widehat\theta_0\) has cardinality-uniform mean-squared error of order \(T^{-1}\), and \(R_T(t_0,\zeta,1)\asymp T^{-1}\). Consequently the fixed-\(C>1\) theorem has a genuine discontinuous boundary in exponent, although its constants need not be uniform as \(C\downarrow1\).
+\end{proposition}
+\begin{proof}
+At \(C=1\), \(\mathrm{ass{:}latent\text{-}stationary\text{-}overlap}\) says \(d_e(s)\le d_b(s)\) for every \(s\).  Both sides sum to one on the finite joint state space, so every nonnegative difference \(d_b(s)-d_e(s)\) is zero; hence \(d_e=d_b\).
+
+Let \(W_t:=Y_t\rho_t\), the unclipped summand defining \(\widehat\theta_0\).  Sequential randomization and the target definition give
+\[
+ E[W_t]=d_bg_e=d_eg_e=\theta(K,e). \tag{28}
+\]
+The policy-overlap inequality \(\rho_t^2\le L\rho_t\), sequential randomization from \(\mathrm{def{:}model\text{-}class}\), and bounded rewards give \(E[W_t^2]\le L\).  For \(h\ge1\), conditional on \(S_{t+1}\), the future conditional mean is \(P_b^{h-1}g_e(S_{t+1})\).  Uniform contraction and the stationary-start predicate from \(\mathrm{def{:}model\text{-}class}\) therefore give
+\[
+ |\operatorname{Cov}(W_t,W_{t+h})|\le2\alpha^{h-1}. \tag{29}
+\]
+Equations (28)--(29) imply
+\[
+ E\!\left[\left\{T^{-1}\sum_{t=1}^TW_t-\theta(K,e)\right\}^2\right]
+ \le\frac1T\left(L+\frac4{1-\alpha}\right). \tag{30}
+\]
+Clipping cannot increase squared loss because the target belongs to \([-1,1]\), so (30) proves the cardinality-uniform upper bound for \(\widehat\theta_0\).
+
+For the converse, for each \(T\) take singleton observed and latent state spaces, take \(b=e=(1/2,1/2)\), and let rewards be independent Rademacher variables of mean \(v\eta_T\), where \(v\in\{-1,+1\}\) and \(\eta_T:=1/(4\sqrt T)\).  The state kernel has contraction coefficient zero, the stationary laws coincide, all rewards are bounded, and policy overlap holds, so both alternatives lie in \(\mathcal M_T(t_0,\zeta,1)\).  Their target values are \(v\eta_T\).  The action laws coincide, and direct calculation gives
+\[
+ \operatorname{KL}(P_+^T\|P_-^T)
+ =T\eta_T\log\frac{1+\eta_T}{1-\eta_T}
+ \le\frac{2T\eta_T^2}{1-\eta_T}\le\frac14. \tag{31}
+\]
+Let \(O_T:=\int\min(dP_+^T,dP_-^T)\).  With \(\Lambda_T=dP_+^T/dP_-^T\), Jensen's inequality and Cauchy--Schwarz give
+\[
+ \int\sqrt{dP_+^TdP_-^T}
+ =E_{P_+^T}[\Lambda_T^{-1/2}]
+ \ge e^{-\operatorname{KL}(P_+^T\|P_-^T)/2},
+ \qquad
+ O_T\ge\tfrac12e^{-\operatorname{KL}(P_+^T\|P_-^T)}.
+\]
+Classifying an estimator according to the sign of its output makes squared loss at least \(\eta_T^2\) on a classification error, while the sum of the two error probabilities is at least \(O_T\).  Therefore (31) yields
+\[
+ R_T(t_0,\zeta,1)\ge \frac{e^{-1/4}}{4}\eta_T^2
+ =\frac{e^{-1/4}}{64T}. \tag{32}
+\]
+Together, (30) and (32) prove \(R_T(t_0,\zeta,1)\asymp T^{-1}\).  The fixed-\(C>1\) exponent is strictly smaller because \(t_0\zeta>0\), while its lower constant contains \(\varepsilon_C^2\) and therefore need not remain bounded away from zero as \(C\downarrow1\).  This proves the stated discontinuous boundary without asserting uniformity in \(C\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The equality boundary is the required sanity reduction and reveals that an arbitrarily small fixed latent shift is asymptotically consequential over the unrestricted finite-state union. \textit{Gap.} MehrabiWager2025 gives the fully observed strong-overlap endpoint, while neither it nor HuWager2023 isolates the exact \(C=1\) latent stationary-law equality boundary for the present observed experiment. \textit{Consumer.} This tells investigators when a genuine stationary-law invariance claim, stronger than mere bounded overlap, permits immediate weighting.
+
+\begin{proposition}[prop:finite-insulin-demonstration]\label{prop:finite-insulin-demonstration}
+The refreshed insulin construction \(\mathcal I_{\mathrm{grid}}\) has \(360\) joint states, Dobrushin coefficient at most \(1/2\) under both policies, one-step policy overlap \(L=10/3\), and the analytic stationary-overlap bound \(d_e(s)\le720d_b(s)\) for every state. An interval-certified evaluation of its finite transition matrices satisfies \(-0.0060<\Delta_{\mathrm{imm}}<-0.0058\), so immediate action weighting is biased despite finite latent stationary overlap.
+\end{proposition}
+\begin{proof}
+Put \(\mathcal G=\{50,100,150,200,250\}\), \(\mathcal D=\{0,78\}\), and \(\mathcal E=\{0,31,850\}\).  By \(\mathrm{def{:}insulin\text{-}grid}\), a joint state is an element of
+\[
+ \mathcal G\times\mathcal D^2\times\mathcal E^2\times\{0,1\}.
+\]
+Consequently its cardinality is
+\[
+ 5\cdot 2^2\cdot 3^2\cdot 2=360.
+\]
+
+We first write the transition matrix explicitly.  For
+\(s=(g,d_1,d_2,x_1,x_2,a_1)\) and \(a\in\{0,1\}\), define
+\[
+ m(s,a)=10+0.9g+0.1d_1+0.1d_2-0.01x_1-0.01x_2-2a-4a_1.
+\]
+Let \(\Phi\) be the standard normal distribution function, let
+\(c_0=-\infty\), \(c_1=75\), \(c_2=125\), \(c_3=175\),
+\(c_4=225\), and \(c_5=+\infty\), and enumerate the elements of
+\(\mathcal G\) increasingly as \(g_0,\ldots,g_4\).  The probability
+that the rounded next glucose is \(g_i\), conditional on the
+nonrefresh branch, \(s\), and \(a\), is
+\[
+ q_i(s,a)=\Phi\!\left(\frac{c_{i+1}-m(s,a)}5\right)
+             -\Phi\!\left(\frac{c_i-m(s,a)}5\right),
+ \qquad 0\le i\le4,
+\]
+where \(\Phi(-\infty)=0\) and \(\Phi(+\infty)=1\).  This is exactly
+the clipping-and-nearest-grid rule in \(\mathrm{def{:}insulin\text{-}grid}\),
+since its four rounding cut points are \(75,125,175,225\); ties have
+normal probability zero.  Write
+\[
+ \pi_D(0)=\frac45,\quad \pi_D(78)=\frac15,
+ \qquad
+ \pi_E(0)=\pi_E(31)=\frac25,\quad \pi_E(850)=\frac15.
+\]
+Thus the nonrefresh action-specific kernel \(B_a\) is specified by
+\[
+ B_a\bigl(s,(g_i,d_0,d_1,x_0,x_1,a)\bigr)
+   =q_i(s,a)\pi_D(d_0)\pi_E(x_0),
+\]
+and is zero at every other next state.  The two nonrefresh
+policy-induced kernels are therefore
+\[
+ Q_b=\frac7{10}B_0+\frac3{10}B_1,
+ \qquad
+ Q_e(s,\cdot)=B_{\mathbf 1\{g\ge125\}}(s,\cdot).
+\]
+If \(u\) denotes the uniform distribution on the \(360\) states, the
+full policy-induced kernels are
+\[
+ P_p(s,\cdot)=\frac12u+\frac12Q_p(s,\cdot),
+ \qquad p\in\{b,e\}.
+\]
+
+For any two state distributions \(\nu,\nu'\), the signed measure
+\(\eta=\nu-\nu'\) has total mass zero, whence the common refresh term
+cancels and
+\[
+ \eta P_p=\frac12\eta Q_p.
+\]
+A Markov kernel is a contraction in total variation: indeed, for
+every function \(f\) with \(0\le f\le1\), also \(0\le Q_pf\le1\), so
+\(\sup_{0\le f\le1}|\eta Q_pf|\le\sup_{0\le h\le1}|\eta h|\).
+It follows that
+\[
+ \|\nu P_p-\nu'P_p\|_{\mathrm{TV}}
+ \le\frac12\|\nu-\nu'\|_{\mathrm{TV}},
+ \qquad p\in\{b,e\}.
+\]
+Hence both Dobrushin coefficients are at most \(1/2\).
+
+The behavior probabilities of actions \(0\) and \(1\) are \(7/10\)
+and \(3/10\).  If \(g\ge125\), the only action having positive target
+probability is action \(1\), and its target-to-behavior ratio is
+\(1/(3/10)=10/3\).  If \(g<125\), the only such action is action
+\(0\), and its ratio is \(1/(7/10)=10/7\).  Thus the maximum one-step
+ratio is
+\[
+ L=\max\left\{\frac{10}{3},\frac{10}{7}\right\}=\frac{10}{3}.
+\]
+
+The refresh representation also gives, for every pair of states
+\(s,s'\),
+\[
+ P_b(s,s')\ge \frac12u(s')=\frac1{720}.
+\]
+Stationarity and positivity of \(d_b\) then imply
+\[
+ d_b(s')=\sum_s d_b(s)P_b(s,s')\ge\frac1{720}\sum_s d_b(s)
+ =\frac1{720}.
+\]
+Since \(d_e(s')\le1\), division by the strictly positive quantity
+\(d_b(s')\) yields
+\[
+ d_e(s')\le720d_b(s')
+\]
+for every joint state \(s'\).  This is the claimed analytic latent
+stationary-overlap certificate.
+
+It remains to certify that immediate weighting is biased.  The reward
+is a deterministic function \(r\) of the current glucose, with
+\[
+ r(50)=-1,\quad r(100)=0,\quad r(150)=-\frac13,\quad
+ r(200)=r(250)=-\frac23.
+\]
+Both behavior action probabilities are positive.  Conditional
+behavior randomization and the fact that \(r\) does not depend on the
+current action give
+\[
+ \begin{aligned}
+ E_b\!\left[Y_t\frac{e(A_t\mid X_t)}{b(A_t\mid X_t)}\right]
+ &=\sum_s d_b(s)r(s)\sum_{a=0}^1
+       b(a\mid x)\frac{e(a\mid x)}{b(a\mid x)}\\
+ &=\sum_s d_b(s)r(s).
+ \end{aligned}
+\]
+On the other hand, \(\mathrm{def{:}target\text{-}value}\) and the same
+action-independence of the current reward give
+\[
+ \theta(K,e)=\sum_s d_e(s)r(s).
+\]
+Therefore
+\[
+ \Delta_{\mathrm{imm}}=d_br-d_er.
+\]
+
+Here is a reproducible rational interval certificate for this last
+difference.  From \(P_p=\tfrac12u+\tfrac12Q_p\), define
+\[
+ \bar d_p:=\sum_{j=0}^{\infty}2^{-(j+1)}uQ_p^j.
+\]
+The series is an absolutely convergent probability vector, and direct
+multiplication gives
+\[
+ \bar d_pP_p=\frac12u+\frac12\bar d_pQ_p
+ =\frac12u+\sum_{j=1}^{\infty}2^{-(j+1)}uQ_p^j=\bar d_p.
+\]
+The total-variation contraction just proved makes the stationary law
+unique, so \(\bar d_p=d_p\).
+
+All normal probabilities used below were enclosed using rational
+arithmetic.  For completeness, the enclosure is now described.  For
+\(0\le x\le8\), termwise integration of the exponential power series
+gives
+\[
+ \Phi(x)=\frac12+\frac1{\sqrt{2\pi}}
+ \sum_{k=0}^{\infty}\frac{(-1)^kx^{2k+1}}{(2k+1)2^kk!},
+ \qquad \Phi(-x)=1-\Phi(x).
+\]
+The constant was enclosed without floating-point evaluation.  The
+tangent addition formula gives
+\[
+ \tan\!\left(4\arctan\frac15-\arctan\frac1{239}\right)=1,
+\]
+because \(\tan(2\arctan(1/5))=5/12\),
+\(\tan(4\arctan(1/5))=120/119\), and substituting
+\(1/239\) in the subtraction formula gives exactly one.  The angle
+lies in \((0,\pi/2)\), and hence
+\[
+ \pi=16\arctan\frac15-4\arctan\frac1{239}.
+\]
+For \(0<x<1\), integrating the finite geometric identity for
+\((1+x^2)^{-1}\) shows that the truncation
+\[
+ A_N(x)=\sum_{k=0}^N\frac{(-1)^kx^{2k+1}}{2k+1}
+\]
+has an error of the sign of its first omitted term and magnitude at
+most \(x^{2N+3}/(2N+3)\).  Applying this with \(N=14\) at \(1/5\)
+and \(N=4\) at \(1/239\), followed only by integer multiplication and
+comparison, gives
+\[
+ \frac{3989422804014326}{10^{16}}
+ <\frac1{\sqrt{2\pi}}<
+ \frac{3989422804014328}{10^{16}}.
+\]
+For the integrated exponential series, the ratio of consecutive
+absolute terms is at most \(x^2/(2(k+1))\); hence its tail is
+alternating and decreasing after \(k=32\).  Truncation after \(k=118\)
+therefore brackets the integral between that partial sum and the same
+sum minus its next term.  Uniformly for \(x\le8\), that next term is at
+most
+\[
+ \frac{8^{239}}{239\,2^{119}119!}<8\times10^{-20}.
+\]
+For \(x>8\), integration of
+\(e^{-t^2/2}\le(t/x)e^{-t^2/2}\) for \(t\ge x\) gives the Mills bound
+\[
+ 1-\Phi(x)\le\frac{e^{-x^2/2}}{x\sqrt{2\pi}}.
+\]
+The exact rational comparison
+\[
+ \sum_{k=0}^{40}\frac{32^k}{k!}>
+ \frac{500000000000000}{7}
+\]
+and the preceding upper bound \(1/\sqrt{2\pi}<2/5\) imply
+\[
+ 1-\Phi(x)<7\times10^{-16},\qquad x>8.
+\]
+
+There are \(1422\) distinct rational arguments
+\[
+ \mathcal Z=\left\{\frac{c-m(s,a)}5:
+ s\in\mathcal G\times\mathcal D^2\times\mathcal E^2\times\{0,1\},
+ \ a\in\{0,1\},\ c\in\{75,125,175,225\}\right\},
+\]
+and their range is \([-878/25,193/5]\).  Applying the preceding
+enclosures to this finite set, exact rational comparison places every
+interval strictly inside one rounding cell for the grid
+\(10^{-12}\mathbb Z\); the smallest clearance from a cell boundary is
+greater than \(7\times10^{-4}\) after multiplication by \(10^{12}\).
+Let \(\widetilde\Phi(z)\) be the resulting multiple of \(10^{-12}\).
+Then, simultaneously for all \(z\in\mathcal Z\),
+\[
+ |\Phi(z)-\widetilde\Phi(z)|\le\varepsilon,
+ \qquad \varepsilon:=5\times10^{-13}.
+\]
+
+Replace \(\Phi\) by \(\widetilde\Phi\) in the displayed construction
+of \(B_a,Q_b,Q_e\), obtaining stochastic matrices
+\(\widetilde Q_b,\widetilde Q_e\).  Monotonicity of rounding and
+telescoping of the five glucose probabilities make their entries
+nonnegative and their row sums one.  Each action-specific row has
+\(\ell^1\) error at most
+\[
+ \varepsilon+3(2\varepsilon)+\varepsilon=8\varepsilon;
+\]
+averaging over an action cannot increase this bound.  Consequently
+\[
+ \sup_s\|Q_p(s,\cdot)-\widetilde Q_p(s,\cdot)\|_{\mathrm{TV}}
+ \le4\varepsilon,\qquad p\in\{b,e\}.
+\]
+
+The following exact-integer recurrence records the remaining finite
+calculation.  Order the states lexicographically, put
+\(R=10^{12}\), and put \(D_Q=250R\).  The matrices
+\[
+ M_p:=D_Q\widetilde Q_p
+\]
+have nonnegative integer entries and every row sum is \(D_Q\): the
+nonrefresh glucose probabilities have denominator \(R\), the diet and
+activity probabilities together have denominator \(25\), and the
+behavior mixture has denominator \(10\); the target rows are put over
+the same denominator by multiplication by \(10\).  Starting with
+\(n_{p,0,i}=1\), iterate
+\[
+ n_{p,j+1,k}=\sum_{i=0}^{359}n_{p,j,i}M_p(i,k).
+\]
+Thus \(u\widetilde Q_p^j\) has coordinate
+\(n_{p,j,i}/(360D_Q^j)\).  With \(\bar r_i=3r(s_i)\in\{-3,-2,-1,0\}\),
+define the entirely rational quantity
+\[
+ \widetilde V_{p,30}
+ =\sum_{j=0}^{29}\frac1{2^{j+1}}
+   \frac{\sum_{i=0}^{359}n_{p,j,i}\bar r_i}{3\cdot360D_Q^j}.
+\]
+Exact integer evaluation of this displayed recurrence gives
+\[
+ -\frac{5906084184470}{10^{15}}
+ <\widetilde V_{b,30}-\widetilde V_{e,30}
+ <-\frac{5906084184469}{10^{15}}.
+\]
+This calculation involves no floating-point operation: the normal
+enclosures select integers, and the recurrence thereafter consists
+only of integer additions and multiplications.
+
+Finally, since \(r\in[-1,0]\), its oscillation is one.  A telescoping
+comparison of \(Q_p^j\) and \(\widetilde Q_p^j\), using the last
+total-variation row bound at each of the \(j\) positions, yields
+\[
+ |uQ_p^jr-u\widetilde Q_p^jr|\le4j\varepsilon.
+\]
+Also, the omitted geometric tail has absolute value at most
+\(2^{-30}\).  Since \(\sum_{j\ge0}j2^{-(j+1)}=1\), the two policies
+together satisfy
+\[
+ \left|\Delta_{\mathrm{imm}}-
+   (\widetilde V_{b,30}-\widetilde V_{e,30})\right|
+ \le8\varepsilon+2^{1-30}<1.867\times10^{-9}.
+\]
+Combining this rigorous error bound with the exact rational interval
+above gives the sharper certificate
+\[
+ -0.005906087<\Delta_{\mathrm{imm}}<-0.005906082.
+\]
+In particular,
+\[
+ -0.0060<\Delta_{\mathrm{imm}}<-0.0058,
+\]
+which proves the asserted nonzero immediate-weighting bias together
+with all the structural claims.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The finite construction translates the theorem's uniform message into the published glucose-policy setting without claiming the continuous simulator satisfies the class. \textit{Gap.} HuWager2023, Section 5.2 and equation (53), studies PHIW in a continuous synthetic glucose simulator but does not impose or verify joint latent stationary overlap; this proposition adds an explicit refreshed discretization and a certifiable overlap-and-bias calculation. \textit{Consumer.} It demonstrates why bounded latent dietary occupancy does not by itself license current-action weighting for an insulin threshold policy.
+
+\begin{theorem}[thm:shrinking-overlap-frontier]\label{thm:shrinking-overlap-frontier}
+Let \(t_0>0\) and \(\zeta>0\) be fixed, and let \(\delta_T\ge0\) be any deterministic sequence with \(\delta_T\to0\).  With \(\beta=2/(2+t_0\zeta)\), there are constants \(0<c_{\mathrm{loc}}\le C_{\mathrm{loc}}<\infty\), depending only on \(t_0,\zeta\), such that, for all sufficiently large \(T\),
+\[
+ c_{\mathrm{loc}}\left\{T^{-1}+T^{-\beta}\delta_T^{2(1-\beta)}\right\}
+ \le R_T(t_0,\zeta,1+\delta_T)
+ \le C_{\mathrm{loc}}\left\{T^{-1}+T^{-\beta}\delta_T^{2(1-\beta)}\right\}.
+\]
+An attaining observable estimator is \(\widehat\theta_{\kappa_T}\), where \(\kappa_T=0\) if \(T\delta_T^2\le1\), and otherwise
+\[
+ \kappa_T:=\min\!\left\{\left\lfloor T/2\right\rfloor,
+ \left\lfloor\frac{\log(T\delta_T^2)}{2\log(1/\alpha)+\log L}\right\rfloor\right\}.
+\]
+Thus the exact threshold is \(\delta_T\asymp T^{-1/2}\): when \(T\delta_T^2=O(1)\), immediate weighting has parametric order, whereas when \(T\delta_T^2\to\infty\), the required history is of order \(\log(T\delta_T^2)\) and the second risk term dominates.  There is no logarithmic factor in the risk.
+\end{theorem}
+\begin{proof}
+Put \(\delta:=\delta_T\), \(r:=\log(1/\alpha)=1/t_0\),
+\[
+ D:=2r+\log L,
+ \qquad
+ \beta=\frac{2r}{D}=\frac{2}{2+t_0\zeta},
+ \qquad
+ 1-\beta=\frac{\log L}{D},
+\]
+and put \(x:=T\delta^2\).
+
+We first prove the upper bound for the estimator displayed in the statement.  Fix a member of \(\mathcal M_T(t_0,\zeta,1+\delta)\).  If \(\delta>0\), then
+\[
+ \nu:=\frac{(1+\delta)d_b-d_e}{\delta}
+\]
+is a probability law: nonnegativity follows from \(\mathrm{ass{:}latent\text{-}stationary\text{-}overlap}\), and its mass is one because \(d_b\) and \(d_e\) are probability laws.  The identity
+\[
+ d_b-d_e=\frac{\delta}{1+\delta}(\nu-d_e)
+\]
+therefore implies
+\[
+ \lVert d_b-d_e\rVert_{\mathrm{TV}}
+ \le \frac{\delta}{1+\delta}\le\delta. \tag{1}
+\]
+If \(\delta=0\), pointwise domination and equality of total masses give \(d_b=d_e\), so (1) also holds.
+
+Let \(0\le k<T\), and let \(\widetilde\theta_k:=(T-k)^{-1}\sum_{t=k+1}^T Z_t(k)\) denote the average before clipping.  Sequential randomization in \(\mathrm{def{:}model\text{-}class}\) changes each behavior action law to the target action law when it is multiplied by \(\rho_j\).  Iterating this identity through the \(k+1\) ratios in \(Z_t(k)\), and then using the POMDP kernel predicate, gives
+\[
+ E[Z_t(k)]=d_bP_e^kg_e.
+\]
+There are \(k\) transitions because the final ratio changes only the action distribution at epoch \(t\).  Since \(d_eP_e^k=d_e\), the contraction predicate and (1) give
+\[
+ \lVert d_bP_e^k-d_e\rVert_{\mathrm{TV}}
+ \le \alpha^k\lVert d_b-d_e\rVert_{\mathrm{TV}}
+ \le\delta\alpha^k.
+\]
+The reward-support predicate gives \(\lVert g_e\rVert_\infty\le1\).  Hence, by \(\mathrm{def{:}target\text{-}value}\),
+\[
+ \bigl|E[Z_t(k)]-\theta(K,e)\bigr|
+ \le2\delta\alpha^k. \tag{2}
+\]
+
+We next record the variance calculation, including the overlapping windows.  The policy-overlap predicate gives \(0\le\rho_j\le L\) and \(\rho_j^2\le L\rho_j\).  Successive conditional expectation of a chronological product of single policy ratios gives expectation one.  Since \(|Y_t|\le1\),
+\[
+ E|Z_t(k)|\le1,
+ \qquad
+ E[Z_t(k)^2]\le L^{k+1}. \tag{3}
+\]
+For \(1\le h\le k\), the two windows overlap at \(k+1-h\) actions.  Applying \(\rho^2\le L\rho\) at precisely those actions and cancelling every remaining single ratio yields
+\[
+ E|Z_t(k)Z_{t+h}(k)|\le L^{k+1-h},
+\]
+and therefore, using (3),
+\[
+ |\operatorname{Cov}(Z_t(k),Z_{t+h}(k))|
+ \le2L^{k+1-h}. \tag{4}
+\]
+For \(h\ge k+1\), the Markov and likelihood-ratio identities make the conditional mean of the future block, given the latent history through \(S_{t+1}\), equal to
+\[
+ H_h(S_{t+1}),
+ \qquad H_h:=P_b^{h-k-1}P_e^kg_e.
+\]
+The contraction predicate implies
+\(\operatorname{osc}(H_h)\le2\alpha^{h-k-1}\).  The stationary-start predicate makes the mean of \(H_h(S_{t+1})\) equal to \(E[Z_t(k)]\), which lies between its minimum and maximum.  Thus (3) gives
+\[
+ |\operatorname{Cov}(Z_t(k),Z_{t+h}(k))|
+ \le2\alpha^{h-k-1}. \tag{5}
+\]
+Writing \(N:=T-k\), stationarity and the variance identity for a finite sum now give
+\[
+ \operatorname{Var}(\widetilde\theta_k)
+ \le \frac1N\left\{
+ L^{k+1}\left(1+\frac4{L-1}\right)
+ +\frac4{1-\alpha}\right\}. \tag{6}
+\]
+Both covariance sums in (6) are geometric, so no factor \(k\) occurs.
+
+For all sufficiently large \(T\), \(\delta\le1\), and
+\(\log T/D<T/2\).  Consequently the cap in the displayed definition of \(\kappa_T\) is inactive whenever \(x>1\).  If \(x\le1\), then \(\kappa_T=0\); (2), (6), and \(N=T\) bound the mean-squared error of \(\widetilde\theta_0\) by a constant depending only on \(t_0,\zeta\) times \(T^{-1}\).  If \(x>1\), then
+\[
+ \kappa_T=\left\lfloor\frac{\log x}{D}\right\rfloor,
+ \qquad N\ge T/2,
+\]
+and the floor inequalities give
+\[
+ \delta^2\alpha^{2\kappa_T}
+ \le\alpha^{-2}\delta^2x^{-\beta},
+ \qquad
+ T^{-1}L^{\kappa_T}
+ \le T^{-1}x^{1-\beta}.
+\]
+The two expressions on the right have the common value
+\[
+ \delta^2x^{-\beta}
+ =T^{-1}x^{1-\beta}
+ =T^{-\beta}\delta^{2(1-\beta)}. \tag{7}
+\]
+Combining (2), (6), and (7), and using \(T^{-1}\le T^{-1}+T^{-\beta}\delta^{2(1-\beta)}\), proves the asserted upper bound for the unclipped average.  Because \(\theta(K,e)\in[-1,1]\), projection onto \([-1,1]\) cannot increase squared error, so the same bound holds for \(\widehat\theta_{\kappa_T}\).
+
+We next prove two lower bounds against every measurable estimator.  For the parametric bound, take singleton observed and latent state spaces, take \(b=e=(1/2,1/2)\), and let rewards be independent Rademacher variables with means \(v\eta_T\), where \(v\in\{-1,+1\}\) and \(\eta_T:=1/(4\sqrt T)\).  Both alternatives satisfy every predicate in \(\mathrm{def{:}model\text{-}class}\), including stationary overlap for every \(1+\delta\ge1\), and their target values are \(v\eta_T\).  Their revealed inputs coincide.  Direct calculation and \(\log(1+u)-\log(1-u)\le2u/(1-u)\) for \(0\le u<1\) give
+\[
+ \operatorname{KL}(P_+^T\,\|\,P_-^T)
+ =T\eta_T\log\frac{1+\eta_T}{1-\eta_T}
+ \le\frac{2T\eta_T^2}{1-\eta_T}\le\frac14. \tag{8}
+\]
+For any mutually absolutely continuous laws \(P_+,P_-\), put
+\[
+ A:=\int\sqrt{dP_+dP_-},
+ \qquad O:=\int\min(dP_+,dP_-).
+\]
+Jensen's inequality applied under \(P_+\) and Cauchy--Schwarz give
+\[
+ A\ge \exp\{-\operatorname{KL}(P_+\,\|\,P_-)/2\},
+ \qquad
+ A^2\le O(2-O)\le2O.
+\]
+Therefore
+\[
+ O\ge\tfrac12\exp\{-\operatorname{KL}(P_+\,\|\,P_-)\}. \tag{9}
+\]
+Classify an arbitrary estimator by the sign of its output.  On a classification error its squared loss is at least \(\eta_T^2\), and the sum of the two error probabilities is at least \(O\).  Equations (8)--(9) imply
+\[
+ R_T(t_0,\zeta,1+\delta)
+ \ge \frac{e^{-1/4}}{64T}. \tag{10}
+\]
+
+For the hidden-state bound, restrict to sufficiently large \(T\) so that \(\delta\le1\).  In \(\mathrm{def{:}signed\text{-}depth\text{-}family}\) with \(C=1+\delta\),
+\[
+ \varepsilon_C=\frac\delta2. \tag{11}
+\]
+The exact conditional-mean and posterior conclusions of \(\mathrm{lem{:}observed\text{-}path\text{-}kl}\) imply, at every common observed history,
+\[
+ |m_t^{+1}-m_t^{-1}|
+ \le2c_0\varepsilon_CK_0\alpha^Qa_t^{(Q)},
+ \qquad |m_t^{-1}|\le c_0,
+\]
+where \(m_t^v:=E_v[Y_t\mid\mathcal F_{t-1}^{\mathrm{obs}}]\).  A Rademacher law of mean \(m\) has probabilities \((1\pm m)/2\).  Thus \(\log u\le u-1\) gives
+\[
+ \operatorname{KL}(\operatorname{Rad}(m)\,\|\,\operatorname{Rad}(n))
+ \le\frac{(m-n)^2}{1-n^2}. \tag{12}
+\]
+The action conditionals coincide under the alternatives.  Factoring the finite observed-path likelihood into successive action and reward conditionals, applying (12), and using
+\[
+ E[(a_t^{(Q)})^2]
+ =L^{-(2Q-\ell_t)}\le L^{-Q}
+\]
+therefore yields
+\[
+ \operatorname{KL}(\mathbb P_{Q,+1}^{\mathrm{obs},T}\,\|\,
+                    \mathbb P_{Q,-1}^{\mathrm{obs},T})
+ \le \overline B\,T\varepsilon_C^2\alpha^{2Q}L^{-Q},
+ \qquad
+ \overline B:=\frac{4c_0^2K_0^2}{1-c_0^2}. \tag{13}
+\]
+The constant \(\overline B\) depends only on \(t_0\).
+
+Choose \(x_0<\infty\), depending only on \(t_0,\zeta\), so that, for \(x\ge x_0\),
+\[
+ Q_x:=\left\lceil\frac{\log(2\overline Bx)}D\right\rceil\ge1.
+\]
+By (11)--(13),
+\[
+ \operatorname{KL}(\mathbb P_{Q_x,+1}^{\mathrm{obs},T}\,\|\,
+                    \mathbb P_{Q_x,-1}^{\mathrm{obs},T})
+ \le\frac{\overline Bx}{4}e^{-DQ_x}\le\frac18. \tag{14}
+\]
+By \(\mathrm{lem{:}signed\text{-}depth\text{-}membership}\), both alternatives belong to the required class and their target values are \(\pm a_{Q_x}\), where
+\[
+ a_Q:=c_0\varepsilon_Cw_Q,
+ \qquad
+ w_Q\ge(1-\alpha)\alpha^Q.
+\]
+Applying the testing argument (9) to this pair gives risk at least \(a_{Q_x}^2e^{-1/8}/4\).  The ceiling defining \(Q_x\) also gives
+\[
+ \alpha^{2Q_x}\ge\alpha^2(2\overline Bx)^{-\beta}.
+\]
+Together with (11), this proves, for a constant depending only on \(t_0,\zeta\),
+\[
+ R_T(t_0,\zeta,1+\delta)
+ \gtrsim_{t_0,\zeta}
+ \delta^2x^{-\beta}
+ =T^{-\beta}\delta^{2(1-\beta)},
+ \qquad x\ge x_0. \tag{15}
+\]
+When \(x<x_0\), the second term in the claimed lower bound is
+\[
+ T^{-\beta}\delta^{2(1-\beta)}=T^{-1}x^{1-\beta}
+ \le x_0^{1-\beta}T^{-1},
+\]
+and is therefore controlled by (10).  When \(x\ge x_0\), the maximum of (10) and (15) is at least one half of their sum after changing a constant.  This proves the displayed two-sided comparison.
+
+Finally, the ratio of the hidden-state term to \(T^{-1}\) is \(x^{1-\beta}\).  Thus immediate weighting is of parametric order whenever \(T\delta_T^2=O(1)\), whereas the hidden-state term dominates when \(T\delta_T^2\to\infty\).  In the latter regime the displayed depth is of order \(\log(T\delta_T^2)\).  Equations (6)--(7) show directly that no logarithmic multiplier occurs.
+\end{proof}
+
+\begin{lemma}[lem:radius-sensitive-phiw]\label{lem:radius-sensitive-phiw}
+For every \(T\in\mathbb N\), \(C\ge1\), \(M\in\mathcal M_T(t_0,\zeta,C)\), and integer \(0\le k\le\lfloor T/2\rfloor\),
+\[
+ E_M[(\widehat\theta_k-\theta(K,e))^2]
+ \le4q_C^2\alpha^{2k}
+ +\frac2T\left\{L^{k+1}\left(1+\frac4{L-1}\right)
+ +\frac4{1-\alpha}\right\}.
+\]
+The bound is uniform in \(C\) and in both state-space cardinalities.
+\end{lemma}
+\begin{proof}
+Fix \(M\in\mathcal M_T(t_0,\zeta,C)\).  If \(C>1\), pointwise stationary overlap implies that
+\[
+ \nu:=\frac{Cd_b-d_e}{C-1}
+\]
+is a probability law.  Since \(d_b=C^{-1}d_e+q_C\nu\),
+\[
+ \lVert d_b-d_e\rVert_{\mathrm{TV}}
+ =q_C\lVert\nu-d_e\rVert_{\mathrm{TV}}
+ \le q_C. \tag{16}
+\]
+If \(C=1\), the nonnegative cellwise differences \(d_b(s)-d_e(s)\) sum to zero, so \(d_b=d_e\), and (16) again holds because \(q_1=0\).
+
+Let \(\widetilde\theta_k:=(T-k)^{-1}\sum_{t=k+1}^TZ_t(k)\).  By the sequential-randomization and POMDP-kernel predicates in \(\mathrm{def{:}model\text{-}class}\), successive likelihood-ratio cancellation gives
+\[
+ E_M[Z_t(k)]=d_bP_e^kg_e.
+\]
+Stationarity gives \(d_eP_e^k=d_e\), and uniform contraction gives
+\[
+ \lVert d_bP_e^k-d_e\rVert_{\mathrm{TV}}
+ \le\alpha^k\lVert d_b-d_e\rVert_{\mathrm{TV}}.
+\]
+Since bounded rewards imply \(\lVert g_e\rVert_\infty\le1\), (16) and \(\mathrm{def{:}target\text{-}value}\) yield
+\[
+ |E_M[Z_t(k)]-\theta(K,e)|\le2q_C\alpha^k. \tag{17}
+\]
+
+Policy overlap gives \(0\le\rho_j\le L\) and \(\rho_j^2\le L\rho_j\).  Conditional expectation of each chronological product of single ratios is one.  The unit reward bound therefore gives
+\[
+ E_M|Z_t(k)|\le1,
+ \qquad E_M[Z_t(k)^2]\le L^{k+1}. \tag{18}
+\]
+For \(1\le h\le k\), the two windows overlap in exactly \(k+1-h\) ratios.  Applying \(\rho^2\le L\rho\) to those ratios, cancelling the remaining single ratios, and using (18) gives
+\[
+ |\operatorname{Cov}_M(Z_t(k),Z_{t+h}(k))|
+ \le2L^{k+1-h}. \tag{19}
+\]
+For \(h\ge k+1\), conditioning on the latent history through \(S_{t+1}\) makes the future-block conditional mean
+\[
+ H_h(S_{t+1}),
+ \qquad H_h:=P_b^{h-k-1}P_e^kg_e.
+\]
+Uniform contraction implies \(\operatorname{osc}(H_h)\le2\alpha^{h-k-1}\).  Stationary initialization makes \(E_MH_h(S_{t+1})=E_MZ_t(k)\), so (18) yields
+\[
+ |\operatorname{Cov}_M(Z_t(k),Z_{t+h}(k))|
+ \le2\alpha^{h-k-1}. \tag{20}
+\]
+With \(N:=T-k\), the variance identity and the two geometric sums (19)--(20) give
+\[
+ \operatorname{Var}_M(\widetilde\theta_k)
+ \le\frac1N\left\{L^{k+1}\left(1+\frac4{L-1}\right)
+ +\frac4{1-\alpha}\right\}. \tag{21}
+\]
+Because \(k\le T/2\), one has \(N^{-1}\le2/T\).  Adding the squared bias from (17) to (21) proves the displayed bound for \(\widetilde\theta_k\).  Finally, \(\theta(K,e)\in[-1,1]\), so clipping to \([-1,1]\) cannot increase squared distance to the target.  This proves the result for \(\widehat\theta_k\).  Every constant in the calculation depends only on \(\alpha\) and \(L\), hence only on \(t_0,\zeta\), and not on \(C\) or a state-space cardinality.
+\end{proof}
+
+\begin{lemma}[lem:radius-explicit-observed-kl]\label{lem:radius-explicit-observed-kl}
+For every \(C>1\), \(Q\ge1\), and \(T\in\mathbb N\), the signed-depth alternatives satisfy
+\[
+ \frac{q_C}{2}\le\varepsilon_C\le q_C
+\]
+and
+\[
+ \operatorname{KL}(\mathbb P_{Q,+1}^{\mathrm{obs},T}\,\|\,
+                    \mathbb P_{Q,-1}^{\mathrm{obs},T})
+ \le
+ \frac{4c_0^2K_0^2}{1-c_0^2}
+ T\varepsilon_C^2\alpha^{2Q}L^{-Q}.
+\]
+The displayed coefficient depends only on \(t_0\), not on \(C,Q,T\), or any alphabet cardinality.
+\end{lemma}
+\begin{proof}
+First compare the two radius parameters.  If \(1<C\le2\), then
+\[
+ \varepsilon_C=\frac{C-1}{2},
+ \qquad
+ \frac{\varepsilon_C}{q_C}=\frac C2\in\left(\frac12,1\right].
+\]
+If \(C\ge2\), then
+\[
+ \varepsilon_C=\frac12,
+ \qquad
+ \frac{\varepsilon_C}{q_C}=\frac{C}{2(C-1)}\in\left[\frac12,1\right].
+\]
+Thus \(q_C/2\le\varepsilon_C\le q_C\) for every \(C>1\).
+
+For the divergence bound, write
+\[
+ m_t^v:=E_v[Y_t\mid\mathcal F_{t-1}^{\mathrm{obs}}].
+\]
+The pointwise filter conclusions of \(\mathrm{lem{:}observed\text{-}path\text{-}kl}\) give
+\[
+ m_t^v=vc_0\varepsilon_Ca_t^{(Q)}q_t^v,
+ \qquad q_t^v\le K_0\alpha^Q.
+\]
+Consequently, at every common observed history,
+\[
+ |m_t^{+1}-m_t^{-1}|
+ \le2c_0\varepsilon_CK_0\alpha^Qa_t^{(Q)},
+ \qquad |m_t^{-1}|\le c_0. \tag{22}
+\]
+All histories have positive probability because \(0<c_0<1\) and both behavior actions have positive probability.  For Rademacher laws of means \(m,n\in(-1,1)\), direct substitution followed by \(\log u\le u-1\) gives
+\[
+ \operatorname{KL}(\operatorname{Rad}(m)\,\|\,\operatorname{Rad}(n))
+ \le\chi^2(\operatorname{Rad}(m)\,\|\,\operatorname{Rad}(n))
+ =\frac{(m-n)^2}{1-n^2}. \tag{23}
+\]
+The two alternatives have identical conditional action laws.  Factoring their finite observed-path likelihoods into successive action and reward conditionals, the action contributions cancel.  Applying (23) to each reward conditional and then (22) gives
+\[
+ \operatorname{KL}(\mathbb P_{Q,+1}^{\mathrm{obs},T}\,\|\,
+                    \mathbb P_{Q,-1}^{\mathrm{obs},T})
+ \le\frac{4c_0^2\varepsilon_C^2K_0^2}{1-c_0^2}
+ \alpha^{2Q}\sum_{t=1}^TE_{+1}[(a_t^{(Q)})^2]. \tag{24}
+\]
+Under behavior, the actions in the signed-depth family are independent Bernoulli variables with success probability \(1/L\), conditionally on every earlier observed history.  With \(\ell_t=\min\{Q,t-1\}\), the definition of \(a_t^{(Q)}\) therefore gives
+\[
+ E_{+1}[(a_t^{(Q)})^2]
+ =L^{-(2Q-\ell_t)}\le L^{-Q}. \tag{25}
+\]
+Substitution of (25) into (24) proves the displayed radius-explicit bound.  The established posterior constant \(K_0\), and hence the displayed coefficient, depends only on \(t_0\).
+\end{proof}
+
+\begin{lemma}[lem:uniform-parametric-floor]\label{lem:uniform-parametric-floor}
+For every fixed \(t_0>0\), \(\zeta>0\), every \(C\ge1\), and every \(T\in\mathbb N\),
+\[
+ R_T(t_0,\zeta,C)\ge\frac{e^{-1/4}}{64T}.
+\]
+This lower bound holds on a common singleton-state, equal-policy subexperiment and is therefore uniform in \(C\).
+\end{lemma}
+\begin{proof}
+Take singleton observed and latent state spaces, let \(b=e=(1/2,1/2)\), and let the rewards be independent Rademacher variables of mean \(v\eta_T\), where
+\[
+ v\in\{-1,+1\},
+ \qquad
+ \eta_T:=\frac1{4\sqrt T}.
+\]
+The state kernel has contraction coefficient zero; its behavior and target stationary laws coincide; sequential randomization, policy overlap, stationary initialization, and bounded reward support all hold.  Hence both alternatives belong to \(\mathcal M_T(t_0,\zeta,C)\) for every \(C\ge1\).  By \(\mathrm{def{:}target\text{-}value}\), their target values are \(\pm\eta_T\), and all information supplied to the estimator is identical under the pair.
+
+The action laws make no contribution to the divergence.  For the reward laws, direct calculation and \(\log(1+u)-\log(1-u)\le2u/(1-u)\) give
+\[
+ \operatorname{KL}(P_+^T\,\|\,P_-^T)
+ =T\eta_T\log\frac{1+\eta_T}{1-\eta_T}
+ \le\frac{2T\eta_T^2}{1-\eta_T}\le\frac14. \tag{26}
+\]
+Let \(O:=\int\min(dP_+^T,dP_-^T)\) and \(A:=\int\sqrt{dP_+^TdP_-^T}\).  Jensen's inequality under \(P_+^T\) gives
+\[
+ A\ge e^{-\operatorname{KL}(P_+^T\,\|\,P_-^T)/2},
+\]
+whereas Cauchy--Schwarz gives \(A^2\le O(2-O)\le2O\).  Hence
+\[
+ O\ge\tfrac12e^{-\operatorname{KL}(P_+^T\,\|\,P_-^T)}. \tag{27}
+\]
+For an arbitrary estimator, declare the plus alternative when its output is positive.  On a classification error the squared loss is at least \(\eta_T^2\), and every binary rule has the sum of its two error probabilities at least \(O\).  Thus (26)--(27) imply
+\[
+ \max_{v\in\{-1,+1\}}E_v[(\widehat\theta-v\eta_T)^2]
+ \ge\frac{\eta_T^2}{4}e^{-1/4}
+ =\frac{e^{-1/4}}{64T}.
+\]
+Taking the supremum over the full class and then the infimum over all measurable estimators, as in \(\mathrm{def{:}minimax\text{-}risk}\), proves the result.
+\end{proof}
+
+\begin{theorem}[thm:uniform-overlap-frontier]\label{thm:uniform-overlap-frontier}
+For every fixed \(t_0>0\) and \(\zeta>0\), uniformly over all \(C\ge1\),
+\[
+ R_T(t_0,\zeta,C)
+ \asymp_{t_0,\zeta}
+ T^{-1}+T^{-\beta}q_C^{2(1-\beta)},
+ \qquad
+ \beta=\frac{2}{2+t_0\zeta},
+\]
+for all sufficiently large \(T\), with comparison constants and the threshold independent of \(C\) and of both state-space cardinalities.  The upper bound is attained by the observable estimator \(\widehat\theta_{\kappa_T^{\mathrm{rad}}(C)}\).  Equivalently, the exact elbow is \(q_C\asymp T^{-1/2}\): depth zero has parametric order when \(Tq_C^2=O(1)\), whereas the hidden-state term dominates when \(Tq_C^2\to\infty\).  No logarithmic factor occurs.
+\end{theorem}
+\begin{proof}
+Put
+\[
+ r:=\log(1/\alpha)=1/t_0,
+ \qquad
+ D:=2r+\log L,
+ \qquad
+ x:=Tq_C^2.
+\]
+Then
+\[
+ \beta=\frac{2r}{D}=\frac{2}{2+t_0\zeta},
+ \qquad
+ 1-\beta=\frac{\log L}{D}. \tag{28}
+\]
+
+We first prove the upper bound.  If \(x\le1\), then
+\(\kappa_T^{\mathrm{rad}}(C)=0\).  Applying
+\(\mathrm{lem{:}radius\text{-}sensitive\text{-}phiw}\) with \(k=0\), and using
+\(q_C^2\le T^{-1}\), gives
+\[
+ \sup_{M\in\mathcal M_T(t_0,\zeta,C)}
+ E_M[(\widehat\theta_0-\theta(K,e))^2]
+ \lesssim_{t_0,\zeta}T^{-1}. \tag{29}
+\]
+If \(x>1\), then, for all sufficiently large \(T\), uniformly in \(C\ge1\),
+\[
+ \frac{\log x}{D}\le\frac{\log T}{D}<\frac T2.
+\]
+Thus the cap in
+\(\mathrm{def{:}radius\text{-}adaptive\text{-}history\text{-}depth}\) is inactive and
+\[
+ k:=\kappa_T^{\mathrm{rad}}(C)=\left\lfloor\frac{\log x}{D}\right\rfloor.
+\]
+The floor inequalities and (28) imply
+\[
+ q_C^2\alpha^{2k}
+ \le\alpha^{-2}q_C^2x^{-\beta},
+ \qquad
+ T^{-1}L^k
+ \le T^{-1}x^{1-\beta}. \tag{30}
+\]
+Both quantities on the right of (30) equal
+\[
+ q_C^2x^{-\beta}
+ =T^{-1}x^{1-\beta}
+ =T^{-\beta}q_C^{2(1-\beta)}. \tag{31}
+\]
+Substitution into
+\(\mathrm{lem{:}radius\text{-}sensitive\text{-}phiw}\), together with \(k\le T/2\), proves
+\[
+ \sup_{M\in\mathcal M_T(t_0,\zeta,C)}
+ E_M[(\widehat\theta_{\kappa_T^{\mathrm{rad}}(C)}-\theta(K,e))^2]
+ \lesssim_{t_0,\zeta}
+ T^{-1}+T^{-\beta}q_C^{2(1-\beta)}. \tag{32}
+\]
+All constants in (29)--(32) are independent of \(C\).  The minimax upper
+bound follows because the displayed estimator is an explicit observable-data
+map under \(\mathrm{def{:}phiw\text{-}estimator}\).
+
+For the converse,
+\(\mathrm{lem{:}uniform\text{-}parametric\text{-}floor}\) gives, for every \(C\ge1\),
+\[
+ R_T(t_0,\zeta,C)\gtrsim T^{-1}. \tag{33}
+\]
+It remains to lower-bound the hidden-state term.  This term is zero when
+\(C=1\), so suppose \(C>1\).  Define the constant
+\[
+ B:=\frac{4c_0^2K_0^2}{1-c_0^2},
+\]
+which depends only on \(t_0\).  Choose \(x_0<\infty\), depending only on
+\(t_0,\zeta\), large enough that
+\[
+ Q_x:=\left\lceil\frac{\log(8Bx)}D\right\rceil\ge1
+\]
+whenever \(x\ge x_0\).  By
+\(\mathrm{lem{:}radius\text{-}explicit\text{-}observed\text{-}kl}\),
+\(\varepsilon_C\le q_C\), and hence
+\[
+ \operatorname{KL}(\mathbb P_{Q_x,+1}^{\mathrm{obs},T}\,\|\,
+                    \mathbb P_{Q_x,-1}^{\mathrm{obs},T})
+ \le BTq_C^2e^{-DQ_x}\le\frac18. \tag{34}
+\]
+By \(\mathrm{lem{:}signed\text{-}depth\text{-}membership}\), the two alternatives
+belong to \(\mathcal M_T(t_0,\zeta,C)\) and have target values \(\pm a_{Q_x}\),
+where
+\[
+ a_Q:=c_0\varepsilon_Cw_Q.
+\]
+The same membership lemma gives \(w_Q\ge(1-\alpha)\alpha^Q\), while the
+radius-explicit lemma gives \(\varepsilon_C\ge q_C/2\).  Therefore
+\[
+ a_{Q_x}^2
+ \ge\frac{c_0^2(1-\alpha)^2}{4}q_C^2\alpha^{2Q_x}. \tag{35}
+\]
+
+For completeness, let \(O_x\) denote the overlap integral of the two observed
+laws in (34).  Jensen's inequality and Cauchy--Schwarz give
+\[
+ O_x\ge\tfrac12\exp\{-\operatorname{KL}(\mathbb P_{Q_x,+1}^{\mathrm{obs},T}\,\|\,
+                                             \mathbb P_{Q_x,-1}^{\mathrm{obs},T})\}.
+\]
+Classifying an arbitrary estimator by the sign of its output makes squared
+loss at least \(a_{Q_x}^2\) on an error, and the sum of the two error
+probabilities is at least \(O_x\).  Thus (34) gives minimax risk at least
+\(a_{Q_x}^2e^{-1/8}/4\).  The ceiling defining \(Q_x\) yields
+\[
+ \alpha^{2Q_x}\ge\alpha^2(8Bx)^{-\beta}. \tag{36}
+\]
+Combining (35)--(36) proves, with a constant depending only on
+\(t_0,\zeta\),
+\[
+ R_T(t_0,\zeta,C)
+ \gtrsim_{t_0,\zeta}q_C^2x^{-\beta}
+ =T^{-\beta}q_C^{2(1-\beta)},
+ \qquad x\ge x_0. \tag{37}
+\]
+If \(x<x_0\), then
+\[
+ T^{-\beta}q_C^{2(1-\beta)}
+ =T^{-1}x^{1-\beta}
+ \le x_0^{1-\beta}T^{-1},
+\]
+so the parametric floor (33) already controls the hidden-state term.  If
+\(x\ge x_0\), the maximum of (33) and (37) controls one half of their sum
+after changing a constant.  This proves the lower comparison uniformly over
+all \(C\ge1\).
+
+Finally, the hidden-state term divided by \(T^{-1}\) is exactly
+\(x^{1-\beta}\).  Hence the elbow is \(q_C\asymp T^{-1/2}\).  The upper proof
+uses depth zero whenever \(x\le1\); more generally, direct application of the
+radius-sensitive lemma at depth zero is parametric whenever \(x=O(1)\).
+When \(x\to\infty\), the selected depth is of order \(\log x\), and
+(30)--(31) show that the geometric covariance sum contributes no logarithmic
+factor.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the sole headline: it gives one explicit observable estimator and a matching all-estimator converse for the complete all-\(C\) risk surface, with constants independent of \(C\) and of both state-space cardinalities. \textit{Gap.} HuWager2023 leaves the distributionally overlapping hidden-state converse unresolved and does not provide the continuous shrinking-radius surface under latent stationary overlap. \textit{Consumer.} A latent physiological occupancy assurance justifies shorter histories only through its quantitative radius: parametric precision occurs in the boundary layer \(q_C=O(T^{-1/2})\), while a fixed nonunit radius retains the partial-observability penalty.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The terminal-posterior recursion, stationary initial windows, and observed-path chain-rule KL required by the signed-depth converse have been proved, and the finite insulin adaptation's immediate-weight bias has an interval certificate. The remaining scope limitations are substantive rather than proof gaps: the minimax result concerns point-estimation MSE rather than honest inference or policy-learning regret; latent stationary overlap is not made observable or testable; the hard family's latent cardinality grows with \(T\); and the finite insulin adaptation does not certify the original continuous simulator's membership in the paper's finite-state uniform contraction-and-overlap class.
+
+\section{Honest scope}
+
+The headline theorem is uniform over \(C\ge1\) for the paper's bounded-reward, binary-action, single-trajectory finite-state specialization, with risk comparison constants and a large-sample threshold depending only on \(t_0,\zeta\), not on \(C\) or either state-space cardinality. The fixed-\(C>1\) exponent, the \(C=1\) parametric endpoint, and the shrinking-radius phase diagram are corollaries of the continuous all-radius surface; only the pointwise fixed-\(C\) exponent jumps at the boundary. The converse uses a hidden alphabet whose cardinality grows as \(O(\log T)\), so it does not settle classes with a uniformly bounded latent alphabet. Honest single-trajectory confidence intervals, policy-learning regret, and empirical testability of latent stationary overlap remain separate questions. The finite insulin adaptation supports interpretation but does not establish membership of the original continuous simulator in the finite-state uniform contraction-and-overlap class.
+
+\begin{thebibliography}{99}
+
+  \bibitem{HuWager2023} Hu, Y., and Wager, S. (2023). Off-policy evaluation in partially observed Markov decision processes under sequential ignorability. Annals of Statistics 51(4), 1561--1580. arXiv:2110.12343.
+
+  \bibitem{MehrabiWager2025} Mehrabi, M., and Wager, S. (2025). Off-policy evaluation in Markov decision processes under weak distributional overlap. arXiv:2402.08201, version 2.
+
+  \bibitem{ZhangJiang2024} Zhang, Y., and Jiang, N. (2024). On the curses of future and history in future-dependent value functions for off-policy evaluation. Advances in Neural Information Processing Systems 37. arXiv:2402.14703.
+
+  \bibitem{TennenholtzShalitMannor2020} Tennenholtz, G., Shalit, U., and Mannor, S. (2020). Off-policy evaluation in partially observable environments. Proceedings of the AAAI Conference on Artificial Intelligence 34(6), 10276--10283. arXiv:1909.03739.
+
+  \bibitem{KallusUehara2020} Kallus, N., and Uehara, M. (2020). Double reinforcement learning for efficient off-policy evaluation in Markov decision processes. Journal of Machine Learning Research 21(167), 1--63. arXiv:1908.08526.
+
+  \bibitem{LiaoKlasnjaMurphy2021} Liao, P., Klasnja, P., and Murphy, S. A. (2021). Off-policy estimation of long-term average outcomes with applications to mobile health. Journal of the American Statistical Association 116(533), 382--391. arXiv:1912.13088.
+
+  \bibitem{LuckettEtAl2020} Luckett, D. J., Laber, E. B., Kahkoska, A. R., Maahs, D. M., Mayer-Davis, E. J., and Kosorok, M. R. (2020). Estimating dynamic treatment regimes in mobile health using V-learning. Journal of the American Statistical Association 115(530), 692--706.
+
+  \bibitem{MaahsEtAl2012} Maahs, D. M., Mayer-Davis, E. J., Bishop, F. K., Wang, L., Mangan, M., and McMurray, R. G. (2012). Outpatient assessment of determinants of glucose excursions in adolescents with type 1 diabetes: proof of concept. Diabetes Technology and Therapeutics 14(8), 658--664.
+
+\end{thebibliography}
+
+\end{document}

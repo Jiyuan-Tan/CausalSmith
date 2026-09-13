@@ -1,0 +1,127 @@
+\begin{proof}[Proof of \cref{obj:lem:insulin-policy-contraction}]
+Fix \(T\), a policy \(p\), and probability vectors \(\nu,\nu'\) on
+\(\mathsf S_{\mathrm{grid}}\).  We prove the displayed total-variation
+bound; the \(\ell^1\) formulation follows from
+\(\|\eta\|_1=2\|\eta\|_{\mathrm{TV}}\).
+
+1. Let \(\mathsf U(s')=1/360\) be the uniform law on
+\(\mathsf S_{\mathrm{grid}}\).  For
+\(s=(g,d_1,d_2,x_1,x_2,a_1)\), \(a\in\{0,1\}\), and
+\(s'=(g',d'_1,d'_2,x'_1,x'_2,a'_1)\), define the non-refresh transition
+weight
+\[
+\mathsf D(s,a;s')
+=
+\gamma_{s,a}(g')\,
+\pi_d(d'_1)\,
+\pi_x(x'_1)\,
+\mathbf 1\{d'_2=d_1\}\,
+\mathbf 1\{x'_2=x_1\}\,
+\mathbf 1\{a'_1=a\},
+\]
+where \(\pi_d(0)=4/5\), \(\pi_d(78)=1/5\),
+\(\pi_x(0)=2/5\), \(\pi_x(31)=2/5\), \(\pi_x(850)=1/5\), and
+\[
+\gamma_{s,a}(g^\star)
+=
+\Pr\!\left\{
+\operatorname{round}_{\{50,100,150,200,250\}}
+\operatorname{clip}_{[50,250]}
+\bigl(
+10+0.9g+0.1d_1+0.1d_2-0.01x_1-0.01x_2-2a-4a_1+\xi
+\bigr)
+=g^\star
+\right\}
+\]
+for \(\xi\sim N(0,25)\).  The refresh construction in
+\cref{obj:def:insulin-grid} gives, after marginalizing over the reward,
+\[
+K_T\{(q,s''):\ s''=s'\mid s,a\}
+=
+\frac{1}{720}+\frac12\,\mathsf D(s,a;s').
+\]
+Therefore the policy-induced matrix can be written as
+\[
+P_p^{(T)}(s,s')
+=
+\frac{1}{720}
++\frac12 R_p(s,s'),
+\qquad
+R_p(s,s')
+=
+\sum_{a\in\{0,1\}}p(a\mid x(s))\,\mathsf D(s,a;s').
+\]
+Equivalently,
+\[
+P_p^{(T)}(s,s')
+=
+\Bigl(1-\frac12\Bigr)\mathsf U(s')
++\frac12 R_p(s,s').
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.insulinFinitePolicyKernel_eq
+
+2. For each fixed \(s\), \(R_p(s,\cdot)\) is a probability vector.  Indeed,
+all factors in \(\mathsf D(s,a;s')\) are nonnegative.  Also,
+\[
+\sum_{s'\in\mathsf S_{\mathrm{grid}}}\mathsf D(s,a;s')
+=
+\sum_{g^\star}\gamma_{s,a}(g^\star)
+\sum_{d^\star}\pi_d(d^\star)
+\sum_{x^\star}\pi_x(x^\star)
+=1,
+\]
+because the rounded Gaussian cells partition the clipped glucose outcome,
+the diet probabilities sum to \(1\), the activity probabilities sum to \(1\),
+and the three indicator factors merely select the shifted memory coordinates.
+Thus
+\[
+\sum_{s'\in\mathsf S_{\mathrm{grid}}} R_p(s,s')
+=
+\sum_{a\in\{0,1\}}p(a\mid x(s))
+\sum_{s'\in\mathsf S_{\mathrm{grid}}}\mathsf D(s,a;s')
+=
+\sum_{a\in\{0,1\}}p(a\mid x(s))
+=1.
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.insulinResidual_probabilityVector
+
+3. It remains to apply the common-refresh contraction calculation.  For any
+finite state space, any probability vectors \(\eta,\eta'\), and any stochastic
+matrix \(R\), a kernel of the form
+\[
+M_\alpha(s,t)=(1-\alpha)u(t)+\alpha R(s,t),
+\qquad \alpha\ge 0,
+\]
+satisfies
+\[
+(\eta M_\alpha-\eta'M_\alpha)(t)
+=
+\alpha\sum_s(\eta(s)-\eta'(s))R(s,t),
+\]
+since the refresh term contributes
+\((1-\alpha)u(t)(\sum_s\eta(s)-\sum_s\eta'(s))=0\).  Hence
+\[
+\begin{aligned}
+\|\eta M_\alpha-\eta'M_\alpha\|_{\mathrm{TV}}
+&=
+\frac12\sum_t
+\left|
+\alpha\sum_s(\eta(s)-\eta'(s))R(s,t)
+\right|  \\
+&\le
+\alpha\,\frac12\sum_s|\eta(s)-\eta'(s)|
+        \sum_t R(s,t) \\
+&=
+\alpha\|\eta-\eta'\|_{\mathrm{TV}} .
+\end{aligned}
+\]
+With \(\alpha=1/2\), \(u=\mathsf U\), \(R=R_p\), and
+\(\eta=\nu,\eta'=\nu'\), this gives
+\[
+\|\nu P_p^{(T)}-\nu'P_p^{(T)}\|_{\mathrm{TV}}
+\le
+\frac12\|\nu-\nu'\|_{\mathrm{TV}} .
+\]
+Multiplying by \(2\) yields the stated \(\ell^1\) version.
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.tvNorm_contraction_of_refresh
+\end{proof}

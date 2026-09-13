@@ -7,7 +7,8 @@ import { canonicalizeObjRefs, parseAnchoredEnvs, lintAnchors, lintClarity, lintE
 import { FormalLayerSource, normalizeCitedScopeFootnotes, paperEnvMismatches } from "../formal_layer.js";
 import { parseNoteBlocks } from "../note_parser.js";
 import { SYNTHETIC_COMPANION_RE, externallyConsumedModules, findOrphanPaperModules } from "../paper_index_orphans.js";
-import { parseBib, verifyEntry, defaultLookup, citedKeys } from "../citations.js";
+import { parseBib, verifyEntry, defaultLookup, citedKeys, UNREACHABLE, type BibEntry, type Lookup, type Verification } from "../citations.js";
+import { createHash } from "node:crypto";
 import { buildBundle, buildProseEntries, buildFormalLayer, buildSymbolRealizations, assumptionTable } from "../emit.js";
 import { discoverRealizedSymbols, buildSymbolClusters } from "../../formalization/crosswalk.js";
 import { auxiliaryNodes, isCitedNode } from "../graph_view.js";
@@ -21,6 +22,19 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { loadJsonCache } from "../cache.js";
 import { buildPaperGraph, lintIsolatedLemmas, type PaperGraphNode } from "../paper_graph.js";
+import { writeJsonAtomic } from "../json_io.js";
+
+/** Standard token of the cached bibliography verdicts (`citation_verify_cache.json`). Bump it whenever
+ *  `verifyEntry` or `defaultLookup` TIGHTENS, so a verdict cached under the old standard would now be wrong. */
+export const CITATION_VERIFY_STANDARD = "1";
+
+/** Cache key of one bibliography entry's verdict: the standard token plus the entry's full content. */
+export function citationVerifyCacheKey(entry: BibEntry): string {
+  return createHash("sha256").update(JSON.stringify([
+    CITATION_VERIFY_STANDARD, entry.key, entry.type,
+    Object.entries(entry.fields).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+  ])).digest("hex");
+}
 
 const execFileP = promisify(execFile);
 
@@ -238,13 +252,44 @@ export async function stageP4(io: StageIO): Promise<void> {
   const bib = parseBib(await readFile(bibPath, "utf8"));
   const cited = citedKeys(paperTex);
   const lookup = io.ctx.deps.lookup ?? defaultLookup;
+  // Registry lookups are slow (a polite 1 s spacing, retries with backoff, up to three
+  // registries per entry), so a verdict that a reachable registry settled is kept per entry
+  // content and replayed on every later emit. Not cached: a lookup during which any registry failed
+  // (UNREACHABLE, or a record found only after another registry failed — the next run must
+  // re-verify) and a failure (the halt must re-check the fixed entry, whose key changes anyway).
+  // A cached value that is not a well-formed settled verdict for this entry is looked up again.
+  const verifyCachePath = join(io.outDir, "citation_verify_cache.json");
+  const verifyCache = await loadJsonCache<Record<string, unknown>>(verifyCachePath, { repair: false });
+  let verifyCacheChanged = false;
+  const saveVerifyCache = async () => {
+    if (verifyCacheChanged) await writeJsonAtomic(verifyCachePath, verifyCache);
+  };
+  const settledHit = (value: unknown, key: string): Verification | undefined => {
+    const v = value as Partial<Verification> | null | undefined;
+    return v && (v.verdict === "exact" || v.verdict === "minor") && typeof v.detail === "string" && v.key === key
+      ? { key: v.key, verdict: v.verdict, detail: v.detail }
+      : undefined;
+  };
   for (const entry of bib) {
     if (!cited.has(entry.key)) continue;
     // An identifier can name a preprint of the cited journal article. It confirms the
     // work, not interchangeable publication metadata: preserve the authored entry and
     // leave discrepancies for source-grounded orchestrator review.
-    const v = await verifyEntry(entry, lookup);
+    const cacheKey = citationVerifyCacheKey(entry);
+    let unsettled = false;
+    const trackedLookup: Lookup = async (e) => {
+      const rec = await lookup(e);
+      if (rec === UNREACHABLE || rec?.degraded) unsettled = true;
+      return rec;
+    };
+    const hit = settledHit(verifyCache[cacheKey], entry.key);
+    const v = hit ?? await verifyEntry(entry, trackedLookup);
+    if (!hit && v.verdict !== "major" && !unsettled) {
+      verifyCache[cacheKey] = v;
+      verifyCacheChanged = true;
+    }
     if (v.verdict === "major") {
+      await saveVerifyCache();
       throw new Error(
         `P4: bib entry ${entry.key} failed re-verification: ${v.detail}. Correct the entry from the ` +
         "right record, or — only when a primary source confirms it as written — add " +
@@ -257,6 +302,7 @@ export async function stageP4(io: StageIO): Promise<void> {
       io.state.notes.push(`P4: bib entry ${entry.key} kept with caveat: ${v.detail}`);
     }
   }
+  await saveVerifyCache();
 
   // The verification note names the commit the checks ran at, and the emit runs them at HEAD: a
   // literal commit id in the prose is stamped to the pinned commit, in the paper and in the

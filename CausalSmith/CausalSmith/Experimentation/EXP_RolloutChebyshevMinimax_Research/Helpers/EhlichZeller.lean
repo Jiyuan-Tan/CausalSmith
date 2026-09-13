@@ -27,8 +27,8 @@ Mathematische Zeitschrift 86, 41–44): for a real polynomial `R` of degree ≤ 
 This is a classical external approximation-theory norming (Marcinkiewicz–Zygmund-type) result,
 absent from Mathlib and genuinely hard to formalize. It is NOT original to this paper (the paper
 claims no new polynomial extremal theorem — honest scope) and its source proof is a bare
-citation. It is stated as a named `Prop` and threaded as visible substrate debt into its single
-direct consumer `oversampled_chebyshev_lobatto_norming`; to be discharged 0-sorry before banking. -/
+citation. It is stated as a named `Prop`, threaded into its single direct consumer
+`oversampled_chebyshev_lobatto_norming`, and discharged by the proved lemma `ehlichZellerMesh`. -/
 def EhlichZellerMesh : Prop :=
   ∀ (beta k : ℕ) (R : Polynomial ℝ), R.natDegree ≤ beta → beta < k →
     ∀ x : ℝ, x ∈ Set.Icc (-1 : ℝ) 1 →
@@ -99,7 +99,7 @@ lemma ehlichZellerMesh : EhlichZellerMesh := by
 that for every `β ≥ 1`, every integer `k ≥ c·β`, and every degree-≤β polynomial `R`,
 `sup_{[-1,1]} |R| ≤ K(c) · max_{0≤j≤k} |R(-cos(π j / k))|`. Its only hard step is the gated
 Ehlich–Zeller mesh inequality (threaded as `hmesh`); the rest is `sec` monotonicity from
-`β/k ≤ 1/c`. Proved conditional on the gate. -/
+`β/k ≤ 1/c`. Proved conditional on the gate, which `ehlichZellerMesh` discharges. -/
 lemma oversampled_chebyshev_lobatto_norming (hmesh : EhlichZellerMesh) (c : ℝ) (hc : 1 < c) :
     ∃ K : ℝ, 0 < K ∧ ∀ (beta k : ℕ) (R : Polynomial ℝ), 1 ≤ beta → (k : ℝ) ≥ c * beta →
       R.natDegree ≤ beta →

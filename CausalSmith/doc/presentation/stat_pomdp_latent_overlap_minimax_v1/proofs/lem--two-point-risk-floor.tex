@@ -1,0 +1,156 @@
+\begin{proof}[Proof of \cref{obj:lem:two-point-risk-floor}]
+Write the common observed alphabet size as \(n_X\), and use the common observable
+structure to identify the behavior and target policy carriers of the two models.  Put
+\[
+P_j:=\mathbb P_j,\qquad
+\theta_j:=\theta(M_j),\qquad j\in\{0,1\},
+\]
+where \(\theta(M_j)\) is the target value from \cref{obj:def:target-value}.  The
+information bound and \(\chi\ge0\) give
+\[
+\operatorname{KL}(P_0\|P_1)_{\mathbb R}\le \chi ,
+\]
+where \(\operatorname{KL}(P_0\|P_1)_{\mathbb R}\) denotes the real value of the
+finite extended-real KL divergence.  Hence
+\[
+\exp(-\chi)
+\le
+\exp\{-\operatorname{KL}(P_0\|P_1)_{\mathbb R}\}.
+\]
+By the Bretagnolle--Huber affinity inequality, using \(P_0\ll P_1\) and finite
+KL divergence,
+\[
+\frac12\exp\{-\operatorname{KL}(P_0\|P_1)_{\mathbb R}\}
+\le
+1-\operatorname{TV}(P_0,P_1).
+\]
+Combining the two displays yields
+\begin{equation}\label{eq:two-point-risk-floor-affinity}
+\frac{\exp(-\chi)}{4}
+\le
+\frac{1-\operatorname{TV}(P_0,P_1)}{2}.
+\end{equation} % lean: Causalean.Stat.bretagnolle_huber_affinity
+
+Fix a raw observable-data estimator \(\widehat\theta\) satisfying the measurability
+and integrability hypotheses.  With the common observable inputs fixed, define
+\[
+\widehat f(o):=\widehat\theta(n_X,b,e,o),
+\qquad o\in\mathsf O_T,
+\]
+and define the two error events
+\[
+E_j:=\{o\in\mathsf O_T:\ s\le |\widehat f(o)-\theta_j|\},
+\qquad j\in\{0,1\}.
+\]
+The separation condition \(2s\le|\theta_0-\theta_1|\) and the two-point testing
+bound for real-valued parameters give
+\begin{equation}\label{eq:two-point-risk-floor-testing}
+\frac{1-\operatorname{TV}(P_0,P_1)}{2}
+\le
+\max\{P_0(E_0),P_1(E_1)\}.
+\end{equation} % lean: Causalean.Stat.real_two_point_lower_bound
+
+Since \(s\ge0\), for each \(j\in\{0,1\}\),
+\[
+E_j
+=
+\{o\in\mathsf O_T:\ s^2\le(\widehat f(o)-\theta_j)^2\}.
+\]
+The squared-error integrability assumptions therefore allow the elementary
+tail-to-mean comparison
+\begin{equation}\label{eq:two-point-risk-floor-tail-mean}
+s^2 P_j(E_j)
+\le
+\int(\widehat f(o)-\theta_j)^2\,dP_j(o),
+\qquad j\in\{0,1\}.
+\end{equation} % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.two_point_floor_explicit
+
+Combining \cref{eq:two-point-risk-floor-affinity,eq:two-point-risk-floor-testing} gives
+\[
+\frac{\exp(-\chi)}{4}\le \max\{P_0(E_0),P_1(E_1)\}.
+\]
+If \(P_0(E_0)\le P_1(E_1)\), then the last maximum is \(P_1(E_1)\), and \cref{eq:two-point-risk-floor-tail-mean} gives
+\[
+\frac{s^2\exp(-\chi)}{4}
+\le
+s^2P_1(E_1)
+\le
+\int(\widehat f(o)-\theta_1)^2\,dP_1(o)
+\le
+\max_{j\in\{0,1\}}
+\int(\widehat f(o)-\theta_j)^2\,dP_j(o).
+\]
+If \(P_1(E_1)\le P_0(E_0)\), the same argument gives
+\[
+\frac{s^2\exp(-\chi)}{4}
+\le
+s^2P_0(E_0)
+\le
+\int(\widehat f(o)-\theta_0)^2\,dP_0(o)
+\le
+\max_{j\in\{0,1\}}
+\int(\widehat f(o)-\theta_j)^2\,dP_j(o).
+\]
+These two cases prove
+\begin{equation}\label{eq:two-point-risk-floor-fixed-models}
+\frac{s^2\exp(-\chi)}{4}
+\le
+\max\left\{
+\mathbb E_{M_0}\!\left[(\widehat\theta-\theta_0)^2\right],
+\mathbb E_{M_1}\!\left[(\widehat\theta-\theta_1)^2\right]
+\right\}.
+\end{equation} % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.two_point_floor_explicit
+
+It remains to pass from the fixed two models to the minimax risk in
+\cref{obj:def:minimax-risk}.  The observable-estimator class is nonempty, for
+example it contains the constant-zero estimator.  We first record the bounded-risk input needed for the minimax reduction.  Fix an admissible observable estimator \(\widetilde\theta\).  For every model
+\(M\in\mathcal M_T(t_0,\zeta,C)\), with observed alphabet size \(n_X^M\), behavior carrier \(b_M\), target carrier \(e_M\), observed law \(P_M\), and target value \(\theta(M)\), \cref{obj:lem:observed-risk-bounded-by-four} gives
+\[
+\mathbb E_M\!\left[
+\bigl(\widetilde\theta(n_X^M,b_M,e_M,\mathsf O_T)-\theta(M)\bigr)^2
+\right]
+=
+\int\bigl(\widetilde\theta(n_X^M,b_M,e_M,o)-\theta(M)\bigr)^2\,dP_M(o)
+\le 4.
+\]
+Consequently,
+\[
+\left\{
+\mathbb E_M\!\left[
+\bigl(\widetilde\theta(n_X^M,b_M,e_M,\mathsf O_T)-\theta(M)\bigr)^2
+\right]:
+M\in\mathcal M_T(t_0,\zeta,C)
+\right\}
+\subset (-\infty,4],
+\]
+which is the boundedness hypothesis needed in the two-point minimax reduction. % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.bddAbove_range_observedRisk
+For such an estimator, the two integrability requirements used above hold at
+\(M_0\) and \(M_1\).  These are two separate statements, one for each model, and
+each is taken at that model's own observable inputs before any identification of
+carriers: at \(M_j\) the estimator is measurable by admissibility and its range
+condition gives
+\[
+|\widehat\theta(n_X,b_{M_j},e_{M_j},o)|\le 1,
+\qquad o\in\mathsf O_T,
+\]
+so the fixed-model squared error is dominated by the constant
+\((1+|\theta(M_j)|)^2\), since
+\[
+|\widehat\theta(n_X,b_{M_j},e_{M_j},o)-\theta(M_j)|
+\le
+1+|\theta(M_j)|,
+\qquad j\in\{0,1\}.
+\]
+Only after both integrability statements are in hand do the common-policy
+hypotheses \(b_{M_0}=b_{M_1}\) and \(e_{M_0}=e_{M_1}\) rewrite the two carriers
+into the single pair \((b,e)\) used for \(\widehat f\) above, so that the two
+integrals are integrals of one function against the two observed laws.
+Applying \cref{eq:two-point-risk-floor-fixed-models} to each admissible observable estimator and then the standard
+two-point reduction to the minimax value yields
+\[
+\frac{s^2\exp(-\chi)}{4}
+\le
+R_T(t_0,\zeta,C),
+\]
+which is the claimed minimax lower bound. % lean: Causalean.Stat.le_minimaxValue_of_two_point
+\end{proof}

@@ -1,0 +1,213 @@
+\section{Population decoding}\label{sec:population-decoding}
+
+The generic separation result in \cref{obj:thm:generic-cover-separation} supplies the observable input for a population construction. The construction is an oracle on the environment laws: its steps evaluate Radon--Nikodym derivatives, conditional-law versions, and conditional independences exactly, so it is a map from a law family to a graph and a set of coordinates rather than an estimator or an algorithm on data. Its order and pruning steps are well posed precisely on the cover-separated set, where \cref{obj:thm:exact-ratio-decoder} shows the ratio graph is acyclic and the admissible parent set is unique; on an arbitrary law family the ratio graph may contain cycles and the inclusion-minimal admissible set need not be unique, and the conclusions below are asserted only under the theorem's hypotheses. Starting from the environment laws, the decoder forms the directed ratio-discrepancy graph, uses its order information to compute conditional distribution transforms, aligns each intervention label with the coordinate recovered by its own rank, and then prunes the candidate predecessors through conditional independence under the observational law. The output is an environment-label graph, so we first record the relabeling convention that translates the latent DAG into intervention labels.
+
+\begin{definitionv}{synth_17}[Permuted environment graph]
+For an observed world \(W\) with target permutation \(\pi\), the environment-label DAG \(G^\pi\) is the directed graph on \([n]\) whose edge relation is
+\[
+j\to_{G^\pi} i
+\quad\Longleftrightarrow\quad
+G\text{ has the edge }\pi(j)\to \pi(i),
+\qquad j,i\in[n].
+\]
+\end{definitionv}
+
+This graph is the structural object visible after intervention labels have been matched to latent coordinates. Because the target permutation is part of the observed-world description rather than known to the analyst, the decoder is formulated entirely in terms of laws and ratios.
+
+The rank step requires a version of the conditional distribution function selected from observed laws. The next definition fixes that selection in a way that is compatible with regular conditional distributions and continuous support behavior.
+
+\begin{definitionv}{synth_18}[Selected conditional CDF]
+For an observed probability-law family \(P^0,\ldots,P^n\), an ordering, and a vertex \(i\), let \(B_i\) be the predecessors of \(i\) in that ordering. The selected conditional distribution function
+\[
+C_i:\mathbb R\times\mathbb R^{B_i}\to[0,1]
+\]
+is defined as follows. If there exists a map \(C:\mathbb R\times\mathbb R^{B_i}\to[0,1]\) such that
+\begin{itemize}
+\item \textbf{(Joint measurability.)} \(C(t,\ell)\) is measurable as a function of \((t,\ell)\);
+\item \textbf{(Fixed-threshold version.)} for every threshold \(t\), the function \(\ell\mapsto C(t,\ell)\) agrees almost surely, under the observed target-\(i\) law of \(L_{B_i}\), with the raw regular conditional CDF \(\widetilde C_i(t,\ell)\) of \(L_i\) given \(L_{B_i}=\ell\);
+\item \textbf{(Joint-law version.)} the function \((t,\ell)\mapsto C(t,\ell)\) agrees almost surely, under the observed target-\(i\) joint law of \((L_i,L_{B_i})\), with \((t,\ell)\mapsto\widetilde C_i(t,\ell)\);
+\item \textbf{(Support continuity.)} \((t,\ell)\mapsto C(t,\ell)\) is continuous on \(\mathbb R\) times the support of the observed target-\(i\) law of \(L_{B_i}\),
+\end{itemize}
+then \(C_i\) is one such map selected from the observed laws alone. In the complementary case,
+\[
+C_i(t\mid L_{B_i}=\ell)=
+\begin{cases}
+\widetilde C_i(t,\ell), & \widetilde C_i(t,\ell)\in[0,1],\\
+0, & \widetilde C_i(t,\ell)\notin[0,1],
+\end{cases}
+\]
+where \(\widetilde C_i(t,\ell)\) is the raw regular conditional CDF of \(L_i\) given \(L_{B_i}=\ell\) under the observed target-\(i\) law.
+\end{definitionv}
+
+The continuity clause gives a population version of the probability integral transform along the conditional-ratio support. With that convention in place, the decoder \leanref{sym:\mathscr D}{\ensuremath{\mathscr D}} can be stated as an observable map from environment laws to a pruned environment-label DAG.
+
+\begin{algorithmv}{def:population-decoder}[Population decoder $\mathscr D$]
+Given observed laws \((P^0,\ldots,P^n)\), the population decoder \(\mathscr D\) is defined by the following steps.
+\begin{enumerate}
+\item Compute the likelihood ratios and log-ratios
+\[
+R_i=\frac{dP^i}{dP^0},
+\qquad
+L_i=\log R_i,
+\qquad i\in[n],
+\]
+and the Gaussian-MMD discrepancies \(D_{ji}\).
+
+\item Form the observable directed ratio-discrepancy graph
+\[
+H_D=\{j\to i:j\ne i\text{ and }D_{ji}>0\}.
+\]
+
+\item Choose a topological ordering of \(H_D\). For each \(i\), let \(B_i\) be the predecessors of \(i\) in that ordering and define
+\[
+U_i=C_i(L_i\mid L_{B_i}).
+\]
+
+\item Align environment \(i\) with coordinate \(U_i\).
+
+\item For each \(i\), range over \(A\subseteq B_i\) and identify the unique inclusion-minimal subset satisfying
+\[
+U_i\mathbin{\perp\!\!\!\perp}_{P^0}U_{B_i\setminus A}\mid U_A.
+\]
+The output is the environment-label DAG
+\[
+G^\pi_{\mathscr D}
+=
+\{a\to i:\ a\in A_i^{\min}\},
+\qquad
+A_i^{\min}
+=
+\min_{\subseteq}
+\left\{
+A\subseteq B_i:
+U_i\mathbin{\perp\!\!\!\perp}_{P^0}U_{B_i\setminus A}\mid U_A
+\right\}.
+\]
+\end{enumerate}
+\end{algorithmv}
+
+The first two steps use the law discrepancies studied in \cref{obj:thm:generic-cover-separation}; the third step converts log-ratios into coordinates through conditional ranks; the final step applies the Markov factorization logic under \(P^0\), in the spirit of graphical-model recovery from conditional independences \citep{Pearl2009,SpirtesGlymourScheines2000}. The rank transform has a structural target: conditionally on the recovered predecessors, the log-ratio distribution is the intervention-target distribution induced by the latent mechanism.
+
+\begin{definitionv}{synth_26}[Structural conditional-ratio CDF]
+For a mechanism \(\theta=(p_\ell,q_\ell)_{\ell\in[n]}\), an environment label \(i\), and target \(a=\pi(i)\), write
+\[
+\lambda_{\theta,a}(w,z)
+=
+\log\frac{q_a(w)}{p_a(w\mid z)},
+\qquad z\in[0,1]^{|\operatorname{pa}_G(a)|}.
+\]
+The structural conditional-ratio CDF at target \(a=\pi(i)\) is
+\[
+C_{\theta,\pi(i)}^{\mathrm{str}}(t\mid z)
+=
+\int_0^1
+\mathbf 1\{\lambda_{\theta,\pi(i)}(w,z)\le t\}\,
+q_{\pi(i)}(w)\,dw .
+\]
+Equivalently, \(C_{\theta,\pi(i)}^{\mathrm{str}}(\,\cdot\mid z)\) is the conditional distribution function of the target log-ratio \(L_i\) in the target-\(\pi(i)\) intervention environment, conditional on the latent parent vector \(V_{\operatorname{pa}_G(\pi(i))}=z\).
+\end{definitionv}
+
+The structural CDF describes the rank that would be computed with latent parents in hand. The theorem below states that the observed conditional CDF selected in \cref{obj:synth_18} agrees with this structural object on the relevant support, so the rank coordinates produced by \cref{obj:def:population-decoder} coincide with monotone transforms of the intervention-target latent coordinates.
+
+Representation recovery is stated up to componentwise coordinate changes and a simultaneous relabeling of the DAG and targets. The equivalence relation records exactly those transformations.
+
+\begin{definitionv}{synth_8}[Componentwise \(C^2\) equivalence]
+For \(m=1,2\), let \(W_m\) be an observed world over \((G_m,\theta_m)\) with mixing map \(f_m\), inverse-coordinate map \(g_m\), target permutation \(\pi_m\), and observed laws \((P_m^e)_{e=0}^n\). With the same ambient number \(n\) of scalar latent variables, write
+\[
+\mathcal X_m=\{f_m(v):v\in[0,1]^n\},\qquad m=1,2.
+\]
+The worlds \(W_1\) and \(W_2\) are componentwise \(C^2\)-equivalent when the following conditions hold:
+\begin{itemize}
+\item \textbf{(Observed support.)} Their observed supports agree:
+\[
+\mathcal X_1=\mathcal X_2.
+\]
+\item \textbf{(DAG relabeling.)} There is a permutation \(\sigma\) of \([n]\) such that, for every \(j,i\in[n]\),
+\[
+\sigma(j)\to_{G_2}\sigma(i)
+\quad\Longleftrightarrow\quad
+j\to_{G_1} i.
+\]
+\item \textbf{(Target alignment.)} For every \(e\in[n]\),
+\[
+\pi_2(e)=\sigma(\pi_1(e)).
+\]
+\item \textbf{(Coordinate changes.)} There are real functions \(h_i\) and \(\bar h_i\), one pair for each \(i\in[n]\), whose restrictions to \([0,1]\) are \(C^2\) and map \([0,1]\) into \([0,1]\), such that, for every \(i\in[n]\) and every \(z\in[0,1]\),
+\[
+\bar h_i(h_i(z))=z,
+\qquad
+h_i(\bar h_i(z))=z.
+\]
+\item \textbf{(Unmixing relation.)} For every \(x\in\mathcal X_1\) and every \(i\in[n]\),
+\[
+g_2(x)_{\sigma(i)}
+=
+h_i\!\left(g_1(x)_i\right).
+\]
+\end{itemize}
+\end{definitionv}
+
+This is the usual observational equivalence scale for nonlinear component recovery: the coordinate system is identified up to separate invertible transformations of each latent coordinate, while the graph and target labels move together under the same permutation.
+
+The ratio graph need not equal the parent graph before pruning, because a positive discrepancy can follow an ancestral path. The next definition fixes the graph operation used to state the exact order information recovered by the first stage.
+
+\begin{definitionv}{synth_16}[Transitive closure of a directed graph]
+For a directed graph \(H\) on a vertex set \(V\), \(\operatorname{TC}(H)\) denotes its transitive closure: the directed graph on \(V\) with an arrow \(a\to b\) exactly when there is a directed path of positive length from \(a\) to \(b\) in \(H\).
+\end{definitionv}
+
+The headline result combines the generic ratio separation condition with conditional ranks and conditional-independence pruning. It gives the population decoding guarantee for the one-perfect-intervention-per-node design.
+
+\begin{theoremv}{thm:exact-ratio-decoder}[Exact ratio decoding]
+Fix \(n\), a finite labelled DAG \(G\) on \([n]\), and a sign vector \(s\in\{-1,+1\}^{[n]}\). Let \(\theta=(p_i,q_i)_{i\in[n]}\) be a mechanism on \(G\). Let \(\mathsf{world}\) assign an observed world to every mechanism on \(G\), and write \(W=\mathsf{world}(\theta)\), with shared mixing map \(f\), inverse map \(f^{-1}\), target permutation \(\pi\), observed laws \((P^0,\ldots,P^n)\), likelihood ratios \(R_i=dP^i/dP^0\), and log-ratios \(L_i=\log R_i\). Assume:
+\begin{itemize}
+\item \textbf{(Smooth positive mechanisms.)} \(\theta\) satisfies \cref{obj:ass:positive-normalized-smooth-mechanisms}.
+\item \textbf{(Causal minimality.)} \(\theta\) satisfies \cref{obj:ass:causal-minimality}.
+\item \textbf{(Shared mixing.)} The maps \(f\) and \(f^{-1}\) in \(W\) satisfy \cref{obj:ass:shared-diffeomorphic-mixing}.
+\item \textbf{(One intervention per node.)} The laws \((P^0,\ldots,P^n)\), ratios \((R_i)_{i\in[n]}\), and target permutation \(\pi\) in \(W\) satisfy \cref{obj:ass:one-perfect-intervention-per-node}.
+\item \textbf{(Own-derivative signs.)} \(\theta\) satisfies \cref{obj:ass:fixed-own-derivative-sign} with sign vector \(s\).
+\item \textbf{(Gaussian cover separation.)} The stratum point \(\theta\in\Theta_{G,s}\) belongs to the cover-separated set of \cref{obj:def:cover-separated-set} with the Gaussian unit-norm feature map associated with \(k(a,b)=\exp\{-(a-b)^2\}\) and target permutation \(\pi\); equivalently, every transported ancestral cover has strictly positive population Gaussian-MMD discrepancy.
+\end{itemize}
+Let \(\mathscr D\) be the population decoder of \cref{obj:def:population-decoder}, let \(H_D=\{j\to i:j\ne i\text{ and }D_{ji}>0\}\), and let \(G^\pi\) be the environment-label DAG. Then
+\[
+\operatorname{TC}(H_D)=\operatorname{TC}(G^\pi).
+\]
+The ordering selected by \(\mathscr D\) is a topological ordering of \(H_D\). For every topological ordering of \(H_D\), with predecessor set \(B_i\) for node \(i\), and every \(i\in[n]\), the selected conditional CDF \(C_i(t\mid L_{B_i})\) is a continuous version of the conditional ratio CDF. For each such \(i\), there exists a continuous version \(C\) such that, for every latent point \(v\) in the latent cube,
+\[
+C\!\left(t\,\middle|\,L_{B_i}(f(v))\right)
+=
+C_{\theta,\pi(i)}^{\mathrm{str}}(t\mid v).
+\]
+Every continuous version agrees with the selected \(C_i\) on the observed conditional-ratio support, and the selected version satisfies the same structural identity at every mixed latent point \(f(v)\). Consequently, for every \(v\) in the latent cube,
+\[
+U_i(f(v))=
+\begin{cases}
+Q_{\pi(i)}(v_{\pi(i)}), & s_{\pi(i)}=1,\\
+1-Q_{\pi(i)}(v_{\pi(i)}), & s_{\pi(i)}=-1.
+\end{cases}
+\]
+For every topological ordering of \(H_D\) and every \(i\in[n]\),
+\[
+\pi^{-1}\!\bigl(\operatorname{pa}_G(\pi(i))\bigr)\subseteq B_i.
+\]
+Under \(P^0\), for every such ordering, every \(i\in[n]\), and every \(A\subseteq B_i\),
+\[
+U_i\perp\!\!\!\perp U_{B_i\setminus A}\mid U_A
+\quad\Longleftrightarrow\quad
+\pi^{-1}\!\bigl(\operatorname{pa}_G(\pi(i))\bigr)\subseteq A.
+\]
+Thus, for every such ordering and every \(i\), the set
+\[
+\pi^{-1}\!\bigl(\operatorname{pa}_G(\pi(i))\bigr)
+\]
+is admissible and is the unique inclusion-minimal admissible parent set. The observed laws are coherent with \(W\), and the parent-pruned graph returned by \(\mathscr D\) is exactly \(G^\pi\).
+
+For any DAG \(G'\) on \([n]\), mechanism \(\theta'\), and observed world \(W'\) satisfying \cref{obj:ass:positive-normalized-smooth-mechanisms}, \cref{obj:ass:causal-minimality}, \cref{obj:ass:fixed-own-derivative-sign} with the same sign vector \(s\), \cref{obj:ass:shared-diffeomorphic-mixing}, and \cref{obj:ass:one-perfect-intervention-per-node}, equality between the observed environment-law family of \(W'\) and the observed environment-law family of \(W\) implies that \(W'\) is componentwise \(C^2\)-equivalent to \(W\) up to the simultaneous relabeling encoded by the target permutations. When \(n=2\), every edge \(j\to i\) of \(G\) has strictly positive observed Gaussian-MMD discrepancy,
+\[
+0<D_{\pi^{-1}(j),\pi^{-1}(i)}.
+\]
+Within the positive \(C^3\) compact-cube, shared \(C^2\)-mixing, causal-minimal regime, \(\mathscr D\) identifies the latent representation and structure from one perfect intervention per node, supplies the continuous law-separation witness used by \citet[Theorem~3.2]{vonKugelgenEtAl2023UnknownInterventions} when \(n=2\), and recovers the graph, topological order, and intervention alignment relative to \citet[Theorem~4.2]{WendongEtAl2023CauCA} and \citet[Corollary~{D}.1]{YaoEtAl2025InvariancePrinciple}.
+\end{theoremv}
+
+The theorem has three linked components. First, Gaussian cover separation makes the ratio-discrepancy graph rich enough to recover the transitive closure of the environment-label DAG. Second, every topological order of that graph supplies conditioning sets large enough for the selected conditional CDFs to agree with their structural counterparts, so the ranks are the coordinatewise transforms \(Q_{\pi(i)}(V_{\pi(i)})\) or their sign-reversed versions. Third, causal minimality turns the observational conditional independences among these ranks into exact parent sets, which converts the order information into the graph \(G^\pi\).
+
+The final clauses state the representation comparison at the population level. Equality of the observed environment-law family pins down the recovered world up to the componentwise \(C^2\) equivalence of \cref{obj:synth_8}. In the two-variable case, the same conditions also yield strictly positive observed Gaussian-MMD discrepancy on every true edge, giving a compact-cube Gaussian-MMD counterpart to the continuous ratio-law witness used by \citet{vonKugelgenEtAl2023UnknownInterventions}. For the multi-node recovery task, the decoder delivers graph, order, and intervention alignment under the one-intervention-per-node design through ratio observables and conditional ranks.

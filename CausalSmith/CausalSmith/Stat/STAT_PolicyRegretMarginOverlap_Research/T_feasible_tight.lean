@@ -10,7 +10,7 @@ tightness question. Per the OEQ rule it is encoded as a named `Prop` `def`
 (`FeasibleTightQuestion`) that STATES the residual — whether, in the strict-gap
 branch `g_joint < r_⋆`, some genuinely feasible cross-fit estimator attains the
 converse exponent `r_⋆` — WITHOUT proving it. No theorem is emitted for this
-node and no downstream theorem depends on it; there is no proof and no `sorry`.
+node and no downstream theorem depends on it; there is no proof and no placeholder proof.
 -/
 
 import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Basic

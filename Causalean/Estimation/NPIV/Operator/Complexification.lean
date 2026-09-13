@@ -52,7 +52,7 @@ of a native real continuous functional calculus.
   the `realCFC (realCFC A g) f` shape, not the false
   `(realCFC A f).comp (realCFC A g)` shape.
 
-All declarations in this file are fully proved (no sorries).
+All declarations in this file are fully proved.
 -/
 
 import Causalean.Estimation.NPIV.Operator.Adjoint

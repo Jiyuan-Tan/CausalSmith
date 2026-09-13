@@ -1,0 +1,1773 @@
+% DERIVED from formal_layer.json — read-only, do not edit.
+\begin{definitionv}{synth_8}[Policy-overlap factor]
+For a real parameter \(\zeta\), define the policy-overlap constant \(L\) by
+\[
+L(\zeta)=\exp(\zeta).
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_3}[Full finite trajectory]
+For natural numbers \(T,n_X,n_H\), a full trajectory of length \(T\) is a pair
+\[
+\bigl((S_t)_{t\in\{0,\ldots,T\}},((A_t,Y_t))_{t\in\{0,\ldots,T-1\}}\bigr)
+\in
+\bigl(\{0,\ldots,n_X-1\}\times \{0,\ldots,n_H-1\}\bigr)^{\{0,\ldots,T\}}
+\times
+\bigl(\{\mathrm{false},\mathrm{true}\}\times \mathbb R\bigr)^{\{0,\ldots,T-1\}} .
+\]
+Here \(S_t=(X_t,H_t)\) is the observed--latent joint state at state time \(t\), with observed coordinate \(X_t\in\{0,\ldots,n_X-1\}\) and latent coordinate \(H_t\in\{0,\ldots,n_H-1\}\). At transition time \(t\), \(A_t\in\{\mathrm{false},\mathrm{true}\}\) is the Boolean action and \(Y_t\in\mathbb R\) is the reward; when actions are written numerically, \(\mathrm{false}\) is identified with \(0\) and \(\mathrm{true}\) with \(1\).
+\end{definitionv}
+
+\begin{assumptionv}{ass:pomdp-kernel}[Markov kernel]
+For each \(t=0,\ldots,T-1\),
+\[
+\mathcal L(Y_t,X_{t+1},H_{t+1}\mid X_{0:t},H_{0:t},A_{0:t},Y_{0:t-1})
+=
+K(\cdot\mid X_t,H_t,A_t).
+\]
+\end{assumptionv}
+
+\begin{definitionv}{synth_1}[Memoryless binary policy carrier]
+For \(n_X\in\mathbb N\), a memoryless policy on an observed-state alphabet of size \(n_X\) is a function
+\[
+p:\{0,\ldots,n_X-1\}\times\{\mathrm{false},\mathrm{true}\}\to\mathbb R .
+\]
+When the action alphabet is written as \(\mathcal A=\{0,1\}\), we identify \(\mathrm{false}\) with \(0\) and \(\mathrm{true}\) with \(1\). This is a carrier only: no nonnegativity and no normalization is imposed here. The probability-vector restrictions on the behavior and target carriers are imposed later, on \(b\) in \cref{obj:ass:sequential-ignorability} and on \(e\) in \cref{obj:ass:policy-overlap}.
+\end{definitionv}
+
+\begin{assumptionv}{ass:sequential-ignorability}[Observed-state sequential ignorability]
+Identify the numeric action alphabet \(\mathcal A=\{0,1\}\) with the Boolean action set by \(0\leftrightarrow \mathrm{false}\) and \(1\leftrightarrow \mathrm{true}\). The behavior carrier \(b\) is a probability vector at each observed state,
+\[
+b(a\mid x)\ge 0
+\quad\text{for all }x\in\mathcal X,\ a\in\mathcal A,
+\qquad
+\sum_{a\in\mathcal A} b(a\mid x)=1
+\quad\text{for all }x\in\mathcal X.
+\]
+For every \(t\in\{0,\ldots,T-1\}\), the joint law of the state-and-epoch history strictly before \(t\), the current joint state \((X_t,H_t)\), and the current action \(A_t\) factors as the law of that history and current joint state followed by the behavior kernel evaluated at the current observed state:
+\[
+\mathbb P\!\left\{
+\bigl((X_s,H_s)_{s<t},(A_s,Y_s)_{s<t},(X_t,H_t),A_t\bigr)\in dh\,da
+\right\}
+=
+\mathbb P\!\left\{
+\bigl((X_s,H_s)_{s<t},(A_s,Y_s)_{s<t},(X_t,H_t)\bigr)\in dh
+\right\}
+\, b(da\mid X_t(h)).
+\]
+Equivalently, for every \(a\in\mathcal A\) and every \(t\in\{0,\ldots,T-1\}\),
+\[
+\Pr\!\left(A_t=a\mid X_{0:t},H_{0:t},A_{0:t-1},Y_{0:t-1}\right)
+=
+b(a\mid X_t).
+\]
+\end{assumptionv}
+
+\begin{definitionv}{synth_4}[Policy transition operator]
+For a raw experiment \(M\) with one-step kernel \(K\), a memoryless policy \(p\), and joint states \(s=(x,h)\) and \(s'\), define the policy-induced transition operator \(P_p\) by
+\[
+P_p(s,s')
+:=
+\sum_{a\in\{0,1\}}
+p(a\mid x)\,
+K\bigl(\{(r,\widetilde s): \widetilde s=s'\}\mid s,a\bigr).
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_2}[Joint-state alphabet]
+For natural numbers \(n_X\) and \(n_H\), the finite observed--latent joint-state alphabet is
+\[
+\mathcal S(n_X,n_H)
+:=
+\{i\in\mathbb N: 0\le i<n_X\}
+\times
+\{j\in\mathbb N: 0\le j<n_H\}.
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_9}[Behavior and target stationary joint-state laws]
+For a memoryless policy \(p\in\{b,e\}\), let \(P_p\) be the policy-induced Markov kernel on the joint state space \(\mathcal S=\mathcal X\times\mathcal H\). Define \(d_p\in\Delta(\mathcal S)\) to be the stationary joint-state law satisfying
+\[
+d_pP_p=d_p .
+\]
+We write \(d_b\) for the behavior-policy stationary joint-state law and \(d_e\) for the target-policy stationary joint-state law.
+\end{definitionv}
+
+\begin{assumptionv}{ass:stationary-start}[Stationary start]
+The initial joint state \(S_0\) has the behavior stationary law \(d_b\):
+\[
+S_0\sim d_b.
+\]
+\end{assumptionv}
+
+\begin{assumptionv}{ass:bounded-reward}[Bounded rewards]
+For each \(t=0,\ldots,T-1\),
+\[
+\Pr(|Y_t|\le 1)=1.
+\]
+\end{assumptionv}
+
+\begin{assumptionv}{ass:policy-overlap}[Policy overlap]
+The target carrier \(e\) is a probability vector at each observed state,
+\[
+e(a\mid x)\ge 0
+\quad\text{for all }x\in\mathcal X,\ a\in\mathcal A,
+\qquad
+\sum_{a\in\mathcal A} e(a\mid x)=1
+\quad\text{for all }x\in\mathcal X,
+\]
+and for every \((a,x)\in\mathcal A\times\mathcal X\) the policy-overlap constant \(L\) satisfies
+\[
+e(a\mid x)\le L b(a\mid x).
+\]
+\end{assumptionv}
+
+\begin{definitionv}{synth_7}[Derived contraction factor]
+For any real \(t_0\), define the contraction parameter \(\alpha\) by
+\[
+\alpha := \exp\!\left(-\frac{1}{t_0}\right).
+\]
+\end{definitionv}
+
+\begin{assumptionv}{ass:uniform-contraction}[Uniform contraction]
+For every \((p,\nu,\nu')\in\{b,e\}\times\Delta(\mathcal S)^2\), the contraction parameter \(\alpha\) and the policy-induced transition operator \(P_p\) satisfy
+\[
+\|\nu P_p-\nu'P_p\|_{\mathrm{TV}}
+\le
+\alpha\|\nu-\nu'\|_{\mathrm{TV}}.
+\]
+\end{assumptionv}
+
+\begin{assumptionv}{ass:latent-stationary-overlap}[Latent stationary overlap]
+For the overlap constant \(C\) and experiment \(M\), the latent stationary overlap condition holds when \(C\ge 1\) and, writing \(d_e\) and \(d_b\) for the stationary laws of the target-policy and behavior-policy joint-state transition kernels, respectively,
+\[
+d_e(s)\le C\,d_b(s),
+\qquad s\in\mathcal S .
+\]
+\end{assumptionv}
+
+\begin{definitionv}{synth_12}[Observable trajectory space]
+For a horizon \(T\) and observed-state cardinality \(n_X\), define the observable trajectory space \(\mathsf O_T\) by
+\[
+\mathsf O_T
+=
+\{0,\ldots,T-1\}\to
+\bigl(\{0,\ldots,n_X-1\}\times\{0,1\}\times\mathbb R\bigr).
+\]
+Thus an element of \(\mathsf O_T\) records, at each epoch \(t<T\), the observed coordinate \(X_t\), the binary action \(A_t\), and the real reward \(Y_t\). Equivalently, it is the sequence \(((X_t,A_t,Y_t))_{t=0}^{T-1}\).
+\end{definitionv}
+
+\begin{definitionv}{synth_11}[Model-class assumption predicates]
+For an observable-data POMDP experiment \((\mathcal X,\mathcal H,K,b,e,\mathcal L(\mathsf O_T))\) with \(\mathcal S=\mathcal X\times\mathcal H\), \(\mathcal A=\{0,1\}\), policy-induced kernels \(P_p\), stationary laws \(d_p\), \(\alpha=\exp(-1/t_0)\), and \(L=\exp(\zeta)\), write
+\[
+\mathrm A_{\mathrm{pomdp}},\quad
+\mathrm A_{\mathrm{ign}},\quad
+\mathrm A_{\mathrm{start}},\quad
+\mathrm A_{\mathrm{reward}},\quad
+\mathrm A_{\mathrm{act}},\quad
+\mathrm A_{\mathrm{mix}},\quad
+\mathrm A_{\mathrm{stat}}
+\]
+for the following seven restrictions, respectively:
+\[
+\mathcal L(Y_t,X_{t+1},H_{t+1}\mid X_{0:t},H_{0:t},A_{0:t},Y_{0:t-1})
+=
+K(\cdot\mid X_t,H_t,A_t),
+\qquad t=0,\ldots,T-1,
+\]
+as in \cref{obj:ass:pomdp-kernel};
+\[
+\Pr(A_t=a\mid X_{0:t},H_{0:t},A_{0:t-1},Y_{0:t-1})
+=
+b(a\mid X_t),
+\qquad (a,t)\in\mathcal A\times\{0,\ldots,T-1\},
+\]
+as in \cref{obj:ass:sequential-ignorability};
+\[
+S_0\sim d_b,
+\]
+as in \cref{obj:ass:stationary-start};
+\[
+\Pr(|Y_t|\le1)=1,
+\qquad t=0,\ldots,T-1,
+\]
+as in \cref{obj:ass:bounded-reward};
+\[
+e(a\mid x)\le L b(a\mid x),
+\qquad (a,x)\in\mathcal A\times\mathcal X,
+\qquad e\text{ a probability vector at each }x,
+\]
+as in \cref{obj:ass:policy-overlap};
+\[
+\|\nu P_p-\nu'P_p\|_{\mathrm{TV}}
+\le
+\alpha\|\nu-\nu'\|_{\mathrm{TV}},
+\qquad (p,\nu,\nu')\in\{b,e\}\times\Delta(\mathcal S)^2,
+\]
+as in \cref{obj:ass:uniform-contraction}; and
+\[
+d_e(s)\le C d_b(s),
+\qquad s\in\mathcal S,
+\]
+as in \cref{obj:ass:latent-stationary-overlap}.
+\end{definitionv}
+
+\begin{definitionv}{def:model-class}[Latent-overlap POMDP class]
+For \(T\in\mathbb N\) and \(t_0,\zeta,C\in\mathbb R\), \(\mathcal M_T(t_0,\zeta,C)\) is the class of all observable-data POMDP experiments
+\[
+(\mathcal X,\mathcal H,K,b,e,\mathcal L(\mathsf O_T))
+\]
+with the following defining properties:
+\begin{itemize}
+\item \textbf{(Horizon and alphabets.)} The trajectory horizon satisfies \(1\le T\), the observed and latent alphabets \(\mathcal X\) and \(\mathcal H\) are finite, and \(|\mathcal A|=2\).
+\item \textbf{(Parameter scales.)} The mixing and log-overlap parameters satisfy \(0<t_0\) and \(0<\zeta\).
+\item \textbf{(Raw experiment.)} The tuple has a reward-transition kernel \(K\), behavior policy \(b\), target policy \(e\), and probability law \(\mathcal L(\mathsf O_T)\) for the observed trajectory generated from the joint state coordinates \((X_t,H_t)\).
+\item \textbf{(Seven restrictions.)} The seven restrictions in \cref{obj:ass:pomdp-kernel,obj:ass:sequential-ignorability,obj:ass:stationary-start,obj:ass:bounded-reward,obj:ass:policy-overlap,obj:ass:uniform-contraction,obj:ass:latent-stationary-overlap} hold, with policy-overlap factor \(L=\exp(\zeta)\) and contraction factor \(\alpha=\exp(-1/t_0)\).
+\end{itemize}
+Equivalently,
+\[
+\mathcal M_T(t_0,\zeta,C)
+:=
+\left\{
+(\mathcal X,\mathcal H,K,b,e,\mathcal L(\mathsf O_T)):
+\begin{array}{l}
+1\le T,\quad |\mathcal X|<\infty,\quad |\mathcal H|<\infty,\quad |\mathcal A|=2,\\
+0<t_0,\quad 0<\zeta,\\
+\mathrm A_{\mathrm{pomdp}},\mathrm A_{\mathrm{ign}},\mathrm A_{\mathrm{start}},
+\mathrm A_{\mathrm{reward}},\mathrm A_{\mathrm{act}},
+\mathrm A_{\mathrm{mix}},\mathrm A_{\mathrm{stat}}\text{ hold}
+\end{array}
+\right\}.
+\]
+The class ranges over all finite observed and latent cardinalities and all revealed behavior-target policy pairs satisfying these conditions.
+\end{definitionv}
+
+\begin{definitionv}{synth_5}[Target reward regression]
+For any raw finite-state experiment \(M\) with target policy \(e\) and one-step law \(K\), and for every joint state \(s=(x,h)\in \{0,\ldots,n_X-1\}\times\{0,\ldots,n_H-1\}\), define the target-policy reward regression \(g_e\) by
+\[
+g_e(s)
+=
+\sum_{a\in\{0,1\}} e(a\mid x)\int r\,K(d r,d s'\mid s,a).
+\]
+\end{definitionv}
+
+\begin{definitionv}{def:target-value}[Target value \(\theta(K,e)\)]
+For the joint state \(S_t\) and the target-policy reward regression \(g_e\),
+\[
+\theta(K,e)
+:=
+\sum_{s=(x,h)\in\mathcal S} d_e(s)g_e(s)
+=
+\sum_{s=(x,h)\in\mathcal S} d_e(s)
+\sum_{a\in\mathcal A}
+e(a\mid x)\,E_K[Y_t\mid S_t=s,A_t=a].
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_13}[Estimator-specific risk]
+Let
+\[
+M=(\mathcal X,\mathcal H,K,b,e,\mathcal L(\mathsf O_T))
+\in \mathcal M_T(t_0,\zeta,C)
+\]
+be a model in the latent-overlap class of \cref{obj:def:model-class}, whose observed trajectory is
+\[
+\mathsf O_T=((X_t,A_t,Y_t))_{t=0}^{T-1},
+\]
+and let \(\operatorname{Law}^{\mathrm{obs}}_M\) denote the probability law of \(\mathsf O_T\) induced by \(M\) under the behavior policy \(b\).
+
+For any observable-data estimator \(\widehat\theta\), its estimator-specific worst-case squared risk over \(\mathcal M_T(t_0,\zeta,C)\) is
+\[
+R_T(t_0,\zeta,C;\widehat\theta)
+:=
+\sup_{M\in\mathcal M_T(t_0,\zeta,C)}
+\mathbb E_{\operatorname{Law}^{\mathrm{obs}}_M}
+\!\left[
+\left\{\widehat\theta(n_X,b,e,\mathsf O_T)-\theta(K,e)\right\}^2
+\right],
+\]
+where \(n_X=|\mathcal X|\) is the revealed observed-alphabet size of \(M\). In particular,
+\[
+R_T(t_0,\zeta,C;\widehat\theta_{k_T})
+\]
+is this quantity evaluated at the clipped partial-history importance-weighted estimator \(\widehat\theta_{k_T}\) with balanced history depth \(k_T\).
+\end{definitionv}
+
+\begin{definitionv}{def:minimax-risk}[Observable minimax risk]
+For a trajectory horizon \(T\ge 1\) and parameters \(t_0,\zeta,C\), the cardinality-uniform observable-data minimax squared-error risk is
+\[
+R_T(t_0,\zeta,C)
+:=
+\inf_{\widehat\theta}
+\sup_{M\in\mathcal M_T(t_0,\zeta,C)}
+\mathbb E_{\operatorname{Law}^{\mathrm{obs}}_M}
+\!\left[
+\left\{\widehat\theta(n_X,b,e,\mathsf O_T)-\theta(K,e)\right\}^2
+\right].
+\]
+Here \(\mathcal M_T(t_0,\zeta,C)\) is the finite observed- and latent-state model class in \cref{obj:def:model-class}, with unrestricted finite observed alphabet size \(n_X\) and unrestricted finite latent alphabet size, and \(\theta(K,e)\) is the stationary target-policy mean reward in \cref{obj:def:target-value}. The positive-horizon requirement \(1\le T\) is part of membership in \(\mathcal M_T(t_0,\zeta,C)\), not a separate restriction on the supremum; at the degenerate horizon \(T=0\) the class is empty and the display is not used. The infimum ranges over all observable-data estimators \(\widehat\theta\) that take as inputs only \(n_X\), \(b\), \(e\), and the observed trajectory view \(\mathsf O_T\), are measurable in \(\mathsf O_T\) for each \(n_X,b,e\), and are uniformly valued in \([-1,1]\).
+\end{definitionv}
+
+\begin{definitionv}{synth_6}[One-step policy ratio]
+For behavior and target policy functions \(b,e : \{0,\ldots,n_X-1\}\times\{0,1\}\to\mathbb R\), the observable one-step policy ratio is
+\[
+\rho_t
+=
+\begin{cases}
+0, & b(X_t,A_t)=0,\\
+e(X_t,A_t)/b(X_t,A_t), & b(X_t,A_t)\ne 0.
+\end{cases}
+\]
+\end{definitionv}
+
+\begin{definitionv}{def:phiw-estimator}[Partial-history estimator \(\widehat\theta_k\)]
+For \(0\le k<T\), define
+\[
+Z_t(k)
+:=
+Y_t\prod_{j=t-k}^{t}\rho_j,
+\]
+where \(\rho_t\) is the observable one-step policy ratio with the zero-cell convention. The clipped partial-history importance-weighted estimator is
+\[
+\widehat\theta_k
+:=
+\operatorname{clip}_{[-1,1]}
+\left\{
+\frac{1}{T-k}\sum_{t=k}^{T-1} Z_t(k)
+\right\}.
+\]
+\end{definitionv}
+
+\begin{definitionv}{def:history-depth}[History depth \(k_T\)]
+For the contraction parameter \(\alpha\) and policy-overlap constant \(L\), the balanced fixed-radius history depth is
+\[
+k_T
+:=
+\min\left\{
+\left\lfloor\frac{T}{2}\right\rfloor,
+\max\left\{
+0,
+\left\lfloor
+\frac{\log(T)}{2\log(1/\alpha)+\log L}
+\right\rfloor
+\right\}
+\right\}.
+\]
+\end{definitionv}
+
+\begin{definitionv}{def:signed-depth-family}[Signed-depth family]
+For a trajectory length \(T\), parameters \(t_0,\zeta,C\in\mathbb R\), a terminal depth \(Q\in\mathbb N\), and an alternative index \(v\in\{-1,+1\}\), the signed-depth family is defined under
+\[
+t_0>0,\qquad \zeta>0,\qquad C>1,\qquad Q\ge 1.
+\]
+It is the raw POMDP experiment in \(\mathsf O_T\) with one observed state and \(2(Q+1)\) hidden states obtained by embedding the following finite-reward model.  The observed coordinate \(X_t\) is constant, and the hidden coordinate is written
+\[
+H_t=(J_t,U_t)\in\{0,\ldots,Q\}\times\{-1,+1\}.
+\]
+Writing \(\alpha\) for the mixing value determined by \(t_0\), \(L\) for the policy factor determined by \(\zeta\), \(\varepsilon_C=\min\{(C-1)/2,1/2\}\), and \(c_0=(1-\alpha)/4\), the behavior and target policies are
+\[
+b(A_t=1)=\frac{1}{L},\qquad b(A_t=0)=1-\frac{1}{L},
+\qquad
+e(A_t=1)=1,\qquad e(A_t=0)=0.
+\]
+The initial hidden-state law is the probability measure obtained from the weights
+\[
+w_j\frac{1+u\varepsilon_C L^{-j}}{2},
+\qquad
+w_j=
+\frac{(1-\alpha)\alpha^j}{1-\alpha^{Q+1}},
+\qquad
+j\in\{0,\ldots,Q\},\ u\in\{-1,+1\}.
+\]
+The transition kernel is the probability measure on reward-symbol and next-hidden-state pairs whose real weight at \((y,H_{t+1})\), with \(y\in\{-1,+1\}\), is the product of the reward weight
+\[
+\frac{1+yvc_0U_t\mathbf 1\{J_t=Q\}}{2}
+\]
+and the hidden-transition weight specified as follows.  A reset sign \(u'\) has weight
+\[
+\frac{1+u'\varepsilon_C}{2}.
+\]
+If \(J_t=Q\), then only transitions with \(J_{t+1}=0\) receive this reset-sign weight.  If \(J_t<Q\), transitions with \(J_{t+1}=0\) receive weight \((1-\alpha)(1+U_{t+1}\varepsilon_C)/2\), while transitions with \(J_{t+1}=J_t+1\) receive weight
+\[
+\alpha\,\mathbf 1\{U_{t+1}=U_t\}
+\quad\text{when }A_t=1,
+\qquad
+\frac{\alpha}{2}
+\quad\text{when }A_t=0,
+\]
+and all other hidden transitions receive weight zero.  The finite reward symbols are mapped to real rewards by \(0\mapsto -1\) and \(1\mapsto 1\), and the trajectory law is the finite chronological law generated by this initial distribution, behavior policy, and kernel, then embedded into the unrestricted real-reward raw experiment.
+\end{definitionv}
+
+\begin{definitionv}{def:overlap-distance-radius}[Overlap-distance radius \(q_C\)]
+For \(C\ge 1\), define
+\[
+q_C:=\frac{C-1}{C}.
+\]
+\end{definitionv}
+
+\begin{definitionv}{def:radius-adaptive-history-depth}[Radius-calibrated history depth \(\kappa_T^{\mathrm{rad}}(C)\)]
+For \(T\in\mathbb N\) and \(C\ge 1\), define
+\[
+\kappa_T^{\mathrm{rad}}(C):=
+\begin{cases}
+0, & Tq_C^2\le 1,\\[3pt]
+\displaystyle
+\min\!\left\{
+\left\lfloor\frac T2\right\rfloor,
+\left\lfloor\frac{\log(Tq_C^2)}{2\log(1/\alpha)+\log L}\right\rfloor
+\right\},
+& Tq_C^2>1.
+\end{cases}
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_16}[Finite signed-depth observed-word law]
+For \(C>1\), \(Q\ge1\), and \(v\in\{-1,+1\}\), let
+\[
+\mathbb P_{Q,v}^{\mathrm{fin},T}
+\]
+be the finite observed-word law through horizon \(T\) generated by the signed-depth construction of \cref{obj:def:signed-depth-family}. Its observed state is constant, its latent state is \(H_t=(J_t,U_t)\in\{0,\ldots,Q\}\times\{-1,+1\}\), its behavior and target policies satisfy \(b(1)=1/L\) and \(e(1)=1\), and its reward alphabet is \(\{-1,+1\}\) with
+\[
+\Pr_v(Y_t=y\mid J_t,U_t,A_t)
+=
+\frac{1+yvc_0U_t\mathbf 1\{J_t=Q\}}{2}.
+\]
+The initial latent law is \(d_b(j,u)=w_j(1+u\varepsilon_C L^{-j})/2\), and the resulting finite observation consists of the action-reward word \((A_t,Y_t)_{t=0}^{T-1}\), equivalently the finite observed trajectory with constant observed-state coordinate.
+\end{definitionv}
+
+\begin{definitionv}{synth_14}[Target value of an indexed model]
+For an indexed model \(m\in\mathcal M_T(t_0,\zeta,C)\), write \(K_m\) and \(e_m\) for its joint reward-transition kernel and target policy. The target value of \(m\) is
+\[
+\theta_m:=\theta(K_m,e_m),
+\]
+with \(\theta(K,e)\) the stationary target-policy causal value from \(\cref{obj:def:target-value}\).
+\end{definitionv}
+
+\begin{definitionv}{synth_10}[Unclipped partial-history average]
+For the balanced history depth \(k_T\), define the unclipped partial-history average by
+\[
+\widehat\theta^{\rm raw}_{k_T}
+:=
+\frac{1}{T-k_T}\sum_{t=k_T}^{T-1} Z_t(k_T),
+\qquad
+Z_t(k_T):=
+Y_t\prod_{j=t-k_T}^{t}\rho_j .
+\]
+Here \(\rho_j=e(A_j\mid X_j)/b(A_j\mid X_j)\) on behavior-supported cells, with the zero-cell convention used for \(\rho_j\).
+\end{definitionv}
+
+\begin{theoremv}{thm:uniform-overlap-frontier}[Uniform overlap frontier]
+Fix \(t_0>0\) and \(\zeta>0\).  Let \(R_T(t_0,\zeta,C)\) be the minimax squared-error risk in \cref{obj:def:minimax-risk}, let \(q_C=(C-1)/C\) be the overlap-distance radius in \cref{obj:def:overlap-distance-radius}, and set
+\[
+\beta=\frac{2}{2+t_0\zeta},
+\qquad
+\mathfrak r_T(t_0,\zeta,C)
+=
+T^{-1}+T^{-\beta}q_C^{2(1-\beta)} .
+\]
+There exist constants \(c_{\mathrm{lo}},c_{\mathrm{hi}}>0\), with
+\(c_{\mathrm{lo}}\le c_{\mathrm{hi}}\), and an integer \(T_\star\ge 1\), all depending only on \(t_0\) and \(\zeta\), such that for every \(C\ge 1\) and every \(T\ge T_\star\),
+\[
+c_{\mathrm{lo}}\mathfrak r_T(t_0,\zeta,C)
+\le
+R_T(t_0,\zeta,C)
+\le
+c_{\mathrm{hi}}\mathfrak r_T(t_0,\zeta,C),
+\]
+and the radius-adaptive partial-history importance-weighted estimator with depth
+\(\kappa_T^{\mathrm{rad}}(C)\) from \cref{obj:def:radius-adaptive-history-depth} satisfies
+\[
+\sup_{m\in\mathcal M_T(t_0,\zeta,C)}
+\mathbb E_m\!\left[
+  \bigl(\widehat\theta_{\kappa_T^{\mathrm{rad}}(C)}-\theta_m\bigr)^2
+\right]
+\le
+c_{\mathrm{hi}}\mathfrak r_T(t_0,\zeta,C).
+\]
+Moreover, for every sequence \(C_T\ge 1\), if \(Tq_{C_T}^2\) is eventually bounded, then there is a constant \(c_{\mathrm{imm}}>0\), depending on the sequence and on \(t_0,\zeta\), such that eventually
+\[
+\sup_{m\in\mathcal M_T(t_0,\zeta,C_T)}
+\mathbb E_m\!\left[
+  \bigl(\widehat\theta_{0}-\theta_m\bigr)^2
+\right]
+\le
+\frac{c_{\mathrm{imm}}}{T}.
+\]
+\end{theoremv}
+
+\begin{theoremv}{thm:fixed-c-minimax}[Fixed-overlap minimax rate]
+Fix \(t_0,\zeta,C\in\mathbb R\). Assume:
+\begin{itemize}
+\item \textbf{(Positive memory exponent.)} \(t_0>0\).
+\item \textbf{(Positive overlap exponent.)} \(\zeta>0\).
+\item \textbf{(Fixed latent-overlap radius.)} \(C>1\).
+\end{itemize}
+Let the exponent \(\beta\) be
+\[
+\beta=\frac{2}{2+t_0\zeta}.
+\]
+There exist constants \(c_\star,c^\star\in\mathbb R\) and an integer \(T_\star\ge 1\) such that
+\[
+0<c_\star\le c^\star
+\]
+and, for every integer \(T\ge T_\star\),
+\[
+c_\star T^{-\beta}
+\le
+R_T(t_0,\zeta,C)
+\le
+c^\star T^{-\beta},
+\]
+where \(R_T(t_0,\zeta,C)\) is the minimax squared-error risk in \cref{obj:def:minimax-risk}. Moreover, the clipped partial-history importance-weighted estimator \(\widehat\theta_{k_T}\), with \(k_T\) as in \cref{obj:def:history-depth}, satisfies
+\[
+\sup_{M\in\mathcal M_T(t_0,\zeta,C)}
+\mathbb E_M\!\left[
+\{\widehat\theta_{k_T}-\theta(M)\}^2
+\right]
+\le
+c^\star T^{-\beta},
+\]
+with \(\theta(M)\) the stationary target-policy mean reward in \cref{obj:def:target-value}.
+
+For each integer \(T\ge T_\star\), there is an integer \(Q\ge 1\) such that the lower bound is witnessed by the two signed-depth alternatives \(M_{Q,v}^T\), \(v\in\{-1,+1\}\), generated by \cref{obj:def:signed-depth-family} with one observed state and \(2(Q+1)\) latent states: for every measurable observable-data estimator \(\widehat\theta\), under the usual squared-error integrability conditions for both alternatives,
+\[
+c_\star T^{-\beta}
+\le
+\max_{v\in\{-1,+1\}}
+\mathbb E_{M_{Q,v}^T}\!\left[
+\{\widehat\theta-\theta(M_{Q,v}^T)\}^2
+\right].
+\]
+\end{theoremv}
+
+\begin{theoremv}{prop:unit-overlap-boundary}[Unit overlap boundary]
+Let \(t_0>0\) and \(\zeta>0\). At unit latent overlap, \(C=1\), the following assertions hold.
+
+For every trajectory length \(T\), every finite observed and hidden state cardinalities, and every experiment \(M\in\mathcal M_T(t_0,\zeta,1)\) in the model class of \cref{obj:def:model-class}, the target stationary law \(d_e\) and the behavior stationary law \(d_b\) of the corresponding policy-induced joint-state transition kernels coincide:
+\[
+d_e=d_b .
+\]
+
+Moreover, there is a constant \(c_{\mathrm{imm}}>0\), depending only on \(t_0\) and \(\zeta\), such that for every integer \(T\ge 1\), the worst-case squared risk of the immediate observable estimator \(\widehat\theta_0\) satisfies
+\[
+\sup_{M\in\mathcal M_T(t_0,\zeta,1)}
+\mathbb E_M\!\left[\bigl(\widehat\theta_0-\theta(K,e)\bigr)^2\right]
+\le \frac{c_{\mathrm{imm}}}{T}.
+\]
+Finally, for the minimax squared-error risk \(R_T(t_0,\zeta,1)\) of \cref{obj:def:minimax-risk}, there are constants \(c_{\mathrm{lo}},c_{\mathrm{hi}}>0\) with \(c_{\mathrm{lo}}\le c_{\mathrm{hi}}\) and an integer \(T_\star\ge 1\) such that, for every \(T\ge T_\star\),
+\[
+\frac{c_{\mathrm{lo}}}{T}
+\le
+R_T(t_0,\zeta,1)
+\le
+\frac{c_{\mathrm{hi}}}{T}.
+\]
+The hidden-state exponent at these positive scales satisfies
+\[
+\frac{2}{2+t_0\zeta}<1 .
+\]
+\end{theoremv}
+
+\begin{theoremv}{thm:shrinking-overlap-frontier}[Shrinking-overlap frontier]
+The following conditions hold:
+\begin{itemize}
+\item \textbf{(Fixed smoothness.)} The constants satisfy \(t_0>0\) and \(\zeta>0\).
+\item \textbf{(Shrinking radius.)} The deterministic radius excess sequence \((\delta_T)_{T\ge1}\) satisfies \(\delta_T\ge0\) for every \(T\).
+\item \textbf{(Local limit.)} The sequence satisfies \(\delta_T\to0\).
+\item \textbf{(Rate exponent.)} Let \(\beta=2/(2+t_0\zeta)\).
+\item \textbf{(Local rate and depth.)} Define
+\[
+r_T(\delta)
+=
+T^{-1}+T^{-\beta}\delta_T^{2(1-\beta)}
+\]
+and
+\[
+\kappa_T
+=
+\begin{cases}
+0, & T\delta_T^2\le 1,\\[3pt]
+\displaystyle
+\min\left\{\left\lfloor T/2\right\rfloor,
+\left\lfloor
+\frac{\log(T\delta_T^2)}
+{2\log(1/\alpha)+\log L}
+\right\rfloor\right\}, & T\delta_T^2>1.
+\end{cases}
+\]
+\end{itemize}
+Then there exist constants \(c_{\mathrm{loc}},C_{\mathrm{loc}}\) with
+\(0<c_{\mathrm{loc}}\le C_{\mathrm{loc}}\), depending only on \(t_0\) and
+\(\zeta\), such that, for all sufficiently large \(T\),
+\[
+c_{\mathrm{loc}}\,r_T(\delta)
+\le
+R_T(t_0,\zeta,1+\delta_T)
+\le
+C_{\mathrm{loc}}\,r_T(\delta),
+\]
+where \(R_T\) is the minimax squared-error risk in
+\cref{obj:def:minimax-risk}.  Moreover, the observable partial-history
+importance-weighted estimator \(\widehat\theta_{\kappa_T}\) of
+\cref{obj:def:phiw-estimator} satisfies
+\[
+\sup_{M\in\mathcal M_T(t_0,\zeta,1+\delta_T)}
+\mathbb E_M\!\left[
+\bigl(\widehat\theta_{\kappa_T}-\theta(M)\bigr)^2
+\right]
+\le
+C_{\mathrm{loc}}\,r_T(\delta)
+\]
+for all sufficiently large \(T\).  Finally, if there is a constant \(D\ge0\)
+such that \(T\delta_T^2\le D\) for all sufficiently large \(T\), then there is
+a constant \(c_{\mathrm{imm}}>0\) such that
+\[
+\sup_{M\in\mathcal M_T(t_0,\zeta,1+\delta_T)}
+\mathbb E_M\!\left[
+\bigl(\widehat\theta_{0}-\theta(M)\bigr)^2
+\right]
+\le
+\frac{c_{\mathrm{imm}}}{T}
+\]
+for all sufficiently large \(T\).
+\end{theoremv}
+
+\begin{definitionv}{def:insulin-grid}[Insulin grid \(\mathcal I_{\mathrm{grid}}\)]
+The finite insulin-grid state is
+\[
+s=(g,d_1,d_2,x_1,x_2,a_1)
+\in
+\{50,100,150,200,250\}
+\times\{0,78\}^2
+\times\{0,31,850\}^2
+\times\{0,1\},
+\]
+so the state space has \(360\) states. The diet coordinates form
+\[
+H_t=(d_1,d_2),
+\]
+and all other coordinates form \(X_t\). The behavior and target policies are
+\[
+b(1\mid X_t)=0.3,
+\qquad
+e(1\mid X_t)=\mathbf 1\{g\ge 125\}.
+\]
+With probability \(1/2\), the next full state is drawn uniformly. With the remaining probability, draw
+\[
+d_0\in\{0,78\}
+\quad\text{with probabilities}\quad
+(0.8,0.2),
+\]
+draw
+\[
+x_0\in\{0,31,850\}
+\quad\text{with probabilities}\quad
+(0.4,0.4,0.2),
+\]
+draw \(\xi\sim N(0,25)\), and set
+\[
+g'
+=
+\operatorname{round}_{\{50,100,150,200,250\}}
+\operatorname{clip}_{[50,250]}
+\bigl(
+10+0.9g+0.1d_1+0.1d_2-0.01x_1-0.01x_2-2A_t-4a_1+\xi
+\bigr).
+\]
+The memory coordinates then shift to
+\[
+(g',d_0,d_1,x_0,x_1,A_t).
+\]
+The reward is
+\[
+Y_t=
+\begin{cases}
+-1, & g\le 70,\\
+-2/3, & g>150,\\
+-1/3, & 70<g\le 80\ \text{or}\ 120<g\le 150,\\
+0, & \text{otherwise}.
+\end{cases}
+\]
+This construction defines \(\mathcal I_{\mathrm{grid}}\).
+\end{definitionv}
+
+\begin{lemmav}{lem:insulin-policy-contraction}[Uniform one-half contraction of the insulin-grid policy kernels]
+Let \(T\in\mathbb N\) and let \(p\) assign to each of the \(90\) observed states of the refreshed finite insulin adaptation \(\mathcal I_{\mathrm{grid}}\) of \cref{obj:def:insulin-grid} a probability law on the action set \(\{0,1\}\). Write \(\mathsf S_{\mathrm{grid}}\) for the \(360\)-point joint state space, \(x(s)\) for the observed coordinate of a grid state \(s\), \(K_T\) for the transition kernel of \(\mathcal I_{\mathrm{grid}}\), and
+\[
+P_p^{(T)}(s,s')=\sum_{a\in\{0,1\}}p(a\mid x(s))\,K_T\{(q,s''):\ s''=s'\mid s,a\},
+\qquad s,s'\in\mathsf S_{\mathrm{grid}},
+\]
+for the induced transition matrix. Then, for all probability vectors \(\nu,\nu'\) on \(\mathsf S_{\mathrm{grid}}\),
+\[
+\|\nu P_p^{(T)}-\nu'P_p^{(T)}\|_{\mathrm{TV}}
+\le
+\frac12\|\nu-\nu'\|_{\mathrm{TV}} ,
+\]
+equivalently, in the \(\ell^1\) norm \(\|\cdot\|_1=2\|\cdot\|_{\mathrm{TV}}\),
+\[
+\|\nu P_p^{(T)}-\nu'P_p^{(T)}\|_1\le\frac12\|\nu-\nu'\|_1 .
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:insulin-stationary-law}[The selected insulin-grid stationary law is stationary]
+Let \(T\in\mathbb N\) and let \(p\) assign to each observed state of the refreshed finite insulin adaptation \(\mathcal I_{\mathrm{grid}}\) of \cref{obj:def:insulin-grid} a probability law on \(\{0,1\}\). Suppose that the induced transition matrix \(P_p^{(T)}\) on the joint state space \(\mathsf S_{\mathrm{grid}}\) satisfies
+\[
+\|\nu P_p^{(T)}-\nu'P_p^{(T)}\|_{\mathrm{TV}}\le\frac12\|\nu-\nu'\|_{\mathrm{TV}}
+\]
+for all probability vectors \(\nu,\nu'\) on \(\mathsf S_{\mathrm{grid}}\). Then the stationary law \(d_p\) selected for \(P_p^{(T)}\) is a probability vector and satisfies the stationarity equations
+\[
+d_p(s')=\sum_{s\in\mathsf S_{\mathrm{grid}}}d_p(s)P_p^{(T)}(s,s'),
+\qquad s'\in\mathsf S_{\mathrm{grid}} .
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:insulin-target-reward-regression}[Target-policy reward regression on the insulin grid]
+Let \(T\in\mathbb N\), let \(\mathcal I_{\mathrm{grid}}\) be the refreshed finite insulin adaptation of \cref{obj:def:insulin-grid} with transition kernel \(K_T\) and target policy \(e\), and for a grid state \(s=(g,d_1,d_2,x_1,x_2,a_1)\) write \(x(s)=(g,x_1,x_2,a_1)\) for its observed coordinate and
+\[
+r_{\mathrm{ins}}(s)=
+\begin{cases}
+-1,&g\le70,\\
+-2/3,&g>150,\\
+-1/3,&70<g\le80\ \text{or}\ 120<g\le150,\\
+0,&\text{otherwise},
+\end{cases}
+\]
+for the insulin reward vector. Writing \(p_1\) for the numeric reward coordinate of a reward/state pair \(p\) drawn by \(K_T\), we have, for every \(s\in\mathsf S_{\mathrm{grid}}\),
+\[
+\sum_{a\in\{0,1\}}e(a\mid x(s))\int p_1\,K_T(dp\mid s,a)
+=
+r_{\mathrm{ins}}(s) .
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:insulin-immediate-reward-regression}[Immediate weighted reward regression on the insulin grid]
+Let \(T\in\mathbb N\), let \(\mathcal I_{\mathrm{grid}}\) be the refreshed finite insulin adaptation of \cref{obj:def:insulin-grid} with transition kernel \(K_T\), behavior policy \(b\) and target policy \(e\), and for a grid state \(s=(g,d_1,d_2,x_1,x_2,a_1)\) write \(x(s)=(g,x_1,x_2,a_1)\). Let
+\[
+\rho(x,a)=\begin{cases}e(a\mid x)/b(a\mid x),&b(a\mid x)\ne0,\\0,&\text{otherwise},\end{cases}
+\]
+and let \(r_{\mathrm{ins}}\) be the insulin reward vector
+\[
+r_{\mathrm{ins}}(s)=
+\begin{cases}
+-1,&g\le70,\\
+-2/3,&g>150,\\
+-1/3,&70<g\le80\ \text{or}\ 120<g\le150,\\
+0,&\text{otherwise},
+\end{cases}
+\]
+Writing \(p_1\) for the numeric reward coordinate of a reward/state pair \(p\) drawn by \(K_T\), we have, for every \(s\in\mathsf S_{\mathrm{grid}}\),
+\[
+\sum_{a\in\{0,1\}}b(a\mid x(s))\,\rho(x(s),a)\int p_1\,K_T(dp\mid s,a)
+=
+r_{\mathrm{ins}}(s) .
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:certified-stationary-reward-enclosure}[Stationary reward enclosure]
+Let \(\mathsf S\) be a finite set, and let \(P\) be a stochastic matrix on \(\mathsf S\) whose entries satisfy
+\[
+P(s,s')\in\mathfrak A(s,s')
+\]
+for all \(s,s'\in\mathsf S\). The intervals are rational intervals \([\ell,u]\) with \(\ell\le u\), combined by exact interval arithmetic:
+\[
+[a,b]+[c,d]=[a+c,b+d],\qquad
+[a,b]\ominus[c,d]=[a-d,b-c],
+\]
+and \([a,b]\cdot[c,d]\) is the interval whose endpoints are the smallest and largest of the four endpoint products. For an interval \(\mathfrak r\), write \(\ell(\mathfrak r)\) and \(u(\mathfrak r)\) for its endpoints and
+\[
+|\mathfrak r|_{\max}=\max\{|\ell(\mathfrak r)|,|u(\mathfrak r)|\}.
+\]
+Suppose the following conditions hold.
+\begin{itemize}
+\item \textbf{(Initial row and interval rows.)} There are an exact rational probability vector \(\mu_0\) on \(\mathsf S\), a number \(m\in\mathbb N\), and interval rows \(\mathfrak T_0,\ldots,\mathfrak T_{m+1}\) on \(\mathsf S\) such that
+\[
+\mu_0(s)\in\mathfrak T_0(s)
+\]
+for every \(s\in\mathsf S\).
+
+\item \textbf{(Chunked recurrence.)} For every \(k\le m\) and every output state \(s'\), there are pairwise disjoint blocks \(\mathcal G_1,\ldots,\mathcal G_J\subseteq\mathsf S\) covering \(\mathsf S\), each with at most a fixed positive number of states; block intervals \(\Xi_1(s'),\ldots,\Xi_J(s')\); and partial-sum intervals \(\Sigma_1,\ldots,\Sigma_{J+1}\) such that
+\[
+\sum_{s\in\mathcal G_j}\mathfrak T_k(s)\cdot\mathfrak A(s,s')\subseteq\Xi_j(s')
+\]
+for each \(j\),
+\[
+0\in\Sigma_{J+1},\qquad
+\Xi_j(s')+\Sigma_{j+1}\subseteq\Sigma_j
+\]
+for \(j=J,\ldots,1\), and
+\[
+\Sigma_1=\mathfrak T_{k+1}(s').
+\]
+
+\item \textbf{(Reward bounds.)} There are a reward vector \(r:\mathsf S\to\mathbb R\), rational intervals \(\mathfrak r(s)\ni r(s)\), and a rational bound \(B\ge0\) such that
+\[
+|\mathfrak r(s)|_{\max}\le B
+\]
+for every \(s\in\mathsf S\).
+
+\item \textbf{(Contraction and stationarity.)} There are a rational coefficient \(0\le\rho<1\) and a probability vector \(\pi\) such that
+\[
+\|\nu P-\nu'P\|_1\le\rho\|\nu-\nu'\|_1
+\]
+for all probability vectors \(\nu,\nu'\) on \(\mathsf S\), and
+\[
+\pi P=\pi .
+\]
+\end{itemize}
+Define
+\[
+\delta=\sum_{s\in\mathsf S}\bigl|\mathfrak T_m(s)\ominus\mathfrak T_{m+1}(s)\bigr|_{\max},
+\qquad
+\mathfrak E=\sum_{s\in\mathsf S}\mathfrak T_m(s)\cdot\mathfrak r(s),
+\]
+and
+\[
+\mathfrak J=
+\left[
+\ell(\mathfrak E)-\frac{B\delta}{1-\rho},
+u(\mathfrak E)+\frac{B\delta}{1-\rho}
+\right].
+\]
+Then
+\[
+\sum_{s\in\mathsf S}\pi(s)\,r(s)\in\mathfrak J .
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:insulin-bias-interval-evaluation}[Insulin bias interval bounds]
+For \(\star\in\{\mathrm b,\mathrm e\}\), let \(\mathfrak T_{\star,0}\) and \(\mathfrak T_{\star,1}\) be the terminal and successor rational interval rows on the \(360\)-state grid \(\mathsf S_{\mathrm{grid}}\) of \cref{obj:def:insulin-grid} recorded by the zero-step chunked iterate certificate, in blocks of at most \(40\) states, for the rational interval enclosure of the behavior-policy case \(\star=\mathrm b\) or target-policy case \(\star=\mathrm e\). Let \(\mathfrak r_{\mathrm{ins}}(s)=[r_{\mathrm{ins}}(s),r_{\mathrm{ins}}(s)]\), where \(r_{\mathrm{ins}}(s)\in\{-1,-2/3,-1/3,0\}\) is the grid reward from \cref{obj:def:insulin-grid}. Using the exact rational interval arithmetic of \cref{obj:lem:certified-stationary-reward-enclosure}, define
+\[
+\delta_\star=\sum_{s\in\mathsf S_{\mathrm{grid}}}\bigl|\mathfrak T_{\star,0}(s)\ominus\mathfrak T_{\star,1}(s)\bigr|_{\max},
+\qquad
+\mathfrak E_\star=\sum_{s\in\mathsf S_{\mathrm{grid}}}\mathfrak T_{\star,0}(s)\cdot\mathfrak r_{\mathrm{ins}}(s),
+\]
+\[
+\mathfrak J_\star=
+\left[
+\ell(\mathfrak E_\star)-\frac{\delta_\star}{1-1/2},
+\,
+u(\mathfrak E_\star)+\frac{\delta_\star}{1-1/2}
+\right],
+\qquad
+\mathfrak B=\mathfrak J_{\mathrm b}\ominus\mathfrak J_{\mathrm e}.
+\]
+Equivalently,
+\[
+\mathfrak B=
+\left[
+\ell(\mathfrak J_{\mathrm b})-u(\mathfrak J_{\mathrm e}),
+\,
+u(\mathfrak J_{\mathrm b})-\ell(\mathfrak J_{\mathrm e})
+\right].
+\]
+Then the endpoints of this rational interval satisfy
+\[
+-\frac{6}{1000}<\ell(\mathfrak B)
+\qquad\text{and}\qquad
+u(\mathfrak B)<-\frac{58}{10000}.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:insulin-bias-certificate}[Insulin-grid bias certificate]
+For every natural horizon \(T\), let \(\Delta_{\mathrm{imm}}(T)\) be the stationary immediate-weighting bias for the refreshed finite insulin adaptation \(\mathcal I_{\mathrm{grid}}\) of \cref{obj:def:insulin-grid},
+\[
+\Delta_{\mathrm{imm}}(T)
+=
+\sum_s d_b(s)
+\sum_{a\in\{0,1\}}
+b(s_1,a)\,
+\rho(s_1,a)\,
+\int p_1\,K_T(dp\mid s,a)
+-
+\theta(K_T,e),
+\]
+where \(d_b\) is the stationary law of the behavior-policy transition kernel on the insulin grid, \(K_T\) is the refreshed insulin-grid transition kernel, \(b\) and \(e\) are its behavior and target policies, \(\rho(s_1,a)\) is the one-step target-to-behavior policy ratio, and \(\theta(K_T,e)\) is the target value in \cref{obj:def:target-value}. Then
+\[
+-\frac{6}{1000}
+<
+\Delta_{\mathrm{imm}}(T)
+<
+-\frac{58}{10000}.
+\]
+\end{lemmav}
+
+\begin{theoremv}{prop:finite-insulin-demonstration}[Finite insulin witness]
+For every horizon \(T\), the refreshed insulin experiment \(\mathcal I_{\mathrm{grid}}\) of \cref{obj:def:insulin-grid} satisfies:
+\begin{itemize}
+\item \textbf{(State count.)} Its observed--latent joint-state alphabet has cardinality \(90\cdot 4=360\).
+\item \textbf{(Uniform contraction.)} It satisfies \cref{obj:ass:uniform-contraction} with contraction parameter \(\alpha=1/2\).
+\item \textbf{(Policy overlap.)} It satisfies \cref{obj:ass:policy-overlap} with one-step overlap constant \(L=10/3\).
+\item \textbf{(Stationary overlap.)} It satisfies \cref{obj:ass:latent-stationary-overlap} with stationary-overlap constant \(C=720\).
+\end{itemize}
+Define the immediate-weighting bias diagnostic by
+\[
+\Delta_{\mathrm{imm}}(T)
+=
+\sum_s d_b(s)\sum_{a\in\{0,1\}} b(a\mid s_X)\,
+\frac{e(a\mid s_X)}{b(a\mid s_X)}
+\int r\,K(ds',dr\mid s,a)
+-
+\theta(K,e),
+\]
+where \(K,b,e\) are the transition kernel, behavior policy, and target policy of \(\mathcal I_{\mathrm{grid}}\), \(s_X\) is the observed coordinate of \(s\), and \(d_b\) is the stationary law induced by \(b\). This diagnostic is interval-certified as strictly negative:
+\[
+-0.006 < \Delta_{\mathrm{imm}}(T) < -0.0058 .
+\]
+\end{theoremv}
+
+\begin{definitionv}{def:filter-quantities}[Filter quantities \(\mathcal F_{t-1}^{\mathrm{obs}},\ell_t,q_t^v,a_t^{(Q)}\)]
+Define
+\[
+\mathcal F_{t-1}^{\mathrm{obs}}
+:=
+\sigma(A_0,Y_0,\ldots,A_{t-1},Y_{t-1}),
+\]
+\[
+\ell_t:=\min\{Q,t\},
+\]
+\[
+q_t^v
+:=
+\Pr_v(J_t=Q\mid\mathcal F_{t-1}^{\mathrm{obs}}),
+\]
+and
+\[
+a_t^{(Q)}
+:=
+L^{-(Q-\ell_t)}
+\prod_{j=t-\ell_t}^{t-1}\mathbf 1\{A_j=1\},
+\]
+where the empty product is equal to one.
+\end{definitionv}
+
+\begin{lemmav}{lem:phiw-window-second-moment}[Window second moment]
+Let \(T,n_X,n_H\in\mathbb N\), let \(k\in\mathbb N\), let \(L\in\mathbb R\), and let \(M\) be a raw POMDP experiment on finite observed and hidden alphabets. Suppose that:
+\begin{itemize}
+\item \textbf{(Sequential ignorability.)} \(M\) satisfies \cref{obj:ass:sequential-ignorability}.
+\item \textbf{(Policy overlap.)} \(M\) satisfies \cref{obj:ass:policy-overlap} with constant \(L\).
+\item \textbf{(Overlap level.)} \(L\ge 1\).
+\item \textbf{(Kernel law.)} \(M\) satisfies \cref{obj:ass:pomdp-kernel}.
+\item \textbf{(Bounded rewards.)} \(M\) satisfies \cref{obj:ass:bounded-reward}.
+\item \textbf{(Window position.)} \(t\in\{0,\ldots,T-1\}\) and \(k\le t\).
+\end{itemize}
+For the depth-\(k\) score \(Z_t(k)\) of \cref{obj:def:phiw-estimator}, under the observed trajectory law of \(M\),
+\[
+\mathbb E_{\mathrm{obs}}\bigl[Z_t(k)^2\bigr]\le L^{k+1}.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:phiw-overlapping-window-covariance}[Overlapping-window covariance]
+Let \(M\) be a raw POMDP experiment of length \(T\) on finite observed and hidden alphabets. Let \(k,h\in\mathbb N\), let \(L\in\mathbb R\), and let \(t,u\in\{0,\ldots,T-1\}\). Assume:
+\begin{itemize}
+\item \textbf{(Model conditions.)} \(M\) satisfies \cref{obj:ass:sequential-ignorability}, \cref{obj:ass:policy-overlap} with overlap constant \(L\), \cref{obj:ass:pomdp-kernel}, and \cref{obj:ass:bounded-reward}.
+\item \textbf{(Overlap constant.)} \(L\ge 1\).
+\item \textbf{(Initial window.)} \(k\le t\).
+\item \textbf{(Lag identity.)} \(u=t+h\).
+\item \textbf{(Overlapping lag.)} \(1\le h\le k\).
+\end{itemize}
+Then the depth-\(k\) scores \(Z_t(k)\) of \cref{obj:def:phiw-estimator}, evaluated under the observed trajectory law of \(M\), satisfy
+\[
+\bigl|\operatorname{Cov}_{\mathrm{obs}}\bigl(Z_t(k),Z_u(k)\bigr)\bigr|
+\le
+2L^{k+1-h}.
+\]
+\end{lemmav}
+
+\begin{definitionv}{synth_15}[Observed-trajectory law]
+For a raw POMDP experiment \(M=(\mathcal X,\mathcal H,K,b,e,\mathcal L(\mathsf O_T))\), let
+\[
+\mathbb P_M^{\mathrm{obs}}:=\operatorname{Law}^{\mathrm{obs}}_M
+\]
+denote the probability law of the observed trajectory
+\[
+\mathsf O_T=((X_t,A_t,Y_t))_{t=0}^{T-1}
+\]
+induced by the behavior-policy experiment \(M\). Equivalently, under \(\mathbb P_M^{\mathrm{obs}}\), \(S_0\sim d_b\), \(A_t\sim b(\cdot\mid X_t)\), and \(K\) generates \((Y_t,S_{t+1})\) from \((S_t,A_t)\), with only \((X_t,A_t,Y_t)_{t=0}^{T-1}\) retained.
+\end{definitionv}
+
+\begin{definitionv}{synth_17}[Full trajectory law and observation map]
+For a raw POMDP experiment \(M=(\mathcal X,\mathcal H,K,b,e,\mathcal L(\mathsf O_T))\) with joint state space \(\mathcal S=\mathcal X\times\mathcal H\), let \(\mathbb P_M\) denote the full behavior-policy trajectory law on
+\[
+(S_0,A_0,Y_0,S_1,\ldots,A_{T-1},Y_{T-1},S_T).
+\]
+Under \(\mathbb P_M\), the initial state satisfies \(S_0\sim d_b\), each action is drawn as \(A_t\sim b(\cdot\mid X_t)\), and the kernel \(K\) generates \((Y_t,S_{t+1})\) from \((S_t,A_t)\), for \(t=0,\ldots,T-1\).
+
+Let \(O\) be the observation map from a full trajectory to its observed trajectory,
+\[
+O(S_0,A_0,Y_0,\ldots,A_{T-1},Y_{T-1},S_T)
+:=((X_t,A_t,Y_t))_{t=0}^{T-1},
+\]
+where \(S_t=(X_t,H_t)\). The observed behavior-policy law is the pushforward
+\[
+\mathbb P_M^{\mathrm{obs}}:=\mathbb P_M\circ O^{-1}.
+\]
+\end{definitionv}
+
+\begin{lemmav}{lem:phiw-separated-window-peeling}[Separated window peeling]
+Let \(M\) be a raw POMDP experiment with trajectory length \(T\), and let \(L\), the policy-overlap constant, be real. Let \(Z_s(k)\) denote the depth-\(k\) partial-history weighted reward score from \cref{obj:def:phiw-estimator}. Suppose:
+\begin{itemize}
+\item \textbf{(Model conditions.)} \(M\) satisfies \cref{obj:ass:sequential-ignorability,obj:ass:policy-overlap,obj:ass:pomdp-kernel,obj:ass:bounded-reward} with overlap constant \(L\).
+\item \textbf{(Overlap scale.)} \(1\le L\).
+\item \textbf{(Mature earlier window.)} The history depth \(k\) satisfies \(k\le t\).
+\item \textbf{(Separated future window.)} For an epoch \(t\) and a gap \(\gamma\in\mathbb N\), the epoch
+\[
+u=t+1+\gamma+k
+\]
+lies in the observed horizon, equivalently \(t+1+\gamma+k<T\).
+\end{itemize}
+For \(p\in\{b,e\}\), let \(P_p\) be the policy-induced transition operator obtained from the reward-marginalized kernel under policy \(p\), let
+\[
+g_e(s)=\sum_a e(a\mid x(s))\int y\,K(dy\times\mathcal S\mid s,a),
+\]
+and put
+\[
+\Phi_{\gamma,k}(s)=P_b^\gamma P_e^k g_e(s).
+\]
+Then, with \(\mathbb P_M^{\mathrm{obs}}\) the observed law induced by the observed trajectory map \(O\),
+\[
+\int Z_t(k)(w)Z_u(k)(w)\,d\mathbb P_M^{\mathrm{obs}}(w)
+=
+\int Z_t(k)(O(\tau))\,\Phi_{\gamma,k}(S_{t+1}(\tau))\,d\mathbb P_M(\tau).
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:behavior-support-operator-congruence}[Behavior-support operator congruence]
+Let \(M\in\mathcal M_T(t_0,\zeta,C)\) satisfy \cref{obj:def:model-class}, with behavior policy \(b\), target policy \(e\), and the policy-overlap condition in \cref{obj:ass:policy-overlap}.  For \(p\in\{b,e\}\), write
+\[
+P_p(s,s')=\sum_{a\in\{0,1\}} p(a\mid x(s))\,K(\{S'=s'\}\mid s,a),
+\]
+and let \(P_p^0 h=h\) and \(P_p^{m+1}h=P_p(P_p^m h)\).  Let \(d_b\) denote the behavior stationary law of \(P_b\).
+
+Assume:
+\begin{itemize}
+\item \textbf{(Policy choice.)} The policy \(p\) is either \(b\) or \(e\).
+\item \textbf{(Terminal agreement.)} The functions \(f,g:\mathcal S\to\mathbb R\) satisfy
+\[
+f(s)=g(s)
+\]
+for every joint state \(s\) with \(d_b(s)>0\).
+\item \textbf{(Initial support.)} The joint state \(s\) satisfies \(d_b(s)>0\).
+\end{itemize}
+Then, for every \(m\in\mathbb N\),
+\[
+(P_p^m f)(s)=(P_p^m g)(s).
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:phiw-separated-window-covariance}[Separated window covariance]
+Let \(T,n_X,n_H,k,h\in\mathbb N\), let \(t_0,\zeta,C\in\mathbb R\), and let \(M\in\mathcal M_T(t_0,\zeta,C)\) be a raw POMDP experiment as in \cref{obj:def:model-class}, with the uniform contraction restriction of \cref{obj:ass:uniform-contraction}. Write the contraction factor as \(\alpha=e^{-1/t_0}\). Let \(t,u\in\{0,\ldots,T-1\}\) satisfy
+\[
+k\le t,\qquad u=t+h,\qquad k+1\le h .
+\]
+Then the depth-\(k\) scores \(Z_t(k)\) of \cref{obj:def:phiw-estimator}, evaluated under the observed trajectory law of \(M\), satisfy
+\[
+\bigl|\operatorname{Cov}_{\mathrm{obs}}\bigl(Z_t(k),Z_u(k)\bigr)\bigr|
+\le
+2\alpha^{h-k-1}.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:phiw-future-covariance-sum}[Aggregate future-covariance bound]
+Let \(T\ge1\), \(k\in\mathbb N\), \(t_0,\zeta,C\in\mathbb R\), and let \(M\in\mathcal M_T(t_0,\zeta,C)\) be as in \cref{obj:def:model-class}. Write \(L=e^{\zeta}\), \(\alpha=e^{-1/t_0}\), and \(\mathscr T_k=\{t:k\le t\le T-1\}\). Then, for every \(t\in\mathscr T_k\), the depth-\(k\) scores of \cref{obj:def:phiw-estimator} satisfy, under the observed trajectory law of \(M\),
+\[
+\sum_{\substack{u\in\mathscr T_k\\ t<u}}
+\bigl|\operatorname{Cov}_{\mathrm{obs}}\bigl(Z_t(k),Z_u(k)\bigr)\bigr|
+\le
+\frac{2L^{k+1}}{L-1}+\frac{2}{1-\alpha}.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:phiw-raw-variance}[Raw variance assembly]
+Let \(T\) and \(k\) be nonnegative integers, let \(t_0,\zeta,C\in\mathbb R\), and let \(M\) be a raw POMDP experiment. Write \(L=e^\zeta\) for the policy-overlap factor and \(\alpha=e^{-1/t_0}\) for the contraction factor. Suppose that
+\begin{itemize}
+\item \textbf{(Horizon.)} \(T\ge 1\).
+\item \textbf{(Model class.)} \(M\in\mathcal M_T(t_0,\zeta,C)\), with \(\mathcal M_T(t_0,\zeta,C)\) as in \cref{obj:def:model-class}.
+\item \textbf{(History depth.)} \(k\le \lfloor T/2\rfloor\).
+\end{itemize}
+For the depth-\(k\) scores \(Z_t(k)\) of \cref{obj:def:phiw-estimator}, form the unclipped partial-history average
+\[
+\frac{1}{T-k}\sum_{t=k}^{T-1} Z_t(k).
+\]
+Under the observed trajectory law obtained by projecting the full trajectory law of \(M\) onto observed histories, its variance satisfies
+\[
+\operatorname{Var}\!\left(\frac{1}{T-k}\sum_{t=k}^{T-1} Z_t(k)\right)
+\le
+\frac{2}{T}\left\{
+L^{k+1}\left(1+\frac{4}{L-1}\right)
++
+\frac{4}{1-\alpha}
+\right\}.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:phiw-upper}[Balanced PHIW upper bound]
+Fix constants satisfying
+\begin{itemize}
+\item \textbf{(Mixing scale.)} \(t_0>0\).
+\item \textbf{(Policy-overlap scale.)} \(\zeta>0\).
+\item \textbf{(Latent-overlap radius.)} \(C\ge 1\).
+\end{itemize}
+Let \(k_T\) be the balanced history depth in \cref{obj:def:history-depth}, and set
+\[
+\beta=\frac{2}{2+t_0\zeta}.
+\]
+Then there exist constants \(c^\star>0\) and \(T_\star\in\mathbb N\) such that, for every \(T\ge T_\star\), the estimator-specific worst-case squared risk from \cref{obj:synth_13} of the observable PHIW estimator \(\widehat\theta_{k_T}\) from \cref{obj:def:phiw-estimator} satisfies
+\[
+R_T(t_0,\zeta,C;\widehat\theta_{k_T})
+\le
+c^\star T^{-\beta}.
+\]
+Moreover, for every \(T\ge T_\star\), every finite alphabet sizes \(n_X,n_H\), and every raw POMDP experiment \(M\in\mathcal M_T(t_0,\zeta,C)\), the variance under the observed trajectory law induced by \(M\) of the unclipped partial-history average
+\[
+\frac{1}{T-k_T}\sum_{t=k_T}^{T-1} Z_t(k_T)
+\]
+satisfies
+\[
+\operatorname{Var}
+\!\left(\frac{1}{T-k_T}\sum_{t=k_T}^{T-1} Z_t(k_T)\right)
+\le
+\frac{2}{T}
+\left[
+e^{\zeta(k_T+1)}
+\left(1+\frac{4}{e^\zeta-1}\right)
++
+\frac{4}{1-e^{-1/t_0}}
+\right].
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:signed-depth-constant-policy-contraction}[Contraction of the constant-policy signed-depth kernel]
+Let \(t_0>0\), \(\zeta>0\), \(C\ge1\), \(Q\ge1\), \(v\in\{-1,+1\}\) and \(r\in[0,1]\), and write \(\alpha=e^{-1/t_0}\). Let \(P^{(r)}\) be the transition kernel induced on the joint state space \(\mathcal S_Q=\{0\}\times(\{0,\ldots,Q\}\times\{-1,+1\})\) of the signed-depth alternative of \cref{obj:def:signed-depth-family} with terminal depth \(Q\) and index \(v\) by the constant policy \(a_r\) that plays action one with probability \(r\). Then, for all probability vectors \(\mu,\mu'\) on \(\mathcal S_Q\),
+\[
+\|\mu P^{(r)}-\mu'P^{(r)}\|_{\mathrm{TV}}
+\le
+\alpha\|\mu-\mu'\|_{\mathrm{TV}} .
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:signed-depth-stationary-law}[Closed form of the signed-depth stationary law]
+Let \(t_0>0\), \(\zeta>0\), \(C\ge1\), \(Q\ge1\), \(v\in\{-1,+1\}\) and \(r\in[0,1]\). Write \(\alpha=e^{-1/t_0}\), \(\varepsilon_C=\min\{(C-1)/2,1/2\}\), and \(w_j=(1-\alpha)\alpha^{j}/(1-\alpha^{Q+1})\). Let \(P^{(r)}\) be the kernel induced on \(\mathcal S_Q\) by the constant policy \(a_r\) for the signed-depth alternative of \cref{obj:def:signed-depth-family} with terminal depth \(Q\) and index \(v\), and let \(d_r\) be the stationary law selected for \(P^{(r)}\). Then, for every hidden state \(h=(j(h),u(h))\),
+\[
+d_r(0,h)
+=
+w_{j(h)}\,\frac{1+u(h)\varepsilon_Cr^{j(h)}}{2}.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:signed-depth-membership}[Signed-depth membership]
+For every \(T\ge 1\), \(Q\ge 1\), \(t_0>0\), \(\zeta>0\), \(C>1\), and \(v\in\{-1,+1\}\), let \(M_{Q,v}^T\) be the signed-depth experiment of \cref{obj:def:signed-depth-family}.  Put
+\[
+\varepsilon_C=\min\{(C-1)/2,1/2\},
+\qquad
+L=\exp(\zeta),
+\qquad
+w_j=\frac{(1-\alpha(t_0))\alpha(t_0)^j}{1-\alpha(t_0)^{Q+1}},
+\]
+where \(\alpha(t_0)\) is the mixing factor and \(j=0,\ldots,Q\).  Then:
+\begin{itemize}
+\item \textbf{(Membership.)} \(M_{Q,v}^T\in \mathcal M_T(t_0,\zeta,C)\) in the sense of \cref{obj:def:model-class}.
+\item \textbf{(Behavior stationary law.)} For every hidden state \(h\), with decoded depth \(j(h)\in\{0,\ldots,Q\}\) and sign \(u(h)\in\{-1,+1\}\),
+\[
+d_b(0,h)
+=
+w_{j(h)}
+\frac{1+u(h)\varepsilon_C L^{-j(h)}}{2}.
+\]
+\item \textbf{(Constant action-one stationary laws.)} For every \(r\in[0,1]\), if \(d_r\) denotes the stationary law induced by the constant policy that chooses action one with probability \(r\), then for every hidden state \(h\),
+\[
+d_r(0,h)
+=
+w_{j(h)}
+\frac{1+u(h)\varepsilon_C r^{j(h)}}{2}.
+\]
+\item \textbf{(Target-over-behavior domination.)} For every joint state \(s\),
+\[
+d_e(s)\le (1+\varepsilon_C)d_b(s),
+\qquad
+1+\varepsilon_C\le C.
+\]
+\end{itemize}
+The stationary target value of \cref{obj:def:target-value} is
+\[
+\theta(K,e)
+=
+v\,c_0(t_0)\,\varepsilon_C\,w_Q .
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:posterior-lower-window-power}[Posterior window power bound]
+Let \(N,Q,k,d\in\mathbb N\), let \(t_0,\zeta,C,b\in\mathbb R\), let \(v\in\{-1,+1\}\), and let \(o=((a_0,y_0),\ldots,(a_{k-1},y_{k-1}))\) be an observed prefix for the signed-depth family of \cref{obj:def:signed-depth-family}.  Write
+\[
+c_0(t_0)=\frac{1-\alpha(t_0)}{4},
+\]
+and, for \(0\le m\le k\), write \(o_{\le m}\) for the first \(m\) observed pairs.  For any observed prefix \(o'\), define the raw terminal-depth posterior by
+\[
+\pi_v(o')
+=
+\frac{\sum_h \mathbf 1\{J(h)=Q\}\lambda_v(h;o')}
+     {\sum_h \lambda_v(h;o')}.
+\]
+Assume:
+\begin{itemize}
+\item \textbf{(Nonnegative amplitude.)} \(0\le c_0(t_0)\).
+\item \textbf{(Nonnegative base.)} \(0\le 1-c_0(t_0)b\).
+\item \textbf{(Window length.)} \(d\le k\).
+\item \textbf{(Strict-prefix posterior bound.)} For every \(i\in\{0,\ldots,k-1\}\),
+\[
+\pi_v(o_{\le i})\le b.
+\]
+\end{itemize}
+Define the final \(d\)-prefix lower window by
+\[
+\Lambda_d(o)
+=
+\prod_{\substack{0\le i<k\\ k-d\le i}}
+\left(1-c_0(t_0)\pi_v(o_{\le i})\right).
+\]
+Then
+\[
+\bigl(1-c_0(t_0)b\bigr)^d\le \Lambda_d(o).
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:terminal-posterior-mature-window}[Terminal posterior window bound]
+Let \(N,Q\in\mathbb N\), let \(t_0,\zeta,C\in\mathbb R\), and let \(v\in\{-1,+1\}\).  Put \(\alpha=\exp\{-(1/t_0)\}\).  In the finite signed-depth model of \cref{obj:def:signed-depth-family}, for an observed prefix \(o=((a_1,y_1),\ldots,(a_k,y_k))\), write
+\[
+\pi_v(o)
+=
+\frac{
+\sum_{h\in\{0,\ldots,Q\}\times\{-1,+1\}}
+\mathbf 1\{J(h)=Q\}\lambda_v(h;o)
+}{
+\mathsf M_v(o)
+}.
+\]
+For \(d\in\mathbb N\), define the lower posterior window
+\[
+\Lambda_d(o)
+=
+\prod_{\substack{0\le i<k\\ k-d\le i}}
+\left(1-c_0(t_0)\,\pi_v(o_{\le i})\right),
+\]
+where \(o_{\le i}\) is the prefix of \(o\) containing its first \(i\) action--reward pairs.
+
+Assume:
+\begin{itemize}
+\item \textbf{(Positive scale.)} \(t_0>0\).
+\item \textbf{(Positive tilt.)} \(\zeta>0\).
+\item \textbf{(Overlap level.)} \(C>1\).
+\item \textbf{(Mature window.)} \(Q\le k\).
+\end{itemize}
+Then the terminal-depth posterior satisfies
+\[
+\pi_v(o)
+\le
+\frac{\alpha^Q}{\Lambda_Q(o)}.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:terminal-posterior-initial-window}[Initial-window posterior bound]
+Let \(N,Q\in\mathbb N\), let \(t_0,\zeta,C\in\mathbb R\), let \(v\in\{-1,+1\}\), let \(k\in\mathbb N\), and let
+\[
+o:\{0,\ldots,k-1\}\to \{0,1\}\times\{0,1\}
+\]
+be an observed action/reward prefix for the signed-depth construction of \cref{obj:def:signed-depth-family}.  Write \(\alpha=e^{-1/t_0}\).  For any prefix \(o'\), define the raw terminal-depth posterior by
+\[
+\pi_v(o')
+=
+\frac{\sum_{h:\,J(h)=Q}\lambda_v(h;o')}
+     {\sum_h \lambda_v(h;o')}.
+\]
+Define the initial lower posterior window over the available prefixes by
+\[
+\Lambda_k(o)
+=
+\prod_{i=0}^{k-1}
+\left(1-c_0\,\pi_v(o_{\le i})\right),
+\]
+where \(o_{\le i}\) is the prefix of \(o\) of length \(i\).
+
+Assume:
+\begin{itemize}
+\item \textbf{(Positive scale.)} \(t_0>0\).
+\item \textbf{(Positive overlap exponent.)} \(\zeta>0\).
+\item \textbf{(Nontrivial overlap radius.)} \(C>1\).
+\item \textbf{(Initial window.)} \(k<Q\).
+\end{itemize}
+Then the terminal-depth posterior after observing \(o\) satisfies
+\[
+\pi_v(o)\le \frac{\alpha^Q}{\Lambda_k(o)}.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:terminal-posterior-crude-bound}[Crude terminal posterior bound]
+Let \(N,Q,k\in\mathbb N\), let \(t_0,\zeta,C\in\mathbb R\), and let \(v\in\{-1,+1\}\). Suppose that
+\begin{itemize}
+\item \textbf{(Positive temperature.)} \(t_0>0\).
+\item \textbf{(Positive log-overlap.)} \(\zeta>0\).
+\item \textbf{(Overlap level.)} \(C>1\).
+\end{itemize}
+For the finite signed-depth model of \cref{obj:def:signed-depth-family}, write
+\[
+\alpha=\exp(-1/t_0),
+\qquad
+c_0=\frac{1-\alpha}{4}.
+\]
+For every observed prefix \(o\in(\{0,1\}\times\{0,1\})^k\), define the raw terminal-depth posterior by
+\[
+\pi_v(o)
+=
+\frac{
+\sum_h \mathbf 1\{J(h)=Q\}\,\lambda_v(h;o)
+}{
+\mathsf M_v(o)
+},
+\qquad
+\mathsf M_v(o)=\sum_h \lambda_v(h;o),
+\]
+where the sums range over the signed-depth hidden states at depth horizon \(Q\). Then
+\[
+\pi_v(o)
+\le
+\left(\frac{\alpha}{1-c_0}\right)^Q .
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:refined-terminal-posterior}[Refined terminal posterior bound]
+Let \(N,Q,k\) be nonnegative integers. Suppose that
+\begin{itemize}
+\item \textbf{(Positive scale.)} \(t_0>0\).
+\item \textbf{(Positive perturbation.)} \(\zeta>0\).
+\item \textbf{(Overlap level.)} \(C>1\).
+\end{itemize}
+Write \(\alpha=\exp(-1/t_0)\) for the contraction parameter and
+\(c_0=(1-\alpha)/4\) for the signed-depth reward-amplitude constant. For an
+alternative \(v\in\{-1,+1\}\) in the signed-depth family of
+\cref{obj:def:signed-depth-family} and any observed prefix
+\(o=(a_1,y_1,\ldots,a_k,y_k)\), let \(\pi_{N,Q,v}(o)\) be the raw
+terminal-depth posterior: the run-local unnormalized filter mass at latent
+depth \(Q\), divided by the total run-local unnormalized filter mass of the
+prefix. Then
+\[
+\pi_{N,Q,v}(o)
+\le
+\frac{\alpha^Q}
+{\left\{1-c_0\left(\frac{\alpha}{1-c_0}\right)^Q\right\}^Q}.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:rare-action-second-moment-exact}[Rare-action second moment]
+Let \(Q,k\in\mathbb N\), let \(t_0,\zeta,C\in\mathbb R\), and let \(v\in\{-1,+1\}\). Assume:
+\begin{itemize}
+\item \textbf{(Time scale.)} \(t_0>0\).
+\item \textbf{(Overlap exponent.)} \(\zeta>0\).
+\item \textbf{(Radius constant.)} \(C>1\).
+\end{itemize}
+Write \(L=\exp(\zeta)\), let \(\ell=\min\{Q,k\}\), and consider the finite signed-depth model of \cref{obj:def:signed-depth-family} at horizon \(k+1\). For an action/reward-symbol prefix
+\[
+o=((a_1,y_1),\ldots,(a_k,y_k)),
+\]
+let \(\pi_k^v(o)\) be its prefix mass under this model, and define the rare-action-history factor from \cref{obj:def:filter-quantities} by
+\[
+\mathfrak a_k(o)
+=
+L^{-(Q-\ell)}
+\prod_{i:\,k-\ell<i\le k}\mathbf 1\{a_i=1\},
+\]
+with the empty product equal to one. Then
+\[
+\sum_{o}\pi_k^v(o)\,\mathfrak a_k(o)^2
+=
+L^{-2(Q-\ell)}
+\left(\frac{1}{L}\right)^{|\{i:\ k-\ell<i\le k\}|},
+\]
+where the sum ranges over all action/reward-symbol prefixes of length \(k\).
+\end{lemmav}
+
+\begin{lemmav}{lem:finite-signed-depth-kl}[Finite observed KL bound]
+Let \(T,Q\in\mathbb N\) and \(t_0,\zeta,C,K_0\in\mathbb R\).  Write \(\alpha=e^{-1/t_0}\), \(L=e^\zeta\), \(c_0=(1-\alpha)/4\), and \(\varepsilon_C=\min\{(C-1)/2,1/2\}\).  Suppose that
+\begin{itemize}
+\item \textbf{(Positive scale.)} \(t_0>0\), \(\zeta>0\), \(C>1\), and \(K_0>0\).
+\item \textbf{(Uniform terminal posterior.)} For every horizon \(N\), every alternative index \(v\in\{-1,+1\}\), every time \(t<N\), and every observed prefix \(o\) of actions and two-symbol rewards before \(t\), the finite conditional terminal-depth probability \(q_t^v(o)\) from \cref{obj:def:filter-quantities} satisfies
+\[
+q_t^v(o)\le K_0\alpha^Q .
+\]
+\end{itemize}
+Then the finite observed-word laws of the signed-depth alternatives of \cref{obj:def:signed-depth-family}, taken before the reward symbols are decoded as real rewards, satisfy
+\[
+\operatorname{KL}\!\left(\mathbb P_{Q,+1}^{\mathrm{fin},T}\middle\|\mathbb P_{Q,-1}^{\mathrm{fin},T}\right)
+\le
+\frac{4c_0^2K_0^2}{1-c_0^2}\,
+T\,\varepsilon_C^2\,\alpha^{2Q}\,L^{-Q}.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:signed-depth-bootstrap-factor}[Uniform bootstrap factor]
+Let \(t_0>0\) and write \(\alpha=e^{-1/t_0}\), \(c_0=(1-\alpha)/4\), \(\eta_0=\alpha/(1-c_0)\). Then there exists \(K_0>0\) such that
+\[
+\frac{1}{\bigl(1-c_0\bigl(\alpha/(1-c_0)\bigr)^{Q}\bigr)^{Q}}
+\le
+K_0
+\qquad(Q\in\mathbb N).
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:signed-depth-terminal-sign-invariant}[Terminal signed mass invariant]
+Let \(N,Q,k\in\mathbb N\), let \(t_0,\zeta,C\in\mathbb R\), let \(v\in\{-1,+1\}\), and consider the finite signed-depth model of \cref{obj:def:signed-depth-family}.  For an observed prefix \(o=((a_i,y_i))_{i=1}^k\), write \(\lambda_v(h;o)\) for the unnormalized filter mass of terminal hidden state \(h\), write \(J(h)\in\{0,\ldots,Q\}\) and \(U(h)\in\{-1,+1\}\) for its depth and sign coordinates, and set
+\[
+\varepsilon_C=\min\left\{\frac{C-1}{2},\frac12\right\}.
+\]
+Assume:
+\begin{itemize}
+\item \textbf{(Positive initial scale.)} \(t_0>0\).
+\item \textbf{(Positive overlap exponent.)} \(\zeta>0\).
+\item \textbf{(Nontrivial overlap radius.)} \(C>1\).
+\end{itemize}
+With \(L=e^\zeta\), define the depth-\(Q\) action-history factor
+\[
+a^{(Q)}(o)
+=
+L^{-\max\{Q-k,0\}}
+\prod_{\substack{1\le i\le k\\ i>k-\min\{Q,k\}}}
+\mathbf 1\{a_i=1\}.
+\]
+Then
+\[
+\sum_{h:\,J(h)=Q} U(h)\lambda_v(h;o)
+=
+\varepsilon_C\,a^{(Q)}(o)
+\sum_{h:\,J(h)=Q}\lambda_v(h;o).
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:signed-depth-next-reward-numerator}[Next reward numerator]
+Let \(U,k,N,Q\in\mathbb N\), let \(v\in\{-1,+1\}\), and consider the finite signed-depth model of \cref{obj:def:signed-depth-family} with horizon \(N\), terminal depth \(Q\), initial weights \(p_v\), behavior policy \(b\), and reward-symbol/hidden-state kernel \(K_v\). Suppose that
+\begin{itemize}
+\item \textbf{(Positive time scale.)} \(t_0>0\).
+\item \textbf{(Positive behavior perturbation.)} \(\zeta>0\).
+\item \textbf{(Overlap radius.)} \(C>1\).
+\end{itemize}
+Write
+\[
+c_0(t_0)=\frac{1-\alpha}{4},
+\]
+where \(\alpha\) is the signed-depth mixing parameter, and write \(\phi(0)=-1\), \(\phi(1)=1\).  For any observed action/reward-symbol prefix \(o\in(\{0,1\}\times\{0,1\})^k\), let
+\[
+\lambda_v(h;o)
+\]
+denote the unnormalized signed-depth filter mass, after the prefix \(o\), assigned to observed state \(0\) and packed hidden state \(h\in\{0,\ldots,2(Q+1)-1\}\).  Decode the packed hidden state by
+\[
+J(h)=\bigl\lfloor h/2\bigr\rfloor,
+\qquad
+U(h)=
+\begin{cases}
++1, & h \equiv 1 \pmod 2,\\
+-1, & h \equiv 0 \pmod 2.
+\end{cases}
+\]
+Then
+\[
+\sum_{\tau}
+\mathbf 1\!\left\{ ((a_i,r_i))_{i=1}^k(\tau)=o\right\}
+\,\omega_v(\tau)\,\phi\!\left(r_{k+1}(\tau)\right)
+=
+v\,c_0(t_0)
+\sum_{h=0}^{2(Q+1)-1}
+\mathbf 1\{J(h)=Q\}\,U(h)\,\lambda_v(h;o),
+\]
+where the outer sum is over all finite signed-depth trajectories \(\tau\) of horizon \(U+k+1\), and \(\omega_v(\tau)\) is their chronological path weight under \(p_v\), \(b\), and \(K_v\).
+\end{lemmav}
+
+\begin{lemmav}{lem:signed-depth-terminal-prefix-mass}[Terminal prefix mass identity]
+Let \(U,k,Q\in\mathbb N\) with \(U\ge 1\), let \(t_0,\zeta,C\in\mathbb R\), let \(v\in\{-1,+1\}\), and consider the finite signed-depth model of \cref{obj:def:signed-depth-family} at horizon \(U+k\).  For an action/reward-symbol prefix \(o\) of length \(k\), define the joint prefix-and-terminal-depth mass at the cut after the first \(k\) epochs by
+\[
+m_v^Q(o)
+=
+\Pr_v\{(A_1,R_1),\ldots,(A_k,R_k)=o,\ J_{k+1}=Q\}.
+\]
+For each hidden coordinate \(h\in\{0,\ldots,2(Q+1)-1\}\), let \(J(h)=\lfloor h/2\rfloor\), and let \(\lambda_v(h;o)\) be the unnormalized filter mass, as in \cref{obj:def:filter-quantities}, assigned after observing \(o\) to the cut state with hidden coordinate \(h\).  Then
+\[
+m_v^Q(o)
+=
+\sum_{h=0}^{2(Q+1)-1}
+\mathbf 1\{J(h)=Q\}\,\lambda_v(h;o).
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:signed-depth-conditional-reward-mean}[Conditional reward mean identity]
+Let \(T,Q\in\mathbb N\), let \(t_0,\zeta,C\in\mathbb R\), and let \(v\) be a Boolean alternative, written through
+\[
+\sigma(v)=
+\begin{cases}
+1, & v=\mathrm{true},\\
+-1, & v=\mathrm{false}.
+\end{cases}
+\]
+Assume
+\begin{itemize}
+\item \textbf{(Positive baseline.)} \(t_0>0\).
+\item \textbf{(Positive policy scale.)} \(\zeta>0\).
+\item \textbf{(Overlap radius.)} \(C>1\).
+\end{itemize}
+For every epoch \(t<T\) and every observed prefix \(o\in\{\,\mathrm{false},\mathrm{true}\,\}^{t}\times\{0,1\}^{t}\), the conditional next-reward mean satisfies
+\[
+\mathbb E_v[Y_t\mid \mathcal F_{t-1}^{\mathrm{obs}}=o]
+=
+\sigma(v)\,c_0(t_0)\,\varepsilon_C(C)\,
+a_t^{(Q)}(o)\,q_t^v(o),
+\]
+where the left-hand side is the totalized ratio defining the finite-prefix conditional reward mean, \(c_0(t_0)=(1-\alpha)/4\), \(\varepsilon_C(C)=\min\{(C-1)/2,1/2\}\), and \(a_t^{(Q)}(o)\) and \(q_t^v(o)\) are the rare-action-history factor and terminal posterior of \cref{obj:def:filter-quantities}.
+\end{lemmav}
+
+\begin{definitionv}{synth_18}[Observed signed-depth law]
+For \(T,Q\in\mathbb N\), \(t_0,\zeta,C\in\mathbb R\), and two-point alternative index \(v\), define
+\[
+\mathbb P_{Q,v}^{\mathrm{obs},T}
+\]
+to be the observed-path law obtained by applying the observed-coordinate projection to the trajectory law of the embedded finite signed-depth model with horizon \(T\), parameters \((t_0,\zeta,C,Q)\), and alternative index \(v\).
+\end{definitionv}
+
+\begin{lemmav}{lem:observed-path-kl}[Observed-path KL bound]
+Fix \(t_0>0\), and write \(\alpha=\exp(-1/t_0)\). There exists a constant \(K_0>0\), depending on \(t_0\), such that whenever the following conditions hold:
+\begin{itemize}
+\item \textbf{(Overlap exponent.)} \(\zeta>0\), and \(L=\exp(\zeta)\).
+\item \textbf{(Reset amplitude.)} \(C>1\), and \(\varepsilon_C=\min\{(C-1)/2,1/2\}\).
+\item \textbf{(Sequential ignorability.)} For every horizon \(T\), terminal depth \(Q\ge 1\), and alternative \(v\in\{-1,+1\}\), the signed-depth experiment in \cref{obj:def:signed-depth-family} satisfies \cref{obj:ass:sequential-ignorability}.
+\item \textbf{(Stationary start.)} For every horizon \(T\), terminal depth \(Q\ge 1\), and alternative \(v\in\{-1,+1\}\), the signed-depth experiment in \cref{obj:def:signed-depth-family} satisfies \cref{obj:ass:stationary-start}.
+\end{itemize}
+there exists a constant \(B_0>0\), depending on \(t_0,\zeta,C\), such that for every \(T\) and every \(Q\ge 1\), with \(\mathbb P_{Q,v}^{\mathrm{obs},T}\) denoting the observed-path law of the signed-depth alternative \(v\),
+\[
+\operatorname{KL}\!\left(\mathbb P_{Q,+1}^{\mathrm{obs},T}\,\middle\|\,\mathbb P_{Q,-1}^{\mathrm{obs},T}\right)
+\le
+B_0\,T\,\alpha^{2Q}L^{-Q}.
+\]
+Moreover, for each \(v\in\{-1,+1\}\), each \(t<T\), and each observed prefix \(o\in\mathcal F_{t-1}^{\mathrm{obs}}\), the conditional reward mean satisfies the exact finite-prefix identity
+\[
+\mathbb E_v[Y_t\mid \mathcal F_{t-1}^{\mathrm{obs}}=o]
+=
+v\,c_0\,\varepsilon_C\,a_t^{(Q)}(o)\,q_t^v(o),
+\]
+where \(c_0=(1-\alpha)/4\), and \(a_t^{(Q)}\) and \(q_t^v\) are the rare-action-history factor and terminal-depth posterior from \cref{obj:def:filter-quantities}. The posterior satisfies
+\[
+q_t^v(o)\le K_0\,\alpha^Q .
+\]
+The same observed-path laws also satisfy
+\[
+\operatorname{KL}\!\left(\mathbb P_{Q,+1}^{\mathrm{obs},T}\,\middle\|\,\mathbb P_{Q,-1}^{\mathrm{obs},T}\right)
+\le
+\frac{4c_0^2K_0^2}{1-c_0^2}\,
+T\,\varepsilon_C^2\,\alpha^{2Q}L^{-Q}.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:phiw-score-stationary-mean}[Stationary PHIW score mean]
+Let \(T,n_X,n_H,k\in\mathbb N\), let \(t_0,\zeta,C\in\mathbb R\), and let \(M\) be a raw POMDP experiment. Suppose:
+\begin{itemize}
+\item \textbf{(Model class.)} \(M\in\mathcal M_T(t_0,\zeta,C)\), as in \cref{obj:def:model-class}.
+\item \textbf{(Mature time.)} \(t\in\{0,\ldots,T-1\}\) and \(k\le t\).
+\end{itemize}
+Then the depth-\(k\) score \(Z_t(k)\) of \cref{obj:def:phiw-estimator}, evaluated under the observed trajectory law of \(M\), satisfies
+\[
+\int Z_t(k)\,d\mathbb P_M^{\mathrm{obs}}
+=
+\sum_s d_b(s)\,(P_e^k g_e)(s).
+\]
+Here \(d_b\) is the stationary law selected for the behavior-policy transition matrix
+\[
+P_b(s,s')=\sum_{a\in\{0,1\}} b(a\mid x_s)\,K(s,a)\{(r,s''):\ s''=s'\},
+\]
+and \(P_e^k g_e\) is the \(k\)-fold iterate of the target-policy transition operator applied to the target-policy reward regression
+\[
+g_e(s)=\sum_{a\in\{0,1\}} e(a\mid x_s)\int r\,K(s,a)(d r,d s').
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:target-value-unit-interval}[Target value is bounded]
+Let \(T\ge 1\), let \(t_0,\zeta,C\in\mathbb R\), and let
+\(M=(\mathcal X,\mathcal H,K,b,e,\mathcal L(\mathsf O_T))\in
+\mathcal M_T(t_0,\zeta,C)\) be a model in \cref{obj:def:model-class}. Assume the model satisfies the stationary-start, sequential-ignorability, POMDP-kernel, bounded-reward, latent-stationary-overlap, and policy-overlap conditions of
+\cref{obj:ass:stationary-start,obj:ass:sequential-ignorability,obj:ass:pomdp-kernel,obj:ass:bounded-reward,obj:ass:latent-stationary-overlap,obj:ass:policy-overlap}. Then the stationary target-policy mean reward \(\theta(K,e)\) of \cref{obj:def:target-value} lies in the unit interval:
+\[
+\theta(K,e)\in[-1,1].
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:radius-sensitive-phiw}[Radius-sensitive PHIW risk]
+For every trajectory length \(T\), observable alphabet size \(n_X\), latent alphabet size \(n_H\), and history depth \(k\), let
+\[
+\alpha=\exp\{-(1/t_0)\},\qquad L=\exp\{\zeta\},\qquad q_C=\frac{C-1}{C}.
+\]
+Suppose that
+\begin{itemize}
+\item \textbf{(Mixing scale.)} \(0<t_0\).
+\item \textbf{(Overlap scale.)} \(0<\zeta\).
+\item \textbf{(Radius parameter.)} \(1\le C\), with \(q_C\) as in \cref{obj:def:overlap-distance-radius}.
+\item \textbf{(Trajectory length.)} \(1\le T\).
+\item \textbf{(Model class.)} The experiment \(M\) belongs to \(\mathcal M_T(t_0,\zeta,C)\) in the sense of \cref{obj:def:model-class}.
+\item \textbf{(History depth.)} \(k\le T/2\).
+\end{itemize}
+Then the clipped partial-history importance-weighted estimator \(\widehat\theta_k\) from \cref{obj:def:phiw-estimator}, evaluated under the observed trajectory law induced by \(M\), satisfies
+\[
+\mathbb E_M\!\left[\{\widehat\theta_k-\theta(K,e)\}^2\right]
+\le
+4q_C^2\alpha^{2k}
++\frac{2}{T}\left\{
+L^{k+1}\left(1+\frac{4}{L-1}\right)
++\frac{4}{1-\alpha}
+\right\},
+\]
+where \(\theta(K,e)\) is the stationary target-policy mean reward from \cref{obj:def:target-value}.
+\end{lemmav}
+
+\begin{lemmav}{lem:radius-explicit-observed-kl}[Observed KL radius bound]
+Let \(t_0>0\).  Define
+\[
+\alpha(t_0)=\exp(-1/t_0),\qquad
+c_0(t_0)=\frac{1-\alpha(t_0)}{4}.
+\]
+Then there exists a constant \(K_0=K_0(t_0)>0\) such that, for every \(\zeta>0\), \(C>1\), \(T\in\mathbb N\), and \(Q\in\mathbb N\) with \(Q\ge1\), if
+\[
+\varepsilon_C=\min\left\{\frac{C-1}{2},\frac12\right\},\qquad
+L(\zeta)=\exp(\zeta),
+\]
+and if \(q_C\) is the radius in \cref{obj:def:overlap-distance-radius}, then
+\[
+\frac{q_C}{2}\le \varepsilon_C \le q_C
+\]
+and the observed-path laws \(\mathbb P_{Q,+1}^{\mathrm{obs},T}\) and
+\(\mathbb P_{Q,-1}^{\mathrm{obs},T}\) of the signed-depth alternatives satisfy
+\[
+\operatorname{KL}\!\left(
+\mathbb P_{Q,+1}^{\mathrm{obs},T}\,\middle\|\,
+\mathbb P_{Q,-1}^{\mathrm{obs},T}
+\right)
+\le
+\frac{4c_0(t_0)^2K_0^2}{1-c_0(t_0)^2}\,
+T\,\varepsilon_C^2\,\alpha(t_0)^{2Q}\,L(\zeta)^{-Q}.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:parametric-pair-target-value}[Parametric pair target value]
+Let \(T\in\mathbb N\), let \(v\in\{0,1\}\), and define the sign
+\[
+\sigma(v)=
+\begin{cases}
++1, & v=1,\\
+-1, & v=0.
+\end{cases}
+\]
+Put
+\[
+\eta_T=\frac{1}{4\sqrt T},
+\]
+with value \(0\) when \(T=0\). Suppose the scalar parameters satisfy:
+\begin{itemize}
+\item \textbf{(Initial scale.)} \(t_0>0\).
+\item \textbf{(Overlap scale.)} \(\zeta>0\).
+\item \textbf{(Radius scale.)} \(C\ge 1\).
+\end{itemize}
+Let \(M_T^v\) be the singleton-state finite experiment with one observed state and one hidden state, fair behavior and target policies \(b(a\mid x_\star)=e(a\mid x_\star)=1/2\), reward support \(\{-1,+1\}\), and reward-transition kernel that assigns, from every state-action pair, probability
+\[
+\frac{1+\sigma(v)y\eta_T}{2}
+\]
+to reward \(y\in\{-1,+1\}\) and next state \((x_\star,h_\star)\). Then the stationary target-policy mean reward of \cref{obj:def:target-value}, evaluated in this experiment, satisfies
+\[
+\theta(K_{M_T^v},e_{M_T^v})=\sigma(v)\eta_T .
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:parametric-pair-observed-kl}[Observed KL budget]
+Let \(T\in\mathbb N\) satisfy \(T\ge 1\), and set \(\eta_T=1/(4\sqrt T)\). Let \(M_T^{-}\) and \(M_T^{+}\) be the two finite singleton-state experiments with one observed state \(x_\star\), one hidden state, initial mass at the single joint state, fair behavior and target policies \(b=e\) on \(\{0,1\}\), and reward code \(\mathsf r\in\{0,1\}\) decoded as \(2\mathsf r-1\). Under \(M_T^\sigma\), for \(\sigma\in\{-1,+1\}\), the reward-transition kernel returns to the single joint state and assigns reward \(y\in\{-1,+1\}\) probability
+\[
+\frac{1+\sigma y\eta_T}{2}.
+\]
+Writing \(\mathbb P^{\mathrm{obs}}_{M_T^\sigma}\) for the image of the decoded trajectory law under the observed-path projection, the required KL budget holds in the direction
+\[
+\operatorname{KL}\!\left(
+\mathbb P^{\mathrm{obs}}_{M_T^-}
+\,\middle\|\,
+\mathbb P^{\mathrm{obs}}_{M_T^+}
+\right)
+\le \frac14 .
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:observed-risk-bounded-by-four}[Observed risk bound]
+Let \(T\ge 1\) and let \(t_0,\zeta,C\in\mathbb R\). Let \(\widehat\theta\) be an observable-data estimator of the admissible class used in \cref{obj:def:minimax-risk}: for each observed-alphabet size and policy pair, \(\widehat\theta\) is a measurable real-valued function of the observed path taking values in \([-1,1]\). For every
+\[
+M=(\mathcal X,\mathcal H,K,b,e,\mathcal L(\mathsf O_T))\in \mathcal M_T(t_0,\zeta,C)
+\]
+as in \cref{obj:def:model-class}, with \(\widehat\theta\) evaluated at the observed-alphabet size and policies of \(M\), the squared risk for the target value \(\theta(K,e)\) of \cref{obj:def:target-value} satisfies
+\[
+E_M\bigl[(\widehat\theta-\theta(K,e))^2\bigr]\le 4 .
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:two-point-risk-floor}[Two-point risk floor]
+Let \(T\ge 1\), \(t_0,\zeta,C\in\mathbb R\), and let \(M_0,M_1\in\mathcal M_T(t_0,\zeta,C)\) as in \cref{obj:def:model-class}.  After identifying their common observed alphabet, write \(\mathbb P_j\) for the observed-data law of \(M_j\) and \(\theta_j\) for the target value of \(M_j\) from \cref{obj:def:target-value}, \(j\in\{0,1\}\).  Let \(s\) be a nonnegative separation radius and let \(\chi\) be a nonnegative KL upper bound.  Assume:
+\begin{itemize}
+\item \textbf{(Common observable structure.)} The two models have the same observed-alphabet cardinality, the same behavior policy, and the same target policy.
+\item \textbf{(Information bound.)} \(\mathbb P_0\ll\mathbb P_1\),
+\[
+\operatorname{KL}(\mathbb P_0\|\mathbb P_1)\le \chi,
+\qquad
+\operatorname{KL}(\mathbb P_0\|\mathbb P_1)<\infty .
+\]
+\item \textbf{(Target separation.)}
+\[
+2s\le |\theta_0-\theta_1| .
+\]
+\end{itemize}
+Then every raw observable-data estimator \(\widehat\theta\), viewed as a real-valued measurable function of the observed-alphabet size, the policy pair, and the observed path, with \((\widehat\theta-\theta_j)^2\) integrable under \(\mathbb P_j\) at \(M_j\) for \(j=0,1\), satisfies
+\[
+\frac{s^2\exp(-\chi)}{4}
+\le
+\max\left\{
+\mathbb E_{M_0}\!\left[(\widehat\theta-\theta_0)^2\right],
+\mathbb E_{M_1}\!\left[(\widehat\theta-\theta_1)^2\right]
+\right\}.
+\]
+Consequently, the minimax squared-error risk of \cref{obj:def:minimax-risk} satisfies
+\[
+\frac{s^2\exp(-\chi)}{4}
+\le
+R_T(t_0,\zeta,C).
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:uniform-parametric-floor}[Uniform parametric floor]
+Fix a positive mixing scale \(t_0>0\) and a positive log-overlap scale \(\zeta>0\). For every horizon \(T\in\mathbb N\) with \(T\ge 1\) and every radius \(C\ge 1\), let \(M_T^{-}\) and \(M_T^{+}\) be the two raw POMDP experiments generated by the singleton-state, singleton-observation Rademacher construction with rewards in \(\{-1,+1\}\), fair behavior and target policies \(b=e\), and the two opposite signs of the construction's parametric reward tilt. Then:
+\begin{itemize}
+\item \textbf{(Class membership.)} Both \(M_T^{-}\) and \(M_T^{+}\) belong to the latent-overlap model class \(\mathcal M_T(t_0,\zeta,C)\) of \cref{obj:def:model-class}.
+\item \textbf{(Common policies.)} Each experiment has equal behavior and target policies, and the two experiments share these policies:
+\[
+b_{M_T^{-}}=e_{M_T^{-}},
+\qquad
+b_{M_T^{+}}=e_{M_T^{+}},
+\qquad
+b_{M_T^{-}}=b_{M_T^{+}},
+\qquad
+e_{M_T^{-}}=e_{M_T^{+}}.
+\]
+\item \textbf{(Uniform minimax floor.)} The minimax squared-error risk \(R_T(t_0,\zeta,C)\) of \cref{obj:def:minimax-risk} satisfies
+\[
+\frac{\exp(-1/4)}{64T}\le R_T(t_0,\zeta,C).
+\]
+\item \textbf{(Pointwise two-experiment floor.)} For every observable-data estimator \(\widehat\theta\), viewed as a measurable function of the revealed alphabet and the policies, under the usual squared-error integrability conditions for the observed trajectory laws of \(M_T^{-}\) and \(M_T^{+}\),
+\[
+\frac{\exp(-1/4)}{64T}
+\le
+\max\left\{
+\mathbb E_{M_T^{-}}^{\mathrm{obs}}
+\left[
+\left(\widehat\theta(1,b_{M_T^{-}},e_{M_T^{-}};\mathsf O_T)-\theta(K_{M_T^{-}},e_{M_T^{-}})\right)^2
+\right],
+\mathbb E_{M_T^{+}}^{\mathrm{obs}}
+\left[
+\left(\widehat\theta(1,b_{M_T^{+}},e_{M_T^{+}};\mathsf O_T)-\theta(K_{M_T^{+}},e_{M_T^{+}})\right)^2
+\right]
+\right\},
+\]
+where \(\theta(K,e)\) is the stationary target-policy mean reward of \cref{obj:def:target-value}.
+\end{itemize}
+\end{lemmav}

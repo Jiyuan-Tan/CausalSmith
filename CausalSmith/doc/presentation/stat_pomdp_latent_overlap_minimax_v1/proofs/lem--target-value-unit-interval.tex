@@ -1,0 +1,193 @@
+\begin{proof}[Proof of \cref{obj:lem:target-value-unit-interval}]
+Let \(P_b\) and \(P_e\) be the joint-state transition kernels induced by the behavior and target policies, and let \(d_b\) and \(d_e\) be their selected stationary laws. For a joint state \(s=(x,h)\) and action \(a\in\mathcal A\), define the one-step reward mean
+\[
+\bar r(s,a)
+:=
+\int r\,K(d r,d x',d h'\mid s,a).
+\]
+We also use the local notation
+\[
+g_e(s)
+:=
+\sum_{a\in\mathcal A} e(a\mid x)\bar r(s,a),
+\]
+which is the target-policy reward regression appearing inside \(\theta(K,e)\). With this notation, \cref{obj:def:target-value} gives
+\[
+\theta(K,e)=\sum_s d_e(s)g_e(s).
+\]
+
+\begin{enumerate}
+\item Since \(T\ge1\), consider epoch \(0\). Let \(\eta_0\) denote the unique empty pre-history value at epoch \(0\), and define the finite state-history and state-action-history spaces
+\[
+\mathsf H^{\mathrm{st}}_0
+:=
+\{(\eta_0,s):s\in\mathcal S\},
+\qquad
+\mathsf H^{\mathrm{act}}_0
+:=
+\mathsf H^{\mathrm{st}}_0\times\mathcal A.
+\]
+For \(\upsilon=(\eta_0,s)\in\mathsf H^{\mathrm{st}}_0\), write \(\operatorname{cur}(\upsilon)=s\). Let
+\[
+\Gamma^{\mathrm{st}}_0:=(\eta_0,S_0),
+\qquad
+\Gamma^{\mathrm{act}}_0:=(\Gamma^{\mathrm{st}}_0,A_0),
+\qquad
+\mu_0:=\mathcal L(\Gamma^{\mathrm{act}}_0).
+\]
+For every \(\gamma=(\upsilon,a)\in\mathsf H^{\mathrm{act}}_0\) and every measurable \(B\subseteq\mathbb R\times\mathcal S\), define the row selected by the whole state-action history view as
+\[
+\mathsf{row}_0(\gamma;B)
+:=
+K(B\mid \operatorname{cur}(\upsilon),a).
+\]
+By the probability-kernel part of \cref{obj:ass:pomdp-kernel}, \(\mathsf{row}_0(\gamma;\cdot)\) is a probability measure for every \(\gamma\). Define the total function
+\[
+J_0(\upsilon,a)
+:=
+\int r\,\mathsf{row}_0((\upsilon,a);d r,d x',d h')
+=
+\int r\,K(d r,d x',d h'\mid \operatorname{cur}(\upsilon),a),
+\]
+for all \((\upsilon,a)\in\mathsf H^{\mathrm{act}}_0\); bounds for \(J_0\) will be asserted only on the full-measure set obtained below. Thus, when \(\upsilon=(\eta_0,s)\), one has \(J_0(\upsilon,a)=\bar r(s,a)\).
+
+By \cref{obj:ass:bounded-reward}, \(|Y_0|\le1\) holds almost surely under the trajectory law, so the event
+\[
+\mathcal R_0
+:=
+\{(\gamma,(r,s'))\in\mathsf H^{\mathrm{act}}_0\times(\mathbb R\times\mathcal S): |r|\le1\}
+\]
+has full mass under the law of \((\Gamma^{\mathrm{act}}_0,(Y_0,S_1))\). After both sides are pushed forward to the epoch-\(0\) conditioning view, \cref{obj:ass:pomdp-kernel} gives the composition-product identity
+\[
+\mathcal L\{(\Gamma^{\mathrm{act}}_0,(Y_0,S_1))\in d\gamma\,d(r,s')\}
+=
+\mu_0(d\gamma)\,\mathsf{row}_0(\gamma;d r,d s').
+\]
+The section argument is now the standard disintegration fact for a composition product: if a set has full mass under the displayed law, then for \(\mu_0\)-almost every \(\gamma\) its section has full mass under the row \(\mathsf{row}_0(\gamma;\cdot)\). Applying this to \(\mathcal R_0\) gives
+\[
+\mathsf{row}_0\!\left(\gamma;\{(r,x',h'):\ |r|\le1\}\right)=1
+\quad\text{for }\mu_0\text{-almost every }\gamma.
+\]
+For every such \(\gamma=(\upsilon,a)\), the row is a probability measure and the coordinate function \((r,x',h')\mapsto r\) is bounded by \(1\) in absolute value almost surely under that row. The usual norm bound for the integral of an almost-surely bounded real function under a probability measure therefore gives
+\[
+\begin{aligned}
+|J_0(\upsilon,a)|
+&=
+\left|
+\int r\,\mathsf{row}_0((\upsilon,a);d r,d x',d h')
+\right| \\
+&\le
+\int |r|\,\mathsf{row}_0((\upsilon,a);d r,d x',d h')
+\le 1 .
+\end{aligned}
+\]
+Equivalently, using the definition of \(\mathsf{row}_0\),
+\[
+|J_0(\upsilon,a)|
+=
+\left|
+\int r\,K(d r,d x',d h'\mid \operatorname{cur}(\upsilon),a)
+\right|
+\le1
+\quad\text{for }\mu_0\text{-almost every }(\upsilon,a).
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.targetValue_mem_unit_of_class
+
+\item Fix \(s=(x,h)\) and \(a\in\mathcal A\) with \(d_b(s)>0\) and \(b(a\mid x)>0\). Put
+\[
+\upsilon_s:=(\eta_0,s)\in\mathsf H^{\mathrm{st}}_0,
+\qquad
+\gamma_{s,a}:=(\upsilon_s,a)\in\mathsf H^{\mathrm{act}}_0.
+\]
+The singleton mass of \(\gamma_{s,a}\) is obtained from three separate ingredients, none of which gives it alone. The first is \cref{obj:ass:sequential-ignorability}, which says only that the law \(\mu_0\) of \(\Gamma^{\mathrm{act}}_0\) factors as the law of \(\Gamma^{\mathrm{st}}_0\) followed by the behavior kernel \(b(\cdot\mid X_0)\), so that
+\[
+\mu_0\{\gamma_{s,a}\}
+=
+\Pr\{\Gamma^{\mathrm{st}}_0=\upsilon_s\}\,b(a\mid x).
+\]
+The second ingredient is the epoch-\(0\) history projection: the pre-history coordinate at epoch \(0\) is forced to be \(\eta_0\), so the event \(\{\Gamma^{\mathrm{st}}_0=\upsilon_s\}\) is exactly \(\{S_0=s\}\). The third is \cref{obj:ass:stationary-start}, which identifies the law of \(S_0\) and gives
+\[
+\Pr\{\Gamma^{\mathrm{st}}_0=\upsilon_s\}=\Pr(S_0=s)=d_b(s).
+\]
+Combining the last two displays with the two strict-positivity hypotheses yields
+\[
+\mu_0\{\gamma_{s,a}\}
+=
+d_b(s)b(a\mid x)>0.
+\]
+If a full-\(\mu_0\)-measure set omitted this singleton, its complement would have positive \(\mu_0\)-mass. Hence the almost-sure bound from the previous step holds at \(\gamma_{s,a}\), and therefore
+\[
+|\bar r(s,a)|\le1
+\qquad
+\text{whenever } d_b(s)>0 \text{ and } b(a\mid x)>0.
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.targetValue_mem_unit_of_class
+
+\item The selected behavior and target stationary laws are probability vectors: by \cref{obj:synth_9} each \(d_p\) lies in \(\Delta(\mathcal S)\), the simplex of nonnegative probability vectors on the joint-state alphabet, fixed by the corresponding policy-induced kernel. Unpacking this simplex membership gives
+\[
+d_b(s)\ge0,
+\qquad
+d_e(s)\ge0
+\quad\text{for all }s,
+\qquad
+\sum_s d_e(s)=1.
+\]
+Now suppose \(d_e(s)>0\) and \(e(a\mid x)>0\). By \cref{obj:ass:latent-stationary-overlap},
+\[
+d_e(s)\le C\,d_b(s).
+\]
+If \(d_b(s)\) were not positive, its nonnegativity would force \(d_b(s)=0\), and substituting that into the displayed overlap inequality would give \(0<d_e(s)\le C\cdot0=0\), a contradiction. This uses the displayed overlap inequality, the nonnegativity \(d_b(s)\ge0\), and the local hypothesis \(d_e(s)>0\); the radius condition \(C\ge1\) plays no further role in this step. Thus \(d_b(s)>0\).
+
+The action-coordinate argument uses the local hypothesis \(e(a\mid x)>0\), the nonnegativity of the behavior carrier, and the policy-overlap inequality. The inequality comes from \cref{obj:ass:policy-overlap}, which for the policy-overlap constant \(L\) gives
+\[
+e(a\mid x)\le L\,b(a\mid x);
+\]
+the nonnegativity \(b(a\mid x)\ge0\) comes from \cref{obj:ass:sequential-ignorability}, which is where \(b\) is declared a probability vector. If \(b(a\mid x)\) were not positive, that nonnegativity would force \(b(a\mid x)=0\), whence \(0<e(a\mid x)\le L\cdot0=0\), a contradiction. Thus \(b(a\mid x)>0\). The row bound from the previous step applies, and hence
+\[
+|\bar r(s,a)|\le1
+\qquad
+\text{whenever } d_e(s)>0 \text{ and } e(a\mid x)>0.
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.targetValue_mem_unit_of_class
+
+\item For any \(s=(x,h)\) with \(d_e(s)>0\), the target reward regression satisfies
+\[
+\begin{aligned}
+|g_e(s)|
+&=
+\left|\sum_{a\in\mathcal A} e(a\mid x)\bar r(s,a)\right|  \\
+&\le
+\sum_{a\in\mathcal A} \left|e(a\mid x)\bar r(s,a)\right| \\
+&=
+\sum_{a\in\mathcal A} e(a\mid x)|\bar r(s,a)| \\
+&\le
+\sum_{a\in\mathcal A} e(a\mid x)
+=1.
+\end{aligned}
+\]
+The equality in the third line uses \(e(a\mid x)\ge0\); the last inequality uses the preceding step when \(e(a\mid x)>0\), while the corresponding summand is zero when \(e(a\mid x)=0\); and the final equality is the target-policy probability-vector property in \cref{obj:ass:policy-overlap}. Two distinct facts meet in that last equality, and they come from different places. Which set the sum runs over is a carrier fact: \cref{obj:synth_1} fixes the action coordinate as the Boolean two-point alphabet identified with \(\mathcal A=\{0,1\}\), and it imposes nothing else --- in particular no nonnegativity and no normalization. That the two values at \(x\) are nonnegative and add to one is the separate probability-vector restriction on \(e\), which is imposed in \cref{obj:ass:policy-overlap}. So the normalization is the sum of exactly two action probabilities at \(x\), and no larger action space is involved.
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.targetValue_mem_unit_of_class
+
+\item Finally,
+\[
+\begin{aligned}
+|\theta(K,e)|
+&=
+\left|\sum_s d_e(s)g_e(s)\right| \\
+&\le
+\sum_s |d_e(s)g_e(s)| \\
+&=
+\sum_s d_e(s)|g_e(s)| \\
+&\le
+\sum_s d_e(s)
+=1.
+\end{aligned}
+\]
+Here \(d_e(s)\ge0\) gives the third line; in the fourth line the summand is zero when \(d_e(s)=0\), and otherwise the regression bound from the previous step applies. Thus
+\[
+-1\le \theta(K,e)\le 1,
+\]
+which is exactly membership of \(\theta(K,e)\) in the closed real interval \([-1,1]\).
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.targetValue_mem_unit
+\end{enumerate}
+\end{proof}

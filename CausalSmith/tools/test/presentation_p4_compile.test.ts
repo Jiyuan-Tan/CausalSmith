@@ -12,6 +12,8 @@ vi.mock("node:child_process", async (importOriginal) => ({
 
 import { stageP4, stampCommitIds } from "../src/presentation/stages/p4_emit.js";
 import { recordP2Assembly } from "../src/presentation/assembly_freshness.js";
+import { UNREACHABLE, parseBib } from "../src/presentation/citations.js";
+import { citationVerifyCacheKey } from "../src/presentation/stages/p4_emit.js";
 
 const dirs: string[] = [];
 afterEach(async () => {
@@ -132,6 +134,69 @@ describe("P4 bibliography verification preserves publication metadata", () => {
     expect(await readFile(join(f.outDir, "references.bib"), "utf8")).toBe(handBib);
     expect(f.io.state.notes).toContain("P4: bib entry published kept with caveat: hand-verified (ISBN 9780940600324, publisher catalogue)");
     expect(f.runCodex).not.toHaveBeenCalled();
+  });
+
+  it("replays a registry-settled verdict from the bundle cache instead of looking the entry up again", async () => {
+    const f = await citedFixture(2021);
+    const lookup = vi.fn(f.io.ctx.deps.lookup!);
+    f.io.ctx.deps.lookup = lookup;
+    await expect(stageP4(f.io)).rejects.toThrow("post-compile sentinel");
+    await expect(stageP4(f.io)).rejects.toThrow("post-compile sentinel");
+    expect(lookup).toHaveBeenCalledTimes(1);
+    expect(f.io.state.notes.filter(n => n.includes("published kept with caveat: year 2024 vs record 2021")).length).toBe(2);
+  });
+
+  it("looks an entry up again when its content changed", async () => {
+    const f = await citedFixture(2024);
+    const lookup = vi.fn(f.io.ctx.deps.lookup!);
+    f.io.ctx.deps.lookup = lookup;
+    await expect(stageP4(f.io)).rejects.toThrow("post-compile sentinel");
+    await writeFile(join(f.outDir, "references.bib"), bib.replace("pages = {101--120}", "pages = {101--121}"));
+    await expect(stageP4(f.io)).rejects.toThrow("post-compile sentinel");
+    expect(lookup).toHaveBeenCalledTimes(2);
+  });
+
+  it("never caches an unreachable registry, so the next emit re-verifies", async () => {
+    const f = await citedFixture(2024);
+    const lookup = vi.fn(async (): Promise<typeof UNREACHABLE> => UNREACHABLE);
+    f.io.ctx.deps.lookup = lookup;
+    await expect(stageP4(f.io)).rejects.toThrow("post-compile sentinel");
+    await expect(stageP4(f.io)).rejects.toThrow("post-compile sentinel");
+    expect(lookup).toHaveBeenCalledTimes(2);
+    expect(f.io.state.notes.filter(n => n.includes("external registry unreachable")).length).toBe(2);
+  });
+
+  it("never caches a failed verification, so a rerun re-checks the entry", async () => {
+    const f = await citedFixture(2024, "Unrelated Infinite Limits");
+    const lookup = vi.fn(f.io.ctx.deps.lookup!);
+    f.io.ctx.deps.lookup = lookup;
+    await expect(stageP4(f.io)).rejects.toThrow("failed re-verification");
+    await expect(stageP4(f.io)).rejects.toThrow("failed re-verification");
+    expect(lookup).toHaveBeenCalledTimes(2);
+  });
+
+  it("never caches a verdict built on a record found after another registry failed", async () => {
+    const f = await citedFixture(2024);
+    const lookup = vi.fn(async () => ({
+      title: "Finite Sampling Bounds", authorFamily: "Morgan", author: "Morgan, Alex", year: 2024, authoritative: true, degraded: true,
+    }));
+    f.io.ctx.deps.lookup = lookup;
+    await expect(stageP4(f.io)).rejects.toThrow("post-compile sentinel");
+    await expect(stageP4(f.io)).rejects.toThrow("post-compile sentinel");
+    expect(lookup).toHaveBeenCalledTimes(2);
+  });
+
+  it("looks up again over a malformed cached value, then caches the settled verdict", async () => {
+    const f = await citedFixture(2024);
+    const lookup = vi.fn(f.io.ctx.deps.lookup!);
+    f.io.ctx.deps.lookup = lookup;
+    const key = citationVerifyCacheKey(parseBib(bib)[0]!);
+    await writeFile(join(f.outDir, "citation_verify_cache.json"), JSON.stringify({ [key]: { key: "published", verdict: "unreachable", detail: "" } }));
+    await expect(stageP4(f.io)).rejects.toThrow("post-compile sentinel");
+    await expect(stageP4(f.io)).rejects.toThrow("post-compile sentinel");
+    expect(lookup).toHaveBeenCalledTimes(1);
+    const cached = JSON.parse(await readFile(join(f.outDir, "citation_verify_cache.json"), "utf8"));
+    expect(cached[key]).toEqual({ key: "published", verdict: "exact", detail: "" });
   });
 
   it("still stops before compilation or model calls for a different work", async () => {

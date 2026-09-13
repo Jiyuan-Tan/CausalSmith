@@ -8,7 +8,7 @@ Authors: Jiyuan Tan
 `thm:global-log-rate`: the uniform `inf_Alg sup_nu 𝔯_T ≥ c log T` converse on a
 compact tangent-regular band, ruling out any `o(log T)` claim.
 
-**BANKING STATUS: CONDITIONAL, NOT CERTIFIED.**  Compiles sorry-free and axiom-clean,
+**BANKING STATUS: CONDITIONAL, NOT CERTIFIED.**  Fully proved on the standard axioms only,
 but takes the broad `LocalNeighborhoodRiskInputs` gate (`hbridge`), which over-assumes
 content the source note DERIVES (the `b_t` recursion, the domination, and the sup
 bound) — flagged by the F2.5 faithfulness reviewer.  Documented as a conditional

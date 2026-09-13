@@ -41,7 +41,7 @@ upper base) and the converse (no budgeted schedule beats the lower base) — so 
 pointwise low-budget exponential base `ρ(q)/q` (→ `4/q` as `q ↓ 0`), the intrinsic exponent is
 `2β`, and the equal-spacing `β/q` factor is not minimax once the rollout uses more than `β+1`
 nodes. The gate `EhlichZellerMesh` enters only through `oversampled_chebyshev_lobatto_norming`,
-so it is threaded there, not on this signature.
+where the proved lemma `ehlichZellerMesh` discharges it, so this theorem carries no gate hypothesis.
 
 Symbol spaces realized here: the oversampling ratio `c ∈ (1,∞)` is pinned by the inner
 `1 < c` hypothesis (carrier `c : ℝ` + range predicate `1 < c`, bound AFTER the uniform

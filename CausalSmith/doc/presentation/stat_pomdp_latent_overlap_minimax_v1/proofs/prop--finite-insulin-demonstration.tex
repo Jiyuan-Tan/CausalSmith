@@ -1,0 +1,170 @@
+\begin{proof}[Proof of \cref{obj:prop:finite-insulin-demonstration}]
+Fix \(T\). We verify the five asserted clauses.
+
+\begin{enumerate}
+\item By \cref{obj:def:insulin-grid}, the observed coordinate has
+\[
+|\mathcal X|
+=
+|\{50,100,150,200,250\}|\,
+|\{0,31,850\}|^2\,|\{0,1\}|
+=
+5\cdot 3^2\cdot 2
+=
+90,
+\]
+and the latent diet-memory coordinate has
+\[
+|\mathcal H|=|\{0,78\}|^2=2^2=4.
+\]
+Thus the joint-state alphabet \(\mathcal S=\mathcal X\times\mathcal H\) has
+\[
+|\mathcal S|=90\cdot4=360.
+\]
+% lean: insulinGrid_card
+
+\item For a memoryless policy \(p\in\{b,e\}\), let \(P_p^{(T)}:\mathcal S\times\mathcal S\to[0,1]\) be the reward-marginalized joint-state transition matrix
+\[
+P_p^{(T)}(s,s')
+:=
+\sum_{a\in\{0,1\}}p(a\mid s_X)\,
+K_T\{(r_{\mathrm{out}},\bar s):\bar s=s'\mid s,a\},
+\qquad s,s'\in\mathcal S .
+\]
+By the construction in \cref{obj:def:insulin-grid}, the embedded policy kernel of the refreshed insulin experiment is this matrix. Hence, for every pair of probability laws \(\nu,\nu'\) on \(\mathcal S\), \cref{obj:lem:insulin-policy-contraction} gives
+\[
+\|\nu P_p^{(T)}-\nu'P_p^{(T)}\|_{\mathrm{TV}}
+\le
+\frac12\|\nu-\nu'\|_{\mathrm{TV}} .
+\]
+Applying this with \(p=b\) and \(p=e\) is exactly \cref{obj:ass:uniform-contraction} with \(\alpha=1/2\). % lean: insulinGrid_contraction
+
+\item The behavior probabilities are
+\[
+b(1\mid x)=\frac3{10},
+\qquad
+b(0\mid x)=\frac7{10},
+\]
+and the target policy is a probability law with \(0\le e(a\mid x)\le1\). Therefore
+\[
+e(1\mid x)\le 1=\frac{10}{3}\,\frac3{10}
+=\frac{10}{3}b(1\mid x),
+\]
+and
+\[
+e(0\mid x)\le 1\le \frac73
+=\frac{10}{3}\,\frac7{10}
+=\frac{10}{3}b(0\mid x).
+\]
+Thus \cref{obj:ass:policy-overlap} holds with \(L=10/3\). % lean: insulinGrid_policyOverlap
+
+\item Let \(d_b\) and \(d_e\) be the selected stationary laws of \(P_b^{(T)}\) and \(P_e^{(T)}\). The behavior and target policies in \cref{obj:def:insulin-grid} are probability vectors; together with the contraction estimate supplied by \cref{obj:lem:insulin-policy-contraction}, \cref{obj:lem:insulin-stationary-law} gives
+\[
+d_p(s')
+=
+\sum_{s\in\mathcal S}d_p(s)P_p^{(T)}(s,s'),
+\qquad
+\sum_{s\in\mathcal S}d_p(s)=1,
+\qquad
+ d_p(s)\ge0,
+\]
+for \(p\in\{b,e\}\) and all \(s'\in\mathcal S\).
+Write \(S_t\) for the joint state at time \(t\). For \(a\in\{0,1\}\) and \(s,s'\in\mathcal S\), define the nonrefresh action kernel as follows. If
+\[
+s=(g,d_1,d_2,x_1,x_2,a_1),
+\qquad
+s'=(g',d'_1,d'_2,x'_1,x'_2,a'_1),
+\]
+let \(\varphi_{s,a}(g')\) be the probability that the Gaussian clipping-and-rounding rule in \cref{obj:def:insulin-grid} produces next glucose value \(g'\), and set this probability to zero when \(g'\) is outside the glucose grid. Let
+\[
+\pi_D(0)=\frac45,
+\qquad
+\pi_D(78)=\frac15,
+\qquad
+\pi_E(0)=\pi_E(31)=\frac25,
+\qquad
+\pi_E(850)=\frac15,
+\]
+with \(\pi_D\) and \(\pi_E\) equal to zero off their displayed supports. Conditional on the nonrefresh branch and action \(a\), \cref{obj:def:insulin-grid} draws the new diet and activity coordinates with laws \(\pi_D\) and \(\pi_E\), shifts the old memory coordinates, and stores the current action. Hence the nonrefresh probability of moving from \(s\) to \(s'\) under action \(a\) is
+\[
+\omega_a(s,s')
+:=
+\varphi_{s,a}(g')\,\pi_D(d'_1)\,\pi_E(x'_1)\,
+\mathbf 1\{d'_2=d_1\}\,
+\mathbf 1\{x'_2=x_1\}\,
+\mathbf 1\{a'_1=a\}.
+\]
+All factors in this display are nonnegative, so \(\omega_a(s,s')\ge0\). The refresh branch in \cref{obj:def:insulin-grid} has probability \(1/2\) and draws the next full state uniformly from the \(360\)-point set \(\mathcal S\), so its contribution to any fixed next state \(s'\) is
+\[
+\frac12\cdot\frac1{360}=\frac1{720}.
+\]
+The remaining branch has probability \(1/2\), and the policy-induced kernel averages the action-specific nonrefresh probabilities with weights \(p(a\mid s_X)\). Thus, for every memoryless policy \(p\) on \(\{0,1\}\),
+\[
+P_p^{(T)}(s,s')
+=
+\frac1{720}
++
+\frac12\sum_{a\in\{0,1\}}p(a\mid s_X)\omega_a(s,s'),
+\qquad s,s'\in\mathcal S .
+\]
+Since the behavior policy has nonnegative action probabilities, this identity gives the pointwise minorization
+\[
+P_b^{(T)}(s,s')
+=
+\frac1{720}
++\frac12\sum_{a\in\{0,1\}}b(a\mid s_X)\omega_a(s,s')
+\ge
+\frac1{720},
+\qquad s,s'\in\mathcal S .
+\]
+The stationary-minorization calculation is then
+\[
+d_b(s')
+=
+\sum_{s\in\mathcal S}d_b(s)P_b^{(T)}(s,s')
+\ge
+\sum_{s\in\mathcal S}d_b(s)\frac1{720}
+=
+\frac1{720},
+\qquad s'\in\mathcal S .
+\]
+Since \(d_e\) is a probability vector,
+\[
+d_e(s')\le\sum_{\bar s\in\mathcal S}d_e(\bar s)=1.
+\]
+Combining the last two displays yields
+\[
+d_e(s')\le 1\le 720\,d_b(s'),
+\qquad s'\in\mathcal S,
+\]
+and \(720\ge1\). This proves \cref{obj:ass:latent-stationary-overlap} with \(C=720\). % lean: insulinGrid_stationaryOverlap
+
+\item For the same horizon \(T\), write \(K\) for the transition kernel of \(\mathcal I_{\mathrm{grid}}\), \(b\) and \(e\) for its behavior and target policies, and \(d_b\) for the stationary law induced by \(b\). The stationary immediate-weighting bias diagnostic is
+\[
+\Delta_{\mathrm{imm}}(T)
+=
+\sum_s d_b(s)
+\sum_{a\in\{0,1\}}
+b(a\mid s_X)\,
+\frac{e(a\mid s_X)}{b(a\mid s_X)}
+\int r\,K(ds',dr\mid s,a)
+-
+\theta(K,e).
+\]
+For this diagnostic on the refreshed finite insulin adaptation \(\mathcal I_{\mathrm{grid}}\) of \cref{obj:def:insulin-grid}, \cref{obj:lem:insulin-bias-certificate} supplies the interval certificate
+\[
+-\frac6{1000}
+<
+\Delta_{\mathrm{imm}}(T)
+<
+-\frac{58}{10000},
+\]
+which is the displayed bound
+\[
+-0.006<\Delta_{\mathrm{imm}}(T)<-0.0058.
+\]
+% lean: insulinGrid_bias_certificate
+\end{enumerate}
+
+The five displayed conclusions are precisely the conjunction asserted for the refreshed insulin experiment. % lean: finite_insulin_demonstration
+\end{proof}

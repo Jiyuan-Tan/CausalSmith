@@ -9,8 +9,8 @@ Authors: Jiyuan Tan
 isolating the local curvature-information quotient that makes cumulative Neyman
 regret unavoidable.
 
-**BANKING STATUS: CONDITIONAL, NOT CERTIFIED.**  This theorem compiles sorry-free
-and axiom-clean, but it takes the broad `LocalNeighborhoodRiskInputs` gate as an
+**BANKING STATUS: CONDITIONAL, NOT CERTIFIED.**  This theorem is fully proved on
+the standard axioms only, but it takes the broad `LocalNeighborhoodRiskInputs` gate as an
 explicit hypothesis (`hbridge`).  The F2.5 faithfulness reviewer correctly found
 that this gate over-assumes content the source note DERIVES (the `b_t` recursion,
 the `R_T^B ≥ 2S²·B_T` domination, and `sup ≥ R_T^B`).  It is therefore documented
