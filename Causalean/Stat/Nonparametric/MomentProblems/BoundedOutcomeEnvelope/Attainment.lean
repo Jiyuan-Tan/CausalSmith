@@ -27,7 +27,7 @@ extremal moments `(μᵥ, v², extremalM3 μᵥ (v²), extremalM4 μᵥ (v²))`;
 namespace Causalean.Stat.MomentProblems.BoundedOutcomeEnvelope
 
 open Causalean.Stat.MomentProblems.ResidualQuadratic.MomentAlgebra
-open Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge (moment l2ResidualQuadratic)
+open Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge (l2ResidualQuadratic)
 open MeasureTheory Set
 open scoped Real
 
@@ -176,7 +176,7 @@ theorem extremalW_nonneg (v : ℝ) (hv0 : 0 < v) (hv1 : v < 1) :
 `integral_add_measure`, `integral_smul_measure`, `integral_dirac`, using `w_i ≥ 0` to convert
 `ENNReal.ofReal wᵢ` back to `wᵢ`, and `(0:ℝ)^k = 0`, `(1:ℝ)^k = 1`. -/
 theorem extremalMeasure_moment_pow (v : ℝ) (hv0 : 0 < v) (hv1 : v < 1) {k : ℕ} (hk : 1 ≤ k) :
-    moment (extremalMeasure v) k = extremalW1 v * (extremalSupp v) ^ k + extremalW2 v := by
+    rawMoment (extremalMeasure v) k = extremalW1 v * (extremalSupp v) ^ k + extremalW2 v := by
   have hw := extremalW_nonneg v hv0 hv1
   have hk0 : k ≠ 0 := by omega
   let f : ℝ → ℝ := fun y => y ^ k
@@ -192,7 +192,7 @@ theorem extremalMeasure_moment_pow (v : ℝ) (hv0 : 0 < v) (hv1 : v < 1) {k : �
     Integrable.smul_measure
       (μ := Measure.dirac (1 : ℝ)) (c := ENNReal.ofReal (extremalW2 v))
       (integrable_dirac (f := f) (a := (1 : ℝ)) (by simp [f, enorm])) (by simp)
-  unfold moment extremalMeasure
+  unfold rawMoment extremalMeasure
   change ∫ y, f y ∂(ENNReal.ofReal (extremalW0 v) • Measure.dirac (0 : ℝ)
       + ENNReal.ofReal (extremalW1 v) • Measure.dirac (extremalSupp v)
       + ENNReal.ofReal (extremalW2 v) • Measure.dirac (1 : ℝ)) =
@@ -233,7 +233,7 @@ theorem extremalMeasure_supp (v : ℝ) (hv0 : 0 < v) (hv1 : v < 1) :
 
 /-- First moment: `∫ y ∂(extremalMeasure v) = μᵥ`. Algebraic: `w₁ xᵥ + w₂ = μᵥ`. -/
 theorem extremalMeasure_moment1 (v : ℝ) (hv0 : 0 < v) (hv1 : v < 1) :
-    moment (extremalMeasure v) 1 = maximizingRoot v := by
+    rawMoment (extremalMeasure v) 1 = maximizingRoot v := by
   rw [extremalMeasure_moment_pow v hv0 hv1 (by norm_num : 1 ≤ 1)]
   have hmem := maximizingRoot_mem v hv0 hv1
   have hx := extremalSupp_mem v hv0 hv1
@@ -245,7 +245,7 @@ theorem extremalMeasure_moment1 (v : ℝ) (hv0 : 0 < v) (hv1 : v < 1) :
 
 /-- Second moment: `∫ y² ∂(extremalMeasure v) = v²`. Algebraic: `w₁ xᵥ² + w₂ = v²`. -/
 theorem extremalMeasure_moment2 (v : ℝ) (hv0 : 0 < v) (hv1 : v < 1) :
-    moment (extremalMeasure v) 2 = v ^ 2 := by
+    rawMoment (extremalMeasure v) 2 = v ^ 2 := by
   rw [extremalMeasure_moment_pow v hv0 hv1 (by norm_num : 1 ≤ 2)]
   have hmem := maximizingRoot_mem v hv0 hv1
   have hx := extremalSupp_mem v hv0 hv1
@@ -258,7 +258,7 @@ theorem extremalMeasure_moment2 (v : ℝ) (hv0 : 0 < v) (hv1 : v < 1) :
 /-- Third moment matches the extremal `M₃`: `w₁ xᵥ³ + w₂ = extremalM3 μᵥ (v²)`. Pure algebra
 (`field_simp`/`ring`) using `xᵥ = extremalMid μᵥ (v²)` and the weight formulas. -/
 theorem extremalMeasure_moment3 (v : ℝ) (hv0 : 0 < v) (hv1 : v < 1) :
-    moment (extremalMeasure v) 3 = extremalM3 (maximizingRoot v) (v ^ 2) := by
+    rawMoment (extremalMeasure v) 3 = extremalM3 (maximizingRoot v) (v ^ 2) := by
   rw [extremalMeasure_moment_pow v hv0 hv1 (by norm_num : 1 ≤ 3)]
   set u := maximizingRoot v with hu
   set q := v ^ 2 with hq
@@ -293,7 +293,7 @@ theorem extremalMeasure_moment3 (v : ℝ) (hv0 : 0 < v) (hv1 : v < 1) :
 
 /-- Fourth moment matches the extremal `M₄`: `w₁ xᵥ⁴ + w₂ = extremalM4 μᵥ (v²)`. Pure algebra. -/
 theorem extremalMeasure_moment4 (v : ℝ) (hv0 : 0 < v) (hv1 : v < 1) :
-    moment (extremalMeasure v) 4 = extremalM4 (maximizingRoot v) (v ^ 2) := by
+    rawMoment (extremalMeasure v) 4 = extremalM4 (maximizingRoot v) (v ^ 2) := by
   rw [extremalMeasure_moment_pow v hv0 hv1 (by norm_num : 1 ≤ 4)]
   set u := maximizingRoot v with hu
   set q := v ^ 2 with hq
@@ -331,7 +331,7 @@ theorem extremalMeasure_admissible (v : ℝ) (hv0 : 0 < v) (hv1 : v < 1) :
     Admissible v (extremalMeasure v) := by
   refine ⟨extremalMeasure_isProb v hv0 hv1, extremalMeasure_supp v hv0 hv1, ?_⟩
   have := extremalMeasure_moment2 v hv0 hv1
-  simpa [moment] using this
+  simpa [rawMoment] using this
 
 /-- **The extremal law realizes `ρ(v)`.** Its residual equals the envelope value:
 `l2ResidualQuadratic (extremalMeasure v) = rhoEnvelope v`.

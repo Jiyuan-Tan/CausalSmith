@@ -58,17 +58,32 @@ export interface Library {
   modules: Record<string, string | null>;
 }
 
-function isSubstrateModule(module: string): boolean {
-  return module === "Causalean.Substrate" || module.startsWith("Causalean.Substrate.");
+/** Top-level library areas kept off the public explorer: `Substrate` holds temporary
+ *  study-mode helpers, and `Tactic` holds proof-automation infrastructure rather than
+ *  mathematical content. Their declarations still live in the index; the site hides them. */
+export const HIDDEN_AREAS: readonly string[] = ["Substrate", "Tactic"];
+
+/** Whether a top-level area (the first path segment below `Causalean/`) is hidden from the explorer. */
+export function isHiddenLibraryArea(area: string): boolean {
+  return HIDDEN_AREAS.includes(area);
+}
+
+function isHiddenModule(module: string): boolean {
+  return HIDDEN_AREAS.some(
+    (area) => module === `Causalean.${area}` || module.startsWith(`Causalean.${area}.`),
+  );
 }
 
 function isPublicLibraryDecl(d: LibDecl): boolean {
-  return !d.file.startsWith("Causalean/Substrate/") && !isSubstrateModule(d.module);
+  return (
+    !HIDDEN_AREAS.some((area) => d.file.startsWith(`Causalean/${area}/`)) &&
+    !isHiddenModule(d.module)
+  );
 }
 
 function publicModules(modules: Record<string, string | null>): Record<string, string | null> {
   return Object.fromEntries(
-    Object.entries(modules).filter(([module]) => !isSubstrateModule(module)),
+    Object.entries(modules).filter(([module]) => !isHiddenModule(module)),
   );
 }
 

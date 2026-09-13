@@ -21,10 +21,12 @@ noncomputable section
 
 namespace Causalean.Graph.FiniteDensity
 
+open Causalean.Mathlib.MeasureTheory.FiniteCoordinate
+
 variable (V : Type*) [DecidableEq V] [Fintype V]
 
-/-- A [finite vertex population](hyp:V) determines [the ambient finite unit cube of real
-assignments](goal). -/
+/-- A [vertex population](hyp:V) determines [the unit cube of real assignments](goal): the set of
+assignments whose every coordinate lies in the closed interval from zero to one. -/
 def unitCube : Set (V → ℝ) :=
   Set.pi Set.univ (fun _ ↦ Set.Icc (0 : ℝ) 1)
 
@@ -94,9 +96,11 @@ noncomputable section
 
 namespace Causalean.Graph.FiniteDensity
 
+open Causalean.Mathlib.MeasureTheory.FiniteCoordinate
+
 variable (V : Type*) [DecidableEq V] [Fintype V]
 
-/-- A [finite coordinate type](hyp:V) and [a real assignment](hyp:v) determine [the
+/-- A [coordinate type](hyp:V) and [a real assignment](hyp:v) determine [the
 coordinatewise clamp to the closed unit cube](goal), [by clamping each coordinate between zero
 and one](step:1). -/
 def clampCube (v : V → ℝ) : V → ℝ :=
@@ -166,6 +170,8 @@ noncomputable section
 
 namespace Causalean.Graph.FiniteDensity
 
+open Causalean.Mathlib.MeasureTheory.FiniteCoordinate
+
 /-- For a [finite coordinate type](hyp:V), [the product of unit-interval Lebesgue restrictions is
 Lebesgue volume restricted to the finite unit cube](goal). -/
 theorem unitCubeReference_eq_volume_restrict
@@ -188,6 +194,8 @@ open Set Function MeasureTheory
 noncomputable section
 
 namespace Causalean.Graph.FiniteDensity
+
+open Causalean.Mathlib.MeasureTheory.FiniteCoordinate
 
 variable {V : Type*} [DecidableEq V] [Fintype V]
 
@@ -453,16 +461,18 @@ theorem unitCubeFactorizationOfRealCubeFactors_factor_eq
   simp [unitCubeFactorizationOfRealCubeFactors,
     unitCubeFactorizationOfCubeFactors, clampedFactor, clampCube_eq_self V hv]
 
-/-- [Nonnegative real-valued cube factors](hyp:p) determine [their cube-restricted observational
-product-density measure](goal), [by converting their joint real product to an extended
-nonnegative density](step:1). -/
+/-- [Real-valued cube factors](hyp:p), with no sign restriction, determine [their cube-restricted
+observational product-density measure](goal): Lebesgue measure restricted to the unit cube, [weighted
+by the joint product of the factors, where a negative product is truncated to zero](step:1). -/
 def realCubeProductDensityMeasure (p : ∀ i : V, (V → ℝ) → ℝ) : Measure (V → ℝ) :=
   (volume.restrict (Causalean.Graph.FiniteDensity.unitCube V)).withDensity
     (fun v ↦ ENNReal.ofReal (∏ i, p i v))
 
-/-- [Nonnegative real-valued cube factors](hyp:p), [a target coordinate](hyp:j), and [a real
-replacement density](hyp:q) determine [their cube-restricted single-target product-density
-measure](goal), [by replacing the target factor before converting the product](step:1). -/
+/-- [Real-valued cube factors](hyp:p), [a target coordinate](hyp:j), and [a real-valued
+replacement function for that coordinate](hyp:q), none sign-restricted, determine [their
+cube-restricted single-target product-density measure](goal): Lebesgue measure restricted to the unit
+cube, [weighted by the product in which the target factor is replaced by the replacement evaluated at
+the target coordinate, with a negative product truncated to zero](step:1). -/
 def realCubeInterventionDensityMeasure (p : ∀ i : V, (V → ℝ) → ℝ)
     (j : V) (q : ℝ → ℝ) : Measure (V → ℝ) :=
   (volume.restrict (Causalean.Graph.FiniteDensity.unitCube V)).withDensity

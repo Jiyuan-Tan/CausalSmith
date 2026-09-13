@@ -10,6 +10,8 @@ open scoped ENNReal BigOperators
 open Set Function MeasureTheory ProbabilityTheory
 noncomputable section
 namespace Causalean.Graph.FiniteDensity
+
+open Causalean.Mathlib.MeasureTheory.FiniteCoordinate
 open Causalean Causalean.Graph.FiniteDensity
 
 universe uV uX
@@ -95,7 +97,9 @@ private def parentSplitEquiv {i j : V} (hji : G.edge j i) :
           (β := fun k : (C ∪ {j} : Finset V) ↦ X k) r p
             (⟨j, G.mem_parents.mpr hji⟩ : G.parents i)
 /-- The real four-point cross-product contrast of a child's local density varies its own
-coordinate and one parent coordinate while holding all remaining coordinates fixed. -/
+coordinate and one other coordinate while holding all remaining coordinates fixed. The other
+coordinate is arbitrary here; the edge characterization applies it to a parent of the child, and if it
+equals the child's own coordinate the contrast is identically zero. -/
 def localContrast (i j : V) (x : ∀ k, X k)
     (xi xi' : X i) (xj xj' : X j) : ℝ :=
   (M.toFactorization.factor i

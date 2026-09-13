@@ -109,7 +109,13 @@ def bbStep (Z : Finset V) (s : BBState V) : Finset (BBState V) :=
       (G.parents w).map
         ⟨(·, BBDir.fromChild), fun _ _ h => by simpa using h⟩
 
-/-- Iterative Bayes Ball: compute fixed point of reachable states. -/
+/-- Iterative Bayes Ball with a step budget. Given [a conditioning set](hyp:Z), [the current
+frontier of ball states](hyp:frontier), [the states visited so far](hyp:visited), and [a budget of
+expansion rounds](hyp:fuel), [the fuel-bounded reachable set](goal) is obtained by returning the
+visited states when the budget is exhausted, and otherwise expanding the frontier by one Bayes Ball
+step, stopping with the visited states if no new state appears and recursing on the new states with one
+less round otherwise. It is the reachable set only when the budget suffices
+for the traversal to close, as arranged by `bbReachable`. -/
 def bbReachAux (Z : Finset V) (frontier visited : Finset (BBState V))
     (fuel : ℕ) : Finset (BBState V) :=
   match fuel with

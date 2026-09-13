@@ -460,7 +460,8 @@ theorem div_width {I J : ComplexRatInterval} (hJ : J.normSq.AwayFromZero)
   · exact hre'.trans_eq (by ring)
   · exact him'.trans_eq (by ring)
 
-/-- Given [a rational complex rectangle](hyp:I) and a natural-number square-root fuel level, the [norm interval](goal) applies rational square-root bounds to the rectangle's squared-modulus interval. -/
+/-- For [a rational complex rectangle](hyp:I), [the lower endpoint of its squared-modulus interval is
+nonnegative](goal). -/
 theorem normSq_lo_nonneg (I : ComplexRatInterval) : 0 ≤ I.normSq.lo := by
   have hsquare (K : RatInterval) : 0 ≤ K.sq.lo := by
     unfold RatInterval.sq
@@ -468,8 +469,9 @@ theorem normSq_lo_nonneg (I : ComplexRatInterval) : 0 ≤ I.normSq.lo := by
   simp only [normSq, RatInterval.add]
   exact add_nonneg (hsquare I.re) (hsquare I.im)
 
-/-- Applying rational square-root bounds to the squared-modulus interval
-produces an executable enclosure of the complex norm. -/
+/-- Given a complex rational rectangle and a natural-number square-root fuel level, applying the
+rational square-root bounds at that fuel level to the rectangle's squared-modulus interval produces an
+executable enclosure of the complex norm. -/
 def normInterval (I : ComplexRatInterval) (fuel : ℕ) : RatInterval :=
   RatInterval.sqrtInterval I.normSq (normSq_lo_nonneg I) fuel
 

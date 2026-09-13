@@ -18,6 +18,8 @@ noncomputable section
 
 namespace Causalean.Graph.FiniteDensity
 
+open Causalean.Mathlib.MeasureTheory.FiniteCoordinate
+
 open Causalean Causalean.Graph.FiniteDensity
 
 universe uV uX
@@ -220,8 +222,11 @@ variable [∀ i, TopologicalSpace (X i)] [∀ i, BorelSpace (X i)]
 variable [∀ i, CompactSpace (X i)] [∀ i, Nonempty (X i)]
 variable [∀ i, StandardBorelSpace (X i)] [∀ i, (μ i).IsOpenPosMeasure]
 
-/-- A compact positive DAG density is a normalized parent-local factorization whose local
-densities are finite and continuous and all share one explicit strictly positive lower bound. -/
+/-- A positive DAG density is a normalized parent-local factorization whose local densities are
+finite and continuous and all share one explicit strictly positive lower bound. The structure itself
+does not require the coordinate spaces to be compact; the results about it in this and the companion
+modules assume compact, nonempty, standard Borel coordinate spaces with open-positive reference
+measures. -/
 structure CompactPositiveFactorization (G : DAG V) (X : V → Type uX)
     [∀ i, MeasurableSpace (X i)] [∀ i, TopologicalSpace (X i)]
     (μ : ∀ i, Measure (X i)) [∀ i, SigmaFinite (μ i)] where

@@ -103,8 +103,8 @@ noncomputable def finitePredictableVariation (D : ∀ i, FiniteDesign (alpha i))
     (∀ i, alpha i) → ℝ :=
   fun w ↦ ∑ s, prefixCondExp D pi (Fin.castSucc s) (fun z ↦ (X s z) ^ 2) w
 
-/-- A [probability measure](hyp:mu), [filtration](hyp:F), and [increment family](hyp:X) determine
-[the measure-theoretic predictable variation](goal), the sum of conditional second moments at
+/-- A [measure](hyp:mu) (in intended use a probability measure; none is required), [filtration](hyp:F),
+and [increment family](hyp:X) determine [the measure-theoretic predictable variation](goal), the sum of conditional second moments at
 the preceding filtration times [by the displayed finite sum](step:1). -/
 noncomputable def measurePredictableVariation {Omega : Type*} [m : MeasurableSpace Omega]
     (mu : Measure Omega) (F : Filtration (Fin (N + 1)) m)
@@ -119,8 +119,8 @@ noncomputable def finiteFourthMomentError (D : ∀ i, FiniteDesign (alpha i))
   (∑ s, (prodDesign D).E (fun w ↦ |X s w| ^ 4)) +
     (prodDesign D).E (fun w ↦ |finitePredictableVariation D pi X w - 1| ^ 2)
 
-/-- A [probability measure](hyp:mu), [filtration](hyp:F), and [increment family](hyp:X) determine
-[the measure-theoretic fourth-moment error](goal): the sum of fourth moments plus the second
+/-- A [measure](hyp:mu) (in intended use a probability measure; none is required), [filtration](hyp:F),
+and [increment family](hyp:X) determine [the measure-theoretic fourth-moment error](goal): the sum of fourth moments plus the second
 moment of predictable variation minus one [by the displayed sum of two terms](step:1). -/
 noncomputable def measureFourthMomentError {Omega : Type*} [m : MeasurableSpace Omega]
     (mu : Measure Omega) (F : Filtration (Fin (N + 1)) m)
@@ -137,13 +137,17 @@ noncomputable def finiteKolmogorovExpr {Omega : Type*} [Fintype Omega]
 
 /-- A [measure](hyp:mu) and [real random variable](hyp:Y) determine [its measure-theoretic
 Kolmogorov expression](goal), the largest absolute gap between its CDF and the standard-normal
-CDF [by taking the supremum over thresholds](step:1). -/
+CDF [by taking the supremum over thresholds](step:1). No probability-measure assumption is made:
+the CDF term is the real-valued measure of the lower set (zero where that measure is infinite), and an
+unbounded family of gaps has supremum zero by convention; for a probability measure the gaps are
+bounded and this is the usual Kolmogorov distance. -/
 noncomputable def measureKolmogorovExpr {Omega : Type*} [MeasurableSpace Omega]
     (mu : Measure Omega) (Y : Omega → ℝ) : ℝ :=
   sSup (Set.range fun t : ℝ ↦ |mu.real {w | Y w ≤ t} - stdNormalCdf t|)
 
-/-- A [probability measure](hyp:mu), [filtration](hyp:F), [increment family](hyp:X), and
-[constant](hyp:C) define [the supplied Heyde--Brown fourth-moment premise](goal): adapted,
+/-- A [measure](hyp:mu) (in intended use a probability measure; the premise itself does not require
+one), [filtration](hyp:F), [increment family](hyp:X), and [constant](hyp:C) define [the supplied
+Heyde--Brown fourth-moment premise](goal): adapted,
 centered, normalized increments with finite fourth moments obey the stated one-fifth-power
 Kolmogorov bound [by the four displayed assumptions and conclusion](step:1). -/
 def HeydeBrownFourthMomentPremise {Omega : Type*} [m : MeasurableSpace Omega]

@@ -22,20 +22,17 @@ namespace Causalean.Stat.Nonparametric.LocalPolynomial
 /-- For [a nonnegative polynomial degree](hyp:p) and [real coefficients indexed from zero through
 that degree](hyp:v), the [local-polynomial coefficient polynomial](goal) is
 $\sum_i v_i u^i$. -/
--- @node: localPolynomial
 noncomputable def localPolynomial (p : ℕ) (v : Fin (p + 1) → ℝ) : ℝ[X] :=
   ∑ i, Polynomial.C (v i) * Polynomial.X ^ (i : ℕ)
 
 /-- Evaluation of the coefficient polynomial is the dot product with the
 monomial basis. -/
--- @node: localPolynomial_eval
 lemma localPolynomial_eval (p : ℕ) (v : Fin (p + 1) → ℝ) (u : ℝ) :
     (localPolynomial p v).eval u = ∑ i, v i * u ^ (i : ℕ) := by
   simp only [localPolynomial, Polynomial.eval_finset_sum, Polynomial.eval_mul,
     Polynomial.eval_C, Polynomial.eval_pow, Polynomial.eval_X]
 
 /-- The coefficient polynomial vanishes only when every coefficient does. -/
--- @node: localPolynomial_eq_zero_iff
 lemma localPolynomial_eq_zero_iff (p : ℕ) (v : Fin (p + 1) → ℝ) :
     localPolynomial p v = 0 ↔ v = 0 := by
   constructor
@@ -58,7 +55,6 @@ lemma localPolynomial_eq_zero_iff (p : ℕ) (v : Fin (p + 1) → ℝ) :
 /-- For [a nonnegative polynomial degree](hyp:p) and [real coefficients indexed from zero through
 that degree](hyp:v), the [radial polynomial energy](goal) is the double sum of $v_i v_j$ divided
 by $i+j+2$, over all coefficient indices $i,j$ from zero through that degree. -/
--- @node: radialPolynomialEnergy
 noncomputable def radialPolynomialEnergy (p : ℕ)
     (v : Fin (p + 1) → ℝ) : ℝ :=
   ∑ i : Fin (p + 1), ∑ j : Fin (p + 1),
@@ -66,7 +62,6 @@ noncomputable def radialPolynomialEnergy (p : ℕ)
 
 /-- The explicit moment matrix is exactly the weighted squared-polynomial
 integral on the unit interval. -/
--- @node: radialPolynomialEnergy_eq_integral
 lemma radialPolynomialEnergy_eq_integral (p : ℕ)
     (v : Fin (p + 1) → ℝ) :
     radialPolynomialEnergy p v =
@@ -92,7 +87,6 @@ lemma radialPolynomialEnergy_eq_integral (p : ℕ)
     fun_prop
 
 /-- A nonzero coefficient vector has strictly positive radial energy. -/
--- @node: radialPolynomialEnergy_pos
 lemma radialPolynomialEnergy_pos (p : ℕ) {v : Fin (p + 1) → ℝ}
     (hv : v ≠ 0) : 0 < radialPolynomialEnergy p v := by
   let f : ℝ → ℝ := fun u => (∑ i, v i * u ^ (i : ℕ)) ^ 2 * u
@@ -131,7 +125,6 @@ lemma radialPolynomialEnergy_pos (p : ℕ) {v : Fin (p + 1) → ℝ}
 
 /-- The radial energy is a continuous quadratic function of its coefficient
 vector. -/
--- @node: radialPolynomialEnergy_continuous
 @[fun_prop]
 lemma radialPolynomialEnergy_continuous (p : ℕ) :
     Continuous (radialPolynomialEnergy p) := by
@@ -139,7 +132,6 @@ lemma radialPolynomialEnergy_continuous (p : ℕ) :
   fun_prop
 
 /-- Radial energy is homogeneous of degree two in the coefficient vector. -/
--- @node: radialPolynomialEnergy_smul
 lemma radialPolynomialEnergy_smul (p : ℕ) (a : ℝ)
     (v : Fin (p + 1) → ℝ) :
     radialPolynomialEnergy p (a • v) = a ^ 2 * radialPolynomialEnergy p v := by
@@ -155,10 +147,10 @@ lemma radialPolynomialEnergy_smul (p : ℕ) (a : ℝ)
 
 /-- [For a polynomial degree bound `p`](hyp:p), [there is a positive constant such that the
 radial polynomial energy of any coefficient vector is bounded below by that constant times
-the sum of the squared coefficients](goal): on the Euclidean unit sphere, radial polynomial
+the sum of the squared coefficients](goal): on the unit sphere of the sup norm on coefficient
+vectors, radial polynomial
 energy has a positive minimum, and homogeneity packages this as a coercive lower bound for
 all coefficient vectors. -/
--- @node: radialPolynomialEnergy_coercive
 lemma radialPolynomialEnergy_coercive (p : ℕ) :
     ∃ c : ℝ, 0 < c ∧ ∀ v : Fin (p + 1) → ℝ,
       c * ∑ i, (v i) ^ 2 ≤ radialPolynomialEnergy p v := by
@@ -220,7 +212,6 @@ lemma radialPolynomialEnergy_coercive (p : ℕ) :
 /-- The same coercivity constant works in both signed-distance orientations.
 The negative orientation merely changes coefficient `i` by the sign
 `(-1)^i`, which preserves the sum of coefficient squares. -/
--- @node: signedRadialPolynomialEnergy_coercive
 lemma signedRadialPolynomialEnergy_coercive (p : ℕ) :
     ∃ c : ℝ, 0 < c ∧ ∀ t : Bool, ∀ v : Fin (p + 1) → ℝ,
       c * ∑ i, (v i) ^ 2 ≤

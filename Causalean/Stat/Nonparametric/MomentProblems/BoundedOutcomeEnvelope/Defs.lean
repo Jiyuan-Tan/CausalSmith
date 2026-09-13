@@ -25,7 +25,7 @@ namespace Causalean.Stat.MomentProblems.BoundedOutcomeEnvelope
 
 open Causalean.Stat.MomentProblems.ResidualQuadratic.MomentAlgebra
 open Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge
-  (moment l2ResidualQuadratic FiniteMoment4)
+  (l2ResidualQuadratic FiniteMoment4)
 open MeasureTheory Set
 open scoped Real
 
@@ -95,9 +95,9 @@ The set of residual values realized by admissible laws:
 def residualSet (v : ℝ) : Set ℝ :=
   {r | ∃ μ : Measure ℝ, Admissible v μ ∧ r = l2ResidualQuadratic μ}
 
-/-- Second moment of an admissible law in `moment`-form: `moment μ 2 = v²`. -/
+/-- Second moment of an admissible law in `rawMoment`-form: `rawMoment μ 2 = v²`. -/
 theorem Admissible.moment2_eq {v : ℝ} {μ : Measure ℝ} (h : Admissible v μ) :
-    moment μ 2 = v ^ 2 := by
+    rawMoment μ 2 = v ^ 2 := by
   change ∫ y, y ^ 2 ∂μ = v ^ 2
   exact h.moment2
 

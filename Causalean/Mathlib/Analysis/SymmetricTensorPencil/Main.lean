@@ -18,18 +18,24 @@ noncomputable def contractedMargin (q : ℕ) (sigma kappa : ℝ) : ℝ :=
   kappa * sigma ^ (q + 2)
 
 /-- The condition-number envelope for a lifted matrix with `n` unit columns and least singular
-value at least `sigma`. With [its explicit inputs](hyp:n,sigma), [the defined object](goal) is [given by the displayed formula](step:1). -/
+value at least `sigma`, namely the square root of `n` divided by `sigma`. The formula is unguarded:
+it is a condition-number envelope only for positive `sigma`, and a zero margin gives zero by the
+division-by-zero convention. With [its explicit inputs](hyp:n,sigma), [the defined object](goal) is [given by the displayed formula](step:1). -/
 noncomputable def liftedConditionEnvelope (n : ℕ) (sigma : ℝ) : ℝ :=
   Real.sqrt n / sigma
 
-/-- The admissible tensor perturbation radius for the quantitative tensor-pencil inverse. With [its explicit inputs](hyp:n,q,sigma,kappa,Lambda), [the defined object](goal) is [given by the displayed formula](step:1). -/
+/-- The admissible tensor perturbation radius for the quantitative tensor-pencil inverse. The
+formula is unguarded: it is an admissible radius only in the positive-margin regime assumed by the
+inverse theorem, and degenerate margins give zero by the division-by-zero convention. With [its explicit inputs](hyp:n,q,sigma,kappa,Lambda), [the defined object](goal) is [given by the displayed formula](step:1). -/
 noncomputable def localInverseRadius (n q : ℕ) (sigma kappa Lambda : ℝ) : ℝ :=
   let eta := contractedMargin q sigma kappa
   let chi := liftedConditionEnvelope n sigma
   let h := pencilPerturbationConstant n eta Lambda
   min (eta / 2) (sigma / (6 * chi * h))
 
-/-- The coordinatewise trace-recovery Lipschitz factor for the quantitative tensor-pencil inverse. With [its explicit inputs](hyp:n,q,sigma,kappa,Lambda), [the defined object](goal) is [given by the displayed formula](step:1). -/
+/-- The coordinatewise trace-recovery Lipschitz factor for the quantitative tensor-pencil inverse. The
+formula is unguarded: it is a valid Lipschitz factor only in the positive-margin regime assumed by the
+recovery theorems, and degenerate margins give zero by the division-by-zero convention. With [its explicit inputs](hyp:n,q,sigma,kappa,Lambda), [the defined object](goal) is [given by the displayed formula](step:1). -/
 noncomputable def traceRecoveryConstant (n q : ℕ)
     (sigma kappa Lambda : ℝ) : ℝ :=
   let eta := contractedMargin q sigma kappa
@@ -38,7 +44,9 @@ noncomputable def traceRecoveryConstant (n q : ℕ)
   n * h * (2 * chi + 6 * n * Lambda * chi ^ 2 / (eta * sigma))
 
 /-- The final factor-matrix Frobenius Lipschitz factor for the quantitative tensor-pencil
-inverse. With [its explicit inputs](hyp:p,n,q,sigma,kappa,Lambda), [the defined object](goal) is [given by the displayed formula](step:1). -/
+inverse. It is a fixed multiple of the trace-recovery factor and inherits its unguarded conventions:
+it is a valid Lipschitz factor only in the positive-margin regime of the recovery theorems. With
+[its explicit inputs](hyp:p,n,q,sigma,kappa,Lambda), [the defined object](goal) is [given by the displayed formula](step:1). -/
 noncomputable def factorRecoveryConstant (p n q : ℕ)
     (sigma kappa Lambda : ℝ) : ℝ :=
   2 * Real.sqrt (n * p) * traceRecoveryConstant n q sigma kappa Lambda

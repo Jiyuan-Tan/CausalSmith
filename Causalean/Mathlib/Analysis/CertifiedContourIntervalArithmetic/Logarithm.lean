@@ -16,15 +16,15 @@ rational error target.
 namespace Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
 namespace Transcendental
 
-/-- For [a rational number](hyp:q), [the logarithm coordinate](goal) is $(q-1)/(q+1)$. -/
+/-- For [a rational number](hyp:q), [the logarithm coordinate](goal) is $(q-1)/(q+1)$. It is the atanh coordinate of the logarithm for positive $q$, the regime used by the logarithm enclosures; at $q=-1$ the denominator vanishes and the value is zero by the division convention. -/
 def logCoordinate (q : ℚ) : ℚ := (q - 1) / (q + 1)
 
-/-- For [a rational number](hyp:q) and [a nonnegative polynomial degree](hyp:n), [the logarithm Taylor partial sum](goal) is twice the sum, for every integer $k$ from zero through $n$, of the $(2k+1)$st power of the logarithm coordinate divided by $2k+1$. -/
+/-- For [a rational number](hyp:q) and [a nonnegative polynomial degree](hyp:n), [the logarithm Taylor partial sum](goal) is twice the sum, for every integer $k$ from zero through $n$, of the $(2k+1)$st power of the logarithm coordinate divided by $2k+1$. It approximates the logarithm of $q$ only for positive $q$; no positivity is imposed by the definition itself. -/
 def logPartial (q : ℚ) (n : ℕ) : ℚ :=
   2 * ∑ k ∈ Finset.range (n + 1),
     (logCoordinate q) ^ (2 * k + 1) / ((2 * k + 1 : ℕ) : ℚ)
 
-/-- For [a rational number](hyp:q) and [a nonnegative polynomial degree](hyp:n), [the logarithm remainder bound](goal) is $2|z|^{2n+3}/((2n+3)(1-|z|^2))$, where $z=(q-1)/(q+1)$. -/
+/-- For [a rational number](hyp:q) and [a nonnegative polynomial degree](hyp:n), [the logarithm remainder bound](goal) is $2|z|^{2n+3}/((2n+3)(1-|z|^2))$, where $z=(q-1)/(q+1)$. It bounds the series tail only for positive $q$, where $|z|<1$; at $q=0$ (where $|z|=1$) and at $q=-1$ the formula divides by zero and gives zero by the division convention. -/
 def logRemainder (q : ℚ) (n : ℕ) : ℚ :=
   2 * |logCoordinate q| ^ (2 * n + 3) /
     (((2 * n + 3 : ℕ) : ℚ) * (1 - |logCoordinate q| ^ 2))

@@ -14,7 +14,8 @@ open Real Polynomial
 open scoped BigOperators
 open scoped BigOperators
 /-- [A frequency limit](hyp:n) and [a real-valued function](hyp:f) determine [the assertion that
-the function is a real trigonometric polynomial within that limit](goal).
+the function is a real trigonometric polynomial within that limit](goal). It is an abbreviation of
+`Causalean.Mathlib.Analysis.BernsteinSzegoTrig.IsTrigPolyLE`, re-exposed in this namespace.
 -/
 
 abbrev IsTrigPolyLE :=

@@ -40,7 +40,9 @@ noncomputable def squareOperatorNorm {ι : Type*} [Fintype ι] [DecidableEq ι]
     (A : Matrix ι ι ℝ) : ℝ :=
   ‖(Matrix.toEuclideanCLM (n := ι) (𝕜 := ℝ)) A‖
 
-/-- The last domain-indexed singular value of a finite real matrix. With [its explicit inputs](hyp:A), [the defined object](goal) is [given by the displayed formula](step:1). -/
+/-- The last domain-indexed singular value of a finite real matrix, i.e. the singular value at
+index one less than the number of columns. For a matrix with no columns the index is zero by natural
+subtraction; the results using it assume a nonempty column index. With [its explicit inputs](hyp:A), [the defined object](goal) is [given by the displayed formula](step:1). -/
 noncomputable def leastColumnSingularValue {ι κ : Type*} [Fintype ι] [Fintype κ]
     [DecidableEq κ] (A : Matrix ι κ ℝ) : ℝ :=
   A.toEuclideanLin.singularValues (Fintype.card κ - 1)
@@ -73,7 +75,8 @@ def contractLast {p d q : ℕ} (T : Tensor p (d + d + q))
   fun I J => ∑ K : Fin q → Fin p,
     T (blockIndex I J K) * ∏ a, probes a (K a)
 
-/-- The probe family containing `q-1` copies of `u` followed by one copy of `w`. With [its explicit inputs](hyp:u,w), [the defined object](goal) is [given by the displayed formula](step:1). -/
+/-- The probe family containing `q-1` copies of `u` followed by one copy of `w`, for positive `q`;
+for `q = 0` it is the empty family. With [its explicit inputs](hyp:u,w), [the defined object](goal) is [given by the displayed formula](step:1). -/
 def pencilProbes {p q : ℕ} (u w : Vec p) : Fin q → Vec p :=
   fun a => if a.1 + 1 = q then w else u
 

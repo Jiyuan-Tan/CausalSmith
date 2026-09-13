@@ -10,6 +10,7 @@ import Mathlib.Algebra.BigOperators.Fin
 import Mathlib.Algebra.BigOperators.Field
 import Mathlib.Algebra.BigOperators.Ring.Finset
 import Mathlib.Data.Fin.VecNotation
+import Mathlib.Data.Matrix.Mul
 import Mathlib.Data.Fintype.BigOperators
 import Mathlib.Data.List.MinMax
 import Mathlib.Tactic.Linarith
@@ -29,7 +30,8 @@ the resulting one-dimensional rational polyhedron is rational; elimination
 back-substitution gives a rational primal optimizer, while the recorded
 combination gives rational nonnegative dual multipliers of the same value.
 
-The standard form minimizes `c · x` subject to `A i · x ≤ b i`.  Variables are
+The standard form minimizes `c ⬝ᵥ x` subject to `A i ⬝ᵥ x ≤ b i`, where `⬝ᵥ` is Mathlib's
+`dotProduct`.  Variables are
 unrestricted in sign.  Equalities and nonnegative variables are represented by
 pairs of inequalities, so this form faithfully covers arbitrary finite
 rational LPs.
@@ -40,13 +42,6 @@ open scoped BigOperators
 namespace Causalean.Mathlib.Optimization.RationalLP
 
 noncomputable section
-
-/-- Given [a common finite number of coordinates and two rational coordinate
-vectors](hyp:n,a,x), the [rational dot product](goal) is the sum, over all coordinates,
-of the product of their corresponding entries.
-
-The finite dot product of two rational coordinate vectors. -/
-def dot {n : ℕ} (a x : Fin n → ℚ) : ℚ := ∑ j, a j * x j
 
 /-- A linear inequality in ordinary variables `x` and a retained objective
 coordinate `t`, written `a · x + s * t ≤ b`. -/
@@ -66,13 +61,14 @@ greater than the right-hand side.
 
 Satisfaction of an augmented rational linear inequality. -/
 def AugmentedIneq.Holds {n : ℕ} (r : AugmentedIneq n) (x : Fin n → ℚ) (t : ℚ) : Prop :=
-  dot r.coeff x + r.objCoeff * t ≤ r.rhs
+  dotProduct r.coeff x + r.objCoeff * t ≤ r.rhs
 
 /-- Given [an augmented rational inequality with one more ordinary coordinate](hyp:n,r), the
 [tail inequality](goal) removes its first ordinary coefficient while retaining its objective
 coefficient and right-hand side.
 
-Remove the first, zero-coefficient variable from an augmented inequality. -/
+It drops the first coefficient whatever its value; it is intended for rows whose first coefficient
+is already zero, where it removes that variable without changing the inequality. -/
 def AugmentedIneq.tail (r : AugmentedIneq (n + 1)) : AugmentedIneq n where
   coeff := Fin.tail r.coeff
   objCoeff := r.objCoeff
@@ -84,8 +80,9 @@ and its right-hand side equal to the negative first coefficient of the second in
 the corresponding quantity of the first, plus the first coefficient of the first inequality
 times the corresponding quantity of the second.
 
-Combine a positive-head and negative-head inequality so their first
-ordinary-variable coefficients cancel. -/
+The first ordinary-variable coefficients cancel for any two rows. The result is a valid
+consequence of the two inequalities when the first row has a positive and the second a negative first
+coefficient, which is how elimination uses it; no sign condition is imposed here. -/
 def AugmentedIneq.cancel (p q : AugmentedIneq (n + 1)) : AugmentedIneq n where
   coeff j := (-q.coeff 0) * p.coeff j.succ + p.coeff 0 * q.coeff j.succ
   objCoeff := (-q.coeff 0) * p.objCoeff + p.coeff 0 * q.objCoeff
@@ -103,15 +100,15 @@ def eliminateOne (rows : List (AugmentedIneq (n + 1))) : List (AugmentedIneq n) 
       (rows.filter (fun r => 0 < r.coeff 0)).map fun p => p.cancel q
 
 private lemma dot_cons (a x : Fin (n + 1) → ℚ) :
-    dot a x = a 0 * x 0 + dot (Fin.tail a) (Fin.tail x) := by
-  rw [dot, Fin.sum_univ_succ]
+    dotProduct a x = a 0 * x 0 + dotProduct (Fin.tail a) (Fin.tail x) := by
+  rw [dotProduct, Fin.sum_univ_succ]
   rfl
 
 private lemma dot_cancel (p q : AugmentedIneq (n + 1)) (x : Fin n → ℚ) :
-    dot (p.cancel q).coeff x =
-      (-q.coeff 0) * dot (Fin.tail p.coeff) x +
-        p.coeff 0 * dot (Fin.tail q.coeff) x := by
-  simp only [dot, AugmentedIneq.cancel, Fin.tail, add_mul,
+    dotProduct (p.cancel q).coeff x =
+      (-q.coeff 0) * dotProduct (Fin.tail p.coeff) x +
+        p.coeff 0 * dotProduct (Fin.tail q.coeff) x := by
+  simp only [dotProduct, AugmentedIneq.cancel, Fin.tail, add_mul,
     Finset.sum_add_distrib, Finset.mul_sum, mul_assoc]
 
 private lemma cancel_holds {p q : AugmentedIneq (n + 1)} {x : Fin (n + 1) → ℚ} {t : ℚ}
@@ -147,10 +144,10 @@ private lemma exists_head_of_eliminateOne
     ∃ z : ℚ, ∀ r ∈ rows, r.Holds (Fin.cons z x) t := by
   let lower : List ℚ :=
     (rows.filter (fun r => r.coeff 0 < 0)).map fun r =>
-      (r.rhs - (dot (Fin.tail r.coeff) x + r.objCoeff * t)) / r.coeff 0
+      (r.rhs - (dotProduct (Fin.tail r.coeff) x + r.objCoeff * t)) / r.coeff 0
   let upper : List ℚ :=
     (rows.filter (fun r => 0 < r.coeff 0)).map fun r =>
-      (r.rhs - (dot (Fin.tail r.coeff) x + r.objCoeff * t)) / r.coeff 0
+      (r.rhs - (dotProduct (Fin.tail r.coeff) x + r.objCoeff * t)) / r.coeff 0
   have hcross : ∀ l ∈ lower, ∀ u ∈ upper, l ≤ u := by
     intro l hl u hu
     simp only [lower, upper, List.mem_map, List.mem_filter] at hl hu
@@ -202,14 +199,14 @@ private lemma exists_head_of_eliminateOne
     simpa [AugmentedIneq.Holds, AugmentedIneq.tail, hzero] using ht
   rcases lt_or_gt_of_ne hzero with hneg | hpos
   · have hl := hzlower
-        ((r.rhs - (dot (Fin.tail r.coeff) x + r.objCoeff * t)) / r.coeff 0)
+        ((r.rhs - (dotProduct (Fin.tail r.coeff) x + r.objCoeff * t)) / r.coeff 0)
         (by
           simp only [lower, List.mem_map, List.mem_filter]
           exact ⟨r, ⟨hr, decide_eq_true hneg⟩, rfl⟩)
     have hmul := (div_le_iff_of_neg hneg).mp hl
     linarith
   · have hu := hzupper
-        ((r.rhs - (dot (Fin.tail r.coeff) x + r.objCoeff * t)) / r.coeff 0)
+        ((r.rhs - (dotProduct (Fin.tail r.coeff) x + r.objCoeff * t)) / r.coeff 0)
         (by
           simp only [upper, List.mem_map, List.mem_filter]
           exact ⟨r, ⟨hr, decide_eq_true hpos⟩, rfl⟩)
@@ -226,8 +223,8 @@ theorem eliminateOne_iff {rows : List (AugmentedIneq (n + 1))} {x : Fin n → �
     simpa using mem_eliminateOne_of_holds (x := Fin.cons z x) hz
   · exact exists_head_of_eliminateOne
 
-/-- For [a nonnegative number of ordinary coordinates and a list of augmented rational
-inequalities in that many coordinates](hyp:n), the [complete Fourier--Motzkin
+/-- For [a nonnegative number of ordinary coordinates](hyp:n) and a list of augmented rational
+inequalities in that many coordinates, the [complete Fourier--Motzkin
 elimination output](goal) [is the original list when there are no ordinary coordinates](step:1)
 and [otherwise is obtained by one first-coordinate elimination followed by complete
 elimination of the remaining coordinates](step:2).
@@ -260,8 +257,9 @@ theorem eliminateAll_iff {n : ℕ} {rows : List (AugmentedIneq n)} {t : ℚ} :
         obtain ⟨z, hz⟩ := eliminateOne_iff.mpr hx
         exact ⟨Fin.cons z x, hz⟩
 
-/-- A finite rational LP in inequality form: minimize `c · x` subject to
-`A i · x ≤ b i`. -/
+/-- A rational LP in inequality form: minimize `c · x` subject to `A i · x ≤ b i`, with the
+constraints indexed by an arbitrary type (finiteness is assumed by the algorithms and theorems that
+need it). -/
 structure Program (ι : Type*) (n : ℕ) where
   /-- Constraint coefficient rows. -/
   A : ι → Fin n → ℚ
@@ -279,7 +277,7 @@ product of its coefficient row with the vector is no greater than its right-hand
 
 A rational point satisfies every inequality of the program. -/
 def Program.PrimalFeasible (P : Program ι n) (x : Fin n → ℚ) : Prop :=
-  ∀ i, dot (P.A i) x ≤ P.b i
+  ∀ i, dotProduct (P.A i) x ≤ P.b i
 
 /-- Given [a constraint-label set, a number of ordinary variables, a rational linear
 program, and a rational vector of those variables](hyp:ι,n,P,x), the [primal objective
@@ -287,7 +285,7 @@ value](goal) is the dot product of the program's objective coefficient vector wi
 variable vector.
 
 The rational objective value at a primal point. -/
-def Program.objective (P : Program ι n) (x : Fin n → ℚ) : ℚ := dot P.c x
+def Program.objective (P : Program ι n) (x : Fin n → ℚ) : ℚ := dotProduct P.c x
 
 private def Program.augmentedRows (P : Program ι n) : List (AugmentedIneq n) :=
   (Finset.univ.toList.map fun i =>
@@ -295,8 +293,8 @@ private def Program.augmentedRows (P : Program ι n) : List (AugmentedIneq n) :=
   [ { coeff := fun j => -P.c j, objCoeff := 1, rhs := 0 },
     { coeff := P.c, objCoeff := -1, rhs := 0 } ]
 
-private lemma neg_dot (a x : Fin n → ℚ) : dot (fun j => -a j) x = -dot a x := by
-  simp [dot, ← Finset.sum_neg_distrib]
+private lemma neg_dot (a x : Fin n → ℚ) : dotProduct (fun j => -a j) x = -dotProduct a x := by
+  simp [dotProduct, ← Finset.sum_neg_distrib]
 
 private lemma augmentedRows_holds_iff (P : Program ι n) (x : Fin n → ℚ) (t : ℚ) :
     (∀ r ∈ P.augmentedRows, r.Holds x t) ↔
@@ -305,7 +303,7 @@ private lemma augmentedRows_holds_iff (P : Program ι n) (x : Fin n → ℚ) (t 
     Finset.mem_univ, true_and, List.mem_cons, List.mem_singleton, AugmentedIneq.Holds]
   constructor
   · intro h
-    have horig : ∀ i, dot (P.A i) x ≤ P.b i := by
+    have horig : ∀ i, dotProduct (P.A i) x ≤ P.b i := by
       intro i
       have := h { coeff := P.A i, objCoeff := 0, rhs := P.b i }
         (Or.inl ⟨i, rfl⟩)
@@ -317,7 +315,7 @@ private lemma augmentedRows_holds_iff (P : Program ι n) (x : Fin n → ℚ) (t 
     simp only [neg_dot, Program.objective] at h₁ h₂
     constructor
     · exact horig
-    · change t = dot P.c x
+    · change t = dotProduct P.c x
       linarith
   · rintro ⟨hx, rfl⟩ r hr
     rcases hr with ⟨i, rfl⟩ | hr
@@ -344,7 +342,7 @@ private lemma objectiveRows_iff (P : Program ι n) (t : ℚ) :
 
 private lemma holds_zero_iff (r : AugmentedIneq 0) (t : ℚ) :
     r.Holds Fin.elim0 t ↔ r.objCoeff * t ≤ r.rhs := by
-  simp [AugmentedIneq.Holds, dot]
+  simp [AugmentedIneq.Holds, dotProduct]
 
 private lemma scalar_endpoint
     (rows : List (AugmentedIneq 0))
@@ -439,18 +437,20 @@ section CertifiedElimination
 
 variable {κ : Type*} [Fintype κ] [DecidableEq κ]
 
-/-- An augmented inequality together with nonnegative rational provenance from
-a fixed finite family of original rows.  The coefficient identity is stated
+/-- An augmented inequality together with rational combination weights over a fixed finite family
+of original rows. The structure does not require the weights to be nonnegative; nonnegativity, which
+makes the derived row a valid consequence of the original ones, is tracked separately by the
+elimination construction.  The coefficient identity is stated
 through a common projection of the original variables; this makes repeated
 elimination independent of coordinate-reassociation bookkeeping. -/
 structure CertifiedIneq (base : κ → AugmentedIneq N)
     (project : (Fin N → ℚ) → (Fin n → ℚ)) where
   /-- The currently derived inequality. -/
   row : AugmentedIneq n
-  /-- Nonnegative combination weights on the original rows. -/
+  /-- Combination weights on the original rows (not required to be nonnegative by this structure). -/
   weight : κ → ℚ
   /-- The current coefficient row is the weighted original coefficient row. -/
-  coeff_eq : ∀ x, dot row.coeff (project x) = ∑ k, weight k * dot (base k).coeff x
+  coeff_eq : ∀ x, dotProduct row.coeff (project x) = ∑ k, weight k * dotProduct (base k).coeff x
   /-- The objective-coordinate coefficient is the same weighted combination. -/
   objCoeff_eq : row.objCoeff = ∑ k, weight k * (base k).objCoeff
   /-- The right-hand side is the same weighted combination. -/
@@ -500,8 +500,8 @@ private def CertifiedIneq.cancelRows
       intro x
       rw [dot_cancel]
       calc
-        _ = (-q.row.coeff 0) * (∑ k, p.weight k * dot (base k).coeff x) +
-              p.row.coeff 0 * (∑ k, q.weight k * dot (base k).coeff x) := by
+        _ = (-q.row.coeff 0) * (∑ k, p.weight k * dotProduct (base k).coeff x) +
+              p.row.coeff 0 * (∑ k, q.weight k * dotProduct (base k).coeff x) := by
             rw [← p.coeff_eq x, ← q.coeff_eq x, dot_cons, dot_cons]
             ring
         _ = _ := by
@@ -620,7 +620,7 @@ structure FinalCertifiedIneq (base : κ → AugmentedIneq N) where
   /-- Nonnegativity of every original-row weight. -/
   weight_nonneg : ∀ k, 0 ≤ weight k
   /-- All original-variable coefficients cancel. -/
-  coeff_zero : ∀ x, ∑ k, weight k * dot (base k).coeff x = 0
+  coeff_zero : ∀ x, ∑ k, weight k * dotProduct (base k).coeff x = 0
   /-- Objective coefficient combination identity. -/
   objCoeff_eq : row.objCoeff = ∑ k, weight k * (base k).objCoeff
   /-- Right-hand-side combination identity. -/
@@ -637,7 +637,7 @@ private def CertifiedIneq.finish
     coeff_zero := by
       intro x
       rw [← d.coeff_eq x]
-      simp [dot]
+      simp [dotProduct]
     objCoeff_eq := d.objCoeff_eq
     rhs_eq := d.rhs_eq }
 
@@ -724,7 +724,7 @@ private lemma initialCertifiedRows_holds_iff (P : Program ι n) (x : Fin n → �
     have h₂ := hbase (.inr true)
     simp only [Program.certificateBase, AugmentedIneq.Holds, neg_dot] at h₁ h₂
     refine ⟨hfeas, ?_⟩
-    change t = dot P.c x
+    change t = dotProduct P.c x
     linarith
   · rintro ⟨hx, rfl⟩ d hd
     simp only [Program.initialCertifiedRows, List.mem_map, Finset.mem_toList,
@@ -824,9 +824,9 @@ theorem exists_rational_optimal_primal_dual (P : Program ι n)
     simp [Program.certificateBase, Fintype.sum_sum_type, Fintype.sum_bool,
       sub_eq_add_neg, add_comm]
   have hcoeff (x : Fin n → ℚ) :
-      (∑ i, d.weight (.inl i) * dot (P.A i) x) -
-          d.weight (.inr false) * dot P.c x +
-          d.weight (.inr true) * dot P.c x = 0 := by
+      (∑ i, d.weight (.inl i) * dotProduct (P.A i) x) -
+          d.weight (.inr false) * dotProduct P.c x +
+          d.weight (.inr true) * dotProduct P.c x = 0 := by
     have hc0 := d.coeff_zero x
     simp [Program.certificateBase, Fintype.sum_sum_type, Fintype.sum_bool,
       neg_dot] at hc0
@@ -840,7 +840,7 @@ theorem exists_rational_optimal_primal_dual (P : Program ι n)
       exact div_nonneg (d.weight_nonneg (.inl i)) hdenom.le
     · intro j
       have hc := hcoeff (fun k => if k = j then 1 else 0)
-      simp only [dot, mul_ite, mul_one, mul_zero, Finset.sum_ite_eq',
+      simp only [dotProduct, mul_ite, mul_one, mul_zero, Finset.sum_ite_eq',
         Finset.mem_univ, if_true] at hc
       dsimp [yStar]
       simp_rw [div_mul_eq_mul_div]

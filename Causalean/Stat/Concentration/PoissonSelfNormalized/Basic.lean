@@ -6,7 +6,11 @@ import Mathlib.Probability.HasLaw
 
 This module defines the deviation, random radius, deterministic local scale,
 and bad event used by the quantitative Poisson moment bounds.  The Poisson
-parameter is an `NNReal`, so nonnegativity is encoded in its type.
+parameter is an `NNReal`, so nonnegativity is encoded in its type.  The logarithmic level
+and the multiplier are unrestricted reals: the definitions here and in the companion modules
+are literal formulas, and a negative level makes the square roots zero by convention, so radii,
+scores and bad events are meaningful only in the regime the theorems assume (level at least one,
+positive multiplier).
 -/
 
 open MeasureTheory ProbabilityTheory Real Set

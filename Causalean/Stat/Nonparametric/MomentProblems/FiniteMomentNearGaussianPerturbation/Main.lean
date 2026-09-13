@@ -33,7 +33,7 @@ theorem exists_finiteMoment_near_gaussian_perturbation
       (∫ x, x ∂F) = 0 ∧
       variance id F = 1 ∧
       ¬ IsGaussianLaw F ∧
-      totalVariationDistance F (gaussianReal 0 1) < rho ∧
+      tvDist F (gaussianReal 0 1) < rho ∧
       (∀ k, k ≤ K →
         (∫ x, x ^ k ∂F) = ∫ x, x ^ k ∂gaussianReal 0 1) ∧
       (∀ k, Integrable (fun x : ℝ => |x| ^ k) F) ∧
@@ -60,7 +60,7 @@ theorem exists_finiteMoment_near_gaussian_perturbation
     hεpos hεone hερho
   change IsProbabilityMeasure F ∧
       F ≠ gaussianReal 0 1 ∧
-      totalVariationDistance F (gaussianReal 0 1) < rho ∧
+      tvDist F (gaussianReal 0 1) < rho ∧
       (∀ k, k ≤ K → rawMoment F k = rawMoment (gaussianReal 0 1) k) ∧
       (∀ k, Integrable (fun x : ℝ => |x| ^ k) F) ∧
       (∀ n : ℕ, 0 < n →

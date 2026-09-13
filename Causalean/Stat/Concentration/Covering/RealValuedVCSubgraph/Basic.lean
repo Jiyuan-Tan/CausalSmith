@@ -543,8 +543,8 @@ private theorem finite_l2_packing_card_le
     _ = (16 / ε) ^ (8 * (d + 1)) := by rw [← pow_mul]; congr 1; dsimp [k]; omega
 /-- **Polynomial `L²(Q)` covering number from a pseudo-dimension bound.** For [a family of
 measurable real-valued functions](hyp:hmeas) of [pseudo-dimension at most d](hyp:hpdim), [uniformly
-bounded by a positive envelope U](hyp:hU,henvelope), and [a relative radius ε strictly between 0
-and 1](hyp:hε,hε1), [the `L²(Q)` covering number at radius ε·U is at most `vcSubgraphCoverBound d
+bounded by a positive envelope U](hyp:hU,henvelope), and [a relative radius ε with 0 < ε ≤
+1](hyp:hε,hε1), [the `L²(Q)` covering number at radius ε·U is at most `vcSubgraphCoverBound d
 ε`, uniformly over every probability measure Q on the domain](goal). -/
 theorem real_vcSubgraph_l2_covering
     [MeasurableSpace 𝒳] [Nonempty ι] (F : ι → 𝒳 → ℝ) (d : ℕ)

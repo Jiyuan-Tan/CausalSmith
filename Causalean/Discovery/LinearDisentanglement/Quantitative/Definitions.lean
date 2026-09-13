@@ -92,7 +92,9 @@ def UnitDiagonal {d : ℕ} (B : SqMatrix d) : Prop :=
 
 /-- For [a dimension](hyp:d) and [a square matrix](hyp:B), [its Euclidean operator-norm
 condition number](goal) is the product of its Euclidean operator norm and the Euclidean operator
-norm of its inverse. -/
+norm of its inverse. This is the condition number for a nonsingular matrix; for a singular matrix the
+inverse is zero by convention, so the value is zero, which is why every bound on it in this library is
+paired with a nonsingularity requirement. -/
 def operatorConditionNumber {d : ℕ} (B : SqMatrix d) : ℝ :=
   ‖B‖ * ‖B⁻¹‖
 

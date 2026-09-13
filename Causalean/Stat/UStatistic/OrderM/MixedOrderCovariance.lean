@@ -594,8 +594,8 @@ theorem mergedProductMoment_empty [IsProbabilityMeasure P] {r s : ℕ}
       rfl
 
 /-- Under a probability population law, for [an i.i.d. sample](hyp:S),
-[statistic orders and a sample size](hyp:r,s,n), if [the first order](hyp:hrn)
-and [the second order](hyp:hsn) do not exceed the sample size, then for [two
+[statistic orders and a sample size](hyp:r,s,n), if [the first order does not exceed the sample size](hyp:hrn)
+and [the second order does not exceed the sample size](hyp:hsn), then for [two
 coordinate-function families](hyp:f,g), when [their product kernels are
 measurable](hyp:hmeasF,hmeasG), [their product kernels are integrable](hyp:hintF,hintG),
 [every merged kernel is measurable](hyp:hmeas), and [every merged kernel is

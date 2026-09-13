@@ -35,13 +35,15 @@ structure PredicateWindowSchedule (keys : List ι) (steps : List κ) where
 namespace PredicateWindowSchedule
 
 /-- [A predicate schedule](hyp:P), [a step](hyp:s), and [a raw key](hyp:x) determine [the Boolean
-entry test used by executable list operations](goal). -/
+entry test used by the list operations](goal). It decides the entry predicate classically, so it is
+a noncomputable specification rather than executable code. -/
 noncomputable def entryTest (P : PredicateWindowSchedule keys steps) (s : κ) (x : ι) : Bool := by
   classical
   exact decide (P.entry s x)
 
 /-- [A predicate schedule](hyp:P), [a step](hyp:s), and [a raw key](hyp:x) determine [the Boolean
-test that the key has expired](goal). -/
+test that the key has expired](goal), true exactly when the key does not stay at that step. It decides
+the stay predicate classically, so it is noncomputable. -/
 noncomputable def expiredTest (P : PredicateWindowSchedule keys steps) (s : κ) (x : ι) : Bool := by
   classical
   exact decide (¬ P.stay s x)

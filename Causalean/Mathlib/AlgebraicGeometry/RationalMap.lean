@@ -6,8 +6,8 @@ import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
 /-!
 # Rational maps and algebraic-locus compilers
 
-This module represents finite-coordinate real rational maps by numerator and denominator
-polynomials.  It clears coordinatewise equality, compiles finite conjunctions by sums of squares
+This module represents coordinate-indexed real rational maps by numerator and denominator
+polynomials (the locus compilers below assume finitely many output coordinates).  It clears coordinatewise equality, compiles finite conjunctions by sums of squares
 and finite unions by products, and supplies polynomial-matrix and adjugate/determinant inverse
 specializations.
 -/
@@ -19,8 +19,8 @@ namespace Causalean.Mathlib.AlgebraicGeometry
 
 variable {S T U B : Type*}
 
-/-- A finite-coordinate real rational map stores one numerator and denominator multivariate
-polynomial for each output coordinate. -/
+/-- A real rational map with an arbitrary index set of output coordinates stores one numerator and
+denominator multivariate polynomial for each output coordinate. -/
 structure RationalMap (S T : Type*) where
   num : T → MvPolynomial S ℝ
   den : T → MvPolynomial S ℝ
@@ -28,7 +28,9 @@ structure RationalMap (S T : Type*) where
 namespace RationalMap
 
 /-- Evaluating a rational map substitutes the source coordinates into each numerator and
-denominator and divides coordinatewise. -/
+denominator and divides coordinatewise. Division is total: a coordinate whose denominator vanishes
+evaluates to zero, so this agrees with the rational map only where it is defined in the sense of
+`DefinedOn`. -/
 noncomputable def eval (f : RationalMap S T) (x : S → ℝ) : T → ℝ :=
   fun t => MvPolynomial.eval x (f.num t) / MvPolynomial.eval x (f.den t)
 

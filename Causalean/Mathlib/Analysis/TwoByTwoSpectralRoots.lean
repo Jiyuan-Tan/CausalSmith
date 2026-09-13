@@ -14,15 +14,15 @@ open scoped Matrix.Norms.Elementwise
 
 namespace Causalean.Mathlib.Analysis
 
-/-- Given [a real two-by-two matrix](hyp:G), [the discriminant governing its two ordered quadratic-formula roots](goal) is the squared diagonal difference plus four times the squared upper off-diagonal entry. -/
+/-- Given [a real two-by-two matrix](hyp:G), [the symmetric-matrix discriminant](goal) is the squared diagonal difference plus four times the squared upper off-diagonal entry. The lower off-diagonal entry is ignored, so this is the discriminant of the characteristic polynomial only for a symmetric matrix. -/
 def rootDiscriminant (G : Matrix (Fin 2) (Fin 2) ℝ) : ℝ :=
   (G 0 0 - G 1 1) ^ 2 + 4 * (G 0 1) ^ 2
 
-/-- Given [a real two-by-two matrix](hyp:G), [its larger quadratic-formula root](goal) is half the trace plus half the nonnegative square root of the discriminant. -/
+/-- Given [a real two-by-two matrix](hyp:G), [its larger symmetric-formula root](goal) is half the trace plus half the nonnegative square root of the symmetric-matrix discriminant. For a symmetric matrix this is the larger eigenvalue; for a nonsymmetric matrix it need not be an eigenvalue. -/
 noncomputable def lambda₁ (G : Matrix (Fin 2) (Fin 2) ℝ) : ℝ :=
   (G 0 0 + G 1 1 + Real.sqrt (rootDiscriminant G)) / 2
 
-/-- Given [a real two-by-two matrix](hyp:G), [its smaller quadratic-formula root](goal) is half the trace minus half the nonnegative square root of the discriminant. -/
+/-- Given [a real two-by-two matrix](hyp:G), [its smaller symmetric-formula root](goal) is half the trace minus half the nonnegative square root of the symmetric-matrix discriminant. For a symmetric matrix this is the smaller eigenvalue; for a nonsymmetric matrix it need not be an eigenvalue. -/
 noncomputable def lambda₂ (G : Matrix (Fin 2) (Fin 2) ℝ) : ℝ :=
   (G 0 0 + G 1 1 - Real.sqrt (rootDiscriminant G)) / 2
 

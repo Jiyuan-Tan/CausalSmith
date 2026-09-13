@@ -451,9 +451,9 @@ structure CohortLaw (C : ℕ) where
   /-- The probabilities sum to one. -/
   sumOne : (∑ g, (pi g : ℝ)) = 1
 
-/-- Generic cohort-period `Cells` instance with positive cohort masses.
-Every cell `(g, t) ∈ Fin C × Fin S` is observed and carries weight
-`π(g) / S`. -/
+/-- Generic cohort-period `Cells` instance for a nonempty set of cohorts and a nonempty set of
+periods, a cohort law (a probability mass function over cohorts, summing to one) and strictly positive
+cohort masses. Every cell `(g, t) ∈ Fin C × Fin S` is observed and carries weight `π(g) / S`. -/
 noncomputable def cohortPeriodCells {C S : ℕ}
     [Nonempty (Fin C)] [Nonempty (Fin S)] (law : CohortLaw C)
     (hpi : ∀ g : Fin C, 0 < (law.pi g : ℝ)) :

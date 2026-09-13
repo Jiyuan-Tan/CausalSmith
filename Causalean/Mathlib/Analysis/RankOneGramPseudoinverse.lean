@@ -51,17 +51,17 @@ theorem leftGram_isHermitian (H : Matrix (Fin 2) E ℝ) :
   simpa [leftGram, conjTranspose_eq_transpose_of_trivial] using
     Matrix.isHermitian_mul_conjTranspose_self H
 
-/-- Given [a real two-vector](hyp:u) and [a real matrix with two rows](hyp:H), [the eigenvector-selected rank-one truncation](goal) projects the rows of the matrix onto that vector before reconstruction. -/
+/-- Given [a real two-vector](hyp:u) and [a real matrix with two rows](hyp:H), [the eigenvector-selected rank-one truncation](goal) multiplies the matrix on the left by the outer product of the vector with itself. No condition is imposed on the vector: this is an orthogonal rank-one projection of the rows only when the vector has unit length (the intended use is a unit upper eigenvector of the left Gram matrix); a non-unit vector rescales the result and the zero vector gives the zero matrix. -/
 def eigenvectorRankOneTruncation (u : Fin 2 → ℝ) (H : Matrix (Fin 2) E ℝ) :
     Matrix (Fin 2) E ℝ :=
   outerProjector u * H
 
-/-- Given [a real two-vector](hyp:u) and [a real matrix with two rows](hyp:H), [the eigenvector-selected rank-one pseudoinverse formula](goal) transposes the projected matrix and divides by its upper Gram root. -/
+/-- Given [a real two-vector](hyp:u) and [a real matrix with two rows](hyp:H), [the eigenvector-selected rank-one pseudoinverse formula](goal) is the transpose of the matrix times the outer product of the vector with itself, divided by the larger root of the left Gram matrix (zero if that root is zero). No condition is imposed on the vector; this is the Moore–Penrose pseudoinverse of the rank-one truncation only when the vector is a unit upper eigenvector of the left Gram matrix. -/
 noncomputable def eigenvectorRankOnePseudoInverse (u : Fin 2 → ℝ) (H : Matrix (Fin 2) E ℝ) :
     Matrix E (Fin 2) ℝ :=
   (lambda₁ (leftGram H))⁻¹ • (H.transpose * outerProjector u)
 
-/-- Given [a real matrix with two rows](hyp:H), [the choice-free algebraic rank-one truncation](goal) applies the algebraic upper projector of its left Gram matrix. -/
+/-- Given [a real matrix with two rows](hyp:H), [the choice-free algebraic rank-one truncation](goal) applies the algebraic upper projector of its left Gram matrix. It has rank one under a strict gap between the two roots of the left Gram matrix; without a gap the projector's division by the zero gap makes it the zero matrix. -/
 noncomputable def algebraicRankOneTruncation (H : Matrix (Fin 2) E ℝ) :
     Matrix (Fin 2) E ℝ :=
   topProjector (leftGram H) * H

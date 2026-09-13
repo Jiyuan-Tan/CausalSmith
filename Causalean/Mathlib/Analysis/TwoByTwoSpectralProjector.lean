@@ -12,7 +12,7 @@ open scoped Matrix.Norms.Elementwise
 
 namespace Causalean.Mathlib.Analysis
 
-/-- Given [a real two-vector](hyp:v), [its rank-one outer-product matrix](goal) maps a vector to its component in the direction of that two-vector, before normalization. -/
+/-- Given [a real two-vector](hyp:v), [its outer-product matrix](goal) has entries $v_i v_j$; it has rank at most one (exactly one for a nonzero vector) and is the orthogonal projector onto the vector's direction when the vector has unit length. -/
 def outerProjector (v : Fin 2 → ℝ) : Matrix (Fin 2) (Fin 2) ℝ :=
   fun i j => v i * v j
 

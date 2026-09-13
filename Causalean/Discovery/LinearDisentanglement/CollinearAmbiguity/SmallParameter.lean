@@ -203,31 +203,33 @@ theorem exists_algebraic_admissibility_radius {d : ℕ} (B : SqMatrix d)
 
 /-- Given [two distinct selected coordinates](hyp:hij), [a unit-diagonal reference
 matrix](hyp:hBdiag), [an invertible reference matrix](hyp:hBunit), [an admissible selected
-two-cycle](hyp:hcycle), [a positive-definite invariant](hyp:hΩ), [coordinatewise
-nonnegative shifts](hyp:hs), and [a positive requested bound](hyp:hr), [there is a
+two-cycle](hyp:hcycle), [a positive-definite invariant](hyp:hΩ), [two line-normal
+coefficients that are not both zero](hyp:u,v,hnormal), [an affine offset entering the
+transformed invariant's cross term](hyp:c), [coordinatewise nonnegative shifts](hyp:s,hs), and
+[a positive requested bound](hyp:hr), [there is a
 nonzero deformation parameter below that bound preserving all stated admissibility,
 positivity, and nonnegativity properties](goal). -/
 theorem exists_small_admissible_parameter {d : ℕ} {E : Type*}
-    [Fintype E] [Nonempty E] (B Ω : SqMatrix d) {i j : Fin d}
+    (B Ω : SqMatrix d) {i j : Fin d}
     (hij : i ≠ j) (hBdiag : UnitDiagonal B) (hBunit : IsUnit B.det)
     (hcycle : PairCycleAdmissible B i j) (hΩ : Ω.PosDef)
-    (s : E → Fin d → ℝ) (cert : AffineLineCertificate s i j)
+    (s : E → Fin d → ℝ) (u v c : ℝ) (hnormal : u ≠ 0 ∨ v ≠ 0)
     (hs : ∀ e k, 0 ≤ s e k) {r : ℝ} (hr : 0 < r) :
     ∃ t : ℝ,
       0 < |t| ∧ |t| < r ∧
-      firstNormalizationDenom B i j cert.v t ≠ 0 ∧
-      secondNormalizationDenom B i j cert.u t ≠ 0 ∧
-      1 - t ^ 2 * cert.u * cert.v ≠ 0 ∧
-      IsUnit (normalizedPairDeformation B i j cert.u cert.v t).det ∧
-      IsUnit (deformedDiagonalizer B i j cert.u cert.v t).det ∧
-      UnitDiagonal (deformedDiagonalizer B i j cert.u cert.v t) ∧
-      PairCycleAdmissible (deformedDiagonalizer B i j cert.u cert.v t) i j ∧
-      deformedDiagonalizer B i j cert.u cert.v t ≠ B ∧
-      (deformedInvariant B Ω i j cert.u cert.v cert.c t).PosDef ∧
-      ∀ e k, 0 ≤ deformedShift B i j cert.u cert.v t (s e) k := by
+      firstNormalizationDenom B i j v t ≠ 0 ∧
+      secondNormalizationDenom B i j u t ≠ 0 ∧
+      1 - t ^ 2 * u * v ≠ 0 ∧
+      IsUnit (normalizedPairDeformation B i j u v t).det ∧
+      IsUnit (deformedDiagonalizer B i j u v t).det ∧
+      UnitDiagonal (deformedDiagonalizer B i j u v t) ∧
+      PairCycleAdmissible (deformedDiagonalizer B i j u v t) i j ∧
+      deformedDiagonalizer B i j u v t ≠ B ∧
+      (deformedInvariant B Ω i j u v c t).PosDef ∧
+      ∀ e k, 0 ≤ deformedShift B i j u v t (s e) k := by
   rcases exists_deformedInvariant_posDef_radius B Ω hij hΩ
-      cert.u cert.v cert.c with ⟨ρp, hρp, hp⟩
-  rcases exists_algebraic_admissibility_radius B i j cert.u cert.v with
+      u v c with ⟨ρp, hρp, hp⟩
+  rcases exists_algebraic_admissibility_radius B i j u v with
     ⟨ρa, hρa, ha⟩
   let δ := min r (min ρp ρa)
   let t := δ / 2
@@ -250,25 +252,25 @@ theorem exists_small_admissible_parameter {d : ℕ} {E : Type*}
     have hδa : δ ≤ ρa := (min_le_right r _).trans (min_le_right _ _)
     linarith
   rcases ha t hta with ⟨hfirst, hsecond, hdet⟩
-  have hTunit : IsUnit (normalizedPairDeformation B i j cert.u cert.v t).det :=
+  have hTunit : IsUnit (normalizedPairDeformation B i j u v t).det :=
     normalizedPairDeformation_isUnit_det B hij hfirst hsecond hdet
-  have hB'unit : IsUnit (deformedDiagonalizer B i j cert.u cert.v t).det := by
+  have hB'unit : IsUnit (deformedDiagonalizer B i j u v t).det := by
     rw [deformedDiagonalizer, Matrix.det_mul]
     exact hTunit.mul hBunit
-  have hdiag : UnitDiagonal (deformedDiagonalizer B i j cert.u cert.v t) :=
+  have hdiag : UnitDiagonal (deformedDiagonalizer B i j u v t) :=
     deformedDiagonalizer_unitDiagonal B hij hBdiag hfirst hsecond
   have hcycle' : PairCycleAdmissible
-      (deformedDiagonalizer B i j cert.u cert.v t) i j :=
+      (deformedDiagonalizer B i j u v t) i j :=
     deformedDiagonalizer_pairCycleAdmissible B hij hBdiag hcycle
       hfirst hsecond hdet
   have htne : t ≠ 0 := abs_pos.mp ht0
-  have hne : deformedDiagonalizer B i j cert.u cert.v t ≠ B :=
-    deformedDiagonalizer_ne B hij hBunit cert.normal_ne htne hfirst hsecond
-  have hpos : (deformedInvariant B Ω i j cert.u cert.v cert.c t).PosDef :=
+  have hne : deformedDiagonalizer B i j u v t ≠ B :=
+    deformedDiagonalizer_ne B hij hBunit hnormal htne hfirst hsecond
+  have hpos : (deformedInvariant B Ω i j u v c t).PosDef :=
     hp t htp
-  have hshift : ∀ e k, 0 ≤ deformedShift B i j cert.u cert.v t (s e) k := by
+  have hshift : ∀ e k, 0 ≤ deformedShift B i j u v t (s e) k := by
     intro e
-    exact deformedShift_nonnegative B hij cert.u cert.v t (s e) (hs e)
+    exact deformedShift_nonnegative B hij u v t (s e) (hs e)
   exact ⟨t, ht0, htr, hfirst, hsecond, hdet, hTunit, hB'unit,
     hdiag, hcycle', hne, hpos, hshift⟩
 

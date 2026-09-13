@@ -27,15 +27,13 @@ open Causalean.Discovery.LinearDisentanglement.Quantitative
 most the product of their entrywise-L² sizes](goal). -/
 theorem entryL2_mul_le {p : ℕ} (X Y : SqMatrix p) :
     entryL2 (X * Y) ≤ entryL2 X * entryL2 Y := by
-  simpa [entryL2, Matrix.frobenius_norm_def, Real.norm_eq_abs,
-    Real.sqrt_eq_rpow] using Matrix.frobenius_norm_mul X Y
+  exact Matrix.frobenius_norm_mul X Y
 
 /-- For [positive dimension](hyp:hp) and [a real square matrix](hyp:X), [its entrywise-L²
 size is at most the dimension times its Euclidean operator norm](goal). -/
 theorem entryL2_le_dimension_mul_opNorm {p : ℕ} (X : SqMatrix p) (hp : 0 < p) :
     entryL2 X ≤ (p : ℝ) * ‖X‖ := by
-  unfold entryL2
-  rw [Real.sqrt_le_iff]
+  rw [entryL2_eq_sqrt, Real.sqrt_le_iff]
   constructor
   · positivity
   · calc
@@ -67,11 +65,11 @@ theorem transitionError_entryL2_le_of_neighborhood {p : ℕ} (B₀ B : SqMatrix 
     entryL2 ((B - B₀) * B₀⁻¹) ≤ entryL2 (B - B₀) * entryL2 B₀⁻¹ :=
       entryL2_mul_le _ _
     _ ≤ ρ * ((p : ℝ) * J) := by
-      have hρ : 0 ≤ ρ := (Real.sqrt_nonneg _).trans hlocal
+      have hρ : 0 ≤ ρ := (entryL2_nonneg _).trans hlocal
       apply mul_le_mul hlocal
       · exact (entryL2_le_dimension_mul_opNorm B₀⁻¹ hp).trans
           (mul_le_mul_of_nonneg_left hinv (by positivity))
-      · exact Real.sqrt_nonneg _
+      · exact entryL2_nonneg _
       · exact hρ
     _ = (p : ℝ) * J * ρ := by ring
 
@@ -94,7 +92,8 @@ theorem invOpNorm_le_conditionEnvelope {p : ℕ} {κ : ℝ} (B : SqMatrix p)
 /-- **Small-residual local identity-branch selection.** For [positive dimension, shift
 scale, affine margin, matrix scale, and inverse envelope](hyp:hp,hM,hδ,hL,hJ),
 [bounded pairwise-separated shifts](hyp:hscale,hsep), [an exact invertible unit-diagonal
-reference](hyp:hunit,hexact,hdiag₀), [a unit-diagonal norm-bounded candidate](hyp:hdiag,hnorm), [an inverse bound](hyp:hinv), [nonnegative approximate residual](hyp:hε,happrox), [the explicit residual smallness condition](hyp:hsmall), and [membership
+reference](hyp:hunit,hexact,hdiag₀), [a unit-diagonal candidate](hyp:hdiag), [a reference operator norm at most the matrix
+scale](hyp:hB₀), [an inverse bound](hyp:hinv), [nonnegative approximate residual](hyp:hε,happrox), [the explicit residual smallness condition](hyp:hsmall), and [membership
 in the explicit ordinary reference neighborhood](hyp:hlocal), [the transition lies on the
 identity branch needed by the linear stability estimate](goal). -/
 -- Proof route: the neighborhood and inverse envelope give `u ≤ min 1 (3/(8 max(1,K)M))`
@@ -109,7 +108,7 @@ theorem inIdentityBranch_of_small_residual {p : ℕ} {E : Type*}
     (hscale : ShiftScaleBound s M) (hsep : PairwiseAffineSeparated s δ)
     (hunit : IsUnit B₀.det) (hexact : ExactCongruence A s B₀)
     (hdiag₀ : UnitDiagonal B₀) (hdiag : UnitDiagonal B)
-    (hnorm : PairMatrixNormBound L B₀ B) (hinv : ‖B₀⁻¹‖ ≤ J)
+    (hB₀ : ‖B₀‖ ≤ L) (hinv : ‖B₀⁻¹‖ ≤ J)
     (hε : 0 ≤ ε) (hsmall : ε ≤ pairwiseResidualRadius p M δ L)
     (happrox : OffDiagonalApproximateCongruence A B ε)
     (hlocal : InReferenceNeighborhood (pairwiseLocalRadius p M δ L J) B₀ B) :
@@ -125,8 +124,7 @@ theorem inIdentityBranch_of_small_residual {p : ℕ} {E : Type*}
   have hmax : 0 < max 1 K := lt_of_lt_of_le (by norm_num) (le_max_left _ _)
   have hKmax : K ≤ max 1 K := le_max_right _ _
   have hu0 : 0 ≤ u := by
-    dsimp [u, entryL2]
-    positivity
+    exact entryL2_nonneg R
   have huLocal : u ≤ min 1 (3 / (8 * max 1 K * M)) := by
     have h := transitionError_entryL2_le_of_neighborhood B₀ B hp hJ.le
       hunit hinv hlocal
@@ -148,7 +146,7 @@ theorem inIdentityBranch_of_small_residual {p : ℕ} {E : Type*}
     simpa [R, u] using pairwise_offDiagonal_control A s B₀ B hM.le hδ hε
       hscale hsep hunit hexact happrox
   have huAgg := entryL2_transitionError_le B₀ B hp hL0 hc0 hunit hdiag₀ hdiag
-    hnorm.1 hoff
+    hB₀ hoff
   have huK : u ≤ K * (2 * M * u ^ 2 + 2 * ε) := by
     change u ≤ pairwiseSolveFactor M δ * (2 * M * u ^ 2 + 2 * ε) *
       Real.sqrt ((p : ℝ) * (p - 1 : ℕ) * (1 + L ^ 2)) at huAgg

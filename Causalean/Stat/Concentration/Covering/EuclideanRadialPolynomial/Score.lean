@@ -151,7 +151,8 @@ theorem boundedRadialPolynomialOn_hasPolynomialL2Cover
 /-- Given [a natural dimension](hyp:d), [a maximal degree](hyp:p), [a coefficient bound](hyp:B), and [an arm index set](hyp:A), [the radial residual-score parameter space](goal) consists of a radial-polynomial parameter paired with one arm index.
 
 The parameter space of a moving center, a boxed polynomial coefficient
-vector, and one member of a finite signed-arm family. -/
+vector, and an arbitrary arm index (finiteness of the arm index set is assumed by the covering
+results, not by this type). -/
 abbrev RadialResidualScoreParam (d p : ℕ) (B : ℝ) (A : Type v) :=
   RadialPolynomialParam d p B × A
 
@@ -190,7 +191,7 @@ absolute value by 1](hyp:harmBound), [a measurable response variable](hyp:hrespo
 [bounded in absolute value by R](hyp:hresponseBound), together with [a positive bandwidth
 q](hyp:hq), [a nonnegative annulus inner radius a](hyp:ha), [inner radius at most outer radius
 b](hyp:hab), [a positive polynomial-coefficient bound B](hyp:hB), and [a positive response bound
-R](hyp:hR), then [the score formed by multiplying an arm indicator, a radial monomial, and the
+R](hyp:hR), then [the score formed by multiplying a bounded arm function, a radial monomial, and the
 residual of the response against a boxed radial-polynomial fit carries a positive-envelope uniform
 polynomial `L²(Q)` covering certificate — with envelope `radialResidualScoreEnvelope b p B R` —
 over every probability measure Q, including atomic ones](goal). -/

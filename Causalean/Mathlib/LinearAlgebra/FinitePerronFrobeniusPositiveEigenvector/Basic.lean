@@ -31,16 +31,16 @@ def absVec (x : EVec ι) : EVec ι :=
 def rayleighForm (A : Matrix ι ι ℝ) (x : EVec ι) : ℝ :=
   ∑ i, x i * (A.mulVec x) i
 
-/-- The greatest quadratic Rayleigh-form value among [the Euclidean unit vectors for a finite real matrix](hyp:A), called [the Euclidean-sphere top Rayleigh value](goal), [is given by a supremum](step:1). -/
+/-- The greatest quadratic Rayleigh-form value among [the Euclidean unit vectors for a finite real matrix](hyp:A), called [the Euclidean-sphere top Rayleigh value](goal), [is given by a supremum](step:1). For an empty coordinate type there are no unit vectors and the supremum of the empty set is zero by convention. -/
 def sphereRayleighValue (A : Matrix ι ι ℝ) : ℝ :=
   sSup {r : ℝ | ∃ x : EVec ι, ‖x‖ = 1 ∧ r = rayleighForm A x}
 
-/-- The greatest quadratic Rayleigh-form value among [the coordinate vectors whose squared coordinates sum to one for a finite real matrix](hyp:A), called [the coordinate-sphere top Rayleigh value](goal), [is given by a supremum](step:1). -/
+/-- The greatest quadratic Rayleigh-form value among [the coordinate vectors whose squared coordinates sum to one for a finite real matrix](hyp:A), called [the coordinate-sphere top Rayleigh value](goal), [is given by a supremum](step:1). For an empty coordinate type no such vector exists and the supremum of the empty set is zero by convention. -/
 def coordinateSphereRayleighValue (A : Matrix ι ι ℝ) : ℝ :=
   sSup {r : ℝ | ∃ x : ι → ℝ, (∑ i, x i ^ 2) = 1 ∧
     r = ∑ i, x i * (A.mulVec x) i}
 
-/-- Mathlib's supremum Rayleigh quotient for [a finite real matrix](hyp:A), called [the nonzero-vector top Rayleigh value](goal), [is given by the matrix's Euclidean linear map](step:1). -/
+/-- Mathlib's supremum Rayleigh quotient for [a finite real matrix](hyp:A), called [the nonzero-vector top Rayleigh value](goal), [is given by the matrix's Euclidean linear map](step:1). For an empty coordinate type there are no nonzero vectors and the empty supremum is zero by convention. -/
 def iSupRayleighValue (A : Matrix ι ι ℝ) : ℝ :=
   let T := (Matrix.toEuclideanLin A).toContinuousLinearMap
   ⨆ x : {x : EVec ι // x ≠ 0}, T.rayleighQuotient x

@@ -18,9 +18,9 @@ open Set
 namespace Causalean.Mathlib.Optimization.AffineSignCellClosure
 
 /-- Given [an affine constraint system](hyp:Γ), [a coordinate vector](hyp:x), and [a real
-slack](hyp:δ), the [common-slack feasibility condition](goal) is given by [the slack lying
-between zero and one](step:1), [the slack being at most one](step:2), and [weak constraints
-remaining at zero while strict constraints are at most the negative slack](step:3).
+slack](hyp:δ), the [common-slack feasibility condition](goal) is given by [the slack being
+nonnegative](step:1), [the slack being at most one](step:2), and [every weak constraint evaluating
+to at most zero while every strict constraint evaluates to at most the negative slack](step:3).
 
 A point and slack satisfy the bounded common-slack formulation. -/
 def commonSlackFeasible {n : ℕ} (Γ : AffineSystem n) (x : Fin n → ℝ) (δ : ℝ) : Prop :=

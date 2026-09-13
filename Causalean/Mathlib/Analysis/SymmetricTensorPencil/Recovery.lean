@@ -19,7 +19,8 @@ the input is zero. With [its explicit inputs](hyp:z), [the defined object](goal)
 noncomputable def normalizeFinite {ι : Type*} [Fintype ι] (z : ι → ℝ) : ι → ℝ :=
   (finiteFrobeniusNorm z)⁻¹ • z
 
-/-- Normalize a finite coordinate vector by its Euclidean norm. With [its explicit inputs](hyp:z), [the defined object](goal) is [given by the displayed formula](step:1). -/
+/-- Normalize a finite coordinate vector by its Euclidean norm, with the conventional zero value
+when the input is zero. With [its explicit inputs](hyp:z), [the defined object](goal) is [given by the displayed formula](step:1). -/
 noncomputable def normalizeVec {p : ℕ} (z : Vec p) : Vec p :=
   normalizeFinite z
 
@@ -199,8 +200,9 @@ theorem recoverRankOneLift_error_le {p d : ℕ} (hd : 0 < d)
       exact div_le_div₀ (by positivity) (mul_le_mul_of_nonneg_left herr (by norm_num))
         (sub_pos.mpr hsmall) hden
 
-/-- Trace coordinates evaluate each coordinate pencil on a selected rank-one spectral
-projector. With [its explicit inputs](hyp:G,P,j), [the defined object](goal) is [given by the displayed formula](step:1). -/
+/-- Trace coordinates evaluate each coordinate pencil against the `j`-th matrix of a supplied
+matrix family, by the trace of their product. No condition is imposed on the family; in the
+recovery argument it is a family of rank-one spectral projectors. With [its explicit inputs](hyp:G,P,j), [the defined object](goal) is [given by the displayed formula](step:1). -/
 noncomputable def traceCoordinates {p n : ℕ}
     (G : Vec p → Matrix (Fin n) (Fin n) ℝ)
     (P : Fin n → Matrix (Fin n) (Fin n) ℝ) (j : Fin n) : Vec p :=
@@ -251,7 +253,7 @@ theorem traceCoordinates_diagonalization {p n : ℕ}
   field_simp [hprobe j]
 
 /-- Given reference and perturbed coordinate pencils, reference and perturbed
-projectors, coordinate-pencil error bounds, projector error bounds,
+matrix families (arbitrary matrices; projectors in the intended use), coordinate-pencil error bounds, projector error bounds,
 perturbed-projector norm bounds, and reference-pencil norm bounds,
 every trace coordinate obeys the explicit product error bound. Under [the listed assumptions](hyp:hpencil,hprojector,hprojectorNorm,hpencilNorm), [the stated conclusion follows](goal). -/
 -- Proof route: write `G'P'-GP = (G'-G)P' + G(P'-P)`, use submultiplicativity, and finish with

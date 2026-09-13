@@ -29,7 +29,9 @@ def normalizedCube (d : ℕ) : Set (Fin d → ℝ) :=
 
 /-- [An integer kernel order](hyp:K), [a finite dimension](hyp:d), and [a point in period
 coordinates](hyp:u) determine [the tensor Jackson kernel](goal), the product of the
-one-dimensional kernels across coordinates.
+one-dimensional kernels across coordinates. For positive order it is a normalized kernel in every dimension. At
+order zero it inherits the degeneracy of the one-dimensional kernel in positive dimension (it vanishes),
+while in dimension zero it is the empty product, equal to one with unit mass, for every order.
 -/
 noncomputable def tensorJackson (K d : ℕ) (u : Fin d → ℝ) : ℝ :=
   ∏ i, jackson K (u i)
@@ -56,8 +58,11 @@ noncomputable def cosLift {d : ℕ} (f : (Fin d → ℝ) → ℝ) (t : Fin d →
 
 /-- [A finite dimension](hyp:d), [an integer kernel order](hyp:K), [a real function on normalized
 coordinates](hyp:f), and [a point in period coordinates](hyp:x) determine [the tensor Jackson
-convolution](goal), the kernel-weighted average of the translated cosine lift over the period
-box.
+convolution](goal), the kernel-weighted integral of the translated cosine lift over the period
+box. It is a kernel-weighted average for positive order when that integrand is integrable; the integral
+is Lean's Bochner integral, which is zero for a non-integrable integrand, and at order zero in positive
+dimension the kernel vanishes and so does the convolution (in dimension zero the kernel is the empty
+product, equal to one).
 -/
 noncomputable def tensorConvolution {d : ℕ} (K : ℕ)
     (f : (Fin d → ℝ) → ℝ) (x : Fin d → ℝ) : ℝ :=

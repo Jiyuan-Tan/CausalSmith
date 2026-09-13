@@ -22,13 +22,17 @@ noncomputable def exponentialSeriesTail (degree : ℕ) (z : ℝ) : ℝ :=
   ∑' n : ℕ, if degree < n then z ^ n / (n.factorial : ℝ) else 0
 
 /-- Given [a real-valued prior](hyp:π) and [a nonnegative integer order](hyp:n), its
-[raw moment of that order](goal) is the prior average of the corresponding power. -/
+[raw moment of that order](goal) is the prior average of the corresponding power, taken as a
+Bochner integral, which is zero when the power is not integrable. It coincides with
+`Causalean.Stat.MomentProblems.rawMoment`. -/
 noncomputable def priorMoment (π : Measure ℝ) (n : ℕ) : ℝ :=
   ∫ θ, θ ^ n ∂π
 
 /-- Given [two real-valued priors](hyp:π,ρ) and [an interaction scale](hyp:lambda), their
 [exponential prior energy](goal) averages the exponential of the scaled product over independent
-draws from the priors. -/
+draws from the priors, as a nested Bochner integral: an inner or outer integrand that is not integrable
+contributes zero, so this is the exponential prior energy only when those integrals exist (for example
+for compactly supported probability priors). -/
 noncomputable def exponentialPriorEnergy (π ρ : Measure ℝ) (lambda : ℝ) : ℝ :=
   ∫ θ, ∫ θ', Real.exp (lambda * θ * θ') ∂ρ ∂π
 

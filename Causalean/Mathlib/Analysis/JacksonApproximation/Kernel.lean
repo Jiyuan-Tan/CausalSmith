@@ -4,7 +4,8 @@ import Causalean.Mathlib.Analysis.BernsteinSzegoTrig.Szego
 /-!
 # The normalized order-four Jackson kernel
 
-This module constructs the normalized fourth-power Jackson kernel on the standard period,
+This module constructs the normalized fourth-power Jackson kernel on the standard period (for
+positive order; order zero is a degenerate zero kernel),
 computes its exact mass, proves its analytic regularity, derives explicit first- and
 second-moment bounds, and bounds its trigonometric degree.
 -/
@@ -29,7 +30,9 @@ noncomputable def jrawMass (K : ℕ) : ℝ :=
   ∫ t in Set.Icc (-Real.pi) Real.pi, jraw K t
 
 /-- [An integer order](hyp:K) and [a real argument](hyp:t) determine [the normalized order-four
-Jackson kernel](goal), equal to the raw kernel divided by its mass over the standard period.
+Jackson kernel](goal), equal to the raw kernel divided by its mass over the standard period. It is
+normalized for positive order; at order zero the raw kernel and its mass vanish and the value is zero
+by the division convention.
 -/
 noncomputable def jackson (K : ℕ) (t : ℝ) : ℝ := jraw K t / jrawMass K
 

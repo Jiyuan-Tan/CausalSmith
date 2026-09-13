@@ -414,13 +414,14 @@ private theorem integral_symmPush (μ : Measure unitInterval) [IsFiniteMeasure �
       hf.aestronglyMeasurable]
   norm_num
 
-/-- Extremal signed-measure data represented by its positive and negative
-parts.  Each part has mass `1/2`, is symmetric and supported on `[-1,1]`; their
+/-- An extremal certificate given by two finite measures on the real line, labelled positive and
+negative.  Each has mass `1/2`, is symmetric and supported on `[-1,1]`; their
 degree-`K` moments agree, while their absolute first moments differ by `E_K`.
 
-This is the normalized Jordan-decomposition output of the norm-one separating
-functional.  Multiplying each part by two gives probability measures and the
-gap `2 E_K`.
+The structure is a certificate made of two finite measures; it does not require them to be
+mutually singular, so it records a decomposition of the kind produced by the normalized Jordan
+decomposition of the norm-one separating functional without asserting that it is one.  Multiplying
+each measure by two gives probability measures and the gap `2 E_K`.
 -/
 structure AbsExtremalDecomposition (K : ℕ) where
   positive : Measure ℝ
@@ -635,7 +636,7 @@ noncomputable def AbsExtremalDecomposition.toMomentMatchedPriors
   · simp only [ν₀, ν₁, integral_smul_measure, ENNReal.toReal_ofNat, smul_eq_mul]
     linarith [D.abs_gap]
 
-/-- For [a positive even degree](hyp:K,_hK,_hEven), [a symmetric moment-matched probability-prior pair with the exact absolute-moment gap exists](goal).
+/-- For [a positive even degree](hyp:K,_hK,_hEven), [a symmetric moment-matched probability-prior pair with the exact absolute-moment gap exists](goal). The positivity and evenness assumptions are not used by the proof; the same conclusion holds for every degree via `exists_absExtremalDecomposition`.
 
  For every positive even degree, there are symmetric Borel probability
 measures supported on `[-1,1]`, matching all moments through that degree, whose

@@ -13,8 +13,9 @@ namespace Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation
 
 open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
 
-/-- The stationary bias of a reward process relative to a benchmark is its
-stationary reward expectation minus that benchmark. -/
+/-- The stationary bias of a reward process relative to a benchmark is the reward expectation under
+a supplied weight vector minus that benchmark. No condition is imposed on the vector; it is the bias
+of the stationary reward when the vector is the stationary distribution. -/
 def stationaryBias {ι : Type*} [Fintype ι]
     (π reward : ι → ℝ) (benchmark : ℝ) : ℝ :=
   rewardExpectation π reward - benchmark

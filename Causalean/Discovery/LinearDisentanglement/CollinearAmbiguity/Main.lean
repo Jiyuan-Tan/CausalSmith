@@ -10,7 +10,7 @@ import Mathlib.Algebra.Order.Star.Real
 /-!
 # Constructive ambiguity from an affine-collinear shift pair
 
-This module gives a paper-independent non-identifiability witness for a finite family of
+This module gives a paper-independent non-identifiability witness for a family (over any index set) of
 positive-definite covariance matrices.  If two selected coordinates of all diagonal
 shifts lie on one affine line, an arbitrarily small nonzero normalized two-row
 deformation produces a distinct invertible diagonalizer and a second exact
@@ -28,12 +28,17 @@ open Causalean.Discovery.LinearDisentanglement.Quantitative
 /-- Given [two distinct selected coordinates](hyp:hij), [a unit-diagonal reference
 diagonalizer](hyp:hdiag), [its invertibility](hyp:hunit), [an admissible selected
 two-cycle](hyp:hcycle), [a positive-definite invariant](hyp:hΩ), [coordinatewise
-nonnegative shifts](hyp:hs), and [a positive parameter bound](hyp:hr), [an
-affine-collinearity certificate produces a distinct normalized invertible diagonalizer, a
-symmetric positive-definite invariant, and nonnegative shifts representing the identical
-finite covariance family](goal). -/
+nonnegative shifts](hyp:hs), [a certificate that the two selected shift coordinates of every
+environment lie on one affine line with nonzero normal](hyp:cert), and [a positive parameter
+bound](hyp:hr), [there is a deformation parameter that is nonzero and strictly smaller than the
+bound in absolute value, whose deformed diagonalizer, invariant and shifts (given by the explicit
+two-coordinate deformation formulas) satisfy: the new diagonalizer is unit-diagonal, invertible,
+pair-cycle admissible and different from the reference one; the new invariant is symmetric and
+positive definite; the new shifts are nonnegative; every covariance represented by the reference
+data is positive definite; and every environment's represented covariance is the same under the
+new data as under the reference data](goal). The environment index may be any type, finite or not. -/
 theorem exists_collinear_simultaneous_congruence_ambiguity
-    {d : ℕ} {E : Type*} [Fintype E] [Nonempty E]
+    {d : ℕ} {E : Type*}
     (B₀ Ω₀ : SqMatrix d) (s : E → Fin d → ℝ) {i j : Fin d}
     (hij : i ≠ j) (hdiag : UnitDiagonal B₀) (hunit : IsUnit B₀.det)
     (hcycle : PairCycleAdmissible B₀ i j) (hΩ : Ω₀.PosDef)
@@ -52,7 +57,7 @@ theorem exists_collinear_simultaneous_congruence_ambiguity
         representedCovariance B₁ Ω₁ (s₁ e) =
           representedCovariance B₀ Ω₀ (s e) := by
   rcases exists_small_admissible_parameter B₀ Ω₀ hij hdiag hunit hcycle hΩ
-      s cert hs hr with
+      s cert.u cert.v cert.c cert.normal_ne hs hr with
     ⟨t, ht0, htr, _hfirst, _hsecond, _hdet, hTunit, hB₁unit,
       hB₁diag, hB₁cycle, hB₁ne, hΩ₁pos, hs₁⟩
   refine ⟨t,
@@ -75,7 +80,7 @@ theorem exists_collinear_simultaneous_congruence_ambiguity
 shifts](hyp:hs), [the prescribed affine-collinear shift family has a positive-definite
 interior covariance example with two distinct compatible normalized diagonalizers](goal). -/
 theorem exists_interior_collinear_ambiguity_example
-    {d : ℕ} {E : Type*} [Fintype E] [Nonempty E]
+    {d : ℕ} {E : Type*}
     (s : E → Fin d → ℝ) {i j : Fin d} (hij : i ≠ j)
     (hs : ∀ e k, 0 ≤ s e k) (cert : AffineLineCertificate s i j) :
     ∃ (Sigma : E → SqMatrix d) (B₀ B₁ Ω₀ Ω₁ : SqMatrix d)

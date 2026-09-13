@@ -5,7 +5,7 @@ import Mathlib.Data.Real.Archimedean
 # Certified real names and effective refinement
 
 This module represents a real quantity by nested rational enclosures together
-with a computable precision rule.  It turns any positive rational error target
+with a precision rule (an arbitrary function; computability is not encoded).  It turns any positive rational error target
 into a concrete interval that still contains the quantity and is no wider than
 that target.
 -/
@@ -18,8 +18,8 @@ abbrev PosRat := {q : ℚ // 0 < q}
 /-- A certified real name represents [a real number](hyp:value) by [a sequence of rational
 interval enclosures indexed by precision](hyp:approx) that is [nested — each successive enclosure
 a subinterval of the one before](hyp:nested) — and [always contains the represented
-value](hyp:contains), together with [a computable rule selecting, for any requested positive
-rational error, a precision level](hyp:modulus) [whose enclosure is no wider than that
+value](hyp:contains), together with [a rule (an arbitrary function, not required to be
+computable) selecting, for any requested positive rational error, a precision level](hyp:modulus) [whose enclosure is no wider than that
 error](hyp:width_modulus). -/
 structure CertifiedReal where
   /-- The real number denoted by the certified name. -/
@@ -30,7 +30,7 @@ structure CertifiedReal where
   nested : ∀ n, (approx (n + 1)).Subinterval (approx n)
   /-- Every rational approximation encloses the denoted real value. -/
   contains : ∀ n, (approx n).Contains value
-  /-- The computable precision selected for a requested positive rational width. -/
+  /-- The precision selected for a requested positive rational width (an arbitrary function, not required to be computable). -/
   modulus : PosRat → ℕ
   /-- The interval at the selected precision has at most the requested width. -/
   width_modulus : ∀ ε : PosRat, (approx (modulus ε)).width ≤ ε.1

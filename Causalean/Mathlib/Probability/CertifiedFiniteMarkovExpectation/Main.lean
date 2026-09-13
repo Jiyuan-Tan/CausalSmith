@@ -1,4 +1,6 @@
 import Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation.NormalCDF
+import Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation.CertifiedNormalCDFEnclosure.Checker
+
 import Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation.Comparison
 
 /-!

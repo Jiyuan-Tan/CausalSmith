@@ -3,7 +3,9 @@ import Causalean.Stat.Concentration.PoissonSelfNormalized.Product
 /-!
 # Normalized finite-product Poisson bounds
 
-This module divides counts with means `m q_i` by a positive exposure `m`.
+This module divides counts with means `m q_i` by a positive exposure `m`.  The definitions
+accept any nonnegative exposure; at zero exposure the divisions are zero by convention and the
+normalized quantities lose their meaning, so the theorems assume positive exposure.
 The resulting bound retains the local normalized scale
 `sqrt ((sum_i q_i) L / m) + L / m`.
 -/

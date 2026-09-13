@@ -55,7 +55,10 @@ private lemma real_half_evenPow_rpow_le
         (le_of_lt (div_neg_of_neg_of_pos (by norm_num) (by positivity)))
 
 /-- If [a real measure](hyp:ν) has [positive even raw moments bounded at the Gaussian
-scale](hyp:hmoment), then [its explicit Hamburger--Carleman series diverges](goal). -/
+scale](hyp:hmoment), then [its explicit Hamburger--Carleman series diverges](goal). The hypothesis
+bounds the real-valued raw moments, which are zero for non-integrable powers, so the result carries
+Carleman content only for a measure whose even moments exist, as in its use for Gaussian
+perturbations. -/
 theorem hamburgerCarlemanSeries_eq_top_of_evenMoment_le
     (ν : Measure ℝ)
     (hmoment : ∀ n : ℕ, 0 < n →

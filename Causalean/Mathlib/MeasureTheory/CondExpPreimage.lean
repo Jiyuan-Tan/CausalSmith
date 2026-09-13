@@ -19,7 +19,7 @@ open _root_.MeasureTheory
 
 /-- For [a finite sampling measure](hyp:mu), [a measurable design map](hyp:design,hdesign),
 [an integrable outcome and candidate regression](hyp:Y,m,hY,hm), [a candidate regression
-measurable with respect to the design σ-algebra](hyp:hm_design), and [matching outcome and
+that is almost-everywhere strongly measurable with respect to the design σ-algebra](hyp:hm_design), and [matching outcome and
 candidate-regression integrals on every measurable design event](hyp:hintegral), [the
 candidate regression is a version of the outcome's conditional expectation given the
 design](goal).

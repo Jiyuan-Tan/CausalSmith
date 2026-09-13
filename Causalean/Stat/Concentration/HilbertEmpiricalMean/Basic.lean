@@ -28,17 +28,19 @@ variable {X H : Type*} [MeasurableSpace X]
   [NormedAddCommGroup H] [InnerProductSpace ℝ H] [CompleteSpace H]
 
 /-- The [population mean](goal) of [a Hilbert-valued feature map](hyp:f) under
-[a probability law](hyp:P) is [given by its Bochner integral](step:1). -/
+[a measure](hyp:P) (a probability law in intended use; none is required) is [given by its Bochner
+integral](step:1), which is zero when the feature map is not integrable. -/
 def populationMean (P : Measure X) (f : X → H) : H :=
   ∫ x, f x ∂P
 
 /-- The [empirical mean](goal) of [a Hilbert-valued feature map](hyp:f) on
 [a sample with the stated size and observations](hyp:m,z) is [given by the
-inverse sample size times its finite coordinate sum](step:1). -/
+inverse sample size times its finite coordinate sum](step:1). For sample size zero the inverse is
+zero by convention, so the value is zero. -/
 def empiricalMean (f : X → H) (m : ℕ) (z : Fin m → X) : H :=
   (m : ℝ)⁻¹ • ∑ r, f (z r)
 
-/-- The [centered empirical mean](goal) for [a probability law](hyp:P),
+/-- The [centered empirical mean](goal) for [a measure](hyp:P) (a probability law in intended use),
 [a Hilbert-valued feature map](hyp:f), and [a sample with the stated size and
 observations](hyp:m,z) is [given by its empirical mean minus its population
 mean](step:1). -/
@@ -47,7 +49,7 @@ def centeredEmpiricalMean (P : Measure X) (f : X → H) (m : ℕ)
   empiricalMean f m z - populationMean P f
 
 /-- The [norm statistic for a centered empirical mean](goal) under
-[a probability law](hyp:P), [a Hilbert-valued feature map](hyp:f), and
+[a measure](hyp:P) (a probability law in intended use), [a Hilbert-valued feature map](hyp:f), and
 [a sample with the stated size and observations](hyp:m,z) is [given by the
 Hilbert norm of that centered mean](step:1). -/
 def centeredEmpiricalMeanNorm (P : Measure X) (f : X → H) (m : ℕ)

@@ -38,7 +38,7 @@ open MeasureTheory
 open scoped Real
 
 open Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge
-  (moment optIntercept optSlope l2ResidualQuadratic residualQuad FiniteMoment4)
+  (optIntercept optSlope l2ResidualQuadratic residualQuad FiniteMoment4)
 
 /-- For [a measure on the real line](hyp:μ), let $m_j$ denote its $j$-th raw moment. The
 [projection-residual function](goal) assigns to each real value $y$ the value
@@ -88,7 +88,7 @@ Splitting the integral into raw moments gives `∫ q = m₂ − optIntercept μ 
 `optIntercept μ = (m₁m₃ − m₂²)/(m₁² − m₂)`, `optSlope μ = (m₁m₂ − m₃)/(m₁² − m₂)` and clearing the
 denominator `m₁² − m₂ ≠ 0` (from `hnd : m₁² < m₂`) makes this vanish (`field_simp; ring`). -/
 theorem integral_projResidual (μ : Measure ℝ) [IsProbabilityMeasure μ] (h : FiniteMoment4 μ)
-    (hnd : moment μ 1 ^ 2 < moment μ 2) :
+    (hnd : rawMoment μ 1 ^ 2 < rawMoment μ 2) :
     ∫ y, projResidual μ y ∂μ = 0 := by
   have hsq : Integrable (fun y : ℝ => y ^ 2) μ :=
     (memL2_sq μ h).integrable (by norm_num)
@@ -103,10 +103,10 @@ theorem integral_projResidual (μ : Measure ℝ) [IsProbabilityMeasure μ] (h : 
   rw [MeasureTheory.integral_const_mul]
   simp only [MeasureTheory.integral_const, smul_eq_mul]
   rw [show μ.real Set.univ = 1 by simp]
-  rw [show (∫ a : ℝ, a ∂μ) = moment μ 1 by simp [moment]]
-  change moment μ 2 - (1 * optIntercept μ + optSlope μ * moment μ 1) = 0
+  rw [show (∫ a : ℝ, a ∂μ) = rawMoment μ 1 by simp [rawMoment]]
+  change rawMoment μ 2 - (1 * optIntercept μ + optSlope μ * rawMoment μ 1) = 0
   ring_nf
-  have hd : moment μ 1 ^ 2 - moment μ 2 ≠ 0 := by nlinarith
+  have hd : rawMoment μ 1 ^ 2 - rawMoment μ 2 ≠ 0 := by nlinarith
   unfold optIntercept optSlope
     Causalean.Stat.MomentProblems.ResidualQuadratic.MomentAlgebra.optIntercept
     Causalean.Stat.MomentProblems.ResidualQuadratic.MomentAlgebra.optSlope
@@ -118,7 +118,7 @@ theorem integral_projResidual (μ : Measure ℝ) [IsProbabilityMeasure μ] (h : 
 `y·q = y³ − optIntercept μ · y − optSlope μ · y²`, so `∫ y·q = m₃ − optIntercept μ · m₁ −
 optSlope μ · m₂`; substituting the closed forms and clearing `m₁² − m₂ ≠ 0` gives `0`. -/
 theorem integral_id_mul_projResidual (μ : Measure ℝ) [IsProbabilityMeasure μ] (h : FiniteMoment4 μ)
-    (hnd : moment μ 1 ^ 2 < moment μ 2) :
+    (hnd : rawMoment μ 1 ^ 2 < rawMoment μ 2) :
     ∫ y, y * projResidual μ y ∂μ = 0 := by
   have hid : Integrable (fun y : ℝ => y) μ :=
     (memL2_id μ h).integrable (by norm_num)
@@ -138,9 +138,9 @@ theorem integral_id_mul_projResidual (μ : Measure ℝ) [IsProbabilityMeasure μ
   rw [MeasureTheory.integral_sub h.int3 (hid.const_mul (optIntercept μ))]
   rw [MeasureTheory.integral_const_mul]
   rw [MeasureTheory.integral_const_mul]
-  rw [show (∫ a : ℝ, a ∂μ) = moment μ 1 by simp [moment]]
-  change moment μ 3 - optIntercept μ * moment μ 1 - optSlope μ * moment μ 2 = 0
-  have hd : moment μ 1 ^ 2 - moment μ 2 ≠ 0 := by nlinarith
+  rw [show (∫ a : ℝ, a ∂μ) = rawMoment μ 1 by simp [rawMoment]]
+  change rawMoment μ 3 - optIntercept μ * rawMoment μ 1 - optSlope μ * rawMoment μ 2 = 0
+  have hd : rawMoment μ 1 ^ 2 - rawMoment μ 2 ≠ 0 := by nlinarith
   unfold optIntercept optSlope
     Causalean.Stat.MomentProblems.ResidualQuadratic.MomentAlgebra.optIntercept
     Causalean.Stat.MomentProblems.ResidualQuadratic.MomentAlgebra.optSlope
@@ -157,7 +157,7 @@ variance)](hyp:hnd), [the squared L² norm of the projection residual `q(y) = y�
 `MeasureBridge.residualQuad μ (optIntercept μ) (optSlope μ)`, whose value at the optimal
 coefficients is `l2ResidualQuadratic μ` by `residualQuad_opt_eq`. -/
 theorem integral_sq_projResidual (μ : Measure ℝ) [IsProbabilityMeasure μ] (h : FiniteMoment4 μ)
-    (hnd : moment μ 1 ^ 2 < moment μ 2) :
+    (hnd : rawMoment μ 1 ^ 2 < rawMoment μ 2) :
     ∫ y, projResidual μ y ^ 2 ∂μ = l2ResidualQuadratic μ := by
   rw [← Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.residualQuad_opt_eq μ h hnd]
   unfold projResidual Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.residualQuad
@@ -171,7 +171,7 @@ Write `y² = q(y) + optIntercept μ + optSlope μ · y`, so `y²·q = q² + optI
 optSlope μ · (y·q)`. Integrating and using `integral_sq_projResidual` (`∫ q² = r`),
 `integral_projResidual` (`∫ q = 0`) and `integral_id_mul_projResidual` (`∫ y·q = 0`) gives `r`. -/
 theorem integral_sq_mul_projResidual (μ : Measure ℝ) [IsProbabilityMeasure μ] (h : FiniteMoment4 μ)
-    (hnd : moment μ 1 ^ 2 < moment μ 2) :
+    (hnd : rawMoment μ 1 ^ 2 < rawMoment μ 2) :
     ∫ y, y ^ 2 * projResidual μ y ∂μ = l2ResidualQuadratic μ := by
   have hfun : (fun y : ℝ => y ^ 2 * projResidual μ y) =
       fun y : ℝ => projResidual μ y ^ 2 + optIntercept μ * projResidual μ y +

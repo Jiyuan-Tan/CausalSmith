@@ -25,13 +25,11 @@ open scoped ENNReal NNReal
 namespace Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition
 
 /-- Given [a map from one observation space to another](hyp:f) and [a finite sample in the first space](hyp:s), the [mapped finite sample](goal) has the same size and applies the map to every observation. -/
--- @node: finiteSampleMap
 def finiteSampleMap {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
     (f : X → Y) (s : FiniteSample X) : FiniteSample Y :=
   ⟨s.count, fun i => f (s.points i)⟩
 
 /-- Pointwise mapping of dependent finite samples is measurable. -/
--- @node: measurable_finiteSampleMap
 @[fun_prop]
 lemma measurable_finiteSampleMap {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
     (f : X → Y) (hf : Measurable f) :
@@ -49,14 +47,12 @@ lemma measurable_finiteSampleMap {X Y : Type*} [MeasurableSpace X] [MeasurableSp
   exact hsn.preimage hg
 
 /-- Mapping commutes with fixed-size embedding. -/
--- @node: finiteSampleMap_fixedSizeEmbed
 lemma finiteSampleMap_fixedSizeEmbed {X Y : Type*} [MeasurableSpace X]
     [MeasurableSpace Y] (f : X → Y) (n : ℕ) (x : Fin n → X) :
     finiteSampleMap f (fixedSizeEmbed n x) =
       fixedSizeEmbed n (fun i => f (x i)) := rfl
 
 /-- Equal restrictions and equal cell masses give equal normalized cell laws. -/
--- @node: cellObservationLaw_eq_of_restrict_eq
 lemma cellObservationLaw_eq_of_restrict_eq
     {X ι : Type*} [MeasurableSpace X] [Fintype ι] [MeasurableSpace ι]
     [MeasurableSingletonClass ι]
@@ -76,7 +72,6 @@ identically distributed draws from `P` and from `Q` is at most `B`](hyp:hpi).
 Then [the KL divergence between the marked Poisson experiments with mean count
 `2n`, mark law `R`, and intensity measures `P` and `Q` respectively (both built
 over the same baseline `P`) is at most `2B`](goal). -/
--- @node: markedPoissonKL_le_two_mul_of_piKL
 lemma markedPoissonKL_le_two_mul_of_piKL
     {X : Type*} [MeasurableSpace X] [StandardBorelSpace X]
     (P Q : Measure X) [IsProbabilityMeasure P] [IsProbabilityMeasure Q]
@@ -130,14 +125,12 @@ lemma markedPoissonKL_le_two_mul_of_piKL
       norm_num
 
 /-- Given [a fallback observation](hyp:x₀), [a nonnegative integer prefix length](hyp:n), and [a finite sample of observation--real-mark pairs](hyp:s), the [canonical prefix observations](goal) are the first $n$ observations when the sample has at least $n$ pairs, and otherwise are the constant $n$-tuple of the fallback observation. -/
--- @node: canonicalPrefixObservations
 def canonicalPrefixObservations {X : Type*} [MeasurableSpace X]
     (x₀ : X) (n : ℕ) (s : FiniteSample (X × ℝ)) : Fin n → X :=
   if h : n ≤ s.count then fun k => (s.points (Fin.castLE h k)).1
   else fun _ => x₀
 
 /-- Reading a fixed prefix from a canonical finite configuration is measurable. -/
--- @node: measurable_canonicalPrefixObservations
 @[fun_prop]
 lemma measurable_canonicalPrefixObservations {X : Type*} [MeasurableSpace X]
     (x₀ : X) (n : ℕ) :
@@ -158,7 +151,6 @@ lemma measurable_canonicalPrefixObservations {X : Type*} [MeasurableSpace X]
 
 /-- On the successful-count event, the canonical marked-Poisson
 configuration's first `n` observations have the unnormalised product law. -/
--- @node: map_canonicalPrefixObservations_restrict_count_ge
 lemma map_canonicalPrefixObservations_restrict_count_ge
     {X : Type*} [MeasurableSpace X]
     (P : Measure X) [IsProbabilityMeasure P]
@@ -257,12 +249,10 @@ lemma poisson_two_n_lower_tail (n : ℕ) :
     _ = _ := mul_one _
 
 /-- Given [a fallback observation](hyp:x0) and [a finite sample](hyp:s), the [padded stream representation](goal) is the pair consisting of its size and an infinite stream that agrees with the sample at positions below that size and equals the fallback observation thereafter. -/
--- @node: finiteSamplePaddedStream
 def finiteSamplePaddedStream {X : Type*} [MeasurableSpace X]
     (x0 : X) (s : FiniteSample X) : ℕ × (ℕ → X) :=
   (s.count, fun k => if h : k < s.count then s.points ⟨k, h⟩ else x0)
 
--- @node: finiteSamplePaddedStream_measurable
 @[fun_prop]
 lemma finiteSamplePaddedStream_measurable {X : Type*} [MeasurableSpace X]
     (x0 : X) : Measurable (finiteSamplePaddedStream x0) := by
@@ -281,7 +271,6 @@ lemma finiteSamplePaddedStream_measurable {X : Type*} [MeasurableSpace X]
       using (measurable_pi_apply i : Measurable (fun s : Fin n → X => s i))
   · simp [finiteSamplePaddedStream, FiniteSample.count, hk]
 
--- @node: streamToFiniteSample_paddedStream
 lemma streamToFiniteSample_paddedStream {X : Type*} [MeasurableSpace X]
     (x0 : X) (s : FiniteSample X) :
     streamToFiniteSample (finiteSamplePaddedStream x0 s) = s := by
@@ -293,7 +282,6 @@ lemma streamToFiniteSample_paddedStream {X : Type*} [MeasurableSpace X]
       funext k
       simp
 
--- @node: finiteSamplePaddedStream_range
 lemma finiteSamplePaddedStream_range {X : Type*} [MeasurableSpace X]
     (x0 : X) :
     Set.range (finiteSamplePaddedStream x0) =
@@ -317,7 +305,6 @@ lemma finiteSamplePaddedStream_range {X : Type*} [MeasurableSpace X]
 /-- For every [nonempty standard Borel observation space equipped with its measurable structure](hyp:X), [the space of finite samples from that observation space is a standard Borel space](goal).
 
 The explicit padded-stream presentation supplies the compatible Polish topology missing from the generic dependent-sum instance. -/
--- @node: finiteSample_standardBorelSpace
 noncomputable instance finiteSample_standardBorelSpace
     {X : Type*} [MeasurableSpace X] [StandardBorelSpace X] [Nonempty X] :
     StandardBorelSpace (FiniteSample X) := by
@@ -369,7 +356,6 @@ noncomputable instance finiteSample_standardBorelSpace
   · exact e.measurableEmbedding.borelSpace ⟨rfl⟩
   · exact e.toEquiv.polishSpace_induced
 
--- @node: canonicalMarkedPoissonSampleLaw_map_count
 lemma canonicalMarkedPoissonSampleLaw_map_count
     {X : Type*} [MeasurableSpace X]
     (P : Measure X) [IsProbabilityMeasure P]

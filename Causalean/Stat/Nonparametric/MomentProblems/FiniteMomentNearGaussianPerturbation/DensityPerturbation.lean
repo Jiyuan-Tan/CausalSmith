@@ -5,6 +5,7 @@ Authors: Jiyuan Tan
 -/
 import Causalean.Stat.Nonparametric.MomentProblems.FiniteMomentNearGaussianPerturbation.OrthogonalPerturbation
 import Causalean.Mathlib.InformationTheory.KlDensityTiltExpansion.Basic
+import Causalean.Stat.Minimax.TotalVariation
 import Mathlib.MeasureTheory.Function.AEEqOfLIntegral
 import Mathlib.MeasureTheory.Measure.WithDensity
 
@@ -22,8 +23,9 @@ open MeasureTheory ProbabilityTheory
 open scoped ENNReal
 
 /-- Given [a signed profile](hyp:h) and [a real amplitude](hyp:ε), the [Gaussian density
-perturbation](goal) is [given by weighting the standard Gaussian law by one plus the scaled
-profile](step:1). -/
+perturbation](goal) is [given by weighting the standard Gaussian law by the positive part of one plus the scaled
+profile](step:1). Where one plus the scaled profile is negative the weight is zero, so this is the
+signed tilt only when that quantity is nonnegative. -/
 noncomputable def gaussianPerturbation (h : ℝ → ℝ) (ε : ℝ) : Measure ℝ :=
   (gaussianReal 0 1).withDensity (fun x => ENNReal.ofReal (1 + ε * h x))
 
@@ -103,7 +105,7 @@ theorem gaussianPerturbation_spec
     let F := gaussianPerturbation h ε
     IsProbabilityMeasure F ∧
     F ≠ gaussianReal 0 1 ∧
-    totalVariationDistance F (gaussianReal 0 1) < rho ∧
+    tvDist F (gaussianReal 0 1) < rho ∧
     (∀ k, k ≤ K → rawMoment F k = rawMoment (gaussianReal 0 1) k) ∧
     (∀ k, Integrable (fun x : ℝ => |x| ^ k) F) ∧
     (∀ n : ℕ, 0 < n →
@@ -208,8 +210,8 @@ theorem gaussianPerturbation_spec
       filter_upwards [hh_zero] with x hx
       simp [hx]
     exact (by simpa [μ, this] using hnonzero : False)
-  have htv : totalVariationDistance F μ < rho := by
-    rw [totalVariationDistance_eq_tvDist, Causalean.Stat.tvDist]
+  have htv : tvDist F μ < rho := by
+    rw [tvDist]
     apply lt_of_le_of_lt (ciSup_le fun A => ?_) hερho
     have hAint : Integrable (A.1.indicator h) μ := hh_int.indicator A.2
     have hevent : F.real A.1 - μ.real A.1 = ε * ∫ x in A.1, h x ∂μ := by

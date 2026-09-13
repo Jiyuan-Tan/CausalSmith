@@ -1,5 +1,5 @@
 import Causalean.Graph.DAG
-import Causalean.Graph.FiniteDensity.Coordinate
+import Causalean.Mathlib.MeasureTheory.FiniteCoordinateDependence
 import Causalean.Graph.FiniteDensity.Positive.Basic
 import Mathlib.Algebra.BigOperators.Field
 import Mathlib.Data.Fintype.Pi
@@ -18,6 +18,8 @@ open scoped ENNReal BigOperators
 noncomputable section
 
 namespace Causalean.Graph.FiniteDensity
+
+open Causalean.Mathlib.MeasureTheory.FiniteCoordinate
 
 open Causalean Causalean.Graph.FiniteDensity MeasureTheory
 
@@ -54,8 +56,10 @@ def marginalMass (S : Finset V) (x : ∀ i, X i) : ℝ :=
     if coordinateProjection (X := X) S y = coordinateProjection (X := X) S x
     then M.jointMass y else 0
 
-/-- The pointwise conditional mass of coordinate `i`, given coordinates `C`, is the ratio of the
-corresponding cylinder masses. -/
+/-- The pointwise conditional mass of coordinate `i` taking a given value, given the coordinates in
+`C`, is the mass of the cylinder fixing `i` and `C` divided by the mass of the cylinder fixing `C`
+(zero if that mass is zero). It is the elementary conditional probability when `i` is not in `C`,
+which is how it is used; if `i` belongs to `C`, the numerator overrides that conditioning value. -/
 def conditionalMass (i : V) (C : Finset V) (x : ∀ i, X i) (z : X i) : ℝ :=
   M.marginalMass (insert i C) (Function.update x i z) / M.marginalMass C x
 
@@ -298,8 +302,12 @@ theorem conditionalMass_given_parents (i : V) (x : ∀ i, X i) (z : X i) :
   rw [hreal]
   exact mul_div_cancel_right₀ _ (ne_of_gt (M.marginalMass_pos (G.parents i) x))
 
-/-- Two coordinates are conditionally independent given `C` when every four relevant cylinder
-masses satisfy the usual cross-multiplied finite conditional-probability identity. -/
+/-- The cross-product conditional-independence identity for two coordinates given a set `C`: for
+every assignment and every values of the two coordinates, the cylinder masses satisfy the usual
+cross-multiplied finite conditional-probability identity. It expresses conditional independence
+when the two coordinates are distinct and neither lies in `C`, as in every use here (a child and
+one of its parents, given the remaining parents); for overlapping arguments the identity is not
+conditional independence. -/
 def CondIndepCoordinates (i j : V) (C : Finset V) : Prop :=
   ∀ (x : ∀ k, X k) (xi : X i) (xj : X j),
     M.marginalMass (insert i (insert j C))

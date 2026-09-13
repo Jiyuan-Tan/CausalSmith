@@ -839,8 +839,8 @@ lemma map_superposeByMarks_map_restrictPartition
 
 /-- **Superposition recovers the canonical global law.** Under [nonnegative intensity
 `lam`](hyp:lam), and independently for each cell `j` of the finite measurable partition `p`, draw a
-canonical marked Poisson configuration with base measure `p.cellObservationLaw P j`, mark
-distribution `R`, and intensity `lam` times the `P`-mass of cell `j`; [merging these per-cell
+canonical marked Poisson configuration with base measure `p.cellObservationLaw P j`, atomless mark
+distribution `R` (so marks are almost surely distinct), and intensity `lam` times the `P`-mass of cell `j`; [merging these per-cell
 configurations by increasing mark (mark-ordered superposition) has exactly the law of the canonical
 marked Poisson configuration with base measure `P`, mark distribution `R`, and intensity
 `lam`](goal). -/

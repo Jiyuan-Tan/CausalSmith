@@ -31,7 +31,7 @@ namespace Causalean.Stat.MomentProblems.BoundedOutcomeEnvelope
 
 open Causalean.Stat.MomentProblems.ResidualQuadratic.MomentAlgebra
 open Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge
-  (moment l2ResidualQuadratic FiniteMoment4)
+  (l2ResidualQuadratic FiniteMoment4)
 open MeasureTheory Set
 open scoped Real
 
@@ -51,9 +51,9 @@ theorem finiteMoment4_of_admissible {v : ℝ} {μ : Measure ℝ} (h : Admissible
 /-- `q ≤ m`: the second moment is at most the first, because `y² ≤ y` a.e. on `[0,1]`. Uses
 `integral_mono_ae` on the a.e. support bound plus integrability of `y, y²`. -/
 theorem moment2_le_moment1 {v : ℝ} {μ : Measure ℝ} (h : Admissible v μ) :
-    moment μ 2 ≤ moment μ 1 := by
+    rawMoment μ 2 ≤ rawMoment μ 1 := by
   have hfin := finiteMoment4_of_admissible h
-  unfold moment
+  unfold rawMoment
   refine integral_mono_ae hfin.int2 ?_ ?_
   · simpa [pow_one] using hfin.int1
   · filter_upwards [h.supp] with y hy
@@ -62,7 +62,7 @@ theorem moment2_le_moment1 {v : ℝ} {μ : Measure ℝ} (h : Admissible v μ) :
 /-- `m² ≤ q`: the variance is nonnegative. For a probability measure,
 `(∫ y)² ≤ ∫ y²` (Cauchy–Schwarz / Jensen). -/
 theorem moment1_sq_le_moment2 {v : ℝ} {μ : Measure ℝ} (h : Admissible v μ) :
-    (moment μ 1) ^ 2 ≤ moment μ 2 := by
+    (rawMoment μ 1) ^ 2 ≤ rawMoment μ 2 := by
   haveI : IsProbabilityMeasure μ := h.isProb
   have hfin := finiteMoment4_of_admissible h
   have hmem : MemLp (fun y : ℝ => y) 2 μ := by
@@ -77,19 +77,19 @@ theorem moment1_sq_le_moment2 {v : ℝ} {μ : Measure ℝ} (h : Admissible v μ)
   have hle : (∫ y : ℝ, y ∂μ) ^ 2 ≤ ∫ y : ℝ, y ^ 2 ∂μ := by
     rw [hvar_eq] at hvar_nonneg
     linarith
-  simpa [moment, pow_one] using hle
+  simpa [rawMoment, pow_one] using hle
 
 /-- `0 ≤ crossMoment m q m₃ m₄`. The certificate cross moment equals the integral
 `∫ y (1 − y) (y − xᵥ)² ∂μ` (expand the degree-4 polynomial and integrate term by term, matching the
 definition of `crossMoment`); on `[0,1]` the integrand is `≥ 0`, so the integral is `≥ 0`. -/
 theorem crossMoment_nonneg {v : ℝ} {μ : Measure ℝ} (h : Admissible v μ) :
-    0 ≤ crossMoment (moment μ 1) (moment μ 2) (moment μ 3) (moment μ 4) := by
+    0 ≤ crossMoment (rawMoment μ 1) (rawMoment μ 2) (rawMoment μ 3) (rawMoment μ 4) := by
   have hfin := finiteMoment4_of_admissible h
-  set c := extremalMid (moment μ 1) (moment μ 2)
+  set c := extremalMid (rawMoment μ 1) (rawMoment μ 2)
   have hcross_eq :
-      crossMoment (moment μ 1) (moment μ 2) (moment μ 3) (moment μ 4) =
+      crossMoment (rawMoment μ 1) (rawMoment μ 2) (rawMoment μ 3) (rawMoment μ 4) =
         ∫ y, y * (1 - y) * (y - c) ^ 2 ∂μ := by
-    unfold crossMoment moment
+    unfold crossMoment rawMoment
     change -∫ y, y ^ 4 ∂μ + (1 + 2 * c) * ∫ y, y ^ 3 ∂μ -
         (2 * c + c ^ 2) * ∫ y, y ^ 2 ∂μ + c ^ 2 * ∫ y, y ^ 1 ∂μ =
       ∫ y, y * (1 - y) * (y - c) ^ 2 ∂μ
@@ -124,10 +124,10 @@ theorem crossMoment_nonneg {v : ℝ} {μ : Measure ℝ} (h : Admissible v μ) :
 /-- In the degenerate case `m² = q` the closed-form residual is `0` (the Hankel ratio's denominator
 `m₁² − m₂` vanishes, so `momentResidual _ _ _ _ = _ / 0 = 0`). -/
 theorem l2ResidualQuadratic_eq_zero_of_degenerate {μ : Measure ℝ}
-    (hdeg : (moment μ 1) ^ 2 = moment μ 2) :
+    (hdeg : (rawMoment μ 1) ^ 2 = rawMoment μ 2) :
     l2ResidualQuadratic μ = 0 := by
   unfold l2ResidualQuadratic momentResidual
-  rw [show (moment μ 1) ^ 2 - moment μ 2 = 0 by rw [hdeg]; ring, div_zero]
+  rw [show (rawMoment μ 1) ^ 2 - rawMoment μ 2 = 0 by rw [hdeg]; ring, div_zero]
 
 /-- **Measure-level sharp upper bound.** For [`v` strictly between `0` and `1`](hyp:hv0,hv1) and
 every [admissible probability law `μ`](hyp:h) on `[0,1]` with second moment `v²`, [the closed-form
@@ -142,9 +142,9 @@ theorem l2ResidualQuadratic_le_rho (v : ℝ) (μ : Measure ℝ) (h : Admissible 
     l2ResidualQuadratic μ ≤ rhoEnvelope v := by
   have hq0 : (0 : ℝ) < v ^ 2 := by positivity
   have hq1 : v ^ 2 < 1 := by nlinarith
-  have hmom2 : moment μ 2 = v ^ 2 := h.moment2_eq
-  have hqm : moment μ 2 ≤ moment μ 1 := moment2_le_moment1 h
-  have hmq_le : (moment μ 1) ^ 2 ≤ moment μ 2 := moment1_sq_le_moment2 h
+  have hmom2 : rawMoment μ 2 = v ^ 2 := h.moment2_eq
+  have hqm : rawMoment μ 2 ≤ rawMoment μ 1 := moment2_le_moment1 h
+  have hmq_le : (rawMoment μ 1) ^ 2 ≤ rawMoment μ 2 := moment1_sq_le_moment2 h
   have hmem := maximizingRoot_mem v hv0 hv1
   have hqu : v ^ 2 < maximizingRoot v := hmem.1
   have hroot : envelopeQuartic (maximizingRoot v) (v ^ 2) = 0 := maximizingRoot_quartic v hv0 hv1
@@ -156,17 +156,17 @@ theorem l2ResidualQuadratic_le_rho (v : ℝ) (μ : Measure ℝ) (h : Admissible 
     have hu0 : 0 < maximizingRoot v := lt_trans hq0 hqu
     have huq : (maximizingRoot v) ^ 2 < v ^ 2 := by nlinarith [hmem.2]
     -- `hqm`, `hlt` in `v²`-coordinates:
-    have hqm' : v ^ 2 ≤ moment μ 1 := by rw [← hmom2]; exact hqm
-    have hmq' : (moment μ 1) ^ 2 < v ^ 2 := by rw [← hmom2]; exact hlt
+    have hqm' : v ^ 2 ≤ rawMoment μ 1 := by rw [← hmom2]; exact hqm
+    have hmq' : (rawMoment μ 1) ^ 2 < v ^ 2 := by rw [← hmom2]; exact hlt
     have hcross := crossMoment_nonneg h
     rw [hmom2] at hcross
     have hbound :
-        momentResidual (moment μ 1) (v ^ 2) (moment μ 3) (moment μ 4)
+        momentResidual (rawMoment μ 1) (v ^ 2) (rawMoment μ 3) (rawMoment μ 4)
           ≤ momentEnvelope (maximizingRoot v) (v ^ 2) :=
-      momentResidual_le_envelope (moment μ 1) (v ^ 2) (moment μ 3) (moment μ 4)
+      momentResidual_le_envelope (rawMoment μ 1) (v ^ 2) (rawMoment μ 3) (rawMoment μ 4)
         (maximizingRoot v) hq0 hq1 hqm' hmq' hcross hqu huq hroot
     have hres : l2ResidualQuadratic μ
-        = momentResidual (moment μ 1) (v ^ 2) (moment μ 3) (moment μ 4) := by
+        = momentResidual (rawMoment μ 1) (v ^ 2) (rawMoment μ 3) (rawMoment μ 4) := by
       unfold l2ResidualQuadratic; rw [hmom2]
     rw [hres, rhoEnvelope]
     exact hbound

@@ -17,7 +17,7 @@ open scoped ENNReal NNReal Real Topology
 
 namespace Causalean.Mathlib.Analysis.WeightedCircularTube
 
-/-- For [a real exponent](hyp:κ), [a choice of the inside or outside of the unit circle](hyp:side), [a planar centre](hyp:x), and [a real radius](hyp:h), the [weighted side-ball mass](goal) is the two-dimensional Lebesgue integral of the radial power weight with that exponent over the corresponding one-sided open ball. -/
+/-- For [a real exponent](hyp:κ), [a choice of the inside or outside of the unit circle](hyp:side), [a planar centre](hyp:x), and [a real radius](hyp:h), the [weighted side-ball mass](goal) is the two-dimensional Lebesgue integral of the radial power weight with that exponent over the corresponding one-sided open ball. The integral is the real-valued Bochner integral, which is zero when the weight is not integrable there; the results below use it for exponents above two, where it is integrable. -/
 def sideBallMass (κ : ℝ) (side : CircleSide) (x : Plane) (h : ℝ) : ℝ :=
   ∫ z in sideBall side x h, powerWeight κ z ∂volume
 
@@ -276,7 +276,7 @@ theorem reference_powerWeighted_sideBall_bounds
 
 /-- When [the allowed exponent ceiling exceeds two](hyp:hκMax) and [the maximum scale is positive
 and below one](hyp:hh0pos,hh0lt), [there are positive constants, uniform over every unit-circle
-center, either radial side, all exponents between two and that ceiling, and all positive scales up
+center, either radial side, all exponents strictly greater than two and at most that ceiling, and all positive scales up
 to that maximum, which bound one-sided weighted mass above and below by constant multiples of the
 scale to the exponent](goal). -/
 theorem unitCircle_powerWeighted_sideBall_bounds
@@ -317,7 +317,7 @@ theorem integrableOn_powerWeight_annularTube {κ δ : ℝ} (hκ : 2 < κ) (hδ :
       (isCompact_closedBall (0 : Plane) 2)
   exact Integrable.mono_measure hclosed (Measure.restrict_mono hsub le_rfl)
 
-/-- For [a real exponent](hyp:κ) and [a real tube width](hyp:δ), the [weighted annular normalizer](goal) is the two-dimensional Lebesgue integral of the radial power weight with that exponent over the annular tube of that width. -/
+/-- For [a real exponent](hyp:κ) and [a real tube width](hyp:δ), the [weighted annular normalizer](goal) is the two-dimensional Lebesgue integral of the radial power weight with that exponent over the annular tube of that width. The integral is the real-valued Bochner integral, which is zero when the weight is not integrable there; the results below use it for exponents above two, where it is integrable. -/
 def annularNormalizer (κ δ : ℝ) : ℝ :=
   ∫ z in annularTube δ, powerWeight κ z ∂volume
 

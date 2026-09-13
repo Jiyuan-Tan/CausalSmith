@@ -39,12 +39,10 @@ the point along the associated ordered standard-coordinate directions. -/
 noncomputable def coordinatePartial (f : EuclideanSpace ℝ (Fin 2) → ℝ) (alpha : Fin 2 → ℕ)
     (x : EuclideanSpace ℝ (Fin 2)) : ℝ :=
   iteratedFDeriv ℝ (coordinateMultiOrder alpha) f x (coordinateDirections alpha)
-/-- [Evaluating the iterated Fréchet derivative of a function `f`](hyp:f) [of a bivariate
-multi-index `alpha`](hyp:alpha) [at a point `x`, along the standard coordinate
-directions](hyp:x), [cannot increase its operator norm — the resulting scalar coordinate
+/-- [Evaluating the iterated Fréchet derivative of a function `f`](hyp:f) [along the standard coordinate
+directions given by a bivariate multi-index `alpha`](hyp:alpha) [at a point `x`](hyp:x), [cannot increase its operator norm — the resulting scalar coordinate
 partial is bounded in absolute value by the operator norm of the full iterated
 derivative](goal). -/
--- @node: coordinatePartial_abs_le_iteratedFDeriv_norm
 lemma coordinatePartial_abs_le_iteratedFDeriv_norm
     (f : EuclideanSpace ℝ (Fin 2) → ℝ) (alpha : Fin 2 → ℕ) (x : EuclideanSpace ℝ (Fin 2)) :
     |coordinatePartial f alpha x| ≤
@@ -63,7 +61,6 @@ lemma coordinatePartial_abs_le_iteratedFDeriv_norm
 
 /-- Differences of scalar coordinate partials are bounded by the operator
 norm of the corresponding Fréchet-derivative difference. -/
--- @node: coordinatePartial_sub_abs_le_iteratedFDeriv_sub_norm
 lemma coordinatePartial_sub_abs_le_iteratedFDeriv_sub_norm
     (f : EuclideanSpace ℝ (Fin 2) → ℝ) (alpha : Fin 2 → ℕ) (x z : EuclideanSpace ℝ (Fin 2)) :
     |coordinatePartial f alpha x - coordinatePartial f alpha z| ≤

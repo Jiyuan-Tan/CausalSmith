@@ -47,7 +47,7 @@ namespace Causalean.Stat.MomentProblems.ScoreProgram
 open MeasureTheory
 open scoped Real
 open Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge
-  (moment optIntercept optSlope l2ResidualQuadratic FiniteMoment4)
+  (optIntercept optSlope l2ResidualQuadratic FiniteMoment4)
 open Causalean.Stat.MomentProblems.ResidualQuadratic.ProjectionResidual
 
 /-- **Feasibility of a score.** `s : ℝ → ℝ` is feasible for target `x` if it lies in `L²(μ)` and is
@@ -90,7 +90,7 @@ noncomputable def scoreCost (μ : Measure ℝ) (x : ℝ) : ℝ :=
 it lies in `L²(μ)` and satisfies the three moment constraints. The `y²`-moment constraint uses
 `∫ y²·q = r` and `(x/r)·r = x` (needs `r ≠ 0`). -/
 theorem optScore_feasible (μ : Measure ℝ) [IsProbabilityMeasure μ] (h : FiniteMoment4 μ)
-    (hnd : moment μ 1 ^ 2 < moment μ 2) (hr : 0 < l2ResidualQuadratic μ) (x : ℝ) :
+    (hnd : rawMoment μ 1 ^ 2 < rawMoment μ 2) (hr : 0 < l2ResidualQuadratic μ) (x : ℝ) :
     FeasibleScore μ x (optScore μ x) := by
   refine ⟨?_, ?_, ?_, ?_⟩
   · exact (projResidual_memL2 μ h).const_mul (x / l2ResidualQuadratic μ)
@@ -118,7 +118,7 @@ theorem optScore_feasible (μ : Measure ℝ) [IsProbabilityMeasure μ] (h : Fini
 /-- **Attainment.** The optimal score `s*` achieves cost exactly `x² / r`:
 `∫ (s*)² dμ = ∫ (x/r)²·q² dμ = (x/r)²·r = x²/r`. -/
 theorem optScore_cost (μ : Measure ℝ) [IsProbabilityMeasure μ] (h : FiniteMoment4 μ)
-    (hnd : moment μ 1 ^ 2 < moment μ 2) (hr : 0 < l2ResidualQuadratic μ) (x : ℝ) :
+    (hnd : rawMoment μ 1 ^ 2 < rawMoment μ 2) (hr : 0 < l2ResidualQuadratic μ) (x : ℝ) :
     ∫ y, optScore μ x y ^ 2 ∂μ = x ^ 2 / l2ResidualQuadratic μ := by
   calc
     ∫ y, optScore μ x y ^ 2 ∂μ
@@ -140,7 +140,7 @@ so `x²/r ≤ ∫ s²`. All splits use `Integrable s`, `Integrable (y·s)`, `Int
 `Integrable (s·q)` and `Integrable (s²)`, each obtained from `MemLp _ 2 μ` on the finite measure. -/
 theorem feasibleScore_cost_lower_bound (μ : Measure ℝ) [IsProbabilityMeasure μ]
     (h : FiniteMoment4 μ)
-    (hnd : moment μ 1 ^ 2 < moment μ 2) (hr : 0 < l2ResidualQuadratic μ) (x : ℝ) {s : ℝ → ℝ}
+    (hnd : rawMoment μ 1 ^ 2 < rawMoment μ 2) (hr : 0 < l2ResidualQuadratic μ) (x : ℝ) {s : ℝ → ℝ}
     (hs : FeasibleScore μ x s) :
     x ^ 2 / l2ResidualQuadratic μ ≤ ∫ y, s y ^ 2 ∂μ := by
   let r := l2ResidualQuadratic μ
@@ -224,7 +224,7 @@ Proof: `x²/r` is attained by `optScore μ x` (`optScore_feasible` + `optScore_c
 the value set, and it is a lower bound of that set (`feasibleScore_cost_lower_bound`); hence it is
 the least element, and `sInf` of the value set equals it (`IsLeast.csInf_eq`). -/
 theorem scoreCost_eq (μ : Measure ℝ) [IsProbabilityMeasure μ] (h : FiniteMoment4 μ)
-    (hnd : moment μ 1 ^ 2 < moment μ 2) (hr : 0 < l2ResidualQuadratic μ) (x : ℝ) :
+    (hnd : rawMoment μ 1 ^ 2 < rawMoment μ 2) (hr : 0 < l2ResidualQuadratic μ) (x : ℝ) :
     scoreCost μ x = x ^ 2 / l2ResidualQuadratic μ := by
   have hmem : x ^ 2 / l2ResidualQuadratic μ ∈
       {c : ℝ | ∃ s, FeasibleScore μ x s ∧ c = ∫ y, s y ^ 2 ∂μ} :=

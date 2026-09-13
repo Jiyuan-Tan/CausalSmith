@@ -5,6 +5,7 @@ Authors: Jiyuan Tan
 -/
 
 import Causalean.Discovery.LinearDisentanglement.Quantitative.Quantitative
+import Mathlib.Analysis.Matrix.Normed
 import Mathlib.Analysis.Matrix.PosDef
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
@@ -61,11 +62,32 @@ def transitionError {p : ℕ} (B₀ B : SqMatrix p) : SqMatrix p :=
   transition B₀ B - 1
 
 /-- For [a dimension](hyp:p) and [a square matrix](hyp:R), [its entrywise Euclidean size](goal)
-is the square root of the sum of squared absolute values of all its entries. -/
-def entryL2 {p : ℕ} (R : SqMatrix p) : ℝ :=
-  Real.sqrt (∑ i, ∑ j, |R i j| ^ 2)
+is its Frobenius norm: the square root of the sum of squared absolute values of all its entries.
 
-/-- For [a matrix scale](hyp:M) and [a pairwise affine-separation margin](hyp:δ), [the pairwise
+This is a named abbreviation for Mathlib's Frobenius norm (`Matrix.frobeniusNormedAddCommGroup`),
+not a separate notion.  It is kept as a function because these files use the Euclidean operator
+norm as the ambient matrix norm `‖·‖`, and several statements compare the two norms. -/
+def entryL2 {p : ℕ} (R : SqMatrix p) : ℝ :=
+  @norm (SqMatrix p) Matrix.frobeniusNormedAddCommGroup.toNorm R
+
+/-- For [a square matrix](hyp:R), [its entrywise Euclidean size is, by definition, Mathlib's
+Frobenius norm of the matrix](goal). -/
+theorem entryL2_eq_frobenius_norm {p : ℕ} (R : SqMatrix p) :
+    entryL2 R = @norm (SqMatrix p) Matrix.frobeniusNormedAddCommGroup.toNorm R := rfl
+
+/-- For [a square matrix](hyp:R), [its entrywise Euclidean size equals the square root of the
+sum of squared absolute values of its entries](goal). -/
+theorem entryL2_eq_sqrt {p : ℕ} (R : SqMatrix p) :
+    entryL2 R = Real.sqrt (∑ i, ∑ j, |R i j| ^ 2) := by
+  rw [entryL2, Matrix.frobenius_norm_def, Real.sqrt_eq_rpow]
+  simp only [Real.rpow_two, Real.norm_eq_abs]
+
+/-- For [a square matrix](hyp:R), [its entrywise Euclidean size is nonnegative](goal). -/
+theorem entryL2_nonneg {p : ℕ} (R : SqMatrix p) : 0 ≤ entryL2 R := by
+  rw [entryL2_eq_sqrt]
+  exact Real.sqrt_nonneg _
+
+/-- For [a shift scale](hyp:M) and [a pairwise affine-separation margin](hyp:δ), [the pairwise
 solve factor](goal) is $6M/\delta$.
 
 The factor six leaves room for centering and triangle inequalities while retaining the requested
@@ -73,32 +95,33 @@ specialization. -/
 def pairwiseSolveFactor (M δ : ℝ) : ℝ :=
   6 * M / δ
 
-/-- For [a dimension](hyp:p), [a matrix scale](hyp:M), [a pairwise affine-separation margin](hyp:δ),
-and [a shift scale](hyp:L), [the pairwise aggregate factor](goal) is the pairwise solve factor
+/-- For [a dimension](hyp:p), [a shift scale](hyp:M), [a pairwise affine-separation margin](hyp:δ),
+and [a matrix scale](hyp:L), [the pairwise aggregate factor](goal) is the pairwise solve factor
 times the square root of $p(p-1)(1+L^2)$. -/
 def pairwiseAggregateFactor (p : ℕ) (M δ L : ℝ) : ℝ :=
   pairwiseSolveFactor M δ *
     Real.sqrt ((p : ℝ) * (p - 1 : ℕ) * (1 + L ^ 2))
 
-/-- For [a dimension](hyp:p), [a matrix scale](hyp:M), [a pairwise affine-separation margin](hyp:δ),
-and [a shift scale](hyp:L), [the pairwise stability constant](goal) is sixteen times the
+/-- For [a dimension](hyp:p), [a shift scale](hyp:M), [a pairwise affine-separation margin](hyp:δ),
+and [a matrix scale](hyp:L), [the pairwise stability constant](goal) is sixteen times the
 pairwise aggregate factor times $L^3$. -/
 def pairwiseStabilityConstant (p : ℕ) (M δ L : ℝ) : ℝ :=
   16 * pairwiseAggregateFactor p M δ L * L ^ 3
 
-/-- For [a dimension](hyp:p), [a matrix scale](hyp:M), [a pairwise affine-separation margin](hyp:δ),
-and [a shift scale](hyp:L), [the pairwise residual radius](goal) is the reciprocal of thirty-two
-times the squared maximum of one and the pairwise aggregate factor, times the matrix scale.
+/-- For [a dimension](hyp:p), [a shift scale](hyp:M), [a pairwise affine-separation margin](hyp:δ),
+and [a matrix scale](hyp:L), [the pairwise residual radius](goal) is the reciprocal of thirty-two
+times the squared maximum of one and the pairwise aggregate factor, times the shift scale.
 
 Its use of $\max(1,\cdot)$ also covers the one-dimensional case, where the ordered-pair aggregate
 vanishes. -/
 def pairwiseResidualRadius (p : ℕ) (M δ L : ℝ) : ℝ :=
   1 / (32 * (max 1 (pairwiseAggregateFactor p M δ L)) ^ 2 * M)
 
-/-- For [a dimension](hyp:p), [a matrix scale](hyp:M), [a pairwise affine-separation margin](hyp:δ),
-[a shift scale](hyp:L), and [an inverse-norm envelope](hyp:J), [the pairwise local radius](goal)
-is the stated minimum-based reference-neighborhood radius divided by the dimension and the
-inverse-norm envelope.
+/-- For [a dimension](hyp:p), [a shift scale](hyp:M), [a pairwise affine-separation margin](hyp:δ),
+[a matrix scale](hyp:L), and [an inverse-norm envelope](hyp:J), [the pairwise local radius](goal)
+is the minimum of one and three divided by eight times the shift scale times the larger of one
+and the pairwise aggregate factor, all divided by the product of the dimension and the inverse-norm
+envelope.
 
 The inverse-norm envelope is an upper bound for the reference inverse's Euclidean operator norm. -/
 def pairwiseLocalRadius (p : ℕ) (M δ L J : ℝ) : ℝ :=
@@ -106,16 +129,17 @@ def pairwiseLocalRadius (p : ℕ) (M δ L J : ℝ) : ℝ :=
     ((p : ℝ) * J)
 
 /-- For [a dimension](hyp:p) and [a condition-number envelope](hyp:κ), [the condition root](goal)
-is $((p!)\kappa^{p-1})^{1/p}$. -/
+is $((p!)\kappa^{p-1})^{1/p}$ for positive dimension. At dimension zero the exponents are
+evaluated by convention (natural subtraction gives $p-1=0$ and $1/0=0$), so the value is one. -/
 def conditionRoot (p : ℕ) (κ : ℝ) : ℝ :=
   ((Nat.factorial p : ℝ) * κ ^ (p - 1)) ^ (1 / (p : ℝ))
 
 /-- For [a dimension](hyp:p), [a real scale bound](hyp:L), and [a reference and candidate
-matrix](hyp:B₀,B), [the pair matrix-norm bound](goal) holds exactly when both Euclidean operator
-norms are at most the scale bound: [the reference matrix's norm is at most the bound](step:1) and
-[the candidate matrix's norm is at most the bound](step:2). -/
-def PairMatrixNormBound {p : ℕ} (L : ℝ) (B₀ B : SqMatrix p) : Prop :=
-  ‖B₀‖ ≤ L ∧ ‖B‖ ≤ L
+matrix](hyp:B₀,B), [the pair matrix-norm bound](goal) is [the pair matrix-scale bound for the same
+data](step:1): both Euclidean operator norms are at most the scale bound. It is an abbreviation kept
+for compatibility; `PairMatrixScaleBound` is the canonical name. -/
+abbrev PairMatrixNormBound {p : ℕ} (L : ℝ) (B₀ B : SqMatrix p) : Prop :=
+  PairMatrixScaleBound L B₀ B
 
 /-- For [a dimension](hyp:p), [a real neighborhood radius](hyp:ρ), and [a reference and candidate
 matrix](hyp:B₀,B), [membership in the reference neighborhood](goal) holds exactly when their
@@ -138,10 +162,10 @@ satisfies that determinant-condition envelope](step:2). -/
 def PairDetConditionEnvelope {p : ℕ} (κ : ℝ) (B₀ B : SqMatrix p) : Prop :=
   DetConditionEnvelope κ B₀ ∧ DetConditionEnvelope κ B
 
-/-- For [a dimension](hyp:p), [a matrix scale](hyp:M), [a pairwise affine-separation margin](hyp:δ),
-[a shift scale](hyp:L), and [a reference and candidate matrix](hyp:B₀,B), [membership in the
+/-- For [a dimension](hyp:p), [a shift scale](hyp:M), [a pairwise affine-separation margin](hyp:δ),
+[a matrix scale](hyp:L), and [a reference and candidate matrix](hyp:B₀,B), [membership in the
 identity branch](goal) holds exactly when [the transition error has entrywise Euclidean size at
-most one](step:1) and [twice the pairwise aggregate factor times the matrix scale times that size
+most one](step:1) and [twice the pairwise aggregate factor times the shift scale times that size
 is at most one half](step:2). -/
 def InIdentityBranch {p : ℕ} (M δ L : ℝ) (B₀ B : SqMatrix p) : Prop :=
   entryL2 (transitionError B₀ B) ≤ 1 ∧
@@ -300,14 +324,14 @@ theorem one_le_conditionRoot {p : ℕ} {κ : ℝ} (hp : 0 < p) (hκ : 1 ≤ κ) 
     nlinarith
   · positivity
 
-/-- For [positive dimension](hyp:hp), [condition envelope at least one](hyp:hκ), [a
-unit-diagonal matrix](hyp:hdiag), and [its determinant/condition envelope](hyp:henv),
-[the matrix operator norm is bounded by the determinant/condition root](goal). -/
--- Proof route: a unit diagonal entry gives `1 ≤ ‖B‖`.  Order the singular values;
+/-- For [positive dimension](hyp:hp), [condition envelope at least one](hyp:hκ), and [a
+determinant/condition envelope for the matrix](hyp:henv), [the matrix operator norm is bounded
+by the determinant/condition root](goal). -/
+-- Proof route: order the singular values;
 -- `cond(B) ≤ κ` bounds every lower singular value below by `‖B‖/κ`, while their
 -- product is `|det B| ≤ p!`.  Take the positive `p`-th root.
 theorem opNorm_le_conditionRoot {p : ℕ} {κ : ℝ} (B : SqMatrix p)
-    (hp : 0 < p) (hκ : 1 ≤ κ) (hdiag : UnitDiagonal B)
+    (hp : 0 < p) (hκ : 1 ≤ κ)
     (henv : DetConditionEnvelope κ B) :
     ‖B‖ ≤ conditionRoot p κ := by
   have hcond_nonneg : 0 ≤ operatorConditionNumber B :=
@@ -331,14 +355,13 @@ theorem opNorm_le_conditionRoot {p : ℕ} {κ : ℝ} (B : SqMatrix p)
       rw [mul_div_cancel₀ 1 hpR, Real.rpow_one]
     _ ≤ ((Nat.factorial p : ℝ) * κ ^ (p - 1)) ^ (1 / (p : ℝ)) := hrpow
 
-/-- For [positive dimension](hyp:hp), [condition envelope at least one](hyp:hκ),
-[unit diagonals](hyp:hdiag₀,hdiag), and [a common determinant/condition envelope](hyp:henv),
+/-- For [positive dimension](hyp:hp), [condition envelope at least one](hyp:hκ), and
+[a common determinant/condition envelope](hyp:henv),
 [both matrix norms obey the common `conditionRoot` bound](goal). -/
 theorem pairMatrixNormBound_conditionRoot {p : ℕ} {κ : ℝ} (B₀ B : SqMatrix p)
-    (hp : 0 < p) (hκ : 1 ≤ κ) (hdiag₀ : UnitDiagonal B₀)
-    (hdiag : UnitDiagonal B) (henv : PairDetConditionEnvelope κ B₀ B) :
+    (hp : 0 < p) (hκ : 1 ≤ κ) (henv : PairDetConditionEnvelope κ B₀ B) :
     PairMatrixNormBound (conditionRoot p κ) B₀ B := by
-  exact ⟨opNorm_le_conditionRoot B₀ hp hκ hdiag₀ henv.1,
-    opNorm_le_conditionRoot B hp hκ hdiag henv.2⟩
+  exact ⟨opNorm_le_conditionRoot B₀ hp hκ henv.1,
+    opNorm_le_conditionRoot B hp hκ henv.2⟩
 
 end Causalean.Discovery.LinearDisentanglement.Quantitative.PairwiseAffine

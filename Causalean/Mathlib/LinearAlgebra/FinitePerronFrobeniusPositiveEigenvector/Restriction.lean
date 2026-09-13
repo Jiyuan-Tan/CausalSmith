@@ -18,7 +18,7 @@ noncomputable section
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
-/-- The principal submatrix of [a finite real matrix](hyp:A) on [a finite set of coordinates](hyp:s), called [its restricted matrix](goal), [is given by selecting those rows and columns](step:1). -/
+/-- The principal submatrix of [a real square matrix](hyp:A) on [a finite set of coordinates](hyp:s), called [its restricted matrix](goal), [is given by selecting those rows and columns](step:1). -/
 def restrictMatrix (A : Matrix ι ι ℝ) (s : Finset ι) : Matrix s s ℝ :=
   A.submatrix Subtype.val Subtype.val
 

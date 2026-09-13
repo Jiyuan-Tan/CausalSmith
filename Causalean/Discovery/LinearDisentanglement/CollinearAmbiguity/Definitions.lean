@@ -42,8 +42,9 @@ structure AffineLineCertificate {d : ℕ} {E : Type*} (s : E → Fin d → ℝ)
 
 /-- For [a $d$-dimensional coordinate system](hyp:d), [two selected coordinates](hyp:i,j), and
 [three real numbers specifying a line normal and deformation magnitude](hyp:u,v,t), [the
-elementary two-row shear](goal) is the identity matrix except for selected off-diagonal entries
-$tv$ and $tu$. -/
+elementary two-row shear](goal) is the identity matrix plus $tv$ at position $(i,j)$ and $tu$ at
+position $(j,i)$. For distinct coordinates these are two off-diagonal entries; if the coordinates
+coincide, both increments land on the same diagonal entry. -/
 def pairShear {d : ℕ} (i j : Fin d) (u v t : ℝ) : SqMatrix d :=
   1 + Matrix.single i j (t * v) + Matrix.single j i (t * u)
 
@@ -63,8 +64,9 @@ def secondNormalizationDenom {d : ℕ} (B : SqMatrix d) (i j : Fin d)
 
 /-- For [a $d\u2011by\u2011$d reference matrix](hyp:B), [two selected coordinates](hyp:i,j), and
 [a line normal and deformation magnitude](hyp:u,v,t), [the pair row normalizer](goal) is the
-diagonal matrix that rescales the two selected rows by the reciprocals of their normalization
-denominators and leaves all other rows unchanged. -/
+diagonal matrix that rescales the first selected row by the reciprocal of the first normalization
+denominator, the second selected row (when it differs from the first) by the reciprocal of the second,
+and leaves all other rows unchanged; a zero denominator has reciprocal zero by convention. -/
 def pairRowNormalizer {d : ℕ} (B : SqMatrix d) (i j : Fin d)
     (u v t : ℝ) : SqMatrix d :=
   Matrix.diagonal fun k ↦
@@ -87,8 +89,8 @@ def deformedDiagonalizer {d : ℕ} (B : SqMatrix d) (i j : Fin d)
   normalizedPairDeformation B i j u v t * B
 
 /-- For [a $d\u2011by\u2011$d matrix](hyp:B) and [two selected coordinates](hyp:i,j), [pair-cycle
-admissibility](goal) holds exactly when the product of the two opposite selected off-diagonal
-entries is not one. -/
+admissibility](goal) holds exactly when the product of the $(i,j)$ and $(j,i)$ entries is not
+one; for distinct coordinates these are the two opposite off-diagonal entries of the selected pair. -/
 def PairCycleAdmissible {d : ℕ} (B : SqMatrix d) (i j : Fin d) : Prop :=
   B i j * B j i ≠ 1
 
@@ -102,8 +104,10 @@ def commonShiftCrossTerm {d : ℕ} (B : SqMatrix d) (i j : Fin d)
     (secondNormalizationDenom B i j u t)⁻¹ * (t * c)
 
 /-- For [a $d$-dimensional coordinate system](hyp:d), [two selected coordinates](hyp:i,j), and
-[a real entry value](hyp:x), [the symmetric selected off-diagonal matrix](goal) has that value
-in both selected off-diagonal positions and zero elsewhere. -/
+[a real entry value](hyp:x), [the symmetric selected off-diagonal matrix](goal) is the sum of the
+matrix with that value at position $(i,j)$ and the matrix with that value at position $(j,i)$. For
+distinct coordinates it has the value in both off-diagonal positions and zero elsewhere; if the
+coordinates coincide, it has twice the value on that diagonal entry. -/
 def pairSymmetricOffDiagonal {d : ℕ} (i j : Fin d) (x : ℝ) : SqMatrix d :=
   Matrix.single i j x + Matrix.single j i x
 
@@ -131,7 +135,9 @@ def deformedShift {d : ℕ} (B : SqMatrix d) (i j : Fin d)
 
 /-- For [a $d\u2011by\u2011$d diagonalizer and invariant matrix](hyp:B,Ω) and [a diagonal shift
 vector](hyp:s), [the represented covariance matrix](goal) is the inverse congruence transform
-of the invariant matrix plus the diagonal shift matrix. -/
+of the invariant matrix plus the diagonal shift matrix. This is meaningful for an invertible
+diagonalizer; for a singular one the matrix inverse is zero by convention, so the value is the zero
+matrix. -/
 def representedCovariance {d : ℕ} (B Ω : SqMatrix d) (s : Fin d → ℝ) : SqMatrix d :=
   B⁻¹ * (Ω + Matrix.diagonal s) * (B⁻¹).transpose
 
@@ -139,7 +145,8 @@ def representedCovariance {d : ℕ} (B Ω : SqMatrix d) (s : Fin d → ℝ) : Sq
 each environment](hyp:Sigma), [a diagonalizer and invariant matrix](hyp:B,Ω), and [a diagonal
 shift vector for each environment](hyp:s), [the covariance family is represented](goal) exactly
 when every environment's covariance matrix equals the covariance represented by those common
-matrices and that environment's shift vector. -/
+matrices and that environment's shift vector. Invertibility of the diagonalizer is not part of this
+predicate; a singular diagonalizer represents only the all-zero family. -/
 def RepresentsCovarianceFamily {d : ℕ} {E : Type*} (Sigma : E → SqMatrix d)
     (B Ω : SqMatrix d) (s : E → Fin d → ℝ) : Prop :=
   ∀ e, Sigma e = representedCovariance B Ω (s e)

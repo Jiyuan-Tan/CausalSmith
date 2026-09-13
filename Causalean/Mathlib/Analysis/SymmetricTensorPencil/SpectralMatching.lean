@@ -16,16 +16,21 @@ namespace Causalean.Mathlib.Analysis.SymmetricTensorPencil
 
 open scoped Matrix.Norms.L2Operator
 
-/-- A finite real scalar family has pairwise gap at least `gap`. With [its explicit inputs](hyp:values,gap), [the defined object](goal) is [given by the displayed formula](step:1). -/
+/-- A real scalar family, over an arbitrary index type, has pairwise gap at least `gap`. With [its explicit inputs](hyp:values,gap), [the defined object](goal) is [given by the displayed formula](step:1). -/
 def PairwiseGap {ι : Type*} (values : ι → ℝ) (gap : ℝ) : Prop :=
   ∀ i j, i ≠ j → gap ≤ |values i - values j|
 
-/-- The matrix diagonalized by `S` with the prescribed real diagonal entries. With [its explicit inputs](hyp:S,values), [the defined object](goal) is [given by the displayed formula](step:1). -/
+/-- The conjugation of the diagonal matrix of the prescribed real entries by `S`, that is `S` times
+the diagonal times the inverse of `S`. It is diagonalized by `S` with those entries when `S` is
+invertible; for singular `S` the inverse is zero by convention and the value is the zero matrix. With [its explicit inputs](hyp:S,values), [the defined object](goal) is [given by the displayed formula](step:1). -/
 noncomputable def diagonalizableMatrix {n : ℕ} (S : Matrix (Fin n) (Fin n) ℝ)
     (values : Fin n → ℝ) : Matrix (Fin n) (Fin n) ℝ :=
   S * Matrix.diagonal values * S⁻¹
 
-/-- The rank-one spectral projector selected by coordinate `j` of an invertible diagonalizer. With [its explicit inputs](hyp:S,j), [the defined object](goal) is [given by the displayed formula](step:1). -/
+/-- The coordinate projector selected by coordinate `j` of a diagonalizer `S`: `S` times the `j`-th
+standard diagonal unit matrix times the inverse of `S`. It is the rank-one spectral projector when `S`
+is invertible; for singular `S` the inverse is zero by convention and the value is the zero matrix.
+With [its explicit inputs](hyp:S,j), [the defined object](goal) is [given by the displayed formula](step:1). -/
 noncomputable def coordinateProjector {n : ℕ} (S : Matrix (Fin n) (Fin n) ℝ) (j : Fin n) :
     Matrix (Fin n) (Fin n) ℝ :=
   S * Matrix.diagonal (fun k => if k = j then 1 else 0) * S⁻¹

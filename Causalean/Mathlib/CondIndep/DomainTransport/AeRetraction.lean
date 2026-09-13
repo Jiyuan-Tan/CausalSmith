@@ -243,9 +243,10 @@ theorem condIndep_of_comap_aeRetraction
   exact @eventuallyEq_of_comp_aeRetraction Ω Ω' ℝ mΩ mΩ' r s hs μ μ'
     hmap_s hrs cuv (fun y ↦ cu y * cv y) hpull
 
-/-- With [measurable maps in both directions](hyp:r,s,hr,hs), [their two pushforward
+/-- Let the source and target be standard Borel spaces carrying finite measures. With
+[measurable maps in both directions](hyp:r,s,hr,hs), [their two pushforward
 identities](hyp:hmap_r,hmap_s),
-[almost-everywhere inverse identities in both directions](hyp:_hsr,hrs),
+[an almost-everywhere right-inverse identity](hyp:hrs),
 and [three target σ-algebras contained in the target ambient σ-algebra](hyp:mX,mY,mZ,hX,hY,hZ),
 [target conditional independence is equivalent to conditional
 independence of the three pullback σ-algebras](goal). -/
@@ -257,7 +258,7 @@ theorem condIndep_comap_aeEquiv_iff
     {μ : Measure Ω} {μ' : Measure Ω'}
     [IsFiniteMeasure μ] [IsFiniteMeasure μ']
     (hmap_r : Measure.map r μ = μ') (hmap_s : Measure.map s μ' = μ)
-    (_hsr : s ∘ r =ᵐ[μ] id) (hrs : r ∘ s =ᵐ[μ'] id)
+    (hrs : r ∘ s =ᵐ[μ'] id)
     (mX mY mZ : MeasurableSpace Ω')
     (hX : mX ≤ mΩ') (hY : mY ≤ mΩ') (hZ : mZ ≤ mΩ') :
     @CondIndep Ω (MeasurableSpace.comap r mZ)
@@ -274,9 +275,10 @@ theorem condIndep_comap_aeEquiv_iff
       (mΩ := mΩ) (mΩ' := mΩ') (r := r) (μ := μ) (μ' := μ')
       hr hmap_r (mX := mX) (mY := mY) (mZ := mZ) hX hY hZ
 
-/-- With [measurable maps in both directions](hyp:r,s,hr,hs), [their two pushforward
+/-- Let the source and target be standard Borel spaces carrying finite measures. With
+[measurable maps in both directions](hyp:r,s,hr,hs), [their two pushforward
 identities](hyp:hmap_r,hmap_s),
-[almost-everywhere inverse identities in both directions](hyp:_hsr,hrs),
+[an almost-everywhere right-inverse identity](hyp:hrs),
 [three target random variables](hyp:X,Y,Z), and [their measurability](hyp:hX,hY,hZ),
 [conditional independence of the first two variables given the third is
 equivalent to conditional independence of their pullbacks given the pulled-back third
@@ -290,7 +292,7 @@ theorem condIndepFun_comp_aeEquiv_iff
     {μ : Measure Ω} {μ' : Measure Ω'}
     [IsFiniteMeasure μ] [IsFiniteMeasure μ']
     (hmap_r : Measure.map r μ = μ') (hmap_s : Measure.map s μ' = μ)
-    (_hsr : s ∘ r =ᵐ[μ] id) (hrs : r ∘ s =ᵐ[μ'] id)
+    (hrs : r ∘ s =ᵐ[μ'] id)
     (X : Ω' → 𝒳) (Y : Ω' → 𝒴) (Z : Ω' → 𝒵)
     (hX : Measurable X) (hY : Measurable Y) (hZ : Measurable Z) :
     CondIndepFun
@@ -303,15 +305,15 @@ theorem condIndepFun_comp_aeEquiv_iff
   rw [ProbabilityTheory.condIndepFun_iff_condIndep,
     ProbabilityTheory.condIndepFun_iff_condIndep]
   simpa only [MeasurableSpace.comap_comp] using
-    condIndep_comap_aeEquiv_iff r s hr hs hmap_r hmap_s _hsr hrs
+    condIndep_comap_aeEquiv_iff r s hr hs hmap_r hmap_s hrs
       (MeasurableSpace.comap X inferInstance)
       (MeasurableSpace.comap Y inferInstance)
       (MeasurableSpace.comap Z inferInstance)
       hX.comap_le hY.comap_le hZ.comap_le
 
 /-- A genuine measure-preserving measurable equivalence is a special case of the
-almost-everywhere transport theorem, with its pointwise inverse identities supplied as
-almost-everywhere identities. -/
+almost-everywhere transport theorem, with its pointwise right-inverse identity supplied as
+an almost-everywhere identity. -/
 example
     {Ω Ω' 𝒳 𝒴 𝒵 : Type*}
     [mΩ : MeasurableSpace Ω] [StandardBorelSpace Ω]
@@ -333,7 +335,6 @@ example
     ((MeasurableEquiv.map_apply_eq_iff_map_symm_apply_eq e).mp he.map_eq).symm
   exact condIndepFun_comp_aeEquiv_iff e e.symm e.measurable e.symm.measurable
     he.map_eq hmap_s
-    (Filter.Eventually.of_forall e.symm_apply_apply)
     (Filter.Eventually.of_forall e.apply_symm_apply)
     X Y Z hX hY hZ
 
@@ -370,11 +371,9 @@ example
     simp [hr, r]
   have hmap_s : Measure.map s (Measure.dirac ()) = Measure.dirac false := by
     simp [hs, s]
-  have hsr : s ∘ r =ᵐ[Measure.dirac false] id := by
-    simp [Filter.EventuallyEq, r, s]
   have hrs : r ∘ s =ᵐ[Measure.dirac ()] id := by
     exact Filter.Eventually.of_forall (fun u ↦ by cases u; rfl)
   simpa [r] using
-    condIndepFun_comp_aeEquiv_iff r s hr hs hmap_r hmap_s hsr hrs X Y Z hX hY hZ
+    condIndepFun_comp_aeEquiv_iff r s hr hs hmap_r hmap_s hrs X Y Z hX hY hZ
 
 end Causalean

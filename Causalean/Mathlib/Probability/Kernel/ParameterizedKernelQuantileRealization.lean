@@ -24,30 +24,34 @@ namespace Causalean.Mathlib.Probability.Kernel.ParameterizedKernelQuantileRealiz
 
 variable {S : Type*} [MeasurableSpace S]
 
-/-- For [a real-valued Markov kernel](hyp:κ), [the unit-interval support property](goal)
-[says that each parameter-specific probability distribution assigns total mass one to the closed
-interval from zero to one](step:1).
+/-- For [a real-valued kernel](hyp:κ), [the unit-interval support property](goal)
+[says that each parameter-specific fiber measure assigns mass one to the closed interval from zero
+to one](step:1). The kernel is not required to be Markov here; for a Markov kernel, as in the
+realization theorems, this says each fiber is a probability distribution supported on that interval.
 
 It records the fiberwise support condition used by the realization theorems. -/
 def SupportedOnUnitInterval (κ : ProbabilityTheory.Kernel S ℝ) : Prop :=
   ∀ s, κ s (Icc (0 : ℝ) 1) = 1
 
-/-- For [a real-valued Markov kernel](hyp:κ), [a parameter value](hyp:s), and [a uniform level
+/-- For [a real-valued kernel](hyp:κ), [a parameter value](hyp:s), and [a uniform level
 in the closed unit interval](hyp:u), [the unit-interval-valued parameterized quantile](goal)
-[is the supremum of the interval points whose fiber distribution mass below that point is strictly
-smaller than the supplied level](step:1).
+[is the supremum of the points `x` of the unit interval whose fiber mass on the closed interval from
+zero to `x` is strictly smaller than the supplied level](step:1). The kernel is not required to be
+Markov here; the quantile interpretation holds for Markov kernels, as assumed by the realization
+theorems.
 
 This is the generalized-inverse construction used for the kernel realization. -/
 noncomputable def kernelUnitQuantile (κ : ProbabilityTheory.Kernel S ℝ) (s : S)
     (u : unitInterval) : unitInterval :=
   sSup {x : unitInterval | (κ s).real (Icc (0 : ℝ) x) < u}
 
-/-- For [a real-valued Markov kernel](hyp:κ) and [a parameter--randomization pair](hyp:p),
+/-- For [a real-valued kernel](hyp:κ) and [a parameter--randomization pair](hyp:p),
 [the real-valued quantile realization](goal) [evaluates the unit-interval quantile after clamping
 the randomization coordinate to the closed unit interval](step:1).
 
-The clamping makes the map defined on arbitrary real inputs while preserving its uniform-section
-interpretation. -/
+The clamping makes the map defined on arbitrary real inputs. The kernel is not required to be
+Markov here; the uniform-section interpretation holds for Markov kernels, as assumed by the later
+measurability and pushforward theorems. -/
 noncomputable def quantileRealization (κ : ProbabilityTheory.Kernel S ℝ) (p : S × ℝ) : ℝ :=
   kernelUnitQuantile κ p.1 (projIcc (0 : ℝ) 1 zero_le_one p.2)
 

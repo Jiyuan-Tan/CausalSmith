@@ -23,10 +23,8 @@ practice.  The checker is therefore usable for narrow targets near the origin an
 unusable for tight enclosures at large endpoints.
 
 A caller needing the latter wants a symmetry + central-series + Mills-tail
-construction instead, which spends nodes only where the integrand is hard.  That
-replacement was scoped as its own study after this limitation was found during
-`stat_pomdp_latent_overlap_minimax` (2026-09-10); nothing here is wrong, it is a
-question of which regime you are in.
+construction instead, which spends nodes only where the integrand is hard.  Nothing here is
+wrong; it is a question of which regime applies.
 -/
 
 open scoped BigOperators Interval
@@ -62,8 +60,10 @@ def normalDensityScaleInterval (s : NormalCDFSchedule) : RatInterval :=
   let root := RatInterval.sqrtInterval (twoPiInterval s.fuel) s.twoPi_nonneg s.fuel
   root.inv s.sqrt_away
 
-/-- At a rational nonnegative endpoint and a uniform mesh node, this interval
-computes an enclosure of the rescaled Gaussian integrand used for CDF quadrature. -/
+/-- For a rational endpoint `q`, a schedule, and a natural node index `k`, this interval
+encloses the rescaled Gaussian integrand at the point `q k / mesh` used for CDF quadrature. The
+quadrature applies it to nonnegative endpoints and node indices up to the mesh size; no such
+restriction is imposed here. -/
 def normalDensityNode (q : ℚ) (s : NormalCDFSchedule) (k : ℕ) : RatInterval :=
   let x : ℚ := q * k / s.mesh
   let exponent : ℚ := -(x ^ 2) / 2

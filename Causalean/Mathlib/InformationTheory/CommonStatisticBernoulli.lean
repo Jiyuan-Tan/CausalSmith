@@ -35,8 +35,7 @@ theorem one_add_mul_one_sub_mem_Icc {p : ℝ}
     linarith
   · nlinarith [sq_nonneg (p - 1 / 2)]
 
-/-- For [a measurable input space](hyp:S), [a real-valued function of the input](hyp:p), and [the hypothesis that this function is measurable](hyp:hp), the [common-statistic Bernoulli kernel](goal) assigns to every input the Bernoulli probability measure on the real line with success probability given by that function at the input. -/
--- @node: commonStatisticBernoulliKernel
+/-- For [a measurable input space](hyp:S), [a real-valued function of the input](hyp:p), and [the hypothesis that this function is measurable](hyp:hp), the [common-statistic Bernoulli kernel](goal) assigns to every input the two-point Bernoulli law on the real line with success weight given by that function at the input. It is a probability measure at inputs where that value lies between zero and one (see `commonStatisticBernoulliKernel_isMarkovKernel`); elsewhere the weights are clipped to be nonnegative and need not sum to one. -/
 noncomputable def commonStatisticBernoulliKernel
     {S : Type*} [MeasurableSpace S] (p : S → ℝ) (hp : Measurable p) :
     Kernel S ℝ where
@@ -47,7 +46,6 @@ noncomputable def commonStatisticBernoulliKernel
 
 /-- Pointwise unit-interval parameters make the common-statistic Bernoulli
 kernel Markov. -/
--- @node: commonStatisticBernoulliKernel_isMarkovKernel
 lemma commonStatisticBernoulliKernel_isMarkovKernel
     {S : Type*} [MeasurableSpace S] (p : S → ℝ) (hp : Measurable p)
     (h0 : ∀ r, 0 ≤ p r) (h1 : ∀ r, p r ≤ 1) :
@@ -61,7 +59,6 @@ lemma commonStatisticBernoulliKernel_isMarkovKernel
 by the squared change in its success parameter, integrated only over the
 statistic region where that parameter can change.  This is the generic
 disintegration step used by the signed hard-cell comparison. -/
--- @node: commonStatisticBernoulli_klDiv_le_of_localized_parameter
 lemma commonStatisticBernoulli_klDiv_le_of_localized_parameter
     (m : Measure ℝ) [IsFiniteMeasure m] (p q : ℝ → ℝ)
     (hp : Measurable p) (hq : Measurable q)
@@ -123,7 +120,6 @@ lemma commonStatisticBernoulli_klDiv_le_of_localized_parameter
 /-- Swapping a common statistic behind its Bernoulli outcome preserves the
 localized KL estimate, giving the `(outcome, statistic)` coordinate order
 used by signed observations. -/
--- @node: commonStatisticBernoulliOutcome_klDiv_le_of_localized_parameter
 lemma commonStatisticBernoulliOutcome_klDiv_le_of_localized_parameter
     (m : Measure ℝ) [IsFiniteMeasure m] (p q : ℝ → ℝ)
     (hp : Measurable p) (hq : Measurable q)
@@ -151,14 +147,12 @@ lemma commonStatisticBernoulliOutcome_klDiv_le_of_localized_parameter
     hp0 hp1 hq0 hq1 hD hE hdiff
 
 
-/-- For [a measurable sample space](hyp:A), [a measure on that space](hyp:nu), [a real-valued success-weight function](hyp:p), and [a real-valued statistic](hyp:stat), the [success-weighted statistic law](goal) is the pushforward along the statistic of the base measure weighted by $\max\{p(x),0\}$. -/
--- @node: statisticSuccessMeasure
+/-- For [a measurable sample space](hyp:A), [a measure on that space](hyp:nu), [a real-valued success-weight function](hyp:p), and [a real-valued statistic](hyp:stat), the [success-weighted statistic law](goal) is the pushforward along the statistic of the base measure weighted by $\max\{p(x),0\}$. No measurability of the statistic is assumed: if it is not almost-everywhere measurable the pushforward is the zero measure by convention, so this is the statistic law only for a measurable statistic. -/
 noncomputable def statisticSuccessMeasure {A : Type*} [MeasurableSpace A]
     (nu : Measure A) (p : A → ℝ) (stat : A → ℝ) : Measure ℝ :=
   Measure.map stat (nu.withDensity fun x => ENNReal.ofReal (p x))
 
-/-- For [a measurable sample space](hyp:A), [a measure on that space](hyp:nu), [a real-valued success-weight function](hyp:p), and [a real-valued statistic](hyp:stat), the [statistic-level success parameter](goal) is the Radon--Nikodym derivative of the success-weighted statistic law with respect to the statistic's pushforward law under the base measure, converted to a real number. -/
--- @node: statisticSuccessParameter
+/-- For [a measurable sample space](hyp:A), [a measure on that space](hyp:nu), [a real-valued success-weight function](hyp:p), and [a real-valued statistic](hyp:stat), the [statistic-level success parameter](goal) is the Radon--Nikodym derivative of the success-weighted statistic law with respect to the statistic's pushforward law under the base measure, converted to a real number. Each pushforward is the zero measure when the statistic is not almost-everywhere measurable for its own source measure (the weighted measure for the numerator, the base measure for the denominator), so this is the conditional success parameter only for a measurable statistic. -/
 noncomputable def statisticSuccessParameter {A : Type*} [MeasurableSpace A]
     (nu : Measure A) (p : A → ℝ) (stat : A → ℝ) : ℝ → ℝ :=
   fun r => ((statisticSuccessMeasure nu p stat).rnDeriv
@@ -166,7 +160,6 @@ noncomputable def statisticSuccessParameter {A : Type*} [MeasurableSpace A]
 
 /-- The success-weighted statistic law is dominated by the statistic
 marginal when the pointwise success probability is at most one. -/
--- @node: statisticSuccessMeasure_absolutelyContinuous
 lemma statisticSuccessMeasure_absolutelyContinuous
     {A : Type*} [MeasurableSpace A] (nu : Measure A) [IsFiniteMeasure nu]
     (p : A → ℝ) (stat : A → ℝ) (hstat : Measurable stat)
@@ -185,7 +178,6 @@ lemma statisticSuccessMeasure_absolutelyContinuous
 
 /-- Set integrals of the conditional parameter recover success-weighted
 integrals on statistic preimages. -/
--- @node: statisticSuccessParameter_setIntegral
 lemma statisticSuccessParameter_setIntegral
     {A : Type*} [MeasurableSpace A] (nu : Measure A) [IsFiniteMeasure nu]
     (p : A → ℝ) (stat : A → ℝ) (hp : Measurable p)
@@ -228,7 +220,6 @@ lemma statisticSuccessParameter_setIntegral
 
 /-- Middle-half pointwise bounds pass to the conditional statistic
 parameter almost everywhere. -/
--- @node: statisticSuccessParameter_mem_Icc_ae
 lemma statisticSuccessParameter_mem_Icc_ae
     {A : Type*} [MeasurableSpace A] (nu : Measure A) [IsFiniteMeasure nu]
     (p : A → ℝ) (stat : A → ℝ) (hp : Measurable p)
@@ -309,14 +300,12 @@ lemma statisticSuccessParameter_mem_Icc_ae
   exact ⟨hr0, hr1⟩
 
 /-- For [a measurable sample space](hyp:A), [a measure on that space](hyp:nu), [a real-valued success-weight function](hyp:p), and [a real-valued statistic](hyp:stat), the [clipped statistic-level success parameter](goal) is the statistic-level success parameter truncated below at $1/4$ and above at $3/4$. -/
--- @node: clippedStatisticSuccessParameter
 noncomputable def clippedStatisticSuccessParameter
     {A : Type*} [MeasurableSpace A]
     (nu : Measure A) (p : A → ℝ) (stat : A → ℝ) : ℝ → ℝ :=
   fun r => max (1 / 4 : ℝ) (min (3 / 4 : ℝ)
     (statisticSuccessParameter nu p stat r))
 
--- @node: clippedStatisticSuccessParameter_measurable
 @[fun_prop]
 lemma clippedStatisticSuccessParameter_measurable
     {A : Type*} [MeasurableSpace A]
@@ -325,7 +314,6 @@ lemma clippedStatisticSuccessParameter_measurable
   unfold clippedStatisticSuccessParameter statisticSuccessParameter
   fun_prop
 
--- @node: clippedStatisticSuccessParameter_mem_Icc
 lemma clippedStatisticSuccessParameter_mem_Icc
     {A : Type*} [MeasurableSpace A]
     (nu : Measure A) (p : A → ℝ) (stat : A → ℝ) (r : ℝ) :
@@ -334,7 +322,6 @@ lemma clippedStatisticSuccessParameter_mem_Icc
   unfold clippedStatisticSuccessParameter
   constructor <;> simp <;> norm_num
 
--- @node: clippedStatisticSuccessParameter_ae_eq
 lemma clippedStatisticSuccessParameter_ae_eq
     {A : Type*} [MeasurableSpace A] (nu : Measure A) [IsFiniteMeasure nu]
     (p : A → ℝ) (stat : A → ℝ) (hp : Measurable p)
@@ -349,7 +336,6 @@ lemma clippedStatisticSuccessParameter_ae_eq
 
 /-- Integrating Bernoulli kernels over two base sets gives the same outcome
 measure when the base masses and success-weighted masses agree. -/
--- @node: commonStatisticBernoulliKernel_setLIntegral_eq
 lemma commonStatisticBernoulliKernel_setLIntegral_eq
     {A B : Type*} [MeasurableSpace A] [MeasurableSpace B]
     (nu : Measure A) [IsFiniteMeasure nu]
@@ -414,7 +400,6 @@ lemma commonStatisticBernoulliKernel_setLIntegral_eq
 
 /-- Compressing the base coordinate to a statistic turns a Bernoulli mixture
 into a Bernoulli composition product over the statistic marginal. -/
--- @node: statisticBernoulliOutcomeLaw_eq_map_swap_compProd
 lemma statisticBernoulliOutcomeLaw_eq_map_swap_compProd
     {A : Type*} [MeasurableSpace A] (nu : Measure A) [IsFiniteMeasure nu]
     (p : A → ℝ) (stat : A → ℝ) (hp : Measurable p)
@@ -495,7 +480,6 @@ lemma statisticBernoulliOutcomeLaw_eq_map_swap_compProd
 /-- A localized setwise bound on success-weighted statistic masses yields
 the corresponding almost-everywhere bound on conditional Bernoulli
 parameters. -/
--- @node: clippedStatisticSuccessParameter_abs_sub_le_ae
 lemma clippedStatisticSuccessParameter_abs_sub_le_ae
     {A : Type*} [MeasurableSpace A]
     (nu nu' : Measure A) [IsFiniteMeasure nu] [IsFiniteMeasure nu']
@@ -610,7 +594,6 @@ lemma clippedStatisticSuccessParameter_abs_sub_le_ae
     `nu` on `B ∩ E`](hyp:hdiff), then [the Kullback–Leibler divergence between the compressed
     Bernoulli-outcome laws obtained by pairing the outcome with `stat` under `nu` and under `nu'`
     is at most `4·D²` times the `stat`-pushforward mass of `E` under `nu`](goal). -/
--- @node: statisticBernoulliOutcome_klDiv_le_of_localized_success_bound
 lemma statisticBernoulliOutcome_klDiv_le_of_localized_success_bound
     {A : Type*} [MeasurableSpace A]
     (nu nu' : Measure A) [IsFiniteMeasure nu] [IsFiniteMeasure nu']
@@ -646,7 +629,6 @@ lemma statisticBernoulliOutcome_klDiv_le_of_localized_success_bound
 /-- Common statistic marginals and a localized setwise success-mass bound
 also imply exact agreement of the compressed outcome laws away from the
 exceptional statistic set. -/
--- @node: statisticBernoulliOutcome_restrict_compl_eq_of_localized_success_bound
 lemma statisticBernoulliOutcome_restrict_compl_eq_of_localized_success_bound
     {A : Type*} [MeasurableSpace A]
     (nu nu' : Measure A) [IsFiniteMeasure nu] [IsFiniteMeasure nu']

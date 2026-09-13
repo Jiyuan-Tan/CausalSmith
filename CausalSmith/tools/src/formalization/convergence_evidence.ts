@@ -463,5 +463,5 @@ function describeMissing(ledger: ConvergenceLedger | undefined, id: string, evid
     if (r.evidence_hash !== evidence) return `${peer}: receipt is stale for the current statement/dependency/rubric evidence`;
     return `${peer}: ok`;
   });
-  return `${parts.join("; ")} — re-run F4 (\`--resume --from-stage F4\`)`;
+  return `${parts.join("; ")} — re-run F4 (\`--resume --from-stage F2.5\`)`;
 }

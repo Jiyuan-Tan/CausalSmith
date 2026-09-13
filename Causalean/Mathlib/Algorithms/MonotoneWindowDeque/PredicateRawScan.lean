@@ -4,7 +4,8 @@ import Causalean.Mathlib.Algorithms.MonotoneWindowDeque.Scan
 /-!
 # Raw-key execution and representation equivalence
 
-This module gives the executable raw-key view of a compiled predicate-window scan.  Pending keys
+This module gives the raw-key view of a compiled predicate-window scan (a noncomputable
+specification, since entry and stay are arbitrary predicates decided classically).  Pending keys
 advance by `takeWhile` on entry, expired material is removed by `dropWhile` on stay, and surviving
 new keys use the same rightmost-stable monotone back pruning as the position implementation.  The
 main theorem identifies every mapped position-level trace with this raw-key trace.
@@ -50,7 +51,8 @@ structure RawPushBatch (ι : Type*) where
   pushed : List ι
   backPopped : List ι
 
-/-- [A raw score](hyp:score) determines [the recorded batch of rightmost-stable pushes](goal),
+/-- [A raw score](hyp:score), together with an initial raw deque and a list of input keys,
+determines [the recorded batch of rightmost-stable pushes](goal),
 given by [leaving an empty input list unchanged](step:1) and [pushing the first key before
 recursing on the remainder](step:2). -/
 def rawPushAll [LinearOrder α] (score : ι → α) : List ι → List ι → RawPushBatch ι

@@ -19,7 +19,9 @@ variable {X : Type*} [MeasurableSpace X]
 
 /-- Given [a real-valued prior](hyp:π), [a parameter-indexed likelihood family](hyp:likelihood),
 and [an observation](hyp:x), the [mixture likelihood](goal) is the prior average of the component
-likelihoods at that observation. -/
+likelihoods at that observation, taken as a Bochner integral: it is zero when the likelihood is not
+integrable against the prior, so it is the mixture likelihood for a probability prior and an
+integrable likelihood. -/
 noncomputable def mixtureLikelihood (π : Measure ℝ) (likelihood : ℝ → X → ℝ) (x : X) : ℝ :=
   ∫ θ, likelihood θ x ∂π
 

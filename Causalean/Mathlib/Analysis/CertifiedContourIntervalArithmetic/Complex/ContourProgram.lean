@@ -4,10 +4,12 @@ import Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Complex.Pro
 # Certified finite contour programs
 
 This module packages executable interval extensions of numerator and
-denominator maps, evaluates their normalized circle integrand at every mesh
-endpoint, and feeds those rectangles to deterministic trapezoidal quadrature.
-The final theorem combines denominator separation, node soundness, mesh error,
-and the shared split budget into one containment-and-width certificate.
+denominator maps into contour programs, together with uniform value bounds,
+node boxes and node-error propagation bounds, denominator-separation
+certificates, scheduled programs, and the rectangles of the normalized circle
+integrand at every mesh endpoint. Feeding those rectangles to deterministic
+trapezoidal quadrature, and the final containment-and-width certificate
+`certified_contour_evaluation`, are in `Complex/ContourEvaluation.lean`.
 -/
 
 open scoped Interval
@@ -76,12 +78,12 @@ structure ContourValueBounds (program : ContourProgram) where
       ((program.radius : ℂ) * Complex.exp (((2 : ℝ) * Real.pi * u) * Complex.I))).im| ≤
         (denominator : ℝ)
 
-/-- For [a contour program](hyp:program) and [a rational common error target](hyp:target), [the pair of map-width bounds](goal) consists of the target plus the target multiplied by the numerator map's width amplification, and the analogous quantity for the denominator map. -/
+/-- For [a contour program](hyp:program) and [a rational common error target](hyp:target), [the pair of map-width bounds](goal) consists of the target plus the target multiplied by the numerator map's width amplification, and the analogous quantity for the denominator map. These are width bounds for a nonnegative target, which is how the evaluation uses them (with a positive rational target); a negative target gives negative numbers. -/
 def ContourProgram.mapWidthBounds (program : ContourProgram) (target : ℚ) : ℚ × ℚ :=
   (target + program.numerator.amplification * target,
     target + program.denominator.amplification * target)
 
-/-- For [a contour program](hyp:program), [uniform bounds on its numerator and denominator values](hyp:bounds), [a rational separation bound](hyp:separation), and [a rational common error target](hyp:target), [the node-error propagation bound](goal) is obtained by [forming the two map-width bounds](step:1), adding the numerator bound to its width bound, adding the denominator bound to its width bound, forming a bound for the division numerator, forming its width bound, forming the denominator squared-modulus width bound, forming the quotient width bound, forming the quotient magnitude bound, and combining quotient and circle-point errors. -/
+/-- For [a contour program](hyp:program), [uniform bounds on its numerator and denominator values](hyp:bounds), [a rational separation bound](hyp:separation), and [a rational common error target](hyp:target), [the node-error propagation bound](goal) is obtained by [forming the two map-width bounds](step:1), adding the numerator bound to its width bound, adding the denominator bound to its width bound, forming a bound for the division numerator, forming its width bound, forming the denominator squared-modulus width bound, forming the quotient width bound, forming the quotient magnitude bound, and combining quotient and circle-point errors. The quotient terms divide by the separation, so this is a valid propagation bound only for positive separation, as assumed by the soundness results; at separation zero those terms are zero by the division convention. -/
 def ContourProgram.nodePropagationBound (program : ContourProgram)
     (bounds : ContourValueBounds program) (separation target : ℚ) : ℚ :=
   let widths := program.mapWidthBounds target
@@ -494,7 +496,7 @@ noncomputable def ContourProgram.normalizedIntegrand (program : ContourProgram)
     Complex.exp (((2 : ℝ) * Real.pi * u) * Complex.I)
   (program.numerator.value z / program.denominator.value z) * z
 
-/-- For [a contour program](hyp:program), [the normalized contour integral](goal) is its circle contour integral for the exact numerator-to-denominator quotient, divided by $2\pi i$. -/
+/-- For [a contour program](hyp:program), [the normalized contour integral](goal) is its circle contour integral for the exact numerator-to-denominator quotient, divided by $2\pi i$. It is the contour integral of the quotient when the denominator does not vanish on the circle (as guaranteed by the separation hypotheses of the evaluation theorems); otherwise the quotient and the integral are Lean's totalized values, which can be zero. -/
 noncomputable def ContourProgram.normalizedContourIntegral
     (program : ContourProgram) : ℂ :=
   CircleMesh.circleContourIntegral

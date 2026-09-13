@@ -20,7 +20,7 @@ open scoped Topology UniformConvergence
 namespace Causalean.Mathlib.MeasureTheory
 
 /-- For a [measure](hyp:mu), a [finite-measure integration set](hyp:K,hmu), and an
-[integrable family of functions](hyp:F,hInt) that [varies continuously in the topology of uniform
+[family of functions, each integrable on that set](hyp:F,hInt) that [varies continuously in the topology of uniform
 convergence on that set](hyp:hF), [the corresponding set integrals vary continuously](goal). -/
 lemma continuous_setIntegral_of_continuous_uniformOn
     {X Y E : Type*} [TopologicalSpace X] [MeasurableSpace Y]

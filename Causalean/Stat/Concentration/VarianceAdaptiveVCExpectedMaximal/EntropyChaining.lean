@@ -20,7 +20,7 @@ open scoped ENNReal
 
 namespace Causalean.Stat.Concentration
 
-/-- For [a measure on a measurable sample space](hyp:μ), [a class of real-valued functions indexed by a set](hyp:g), [an envelope bound](hyp:U), [a radius](hyp:σ), [a covering constant](hyp:A), and [an entropy exponent](hyp:v), [the class has uniform VC-type entropy](goal) exactly when (1) [the radius is positive](step:1), (2) [the radius is strictly smaller than the envelope bound](step:2), (3) [the covering constant is at least $e$](step:3), (4) [the entropy exponent is at least one](step:4), (5) [every function in the class is measurable](step:5), (6) [every function is bounded in absolute value by the envelope bound at every sample point](step:6), (7) [every function has population $L^2$ distance at most the radius from the zero function](step:7), and (8) [every countable enumeration of the class has the stipulated polynomial empirical $L^2$ covering property](step:8). -/
+/-- For [a measure on a measurable sample space](hyp:μ), [a class of real-valued functions indexed by a set](hyp:g), [an envelope bound](hyp:U), [a radius](hyp:σ), [a covering constant](hyp:A), and [an entropy exponent](hyp:v), [the class has uniform VC-type entropy](goal) exactly when (1) [the radius is positive](step:1), (2) [the radius is strictly smaller than the envelope bound](step:2), (3) [the covering constant is at least $e$](step:3), (4) [the entropy exponent is at least one](step:4), (5) [every function in the class is measurable](step:5), (6) [every function is bounded in absolute value by the envelope bound at every sample point](step:6), (7) [every function has population $L^2$ distance at most the radius from the zero function](step:7), and (8) [for every sequence of indices, the resulting sequence of functions has the stipulated polynomial empirical $L^2$ covering property](step:8). -/
 def HasVCUniformEntropy {Ω ι : Type*} [MeasurableSpace Ω]
     (μ : Measure Ω) (g : ι → Ω → ℝ) (U σ A v : ℝ) : Prop :=
   0 < σ ∧ σ < U ∧ Real.exp 1 ≤ A ∧ 1 ≤ v ∧
@@ -168,10 +168,10 @@ private lemma countableEmpiricalSup_le_two_envelope {Ω ι : Type*} [MeasurableS
   exact (abs_sub _ _).trans (by linarith)
 
 /-- **Dudley chaining bound for VC-type entropy.** Let `μ` be a probability measure on `Ω`,
-`g : ι → Ω → ℝ` a family of functions, and `g0 : ℕ → ι` a countable enumeration of the index
-set. If [`g` has uniform VC-type entropy relative to `μ`, with envelope `U`, population $L^2$
-radius `σ`, covering-entropy base `A`, and exponent `v`](hyp:hent), then [there is a universal
-constant `C > 0` such that, for every sample size `n ≥ 1`, the expectation of the countable
+`g : ι → Ω → ℝ` a family of functions, and `g0 : ℕ → ι` a sequence of indices (for example an
+enumeration of a countable dense subfamily). If [`g` has uniform VC-type entropy relative to `μ`, with envelope `U`, population $L^2$
+radius `σ`, covering-entropy base `A`, and exponent `v`](hyp:hent), then [there is a constant `C > 0`,
+which may depend on `U`, `σ`, `A` and `v`, such that, for every sample size `n ≥ 1`, the expectation of the countable
 empirical-process supremum along the enumeration `g0` over the `n`-fold product of `μ` is at
 most `C · (σ √(log(U/σ)/n) + U log(U/σ)/n)`](goal). -/
 lemma vcEntropy_chaining_bound

@@ -12,8 +12,8 @@ import Mathlib.Data.Rat.BigOperators
 /-!
 # Rational real transcendental enclosures
 
-This module defines executable Machin/Taylor enclosures for π, sine, cosine,
-and the real exponential. Raw rational bounds are recursively intersected, so
+This module defines executable Machin/Taylor enclosures for π, sine and cosine;
+real interval exponential evaluation lives in `Complex/IntervalExp.lean`. Raw rational bounds are recursively intersected, so
 adjacent-fuel nesting follows from finite intersection rather than from an
 order asserted between unrelated tolerance parameters. Complex exponential
 composition and its magnitude-sensitive name semantics live in `ComplexExp`.

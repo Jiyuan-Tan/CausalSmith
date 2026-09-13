@@ -13,7 +13,9 @@ namespace Causalean.Mathlib.Algorithms.MonotoneWindowDeque
 
 variable {α : Type*} [LinearOrder α]
 
-/-- [A monotone deque](goal) is represented by its front-to-back list of natural-number indices. -/
+/-- [A deque](goal) is represented by its front-to-back list of natural-number indices. The type
+itself imposes no ordering or monotonicity; the monotone-deque invariant is carried separately by
+the validity predicates. -/
 abbrev Deque := List ℕ
 
 /-- [The initial deque](goal) is empty before any stream index enters. -/
@@ -60,8 +62,10 @@ def pushAll (stream : Stream α) : Deque → List ℕ → PushBatch
         backPopped := removed ++ rest.backPopped }
 
 /-- [A stream](hyp:stream), [two raw endpoints](hyp:left,right), and [a deque](hyp:q) satisfy the
-validity invariant when retained indices are active and ordered and omitted active indices are
-dominated. -/
+validity invariant when every retained index is active for the endpoints and within the stream,
+retained indices strictly increase from front to back, their stream values strictly decrease from
+front to back, and every active in-stream index that is not retained is dominated by a later retained
+index whose value is at least as large. -/
 structure ValidAt (stream : Stream α) (left right : ℕ) (q : Deque) : Prop where
   active : ∀ i ∈ q, ActiveAt left right i ∧ i < stream.length
   index_ordered : q.Pairwise (· < ·)

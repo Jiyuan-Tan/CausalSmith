@@ -1,5 +1,5 @@
 import Causalean.Graph.DAG
-import Causalean.Graph.FiniteDensity.Coordinate
+import Causalean.Mathlib.MeasureTheory.FiniteCoordinateDependence
 
 /-!
 # Finite DAG density factorizations
@@ -16,6 +16,8 @@ open MeasureTheory
 noncomputable section
 
 namespace Causalean.Graph.FiniteDensity
+
+open Causalean.Mathlib.MeasureTheory.FiniteCoordinate
 
 variable {V : Type*} [DecidableEq V] [Fintype V]
 variable {X : V → Type*} [∀ i, MeasurableSpace (X i)]

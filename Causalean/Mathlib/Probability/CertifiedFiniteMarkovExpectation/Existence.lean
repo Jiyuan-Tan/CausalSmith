@@ -1,5 +1,6 @@
 import Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation.FiniteKernel
 import Mathlib.Analysis.Convex.StdSimplex
+import Mathlib.LinearAlgebra.Matrix.Stochastic
 import Mathlib.Topology.Sequences
 
 /-!
@@ -7,12 +8,28 @@ import Mathlib.Topology.Sequences
 
 This module isolates the topological fixed-point argument for finite stochastic
 kernels.  Existence uses compactness of the finite probability simplex, while
-strict `ℓ¹` contraction supplies uniqueness.
+strict `ℓ¹` contraction supplies uniqueness.  It also records the bridges from this library's
+probability-vector and row-stochastic predicates to Mathlib's standard simplex and
+`Matrix.rowStochastic`.
 -/
 
 namespace Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation
 
-/-- Given [a row-stochastic finite transition matrix](hyp:hP), [a nonnegative contraction coefficient](hyp:hrho0), [the fact that the coefficient is strictly below one](hyp:hrho1), and [a total-variation contraction bound](hyp:hcontract), [there is exactly one stationary probability distribution](goal). -/
+/-- A real vector [is a probability vector](goal) exactly when [it lies in the standard
+simplex](hyp:p). -/
+theorem isProbabilityVector_iff_mem_stdSimplex {ι : Type*} [Fintype ι] (p : ι → ℝ) :
+    IsProbabilityVector p ↔ p ∈ stdSimplex ℝ ι :=
+  Iff.rfl
+
+/-- For [a real square matrix indexed by a finite state space](hyp:P), [being row-stochastic,
+with nonnegative entries and every row summing to one, is equivalent to membership in Mathlib's
+submonoid of row-stochastic matrices](goal). -/
+theorem isStochasticMatrix_iff_mem_rowStochastic {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (P : Matrix ι ι ℝ) :
+    IsStochasticMatrix P ↔ P ∈ Matrix.rowStochastic ℝ ι :=
+  Matrix.mem_rowStochastic_iff_sum.symm
+
+/-- On a nonempty finite state space, given [a row-stochastic transition matrix](hyp:hP), [a nonnegative contraction coefficient](hyp:hrho0), [the fact that the coefficient is strictly below one](hyp:hrho1), and [a total-variation contraction bound](hyp:hcontract), [there is exactly one stationary probability distribution](goal). -/
 theorem existsUnique_stationary_of_contractsL1 {ι : Type*}
     [Fintype ι] [Nonempty ι]
     {P : Matrix ι ι ℝ} {rho : ℝ}

@@ -7,6 +7,7 @@ import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Analysis.InnerProductSpace.Basic
 import Mathlib.Data.Real.StarOrdered
 import Mathlib.MeasureTheory.Integral.Bochner.Basic
+import Causalean.Stat.Nonparametric.MomentProblems.RawMoment
 import Causalean.Stat.Nonparametric.MomentProblems.ResidualQuadratic.MomentAlgebra
 import Causalean.Tactic.IntegralLinearity
 
@@ -19,7 +20,7 @@ L²(μ) projection residual for probability measures on `ℝ` with finite fourth
 
     r(μ) = ⨅_{b₀,b₁} ∫ (y² − b₀ − b₁ y)² dμ.
 
-Writing `mₖ = ∫ yᵏ dμ` for the raw moments, the closed form is the Hankel-determinant ratio
+Writing `mₖ = rawMoment μ k = ∫ yᵏ dμ` for the raw moments (the shared `MomentProblems.rawMoment`), the closed form is the Hankel-determinant ratio
 
     r(μ) = (m₄ − m₂²) − (m₃ − m₁ m₂)² / (m₂ − m₁²)  =  det H₃ / det H₂,
 
@@ -52,10 +53,6 @@ namespace Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge
 open MeasureTheory
 open scoped Real
 
-/-- Given [a measure on the real line](hyp:μ) and [a nonnegative integer $k$](hyp:k), the [raw
-$k$-th moment](goal) is the integral of $y^k$ with respect to that measure. -/
-noncomputable def moment (μ : Measure ℝ) (k : ℕ) : ℝ := ∫ y, y ^ k ∂μ
-
 /-- Finite-fourth-moment hypothesis bundle: [integrability of `y`](hyp:int1), [of
 `y²`](hyp:int2), [of `y³`](hyp:int3), and [of `y⁴`](hyp:int4) against `μ`. For a probability
 measure with `∫ y⁴ ∂μ < ∞` all four hold, so this is exactly "μ has a finite fourth moment". -/
@@ -87,19 +84,19 @@ The closed-form minimal residual `r(μ) = (m₄ − m₂²) − (m₃ − m₁ m
 the Hankel-determinant ratio `MomentAlgebra.momentResidual` of the raw moments `m₁, m₂, m₃, m₄`. -/
 noncomputable def l2ResidualQuadratic (μ : Measure ℝ) : ℝ :=
   Causalean.Stat.MomentProblems.ResidualQuadratic.MomentAlgebra.momentResidual
-    (moment μ 1) (moment μ 2) (moment μ 3) (moment μ 4)
+    (rawMoment μ 1) (rawMoment μ 2) (rawMoment μ 3) (rawMoment μ 4)
 
 /-- Given [a measure on the real line](hyp:μ), the [least-squares optimal intercept](goal) is the
 moment-based coefficient $(m_1m_3-m_2^2)/(m_1^2-m_2)$ for fitting $y^2$ by an affine function. -/
 noncomputable def optIntercept (μ : Measure ℝ) : ℝ :=
   Causalean.Stat.MomentProblems.ResidualQuadratic.MomentAlgebra.optIntercept
-    (moment μ 1) (moment μ 2) (moment μ 3)
+    (rawMoment μ 1) (rawMoment μ 2) (rawMoment μ 3)
 
 /-- Given [a measure on the real line](hyp:μ), the [least-squares optimal slope](goal) is the
 moment-based coefficient $(m_3-m_1m_2)/(m_2-m_1^2)$ for fitting $y^2$ by an affine function. -/
 noncomputable def optSlope (μ : Measure ℝ) : ℝ :=
   Causalean.Stat.MomentProblems.ResidualQuadratic.MomentAlgebra.optSlope
-    (moment μ 1) (moment μ 2) (moment μ 3)
+    (rawMoment μ 1) (rawMoment μ 2) (rawMoment μ 3)
 
 /-- **Bridge (integral → moments).** For a probability measure with finite fourth moment, the
 integral objective equals the moment polynomial: expanding
@@ -111,13 +108,13 @@ integral objective equals the moment polynomial: expanding
 Proof sketch: rewrite the integrand via `ring` to the explicit degree-4 polynomial, then split with
 `integral_add`/`integral_sub`/`integral_const_mul`/`integral_const` using the four `Integrable`
 fields of `h`; the constant term contributes `b₀² * (μ univ).toReal = b₀²` by
-`IsProbabilityMeasure`. Finally reconcile `∫ y ∂μ` with `moment μ 1 = ∫ y^1 ∂μ` via `pow_one`. -/
+`IsProbabilityMeasure`. Finally reconcile `∫ y ∂μ` with `rawMoment μ 1 = ∫ y^1 ∂μ` via `pow_one`. -/
 theorem residualQuad_eq (μ : Measure ℝ) [IsProbabilityMeasure μ] (h : FiniteMoment4 μ)
     (b₀ b₁ : ℝ) :
     residualQuad μ b₀ b₁ =
       Causalean.Stat.MomentProblems.ResidualQuadratic.MomentAlgebra.residualQuad
-        (moment μ 1) (moment μ 2) (moment μ 3) (moment μ 4) b₀ b₁ := by
-  unfold residualQuad moment
+        (rawMoment μ 1) (rawMoment μ 2) (rawMoment μ 3) (rawMoment μ 4) b₀ b₁ := by
+  unfold residualQuad rawMoment
     Causalean.Stat.MomentProblems.ResidualQuadratic.MomentAlgebra.residualQuad
   have hpoly : (fun y : ℝ => (y ^ 2 - b₀ - b₁ * y) ^ 2) =
       fun y : ℝ => (((((y ^ 4 + (-(2 * b₁)) * y ^ 3) + (-(2 * b₀)) * y ^ 2) +
@@ -152,27 +149,27 @@ theorem residualQuad_eq (μ : Measure ℝ) [IsProbabilityMeasure μ] (h : Finite
 objective attains the closed-form residual `l2ResidualQuadratic μ`, whenever the design is
 non-degenerate (`m₁² < m₂`). -/
 theorem residualQuad_opt_eq (μ : Measure ℝ) [IsProbabilityMeasure μ] (h : FiniteMoment4 μ)
-    (hnd : moment μ 1 ^ 2 < moment μ 2) :
+    (hnd : rawMoment μ 1 ^ 2 < rawMoment μ 2) :
     residualQuad μ (optIntercept μ) (optSlope μ) = l2ResidualQuadratic μ := by
   rw [residualQuad_eq μ h]
   exact Causalean.Stat.MomentProblems.ResidualQuadratic.MomentAlgebra.residualQuad_optimalCoeff
-    (moment μ 1) (moment μ 2) (moment μ 3) (moment μ 4) hnd
+    (rawMoment μ 1) (rawMoment μ 2) (rawMoment μ 3) (rawMoment μ 4) hnd
 
 /-- **Lower bound (infimum).** The closed-form residual is a lower bound of the integral objective
 at every choice of coefficients, when the design is non-degenerate. Together with
 `residualQuad_opt_eq` this identifies `l2ResidualQuadratic μ` as the minimum
 `⨅ b₀ b₁, ∫ (y² − b₀ − b₁ y)² ∂μ`. -/
 theorem l2ResidualQuadratic_le (μ : Measure ℝ) [IsProbabilityMeasure μ] (h : FiniteMoment4 μ)
-    (hnd : moment μ 1 ^ 2 < moment μ 2) (b₀ b₁ : ℝ) :
+    (hnd : rawMoment μ 1 ^ 2 < rawMoment μ 2) (b₀ b₁ : ℝ) :
     l2ResidualQuadratic μ ≤ residualQuad μ b₀ b₁ := by
   rw [residualQuad_eq μ h]
   exact Causalean.Stat.MomentProblems.ResidualQuadratic.MomentAlgebra.residualQuad_ge_momentResidual
-    (moment μ 1) (moment μ 2) (moment μ 3) (moment μ 4) b₀ b₁ hnd
+    (rawMoment μ 1) (rawMoment μ 2) (rawMoment μ 3) (rawMoment μ 4) b₀ b₁ hnd
 
 /-- **Non-negativity.** The closed-form residual is non-negative (it is the value at the optimum
 of an integral of a square), for a non-degenerate design. -/
 theorem l2ResidualQuadratic_nonneg (μ : Measure ℝ) [IsProbabilityMeasure μ] (h : FiniteMoment4 μ)
-    (hnd : moment μ 1 ^ 2 < moment μ 2) :
+    (hnd : rawMoment μ 1 ^ 2 < rawMoment μ 2) :
     0 ≤ l2ResidualQuadratic μ := by
   rw [← residualQuad_opt_eq μ h hnd]
   exact integral_nonneg (fun y => sq_nonneg _)
@@ -191,7 +188,7 @@ Proof sketch: `le_antisymm`. The `≥` direction (`l2 ≤ ⨅`) is `le_ciInf` tw
 `residualQuad μ (optIntercept μ) (optSlope μ)` (each range is `BddBelow` by
 `l2ResidualQuadratic_le`), then rewrites with `residualQuad_opt_eq`. -/
 theorem iInf_residualQuad (μ : Measure ℝ) [IsProbabilityMeasure μ] (h : FiniteMoment4 μ)
-    (hnd : moment μ 1 ^ 2 < moment μ 2) :
+    (hnd : rawMoment μ 1 ^ 2 < rawMoment μ 2) :
     ⨅ b₀, ⨅ b₁, residualQuad μ b₀ b₁ = l2ResidualQuadratic μ := by
   apply le_antisymm
   · calc

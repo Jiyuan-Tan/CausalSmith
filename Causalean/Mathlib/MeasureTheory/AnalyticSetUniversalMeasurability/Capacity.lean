@@ -33,7 +33,7 @@ namespace MeasureTheory
 
 variable {Ω : Type*} [TopologicalSpace Ω]
 
-/-- A Choquet capacity on a topological sample space bundles [an extended-real-valued set
+/-- A Choquet capacity on a topological sample space bundles [an extended-nonnegative-real-valued set
 function](hyp:toFun) that is [monotone under set inclusion](hyp:mono'), [continuous from below
 along increasing sequences of sets](hyp:iUnion_of_monotone'), [finite on every compact
 set](hyp:isCompact_lt_top'), and [right-continuous at compact sets: any strict upper bound on a

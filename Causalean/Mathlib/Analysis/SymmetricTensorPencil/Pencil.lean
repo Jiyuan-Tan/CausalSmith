@@ -18,7 +18,9 @@ noncomputable def rightPencil {n : ℕ} (Aw Au : Matrix (Fin n) (Fin n) ℝ) :
   Aw * Au⁻¹
 
 /-- The explicit Lipschitz coefficient for a right pencil whose denominator has lower singular
-value `eta` and whose numerator norm is at most `n * Lambda`. With [its explicit inputs](hyp:n,eta,Lambda), [the defined object](goal) is [given by the displayed formula](step:1). -/
+value `eta` and whose numerator norm is at most `n * Lambda`. The formula is unguarded: it is a
+Lipschitz coefficient only for positive `eta`, and `eta = 0` gives zero by the division-by-zero
+convention. With [its explicit inputs](hyp:n,eta,Lambda), [the defined object](goal) is [given by the displayed formula](step:1). -/
 noncomputable def pencilPerturbationConstant (n : ℕ) (eta Lambda : ℝ) : ℝ :=
   2 / eta + 2 * n * Lambda / eta ^ 2
 
@@ -144,11 +146,11 @@ theorem inverse_perturbation_bound {n : ℕ} [NeZero n]
     _ = 2 * e / eta ^ 2 := by field_simp [heta.ne']
 
 /-- Given reference and perturbed numerator and denominator contractions,
-positive denominator, numerator, and error margins, a denominator
+a positive denominator margin, nonnegative numerator and error bounds, a denominator
 singular-value bound, a numerator norm bound, numerator and denominator
-perturbation bounds, and a small-error condition, the two right
-generalized-eigenvalue pencils are invertible where required and differ by the explicit Lipschitz
-bound. Under [the listed assumptions](hyp:heta,hLambda,he,hsv,hnumer,hnumPert,hdenPert,hsmall), [the stated conclusion follows](goal). -/
+perturbation bounds, and a small-error condition, both denominator
+matrices are invertible and the two right generalized-eigenvalue pencils differ by the explicit
+Lipschitz bound. Under [the listed assumptions](hyp:heta,hLambda,he,hsv,hnumer,hnumPert,hdenPert,hsmall), [the stated conclusion follows](goal). -/
 -- Proof route: add and subtract `Aw * Au'⁻¹`, then combine the numerator perturbation with the
 -- inverse-difference bound and `‖Aw‖ ≤ n Lambda`; use `Matrix.l2_opNorm_mul` throughout.
 theorem rightPencil_perturbation_bound {n : ℕ} [NeZero n]

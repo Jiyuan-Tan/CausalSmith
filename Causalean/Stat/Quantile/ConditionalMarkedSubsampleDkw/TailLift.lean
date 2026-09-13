@@ -1,5 +1,5 @@
 import Causalean.Stat.Quantile.ConditionalMarkedSubsampleDkw.ConditionalLaw
-import Causalean.Stat.Quantile.ConditionalMarkedSubsampleDkw.FiniteAggregation
+import Causalean.Mathlib.Probability.FinitePartitionConditional
 import Causalean.Stat.Quantile.ConditionalMarkedSubsampleDkw.Measurability
 
 /-!
@@ -15,6 +15,8 @@ open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal BigOperators
 
 namespace Causalean.Stat.Quantile.ConditionalMarkedSubsampleDkw
+
+open Causalean.Mathlib.Probability (measure_le_of_cond_le_on_finite_partition)
 
 /-- Given [a finite marked iid experiment](hyp:S), [a requested mark](hyp:a), [a selected-outcome
 probability law](hyp:ρ), and [a count-indexed radius](hyp:radius), [the selected-subsample empirical-CDF bad event is measurable](goal). -/
@@ -103,7 +105,10 @@ theorem conditionalMarkedSubsample_empiricalCDF_tail
     simp [hinter]
 
 /-- For [a confidence parameter](hyp:α) and [a selected count](hyp:m), [the DKW confidence radius](goal)
-is [the square root of log(4/α) divided by twice that count](step:1). -/
+is [the square root of log(4/α) divided by twice that count](step:1). It is a DKW radius for a
+confidence parameter that is positive and at most one and a positive count, as assumed by the tail
+theorems; outside that domain the logarithm, division and square-root conventions give values
+without that meaning (for example zero at count zero). -/
 noncomputable def dkwRadius (α : ℝ) (m : ℕ) : ℝ :=
   Real.sqrt (Real.log (4 / α) / (2 * (m : ℝ)))
 

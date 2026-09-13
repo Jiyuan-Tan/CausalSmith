@@ -4,7 +4,8 @@ import Causalean.Mathlib.Analysis.JacksonApproximation.CoefficientEnvelopeFour
 # Affine Jackson approximation on four-dimensional rectangles
 
 This module transports tensor Jackson approximation between the normalized cube and a
-nondegenerate rectangle, preserving evaluation, degree, approximation, and coefficient bounds.
+rectangle with positive radii (the raw normalization and rectangle definitions accept any radii;
+the transport theorems assume positivity), preserving evaluation, degree, approximation, and coefficient bounds.
 -/
 
 namespace Causalean.Mathlib.Analysis.JacksonApproximation
@@ -20,14 +21,17 @@ def affinePoint {d : ℕ} (c r z : Fin d → ℝ) : Fin d → ℝ :=
 
 /-- [A finite dimension](hyp:d), [a rectangle center](hyp:c), [coordinate radii](hyp:r), and [a
 point in the rectangle's ambient space](hyp:y) determine [its normalized coordinates](goal) by
-subtracting the center and dividing coordinatewise by the radii.
+subtracting the center and dividing coordinatewise by the radii. This is a normalization for
+positive radii, as assumed by the approximation results; a zero radius gives coordinate zero by the
+division convention.
 -/
 noncomputable def normalizedPoint {d : ℕ} (c r y : Fin d → ℝ) : Fin d → ℝ :=
   fun i => (y i - c i) / r i
 
 /-- [A finite dimension](hyp:d), [a center](hyp:c), and [coordinate radii](hyp:r) determine [the
 closed centered rectangle](goal) consisting of points whose coordinatewise distance from the
-center does not exceed the corresponding radius.
+center does not exceed the corresponding radius. No sign condition is imposed on the radii; a
+negative radius makes the set empty, and the approximation results assume positive radii.
 -/
 def centeredRectangle {d : ℕ} (c r : Fin d → ℝ) : Set (Fin d → ℝ) :=
   {y | ∀ i, |y i - c i| ≤ r i}

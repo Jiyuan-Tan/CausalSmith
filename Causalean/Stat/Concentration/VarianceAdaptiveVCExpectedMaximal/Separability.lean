@@ -24,7 +24,8 @@ namespace Causalean.Stat.Concentration
 
 /-- Given [a measure $\mu$ on an observation space](hyp:μ,Ω), [a sample of $n$
 observations](hyp:w,n), and [a real-valued function](hyp:g), the [centered empirical
-average](goal) is its sample average minus its integral with respect to $\mu$. -/
+average](goal) is its sample average minus its integral with respect to $\mu$. For an empty sample the
+average term is zero by the inverse-of-zero convention, so the value is minus the integral. -/
 noncomputable def centeredEmpiricalAverage {Ω : Type*} [MeasurableSpace Ω]
     (μ : Measure Ω) {n : ℕ} (w : Fin n → Ω) (g : Ω → ℝ) : ℝ :=
   (n : ℝ)⁻¹ * ∑ i, g (w i) - ∫ z, g z ∂μ
@@ -51,7 +52,6 @@ measurable](hyp:hmeas), and [there is a single `μ`-integrable envelope `G` domi
 uniformly in `i`](hyp:hdom). Then [the countable subfamily indexed by `g0` realizes the full
 continuum empirical-process supremum of `g` almost surely under every finite product law of
 `μ`](goal). -/
--- @node: hasCountableEmpiricalSupReduction_of_pointwise_dense
 lemma hasCountableEmpiricalSupReduction_of_pointwise_dense
     {Ω ι : Type*} [MeasurableSpace Ω] (μ : Measure Ω) [SigmaFinite μ]
     (g : ι → Ω → ℝ)
@@ -105,6 +105,5 @@ lemma hasCountableEmpiricalSupReduction_of_pointwise_dense
     exact le_iSup (fun i : ι => ENNReal.ofReal
       |centeredEmpiricalAverage μ w (g i)|) (g0 k)
 
--- @node: winsorizedScore_boundary_volume_zero
 
 end Causalean.Stat.Concentration

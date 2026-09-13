@@ -41,7 +41,9 @@ def CircleSide.region : CircleSide → Set Plane
   | .outside => {z | 0 < radialOffset z}
 
 /-- For [a real exponent parameter](hyp:κ) and [a planar point](hyp:z), the [radial power weight](goal)
-is the absolute radial offset raised to the power $κ-2$. -/
+is the absolute radial offset raised to the power $κ-2$. On the unit circle itself the offset is
+zero, and zero to a negative power is zero by convention, so for exponents below two the weight is
+zero there rather than infinite; this affects only a Lebesgue-null set. -/
 def powerWeight (κ : ℝ) (z : Plane) : ℝ := |radialOffset z| ^ (κ - 2)
 
 /-- For [a chosen radial side](hyp:side), [a planar center](hyp:x), and [a real radius](hyp:h),

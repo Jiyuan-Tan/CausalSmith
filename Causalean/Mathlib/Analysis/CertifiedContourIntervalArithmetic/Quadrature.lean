@@ -21,7 +21,7 @@ def trapezoidSum (nodes : ℕ → ComplexRatInterval) : ℕ → ComplexRatInterv
   | n + 1 => ComplexRatInterval.add (trapezoidSum nodes n)
       (ComplexRatInterval.add (nodes n) (nodes (n + 1)))
 
-/-- For [a sequence of complex rational rectangles](hyp:nodes) and [a mesh size](hyp:n), [the trapezoidal enclosure](goal) is the unscaled trapezoidal rectangle sum multiplied by $1/(2n)$. -/
+/-- For [a sequence of complex rational rectangles](hyp:nodes) and [a mesh size](hyp:n), [the trapezoidal enclosure](goal) is the unscaled trapezoidal rectangle sum multiplied by $1/(2n)$. It is meaningful for positive mesh size, as required by the integral enclosure built from it; at mesh size zero the scale factor is zero by the division convention. -/
 def trapezoidEnclosure (nodes : ℕ → ComplexRatInterval) (n : ℕ) : ComplexRatInterval :=
   ComplexRatInterval.smulRat (1 / (2 * n : ℚ)) (trapezoidSum nodes n)
 

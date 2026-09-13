@@ -15,8 +15,8 @@ Coordinatewise convergence in probability is first upgraded to convergence of
 the largest coordinate error.  It then shows that a selector minimizing a
 sample-size-scaled empirical loss plus deterministic sublinear penalties
 eventually lies in the population-minimizer class.  The selector is expressed
-with an explicit injective rank so applications can impose a fixed deterministic
-tie rule.
+with an explicit tie rank so applications can impose a fixed deterministic tie rule;
+consistency does not require the rank to be injective.
 -/
 
 namespace Causalean.Stat
@@ -100,7 +100,7 @@ theorem IsRankedMinimizer.le {rank : ι → ℕ} {criterion : ι → ℝ} {selec
 probability measure](hyp:μ), with deterministic [penalties](hyp:penalty), a deterministic tie
 [rank](hyp:rank), and [a selected model](hyp:selector).  If [each empirical loss converges in
 probability](hyp:hcoord), [population minimizers are separated by a positive gap](hyp:hgap),
-[each penalty is sublinear](hyp:hpenalty), [the rank is injective](hyp:hrank), and [the selector
+[each penalty is sublinear](hyp:hpenalty), and [the selector
 is always the ranked minimizer of the penalized empirical criterion](hyp:hselect), then the
 [probability of selecting outside the population-minimizer class converges to zero](goal). -/
 theorem finite_penalized_argmin_failure_tendsto_zero
@@ -114,7 +114,6 @@ theorem finite_penalized_argmin_failure_tendsto_zero
       ∀ i ∈ populationMinimizers population,
         ∀ j ∉ populationMinimizers population, population i + gap ≤ population j)
     (hpenalty : ∀ i, Tendsto (fun n => penalty n i / (n : ℝ)) atTop (𝓝 0))
-    (hrank : Function.Injective rank)
     (hselect : ∀ (n : ℕ) (ω : Ω), IsRankedMinimizer rank
       (fun i => (n : ℝ) * empirical n ω i + penalty n i) (selector n ω)) :
     Tendsto (fun n => μ {ω | selector n ω ∉ populationMinimizers population})
@@ -180,7 +179,7 @@ theorem finite_penalized_argmin_failure_tendsto_zero
 probability measure](hyp:μ), with deterministic [penalties](hyp:penalty), a deterministic tie
 [rank](hyp:rank), and [a selected model](hyp:selector).  If [each empirical loss converges in
 probability](hyp:hcoord), [population minimizers are separated by a positive gap](hyp:hgap),
-[each penalty is sublinear](hyp:hpenalty), [the rank is injective](hyp:hrank), [the selector is
+[each penalty is sublinear](hyp:hpenalty), [the selector is
 always the ranked minimizer of the penalized empirical criterion](hyp:hselect), and [each success
 event is measurable](hyp:hmeas), then the [probability of selecting a population minimizer
 converges to one](goal). -/
@@ -195,14 +194,13 @@ theorem finite_penalized_argmin_consistent
       ∀ i ∈ populationMinimizers population,
         ∀ j ∉ populationMinimizers population, population i + gap ≤ population j)
     (hpenalty : ∀ i, Tendsto (fun n => penalty n i / (n : ℝ)) atTop (𝓝 0))
-    (hrank : Function.Injective rank)
     (hselect : ∀ (n : ℕ) (ω : Ω), IsRankedMinimizer rank
       (fun i => (n : ℝ) * empirical n ω i + penalty n i) (selector n ω))
     (hmeas : ∀ n, MeasurableSet {ω | selector n ω ∈ populationMinimizers population}) :
     Tendsto (fun n => μ {ω | selector n ω ∈ populationMinimizers population})
       atTop (𝓝 1) := by
   have hfailure := finite_penalized_argmin_failure_tendsto_zero empirical population penalty
-    rank selector μ hcoord hgap hpenalty hrank hselect
+    rank selector μ hcoord hgap hpenalty hselect
   have hsuccess_eq : ∀ n,
       μ {ω | selector n ω ∈ populationMinimizers population} =
         1 - μ {ω | selector n ω ∉ populationMinimizers population} := by

@@ -15,20 +15,28 @@ namespace Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation
 
 open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
 
-/-- A real vector is a probability vector when its entries are nonnegative and sum to one. -/
+/-- A real vector is a probability vector when its entries are nonnegative and sum to one. This is
+definitionally membership in Mathlib's standard simplex (see
+`isProbabilityVector_iff_mem_stdSimplex`). -/
 def IsProbabilityVector {ι : Type*} [Fintype ι] (p : ι → ℝ) : Prop :=
   (∀ i, 0 ≤ p i) ∧ ∑ i, p i = 1
 
-/-- A real square matrix is row-stochastic when every entry is nonnegative and every row sums to one. -/
+/-- A real square matrix is row-stochastic when every entry is nonnegative and every row sums to one.
+This is the same condition as membership in Mathlib's `Matrix.rowStochastic` (see
+`isStochasticMatrix_iff_mem_rowStochastic`), stated without its decidable-equality
+infrastructure. -/
 def IsStochasticMatrix {ι : Type*} [Fintype ι] (P : Matrix ι ι ℝ) : Prop :=
   (∀ i j, 0 ≤ P i j) ∧ ∀ i, ∑ j, P i j = 1
 
-/-- One Markov step applies a row probability vector to a row-stochastic matrix. -/
+/-- One Markov step multiplies a row vector by a square matrix. No condition is imposed; it is a
+step of a Markov chain when the vector is a probability vector and the matrix is row-stochastic. -/
 def markovStep {ι : Type*} [Fintype ι]
     (p : ι → ℝ) (P : Matrix ι ι ℝ) : ι → ℝ :=
   Matrix.vecMul p P
 
-/-- The successive distributions from an initial row vector under a fixed finite kernel. -/
+/-- The successive row vectors obtained from an initial row vector by repeated multiplication by a
+fixed square matrix. They are the successive distributions of a Markov chain when the start is a
+probability vector and the matrix is row-stochastic (see `IsStochasticMatrix.iterate_probability`). -/
 def markovIterate {ι : Type*} [Fintype ι]
     (P : Matrix ι ι ℝ) (p0 : ι → ℝ) : ℕ → (ι → ℝ)
   | 0 => p0
@@ -43,14 +51,17 @@ def IsStationary {ι : Type*} [Fintype ι]
 def l1Distance {ι : Type*} [Fintype ι] (p q : ι → ℝ) : ℝ :=
   ∑ i, |p i - q i|
 
-/-- A kernel contracts probability vectors in `ℓ¹` by a supplied coefficient. -/
+/-- A square matrix contracts probability vectors in `ℓ¹` by a supplied coefficient: the one-step
+images of any two probability vectors are at most the coefficient times their `ℓ¹` distance apart.
+Row-stochasticity of the matrix is not part of this predicate and is assumed separately. -/
 def ContractsL1 {ι : Type*} [Fintype ι]
     (P : Matrix ι ι ℝ) (ρ : ℝ) : Prop :=
   ∀ p q, IsProbabilityVector p → IsProbabilityVector q →
     l1Distance (markovStep p P) (markovStep q P) ≤ ρ * l1Distance p q
 
-/-- A Doeblin minorization says every row of a kernel dominates the same
-probability vector with a common mass `ε` between zero and one. -/
+/-- A Doeblin minorization says every row of a square matrix dominates the same
+probability vector scaled by a common mass `ε` between zero and one. Row-stochasticity of the matrix
+is not part of this predicate and is assumed separately. -/
 def Minorizes {ι : Type*} [Fintype ι]
     (P : Matrix ι ι ℝ) (ε : ℝ) (ν : ι → ℝ) : Prop :=
   IsProbabilityVector ν ∧ 0 ≤ ε ∧ ε ≤ 1 ∧ ∀ i j, ε * ν j ≤ P i j

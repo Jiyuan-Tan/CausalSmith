@@ -17,7 +17,7 @@ import {
   buildModuleTree,
   displayModulePath,
   displayModuleSegment,
-  sourceKind,
+  sourceKind, isHiddenLibraryArea
 } from "../src/lib/library.js";
 
 function trackedLeanFiles(root: string): string[] {
@@ -92,6 +92,18 @@ function fixtureRoot(opts: { badReviewDecl?: boolean; malformedSidecar?: boolean
       axioms: [],
       usesSorry: false,
     },
+    {
+      name: "Causalean.Tactic.Attr.causalDefsSimps",
+      kind: "def",
+      module: "Causalean.Tactic.Attr",
+      file: "Causalean/Tactic/Attr.lean",
+      line: 1,
+      statement: "Lean.Name",
+      doc: "Proof-automation simp-set registration.",
+      refs: [],
+      axioms: [],
+      usesSorry: false,
+    },
   ];
   writeFileSync(
     join(root, "doc", "library_index.json"),
@@ -102,6 +114,7 @@ function fixtureRoot(opts: { badReviewDecl?: boolean; malformedSidecar?: boolean
       modules: {
         "Causalean.PO.Basic": "Core PO helpers.",
         "Causalean.Substrate.Temp.Basic": "Temporary study-mode substrate helpers.",
+        "Causalean.Tactic.Attr": "Proof-automation attribute registration.",
       },
     }),
   );
@@ -139,6 +152,12 @@ describe("site library loader", () => {
     const lib = loadLibrary(fixtureRoot());
     expect(lib.entries.map((e) => e.name)).not.toContain("Causalean.Substrate.Temp.helper");
     expect(Object.keys(lib.modules)).not.toContain("Causalean.Substrate.Temp.Basic");
+  });
+  it("excludes proof-automation Tactic declarations and modules from the public Causalean page", () => {
+    const lib = loadLibrary(fixtureRoot());
+    expect(lib.entries.map((e) => e.name)).not.toContain("Causalean.Tactic.Attr.causalDefsSimps");
+    expect(Object.keys(lib.modules)).not.toContain("Causalean.Tactic.Attr");
+    expect(lib.entries.map(declArea)).not.toContain("Tactic");
   });
   it("renders the DiscreteID module segment as Discrete ID", () => {
     expect(displayModuleSegment("DiscreteID")).toBe("Discrete ID");
@@ -239,6 +258,8 @@ describe("site library loader", () => {
     const stale: string[] = [];
     const duplicateHeadlines: string[] = [];
     for (const file of readdirSync(reviewDir).filter((f) => f.endsWith(".json"))) {
+      // Sidecars of areas hidden from the explorer describe declarations the page never loads.
+      if (isHiddenLibraryArea(file.replace(/\.json$/, ""))) continue;
       const sidecar = JSON.parse(readFileSync(join(reviewDir, file), "utf8")) as {
         headline_theorems: string[];
         reviews: { decl: string }[];
@@ -474,6 +495,7 @@ describe("site library loader", () => {
       Object.keys(lib.modules).map((module) => `${module.replace(/\./g, "/")}.lean`),
     );
     const missing = leanFiles
+      .filter((file) => !isHiddenLibraryArea(file.split("/")[1] ?? ""))
       .filter((file) => !entryFiles.has(file) && !moduleFiles.has(file))
       .sort();
 

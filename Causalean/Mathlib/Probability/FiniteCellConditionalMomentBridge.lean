@@ -10,13 +10,13 @@ import Mathlib.MeasureTheory.Measure.Restrict
 import Mathlib.Probability.Independence.Basic
 import Mathlib.Probability.Independence.Integration
 
-/-! # Finite-cell conditional moments and support transfer
+/-! # Finite-cell conditional moments
 
 This module provides generic probability tools for conditioning on a measurable
 positive-mass cell by normalizing its restricted measure.  It turns bounded-test
-factorization into finite-coordinate moment factorization and transfers an
-almost-sure outcome bound from a positive observed arm to an independent
-potential outcome throughout the cell.
+factorization into independence and into finite-coordinate moment factorization.
+The causal transfer of an outcome bound from an observed arm to a potential outcome
+built on these tools lives in `Causalean.PO.Assumptions.ArmSupportTransfer`.
 -/
 
 namespace Causalean.Mathlib.Probability
@@ -27,8 +27,10 @@ open MeasureTheory ProbabilityTheory
 space](hyp:Ω,P,C), the [normalized restricted measure](goal) is the measure restricted to
 the cell and scaled by the reciprocal of the measure of that cell.
 
-The normalized restriction of a measure to a cell is the restricted measure
-rescaled so that a positive-mass cell has total mass one. -/
+No condition is imposed on the cell. When the cell has positive finite measure the result is a
+probability measure; a null cell or a cell of infinite measure gives the zero measure, since the
+reciprocal of zero or of infinity is taken as infinity or zero respectively and the scaled
+restriction then vanishes. -/
 noncomputable def normalizedRestrict {Ω : Type*} [MeasurableSpace Ω]
     (P : Measure Ω) (C : Set Ω) : Measure Ω :=
   (P C)⁻¹ • P.restrict C
@@ -38,8 +40,9 @@ a cell, and a function on the sample space](hyp:Ω,E,P,C,f), the [normalized res
 integral](goal) is the integral of the function with respect to the normalized restricted
 measure of that cell.
 
-A normalized restricted integral is the expectation of a function under the
-probability law obtained by conditioning the original measure on a cell. -/
+When the cell has positive finite measure this is the expectation of the function under the
+probability law obtained by conditioning on the cell; otherwise the normalized restriction is the
+zero measure and the integral is zero. -/
 noncomputable def normalizedRestrictedIntegral
     {Ω E : Type*} [MeasurableSpace Ω] [NormedAddCommGroup E] [NormedSpace ℝ E]
     (P : Measure Ω) (C : Set Ω) (f : Ω → E) : E :=
@@ -116,8 +119,10 @@ two random elements](hyp:Ω,S,T,P,C,X,Y), the [normalized restricted bounded-tes
 factorization condition](goal) is bounded-test factorization of those random elements under
 the normalized restriction of the measure to the cell.
 
-Bounded-test factorization under the normalized probability law obtained by
-restricting a measure to a cell. -/
+When the cell has positive finite measure this is bounded-test factorization under the
+conditional probability law on the cell. For a null or infinite-measure cell the normalized
+restriction is the zero measure and the condition holds trivially, so results using it assume
+positive finite cell mass. -/
 def NormalizedRestrictedBoundedTestFactorization
     {Ω S T : Type*} [MeasurableSpace Ω] [MeasurableSpace S] [MeasurableSpace T]
     (P : Measure Ω) (C : Set Ω) (X : Ω → S) (Y : Ω → T) : Prop :=
@@ -173,8 +178,9 @@ theorem indepFun_of_boundedTestFactorization
 finite-dimensional real random vector](hyp:Ω,n,μ,X), the [first-moment vector](goal) has
 at each coordinate the integral of the corresponding coordinate of the random vector.
 
-The vector of coordinatewise first moments of a finite-dimensional real
-random variable under a measure. -/
+No integrability is required: a coordinate that is not integrable contributes zero, by the
+convention for the Bochner integral, so this is the first-moment vector only for integrable
+coordinates. -/
 noncomputable def firstMomentVector
     {Ω : Type*} [MeasurableSpace Ω] {n : ℕ}
     (μ : Measure Ω) (X : Ω → Fin n → ℝ) : Fin n → ℝ :=
@@ -185,8 +191,9 @@ finite-dimensional real random vectors](hyp:Ω,m,n,μ,X,Y), the [cross-moment ma
 has at each ordered pair of coordinates the integral of the product of the corresponding
 coordinates of the two random vectors.
 
-The matrix of coordinatewise cross moments of two finite-dimensional real
-random variables under a measure. -/
+No integrability is required: an entry whose coordinate product is not integrable is zero, by
+the convention for the Bochner integral, so this is the cross-moment matrix only when every product
+is integrable. -/
 noncomputable def crossMomentMatrix
     {Ω : Type*} [MeasurableSpace Ω] {m n : ℕ}
     (μ : Measure Ω) (X : Ω → Fin m → ℝ) (Y : Ω → Fin n → ℝ) :
@@ -250,74 +257,5 @@ theorem normalizedRestricted_crossMomentMatrix_eq_outer
   ext i j
   exact (normalizedRestricted_coordinate_factorization hC hCpos hX hY hXint hYint
     hfactor i j).2
-
-/-- Given [a sample space and an event in it](hyp:Ω,A), the [real-valued arm
-indicator](goal) equals one for sample points in the event and zero for all other sample
-points.
-
-The real-valued indicator of membership in an event, equal to one on the
-event and zero elsewhere. -/
-noncomputable def armIndicator {Ω : Type*} (A : Set Ω) : Ω → ℝ :=
-  A.indicator (fun _ => 1)
-
-/-- Within [a measurable positive-mass cell](hyp:hC,hCpos), for [a measurable
-arm event](hyp:hA), if [the potential and observed outcomes are measurable](hyp:hYpot,hYobs),
-[the potential outcome and observed outcome are integrable under their respective cell and
-observed-arm laws](hyp:hYpotInt,hYobsInt), [the arm has positive normalized cell
-probability](hyp:hArmPos), [the potential outcome is independent of the arm indicator under the
-normalized cell law](hyp:hInd), [the observed and potential outcomes agree almost surely on that
-arm](hyp:hConsistency), and [the observed outcome obeys an absolute bound there](hyp:hObservedBound),
-then [the potential outcome obeys the same absolute bound almost surely throughout the cell](goal). -/
-theorem ae_abs_potential_le_of_indep_positive_arm
-    {Ω : Type*} [MeasurableSpace Ω]
-    {P : Measure Ω} [IsProbabilityMeasure P]
-    {C A : Set Ω} (hC : MeasurableSet C) (hCpos : 0 < P C)
-    (hA : MeasurableSet A)
-    {Ypot Yobs : Ω → ℝ} (hYpot : Measurable Ypot) (hYobs : Measurable Yobs)
-    (hYpotInt : Integrable Ypot (normalizedRestrict P C))
-    (hYobsInt : Integrable Yobs ((normalizedRestrict P C).restrict A))
-    (hArmPos : 0 < normalizedRestrict P C A)
-    (hInd : IndepFun Ypot (armIndicator A) (normalizedRestrict P C))
-    (hConsistency :
-      Yobs =ᵐ[(normalizedRestrict P C).restrict A] Ypot)
-    {R : ℝ}
-    (hObservedBound :
-      ∀ᵐ ω ∂(normalizedRestrict P C).restrict A, |Yobs ω| ≤ R) :
-    ∀ᵐ ω ∂P.restrict C, |Ypot ω| ≤ R := by
-  let B : Set Ω := {ω | R < |Ypot ω|}
-  have hBadRange : MeasurableSet {y : ℝ | R < |y|} := by
-    rw [show {y : ℝ | R < |y|} = {y : ℝ | R < ‖y‖} by
-      ext y
-      simp only [Real.norm_eq_abs]]
-    exact measurableSet_lt measurable_const (by fun_prop)
-  have hB : MeasurableSet B := hYpot hBadRange
-  have hPotBoundArm :
-      ∀ᵐ ω ∂(normalizedRestrict P C).restrict A, |Ypot ω| ≤ R := by
-    filter_upwards [hConsistency, hObservedBound] with ω hEq hBound
-    rw [← hEq]
-    exact hBound
-  have hBAzero : normalizedRestrict P C (B ∩ A) = 0 := by
-    rw [measure_eq_zero_iff_ae_notMem]
-    filter_upwards [ae_imp_of_ae_restrict hPotBoundArm] with ω hω
-    intro hmem
-    exact (not_lt_of_ge (hω hmem.2)) hmem.1
-  have hArmPreimage : armIndicator A ⁻¹' ({1} : Set ℝ) = A := by
-    ext ω
-    simp [armIndicator]
-  have hFactor :
-      normalizedRestrict P C (B ∩ A) =
-        normalizedRestrict P C B * normalizedRestrict P C A := by
-    simpa [B, hArmPreimage] using
-      hInd.measure_inter_preimage_eq_mul
-        {y : ℝ | R < |y|} ({1} : Set ℝ)
-        hBadRange (measurableSet_singleton (1 : ℝ))
-  have hBzero : normalizedRestrict P C B = 0 := by
-    have hprod :
-        normalizedRestrict P C B * normalizedRestrict P C A = 0 := by
-      rw [← hFactor, hBAzero]
-    exact (mul_eq_zero.mp hprod).resolve_right hArmPos.ne'
-  apply (ae_normalizedRestrict_iff hCpos).mp
-  filter_upwards [(measure_eq_zero_iff_ae_notMem.mp hBzero)] with ω hω
-  exact le_of_not_gt (by simpa [B] using hω)
 
 end Causalean.Mathlib.Probability

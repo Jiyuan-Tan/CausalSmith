@@ -21,10 +21,13 @@ variable {Y : Type uY} {Z : Type uZ} {C : Type uC}
 variable [MeasurableSpace Y] [MeasurableSpace Z] [MeasurableSpace C]
 variable [StandardBorelSpace Y] [StandardBorelSpace Z] [StandardBorelSpace C]
 
-/-- For [three coordinate reference measures](hyp:muY,muZ,muC), [a measurable finite joint
-density](hyp:hd), [first and second block factors](hyp:a,b), [measurability of those factors](hyp:ha,hb),
-and [their almost-everywhere product representation](hyp:hfactor), [the first and second coordinate
-maps are conditionally independent given the third coordinate](goal). -/
+/-- On a product of three standard Borel spaces, take [three σ-finite coordinate reference
+measures](hyp:muY,muZ,muC) and [a measurable joint density](hyp:hd) with respect to their product
+whose induced measure is finite. Suppose there are [first and second block factors](hyp:a,b),
+[both measurable](hyp:ha,hb), such that [almost everywhere the density equals the first factor
+evaluated at the first and third coordinates times the second factor evaluated at the second and
+third coordinates](hyp:hfactor). Then, under the finite density measure, [the first and second
+coordinate maps are conditionally independent given the third coordinate](goal). -/
 theorem condIndepFun_threeBlock_of_density_factors
     (muY : Measure Y) (muZ : Measure Z) (muC : Measure C)
     [SigmaFinite muY] [SigmaFinite muZ] [SigmaFinite muC]

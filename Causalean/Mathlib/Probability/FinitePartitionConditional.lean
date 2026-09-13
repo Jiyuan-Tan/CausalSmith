@@ -2,17 +2,19 @@ import Mathlib.Probability.ConditionalProbability
 import Mathlib.MeasureTheory.Measure.FiniteMeasureProd
 
 /-!
-# Finite aggregation of conditional probability bounds
+# Finite-partition aggregation of conditional probabilities
 
-This module provides a paper-independent finite-partition identity and its
-uniform-bound consequence.  Zero-probability cells are handled explicitly, so
-applications only need conditional estimates on positive-probability cells.
+This module provides the law of total probability over a finite measurable partition, written with
+Mathlib's conditional measure `μ[E | C]`, and its uniform-bound consequence: a bound on the
+conditional probability of an event in every positive-probability cell bounds its unconditional
+probability.  Zero-probability cells are handled explicitly, so applications only need conditional
+estimates on positive-probability cells.
 -/
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal BigOperators
 
-namespace Causalean.Stat.Quantile.ConditionalMarkedSubsampleDkw
+namespace Causalean.Mathlib.Probability
 
 /-- Given [a probability measure](hyp:μ), [a finite collection of cells](hyp:C), [measurability
 of every cell](hyp:hC), [pairwise disjointness of distinct cells](hyp:hdisj), [coverage of the whole sample space](hyp:hcover), [an event](hyp:E), and [measurability of that event](hyp:hE), [its probability equals the finite sum of cell mass times conditional event probability](goal). -/
@@ -69,4 +71,4 @@ theorem measure_le_of_cond_le_on_finite_partition
       rw [hmass]
     _ = β := one_mul β
 
-end Causalean.Stat.Quantile.ConditionalMarkedSubsampleDkw
+end Causalean.Mathlib.Probability

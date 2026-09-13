@@ -131,12 +131,15 @@ noncomputable def selectedOutcomes {Ω : Type*} {n : ℕ}
   fun ω j => (Z (selectedIndex w a j) ω).2
 
 /-- For [a finite real vector](hyp:x) and [a threshold](hyp:y), [the vector empirical CDF](goal)
-is [the normalized sum of lower-ray indicators](step:1). -/
+is [the normalized sum of lower-ray indicators](step:1). For the empty vector the normalizing
+inverse is zero by convention, so the value is zero. -/
 noncomputable def empiricalCDFVec {m : ℕ} (x : Fin m → ℝ) (y : ℝ) : ℝ :=
   (m : ℝ)⁻¹ * ∑ i, Causalean.Stat.cdfStat y (x i)
 
 /-- For [a marked sample](hyp:Z), [a requested mark](hyp:a), [a sample outcome](hyp:ω), and
-[a threshold](hyp:y), [the selected empirical CDF](goal) is [the lower-ray count in the selected arm divided by its observed size](step:1). -/
+[a threshold](hyp:y), [the selected empirical CDF](goal) is [the lower-ray count in the selected arm divided by its observed size](step:1). When the selected
+arm is empty the inverse size is zero by convention and the value is zero; the bad event below
+requires a nonempty arm. -/
 noncomputable def selectedEmpiricalCDF {Ω : Type*} {n : ℕ}
     (Z : Fin n → Ω → Bool × ℝ) (a : Bool) (ω : Ω) (y : ℝ) : ℝ := by
   classical
@@ -160,18 +163,22 @@ lemma empiricalCDFVec_selectedOutcomes_eq {Ω : Type*} {n : ℕ}
   congr 1
   exact sum_selectedIndex w a (fun i => Causalean.Stat.cdfStat y (Z i ω).2)
 
-/-- For [a population law](hyp:ρ) and [a finite real vector](hyp:x), [the uniform empirical-CDF
-deviation](goal) is [the supremum over thresholds of the absolute empirical-minus-population CDF difference](step:1). -/
+/-- For [a measure on the real line](hyp:ρ) and [a finite real vector](hyp:x), [the uniform
+empirical-CDF deviation](goal) is [the supremum over thresholds of the absolute empirical-minus-population CDF difference](step:1).
+No probability assumption is made here; for a probability law, as assumed by the measurability and
+tail results, the differences are bounded and this is the usual uniform deviation, while an unbounded
+family has real supremum zero by convention. -/
 noncomputable def uniformCDFDeviation {m : ℕ} (ρ : Measure ℝ) (x : Fin m → ℝ) : ℝ :=
   sSup (Set.range fun y : ℝ => |empiricalCDFVec x y - cdf ρ y|)
 
-/-- For [a population law](hyp:ρ) and [a deviation radius](hyp:radius), [the fixed-size bad set](goal)
+/-- For [a measure on the real line](hyp:ρ) (a population probability law in the results using
+it) and [a deviation radius](hyp:radius), [the fixed-size bad set](goal)
 is [the set of vectors whose uniform empirical-CDF deviation exceeds that radius](step:1). -/
 def fixedCDFBadSet {m : ℕ} (ρ : Measure ℝ) (radius : ℝ) : Set (Fin m → ℝ) :=
   {x | uniformCDFDeviation ρ x > radius}
 
-/-- For [a marked sample](hyp:Z), [a requested mark](hyp:a), [a population law](hyp:ρ), and [a
-count-indexed radius](hyp:radius), [the selected-sample bad event](goal) is [the event that the selected arm is nonempty and its uniform deviation exceeds the radius at its observed size](step:1). -/
+/-- For [a marked sample](hyp:Z), [a requested mark](hyp:a), [a measure on the real line](hyp:ρ) (a population probability law in
+the results using it), and [a count-indexed radius](hyp:radius), [the selected-sample bad event](goal) is [the event that the selected arm is nonempty and its uniform deviation exceeds the radius at its observed size](step:1). -/
 def selectedCDFBadEvent {Ω : Type*} {n : ℕ}
     (Z : Fin n → Ω → Bool × ℝ) (a : Bool) (ρ : Measure ℝ)
     (radius : ℕ → ℝ) : Set Ω :=

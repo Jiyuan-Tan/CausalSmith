@@ -446,7 +446,7 @@ theorem finiteInjectiveTuples_card (ι : Type*) [Fintype ι] (n : ℕ) :
   rw [← hsub, Fintype.card_congr e]
   simp [Fintype.card_embedding_eq]
 
-/-- Given [an independent and identically distributed sample on a measurable sample space, with a specified sample-space measure and observation-space measure](hyp:Ω,X,μ,P,S), [a finite coordinate family](hyp:ι), [a real-valued kernel indexed by that family](hyp:k), and [a sample size](hyp:n), [the normalized finite-kernel statistic](goal) maps each sample outcome to the average kernel value over every injective assignment of the coordinate family to the first $n$ sample positions. -/
+/-- Given [an independent and identically distributed sample on a measurable sample space, with a specified sample-space measure and observation-space measure](hyp:Ω,X,μ,P,S), [a finite coordinate family](hyp:ι), [a real-valued kernel indexed by that family](hyp:k), and [a sample size](hyp:n), [the normalized finite-kernel statistic](goal) maps each sample outcome to the average kernel value over every injective assignment of the coordinate family to the first $n$ sample positions. This is an average when the family has at most $n$ members; otherwise there are no such assignments, the normalizing count is zero, and the value is zero by the inverse-of-zero convention. -/
 noncomputable def normalizedFiniteKernelStatistic (S : Causalean.Stat.IIDSample Ω X μ P)
     {ι : Type*} [Fintype ι] (k : (ι → X) → ℝ) (n : ℕ) : Ω → ℝ :=
   fun ω => ((n.descFactorial (Fintype.card ι) : ℝ)⁻¹) *
@@ -456,7 +456,7 @@ noncomputable def normalizedFiniteKernelStatistic (S : Causalean.Stat.IIDSample 
 def orderedProductKernel {r : ℕ} (f : Fin r → X → ℝ) : (Fin r → X) → ℝ :=
   fun z => ∏ i, f i (z i)
 
-/-- Given [an independent and identically distributed sample on a measurable sample space, with a specified sample-space measure and observation-space measure](hyp:Ω,X,μ,P,S), [an order](hyp:r), [one real-valued function of an observation for each coordinate](hyp:f), and [a sample size](hyp:n), [the normalized ordered-product statistic](goal) maps each sample outcome to the average, over all injective ordered $r$-tuples from its first $n$ observations, of the product of the corresponding coordinate-specific function values. -/
+/-- Given [an independent and identically distributed sample on a measurable sample space, with a specified sample-space measure and observation-space measure](hyp:Ω,X,μ,P,S), [an order](hyp:r), [one real-valued function of an observation for each coordinate](hyp:f), and [a sample size](hyp:n), [the normalized ordered-product statistic](goal) maps each sample outcome to the average, over all injective ordered $r$-tuples from its first $n$ observations, of the product of the corresponding coordinate-specific function values. For $r > n$ there are no such tuples and the value is zero by convention. -/
 noncomputable def normalizedOrderedProductStatistic
     (S : Causalean.Stat.IIDSample Ω X μ P) {r : ℕ}
     (f : Fin r → X → ℝ) (n : ℕ) : Ω → ℝ :=

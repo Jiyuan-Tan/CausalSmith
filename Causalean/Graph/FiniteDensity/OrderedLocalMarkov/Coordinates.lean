@@ -13,6 +13,8 @@ noncomputable section
 
 namespace Causalean.Graph.FiniteDensity
 
+open Causalean.Mathlib.MeasureTheory.FiniteCoordinate
+
 variable {V : Type*} [DecidableEq V] [Fintype V]
 variable {X : V → Type*} [∀ i, MeasurableSpace (X i)]
 

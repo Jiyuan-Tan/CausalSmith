@@ -31,10 +31,11 @@ variable {I A : Type*} {T₀ : ℕ}
 /-- Finite-memory history of length `p+1` ending at time `t`, with the
 boundary convention "out-of-range = baseline" for an explicit baseline
 treatment value `a0 : A`.  Lag `k : Fin (p+1)` returns `D i ⟨t - k, _⟩`
-when `k ≤ t.val`, and `a0` otherwise.  In the binary case
-(`A := Fin 2`, baseline `0`) this is exactly
-`H_{it}^{(p)} = (D_{it}, D_{i,t-1}, …, D_{i,t-p})` with the convention
-`D_{is} = 0` for `s ∉ {1, …, T}`. -/
+when `k ≤ t.val`, and `a0` otherwise.  Periods are indexed `0, …, T₀ - 1`. In the binary case
+(`A := Fin 2`, baseline `0`) this is
+`H_{it}^{(p)} = (D_{it}, D_{i,t-1}, …, D_{i,t-p})` with the convention that
+treatment before the first period is `0`; in one-based notation `s = t.val + 1`,
+this is `D_{is} = 0` for `s ∉ {1, …, T₀}`. -/
 def History (a0 : A) (p : ℕ)
     (D : TreatmentPath I (Fin T₀) A) (i : I) (t : Fin T₀) :
     Fin (p + 1) → A := fun k =>

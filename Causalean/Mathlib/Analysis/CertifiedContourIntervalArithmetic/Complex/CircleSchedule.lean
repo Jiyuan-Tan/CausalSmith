@@ -120,8 +120,9 @@ def Schedule.canonical (tolerance : PosRat) (operationCount : ℕ)
         div_le_div_of_nonneg_right hcoarse (by positivity)
       _ = tolerance.1 / 3 := by field_simp
 
-/-- A trace event retains the schedule object itself, so execution and semantic
-audit cannot silently disagree about fuel, mesh, or precision. -/
+/-- A trace event records the shared schedule, the index of the evaluated endpoint, and the ordinal
+of the primitive operation performed. Retaining the schedule object itself means execution and
+semantic audit cannot silently disagree about fuel, mesh, or precision. -/
 structure TraceEvent where
   /-- The exact shared schedule used for this event. -/
   schedule : Schedule
@@ -146,7 +147,7 @@ def circleNode (radius : ℚ) (schedule : Schedule) (k : ℕ) : ComplexRatInterv
 
 /-- Given [a rational radius](hyp:radius) and [a positive rational target width](hyp:target), the [internal circle tolerance](goal) is the smaller of $\mathrm{target}/(256(|r|+1))$ and $1/1024$.
 
-The cap at one keeps the elementary-factor magnitude estimates used in complex multiplication uniform. -/
+The cap at $1/1024$ keeps the elementary-factor magnitude estimates used in complex multiplication uniform. -/
 def circleInnerTolerance (radius : ℚ) (target : PosRat) : PosRat :=
   ⟨min (target.1 / (256 * (|radius| + 1))) (1 / 1024), by
     apply lt_min

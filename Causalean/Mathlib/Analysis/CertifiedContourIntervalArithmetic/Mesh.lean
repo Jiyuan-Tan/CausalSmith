@@ -74,7 +74,7 @@ end ComplexRatInterval
 
 namespace CircleMesh
 
-/-- For [a mesh size](hyp:n) and [a node index](hyp:k), [the mesh point](goal) is the real number $k/n$. -/
+/-- For [a mesh size](hyp:n) and [a node index](hyp:k), [the mesh point](goal) is the real number $k/n$. It is a mesh point for positive mesh size; for $n=0$ every point is zero by the division convention. -/
 noncomputable def meshPoint (n k : ℕ) : ℝ := (k : ℝ) / n
 
 /-- For [a complex center](hyp:c), [a real radius](hyp:r), and [a real parameter](hyp:u), [the circle point](goal) is $c+r\exp(2\pi u i)$. -/
@@ -89,7 +89,7 @@ noncomputable def circleTangent (r : ℝ) (u : ℝ) : ℂ :=
 noncomputable def circleIntegrand (f : ℂ → ℂ) (c : ℂ) (r : ℝ) (u : ℝ) : ℂ :=
   f (circleMap c r u) * circleTangent r u
 
-/-- For [a complex-valued function](hyp:f), [a complex center](hyp:c), and [a real radius](hyp:r), [the circle contour integral](goal) is the integral from $0$ to $1$ of the parameterized contour integrand. -/
+/-- For [a complex-valued function](hyp:f), [a complex center](hyp:c), and [a real radius](hyp:r), [the circle contour integral](goal) is the integral from $0$ to $1$ of the parameterized contour integrand. No integrability is required: for an integrand that is not interval integrable the integral is zero by convention, so this is the contour integral only when the parameterized integrand is integrable. -/
 noncomputable def circleContourIntegral (f : ℂ → ℂ) (c : ℂ) (r : ℝ) : ℂ :=
   ∫ u in (0 : ℝ)..1, circleIntegrand f c r u
 

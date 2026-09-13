@@ -24,7 +24,7 @@ def cosNameApprox (x : CertifiedReal) : ℕ → RatInterval
   | fuel + 1 => (cosNameApprox x fuel).tighten
       (cosInterval (x.approx (fuel + 1)) (fuel + 1))
 
-/-- Given [a certified real number](hyp:x) and [a positive rational target width](hyp:ε), the [trigonometric name precision](goal) is [half the target width](step:1) and the larger of the input precision required for that half-width and an explicit Taylor-fuel bound based on the target denominator and the initial enclosure's magnitude. -/
+/-- Given [a certified real number](hyp:x) and [a positive rational target width](hyp:ε), the [trigonometric name precision](goal) is computed by [taking half the target width as an internal input tolerance](step:1) and returning the larger of the input precision the certified real requires for that tolerance and an explicit Taylor-fuel bound based on the target denominator and the initial enclosure's magnitude. -/
 def trigNamePrecision (x : CertifiedReal) (ε : PosRat) : ℕ :=
   let δ : PosRat := ⟨ε.1 / 2, div_pos ε.2 (by norm_num)⟩
   max (x.modulus δ)

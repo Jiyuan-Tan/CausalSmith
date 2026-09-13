@@ -59,8 +59,7 @@ theorem coordinateProductRemainder_le {p : ℕ} {E : Type*} [Fintype E]
     exact Finset.single_le_sum (fun u _ => Finset.sum_nonneg fun k _ => sq_nonneg |R u k|)
       (Finset.mem_univ a)
   have hentry : entryL2 R ^ 2 = ∑ u, ∑ k, |R u k| ^ 2 := by
-    unfold entryL2
-    rw [Real.sq_sqrt]
+    rw [entryL2_eq_sqrt, Real.sq_sqrt]
     positivity
   calc
     |∑ k, R i k * R j k * (s e₁ k - s e₀ k)| ≤
@@ -381,8 +380,7 @@ theorem entryL2_transitionError_le {p : ℕ} (B₀ B : SqMatrix p) {L c : ℝ}
       _ = (p : ℝ) * (p - 1 : ℕ) * c ^ 2 * (1 + L ^ 2) := by
         simp [Finset.card_univ, Fintype.card_fin]
         ring
-  unfold entryL2
-  rw [Real.sqrt_le_iff]
+  rw [entryL2_eq_sqrt, Real.sqrt_le_iff]
   constructor
   · positivity
   · calc

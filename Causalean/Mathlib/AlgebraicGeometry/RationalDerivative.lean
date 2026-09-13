@@ -28,7 +28,9 @@ structure RationalScalar (S : Type*) where
 namespace RationalScalar
 
 /-- For a [rational scalar](hyp:r) and [source assignment](hyp:x), the [evaluated scalar](goal)
-is its numerator evaluation divided by its denominator evaluation. -/
+is its numerator evaluation divided by its denominator evaluation. Division is total: where the
+denominator vanishes the value is zero, so this is the rational function's value only on points
+where it is defined. -/
 noncomputable def eval (r : RationalScalar S) (x : S → ℝ) : ℝ :=
   MvPolynomial.eval x r.num / MvPolynomial.eval x r.den
 

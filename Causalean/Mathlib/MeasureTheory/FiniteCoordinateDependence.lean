@@ -2,11 +2,17 @@ import Mathlib.MeasureTheory.Integral.Marginal
 import Mathlib.MeasureTheory.Measure.WithDensity
 
 /-!
-# Coordinate dependence and density marginalization
+# Finite coordinate dependence and density marginalization
 
-This module contains graph-independent infrastructure for finite product spaces.  It defines
-dependence on a finite coordinate set, coordinate restriction/extension maps, and the analytic
-bridge from equality of `lmarginal` densities to equality of projected `withDensity` measures.
+This module provides measure theory on dependent products indexed by a type, relative to a finite
+set of coordinates.  It defines what it means for a function of an assignment to depend only on
+those coordinates, the measurable restriction and extension maps between full and restricted
+assignments, and the analytic bridge from equality of `lmarginal` densities to equality of the
+projected `withDensity` measures.
+
+The declarations live in the `FiniteCoordinate` sub-namespace so that opening
+`Causalean.Mathlib.MeasureTheory` does not overload Mathlib's root `DependsOn` (which uses a
+`Set` of coordinates and the opposite argument order).
 -/
 
 open scoped ENNReal
@@ -15,7 +21,7 @@ open MeasureTheory
 
 noncomputable section
 
-namespace Causalean.Graph.FiniteDensity
+namespace Causalean.Mathlib.MeasureTheory.FiniteCoordinate
 
 variable {V : Type*} [DecidableEq V]
 variable {X : V → Type*} [∀ i, MeasurableSpace (X i)]
@@ -180,4 +186,4 @@ theorem map_coordinateProjection_withDensity_eq_of_lmarginal_eq
     simpa only [Set.indicator, hmem, hx, if_pos] using hm
   · simp only [Set.indicator, hmem, hx, if_false]
 
-end Causalean.Graph.FiniteDensity
+end Causalean.Mathlib.MeasureTheory.FiniteCoordinate

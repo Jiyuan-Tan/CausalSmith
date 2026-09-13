@@ -21,7 +21,9 @@ variable {ι : Type*} [Fintype ι] [MeasurableSpace ι] [MeasurableSingletonClas
 
 /-- A finite measurable partition of the sample space `X` into cells indexed by `ι`, represented
 by [a classifier assigning each observation to its cell](hyp:cell) — the cells are the fibres of
-this map — where [that classifier is measurable](hyp:measurable_cell). -/
+this map — where [that classifier is measurable](hyp:measurable_cell). The structure itself does not
+require the index type to be finite or singletons of it to be measurable; results that need finitely
+many cells or measurable individual cells assume those conditions separately. -/
 structure FiniteMeasurablePartition (X : Type*) (ι : Type*)
     [MeasurableSpace X] [MeasurableSpace ι] where
   /-- The cell containing an observation. -/
@@ -107,7 +109,9 @@ lemma iUnion_cellSet (p : FiniteMeasurablePartition X ι) :
   ext x
   simp [cellSet]
 
-/-- Given [a measurable classifier partition](hyp:p), [a measure on the observation space](hyp:P), and [a cell index](hyp:j), the [cell mass](goal) is the measure of that cell, represented as a nonnegative real number. -/
+/-- Given [a measurable classifier partition](hyp:p), [a measure on the observation space](hyp:P), and [a cell index](hyp:j), the [cell mass](goal) is the measure of that cell, represented as a nonnegative real number. A cell
+of infinite measure is sent to zero by this conversion, so it is the cell's mass for finite (in
+particular probability) measures, as used throughout. -/
 noncomputable def cellMass (p : FiniteMeasurablePartition X ι) (P : Measure X) (j : ι) :
     ℝ≥0 :=
   (P (p.cellSet j)).toNNReal
