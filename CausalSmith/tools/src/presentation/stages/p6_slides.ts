@@ -2,10 +2,16 @@ import { mkdir, readdir, readFile, rename, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import type { StageIO } from "../pipeline.js";
-import { presentationPrompt, promptFingerprint } from "../prompt_io.js";
+import { presentationPrompt } from "../prompt_io.js";
 import { hashEnvBody } from "../tex_anchors.js";
 import { lintSlides, parseSlidesMd, type FormalBlockRef } from "../slides.js";
 import { parseFigureDsl, renderFigureSvg } from "../figure_layout.js";
+
+/** Deck-generation standard — opaque version token for the cache key.
+  * Initial value is the fingerprint the key carried on 2026-09-12 so existing caches stay warm;
+  * bump to any new literal only when the standard tightens (a cached verdict under the old
+  * standard would be wrong); prompt wording and code changes never bump it. */
+export const SLIDES_STANDARD = "55c0b01b56ba5cfc1c463b44b904263d5f596dd0d2c47deb6c5f2ea653e6dc17";
 
 /**
  * P6 — seminar slides. Terminal, optional, and strictly post-P5: a derived,
@@ -83,7 +89,7 @@ export async function stageP6(io: StageIO): Promise<void> {
 
   const key = hashEnvBody(
     [
-      await promptFingerprint("p6_slides"),
+      SLIDES_STANDARD,
       meta.title,
       meta.tldr ?? "",
       meta.abstract,

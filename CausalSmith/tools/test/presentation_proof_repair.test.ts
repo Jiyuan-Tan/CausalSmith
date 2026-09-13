@@ -31,20 +31,21 @@ describe("P2 exact proof repairs", () => {
   it("requires unique matches in the current text after earlier edits", () => {
     const input = prior.replace(before, "old A and old B");
     const patches = [{ before: "old A", after: "old B" }, { before: "old B", after: "new B" }];
-    expect(parseProofRepair(reply(patches), input)).toBeNull();
+    // The first patch makes "old B" non-unique: the second is skipped, the first still lands.
+    expect(parseProofRepair(reply(patches), input)).toBe(input.replace("old A", "old B"));
     expect(parseProofRepair(reply([...patches].reverse()), input)).toBe(input.replace("old A and old B", "old B and new B"));
   });
 
-  it("rejects the entire repair when any location is missing or ambiguous", () => {
+  it("applies the patches that match and skips a missing or ambiguous locator", () => {
     for (const bad of ["absent sentence", "half-width"]) {
       expect(parseProofRepair(reply([{ before, after }, { before: bad, after: "new" }]), prior))
-        .toBeNull();
+        .toBe(prior.replace(before, after));
     }
   });
 
   it("accepts ordered dependent edits but rejects stale or ambiguous matches", () => {
     expect(parseProofRepair(reply([{ before, after }, { before: "center is nonnegative", after: "center is small" }]), prior))
-      .toBeNull();
+      .toBe(prior.replace(before, after));
     expect(parseProofRepair(reply([{ before, after }, { before: after, after: "another rewrite" }]), prior))
       .toBe(prior.replace(before, "another rewrite"));
     expect(parseProofRepair(reply([{ before: "aa", after: "b" }]), prior.replace(before, "aaa")))

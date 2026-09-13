@@ -1,0 +1,189 @@
+\begin{proof}[Proof of \cref{obj:lem:stabilized-risk-upper}]
+Let \(\ell=\lceil\beta\rceil-1\).  From \cref{obj:lem:total-gram}, choose constants \(C_T,c_T>0\) such that the population Gram constant
+\(\lambda_\star=\lambda_\star(\ell,\kappa,c_-,c_+)\) is positive and the following bound holds uniformly over \(P\in\mathcal M\), sample sizes, admissible splits, thresholds \(\delta\in[0,\bar\delta]\), and strata \(x\in\mathcal X\): if \(h\) is the information-balance bandwidth from \cref{obj:def:bandwidth} evaluated at \((n,\delta,\beta,\kappa,\bar\delta)\), then
+\[
+P^{\otimes n}(\Omega_x^c)
+\le
+C_T\exp\{-c_T n h(\delta+h)^\kappa\}.
+\]
+% lean: total_gram_stabilization
+Define
+\[
+K_{\mathrm{noise}}
+=
+\frac12
+\left(
+\frac{336\{4(\ell+1)/\lambda_\star^2\}}
+{p_{\min}c_-/(2\cdot2^\kappa)}
+\right)^{1/2},
+\qquad
+K_{\mathrm{bias}}=\frac{2\sqrt{\ell+1}}{\lambda_\star},
+\]
+\[
+K_{\mathrm{loc}}
+=
+K_{\mathrm{noise}}+LK_{\mathrm{bias}}+\frac{C_T}{c_T},
+\qquad
+K_{\mathrm{atom}}=\frac{c_+}{\kappa+1},
+\]
+and
+\[
+C_{\mathrm{up}}
+=
+2(1+J)(1+K_{\mathrm{atom}}K_{\mathrm{loc}}).
+\]
+The displayed constants are finite and nonnegative, and \(C_{\mathrm{up}}>0\), by the regime assumptions and \(\lambda_\star>0\). % lean: stabilizedWorstRisk_eventually_le_frontier
+
+Fix \((\delta_n)\) satisfying \(\delta_n\in[0,\bar\delta]\) for every \(n\), and fix an admissible split sequence \(B_\bullet\).  By \cref{obj:lem:bandwidth-balance}, for all sufficiently large \(n\),
+\[
+0<h_n,
+\qquad
+h_n\le 1-\bar\delta,
+\qquad
+n h_n^{2\beta+1}(\delta_n+h_n)^\kappa=1 .
+\]
+% lean: infoBandwidth_eventually_balance
+After increasing \(N\), also \(n\ge8\).  Then \(\delta_n+h_n\le1\).  Put
+\[
+r_{0,n}=n^{-1/2},
+\qquad
+a_n=\delta_n^{\kappa+1}h_n^\beta .
+\]
+Since \(|I_{0,n}|,|I_{1,n}|\ge\lfloor n/4\rfloor\) and \(n\ge8\), we have
+\[
+n\le8|I_{0,n}|,
+\qquad
+n\le8|I_{1,n}|,
+\]
+and therefore
+\[
+|I_{0,n}|^{-1/2}\le3n^{-1/2},
+\qquad
+|I_{1,n}|^{-1/2}\le3n^{-1/2}.
+\]
+% lean: splitBlock_invSqrt_le_root
+
+The balance identity gives
+\[
+n h_n(\delta_n+h_n)^\kappa=h_n^{-2\beta}.
+\]
+Thus, using \(h_n\le1\) and \(\beta>0\),
+\[
+C_T\exp\{-c_T n h_n(\delta_n+h_n)^\kappa\}
+\le
+\frac{C_T}{c_T}h_n^\beta .
+\]
+Indeed, with \(e=n h_n(\delta_n+h_n)^\kappa=h_n^{-2\beta}\), the elementary bound
+\(\exp(-c_Te)\le(c_Te)^{-1}\) gives \((C_T/c_T)h_n^{2\beta}\), and
+\(h_n^{2\beta}\le h_n^\beta\). % lean: balancedGramTail_le
+
+For any \(P\in\mathcal M\), the projection \(\Pi_{[0,1]}\) is one-Lipschitz and the finite sum over strata gives the deterministic decomposition
+\[
+\mathbb E_{P^{\otimes n}}
+\left|\widehat\theta^{\mathrm{TG}}_{n,B_n}-\theta_{\delta_n}(P)\right|
+\le
+\mathbb E|\widehat\nu_n-\nu_{\delta_n}(P)|
++
+\sum_{x\in\mathcal X}
+\left\{
+\mathbb E|\widehat b_x-p_xq_x(\delta_n)|
++
+|p_xq_x(\delta_n)|
+\mathbb E|\widetilde\mu_x-\mu_x^P(\delta_n)|
+\right\},
+\]
+where all expectations on the right are under \(P^{\otimes n}\). % lean: totalGramEstimator_risk_decomposition
+The retained-course and atom-mass block averages are averages of \([0,1]\)-valued variables, hence
+\[
+\mathbb E|\widehat\nu_n-\nu_{\delta_n}(P)|
+\le
+\frac12 |I_{0,n}|^{-1/2},
+\qquad
+\mathbb E|\widehat b_x-p_xq_x(\delta_n)|
+\le
+\frac12 |I_{1,n}|^{-1/2}.
+\]
+% lean: retainedEstimate_l1_le
+% lean: atomEstimate_l1_le
+By \cref{obj:prop:pushforward-setup} and \(0\le p_x\le1\),
+\[
+|p_xq_x(\delta_n)|
+\le
+\frac{c_+\delta_n^{\kappa+1}}{\kappa+1}
+=
+K_{\mathrm{atom}}\delta_n^{\kappa+1}.
+\]
+% lean: abs_atomCoefficient_le_envelope
+
+It remains to bound the local regression term.  On \(\Omega_x\), polynomial reproduction and the deterministic weight bound in \cref{obj:lem:good-gram-weights} give the Hölder bias bound
+\[
+\left|
+\sum_{i\in I_{2,n}}w_{ix}\mu_X^P(A_i)-\mu_x^P(\delta_n)
+\right|
+\le
+LK_{\mathrm{bias}}h_n^\beta .
+\]
+% lean: localRegression_holderBias_le
+The centered noise term satisfies
+\[
+\mathbb E
+\left|
+\sum_{i\in I_{2,n}}w_{ix}
+\{Y_i-\mu_X^P(A_i)\}
+\right|
+\le
+K_{\mathrm{noise}}h_n^\beta,
+\]
+because the conditional variance is bounded by \(\frac14\sum_i w_{ix}^2\) and
+\cref{obj:lem:weight-energy-balance} controls the integrated square-root weight energy. % lean: localRegression_centered_balanced_l1_le
+On \(\Omega_x^c\), both the fallback value and \(\mu_x^P(\delta_n)\) lie in \([0,1]\), so the exceptional contribution is at most \(P^{\otimes n}(\Omega_x^c)\).  Combining the good-event decomposition with the noise, bias, and tail bounds gives
+\[
+\mathbb E|\widetilde\mu_x-\mu_x^P(\delta_n)|
+\le
+K_{\mathrm{noise}}h_n^\beta+LK_{\mathrm{bias}}h_n^\beta
++C_T\exp\{-c_T n h_n(\delta_n+h_n)^\kappa\}
+\le
+K_{\mathrm{loc}}h_n^\beta .
+\]
+% lean: localRegression_risk_le_noise_bias_bad
+
+Before the split-size and tail simplifications, the finite-sample bound is
+\[
+\mathbb E_{P^{\otimes n}}
+\left|\widehat\theta^{\mathrm{TG}}_{n,B_n}-\theta_{\delta_n}(P)\right|
+\le
+\frac12 |I_{0,n}|^{-1/2}
++
+J\left\{
+\frac12 |I_{1,n}|^{-1/2}
++
+K_{\mathrm{atom}}\delta_n^{\kappa+1}
+\left(
+K_{\mathrm{noise}}h_n^\beta+LK_{\mathrm{bias}}h_n^\beta
++C_T\exp\{-c_T n h_n(\delta_n+h_n)^\kappa\}
+\right)
+\right\}.
+\]
+% lean: totalGramEstimator_risk_le_explicit
+Using the two split-block inequalities above and the local bound just obtained, uniformly in \(P\in\mathcal M\),
+\[
+\mathbb E_{P^{\otimes n}}
+\left|\widehat\theta^{\mathrm{TG}}_{n,B_n}-\theta_{\delta_n}(P)\right|
+\le
+2r_{0,n}
++
+J\{2r_{0,n}+K_{\mathrm{atom}}K_{\mathrm{loc}}a_n\}.
+\]
+% lean: stabilizedWorstRisk_eventually_le_frontier
+The model class is nonempty.  Take the centered Bernoulli law with \(p_x=1/J\), conditional treatment density \(\pi_x(a)=(\kappa+1)a^\kappa\), and outcome distribution Bernoulli with mean \(1/2\) conditional on \((X,A)\); this law has regression \(\mu_x^P\equiv1/2\) and belongs to \(\mathcal M\) under the regime assumptions. % lean: minimaxCenter_mem_model
+Hence the same upper bound applies to the supremum over \(P\in\mathcal M\).  Since \(r_{0,n},a_n\ge0\),
+\[
+2r_{0,n}
++
+J\{2r_{0,n}+K_{\mathrm{atom}}K_{\mathrm{loc}}a_n\}
+\le
+2(1+J)(1+K_{\mathrm{atom}}K_{\mathrm{loc}})(r_{0,n}+a_n).
+\]
+% lean: stabilizedWorstRisk_eventually_le_frontier
+Finally, \(r_{0,n}+a_n\) is exactly the frontier rate in \cref{obj:def:frontier}.  This proves the asserted bound with the displayed \(C_{\mathrm{up}}\). % lean: stabilizedWorstRisk_eventually_le_frontier
+\end{proof}

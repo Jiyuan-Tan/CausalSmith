@@ -93,7 +93,7 @@ let singleRecoveryCalls = 0;
 // derivation (not the "(none recorded…)" placeholder) reached the prompt.
 const derivationSeen: boolean[] = [];
 
-const mainProofCitableSets: { target: string; targetEnv: string; seen: string[]; catalog: string[]; exactLean: boolean; targetedLookup: boolean }[] = [];
+const mainProofCitableSets: { target: string; targetEnv: string; seen: string[]; catalog: string[]; exactLean: boolean; targetedLookup: boolean; helperBlock: boolean }[] = [];
 // Section prompts carrying REAL D-stage per-result notes / front matter carrying the
 // REAL contribution narrative (not the "(none recorded)" placeholder).
 const sectionNotesSeen: boolean[] = [];
@@ -222,6 +222,8 @@ const deps: PaperDeps = {
     if (thmId) {
       const catalog = [...prompt.matchAll(/^([A-Za-z0-9:_-]+) \| /gm)].map(m => m[1]);
       mainProofCitableSets.push({ target: thmId, targetEnv: mainEnv![1], catalog,
+        // The writer gets the Lean helpers the judge gets, as a filled block (never a bare slot).
+        helperBlock: prompt.includes("HELPER DECLARATIONS") && !prompt.includes("{{helper_declarations}}"),
         exactLean: /Lean proof source:[\s\S]*?\b(?:theorem|lemma|def)\s/.test(prompt),
         targetedLookup: prompt.includes("formal_layer.json") && prompt.includes("retrieve only that object by obj_id"), seen:
         [...prompt.matchAll(/\\begin\{(?:lemmav|theoremv|propositionv)\}\{([\w:-]+)\}/g)].map((m) => m[1]),
@@ -393,9 +395,10 @@ describe("stages P0-P2 against the real bank entry (stubbed models)", () => {
       .map((b) => b.obj_id);
     expect(mainProofCitableSets.length).toBeGreaterThan(0);
     expect(mainProofCitableSets.some(({ targetEnv }) => targetEnv === "propositionv")).toBe(true);
-    for (const { target, seen, catalog, exactLean, targetedLookup } of mainProofCitableSets) {
+    for (const { target, seen, catalog, exactLean, targetedLookup, helperBlock } of mainProofCitableSets) {
       for (const id of citableIds) expect(seen.includes(id) || catalog.includes(id)).toBe(true);
       expect(exactLean).toBe(true);
+      expect(helperBlock).toBe(true);
       expect(targetedLookup).toBe(true);
       expect(seen.filter((id) => id === target)).toHaveLength(1);
     }

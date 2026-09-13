@@ -1,0 +1,260 @@
+\begin{proof}[Proof of \cref{obj:lem:model-compressed-spectral-certificate}]
+\begin{enumerate}
+\item
+Write
+\[
+B:=B(Q)\in\mathbb R^{d_x\times k}
+\]
+for the target-proxy feature matrix from \cref{obj:def:target-feature}.  The parameter domain in \cref{obj:def:model-class} gives \(2\le k\), \(k\le d_x\), \(1\le L\), \(\pi_0>0\), and \(\sigma_0>0\).  With zero-based singular-value indexing, \cref{obj:ass:proxy-rank-margin} gives
+\[
+\sigma_{k-1}(B)\ge \sigma_0>0 .
+\]
+Hence the first \(k\) singular values of \(B\) are positive.  Choose the thin singular-value factorization
+\[
+B=V\Upsilon ,
+\]
+where \(V\in\mathbb R^{d_x\times k}\) has orthonormal columns and \(\Upsilon\in\mathbb R^{k\times k}\) is invertible.  Put
+\[
+\Theta:=B^\top V=\Upsilon^\top,
+\qquad
+\Theta^{-1}:=\Upsilon^{-T}.
+\]
+Then
+\[
+\Theta\Theta^{-1}=\Theta^{-1}\Theta=I_k .
+\]
+% lean: thinSignalFactorization
+% lean: SignalBasis.transpose_mul_self
+
+\item
+For each arm \(t\in\{0,1\}\), define
+\[
+\Gamma_t
+:=
+\operatorname{diag}\left\{
+\frac{Q(U=u,T=t)}{Q(T=t)}:1\le u\le k
+\right\},
+\qquad
+\Xi_t:=A_t\Gamma_t ,
+\]
+where \(A_t=A_t(Q)\) is the reference-proxy feature matrix from \cref{obj:def:reference-feature}.  At the model-generated summary \(S(Q)\), \cref{obj:lem:observed-proxy-moment-factorization,obj:lem:observed-outcome-proxy-moment-factorization} give
+\[
+M_t(S(Q))=A_t\Gamma_tB^\top=\Xi_tB^\top
+\]
+and
+\[
+N_t(S(Q))
+=
+A_t\Gamma_t\operatorname{diag}\{\mu_{tu}(Q):1\le u\le k\}B^\top
+=
+\Xi_t\operatorname{diag}\{\mu_{tu}(Q):1\le u\le k\}B^\top .
+\]
+Multiplying by \(V\) gives
+\[
+M_t(S(Q))V=\Xi_t\Theta,
+\qquad
+N_t(S(Q))V
+=
+\Xi_t\operatorname{diag}\{\mu_{tu}(Q):1\le u\le k\}\Theta .
+\]
+
+Also,
+\[
+M_t(S(Q))^\top
+=
+B\Xi_t^\top
+=
+V\Upsilon\Xi_t^\top ,
+\]
+so the row space of each \(M_t(S(Q))\) is contained in \(\operatorname{range}(V)\).  For \(t=0\), latent-arm positivity in \cref{obj:ass:latent-arm-positivity} gives
+\[
+\Gamma_0(u,u)=\frac{Q(U=u,T=0)}{Q(T=0)}\ge \pi_0
+\]
+for every \(u\), since \(Q(U=u,T=0)\ge\pi_0\) and \(Q(T=0)\le1\).  Combining this with \cref{obj:ass:proxy-rank-margin} and the standard product lower bound for the least signal singular value,
+\[
+\begin{aligned}
+\sigma_{k-1}\!\left(M_0(S(Q))\right)
+&=
+\sigma_{k-1}\!\left(A_0\Gamma_0B^\top\right)  \\
+&\ge
+\sigma_{k-1}(A_0)\,\sigma_{k-1}(\Gamma_0)\,\sigma_{k-1}(B)
+\ge
+\pi_0\sigma_0^2 .
+\end{aligned}
+\]
+Thus \(M_0(S(Q))\) has row rank \(k\).  Its row space is contained in the \(k\)-dimensional space \(\operatorname{range}(V)\), hence
+\[
+\operatorname{range}\!\left(M_0(S(Q))^\top\right)=\operatorname{range}(V).
+\]
+Since the row space of \(M_1(S(Q))\) is contained in the same space, the signal row space of \(S(Q)\) equals
+\[
+\operatorname{range}\!\left(M_0(S(Q))^\top\right)
++
+\operatorname{range}\!\left(M_1(S(Q))^\top\right)
+=
+\operatorname{range}(V).
+\]
+Thus \(V\) spans the signal row space of \(S(Q)\).
+% lean: observedProxyMoment_factorization
+% lean: observedOutcomeProxyMoment_factorization
+% lean: observedProxyMoment_minSingular_of_factorization
+% lean: modelCompressedSpectralFacts_exists
+
+\item
+The same product-margin argument for each arm \(t\) gives
+\[
+\pi_0\sigma_0^2
+\le
+\sigma_{k-1}\!\left(M_t(S(Q))\right).
+\]
+Because \(V\) is an orthonormal basis for the signal row space, compression by \(V\) preserves the \(k\) nonzero signal singular values:
+\[
+\sigma_{k-1}\!\left(M_t(S(Q))V\right)
+=
+\sigma_{k-1}\!\left(M_t(S(Q))\right).
+\]
+Consequently
+\[
+0<\pi_0\sigma_0^2
+\le
+\sigma_{k-1}\!\left(M_t(S(Q))V\right),
+\]
+and the linear map
+\[
+x\longmapsto M_t(S(Q))Vx,\qquad x\in\mathbb R^k,
+\]
+is injective for each \(t\in\{0,1\}\).
+% lean: observedProxyMoment_compression_margin
+% lean: publishedMomentIdentity_injective_of_signalMinSingular_pos
+
+\item
+Let
+\[
+G:=\operatorname{stack}\bigl(M_0(S(Q)),M_1(S(Q))\bigr).
+\]
+By \cref{obj:lem:stacked-proxy-moment-signal-margin},
+\[
+\pi_0\sigma_0^2\le \sigma_{k-1}(G),
+\]
+so \(\operatorname{rank}(G)\ge k\).  On the other hand, if
+\[
+\Xi_{\mathrm{st}}:=\operatorname{stack}(\Xi_0,\Xi_1)\in\mathbb R^{2d_z\times k},
+\]
+then the proxy factorizations give
+\[
+G=\Xi_{\mathrm{st}}B^\top .
+\]
+Hence \(\operatorname{rank}(G)\le k\), and therefore
+\[
+\operatorname{rank}(G)=k .
+\]
+The threshold characterization follows immediately.  If \(j<k\), monotonicity of singular values gives
+\[
+\sigma_j(G)\ge\sigma_{k-1}(G)\ge\pi_0\sigma_0^2
+\ge\frac{\pi_0\sigma_0^2}{2}.
+\]
+If \(k\le j\), the rank identity gives \(\sigma_j(G)=0\), while
+\[
+0<\frac{\pi_0\sigma_0^2}{2}.
+\]
+Thus, for every singular-value index \(j\),
+\[
+\frac{\pi_0\sigma_0^2}{2}\le \sigma_j(G)
+\quad\Longleftrightarrow\quad
+j<k .
+\]
+% lean: stackedProxyMoment_minSingular
+% lean: modelCompressedSpectralFacts_exists
+
+\item
+Since \(M_t(S(Q))V\) is injective, its Moore--Penrose inverse is a left inverse on its range:
+\[
+\{M_t(S(Q))V\}^{\dagger}M_t(S(Q))V=I_k .
+\]
+Using the displayed factorizations,
+\[
+N_t(S(Q))V
+=
+\{M_t(S(Q))V\}\,
+\Theta^{-1}\operatorname{diag}\{\mu_{tu}(Q):1\le u\le k\}\Theta .
+\]
+Therefore
+\[
+\{M_t(S(Q))V\}^{\dagger}N_t(S(Q))V
+=
+\Theta^{-1}\operatorname{diag}\{\mu_{tu}(Q):1\le u\le k\}\Theta .
+\]
+By the compressed-operator formula in \cref{obj:def:compressed-operator},
+\[
+\begin{aligned}
+\Delta Q(Q)
+&=
+\Theta^{-1}\operatorname{diag}\{\mu_{1u}(Q):1\le u\le k\}\Theta
+-
+\Theta^{-1}\operatorname{diag}\{\mu_{0u}(Q):1\le u\le k\}\Theta  \\
+&=
+\Theta^{-1}\operatorname{diag}\{\mu_{1u}(Q)-\mu_{0u}(Q):1\le u\le k\}\Theta  \\
+&=
+\Theta^{-1}\operatorname{diag}\{\tau_u(Q):1\le u\le k\}\Theta ,
+\end{aligned}
+\]
+where the last equality is \cref{obj:def:latent-effect}.  Thus \(R:=\Theta^{-1}\) is a real diagonalizing basis for \(\Delta Q(Q)\), its inverse is \(R^{-1}=\Theta\), and the eigenvalue vector is \((\tau_u(Q))_u\).
+% lean: publishedMomentIdentity_penrose_left_inverse_of_injective
+% lean: genuinePenroseInverse_eq_penroseInverse_of_injective
+% lean: modelCompressedSpectralFacts_exists
+
+\item
+It remains to identify the spectral anchors.  The target-proxy mean factors through the latent masses:
+\[
+m_X(Q)=B\,p(Q).
+\]
+Indeed, for each target-proxy coordinate \(i\),
+\[
+m_X(Q)_i
+=
+E_Q[X_i]
+=
+\sum_{u=1}^k E_Q[X_i\mid U=u]\,Q(U=u)
+=
+\sum_{u=1}^k B(i,u)\,p_u(Q),
+\]
+using \cref{obj:def:target-feature,obj:def:latent-mass}.  The anchor condition in \cref{obj:ass:anchor}, together with \cref{obj:def:first-basis,obj:def:target-feature}, gives
+\[
+B^\top e_1=\mathbf 1_k,
+\]
+because for each latent class \(u\),
+\[
+(B^\top e_1)_u=B(1,u)=E_Q[X_1\mid U=u]=1 .
+\]
+By \cref{obj:def:compressed-operator},
+\[
+a(Q)=V^\top m_X(Q),
+\qquad
+c(Q)=V^\top e_1 .
+\]
+Using \(B=V\Upsilon\), \(V^\top V=I_k\), and \(R^{-1}=\Theta=\Upsilon^\top\),
+\[
+a(Q)=V^\top B\,p(Q)=\Upsilon p(Q),
+\]
+and hence
+\[
+a(Q)^\top=p(Q)^\top\Upsilon^\top=p(Q)^\top R^{-1}.
+\]
+Similarly,
+\[
+R^{-1}c(Q)
+=
+\Theta V^\top e_1
+=
+\Upsilon^\top V^\top e_1
+=
+B^\top e_1
+=
+\mathbf 1_k .
+\]
+These are the claimed left and right spectral-anchor identities.
+% lean: publishedMomentIdentity_obsSummary_mX_factorization
+% lean: publishedMomentIdentity_targetFeature_transpose_firstBasis
+% lean: modelCompressedSpectralFacts_exists
+\end{enumerate}
+\end{proof}

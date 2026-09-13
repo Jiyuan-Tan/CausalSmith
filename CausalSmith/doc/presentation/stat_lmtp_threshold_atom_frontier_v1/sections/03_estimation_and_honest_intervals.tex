@@ -1,0 +1,200 @@
+\section{Estimation and honest intervals}
+\label{sec:estimation-intervals}
+
+The estimator separates the three empirical tasks in \(\theta_{\delta_n}(P)\): estimating the retained mean above the threshold, estimating the mass collapsed by the clamp, and estimating the boundary regression value that multiplies that mass. The deterministic split from \cref{obj:synth_8} assigns one block to the retained-course mean, a second to the lower-threshold atom masses, and a third to the local-polynomial fit at the boundary. This separation lets the interval treat the three components with direct concentration bounds for bounded variables. The local regression step follows the boundary-polynomial logic of \citet{Fan1996}, with a stabilization rule tailored to the total Gram matrix in each stratum.
+
+The realized-design notation is as follows. It records the rescaled local coordinate, the \leanref{sym:v_ell}{\ensuremath{v_\ell(u)}} monomial basis, the stratum-specific local count, and the event on which the total Gram matrix has enough curvature to support the intercept fit.
+
+\begin{definitionv}{def:local-design-notation}[Local design notation]
+For a realized sample \(z=(O_1,\ldots,O_n)\), deterministic split blocks \(I_0,I_1,I_2\) as in \cref{obj:synth_8}, a stratum \(x\in\mathcal X\), local-polynomial degree \(\ell\), threshold \(\delta_n\), and bandwidth \(h_n\), put
+\[
+U_i=\frac{A_i-\delta_n}{h_n},
+\qquad
+v_\ell(u)=(1,u,\ldots,u^\ell)^\top .
+\]
+Define
+\[
+N_x
+=
+\sum_{i\in I_2}\mathbf 1\{X_i=x,\ A_i\in[\delta_n,\delta_n+h_n]\}
+\]
+and
+\[
+G_x
+=
+\sum_{i\in I_2}
+\mathbf 1\{X_i=x,\ 0\leq U_i\leq1\}
+v_\ell(U_i)v_\ell(U_i)^\top .
+\]
+For \(\rho\geq0\), define
+\[
+M_{\ell,\kappa,\rho}
+=
+\frac{\int_0^1v_\ell(u)v_\ell(u)^\top(\rho+u)^\kappa\,\mathrm du}
+{\int_0^1(\rho+u)^\kappa\,\mathrm du},
+\]
+and set
+\[
+\lambda_\star
+=
+\frac{c_-}{c_+}
+\inf_{\rho\geq0}
+\lambda_{\min}\!\left(M_{\ell,\kappa,\rho}\right).
+\]
+The good-design event \(\Omega_x\) is the event that \(N_x>0\) and, for every \(v\in\mathbb R^{\ell+1}\),
+\[
+v^\top G_xv
+\geq
+\frac{\lambda_\star N_x}{2}\lVert v\rVert_2^2 .
+\]
+The exact local-polynomial intercept weight is
+\[
+w_{ix}
+=
+\begin{cases}
+\mathbf 1\{i\in I_2,\ X_i=x,\ 0\leq U_i\leq1\}\,
+e_0^\top G_x^{-1}v_\ell(U_i),
+& \text{on }\Omega_x,\\
+0, & \text{on }\Omega_x^c .
+\end{cases}
+\]
+\end{definitionv}
+
+In \cref{obj:def:local-design-notation}, the local count \leanref{sym:N_x}{\ensuremath{N_x}} and the total localized Gram matrix \leanref{sym:G_x}{\ensuremath{G_x}} are computed on the third split block \leanref{sym:I_2}{\ensuremath{I_2}}. The normalized population moment matrix \leanref{sym:M_kappa_rho}{\ensuremath{M_{\ell,\kappa,\rho}}} supplies the reference curvature induced by the polynomial thinning law in \cref{obj:ass:polynomial-thinning}. The constant \leanref{sym:lambda_star}{\ensuremath{\lambda_\star}} converts that reference curvature into a uniform empirical design threshold, and the good-design event \leanref{sym:Omega_x}{\ensuremath{\Omega_x}} is the realized condition under which the intercept weights \leanref{sym:w_ix}{\ensuremath{w_{ix}}} are used.
+
+With these quantities fixed, the point estimator is a plug-in estimator for the decomposition in \cref{obj:def:clamp-functional}. It estimates each summand on its own split block and applies the range projection introduced in \cref{obj:synth_6}.
+
+\begin{algorithmv}{def:total-gram-estimator}[Total-Gram estimator \(\widehat\theta_n\)]
+Given split blocks \(I_0,I_1,I_2\) and the local-design quantities in \cref{obj:def:local-design-notation}, define the estimator as follows.
+\begin{enumerate}
+\item Compute the retained-course empirical mean
+\[
+\widehat\nu_n
+=
+\frac{1}{|I_0|}
+\sum_{i\in I_0}Y_i\mathbf 1\{A_i>\delta_n\}.
+\]
+\item For each \(x\in\mathcal X\), compute the empirical lower-threshold atom mass
+\[
+\widehat b_x
+=
+\frac{1}{|I_1|}
+\sum_{i\in I_1}\mathbf 1\{X_i=x,\ A_i\leq\delta_n\}.
+\]
+\item For each \(x\in\mathcal X\), compute the clipped local-polynomial threshold estimate
+\[
+\widetilde\mu_x
+=
+\begin{cases}
+\Pi_{[0,1]}\!\left(\sum_{i\in I_2}w_{ix}Y_i\right),& \Omega_x,\\
+1/2,& \Omega_x^{c}.
+\end{cases}
+\]
+\item Output the total-Gram clamp-target estimator
+\[
+\widehat\theta_n
+=
+\Pi_{[0,1]}\!\left[
+\widehat\nu_n+\sum_{x\in\mathcal X}\widehat b_x\widetilde\mu_x
+\right].
+\]
+\end{enumerate}
+\end{algorithmv}
+
+The estimator \leanref{sym:theta_hat_n}{\ensuremath{\widehat\theta_n}} in \cref{obj:def:total-gram-estimator} uses the local-polynomial intercept only on \(\Omega_x\). On the complementary realized designs, the fallback value \(1/2\) keeps the atom-regression factor inside the bounded outcome range. The projection in the last line keeps the estimator on the same scale as \(\theta_{\delta_n}(P)\).
+
+For statements indexed by a full deterministic split \(B_n\), it is useful to record the same construction with the split made explicit.
+
+\begin{algorithmv}{def:honest-interval}[Honest interval \(\mathrm{CI}_n\)]
+Given the local-design quantities in \cref{obj:def:local-design-notation}, define the interval as follows.
+\begin{enumerate}
+\item Set the Hoeffding calibration multiplier and split-block stochastic-error radii
+\[
+t_\alpha=\sqrt{\frac{\log(12J/\alpha)}{2}},
+\qquad
+b_0=\frac{t_\alpha}{\sqrt{|I_0|}},
+\qquad
+b_1=\frac{t_\alpha}{\sqrt{|I_1|}}.
+\]
+\item For each \(x\in\mathcal X\), set the local regression bias-plus-noise radius
+\[
+B_x
+=
+Lh_n^\beta\sum_{i\in I_2}|w_{ix}|
++
+t_\alpha\left(\sum_{i\in I_2}w_{ix}^2\right)^{1/2}.
+\]
+\item For each \(x\in\mathcal X\), set the atom-weighted interval contribution
+\[
+D_x
+=
+\begin{cases}
+(\widehat b_x+b_1)B_x+b_1,& \Omega_x,\\
+\widehat b_x+b_1,& \Omega_x^{c}.
+\end{cases}
+\]
+\item Output the bias-aware honest interval
+\[
+\mathrm{CI}_n
+=
+\left[
+\widehat\theta_n-b_0-\sum_{x\in\mathcal X}D_x,\,
+\widehat\theta_n+b_0+\sum_{x\in\mathcal X}D_x
+\right]\cap[0,1].
+\]
+\end{enumerate}
+\end{algorithmv}
+
+\Cref{obj:synth_4} is the version used by the finite-sample risk and length criteria below. It makes explicit that the sampling split is fixed before the data are observed, while the good-design events and intercept weights are realized from the third block.
+
+The confidence interval adds deterministic bias allowances to concentration radii. The stochastic terms use Hoeffding-type calibration for bounded outcomes and indicators \citep{Hoeffding1963}, while the local regression radius combines a Hölder bias bound with the empirical \(\ell_2\) size of the intercept weights. This bias-aware construction is in the spirit of honest nonparametric inference with smoothness restrictions \citep{ArmstrongKolesar2018OptimalInference,ArmstrongKolesar2020}.
+
+\begin{definitionv}{synth_4}[Total-Gram stabilized estimator]
+Let \(B_n=(I_{0,n},I_{1,n},I_{2,n})\) be a deterministic admissible three-way split, let \(h_n\) be the information-balance bandwidth, and let \(\ell\) be the local-polynomial order. Define the projection
+\[
+  \operatorname{clamp}_{[0,1]}(t)=\min\{1,\max\{0,t\}\}.
+\]
+Set
+\[
+  \widehat\nu_n=|I_{0,n}|^{-1}\sum_{i\in I_{0,n}}Y_i\mathbf 1\{A_i>\delta_n\},\qquad
+  \widehat b_x=|I_{1,n}|^{-1}\sum_{i\in I_{1,n}}\mathbf 1\{X_i=x,A_i\le\delta_n\}.
+\]
+For each \(x\), let \(\widetilde\mu_x=\operatorname{clamp}_{[0,1]}(\sum_{i\in I_{2,n}}w_{ix}Y_i)\) on \(\Omega_x\), and let \(\widetilde\mu_x=1/2\) on \(\Omega_x^c\). The split-indexed total-Gram estimator is
+\[
+  \widehat\theta_{n,B_n}^{\mathrm{TG}}
+  =\operatorname{clamp}_{[0,1]}\!\left(\widehat\nu_n+\sum_{x\in\mathcal X}\widehat b_x\widetilde\mu_x\right).
+\]
+\end{definitionv}
+
+Here \leanref{sym:J}{\ensuremath{J}}, the number of strata, enters only through the Hoeffding multiplier \leanref{sym:t_alpha}{\ensuremath{t_\alpha}}. The interval \leanref{sym:CI_n}{\ensuremath{\mathrm{CI}_n}} in \cref{obj:def:honest-interval} treats the retained mean, atom masses, and local-regression intercepts as separate empirical components. On \(\Omega_x\), \(D_x\) carries both the uncertainty in \(\widehat b_x\) and the bias-plus-noise radius for the threshold regression. On \(\Omega_x^c\), the contribution covers the full feasible atom-regression range, which is the branch used to preserve the same bounded-outcome scale on singular realized designs.
+
+The split-indexed interval records the same accounting with \(B_n\) attached to each empirical quantity.
+
+\begin{definitionv}{synth_12}[Bias-aware interval for a fixed split $B_n$]
+Let $B_n=(I_{0,n},I_{1,n},I_{2,n})$ be an admissible deterministic three-way split at sample size $n$. With $h_n$ and $\delta_n$ fixed, form the total-Gram weights $w_{ix}$ and good-design events $\Omega_x$ from the third block $I_{2,n}$. Set $\widehat\nu_{n,B_n}=|I_{0,n}|^{-1}\sum_{i\in I_{0,n}}Y_i\mathbf 1\{A_i>\delta_n\}$, $\widehat b_{x,B_n}=|I_{1,n}|^{-1}\sum_{i\in I_{1,n}}\mathbf 1\{X_i=x,A_i\leq\delta_n\}$, and $\widetilde\mu_{x,B_n}=\Pi_{[0,1]}(\sum_{i\in I_{2,n}}w_{ix}Y_i)$ on $\Omega_x$, with $\widetilde\mu_{x,B_n}=1/2$ on $\Omega_x^c$. Define $\widehat\theta^{\mathrm{TG}}_{n,B_n}=\Pi_{[0,1]}\{\widehat\nu_{n,B_n}+\sum_{x\in\mathcal X}\widehat b_{x,B_n}\widetilde\mu_{x,B_n}\}$. Let $t_\alpha=\sqrt{\log(12J/\alpha)/2}$, $b_{0,B_n}=t_\alpha/\sqrt{|I_{0,n}|}$, and $b_{1,B_n}=t_\alpha/\sqrt{|I_{1,n}|}$. For each $x\in\mathcal X$, set $B_{x,B_n}=Lh_n^\beta\sum_{i\in I_{2,n}}|w_{ix}|+t_\alpha(\sum_{i\in I_{2,n}}w_{ix}^2)^{1/2}$ and $D_{x,B_n}=(\widehat b_{x,B_n}+b_{1,B_n})B_{x,B_n}+b_{1,B_n}$ on $\Omega_x$, while $D_{x,B_n}=\widehat b_{x,B_n}+b_{1,B_n}$ on $\Omega_x^c$. The bias-aware interval formed from $B_n$ is $\mathrm{CI}_{n,B_n}=[\widehat\theta^{\mathrm{TG}}_{n,B_n}-b_{0,B_n}-\sum_{x\in\mathcal X}D_{x,B_n},\widehat\theta^{\mathrm{TG}}_{n,B_n}+b_{0,B_n}+\sum_{x\in\mathcal X}D_{x,B_n}]\cap[0,1]$.
+\end{definitionv}
+
+\Cref{obj:synth_12} fixes the interval whose coverage and expected length are evaluated in the main statistical results. Its two branches mirror \cref{obj:def:honest-interval}: the regular branch combines atom-mass uncertainty with local-polynomial bias and noise, and the fallback branch uses the bounded outcome range when the realized design lacks sufficient Gram curvature.
+
+The length criterion is pointwise in the observed sample and then averaged under the observed product law.
+
+\begin{definitionv}{synth_17}[Length of an observed-sample interval]
+For an observed-sample measurable interval \(C_n=C_n(O_1,\ldots,O_n)=[\ell_n(O_1,\ldots,O_n),u_n(O_1,\ldots,O_n)]\subseteq[0,1]\), define its length pointwise by \(\operatorname{len}(C_n)=u_n(O_1,\ldots,O_n)-\ell_n(O_1,\ldots,O_n)\). Thus expected lengths such as \(\mathbb E_{P^{\otimes n}}[\operatorname{len}(C_n)]\) are taken with respect to the \(n\)-fold observed-sample law.
+\end{definitionv}
+
+Finally, the finite-sample criteria place the split-indexed estimator and interval on the common worst-case scale used in the minimax comparisons.
+
+\begin{definitionv}{synth_5}[Concrete stabilized risk and length]
+For a deterministic admissible split \(B_n\), define the finite-sample worst-case risk of the total-Gram estimator by
+\[
+  \operatorname{Risk}_n(B_n)=\sup_{P\in\mathcal M}
+  \mathbb E_{P^{\otimes n}}\!\left|\widehat\theta_{n,B_n}^{\mathrm{TG}}-\theta_{\delta_n}(P)\right|.
+\]
+For the bias-aware interval \(\mathrm{CI}_{n,B_n}\) formed from the same split, define its worst-case expected length by
+\[
+  \operatorname{Length}_n(B_n)=\sup_{P\in\mathcal M}
+  \mathbb E_{P^{\otimes n}}[\operatorname{len}(\mathrm{CI}_{n,B_n})].
+\]
+\end{definitionv}
+
+\Cref{obj:synth_5} evaluates the point estimator and interval over the observed-law class \(\mathcal M\) from \cref{obj:def:model-class}. The risk uses absolute error for the clamp target \(\theta_{\delta_n}(P)\), and the length functional applies \cref{obj:synth_17} to the bias-aware interval from \cref{obj:synth_12}.

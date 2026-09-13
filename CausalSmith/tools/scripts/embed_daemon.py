@@ -1,7 +1,7 @@
 # tools/scripts/embed_daemon.py
 #
 # Warm query-embedding daemon. Holds the bge model in memory and serves query
-# vectors over a unix-domain socket, so repeated retrieval queries pay the ~30 s
+# vectors over a local socket, so repeated retrieval queries pay the ~30 s
 # sentence-transformers model load ONCE (on first request) instead of per call.
 #
 # Protocol (one request per connection):
@@ -14,12 +14,18 @@
 # the exact vector space as the precomputed decl embeddings (embed_library.py).
 #
 # The daemon idle-exits after IDLE_TIMEOUT so it never lingers forever, and refuses
-# to double-bind (a second daemon detecting a live socket exits immediately).
+# to double-bind: a second daemon exits immediately, either because it detects a live
+# endpoint before loading, or because it loses the exclusive endpoint claim afterwards.
+#
+# Transport is chosen by scripts/daemon_ipc.py: a unix-domain socket on POSIX, a
+# loopback TCP port on Windows (CPython exposes no AF_UNIX there). The protocol above
+# is identical either way, so vectors match the corpus embeddings on every OS.
 import os
 os.environ.setdefault("HF_HUB_OFFLINE", "1")        # cluster is offline; cached weights only
 os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 import sys, socket, json, struct
 import numpy as np
+import daemon_ipc
 
 MODEL = "BAAI/bge-large-en-v1.5"  # MUST match embed_library.py / embed_text.py (same vector space)
 QUERY_PREFIX = "Represent this sentence for searching relevant passages: "  # bge query convention
@@ -50,43 +56,40 @@ def recv_line(conn):
 
 
 def main():
+    # stderr carries temp paths; a non-ASCII Windows username would otherwise raise
+    # UnicodeEncodeError on the ANSI code page when stderr is a pipe.
+    if hasattr(sys.stderr, "reconfigure"):
+        try:
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+        except (OSError, ValueError):
+            pass  # closed or detached stderr: never let this abort startup
+
     if len(sys.argv) < 2:
-        print("usage: embed_daemon.py <socket_path> [idle_timeout_s] [model_path]", file=sys.stderr)
+        print("usage: embed_daemon.py <endpoint_path> [idle_timeout_s] [model_path]", file=sys.stderr)
         sys.exit(2)
     sock_path = sys.argv[1]
     idle = float(sys.argv[2]) if len(sys.argv) > 2 else IDLE_TIMEOUT
     model_id = sys.argv[3] if len(sys.argv) > 3 else MODEL
 
     # Already serving? Then this spawn is redundant — exit before the expensive load.
-    if os.path.exists(sock_path):
-        probe = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        try:
-            probe.connect(sock_path)
-            probe.close()
-            return  # a live daemon owns this socket
-        except OSError:
-            try:
-                os.unlink(sock_path)  # stale socket file from a dead daemon
-            except OSError:
-                pass
-        finally:
-            try:
-                probe.close()
-            except OSError:
-                pass
+    # (probe_live also clears a stale endpoint left by a dead daemon.)
+    if daemon_ipc.probe_live(sock_path):
+        return
 
     model = load_model(model_id)  # ~30 s, once
-    srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    srv.bind(sock_path)
-    srv.listen(16)
-    srv.settimeout(idle)
+    try:
+        srv = daemon_ipc.serve(sock_path, backlog=16, idle=idle)
+    except daemon_ipc.DaemonAlreadyRunning:
+        return  # another daemon claimed the endpoint while we were loading
     print(f"embed_daemon ready on {sock_path}", file=sys.stderr)
 
     while True:
         try:
-            conn, _ = srv.accept()
+            conn = srv.accept()
         except socket.timeout:
             break  # idle → exit
+        if conn is None:
+            continue  # peer failed the endpoint token check
         try:
             raw = recv_line(conn).decode("utf-8").strip()
             if not raw:  # health-check probe (connect + close, no payload) — answer quietly
@@ -117,10 +120,8 @@ def main():
             except OSError:
                 pass
 
-    try:
-        os.unlink(sock_path)
-    except OSError:
-        pass
+    srv.close()
+    srv.unlink()  # idle exit: release the endpoint, but only if it is still ours
 
 
 if __name__ == "__main__":

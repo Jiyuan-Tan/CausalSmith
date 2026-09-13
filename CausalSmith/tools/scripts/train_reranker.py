@@ -169,11 +169,13 @@ def main():
     ap.add_argument("--passage", default="nbr", choices=["nl", "nbr"], help="passage text view fed to the cross-encoder")
     args = ap.parse_args()
 
-    ents = json.load(open(INDEX))["entries"]
+    with open(INDEX, encoding="utf-8") as fh:
+        ents = json.load(fh)["entries"]
     by, gold = build_gold(ents)
     nbr_ctx = build_nbr_ctx(ents)
     passage = lambda e: make_passage(e, args.passage, nbr_ctx)  # noqa: E731
-    test_mods = set(json.load(open(args.test_modules)))
+    with open(args.test_modules, encoding="utf-8") as fh:
+        test_mods = set(json.load(fh))
     train_thms = [t for t in gold if by[t].get("module") not in test_mods]
     test_thms = [t for t in gold if by[t].get("module") in test_mods]
     print(f"gold theorems: {len(gold)} ({len(train_thms)} train, {len(test_thms)} test)", file=sys.stderr)

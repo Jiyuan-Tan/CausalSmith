@@ -1,0 +1,439 @@
+\begin{proof}[Proof of \cref{obj:thm:linear-sparse-threshold-flow}]
+Choose
+\[
+C_{\mathrm{sparse}}=75,
+\qquad
+C_{\mathrm{dense}}=77 .
+\]
+Both constants are positive.  Fix a finite covariate support \(\mathcal X\), an integer \(K\ge 3\), and nonnegative capacity arrays \(\ell_i(x)\) and \(h_j(x)\).  Write \(N_{\mathcal X}=|\mathcal X|\).  For one cell \(x\), let
+\[
+s_K=64K+32
+\]
+be the fixed sparse cell budget charged by the implementation.  Since \(K\ge3\),
+\[
+s_K=64K+32\le 64K+11K=75K .
+\]
+% lean: linear_sparse_threshold_flow
+
+\begin{enumerate}
+\item The actual sparse work in cell \(x\) is the sum of the threshold-cut scan, the lower nested-graph pass, the upper nested-graph pass, and the two completion passes.  The threshold-cut scan uses
+\[
+12K+8
+\]
+operations.  If \(\mathsf{Rows}\) and \(\mathsf{Cols}\) are the current row and column lists, each nested pass performs at most
+\[
+5\bigl(|\mathsf{Rows}|+|\mathsf{Cols}|\bigr)+1
+\]
+operations, and each completion pass performs at most
+\[
+4\bigl(|\mathsf{Rows}|+|\mathsf{Cols}|\bigr)+1
+\]
+operations.  Initially the row and column lists have lengths \(K\) and \(K\).  After either nested pass, the residual row and column lists have total length at most \(2K\).  Hence, for the actual cell count \(a_x\),
+\[
+\begin{aligned}
+a_x
+&\le (12K+8)+\{5(2K)+1\}+\{5(2K)+1\}
+      +\{4(2K)+1\}+\{4(2K)+1\}  \\
+&=48K+12
+\le 64K+32=s_K .
+\end{aligned}
+\]
+Consequently
+\[
+\sum_{x\in\mathcal X} a_x
+\le \sum_{x\in\mathcal X}s_K
+\le \sum_{x\in\mathcal X}75K
+=75\,N_{\mathcal X}K .
+\]
+This proves the actual sparse bound.  The charged sparse count is exactly
+\[
+\sum_{x\in\mathcal X}s_K,
+\]
+so the same calculation gives
+\[
+\sum_{x\in\mathcal X}s_K\le 75\,N_{\mathcal X}K .
+\]
+% lean: sparseCellActualOperations_le_budget
+
+\item Since \(K\ge3\), in particular \(1\le K\), and therefore
+\[
+K\le K^2 .
+\]
+Multiplying the sparse bounds by the nonnegative factor \(75N_{\mathcal X}\) gives
+\[
+75\,N_{\mathcal X}K\le 75\,N_{\mathcal X}K^2 .
+\]
+The dense actual implementation first performs the sparse computation and then materializes the two dense \(K\times K\) cell matrices, so its actual count is
+\[
+\sum_{x\in\mathcal X}a_x+2N_{\mathcal X}K^2 .
+\]
+Using the preceding sparse actual bound,
+\[
+\sum_{x\in\mathcal X}a_x+2N_{\mathcal X}K^2
+\le 75N_{\mathcal X}K^2+2N_{\mathcal X}K^2
+=77N_{\mathcal X}K^2 .
+\]
+The charged dense count is
+\[
+\sum_{x\in\mathcal X}s_K+2N_{\mathcal X}K^2,
+\]
+and the same argument gives
+\[
+\sum_{x\in\mathcal X}s_K+2N_{\mathcal X}K^2
+\le 77N_{\mathcal X}K^2 .
+\]
+% lean: linear_sparse_threshold_flow
+
+\item The charged sparse count is
+\[
+\sum_{x\in\mathcal X}s_K=\sum_{x\in\mathcal X}(64K+32),
+\]
+which depends only on \(|\mathcal X|\) and \(K\).  For any other nonnegative capacity arrays on the same \(\mathcal X\) and \(K\), the charged sparse count is the same sum.  The charged dense count adds the same deterministic materialization term:
+\[
+\sum_{x\in\mathcal X}s_K+2|\mathcal X|K^2 .
+\]
+Thus the charged sparse counts are equal across such capacity arrays, and the charged dense counts are equal across such capacity arrays.
+% lean: linear_sparse_threshold_flow
+
+\item Fix a cell \(x\).  Put \(\mathcal Y\) for the \(K\)-point ordered support indexing the row and column capacities in the statement; all sums, extrema, and inequalities among indices below use this finite ordered set.  With these arrays, \cref{obj:def:observable-capacities} gives
+\[
+q_0(x)=\sum_{i\in\mathcal Y}\ell_i(x),
+\qquad
+q_1(x)=\sum_{j\in\mathcal Y}h_j(x),
+\]
+\[
+\Delta q(x)=q_1(x)-q_0(x),
+\qquad
+m(x)=\min\{q_0(x),q_1(x)\}.
+\]
+Denote the deterministic lower and upper scan outputs by \(B_L^{\mathrm{scan}}(x)\) and \(B_U^{\mathrm{scan}}(x)\), defined by
+\[
+B_L^{\mathrm{scan}}(x)
+=
+\max\left\{0,\max_{t\in\mathcal Y}
+\left[\ell_{\le t}(x)-h_{\le t}(x)+\min\{\Delta q(x),0\}\right]\right\}
+\]
+and
+\[
+B_U^{\mathrm{scan}}(x)
+=
+\min\left\{m(x),\min_{t\in\mathcal Y}
+\left[\ell_{<t}(x)+h_{>t}(x)\right]\right\}.
+\]
+The costed sparse routine stores as its value
+\[
+\bigl((B_L^{\mathrm{scan}}(x),B_U^{\mathrm{scan}}(x)),
+       (\tau_x^L,\tau_x^U)\bigr),
+\]
+where \((\tau_x^L,\tau_x^U)\) are the lower and upper sparse allocation traces.  By \cref{obj:def:threshold-cuts}, these scan outputs are the threshold-cut values:
+\[
+(B_L^{\mathrm{scan}}(x),B_U^{\mathrm{scan}}(x))=(B_L(x),B_U(x)).
+\]
+Moreover
+\[
+\tau_x^L=\text{the sparse lower allocation trace},
+\qquad
+\tau_x^U=\text{the sparse upper allocation trace}.
+\]
+% lean: costedThresholdCuts_value
+
+\item Let \(\gamma_x^L\) and \(\gamma_x^U\) be the matrices obtained by materializing the sparse traces \(\tau_x^L\) and \(\tau_x^U\): for \(\bullet\in\{L,U\}\),
+\[
+\gamma_x^\bullet(i,j)
+=
+\sum_{e\in\tau_x^\bullet:\ \operatorname{row}(e)=i,\ \operatorname{col}(e)=j}
+\operatorname{mass}(e).
+\]
+For any cellwise coupling \(\gamma\), the benefit-mass functional used below is the strict-benefit sum
+\[
+b_x(\gamma)
+=
+\sum_{i\in\mathcal Y}\sum_{\substack{j\in\mathcal Y\\ i<j}}\gamma(i,j).
+\]
+For either the lower nonbenefit primary pass or the upper benefit primary pass, the input row and column lists have lengths \(K\) and \(K\).  If \(\mathsf{prim}_x^\bullet\) is the primary allocation list and \(\mathsf{row}_{x}^{\bullet,\mathrm{res}}\), \(\mathsf{col}_{x}^{\bullet,\mathrm{res}}\) are the two residual lists, the recursive pass gives
+\[
+|\mathsf{prim}_x^\bullet|
++|\mathsf{row}_{x}^{\bullet,\mathrm{res}}|
++|\mathsf{col}_{x}^{\bullet,\mathrm{res}}|
+\le 2K,
+\qquad
+0<|\mathsf{row}_{x}^{\bullet,\mathrm{res}}|
++|\mathsf{col}_{x}^{\bullet,\mathrm{res}}|.
+\]
+The complete bipartite residual pass consumes one residual row or one residual column at each emitted allocation and stops when one residual side is exhausted, so
+\[
+|\operatorname{complete}(\mathsf{row}_{x}^{\bullet,\mathrm{res}},
+\mathsf{col}_{x}^{\bullet,\mathrm{res}})|
+<
+|\mathsf{row}_{x}^{\bullet,\mathrm{res}}|
++|\mathsf{col}_{x}^{\bullet,\mathrm{res}}|.
+\]
+Thus
+\[
+|\tau_x^\bullet|
+=
+|\mathsf{prim}_x^\bullet|
++|\operatorname{complete}(\mathsf{row}_{x}^{\bullet,\mathrm{res}},
+\mathsf{col}_{x}^{\bullet,\mathrm{res}})|
+<2K,
+\]
+and, since \(|\tau_x^\bullet|\) is an integer,
+\[
+|\tau_x^L|\le 2K-1,
+\qquad
+|\tau_x^U|\le 2K-1.
+\]
+Materializing a sparse trace can only put positive mass on a listed row-column pair, hence
+\[
+|\{(i,j):\gamma_x^L(i,j)>0\}|\le |\tau_x^L|\le 2K-1,
+\qquad
+|\{(i,j):\gamma_x^U(i,j)>0\}|\le |\tau_x^U|\le 2K-1 .
+\]
+% lean: thresholdFlowLower_positiveSupportCard_le
+% lean: thresholdFlowUpper_positiveSupportCard_le
+
+Every emitted mass in the two primary passes and in the residual completion pass is the minimum of two nonnegative residual capacities, and each residual update subtracts that minimum.  Therefore
+\[
+\gamma_x^L(i,j)\ge0,
+\qquad
+\gamma_x^U(i,j)\ge0
+\]
+for all \(i,j\).  Let \(\gamma_{x,\mathrm{prim}}^\bullet\) and \(\gamma_{x,\mathrm{comp}}^\bullet\) be the materialized primary and completion parts, so \(\gamma_x^\bullet=\gamma_{x,\mathrm{prim}}^\bullet+\gamma_{x,\mathrm{comp}}^\bullet\).  For the row and column residual lists left by the primary pass, define the residual capacities
+\[
+\rho_{x,i}^\bullet
+=
+\sum_{(i',u)\in\mathsf{row}_{x}^{\bullet,\mathrm{res}}:\ i'=i}u,
+\qquad
+\chi_{x,j}^\bullet
+=
+\sum_{(j',v)\in\mathsf{col}_{x}^{\bullet,\mathrm{res}}:\ j'=j}v .
+\]
+The primary pass conserves each original capacity after its residual is included, while the completion pass uses at most the residual capacities:
+\[
+\sum_j\gamma_{x,\mathrm{prim}}^\bullet(i,j)+\rho_{x,i}^\bullet=\ell_i(x),
+\qquad
+\sum_j\gamma_{x,\mathrm{comp}}^\bullet(i,j)\le \rho_{x,i}^\bullet,
+\]
+and
+\[
+\sum_i\gamma_{x,\mathrm{prim}}^\bullet(i,j)+\chi_{x,j}^\bullet=h_j(x),
+\qquad
+\sum_i\gamma_{x,\mathrm{comp}}^\bullet(i,j)\le \chi_{x,j}^\bullet.
+\]
+Consequently
+\[
+\sum_j\gamma_x^\bullet(i,j)\le\ell_i(x),
+\qquad
+\sum_i\gamma_x^\bullet(i,j)\le h_j(x).
+\]
+The completion transports the smaller of the two residual totals, and the primary pass conserves the original row and column totals.  Hence
+\[
+\sum_{i,j}\gamma_x^\bullet(i,j)
+=
+\sum_{i,j}\gamma_{x,\mathrm{prim}}^\bullet(i,j)
++\min\left\{\sum_i\rho_{x,i}^\bullet,\sum_j\chi_{x,j}^\bullet\right\}
+=\min\{q_0(x),q_1(x)\}=m(x).
+\]
+By the definition of \(\Gamma_x^\ast\) in \cref{obj:def:partial-transport-polytope}, these displays give
+\[
+\gamma_x^L\in\Gamma_x^\ast,
+\qquad
+\gamma_x^U\in\Gamma_x^\ast.
+\]
+
+It remains to identify the two benefit masses.  For the lower pass, let \(\nu_x^L\) be the total mass emitted by the primary nonbenefit pass.  Every primary lower allocation satisfies \(j\le i\), and every residual row-column pair left for completion satisfies \(i<j\).  Hence the primary part contributes zero benefit mass and the completion part contributes all of its transported mass to benefit edges.  Since the completed lower trace transports total mass \(m(x)\),
+\[
+b_x(\gamma_x^L)=m(x)-\nu_x^L.
+\]
+For the upper pass, let \(\beta_x^U\) be the total mass emitted by the primary benefit pass.  Every primary upper allocation satisfies \(i<j\), and every residual row-column pair left for completion satisfies \(j\le i\).  Thus the residual completion contributes zero benefit mass and
+\[
+b_x(\gamma_x^U)=\beta_x^U.
+\]
+Define the finite lower and upper cut families on \(\{\varnothing\}\cup\mathcal Y\) by
+\[
+A_x^L(\varnothing)=m(x),
+\qquad
+A_x^L(t)=\ell_{>t}(x)+h_{\le t}(x),
+\]
+\[
+A_x^U(\varnothing)=m(x),
+\qquad
+A_x^U(t)=\ell_{<t}(x)+h_{>t}(x),
+\]
+where \(\ell_{>t}(x)=\sum_{i>t}\ell_i(x)\).  For the lower primary pass, the empty cut bound is
+\[
+\nu_x^L\le q_0(x),
+\qquad
+\nu_x^L\le q_1(x),
+\qquad
+\nu_x^L\le m(x)=A_x^L(\varnothing).
+\]
+For an ordinary threshold \(t\in\mathcal Y\), each nonbenefit primary allocation is counted by the row side \(i>t\) or by the column side \(j\le t\), so
+\[
+\nu_x^L
+\le
+\sum_{i>t}\sum_j\gamma_{x,\mathrm{prim}}^L(i,j)
++
+\sum_{j\le t}\sum_i\gamma_{x,\mathrm{prim}}^L(i,j).
+\]
+Using the primary conservation identities and the nonnegative residual capacities,
+\[
+\sum_{i>t}\sum_j\gamma_{x,\mathrm{prim}}^L(i,j)
+\le \ell_{>t}(x),
+\qquad
+\sum_{j\le t}\sum_i\gamma_{x,\mathrm{prim}}^L(i,j)
+\le h_{\le t}(x),
+\]
+and therefore
+\[
+\nu_x^L\le A_x^L(t)
+\qquad(t\in\mathcal Y).
+\]
+Thus
+\[
+\nu_x^L\le \inf_{t\in\{\varnothing\}\cup\mathcal Y}A_x^L(t).
+\]
+The reverse inequality is obtained from the boundary invariant of the same ascending pass.  The input row and column lists are ordered increasingly.  By induction on the sum of their lengths, the recursive pass maintains
+\[
+\text{every emitted primary allocation }(i,j,u)\text{ satisfies }j\le i,
+\]
+\[
+\text{every residual row }(i,u)\text{ and residual column }(j,v)\text{ satisfy }i<j,
+\]
+and, for every residual row \((r,u)\) and emitted allocation \((i,j,v)\),
+\[
+\neg(r<i\ \text{and}\ j\le r).
+\]
+The empty-list cases are immediate.  In an eligible step \(j\le i\), the pass emits \((i,j,\min\{a,b\})\) and recurses after reducing or deleting the exhausted endpoint; the reduced lists preserve the increasing order, and any later residual row has index at least the emitted row index, so the new emitted allocation cannot cross a later residual-row boundary.  In an ineligible step \(i<j\), the row \(i\) is moved to the residual list; every column that can remain residual has index at least \(j\), and every later emitted allocation uses such a column, giving both the residual separation and the displayed noncrossing condition for this new residual row.
+
+If the lower primary pass leaves no row residual, row-total conservation gives \(\nu_x^L=q_0(x)\), and the column bound above gives \(\nu_x^L\le q_1(x)\).  Thus, using \cref{obj:def:observable-capacities},
+\[
+\nu_x^L=\min\{q_0(x),q_1(x)\}=m(x)=A_x^L(\varnothing),
+\]
+so the infimum is at most \(\nu_x^L\).  If a row residual remains, let \(t_L\) be the largest row index among the lower residual rows.  The finite maximum transfers the preceding invariants to the cut:
+\[
+i'\le t_L\quad\text{for every }(i',u)\in\mathsf{row}_{x}^{L,\mathrm{res}},
+\qquad
+t_L<j'\quad\text{for every }(j',v)\in\mathsf{col}_{x}^{L,\mathrm{res}},
+\]
+and no primary lower allocation with positive mass has both \(t_L<i\) and \(j\le t_L\).  Hence
+\[
+\sum_{i>t_L}\rho_{x,i}^L=0,
+\qquad
+\sum_{j\le t_L}\chi_{x,j}^L=0.
+\]
+Since every primary lower allocation satisfies \(j\le i\) and no such allocation crosses the cut \(t_L\), its mass is counted exactly once by the row side \(i>t_L\) or the column side \(j\le t_L\):
+\[
+\nu_x^L
+=
+\sum_{i>t_L}\sum_j\gamma_{x,\mathrm{prim}}^L(i,j)
++
+\sum_{j\le t_L}\sum_i\gamma_{x,\mathrm{prim}}^L(i,j).
+\]
+Adding the zero residual sums and applying row and column conservation gives
+\[
+\nu_x^L
+=
+\ell_{>t_L}(x)+h_{\le t_L}(x)
+=A_x^L(t_L),
+\]
+so again \(\inf_{t\in\{\varnothing\}\cup\mathcal Y}A_x^L(t)\le \nu_x^L\).  Consequently
+\[
+\nu_x^L
+=
+\inf_{t\in\{\varnothing\}\cup\mathcal Y} A_x^L(t).
+\]
+For the upper primary pass the cut bounds use the strict-benefit cuts.  The empty cut gives
+\[
+\beta_x^U\le q_0(x),
+\qquad
+\beta_x^U\le q_1(x),
+\qquad
+\beta_x^U\le m(x)=A_x^U(\varnothing),
+\]
+and, for every \(t\in\mathcal Y\), each benefit primary allocation is counted by the row side \(i<t\) or by the column side \(j>t\):
+\[
+\beta_x^U
+\le
+\sum_{i<t}\sum_j\gamma_{x,\mathrm{prim}}^U(i,j)
++
+\sum_{j>t}\sum_i\gamma_{x,\mathrm{prim}}^U(i,j)
+\le
+\ell_{<t}(x)+h_{>t}(x)
+=A_x^U(t).
+\]
+Thus \(\beta_x^U\le\inf_{t\in\{\varnothing\}\cup\mathcal Y}A_x^U(t)\).  For the reverse inequality, use the symmetric boundary invariant for the descending benefit pass.  Its input row and column lists are ordered decreasingly, and induction on the same recursion gives
+\[
+\text{every emitted primary allocation }(i,j,u)\text{ satisfies }i<j,
+\]
+\[
+\text{every residual row }(i,u)\text{ and residual column }(j,v)\text{ satisfy }j\le i,
+\]
+and, for every residual row \((r,u)\) and emitted allocation \((i,j,v)\),
+\[
+\neg(i<r\ \text{and}\ r<j).
+\]
+The eligible branch \(i<j\) emits \((i,j,\min\{a,b\})\) and recurses on decreasing lists after the exhausted endpoint is reduced or deleted; any later residual row has index at most the emitted row index, so the new emitted allocation cannot cross its residual-row boundary.  In the ineligible branch \(j\le i\), the row \(i\) is moved to the residual list; all remaining columns have index at most \(j\), and all later emitted allocations use such columns, giving the residual separation and noncrossing condition for the new residual row.
+
+If the upper primary pass leaves no row residual, then \(\beta_x^U=q_0(x)\) and the column bound above gives \(\beta_x^U\le q_1(x)\), so, by \cref{obj:def:observable-capacities},
+\[
+\beta_x^U=\min\{q_0(x),q_1(x)\}=m(x)=A_x^U(\varnothing).
+\]
+If a row residual remains, let \(t_U\) be the smallest row index among the upper residual rows.  The finite minimum transfers the preceding invariants to the cut:
+\[
+t_U\le i'\quad\text{for every }(i',u)\in\mathsf{row}_{x}^{U,\mathrm{res}},
+\qquad
+j'\le t_U\quad\text{for every }(j',v)\in\mathsf{col}_{x}^{U,\mathrm{res}},
+\]
+and no primary upper allocation with positive mass has both \(i<t_U\) and \(t_U<j\).  Hence
+\[
+\sum_{i<t_U}\rho_{x,i}^U=0,
+\qquad
+\sum_{j>t_U}\chi_{x,j}^U=0.
+\]
+Since every primary upper allocation satisfies \(i<j\) and no such allocation crosses the cut \(t_U\), its mass is counted exactly once by the row side \(i<t_U\) or the column side \(j>t_U\):
+\[
+\beta_x^U
+=
+\sum_{i<t_U}\sum_j\gamma_{x,\mathrm{prim}}^U(i,j)
++
+\sum_{j>t_U}\sum_i\gamma_{x,\mathrm{prim}}^U(i,j).
+\]
+Conservation then yields
+\[
+\beta_x^U
+=
+\ell_{<t_U}(x)+h_{>t_U}(x)
+=A_x^U(t_U).
+\]
+Therefore
+\[
+\beta_x^U
+=
+\inf_{t\in\{\varnothing\}\cup\mathcal Y} A_x^U(t).
+\]
+
+For the lower endpoint, the partition identity \(\ell_{\le t}(x)+\ell_{>t}(x)=q_0(x)\), together with \(m(x)=q_0(x)+\min\{\Delta q(x),0\}\) from \cref{obj:def:observable-capacities}, implies
+\[
+m(x)-A_x^L(\varnothing)=0,
+\qquad
+m(x)-A_x^L(t)
+=\ell_{\le t}(x)-h_{\le t}(x)+\min\{\Delta q(x),0\}.
+\]
+Therefore, by \cref{obj:def:threshold-cuts},
+\[
+b_x(\gamma_x^L)
+=m(x)-\inf_t A_x^L(t)
+=\sup_t\{m(x)-A_x^L(t)\}
+=B_L(x).
+\]
+For the upper endpoint, the displayed formula for \(A_x^U\) is exactly the upper threshold-cut family in \cref{obj:def:threshold-cuts}, and hence
+\[
+b_x(\gamma_x^U)
+=\inf_t A_x^U(t)
+=B_U(x).
+\]
+Since \(x\) was arbitrary, the asserted cellwise output properties hold in every covariate cell.
+% lean: thresholdFlow_endpoint_spec
+\end{enumerate}
+\end{proof}

@@ -1,0 +1,510 @@
+\begin{proof}[Proof of \cref{obj:thm:polynomial-net-law-estimator}]
+\begin{enumerate}
+\item Put
+\[
+D:=4d_zd_x+d_x,\qquad
+b:=4\sqrt{d_zd_x}+\sqrt{d_x}.
+\]
+By \cref{obj:thm:gap-free-positive-measure-modulus}, choose
+\(C_{\mathrm{mod}}>0\) such that, for any two model laws \(P_1,P_2\in\mathcal M\),
+\[
+W_1(\nu_{P_1},\nu_{P_2})
+\le C_{\mathrm{mod}}\,d_S(S(P_1),S(P_2)).
+\]
+Let \(C_{\mathrm{card}}>0\) and \(C_{\mathrm{work}}>0\) be the finite-library
+cardinality and work constants constructed below, and let \(C_0\ge1\) be the
+constant supplied by \cref{obj:lem:uniform-summary-concentration}.  Define
+\[
+C_{\mathrm{tail}}
+:=
+\max\{C_0,\exp(1),C_{\mathrm{mod}}(2C_0L+1)\},
+\qquad
+C:=\max\{C_{\mathrm{card}},C_{\mathrm{work}},C_{\mathrm{tail}}\}.
+\]
+Then \(C>0\), and this single constant dominates the constants used for the
+library size, work bound, and probability bound. % lean: finite_net_law_estimator
+
+\item Fix \(n\ge1\), and set
+\[
+\epsilon_n:=n^{-1/2},\qquad
+\delta_n:=\frac{\epsilon_n}{b}.
+\]
+The library is the deterministic half-open coordinate-grid library in the
+\(D\)-coordinate summary box, with side length \(\delta_n\).  Its coordinates
+are the entries of the four \(d_z\times d_x\) matrix blocks and the \(d_x\)
+entries of the mean block.  For each grid cube meeting the admissible image
+\(\mathscr S=S(\mathcal M)\), choose one representative \(S_i\in\mathscr S\)
+and order the representatives by the lexicographic order of the cube lower
+corners.  The coordinate bounds following from
+\cref{obj:prop:observed-vmw-margin-inclusion} place every admissible summary
+coordinate in \([-L,L]\).  If \(q\in\mathscr S\) and \(S_i\) lie in the same
+cube, then every scalar coordinate differs by at most \(\delta_n\), so
+\[
+\|M_t(S_i)-M_t(q)\|_{\mathrm{op}}
+\le \sqrt{d_zd_x}\,\delta_n,\qquad
+\|N_t(S_i)-N_t(q)\|_{\mathrm{op}}
+\le \sqrt{d_zd_x}\,\delta_n
+\]
+for \(t\in\{0,1\}\), and
+\[
+\|m_X(S_i)-m_X(q)\|_2\le \sqrt{d_x}\,\delta_n .
+\]
+Using \(d_S\) from \cref{obj:def:observable-summary},
+\[
+d_S(S_i,q)
+\le
+\bigl(4\sqrt{d_zd_x}+\sqrt{d_x}\bigr)\delta_n
+=\epsilon_n .
+\]
+Thus the stored representatives form an \(n^{-1/2}\)-net of \(\mathscr S\);
+when \(\mathscr S=\varnothing\), the index set is empty and the program uses
+the fallback law in \cref{obj:def:finite-net-program}. % lean: netLibrary_nonempty
+
+\item Each coordinate lower corner has at most
+\[
+\left\lceil \frac{2L}{\delta_n}\right\rceil+1
+\]
+possible values.  Since \(\delta_n=n^{-1/2}/b\) and \(n^{1/2}\ge1\),
+\[
+\left\lceil \frac{2L}{\delta_n}\right\rceil+1
+\le (2Lb+2)n^{1/2}.
+\]
+The lower-corner code is injective, hence
+\[
+|A|
+\le \bigl((2Lb+2)n^{1/2}\bigr)^D
+=(2Lb+2)^D n^{D/2}
+\le C_{\mathrm{card}} n^{(4d_zd_x+d_x)/2}.
+\]
+After enlarging \(C\), the asserted cardinality bound follows. % lean: netLibrary_card_polynomial_bound
+
+\item Fix a uniform provider of the exact-real primitives.  The estimator is the
+law component of \(\operatorname{NetProgram}(A,\omega)\) in
+\cref{obj:def:finite-net-program}.  On a nonempty library, enumerate the finite
+index set as \(\iota_0,\ldots,\iota_{m-1}\) and update the current index by
+choosing the smaller pair
+\[
+\bigl(d_S(S_i,s),\operatorname{rank}_{\mathrm{lex}}(i)\bigr)
+\]
+in lexicographic order.  For each fixed representative,
+\(s\mapsto d_S(S_i,s)\) is continuous by
+\cref{obj:lem:summary-metric-continuity}; therefore every update is Borel,
+being defined by finitely many weak and strict Borel inequalities.  The empty
+selection is constant.  Since \(\widehat S_n\) is Borel by
+\cref{obj:def:empirical-summary}, and the selected finite index is mapped to a
+stored spectral law, \(\widehat\nu_n^{\mathrm{net}}\) is Borel measurable. % lean: netLawEstimator_measurable
+
+\item The exact-real trace is assembled from the empirical-summary trace, the
+finite-library search trace, and the selected spectral run:
+\[
+\mathfrak T(\omega)
+=
+\mathfrak T_{\mathrm{emp}}(n)
+\,\Vert\,
+\mathfrak T_{\mathrm{search}}(A)
+\,\Vert\,
+\begin{cases}
+\mathfrak T_{\mathrm{spec}}(S_i),
+&\text{if the search selects representative }i,\\
+\varnothing,
+&\text{if the search has empty selection.}
+\end{cases}
+\]
+Thus the returned law and the displayed trace come from the same execution. % lean: netExactRealProgram_trace_eq
+
+\item The empirical-summary trace has \(nD\) arithmetic operations.  Each
+library comparison uses \(D\) scalar arithmetic operations, four
+fixed-dimensional singular-value or operator-norm operations, and one
+comparison.  The selected spectral tail has three singular-value operations,
+one root-isolation operation, and one arithmetic operation.  Therefore, for
+every sample \(\omega\),
+\[
+\operatorname{ops}(\omega)
+\le
+nD+|A|(D+5)+5 .
+\]
+Combining this with the cardinality bound gives
+\[
+\operatorname{ops}(\omega)
+\le
+C_{\mathrm{work}}\{n+n^{D/2}\}
+\le
+C\{n+n^{(4d_zd_x+d_x)/2}\}.
+\] % lean: netOperationCount_polynomial_bound
+
+\item If the program selects \(i\) at sample \(\omega\), put
+\[
+s_\omega:=\widehat S_n(\omega).
+\]
+The exhaustive fold preserves domination, where \(i\) dominates \(j\) at
+\(s_\omega\) when
+\[
+d_S(S_i,s_\omega)\le d_S(S_j,s_\omega)
+\]
+and equality implies
+\[
+\operatorname{rank}_{\mathrm{lex}}(i)
+\le
+\operatorname{rank}_{\mathrm{lex}}(j).
+\]
+Induction over the scanned list yields, for every library index \(j\),
+\[
+d_S(S_i,\widehat S_n(\omega))
+\le d_S(S_j,\widehat S_n(\omega)),
+\]
+and
+\[
+d_S(S_i,\widehat S_n(\omega))
+=
+d_S(S_j,\widehat S_n(\omega))
+\Longrightarrow
+\operatorname{rank}_{\mathrm{lex}}(i)
+\le
+\operatorname{rank}_{\mathrm{lex}}(j).
+\] % lean: nearestLibraryIndex_spec
+
+\item Let \(\mathcal R_i\) be the exact spectral run at the selected
+representative \(S_i\).  By the definition of the program output,
+\begin{equation}
+\widehat\nu_n^{\mathrm{net}}(\omega)=\operatorname{law}(\mathcal R_i).
+\label{eq:finite-net-selected-run-law}
+\end{equation} % lean: netLawEstimator_eq_of_selected
+
+\item The same spectral execution supplies a basis \(V_i\), its signal spans,
+and an eigenvalue list \((\lambda_{i,r})_{r<k}\).  Its output fields give, for
+each \(t\in\{0,1\}\),
+\[
+x\longmapsto M_t(S_i)V_i x
+\]
+injective, the exact threshold characterization
+\[
+\frac{\pi_0\sigma_0^2}{2}
+\le
+\sigma_j\!\left(\operatorname{stack}(M_0(S_i),M_1(S_i))\right)
+\Longleftrightarrow j<k,
+\]
+and completeness of the returned eigenvalue list:
+\[
+z\in\operatorname{spec}(\Delta_i)
+\Longrightarrow
+\exists r<k\ \text{such that }z=\lambda_{i,r},
+\]
+where \(\Delta_i\) is the compressed operator formed from \(S_i\), \(V_i\), and
+the run's spans. % lean: ExactRealSpectralRun.output
+
+\item Fix any stored representative \(S_i\).  Since \(S_i\in\mathscr S\), choose
+\(Q_i\in\mathcal M\) with
+\[
+S(Q_i)=S_i.
+\]
+Let \(p_{i,u}:=Q_i(U=u)\), write \(p_i:=(p_{i,u})_{u=1}^k\), and set
+\[
+\tau_{i,u}:=\mu_{1u}(Q_i)-\mu_{0u}(Q_i).
+\]
+The latent-arm positivity condition in \cref{obj:ass:latent-arm-positivity}
+gives \(p_{i,u}>0\) for every \(u\).  Let \(\mathcal R_i\) be the exact
+spectral run at \(S_i\), with signal basis \(V_i\), spans, anchors \(a_i,c_i\),
+returned eigenvalues \((\lambda_{i,r})_{r<k}\), and compressed operator
+\[
+\Delta_i
+:=(M_1(S_i)V_i)^\dagger N_1(S_i)V_i
+ -(M_0(S_i)V_i)^\dagger N_0(S_i)V_i .
+\]
+Set
+\[
+\Omega_i:=B(Q_i)^\top V_i\in\mathbb R^{k\times k},
+\qquad
+\Gamma_{i,t}
+:=\operatorname{diag}\{Q_i(U=u\mid T=t):1\le u\le k\},
+\]
+and
+\[
+\Phi_{i,t}:=A_t(Q_i)\Gamma_{i,t}\in\mathbb R^{d_z\times k}.
+\]
+\Cref{obj:lem:observed-proxy-moment-factorization,obj:lem:observed-outcome-proxy-moment-factorization}
+give, for \(t\in\{0,1\}\),
+\[
+M_t(S_i)V_i=\Phi_{i,t}\Omega_i,
+\qquad
+N_t(S_i)V_i
+=\Phi_{i,t}
+\operatorname{diag}(\mu_{t1}(Q_i),\ldots,\mu_{tk}(Q_i))\Omega_i .
+\]
+The run's armwise full-rank certificate makes
+\(x\mapsto M_t(S_i)V_ix\) injective for each \(t\).  Taking \(t=0\), the first
+factorization shows that \(\Omega_i\) is injective and hence invertible.  The
+same factorization also gives injectivity of \(\Phi_{i,0}\): if
+\(\Phi_{i,0}v=\Phi_{i,0}v'\) for \(v,v'\in\mathbb R^k\), then
+\[
+M_0(S_i)V_i\Omega_i^{-1}v
+=
+\Phi_{i,0}v
+=
+\Phi_{i,0}v'
+=
+M_0(S_i)V_i\Omega_i^{-1}v',
+\]
+so injectivity of \(M_0(S_i)V_i\) gives
+\(\Omega_i^{-1}v=\Omega_i^{-1}v'\), and hence \(v=v'\).  The proxy
+factorization before postmultiplication by \(V_i\) is
+\[
+M_0(S_i)=\Phi_{i,0}B(Q_i)^\top .
+\]
+Since \(\Phi_{i,0}\) is injective, its Moore--Penrose inverse is a left inverse
+on its range, and therefore
+\[
+\Phi_{i,0}^\dagger M_0(S_i)=B(Q_i)^\top .
+\]
+Transposing gives
+\[
+B(Q_i)=M_0(S_i)^\top(\Phi_{i,0}^\dagger)^\top .
+\]
+By construction of the run's span certificate,
+\[
+\operatorname{range}(V_i)
+=
+\operatorname{range}(M_0(S_i)^\top)+\operatorname{range}(M_1(S_i)^\top)
+\subseteq\mathbb R^{d_x},
+\]
+and consequently
+\[
+\operatorname{range}(B(Q_i))
+\subseteq
+\operatorname{range}(M_0(S_i)^\top)
+\subseteq
+\operatorname{range}(V_i).
+\]
+The second factorization can therefore be rewritten as
+\[
+N_t(S_i)V_i
+=
+M_t(S_i)V_i
+\{\Omega_i^{-1}
+\operatorname{diag}(\mu_{t1}(Q_i),\ldots,\mu_{tk}(Q_i))\Omega_i\}.
+\]
+Since the Moore--Penrose inverse is a left inverse on the range of an injective
+linear map,
+\[
+(M_t(S_i)V_i)^\dagger N_t(S_i)V_i
+=
+\Omega_i^{-1}
+\operatorname{diag}(\mu_{t1}(Q_i),\ldots,\mu_{tk}(Q_i))\Omega_i .
+\]
+Subtracting the two treatment-arm identities gives
+\[
+\Delta_i
+=
+\Omega_i^{-1}
+\operatorname{diag}(\tau_{i,1},\ldots,\tau_{i,k})
+\Omega_i .
+\]
+Finally, the law of total expectation gives
+\[
+m_X(S_i)=B(Q_i)p_i .
+\]
+The column-space inclusion just proved implies that the orthogonal projector
+\(V_iV_i^\top\) fixes \(B(Q_i)\).  Since
+\(\Omega_i^\top=V_i^\top B(Q_i)\),
+\[
+B(Q_i)=V_iV_i^\top B(Q_i)=V_i\Omega_i^\top .
+\]
+Thus
+\[
+a_i=V_i^\top m_X(S_i)=\Omega_i^\top p_i .
+\]
+The target-proxy anchor condition gives \(B(Q_i)^\top e_1=\mathbf 1_k\), while
+\(c_i=V_i^\top e_1\) and \(B(Q_i)^\top V_iV_i^\top=B(Q_i)^\top\), so
+\[
+\Omega_i c_i=\mathbf 1_k .
+\] % lean: modelCompressedCoordinates_exists
+For the polynomial projector attached to a returned slot \(r\),
+\[
+\mathcal P_{i,r}
+:=
+\prod_{\lambda_{i,\ell}\ne\lambda_{i,r}}
+(\lambda_{i,r}-\lambda_{i,\ell})^{-1}
+(\Delta_i-\lambda_{i,\ell}I_k),
+\]
+the diagonalization gives
+\[
+\mathcal P_{i,r}
+=
+\begin{cases}
+\Omega_i^{-1}
+\operatorname{diag}\{\mathbf 1(\tau_{i,u}=\lambda_{i,r})\}_{u=1}^k
+\Omega_i,
+&\lambda_{i,r}\in\{\tau_{i,u}:1\le u\le k\},\\
+0,&\lambda_{i,r}\notin\{\tau_{i,u}:1\le u\le k\}.
+\end{cases}
+\]
+Hence the returned slot weight
+\[
+w_{i,r}:=a_i^\top\mathcal P_{i,r}c_i
+\]
+satisfies
+\[
+w_{i,r}
+=
+\sum_{u:\tau_{i,u}=\lambda_{i,r}}p_{i,u}
+\]
+for a spectral value and \(w_{i,r}=0\) for a listed value outside the spectrum.
+The output validity of \(\mathcal R_i\) gives \(w_{i,r}\ge0\) and
+\(\sum_{r<k}w_{i,r}=1\).  Completeness gives at least one returned slot for
+each latent-effect value, and the positivity of the corresponding cluster mass
+\[
+m_i(\lambda):=\sum_{u:\tau_{i,u}=\lambda}p_{i,u}
+\]
+forces exactly one positive returned slot for each distinct latent-effect
+value; otherwise the total \(\sum_{r<k}w_{i,r}\) would exceed
+\(\sum_{\lambda}m_i(\lambda)=1\).  Therefore, for every bounded test function
+\(\varphi:\mathbb R\to\mathbb R\),
+\[
+\sum_{r<k}w_{i,r}\varphi(\lambda_{i,r})
+=
+\sum_{u=1}^k p_{i,u}\varphi(\tau_{i,u}).
+\]
+Thus the induced atomic measures agree:
+\[
+\sum_{r<k}w_{i,r}\delta_{\lambda_{i,r}}
+=
+\sum_{u=1}^kp_{i,u}\delta_{\tau_{i,u}}
+=
+\nu_{Q_i},
+\]
+with coincident effects aggregated as in \cref{obj:def:quotient-law}.  The exact
+spectral run at \(S_i\) returns \(\nu_{Q_i}\):
+\begin{equation}
+\operatorname{law}(\mathcal R_i)=\nu_{Q_i}.
+\label{eq:finite-net-run-quotient}
+\end{equation} % lean: exactRealSpectralRun_eq_quotient
+
+\item The validity certificate of the same result-bearing spectral execution
+states
+\[
+w_{i,r}\ge0,\qquad
+\sum_{r<k}w_{i,r}=1,\qquad
+|\lambda_{i,r}|\le L_\tau
+\quad(r<k).
+\]
+Consequently the returned weights form a probability vector and every returned atom lies in \([-L_\tau,L_\tau]\), so the represented finite atomic measure is a probability law supported on that interval. % lean: exactRealSpectralRun_output_valid
+
+\item For a stored representative \(S_i=S(Q_i)\), put
+\[
+\mathcal G_i:=\operatorname{stack}(M_0(S_i),M_1(S_i)),
+\qquad
+s_0:=\pi_0\sigma_0^2 .
+\]
+\Cref{obj:lem:model-compressed-spectral-certificate} supplies the rank identity,
+and \cref{obj:lem:stacked-proxy-moment-signal-margin} supplies the
+singular-value margin:
+\[
+\operatorname{rank}(\mathcal G_i)=k,
+\qquad
+s_0\le \sigma_{k-1}(\mathcal G_i).
+\]
+If \(H\in\mathbb R^{2d_z\times d_x}\) satisfies
+\[
+\|H\|_{\mathrm{op}}<s_0/2,
+\]
+Weyl's singular-value inequality gives, for every \(r\),
+\[
+|\sigma_r(\mathcal G_i+H)-\sigma_r(\mathcal G_i)|
+\le \|H\|_{\mathrm{op}}.
+\]
+Thus
+\[
+\sigma_r(\mathcal G_i+H)>s_0/2\quad(r<k),
+\]
+while \(\operatorname{rank}(\mathcal G_i)=k\) gives
+\(\sigma_r(\mathcal G_i)=0\) for \(r\ge k\), and hence
+\[
+\sigma_r(\mathcal G_i+H)<s_0/2\quad(r\ge k).
+\]
+Consequently the perturbed stacked moment satisfies the two threshold clauses
+\[
+\frac{s_0}{2}\le \sigma_r(\mathcal G_i+H)\quad(r<k),
+\qquad
+\sigma_r(\mathcal G_i+H)<\frac{s_0}{2}\quad(r\ge k).
+\]
+Equivalently, exactly \(k\) singular values of \(\mathcal G_i+H\) meet the
+threshold \(s_0/2=\pi_0\sigma_0^2/2\). % lean: modelSummary_thresholdRecovers_of_perturbation
+
+\item Fix \(P\in\mathcal M\) and a sample \(\omega\).  If \(P\in\mathcal M\),
+then \(\mathscr S\) is nonempty, so the library has a selected nearest index
+\(i\).  By the covering property, choose \(j\) such that
+\[
+d_S(S_j,S(P))\le n^{-1/2}.
+\]
+Nearest-library optimality and the triangle inequality yield
+\[
+\begin{aligned}
+d_S(S_i,S(P))
+&\le d_S(S_i,\widehat S_n(\omega))
+   +d_S(\widehat S_n(\omega),S(P))\\
+&\le d_S(S_j,\widehat S_n(\omega))
+   +d_S(\widehat S_n(\omega),S(P))\\
+&\le d_S(S_j,S(P))
+   +2d_S(\widehat S_n(\omega),S(P))\\
+&\le n^{-1/2}+2d_S(\widehat S_n(\omega),S(P)).
+\end{aligned}
+\]
+By \cref{eq:finite-net-selected-run-law,eq:finite-net-run-quotient},
+\[
+\widehat\nu_n^{\mathrm{net}}(\omega)=\nu_{Q_i},
+\qquad
+S(Q_i)=S_i.
+\]
+Applying the modulus from \cref{obj:thm:gap-free-positive-measure-modulus}
+gives
+\[
+W_1\!\left(\widehat\nu_n^{\mathrm{net}}(\omega),\nu_P\right)
+\le
+C_{\mathrm{mod}}
+\left\{
+2d_S(\widehat S_n(\omega),S(P))+n^{-1/2}
+\right\}.
+\] % lean: netEstimator_wass1_le
+
+\item Fix \(0<\eta<1/2\).  Since \(C\ge C_0\), \(C\ge\exp(1)\), and
+\(\eta\le1\),
+\[
+1\le \log(C/\eta),
+\qquad
+\log(C_0/\eta)\le \log(C/\eta).
+\]
+Therefore
+\[
+n^{-1/2}\le
+\sqrt{\frac{\log(C/\eta)}{n}},
+\qquad
+\sqrt{\frac{\log(C_0/\eta)}{n}}
+\le
+\sqrt{\frac{\log(C/\eta)}{n}}.
+\]
+On the event
+\[
+d_S(\widehat S_n,S(P))
+\le
+C_0L\sqrt{\frac{\log(C_0/\eta)}{n}},
+\]
+the deterministic inequality gives
+\[
+W_1(\widehat\nu_n^{\mathrm{net}},\nu_P)
+\le
+C_{\mathrm{mod}}(2C_0L+1)
+\sqrt{\frac{\log(C/\eta)}{n}}
+\le
+C\sqrt{\frac{\log(C/\eta)}{n}}.
+\]
+Thus the bad event in the theorem is contained in
+\[
+\left\{
+d_S(\widehat S_n,S(P))
+>
+C_0L\sqrt{\frac{\log(C_0/\eta)}{n}}
+\right\}.
+\]
+By \cref{obj:lem:uniform-summary-concentration}, its \(Q_P^{(n)}\)-probability
+is at most \(\eta\). % lean: finite_net_law_estimator
+\end{enumerate}
+\end{proof}

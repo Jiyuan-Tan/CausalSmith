@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { crosslinkDefect, declListFor, moduleNamesFor } from "../../src/formalization/stage5_docstrings.js";
+import { crosslinkDefect, declListFor, lakeFailureSummary, moduleNamesFor } from "../../src/formalization/stage5_docstrings.js";
 
 describe("moduleNamesFor (F5 docstring coverage module derivation)", () => {
   it("maps run-dir .lean files to dotted module names under the lean_subdir prefix", () => {
@@ -67,5 +67,22 @@ describe("crosslinkDefect (F5 hard gate on theorem docstring crosslinks)", () =>
   });
   it("exempts non-theorems", () => {
     expect(crosslinkDefect({ kind: "def", doc: "Plain NL.", source })).toBeNull();
+  });
+});
+
+describe("lakeFailureSummary (F5 build-failure checkpoint text)", () => {
+  it("surfaces Lean diagnostics from STDOUT and never the command line", () => {
+    const stdout = "✖ [3/4] Building X\ninfo: stdout of lean\nerror: ./CausalSmith/Stat/X/Basic.lean:12:3: unknown identifier 'foo'\n";
+    const msg = lakeFailureSummary({ stdout, stderr: "error: build failed\n", exitCode: 1 }, "/run/docstring_lake.log");
+    expect(msg).toContain("Basic.lean:12:3: unknown identifier 'foo'");
+    expect(msg).toContain("error: build failed");
+    expect(msg).toContain("/run/docstring_lake.log");
+    expect(msg).not.toContain("Command failed");
+    expect(msg.length).toBeLessThan(300);
+  });
+
+  it("falls back to the exit code when no error line exists", () => {
+    expect(lakeFailureSummary({ stdout: "", stderr: "", exitCode: null }, "l.log")).toMatch(/^lake exited null/);
+    expect(lakeFailureSummary({ stdout: "", stderr: "", exitCode: null, killedDueToInactivity: true }, "l.log")).toContain("killed: no output");
   });
 });

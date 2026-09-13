@@ -1,8 +1,12 @@
 import os
 os.environ.setdefault("HF_HUB_OFFLINE", "1")
 os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
-import sys, argparse, socket, json, struct, hashlib, subprocess, time, tempfile
+import sys, argparse, json, struct, time
 import numpy as np
+try:  # unix socket (POSIX) / loopback TCP (Windows) — see scripts/daemon_ipc.py
+    import daemon_ipc
+except ImportError:  # keep the promise below: retrieval degrades, it never breaks
+    daemon_ipc = None
 
 MODEL = "BAAI/bge-large-en-v1.5"  # default / fallback
 QUERY_PREFIX = "Represent this sentence for searching relevant passages: "  # bge query convention
@@ -10,14 +14,15 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")
 
 # The warm daemon (scripts/embed_daemon.py) holds the model in memory so repeated queries
 # skip the ~30 s load. This client prefers it, spawning it on first use, and falls back to
-# an inline model load if the daemon is unavailable — so retrieval never breaks.
+# an inline model load if the daemon is unavailable — so retrieval never breaks, on any OS.
 
 
 def resolve_model():
     """The query encoder MUST match the corpus encoder — read whatever built the embeddings
     (library_embeddings.meta.json `model`), falling back to the default bge name."""
     try:
-        meta = json.load(open(os.path.join(ROOT, "doc", "library_embeddings.meta.json")))
+        with open(os.path.join(ROOT, "doc", "library_embeddings.meta.json"), encoding="utf-8") as fh:
+            meta = json.load(fh)
         return meta.get("model") or MODEL
     except Exception:  # noqa: BLE001
         return MODEL
@@ -36,8 +41,7 @@ def load_st_model(model_id):
 
 def sock_path(model_id):
     # Keyed by repo root + model so distinct checkouts / models don't share a daemon.
-    h = hashlib.sha1((ROOT + "|" + model_id).encode()).hexdigest()[:12]
-    return os.path.join(tempfile.gettempdir(), f"causalean-embed-{h}.sock")
+    return daemon_ipc.endpoint("embed", ROOT + "|" + model_id) if daemon_ipc else None
 
 
 def _recvn(conn, n):
@@ -52,39 +56,30 @@ def _recvn(conn, n):
 
 def try_daemon(texts, path, model_id, spawn_wait=90.0):
     """Return an (n, dim) float32 array via the warm daemon, or None to fall back inline."""
-    def connect():
-        c = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        c.settimeout(180.0)
-        c.connect(path)
-        return c
-
+    if daemon_ipc is None or path is None:
+        return None
     conn = None
     try:
-        conn = connect()
+        conn = daemon_ipc.connect(path)
     except OSError as e:
-        # A stale socket file (the daemon died but left its .sock behind) refuses the
-        # connection with ECONNREFUSED. Unlink it so the freshly-spawned daemon binds
-        # cleanly, and so no later client blocks on a dead endpoint.
-        if isinstance(e, ConnectionRefusedError) and os.path.exists(path):
-            try:
-                os.unlink(path)
-            except OSError:
-                pass
+        # A stale endpoint (the daemon died but left its socket/port file behind) refuses
+        # the connection with ECONNREFUSED. Remove it so the freshly-spawned daemon
+        # publishes cleanly, and so no later client blocks on a dead endpoint.
+        if isinstance(e, ConnectionRefusedError):
+            daemon_ipc.unlink(path)
         # No daemon yet: spawn it detached (on this exact model), then poll until it has loaded.
         daemon = os.path.join(os.path.dirname(__file__), "embed_daemon.py")
         if not os.path.exists(daemon):
             return None
         try:
-            subprocess.Popen([sys.executable, daemon, path, "1800", model_id],
-                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                             start_new_session=True)
+            daemon_ipc.spawn_detached([sys.executable, daemon, path, "1800", model_id])
         except Exception:  # noqa: BLE001
             return None
         deadline = time.time() + spawn_wait
         while time.time() < deadline:
             time.sleep(1.0)
             try:
-                conn = connect()
+                conn = daemon_ipc.connect(path)
                 break
             except OSError:
                 continue
@@ -124,6 +119,19 @@ def main():
     ap.add_argument("--no-daemon", action="store_true", help="skip the warm daemon; load the model inline")
     ap.add_argument("--model-path", default=None, help="override the encoder (default: read from embeddings meta)")
     args = ap.parse_args()
+    # Queries carry Lean Unicode (=ᵐ[μ], σ, ∀). Windows decodes stdin with the ANSI code
+    # page by default, which either mojibakes the query — silently embedding the WRONG
+    # text — or dies outright on a byte cp1252 leaves undefined. Pin UTF-8 on every OS.
+    # stderr too: these scripts print temp paths, and a non-ASCII Windows username
+    # (C:\\Users\\Мария\\...) would otherwise raise UnicodeEncodeError on a redirected
+    # pipe AFTER the work succeeded, turning a good result into a non-zero exit.
+    if hasattr(sys.stderr, "reconfigure"):
+        try:
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+        except (OSError, ValueError):
+            pass  # closed or detached stderr: never let this abort startup
+    if hasattr(sys.stdin, "reconfigure"):
+        sys.stdin.reconfigure(encoding="utf-8", errors="replace")
     lines = [ln.rstrip("\n") for ln in sys.stdin]
     model_id = args.model_path or resolve_model()
 

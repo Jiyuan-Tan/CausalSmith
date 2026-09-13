@@ -1,0 +1,214 @@
+\section{Appendix B: spectral repair and finite-net benchmark}
+
+This appendix collects two auxiliary constructions used to connect the population modulus with sample-level procedures. The first is a spectral repair handle that turns empirical spectral information into a positive real atomic law even when eigenvalues are locally coalescent. The second is a class-advised finite-net benchmark that selects a stored admissible summary and then runs the exact spectral construction at that representative. Both constructions use finite-dimensional perturbation ideas familiar from matrix spectral analysis \citep{BauerFike1960,Kato1995,DavisKahan1970,StewartSun1990} and the moment-recovery perspective behind Wasserstein estimation from moments \citep{WuYang2020}.
+
+The repair handle records the finite moment target and the positive-law replacement used in the modulus-to-estimation route.
+
+\begin{algorithmv}{def:constructive-repair-handle}[Constructive repair handle \(m\)]
+The constructive repair handle is defined for laws in \cref{obj:def:model-class} as follows.
+\begin{enumerate}
+\item At the realized empirical summary, define the first \(2k\) spectral moments by
+\[
+m=(m_j)_{0\le j<2k}.
+\]
+\item Among all valid positive \(k\)-atomic laws \(\sum_i w_i\delta_{x_i}\), choose a minimizer of
+\[
+\sum_{j=0}^{2k-1}\left|m_j-\sum_i w_i x_i^j\right|.
+\]
+\item Extract the repaired real probability measure from the minimizing positive \(k\)-atomic law, transporting aggregate projector mass across each cluster diameter after replacing individual eigenvectors inside overlapping localization discs by Kato contour projectors.
+\item For the labeled-weight converse, differentiate the Bernoulli factorization of \(P_{\varepsilon}^{\mathrm{wit}}\) and solve the linear score-cancellation equations for the proxy and treatment primitives so that a weight displacement \(h\) preserves the factorization and the observed score has order \(g h\).
+\end{enumerate}
+\end{algorithmv}
+
+\Cref{obj:def:constructive-repair-handle} isolates the spectral information needed for positive real-law repair. The moment vector \(m\) contains the first \(2k\) empirical spectral moments, and the minimizing positive atomic law supplies a real probability measure compatible with those moments. The contour-projector clause expresses the standard perturbation treatment of clustered spectra: inside overlapping localization discs, aggregate eigenspaces carry the stable law-level mass.
+
+The finite-net benchmark makes this repair logic an exact-real finite search after a class-dependent representative library has been fixed.
+
+\begin{algorithmv}{def:finite-net-program}[Finite-net program \(\operatorname{NetProgram}(A,\omega)\)]
+The inputs are a stored representative library \(A=(A_i)_i\) and an observed sample \(\omega\).
+\begin{enumerate}
+\item For each representative \(A_i\), let \(S_i=(M_{0,i},M_{1,i},N_{0,i},N_{1,i},m_{X,i})\) be its stored five-block summary, and let
+\[
+\operatorname{rank}_{\mathrm{lex}}(i)
+\]
+be its position in the fixed lexicographic library order.
+
+\item Define the spectral law attached to representative \(A_i\) by
+\[
+\lambda^{\mathrm{spec}}(A_i),
+\]
+the real atomic effect law returned by the thresholded exact-real spectral run for \(A_i\).
+
+\item For the empirical five-block summary
+\[
+\widehat S_n(\omega)
+=
+(\widehat M_{0,n},\widehat M_{1,n},\widehat N_{0,n},\widehat N_{1,n},\widehat m_{X,n}),
+\]
+define the comparison criterion
+\[
+\Delta_i(\omega)
+:=
+\lVert M_{0,i}-\widehat M_{0,n}\rVert_{\mathrm{op}}
++
+\lVert M_{1,i}-\widehat M_{1,n}\rVert_{\mathrm{op}}
++
+\lVert N_{0,i}-\widehat N_{0,n}\rVert_{\mathrm{op}}
++
+\lVert N_{1,i}-\widehat N_{1,n}\rVert_{\mathrm{op}}
++
+\lVert m_{X,i}-\widehat m_{X,n}\rVert_2.
+\]
+
+\item If the library is nonempty, define the selected representative index by
+\[
+\widehat i(\omega)
+\in
+\operatorname*{arg\,min}_{i}
+\bigl(\Delta_i(\omega),\operatorname{rank}_{\mathrm{lex}}(i)\bigr),
+\]
+with the minimum taken in lexicographic order.
+
+\item The finite-library spectral program returns the selected representative and its spectral law,
+\[
+\operatorname{NetProgram}(A,\omega)
+:=
+\bigl(A_{\widehat i(\omega)},\lambda^{\mathrm{spec}}(A_{\widehat i(\omega)})\bigr),
+\]
+when the library is nonempty, and returns the canonical zero law when the library is empty. Its returned effect-law component is
+\[
+\operatorname{law}(\operatorname{NetProgram}(A,\omega)).
+\]
+\end{enumerate}
+\end{algorithmv}
+
+\Cref{obj:def:finite-net-program} defines the library selector at the level of stored summaries. The criterion is the same five-block \(d_S\)-type comparison used throughout the paper, and lexicographic tie-breaking makes the selected representative a total deterministic function of the sample and the library.
+
+The estimator below specifies how the representative library is built from an \(\epsilon_n\)-net of admissible summaries and how the selected representative is converted into an atomic law.
+
+\begin{algorithmv}{def:finite-net-law-estimator}[Finite-net estimator \(\widehat\nu_n^{\mathrm{net}}\)]
+The input is the empirical summary \(\widehat S_n\); the tuning constants are
+\[
+D:=4d_zd_x+d_x,\qquad
+b:=4\sqrt{d_zd_x}+\sqrt{d_x},\qquad
+\epsilon_n:=n^{-1/2}.
+\]
+\begin{enumerate}
+\item Partition the coordinate box \([-L,L]^D\) into a deterministic lexicographically ordered grid of half-open cubes whose side length is at most
+\[
+\epsilon_n/b.
+\]
+
+\item If \(\mathscr S=\varnothing\), set
+\[
+\widehat\nu_n^{\mathrm{net}}:=\delta_0
+\]
+and stop.
+
+\item For each grid cube that intersects \(\mathscr S\), choose one representative
+\[
+q_{n,\ell}\in\mathscr S.
+\]
+Let \(\widehat q_n\) be the smallest-index minimizer
+\[
+\widehat q_n
+\in
+\arg\min_{\ell} d_S(q_{n,\ell},\widehat S_n).
+\]
+
+\item At \(\widehat q_n\), form the vertically stacked proxy moment and retain the \(k\) right singular directions whose singular values exceed \(\pi_0\sigma_0^2/2\). Denote the resulting orthonormal basis by
+\[
+V.
+\]
+Using this basis, form the compressed effect operator, left anchor, and right anchor
+\[
+\Delta,\qquad a,\qquad c
+\]
+from the compressed-operator formulas.
+
+\item For each distinct eigenvalue \(\lambda\) of \(\Delta\), define the spectral projector
+\[
+E_\lambda
+:=
+\prod_{\gamma\in\operatorname{spec}(\Delta):\,\gamma\ne\lambda}
+\frac{\Delta-\gamma I_k}{\lambda-\gamma},
+\]
+with the empty product equal to \(I_k\).
+
+\item Output the atomic law
+\[
+\widehat\nu_n^{\mathrm{net}}
+:=
+\sum_{\lambda\in\operatorname{spec}(\Delta)}
+a^\top E_\lambda c\,\delta_\lambda .
+\]
+\end{enumerate}
+\end{algorithmv}
+
+The estimator \(\widehat\nu_n^{\mathrm{net}}\) is class-advised through the choice of admissible representatives \(q_{n,\ell}\). Once the nearest representative is selected, the construction returns to the compressed-operator formula from \cref{obj:def:compressed-operator}: thresholding fixes the rank-\(k\) signal space, and the spectral projectors aggregate the anchor weights attached to each distinct eigenvalue.
+
+\begin{theoremv}{thm:polynomial-net-law-estimator}[Polynomial finite-net estimator]
+Fix integers \(k,d_x,d_z\) and real constants \(L,\pi_0,\sigma_0\). Suppose
+\begin{itemize}
+\item \textbf{(Dimensions.)} \(2\le k\), \(k\le d_x\), and \(k\le d_z\).
+\item \textbf{(Bounds and margins.)} \(1\le L\), \(0<\pi_0\le (2k)^{-1}\), and \(0<\sigma_0\le 1\).
+\end{itemize}
+Then there are constants \(C_{\mathrm{mod}}>0\) and \(C>0\) such that, for every integer \(n\ge 1\), there is a class-dependent finite library \(A=(A_i)_i\) of representative summaries as in \cref{obj:def:finite-net-law-estimator} with the following properties. For every uniform provider of the fixed-parameter exact-real primitives on the admissible core parameter domain, the finite-net estimator \(\widehat\nu_n^{\mathrm{net}}\) is Borel measurable, and
+\[
+|A|\le C n^{(4d_zd_x+d_x)/2}.
+\]
+For every observed sample \(\omega=(O_1,\ldots,O_n)\in O_{d_x,d_z}^n\), the operation count of the same exact-real execution that returns \(\widehat\nu_n^{\mathrm{net}}(\omega)\) is at most
+\[
+C\{n+n^{(4d_zd_x+d_x)/2}\}.
+\]
+Its trace is exactly the empirical-summary trace, followed by the exhaustive finite-library search trace, and followed by the selected spectral-run trace when a representative is selected; if no representative is selected, the final spectral-run trace is empty.
+
+If the program selects index \(i\) on sample \(\omega\), then \(S_i\) is a nearest library summary to the empirical summary \(\widehat S_n(\omega)\) of \cref{obj:def:empirical-summary}:
+\[
+d_S(S_i,\widehat S_n(\omega))\le d_S(S_j,\widehat S_n(\omega))
+\qquad\text{for every }j.
+\]
+Among all tied nearest summaries, \(i\) has minimal lexicographic rank:
+\[
+d_S(S_i,\widehat S_n(\omega))=d_S(S_j,\widehat S_n(\omega))
+\quad\Longrightarrow\quad
+\operatorname{rank}_{\mathrm{lex}}(i)\le \operatorname{rank}_{\mathrm{lex}}(j).
+\]
+For the exact spectral run at \(S_i\), the estimator equals the run's returned effect law. For each treatment value \(t\), the observed proxy moment at \(S_i\), multiplied by the run's basis matrix, defines an injective Euclidean linear map. The stacked proxy moment at \(S_i\) satisfies the exact threshold characterization
+\[
+\frac{\pi_0\sigma_0^2}{2}\le \sigma_j(\operatorname{stack}(M_0(S_i),M_1(S_i)))
+\quad\Longleftrightarrow\quad
+j<k,
+\]
+for every singular-value index \(j\). Every eigenvalue of the compressed operator formed at \(S_i\) with the run's basis and spans appears among the eigenvalues returned by that run.
+
+For every stored representative \(S_i\) and every rectangular perturbation \(H\in\mathbb R^{2d_z\times d_x}\),
+\[
+\|H\|_{\mathrm{op}}<\frac{\pi_0\sigma_0^2}{2}
+\]
+implies that singular-value thresholding at \(\pi_0\sigma_0^2/2\) recovers exactly the \(k\)-dimensional matrix signal space for
+\[
+\operatorname{stack}(M_0(S_i),M_1(S_i))+H.
+\]
+For every index \(i\), there is a model law \(Q\in\mathcal M\) from \cref{obj:def:model-class} whose observable summary is \(S_i\), and the exact spectral run at \(S_i\) returns the quotient law \(\nu_Q\). Each returned representative effect law is a valid atomic law.
+
+For every \(P\in\mathcal M\), every observed sample \(\omega\in O_{d_x,d_z}^n\) satisfies
+\[
+W_1\!\left(\widehat\nu_n^{\mathrm{net}}(\omega),\nu_P\right)
+\le
+C_{\mathrm{mod}}\left\{2d_S(\widehat S_n(\omega),S(P))+n^{-1/2}\right\}.
+\]
+Finally, for every tail level \(\eta\) with \(0<\eta<1/2\) and every \(P\in\mathcal M\),
+\[
+Q_P^{(n)}\!\left(
+W_1\!\left(\widehat\nu_n^{\mathrm{net}},\nu_P\right)
+>
+C\sqrt{\frac{\log(C/\eta)}{n}}
+\right)
+\le \eta .
+\]
+\end{theoremv}
+
+\Cref{obj:thm:polynomial-net-law-estimator} establishes the finite-net benchmark. For fixed dimensions and fixed conditioning constants, the representative library has polynomial size in \(n\), the online exact-real operation count is polynomial in the same sense, and the selected summary is the lexicographically first nearest library representative. The deterministic \(W_1\) inequality converts empirical summary error plus the \(n^{-1/2}\) mesh scale into quotient-law error, and the final tail bound applies the same concentration scale used for the main law estimator.
+
+The intuition is that the admissible summary image is compact and finite-dimensional, so an \(n^{-1/2}\)-mesh supplies a representative close enough for the gap-free modulus to absorb the discretization error. At the chosen representative, the proxy-rank margin makes singular-value thresholding recover the correct \(k\)-dimensional signal space under perturbations below \(\pi_0\sigma_0^2/2\). The exact spectral run then returns the quotient law for a model law with that stored summary, and the modulus transfers the distance from the empirical summary to \(W_1\) distance between effect laws.

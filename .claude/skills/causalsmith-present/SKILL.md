@@ -14,19 +14,21 @@ lean_snippets.json, paper_body.html, assumption_table.md, meta.json), rendered b
 Main dispatches one P-orchestrator per bundle; you hold the resume-lease. You own launches/resumes,
 checkpoint reviews (auto_mode → `--auto`: self-approves both checkpoints, keeps every hard halt;
 record what you checked), every content
-adjudication (frozen layer vs Lean, crosswalk repairs, promotion decisions, cache verdict flips,
-authored-source edits, P5 triage), and the referee budget. Self-resume freely.
+adjudication (frozen layer vs Lean, crosswalk repairs, promotion decisions, main-approved cache
+verdict flips, authored-source edits, P5 triage), and the referee budget. Self-resume freely.
 
 You never edit pipeline code or prompts, commit/push, run the public export, or edit bank D/F content
 outside the documented channels (crosswalk patch, promotion review, frozen-body amendment). Return
 the lease with verbatim receipts only for:
 
-- `paper-done` — score trajectory, kept version, adjudications (fixed vs dismissed), files awaiting
+- `paper-done` — score trajectory, kept version, adjudications (fixed vs main-dismissed), files awaiting
   commit, your own clarity verdict.
 - `pipeline-bug` — per the Bug-fix contract.
 - `cap-block` — a cap reached with unresolved findings; never grant yourself more (exception: the P2
   `--promote-again` decision is yours).
 - `user-scope` — a finding needing new mathematics (corollaries, renames, simulation studies).
+- `verdict-appeal` — a judge issue you believe wrong (quoted issue, object id, why); first
+  occurrence included. Main flips the cached verdict or writes a prompt rule; you never do either.
 - `dispatch-request` — you need a subagent. `commit-request` — bundle ready; main owns git.
 
 **Authorship standard:** a conventional paper for the field, not a prose translation of Lean. Lead
@@ -63,7 +65,8 @@ No figures in the paper (no gate audits them); tables and prose carry regime sum
    unattended. (1) You root-fix every finding by hand at the level that owns it, before paying any
    downstream stage: outline order or duplicate blocks → `outline.md` (`home_objs:`) and `--from P1`;
    a synthesized definition's rendering → P1; prose → `front_matter.tex`, `sections/*.tex`,
-   `proofs/*.tex` and `--from P2` (`paper.tex` is derived, never hand-edit it). Order matters:
+   `proofs/*.tex` and `--from P2` (`paper.tex` is derived, never hand-edit it; a hand-edited proof
+   keeps its `% lean:` step tags — the proof judge maps steps to Lean by them). Order matters:
    make outline/P1 changes FIRST and re-enter P1, then hand-edit prose and re-enter P2 — a
    `--from P1` revises every section whose objects changed from its prior draft (hand prose is
    carried, not guaranteed: diff after the re-entry), a section whose number shifted starts
@@ -97,8 +100,8 @@ No figures in the paper (no gate audits them); tables and prose carry regime sum
 Never rerun an audit without a material change. Verdicts are content-keyed: `equivalence_cache.json`
 (P1), `proof_audit_cache.json` (P2), `gate_cache.json` (P3), `p1_cache.json` (renders, notation
 reviews, synthesis, `synthEnvs`). Reruns re-pay only changed inputs; delete a cache file to force a
-fresh audit. Never hand-compute a key; to reseed an adjudicated false positive, flip that obj_id's
-`verdict` to `"faithful"` and leave `key` untouched, one explicit edit per entry.
+fresh audit. Never hand-compute a key; to reseed a false positive main has adjudicated, flip that
+obj_id's `verdict` to `"faithful"` and leave `key` untouched, one explicit edit per entry.
 
 - A proof approval keys on the proof text, its Lean source, the statement it proves, the statements
   it cites by `\cref`, and the notation rows it meets — nothing else. Changing a statement re-judges
@@ -195,12 +198,16 @@ residual, diagnose: (1) wrong crosswalk mapping — find the real decl (name-aff
 inside T-blocks are common), patch the bank's `*_crosswalk_full.json` (keep a `.bak`); (2) note
 overstates Lean — amend the frozen body to the Lean-true form, sync cached sections, `--from P1`,
 never edit the accepted note; (3) auditor miscalibration — a general prompt rule, via main.
+A judge's issue is itself a claim you check: one that objects to text no reader sees (a comment, a
+`\leanref` id) or contradicts the writer's own contract (`p2_proof.txt`) is a suspected false
+positive — never edit a proof to satisfy it and never flip the verdict yourself: return
+`verdict-appeal`; main decides the flip or a prompt rule (3).
 
 Frozen bodies (`nl.frozen_body`) enter verbatim and stay under the current judge; `--from P1
 --refresh-frozen-bodies` requests refreshed wording. Hand-authoring a frozen body: never assert a
 named conclusion by bare name (unfold it or `\cref` the env), never display pure logical packaging,
 check occurrence counts around every replacement. An env bundling several adjacent Lean decls is a
-recurring false positive — verify decl-by-decl, then reseed. Record every adjudication in
+recurring false positive — verify decl-by-decl, then escalate for main's reseed. Record every adjudication in
 `_causalsmith_present_adjudication_<date>.md` in the bank entry dir plus a state note; list bank
 edits separately from pipeline edits in `commit-request`; sweep the prose around amended envs.
 

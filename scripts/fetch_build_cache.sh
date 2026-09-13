@@ -46,5 +46,5 @@ fi
 mkdir -p .lake
 # The archive holds `build/`; extracting over an existing tree is fine (same-commit
 # objects are byte-identical, others get rebuilt by their traces).
-tar --use-compress-program=unzstd -xf "$tmp/build.tar.zst" -C .lake
+tar --use-compress-program="zstd -d" -xf "$tmp/build.tar.zst" -C .lake
 echo "fetch_build_cache: unpacked $(find .lake/build/lib -name '*.olean' | wc -l) oleans into .lake/build; run: lake build"

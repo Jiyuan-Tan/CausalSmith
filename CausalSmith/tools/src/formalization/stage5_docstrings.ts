@@ -3,9 +3,7 @@
 // with undocumented declarations), so coverage is authored HERE — the guaranteed-final
 // Lean-edit point of the research run — not at presentation time.
 
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { readdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { MODEL_PLAN } from "../constants.js";
@@ -14,9 +12,30 @@ import { artifactPaths, readPrompt, type StageDeps } from "../pipeline_support.j
 import { isPaperTmpPath } from "../paths.js";
 import { dispatchAgent } from "../framework/agent_dispatch.js";
 import { crosslinkNames, linksGoal, sourceBinders } from "../shared/nl_crosslinks.js";
+import { spawnWithInactivityTimeout } from "../workers/spawn.js";
+import { withLakeBuildLock } from "../shared/build_mutex.js";
 
-const execFileP = promisify(execFile);
 const LAKE_TIMEOUT_MS = 1800_000;
+
+/**
+ * The checkpoint-sized summary of a failed lake invocation: its `error` lines (lake writes
+ * Lean's per-file diagnostics to STDOUT and only `build failed` to stderr, so both streams
+ * are scanned), never the command line — a `lake -d <root> build <4 module names>` prefix
+ * alone exceeds any sane cap and hid every diagnostic behind it (2026-09-11).
+ */
+export function lakeFailureSummary(
+  r: { stdout: string; stderr: string; exitCode: number | null; killedDueToInactivity?: boolean; killedDueToTotalTimeout?: boolean },
+  logPath: string,
+): string {
+  const errs = `${r.stdout}\n${r.stderr}`
+    .split("\n")
+    .filter((l) => /error/i.test(l))
+    .slice(0, 25)
+    .join("\n")
+    .trim();
+  const killed = r.killedDueToInactivity ? " (killed: no output for 30 min)" : r.killedDueToTotalTimeout ? " (killed: 30 min wall-clock)" : "";
+  return `${errs || `lake exited ${r.exitCode}`}${killed}\n(full lake output: ${logPath})`;
+}
 
 export interface UndocumentedDecl {
   name: string;
@@ -108,11 +127,19 @@ export async function ensureDocstringCoverage(args: {
   const modules = [...rootModule, ...moduleNamesFor(args.state.lean_subdir, relFiles)];
   if (modules.length === 0) return null;
   const indexOut = path.join(paths.formalizationDir, "docstring_coverage.json");
+  const lakeLog = path.join(paths.formalizationDir, "docstring_lake.log");
+  // Full stdout+stderr of every lake call lands in `lakeLog` (overwritten per call); a failure
+  // throws only the diagnostic lines, so the checkpoint message carries the Lean error itself.
   const lake = (lakeArgs: string[]) =>
-    execFileP("lake", ["-d", args.ctx.repoRoot, ...lakeArgs], {
-      cwd: args.ctx.repoRoot,
-      maxBuffer: 16 * 1024 * 1024,
-      timeout: LAKE_TIMEOUT_MS,
+    withLakeBuildLock(args.ctx.repoRoot, async () => {
+      const r = await spawnWithInactivityTimeout("lake", ["-d", args.ctx.repoRoot, ...lakeArgs], {
+        cwd: args.ctx.repoRoot,
+        env: process.env,
+        inactivityTimeoutMs: LAKE_TIMEOUT_MS,
+        maxTotalMs: LAKE_TIMEOUT_MS,
+      });
+      await writeFile(lakeLog, `$ lake ${lakeArgs.join(" ")}\n${r.stdout}\n${r.stderr}`, "utf8");
+      if (r.exitCode !== 0) throw new Error(lakeFailureSummary(r, lakeLog));
     });
   // Build first: paper_index reads OLEANS and silently emits an empty index over stale ones.
   const extractUndocumented = async (): Promise<UndocumentedDecl[]> => {
@@ -140,7 +167,7 @@ export async function ensureDocstringCoverage(args: {
     undoc = await extractUndocumented();
   } catch (err) {
     return (
-      `F5 docstring coverage could not be computed (${(err instanceof Error ? err.message : String(err)).slice(0, 300)}). ` +
+      `F5 docstring coverage could not be computed:\n${err instanceof Error ? err.message : String(err)}\n` +
       `Resolve the build/extraction error then resume; the docstring gate cannot be skipped ` +
       `(P4 refuses to emit an undocumented bundle).`
     );
@@ -171,12 +198,23 @@ export async function ensureDocstringCoverage(args: {
   try {
     residual = await extractUndocumented();
   } catch (err) {
+    // Keep the rejected edit (the only evidence of what the model wrote) before restoring.
+    const rejectedDir = path.join(paths.formalizationDir, "docstring_rejected");
     for (const [f, content] of snapshot) {
-      await writeFile(path.join(args.ctx.repoRoot, f), content, "utf8");
+      const abs = path.join(args.ctx.repoRoot, f);
+      try {
+        const keep = path.join(rejectedDir, f);
+        await mkdir(path.dirname(keep), { recursive: true });
+        await writeFile(keep, await readFile(abs, "utf8"), "utf8");
+      } catch (keepErr) {
+        // Evidence is best-effort; the restore below must run regardless.
+        console.warn(`[F5] could not keep rejected ${f}: ${keepErr instanceof Error ? keepErr.message : String(keepErr)}`);
+      }
+      await writeFile(abs, content, "utf8");
     }
     return (
       `F5 docstring pass broke the build; its edits were restored byte-for-byte ` +
-      `(${err instanceof Error ? err.message.slice(0, 300) : String(err)}). ` +
+      `(rejected versions kept under ${rejectedDir}):\n${err instanceof Error ? err.message : String(err)}\n` +
       `Document the declarations by hand (first paragraph = NL translation) then resume.`
     );
   }

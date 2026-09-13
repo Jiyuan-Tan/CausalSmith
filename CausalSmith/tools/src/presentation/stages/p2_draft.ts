@@ -36,7 +36,9 @@ import { mapLimit } from "../gates.js";
 import { proofFilePath } from "../proof_files.js";
 import { applyProseRevision, applyTargetedReplacements, type TextReplacement } from "../prose_revision.js";
 import { normalizeRawModelJson, repairLatexStringsDeep } from "../../discovery/core/latex_serialization.js";
-import { runProofAudit, type ProofRenderHook } from "../audit.js";
+import { runProofAudit, leanSourceReader, type ProofRenderHook } from "../audit.js";
+import { helperDeclarationsFor } from "../lean_one_hop.js";
+import { buildModuleDeclIndex } from "../components.js";
 import { extractFullDeclSource } from "../lean_extract.js";
 import { discoverRealizedSymbols, buildSymbolClusters } from "../../formalization/crosswalk.js";
 import { unconsumedStatementNodes, type FormalizationGraph } from "../graph_view.js";
@@ -161,13 +163,12 @@ const canonicalProofHelperTex = (context: ProofHelperContext[]): string =>
 export function proofRenderCacheKey(parts: {
   modelKey: string; objId: string; envTex: string; leanPath: string; leanDecl: string;
   exactDecl: string; helperContext: ProofHelperContext[]; notation: string; revisionBrief: string;
-  citedDependencies: string; informalDerivation: string; objectCatalog?: string;
+  citedDependencies: string; informalDerivation: string;
 }): string {
   return hashEnvBody([
     parts.modelKey, "proof-helper-set-v2", parts.objId, parts.envTex, parts.leanPath, parts.leanDecl,
     parts.exactDecl, canonicalProofHelperContext(parts.helperContext), parts.notation,
     parts.revisionBrief, parts.citedDependencies, "citation-erasure-v1", parts.informalDerivation,
-    ...(parts.objectCatalog === undefined ? [] : ["scoped-proof-context-v1", parts.objectCatalog]),
   ].join("§"));
 }
 
@@ -537,7 +538,16 @@ export async function stageP2(io: StageIO): Promise<void> {
     // Keyed on the workspace-relative source so a checkout path is not a render input.
     return proofRenderCacheKey({ modelKey: modelCacheKey, objId, envTex, leanPath: resolved.file, leanDecl: resolved.decl,
       exactDecl, helperContext, notation, revisionBrief, citedDependencies: citedDependencyPromptFor(objId),
-      informalDerivation: informalDerivationFor(objId), objectCatalog: objectCatalogFor(objId) });
+      informalDerivation: informalDerivationFor(objId) });
+  };
+  // The Lean helpers a proof names, supplied to the writer as the judge already receives them
+  // (one deterministic extraction per proof instead of the writer walking the source tree).
+  const helperSources = { readRunFile: leanSourceReader(io.ctx.repoRoot, io.bank.leanSubdir), libraryMemo: new Map<string, string | null>() };
+  let runIndexPromise: ReturnType<typeof buildModuleDeclIndex> | undefined;
+  const helperDeclarationsForProof = async (exactDecl: string, targetDecl: string): Promise<string> => {
+    if (!exactDecl) return "(exact excerpt unavailable — read helpers from source)";
+    runIndexPromise ??= buildModuleDeclIndex(io.ctx.repoRoot, io.bank.leanSubdir);
+    return helperDeclarationsFor({ proofSource: exactDecl, targetDecl, runIndex: await runIndexPromise, repoRoot: io.ctx.repoRoot, ...helperSources });
   };
   /** ONE writer for a result's proof: the first render and every judge-driven repair go through
    *  this prompt. A repair passes the prior proof and the judge's tagged issues as defects. */
@@ -555,6 +565,7 @@ export async function stageP2(io: StageIO): Promise<void> {
       prompt: await presentationPrompt("p2_proof", {
         theorem_env: envText.get(objId)!,
         lean_proof_source: `file: ${leanPath}\ndeclaration: ${resolved.decl}\n\n${exactDecl || "Read this declaration from the file; no exact excerpt was resolved."}`,
+        helper_declarations: await helperDeclarationsForProof(exactDecl, resolved.decl),
         helper_lemma_envs: helperTex || "(no recorded paper dependency; consult the catalogue if the Lean route uses another paper object)",
         paper_object_catalog: objectCatalogFor(objId),
         formal_layer_path: join(io.outDir, "formal_layer.json"),
@@ -581,7 +592,8 @@ export async function stageP2(io: StageIO): Promise<void> {
     const lean = leanPointer(io.bank.graph, objId);
     if (!lean) return null;
     const stdout = await renderProofOnce(objId, lean, { priorProof, defects: issues, previousIssues });
-    const patched = parseProofRepair(stdout, priorProof);
+    const patched = parseProofRepair(stdout, priorProof, (skipped, total) =>
+      io.state.notes.push(`P2: ${objId} repair applied ${total - skipped}/${total} patches; ${skipped} locator(s) stale (see agent_calls.log)`));
     if (patched === null) io.state.notes.push(`P2: ${objId} repair returned invalid exact replacements; kept the prior proof (see agent_calls.log)`);
     return patched;
   };
@@ -928,9 +940,10 @@ function validatePlacement(outline: Outline, envs: AnchoredEnv[]): void {
   }
 }
 
-/** Repair only the exact named passages. Invalid/ambiguous patches leave the saved proof
- * untouched; the audit loop records the stopped attempt instead of buying another rewrite. */
-export function parseProofRepair(stdout: string, priorProof: string): string | null {
+/** Repair only the exact named passages. A malformed reply leaves the saved proof untouched;
+ * a patch whose passage is missing or ambiguous is skipped and the rest are applied (a paid
+ * round is not discarded for one stale locator); no applicable patch reads as an empty repair. */
+export function parseProofRepair(stdout: string, priorProof: string, onSkipped?: (skipped: number, total: number) => void): string | null {
   let parsed: { replacements?: unknown } | null;
   const json = /^```(?:json)?\s*\n([\s\S]*?)\n```\s*$/.exec(stdout.trim())?.[1] ?? stdout.trim();
   try { parsed = JSON.parse(normalizeRawModelJson(json)); repairLatexStringsDeep(parsed); } catch { return null; }
@@ -947,7 +960,8 @@ export function parseProofRepair(stdout: string, priorProof: string): string | n
   // Same ordered protocol as prose revisions: a patch can refer to text introduced
   // by an earlier patch. Restrict editing to the body and commit only a complete result.
   const applied = applyTargetedReplacements(priorProof.slice(bodyStart, -closing.length), replacements);
-  if (applied.skipped.length > 0) return null;
+  if (applied.applied.length === 0 && applied.skipped.length > 0) return null; // nothing landed: an invalid repair
+  if (applied.skipped.length > 0) onSkipped?.(applied.skipped.length, replacements.length);
   const revised = priorProof.slice(0, bodyStart) + applied.tex + closing;
   return extractBalancedEnv(revised, "proof") === revised ? revised : null;
 }

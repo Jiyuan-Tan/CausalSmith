@@ -3,12 +3,17 @@
 # Client for the warm rerank daemon (scripts/rerank_daemon.py). Reads one or more rerank requests
 # as JSONL on stdin — each line {"query": "...", "names": [...]} — and writes a JSON array of
 # score arrays (aligned to each request's `names`) to --out. Prefers the warm daemon (spawning it
-# on first use); falls back to an inline model load so reranking never hard-fails a caller.
+# on first use); falls back to an inline model load so reranking never hard-fails a caller, on
+# any OS (the daemon transport is unix-socket on POSIX, loopback TCP on Windows — daemon_ipc.py).
 import os
 os.environ.setdefault("HF_HUB_OFFLINE", "1")
 os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
-import sys, argparse, socket, json, struct, hashlib, subprocess, time, tempfile, re
+import sys, argparse, json, struct, time, re
 import numpy as np
+try:
+    import daemon_ipc
+except ImportError:  # the inline path below must still work
+    daemon_ipc = None
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 META = os.path.join(ROOT, "doc", "retrieval_reranker.meta.json")
@@ -16,8 +21,7 @@ MAX_NEIGHBORS = 16
 
 
 def sock_path():
-    h = hashlib.sha1((ROOT + "|reranker").encode()).hexdigest()[:12]
-    return os.path.join(tempfile.gettempdir(), f"causalean-rerank-{h}.sock")
+    return daemon_ipc.endpoint("rerank", ROOT + "|reranker") if daemon_ipc else None
 
 
 def _recvn(conn, n):
@@ -46,22 +50,20 @@ def one_request(conn, query, names):
 
 def via_daemon(reqs, path, spawn_wait=120.0):
     """Score each request over the warm daemon (one connection per request). None → fall back."""
-    def connect():
-        c = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        c.settimeout(180.0)
-        c.connect(path)
-        return c
-
+    if daemon_ipc is None or path is None:
+        return None
     # Ensure the daemon is up (spawn detached, poll until it answers a health-check).
     try:
-        connect().close()
-    except OSError:
+        daemon_ipc.connect(path).close()
+    except OSError as e:
+        # Stale endpoint from a dead daemon: clear it so the new one publishes cleanly.
+        if isinstance(e, ConnectionRefusedError):
+            daemon_ipc.unlink(path)
         daemon = os.path.join(os.path.dirname(__file__), "rerank_daemon.py")
         if not os.path.exists(daemon):
             return None
         try:
-            subprocess.Popen([sys.executable, daemon, path, "1800"],
-                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+            daemon_ipc.spawn_detached([sys.executable, daemon, path, "1800"])
         except Exception:  # noqa: BLE001
             return None
         deadline = time.time() + spawn_wait
@@ -69,7 +71,7 @@ def via_daemon(reqs, path, spawn_wait=120.0):
         while time.time() < deadline:
             time.sleep(1.0)
             try:
-                connect().close()
+                daemon_ipc.connect(path).close()
                 ok = True
                 break
             except OSError:
@@ -84,7 +86,7 @@ def via_daemon(reqs, path, spawn_wait=120.0):
             out.append([])
             continue
         try:
-            conn = connect()
+            conn = daemon_ipc.connect(path)
         except OSError:
             return None
         try:
@@ -102,9 +104,13 @@ def via_daemon(reqs, path, spawn_wait=120.0):
 
 # ── inline fallback (no daemon): build passages from the index + score with the model here ──
 def _inline(reqs):
-    meta = json.load(open(META))
+    # encoding is explicit: the index carries Unicode from Lean docstrings, which
+    # Windows would otherwise decode with the ANSI code page and crash on.
+    with open(META, encoding="utf-8") as fh:
+        meta = json.load(fh)
     view = meta.get("passage", "nbr")
-    ents = json.load(open(os.path.join(ROOT, "doc", "library_index.json")))["entries"]
+    with open(os.path.join(ROOT, "doc", "library_index.json"), encoding="utf-8") as fh:
+        ents = json.load(fh)["entries"]
     by = {e["name"]: e for e in ents}
 
     def humanize(name):
@@ -159,6 +165,18 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--no-daemon", action="store_true")
     args = ap.parse_args()
+    # See embed_text.py: queries and decl names carry Lean Unicode, and Windows would
+    # otherwise decode stdin with the ANSI code page.
+    # stderr too: these scripts print temp paths, and a non-ASCII Windows username
+    # (C:\\Users\\Мария\\...) would otherwise raise UnicodeEncodeError on a redirected
+    # pipe AFTER the work succeeded, turning a good result into a non-zero exit.
+    if hasattr(sys.stderr, "reconfigure"):
+        try:
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+        except (OSError, ValueError):
+            pass  # closed or detached stderr: never let this abort startup
+    if hasattr(sys.stdin, "reconfigure"):
+        sys.stdin.reconfigure(encoding="utf-8", errors="replace")
     reqs = [json.loads(ln) for ln in sys.stdin if ln.strip()]
 
     scores = None
@@ -170,7 +188,8 @@ def main():
     if scores is None:
         scores = _inline(reqs)
 
-    json.dump(scores, open(args.out, "w"))
+    with open(args.out, "w", encoding="utf-8") as fh:
+        json.dump(scores, fh)
     print(f"reranked {len(reqs)} requests via {via} -> {args.out}", file=sys.stderr)
 
 

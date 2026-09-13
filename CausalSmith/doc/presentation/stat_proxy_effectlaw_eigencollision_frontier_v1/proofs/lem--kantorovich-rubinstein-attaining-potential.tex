@@ -1,0 +1,157 @@
+\begin{proof}[Proof of \cref{obj:lem:kantorovich-rubinstein-attaining-potential}]
+Write
+\[
+\nu=\sum_i p_i\delta_{x_i},
+\qquad
+\xi=\sum_j q_j\delta_{y_j},
+\]
+with \(p_i,q_j\ge0\), \(\sum_i p_i=\sum_jq_j=1\).  Define
+\[
+F_\nu(t):=\sum_i p_i{\bf 1}\{x_i\le t\},
+\qquad
+F_\xi(t):=\sum_j q_j{\bf 1}\{y_j\le t\},
+\qquad
+\Delta(t):=F_\nu(t)-F_\xi(t),
+\]
+and let
+\[
+s(t):=
+\begin{cases}
+1,&\Delta(t)>0,\\
+-1,&\Delta(t)<0,\\
+0,&\Delta(t)=0.
+\end{cases}
+\]
+The selected potential is
+\[
+\varphi_{\nu,\xi}(x):=\int_0^x s(t)\,dt .
+\]
+Since \(|s(t)|\le1\), for all \(x,y\in\mathbb R\),
+\[
+|\varphi_{\nu,\xi}(x)-\varphi_{\nu,\xi}(y)|
+=
+\left|\int_y^x s(t)\,dt\right|
+\le |x-y|,
+\]
+so \(\varphi_{\nu,\xi}\) is one-Lipschitz.  Also
+\[
+\varphi_{\nu,\xi}(0)=\int_0^0 s(t)\,dt=0 .
+\]
+% lean: CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicLaw.krPotential_zero
+
+We next record the finite one-dimensional transport identity used by the potential.  For any finite transport plan \(\gamma=(\gamma_{ij})\) from \(\nu\) to \(\xi\), put
+\[
+C_\gamma(t)
+:=
+\sum_{i,j}\gamma_{ij}
+\bigl(
+{\bf 1}\{x_i\le t<y_j\}
+-
+{\bf 1}\{y_j\le t<x_i\}
+\bigr).
+\]
+Using the two marginal constraints of the plan gives
+\[
+\Delta(t)=C_\gamma(t)
+\qquad\text{for every }t\in\mathbb R .
+\]
+Hence, with
+\[
+E_\gamma(t):=
+\sum_{i,j}\gamma_{ij}
+{\bf 1}\{\min(x_i,y_j)\le t<\max(x_i,y_j)\},
+\]
+we have
+\[
+|\Delta(t)|\le E_\gamma(t).
+\]
+Integrating and using
+\[
+\int_{\mathbb R}{\bf 1}\{\min(x_i,y_j)\le t<\max(x_i,y_j)\}\,dt
+=
+|x_i-y_j|
+\]
+yields
+\[
+\int_{\mathbb R}|\Delta(t)|\,dt
+\le
+\sum_{i,j}\gamma_{ij}|x_i-y_j|.
+\]
+% lean: CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicLaw.integral_abs_cdfGap_le_transportCost
+
+Conversely, the finite transport polytope is compact and the quadratic cost
+\[
+\sum_{i,j}\gamma_{ij}(x_i-y_j)^2
+\]
+therefore has a minimizer.  If such a minimizer sent positive mass across some cut in both directions, shifting
+\(\varepsilon=\min\{\gamma_{ij},\gamma_{kl}\}\) from the crossing pairs \((i,j),(k,l)\) to \((i,l),(k,j)\) would preserve the two marginals and decrease the quadratic cost by
+\[
+2\varepsilon(x_k-x_i)(y_j-y_l)>0,
+\]
+a contradiction.  Thus the minimizer has no counterflow across any cut, and for that plan \(|C_\gamma(t)|=E_\gamma(t)\) for every \(t\).  Consequently
+\[
+\sum_{i,j}\gamma_{ij}|x_i-y_j|
+=
+\int_{\mathbb R}E_\gamma(t)\,dt
+=
+\int_{\mathbb R}|\Delta(t)|\,dt .
+\]
+Together with the preceding inequality and \cref{obj:def:wasserstein-distance}, this gives
+\[
+W_1(\nu,\xi)=\int_{\mathbb R}|\Delta(t)|\,dt .
+\]
+% lean: CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicLaw.w1_eq_integral_abs_cdfGap
+
+It remains to evaluate the potential.  For an atom \(a\), set
+\[
+\chi_a(t):=
+{\bf 1}\{0\le t<a\}-{\bf 1}\{a\le t<0\}.
+\]
+Then
+\[
+\varphi_{\nu,\xi}(a)=\int_{\mathbb R}s(t)\chi_a(t)\,dt .
+\]
+Interchanging the finite sums with the integral gives
+\[
+\int \varphi_{\nu,\xi}\,d\nu-\int \varphi_{\nu,\xi}\,d\xi
+=
+\int_{\mathbb R}s(t)
+\left\{
+\sum_i p_i\chi_{x_i}(t)-\sum_j q_j\chi_{y_j}(t)
+\right\}\,dt .
+\]
+For \(t\ge0\), the expression in braces equals
+\((1-F_\nu(t))-(1-F_\xi(t))=-\Delta(t)\); for \(t<0\), it equals
+\(-F_\nu(t)+F_\xi(t)=-\Delta(t)\).  Therefore
+\[
+\int \varphi_{\nu,\xi}\,d\nu-\int \varphi_{\nu,\xi}\,d\xi
+=
+-\int_{\mathbb R}s(t)\Delta(t)\,dt
+=
+-\int_{\mathbb R}|\Delta(t)|\,dt .
+\]
+Taking absolute values and using the preceding display for \(W_1\) gives
+\[
+W_1(\nu,\xi)
+=
+\left|
+  \int \varphi_{\nu,\xi}\,d\nu
+  -
+  \int \varphi_{\nu,\xi}\,d\xi
+\right|.
+\]
+% lean: CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicLaw.krPotential_attains
+
+Finally, suppose \(\epsilon\in\mathbb R\) and every normalized one-Lipschitz test function satisfies the displayed bound.  Applying that bound to the just-constructed \(\varphi_{\nu,\xi}\), which is one-Lipschitz and satisfies \(\varphi_{\nu,\xi}(0)=0\), gives
+\[
+W_1(\nu,\xi)
+=
+\left|
+  \int \varphi_{\nu,\xi}\,d\nu
+  -
+  \int \varphi_{\nu,\xi}\,d\xi
+\right|
+\le \epsilon .
+\]
+% lean: CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier.krPotential_attains_with_normalization
+\end{proof}

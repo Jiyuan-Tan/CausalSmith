@@ -2,6 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { pythonArgs } from "../../shared/python.js";
 import { createRetrieval, loadLibraryLenient, applyRerank, type Candidate } from "../reuse_retrieval.js";
 import { loadSemanticTier } from "../semantic_tier.js";
 import { rerankBatch, rerankerAvailable, loadRerankerMeta } from "../reranker_tier.js";
@@ -43,7 +44,8 @@ function embedTexts(texts: string[], tag: string, dim: number): (i: number) => F
     // A stuck model load or a wedged embed daemon must NOT stall the eval forever: cap the
     // subprocess (mirrors embedQueries in semantic_tier.ts). On timeout execFileSync throws,
     // which the callers catch to degrade the semantic arms to lexical.
-    execFileSync("python3", ["scripts/embed_text.py", "--out", out], {
+    const [bin, argv] = pythonArgs("scripts/embed_text.py", ["--out", out]);
+    execFileSync(bin, argv, {
       input: fs.readFileSync(txt), cwd: process.cwd(),
       timeout: 180_000, maxBuffer: 64 * 1024 * 1024,
     });

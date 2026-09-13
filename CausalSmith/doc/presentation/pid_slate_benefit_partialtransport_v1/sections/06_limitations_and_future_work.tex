@@ -1,0 +1,53 @@
+\section{Limitations and future work}\label{sec:limitations}
+
+The most important practical limitation is the width of the deterministic guard.  The
+guarantee in \cref{obj:thm:uniform-deterministic-guard} is a union bound over the finite event
+collection \(\mathcal E\), and it buys uniformity at the price of large constants.  Taking the
+smallest configuration the model allows --- \(K=3\), \(|\mathcal X|=1\), \(\varepsilon_Z=1/4\),
+\(\alpha=0.05\), and \(m_\star=1/4\) --- gives \(|\mathcal E|=15\), so
+\[
+b_{n,\alpha}\approx 8.7\,n^{-1/2},
+\qquad
+A_{n,\alpha}\approx 2.7\times10^{4}\,n^{-1/2},
+\qquad
+g_{n,\alpha}\approx 4.3\times10^{5}\,n^{-1/2}
+\]
+before the screening term is added.  Since \(g_{n,\alpha}\) is capped at \(1\), the reported
+interval equals the whole of \([0,1]\) for every \(n\) below roughly \(10^{11}\), and its
+half-width \(g_{n,\alpha}\) first falls below \(0.1\) --- a reported width of about \(0.2\) plus the
+width of the identified interval itself --- at \(n\) of order \(10^{13}\).  At any sample size an applied researcher will
+encounter, the guarded interval is therefore uninformative: it is a proof that a finite-sample,
+uniformly valid procedure exists in this model, not a procedure we recommend reporting on its own.
+The rate \(O(n^{-1/2}+\eta_n)\) is the honest content of the result; the constants are not sharp,
+and we have not attempted to optimize them.  Reducing them --- by replacing the union bound over
+\(\mathcal E\) with a self-normalized or empirical-process concentration argument, and by exploiting
+that the capacity map is \(1\)-Lipschitz in far fewer directions than \(|\mathcal E|\) suggests ---
+is the most valuable next step for making the guarantee usable, and a simulation study establishing
+the achievable widths is a prerequisite for any empirical recommendation.  We make no claim about
+practical performance here.
+
+The sharp bounds and guarded confidence set above also leave one calibrated-inference problem for
+future work.  The issue arises when threshold-cut faces intersect, selection-direction signs are close to changing, and the retained covariate support varies with the screening threshold.  A useful strengthening of the inference theory would combine the finite deterministic guard in \cref{obj:thm:uniform-deterministic-guard} with a first-order calibration based on the near-active faces recorded by \cref{obj:def:face-aware-inference-handle}.  The additional sign separation needed for such a direction-stable analysis is the following standard strong variant of the covariate-specific selection-direction condition.
+
+\begin{assumptionv}{ass:direction-margin}[Direction margin]
+For every \(x\in\mathcal X\) with \(p_x>0\) and \(m(x)>0\),
+\[
+|\Delta q(x)|\ge \kappa_{\sigma}.
+\]
+\end{assumptionv}
+
+\Cref{obj:ass:direction-margin} is imposed for a \emph{strictly positive} constant \(\kappa_{\sigma}>0\); read that way it is a sign-separation condition on the covariate-specific selected-complier capacity gap, requiring the selection direction to stay at least \(\kappa_{\sigma}\) away from zero on cells with positive survivor-complier mass.  The displayed inequality alone carries no content when \(\kappa_{\sigma}\le 0\), since \(|\Delta q(x)|\ge\kappa_{\sigma}\) then holds automatically; positivity of the margin is what the direction-stable analysis below uses, and it is not implied by the inequality as displayed.  This is the analogue, for the capacity representation used here, of the strong direction conditions used to stabilize sign-sensitive inference under sample selection \citep{Semenova2025}.  It gives the multiplier program a fixed local direction in cells that contribute to the survivor-complier target, while retaining the threshold-cut ties that make the endpoint map nonsmooth.
+
+\begin{remarkv}{oeq:uniform-face-multiplier}[Uniform face multiplier calibration]
+A natural next question is whether the near-active-face directional-multiplier handle admits a calibration such that, uniformly over direction-separated triangular arrays \(\mathcal P_n\),
+\[
+\liminf_{n\to\infty}\inf_{P\in\mathcal P_n}
+P\{\Theta_I(P_{\mathrm{obs}})\subseteq\mathcal C_{1-\alpha,n}\}
+\ge 1-\alpha,
+\]
+while allowing arbitrary simultaneous threshold-cut ties and covariate cells whose survivor mass approaches zero and is omitted at the unnormalized threshold \(\eta_n\).
+\end{remarkv}
+
+\Cref{obj:oeq:uniform-face-multiplier} formulates the corresponding open calibration target.  The desired confidence set would cover \leanref{sym:\Theta_I(P_{\mathrm{obs}})}{\ensuremath{\Theta_I(P_{\mathrm{obs}})}}, the sharp identified interval for the survivor-complier benefit probability, uniformly over direction-separated triangular arrays, using \leanref{sym:\mathcal C_{1-\alpha,n}}{\ensuremath{\mathcal C_{1-\alpha,n}}}, the guarded interval constructed from the finite face diagnostic.  The challenge is to preserve first-order calibration when several threshold cuts bind at once and when cells enter or leave the retained support as their empirical survivor mass crosses \(\eta_n\).  This problem is closely connected to modern inference for partially identified treatment effects and selected samples, where uniformity at boundary and contact points is central \citep{LeeLiu2024,BartalottiKedagniPossebom2023}.
+
+Several empirical and modeling extensions are also natural.  The Job Corps application that motivates the ordinal wage target can be revisited with the sharp survivor-complier bounds and the guarded interval reported jointly.  Continuous outcomes can be handled through discretizations or through an analogue of the threshold-transport construction on richer ordered supports, with the estimand and support conditions stated directly for that setting.  Sensitivity analysis for weak selection monotonicity would index departures from \cref{obj:ass:weak-selection-monotonicity} and trace their effect on the endpoint formulas in \cref{obj:def:identified-interval}.  Additional concordance restrictions, such as restrictions tying potential wage ranks across treatment states, would sharpen the cellwise transport polytopes in \cref{obj:def:partial-transport-polytope} and produce a different identified interval whose sharpness would need to be established under the enriched model.

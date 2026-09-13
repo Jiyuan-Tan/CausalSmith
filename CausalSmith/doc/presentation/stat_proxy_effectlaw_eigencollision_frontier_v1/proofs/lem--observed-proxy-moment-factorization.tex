@@ -1,0 +1,124 @@
+\begin{proof}[Proof of \cref{obj:lem:observed-proxy-moment-factorization}]
+Fix \(t\in\{0,1\}\).  Write
+\[
+\mathsf{Arm}_t:=\{T=t\},\qquad
+\mathsf{Cell}_{u,t}:=\{U=u,T=t\},\qquad
+\mathsf{Class}_u:=\{U=u\}.
+\]
+For every latent class \(u\), latent-arm positivity gives
+\[
+P(\mathsf{Cell}_{u,t})\ge \pi_0>0,
+\qquad
+P(\mathsf{Class}_u)\ge P(\mathsf{Cell}_{u,t})>0.
+\]
+Also, \cref{obj:lem:arm-mass-lower-bound} gives
+\[
+P(\mathsf{Arm}_t)\ge k\pi_0>0 .
+\]
+% lean: latentCell_pos_of_latentArmPositivity, arm_mass_lower_of_latentArmPositivity
+
+We prove the matrix identity entrywise.  Fix coordinates \(1\le i\le d_z\) and \(1\le j\le d_x\).  By \cref{obj:lem:proxy-coordinate-envelopes},
+\[
+|Z_i|\le L,\qquad |X_j|\le L
+\quad\text{\(P\)-almost surely.}
+\]
+Thus \(Z_iX_j\) is integrable on each \(\mathsf{Cell}_{u,t}\).  The observed arm pulls back to the full-data arm, so
+\[
+M_t(P)_{ij}
+=
+E_{P_O}[Z_iX_j\mid T=t]
+=
+E_P[Z_iX_j\mid \mathsf{Arm}_t].
+\]
+% lean: proxy_coordinate_bounds_of_model, conditionalMean_obsArm_eq_fullDataArm
+
+Since \(\mathsf{Arm}_t\) is the disjoint union of the cells
+\(\mathsf{Cell}_{u,t}\), normalized additivity over this finite partition yields
+\[
+E_P[Z_iX_j\mid \mathsf{Arm}_t]
+=
+\sum_{u=1}^{k}
+\frac{P(\mathsf{Cell}_{u,t})}{P(\mathsf{Arm}_t)}
+E_P[Z_iX_j\mid \mathsf{Cell}_{u,t}].
+\]
+% lean: conditionalMean_fullDataArm_eq_sum_latentCell
+
+On a fixed positive cell \(\mathsf{Cell}_{u,t}\), put
+\[
+\operatorname{cl}_L(a):=\max\{-L,\min\{a,L\}\}.
+\]
+The coordinate bounds imply that \(\operatorname{cl}_L(Z_i)=Z_i\) and
+\(\operatorname{cl}_L(X_j)=X_j\) almost surely on the normalized restriction to
+\(\mathsf{Cell}_{u,t}\).  Applying reference-proxy separation to the bounded
+tests \(z\mapsto \operatorname{cl}_L(z_i)\) and
+\((x,y)\mapsto \operatorname{cl}_L(x_j)\), and then removing the clamps, gives
+\[
+E_P[Z_iX_j\mid \mathsf{Cell}_{u,t}]
+=
+E_P[Z_i\mid \mathsf{Cell}_{u,t}]\,
+E_P[X_j\mid \mathsf{Cell}_{u,t}].
+\]
+% lean: latentCell_ZX_conditionalMean_factorization
+
+It remains to identify the target-proxy mean in the cell with the latent-class
+mean.  Let
+\[
+f_j(x):=\operatorname{cl}_L(x_j),
+\qquad
+q_t(y,t'):=\mathbf 1\{t'=t\}.
+\]
+Target-proxy separation on the positive class \(\mathsf{Class}_u\) gives
+\[
+E_P[f_j(X)q_t(Y,T)\mid \mathsf{Class}_u]
+=
+E_P[f_j(X)\mid \mathsf{Class}_u]\,
+E_P[q_t(Y,T)\mid \mathsf{Class}_u].
+\]
+The two factors involving \(q_t\) are ordinary normalized cell masses:
+\[
+E_P[f_j(X)q_t(Y,T)\mid \mathsf{Class}_u]
+=
+\frac{P(\mathsf{Cell}_{u,t})}{P(\mathsf{Class}_u)}
+E_P[f_j(X)\mid \mathsf{Cell}_{u,t}],
+\]
+and
+\[
+E_P[q_t(Y,T)\mid \mathsf{Class}_u]
+=
+\frac{P(\mathsf{Cell}_{u,t})}{P(\mathsf{Class}_u)}.
+\]
+Because this ratio is positive, cancellation gives
+\[
+E_P[f_j(X)\mid \mathsf{Cell}_{u,t}]
+=
+E_P[f_j(X)\mid \mathsf{Class}_u].
+\]
+Using the same coordinate envelope to remove the clamps on the cell and on the
+class,
+\[
+E_P[X_j\mid \mathsf{Cell}_{u,t}]
+=
+E_P[X_j\mid \mathsf{Class}_u].
+\]
+% lean: latentCell_X_conditionalMean_eq_latentClass
+
+Combining the preceding displays and using \cref{obj:def:reference-feature,obj:def:target-feature},
+\[
+M_t(P)_{ij}
+=
+\sum_{u=1}^{k}
+A_t(i,u)\,
+\frac{P(U=u,T=t)}{P(T=t)}\,
+B(j,u).
+\]
+By the definition of \(\Gamma_t\), the right-hand side is exactly
+\[
+(A_t\Gamma_tB^\top)_{ij}.
+\]
+Since \(i\) and \(j\) were arbitrary,
+\[
+M_t(P)=A_t\Gamma_tB^\top .
+\]
+The arm \(t\) was arbitrary, so the factorization holds for both treatment arms.
+% lean: observedProxyMoment_factorization
+\end{proof}

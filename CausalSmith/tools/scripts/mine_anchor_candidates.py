@@ -81,7 +81,8 @@ def main():
         gpath, spath = os.path.join(run, "graph.json"), os.path.join(run, "state.json")
         if not (os.path.exists(gpath) and os.path.exists(spath)):
             continue
-        state = json.load(open(spath))
+        with open(spath, encoding="utf-8") as fh:
+            state = json.load(fh)
         # lean_subdir (e.g. "CausalSmith/Stat/…") is relative to the CausalSmith PACKAGE root,
         # whose Lean tree is CausalSmith/CausalSmith/… — so join against CS, not the workspace.
         lean_dir = os.path.join(CS, state.get("lean_subdir", ""))
@@ -90,7 +91,9 @@ def main():
         used = landed_usage(lean_dir)                 # decl -> usage count (ground truth)
         cluster = cluster_of(state)
         qid = state.get("qid", os.path.basename(run))
-        for n in nodes_of(json.load(open(gpath))):
+        with open(gpath, encoding="utf-8") as fh:
+            gdata = json.load(fh)
+        for n in nodes_of(gdata):
             nl = (n.get("nl") or {}).get("statement", "")
             named = set()
             dn = (n.get("lean") or {}).get("decl_name")
@@ -117,7 +120,7 @@ def main():
         seen.add(key)
         uniq.append(r)
 
-    with open(args.out, "w") as f:
+    with open(args.out, "w", encoding="utf-8") as f:
         for r in uniq:
             f.write(json.dumps(r) + "\n")
     print(f"{len(uniq)} candidate rows across accepted runs -> {args.out}", file=sys.stderr)

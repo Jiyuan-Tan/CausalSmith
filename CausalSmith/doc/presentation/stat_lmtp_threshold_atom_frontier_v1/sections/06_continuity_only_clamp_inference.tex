@@ -1,0 +1,292 @@
+\section{Continuity-only clamp inference}
+\label{sec:continuity-only}
+
+\Cref{sec:setup-assumptions,sec:main-statistical-results} impose a Hölder modulus for the regression at the lower threshold. We now record the enlarged continuity-only experiment, which keeps the same density, stratum-mass, and lower-tail thinning restrictions while replacing the Hölder regression member with qualitative continuity.
+
+\begin{definitionv}{def:continuity-model-class}[Continuity-only model class \(\mathcal M_{\mathrm{cont}}\)]
+\(\mathcal M_{\mathrm{cont}}\) is the set of laws
+\[
+P\in\mathcal P(\mathcal X\times[0,1]\times[0,1])
+\]
+satisfying \cref{obj:ass:conditional-density-law,obj:ass:stratum-mass,obj:ass:polynomial-thinning} and the following continuity condition: for every \(x\in\mathcal X\), an almost-everywhere version of
+\[
+a\mapsto \mathbb E_P[Y\mid A=a,X=x]
+\]
+admits a continuous extension to \([0,\bar\delta]\). The continuity extension is required memberwise for each stratum.
+\end{definitionv}
+
+The class in \cref{obj:def:continuity-model-class} preserves the design restrictions that govern the amount of mass near the lower endpoint. Its regression condition supplies a selected point value at the clamp threshold through continuity, rather than through a quantitative Hölder modulus.
+
+The corresponding target has the same retained-course plus threshold-atom decomposition as \(\theta_\delta(P)\) in \cref{obj:def:clamp-functional}; the atom value is read from the continuous extension in the continuity-only class.
+
+\begin{definitionv}{def:continuity-clamp-functional}[Continuity clamp target \(\theta_{\delta,\mathrm{cont}}(P)\)]
+For \(P\in\mathcal M_{\mathrm{cont}}\) and \(0\leq\delta\leq\bar\delta\), with \(q_x(\delta)\) as in \cref{obj:def:clamp-functional} and \(\mathcal M_{\mathrm{cont}}\) as in \cref{obj:def:continuity-model-class}, define
+\[
+ \theta_{\delta,\mathrm{cont}}(P)
+ =
+ \mathbb E_P\!\left[Y\mathbf 1\{A>\delta\}\right]
+ +
+ \sum_{x\in\mathcal X}
+ p_xq_x(\delta)\mu_{x,\mathrm{cont}}^P(\delta).
+\]
+\end{definitionv}
+
+The continuity-only scale is determined by the ordinary sampling fluctuation and the amount of mass moved by the lower-threshold clamp.
+
+\begin{definitionv}{def:continuity-frontier}[Continuity frontier \(s_n\)]
+Define the continuity-only frontier rate by
+\[
+s_n=n^{-1/2}+\delta_n^{\kappa+1}.
+\]
+\end{definitionv}
+
+The estimator and interval make the enlarged model explicit. They use the retained-course mean above the threshold and a fixed midpoint value for the lower-tail atom, with a bounded-sum allowance for the empirical lower-tail mass.
+
+\begin{algorithmv}{def:continuity-fallback-estimator}[Continuity fallback estimator \(\widehat\theta_{n,\mathrm{cont}}\)]
+The inputs are the deterministic split blocks \(I_0,I_1\), the threshold \(\delta_n\), and the observations \(O_1,\ldots,O_n\).
+\begin{enumerate}
+\item Define the retained-course empirical mean
+\[
+\widehat\nu_n
+=
+|I_0|^{-1}\sum_{i\in I_0}Y_i\mathbf 1\{A_i>\delta_n\}.
+\]
+\item For each \(x\in\mathcal X\), define the empirical lower-threshold atom mass
+\[
+\widehat b_x
+=
+|I_1|^{-1}\sum_{i\in I_1}\mathbf 1\{X_i=x,A_i\leq\delta_n\}.
+\]
+\item Output the fixed-regression-fallback estimator
+\[
+\widehat\theta_{n,\mathrm{cont}}
+=
+\Pi_{[0,1]}\left\{\widehat\nu_n+\frac12\sum_{x\in\mathcal X}\widehat b_x\right\}.
+\]
+\end{enumerate}
+\end{algorithmv}
+
+\begin{algorithmv}{def:continuity-honest-interval}[Continuity honest interval \(\mathrm{CI}_{n,\mathrm{cont}}\)]
+The inputs are the split blocks \(I_0,I_1\), the level \(\alpha\), the estimator \(\widehat\theta_{n,\mathrm{cont}}\), and the empirical masses \(\widehat b_x\).
+\begin{enumerate}
+\item For \(j=0,1\), define the split-specific Hoeffding radius
+\[
+t_{j,\alpha}
+=
+\sqrt{\frac{\log(4/\alpha)}{2|I_j|}}.
+\]
+\item Define the empirical total lower-threshold atom mass
+\[
+\widehat B_n
+=
+\sum_{x\in\mathcal X}\widehat b_x.
+\]
+\item Output the Hoeffding interval
+\[
+\mathrm{CI}_{n,\mathrm{cont}}
+=
+\left[
+\widehat\theta_{n,\mathrm{cont}}-t_{0,\alpha}-t_{1,\alpha}-\frac12\widehat B_n,\,
+\widehat\theta_{n,\mathrm{cont}}+t_{0,\alpha}+t_{1,\alpha}+\frac12\widehat B_n
+\right]\cap[0,1].
+\]
+\end{enumerate}
+\end{algorithmv}
+
+The concentration step for \cref{obj:def:continuity-honest-interval} uses the standard bounded-sum inequality of \citet[Theorem~2]{Hoeffding1963}, applied separately to the retained-course and atom-mass split statistics.
+
+The causal version of the continuity-only analysis uses the same structural ingredients as \cref{obj:def:full-data-model-class}, with the observed margin placed in \(\mathcal M_{\mathrm{cont}}\).
+
+\begin{definitionv}{def:continuity-full-data-model-class}[Continuity full-data class \(\mathcal M_{\mathrm{cont}}^{\mathrm F}\)]
+Define \(\mathcal M_{\mathrm{cont}}^{\mathrm F}\) as the collection of full-data law packages \(P^{\mathrm F}\) with a memberwise standard Borel latent-response space \(\mathcal U\), latent variable \(U\), jointly Borel stratum-specific response maps \(g_x\), and jointly measurable potential-outcome process \(\{Y(a):a\in[0,1]\}\), such that:
+\begin{itemize}
+\item \textbf{(Observed margin.)} The observed \((X,A,Y)\)-margin of \(P^{\mathrm F}\) belongs to \(\mathcal M_{\mathrm{cont}}\) in \cref{obj:def:continuity-model-class}.
+\item \textbf{(Consistency.)} The package satisfies \cref{obj:ass:consistency}.
+\item \textbf{(Exchangeability.)} The package satisfies \cref{obj:ass:exchangeability}.
+\item \textbf{(Response continuity.)} The package satisfies \cref{obj:ass:full-data-response-continuity}.
+\end{itemize}
+The carrier spaces \(\mathcal U\) may vary with \(P^{\mathrm F}\).
+\end{definitionv}
+
+For later comparison, the next definition fixes the observed margin of a full-data law as the pushforward onto the observed coordinates.
+
+\begin{definitionv}{def:continuity-frontier-criteria}[Continuity frontier criteria \(R_{n,\mathrm{cont}}^\star\) and \(L_{n,\mathrm{cont}}^\star\)]
+For estimators and intervals measurable with respect to \(O_1,\ldots,O_n\), define the continuity-only observed minimax absolute-error risk by
+\[
+R_{n,\mathrm{cont}}^\star
+=
+\inf_{\widehat\theta}\sup_{P\in\mathcal M_{\mathrm{cont}}}
+\mathbb E_{P^{\otimes n}}
+\left|\widehat\theta-\theta_{\delta_n,\mathrm{cont}}(P)\right|.
+\]
+Define the continuity-only observed minimax honest expected length by
+\[
+L_{n,\mathrm{cont}}^\star
+=
+\inf_{C_n:\,\inf_{P\in\mathcal M_{\mathrm{cont}}}P^{\otimes n}
+\{\theta_{\delta_n,\mathrm{cont}}(P)\in C_n\}\geq1-\alpha}
+\sup_{P\in\mathcal M_{\mathrm{cont}}}
+\mathbb E_{P^{\otimes n}}\!\left[\operatorname{len}(C_n)\right].
+\]
+For the full-data continuity-only class, define the causal minimax absolute-error risk by
+\[
+R_{n,\mathrm{cont},\mathrm F}^\star
+=
+\inf_{\widehat\psi}\sup_{P^{\mathrm F}\in\mathcal M_{\mathrm{cont}}^{\mathrm F}}
+\mathbb E_{(P^{\mathrm F})^{\otimes n}}
+\left|\widehat\psi-\psi_{\delta_n}(P^{\mathrm F})\right|.
+\]
+Define the continuity-only causal minimax honest expected length by
+\[
+L_{n,\mathrm{cont},\mathrm F}^\star
+=
+\inf_{C_n:\,\inf_{P^{\mathrm F}\in\mathcal M_{\mathrm{cont}}^{\mathrm F}}
+(P^{\mathrm F})^{\otimes n}\{\psi_{\delta_n}(P^{\mathrm F})\in C_n\}\geq1-\alpha}
+\sup_{P^{\mathrm F}\in\mathcal M_{\mathrm{cont}}^{\mathrm F}}
+\mathbb E_{(P^{\mathrm F})^{\otimes n}}\!\left[\operatorname{len}(C_n)\right].
+\]
+\end{definitionv}
+
+The decision-theoretic criteria are recorded for both the observed continuity-only class and its full-data counterpart.
+
+\begin{propositionv}{prop:continuity-causal-bridge}[Continuity causal bridge]
+Let \(J\in\mathbb N\), let \(\kappa,c_-,c_+,p_{\min},\bar\delta\in\mathbb R\), and let \(P^{\mathrm F}\) be a full-data law package with observed margin \(P\).  Suppose that
+\begin{itemize}
+\item \textbf{(Full-data continuity model.)} \(P^{\mathrm F}\in\mathcal M_{\mathrm{cont}}^{\mathrm F}\) with constants \((\kappa,c_-,c_+,p_{\min},\bar\delta)\), as in \cref{obj:def:continuity-full-data-model-class}.
+\item \textbf{(Design constants.)} \(J>0\), \(\kappa\geq0\), \(c_->0\), \(c_-\leq \kappa+1\leq c_+\), \(0<p_{\min}\leq 1/J\), and \(0<\bar\delta<1\).
+\end{itemize}
+For each \(x\in\mathcal X\) and \(a\in\mathbb R\), define the full-data response mean by
+\[
+m_x^{\mathrm F}(a)
+=
+P^{\mathrm F}(X=x)^{-1}
+\int_{\{X=x\}} g_x(a,U)\,dP^{\mathrm F}.
+\]
+Then, for every \(x\in\mathcal X\) and every \(a\in[0,\bar\delta]\),
+\[
+m_x^{\mathrm F}(a)=\mu_{x,\mathrm{cont}}^P(a).
+\]
+Moreover, if
+\[
+\psi_\delta(P^{\mathrm F})
+=
+\int Y\!\left(d_\delta(A)\right)\,dP^{\mathrm F},
+\]
+then, for every \(\delta\in[0,\bar\delta]\),
+\[
+\psi_\delta(P^{\mathrm F})
+=
+\theta_{\delta,\mathrm{cont}}(P),
+\]
+where \(\theta_{\delta,\mathrm{cont}}(P)\) is the continuity-only clamp functional in \cref{obj:def:continuity-clamp-functional}.
+\end{propositionv}
+
+The first causal statement aligns the full-data response mean with the observed continuous extension and therefore identifies the causal clamp mean with the continuity-only observed target.
+
+\begin{propositionv}{prop:continuity-observed-margin-surjectivity}[Observed-margin surjectivity]*
+Let \(J\in\mathbb N\) and let \(\kappa,c_-,c_+,p_{\min},\bar\delta,\alpha\in\mathbb R\). Suppose that the continuity-regime design constants used in \cref{obj:def:continuity-model-class,obj:def:continuity-full-data-model-class,obj:def:continuity-frontier-criteria} hold for \((J,\kappa,c_-,c_+,p_{\min},\bar\delta)\), and that \(0<\alpha<1/2\).
+
+Then the observed-margin map from \(\mathcal M_{\mathrm{cont}}^{\mathrm F}\) onto \(\mathcal M_{\mathrm{cont}}\) is surjective: for every \(P\in\mathcal M_{\mathrm{cont}}\), there exists \(P^{\mathrm F}\in\mathcal M_{\mathrm{cont}}^{\mathrm F}\) whose observed margin is \(P\). Moreover, for every \(n\in\mathbb N\) and every \(\delta\in[0,\bar\delta]\), the four continuity-frontier criteria of \cref{obj:def:continuity-frontier-criteria}, evaluated at \((J,n,\kappa,c_-,c_+,p_{\min},\bar\delta,\delta,\alpha)\), satisfy
+\[
+R_{n,\mathrm{cont},\mathrm F}^\star
+=
+R_{n,\mathrm{cont}}^\star,
+\qquad
+L_{n,\mathrm{cont},\mathrm F}^\star
+=
+L_{n,\mathrm{cont}}^\star .
+\]
+\end{propositionv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN prop:continuity-observed-margin-surjectivity
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the published conclusion \citep{Kallenberg2002Foundations} (Theorem 6.3 (conditional distribution)). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END prop:continuity-observed-margin-surjectivity
+
+\Cref{obj:prop:continuity-causal-bridge} shows that qualitative continuity turns almost-everywhere regression information into the pointwise threshold value needed after the clamp collapses the lower tail. Under the stated full-data continuity conditions, the structural response mean agrees with the observed continuous extension throughout the threshold envelope, and the causal clamp mean equals the observed continuity clamp target.
+
+The next statement records that the continuity-only full-data class covers the observed continuity-only class exactly at the margin. Its construction uses regular conditional distributions on standard Borel spaces, as supplied by \citet[Theorem~6.3]{Kallenberg2002Foundations}.
+
+\begin{definitionv}{synth_13}[Observed margin of a full-data law]
+For a full-data law package $P^{\mathrm F}$ governing $(X,A,Y,U,\{Y(a):a\in[0,1]\})$, define $P^{\mathrm F}_{\mathrm{obs}}$ to be the observed-data marginal law of $(X,A,Y)$. Equivalently, if $\pi_{\mathrm{obs}}(X,A,Y,U,\{Y(a)\})=(X,A,Y)$ is the coordinate projection onto $\mathcal X\times[0,1]\times[0,1]$, then $P^{\mathrm F}_{\mathrm{obs}}=(\pi_{\mathrm{obs}})_{\#}P^{\mathrm F}$.
+\end{definitionv}
+
+\Cref{obj:prop:continuity-observed-margin-surjectivity} puts the observed and causal continuity-only decision problems on the same footing. Every observed continuity-only law has a full-data representative satisfying the causal restrictions, and the minimax risk and honest expected-length criteria agree exactly for each sample size and threshold in the stated range.
+
+The main continuity-only conclusion now combines the bridge identity, observed-margin surjectivity, and the fallback estimator and interval.
+
+\begin{theoremv}{thm:continuity-only-frontier}[Continuity frontier characterization]*
+Fix \(J\in\mathbb N\) and constants \(\kappa,c_-,c_+,p_{\min},\bar\delta,\alpha\in\mathbb R\). Suppose
+\[
+0<J,
+\qquad
+0\leq \kappa,
+\qquad
+0<c_-,
+\qquad
+c_-\leq \kappa+1\leq c_+,
+\qquad
+0<p_{\min}\leq \frac{1}{J},
+\qquad
+0<\bar\delta<1,
+\qquad
+0<\alpha<\frac12.
+\]
+Then there exist constants \(c,C\in\mathbb R\) with \(0<c<C\) such that the following statements hold.
+
+\begin{itemize}
+\item \textbf{(Uniform frontier bounds.)} For every deterministic threshold sequence \((\delta_n)_{n\geq1}\) with \(\delta_n\in[0,\bar\delta]\) for all \(n\), and for every deterministic sequence \(B_{\bullet}=(B_n)_{n\geq1}\) of admissible three-way split blocks, all sufficiently large \(n\) satisfy the following bounds. With
+\[
+s_n=n^{-1/2}+\delta_n^{\kappa+1},
+\]
+and with \(R_{n,\mathrm{cont}}^\star\), \(L_{n,\mathrm{cont}}^\star\), \(R_{n,\mathrm{cont},\mathrm F}^\star\), and \(L_{n,\mathrm{cont},\mathrm F}^\star\) as in \cref{obj:def:continuity-frontier-criteria},
+\[
+c s_n\leq R_{n,\mathrm{cont}}^\star
+\leq
+\sup_{P\in\mathcal M_{\mathrm{cont}}}
+\mathbb E_{P^{\otimes n}}
+\left|\widehat\theta_{n,\mathrm{cont}}-\theta_{\delta_n,\mathrm{cont}}(P)\right|
+\leq C s_n,
+\]
+the interval \(\mathrm{CI}_{n,\mathrm{cont}}\) has uniform coverage at least \(1-\alpha\) over \(\mathcal M_{\mathrm{cont}}\), its worst-case expected length is at most \(C s_n\), and
+\[
+c s_n\leq L_{n,\mathrm{cont}}^\star.
+\]
+Moreover,
+\[
+R_{n,\mathrm{cont},\mathrm F}^\star=R_{n,\mathrm{cont}}^\star,
+\qquad
+L_{n,\mathrm{cont},\mathrm F}^\star=L_{n,\mathrm{cont}}^\star,
+\]
+and the same estimator and interval satisfy
+\[
+R_{n,\mathrm{cont},\mathrm F}^\star
+\leq
+\sup_{P^{\mathrm F}\in\mathcal M_{\mathrm{cont}}^{\mathrm F}}
+\mathbb E_{(P^{\mathrm F}_{\mathrm{obs}})^{\otimes n}}
+\left|\widehat\theta_{n,\mathrm{cont}}-\psi_{\delta_n}(P^{\mathrm F})\right|
+\leq C s_n,
+\]
+with causal coverage at least \(1-\alpha\) uniformly over \(\mathcal M_{\mathrm{cont}}^{\mathrm F}\) and causal worst-case expected length at most \(C s_n\).
+
+\item \textbf{(Elbow and null-threshold rates.)} For the continuity-only rate in \cref{obj:def:continuity-frontier},
+\[
+s_n\bigl(\delta_n=n^{-1/(2(\kappa+1))}\bigr)
+\asymp n^{-1/2},
+\qquad
+s_n(0)\asymp n^{-1/2}.
+\]
+
+\item \textbf{(Fixed positive thresholds.)} For every deterministic threshold sequence \((\delta_n)_{n\geq1}\) with \(\delta_n\in[0,\bar\delta]\) for all \(n\), every \(\delta_0\in(0,\bar\delta]\), and \(\delta_n\to\delta_0\),
+\[
+R_{n,\mathrm{cont}}^\star \not\to 0,
+\qquad
+L_{n,\mathrm{cont}}^\star \not\to 0.
+\]
+\end{itemize}
+\end{theoremv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN thm:continuity-only-frontier
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the published conclusion \citep{Hoeffding1963} (Theorem 2, specialized to unit ranges and two tails). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END thm:continuity-only-frontier
+
+\Cref{obj:thm:continuity-only-frontier} characterizes the continuity-only rate for both observed and causal formulations. The fallback estimator and Hoeffding interval attain the rate \(s_n\), while the minimax risk and honest expected length are bounded below at the same order. The honest-length comparison follows the nonparametric confidence-interval lower-bound phenomenon of \citet{Low1997NonparametricConfidenceIntervals}, specialized here to the threshold-atom decision problem.
+
+The rate has a simple interpretation. When \(\delta_n\) is at the elbow \(n^{-1/[2(\kappa+1)]}\), the lower-tail mass term \(\delta_n^{\kappa+1}\) matches \(n^{-1/2}\), so the continuity-only problem has a root-\(n\) scale. At \(\delta_n=0\), the atom term vanishes and the bounded retained-course mean again gives the root-\(n\) scale. For thresholds converging to a fixed positive value, the theorem records persistent minimax risk and honest length, reflecting the positive amount of treatment mass assigned a threshold regression value governed by qualitative continuity.

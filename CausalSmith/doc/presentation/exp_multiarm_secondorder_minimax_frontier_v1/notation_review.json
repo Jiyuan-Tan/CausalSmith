@@ -1,0 +1,168 @@
+{
+  "ok": true,
+  "iterations": 1,
+  "advisories": [
+    {
+      "gate": "notation-mutual-definition",
+      "objId": "synth_3",
+      "detail": "synth_10 ↔ synth_3: cyclic prerequisites (R_n(q;m) used in synth_3 before synth_10); no order satisfies every dependency. Check the graph edges and paper references",
+      "resolved": null
+    }
+  ],
+  "synthesized": {
+    "synth_1": {
+      "symbols": [
+        "\\mathcal A_K"
+      ],
+      "title": "Treatment-arm label set",
+      "body": "For each natural number \\(K\\), the treatment-arm set is the finite set of its \\(K\\) arm labels:\n\\[\n\\mathcal A_K:=\\{1,\\ldots,K\\}.\n\\]",
+      "lean": {
+        "decl": "CausalSmith.Experimentation.MultiarmSecondorderMinimaxFrontier.Arm",
+        "file": "World.lean"
+      }
+    },
+    "synth_2": {
+      "symbols": [
+        "\\mathcal T_K"
+      ],
+      "title": "Binary response types",
+      "body": "For a fixed number \\(K\\) of treatment arms, let \\(\\mathcal A_K\\) be the treatment-arm label set. The binary response-type space is\n\\[\n\\mathcal T_K := \\{0,1\\}^{\\mathcal A_K}.\n\\]\nThus each \\(t\\in\\mathcal T_K\\) assigns one binary potential-outcome value \\(t_a\\in\\{0,1\\}\\) to every arm \\(a\\in\\mathcal A_K\\).",
+      "lean": {
+        "decl": "CausalSmith.Experimentation.MultiarmSecondorderMinimaxFrontier.RespType",
+        "file": "World.lean"
+      }
+    },
+    "synth_3": {
+      "symbols": [
+        "R_n(\\mathcal D,\\widehat\\tau;z)"
+      ],
+      "title": "Design-based squared-error risk",
+      "body": "For a complete labeled response schedule \\(z\\in\\mathcal T_K^n\\), an assignment design \\(\\mathcal D\\in\\Delta(\\mathcal A_K^n)\\), and an estimator \\(\\widehat\\tau:(\\mathcal A_K\\times\\{0,1\\})^n\\to[-L_c/2,L_c/2]\\), define\n\\[\nR_n(\\mathcal D,\\widehat\\tau;z)\n=\\mathbb E_{\\mathcal D}\\left[\\left\\{\\widehat\\tau((A_i,Y_i^{\\mathrm{obs}})_{i=1}^n)-\\tau_c(z)\\right\\}^2\\right],\n\\]\nwhere \\(A\\sim\\mathcal D\\), \\(Y_i^{\\mathrm{obs}}=t_{i,A_i}\\), and the expectation is only over the assignment randomization. If \\(p=(\\mathcal D,\\widehat\\tau)\\) is a labeled procedure, write \\(R_n(p;z)\\) for the same quantity."
+    },
+    "synth_4": {
+      "symbols": [
+        "\\operatorname{counts}"
+      ],
+      "title": "Response-type count vector",
+      "body": "For a complete labeled schedule \\(z=(t_1,\\ldots,t_n)\\in\\mathcal T_K^n\\), define\n\\[\n\\operatorname{counts}(z)=\\bigl(\\operatorname{counts}(z)_t\\bigr)_{t\\in\\mathcal T_K}\\in\\mathcal M_{n,K},\n\\qquad\n\\operatorname{counts}(z)_t=\\#\\{i\\in\\{1,\\ldots,n\\}:t_i=t\\}.\n\\]\nThus \\(\\operatorname{counts}(z)\\) is the unit-permutation orbit of \\(z\\)."
+    },
+    "synth_5": {
+      "symbols": [
+        "\\mathcal D^\\star"
+      ],
+      "title": "Contrast-weighted independent design",
+      "body": "Let \\(S_c=\\{a\\in\\mathcal A_K:c_a\\ne0\\}\\), \\(L_c=\\sum_{a\\in\\mathcal A_K}|c_a|\\), and\n\\[\nq_a^\\star=\\begin{cases}|c_a|/L_c,&a\\in S_c,\\\\ 0,&a\\notin S_c.\\end{cases}\n\\]\nThe design \\(\\mathcal D^\\star\\) is the product assignment law under which \\(A_1,\\ldots,A_n\\) are independent and \\(\\Pr_{\\mathcal D^\\star}(A_i=a)=q_a^\\star\\) for every unit \\(i\\) and arm \\(a\\)."
+    },
+    "synth_6": {
+      "symbols": [
+        "\\widehat\\tau_n^{\\mathrm{sh}}"
+      ],
+      "title": "Clipped-shrinkage estimator",
+      "body": "Put \\(h_c=L_c/2\\), and let\n\\[\n\\lambda_c\n=\n\\min\\left\\{\n\\frac{\\left|\\sum_{a\\in\\mathcal A_K} c_a t_a\\right|}{h_c}\n:\nt\\in\\mathcal T_K,\\\n\\sum_{a\\in\\mathcal A_K} c_a t_a\\neq 0\n\\right\\}\n\\]\nbe the smallest nonzero normalized response-type contrast magnitude. Under \\(\\mathcal D^\\star\\) of \\cref{obj:synth_5}, define\n\\[\nW_i=\\sum_{a\\in S_c}\\frac{c_a\\mathbf 1\\{A_i=a\\}}{q_a^\\star}\\left(Y_i^{\\mathrm{obs}}-\\frac12\\right),\n\\qquad\nV_i=\\frac{W_i}{h_c},\n\\qquad\nX_n=\\frac1n\\sum_{i=1}^nV_i.\n\\]\nFor\n\\[\nb_n=n^{-1/3},\\qquad\n\\varepsilon_n=\\frac{\\sqrt{\\lambda_c}}4n^{-1/3},\\qquad\ng_n(x)=\\max\\{-b_n,\\min(x,b_n)\\},\n\\]\ndefine the clipped-shrinkage rule\n\\[\n\\widehat\\tau_n^{\\mathrm{sh}}\n=\\operatorname{proj}_{[-h_c,h_c]}\\bigl(h_c\\{X_n-\\varepsilon_ng_n(X_n)\\}\\bigr).\n\\]\nThe projection is never active for \\(n\\ge1\\), because \\(|X_n|\\le1\\), \\(0\\le b_n\\le1\\) and \\(0\\le\\varepsilon_n\\le1/4\\); it is written explicitly only so that the rule takes values in the target interval by construction. This estimator is evaluated as a function of the realized assignment and observed outcomes."
+    },
+    "synth_7": {
+      "symbols": [
+        "\\operatorname{BayesRisk}"
+      ],
+      "title": "Orbit Bayes risk at an allocation count",
+      "body": "For a response-count prior \\(\\nu\\in\\Delta(\\mathcal M_{n,K})\\), a contrast \\(c\\), and an allocation count \\(r\\in\\mathcal R_{n,K}\\), define\n\\[\n\\operatorname{BayesRisk}_{n,c}(r,\\nu)\n=\\inf_{\\delta_r}\\sum_{m\\in\\mathcal M_{n,K}}\\nu_m\\sum_xP_m(x\\mid r)\\{\\delta_r(x)-\\tau_c(m)\\}^2,\n\\]\nwhere \\(x\\in\\prod_{a\\in\\mathcal A_K}\\{0,\\ldots,r_a\\}\\) and \\(\\delta_r(x)\\in[-L_c/2,L_c/2]\\). Equivalently, with\n\\[\nD_{r,x,c}(\\nu)=\\sum_m\\nu_mP_m(x\\mid r),\n\\qquad\nN_{r,x,c}(\\nu)=\\sum_m\\nu_mP_m(x\\mid r)\\tau_c(m),\n\\]\n\\[\n\\operatorname{BayesRisk}_{n,c}(r,\\nu)\n=\\sum_m\\nu_m\\tau_c(m)^2-\\sum_{x:D_{r,x,c}(\\nu)>0}\\frac{N_{r,x,c}(\\nu)^2}{D_{r,x,c}(\\nu)}.\n\\]"
+    },
+    "synth_8": {
+      "symbols": [
+        "\\operatorname{obj}_{\\mathrm{dual}}"
+      ],
+      "title": "Dual objective for the grid linear program",
+      "body": "For the grid-action linear program with primal constraints written in standard form \\(A\\xi\\le b\\) and objective \\(u\\), let \\(y\\) denote the nonnegative vector of dual row multipliers satisfying the stationarity equations for the variables \\((u,\\pi,w)\\). Define\n\\[\n\\operatorname{obj}_{\\mathrm{dual}}(y)=-\\sum_i y_i b_i.\n\\]\nIn the grid program, the restriction of \\(y\\) to the response-count risk rows is the response-count multiplier \\(\\nu\\), and dual feasibility gives a lower certificate for the corresponding primal epigraph value."
+    },
+    "synth_9": {
+      "symbols": [
+        "R_{\\mathrm{Hull}}",
+        "\\mathcal Y^{\\mathrm{Hull}}_{n,L,U}"
+      ],
+      "title": "Hull bounded-schedule domain and risk",
+      "body": "For bounds \\(L<U\\), let \\(\\mathcal Y^{\\mathrm{Hull}}_{n,L,U}\\) be the set of two-arm bounded potential-outcome schedules\n\\[\nY=\\bigl(Y_i(1),Y_i(2)\\bigr)_{i=1}^n\n\\qquad\\text{with}\\qquad\nY_i(a)\\in[L,U]\n\\]\nfor every unit \\(i\\) and arm \\(a\\in\\{1,2\\}\\). For a design \\(\\mathcal D\\), estimator \\(\\widehat\\tau\\), and schedule \\(Y\\in\\mathcal Y^{\\mathrm{Hull}}_{n,L,U}\\), define the Hull squared-error risk\n\\[\nR_{\\mathrm{Hull}}(\\mathcal D,\\widehat\\tau;Y)\n=\\mathbb E_{\\mathcal D}\\left[\\left\\{\\widehat\\tau((A_i,Y_i^{\\mathrm{obs}})_{i=1}^n)-\\frac1n\\sum_{i=1}^n\\bigl(Y_i(1)-Y_i(2)\\bigr)\\right\\}^2\\right],\n\\]\nwhere \\(Y_i^{\\mathrm{obs}}=Y_i(A_i)\\) and the expectation is over assignment from \\(\\mathcal D\\)."
+    },
+    "synth_10": {
+      "symbols": [
+        "R_n(q;m)",
+        "R^{\\mathrm{orb}}_{(1,-1)}(q;m)"
+      ],
+      "title": "Orbit-procedure risk",
+      "body": "For a contrast $c$, an orbit procedure is a pair $q=(\\pi,\\delta)$ with $\\pi\\in\\Delta(\\mathcal R_{n,K})$ and $\\delta(r,x)\\in[-L_c/2,L_c/2]$. Its risk at response-type count vector $m\\in\\mathcal M_{n,K}$ is\n\\[\nR_n(q;m)=\\sum_{r\\in\\mathcal R_{n,K}}\\pi_r\\sum_{x\\in\\prod_{a\\in\\mathcal A_K}\\{0,\\ldots,r_a\\}}P_m(x\\mid r)\\{\\delta(r,x)-\\tau_c(m)\\}^2.\n\\]\nIn the two-arm contrast $c=(1,-1)$, write\n\\[\nR^{\\mathrm{orb}}_{(1,-1)}(q;m)=\\sum_{r\\in\\mathcal R_{n,2}}\\pi_r\\sum_{x\\in\\prod_{a\\in\\mathcal A_2}\\{0,\\ldots,r_a\\}}P_m(x\\mid r)\\{\\delta(r,x)-\\tau_{(1,-1)}(m)\\}^2.\n\\]"
+    },
+    "synth_11": {
+      "symbols": [
+        "\\operatorname{dist}(c,c^{(n)})"
+      ],
+      "title": "Contrast distance",
+      "body": "For two real contrasts $c_1,c_2$ on $\\mathcal A_K$, define\n\\[\n\\operatorname{dist}(c_1,c_2)=\\eta(c_1,c_2)=\\frac{L_{c_1-c_2}}2=\\frac12\\sum_{a\\in\\mathcal A_K}|c_1(a)-c_2(a)|.\n\\]\nThus $\\operatorname{dist}(c,c^{(n)})=\\eta(c,c^{(n)})$."
+    },
+    "synth_12": {
+      "symbols": [
+        "exact rational primal-dual grid certificate"
+      ],
+      "title": "Exact rational primal-dual grid certificate",
+      "body": "Fix rational nonzero zero-sum $c\\in\\mathbb Q^K$ and integers $n,M\\ge1$. An exact rational primal-dual grid certificate for the program defining $\\Lambda_{n,M}(c)$ consists of rational values $(\\pi_r)_{r\\in\\mathcal R_{n,K}}$, rational values $(w_{r,x,g})$, a rational epigraph value $u$, and rational dual multipliers for the linear constraints, such that $\\pi_r\\ge0$, $w_{r,x,g}\\ge0$, $\\sum_r\\pi_r=1$, $\\sum_{g\\in\\Gamma_{M,c}}w_{r,x,g}=\\pi_r$ for every $(r,x)$, and\n\\[\n\\sum_{r\\in\\mathcal R_{n,K}}\\sum_x\\sum_{g\\in\\Gamma_{M,c}}P_m(x\\mid r)w_{r,x,g}\\{g-\\tau_c(m)\\}^2\\le u\n\\quad\\text{for every }m\\in\\mathcal M_{n,K}.\n\\]\nThe dual multipliers are rational, nonnegative on inequality rows, satisfy the stationarity equations for the same rational linear program, and have dual objective equal to the primal objective $u$. The common value is $\\Lambda_{n,M}(c)$."
+    },
+    "synth_13": {
+      "symbols": [
+        "K_\\vartheta",
+        "X(z,A)",
+        "S(z,A)",
+        "\\operatorname{binom}_{1/2}(r_0,k)"
+      ],
+      "title": "Canonical two-arm scalar schedule kernel",
+      "body": "For a triple $\\vartheta=(p_+,p_-,r_0)$ with $p_++p_-+r_0=n$, the canonical schedule kernel $K_\\vartheta$ is the probability law on complete two-arm schedules obtained by choosing uniformly an ordered partition $(P,N,R)$ of $\\{1,\\ldots,n\\}$ with sizes $(p_+,p_-,r_0)$, assigning response type $(1,0)$ on $P$ and $(0,1)$ on $N$, and, independently for $i\\in R$, drawing $H_i\\sim\\operatorname{Bernoulli}(1/2)$ and assigning type $(H_i,H_i)$. Equivalently,\n\\[\nK_\\vartheta(z)=\\mathbf 1\\{m_{(1,0)}(z)=p_+,\\ m_{(0,1)}(z)=p_-,\\ m_{(0,0)}(z)+m_{(1,1)}(z)=r_0\\}\\frac{p_+!p_-!r_0!}{n!}2^{-r_0}.\n\\]\nFor a schedule $z$ and assignment vector $A\\in\\mathcal A_2^n$, define the transformed observed-score vector $S(z,A)\\in\\{0,1\\}^n$ by $S_i(z,A)=Y_i^{\\mathrm{obs}}$ when $A_i=1$ and $S_i(z,A)=1-Y_i^{\\mathrm{obs}}$ when $A_i=2$, and define the scalar observation\n\\[\nX(z,A)=\\sum_{i=1}^n S_i(z,A).\n\\]\nUnder $K_\\vartheta$, conditionally on $\\vartheta$, $X(z,A)=p_++B$ with $B\\sim\\operatorname{Binomial}(r_0,1/2)$, whose probability mass is\n\\[\n\\operatorname{binom}_{1/2}(r_0,k)=\\binom{r_0}{k}2^{-r_0},\\qquad k=0,\\ldots,r_0.\n\\]"
+    },
+    "synth_14": {
+      "symbols": [
+        "invariant labeled procedure"
+      ],
+      "title": "Invariant labeled procedure",
+      "body": "A labeled procedure is a pair \\(p=(\\mathcal D,\\widehat\\tau)\\), where \\(\\mathcal D\\in\\Delta(\\mathcal A_K^n)\\) is an assignment law and \\(\\widehat\\tau:(\\mathcal A_K\\times\\{0,1\\})^n\\to[-L_c/2,L_c/2]\\) is an estimator. For \\(\\sigma\\in\\mathfrak S_n\\), define \\((\\sigma A)_i=A_{\\sigma^{-1}(i)}\\), \\((\\sigma z)_i=z_{\\sigma^{-1}(i)}\\), and \\(\\sigma((A_i,Y_i^{\\mathrm{obs}})_{i=1}^n)=((A_{\\sigma^{-1}(i)},Y_{\\sigma^{-1}(i)}^{\\mathrm{obs}}))_{i=1}^n\\). The procedure \\(p\\) is invariant when, for every \\(\\sigma\\in\\mathfrak S_n\\), the law of \\(\\sigma A\\) under \\(\\mathcal D\\) equals \\(\\mathcal D\\) and \\(\\widehat\\tau(\\sigma o)=\\widehat\\tau(o)\\) for every observed-data vector \\(o\\in(\\mathcal A_K\\times\\{0,1\\})^n\\)."
+    },
+    "synth_15": {
+      "symbols": [
+        "compatible observation/success vector"
+      ],
+      "title": "Compatible observation-success counts",
+      "body": "For an allocation-count vector \\(r\\in\\mathcal R_{n,K}\\), an observed-success vector \\(x=(x_a)_{a\\in\\mathcal A_K}\\) is compatible with \\(r\\) when \\(x_a\\in\\{0,\\ldots,r_a\\}\\) for every arm \\(a\\). For \\(m\\in\\mathcal M_{n,K}\\), the vector \\(x\\) is compatible with \\((m,r)\\) when there exists a contingency table \\(h=(h_{t,a})_{t\\in\\mathcal T_K,a\\in\\mathcal A_K}\\in\\mathbb Z_+^{\\mathcal T_K\\times\\mathcal A_K}\\) such that \\(\\sum_a h_{t,a}=m_t\\) for every \\(t\\), \\(\\sum_t h_{t,a}=r_a\\) for every \\(a\\), and \\(\\sum_{t:t_a=1}h_{t,a}=x_a\\) for every \\(a\\); equivalently, \\(\\mathcal H(m,r,x)\\) is nonempty."
+    },
+    "synth_16": {
+      "symbols": [
+        "regularly varying with index \\beta"
+      ],
+      "title": "Regular variation of a normalizer",
+      "body": "A positive sequence \\((a_n)_{n\\ge1}\\) is regularly varying with index \\(\\beta\\) when, for every \\(x>0\\), \\[ \\frac{a_{\\lfloor xn\\rfloor}}{a_n}\\longrightarrow x^\\beta \\qquad\\text{as }n\\to\\infty . \\]"
+    },
+    "synth_17": {
+      "symbols": [
+        "sign-pair lift",
+        "sign-schedule embedding"
+      ],
+      "title": "Sign-pair embedding and lift",
+      "body": "Assume \\(|S_c|=2\\), and write \\(S_c=\\{a_+,a_-\\}\\) with \\(c_{a_+}=h_c=L_c/2\\) and \\(c_{a_-}=-h_c\\). The sign-schedule embedding \\(\\iota_c:\\mathcal T_2^n\\to\\mathcal T_K^n\\) sends a two-arm schedule \\(s=((s_{i,+},s_{i,-}))_{i=1}^n\\) to the \\(K\\)-arm schedule \\(z=\\iota_c(s)\\) with \\(z_{i,a_+}=s_{i,+}\\), \\(z_{i,a_-}=s_{i,-}\\), and fixed zero coordinates on arms outside \\(\\{a_+,a_-\\}\\). The sign-pair lift of a two-arm labeled procedure \\(p_2=(\\mathcal D_2,\\widehat\\tau_2)\\) is the \\(K\\)-arm procedure that maps the two labels \\((+, -)\\) to \\((a_+,a_-)\\), assigns no mass to other arms, and reports \\(h_c\\widehat\\tau_2\\) after translating the observed active-arm data back to two-arm notation. Under this embedding, \\(\\tau_c(\\iota_c(s))=h_c\\tau_{(1,-1)}(s)\\), and pushed-forward priors on \\(\\mathcal T_2^n\\) become priors on \\(\\mathcal T_K^n\\)."
+    },
+    "synth_18": {
+      "symbols": [
+        "exact rational grid-certificate cluster"
+      ],
+      "title": "Exact rational grid-certificate cluster",
+      "body": "Fix a rational nonzero zero-sum contrast \\(c\\in\\mathbb Q^K\\) and integers \\(n,M\\ge1\\). An \\emph{exact rational grid-certificate cluster} at \\((n,M,c)\\) consists of an exact rational primal-dual grid certificate for the grid-action program of \\cref{obj:def:rational-contrast-grid-lp}, in the sense of \\cref{obj:synth_12} --- rational primal weights \\((\\pi^{n,M,c},w^{n,M,c})\\) and the rational epigraph value \\(\\Lambda_{n,M}(c)\\) --- together with the rational nonnegative response-count multiplier\n\\[\n\\nu_{n,M,c}\\in\\Delta(\\mathcal M_{n,K})\n\\]\nread off its dual solution. Its derived objects are the barycenter estimator \\(\\delta_{n,M,c}\\) and the upper risk certificate \\(U_{n,M}(c)\\), both built from \\(w^{n,M,c}\\), and the posterior-mean lower Bayes-risk certificate \\(B_{n,c}(\\nu_{n,M,c})\\), built from \\(\\nu_{n,M,c}\\)."
+    },
+    "synth_19": {
+      "symbols": [
+        "m_t(z)"
+      ],
+      "title": "Notation for response-type counts",
+      "body": "For a complete labeled response schedule \\(z=(t_1,\\ldots,t_n)\\in\\mathcal T_K^n\\) we write \\(m(z)=\\operatorname{counts}(z)\\) for the response-type count vector of \\cref{obj:synth_4}, with coordinates\n\\[\nm_t(z)=\\#\\{i\\in\\{1,\\ldots,n\\}:t_i=t\\},\\qquad t\\in\\mathcal T_K,\n\\]\nso that \\(\\sum_{t\\in\\mathcal T_K}m_t(z)=n\\). A generic element of \\(\\mathcal M_{n,K}\\) is written \\(m\\), and \\(m_t\\) is its coordinate at \\(t\\)."
+    },
+    "synth_20": {
+      "symbols": [
+        "nonzero zero-sum contrast c"
+      ],
+      "title": "Nonzero zero-sum contrast",
+      "body": "For \\(K\\ge 2\\), a zero-sum contrast is a vector \\(c=(c_a)_{a\\in\\mathcal A_K}\\in\\mathbb R^K\\) satisfying \\(\\sum_{a\\in\\mathcal A_K}c_a=0\\). It is nonzero when \\(c\\neq 0\\). A rational nonzero zero-sum contrast is such a vector with \\(c\\in\\mathbb Q^K\\)."
+    }
+  }
+}

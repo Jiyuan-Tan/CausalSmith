@@ -21,6 +21,14 @@ describe("paper math rendering", () => {
     expect(html).toContain('href="#obj:T-1"');
   });
 
+  it("renders an array whose column spec inserts material between columns", () => {
+    const html = renderMath(
+      '<span class="math display">\\[\\begin{array}{c|r@{\\qquad}c|r} a&1&b&2\\end{array}\\]</span>',
+    );
+    expect(html).not.toContain("katex-error"); // the insert is dropped, not fatal
+    expect(html).toContain("katex");
+  });
+
   // Every formula in every bundle must PARSE. KaTeX's throwOnError:false would otherwise
   // print an undefined control sequence as red raw TeX on the page while the PDF, whose
   // preamble declares the symbol, looks fine — the failure is invisible to the LaTeX side.

@@ -107,11 +107,12 @@ ${e.body}
       String.raw`Repair cites \cref{obj:prop:other}. % \cref{obj:ignored}`);
     expect(selected.map(e => e.obj_id)).toEqual(["thm:prior", "prop:other"]);
   });
-  it("invalidates renderer provenance when the fallback catalogue changes", () => {
+  it("keys a render on the proof's own inputs, never on the paper-wide catalogue", () => {
     const parts = { modelKey: "m", objId: "x", envTex: "x", leanPath: "/a", leanDecl: "a",
       exactDecl: "a", helperContext: [], notation: "", revisionBrief: "", citedDependencies: "", informalDerivation: "" };
-    expect(proofRenderCacheKey({ ...parts, objectCatalog: "lem:a | A | a" }))
-      .not.toBe(proofRenderCacheKey({ ...parts, objectCatalog: "lem:a | A | renamed" }));
+    // A promoted lemma changes every catalogue; it must not release every proof's stop receipt.
+    expect(proofRenderCacheKey(parts)).toBe(proofRenderCacheKey({ ...parts }));
+    expect(proofRenderCacheKey({ ...parts, exactDecl: "b" })).not.toBe(proofRenderCacheKey(parts));
   });
 
 });

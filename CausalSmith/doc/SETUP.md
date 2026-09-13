@@ -40,14 +40,24 @@ cd CausalSmith/tools && npm install
 The two fine-tuned retrieval models are **gitignored weights**; only their meta sidecars are
 committed. On a fresh machine, download them rather than retraining:
 `scripts/fetch_retrieval_models.sh` (about 2.3 GB, release assets on the `build-cache` tag,
-unpacked into `doc/`), then `cd CausalSmith/tools && npm run embed:library`. Retraining is only
+unpacked into `doc/`), then `cd CausalSmith/tools && npm run embed:library`. This works on
+Linux, macOS and Windows alike — on Windows run the script from Git Bash with `zstd` on `PATH` —
+and **with or without a GPU**: nothing in the query or corpus path pins a device, so
+sentence-transformers picks CUDA when present and CPU otherwise. CPU and GPU vectors agree to
+within float tolerance (the fp32 GEMM kernels differ in the last ULPs), so corpus embeddings built
+on one are interchangeable with queries embedded on the other. Only *training* the models below
+needs a GPU. Retraining is only
 needed when the index schema or the base checkpoint changes. Everything is derived offline from `doc/library_index.json` (no LLM, no labels), so the
 rebuild is fully reproducible — the train/test split is a deterministic hash of module
 names, which is what keeps the reported numbers leak-free.
 
-The scripts shell out to plain `python3`, so **the interpreter that has `torch` +
-`sentence-transformers` installed must be the one on `PATH`** (a venv works; activate it, or
-prepend its `bin/`). Otherwise semantic retrieval silently degrades to lexical-only. Weights
+The scripts run through a resolved Python 3 interpreter, so **the interpreter that has `torch` +
+`sentence-transformers` installed must be the one it finds** (a venv works; activate it, or
+prepend its `bin/`). Resolution order is `CAUSALSMITH_PYTHON` → `pythonPath` in `local.json` →
+probed platform defaults (`python3`, `python` on Linux/macOS; `python`, `py -3`, `python3` on
+Windows — a candidate counts only if it reports major version 3, so the Windows Store alias stub
+is never picked). Set `pythonPath` explicitly whenever the right venv is not first on `PATH`.
+Otherwise semantic retrieval silently degrades to lexical-only. Weights
 for the base checkpoints (`BAAI/bge-large-en-v1.5`, `BAAI/bge-reranker-base`) must be in the
 HF cache; the scripts default to `HF_HUB_OFFLINE=1`, so set it to `0` for the first download.
 Training needs one GPU:
@@ -154,8 +164,22 @@ Three behaviours worth knowing before you switch:
   invocations already include this.
 - Set `gitBashPath` in `local.json` (forward slashes, e.g.
   `C:/Program Files/Git/bin/bash.exe`).
-- Note: the Python retrieval daemons use Unix-domain sockets and do not run on
-  native Windows; semantic retrieval is a Linux/macOS feature.
+- Semantic retrieval works on Windows exactly as on Linux/macOS, warm daemon
+  included. The daemons pick their transport in `tools/scripts/daemon_ipc.py`: a
+  unix-domain socket on POSIX, a loopback TCP port on Windows (CPython exposes no
+  `AF_UNIX` there). The model still loads once per daemon and every later query is
+  served warm.
+- `python3` is not a program name on Windows. Every call site resolves the
+  interpreter instead (see "Retrieval models" above); set `pythonPath` in
+  `local.json` — or `CAUSALSMITH_PYTHON` — to the interpreter that has `torch` +
+  `sentence-transformers`, using forward slashes. Point it at the real `python.exe`,
+  not a `.bat`/`.cmd` shim (pyenv-win ships one): the resolver spawns without a shell
+  and Node cannot execute batch files that way. A configured interpreter that fails
+  the probe warns rather than degrading silently.
+- The retrieval scripts pin UTF-8 for stdin and for every index/meta read. Windows
+  otherwise decodes with the ANSI code page, which crashes on
+  `doc/library_index.json` (~4% non-ASCII, from Lean docstrings) and silently
+  mangles queries containing Lean notation such as `=ᵐ[μ]`.
 
 ## Models
 

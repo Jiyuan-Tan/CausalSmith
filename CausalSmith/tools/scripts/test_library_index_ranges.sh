@@ -6,6 +6,16 @@ fixture_dir="$repo_root/CausalSmith/tools/test/fixtures/library_index"
 probe_tmp="$(mktemp -d /tmp/library-index-integration-probe.XXXXXX)"
 trap 'rm -rf "$probe_tmp"' EXIT
 
+# `python3` is not a program name on Windows, and there it can also resolve to the
+# App Store stub that exits without running anything — probe each candidate.
+PY_BIN=""
+for py in python3 python py; do
+  if command -v "$py" >/dev/null 2>&1 && "$py" -c 'import sys; sys.exit(0 if sys.version_info[0] == 3 else 1)' >/dev/null 2>&1; then
+    PY_BIN="$py"; break
+  fi
+done
+[ -n "$PY_BIN" ] || { echo "test_library_index_ranges: no working python3 found" >&2; exit 1; }
+
 mkdir -p "$probe_tmp/ExtractorRangeFixture"
 cp "$fixture_dir/ExtractorFixtureBase.lean" "$probe_tmp/ExtractorRangeFixture/Base.lean"
 cp "$fixture_dir/ExtractorFixtureExtension.lean" "$probe_tmp/ExtractorRangeFixture/Extension.lean"
@@ -21,7 +31,7 @@ lake env bash -c '
   LEAN_PATH="$probe_tmp:$LEAN_PATH" lean -R "$probe_tmp" --run "$probe_tmp/ExtractorFixtureDriver.lean" "$probe_tmp" "$probe_tmp/index.json"
 ' bash "$probe_tmp"
 
-python3 - "$probe_tmp/index.json" <<'PY'
+"$PY_BIN" - "$probe_tmp/index.json" <<'PY'
 import json
 import sys
 

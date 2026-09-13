@@ -19,9 +19,9 @@
 // top-level commands (`variable`/`open`/`notation`… change a statement's meaning without
 // touching its text — so their identifiers are also followed into the closure, and anonymous
 // `instance`s, which the declaration scanner cannot name, are hashed with them) + the gated
-// substrate hypotheses shown to the reviewer. The rubric is the prompt file AND the reviewer's own
-// source (`proof_reviewer.ts` embeds framing text the model reads), so a reviewer edit re-opens
-// every receipt — the cost of a full round, which is what every round cost before receipts.
+// substrate hypotheses shown to the reviewer. The rubric slot is the hand-bumped REVIEW_STANDARD
+// token, NOT a hash of the prompt text or of the reviewer's source: a wording clarification or a
+// refactor must not re-open every receipt. Bump it only when the review standard tightens.
 //
 // Not cached here: undelivered (delivery-role) targets and `cited` gates — they already carry
 // their own hash-bound per-peer receipts in state.json (`delivery_audit.ts`) and are re-reviewed
@@ -30,7 +30,6 @@
 import { readFile, readdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { createHash } from "node:crypto";
-import { fileURLToPath } from "node:url";
 import { isPaperTmpPath } from "../paths.js";
 import type { Core } from "../discovery/core/schema.js";
 import { stripLeanComments } from "../graph/extractor.js";
@@ -224,23 +223,13 @@ function declRows(decls: DeclEvidence[]): [string, string, string, string][] {
 // Evidence hashes
 // ---------------------------------------------------------------------------
 
-/** The reviewer rubric a receipt was issued under: the prompt file PLUS the reviewer's own source,
- *  which embeds framing the model reads (target blocks, gated-exemption text, symbol header). Either
- *  changing re-opens every verdict. Fails closed if the reviewer source cannot be found. */
-export async function reviewerRubricHash(promptText: string): Promise<string> {
-  const here = fileURLToPath(new URL(".", import.meta.url));
-  let reviewerSource: string | null = null;
-  for (const name of ["proof_reviewer.ts", "proof_reviewer.js"]) {
-    try {
-      reviewerSource = await readFile(`${here}${name}`, "utf8");
-      break;
-    } catch {
-      /* try the next candidate */
-    }
-  }
-  if (reviewerSource === null) throw new Error(`convergence rubric: reviewer source not found next to ${here}`);
-  return statementHash(JSON.stringify([promptText, reviewerSource]));
-}
+/** The reviewer standard a convergence receipt is issued under — an opaque version token, hashed
+ *  into every node/symbol evidence hash. It replaced a hash of the reviewer prompt text and the
+ *  reviewer's own source, which re-opened every verdict on a wording tweak or a refactor.
+ *  Initial value is the hash the receipts carried on 2026-09-12 so existing receipts stay valid;
+ *  bump to any new literal only when the review standard tightens (a receipt issued under the old
+ *  standard would be wrong); prompt wording and code changes never bump it. */
+export const REVIEW_STANDARD = "16865e36da9271bbf0e9906def5868e43c1ec0d8";
 
 function coreEntry(core: Core | null, nodeId: string): unknown {
   if (!core) return null;
@@ -426,15 +415,16 @@ export async function auditConvergenceReview(args: {
   const rows = await buildSymbolReviewRows(args.leanDir, args.core.symbols ?? []);
   const taggedRows = rows.filter((row) => !row.empty);
   if (nodeTargets.length === 0 && taggedRows.length === 0) return findings;
-  let promptText: string;
   try {
-    promptText = await readFile(args.promptFile, "utf8");
+    // The rubric text no longer keys the receipts, but a reviewer with no prompt cannot review:
+    // an unreadable prompt still fails closed on every governed target.
+    await readFile(args.promptFile, "utf8");
   } catch (err) {
     // No rubric ⇒ no receipt can be verified against it. Fail closed on every governed target.
     const why = `reviewer rubric unreadable (${args.promptFile}): ${err instanceof Error ? err.message : String(err)}`;
     return [...nodeTargets, ...taggedRows.map((row) => row.id)].map((id) => ({ code: "convergence-review" as const, node_id: id, message: why }));
   }
-  const rubricHash = await reviewerRubricHash(promptText);
+  const rubricHash = REVIEW_STANDARD;
   const index = await buildLeanEvidenceIndex(args.leanDir);
   const ledger = args.graph.convergenceReview;
   const byId = new Map(args.graph.nodes.map((n) => [n.id, n] as const));

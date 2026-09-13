@@ -54,7 +54,8 @@ def main():
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
 
-    lib = json.load(open(INDEX))
+    with open(INDEX, encoding="utf-8") as fh:
+        lib = json.load(fh)
     ents = lib["entries"]
     by_name = {e["name"]: e for e in ents}
 
@@ -105,10 +106,11 @@ def main():
             pairs.append({"a": f"{humanize(e['name'])}. {stmt}", "b": f"{humanize(e['name'])}. {doc}", "kind": "stmt2doc"})
             n_stmt2doc += 1
 
-    with open(os.path.join(args.out, "train_pairs.jsonl"), "w") as f:
+    with open(os.path.join(args.out, "train_pairs.jsonl"), "w", encoding="utf-8") as f:
         for p in pairs:
             f.write(json.dumps(p) + "\n")
-    json.dump(test_modules, open(os.path.join(args.out, "test_modules.json"), "w"))
+    with open(os.path.join(args.out, "test_modules.json"), "w", encoding="utf-8") as fh:
+        json.dump(test_modules, fh)
     all_modules = sorted({module_of(e) for e in ents})
     stats = {
         "index_commit": lib.get("commit"), "n_entries": len(ents), "n_theorems": N,
@@ -116,7 +118,8 @@ def main():
         "n_pairs": len(pairs), "n_doc2ref": n_doc2ref, "n_stmt2doc": n_stmt2doc,
         "test_frac": args.test_frac, "idf_floor": args.idf_floor,
     }
-    json.dump(stats, open(os.path.join(args.out, "split_stats.json"), "w"), indent=2)
+    with open(os.path.join(args.out, "split_stats.json"), "w", encoding="utf-8") as fh:
+        json.dump(stats, fh, indent=2)
     print(json.dumps(stats, indent=2), file=sys.stderr)
 
 

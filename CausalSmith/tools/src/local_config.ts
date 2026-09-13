@@ -14,6 +14,11 @@
 //                      null ⇒ use the run's repoRoot (the lake project that
 //                      transitively sees Causalean).
 //   mcpTimeoutMs     — MCP_TIMEOUT for the (slow-cold-starting) lean-lsp server.
+//   pythonPath       — interpreter for the Python retrieval scripts (the one with
+//                      torch + sentence-transformers). null ⇒ probe the platform
+//                      defaults; see `src/shared/python.ts` for the order. Set this
+//                      on Windows, where `python3` is not a program name, or whenever
+//                      the torch venv is not first on PATH.
 //   codexSandbox     — local-tool sandbox for Codex workers. Keep the portable
 //                      default `workspace-write`; set `danger-full-access` only
 //                      when the machine is already externally confined and its
@@ -34,6 +39,8 @@ export interface LocalConfig {
   leanLspMcpBinary: string;
   leanProjectPath?: string;
   mcpTimeoutMs: number;
+  /** Python 3 interpreter for the retrieval scripts; resolved in `src/shared/python.ts`. */
+  pythonPath?: string;
   codexSandbox: "workspace-write" | "danger-full-access";
   /** Billing path for BOTH runners; per-provider fields below override it.
    *  Parsed and validated in `src/auth.ts`, not here, so that a bad value fails
@@ -121,6 +128,9 @@ export function localConfig(): LocalConfig {
       "MCP_TIMEOUT",
       process.env.MCP_TIMEOUT ?? file.mcpTimeoutMs ?? 600000,
     ),
+    // Resolution (env > file > probed platform defaults) lives in shared/python.ts,
+    // the only module that interprets it.
+    pythonPath: file.pythonPath ?? undefined,
     codexSandbox: parseCodexSandbox(
       process.env.CAUSALSMITH_CODEX_SANDBOX ?? file.codexSandbox ?? "workspace-write",
     ),

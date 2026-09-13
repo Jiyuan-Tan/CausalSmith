@@ -21,7 +21,7 @@ for name in retrieval_model_ft retrieval_reranker_ft; do
   echo "fetch_retrieval_models: downloading $name.tar.zst"
   curl -fL --retry 3 -o "$name.tar.zst" "$BASE/$name.tar.zst"
   rm -rf "$name"
-  tar --use-compress-program=unzstd -xf "$name.tar.zst"
+  tar --use-compress-program="zstd -d" -xf "$name.tar.zst"
   rm -f "$name.tar.zst"
 done
 echo "fetch_retrieval_models: done; next: cd CausalSmith/tools && npm run embed:library"

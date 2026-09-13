@@ -138,7 +138,8 @@ def default_model():
     """The model that built the current embeddings (so `embed:library` refreshes stay on the
     fine-tuned encoder); falls back to the base bge name when no embeddings exist yet."""
     try:
-        return json.load(open(paths("nl")[1])).get("model") or MODEL
+        with open(paths("nl")[1], encoding="utf-8") as fh:
+            return json.load(fh).get("model") or MODEL
     except Exception:
         return MODEL
 
@@ -163,7 +164,10 @@ def main():
     F32, META = paths(view)
     builder = BUILDERS[view]
 
-    lib = json.load(open(INDEX))
+    # encoding is explicit: the index carries Unicode from Lean docstrings, which
+    # Windows would otherwise decode with the ANSI code page and crash on.
+    with open(INDEX, encoding="utf-8") as fh:
+        lib = json.load(fh)
     ents = lib["entries"]
     ctx = build_context(ents)
     texts = {e["name"]: builder(e, ctx) for e in ents}
@@ -173,7 +177,8 @@ def main():
     # and a different encoder invalidates every row).
     cached = {}
     if os.path.exists(META) and os.path.exists(F32):
-        old = json.load(open(META))
+        with open(META, encoding="utf-8") as fh:
+            old = json.load(fh)
         if old.get("model") == model_id and old.get("view", "nl") == view:
             dim = old["dim"]
             buf = np.fromfile(F32, dtype=np.float32).reshape(-1, dim)
@@ -196,9 +201,10 @@ def main():
     for i, n in enumerate(names):
         mat[i] = cached.get(n) if n in cached else vecs[n]
     mat.tofile(F32)
-    json.dump({"model": model_id, "view": view, "dim": int(dim), "count": len(names),
-               "index_commit": lib.get("commit"), "names": names,
-               "hashes": [hashes[n] for n in names]}, open(META, "w"))
+    with open(META, "w", encoding="utf-8") as fh:
+        json.dump({"model": model_id, "view": view, "dim": int(dim), "count": len(names),
+                   "index_commit": lib.get("commit"), "names": names,
+                   "hashes": [hashes[n] for n in names]}, fh)
     print(f"[view={view}] wrote {F32} ({mat.nbytes} bytes) + {META}", file=sys.stderr)
 
 

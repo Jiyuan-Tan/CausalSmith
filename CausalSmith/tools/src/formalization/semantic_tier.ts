@@ -2,6 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { pythonArgs } from "../shared/python.js";
 import { inClusterSubstrate, type ClusterKey } from "../constants.js";
 
 export interface SemHit { name: string; sim: number; }
@@ -197,8 +198,10 @@ export function embedQueries(texts: string[], root: string): Float32Array[] {
   const dim = meta.dim;
   const script = path.resolve(import.meta.dirname, "..", "..", "scripts", "embed_text.py");
   const out = path.join(os.tmpdir(), `ceq_${process.pid}_${texts.length}.f32`);
+  // `python3` is not a program name on Windows — resolve the interpreter (throws if none).
+  const [bin, argv] = pythonArgs(script, ["--out", out]);
   // 180 s cap: a stuck model load must degrade to lexical, never stall the F2 pipeline.
-  execFileSync("python3", [script, "--out", out], {
+  execFileSync(bin, argv, {
     input: texts.map((t) => t.replace(/\r?\n/g, " ")).join("\n"),
     timeout: 180_000,
     maxBuffer: 64 * 1024 * 1024,

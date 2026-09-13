@@ -36,10 +36,27 @@ export function decodeEntities(s: string): string {
     .replace(/&amp;/g, "&");
 }
 
-/** The TeX source of one pandoc math span: entities decoded, delimiters and embedded
- *  cross-reference anchors normalised into something KaTeX can parse. */
+/**
+ * Drops the between-column material (`@{\qquad}`) from every `array` column spec.
+ *
+ * LaTeX lets a column spec insert arbitrary material between two columns; KaTeX has no
+ * such alignment token and rejects the WHOLE formula, so one spacing flourish degrades a
+ * table to red raw TeX. The insert is presentational only and the PDF keeps it, so the web
+ * renderer simply drops it.
+ */
+function stripColumnInserts(tex: string): string {
+  const GROUP = String.raw`(?:[^{}]|\{[^{}]*\})*`;
+  return tex.replace(
+    new RegExp(String.raw`(\\begin\{array\}\s*(?:\[[a-z]\])?\s*)\{(${GROUP})\}`, "g"),
+    (_m, head: string, spec: string) =>
+      `${head}{${spec.replace(new RegExp(String.raw`@\{${GROUP}\}`, "g"), "")}}`,
+  );
+}
+
+/** The TeX source of one pandoc math span: entities decoded, delimiters, column inserts and
+ *  embedded cross-reference anchors normalised into something KaTeX can parse. */
 export function spanTex(body: string): string {
-  return decodeEntities(body)
+  return stripColumnInserts(decodeEntities(body))
     .replace(/^\s*\\\(|\\\)\s*$/g, "")
     .replace(/^\s*\\\[|\\\]\s*$/g, "")
     // A cross-reference (\ref{obj:X}) that sits INSIDE a math span (e.g. the

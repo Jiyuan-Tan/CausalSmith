@@ -1,0 +1,951 @@
+{
+  "commit": null,
+  "blocks": [
+    {
+      "obj_id": "synth_13",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Interval projection",
+      "body": "For real numbers \\(a\\leq b\\), let \\(\\Pi_{[a,b]}:\\mathbb R\\to [a,b]\\) be the interval projection \\(\\Pi_{[a,b]}(z)=\\min\\{b,\\max\\{a,z\\}\\}\\).",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "ass:iid-sampling",
+      "alias": "A-1",
+      "kind": "assumption",
+      "env": "assumptionv",
+      "title": "I.i.d. observed sampling",
+      "body": "For each observed law \\(\\mathbb P\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\), let \\(O_i=(X_i,A_i,Y_i)\\) denote the observed triple for unit \\(i\\). The observations \\(O_1,\\ldots,O_n\\) are independent and identically distributed with common law \\(\\mathbb P\\).",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.IidSampling",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "ass:consistency",
+      "alias": "A-2",
+      "kind": "assumption",
+      "env": "assumptionv",
+      "title": "Consistency of outcomes",
+      "body": "The observed outcome satisfies\n\\[\nY=Y(A)\n\\]\nalmost surely.",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.Consistency",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "ass:conditional-exchangeability",
+      "alias": "A-3",
+      "kind": "assumption",
+      "env": "assumptionv",
+      "title": "Conditional exchangeability",
+      "body": "For each \\(a\\in\\{0,1\\}\\), the potential outcome \\(Y(a)\\) is conditionally independent of treatment given covariates:\n\\[\nY(a)\\perp A\\mid X .\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.ConditionalExchangeability",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "ass:fixed-overlap",
+      "alias": "A-4",
+      "kind": "assumption",
+      "env": "assumptionv",
+      "title": "Fixed overlap",
+      "body": "Let \\([d]=\\{1,\\ldots,d\\}\\) be the finite covariate alphabet. For every observed law \\(\\mathbb P\\) under consideration and every \\(x\\in[d]\\) with covariate-cell mass \\(p_x=\\mathbb P(X=x)>0\\), the treatment propensity \\(\\pi_x=\\mathbb P(A=1\\mid X=x)\\) satisfies\n\\[\n\\epsilon\\leq \\pi_x \\leq 1-\\epsilon ,\n\\]\nwhere \\(\\epsilon\\in(0,1/2)\\) is the fixed overlap constant.",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.Overlap",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:observed-margin",
+      "alias": "P-9",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Observed margin \\(\\operatorname{Obs}(P)\\)",
+      "body": "For a full-data law \\(P\\), its observed margin \\(\\operatorname{Obs}(P)\\) is the law on \\([d]\\times\\{0,1\\}^2\\) defined by\n\\[\n\\operatorname{Obs}(P)\\{(x,a,y)\\}\n=\nP(X=x,A=a,Y=y),\n\\qquad\n(x,a,y)\\in[d]\\times\\{0,1\\}^2.\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.observedMarginal",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:observed-model-class",
+      "alias": "P-10",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Observed-law class \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\)",
+      "body": "Under \\cref{obj:ass:fixed-overlap}, let\n\\[\n\\Delta_d=\\left\\{p\\in[0,1]^d:\\sum_{x=1}^d p_x=1\\right\\}.\n\\]\nThe class \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) consists of all laws \\(\\mathbb P\\) on \\([d]\\times\\{0,1\\}^2\\) for which there exist \\(p=(p_1,\\ldots,p_d)\\in\\Delta_d\\), propensities \\(\\pi_x\\in[\\epsilon,1-\\epsilon]\\), and means \\(\\mu_{ax}\\in[0,1]\\) such that, for every \\(x\\in[d]\\) and \\(a\\in\\{0,1\\}\\),\n\\[\nq_{a1,x}\n=\np_x\\pi_x^a(1-\\pi_x)^{1-a}\\mu_{ax},\n\\qquad\nq_{a0,x}\n=\np_x\\pi_x^a(1-\\pi_x)^{1-a}(1-\\mu_{ax}),\n\\]\nwhere\n\\[\nq_{ay,x}=\\mathbb P(X=x,A=a,Y=y).\n\\]\nFor each cell \\(x\\), write\n\\[\nq_x=(q_{00,x},q_{01,x},q_{10,x},q_{11,x}).\n\\]\nThe support contains at most \\(d\\) covariate cells, and on any null cell the parameters may be chosen arbitrarily within the displayed ranges.",
+      "ref_set": [
+        "ass:fixed-overlap"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.ObservedModelClass",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:observed-optimal-value",
+      "alias": "P-11",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Observed-law optimal value \\(\\Psi(\\mathbb P)\\)",
+      "body": "For \\(\\mathbb P\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) as in \\cref{obj:def:observed-model-class}, with table \\(\\mathbf q=(q_x)_{x=1}^d\\), the observed-law optimal-regression functional is\n\\[\n\\Psi(\\mathbb P)=\\Psi(\\mathbf q)\n:=\n\\sum_{x=1}^d p_x\\max_{a\\in\\{0,1\\}}\\mu_{ax}.\n\\]\nThis value is independent of the permitted choice of \\(\\mu_{ax}\\) on cells with \\(p_x=0\\).",
+      "ref_set": [
+        "def:observed-model-class"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.observedOptimalValue",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:minimax-risk",
+      "alias": "P-12",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Minimax risk \\(\\mathfrak R_{n,d,\\epsilon}\\)",
+      "body": "The fixed-sample minimax squared risk is\n\\[\n\\mathfrak R_{n,d,\\epsilon}\n:=\n\\inf_{\\widehat V}\n\\sup_{\\mathbb P\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}}\nE_{\\mathbb P}\n\\left[\n\\left\\{\n\\widehat V(O_1,\\ldots,O_n)-\\Psi(\\mathbb P)\n\\right\\}^2\n\\right],\n\\]\nwhere the infimum is over all measurable maps\n\\[\n\\widehat V:\\bigl([d]\\times\\{0,1\\}^2\\bigr)^n\\to\\mathbb R.\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.minimaxRisk",
+        "file": "Basic.lean"
+      },
+      "status": "unreviewed",
+      "provenance": "library",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:model-class",
+      "alias": "P-1",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Full-data causal class \\(\\mathcal P_{d,\\epsilon}\\)",
+      "body": "For every \\(d\\geq 2\\) and \\(0<\\epsilon<1/2\\), \\(\\mathcal P_{d,\\epsilon}\\) is the set of probability laws \\(P\\) for \\((X,A,Y,Y(0),Y(1))\\) such that:\n\\begin{itemize}\n\\item \\textbf{(Support.)} \\(X\\in[d]\\) and \\(A,Y,Y(0),Y(1)\\in\\{0,1\\}\\) \\(P\\)-almost surely.\n\\item \\textbf{(Potential-outcome structure.)} \\(P\\) satisfies \\cref{obj:ass:consistency,obj:ass:conditional-exchangeability}.\n\\item \\textbf{(Observed fixed-overlap margin.)} The observed margin \\(\\operatorname{Obs}(P)\\) from \\cref{obj:def:observed-margin} belongs to the fixed-overlap observed-law class \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) under \\cref{obj:ass:fixed-overlap}.\n\\end{itemize}",
+      "ref_set": [
+        "ass:consistency",
+        "ass:conditional-exchangeability",
+        "ass:fixed-overlap",
+        "def:observed-margin"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.CausalCompletionClass",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:overlap-cone",
+      "alias": "P-2",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Overlap cone \\(\\mathcal C_\\epsilon\\)",
+      "body": "The four-cell overlap cone is\n\\[\n\\mathcal C_\\epsilon\n:=\n\\{u\\in\\mathbb R_+^4:\\epsilon s(u)\\leq s_1(u)\\leq(1-\\epsilon)s(u)\\},\n\\]\nwhere, for each \\(a\\in\\{0,1\\}\\),\n\\[\ns_a(u)=u_{a0}+u_{a1},\n\\qquad\ns(u)=s_0(u)+s_1(u).\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.overlapCone",
+        "file": "Helpers/ConeExtension.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:global-extension",
+      "alias": "P-3",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Global extension \\(g_{a,\\epsilon}\\) and \\(\\bar f_\\epsilon\\)",
+      "body": "For \\(u\\in\\mathbb R_+^4\\) with \\(s(u)>0\\), define the overlap-stabilized arm contribution\n\\[\ng_{a,\\epsilon}(u)\n:=\n\\frac{s(u)u_{a1}}{\\max\\{s_a(u),\\epsilon s(u)\\}},\n\\qquad a\\in\\{0,1\\},\n\\]\nand the globally defined cellwise maximum contribution\n\\[\n\\bar f_\\epsilon(u)\n:=\n\\max_{a\\in\\{0,1\\}} g_{a,\\epsilon}(u).\n\\]\nAt the origin,\n\\[\ng_{a,\\epsilon}(0)=0,\n\\qquad\n\\bar f_\\epsilon(0)=0.\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.globalCellValueNonnegative",
+        "file": "Helpers/ConeExtension.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:oracle-value",
+      "alias": "P-4",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Oracle value \\(V^\\star(P)\\)",
+      "body": "For a full-data law \\(P\\), the full-data causal optimal-treatment value is\n\\[\nV^\\star(P)\n=\nE_P\\!\\left[\n\\max_{a\\in\\{0,1\\}}\nE_P\\{Y(a)\\mid X\\}\n\\right].\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.oracleValue",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "prop:identification-and-extension",
+      "alias": "T-1",
+      "kind": "theorem",
+      "env": "propositionv",
+      "title": "Identification and completion",
+      "body": "Let \\(d\\ge 2\\), let \\(\\epsilon\\in(0,1/2)\\), and let \\(\\mathbb P\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) in the sense of \\cref{obj:def:observed-model-class}. Then:\n\\begin{itemize}\n\\item \\textbf{(Cell overlap.)} For every \\(x\\in[d]\\), the four-vector \\(q_x=(q_{00,x},q_{01,x},q_{10,x},q_{11,x})\\) belongs to the overlap cone \\(\\mathcal C_\\epsilon\\) of \\cref{obj:def:overlap-cone}.\n\\item \\textbf{(Observed value.)} The observed-law optimal-regression value of \\cref{obj:def:observed-optimal-value} satisfies\n\\[\n\\Psi(\\mathbb P)=\\sum_{x=1}^d \\bar f_\\epsilon(q_x).\n\\]\n\\item \\textbf{(Global extension bounds.)} For every \\(u\\in\\mathbb R_+^4\\), the global extension of \\cref{obj:def:global-extension} satisfies\n\\[\n0\\le \\bar f_\\epsilon(u)\\le s(u).\n\\]\n\\item \\textbf{(Global Lipschitz property.)} For every \\(u,v\\in\\mathbb R_+^4\\),\n\\[\n\\left|\\bar f_\\epsilon(u)-\\bar f_\\epsilon(v)\\right|\n\\le (1+\\epsilon^{-1})\\sum_{\\jmath}\\left|u_{\\jmath}-v_{\\jmath}\\right|.\n\\]\n\\item \\textbf{(Completion.)} There exists a full-data law \\(P\\in\\mathcal P_{d,\\epsilon}\\) in the sense of \\cref{obj:def:model-class} whose observed margin satisfies \\(\\operatorname{Obs}(P)=\\mathbb P\\). The completion is consistent and conditionally exchangeable, treatment is independent of the joint potential-outcome vector given \\(X\\), and the two potential outcomes are conditionally independent Bernoulli variables given \\(X\\).\n\\item \\textbf{(Observed margins.)} For every full-data law \\(P\\in\\mathcal P_{d,\\epsilon}\\), its observed margin \\(\\operatorname{Obs}(P)\\) of \\cref{obj:def:observed-margin} belongs to \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\).\n\\end{itemize}",
+      "ref_set": [
+        "def:observed-model-class",
+        "def:overlap-cone",
+        "def:observed-optimal-value",
+        "def:global-extension",
+        "def:model-class",
+        "def:observed-margin"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.identification_and_extension",
+        "file": "TIdentificationAndExtension.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "prop:causal-optimal-value-corollary",
+      "alias": "T-8",
+      "kind": "theorem",
+      "env": "propositionv",
+      "title": "Causal value identification",
+      "body": "Let \\(d\\ge 2\\), let \\(\\epsilon\\in(0,1/2)\\), and let \\(P\\) be a full-data law satisfying \\(\\mathcal P_{d,\\epsilon}\\) in the sense of \\cref{obj:def:model-class}. Then the full-data oracle value in \\cref{obj:def:oracle-value} agrees with the observed-law optimal-regression value in \\cref{obj:def:observed-optimal-value} evaluated at the observed margin in \\cref{obj:def:observed-margin}:\n\\[\nV^\\star(P)=\\Psi\\{\\operatorname{Obs}(P)\\}.\n\\]",
+      "ref_set": [
+        "def:model-class",
+        "def:oracle-value",
+        "def:observed-optimal-value",
+        "def:observed-margin"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.causal_optimal_value_corollary",
+        "file": "TCausalOptimalValueCorollary.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:empirical-ratio-estimator",
+      "alias": "P-5",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Empirical-ratio estimator \\(\\widehat V_{n,d}^{\\mathrm{ER}}\\)",
+      "body": "For \\(x\\in[d]\\) and \\(a\\in\\{0,1\\}\\), define the empirical counts\n\\[\n\\overline N_x\n=\n\\sum_{i=1}^n \\mathbf 1\\{X_i=x\\},\n\\qquad\n\\overline N_{ax}\n=\n\\sum_{i=1}^n \\mathbf 1\\{X_i=x,A_i=a\\},\n\\]\nand\n\\[\n\\overline S_{ax}\n=\n\\sum_{i=1}^n \\mathbf 1\\{X_i=x,A_i=a,Y_i=1\\}.\n\\]\nSet\n\\[\n\\widehat p_x=\\frac{\\overline N_x}{n},\n\\qquad\n\\widehat\\mu_{ax}=\\frac{\\overline S_{ax}}{\\overline N_{ax}},\n\\]\nwith the convention \\(0/0=0\\). The empirical-ratio optimal-value estimator is\n\\[\n\\widehat V_{n,d}^{\\mathrm{ER}}\n=\n\\sum_{x=1}^d \\widehat p_x \\max_{a\\in\\{0,1\\}}\\widehat\\mu_{ax}.\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.empiricalRatioEstimator",
+        "file": "Helpers/Estimator.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_18",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Treatment-outcome coordinate set",
+      "body": "The treatment-outcome coordinate set \\(\\mathcal J\\) is\n\\[\n\\mathcal J:=\\{0,1\\}\\times\\{0,1\\}.\n\\]\nA coordinate index is denoted by \\(\\jmath\\in\\mathcal J\\).",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.Cell",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:jackson-kernel",
+      "alias": "P-6",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Jackson polynomial \\(P_{x,K_d}\\)",
+      "body": "For an integer \\(K_d\\ge 2\\), define the order-four Jackson kernel on \\([-\\pi,\\pi]\\) by\n\\[\nJ_{K_d}(t)\n=\nc_{K_d}\n\\left\\{\n\\frac{\\sin(K_dt/2)}{\\sin(t/2)}\n\\right\\}^{4},\n\\]\nwith removable values filled continuously and normalizing constant \\(c_{K_d}\\) chosen so that\n\\[\n\\int_{-\\pi}^{\\pi} J_{K_d}(t)\\,dt=1.\n\\]\nFor a rectangle\n\\[\nQ_x\n=\n\\prod_{\\jmath\\in\\mathcal J}\n[\\ell_{\\jmath,x},u_{\\jmath,x}],\n\\]\ndefine its coordinate centers and radii by\n\\[\nb_{\\jmath,x}\n=\n\\frac{\\ell_{\\jmath,x}+u_{\\jmath,x}}{2},\n\\qquad\nr_{\\jmath,x}\n=\n\\frac{u_{\\jmath,x}-\\ell_{\\jmath,x}}{2}.\n\\]\nThe associated tensor polynomial \\(P_{x,K_d}\\) is defined by the even product convolution\n\\[\nP_{x,K_d}(b_x+r_x\\odot\\cos\\theta)\n=\n\\int_{[-\\pi,\\pi]^4}\n\\bar f_\\epsilon\\{b_x+r_x\\odot\\cos(\\theta+t)\\}\n\\prod_{\\jmath\\in\\mathcal J}J_{K_d}(t_{\\jmath})\\,dt.\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonTensorPolynomial",
+        "file": "Helpers/JacksonKernel.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:jackson-factorial-estimator",
+      "alias": "P-7",
+      "kind": "definition",
+      "env": "algorithmv",
+      "title": "Jackson-factorial estimator \\(\\widehat V_{n,d}^{\\mathrm{JF}}\\)",
+      "body": "The inputs are \\(O_1,\\ldots,O_n\\), the alphabet size \\(d\\), and tuning constants \\(D_0\\), \\(\\kappa\\), and \\(H_0\\).\n\n\\begin{enumerate}\n\\item Define the logarithmic scale, Poissonized scale, and polynomial degree by\n\\[\nL_d=\\log(ed),\n\\qquad\nm=\\frac n8,\n\\qquad\nK_d=\\max\\{2,\\lfloor \\kappa L_d\\rfloor\\}.\n\\]\n\n\\item If \\(d<D_0\\), output\n\\[\n\\widehat V_{n,d}^{\\mathrm{JF}}\n=\n\\widehat V_{n,d}^{\\mathrm{ER}}.\n\\]\nIf \\(d\\ge D_0\\) and \\(n<d/L_d\\), output\n\\[\n\\widehat V_{n,d}^{\\mathrm{JF}}\n=\n\\frac12.\n\\]\n\n\\item In the remaining case, draw\n\\[\nM\\sim\\operatorname{Pois}(n/4).\n\\]\nOn the event \\(M>n\\), set\n\\[\n\\widetilde V=0.\n\\]\n\n\\item On the event \\(M\\le n\\), draw independent marks\n\\[\nB_i\\sim\\operatorname{Bernoulli}(1/2),\n\\qquad i=1,\\ldots,M.\n\\]\nFor each \\(x\\in[d]\\) and coordinate \\(\\jmath\\in\\mathcal J\\), define pilot and evaluation counts\n\\[\nN'_{\\jmath,x}\n=\n\\sum_{i=1}^M B_i\\,\\mathbf 1\\{O_i\\text{ belongs to coordinate }\\jmath\\text{ in cell }x\\},\n\\]\nand\n\\[\nN_{\\jmath,x}\n=\n\\sum_{i=1}^M (1-B_i)\\,\\mathbf 1\\{O_i\\text{ belongs to coordinate }\\jmath\\text{ in cell }x\\}.\n\\]\n\n\\item Define pilot frequencies and rectangle half-widths by\n\\[\nc_{\\jmath,x}\n=\n\\frac{N'_{\\jmath,x}}{m},\n\\qquad\nh_{\\jmath,x}\n=\nH_0\n\\left\\{\n\\sqrt{\\frac{c_{\\jmath,x}L_d}{m}}\n+\n\\frac{L_d}{m}\n\\right\\}.\n\\]\nSet\n\\[\n\\ell_{\\jmath,x}\n=\n\\max\\{0,c_{\\jmath,x}-h_{\\jmath,x}\\},\n\\qquad\nu_{\\jmath,x}\n=\nc_{\\jmath,x}+h_{\\jmath,x},\n\\]\nand\n\\[\nQ_x\n=\n\\prod_{\\jmath\\in\\mathcal J}\n[\\ell_{\\jmath,x},u_{\\jmath,x}].\n\\]\nLet \\(b_x\\) and \\(r_x\\) denote the vector of coordinate centers and coordinate radii of \\(Q_x\\).\n\n\\item Expand the local polynomial as\n\\[\nP_{x,K_d}(v)-\\bar f_\\epsilon(b_x)\n=\n\\sum_\\alpha\nb_{x,\\alpha}\n\\left(\\frac{v-b_x}{r_x}\\right)^\\alpha .\n\\]\nFor \\(h\\ge 0\\), define the centered factorial lift\n\\[\nU_h(N;z)\n=\n\\sum_{t=0}^h\n\\binom ht\n(-z)^{h-t}\n\\frac{(N)_t}{m^t}.\n\\]\n\n\\item Define the clipping scale\n\\[\nS_x\n=\n(1+\\epsilon^{-1})\n\\sum_{\\jmath\\in\\mathcal J} r_{\\jmath,x},\n\\]\nthe unprojected cell estimate\n\\[\nZ_x\n=\n\\bar f_\\epsilon(b_x)\n+\n\\sum_\\alpha\nb_{x,\\alpha}\n\\prod_{\\jmath\\in\\mathcal J}\n\\frac{\nU_{\\alpha_{\\jmath}}(N_{\\jmath,x};b_{\\jmath,x})\n}{\nr_{\\jmath,x}^{\\alpha_{\\jmath}}\n},\n\\]\nand the clipped cell estimate\n\\[\nT_x^{\\mathrm{JF}}\n=\n\\Pi_{\n[\\bar f_\\epsilon(b_x)-d^{1/4}S_x,\\,\n \\bar f_\\epsilon(b_x)+d^{1/4}S_x]\n}\n(Z_x).\n\\]\n\n\\item Define the randomized projected aggregate by\n\\[\n\\widetilde V\n=\n\\Pi_{[0,1]}\n\\left(\n\\sum_{x=1}^d T_x^{\\mathrm{JF}}\n\\right).\n\\]\nThe all-data Rao--Blackwellized estimator is\n\\[\n\\widehat V_{n,d}^{\\mathrm{JF}}\n=\nE\\!\\left[\n\\widetilde V\n\\mid\nO_1,\\ldots,O_n\n\\right],\n\\]\nwhere the conditional expectation integrates only the auxiliary Poisson count \\(M\\) and marks \\(B_1,\\ldots,B_M\\).\n\\end{enumerate}",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonFactorialEstimator",
+        "file": "Helpers/Estimator.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_3",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Fixed-law squared risk",
+      "body": "For an estimator \\(\\widehat V\\) based on \\(O_1,\\ldots,O_n\\) and an observed law \\(\\mathbb P\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\), define \\[ \\operatorname{Risk}_{\\mathbb P}(\\widehat V,\\Psi):=E_{\\mathbb P^{\\otimes n}}\\left[\\left\\{\\widehat V(O_1,\\ldots,O_n)-\\Psi(\\mathbb P)\\right\\}^2\\right], \\] where \\(\\mathbb P^{\\otimes n}\\) denotes the law of \\(n\\) independent observations each distributed as \\(\\mathbb P\\).",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "thm:jackson-factorial-upper",
+      "alias": "T-2",
+      "kind": "theorem",
+      "env": "theoremv",
+      "title": "Jackson factorial risk bound",
+      "body": "Assume the sampling condition in \\cref{obj:ass:iid-sampling}: for every alphabet size \\(d\\), sample size \\(n\\), and observed finite law \\(\\mathbb P\\), the sample law is the canonical i.i.d. product law generated by \\(\\mathbb P\\).\n\nThen there exist tuning constants \\(H_0>0\\), \\(\\kappa\\in(0,1)\\), and an integer cutoff \\(D_0>2\\) such that the Jackson factorial estimator \\(\\widehat V_{n,d}^{\\mathrm{JF}}\\) of \\cref{obj:def:jackson-factorial-estimator} satisfies the following guarantee whenever:\n\\begin{itemize}\n\\item \\textbf{(Overlap.)} The overlap constant \\(\\epsilon\\) satisfies \\(0<\\epsilon<1/2\\).\n\\item \\textbf{(Sample size.)} The sample size satisfies \\(n\\ge 1\\).\n\\item \\textbf{(Alphabet size.)} The alphabet size satisfies \\(d\\ge 2\\).\n\\item \\textbf{(Observed model.)} The observed law \\(\\mathbb P\\) belongs to \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) as in \\cref{obj:def:observed-model-class}.\n\\end{itemize}\nFor every such \\(\\epsilon\\), there is a constant \\(C_\\epsilon>0\\) such that, for every such \\(n,d\\), and \\(\\mathbb P\\),\n\\[\n\\operatorname{Risk}_{\\mathbb P}\n\\left(\\widehat V_{n,d}^{\\mathrm{JF}},\\Psi\\right)\n\\le\nC_\\epsilon \\min\\left\\{1,\\frac{d}{n\\log(ed)}\\right\\}.\n\\]\nHere \\(\\Psi(\\mathbb P)\\) is the observed-law optimal-regression value of \\cref{obj:def:observed-optimal-value}.",
+      "ref_set": [
+        "ass:iid-sampling",
+        "def:observed-model-class",
+        "def:jackson-factorial-estimator",
+        "def:observed-optimal-value"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jackson_factorial_upper",
+        "file": "TJacksonFactorialUpper.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:l1-embedding",
+      "alias": "P-8",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "\\(L_1\\) embedding \\((\\mathbf P,\\mathbf Q)\\)",
+      "body": "For \\((\\mathbf P,\\mathbf Q)\\in\\Delta_d^2\\), define the observed atom masses\n\\[\nq_{11,x}=q_{00,x}=\\frac{P_x}{4},\n\\qquad\nq_{10,x}=q_{01,x}=\\frac{Q_x}{4},\n\\qquad x\\in[d].\n\\]\nComplete the observed law by taking the potential outcomes to be conditionally independent Bernoulli variables, setting the treatment propensity equal to \\(1/2\\), and imposing consistency.",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.l1Embedding",
+        "file": "Helpers/L1Embedding.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_7",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Fixed-sample two-sample \\(L_1\\) minimax risk",
+      "body": "Let \\((Z_i,W_i)_{i=1}^n\\) be independent paired observations with \\(Z_i\\sim\\mathbf P\\), \\(W_i\\sim\\mathbf Q\\), and \\((\\mathbf P,\\mathbf Q)\\in\\Delta_d^2\\). The normalized two-sample \\(L_1\\) minimax mean-squared error is \\[ \\mathfrak R^{L_1}_{n,d}:=\\inf_{\\widehat D}\\sup_{(\\mathbf P,\\mathbf Q)\\in\\Delta_d^2}E_{\\mathbf P,\\mathbf Q}\\left[\\left\\{\\widehat D((Z_i,W_i)_{i=1}^n)-\\|\\mathbf P-\\mathbf Q\\|_1\\right\\}^2\\right], \\] where the infimum is over all measurable real-valued functions of the paired sample.",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_6",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Equal-propensity normalized \\(L_1\\) embedding",
+      "body": "For \\((\\mathbf P,\\mathbf Q)\\in\\Delta_d^2\\), \\(\\mathrm{L1Emb}(\\mathbf P,\\mathbf Q)\\) is the full-data law on \\((X,A,Y,Y(0),Y(1))\\) with covariate mass \\(p_x=(P_x+Q_x)/2\\), treatment propensity \\(\\pi_x=1/2\\), outcome regressions \\(\\mu_{1x}=P_x/(P_x+Q_x)\\) and \\(\\mu_{0x}=Q_x/(P_x+Q_x)\\) on cells with \\(P_x+Q_x>0\\), conditionally independent Bernoulli potential outcomes with these means, treatment drawn independently of the potential outcomes given \\(X\\), and observed outcome \\(Y=Y(A)\\). Equivalently, its observed margin has cell masses \\(q_{11,x}=q_{00,x}=P_x/4\\) and \\(q_{10,x}=q_{01,x}=Q_x/4\\), with a consistency-compatible completion.",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "prop:equal-propensity-l1-reduction",
+      "alias": "T-3",
+      "kind": "theorem",
+      "env": "propositionv",
+      "title": "Equal-propensity L1 reduction",
+      "body": "Let \\(n,d\\in\\mathbb N\\), let \\(\\epsilon\\in\\mathbb R\\), let \\(\\mathbb P_0\\) be an observed law on \\([d]\\times\\{0,1\\}^2\\), and let \\(\\mu_n\\) be a law on \\(n\\) observed triples. Suppose that:\n\\begin{itemize}\n\\item \\textbf{(Sampling.)} The law \\(\\mu_n\\) is the \\(n\\)-fold product law generated by \\(\\mathbb P_0\\), as in \\cref{obj:ass:iid-sampling}.\n\\item \\textbf{(Alphabet size.)} \\(2\\le d\\).\n\\item \\textbf{(Overlap range.)} \\(0<\\epsilon<1/2\\).\n\\end{itemize}\nThen, for every pair \\((\\mathbf P,\\mathbf Q)\\in\\Delta_d^2\\), let\n\\[\n\\mathbb P=\\operatorname{Obs}\\{\\mathrm{L1Emb}(\\mathbf P,\\mathbf Q)\\},\n\\]\nwhere \\(\\operatorname{Obs}\\) is the observed margin from \\cref{obj:def:observed-margin} and \\(\\mathrm{L1Emb}\\) is the \\(L_1\\) embedding from \\cref{obj:synth_6}. The law \\(\\mathbb P\\) belongs to \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) in the sense of \\cref{obj:def:observed-model-class}, and, for every \\(x\\in[d]\\),\n\\[\np_x=\\frac{P_x+Q_x}{2}.\n\\]\nMoreover, whenever \\(p_x>0\\),\n\\[\n\\pi_x=\\frac12,\n\\]\nand the observed-law optimal-regression value from \\cref{obj:def:observed-optimal-value} satisfies\n\\[\n\\Psi(\\mathbb P)=\\frac12+\\frac14\\sum_{x\\in[d]} |P_x-Q_x|.\n\\]\nFinally, the explicit fixed-\\(n\\) product Markov kernel obtained by applying the single-observation \\(L_1\\) embedding kernel independently across the \\(n\\) coordinates transforms the fixed paired-sample law generated by \\((\\mathbf P,\\mathbf Q)\\) exactly into the product law \\(\\mathbb P^{\\otimes n}\\). Consequently, for the fixed-sample minimax squared risk in \\cref{obj:def:minimax-risk},\n\\[\n\\frac{1}{16}\\,\\mathfrak R^{L_1}_{n,d}\\le \\mathfrak R_{n,d,\\epsilon},\n\\]\nwhere \\(\\mathfrak R^{L_1}_{n,d}\\) is the normalized two-sample \\(L_1\\) minimax mean-squared risk.",
+      "ref_set": [
+        "ass:iid-sampling",
+        "def:observed-margin",
+        "def:l1-embedding",
+        "def:observed-model-class",
+        "def:observed-optimal-value",
+        "def:minimax-risk"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.equal_propensity_l1_reduction",
+        "file": "TEqualPropensityL1Reduction.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "thm:all-estimator-lower",
+      "alias": "T-4",
+      "kind": "theorem",
+      "env": "theoremv",
+      "title": "Global minimax lower bound",
+      "body": "Suppose the observed samples satisfy the independent product sampling law in \\cref{obj:ass:iid-sampling}. For every overlap constant \\(0<\\epsilon<1/2\\), there exists a constant \\(c_\\epsilon>0\\) such that, for every \\(n\\geq 1\\) and \\(d\\geq 2\\), the fixed-sample minimax squared risk \\(\\mathfrak R_{n,d,\\epsilon}\\) in \\cref{obj:def:minimax-risk} satisfies\n\\[\nc_\\epsilon \\min\\left\\{1,\\frac{d}{n\\log(ed)}\\right\\}\n\\leq\n\\mathfrak R_{n,d,\\epsilon}.\n\\]",
+      "ref_set": [
+        "ass:iid-sampling",
+        "def:minimax-risk"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.all_estimator_lower",
+        "file": "TAllEstimatorLower.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": [
+        {
+          "node_id": "lem:cai-low-absolute-moment-priors",
+          "cite_id": "cite:cai-low-2011-l1",
+          "cite_key": "CaiLow2011L1",
+          "locator": "Lemma 1 and Section 3.1",
+          "statement": "For every even integer \\(K\\), let \\(E_K=\\inf_{p:\\deg(p)\\leq K}\\sup_{t\\in[-1,1]}\\lvert\\lvert t\\rvert-p(t)\\rvert\\).  There exist symmetric probability measures \\(\\nu_{0,K}\\) and \\(\\nu_{1,K}\\) on \\([-1,1]\\) whose moments agree through degree \\(K\\) and such that \\(\\int\\lvert t\\rvert\\,d\\nu_{1,K}-\\int\\lvert t\\rvert\\,d\\nu_{0,K}=2E_K\\).  Moreover, there are universal constants \\(0<c<C<\\infty\\) such that \\(c/K\\leq E_K\\leq C/K\\).",
+          "status": "matched"
+        },
+        {
+          "node_id": "lem:jhw-poisson-l1-lower",
+          "cite_id": "cite:jiao-han-weissman-2018-l1",
+          "cite_key": "JiaoHanWeissman2018L1",
+          "locator": "Theorem 3, equation (24), and its Poissonized lower-bound proof",
+          "statement": "There are positive universal constants such that, whenever \\(d\\geq2\\), \\(n\\) is at least a constant multiple of \\(d/\\log(ed)\\), and \\(\\log(en)\\) is at most a constant multiple of \\(\\log(ed)\\), the minimax mean-squared error for estimating \\(\\lVert\\mathbf P-\\mathbf Q\\rVert_1\\) from two independent samples of respective sizes \\(\\operatorname{Pois}(2n)\\), one from each of \\(\\mathbf P,\\mathbf Q\\in\\Delta_d\\), is bounded below by a positive constant multiple of \\(\\min\\{1,d/[n\\log(en)]\\}\\).",
+          "status": "matched"
+        }
+      ]
+    },
+    {
+      "obj_id": "thm:matched-minimax-frontier",
+      "alias": "T-5",
+      "kind": "theorem",
+      "env": "theoremv",
+      "title": "Matched minimax frontier",
+      "body": "There are universal tuning constants \\(H_0>0\\), \\(0<\\kappa<1\\), and an integer cutoff \\(D_0>2\\) for the Jackson factorial estimator such that the following holds.  For every fixed overlap constant \\(\\epsilon\\in(0,1/2)\\), there are real constants \\(c_\\epsilon\\) and \\(C_\\epsilon\\) with\n\\[\n0<c_\\epsilon\\leq C_\\epsilon .\n\\]\nFor every \\(n\\geq 1\\) and \\(d\\geq 2\\), with \\(L_d=\\log(ed)\\) and with \\(\\mathfrak R_{n,d,\\epsilon}\\) denoting the fixed-sample observed minimax squared risk in \\cref{obj:def:minimax-risk},\n\\[\nc_\\epsilon \\min\\left\\{1,\\frac{d}{nL_d}\\right\\}\n\\leq\n\\mathfrak R_{n,d,\\epsilon}\n\\leq\n\\sup_{\\mathbb P\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}}\nE_{\\mathbb P^{\\otimes n}}\\!\\left[\n  \\left(\\widehat V_{n,d}^{\\mathrm{JF}}-\\Psi(\\mathbb P)\\right)^2\n\\right]\n\\leq\nC_\\epsilon \\min\\left\\{1,\\frac{d}{nL_d}\\right\\}.\n\\]\nMoreover, the fixed-sample minimax squared risk over the full-data causal completion class \\(\\mathcal P_{d,\\epsilon}\\) is exactly \\(\\mathfrak R_{n,d,\\epsilon}\\) for the same \\(n\\), \\(d\\), and \\(\\epsilon\\).",
+      "ref_set": [
+        "def:minimax-risk"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.matched_minimax_frontier",
+        "file": "TMatchedMinimaxFrontier.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": [
+        {
+          "node_id": "lem:cai-low-absolute-moment-priors",
+          "cite_id": "cite:cai-low-2011-l1",
+          "cite_key": "CaiLow2011L1",
+          "locator": "Lemma 1 and Section 3.1",
+          "statement": "For every even integer \\(K\\), let \\(E_K=\\inf_{p:\\deg(p)\\leq K}\\sup_{t\\in[-1,1]}\\lvert\\lvert t\\rvert-p(t)\\rvert\\).  There exist symmetric probability measures \\(\\nu_{0,K}\\) and \\(\\nu_{1,K}\\) on \\([-1,1]\\) whose moments agree through degree \\(K\\) and such that \\(\\int\\lvert t\\rvert\\,d\\nu_{1,K}-\\int\\lvert t\\rvert\\,d\\nu_{0,K}=2E_K\\).  Moreover, there are universal constants \\(0<c<C<\\infty\\) such that \\(c/K\\leq E_K\\leq C/K\\).",
+          "status": "matched"
+        },
+        {
+          "node_id": "lem:jhw-poisson-l1-lower",
+          "cite_id": "cite:jiao-han-weissman-2018-l1",
+          "cite_key": "JiaoHanWeissman2018L1",
+          "locator": "Theorem 3, equation (24), and its Poissonized lower-bound proof",
+          "statement": "There are positive universal constants such that, whenever \\(d\\geq2\\), \\(n\\) is at least a constant multiple of \\(d/\\log(ed)\\), and \\(\\log(en)\\) is at most a constant multiple of \\(\\log(ed)\\), the minimax mean-squared error for estimating \\(\\lVert\\mathbf P-\\mathbf Q\\rVert_1\\) from two independent samples of respective sizes \\(\\operatorname{Pois}(2n)\\), one from each of \\(\\mathbf P,\\mathbf Q\\in\\Delta_d\\), is bounded below by a positive constant multiple of \\(\\min\\{1,d/[n\\log(en)]\\}\\).",
+          "status": "matched"
+        }
+      ]
+    },
+    {
+      "obj_id": "synth_4",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Causal minimax risk",
+      "body": "For \\(n\\ge1\\), \\(d\\ge2\\), and \\(0<\\epsilon<1/2\\), write \\(\\operatorname{Obs}(P)^{\\otimes n}\\) for the law of \\(n\\) independent observations each distributed as the observed margin \\(\\operatorname{Obs}(P)\\), and define the observed-sample causal minimax squared risk by \\[ \\mathfrak R^{\\mathrm{causal}}_{n,d,\\epsilon}:=\\inf_{\\widehat V}\\sup_{P\\in\\mathcal P_{d,\\epsilon}} E_{\\operatorname{Obs}(P)^{\\otimes n}}\\left[\\left\\{\\widehat V(O_1,\\ldots,O_n)-V^\\star(P)\\right\\}^2\\right], \\] where the infimum is over all measurable maps from \\(([d]\\times\\{0,1\\}^2)^n\\) to \\(\\mathbb R\\).",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "thm:consistency-and-parametric-boundaries",
+      "alias": "T-7",
+      "kind": "theorem",
+      "env": "theoremv",
+      "title": "Consistency and parametric boundaries",
+      "body": "For every overlap constant \\(\\epsilon\\) with \\(0<\\epsilon<1/2\\), and for every alphabet-size sequence \\(d_\\bullet=(d_n)_{n\\ge 1}\\) satisfying \\(d_n\\ge 2\\) for all \\(n\\), the following equivalences hold:\n\\begin{itemize}\n\\item \\textbf{(Observed consistency.)} The fixed-sample minimax squared risk \\(\\mathfrak R_{n,d_n,\\epsilon}\\) of \\cref{obj:def:minimax-risk} satisfies\n\\[\n\\mathfrak R_{n,d_n,\\epsilon}\\longrightarrow 0\n\\]\nif and only if\n\\[\nd_n=o\\{n\\log(en)\\}.\n\\]\n\\item \\textbf{(Causal consistency.)} The causal minimax squared risk over \\(\\mathcal P_{d_n,\\epsilon}\\) satisfies\n\\[\n\\mathfrak R^{\\mathrm{causal}}_{n,d_n,\\epsilon}\\longrightarrow 0\n\\]\nif and only if\n\\[\nd_n=o\\{n\\log(en)\\}.\n\\]\n\\item \\textbf{(Observed parametric boundary.)} The observed minimax risk sequence has the parametric \\(n^{-1}\\) rate, meaning that there exist constants \\(c,C\\) with \\(0<c\\le C\\) such that, for all sufficiently large \\(n\\),\n\\[\n\\frac{c}{n}\\le \\mathfrak R_{n,d_n,\\epsilon}\\le \\frac{C}{n},\n\\]\nif and only if the alphabet-size sequence is uniformly bounded asymptotically, meaning \\(d_n=O(1)\\).\n\\item \\textbf{(Causal parametric boundary.)} The causal minimax risk sequence has the parametric \\(n^{-1}\\) rate, meaning that there exist constants \\(c,C\\) with \\(0<c\\le C\\) such that, for all sufficiently large \\(n\\),\n\\[\n\\frac{c}{n}\\le \\mathfrak R^{\\mathrm{causal}}_{n,d_n,\\epsilon}\\le \\frac{C}{n},\n\\]\nif and only if \\(d_n=O(1)\\).\n\\end{itemize}",
+      "ref_set": [
+        "def:minimax-risk"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.consistency_and_parametric_boundaries",
+        "file": "TConsistencyParametricBoundaries.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": [
+        {
+          "node_id": "lem:cai-low-absolute-moment-priors",
+          "cite_id": "cite:cai-low-2011-l1",
+          "cite_key": "CaiLow2011L1",
+          "locator": "Lemma 1 and Section 3.1",
+          "statement": "For every even integer \\(K\\), let \\(E_K=\\inf_{p:\\deg(p)\\leq K}\\sup_{t\\in[-1,1]}\\lvert\\lvert t\\rvert-p(t)\\rvert\\).  There exist symmetric probability measures \\(\\nu_{0,K}\\) and \\(\\nu_{1,K}\\) on \\([-1,1]\\) whose moments agree through degree \\(K\\) and such that \\(\\int\\lvert t\\rvert\\,d\\nu_{1,K}-\\int\\lvert t\\rvert\\,d\\nu_{0,K}=2E_K\\).  Moreover, there are universal constants \\(0<c<C<\\infty\\) such that \\(c/K\\leq E_K\\leq C/K\\).",
+          "status": "matched"
+        },
+        {
+          "node_id": "lem:jhw-poisson-l1-lower",
+          "cite_id": "cite:jiao-han-weissman-2018-l1",
+          "cite_key": "JiaoHanWeissman2018L1",
+          "locator": "Theorem 3, equation (24), and its Poissonized lower-bound proof",
+          "statement": "There are positive universal constants such that, whenever \\(d\\geq2\\), \\(n\\) is at least a constant multiple of \\(d/\\log(ed)\\), and \\(\\log(en)\\) is at most a constant multiple of \\(\\log(ed)\\), the minimax mean-squared error for estimating \\(\\lVert\\mathbf P-\\mathbf Q\\rVert_1\\) from two independent samples of respective sizes \\(\\operatorname{Pois}(2n)\\), one from each of \\(\\mathbf P,\\mathbf Q\\in\\Delta_d\\), is bounded below by a positive constant multiple of \\(\\min\\{1,d/[n\\log(en)]\\}\\).",
+          "status": "matched"
+        }
+      ]
+    },
+    {
+      "obj_id": "prop:parent-reduction",
+      "alias": "T-6",
+      "kind": "theorem",
+      "env": "propositionv",
+      "title": "Parent minimax reduction",
+      "body": "There exist tuning constants \\(H_0>0\\), \\(\\kappa\\in(0,1)\\), and an integer cutoff \\(D_0>2\\), used by the Jackson factorial estimator in \\cref{obj:def:jackson-factorial-estimator}, such that:\n\\begin{itemize}\n\\item \\textbf{(Matched frontier.)} For every overlap parameter \\(\\epsilon\\in(0,1/2)\\), there are constants \\(c\\) and \\(C\\) with \\(0<c\\leq C\\) such that, for every \\(n\\geq1\\) and \\(d\\geq2\\),\n\\[\nc\\min\\left\\{1,\\frac{\\sqrt d}{n}+\\frac{d}{n\\log(en)}\\right\\}\n\\leq\n\\mathfrak R_{n,d,\\epsilon}\n\\leq\nC\\frac{d}{n}.\n\\]\n\\item \\textbf{(Bounded alphabets.)} For every \\(n\\), every \\(2\\leq d<D_0\\), every overlap parameter \\(\\epsilon\\), and every observed sample, the Jackson factorial estimator in \\cref{obj:def:jackson-factorial-estimator} equals the empirical-ratio estimator in \\cref{obj:def:empirical-ratio-estimator}:\n\\[\n\\widehat V_{n,d}^{\\mathrm{JF}}=\\widehat V_{n,d}^{\\mathrm{ER}}.\n\\]\n\\item \\textbf{(Bounded-alphabet sequences.)} For every overlap parameter \\(\\epsilon\\in(0,1/2)\\) and every sequence \\(d_n\\) with \\(d_n\\geq2\\) for all \\(n\\) and \\(d_n\\leq d_{\\max}\\) for some finite \\(d_{\\max}\\), there are constants \\(c\\) and \\(C\\) with \\(0<c\\leq C\\) such that, for all sufficiently large \\(n\\),\n\\[\n\\frac{c}{n}\n\\leq\n\\mathfrak R_{n,d_n,\\epsilon}\n\\leq\n\\frac{C}{n}.\n\\]\n\\end{itemize}",
+      "ref_set": [
+        "def:minimax-risk",
+        "def:jackson-factorial-estimator",
+        "def:empirical-ratio-estimator"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.parent_reduction",
+        "file": "TParentReduction.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": [
+        {
+          "node_id": "lem:cai-low-absolute-moment-priors",
+          "cite_id": "cite:cai-low-2011-l1",
+          "cite_key": "CaiLow2011L1",
+          "locator": "Lemma 1 and Section 3.1",
+          "statement": "For every even integer \\(K\\), let \\(E_K=\\inf_{p:\\deg(p)\\leq K}\\sup_{t\\in[-1,1]}\\lvert\\lvert t\\rvert-p(t)\\rvert\\).  There exist symmetric probability measures \\(\\nu_{0,K}\\) and \\(\\nu_{1,K}\\) on \\([-1,1]\\) whose moments agree through degree \\(K\\) and such that \\(\\int\\lvert t\\rvert\\,d\\nu_{1,K}-\\int\\lvert t\\rvert\\,d\\nu_{0,K}=2E_K\\).  Moreover, there are universal constants \\(0<c<C<\\infty\\) such that \\(c/K\\leq E_K\\leq C/K\\).",
+          "status": "matched"
+        },
+        {
+          "node_id": "lem:jhw-poisson-l1-lower",
+          "cite_id": "cite:jiao-han-weissman-2018-l1",
+          "cite_key": "JiaoHanWeissman2018L1",
+          "locator": "Theorem 3, equation (24), and its Poissonized lower-bound proof",
+          "statement": "There are positive universal constants such that, whenever \\(d\\geq2\\), \\(n\\) is at least a constant multiple of \\(d/\\log(ed)\\), and \\(\\log(en)\\) is at most a constant multiple of \\(\\log(ed)\\), the minimax mean-squared error for estimating \\(\\lVert\\mathbf P-\\mathbf Q\\rVert_1\\) from two independent samples of respective sizes \\(\\operatorname{Pois}(2n)\\), one from each of \\(\\mathbf P,\\mathbf Q\\in\\Delta_d\\), is bounded below by a positive constant multiple of \\(\\min\\{1,d/[n\\log(en)]\\}\\).",
+          "status": "matched"
+        }
+      ]
+    },
+    {
+      "obj_id": "def:constant-handle",
+      "alias": "P-14",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Constant route \\(\\mathscr H_\\epsilon^{\\mathrm{const}}\\)",
+      "body": "The route \\(\\mathscr H_\\epsilon^{\\mathrm{const}}\\) rescales the pilot-local four-cell rectangles by their Poisson noise geometry, optimizes the tensor-polynomial bias--variance functional for \\(\\bar f_\\epsilon\\), and dualizes the approximation constraint into moment-matched observed laws in \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) for the target \\(\\Psi(\\mathbb P)\\).",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.sharpConstantHandle",
+        "file": "OpenQuestions.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "oeq:sharp-overlap-constant",
+      "alias": "P-15",
+      "kind": "definition",
+      "env": "remarkv",
+      "title": "Sharp overlap constant",
+      "body": "A natural next question is whether, along each nonsaturated sequence with \\(d\\to\\infty\\) and\n\\[\n\\frac{d}{n\\log(ed)}\\to0,\n\\]\nthe normalized risk\n\\[\n\\frac{n\\log(ed)}{d}\\mathfrak R_{n,d,\\epsilon}\n\\]\nconverges to a finite positive limit, and whether an estimator attaining that limit can be derived through \\(\\mathscr H_\\epsilon^{\\mathrm{const}}\\).",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.sharpOverlapConstantQuestion",
+        "file": "OpenQuestions.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:tensor-jackson-coefficient-envelope",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Tensor Jackson coefficient envelope",
+      "body": "With the Jackson kernel notation of \\cref{obj:def:jackson-kernel}, assume:\n\\begin{itemize}\n\\item \\textbf{(Order.)} \\(K\\ge 1\\) is an integer.\n\\item \\textbf{(Function.)} \\(f\\) is continuous on the normalized cube \\([-1,1]^{\\mathcal J}\\), where \\(\\mathcal J\\) is the four arm-outcome coordinate set.\n\\item \\textbf{(Envelope.)} \\(B\\ge 0\\) and \\(\\lvert f(z)\\rvert\\le B\\) for every \\(z\\in[-1,1]^{\\mathcal J}\\).\n\\end{itemize}\nThen there exists a polynomial \\(\\mathcal R\\) in the four normalized coordinates such that, for every angle vector \\(\\varphi:\\mathcal J\\to\\mathbb R\\),\n\\[\n\\mathcal R(\\cos\\varphi)\n=\n\\int_{[-\\pi,\\pi]^{\\mathcal J}}\nf\\{\\cos(\\varphi-\\tau)\\}\n\\prod_{\\jmath\\in\\mathcal J}J_K(\\tau_\\jmath)\\,d\\tau .\n\\]\nHere cosine is applied coordinatewise. Moreover, every multi-index \\(\\beta\\in\\operatorname{supp}(\\mathcal R)\\) satisfies\n\\[\n\\beta_\\omega\\le 2(K-1)\n\\qquad\\text{for every }\\omega\\in\\mathcal J,\n\\]\nthe total degree of \\(\\mathcal R\\) is at most \\(8(K-1)\\), and its coefficient one-norm satisfies\n\\[\n\\sum_{\\beta\\in\\operatorname{supp}(\\mathcal R)}\n\\lvert \\mathcal R_\\beta\\rvert\n\\le 2^{40K+20}B .\n\\]",
+      "ref_set": [
+        "def:jackson-kernel"
+      ],
+      "lean": {
+        "decl": "Causalean.Mathlib.Analysis.JacksonApproximation.tensorConvolution_exists_mvPolynomial_four_coeffBound",
+        "file": "Helpers/JacksonKernel.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:jackson-tensor-extraction",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Jackson tensor extraction",
+      "body": "Using the overlap-parameter notation of \\cref{obj:ass:fixed-overlap}, let \\(\\epsilon\\in\\mathbb R\\), let \\(K\\) be an integer, and let\n\\(Q_x=\\prod_{\\jmath\\in\\mathcal J}[\\ell_{\\jmath,x},u_{\\jmath,x}]\\) be a four-coordinate rectangle with\n\\[\nb_{\\jmath,x}=\\frac{\\ell_{\\jmath,x}+u_{\\jmath,x}}{2},\n\\qquad\nr_{\\jmath,x}=\\frac{u_{\\jmath,x}-\\ell_{\\jmath,x}}{2}.\n\\]\nAssume:\n\\begin{itemize}\n\\item \\textbf{(Degree.)} \\(K\\ge 2\\).\n\\item \\textbf{(Lower endpoints.)} \\(\\ell_{\\jmath,x}\\ge 0\\) for every \\(\\jmath\\in\\mathcal J\\).\n\\item \\textbf{(Overlap parameter.)} \\(\\epsilon>0\\).\n\\item \\textbf{(Radii.)} \\(r_{\\jmath,x}>0\\) for every \\(\\jmath\\in\\mathcal J\\).\n\\end{itemize}\nThen there exist a polynomial \\(P_{x,K}\\) in the four physical coordinates and a polynomial\n\\(\\mathcal R_{x,K}\\) in the four normalized coordinates such that:\n\\begin{itemize}\n\\item \\textbf{(Physical degree.)} Every coordinate degree of \\(P_{x,K}\\) is at most \\(2(K-1)\\).\n\\item \\textbf{(Normalized degree.)} Every \\(\\beta\\in\\operatorname{supp}(\\mathcal R_{x,K})\\) satisfies\n\\(\\beta_\\omega\\le 2(K-1)\\) for every coordinate \\(\\omega\\in\\mathcal J\\).\n\\item \\textbf{(Centered evaluation.)} For every four-coordinate vector \\(v\\),\n\\[\nP_{x,K}(v)-\\bar f_\\epsilon(b_x)\n=\n\\mathcal R_{x,K}\\left(\\left\\{\\frac{v_\\jmath-b_{\\jmath,x}}{r_{\\jmath,x}}\\right\\}_{\\jmath\\in\\mathcal J}\\right).\n\\]\nHere \\(\\bar f_\\epsilon\\) is the globally defined cellwise maximum contribution from\n\\cref{obj:def:global-extension}.\n\\item \\textbf{(Jackson convolution.)} For every angle vector \\(\\vartheta:\\mathcal J\\to\\mathbb R\\),\n\\[\nP_{x,K}\\left(\\left\\{b_{\\jmath,x}+r_{\\jmath,x}\\cos(\\vartheta_\\jmath)\\right\\}_{\\jmath\\in\\mathcal J}\\right)\n\\]\nequals the order-\\(K\\) tensor Jackson convolution from \\cref{obj:def:jackson-kernel} of\n\\(\\bar f_\\epsilon\\) precomposed with the affine parametrization of \\(Q_x\\), evaluated at\n\\(\\vartheta\\).\n\\item \\textbf{(Coefficient envelope.)}\n\\[\n\\sum_{\\beta\\in\\operatorname{supp}(\\mathcal R_{x,K})}\n\\left|(\\mathcal R_{x,K})_\\beta\\right|\n\\le\n2^{40K+20}(1+\\epsilon^{-1})\\sum_{\\jmath\\in\\mathcal J}r_{\\jmath,x}.\n\\]\n\\end{itemize}",
+      "ref_set": [
+        "def:jackson-kernel",
+        "def:global-extension",
+        "def:overlap-cone",
+        "def:jackson-factorial-estimator",
+        "ass:fixed-overlap",
+        "lem:tensor-jackson-coefficient-envelope"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonTensorPolynomialData_exists",
+        "file": "Helpers/JacksonKernel.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_20",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Tensor Jackson convolution operator $\\mathcal J_K$",
+      "body": "For a positive integer $K$, let $J_K(t)=c_K\\{\\sin(Kt/2)/\\sin(t/2)\\}^4$ on $[-\\pi,\\pi]$, with the removable values filled in continuously and with $c_K$ chosen so that $\\int_{-\\pi}^{\\pi}J_K(t)\\,dt=1$. For a finite coordinate dimension $D$ and a function $f:\\mathbb R^D\\to\\mathbb R$, the order-$K$ tensor Jackson convolution is the operator $\\mathcal J_K$ defined, for $\\theta\\in\\mathbb R^D$, by \\[ (\\mathcal J_K f)(\\cos\\theta) := \\int_{[-\\pi,\\pi]^D} f\\{\\cos(\\theta+t)\\}\\prod_{i=1}^D J_K(t_i)\\,dt, \\] where cosine and addition are coordinatewise. Equivalently, the product kernel $\\prod_{i=1}^D J_K(t_i)$ is normalized to have integral one over $[-\\pi,\\pi]^D$.",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:jackson-convolution-modulus",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Tensor Jackson modulus",
+      "body": "Let \\(D\\) be a finite coordinate dimension, let \\(K\\) be a positive integer, and let \\(f:\\mathbb R^D\\to\\mathbb R\\). Let \\(L\\ge0\\), let \\(a_i\\ge0\\) and \\(b_i\\ge0\\) for each \\(i\\in[D]\\), and fix an angle vector \\(\\varphi\\in\\mathbb R^D\\). Suppose:\n\\begin{itemize}\n\\item \\textbf{(Kernel.)} The order-\\(K\\) tensor Jackson convolution is formed from the order-four Jackson kernel in \\cref{obj:def:jackson-kernel}.\n\\item \\textbf{(Continuity.)} The function \\(f\\) is continuous on the normalized cube \\([-1,1]^D\\).\n\\item \\textbf{(Weighted increment modulus.)} For every shift \\(\\tau\\in\\mathbb R^D\\),\n\\[\n\\left|f\\{\\cos(\\varphi-\\tau)\\}-f(\\cos\\varphi)\\right|\n\\le\nL\\sum_{i=1}^D\\left(a_i|\\tau_i|+b_i\\tau_i^2\\right),\n\\]\nwhere cosine is applied coordinatewise.\n\\end{itemize}\nThen\n\\[\n\\left|(\\mathcal J_K f)(\\cos\\varphi)-f(\\cos\\varphi)\\right|\n\\le\nL\\sum_{i=1}^D\\left(\\frac{32a_i}{K}+\\frac{64b_i}{K^2}\\right).\n\\]",
+      "ref_set": [
+        "def:jackson-kernel"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.tensorConvolution_approx_weighted",
+        "file": "Helpers/JacksonCertificate.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:simultaneous-jackson-certificate",
+      "alias": "L-1",
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Simultaneous Jackson certificate",
+      "body": "There is a universal constant \\(A>0\\) such that, for every overlap parameter \\(\\epsilon\\) with \\(0<\\epsilon<1/2\\), there is a constant \\(C_\\epsilon>0\\) with the following property. Let:\n\\begin{itemize}\n\\item \\textbf{(Degree.)} \\(K\\ge 2\\).\n\\item \\textbf{(Rectangle.)} \\(Q_x=\\prod_{\\jmath\\in\\mathcal J}[\\ell_{\\jmath,x},u_{\\jmath,x}]\\) have \\(\\ell_{\\jmath,x}\\le u_{\\jmath,x}\\), \\(\\ell_{\\jmath,x}\\ge 0\\), and positive radii\n\\[\nr_{\\jmath,x}=\\frac{u_{\\jmath,x}-\\ell_{\\jmath,x}}{2}>0\n\\]\nfor every \\(\\jmath\\in\\mathcal J\\).\n\\end{itemize}\nLet \\(P_{x,K}\\) be the tensor Jackson polynomial associated with \\(\\epsilon\\), \\(K\\), and \\(Q_x\\) in \\cref{obj:def:jackson-kernel}. Then the same polynomial satisfies all of the following conclusions:\n\\[\n\\deg_{\\jmath}(P_{x,K})\\le 2(K-1)\n\\qquad\\text{for every }\\jmath\\in\\mathcal J .\n\\]\nFor every \\(v\\in Q_x\\),\n\\[\n\\left|P_{x,K}(v)-\\bar f_\\epsilon(v)\\right|\n\\le\nC_\\epsilon\n\\sum_{\\jmath\\in\\mathcal J}\n\\left\\{\n\\frac{\\sqrt{(v_{\\jmath}-\\ell_{\\jmath,x})(u_{\\jmath,x}-v_{\\jmath})}}{K}\n+\n\\frac{r_{\\jmath,x}}{K^2}\n\\right\\}.\n\\]\nThere are a finite multi-index set \\(\\mathcal A_x\\) and coefficients \\(b_{x,\\alpha}\\) such that, for every \\(v\\),\n\\[\nP_{x,K}(v)-\\bar f_\\epsilon(b_x)\n=\n\\sum_{\\alpha\\in\\mathcal A_x}\nb_{x,\\alpha}\n\\prod_{\\jmath\\in\\mathcal J}\n\\left(\\frac{v_{\\jmath}-b_{\\jmath,x}}{r_{\\jmath,x}}\\right)^{\\alpha_{\\jmath}},\n\\]\nwith\n\\[\n\\alpha_{\\jmath}\\le 2(K-1)\n\\qquad\\text{for every }\\alpha\\in\\mathcal A_x\\text{ and every }\\jmath\\in\\mathcal J,\n\\]\nand\n\\[\n\\sum_{\\alpha\\in\\mathcal A_x}|b_{x,\\alpha}|\n\\le\nA^K(1+\\epsilon^{-1})\n\\sum_{\\jmath\\in\\mathcal J} r_{\\jmath,x}.\n\\]",
+      "ref_set": [
+        "def:jackson-kernel",
+        "lem:jackson-tensor-extraction",
+        "lem:jackson-convolution-modulus"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.simultaneous_jackson_certificate",
+        "file": "Helpers/JacksonCertificate.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:canonical-pilot-bad-moment",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Bad pilot moment bound",
+      "body": "Fix the four-coordinate set \\(\\mathcal J=\\{0,1\\}\\times\\{0,1\\}\\). Let \\(q=(q_\\jmath)_{\\jmath\\in\\mathcal J}\\) have nonnegative coordinates, let \\(m>0\\), let \\(L\\ge 1\\), and let \\(t\\in\\{1,2,4\\}\\). Suppose the pilot counts \\((N'_{\\jmath})_{\\jmath\\in\\mathcal J}\\) are independent with\n\\[\nN'_{\\jmath}\\sim \\operatorname{Pois}(m q_\\jmath),\n\\qquad \\jmath\\in\\mathcal J .\n\\]\nWith \\(H_0=1024\\), define the normalized aggregate pilot score\n\\[\n\\Gamma(N')\n=\n\\sum_{\\jmath\\in\\mathcal J}\n\\left[\n\\left|{N'_{\\jmath}\\over m}-q_\\jmath\\right|\n+\nH_0\\left\\{\\sqrt{{N'_{\\jmath}\\over m}{L\\over m}}+{L\\over m}\\right\\}\n\\right],\n\\]\nand define the self-normalized bad-pilot event\n\\[\n\\mathsf G^c\n=\n\\left\\{\n\\exists\\,\\jmath\\in\\mathcal J:\n\\left|{N'_{\\jmath}\\over m}-q_\\jmath\\right|\n>\n{H_0\\over 4}\n\\left\\{\\sqrt{{N'_{\\jmath}\\over m}{L\\over m}}+{L\\over m}\\right\\}\n\\right\\}.\n\\]\nThen, with \\(C_t=10^{80(t+1)}\\),\n\\[\nE\\!\\left[\\Gamma(N')^t\\mathbf 1_{\\mathsf G^c}\\right]\n\\le\nC_t e^{-20L}\n\\left\\{\n\\sqrt{{\\left(\\sum_{\\jmath\\in\\mathcal J}q_\\jmath\\right)L\\over m}}\n+\n{L\\over m}\n\\right\\}^{t}.\n\\]",
+      "ref_set": [
+        "def:jackson-factorial-estimator",
+        "def:jackson-kernel",
+        "def:observed-model-class"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalPilotBadMoment",
+        "file": "Helpers/PilotControl.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_12",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Good-pilot event",
+      "body": "Fix a cell \\(x\\), four-cell mass vector \\(q_x=(q_{\\jmath,x})_{\\jmath\\in\\mathcal J}\\), Poisson scale \\(m>0\\), alphabet logarithm \\(L_d=\\log(ed)\\), pilot-radius constant \\(H_0\\), and pilot counts \\((N'_{\\jmath,x})_{\\jmath\\in\\mathcal J}\\). Put \\(c_{\\jmath,x}=N'_{\\jmath,x}/m\\) and \\(h_{\\jmath,x}=H_0\\{\\sqrt{c_{\\jmath,x}L_d/m}+L_d/m\\}\\). The coordinatewise good-pilot event used for the pilot rectangle is \\[\\mathsf G_x:=\\bigcap_{\\jmath\\in\\mathcal J}\\left\\{\\left|\\frac{N'_{\\jmath,x}}{m}-q_{\\jmath,x}\\right|\\le \\frac{h_{\\jmath,x}}{4}\\right\\}.\\]",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:good-pilot-radius-sum",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Good pilot radius bound",
+      "body": "Fix \\(m>0\\), an integer \\(d\\ge 1\\), pilot counts \\(N'_{\\jmath,x}\\) for \\(\\jmath\\) in the four-coordinate set \\(\\mathcal J\\), and coordinate intensities \\(q_\\jmath\\ge 0\\).  Let \\(L_d=\\log(ed)\\), set \\(p_x=\\sum_{\\jmath\\in\\mathcal J}q_\\jmath\\), and let \\(Q_x=\\prod_{\\jmath\\in\\mathcal J}[\\ell_{\\jmath,x},u_{\\jmath,x}]\\) be the canonical pilot rectangle of \\cref{obj:def:jackson-factorial-estimator}, with radii\n\\[\nr_{\\jmath,x}=\\frac{u_{\\jmath,x}-\\ell_{\\jmath,x}}{2}.\n\\]\nAssume that the good-pilot event\n\\[\n\\mathsf G_x=\\bigcap_{\\jmath\\in\\mathcal J}\n\\left\\{\\left|c_{\\jmath,x}-q_\\jmath\\right|\\le \\frac{h_{\\jmath,x}}{4}\\right\\},\n\\qquad c_{\\jmath,x}=\\frac{N'_{\\jmath,x}}{m},\n\\]\nholds, where \\(h_{\\jmath,x}\\) is the canonical pilot half-width in \\cref{obj:def:jackson-factorial-estimator}.  Then\n\\[\n\\sum_{\\jmath\\in\\mathcal J} r_{\\jmath,x}\n\\le\n2\\cdot 10^6\n\\left\\{\n\\sqrt{\\frac{p_x L_d}{m}}+\\frac{L_d}{m}\n\\right\\}.\n\\]",
+      "ref_set": [
+        "def:jackson-factorial-estimator",
+        "def:jackson-kernel",
+        "def:observed-model-class",
+        "lem:canonical-pilot-bad-moment"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalPilotGoodRadiusSum_le",
+        "file": "Helpers/PilotControlPointwise.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:jackson-normalized-coefficient-envelope",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Normalized coefficient envelope",
+      "body": "Let \\(\\epsilon>0\\) be the overlap parameter from \\cref{obj:ass:fixed-overlap}, let \\(K\\ge2\\) be an integer, and let \\(Q_x=\\prod_{\\jmath\\in\\mathcal J}[\\ell_{\\jmath,x},u_{\\jmath,x}]\\) be a rectangle over the four outcome-arm coordinate set \\(\\mathcal J\\). Suppose that:\n\\begin{itemize}\n\\item \\textbf{(Ordered endpoints.)} \\(\\ell_{\\jmath,x}\\le u_{\\jmath,x}\\) for every \\(\\jmath\\in\\mathcal J\\).\n\\item \\textbf{(Nonnegative lower endpoints.)} \\(\\ell_{\\jmath,x}\\ge0\\) for every \\(\\jmath\\in\\mathcal J\\).\n\\item \\textbf{(Positive radii.)} With\n\\[\nb_{\\jmath,x}=\\frac{\\ell_{\\jmath,x}+u_{\\jmath,x}}{2},\n\\qquad\nr_{\\jmath,x}=\\frac{u_{\\jmath,x}-\\ell_{\\jmath,x}}{2},\n\\]\none has \\(r_{\\jmath,x}>0\\) for every \\(\\jmath\\in\\mathcal J\\).\n\\end{itemize}\nLet \\(b_x=(b_{\\jmath,x})_{\\jmath\\in\\mathcal J}\\), let \\(r_x=(r_{\\jmath,x})_{\\jmath\\in\\mathcal J}\\), and let \\(P_{x,K}\\) be the Jackson tensor polynomial attached to \\(Q_x\\) by \\cref{obj:def:jackson-kernel}. Define\n\\[\n\\mathcal R_{x,K}(z)\n=\nP_{x,K}\\bigl((b_{\\jmath,x}+r_{\\jmath,x}z_\\jmath)_{\\jmath\\in\\mathcal J}\\bigr)\n-\\bar f_\\epsilon(b_x)\n=\n\\sum_{\\alpha\\in\\mathcal A_x} b_{x,\\alpha}\\prod_{\\jmath\\in\\mathcal J} z_\\jmath^{\\alpha_\\jmath},\n\\]\nwhere \\(\\bar f_\\epsilon\\) is the global cell extension from \\cref{obj:def:global-extension} and \\(\\mathcal A_x=\\operatorname{supp}(\\mathcal R_{x,K})\\). Then\n\\[\n\\sum_{\\alpha\\in\\mathcal A_x}|b_{x,\\alpha}|\n\\le\n(2^{60})^{K}(1+\\epsilon^{-1})\\sum_{\\jmath\\in\\mathcal J}r_{\\jmath,x}.\n\\]\nMoreover, every \\(\\alpha\\in\\mathcal A_x\\) satisfies\n\\[\n\\alpha_\\jmath\\le 2(K-1)\n\\]\nfor every \\(\\jmath\\in\\mathcal J\\).",
+      "ref_set": [
+        "def:jackson-kernel",
+        "def:global-extension",
+        "def:jackson-factorial-estimator",
+        "ass:fixed-overlap",
+        "lem:jackson-tensor-extraction"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonCenteredNormalizedPolynomial_coeffL1_le",
+        "file": "Helpers/FactorialProductRisk.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_5",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Pilot-failure contributions",
+      "body": "Fix a cell \\(x\\), a four-cell mass vector \\(q_x\\), Poisson scale \\(m>0\\), and Jackson tuning. Let \\(\\mathbb P_{m,q_x}^{\\mathrm{pil,eval}}\\) denote the product-Poisson law of the pilot and evaluation count vectors, and let \\(\\mathsf G_x\\) be the coordinatewise good-pilot event used for the pilot rectangle in the Jackson--factorial construction. With \\(T_x^{\\mathrm{JF}}\\) denoting the clipped cell statistic built from the pilot and evaluation counts, define \\[ \\mathrm{PF}_{1,x}:=\\int_{\\mathsf G_x^c}\\left|T_x^{\\mathrm{JF}}-\\bar f_\\epsilon(q_x)\\right|\\,d\\mathbb P_{m,q_x}^{\\mathrm{pil,eval}}, \\qquad \\mathrm{PF}_{2,x}:=\\int_{\\mathsf G_x^c}\\left(T_x^{\\mathrm{JF}}-\\bar f_\\epsilon(q_x)\\right)^2\\,d\\mathbb P_{m,q_x}^{\\mathrm{pil,eval}}. \\]",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:centered-factorial-pilot-control",
+      "alias": "L-2",
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Centered factorial pilot control",
+      "body": "Assume the product experiment satisfies the i.i.d. sampling law in \\cref{obj:ass:iid-sampling}.  There is a universal Jackson tuning with self-normalized Poisson pilot-radius constant, polynomial-degree constant \\(\\kappa=1/100000\\), and cutoff \\(D_0=3\\).  For every overlap parameter \\(\\epsilon\\in(0,1/2)\\), there is a constant \\(C_\\epsilon>0\\) such that the following assertions hold for every \\(n,d\\), every observed law \\(\\mathbb P\\) on \\([d]\\times\\{0,1\\}^2\\), and every positive sample size \\(n\\), whenever \\(\\mathbb P\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) as in \\cref{obj:def:observed-model-class}.  Set \\(m=n/8\\), let \\(q_x=(q_{00,x},q_{01,x},q_{10,x},q_{11,x})\\) be the four-coordinate cell vector, and let \\(p_x\\) be the marginal mass of cell \\(x\\).\n\nIn the uncapped marked experiment generated by\n\\[\nM\\sim \\operatorname{Pois}(n/4)\n\\]\ntogether with i.i.d. observations from \\(\\mathbb P\\) and independent fair pilot/evaluation marks, the count \\(M\\) has law \\(\\operatorname{Pois}(n/4)\\).  The induced pilot/evaluation table has law equal to the product, over cells \\(x\\in[d]\\) and coordinates \\(\\jmath\\in\\mathcal J\\), of two independent Poisson count arrays with coordinate means \\(m q_{\\jmath,x}\\).  For each fixed cell \\(x\\), the marginal law of the pilot and evaluation counts in that cell is therefore\n\\[\n\\bigotimes_{\\jmath\\in\\mathcal J}\\operatorname{Pois}(m q_{\\jmath,x})\n\\otimes\n\\bigotimes_{\\jmath\\in\\mathcal J}\\operatorname{Pois}(m q_{\\jmath,x}).\n\\]\n\nFor every cell \\(x\\), every fixed pilot table, every coordinate \\(\\jmath\\in\\mathcal J\\), every \\(z\\in\\mathbb R\\), and every \\(h,t\\in\\mathbb N\\), conditional expectation over the evaluation counts satisfies\n\\[\n\\mathbb E\\!\\left[U_h(N_{\\jmath,x};z)\\mid N'\\right]\n=\n(q_{\\jmath,x}-z)^h\n\\]\nand\n\\[\n\\mathbb E\\!\\left[U_h(N_{\\jmath,x};z)U_t(N_{\\jmath,x};z)\\mid N'\\right]\n=\n\\sum_{\\ell=0}^{\\min\\{h,t\\}}\n\\binom{h}{\\ell}\\binom{t}{\\ell}\\ell!\n\\left(\\frac{q_{\\jmath,x}}{m}\\right)^\\ell\n(q_{\\jmath,x}-z)^{h+t-2\\ell}.\n\\]\n\nWith the same tuning, the clipped Jackson-factorial cell statistic \\(T_x^{\\mathrm{JF}}\\) obeys, uniformly over all cells \\(x\\in[d]\\),\n\\[\n\\left|\n\\mathbb E T_x^{\\mathrm{JF}}-\\bar f_\\epsilon(q_x)\n\\right|\n\\le\nC_\\epsilon\n\\left\\{\n\\sqrt{\\frac{p_x}{mL_d}}+\\frac{1}{mL_d}\n\\right\\},\n\\]\n\\[\n\\operatorname{Var}(T_x^{\\mathrm{JF}})\n\\le\nC_\\epsilon d^{1/16}\n\\left\\{\n\\frac{p_x L_d}{m}+\\frac{L_d^2}{m^2}\n\\right\\},\n\\]\nand the pilot-failure contributions satisfy\n\\[\n\\mathrm{PF}_{1,x}\n\\le\nC_\\epsilon\n\\left\\{\n\\sqrt{\\frac{p_x}{mL_d}}+\\frac{1}{mL_d}\n\\right\\},\n\\qquad\n\\mathrm{PF}_{2,x}\n\\le\nC_\\epsilon d^{1/16}\n\\left\\{\n\\frac{p_x L_d}{m}+\\frac{L_d^2}{m^2}\n\\right\\}.\n\\]",
+      "ref_set": [
+        "ass:iid-sampling",
+        "def:observed-model-class",
+        "lem:canonical-pilot-bad-moment",
+        "lem:good-pilot-radius-sum",
+        "lem:jackson-normalized-coefficient-envelope"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.centered_factorial_pilot_control",
+        "file": "Helpers/PilotControlTheorem.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_16",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Poisson minimax risk",
+      "body": "For \\(m,d\\in\\mathbb N\\) and \\(\\epsilon\\in\\mathbb R\\), define the Poissonized minimax squared risk\n\\[\n\\mathfrak R^{\\mathrm{Pois}}_{m,d,\\epsilon}\n:=\n\\inf_{\\widehat V}\n\\sup_{\\mathbb P\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}}\n\\mathbb E_{\\operatorname{Pois}(m,\\mathbb P)}\n\\left[\n\\left\\{\n\\Pi_{[0,1]}\\bigl(\\widehat V(\\mathcal S)\\bigr)\n-\\Psi(\\mathbb P)\n\\right\\}^{2}\n\\right].\n\\]\nHere \\(\\mathcal S\\) is the finite observed sample drawn from the Poisson observed-sample law with mean \\(m\\) and atom law \\(\\mathbb P\\), the supremum ranges over the observed-law model class in \\(\\cref{obj:def:observed-model-class}\\), the target \\(\\Psi(\\mathbb P)\\) is the observed optimal value from \\(\\cref{obj:def:observed-optimal-value}\\), and the infimum ranges over all dense Poisson estimators on the \\(d\\)-cell observed sample space.",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.poissonOptimalValueRisk",
+        "file": "Helpers/DenseConstruction.lean"
+      },
+      "status": "matched",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_15",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Dense contrast law",
+      "body": "For an integer \\(d\\geq 2\\) and a contrast vector \\(\\theta=(\\theta_x)_{x\\in[d]}\\) with \\(\\theta_x\\in[-1/2,1/2]\\) for every \\(x\\in[d]\\), define \\(P_\\theta^{\\mathrm{dense}}\\) as the full-data probability law on \\((X,A,Y,Y(0),Y(1))\\) whose atom at \\((x,a,y,y_0,y_1)\\in[d]\\times\\{0,1\\}^4\\) is\n\\[\nP_\\theta^{\\mathrm{dense}}(x,a,y,y_0,y_1)\n=\n\\begin{cases}\n\\dfrac{1}{2d}\\, b_{(1-\\theta_x)/2}(y_0)\\, b_{(1+\\theta_x)/2}(y_1),\n& y=y_a,\\\\[0.8em]\n0,\n& y\\neq y_a,\n\\end{cases}\n\\]\nwhere \\(y_a=y_1\\) if \\(a=1\\) and \\(y_a=y_0\\) if \\(a=0\\), and \\(b_\\mu(1)=\\mu\\), \\(b_\\mu(0)=1-\\mu\\).",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseLaw",
+        "file": "Helpers/DenseConstruction.lean"
+      },
+      "status": "matched",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:dense-moment-matching-construction",
+      "alias": "P-13",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Dense moment-matching construction",
+      "body": "For \\(n,d\\in\\mathbb N\\), \\(\\epsilon\\in\\mathbb R\\), the overlap parameter, a dense domain certificate\n\\[\n2\\le d,\\qquad\n0<\\epsilon,\\qquad\n\\epsilon<\\frac12,\\qquad\n0<a_{n,d}\\le \\frac12,\n\\]\nand a dense prior family \\(K\\mapsto(\\nu_{0,K},\\nu_{1,K})\\) indexed by positive even degrees, define the dense moment-matching construction as follows.  For every positive even \\(K\\), the family carries the prior-pair conditions that \\(\\nu_{0,K}\\) and \\(\\nu_{1,K}\\) are probability measures supported on \\([-1,1]\\), are symmetric, have matching moments through degree \\(K\\), and satisfy\n\\[\n\\int_{-1}^1 |t|\\,d\\nu_{1,K}(t)\n-\n\\int_{-1}^1 |t|\\,d\\nu_{0,K}(t)\n=\n2E_K .\n\\]\nThe construction has components:\n\\begin{itemize}\n\\item \\textbf{(Dense law.)} For each \\(\\theta\\in[-1/2,1/2]^d\\), \\(P_\\theta^{\\mathrm{dense}}\\) is the potential-outcome law induced by the dense full-data masses, equivalently \\(p_x=1/d\\), \\(\\pi_x=1/2\\), \\(\\mu_{1x}=(1+\\theta_x)/2\\), and \\(\\mu_{0x}=(1-\\theta_x)/2\\), with \\(Y(0)\\) and \\(Y(1)\\) conditionally independent Bernoulli variables given \\(X=x\\), \\(A\\mid X=x\\sim\\operatorname{Bernoulli}(1/2)\\) independently of the potential outcomes, and \\(Y=Y(A)\\).\n\\item \\textbf{(Approximation scale.)} The approximation degree and best even-degree approximation error are\n\\[\nK_d^{\\mathrm{lb}}=2\\lceil4L_d\\rceil,\n\\qquad\nE_K=\\inf\\left\\{e\\in\\mathbb R:\\exists p,\\ \\deg(p)\\le K,\\ \n\\sup_{t\\in[-1,1]}\\bigl||t|-p(t)\\bigr|\\le e\\right\\}.\n\\]\nThe construction uses \\(E_{K_d^{\\mathrm{lb}}}\\).\n\\item \\textbf{(Poisson intensity and amplitude.)} The one-cell Poisson intensity and dense contrast amplitude are\n\\[\n\\lambda_{n,d}=\\frac{2n}{d},\n\\qquad\na_{n,d}=\\sqrt{\\frac{K_d^{\\mathrm{lb}}}{64\\lambda_{n,d}}}.\n\\]\n\\item \\textbf{(Coordinate priors.)} The coordinate priors are\n\\[\n\\nu_{0,K_d^{\\mathrm{lb}}},\n\\qquad\n\\nu_{1,K_d^{\\mathrm{lb}}}.\n\\]\n\\item \\textbf{(Dense product priors.)} The priors \\(\\Pi_{0,n,d}\\) and \\(\\Pi_{1,n,d}\\) are the pushforwards into the dense contrast class of the restrictions of \\(\\nu_{0,K_d^{\\mathrm{lb}}}^{\\otimes d}\\) and \\(\\nu_{1,K_d^{\\mathrm{lb}}}^{\\otimes d}\\) to \\([-1,1]^d\\), under coordinatewise scaling by \\(a_{n,d}\\).\n\\item \\textbf{(Observation mixtures.)} The mixtures \\(\\mathbb M_{0,n,d}\\) and \\(\\mathbb M_{1,n,d}\\) are the observation-kernel mixtures induced by \\(\\Pi_{0,n,d}\\) and \\(\\Pi_{1,n,d}\\), with independent Poissonized sample size \\(\\operatorname{Pois}(2n)\\).\n\\item \\textbf{(Risk and separation.)} The risk component is the Poissonized minimax risk\n\\[\n\\mathfrak R^{\\mathrm{Pois}}_{2n,d,\\epsilon}.\n\\]\nThe prior target-mean separation is\n\\[\n\\Delta_{n,d}^{\\mathrm{dense}}\n=\nE_{\\Pi_{1,n,d}}\\Psi\\{\\operatorname{Obs}(P_\\theta^{\\mathrm{dense}})\\}\n-\nE_{\\Pi_{0,n,d}}\\Psi\\{\\operatorname{Obs}(P_\\theta^{\\mathrm{dense}})\\}.\n\\]\n\\end{itemize}\nThe construction carries the supplied prior-pair certificate at degree \\(K_d^{\\mathrm{lb}}\\) and the identities\n\\[\nK=K_d^{\\mathrm{lb}},\n\\qquad\n\\Delta_{n,d}^{\\mathrm{dense}}\n=\na_{n,d}E_{K_d^{\\mathrm{lb}}}.\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseSubmodel",
+        "file": "Helpers/DenseConstruction.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:dense-amplitude-range",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Dense amplitude range",
+      "body": "Let \\(n,d\\in\\mathbb N\\) satisfy \\(2\\le d\\) and \\(d^2<n\\). For the lower-bound contrast amplitude \\(a_{n,d}\\) defined in \\cref{obj:def:dense-moment-matching-construction},\n\\[\n0<a_{n,d}\\le \\frac12.\n\\]",
+      "ref_set": [
+        "def:dense-moment-matching-construction",
+        "def:jackson-factorial-estimator"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseAmplitude_range",
+        "file": "Helpers/DenseConstruction.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_14",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Total variation distance",
+      "body": "For probability laws \\(\\mathbb M_0\\) and \\(\\mathbb M_1\\) on a common measurable space, define \\(\\operatorname{TV}(\\mathbb M_0,\\mathbb M_1)=\\sup_{B}\\lvert \\mathbb M_0(B)-\\mathbb M_1(B)\\rvert\\), where the supremum ranges over measurable events \\(B\\).",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_11",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Dense likelihood tail",
+      "body": "For the dense lower-bound degree \\(K_d^{\\mathrm{lb}}\\), Poissonized cell intensity \\(\\lambda_{n,d}=2n/d\\), and dense amplitude \\(a_{n,d}\\), define the dense likelihood tail by \\[\\operatorname{tail}_{n,d}^{\\mathrm{dense}}:=\\sum_{r=K_d^{\\mathrm{lb}}+1}^{\\infty}\\frac{(\\lambda_{n,d}a_{n,d}^2)^r}{r!}.\\]",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_9",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "One-cell dense likelihood ratio",
+      "body": "Fix a Poisson cell intensity \\(\\lambda\\ge0\\). Let \\(R_+\\) and \\(R_-\\) be the two sign counts in one dense cell, and let \\(E_0\\) denote expectation under the zero-contrast baseline law \\(R_+,R_-\\stackrel{\\mathrm{ind}}{\\sim}\\operatorname{Pois}(\\lambda/2)\\). For \\(\\theta\\in[-1,1]\\), the one-cell likelihood ratio relative to this baseline is \\[ L_\\theta(R_+,R_-):=(1+\\theta)^{R_+}(1-\\theta)^{R_-}. \\] In the dense lower bound, \\(L_{\\theta_x}\\) applies this definition with the cell contrast \\(\\theta_x\\) and \\(\\lambda=\\lambda_{n,d}\\).",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:dense-moment-matching-lower",
+      "alias": "L-3",
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Dense moment matching lower bound",
+      "body": "Suppose the product experiment satisfies the i.i.d. sampling law in \\cref{obj:ass:iid-sampling}.  There is an integer cutoff \\(D_0\\geq2\\) such that, for every overlap constant \\(\\epsilon\\in(0,1/2)\\), there is a constant \\(c_\\epsilon>0\\) with the following property.  For all integers \\(d,n\\) satisfying \\(d\\geq D_0\\) and \\(d^2<n\\):\n\\begin{itemize}\n\\item \\textbf{(Degree and amplitude.)} The lower-bound degree and amplitude obey\n\\[\n8L_d\\leq K_d^{\\mathrm{lb}}<8L_d+2,\n\\qquad\na_{n,d}^2=\\frac{K_d^{\\mathrm{lb}}d}{128n},\n\\qquad\na_{n,d}\\leq \\frac12 .\n\\]\n\\item \\textbf{(Dense observed submodel.)} For every \\(\\theta\\in[-a_{n,d},a_{n,d}]^d\\), the dense equal-mass contrast submodel \\(P_\\theta^{\\mathrm{dense}}\\) has observed margin in \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) and satisfies, for every \\(x\\in[d]\\),\n\\[\np_x=\\frac1d,\n\\qquad\n\\pi_x=\\frac12,\n\\qquad\n\\mu_{1x}=\\frac{1+\\theta_x}{2},\n\\qquad\n\\mu_{0x}=\\frac{1-\\theta_x}{2},\n\\]\nwith\n\\[\n\\Psi\\{\\operatorname{Obs}(P_\\theta^{\\mathrm{dense}})\\}\n=\n\\frac12+\\frac{1}{2d}\\sum_{x=1}^d|\\theta_x|.\n\\]\n\\item \\textbf{(Moment-matched priors and mixtures.)} The two dense product priors \\(\\Pi_{0,n,d}\\) and \\(\\Pi_{1,n,d}\\), with induced Poissonized mixtures \\(\\mathbb M_{0,n,d}\\) and \\(\\mathbb M_{1,n,d}\\), may be chosen so that their prior-mean separation satisfies\n\\[\n\\Delta_{n,d}^{\\mathrm{dense}}\n=\na_{n,d}E_{K_d^{\\mathrm{lb}}},\n\\qquad\n0<\\Delta_{n,d}^{\\mathrm{dense}}\\leq1,\n\\]\nand\n\\[\n\\operatorname{TV}(\\mathbb M_{0,n,d},\\mathbb M_{1,n,d})\n\\leq\nd\\{\\operatorname{tail}_{n,d}^{\\mathrm{dense}}\\}^{1/2}\n\\leq\nd\\left\\{\\frac{(e/64)^{K_d^{\\mathrm{lb}}+1}}{1-e/64}\\right\\}^{1/2}\n\\leq\\frac1{16}.\n\\]\nUnder each of the two product priors, the target is concentrated around its prior mean:\n\\[\n\\int\n\\left(\\Psi\\{\\operatorname{Obs}(P_\\theta^{\\mathrm{dense}})\\}\n-\\mathbb E_{\\Pi_{j,n,d}}\\Psi\\{\\operatorname{Obs}(P_\\theta^{\\mathrm{dense}})\\}\\right)^2\n\\,d\\Pi_{j,n,d}(\\theta)\n\\leq\n\\frac{a_{n,d}^2}{4d},\n\\qquad j\\in\\{0,1\\},\n\\]\nand\n\\[\n\\Pi_{j,n,d}\\left(\n\\left|\\Psi\\{\\operatorname{Obs}(P_\\theta^{\\mathrm{dense}})\\}\n-\\mathbb E_{\\Pi_{j,n,d}}\\Psi\\{\\operatorname{Obs}(P_\\theta^{\\mathrm{dense}})\\}\\right|\n>\n\\frac{\\Delta_{n,d}^{\\mathrm{dense}}}{4}\n\\right)\n\\leq\n\\frac18,\n\\qquad j\\in\\{0,1\\}.\n\\]\n\\item \\textbf{(One-cell likelihood identity.)} For all contrasts \\(\\theta,\\theta'\\in\\mathbb R\\),\n\\[\nE_0[L_\\theta L_{\\theta'}]\n=\n\\exp(\\lambda_{n,d}\\theta\\theta').\n\\]\n\\end{itemize}\nConsequently,\n\\[\nc_\\epsilon(\\Delta_{n,d}^{\\mathrm{dense}})^2\n\\leq\n\\mathfrak R^{\\mathrm{Pois}}_{2n,d,\\epsilon},\n\\qquad\nc_\\epsilon\\frac{d}{nK_d^{\\mathrm{lb}}}\n\\leq\n\\mathfrak R^{\\mathrm{Pois}}_{2n,d,\\epsilon},\n\\]\nand the fixed-sample and Poissonized risks satisfy\n\\[\n\\mathfrak R_{n,d,\\epsilon}\n\\geq\n\\mathfrak R^{\\mathrm{Pois}}_{2n,d,\\epsilon}\n-\n\\Pr\\{\\operatorname{Pois}(2n)<n\\}.\n\\]\nIn particular,\n\\[\nc_\\epsilon\\frac{d}{nL_d}\n\\leq\n\\mathfrak R_{n,d,\\epsilon}.\n\\]",
+      "ref_set": [
+        "ass:iid-sampling",
+        "lem:dense-amplitude-range"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.dense_moment_matching_lower",
+        "file": "Helpers/DenseLowerAssembly.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": [
+        {
+          "node_id": "lem:cai-low-absolute-moment-priors",
+          "cite_id": "cite:cai-low-2011-l1",
+          "cite_key": "CaiLow2011L1",
+          "locator": "Lemma 1 and Section 3.1",
+          "statement": "For every even integer \\(K\\), let \\(E_K=\\inf_{p:\\deg(p)\\leq K}\\sup_{t\\in[-1,1]}\\lvert\\lvert t\\rvert-p(t)\\rvert\\).  There exist symmetric probability measures \\(\\nu_{0,K}\\) and \\(\\nu_{1,K}\\) on \\([-1,1]\\) whose moments agree through degree \\(K\\) and such that \\(\\int\\lvert t\\rvert\\,d\\nu_{1,K}-\\int\\lvert t\\rvert\\,d\\nu_{0,K}=2E_K\\).  Moreover, there are universal constants \\(0<c<C<\\infty\\) such that \\(c/K\\leq E_K\\leq C/K\\).",
+          "status": "matched"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,719 @@
+\section{Setup and assumptions}
+
+Throughout the paper, \(k\), \(d_x\), and \(d_z\) are fixed finite dimensions, and treatment-arm and latent-class indices range over \(t\in\{0,1\}\) and \(u\in\{1,\ldots,k\}\). Vector norms are Euclidean, matrix norms are operator norms, and singular values are ordered decreasingly. Generic constants may depend on the fixed dimensions and conditioning constants, while asymptotic statements vary only with the sample size \(n\). Expectations and conditional laws are taken under the full-data probability law under discussion unless a subscript specifies otherwise.
+
+The section is organized around one dependency chain, which the reader may find it useful to keep in view: the observed and full-data records fix the sampling object; the causal and proxy assumptions constrain it; the latent masses, means, and effects are the parameters those assumptions govern; the observable population moments and the quotient law are the two derived targets; the model class and the gap-local stratum collect the uniform conditions under which the theorems hold; and the empirical summary is the sample counterpart of the observable moments. The spectral, lattice, and confidence objects that appear alongside these are the machinery that later sections consume, and each is stated where the theorem citing it can be checked against it.
+
+For reading, the logical dependencies are as follows. The observed record and full-data law supply the variables; the causal and proxy assumptions define the uniformly conditioned class \(\mathcal M\); the population moments \(M_t(P)\), \(N_t(P)\), and \(m_X(P)\) form the observable summary \(S(P)\); the quotient law \(\nu_P\) is the population-weighted law of latent-class average treatment effects; and the empirical summary, spectral thresholding, lattice, confidence radii, and cluster objects are derived from those primitives. Some auxiliary objects are displayed where they are needed by later statements; the surrounding prose identifies their role in this dependency chain.
+
+The statistical procedures are calibrated by supplied values of \(k,d_x,d_z,L,\pi_0,\sigma_0\). A full-data law receives the stated guarantees when it satisfies the restrictions of \(\mathcal M(k,d_x,d_z,L,\pi_0,\sigma_0)\) with those supplied constants. A larger valid envelope \(L\), or smaller valid lower margins \(\pi_0\) and \(\sigma_0\), preserves membership after the constants and radii are recomputed, with the numerical bounds adjusted accordingly. The joint latent-arm margin encodes overlap within each latent class and arm, while the proxy-rank margin encodes stable variation in the reference- and target-proxy feature matrices.
+
+The observed data consist of the treatment, two proxy vectors, and the realized outcome. The displayed objects below include both primitives and derived objects used later; the prose after each display identifies how it fits with the record spaces, observed margin, transport metric, and inferential target.
+
+\begin{definitionv}{synth_8}[Thresholded armwise Moore--Penrose inverse]
+Let \(s=(M_0(s),M_1(s),N_0(s),N_1(s),m_X(s))\) be an observable summary and put \(s_0:=\pi_0\sigma_0^2\). For \(t\in\{0,1\}\), write a real singular-value expansion \(M_t(s)=\sum_j \sigma_j u_jv_j^\top\), with \(\sigma_j\ge0\). The thresholded Moore--Penrose inverse of the armwise proxy moment is\[ (M_t(s))^\dagger_{\ge s_0/2}:=\sum_{\sigma_j\ge s_0/2}\sigma_j^{-1}v_ju_j^\top.\]
+\end{definitionv}
+
+The observed record collects the binary treatment \(T\), target proxy \(X\), reference proxy \(Z\), and observed outcome \(Y\). The fixed target- and reference-proxy dimensions are \(d_x\) and \(d_z\).
+
+\begin{definitionv}{synth_10}[Finite transport-plan relation]
+Let \(\nu=\sum_{a=1}^r w_a\delta_{x_a}\) and \(\widehat\lambda_n=\sum_{b=1}^{\widehat r}\widehat w_b\delta_{\widehat x_b}\) be finite probability laws on \([-L_\tau,L_\tau]\). We write \(\gamma:\nu\leadsto\widehat\lambda_n\) when \(\gamma=(\gamma_{ab})_{1\le a\le r,\,1\le b\le\widehat r}\) is a finite transport plan with \(\gamma_{ab}\ge0\), \(\sum_{b=1}^{\widehat r}\gamma_{ab}=w_a\) for every \(a\), and \(\sum_{a=1}^{r}\gamma_{ab}=\widehat w_b\) for every \(b\). Its absolute-distance transport cost is \(\sum_{a=1}^{r}\sum_{b=1}^{\widehat r}\gamma_{ab}|x_a-\widehat x_b|\).
+\end{definitionv}
+
+The distance \(W_1\) compares atomic laws by the minimum absolute-distance transport cost, so it measures the law of effect values. Label-specific comparisons enter later through the ordered-weight target on separated strata.
+
+\begin{definitionv}{synth_18}[VMW Assumption 4]
+For a one-unit full-data law \(P\), VMW Assumption 4 holds when \(0<k\), \(k\le d_x\), \(k\le d_z\), and there exist positive constants \(L_X,L_{ZX},L_{YZX},\pi,\sigma\) such that \(\|X\|_2\le L_X\), \(\|ZX^\top\|_{\mathrm{op}}\le L_{ZX}\), and \(\|YZX^\top\|_{\mathrm{op}}\le L_{YZX}\) almost surely under \(P\), both treatment-arm probabilities satisfy \(P(T=t)\ge\pi\) for \(t\in\{0,1\}\), and there is a population top-\(k\) right singular basis \(V\) of the stacked proxy moment \([M_0(P);M_1(P)]\) for which
+\[
+\sigma_k([M_0(P);M_1(P)])\ge\sigma,
+\qquad
+\sigma_k(M_t(P)V)\ge\sigma\quad\text{for }t\in\{0,1\}.
+\]
+\end{definitionv}
+
+The generic full-data law \(P\) carries the latent class \(U\), treatment, proxies, potential outcomes \(Y(t)\), and observed outcome. The observed map \(O\) induces the observed-data marginal \(P_O\), which is the sampling law for the observable record.
+
+Latent treatment-effect heterogeneity is described through class masses, class-specific potential-outcome means, and their differences.
+
+\begin{definitionv}{synth_19}[Summary radius \(r_{n,\alpha}\)]
+For sample size \(n\), miscoverage level \(\alpha\), concentration constant \(C_0\), and envelope constant \(L\), the simultaneous summary radius is
+\[
+r_{n,\alpha}:=C_0L\sqrt{\frac{\log(C_0/\alpha)}{n}}.
+\]
+This is the radius used in the event \(E_P=\{d_S(\widehat S_n,S(P))\le r_{n,\alpha}\}\).
+\end{definitionv}
+
+The mass \(p_u\) records how much of the population belongs to latent class \(u\).
+
+\begin{definitionv}{synth_21}[Endpoint feasibility for cluster-mass extrema]
+For confidence-set data with atom floor \(m_\star\), outer radius \(R_{n,\alpha}\), computed center \(\widehat\lambda_n\), association radius \(\rho_{n,\alpha}\), empirical component \(C\), and candidate endpoint value \(m\), say that \(\operatorname{EndpointFeasible}(C,m)\) holds when there exists a law \(\xi\in\mathcal P_{\le k,m_\star}([-L_\tau,L_\tau])\) and a transport plan \(\gamma\) from \(\xi\) to \(\widehat\lambda_n\) such that \[ \sum_{a,b}\gamma_{ab}|x_a-\widehat x_b|\le R_{n,\alpha} \] and \[ m=\xi(K_C(\xi)),\qquad K_C(\xi):=\{x\in\operatorname{supp}(\xi):\operatorname{dist}(x,C)\le\rho_{n,\alpha}\}. \] Thus the lower and upper endpoints of \(I_C\) are the infimum and supremum of feasible values \(m\) over the same ordered-support, atom-floor, simplex, and transport constraints.
+\end{definitionv}
+
+The mean \(\mu_{tu}\) is the class-specific potential-outcome level for arm \(t\).
+
+\begin{definitionv}{synth_28}[Atomic measure \(\nu_\xi\)]
+For a represented atomic record \(\xi=((w_i)_{i<k},(a_i)_{i<k})\), define
+\[
+\nu_\xi=\sum_{i<k}\max\{w_i,0\}\,\delta_{a_i}.
+\]
+Repeated labelled locations contribute additively through the nonnegative masses \(\max\{w_i,0\}\).
+\end{definitionv}
+
+The latent effect \(\tau_u\) is the class-level treatment contrast.
+
+The proxy structure is encoded by reference- and target-feature matrices. These matrices are the finite-dimensional objects through which the observable conditional moments factor.
+
+\begin{definitionv}{synth_29}[Candidate count \(N_A\)]
+For a prescribed structured-lattice estimator \(A\), let
+\[
+N_A\in\mathbb N
+\]
+be the cardinality of its finite exhaustive candidate list. The listed candidates are indexed as
+\[
+\vartheta_i=(V_i,R_i,p_i,\tau_i),
+\qquad i=1,\ldots,N_A,
+\]
+and this enumeration is the duplicate-free lexicographically ordered list of all well-formed structured lattice points at the stated sample size, conditioning constants, and effect-support radius.
+\end{definitionv}
+
+The matrix \(A_t\) summarizes the reference proxy within latent classes and treatment arms.
+
+\begin{definitionv}{synth_30}[Matrix action operator]
+For \(r,c\in\mathbb N\) and any real \(r\times c\) matrix \(A\), the associated continuous linear operator from \(\mathbb R^c\) to \(\mathbb R^r\) is the ordinary finite-dimensional matrix action:
+\[
+x\longmapsto Ax .
+\]
+\end{definitionv}
+
+The matrix \(B\) summarizes the target proxy within latent classes.
+
+\begin{definitionv}{synth_33}[Thresholded empirical compressed operator]
+For a rectangular matrix \(G=\sum_j\sigma_j u_jv_j^\top\), define the thresholded pseudoinverse \[G^\dagger_{\ge s_0/2}:=\sum_{\sigma_j\ge s_0/2}\sigma_j^{-1}v_ju_j^\top.\] The empirical compressed operator is \[\widehat D_n:=(\widehat M_{1,n})^\dagger_{\ge s_0/2}\widehat N_{1,n}-(\widehat M_{0,n})^\dagger_{\ge s_0/2}\widehat N_{0,n}.\]
+\end{definitionv}
+
+The radius \(L_{\tau}\) is the common compact interval radius used for latent-class mean effect laws.
+
+\begin{definitionv}{synth_24}[Structured comparison operator]
+For a structured lattice point \(\vartheta=(V,R,p,\tau)\), define the structured comparison operator by
+\[
+\operatorname{Op}(\vartheta):=VR^{-1}\operatorname{diag}(\tau)RV^\top .
+\]
+For an empirical summary \(s=(M_0,M_1,N_0,N_1,m_X)\) and threshold \(s_0/2=\pi_0\sigma_0^2/2\), define the empirical comparison operator by
+\[
+\widehat{\operatorname{Op}}(s):=M_{1,\ge s_0/2}^{\dagger}N_1-M_{0,\ge s_0/2}^{\dagger}N_0,
+\]
+where \(M_{t,\ge s_0/2}^{\dagger}\) is the singular-value-thresholded pseudoinverse retaining singular directions with singular value at least \(s_0/2\). In the lattice criterion, these operators are compared through
+\[
+\|\operatorname{Op}(\vartheta)-\widehat{\operatorname{Op}}(\widehat S_n)\|_{\mathrm{op}}.
+\]
+\end{definitionv}
+
+The gap \(\delta(P)\) measures separation among distinct positive-mass effect values and is used only for label-sensitive ordered-weight statements.
+
+\begin{definitionv}{synth_35}[Matrix operator norm \(\|A\|_{\mathrm{op}}\)]
+For natural numbers \(r\) and \(c\) and a real \(r\times c\) matrix \(A\), \(A\) acts as the ordinary finite-dimensional linear map
+\[
+x\mapsto Ax,
+\qquad x\in\mathbb R^c.
+\]
+Its Euclidean operator norm is
+\[
+\|A\|_{\mathrm{op}}:=\sup_{\|x\|_2\le 1}\|Ax\|_2.
+\]
+Thus comparisons of matrix-valued operators use the ordinary matrix operator norm, for example
+\[
+\|\operatorname{Op}(\vartheta)-\widehat{\operatorname{Op}}(\widehat S_n)\|_{\mathrm{op}}.
+\]
+\end{definitionv}
+
+The moments \(M_t(P)\), \(N_t(P)\), and \(m_X(P)\) are the population coordinates observed through the proxy experiment.
+
+The analysis works with represented atomic laws while interpreting coincident atom locations as a single aggregate effect value.
+
+\begin{definitionv}{synth_36}[Quotient atomic law structure]
+For every \(k\in\mathbb N\) and \(r\in\mathbb R\), consider the quotient of valid labelled at-most-\(k\)-atomic probability laws supported in the radius-\(r\) interval by equality of their induced measures.  For a quotient law \(\nu\) in this space, \(\operatorname{representative}(\nu)\) is the noncomputably chosen valid labelled representative of the equivalence class \(\nu\).
+
+The topology on this quotient space is the topology coinduced by the canonical quotient map from valid labelled laws to their induced-measure equivalence classes.  Its measurable structure is the mapped measurable structure along the same quotient map.  With this coinduced topology, the quotient space is compact.
+\end{definitionv}
+
+\begin{definitionv}{synth_32}[Structured lattice candidate spaces]
+Put \(m_\star:=\pi_0\), \(s_0:=\pi_0\sigma_0^2\), \[H_n:=\lceil\sqrt n\rceil+\lceil\pi_0^{-1}\rceil+2k+\lceil4\sqrt{d_xk}\rceil+\lceil2k/\sigma_0\rceil,\qquad q_n:=H_n^{-1},\] and \(\ell_n:=\lceil m_\star H_n\rceil\). Let \(\mathcal V_n\) consist of the polar factors \(G(G^\top G)^{-1/2}\) of all \(G\in(q_n\mathbb Z)^{d_x\times k}\) satisfying \(|G_{ij}|\le1\) and \(\sigma_k(G)\ge1/2\). Let \(\mathcal R_n\) consist of all \(R\in(q_n\mathbb Z)^{k\times k}\) satisfying \(\sigma_k(R)\ge\sigma_0/2\) and \(\lVert R\rVert_{\mathrm{op}}\le2\sqrt{k}L\). Define \[\mathcal P_n:=\left\{H_n^{-1}(a_1,\ldots,a_k)^\top:a_u\in\{\ell_n,\ldots,H_n\},\ \sum_{u=1}^k a_u=H_n\right\},\] and let \(\mathcal T_n\) be the \(k\)-fold product of the clipped \(q_n\)-lattice in \([-L_\tau,L_\tau]\).
+\end{definitionv}
+
+\begin{definitionv}{synth_34}[Lattice-implied operator and quotient law]
+For \(\vartheta=(V,R,p,\tau)\in\mathcal V_n\times\mathcal R_n\times\mathcal P_n\times\mathcal T_n\), define \[D_\vartheta:=VR^{-1}\operatorname{diag}(\tau)RV^\top,\qquad m_\vartheta:=VR^\top p,\qquad b_\vartheta:=RV^\top e_1,\] and define the associated quotient law by \[\lambda_\vartheta:=\sum_{u=1}^k p_u\delta_{\tau_u}.\]
+\end{definitionv}
+
+\begin{definitionv}{synth_7}[All-ones vector $\mathbf 1_k$]
+The vector $\mathbf 1_k\in\mathbb R^k$ is the all-ones vector, with coordinate $(\mathbf 1_k)_u=1$ for every latent-coordinate index $u=1,\ldots,k$.
+\end{definitionv}
+
+The ordered target \(p^{\uparrow}(P)\) is used when the effects are separated enough to support label-sensitive mass recovery.
+
+\begin{definitionv}{synth_37}[Structured-lattice objective $J_n(\vartheta;s)$]
+Put $s_0:=\pi_0\sigma_0^2$. For a summary $s=(M_0,M_1,N_0,N_1,m_X)\in(\mathbb R^{d_z\times d_x})^4\times\mathbb R^{d_x}$, define the thresholded pseudoinverse by writing a rectangular matrix $G=\sum_j\sigma_j u_jv_j^\top$ and setting $G^\dagger_{\ge s_0/2}:=\sum_{\sigma_j\ge s_0/2}\sigma_j^{-1}v_ju_j^\top$. Set $\widehat D(s):=M_1^\dagger{}_{\ge s_0/2}N_1-M_0^\dagger{}_{\ge s_0/2}N_0$. For $\vartheta=(V,R,p,\tau)\in\mathcal V_n\times\mathcal R_n\times\mathcal P_n\times\mathcal T_n$, with $V\in\mathbb R^{d_x\times k}$, $R\in\mathbb R^{k\times k}$ invertible on $\mathcal R_n$, $p\in\Delta^{k-1}$, and $\tau\in[-L_\tau,L_\tau]^k$, define $D_\vartheta:=VR^{-1}\operatorname{diag}(\tau)RV^\top$, $m_\vartheta:=VR^\top p$, $b_\vartheta:=RV^\top e_1$, and $\lambda_\vartheta:=\sum_{u=1}^kp_u\delta_{\tau_u}$. The structured-lattice criterion at summary $s$ is 
+\[
+J_n(\vartheta;s):=\lVert D_\vartheta-\widehat D(s)\rVert_{\mathrm{op}}+\lVert m_\vartheta-m_X\rVert_2+\lVert b_\vartheta-\mathbf 1_k\rVert_2.
+\]
+For the empirical summary $\widehat S_n$, write $J_n(\vartheta):=J_n(\vartheta;\widehat S_n)$.
+\end{definitionv}
+
+The model assumptions combine the proxy conditional-independence structure of \citet{VirkMazaheriWu2026} with fixed quantitative margins. We first state the structural restrictions linking proxies, potential outcomes, treatment assignment, and the anchor coordinate.
+
+\begin{definitionv}{synth_9}[Operation count for the structured-lattice estimator]
+For the structured-lattice estimator \(\widehat\lambda_n\), let \(\mathcal A_n:=\mathcal V_n\times\mathcal R_n\times\mathcal P_n\times\mathcal T_n\) denote its lexicographically ordered finite candidate list. In the fixed-dimensional unit-cost exact-real model, define\[\operatorname{ops}(\widehat\lambda_n):=n+\#\mathcal A_n.\]The term \(n\) counts formation of the empirical summary \(\widehat S_n\), and \(\#\mathcal A_n\) counts exhaustive evaluation of the fixed-dimensional objective \(J_n(\vartheta)\) once for each \(\vartheta\in\mathcal A_n\), including the fixed-size arithmetic, comparison, singular-value, polar-decomposition, and root-isolation operations used by that candidate evaluation.
+\end{definitionv}
+
+Reference-proxy separation is the VMW reference-proxy conditional independence condition \citep{VirkMazaheriWu2026}. It makes the reference proxy vary with the latent class and treatment arm while separating it from the target proxy and outcome once those variables are fixed.
+
+\begin{definitionv}{def:observed-record-space}[Observed-record space \(O_{d_x,d_z}\)]
+Write \(O_{d_x,d_z}\) for the observed-record space of quadruples
+\[
+O=(T,X,Z,Y),
+\]
+where \(T\in\{0,1\}\), \(X\in\mathbb R^{d_x}\), \(Z\in\mathbb R^{d_z}\), and \(Y\in\mathbb R\).
+\end{definitionv}
+
+Target-proxy separation is the VMW target-proxy conditional independence condition \citep{VirkMazaheriWu2026}. It makes \(X\) a latent-class measurement whose conditional mean is stable across treatment arms.
+
+\begin{definitionv}{def:wasserstein-distance}[Wasserstein distance \(W_1(\nu,\xi)\)]
+For represented atomic laws
+\[
+\nu=\sum_i p_i\delta_{x_i},
+\qquad
+\xi=\sum_j q_j\delta_{y_j},
+\]
+define \(W_1(\nu,\xi)\) by
+\[
+W_1(\nu,\xi)
+=
+\min_{\gamma_{ij}\ge 0}
+\sum_{i,j}\gamma_{ij}|x_i-y_j|,
+\]
+where the minimum is over all nonnegative couplings \((\gamma_{ij})_{i,j}\) whose marginals are the represented masses:
+\[
+\sum_j \gamma_{ij}=p_i
+\quad\text{for every }i,
+\qquad
+\sum_i \gamma_{ij}=q_j
+\quad\text{for every }j.
+\]
+\end{definitionv}
+
+Observed-outcome consistency is the VMW causal consistency condition \citep{VirkMazaheriWu2026}. It connects the realized outcome to the treatment-indexed potential outcome.
+
+\begin{definitionv}{def:observed-margin}[Observed-data marginal \(P_O\)]
+For a full-data probability law \(P\), let
+\[
+O=(T,X,Z,Y)
+\]
+be the observed record. The observed-data marginal of \(P\) is
+\[
+P_O:=P\circ O^{-1}.
+\]
+\end{definitionv}
+
+Latent ignorability is the VMW armwise latent ignorability condition \citep{VirkMazaheriWu2026}. It places treatment assignment variation within latent classes in the role needed for the armwise proxy moments.
+
+\begin{definitionv}{def:latent-mass}[Latent-class mass \(p_u\)]
+For each latent class \(u\), its latent-class mass is
+\[
+p_u:=P(U=u).
+\]
+\end{definitionv}
+
+The target-proxy anchor is the VMW anchor-coordinate normalization \citep{VirkMazaheriWu2026}. It fixes the scale needed by the spectral anchors below.
+
+The next conditions impose bounded contributions and uniform conditioning. The boundedness assumptions are standard VMW envelope conditions, while the positivity and rank margins are the fixed-margin structure specific to this analysis.
+
+\begin{definitionv}{def:latent-mean}[Latent conditional mean \(\mu_{tu}\)]
+For treatment arm \(t\) and latent class \(u\), the latent conditional potential-outcome mean is
+\[
+\mu_{tu}:=E_P\!\left[Y(t)\mid U=u\right].
+\]
+\end{definitionv}
+
+Bounded target-proxy contributions follow the VMW bounded target-proxy condition \citep{VirkMazaheriWu2026}. The radius \(L\) supplies the common envelope used for summary concentration and compactness.
+
+\begin{definitionv}{def:latent-effect}[Latent-class effect \(\tau_u\)]
+For each latent class \(u\), its latent-class treatment effect is
+\[
+\tau_u:=\mu_{1u}-\mu_{0u}.
+\]
+\end{definitionv}
+
+The proxy-product bound is the VMW bounded proxy cross-moment contribution condition \citep{VirkMazaheriWu2026}. It controls the armwise \(ZX^\top\) moment coordinates.
+
+\begin{definitionv}{def:reference-feature}[Reference-proxy feature matrix \(A_t\)]
+For treatment arm \(t\), the reference-proxy feature matrix \(A_t\in\mathbb R^{d_z\times k}\) is defined entrywise by
+\[
+A_t(i,u):=E_P\!\left[Z_i\mid U=u,T=t\right].
+\]
+\end{definitionv}
+
+The outcome-weighted proxy-product bound is the VMW bounded outcome-weighted proxy contribution condition \citep{VirkMazaheriWu2026}. It controls the armwise \(YZX^\top\) moment coordinates.
+
+\begin{definitionv}{def:target-feature}[Target-proxy feature matrix \(B\)]
+The target-proxy feature matrix \(B\in\mathbb R^{d_x\times k}\) is defined entrywise by
+\[
+B(i,u):=E_P\!\left[X_i\mid U=u\right].
+\]
+\end{definitionv}
+
+Latent-arm positivity is specific to this analysis. The supplied margin \(\pi_0\) gives every latent class and treatment arm a fixed amount of population mass, which yields uniform arm probabilities and atom-mass control.
+
+\begin{definitionv}{def:effect-radius}[Effect-support radius \(L_\tau\)]
+The derived effect-support radius is
+\[
+L_\tau := \frac{4L\sqrt{d_z}}{\sigma_0}.
+\]
+\end{definitionv}
+
+The proxy-rank margin is specific to this analysis. The supplied singular-value margin \(\sigma_0\) gives the proxy feature matrices uniform conditioning, which is used to form stable compressed operators and fixed-radius effect supports.
+
+For ordered weights, the paper restricts attention to local strata where all positive-mass latent effects are separated at a prescribed scale.
+
+\begin{definitionv}{def:effect-gap}[Effect gap \(\delta(P)\)]
+The effect gap of \(P\) is
+\[
+\delta(P)
+:=
+\min\bigl\{|\tau_u-\tau_v|:\ p_u>0,\ p_v>0,\ \tau_u\ne\tau_v\bigr\},
+\]
+with the convention \(\delta(P)=+\infty\) when the quotient law has a single distinct support point.
+\end{definitionv}
+
+The gap window is specific to this analysis. The local scale \(g\) records the separation regime for ordered-weight rates.
+
+\begin{definitionv}{def:observable-population-moments}[Observable population moments \(M_t(P)\), \(N_t(P)\), and \(m_X(P)\)]
+For each \(t\in\{0,1\}\), the observable armwise population moments and target-proxy population mean are
+\[
+M_t(P) := E_P[ZX^\top\mid T=t],
+\qquad
+N_t(P) := E_P[YZX^\top\mid T=t],
+\qquad
+m_X(P) := E_P[X].
+\]
+\end{definitionv}
+
+Distinct latent effects are the VMW spectral separation condition \citep{VirkMazaheriWu2026}. In this paper the condition is used for the gap-local ordered-weight target, while the quotient law below aggregates coincident effects.
+
+Three representation levels are used for atomic laws. A raw labelled record consists of \(k\) weight coordinates and \(k\) location coordinates. A valid represented probability law is a raw record whose masses are nonnegative and sum to one, whose locations lie in the support interval, and whose repeated locations are interpreted by aggregating their masses. A quotient law is the equality class of valid represented laws that induce the same probability measure. The coordinate container in \cref{obj:def:atomic-law-class} records the raw labelled representation; the \(W_1\), atom-floor, estimator, and confidence-set statements use the valid represented-law and quotient-law levels indicated in their hypotheses and conclusions.
+
+We can now collect the full-data restrictions into the uniformly conditioned proxy model class.
+
+\begin{definitionv}{def:atomic-law-class}[Atomic law coordinates]
+For \(k\in\mathbb N\) and radius parameter \(L_\tau\in\mathbb R\), the represented atomic-law class
+\[
+\mathcal P_{\le k}([-L_\tau,L_\tau])
+\]
+is the labelled coordinate space whose element \(\xi\) consists of two real coordinate vectors,
+\[
+\xi=\bigl((w_i)_{i<k},(a_i)_{i<k}\bigr),
+\qquad
+w_i\in\mathbb R,\quad a_i\in\mathbb R .
+\]
+The abbreviation \(\mathcal P_k([-L_\tau,L_\tau])\) denotes the same represented space. The associated measure on \(\mathbb R\) is
+\[
+\nu_\xi=\sum_{i<k} \max\{w_i,0\}\,\delta_{a_i},
+\]
+so coincident labelled locations contribute additively at that location. The topology on this represented space is induced by the coordinate map
+\[
+\xi\mapsto \bigl((w_i)_{i<k},(a_i)_{i<k}\bigr),
+\]
+and its measurable structure is the pullback of the measurable structure on the two real coordinate vectors under the same map.
+\end{definitionv}
+Three distinct levels of representation are in play, and it is worth separating them once here because later definitions move between them. At the first level sits the labelled coordinate container just displayed: an element records \(k\) real weights and \(k\) real locations with no constraint tying them to a probability law. At the second level sit the valid labelled laws, those coordinate records whose weights are nonnegative, sum to one, and whose locations lie in the stated interval; the atom floor of \cref{obj:def:atom-floor}, the estimators, and the confidence sets are stated for laws of this kind. At the third level sits the quotient of \cref{obj:synth_36}, formed from the valid labelled laws by identifying records that induce the same measure. The bridge between the levels is the induced measure \(\nu_\xi\) displayed above, which sends coincident labelled locations to a single atom carrying their aggregate mass; \(W_1\) compares laws through this measure, so it is insensitive to the labelling that a collision destroys. The estimand \(\nu_P\) of \cref{obj:def:quotient-law} is an object of the third level, which is what makes it the regular target under collisions, while the effect-ordered mass vector of \cref{obj:def:ordered-mass-target} retains second-level labelling information and is correspondingly governed by the effect gap.
+
+
+The class \(\mathcal M\) fixes the latent cardinality \(k\), the boundedness radius, and the two conditioning margins. The qualitative proxy restrictions align with \citet{VirkMazaheriWu2026}; the fixed quantitative margins make the subsequent stability and concentration statements uniform over the class.
+
+The observable summary is the finite-dimensional population object to which the statistical results are applied.
+
+\begin{definitionv}{def:ordered-mass-target}[Ordered mass target \(p^{\uparrow}(P)\)]
+When the \(k\) latent effects are distinct, \(p^{\uparrow}(P)\) is the vector of latent-class masses ordered by increasing effect. Otherwise,
+\[
+p^{\uparrow}(P) := (1/k,\ldots,1/k).
+\]
+\end{definitionv}
+
+The summary \(S(P)\) and metric \(d_S\) put the four matrix moments and target-proxy mean in a single product space.
+
+\begin{definitionv}{def:atom-floor}[Atom floor \(\operatorname{AtomFloor}(m,\xi)\)]
+For a probability law \(\xi\), \(\operatorname{AtomFloor}(m,\xi)\) is the condition that every distinct support atom of \(\xi\) has aggregate mass at least \(m\).
+\end{definitionv}
+
+The arm count \(N_{t,n}\), empirical moments \(\widehat M_{t,n}\) and \(\widehat N_{t,n}\), empirical mean \(\widehat m_{X,n}\), and empirical summary \(\widehat S_n\) are total functions of the observed sample.
+
+\begin{assumptionv}{ass:reference-proxy-separation}[Reference-proxy separation]
+Under the full-data law \(P\),
+\[
+Z\perp (X,Y)\mid (T,U).
+\]
+\end{assumptionv}
+
+\begin{assumptionv}{ass:target-proxy-separation}[Target-proxy separation]
+Under the full-data law \(P\),
+\[
+X\perp (Y,T)\mid U.
+\]
+\end{assumptionv}
+
+The vector \(e_1\) implements the anchor coordinate from \cref{obj:ass:anchor}.
+
+The compressed operator is the population spectral object inherited from the VMW moment structure.
+
+\begin{assumptionv}{ass:consistency}[Observed-outcome consistency]
+Under the full-data law \(P\),
+\[
+Y=Y(T)
+\]
+almost surely.
+\end{assumptionv}
+
+\begin{assumptionv}{ass:latent-ignorability}[Latent ignorability]
+Under the full-data law \(P\), for each \(t\in\{0,1\}\),
+\[
+Y(t)\perp T\mid U.
+\]
+\end{assumptionv}
+
+The signal basis \(V(P)\), compressed operator \(\Delta Q(P)\), and anchors \(a(P)\) and \(c(P)\) provide the population bridge from observable summaries to latent-class mean effect moments.
+
+\begin{assumptionv}{ass:anchor}[Target-proxy anchor]
+Under the full-data law \(P\),
+\[
+X_1=1
+\]
+almost surely.
+\end{assumptionv}
+
+\begin{assumptionv}{ass:bounded-x}[Bounded target proxy]
+For the boundedness radius \(L\), under the full-data law \(P\),
+\[
+\lVert X\rVert_2\le L
+\]
+almost surely.
+\end{assumptionv}
+
+\begin{assumptionv}{ass:bounded-proxy-product}[Bounded proxy product]
+Under \(P\),
+\[
+\lVert ZX^\top\rVert_{\mathrm{op}}\le L
+\]
+almost surely.
+\end{assumptionv}
+
+The quotient law is the primary inferential target: it records the distribution of latent-class mean effect values with the aggregate mass at each distinct value.
+
+\begin{assumptionv}{ass:bounded-outcome-proxy-product}[Bounded outcome-proxy product]
+Under \(P\),
+\[
+\lVert YZX^\top\rVert_{\mathrm{op}}\le L
+\]
+almost surely.
+\end{assumptionv}
+
+The stratum \(\mathcal M(g)\) is the domain for ordered-weight results, where the gap scale and distinctness conditions provide an effect ordering.
+
+\begin{assumptionv}{ass:latent-arm-positivity}[Latent-arm positivity]
+The latent class and treatment arms satisfy
+\[
+\min_{1\le u\le k,\ t\in\{0,1\}} P(U=u,T=t)\ge \pi_0 .
+\]
+\end{assumptionv}
+
+The experiment \(\mathcal E_n\) contains the sample laws \(Q_P^{(n)}\) generated by all model laws in \(\mathcal M\).
+
+The next definition records the closure of the admissible summary image and the quotient-law functional on it.
+
+\begin{assumptionv}{ass:proxy-rank-margin}[Proxy rank margin]
+The reference- and target-proxy feature matrices satisfy
+\[
+\min\{\sigma_k(A_0),\sigma_k(A_1),\sigma_k(B)\}\ge \sigma_0 .
+\]
+\end{assumptionv}
+
+The admissible image \(\mathscr S\), closure \(\mathcal K\), and functional \(F\) define the population domain for the stability theorem in the next section. The moment identity is the cited spectral bridge from \citet{VirkMazaheriWu2026}; the homogeneous-effect clause records the corresponding single-atom specialization with common effect \(\tau_\star\).
+
+\begin{assumptionv}{ass:gap-window}[Effect gap window]
+The smallest positive effect gap satisfies
+\[
+g/2\le \delta(P)\le 2g .
+\]
+\end{assumptionv}
+
+\begin{assumptionv}{ass:distinct-effects}[Distinct latent effects]
+The positive-mass latent effects \(\tau_u\) take exactly \(k\) distinct values.
+\end{assumptionv}
+
+\Cref{obj:prop:observed-vmw-margin-inclusion} establishes the observable consequences of the full-data restrictions. It derives armwise positivity, the proxy moment factorization, compressed and stacked singular-value margins, observable envelopes, and the effect support radius. These conclusions place every \(P\in\mathcal M\) inside the VMW moment structure under the fixed margins used here, while preserving the quantitative bounds needed for the quotient-law target.
+
+
+
+\begin{definitionv}{def:model-class}[Uniform proxy model class]
+The uniformly conditioned proxy causal model class \(\mathcal M\) is the class of full-data probability laws \(P\) for records \((U,T,X,Z,Y(0),Y(1),Y)\) satisfying:
+\begin{itemize}
+\item \textbf{(Record space.)} \(U\in\{1,\ldots,k\}\), \(T\in\{0,1\}\), \(X\in\mathbb R^{d_x}\), \(Z\in\mathbb R^{d_z}\), and \(Y(0),Y(1),Y\in\mathbb R\).
+\item \textbf{(Parameter domain.)} The dimensions and constants obey
+\[
+2\le k,\qquad k\le d_x,\qquad k\le d_z,\qquad 1\le L,\qquad 0<\pi_0\le \frac{1}{2k},\qquad 0<\sigma_0\le 1.
+\]
+\item \textbf{(Model restrictions.)} \(P\) satisfies \cref{obj:ass:reference-proxy-separation,obj:ass:target-proxy-separation,obj:ass:consistency,obj:ass:latent-ignorability,obj:ass:anchor,obj:ass:bounded-x,obj:ass:bounded-proxy-product,obj:ass:bounded-outcome-proxy-product,obj:ass:latent-arm-positivity,obj:ass:proxy-rank-margin}.
+\end{itemize}
+\end{definitionv}
+
+\Cref{obj:prop:summary-closure-compact} supplies the compact population summary domain. Compactness supports nearest-summary selection in the next section, and the equivalence between nonempty \(\mathcal K\) and nonempty \(\mathcal M\) makes the domain statement exact for each fixed collection of supplied constants.
+
+Several auxiliary definitions used by the empirical structured-lattice estimator and confidence reports are collected here because they share the same observable summaries, norms, and atomic-law coordinates.
+
+\begin{definitionv}{def:observable-summary}[Observable summary \(S(P)\) and metric \(d_S\)]
+The observable conditional moment summary is
+\[
+S(P):=\bigl(M_0(P),M_1(P),N_0(P),N_1(P),m_X(P)\bigr).
+\]
+For summaries \(s\) and \(s'\), the summary metric is
+\[
+d_S(s,s')
+:=
+\sum_{j=1}^{4}\lVert s_j-s'_j\rVert_{\mathrm{op}}
++\lVert s_5-s'_5\rVert_2.
+\]
+\end{definitionv}
+
+\begin{definitionv}{def:empirical-summary-primitives}[Empirical summary primitives \(\widehat S_n\)]
+For an observed sample of size \(n\), let \(N_{t,n}\) be the number of observations in arm \(t\). Define the empirical armwise proxy moment \(\widehat M_{t,n}\) and outcome-proxy moment \(\widehat N_{t,n}\) using the total empty-arm convention:
+\[
+\widehat M_{t,n}
+=
+\frac{1}{\max\{1,N_{t,n}\}}
+\sum_{i:T_i=t} Z_iX_i^\top,
+\qquad
+\widehat N_{t,n}
+=
+\frac{1}{\max\{1,N_{t,n}\}}
+\sum_{i:T_i=t} Y_iZ_iX_i^\top .
+\]
+Let the empirical target-proxy mean be
+\[
+\widehat m_{X,n}
+=
+\frac{1}{n}\sum_{i=1}^n X_i .
+\]
+The empirical five-block observable summary is
+\[
+\widehat S_n
+=
+\bigl(
+\widehat M_{0,n},
+\widehat M_{1,n},
+\widehat N_{0,n},
+\widehat N_{1,n},
+\widehat m_{X,n}
+\bigr).
+\]
+\end{definitionv}
+
+\Cref{obj:def:empirical-summary-primitives} records the coordinate formulas. The theorem-facing empirical-summary object below packages the same coordinates with the total empty-arm convention and Borel measurability used in sample-level statements.
+
+\begin{definitionv}{def:empirical-summary}[Empirical summary \(\widehat S_n\)]
+For each \(t\in\{0,1\}\), let
+\[
+N_{t,n}:=\sum_{i=1}^{n}\mathbf 1\{T_i=t\}.
+\]
+Define
+\[
+\widehat M_{t,n}
+:=
+\frac{\sum_{i=1}^{n}\mathbf 1\{T_i=t\}Z_iX_i^\top}{\max\{1,N_{t,n}\}},
+\qquad
+\widehat N_{t,n}
+:=
+\frac{\sum_{i=1}^{n}\mathbf 1\{T_i=t\}Y_iZ_iX_i^\top}{\max\{1,N_{t,n}\}},
+\]
+and
+\[
+\widehat m_{X,n}:=\frac{1}{n}\sum_{i=1}^{n}X_i.
+\]
+The empirical five-block observable summary is
+\[
+\widehat S_n
+:=
+\bigl(\widehat M_{0,n},\widehat M_{1,n},
+\widehat N_{0,n},\widehat N_{1,n},\widehat m_{X,n}\bigr).
+\]
+On the event \(\{N_{t,n}=0\}\), the corresponding armwise matrices \(\widehat M_{t,n}\) and \(\widehat N_{t,n}\) are the zero matrix, so \(\widehat S_n\) is a total Borel function of the sample.
+\end{definitionv}
+
+\begin{definitionv}{def:first-basis}[First basis vector \(e_1\)]
+Let \(e_1\in\mathbb R^{d_x}\) be the first canonical basis vector.
+\end{definitionv}
+
+\begin{definitionv}{synth_1}[Ambient Euclidean dimension]
+Let \(d\in\mathbb N\) denote the finite ambient dimension of a Euclidean summary space \(\mathbb R^d\). In the nearest-summary selection statement, \(\mathcal K\subseteq\mathbb R^d\) is a compact feasible set and \(d_S:\mathbb R^d\times\mathbb R^d\to\mathbb R\) is the continuous summary distance used to choose nearest feasible summaries.
+\end{definitionv}
+
+\begin{definitionv}{synth_25}[Vertical matrix stacking]
+For matrices \(A\in\mathbb R^{r\times d}\) and \(B\in\mathbb R^{s\times d}\) with the same number of columns, define \(\operatorname{stack}(A,B)\in\mathbb R^{(r+s)\times d}\) by vertical concatenation,\[\operatorname{stack}(A,B):=\begin{bmatrix}A\\ B\end{bmatrix}.\] Its row space is regarded as a subspace of \(\mathbb R^d\).
+\end{definitionv}
+
+\begin{definitionv}{def:compressed-operator}[Compressed operator \(\Delta Q(P)\)]
+Choose any matrix \(V(P)\in\mathbb R^{d_x\times k}\) with orthonormal columns spanning the row space of the vertically stacked matrix \(\operatorname{stack}(M_0(P),M_1(P))\subseteq\mathbb R^{d_x}\). Define
+\[
+\Delta Q(P)
+:=
+\{M_1(P)V(P)\}^{\dagger}N_1(P)V(P)
+-
+\{M_0(P)V(P)\}^{\dagger}N_0(P)V(P),
+\]
+with spectral anchors
+\[
+a(P)^\top:=m_X(P)^\top V(P),
+\qquad
+c(P):=V(P)^\top e_1.
+\]
+\end{definitionv}
+
+\begin{definitionv}{def:quotient-law}[Quotient law \(\nu_P\)]
+For \(P\in\mathcal M\) as in \cref{obj:def:model-class}, the quotient latent-effect law is
+\[
+\nu_P:=\sum_{u=1}^{k}p_u\delta_{\tau_u}.
+\]
+It is interpreted as a probability measure on the latent treatment effects, with coincident values of \(\tau_u\) carrying their aggregate mass.
+\end{definitionv}
+
+Here and throughout, the latent treatment effects in \(\nu_P\) are the class-average contrasts \(\tau_u=E[Y(1)\mid U=u]-E[Y(0)\mid U=u]\). Coincident class-average contrasts appear as a single support value with aggregate population mass.
+
+\begin{definitionv}{def:gap-stratum}[Gap-local stratum]
+For a local effect-gap scale \(g\) satisfying \(0<g\le 1/4\), the gap-local stratum \(\mathcal M(g)\) is the class of full-data laws \(P\) in the uniformly conditioned proxy causal model class \(\mathcal M\) of \cref{obj:def:model-class} that satisfy \cref{obj:ass:gap-window,obj:ass:distinct-effects}.
+\end{definitionv}
+
+\begin{definitionv}{def:sample-experiment}[Sample experiment \(\mathcal E_n\)]
+The observed i.i.d. proxy experiment at sample size \(n\) is
+\[
+\mathcal E_n:=\{Q_P^{(n)}=P_O^{\otimes n}:P\in\mathcal M\}.
+\]
+\end{definitionv}
+
+\begin{definitionv}{def:summary-closure}[Summary closure data]
+For \(k,d_x,d_z\in\mathbb N\) and \(L,\pi_0,\sigma_0\in\mathbb R\), the summary-closure data consists of the closed feasible-summary set
+\[
+\mathcal K:=\overline{\mathscr S}^{\,d_S},
+\qquad
+\mathscr S:=S(\mathcal M)=\{S(P):P\in\mathcal M\},
+\]
+together with a quotient-law functional
+\[
+F:\mathscr S\to\mathcal P_k([-L_\tau,L_\tau]).
+\]
+For each admissible summary \(q\in\mathscr S\), \(F(q)\) is the quotient latent-effect law \(\nu_{P_q}\) of a selected model representative \(P_q\in\mathcal M\) satisfying \(S(P_q)=q\). The data also records the published spectral moment identity
+\[
+\int x^j\,d\nu_{P_q}(x)
+=
+a(P_q)^\top\Delta Q(P_q)^j c(P_q),
+\qquad j=0,\ldots,2k-1,
+\]
+and, in the homogeneous-effect specialization with common effect \(\tau_\star\),
+\[
+\Delta Q(P_q)=\tau_\star I_k,
+\qquad
+\nu_{P_q}=\delta_{\tau_\star}.
+\]
+\end{definitionv}
+
+The radius \(r_{n,\alpha}\) depends on the miscoverage level \(\alpha\) and concentration constant \(C_0\); it is used for the summary event \(E_P\) in the confidence results.
+
+\begin{propositionv}{prop:observed-vmw-margin-inclusion}[Observed VMW margins]*
+Fix \(k,d_x,d_z\in\mathbb N\) and \(L,\pi_0,\sigma_0\in\mathbb R\).  Suppose
+\begin{itemize}
+\item \textbf{(Dimensions.)} \(2\le k\), \(k\le d_x\), and \(k\le d_z\).
+\item \textbf{(Margins.)} \(1\le L\), \(0<\pi_0\le 1/(2k)\), and \(0<\sigma_0\le 1\).
+\item \textbf{(Uniform model class.)} The full-data law \(P\) belongs to the uniformly conditioned proxy causal model class \(\mathcal M\) in \cref{obj:def:model-class} with parameters \(k,d_x,d_z,L,\pi_0,\sigma_0\).
+\end{itemize}
+Then the following quantitative observed-margin conclusions hold.  For each treatment arm \(t\in\{0,1\}\),
+\[
+P(T=t)\ge k\pi_0,
+\]
+and the observable armwise \(ZX^\top\) moment factors as
+\[
+M_t(P)
+=
+A_t\operatorname{diag}\{P(U=u\mid T=t):1\le u\le k\}B^\top .
+\]
+Moreover, for every orthonormal signal basis \(V\in\mathbb R^{d_x\times k}\) spanning the signal space of \(S(P)\),
+\[
+\sigma_k\{M_t(P)V\}
+=
+\sigma_k\{M_t(P)\},
+\qquad
+\pi_0\sigma_0^2\le \sigma_k\{M_t(P)V\}.
+\]
+The stacked observed proxy moment satisfies
+\[
+\pi_0\sigma_0^2
+\le
+\sigma_k\!\left(\operatorname{stack}(M_0(P),M_1(P))\right).
+\]
+The observable envelopes are
+\[
+\|M_t(P)\|_{\mathrm{op}}\le L,
+\qquad
+\|N_t(P)\|_{\mathrm{op}}\le L,
+\qquad
+\|m_X(P)\|_2\le L .
+\]
+Writing \(L_\tau=4L\sqrt{d_z}/\sigma_0\), for every latent class \(u\in\{1,\ldots,k\}\) and treatment arm \(t\in\{0,1\}\),
+\[
+|Y(t)|\le L_\tau/2
+\quad\text{for \(P\)-almost every full-data record conditional on \(U=u\),}
+\]
+and
+\[
+|\mu_{tu}|\le L_\tau/2,
+\qquad
+|\tau_u|\le L_\tau .
+\]
+Finally, \(P\) belongs to the published VMW parameter class represented by the supplied scope handle.
+\end{propositionv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN prop:observed-vmw-margin-inclusion
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the published conclusion \citep{VirkMazaheriWu2026} (Assumptions 1--2 and Section 4.2 of arXiv:2607.10926v1). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END prop:observed-vmw-margin-inclusion
+
+\begin{propositionv}{prop:summary-closure-compact}[Compact summary closure]
+Let \(k,d_x,d_z\in\mathbb N\) and \(L,\pi_0,\sigma_0\in\mathbb R\). Let \(\mathcal M=\mathcal M(k,d_x,d_z,L,\pi_0,\sigma_0)\) be the class of full-data probability laws satisfying the uniformly conditioned proxy causal model restrictions with boundedness radius \(L\), latent-arm positivity margin \(\pi_0\), and proxy-rank margin \(\sigma_0\). Define the admissible summary image and its closure by
+\[
+\mathscr S:=\{S(P):P\in\mathcal M\},
+\qquad
+\mathcal K:=\overline{\mathscr S}.
+\]
+For summaries \(s=(M_0,M_1,N_0,N_1,m_X)\) and \(q=(M_0',M_1',N_0',N_1',m_X')\), write
+\[
+d_S(s,q)
+=
+\|M_0-M_0'\|_{\mathrm{op}}
++\|M_1-M_1'\|_{\mathrm{op}}
++\|N_0-N_0'\|_{\mathrm{op}}
++\|N_1-N_1'\|_{\mathrm{op}}
++\Bigl(\sum_i (m_X(i)-m_X'(i))^2\Bigr)^{1/2}.
+\]
+Assume:
+\begin{itemize}
+\item \textbf{(Latent cardinality.)} \(2\le k\).
+\item \textbf{(Proxy dimensions.)} \(k\le d_x\) and \(k\le d_z\).
+\item \textbf{(Boundedness radius.)} \(1\le L\).
+\item \textbf{(Latent-arm margin.)} \(0<\pi_0\le 1/(2k)\).
+\item \textbf{(Proxy-rank margin.)} \(0<\sigma_0\le 1\).
+\end{itemize}
+Then there exists \(B\in\mathbb R\) such that
+\[
+d_S(s,0)\le B
+\]
+for every \(s\in\mathscr S\). Moreover, \(\mathcal K\) is compact, and
+\[
+\mathcal K\ne\varnothing
+\quad\Longleftrightarrow\quad
+\mathcal M\ne\varnothing .
+\]
+\end{propositionv}
+
+Together, the definitions and propositions in this section identify the population object, the observable summary space, and the compact domain on which the next section states the gap-free \(W_1\) stability and estimation results.

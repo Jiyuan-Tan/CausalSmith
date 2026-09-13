@@ -1,0 +1,58 @@
+\section{Technical derivations and verification note}
+
+The appendix collects the supporting derivations for the sharp survivor-complier benefit bounds, the computational construction, and the guarded inference result.  The first part works through the capacity algebra behind \cref{obj:def:threshold-cuts} and the residual completion used by \cref{obj:def:threshold-flow-construction}.  The second part records the comparison argument behind \cref{obj:thm:no-selection-reduction}.  The final technical part gives the concentration calculations that enter the deterministic guard in \cref{obj:def:face-aware-inference-handle} and \cref{obj:thm:uniform-deterministic-guard}.
+
+\subsection{Threshold-cut algebra and residual completion}
+
+The threshold-cut calculations organize the cellwise problem in \cref{obj:def:partial-transport-polytope} by ordered lower and upper outcome levels.  For the lower endpoint, the relevant comparisons aggregate lower-arm mass weakly below a threshold and upper-arm mass weakly below the same threshold; for the upper endpoint, they compare lower-arm mass below a threshold with upper-arm mass above it.  These finite ordered-support identities are the algebraic content behind \cref{obj:def:threshold-cuts} and explain why the endpoint formulas in \cref{obj:def:identified-interval} depend only on observed capacities and cell probabilities.
+
+The residual completion step fills the remaining rows and columns after the threshold mass has been assigned.  Its role is to turn the cut values into feasible cellwise couplings in the exact-mass transport set, preserving the row and column inequalities while attaining the desired strict-benefit mass.  This is the constructive bridge from the formulas in \cref{obj:def:threshold-cuts} to the endpoint-attaining laws in \cref{obj:thm:full-law-endpoint-attainment}.  The same finite-dimensional structure also underlies the sparse implementation summarized by \cref{obj:thm:linear-sparse-threshold-flow}.
+
+\subsection{No-selection reduction}
+
+The no-selection reduction specializes the general selected-survivor construction to the setting in which the selection constraint is inactive.  Under the hypotheses of \cref{obj:thm:no-selection-reduction}, the cellwise capacity arrays collapse to the ordinary complier outcome margins, and the same threshold formulas recover the established ordinal benefit bounds.  This comparison fixes the relationship between the survivor-complier estimand studied here, sharp complete-marginal ordinal-outcome benefit bounds \citep{LuDingDasgupta2018}, and selection-bounds analyses of intensive-margin effects under endogenous treatment \citep{DongHeiler2026}.
+
+\subsection{Guard calculations}
+
+The inference appendix derives the deterministic inequalities used by the guarded confidence set in \cref{obj:def:face-aware-inference-handle}.  The calculations combine finite-support empirical deviations over the event collection in that construction with the screening rule in \cref{obj:def:plugin-endpoint-estimator}.  Standard empirical-process and delta-method arguments for finite-dimensional laws supply the pointwise Gaussian approximation underlying \cref{obj:thm:branch-free-pointwise-directional-limit} \citep{vanDerVaart1998}.  The guard in \cref{obj:thm:uniform-deterministic-guard} then converts uniform control of the observed event probabilities into endpoint padding for the full identified interval.
+
+The face-aware diagnostic records the threshold cuts that are near active at the empirical law.  This finite diagnostic is useful because the endpoint map is piecewise linear in the capacity vector, with different linear pieces selected by the active threshold comparisons.  The deterministic guard separates two tasks: it bounds capacity and screening errors by an explicit envelope, and it expands the resulting endpoint interval by a finite-sample padding term.  This organization follows the econometric logic of inference for nonsmooth and partially identified parameters, where contact sets and binding inequalities determine the local approximation \citep{FangSantos2019}.
+
+\subsection{Verification note}
+
+The formal assumptions, definitions, propositions, algorithms, theorem statements, and
+proof dependencies in the paper are machine-checked in Lean 4 for the finite ordered-outcome model
+stated in the main text.  The checking covers the capacity-identification formulas, the
+threshold-cut endpoint characterization, endpoint attainment by the threshold-flow construction,
+the no-selection reduction, the three-level witness, the sparse threshold-flow calculation, the
+pointwise directional limit statement, and the deterministic guarded-inference guarantee.
+
+\paragraph{Scope, toolchain, and commit.}
+The development is checked with Lean 4, toolchain \texttt{leanprover/lean4:v4.33.0}, at commit
+\texttt{8f179a26a191}, in the module tree
+\texttt{CausalSmith/PartialID/PID\_SlateBenefitPartialtransport\_Research}.  This paper displays \(56\)
+numbered formal objects.  Of these, \(48\) are matched to the Lean development in that tree, \(7\)
+are presentation-level restatements carrying no Lean declaration of their own (listed below), and
+\(1\) --- the direction margin of \cref{obj:ass:direction-margin} --- is stated only to pose the
+open calibration problem and is used by no verified theorem.  Every declaration certifying a
+matched object is free of \texttt{sorry} and of added axioms beyond the ambient Lean and Mathlib
+development.
+
+\paragraph{Objects with no matching declaration.}
+The seven displayed definitions above are presentation-level restatements introduced for readability rather
+than separate Lean declarations: the slate-benefit partial-transport system
+(\cref{obj:synth_22}), the threshold-cut capacity aggregates (\cref{obj:synth_4}), the cellwise
+benefit-mass functional (\cref{obj:synth_5}), the costed threshold-flow routines
+(\cref{obj:synth_20}), the sparse threshold-flow operation counts (\cref{obj:synth_21}), the
+empirical observed-data law for the indexed sample (\cref{obj:synth_19}), and the auxiliary
+multiplier process (\cref{obj:synth_6}).  Each names or aggregates quantities that the matched
+declarations define; none carries a verified claim of its own, and no theorem in this paper is
+certified through one of them.  Readers should treat the verification claim as attaching to the
+matched statements and their proofs, not to these expository restatements.
+
+\paragraph{Cited inputs.}
+Published econometric and probability results invoked through citations are bibliographic
+dependencies; their source proofs are used in the ordinary way through the cited literature.  Where
+a displayed result depends on such an input, the result carries a footnote naming the cited
+conclusion and stating that the portions depending on it are certified conditional on that
+conclusion.

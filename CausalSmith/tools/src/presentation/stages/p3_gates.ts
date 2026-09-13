@@ -2,7 +2,7 @@ import { readFile, writeFile, appendFile, mkdir } from "node:fs/promises";
 import { MODELS } from "../../models.js";
 import { join } from "node:path";
 import type { StageIO } from "../pipeline.js";
-import { presentationPrompt, promptFingerprint } from "../prompt_io.js";
+import { presentationPrompt } from "../prompt_io.js";
 import { parseOutline } from "../stage_util.js";
 import { CITATION_SUPPORT_REPLY, OVERCLAIM_REPLY, REPLACEMENTS_REPLY, RUBRIC_REPLY } from "../reply_schemas.js";
 import { canonicalizeObjRefs, lintAnchors, lintEnvOrder, hashEnvBody, normalizeCrefs, parseAnchoredEnvs, repairObjRefs, reviewerTexFor } from "../tex_anchors.js";
@@ -27,6 +27,12 @@ import {
   type HardGateInput,
   type RubricReview,
 } from "../gates.js";
+
+/** Rubric-scoring standard — opaque version token for the cache key.
+  * Initial value is the fingerprint the key carried on 2026-09-12 so existing caches stay warm;
+  * bump to any new literal only when the standard tightens (a cached verdict under the old
+  * standard would be wrong); prompt wording and code changes never bump it. */
+export const RUBRIC_STANDARD = "3625b12a1967d679399c6cd20ba43f04cadbb7d077aa6483b343657c66a6d501";
 
 const MAX_ROUNDS = 2;
 const RUBRIC_PASS = 6;
@@ -699,11 +705,10 @@ export async function stageP3(io: StageIO): Promise<void> {
     const paperTex = reviewerTexFor(await readFile(paperPath, "utf8"));
     // Key prefix "final|" is a legacy token from the retired intermediate/final
     // review-mode knob, kept so existing run-dir caches stay warm.
-    // The prompt fingerprint is part of the key: widening what the reviewer is ASKED to
-    // report (the `defects` sweep) must not read a review cached under the narrower prompt —
-    // otherwise the very bundle that motivated the change replays its old reviews, reports
-    // zero defects, and silently skips the repair. Costs one re-score sweep per bundle.
-    const rubricKey = hashEnvBody(`final|${await promptFingerprint("p3_rubric")}|${paperTex}`);
+    // The rubric STANDARD is part of the key: widening what the reviewer is asked to report
+    // must not read a review cached under the narrower standard. Prompt wording and code
+    // edits do NOT move it — only a hand bump of RUBRIC_STANDARD does.
+    const rubricKey = hashEnvBody(`final|${RUBRIC_STANDARD}|${paperTex}`);
     // Cache reads bypass the reviewer dispatch, so they must be re-validated: a
     // cache written by pre-fix code can hold string-scored reviews whose mean is
     // NaN (NaN < RUBRIC_PASS is false → silent fail-open). Filter every array

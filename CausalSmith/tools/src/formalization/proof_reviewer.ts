@@ -18,7 +18,7 @@ import {
   dualClearedAt,
   ledgerNodeTargets,
   nodeConvergenceEvidence,
-  reviewerRubricHash,
+  REVIEW_STANDARD,
   symbolConvergenceEvidence,
   symbolVerdictPasses,
   type SymbolReviewRow,
@@ -268,7 +268,7 @@ export async function runReviewer(args: {
   const frozenCitedNodeIds = new Set(
     (typedCore?.statements ?? []).filter((statement) => statement.status === "cited").map((statement) => statement.id),
   );
-  const rubricHash = await reviewerRubricHash(base);
+  const rubricHash = REVIEW_STANDARD;
   const evidenceIndex = args.mode === "convergence" && args.leanDir ? await buildLeanEvidenceIndex(args.leanDir) : null;
   const ledgerNodeIds = new Set(args.mode === "convergence" ? ledgerNodeTargets(args.graph) : []);
   /** graph id / `sym:` id → the evidence hash a receipt issued this round certifies. */

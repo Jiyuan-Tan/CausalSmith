@@ -16,7 +16,7 @@ import {
   buildLeanEvidenceIndex,
   buildSymbolReviewRows,
   nodeConvergenceEvidence,
-  reviewerRubricHash,
+  REVIEW_STANDARD,
 } from "../../src/formalization/convergence_evidence.js";
 
 function fixture() {
@@ -1008,7 +1008,7 @@ describe("runReviewer", () => {
     g.nodes[0].review = { status: "matched", passed_hash: "prior" };
     const core = await readTypedCore(corePath);
     const index = await buildLeanEvidenceIndex(root);
-    const rubricHash = await reviewerRubricHash(await readFile(sharedPromptPath, "utf8"));
+    const rubricHash = REVIEW_STANDARD;
     const evidence = nodeConvergenceEvidence({ graph: g, index, core, rubricHash, nodeId: "lem:source" });
     g.convergenceReview = {
       "lem:source": {

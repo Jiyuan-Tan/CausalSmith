@@ -3,7 +3,7 @@ import { readFile, writeFile, appendFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { stripTexComments } from "../shared/tex_text.js";
 import type { StageIO } from "./pipeline.js";
-import { PRESENTATION_PROSE_POLICY_VERSION, presentationPrompt, promptFingerprint } from "./prompt_io.js";
+import { PRESENTATION_PROSE_POLICY_VERSION, presentationPrompt } from "./prompt_io.js";
 import { notationForArtifact, parseOutline } from "./stage_util.js";
 import { canonicalizeProofTitle, hashEnvBody, parseAnchoredEnvs, repairObjRefs, type AnchoredEnv, type LintProblem } from "./tex_anchors.js";
 import { FormalLayerSource, type FormalBlock } from "./formal_layer.js";
@@ -68,37 +68,32 @@ export function equivalenceAuditKey(parts: {
   return hashEnvBody(`${parts.envBody}|${parts.mapping}|${parts.leanStatement}|${parts.refDefs}|citation-erasure-v1|equivalence-v3|${parts.citedDependencies}`);
 }
 
-/** Keyed on the audit PROMPT (and prose policy version): the verdict depends on what the auditor
- *  is asked to check, so widening the gate — by prompt edit or policy bump — must not read a
- *  verdict cached under the narrower standard; an unchanged proof would silently keep its stale
- *  `faithful`. The prompt fingerprint makes prompt-only widenings self-invalidating (same pattern
- *  as P1's promptFp), removing the "did any run execute since the bump?" timing dependence.
+/** Proof-audit standard — opaque version token for the proof-verdict cache key.
+ *  Initial value is the fingerprint the key carried on 2026-09-12 so existing caches stay warm;
+ *  bump to any new literal only when the standard tightens (a cached verdict under the old
+ *  standard would be wrong); prompt wording and code changes never bump it. */
+export const PROOF_AUDIT_STANDARD = "628b6efd185c09c3652255333a846e51a3923495cc345e1af42c8bc02fb467df";
+
+/** Repair standard — opaque version token for the P2 repair stop receipt.
+ *  Initial value is the fingerprint the key carried on 2026-09-12 so existing caches stay warm;
+ *  bump to any new literal only when the standard tightens (a cached verdict under the old
+ *  standard would be wrong); prompt wording and code changes never bump it. */
+export const PROOF_REPAIR_STANDARD = "6bb7e91f4fee3e832832ed0a41994d0c02f8baaafc43ebb6f8905400c49ec109";
+
+/** Keyed on CONTENT plus the audit STANDARD (and prose policy version): the verdict depends on
+ *  what the auditor is asked to check, so tightening the gate must not read a verdict cached
+ *  under the looser standard; an unchanged proof would silently keep its stale `faithful`.
+ *  `PROOF_AUDIT_STANDARD` is bumped BY HAND, and only when the standard actually tightens —
+ *  prompt clarifications and code refactors never re-judge a cached proof.
  *  `formalContext` is `proofAuditFormalContext` — the statements the verdict can depend on (the
  *  target, the environments the proof cites, and every definition/assumption), order-independent —
  *  so a promoted lemma, a re-rendered theorem elsewhere, or a P1 order repair keeps approvals. */
 export function proofAuditCacheKey(parts: {
-  proofTex: string; leanPointer: string; leanProofCacheSource: string; notationTable: string; auditPromptFp: string;
+  proofTex: string; leanPointer: string; leanProofCacheSource: string; notationTable: string;
   formalContext: string;
 }): string {
-  return hashEnvBody(`${PRESENTATION_PROSE_POLICY_VERSION}|${parts.auditPromptFp}|${parts.formalContext}|${parts.proofTex}|${parts.leanPointer}|${parts.leanProofCacheSource}|${proofAuditSemanticNotation(parts.notationTable)}`);
+  return hashEnvBody(`${PRESENTATION_PROSE_POLICY_VERSION}|${PROOF_AUDIT_STANDARD}|${parts.formalContext}|${parts.proofTex}|${parts.leanPointer}|${parts.leanProofCacheSource}|${proofAuditSemanticNotation(parts.notationTable)}`);
 }
-
-/** The key formula before the closure-keyed context (whole `formal_layer.tex` hash, target body,
- *  absolute Lean path). Read-only transition: a row stamped with it is honoured and re-stamped
- *  under the current key, so the key change itself never re-judges a proof. Delete once every
- *  live bundle has re-entered P2 (2026-09). */
-function legacyProofAuditCacheKey(parts: {
-  proofTex: string; leanPointer: string; leanProofCacheSource: string; notationTable: string; auditPromptFp: string;
-  targetStatement: string; formalSource: string;
-}): string {
-  return hashEnvBody(`${PRESENTATION_PROSE_POLICY_VERSION}|${parts.auditPromptFp}|${hashEnvBody(parts.formalSource)}|${parts.targetStatement}|${parts.proofTex}|${parts.leanPointer}|${parts.leanProofCacheSource}|${proofAuditSemanticNotation(parts.notationTable)}`);
-}
-
-/** Fingerprints of `proof_audit` before a prompt edit that only ADDED deterministic context
- *  (the helper declarations the Lean proof names, 2026-09-10). Such an edit cannot narrow a
- *  verdict, so a row stamped under one of these is honoured once and re-stamped. Delete once the
- *  live bundles have re-entered P2. */
-export const LEGACY_PROOF_AUDIT_PROMPT_FPS = ["c4ed03d34c039a4c6b10e632b2946bda021f718b38a0ed22b5c47671a827db67"];
 
 /** Proof validity depends on symbol spelling and reader-facing meaning, not on
  * notation-table row placement or the outline section that owns the symbol. */
@@ -121,7 +116,7 @@ const ask = async (out: Promise<{ stdout: string; stderr: string }>) =>
   parseJsonLoose((await out).stdout);
 
 /** A cached Lean-source reader (one read per file across an audit run). */
-function leanSourceReader(repoRoot: string, leanSubdir: string) {
+export function leanSourceReader(repoRoot: string, leanSubdir: string) {
   const cache = new Map<string, string>();
   return async (file: string) => {
     if (!cache.has(file)) cache.set(file, await readFile(join(repoRoot, leanSubdir, file), "utf8"));
@@ -639,8 +634,6 @@ export async function runProofAudit(
   const formalEnvs: AnchoredEnv[] = allLayerBlocks.flatMap((b, i) =>
     b.env ? [{ env: b.env as AnchoredEnv["env"], obj_id: b.obj_id, title: b.title ?? null, body: b.body, order: i }] : []);
   const layerIds = new Set(formalEnvs.map((e) => e.obj_id));
-  // Only the pre-closure legacy key hashed the derived .tex; read it just to honour those rows.
-  const formalSource = await readFile(join(io.outDir, "formal_layer.tex"), "utf8").catch(() => "");
   const reviewsPath = join(io.outDir, "logs", "reviews.jsonl");
   await mkdir(join(io.outDir, "logs"), { recursive: true });
 
@@ -652,8 +645,6 @@ export async function runProofAudit(
   }>>(cachePath);
   const saveCache = () => writeJsonAtomic(cachePath, cache); // why: workers save concurrently under mapLimit — interleaved plain writes can corrupt the cache.
 
-  const auditPromptFp = await promptFingerprint("proof_audit");
-  const repairPromptFp = await promptFingerprint("p2_proof");
   // Lemma envs with a realized decl — the deterministic missing-citation check's citable set.
   // Lemmas only, matching the isolated-lemma rule this check upstreams (a proof invoking a
   // paper LEMMA's decl must cite it); theorem-to-theorem citation stays the judge's call.
@@ -670,7 +661,7 @@ export async function runProofAudit(
   type JudgeInput = { obj_id: string; proofTex: string; leanPointer: string; leanKeyPointer: string; leanProofSource: string; leanProofCacheSource: string; notationTable: string; tier: "main" | "auxiliary"; helperDeclarations: string };
   const auditKey = (p: JudgeInput) => proofAuditCacheKey({
     proofTex: p.proofTex, leanPointer: p.leanKeyPointer, leanProofCacheSource: p.leanProofCacheSource,
-    notationTable: p.notationTable, auditPromptFp, formalContext: proofAuditFormalContext(formalEnvs, p.obj_id, p.proofTex),
+    notationTable: p.notationTable, formalContext: proofAuditFormalContext(formalEnvs, p.obj_id, p.proofTex),
   });
   const proofAudit = async (p: JudgeInput) => {
     const key = auditKey(p);
@@ -695,22 +686,6 @@ export async function runProofAudit(
     };
     const hit = cache[p.obj_id];
     const cacheable = p.leanProofCacheSource.length > 0;
-    // A row stamped under the pre-closure key is the same verdict on a superset of this context.
-    if (cacheable && hit && hit.key !== key && hit.key === legacyProofAuditCacheKey({
-      proofTex: p.proofTex, leanPointer: p.leanPointer, leanProofCacheSource: p.leanProofCacheSource,
-      notationTable: p.notationTable, auditPromptFp, targetStatement: targetStatementFor(p.obj_id), formalSource,
-    })) {
-      hit.key = key;
-      await saveCache();
-    }
-    // A row stamped under the prompt as it read before deterministic context was added.
-    if (cacheable && hit && hit.key !== key && LEGACY_PROOF_AUDIT_PROMPT_FPS.some((fp) => hit.key === proofAuditCacheKey({
-      proofTex: p.proofTex, leanPointer: p.leanKeyPointer, leanProofCacheSource: p.leanProofCacheSource,
-      notationTable: p.notationTable, auditPromptFp: fp, formalContext: proofAuditFormalContext(formalEnvs, p.obj_id, p.proofTex),
-    }))) {
-      hit.key = key;
-      await saveCache();
-    }
     // A cached UNFAITHFUL verdict without issues (a pre-change cache) cannot drive a repair —
     // treat it as a miss and re-judge.
     if (cacheable && hit?.key === key && (hit.verdict === "faithful" || (hit.issues?.length ?? 0) > 0)) {
@@ -746,7 +721,10 @@ export async function runProofAudit(
     if (v === null) throw new Error(`P2 proof judge returned no usable verdict for ${p.obj_id} twice — see agent_calls.log and re-run P2`);
     const out = { verdict: v.verdict!, issues: v.issues ?? [] };
     if (cacheable) {
-      cache[p.obj_id] = { key, ...out };
+      // Spread the prior row: a stop receipt survives a fresh verdict. Its key hashes the render
+      // context, the issues and this audit key, so it matches only an unchanged re-entry (the
+      // paper-wide object catalogue is a writer input deliberately left out of that context).
+      cache[p.obj_id] = { ...cache[p.obj_id], key, ...out };
       await saveCache();
     }
     return withHint(out.verdict, out.issues);
@@ -827,7 +805,7 @@ export async function runProofAudit(
       const stoppedKey = () => {
         const renderContext = repairContextKeys.get(pt.obj_id);
         return renderContext === undefined || !pt.leanProofCacheSource ? undefined : hashEnvBody(JSON.stringify([
-          renderContext, repairPromptFp, verdict.issues, auditKey(judgeInput(proof)),
+          renderContext, PROOF_REPAIR_STANDARD, verdict.issues, auditKey(judgeInput(proof)),
         ]));
       };
       while (verdict.verdict !== "faithful" && rounds < maxRounds) {

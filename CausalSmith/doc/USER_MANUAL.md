@@ -101,6 +101,7 @@ Machine-specific paths live in **one** place: `tools/config/local.json` (gitigno
 | `leanLspMcpBinary` | `CAUSALSMITH_LEAN_LSP_MCP` | The `lean-lsp-mcp` server binary (PATH name or absolute). |
 | `leanProjectPath` | `CAUSALSMITH_LEAN_PROJECT_PATH` | Optional override for lean-lsp `--lean-project-path`; `null` ⇒ the run's repoRoot (the lake project that transitively sees Causalean). |
 | `mcpTimeoutMs` | `MCP_TIMEOUT` | Per-call timeout for the slow-cold-starting lean-lsp server (code default 600000; `local.example.json` ships the same). |
+| `pythonPath` | `CAUSALSMITH_PYTHON` | Interpreter for the Python retrieval scripts — the one with `torch` + `sentence-transformers`. `null` ⇒ probe the platform defaults (`python3`/`python` on Linux and macOS; `python`, `py -3`, `python3` on Windows, where `python3` is not a program name and the Store alias stub is rejected). Set it when the right venv is not first on `PATH`. |
 | `codexSandbox` | `CAUSALSMITH_CODEX_SANDBOX` | Codex local-tool sandbox. Default `workspace-write`. `danger-full-access` is a persistent machine-local grant of unrestricted filesystem/network tools to every CausalSmith Codex worker; use it only when that is explicitly intended or an outer environment supplies confinement. |
 
 ## Who pays for the model calls (subscription vs API key)

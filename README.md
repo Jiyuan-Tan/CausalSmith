@@ -114,7 +114,7 @@ npm run search -- "backdoor adjustment"
 
 # 4. Optional: the fine-tuned retrieval models (~2.3 GB, same release tag) for semantic search
 cd ../.. && scripts/fetch_retrieval_models.sh   # needs curl, tar, zstd
-cd CausalSmith/tools && npm run embed:library    # Python 3 + sentence-transformers; Linux/macOS only
+cd CausalSmith/tools && npm run embed:library    # needs Python 3 + sentence-transformers
 npm run search -- --semantic "backdoor adjustment"
 ```
 
@@ -158,9 +158,22 @@ Then, depending on what you came for:
 - **macOS.** Everything works as on Linux; `brew install zstd` for the cache scripts.
   The default file system is case-insensitive, and the repository contains no
   paths that differ only by case.
-- **Semantic retrieval** (the optional embedding tier and its Python daemons) is
-  Linux/macOS only; the default lexical `npm run search` works everywhere. The
-  pipeline's own Windows notes are in
+- **Semantic retrieval** (the optional embedding tier and its warm Python daemons)
+  runs on Linux, macOS and Windows alike. The daemons pick their transport
+  automatically — a unix-domain socket on POSIX, a loopback TCP port on Windows,
+  where CPython exposes no `AF_UNIX` — so the model loads once and later queries are
+  served warm on every platform. No device is pinned anywhere in the query or corpus
+  path, so it runs on a CPU-only machine as happily as on a GPU one, and CPU and GPU
+  vectors agree to within float tolerance — corpus embeddings built on one are
+  interchangeable with queries embedded on the other. The default lexical
+  `npm run search` needs no Python at all.
+- **Python interpreter.** `python3` is not a program name on Windows, so the tooling
+  resolves one instead: `CAUSALSMITH_PYTHON`, then `pythonPath` in
+  `CausalSmith/tools/config/local.json`, then probed defaults (`python3`/`python` on
+  Linux and macOS; `python`, `py -3`, `python3` on Windows — the Microsoft Store alias
+  stub is rejected). Point it at the interpreter that has `torch` and
+  `sentence-transformers` if that is not the first one on `PATH`. The pipeline's own
+  Windows notes are in
   [`CausalSmith/doc/SETUP.md`](CausalSmith/doc/SETUP.md#windows).
 
 ### Model access for the pipeline
@@ -214,7 +227,8 @@ the embeddings are present and fresh, so that mode is slower on first use. The
 fine-tuned encoder and reranker behind that tier are gitignored weight
 directories: `scripts/fetch_retrieval_models.sh` downloads them (about 2.3 GB,
 published as release assets) into `doc/`; without them the tooling falls back to
-the off-the-shelf `BAAI/bge-large-en-v1.5` checkpoint.
+the off-the-shelf `BAAI/bge-large-en-v1.5` checkpoint. The download and the tier it
+feeds both work on Windows too — run the script from Git Bash with `zstd` on `PATH`.
 
 Each hit shows the score, fully-qualified name, type signature, source file,
 whether it is `tier-1` or carries a `⚠usesSorry` flag, and the docstring's

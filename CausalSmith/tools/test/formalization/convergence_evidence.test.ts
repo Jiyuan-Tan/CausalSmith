@@ -13,7 +13,7 @@ import {
   dualClearedAt,
   ledgerNodeTargets,
   nodeConvergenceEvidence,
-  reviewerRubricHash,
+  REVIEW_STANDARD,
   symbolConvergenceEvidence,
 } from "../../src/formalization/convergence_evidence.js";
 
@@ -70,7 +70,7 @@ let dir = "";
 let rubric = "";
 
 beforeEach(async () => {
-  rubric = await reviewerRubricHash("rubric v1");
+  rubric = REVIEW_STANDARD;
   dir = await mkdtemp(join(tmpdir(), "conv-evidence-"));
   await writeFile(join(dir, "Main.lean"), LEAN);
 });
@@ -159,9 +159,16 @@ describe("node convergence evidence", () => {
     expect(await evidenceOf("thm:main", g)).not.toBe(withNotationFile);
   });
 
+  it("the review standard is a hand-bumped token, not a hash of the prompt or the reviewer source", () => {
+    // Frozen at the value reviewerRubricHash returned on 2026-09-12 for the shipped
+    // proof_reviewer.txt, so receipts written before the change stay valid. An accidental edit
+    // here invalidates every convergence receipt in every run.
+    expect(REVIEW_STANDARD).toBe("16865e36da9271bbf0e9906def5868e43c1ec0d8");
+  });
+
   it("changes with the rubric, the NL statement, and a gated substrate hypothesis", async () => {
     const before = await evidenceOf("thm:main");
-    expect(await evidenceOf("thm:main", fixtureGraph(), await reviewerRubricHash("rubric v2"))).not.toBe(before);
+    expect(await evidenceOf("thm:main", fixtureGraph(), "review-standard-bumped")).not.toBe(before);
     let g = fixtureGraph();
     g = { ...g, nodes: g.nodes.map((n) => (n.id === "thm:main" ? { ...n, nl: { ...n.nl, statement: "a weaker bound" } } : n)) };
     expect(await evidenceOf("thm:main", g)).not.toBe(before);
@@ -434,10 +441,10 @@ describe("auditConvergenceReview", () => {
     expect(stale[0].message).toMatch(/stale/);
     await writeFile(join(dir, "Main.lean"), LEAN);
 
-    // Rubric edited after F4: everything is stale.
+    // Reviewer prompt edited after F4: receipts hold — the rubric slot is the hand-bumped
+    // REVIEW_STANDARD, so a wording change never re-buys a review.
     await writeFile(promptFile, "rubric v2");
-    expect((await auditConvergenceReview({ graph: good, leanDir: dir, core, promptFile })).map((f) => f.node_id).sort())
-      .toEqual(["def:class", "lem:side", "sym:K", "thm:main"]);
+    expect(await auditConvergenceReview({ graph: good, leanDir: dir, core, promptFile })).toEqual([]);
     await writeFile(promptFile, "rubric v1");
 
     // One peer missing / a delta-only clearance / a symbol not delta-passed.

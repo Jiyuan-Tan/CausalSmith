@@ -2,9 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { proofAuditCacheKey, proofAuditFormalContext, proofAuditSemanticNotation, runProofAudit } from "../src/presentation/audit.js";
-import { parseAnchoredEnvs, hashEnvBody } from "../src/presentation/tex_anchors.js";
-import { PRESENTATION_PROSE_POLICY_VERSION, promptFingerprint } from "../src/presentation/prompt_io.js";
+import { PROOF_AUDIT_STANDARD, PROOF_REPAIR_STANDARD, proofAuditCacheKey, proofAuditFormalContext, proofAuditSemanticNotation, runProofAudit } from "../src/presentation/audit.js";
+import { parseAnchoredEnvs } from "../src/presentation/tex_anchors.js";
 import type { StageIO } from "../src/presentation/pipeline.js";
 
 /**
@@ -18,6 +17,29 @@ import type { StageIO } from "../src/presentation/pipeline.js";
  */
 
 import { canonicalizeProofTitle, existingProofForP2 } from "../src/presentation/stages/p2_draft.js";
+
+describe("audit standards are hand-bumped content-independent tokens", () => {
+  // Frozen at the prompt fingerprints the keys carried on 2026-09-12, so the change that
+  // replaced the fingerprints with these constants kept every cached row warm. An accidental
+  // edit here colds every proof verdict / repair receipt in every run dir.
+  it("pins the two standard tokens", () => {
+    expect(PROOF_AUDIT_STANDARD).toBe("628b6efd185c09c3652255333a846e51a3923495cc345e1af42c8bc02fb467df");
+    expect(PROOF_REPAIR_STANDARD).toBe("6bb7e91f4fee3e832832ed0a41994d0c02f8baaafc43ebb6f8905400c49ec109");
+  });
+
+  it("proofAuditCacheKey takes no prompt input — identical content gives an identical key", () => {
+    const parts = {
+      proofTex: "P", leanPointer: "L", leanProofCacheSource: "S",
+      notationTable: "(no artifact-specific notation rows)", formalContext: "C",
+    };
+    expect(Object.keys(parts).sort()).toEqual(
+      ["formalContext", "leanPointer", "leanProofCacheSource", "notationTable", "proofTex"],
+    );
+    expect(proofAuditCacheKey(parts)).toBe(proofAuditCacheKey({ ...parts }));
+    // The standard is a key input: a bumped token would move the key.
+    expect(proofAuditCacheKey(parts)).not.toBe(proofAuditCacheKey({ ...parts, formalContext: "C2" }));
+  });
+});
 
 describe("canonicalizeProofTitle", () => {
   it("rewrites free-form, prefixless, and missing titles to the canonical attributable form", () => {
@@ -143,6 +165,17 @@ describe("runProofAudit (P2 proof equivalence)", () => {
     expect(drift).toContain("thm_bad (proof)");
   });
 
+  it("keeps an existing stop receipt when a fresh verdict is written", async () => {
+    const cachePath = join(dir, "proof_audit_cache.json");
+    // A stale row (key mismatch) forces a re-judge; the receipt on it must survive the write.
+    await writeFile(cachePath, JSON.stringify({ thm_ok: { key: "stale", verdict: "unfaithful", issues: [], repairStoppedKey: "receipt" } }));
+    await runProofAudit(makeIO(), [targets[0]], stubRender);
+    const row = JSON.parse(await readFile(cachePath, "utf8")).thm_ok;
+    expect(row.verdict).toBe("faithful");
+    expect(row.key).not.toBe("stale");
+    expect(row.repairStoppedKey).toBe("receipt");
+  });
+
   it("records a faithful/unfaithful verdict cache and a review line per proof", async () => {
     await runProofAudit(makeIO(), targets, stubRender);
     const cache = JSON.parse(await readFile(join(dir, "proof_audit_cache.json"), "utf8"));
@@ -163,7 +196,7 @@ describe("proof-audit semantic notation fingerprint", () => {
     ...rows,
   ].join("\n");
   const key = (notationTable: string) => proofAuditCacheKey({
-    proofTex: "proof", leanPointer: "pointer", leanProofCacheSource: "source", notationTable, auditPromptFp: "fp", formalContext: "context",
+    proofTex: "proof", leanPointer: "pointer", leanProofCacheSource: "source", notationTable, formalContext: "context",
   });
 
   it("is invariant to notation row order, home ownership, and non-table placement metadata", () => {
@@ -576,48 +609,6 @@ An unrelated statement body.
     expect(prompt).toContain("-- helper_fact  (H.lean)\ntheorem helper_fact : True := by\n  trivial");
     expect(prompt).toContain("no file read is needed for them");
     expect(prompt).not.toContain("For helper searches, start in the named source directory");
-  });
-
-  it("honours a verdict row stamped under the prompt fingerprint before deterministic context was added", async () => {
-    await writeLayer(LAYER);
-    const { LEGACY_PROOF_AUDIT_PROMPT_FPS, proofAuditCacheKey, proofAuditFormalContext } = await import("../src/presentation/audit.js");
-    const proofTex = canonicalizeProofTitle("thm_ok", (await readFile(join(dir, "proofs", "thm_ok.tex"), "utf8")).trim());
-    const source = await readFile(join(dir, "Lean", "X.lean"), "utf8");
-    const { extractFullDeclSource } = await import("../src/presentation/lean_extract.js");
-    const envs = parseAnchoredEnvs(LAYER);
-    const oldKey = proofAuditCacheKey({
-      proofTex, leanPointer: "Lean/X.lean:thm_ok", leanProofCacheSource: extractFullDeclSource(source, "thm_ok", 1),
-      notationTable: "(no artifact-specific notation rows)", auditPromptFp: LEGACY_PROOF_AUDIT_PROMPT_FPS[0],
-      formalContext: proofAuditFormalContext(envs, "thm_ok", proofTex),
-    });
-    await writeFile(join(dir, "proof_audit_cache.json"), JSON.stringify({ thm_ok: { key: oldKey, verdict: "faithful", issues: [] } }));
-    const io = makeIO();
-    io.ctx.deps.runCodex = async () => { throw new Error("an approval under the previous prompt must be reused"); };
-    expect((await runProofAudit(io, [targets[0]], stubRender)).problems).toEqual([]);
-    const cache = JSON.parse(await readFile(join(dir, "proof_audit_cache.json"), "utf8"));
-    expect(cache.thm_ok.key).not.toBe(oldKey);
-    expect(cache.thm_ok.verdict).toBe("faithful");
-  });
-
-  it("honours a verdict row stamped under the pre-closure key and re-stamps it without a judge call", async () => {
-    await writeLayer(LAYER);
-    const proofTex = (await readFile(join(dir, "proofs", "thm_ok.tex"), "utf8")).trim();
-    const source = await readFile(join(dir, "Lean", "X.lean"), "utf8");
-    const { extractFullDeclSource } = await import("../src/presentation/lean_extract.js");
-    const leanSource = extractFullDeclSource(source, "thm_ok", 1);
-    const legacyKey = hashEnvBody([
-      PRESENTATION_PROSE_POLICY_VERSION, await promptFingerprint("proof_audit"), hashEnvBody(LAYER),
-      parseAnchoredEnvs(LAYER).find((e) => e.obj_id === "thm_ok")!.body.trim(), canonicalizeProofTitle("thm_ok", proofTex),
-      `file: ${join(dir, "Lean", "X.lean")}\ndeclaration: thm_ok\nRead the file with your tools; do not guess its contents.`,
-      leanSource, proofAuditSemanticNotation("(no artifact-specific notation rows)"),
-    ].join("|"));
-    await writeFile(join(dir, "proof_audit_cache.json"), JSON.stringify({ thm_ok: { key: legacyKey, verdict: "faithful", issues: [] } }));
-    const io = makeIO();
-    io.ctx.deps.runCodex = async () => { throw new Error("a legacy-keyed approval must be reused"); };
-    expect((await runProofAudit(io, [targets[0]], stubRender)).problems).toEqual([]);
-    const cache = JSON.parse(await readFile(join(dir, "proof_audit_cache.json"), "utf8"));
-    expect(cache.thm_ok.key).not.toBe(legacyKey);
-    expect((await runProofAudit(io, [targets[0]], stubRender)).problems).toEqual([]);
   });
 
   it("repairs a dropped kind prefix in place and routes an unresolvable \\cref to the writer before any judge call", async () => {

@@ -2,7 +2,8 @@
 #
 # Warm cross-encoder RERANK daemon (Phase 2c). Holds the fine-tuned bge-reranker in memory and
 # builds decl passage text from the library index, so repeated rerank requests pay the model
-# load (~10 s) and the passage construction ONCE. Serves scores over a unix-domain socket.
+# load (~10 s) and the passage construction ONCE. Serves scores over a local socket — unix-domain
+# on POSIX, loopback TCP on Windows; scripts/daemon_ipc.py picks the transport.
 #
 # Passage text is built HERE (not on the TS side) from the same make_passage() the reranker was
 # trained with — so the query-time passage is byte-identical to the training passage. The client
@@ -20,6 +21,7 @@ os.environ.setdefault("HF_HUB_OFFLINE", "1")
 os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 import sys, socket, json, struct, re
 import numpy as np
+import daemon_ipc
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 INDEX = os.path.join(ROOT, "doc", "library_index.json")
@@ -91,49 +93,49 @@ def recv_line(conn):
 
 
 def main():
+    # stderr carries temp paths; a non-ASCII Windows username would otherwise raise
+    # UnicodeEncodeError on the ANSI code page when stderr is a pipe.
+    if hasattr(sys.stderr, "reconfigure"):
+        try:
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+        except (OSError, ValueError):
+            pass  # closed or detached stderr: never let this abort startup
+
     if len(sys.argv) < 2:
-        print("usage: rerank_daemon.py <socket_path> [idle_timeout_s]", file=sys.stderr)
+        print("usage: rerank_daemon.py <endpoint_path> [idle_timeout_s]", file=sys.stderr)
         sys.exit(2)
     sock_path = sys.argv[1]
     idle = float(sys.argv[2]) if len(sys.argv) > 2 else IDLE_TIMEOUT
 
     # Already serving? Redundant spawn — exit before the expensive load.
-    if os.path.exists(sock_path):
-        probe = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        try:
-            probe.connect(sock_path)
-            probe.close()
-            return
-        except OSError:
-            try:
-                os.unlink(sock_path)  # stale socket from a dead daemon
-            except OSError:
-                pass
-        finally:
-            try:
-                probe.close()
-            except OSError:
-                pass
+    # (probe_live also clears a stale endpoint left by a dead daemon.)
+    if daemon_ipc.probe_live(sock_path):
+        return
 
-    meta = json.load(open(META))
+    # encoding is explicit: the index carries Unicode (σ, ᵐ, ∀) from Lean docstrings,
+    # and Windows would otherwise decode it with the ANSI code page and crash.
+    with open(META, encoding="utf-8") as fh:
+        meta = json.load(fh)
     view = meta.get("passage", "nbr")
-    ents = json.load(open(INDEX))["entries"]
+    with open(INDEX, encoding="utf-8") as fh:
+        ents = json.load(fh)["entries"]
     by = {e["name"]: e for e in ents}
     ctx = build_nbr_ctx(ents)
     passages = {n: make_passage(e, view, ctx) for n, e in by.items()}  # precompute once
     model = load_ce(meta["model"])  # ~10 s, once
+    try:
+        srv = daemon_ipc.serve(sock_path, backlog=16, idle=idle)
+    except daemon_ipc.DaemonAlreadyRunning:
+        return  # another daemon claimed the endpoint while we were loading
     print(f"rerank_daemon ready on {sock_path} (view={view}, {len(passages)} decls)", file=sys.stderr)
-
-    srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    srv.bind(sock_path)
-    srv.listen(16)
-    srv.settimeout(idle)
 
     while True:
         try:
-            conn, _ = srv.accept()
+            conn = srv.accept()
         except socket.timeout:
             break
+        if conn is None:
+            continue  # peer failed the endpoint token check
         try:
             raw = recv_line(conn).decode("utf-8").strip()
             if not raw:  # health-check
@@ -162,10 +164,8 @@ def main():
             except OSError:
                 pass
 
-    try:
-        os.unlink(sock_path)
-    except OSError:
-        pass
+    srv.close()
+    srv.unlink()  # idle exit: release the endpoint, but only if it is still ours
 
 
 if __name__ == "__main__":

@@ -142,9 +142,11 @@ def main():
                     help="trade compute for activation memory — lets the recipe's batch size fit a 12GB GPU")
     args = ap.parse_args()
 
-    ents = json.load(open(INDEX))["entries"]
+    with open(INDEX, encoding="utf-8") as fh:
+        ents = json.load(fh)["entries"]
     by, gold = build_gold(ents)
-    test_mods = set(json.load(open(args.test_modules)))
+    with open(args.test_modules, encoding="utf-8") as fh:
+        test_mods = set(json.load(fh))
 
     print("== BASELINE (off-the-shelf bge) on held-out modules ==", file=sys.stderr)
     base = load_model(MODEL, max_seq=args.seq)

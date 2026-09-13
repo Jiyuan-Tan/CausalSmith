@@ -1,0 +1,292 @@
+\section{Estimation by local polynomial lifting}
+
+The identification result in \cref{obj:prop:identification-and-extension} reduces estimation of the optimal-treatment value to estimation of the sum \(\sum_{x=1}^d \bar f_\epsilon(q_x)\). This section first records the direct cell-ratio estimator and then constructs the polynomial-lifting estimator used for the upper bound. The construction works with the four treatment--outcome atom coordinates in each cell, builds a local approximation to the globally Lipschitz cell contribution, and evaluates that approximation through factorial moments of split counts.
+
+\begin{definitionv}{def:empirical-ratio-estimator}[Empirical-ratio estimator \(\widehat V_{n,d}^{\mathrm{ER}}\)]
+For \(x\in[d]\) and \(a\in\{0,1\}\), define the empirical counts
+\[
+\overline N_x
+=
+\sum_{i=1}^n \mathbf 1\{X_i=x\},
+\qquad
+\overline N_{ax}
+=
+\sum_{i=1}^n \mathbf 1\{X_i=x,A_i=a\},
+\]
+and
+\[
+\overline S_{ax}
+=
+\sum_{i=1}^n \mathbf 1\{X_i=x,A_i=a,Y_i=1\}.
+\]
+Set
+\[
+\widehat p_x=\frac{\overline N_x}{n},
+\qquad
+\widehat\mu_{ax}=\frac{\overline S_{ax}}{\overline N_{ax}},
+\]
+with the convention \(0/0=0\). The empirical-ratio optimal-value estimator is
+\[
+\widehat V_{n,d}^{\mathrm{ER}}
+=
+\sum_{x=1}^d \widehat p_x \max_{a\in\{0,1\}}\widehat\mu_{ax}.
+\]
+\end{definitionv}
+
+The estimator in \cref{obj:def:empirical-ratio-estimator} is the plug-in version of \cref{obj:def:observed-optimal-value}: it estimates the covariate mass and the two arm-specific success probabilities in each cell, then averages the larger fitted arm mean. This simple estimator is the bounded-alphabet branch of the main construction below.
+
+The polynomial branch uses the four binary treatment--outcome coordinates as the primitive observed atoms. Let \leanref{sym:\(\mathcal J\)}{$\mathcal J$} denote this coordinate set, and let \leanref{sym:\(\jmath\)}{$\jmath$} denote a generic coordinate.
+
+\begin{definitionv}{synth_1}[Four-cell coordinate set]
+Let \(\mathcal J=\{(0,0),(0,1),(1,0),(1,1)\}\). We index each four-cell vector \(u\in\mathbb R_+^4\), observed cell vector \(q_x\), pilot count vector, evaluation count vector, and rectangle coordinate by \(\jmath=(a,y)\in\mathcal J\), with coordinates written as \(u_{\jmath}=u_{ay}\).
+\end{definitionv}
+
+With this indexing fixed, the approximation step uses a tensor Jackson polynomial. The order \leanref{sym:\(K_d\)}{$K_d$} controls the polynomial degree, while the local rectangle \leanref{sym:\(Q_x\)}{$Q_x$} centers the approximation around the pilot estimate for cell \(x\). Jackson smoothing is a standard approximation device for nonsmooth functionals \citep{DeVore1993,JiaoVenkatHanWeissman2015Functionals}.
+
+\begin{definitionv}{def:jackson-kernel}[Jackson polynomial \(P_{x,K_d}\)]
+For an integer \(K_d\ge 2\), define the order-four Jackson kernel on \([-\pi,\pi]\) by
+\[
+J_{K_d}(t)
+=
+c_{K_d}
+\left\{
+\frac{\sin(K_dt/2)}{\sin(t/2)}
+\right\}^{4},
+\]
+with removable values filled continuously and normalizing constant \(c_{K_d}\) chosen so that
+\[
+\int_{-\pi}^{\pi} J_{K_d}(t)\,dt=1.
+\]
+For a rectangle
+\[
+Q_x
+=
+\prod_{\jmath\in\mathcal J}
+[\ell_{\jmath,x},u_{\jmath,x}],
+\]
+define its coordinate centers and radii by
+\[
+b_{\jmath,x}
+=
+\frac{\ell_{\jmath,x}+u_{\jmath,x}}{2},
+\qquad
+r_{\jmath,x}
+=
+\frac{u_{\jmath,x}-\ell_{\jmath,x}}{2}.
+\]
+The associated tensor polynomial \(P_{x,K_d}\) is defined by the even product convolution
+\[
+P_{x,K_d}(b_x+r_x\odot\cos\theta)
+=
+\int_{[-\pi,\pi]^4}
+\bar f_\epsilon\{b_x+r_x\odot\cos(\theta+t)\}
+\prod_{\jmath\in\mathcal J}J_{K_d}(t_{\jmath})\,dt.
+\]
+\end{definitionv}
+
+The polynomial \leanref{sym:\(P_{x,K_d}\)}{$P_{x,K_d}$} is attached to the cell-specific rectangle and approximates the same globally extended contribution \(\bar f_\epsilon\) that appears in \cref{obj:prop:identification-and-extension}. The tensor form applies one-dimensional Jackson smoothing coordinate by coordinate, which is convenient because the observed data deliver separate counts for the four atoms.
+
+The tuning constants set the local scale for this approximation and determine when the estimator uses the bounded-alphabet branch.
+
+\begin{definitionv}{synth_2}[Jackson tuning constants]
+The Jackson--factorial construction uses universal tuning constants \(H_0>0\), \(\kappa\in(0,1)\), and an integer cutoff \(D_0>2\). The constant \(H_0\) sets the pilot half-widths \(h_{\jmath,x}=H_0\{\sqrt{c_{\jmath,x}L_d/m}+L_d/m\}\), the constant \(\kappa\) sets the Jackson degree \(K_d=\max\{2,\lfloor\kappa L_d\rfloor\}\), and \(D_0\) separates the bounded-alphabet empirical-ratio branch \(d<D_0\) from the Jackson branch.
+\end{definitionv}
+
+Here \leanref{sym:\(H_0\)}{$H_0$} inflates the pilot rectangles, \leanref{sym:\(\kappa\)}{$\kappa$} fixes the degree as a multiple of the logarithmic alphabet scale \leanref{sym:\(L_d\)}{$L_d$}, and \leanref{sym:\(D_0\)}{$D_0$} reserves small alphabets for the empirical-ratio estimator. These constants are universal in the construction; the final risk constant may depend on the fixed overlap parameter.
+
+The full estimator combines pilot localization, factorial-moment evaluation, clipping, projection, and Rao--Blackwellization. The auxiliary Poisson count \leanref{sym:\(M\)}{$M$} and marks \leanref{sym:\(B_i\)}{$B_i$} create conditionally independent pilot and evaluation counts, and the final conditional expectation returns an estimator based on all observed data.
+
+\begin{algorithmv}{def:jackson-factorial-estimator}[Jackson-factorial estimator \(\widehat V_{n,d}^{\mathrm{JF}}\)]
+The inputs are \(O_1,\ldots,O_n\), the alphabet size \(d\), and tuning constants \(D_0\), \(\kappa\), and \(H_0\).
+
+\begin{enumerate}
+\item Define the logarithmic scale, Poissonized scale, and polynomial degree by
+\[
+L_d=\log(ed),
+\qquad
+m=\frac n8,
+\qquad
+K_d=\max\{2,\lfloor \kappa L_d\rfloor\}.
+\]
+
+\item If \(d<D_0\), output
+\[
+\widehat V_{n,d}^{\mathrm{JF}}
+=
+\widehat V_{n,d}^{\mathrm{ER}}.
+\]
+If \(d\ge D_0\) and \(n<d/L_d\), output
+\[
+\widehat V_{n,d}^{\mathrm{JF}}
+=
+\frac12.
+\]
+
+\item In the remaining case, draw
+\[
+M\sim\operatorname{Pois}(n/4).
+\]
+On the event \(M>n\), set
+\[
+\widetilde V=0.
+\]
+
+\item On the event \(M\le n\), draw independent marks
+\[
+B_i\sim\operatorname{Bernoulli}(1/2),
+\qquad i=1,\ldots,M.
+\]
+For each \(x\in[d]\) and coordinate \(\jmath\in\mathcal J\), define pilot and evaluation counts
+\[
+N'_{\jmath,x}
+=
+\sum_{i=1}^M B_i\,\mathbf 1\{O_i\text{ belongs to coordinate }\jmath\text{ in cell }x\},
+\]
+and
+\[
+N_{\jmath,x}
+=
+\sum_{i=1}^M (1-B_i)\,\mathbf 1\{O_i\text{ belongs to coordinate }\jmath\text{ in cell }x\}.
+\]
+
+\item Define pilot frequencies and rectangle half-widths by
+\[
+c_{\jmath,x}
+=
+\frac{N'_{\jmath,x}}{m},
+\qquad
+h_{\jmath,x}
+=
+H_0
+\left\{
+\sqrt{\frac{c_{\jmath,x}L_d}{m}}
++
+\frac{L_d}{m}
+\right\}.
+\]
+Set
+\[
+\ell_{\jmath,x}
+=
+\max\{0,c_{\jmath,x}-h_{\jmath,x}\},
+\qquad
+u_{\jmath,x}
+=
+c_{\jmath,x}+h_{\jmath,x},
+\]
+and
+\[
+Q_x
+=
+\prod_{\jmath\in\mathcal J}
+[\ell_{\jmath,x},u_{\jmath,x}].
+\]
+Let \(b_x\) and \(r_x\) denote the vector of coordinate centers and coordinate radii of \(Q_x\).
+
+\item Expand the local polynomial as
+\[
+P_{x,K_d}(v)-\bar f_\epsilon(b_x)
+=
+\sum_\alpha
+b_{x,\alpha}
+\left(\frac{v-b_x}{r_x}\right)^\alpha .
+\]
+For \(h\ge 0\), define the centered factorial lift
+\[
+U_h(N;z)
+=
+\sum_{t=0}^h
+\binom ht
+(-z)^{h-t}
+\frac{(N)_t}{m^t}.
+\]
+
+\item Define the clipping scale
+\[
+S_x
+=
+(1+\epsilon^{-1})
+\sum_{\jmath\in\mathcal J} r_{\jmath,x},
+\]
+the unprojected cell estimate
+\[
+Z_x
+=
+\bar f_\epsilon(b_x)
++
+\sum_\alpha
+b_{x,\alpha}
+\prod_{\jmath\in\mathcal J}
+\frac{
+U_{\alpha_{\jmath}}(N_{\jmath,x};b_{\jmath,x})
+}{
+r_{\jmath,x}^{\alpha_{\jmath}}
+},
+\]
+and the clipped cell estimate
+\[
+T_x^{\mathrm{JF}}
+=
+\Pi_{
+[\bar f_\epsilon(b_x)-d^{1/4}S_x,\,
+ \bar f_\epsilon(b_x)+d^{1/4}S_x]
+}
+(Z_x).
+\]
+
+\item Define the randomized projected aggregate by
+\[
+\widetilde V
+=
+\Pi_{[0,1]}
+\left(
+\sum_{x=1}^d T_x^{\mathrm{JF}}
+\right).
+\]
+The all-data Rao--Blackwellized estimator is
+\[
+\widehat V_{n,d}^{\mathrm{JF}}
+=
+E\!\left[
+\widetilde V
+\mid
+O_1,\ldots,O_n
+\right],
+\]
+where the conditional expectation integrates only the auxiliary Poisson count \(M\) and marks \(B_1,\ldots,B_M\).
+\end{enumerate}
+\end{algorithmv}
+
+The pilot counts \leanref{sym:\(N'_{\jmath,x}\)}{$N'_{\jmath,x}$} determine a local rectangle around the observed atom mass in each coordinate, and the evaluation counts \leanref{sym:\(N_{\jmath,x}\)}{$N_{\jmath,x}$} enter the centered factorial lift \leanref{sym:\(U_h(N;z)\)}{$U_h(N;z)$}. The clipped statistic \leanref{sym:\(T_x^{\mathrm{JF}}\)}{$T_x^{\mathrm{JF}}$} keeps each local estimate on the Lipschitz scale supplied by \cref{obj:prop:identification-and-extension}. The aggregate estimator \leanref{sym:\(\widehat V_{n,d}^{\mathrm{JF}}\)}{$\widehat V_{n,d}^{\mathrm{JF}}$} is the Rao--Blackwellized version of the randomized construction, so the auxiliary randomization is integrated out conditional on the observed sample.
+
+For the pointwise statement of the upper bound, we use the following fixed-law squared risk notation.
+
+\begin{definitionv}{synth_3}[Fixed-law squared risk]
+For an estimator \(\widehat V\) based on \(O_1,\ldots,O_n\) and an observed law \(\mathbb P\in\mathcal D_{d,\epsilon}^{\mathrm{obs}}\), define \[ \operatorname{Risk}_{\mathbb P}(\widehat V,\Psi):=E_{\mathbb P}\left[\left\{\widehat V(O_1,\ldots,O_n)-\Psi(\mathbb P)\right\}^2\right], \] where the expectation is under the i.i.d. product law with common one-unit law \(\mathbb P\).
+\end{definitionv}
+
+The notation in \cref{obj:synth_3} is the fixed-law counterpart of the minimax criterion in \cref{obj:def:minimax-risk}. It isolates the squared risk at one observed law before taking the supremum over the fixed-overlap class.
+
+\begin{theoremv}{thm:jackson-factorial-upper}[Jackson factorial risk bound]
+Assume the sampling condition in \cref{obj:ass:iid-sampling}: for every alphabet size \(d\), sample size \(n\), and observed finite law \(\mathbb P\), the sample law is the canonical i.i.d. product law generated by \(\mathbb P\).
+
+Then there exist tuning constants \(H_0>0\), \(\kappa\in(0,1)\), and an integer cutoff \(D_0>2\) such that the Jackson factorial estimator \(\widehat V_{n,d}^{\mathrm{JF}}\) of \cref{obj:def:jackson-factorial-estimator} satisfies the following guarantee whenever:
+\begin{itemize}
+\item \textbf{(Overlap.)} The overlap constant \(\epsilon\) satisfies \(0<\epsilon<1/2\).
+\item \textbf{(Sample size.)} The sample size satisfies \(n\ge 1\).
+\item \textbf{(Alphabet size.)} The alphabet size satisfies \(d\ge 2\).
+\item \textbf{(Observed model.)} The observed law \(\mathbb P\) belongs to \(\mathcal D_{d,\epsilon}^{\mathrm{obs}}\) as in \cref{obj:def:observed-model-class}.
+\end{itemize}
+For every such \(\epsilon\), there is a constant \(C_\epsilon>0\) such that, for every such \(n,d\), and \(\mathbb P\),
+\[
+\operatorname{Risk}_{\mathbb P}
+\left(\widehat V_{n,d}^{\mathrm{JF}},\Psi\right)
+\le
+C_\epsilon \min\left\{1,\frac{d}{n\log(ed)}\right\}.
+\]
+Here \(\Psi(\mathbb P)\) is the observed-law optimal-regression value of \cref{obj:def:observed-optimal-value}.
+\end{theoremv}
+
+\Cref{obj:thm:jackson-factorial-upper} gives a finite-sample uniform risk bound over the full observed-law model under fixed overlap. The constant \leanref{sym:\(C_\epsilon\)}{$C_\epsilon$} may depend on the overlap level, while the dependence on \(n\) and \(d\) is explicit. The estimator therefore attains the logarithmically improved scale \(d/\{n\log(ed)\}\) until the natural bounded range of the value makes the constant risk bound active.
+
+The bound reflects two complementary features of the construction. Local Jackson approximation handles the nonsmooth maximum in \(\bar f_\epsilon\), including cells near ties, while the factorial lift evaluates the resulting polynomial using atom counts whose Poisson splitting separates localization from evaluation. Clipping and projection keep the aggregate on the scale implied by \(0\leq\Psi(\mathbb P)\leq1\), and Rao--Blackwellization converts the randomized construction into the all-data estimator used in the fixed-sample guarantee.

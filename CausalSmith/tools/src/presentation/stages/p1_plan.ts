@@ -2,7 +2,7 @@ import { MODELS } from "../../models.js";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { StageIO } from "../pipeline.js";
-import { PRESENTATION_PROSE_POLICY_VERSION, presentationPrompt, promptFingerprint } from "../prompt_io.js";
+import { PRESENTATION_PROSE_POLICY_VERSION, presentationPrompt } from "../prompt_io.js";
 import { parseOutline, unwrapArtifact, lintMainBodyDependencies, type Outline } from "../stage_util.js";
 import {
   lintAnchors,
@@ -43,6 +43,24 @@ import { loadBankNarrative } from "../bank.js";
 import { discoverRealizedSymbols, buildSymbolClusters } from "../../formalization/crosswalk.js";
 import { buildModuleDeclIndex } from "../components.js";
 import { resolveSymbolHomes, type SymbolLeanHome } from "../synth_lean_match.js";
+
+/** P1 statement-render standard — opaque version token for the render cache key.
+ *  Initial value is the fingerprint the key carried on 2026-09-12 so existing caches stay warm;
+ *  bump to any new literal only when the standard tightens (a cached render under the old
+ *  standard would be wrong); prompt wording and code changes never bump it. */
+export const P1_RENDER_STANDARD = "43fd68ad7f448930e385855cbf35d92052547b7011acbca428d017628a306959";
+
+/** P1 notation-check standard — opaque version token for the notation cache key.
+ *  Initial value is the fingerprint the key carried on 2026-09-12 so existing caches stay warm;
+ *  bump to any new literal only when the standard tightens (a cached verdict under the old
+ *  standard would be wrong); prompt wording and code changes never bump it. */
+export const P1_NOTATION_STANDARD = "ad823da5e4844c7a4b763abca1763a7b9c51cfecf3e9c0a49b23a10526a1bbdc";
+
+/** P1 definition-synthesis standard — opaque version token for the synthesis cache key.
+ *  Initial value is the fingerprint the key carried on 2026-09-12 so existing caches stay warm;
+ *  bump to any new literal only when the standard tightens (a cached synthesis under the old
+ *  standard would be wrong); prompt wording and code changes never bump it. */
+export const P1_SYNTH_STANDARD = "5bd102991da5885a907c409dfec19d0458cffb5643bbca9f0198ca79aa76c5da";
 
 const OPEN_DIRECTION_RE = /\b(?:open (?:question|problem|direction)|unresolved (?:question|issue)|remains? (?:open|unknown|unresolved)|remain(?:s)? to (?:be )?(?:shown|determined|understood|resolved)|ask(?:s|ed)? whether|question (?:is|of) whether|future work|further work|future research|next step|worth (?:investigating|studying)|natural (?:question|direction|extension|strengthening))\b/i;
 const ASSERTED_RESULT_RE = /\b(?:(?:we|this (?:paper|work)|our (?:paper|work|result|analysis))\s+(?:prove|proves|establish|establishes|show|shows|derive|derives|demonstrate|demonstrates)|(?:theorem|corollary|proposition|our result)\b[^.!?]{0,100}\b(?:prove|proves|establish|establishes|show|shows|imply|implies)|it follows that|we conclude that|is established here|has been proved)\b/i;
@@ -419,13 +437,14 @@ export async function stageP1(io: StageIO): Promise<void> {
   const candidates = cache.candidates ??= {};
   const saveCache = () => writeJsonAtomic(cachePath, cache); // why: a crash mid-write must not corrupt the cache (next run would throw on parse).
 
-  // Model + prompt fingerprints: hashing the actual prompt templates into each cache key
-  // makes prompt edits self-invalidating. One fingerprint PER CONSUMER (render / notation / synthesis), so editing one prompt does not needlessly cold the others.
-  const promptFp = promptFingerprint;
+  // Model + STANDARD tokens: each cache key carries the standard the cached artifact was
+  // produced under, one token PER CONSUMER (render / notation / synthesis), so tightening one
+  // standard does not cold the others. The tokens are hand-bumped; prompt wording and code
+  // edits never re-buy a cached render, notation check or synthesis.
   const modelKeyBase = `${io.ctx.deps.codexModel ?? "unspecified-codex-model"}|${PRESENTATION_PROSE_POLICY_VERSION}`;
-  const renderModelKey = `${modelKeyBase}|${await promptFp("p1_touchup", "p1_render_from_lean")}`;
-  const notationModelKey = `${MODELS.codexNotationCheck}|${PRESENTATION_PROSE_POLICY_VERSION}|${await promptFp("p1_notation_check")}`; // the model the call actually uses
-  const synthModelKey = `${modelKeyBase}|${await promptFp("p1_synthesize_definition")}`;
+  const renderModelKey = `${modelKeyBase}|${P1_RENDER_STANDARD}`;
+  const notationModelKey = `${MODELS.codexNotationCheck}|${PRESENTATION_PROSE_POLICY_VERSION}|${P1_NOTATION_STANDARD}`; // the model the call actually uses
+  const synthModelKey = `${modelKeyBase}|${P1_SYNTH_STANDARD}`;
 
   // ── Outline (codex): structure + notation table over the mechanical layer. A valid existing
   // outline.md is REUSED (structure must not silently change on a re-run); `validateOutline`

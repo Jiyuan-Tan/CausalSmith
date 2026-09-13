@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { equivalenceAuditKey, proofAuditCacheKey, proofAuditSemanticNotation } from "../src/presentation/audit.js";
+import { PROOF_AUDIT_STANDARD, equivalenceAuditKey, proofAuditCacheKey, proofAuditSemanticNotation } from "../src/presentation/audit.js";
+import { RUBRIC_STANDARD } from "../src/presentation/stages/p3_gates.js";
+import { SLIDES_STANDARD } from "../src/presentation/stages/p6_slides.js";
+import { P1_RENDER_STANDARD, P1_NOTATION_STANDARD, P1_SYNTH_STANDARD } from "../src/presentation/stages/p1_plan.js";
 import { sectionCacheKey, proofRenderCacheKey, frontMatterCacheKey } from "../src/presentation/stages/p2_draft.js";
 import { hashEnvBody } from "../src/presentation/tex_anchors.js";
 import { PRESENTATION_PROSE_POLICY_VERSION } from "../src/presentation/prompt_io.js";
@@ -50,9 +53,26 @@ describe("cache key formulas are byte-stable", () => {
   it("proofAuditCacheKey (proof_audit_cache.json) — layout pin", () => {
     // Layout changed 2026-09-09: `targetStatement` dropped (the closure-keyed formalContext carries
     // the target) — rows under the old layout are honoured and re-stamped by runProofAudit.
-    const parts = { proofTex: "P", leanPointer: "L", leanProofCacheSource: "S", notationTable: "| a | b | c | d |", auditPromptFp: "F", formalContext: "C" };
+    // Layout changed 2026-09-12: the prompt fingerprint slot became the hand-bumped
+    // PROOF_AUDIT_STANDARD, initialised to that same fingerprint so the key bytes are unchanged.
+    const parts = { proofTex: "P", leanPointer: "L", leanProofCacheSource: "S", notationTable: "| a | b | c | d |", formalContext: "C" };
     expect(proofAuditCacheKey(parts)).toBe(
-      hashEnvBody(`${PRESENTATION_PROSE_POLICY_VERSION}|F|C|P|L|S|${proofAuditSemanticNotation(parts.notationTable)}`),
+      hashEnvBody(`${PRESENTATION_PROSE_POLICY_VERSION}|${PROOF_AUDIT_STANDARD}|C|P|L|S|${proofAuditSemanticNotation(parts.notationTable)}`),
     );
+  });
+
+  // The P3 rubric and P6 slides keys hash these tokens in the slot that used to hold a prompt
+  // fingerprint; both are frozen at that fingerprint's 2026-09-12 value so existing caches stay warm.
+  // P1's three model keys hash these tokens in the slot that used to hold a prompt fingerprint;
+  // each is frozen at that call's 2026-09-12 fingerprint so existing p1_cache.json rows stay warm.
+  it("P1 render / notation / synthesis standards are pinned", () => {
+    expect(P1_RENDER_STANDARD).toBe("43fd68ad7f448930e385855cbf35d92052547b7011acbca428d017628a306959");
+    expect(P1_NOTATION_STANDARD).toBe("ad823da5e4844c7a4b763abca1763a7b9c51cfecf3e9c0a49b23a10526a1bbdc");
+    expect(P1_SYNTH_STANDARD).toBe("5bd102991da5885a907c409dfec19d0458cffb5643bbca9f0198ca79aa76c5da");
+  });
+
+  it("P3 rubric / P6 slides standards are pinned", () => {
+    expect(RUBRIC_STANDARD).toBe("3625b12a1967d679399c6cd20ba43f04cadbb7d077aa6483b343657c66a6d501");
+    expect(SLIDES_STANDARD).toBe("55c0b01b56ba5cfc1c463b44b904263d5f596dd0d2c47deb6c5f2ea653e6dc17");
   });
 });

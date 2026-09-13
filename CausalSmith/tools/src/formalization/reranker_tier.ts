@@ -2,6 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { pythonArgs } from "../shared/python.js";
 
 /**
  * Phase 2c cross-encoder reranker — TS surface. The heavy model lives behind the warm
@@ -54,7 +55,9 @@ export function rerankBatch(reqs: RerankRequest[], timeoutMs = 300_000): number[
   if (!fs.existsSync(script)) return null;
   const out = path.join(os.tmpdir(), `rerank_${process.pid}_${reqs.length}.json`);
   try {
-    execFileSync("python3", [script, "--out", out], {
+    // `python3` is not a program name on Windows; a throw here is caught below → no rerank.
+    const [bin, argv] = pythonArgs(script, ["--out", out]);
+    execFileSync(bin, argv, {
       input: reqs.map((r) => JSON.stringify({ query: r.query.replace(/\r?\n/g, " "), names: r.names })).join("\n"),
       timeout: timeoutMs,
       maxBuffer: 64 * 1024 * 1024,
